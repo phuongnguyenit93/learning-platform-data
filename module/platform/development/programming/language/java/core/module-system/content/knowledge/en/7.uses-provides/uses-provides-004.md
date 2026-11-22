@@ -1,21 +1,21 @@
-# ServiceLoader tìm provider theo module graph
+# ServiceLoader Discovers Providers via the Module Graph
 
-Trong Java, một ứng dụng có thể cần sử dụng một dịch vụ mà không muốn phụ thuộc trực tiếp vào lớp triển khai cụ thể. Ví dụ, ứng dụng cần mã hóa dữ liệu nhưng có thể chọn giữa nhiều bộ mã hóa; một hệ thống thanh toán có thể thay đổi cổng thanh toán; hoặc ứng dụng cần tìm các plugin được cài đặt ở runtime.
+In Java, an application may need to use a service without wanting to depend directly on a concrete implementation class. For example, an application may need to encode data while choosing among multiple encoders; a payment system may switch payment gateways; or an application may discover plugins installed at runtime.
 
-Java cung cấp `ServiceLoader` để tìm và khởi tạo các implementation của một service. Khi dùng Java Platform Module System (JPMS), cơ chế này kết hợp với hai directive trong module descriptor:
+Java provides `ServiceLoader` to locate and instantiate implementations of a service. When using the Java Platform Module System (JPMS), this mechanism works with two directives in the module descriptor:
 
-- `uses` khai báo module tiêu thụ cần một service.
-- `provides ... with ...` khai báo module cung cấp implementation của service.
+- `uses` declares that a consuming module needs a service.
+- `provides ... with ...` declares that a module provides an implementation of a service.
 
-Các directive này giúp module system biết quan hệ dịch vụ. Quá trình resolution có thể dùng thông tin đó để đưa provider module vào module graph. Sau khi các module đã được định nghĩa trong một `ModuleLayer`, `ServiceLoader` mới tìm và khởi tạo provider trong phạm vi loader hoặc layer được chỉ định.
+These directives inform the module system of service relationships. Resolution can use that information to bring provider modules into the module graph. Once modules have been defined in a `ModuleLayer`, `ServiceLoader` locates and instantiates providers within the specified loader or layer scope.
 
-## 1. Service, provider và ServiceLoader
+## 1. Service, Provider, and ServiceLoader
 
-Một **service** là một kiểu được ứng dụng biết trước, thường là interface hoặc abstract class. Service định nghĩa hợp đồng mà các implementation phải tuân theo.
+A **service** is a type known in advance to the application, usually an interface or an abstract class. The service defines the contract that implementations must adhere to.
 
-Một **provider** là implementation cụ thể của service. Một service có thể có không, một hoặc nhiều provider. Ứng dụng chỉ cần biết service interface; nó không nhất thiết phải biết provider được đóng gói trong JAR nào hoặc nằm trong module nào.
+A **provider** is a concrete implementation of a service. A service may have zero, one, or multiple providers. The application only needs to know the service interface; it does not necessarily need to know which JAR packages the provider or which module contains it.
 
-Ví dụ, service mô tả bộ chuyển đổi định dạng:
+For example, a service describing a format converter:
 
 ```java
 package com.example.codec.api;
@@ -26,9 +26,9 @@ public interface Codec {
 }
 ```
 
-Các provider có thể là bộ mã hóa JSON, XML hoặc định dạng nhị phân. Mỗi provider triển khai cùng hợp đồng nhưng có cách xử lý riêng.
+Providers might be JSON, XML, or binary encoders. Each provider implements the same contract with its own handling logic.
 
-`ServiceLoader` là API trong `java.util` dùng để tìm provider có sẵn trong môi trường runtime:
+`ServiceLoader` is an API in `java.util` used to locate providers available in the runtime environment:
 
 ```java
 ServiceLoader<Codec> codecs =
@@ -39,17 +39,17 @@ for (Codec codec : codecs) {
 }
 ```
 
-Ứng dụng duyệt các provider mà loader tìm được. Nó có thể chọn provider dựa trên đặc tính của provider, cấu hình ứng dụng hoặc yêu cầu nghiệp vụ. Không nên giả định rằng luôn có ít nhất một provider; ứng dụng cần xử lý trường hợp không tìm thấy provider phù hợp.
+The application iterates over the providers found by the loader. It can select a provider based on provider characteristics, application configuration, or business requirements. You should not assume there is always at least one provider; the application needs to handle the case where no suitable provider is found.
 
-## 2. Hai phía của service trong JPMS
+## 2. Two Sides of a Service in JPMS
 
-Một mô hình service modular có ba thành phần:
+A modular service model has three components:
 
-1. Module chứa service interface.
-2. Module tiêu thụ service.
-3. Một hoặc nhiều module cung cấp provider.
+1. The module containing the service interface.
+2. The module consuming the service.
+3. One or more modules supplying providers.
 
-Ví dụ cấu trúc:
+Example structure:
 
 ```text
 codec-api/
@@ -65,11 +65,11 @@ codec-json/
     └── com.example.codec.json.JsonCodec
 ```
 
-Service interface nên nằm trong package mà module tiêu thụ có thể truy cập. Module provider phụ thuộc vào module chứa service để triển khai đúng kiểu interface.
+The service interface should reside in a package accessible to the consuming module. The provider module depends on the module containing the service in order to implement the exact interface type.
 
-### 2.1. Module service công khai interface
+### 2.1. Service Module Exposing the Interface
 
-Descriptor của module API:
+API module descriptor:
 
 ```java
 module com.example.codec.api {
@@ -77,11 +77,11 @@ module com.example.codec.api {
 }
 ```
 
-Directive `exports` cho phép module khác tham chiếu kiểu `Codec` theo quy tắc truy cập Java thông thường.
+The `exports` directive allows other modules to reference the `Codec` type under standard Java access rules.
 
-### 2.2. Module tiêu thụ khai báo uses
+### 2.2. Consuming Module Declaring uses
 
-Descriptor của ứng dụng:
+Application descriptor:
 
 ```java
 module com.example.application {
@@ -91,16 +91,16 @@ module com.example.application {
 }
 ```
 
-Hai directive có vai trò khác nhau:
+The two directives have different roles:
 
-- `requires com.example.codec.api` cho phép module application đọc module chứa service interface.
-- `uses com.example.codec.api.Codec` khai báo rằng application cần tìm provider cho service này.
+- `requires com.example.codec.api` allows the application module to read the module containing the service interface.
+- `uses com.example.codec.api.Codec` declares that the application needs to locate providers for this service.
 
-Một module named dùng `ServiceLoader` phải khai báo `uses` cho service tương ứng. Nếu thiếu directive này, việc lấy hoặc sử dụng service loader từ module tường minh có thể thất bại với `ServiceConfigurationError`.
+A named module using `ServiceLoader` must declare `uses` for the corresponding service. Without this directive, obtaining or using a service loader from an explicit module may fail with a `ServiceConfigurationError`.
 
-### 2.3. Module provider khai báo provides
+### 2.3. Provider Module Declaring provides
 
-Descriptor của provider JSON:
+JSON provider descriptor:
 
 ```java
 module com.example.codec.json {
@@ -111,9 +111,9 @@ module com.example.codec.json {
 }
 ```
 
-Directive `provides` xác định service được cung cấp và lớp provider tương ứng.
+The `provides` directive identifies the service being supplied and the corresponding provider class.
 
-Lớp triển khai:
+Implementation class:
 
 ```java
 package com.example.codec.json;
@@ -128,36 +128,36 @@ public final class JsonCodec implements Codec {
 
     @Override
     public byte[] encode(byte[] input) {
-        // Minh họa: phần mã hóa thực tế phụ thuộc định dạng.
+        // Illustration: actual encoding depends on the format.
         return input.clone();
     }
 }
 ```
 
-Module provider cần đọc module chứa interface để biên dịch implementation. Package chứa lớp provider không cần export chỉ để `ServiceLoader` tìm provider đã khai báo trong descriptor. Thực tế, tài liệu Java khuyến nghị module provider không export package triển khai nếu không có API khác cần công khai.
+The provider module needs to read the module containing the interface in order to compile the implementation. The package containing the provider class does not need to be exported just for `ServiceLoader` to locate the provider declared in the descriptor. In fact, Java documentation recommends that provider modules not export their implementation packages unless there is another API that needs to be made public.
 
-## 3. Module graph liên quan gì đến việc tìm provider?
+## 3. How Does the Module Graph Relate to Finding Providers?
 
-Module graph là đồ thị biểu diễn các module đã được phân giải và quan hệ đọc giữa chúng. Các directive `requires` tạo dependency thông thường. Với service, JPMS có thêm thông tin từ `uses` và `provides` để thực hiện **service binding** trong quá trình resolution.
+The module graph represents resolved modules and the readability relationships among them. `requires` directives create regular dependencies. For services, JPMS uses additional information from `uses` and `provides` to perform **service binding** during resolution.
 
-Cần tách ba việc:
+Three steps should be distinguished:
 
-1. **ModuleFinder tìm module có thể quan sát:** ví dụ các modular JAR nằm trên module path.
-2. **Resolution xây dựng configuration:** từ các root module, hệ thống theo các directive `requires` để xác định module cần thiết và khả năng đọc.
-3. **Service binding có thể bổ sung provider module:** nếu các module đã phân giải khai báo `uses`, hệ thống tìm module có `provides` service tương ứng, đưa provider module và dependency của nó vào configuration, rồi tiếp tục kiểm tra các service dependency mới phát sinh.
+1. **ModuleFinder locates observable modules:** for example, modular JARs on the module path.
+2. **Resolution builds a configuration:** starting from root modules, the system follows `requires` directives to determine needed modules and readability.
+3. **Service binding can add provider modules:** if resolved modules declare `uses`, the system locates modules with matching `provides` for that service, adds those provider modules and their dependencies to the configuration, and continues checking for any newly introduced service dependencies.
 
-Vì vậy, `provides` tự nó không phải lệnh tải và khởi tạo provider. Nó ghi metadata cho biết module nào có thể cung cấp implementation. Provider phải được tìm thấy và hiện diện trong module layer hoặc phạm vi class loader mà `ServiceLoader` sử dụng.
+Therefore, `provides` by itself is not a command to load and instantiate a provider. It records metadata indicating which module can supply an implementation. The provider must be observable and present in the module layer or class loader scope used by `ServiceLoader`.
 
-### 3.1. Resolution thông thường và resolution có service binding
+### 3.1. Regular Resolution vs. Resolution with Service Binding
 
-API `java.lang.module.Configuration` có hai phương thức thường được nhắc đến:
+The `java.lang.module.Configuration` API has two commonly mentioned methods:
 
-- `resolve(...)` phân giải các module theo quan hệ dependency `requires`.
-- `resolveAndBind(...)` thực hiện resolution kèm service binding.
+- `resolve(...)` resolves modules based on `requires` dependency relationships.
+- `resolveAndBind(...)` performs resolution with service binding.
 
-`resolveAndBind` trước tiên phân giải các root module như resolution thông thường. Sau đó, nó xem xét service dependency của các module đã phân giải và các parent configuration. Những module có thể quan sát và cung cấp implementation cho service được yêu cầu sẽ được bổ sung vào module graph. Quá trình lặp lại nếu provider module mới lại sử dụng service khác.
+`resolveAndBind` first resolves root modules like standard resolution. Then, it examines service dependencies of the resolved modules and parent configurations. Observable modules that provide implementations for requested services are added to the module graph. The process repeats if newly added provider modules themselves use other services.
 
-Mô tả khái quát:
+High-level overview:
 
 ```text
 Root modules
@@ -181,15 +181,15 @@ Check new service dependencies
 Final Configuration / module graph
 ```
 
-Đây là cơ sở để provider module có thể được đưa vào cấu hình runtime mà module tiêu thụ không cần khai báo `requires` trực tiếp tới từng provider.
+This is how provider modules can be brought into the runtime configuration without the consuming module declaring direct `requires` to each provider.
 
-Nếu chỉ dùng resolution thông thường, một module không được đưa vào configuration chỉ vì nó có `provides`. Khi đó, `ServiceLoader` không thể tìm provider từ module chưa được định nghĩa trong layer mà loader đang tìm kiếm.
+If only regular resolution is used, a module is not included in the configuration solely because it has `provides`. In that case, `ServiceLoader` cannot locate providers from a module not defined in the layer being searched.
 
-## 4. Vì sao ứng dụng không nên requires trực tiếp provider?
+## 4. Why Should an Application Not Directly require Providers?
 
-Một lợi ích quan trọng của service binding là tách module tiêu thụ khỏi module triển khai.
+A key benefit of service binding is decoupling the consuming module from implementation modules.
 
-Giả sử application khai báo:
+Suppose the application declares:
 
 ```java
 module com.example.application {
@@ -198,57 +198,57 @@ module com.example.application {
 }
 ```
 
-Nếu application còn khai báo:
+If the application also declares:
 
 ```java
 requires com.example.codec.json;
 ```
 
-thì application đã phụ thuộc trực tiếp vào một provider cụ thể. Khi thay JSON bằng XML hoặc cài thêm provider khác, module tiêu thụ có thể phải thay đổi descriptor và build configuration.
+then the application depends directly on a specific provider. When replacing JSON with XML or installing additional providers, the consuming module may have to change its descriptor and build configuration.
 
-Thiết kế service thường khuyến nghị module tiêu thụ:
+Service design generally recommends that consuming modules:
 
-- Yêu cầu module API chứa service interface.
-- Khai báo `uses` cho service.
-- Không yêu cầu trực tiếp các module chỉ đóng vai trò provider, nếu mục tiêu là để service binding tìm provider.
+- Require the API module containing the service interface.
+- Declare `uses` for the service.
+- Avoid directly requiring modules that act solely as providers, if the goal is for service binding to discover providers.
 
-Cách này giữ dependency chính ở abstraction. Provider có thể được thêm, thay thế hoặc lựa chọn theo môi trường triển khai mà không cần biến từng implementation thành dependency trực tiếp của application.
+This keeps primary dependencies on the abstraction. Providers can be added, replaced, or selected per deployment environment without making each implementation a direct dependency of the application.
 
-Điều đó không có nghĩa provider tự xuất hiện từ bất kỳ nơi nào. Provider module vẫn phải có thể được tìm thấy, được đưa vào configuration/layer phù hợp và đáp ứng đúng service contract.
+That does not mean providers magically appear from anywhere. Provider modules must still be discoverable, included in the appropriate configuration/layer, and satisfy the service contract.
 
-## 5. ServiceLoader tìm provider trong ModuleLayer
+## 5. ServiceLoader Locating Providers in a ModuleLayer
 
-`ModuleLayer` là lớp runtime chứa một tập hợp module đã được định nghĩa từ một `Configuration`. Một ứng dụng có thể có boot layer và tạo thêm layer con để tải plugin hoặc nhóm module độc lập.
+`ModuleLayer` is the runtime class holding a set of modules defined from a `Configuration`. An application can have a boot layer and create additional child layers to load plugins or independent module groups.
 
-Có hai cách sử dụng `ServiceLoader` đáng chú ý:
+There are two notable ways to use `ServiceLoader`:
 
-**Dùng class loader hiện tại**
+**Using the current class loader**
 
 ```java
 ServiceLoader<Codec> codecs =
         ServiceLoader.load(Codec.class);
 ```
 
-Overload này dùng context class loader của thread hiện tại. Việc tìm provider bao gồm các named module liên quan tới class loader/module layer và provider trong unnamed module thông qua file cấu hình service trên classpath.
+This overload uses the current thread's context class loader. Provider lookup covers named modules associated with the class loader/module layer as well as providers in the unnamed module via service configuration files on the classpath.
 
-Nếu caller nằm trong explicit named module, descriptor của caller phải có `uses` cho service.
+If the caller resides in an explicit named module, the caller's descriptor must include `uses` for the service.
 
-**Chỉ định ModuleLayer**
+**Specifying a ModuleLayer**
 
 ```java
 ServiceLoader<Codec> codecs =
         ServiceLoader.load(pluginLayer, Codec.class);
 ```
 
-Overload này tìm provider trong module layer được truyền vào và các parent layer của nó. Nó không tìm provider trong unnamed module.
+This overload searches for providers in the passed module layer and its parent layers. It does not look for providers in the unnamed module.
 
-Cách thứ hai hữu ích khi ứng dụng tự tạo plugin layer và muốn giới hạn việc tìm provider trong đúng layer cùng hệ thống cha của layer đó.
+The second approach is useful when an application creates its own plugin layer and wants to restrict provider discovery to that layer and its ancestor hierarchy.
 
-### 5.1. Boot layer và layer con
+### 5.1. Boot Layer and Child Layers
 
-Khi JVM khởi chạy ứng dụng modular, các module nền tảng và module ứng dụng đã được định nghĩa trong các layer tương ứng; boot layer là layer khởi đầu quan trọng của ứng dụng.
+When the JVM starts a modular application, platform modules and application modules are defined in their respective layers; the boot layer is the primary initial layer of the application.
 
-Một hệ thống plugin có thể tạo layer mới từ configuration được phân giải từ thư mục plugin:
+A plugin system can create a new layer from a configuration resolved from a plugin directory:
 
 ```java
 Configuration configuration =
@@ -271,15 +271,15 @@ ServiceLoader<Codec> codecs =
         ServiceLoader.load(pluginLayer, Codec.class);
 ```
 
-Đoạn mã minh họa ý tưởng: dùng configuration có service binding, định nghĩa module thành layer con của boot layer, rồi yêu cầu `ServiceLoader` tìm service trong layer đó và các parent. Trong ứng dụng thực tế, `pluginFinder` cần được tạo từ vị trí chứa các module plugin; các module service và provider cũng phải có dependency hợp lệ.
+This snippet illustrates the idea: use a configuration with service binding, define the modules as a child layer of the boot layer, and ask `ServiceLoader` to locate services in that layer and its parents. In a real application, `pluginFinder` must be created from the location containing the plugin modules; service and provider modules must also have valid dependencies.
 
-Một layer có thể dùng một class loader chung cho tất cả module hoặc một class loader riêng cho từng module. `ServiceLoader.load(layer, service)` vẫn tìm provider trong các module của layer theo API layer, không đòi hỏi tất cả module phải dùng cùng một class loader.
+A layer can use one shared class loader for all modules or a separate class loader per module. `ServiceLoader.load(layer, service)` still locates providers across the layer's modules via the layer API, without requiring all modules to share the same class loader.
 
-## 6. Vòng đời tìm và khởi tạo provider
+## 6. Provider Discovery and Instantiation Lifecycle
 
-Tạo `ServiceLoader` không có nghĩa tất cả provider lập tức được khởi tạo. Việc tìm và khởi tạo thường diễn ra lười, khi ứng dụng duyệt kết quả.
+Creating a `ServiceLoader` does not mean all providers are immediately instantiated. Discovery and instantiation typically occur lazily as the application iterates over the results.
 
-### 6.1. Duyệt bằng iterator
+### 6.1. Iterating with an Iterator
 
 ```java
 ServiceLoader<Codec> loader =
@@ -290,9 +290,9 @@ for (Codec codec : loader) {
 }
 ```
 
-Vòng lặp gọi iterator của loader. Provider được tìm và khởi tạo khi cần lấy phần tử tiếp theo. Nếu không có provider, vòng lặp kết thúc mà không có phần tử nào.
+The loop invokes the loader's iterator. Providers are located and instantiated as the next element is requested. If there are no providers, the loop ends with zero elements.
 
-### 6.2. Dùng stream để xem provider trước khi khởi tạo
+### 6.2. Using stream to Inspect Providers Before Instantiation
 
 ```java
 ServiceLoader<Codec> loader =
@@ -305,34 +305,34 @@ loader.stream()
         .forEach(codec -> System.out.println(codec.format()));
 ```
 
-`stream()` cung cấp các đối tượng `ServiceLoader.Provider`. Ta có thể xem kiểu provider qua `type()` và lọc trước khi gọi `get()` để lấy instance.
+`stream()` yields `ServiceLoader.Provider` objects. You can inspect the provider type via `type()` and filter before calling `get()` to obtain an instance.
 
-Điều này hữu ích khi ứng dụng muốn kiểm tra metadata hoặc đặc tính của provider trước khi khởi tạo implementation. Tuy vậy, việc xử lý stream cũng có thể kích hoạt quá trình tìm và tải provider khi pipeline được thực thi.
+This is useful when an application wants to check metadata or characteristics of a provider before instantiating the implementation. However, processing the stream can still trigger provider discovery and class loading as the pipeline executes.
 
-### 6.3. Cache và reload
+### 6.3. Caching and reload
 
-Một `ServiceLoader` giữ cache các provider đã được tải. Những lần duyệt tiếp theo có thể trả lại provider đã cache trước khi tìm các provider còn lại.
+A `ServiceLoader` caches providers that have already been loaded. Subsequent iterations may return cached providers before discovering remaining providers.
 
-Nếu môi trường cho phép cài đặt provider mới trong lúc JVM đang chạy, có thể gọi:
+If the environment allows installing new providers while the JVM is running, you can call:
 
 ```java
 loader.reload();
 ```
 
-Lệnh này xóa cache để các lần duyệt sau tìm lại provider. Các iterator hoặc stream cũ nên được bỏ đi sau khi reload. Một instance `ServiceLoader` không an toàn để nhiều thread sử dụng đồng thời; nếu cần truy cập song song, ứng dụng phải tự quản lý cách chia sẻ và đồng bộ phù hợp.
+This clears the cache so that subsequent iterations rediscover providers. Existing iterators or streams should be discarded after calling reload. A `ServiceLoader` instance is not thread-safe for concurrent use by multiple threads; if concurrent access is required, the application must manage sharing and synchronization appropriately.
 
-## 7. Provider module cần tuân thủ điều kiện nào?
+## 7. What Conditions Must a Provider Module Satisfy?
 
-Với provider được khai báo trong named module:
+For a provider declared in a named module:
 
-- Directive `provides` phải chỉ rõ service type và provider type.
-- Provider type phải là kiểu hợp lệ theo quy tắc ServiceLoader và phải public, không phải inner class.
-- Nếu không có provider method, provider cần có public constructor không tham số và phải triển khai hoặc kế thừa service type.
-- Nếu có provider method, method phải là `public static`, tên `provider`, không có tham số và trả về kiểu tương thích với service. Khi đó chính provider class không nhất thiết phải triển khai service interface.
-- Module provider cần đọc module chứa service type để tham chiếu service.
-- Package triển khai provider không cần export chỉ để ServiceLoader phát hiện provider trong descriptor.
+- The `provides` directive must specify the service type and provider type.
+- The provider type must be a valid type under ServiceLoader rules and must be public, not an inner class.
+- If there is no provider method, the provider must have a public no-argument constructor and must implement or extend the service type.
+- If there is a provider method, the method must be `public static`, named `provider`, take no parameters, and return a type compatible with the service. In that case, the provider class itself does not have to implement the service interface.
+- The provider module must read the module containing the service type to reference the service.
+- The provider's implementation package does not need to be exported just for ServiceLoader to discover the provider from the descriptor.
 
-Ví dụ provider thông qua constructor:
+Example of a provider using a constructor:
 
 ```java
 public final class JsonCodec implements Codec {
@@ -351,7 +351,7 @@ public final class JsonCodec implements Codec {
 }
 ```
 
-Ví dụ provider thông qua provider method:
+Example of a provider using a provider method:
 
 ```java
 public final class JsonCodecFactory {
@@ -364,50 +364,50 @@ public final class JsonCodecFactory {
 }
 ```
 
-Descriptor có thể khai báo factory class:
+The descriptor can declare the factory class:
 
 ```java
 provides com.example.codec.api.Codec
     with com.example.codec.json.JsonCodecFactory;
 ```
 
-Provider method cho phép module kiểm soát cách tạo instance, chẳng hạn trả về implementation được cấu hình hoặc được tạo qua factory. Nếu không có provider method, ServiceLoader khởi tạo provider class thông qua public no-argument constructor.
+A provider method lets the module control instance creation, such as returning a configured implementation or one constructed via a factory. If there is no provider method, ServiceLoader instantiates the provider class via its public no-argument constructor.
 
-## 8. Provider trên classpath và provider trong named module
+## 8. Providers on the Classpath vs. Providers in Named Modules
 
-ServiceLoader hỗ trợ cả provider theo cơ chế truyền thống trên classpath và provider được khai báo trong module descriptor.
+ServiceLoader supports both traditional classpath providers and providers declared in module descriptors.
 
-| Cách triển khai | Nơi khai báo provider | Cách tìm |
+| Deployment Mode | Where Provider Is Declared | Discovery Mechanism |
 |---|---|---|
-| Provider trong named module | `provides Service with Provider` trong `module-info.java` | Theo module/class loader hoặc ModuleLayer |
-| Provider trong unnamed module trên classpath | `META-INF/services/<tên đầy đủ của service>` | Đọc file cấu hình service qua class loader |
-| Provider trong automatic module | File cấu hình service trong JAR theo quy tắc automatic module | Được tìm như named module trên module path; provider cần provider constructor |
+| Provider in a named module | `provides Service with Provider` in `module-info.java` | By module/class loader or ModuleLayer |
+| Provider in the unnamed module on the classpath | `META-INF/services/<fully qualified name of service>` | Reads service configuration file via class loader |
+| Provider in an automatic module | Service configuration file in the JAR per automatic module rules | Discovered like a named module on the module path; provider requires a constructor |
 
-Với classpath, file cấu hình có tên là tên nhị phân đầy đủ của service, nằm trong thư mục `META-INF/services`. File chứa tên đầy đủ của từng provider, mỗi tên trên một dòng.
+On the classpath, the configuration file is named after the fully qualified binary name of the service, located in the `META-INF/services` directory. The file contains the fully qualified name of each provider, one name per line.
 
-Ví dụ:
+Example:
 
 ```text
 META-INF/services/com.example.codec.api.Codec
 ```
 
-Nội dung:
+Contents:
 
 ```text
 com.example.codec.json.JsonCodec
 ```
 
-Khi JAR được dùng trên module path dưới dạng automatic module, ServiceLoader hỗ trợ provider được khai báo theo file cấu hình này, nhưng không hỗ trợ provider method trong automatic module. Provider cần có constructor phù hợp.
+When a JAR is placed on the module path as an automatic module, ServiceLoader supports providers declared via this configuration file, but does not support provider methods in automatic modules. The provider must have a suitable constructor.
 
-Với explicit named module, nên dùng directive `provides` thay cho file cấu hình truyền thống. Nếu cùng một provider được khai báo cả trong descriptor và file cấu hình, provider được triển khai trong named module sẽ không bị tính lặp từ file cấu hình.
+For explicit named modules, prefer the `provides` directive over the traditional configuration file. If the same provider is declared in both the descriptor and the configuration file, a provider deployed in a named module will not be duplicated from the configuration file.
 
-## 9. Thứ tự provider và việc lựa chọn implementation
+## 9. Provider Ordering and Choosing an Implementation
 
-ServiceLoader không phải một cơ chế tự động chọn implementation tốt nhất. Nó tìm các provider có thể quan sát được; ứng dụng quyết định dùng provider nào.
+ServiceLoader is not a mechanism that automatically selects the best implementation. It locates observable providers; the application decides which provider to use.
 
-Không nên dựa vào thứ tự giữa các module trong cùng một layer, vì thứ tự đó không được đảm bảo. Nếu một module khai báo nhiều provider cho cùng service, thứ tự provider trong descriptor được giữ khi tìm các provider của module đó, nhưng không thể suy ra một thứ tự tổng thể ổn định giữa mọi module.
+You should not rely on the ordering between modules in the same layer, as that order is not guaranteed. If a single module declares multiple providers for the same service, the order of providers in the descriptor is preserved when locating providers from that module, but you cannot infer a stable overall order across all modules.
 
-Ứng dụng nên lựa chọn rõ ràng theo đặc tính nghiệp vụ:
+The application should make an explicit choice based on business attributes:
 
 ```java
 Optional<Codec> jsonCodec =
@@ -418,52 +418,52 @@ Optional<Codec> jsonCodec =
                 .findFirst();
 ```
 
-Ví dụ trên minh họa lọc theo kiểu provider. Trong hệ thống thực tế, nên dùng metadata hoặc phương thức của service để đánh giá capability, version, thuật toán hỗ trợ hoặc chính sách cấu hình, thay vì phụ thuộc vào tên lớp.
+The snippet above illustrates filtering by provider type. In a real system, use metadata or service methods to evaluate capabilities, version, supported algorithms, or configuration policies, rather than relying on class names.
 
-Cũng cần xử lý trường hợp không có provider. Có thể dùng implementation mặc định, báo lỗi cấu hình hoặc vô hiệu hóa chức năng tùy theo yêu cầu ứng dụng.
+You should also handle the case where no provider exists. Depending on application requirements, you can fall back to a default implementation, report a configuration error, or disable the feature.
 
-## 10. Lỗi thường gặp khi tìm provider
+## 10. Common Errors When Locating Providers
 
-### Thiếu uses
+### Missing uses
 
-Nếu module tiêu thụ là explicit named module nhưng descriptor không khai báo `uses` cho service, ServiceLoader có thể ném `ServiceConfigurationError`. Hãy kiểm tra module gọi `ServiceLoader.load` và bổ sung đúng service type vào descriptor.
+If the consuming module is an explicit named module and its descriptor does not declare `uses` for the service, ServiceLoader may throw a `ServiceConfigurationError`. Check the module calling `ServiceLoader.load` and add the exact service type to its descriptor.
 
-### Provider module không được phân giải
+### Provider module is not resolved
 
-Một module có `provides` nhưng không có trong module layer mà loader đang tìm kiếm thì provider sẽ không xuất hiện trong kết quả. Hãy kiểm tra module finder, module path, root modules và cách configuration được tạo. Với plugin hoặc service binding, cân nhắc `resolveAndBind`.
+If a module has `provides` but is not present in the module layer being searched by the loader, the provider will not appear in the results. Check the module finder, module path, root modules, and how the configuration is built. For plugins or service binding, consider `resolveAndBind`.
 
-### Sai tên module hoặc service type
+### Incorrect module or service type name
 
-Tên service trong `uses` và `provides` phải trỏ tới cùng service type. Provider phải tương thích với service đó. Kiểm tra package, tên đầy đủ và dependency của module provider.
+The service names in `uses` and `provides` must refer to the exact same service type. The provider must be compatible with that service. Check the package, fully qualified name, and dependencies of the provider module.
 
-### Package service không được export
+### Service package is not exported
 
-Module tiêu thụ cần tham chiếu service interface. Module sở hữu interface phải export package chứa service cho module tiêu thụ, và module tiêu thụ phải khai báo `requires` tới module đó.
+The consuming module needs to reference the service interface. The module owning the interface must export the package containing the service to the consuming module, and the consuming module must declare `requires` on that module.
 
-### Provider không thể khởi tạo
+### Provider cannot be instantiated
 
-Provider class có thể thiếu public no-argument constructor, không tương thích với service hoặc constructor/provider method ném exception. Kiểm tra lỗi `ServiceConfigurationError` và nguyên nhân gốc trong quá trình khởi tạo.
+The provider class may lack a public no-argument constructor, be incompatible with the service, or throw an exception from its constructor/provider method. Inspect the `ServiceConfigurationError` and its root cause during instantiation.
 
-### Tìm sai ModuleLayer
+### Searching the wrong ModuleLayer
 
-`ServiceLoader.load(layer, service)` chỉ tìm provider trong layer được chỉ định và các parent layer; nó không tìm provider trong unnamed module. Nếu provider nằm ở layer khác, cần truyền đúng layer hoặc dùng overload phù hợp với class loader.
+`ServiceLoader.load(layer, service)` searches for providers only in the specified layer and its parent layers; it does not search providers in the unnamed module. If the provider resides in another layer, pass the right layer or use the appropriate class-loader overload.
 
-## 11. Quy trình thiết kế và kiểm tra service binding
+## 11. Workflow for Designing and Verifying Service Binding
 
-Khi xây dựng một hệ thống plugin bằng JPMS, có thể tiến hành theo thứ tự:
+When building a plugin system with JPMS, you can proceed in this order:
 
-1. **Định nghĩa service interface:** đặt interface hoặc abstract class trong module API ổn định.
-2. **Export package service:** cho phép module tiêu thụ và provider tham chiếu service type.
-3. **Khai báo uses:** module tiêu thụ khai báo đúng service type trong descriptor.
-4. **Khai báo provides:** mỗi provider module khai báo service và provider implementation.
-5. **Kiểm tra khả năng quan sát:** bảo đảm provider module có thể được tìm từ module finder hoặc module path phù hợp.
-6. **Phân giải có service binding:** dùng cơ chế resolution có binding khi cần tự động đưa provider module vào configuration.
-7. **Định nghĩa ModuleLayer:** tạo runtime layer từ configuration đã phân giải.
-8. **Tạo ServiceLoader:** dùng class loader hoặc layer đúng với cách ứng dụng triển khai plugin.
-9. **Duyệt và lựa chọn:** xử lý trường hợp nhiều provider hoặc không có provider.
-10. **Xử lý lỗi:** quan sát `ServiceConfigurationError`, kiểm tra provider constructor/provider method và dependency runtime.
+1. **Define the service interface:** place the interface or abstract class in a stable API module.
+2. **Export the service package:** allow consuming and provider modules to reference the service type.
+3. **Declare uses:** the consuming module declares the exact service type in its descriptor.
+4. **Declare provides:** each provider module declares the service and provider implementation.
+5. **Verify observability:** ensure provider modules can be found by the appropriate module finder or module path.
+6. **Resolve with service binding:** use resolution with binding when provider modules need to be automatically brought into the configuration.
+7. **Define the ModuleLayer:** create the runtime layer from the resolved configuration.
+8. **Create ServiceLoader:** use the class loader or layer matching how the application deploys plugins.
+9. **Iterate and select:** handle multiple providers or the absence of providers.
+10. **Handle errors:** watch for `ServiceConfigurationError`, and check provider constructors/provider methods and runtime dependencies.
 
-Có thể kiểm tra descriptor của từng JAR:
+You can inspect each JAR's descriptor:
 
 ```shell
 jar --describe-module --file libs/codec-api.jar
@@ -471,12 +471,12 @@ jar --describe-module --file libs/codec-json.jar
 jar --describe-module --file libs/application.jar
 ```
 
-Đối chiếu các directive `uses`, `provides`, `requires` và `exports` với cấu hình build. Một provider được khai báo đúng vẫn cần có mặt trong phạm vi module graph hoặc loader được dùng để tìm nó.
+Cross-check the `uses`, `provides`, `requires`, and `exports` directives against your build configuration. Even a properly declared provider must still be present within the module graph or loader scope used to search for it.
 
-## Kết luận
+## Conclusion
 
-ServiceLoader tìm implementation của một service dựa trên các provider có thể quan sát được trong môi trường runtime. Với JPMS, module tiêu thụ khai báo `uses`, module cung cấp khai báo `provides ... with ...`, và service binding trong quá trình resolution có thể đưa provider module cùng dependency của nó vào module graph.
+ServiceLoader locates implementations of a service based on providers observable in the runtime environment. With JPMS, the consuming module declares `uses`, the supplying module declares `provides ... with ...`, and service binding during resolution can bring provider modules and their dependencies into the module graph.
 
-Sau khi module được định nghĩa trong ModuleLayer, `ServiceLoader.load(layer, service)` tìm provider trong layer đó và các parent layer. Việc tạo loader và duyệt provider diễn ra lười; ứng dụng cần chủ động chọn implementation và xử lý trường hợp không có provider hoặc provider không thể khởi tạo.
+Once modules are defined in a ModuleLayer, `ServiceLoader.load(layer, service)` discovers providers in that layer and its parent layers. Loader creation and provider iteration happen lazily; the application must actively select an implementation and handle cases where no provider is available or a provider fails to instantiate.
 
-Điểm quan trọng là `provides` mô tả nơi có implementation, module graph xác định module nào đã được phân giải trong runtime, còn `ServiceLoader` thực hiện việc tìm và khởi tạo provider trong phạm vi loader/layer phù hợp. Nhờ tách service contract khỏi implementation, ứng dụng có thể mở rộng bằng plugin mà không phải phụ thuộc trực tiếp vào từng provider cụ thể.
+The key takeaway is that `provides` describes where an implementation lives, the module graph determines which modules are resolved at runtime, and `ServiceLoader` performs discovery and instantiation within the appropriate loader/layer scope. By separating the service contract from its implementations, applications can be extended with plugins without directly depending on individual concrete providers.

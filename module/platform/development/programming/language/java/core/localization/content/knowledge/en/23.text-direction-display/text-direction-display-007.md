@@ -1,61 +1,61 @@
-# Nhận diện vai trò NumericShaper và cơ chế nhập văn bản của Java SE
+# Understanding the Role of NumericShaper and Java SE Text Input Mechanisms
 
-## 1. Bài toán: chữ số được hiển thị ra sao và người dùng nhập chữ như thế nào?
+## 1. The problem: how are digits displayed and how do users enter text?
 
-Ứng dụng Java hỗ trợ nhiều ngôn ngữ thường phải xử lý ít nhất ba việc khác nhau:
+A multilingual Java application often has to handle at least three distinct tasks:
 
-1. **Giá trị và biểu diễn số:** một giá trị như `123` phải được định dạng theo `Locale`, chẳng hạn dấu thập phân, dấu nhóm hàng nghìn và chữ số của hệ chữ được yêu cầu.
-2. **Hiển thị chữ số trong dòng văn bản đa hệ chữ:** khi văn bản chứa chữ Latin và chữ Arabic, ứng dụng có thể cần thể hiện các chữ số ASCII `0–9` bằng các ký tự chữ số phù hợp với đoạn chữ xung quanh.
-3. **Nhập văn bản từ bàn phím/bộ gõ (input method):** người dùng có thể gõ tiếng Việt có dấu, tiếng Nhật, tiếng Trung hoặc hệ chữ khác qua quá trình soạn thảo chưa chốt (*composition/preedit*), rồi mới xác nhận chuỗi vào ô nhập.
+1. **Numeric values and representation:** a value like `123` must be formatted according to `Locale`, such as decimal separators, thousands grouping separators, and the digits of the requested script.
+2. **Displaying digits inside a multi-script line of text:** when text contains Latin letters and Arabic letters, the application may need to render ASCII digits `0–9` using digit characters suited to the surrounding script segment.
+3. **Entering text from a keyboard/input method:** a user may type accented Vietnamese, Japanese, Chinese, or another script through an uncommitted editing phase (*composition/preedit*) before confirming the string into an input box.
 
-Java SE cung cấp những API có trách nhiệm riêng:
+Java SE provides APIs with separate responsibilities:
 
-- `java.awt.font.NumericShaper`: **biến đổi chữ số ASCII** thành ký tự chữ số của hệ chữ được chọn, có thể theo ngữ cảnh.
-- `java.awt.font.TextAttribute.NUMERIC_SHAPING`: gắn cách xử lý chữ số cho **văn bản có thuộc tính** trong các pipeline trình bày AWT/Java 2D.
-- `java.awt.im.InputContext`, `java.awt.event.InputMethodEvent`, `java.awt.event.InputMethodListener` và các API liên quan: giúp cơ chế nhập văn bản phối hợp với thành phần giao diện AWT/Swing.
-- `java.text.NumberFormat` và `DecimalFormat`: dùng khi **định dạng giá trị số theo locale**, không nên thay bằng `NumericShaper`.
+- `java.awt.font.NumericShaper`: **converts ASCII digits** into digit characters of a selected script, optionally contextually.
+- `java.awt.font.TextAttribute.NUMERIC_SHAPING`: attaches digit-shaping instructions to **attributed text** in AWT/Java 2D presentation pipelines.
+- `java.awt.im.InputContext`, `java.awt.event.InputMethodEvent`, `java.awt.event.InputMethodListener`, and related APIs: enable text input methods to coordinate with AWT/Swing UI components.
+- `java.text.NumberFormat` and `DecimalFormat`: used when **formatting numeric values by locale**, and should not be replaced with `NumericShaper`.
 
-**Điểm cốt lõi:** `NumericShaper` không phải bộ gõ và không tự định dạng tiền tệ; input method không phải một phép chuyển chữ số. Chúng có thể cùng xuất hiện trong một ứng dụng đa ngôn ngữ, nhưng hoạt động ở **những tầng khác nhau**.
+**Key point:** `NumericShaper` is not an input method and does not format currencies by itself; an input method is not a digit-conversion operation. They may appear together in one multilingual application, yet they operate at **different layers**.
 
-## 2. Phân biệt dữ liệu số, văn bản và glyph
+## 2. Distinguishing numeric data, text, and glyphs
 
-Giả sử ta có giá trị số nguyên:
+Suppose we have an integer value:
 
 ```java
 int count = 123;
 ```
 
-Đây là **giá trị số**, không chứa ký tự `'1'`, `'2'`, `'3'`. Khi chuyển thành văn bản:
+This is a **numeric value**, containing no `'1'`, `'2'`, `'3'` characters. When converted to text:
 
 ```java
 String text = Integer.toString(count); // "123"
 ```
 
-ta mới có các ký tự Unicode `U+0031 U+0032 U+0033`, tức chữ số ASCII/European. Nếu yêu cầu trình bày bằng chữ số Arabic-Indic, kết quả văn bản có thể dùng `U+0661 U+0662 U+0663`.
+we now have Unicode characters `U+0031 U+0032 U+0033`, i.e., ASCII/European digits. If presentation in Arabic-Indic digits is requested, the text result can use `U+0661 U+0662 U+0663`.
 
-Cần phân biệt:
+Distinguish clearly:
 
-| Tầng | Đối tượng thường gặp | Trách nhiệm |
-|---|---|---|
-| Giá trị | `int`, `long`, `BigDecimal` | Phép tính, độ chính xác và quy tắc nghiệp vụ |
-| Văn bản | `String`, `char[]` | Các code points/chữ số được lưu hoặc truyền |
-| Shaping chữ số | `NumericShaper` | Chuyển `0–9` ASCII sang bộ chữ số đích |
-| Định dạng locale | `NumberFormat` / `DecimalFormat` | Dấu nhóm, dấu thập phân, ký hiệu tiền, độ chính xác |
-| Layout/bidi | Java 2D text layout, `Bidi` | Sắp đặt và biểu diễn dòng văn bản có hướng chữ |
-| Nhập liệu | AWT/Swing input method framework | Tạo, sửa và xác nhận nội dung đang nhập |
+| Layer | Common types/APIs | Responsibility |
+| --- | --- | --- |
+| Value | `int`, `long`, `BigDecimal` | Arithmetic, precision, and business rules |
+| Text | `String`, `char[]` | Stored or transmitted code points/digits |
+| Numeric shaping | `NumericShaper` | Converting ASCII `0–9` to a target digit set |
+| Locale formatting | `NumberFormat` / `DecimalFormat` | Grouping, decimal marks, currency symbols, precision |
+| Layout/bidi | Java 2D text layout, `Bidi` | Arranging and presenting directional text lines |
+| Input | AWT/Swing input method framework | Creating, editing, and committing typed content |
 
-**Shaping không thay giá trị số học**: `123` vẫn là số 123. Nhưng khi `NumericShaper.shape(...)` chạy trên `char[]`, nó **thay đổi mã ký tự văn bản trong mảng**, không chỉ đổi font hoặc hình dáng glyph. Một chuỗi `String` được dựng lại từ mảng đó sẽ chứa những chữ số Unicode khác.
+**Shaping does not change arithmetic value**: `123` is still the number 123. However, when `NumericShaper.shape(...)` runs on a `char[]`, it **mutates the text character codes in the array**, not merely the font or glyph shape. A `String` constructed back from that array will contain different Unicode digits.
 
-Một tầng render có thể dùng thuộc tính shaping để điều khiển trình bày mà không bắt buộc bạn phải lưu bản văn bản đã biến đổi; đó là lý do cần phân biệt shaping trực tiếp trên mảng với shaping trong text-layout.
+A rendering layer can use a shaping attribute to control presentation without forcing you to store the transformed text; that is why you must distinguish direct array shaping from shaping inside text layout.
 
-## 3. NumericShaper là gì?
+## 3. What is NumericShaper?
 
-`java.awt.font.NumericShaper` là lớp hỗ trợ thay các chữ số European/ASCII `'0'` đến `'9'` bằng chữ số tương ứng của một hệ chữ khác. Nó có hai chế độ chủ đạo:
+`java.awt.font.NumericShaper` is a class that replaces European/ASCII digits `'0'` through `'9'` with the corresponding digits of another script. It has two primary modes:
 
-- **Non-contextual shaping:** luôn chuyển các chữ số được gặp sang một hệ chữ đích cố định.
-- **Contextual shaping:** chọn hệ chữ số dựa trên **ngữ cảnh văn bản** và các nhóm hệ chữ được cho phép.
+- **Non-contextual shaping:** always converts encountered digits to a fixed target script.
+- **Contextual shaping:** chooses the digit script based on **text context** and permitted script ranges.
 
-Các factory hiện đại dễ đọc sử dụng enum `NumericShaper.Range`:
+Modern, readable factory methods use the `NumericShaper.Range` enum:
 
 ```java
 NumericShaper fixed =
@@ -68,15 +68,15 @@ NumericShaper contextual =
                         NumericShaper.Range.ARABIC));
 ```
 
-Đây là **đoạn mã minh họa**, cần import `java.awt.font.NumericShaper` và `java.util.EnumSet`. Các chương trình độc lập nằm ở mục sau.
+This is an **illustrative code snippet**, requiring imports for `java.awt.font.NumericShaper` and `java.util.EnumSet`. Standalone programs follow in later sections.
 
-Một số hệ chữ số được API hỗ trợ qua `Range`, ví dụ `ARABIC`, `EASTERN_ARABIC`, `DEVANAGARI`, `THAI`, `BENGALI` và các range khác. Không nên suy ra tất cả ngôn ngữ hay mọi numbering system Unicode đều có cùng mapping hoặc một quy tắc shaping duy nhất.
+Several digit scripts are supported by the API via `Range`, such as `ARABIC`, `EASTERN_ARABIC`, `DEVANAGARI`, `THAI`, `BENGALI`, and other ranges. Do not assume all languages or every Unicode numbering system share the same mapping or a single shaping rule.
 
-Java vẫn có API lịch sử dùng các bit mask `NumericShaper.ARABIC`, `NumericShaper.EUROPEAN` và các overload nhận `int`. Khi viết code mới, enum `NumericShaper.Range` và `Set<Range>` thường dễ đọc và tránh việc thao tác bit mask sai. Các API cũ vẫn có thể cần thiết khi duy trì ứng dụng kế thừa.
+Java also retains historical APIs using bit masks like `NumericShaper.ARABIC`, `NumericShaper.EUROPEAN`, and overloads accepting `int`. When writing new code, the `NumericShaper.Range` enum and `Set<Range>` are usually easier to read and avoid bit-mask mistakes. Legacy APIs may still be needed when maintaining older applications.
 
-## 4. Non-contextual shaping: chuyển tất cả chữ số ASCII sang một bộ chữ số
+## 4. Non-contextual shaping: converting all ASCII digits to one digit set
 
-Ví dụ:
+Example:
 
 ```java
 char[] characters = "Order 1203".toCharArray();
@@ -86,35 +86,35 @@ NumericShaper.getShaper(
         .shape(characters, 0, characters.length);
 ```
 
-Trong mảng sau khi shaping, phần `1203` trở thành các code points:
+In the array after shaping, the `1203` portion becomes the code points:
 
 ```text
 U+0661 U+0662 U+0660 U+0663
 ```
 
-`U+0660` là Arabic-Indic digit zero, `U+0661` là digit one... Bộ chữ số đã đổi, nhưng **phần chữ `Order` không phải đối tượng của phép chuyển này**.
+`U+0660` is Arabic-Indic digit zero, `U+0661` is digit one, and so on. The digit set changed, yet **the word `Order` is not affected by this conversion**.
 
-Phương thức `shape(char[] text, int start, int count)` thực hiện chuyển đổi **tại chỗ (in place)** trên một vùng của mảng:
+The `shape(char[] text, int start, int count)` method performs conversion **in place** on a slice of the array:
 
-- `text` là mảng ký tự có thể sửa.
-- `start` là chỉ số bắt đầu, tính theo Java `char`/UTF-16.
-- `count` là **số phần tử** được xử lý, không phải chỉ số kết thúc.
-- `start + count` phải nằm trong độ dài mảng.
+- `text` is the mutable character array.
+- `start` is the starting index in Java `char`/UTF-16 units.
+- `count` is the **number of elements** to process, not the ending index.
+- `start + count` must stay within the array length.
 
-Lỗi phổ biến là gọi `shape(chars, 5, chars.length)` khi muốn xử lý từ vị trí 5 đến cuối: `count` đúng là `chars.length - 5`, không phải `chars.length`.
+A common bug is calling `shape(chars, 5, chars.length)` when intending to process from index 5 to the end: the right `count` is `chars.length - 5`, not `chars.length`.
 
-### NumericShaper xử lý những gì?
+### What does NumericShaper handle?
 
-- Chuyển các ký tự chữ số European `'0'–'9'` khi nằm trong phạm vi được shape.
-- Không tự dịch chữ cái, dấu câu, khoảng trắng, dấu phân nhóm hay dấu thập phân.
-- Không làm tròn giá trị số, không xác thực số tiền và không tự xác định `Locale` đầu vào.
-- Không tự biến mọi chữ số thuộc mọi hệ chữ về ASCII, cũng không phải bộ chuyển đổi ngược tổng quát.
+- Converts European digit characters `'0'–'9'` within the shaped range.
+- Does not translate letters, punctuation, whitespace, grouping separators, or decimal marks.
+- Does not round numeric values, validate monetary amounts, or infer an input `Locale`.
+- Does not convert digits of arbitrary scripts back into ASCII, nor is it a general reverse converter.
 
-Nếu bạn chỉ cần định dạng **một con số** theo locale, `NumberFormat` là API phù hợp hơn; nếu bạn cần chuyển chữ số **bên trong một dòng văn bản đa hệ chữ**, `NumericShaper` có thể hữu ích.
+If you only need to format **a number** for a locale, `NumberFormat` is the better API; if you need to convert digits **inside a multi-script line of text**, `NumericShaper` can help.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: non-contextual NumericShaper
+## 5. Complete Java 17+ example: non-contextual NumericShaper
 
-Lưu file `FixedNumericShaperDemo.java`:
+Save the file `FixedNumericShaperDemo.java`:
 
 ```java
 import java.awt.font.NumericShaper;
@@ -148,38 +148,38 @@ public class FixedNumericShaperDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FixedNumericShaperDemo.java
 java FixedNumericShaperDemo
 ```
 
-Đầu ra đã kiểm chứng với JDK (in mã Unicode để không phụ thuộc font console):
+Output verified on the JDK (printing Unicode codes so it does not depend on console fonts):
 
 ```text
 arabic=U+0661 U+0662 U+0660 U+0663
 thai=U+0E57 U+0E58 U+0E59
 ```
 
-Kết quả cho thấy các chữ số nguồn `1,2,0,3` và `7,8,9` đã trở thành ký tự số theo các range. Chương trình cố tình **không in glyph Arabic/Thai trực tiếp** để stdout ổn định khi terminal thiếu font hoặc không hỗ trợ hệ chữ.
+The output shows source digits `1,2,0,3` and `7,8,9` became digit characters in their respective ranges. The program intentionally **does not print Arabic/Thai glyphs directly** so stdout remains stable when a terminal lacks fonts or script support.
 
-`String` trong Java là immutable, nên `shape(...)` không sửa một biến `String` gốc. Quy trình khi cần văn bản mới là lấy `toCharArray()`, shape mảng, rồi tạo `new String(chars)`. Nếu muốn giữ dữ liệu ASCII gốc trong database, **không ghi đè bằng văn bản đã shape** một cách vô điều kiện.
+`String` in Java is immutable, so `shape(...)` does not modify an existing `String` variable. The workflow when you need new text is taking `toCharArray()`, shaping the array, then creating `new String(chars)`. If you want to retain original ASCII data in a database, **do not unconditionally overwrite it with shaped text**.
 
-## 6. Contextual shaping: quyết định dựa trên chữ xung quanh
+## 6. Contextual shaping: deciding based on surrounding script
 
-Trong dòng văn bản trộn Latin và Arabic, ứng dụng đôi khi muốn:
+In a line mixing Latin and Arabic, an application sometimes wants:
 
 ```text
-abc 123 [chữ Arabic] 456
+abc 123 [Arabic letters] 456
 ```
 
-Kết quả mong muốn có thể là:
+The desired result may be:
 
-- `123` đứng trong ngữ cảnh Latin vẫn là các chữ số ASCII.
-- `456` sau các ký tự Arabic mạnh chuyển thành Arabic-Indic digits.
+- `123` in the Latin context stays ASCII digits.
+- `456` following strong Arabic characters switches to Arabic-Indic digits.
 
-Lúc này dùng `getContextualShaper(...)`. Contextual shaper xem xét bối cảnh chữ và các range được phép, thay vì ép toàn bộ chữ số về một range cố định.
+Here you use `getContextualShaper(...)`. A contextual shaper examines script context and permitted ranges rather than forcing all digits to one fixed range.
 
 ```java
 NumericShaper contextual =
@@ -189,13 +189,13 @@ NumericShaper contextual =
                         NumericShaper.Range.ARABIC));
 ```
 
-`Range.EUROPEAN` đại diện bộ chữ số European `0–9`; `Range.ARABIC` cung cấp Arabic-Indic digits. Các ký tự có hướng chữ mạnh (*strong directional characters*) có thể ảnh hưởng ngữ cảnh của những chữ số tiếp theo. Đây là một cơ chế quy tắc cụ thể, không phải mô hình ngôn ngữ hiểu nội dung văn bản.
+`Range.EUROPEAN` represents the European digits `0–9`; `Range.ARABIC` provides Arabic-Indic digits. *Strong directional characters* can influence the context of subsequent digits. This is a specific rule-based mechanism, not a language model understanding prose meaning.
 
-API còn có các overload để chọn **ngữ cảnh bắt đầu**. Việc định nghĩa initial context là quan trọng nếu đoạn văn được shape từ giữa một dòng dài: chữ số trước khi có ký tự chữ mạnh có thể phụ thuộc ngữ cảnh ban đầu.
+The API also provides overloads to specify a **starting context**. Defining the initial context matters if a paragraph is shaped starting mid-line in a long run: digits appearing before any strong letter can depend on that initial context.
 
-### Ví dụ Java 17+ độc lập
+### Standalone Java 17+ example
 
-Lưu `ContextualNumericShaperDemo.java`:
+Save `ContextualNumericShaperDemo.java`:
 
 ```java
 import java.awt.font.NumericShaper;
@@ -232,36 +232,36 @@ public class ContextualNumericShaperDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac ContextualNumericShaperDemo.java
 java ContextualNumericShaperDemo
 ```
 
-Kết quả đã kiểm chứng:
+Verified result:
 
 ```text
 digits=U+0031 U+0032 U+0033 U+0664 U+0665 U+0666
 ```
 
-Ba chữ số đầu vẫn là ASCII `1,2,3`; ba chữ số sau ký tự Arabic thuộc range Arabic-Indic. Kết quả đến từ **quy tắc ngữ cảnh của shaper**, không phải do một bộ gõ Arabic hay `Locale.getDefault()` tự tác động.
+The first three digits stay ASCII `1,2,3`; the three digits after Arabic characters belong to the Arabic-Indic range. This result comes from **the shaper's contextual rules**, not from an Arabic input method or `Locale.getDefault()` acting automatically.
 
-**Không đồng nhất contextual shaping với tự động phát hiện ngôn ngữ.** Nó không nhận ra mục đích ngữ nghĩa của số hoặc quốc gia người viết, mà dựa vào các range và bối cảnh ký tự. Một văn bản đa ngôn ngữ phức tạp cần test bằng dữ liệu thực.
+**Do not equate contextual shaping with automatic language detection.** It does not recognize the semantic purpose of a number or the writer's nationality; it relies on permitted ranges and character context. Complex multilingual prose must be tested with real data.
 
-## 7. Range và legacy bit mask
+## 7. Range and legacy bit masks
 
-Hai họ factory khác nhau nên được đọc chính xác:
+The two factory families should be read carefully:
 
-| API | Đầu vào | Gợi ý |
-|---|---|---|
-| `NumericShaper.getShaper(Range)` | Một `NumericShaper.Range` | Non-contextual, dễ hiểu |
-| `NumericShaper.getContextualShaper(Set<Range>)` | Tập range | Contextual, kiểu an toàn hơn |
-| `NumericShaper.getContextualShaper(Set<Range>, Range)` | Tập range và ngữ cảnh mặc định | Contextual với initial context rõ ràng |
-| `NumericShaper.getShaper(int)` | Một bit mask legacy | Mã kế thừa |
-| `NumericShaper.getContextualShaper(int)` | Mask các range legacy | Mã kế thừa |
+| API | Input | Suggestion |
+| --- | --- | --- |
+| `NumericShaper.getShaper(Range)` | One `NumericShaper.Range` | Non-contextual, easy to read |
+| `NumericShaper.getContextualShaper(Set<Range>)` | Set of ranges | Contextual, more type-safe |
+| `NumericShaper.getContextualShaper(Set<Range>, Range)` | Set of ranges and default context | Contextual with explicit initial context |
+| `NumericShaper.getShaper(int)` | One legacy bit mask | Legacy code |
+| `NumericShaper.getContextualShaper(int)` | Bit mask of legacy ranges | Legacy code |
 
-Ví dụ legacy:
+Legacy example:
 
 ```java
 NumericShaper oldStyle =
@@ -269,15 +269,15 @@ NumericShaper oldStyle =
                 NumericShaper.EUROPEAN | NumericShaper.ARABIC);
 ```
 
-Đây là mảnh mã minh họa. Không được nhầm `NumericShaper.Range.ARABIC` với hằng `NumericShaper.ARABIC`: cái trước là **enum**, cái sau là **int mask**.
+This is an illustrative snippet. Do not confuse `NumericShaper.Range.ARABIC` with the `NumericShaper.ARABIC` constant: the former is an **enum**, the latter is an **int mask**.
 
-Khi triển khai, dùng một cách nhất quán để tránh nhầm bit mask và enum, cũng như tránh vô tình bỏ range cần hỗ trợ. Một shaper contextual chỉ có các range bạn cho phép; không tự hỗ trợ mọi hệ chữ có mặt trong đầu vào.
+When implementing, pick one style consistently to avoid mixing up bit masks and enums or accidentally omitting a required range. A contextual shaper only supports the ranges you allow; it does not automatically support every script present in the input.
 
-## 8. TextAttribute.NUMERIC_SHAPING trong Java 2D
+## 8. TextAttribute.NUMERIC_SHAPING in Java 2D
 
-Numeric shaping còn có thể được dùng như một **thuộc tính định dạng văn bản** thay vì xử lý `char[]` một cách thủ công.
+Numeric shaping can also be used as a **text formatting attribute** instead of manually mutating a `char[]`.
 
-`java.awt.font.TextAttribute.NUMERIC_SHAPING` là khóa thuộc tính; giá trị của nó có thể là một đối tượng `NumericShaper`. Ví dụ:
+`java.awt.font.TextAttribute.NUMERIC_SHAPING` is the attribute key; its value can be a `NumericShaper` instance. Example:
 
 ```java
 import java.awt.font.NumericShaper;
@@ -292,42 +292,42 @@ attributed.addAttribute(
         NumericShaper.getShaper(NumericShaper.Range.ARABIC));
 ```
 
-Đây là **mảnh mã Java minh họa**. `AttributedString` cung cấp iterator có các thuộc tính để pipeline trình bày của Java 2D có thể sử dụng trong các API layout thích hợp, ví dụ `TextLayout`.
+This is an **illustrative Java snippet**. `AttributedString` supplies an iterator with attributes that Java 2D's presentation pipeline can consume in appropriate layout APIs, such as `TextLayout`.
 
-Điều quan trọng:
+Important points:
 
-- Tạo `AttributedString` với `NUMERIC_SHAPING` **không phải** là phép gọi `shape(char[])` và không tự sửa chuỗi nguồn.
-- Thuộc tính này đưa **chỉ dẫn shaping** cho hoạt động trình bày khi API layout tôn trọng thuộc tính.
-- Glyph cuối cùng còn phụ thuộc font, cơ chế layout và khả năng render của môi trường.
-- Nếu bạn ghi dữ liệu ra file hoặc gửi JSON, đừng giả định renderer đã biến dữ liệu nguồn thành ký tự số của hệ chữ đích.
+- Creating an `AttributedString` with `NUMERIC_SHAPING` is **not** calling `shape(char[])` and does not modify the source string.
+- This attribute passes a **shaping hint** to presentation when the layout API honors the attribute.
+- Final glyphs also depend on the font, layout mechanism, and environment's rendering support.
+- If you write data to a file or send JSON, do not assume the renderer converted source data into target-script digit characters.
 
-`TextAttribute.NUMERIC_SHAPING` có ích ở tầng hiển thị; còn nếu cần chủ động biến đổi mảng ký tự thành chữ số cụ thể, dùng `NumericShaper.shape(...)` và hiểu rằng mã Unicode trong kết quả đã đổi.
+`TextAttribute.NUMERIC_SHAPING` is helpful at the display layer; if you actively need to transform a character array into concrete digits, use `NumericShaper.shape(...)` and remember that Unicode code points in the output have changed.
 
-## 9. NumericShaper không phải công cụ xử lý hướng chữ RTL/LTR
+## 9. NumericShaper is not an RTL/LTR direction tool
 
-Trong văn bản Arabic/Hebrew xen Latin và số, có ít nhất **ba vấn đề độc lập**:
+In Arabic/Hebrew text mixed with Latin and numbers, there are at least **three independent issues**:
 
-1. **Đổi chữ số:** NumericShaper có thể biến `0–9` thành chữ số của hệ chữ được chọn.
-2. **Hướng chữ và sắp xếp trực quan:** thuật toán bidirectional (Bidi) xử lý hướng phải-sang-trái/trái-sang-phải của các run ký tự.
-3. **Vẽ glyph và tổ hợp chữ:** engine tạo glyph, shaping chữ nối và font render văn bản thực tế.
+1. **Digit conversion:** `NumericShaper` can turn `0–9` into digits of the chosen script.
+2. **Text direction and visual ordering:** the bidirectional (Bidi) algorithm handles right-to-left/left-to-right ordering of character runs.
+3. **Glyph drawing and letter joining:** the glyph engine, cursive shaping, and fonts render the actual text.
 
-`NumericShaper` giải quyết việc **đổi chữ số**, không tự đưa một đoạn Arabic sang đúng thứ tự trên màn hình và không định dạng chữ nối Arabic. Java SE còn có `java.text.Bidi` cùng các khả năng text layout của AWT/Java 2D cho những vấn đề khác, nhưng việc dựng UI đúng cũng phụ thuộc component và renderer đang dùng.
+`NumericShaper` solves **digit conversion**; it does not put an Arabic segment into the right visual order on screen and does not perform Arabic cursive joining. Java SE also provides `java.text.Bidi` and AWT/Java 2D text layout capabilities for those other concerns, though proper UI rendering also depends on the component and renderer in use.
 
-Ví dụ, không nên viết:
+For example, do not write:
 
 ```java
-new String(chars); // sau NumericShaper
+new String(chars); // after NumericShaper
 ```
 
-rồi kết luận rằng ứng dụng đã “hỗ trợ RTL hoàn chỉnh”. Nó có thể chứa chữ số Arabic-Indic, nhưng chưa có bảo đảm về thứ tự hiển thị, font, con trỏ hoặc selection.
+and conclude that the app has "full RTL support." It may contain Arabic-Indic digits, yet there is no guarantee regarding visual ordering, fonts, caret, or selection.
 
-Khi dùng Swing với thành phần văn bản, cần test hướng component, thứ tự caret, selection, ký hiệu và phản ứng khi người dùng chuyển bộ gõ, thay vì tự đảo chuỗi bằng `StringBuilder.reverse()`.
+When using Swing with text components, test component orientation, caret ordering, selection, symbols, and behavior when users switch input methods, rather than reversing strings with `StringBuilder.reverse()`.
 
-## 10. NumericShaper khác NumberFormat/DecimalFormat
+## 10. NumericShaper differs from NumberFormat/DecimalFormat
 
-Nếu bài toán là trình bày số tiền, giá, tỷ lệ hoặc số thập phân theo locale, hãy dùng `NumberFormat` hoặc `DecimalFormat`.
+If the task is presenting monetary amounts, prices, percentages, or decimal numbers according to locale, use `NumberFormat` or `DecimalFormat`.
 
-Ví dụ:
+Example:
 
 ```java
 java.text.NumberFormat formatter =
@@ -337,77 +337,77 @@ java.text.NumberFormat formatter =
 String shown = formatter.format(1234.5);
 ```
 
-Kết quả phụ thuộc locale, numbering system và dữ liệu/provider của JDK. Formatter có trách nhiệm lựa chọn **dấu phân nhóm, dấu thập phân, số chữ số và quy tắc làm tròn** theo cấu hình. NumericShaper không có đủ những thông tin đó; nó chỉ xử lý chữ số ASCII trong vùng văn bản được shape.
+The result depends on the locale, numbering system, and JDK data/providers. The formatter is responsible for choosing **grouping separators, decimal marks, digit counts, and rounding rules** per configuration. `NumericShaper` lacks that information; it only processes ASCII digits within the shaped text range.
 
-So sánh:
+Comparison:
 
-| Yêu cầu | Lựa chọn phù hợp |
-|---|---|
-| Format giá trị `1234.5` theo locale | `NumberFormat` / `DecimalFormat` |
-| Chuyển chữ số ASCII trong câu sang một bộ chữ số cố định | `NumericShaper.getShaper(...)` |
-| Chọn chữ số dựa trên ngữ cảnh các hệ chữ trong một câu | `NumericShaper.getContextualShaper(...)` |
-| Đưa chỉ dẫn shaping vào text layout | `TextAttribute.NUMERIC_SHAPING` |
-| Nhận ký tự từ IME, quản lý văn bản đang soạn | AWT/Swing input method API |
-| Đọc/validate số Unicode từ input | Parser và kiểm tra đầu vào theo hợp đồng |
+| Requirement | Appropriate choice |
+| --- | --- |
+| Format numeric value `1234.5` by locale | `NumberFormat` / `DecimalFormat` |
+| Convert ASCII digits in a sentence to a fixed digit set | `NumericShaper.getShaper(...)` |
+| Choose digits based on script context within a sentence | `NumericShaper.getContextualShaper(...)` |
+| Attach shaping hint to text layout | `TextAttribute.NUMERIC_SHAPING` |
+| Receive characters from IME, manage composing text | AWT/Swing input method APIs |
+| Read/validate Unicode digits from input | Parser and input validation per contract |
 
-Không lấy chuỗi đã shape rồi mặc định có thể parse bằng `Integer.parseInt` hoặc qua mọi API máy-máy. Một số parser nhận Unicode decimal digits, nhưng giao thức có thể chỉ cho phép ASCII. **Bản địa hóa hiển thị** và **định dạng trao đổi dữ liệu** cần tách biệt.
+Do not take a shaped string and assume it can be parsed with `Integer.parseInt` or sent to every machine-to-machine API. Some parsers accept Unicode decimal digits, yet a protocol may allow only ASCII. **Display localization** and **data exchange formats** must stay separate.
 
-## 11. Cơ chế nhập văn bản (*input method*) của Java SE
+## 11. Java SE text input mechanisms (*input methods*)
 
-Một bộ gõ/IME có thể biến nhiều thao tác bàn phím thành một hoặc nhiều ký tự cuối cùng. Ví dụ người dùng nhập tiếng Việt bằng một phương thức gõ dấu, hoặc nhập tiếng Nhật bằng cách gõ chuỗi Latin để chọn ký tự Kanji.
+An input method/IME can turn multiple keystrokes into one or more final characters. For example, a user types Vietnamese using a diacritic input scheme, or types Japanese by entering a Latin sequence to select Kanji characters.
 
-Quá trình có thể gồm:
+The flow can involve:
 
 ```text
-Key events / thao tác thiết bị
+Key events / device input
             |
             v
   Input Method / IME
             |
-            +--> Composed text (văn bản đang soạn, chưa xác nhận)
+            +--> Composed text (being edited, uncommitted)
             |
             v
-   Commit / xác nhận
+   Commit / confirm
             |
             v
    Text component/document
 ```
 
-Vì vậy, **không đồng nhất `KeyEvent` với “một ký tự đã được người dùng nhập”**. Một phím có thể chưa tạo ký tự cuối, nhiều phím có thể tạo một ký tự, hoặc người dùng có thể chọn ứng viên trong bảng của IME.
+Therefore, **do not equate a `KeyEvent` with "one character entered by the user."** One keystroke may not yet produce a final character, multiple keystrokes may yield one character, or the user may pick a candidate from an IME popup.
 
-Trong Java SE, AWT input method framework phối hợp IME với các thành phần nhập văn bản; Swing text components dựa trên cơ chế này để hỗ trợ composed text và committed text.
+In Java SE, the AWT input method framework coordinates the IME with text input components; Swing text components build on this mechanism to support composed text and committed text.
 
-Đây là chuyện **nhận và xác nhận nội dung**. Nó không đồng nghĩa với NumericShaper, vốn xử lý chữ số trong văn bản đã có hoặc trong pipeline hiển thị.
+This concerns **receiving and committing input content**. It is distinct from `NumericShaper`, which processes digits in existing text or in a display pipeline.
 
-## 12. Các API nhập văn bản cần nhận diện
+## 12. Text input APIs to recognize
 
-| API | Vai trò |
-|---|---|
-| `java.awt.im.InputContext` | Quản lý ngữ cảnh sử dụng input method, lựa chọn/điều phối input method cho component |
-| `java.awt.event.InputMethodEvent` | Sự kiện thay đổi văn bản đang nhập hoặc vị trí caret |
-| `java.awt.event.InputMethodListener` | Listener nhận thông báo thay đổi composed text và caret |
-| `java.awt.im.InputMethodRequests` | Giao diện để input method truy vấn vị trí text/caret, vùng được chọn và nội dung đã commit theo hợp đồng |
-| `java.awt.font.TextHitInfo` | Biểu diễn thông tin vị trí trong văn bản cho các sự kiện/caret |
-| `java.awt.im.spi.InputMethod` | SPI cho implementation input method tích hợp với Java |
-| `java.awt.im.spi.InputMethodDescriptor` | Mô tả khả năng và cách tạo input method trong SPI |
-| `javax.swing.text.JTextComponent` | Nền tảng các text component Swing như `JTextField`, `JTextArea` hỗ trợ nhập/chỉnh sửa văn bản |
+| API | Role |
+| --- | --- |
+| `java.awt.im.InputContext` | Manages the input method context, selecting/coordinating input methods for a component |
+| `java.awt.event.InputMethodEvent` | Event notifying changes to composing text or caret position |
+| `java.awt.event.InputMethodListener` | Listener receiving notifications of composed text and caret changes |
+| `java.awt.im.InputMethodRequests` | Interface allowing an input method to query text/caret positions, selection, and committed text per contract |
+| `java.awt.font.TextHitInfo` | Represents hit/position info in text for events/caret |
+| `java.awt.im.spi.InputMethod` | SPI for input method implementations integrating with Java |
+| `java.awt.im.spi.InputMethodDescriptor` | Describes capabilities and creation of an input method in the SPI |
+| `javax.swing.text.JTextComponent` | Base class for Swing text components such as `JTextField`, `JTextArea` supporting text entry/editing |
 
-`InputContext` không phải chuỗi text người dùng đã nhập. `InputMethodEvent` không phải sự kiện số học và không yêu cầu NumericShaper để hoạt động. `InputMethodRequests` hỗ trợ phối hợp giữa IME và vùng hiển thị text, đặc biệt trong **inline composition**.
+`InputContext` is not the text string entered by the user. `InputMethodEvent` is not a numeric event and does not require `NumericShaper` to function. `InputMethodRequests` supports coordination between the IME and the text display area, especially for **inline composition**.
 
-API input method của Java SE là một phần của môi trường desktop/AWT. Trong ứng dụng server/headless, không thể giả định có bàn phím, cửa sổ hay IME tương tác. Nếu đang xử lý HTTP input từ browser, IME thường hoạt động ở **phía client**, còn server nhận chuỗi sau khi client gửi.
+Java SE's input method APIs belong to the desktop/AWT environment. In a server/headless application, you cannot assume a keyboard, window, or interactive IME exists. If handling HTTP input from a browser, the IME normally runs **on the client side**, and the server receives the string after submission.
 
-## 13. Composed text và committed text: khác nhau ở đâu?
+## 13. Composed text vs. committed text: what is the difference?
 
-Hai trạng thái quan trọng:
+Two key states:
 
-- **Composed text (preedit):** chuỗi đang được người dùng soạn qua IME; có thể thay đổi, bị hủy hoặc thay bởi một ứng viên khác.
-- **Committed text:** phần ký tự IME đã xác nhận và chuyển đến ứng dụng. Đây mới là phần có thể đưa vào document theo chính sách component.
+- **Composed text (preedit):** the string currently being composed by the user via an IME; it may change, be canceled, or be replaced by another candidate.
+- **Committed text:** the portion of characters the IME has confirmed and delivered to the application. Only this portion should enter the document per component policy.
 
-`InputMethodEvent.INPUT_METHOD_TEXT_CHANGED` cho biết có thay đổi văn bản nhập; `InputMethodEvent.CARET_POSITION_CHANGED` nói về sự thay đổi vị trí caret/selection trong nội dung đang nhập.
+`InputMethodEvent.INPUT_METHOD_TEXT_CHANGED` signals a change in input text; `InputMethodEvent.CARET_POSITION_CHANGED` signals a change in caret/selection position within the text being entered.
 
-`InputMethodEvent.getText()` trả về `AttributedCharacterIterator` của văn bản theo sự kiện, có thể chứa cả phần đã commit và phần đang compose. `getCommittedCharacterCount()` cho biết số ký tự ở đầu chuỗi sự kiện đã được commit; phần còn lại là composed text. Với một số dạng sự kiện, `getText()` có thể là `null`, nên không được truy cập nó vô điều kiện.
+`InputMethodEvent.getText()` returns an `AttributedCharacterIterator` for the event's text, which may contain both the committed part and the composing part. `getCommittedCharacterCount()` reports how many characters at the beginning of the event text have been committed; the remainder is composed text. For some event types, `getText()` can be `null`, so never dereference it unconditionally.
 
-Ví dụ logic:
+Logical example:
 
 ```text
 Event text:       abc
@@ -416,13 +416,13 @@ Committed:        a
 Composing:         bc
 ```
 
-Cần xử lý đúng cả hai phần. Nếu một listener ghi **toàn bộ event text** ngay vào database hoặc document khi IME chưa commit, các ký tự tạm thời có thể bị lưu nhầm hoặc chèn lặp.
+Both parts must be handled properly. If a listener writes **the entire event text** directly to a database or document before the IME commits, temporary characters can be saved by mistake or inserted repeatedly.
 
-## 14. Ví dụ Java 17+ độc lập: đọc trạng thái InputMethodEvent
+## 14. Standalone Java 17+ example: reading InputMethodEvent state
 
-Ví dụ sau tạo một **sự kiện giả lập để minh họa cấu trúc API**, không khởi động IME thật và không mô phỏng đầy đủ vòng đời bộ gõ.
+The following example creates a **simulated event to illustrate the API structure**; it does not start a real IME or emulate the full input-method lifecycle.
 
-Lưu thành `InputMethodEventDemo.java`:
+Save as `InputMethodEventDemo.java`:
 
 ```java
 import java.awt.Canvas;
@@ -472,14 +472,14 @@ public class InputMethodEventDemo {
 }
 ```
 
-Biên dịch và chạy trong môi trường Java SE có module `java.desktop`:
+Compile and run in a Java SE environment with the `java.desktop` module:
 
 ```bash
 javac InputMethodEventDemo.java
 java InputMethodEventDemo
 ```
 
-Kết quả kiểm chứng:
+Verified output:
 
 ```text
 committed=a
@@ -487,21 +487,21 @@ composing=bc
 caret=1
 ```
 
-Cần hiểu các giới hạn của ví dụ:
+Understand the limitations of this example:
 
-1. `AttributedString("abc")` chỉ tạo văn bản ví dụ; đây **không phải nội dung thật của bộ gõ**.
-2. Constructor `InputMethodEvent` nhận một `Component` nguồn, loại sự kiện, iterator, số ký tự committed và thông tin caret.
-3. `TextHitInfo.leading(1)` dùng trong ví dụ để cung cấp vị trí caret.
-4. Việc tách committed/composing dựa trên **số ký tự đã xác nhận**, không dựa trên cách trông giống một từ đã hoàn chỉnh.
-5. Ví dụ tạo sự kiện và đọc dữ liệu; nó **không dispatch sự kiện vào JTextField** và không chứng minh người dùng đã nhập thật.
+1. `AttributedString("abc")` merely creates sample text; it is **not real IME output**.
+2. The `InputMethodEvent` constructor takes a source `Component`, event ID, iterator, committed character count, and caret info.
+3. `TextHitInfo.leading(1)` is used in the example to supply a caret position.
+4. Splitting committed/composing relies on the **committed character count**, not on whether something looks like a finished word.
+5. The example creates an event and reads its data; it **does not dispatch the event into a `JTextField`** and does not prove real user typing occurred.
 
-Trên JVM tối giản thiếu `java.desktop`, các lớp AWT/IME sẽ không có sẵn. Trong môi trường desktop Java SE thông thường, chương trình chỉ tạo đối tượng nền tảng và không cần mở cửa sổ.
+On minimal JVMs lacking `java.desktop`, AWT/IME classes will not be available. On a typical Java SE desktop environment, the program only constructs basic objects and does not need to open a window.
 
-## 15. Swing text component và hỗ trợ input method
+## 15. Swing text components and input method support
 
-Các `JTextComponent` chuẩn như `JTextField` và `JTextArea` đã có các cơ chế hỗ trợ editing, caret, selection và input method. Khi tạo ứng dụng Swing, nên để **thành phần văn bản** xử lý nội dung đang compose thay vì tự viết một `KeyListener` biến phím thành ký tự.
+Standard `JTextComponent` subclasses like `JTextField` and `JTextArea` already have built-in support for editing, caret, selection, and input methods. When building a Swing application, let **the text component** handle composing content rather than writing a `KeyListener` that converts keystrokes into characters manually.
 
-Một ví dụ giao diện độc lập, chạy được trên máy có desktop UI:
+A standalone UI example, runnable on a machine with a desktop UI:
 
 ```java
 import java.awt.BorderLayout;
@@ -534,7 +534,7 @@ public class SwingInputDemo {
                         @Override
                         public void caretPositionChanged(
                                 InputMethodEvent event) {
-                            // Theo dõi caret nếu ứng dụng cần.
+                            // Track the caret if the application needs it.
                         }
                     });
 
@@ -547,30 +547,30 @@ public class SwingInputDemo {
 }
 ```
 
-Chạy trong môi trường có GUI:
+Run in a GUI environment:
 
 ```bash
 javac SwingInputDemo.java
 java SwingInputDemo
 ```
 
-**Không có một stdout cố định** cho ví dụ này: nó phụ thuộc bộ gõ, thao tác người dùng, focus và cách runtime chuyển sự kiện. Mục đích là nhận biết listener, không phải thay thế hệ thống nhập văn bản của Swing.
+**There is no fixed stdout** for this example: it depends on the input method, user actions, focus, and how the runtime delivers events. The goal is observing the listener, not replacing Swing's text input system.
 
-Lưu ý thực hành:
+Practical notes:
 
-- Listener trong ví dụ **chỉ quan sát**, không chèn toàn bộ `event.getText()` vào `JTextField` một lần nữa.
-- Không dựa vào `KeyEvent.KEY_TYPED` như nguồn duy nhất của ký tự khi có IME.
-- Công việc trên Swing component nên được thực hiện trên **Event Dispatch Thread**, như `SwingUtilities.invokeLater(...)`.
-- Khi ứng dụng chỉ cần lấy giá trị cuối cùng sau người dùng nhập, sử dụng API document/field và validation thích hợp; không cần tự dựng bộ xử lý composition.
-- Có thể cần xem xét focus, lựa chọn vùng text và tương tác bàn phím thật trên mỗi hệ điều hành.
+- The listener in the example **only observes**; it does not re-insert all of `event.getText()` into the `JTextField`.
+- Do not rely on `KeyEvent.KEY_TYPED` as the sole source of characters when an IME is active.
+- Work on Swing components must run on the **Event Dispatch Thread**, e.g. via `SwingUtilities.invokeLater(...)`.
+- When an app only needs the final value after user input, use document/field APIs and appropriate validation; there is no need to build a custom composition handler.
+- You may need to test focus, text selection, and real keyboard interactions on each OS.
 
-**Chú ý:** chạy demo này trên môi trường headless sẽ không có cửa sổ tương tác; không nên thử giải thích một lỗi headless như lỗi của `NumericShaper`.
+**Note:** running this demo in a headless environment will have no interactive window; do not try to diagnose a headless error as a `NumericShaper` bug.
 
-## 16. InputContext: điều phối bộ gõ, không tự tạo ký tự
+## 16. InputContext: coordinating the input method without generating characters itself
 
-`InputContext` đại diện cho ngữ cảnh input method trong AWT. Ví dụ, một component có thể truy cập input context của nó qua cơ chế component tương ứng, và ứng dụng có thể yêu cầu lựa chọn input method theo locale.
+`InputContext` represents an input method context in AWT. For instance, a component can access its input context through the corresponding component API, and an application can request selecting an input method by locale.
 
-Mảnh code minh họa:
+Illustrative snippet:
 
 ```java
 java.awt.im.InputContext context =
@@ -579,209 +579,209 @@ java.awt.im.InputContext context =
 if (context != null) {
     boolean selected = context.selectInputMethod(
             java.util.Locale.JAPANESE);
-    // selected cho biết yêu cầu chọn input method
-    // có thành công hay không trong môi trường đang chạy.
+    // selected indicates whether the request to select the input method
+    // succeeded in the running environment.
 }
 ```
 
-Biến `component` phải là một `java.awt.Component` đã được tạo trong ngữ cảnh GUI thích hợp. **Không được giả định** mọi môi trường đều có IME cho `Locale.JAPANESE`; kết quả phụ thuộc platform và các input methods được cài đặt.
+The `component` variable must be a `java.awt.Component` created in an appropriate GUI context. **Do not assume** every environment has an IME installed for `Locale.JAPANESE`; the outcome depends on the platform and installed input methods.
 
-API có thể hỗ trợ kích hoạt/vô hiệu hóa input method, quản lý composition theo các khả năng của component và bộ gõ. Nhưng `InputContext` không tự sửa chuỗi `String` do bạn truyền, không định dạng ngày giờ và không bảo đảm có thể chọn bất kỳ locale tùy ý nào.
+The API can help enable/disable input methods and manage composition according to the capabilities of the component and IME. Yet `InputContext` does not mutate a `String` you pass in, does not format dates/times, and does not guarantee any arbitrary locale can be selected.
 
-Đặc biệt, **Locale để định dạng giao diện** và **Locale của input method** không buộc phải giống nhau. Một người dùng có thể đang sử dụng UI tiếng Việt nhưng nhập văn bản tiếng Nhật hoặc tiếng Anh trong cùng form.
+In particular, **the UI formatting Locale** and **the input method's Locale** do not have to match. A user may be using a Vietnamese UI while typing Japanese or English text in the same form.
 
-## 17. InputMethodRequests và InputMethod SPI: dành cho trường hợp nâng cao
+## 17. InputMethodRequests and InputMethod SPI: for advanced cases
 
-Phần lớn ứng dụng Swing sử dụng text components có sẵn, không cần trực tiếp triển khai `InputMethodRequests` hay tự viết một input method mới.
+Most Swing applications use built-in text components and do not need to implement `InputMethodRequests` directly or write a new input method.
 
-`java.awt.im.InputMethodRequests` quan trọng khi thành phần văn bản **tự xây dựng** cần hỗ trợ inline composition và IME phải truy vấn:
+`java.awt.im.InputMethodRequests` matters when a **custom-built** text component needs inline composition support and the IME must query:
 
-- Vị trí của chữ đang soạn trên màn hình.
-- Vị trí caret/selection tương ứng với tọa độ hiển thị.
-- Phần văn bản đã committed.
-- Một số thao tác liên quan việc chuyển lại đoạn đã commit sang chế độ sửa (*reconversion*), khi được hỗ trợ.
+- The on-screen location of the text being composed.
+- The caret/selection position corresponding to display coordinates.
+- The committed portion of text.
+- Certain operations related to returning committed text back to edit mode (*reconversion*), when supported.
 
-`java.awt.im.spi.InputMethod` cùng `InputMethodDescriptor` thuộc **Service Provider Interface** cho nhà phát triển bộ gõ/IME tích hợp với AWT input method framework, không phải API mà mỗi form bình thường phải gọi.
+`java.awt.im.spi.InputMethod` and `InputMethodDescriptor` belong to the **Service Provider Interface** for IME developers integrating with the AWT input method framework—not an API every ordinary form needs to call.
 
-Nhận diện ba tầng:
+Recognize the three layers:
 
 ```text
-Ứng dụng / JTextComponent
+Application / JTextComponent
         |
         | InputMethodEvent, InputMethodRequests
         v
-AWT InputContext / cơ chế điều phối
+AWT InputContext / dispatch mechanism
         |
         v
-Input method / IME của platform hoặc provider
+Platform or provider Input method / IME
 ```
 
-Từng platform có thể cung cấp cách tích hợp khác nhau. Việc phát triển một input method mới phải tuân theo SPI và yêu cầu focus, event dispatch, locale, lựa chọn ngôn ngữ và lifecycle; không nên bắt đầu bằng cách chỉ implement một `KeyListener`.
+Different platforms integrate differently. Developing a new input method must follow the SPI and handle focus, event dispatch, locales, language selection, and lifecycle; never start by merely implementing a `KeyListener`.
 
-## 18. Ranh giới giữa trình bày và nhập liệu
+## 18. Boundary between presentation and input
 
-Hãy xem chuỗi tác vụ sau:
+Consider the following sequence of tasks:
 
-1. Người dùng dùng IME nhập văn bản chứa chữ Arabic và số.
-2. Text component nhận các sự kiện composition, rồi đưa văn bản đã commit vào document.
-3. Ứng dụng kiểm tra và lưu văn bản theo hợp đồng dữ liệu.
-4. Khi hiển thị, text layout có thể xử lý bidi, font và numeric shaping theo ngữ cảnh.
+1. A user uses an IME to enter text containing Arabic letters and numbers.
+2. The text component receives composition events, then places committed text into the document.
+3. The application validates and stores the text per its data contract.
+4. On display, text layout can handle bidi, fonts, and context-based numeric shaping.
 
-Ở đây:
+Here:
 
-- **IME** giải quyết việc người dùng **đưa nội dung vào ứng dụng**.
-- **NumericShaper** giải quyết việc **chuyển chữ số ASCII** trong văn bản hoặc trong quy trình layout.
-- **Bidi/text layout** giải quyết **thứ tự và hình dạng hiển thị**.
-- **Validation/parser** giải quyết dữ liệu đó **có hợp lệ hay không**.
+- **IME** handles the user **getting content into the application**.
+- **NumericShaper** handles **converting ASCII digits** in text or within a layout pipeline.
+- **Bidi/text layout** handles **visual order and shape**.
+- **Validation/parser** handles **whether that data is valid**.
 
-Không có một API đơn lẻ nào thay thế toàn bộ quá trình.
+No single API replaces the entire workflow.
 
-Một lỗi thiết kế là áp `NumericShaper` vào mọi văn bản ngay khi người dùng còn đang compose. Nếu ứng dụng thay mã Unicode của đoạn preedit giữa chừng, IME có thể mất khả năng quản lý vị trí và nội dung dự kiến. Nếu cần shape ở UI, ưu tiên tích hợp ở **tầng render** phù hợp, và chỉ biến đổi bản lưu sau khi chính sách dữ liệu yêu cầu rõ ràng.
+One design mistake is applying `NumericShaper` to all text while the user is still composing. If the app alters Unicode codes of the preedit segment mid-composition, the IME can lose track of expected positions and content. If shaping is needed in the UI, prefer integrating at the appropriate **rendering layer**, and transform stored values only when data policy explicitly requires it.
 
-## 19. Vấn đề hướng chữ, con trỏ, selection và Unicode
+## 19. Text direction, caret, selection, and Unicode issues
 
-Java `String.length()` và nhiều event/caret API sử dụng **vị trí theo UTF-16 code units**. Trong văn bản Arabic, chữ có dấu kết hợp, emoji hoặc đoạn RTL:
+Java `String.length()` and many event/caret APIs use **positions in UTF-16 code units**. In Arabic text, characters with combining marks, emojis, or RTL segments:
 
-- Một ký tự nhìn thấy không nhất thiết là một UTF-16 `char`.
-- Thứ tự ký tự trong bộ nhớ không nhất thiết là thứ tự trái-sang-phải trên màn hình.
-- Caret có thể liên quan đến **text hit/affinity** ở ranh giới glyph, nhất là văn bản bidirectional.
-- Composition có thể chứa các thuộc tính để phân biệt phần đang chỉnh sửa và phần đã chọn.
+- One visible character is not necessarily one UTF-16 `char`.
+- Character order in memory is not necessarily left-to-right order on screen.
+- Carets can involve **text hit/affinity** at glyph boundaries, especially in bidirectional text.
+- Composition can carry attributes distinguishing currently edited text from selected text.
 
-`TextHitInfo` đại diện cho thông tin hit/caret ở tầng văn bản, không đơn giản là một số cột tính từ bên trái. Với UI hỗ trợ RTL, cần test navigation và selection thực tế.
+`TextHitInfo` represents hit/caret information at the text layer, not merely a column count from the left. For RTL-capable UIs, test actual navigation and selection.
 
-Nếu ứng dụng tự chuyển đổi hoặc chuẩn hóa chuỗi sau khi đã tính vị trí con trỏ, các offset có thể không còn tương ứng với văn bản mới. `NumericShaper` có mục đích đổi ký tự số tương ứng, nhưng mọi bước xử lý văn bản khác như Unicode normalization có thể làm đổi số code units. Không dùng chỉ số từ một bản text để cắt hoặc highlight bản text khác khi chưa có ánh xạ phù hợp.
+If an application transforms or normalizes a string after computing caret positions, offsets may no longer align with the new text. `NumericShaper` maps corresponding digit characters one-to-one, yet other text steps such as Unicode normalization can change code unit counts. Do not use indices from one text representation to slice or highlight another without proper mapping.
 
-## 20. Đọc chữ số sau shaping: giá trị, kiểm tra và bảo mật
+## 20. Reading digits after shaping: values, validation, and security
 
-Sau khi NumericShaper đổi `"123"` thành chữ số của script khác, ứng dụng cần xác định **dữ liệu nhận được phải là văn bản hiển thị hay giá trị số**.
+After `NumericShaper` converts `"123"` into digits of another script, the application must decide **whether the resulting data is display text or a numeric value**.
 
-Trong Java, `Character.digit(codePoint, 10)` có thể nhận biết giá trị số thập phân của nhiều ký tự chữ số Unicode:
+In Java, `Character.digit(codePoint, 10)` can recognize the decimal numeric value of many Unicode digit characters:
 
 ```java
 int digit = Character.digit('\u0662', 10);
 // digit == 2
 ```
 
-Nhưng từ việc nhận ra một chữ số Unicode, **không suy ra mọi parser, regex hoặc giao thức đều chấp nhận chuỗi đó**. Ví dụ giao thức định nghĩa `[0-9]+` ASCII cần được kiểm tra đúng theo grammar đó; username, mã số hợp đồng hoặc chuỗi số thẻ có thể phải có quy tắc ngăn trộn script và ký tự dễ gây nhầm.
+However, from recognizing a Unicode digit, **do not conclude every parser, regex, or protocol accepts that string**. For instance, a protocol specifying ASCII `[0-9]+` must be validated strictly against that grammar; usernames, contract IDs, or card-number strings may require rules preventing mixed scripts and confusable characters.
 
-Nếu người dùng nhập số theo locale, nên dùng một parser như `NumberFormat` với `Locale` đã xác định, đồng thời kiểm tra toàn bộ input và miền giá trị. Nếu dữ liệu là máy-máy theo chuẩn ASCII, không được chỉ vì UI cần Arabic digits mà thay đổi bytes trong payload.
+If users enter locale-formatted numbers, use a parser like `NumberFormat` with an explicit `Locale`, while validating the entire input and value range. If machine-to-machine data requires ASCII, never alter payload bytes just because the UI displays Arabic digits.
 
-Một nguyên tắc an toàn:
+Safe principles:
 
-- **Lưu giá trị số dưới kiểu số** khi dữ liệu thực sự là số.
-- **Giữ nguyên văn bản nguồn** khi nghiệp vụ cần bảo toàn nội dung người dùng.
-- **Định dạng tại biên hiển thị** theo locale và chính sách text shaping.
-- **Xác thực rõ ràng** khi chấp nhận Unicode digits từ nguồn không đáng tin.
-- **Không dùng shaping để xóa bỏ khác biệt Unicode**, chống giả mạo tên tài khoản hoặc làm canonicalization bí mật.
+- **Store numeric values as numeric types** when data is truly numeric.
+- **Preserve original source text** when business rules require keeping user content intact.
+- **Format at the display boundary** per locale and text-shaping policies.
+- **Validate explicitly** when accepting Unicode digits from untrusted sources.
+- **Do not use shaping to erase Unicode differences**, prevent username spoofing, or perform hidden canonicalization.
 
-Shaping không phải một trình chuẩn hóa Unicode (`Normalizer`) và không phải một bộ lọc an ninh.
+Shaping is not a Unicode normalizer (`Normalizer`) and not a security filter.
 
-## 21. Những lỗi thường gặp
+## 21. Common mistakes
 
-**1. Cho rằng NumericShaper là bộ gõ.** Nó xử lý chữ số đã tồn tại trong văn bản; không nhận chuỗi phím và không thực hiện composition.
+**1. Thinking NumericShaper is an input method.** It processes digits already present in text; it does not accept keystrokes or perform composition.
 
-**2. Dùng NumericShaper để định dạng tiền tệ.** Nó không tự thêm ký hiệu tiền, dấu nhóm, dấu thập phân hay làm tròn.
+**2. Using NumericShaper to format currency.** It does not add currency symbols, grouping separators, decimal marks, or rounding.
 
-**3. Nhầm `Range.ARABIC` với mask `NumericShaper.ARABIC`.** Một bên là enum, một bên là hằng int theo API cũ.
+**3. Confusing `Range.ARABIC` with the `NumericShaper.ARABIC` mask.** One is an enum; the other is a legacy `int` constant.
 
-**4. Nhầm tham số `count` thành chỉ số kết thúc.** `shape(chars,start,count)` nhận số phần tử, không phải end index.
+**4. Mistaking the `count` parameter for an ending index.** `shape(chars,start,count)` takes an element count, not an end index.
 
-**5. Cho rằng `shape(char[])` chỉ đổi glyph.** Lời gọi này sửa trực tiếp các `char` trong mảng; khi tạo chuỗi mới thì code points đã thay đổi.
+**5. Thinking `shape(char[])` only swaps glyphs.** This call mutates `char` elements directly in the array; any new string created from it has changed code points.
 
-**6. Cho rằng gắn `TextAttribute.NUMERIC_SHAPING` tự sửa `String` gốc.** Nó là thuộc tính dùng cho trình bày, không phải phép biến đổi trực tiếp trên string lưu trữ.
+**6. Thinking attaching `TextAttribute.NUMERIC_SHAPING` mutates the source `String`.** It is a presentation attribute, not an in-place transformation on stored strings.
 
-**7. Cho rằng contextual shaper biết ngôn ngữ người dùng.** Nó dùng quy tắc ngữ cảnh chữ và tập range, không phải ngữ nghĩa hay locale UI tổng quát.
+**7. Thinking contextual shapers know the user's language.** They rely on character script context and range sets, not semantics or the overall UI locale.
 
-**8. Cho rằng numeric shaping tự giải quyết RTL/Bidi.** Vấn đề hướng chữ và glyph layout cần cơ chế riêng.
+**8. Thinking numeric shaping solves RTL/Bidi by itself.** Text direction and glyph layout require separate mechanisms.
 
-**9. Lưu mọi số đã shape vào giao thức máy-máy.** Có thể vi phạm hợp đồng ASCII hoặc gây parser lỗi.
+**9. Saving shaped numbers into machine-to-machine protocols.** This can violate ASCII contracts or break parsers.
 
-**10. Dùng `KeyListener` như nguồn duy nhất cho mọi ký tự IME.** Văn bản có thể đang composition qua nhiều thao tác trước khi commit.
+**10. Using `KeyListener` as the sole source for all IME characters.** Text may remain in composition across multiple keystrokes before committing.
 
-**11. Chèn cả composed text vào document khi chưa commit.** Có nguy cơ trùng, sai nội dung hoặc mất trạng thái bộ gõ.
+**11. Inserting composed text into the document before commit.** Risks duplication, corrupted content, or broken IME state.
 
-**12. Dùng `InputMethodEvent.getText()` mà không kiểm tra sự kiện/`null`.** Không phải mọi sự kiện đều có văn bản.
+**12. Using `InputMethodEvent.getText()` without checking event type/`null`.** Not every event carries text.
 
-**13. Tự implement toàn bộ IME khi JTextField đã hỗ trợ.** Nên tận dụng input method framework và text component chuẩn.
+**13. Re-implementing an entire IME when `JTextField` already supports it.** Leverage the standard input method framework and text components.
 
-**14. Giả định mọi máy có bộ gõ cho locale yêu cầu.** Khả năng phụ thuộc hệ điều hành, input method provider và trạng thái GUI.
+**14. Assuming every machine has an IME for the requested locale.** Availability depends on OS, input method providers, and GUI state.
 
-**15. Chia sẻ mutable editor state/iterator giữa các luồng.** UI và event dispatch có quy tắc thread; Swing phải được xử lý trên EDT.
+**15. Sharing mutable editor state/iterators across threads.** UI and event dispatch have threading rules; Swing must run on the EDT.
 
-**16. Nhầm UTF-16 index với vị trí thị giác.** Văn bản RTL và glyph phức hợp có thể có caret khác thứ tự code units.
+**16. Confusing UTF-16 indices with visual positions.** RTL text and composite glyphs can have caret positions differing from code unit order.
 
-**17. Cho rằng chữ số Unicode là dữ liệu “an toàn” vì có thể đọc bằng Character.digit.** Input validation và security policy vẫn bắt buộc.
+**17. Assuming Unicode digits are "safe" because `Character.digit` reads them.** Input validation and security policies remain mandatory.
 
-## 22. Tình huống chọn API đúng
+## 22. Scenarios for picking the right API
 
-| Tình huống | API/chính sách phù hợp |
-|---|---|
-| Hiển thị giá theo `ar-EG` | `NumberFormat` theo locale |
-| Đổi `123` trong chuỗi thành Arabic-Indic digits cố định | `NumericShaper.getShaper(Range.ARABIC)` |
-| Trộn Latin/Arabic và chọn chữ số theo đoạn chữ | `NumericShaper.getContextualShaper(...)` |
-| Gắn shaping vào trình bày văn bản có thuộc tính | `TextAttribute.NUMERIC_SHAPING` |
-| TextField nhận tiếng Việt/Japanese IME | `JTextField`/`JTextComponent` và input method framework |
-| Quan sát preedit và số ký tự đã xác nhận | `InputMethodListener` / `InputMethodEvent` |
-| Tự xây dựng component hỗ trợ inline IME | `InputMethodRequests`, text layout và event handling |
-| Tạo input method provider | `java.awt.im.spi` |
-| Xử lý ký tự RTL đúng hướng | Bidi/text layout cùng khả năng component |
-| Kiểm tra số đã nhập có hợp lệ | Parser/validator theo grammar/locale |
+| Scenario | Appropriate API/policy |
+| --- | --- |
+| Display a price for `ar-EG` | Locale-based `NumberFormat` |
+| Convert `123` in a string to fixed Arabic-Indic digits | `NumericShaper.getShaper(Range.ARABIC)` |
+| Mix Latin/Arabic and pick digits by text run | `NumericShaper.getContextualShaper(...)` |
+| Attach shaping to attributed text presentation | `TextAttribute.NUMERIC_SHAPING` |
+| TextField accepting Vietnamese/Japanese IME | `JTextField`/`JTextComponent` and input method framework |
+| Observe preedit and committed character count | `InputMethodListener` / `InputMethodEvent` |
+| Build a custom component supporting inline IME | `InputMethodRequests`, text layout, and event handling |
+| Create an input method provider | `java.awt.im.spi` |
+| Handle RTL characters in the right direction | Bidi/text layout plus component capabilities |
+| Validate entered numbers | Parser/validator per grammar/locale |
 
-Nếu một sản phẩm vừa có form nhập liệu vừa hiển thị văn bản Arabic/Latin, **có thể cần nhiều hàng trong bảng cùng lúc**. Không nên cố biến NumericShaper thành giải pháp tổng thể của localization.
+If a product has both input forms and Arabic/Latin text display, **multiple rows in the table may apply at once**. Do not try to turn `NumericShaper` into a catch-all localization solution.
 
-## 23. Checklist kiểm thử thực tế
+## 23. Practical testing checklist
 
-- **NumericShaper cố định:** `1203` thành `U+0661 U+0662 U+0660 U+0663` khi chọn range Arabic.
-- **Range khác:** thử Thai/Devanagari, kiểm tra kết quả code points độc lập font.
-- **Văn bản mixed-script:** chữ số Latin đầu dòng và chữ số sau đoạn Arabic có kết quả contextual mong đợi.
-- **Phạm vi mảng:** kiểm tra `start/count`; vùng ngoài phạm vi không được sửa.
-- **Dữ liệu gốc:** đối chiếu string ban đầu với chuỗi dựng từ char array sau shaping; biết nơi nào thực sự thay code points.
-- **TextAttribute:** kiểm tra renderer có tôn trọng `NUMERIC_SHAPING` và font có glyph.
-- **Bidi:** kiểm thử thứ tự hiển thị, caret/selection giữa Arabic và Latin.
-- **IME:** gõ, chọn ứng viên, commit, hủy composition; không chèn văn bản tạm thời hai lần.
-- **Focus:** chuyển qua lại giữa nhiều text fields, đổi bộ gõ, chọn văn bản, undo/redo.
-- **Locale:** giao diện và input locale có thể khác; không phụ thuộc default locale của server.
-- **Headless:** tách logic dữ liệu không cần AWT GUI khỏi test yêu cầu desktop.
-- **Security:** số Unicode từ nguồn ngoài phải đáp ứng grammar của giao thức và quy tắc chống nhầm script.
-- **Accessibility:** kiểm tra font, screen reader và hiển thị ký tự số đối với người dùng thực tế.
-- **Version:** nâng cấp JDK/Unicode, thay font hoặc platform IME có thể làm khác kết quả trình bày.
+- **Fixed NumericShaper:** `1203` becomes `U+0661 U+0662 U+0660 U+0663` when selecting the Arabic range.
+- **Other ranges:** test Thai/Devanagari and inspect code point output independently of fonts.
+- **Mixed-script text:** leading Latin digits and digits after an Arabic segment produce the expected contextual result.
+- **Array bounds:** verify `start/count`; elements outside the range must not be altered.
+- **Source data:** compare the original string against a string built from the char array after shaping; know exactly where code points actually changed.
+- **TextAttribute:** verify whether the renderer honors `NUMERIC_SHAPING` and the font has glyphs.
+- **Bidi:** test visual order, caret/selection between Arabic and Latin.
+- **IME:** type, choose candidates, commit, cancel composition; never insert temporary text twice.
+- **Focus:** switch between multiple text fields, switch input methods, select text, undo/redo.
+- **Locale:** UI locale and input locale can differ; never rely on server default locale.
+- **Headless:** separate data logic that needs no AWT GUI from tests requiring a desktop.
+- **Security:** Unicode digits from external sources must satisfy protocol grammar and script-mixing rules.
+- **Accessibility:** check fonts, screen readers, and digit display with real users.
+- **Versions:** JDK/Unicode upgrades, font changes, or platform IME updates can alter presentation output.
 
-## 24. Câu hỏi tự kiểm tra
+## 24. Self-check questions
 
-**Câu 1.** `NumericShaper.getShaper(Range.ARABIC)` dùng để làm gì?  
-**Đáp án:** Chuyển chữ số ASCII trong vùng văn bản được shape sang bộ chữ số Arabic-Indic, không tự định dạng giá trị tiền.
+**Q1.** What is `NumericShaper.getShaper(Range.ARABIC)` used for?  
+**A:** Converting ASCII digits in the shaped text range into Arabic-Indic digits, without formatting monetary values.
 
-**Câu 2.** `getContextualShaper(...)` khác `getShaper(...)` thế nào?  
-**Đáp án:** Contextual shaper chọn range theo ngữ cảnh chữ và tập range được phép; non-contextual shaper dùng một range cố định.
+**Q2.** How does `getContextualShaper(...)` differ from `getShaper(...)`?  
+**A:** A contextual shaper picks a range based on script context and permitted ranges; a non-contextual shaper uses one fixed range.
 
-**Câu 3.** `shape(chars, 4, 3)` xử lý tới index 3 hay bao nhiêu phần tử?  
-**Đáp án:** Ba phần tử bắt đầu từ index 4, tức các chỉ số 4, 5 và 6 nếu mảng đủ dài.
+**Q3.** Does `shape(chars, 4, 3)` process up to index 3 or how many elements?  
+**A:** Three elements starting at index 4—that is, indices 4, 5, and 6 if the array is long enough.
 
-**Câu 4.** `TextAttribute.NUMERIC_SHAPING` có tự sửa `String` được dùng để tạo `AttributedString` không?  
-**Đáp án:** Không. Nó gắn hướng dẫn shaping cho pipeline trình bày thích hợp.
+**Q4.** Does `TextAttribute.NUMERIC_SHAPING` automatically mutate the `String` used to create `AttributedString`?  
+**A:** No. It attaches a shaping instruction for a compatible presentation pipeline.
 
-**Câu 5.** NumericShaper có giải quyết bidi và mọi glyph Arabic không?  
-**Đáp án:** Không. Nó là phép chuyển chữ số; bidi và layout là trách nhiệm khác.
+**Q5.** Does `NumericShaper` solve bidi and all Arabic glyphs?  
+**A:** No. It is a digit conversion; bidi and layout are separate responsibilities.
 
-**Câu 6.** Vì sao không nên dùng một `KeyEvent` để xác định một ký tự tiếng Nhật/Việt cuối cùng?  
-**Đáp án:** Input method có thể cần nhiều thao tác, đoạn preedit và bước commit; `KeyEvent` không mô tả đầy đủ vòng đời đó.
+**Q6.** Why shouldn't you use a single `KeyEvent` to determine one final Japanese/Vietnamese character?  
+**A:** An input method may require multiple actions, a preedit stage, and a commit step; `KeyEvent` does not capture that full lifecycle.
 
-**Câu 7.** Trong `InputMethodEvent` có 1 ký tự committed và 2 ký tự composing, có nên lưu cả 3 ngay không?  
-**Đáp án:** Không mặc định. Cần tôn trọng cơ chế composition, và component chuẩn thường đã xử lý việc chèn text đã commit.
+**Q7.** If an `InputMethodEvent` has 1 committed character and 2 composing characters, should you save all 3 immediately?  
+**A:** Not by default. You must respect composition handling, and standard components already handle inserting committed text.
 
-**Câu 8.** Khi nào dùng `NumberFormat` thay `NumericShaper`?  
-**Đáp án:** Khi đang định dạng một **giá trị số** theo locale với dấu thập phân, dấu nhóm, độ chính xác hoặc ký hiệu tiền.
+**Q8.** When should you use `NumberFormat` instead of `NumericShaper`?  
+**A:** When formatting a **numeric value** by locale with decimal marks, grouping separators, precision, or currency symbols.
 
-**Câu 9.** Có thể chọn IME tiếng Nhật bằng `InputContext.selectInputMethod(Locale.JAPANESE)` trên mọi máy không?  
-**Đáp án:** Không bảo đảm; phụ thuộc platform và bộ gõ hiện có.
+**Q9.** Can you select a Japanese IME with `InputContext.selectInputMethod(Locale.JAPANESE)` on every machine?  
+**A:** Not guaranteed; it depends on the platform and available input methods.
 
-**Câu 10.** Vì sao cần validate chữ số đã shape nếu gửi sang API máy-máy?  
-**Đáp án:** API có thể chỉ cho phép cú pháp ASCII/canonical riêng; shaping tạo các ký tự Unicode khác.
+**Q10.** Why must shaped digits be validated if sent to a machine-to-machine API?  
+**A:** An API may only allow strict ASCII/canonical syntax; shaping produces different Unicode characters.
 
-## 25. Tổng kết
+## 25. Summary
 
-`NumericShaper` giúp **đổi ký tự số ASCII sang chữ số của hệ chữ**, bằng cách cố định một range hoặc chọn theo ngữ cảnh. `TextAttribute.NUMERIC_SHAPING` đưa vai trò đó vào tầng trình bày văn bản; `NumberFormat` mới là công cụ phù hợp để định dạng **giá trị số** theo locale.
+`NumericShaper` helps **convert ASCII digit characters into digits of a target script**, either using one fixed range or choosing contextually. `TextAttribute.NUMERIC_SHAPING` brings that role into the text presentation layer; `NumberFormat` remains the right tool for formatting **numeric values** by locale.
 
-Cơ chế nhập văn bản của Java SE lại thuộc AWT/Swing: `InputContext` điều phối input method, `InputMethodEvent` mang thông tin text đang soạn và text đã xác nhận, còn các text components xử lý caret/document/focus. Khi xây dựng ứng dụng đa ngôn ngữ, hãy **tách dữ liệu, shaping, bidi/layout, IME và validation** để mỗi tầng có hợp đồng rõ ràng.
+Java SE's text input mechanism belongs to AWT/Swing: `InputContext` coordinates the input method, `InputMethodEvent` carries composing and committed text information, and text components manage caret/document/focus. When building multilingual applications, **separate data, shaping, bidi/layout, IME, and validation** so each layer maintains a clear contract.
 
-**Tài liệu chính thức:** [Java SE 17 — NumericShaper](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/font/NumericShaper.html) · [TextAttribute](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/font/TextAttribute.html) · [InputContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/im/InputContext.html) · [InputMethodEvent](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/event/InputMethodEvent.html) · [InputMethodListener](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/event/InputMethodListener.html) · [InputMethodRequests](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/im/InputMethodRequests.html) · [InputMethod SPI](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/im/spi/package-summary.html).
+**Official documentation:** [Java SE 17 — NumericShaper](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/font/NumericShaper.html) · [TextAttribute](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/font/TextAttribute.html) · [InputContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/im/InputContext.html) · [InputMethodEvent](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/event/InputMethodEvent.html) · [InputMethodListener](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/event/InputMethodListener.html) · [InputMethodRequests](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/im/InputMethodRequests.html) · [InputMethod SPI](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/im/spi/package-summary.html).

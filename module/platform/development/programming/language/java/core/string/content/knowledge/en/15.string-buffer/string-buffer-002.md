@@ -1,35 +1,35 @@
-# So sánh API của StringBuffer và StringBuilder trong Java
+# Comparing the APIs of StringBuffer and StringBuilder in Java
 
-`StringBuffer` và `StringBuilder` đều là lớp dùng để **xây dựng và chỉnh sửa chuỗi ký tự có thể thay đổi** (*mutable character sequences*). Chúng có gần như cùng bộ API: `append`, `insert`, `delete`, `replace`, `reverse`, `charAt`, `setCharAt`, `length`, `capacity`, `substring` và nhiều phương thức hỗ trợ Unicode. Điểm khác biệt thiết kế quan trọng nhất là: **StringBuffer đồng bộ hóa các thao tác cần thiết trên chính đối tượng**, còn **StringBuilder không thực hiện đồng bộ hóa nội bộ**.
+`StringBuffer` and `StringBuilder` are both classes used to **build and edit mutable character sequences**. They share nearly the exact same API: `append`, `insert`, `delete`, `replace`, `reverse`, `charAt`, `setCharAt`, `length`, `capacity`, `substring`, and many Unicode helper methods. The most important design difference is: **`StringBuffer` synchronizes necessary operations on the object itself**, whereas **`StringBuilder` performs no internal synchronization**.
 
-Vì thế, trong mã chỉ có một luồng thao tác trên một bộ dựng chuỗi, `StringBuilder` thường là lựa chọn phù hợp và có thể tránh chi phí đồng bộ hóa. Khi một đối tượng dựng chuỗi thật sự được **chia sẻ để nhiều luồng cùng sửa**, `StringBuffer` có thể phù hợp hơn vì các thao tác riêng lẻ được đồng bộ hóa. Tuy nhiên, đồng bộ từng lời gọi **không biến mọi chuỗi nhiều lời gọi thành một giao dịch nguyên tử**.
+Therefore, in code where only a single thread operates on a string builder, `StringBuilder` is usually the appropriate choice and can avoid synchronization overhead. When a string-building object is genuinely **shared for multiple threads to modify concurrently**, `StringBuffer` may be more suitable because individual operations are synchronized. However, per-call synchronization **does not turn every sequence of multiple calls into an atomic transaction**.
 
-Bài này tập trung vào việc đối chiếu **API**, cách dùng, kết quả trả về, hiệu năng và giới hạn thread-safety — không coi hai lớp là thay thế cho `String` bất biến trong mọi trường hợp.
+This lesson focuses on comparing **APIs**, usage, return values, performance, and thread-safety limits — rather than treating either class as a replacement for immutable `String` in every case.
 
-## 1. Bức tranh tổng quan: giống gì, khác gì?
+## 1. The Big Picture: What Is Similar, What Is Different?
 
-| Tiêu chí | `StringBuilder` | `StringBuffer` |
+| Criterion | `StringBuilder` | `StringBuffer` |
 |---|---|---|
-| Mục đích | Xây dựng/chỉnh sửa chuỗi có thể thay đổi | Xây dựng/chỉnh sửa chuỗi có thể thay đổi |
-| Có thay đổi nội dung tại chỗ? | Có | Có |
-| Đồng bộ hóa phương thức nội bộ | Không | Có, với các thao tác cần thiết trên buffer |
-| Sử dụng khi | Builder cục bộ, một luồng sở hữu, hoặc tự quản lý đồng bộ | Cùng một buffer được chia sẻ và có các thao tác đồng thời |
-| `append`, `insert`, `delete`, `replace` | Có | Có |
-| `reverse`, `setCharAt`, `setLength` | Có | Có |
-| `length`, `capacity`, `ensureCapacity` | Có | Có |
-| `charAt`, `codePointAt`, `appendCodePoint` | Có | Có |
-| `substring`, `subSequence`, `indexOf` | Có | Có |
-| `toString()` | Trả một `String` chứa nội dung hiện tại | Trả một `String` chứa nội dung hiện tại |
-| Kiểu trả về của `append(...)` | `StringBuilder` | `StringBuffer` |
-| Thường được ưu tiên khi không cần đồng bộ | Có | Ít cần thiết hơn |
+| Purpose | Building/editing mutable character sequences | Building/editing mutable character sequences |
+| Modifies content in place? | Yes | Yes |
+| Internal method synchronization | No | Yes, for necessary operations on the buffer |
+| Use when | Local builder, owned by one thread, or self-managed synchronization | The same buffer is shared and accessed concurrently |
+| `append`, `insert`, `delete`, `replace` | Yes | Yes |
+| `reverse`, `setCharAt`, `setLength` | Yes | Yes |
+| `length`, `capacity`, `ensureCapacity` | Yes | Yes |
+| `charAt`, `codePointAt`, `appendCodePoint` | Yes | Yes |
+| `substring`, `subSequence`, `indexOf` | Yes | Yes |
+| `toString()` | Returns a `String` containing the current content | Returns a `String` containing the current content |
+| Return type of `append(...)` | `StringBuilder` | `StringBuffer` |
+| Usually preferred when synchronization is not needed | Yes | Less necessary |
 
-Cả hai đều triển khai các giao diện hữu ích như `CharSequence` và `Appendable`; cả hai không thay đổi nội dung của một đối tượng `String` đã tạo ra trước đó. Chúng **không phải lớp con của nhau**: bạn không thể ép kiểu trực tiếp một `StringBuilder` thành `StringBuffer`, hoặc ngược lại.
+Both implement useful interfaces such as `CharSequence` and `Appendable`; neither modifies the content of a previously created `String` object. They are **not subclasses of each other**: you cannot directly cast a `StringBuilder` to a `StringBuffer`, or vice versa.
 
-Mặc dù tên và chữ ký phương thức tương tự, tính đồng bộ hóa quyết định việc chọn lớp trong chương trình đa luồng. `StringBuffer` không mặc nhiên nhanh hơn, còn `StringBuilder` cũng không mặc nhiên sai trong ứng dụng nhiều luồng: một builder **thuộc riêng một luồng hoặc một lần gọi** vẫn dùng an toàn mà không cần chia sẻ.
+Although their method names and signatures are similar, synchronization determines which class to choose in multi-threaded programs. `StringBuffer` is not inherently faster, nor is `StringBuilder` inherently wrong in multi-threaded applications: a builder **private to one thread or one call** remains safe without sharing.
 
-## 2. Khởi tạo và quản lý length/capacity
+## 2. Initialization and Managing length/capacity
 
-Hai lớp đều có các cách tạo thường dùng:
+Both classes have commonly used creation patterns:
 
 ```java
 StringBuilder a = new StringBuilder();
@@ -41,20 +41,20 @@ StringBuffer y = new StringBuffer(64);
 StringBuffer z = new StringBuffer("Java");
 ```
 
-Đây là **đoạn mã minh họa**, không phải tệp chương trình độc lập. Các constructor không tham số tạo buffer ban đầu rỗng; constructor nhận `int` đặt dung lượng ban đầu; constructor nhận `String` tạo buffer có sẵn nội dung.
+These are **illustrative code snippets**, not a standalone program file. No-argument constructors create an initially empty buffer; constructors taking an `int` set the initial capacity; constructors taking a `String` create a buffer pre-populated with content.
 
-Hai khái niệm dễ nhầm:
+Two easily confused concepts:
 
-- `length()` là **số code unit UTF-16 đang có trong nội dung**.
-- `capacity()` là **dung lượng code unit mà bộ dựng hiện có thể chứa trước khi cần mở rộng**, và luôn không nhỏ hơn `length()`.
-- `ensureCapacity(minimumCapacity)` yêu cầu khả năng chứa tối thiểu, **không thêm ký tự** và không làm tăng `length()`.
-- `trimToSize()` yêu cầu cố gắng tiết kiệm dung lượng dư. Không dựa vào việc `capacity()` phải bằng `length()` trong mọi triển khai sau lời gọi.
+- `length()` is **the number of UTF-16 code units currently in the content**.
+- `capacity()` is **the code unit capacity the builder can currently hold before needing to expand**, and is always at least `length()`.
+- `ensureCapacity(minimumCapacity)` requests a minimum capacity; it **does not add characters** and does not increase `length()`.
+- `trimToSize()` requests an attempt to reclaim excess capacity. Do not rely on `capacity()` having to equal `length()` in every implementation after the call.
 
-Ví dụ: `new StringBuilder(8)` và `new StringBuffer(8)` ban đầu đều có `length() == 0`, `capacity() == 8`. `append("Java")` biến `length()` thành 4 nhưng chưa cần thay `capacity()`. Cả hai đều làm việc theo **code unit UTF-16**, không phải số grapheme cluster hay số byte UTF-8.
+For example, `new StringBuilder(8)` and `new StringBuffer(8)` both initially have `length() == 0`, `capacity() == 8`. `append("Java")` turns `length()` into 4 without needing to change `capacity()`. Both operate in terms of **UTF-16 code units**, not the number of grapheme clusters or UTF-8 bytes.
 
-### Ví dụ chạy được: constructor, length và capacity
+### Runnable Example: Constructors, length, and capacity
 
-Lưu dưới tên **`BuilderBufferCapacityDemo.java`**:
+Save as **`BuilderBufferCapacityDemo.java`**:
 
 ```java
 public class BuilderBufferCapacityDemo {
@@ -82,7 +82,7 @@ public class BuilderBufferCapacityDemo {
 }
 ```
 
-Chạy với JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac BuilderBufferCapacityDemo.java
@@ -102,26 +102,26 @@ builder still length 4: true
 buffer still length 4: true
 ```
 
-Trong ví dụ, dung lượng ban đầu đủ cho bốn ký tự nên `capacity()` vẫn là 8. Không suy ra quy luật nhân đôi cụ thể cho mọi lần mở rộng hoặc mọi phiên bản JVM: hợp đồng API bảo đảm điều kiện dung lượng cần thiết, còn chiến lược cấp phát là chi tiết triển khai.
+In the example, the initial capacity is enough for four characters so `capacity()` remains 8. Do not infer a specific doubling rule for every expansion or every JVM version: the API contract guarantees the required capacity condition, while the allocation strategy is an implementation detail.
 
-## 3. Đối chiếu các nhóm API thường dùng
+## 3. Comparing Common API Groups
 
-### 3.1. Thêm nội dung: `append`
+### 3.1. Appending Content: `append`
 
-Cả hai có các overload thêm `String`, `char`, số nguyên, số thực, boolean, mảng `char[]`, `CharSequence`, một phần của `CharSequence` và code point. Điểm cần nhớ: overload được chọn theo **kiểu đối số**, không theo ý định hiển thị của người viết.
+Both have overloads for appending `String`, `char`, integers, floating-point numbers, booleans, `char[]` arrays, `CharSequence`, a portion of a `CharSequence`, and code points. Key point to remember: the overload is selected by the **argument type**, not the author's display intent.
 
 ```java
-new StringBuilder().append(65);            // "65", không phải "A"
-new StringBuffer().append(65);             // "65", không phải "A"
+new StringBuilder().append(65);            // "65", not "A"
+new StringBuffer().append(65);             // "65", not "A"
 new StringBuilder().append('A');           // "A"
 new StringBuffer().append('A');            // "A"
 new StringBuilder().appendCodePoint(65);   // "A"
 new StringBuffer().appendCodePoint(65);    // "A"
 ```
 
-Đây là những **biểu thức minh họa**. Giá trị `int` trong `append(65)` được chuyển thành chữ số thập phân; để thêm code point `U+0041`, hãy gọi `appendCodePoint(65)` hoặc dùng `char` `'A'` nếu chỉ cần code unit BMP phù hợp.
+These are **illustrative expressions**. The `int` value in `append(65)` is converted to decimal digits; to append code point `U+0041`, call `appendCodePoint(65)` or use `char` `'A'` if only an appropriate BMP code unit is needed.
 
-Các phương thức `append(...)` của từng lớp trả về **chính đối tượng nhận lời gọi**, nên có thể viết kiểu fluent:
+The `append(...)` methods of each class return **the receiver object itself**, allowing a fluent style:
 
 ```java
 StringBuilder builder = new StringBuilder()
@@ -135,51 +135,51 @@ StringBuffer buffer = new StringBuffer()
         .append("Java");
 ```
 
-### 3.2. Chèn, xóa, thay thế và đảo nội dung
+### 3.2. Inserting, Deleting, Replacing, and Reversing Content
 
-| Thao tác | API ở cả hai lớp | Cách hiểu |
+| Operation | API in Both Classes | How to Understand |
 |---|---|---|
-| Chèn trước vị trí | `insert(offset, value)` | Chèn tại offset UTF-16 |
-| Xóa đoạn | `delete(start, end)` | Xóa phạm vi `[start, end)` |
-| Xóa một code unit | `deleteCharAt(index)` | Xóa đúng một `char` UTF-16 |
-| Thay đoạn | `replace(start, end, str)` | Thay phạm vi bằng chuỗi mới |
-| Đảo nội dung | `reverse()` | Đảo dãy nội dung, có xử lý đặc biệt cho surrogate pair |
-| Thay một code unit | `setCharAt(index, ch)` | Sửa một `char` tại vị trí đã có |
-| Điều chỉnh chiều dài | `setLength(newLength)` | Cắt bớt hoặc thêm code unit `'\u0000'` |
+| Insert before position | `insert(offset, value)` | Insert at UTF-16 offset |
+| Delete range | `delete(start, end)` | Delete range `[start, end)` |
+| Delete one code unit | `deleteCharAt(index)` | Delete a single UTF-16 `char` |
+| Replace range | `replace(start, end, str)` | Replace range with a new string |
+| Reverse content | `reverse()` | Reverse content sequence, with special handling for surrogate pairs |
+| Replace one code unit | `setCharAt(index, ch)` | Modify a `char` at an existing position |
+| Adjust length | `setLength(newLength)` | Truncate or pad with `'\u0000'` code units |
 
-Mọi offset trong bảng nói trên được xác định theo **code unit UTF-16**. Vì thế, `deleteCharAt(i)` hay `setCharAt(i, ch)` có thể phá cặp surrogate nếu chọn sai vị trí với emoji. `reverse()` cố gắng giữ cặp surrogate hợp lệ, nhưng không có nghĩa đảo đúng mọi cụm ký tự hiển thị có nhiều code point (như chữ và dấu kết hợp).
+All offsets in the table above are specified in **UTF-16 code units**. Because of this, `deleteCharAt(i)` or `setCharAt(i, ch)` can break a surrogate pair if the wrong position is chosen with emojis. `reverse()` attempts to keep valid surrogate pairs intact, but does not mean every displayable character cluster containing multiple code points (such as base letters with combining marks) will reverse properly.
 
-### 3.3. Đọc nội dung, tìm kiếm và cắt chuỗi
+### 3.3. Reading Content, Searching, and Slicing Strings
 
-| Tác vụ | API tương ứng |
+| Task | Corresponding API |
 |---|---|
-| Đọc một code unit | `charAt(index)` |
-| Đọc code point tại offset UTF-16 | `codePointAt(index)` |
-| Đọc code point trước offset | `codePointBefore(index)` |
-| Đếm code point theo khoảng UTF-16 | `codePointCount(begin, end)` |
-| Di chuyển offset theo số code point | `offsetByCodePoints(index, offset)` |
-| Sao chép ký tự vào mảng | `getChars(srcBegin, srcEnd, dst, dstBegin)` |
-| Tìm lần xuất hiện đầu | `indexOf(str)`, `indexOf(str, fromIndex)` |
-| Tìm lần xuất hiện cuối | `lastIndexOf(str)`, `lastIndexOf(str, fromIndex)` |
-| Lấy chuỗi con | `substring(start)`, `substring(start, end)` |
-| Lấy dưới giao diện `CharSequence` | `subSequence(start, end)` |
-| Tạo `String` chứa nội dung hiện tại | `toString()` |
+| Read one code unit | `charAt(index)` |
+| Read code point at UTF-16 offset | `codePointAt(index)` |
+| Read code point before offset | `codePointBefore(index)` |
+| Count code points in UTF-16 range | `codePointCount(begin, end)` |
+| Move offset by number of code points | `offsetByCodePoints(index, offset)` |
+| Copy characters into an array | `getChars(srcBegin, srcEnd, dst, dstBegin)` |
+| Find first occurrence | `indexOf(str)`, `indexOf(str, fromIndex)` |
+| Find last occurrence | `lastIndexOf(str)`, `lastIndexOf(str, fromIndex)` |
+| Extract substring | `substring(start)`, `substring(start, end)` |
+| Extract as `CharSequence` | `subSequence(start, end)` |
+| Create `String` with current content | `toString()` |
 
-`indexOf` và `lastIndexOf` trả `-1` nếu không tìm thấy. `substring(start, end)` hợp lệ khi `0 <= start <= end <= length()`; tham số kết thúc là **exclusive**. Không vì một builder/buffer mutable mà ranh giới được nới lỏng.
+`indexOf` and `lastIndexOf` return `-1` if not found. `substring(start, end)` is valid when `0 <= start <= end <= length()`; the end parameter is **exclusive**. Bounds are not relaxed just because a builder/buffer is mutable.
 
-### 3.4. Các thao tác trả về builder/buffer hay giá trị khác?
+### 3.4. Operations Returning the Builder/Buffer vs. Another Value?
 
-- `append`, `insert`, `delete`, `deleteCharAt`, `replace`, `reverse` và `appendCodePoint` thường trả **đúng kiểu bộ dựng đang dùng**, giúp nối phương thức.
-- `setCharAt`, `setLength`, `ensureCapacity` và `trimToSize` trả `void`; không thể tiếp tục chain sau chúng.
-- `charAt` trả `char`; `codePointAt` trả `int`; `length` và `capacity` trả `int`.
-- `substring` trả `String`, không trả `StringBuilder` hoặc `StringBuffer`.
-- `toString()` trả `String`, là một đối tượng có nội dung bất biến; thay đổi bộ dựng sau đó không thay đổi nội dung đã nhận.
+- `append`, `insert`, `delete`, `deleteCharAt`, `replace`, `reverse`, and `appendCodePoint` generally return **the exact builder type being used**, enabling method chaining.
+- `setCharAt`, `setLength`, `ensureCapacity`, and `trimToSize` return `void`; you cannot chain further calls after them.
+- `charAt` returns `char`; `codePointAt` returns `int`; `length` and `capacity` return `int`.
+- `substring` returns `String`, not `StringBuilder` or `StringBuffer`.
+- `toString()` returns `String`, an object with immutable content; modifying the builder afterward does not alter the received content.
 
-Đây là những khác biệt kiểu trả về cần biết khi chuyển mã từ lớp này sang lớp kia: tên phương thức giữ nguyên nhưng kiểu receiver và kiểu kết quả builder/buffer là khác nhau.
+These are the return-type differences to know when migrating code from one class to the other: method names stay the same, but receiver types and builder/buffer result types differ.
 
-## 4. Ví dụ dùng song song cùng một chuỗi lời gọi API
+## 4. Parallel Example Using the Same Sequence of API Calls
 
-Lưu thành **`BuilderBufferApiDemo.java`**:
+Save as **`BuilderBufferApiDemo.java`**:
 
 ```java
 public class BuilderBufferApiDemo {
@@ -229,43 +229,43 @@ buffer substring: SE
 after setCharAt: java SE | java SE
 ```
 
-Giải thích các bước:
+Step-by-step explanation:
 
-1. `append(" Core")` tạo `"Java Core"`.
-2. `insert(4, " 17")` tạo `"Java 17 Core"`, rồi `delete(4, 7)` xóa đúng `" 17"` để trở lại `"Java Core"`.
-3. `replace(5, 9, "SE")` thay `"Core"` bằng `"SE"` để được `"Java SE"`.
-4. Các phương thức ở hai lớp có cùng cách hiểu vị trí và nội dung.
-5. `setCharAt(0, 'j')` sửa một code unit ở đầu, cho `"java SE"`.
-6. `contentEquals(buffer)` so **nội dung `String`** bên trái với `CharSequence` bên phải; việc hai builder/buffer có kiểu khác nhau không ngăn so nội dung bằng API phù hợp.
+1. `append(" Core")` produces `"Java Core"`.
+2. `insert(4, " 17")` produces `"Java 17 Core"`, then `delete(4, 7)` removes `" 17"` to return to `"Java Core"`.
+3. `replace(5, 9, "SE")` replaces `"Core"` with `"SE"` to yield `"Java SE"`.
+4. The methods in both classes interpret positions and content identically.
+5. `setCharAt(0, 'j')` modifies one code unit at the beginning, giving `"java SE"`.
+6. `contentEquals(buffer)` compares the **`String` content** on the left with the `CharSequence` on the right; the two builders/buffers having different types does not prevent comparing their content via the proper API.
 
-Ví dụ là thao tác tuần tự một luồng; nó minh họa **tương đồng API**, không chứng minh tốc độ hay an toàn khi nhiều luồng cùng thao tác.
+This example is single-threaded sequential execution; it demonstrates **API similarity**, not speed or safety when multiple threads operate concurrently.
 
-## 5. Khác biệt ở hợp đồng đồng bộ
+## 5. Differences in the Synchronization Contract
 
-Hai lớp có gần như cùng API dựng ký tự, nhưng `StringBuffer` đồng bộ những thao tác cần thiết trên **monitor của đối tượng đích**, còn `StringBuilder` không tự cung cấp khóa. Khi dùng chung một `StringBuffer`, mỗi lần `append` hoặc `insert` được bảo vệ riêng; thứ tự giữa các lần gọi của những luồng khác nhau phụ thuộc lịch chạy.
+Both classes have nearly the same character-building API, but `StringBuffer` synchronizes necessary operations on **the target object's monitor**, while `StringBuilder` provides no built-in locking. When sharing a `StringBuffer`, each `append` or `insert` is individually protected; the ordering between calls from different threads depends on scheduling.
 
-Một tham số `CharSequence` mutable là trạng thái **nguồn**, không tự được bảo vệ bởi monitor của buffer đích. Nếu cần nội dung nguồn ổn định, hãy kiểm soát writer hoặc chuyển nó thành `String` bất biến trước khi gọi.
+A mutable `CharSequence` argument is **source** state and is not automatically protected by the destination buffer's monitor. If stable source content is needed, control its writers or convert it to an immutable `String` before calling.
 
 ```java
 StringBuffer shared = new StringBuffer();
-shared.append("A"); // Lần gọi thứ nhất kết thúc và nhả monitor.
-shared.append("B"); // Luồng khác có thể append ở giữa.
+shared.append("A"); // First call finishes and releases the monitor.
+shared.append("B"); // Another thread can append in between.
 ```
 
-Trong mã đa luồng, một `StringBuilder` cục bộ vẫn an toàn khi không bị chia sẻ; không có quy tắc nào yêu cầu mọi chương trình đa luồng phải dùng `StringBuffer`. Bài mở đầu **“Vai trò của StringBuffer trong mã cần đồng bộ”** có ví dụ quan sát số ký tự từ nhiều luồng.
+In multi-threaded code, a local `StringBuilder` remains safe when unshared; there is no rule requiring every multi-threaded program to use `StringBuffer`. The introductory lesson **"The Role of StringBuffer in Code Requiring Synchronization"** has an example observing character counts across multiple threads.
 
-## 6. Ranh giới API khi thao tác nhiều bước
+## 6. API Boundaries for Multi-Step Operations
 
-Nếu muốn “chỉ append khi chưa vượt `maxLength`” hoặc “ba phần của bản ghi phải liền nhau”, đây là một **thao tác logic nhiều bước** vượt quá hợp đồng từng phương thức. Có thể khóa toàn bộ vùng kiểm tra–sửa với `synchronized (buffer)`, hoặc dựng trọn `String record` rồi `buffer.append(record)` đúng một lần nếu không cần kiểm tra trạng thái khác.
+If you want to "append only while under `maxLength`" or "keep three parts of a record contiguous," this is a **multi-step logical operation** that goes beyond the single-method contract. You can lock the entire check–modify region with `synchronized (buffer)`, or build a complete `String record` first and call `buffer.append(record)` once if no other state checks are needed.
 
-Hai bài riêng **“Đồng bộ từng phương thức không bảo đảm nguyên tử cho cả chuỗi thao tác”** và **“Chọn khóa chung khi cần phối hợp nhiều thao tác”** hướng dẫn cách tái hiện race, xác định invariant và chọn monitor. Ở đây, khi so API, điều cần giữ là **tên phương thức tương đương không đồng nghĩa phạm vi đồng bộ của nhiều lời gọi cũng tương đương**.
+Two separate lessons **"Per-Method Synchronization Does Not Guarantee Atomicity for a Sequence of Operations"** and **"Choosing a Shared Lock When Coordinating Multiple Operations"** guide how to reproduce races, identify invariants, and choose a monitor. Here, when comparing APIs, the key takeaway is that **equivalent method names do not mean the synchronization scope across multiple calls is equivalent**.
 
 
-## 7. Lưu ý về tham chiếu, `toString` và `equals`
+## 7. Notes on References, `toString`, and `equals`
 
-Cả hai lớp là đối tượng mutable, khác `String` bất biến. Sau khi gọi `toString()`, bạn có giá trị `String` độc lập về nội dung: những lần sửa buffer/builder tiếp theo không sửa đối tượng `String` đã thu được.
+Both classes are mutable objects, unlike immutable `String`. After calling `toString()`, you have an independent `String` value in terms of content: subsequent edits to the buffer/builder do not change the obtained `String` object.
 
-### Ví dụ chụp nội dung thành String
+### Example: Capturing Content into a String
 
 **`BufferSnapshotDemo.java`**
 
@@ -313,24 +313,24 @@ buffer.equals(new buffer): false
 snapshots equal: true
 ```
 
-`StringBuilder` và `StringBuffer` **không override `Object.equals()` để so nội dung**. Hai instance khác nhau, dù chứa cùng chữ, thường có `equals(...) == false`. Muốn so nội dung:
+`StringBuilder` and `StringBuffer` **do not override `Object.equals()` for content comparison**. Two distinct instances, even containing the exact same text, typically evaluate `equals(...) == false`. To compare content:
 
-- Dùng `builder.toString().equals(buffer.toString())` nếu muốn snapshot thành hai chuỗi bất biến và so chúng.
-- Dùng `String.contentEquals(CharSequence)` để so nội dung `String` với `StringBuilder`/`StringBuffer` theo API.
-- Nếu nguồn đang bị sửa đồng thời, phải xác định chính sách snapshot và đồng bộ thích hợp; hai lần gọi `toString()` trên hai đối tượng khác nhau **không tự thành một snapshot nguyên tử xuyên cả hai**.
+- Use `builder.toString().equals(buffer.toString())` if you want to snapshot both into two immutable strings and compare them.
+- Use `String.contentEquals(CharSequence)` to compare `String` content against a `StringBuilder`/`StringBuffer` via the API.
+- If the source is being modified concurrently, you must define an appropriate snapshot and synchronization policy; calling `toString()` twice on two different objects **does not automatically form an atomic snapshot across both**.
 
-Không sử dụng `==` để so nội dung chuỗi: `==` giữa các đối tượng tham chiếu hỏi chúng có cùng một instance hay không.
+Do not use `==` to compare string content: `==` between reference objects asks whether they are the exact same instance.
 
-## 8. Khác biệt về kiểu trả về khi chuyển đổi mã
+## 8. Return-Type Differences When Refactoring Code
 
-Hai lớp có tên phương thức gần giống, nhưng mỗi lớp trả về đúng kiểu cụ thể của mình ở các API fluent:
+Both classes have nearly identical method names, but each returns its own specific type in fluent APIs:
 
 ```java
 StringBuilder sb = new StringBuilder().append("A").reverse();
 StringBuffer bf = new StringBuffer().append("A").reverse();
 ```
 
-Nếu hàm hiện viết:
+If a method is currently written as:
 
 ```java
 static StringBuilder appendTag(StringBuilder target, String tag) {
@@ -338,7 +338,7 @@ static StringBuilder appendTag(StringBuilder target, String tag) {
 }
 ```
 
-thì không thể truyền một `StringBuffer` vào mà không thay chữ ký. Đây là **đoạn minh họa chữ ký**, không phải chương trình độc lập. Có thể thiết kế hàm tổng quát theo `Appendable` khi chỉ cần append mà không cần API riêng của hai lớp:
+then you cannot pass a `StringBuffer` in without changing the signature. This is an **illustrative signature snippet**, not a standalone program. You can design the function generically in terms of `Appendable` when only appending is needed without class-specific APIs:
 
 ```java
 static void appendTag(Appendable target, String tag)
@@ -347,11 +347,11 @@ static void appendTag(Appendable target, String tag)
 }
 ```
 
-`Appendable` khai báo `append` có thể ném `IOException`; vì thế chữ ký tổng quát phải xử lý ngoại lệ kiểm tra (*checked exception*) ở giao diện, dù hai hiện thực cụ thể `StringBuilder` và `StringBuffer` không ném `IOException` trong các overload tương ứng. Đổi sang `Appendable` cũng mất quyền gọi trực tiếp `delete`, `capacity`, `reverse` hoặc `setCharAt` vì các phương thức này không thuộc giao diện.
+`Appendable` declares that `append` may throw `IOException`; therefore a generic signature must handle the checked exception on the interface, even though the concrete implementations `StringBuilder` and `StringBuffer` do not throw `IOException` in their corresponding overloads. Switching to `Appendable` also loses direct access to `delete`, `capacity`, `reverse`, or `setCharAt` because those methods do not belong to the interface.
 
-Nếu chỉ cần **đọc** dãy ký tự, `CharSequence` là giao diện thích hợp hơn; nhưng một `CharSequence` mutable có thể thay đổi sau khi được chuyển vào hàm, nên không xem nó mặc nhiên bất biến.
+If you only need to **read** a character sequence, `CharSequence` is a better interface; however, a mutable `CharSequence` can still change after being passed into a method, so do not treat it as implicitly immutable.
 
-### Ví dụ tổng quát qua `Appendable`
+### Generic Example via `Appendable`
 
 **`AppendableCompatibilityDemo.java`**
 
@@ -389,17 +389,17 @@ java AppendableCompatibilityDemo
 [A]
 ```
 
-Dùng giao diện giúp mã nguồn không phụ thuộc lớp cụ thể khi chỉ cần chức năng chung. Nhưng **nó không quyết định thread-safety**: nếu đầu vào là `StringBuilder` chung giữa các luồng, lời gọi thông qua `Appendable` không làm cho builder đó tự động được đồng bộ hóa.
+Using an interface keeps source code independent of a concrete class when only shared functionality is needed. However, **it does not determine thread-safety**: if the input is a `StringBuilder` shared across threads, calling through `Appendable` does not make that builder automatically synchronized.
 
-## 9. Unicode và chỉ số: hai lớp có cùng rủi ro
+## 9. Unicode and Indexing: Both Classes Share the Same Risks
 
-Vì cả hai lưu nội dung theo ngữ nghĩa UTF-16:
+Because both store content with UTF-16 semantics:
 
-- `length()` và các chỉ số `charAt`, `insert`, `delete`, `replace`, `substring` đều làm việc theo **code unit UTF-16**.
-- `appendCodePoint(int)` là API thêm một code point, có thể tạo **một** code unit trong BMP hoặc **hai** code unit ngoài BMP.
-- `codePointAt` và `codePointCount` giúp xử lý dữ liệu theo Unicode code point, nhưng không đếm **grapheme cluster**.
-- `deleteCharAt` có thể cắt đôi surrogate pair; phải chọn ranh giới bằng `offsetByCodePoints` hoặc công cụ phân đoạn grapheme nếu mục tiêu là ký tự người dùng nhìn thấy.
-- `reverse()` có xử lý surrogate pair, nhưng không bảo đảm đảo đúng cụm ký tự chứa nhiều code point.
+- `length()` and the indices in `charAt`, `insert`, `delete`, `replace`, and `substring` all operate in **UTF-16 code units**.
+- `appendCodePoint(int)` is the API for adding a code point, which may produce **one** code unit in the BMP or **two** code units outside the BMP.
+- `codePointAt` and `codePointCount` help process data by Unicode code points, but do not count **grapheme clusters**.
+- `deleteCharAt` can split a surrogate pair in half; boundaries must be chosen using `offsetByCodePoints` or a grapheme segmentation tool if the goal is user-perceived characters.
+- `reverse()` handles surrogate pairs, but does not guarantee properly reversing character clusters containing multiple code points.
 
 **`BuilderBufferUnicodeDemo.java`**
 
@@ -448,34 +448,34 @@ builder first code point: U+1F60A
 buffer first code point: U+1F60A
 ```
 
-Khi thêm emoji 😊 (một supplementary code point) và chữ `A` (một BMP code point), mỗi bộ dựng chứa **3 code unit UTF-16** nhưng chỉ có **2 code point**. Cả hai lớp cho kết quả giống nhau. Việc StringBuffer đồng bộ hóa phương thức không tự sửa các lỗi logic Unicode nếu chương trình chọn điểm cắt sai.
+When adding the emoji 😊 (a supplementary code point) and the letter `A` (a BMP code point), each builder contains **3 UTF-16 code units** yet only **2 code points**. Both classes produce identical results. `StringBuffer` synchronizing its methods does not automatically fix Unicode logic bugs if the program picks wrong cut points.
 
-## 10. Hiệu năng đi theo cách sử dụng API
+## 10. Performance Follows How the API Is Used
 
-`StringBuilder` tránh đồng bộ nội bộ khi chỉ một luồng sở hữu bộ dựng; `StringBuffer` có thêm cơ chế monitor khi bảo vệ buffer dùng chung. Nhưng một phép đo đơn giản không đủ để khẳng định một tỷ lệ chênh lệch cố định, vì kết quả phụ thuộc JDK/JIT, cấp phát, dung lượng và tranh chấp khóa.
+`StringBuilder` avoids internal synchronization when only one thread owns the builder; `StringBuffer` adds monitor coordination when protecting a shared buffer. Still, a simple measurement is not enough to assert a fixed ratio of difference, because results depend on the JDK/JIT, allocation, capacity, and lock contention.
 
-Hãy chọn theo **quyền sở hữu instance và tính đúng của chương trình** trước. Khi có nhu cầu tối ưu, so sánh hai phương án có cùng ngữ nghĩa; xem xét việc dựng từng phần cục bộ rồi append theo lô để giảm số lần các luồng cùng đi vào monitor. Bài **“Chi phí đồng bộ và điều kiện thực sự cần StringBuffer”** hướng dẫn thiết kế phép đo JMH và phân tích contention.
+Choose based on **instance ownership and program correctness** first. When optimization is needed, compare two alternatives with identical semantics; consider building parts locally and appending in batches to reduce how often threads enter the monitor. The lesson **"Synchronization Cost and When StringBuffer Is Truly Needed"** guides JMH benchmark design and contention analysis.
 
 
-## 11. Các lỗi thường gặp khi so sánh API
+## 11. Common Mistakes When Comparing APIs
 
-| Nhầm lẫn | Vấn đề thực tế | Cách hiểu đúng |
+| Misconception | Actual Issue | Correct Understanding |
 |---|---|---|
-| “StringBuffer và StringBuilder có nội dung giống nhau nên `equals` trả true” | Hai lớp không override `equals` để so nội dung | Dùng `toString().equals(...)` hoặc `String.contentEquals(...)` |
-| “StringBuffer bảo đảm cả đoạn kiểm tra rồi append là nguyên tử” | Mỗi lời gọi riêng biệt không tạo một giao dịch nhiều bước | Dùng một khóa chung bảo vệ toàn bộ bất biến |
-| “Chỉ có ứng dụng một luồng mới được dùng StringBuilder” | Các builder cục bộ không bị chia sẻ vẫn an toàn trong ứng dụng đa luồng | Xét **quyền sở hữu instance**, không chỉ số luồng của ứng dụng |
-| “`append(int)` thêm code point Unicode” | `append(int)` thêm biểu diễn thập phân của số | Dùng `appendCodePoint(int)` |
-| “`length()` đếm ký tự hiển thị” | UTF-16 có surrogate pair; grapheme có thể gồm nhiều code point | Phân biệt units, points và clusters |
-| “`capacity()` là số phần tử đã thêm” | Capacity là khả năng chứa, không phải length | Dùng `length()` để biết số code unit hiện có |
-| “`substring` trả builder mới” | Trả `String` | Dùng `StringBuilder`/`StringBuffer` mới nếu cần tiếp tục sửa |
-| “Có thể ép kiểu StringBuilder ↔ StringBuffer” | Không có quan hệ kế thừa giữa hai lớp | Tạo đối tượng mới từ nội dung, hoặc thiết kế theo giao diện |
-| “`toString()` sẽ phản ánh mọi thay đổi về sau” | `String` kết quả là bất biến | Chụp lại `toString()` nếu cần snapshot mới |
-| “Khai báo tham số `Appendable` làm mọi thứ thread-safe” | Thread-safety vẫn phụ thuộc instance và chính sách đồng bộ | Kiểm soát chia sẻ và quyền sở hữu |
-| “Mọi phương thức có tên giống nhau đều dùng tham số và kết quả như nhau 100%” | Return type fluent là loại bộ dựng cụ thể; API trong JDK có thể tiến hóa | Kiểm tra chữ ký và phiên bản JDK của ứng dụng |
+| "StringBuffer and StringBuilder have the same content so `equals` returns true" | Neither class overrides `equals` to compare content | Use `toString().equals(...)` or `String.contentEquals(...)` |
+| "StringBuffer guarantees a check-then-append block is atomic" | Separate calls do not form a multi-step transaction | Use a shared lock protecting the entire invariant |
+| "Only single-threaded applications may use StringBuilder" | Local unshared builders remain safe in multi-threaded applications | Consider **instance ownership**, not just thread count of the application |
+| "`append(int)` appends a Unicode code point" | `append(int)` appends the decimal representation of the number | Use `appendCodePoint(int)` |
+| "`length()` counts visible characters" | UTF-16 has surrogate pairs; a grapheme may contain multiple code points | Distinguish units, points, and clusters |
+| "`capacity()` is the number of added elements" | Capacity is storage room, not length | Use `length()` to find the current number of code units |
+| "`substring` returns a new builder" | It returns a `String` | Create a new `StringBuilder`/`StringBuffer` if further edits are needed |
+| "You can cast StringBuilder ↔ StringBuffer" | There is no inheritance relationship between the two classes | Create a new object from the content, or design around interfaces |
+| "`toString()` will reflect all future changes" | The resulting `String` is immutable | Capture `toString()` again if a fresh snapshot is needed |
+| "Declaring an `Appendable` parameter makes everything thread-safe" | Thread-safety still depends on the instance and synchronization policy | Control sharing and ownership |
+| "All methods with the same name behave 100% identically in parameters and results" | Fluent return types are the specific builder type; JDK APIs can evolve | Check signatures and the application's JDK version |
 
-## 12. Tự kiểm tra kiến thức
+## 12. Self-Check Knowledge Test
 
-Trước khi chạy, dự đoán stdout:
+Before running, predict the stdout:
 
 **`BuilderBufferSelfCheck.java`**
 
@@ -521,15 +521,15 @@ cba!
 false
 ```
 
-- `append('c')` nối `c` vào chuỗi `ab`, sau đó `reverse()` tạo `cba` trong từng đối tượng.
-- Hai đối tượng chứa cùng nội dung và cùng độ dài, nhưng so bằng `toString().equals(...)` mới là so **giá trị văn bản**.
-- `snapshot` vẫn là `"cba"` sau khi buffer đổi thành `"cba!"`, vì đó là một `String` bất biến.
-- Hai `new StringBuffer("ab")` là hai instance khác nhau; `equals` không có phép so nội dung riêng nên trả `false`.
+- `append('c')` appends `c` to `"ab"`, then `reverse()` produces `"cba"` in each object.
+- Both objects contain the same content and length, but comparing via `toString().equals(...)` is what compares **text value**.
+- `snapshot` stays `"cba"` after the buffer changes to `"cba!"`, because it is an immutable `String`.
+- The two `new StringBuffer("ab")` objects are distinct instances; `equals` has no custom content comparison, so it returns `false`.
 
-**Ba câu hỏi quyết định khi viết mã:**
+**Three deciding questions when writing code:**
 
-1. Đối tượng dựng chuỗi có **được chia sẻ** qua các luồng không, hay mỗi luồng sở hữu riêng?
-2. Nhu cầu chỉ là các lời gọi độc lập (`append`, `insert`, `delete`) hay có **bất biến nhiều bước** cần bảo vệ nguyên tử?
-3. Mục tiêu là xử lý **nội dung ký tự**, **offset UTF-16**, hay **tham chiếu đối tượng**? Đã chọn đúng `equals`/`contentEquals`/`substring` hay chưa?
+1. Is the string-building object **shared** across threads, or owned individually by each thread?
+2. Is the requirement only independent calls (`append`, `insert`, `delete`), or is there a **multi-step invariant** needing atomic protection?
+3. Is the goal handling **character content**, **UTF-16 offsets**, or **object references**? Have `equals`/`contentEquals`/`substring` been chosen appropriately?
 
-**Kết luận:** `StringBuilder` và `StringBuffer` gần như tương đương về bộ thao tác xây dựng chuỗi, nhưng khác nhau về cơ chế đồng bộ hóa. Chọn `StringBuilder` cho bộ dựng không bị chia sẻ đồng thời; chọn `StringBuffer` hoặc cơ chế đồng bộ khác khi có truy cập chung thực sự, và bảo vệ thêm các thao tác nhiều bước nếu nghiệp vụ yêu cầu. Dù dùng lớp nào, hãy luôn phân biệt nội dung với tham chiếu, length với capacity và code unit với code point để có kết quả đúng.
+**Conclusion:** `StringBuilder` and `StringBuffer` are nearly equivalent in string-building operations, but differ in synchronization mechanisms. Choose `StringBuilder` for builders not shared concurrently; choose `StringBuffer` or another synchronization mechanism when genuine shared access exists, and additionally protect multi-step operations if business rules require it. Whichever class you use, always distinguish content from reference, length from capacity, and code units from code points to get correct results.

@@ -1,31 +1,31 @@
-# Configuration.resolve và resolveAndBind
+# Configuration.resolve and resolveAndBind
 
-Java Platform Module System (JPMS) không chỉ mô tả dependency trong `module-info.java`; nó còn cần tìm các module thực tế và giải quyết toàn bộ quan hệ phụ thuộc trước khi tạo một module layer. Hai phương thức `Configuration.resolve(...)` và `Configuration.resolveAndBind(...)` thực hiện bước phân giải đó.
+The Java Platform Module System (JPMS) does not just describe dependencies in `module-info.java`; it also needs to locate the actual modules and resolve all dependency relationships before creating a module layer. The two methods `Configuration.resolve(...)` and `Configuration.resolveAndBind(...)` perform that resolution step.
 
-Cả hai phương thức đều tạo ra một đối tượng `Configuration` mới từ các module gốc (roots), các module có thể tìm thấy qua `ModuleFinder` và những configuration cha đã tồn tại. Điểm khác biệt quan trọng là `resolveAndBind` thực hiện thêm **service binding**: nó tìm các provider của service mà module trong cấu hình sử dụng, rồi bổ sung provider module cùng dependency cần thiết vào kết quả.
+Both methods create a new `Configuration` object from root modules, observable modules found via `ModuleFinder`, and existing parent configurations. The key difference is that `resolveAndBind` additionally performs **service binding**: it locates providers of services used by modules in the configuration and adds those provider modules along with their required dependencies to the result.
 
-Các phương thức này không tự nạp class hoặc khởi tạo plugin. Chúng tạo module configuration; sau đó ứng dụng dùng `ModuleLayer` để định nghĩa và nạp các module đó.
+These methods do not load classes or instantiate plugins by themselves. They produce a module configuration; the application then uses `ModuleLayer` to define and load those modules.
 
-## 1. Configuration là gì?
+## 1. What Is a Configuration?
 
-`Configuration` biểu diễn kết quả phân giải một tập hợp module. Nó chứa module graph đã được giải quyết, cùng quan hệ với các configuration cha.
+`Configuration` represents the result of resolving a set of modules. It contains the resolved module graph along with its relationships to parent configurations.
 
-Trong một ứng dụng thông thường, configuration nền tảng có thể lấy từ boot layer:
+In a typical application, the baseline configuration can be obtained from the boot layer:
 
 ~~~java
 Configuration bootConfiguration =
     ModuleLayer.boot().configuration();
 ~~~
 
-Boot layer chứa các module nền tảng và những module đã được khởi tạo cho runtime hiện tại. Khi cần nạp plugin hoặc một nhóm module bổ sung, ứng dụng có thể tạo configuration con dựa trên configuration của boot layer.
+The boot layer contains the foundational modules and those initialized for the current runtime. When an application needs to load plugins or an additional group of modules, it can create a child configuration based on the boot layer's configuration.
 
-Cần phân biệt:
+It is important to distinguish:
 
-- **`ModuleFinder`**: tìm và cung cấp thông tin về các module có thể quan sát được từ một nguồn.
-- **`Configuration`**: kết quả phân giải roots và dependency thành một module graph hợp lệ.
-- **`ModuleLayer`**: môi trường runtime định nghĩa các module từ configuration và gắn chúng với class loader.
+- **`ModuleFinder`**: locates and provides information about observable modules from a source.
+- **`Configuration`**: the result of resolving roots and dependencies into a valid module graph.
+- **`ModuleLayer`**: the runtime environment that defines modules from a configuration and associates them with class loaders.
 
-Luồng tổng quát:
+Overall flow:
 
 ~~~text
 ModuleFinder + root module names + parent Configuration
@@ -46,13 +46,13 @@ ModuleFinder + root module names + parent Configuration
              Load classes / services
 ~~~
 
-Vì vậy, tạo được một configuration chưa có nghĩa plugin đã được khởi chạy. Ứng dụng còn cần tạo layer và sử dụng class hoặc service từ layer đó.
+Therefore, being able to create a configuration does not mean the plugins have been started. The application still needs to create a layer and use classes or services from that layer.
 
-## 2. ModuleFinder: nguồn tìm module
+## 2. ModuleFinder: Module Discovery Source
 
-`ModuleFinder` là abstraction để tìm module theo tên và liệt kê các module mà nguồn đó cung cấp.
+`ModuleFinder` is an abstraction for finding modules by name and listing the modules provided by that source.
 
-Một nguồn thường gặp là thư mục chứa modular JAR, automatic module hoặc exploded module:
+A common source is a directory containing modular JARs, automatic modules, or exploded modules:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -62,13 +62,13 @@ ModuleFinder pluginFinder =
     ModuleFinder.of(Path.of("plugins"));
 ~~~
 
-`ModuleFinder.of(Path...)` có thể tìm module trong các đường dẫn được chỉ định. Các đường dẫn thường là:
+`ModuleFinder.of(Path...)` can locate modules in the specified paths. Those paths are typically:
 
-- Modular JAR có `module-info.class`.
-- JAR không có descriptor, có thể được nhận diện như automatic module.
-- Thư mục chứa cấu trúc module đã biên dịch (exploded module).
+- A modular JAR containing `module-info.class`.
+- A JAR without a descriptor, which can be recognized as an automatic module.
+- A directory containing a compiled module structure (an exploded module).
 
-Có thể kiểm tra các module finder tìm thấy:
+You can inspect the modules found by the finder:
 
 ~~~java
 pluginFinder.findAll().forEach(reference ->
@@ -76,19 +76,19 @@ pluginFinder.findAll().forEach(reference ->
 );
 ~~~
 
-Mỗi `ModuleReference` cung cấp descriptor và thông tin tham chiếu tới nội dung module. `ModuleFinder` không tự resolve dependency; nó chỉ giúp tìm module để bước phân giải sử dụng.
+Each `ModuleReference` provides a descriptor and reference information to the module's contents. `ModuleFinder` does not resolve dependencies by itself; it only helps locate modules for the resolution step to use.
 
-Một số factory method hữu ích:
+Some useful factory methods:
 
-- `ModuleFinder.of(paths...)`: tìm module từ các đường dẫn cụ thể.
-- `ModuleFinder.ofSystem()`: tìm các module của runtime image.
-- `ModuleFinder.of()`: tạo finder rỗng, không cung cấp module nào.
+- `ModuleFinder.of(paths...)`: finds modules from specific paths.
+- `ModuleFinder.ofSystem()`: finds the modules of the runtime image.
+- `ModuleFinder.of()`: creates an empty finder that provides no modules.
 
-Có thể kết hợp nhiều finder bằng `ModuleFinder.compose(...)` nếu ứng dụng cần tìm module từ nhiều nguồn. Khi có tên module trùng lặp trong cùng tập nguồn quan sát, việc tìm module có thể thất bại; hãy tránh đặt các phiên bản hoặc bản sao cùng tên module vào các vị trí gây xung đột.
+Multiple finders can be combined with `ModuleFinder.compose(...)` if the application needs to search modules from multiple sources. When duplicate module names exist within the same observable source set, module lookup may fail; avoid placing versions or copies with the same module name in conflicting locations.
 
-## 3. Ý nghĩa của before, after và roots
+## 3. Meaning of before, after, and roots
 
-Hai phương thức `resolve` và `resolveAndBind` nhận các tham số quan trọng:
+The two methods `resolve` and `resolveAndBind` accept important parameters:
 
 ~~~java
 Configuration.resolve(
@@ -98,13 +98,13 @@ Configuration.resolve(
 );
 ~~~
 
-- **`before`**: finder được dùng để tìm module trước khi xét các parent configuration.
-- **`after`**: finder được dùng để tìm module sau khi xét các parent configuration.
-- **`roots`**: tập tên module gốc mà ứng dụng muốn đưa vào configuration mới.
+- **`before`**: the finder used to locate modules before checking parent configurations.
+- **`after`**: the finder used to locate modules after checking parent configurations.
+- **`roots`**: the set of root module names the application wants to include in the new configuration.
 
-Thứ tự tìm kiếm này cho phép ứng dụng kết hợp nguồn module của layer mới với các module đã có ở parent layer. Trong trường hợp plugin đơn giản, thường dùng finder chứa plugin làm `before` và finder rỗng làm `after`.
+This search order allows the application to combine the new layer's module sources with modules already present in parent layers. In a simple plugin setup, it is common to pass the plugin finder as `before` and an empty finder as `after`.
 
-Ví dụ:
+Example:
 
 ~~~java
 ModuleFinder pluginFinder =
@@ -120,23 +120,23 @@ Configuration configuration = parent.resolve(
 );
 ~~~
 
-Ở đây:
+Here:
 
-1. `com.example.plugin` là root module.
-2. JPMS tìm module này từ `pluginFinder`.
-3. Các directive `requires` trong descriptor của plugin được lần theo.
-4. Những module dependency cần thiết được tìm trong các nguồn quan sát và parent configuration.
-5. Nếu mọi module đều có thể tìm thấy và dependency graph hợp lệ, phương thức trả về configuration mới.
+1. `com.example.plugin` is the root module.
+2. JPMS locates this module from `pluginFinder`.
+3. The `requires` directives in the plugin's descriptor are traversed.
+4. Required dependency modules are looked up in the observable sources and parent configurations.
+5. If all modules can be found and the dependency graph is valid, the method returns the new configuration.
 
-`roots` không phải danh sách tất cả dependency. Chỉ cần khai báo các module mà ứng dụng muốn khởi đầu; JPMS tự resolve các dependency được khai báo bằng `requires` theo quy tắc module system.
+`roots` is not a list of all dependencies. You only need to declare the modules the application wants to start from; JPMS automatically resolves dependencies declared with `requires` according to module system rules.
 
-Nếu root module không tồn tại, dependency bị thiếu, có split package hoặc module graph không hợp lệ, quá trình resolve có thể thất bại.
+If a root module does not exist, a dependency is missing, there is a split package, or the module graph is invalid, resolution may fail.
 
-## 4. Configuration.resolve(): resolve dependency tường minh
+## 4. Configuration.resolve(): Resolving Explicit Dependencies
 
-`resolve(...)` phân giải các root module và dependency mà chúng khai báo. Quá trình này đi theo các directive như `requires`, kể cả các dependency được kéo theo qua module khác.
+`resolve(...)` resolves root modules and the dependencies they declare. This process follows directives such as `requires`, including transitive dependencies pulled in through other modules.
 
-Ví dụ module plugin:
+Plugin module example:
 
 ~~~java
 module com.example.plugin {
@@ -145,7 +145,7 @@ module com.example.plugin {
 }
 ~~~
 
-Ứng dụng có thể resolve plugin:
+The application can resolve the plugin:
 
 ~~~java
 ModuleFinder finder =
@@ -159,22 +159,22 @@ Configuration configuration =
     );
 ~~~
 
-Configuration mới chứa plugin root và các module cần thiết theo dependency graph. Nếu `com.example.plugin.api` đã có trong parent configuration, JPMS có thể dùng module từ parent; nếu chưa, nó cần được tìm thấy trong các finder được cung cấp.
+The new configuration contains the plugin root and the required modules according to the dependency graph. If `com.example.plugin.api` is already in the parent configuration, JPMS can use the module from the parent; otherwise, it must be found in the supplied finders.
 
-Khi nào nên dùng `resolve`?
+When should you use `resolve`?
 
-- Ứng dụng biết rõ các module cần nạp.
-- Dependency giữa các module đã được khai báo bằng `requires`.
-- Không cần tự động bổ sung provider module chỉ vì chúng cung cấp service mà root module sử dụng.
-- Ứng dụng muốn kiểm soát roots và tập module được resolve một cách tường minh.
+- The application knows exactly which modules need to be loaded.
+- Dependencies between modules are already declared with `requires`.
+- There is no need to automatically add provider modules simply because they provide a service used by a root module.
+- The application wants explicit control over roots and the set of resolved modules.
 
-`resolve` không thực hiện service binding. Nếu plugin provider không được root module yêu cầu bằng `requires`, provider có thể không xuất hiện trong configuration chỉ vì nó có directive `provides`.
+`resolve` does not perform service binding. If a plugin provider is not required by the root module via `requires`, the provider may not appear in the configuration just because it has a `provides` directive.
 
-## 5. Configuration.resolveAndBind(): resolve kèm service binding
+## 5. Configuration.resolveAndBind(): Resolving with Service Binding
 
-`resolveAndBind(...)` thực hiện việc resolve như `resolve(...)`, sau đó thực hiện service binding. JPMS xem các directive `uses` trong những module đã resolve, tìm các module provider quan sát được có directive `provides` tương ứng, rồi bổ sung provider module vào configuration.
+`resolveAndBind(...)` performs resolution like `resolve(...)`, and then performs service binding. JPMS inspects the `uses` directives in the resolved modules, finds observable provider modules with matching `provides` directives, and adds those provider modules to the configuration.
 
-Ví dụ service API:
+Service API example:
 
 ~~~java
 package com.example.plugin.api;
@@ -184,7 +184,7 @@ public interface Plugin {
 }
 ~~~
 
-Module API:
+API module:
 
 ~~~java
 module com.example.plugin.api {
@@ -192,7 +192,7 @@ module com.example.plugin.api {
 }
 ~~~
 
-Module ứng dụng khai báo sử dụng service:
+Application module declaring service usage:
 
 ~~~java
 module com.example.app {
@@ -202,7 +202,7 @@ module com.example.app {
 }
 ~~~
 
-Một provider module:
+A provider module:
 
 ~~~java
 module com.example.plugin.audit {
@@ -213,7 +213,7 @@ module com.example.plugin.audit {
 }
 ~~~
 
-Ứng dụng có thể resolve root module `com.example.app` và để JPMS tìm provider:
+The application can resolve the root module `com.example.app` and let JPMS locate providers:
 
 ~~~java
 ModuleFinder pluginFinder =
@@ -227,40 +227,40 @@ Configuration configuration =
     );
 ~~~
 
-Nếu `com.example.app` khai báo `uses com.example.plugin.api.Plugin` và `com.example.plugin.audit` là provider quan sát được trong các nguồn tìm kiếm, service binding có thể bổ sung provider module vào configuration cùng các dependency của nó.
+If `com.example.app` declares `uses com.example.plugin.api.Plugin` and `com.example.plugin.audit` is observable in the search sources, service binding can add the provider module along with its dependencies to the configuration.
 
-Service binding có thể tiếp tục tìm provider cho các service mà những module provider được thêm vào sử dụng. Vì vậy, configuration kết quả có thể chứa nhiều module hơn tập roots ban đầu và dependency `requires` trực tiếp.
+Service binding can continue finding providers for services used by the newly added provider modules. Therefore, the resulting configuration may contain more modules than the initial root set and direct `requires` dependencies.
 
-Cần nhớ:
+Keep in mind:
 
-- `resolveAndBind` không khởi tạo provider object.
-- Nó chỉ đưa các provider module phù hợp vào configuration.
-- Việc tạo instance provider vẫn do `ServiceLoader` thực hiện khi ứng dụng yêu cầu.
-- Provider phải có trong phạm vi module finder/layer được tìm kiếm.
-- Consumer vẫn phải khai báo `uses`; provider phải khai báo `provides`.
+- `resolveAndBind` does not instantiate provider objects.
+- It only includes matching provider modules in the configuration.
+- Creating provider instances is still performed by `ServiceLoader` when the application requests them.
+- The provider must be within the scope of the module finders/layers being searched.
+- The consumer must still declare `uses`; the provider must declare `provides`.
 
-## 6. So sánh resolve và resolveAndBind
+## 6. Comparing resolve and resolveAndBind
 
-| Tiêu chí | `resolve(...)` | `resolveAndBind(...)` |
+| Criterion | `resolve(...)` | `resolveAndBind(...)` |
 |---|---|---|
-| Resolve roots | Có | Có |
-| Resolve dependency `requires` | Có | Có |
-| Tìm provider theo service binding | Không | Có |
-| Bổ sung module chỉ vì module đó cung cấp service được dùng | Không | Có |
-| Khởi tạo provider instance | Không | Không |
-| Phù hợp | Dependency tường minh | Plugin/service provider |
+| Resolves roots | Yes | Yes |
+| Resolves `requires` dependencies | Yes | Yes |
+| Locates providers via service binding | No | Yes |
+| Adds a module merely because it provides a used service | No | Yes |
+| Instantiates provider instances | No | No |
+| Best suited for | Explicit dependencies | Plugins / service providers |
 
-Ví dụ dễ nhớ:
+An easy example to remember:
 
-- Ứng dụng khai báo `requires com.example.plugin.audit`: `resolve` sẽ đưa provider module vào vì nó là dependency tường minh.
-- Ứng dụng chỉ khai báo `uses Plugin`, provider module được tìm thấy trong finder: `resolveAndBind` có thể tự bổ sung provider module theo service binding.
-- Cả hai phương thức đều cần một bước tạo `ModuleLayer` trước khi class trong module mới có thể được nạp và sử dụng trong runtime.
+- The application declares `requires com.example.plugin.audit`: `resolve` will include the provider module because it is an explicit dependency.
+- The application only declares `uses Plugin`, and the provider module is found by the finder: `resolveAndBind` can automatically add the provider module via service binding.
+- Both methods require a `ModuleLayer` creation step before classes in the new modules can be loaded and used at runtime.
 
-Không nên dùng `resolveAndBind` với kỳ vọng nó tìm mọi plugin ở bất cứ đâu trên máy. Nó chỉ tìm trong các module có thể quan sát qua những finder và parent configuration đã cung cấp.
+Do not use `resolveAndBind` expecting it to find every plugin anywhere on the machine. It only searches among modules observable through the provided finders and parent configurations.
 
-## 7. Tạo ModuleLayer từ Configuration
+## 7. Creating a ModuleLayer from a Configuration
 
-Sau khi có configuration hợp lệ, ứng dụng có thể tạo layer con:
+After obtaining a valid configuration, the application can create a child layer:
 
 ~~~java
 ModuleFinder pluginFinder =
@@ -280,16 +280,16 @@ ModuleLayer pluginLayer =
     );
 ~~~
 
-`defineModulesWithOneLoader` định nghĩa các module trong configuration bằng một class loader chung cho layer mới, với class loader được chỉ định làm parent.
+`defineModulesWithOneLoader` defines the modules in the configuration using a single shared class loader for the new layer, with the specified class loader as its parent.
 
-Một lựa chọn khác là `defineModulesWithManyLoaders`, tạo loader riêng cho từng module. Việc chọn một loader hay nhiều loader phụ thuộc kiến trúc plugin, cách cô lập class và nhu cầu chia sẻ package/class giữa các module.
+Another option is `defineModulesWithManyLoaders`, which creates a separate loader for each module. Choosing one loader or many loaders depends on the plugin architecture, class isolation approach, and whether packages/classes need to be shared between modules.
 
-Một số lưu ý:
+A few notes:
 
-- Configuration phải được tạo từ parent configuration tương ứng với layer mà bạn gọi `defineModules...`.
-- Module layer mới có thể đọc các module ở parent theo quy tắc JPMS; parent không tự động đọc ngược module ở child layer.
-- Việc tạo layer không có nghĩa mọi class trong mọi module đều được khởi tạo.
-- Có thể kiểm tra module đã được định nghĩa:
+- The configuration must have been created from the parent configuration corresponding to the layer on which you call `defineModules...`.
+- The new module layer can read modules in the parent according to JPMS rules; the parent does not automatically read modules in the child layer in reverse.
+- Creating a layer does not mean every class in every module is initialized.
+- You can check whether a module has been defined:
 
 ~~~java
 pluginLayer.findModule("com.example.plugin")
@@ -297,9 +297,9 @@ pluginLayer.findModule("com.example.plugin")
         System.out.println(module.getName()));
 ~~~
 
-## 8. Ví dụ plugin sử dụng resolveAndBind
+## 8. Plugin Example Using resolveAndBind
 
-Giả sử thư mục `plugins/` chứa các module:
+Suppose the `plugins/` directory contains the modules:
 
 ~~~text
 plugins/
@@ -309,7 +309,7 @@ plugins/
 └── com.example.plugin.metrics.jar
 ~~~
 
-Ứng dụng khai báo:
+The application declares:
 
 ~~~java
 module com.example.app {
@@ -319,7 +319,7 @@ module com.example.app {
 }
 ~~~
 
-Provider audit:
+Audit provider:
 
 ~~~java
 module com.example.plugin.audit {
@@ -330,7 +330,7 @@ module com.example.plugin.audit {
 }
 ~~~
 
-Provider metrics:
+Metrics provider:
 
 ~~~java
 module com.example.plugin.metrics {
@@ -341,7 +341,7 @@ module com.example.plugin.metrics {
 }
 ~~~
 
-Có thể resolve ứng dụng cùng provider bằng:
+The application can be resolved along with its providers via:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -373,13 +373,13 @@ for (Plugin plugin : plugins) {
 }
 ~~~
 
-Trong ví dụ, `com.example.app` là root. Module descriptor của nó khai báo `uses Plugin`; hai provider module đều quan sát được trong `finder`. Service binding có thể đưa cả hai provider vào configuration. Sau khi layer được tạo, `ServiceLoader.load(layer, Plugin.class)` tìm provider trong layer và các ancestor layer theo quy tắc của API.
+In this example, `com.example.app` is the root. Its module descriptor declares `uses Plugin`; both provider modules are observable in `finder`. Service binding can include both providers in the configuration. Once the layer is created, `ServiceLoader.load(layer, Plugin.class)` locates providers in that layer and its ancestor layers according to the API's rules.
 
-Consumer không cần viết `requires com.example.plugin.audit` hoặc `requires com.example.plugin.metrics`. Việc thêm provider mới có thể được thực hiện bằng cách thêm module provider vào thư mục plugin và bảo đảm nó được finder/layer nhìn thấy.
+The consumer does not need to write `requires com.example.plugin.audit` or `requires com.example.plugin.metrics`. Adding a new provider can be done by placing the provider module in the plugin directory and ensuring it is visible to the finder/layer.
 
-## 9. Kiểm tra kết quả resolve
+## 9. Inspecting Resolution Results
 
-Sau khi tạo configuration, có thể xem các module đã resolve:
+After creating the configuration, you can inspect the resolved modules:
 
 ~~~java
 configuration.modules().forEach(resolvedModule ->
@@ -387,14 +387,14 @@ configuration.modules().forEach(resolvedModule ->
 );
 ~~~
 
-Danh sách này hữu ích để kiểm tra:
+This list is useful for checking:
 
-- Root module có được đưa vào không.
-- Dependency `requires` có được resolve không.
-- Provider module có được bổ sung khi dùng `resolveAndBind` không.
-- Có module ngoài dự kiến được kéo vào qua dependency hoặc service binding không.
+- Whether the root modules were included.
+- Whether `requires` dependencies were resolved.
+- Whether provider modules were added when using `resolveAndBind`.
+- Whether unexpected modules were pulled in through dependencies or service binding.
 
-Có thể kiểm tra các provider service được khám phá trong layer:
+You can inspect the service providers discovered in the layer:
 
 ~~~java
 ServiceLoader<Plugin> plugins =
@@ -405,56 +405,56 @@ plugins.stream().forEach(provider ->
 );
 ~~~
 
-`Provider.type()` cho phép xem provider type trước khi gọi `Provider.get()`. Điều này hữu ích để xác nhận provider nào được tìm thấy mà chưa khởi tạo tất cả instance.
+`Provider.type()` allows inspecting the provider type before calling `Provider.get()`. This is useful for confirming which providers were found without instantiating all of them.
 
-Nếu configuration không chứa provider mong đợi, hãy kiểm tra finder có tìm thấy module đó không, module provider có `provides` đúng service type không, consumer có `uses` đúng service type không và provider có nằm trong phạm vi quan sát của quá trình resolve không.
+If the configuration does not contain an expected provider, check whether the finder locates that module, whether the provider module `provides` the exact service type, whether the consumer `uses` the exact service type, and whether the provider is within the observable scope of the resolution process.
 
-## 10. Các lỗi thường gặp
+## 10. Common Errors
 
-**Root module không tìm thấy.** Tên trong `roots` không tồn tại trong các nguồn tìm kiếm hoặc parent configuration. Kiểm tra tên module bằng `jar --describe-module` và đường dẫn finder.
+**Root module not found.** A name in `roots` does not exist in the search sources or parent configuration. Verify the module name with `jar --describe-module` and the finder path.
 
-**Thiếu dependency của plugin.** Provider module có `requires` một module không có trong finder hoặc parent configuration. Quá trình resolve sẽ thất bại.
+**Missing plugin dependency.** A provider module has a `requires` for a module not present in the finder or parent configuration. Resolution will fail.
 
-**Dùng `resolve` nhưng mong provider tự xuất hiện.** `resolve` chỉ xử lý roots và dependency tường minh. Nếu cần service binding, cân nhắc `resolveAndBind`.
+**Using `resolve` and expecting providers to appear automatically.** `resolve` only handles roots and explicit dependencies. If service binding is needed, consider `resolveAndBind`.
 
-**Dùng `resolveAndBind` nhưng không có provider.** Kiểm tra consumer `uses`, provider `provides`, module finder, module layer và cấu hình triển khai.
+**Using `resolveAndBind` with no providers found.** Check the consumer's `uses`, the provider's `provides`, the module finder, the module layer, and the deployment configuration.
 
-**Nhầm Configuration với ModuleLayer.** Configuration chỉ là module graph đã resolve; phải định nghĩa layer mới có môi trường runtime để nạp module.
+**Confusing Configuration with ModuleLayer.** Configuration is only the resolved module graph; a layer must be defined to have a runtime environment for loading modules.
 
-**Gọi ServiceLoader ở sai layer.** Nếu plugin nằm trong custom layer, hãy dùng `ServiceLoader.load(layer, Service.class)` với đúng layer thay vì chỉ tìm theo layer mặc định.
+**Calling ServiceLoader on the wrong layer.** If plugins reside in a custom layer, use `ServiceLoader.load(layer, Service.class)` with the right layer instead of searching only in the default layer.
 
-**Cho rằng resolveAndBind khởi tạo plugin.** Service binding chỉ bổ sung provider module vào configuration. Provider object được tạo khi ServiceLoader yêu cầu instance.
+**Assuming resolveAndBind instantiates plugins.** Service binding only adds provider modules to the configuration. Provider objects are created when ServiceLoader requests instances.
 
-**Dùng thứ tự provider để quyết định plugin mặc định.** JPMS không cung cấp chính sách ưu tiên nghiệp vụ. Hãy dùng ID, priority hoặc cấu hình ứng dụng.
+**Relying on provider order to determine the default plugin.** JPMS does not provide a business priority policy. Use an ID, priority, or application configuration instead.
 
-## 11. Khi nào chọn phương thức nào?
+## 11. When to Choose Which Method?
 
-Chọn `resolve` khi ứng dụng đã biết rõ module nào phải được đưa vào layer và các dependency được mô tả bằng `requires`. Cách này phù hợp với module graph tường minh, ít phụ thuộc vào khám phá service.
+Choose `resolve` when the application already knows which modules must be placed into the layer and dependencies are described via `requires`. This suits explicit module graphs with little reliance on service discovery.
 
-Chọn `resolveAndBind` khi ứng dụng dùng SPI và muốn JPMS tự tìm provider module cho các service mà module đã resolve khai báo `uses`. Đây là lựa chọn phù hợp cho hệ thống plugin có thể bổ sung provider mà không sửa dependency trực tiếp của consumer.
+Choose `resolveAndBind` when the application uses an SPI and wants JPMS to automatically locate provider modules for services declared with `uses` by resolved modules. This is the right choice for plugin systems where providers can be added without modifying the consumer's direct dependencies.
 
-Trong cả hai trường hợp, hãy giữ trách nhiệm rõ ràng:
+In both cases, keep responsibilities clear:
 
-- Module descriptor khai báo dependency và service contract.
-- ModuleFinder xác định nguồn module có thể tìm.
-- Configuration giải quyết module graph.
-- ModuleLayer định nghĩa các module trong runtime.
-- ServiceLoader khám phá và khởi tạo provider.
-- Ứng dụng quyết định provider nào được dùng và theo thứ tự nào.
+- The module descriptor declares dependencies and service contracts.
+- ModuleFinder defines the observable module sources.
+- Configuration resolves the module graph.
+- ModuleLayer defines the modules at runtime.
+- ServiceLoader discovers and instantiates providers.
+- The application decides which providers are used and in what order.
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-Khi xây dựng module layer động, hãy trả lời:
+When building dynamic module layers, answer:
 
-1. Root module nào cần được resolve?
-2. ModuleFinder đang tìm module ở thư mục, JAR hoặc nguồn nào?
-3. Các dependency `requires` của roots có đầy đủ không?
-4. Consumer đã khai báo `uses` cho service cần tìm chưa?
-5. Provider module đã khai báo `provides` đúng service type chưa?
-6. Nên dùng `resolve` hay `resolveAndBind`?
-7. Configuration mới có những module nào sau khi resolve?
-8. Layer được tạo với một class loader hay nhiều class loader?
-9. ServiceLoader đang tìm trong đúng layer chưa?
-10. Nếu có nhiều provider, chính sách chọn hoặc chạy provider được định nghĩa ở đâu?
+1. Which root modules need to be resolved?
+2. Which directory, JAR, or source is ModuleFinder searching for modules?
+3. Are the `requires` dependencies of the roots complete?
+4. Has the consumer declared `uses` for the service to look up?
+5. Has the provider module declared `provides` with the exact service type?
+6. Should `resolve` or `resolveAndBind` be used?
+7. Which modules are in the new configuration after resolution?
+8. Is the layer created with one class loader or many class loaders?
+9. Is ServiceLoader searching in the right layer?
+10. If there are multiple providers, where is the policy for selecting or running providers defined?
 
-Hiểu rõ `resolve`, `resolveAndBind` và `ModuleLayer` giúp xây dựng cơ chế plugin có thể mở rộng mà vẫn kiểm soát được dependency. JPMS thực hiện việc tìm và phân giải module; ứng dụng vẫn phải chịu trách nhiệm về vòng đời, cấu hình và chính sách sử dụng provider.
+Understanding `resolve`, `resolveAndBind`, and `ModuleLayer` helps build extensible plugin mechanisms while keeping dependencies under control. JPMS handles locating and resolving modules; the application remains responsible for lifecycle, configuration, and provider usage policy.

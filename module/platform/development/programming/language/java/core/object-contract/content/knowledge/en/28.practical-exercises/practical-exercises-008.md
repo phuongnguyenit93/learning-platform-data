@@ -1,27 +1,27 @@
-# Rà soát hệ lớp kế thừa làm mất tính đối xứng của equals()
+# Reviewing Inheritance Hierarchies That Break equals() Symmetry
 
-## 1. Vấn đề cần phát hiện
+## 1. The Issue to Detect
 
-Hợp đồng `Object.equals()` trong Java yêu cầu **tính đối xứng**: với hai tham chiếu khác `null` là `x` và `y`, kết quả `x.equals(y)` phải bằng kết quả `y.equals(x)`.
+The `Object.equals()` contract in Java requires **symmetry**: for two non-`null` references `x` and `y`, the result of `x.equals(y)` must equal the result of `y.equals(x)`.
 
 ```text
 x.equals(y) == y.equals(x)
 ```
 
-Lỗi thường gặp khi lớp con bổ sung thuộc tính mới: lớp cha dùng `instanceof Parent` nên vẫn chấp nhận instance lớp con, trong khi lớp con dùng `instanceof Child` nên không chấp nhận instance lớp cha. Hai lời gọi thực hiện hai triển khai `equals()` khác nhau do Java sử dụng **dynamic dispatch**.
+A common bug arises when a subclass adds a new attribute: the superclass uses `instanceof Parent` and thus still accepts subclass instances, whereas the subclass uses `instanceof Child` and thus rejects superclass instances. The two calls invoke two different `equals()` implementations due to Java's **dynamic dispatch**.
 
-Cần phân biệt:
-- `a == b` trên hai biến tham chiếu là kiểm tra **cùng đối tượng**.
-- `a.equals(b)` là so sánh **bằng nhau theo hợp đồng logic của kiểu**.
-- `Object.equals()` mặc định chỉ coi cùng identity là bằng nhau; một lớp ghi đè `equals()` có thể định nghĩa phép bằng nhau theo dữ liệu.
+Keep these distinctions clear:
+- `a == b` on two reference variables checks for **the exact same object**.
+- `a.equals(b)` compares for **logical equality per the type's contract**.
+- `Object.equals()` by default treats only identical identity as equal; a class overriding `equals()` can define data-based equality.
 
-Mục tiêu bài rà soát là tìm cặp cha/con làm mất đối xứng, lần theo nguyên nhân, kiểm tra nguy cơ vi phạm tính bắc cầu và hash, áp dụng một chính sách sửa nhất quán, sau đó viết kiểm thử hồi quy.
+The goal of this review exercise is to locate the parent/child pair breaking symmetry, trace the root cause, check risks to transitivity and hashing, apply a consistent fix policy, and then write regression tests.
 
-## 2. Ví dụ lỗi: Point và ColoredPoint
+## 2. Bug Example: Point and ColoredPoint
 
-Giả sử `Point` xác định bằng nhau bằng hai tọa độ `x, y`, còn `ColoredPoint extends Point` bổ sung trường `color` được tính trong phép bằng nhau.
+Suppose `Point` defines equality using two coordinates `x, y`, while `ColoredPoint extends Point` adds a `color` field included in equality.
 
-Đây là **trích đoạn minh họa**, không phải tệp Java độc lập:
+This is an **illustrative excerpt**, not a standalone Java file:
 
 ```java
 class Point {
@@ -67,45 +67,45 @@ class ColoredPoint extends Point {
 }
 ```
 
-Với `Point point = new Point(2, 3);` và `ColoredPoint red = new ColoredPoint(2, 3, "red");`, lần lượt kiểm tra:
+With `Point point = new Point(2, 3);` and `ColoredPoint red = new ColoredPoint(2, 3, "red");`, check one by one:
 
-| Phép gọi | Triển khai được chọn | Kiểm tra kiểu | Kết quả |
+| Call | Implementation selected | Type check | Result |
 | --- | --- | --- | --- |
-| `point.equals(red)` | `Point.equals` | `red instanceof Point` đúng | `true`: trùng tọa độ |
-| `red.equals(point)` | `ColoredPoint.equals` | `point instanceof ColoredPoint` sai | `false` |
-| `point == red` | Toán tử identity | Hai đối tượng khác nhau | `false` |
+| `point.equals(red)` | `Point.equals` | `red instanceof Point` is true | `true`: coordinates match |
+| `red.equals(point)` | `ColoredPoint.equals` | `point instanceof ColoredPoint` is false | `false` |
+| `point == red` | Identity operator | Two distinct objects | `false` |
 
-`instanceof Point` cho phép cả đối tượng thuộc lớp con của `Point`; chiều ngược lại không đúng. Vì vậy:
+`instanceof Point` admits objects belonging to subclasses of `Point`; the reverse does not hold. Hence:
 
 ```text
 point.equals(red) = true
 red.equals(point) = false
 ```
 
-**Đây là phản ví dụ trực tiếp của tính đối xứng.** Thay đổi riêng dòng `super.equals(other)` trong lớp con sẽ không giải quyết được việc hai lớp đang có hai chính sách chấp nhận đối tượng khác nhau.
+**This is a direct counterexample to symmetry.** Changing only the `super.equals(other)` line in the subclass will not solve the fact that the two classes have two different object-acceptance policies.
 
-## 3. Tác hại và các hợp đồng cần rà soát cùng lúc
+## 3. Impact and Contracts to Review Simultaneously
 
-Một `equals()` đúng phải đáp ứng toàn bộ quy tắc, khi thông tin dùng để so sánh không đổi:
+A valid `equals()` must satisfy all rules when data used for comparison does not change:
 
-| Tính chất | Yêu cầu |
+| Property | Requirement |
 | --- | --- |
-| Phản xạ | `x.equals(x)` luôn `true` với `x != null` |
-| Đối xứng | `x.equals(y)` và `y.equals(x)` có cùng kết quả |
-| Bắc cầu | `x.equals(y)` và `y.equals(z)` đúng thì `x.equals(z)` đúng |
-| Nhất quán | Kết quả ổn định qua nhiều lần gọi nếu dữ liệu liên quan không đổi |
-| Khác `null` | `x.equals(null)` trả `false` |
-| Hash tương ứng | `x.equals(y)` đúng thì `x.hashCode() == y.hashCode()` |
+| Reflexive | `x.equals(x)` is always `true` for `x != null` |
+| Symmetric | `x.equals(y)` and `y.equals(x)` yield the same result |
+| Transitive | If `x.equals(y)` and `y.equals(z)` are true, then `x.equals(z)` is true |
+| Consistent | Result remains stable across calls if relevant data does not change |
+| Non-`null` | `x.equals(null)` returns `false` |
+| Matching hash | If `x.equals(y)` is true, then `x.hashCode() == y.hashCode()` |
 
-Trong ví dụ lỗi, hash của `Point` chỉ dùng tọa độ nhưng hash của `ColoredPoint` còn dùng màu. Khi `point.equals(red)` cho `true`, hệ thống phải đảm bảo hai hash bằng nhau; công thức khác nhau ở trên **có thể** tạo hash khác nhau và vi phạm thêm hợp đồng `equals()` / `hashCode()`.
+In the buggy example, `Point`'s hash uses only coordinates while `ColoredPoint`'s hash also uses color. When `point.equals(red)` returns `true`, the system must guarantee equal hashes; the differing formulas above **can** produce different hashes and additionally violate the `equals()` / `hashCode()` contract.
 
-`HashSet` và `HashMap` dựa vào cả hai phương thức. Với lớp vi phạm hợp đồng, thêm/xóa/tìm khóa có thể biểu hiện không nhất quán. Tránh coi một số đo `HashSet.size()` trên bộ dữ liệu bất kỳ là bằng chứng hợp đồng vẫn đúng. **Khác đối tượng không bắt buộc khác hash**: trùng hash là được phép, nhưng bằng nhau theo `equals()` bắt buộc trùng hash.
+`HashSet` and `HashMap` depend on both methods. For a class violating the contract, adding/removing/finding keys can behave inconsistently. Avoid treating a `HashSet.size()` measurement on an arbitrary dataset as proof that the contract holds. **Different objects do not have to have different hashes**: hash collisions are permitted, whereas equality under `equals()` requires matching hashes.
 
-## 4. Bẫy sửa sai: đối xứng trở lại nhưng mất bắc cầu
+## 4. Bad Fix Trap: Symmetry Restored, Transitivity Lost
 
-Một bản sửa tưởng hợp lý có thể cho `ColoredPoint` bằng `Point` nếu cùng tọa độ, nhưng so thêm màu khi cả hai đều là `ColoredPoint`.
+A seemingly reasonable fix might allow `ColoredPoint` to equal `Point` if coordinates match, while also comparing color when both are `ColoredPoint`.
 
-Với ba đối tượng:
+Given three objects:
 
 ```text
 base = Point(2, 3)
@@ -113,7 +113,7 @@ red  = ColoredPoint(2, 3, "red")
 blue = ColoredPoint(2, 3, "blue")
 ```
 
-Nếu màu bị bỏ qua khi một bên là `Point`, nhưng được xét khi cả hai là `ColoredPoint`, ta nhận:
+If color is ignored when one side is a `Point`, yet checked when both are `ColoredPoint`, we get:
 
 ```text
 red.equals(base)  = true
@@ -121,11 +121,11 @@ base.equals(blue) = true
 red.equals(blue)  = false
 ```
 
-Như vậy **tính bắc cầu** bị phá vỡ. Dù có sửa hash để các đối tượng trên dùng cùng hash tọa độ, điều đó cũng không cứu được tính bắc cầu. Muốn cho `Point` bằng tất cả `ColoredPoint` cùng tọa độ thì hai `ColoredPoint` khác màu tại tọa độ ấy cũng phải bằng nhau; nếu màu phân biệt giá trị logic, hãy chọn một chính sách khác cho cha/con.
+Thus **transitivity** is broken. Even fixing hashes so all three objects use the same coordinate hash cannot rescue transitivity. To let `Point` equal every `ColoredPoint` at the same coordinates, two differently colored `ColoredPoint` instances at those coordinates must also equal each other; if color distinguishes logical value, choose a different parent/child policy.
 
-## 5. Chương trình Java 17+ chạy độc lập
+## 5. Standalone Runnable Java 17+ Program
 
-Chương trình dưới đây minh họa cả ba trạng thái: lỗi đối xứng, bản vá sai phá bắc cầu và một chính sách sửa nhất quán. Lưu **nguyên vẹn** vào `EqualityInheritanceReview.java`.
+The program below illustrates all three states: broken symmetry, a flawed patch breaking transitivity, and a consistent fix policy. Save **verbatim** into `EqualityInheritanceReview.java`.
 
 ```java
 import java.util.HashSet;
@@ -198,7 +198,7 @@ public class EqualityInheritanceReview {
 
         @Override
         public int hashCode() {
-            // Phù hợp với LoosePoint khi coi chúng bằng nhau.
+            // Consistent with LoosePoint when treating them as equal.
             return super.hashCode();
         }
     }
@@ -292,14 +292,14 @@ public class EqualityInheritanceReview {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac EqualityInheritanceReview.java
 java EqualityInheritanceReview
 ```
 
-Kết quả xác định:
+Deterministic output:
 
 ```text
 === Broken symmetry ===
@@ -318,28 +318,28 @@ equal hash: true
 HashSet size: 3
 ```
 
-**Giải thích mã:**
+**Code explanation:**
 
-- `LoosePoint.equals()` dùng `instanceof LoosePoint` nên coi mọi đối tượng con trùng tọa độ là bằng nhau.
-- `RestrictedColoredPoint.equals()` chỉ nhận cùng lớp con nên hai phép gọi cha/con đưa ra kết quả trái ngược.
-- `BridgeColoredPoint` chấp nhận cha bằng tọa độ và chấp nhận cùng lớp con theo tọa độ + màu: cặp `red` với `point` và `point` với `blue` bằng nhau, trong khi `red` với `blue` không bằng nhau.
-- `ExactPoint` dùng `getClass()` yêu cầu cùng lớp thực tế. `ExactColoredPoint` áp dụng cùng quy tắc rồi so thêm `color`. Do đó `exact.equals(exactRed)` và chiều ngược lại **đều `false`**.
-- Trong `ExactColoredPoint.equals()`, `super.equals(other)` vẫn hoạt động: cả hai đối tượng được so sánh đều có lớp thực tế `ExactColoredPoint`, vượt qua điều kiện `getClass()` trong `ExactPoint`.
-- `sameRed` có nội dung bằng `exactRed` và cùng hash; `HashSet` vì vậy chứa đúng ba giá trị logic: điểm thường, điểm đỏ và điểm xanh.
+- `LoosePoint.equals()` uses `instanceof LoosePoint`, so it treats any subclass object with matching coordinates as equal.
+- `RestrictedColoredPoint.equals()` accepts only the same subclass, so the two parent/child calls return opposite results.
+- `BridgeColoredPoint` accepts the parent by coordinates and accepts the same subclass by coordinates + color: `red` with `point` and `point` with `blue` are equal, whereas `red` with `blue` are not.
+- `ExactPoint` uses `getClass()`, requiring the exact same runtime class. `ExactColoredPoint` applies the same rule and then compares `color`. Therefore, `exact.equals(exactRed)` and the reverse **are both `false`**.
+- Inside `ExactColoredPoint.equals()`, `super.equals(other)` still works: both compared objects have runtime class `ExactColoredPoint`, passing the `getClass()` check in `ExactPoint`.
+- `sameRed` has identical content to `exactRed` and the same hash; `HashSet` therefore holds exactly three logical values: the plain point, the red point, and the blue point.
 
-Chương trình cố tình **in các vi phạm**, thay vì ném lỗi ở lần vi phạm đầu tiên, để quan sát đủ ba phần trong cùng một lượt chạy.
+The program intentionally **prints the violations** rather than throwing on the first violation, so all three parts can be observed in a single run.
 
-## 6. Ba chiến lược thiết kế hợp lệ theo nghiệp vụ
+## 6. Three Business-Valid Design Strategies
 
-### A. Chỉ bằng nhau khi cùng lớp thực tế
+### A. Equal only when sharing the exact runtime class
 
-Sử dụng `getClass()` ở các lớp tham gia, như cặp `ExactPoint`/`ExactColoredPoint`. Cách này hợp lý khi `Point(2,3)` là **kiểu giá trị khác** `ColoredPoint(2,3,"red")`. Tất cả trường tạo nên tính bằng nhau trong từng lớp phải được đưa vào `equals()` và `hashCode()`.
+Use `getClass()` in participating classes, such as the `ExactPoint`/`ExactColoredPoint` pair. This makes sense when `Point(2,3)` is **a different value type** from `ColoredPoint(2,3,"red")`. All fields contributing to equality in each class must be included in `equals()` and `hashCode()`.
 
-Nhược điểm cần cân nhắc: những đối tượng là subclass/proxy được framework tạo ra có thể có lớp thực tế khác đối tượng gốc. Ví dụ trong một số cơ chế ORM, phải có chính sách riêng phù hợp với proxy và identity của thực thể. Không thay tất cả `instanceof` thành `getClass()` một cách máy móc.
+Trade-off to consider: framework-generated subclass/proxy objects may have a different runtime class from the original object. For instance, in some ORM mechanisms, a specific policy matching proxies and entity identity is required. Do not mechanically replace every `instanceof` with `getClass()`.
 
-### B. Dùng composition hoặc final value type
+### B. Use composition or final value types
 
-Nếu màu không phải một kiểu con cần thay thế điểm thường theo hợp đồng lớp, dùng **composition**:
+If color is not a subtype meant to substitute for a plain point under class contracts, use **composition**:
 
 ```java
 record PointValue(int x, int y) {}
@@ -352,42 +352,42 @@ record ColoredPointValue(PointValue point, String color) {
 }
 ```
 
-Đây là **đoạn định nghĩa kiểu minh họa** (không phải chương trình độc lập). Trong Java 17, `record` sinh `equals()` và `hashCode()` dựa vào các component và không thể bị subclass. Hai `PointValue(2,3)` bằng nhau; hai `ColoredPointValue` bằng nhau khi cả `point` và `color` bằng nhau. `PointValue` không phải cha của `ColoredPointValue`, nên xung đột đối xứng cha/con bị loại khỏi thiết kế.
+This is an **illustrative type-definition snippet** (not a standalone program). In Java 17, `record` generates `equals()` and `hashCode()` from components and cannot be subclassed. Two `PointValue(2,3)` instances are equal; two `ColoredPointValue` instances are equal when both `point` and `color` match. `PointValue` is not a superclass of `ColoredPointValue`, so parent/child symmetry conflicts are designed away.
 
-Record không bảo đảm **bất biến sâu** nếu component chứa object mutable; ở đây dùng `int`, `String`, `PointValue` nên dữ liệu phục vụ phép bằng nhau ổn định.
+Records do not guarantee **deep immutability** if a component contains a mutable object; here `int`, `String`, and `PointValue` are used, so the data serving equality is stable.
 
-### C. Tất cả các lớp so sánh đúng cùng một bộ dữ liệu
+### C. All classes compare the exact same set of data
 
-Nếu yêu cầu nghiệp vụ thực sự chỉ quan tâm tọa độ, lớp con có thể không đưa `color` vào logic bằng nhau, và `hashCode()` của nó cũng phải theo tọa độ. Khi đó **hai điểm màu khác nhau cùng tọa độ vẫn bằng nhau**. Đây có thể là lựa chọn hợp lệ, nhưng phải chấp nhận hệ quả đó.
+If business requirements genuinely care only about coordinates, the subclass can omit `color` from equality logic, and its `hashCode()` must likewise follow coordinates. Then **two differently colored points at the same coordinates are equal**. This can be a valid choice, provided its consequence is accepted.
 
-Những hệ kế thừa phức tạp đôi khi dùng một cơ chế xác nhận tương thích hai chiều như `canEqual`. Đây không phải cách sửa tự động; cần thiết kế chính sách nhất quán cho toàn hệ và kiểm thử symmetry, transitivity, hash sau khi áp dụng.
+Complex inheritance hierarchies sometimes use a bidirectional compatibility check such as `canEqual`. This is not an automatic fix; a consistent policy must be designed for the whole hierarchy and tested for symmetry, transitivity, and hashing afterward.
 
-## 7. Quy trình rà soát một hệ lớp thật
+## 7. Workflow for Reviewing a Real Class Hierarchy
 
-1. **Lập bản đồ kế thừa.** Tìm tất cả lớp cha/con liên quan và các phương thức `equals(Object)`/`hashCode()` ghi đè. Ghi rõ trường nào lớp con mới bổ sung, có tham gia định nghĩa bằng nhau hay không.
-2. **Chốt chính sách bình đẳng.** Một điểm thường và một điểm màu cùng tọa độ có cần được coi là bằng nhau không? Nếu có, màu có còn được dùng để phân biệt các điểm màu không? Câu trả lời phải tuân thủ quan hệ tương đương.
-3. **Tạo ba nhóm đối tượng:** cùng tham chiếu; hai instance riêng nhưng cùng giá trị; hai instance riêng khác giá trị. Sau đó tạo cặp cha/con cùng tọa độ, các lớp con cùng/different `color`, và bộ ba điểm thường/đỏ/xanh để kiểm tra quan hệ.
-4. **Kiểm tra cả hai chiều.** Với từng cặp `a, b`, tính `a.equals(b)` và `b.equals(a)`. Không chỉ thử `child.equals(parent)` rồi kết luận.
-5. **Kiểm tra bộ ba.** Với mọi `a, b, c` mà `a.equals(b)` và `b.equals(c)` đúng, yêu cầu `a.equals(c)` đúng.
-6. **Kiểm tra hash và collection.** Mọi cặp bằng nhau phải có hash bằng nhau; thử `HashSet`, `HashMap` và các caller phụ thuộc vào việc gộp đối tượng theo giá trị.
-7. **Kiểm tra trạng thái có thể thay đổi.** Nếu key của hash collection bị thay trường dùng trong `equals()`/`hashCode()`, việc tìm lại phần tử có thể sai lệch. Ưu tiên immutable key.
-8. **Bổ sung kiểm thử hồi quy.** Phủ cả các lớp cháu hoặc proxy nếu hệ thống thực tế có dùng chúng.
+1. **Map the inheritance tree.** Locate all related superclasses/subclasses and overridden `equals(Object)`/`hashCode()` methods. Note which new fields subclasses add and whether they participate in equality.
+2. **Finalize the equality policy.** Should a plain point and a colored point at the same coordinates be considered equal? If so, can color still distinguish colored points? The answer must form an equivalence relation.
+3. **Create three groups of objects:** same reference; two separate instances with equal values; two separate instances with differing values. Then create parent/child pairs at the same coordinates, subclasses with same/different `color`, and plain/red/blue triples to test relations.
+4. **Test both directions.** For each pair `a, b`, evaluate `a.equals(b)` and `b.equals(a)`. Do not test only `child.equals(parent)` and draw conclusions.
+5. **Test triples.** For any `a, b, c` where `a.equals(b)` and `b.equals(c)` are true, require `a.equals(c)` to be true.
+6. **Test hashes and collections.** Every equal pair must share equal hashes; test `HashSet`, `HashMap`, and callers relying on value-based deduplication.
+7. **Check mutable state.** If a hash collection key has a field used in `equals()`/`hashCode()` mutated, lookup can break. Prefer immutable keys.
+8. **Add regression tests.** Cover grandchild classes or proxies if the real system uses them.
 
-Bảng dữ liệu gợi ý:
+Suggested dataset table:
 
-| Cặp hoặc bộ ba | Điều cần kiểm tra |
+| Pair or triple | What to verify |
 | --- | --- |
-| `p` và `alias = p` | Cùng identity, phản xạ |
-| `new Point(2,3)`, `new Point(2,3)` | Hai instance cha bằng giá trị |
-| Hai `ColoredPoint(2,3,"red")` | Hai instance con bằng giá trị và hash |
-| `Point(2,3)`, `ColoredPoint(2,3,"red")` | Hai chiều cha/con |
-| Điểm đỏ và điểm xanh cùng tọa độ | Thuộc tính `color` |
-| Điểm đỏ, điểm thường, điểm xanh | Bắc cầu |
-| Bất kỳ instance và `null` | Kết quả `equals(null)` là `false` |
+| `p` and `alias = p` | Same identity, reflexive |
+| `new Point(2,3)`, `new Point(2,3)` | Two parent instances equal by value |
+| Two `ColoredPoint(2,3,"red")` | Two child instances equal by value and hash |
+| `Point(2,3)`, `ColoredPoint(2,3,"red")` | Both parent/child directions |
+| Red point and blue point at same coordinates | `color` attribute |
+| Red point, plain point, blue point | Transitivity |
+| Any instance and `null` | `equals(null)` returns `false` |
 
-## 8. Kiểm thử tự động ma trận đối xứng và bắc cầu
+## 8. Automated Symmetry and Transitivity Matrix Testing
 
-Thêm phần sau **vào trong `main`** của chương trình Java 17 bên trên (không phải tệp độc lập). Các đối tượng `ExactPoint` và `ExactColoredPoint` đã có sẵn ở ví dụ:
+Add the following **inside `main`** of the Java 17 program above (not a standalone file). `ExactPoint` and `ExactColoredPoint` are already present in the example:
 
 ```java
 Object[] samples = {
@@ -420,30 +420,30 @@ for (Object a : samples) {
 }
 ```
 
-Với mẫu **đã sửa**, không có ngoại lệ phát sinh. Khi đưa các đối tượng lỗi vào ma trận, các điều kiện tương ứng có thể tìm ra phản ví dụ. Với dự án thật, đưa phép kiểm tra này vào test JUnit 5 và tăng mẫu theo ranh giới lớp/giá trị. Đây là kiểm thử trên **bộ mẫu đã chọn**, không chứng minh tự động mọi trạng thái của mọi đối tượng.
+With the **fixed** samples, no exception is thrown. When buggy objects are placed into the matrix, the corresponding checks can uncover counterexamples. In real projects, move this check into JUnit 5 tests and expand samples along class/value boundaries. This tests over **the chosen sample set**, not an automatic proof over all states of all objects.
 
-## 9. Sai lầm phổ biến
+## 9. Common Mistakes
 
-- **Chỉ kiểm tra một chiều:** `child.equals(parent)` đúng/sai chưa nói lên `parent.equals(child)` có giống hay không.
-- **Chỉ xem `instanceof` như so sánh lớp chính xác:** thực chất toán tử chấp nhận kiểu con, nên dễ làm lớp cha định nghĩa equality rộng hơn lớp con.
-- **Chữa symmetry nhưng không kiểm tra transitivity:** mẫu điểm đỏ/điểm thường/điểm xanh cho thấy bản vá “bỏ qua màu khi so với cha” có thể sai.
-- **Ghi đè `equals()` nhưng quên `hashCode()`:** collection dựa trên hash cần hợp đồng giữa hai phương thức.
-- **Đòi hai đối tượng khác nhau phải có hash khác nhau:** collision vẫn hợp lệ.
-- **Thay đổi key đang nằm trong `HashMap`/`HashSet`:** nếu trường dùng để tính hash thay đổi, tra cứu có thể không còn đúng.
-- **Áp dụng một kiểu sửa cho mọi hệ:** chính sách equality phải phản ánh nghiệp vụ và có thể chịu tác động từ ORM proxy, subclass động hoặc kiểu value cụ thể.
+- **Checking only one direction:** `child.equals(parent)` returning true or false does not tell whether `parent.equals(child)` matches.
+- **Treating `instanceof` as exact class comparison:** the operator actually admits subtypes, making it easy for a superclass to define broader equality than its subclass.
+- **Fixing symmetry without checking transitivity:** the red/plain/blue point pattern shows that patching with "ignore color when comparing against parent" can break.
+- **Overriding `equals()` while forgetting `hashCode()`:** hash-based collections require the contract between both methods.
+- **Demanding unequal objects have unequal hashes:** collisions remain valid.
+- **Mutating a key residing in `HashMap`/`HashSet`:** if fields used to compute the hash change, lookups may fail.
+- **Applying one fix style to every hierarchy:** equality policy must reflect business semantics and may be affected by ORM proxies, dynamic subclasses, or specific value types.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Hỏi:** Vì sao `Point.equals(ColoredPoint)` có thể đúng, nhưng `ColoredPoint.equals(Point)` sai?  
-**Đáp:** Lớp cha chấp nhận mọi `instanceof Point`, còn lớp con chỉ chấp nhận `instanceof ColoredPoint`.
+**Q:** Why can `Point.equals(ColoredPoint)` be true while `ColoredPoint.equals(Point)` is false?  
+**A:** The superclass accepts any `instanceof Point`, whereas the subclass accepts only `instanceof ColoredPoint`.
 
-**Hỏi:** Nếu `red.equals(base)` và `base.equals(blue)` đúng nhưng `red.equals(blue)` sai, vi phạm điều gì?  
-**Đáp:** Tính bắc cầu.
+**Q:** If `red.equals(base)` and `base.equals(blue)` are true yet `red.equals(blue)` is false, what is violated?  
+**A:** Transitivity.
 
-**Hỏi:** Vì sao bản sửa `getClass()` làm `ExactPoint` và `ExactColoredPoint` cùng tọa độ không bằng nhau?  
-**Đáp:** Chính sách bình đẳng yêu cầu **cùng lớp thực tế** trước khi so thuộc tính.
+**Q:** Why does the `getClass()` fix make `ExactPoint` and `ExactColoredPoint` with the same coordinates unequal?  
+**A:** The equality policy requires **the exact same runtime class** before comparing attributes.
 
-**Hỏi:** Nếu `x.equals(y)` đúng thì hash hai đối tượng cần thế nào?  
-**Đáp:** Bắt buộc bằng nhau; chiều ngược lại không bắt buộc.
+**Q:** If `x.equals(y)` is true, how must the two objects' hashes relate?  
+**A:** They must be equal; the converse is not required.
 
-**Ghi nhớ:** Khi lớp con bổ sung trạng thái tham gia `equals()`, phải rà soát **toàn bộ hệ lớp**, thử cả hai chiều so sánh lẫn bộ ba bắc cầu, chọn chính sách equality nhất quán rồi đồng bộ `hashCode()` và kiểm thử collection. Một bản sửa chỉ làm cho một cặp đối tượng có kết quả đối xứng chưa đủ để bảo đảm hợp đồng `Object`.
+**Key takeaway:** When a subclass adds state participating in `equals()`, review **the entire class hierarchy**, test both comparison directions as well as transitive triples, choose a consistent equality policy, synchronize `hashCode()`, and test collections. A fix that merely makes one pair of objects symmetric is not enough to guarantee the `Object` contract.

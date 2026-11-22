@@ -1,22 +1,22 @@
-# Thực hành Java 17: nén, giải nén ZIP có giới hạn và kiểm tra đường dẫn entry
+# Java 17 Practical Exercise: Compressing, Extracting ZIPs with Limits, and Entry Path Validation
 
-## 1. Mục tiêu và kết quả thực hành
+## 1. Objectives and Practical Outcomes
 
-Bài thực hành này xây dựng một **ZIP packer/extractor** bằng Java Core I/O, không phụ thuộc thư viện ngoài. Chương trình nén một cây thư mục thành `.zip`, giải nén sang thư mục đích mới và chủ động từ chối dữ liệu vượt chính sách.
+This exercise builds a **ZIP packer/extractor** using Java Core I/O with no external libraries. The program compresses a directory tree into a `.zip`, extracts it to a new destination directory, and proactively rejects inputs that violate policy.
 
-Sau khi làm xong, bạn có thể:
+Once completed, you will be able to:
 
-1. Dùng `Files.walkFileTree` duyệt cây file **không đi theo symbolic link** theo mặc định.
-2. Dùng `ZipOutputStream` tạo archive gồm file và cả **thư mục rỗng**.
-3. Dùng `ZipInputStream` xử lý lần lượt từng `ZipEntry`, không load tất cả file vào RAM.
-4. Đặt giới hạn về **số entry, độ sâu, độ dài tên, số byte mỗi file và tổng số byte giải nén**.
-5. Phát hiện **Zip Slip** qua entry tên `../escape.txt`, tên tuyệt đối hoặc các separator không an toàn.
-6. Dùng `Path.resolve`, `normalize`, `Path.startsWith(Path)`, `NOFOLLOW_LINKS` và `CREATE_NEW` đúng phạm vi.
-7. Tạo thư mục cha cho file con dù ZIP không có directory entry riêng.
-8. Phân biệt thành công của việc ghi dữ liệu, kiểm tra đường dẫn, **toàn vẹn của archive** và khả năng chống các race trên filesystem.
-9. Chạy test **round trip** rồi thử hai archive có vấn đề: traversal và quá giới hạn giải nén.
+1. Use `Files.walkFileTree` to traverse a file tree **without following symbolic links** by default.
+2. Use `ZipOutputStream` to create an archive containing both files and **empty directories**.
+3. Use `ZipInputStream` to process one `ZipEntry` at a time without loading every file into RAM.
+4. Enforce limits on **entry count, depth, name length, per-file bytes, and total uncompressed bytes**.
+5. Detect **Zip Slip** via entries like `../escape.txt`, absolute names, or unsafe separators.
+6. Use `Path.resolve`, `normalize`, `Path.startsWith(Path)`, `NOFOLLOW_LINKS`, and `CREATE_NEW` within their proper scope.
+7. Create parent directories for nested files even when the ZIP lacks explicit directory entries.
+8. Distinguish write success, path validation, **archive integrity**, and resistance against filesystem race conditions.
+9. Run a **round-trip** test and then test two problematic archives: traversal and decompression limit overflow.
 
-Kết quả mong đợi:
+Expected output:
 
 ~~~text
 packedBytes=9
@@ -28,11 +28,11 @@ limit=Uncompressed byte limit
 outsideCreated=false
 ~~~
 
-**Lưu ý:** Đây là bài thực hành thiết kế nền tảng và phòng vệ nhiều lớp. Nó **không tự xưng là sandbox hoàn chỉnh trước đối thủ có quyền sửa filesystem đồng thời**. Phần cuối giải thích cách nâng lên thành giải pháp production với staging, kiểm soát quyền và xử lý TOCTOU.
+**Note:** This is a foundational design and defense-in-depth exercise. It **does not claim to be a complete sandbox against an adversary with permission to modify the filesystem concurrently**. The final sections explain how to upgrade it to a production solution with staging, permission controls, and TOCTOU mitigation.
 
-## 2. Bài toán cụ thể
+## 2. Concrete Problem
 
-Giả sử input là:
+Suppose the input is:
 
 ~~~text
 source/
@@ -42,7 +42,7 @@ source/
   empty/
 ~~~
 
-Chương trình tạo:
+The program creates:
 
 ~~~text
 bundle.zip
@@ -52,7 +52,7 @@ bundle.zip
   empty/
 ~~~
 
-Sau đó giải nén vào **thư mục output mới**, ta mong:
+Then extracting into a **new output directory**, we expect:
 
 ~~~text
 output/
@@ -62,42 +62,42 @@ output/
   empty/
 ~~~
 
-Cùng lúc, extractor phải từ chối:
+At the same time, the extractor must reject:
 
 ~~~text
-../escape.txt              -> ghi ra ngoài output
-/srv/app/config.txt        -> đường dẫn tuyệt đối
-C:/Windows/Temp/a.txt      -> tên có dấu ':' kiểu Windows drive
+../escape.txt              -> writes outside output
+/srv/app/config.txt        -> absolute path
+C:/Windows/Temp/a.txt      -> Windows drive-style ':' in name
 docs\..\escape.txt         -> backslash traversal
-docs/./a.txt               -> tên không chuẩn theo chính sách
-docs/../a.txt              -> thành phần '..'
-docs/a.txt (lặp)           -> duplicate/overwrite
-large.txt (bung quá quota) -> zip bomb / disk exhaustion
+docs/./a.txt               -> non-canonical name per policy
+docs/../a.txt              -> '..' component
+docs/a.txt (duplicate)     -> duplicate/overwrite
+large.txt (past quota)     -> zip bomb / disk exhaustion
 ~~~
 
-ZIP là **archive có nhiều entry mang tên** chứ không phải một byte stream nén GZIP. `ZipOutputStream` và `ZipInputStream` làm việc lần lượt với `ZipEntry`. Định dạng ZIP có thể lưu từng entry bằng `DEFLATED` hoặc `STORED`; ZIP **không đồng nghĩa mọi entry đều bị nén**.
+A ZIP is a **multi-entry named archive**, not a single GZIP-compressed byte stream. `ZipOutputStream` and `ZipInputStream` operate entry by entry via `ZipEntry`. The ZIP format can store each entry as `DEFLATED` or `STORED`; ZIP **does not mean every entry is compressed**.
 
-## 3. Thiết kế chính sách trước khi viết code
+## 3. Designing Policy Before Writing Code
 
-Không nên viết hàm `extract(zip, target)` rồi mới tìm cách vá các tên nguy hiểm. Hãy xác định rõ chính sách:
+Do not write `extract(zip, target)` first and try to patch dangerous names afterward. Define the policy clearly upfront:
 
-| Ràng buộc | Giá trị trong ví dụ | Ý nghĩa |
+| Constraint | Value in Example | Meaning |
 |---|---:|---|
-| `maxEntries` | 20 | Giới hạn tổng số file và directory entry |
-| `maxDepth` | 8 | Giới hạn số thành phần tên entry |
-| `maxName` | 100 | Giới hạn độ dài chuỗi tên entry |
-| `maxFileBytes` | 128 | Giới hạn số byte **chưa nén** của mỗi file |
-| `maxTotalBytes` | 256 | Giới hạn tổng số byte **chưa nén** |
-| Output dir | Chưa tồn tại | Không merge/overwrite dữ liệu cũ |
-| Symlink đầu vào | Từ chối | Không pack nội dung ngoài cây được phép |
-| Symlink trên output | Không theo khi duyệt cha | Giảm nguy cơ ghi lệch đích |
-| File trùng đường dẫn | Từ chối | Tránh thay thế dữ liệu |
-| Entry name bất thường | Từ chối | Tránh traversal/platform-specific path |
-| Bộ nhớ đọc/ghi | Buffer 8192 byte | Không `readAllBytes()` với file không tin cậy |
+| `maxEntries` | 20 | Maximum total file and directory entries |
+| `maxDepth` | 8 | Maximum number of entry name segments |
+| `maxName` | 100 | Maximum entry name string length |
+| `maxFileBytes` | 128 | Maximum **uncompressed** bytes per file |
+| `maxTotalBytes` | 256 | Maximum total **uncompressed** bytes |
+| Output dir | Must not exist | Never merge/overwrite existing data |
+| Input symlink | Reject | Do not pack contents outside the allowed tree |
+| Output symlink | Do not follow on parents | Reduce risk of writing off-target |
+| Duplicate file path | Reject | Prevent replacing existing data |
+| Abnormal entry name | Reject | Prevent traversal/platform-specific paths |
+| Read/write memory | 8192-byte buffer | Never call `readAllBytes()` on untrusted files |
 
-Các ngưỡng `128`/`256` byte cực nhỏ để dễ thử **bài thực hành**; chúng **không phải gợi ý quota production**. Trong hệ thống thật, chọn quota theo yêu cầu nghiệp vụ, memory/disk budget, số người dùng đồng thời, thời gian và giới hạn hệ thống.
+The `128`/`256`-byte thresholds are tiny to make the **practice exercise** easy to test; they **are not production quota recommendations**. In real systems, choose quotas based on business needs, memory/disk budgets, concurrent users, timeouts, and system limits.
 
-Chúng ta dùng một Java `record` để chứa chính sách:
+We use a Java `record` to hold the policy:
 
 ~~~java
 record Limits(
@@ -109,20 +109,20 @@ record Limits(
 }
 ~~~
 
-Đây là **mã trích từ class chính ở mục 6**, không phải file chạy độc lập. Trong code production, nên validate những giá trị record nhận vào đều dương/hợp lệ ở constructor/factory; ví dụ này khởi tạo bằng hằng số đã kiểm soát.
+This is an **excerpt from the main class in section 6**, not a standalone runnable file. In production code, validate that all values received by the record are positive/valid in a constructor or factory; this example initializes with controlled constants.
 
-## 4. Bước 1 — duyệt nguồn để nén mà không đi ra ngoài cây
+## 4. Step 1 — Traversing the Source to Pack Without Escaping the Tree
 
-`Files.walkFileTree(root, visitor)` mặc định **không theo symbolic link** khi không truyền `FOLLOW_LINKS`. Với `SimpleFileVisitor`:
+`Files.walkFileTree(root, visitor)` by default **does not follow symbolic links** when `FOLLOW_LINKS` is not passed. With `SimpleFileVisitor`:
 
-- `preVisitDirectory`: gặp directory, có thể ghi một directory entry kết thúc bằng dấu `/`.
-- `visitFile`: gặp file thường, ghi một file entry và stream từng chunk.
-- Nếu gặp symlink hoặc file type không được hỗ trợ, ví dụ **từ chối** thay vì silently follow/copy.
-- Nếu tệp nguồn thay đổi trong lúc pack, cần xử lý kiểm thử/threat model riêng; `walkFileTree` không tạo snapshot bất biến của cả cây thư mục.
+- `preVisitDirectory`: upon entering a directory, can emit a directory entry ending with `/`.
+- `visitFile`: upon visiting a regular file, writes a file entry and streams chunk by chunk.
+- If a symlink or unsupported file type is encountered, the example **rejects** it instead of silently following/copying.
+- If source files change during packing, handle that via your testing/threat model; `walkFileTree` does not create an immutable snapshot of the whole tree.
 
-### Lấy tên entry độc lập máy chạy
+### Producing Machine-Independent Entry Names
 
-`Path` trên Windows có thể biểu diễn separator khác Linux. Tên trong ZIP nên được chuẩn hóa thành **relative name dùng `/`**:
+`Path` on Windows can represent separators differently from Linux. Names inside a ZIP should be normalized to **relative names using `/`**:
 
 ~~~java
 static String relativeName(Path root, Path path) {
@@ -130,41 +130,41 @@ static String relativeName(Path root, Path path) {
 }
 ~~~
 
-Đây là method minh họa. Không ghi tên tuyệt đối của file nguồn vào ZIP: người giải nén chỉ cần tên tương đối dưới một thư mục đích do họ chọn.
+This is an illustrative method. Never store absolute source paths inside a ZIP: extractors only want relative names beneath a destination directory of their choosing.
 
-**Không tạo ZIP ngay trong cây nguồn đang duyệt.** Nếu output archive nằm trong source directory, traversal có thể gặp chính file ZIP đang tăng kích thước và làm cho input không ổn định. Ví dụ sẽ từ chối `archivePath.startsWith(sourceRoot)` sau khi canonicalize root.
+**Do not create the ZIP inside the source tree being walked.** If the output archive sits inside the source directory, traversal can visit the growing ZIP file itself and make the input unstable. The example rejects `archivePath.startsWith(sourceRoot)` after canonicalizing root.
 
-### Giữ directory rỗng
+### Preserving Empty Directories
 
-Nếu chỉ tạo entry cho file, một directory `empty/` không có file con có thể bị mất. Vì vậy với directory (ngoại trừ root), tạo `ZipEntry("relative/path/")`. Phần directory entry **không mang nội dung file thường** trong demo.
+If you only emit entries for files, an `empty/` directory with no children can vanish. Therefore for directories (excluding root), emit `ZipEntry("relative/path/")`. Directory entries **carry no regular file content** in the demo.
 
-## 5. Bước 2 — định nghĩa tên entry được phép và đường dẫn đích
+## 5. Step 2 — Defining Allowed Entry Names and Destination Paths
 
-### 5.1. Vì sao `entry.getName()` là dữ liệu không đáng tin?
+### 5.1. Why Is `entry.getName()` Untrusted Data?
 
-Tên ZIP do người tạo archive quyết định. Java `ZipInputStream.getNextEntry()` trả `ZipEntry` nhưng **không tự kiểm tra rằng tên file đó an toàn để ghi vào một output directory**.
+ZIP entry names are chosen by whoever created the archive. Java's `ZipInputStream.getNextEntry()` returns a `ZipEntry`, yet **does not automatically verify that the filename is safe to write inside an output directory**.
 
-Phản ví dụ:
+Counter-example:
 
 ~~~java
 Path target = outputRoot.resolve(entry.getName());
-Files.copy(zipInputStream, target); // KHÔNG được làm với tên chưa kiểm tra.
+Files.copy(zipInputStream, target); // MUST NOT do this with an unvalidated name.
 ~~~
 
-Đây là **mã phản ví dụ**, không chạy độc lập. Với tên `../escape.txt`, thao tác resolve có thể đưa file ra ngoài `outputRoot`. Đây là **Zip Slip/path traversal**.
+This is a **counter-example snippet**, not standalone runnable code. With the name `../escape.txt`, `resolve` can land outside `outputRoot`. That is **Zip Slip / path traversal**.
 
-### 5.2. Kiểm tra từng thành phần tên
+### 5.2. Validating Each Name Component
 
-Policy của demo:
+Demo policy:
 
-- Từ chối tên rỗng hoặc quá `maxName` ký tự.
-- Từ chối tên bắt đầu bằng `/`.
-- Từ chối dấu `\` (tránh Windows traversal/UNC và sự nhập nhằng separator).
-- Từ chối ký tự NUL.
-- Loại dấu `/` cuối **chỉ khi kiểm tra directory entry**.
-- Chia theo `/` và từ chối thành phần rỗng, `.`, `..` hoặc chứa dấu `:`.
-- Giới hạn số thành phần theo `maxDepth`.
-- Sau đó mới `root.resolve(name).normalize()` và xác nhận `target.startsWith(root)` theo **thành phần Path**.
+- Reject empty names or names exceeding `maxName` characters.
+- Reject names starting with `/`.
+- Reject `\` (avoids Windows traversal/UNC paths and separator ambiguity).
+- Reject NUL characters.
+- Strip a trailing `/` **only when checking a directory entry**.
+- Split on `/` and reject empty components, `.`, `..`, or components containing `:`.
+- Bound component count by `maxDepth`.
+- Only then call `root.resolve(name).normalize()` and verify `target.startsWith(root)` by **Path components**.
 
 ~~~java
 static Path targetFor(Path root, String name, Limits limits)
@@ -178,22 +178,22 @@ static Path targetFor(Path root, String name, Limits limits)
 }
 ~~~
 
-`validateName` và `Limits` được triển khai trong code đầy đủ bên dưới. **Không dùng `target.toString().startsWith(root.toString())`** vì chuỗi `/safe/output-other` có thể trông như con của `/safe/output` dù `Path` nói khác.
+`validateName` and `Limits` are implemented in the full code below. **Do not use `target.toString().startsWith(root.toString())`** because the string `/safe/output-other` looks like a prefix match for `/safe/output` even though `Path` disagrees.
 
-### 5.3. Phân biệt normalize với real path
+### 5.3. Distinguishing `normalize` from Real Paths
 
-- `normalize()` là xử lý **cú pháp đường dẫn**, loại thành phần `.`/`..`; không kiểm tra symbolic link thực tế trên disk.
-- `toRealPath()` xác định path thực và cần tài nguyên tồn tại; nó có thể resolve symlink theo hành vi được yêu cầu.
-- `Path.startsWith(Path)` so sánh theo các thành phần đường dẫn trên provider tương ứng, không đơn thuần là tiền tố chuỗi.
-- `Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)` giúp từ chối một symlink khi đang xét một component có phải directory thật hay không.
+- `normalize()` performs **path syntax** cleanup, eliminating `.`/`..` components; it does not inspect actual symbolic links on disk.
+- `toRealPath()` resolves the physical path and requires the resource to exist; it can resolve symlinks according to requested options.
+- `Path.startsWith(Path)` compares path components under the provider, not raw string prefixes.
+- `Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)` helps reject a symlink when checking whether a component is a real directory.
 
-Một symlink trong thư mục cha vẫn có thể đưa I/O ra ngoài root nếu chỉ kiểm tra `normalize()+startsWith`. Demo tạo **output directory mới** dưới parent do ứng dụng kiểm soát và kiểm tra các thành phần khi tạo directory. Nhưng nếu attacker có thể sửa parent/concurrent subdirectory, còn rủi ro **TOCTOU**, giải thích ở mục 10.
+A symlink in a parent directory can still redirect I/O outside root if you only check `normalize()+startsWith`. The demo creates a **new output directory** under an application-controlled parent and checks components while creating directories. However, if an attacker can alter parents or subdirectories concurrently, **TOCTOU** risk remains, as explained in section 10.
 
-## 6. Chương trình Java 17+ hoàn chỉnh: pack, unpack và hai trường hợp bị chặn
+## 6. Complete Java 17+ Program: Pack, Unpack, and Two Blocked Cases
 
-**Tên file: `ArchivePracticeDemo.java`**
+**Filename: `ArchivePracticeDemo.java`**
 
-Chương trình dưới đây tự tạo thư mục tạm và dữ liệu test nên không cần bạn chuẩn bị file bên ngoài. Code sử dụng **Java 17 standard library**; không cần Maven, Gradle hay JUnit để chạy bài lab.
+The program below creates its own temporary directory and test data, so you do not need to prepare external files. The code uses the **Java 17 standard library**; no Maven, Gradle, or JUnit is needed to run the lab.
 
 ~~~java
 import java.io.*;
@@ -210,7 +210,7 @@ public class ArchivePracticeDemo {
 
     static final Limits NORMAL = new Limits(20, 8, 100, 128, 256);
 
-    // Cấm relative path nguy hiểm và đường dẫn không portable.
+    // Forbid dangerous relative paths and non-portable path forms.
     static void validateName(String name, Limits limits)
             throws IOException {
         if (name.isEmpty() || name.length() > limits.maxName()
@@ -240,7 +240,7 @@ public class ArchivePracticeDemo {
         return root.relativize(path).toString().replace('\\', '/');
     }
 
-    // Duyệt file nguồn, tạo ZIP theo entry và giới hạn byte được đọc.
+    // Traverse source files, emit ZIP entries, and bound bytes read.
     static long pack(Path sourceDir, Path archive, Limits limits)
             throws IOException {
         if (Files.isSymbolicLink(sourceDir)) {
@@ -326,7 +326,7 @@ public class ArchivePracticeDemo {
             });
 
         } catch (IOException | RuntimeException ex) {
-            // Không để lại ZIP pack dở.
+            // Do not leave a partially packed ZIP behind.
             try {
                 Files.deleteIfExists(archive);
             } catch (IOException cleanup) {
@@ -349,7 +349,7 @@ public class ArchivePracticeDemo {
         return target;
     }
 
-    // Tạo từng thư mục cha, không chấp nhận symbolic link làm directory.
+    // Create parent directories step by step, rejecting symbolic links as directories.
     static void directories(Path root, Path destDir) throws IOException {
         Path at = root;
 
@@ -368,7 +368,7 @@ public class ArchivePracticeDemo {
         }
     }
 
-    // Giải nén ZIP vào thư mục MỚI, chặn path traversal và byte bomb.
+    // Extract ZIP into a NEW directory, blocking path traversal and byte bombs.
     static long unpack(Path archive, Path newOutput, Limits limits)
             throws IOException {
         Path root = Files.createDirectory(newOutput).toRealPath();
@@ -434,7 +434,7 @@ public class ArchivePracticeDemo {
                     in.closeEntry();
 
                 } catch (IOException | RuntimeException ex) {
-                    // Nếu đang giải nén dở file hiện tại, xóa file đó.
+                    // If the current file is partially extracted, delete it.
                     if (created) {
                         try {
                             Files.deleteIfExists(target);
@@ -447,11 +447,11 @@ public class ArchivePracticeDemo {
             }
         }
 
-        // Các file entry trước đó vẫn còn nếu unpack lỗi ở entry sau.
+        // Earlier entry files remain if unpack fails on a later entry.
         return total;
     }
 
-    // Chỉ phục vụ bài kiểm thử: tạo một ZIP chứa một entry tùy chọn.
+    // For testing only: create a ZIP containing one custom entry.
     static void makeSingleZip(
             Path archive, String name, byte[] content)
             throws IOException {
@@ -468,7 +468,7 @@ public class ArchivePracticeDemo {
         }
     }
 
-    // Chỉ xóa directory tạm do demo tạo và sở hữu.
+    // Delete only the temporary directory created and owned by the demo.
     static void clean(Path work) throws IOException {
         if (!Files.exists(work)) {
             return;
@@ -501,7 +501,7 @@ public class ArchivePracticeDemo {
                     StandardCharsets.UTF_8);
             Files.createDirectory(source.resolve("empty"));
 
-            // Happy path: source -> ZIP -> output mới.
+            // Happy path: source -> ZIP -> new output.
             Path zip = work.resolve("bundle.zip");
             System.out.println(
                     "packedBytes=" + pack(source, zip, NORMAL));
@@ -518,7 +518,7 @@ public class ArchivePracticeDemo {
                     Files.isDirectory(
                             output.resolve("empty")));
 
-            // Negative test 1: ZIP có tên thoát ra ngoài root.
+            // Negative test 1: ZIP with entry name escaping root.
             Path escape = work.resolve("escape.zip");
             makeSingleZip(
                     escape, "../escape.txt", new byte[]{1});
@@ -530,7 +530,7 @@ public class ArchivePracticeDemo {
                         "zipSlip=" + ex.getMessage());
             }
 
-            // Negative test 2: entry nhỏ khi nén nhưng bung quá limit.
+            // Negative test 2: entry small on disk but expands past limit.
             Path huge = work.resolve("huge.zip");
             makeSingleZip(
                     huge, "large.txt", new byte[200]);
@@ -556,14 +556,14 @@ public class ArchivePracticeDemo {
 }
 ~~~
 
-Chạy tại thư mục chứa `ArchivePracticeDemo.java`:
+Run inside the directory containing `ArchivePracticeDemo.java`:
 
 ~~~bash
 javac ArchivePracticeDemo.java
 java ArchivePracticeDemo
 ~~~
 
-**Stdout đã kiểm tra bằng Java:**
+**Stdout verified with Java:**
 
 ~~~text
 packedBytes=9
@@ -575,57 +575,57 @@ limit=Uncompressed byte limit
 outsideCreated=false
 ~~~
 
-### Giải thích kết quả
+### Explaining the Output
 
-- `packedBytes=9`: hai file chứa `Alpha` (5 byte UTF-8) và `Beta` (4 byte UTF-8). Đó là **số byte dữ liệu gốc đã đưa vào ZIP**, không phải `Files.size(bundle.zip)`. ZIP có header và central directory nên kích thước archive khác.
-- `unpackedBytes=9`: tổng số byte thật sự giải nén thành file, độc lập metadata size chưa chắc đáng tin.
-- `sameA=true`: so sánh bằng `Arrays.equals(byte[], byte[])` xác nhận file nguồn và file khôi phục có bytes bằng nhau.
-- `emptyDirectory=true`: directory entry `empty/` đã được pack và tạo lại đúng tên.
-- `zipSlip=Unsafe entry name`: `../escape.txt` bị từ chối trước khi được dùng làm đường dẫn ghi.
-- `limit=Uncompressed byte limit`: entry gồm 200 byte `0` bị từ chối khi giới hạn mỗi file chỉ 32 byte và tổng 64 byte.
-- `outsideCreated=false`: không có file `escape.txt` bị tạo ở parent của directory đích.
+- `packedBytes=9`: the two files contain `Alpha` (5 UTF-8 bytes) and `Beta` (4 UTF-8 bytes). This is the **raw data byte count put into the ZIP**, not `Files.size(bundle.zip)`. ZIPs add headers and a central directory so the archive size differs.
+- `unpackedBytes=9`: total bytes actually extracted to files, independent of potentially untrusted size metadata.
+- `sameA=true`: comparing with `Arrays.equals(byte[], byte[])` confirms source and extracted files have identical bytes.
+- `emptyDirectory=true`: directory entry `empty/` was packed and recreated with the exact name.
+- `zipSlip=Unsafe entry name`: `../escape.txt` was rejected before being used as a write path.
+- `limit=Uncompressed byte limit`: the entry of 200 zero bytes was rejected under limits of 32 bytes per file and 64 bytes total.
+- `outsideCreated=false`: no `escape.txt` file was created in the parent of the destination directory.
 
-Chương trình sử dụng `Files.createTempDirectory` và chỉ xóa **cây tạm do chính nó tạo**, kể cả khi test throw. Nếu chạy trong môi trường không cho tạo file hoặc thiếu quyền truy cập filesystem, thao tác có thể ném `IOException`; đó là giới hạn môi trường chứ không phải output của happy path.
+The program uses `Files.createTempDirectory` and deletes only the **temporary tree it created itself**, even if tests throw. If run in an environment disallowing file creation or lacking filesystem permissions, operations can throw `IOException`; that is an environment restriction rather than the happy-path output.
 
-## 7. Bước 3 — kiểm tra ZIP thực tế có gì?
+## 7. Step 3 — Inspecting What Is Actually Inside a ZIP
 
-Khi pack, `ZipOutputStream.putNextEntry` ghi tên entry và bắt đầu luồng dữ liệu của entry. `closeEntry` hoàn tất entry hiện tại, còn `ZipOutputStream.close` hoàn tất cả ZIP archive và đóng output. **Không mở ZIP output để đọc trước khi stream được đóng/finish**: central directory có thể chưa được ghi đủ.
+When packing, `ZipOutputStream.putNextEntry` writes the entry name and starts the entry data stream. `closeEntry` finishes the current entry, while `ZipOutputStream.close` finalizes the ZIP archive and closes output. **Do not open the output ZIP for reading before the stream is closed/finished**: the central directory may not be completely written yet.
 
-Hai cách đọc ZIP có mục tiêu khác nhau:
+Two ways to read ZIPs serve different purposes:
 
-| API | Dùng khi nào? |
+| API | When to Use? |
 |---|---|
-| `ZipInputStream` | Duyệt lần lượt những entry khi input có dạng stream, ví dụ upload, và kiểm tra tên **ngay trước khi ghi** |
-| `ZipFile` | Mở một file ZIP trên đĩa, liệt kê/tìm entry theo tên và lấy stream đọc entry |
-| `ZipOutputStream` | Tạo archive bằng cách thêm nhiều `ZipEntry` |
-| `ZipEntry` | Metadata/tên của từng mục trong archive |
+| `ZipInputStream` | Iterates entries sequentially when input is a stream, such as an upload, validating names **right before writing** |
+| `ZipFile` | Opens a ZIP file on disk, lists/looks up entries by name, and opens an entry input stream |
+| `ZipOutputStream` | Creates an archive by adding multiple `ZipEntry` records |
+| `ZipEntry` | Metadata/name of an individual archive item |
 
-Lưu ý `ZipInputStream` làm việc chủ yếu theo các **local entry records**; `ZipFile` có thể tận dụng **central directory**. Một archive chế tạo không nhất quán giữa local headers và central directory có thể có những khác biệt khi được nhiều công cụ phân tích. Đối với input không tin cậy, **xác thực entry thực tế mà extractor sẽ ghi**, không chỉ scan một danh sách tên bằng một parser rồi mặc nhiên tin rằng parser khác sẽ giải nén giống hệt.
+Note that `ZipInputStream` operates primarily on **local entry records**, whereas `ZipFile` can use the **central directory**. An archive crafted inconsistently between local headers and the central directory may parse differently across tools. For untrusted inputs, **validate the actual entries the extractor will write**, rather than scanning a name list with one parser and assuming another parser extracts identically.
 
-### Tại sao đọc data theo chunk?
+### Why Read Data in Chunks?
 
 Code:
 
 ~~~java
 byte[] buffer = new byte[8192];
 for (int n; (n = zip.read(buffer)) != -1; ) {
-    // Kiểm tra quota theo n, sau đó ghi n byte.
+    // Check quota against n, then write n bytes.
 }
 ~~~
 
-Đây là đoạn mô tả cấu trúc, không phải loop độc lập. `ZipInputStream.read` trả dữ liệu **đã giải nén của entry hiện tại**. Giá trị `-1` ở đây là hết entry, không có nghĩa đã hết archive. Sau khi xử lý xong, gọi `closeEntry()` rồi `getNextEntry()` để nhận entry tiếp.
+This snippet illustrates the structure, not a standalone loop. `ZipInputStream.read` returns **decompressed data for the current entry**. A `-1` return value means end of the current entry, not end of the archive. After finishing an entry, call `closeEntry()` and then `getNextEntry()` to advance.
 
-**Không dùng `zip.readAllBytes()` cho archive không tin cậy**, vì entry nhỏ trên disk có thể bung thành dữ liệu lớn và gây hết heap.
+**Do not use `zip.readAllBytes()` on untrusted archives**, because a tiny entry on disk can decompress into massive data and exhaust the heap.
 
-## 8. Bước 4 — chống Zip Slip: kiểm tra tên trước khi tạo file
+## 8. Step 4 — Preventing Zip Slip: Validating Names Before Creating Files
 
-Trong code `unpack`, mỗi entry trải qua:
+Inside `unpack`, every entry goes through:
 
 ~~~text
 getNextEntry()
      |
      v
-++entryCount, kiểm tra maxEntries
+++entryCount, check maxEntries
      |
      v
 validateName: length / absolute / slash / backslash / . / .. / colon
@@ -634,40 +634,40 @@ validateName: length / absolute / slash / backslash / . / .. / colon
 root.resolve(name).normalize()
      |
      v
-target.startsWith(root) và target != root
+target.startsWith(root) and target != root
      |
      v
-Set<Path>.add(target): từ chối duplicate
+Set<Path>.add(target): reject duplicates
      |
      v
-tạo directory cha an toàn
+create parent directories safely
      |
-     +-- directory entry --> tạo thư mục, closeEntry
+     +-- directory entry --> create directory, closeEntry
      |
-     +-- file entry -------> CREATE_NEW, copy có byte quota, closeEntry
+     +-- file entry -------> CREATE_NEW, copy with byte quota, closeEntry
 ~~~
 
-### Tại sao không chỉ `Path.isAbsolute`?
+### Why Not Just `Path.isAbsolute`?
 
-Trên Linux, tên `C:\Windows\file.txt` có thể được parse như một tên tương đối có backslash, trong khi trên Windows nó mang nghĩa path khác. Bài dùng **chính sách tên portable**: cấm backslash và colon trước khi resolve, thay vì chỉ dựa vào cách parse path của hệ điều hành hiện tại.
+On Linux, `C:\Windows\file.txt` can be parsed as a relative filename containing backslashes, whereas on Windows it means a very different path. This exercise enforces a **portable naming policy**: forbidding backslashes and colons before resolving, instead of relying solely on the current OS's path parsing.
 
-Tương tự, `\\server\share\...` có thể là đường dẫn UNC trên Windows. Chặn backslash giúp giảm một nhóm ambiguity.
+Similarly, `\\server\share\...` can represent a Windows UNC path. Blocking backslashes removes an entire class of ambiguity.
 
-### Tại sao cấm dấu `..` ngay cả khi normalize không thoát root?
+### Why Forbid `..` Even When `normalize` Stays Inside Root?
 
-Ví dụ `docs/../a.txt` sau normalize có thể trở thành `a.txt` và vẫn nằm trong root. Tuy nhiên, chấp nhận traversal components làm chính sách khó kiểm toán, nhất là khi có symlink/logic giải nén khác. Bài chọn **từ chối mọi `..` và `.`** để có một quy tắc nhất quán.
+For example, `docs/../a.txt` normalizes to `a.txt`, staying inside root. However, allowing traversal segments makes policies harder to audit, especially alongside symlinks or different extraction logic. This exercise chooses to **reject every `..` and `.`** for a uniform rule.
 
-### Vì sao so sánh Path chứ không so chuỗi?
+### Why Compare `Path` Objects Instead of Strings?
 
-Nếu root là `/var/data/out`, path `/var/data/outside.txt` cũng bắt đầu với chuỗi `"/var/data/out"`. Nhưng `Path.startsWith(root)` xem các path components và không coi `outside.txt` là con của `out`. Dù vậy, Path comparison là một **lớp kiểm tra cú pháp**, không phải giải pháp duy nhất chống symlink.
+If root is `/var/data/out`, the path `/var/data/outside.txt` also begins with the string `"/var/data/out"`. Yet `Path.startsWith(root)` inspects path components and does not treat `outside.txt` as a child of `out`. Even so, path comparison is only a **syntactic check layer**, not a complete anti-symlink solution by itself.
 
-## 9. Bước 5 — đặt giới hạn theo byte đã giải nén, không chỉ metadata
+## 9. Step 5 — Bounding by Uncompressed Bytes, Not Metadata Alone
 
-### Đừng tin `ZipEntry.getSize()`
+### Do Not Trust `ZipEntry.getSize()`
 
-Một số entry chưa biết kích thước hoặc có metadata không đáng tin, nên `ZipEntry.getSize()` có thể là `-1` hoặc không phản ánh chính xác dữ liệu cần giải nén. Nếu dùng metadata này để cấp phát mảng rồi đọc hết một lần, chương trình có thể bị **zip bomb**.
+Some entries have unknown size or untrusted metadata, so `ZipEntry.getSize()` can be `-1` or misrepresent actual decompressed bytes. If you trust metadata to allocate an array and read all at once, the program is vulnerable to a **zip bomb**.
 
-Ví dụ kiểm tra trong loop:
+Check inside the loop:
 
 ~~~java
 if (n > limits.maxFileBytes() - size
@@ -680,49 +680,49 @@ size += n;
 total += n;
 ~~~
 
-Đây là đoạn trích từ chương trình hoàn chỉnh. Hai biến `size`/`total` chỉ tăng sau khi kiểm tra và ghi chunk. Cách so `n > limit - used` tránh overflow do cộng số lớn trước rồi mới kiểm tra, với điều kiện limits dương và used chưa vượt limit.
+This snippet is extracted from the full program. `size` and `total` advance only after validating and writing the chunk. Comparing `n > limit - used` avoids integer overflow from adding large numbers first, provided limits are positive and `used` has not exceeded the limit.
 
-**Quotas không chỉ là byte:**
+**Quotas are not just bytes:**
 
-- `maxEntries` chặn archive có hàng triệu directory/file entry rỗng.
-- `maxName` giảm khả năng tên quá dài.
-- `maxDepth` giới hạn tầng thư mục.
-- `maxFileBytes` chặn một entry bung quá lớn.
-- `maxTotalBytes` chặn nhiều entry nhỏ nhưng tổng lớn.
-- Production còn cần **deadline, CPU quota, số inode/file được tạo, disk quota, số thư mục và tổng input compressed bytes**.
+- `maxEntries` blocks archives with millions of empty file/directory entries.
+- `maxName` limits excessively long names.
+- `maxDepth` bounds directory nesting depth.
+- `maxFileBytes` blocks one entry from expanding too large.
+- `maxTotalBytes` blocks many small entries whose combined size is huge.
+- Production also needs **deadlines, CPU quotas, inode/file count limits, disk quotas, directory counts, and total compressed input byte limits**.
 
-Không xem giới hạn tỉ lệ nén (uncompressed/compressed) là hàng rào duy nhất: metadata compressed size có thể không đáng tin hoặc tính toán không phù hợp khi streaming. Luôn kiểm đếm dữ liệu thật.
+Do not rely on compression ratio (uncompressed/compressed) as the sole safeguard: compressed-size metadata may be untrusted or awkward to compute while streaming. Always meter actual bytes.
 
-### Nếu vượt quota sau khi file đã được tạo?
+### What If Quota Is Exceeded After a File Was Already Created?
 
-Trong demo, file mới tạo qua `Files.newOutputStream(..., CREATE_NEW, WRITE)` có thể đã được ghi một phần trước khi một chunk vượt quota. `catch` sẽ cố **xóa file hiện tại**.
+In the demo, a new file opened via `Files.newOutputStream(..., CREATE_NEW, WRITE)` may have already received partial bytes before a chunk exceeds quota. The `catch` block attempts to **delete the current file**.
 
-Nhưng nếu trước đó đã giải nén các entry khác thành công, chúng **có thể vẫn nằm trong thư mục output**. Toàn bộ `unpack` **không phải transaction nguyên tử**. Ở production, dùng staging directory do ứng dụng sở hữu, chỉ publish khi mọi entry đã xử lý và validate xong.
+However, if earlier entries already succeeded, they **may remain inside the output directory**. The whole `unpack` is **not an atomic transaction**. In production, use an application-owned staging directory and publish only after every entry is processed and validated.
 
-## 10. Thư mục đích và symbolic link: phạm vi an toàn thực tế
+## 10. Destination Directories and Symbolic Links: Practical Safety Scope
 
-### 10.1. Vì sao bắt buộc tạo thư mục đích mới?
+### 10.1. Why Require Creating a New Destination Directory?
 
-`Files.createDirectory(newOutput)` yêu cầu path chưa tồn tại, khác `Files.createDirectories` vốn có thể chấp nhận một cây có sẵn.
+`Files.createDirectory(newOutput)` requires the path not to exist yet, unlike `Files.createDirectories` which accepts an existing tree.
 
-Trong bài:
+In this exercise:
 
 ~~~java
 Path root = Files.createDirectory(newOutput).toRealPath();
 ~~~
 
-Lợi ích:
+Benefits:
 
-- Không vô tình trộn file từ archive vào dữ liệu cũ.
-- Không overwrite tên file có sẵn.
-- Không có các subdirectory/symlink được đặt trước bên trong **output mới**, với giả định parent đáng tin cậy và không ai khác được ghi vào cây output.
-- Dễ định nghĩa ownership và cleanup nếu extraction thất bại.
+- Does not accidentally mix archive files into existing data.
+- Does not overwrite existing filenames.
+- No pre-planted subdirectories or symlinks exist inside the **new output**, assuming a trusted parent and no concurrent writer modifying the output tree.
+- Makes ownership and cleanup straightforward if extraction fails.
 
-Điều kiện tiên quyết: **parent của `newOutput` phải đáng tin**, và actor không tin cậy không có quyền sửa cây output trong lúc giải nén. Demo tự tạo parent bằng `Files.createTempDirectory` để có môi trường luyện tập.
+Prerequisite: **the parent of `newOutput` must be trusted**, and untrusted actors must lack permission to modify the output tree during extraction. The demo creates its parent with `Files.createTempDirectory` for a controlled practice environment.
 
-### 10.2. Kiểm tra symlink ở parent components
+### 10.2. Checking Symlinks on Parent Components
 
-Khi tạo đường dẫn `root/docs/a.txt`, code `directories` kiểm tra từng component:
+When creating `root/docs/a.txt`, `directories` inspects each component:
 
 ~~~java
 if (Files.exists(at, LinkOption.NOFOLLOW_LINKS)) {
@@ -734,76 +734,76 @@ if (Files.exists(at, LinkOption.NOFOLLOW_LINKS)) {
 }
 ~~~
 
-Một symlink hiện hữu thường không thỏa `isDirectory(..., NOFOLLOW_LINKS)`, nên bị từ chối thay vì âm thầm theo link để ghi ra ngoài root. `CREATE_NEW` ở file cuối giúp tránh ghi đè file/symlink đã tồn tại.
+An existing symlink generally fails `isDirectory(..., NOFOLLOW_LINKS)` and is rejected instead of silently following the link outside root. `CREATE_NEW` on the final file prevents overwriting an existing file or symlink.
 
-### 10.3. TOCTOU chưa được giải quyết hoàn toàn
+### 10.3. TOCTOU Is Not Fully Solved
 
-**TOCTOU (Time Of Check To Time Of Use)** là khoảng giữa lúc kiểm tra path và lúc mở/tạo file. Nếu attacker có quyền đổi directory sang symlink trong khoảng đó, kiểm tra Java trước đó có thể không còn đúng.
+**TOCTOU (Time Of Check To Time Of Use)** is the window between checking a path and opening/creating the file. If an attacker can swap a directory for a symlink in that window, earlier Java checks may no longer hold.
 
-Do đó **`normalize()`, `NOFOLLOW_LINKS` và `CREATE_NEW` không tự tạo atomic filesystem sandbox**.
+Therefore **`normalize()`, `NOFOLLOW_LINKS`, and `CREATE_NEW` do not automatically create an atomic filesystem sandbox**.
 
-Khi threat model cho phép tiến trình khác sửa tree output, có thể cần:
+When the threat model permits other processes to modify the output tree, consider:
 
-- Tạo/staging dưới parent private với OS permission/ACL hạn chế.
-- Dùng descriptor-relative operations, ví dụ `SecureDirectoryStream` nếu filesystem provider hỗ trợ, để giảm những race cụ thể.
-- Dùng OS-level isolation/sandbox, container, quyền process tối thiểu.
-- Cẩn thận với junction/reparse points trên Windows và cấu trúc path đặc thù provider.
-- Không phục hồi symlink/hardlink từ metadata archive nếu chưa xác thực target theo chính sách rất rõ.
+- Staging under a private parent with restricted OS permissions/ACLs.
+- Using descriptor-relative operations such as `SecureDirectoryStream` where supported by the filesystem provider to mitigate specific races.
+- Using OS-level isolation/sandboxes, containers, and least-privilege process accounts.
+- Watching out for Windows junctions/reparse points and provider-specific path semantics.
+- Never restoring symlinks or hardlinks from archive metadata without strict, explicit target validation.
 
-**Không mô tả demo là chống mọi Zip Slip/TOCTOU tuyệt đối**. Nó là nền tảng kiểm soát tên/path và quyền ghi trên môi trường đích mới đáng tin.
+**Do not describe the demo as immune to every Zip Slip/TOCTOU attack.** It is a foundation for path/name validation and write controls in a trusted new destination environment.
 
-## 11. Tính di động: Windows, Unicode và tên có thể va chạm
+## 11. Portability: Windows, Unicode, and Colliding Names
 
-`validateName` cố ý có một policy portable **cơ bản**, nhưng không xử lý mọi tên filesystem đặc biệt.
+`validateName` intentionally enforces a **basic** portable policy, yet does not handle every filesystem-specific edge case.
 
-Các trường hợp cần cân nhắc khi nâng cấp:
+Cases to address when hardening:
 
-1. **Case-insensitive collision:** `docs/A.txt` và `docs/a.txt` có thể cùng đích trên một số filesystem.
-2. **Unicode normalization:** Hai tên trông như nhau có thể được chuẩn hóa về cùng đường dẫn.
-3. **Windows reserved names:** `CON`, `PRN`, `AUX`, `NUL`, `COM1`... có quy tắc đặc biệt, kể cả một số tên có phần mở rộng.
-4. **Trailing dot/space:** Tên `a.txt.` hay `a.txt ` có thể bị normalize/collision theo OS.
-5. **Colon/NTFS ADS:** `a.txt:stream` bị policy ví dụ từ chối dấu `:`.
-6. **Slash/backslash:** ZIP tên thường dùng `/`; policy không cho phép `\` để tránh hành vi khác nhau giữa OS.
-7. **Symlink/junction:** Cần phát hiện cả khi tên hợp lệ về cú pháp.
-8. **Tên quá dài tính theo byte:** Giới hạn `String.length()` trong demo là UTF-16 code units; OS còn có thể giới hạn tên/path theo **byte** hoặc representation riêng.
+1. **Case-insensitive collisions:** `docs/A.txt` and `docs/a.txt` can map to the same destination on some filesystems.
+2. **Unicode normalization:** two visually identical names may normalize to the same path.
+3. **Windows reserved names:** `CON`, `PRN`, `AUX`, `NUL`, `COM1`, etc., carry special rules, even with extensions.
+4. **Trailing dots/spaces:** names like `a.txt.` or `a.txt ` can be normalized or collide on some OSes.
+5. **Colons / NTFS ADS:** `a.txt:stream` is rejected by the example's colon check.
+6. **Slashes/backslashes:** ZIP names typically use `/`; policy forbids `\` to avoid cross-OS differences.
+7. **Symlinks/junctions:** must be checked even when names are syntactically valid.
+8. **Overly long names in bytes:** `String.length()` in the demo counts UTF-16 code units; OSes may cap names/paths in **bytes** or native representations.
 
-`CREATE_NEW` là một lớp phòng vệ thực tế trước collision của final path, nhưng hệ thống có nhu cầu cross-platform nghiêm ngặt nên có **validator tên filesystem riêng**, test trên các OS mục tiêu.
+`CREATE_NEW` offers a practical defense against final-path collisions, yet systems with strict cross-platform requirements should include a **dedicated filesystem name validator** tested across target OSes.
 
-## 12. Thực hành mở rộng: thêm các negative tests
+## 12. Extended Practice: Adding Negative Tests
 
-Bài lab đã có hai negative tests: traversal và byte bomb. Để luyện tập đầy đủ, hãy mở rộng `makeSingleZip` hoặc tạo helper tạo ZIP nhiều entry và thử thêm các trường hợp:
+The lab already includes two negative tests: traversal and a byte bomb. For complete practice, extend `makeSingleZip` or build a multi-entry ZIP helper and test these additional cases:
 
-| Test case | Kết quả mong đợi |
+| Test Case | Expected Result |
 |---|---|
-| `/tmp/outside.txt` | Từ chối absolute entry |
-| `C:/temp/out.txt` | Từ chối dấu colon/drive |
-| `docs\..\outside.txt` | Từ chối backslash |
-| `docs/../outside.txt` | Từ chối `..` |
-| `docs//a.txt` | Từ chối component rỗng |
-| Hai entry `same.txt` | Từ chối duplicate |
-| `docs/a.txt` rồi `docs/a.txt/b.txt` | Từ chối vì parent là file, không phải directory |
-| Hàng trăm entry rỗng | Chặn `maxEntries` |
-| Entry quá nhiều tầng | Chặn `maxDepth` |
-| Một entry nở lớn | Chặn `maxFileBytes` |
-| Nhiều entry tổng nở lớn | Chặn `maxTotalBytes` |
-| Trùng tên chỉ khác chữ hoa/thường | Tùy filesystem; không được overwrite |
-| Symlink trong cây nguồn | Packer từ chối loại nguồn không hỗ trợ |
-| File ZIP/đích thiếu quyền | Ném IOException; đóng stream và cleanup phù hợp |
-| Archive bị truncate/CRC lỗi | Phải báo lỗi, không publish output dở |
+| `/tmp/outside.txt` | Reject absolute entry |
+| `C:/temp/out.txt` | Reject colon/drive prefix |
+| `docs\..\outside.txt` | Reject backslash |
+| `docs/../outside.txt` | Reject `..` |
+| `docs//a.txt` | Reject empty component |
+| Two `same.txt` entries | Reject duplicate |
+| `docs/a.txt` then `docs/a.txt/b.txt` | Reject because parent is a file, not a directory |
+| Hundreds of empty entries | Blocked by `maxEntries` |
+| Excessively nested entry | Blocked by `maxDepth` |
+| One entry expanding too large | Blocked by `maxFileBytes` |
+| Multiple entries expanding too large combined | Blocked by `maxTotalBytes` |
+| Names differing only by case | Filesystem-dependent; must never overwrite |
+| Symlink in source tree | Packer rejects unsupported source type |
+| Missing permissions on ZIP/destination | Throws `IOException`; closes streams and cleans up properly |
+| Truncated archive or bad CRC | Must report error, never publish partial output |
 
-Các assertions quan trọng không chỉ là “ném exception”:
+Important assertions go beyond "throws an exception":
 
-- **Không file nào được tạo ngoài root**.
-- Không file có sẵn bị overwrite.
-- File vừa tạo dở bị xóa khi lỗi entry đang xử lý.
-- Những file khác trước đó có thể còn lại: test phải **biết rõ giới hạn rollback**.
-- Sau lỗi, tài nguyên đã mở qua TWR vẫn được đóng.
-- Quota đếm được dựa trên byte **sau giải nén**.
-- Với test ngắt việc pack giữa chừng, file ZIP mới tạo phải được cleanup.
+- **No file is created outside root**.
+- No existing file is overwritten.
+- A half-written file from the failing entry is deleted.
+- Earlier extracted entries may still remain: tests must **understand rollback boundaries**.
+- After errors, resources opened via TWR are still closed.
+- Quotas are counted from **decompressed** bytes.
+- On mid-pack cancellation tests, the newly created ZIP file must be cleaned up.
 
-### Dùng unit test assertion thay vì dựa vào log
+### Using Unit Test Assertions Instead of Relying on Logs
 
-Một JUnit 5 test có thể viết theo ý tưởng:
+A JUnit 5 test can be structured as:
 
 ~~~java
 @Test
@@ -822,11 +822,11 @@ void rejectsZipSlip() throws Exception {
 }
 ~~~
 
-Đây là **pseudocode JUnit 5**, không compile độc lập: `createArchiveWithEntry`, `newTemporaryDestination`, `TEST_LIMITS` là fixtures do test project định nghĩa. `root` phải **chưa tồn tại** khi truyền cho `unpack`. Chương trình đầy đủ mục 6 không yêu cầu JUnit và đã tạo testcase tương đương.
+This is **JUnit 5 pseudocode** and does not compile standalone: `createArchiveWithEntry`, `newTemporaryDestination`, and `TEST_LIMITS` are project-defined test fixtures. `root` must **not exist yet** when passed to `unpack`. The complete program in section 6 needs no JUnit and implements an equivalent test case.
 
-## 13. Khi nào cần ZipFile thay ZipInputStream?
+## 13. When Should `ZipFile` Replace `ZipInputStream`?
 
-Đối với file ZIP đã nằm trên disk, `ZipFile` có thể tra cứu entry theo tên:
+For a ZIP file already on disk, `ZipFile` can look up entries by name:
 
 ~~~java
 try (ZipFile zip = new ZipFile(
@@ -835,19 +835,19 @@ try (ZipFile zip = new ZipFile(
     ZipEntry entry = zip.getEntry("docs/a.txt");
     if (entry != null) {
         try (InputStream in = zip.getInputStream(entry)) {
-            // Đọc nội dung entry này và giới hạn bytes như phần unpack.
+            // Read this entry's content and enforce byte limits as in unpack.
         }
     }
 }
 ~~~
 
-Đây là mã minh họa, cần `Path archivePath` và các import. `ZipFile` có thể dùng central directory; còn `ZipInputStream` tiện cho upload/stream. **Không đổi sang ZipFile rồi bỏ kiểm tra đường dẫn, quota và ownership**.
+This is illustrative code requiring `Path archivePath` and imports. `ZipFile` uses the central directory, whereas `ZipInputStream` suits uploads/streams. **Never switch to `ZipFile` and drop path, quota, or ownership checks.**
 
-Nếu archive mang **ZIP encryption/password**, Java `java.util.zip` không cung cấp một API tổng quát giải mã mọi biến thể ZIP có mật khẩu. Với ZIP features ngoài phạm vi JDK, cần thư viện được đánh giá phù hợp. Đừng coi exception “unsupported method” là tín hiệu để vô hiệu hóa path validation.
+If an archive uses **ZIP encryption/passwords**, Java's `java.util.zip` does not provide a general API to decrypt arbitrary password-protected ZIP variants. For ZIP features beyond JDK scope, use a vetted library. Never treat an "unsupported method" exception as a reason to disable path validation.
 
-## 14. Cấu trúc production: staging rồi mới publish
+## 14. Production Architecture: Stage First, Then Publish
 
-Dùng hai giai đoạn:
+Use two phases:
 
 ~~~text
 archive.zip
@@ -855,100 +855,100 @@ archive.zip
     v
 Private staging directory (new)
     |
-    +-- từng entry: validate path, quota, no-follow, CREATE_NEW
+    +-- per entry: validate path, quota, no-follow, CREATE_NEW
     |
-    +-- kiểm tra toàn archive / format / checksum / malware policy nếu cần
-    |
-    v
-Publish sang destination cuối theo policy
+    +-- check whole archive / format / checksum / malware policy if needed
     |
     v
-Cleanup staging khi lỗi
+Publish to final destination per policy
+    |
+    v
+Clean up staging on failure
 ~~~
 
-Trong production, lý tưởng cần:
+In production, ideally ensure:
 
-1. Đặt staging cùng filesystem với destination nếu muốn có khả năng rename atomic theo điều kiện filesystem cho phép.
-2. Không cho người dùng khác ghi vào staging hoặc thay directory/symlink.
-3. Giới hạn compressed input bytes, uncompressed bytes, entry count, depth, CPU time và số inode.
-4. Không mở các entry dạng executable/script nhạy cảm nếu product không cần.
-5. Kiểm tra tên filesystem reserved/collision trên OS thực tế.
-6. Làm rõ merge/overwrite policy; demo chỉ hỗ trợ **new destination**.
-7. Khi publish, kiểm tra hỗ trợ `StandardCopyOption.ATOMIC_MOVE` nếu muốn atomic move; có thể có `AtomicMoveNotSupportedException` và thao tác đổi tên không là transaction trên nhiều filesystem.
-8. Cleanup cả staging khi fail giữa chừng và cleanup orphan staging sau crash.
-9. Đối với nội dung nhạy cảm, CRC32 ZIP chỉ phát hiện hỏng ngẫu nhiên, **không phải chữ ký số chống giả mạo**.
-10. Ghi log lỗi đủ phân biệt “invalid path”, “quota exceeded”, “archive corrupted”, “permission denied”, “I/O interrupted” mà không làm lộ path hệ thống ngoài mong muốn.
+1. Place staging on the same filesystem as destination if atomic rename is desired where supported.
+2. Prevent other users from writing into staging or swapping directories/symlinks.
+3. Bound compressed input bytes, uncompressed bytes, entry count, depth, CPU time, and inode count.
+4. Reject sensitive executable/script entries if the product does not need them.
+5. Check OS-specific reserved names and case collisions.
+6. Clarify merge/overwrite policies; the demo supports **new destinations only**.
+7. When publishing, verify support for `StandardCopyOption.ATOMIC_MOVE` if desired; `AtomicMoveNotSupportedException` can occur and renames are not cross-filesystem transactions.
+8. Clean up staging on mid-way failure and clean up orphan staging directories after crashes.
+9. For sensitive data, ZIP CRC32 detects accidental corruption only and **is not a tamper-proof digital signature**.
+10. Log errors clearly distinguishing "invalid path", "quota exceeded", "archive corrupted", "permission denied", and "I/O interrupted" without leaking unintended host paths.
 
-**Đừng trả về thành công chỉ vì `unpack` đã tạo vài file.** Thành công phải nghĩa là mọi entry được đọc, validate, trích xuất, các stream được đóng thành công và output được publish theo hợp đồng.
+**Do not report success just because `unpack` wrote a few files.** Success must mean every entry was read, validated, extracted, streams closed cleanly, and output published per contract.
 
-## 15. Các sai lầm dễ mắc
+## 15. Common Mistakes
 
-1. **Ghi thẳng `entry.getName()` vào thư mục output mà không kiểm tra.** Dẫn tới Zip Slip.
-2. **Chỉ dùng `String.startsWith` để kiểm tra containment.** Có thể nhầm đường dẫn có cùng tiền tố chuỗi.
-3. **Tin `Path.normalize()` giải quyết symlink.** Sai: normalize chỉ xử lý cú pháp.
-4. **Tin `NOFOLLOW_LINKS` loại được mọi race.** Sai nếu attacker có thể sửa cây file đồng thời.
-5. **Dùng `CREATE`/`TRUNCATE_EXISTING` với entry không tin cậy.** Có thể ghi đè file cũ; dùng `CREATE_NEW` khi không cho overwrite.
-6. **Giải nén vào directory đã có nội dung mà không có merge policy.** Dễ gây collision/overwrite.
-7. **Bỏ qua directory entries.** Mất thư mục rỗng.
-8. **Tin mọi ZIP đều có directory entry `docs/` trước `docs/a.txt`.** Không được bảo đảm; tự tạo parent sau khi validate.
-9. **Không giới hạn số entry.** Archive hàng triệu file rỗng vẫn phá hệ thống dù tổng bytes thấp.
-10. **Tin `entry.getSize()` để cấp phát mảng.** Có thể -1 hoặc không đáng tin.
-11. **Dùng `zip.readAllBytes()` cho upload không tin cậy.** Dễ hết heap khi zip bomb.
-12. **Chỉ giới hạn dung lượng ZIP nén.** Một file vài KiB có thể bung rất lớn.
-13. **Quên `ZipOutputStream.close()`.** Central directory có thể chưa hoàn tất.
-14. **Hiểu `ZipInputStream.read() == -1` là hết archive.** Đó là hết entry hiện tại.
-15. **Để output ZIP nằm trong source tree đang walk.** Dễ có input biến động/tự chứa ZIP.
-16. **Follow symlink nguồn không kiểm soát.** Có thể pack tài liệu ngoài thư mục đã định.
-17. **Dùng dấu backslash trong entry theo cách tự tiện.** Hành vi khác nhau giữa hệ điều hành.
-18. **Không kiểm tra duplicate/case-collision.** Có thể mất hoặc ghi đè file.
-19. **Cho rằng IOException tự rollback mọi file đã tạo trước đó.** Sai: cần staging/cleanup.
-20. **Cho rằng CRC32 chứng minh archive đáng tin.** Sai: checksum không có xác thực mật mã.
+1. **Writing `entry.getName()` straight into output without validation.** Leads to Zip Slip.
+2. **Using `String.startsWith` alone for containment checks.** Can misclassify paths sharing a string prefix.
+3. **Believing `Path.normalize()` solves symlinks.** False: normalize is purely syntactic.
+4. **Believing `NOFOLLOW_LINKS` eliminates all races.** False if an attacker can mutate the tree concurrently.
+5. **Using `CREATE`/`TRUNCATE_EXISTING` on untrusted entries.** Can overwrite existing files; use `CREATE_NEW` when disallowing overwrites.
+6. **Extracting into a populated directory without a merge policy.** Causes collisions/overwrites.
+7. **Skipping directory entries.** Loses empty directories.
+8. **Assuming every ZIP emits `docs/` before `docs/a.txt`.** Not guaranteed; create parents safely after validation.
+9. **Not capping entry counts.** An archive with millions of empty files breaks systems despite tiny byte counts.
+10. **Trusting `entry.getSize()` to allocate arrays.** Can be `-1` or falsified.
+11. **Calling `zip.readAllBytes()` on untrusted uploads.** Exhausts heap on zip bombs.
+12. **Bounding only compressed ZIP size.** A few KiB compressed can expand massively.
+13. **Forgetting `ZipOutputStream.close()`.** Central directory may remain incomplete.
+14. **Thinking `ZipInputStream.read() == -1` means end of archive.** It means end of the current entry.
+15. **Putting the output ZIP inside the walked source tree.** Causes self-referential/unstable input.
+16. **Following source symlinks unchecked.** Can pack files outside the intended directory.
+17. **Allowing backslashes arbitrarily in entry names.** Behavior diverges across OSes.
+18. **Skipping duplicate/case-collision checks.** Can silently lose or overwrite files.
+19. **Assuming `IOException` rolls back previously extracted files.** False: explicit staging/cleanup is required.
+20. **Assuming CRC32 proves an archive is trustworthy.** False: checksums provide no cryptographic authentication.
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-Check Questions
 
-**Câu 1.** Tại sao packer phải viết directory entries như `empty/`?
+**Question 1.** Why must the packer write directory entries like `empty/`?
 
-**Đáp án:** Để giữ thư mục rỗng. Nếu ZIP chỉ có file entries, một thư mục không có file con có thể biến mất khi giải nén.
+**Answer:** To preserve empty directories. If a ZIP only contains file entries, directories without files can disappear upon extraction.
 
-**Câu 2.** Vì sao chỉ kiểm tra `zipEntry.getSize() <= maxBytes` không đủ chống zip bomb?
+**Question 2.** Why is checking `zipEntry.getSize() <= maxBytes` alone insufficient against zip bombs?
 
-**Đáp án:** Metadata có thể thiếu/không đáng tin, và tổng nhiều entry vẫn lớn. Cần kiểm đếm byte đã giải nén thật trong mỗi vòng `read` trước khi ghi.
+**Answer:** Metadata can be missing or untrusted, and many entries combined can still be huge. You must count actual decompressed bytes inside each `read` iteration before writing.
 
-**Câu 3.** Nếu ZIP chứa `docs/a.txt` nhưng không có `docs/`, extractor có tạo được không?
+**Question 3.** If a ZIP contains `docs/a.txt` with no `docs/` entry, can the extractor still create it?
 
-**Đáp án:** Có. Sau khi tên được validate và nằm trong root, tạo các thư mục cha an toàn rồi tạo file mới.
+**Answer:** Yes. After the name is validated inside root, safely create parent directories and then create the new file.
 
-**Câu 4.** Vì sao `Path.startsWith(root)` tốt hơn `String.startsWith(root.toString())`?
+**Question 4.** Why is `Path.startsWith(root)` better than `String.startsWith(root.toString())`?
 
-**Đáp án:** Nó so sánh theo thành phần Path, tránh nhầm `/safe/output2` là con của `/safe/output`.
+**Answer:** It compares path components, avoiding mistaking `/safe/output2` for a child of `/safe/output`.
 
-**Câu 5.** `Files.newOutputStream(..., CREATE_NEW)` giải quyết được vấn đề gì?
+**Question 5.** What problem does `Files.newOutputStream(..., CREATE_NEW)` solve?
 
-**Đáp án:** Ngăn ghi đè/truncate một file hoặc symlink có sẵn ở path cuối; không tự ngăn attacker đổi directory cha khi có race.
+**Answer:** Prevents overwriting/truncating an existing file or symlink at the final path; it does not by itself stop an attacker swapping parent directories in a race.
 
-**Câu 6.** Vì sao thử `../escape.txt` phải kiểm tra cả exception và file thực tế?
+**Question 6.** Why must testing `../escape.txt` verify both the exception and the filesystem?
 
-**Đáp án:** Có exception không chứng minh file ngoài root chưa từng được tạo. Assertion cần xác nhận không có file vi phạm sau thao tác thất bại.
+**Answer:** Throwing an exception does not prove an outside file was never created first. Assertions must verify no offending file exists after the failed operation.
 
-**Câu 7.** Nếu entry thứ mười vượt quota nhưng chín entry trước hợp lệ đã được giải nén, các file trước có tự biến mất không?
+**Question 7.** If the tenth entry exceeds quota after nine valid entries were extracted, do the earlier files vanish automatically?
 
-**Đáp án:** Không. Demo chỉ cố dọn file entry đang xử lý; cần staging + cleanup/publish riêng để đạt quy trình trọn gói.
+**Answer:** No. The demo only cleans up the entry currently being extracted; separate staging + cleanup/publish logic is needed for all-or-nothing behavior.
 
-**Câu 8.** Vì sao Java `ZipInputStream` không nên được dùng với một luồng GZIP đơn `.gz`?
+**Question 8.** Why should Java `ZipInputStream` not be used on a single `.gz` GZIP stream?
 
-**Đáp án:** ZIP archive có `ZipEntry` và cấu trúc ZIP, còn GZIP là định dạng nén stream khác; dù cả hai có thể dùng DEFLATE, header/container không giống nhau.
+**Answer:** A ZIP archive has `ZipEntry` records and ZIP container structure, whereas GZIP is a different stream format; even though both can use DEFLATE, their headers and containers differ.
 
-**Câu 9.** Chương trình được chạy trên Linux nhưng archive có tên `C:/tmp/a.txt`. Vì sao chính sách của bài vẫn từ chối?
+**Question 9.** The program runs on Linux yet an archive has an entry named `C:/tmp/a.txt`. Why does the exercise policy still reject it?
 
-**Đáp án:** Để giữ tính portable và tránh tên chuyển nghĩa thành đường dẫn drive khi archive được giải nén trên Windows hoặc qua tool khác.
+**Answer:** To preserve portability and prevent names from being interpreted as drive paths if extracted on Windows or by other tools.
 
-### Tài liệu Java 17 chính thức
+### Java 17 Official References
 
 - [ZipOutputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/zip/ZipOutputStream.html)
 - [ZipInputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/zip/ZipInputStream.html)
 - [ZipEntry](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/zip/ZipEntry.html)
 - [ZipFile](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/zip/ZipFile.html)
-- [Files.walkFileTree và Files.newOutputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html)
+- [Files.walkFileTree and Files.newOutputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html)
 - [Path.resolve, normalize, startsWith](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html)
 - [LinkOption.NOFOLLOW_LINKS](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/LinkOption.html)
 - [StandardOpenOption.CREATE_NEW](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/StandardOpenOption.html)

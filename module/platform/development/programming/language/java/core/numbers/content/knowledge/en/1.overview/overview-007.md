@@ -1,25 +1,25 @@
-# Kiến thức tiên quyết và trình tự học đề xuất — Java Core: Numbers
+# Prerequisites and Recommended Learning Sequence — Java Core: Numbers
 
-## 1. Bài này dành cho ai?
+## 1. Who Is This Lesson For?
 
-Đây là **bản đồ chuẩn bị và tự học** dành cho người đã biết cú pháp Java căn bản nhưng chưa chắc nên bắt đầu từ đâu khi gặp bài toán số. Mục đích là đánh giá điểm xuất phát, định thứ tự luyện tập và biết quay lại phần thích hợp khi sai; các bài đứng trước cung cấp giải thích sâu về từng kiểu và phép tính.
+This is a **preparation and self-study map** for learners who already know basic Java syntax but are unsure where to start when facing numeric problems. The goal is to assess your starting point, establish a practice order, and know where to backtrack when mistakes happen; the preceding lessons provide in-depth explanations of each type and operation.
 
-Bạn cần một JDK 17 trở lên để chạy ví dụ, biết tạo class có `main`, khai báo biến, dùng biểu thức, gọi phương thức, xử lý ngoại lệ và đọc output terminal. Chưa cần biết Spring, đa luồng hay chi tiết bộ nhớ JVM.
+You need JDK 17 or newer to run the examples, and must know how to create a class with `main`, declare variables, write expressions, call methods, handle exceptions, and read terminal output. You do not yet need Spring, multithreading, or JVM memory internals.
 
-## 2. Kiểm tra kiến thức tiên quyết
+## 2. Prerequisites Check
 
-| Nền tảng | Phải làm được | Nếu chưa đạt |
+| Foundation | Must Be Able To | If Not Yet Ready |
 | --- | --- | --- |
-| JDK và terminal | Chạy `javac File.java` rồi `java File` | Ôn trình biên dịch, classpath và tệp Java |
-| Biến, literal, toán tử | Dự đoán `2 + 3 * 4` và `(2 + 3) * 4` | Ôn thứ tự toán tử và dấu ngoặc |
-| Kiểu dữ liệu, chuyển kiểu | Phân biệt `int`, `double`, cast trước/sau chia | Ôn kiểu toán hạng và phép gán |
-| Phương thức và `import` | Gọi `Math.max(2, 3)` | Ôn cách gọi static method |
-| Rẽ nhánh, vòng lặp | Kiểm tra giá trị âm, lặp qua nhiều input | Ôn điều kiện, phép so sánh |
-| Ngoại lệ | Dùng `try/catch` khi parse sai hoặc chia nguyên cho 0 | Ôn `NumberFormatException`, `ArithmeticException` |
+| JDK and terminal | Run `javac File.java` then `java File` | Review compiler, classpath, and Java source files |
+| Variables, literals, operators | Predict `2 + 3 * 4` and `(2 + 3) * 4` | Review operator precedence and parentheses |
+| Data types, type conversions | Distinguish `int`, `double`, casting before/after division | Review operand types and assignment |
+| Methods and `import` | Call `Math.max(2, 3)` | Review calling static methods |
+| Branching, loops | Check negative values, iterate over multiple inputs | Review conditionals and comparison operators |
+| Exceptions | Use `try/catch` for invalid parsing or integer division by 0 | Review `NumberFormatException`, `ArithmeticException` |
 
-### Bài kiểm tra đầu vào có thể tự chạy
+### Self-Runnable Entry Check
 
-Tạo `NumbersPrerequisiteCheck.java`:
+Create `NumbersPrerequisiteCheck.java`:
 
 ```java
 public class NumbersPrerequisiteCheck {
@@ -39,7 +39,7 @@ javac NumbersPrerequisiteCheck.java
 java NumbersPrerequisiteCheck
 ```
 
-Kết quả:
+Result:
 
 ```text
 3
@@ -48,63 +48,63 @@ Kết quả:
 20
 ```
 
-Nếu kết quả sai dự đoán, giải thích **kiểu tại lúc phép toán diễn ra** và thứ tự ưu tiên trước khi chạy lại. Đây là bài kiểm tra kỹ năng Java nền tảng, không phải bài kiểm tra thuộc lòng bảng miền giá trị.
+If the output differs from your prediction, explain **the types at the moment each operation occurs** and operator precedence before running again. This is a check of foundational Java skills, not a memorization test of value-range tables.
 
-## 3. Trình tự học tám bài của chương
+## 3. Eight-Lesson Learning Sequence for the Chapter
 
-Menu của chương bắt đầu bằng tình huống thực tế, chuyển sang cơ chế, rồi kết thúc bằng việc dùng JDK đúng phiên bản. Đi theo thứ tự dưới đây khi học lần đầu; nếu đã biết một phần, có thể dùng cột tự kiểm tra để chọn nơi ôn.
+The chapter menu starts with real-world scenarios, moves into mechanisms, and concludes with using the right JDK version. Follow the order below on your first pass; if you already know a topic, use the self-check column to choose what to review.
 
-| Chặng | Bài trong chương | Câu hỏi tự kiểm tra trước khi đi tiếp |
+| Stage | Lesson in Chapter | Self-Check Question Before Moving On |
 | --- | --- | --- |
-| 1 | Số trong Java là gì và những bài toán cần biểu diễn | Giải thích vì sao mã `"00123"` khác số lượng 123 và giá 123.00 |
-| 2 | Phân biệt giá trị toán học, kiểu dữ liệu và cách lưu trữ | Phân tách giá trị, kiểu, bit lưu và chuỗi hiển thị |
-| 3 | Số nguyên, số dấu phẩy động và số thập phân chính xác | Dự đoán hành vi chia nguyên, số thực và BigDecimal |
-| 4 | Phạm vi giá trị khác độ chính xác như thế nào | Phân biệt overflow với mất độ phân giải ở số thực |
-| 5 | Bản đồ primitive, wrapper, Number, BigInteger và BigDecimal | Biết tại sao unboxing null gây lỗi và Number không có toán tử cộng chung |
-| 6 | Chọn kiểu theo ý nghĩa dữ liệu và yêu cầu tính toán | Lý giải lựa chọn kiểu cho hóa đơn, bộ đếm, cảm biến và API |
-| 7 | Kiến thức tiên quyết và trình tự học đề xuất | Tự đánh giá điểm yếu và lập kế hoạch ôn phần cần thiết |
-| 8 | Phạm vi Java Core và cách đối chiếu phiên bản JDK | Kiểm tra xem phương thức có trong Java 17 hay chỉ ra đời ở Java 21 |
+| 1 | What Are Numbers in Java and What Problems Need Representation | Explain why code `"00123"` differs from quantity 123 and price 123.00 |
+| 2 | Distinguishing Mathematical Value, Data Type, and Storage Representation | Separate value, type, stored bits, and display string |
+| 3 | Integers, Floating-Point Numbers, and Exact Decimals | Predict behavior of integer division, floating-point, and BigDecimal |
+| 4 | How Value Range Differs from Precision | Distinguish overflow from loss of resolution in floating-point numbers |
+| 5 | Map of Primitives, Wrappers, Number, BigInteger, and BigDecimal | Know why unboxing null fails and why Number has no generic addition operator |
+| 6 | Choosing Types by Data Semantics and Calculation Requirements | Justify type choices for invoices, counters, sensors, and APIs |
+| 7 | Prerequisites and Recommended Learning Sequence | Self-assess weak spots and plan targeted review |
+| 8 | Java Core Scope and How to Cross-Reference JDK Versions | Check whether a method exists in Java 17 or was introduced only in Java 21 |
 
-**Cách sử dụng bản đồ:** Sau chặng 2, thử tự giải thích một số được hiển thị khác với bit biểu diễn. Sau chặng 3–4, thử tính `0.1 + 0.2` và cộng `1` vào `1e16` để xem sự khác nhau giữa lỗi biểu diễn và độ phân giải. Chặng 5 giúp đọc API nhận `Number`; chặng 6 yêu cầu ra quyết định có hợp đồng dữ liệu; chặng 8 kiểm chứng tương thích khi chuyển dự án sang JDK khác.
+**How to use the map:** After stage 2, practice explaining why a displayed number can differ from its stored bit representation. After stages 3–4, test `0.1 + 0.2` and adding `1` to `1e16` to see the difference between representation error and resolution. Stage 5 helps you read APIs taking `Number`; stage 6 asks you to make decisions backed by data contracts; stage 8 verifies compatibility when moving a project to another JDK.
 
-## 4. Luyện tập có thứ tự
+## 4. Ordered Practice
 
-### Bài A — Đọc biểu thức trước khi chạy
+### Exercise A — Read Expressions Before Running
 
-Với `int a = 9, b = 4;`, dự đoán `a / b`, `a % b`, `(double) a / b` và `(double) (a / b)`. Tự xác minh output lần lượt là `2`, `1`, `2.25`, `2.0`. Nếu sai, ôn **chặng 2–3**; nguyên nhân là kiểu toán hạng và thời điểm cast.
+Given `int a = 9, b = 4;`, predict `a / b`, `a % b`, `(double) a / b`, and `(double) (a / b)`. Self-verify that the outputs are `2`, `1`, `2.25`, `2.0` respectively. If wrong, review **stages 2–3**; the cause is operand types and cast timing.
 
-### Bài B — Xác định loại sai số
+### Exercise B — Identify the Kind of Error
 
-Chạy `Integer.MAX_VALUE + 1`, `16777216f + 1 == 16777216f` và `0.1 + 0.2 == 0.3`. Ba biểu thức lần lượt minh họa tràn số nguyên, độ phân giải float và làm tròn nhị phân. Giải thích sự khác nhau trước khi chọn `Math.addExact`, thay kiểu số hoặc dùng decimal chính xác. Nếu nhầm lẫn, ôn **chặng 3–4**.
+Run `Integer.MAX_VALUE + 1`, `16777216f + 1 == 16777216f`, and `0.1 + 0.2 == 0.3`. The three expressions respectively demonstrate integer overflow, float resolution, and binary rounding. Explain the differences before choosing `Math.addExact`, changing the numeric type, or using exact decimal. If confused, review **stages 3–4**.
 
-### Bài C — Từ yêu cầu đến kiểu dữ liệu
+### Exercise C — From Requirements to Data Types
 
-Một đơn hàng có mã `"000045"`, số lượng 3, giá `"19.95"`, thuế 8% và tổng dung lượng xử lý vượt 4 tỷ byte. Hãy đề xuất kiểu Java và xác định:
+An order has code `"000045"`, quantity 3, price `"19.95"`, 8% tax, and total processed volume exceeding 4 billion bytes. Propose Java types and identify:
 
-1. Trường nào là mã định danh, trường nào là đại lượng để tính?
-2. Phép toán trung gian nào có thể tràn nếu hai toán hạng đều là `int`?
-3. Phải thống nhất scale, đơn vị tiền tệ, `RoundingMode` và thời điểm làm tròn tại đâu?
-4. JSON/client và database có giữ nguyên giá trị, đơn vị và các số 0 đầu không?
+1. Which field is an identifier, and which fields are quantities to compute?
+2. Which intermediate operation could overflow if both operands are `int`?
+3. Where must scale, currency unit, `RoundingMode`, and rounding timing be agreed upon?
+4. Do JSON/client and database preserve the values, units, and leading zeros intact?
 
-Nếu không bảo vệ được quyết định, quay về **chặng 5–6**.
+If you cannot defend your decisions, go back to **stages 5–6**.
 
-### Bài D — Kiểm tra tương thích JDK
+### Exercise D — Check JDK Compatibility
 
-Dùng tài liệu API đúng bản phát hành tìm `Math.addExact`, `NumberFormat.getCompactNumberInstance` và `Math.clamp`. Biên dịch ví dụ thích hợp với `javac --release 17`, phân biệt thiếu API với lỗi cú pháp. Nếu chưa biết compiler, runtime và `--release` khác nhau thế nào, ôn **chặng 8**.
+Using release-specific API documentation, look up `Math.addExact`, `NumberFormat.getCompactNumberInstance`, and `Math.clamp`. Compile appropriate examples with `javac --release 17`, distinguishing missing APIs from syntax errors. If you do not yet know how compiler, runtime, and `--release` differ, review **stage 8**.
 
-## 5. Cách tự học và ghi bằng chứng
+## 5. How to Self-Study and Record Evidence
 
-Ở mỗi chặng, ghi một bảng ngắn gồm *dự đoán → phép thử → output thật → nguyên nhân → bài cần ôn*. Với phép đo, thử `NaN` và giới hạn sai số; với số nguyên, thử cực trị và phép toán trung gian; với tiền, thử các giá trị ở điểm giữa cần làm tròn; với wrapper, thử `null` tại unboxing. Mục tiêu là giải thích được **vì sao** một kết quả xảy ra và **khi nào** cách xử lý còn phù hợp.
+At each stage, keep a short table of *prediction → experiment → actual output → root cause → lesson to review*. For measurements, test `NaN` and error bounds; for integers, test extreme values and intermediate operations; for money, test midpoint values requiring rounding; for wrappers, test `null` at unboxing. The goal is to explain **why** a result happens and **when** an approach remains valid.
 
-Đánh dấu hoàn thành sau khi tự kiểm tra:
+Check off each item after self-testing:
 
-- [ ] Biên dịch/chạy được các ví dụ Numbers độc lập và đọc được lỗi biên dịch so với ngoại lệ runtime.
-- [ ] Dự đoán kiểu toán hạng của chia nguyên, promotion, cast và gán kết quả.
-- [ ] Nhận biết overflow và dùng `Math.*Exact` ở đúng phép toán nếu cần kiểm tra.
-- [ ] Phân biệt range, precision và sai số do biểu diễn floating-point.
-- [ ] Giải thích primitive, wrapper, `Number`, `BigInteger`, `BigDecimal` và rủi ro `null`.
-- [ ] Chọn kiểu theo miền, đơn vị, phép toán và yêu cầu decimal/rounding cụ thể.
-- [ ] Xác minh bảo toàn dữ liệu qua JSON, database, định dạng và locale.
-- [ ] Biết tìm đúng phiên bản API và kiểm chứng `javac --release` trên runtime đích.
+- [ ] Can compile/run standalone Numbers examples and distinguish compile errors from runtime exceptions.
+- [ ] Can predict operand types for integer division, promotion, casts, and result assignment.
+- [ ] Recognize overflow and apply `Math.*Exact` on the right operation when checking is needed.
+- [ ] Distinguish range, precision, and floating-point representation error.
+- [ ] Explain primitives, wrappers, `Number`, `BigInteger`, `BigDecimal`, and `null` risks.
+- [ ] Choose types based on domain, units, operations, and specific decimal/rounding requirements.
+- [ ] Verify data preservation across JSON, databases, formatting, and locales.
+- [ ] Know how to look up the right API version and verify `javac --release` on the target runtime.
 
-**Khi đã đạt:** chuyển sang các bài toán API số nâng cao trong module. Nếu còn mục chưa hoàn thành, quay lại đúng chặng và tự tạo một phép thử biên mới; không cần học lại toàn chương chỉ vì một sai lầm nhỏ.
+**Once achieved:** move on to the advanced numeric API lessons in the module. If any item remains incomplete, return to the exact stage and craft a new boundary test; there is no need to restudy the entire chapter over one small slip.

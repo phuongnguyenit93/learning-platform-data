@@ -1,89 +1,89 @@
-# Phạm vi Java Core và cách đối chiếu phiên bản JDK — Java Core: Numbers
+# Java Core Scope and How to Cross-Reference JDK Versions — Java Core: Numbers
 
-## 1. Bài này giải quyết vấn đề gì?
+## 1. What Problem Does This Lesson Solve?
 
-Khi học xử lý số trong Java, dễ gặp hai câu hỏi tưởng đơn giản: “`BigDecimal` có phải thư viện ngoài không?” và “Ví dụ dùng `Math.clamp` có chạy trên JDK 17 không?”. Muốn trả lời, phải phân biệt **phạm vi kiến thức Java Core**, **API chuẩn**, **phiên bản JDK dùng để biên dịch**, **phiên bản Java nơi chương trình chạy** và **phiên bản mà dự án cam kết hỗ trợ**.
+When learning number handling in Java, two seemingly simple questions arise: "Is `BigDecimal` an external library?" and "Will an example using `Math.clamp` run on JDK 17?". To answer them, you must distinguish **Java Core knowledge scope**, **standard APIs**, **the JDK version used to compile**, **the Java version where the program runs**, and **the version a project commits to supporting**.
 
-Bài này tập trung vào **Java Core — Numbers**. Mục tiêu là giúp bạn:
+This lesson focuses on **Java Core — Numbers**. The goal is to help you:
 
-1. Biết những thành phần xử lý số nào thuộc cú pháp ngôn ngữ Java, thư viện chuẩn `java.base` hoặc các API chuẩn khác; không nhầm với thư viện của ứng dụng.
-2. Xác định API/phương thức tồn tại từ Java nào bằng tài liệu phiên bản cụ thể, đặc biệt các mục `Since`, `Deprecated` và `Preview`.
-3. Hiểu khác nhau giữa khả năng biên dịch mã nguồn, khả năng gọi API, phiên bản bytecode và khả năng chạy thực tế.
-4. Tự kiểm tra với `java`, `javac` và `javac --release` trước khi kết luận mã chạy được trên JDK đích.
-5. Xây dựng quy trình đối chiếu phiên bản có thể áp dụng cho mọi bài Numbers tiếp theo.
+1. Know which number-handling components belong to the Java language syntax, the `java.base` standard library, or other standard APIs; without confusing them with application libraries.
+2. Determine which Java version introduced an API/method using version-specific documentation, especially `Since`, `Deprecated`, and `Preview` annotations.
+3. Understand the difference between source compilability, API availability, bytecode version, and actual runtime execution.
+4. Self-verify with `java`, `javac`, and `javac --release` before concluding code runs on the target JDK.
+5. Establish a version cross-referencing workflow applicable to every subsequent Numbers lesson.
 
-**Giới hạn phạm vi:** đây là bài định hướng và đối chiếu phiên bản, không phải tài liệu tra cứu mọi phép toán số hay bảng liệt kê toàn bộ thay đổi của từng bản JDK. Các phiên bản 8, 11, 17 và 21 được dùng làm **mốc kiểm tra**; chúng không có nghĩa là chỉ tồn tại bốn bản Java hoặc phiên bản mới nhất của Java luôn là 21.
+**Scope limitation:** this is an orientation and version cross-referencing lesson, not a reference for every numeric operation or an exhaustive changelog of each JDK release. Versions 8, 11, 17, and 21 are used as **reference milestones**; they do not imply that only four Java versions exist or that the latest Java version is always 21.
 
-## 2. Năm khái niệm cần phân biệt
+## 2. Five Concepts to Distinguish
 
-| Thuật ngữ | Ý nghĩa thực hành | Ví dụ liên quan Numbers |
+| Term | Practical Meaning | Numbers-Related Example |
 | --- | --- | --- |
-| **Java (ngôn ngữ)** | Cú pháp, kiểu primitive, toán tử, quy tắc chuyển kiểu được quy định bởi Java Language Specification | `int`, `double`, `+`, `/`, numeric promotion |
-| **Java SE (nền tảng chuẩn)** | Bộ API, mô hình thực thi và đặc tả chuẩn theo một bản phát hành | `java.lang.Math`, `java.math.BigDecimal`, `java.text.NumberFormat` |
-| **JDK (Java Development Kit)** | Bộ công cụ phát triển gồm trình biên dịch, công cụ tài liệu và môi trường chạy | `javac`, `java`, `javadoc`, `jshell` (từ JDK 9) |
-| **JVM/runtime** | Môi trường tải, xác minh và thực thi bytecode; một ứng dụng còn phụ thuộc API/runtime có sẵn | Chạy `NumbersDemo.class`; có thể gặp `UnsupportedClassVersionError` hoặc `NoSuchMethodError` |
-| **Bản phân phối JDK** | Một bản dựng của Java từ nhà cung cấp cụ thể, theo version, bản vá và chính sách hỗ trợ của họ | OpenJDK build, Oracle JDK, Eclipse Temurin hoặc bản dựng khác |
+| **Java (the language)** | Syntax, primitive types, operators, and conversion rules defined by the Java Language Specification | `int`, `double`, `+`, `/`, numeric promotion |
+| **Java SE (standard platform)** | Standard API set, execution model, and specification for a release | `java.lang.Math`, `java.math.BigDecimal`, `java.text.NumberFormat` |
+| **JDK (Java Development Kit)** | Development toolkit containing the compiler, documentation tools, and runtime environment | `javac`, `java`, `javadoc`, `jshell` (since JDK 9) |
+| **JVM/runtime** | Environment that loads, verifies, and executes bytecode; an application also depends on available APIs/runtime | Running `NumbersDemo.class`; can hit `UnsupportedClassVersionError` or `NoSuchMethodError` |
+| **JDK distribution** | A Java build from a specific vendor, with its own versioning, patches, and support policy | OpenJDK build, Oracle JDK, Eclipse Temurin, or other builds |
 
-**Java Core** là cách gọi trong học tập cho kiến thức nền của Java và thư viện chuẩn thường dùng, không phải tên một module Java SE độc lập. Từ Java 9, Java SE có hệ thống module; nhiều lớp xử lý số phổ biến nằm trong module **`java.base`**, được mọi module Java đọc ngầm.
+**Java Core** is an educational term for foundational Java knowledge and commonly used standard libraries, not the name of an independent Java SE module. Since Java 9, Java SE has a module system; many common number-handling classes live in module **`java.base`**, which every Java module reads implicitly.
 
-**JRE** từng được phân phối riêng trong nhiều dòng Java cũ; với các bản JDK hiện đại, khi nói “runtime” nên xác nhận đúng bộ chạy thực tế thay vì giả định máy nhất thiết có một bản cài JRE độc lập.
+**JRE** used to be distributed separately in many older Java lines; with modern JDKs, when saying "runtime" you should verify the actual execution environment rather than assuming a machine necessarily has a standalone JRE installed.
 
-Để so sánh tính khả dụng của một API, luôn ghi **số phiên bản tính năng (feature release)**, ví dụ 17 hay 21, rồi mới xét cập nhật vá lỗi như 17.0.x hoặc 21.0.x. Một bản cập nhật vá lỗi và một feature release mới không có cùng ý nghĩa tương thích.
+To compare API availability, always note the **feature release number**, such as 17 or 21, before looking at patch updates like 17.0.x or 21.0.x. A patch update and a new feature release do not carry the same compatibility meaning.
 
-## 3. Bản đồ Numbers trong phạm vi Java Core
+## 3. Numbers Map Within Java Core Scope
 
-### 3.1. Phần thuộc ngôn ngữ Java
+### 3.1. What Belongs to the Java Language
 
-Các kiểu primitive `byte`, `short`, `int`, `long`, `float` và `double`; literal như `42`, `42L`, `1.5F`; toán tử `+`, `-`, `*`, `/`, `%`; ép kiểu và quy tắc nâng kiểu số nằm ở **ngôn ngữ Java**. Không cần cài thư viện số bên ngoài để sử dụng chúng.
+Primitive types `byte`, `short`, `int`, `long`, `float`, and `double`; literals such as `42`, `42L`, `1.5F`; operators `+`, `-`, `*`, `/`, `%`; casts and numeric promotion rules live in the **Java language**. No external math library needs to be installed to use them.
 
-Những quy tắc cơ bản cần kiểm tra theo **Java Language Specification (JLS)** của phiên bản mục tiêu, chẳng hạn cách tính `7 / 2`, tràn `int` và sự khác biệt giữa số thực gần đúng với số thập phân chính xác. Phần lớn nền tảng này ổn định qua nhiều phiên bản, nhưng không vì vậy mà bỏ qua những thay đổi đặc tả về xử lý dấu phẩy động hoặc tính năng ngôn ngữ khác.
+Core rules must be checked against the **Java Language Specification (JLS)** for the target version, such as how `7 / 2` evaluates, `int` overflow, and the difference between approximate floating-point numbers and exact decimals. Most of this foundation is stable across many releases, yet you should not ignore specification changes to floating-point handling or other language features.
 
-### 3.2. Các lớp/thư viện chuẩn thường gặp
+### 3.2. Commonly Used Standard Classes/Libraries
 
-| Nhu cầu | Các API tiêu biểu | Thuộc đâu? |
+| Need | Representative APIs | Where It Lives |
 | --- | --- | --- |
-| Hằng số và phép toán toán học cơ bản | `Math`, `StrictMath` | `java.lang` / `java.base` |
-| Bao kiểu và xử lý số nguyên | `Number`, `Integer`, `Long`, `Short`, `Byte` | `java.lang` / `java.base` |
-| Bao kiểu số thực và kiểm tra trạng thái | `Float`, `Double` | `java.lang` / `java.base` |
-| Số nguyên lớn | `BigInteger` | `java.math` / `java.base` |
-| Số thập phân, độ chính xác, làm tròn | `BigDecimal`, `MathContext`, `RoundingMode` | `java.math` / `java.base` |
-| Parse/định dạng theo vùng | `NumberFormat`, `DecimalFormat`, `DecimalFormatSymbols` | `java.text` / `java.base` |
-| Quy định vùng/ngôn ngữ | `Locale` | `java.util` / `java.base` |
-| Sinh số giả ngẫu nhiên | `Random`, `SplittableRandom`; `RandomGenerator` từ JDK 17 | `java.util` và `java.util.random` / `java.base` |
-| Dạng số làm đầu vào/đầu ra | `Scanner`, `Formatter` | `java.util` / `java.base` |
+| Constants and basic math operations | `Math`, `StrictMath` | `java.lang` / `java.base` |
+| Wrapping types and integer utilities | `Number`, `Integer`, `Long`, `Short`, `Byte` | `java.lang` / `java.base` |
+| Wrapping floating-point and status checks | `Float`, `Double` | `java.lang` / `java.base` |
+| Large integers | `BigInteger` | `java.math` / `java.base` |
+| Decimals, precision, rounding | `BigDecimal`, `MathContext`, `RoundingMode` | `java.math` / `java.base` |
+| Locale-aware parsing/formatting | `NumberFormat`, `DecimalFormat`, `DecimalFormatSymbols` | `java.text` / `java.base` |
+| Region/language specification | `Locale` | `java.util` / `java.base` |
+| Pseudorandom number generation | `Random`, `SplittableRandom`; `RandomGenerator` since JDK 17 | `java.util` and `java.util.random` / `java.base` |
+| Numbers as input/output | `Scanner`, `Formatter` | `java.util` / `java.base` |
 
-`java.lang` được import tự động. Các package khác như `java.math`, `java.text`, `java.util` cần import hoặc dùng tên đầy đủ.
+`java.lang` is imported automatically. Other packages such as `java.math`, `java.text`, and `java.util` require an import or a fully qualified name.
 
-Ví dụ, `BigDecimal` là API tiêu chuẩn của Java SE. Cú pháp `import java.math.BigDecimal;` không thể hiện phụ thuộc Maven hoặc Gradle ngoài JDK. Ngược lại, một kiểu số do một thư viện bên thứ ba định nghĩa phải tra tài liệu/phiên bản **của chính thư viện đó**, không gán phiên bản ra đời của nó cho Java SE.
+For example, `BigDecimal` is a standard Java SE API. `import java.math.BigDecimal;` does not represent an external Maven or Gradle dependency outside the JDK. Conversely, a numeric type defined by a third-party library must be checked in **that library's own** documentation and version history, without attributing its release version to Java SE.
 
-### 3.3. Những gì nằm ngoài bài
+### 3.3. What Lies Outside This Lesson
 
-JNI, Vector API ươm thử (incubator), cơ chế JVM nội bộ, thuật toán toán học chuyên ngành, SQL/JPA mapping và thư viện số khoa học là các chủ đề liên quan nhưng **không phải điều kiện bắt buộc** để hiểu phạm vi Numbers của Java Core. Chỉ mở rộng khi bài toán cụ thể yêu cầu.
+JNI, the incubator Vector API, JVM internals, specialized mathematical algorithms, SQL/JPA mapping, and scientific math libraries are related topics, yet **not prerequisites** for understanding Java Core Numbers scope. Expand into them only when a specific problem demands it.
 
-## 4. “Chạy trên Java X” thực ra có những lớp tương thích nào?
+## 4. What Layers of Compatibility Does "Runs on Java X" Actually Mean?
 
-Một câu “đoạn code chạy trên Java 17” là chưa đủ chính xác nếu chưa xác định:
+Saying "this code runs on Java 17" is imprecise without specifying:
 
-1. **Source compatibility:** trình biên dịch có chấp nhận cú pháp/ngữ nghĩa của phiên bản ngôn ngữ mục tiêu không? Một tính năng cú pháp phát hành sau Java 17 sẽ không thể dùng trong chế độ source 17.
-2. **API compatibility:** tất cả lớp và phương thức có trong Java SE API của phiên bản đích không? Mã cú pháp cũ vẫn có thể gọi một API chỉ ra đời ở Java 21.
-3. **Binary/class-file compatibility:** class được biên dịch ra phiên bản bytecode nào; runtime đích có đọc được không?
-4. **Runtime behavior:** API có thể tồn tại nhưng dữ liệu locale, provider, triển khai, cấu hình, hành vi được đặc tả hoặc lỗi sửa trong bản vá có thể ảnh hưởng kết quả.
-5. **Support/security:** JDK của nhà cung cấp còn nhận cập nhật bảo mật hay không và bản cụ thể nào được tổ chức hỗ trợ? Đây là quyết định vận hành, không suy ra từ việc code biên dịch được.
+1. **Source compatibility:** does the compiler accept the syntax/semantics of the target language version? A syntax feature released after Java 17 cannot be used in source 17 mode.
+2. **API compatibility:** are all classes and methods present in the Java SE API of the target version? Old syntax can still call an API introduced only in Java 21.
+3. **Binary/class-file compatibility:** which bytecode version was the class compiled to; can the target runtime read it?
+4. **Runtime behavior:** the API may exist, yet locale data, providers, implementations, configuration, specified behavior, or bug fixes in patches can affect results.
+5. **Support/security:** does the vendor's JDK still receive security updates, and which exact build does the organization support? This is an operational decision, not deduced from code compiling.
 
-Ví dụ: build một `.class` bằng JDK 21 ở mặc định rồi đưa cho runtime Java 17 thường vướng class-file version mới hơn. Nhưng ngay cả nếu ép class-file target về 17, mã vẫn có thể vô tình tham chiếu API chỉ có trong 21 nếu không kiểm soát API khi biên dịch.
+For example: building a `.class` with JDK 21 defaults and giving it to a Java 17 runtime typically hits a newer class-file version. Yet even if you force the class-file target to 17, code can still accidentally reference an API present only in 21 unless APIs are constrained at compile time.
 
-### 4.1. Quy tắc chiều tương thích
+### 4.1. Direction Rules for Compatibility
 
-- JDK mới thường có thể **biên dịch mã nhắm phiên bản cũ được hỗ trợ** qua `--release`. Mức hỗ trợ cụ thể phải xem `javac --help` của bản đang cài.
-- JDK cũ **không thể** biên dịch source/API được đưa vào ở phiên bản tương lai.
-- Runtime cũ không được bảo đảm chạy class file sinh cho Java mới hơn.
-- Runtime mới có mức tương thích ngược rất cao nhưng không phải cam kết mọi chương trình cũ đều không cần điều chỉnh; thay đổi API đã loại bỏ, module encapsulation, phụ thuộc thư viện, môi trường và thiết lập có thể gây lỗi.
+- A newer JDK can usually **compile code targeting an older supported version** via `--release`. Exact supported targets must be checked via `javac --help` on the installed build.
+- An older JDK **cannot** compile source/APIs introduced in a future release.
+- An older runtime is not guaranteed to run class files generated for a newer Java version.
+- A newer runtime has very high backward compatibility, though not a promise that every old program runs untouched; removed APIs, module encapsulation, library dependencies, environment, and settings can cause failures.
 
-**Tuyên bố chính xác** nên là: “Được biên dịch bằng JDK 21 với `--release 17`, chỉ dùng Java SE API nằm trong Java 17, và đã chạy thử trên JDK 17 được chỉ định.” Tuyên bố này có bằng chứng rõ hơn “viết bằng Java 21 nhưng chạy mọi nơi”.
+An **accurate statement** should read: "Compiled with JDK 21 using `--release 17`, uses only Java SE APIs present in Java 17, and tested on the designated JDK 17." This statement carries far stronger evidence than "written in Java 21 but runs everywhere".
 
-## 5. Tra được phiên bản thực tế trước khi học hoặc sửa code
+## 5. Check Actual Versions Before Learning or Editing Code
 
-Trên terminal, chạy:
+In a terminal, run:
 
 ```bash
 java -version
@@ -91,12 +91,12 @@ javac -version
 javac --help
 ```
 
-- `java -version` cho biết bản runtime được chọn bởi lệnh `java` hiện tại.
-- `javac -version` cho biết bản compiler được chọn; không nên mặc định hai lệnh cùng trỏ tới một JDK khi máy có nhiều bản Java.
-- `javac --help` cho phép kiểm tra bản compiler chấp nhận các giá trị `--release` nào.
-- Từ JDK 9, `java --list-modules` có thể liệt kê các module của runtime hiện tại, bao gồm `java.base`.
+- `java -version` shows the runtime version selected by the current `java` command.
+- `javac -version` shows the compiler version selected; do not assume both commands point to the same JDK when a machine has multiple Java installations.
+- `javac --help` lets you check which `--release` values this compiler accepts.
+- Since JDK 9, `java --list-modules` lists the modules in the current runtime, including `java.base`.
 
-Nếu kết quả khác dự kiến, kiểm tra đường dẫn công cụ và cấu hình của terminal, IDE, Gradle hoặc CI:
+If the output differs from expectations, inspect tool paths and terminal, IDE, Gradle, or CI configuration:
 
 ```powershell
 # Windows PowerShell
@@ -110,61 +110,61 @@ command -v java
 command -v javac
 ```
 
-Lệnh trên giúp xác định **lệnh nào được shell tìm thấy**. Với dự án sử dụng IDE, Gradle toolchain, Maven toolchains, container hoặc CI, cần kiểm tra thêm cấu hình từng công cụ vì compiler/runtime mà build dùng có thể khác kết quả shell.
+These commands show **which executable the shell finds**. For projects using IDEs, Gradle toolchains, Maven toolchains, containers, or CI, also inspect each tool's configuration because the compiler/runtime used by the build may differ from the shell's default.
 
-Trong ứng dụng Java, có thể truy vấn:
+Inside a Java application, you can query:
 
 ```java
 System.out.println(System.getProperty("java.version"));
 System.out.println(Runtime.version().feature());
 ```
 
-Hai dòng này chỉ là **mảnh mã** chạy trong một phương thức; `Runtime.version()` có từ Java 9. Đầu ra phụ thuộc runtime, nên không ghi cố định là “17” hoặc “21” nếu chưa kiểm tra. Thông tin build JDK và runtime JDK nên được ghi nhận riêng khi tái hiện lỗi.
+These two lines are just a **code snippet** run inside a method; `Runtime.version()` exists since Java 9. Output depends on the runtime, so do not hardcode expectations like "17" or "21" without checking. Both build JDK and runtime JDK details should be recorded separately when reproducing bugs.
 
-## 6. Dùng tài liệu theo đúng phiên bản: phương pháp đối chiếu
+## 6. Using Version-Matched Documentation: Cross-Referencing Method
 
-Đừng chỉ tìm “Java Math docs” rồi mở trang tìm kiếm đầu tiên. Một trang API của JDK mới có thể liệt kê phương thức mà bản đích chưa có. Hãy làm theo thứ tự:
+Do not just search "Java Math docs" and open the first search result. An API page for a newer JDK may list methods absent from the target release. Follow this order:
 
-1. Chốt **JDK đích**, ví dụ Java SE 17; ghi cả phiên bản dùng để build nếu khác.
-2. Mở **API Specification** của đúng version, vào package/lớp/phương thức có liên quan. Ví dụ `java.lang.Math`, `java.math.BigDecimal`, `java.text.NumberFormat`.
-3. Đọc **Since** ở phương thức, constructor hoặc lớp để biết lần đầu được giới thiệu. Kiểm tra cả **overload**: tên phương thức đã tồn tại từ trước không đồng nghĩa mọi chữ ký đều có từ trước.
-4. Đọc **Deprecated** (đặc biệt `forRemoval`), **Preview**, **API Note**, **Throws**, lưu ý hành vi các giá trị biên và điều kiện rỗng/null.
-5. Nếu API có trong JDK đích, kiểm tra lại bằng `javac --release <đích>`; nếu không có, cân nhắc giải pháp API cũ hoặc tăng minimum JDK một cách có chủ đích.
-6. Khi nâng JDK, đọc **release notes** và **migration guide**, rồi thực thi bài kiểm thử trên đúng runtime triển khai; tài liệu API không thay thế kiểm chứng thực tế.
+1. Lock down the **target JDK**, e.g., Java SE 17; also record the build version if different.
+2. Open the **API Specification** for that exact version, and navigate to the relevant package/class/method. For example, `java.lang.Math`, `java.math.BigDecimal`, `java.text.NumberFormat`.
+3. Read **Since** on the method, constructor, or class to learn when it was first introduced. Check **overloads** too: an existing method name does not mean every signature existed back then.
+4. Read **Deprecated** (especially `forRemoval`), **Preview**, **API Note**, and **Throws**, noting boundary-value behavior and empty/null conditions.
+5. If the API exists in the target JDK, verify with `javac --release <target>`; if absent, weigh an older-API solution or intentionally bumping the minimum JDK.
+6. When upgrading JDKs, read the **release notes** and **migration guide**, then run tests on the actual deployment runtime; API docs do not replace real execution verification.
 
-Các địa chỉ gốc hữu ích (nên mở và chuyển sang đúng phiên bản khi cần):
+Useful root links (open and switch to the right version when needed):
 
-- [Java SE 8 API](https://docs.oracle.com/javase/8/docs/api/) — mốc đối chiếu các API lâu đời.
-- [Java SE 11 API](https://docs.oracle.com/en/java/javase/11/docs/api/) — so sánh với hệ API trước JDK 12.
-- [Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/) — mốc của các ví dụ Java 17+.
-- [Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/) — kiểm tra API và phương thức bổ sung ở 21.
-- [Java Language Specification](https://docs.oracle.com/javase/specs/) — quy tắc kiểu, toán tử và ngôn ngữ.
-- [JDK Enhancement Proposals (JEP)](https://openjdk.org/jeps/0) — ngữ cảnh và trạng thái các thay đổi lớn.
+- [Java SE 8 API](https://docs.oracle.com/javase/8/docs/api/) — baseline reference for long-standing APIs.
+- [Java SE 11 API](https://docs.oracle.com/en/java/javase/11/docs/api/) — compare against pre-JDK 12 APIs.
+- [Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/) — baseline for Java 17+ examples.
+- [Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/) — check APIs and methods added in 21.
+- [Java Language Specification](https://docs.oracle.com/javase/specs/) — rules for types, operators, and language semantics.
+- [JDK Enhancement Proposals (JEP)](https://openjdk.org/jeps/0) — context and status of major changes.
 
-**Đọc đúng cấp:** JLS dùng để xác minh phép `int / int` và chuyển kiểu; API docs dùng để xác minh `Math.addExact` hoặc `NumberFormat.getCompactNumberInstance`; release notes/migration docs dùng để điều tra hành vi bị ảnh hưởng khi nâng JDK.
+**Read at the right level:** use the JLS to verify `int / int` and type conversions; use API docs to verify `Math.addExact` or `NumberFormat.getCompactNumberInstance`; use release notes/migration docs to investigate behavior impacted by a JDK upgrade.
 
-## 7. Các mốc phiên bản minh họa trực tiếp bằng Numbers
+## 7. Version Milestones Illustrated Directly with Numbers
 
-Bảng sau tập trung vào một vài API kiểm chứng được, **không phải danh sách thay đổi đầy đủ** của mỗi phiên bản.
+The table below focuses on a few verifiable APIs and is **not an exhaustive list of changes** in each release.
 
-| Mốc | Ví dụ thuộc Numbers | Từ phiên bản | Ý nghĩa khi đối chiếu |
+| Milestone | Numbers Example | Since Version | Cross-Referencing Implication |
 | --- | --- | --- | --- |
-| Java 8 | `Math.addExact(int, int)`, `Integer.compareUnsigned` | 8 | Khi đích thấp hơn 8, không thể giả định các API này tồn tại |
-| Java 9 | `Math.multiplyHigh(long, long)` | 9 | Phải kiểm tra `Since` của đúng overload |
-| Java 12 | `NumberFormat.getCompactNumberInstance(...)`, `CompactNumberFormat` | 12 | Có cú pháp Java 11 hợp lệ vẫn không được dùng API này nếu target 11 |
-| Java 17 | `java.util.random.RandomGenerator` và họ API random mới | 17 | Phải kiểm tra version khi đổi từ `Random` truyền thống sang API mới |
-| Java 17 | JEP 306 khôi phục floating-point semantics luôn strict | 17 | Đối chiếu số thực không chỉ là tìm API mới |
-| Java 21 | `Math.clamp(...)` | 21 | Phương thức không sẵn có trong Java 17; cần target 21 hoặc tự viết logic tương đương |
+| Java 8 | `Math.addExact(int, int)`, `Integer.compareUnsigned` | 8 | When targeting below 8, cannot assume these APIs exist |
+| Java 9 | `Math.multiplyHigh(long, long)` | 9 | Must check `Since` on the exact overload |
+| Java 12 | `NumberFormat.getCompactNumberInstance(...)`, `CompactNumberFormat` | 12 | Valid Java 11 syntax still cannot use this API if targeting 11 |
+| Java 17 | `java.util.random.RandomGenerator` and new random API family | 17 | Must verify version when switching from legacy `Random` to the new API |
+| Java 17 | JEP 306 restores always-strict floating-point semantics | 17 | Floating-point cross-referencing is not just finding new APIs |
+| Java 21 | `Math.clamp(...)` | 21 | Method unavailable in Java 17; requires target 21 or writing equivalent logic |
 
-**Một lỗi dễ gặp:** nhìn thấy `Math` có từ lâu rồi cho rằng `Math.clamp` dùng được trên Java 8. Tuổi đời **lớp** và **phương thức** là hai thông tin khác nhau.
+**A common mistake:** seeing that `Math` has existed for ages and assuming `Math.clamp` works on Java 8. The age of a **class** and of a **method** are two different facts.
 
-**Lưu ý số thực:** JEP 306 ở Java 17 làm phép toán dấu phẩy động tuân theo ngữ nghĩa strict thống nhất, thay cho phân biệt strict/default trước đó. Điều đó không làm `double` trở thành số thập phân chính xác. Với mã phụ thuộc kết quả dấu phẩy động hay hiệu năng, cần đọc đặc tả và chạy kiểm thử độ chính xác trên các runtime liên quan.
+**Floating-point note:** JEP 306 in Java 17 makes floating-point operations follow uniform strict semantics, replacing the earlier strict/default distinction. That does not make `double` an exact decimal number. For code sensitive to floating-point results or performance, read the spec and run accuracy tests on the relevant runtimes.
 
-**Lưu ý sinh số ngẫu nhiên:** `RandomGenerator` cung cấp giao diện/thuật toán giả ngẫu nhiên mới từ 17; không mặc nhiên dùng nó cho mật mã. Khi cần số ngẫu nhiên phục vụ bảo mật, dùng `SecureRandom` theo hợp đồng bảo mật phù hợp.
+**Random generation note:** `RandomGenerator` provides new pseudorandom interfaces/algorithms since 17; do not use it by default for cryptography. When security-grade randomness is needed, use `SecureRandom` under an appropriate security contract.
 
-## 8. Ví dụ A — Những phép tính Numbers cơ bản chạy với JDK 17+
+## 8. Example A — Basic Numbers Operations Running on JDK 17+
 
-Ví dụ minh họa các API tiêu chuẩn cũ, không phụ thuộc tính năng mới của JDK 21. Lưu tệp **`NumbersBase.java`**:
+This example illustrates long-standing standard APIs without depending on new JDK 21 features. Save **`NumbersBase.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -185,14 +185,14 @@ public class NumbersBase {
 }
 ```
 
-Chạy trên JDK 17 trở lên:
+Run on JDK 17 or newer:
 
 ```bash
 javac NumbersBase.java
 java NumbersBase
 ```
 
-Kết quả:
+Result:
 
 ```text
 3
@@ -201,25 +201,25 @@ Kết quả:
 0.3
 ```
 
-Giải thích:
+Explanation:
 
-- `int / int` bỏ phần thập phân; khi ép một toán hạng sang `double` **trước phép chia**, kết quả là `3.5`.
-- `Math.addExact` thực hiện phép cộng số nguyên có kiểm tra tràn. `20 + 22` nằm trong miền `int` nên trả `42`.
-- `BigDecimal` khởi tạo từ **chuỗi thập phân** cho phép cộng thập phân chính xác ở ví dụ này.
-- Kết quả dựa trên quy tắc số học chuẩn; sự tồn tại của API cần đối chiếu từ tài liệu phiên bản tương ứng, không dựa vào việc dùng JDK mới để biên dịch mặc định.
+- `int / int` drops the fractional part; casting one operand to `double` **before division** yields `3.5`.
+- `Math.addExact` performs integer addition with overflow checking. `20 + 22` fits in `int`, returning `42`.
+- `BigDecimal` initialized from **decimal strings** performs exact decimal addition in this example.
+- Results follow standard arithmetic rules; API existence must be cross-referenced from the corresponding version's docs, not inferred from compiling with a newer JDK by default.
 
-Nếu chương trình này cần tương thích Java 17 khi build trên JDK 21, sử dụng:
+If this program must be Java 17 compatible when built on JDK 21, use:
 
 ```bash
 javac --release 17 NumbersBase.java
 java NumbersBase
 ```
 
-`--release 17` yêu cầu compiler biên dịch theo quy tắc ngôn ngữ, tạo class file và giới hạn Java SE/JDK API theo bản 17. Dòng `java NumbersBase` ở trên chạy bằng **runtime được terminal chọn**, nên vẫn cần thử trên JDK 17 thật nếu đó là bản phải hỗ trợ.
+`--release 17` instructs the compiler to compile under version 17 language rules, emit version 17 class files, and restrict Java SE/JDK APIs to version 17. The `java NumbersBase` line above runs on **whichever runtime the terminal selects**, so you still need to test on a real JDK 17 if that is the supported target.
 
-## 9. Ví dụ B — API ra đời sau bản đích: compact number formatting
+## 9. Example B — API Introduced After the Target Release: Compact Number Formatting
 
-Tạo tệp **`CompactNumbers.java`**:
+Create **`CompactNumbers.java`**:
 
 ```java
 import java.text.NumberFormat;
@@ -234,33 +234,33 @@ public class CompactNumbers {
 }
 ```
 
-`NumberFormat.getCompactNumberInstance` được giới thiệu từ **Java 12**. Vì vậy với compiler JDK 17 hoặc 21 hỗ trợ target 11:
+`NumberFormat.getCompactNumberInstance` was introduced in **Java 12**. Therefore, with a JDK 17 or 21 compiler supporting target 11:
 
 ```bash
 javac --release 11 CompactNumbers.java
 ```
 
-Lệnh **phải báo lỗi biên dịch** do phương thức compact formatting không tồn tại trong API Java 11; wording/line number của lỗi phụ thuộc phiên bản và cách chạy `javac`. Tiếp theo:
+The command **must report a compile error** because compact formatting methods do not exist in the Java 11 API; exact error wording/line numbers depend on the compiler version and how `javac` is invoked. Next:
 
 ```bash
 javac --release 17 CompactNumbers.java
 java CompactNumbers
 ```
 
-Mã có thể biên dịch vì Java 17 chứa API này. Chuỗi compact được in phụ thuộc dữ liệu locale và phiên bản runtime, nên không lấy một chuỗi đầu ra quan sát trên máy này làm hợp đồng bất biến của mọi JDK. Nếu dự án bắt buộc Java 11, hãy chọn `NumberFormat` kiểu cũ hoặc tự định nghĩa quy tắc viết gọn một cách có kiểm thử; đừng chỉ thay `--target`.
+The code can compile because Java 17 contains this API. The compact string printed depends on locale data and runtime version, so do not treat a single output string observed on one machine as an immutable contract across all JDKs. If the project requires Java 11, pick legacy `NumberFormat` or define and test your own compact-formatting rules; do not just change `--target`.
 
-### Tại sao `--source` và `--target` riêng lẻ chưa đủ?
+### Why Are `--source` and `--target` Alone Insufficient?
 
-- `--source 11` xét **quy tắc cú pháp/ngôn ngữ** của Java 11.
-- `--target 11` chọn **định dạng class file** cho phiên bản đích.
-- Hai tùy chọn này **không tự bảo đảm** mọi Java SE API đang được tham chiếu đều tồn tại ở Java 11 nếu dùng classpath/platform API hiện tại.
-- `--release 11` kết hợp cả ba ý: cú pháp, class file và Java SE/JDK API được tài liệu hóa của phiên bản 11. Không được kết hợp `--release` với `--source` hay `--target` trong cùng lời gọi.
+- `--source 11` checks Java 11 **syntax/language rules**.
+- `--target 11` selects the **class-file format** for the target version.
+- Those two options **do not guarantee** that every referenced Java SE API exists in Java 11 if compiling against the current platform APIs/classpath.
+- `--release 11` combines all three: syntax, class file, and the documented Java SE/JDK APIs of version 11. `--release` cannot be combined with `--source` or `--target` in the same invocation.
 
-Do đó, đối với dự án cần chạy trên bản Java cũ, **`--release` là điểm xuất phát phù hợp**. Vẫn cần rà các thư viện phụ thuộc và kiểm thử với runtime đích thật.
+Therefore, for projects needing to run on an older Java version, **`--release` is the right starting point**. You still need to audit dependencies and test against the actual target runtime.
 
-## 10. Ví dụ C — Nhìn đúng `Since` của phương thức JDK 21
+## 10. Example C — Reading `Since` Accurately for a JDK 21 Method
 
-Tạo tệp **`ClampNumbers.java`**:
+Create **`ClampNumbers.java`**:
 
 ```java
 public class ClampNumbers {
@@ -271,23 +271,23 @@ public class ClampNumbers {
 }
 ```
 
-Các overload `Math.clamp` có từ **Java 21**. Chạy với JDK 21:
+The `Math.clamp` overloads exist since **Java 21**. Run with JDK 21:
 
 ```bash
 javac --release 21 ClampNumbers.java
 java ClampNumbers
 ```
 
-Kết quả:
+Result:
 
 ```text
 100
 0
 ```
 
-Nếu compiler hỗ trợ `--release 17`, chạy `javac --release 17 ClampNumbers.java` sẽ báo không tìm thấy phương thức tương ứng trong API 17. Đó là lỗi **API-version**, không có nghĩa phép so sánh giới hạn số là bất khả thi trên Java 17.
+If the compiler supports `--release 17`, running `javac --release 17 ClampNumbers.java` reports that no matching method exists in the Java 17 API. That is an **API-version** error, not that numeric clamping is impossible on Java 17.
 
-Trường hợp phải hỗ trợ Java 17, có thể viết hàm tương đương cho miền dữ liệu cụ thể:
+When Java 17 support is required, you can write an equivalent helper for a specific data domain:
 
 ```java
 public static int clampInt(int value, int min, int max) {
@@ -298,11 +298,11 @@ public static int clampInt(int value, int min, int max) {
 }
 ```
 
-Đoạn trên là **phương thức minh họa**, đặt trong một class trước khi gọi; nó không thay thế mọi overload và mọi chi tiết hợp đồng của `Math.clamp` (đặc biệt số thực, `NaN`, signed zero). Đây chính là lý do phải đọc **chữ ký và hợp đồng** trước khi tự viết bản thay thế.
+The snippet above is an **illustrative method**, placed inside a class before calling; it does not replace every overload or every contract detail of `Math.clamp` (especially floating-point, `NaN`, signed zero). This is precisely why you must read the **signature and contract** before writing your own replacement.
 
-## 11. Bytecode: tại sao đã biên dịch vẫn có thể không chạy?
+## 11. Bytecode: Why Compiled Code Can Still Fail to Run
 
-Một source file có thể compile thành class file ở phiên bản mới hơn runtime đích. Các mốc **class-file major version** thường thấy:
+A source file can be compiled into class files targeting a newer version than the target runtime. Common **class-file major version** milestones:
 
 | Java release | Class-file major |
 | --- | ---: |
@@ -311,98 +311,98 @@ Một source file có thể compile thành class file ở phiên bản mới hơ
 | 17 | 61 |
 | 21 | 65 |
 
-Khi lớp được biên dịch theo Java 21 (major 65), runtime Java 17 (hỗ trợ đến major 61) không thể tải nó. Thông báo thường có `UnsupportedClassVersionError`. Đây là lỗi về **mức bytecode**, khác với thiếu một class hoặc method ở runtime.
+When a class is compiled for Java 21 (major 65), a Java 17 runtime (supporting up to major 61) cannot load it. The error typically mentions `UnsupportedClassVersionError`. This is a **bytecode-level** error, distinct from missing a class or method at runtime.
 
-Có thể xem thông tin class file bằng:
+You can inspect class-file info using:
 
 ```bash
 javap -verbose NumbersBase
 ```
 
-Tìm dòng `major version: ...` trong kết quả. Lệnh `javap` được cung cấp cùng bộ công cụ JDK. Cách kiểm tra thực tế:
+Look for the `major version: ...` line in the output. The `javap` tool ships with the JDK toolkit. Practical verification steps:
 
-1. Biên dịch bằng compiler dự án với `--release` đặt đúng target.
-2. Kiểm tra major version nếu cần chứng minh artifact phù hợp target.
-3. Chạy bài test bằng Java runtime thực sự triển khai.
-4. Đảm bảo mọi dependency dùng class file và API được runtime đích hỗ trợ.
+1. Compile with the project compiler using `--release` set to the proper target.
+2. Check the major version when needing proof that an artifact matches the target.
+3. Run tests on the actual deployment Java runtime.
+4. Ensure all dependencies use class files and APIs supported by the target runtime.
 
-`--release` điều khiển compilation của **source được biên dịch trong lời gọi đó**; nó không tự dịch lại JAR phụ thuộc đã build bằng JDK mới hoặc khắc phục khác biệt của provider ngoài Java SE.
+`--release` controls compilation of **sources compiled in that invocation**; it does not recompile dependency JARs built with a newer JDK or resolve differences in non-Java-SE providers.
 
-## 12. Các khác biệt dễ bỏ sót dù chương trình vẫn compile
+## 12. Subtle Differences Easy to Miss Even When Code Compiles
 
-### 12.1. Hành vi so sánh và precision
+### 12.1. Comparison and Precision Behavior
 
-Một phép toán `double` có thể cho kết quả gần đúng vì biểu diễn nhị phân. Thay đổi JDK không tự chữa `0.1 + 0.2 == 0.3`. Đặt tolerance khi đo đạc, hoặc dùng `BigDecimal` và quy tắc scale/rounding khi cần số thập phân có hợp đồng chính xác. Những phép toán có tính nhạy số học nên có test với dữ liệu biên trên các JDK được hỗ trợ.
+A `double` operation can produce an approximate result due to binary representation. Changing JDKs does not automatically fix `0.1 + 0.2 == 0.3`. Set a tolerance for measurements, or use `BigDecimal` and scale/rounding rules when exact decimal contracts are required. Numerically sensitive operations should have boundary tests across all supported JDKs.
 
-### 12.2. Locale và dữ liệu định dạng
+### 12.2. Locale and Formatting Data
 
-`NumberFormat`, `DecimalFormat`, dữ liệu locale/CLDR và nhà cung cấp dịch vụ locale có thể ảnh hưởng cách hiển thị cùng một số giữa các môi trường. Không viết test so sánh tuyệt đối chuỗi “1.234,50” trên máy này với chuỗi từ mọi locale khác.
+`NumberFormat`, `DecimalFormat`, locale/CLDR data, and locale service providers can affect how the same number is formatted across environments. Do not write tests comparing a string `"1.234,50"` observed on one machine against strings from arbitrary locales.
 
-Muốn kết quả dự đoán được, truyền `Locale` cụ thể, thống nhất currency, quy tắc rounding và dữ liệu provider; tránh vô tình dùng locale mặc định. Dù đã cố định locale, dữ liệu/nguyên tắc định dạng có thể được cập nhật giữa JDK; test nào phụ thuộc từng ký tự cần nêu rõ phiên bản runtime và yêu cầu nghiệp vụ.
+For predictable output, pass an explicit `Locale`, standardize currency, rounding rules, and provider data; avoid accidentally relying on the default locale. Even with a fixed locale, formatting data/conventions can be updated between JDKs; any test asserting exact characters should state the runtime version and business requirement.
 
-### 12.3. Deprecation, Preview, Incubator, API nội bộ
+### 12.3. Deprecation, Preview, Incubator, Internal APIs
 
-- Một API được gắn `@Deprecated` có thể **vẫn compile** trên bản hiện tại, nhưng cần xem lý do, ngày giới thiệu cảnh báo và có đánh dấu “for removal” không.
-- **Preview feature/API** có điều kiện kích hoạt riêng và có thể đổi hoặc bị loại bỏ ở bản sau. Đừng dựa vào preview cho bài Numbers cơ bản trừ khi thực sự phải thử tính năng đó.
-- **Incubator module** không đồng nghĩa API chuẩn ổn định của `java.base`; kiểm tra trạng thái cụ thể ở version sử dụng.
-- `sun.*`, `jdk.internal.*` không phải bề mặt API chuẩn nên tránh dựa vào chúng chỉ để thực hiện phép toán số thường ngày.
+- An API marked `@Deprecated` may **still compile** on the current release, yet you should check the reason, when the warning was introduced, and whether it is marked "for removal".
+- **Preview features/APIs** have special activation requirements and can change or be removed in a later release. Do not rely on preview features for foundational Numbers tasks unless explicitly testing that feature.
+- **Incubator modules** are not stable standard APIs of `java.base`; check exact status in the version used.
+- `sun.*` and `jdk.internal.*` are not standard API surfaces and should not be relied on for everyday numeric operations.
 
-### 12.4. Khác nhau giữa version và nhà cung cấp
+### 12.4. Differences Across Versions and Vendors
 
-Cùng Java SE feature release nhưng vendor/build/update khác nhau có thể mang bản vá, dữ liệu hệ thống hoặc lịch hỗ trợ khác. Khi tái hiện lỗi, ghi nguyên đầu ra `java -version`, bản OS/architecture, cờ JVM cần thiết và dữ liệu input. Khi quyết định nâng cấp JDK, đối chiếu chính sách hỗ trợ của **nhà cung cấp đang dùng**, không suy ra từ nhãn LTS chung chung.
+Even within the same Java SE feature release, different vendors/builds/updates may carry different patches, system data, or support schedules. When reproducing a bug, record the exact `java -version` output, OS/architecture, required JVM flags, and input data. When deciding to upgrade a JDK, cross-reference the support policy of **the vendor you use**, rather than inferring from a generic LTS label.
 
-## 13. Quy trình 7 bước để kiểm tra một đoạn code Numbers bất kỳ
+## 13. Seven-Step Workflow to Check Any Numbers Code Snippet
 
-Giả sử bạn thấy đoạn `Math.clamp(amount, 0, 100)` trong tài liệu hoặc trên diễn đàn.
+Suppose you see `Math.clamp(amount, 0, 100)` in documentation or on a forum.
 
-**Bước 1 — Ghi môi trường đích.** Ví dụ: dự án biên dịch trên JDK 21 nhưng sản phẩm phải chạy trên Java 17; ghi rõ 17 là **minimum runtime**.
+**Step 1 — Record the target environment.** For example: the project compiles on JDK 21, yet production must run on Java 17; record 17 as the **minimum runtime**.
 
-**Bước 2 — Tách cú pháp với lời gọi API.** `amount` là `int`, lời gọi `Math.clamp` thuộc thư viện chuẩn; vấn đề có thể ở phương thức, không phải toán tử hoặc cú pháp Java.
+**Step 2 — Separate syntax from API calls.** `amount` is `int`, and calling `Math.clamp` belongs to the standard library; the issue may lie in the method, not in Java operators or syntax.
 
-**Bước 3 — Tìm đúng chữ ký.** Mở API `Math` của Java 17 và 21, đối chiếu tên, parameter types, overload, `Since` và `Throws`.
+**Step 3 — Look up the exact signature.** Open the `Math` API docs for Java 17 and 21, and compare name, parameter types, overloads, `Since`, and `Throws`.
 
-**Bước 4 — Thử biên dịch theo target.** Trên compiler mới có hỗ trợ target 17, chạy `javac --release 17 ...`. Nếu báo lỗi, đọc lỗi để phân biệt thiếu API, lỗi kiểu, lỗi tên class và lỗi cú pháp.
+**Step 4 — Test-compile against the target.** On a newer compiler supporting target 17, run `javac --release 17 ...`. If it fails, read the error to distinguish missing API, type errors, class-name errors, and syntax errors.
 
-**Bước 5 — Chọn hành động.** Nếu API có từ 21, hoặc nâng mức tối thiểu runtime **theo quyết định của dự án**, hoặc thay bằng logic tương thích 17 và test ranh giới.
+**Step 5 — Choose an action.** If the API is from 21, either raise the minimum runtime **by project decision**, or replace it with 17-compatible logic and test boundaries.
 
-**Bước 6 — Test runtime thực.** Kiểm tra class-file major và chạy test trên JDK 17 đã cam kết. Với dữ liệu số, bao gồm 0, số âm, min/max, sai số, `NaN`/vô cực (nếu nhận `double`), scale/rounding và locale khi liên quan.
+**Step 6 — Test on the real runtime.** Check the class-file major version and run tests on the committed JDK 17. For numeric data, include 0, negatives, min/max, tolerances, `NaN`/infinity (if taking `double`), scale/rounding, and locale when relevant.
 
-**Bước 7 — Ghi lại bằng chứng.** Một mô tả có thể lặp lại gồm code, target release, compile JDK, runtime JDK, lệnh test, output và nguồn tài liệu API; đừng ghi đơn thuần “hỗ trợ Java 17” khi mới chỉ nhìn mã.
+**Step 7 — Record evidence.** A reproducible note includes code, target release, compile JDK, runtime JDK, test commands, output, and API doc sources; do not merely write "supports Java 17" after just glancing at the code.
 
-Ví dụ báo cáo kỹ thuật đủ rõ:
+Example of a clear technical report:
 
 ```text
-Mục tiêu: chạy trên Java 17
+Target: run on Java 17
 Build JDK: 21
 Compiler flags: javac --release 17
-API kiểm tra: Math.addExact(int,int) - Since 8
-Kiểm tra runtime: test trên JDK 17 của môi trường triển khai
-Rủi ro còn lại: dependency ngoài JDK và provider/locale cần test riêng
+Verified API: Math.addExact(int,int) - Since 8
+Runtime check: tested on deployment environment's JDK 17
+Remaining risks: external non-JDK dependencies and provider/locale need separate tests
 ```
 
-Đây là **mẫu báo cáo**, không phải kết quả kiểm thử đã thực hiện cho một dự án có thật.
+This is a **report template**, not test results executed for a real project.
 
-## 14. Các câu hỏi tự kiểm tra
+## 14. Self-Check Questions
 
-1. `BigInteger` và `BigDecimal` có phải cài thêm dependency Maven không? **Không.** Đây là API chuẩn trong `java.math`.
-2. Tại sao code gọi `NumberFormat.getCompactNumberInstance` chạy trên JDK 17 nhưng bị lỗi khi biên dịch với `--release 11`? **Vì API này được giới thiệu từ Java 12**, không nằm trong API đích 11.
-3. Dùng JDK 21, compile `--source 17 --target 17` có tự ngăn tham chiếu method chỉ có trong 21 không? **Không bảo đảm**; dùng `--release 17` để giới hạn cả API.
-4. Class file major 65 chạy trên Java 17 được không? **Không**; Java 17 hỗ trợ class file đến major 61.
-5. `Math` có từ Java lâu rồi, vậy `Math.clamp` có trong Java 17? **Không**; kiểm tra `Since 21` của overload tương ứng.
-6. Hai JDK cùng Java 17 có thể khác dữ liệu locale hoặc bản vá không? **Có thể**; cần ghi vendor/build/update và thử trong môi trường thực tế.
-7. Chỉ cần biên dịch được là đủ khẳng định “chạy trên Java 17”? **Chưa.** Phải đối chiếu APIs, class file, dependencies và runtime.
-8. Khi học Numbers, đâu là điểm xuất phát phù hợp? **Bám JDK mục tiêu**, luyện primitives/`Math`/wrapper/`BigDecimal` theo API tương ứng, sau đó mới thử các tính năng mới hơn.
+1. Do `BigInteger` and `BigDecimal` require adding a Maven dependency? **No.** They are standard APIs in `java.math`.
+2. Why does code calling `NumberFormat.getCompactNumberInstance` run on JDK 17 yet fail to compile with `--release 11`? **Because this API was introduced in Java 12**, so it is not in the target 11 API.
+3. Using JDK 21, does compiling with `--source 17 --target 17` automatically prevent referencing a method introduced only in 21? **No guarantee**; use `--release 17` to restrict the APIs as well.
+4. Can a major version 65 class file run on Java 17? **No**; Java 17 supports class files up to major 61.
+5. `Math` has been in Java for a long time, so is `Math.clamp` in Java 17? **No**; check `Since 21` on the corresponding overload.
+6. Can two JDKs both on Java 17 differ in locale data or patches? **Yes**; record vendor/build/update and test in the actual environment.
+7. Is compiling cleanly enough to claim "runs on Java 17"? **Not yet.** You must cross-reference APIs, class files, dependencies, and runtime.
+8. When learning Numbers, what is the right starting point? **Stick to the target JDK**, practice primitives/`Math`/wrappers/`BigDecimal` against the matching APIs, and only then explore newer features.
 
-## 15. Checklist khi đọc mỗi bài Java Core — Numbers tiếp theo
+## 15. Checklist When Reading Every Subsequent Java Core — Numbers Lesson
 
-- [ ] Tôi biết **minimum supported Java release** của bài tập/dự án.
-- [ ] Tôi đã tách cú pháp ngôn ngữ với lớp/phương thức thuộc Java SE API.
-- [ ] Tôi mở đúng tài liệu **API của phiên bản đích**, không chỉ trang JDK mới nhất.
-- [ ] Tôi kiểm tra `Since` trên chính **phương thức/overload** đang dùng, cùng `Throws`, `Deprecated` và trạng thái preview nếu có.
-- [ ] Tôi biết compiler JDK và runtime JDK hiện hành, không nhầm cài đặt IDE/CI/shell.
-- [ ] Tôi dùng `--release` khi biên dịch theo bản đích cũ được compiler hỗ trợ.
-- [ ] Tôi thử chạy trên runtime đích, rà cả phụ thuộc bên ngoài và class-file version.
-- [ ] Tôi kiểm tra kết quả số, overflow, precision, rounding, locale và dữ liệu biên khi có liên quan.
-- [ ] Tôi lưu lại phiên bản, lệnh và kết quả để người khác có thể tái hiện.
+- [ ] I know the **minimum supported Java release** of the exercise/project.
+- [ ] I have separated language syntax from classes/methods in the Java SE API.
+- [ ] I open the **API docs for the exact target version**, not just the latest JDK page.
+- [ ] I check `Since` on the exact **method/overload** being used, along with `Throws`, `Deprecated`, and preview status if applicable.
+- [ ] I know the active compiler JDK and runtime JDK, without confusing IDE/CI/shell settings.
+- [ ] I use `--release` when compiling for an older target supported by the compiler.
+- [ ] I test execution on the target runtime, auditing external dependencies and class-file versions.
+- [ ] I verify numeric results, overflow, precision, rounding, locale, and boundary data where relevant.
+- [ ] I record versions, commands, and results so others can reproduce them.
 
-**Tài liệu tham khảo chính thức** để tự xác minh: [JDK 17 Math API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html), [JDK 21 Math API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Math.html), [JDK 17 BigDecimal API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html), [JDK 12 NumberFormat API](https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/text/NumberFormat.html), [JDK 17 random package](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/package-summary.html), [javac command specification](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html) và [JDK 17 migration notes](https://docs.oracle.com/en/java/javase/17/migrate/significant-changes-jdk-release.html).
+**Official references** for self-verification: [JDK 17 Math API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html), [JDK 21 Math API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Math.html), [JDK 17 BigDecimal API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html), [JDK 12 NumberFormat API](https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/text/NumberFormat.html), [JDK 17 random package](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/package-summary.html), [javac command specification](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html), and [JDK 17 migration notes](https://docs.oracle.com/en/java/javase/17/migrate/significant-changes-jdk-release.html).

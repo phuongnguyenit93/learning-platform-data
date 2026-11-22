@@ -1,25 +1,25 @@
-# Field.setInt(), Field.setLong() và giới hạn widening trong Java Reflection
+# Field.setInt(), Field.setLong(), and widening limits in Java Reflection
 
-## 1. Học gì và vì sao cần hiểu quy tắc chuyển kiểu?
+## 1. What will we learn and why understand type conversion rules?
 
-Với Java Reflection, đối tượng `java.lang.reflect.Field` đại diện cho một trường (field) đã được khai báo trong lớp hoặc interface. Ngoài `Field.set(Object, Object)` nhận giá trị dưới dạng đối tượng, Java cung cấp các phương thức chuyên cho kiểu nguyên thủy (primitive) như `setByte`, `setShort`, `setChar`, `setInt`, `setLong`, `setFloat` và `setDouble`.
+With Java Reflection, a `java.lang.reflect.Field` object represents a field declared in a class or interface. Besides `Field.set(Object, Object)` which accepts the value as an object, Java provides methods specialized for primitive types such as `setByte`, `setShort`, `setChar`, `setInt`, `setLong`, `setFloat`, and `setDouble`.
 
-Khi đã lấy được `Field`, ta có thể muốn ghi một giá trị số mà không cần đóng hộp tường minh thành `Integer` hoặc `Long`:
+Once you have obtained a `Field`, you may want to write a numeric value without explicitly boxing it into an `Integer` or `Long`:
 
 ~~~java
-Field field = Counter.class.getField("total"); // total là public long
-field.setInt(counter, 42);                      // hợp lệ: int -> long
+Field field = Counter.class.getField("total"); // total is public long
+field.setInt(counter, 42);                      // valid: int -> long
 ~~~
 
-Đoạn trên chỉ minh họa khi đã có một đối tượng `counter` thuộc kiểu `Counter`. Ví dụ hoàn chỉnh, biên dịch được ở phần 5.
+The snippet above only illustrates when you already have a `counter` object of type `Counter`. A complete, compilable example is in section 5.
 
-Điểm quan trọng: **kiểu của giá trị truyền vào phương thức `setXxx` không cần trùng hoàn toàn với kiểu khai báo của trường, nhưng chỉ được chuyển bằng phép đồng nhất kiểu (identity) hoặc mở rộng kiểu nguyên thủy (widening primitive conversion).** Reflection từ chối thu hẹp kiểu (narrowing), kể cả khi giá trị cụ thể nằm trong miền biểu diễn của kiểu đích.
+Key point: **the type of the value passed to a `setXxx` method does not have to match the field's declared type identically, but it can only be converted via an identity conversion or a widening primitive conversion.** Reflection rejects narrowing conversions, even when the specific value fits within the target type's range.
 
-Bài học này giải thích hai phương thức trọng tâm `setInt` và `setLong`, cách xét hướng chuyển đổi, sự khác biệt giữa `getXxx` và `setXxx`, tác động của precision và các lỗi thực tế.
+This lesson explains the two core methods `setInt` and `setLong`, how to determine conversion direction, the difference between `getXxx` and `setXxx`, the impact on precision, and practical errors.
 
-## 2. Cơ chế của hai phương thức
+## 2. Mechanism of the two methods
 
-Hai khai báo trong API `Field`:
+Two declarations in the `Field` API:
 
 ~~~java
 void setInt(Object obj, int i)
@@ -29,47 +29,47 @@ void setLong(Object obj, long l)
         throws IllegalArgumentException, IllegalAccessException;
 ~~~
 
-- `obj` là đối tượng chứa trường instance. Với trường `static`, có thể truyền `null` vì không có đối tượng nhận; với trường instance, truyền `null` gây `NullPointerException`.
-- `i` là một **giá trị `int`**; `l` là một **giá trị `long`**. Loại tham số được cố định bởi chữ ký phương thức, không được suy từ trường đích.
-- `Field` biết kiểu đích qua `getType()`; ở thời điểm ghi, Java kiểm tra giá trị đầu vào có thể được gán cho trường bằng phép đồng nhất hoặc widening primitive không.
-- Nếu kiểu đích cho phép, giá trị được chuyển đổi rồi ghi vào trường. Nếu cần narrowing hoặc kiểu đích không tương thích, phương thức ném `IllegalArgumentException`. Nếu không có quyền ghi do kiểm tra truy cập hoặc tính `final`, có thể gặp `IllegalAccessException`.
+- `obj` is the object containing the instance field. For a `static` field, `null` can be passed since there is no receiver object; for an instance field, passing `null` causes `NullPointerException`.
+- `i` is an **`int` value**; `l` is a **`long` value**. The parameter type is fixed by the method signature, not inferred from the target field.
+- `Field` knows the target type via `getType()`; at write time, Java checks whether the input value can be assigned to the field via identity or primitive widening.
+- If the target type allows it, the value is converted and written to the field. If narrowing is required or the target type is incompatible, the method throws `IllegalArgumentException`. If write permission is lacking due to access checks or `final`, `IllegalAccessException` may occur.
 
-Hình dung chiều dữ liệu:
+Visualizing data flow:
 
 ~~~text
 setInt(receiver, int)   -- identity / widening --> primitive field
 setLong(receiver, long) -- identity / widening --> primitive field
 
-Không có nhánh tự động narrowing để "ép vừa" trường đích.
+No automatic narrowing branch to "force-fit" the target field.
 ~~~
 
-**Phân biệt với ép kiểu trong Java:** phép ép tường minh như `(byte) 200` hoặc `(int) someLong` được thực hiện trước khi gọi setter, do lập trình viên yêu cầu. Bản thân `setInt`/`setLong` không thực hiện ép kiểu thu hẹp.
+**Distinction from casting in Java:** an explicit cast such as `(byte) 200` or `(int) someLong` is performed before calling the setter, as requested by the programmer. `setInt`/`setLong` themselves do not perform narrowing casts.
 
-### Bảng tương thích quan trọng nhất
+### Most important compatibility table
 
-| Kiểu trường được khai báo | `setInt(obj, int)` | `setLong(obj, long)` | Lý do |
+| Declared field type | `setInt(obj, int)` | `setLong(obj, long)` | Reason |
 | --- | --- | --- | --- |
-| `byte` | ❌ | ❌ | `int -> byte`, `long -> byte` đều là narrowing |
-| `short` | ❌ | ❌ | Không chấp nhận `int/long -> short` |
-| `char` | ❌ | ❌ | `int/long -> char` không phải widening |
-| `int` | ✅ | ❌ | `int -> int` là identity; `long -> int` là narrowing |
-| `long` | ✅ | ✅ | `int -> long` là widening; `long -> long` là identity |
-| `float` | ✅ | ✅ | `int -> float` và `long -> float` là widening |
-| `double` | ✅ | ✅ | `int -> double` và `long -> double` là widening |
-| `boolean` | ❌ | ❌ | Không có chuyển đổi số sang `boolean` |
-| `Integer`, `Long`, `Number` hoặc kiểu tham chiếu khác | ❌ | ❌ | Hai phương thức `setInt`/`setLong` dành cho trường primitive, không phải trường wrapper/reference |
+| `byte` | ❌ | ❌ | `int -> byte` and `long -> byte` are both narrowing |
+| `short` | ❌ | ❌ | `int/long -> short` is not accepted |
+| `char` | ❌ | ❌ | `int/long -> char` is not widening |
+| `int` | ✅ | ❌ | `int -> int` is identity; `long -> int` is narrowing |
+| `long` | ✅ | ✅ | `int -> long` is widening; `long -> long` is identity |
+| `float` | ✅ | ✅ | `int -> float` and `long -> float` are widening |
+| `double` | ✅ | ✅ | `int -> double` and `long -> double` are widening |
+| `boolean` | ❌ | ❌ | No numeric conversion to `boolean` |
+| `Integer`, `Long`, `Number`, or other reference types | ❌ | ❌ | `setInt`/`setLong` are for primitive fields, not wrapper/reference fields |
 
-Ở đây ✅ có nghĩa **hợp lệ về kiểu chuyển đổi** nếu đối tượng nhận và quyền truy cập cũng hợp lệ; nó không bảo đảm lời gọi luôn thành công khi trường `private`, `final` hoặc đối tượng không đúng kiểu.
+Here ✅ means **valid in terms of type conversion** if the receiver object and access permissions are also valid; it does not guarantee the call will always succeed when the field is `private`, `final`, or the object has the wrong type.
 
-Một cách ghi nhớ ngắn:
+A short way to remember:
 
-- `setInt` ghi được vào: **`int` → `long` → `float` → `double`**.
-- `setLong` ghi được vào: **`long` → `float` → `double`**.
-- **Không được đi ngược chiều về kiểu nhỏ hơn**, bất kể số cụ thể là `0`, `7` hay nằm trong khoảng của `byte`.
+- `setInt` can write to: **`int` → `long` → `float` → `double`**.
+- `setLong` can write to: **`long` → `float` → `double`**.
+- **You cannot go backward toward smaller types**, regardless of whether the concrete number is `0`, `7`, or within the range of `byte`.
 
-## 3. Widening là quy tắc kiểu, không phải so sánh kích thước giá trị
+## 3. Widening is a type rule, not a value-size comparison
 
-Theo quy tắc chuyển đổi kiểu nguyên thủy của Java, những hướng widening số thường gặp gồm:
+According to Java's primitive type conversion rules, common numeric widening directions include:
 
 ~~~text
 byte  -> short -> int -> long -> float -> double
@@ -77,9 +77,9 @@ byte  -> short -> int -> long -> float -> double
 char  ------------+-------+-------+--------+
 ~~~
 
-Sơ đồ chỉ diễn đạt các hướng đi tiêu biểu; `char` **không** widening sang `byte` hay `short`. Bảng đầy đủ các hướng trực tiếp:
+The diagram only expresses typical directions; `char` does **not** widen to `byte` or `short`. Full table of direct paths:
 
-| Kiểu nguồn | Kiểu đích chấp nhận qua widening |
+| Source type | Target types accepted via widening |
 | --- | --- |
 | `byte` | `short`, `int`, `long`, `float`, `double` |
 | `short` | `int`, `long`, `float`, `double` |
@@ -87,81 +87,81 @@ Sơ đồ chỉ diễn đạt các hướng đi tiêu biểu; `char` **không** 
 | `int` | `long`, `float`, `double` |
 | `long` | `float`, `double` |
 | `float` | `double` |
-| `double` | Không có kiểu primitive khác rộng hơn |
-| `boolean` | Không widening sang kiểu số nào |
+| `double` | No wider primitive type |
+| `boolean` | Does not widen to any numeric type |
 
-Mỗi kiểu cũng luôn cho phép phép chuyển đồng nhất sang chính nó. `setInt` bắt đầu từ nguồn `int`, còn `setLong` bắt đầu từ nguồn `long`; vì vậy chỉ cần xét hai hàng này cộng identity.
+Each type also always allows an identity conversion to itself. `setInt` starts from source `int`, while `setLong` starts from source `long`; thus you only need to check these two rows plus identity.
 
-**Tại sao `setInt(fieldByte, 7)` lại lỗi dù số 7 vừa `byte`?** Java có quy tắc *thu hẹp hằng số tại thời điểm biên dịch* cho một số phép gán (ví dụ `byte b = 7;`). Đó là một quy tắc có điều kiện trong ngữ cảnh gán của mã nguồn, **không phải** quy tắc được `Field.setInt` áp dụng cho một `int` ở runtime. Reflection không nhìn vào giá trị rồi tự rút về `byte`.
+**Why does `setInt(fieldByte, 7)` fail even though 7 fits in `byte`?** Java has a *compile-time constant narrowing* rule for certain assignments (e.g., `byte b = 7;`). That is a conditional rule in source-code assignment contexts, **not** a rule applied by `Field.setInt` to an `int` at runtime. Reflection does not inspect the value and shrink it back to `byte`.
 
-Hai ví dụ độc lập:
+Two separate examples:
 
 ~~~java
-byte b = 7;                        // mã nguồn hợp lệ vì hằng int đặc biệt
-Field f = Example.class.getField("b");  // Example có public byte b
+byte b = 7;                        // valid source code because of special int constant
+Field f = Example.class.getField("b");  // Example has public byte b
 f.setInt(example, 7);             // IllegalArgumentException
-f.setByte(example, (byte) 7);     // đúng phương thức cho trường byte
+f.setByte(example, (byte) 7);     // right method for byte field
 ~~~
 
-Đoạn mã trên là minh họa, giả định `example` là instance hợp lệ của `Example`; chương trình đầy đủ ở phần 5.
+The code above is illustrative, assuming `example` is a valid instance of `Example`; the full program is in section 5.
 
-Tương tự, `setLong(fieldInt, 5L)` bị từ chối, ngay cả khi `5L` nằm trong miền `int`. Nếu nghiệp vụ cho phép cắt giá trị, bạn phải đưa ra kiểm tra phạm vi và phép chuyển đổi tường minh trước; để `setInt` nhận `int` chỉ sau khi đã xác minh.
+Similarly, `setLong(fieldInt, 5L)` is rejected, even though `5L` lies within the `int` range. If business logic allows truncating values, you must introduce range checks and an explicit conversion first; pass to `setInt` an `int` only after verification.
 
-## 4. Gọi setter đúng cách và phân biệt với Field.set(Object, Object)
+## 4. Calling the setter properly and distinguishing from Field.set(Object, Object)
 
-### 4.1. Chọn overload theo kiểu nguồn và kiểu đích
+### 4.1. Choosing the overload by source and target types
 
 ~~~java
 Field f = Data.class.getField("total"); // public long total
 Data d = new Data();
 
-f.setInt(d, 123);                       // hợp lệ: int -> long
-f.setLong(d, 123L);                     // hợp lệ: long -> long
+f.setInt(d, 123);                       // valid: int -> long
+f.setLong(d, 123L);                     // valid: long -> long
 ~~~
 
-Nếu trường là `public int count`:
+If the field is `public int count`:
 
 ~~~java
 Field f = Data.class.getField("count"); // public int count
-f.setInt(d, 123);                       // hợp lệ
+f.setInt(d, 123);                       // valid
 f.setLong(d, 123L);                     // IllegalArgumentException
 ~~~
 
-**Một bẫy cú pháp:** `f.setLong(d, 123)` vẫn biên dịch, vì trình biên dịch chuyển literal `123` từ `int` sang tham số `long` của phương thức. Khi `setLong` thực sự chạy, nó đang ghi **`long`** chứ không “ghi `int`”, nên một trường `int` vẫn bị từ chối. Tên setter quyết định kiểu nguồn mà runtime xét.
+**A syntax trap:** `f.setLong(d, 123)` still compiles, because the compiler widens the literal `123` from `int` to the method's `long` parameter. When `setLong` actually runs, it is writing a **`long`** rather than "writing an `int`", so an `int` field is still rejected. The setter name determines the source type that runtime checks.
 
-### 4.2. `set(Object, Object)` có thể unboxing rồi widening
+### 4.2. `set(Object, Object)` can unbox and then widen
 
-Với một trường primitive, `Field.set(obj, value)` có thể **mở hộp (unboxing)** giá trị wrapper sau đó widening khi cần:
+For a primitive field, `Field.set(obj, value)` can **unbox** a wrapper value and then widen when needed:
 
 ~~~java
 Field total = Data.class.getField("total"); // long
-total.set(d, Integer.valueOf(25));          // Integer -> int -> long: hợp lệ
+total.set(d, Integer.valueOf(25));          // Integer -> int -> long: valid
 ~~~
 
-Tương đương về kiểu giá trị với `total.setInt(d, 25)`. Ngược lại, với một trường reference:
+Equivalent in value type to `total.setInt(d, 25)`. Conversely, for a reference field:
 
 ~~~java
 Field boxed = Data.class.getField("boxed"); // Integer boxed
-boxed.set(d, Integer.valueOf(25));          // hợp lệ: đặt tham chiếu Integer
+boxed.set(d, Integer.valueOf(25));          // valid: sets Integer reference
 boxed.setInt(d, 25);                        // IllegalArgumentException
 ~~~
 
-**Phân biệt hai khái niệm:** boxing `int -> Integer` thường xảy ra khi truyền đối số cho phương thức nhận `Object`, nhưng không có chuyện `Field.setInt` tự đổi một field khai báo `Integer` thành primitive. Setter chuyên biệt làm việc theo các quy tắc primitive field.
+**Distinguishing two concepts:** `int -> Integer` boxing commonly occurs when passing arguments to a method accepting `Object`, yet `Field.setInt` never converts a field declared as `Integer` into a primitive. Specialized setters operate according to primitive field rules.
 
-Khi chương trình nhận dữ liệu không biết kiểu trước, nên kiểm tra `field.getType()` và xử lý chuyển đổi một cách có chủ đích thay vì thử setter tùy ý rồi bắt lỗi.
+When a program receives data of unknown type beforehand, check `field.getType()` and handle conversion intentionally rather than trying setters arbitrarily and catching errors.
 
-### 4.3. Đừng đảo chiều quy tắc giữa get và set
+### 4.3. Do not reverse the rules between get and set
 
-- `field.setInt(obj, 7)`: nguồn là `int`, hỏi trường đích có nhận được `int` không.
-- `field.getLong(obj)`: nguồn là **kiểu đang khai báo của trường**, hỏi giá trị lấy ra có widening sang `long` được không.
+- `field.setInt(obj, 7)`: source is `int`, asking whether the target field can accept `int`.
+- `field.getLong(obj)`: source is **the field's declared type**, asking whether the read value can widen to `long`.
 
-Do đó, `getLong` trên trường `int` hợp lệ, nhưng `setLong` trên trường `int` không hợp lệ. `getInt` trên trường `long` cũng bị từ chối vì `long -> int` là narrowing. Phần 5 cho ví dụ thực nghiệm về bất đối xứng này.
+Therefore, `getLong` on an `int` field is valid, whereas `setLong` on an `int` field is invalid. `getInt` on a `long` field is also rejected because `long -> int` is narrowing. Section 5 gives an empirical example of this asymmetry.
 
-## 5. Chương trình Java 17+ hoàn chỉnh, chạy được
+## 5. Complete, runnable Java 17+ program
 
-Chương trình này dùng **trường public, không final** để quan sát quy tắc chuyển kiểu mà không bị rối với quyền truy cập; có thêm ví dụ trường `static`, boxing và chiều của getter. Các dòng in lỗi được chuẩn hóa theo tên loại ngoại lệ để kết quả không phụ thuộc thông điệp lỗi của JDK.
+This program uses **public, non-final fields** to observe type conversion rules without getting tangled in access permissions; it also includes examples of a `static` field, boxing, and getter direction. Error output lines are normalized by exception type name so results do not depend on JDK error messages.
 
-Tạo tệp **`WideningFieldDemo.java`**:
+Create file **`WideningFieldDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -235,14 +235,14 @@ public class WideningFieldDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa tệp (JDK 17 trở lên):
+Compile and run from the directory containing the file (JDK 17 or newer):
 
 ~~~bash
 javac --release 17 WideningFieldDemo.java
 java WideningFieldDemo
 ~~~
 
-**Kết quả stdout đã xác minh trên JDK 21 khi biên dịch với `--release 17`:**
+**Stdout verified on JDK 21 when compiled with `--release 17`:**
 
 ~~~text
 count=7, total=42, shared=99
@@ -258,65 +258,65 @@ getLong(int field)=7
 getInt(long field): IllegalArgumentException
 ~~~
 
-### Vì sao chương trình cho kết quả này?
+### Why does the program produce this output?
 
-1. `count.setInt(m, 7)` ghi nguyên giá trị vào trường `int`; `total.setInt(m, 42)` ghi vào `long` bằng widening. `shared.setLong(null, 99)` ghi vào trường `static long` mà không cần instance.
-2. `roundedFloat.setInt(m, 16_777_217)` **được phép về kiểu** nhưng `float` không biểu diễn chính xác số này; khi ép lại sang `int` để quan sát, nhận `16_777_216`.
-3. `roundedDouble.setLong(m, 9_007_199_254_740_993L)` **được phép về kiểu**, nhưng `double` làm tròn xuống giá trị biểu diễn gần nhất là `9_007_199_254_740_992`.
-4. Bốn dòng lỗi tiếp theo chứng minh `int -> byte`, `int -> char`, `long -> int` đều không hợp lệ, và trường `Integer` không được nhận qua `setInt`.
-5. `total.set(m, Integer.valueOf(88))` thành công vì `Field.set` mở hộp từ `Integer` thành `int` rồi widening sang `long`.
-6. `count.getLong(m)` đọc từ `int` rồi widening sang `long`. Trái lại `total.getInt(m)` đòi hỏi `long -> int` nên thất bại.
+1. `count.setInt(m, 7)` writes the exact value to the `int` field; `total.setInt(m, 42)` writes to `long` via widening. `shared.setLong(null, 99)` writes to the `static long` field without needing an instance.
+2. `roundedFloat.setInt(m, 16_777_217)` is **type-valid**, yet `float` does not represent this number exactly; when cast back to `int` to observe, it yields `16_777_216`.
+3. `roundedDouble.setLong(m, 9_007_199_254_740_993L)` is **type-valid**, yet `double` rounds down to the nearest representable value `9_007_199_254_740_992`.
+4. The next four error lines prove `int -> byte`, `int -> char`, and `long -> int` are all invalid, and an `Integer` field cannot be written via `setInt`.
+5. `total.set(m, Integer.valueOf(88))` succeeds because `Field.set` unboxes `Integer` to `int` and then widens to `long`.
+6. `count.getLong(m)` reads from `int` and widens to `long`. Conversely, `total.getInt(m)` requires `long -> int`, so it fails.
 
-Chạy ví dụ bằng classpath như lệnh trên sẽ tránh các rào cản truy cập giữa named module khác nhau; các trường được công khai để chỉ tập trung vào chuyển kiểu.
+Running the example on the classpath as in the commands above avoids access barriers across different named modules; the fields are public to focus solely on type conversion.
 
-## 6. Widening không phải lời hứa giữ nguyên mọi chữ số
+## 6. Widening is not a promise to preserve every digit
 
-Một nhầm lẫn phổ biến là: “widening nghĩa là kiểu đích to hơn, vậy không bao giờ mất số liệu”. Thực tế, **các phép widening số nguyên sang số thực dấu phẩy động có thể mất độ chính xác (precision)**.
+A common misconception is: "widening means a larger target type, so data is never lost." In fact, **widening integers to floating-point numbers can lose precision**.
 
-| Phép chuyển | Có hợp lệ? | Giá trị có được giữ chính xác cho mọi đầu vào? |
+| Conversion | Valid? | Is the value preserved exactly for all inputs? |
 | --- | --- | --- |
-| `int -> long` | Có | Có, mọi giá trị `int` biểu diễn được bằng `long` |
-| `int -> float` | Có | Không, `float` chỉ có khoảng 24 bit precision ở phần định trị |
-| `int -> double` | Có | Có, mọi `int` biểu diễn chính xác được bằng `double` |
-| `long -> float` | Có | Không, có thể làm tròn |
-| `long -> double` | Có | Không, `double` có khoảng 53 bit precision; các `long` lớn có thể làm tròn |
+| `int -> long` | Yes | Yes, every `int` value is representable in `long` |
+| `int -> float` | Yes | No, `float` only has about 24 bits of significand precision |
+| `int -> double` | Yes | Yes, every `int` is exactly representable in `double` |
+| `long -> float` | Yes | No, may round |
+| `long -> double` | Yes | No, `double` has about 53 bits of precision; large `long`s may round |
 
-**Ví dụ mất precision:** `16_777_217` khác `16_777_216` một đơn vị, nhưng `float` ở vùng giá trị đó không chứa được số lẻ này chính xác. Tương tự, `9_007_199_254_740_993L` nằm vượt khoảng nguyên liên tiếp mà `double` có thể biểu diễn chính xác.
+**Precision loss example:** `16_777_217` differs from `16_777_216` by one unit, yet `float` in that value range cannot hold this odd number exactly. Similarly, `9_007_199_254_740_993L` lies beyond the contiguous integer range that `double` can represent exactly.
 
-Widening không ném lỗi vì mất precision: phép chuyển được phép theo **loại kiểu**; kết quả số thực được làm tròn theo quy tắc Java. Nếu dữ liệu là số lượng chính xác, ID, tiền tệ hoặc số nguyên lớn, cần chọn kiểu lưu trữ phù hợp. Không chọn `float` hoặc `double` chỉ vì setter cho phép chuyển từ `int`/`long`.
+Widening does not throw an error for precision loss: the conversion is permitted by **type kind**; the floating-point result is rounded according to Java rules. If the data is exact quantities, IDs, currency, or large integers, choose an appropriate storage type. Do not pick `float` or `double` just because the setter allows converting from `int`/`long`.
 
-Một lưu ý khác: ép kiểu tường minh trước khi gọi setter vẫn có thể gây mất giá trị. Ví dụ:
+Another note: an explicit cast before calling the setter can still lose values. For example:
 
 ~~~java
 long huge = 3_000_000_000L;
-int narrowed = (int) huge; // ép kiểu thu hẹp có thể đổi giá trị
+int narrowed = (int) huge; // narrowing cast may change value
 countField.setInt(instance, narrowed);
 ~~~
 
-Lời gọi `setInt` ở dòng cuối không thể phục hồi thông tin đã mất tại phép ép `(int) huge`. Với nghiệp vụ cần chuyển an toàn, có thể kiểm tra trước bằng `Math.toIntExact(huge)`; phương thức này ném `ArithmeticException` nếu `long` nằm ngoài miền `int`.
+The `setInt` call on the last line cannot recover information lost during the `(int) huge` cast. For business logic requiring safe conversion, you can check beforehand with `Math.toIntExact(huge)`; this method throws `ArithmeticException` if the `long` is outside the `int` range.
 
-## 7. Lỗi runtime: loại giá trị, quyền truy cập và đối tượng nhận
+## 7. Runtime errors: value type, access permission, and receiver object
 
-`IllegalArgumentException` từ setter thường báo **kiểu không tương thích**, nhưng không phải mọi lỗi reflection đều do widening.
+`IllegalArgumentException` from a setter usually indicates **incompatible types**, though not every reflection error is caused by widening.
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách kiểm tra |
+| Symptom | Common cause | How to check |
 | --- | --- | --- |
-| `IllegalArgumentException` với `setInt` hoặc `setLong` | Kiểu trường không cho phép identity/widening từ `int`/`long` | In `field.getType()`, dùng bảng phần 2 |
-| `IllegalArgumentException` dù field là kiểu tương thích | `obj` không phải instance đúng của kiểu khai báo trường | So `field.getDeclaringClass()` và kiểu thực của receiver |
-| `NullPointerException` | Truyền `null` cho field instance | Cung cấp instance, chỉ truyền `null` cho static |
-| `IllegalAccessException` | Field không thể ghi do kiểm tra quyền truy cập, hoặc không có quyền ghi field `final` | Xem modifier, package, module và chính sách ghi |
-| `NoSuchFieldException` | Tên field sai, hoặc `getField` chỉ tìm field public phù hợp | Xác minh tên; dùng `getDeclaredField` cho field khai báo trực tiếp không public |
-| `ExceptionInInitializerError` | Việc thao tác field `static` kích hoạt khởi tạo lớp và khởi tạo thất bại | Xem nguyên nhân khởi tạo lớp |
+| `IllegalArgumentException` with `setInt` or `setLong` | Field type does not allow identity/widening from `int`/`long` | Print `field.getType()`, consult the table in section 2 |
+| `IllegalArgumentException` even though field has a compatible type | `obj` is not a valid instance of the field's declaring type | Compare `field.getDeclaringClass()` and the receiver's actual type |
+| `NullPointerException` | Passing `null` for an instance field | Provide an instance; pass `null` only for static |
+| `IllegalAccessException` | Field cannot be written due to access checks, or no write permission on `final` field | Inspect modifiers, package, module, and write policy |
+| `NoSuchFieldException` | Wrong field name, or `getField` only finds eligible public fields | Verify the name; use `getDeclaredField` for directly declared non-public fields |
+| `ExceptionInInitializerError` | Operating on a `static` field triggers class initialization and initialization fails | Inspect the cause of class initialization failure |
 
-Đối với **field private**, việc lấy được `Field` từ `getDeclaredField` không tự mở quyền ghi. Gọi `setAccessible(true)` hoặc `trySetAccessible()` chỉ có thể bỏ một số kiểm tra quyền khi JPMS cho phép; chúng **không** chuyển narrowing thành widening.
+For **private fields**, obtaining a `Field` from `getDeclaredField` does not automatically open write permission. Calling `setAccessible(true)` or `trySetAccessible()` can only suppress certain permission checks when JPMS allows; they **do not** turn narrowing into widening.
 
-Đối với **field final**, ngoài kiểm tra quyền, API có giới hạn nghiêm ngặt khi ghi; một số dạng field final luôn không thể ghi thông qua cơ chế này, kể cả khi đã tắt kiểm tra truy cập. Đừng dùng reflection để sửa hằng số hay bất biến nội bộ. Trong chương trình minh họa, các field cần ghi được khai báo không final.
+For **final fields**, beyond access checks, the API imposes strict write restrictions; some forms of final fields are always non-writable through this mechanism, even after disabling access checks. Do not use reflection to modify constants or internal invariants. In the illustrative program, writable fields are declared non-final.
 
-Với trường `static`, tham số `obj` bị bỏ qua để xác định instance, nhưng nên truyền `null` cho dễ đọc và tránh tạo đối tượng giả. Ghi static field có thể kích hoạt khởi tạo lớp nếu chưa khởi tạo.
+For `static` fields, the `obj` parameter is ignored for identifying an instance, though you should pass `null` for readability and to avoid creating dummy objects. Writing a static field can trigger class initialization if not yet initialized.
 
-## 8. Cách chọn API khi kiểu Field chỉ biết ở runtime
+## 8. How to choose the API when the Field type is only known at runtime
 
-Nếu đang viết công cụ gán cấu hình, bộ ánh xạ dữ liệu hay kiểm thử reflection, nên phân biệt kiểu đích ngay từ đầu:
+If writing a configuration assigner, data mapper, or reflection tests, distinguish the target type from the start:
 
 ~~~java
 Class<?> targetType = field.getType();
@@ -326,58 +326,58 @@ if (targetType == int.class) {
 } else if (targetType == long.class) {
     field.setLong(receiver, longValue);
 } else {
-    // Xử lý các kiểu khác theo hợp đồng dữ liệu;
-    // không tự coi mọi kiểu số là tương thích.
+    // Handle other types according to the data contract;
+    // do not assume all numeric types are compatible.
 }
 ~~~
 
-Đây là **mã minh họa**: giả sử đã có `field`, `receiver`, `intValue`, `longValue` và xử lý ngoại lệ thích hợp. Logic mẫu kiểm tra **kiểu đích chính xác**, phù hợp khi mỗi nguồn đã được kiểm chứng sẵn. Nếu muốn cho một nguồn `int` ghi vào `long`, `float`, `double`, hãy mở rộng rõ ràng các nhánh và quyết định chính sách precision; nếu muốn cho `long` ghi vào `int`, bắt buộc kiểm tra phạm vi và dùng phép chuyển tường minh.
+This is **illustrative code**: it assumes `field`, `receiver`, `intValue`, `longValue`, and proper exception handling already exist. The sample logic checks **the exact target type**, suitable when each source has already been validated. If you want an `int` source to write to `long`, `float`, or `double`, expand the branches explicitly and decide on a precision policy; if you want a `long` to write to `int`, range checks and an explicit conversion are mandatory.
 
-Một quy trình an toàn:
+A safe workflow:
 
-1. **Xác định đích:** lấy `field.getType()`, `getModifiers()`, `getDeclaringClass()`; phân biệt primitive với wrapper và instance với static.
-2. **Xác định nguồn:** một giá trị `int`, `long` hay một đối tượng wrapper thật sự? Với dữ liệu văn bản, parse dữ liệu theo hợp đồng thay vì đoán.
-3. **Quyết định conversion:** chỉ dùng identity/widening được phép, đồng thời đánh giá có chấp nhận làm tròn khi sang `float`/`double` không.
-4. **Kiểm tra quyền ghi:** field public, private hay final? Bên gọi có quyền phản chiếu phù hợp không? Hạn chế bỏ kiểm tra truy cập.
-5. **Thực hiện và xử lý lỗi:** dùng setter đúng, ghi nhận lỗi kiểu và quyền truy cập riêng để xử lý được nguyên nhân.
+1. **Identify the target:** retrieve `field.getType()`, `getModifiers()`, and `getDeclaringClass()`; distinguish primitive from wrapper and instance from static.
+2. **Identify the source:** is it an `int`, a `long`, or an actual wrapper object? For text data, parse according to contract instead of guessing.
+3. **Decide conversion:** use only allowed identity/widening, while evaluating whether rounding when moving to `float`/`double` is acceptable.
+4. **Check write permission:** is the field public, private, or final? Does the caller have proper reflection rights? Minimize bypassing access checks.
+5. **Execute and handle errors:** use the right setter, and log type errors separately from access permission errors so the root cause can be addressed.
 
-Khi làm framework ánh xạ JSON, ORM hoặc mapper, chiến lược tương thích kiểu có thể rộng hơn cơ chế `Field.setInt`. Chẳng hạn converter nghiệp vụ có thể parse chuỗi `"42"` hoặc chuyển `long` sang `int` sau khi kiểm tra miền. Đó là **lớp chuyển đổi do ứng dụng tự viết**, không phải tính năng mà `setInt` tự cung cấp.
+When building JSON mapping, ORM, or mapper frameworks, the type compatibility strategy can be broader than `Field.setInt`'s mechanism. For instance, a business converter can parse the string `"42"` or convert `long` to `int` after range checking. That is an **application-authored conversion layer**, not a feature provided by `setInt` itself.
 
-## 9. Bài tập thực hành và đáp án
+## 9. Practice exercises and answers
 
-**Bài 1.** Trường `public long total`. Dự đoán `setInt(obj, -5)` và `setLong(obj, -5L)` có được phép không.
+**Exercise 1.** Field `public long total`. Predict whether `setInt(obj, -5)` and `setLong(obj, -5L)` are allowed.
 
-**Đáp án:** Cả hai hợp lệ. `int -> long` là widening, `long -> long` là identity; giá trị `-5` được giữ nguyên.
+**Answer:** Both are valid. `int -> long` is widening, `long -> long` is identity; the value `-5` is preserved.
 
-**Bài 2.** Trường `public short age`. `setInt(obj, 12)` có thành công vì `12` nằm trong miền `short` không? Nếu không, nên làm gì?
+**Exercise 2.** Field `public short age`. Will `setInt(obj, 12)` succeed because `12` is within the `short` range? If not, what should be done?
 
-**Đáp án:** Không, nó ném `IllegalArgumentException`. Dùng `setShort(obj, (short) 12)` sau khi bảo đảm miền giá trị của đầu vào, hoặc chuyển đổi có kiểm tra phạm vi ở tầng nghiệp vụ.
+**Answer:** No, it throws `IllegalArgumentException`. Use `setShort(obj, (short) 12)` after ensuring the input value's range, or convert with range checks at the business layer.
 
-**Bài 3.** Trường `public int count`. Đoạn `setLong(obj, 3)` có hợp lệ không? Có gì khác `setInt(obj, 3)`?
+**Exercise 3.** Field `public int count`. Is `setLong(obj, 3)` valid? How does it differ from `setInt(obj, 3)`?
 
-**Đáp án:** `setLong(obj, 3)` vẫn biên dịch do literal được widening sang tham số `long`, nhưng setter ném `IllegalArgumentException` vì trường đích `int`. `setInt(obj, 3)` thành công.
+**Answer:** `setLong(obj, 3)` still compiles because the literal is widened to the `long` parameter, yet the setter throws `IllegalArgumentException` since the target field is `int`. `setInt(obj, 3)` succeeds.
 
-**Bài 4.** Trường `public double amount`. Có thể gọi `setLong(obj, 9_007_199_254_740_993L)` không? Giá trị đọc lại có chắc chính xác không?
+**Exercise 4.** Field `public double amount`. Can you call `setLong(obj, 9_007_199_254_740_993L)`? Is the read-back value guaranteed exact?
 
-**Đáp án:** Gọi hợp lệ vì `long -> double` là widening, nhưng giá trị sẽ bị làm tròn trong ví dụ này; không bảo đảm giữ nguyên mọi bit số nguyên.
+**Answer:** The call is valid because `long -> double` is widening, but the value will be rounded in this example; preserving all integer bits is not guaranteed.
 
-**Bài 5.** Trường `public Integer boxed`. Phương thức nào phù hợp giữa `setInt(obj, 42)` và `set(obj, Integer.valueOf(42))`?
+**Exercise 5.** Field `public Integer boxed`. Which method is appropriate between `setInt(obj, 42)` and `set(obj, Integer.valueOf(42))`?
 
-**Đáp án:** Dùng `set(obj, Integer.valueOf(42))` để gán tham chiếu. `setInt` chuyên cho primitive field, nên không gán trực tiếp cho field khai báo `Integer`.
+**Answer:** Use `set(obj, Integer.valueOf(42))` to assign the reference. `setInt` is specialized for primitive fields, so it cannot directly assign a field declared as `Integer`.
 
-**Bài 6.** Trường `public int n`. Vì sao `getLong(obj)` thành công nhưng `setLong(obj, 5L)` thất bại?
+**Exercise 6.** Field `public int n`. Why does `getLong(obj)` succeed while `setLong(obj, 5L)` fails?
 
-**Đáp án:** Getter chuyển **kiểu trường `int` → kiểu trả về `long`** nên widening. Setter chuyển **kiểu tham số `long` → kiểu trường `int`** nên narrowing. Hướng conversion khác nhau.
+**Answer:** The getter converts **field type `int` → return type `long`**, which is widening. The setter converts **parameter type `long` → field type `int`**, which is narrowing. The conversion directions differ.
 
-**Bài 7.** Dùng `getDeclaredField("count")` lấy một field private kiểu `int`, rồi gọi `setLong(obj, 5L)` sau khi `trySetAccessible()` thành công. Có được ghi không?
+**Exercise 7.** Use `getDeclaredField("count")` to get a private `int` field, then call `setLong(obj, 5L)` after `trySetAccessible()` succeeds. Will it write?
 
-**Đáp án:** Vẫn không, vì yêu cầu mở truy cập chỉ xử lý quyền kiểm tra của ngôn ngữ; `long -> int` vẫn là narrowing bị `Field.setLong` từ chối. Phải chọn kiểu đầu vào và phương thức thích hợp.
+**Answer:** Still no, because opening access only handles language access checks; `long -> int` is still narrowing rejected by `Field.setLong`. You must choose the appropriate input type and method.
 
-## 10. Ghi nhớ và tài liệu đối chiếu
+## 10. Takeaways and reference documentation
 
-**Quy tắc cốt lõi:** `Field.setInt` chỉ ghi vào field primitive `int`, `long`, `float`, `double`; `Field.setLong` chỉ ghi vào `long`, `float`, `double`. Runtime xét **hướng từ kiểu tham số setter sang kiểu field**, không xét giá trị có “vừa” kiểu nhỏ hơn hay không. Widening sang số thực đôi khi mất precision nhưng vẫn hợp lệ. Quyền truy cập, `final` và đối tượng nhận là các điều kiện bổ sung, độc lập với loại conversion.
+**Core rule:** `Field.setInt` only writes to primitive fields `int`, `long`, `float`, `double`; `Field.setLong` only writes to `long`, `float`, `double`. Runtime checks **the direction from the setter parameter type to the field type**, not whether the value "fits" in a smaller type. Widening to floating-point sometimes loses precision yet remains valid. Access permissions, `final`, and the receiver object are additional conditions independent of conversion kind.
 
-Tài liệu chuẩn để tra cứu:
+Standard references:
 
-- [`java.lang.reflect.Field` — Java SE API](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/reflect/Field.html): các phương thức `setInt`, `setLong`, `set(Object,Object)`, `getInt` và `getLong`.
-- [Java Language Specification `5.1.2 — Widening Primitive Conversion](https://docs.oracle.com/en/java/javase/26/docs/specs/jls/jls-5.html#jls-5.1.2): các hướng widening và quy tắc precision.
+- [`java.lang.reflect.Field` — Java SE API](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/reflect/Field.html): `setInt`, `setLong`, `set(Object,Object)`, `getInt`, and `getLong` methods.
+- [Java Language Specification `5.1.2 — Widening Primitive Conversion](https://docs.oracle.com/en/java/javase/26/docs/specs/jls/jls-5.html#jls-5.1.2): widening directions and precision rules.

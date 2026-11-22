@@ -1,21 +1,21 @@
-# Đệ quy, trường hợp dừng và nguy cơ `StackOverflowError` — Java 17+
+# Recursion, Base Cases, and the Risk of `StackOverflowError` — Java 17+
 
-## 1. Đệ quy là gì?
+## 1. What Is Recursion?
 
-**Đệ quy (recursion)** là kỹ thuật một phương thức gọi lại **chính nó** (trực tiếp), hoặc gọi một phương thức khác dẫn tới lời gọi ban đầu (gián tiếp), nhằm giải một bài toán qua các bài toán con nhỏ hơn.
+**Recursion** is a technique in which a method calls **itself** (directly), or calls another method that leads back to the original call (indirectly), in order to solve a problem via smaller subproblems.
 
-Ví dụ: tính giai thừa số nguyên không âm `n`:
+Example: computing the factorial of a non-negative integer `n`:
 
 ~~~java
 static long factorial(int n) {
     if (n == 0) {
-        return 1L;                  // Trường hợp dừng (base case).
+        return 1L;                  // Base case.
     }
-    return n * factorial(n - 1);    // Bước đệ quy (recursive case).
+    return n * factorial(n - 1);    // Recursive case.
 }
 ~~~
 
-Với `n = 4`, ta có `4! = 4 × 3 × 2 × 1 = 24`. Trình tự phép gọi có thể hình dung:
+For `n = 4`, we have `4! = 4 × 3 × 2 × 1 = 24`. The call sequence can be visualized as:
 
 ~~~text
 factorial(4)
@@ -30,16 +30,16 @@ factorial(4)
   return 24
 ~~~
 
-Phương thức trên **chỉ là minh họa** cho đầu vào `n >= 0`. Nếu gọi với số âm, `n - 1` sẽ không tiến tới `0` theo mục đích. Chương trình hoàn chỉnh bên dưới thêm kiểm tra miền đầu vào và giới hạn an toàn của kiểu `long`.
+The method above is **illustrative only** for inputs `n >= 0`. If called with a negative number, `n - 1` will not move toward `0` as intended. The complete program below adds input-domain validation and safe bounds for the `long` type.
 
-Đệ quy không phải là một kiểu vòng lặp đặc biệt: mỗi lời gọi thực sự là **một lần gọi phương thức** với tham số và trạng thái thực thi riêng.
+Recursion is not a special kind of loop: each call is genuinely **a method invocation** with its own parameters and execution state.
 
-## 2. Hai điều kiện quan trọng để đệ quy kết thúc
+## 2. Two Important Conditions for Recursion to Terminate
 
-Một thuật toán đệ quy đúng thường cần cả hai yếu tố:
+A correct recursive algorithm normally needs both factors:
 
-1. **Trường hợp dừng (base case):** điều kiện mà phương thức trả kết quả hoặc kết thúc mà **không gọi đệ quy thêm**. Ví dụ `n == 0` khi tính giai thừa.
-2. **Bước tiến (progress toward base case):** mỗi lần gọi đệ quy phải làm bài toán **gần trường hợp dừng hơn**. Ví dụ `n - 1` khi `n > 0`.
+1. **Base case:** the condition under which the method returns a result or finishes without **making further recursive calls**. For example, `n == 0` when computing factorial.
+2. **Progress toward base case:** each recursive call must bring the problem **closer to the base case**. For example, `n - 1` when `n > 0`.
 
 ~~~java
 static int sumToZero(int n) {
@@ -62,31 +62,31 @@ sumToZero(3)
 = 6
 ~~~
 
-Có trường hợp dừng nhưng **không tiến tới nó** cũng là lỗi:
+Having a base case without **making progress toward it** is also a bug:
 
 ~~~java
-// KHÔNG CHẠY: minh họa lỗi.
+// DO NOT RUN: illustrates an error.
 // static int wrong(int n) {
 //     if (n == 0) return 0;
-//     return n + wrong(n); // n không thay đổi.
+//     return n + wrong(n); // n does not change.
 // }
 ~~~
 
-Tương tự, lời gọi `wrong(-1)` trong phiên bản chỉ giảm `n - 1` nhưng dừng ở `n == 0` cũng không tiến đúng miền đầu vào. Hãy xác định **miền hợp lệ**, **trường hợp dừng** và **đại lượng giảm dần** trước khi viết phương thức.
+Similarly, calling `wrong(-1)` in a version that only decreases `n - 1` while stopping at `n == 0` fails to progress properly on the input domain. Identify the **valid domain**, **base case**, and **decreasing quantity** before writing the method.
 
-## 3. Stack frame và hai pha gọi — quay về
+## 3. Stack Frames and the Two Phases: Call and Return
 
-JVM quản lý quá trình gọi phương thức bằng **ngăn xếp lời gọi** (*call stack*). Mỗi lần gọi đệ quy có một **stack frame** chứa thông tin thực thi như biến cục bộ, tham số và vị trí tiếp tục sau lời gọi.
+The JVM manages method invocations using the **call stack**. Each recursive call gets a **stack frame** containing execution info such as local variables, parameters, and the continuation point after the call.
 
-Khi gọi `factorial(3)`:
+When calling `factorial(3)`:
 
 ~~~text
-Đang đi sâu xuống (call):
+Going deeper (call):
 factorial(3) -> factorial(2) -> factorial(1) -> factorial(0)
 
-Ở độ sâu lớn nhất:
+At maximum depth:
 +--------------------+
-| factorial(0)       | <- lời gọi hiện tại; gặp base case
+| factorial(0)       | <- current call; hits base case
 +--------------------+
 | factorial(1)       |
 +--------------------+
@@ -95,17 +95,17 @@ factorial(3) -> factorial(2) -> factorial(1) -> factorial(0)
 | factorial(3)       |
 +--------------------+
 
-Đang quay về (return):
+Unwinding (return):
 factorial(0) -> factorial(1) -> factorial(2) -> factorial(3)
 ~~~
 
-`factorial(3)` phải đợi kết quả của `factorial(2)`, phương thức đó lại đợi `factorial(1)`, v.v. Sau trường hợp dừng, kết quả được trả về **ngược thứ tự gọi**, và các frame hoàn thành lần lượt được loại khỏi stack.
+`factorial(3)` must wait for the result of `factorial(2)`, which waits for `factorial(1)`, and so on. After the base case, results are returned in **reverse order of calls**, and completed frames are popped off the stack one by one.
 
-Mỗi lời gọi có bản riêng của tham số `n`. Việc thay đổi `n` ở một lần gọi không tự thay biến `n` của frame khác.
+Each call has its own copy of parameter `n`. Modifying `n` in one call does not automatically alter `n` in another frame.
 
-## 4. Truy vết thứ tự thực thi
+## 4. Tracing Execution Order
 
-Để quan sát các lời gọi, in thông tin **trước** và **sau** bước đệ quy:
+To observe the calls, print info **before** and **after** the recursive step:
 
 ~~~java
 static void trace(int n) {
@@ -119,7 +119,7 @@ static void trace(int n) {
 }
 ~~~
 
-Khi `trace(3)` chạy với đầu vào không âm:
+When `trace(3)` runs with a non-negative input:
 
 ~~~text
 enter 3
@@ -132,39 +132,39 @@ leave 2
 leave 3
 ~~~
 
-- Các dòng `enter` xuất hiện khi **đi xuống** chuỗi gọi.
-- `base 0` là điểm dừng, không gọi thêm.
-- Các dòng `leave` xuất hiện khi các lời gọi **quay về**.
-- Nhánh `n == 0` dùng `return;` để kết thúc phương thức `void`, nên không in `leave 0`.
+- The `enter` lines appear while **descending** the call chain.
+- `base 0` is the stopping point, making no further calls.
+- The `leave` lines appear as the calls **return**.
+- The `n == 0` branch uses `return;` to end the `void` method, so it does not print `leave 0`.
 
-Khi đọc một phương thức đệ quy, cần theo dõi đồng thời **điều kiện dừng**, **tham số của lời gọi tiếp theo** và **công việc xảy ra sau khi lời gọi trả về**.
+When reading a recursive method, track simultaneously the **stopping condition**, the **arguments to the next call**, and **work happening after the call returns**.
 
-## 5. `StackOverflowError` là gì?
+## 5. What Is `StackOverflowError`?
 
-Mỗi lời gọi đệ quy bổ sung thêm một stack frame, tiêu thụ tài nguyên của ngăn xếp luồng. Nếu chương trình tiếp tục gọi sâu tới mức không thể tạo thêm frame, JVM có thể ném **`java.lang.StackOverflowError`**.
+Every recursive call adds another stack frame, consuming thread stack resources. If the program keeps calling deeply until no more frames can be created, the JVM can throw **`java.lang.StackOverflowError`**.
 
-Các nguyên nhân điển hình:
+Typical causes:
 
-- **Không có trường hợp dừng**, ví dụ phương thức tự gọi chính mình không điều kiện.
-- Có base case nhưng **tham số không tiến gần nó**, ví dụ `f(n)` gọi `f(n)`.
-- Điều kiện dừng không bao phủ **miền đầu vào**: đếm xuống `0` nhưng bắt đầu từ số âm.
-- Thuật toán **đúng** nhưng cần quá nhiều lời gọi lồng nhau, ví dụ xử lý một cấu trúc dữ liệu quá sâu hoặc đệ quy tuyến tính với đầu vào rất lớn.
-- Các phương thức **đệ quy gián tiếp** gọi qua lại mà không có điều kiện kết thúc.
+- **Missing base case**, such as a method calling itself unconditionally.
+- Having a base case, yet **parameters make no progress toward it**, such as `f(n)` calling `f(n)`.
+- Base case does not cover the **input domain**: counting down to `0` while starting from a negative number.
+- A **correct** algorithm requiring too many nested calls, such as traversing an overly deep data structure or linear recursion on a very large input.
+- **Indirectly recursive** methods calling each other back and forth with no termination condition.
 
 ~~~java
-// KHÔNG CHẠY đoạn mã này:
+// DO NOT RUN this snippet:
 // static void endless() {
-//     endless(); // Không có base case.
+//     endless(); // No base case.
 // }
 ~~~
 
-**Đừng chạy đoạn ví dụ lỗi chỉ để xem stack tràn.** `StackOverflowError` là một `Error`, không phải `Exception`. Bắt nó bằng `catch (StackOverflowError e)` không phải cách bình thường để kiểm soát luồng nghiệp vụ: stack có thể đang ở trạng thái thiếu tài nguyên, và việc xử lý có thể không an toàn.
+**Do not run buggy examples just to watch the stack overflow.** `StackOverflowError` is an `Error`, not an `Exception`. Catching it with `catch (StackOverflowError e)` is not a normal way to control business logic: the stack may be short on resources, and handling it may be unsafe.
 
-Không có một **số lần gọi tối đa cố định** áp dụng cho mọi JVM. Độ sâu chịu ảnh hưởng bởi giới hạn stack của luồng, JVM, hệ điều hành, biên dịch JIT và kích thước frame; không nên dựa vào một ngưỡng đo thử trên máy cụ thể.
+There is no **fixed maximum call count** across every JVM. Depth is affected by thread stack limits, JVM, operating system, JIT compilation, and frame size; you should not rely on a threshold measured on a specific machine.
 
-## 6. Đệ quy đúng vẫn có nguy cơ tràn stack
+## 6. Correct Recursion Still Risks Stack Overflow
 
-Xét:
+Consider:
 
 ~~~java
 static long sumRecursively(int n) {
@@ -173,9 +173,9 @@ static long sumRecursively(int n) {
 }
 ~~~
 
-Về logic với `n >= 0`, `n` giảm đều và cuối cùng đạt `0`. Tuy nhiên với `n` rất lớn, phương thức cần xấp xỉ `n + 1` lời gọi lồng nhau, có thể tràn stack **trước khi tới base case**.
+Logically, for `n >= 0`, `n` decreases steadily and eventually reaches `0`. However, for very large `n`, the method requires roughly `n + 1` nested calls, which can overflow the stack **before reaching the base case**.
 
-Phiên bản lặp:
+Iterative version:
 
 ~~~java
 static long sumIteratively(int n) {
@@ -188,31 +188,31 @@ static long sumIteratively(int n) {
 }
 ~~~
 
-Dùng biến đếm `long` để `i++` không tràn khi `n == Integer.MAX_VALUE`; với bộ đếm `int`, điều kiện `i <= n` có thể tiếp tục đúng sau khi `i` tràn sang số âm. Vòng lặp cũng tránh **tăng độ sâu call stack theo `n`**. Với `n` thuộc miền `int` không âm, tổng từ 1 đến `n` luôn nằm trong miền `long`; nếu mở rộng đầu vào hoặc thay phép tính, cần kiểm tra tràn số riêng. Công thức `n(n+1)/2` cũng cần tránh tràn ở các phép nhân trung gian.
+Use a `long` counter so `i++` does not overflow when `n == Integer.MAX_VALUE`; with an `int` counter, `i <= n` can remain true after `i` overflows into negative numbers. A loop also avoids **growing call stack depth with `n`**. For non-negative `int` inputs `n`, the sum from 1 to `n` always fits in `long`; if expanding the input range or changing the calculation, check for numeric overflow separately. The formula `n(n+1)/2` also needs care to avoid overflow in intermediate multiplications.
 
-## 7. Độ phức tạp: thời gian và bộ nhớ stack
+## 7. Complexity: Time and Stack Space
 
-| Bài toán / cách làm | Thời gian gần đúng | Stack bổ sung | Nhận xét |
+| Problem / approach | Approximate time | Extra stack | Notes |
 |---|---|---|---|
-| Giai thừa đệ quy `factorial(n)` | `O(n)` | `O(n)` | Mỗi lần giảm `n` một đơn vị |
-| Giai thừa với vòng `for` | `O(n)` | `O(1)` | Dễ tránh stack sâu |
-| Tìm kiếm nhị phân đệ quy trong mảng đã sắp xếp | `O(log n)` | `O(log n)` | Mỗi lần loại khoảng một nửa |
-| Tìm kiếm nhị phân với `while` | `O(log n)` | `O(1)` | Cũng cần dữ liệu đã sắp xếp |
-| Fibonacci đệ quy ngây thơ `fib(n-1)+fib(n-2)` | `O(2^n)` (chặn trên) | `O(n)` | Tính lặp lại nhiều bài toán con |
+| Recursive factorial `factorial(n)` | `O(n)` | `O(n)` | Reduces `n` by one each step |
+| Factorial with a `for` loop | `O(n)` | `O(1)` | Easily avoids deep stacks |
+| Recursive binary search in sorted array | `O(log n)` | `O(log n)` | Eliminates roughly half each step |
+| Binary search with `while` | `O(log n)` | `O(1)` | Also requires sorted data |
+| Naive recursive Fibonacci `fib(n-1)+fib(n-2)` | `O(2^n)` (upper bound) | `O(n)` | Recomputes many subproblems repeatedly |
 
-**Lưu ý:** “Đệ quy” không tự động đồng nghĩa với chậm. Chi phí phụ thuộc số bài toán con và độ sâu. Với bài toán chia để trị, đệ quy thường diễn đạt cấu trúc bài toán dễ đọc. Với một chuỗi tuyến tính dài, vòng lặp có thể thực tế hơn.
+**Note:** “Recursive” does not automatically mean slow. Cost depends on the number of subproblems and depth. For divide-and-conquer problems, recursion often expresses the problem structure cleanly. For a long linear chain, a loop can be more practical.
 
-Fibonacci đệ quy ngây thơ có base case ở `0` và `1` nhưng vẫn có thể chạy chậm vì lặp lại các phép tính. Dùng **memoization** hoặc vòng lặp để tránh tính trùng, chứ chỉ sửa điều kiện dừng là chưa đủ.
+Naive recursive Fibonacci has base cases at `0` and `1` yet still runs slowly because of repeated computations. Use **memoization** or a loop to avoid redundant work; fixing the stopping condition alone is not enough.
 
-## 8. Đệ quy trên khoảng chỉ số: tìm kiếm nhị phân
+## 8. Recursion on Index Ranges: Binary Search
 
-Không phải lúc nào base case cũng là `n == 0`. Với tìm kiếm nhị phân trên một mảng **đã sắp xếp tăng dần**, bài toán con là một **khoảng chỉ số** `low..high`.
+The base case is not always `n == 0`. For binary search on an **ascending sorted** array, the subproblem is an **index range** `low..high`.
 
 ~~~java
 static int search(int[] a, int target, int low, int high) {
-    if (low > high) return -1;                 // Khoảng rỗng.
+    if (low > high) return -1;                 // Empty range.
     int mid = low + (high - low) / 2;
-    if (a[mid] == target) return mid;          // Tìm thấy.
+    if (a[mid] == target) return mid;          // Found.
     if (target < a[mid]) {
         return search(a, target, low, mid - 1);
     }
@@ -220,40 +220,40 @@ static int search(int[] a, int target, int low, int high) {
 }
 ~~~
 
-Ở mỗi bước, khoảng mới **nhỏ hơn** khoảng cũ; độ sâu tăng theo `O(log n)`. Base case `low > high` diễn tả “không còn vị trí để kiểm tra”; trường hợp `a[mid] == target` diễn tả “đã tìm thấy”.
+At each step, the new range is **smaller** than the old one; depth grows as `O(log n)`. The base case `low > high` expresses “no positions left to check”; `a[mid] == target` expresses “found”.
 
-Ví dụ `a = {1,3,5,7,9}`:
+Example `a = {1,3,5,7,9}`:
 
 ~~~text
-search target=7 trong [0..4], mid=2 -> a[2]=5
-search tiếp [3..4], mid=3 -> a[3]=7
+search target=7 in [0..4], mid=2 -> a[2]=5
+continue searching [3..4], mid=3 -> a[3]=7
 return 3
 ~~~
 
-**Tiền điều kiện:** mảng phải được sắp xếp đúng thứ tự mà thuật toán dùng để so sánh. Nếu đầu vào chưa sắp xếp, kết quả không còn được bảo đảm.
+**Precondition:** the array must be sorted in the exact order used for comparison. If the input is unsorted, the result is no longer guaranteed.
 
-## 9. Khi nào nên dùng đệ quy, khi nào dùng vòng lặp?
+## 9. When to Use Recursion vs. Loops?
 
-Chọn **đệ quy** khi mô tả bài toán tự nhiên bằng các bài toán con, ví dụ:
+Choose **recursion** when a problem is naturally described in terms of subproblems, such as:
 
-- Duyệt cây thư mục, cây biểu thức, cấu trúc lồng nhau.
-- Tìm kiếm nhị phân, chia để trị trên khoảng dữ liệu.
-- Thuật toán quay lui (*backtracking*) có trạng thái, điểm dừng và hoàn tác rõ ràng.
+- Traversing directory trees, expression trees, nested structures.
+- Binary search, divide-and-conquer over data ranges.
+- *Backtracking* algorithms with clear state, stopping condition, and undo steps.
 
-Cân nhắc **vòng lặp** khi:
+Consider **loops** when:
 
-- Các bước lặp đơn giản và tuyến tính.
-- Đầu vào có thể gây độ sâu hàng trăm nghìn/hàng triệu lời gọi.
-- Cần kiểm soát tài nguyên stack hoặc hiệu năng thực tế.
-- Có thể tính kết quả bằng bộ nhớ `O(1)` mà không làm code khó hiểu hơn.
+- Steps are simple and linear.
+- Inputs can cause depths of hundreds of thousands or millions of calls.
+- Stack resources or practical performance must be controlled.
+- Results can be computed in `O(1)` memory without making the code harder to read.
 
-Java **không bảo đảm tối ưu hóa đệ quy đuôi** (*tail-call optimization*). Một lời gọi đệ quy đặt ở cuối phương thức **không có nghĩa** stack frame chắc chắn được tái sử dụng trên JVM. Với bài toán cần xử lý độ sâu rất lớn, dùng vòng lặp hoặc một cấu trúc stack tường minh khi thích hợp.
+Java **does not guarantee tail-call optimization**. Placing a recursive call at the very end of a method **does not mean** the stack frame will definitely be reused on the JVM. For problems requiring very large depth, use a loop or an explicit stack structure when appropriate.
 
-Tham số `-Xss` có thể điều chỉnh kích thước stack trên một số cấu hình JVM, nhưng **không sửa lỗi logic thiếu base case** và không phải giải pháp đầu tiên cho thuật toán có độ sâu tăng không kiểm soát.
+The `-Xss` flag can adjust stack size in some JVM configurations, yet it **does not fix a logic bug missing a base case** and is not the primary solution for algorithms with uncontrolled depth growth.
 
-## 10. Chương trình Java 17+ chạy độc lập
+## 10. Standalone Runnable Java 17+ Program
 
-Tạo file đúng tên **`RecursionBaseCaseDemo.java`**:
+Create the file with the exact name **`RecursionBaseCaseDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -261,7 +261,7 @@ import java.util.Arrays;
 public final class RecursionBaseCaseDemo {
     private RecursionBaseCaseDemo() {}
 
-    // Validate tại ranh giới gọi; 20! còn nằm trong long.
+    // Validate at the call boundary; 20! still fits in long.
     static long factorial(int n) {
         if (n < 0 || n > 20) {
             throw new IllegalArgumentException("factorial n must be 0..20");
@@ -306,7 +306,7 @@ public final class RecursionBaseCaseDemo {
         return (n % 10) + digitSum(n / 10);
     }
 
-    // Chỉ dùng với mảng int[] sắp xếp tăng dần.
+    // Use only with an int[] array sorted in ascending order.
     static int binarySearch(int[] sorted, int target) {
         if (sorted == null) {
             throw new IllegalArgumentException("array must not be null");
@@ -351,7 +351,7 @@ public final class RecursionBaseCaseDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, chỉ dùng Java chuẩn; không cần thư viện ngoài hay preview features. Mã ví dụ **không cố ý gây `StackOverflowError`**.
+**Requirements:** JDK 17 or later, standard Java only; no external libraries or preview features needed. The example code **does not intentionally trigger `StackOverflowError`**.
 
 **Bash (Linux/macOS):**
 
@@ -392,28 +392,28 @@ search empty=-1
 invalid factorial=factorial n must be 0..20
 ~~~
 
-**Đối chiếu:** `factorial(0)` kết thúc ngay; `factorial(5)` đi sâu rồi nhân kết quả khi quay về. `digitSum(405)` tính `5 + 0 + 4 = 9` qua `n % 10` và `n / 10`. `trace(3)` cho thấy thứ tự vào/ra frame. Tìm kiếm nhị phân có hai kiểu dừng: tìm thấy mục tiêu hoặc hết khoảng tìm kiếm. Đầu vào âm của `factorial` bị từ chối trước khi bắt đầu chuỗi đệ quy.
+**Comparison:** `factorial(0)` finishes immediately; `factorial(5)` descends and multiplies results while returning. `digitSum(405)` computes `5 + 0 + 4 = 9` via `n % 10` and `n / 10`. `trace(3)` shows frame entry/exit order. Binary search has two stopping kinds: finding the target or exhausting the search range. Negative input to `factorial` is rejected before starting the recursive chain.
 
-## 11. Những lỗi thường gặp và cách khắc phục
+## 11. Common Mistakes and How to Fix Them
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | How to fix |
 |---|---|---|
-| Không viết trường hợp dừng | Lời gọi có thể tăng không giới hạn | Viết `if (base) return ...;` |
-| Có base case nhưng không thay tham số | Không tiến tới base case | Chứng minh mỗi lời gọi làm bài toán nhỏ đi |
-| Chỉ xét `n == 0`, bỏ qua `n < 0` | Đầu vào âm có thể không dừng đúng | Kiểm tra miền đầu vào |
-| Dùng `return n * factorial(n)` | Tự gọi lại với cùng bài toán | Thường cần `factorial(n - 1)` |
-| Gọi `factorial(21)` bằng `long` không kiểm soát | **Tràn số học**, không nhất thiết tràn stack | Giới hạn 0..20 hoặc dùng `BigInteger` |
-| Đệ quy tuyến tính với đầu vào cực lớn | Stack frame tăng tuyến tính | Chuyển vòng lặp/stack tường minh |
-| Tin Java luôn tối ưu tail recursion | JVM không bảo đảm | Thiết kế độc lập tối ưu hóa này |
-| Bắt `StackOverflowError` để sửa lỗi đệ quy | Có thể thiếu tài nguyên, che bug | Sửa logic và giới hạn độ sâu |
-| Tìm kiếm nhị phân khi mảng chưa sắp xếp | Kết quả tìm kiếm có thể sai | Đảm bảo tiền điều kiện sorted |
-| Chỉ quan tâm thời gian `O(n)` | Bỏ qua stack space `O(n)` | Xem cả bộ nhớ stack |
+| Omitting a base case | Calls can grow without bound | Write `if (base) return ...;` |
+| Having a base case without changing parameters | Does not progress toward base case | Prove each call makes the problem smaller |
+| Checking only `n == 0`, ignoring `n < 0` | Negative inputs may not terminate properly | Validate the input domain |
+| Writing `return n * factorial(n)` | Calls itself with the same problem | Usually need `factorial(n - 1)` |
+| Calling `factorial(21)` with `long` unchecked | **Arithmetic overflow**, not necessarily stack overflow | Limit to 0..20 or use `BigInteger` |
+| Linear recursion with huge input | Stack frames grow linearly | Switch to a loop/explicit stack |
+| Assuming Java always optimizes tail recursion | JVM does not guarantee it | Design independently of this optimization |
+| Catching `StackOverflowError` to fix recursion bugs | Can lack resources, hides bugs | Fix the logic and bound depth |
+| Binary search when the array is unsorted | Search results can be wrong | Ensure the sorted precondition |
+| Caring only about `O(n)` time | Overlooks `O(n)` stack space | Check stack memory as well |
 
-**Phân biệt hai nguy cơ:** `StackOverflowError` liên quan đến ngăn xếp lời gọi; **tràn số nguyên** xảy ra khi kết quả vượt phạm vi kiểu số, thường không tự ném `StackOverflowError`. Đệ quy giai thừa của `long` phải kiểm soát cả độ sâu lẫn miền giá trị kết quả.
+**Distinguish two risks:** `StackOverflowError` concerns the call stack; **integer overflow** happens when a result exceeds the numeric type's range, and normally does not throw `StackOverflowError`. Recursive factorial with `long` must control both depth and result value range.
 
-## 12. Bài tập và đáp án
+## 12. Exercises and Answers
 
-**A — Base case ở đâu?**
+**A — Where is the base case?**
 
 ~~~java
 static int countDown(int n) {
@@ -422,21 +422,21 @@ static int countDown(int n) {
 }
 ~~~
 
-**Đáp án:** base case `n == 0`. Với `n = 3`, kết quả là `3`, nhưng chưa an toàn với `n < 0`. Thêm guard cho số âm.
+**Answer:** base case `n == 0`. For `n = 3`, the result is `3`, though it is not safe for `n < 0`. Add a guard for negative numbers.
 
-**B — Vì sao đoạn sau có thể không dừng?**
+**B — Why might the following fail to terminate?**
 
 ~~~java
-// Không chạy:
+// Do not run:
 static void loopForever(int n) {
     if (n == 0) return;
     loopForever(n);
 }
 ~~~
 
-**Đáp án:** tham số `n` không đổi; với `n != 0`, không thể tiến tới base case.
+**Answer:** parameter `n` does not change; for `n != 0`, it cannot progress to the base case.
 
-**C — `trace(2)` in gì?**
+**C — What does `trace(2)` print?**
 
 ~~~text
 enter 2
@@ -447,27 +447,27 @@ leave 1
 leave 2
 ~~~
 
-**D — Khi nào stack tăng theo `O(n)`?**  
-**Đáp án:** khi các lời gọi lồng nhau giảm `n` từng đơn vị đến base case, ví dụ `factorial(n)`, cần khoảng `n + 1` frame ở độ sâu lớn nhất.
+**D — When does stack usage grow as `O(n)`?**  
+**Answer:** when nested calls decrement `n` by one step down to the base case, such as `factorial(n)`, requiring roughly `n + 1` frames at maximum depth.
 
-**E — `binarySearch(new int[]{1,3,5,7,9}, 7)` cho gì?**  
-**Đáp án:** `3` (chỉ số tính từ 0); với mục tiêu 2 trả `-1`.
+**E — What does `binarySearch(new int[]{1,3,5,7,9}, 7)` produce?**  
+**Answer:** `3` (0-based index); for target 2 it returns `-1`.
 
-**F — Có thể thay giai thừa đệ quy bằng vòng lặp để tránh stack sâu không?**  
-**Đáp án:** có; vòng lặp dùng stack bổ sung `O(1)` cho cách cài đặt thông thường. Nhưng vẫn phải chú ý giai thừa lớn tràn giới hạn `long`.
+**F — Can recursive factorial be replaced with a loop to avoid deep stacks?**  
+**Answer:** yes; a loop uses `O(1)` extra stack space in the standard implementation. However, you still need to watch out for large factorials overflowing `long`.
 
-## 13. Checklist và kết luận
+## 13. Checklist and Conclusion
 
-- [ ] Hiểu đệ quy là lời gọi phương thức lặp lại trên bài toán con.
-- [ ] Xác định được **base case** không gọi đệ quy.
-- [ ] Chứng minh các lời gọi tiến tới base case trên miền đầu vào hợp lệ.
-- [ ] Hiểu trình tự “gọi sâu xuống” và “trả kết quả ngược lên” trên call stack.
-- [ ] Nhận diện `StackOverflowError` do thiếu dừng hoặc do độ sâu quá lớn.
-- [ ] Không cố ý chạy đệ quy vô hạn hoặc dựa vào `catch StackOverflowError`.
-- [ ] Phân biệt lỗi tràn stack và lỗi tràn số học.
-- [ ] Biết so sánh chi phí thời gian, bộ nhớ của đệ quy và vòng lặp.
-- [ ] Không mặc định Java có tối ưu hóa tail call.
-- [ ] Đọc được base case theo khoảng `low > high` ở tìm kiếm nhị phân.
-- [ ] Chạy `RecursionBaseCaseDemo.java` trên JDK 17+ và đối chiếu exact stdout.
+- [ ] Understand recursion as repeated method calls on subproblems.
+- [ ] Identify a **base case** that makes no recursive call.
+- [ ] Prove calls progress toward the base case over the valid input domain.
+- [ ] Understand the “descend” and “return results back up” sequence on the call stack.
+- [ ] Recognize `StackOverflowError` caused by missing termination or excessive depth.
+- [ ] Do not intentionally run infinite recursion or rely on `catch StackOverflowError`.
+- [ ] Distinguish stack overflow errors from arithmetic overflow errors.
+- [ ] Know how to compare time and memory costs of recursion and loops.
+- [ ] Do not assume Java performs tail-call optimization.
+- [ ] Read range-based base cases like `low > high` in binary search.
+- [ ] Run `RecursionBaseCaseDemo.java` on JDK 17+ and verify exact stdout.
 
-**Kết luận:** Một thuật toán đệ quy an toàn cần **trường hợp dừng đúng**, **bước tiến làm nhỏ bài toán** và **độ sâu thực thi phù hợp với stack**. Base case đúng về logic chưa bảo đảm an toàn khi đầu vào quá lớn. Hãy kiểm tra miền đầu vào, dự tính cả stack space, và chọn vòng lặp khi độ sâu có nguy cơ vượt khả năng của JVM.
+**Conclusion:** A safe recursive algorithm requires a **correct base case**, **progress that shrinks the problem**, and **execution depth suited to the stack**. A logically sound base case alone does not guarantee safety on very large inputs. Validate the input domain, account for stack space, and choose a loop whenever depth risks exceeding the JVM's capacity.

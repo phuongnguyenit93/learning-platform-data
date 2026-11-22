@@ -1,71 +1,71 @@
-# Quy tắc mở và đóng dấu ba nháy kép trong Java Text Block
+# Opening and Closing Triple-Quote Delimiter Rules in Java Text Blocks
 
-**Text block** là cách khai báo một giá trị `String` nhiều dòng trong Java bằng cặp dấu phân định **ba nháy kép** `"""`. Cú pháp này giúp đặt HTML, JSON, SQL hoặc đoạn văn dài trực tiếp vào mã nguồn mà không phải ghép nhiều chuỗi và viết `\n` liên tục. Text block là tính năng chính thức từ **Java 15**; các chương trình thực hành dưới đây dùng Java 17 trở lên.
+A **text block** is a way to declare a multiline `String` value in Java using a pair of **triple double-quote** delimiters `"""`. This syntax lets you place HTML, JSON, SQL, or long paragraphs directly into source code without concatenating multiple strings and repeatedly writing `\n`. Text blocks have been an official feature since **Java 15**; the runnable programs below use Java 17 or later.
 
-Điểm phải nhớ ngay từ đầu: dấu **mở** có quy tắc xuống dòng bắt buộc; dấu **đóng** linh hoạt hơn. Vị trí dấu đóng ảnh hưởng đến cả **ký tự xuống dòng cuối** và cách Java **loại bỏ thụt đầu dòng dư thừa**. Chúng ta cần phân biệt ký tự nằm trong *mã nguồn* với giá trị `String` thực sự được tạo ra.
+A key point to remember from the start: the **opening** delimiter has a mandatory newline rule; the **closing** delimiter is more flexible. The position of the closing delimiter affects both the **trailing newline** and how Java **strips excess leading indentation**. We need to distinguish characters written in *source code* from the actual `String` value produced.
 
-## 1. Cấu trúc của một text block
+## 1. Structure of a text block
 
-Một text block có dạng:
+A text block has the form:
 
 ~~~java
 String message = """
-    Dòng thứ nhất
-    Dòng thứ hai
+    First line
+    Second line
     """;
 ~~~
 
-Ba thành phần là:
+The three parts are:
 
-1. **Dấu mở `"""`**: đúng ba nháy kép, sau đó có thể có khoảng trắng ngang rồi **bắt buộc có ký tự kết thúc dòng**.
-2. **Phần nội dung**: bắt đầu **ngay sau** ký tự kết thúc dòng của dấu mở; có thể chứa nhiều dòng, dấu `"` đơn lẻ và các escape hợp lệ.
-3. **Dấu đóng `"""`**: ba nháy kép kết thúc nội dung, không bắt buộc ở một dòng riêng. Dấu `;` trong ví dụ là dấu kết thúc câu lệnh Java, **không phải** một phần của text block.
+1. **Opening delimiter `"""`**: exactly three double quotes, optionally followed by horizontal whitespace, then **a mandatory line terminator**.
+2. **Content body**: begins **immediately after** the opening delimiter's line terminator; can contain multiple lines, single `"` characters, and valid escapes.
+3. **Closing delimiter `"""`**: three double quotes ending the content, not required to be on its own line. The `;` in the example terminates the Java statement and is **not** part of the text block.
 
-Theo cú pháp Java, dấu mở gồm `"""`, **0 hoặc nhiều** ký tự space, tab hoặc form feed, rồi một line terminator (`LF`, `CR` hoặc `CRLF`). Các khoảng trắng ngang ngay sau dấu mở và ký tự xuống dòng bắt buộc của dấu mở **không thuộc nội dung chuỗi**. Một text block có thể chứa giá trị một dòng hoặc chuỗi rỗng, nhưng **cách viết dấu mở trong mã nguồn vẫn phải xuống dòng**.
+According to Java syntax, the opening delimiter consists of `"""`, **zero or more** space, tab, or form feed characters, and then a line terminator (`LF`, `CR`, or `CRLF`). The horizontal whitespace right after the opening delimiter and the mandatory newline of the opening delimiter **do not belong to the string content**. A text block can represent a single-line value or an empty string, yet **the opening delimiter in source code must still be followed by a line break**.
 
-### Ví dụ hợp lệ và không hợp lệ
+### Valid and invalid examples
 
-**Hợp lệ:**
+**Valid:**
 
 ~~~java
-// Đúng: nội dung bắt đầu từ dòng sau dấu mở.
+// Valid: content starts on the line after the opening delimiter.
 String greeting = """
-    Xin chào!
+    Hello!
     """;
 
-// Đúng: dấu đóng có thể ở cuối dòng cuối cùng của nội dung.
+// Valid: closing delimiter can be at the end of the last content line.
 String shortText = """
-    Xin chào!""";
+    Hello!""";
 
-// Đúng: không có ký tự nội dung nào giữa dấu mở và dấu đóng.
+// Valid: no content characters between the opening and closing delimiters.
 String empty = """
     """;
 ~~~
 
-**Không hợp lệ; các ví dụ sau chỉ minh họa lỗi cú pháp, không thể biên dịch:**
+**Invalid; the following examples only illustrate syntax errors and will not compile:**
 
 ~~~java
-// Sai: thiếu xuống dòng ngay sau dấu mở.
-String invalid1 = """Xin chào!""";
+// Invalid: missing line break immediately after the opening delimiter.
+String invalid1 = """Hello!""";
 
-// Sai: có nội dung cùng dòng với dấu mở.
-String invalid2 = """Dòng đầu
-    Dòng sau
+// Invalid: content appears on the same line as the opening delimiter.
+String invalid2 = """First line
+    Second line
     """;
 
-// Sai: chỉ có hai nháy kép để mở, tạo chuỗi thông thường bị lỗi.
+// Invalid: only two double quotes used to open, forming a broken regular string.
 String invalid3 = ""
-    Xin chào
+    Hello
     """;
 ~~~
 
-Đặt `"""` mở ở cuối dòng khai báo, thêm một lần xuống dòng rồi mới viết nội dung. Dù về mặt ngôn ngữ có thể thêm khoảng trắng sau `"""` mở, cách dễ đọc nhất là **không thêm dấu cách vô hình trên dòng mở**.
+Place the opening `"""` at the end of the declaration line, add a line break, and then write the content. Although the language allows whitespace after the opening `"""`, the most readable style is **not to add invisible spaces on the opening line**.
 
-## 2. Quy tắc dấu đóng và ký tự xuống dòng cuối
+## 2. Closing delimiter rules and the trailing newline
 
-Dấu **đóng** `"""` có hai vị trí thường dùng, và chúng tạo ra **hai giá trị khác nhau**.
+The **closing** `"""` has two common positions, and they produce **two different values**.
 
-### Trường hợp A: dấu đóng trên dòng riêng
+### Case A: closing delimiter on its own line
 
 ~~~java
 String withNewline = """
@@ -74,13 +74,13 @@ String withNewline = """
     """;
 ~~~
 
-Giá trị sau khi Java xử lý tương đương chuỗi truyền thống `"red\ngreen\n"`.
+The value after Java processes it is equivalent to the traditional string `"red\ngreen\n"`.
 
-- Dòng `red` kết thúc bằng `\n`.
-- Dòng `green` cũng kết thúc bằng `\n` vì trong mã nguồn **có xuống dòng trước dấu đóng**.
-- Dấu đóng tự nó **không sinh ký tự xuống dòng**; ký tự xuống dòng cuối xuất phát từ dòng nội dung trước dấu đóng.
+- The `red` line ends with `\n`.
+- The `green` line also ends with `\n` because in source code **there is a line break before the closing delimiter**.
+- The closing delimiter itself **does not generate a newline**; the final newline comes from the content line before the closing delimiter.
 
-### Trường hợp B: dấu đóng nằm ngay sau ký tự cuối nội dung
+### Case B: closing delimiter immediately after the last content character
 
 ~~~java
 String withoutNewline = """
@@ -88,16 +88,16 @@ String withoutNewline = """
     green""";
 ~~~
 
-Giá trị tương đương `"red\ngreen"`, **không** có `\n` ở cuối. Nội dung vẫn có hai dòng dù dấu đóng ở cuối dòng `green`. Tương tự:
+The value is equivalent to `"red\ngreen"`, **without** a trailing `\n`. The content still has two lines even though the closing delimiter is at the end of the `green` line. Similarly:
 
 ~~~java
 String oneLine = """
     hello""";
 ~~~
 
-Giá trị là đúng `"hello"`. Về **giá trị**, chuỗi này chỉ có một dòng; về **cú pháp**, dòng trống ngay sau `"""` mở vẫn là điều bắt buộc.
+The value is exactly `"hello"`. In terms of **value**, this string has only one line; in terms of **syntax**, the line break immediately after the opening `"""` is still mandatory.
 
-### Chương trình chạy được: kiểm tra chính xác dấu xuống dòng
+### Runnable program: inspecting exact newlines
 
 ~~~java
 // TextBlockDelimitersDemo.java
@@ -133,14 +133,14 @@ public class TextBlockDelimitersDemo {
 }
 ~~~
 
-Lưu thành `TextBlockDelimitersDemo.java`, chạy:
+Save as `TextBlockDelimitersDemo.java`, run:
 
 ~~~bash
 javac --release 17 TextBlockDelimitersDemo.java
 java TextBlockDelimitersDemo
 ~~~
 
-**Kết quả chuẩn** (ký tự `\` và `n` trong kết quả biểu diễn **một** xuống dòng đã được `visible()` chuyển thành hai ký tự dễ nhìn):
+**Exact output** (the characters `\` and `n` in the output represent **one** newline converted by `visible()` into two easy-to-see characters):
 
 ~~~text
 with = [red\ngreen\n]
@@ -149,34 +149,34 @@ one = [hello]
 empty = [(empty)]
 ~~~
 
-Không nên chỉ nhìn `System.out.println(withNewline)` để suy ra có `\n` cuối hay không: bản thân `println` cũng thêm xuống dòng khi in. Dùng `equals(...)`, `length()` hoặc hàm hiển thị escape như trên để kiểm tra chính xác.
+You should not rely solely on `System.out.println(withNewline)` to infer whether a trailing `\n` is present: `println` itself adds a newline when printing. Use `equals(...)`, `length()`, or an escape-display helper as above to check accurately.
 
-## 3. Dấu đóng có thể nằm ở đâu?
+## 3. Where can the closing delimiter be placed?
 
-Bảng sau lấy dấu mở ở dòng trước nội dung, và giả định khoảng thụt đầu dòng được Java xử lý như quy định:
+The following table assumes the opening delimiter is on the line before the content and that indentation is processed by Java according to the rules:
 
-| Cách đặt `"""` đóng | Có hợp lệ? | Hệ quả chính |
+| Placement of closing `"""` | Valid? | Main consequence |
 | --- | --- | --- |
-| Dòng riêng sau dòng nội dung cuối | Có | Thường có `\n` ở cuối giá trị; cột của dấu đóng tham gia xác định thụt đầu dòng |
-| Ngay sau chữ cuối của dòng nội dung | Có | Không có `\n` cuối, trừ khi nội dung chủ động tạo bằng escape |
-| Sau khoảng trắng trên dòng nội dung cuối | Có | Những khoảng trắng trước dấu đóng nằm trong phần nguồn; kết quả còn phụ thuộc quy tắc loại khoảng trắng cuối dòng |
-| Ở đầu một dòng riêng, sát lề trái | Có | Có thể bảo toàn khoảng trắng đầu dòng của các dòng nội dung |
-| Trong phần nội dung mà không được escape và tạo thành ba nháy kép liên tiếp | Kết thúc text block sớm | Phần mã sau đó có thể bị lỗi cú pháp hoặc chuỗi bị cắt ngoài ý muốn |
+| On its own line after the last content line | Yes | Usually includes `\n` at the end of the value; the closing delimiter's column participates in determining indentation |
+| Immediately after the last character of the content line | Yes | No trailing `\n`, unless explicitly created by an escape in the content |
+| After spaces on the last content line | Yes | Spaces before the closing delimiter are in the source; the result also depends on trailing-whitespace stripping rules |
+| At the start of its own line, flush with the left margin | Yes | Can preserve leading spaces on content lines |
+| Inside the content without escaping, forming three consecutive quotes | Ends the text block early | Subsequent code may cause syntax errors or the string may be truncated unexpectedly |
 
-**Dấu đóng là ba dấu `"` liền nhau**; không được chèn khoảng trắng giữa chúng. Java không bắt buộc dấu mở và dấu đóng thẳng cột. Trong thực tế, kiểu dễ đọc là đặt dấu mở ở cuối dòng khai báo, nội dung bên dưới, còn dấu đóng trên một dòng riêng thẳng với lề nội dung; khi cần bỏ `\n` cuối, cân nhắc đưa dấu đóng sát cuối nội dung.
+**The closing delimiter is three consecutive `"` characters**; no whitespace may be inserted between them. Java does not require the opening and closing delimiters to align in the same column. In practice, a readable style puts the opening delimiter at the end of the declaration line, the content below it, and the closing delimiter on its own line aligned with the content margin; when you need to omit the trailing `\n`, consider placing the closing delimiter right against the end of the content.
 
-Ví dụ dấu đóng sau một khoảng trắng thật:
+Example of a closing delimiter after a real space:
 
 ~~~java
 String value = """
-    Hi """; // Có một dấu cách ngay trước ba nháy kép đóng.
+    Hi """; // There is one space immediately before the closing triple quotes.
 ~~~
 
-Khoảng trắng trước dấu đóng ở dòng nội dung cuối là phần dữ liệu nguồn; nhưng dấu cách cuối dòng rất dễ bị công cụ format hoặc trình soạn thảo xóa. Nếu cần giữ chính xác khoảng trắng, hãy dùng escape `\s` như phần 5.
+Whitespace before the closing delimiter on the last content line is part of the source data; however, trailing spaces on lines are easily removed by formatters or editors. If you need to preserve whitespace precisely, use the `\s` escape as shown in section 5.
 
-## 4. Vị trí dấu đóng điều khiển thụt đầu dòng
+## 4. Closing delimiter position controls indentation
 
-Khi dấu đóng đứng **trên dòng riêng**, số khoảng trắng trước nó tham gia vào việc tính indentation chung cùng các dòng nội dung không trống. Vì vậy, dấu đóng dịch sang trái có thể làm tăng khoảng trắng được giữ ở đầu chuỗi. Ví dụ:
+When the closing delimiter stands **on its own line**, the number of spaces before it participates in computing the common indentation alongside non-blank content lines. Therefore, shifting the closing delimiter to the left can increase the spaces kept at the start of the string. For example:
 
 ~~~java
 String aligned = """
@@ -191,11 +191,11 @@ System.out.println(aligned.equals("alpha\n  beta\n")); // true
 System.out.println(preservedIndent.equals("    alpha\n      beta\n")); // true
 ~~~
 
-Ở biến thứ nhất, mức thụt chung là tám dấu cách; ở biến thứ hai, dấu đóng chỉ thụt bốn dấu cách nên mỗi dòng giữ lại thêm bốn. Khi dấu đóng sát nội dung cuối, không có dòng dấu đóng riêng làm mốc thụt lề. Bài **Khoảng trắng thụt lề ngẫu nhiên và vị trí dấu đóng** đi sâu vào thuật toán, dấu cách còn lại, tab và các trường hợp kiểm chứng.
+In the first variable, the common indentation is eight spaces; in the second variable, the closing delimiter is only indented four spaces, so each line retains an extra four spaces. When the closing delimiter is right against the end of the last content line, there is no separate closing-delimiter line acting as an indentation reference. The lesson **Incidental indentation whitespace and closing delimiter position** dives deeper into the algorithm, remaining spaces, tabs, and verification cases.
 
-## 5. Nội dung có dấu ngoặc kép và dấu ba nháy kép
+## 5. Content with double quotes and triple double quotes
 
-Trong text block, dấu `"` đơn lẻ và cặp `""` **thường không cần escape**. Ví dụ:
+Inside a text block, single `"` and pairs `""` **normally do not need escaping**. For example:
 
 ~~~java
 String json = """
@@ -203,9 +203,9 @@ String json = """
     """;
 ~~~
 
-Giá trị chuỗi có JSON trên kèm `\n` cuối. Đây chỉ là `String`: trình biên dịch Java **không tự phân tích hay kiểm tra JSON**.
+The string value contains the JSON above followed by a trailing `\n`. This is just a `String`: the Java compiler **does not parse or validate JSON**.
 
-Ngược lại, **ba dấu nháy kép liền nhau trong nội dung** có thể bị hiểu là **dấu đóng**. Để biểu diễn chúng như dữ liệu, hãy escape ít nhất một dấu `"` bằng `\"`, hoặc escape cả ba cho rõ:
+By contrast, **three consecutive double quotes inside the content** can be interpreted as **the closing delimiter**. To represent them as data, escape at least one `"` using `\"`, or escape all three for clarity:
 
 ~~~java
 String literalTripleQuotes = """
@@ -213,24 +213,24 @@ String literalTripleQuotes = """
     """;
 ~~~
 
-Giá trị kết quả là **ba dấu nháy kép** rồi `\n`. Các dấu `\` phía trước `"` chỉ là cú pháp escape của mã nguồn, **không xuất hiện trong kết quả**.
+The resulting value is **three double quotes** followed by `\n`. The `\` characters in front of `"` are only source-code escape syntax and **do not appear in the result**.
 
-Ví dụ khi cần giữ một đoạn Java chứa ký hiệu ba nháy kép, phải đánh dấu escape tại đúng nơi có khả năng kết thúc text block sớm. Không giải quyết bằng cách chèn khoảng trắng giả giữa ba dấu nháy nếu dữ liệu đầu ra yêu cầu chúng liền nhau.
+For example, when you need to preserve a Java snippet containing triple double quotes, you must place an escape right where it could prematurely terminate the text block. Do not work around this by inserting fake spaces between the three quotes if the output data requires them to be adjacent.
 
-## 6. Xuống dòng, khoảng trắng cuối dòng và escape quanh dấu đóng
+## 6. Newlines, trailing spaces, and escapes around the closing delimiter
 
-Trước khi tạo giá trị `String`, Java chuẩn hóa line terminator trong text block thành `\n`, loại thụt đầu dòng dư thừa và khoảng trắng cuối dòng, rồi mới xử lý escape. Một vài escape có ích:
+Before producing the `String` value, Java normalizes line terminators in a text block to `\n`, removes incidental indentation and trailing whitespace on lines, and only then processes escapes. Several useful escapes:
 
-| Cú pháp trong nội dung text block | Tác dụng |
+| Syntax in text block content | Effect |
 | --- | --- |
-| `\n` | Chủ động chèn ký tự LF |
-| `\t` | Chèn tab |
-| `\s` | Chèn một dấu cách, thường dùng để **giữ khoảng trắng cuối dòng** |
-| `\\` | Chèn một dấu backslash |
-| `\"` | Chèn dấu nháy kép, cần khi tránh dấu đóng ba nháy kép |
-| Dấu `\` ngay trước line terminator | **Nối dòng**: loại bỏ line terminator đó trong kết quả |
+| `\n` | Explicitly inserts an LF character |
+| `\t` | Inserts a tab |
+| `\s` | Inserts a single space, often used to **preserve trailing whitespace on a line** |
+| `\\` | Inserts a single backslash |
+| `\"` | Inserts a double quote, needed to avoid closing triple double quotes |
+| `\` immediately before a line terminator | **Line continuation**: omits that line terminator from the result |
 
-Ví dụ dùng dấu `\` cuối dòng để nối hai dòng nội dung:
+Example using `\` at the end of a line to join two content lines:
 
 ~~~java
 String joined = """
@@ -238,9 +238,9 @@ String joined = """
     second""";
 ~~~
 
-Giá trị bằng `"firstsecond"`: dấu `\` cuối dòng loại bỏ xuống dòng vật lý giữa hai phần, và dấu đóng nằm sát `second` nên không còn `\n` cuối.
+The value equals `"firstsecond"`: `\` at the end of the line removes the physical newline between the two parts, and the closing delimiter is right after `second` so there is no trailing `\n`.
 
-Ví dụ giữ dấu cách ở cuối dòng bằng `\s`:
+Example preserving a space at the end of a line with `\s`:
 
 ~~~java
 String withTrailingSpace = """
@@ -248,9 +248,9 @@ String withTrailingSpace = """
     B""";
 ~~~
 
-Giá trị tương đương `"A \nB"`: sau `A` có **một dấu cách**, rồi xuống dòng, rồi `B`. Khoảng trắng vô hình do nhấn phím space ngay trước xuống dòng có thể bị xóa trong bước xử lý text block; escape `\s` diễn đạt ý định ổn định hơn.
+The value is equivalent to `"A \nB"`: after `A` there is **one space**, then a newline, then `B`. Invisible whitespace typed with the spacebar right before a line break can be stripped during text block processing; the `\s` escape expresses the intent more reliably.
 
-Nếu muốn chắc chắn kết quả **không** có xuống dòng cuối, có thể chọn đóng sát nội dung như ở phần 2, hoặc sử dụng escape nối dòng trước dấu đóng riêng khi cách trình bày dễ hiểu hơn:
+If you want to ensure the result has **no** trailing newline, you can close right against the content as in section 2, or use a line-continuation escape before a closing delimiter on its own line when that layout is easier to read:
 
 ~~~java
 String noFinalNewline = """
@@ -259,15 +259,15 @@ String noFinalNewline = """
     """;
 ~~~
 
-Giá trị bằng `"red\ngreen"`. Các hình thức này hữu ích khi SQL/JSON/template phía nhận phân biệt chính xác dấu xuống dòng.
+The value equals `"red\ngreen"`. These forms are helpful when a downstream SQL/JSON/template consumer is sensitive to exact newline characters.
 
-## 7. Quy tắc thực hành: chọn nơi đặt dấu đóng
+## 7. Practical rules: choosing where to place the closing delimiter
 
-**Ưu tiên dấu đóng trên dòng riêng** nếu chuỗi là tài liệu, đoạn SQL hoặc HTML nhiều dòng mà một dấu `\n` cuối không gây vấn đề. Giữ indent của dấu đóng thẳng với phần nội dung bắt đầu, sau khi xét mức thụt mong muốn. Kiểu này dễ đọc và dễ thêm dòng.
+**Prefer placing the closing delimiter on its own line** if the string is a document, SQL query, or multiline HTML block where a trailing `\n` causes no issue. Keep the closing delimiter's indentation aligned with where the content begins, after considering the desired indentation. This style is easy to read and easy to add lines to.
 
-**Đóng sát ký tự cuối nội dung** khi bạn muốn bỏ dấu `\n` cuối một cách trực quan, ví dụ giá trị một dòng hoặc đoạn ngắn. Lưu ý cách này có thể ảnh hưởng đến thụt lề khi phần nội dung có nhiều dòng.
+**Close immediately after the last character of content** when you want to omit the trailing `\n` visually, such as for a single-line value or short snippet. Keep in mind that this choice can affect indentation when the content has multiple lines.
 
-**Không di chuyển tùy tiện dấu đóng lúc format code**. Cấu trúc hiển thị của text block có thể thay đổi dữ liệu khi dấu đóng chuyển cột, khác với thao tác chỉ căn lề biểu thức Java thông thường. Với chuỗi mà khoảng trắng có ý nghĩa (snapshot, giao thức văn bản, dữ liệu test), nên khẳng định giá trị bằng phép so sánh:
+**Do not move the closing delimiter arbitrarily when formatting code.** The visual layout of a text block can alter its data when the closing delimiter changes columns, unlike ordinary re-indenting of regular Java expressions. For strings where whitespace is significant (snapshots, text protocols, test fixtures), assert the value by comparing directly:
 
 ~~~java
 String expected = "red\ngreen\n";
@@ -278,24 +278,24 @@ String actual = """
 System.out.println(expected.equals(actual)); // true
 ~~~
 
-Ở đây `equals` giúp phát hiện cả những sai khác không nhìn thấy trong IDE; kết quả dự kiến là `true`.
+Here `equals` catches even differences invisible in an IDE; the expected output is `true`.
 
-## 8. Lỗi phổ biến
+## 8. Common mistakes
 
-1. **Đặt chữ ngay sau `"""` mở**: `"""hello` không hợp lệ. Dấu mở bắt buộc kết thúc bằng một line terminator trước nội dung.
-2. **Hiểu nhầm xuống dòng mở thành ký tự `\n` đầu chuỗi**: ký tự xuống dòng ngay sau dấu mở là một phần của **dấu phân định**, không phải dữ liệu. Chuỗi không tự bắt đầu bằng dòng trống.
-3. **Nghĩ dấu đóng lúc nào cũng phải trên dòng riêng**: dấu đóng được phép sát nội dung cuối; điều này thường dùng để bỏ `\n` cuối.
-4. **Nghĩ dấu đóng tự tạo `\n`**: ký tự xuống dòng cuối đến từ phần nội dung ngay trước dấu đóng. Đổi vị trí dấu đóng có thể làm nó biến mất.
-5. **Căn lại dấu đóng mà không kiểm tra dữ liệu**: cột dấu đóng riêng có thể quyết định mức thụt lề bị loại bỏ; nội dung thu được đổi dù các chữ vẫn giống nhau.
-6. **Đưa `"""` nguyên văn vào dữ liệu**: ba nháy kép không escape có thể đóng text block ngoài ý muốn. Escape ít nhất một nháy kép.
-7. **Giữ dấu cách cuối dòng bằng khoảng trắng gõ tay**: compiler loại bỏ trailing whitespace dư thừa. Dùng `\s` nếu dấu cách đó thực sự có ý nghĩa.
-8. **Lẫn text block với template hay parser**: Java text block là `String` thường, không tự nội suy biến, không kiểm chứng JSON/HTML/SQL và không tự bảo vệ dữ liệu khi ghép vào truy vấn SQL.
-9. **Tưởng `"""x"""` là text block một dòng hợp lệ**: dù kết quả có thể chỉ một dòng, hình thức khai báo vẫn cần xuống dòng sau ba nháy kép mở.
-10. **Đọc output của `println` như nội dung gốc**: `println` luôn thêm dấu xuống dòng riêng khi in, khiến ta khó phân biệt chuỗi có `\n` cuối hay không.
+1. **Placing text immediately after the opening `"""`**: `"""hello` is invalid. The opening delimiter must end with a line terminator before the content.
+2. **Mistaking the opening newline for a leading `\n` in the string**: the newline right after the opening delimiter is part of the **delimiter**, not data. The string does not automatically begin with a blank line.
+3. **Thinking the closing delimiter must always be on its own line**: the closing delimiter is allowed right against the end of the content; this is commonly used to omit the trailing `\n`.
+4. **Thinking the closing delimiter creates `\n` by itself**: the trailing newline comes from the content immediately preceding the closing delimiter. Changing where the closing delimiter sits can make it disappear.
+5. **Re-aligning the closing delimiter without checking the data**: the column of a standalone closing delimiter can dictate how much indentation is stripped; the resulting content changes even though the words stay the same.
+6. **Putting literal `"""` into data**: three unescaped double quotes can close the text block prematurely. Escape at least one double quote.
+7. **Keeping trailing spaces by typing literal spaces**: the compiler removes incidental trailing whitespace. Use `\s` if that space truly matters.
+8. **Confusing text blocks with a template or parser**: a Java text block is a plain `String`; it does not interpolate variables, validate JSON/HTML/SQL, or protect data concatenated into SQL queries.
+9. **Thinking `"""x"""` is a valid single-line text block**: even if the result has only one line, the declaration syntax still requires a line break after the opening triple quotes.
+10. **Reading `println` output as raw content**: `println` always appends its own newline when printing, making it hard to tell whether a string ends with `\n`.
 
-## 9. Bài luyện tập tự kiểm tra
+## 9. Self-check exercises
 
-**Bài 1.** Xác định hai khai báo sau có hợp lệ không, và nêu giá trị chính xác:
+**Exercise 1.** Determine whether the following two declarations are valid, and state their exact values:
 
 ~~~java
 String a = """
@@ -307,9 +307,9 @@ String b = """
     two""";
 ~~~
 
-**Đáp án:** Cả hai hợp lệ. `a` bằng `"one\ntwo\n"`, `b` bằng `"one\ntwo"`. Hai giá trị khác nhau vì `a` có xuống dòng trước dấu đóng.
+**Answer:** Both are valid. `a` equals `"one\ntwo\n"`, and `b` equals `"one\ntwo"`. The two values differ because `a` has a line break before the closing delimiter.
 
-**Bài 2.** Vì sao khai báo này báo lỗi?
+**Exercise 2.** Why does this declaration report an error?
 
 ~~~java
 String c = """hello
@@ -317,11 +317,11 @@ String c = """hello
     """;
 ~~~
 
-**Đáp án:** Dấu mở không được theo sau trực tiếp bởi chữ `hello`. Cần xuống dòng ngay sau `"""` mở trước khi viết chữ đầu tiên.
+**Answer:** The opening delimiter cannot be followed directly by the word `hello`. A line break is required immediately after the opening `"""` before writing the first word.
 
-**Bài 3.** Muốn tạo đúng `String` gồm ba dấu nháy kép liền nhau, theo sau bởi `\n`, bạn viết thế nào?
+**Exercise 3.** How do you write a `String` consisting of exactly three consecutive double quotes followed by `\n`?
 
-**Đáp án mẫu:**
+**Sample answer:**
 
 ~~~java
 String d = """
@@ -329,17 +329,17 @@ String d = """
     """;
 ~~~
 
-**Bài 4.** Một người chỉ di chuyển dấu `"""` đóng sang trái trong khối có nhiều dòng. Có thể gây khác biệt gì?
+**Exercise 4.** Someone moves only the closing `"""` to the left in a multiline block. What difference can that cause?
 
-**Đáp án:** Mức thụt đầu dòng bị Java loại bỏ có thể giảm; chuỗi kết quả sẽ có **thêm dấu cách đầu dòng** dù chữ không đổi. Hãy so sánh `equals(...)` hoặc dùng hàm biểu diễn khoảng trắng để kiểm tra.
+**Answer:** The amount of leading indentation stripped by Java may decrease; the resulting string will have **extra leading spaces** even though the words did not change. Compare with `equals(...)` or use a helper that prints whitespace visibly to verify.
 
-## 10. Ghi nhớ và tài liệu tra cứu
+## 10. Takeaways and references
 
-- **Mở:** `"""` + tùy chọn khoảng trắng ngang + **bắt buộc xuống dòng**; nội dung bắt đầu ở dòng sau.
-- **Đóng:** `"""` **có thể ở dòng riêng hoặc cùng dòng với nội dung cuối**.
-- **Dòng riêng:** thường tạo giá trị chứa `\n` cuối vì phần nội dung có xuống dòng trước dấu đóng.
-- **Cùng dòng:** thường không có `\n` cuối; cột dấu đóng riêng không tham gia phép tính thụt đầu dòng.
-- **Ba nháy kép trong dữ liệu:** dùng escape, chẳng hạn `\"\"\"`.
-- **Khoảng trắng:** vị trí dấu đóng có thể ảnh hưởng indentation; `\s` giữ dấu cách cuối dòng, dấu `\` ngay trước line terminator có thể nối hai dòng.
+- **Opening:** `"""` + optional horizontal whitespace + **mandatory line break**; content begins on the next line.
+- **Closing:** `"""` **may be on its own line or on the same line as the final content**.
+- **Own line:** usually produces a value containing a trailing `\n` because the content has a line break before the closing delimiter.
+- **Same line:** usually has no trailing `\n`; no standalone closing-delimiter column participates in indentation calculation.
+- **Triple double quotes in data:** use escapes, such as `\"\"\"`.
+- **Whitespace:** the closing delimiter's position can affect indentation; `\s` preserves trailing spaces, and `\` immediately before a line terminator joins two lines.
 
-Tham khảo thêm: [Java Language Specification, §3.10.6 — Text Blocks](https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.10.6) và [Oracle Programmer’s Guide to Text Blocks](https://docs.oracle.com/en/java/javase/21/text-blocks/index.html). Hai tài liệu mô tả chính xác các dấu phân định và quy tắc xử lý khoảng trắng khi cần kiểm tra tình huống biên.
+Further reading: [Java Language Specification, §3.10.6 — Text Blocks](https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.10.6) and [Oracle Programmer’s Guide to Text Blocks](https://docs.oracle.com/en/java/javase/21/text-blocks/index.html). Both documents specify the exact delimiter and whitespace-processing rules when checking edge cases.

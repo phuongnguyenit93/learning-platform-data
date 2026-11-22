@@ -1,61 +1,61 @@
-# `char` là số nguyên không dấu biểu diễn đơn vị mã UTF-16
+# `char` as an Unsigned Integer Representing a UTF-16 Code Unit
 
-## 1. Vì sao `char` thuộc nhóm kiểu số nguyên?
+## 1. Why Does `char` Belong to the Integral Types?
 
-Trong Java, `char` là một **kiểu nguyên thủy (*primitive*) 16 bit không dấu**, có miền giá trị nguyên **0 đến 65.535** (tương ứng `0x0000` đến `0xFFFF`). Đặc tả ngôn ngữ xếp `char` vào nhóm *integral types* cùng `byte`, `short`, `int` và `long`. `Character.SIZE` bằng `16`, `Character.MIN_VALUE` bằng `'\u0000'` (giá trị nguyên 0), còn `Character.MAX_VALUE` bằng `'\uFFFF'` (giá trị nguyên 65.535).
+In Java, `char` is a **16-bit unsigned primitive type** with an integer value range of **0 to 65,535** (corresponding to `0x0000` to `0xFFFF`). The language specification classifies `char` among the *integral types* alongside `byte`, `short`, `int`, and `long`. `Character.SIZE` is `16`, `Character.MIN_VALUE` is `'\u0000'` (integer value 0), and `Character.MAX_VALUE` is `'\uFFFF'` (integer value 65,535).
 
-Tuy nhiên, mục đích chính của `char` **không phải lưu một số đếm**. Mỗi giá trị `char` được hiểu là **một đơn vị mã (*code unit*) UTF-16**. Nó có thể biểu diễn ký tự thường gặp như `'A'`, `'7'`, `'中'` hoặc một phần của cặp thay thế (*surrogate pair*). Đặc điểm “số nguyên không dấu” giải thích cách Java lưu, so sánh và thực hiện phép toán với kiểu này; đặc điểm “đơn vị mã UTF-16” giải thích **nó biểu diễn phần nào của văn bản Unicode**.
+However, the primary purpose of `char` is **not to store a count**. Each `char` value is interpreted as **one UTF-16 code unit**. It can represent a common character such as `'A'`, `'7'`, `'中'`, or half of a *surrogate pair*. Its “unsigned integer” nature explains how Java stores, compares, and performs arithmetic on this type; its “UTF-16 code unit” nature explains **what part of Unicode text it represents**.
 
-Ba khái niệm phải phân biệt:
+Three concepts must be distinguished:
 
-- **Giá trị số của `char`:** một số nguyên từ 0 đến 65.535.
-- **Đơn vị mã UTF-16:** một phần tử 16 bit của chuỗi UTF-16; chính là thứ `char` biểu diễn.
-- **Ký tự Unicode theo mã điểm (*code point*):** một giá trị Unicode từ `U+0000` đến `U+10FFFF`, trừ khoảng surrogate không phải *Unicode scalar value*. Nhiều mã điểm cần **hai** đơn vị mã UTF-16, nên không thể chứa trọn trong một `char`.
+- **Numeric value of `char`:** an integer from 0 to 65,535.
+- **UTF-16 code unit:** a 16-bit element of a UTF-16 sequence; this is what `char` directly represents.
+- **Unicode character by code point:** a Unicode value from `U+0000` to `U+10FFFF`, excluding the surrogate range that is not a *Unicode scalar value*. Many code points require **two** UTF-16 code units, so they cannot fit into a single `char`.
 
-Chẳng hạn, `'A'` vừa là một `char` mang giá trị nguyên 65, vừa là một đơn vị mã UTF-16 biểu diễn mã điểm `U+0041`. Trong khi đó, biểu tượng 😀 (`U+1F600`) cần **hai** giá trị `char`: `0xD83D` và `0xDE00`. Do đó, khẳng định “một `char` luôn là một ký tự Unicode hoàn chỉnh” là **sai**.
+For example, `'A'` is both a `char` carrying the integer value 65 and a UTF-16 code unit representing the code point `U+0041`. Meanwhile, the emoji 😀 (`U+1F600`) requires **two** `char` values: `0xD83D` and `0xDE00`. Therefore, the claim that “one `char` is always one complete Unicode character” is **false**.
 
-## 2. Miền giá trị và hành vi số học
+## 2. Value Range and Arithmetic Behavior
 
-### 2.1. Không dấu khác gì `byte`, `short`?
+### 2.1. How Does Unsigned Differ from `byte` and `short`?
 
-`byte` và `short` là các số nguyên **có dấu** 8 và 16 bit, có thể nhận giá trị âm. `char` cũng có 16 bit nhưng **không dấu**:
+`byte` and `short` are 8-bit and 16-bit **signed** integers, which can hold negative values. `char` also has 16 bits, but is **unsigned**:
 
-| Kiểu | Số bit | Giá trị nhỏ nhất | Giá trị lớn nhất | Mục đích chính |
+| Type | Bits | Minimum Value | Maximum Value | Primary Purpose |
 |---|---:|---:|---:|---|
-| `byte` | 8 | −128 | 127 | Số nguyên nhỏ, dữ liệu byte |
-| `short` | 16 | −32.768 | 32.767 | Số nguyên có dấu 16 bit |
-| `char` | 16 | 0 | 65.535 | Đơn vị mã UTF-16 |
-| `int` | 32 | −2.147.483.648 | 2.147.483.647 | Số nguyên thông thường |
+| `byte` | 8 | −128 | 127 | Small integers, byte data |
+| `short` | 16 | −32,768 | 32,767 | 16-bit signed integers |
+| `char` | 16 | 0 | 65,535 | UTF-16 code unit |
+| `int` | 32 | −2,147,483,648 | 2,147,483,647 | General-purpose integers |
 
-Điều này có nghĩa `char` **không tự biểu diễn số âm**. Không thể gán biến `char` từ giá trị `-1` bằng phép gán thu hẹp ngầm định. Khi ép kiểu `(char) -1`, kết quả có giá trị số `65535` (giữ 16 bit thấp), không phải một `char` âm. Việc ép kiểu như vậy là chuyển đổi số học, không tạo ra một ký tự văn bản hợp lệ theo nhu cầu sử dụng.
+This means `char` **does not natively represent negative numbers**. You cannot assign `-1` to a `char` variable via an implicit narrowing assignment. When casting `(char) -1`, the result has numeric value `65535` (keeping the low 16 bits), not a negative `char`. Such a cast is an arithmetic conversion and does not produce a valid text character for ordinary use.
 
-### 2.2. `char` tham gia phép toán số như thế nào?
+### 2.2. How Does `char` Participate in Numeric Operations?
 
-Trong đa số phép toán số học, Java thực hiện *binary numeric promotion*, chuyển `char` thành `int` trước khi tính:
+In most arithmetic operations, Java performs *binary numeric promotion*, converting `char` to `int` before computing:
 
 ~~~java
 char letter = 'A';
 int code = letter;           // widening conversion: 65
-int nextCode = letter + 1;   // phép cộng có kiểu int: 66
-char next = (char) (letter + 1); // ép lại char: 'B'
+int nextCode = letter + 1;   // addition has type int: 66
+char next = (char) (letter + 1); // cast back to char: 'B'
 ~~~
 
-Đoạn trên là **minh họa** (không phải chương trình chạy độc lập). Chú ý `char next = letter + 1;` **không biên dịch** nếu `letter` là biến `char`: biểu thức `letter + 1` có kiểu `int` và phải chuyển đổi thu hẹp một cách tường minh. Đừng suy từ việc `char` là kiểu số nguyên rằng mọi kết quả phép cộng vẫn có kiểu `char`.
+The snippet above is **illustrative** (not a standalone runnable program). Note that `char next = letter + 1;` **does not compile** if `letter` is a `char` variable: the expression `letter + 1` has type `int` and requires an explicit narrowing conversion. Do not infer from `char` being an integral type that every arithmetic result stays `char`.
 
-Một biểu thức hằng có thể là ngoại lệ của quy tắc gán: `char capitalA = 65;` hoặc `char capitalA = '\u0041';` đều hợp lệ vì giá trị hằng nằm trong miền của `char`. Nhưng `int number = 65; char letter = number;` không hợp lệ nếu không ép kiểu, dù giá trị lúc chạy vẫn là 65.
+A constant expression can be an exception to the assignment rule: `char capitalA = 65;` or `char capitalA = '\u0041';` are both valid because the constant value fits within the `char` range. However, `int number = 65; char letter = number;` is invalid without a cast, even though the runtime value is 65.
 
-Khi so sánh `char` bằng `<`, `>`, `==`, Java so sánh **giá trị số/đơn vị mã**, không thực hiện quy tắc sắp xếp từ điển của một ngôn ngữ. Ví dụ, `'A' < 'a'` là `true` vì 65 nhỏ hơn 97; điều đó không có nghĩa đây là cách sắp xếp tên người, văn bản tiếng Việt hoặc chuỗi theo `Locale`. Với sắp xếp ngôn ngữ tự nhiên, xem `Collator` thay cho phép so sánh từng `char`.
+When comparing `char` values with `<`, `>`, or `==`, Java compares their **numeric/code-unit values**, not a natural language's collation rules. For example, `'A' < 'a'` is `true` because 65 is less than 97; that does not mean it is the right way to sort people's names, Vietnamese text, or `Locale`-sensitive strings. For natural language sorting, use `Collator` instead of comparing individual `char`s.
 
-### 2.3. Ví dụ độc lập: nhìn thấy giá trị số
+### 2.3. Standalone Example: Observing Numeric Values
 
-Tạo tệp `CharIntegralDemo.java`:
+Create the file `CharIntegralDemo.java`:
 
 ~~~java
 public class CharIntegralDemo {
     public static void main(String[] args) {
         char letter = 'A';
         char digit = '7';
-        char han = '\u4E2D'; // U+4E2D: chữ 中
+        char han = '\u4E2D'; // U+4E2D: the character 中
         char max = Character.MAX_VALUE;
 
         System.out.println("bits=" + Character.SIZE);
@@ -70,14 +70,14 @@ public class CharIntegralDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac CharIntegralDemo.java
 java CharIntegralDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 bits=16
@@ -89,48 +89,48 @@ A+1=66
 next=B
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `Character.SIZE` cho biết kích thước logic 16 bit của `char`; không có nghĩa mỗi ký tự trong file luôn chiếm đúng hai byte. Mã hóa văn bản trên đĩa có thể là UTF-8 hoặc mã hóa khác.
-2. `'A'` có giá trị nguyên 65; `'\u4E2D'` có giá trị nguyên 20.013.
-3. `'7'` có giá trị mã 55, **không phải** số nguyên 7. Phép `'7' - '0'` cho 7 vì chữ số ASCII liên tiếp; kỹ thuật này chỉ nên dùng khi đầu vào chắc chắn là `'0'` đến `'9'`.
-4. `letter + 1` có kiểu `int` nên in `66`; ép về `char` mới in `B`.
+1. `Character.SIZE` gives the logical 16-bit width of `char`; it does not mean every character in a file always takes exactly two bytes. Text encoding on disk may be UTF-8 or another encoding.
+2. `'A'` has integer value 65; `'\u4E2D'` has integer value 20,013.
+3. `'7'` has code value 55, **not** integer 7. `'7' - '0'` gives 7 because ASCII digits are consecutive; this technique should only be used when input is guaranteed to be `'0'` through `'9'`.
+4. `letter + 1` has type `int` so it prints `66`; casting back to `char` prints `B`.
 
-## 3. UTF-16: đơn vị mã, mã điểm và cặp surrogate
+## 3. UTF-16: Code Units, Code Points, and Surrogate Pairs
 
-### 3.1. Unicode code point không đồng nhất với `char`
+### 3.1. Unicode Code Points Are Not Identical to `char`
 
-Unicode gán **mã điểm (*code point*)** cho các thành phần văn bản; cách mã hóa **UTF-16** dùng một hoặc hai đơn vị mã 16 bit cho mỗi *Unicode scalar value*.
+Unicode assigns **code points** to text elements; the **UTF-16** encoding uses one or two 16-bit code units for each *Unicode scalar value*.
 
-- Trong **BMP** (*Basic Multilingual Plane*, `U+0000`–`U+FFFF`), các mã điểm **ngoài vùng surrogate** được biểu diễn bằng **một** đơn vị mã, tương ứng một `char`. Ví dụ: `U+0041` (`A`), `U+00E9` (`é`), `U+4E2D` (`中`).
-- Các mã điểm thuộc **supplementary planes**, từ `U+10000` đến `U+10FFFF`, cần **hai** đơn vị mã UTF-16: một *high surrogate* và một *low surrogate*. Ví dụ: 😀 `U+1F600` = `D83D DE00`.
-- Vùng `U+D800`–`U+DFFF` được dành riêng cho surrogate. Đây là các giá trị **hợp lệ của kiểu `char`**, nhưng bản thân mỗi giá trị **không phải một Unicode scalar value độc lập**.
+- Within the **BMP** (*Basic Multilingual Plane*, `U+0000`–`U+FFFF`), code points **outside the surrogate range** are represented by **one** code unit, corresponding to one `char`. For example: `U+0041` (`A`), `U+00E9` (`é`), `U+4E2D` (`中`).
+- Code points in the **supplementary planes**, from `U+10000` to `U+10FFFF`, require **two** UTF-16 code units: a *high surrogate* and a *low surrogate*. For example: 😀 `U+1F600` = `D83D DE00`.
+- The range `U+D800`–`U+DFFF` is reserved for surrogates. These are **valid values of type `char`**, yet each by itself **is not an independent Unicode scalar value**.
 
-| Phạm vi đơn vị mã | Vai trò |
+| Code Unit Range | Role |
 |---|---|
-| `0000`–`D7FF` | Một mã điểm BMP ngoài surrogate |
-| `D800`–`DBFF` | **High surrogate**: nửa đầu của cặp |
-| `DC00`–`DFFF` | **Low surrogate**: nửa sau của cặp |
-| `E000`–`FFFF` | Một mã điểm BMP ngoài surrogate |
+| `0000`–`D7FF` | One BMP code point outside surrogates |
+| `D800`–`DBFF` | **High surrogate**: first half of a pair |
+| `DC00`–`DFFF` | **Low surrogate**: second half of a pair |
+| `E000`–`FFFF` | One BMP code point outside surrogates |
 
-Chữ “đơn vị mã” mô tả cấu trúc biểu diễn. Một phần tử `char` giữ mã `0xD83D` hoàn toàn hợp lệ về mặt kiểu Java, nhưng không đại diện riêng lẻ cho biểu tượng 😀. Muốn làm việc với mã điểm `U+1F600`, nên dùng `int`.
+The term “code unit” describes the representation structure. A `char` element holding `0xD83D` is completely valid as a Java type, yet does not stand alone for the emoji 😀. To work with the code point `U+1F600`, use `int`.
 
-### 3.2. Cơ chế ghép hai đơn vị mã
+### 3.2. Mechanism for Combining Two Code Units
 
-Đối với mã điểm `U` từ `0x10000` đến `0x10FFFF`, đặt `U' = U - 0x10000`:
+For a code point `U` from `0x10000` to `0x10FFFF`, let `U' = U - 0x10000`:
 
 - High surrogate = `0xD800 + (U' >>> 10)`.
 - Low surrogate = `0xDC00 + (U' & 0x3FF)`.
 
-Với `U+1F600`, `U' = 0xF600`, high surrogate `0xD83D` và low surrogate `0xDE00`. Thực tế, dùng API `Character.toChars(codePoint)` để tạo cặp và `Character.toCodePoint(high, low)` để khôi phục mã điểm; không nên tự viết công thức trừ khi đang xây dựng thư viện mã hóa.
+For `U+1F600`, `U' = 0xF600`, giving high surrogate `0xD83D` and low surrogate `0xDE00`. In practice, use the APIs `Character.toChars(codePoint)` to create the pair and `Character.toCodePoint(high, low)` to recover the code point; do not hand-write the formula unless you are building an encoding library.
 
-Java cung cấp `Character.isHighSurrogate(char)`, `Character.isLowSurrogate(char)`, `Character.isSurrogatePair(char, char)`, `Character.isSupplementaryCodePoint(int)` và `Character.charCount(int)` để kiểm tra và thao tác đúng.
+Java provides `Character.isHighSurrogate(char)`, `Character.isLowSurrogate(char)`, `Character.isSurrogatePair(char, char)`, `Character.isSupplementaryCodePoint(int)`, and `Character.charCount(int)` to inspect and manipulate them properly.
 
-### 3.3. Vì sao một ký tự biểu tượng làm `String.length()` tăng 2?
+### 3.3. Why Does One Emoji Increase `String.length()` by 2?
 
-Trong Java, `String.length()` trả về **số đơn vị mã UTF-16**, không phải số mã điểm và càng không bảo đảm bằng số ký tự hiển thị. `String.charAt(index)` lấy **một** đơn vị mã; `String.codePointAt(index)` lấy mã điểm bắt đầu ở chỉ số UTF-16 tương ứng và ghép cặp surrogate hợp lệ khi có thể.
+In Java, `String.length()` returns **the number of UTF-16 code units**, not the number of code points and certainly not guaranteed to equal the number of visible characters. `String.charAt(index)` retrieves **one** code unit; `String.codePointAt(index)` retrieves the code point starting at that UTF-16 index and combines a valid surrogate pair when possible.
 
-Ví dụ độc lập, tạo tệp `Utf16PairDemo.java`:
+Standalone example, create the file `Utf16PairDemo.java`:
 
 ~~~java
 public class Utf16PairDemo {
@@ -159,7 +159,7 @@ javac Utf16PairDemo.java
 java Utf16PairDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 units=4
@@ -171,36 +171,36 @@ pointUnits=2
 sameSmile=true
 ~~~
 
-Chuỗi có ba mã điểm `A`, 😀, `Z` nhưng bốn đơn vị mã: `0041 D83D DE00 005A`. Chỉ số `1` và `2` cùng thuộc **một** mã điểm 😀. `text.substring(1, 3)` lấy đủ hai đơn vị mã, còn `substring(1, 2)` chỉ lấy high surrogate và tạo chuỗi không chứa biểu tượng hoàn chỉnh.
+The string has three code points `A`, 😀, `Z` but four code units: `0041 D83D DE00 005A`. Indices `1` and `2` belong together to **one** code point 😀. `text.substring(1, 3)` captures both code units, whereas `substring(1, 2)` takes only the high surrogate and creates a string without a complete emoji.
 
-Đặc biệt, `charAt(2)` trả **low surrogate**, trong khi `codePointAt(2)`, do bắt đầu ngay ở low surrogate mà không nhìn ngược để ghép với high surrogate trước đó, trả giá trị low surrogate như một `int`. Vì vậy, phải truyền **chỉ số bắt đầu của mã điểm** khi sử dụng `codePointAt`.
+Specifically, `charAt(2)` returns the **low surrogate**, while `codePointAt(2)`, because it starts directly at the low surrogate without looking backward to pair with the preceding high surrogate, returns the low surrogate value as an `int`. Therefore, you must pass the **starting index of the code point** when using `codePointAt`.
 
-## 4. Duyệt chuỗi đúng khi có ký tự ngoài BMP
+## 4. Iterating a String Properly When Characters Are Outside the BMP
 
-Vòng lặp phổ biến sau đọc từng **đơn vị mã**:
+The following common loop reads one **code unit** at a time:
 
 ~~~java
 for (int i = 0; i < text.length(); i++) {
     char unit = text.charAt(i);
-    // Chỉ thích hợp khi chủ đích là xử lý UTF-16 code unit.
+    // Only appropriate when intentionally processing UTF-16 code units.
 }
 ~~~
 
-Đây là **đoạn mã minh họa**, giả sử biến `text` đã được khai báo. Nếu mục đích là xử lý từng **mã điểm Unicode**, tăng chỉ số bằng `Character.charCount(codePoint)`:
+This is an **illustrative code snippet**, assuming `text` is already declared. If the goal is to process each **Unicode code point**, advance the index by `Character.charCount(codePoint)`:
 
 ~~~java
 for (int i = 0; i < text.length();) {
     int codePoint = text.codePointAt(i);
-    // Xử lý codePoint dưới dạng int.
+    // Process codePoint as an int.
     i += Character.charCount(codePoint);
 }
 ~~~
 
-Đây cũng là **đoạn minh họa**. Với dữ liệu chuỗi thông thường, có thể dùng `text.codePoints()` để nhận `IntStream`, song cần hiểu quy tắc đối với surrogate lẻ được giải thích ở phần tiếp theo.
+This is also an **illustrative snippet**. For ordinary string data, you can use `text.codePoints()` to obtain an `IntStream`, though you should understand the rule for lone surrogates explained in the next section.
 
-### Ví dụ độc lập: lặp theo code point
+### Standalone Example: Iterating by Code Point
 
-Tạo tệp `CodePointIterationDemo.java`:
+Create the file `CodePointIterationDemo.java`:
 
 ~~~java
 public class CodePointIterationDemo {
@@ -226,7 +226,7 @@ javac CodePointIterationDemo.java
 java CodePointIterationDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 units=4
@@ -236,52 +236,52 @@ index=1 codePoint=U+1F642
 index=3 codePoint=U+E9
 ~~~
 
-`U+1F642` là mã điểm ngoài BMP nên chiếm hai đơn vị mã ở chỉ số UTF-16 `1` và `2`; `é` (dạng đơn mã điểm `U+00E9`) bắt đầu ở chỉ số `3`. Nếu cần di chuyển theo mã điểm thay vì tự tính số đơn vị mã, Java còn cung cấp `String.offsetByCodePoints`.
+`U+1F642` is a code point outside the BMP so it occupies two code units at UTF-16 indices `1` and `2`; `é` (in single code-point form `U+00E9`) starts at index `3`. If you need to move by code points without manually summing code-unit counts, Java also provides `String.offsetByCodePoints`.
 
-Không được lấy `text.length()` làm số “ký tự con người nhìn thấy”, chẳng hạn để kiểm tra tên hiển thị tối đa 20 ký tự: `length()` đếm đơn vị mã UTF-16, `codePointCount` đếm mã điểm, còn **grapheme cluster** mới gần với một ký tự cảm nhận của người dùng.
+Do not use `text.length()` as the count of “human-visible characters”, such as validating a display name of at most 20 characters: `length()` counts UTF-16 code units, `codePointCount` counts code points, while a **grapheme cluster** is what closely corresponds to a user-perceived character.
 
-## 5. Một code point chưa chắc là một ký tự hiển thị
+## 5. One Code Point Is Not Necessarily One Visible Character
 
-Ngay cả khi đã chuyển từ `char` sang mã điểm, vấn đề đếm ký tự văn bản vẫn chưa kết thúc:
+Even after moving from `char` to code points, text character counting is not yet complete:
 
-- Chữ `é` có thể là **một mã điểm** `U+00E9`, hoặc hai mã điểm `U+0065` (`e`) và `U+0301` (dấu sắc kết hợp).
-- Một số biểu tượng emoji được tạo từ nhiều mã điểm kết hợp với dấu nối `U+200D` (*zero-width joiner*), biến thể hoặc thành phần khác, nhưng hiển thị như một biểu tượng.
-- Văn bản tiếng Việt và các ngôn ngữ khác có thể có dấu tổ hợp, quy tắc biên ký tự và cách sắp xếp phụ thuộc ngôn ngữ.
+- The letter `é` can be **one code point** `U+00E9`, or two code points `U+0065` (`e`) and `U+0301` (combining acute accent).
+- Some emoji are formed from multiple code points joined with `U+200D` (*zero-width joiner*), variation selectors, or other components, yet render as a single icon.
+- Vietnamese text and other languages can have combining diacritics, character boundary rules, and language-dependent sorting.
 
-Do đó:
+Therefore:
 
-| Câu hỏi | Khái niệm/API thích hợp |
+| Question | Appropriate Concept/API |
 |---|---|
-| Có bao nhiêu đơn vị UTF-16? | `String.length()` |
-| Lấy đơn vị mã tại chỉ số UTF-16? | `String.charAt(index)` |
-| Mã điểm bắt đầu ở vị trí UTF-16 này là gì? | `String.codePointAt(index)` |
-| Có bao nhiêu mã điểm theo cách đếm UTF-16? | `String.codePointCount(0, length)` |
-| Duyệt mã điểm | `String.codePoints()` hoặc `codePointAt` + `Character.charCount` |
-| Đếm phần tử văn bản hiển thị, tách theo cụm tự vị? | Thuật toán phân đoạn *extended grapheme cluster* phù hợp chuẩn Unicode và phiên bản dữ liệu áp dụng |
-| So sánh/sắp xếp chuỗi theo ngôn ngữ? | Quy tắc `Collator`/`Locale`, không dựa trên thứ tự mã số `char` |
+| How many UTF-16 units? | `String.length()` |
+| Get the code unit at a UTF-16 index? | `String.charAt(index)` |
+| What code point starts at this UTF-16 position? | `String.codePointAt(index)` |
+| How many code points in a UTF-16 range? | `String.codePointCount(0, length)` |
+| Iterate over code points | `String.codePoints()` or `codePointAt` + `Character.charCount` |
+| Count visible text elements, splitting by grapheme clusters? | An *extended grapheme cluster* segmentation algorithm conforming to the applicable Unicode standard and data version |
+| Compare/sort strings by language? | `Collator`/`Locale` rules, not `char` numeric order |
 
-Chuẩn hóa Unicode, ví dụ NFC/NFD qua `java.text.Normalizer`, có thể cần thiết để xử lý chuỗi tương đương ở mức biểu diễn. Tuy nhiên, **chuẩn hóa** và **phân đoạn grapheme** là hai thao tác khác nhau: chuẩn hóa không làm cho phép đếm `char` đột nhiên trở thành phép đếm ký tự hiển thị.
+Unicode normalization, such as NFC/NFD via `java.text.Normalizer`, may be necessary to handle equivalent strings at the representation level. However, **normalization** and **grapheme segmentation** are two different operations: normalization does not suddenly turn `char` counting into visible character counting.
 
-## 6. Unicode escape, char literal và dữ liệu từ bên ngoài
+## 6. Unicode Escapes, `char` Literals, and External Data
 
-### 6.1. Viết literal `char`
+### 6.1. Writing `char` Literals
 
-Một literal `char` dùng **dấu nháy đơn** và đúng một đơn vị mã UTF-16, ví dụ `'A'`, `'7'`, `'\n'`, `'\u4E2D'`. Literal chuỗi dùng dấu nháy kép, ví dụ `"A"`, `"ABC"`. Biểu tượng ngoài BMP như 😀 không thể nằm trong một literal `char` độc lập vì cần hai đơn vị mã; hãy dùng `String` và `Character.toChars(0x1F600)` khi cần xây chuỗi bằng mã điểm.
+A `char` literal uses **single quotes** and holds exactly one UTF-16 code unit, such as `'A'`, `'7'`, `'\n'`, `'\u4E2D'`. String literals use double quotes, such as `"A"`, `"ABC"`. Characters outside the BMP like 😀 cannot fit inside a standalone `char` literal because they need two code units; use `String` and `Character.toChars(0x1F600)` when constructing strings from code points.
 
-Các escape quen thuộc như `'\n'`, `'\t'`, `'\\'` và `'\''` đều là literal `char` hợp lệ. Lưu ý Java xử lý **Unicode escape `\uXXXX` ở giai đoạn rất sớm**, trước khi phân tích token. Vì thế cách viết trực tiếp escape Unicode của ký tự xuống dòng `U+000A` trong source Java có thể làm dòng nguồn bị tách bất ngờ; khi cần ký tự xuống dòng, dùng `'\n'` thay cho escape Unicode của nó.
+Familiar escapes such as `'\n'`, `'\t'`, `'\\'`, and `'\''` are all valid `char` literals. Note that Java processes **Unicode escapes `\uXXXX` very early**, before tokenization. Thus writing the Unicode escape for a newline `U+000A` directly in Java source can unexpectedly split a source line; when you need a newline character, use `'\n'` instead of its Unicode escape.
 
-Một `char` chỉ là giá trị đơn vị mã, không nói toàn bộ văn bản sẽ được lưu trên file bằng UTF-16. Khi ghi file, gửi mạng hoặc chuyển chuỗi thành `byte[]`, hãy chọn charset rõ ràng, chẳng hạn `StandardCharsets.UTF_8`. Không lấy một `char` rồi cho rằng cast sang `byte` luôn giữ được ký tự; cast có thể mất các bit cao và hoàn toàn không phải phép mã hóa UTF-8.
+A `char` is only a code-unit value; it does not mean all text will be stored in files as UTF-16. When writing files, sending over the network, or converting strings to `byte[]`, choose an explicit charset such as `StandardCharsets.UTF_8`. Do not take a `char` and assume casting to `byte` always preserves the character; casting can lose high bits and is not UTF-8 encoding at all.
 
-### 6.2. Có thể tồn tại surrogate đứng lẻ
+### 6.2. Lone Surrogates Can Exist
 
-Java `String` có thể chứa một high surrogate hoặc low surrogate **không ghép cặp**. Đây là chuỗi có đơn vị mã UTF-16 nhưng **không phải một chuỗi Unicode scalar value hợp lệ đầy đủ**. Trong trường hợp đó:
+A Java `String` can contain an **unpaired** high surrogate or low surrogate. That is a string of UTF-16 code units, yet **not a complete valid sequence of Unicode scalar values**. In that case:
 
-- `String.length()` vẫn đếm đơn vị mã, kể cả surrogate lẻ.
-- `String.codePointAt` và `String.codePoints()` ghép **cặp hợp lệ**; với surrogate không ghép cặp, chúng có thể trả chính giá trị surrogate dưới dạng `int`.
-- `Character.isValidCodePoint(int)` chỉ kiểm tra số có nằm trong miền code point `U+0000`–`U+10FFFF`; không có nghĩa đã loại trừ giá trị surrogate. Kiểm tra *Unicode scalar value* cần loại trừ khoảng `U+D800`–`U+DFFF`.
-- Khi trao đổi dữ liệu giữa hệ thống hoặc xuất ra charset khác, cần một chính sách xử lý đầu vào không hợp lệ thay vì ngầm định mọi `String` đều chỉ chứa mã điểm hợp lệ.
+- `String.length()` still counts code units, including lone surrogates.
+- `String.codePointAt` and `String.codePoints()` combine **valid pairs**; for an unpaired surrogate, they may return the surrogate value itself as an `int`.
+- `Character.isValidCodePoint(int)` only checks whether the number lies in the code point range `U+0000`–`U+10FFFF`; it does not exclude surrogate values. Checking for a *Unicode scalar value* requires excluding the range `U+D800`–`U+DFFF`.
+- When exchanging data between systems or exporting to another charset, you need a policy for handling invalid input instead of assuming every `String` contains only valid scalar code points.
 
-Ví dụ độc lập, tạo tệp `UnpairedSurrogateDemo.java`:
+Standalone example, create the file `UnpairedSurrogateDemo.java`:
 
 ~~~java
 public class UnpairedSurrogateDemo {
@@ -310,7 +310,7 @@ javac UnpairedSurrogateDemo.java
 java UnpairedSurrogateDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 units=1
@@ -320,34 +320,34 @@ validCodePoint=true
 scalar=false
 ~~~
 
-Ví dụ cho thấy sự khác nhau giữa **miền mã điểm mà API chấp nhận** và **một mã điểm scalar hợp lệ để biểu diễn Unicode**. Hãy dùng kiểu `int` cho mã điểm và kiểm tra cặp surrogate khi nguồn dữ liệu có thể bị hỏng.
+This example shows the difference between **the code point range accepted by the API** and **a valid scalar code point representing Unicode**. Use `int` for code points and validate surrogate pairs when data sources may be corrupted.
 
-## 7. Nên dùng `char` khi nào, và khi nào không?
+## 7. When Should You Use `char`, and When Should You Not?
 
-**Dùng `char`** khi chương trình thật sự cần xử lý **một đơn vị mã UTF-16**, tương tác với `charAt`, bộ đệm `char[]`, API ký tự tương ứng hoặc các ký hiệu ASCII đơn giản trong một giao thức đã giới hạn ký tự. Ví dụ, kiểm tra dấu phân cách `','` hay `':'` là một tình huống hợp lý.
+**Use `char`** when the program genuinely needs to handle **a single UTF-16 code unit**, interact with `charAt`, `char[]` buffers, corresponding character APIs, or simple ASCII symbols in a character-restricted protocol. For example, checking delimiters like `','` or `':'` is a reasonable use case.
 
-**Dùng `int` cho mã điểm** khi bài toán cần duyệt, phân loại hoặc biến đổi văn bản Unicode vượt BMP; kết hợp `codePointAt`/`codePoints` với các phương thức `Character` nhận tham số `int`, chẳng hạn `Character.isLetter(int codePoint)`. Một số phép xử lý Unicode có API overload nhận `char` nhưng sẽ bỏ lỡ ký tự ngoài BMP: khi cần phủ toàn Unicode, chọn overload `int`.
+**Use `int` for code points** when the task needs to iterate, classify, or transform Unicode text beyond the BMP; combine `codePointAt`/`codePoints` with `Character` methods that accept `int`, such as `Character.isLetter(int codePoint)`. Some Unicode utilities have overloads taking `char` that will miss characters outside the BMP: when full Unicode coverage is needed, choose the `int` overload.
 
-**Dùng `String` cho văn bản** như tên người, chuỗi nội dung, email, mã định danh hoặc một biểu tượng bất kỳ. `String` có thể chứa nhiều đơn vị mã và vẫn cần thao tác đúng theo yêu cầu: duyệt code point, chuẩn hóa, phân đoạn grapheme, so sánh theo locale.
+**Use `String` for text** such as personal names, content strings, emails, identifiers, or any arbitrary symbol. `String` can hold multiple code units and still needs proper operations as required: iterating code points, normalization, grapheme segmentation, and locale-sensitive comparison.
 
-**Dùng `int`, `long`, `BigInteger` cho đại lượng số nguyên** thông thường thay vì tận dụng `char` chỉ vì nó không dấu. `char` có tính chất số học, nhưng tên kiểu và API của nó diễn đạt ý nghĩa **đơn vị mã văn bản**, không phải số lượng phi âm tổng quát.
+**Use `int`, `long`, `BigInteger` for general integer quantities** instead of repurposing `char` merely because it is unsigned. `char` has arithmetic properties, but its type name and APIs express the meaning of a **text code unit**, not a general non-negative count.
 
-### Bốn lỗi phổ biến
+### Four Common Mistakes
 
-1. **“`char` chứa được mọi ký tự Unicode vì có 16 bit.”** Không đúng: Unicode có mã điểm ngoài BMP cần hai đơn vị UTF-16.
-2. **“`String.length()` là số ký tự người dùng nhìn thấy.”** Không đúng: đó là số đơn vị mã UTF-16; số code point hoặc grapheme cluster có thể khác.
-3. **“`charAt(i)` luôn trả một ký tự đầy đủ.”** Không đúng: nó có thể trả high/low surrogate. Khi duyệt mã điểm, hãy tăng `i` theo `Character.charCount(cp)`.
-4. **“`char` là số không dấu nên dùng thay cho `unsigned short` ở mọi bài toán.”** Không phù hợp: kiểu `char` gắn với code unit; nếu xử lý trường số không dấu 16 bit của giao thức, thường giải mã sang `int` để tính toán và thể hiện rõ miền 0..65535.
+1. **“`char` can hold every Unicode character because it has 16 bits.”** False: Unicode has code points outside the BMP that require two UTF-16 units.
+2. **“`String.length()` is the number of characters the user sees.”** False: it is the number of UTF-16 code units; the count of code points or grapheme clusters can differ.
+3. **“`charAt(i)` always returns a complete character.”** False: it can return a high/low surrogate. When iterating code points, advance `i` by `Character.charCount(cp)`.
+4. **“`char` is unsigned, so use it instead of `unsigned short` everywhere.”** Inappropriate: the `char` type is tied to code units; when handling a 16-bit unsigned protocol field, usually decode it into `int` to compute and clearly represent the 0..65535 range.
 
-## 8. Tự kiểm tra kiến thức
+## 8. Self-Check Quiz
 
-1. `char` có bao nhiêu bit, và miền số nguyên của nó là gì?
-2. Vì sao `char letter = 'A'; int n = letter + 1;` hợp lệ nhưng `char next = letter + 1;` lại không?
-3. Vì sao `"A😀Z".length()` bằng `4`, nhưng số Unicode code point trong chuỗi là `3`?
-4. `String.charAt` khác `String.codePointAt` ở đâu? Vì sao mã điểm nên được giữ trong `int`?
-5. Một chuỗi có high surrogate đứng lẻ có thể tồn tại trong Java không? `Character.isValidCodePoint` có bảo đảm không còn surrogate lẻ không?
-6. Khi người dùng giới hạn độ dài tên hiển thị theo ký tự cảm nhận, nên đếm UTF-16 code unit, code point hay grapheme cluster?
+1. How many bits does `char` have, and what is its integer range?
+2. Why is `char letter = 'A'; int n = letter + 1;` valid, whereas `char next = letter + 1;` is not?
+3. Why does `"A😀Z".length()` equal `4`, while the number of Unicode code points in the string is `3`?
+4. How does `String.charAt` differ from `String.codePointAt`? Why should code points be stored in `int`?
+5. Can a string with a lone high surrogate exist in Java? Does `Character.isValidCodePoint` guarantee there are no lone surrogates?
+6. When limiting a display name's length by perceived characters, should you count UTF-16 code units, code points, or grapheme clusters?
 
-**Đáp án gợi ý:** (1) 16 bit, 0–65.535; (2) phép cộng được nâng sang `int`, thu hẹp cần explicit cast; (3) emoji nằm ngoài BMP chiếm 2 code unit; (4) `charAt` đọc một code unit, `codePointAt` ghép surrogate hợp lệ để đọc code point, `int` chứa được trên `U+FFFF`; (5) có thể có surrogate lẻ, `isValidCodePoint` kiểm tra miền số nên chưa đủ để loại surrogate; (6) chọn phép phân đoạn grapheme cluster phù hợp Unicode và yêu cầu sản phẩm.
+**Suggested answers:** (1) 16 bits, 0–65,535; (2) addition promotes to `int`, and narrowing requires an explicit cast; (3) the emoji is outside the BMP and occupies 2 code units; (4) `charAt` reads one code unit, `codePointAt` pairs valid surrogates to read a code point, and `int` can hold values above `U+FFFF`; (5) lone surrogates can exist, and `isValidCodePoint` checks the numeric range so it is insufficient to exclude surrogates; (6) choose grapheme cluster segmentation appropriate to Unicode and product requirements.
 
-**Ghi nhớ:** `char` **là một số nguyên không dấu 16 bit về cơ chế của Java**, đồng thời **là một đơn vị mã UTF-16 về ý nghĩa văn bản**. Với Unicode hiện đại, một mã điểm có thể cần hai `char` và một ký tự hiển thị có thể cần nhiều mã điểm.
+**Remember:** `char` **is a 16-bit unsigned integer in Java's mechanics**, while also **being a UTF-16 code unit in text semantics**. In modern Unicode, one code point can require two `char`s and one visible character can require multiple code points.

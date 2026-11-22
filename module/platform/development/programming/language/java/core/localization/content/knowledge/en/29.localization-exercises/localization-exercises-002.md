@@ -1,66 +1,66 @@
-# Chọn locale từ danh sách ưu tiên và danh sách được hỗ trợ trong Java
+# Choosing a Locale from a Priority List and Supported Locales in Java
 
-## 1. Bài toán thực tế: người dùng muốn tiếng Pháp, máy chủ có tiếng Việt, Đức và Anh
+## 1. Practical Problem: The User Wants French, the Server Has Vietnamese, German, and English
 
-Một ứng dụng Java đa ngôn ngữ có thể có nhiều bộ tài nguyên dịch, nhưng **không hỗ trợ tất cả các locale trên thế giới**. Trong khi đó, trình duyệt hoặc tài khoản người dùng thường gửi **nhiều ngôn ngữ theo thứ tự ưu tiên**, không phải một ngôn ngữ duy nhất.
+A multilingual Java application may ship multiple translation bundles, yet **it does not support every locale in the world**. Meanwhile, a browser or user account typically sends **multiple languages in priority order**, rather than a single language.
 
-Ví dụ HTTP request có header:
+For example, an HTTP request carries the header:
 
 ```http
 Accept-Language: fr-CA,fr;q=0.9,de-DE;q=0.8,en-US;q=0.6
 ```
 
-Điều này thể hiện người dùng ưu tiên:
+This expresses that the user prefers:
 
-1. `fr-CA` — tiếng Pháp tại Canada, mặc định trọng số `q=1.0`.
-2. `fr` — tiếng Pháp nói chung, `q=0.9`.
-3. `de-DE` — tiếng Đức tại Đức, `q=0.8`.
-4. `en-US` — tiếng Anh tại Hoa Kỳ, `q=0.6`.
+1. `fr-CA` — Canadian French, with default weight `q=1.0`.
+2. `fr` — French in general, `q=0.9`.
+3. `de-DE` — German in Germany, `q=0.8`.
+4. `en-US` — US English, `q=0.6`.
 
-Nếu sản phẩm chỉ thực sự có bản dịch `vi-VN`, `de-DE` và `en-US` thì nên chọn locale nào? **`de-DE`**, vì đó là mục cao nhất trong danh sách ưu tiên có thể đáp ứng theo chính sách đối chiếu đã chọn.
+If the product actually has translations only for `vi-VN`, `de-DE`, and `en-US`, which locale should be chosen? **`de-DE`**, because it is the highest-ranked entry in the priority list that can be satisfied under the chosen matching policy.
 
-Nhưng nếu hệ thống có `fr-FR` mà **không** có `fr-CA` thì vấn đề tinh tế hơn: có coi tiếng Pháp tại Pháp là bản thay thế chấp nhận được cho `fr-CA` hay không? Quy tắc **lookup** chuẩn RFC 4647 không luôn tự chọn một “locale cùng ngôn ngữ” bất kỳ; **filtering** và chính sách product fallback có thể cho hành vi khác.
+However, if the system has `fr-FR` but **not** `fr-CA`, the problem becomes subtler: should French in France be considered an acceptable substitute for `fr-CA`? Standard RFC 4647 **lookup** rules do not automatically pick an arbitrary "same-language locale"; **filtering** and product fallback policies can yield different behavior.
 
-Trong Java 17, các API trọng tâm là:
+In Java 17, the core APIs are:
 
-- `Locale.LanguageRange.parse(headerValue)`: parse danh sách **language ranges** kèm trọng số.
-- `Locale.lookup(priorityList, supportedLocales)`: tìm **một** locale phù hợp nhất theo RFC 4647 lookup.
-- `Locale.filter(priorityList, supportedLocales)`: lấy danh sách locale phù hợp theo cơ chế filtering.
-- `Locale.lookupTag(...)` / `Locale.filterTags(...)`: phiên bản làm việc với BCP 47 tag `String`.
-- `Locale.forLanguageTag("vi-VN")`: tạo Locale từ BCP 47 tag.
-- `ResourceBundle.getBundle(baseName, locale)`: nạp bản dịch **sau khi đã quyết định locale**, với cơ chế lựa chọn bundle/fallback riêng.
+- `Locale.LanguageRange.parse(headerValue)`: parses a list of **language ranges** with weights.
+- `Locale.lookup(priorityList, supportedLocales)`: finds **one** best-matching locale using RFC 4647 lookup.
+- `Locale.filter(priorityList, supportedLocales)`: retrieves a list of matching locales using filtering.
+- `Locale.lookupTag(...)` / `Locale.filterTags(...)`: variants that operate on BCP 47 `String` tags.
+- `Locale.forLanguageTag("vi-VN")`: creates a `Locale` from a BCP 47 tag.
+- `ResourceBundle.getBundle(baseName, locale)`: loads translations **after deciding the locale**, using its own bundle-selection/fallback mechanism.
 
-**Mục tiêu:** chọn một locale **thuộc tập sản phẩm thực sự hỗ trợ**, phù hợp thứ tự ưu tiên người dùng và fallback đã định nghĩa; không nhầm “locale Java có dữ liệu định dạng” với “ứng dụng có bản dịch”, không dùng JVM default locale để quyết định thay người dùng.
+**Goal:** select a locale **from the set the product truly supports**, respecting the user's priority order and defined fallback policy; do not confuse "a locale for which Java has formatting data" with "a locale the application has translations for", and do not use the JVM default locale to decide on the user's behalf.
 
-## 2. Phân biệt bốn khái niệm
+## 2. Distinguishing Four Concepts
 
-| Khái niệm | Ví dụ | Ai quyết định? |
+| Concept | Example | Who Decides? |
 | --- | --- | --- |
-| **User language preferences** | `fr-CA,fr;q=0.9,en-US;q=0.5` | Người dùng/browser/header |
-| **Language range** | `fr-CA`, `fr`, `en-US`, `*` | Chuỗi yêu cầu đối chiếu theo RFC 4647 |
-| **Supported locales** | `vi-VN`, `en-US`, `de-DE` | Sản phẩm/deployment có bản dịch và QA |
-| **Application default/fallback** | `en-US` hoặc `vi-VN` | Chính sách rõ ràng của sản phẩm |
+| **User language preferences** | `fr-CA,fr;q=0.9,en-US;q=0.5` | User/browser/header |
+| **Language range** | `fr-CA`, `fr`, `en-US`, `*` | Matching request expression per RFC 4647 |
+| **Supported locales** | `vi-VN`, `en-US`, `de-DE` | Product/deployment with translations and QA |
+| **Application default/fallback** | `en-US` or `vi-VN` | Explicit product policy |
 
-Một `LanguageRange` là **mẫu ưu tiên**; không nhất thiết là đối tượng `Locale` đã đầy đủ các thuộc tính ngôn ngữ, chữ viết và vùng. `"fr"` là một range chỉ muốn tiếng Pháp, còn `"fr-CA"` chỉ định thêm Canada; `"*"` là wildcard.
+A `LanguageRange` is a **preference pattern**; it is not necessarily a `Locale` object populated with full language, script, and region attributes. `"fr"` is a range asking simply for French, whereas `"fr-CA"` also specifies Canada; `"*"` is a wildcard.
 
-Một `Locale` như `Locale.forLanguageTag("fr-FR")` lại là một lựa chọn cụ thể có thể dùng để định dạng/ngôn ngữ.
+A `Locale` such as `Locale.forLanguageTag("fr-FR")`, by contrast, is a concrete choice usable for formatting and language selection.
 
-**Danh sách hỗ trợ** phải dựa vào sản phẩm, ví dụ bộ `messages` thực sự được dịch và kiểm thử:
+The **supported list** must reflect the actual product—for instance, the `messages` sets that have genuinely been translated and tested:
 
 ```text
 SUPPORTED = [vi-VN, en-US, de-DE, fr-FR]
 DEFAULT   = en-US
 ```
 
-**Không dùng `Locale.getAvailableLocales()` làm danh sách bản dịch được hỗ trợ.** API đó mô tả locale data của runtime Java (số, ngày, tên vùng…), không cam kết sản phẩm có `messages_vi.properties`, `messages_fr.properties` hay bản dịch UI hoàn chỉnh.
+**Do not use `Locale.getAvailableLocales()` as your list of supported translations.** That API describes the Java runtime's locale data (numbers, dates, region names, etc.), and makes no guarantee that the product has `messages_vi.properties`, `messages_fr.properties`, or complete UI translations.
 
-### Locale khác zone, currency và UI direction
+### Locale Is Distinct from Time Zone, Currency, and UI Direction
 
-Chọn `fr-FR` không tự đổi dữ liệu tiền USD thành EUR; chọn `ja-JP` không có nghĩa bắt buộc dùng lịch niên hiệu Nhật. Múi giờ được chọn bằng `ZoneId`, hệ lịch bằng `Chronology` và currency bằng `Currency`/hợp đồng nghiệp vụ. Locale chủ yếu là **ngữ cảnh ngôn ngữ/định dạng**.
+Selecting `fr-FR` does not automatically convert USD amounts into EUR; selecting `ja-JP` does not mandate using the Japanese imperial calendar. Time zones are chosen via `ZoneId`, calendar systems via `Chronology`, and currencies via `Currency`/business contracts. A `Locale` is primarily a **language and formatting context**.
 
-## 3. Cấu trúc BCP 47 language tag
+## 3. Structure of a BCP 47 Language Tag
 
-Một language tag có thể mô tả:
+A language tag can express:
 
 ```text
 language  - script - region - variants - extensions
@@ -70,37 +70,37 @@ pt                 - BR
 en                 - US
 ```
 
-| Phần | Ví dụ | Ý nghĩa |
+| Part | Examples | Meaning |
 | --- | --- | --- |
-| Language | `vi`, `en`, `de`, `tr` | Ngôn ngữ |
-| Script | `Hans`, `Hant`, `Latn`, `Cyrl` | Hệ chữ |
-| Region | `VN`, `US`, `BR` | Vùng |
-| Variant | Một subtag đã đăng ký | Biến thể cụ thể |
-| Unicode extension | `u-ca-buddhist`, `u-nu-latn` | Calendar/numbering preferences khi API hỗ trợ |
+| Language | `vi`, `en`, `de`, `tr` | Language |
+| Script | `Hans`, `Hant`, `Latn`, `Cyrl` | Writing script |
+| Region | `VN`, `US`, `BR` | Region |
+| Variant | A registered subtag | Specific dialect/variant |
+| Unicode extension | `u-ca-buddhist`, `u-nu-latn` | Calendar/numbering preferences when supported by APIs |
 
-`zh-Hant-TW` (tiếng Trung chữ phồn thể tại Đài Loan) khác `zh-Hans-CN` (chữ giản thể tại Trung Quốc). Vì thế **không nên chỉ so hai chữ cái đầu của language tag** rồi suy bản dịch nào cũng thay thế được cho bản dịch nào.
+`zh-Hant-TW` (Traditional Chinese in Taiwan) differs from `zh-Hans-CN` (Simplified Chinese in China). Therefore, **do not compare only the first two letters of a language tag** and assume one translation can substitute for another.
 
-Java `Locale.forLanguageTag` hiểu cú pháp BCP 47 nhưng **không xác minh rằng mọi tag đều là một locale mà sản phẩm có tài nguyên**. Một tag có vẻ hợp lệ vẫn có thể không có bundle dịch. Nếu input cần kiểm tra cú pháp nghiêm ngặt, có thể dùng `new Locale.Builder().setLanguageTag(tag).build()` và bắt `IllformedLocaleException`; tuy nhiên việc cú pháp hợp lệ vẫn không chứng minh tag có trong registry, đã dịch hoặc đã QA.
+Java's `Locale.forLanguageTag` understands BCP 47 syntax, yet **does not verify that every tag corresponds to a locale with product resources**. A syntactically valid tag may still lack a translation bundle. If input requires strict syntax validation, you can use `new Locale.Builder().setLanguageTag(tag).build()` and catch `IllformedLocaleException`; even then, valid syntax does not prove the tag is registered, translated, or QA-approved.
 
-### Đừng dùng toString() để làm language tag giao thức
+### Do Not Use toString() as a Protocol Language Tag
 
-`Locale.toString()` có dạng truyền thống như `en_US`, còn BCP 47 dùng `en-US`. Với HTTP và profile trao đổi qua API, nên lưu `locale.toLanguageTag()` và parse bằng `Locale.forLanguageTag(...)`.
+`Locale.toString()` uses legacy formatting such as `en_US`, whereas BCP 47 uses `en-US`. For HTTP headers and API profile exchange, store `locale.toLanguageTag()` and parse with `Locale.forLanguageTag(...)`.
 
-## 4. Header Accept-Language và trọng số q
+## 4. The Accept-Language Header and q-Weights
 
-Trong HTTP, `Accept-Language` là một danh sách lựa chọn theo mức độ ưu tiên. Ví dụ:
+In HTTP, `Accept-Language` is a prioritized list of choices. For example:
 
 ```http
 Accept-Language: de-DE,de;q=0.9,en-US;q=0.6,en;q=0.4
 ```
 
-- Không có `q` → mặc định trọng số 1.0.
-- `q=0.9` → ít ưu tiên hơn mục `q=1.0`.
-- `q=0` trong HTTP mang nghĩa **không chấp nhận** range đó.
-- `*` có nghĩa chấp nhận một language tag không được chỉ rõ hơn, theo quy tắc matching thích hợp.
-- Thứ tự/weight không nhất thiết trùng với thứ tự từ trái sang phải: ứng dụng phải parse và đối chiếu theo priority list thực sự.
+- Missing `q` → default weight of 1.0.
+- `q=0.9` → lower priority than an entry with `q=1.0`.
+- `q=0` in HTTP means **not acceptable** for that range.
+- `*` means accepting an unspecified language tag according to appropriate matching rules.
+- Order/weight need not match left-to-right order: the application must parse and match using the actual priority list.
 
-Java có:
+Java provides:
 
 ```java
 List<Locale.LanguageRange> priorities =
@@ -108,40 +108,40 @@ List<Locale.LanguageRange> priorities =
                 "de-DE,de;q=0.9,en-US;q=0.6,en;q=0.4");
 ```
 
-Đoạn này nằm trong method có import `java.util.*`.
+This snippet resides inside a method with `import java.util.*;`.
 
 `LanguageRange.parse`:
 
-- Chấp nhận danh sách phân cách bằng dấu phẩy và trọng số `;q=...`.
-- Sắp xếp danh sách kết quả theo mức ưu tiên/weight giảm dần.
-- Có thể thêm language ranges **tương đương** từ registry (chẳng hạn mã ngôn ngữ cũ và mới), vì thế số phần tử trả về có thể khác số range người dùng viết.
-- Loại bỏ những lần lặp của cùng range theo quy tắc API.
-- Kiểm tra cú pháp, **không xác thực nội dung dịch hay sự tồn tại của từng mã trong registry**.
-- Có thể ném `IllegalArgumentException` khi language range hoặc weight không hợp lệ.
+- Accepts a comma-separated list with `;q=...` weights.
+- Sorts the resulting list in descending order of priority/weight.
+- May add **equivalent** language ranges from the registry (such as legacy and modern language codes), so the returned list size may differ from the number of ranges written by the client.
+- Deduplicates repeated occurrences of the same range according to API rules.
+- Validates syntax, **without validating translation content or whether every code exists in the registry**.
+- May throw `IllegalArgumentException` when a language range or weight is invalid.
 
-**Không tự parse Accept-Language bằng `split(",")` rồi lấy mục đầu** nếu sản phẩm muốn tôn trọng `q`, alias và chính sách đối chiếu. Cũng không tự dùng `Locale.forLanguageTag(header)` trực tiếp cho cả header chứa nhiều ranges; đó không phải API parse danh sách ưu tiên.
+**Do not parse `Accept-Language` manually with `split(",")` and pick the first item** if the product intends to honor `q`, aliases, and matching rules. Likewise, do not pass the entire multi-range header directly to `Locale.forLanguageTag(header)`; that API does not parse priority lists.
 
-### 4.1. q=0 và HTTP acceptability
+### 4.1. q=0 and HTTP Acceptability
 
-RFC HTTP định nghĩa `q=0` là một ngôn ngữ không được chấp nhận. Tuy nhiên `Locale.LanguageRange.parse` và `Locale.lookup/filter` là **API đối chiếu RFC 4647**, không thay thế toàn bộ bộ máy nội dung negotiation của HTTP.
+HTTP RFCs define `q=0` as an unacceptable language. However, `Locale.LanguageRange.parse` and `Locale.lookup/filter` are **RFC 4647 matching APIs**, not a complete HTTP content negotiation engine.
 
-Nếu header chứa `en;q=0, *;q=0.5`, cần quyết định rõ cách **ngăn ngôn ngữ đã bị từ chối** khi wildcard có thể phù hợp nhiều mục. Không đơn giản bỏ range q=0 rồi để wildcard chọn lại đúng ngôn ngữ đã bị cấm. Một HTTP negotiation đầy đủ phải áp quy tắc acceptability/exclusions của sản phẩm hay framework phù hợp. Không khẳng định `Locale.lookup` tự thi hành mọi quy tắc `q=0` của RFC 9110.
+If a header contains `en;q=0, *;q=0.5`, you must explicitly decide how to **exclude rejected languages** when a wildcard could match multiple entries. Do not simply drop `q=0` ranges and let `*` re-select the very language that was forbidden. Full HTTP negotiation must apply appropriate product or framework acceptability/exclusion rules. Do not claim `Locale.lookup` enforces all `q=0` rules of RFC 9110 on its own.
 
-Trong ví dụ Java học thuật, ta dùng các q dương để minh họa kết quả ổn định; phần thiết kế production sẽ giải thích cách bảo vệ trước header bất thường.
+In academic Java examples, positive `q` values are used to illustrate deterministic results; the production design sections explain how to guard against unusual headers.
 
-## 5. Hai cơ chế RFC 4647: lookup và filtering
+## 5. Two RFC 4647 Mechanisms: Lookup and Filtering
 
-### 5.1. Lookup — tìm một locale gần nhất theo thứ tự ưu tiên
+### 5.1. Lookup — Finding the Single Closest Locale by Priority Order
 
-`Locale.lookup(...)` trả **một Locale hoặc null**:
+`Locale.lookup(...)` returns **one `Locale` or `null`**:
 
 ```java
 Locale chosen = Locale.lookup(priorities, supported);
 ```
 
-Thuật toán **progressive truncation** theo RFC 4647: với range như `zh-Hant-TW`, thử `zh-Hant-TW`, rồi `zh-Hant`, rồi `zh`; nếu không được thì thử range tiếp theo theo priority. Điều này **không có nghĩa** nó chọn mọi tag bắt đầu cùng ngôn ngữ.
+The RFC 4647 **progressive truncation** algorithm works as follows: for a range such as `zh-Hant-TW`, it tries `zh-Hant-TW`, then `zh-Hant`, then `zh`; if none matches, it moves to the next range in priority order. This **does not mean** it selects any tag sharing the same language prefix.
 
-Ví dụ quan trọng:
+Important example:
 
 ```text
 User priority: en-GB
@@ -150,50 +150,50 @@ Supported:     en-US
 Locale.lookup(...) → null
 ```
 
-Vì `en-GB` sẽ được thử cụ thể rồi rút thành `en`, nhưng danh sách supported chỉ có `en-US`, **không có tag `en`**. Lookup không tự biến `en-GB` thành `en-US` qua một “nearest region” ngầm.
+Because `en-GB` is tried specifically and then truncated to `en`, while the supported list contains only `en-US` and **not the tag `en`**. Lookup does not silently convert `en-GB` into `en-US` via an implicit "nearest region."
 
-Tương tự, nếu ưu tiên `fr-CA,fr;q=0.9,en-US;q=0.6` và supported gồm `fr-FR`, `en-US`, thì lookup có thể chọn **en-US** vì range `fr` trong lookup không khớp chính xác tag `fr-FR`. Đây không phải bug Java; đó là **một thuật toán đối chiếu cụ thể**.
+Similarly, given priorities `fr-CA,fr;q=0.9,en-US;q=0.6` and supported locales `fr-FR`, `en-US`, lookup can choose **en-US** because the `fr` range during lookup does not exactly match the tag `fr-FR`. This is not a Java bug; it is **a specific matching algorithm**.
 
-Đặc biệt, wildcard `*` được **bỏ qua trong lookup**. Nếu priority list chỉ có `*`, kết quả lookup có thể là `null` dù supported không rỗng. Caller phải có default/fallback rõ.
+In particular, the wildcard `*` is **ignored in lookup**. If the priority list contains only `*`, lookup can return `null` even when `supported` is non-empty. The caller must define an explicit default/fallback.
 
-### 5.2. Filtering — lấy những locale được range bao hàm
+### 5.2. Filtering — Retrieving Locales Covered by Ranges
 
-`Locale.filter(...)` trả một danh sách:
+`Locale.filter(...)` returns a list:
 
 ```java
 List<Locale> matches = Locale.filter(
         priorities, supported);
 ```
 
-Khác với lookup, một language range **`fr`** khi filtering có thể khớp `fr-FR`, `fr-CA` và nhiều biến thể `fr-...`. `Locale.filter` trả các locale phù hợp theo priority, loại trùng.
+Unlike lookup, a language range **`fr`** during filtering can match `fr-FR`, `fr-CA`, and various `fr-...` variants. `Locale.filter` returns matching locales in priority order with duplicates removed.
 
-Tại sao cần cả hai API?
+Why do both APIs exist?
 
-| Nhu cầu | API gợi ý | Kết quả |
+| Need | Suggested API | Result |
 | --- | --- | --- |
-| Chọn một locale duy nhất bằng RFC 4647 lookup | `Locale.lookup` | `Locale` hoặc `null` |
-| Lấy danh sách locale hợp với từng language range | `Locale.filter` | `List<Locale>` |
-| Trình bày dropdown gợi ý các ngôn ngữ phù hợp | `Locale.filter` | Nhiều lựa chọn |
-| Trả về BCP 47 tags thay vì Locale objects | `lookupTag` / `filterTags` | `String` hoặc list strings |
-| Chọn fallback kinh doanh gần với ngôn ngữ yêu cầu | Chính sách ứng dụng dùng kết quả lookup/filter và mapping rõ | Một locale trong allowed set |
+| Pick a single locale via RFC 4647 lookup | `Locale.lookup` | `Locale` or `null` |
+| Get a list of locales matching each language range | `Locale.filter` | `List<Locale>` |
+| Populate a dropdown suggesting suitable languages | `Locale.filter` | Multiple choices |
+| Return BCP 47 tags instead of `Locale` objects | `lookupTag` / `filterTags` | `String` or list of strings |
+| Pick a business fallback close to the requested language | App policy using lookup/filter output and explicit mapping | A locale in the allowed set |
 
-**Không tự gọi `filter(...).get(0)` khi danh sách rỗng**. Kiểm tra `isEmpty()` và giữ một fallback nằm trong supported locales.
+**Never call `filter(...).get(0)` when the list might be empty.** Check `isEmpty()` and maintain a fallback inside `supportedLocales`.
 
-### 5.3. Bảng phân biệt rõ ràng
+### 5.3. Clear Comparison Table
 
-| Header/preference | Supported | `lookup` | `filter` |
+| Header/Preference | Supported | `lookup` | `filter` |
 | --- | --- | --- | --- |
-| `de-DE,de;q=0.9` | `de-DE, en-US` | `de-DE` | Bao gồm `de-DE` |
-| `en-GB` | `en-US` | `null` | Không có `en-US` nếu chỉ range `en-GB` |
-| `en` | `en-US` | `null` | Bao gồm `en-US` |
-| `fr-CA,fr;q=0.9,en-US;q=0.7` | `fr-FR, en-US` | `en-US` | `fr-FR` rồi `en-US` |
-| `*` | `de-DE, en-US` | `null` | Có thể chọn từ toàn bộ supported theo filtering |
+| `de-DE,de;q=0.9` | `de-DE, en-US` | `de-DE` | Includes `de-DE` |
+| `en-GB` | `en-US` | `null` | Excludes `en-US` if only range `en-GB` |
+| `en` | `en-US` | `null` | Includes `en-US` |
+| `fr-CA,fr;q=0.9,en-US;q=0.7` | `fr-FR, en-US` | `en-US` | `fr-FR` then `en-US` |
+| `*` | `de-DE, en-US` | `null` | May select from all supported under filtering |
 
-Bảng dùng các trường hợp đơn giản để minh họa khác biệt. Nếu một ngôn ngữ có aliases, wildcard mở rộng hoặc dữ liệu provider đặc biệt, hãy kiểm tra danh sách cụ thể bằng API thực trên JDK mục tiêu.
+This table uses simple cases to highlight differences. If a language involves aliases, extended wildcards, or custom provider data, test the exact list with the real API on your target JDK.
 
-## 6. Ví dụ Java 17 chạy độc lập: so sánh lookup với filter
+## 6. Standalone Java 17 Example: Comparing Lookup and Filter
 
-Tạo tệp `LookupVsFilterDemo.java`:
+Create the file `LookupVsFilterDemo.java`:
 
 ```java
 import java.util.List;
@@ -232,14 +232,14 @@ public class LookupVsFilterDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 LookupVsFilterDemo.java
 java LookupVsFilterDemo
 ```
 
-Stdout xác định trên Java 17 với các language ranges trên:
+Deterministic stdout on Java 17 for the language ranges above:
 
 ```text
 preference=fr-CA,fr;q=0.9,en-US;q=0.7
@@ -250,53 +250,53 @@ lookup=null
 filter=en-US
 ```
 
-**Diễn giải:**
+**Explanation:**
 
-- `fr-CA` không có trong supported; range `fr` giúp **filtering** tìm `fr-FR`, nhưng **lookup** cần tag `fr` chính xác sau khi rút ngắn.
-- Range `en-US` xuất hiện sau trong danh sách priority và lookup chọn `en-US` khi đó là tag cụ thể được hỗ trợ.
-- Range `en` một mình không làm lookup chọn `en-US`, nhưng filtering trả `en-US`.
+- `fr-CA` is not in `supported`; the range `fr` lets **filtering** find `fr-FR`, whereas **lookup** requires an exact `fr` tag after truncation.
+- The `en-US` range appears later in the priority list, and lookup selects `en-US` because that specific tag is supported.
+- The `en` range alone does not cause lookup to select `en-US`, whereas filtering returns `en-US`.
 
-Không nên quyết định API “nào đúng hơn” chỉ bằng việc một kết quả trực giác hơn. Hai cơ chế đúng theo **hai tiêu chí khác nhau**; kiến trúc sản phẩm phải nói rõ muốn xử lý “cùng ngôn ngữ nhưng khác vùng” như thế nào.
+Do not decide which API is "more correct" merely because one result feels more intuitive. Both mechanisms are correct under **two different criteria**; product architecture must explicitly define how "same language, different region" should be handled.
 
-## 7. Xây chính sách chọn locale trong sản phẩm
+## 7. Defining a Locale Selection Policy in Your Product
 
-Một sản phẩm thường cần trả lời trước khi viết code:
+Before writing code, a product typically needs to answer:
 
-1. **Có những locale thực sự được dịch và hỗ trợ?** Từ catalog release, không từ `Locale.getAvailableLocales()`.
-2. **Locale mặc định là gì?** Phải nằm trong supported set.
-3. **Ưu tiên nào cao hơn?** Chọn ngôn ngữ thủ công trong UI? Cài đặt tài khoản? URL `/vi/`? Header browser?
-4. **Cho phép fallback cùng ngôn ngữ khác vùng không?** Ví dụ `pt-AO → pt-PT` hoặc `pt-BR`, phải được product/linguist phê duyệt.
-5. **Có hỗ trợ biến thể script không?** `zh-Hant` và `zh-Hans` không thể đổi tùy tiện.
-6. **Khi không match thì làm gì?** Default công bố, lựa chọn ngôn ngữ, hoặc từ chối negotiation nếu đó là hợp đồng API.
-7. **Có tôn trọng `q=0` và `*` như HTTP không?** Nếu có, cần dùng thư viện/framework negotiator phù hợp hoặc triển khai và test đầy đủ.
-8. **Có giới hạn độ dài/số language ranges của header không?** Header từ client là input không đáng tin.
-9. **Cache có phụ thuộc locale đã chọn không?** Tránh phục vụ bản dịch sai cho người dùng khác.
+1. **Which locales are actually translated and supported?** From the release catalog, not `Locale.getAvailableLocales()`.
+2. **What is the default locale?** It must belong to the supported set.
+3. **Which source takes higher precedence?** Manual language selection in UI? Account settings? URL `/vi/`? Browser header?
+4. **Is cross-region fallback within the same language allowed?** E.g., `pt-AO → pt-PT` or `pt-BR`, which must be approved by product/linguists.
+5. **Are script variants supported?** `zh-Hant` and `zh-Hans` cannot be swapped arbitrarily.
+6. **What happens when nothing matches?** Published default, language prompt, or rejecting negotiation if required by an API contract.
+7. **Should `q=0` and `*` be honored per HTTP semantics?** If so, use an RFC-compliant negotiator library/framework or implement and thoroughly test exclusion logic.
+8. **Are header length and language-range count bounded?** Client headers are untrusted input.
+9. **Does caching depend on the selected locale?** Prevent serving the wrong translation to another user.
 
-### 7.1. Thứ tự nguồn ưu tiên tham khảo
+### 7.1. Reference Precedence Order
 
-Một chính sách thường hợp lý (nhưng phải được sản phẩm quyết định) là:
+A commonly sensible policy (though product-specific) is:
 
 ```text
-Người dùng chọn ngôn ngữ tường minh trong UI
-          ↓ nếu chưa có
-Cài đặt ngôn ngữ tài khoản
-          ↓ nếu chưa có
-Thông tin ngôn ngữ trong URL/route khi có
-          ↓ nếu chưa có
-Accept-Language của trình duyệt
-          ↓ nếu không match
-DEFAULT_LOCALE được sản phẩm hỗ trợ
+Explicit user language selection in UI
+          ↓ if not present
+Account language setting
+          ↓ if not present
+Language info in URL/route when available
+          ↓ if not present
+Browser Accept-Language header
+          ↓ if no match
+Product-supported DEFAULT_LOCALE
 ```
 
-Trong sản phẩm khác, URL có thể là nguồn ưu tiên cao hơn profile để tạo liên kết cố định có thể chia sẻ. Điều quan trọng là **thứ tự được định nghĩa và kiểm thử**, không phải thứ tự nào luôn đúng cho mọi ứng dụng.
+In other products, the URL may outrank profile settings so shared links stay language-stable. What matters is that **the order is defined and tested**, not that one universal order fits every application.
 
-Không dùng vị trí IP như bằng chứng chắc chắn cho ngôn ngữ. Một người Việt sống tại Đức có thể ưu tiên `vi-VN`; một máy có region Việt Nam vẫn có thể dùng giao diện `en-US`.
+Do not use IP geolocation as definitive proof of language. A Vietnamese speaker living in Germany may prefer `vi-VN`; a machine located in Vietnam may still use an `en-US` interface.
 
-## 8. Java 17 runnable: một bộ chọn locale từ supported list
+## 8. Runnable Java 17 Example: Selecting a Locale from a Supported List
 
-Ở mức cơ bản, ta có thể sử dụng `Locale.lookup` với fallback sản phẩm rõ ràng.
+At a basic level, you can combine `Locale.lookup` with an explicit product fallback.
 
-Tệp `LocaleNegotiatorDemo.java`:
+File `LocaleNegotiatorDemo.java`:
 
 ```java
 import java.util.List;
@@ -324,7 +324,7 @@ public class LocaleNegotiatorDemo {
             Locale matched = Locale.lookup(priorities, SUPPORTED);
             return matched != null ? matched : DEFAULT_LOCALE;
         } catch (IllegalArgumentException ex) {
-            // Chính sách demo: input sai cú pháp thì dùng default.
+            // Demo policy: fall back to default on malformed input.
             return DEFAULT_LOCALE;
         }
     }
@@ -363,34 +363,34 @@ vi-VN
 vi-VN
 ```
 
-Đây là **demo của chính sách RFC 4647 lookup + application default**:
+This is a **demo of an RFC 4647 lookup + application default policy**:
 
-- `de-DE` khớp trực tiếp.
-- `fr-CA` và `fr` không khớp `fr-FR` trong lookup; `en-US` là range hợp lệ tiếp theo nên được chọn.
-- `en-GB` không match tag `en-US`: fallback `vi-VN`.
-- `vi-VN` khớp trực tiếp.
-- Wildcard `*` bị bỏ qua trong lookup: fallback `vi-VN`.
-- Không có `es-MX` hay `es` trong supported: fallback `vi-VN`.
+- `de-DE` matches directly.
+- `fr-CA` and `fr` do not match `fr-FR` under lookup; `en-US` is the next valid range and gets selected.
+- `en-GB` does not match the `en-US` tag: falls back to `vi-VN`.
+- `vi-VN` matches directly.
+- Wildcard `*` is ignored in lookup: falls back to `vi-VN`.
+- Neither `es-MX` nor `es` is in `SUPPORTED`: falls back to `vi-VN`.
 
-**Không dùng code này làm HTTP negotiator production hoàn chỉnh:** nó chưa áp dụng giới hạn header, chưa xử lý `q=0`/HTTP exclusions, chưa lựa chọn fallback theo cùng ngôn ngữ, và chỉ bắt lỗi cú pháp ở mức API. Đó là lý do phải viết thêm contract và test tích hợp thay vì copy-paste một ví dụ cơ bản vào gateway.
+**Do not use this code as a complete production HTTP negotiator:** it lacks header size limits, `q=0`/HTTP exclusion handling, same-language fallback rules, and only catches syntax errors at the API level. That is why you must add explicit contracts and integration tests rather than copy-pasting a basic example into a gateway.
 
-## 9. Xử lý “cùng ngôn ngữ, khác vùng” có chủ ý
+## 9. Handling "Same Language, Different Region" Intentionally
 
-Người dùng `fr-CA` và sản phẩm chỉ có `fr-FR`. Có ít nhất ba chính sách hợp lệ tùy sản phẩm:
+The user requests `fr-CA` and the product only has `fr-FR`. There are at least three valid policies depending on the product:
 
-### Chính sách A: strict lookup, không tự đổi vùng
+### Policy A: Strict Lookup, No Implicit Region Substitution
 
-Chỉ dùng `Locale.lookup`. Nếu không match, thử range khác, rồi về default. Với header `fr-CA,fr;q=0.9,en-US;q=0.7`, có thể chọn `en-US` dù `fr-FR` được hỗ trợ.
+Use `Locale.lookup` only. If no match, try the next range, then fall back to the default. For `fr-CA,fr;q=0.9,en-US;q=0.7`, this may select `en-US` even though `fr-FR` is supported.
 
-Ưu điểm: dựa đúng RFC 4647 lookup, không ngầm tráo một vùng thành vùng khác.
+Pros: follows RFC 4647 lookup strictly without silently swapping one region for another.
 
-Nhược điểm: một số người dùng có thể thích `fr-FR` hơn `en-US`. Cần giải thích policy.
+Cons: some users may prefer `fr-FR` over `en-US`. The policy must be documented.
 
-### Chính sách B: filtering các language ranges rộng
+### Policy B: Filtering Broad Language Ranges
 
-Nếu người dùng khai rõ `fr` trong priority list, `Locale.filter` có thể trả `fr-FR`. Sản phẩm có thể chọn **phần tử đầu tiên** khi hợp đồng cho phép “bất kỳ locale thuộc ngôn ngữ mà người dùng chấp nhận”.
+If the user explicitly lists `fr` in the priority list, `Locale.filter` can return `fr-FR`. A product may pick the **first element** when its contract permits "any locale of a language accepted by the user."
 
-Ví dụ:
+Example:
 
 ```java
 List<Locale> filtered = Locale.filter(
@@ -403,42 +403,42 @@ Locale selected = filtered.isEmpty()
         : filtered.get(0);
 ```
 
-Đây là đoạn minh họa trong method. `selected` là `fr-FR` theo filtering, khác với strict lookup.
+This is an in-method illustration. `selected` is `fr-FR` under filtering, differing from strict lookup.
 
-**Lưu ý:** các range được filter có thể là wildcard/extended ranges. Cách chọn phần tử đầu tiên chỉ đúng nếu product contract cho phép dùng thứ tự API, bộ supported có thứ tự kiểm soát và đã giải quyết `q=0`/exclusion của HTTP.
+**Note:** filtered ranges may be wildcard or extended ranges. Picking the first element is valid only if the product contract permits relying on API order, the supported list has controlled ordering, and HTTP `q=0`/exclusions have already been resolved.
 
-### Chính sách C: mapping fallback đã được phê duyệt
+### Policy C: Approved Fallback Mapping
 
-Sản phẩm có thể có bảng mapping:
+A product can maintain an explicit mapping table:
 
-| User preference | Fallback được phép |
+| User Preference | Allowed Fallback |
 | --- | --- |
-| `fr-CA` | `fr-FR` nếu localization team chấp nhận |
-| `en-AU` | `en-GB` hoặc `en-US` theo phong cách nội dung |
-| `pt-AO` | `pt-PT` hoặc chiến lược cụ thể |
-| `zh-HK` | Ưu tiên `zh-Hant`, **không** tự chuyển sang `zh-Hans` |
-| `sr-Latn` | Không tự đổi sang `sr-Cyrl` nếu tài nguyên chữ Latin là yêu cầu |
+| `fr-CA` | `fr-FR` if approved by the localization team |
+| `en-AU` | `en-GB` or `en-US` depending on content style |
+| `pt-AO` | `pt-PT` or specific regional strategy |
+| `zh-HK` | Prefer `zh-Hant`; do **not** automatically switch to `zh-Hans` |
+| `sr-Latn` | Do not automatically switch to `sr-Cyrl` if Latin script resources are required |
 
-Một mapping như vậy là **policy nghiệp vụ**, không phải lựa chọn mà `Locale.lookup` tự suy ra. Cần quản lý version, review ngôn ngữ, kiểm thử các vùng không tương đương và đảm bảo kết quả vẫn nằm trong supported set.
+Such a mapping is a **business policy**, not something `Locale.lookup` infers on its own. It must be versioned, reviewed linguistically, tested for non-equivalent regions, and guaranteed to stay within the supported set.
 
-## 10. Filter nâng cao và các language ranges có wildcard
+## 10. Advanced Filtering and Wildcard Language Ranges
 
-RFC 4647 có hai dạng language range:
+RFC 4647 defines two kinds of language ranges:
 
-- **Basic ranges**, ví dụ `en`, `ja-JP`, `*`.
-- **Extended ranges**, ví dụ `zh-Hant-*`, `*-CH`.
+- **Basic ranges**, e.g. `en`, `ja-JP`, `*`.
+- **Extended ranges**, e.g. `zh-Hant-*`, `*-CH`.
 
-Java cung cấp `Locale.FilteringMode` cho việc lựa chọn hành vi:
+Java provides `Locale.FilteringMode` to control filtering behavior:
 
-| Mode | Ý nghĩa tổng quát |
+| Mode | General Meaning |
 | --- | --- |
-| `AUTOSELECT_FILTERING` | Java tự chọn cơ chế filtering phù hợp loại ranges |
-| `EXTENDED_FILTERING` | Dùng extended filtering |
-| `IGNORE_EXTENDED_RANGES` | Bỏ các extended ranges |
-| `MAP_EXTENDED_RANGES` | Ánh xạ extended ranges thành dạng basic phù hợp |
-| `REJECT_EXTENDED_RANGES` | Ném lỗi khi có extended ranges |
+| `AUTOSELECT_FILTERING` | Java automatically picks the filtering mode matching the range types |
+| `EXTENDED_FILTERING` | Uses extended filtering |
+| `IGNORE_EXTENDED_RANGES` | Skips extended ranges |
+| `MAP_EXTENDED_RANGES` | Maps extended ranges to appropriate basic forms |
+| `REJECT_EXTENDED_RANGES` | Throws an exception when extended ranges are present |
 
-Ví dụ rõ mode:
+Explicit mode example:
 
 ```java
 List<Locale.LanguageRange> priorities =
@@ -450,21 +450,21 @@ List<Locale> filtered = Locale.filter(
         Locale.FilteringMode.EXTENDED_FILTERING);
 ```
 
-Đây là đoạn minh họa trong method với `supportedLocales` được xác định và import `java.util.Locale`/`java.util.List`.
+This is an in-method illustration assuming `supportedLocales` is defined and `java.util.Locale`/`java.util.List` are imported.
 
-### Khi nào extended ranges hữu ích?
+### When Are Extended Ranges Useful?
 
-Giả sử sản phẩm có nhiều region cùng **Traditional Chinese**: `zh-Hant-TW`, `zh-Hant-HK`. Một range `zh-Hant-*` thể hiện mong muốn ưu tiên chữ phồn thể dù không chỉ định region cụ thể. Còn `zh-Hans-CN` là simplified Chinese, không nên bị coi là match thay thế chỉ vì cùng `zh`.
+Suppose a product supports multiple regions for **Traditional Chinese**: `zh-Hant-TW`, `zh-Hant-HK`. A range `zh-Hant-*` expresses preference for Traditional script without specifying a particular region. Meanwhile, `zh-Hans-CN` is Simplified Chinese and should not be treated as a substitute match merely because both share `zh`.
 
-**Cần ghi rõ:** wildcard trong locale range và `*` HTTP có thể khác cách được xử lý giữa lookup và filtering. Với lookup, một `*` đứng độc lập bị bỏ qua; với filtering, wildcard có thể bao hàm nhiều supported tags. Không áp logic kết quả filter cho lookup.
+**Be explicit:** wildcards in locale ranges and HTTP `*` can behave differently between lookup and filtering. In lookup, a standalone `*` is ignored; in filtering, wildcards can match multiple supported tags. Do not apply filter-result assumptions to lookup.
 
-### Thứ tự supported list
+### Ordering of the Supported List
 
-Đừng dùng `HashSet`/collection không có thứ tự nếu policy cần kết quả ổn định khi nhiều candidate tương đương. Đối với `lookup`/`filterTags`, nếu nhiều tags cùng match theo wildcard hoặc có bản trùng khác chữ hoa, thứ tự đầu vào có thể ảnh hưởng tag được trả về. Định nghĩa một list được kiểm soát và tie-breaker của sản phẩm.
+Do not use `HashSet` or unordered collections if your policy requires deterministic results when multiple candidates tie. For `lookup`/`filterTags`, if multiple tags match a wildcard or differ only by letter case, input ordering can affect the returned tag. Define a controlled list and an explicit product tie-breaker.
 
-## 11. Từ locale được chọn đến ResourceBundle
+## 11. From Selected Locale to ResourceBundle
 
-Sau khi chọn được `selectedLocale`, ứng dụng thường dùng nó để nạp family bản dịch:
+Once `selectedLocale` is chosen, the application typically uses it to load the translation family:
 
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle(
@@ -473,22 +473,22 @@ ResourceBundle bundle = ResourceBundle.getBundle(
 String greeting = bundle.getString("greeting");
 ```
 
-Đoạn code này minh họa trong method, cần import `java.util.ResourceBundle`. Ở đây `selectedLocale` đã được ứng dụng chọn từ danh sách `SUPPORTED`.
+This code illustrates usage inside a method and requires `import java.util.ResourceBundle;`. Here, `selectedLocale` has already been chosen by the application from `SUPPORTED`.
 
-**Hai cơ chế khác nhau:**
+**Two distinct mechanisms:**
 
-1. **Locale negotiation:** chọn **một locale sản phẩm mong muốn sử dụng** từ danh sách ưu tiên và supported locales.
-2. **ResourceBundle lookup:** tìm **bundle thực tế và từng key** với candidate locales, root/default fallback, classloader/module scope và caching theo `ResourceBundle`.
+1. **Locale negotiation:** picks **one locale the product intends to use** from the user's priority list and supported locales.
+2. **ResourceBundle lookup:** resolves the **actual bundle and each key** using candidate locales, root/default fallback, classloader/module scope, and `ResourceBundle` caching.
 
-Nếu chọn `de-DE` mà không có `Messages_de_DE.properties` hoặc `Messages_de.properties`, ResourceBundle có thể fallback về bản khác theo chính sách mặc định. Điều đó không có nghĩa negotiation đã chọn đúng bản dịch `de-DE`. **Supported list phải phản ánh resource/bản dịch thực sự được phát hành**, không dựa vào việc `getBundle` không ném lỗi.
+If `de-DE` is selected without `Messages_de_DE.properties` or `Messages_de.properties`, `ResourceBundle` may fall back to another bundle according to its default policy. That does not mean negotiation properly selected a `de-DE` translation. **The supported list must reflect actually released resources and translations**, rather than relying on `getBundle` not throwing an error.
 
-### ResourceBundle.getLocale() giúp chẩn đoán
+### ResourceBundle.getLocale() Helps Diagnose Fallback
 
-Sau khi tải bundle, có thể gọi `bundle.getLocale()` để biết locale gắn với bundle kết quả. Nếu ứng dụng yêu cầu một locale cụ thể mà bundle thực sự được trả từ root, đây là tín hiệu thiếu translation coverage. Tuy nhiên, đôi khi `ResourceBundle` dùng inheritance/parent fallback cho từng key nên chỉ nhìn một bundle locale vẫn chưa đủ kiểm thử **toàn bộ key coverage**.
+After loading a bundle, you can call `bundle.getLocale()` to inspect the locale bound to the resulting bundle. If the application requested a specific locale and the returned bundle came from the root, that signals missing translation coverage. However, because `ResourceBundle` also uses parent inheritance per key, inspecting only the bundle's locale is still insufficient to verify **full key coverage**.
 
-### Java 17 runnable: negotiate rồi lấy bản dịch
+### Runnable Java 17 Example: Negotiate Then Load Translation
 
-Chuẩn bị cấu trúc:
+Prepare the directory structure:
 
 ```text
 project/
@@ -498,25 +498,25 @@ project/
   resources/demo/Messages_vi.properties
 ```
 
-Nội dung `resources/demo/Messages.properties`:
+Contents of `resources/demo/Messages.properties`:
 
 ```properties
 hello=Hello
 ```
 
-Nội dung `resources/demo/Messages_de.properties`:
+Contents of `resources/demo/Messages_de.properties`:
 
 ```properties
 hello=Hallo
 ```
 
-Nội dung `resources/demo/Messages_vi.properties` (UTF-8):
+Contents of `resources/demo/Messages_vi.properties` (UTF-8):
 
 ```properties
 hello=Xin chào
 ```
 
-Lưu `src/demo/NegotiatedBundleDemo.java`:
+Save `src/demo/NegotiatedBundleDemo.java`:
 
 ```java
 package demo;
@@ -564,7 +564,7 @@ public class NegotiatedBundleDemo {
 }
 ```
 
-Bash trong thư mục `project`:
+Bash inside the `project` directory:
 
 ```bash
 mkdir -p out/demo
@@ -581,15 +581,15 @@ bundleLocale=de
 hello=Hallo
 ```
 
-Tại sao `bundleLocale=de` thay vì `de-DE`? Vì demo chỉ có `Messages_de.properties`, không có `Messages_de_DE.properties`. `getBundle` dùng ứng viên `de` khi tìm family, còn locale đã chọn cho giao diện vẫn là `de-DE`.
+Why is `bundleLocale=de` instead of `de-DE`? Because the demo only has `Messages_de.properties`, not `Messages_de_DE.properties`. `getBundle` resolves candidate `de` when searching the family, while the selected UI locale remains `de-DE`.
 
-**Điểm thực hành:** việc bundle dùng một file `_de` phục vụ nhiều vùng Đức là chính sách tài nguyên hợp lệ **nếu bản dịch phù hợp ngữ nghĩa**. Không đồng nhất “bundle filename không có region” với lỗi; phải xét translation coverage theo product contract.
+**Practical takeaway:** having a single `_de` bundle serve multiple German-speaking regions is a valid resource policy **if the translations are semantically appropriate**. Do not equate "bundle filename lacks a region" with an error; evaluate translation coverage against the product contract.
 
-`ResourceBundle.Control` chủ yếu dùng cho classpath/unnamed module. Ở JPMS named modules, overload và khả năng dùng `Control` có hạn chế; có thể cần module-aware lookup hoặc `ResourceBundleProvider`. Demo này cố ý dùng classpath.
+`ResourceBundle.Control` is intended primarily for the classpath/unnamed module. In JPMS named modules, overloads and `Control` usage are restricted; module-aware lookups or `ResourceBundleProvider` may be needed. This demo intentionally uses the classpath.
 
-## 12. Một lựa chọn locale không giải quyết hết mọi thứ
+## 12. Selecting a Locale Does Not Solve Everything
 
-Sau khi chọn `selectedLocale`, nhiều API khác nhau dùng nó:
+After choosing `selectedLocale`, various APIs consume it:
 
 ```java
 NumberFormat numberFormat =
@@ -603,124 +603,124 @@ Collator collator =
         Collator.getInstance(selectedLocale);
 ```
 
-Đây là đoạn trong method, cần import `java.text.NumberFormat`, `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle` và `java.text.Collator`.
+This snippet is inside a method and requires importing `java.text.NumberFormat`, `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle`, and `java.text.Collator`.
 
-Nhưng:
+However:
 
-- `Locale` không tự quyết định `ZoneId` cho timestamp.
-- `Locale` không tự quy đổi USD sang EUR.
-- `Locale` không nhất thiết tự chọn `Chronology` non-ISO.
-- `Locale` không bảo đảm bộ font hiện hành vẽ đúng Arabic/Hebrew/emoji.
-- `Locale` không xử lý toàn bộ HTML/CSS `dir` hoặc Java Swing component orientation.
-- `Locale` không tự load file dịch từ plugin loader/module khác.
-- `Locale` không đảm bảo `ResourceBundle` nào cũng có đủ keys.
+- `Locale` does not determine the `ZoneId` for timestamps.
+- `Locale` does not convert USD to EUR.
+- `Locale` does not necessarily select a non-ISO `Chronology`.
+- `Locale` does not guarantee active fonts render Arabic, Hebrew, or emojis properly.
+- `Locale` does not automatically handle all HTML/CSS `dir` attributes or Java Swing component orientation.
+- `Locale` does not automatically load translation files from external plugin loaders/modules.
+- `Locale` does not guarantee that every `ResourceBundle` contains all keys.
 
-Một ứng dụng đa ngôn ngữ tốt có **locale negotiation rõ**, nhưng vẫn tách các mối quan tâm format/translation/data/layout.
+A well-engineered multilingual application performs **explicit locale negotiation** while keeping formatting, translation, data, and layout concerns separate.
 
-## 13. Kết quả sai do trộn preferred locale với default JVM
+## 13. Bugs Caused by Mixing Preferred Locale with JVM Default
 
-Hãy tránh:
+Avoid doing:
 
 ```java
 Locale.setDefault(chosenLocale);
 ```
 
-nếu `chosenLocale` đến từ một HTTP request. `Locale.setDefault` thay đổi **trạng thái JVM chung**, có thể khiến request khác thấy format/case/bundle lookup bị ảnh hưởng.
+when `chosenLocale` comes from an HTTP request. `Locale.setDefault` mutates **global JVM state**, affecting formatting, casing, and bundle lookups in unrelated requests.
 
-Ví dụ gây lỗi nổi tiếng:
+Famous failure case:
 
 ```java
 String key = "TITLE".toLowerCase();
 ```
 
-Nếu JVM default locale là tiếng Thổ Nhĩ Kỳ, chữ `I` chuyển thành dotless `ı`, làm key sai khi code muốn `"title"` theo ASCII. Định danh máy nên dùng `toLowerCase(Locale.ROOT)` theo contract; văn bản hiển thị theo người dùng thì truyền `selectedLocale` vào API.
+If the JVM default locale is Turkish, uppercase `I` turns into dotless `ı`, corrupting the key when code expects ASCII `"title"`. Machine identifiers should use `toLowerCase(Locale.ROOT)` per contract; user-facing text should pass `selectedLocale` explicitly to formatting/casing APIs.
 
-**Không áp dụng locale người dùng để parse JSON date/time wire format** trừ khi giao thức quy định rõ. API máy thường dùng ISO-8601; UI hiển thị theo locale là một tầng khác.
+**Do not use the user's locale to parse JSON date/time wire formats** unless the protocol explicitly mandates it. Machine APIs typically use ISO-8601; locale-aware UI presentation belongs to a separate layer.
 
-## 14. Validation đầu vào và xử lý header không đáng tin
+## 14. Input Validation and Handling Untrusted Headers
 
-`Accept-Language` đến từ client là dữ liệu đầu vào. Không nên tin nó tuyệt đối.
+`Accept-Language` arrives from the client as untrusted input. Never trust it blindly.
 
-### 14.1. Độ dài và số mục
+### 14.1. Length and Entry Count
 
-- Giới hạn độ dài header mà hệ thống chấp nhận theo yêu cầu vận hành.
-- Giới hạn số language ranges/chuỗi sau parse nếu cần chống chi phí bất thường.
-- Không lưu một header khổng lồ nguyên văn trong log hay cache key nếu không có kiểm soát.
-- Khi nhận header trống/thiếu, sử dụng default hoặc preference khác đã được xác minh.
-- `LanguageRange.parse` có thể ném `IllegalArgumentException` cho input không hợp lệ: có policy rõ thay vì để 500 vô cớ.
+- Cap the maximum header length accepted by the system according to operational requirements.
+- Limit the number of parsed language ranges/strings if needed to prevent excessive processing cost.
+- Do not store unbounded raw headers verbatim in logs or cache keys.
+- When the header is empty or missing, use the default or another verified preference.
+- `LanguageRange.parse` can throw `IllegalArgumentException` on invalid input: define a clear policy instead of returning an unhandled 500 error.
 
-### 14.2. q=0, wildcard và sự nhất quán
+### 14.2. q=0, Wildcards, and Consistency
 
-- Header `en;q=0` yêu cầu **không chấp nhận English** theo semantics của HTTP.
-- `*` có thể chấp nhận các tag khác, nhưng cần bảo đảm không vô hiệu hóa ngôn ngữ bị từ chối.
-- Với `Locale.lookup`, `*` được bỏ qua; do đó phải có fallback.
-- `Locale.filter` có thể trả nhiều mục và có policy khác lookup.
-- Nếu sản phẩm áp đầy đủ HTTP Accept-Language negotiation, dùng implementation đã được kiểm thử theo RFC 9110 và RFC 4647, hoặc viết logic riêng cùng test cho exclusions/tie/weights.
+- `en;q=0` requests **not accepting English** under HTTP semantics.
+- `*` can match other tags, but you must ensure it does not re-enable an explicitly rejected language.
+- With `Locale.lookup`, `*` is ignored; therefore, you need an explicit fallback.
+- `Locale.filter` can return multiple items and follows a different policy than lookup.
+- If the product implements full HTTP `Accept-Language` negotiation, use an implementation tested against RFC 9110 and RFC 4647, or write custom logic with tests for exclusions, ties, and weights.
 
-### 14.3. Từ chối ngôn ngữ và fallback mặc định
+### 14.3. Language Rejection and Default Fallback
 
-Một nghịch lý cần giải quyết trong yêu cầu: nếu mọi locale supported đều bị từ chối (q=0), có nên vẫn trả default `en-US` không? Tùy sản phẩm:
+A paradox to resolve in requirements: if all supported locales are rejected (`q=0`), should you still return the default `en-US`? It depends on the product:
 
-- Với website thông thường, có thể chọn fallback UI để trang còn dùng được, nhưng cần hiểu rằng nó **không tuân sát yêu cầu acceptability của client**.
-- Với API có hợp đồng thương lượng nội dung nghiêm ngặt, có thể trả `406 Not Acceptable` khi không thể cung cấp representation phù hợp.
-- Với user chọn ngôn ngữ trong profile, có thể hỏi/chỉ dẫn chọn lại, hoặc cung cấp default công bố.
+- For a typical website, falling back to a UI default keeps the page usable, though you must recognize this **does not strictly obey client acceptability**.
+- For an API with a strict content-negotiation contract, returning `406 Not Acceptable` may be appropriate when no acceptable representation exists.
+- When a user configures language in their profile, you can prompt them to re-select or fall back to the published default.
 
-Không phải mọi website đều bắt buộc trả 406; RFC HTTP cho phép server cân nhắc cách phục vụ representation. Cần document lựa chọn, test cả trường hợp chặn hết ngôn ngữ, không để user-facing UI đột ngột đổi vì một header bất thường.
+Not every website is required to return 406; HTTP RFCs allow servers discretion in serving a representation. Document your choice, test the all-rejected case, and prevent user-facing UIs from switching abruptly due to an odd header.
 
 ### 14.4. Privacy
 
-Danh sách `Accept-Language` rất dài/cụ thể có thể tiết lộ sở thích ngôn ngữ hoặc tăng khả năng nhận diện fingerprinting. Chỉ thu thập và lưu những phần cần thiết cho sản phẩm. Không ghi lại header có nội dung không cần dùng; không suy quốc tịch/danh tính hoặc vị trí chính xác chỉ từ language tag.
+Very long or hyper-specific `Accept-Language` lists can reveal personal language preferences or increase browser fingerprinting surface. Collect and retain only what the product needs. Do not log unused header contents, and never infer nationality, identity, or exact physical location solely from a language tag.
 
-## 15. Vấn đề cache và Content-Language
+## 15. Caching and Content-Language Considerations
 
-Nếu cùng một URL trả nhiều bản dịch theo `Accept-Language`, cache HTTP/CDN có thể phục vụ sai bản nếu không đưa ngôn ngữ vào chiến lược cache.
+If the same URL returns different translations based on `Accept-Language`, HTTP/CDN caches can serve the wrong version unless language is factored into the caching strategy.
 
-- Trả `Content-Language` khi response thật sự thể hiện ngôn ngữ phù hợp.
-- Cân nhắc `Vary: Accept-Language` khi response thay đổi theo header này.
-- Nếu chọn locale theo user profile/cookie/URL thay vì header, cache key và privacy policy phải tương ứng; `Vary: Accept-Language` **không tự giải quyết** mọi trường hợp.
-- Với nội dung riêng tư, kiểm tra `Cache-Control` và phân vùng cache theo người dùng theo đúng chính sách.
-- Không dùng `Accept-Language` làm cache key raw vô giới hạn nếu có nguy cơ cardinality quá lớn; cân nhắc normalized selected locale khi kiến trúc cho phép.
+- Return `Content-Language` when the response genuinely reflects the corresponding language.
+- Consider `Vary: Accept-Language` when responses vary by that header.
+- If the locale is chosen from a user profile, cookie, or URL instead of the header, cache keys and privacy policies must match; `Vary: Accept-Language` **does not solve** every scenario automatically.
+- For private content, verify `Cache-Control` and per-user cache partitioning per policy.
+- Do not use an unbounded raw `Accept-Language` string as a cache key if cardinality explosion is a risk; consider keying on the normalized selected locale where architecture allows.
 
-**Điểm quan trọng:** header input có thể gồm nhiều preference, nhưng nội dung response thường được tạo dưới **một selected locale cụ thể**. Cache nên gắn với phiên bản nội dung/lang chính xác, không chỉ với chuỗi tùy ý do client cung cấp.
+**Key takeaway:** the input header may list many preferences, whereas the response body is usually generated under **one concrete selected locale**. Caches should bind to the exact content/language variant rather than arbitrary client-supplied header strings.
 
-## 16. Test đầy đủ các trường hợp biên
+## 16. Comprehensive Edge-Case Testing
 
-### 16.1. Ma trận kiểm thử lookup/filter
+### 16.1. Lookup/Filter Test Matrix
 
-| Preference | Supported | Điều phải xác minh |
+| Preference | Supported | What to Verify |
 | --- | --- | --- |
-| `de-DE,de;q=0.9,en-US;q=0.6` | `de-DE, en-US` | Lookup chọn de-DE |
-| `fr-CA,fr;q=0.9,en-US;q=0.7` | `fr-FR, en-US` | Lookup chọn en-US; filtering ưu tiên fr-FR |
-| `en-GB` | `en-US` | Lookup null, không tự chọn en-US |
-| `en` | `en-US` | Lookup null; filter có en-US |
-| `*` | `vi-VN, en-US` | Lookup null; policy fallback được định nghĩa |
-| `es-MX,es;q=0.8` | `vi-VN, en-US` | Không match, dùng default |
-| `zh-Hant-TW` | `zh-Hant, zh-Hans-CN` | Lookup có thể rút thành zh-Hant; không chọn Hans chỉ vì cùng zh |
-| `tr-TR` | `tr-TR, en-US` | Case mapping/tr-TR đúng sau khi chọn |
-| `ar-EG` | `ar-EG, en-US` | UI RTL ngoài logic locale lookup |
-| Header trống/thiếu | Bất kỳ supported không rỗng | Default được dùng |
-| Header malformed | Danh sách cố định | Không 500 không kiểm soát |
-| `en;q=0,*;q=0.5` | `en-US, de-DE` | Không tái chọn ngôn ngữ bị từ chối qua wildcard nếu HTTP contract nghiêm |
-| Equal q | Hai tags đều supported | Tie/priority có chính sách xác định |
-| Duplicates/aliases | Bộ tags có alias | Không tự làm mất/nhân bản locale không đúng |
-| Đổi supported list | Một locale bị bỏ ở release mới | Không chọn locale không còn tài nguyên dịch |
+| `de-DE,de;q=0.9,en-US;q=0.6` | `de-DE, en-US` | Lookup selects `de-DE` |
+| `fr-CA,fr;q=0.9,en-US;q=0.7` | `fr-FR, en-US` | Lookup selects `en-US`; filtering prioritizes `fr-FR` |
+| `en-GB` | `en-US` | Lookup returns `null`, does not auto-select `en-US` |
+| `en` | `en-US` | Lookup returns `null`; filter includes `en-US` |
+| `*` | `vi-VN, en-US` | Lookup returns `null`; defined fallback policy applies |
+| `es-MX,es;q=0.8` | `vi-VN, en-US` | No match; uses default |
+| `zh-Hant-TW` | `zh-Hant, zh-Hans-CN` | Lookup truncates to `zh-Hant`; does not pick `Hans` just for sharing `zh` |
+| `tr-TR` | `tr-TR, en-US` | Case mapping/`tr-TR` works properly after selection |
+| `ar-EG` | `ar-EG, en-US` | RTL UI handled outside locale lookup logic |
+| Empty/missing header | Any non-empty supported list | Default is used |
+| Malformed header | Fixed list | No unhandled 500 error |
+| `en;q=0,*;q=0.5` | `en-US, de-DE` | Rejected language is not re-selected via wildcard under strict HTTP contract |
+| Equal `q` | Both tags supported | Tie-breaking/priority follows deterministic policy |
+| Duplicates/aliases | Tag set with aliases | Does not silently drop or duplicate locales improperly |
+| Supported list change | A locale removed in a new release | No longer selects a locale without translation resources |
 
-### 16.2. Kiểm thử hậu negotiation
+### 16.2. Post-Negotiation Testing
 
-Một locale được chọn xong vẫn cần test:
+Even after selecting a locale, verify:
 
-- `ResourceBundle.getBundle` tìm family và key bắt buộc đúng.
-- Placeholder và `MessageFormat` không sai thứ tự hoặc escaping.
-- Number/date/currency formatter đúng locale và parse round-trip.
-- `Collator` sắp xếp từ theo ngôn ngữ, nhất là chữ I tiếng Thổ Nhĩ Kỳ.
-- Font/line breaking và giao diện RTL nếu tiếng Ả Rập/Hebrew.
-- Bản dịch dài không tràn nút/menu, screen reader đọc đúng.
-- Không đổi dữ liệu canonical/API vì UI dùng locale khác.
-- Đổi locale ở tài khoản giữa hai request phải đổi bundle/formatter và không làm request khác bị ảnh hưởng.
+- `ResourceBundle.getBundle` resolves the family and required keys properly.
+- Placeholders and `MessageFormat` have no ordering or escaping errors.
+- Number/date/currency formatters match the locale and handle parse round-trips.
+- `Collator` sorts words according to language rules, especially Turkish `I`.
+- Font rendering, line breaking, and RTL layout work for Arabic/Hebrew.
+- Long translations do not overflow buttons/menus, and screen readers read them properly.
+- Canonical/API data formats do not mutate simply because the UI uses another locale.
+- Changing an account's locale between requests updates bundles/formatters without leaking into other requests.
 
-## 17. Test Java 17: assertion cho một chính sách rõ ràng
+## 17. Java 17 Test: Assertions for an Explicit Policy
 
-Tệp `LocaleNegotiationAssertions.java`:
+File `LocaleNegotiationAssertions.java`:
 
 ```java
 import java.util.List;
@@ -792,122 +792,122 @@ PASS empty-default
 PASS supported-only
 ```
 
-Bài test dùng `main` để chạy độc lập, không yêu cầu JUnit. Nó chưa có test header malformed (demo `choose` trong file assertion không bắt exception), vì test này tập trung **hành vi lookup hợp lệ**. Khi đưa vào sản phẩm, bổ sung `try/catch`, giới hạn input, q=0/HTTP acceptability và danh sách aliases/extended ranges.
+This test uses `main` to run standalone without requiring JUnit. It does not include malformed-header tests (the demo `choose` in the assertion file does not catch exceptions) because it focuses on **valid lookup behavior**. In production, add `try/catch`, input limits, `q=0`/HTTP acceptability, and alias/extended-range coverage.
 
-## 18. Những lỗi thiết kế thường gặp
+## 18. Common Design Mistakes
 
-| Sai lầm | Vì sao sai | Cách sửa |
+| Mistake | Why It Is Wrong | Fix |
 | --- | --- | --- |
-| Chọn luôn mục đầu của header `Accept-Language` | Có thể không supported; bỏ qua `q` | Parse `LanguageRange`, match với supported |
-| Dùng `Locale.getAvailableLocales()` làm supported | Dữ liệu locale JDK khác translation coverage | Dùng supported list của sản phẩm |
-| Gọi `Locale.forLanguageTag(wholeHeader)` | Header có nhiều ranges và `q`, không phải một tag | Dùng `LanguageRange.parse` |
-| Giả định `Locale.lookup` chọn `en-US` cho `en-GB` | Lookup không chọn sibling region tự động | Định nghĩa language fallback riêng |
-| Giả định `lookup("en")` match `en-US` | Lookup progressive nhưng không phải prefix filter | Dùng filter khi đó là semantics mong muốn |
-| Dùng `filter(...).get(0)` khi rỗng | Ném `IndexOutOfBoundsException` | Kiểm tra empty và default |
-| Coi wildcard `*` như locale thật | Không phải BCP 47 language tag cụ thể | Xử lý theo negotiation policy |
-| Coi `q=0` như ưu tiên thấp nhưng vẫn được chấp nhận | Theo HTTP q=0 là không chấp nhận | Policy exclusions đúng RFC |
-| Dùng `HashSet` không thứ tự cho lựa chọn có tie | Kết quả có thể thiếu tính xác định | Dùng ordered supported list và tie-breaker |
-| Dùng `Locale.setDefault` per request | Gây race ở JVM đa người dùng | Truyền locale tường minh |
-| Cho `ResourceBundle` fallback là bằng chứng “supported” | Có thể rơi về root bản dịch khác | Kiểm tra catalog/translation coverage |
-| Quên script trong tag như `zh-Hant` | Có thể chọn sai hệ chữ | Chính sách script rõ |
-| Dựa IP làm bằng chứng language | Không phản ánh preference cá nhân | Ưu tiên cài đặt tường minh |
-| Không giới hạn header user-controlled | Có thể gây chi phí/DoS hoặc cache cardinality lớn | Giới hạn length/ranges |
-| Coi chọn locale là đổi timezone/currency | Các giá trị độc lập | ZoneId/Currency/Chronology riêng |
-| Để cache dùng locale của request trước | Phục vụ sai bản dịch | Key cache/Content-Language/Vary rõ |
-| Chỉ test en-US | Bỏ qua phân biệt vùng/RTL/Turkish casing | Ma trận đa locale và UI test |
-| Chặn toàn bộ request vì header thiếu | Header không bắt buộc luôn tồn tại | Default/policy thiếu header |
+| Always picking the first entry of `Accept-Language` | Might be unsupported; ignores `q` | Parse `LanguageRange` and match against supported locales |
+| Using `Locale.getAvailableLocales()` as supported | JDK locale data differs from translation coverage | Maintain product's own supported list |
+| Calling `Locale.forLanguageTag(wholeHeader)` | Header has multiple ranges and `q`, not a single tag | Use `LanguageRange.parse` |
+| Assuming `Locale.lookup` picks `en-US` for `en-GB` | Lookup does not auto-select sibling regions | Define explicit same-language fallback policy |
+| Assuming `lookup("en")` matches `en-US` | Lookup truncates ranges, not prefix-filtering | Use `filter` when that semantics is desired |
+| Calling `filter(...).get(0)` when empty | Throws `IndexOutOfBoundsException` | Check empty and return default |
+| Treating wildcard `*` as a real locale | Not a concrete BCP 47 language tag | Handle via negotiation policy |
+| Treating `q=0` as low priority yet acceptable | In HTTP, `q=0` means unacceptable | Enforce exclusions per HTTP RFC |
+| Using unordered `HashSet` for tied candidates | Non-deterministic selection | Use an ordered supported list and tie-breaker |
+| Calling `Locale.setDefault` per request | Causes race conditions in multi-user JVMs | Pass `Locale` explicitly |
+| Treating `ResourceBundle` fallback as proof of "supported" | May fall back to root or another translation | Verify catalog/translation coverage |
+| Ignoring script in tags like `zh-Hant` | Can select the wrong writing system | Define explicit script policy |
+| Using IP address as proof of language | Does not reflect personal preference | Prioritize explicit user settings |
+| Leaving user-controlled headers unbounded | Risks CPU cost/DoS or cache cardinality blowup | Limit header length and range count |
+| Assuming selecting a locale changes time zone/currency | Independent dimensions | Manage `ZoneId`/`Currency`/`Chronology` separately |
+| Letting cache reuse the previous request's locale | Serves the wrong language | Configure cache keys, `Content-Language`, and `Vary` properly |
+| Testing only `en-US` | Misses regional differences, RTL, and Turkish casing | Run a multi-locale and UI test matrix |
+| Blocking requests when the header is absent | Header is not guaranteed to be present | Define missing-header default policy |
 
-## 19. Bài tập và đáp án
+## 19. Exercises and Answers
 
-**Bài 1.** User gửi `de-DE,de;q=0.8,en-US;q=0.5`. App có `vi-VN`, `en-US`, `de-DE`. Strict lookup chọn gì?
+**Exercise 1.** The user sends `de-DE,de;q=0.8,en-US;q=0.5`. The app supports `vi-VN`, `en-US`, and `de-DE`. What does strict lookup select?
 
-**Đáp án:** `de-DE` vì range đầu khớp cụ thể với supported.
+**Answer:** `de-DE`, because the first range matches a supported locale directly.
 
-**Bài 2.** User gửi `en-GB`, app chỉ có `en-US`. Vì sao `Locale.lookup` trả `null`?
+**Exercise 2.** The user sends `en-GB`, and the app only supports `en-US`. Why does `Locale.lookup` return `null`?
 
-**Đáp án:** Lookup rút dần `en-GB → en` nhưng supported không có tag `en`; `en-US` không phải match exact của `en` trong lookup. Muốn fallback cùng ngôn ngữ, phải có policy riêng hoặc dùng filtering trên một range thích hợp.
+**Answer:** Lookup truncates `en-GB → en`, but `supported` does not contain the tag `en`; `en-US` is not an exact match for `en` in lookup. To fall back within the same language, you need a custom policy or filtering on an appropriate range.
 
-**Bài 3.** User gửi `en`, app có `en-US`. `Locale.filter` trả gì và `Locale.lookup` trả gì?
+**Exercise 3.** The user sends `en`, and the app supports `en-US`. What do `Locale.filter` and `Locale.lookup` return?
 
-**Đáp án:** Filtering có thể trả `en-US`; lookup trả `null` nếu không có locale `en`.
+**Answer:** Filtering can return `en-US`; lookup returns `null` if there is no `en` locale in `supported`.
 
-**Bài 4.** Browser gửi `fr-CA,fr;q=0.9,en-US;q=0.7`; supported `fr-FR,en-US`. Vì sao lookup và filter khác nhau?
+**Exercise 4.** The browser sends `fr-CA,fr;q=0.9,en-US;q=0.7`; supported locales are `fr-FR,en-US`. Why do lookup and filter differ?
 
-**Đáp án:** `fr` khi lọc có thể bao hàm `fr-FR`, nhưng khi lookup cần đối chiếu tag đầy đủ/được rút ngắn; `en-US` là range khớp tiếp theo. Chính sách product quyết định chọn strict lookup hay preferred language fallback.
+**Answer:** Under filtering, `fr` covers `fr-FR`, whereas lookup requires an exact match for the full or truncated tag; `en-US` is the next matching range. Product policy determines whether to enforce strict lookup or preferred-language fallback.
 
-**Bài 5.** `LanguageRange.parse` có thể trả nhiều phần tử hơn số range trong header vì sao?
+**Exercise 5.** Why can `LanguageRange.parse` return more elements than the number of ranges in the header?
 
-**Đáp án:** Java có thể thêm các language ranges tương đương từ IANA Language Subtag Registry, ví dụ mã ngôn ngữ cũ/mới.
+**Answer:** Java may append equivalent language ranges from the IANA Language Subtag Registry, such as legacy and modern language codes.
 
-**Bài 6.** `q=0` có nghĩa gì trong `Accept-Language`?
+**Exercise 6.** What does `q=0` mean in `Accept-Language`?
 
-**Đáp án:** Theo HTTP đó là không chấp nhận range; không đơn giản coi như một lựa chọn trọng số rất thấp hoặc để wildcard vô tình chọn lại nó.
+**Answer:** In HTTP, it means that range is unacceptable; do not treat it merely as a very low-weight choice or let a wildcard accidentally re-select it.
 
-**Bài 7.** Vì sao không dùng `Locale.getAvailableLocales()` để chọn locale hiển thị?
+**Exercise 7.** Why shouldn't `Locale.getAvailableLocales()` be used to determine display locales?
 
-**Đáp án:** Nó cho biết locale data của JDK, không xác nhận sản phẩm có bản dịch và UI QA cho từng locale.
+**Answer:** It reports the JDK's built-in locale data, not whether the product has translations and UI QA for each locale.
 
-**Bài 8.** `zh-Hant-TW` và `zh-Hans-CN` cùng ngôn ngữ `zh`. Có nên tự đổi qua lại không?
+**Exercise 8.** `zh-Hant-TW` and `zh-Hans-CN` share the language `zh`. Should you swap them automatically?
 
-**Đáp án:** Không. Script khác nhau; chỉ dùng fallback được người chịu trách nhiệm bản địa hóa phê duyệt.
+**Answer:** No. Their scripts differ; only use fallbacks approved by localization owners.
 
-**Bài 9.** Sau khi chọn `de-DE`, `ResourceBundle.getBundle` trả file `Messages_de.properties`. Đó là lỗi không?
+**Exercise 9.** After selecting `de-DE`, `ResourceBundle.getBundle` loads `Messages_de.properties`. Is that an error?
 
-**Đáp án:** Không nhất thiết. Bundle candidate `de` có thể phục vụ `de-DE`; kiểm tra coverage và nội dung theo contract.
+**Answer:** Not necessarily. The `de` bundle candidate can serve `de-DE`; verify coverage and content against the product contract.
 
-**Bài 10.** Hai người dùng cùng endpoint nhưng khác `Accept-Language`. CDN cache trang theo URL duy nhất có thể gặp lỗi gì?
+**Exercise 10.** Two users hit the same endpoint with different `Accept-Language` headers. What bug can happen if a CDN caches the page solely by URL?
 
-**Đáp án:** Có thể trả trang tiếng của người trước cho người sau. Cần thiết kế cache key/`Vary`/Content-Language phù hợp và kiểm tra dữ liệu riêng tư.
+**Answer:** It may serve one user's language version to the next user. Design appropriate cache keys, `Vary`, and `Content-Language` headers, and verify private data handling.
 
-**Bài 11.** App dùng `Locale.setDefault(chosen)` khi nhận mỗi request; có nguy cơ gì?
+**Exercise 11.** An app calls `Locale.setDefault(chosen)` on every incoming request. What is the risk?
 
-**Đáp án:** Thay default JVM toàn cục, gây tác động chéo request và các thư viện format/case/bundle không nhận locale tường minh.
+**Answer:** It mutates the global JVM default, causing cross-request interference across formatters, casing operations, and bundles that do not pass an explicit `Locale`.
 
-**Bài 12.** Bản dịch `fr-FR` không có, nhưng `Locale.getAvailableLocales()` có `fr-FR`. Có nên đưa nó vào `SUPPORTED`?
+**Exercise 12.** There is no `fr-FR` translation, yet `Locale.getAvailableLocales()` includes `fr-FR`. Should it be added to `SUPPORTED`?
 
-**Đáp án:** Không, trừ khi sản phẩm công bố hỗ trợ locale đó với tài nguyên/QA tương ứng. Có formatter JDK không đồng nghĩa có translation.
+**Answer:** No, unless the product officially supports that locale with translations and QA. Having a JDK formatter does not mean translations exist.
 
-**Bài 13.** Khi client không gửi `Accept-Language`, hệ thống có nên đoán từ IP ngay không?
+**Exercise 13.** When a client omits `Accept-Language`, should the system immediately guess from the IP address?
 
-**Đáp án:** Không nên xem IP là nguồn chắc chắn. Dùng preference khác đã được người dùng chọn hoặc fallback product đã định nghĩa.
+**Answer:** IP should not be treated as definitive evidence. Use other explicit user preferences or the defined product fallback.
 
-**Bài 14.** Vì sao không hard-code cả số/tháng/năm theo region khi đã chọn locale?
+**Exercise 14.** Why shouldn't you hardcode number/month/year formatting per region once a locale is selected?
 
-**Đáp án:** Java có locale formatting data theo CLDR/provider; lấy formatter tương ứng để trình bày. Đừng trộn nó với format máy cố định cho API.
+**Answer:** Java provides locale formatting data via CLDR/providers; obtain the matching formatter for presentation. Do not mix it with fixed machine-readable API formats.
 
-## 20. Checklist triển khai production
+## 20. Production Deployment Checklist
 
-- [ ] Danh sách `SUPPORTED_LOCALES` do sản phẩm xác nhận từ bản dịch + QA, không từ JDK available locales.
-- [ ] `DEFAULT_LOCALE` thực sự nằm trong supported list.
-- [ ] Thứ tự các nguồn ưu tiên (UI, profile, URL, header) có contract và test.
-- [ ] Header `Accept-Language` được parse bằng API phù hợp và có validation/size limit.
-- [ ] `q`, wildcard và `q=0` được xử lý theo chính sách HTTP đã chọn.
-- [ ] Biết rõ đang dùng **lookup** hay **filtering** và có tests cho khác biệt `en-GB/en-US`.
-- [ ] Quy tắc fallback theo language/script/region đã được review, không giả định sibling regions tương đương.
-- [ ] Mọi kết quả lựa chọn đều thuộc supported set (trừ tình huống chủ động báo không chấp nhận).
-- [ ] Khi không match, kết quả default/406/prompt người dùng được định nghĩa.
-- [ ] Locale được truyền tường minh, không set default JVM theo request.
-- [ ] Bundle được load đúng scope, key coverage và fallback đã kiểm thử.
-- [ ] ZoneId/Chronology/Currency được quản lý riêng.
-- [ ] Cache và Content-Language/Vary đúng thực tế nguồn lựa chọn.
-- [ ] Test Turkish I, RTL, font, số/ngày theo từng locale thực sự hỗ trợ.
-- [ ] Kết quả được theo dõi bằng metrics không lộ header/PII không cần thiết.
+- [ ] `SUPPORTED_LOCALES` is verified by the product from actual translations + QA, not from JDK available locales.
+- [ ] `DEFAULT_LOCALE` is present inside the supported list.
+- [ ] Priority order across sources (UI, profile, URL, header) has an explicit contract and tests.
+- [ ] `Accept-Language` header is parsed with appropriate APIs and enforces validation/size limits.
+- [ ] `q`, wildcards, and `q=0` are handled according to the chosen HTTP policy.
+- [ ] It is explicit whether **lookup** or **filtering** is used, with tests covering `en-GB/en-US` differences.
+- [ ] Language/script/region fallback rules are reviewed rather than assuming sibling regions are interchangeable.
+- [ ] Every selected result belongs to the supported set (except when explicitly rejecting negotiation).
+- [ ] Unmatched behavior (default / 406 / user prompt) is defined.
+- [ ] `Locale` is passed explicitly without mutating JVM default per request.
+- [ ] Bundles load in the proper scope, with key coverage and fallback tested.
+- [ ] `ZoneId`, `Chronology`, and `Currency` are managed separately.
+- [ ] Caching, `Content-Language`, and `Vary` match the actual selection inputs.
+- [ ] Turkish `I`, RTL, fonts, and number/date formatting are tested for every truly supported locale.
+- [ ] Outcomes are tracked via metrics without leaking raw headers or unnecessary PII.
 
-## 21. Tổng kết
+## 21. Summary
 
-**Chọn locale là một bài toán đối chiếu ưu tiên với khả năng hỗ trợ thực tế.** Người dùng có thể gửi nhiều language ranges kèm `q`; ứng dụng chỉ nên chọn trong **catalog locale có bản dịch** và phải có default chính sách rõ.
+**Locale selection is a problem of matching user preferences against actual product support.** Users may send multiple language ranges with `q` weights; the application must select only from the **catalog of locales that actually have translations** and define an unambiguous default policy.
 
-Java 17 cung cấp `Locale.LanguageRange.parse`, `Locale.lookup`/`lookupTag` và `Locale.filter`/`filterTags`. **Lookup** nhằm chọn một tag theo RFC 4647, có progressive truncation nhưng không tự chọn mọi locale cùng ngôn ngữ ở vùng khác. **Filtering** tìm tập tags được các ranges bao hàm, phù hợp những chính sách chấp nhận rộng hơn.
+Java 17 provides `Locale.LanguageRange.parse`, `Locale.lookup`/`lookupTag`, and `Locale.filter`/`filterTags`. **Lookup** selects a single tag under RFC 4647 using progressive truncation, without automatically choosing sibling regions of the same language. **Filtering** finds all tags covered by the ranges, fitting broader acceptance policies.
 
-Đừng dùng `Locale.getAvailableLocales()` làm danh sách bản dịch; đừng nhầm negotiation với `ResourceBundle` fallback; đừng dùng `Locale.setDefault` theo request. Với HTTP production, bổ sung handling `q=0`/wildcard, input limits, preferences, cache và kiểm thử các ngôn ngữ đặc thù.
+Do not use `Locale.getAvailableLocales()` as a translation list; do not confuse negotiation with `ResourceBundle` fallback; do not call `Locale.setDefault` per request. For production HTTP services, add `q=0`/wildcard handling, input limits, user preferences, caching, and testing for special languages.
 
-Một selector tốt không chỉ “trả một Locale”, mà còn phải **trả đúng locale được công bố hỗ trợ**, rõ nguyên nhân fallback, không làm sai ngôn ngữ, dữ liệu hay cache.
+A solid selector does not merely "return a `Locale`"—it **returns a genuinely supported locale**, makes fallback behavior explicit, and avoids corrupting language, data, or caches.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
-- [Locale — BCP 47, RFC 4647 matching, lookup và filtering (Oracle Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html)
-- [Locale.LanguageRange — parsing, weight và language priority list (Oracle Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.LanguageRange.html)
-- [Locale.FilteringMode — cách lọc language ranges (Oracle Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.FilteringMode.html)
-- [ResourceBundle — bundles, fallback và modules (Oracle Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html)
+- [Locale — BCP 47, RFC 4647 matching, lookup, and filtering (Oracle Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html)
+- [Locale.LanguageRange — parsing, weight, and language priority list (Oracle Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.LanguageRange.html)
+- [Locale.FilteringMode — filtering modes for language ranges (Oracle Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.FilteringMode.html)
+- [ResourceBundle — bundles, fallback, and modules (Oracle Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html)
 - [RFC 4647 — Matching of Language Tags](https://www.rfc-editor.org/rfc/rfc4647.html)
 - [RFC 9110 — HTTP Semantics, Accept-Language](https://www.rfc-editor.org/rfc/rfc9110.html)

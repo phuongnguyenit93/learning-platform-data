@@ -1,160 +1,160 @@
-# Phạm vi số nguyên được `float` và `double` biểu diễn liên tiếp chính xác trong Java
+# Range of Consecutive Integers Represented Exactly by `float` and `double` in Java
 
-## 1. “Biểu diễn liên tiếp chính xác” nghĩa là gì?
+## 1. What Does “Consecutively Represented Exactly” Mean?
 
-Một kiểu dấu phẩy động **biểu diễn chính xác** số nguyên `n` khi có một giá trị thuộc kiểu đó bằng đúng `n`, không cần làm tròn sang số khác. Nhưng việc một số nguyên riêng lẻ biểu diễn được không có nghĩa **mọi số nguyên liền kề** cũng biểu diễn được.
+A floating-point type **represents an integer `n` exactly** when a value of that type equals `n` without rounding to another number. However, the fact that an individual integer is representable does not mean **every adjacent integer** is representable too.
 
-Ta gọi `[-M, M]` là một **khoảng số nguyên liên tiếp biểu diễn chính xác** khi mọi số nguyên `n` thỏa `-M <= n <= M` đều có giá trị `float` hoặc `double` bằng đúng `n`. Với hai kiểu Java:
+We call `[-M, M]` a **range of consecutive integers represented exactly** when every integer `n` satisfying `-M <= n <= M` has a `float` or `double` value equal to `n`. For Java's two types:
 
-| Kiểu | Số bit chính xác của phần trị (precision) | Khoảng số nguyên liên tiếp chính xác, bao gồm hai đầu mút | Mốc dương dạng thập phân |
+| Type | Significand Precision Bits | Exact Consecutive Integer Range (Inclusive) | Positive Threshold in Decimal |
 | --- | ---: | --- | ---: |
-| `float` | 24 bit | `[-2^24, 2^24]` | `16_777_216` |
-| `double` | 53 bit | `[-2^53, 2^53]` | `9_007_199_254_740_992` |
+| `float` | 24 bits | `[-2^24, 2^24]` | `16_777_216` |
+| `double` | 53 bits | `[-2^53, 2^53]` | `9_007_199_254_740_992` |
 
-**Ngay sau** mốc dương, `2^24 + 1` không biểu diễn chính xác bằng `float` và `2^53 + 1` không biểu diễn chính xác bằng `double`. Tuy nhiên, một số nguyên xa hơn **vẫn có thể** biểu diễn chính xác, ví dụ `2^24 + 2` dưới dạng `float` và `2^53 + 2` dưới dạng `double`.
+**Immediately past** the positive threshold, `2^24 + 1` is not represented exactly by `float`, and `2^53 + 1` is not represented exactly by `double`. However, larger integers **can still** be represented exactly, such as `2^24 + 2` as `float` and `2^53 + 2` as `double`.
 
-Từ “liên tiếp” rất quan trọng: không nên viết “`float` chỉ biểu diễn được số nguyên tối đa `2^24`” hoặc “`double` chỉ biểu diễn được số nguyên tối đa `2^53`”. Các câu đó sai: các kiểu dấu phẩy động còn biểu diễn được nhiều số nguyên có độ lớn lớn hơn, nhưng sẽ **bỏ qua một số số nguyên ở giữa**.
+The word “consecutive” is crucial: you should not write “`float` can only represent integers up to `2^24`” or “`double` can only represent integers up to `2^53`.” Those statements are false: floating-point types can represent many integers of much larger magnitude, but they **skip some integers in between**.
 
-Một ví dụ sát biên:
+An example right at the boundary:
 
 ```java
 int a = 16_777_216;       // 2^24
 int b = 16_777_217;       // 2^24 + 1
 int c = 16_777_218;       // 2^24 + 2
 
-float fa = a;             // chính xác
-float fb = b;             // làm tròn thành 16_777_216f
-float fc = c;             // chính xác
+float fa = a;             // exact
+float fb = b;             // rounded to 16_777_216f
+float fc = c;             // exact
 ```
 
-Vì vậy `fa == fb` là `true` dù `a != b`. Đây là lỗi tiềm ẩn khi dùng `float` làm khóa định danh, đếm số nguyên lớn hoặc so sánh hai kết quả vốn khác nhau đúng một đơn vị.
+Consequently, `fa == fb` is `true` even though `a != b`. This is a latent bug when using `float` for identifier keys, counting large integers, or comparing two results that originally differed by one unit.
 
-## 2. Vì sao mốc là `2^24` và `2^53`?
+## 2. Why Are the Thresholds `2^24` and `2^53`?
 
-`float` và `double` của Java theo định dạng IEEE 754 binary32/binary64. Một số hữu hạn chuẩn hóa có thể được diễn giải về mặt toán học dưới dạng:
+Java's `float` and `double` follow the IEEE 754 binary32/binary64 formats. A normal finite number can be interpreted mathematically as:
 
 \[
 (-1)^{sign} \times (1.fraction)_2 \times 2^{exponent}
 \]
 
-Trong đó phần trị hữu hiệu bao gồm bit `1` đầu ẩn (*implicit leading bit*) của số chuẩn hóa:
+In this form, the effective significand includes the implicit leading `1` bit (*implicit leading bit*) of normal numbers:
 
-| Đặc tính | `float` (binary32) | `double` (binary64) |
+| Property | `float` (binary32) | `double` (binary64) |
 | --- | ---: | ---: |
-| Tổng số bit | 32 | 64 |
-| Bit dấu | 1 | 1 |
-| Trường số mũ | 8 | 11 |
-| Trường fraction lưu thực tế | 23 | 52 |
-| **Độ chính xác phần trị hiệu dụng `p`** | **24** | **53** |
+| Total bits | 32 | 64 |
+| Sign bit | 1 | 1 |
+| Exponent field | 8 | 11 |
+| Actual stored fraction field | 23 | 52 |
+| **Effective significand precision `p`** | **24** | **53** |
 
-Trong khoảng các số dương từ `2^e` (bao gồm) đến `2^(e+1)` (không bao gồm), khoảng cách giữa hai số dấu phẩy động chuẩn hóa liền kề là:
+In the interval of positive numbers from `2^e` (inclusive) to `2^(e+1)` (exclusive), the spacing between two adjacent normal floating-point numbers is:
 
 \[
 ULP = 2^{e-(p-1)}
 \]
 
-`ULP` (*unit in the last place*) chỉ khoảng cách ở mức độ chính xác đó. Với các số nguyên:
+`ULP` (*unit in the last place*) indicates the spacing at that precision level. For integers:
 
-- Khi `ULP <= 1`, lưới biểu diễn đủ mịn để chứa **từng số nguyên**.
-- Tại `2^p`, khoảng cách tới giá trị tiếp theo phía dương tăng thành `2`: số `2^p + 1` nằm giữa hai giá trị biểu diễn được.
-- Sau những mốc cao hơn, khoảng cách có thể thành `4`, `8`, `16`, ...; các số có phần bit thấp không phù hợp với bước nhảy sẽ không còn biểu diễn được chính xác.
+- When `ULP <= 1`, the representation grid is fine enough to hold **every integer**.
+- At `2^p`, the spacing to the next value in the positive direction increases to `2`: the number `2^p + 1` lies halfway between two representable values.
+- Beyond higher thresholds, the spacing can become `4`, `8`, `16`, ...; numbers whose low-order bits do not align with the step size can no longer be represented exactly.
 
-Với `float`, `p=24`: trong `[2^23, 2^24)` bước là `1`, còn tại và ngay phía trên `2^24` bước là `2`. Với `double`, `p=53`: trong `[2^52, 2^53)` bước là `1`, còn tại và phía trên `2^53` bước là `2`.
+For `float`, `p=24`: in `[2^23, 2^24)` the step is `1`, while at and immediately above `2^24` the step is `2`. For `double`, `p=53`: in `[2^52, 2^53)` the step is `1`, while at and above `2^53` the step is `2`.
 
-**Lưu ý tại đúng biên:** `2^p` vẫn được biểu diễn chính xác, và số nguyên ngay trước nó (`2^p - 1`) vẫn chính xác. Bước nhảy về bên trái và bên phải của một lũy thừa hai có thể khác nhau. Do đó miền liên tiếp chính xác có đầu mút **bao gồm** `±2^p`; tuy nhiên `2^p` không còn có hàng xóm lớn hơn đúng `1` ở dạng dấu phẩy động cùng kiểu.
+**Note right at the boundary:** `2^p` itself is still represented exactly, and the integer right before it (`2^p - 1`) is still exact. The step sizes to the left and right of a power of two can differ. Thus, the consecutive exact range has **inclusive** endpoints `±2^p`; however, `2^p` no longer has a floating-point neighbor larger by `1` in the same type.
 
-## 3. Quan sát trực tiếp các khoảng trống sau mốc
+## 3. Directly Observing Gaps Past the Threshold
 
-### 3.1. `float`: biên `2^24`
+### 3.1. `float`: the `2^24` Boundary
 
-| Số nguyên gốc | Giá trị `float` biểu diễn (dưới dạng số nguyên) | Chính xác? |
+| Original Integer | Represented `float` Value (as Integer) | Exact? |
 | --- | ---: | --- |
-| `16_777_215 = 2^24 - 1` | `16_777_215` | Có |
-| `16_777_216 = 2^24` | `16_777_216` | Có |
-| `16_777_217 = 2^24 + 1` | `16_777_216` | Không |
-| `16_777_218 = 2^24 + 2` | `16_777_218` | Có |
-| `16_777_219 = 2^24 + 3` | `16_777_220` | Không |
-| `16_777_220 = 2^24 + 4` | `16_777_220` | Có |
+| `16_777_215 = 2^24 - 1` | `16_777_215` | Yes |
+| `16_777_216 = 2^24` | `16_777_216` | Yes |
+| `16_777_217 = 2^24 + 1` | `16_777_216` | No |
+| `16_777_218 = 2^24 + 2` | `16_777_218` | Yes |
+| `16_777_219 = 2^24 + 3` | `16_777_220` | No |
+| `16_777_220 = 2^24 + 4` | `16_777_220` | Yes |
 
-Ở khu vực ngay phía trên `2^24`, chỉ các số nguyên **chẵn** được biểu diễn chính xác. Giá trị lẻ nằm giữa hai số chẵn biểu diễn được sẽ được làm tròn khi chuyển sang `float`.
+In the region immediately above `2^24`, only **even** integers are represented exactly. Odd values lying between two representable even integers are rounded when converted to `float`.
 
-Quy tắc mặc định của chuyển đổi số nguyên sang dấu phẩy động Java là làm tròn tới giá trị gần nhất; khi đúng giữa hai giá trị, chọn kết quả có bit cuối phần trị là **chẵn** (*round to nearest, ties to even*). Bởi vậy:
+Java's default rule for integer-to-floating-point conversion rounds to the nearest value; when exactly halfway between two values, it chooses the result whose least-significant significand bit is **even** (*round to nearest, ties to even*). Therefore:
 
-- `16_777_217` nằm giữa `16_777_216` và `16_777_218`, nên về `16_777_216`.
-- `16_777_219` nằm giữa `16_777_218` và `16_777_220`, nên về `16_777_220`.
+- `16_777_217` lies halfway between `16_777_216` and `16_777_218`, so it rounds to `16_777_216`.
+- `16_777_219` lies halfway between `16_777_218` and `16_777_220`, so it rounds to `16_777_220`.
 
-Về phía âm có hiện tượng đối xứng: `-16_777_217` làm tròn thành `-16_777_216` dưới dạng `float`. Không nên áp dụng suy luận “số âm thì luôn làm tròn xuống”; quy tắc làm tròn ở đây dựa vào số gần nhất trong hệ nhị phân.
+On the negative side, the behavior is symmetric: `-16_777_217` rounds to `-16_777_216` as a `float`. Do not assume “negative numbers always round down”; rounding here is based on the nearest binary representable number.
 
-### 3.2. `double`: biên `2^53`
+### 3.2. `double`: the `2^53` Boundary
 
-| Số nguyên gốc | Giá trị `double` biểu diễn (dưới dạng số nguyên) | Chính xác? |
+| Original Integer | Represented `double` Value (as Integer) | Exact? |
 | --- | ---: | --- |
-| `9_007_199_254_740_991 = 2^53 - 1` | `9_007_199_254_740_991` | Có |
-| `9_007_199_254_740_992 = 2^53` | `9_007_199_254_740_992` | Có |
-| `9_007_199_254_740_993 = 2^53 + 1` | `9_007_199_254_740_992` | Không |
-| `9_007_199_254_740_994 = 2^53 + 2` | `9_007_199_254_740_994` | Có |
-| `9_007_199_254_740_995 = 2^53 + 3` | `9_007_199_254_740_996` | Không |
+| `9_007_199_254_740_991 = 2^53 - 1` | `9_007_199_254_740_991` | Yes |
+| `9_007_199_254_740_992 = 2^53` | `9_007_199_254_740_992` | Yes |
+| `9_007_199_254_740_993 = 2^53 + 1` | `9_007_199_254_740_992` | No |
+| `9_007_199_254_740_994 = 2^53 + 2` | `9_007_199_254_740_994` | Yes |
+| `9_007_199_254_740_995 = 2^53 + 3` | `9_007_199_254_740_996` | No |
 
-Ví dụ:
+Example:
 
 ```java
 long a = 9_007_199_254_740_992L;
 long b = 9_007_199_254_740_993L;
 
 double da = a; // 9_007_199_254_740_992
-double db = b; // cũng là 9_007_199_254_740_992
+double db = b; // also 9_007_199_254_740_992
 ```
 
-Ở đây **hai `long` khác nhau có thể trở thành cùng một `double`**. Việc chuyển đổi Java vẫn hợp lệ và không ném lỗi, vì đây là một phép chuyển kiểu số nguyên → dấu phẩy động được ngôn ngữ cho phép.
+Here **two distinct `long` values can become the exact same `double`**. The Java conversion is still valid and throws no error, because it is a language-permitted integer → floating-point conversion.
 
-Một số thư viện hoặc giao thức gọi `2^53 - 1` là *largest safe integer* vì yêu cầu phép cộng/trừ `1` và các số lân cận còn phân biệt được. Trong bài này, ta đang xét **tập các số nguyên biểu diễn đúng**, do đó `2^53` bản thân nó vẫn đúng và là đầu mút của khoảng liên tiếp; cách dùng từ “safe” có thể đặt điều kiện chặt hơn cho các phép tính.
+Some libraries or protocols call `2^53 - 1` the *largest safe integer* because they require adding/subtracting `1` and adjacent numbers to remain distinguishable. In this lesson, we examine the **set of integers represented exactly**, so `2^53` itself is still exact and is the endpoint of the consecutive range; the term “safe” may impose stricter conditions for arithmetic operations.
 
-## 4. Phạm vi liên tiếp khác với giá trị lớn nhất của kiểu
+## 4. Consecutive Range Differs from the Maximum Value of the Type
 
-Không được nhầm ngưỡng `2^24`/`2^53` với `Float.MAX_VALUE`/`Double.MAX_VALUE`:
+Do not confuse the `2^24`/`2^53` thresholds with `Float.MAX_VALUE`/`Double.MAX_VALUE`:
 
-- `Float.MAX_VALUE` xấp xỉ `3.4028235 × 10^38`, rất lớn so với `16_777_216`.
-- `Double.MAX_VALUE` xấp xỉ `1.7976931348623157 × 10^308`, rất lớn so với `9_007_199_254_740_992`.
+- `Float.MAX_VALUE` is approximately `3.4028235 × 10^38`, huge compared to `16_777_216`.
+- `Double.MAX_VALUE` is approximately `1.7976931348623157 × 10^308`, huge compared to `9_007_199_254_740_992`.
 
-Các giá trị `MAX_VALUE` này mô tả **cận trên số hữu hạn**, không mô tả miền số nguyên mà mọi giá trị liên tiếp đều có thể biểu diễn. Càng xa 0, khoảng cách giữa các giá trị dấu phẩy động thường càng lớn.
+These `MAX_VALUE` constants describe the **finite upper bound**, not the integer domain where every consecutive value is representable. Farther from 0, the spacing between floating-point values generally increases.
 
-Ví dụ `Long.MIN_VALUE = -2^63` **biểu diễn chính xác** bằng `double` vì nó là một lũy thừa của 2, dù có độ lớn lớn hơn `2^53`. Trái lại, `Long.MAX_VALUE = 2^63 - 1` **không chính xác** khi chuyển sang `double` và sẽ được làm tròn thành `2^63`, một giá trị không nằm trong miền `long`.
+For example, `Long.MIN_VALUE = -2^63` **is represented exactly** by `double` because it is a power of 2, even though its magnitude exceeds `2^53`. In contrast, `Long.MAX_VALUE = 2^63 - 1` **is not exact** when converted to `double` and rounds to `2^63`, a value outside the `long` range.
 
-Tương tự, `Integer.MAX_VALUE = 2^31 - 1` khi chuyển sang `float` được làm tròn thành `2^31`. Điều đáng chú ý là kết quả `float` hoàn toàn hữu hạn; việc nó hữu hạn không chứng tỏ giá trị nguyên ban đầu được bảo toàn.
+Similarly, `Integer.MAX_VALUE = 2^31 - 1` when converted to `float` rounds to `2^31`. Notably, the resulting `float` is completely finite; being finite does not prove that the original integer value was preserved.
 
-## 5. Liên hệ với các kiểu số nguyên của Java
+## 5. Relationship to Java Integer Types
 
-| Chuyển kiểu | Có đảm bảo chính xác cho **mọi** giá trị nguồn không? | Lý do |
+| Conversion | Guaranteed Exact for **Every** Source Value? | Reason |
 | --- | --- | --- |
-| `byte` → `float` | Có | Toàn bộ miền 8 bit nằm trong `±2^24` |
-| `short` → `float` | Có | Toàn bộ miền 16 bit nằm trong `±2^24` |
-| `char` → `float` | Có | Các giá trị `char` từ 0 đến 65535 nằm trong miền chính xác |
-| `int` → `float` | **Không** | Nhiều `int` có độ lớn lớn hơn `2^24` |
-| `int` → `double` | **Có** | Toàn bộ miền `int` nằm trong `±2^53` |
-| `long` → `float` | **Không** | Phần trị `float` chỉ có 24 bit chính xác |
-| `long` → `double` | **Không** | Nhiều `long` có độ lớn lớn hơn `2^53` |
+| `byte` → `float` | Yes | The entire 8-bit range lies within `±2^24` |
+| `short` → `float` | Yes | The entire 16-bit range lies within `±2^24` |
+| `char` → `float` | Yes | `char` values from 0 to 65535 lie within the exact range |
+| `int` → `float` | **No** | Many `int` values have magnitudes greater than `2^24` |
+| `int` → `double` | **Yes** | The entire `int` range lies within `±2^53` |
+| `long` → `float` | **No** | `float` significand has only 24 bits of precision |
+| `long` → `double` | **No** | Many `long` values have magnitudes greater than `2^53` |
 
-Ngay cả chuyển kiểu **mở rộng** (*widening primitive conversion*) như `int` → `float` hoặc `long` → `double` vẫn có thể làm mất thông tin phần bit thấp. “Mở rộng” nói về quy tắc phân loại chuyển kiểu Java, không phải cam kết giữ mọi chữ số chính xác.
+Even a **widening primitive conversion** like `int` → `float` or `long` → `double` can lose low-order bit information. “Widening” describes Java's conversion classification rule, not a guarantee to preserve every digit accurately.
 
-`float` → `double` thì giữ đúng **giá trị `float` đã có**, nhưng không thể phục hồi số nguyên gốc nếu nó đã bị làm tròn trước đó:
+`float` → `double` preserves the **already-existing `float` value**, but cannot recover the original integer if it was rounded earlier:
 
 ```java
 int original = 16_777_217;
 float rounded = original;       // 16_777_216
-double widened = rounded;       // vẫn chính xác 16_777_216, không khôi phục 16_777_217
+double widened = rounded;       // still exact 16_777_216, does not recover 16_777_217
 ```
 
-Một `double` biểu diễn mọi `int` chính xác, nhưng điều này không có nghĩa *mọi phép toán* giữa các giá trị `int` chuyển sang `double` đều cho kết quả đúng như số nguyên toán học. Kết quả của phép tính có thể vượt `2^53` hoặc có phần lẻ không biểu diễn chính xác.
+A `double` represents every `int` exactly, yet this does not mean *every operation* on `int` values converted to `double` produces results matching exact mathematical integer arithmetic. Operation results can exceed `2^53` or produce unrepresentable fractional parts.
 
-## 6. Dùng `Math.ulp`, `Math.nextUp` và `Math.nextDown` để kiểm tra khoảng cách
+## 6. Using `Math.ulp`, `Math.nextUp`, and `Math.nextDown` to Inspect Spacing
 
-Java có các hàm trong `Math` hữu ích để quan sát “lưới” giá trị:
+Java provides helpful methods in `Math` to inspect the value “grid”:
 
-- `Math.ulp(x)` trả về độ lớn của một ULP tại `x` (có overload `float` và `double`).
-- `Math.nextUp(x)` trả về giá trị dấu phẩy động biểu diễn được liền sau theo hướng tăng.
-- `Math.nextDown(x)` trả về giá trị biểu diễn được liền trước theo hướng giảm.
+- `Math.ulp(x)` returns the size of one ULP at `x` (overloaded for `float` and `double`).
+- `Math.nextUp(x)` returns the adjacent representable floating-point value in the positive direction.
+- `Math.nextDown(x)` returns the adjacent representable value in the negative direction.
 
-Ở mốc `float`:
+At the `float` threshold:
 
 ```java
 float edge = 16_777_216f;
@@ -163,7 +163,7 @@ float down = Math.nextDown(edge); // 16_777_215f
 float step = Math.ulp(edge);      // 2.0f
 ```
 
-Ở mốc `double`:
+At the `double` threshold:
 
 ```java
 double edge = 9_007_199_254_740_992d;
@@ -172,23 +172,23 @@ double down = Math.nextDown(edge); // 9_007_199_254_740_991d
 double step = Math.ulp(edge);      // 2.0d
 ```
 
-Một chi tiết quan trọng: **`Math.ulp(edge)` bằng 2 không có nghĩa giá trị phía dưới cách `edge` hai đơn vị**. Biên là nơi bước nhảy tăng: `nextDown(edge)` cách `1`, còn `nextUp(edge)` cách `2`.
+An important detail: **`Math.ulp(edge)` equaling 2 does not mean the value below `edge` is two units away**. The boundary is where the step size increases: `nextDown(edge)` is `1` away, whereas `nextUp(edge)` is `2` away.
 
-`Math.ulp` chỉ đo khoảng cách cục bộ, không phải một phép kiểm tra chuyển đổi nguyên gốc có giữ đủ giá trị hay không. Muốn đánh giá độ chính xác của một giá trị nguồn cụ thể, còn phải so sánh với nguồn theo cách không tự làm tròn nguồn trong quá trình kiểm tra.
+`Math.ulp` only measures local spacing, not whether a source conversion preserved full value. To evaluate precision for a specific source value, you must also compare against the source in a way that does not round the source during the check.
 
-## 7. Ví dụ Java 17 đầy đủ, có thể chạy trực tiếp
+## 7. Complete, Directly Runnable Java 17 Example
 
-Tạo tệp `ExactIntegerRangeDemo.java`:
+Create the file `ExactIntegerRangeDemo.java`:
 
 ```java
 public class ExactIntegerRangeDemo {
-    // Dùng long trung gian để kiểm tra float -> int mà không bão hòa ở Integer.MAX_VALUE.
+    // Use intermediate long to check float -> int without saturating at Integer.MAX_VALUE.
     private static boolean exactAsFloat(int original) {
         float encoded = original;
         return (long) encoded == (long) original;
     }
 
-    // Double của Long.MAX_VALUE làm tròn thành 2^63: phải chặn biên này.
+    // Long.MAX_VALUE in double rounds to 2^63: must guard this boundary.
     private static boolean exactAsDouble(long original) {
         double encoded = original;
         return encoded < 0x1.0p63 && (long) encoded == original;
@@ -231,14 +231,14 @@ public class ExactIntegerRangeDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac ExactIntegerRangeDemo.java
 java ExactIntegerRangeDemo
 ```
 
-Đầu ra dự kiến:
+Expected output:
 
 ```text
 float edge = 16777216
@@ -258,97 +258,97 @@ Long.MAX_VALUE exact as double = false
 Long.MIN_VALUE exact as double = true
 ```
 
-Hai hàm kiểm tra trên phục vụ **đúng kiểu nguồn được ghi trong chữ ký**: một `int` sang `float`, và một `long` sang `double`. Chúng không phải thư viện kiểm tra tùy ý mọi số thực hay số nguyên vô hạn. `0x1.0p63` là literal `double` biểu diễn đúng `2^63`; `Long.MAX_VALUE` nếu đã được đổi sang `double` thì có thể thành chính giá trị đó, nên cần phép kiểm tra cận trên trước khi cast lại về `long`.
+The two check methods above serve **the exact source types declared in their signatures**: one `int` to `float`, and one `long` to `double`. They are not general-purpose checkers for arbitrary real numbers or unbounded integers. `0x1.0p63` is a `double` literal representing exact `2^63`; `Long.MAX_VALUE`, once converted to `double`, becomes that exact value, so an upper-bound check is required before casting back to `long`.
 
-Ở trường hợp `int` → `float`, ép ngược sang `long` làm bộ kiểm tra tránh sai sót do bão hòa của chuyển `float` → `int` tại `Integer.MAX_VALUE`. `float` nhận từ một `int` luôn là số hữu hạn có độ lớn nằm trong miền `long`, nên bước ép sang `long` này đủ phạm vi để so sánh với `int` gốc.
+In the `int` → `float` case, casting back to `long` lets the check avoid saturation bugs from `float` → `int` conversion at `Integer.MAX_VALUE`. A `float` converted from an `int` is always finite with magnitude within the `long` range, so casting to `long` has ample range to compare against the original `int`.
 
-## 8. Các bẫy khi kiểm tra dữ liệu có mất độ chính xác hay không
+## 8. Pitfalls When Checking Whether Data Lost Precision
 
-### 8.1. So sánh hỗn hợp có thể tự chuyển nguồn thành `float`/`double`
+### 8.1. Mixed Comparisons Can Implicitly Convert the Source to `float`/`double`
 
 ```java
 int n = 16_777_217;
 float f = n;
 
-System.out.println(n == f); // true, dù f chứa 16_777_216
+System.out.println(n == f); // true, even though f holds 16_777_216
 ```
 
-Java áp dụng *binary numeric promotion*: khi so sánh `int` với `float`, `n` cũng được chuyển sang `float`, nên **cả hai bên đều đã bị làm tròn** và phép so sánh báo bằng nhau.
+Java applies *binary numeric promotion*: when comparing `int` with `float`, `n` is also converted to `float`, so **both sides have been rounded** and the comparison reports equality.
 
-Tương tự:
+Similarly:
 
 ```java
 long n = 9_007_199_254_740_993L;
 double d = n;
 
-System.out.println(n == d); // true, dù d chứa 9_007_199_254_740_992
+System.out.println(n == d); // true, even though d holds 9_007_199_254_740_992
 ```
 
-Do đó `original == (float) original` hoặc `original == (double) original` **không phải** phép thử đảm bảo không mất thông tin. Hãy giữ và so sánh nguồn ở kiểu nguyên thích hợp, đồng thời tránh bẫy bão hòa lúc ép ngược.
+Therefore, `original == (float) original` or `original == (double) original` is **not** a test guaranteeing lossless conversion. Keep and compare the source in an appropriate integer type while avoiding saturation traps when casting back.
 
-### 8.2. Ép ngược có thể bão hòa và gây kết quả “đúng giả”
+### 8.2. Casting Back Can Saturate and Cause “False Positives”
 
-Một kiểm tra tưởng hợp lý là `(int) (float) n == n`. Nhưng với `n = Integer.MAX_VALUE`, giá trị `float` đã làm tròn thành `2^31` (ngoài miền `int`), và cast về `int` bão hòa thành `Integer.MAX_VALUE`; so sánh có thể trả `true` dù giá trị trung gian sai.
+A seemingly reasonable check is `(int) (float) n == n`. However, for `n = Integer.MAX_VALUE`, the `float` value rounds to `2^31` (outside the `int` range), and casting back to `int` saturates at `Integer.MAX_VALUE`; the comparison can return `true` even though the intermediate value is wrong.
 
-Tương tự, `Long.MAX_VALUE` chuyển sang `double` thành `2^63`, rồi cast về `long` lại bão hòa thành `Long.MAX_VALUE`. Để kiểm tra chính xác, cần loại bỏ các giá trị trung gian ở hoặc ngoài biên kiểu đích trước khi cast, hoặc dùng kiểu nguyên trung gian lớn hơn nếu biết miền nguồn đủ nhỏ, như hàm ở mục 7.
+Similarly, `Long.MAX_VALUE` converted to `double` becomes `2^63`, and casting back to `long` saturates at `Long.MAX_VALUE`. To check accurately, exclude intermediate values at or beyond the target type's bounds before casting, or use a wider intermediate integer type when the source range is known to be small enough, as in section 7.
 
-### 8.3. Số thập phân chính xác là một vấn đề khác
+### 8.3. Exact Decimal Numbers Are a Separate Issue
 
-`0.1` là số thực có biểu diễn thập phân hữu hạn nhưng không có biểu diễn nhị phân hữu hạn; vì vậy `0.1d` không chính xác tuyệt đối theo toán học. Mốc `2^53` **chỉ nói về số nguyên liên tiếp**, không nói rằng mọi số thực trong khoảng `[-2^53, 2^53]` đều biểu diễn đúng.
+`0.1` is a real number with a finite decimal representation but no finite binary representation; hence `0.1d` is not mathematically exact. The `2^53` threshold **speaks only of consecutive integers**, not that every real number in `[-2^53, 2^53]` is represented exactly.
 
-Với số tiền hoặc đầu vào decimal cần bảo toàn chữ số, cân nhắc dùng `BigDecimal` được tạo từ chuỗi:
+For monetary amounts or decimal inputs requiring digit preservation, consider `BigDecimal` created from a string:
 
 ```java
 java.math.BigDecimal price = new java.math.BigDecimal("0.1");
 ```
 
-Nếu cần một giá trị nguyên lớn với phạm vi vượt `long`, dùng `BigInteger`. Không thể khôi phục phần giá trị đã bị làm tròn nếu chỉ còn dữ liệu `float`/`double`.
+If you need a large integer exceeding the `long` range, use `BigInteger`. It is impossible to recover the rounded-off portion if only `float`/`double` data remains.
 
-### 8.4. Các phép tính ở sát ngưỡng có thể dừng tăng từng đơn vị
+### 8.4. Operations Near the Threshold Can Stop Incrementing by One
 
-Ví dụ:
+Example:
 
 ```java
 float count = 16_777_216f;
-count = count + 1f; // vẫn 16_777_216f
+count = count + 1f; // still 16_777_216f
 ```
 
-Vì `16_777_217` ở đúng giữa hai giá trị `float` đại diện được, kết quả làm tròn về `16_777_216f` (*ties to even*). Phép tính không gây exception. Tương tự, cộng `1d` vào `9_007_199_254_740_992d` vẫn trả lại giá trị ban đầu.
+Because `16_777_217` lies exactly halfway between two representable `float` values, the result rounds to `16_777_216f` (*ties to even*). The operation throws no exception. Likewise, adding `1d` to `9_007_199_254_740_992d` returns the initial value.
 
-Không nên dùng `float` hoặc `double` làm bộ đếm cho những thao tác đòi hỏi số nguyên tăng chính xác từng 1 trên phạm vi lớn; chọn `int`, `long`, hoặc `BigInteger` theo phạm vi cần dùng và kiểm tra tràn số nguyên khi phù hợp.
+Do not use `float` or `double` as counters for operations requiring exact unit-by-unit integer increments over a large range; choose `int`, `long`, or `BigInteger` according to the required range and check for integer overflow where appropriate.
 
-## 9. Quy tắc lựa chọn kiểu cho từng bài toán
+## 9. Rules for Choosing Types by Problem Domain
 
-| Tình huống | Cách xử lý |
+| Scenario | Approach |
 | --- | --- |
-| Lưu một giá trị `int` bất kỳ để xử lý dưới dạng dấu phẩy động | `double` bảo toàn giá trị nguyên của mọi `int` |
-| Lưu số đếm chắc chắn trong `[-16_777_216, 16_777_216]` bằng `float` | Mỗi số nguyên trong khoảng đều chính xác, nhưng cần xét độ chính xác của kết quả các phép tính sau đó |
-| Chuyển `int` ngoài phạm vi trên sang `float` | Không mặc định chính xác; kiểm tra giá trị cụ thể hoặc giữ kiểu nguyên |
-| Chuyển `long` sang `double` | Mọi giá trị trong `[-2^53, 2^53]` đều chính xác; ngoài vùng chỉ một phần chính xác |
-| Lưu ID, mã giao dịch, khóa hoặc số đếm lớn | Dùng kiểu nguyên (`long`, `BigInteger`) thay vì `float`/`double` nếu cần phân biệt mọi giá trị |
-| Làm việc với tiền / decimal yêu cầu chữ số thập phân chính xác | Dùng `BigDecimal` với nguồn từ chuỗi decimal và quy tắc làm tròn rõ ràng |
-| Quan sát lưới biểu diễn quanh một giá trị | Dùng `Math.ulp`, `Math.nextUp`, `Math.nextDown`; chúng không tự xác thực nguồn có mất thông tin hay không |
+| Storing any `int` value for floating-point processing | `double` preserves the integer value of every `int` |
+| Storing counts guaranteed within `[-16_777_216, 16_777_216]` in `float` | Every integer in the range is exact, though subsequent operation precision must be checked |
+| Converting an `int` outside that range to `float` | Not exact by default; check specific values or keep an integer type |
+| Converting `long` to `double` | Every value in `[-2^53, 2^53]` is exact; outside that range only a subset is exact |
+| Storing IDs, transaction codes, keys, or large counts | Use integer types (`long`, `BigInteger`) instead of `float`/`double` if every value must remain distinct |
+| Working with money / decimals requiring exact decimal digits | Use `BigDecimal` from decimal string sources and explicit rounding rules |
+| Inspecting the representation grid around a value | Use `Math.ulp`, `Math.nextUp`, `Math.nextDown`; they do not by themselves verify whether a source lost information |
 
-Các giá trị vượt ngưỡng không phải tất cả đều sai: chẳng hạn `2^60` biểu diễn chính xác bằng `double` vì là lũy thừa của 2. Câu hỏi quan trọng là: **“Kiểu này có biểu diễn chính xác tất cả số nguyên trong khoảng tôi cần hay chỉ một số giá trị rời rạc?”**
+Values beyond the threshold are not all wrong: for example, `2^60` is represented exactly by `double` because it is a power of 2. The key question is: **“Does this type represent every integer in the range I need accurately, or only discrete values?”**
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-1. `float` có biểu diễn chính xác `16_777_216` không? `16_777_217` thì sao?
-2. Vì sao `16_777_218` vẫn chính xác bằng `float` dù nằm ngoài khoảng liên tiếp?
-3. Một `double` có biểu diễn chính xác mọi giá trị `int` không? Có biểu diễn chính xác mọi `long` không?
-4. `Long.MIN_VALUE` là một số nguyên rất lớn về độ lớn. Vì sao vẫn chính xác bằng `double`?
-5. Vì sao `long n = 9_007_199_254_740_993L; double d = n; n == d` có thể là `true`?
-6. Có thể dùng `(int)(float)n == n` để chắc chắn phép chuyển `int` → `float` chính xác không?
-7. Tại `2^24f`, `Math.nextDown` và `Math.nextUp` cách giá trị đó bao nhiêu?
+1. Does `float` represent `16_777_216` exactly? What about `16_777_217`?
+2. Why is `16_777_218` still exact in `float` even though it lies outside the consecutive range?
+3. Does a `double` represent every `int` value exactly? Does it represent every `long` value exactly?
+4. `Long.MIN_VALUE` is an integer of very large magnitude. Why is it still exact in `double`?
+5. Why can `long n = 9_007_199_254_740_993L; double d = n; n == d` be `true`?
+6. Can `(int)(float)n == n` be used to guarantee an `int` → `float` conversion is exact?
+7. At `2^24f`, how far away are `Math.nextDown` and `Math.nextUp` from that value?
 
-**Đáp án:**
+**Answers:**
 
-1. `16_777_216` có; `16_777_217` không (làm tròn về `16_777_216`).
-2. Bước nhảy phía trên mốc là `2`, nên các số chẵn gần mốc vẫn nằm trên lưới biểu diễn.
-3. Có với mọi `int`; không với mọi `long`, vì `double` chỉ có 53 bit phần trị chính xác.
-4. `-2^63` là một lũy thừa của 2 và được biểu diễn chính xác dù nằm ngoài khoảng liên tiếp.
-5. Khi so sánh `long` với `double`, toán hạng `long` cũng bị chuyển sang `double`, làm hai bên trùng nhau sau khi mất thông tin.
-6. Không; ép `float` đã làm tròn về lại `int` có thể bão hòa ở `Integer.MAX_VALUE`, tạo kết quả đúng giả.
-7. `nextDown(2^24f) = 2^24 - 1`, cách `1`; `nextUp(2^24f) = 2^24 + 2`, cách `2`.
+1. `16_777_216` yes; `16_777_217` no (rounds to `16_777_216`).
+2. The step size above the threshold is `2`, so even numbers near the threshold still lie on the representation grid.
+3. Yes for every `int`; no for every `long`, because `double` has only 53 bits of exact significand precision.
+4. `-2^63` is a power of 2 and is represented exactly despite lying outside the consecutive range.
+5. When comparing `long` with `double`, the `long` operand is also converted to `double`, making both sides match after losing information.
+6. No; casting a rounded `float` back to `int` can saturate at `Integer.MAX_VALUE`, producing a false positive.
+7. `nextDown(2^24f) = 2^24 - 1`, distance `1`; `nextUp(2^24f) = 2^24 + 2`, distance `2`.
 
-**Ghi nhớ:** `float` bảo toàn *mọi* số nguyên liên tiếp đến `±2^24`, `double` đến `±2^53` (đều bao gồm đầu mút). Ngoài miền này vẫn có nhiều số nguyên chính xác nhưng không còn **mọi** số nguyên liền kề. Độ lớn có thể biểu diễn, độ chính xác phần trị và độ chính xác của phép tính là ba thuộc tính cần phân biệt.
+**Remember:** `float` preserves *every* consecutive integer up to `±2^24`, and `double` up to `±2^53` (both inclusive). Beyond these ranges, many exact integers still exist, yet no longer **every** adjacent integer. Representable magnitude, significand precision, and calculation accuracy are three distinct properties.

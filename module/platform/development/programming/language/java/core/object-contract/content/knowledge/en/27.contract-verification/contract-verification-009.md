@@ -1,47 +1,47 @@
-# Kiểm thử kế thừa, thay đổi trạng thái và độc lập sau sao chép
+# Testing Inheritance, State Mutation, and Independence After Copying
 
-## 1. Vì sao ba nhóm kiểm thử này thuộc hợp đồng đối tượng?
+## 1. Why Do These Three Test Groups Belong to the Object Contract?
 
-Khi triển khai các phương thức của `Object` hoặc xây dựng một lớp có ngữ nghĩa giá trị, cần kiểm chứng hành vi của đối tượng **trong nhiều tình huống**, không chỉ trường hợp hai đối tượng có dữ liệu giống nhau. Ba nhóm trường hợp dễ làm lộ lỗi là:
+When implementing `Object` methods or building a class with value semantics, you need to verify object behavior **across multiple situations**, not only the case where two objects have identical data. Three categories of cases that readily expose bugs are:
 
-1. **Kế thừa:** lớp con bổ sung thuộc tính hay thay đổi `equals()`/`hashCode()` có thể phá tính đối xứng, bắc cầu hoặc quan hệ giữa hai phương thức.
-2. **Thay đổi trạng thái:** một đối tượng đổi thuộc tính sau khi tạo có thể thay đổi kết quả so sánh và mã băm; điều này đặc biệt nguy hiểm nếu đối tượng đang là khóa của `HashMap` hoặc phần tử của `HashSet`.
-3. **Sao chép:** đối tượng mới có thể chỉ là một bản sao nông, vẫn dùng chung danh sách hoặc đối tượng con với bản gốc. Kiểm thử phải xác định rõ mức độ độc lập mà API cam kết.
+1. **Inheritance:** a subclass adding properties or altering `equals()`/`hashCode()` can break symmetry, transitivity, or the relationship between the two methods.
+2. **State mutation:** an object changing properties after creation can alter comparison results and hash codes; this is especially dangerous if the object is currently a key in a `HashMap` or an element of a `HashSet`.
+3. **Copying:** a new object may only be a shallow copy, still sharing lists or child objects with the original. Tests must clearly verify the degree of independence promised by the API.
 
-Không có một hợp đồng duy nhất buộc **mọi** lớp phải so sánh theo giá trị hoặc phải sao chép sâu toàn bộ đồ thị đối tượng. Trước khi viết test, phải xác định lớp mang **identity** hay **value semantics**, các thuộc tính nào tham gia `equals()`/`hashCode()`, trường nào được phép thay đổi, và tài liệu API hứa chia sẻ hay sao chép trạng thái nào.
+There is no single contract forcing **every** class to compare by value or deep-copy the entire object graph. Before writing tests, determine whether the class has **identity** or **value semantics**, which properties participate in `equals()`/`hashCode()`, which fields are permitted to mutate, and what state sharing or copying the API documentation promises.
 
-## 2. Những bất biến cần kiểm chứng
+## 2. Invariants to Verify
 
-Với các tham chiếu không null `x`, `y`, `z`, hợp đồng của `Object.equals()` yêu cầu:
+For non-null references `x`, `y`, `z`, the `Object.equals()` contract requires:
 
-| Thuộc tính | Phép kiểm | Ý nghĩa |
+| Property | Check | Meaning |
 | --- | --- | --- |
-| Phản xạ | `x.equals(x)` là `true` | Một đối tượng bằng chính nó |
-| Đối xứng | `x.equals(y) == y.equals(x)` | Đổi chiều so sánh không đổi kết quả |
-| Bắc cầu | Nếu `x.equals(y)` và `y.equals(z)`, thì `x.equals(z)` | Ba đối tượng tương đương nhất quán |
-| Nhất quán | Nhiều lần so sánh cho cùng kết quả khi trạng thái liên quan không đổi | Không phát sinh kết quả bất ngờ |
-| Khác null | `x.equals(null)` là `false` | Không coi null là một đối tượng bình thường |
+| Reflexive | `x.equals(x)` is `true` | An object equals itself |
+| Symmetric | `x.equals(y) == y.equals(x)` | Reversing comparison order does not change the result |
+| Transitive | If `x.equals(y)` and `y.equals(z)`, then `x.equals(z)` | Three equivalent objects are consistent |
+| Consistent | Repeated comparisons yield the same result when relevant state does not change | No unexpected results arise |
+| Non-null | `x.equals(null)` is `false` | Does not treat null as a normal object |
 
-Quan hệ giữa `equals()` và `hashCode()`:
+Relationship between `equals()` and `hashCode()`:
 
-- Nếu `x.equals(y)` là `true`, **bắt buộc** `x.hashCode() == y.hashCode()`.
-- Hai đối tượng không bằng nhau **vẫn có thể** có cùng hash code; không viết test yêu cầu mã băm của mọi giá trị khác nhau đều khác nhau.
-- Nếu trạng thái liên quan tới `equals()` không đổi, các lần gọi `hashCode()` trong cùng một lần chạy phải nhất quán. Giá trị hash code không nhất thiết giữ nguyên giữa các lần chạy JVM khác nhau.
+- If `x.equals(y)` is `true`, it is **mandatory** that `x.hashCode() == y.hashCode()`.
+- Two unequal objects **may still** share the same hash code; do not write tests requiring hash codes of all distinct values to differ.
+- If state relevant to `equals()` does not change, calls to `hashCode()` within the same run must be consistent. Hash code values do not need to remain identical across separate JVM runs.
 
-Cần kiểm thử cả **trường hợp phủ định** (khác kiểu, khác thuộc tính có ý nghĩa, giá trị null phù hợp). Trường hợp thành công riêng lẻ không chứng minh hợp đồng đúng với toàn bộ không gian đầu vào, nên chọn tập dữ liệu đại diện, các trường hợp biên và trường hợp kế thừa.
+You must also test **negative cases** (different types, differing meaningful properties, appropriate null values). A single passing case does not prove the contract holds across the entire input space, so select representative datasets, edge cases, and inheritance scenarios.
 
-Với sao chép, hãy kiểm riêng các tính chất:
+For copying, verify these properties separately:
 
-- **Không cùng tham chiếu:** `copy != original`.
-- **Dữ liệu ban đầu đúng:** nội dung copy giống dữ liệu được hứa sao chép; nếu lớp dùng value equality thì có thể kiểm `copy.equals(original)` ban đầu.
-- **Độc lập sau sửa đổi:** thay đổi thành phần mutable ở một bên không làm thay đổi bên kia **nếu** API cam kết copy độc lập. Kiểm tra cả chiều sửa original lẫn chiều sửa copy.
-- **Tính toàn vẹn của quan hệ chia sẻ có chủ ý:** nếu tài liệu quy định một thành phần dùng chung, cần kiểm tra sự chia sẻ đó thay vì mặc nhiên coi là lỗi.
+- **Not the same reference:** `copy != original`.
+- **Correct initial data:** the copy's contents match the data promised to be copied; if the class uses value equality, you can initially check `copy.equals(original)`.
+- **Independence after mutation:** modifying a mutable component on one side does not affect the other side **if** the API promises an independent copy. Check both mutating the original and mutating the copy.
+- **Integrity of intentional sharing:** if the documentation specifies that a component is shared, verify that sharing rather than treating it as a bug by default.
 
-## 3. Kiểm thử kế thừa: bẫy đối xứng và bắc cầu
+## 3. Testing Inheritance: Symmetry and Transitivity Traps
 
-### 3.1. Lớp cha dùng `instanceof`, lớp con thêm trường có nghĩa
+### 3.1. Parent Uses `instanceof`, Subclass Adds Meaningful Fields
 
-Giả sử `BaseKey` chỉ lưu `id` và coi mọi đối tượng thuộc `BaseKey` hoặc lớp con có cùng `id` là bằng nhau:
+Suppose `BaseKey` only stores `id` and considers any object of `BaseKey` or a subclass with the same `id` to be equal:
 
 ```java
 @Override
@@ -50,95 +50,95 @@ public boolean equals(Object other) {
 }
 ```
 
-Sau đó `TaggedKey extends BaseKey` thêm trường `tag`, và `equals()` của lớp con yêu cầu cả `id` và `tag` bằng nhau.
+Then `TaggedKey extends BaseKey` adds a `tag` field, and the subclass's `equals()` requires both `id` and `tag` to match.
 
-Khi đó, với `base = new BaseKey(7)` và `child = new TaggedKey(7, "red")`:
+Then, with `base = new BaseKey(7)` and `child = new TaggedKey(7, "red")`:
 
 ```text
 base.equals(child)  → true
 child.equals(base)  → false
 ```
 
-Tính đối xứng đã hỏng. Nếu lớp con tính hash cả `tag`, cặp đối tượng mà lớp cha coi là bằng nhau còn có thể có mã băm khác nhau, vi phạm quy tắc hash. Chỉ kiểm `child.equals(base)` mà quên kiểm chiều ngược sẽ bỏ sót lỗi.
+Symmetry is broken. If the subclass also includes `tag` in its hash calculation, a pair of objects deemed equal by the parent class can even have different hash codes, violating the hash rule. Testing only `child.equals(base)` while forgetting the reverse direction will miss the bug.
 
-### 3.2. Cố sửa đối xứng nhưng làm hỏng bắc cầu
+### 3.2. Trying to Fix Symmetry Yet Breaking Transitivity
 
-Một giải pháp thiếu an toàn là: lớp con bỏ qua `tag` khi so sánh với lớp cha, nhưng so sánh `tag` khi hai phía đều là lớp con. Xét:
+An unsafe workaround is: the subclass ignores `tag` when compared with the parent class, yet compares `tag` when both sides are the subclass. Consider:
 
 - `red = TaggedKey(7, "red")`
 - `base = BaseKey(7)`
 - `blue = TaggedKey(7, "blue")`
 
-Nếu hai lớp được viết để `red.equals(base)` và `base.equals(blue)` đều đúng, nhưng `red.equals(blue)` sai, hợp đồng **bắc cầu** bị phá vỡ. Một test với bộ ba này sẽ phát hiện lỗi mà kiểm thử từng cặp giống kiểu không nhận ra.
+If the two classes are written so that `red.equals(base)` and `base.equals(blue)` are both true, yet `red.equals(blue)` is false, the **transitivity** contract is broken. A test with this triple catches the bug that same-type pairwise checks fail to notice.
 
-Không thể tùy tiện bổ sung thành phần giá trị ở lớp con trong khi lớp cha vẫn cho phép so sánh ngang kiểu mà luôn giữ được các quy tắc `equals()`. Cách thiết kế phù hợp tùy miền dữ liệu:
+You cannot arbitrarily add value components in a subclass while the parent still permits cross-type comparison and always preserve the `equals()` rules. The right design depends on the data domain:
 
-- Dùng lớp giá trị `final` để không cho lớp con thay đổi ý nghĩa equality.
-- Dùng **composition** để thêm metadata, thay vì kế thừa một lớp giá trị đã có equality.
-- Dùng `getClass()` để equality chỉ hoạt động giữa hai đối tượng có cùng runtime class, nếu ngữ nghĩa miền chấp nhận sự phân biệt này; khi lớp con override thì vẫn phải duy trì hợp đồng.
-- Một số hierarchy dùng giao thức `canEqual` được thiết kế cẩn thận; không mặc định đổi `instanceof` sang `getClass()` là phù hợp với mọi ứng dụng.
+- Use a `final` value class so subclasses cannot alter the meaning of equality.
+- Use **composition** to add metadata, rather than subclassing a value class that already defines equality.
+- Use `getClass()` so equality only works between two objects of the exact same runtime class, if domain semantics accept this distinction; when a subclass overrides, it must still uphold the contract.
+- Some hierarchies use a carefully designed `canEqual` protocol; do not assume switching `instanceof` to `getClass()` fits every application.
 
-Test cần mô tả **quyết định thiết kế về cross-type equality**: một lớp cha và lớp con cùng dữ liệu có *được phép* bằng nhau không? Nếu không, kiểm `!parent.equals(child)` và `!child.equals(parent)`. Nếu có, kiểm đủ các quy tắc và các cặp/bộ ba lớp con khác nhau, thay vì kiểm từng override độc lập.
+Tests must reflect the **design decision on cross-type equality**: are a parent class and a subclass with matching data *allowed* to be equal? If not, verify `!parent.equals(child)` and `!child.equals(parent)`. If yes, test all contract rules and pairs/triples of distinct subclasses, rather than testing each override in isolation.
 
-## 4. Kiểm thử thay đổi trạng thái
+## 4. Testing State Mutation
 
-### 4.1. Trạng thái tham gia equality và hash
+### 4.1. State Participating in Equality and Hashing
 
-Một lớp mutable có thể tính `equals()`/`hashCode()` từ trường thay đổi được. Việc kết quả hai hàm thay đổi theo trạng thái tự nó không nhất thiết vi phạm hợp đồng: hợp đồng nhất quán áp dụng **khi thông tin dùng trong phép so sánh không bị sửa đổi**.
+A mutable class can compute `equals()`/`hashCode()` from changeable fields. Having the return values of both methods change with state does not by itself violate the contract: the consistency contract applies **when information used in comparison has not been modified**.
 
-Tuy nhiên, đưa một đối tượng vào `HashSet` hoặc làm khóa `HashMap` rồi sửa trường tham gia mã băm có thể khiến tìm kiếm thất bại: đối tượng được đặt theo hash cũ, trong khi lần tìm sau dùng hash mới. Với những cấu trúc này, tốt nhất dùng **khóa bất biến**.
+However, inserting an object into a `HashSet` or using it as a `HashMap` key and then mutating a field participating in the hash code can cause lookups to fail: the object was placed under the old hash, while subsequent lookups use the new hash. For these structures, it is best to use **immutable keys**.
 
-Một kiểm thử giá trị nên diễn ra qua các mốc:
+A valuable test should step through milestones:
 
-1. Tạo `a` và `b` cùng giá trị; xác nhận `a.equals(b)` và hash bằng nhau.
-2. Sửa trường tham gia equality trên `a`; xác nhận phép so sánh phản ánh giá trị mới.
-3. Sửa `b` sang cùng giá trị mới; xác nhận hai đối tượng lại bằng nhau và hash bằng nhau.
-4. Nếu trường có thể trở lại giá trị cũ, kiểm kết quả cũng trở lại như thiết kế.
-5. Nếu lớp được dùng trong hash collection, kiểm hoặc quy định **không sửa khóa sau khi chèn**, hoặc dùng một thiết kế khóa bất biến; không biến lỗi tra cứu thành kỳ vọng chức năng của ứng dụng.
+1. Create `a` and `b` with equal values; verify `a.equals(b)` and matching hashes.
+2. Mutate an equality-participating field on `a`; verify comparison reflects the new value.
+3. Mutate `b` to the same new value; verify the two objects are equal again and share the same hash.
+4. If the field can revert to the old value, verify results also revert as designed.
+5. If the class is used in hash collections, verify or enforce **do not mutate keys after insertion**, or use an immutable key design; do not turn a lookup bug into a functional expectation of the application.
 
-Phân biệt **mutable field dùng để hiển thị** với **field tham gia logical identity**. Chỉ kiểm rằng hash thay đổi với mọi setter có thể sai: nếu một thuộc tính không thuộc equality, nó thường **không nên** làm thay đổi hash.
+Distinguish **mutable fields used for display** from **fields participating in logical identity**. Simply asserting that the hash changes on every setter can be wrong: if a property does not belong to equality, it usually **should not** change the hash.
 
-### 4.2. Trạng thái kế thừa
+### 4.2. Inherited State
 
-Nếu lớp con có thêm trường mutable tham gia equality, kiểm các chuyển trạng thái ở **cả trường lớp cha lẫn lớp con**, với nhiều đối tượng cùng lớp con. Đảm bảo override `hashCode()` theo đúng những thành phần `equals()` sử dụng. Không cần giả định mọi lớp con đều được phép mở rộng equality; có trường metadata không tham gia equality.
+If a subclass adds mutable fields participating in equality, test state transitions on **both parent and subclass fields**, with multiple objects of the same subclass. Ensure `hashCode()` is overridden using the exact same components used by `equals()`. Do not assume every subclass is allowed to extend equality; some metadata fields do not participate in equality.
 
-## 5. Kiểm thử tính độc lập sau sao chép
+## 5. Testing Independence After Copying
 
-### 5.1. Sao chép nông và sao chép sâu
+### 5.1. Shallow Copy and Deep Copy
 
-Với đối tượng `Profile` chứa `Address` và `List<String>` mutable:
+For a `Profile` object containing a mutable `Address` and `List<String>`:
 
 ```text
 Original Profile ── address ──> Address("Hue")
                  └─ skills  ──> ["java"]
 
-Shallow copy     ── address ──> cùng Address
-                 └─ skills  ──> cùng List
+Shallow copy     ── address ──> same Address
+                 └─ skills  ──> same List
 
-Deep copy        ── address ──> Address mới ("Hue")
-                 └─ skills  ──> List mới ["java"]
+Deep copy        ── address ──> new Address("Hue")
+                 └─ skills  ──> new List ["java"]
 ```
 
-Một bản sao nông có thể tạo ra **đối tượng ngoài mới** nhưng vẫn chia sẻ tham chiếu đến các đối tượng con. Vì thế chỉ kiểm `assertNotSame(original, copy)` là chưa đủ.
+A shallow copy may create a **new outer object** while still sharing references to child objects. Therefore, checking only `assertNotSame(original, copy)` is insufficient.
 
-Bản sao sâu không bắt buộc nhân bản mọi đối tượng bất biến như `String`, và thường không nên sao chép các resource như socket, lock hoặc thread. Mức độ sâu phụ thuộc **hợp đồng của lớp** và ranh giới ownership, đặc biệt khi đồ thị có vòng tham chiếu hoặc các phần tử được chia sẻ chủ ý.
+A deep copy does not have to clone immutable objects like `String`, and usually should not copy resources like sockets, locks, or threads. The depth depends on the **class contract** and ownership boundaries, especially when the object graph contains cycles or intentionally shared elements.
 
-### 5.2. Ma trận kiểm thử độc lập
+### 5.2. Independence Test Matrix
 
-| Thao tác | Bản sao nông chia sẻ tham chiếu | Bản sao sâu đúng hợp đồng |
+| Operation | Shallow copy sharing references | Contract-compliant deep copy |
 | --- | --- | --- |
-| Sửa `original.address.city` | `shallow.address.city` thay đổi theo | `deep.address.city` không đổi |
-| Thêm phần tử vào `original.skills` | `shallow.skills` nhìn thấy phần tử mới | `deep.skills` không thay đổi |
-| Sửa `deep.address.city` | Không liên quan | `original.address.city` không đổi |
-| Thêm vào `deep.skills` | Không liên quan | `original.skills` không đổi |
-| So sánh object ngoài | Bản sao khác tham chiếu với original | Bản sao khác tham chiếu với original |
-| So sánh object con mutable | Có thể **cùng** tham chiếu | Phải **khác** tham chiếu nếu cam kết copy độc lập |
+| Modify `original.address.city` | `shallow.address.city` changes too | `deep.address.city` does not change |
+| Add element to `original.skills` | `shallow.skills` sees the new element | `deep.skills` does not change |
+| Modify `deep.address.city` | Not applicable | `original.address.city` does not change |
+| Add to `deep.skills` | Not applicable | `original.skills` does not change |
+| Compare outer object | Copy differs by reference from original | Copy differs by reference from original |
+| Compare mutable child object | May be the **same** reference | Must be a **different** reference if independent copy is promised |
 
-Nếu API dùng `clone()` theo `Object.clone()`, nhớ rằng hành vi mặc định sao chép các field và **không tự deep-copy đối tượng được tham chiếu**. Một lớp có thể cần override `clone()`, copy constructor hoặc factory để sao chép sâu có kiểm soát. Không đánh đồng việc implement `Cloneable` với bảo đảm toàn bộ trạng thái độc lập.
+If an API uses `clone()` via `Object.clone()`, remember that the default behavior copies fields and **does not automatically deep-copy referenced objects**. A class may need to override `clone()`, provide a copy constructor, or offer a factory for controlled deep copying. Do not equate implementing `Cloneable` with guaranteeing full state independence.
 
-## 6. Ví dụ Java 17+ chạy độc lập: phát hiện lỗi và kiểm chứng hành vi
+## 6. Standalone, Runnable Java 17+ Example: Detecting Bugs and Verifying Behavior
 
-Ví dụ cố ý đặt một lớp equality bị lỗi để **test phát hiện lỗi**; các kiểm thử còn lại minh họa cách xác minh thiết kế đúng. Lưu mã thành tệp `ObjectContractVerification.java`.
+The example intentionally includes a broken equality class so **tests catch the bug**; the remaining checks illustrate how to verify proper designs. Save the code as `ObjectContractVerification.java`.
 
 ```java
 import java.util.ArrayList;
@@ -148,7 +148,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class ObjectContractVerification {
-    // Thiết kế lỗi: lớp cha xem lớp con cùng id là bằng nhau.
+    // Broken design: parent class treats subclass with the same id as equal.
     static class BaseKey {
         final int id;
 
@@ -188,7 +188,7 @@ public class ObjectContractVerification {
         }
     }
 
-    // Thiết kế nhất quán: chỉ so sánh value object cùng runtime class.
+    // Consistent design: only compares value objects with the same runtime class.
     static class StrictKey {
         final int id;
 
@@ -346,14 +346,14 @@ public class ObjectContractVerification {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ObjectContractVerification.java
 java ObjectContractVerification
 ```
 
-Đầu ra trên OpenJDK/Java 17 với mã ví dụ trên:
+Output on OpenJDK/Java 17 with the example code above:
 
 ```text
 Broken inheritance symmetry valid: false
@@ -370,18 +370,18 @@ Deep owns separate mutable references: true
 Reverse mutation independent: true
 ```
 
-**Diễn giải kết quả:**
+**Interpreting the output:**
 
-- Dòng đầu là `false` **có chủ đích** để chứng minh test bắt được một lớp thiết kế sai. Không được coi đó là kết quả mong muốn của một triển khai sản xuất.
-- Với `StrictKey`, lớp cha và con không bao giờ bằng nhau khác runtime class; hai đối tượng `StrictTaggedKey` có `id`/`tag` giống nhau vẫn bằng nhau và có cùng hash. Đây là **một lựa chọn thiết kế**, không phải cách duy nhất giải quyết equality trong kế thừa.
-- Sau khi đổi `"A"` thành `"B"`, `MutableKey` đổi hash; trên `HashSet` của Java 17, lookup trong ví dụ này trả về `false`. Đây là minh họa nguy cơ do phá giả định về hash key ổn định, **không phải** một lời hứa rằng mọi hash collection hay mọi cặp giá trị sẽ luôn trả `false` sau mọi lần sửa.
-- Bản sao nông nhìn thấy thay đổi ở `Address` và `List`, trong khi bản sao sâu giữ giá trị ban đầu và cũng không ảnh hưởng original khi được thay đổi ở chiều ngược lại.
+- The first line is `false` **intentionally** to demonstrate that the test catches a broken design. It must never be treated as the expected result of a production implementation.
+- With `StrictKey`, parent and subclass never compare equal across different runtime classes; two `StrictTaggedKey` objects with identical `id`/`tag` are still equal and share the same hash. This is **one design choice**, not the only way to resolve equality under inheritance.
+- After changing `"A"` to `"B"`, `MutableKey` changes its hash; on Java 17's `HashSet`, lookup in this example returns `false`. This illustrates the risk of breaking the stable hash key assumption, **not** a guarantee that every hash collection or every value pair will always return `false` after every mutation.
+- The shallow copy sees changes in `Address` and `List`, whereas the deep copy keeps its initial values and likewise does not affect the original when mutated in the reverse direction.
 
-Lưu ý ví dụ kiểm thử một số trường hợp đại diện và in kết quả để quan sát. Trong test suite thật, hãy dùng assertion để **fail ngay khi hợp đồng mong đợi bị phá**, đồng thời lưu các ca lỗi có chủ đích thành test xác minh bug thay vì test thành công của sản phẩm.
+Note that the example tests a few representative cases and prints the results for observation. In a real test suite, use assertions to **fail immediately when an expected contract is broken**, and record intentional failure cases as bug-verifying tests rather than passing product tests.
 
-## 7. Chuyển thành kiểm thử tự động có assertion
+## 7. Converting Into Automated Tests With Assertions
 
-Một helper không phụ thuộc thư viện ngoài có thể khẳng định các đặc tính quan trọng (đặt trong lớp test):
+A helper with no external library dependencies can assert the essential properties (placed inside a test class):
 
 ```java
 static void checkEqualityContract(Object a, Object b, Object c) {
@@ -405,38 +405,38 @@ static void checkEqualityContract(Object a, Object b, Object c) {
 }
 ```
 
-Đây là **đoạn helper minh họa**, không phải một chương trình Java độc lập. Nó chỉ kiểm đúng các đối tượng được truyền vào, nên vẫn cần chọn dữ liệu phản ánh cấu trúc kế thừa và các trạng thái quan trọng. Trong JUnit 5 có thể thay bằng `assertEquals`, `assertFalse`, `assertNotSame` và `assertAll`; kiểm thử equality đặc biệt nên bao gồm ba đối tượng và cả hai chiều so sánh.
+This is an **illustrative helper snippet**, not a standalone Java program. It only checks the objects passed in, so you still need to choose data reflecting inheritance structures and key states. In JUnit 5, this can be replaced with `assertEquals`, `assertFalse`, `assertNotSame`, and `assertAll`; equality testing in particular should include three objects and both comparison directions.
 
-Với code có `clone()` hoặc copy constructor, một test tốt thường theo dạng:
+For code with `clone()` or a copy constructor, a good test typically follows this structure:
 
-1. Tạo object chứa **ít nhất hai tầng tham chiếu mutable**, không chỉ chuỗi/primitive.
-2. Sao chép và so sánh dữ liệu lúc ban đầu; phân biệt `same object` với `same value`.
-3. Sửa nested state bản gốc, khẳng định bản sao vẫn đúng theo hợp đồng.
-4. Sửa nested state bản sao, khẳng định bản gốc vẫn đúng.
-5. Nếu có collection, sửa cả **cấu trúc** (thêm/xóa) và **phần tử mutable bên trong**, vì sao chép một `ArrayList` mới vẫn có thể dùng chung các phần tử trong danh sách.
-6. Với kiểu có equality theo giá trị, thử `equals()`/`hashCode()` trước và sau các thay đổi; không so sánh hash giữa hai trạng thái khác nhau như một bất biến.
+1. Create an object containing **at least two levels of mutable references**, not just strings/primitives.
+2. Copy it and compare initial data; distinguish `same object` from `same value`.
+3. Mutate nested state on the original, asserting the copy remains valid per contract.
+4. Mutate nested state on the copy, asserting the original remains valid.
+5. If there is a collection, mutate both its **structure** (add/remove) and **mutable elements inside**, because copying into a new `ArrayList` can still share the elements inside the list.
+6. For types with value equality, test `equals()`/`hashCode()` before and after mutations; do not compare hashes between two different states as an invariant.
 
-## 8. Các lỗi kiểm thử hay bỏ sót
+## 8. Commonly Missed Testing Mistakes
 
-| Thiếu sót | Hậu quả | Bổ sung |
+| Omission | Consequence | Addition |
 | --- | --- | --- |
-| Chỉ gọi `parent.equals(child)` | Bỏ sót đối xứng bị phá ở chiều ngược | Kiểm cả hai chiều |
-| Chỉ kiểm hai đối tượng | Bỏ sót vi phạm bắc cầu qua đối tượng thứ ba | Tạo bộ ba đại diện |
-| Cho rằng hai hash khác nhau khi hai object không bằng nhau | Đặt yêu cầu sai với `hashCode()` | Chỉ bắt buộc hash bằng khi `equals()` là `true` |
-| Chỉ thử trạng thái ban đầu | Không bắt được lỗi khi field mutable đổi | Test chuyển trạng thái |
-| Sửa hash key ngay trong `HashMap` rồi đổ lỗi collection | Bỏ qua điều kiện sử dụng khóa có hash ổn định | Đóng băng khóa hoặc không sửa sau khi chèn |
-| Chỉ kiểm `copy != original` | Không phát hiện alias của nested mutable fields | Kiểm tham chiếu con và thay đổi hai chiều |
-| Chỉ copy lại container danh sách | Các phần tử mutable có thể còn dùng chung | Kiểm sâu tới tầng cần độc lập |
-| Bắt buộc mọi bản copy phải `equals(original)` | Sai nếu lớp định nghĩa equality theo identity | Xác nhận ngữ nghĩa equality trước |
-| Coi `clone()` mặc định là deep copy | Sao chép shallow làm lộ shared state | Đọc hợp đồng và viết test tương ứng |
-| Chỉ test một subclass | Khó phát hiện cross-type equality sai khi hierarchy mở rộng | Test nhiều kiểu runtime và cặp/triple tương ứng |
+| Calling only `parent.equals(child)` | Misses broken symmetry in the reverse direction | Test both directions |
+| Testing only two objects | Misses transitivity violations via a third object | Construct representative triples |
+| Assuming two hashes differ when two objects are unequal | Places a wrong requirement on `hashCode()` | Only require equal hashes when `equals()` is `true` |
+| Testing only initial state | Misses bugs when mutable fields change | Test state transitions |
+| Mutating a hash key inside `HashMap` and blaming the collection | Ignores the requirement to use keys with stable hashes | Freeze the key or avoid mutating after insertion |
+| Checking only `copy != original` | Fails to detect aliases to nested mutable fields | Check child references and two-way mutations |
+| Copying only the list container | Mutable elements may still be shared | Check deeply down to the level requiring independence |
+| Requiring every copy to satisfy `equals(original)` | Wrong if the class defines equality by identity | Confirm equality semantics first |
+| Assuming default `clone()` is a deep copy | Shallow copy leaks shared state | Read the contract and write matching tests |
+| Testing only one subclass | Hard to catch broken cross-type equality as the hierarchy grows | Test multiple runtime types and corresponding pairs/triples |
 
-## 9. Tiêu chí hoàn thành
+## 9. Completion Criteria
 
-Một bộ kiểm chứng đáng tin cho hợp đồng đối tượng cần trả lời được:
+A reliable verification suite for the object contract must be able to answer:
 
-- **Kế thừa:** Đối tượng lớp cha/lớp con có được bằng nhau không, và hai chiều so sánh có thống nhất không? Bộ ba đối tượng có bảo đảm tính bắc cầu? Hash có đồng nhất khi equals đúng?
-- **Trạng thái:** Field nào tạo nên logical identity? Setter nào được phép làm thay đổi equality/hash? Có đang dùng một key mutable trong hash collection không?
-- **Sao chép:** Bản sao nông hay sâu theo hợp đồng? Mức nào của đồ thị mutable cần độc lập? Thay đổi ở **cả hai chiều** có tác động ngoài ý muốn không?
+- **Inheritance:** Are parent/subclass objects permitted to be equal, and are both comparison directions consistent? Do object triples preserve transitivity? Are hashes identical when equals is true?
+- **State:** Which fields form logical identity? Which setters are permitted to alter equality/hashing? Is a mutable key being used inside hash collections?
+- **Copying:** Is the copy shallow or deep per contract? Which levels of the mutable graph must be independent? Do mutations in **both directions** cause unintended side effects?
 
-Từ các câu trả lời đó, hãy xây test dùng assertion và dữ liệu đại diện cho từng quyết định thiết kế. **Không suy ra tính đúng từ một phép so sánh thành công hay một bản sao có tham chiếu ngoài khác nhau**: chính các tình huống kế thừa, đổi trạng thái và chia sẻ tham chiếu mới thường phơi bày lỗ hổng trong hợp đồng.
+From those answers, build tests using assertions and data representing each design decision. **Do not infer correctness from a single passing comparison or a copy with a different outer reference**: it is precisely inheritance, state mutation, and reference-sharing scenarios that most often expose gaps in the contract.

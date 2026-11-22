@@ -1,62 +1,62 @@
-# Tách dữ liệu nguyên bản, dữ liệu chuẩn hóa và bản hiển thị khi thiết kế API String
+# Separating Raw Data, Normalized Data, and Display Values in String API Design
 
-## Mục tiêu
+## Objectives
 
-Trong ứng dụng thực tế, cùng một chuỗi có thể đảm nhận ba vai trò khác nhau: bằng chứng về những gì người dùng gửi, giá trị đã được chuẩn hóa để tìm kiếm/đối chiếu, và văn bản được hiển thị cho người đọc. Khi gộp cả ba vào một biến `String` rồi liên tục ghi đè, ứng dụng dễ mất dữ liệu, đối chiếu sai hoặc hiển thị không đúng ý người dùng.
+In real-world applications, the same string can serve three different roles: evidence of what the user submitted, a normalized value for searching/matching, and text displayed to the reader. When all three are collapsed into a single `String` variable and repeatedly overwritten, the application easily loses data, mismatches lookups, or displays something other than what the user intended.
 
-Sau bài này, bạn sẽ biết cách:
+After this lesson, you will know how to:
 
-- Phân biệt **giá trị nguyên bản (raw/original)**, **giá trị chuẩn hóa (normalized/canonical key)** và **giá trị hiển thị (display)**.
-- Chọn rõ chính sách cho `strip()`, chuẩn hóa Unicode bằng `Normalizer`, chuyển hoa/thường bằng `Locale` và giới hạn của các phép biến đổi này.
-- Thiết kế API Java 17 với dữ liệu bất biến, không đánh mất nguồn gốc.
-- Xử lý các tình huống tìm kiếm, kiểm tra trùng, lưu trữ, thay đổi chính sách và bảo mật mà không tự làm hỏng văn bản.
-- Viết kiểm thử cho chuỗi Unicode trông giống nhau, khoảng trắng và các giá trị đặc biệt.
+- Distinguish **raw/original values**, **normalized/canonical keys**, and **display values**.
+- Clearly choose policies for `strip()`, Unicode normalization via `Normalizer`, case conversion via `Locale`, and the limits of these transformations.
+- Design Java 17 APIs with immutable data without losing the original input.
+- Handle search, duplicate detection, storage, policy changes, and security without corrupting text.
+- Write tests for visually similar Unicode strings, whitespace, and edge-case values.
 
-## 1. Ba vai trò dữ liệu không nên bị trộn lẫn
+## 1. Three data roles that should not be mixed
 
-Ví dụ người dùng nhập tên hiển thị có dấu cách đầu/cuối và chữ `é` theo dạng chữ `e` cộng dấu kết hợp:
+For example, a user enters a display name with leading/trailing spaces and the letter `é` represented as `e` plus a combining mark:
 
 ~~~text
-Dữ liệu nhận được: "  Café  "
+Received data:    "  Café  "
                       ↓
-Raw/original:     "  Café  "      // giữ nguyên bản String đã nhận
+Raw/original:     "  Café  "      // keep the received String intact
                       ↓
-Normalized key:   "café"          // chính sách ví dụ: strip + NFC + lowercase ROOT
+Normalized key:   "café"          // example policy: strip + NFC + lowercase ROOT
                       ↓
-Display value:    "Café"          // chính sách ví dụ: strip + NFC, giữ chữ hoa ban đầu
+Display value:    "Café"          // example policy: strip + NFC, preserve original casing
 ~~~
 
-Trong ví dụ, `"Café"` dùng hai code point cho `e` và dấu sắc, còn `"Café"` dùng một code point `é`. Mắt thường có thể thấy giống nhau dù chuỗi mã khác nhau.
+In the example, `"Café"` uses two code points for `e` and the acute accent, whereas `"Café"` uses one code point `é`. To the naked eye they can look identical even though their code sequences differ.
 
-| Tầng | Câu hỏi mà giá trị trả lời | Điều thường cần bảo toàn |
+| Layer | Question the value answers | What usually needs to be preserved |
 | --- | --- | --- |
-| **Raw** | “Hệ thống đã nhận đúng những gì?” | Ký tự, khoảng trắng, chữ hoa/thường, dấu, thứ tự code unit sau khi giải mã |
-| **Normalized** | “Hai giá trị có được coi tương đương cho nghiệp vụ này không?” | Quy tắc chuẩn hóa xác định, có thể tái lập, phù hợp khóa tra cứu |
-| **Display** | “Người đọc nên thấy gì trong ngữ cảnh này?” | Dễ đọc, phù hợp locale/ngữ cảnh, không phá dữ liệu gốc |
+| **Raw** | "What exactly did the system receive?" | Characters, whitespace, casing, diacritics, code unit order after decoding |
+| **Normalized** | "Are two values considered equivalent for this business case?" | Deterministic, reproducible normalization rules suitable for lookup keys |
+| **Display** | "What should the reader see in this context?" | Readability, locale/context appropriateness, without destroying original data |
 
-Đây là **các vai trò**, không phải ba bước bắt buộc cho mọi trường dữ liệu. Một số trường hiển thị đúng nguyên bản; một số khóa định danh không được phép bỏ chữ hoa; một số dữ liệu nhạy cảm phải so khớp chính xác từng byte. API cần định nghĩa chính sách riêng cho từng loại trường.
+These are **roles**, not three mandatory steps for every data field. Some fields display exactly as raw; some identifier keys must not discard casing; some sensitive data must match byte for byte. An API must define a dedicated policy for each field kind.
 
-**Raw trong bài này là `String` sau khi ứng dụng đã giải mã đầu vào.** Nếu yêu cầu là lưu nguyên byte phục vụ chữ ký số, kiểm tra mã hóa hoặc pháp lý, hãy giữ thêm byte gốc và thông tin charset. Một `String` đã được giải mã không bảo đảm tái tạo 100% byte ban đầu khi nguồn có dữ liệu không hợp lệ hoặc dùng nhiều cách mã hóa.
+**Raw in this lesson means the `String` after the application has decoded the input.** If the requirement is to store exact raw bytes for digital signatures, encoding inspection, or legal compliance, also retain the original bytes and charset metadata. A decoded `String` does not guarantee 100% reconstruction of the original bytes when the source contains invalid data or uses multiple encodings.
 
-## 2. Vì sao không nên chuẩn hóa đè lên biến gốc?
+## 2. Why you should not overwrite the original variable with normalized data
 
-Cách viết dễ gây mất thông tin:
+An approach that easily loses information:
 
 ~~~java
 String name = requestName;
 name = name.strip();
 name = name.toLowerCase();
-save(name); // Chỉ còn phiên bản biến đổi; dữ liệu người dùng nhập đã mất.
+save(name); // Only the transformed version remains; the user's original input is lost.
 ~~~
 
-Các vấn đề có thể xảy ra:
+Potential issues:
 
-- `strip()` bỏ khoảng trắng theo `Character.isWhitespace` ở hai đầu. Điều này có thể đúng với tên hiển thị, nhưng sai với nội dung văn bản tự do, mã bảo mật hoặc trường có khoảng trắng mang ý nghĩa.
-- `toLowerCase()` không chỉ thay chữ hoa thành chữ thường một cách đơn giản; hành vi mặc định phụ thuộc `Locale.getDefault()` của môi trường, có thể tạo kết quả khác nhau giữa máy hoặc người dùng.
-- Chuẩn hóa Unicode có thể thay đổi chuỗi code unit; một số phép chuẩn hóa tương thích còn thay đổi cách trình bày ký tự.
-- Khi người dùng muốn xem lại hoặc chỉnh sửa chính xác phần họ đã nhập, bạn không còn nguồn ban đầu.
+- `strip()` removes whitespace per `Character.isWhitespace` at both ends. This may be right for a display name, but wrong for free-form text, security codes, or fields with meaningful whitespace.
+- `toLowerCase()` does not merely swap uppercase letters for lowercase; its default behavior depends on the environment's `Locale.getDefault()`, which can produce different results across machines or users.
+- Unicode normalization can alter the code unit sequence; some compatibility normalizations also change character presentation.
+- When users want to review or edit exactly what they entered, you no longer have the original source.
 
-Mô hình dễ kiểm soát hơn:
+A more controllable model:
 
 ~~~java
 String raw = requestName;
@@ -64,17 +64,17 @@ String normalized = normalizeForLookup(raw);
 String display = prepareForDisplay(raw);
 ~~~
 
-Không nên coi `normalized` là “chuỗi đúng” trong mọi tình huống. Nó là kết quả **theo một chính sách cụ thể**, chẳng hạn khóa tìm người dùng hoặc khóa so sánh tên nhãn. Mỗi chính sách cần mục đích, thứ tự biến đổi và kiểm thử rõ ràng.
+Do not treat `normalized` as "the one true string" in every situation. It is the output **under a specific policy**, such as a user lookup key or a label comparison key. Each policy needs a clear purpose, transformation order, and tests.
 
-## 3. Ví dụ Java 17+: raw, normalized và display
+## 3. Java 17+ example: raw, normalized, and display
 
-Chính sách minh họa cho **tên nhãn không rỗng**:
+Illustrative policy for a **non-empty label name**:
 
-1. Giữ nguyên `String` người dùng nhập.
-2. Khi tạo giá trị hiển thị, loại khoảng trắng theo `strip()` ở hai đầu và chuẩn hóa Unicode về **NFC**; vẫn giữ cách viết hoa/thường người dùng chọn.
-3. Khi tạo khóa tìm kiếm, lấy giá trị đã xử lý ở bước 2 rồi gọi `toLowerCase(Locale.ROOT)` để có khóa ổn định theo locale trung lập.
+1. Keep the user's input `String` intact.
+2. When producing the display value, remove whitespace at both ends with `strip()` and normalize Unicode to **NFC**; preserve the user's chosen casing.
+3. When producing the lookup key, take the value processed in step 2 and call `toLowerCase(Locale.ROOT)` to obtain a stable locale-neutral key.
 
-Lưu chương trình sau vào `TextLayersDemo.java`:
+Save the following program to `TextLayersDemo.java`:
 
 ~~~java
 import java.text.Normalizer;
@@ -105,14 +105,14 @@ public class TextLayersDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 TextLayersDemo.java
 java TextLayersDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Raw length: 9
@@ -122,31 +122,31 @@ Raw retained: true
 Same key: true
 ~~~
 
-Giải thích:
+Explanation:
 
-- `"  Cafe\u0301  "` có 9 đơn vị mã UTF-16: hai dấu cách, `C`, `a`, `f`, `e`, một dấu kết hợp và hai dấu cách.
-- `strip()` bỏ khoảng trắng đầu/cuối theo chính sách ví dụ.
-- `Normalizer.normalize(..., Normalizer.Form.NFC)` hợp nhất dạng `e` + dấu sắc thành `é` khi có dạng tổ hợp chuẩn tương ứng.
-- `toLowerCase(Locale.ROOT)` cho `"café"` từ `"Café"`, không phụ thuộc locale mặc định của máy.
-- Giá trị `raw` **không bị thay đổi**, vì `String` bất biến; mọi phép biến đổi trả về `String` mới hoặc giá trị có thể dùng lại nếu không cần thay đổi.
-- `"CAFÉ"` và `"  Cafe\u0301  "` có cùng khóa theo chính sách hiện tại, nhưng bản hiển thị của chúng vẫn có thể khác nhau.
+- `"  Cafe\u0301  "` has 9 UTF-16 code units: two spaces, `C`, `a`, `f`, `e`, one combining mark, and two spaces.
+- `strip()` removes leading/trailing whitespace per the example policy.
+- `Normalizer.normalize(..., Normalizer.Form.NFC)` composes `e` + acute accent into `é` when a canonical precomposed form exists.
+- `toLowerCase(Locale.ROOT)` produces `"café"` from `"Café"`, independent of the machine's default locale.
+- The `raw` value **is not mutated**, because `String` is immutable; every transformation returns a new `String` or reuses an existing value if no change is needed.
+- `"CAFÉ"` and `"  Cafe\u0301  "` share the same key under the current policy, while their display forms can still differ.
 
-`Locale.ROOT` phù hợp cho nhiều chính sách khóa không gắn với ngôn ngữ. Nó **không** đồng nghĩa với phép *full Unicode case folding* hoàn chỉnh hay so sánh ngôn ngữ học. Khi tìm kiếm tên người theo tiếng Việt, Thổ Nhĩ Kỳ hoặc ngôn ngữ cụ thể, hãy đánh giá chính sách dựa trên yêu cầu tìm kiếm và collation thực tế.
+`Locale.ROOT` works well for many language-neutral key policies. It is **not** equivalent to full *Unicode case folding* or linguistic collation. When searching people's names in Vietnamese, Turkish, or another specific language, evaluate the policy based on actual search and collation requirements.
 
-## 4. Chuẩn hóa Unicode: NFC và NFKC khác nhau thế nào?
+## 4. Unicode normalization: how NFC and NFKC differ
 
-Java cung cấp `java.text.Normalizer` với các dạng `NFC`, `NFD`, `NFKC` và `NFKD`:
+Java provides `java.text.Normalizer` with forms `NFC`, `NFD`, `NFKC`, and `NFKD`:
 
-| Dạng | Mục đích tổng quát | Ví dụ giá trị sử dụng |
+| Form | General Purpose | Example Use Case |
 | --- | --- | --- |
-| `NFC` | Phân rã chuẩn tắc rồi tổ hợp chuẩn tắc | Chuẩn hóa biểu diễn chuỗi văn bản khi muốn bảo toàn tương đương chuẩn tắc |
-| `NFD` | Phân rã chuẩn tắc | Phân tích dấu kết hợp hoặc xử lý có yêu cầu riêng |
-| `NFKC` | Phân rã tương thích rồi tổ hợp | Khóa có chính sách gộp cả ký tự tương thích |
-| `NFKD` | Phân rã tương thích | Xử lý đặc thù cần tách các ký tự tương thích |
+| `NFC` | Canonical decomposition followed by canonical composition | Normalizing string representation when preserving canonical equivalence |
+| `NFD` | Canonical decomposition | Analyzing combining marks or specialized processing |
+| `NFKC` | Compatibility decomposition followed by canonical composition | Keys with a policy that also folds compatibility characters |
+| `NFKD` | Compatibility decomposition | Specialized processing needing compatibility characters decomposed |
 
-**NFC** thường là điểm bắt đầu an toàn hơn cho văn bản thông thường vì hướng tới tương đương chuẩn tắc. **NFKC** có thể gộp các ký tự vốn khác nhau về dạng trình bày/chức năng, nên cần quyết định nghiệp vụ trước khi sử dụng.
+**NFC** is usually a safer starting point for general text because it preserves canonical equivalence. **NFKC** can merge characters that differ in presentation or function, so a business decision is required before using it.
 
-Ví dụ Java 17:
+Java 17 example:
 
 ~~~java
 import java.text.Normalizer;
@@ -169,14 +169,14 @@ public class UnicodeFormDemo {
 }
 ~~~
 
-Lưu `UnicodeFormDemo.java` và chạy:
+Save `UnicodeFormDemo.java` and run:
 
 ~~~bash
 javac -encoding UTF-8 UnicodeFormDemo.java
 java UnicodeFormDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 false
@@ -185,28 +185,28 @@ true
 1
 ~~~
 
-Hai cách viết `é` không `equals` nhau ban đầu nhưng bằng nhau sau NFC; `NFKC` biến ký tự số một trong vòng tròn thành `1`, trong khi `NFC` giữ nguyên. Nếu `①` và `1` là hai mã sản phẩm khác nhau, NFKC làm chúng va chạm khóa — vì vậy không áp dụng NFKC rộng rãi mà thiếu chính sách.
+The two ways of writing `é` are not `equals` initially, but become equal after NFC; `NFKC` turns the circled digit one into `1`, whereas `NFC` keeps it unchanged. If `①` and `1` are two distinct product codes, NFKC causes key collisions—so do not apply NFKC broadly without a deliberate policy.
 
-### Thứ tự biến đổi có quan trọng không?
+### Does transformation order matter?
 
-Có. `strip`, chuẩn hóa Unicode, chuyển hoa/thường, xóa dấu và thay khoảng trắng không tự động giao hoán trong mọi trường hợp. Hãy **định nghĩa một pipeline chính thức**, kiểm thử nhiều loại dữ liệu và giữ phiên bản của pipeline nếu khóa đã được lưu lâu dài. Ví dụ, nếu chuyển hoa/thường tạo thêm ký tự Unicode, có hệ thống chọn chuẩn hóa về NFC một lần nữa ở cuối để bảo đảm dạng đầu ra mong muốn.
+Yes. `strip`, Unicode normalization, case conversion, diacritic removal, and whitespace replacement do not automatically commute in all cases. **Define a formal pipeline**, test across diverse inputs, and version the pipeline if keys are persisted long-term. For example, if case conversion introduces additional Unicode characters, some systems normalize back to NFC at the end to guarantee the desired output form.
 
-Với ví dụ đơn giản của bài:
+For the simple example in this lesson:
 
 ~~~text
 raw
-  ├── raw: giữ nguyên
+  ├── raw: keep intact
   ├── display: strip → NFC
   └── lookupKey: strip → NFC → lowercase(Locale.ROOT)
 ~~~
 
-Đây là một **quy tắc ứng dụng minh họa**, không phải thứ tự bắt buộc do Java áp đặt.
+This is an **illustrative application rule**, not a mandatory order imposed by Java.
 
-## 5. Tách biến đổi để dùng đúng mục đích
+## 5. Separating transformations to use each for the right purpose
 
-### Trường hợp A: tên hiển thị và khóa tìm kiếm
+### Case A: display name and lookup key
 
-Một ứng dụng danh mục có thể muốn hiển thị `"Café"` nhưng tìm được khi người dùng gõ `"café"`. Hãy lưu bản đã nhập, hiển thị theo chính sách của sản phẩm và đối chiếu bằng khóa riêng.
+A catalog application may want to display `"Café"` while still matching when a user types `"café"`. Store the submitted text, display it per product policy, and match using a dedicated key.
 
 ~~~text
 original    = "  Café "
@@ -214,11 +214,11 @@ display     = "Café"
 searchKey   = "café"
 ~~~
 
-Không xóa dấu theo mặc định. Nếu cần tìm không phân biệt dấu, hãy thiết kế thêm **một chỉ mục tìm kiếm** riêng và kiểm thử với ngôn ngữ được hỗ trợ. Xóa toàn bộ dấu kết hợp sau NFD có thể làm thay đổi danh tính từ trong nhiều ngôn ngữ, không bảo đảm tạo cách viết phù hợp cho mọi chữ có dấu.
+Do not strip diacritics by default. If diacritic-insensitive search is needed, design a separate **search index** and test it with supported languages. Removing all combining marks after NFD can change word identities in many languages and is not guaranteed to produce proper spellings for all accented letters.
 
-### Trường hợp B: mã định danh có định dạng quy định
+### Case B: identifiers with a fixed format
 
-Nếu mã hàng yêu cầu chính xác `[A-Z0-9_-]+`, quy tắc có thể là từ chối khoảng trắng, chữ thường hoặc Unicode không hợp lệ thay vì âm thầm `strip` và viết hoa. Với trường như mã đơn hàng, **validate trước và canonicalize có chủ đích** để tránh hai mã hợp lệ khác nhau bị gộp ngoài ý muốn.
+If an item code must strictly match `[A-Z0-9_-]+`, the rule may be to reject whitespace, lowercase letters, or invalid Unicode rather than silently `strip`ping and uppercasing. For fields like order codes, **validate first and canonicalize deliberately** to avoid two distinct valid codes being unintentionally merged.
 
 ~~~java
 static boolean isValidCode(String candidate) {
@@ -227,21 +227,21 @@ static boolean isValidCode(String candidate) {
 }
 ~~~
 
-Chính sách này coi `"ID_42"` là hợp lệ, còn `" id_42 "` không hợp lệ; đây là **quyết định nghiệp vụ**, không phải giới hạn của API `String`.
+This policy considers `"ID_42"` valid and `" id_42 "` invalid; this is a **business decision**, not a limitation of the `String` API.
 
-### Trường hợp C: nội dung văn bản tự do
+### Case C: free-form text content
 
-Tin nhắn, chú thích, địa chỉ hoặc ghi chú có thể cần bảo toàn xuống dòng, dấu cách và cách viết hoa. Khi đó, raw và display có thể cùng là chuỗi gốc. Một khóa tìm kiếm hoặc chỉ mục全文 có thể được tạo độc lập nhưng không nên ghi đè nội dung tác giả.
+Messages, annotations, addresses, or notes may need to preserve line breaks, spaces, and capitalization. In those cases, raw and display can be the same original string. A search key or full-text index can be generated independently, but it should not overwrite the author's content.
 
-### Trường hợp D: mật khẩu, token và dữ liệu ký
+### Case D: passwords, tokens, and signed data
 
-Không tự động `trim`, `strip`, chuyển lowercase hoặc Unicode normalize mật khẩu/token nếu giao thức xác thực không quy định rõ. Thay đổi ký tự có thể biến hai bí mật khác nhau thành một, khiến chữ ký không kiểm tra được hoặc phá tương thích. Nơi nào cần xử lý ở mức byte thì giữ đúng biểu diễn byte/protocol; mật khẩu phải được xử lý và lưu bằng cơ chế băm chuyên dụng, không lưu raw trong trường hợp không cần thiết.
+Do not automatically `trim`, `strip`, lowercase, or Unicode-normalize passwords/tokens unless the authentication protocol explicitly specifies it. Altering characters can collapse two distinct secrets into one, break signature verification, or break compatibility. Where byte-level processing is required, preserve the exact byte/protocol representation; passwords must be processed and stored using dedicated hashing mechanisms rather than storing raw values unnecessarily.
 
-## 6. Thiết kế kiểu giá trị bất biến để tránh nhầm lớp dữ liệu
+## 6. Designing immutable value types to avoid mixing data layers
 
-Một cách giảm sai sót là cho đối tượng chứa các lớp thông tin với tên rõ nghĩa. Ví dụ này chọn chính sách của **nhãn danh mục**; không dùng nguyên xi cho mọi loại chuỗi trong hệ thống.
+One way to reduce mistakes is to have an object hold the information layers with clear names. This example chooses a policy for a **catalog label**; do not copy it verbatim for every string type in a system.
 
-Lưu thành `LabelValueDemo.java`:
+Save as `LabelValueDemo.java`:
 
 ~~~java
 import java.text.Normalizer;
@@ -299,14 +299,14 @@ public class LabelValueDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 LabelValueDemo.java
 java LabelValueDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 8
@@ -316,15 +316,15 @@ CAFÉ
 true
 ~~~
 
-Ở đây `raw()` luôn trả về dữ liệu ứng dụng đã nhận. `display()` chuẩn bị để hiển thị theo chính sách nhãn; `normalizedKey()` phục vụ đối chiếu, không thay thế bản hiển thị. Các trường `final` giúp giữ ba giá trị nhất quán từ lúc khởi tạo. Không có setter âm thầm đổi một lớp dữ liệu trong khi các lớp còn lại chưa cập nhật.
+Here `raw()` always returns the data the application received. `display()` prepares it for presentation per the label policy; `normalizedKey()` serves matching without replacing the display value. The `final` fields keep all three values consistent from construction. There are no setters silently mutating one layer while the others remain stale.
 
-Đối tượng ví dụ minh họa quy tắc kiểm tra `prepared.isEmpty()`. Trong API thật, bạn còn phải quyết định về độ dài tối đa, ký tự điều khiển, dấu cách không ngắt dòng, các định dạng Unicode đặc biệt và lỗi xác thực. `String.strip()` không loại mọi loại khoảng trắng theo cách con người có thể tưởng tượng; ví dụ một số ký tự `NO-BREAK SPACE` không được `Character.isWhitespace` xem là khoảng trắng để bỏ đi.
+The example object illustrates the `prepared.isEmpty()` check. In a real API, you also must decide on maximum length, control characters, non-breaking spaces, special Unicode formats, and validation errors. `String.strip()` does not remove every kind of space humans might imagine; for example, certain `NO-BREAK SPACE` characters are not treated as whitespace to remove by `Character.isWhitespace`.
 
-**Đừng dùng `normalizedKey` thay cho khóa định danh toàn cục một cách vô điều kiện.** Nếu hai nhãn khác nhau tạo cùng normalized key, chúng có thể được coi trùng trong chức năng tìm kiếm nhưng vẫn là hai bản ghi khác nhau cần định danh riêng bằng ID.
+**Do not unconditionally use `normalizedKey` in place of a global identifier.** If two distinct labels produce the same normalized key, they may be treated as duplicates in search while still being two separate records requiring distinct IDs.
 
-## 7. Thiết kế hợp đồng API: đặt tên và phân tách rõ ràng
+## 7. API contract design: clear naming and separation
 
-Tránh một trường tên chung chung `value` khi sản phẩm có ba mục đích khác nhau. Có thể dùng DTO:
+Avoid a generic `value` field when the product has three distinct purposes. A DTO can be used:
 
 ~~~java
 public record LabelResponse(
@@ -333,96 +333,96 @@ public record LabelResponse(
         String displayText) {}
 ~~~
 
-Đoạn trên là khai báo record Java 17 hợp lệ để minh họa **cấu trúc dữ liệu**; nó không phải chương trình chạy độc lập và không bắt buộc mọi trường đều được trả về cho client.
+The snippet above is a valid Java 17 record declaration illustrating the **data structure**; it is not a standalone runnable program and does not require returning every field to the client.
 
-Một số nguyên tắc thiết kế:
+Several design principles:
 
-- **Request đầu vào:** dùng tên như `submittedText` hoặc `rawText` khi cần lưu chính xác phần người dùng gửi.
-- **Domain/value object:** một factory có chính sách rõ tạo `normalizedKey`; coi chính sách đó là một phần của hợp đồng nghiệp vụ.
-- **Response cho giao diện:** thường chỉ gửi `displayText` và ID; không gửi raw nếu raw có thể chứa dữ liệu nhạy cảm hoặc hệ thống không cho phép người xem truy cập.
-- **Search/lookup:** có thể nhận truy vấn của người dùng, chuẩn hóa **truy vấn bằng cùng phiên bản chính sách** rồi so khớp với khóa lưu.
-- **Audit:** nếu cần chứng minh nguồn nhập, lưu raw theo quy định và kiểm soát truy cập/retention; không nhét dữ liệu bí mật vào log chỉ vì muốn “bảo toàn nguyên bản”.
+- **Incoming request:** use names like `submittedText` or `rawText` when you need to store exactly what the user submitted.
+- **Domain/value object:** a factory with a clear policy produces `normalizedKey`; treat that policy as part of the business contract.
+- **UI response:** usually send only `displayText` and ID; do not send raw if raw may contain sensitive data or if the viewer is not permitted to access it.
+- **Search/lookup:** can accept a user query, normalize **the query with the same policy version**, and match against stored keys.
+- **Audit:** if you need proof of the submitted input, store raw per policy and enforce access/retention controls; do not dump secret data into logs just to "preserve the original".
 
-Một API cũng nên ghi rõ: trả về Unicode theo dạng nào, khóa có phân biệt hoa/thường và dấu hay không, có cho phép chuỗi rỗng không, và chuẩn hóa xảy ra tại thời điểm nhận dữ liệu hay khi tìm kiếm.
+An API should also clearly state: which Unicode form it returns, whether keys are case- and diacritic-sensitive, whether empty strings are allowed, and whether normalization happens at ingestion time or query time.
 
-## 8. Lưu trữ và tính nhất quán lâu dài
+## 8. Persistence and long-term consistency
 
-Khi cùng lưu raw, normalized và display trong cơ sở dữ liệu, cần quyết định tầng nào là nguồn gốc và khi nào tái tính:
+When storing raw, normalized, and display together in a database, decide which layer is the source of truth and when to recompute:
 
-| Trường dữ liệu | Ví dụ | Nên dùng cho |
+| Data Field | Example | Should be used for |
 | --- | --- | --- |
-| `raw_text` | `"  Café  "` | Truy vết dữ liệu đã nhập; chỉnh sửa/cập nhật |
-| `normalized_key` | `"café"` | Tìm kiếm, lọc, kiểm tra trùng theo chính sách |
-| `display_text` | `"Café"` | Xuất giao diện nếu giá trị đã chuẩn bị được lưu |
-| `normalization_version` | `"label-v1"` | Biết khóa được tạo theo chính sách nào khi thay đổi thuật toán |
+| `raw_text` | `"  Café  "` | Tracing submitted data; editing/updating |
+| `normalized_key` | `"café"` | Searching, filtering, policy-based duplicate checks |
+| `display_text` | `"Café"` | UI output if a pre-prepared display value is stored |
+| `normalization_version` | `"label-v1"` | Knowing which policy generated the key when algorithms change |
 
-Trong nhiều hệ thống, có thể **không cần lưu riêng display** nếu nó luôn được suy ra nhanh, xác định từ raw cùng một chính sách. Ngược lại, nếu bản hiển thị là nội dung do biên tập viên chỉnh tay, bản dịch theo `Locale` hoặc kết quả từ dữ liệu nguồn khác, cần mô hình rõ nguồn và vòng đời của nó.
+In many systems, there may be **no need to persist display separately** if it can always be derived quickly and deterministically from raw using the same policy. Conversely, if the display value is manually edited by an editor, a `Locale`-based translation, or derived from other sources, explicitly model its source and lifecycle.
 
-### Khi thay đổi chính sách
+### When changing a policy
 
-Giả sử trước đây khóa chỉ được `strip`, sau này thêm lowercase và NFC:
+Suppose keys previously used only `strip`, and later add lowercase and NFC:
 
-1. Xác định các khóa mới có tạo **va chạm** hay không: `"Café"`, `"Café"`, `"CAFÉ"` có thể cùng thành `"café"`.
-2. Kiểm tra các ràng buộc duy nhất (*unique constraints*) và quyết định cách giải quyết bản ghi va chạm trước khi triển khai.
-3. Tái tạo `normalized_key` hoặc xây chỉ mục mới theo phiên bản mới, đồng thời đảm bảo các luồng ghi/đọc dùng đúng phiên bản.
-4. Không ghi đè `raw_text` chỉ để cập nhật khóa tìm kiếm.
-5. Nếu logic truy vấn và logic lưu dùng khác chính sách, kết quả tìm kiếm sẽ không đáng tin; cần đồng bộ và kiểm thử migration.
+1. Determine whether new keys cause **collisions**: `"Café"`, `"Café"`, and `"CAFÉ"` may all become `"café"`.
+2. Check *unique constraints* and decide how to resolve colliding records before deployment.
+3. Regenerate `normalized_key` or build a new index under the new version, ensuring read/write flows use the right version.
+4. Do not overwrite `raw_text` solely to update the search key.
+5. If query logic and storage logic use different policies, search results become unreliable; synchronize and test the migration.
 
-**Idempotence** là đặc tính hữu ích: chuẩn hóa một khóa đã chuẩn hóa bằng cùng chính sách nên cho cùng kết quả khi có thể. Tuy nhiên, đừng mặc định mọi chuỗi thao tác tùy biến đều idempotent; hãy kiểm thử, nhất là khi trộn nhiều lần thay dấu/khoảng trắng và chuyển chữ.
+**Idempotence** is a useful property: normalizing an already-normalized key with the same policy should yield the same result whenever possible. However, do not assume every custom chain of operations is idempotent; test it, especially when mixing multiple rounds of diacritic/whitespace replacement and case conversion.
 
-### Khoảng cách giữa Java và cơ sở dữ liệu
+### The gap between Java and the database
 
-Java `String.equals` so sánh nội dung code unit; cơ sở dữ liệu có thể dùng collation không phân biệt hoa/thường hoặc dấu. Vì vậy, ngay cả khi `normalizedKey` khác nhau theo Java, unique index theo collation của database vẫn có thể xem chúng như nhau (hoặc ngược lại). Chọn rõ ràng cách lưu, collation, ràng buộc unique và việc chuẩn hóa ở phía ứng dụng. Nếu khóa thực sự yêu cầu so sánh nhị phân xác định, cần cấu hình storage/index phù hợp với hệ quản trị cụ thể.
+Java `String.equals` compares code unit contents; a database may use a case-insensitive or accent-insensitive collation. Thus, even when `normalizedKey` values differ in Java, a unique index under the database's collation may still treat them as equal (or vice versa). Explicitly choose storage, collation, unique constraints, and application-side normalization. If keys genuinely require deterministic binary comparison, configure storage/indexing appropriately for the specific DBMS.
 
-## 9. Bản hiển thị còn phụ thuộc ngữ cảnh
+## 9. Display values also depend on context
 
-`displayText` không nhất thiết chỉ là `strip()` rồi NFC. Nó có thể cần:
+`displayText` is not necessarily just `strip()` and NFC. It may need:
 
-- Ngôn ngữ hoặc locale người xem: tên ngôn ngữ, số, ngày, tiền tệ và thông điệp có thể khác nhau.
-- Quy tắc định dạng giao diện: thêm dấu phân cách, rút gọn chuỗi dài, định dạng đa dòng, hiển thị phiên bản song ngữ.
-- Phân quyền: có trường cần che một phần khi hiển thị, trong khi raw được giữ trong vùng dữ liệu bảo vệ.
-- Bối cảnh HTML, JSON hay log: mỗi nơi có quy tắc **escaping khi xuất** khác nhau.
+- Viewer's language or locale: language names, numbers, dates, currencies, and messages can differ.
+- UI formatting rules: adding separators, truncating long strings, multi-line formatting, bilingual display.
+- Authorization: some fields need partial masking when displayed, while raw is kept in protected storage.
+- HTML, JSON, or log contexts: each place has different **output escaping** rules.
 
-Nên phân biệt **biến đổi nội dung mang ý nghĩa hiển thị** với **escape cho ngữ cảnh đầu ra**. Ví dụ, khi đưa `displayText` lên web, giao diện phải bảo đảm dữ liệu văn bản được escape phù hợp để tránh HTML/script injection. Không lưu chuỗi HTML đã escape làm dạng “chuẩn hóa” chung; khi đó hiển thị trên nhiều kênh khác có thể bị double escaping.
+Distinguish **content transformations for display meaning** from **escaping for the output context**. For example, when rendering `displayText` on the web, the UI must ensure text data is properly escaped to prevent HTML/script injection. Do not store HTML-escaped strings as a general "normalized" form; doing so can cause double escaping across multiple output channels.
 
-Tương tự, dùng prepared statement để truyền giá trị khi truy vấn SQL. Unicode normalization hoặc lowercase không thay thế kiểm soát dữ liệu đầu ra, validation hay phân quyền.
+Similarly, use prepared statements to pass values in SQL queries. Unicode normalization or lowercasing does not replace output control, validation, or authorization.
 
-## 10. Các lỗi thường gặp
+## 10. Common mistakes
 
-**1. Chỉ giữ normalized và mất raw.** Người dùng không thể khôi phục cách họ nhập; hệ thống khó truy vết lỗi hoặc áp dụng chính sách mới. Giữ raw khi sản phẩm và quy định lưu trữ cho phép, đồng thời kiểm soát quyền truy cập.
+**1. Keeping only normalized and losing raw.** Users cannot recover what they entered; the system struggles to trace bugs or apply a new policy. Keep raw when product and retention policies permit, and enforce access control.
 
-**2. Dùng normalized key để hiển thị.** Nếu `"Nguyễn Văn An"` thành lowercase hoặc bỏ dấu ở khóa tra cứu, hiển thị chính khóa đó sẽ làm sai tên người. Dùng display theo chính sách riêng.
+**2. Using the normalized key for display.** If `"Nguyễn Văn An"` is lowercased or stripped of diacritics in the lookup key, displaying that key directly distorts the person's name. Use a display value under its own policy.
 
-**3. Coi trim/strip là thao tác vô hại.** Khoảng trắng có thể có ý nghĩa trong ghi chú, mã hoặc token; `strip` còn khác `trim` ở tập ký tự xử lý. Xác định quy tắc theo trường dữ liệu, không tạo một hàm `normalizeEverything` cho cả ứng dụng.
+**3. Treating trim/strip as harmless.** Whitespace can be meaningful in notes, codes, or tokens; `strip` also differs from `trim` in handled characters. Define rules per field rather than creating one `normalizeEverything` function for the whole application.
 
-**4. Không chỉ định Locale khi chuyển hoa/thường.** `toLowerCase()` dùng locale mặc định và có thể khác nhau giữa môi trường. Với khóa trung lập theo locale, dùng `toLowerCase(Locale.ROOT)`; với văn bản ngôn ngữ cụ thể, đánh giá đúng `Locale` và collation.
+**4. Omitting Locale during case conversion.** `toLowerCase()` uses the default locale and can vary across environments. For locale-neutral keys, use `toLowerCase(Locale.ROOT)`; for language-specific text, properly evaluate `Locale` and collation.
 
-**5. Nhầm NFC với NFKC.** NFKC có thể biến ký tự tương thích như `①` thành `1`, làm mất phân biệt không mong muốn. Chọn dạng Unicode theo chính sách, kiểm thử ví dụ gần giống nhưng mang ý nghĩa khác.
+**5. Confusing NFC with NFKC.** NFKC can turn compatibility characters such as `①` into `1`, causing unwanted loss of distinction. Choose the Unicode form per policy and test visually similar examples with different meanings.
 
-**6. Coi lowercasing là case folding/collation đầy đủ.** `toLowerCase(Locale.ROOT)` không tự giải mọi tình huống Unicode/ngôn ngữ. Khi cần so khớp theo ngôn ngữ, cân nhắc `Collator` hoặc công nghệ chỉ mục tìm kiếm phù hợp.
+**6. Treating lowercasing as full case folding/collation.** `toLowerCase(Locale.ROOT)` does not automatically solve all Unicode/linguistic cases. When language-aware matching is needed, consider `Collator` or an appropriate search indexing engine.
 
-**7. Áp dụng chính sách mới mà không phát hiện khóa trùng.** Việc thêm Unicode normalization và lowercase có thể làm nhiều bản ghi khác nhau cùng khóa. Kiểm tra va chạm, unique index và quá trình chuyển đổi trước khi thay chính sách.
+**7. Rolling out a new policy without detecting duplicate keys.** Adding Unicode normalization and lowercasing can map multiple distinct records to the same key. Check collisions, unique indexes, and migration paths before changing policies.
 
-**8. Chuẩn hóa mật khẩu/token/chữ ký tự phát.** Làm vậy thay dữ liệu bí mật hoặc phá chữ ký. Chỉ biến đổi khi đặc tả giao thức yêu cầu.
+**8. Ad-hoc normalization of passwords/tokens/signatures.** Doing so alters secret data or breaks signatures. Transform only when required by the protocol specification.
 
-**9. Tách raw/normalized/display nhưng quên đồng bộ sau khi edit.** Khi người dùng cập nhật raw, phải cập nhật hoặc vô hiệu hóa mọi dẫn xuất tương ứng. Factory bất biến và logic chuyển đổi tập trung giúp giảm lỗi này.
+**9. Separating raw/normalized/display but forgetting to sync after edits.** When a user updates raw, every corresponding derived value must be updated or invalidated. Immutable factories and centralized conversion logic help prevent this bug.
 
-**10. Log cả dữ liệu người dùng mà không chọn lọc.** Raw có thể chứa thông tin cá nhân. Khi cần đo lỗi chuẩn hóa, ưu tiên log mã lỗi, loại biến đổi và thông tin an toàn; quyết định lưu raw theo phân quyền và chính sách dữ liệu.
+**10. Logging full user data indiscriminately.** Raw may contain personal information. When measuring normalization errors, prefer logging error codes, transformation types, and safe metadata; govern raw storage according to authorization and data policies.
 
-## 11. Bài tập thực hành và kiểm thử
+## 11. Practice exercises and testing
 
-Với chính sách `strip() → NFC → toLowerCase(Locale.ROOT)` cho lookup, còn display là `strip() → NFC`, dự đoán kết quả:
+With the lookup policy `strip() → NFC → toLowerCase(Locale.ROOT)` and display policy `strip() → NFC`, predict the outputs:
 
-| Raw đầu vào | Display | Lookup key | Ghi chú |
+| Raw Input | Display | Lookup Key | Notes |
 | --- | --- | --- | --- |
-| `"  Café  "` | `"Café"` | `"café"` | Bỏ dấu cách đầu/cuối |
-| `"Cafe\u0301"` (dạng tách dấu) | `"Café"` | `"café"` | NFC hợp nhất dạng chuẩn tắc |
-| `"CAFÉ"` | `"CAFÉ"` | `"café"` | Giữ hoa ở display |
-| `"  "` | `""` | `""` | Ví dụ value object ở trên từ chối display rỗng |
-| `"Alice"` | `"Alice"` | `"alice"` | Không phân biệt hoa/thường trong lookup |
-| `"alice"` | `"alice"` | `"alice"` | Trùng lookup key với `Alice` |
+| `"  Café  "` | `"Café"` | `"café"` | Leading/trailing spaces removed |
+| `"Cafe\u0301"` (decomposed) | `"Café"` | `"café"` | NFC composes to canonical form |
+| `"CAFÉ"` | `"CAFÉ"` | `"café"` | Preserves uppercase in display |
+| `"  "` | `""` | `""` | The value object example above rejects empty display |
+| `"Alice"` | `"Alice"` | `"alice"` | Case-insensitive in lookup |
+| `"alice"` | `"alice"` | `"alice"` | Shares lookup key with `Alice` |
 
-Có thể dùng chương trình tự kiểm tra sau (lưu vào `TextLayerChecks.java`):
+You can use the following self-check program (save to `TextLayerChecks.java`):
 
 ~~~java
 import java.text.Normalizer;
@@ -449,7 +449,7 @@ public class TextLayerChecks {
 }
 ~~~
 
-Chạy bằng `javac -encoding UTF-8 TextLayerChecks.java` và `java TextLayerChecks`. Kết quả:
+Run with `javac -encoding UTF-8 TextLayerChecks.java` and `java TextLayerChecks`. Output:
 
 ~~~text
 [Café] -> [café]
@@ -460,22 +460,22 @@ Chạy bằng `javac -encoding UTF-8 TextLayerChecks.java` và `java TextLayerCh
 [alice] -> [alice]
 ~~~
 
-Bài mở rộng: tạo một bộ kiểm thử bổ sung cho `null`, dấu cách không ngắt dòng, mã định danh phân biệt hoa/thường, ký tự `①` khi dùng NFC/NFKC, và dữ liệu tiếng Việt có dấu tách. Ghi rõ trường nào được chuẩn hóa, trường nào phải giữ nguyên, trường nào được hiển thị khác raw.
+Extended exercise: create an additional test suite for `null`, non-breaking spaces, case-sensitive identifiers, the `①` character under NFC/NFKC, and Vietnamese data with decomposed diacritics. Clearly document which fields are normalized, which must be preserved verbatim, and which are displayed differently from raw.
 
-## Checklist trước khi công bố API
+## Checklist before publishing an API
 
-1. Định nghĩa chính xác **raw** là chuỗi đã giải mã hay cả byte gốc, dữ liệu đó có cần lưu/audit hay không.
-2. Đặt tên và kiểu riêng cho **normalized key**; viết tài liệu về thứ tự pipeline, Unicode form, Locale và phiên bản chính sách.
-3. Quyết định **display** dựa trên raw, trên giá trị do người dùng biên tập, hay trên tài nguyên dịch; đảm bảo không vô tình hiển thị khóa lookup.
-4. Kiểm tra trùng lặp và collation ở cả Java và database; chuẩn bị cách xử lý va chạm khi thay thuật toán.
-5. Đồng bộ dẫn xuất sau khi cập nhật raw, kiểm thử idempotence, Unicode, khoảng trắng, null, giá trị rỗng và chuỗi tương đương.
-6. Với mật khẩu, token, dữ liệu ký và thông tin nhạy cảm, tuân thủ hợp đồng bảo mật riêng; không áp dụng pipeline tên hiển thị một cách máy móc.
-7. Escape theo ngữ cảnh xuất (HTML/JSON/SQL), phân quyền dữ liệu raw, và tránh log nội dung không cần thiết.
+1. Define precisely whether **raw** is the decoded string or also original bytes, and whether that data must be stored/audited.
+2. Give **normalized key** a distinct name and type; document pipeline order, Unicode form, Locale, and policy version.
+3. Decide whether **display** is derived from raw, user-edited values, or translated resources; ensure lookup keys are never accidentally displayed.
+4. Check duplicates and collation in both Java and the database; prepare collision handling when changing algorithms.
+5. Synchronize derived values after raw updates, and test idempotence, Unicode, whitespace, null, empty values, and equivalent strings.
+6. For passwords, tokens, signed data, and sensitive information, follow dedicated security contracts; do not mechanically apply the display-name pipeline.
+7. Escape for the output context (HTML/JSON/SQL), enforce access control on raw data, and avoid logging unnecessary content.
 
-## Tham khảo chính thức
+## Official references
 
 - [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
-- [Java SE 17 — Normalizer và các Unicode normalization form](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html)
+- [Java SE 17 — Normalizer and Unicode normalization forms](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html)
 - [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html)
 - [Java SE 17 — Collator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html)
 - [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)

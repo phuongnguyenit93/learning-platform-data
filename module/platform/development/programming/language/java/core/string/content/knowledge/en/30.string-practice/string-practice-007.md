@@ -1,19 +1,19 @@
-# Thực hành tổng hợp: tái hiện bẫy null, overload, intern và phép nối String với số
+# Comprehensive Practice: Reproducing `null`, Overload, `intern`, and String-Number Concatenation Pitfalls
 
-## 1. Mục tiêu và cách học
+## 1. Goal and how to study
 
-Bài thực hành này yêu cầu **dự đoán kết quả trước khi chạy**, sau đó kiểm tra trên Java 17+ để nhận diện bốn nhóm bẫy thường gặp:
+This practice asks you to **predict the output before running**, then verify on Java 17+ to recognize four common pitfall groups:
 
-1. **`null`**: tham chiếu rỗng có thể được nối thành chữ `"null"`, gây `NullPointerException` hoặc khiến lời gọi overload không xác định.
-2. **Overload**: Java chọn phương thức theo **kiểu của biểu thức lúc biên dịch**, không dựa vào tên lớp thực tế của đối tượng ở runtime để chọn một overload mới.
-3. **String pool và `intern()`**: `==` kiểm tra **cùng đối tượng**, còn `equals()` kiểm tra **cùng nội dung**. Literal và biểu thức hằng có cơ chế chia sẻ khác chuỗi được tạo lúc chạy.
-4. **Phép nối với số và `char`**: dấu `+` vừa là phép cộng số vừa là nối chuỗi; thứ tự đánh giá và dấu ngoặc ảnh hưởng kết quả.
+1. **`null`**: a null reference can be concatenated into the text `"null"`, throw `NullPointerException`, or make an overload call ambiguous.
+2. **Overload**: Java selects the method based on the **compile-time type of the expression**, not by inspecting the object's runtime class to pick a new overload.
+3. **String pool and `intern()`**: `==` checks **same object reference**, whereas `equals()` checks **same content**. Literals and constant expressions follow different sharing rules than runtime-created strings.
+4. **Concatenation with numbers and `char`**: `+` is both numeric addition and string concatenation; evaluation order and parentheses change the result.
 
-Mỗi phần gồm đoạn mã, kết quả cần dự đoán, giải thích và cách viết an toàn. Không nên chạy đồng thời những dòng được đánh dấu **lỗi biên dịch** vì chúng được đưa ra để minh họa tình huống sai. Với các ví dụ gây ngoại lệ lúc chạy, đặt lời gọi trong `try/catch` nếu muốn các câu lệnh phía sau tiếp tục thực thi.
+Each section includes code, expected predictions, explanations, and safe idioms. Do not run lines marked **compile error** together with runnable code, as they illustrate invalid cases. For examples that throw runtime exceptions, wrap calls in `try/catch` if you want subsequent statements to keep executing.
 
-## 2. Bẫy null: nối chuỗi không giống gọi phương thức
+## 2. The `null` pitfall: string concatenation is not like calling a method
 
-`String` là **kiểu tham chiếu**. Một biến kiểu `String` có thể chứa tham chiếu `null`, nghĩa là biến đó **không trỏ đến đối tượng String nào**. Điều này khác với chuỗi rỗng `""`.
+`String` is a **reference type**. A `String` variable can hold a `null` reference, meaning it **points to no `String` object**. This differs from an empty string `""`.
 
 ~~~java
 String missing = null;
@@ -24,9 +24,9 @@ System.out.println(empty == null);   // false
 System.out.println(empty.isEmpty()); // true
 ~~~
 
-### 2.1. Nối với null tạo chữ "null"
+### 2.1. Concatenating with `null` produces the text `"null"`
 
-Trong ngữ cảnh nối chuỗi, một tham chiếu `null` được chuyển thành văn bản `"null"`:
+In a string concatenation context, a `null` reference is converted into the text `"null"`:
 
 ~~~java
 String value = null;
@@ -35,28 +35,28 @@ System.out.println("id=" + value); // id=null
 System.out.println(value + "!");   // null!
 ~~~
 
-Việc này **không chứng minh** biến `value` chứa đối tượng chuỗi có bốn ký tự `n-u-l-l`. Nó vẫn là tham chiếu `null`; phép nối chỉ tạo giá trị chuỗi mới để hiển thị.
+This **does not mean** the `value` variable holds a four-character string object `n-u-l-l`. It is still a `null` reference; concatenation merely builds a new string value for display.
 
-Nếu không muốn xuất chữ `null` ra giao diện, xử lý dữ liệu vắng mặt có chủ đích:
+If you do not want the text `null` printed to the UI, handle missing data intentionally:
 
 ~~~java
-String label = value == null ? "(chưa có)" : value;
-System.out.println("id=" + label); // id=(chưa có)
+String label = value == null ? "(none)" : value;
+System.out.println("id=" + label); // id=(none)
 ~~~
 
-Cách này an toàn khi quy ước nghiệp vụ là thay null bằng thông báo cụ thể. Nếu null là dữ liệu lỗi cần từ chối, nên phát hiện và báo lỗi ở nơi phù hợp thay vì im lặng thay thế.
+This is safe when the business convention is replacing `null` with an explicit placeholder. If `null` is invalid data that must be rejected, detect and report an error at the appropriate boundary instead of silently substituting it.
 
-### 2.2. Gọi phương thức trên null gây NullPointerException
+### 2.2. Calling a method on `null` throws `NullPointerException`
 
 ~~~java
 String value = null;
 
-// value.length();           // NullPointerException khi chạy
-// value.concat("!");        // NullPointerException khi chạy
-// value.equals("ready");    // NullPointerException khi chạy
+// value.length();           // NullPointerException at runtime
+// value.concat("!");        // NullPointerException at runtime
+// value.equals("ready");    // NullPointerException at runtime
 ~~~
 
-Ngược lại, lời gọi trên một đối tượng có thật có thể so sánh với tham chiếu null:
+Conversely, calling a method on a real object can safely compare against a `null` reference:
 
 ~~~java
 String value = null;
@@ -66,20 +66,20 @@ System.out.println(java.util.Objects.equals(value, "ready")); // false
 System.out.println(java.util.Objects.equals(null, null)); // true
 ~~~
 
-Vì thế, với một hằng chuỗi và biến có thể null, `"ready".equals(value)` thường an toàn và dễ đọc. Khi cả hai vế có thể null, `Objects.equals(a, b)` cung cấp so sánh nội dung có xử lý trường hợp null.
+Therefore, with a string constant and a nullable variable, `"ready".equals(value)` is usually safe and readable. When both sides may be `null`, `Objects.equals(a, b)` provides null-safe content comparison.
 
-Cần phân biệt ý nghĩa: `Objects.equals(null, null)` trả `true` vì **hai tham chiếu đều null**, không có nghĩa tồn tại hai chuỗi có cùng nội dung.
+Distinguish the semantics clearly: `Objects.equals(null, null)` returns `true` because **both references are `null`**, not because two string objects exist with equal content.
 
-### 2.3. String.valueOf(null) có một bẫy overload
+### 2.3. `String.valueOf(null)` has an overload trap
 
-`String.valueOf` có nhiều overload, bao gồm:
+`String.valueOf` has several overloads, including:
 
 ~~~java
 String.valueOf(Object obj)
 String.valueOf(char[] data)
 ~~~
 
-Hai lời gọi nhìn gần giống nhau nhưng có hành vi khác:
+Two calls that look nearly identical behave differently:
 
 ~~~java
 System.out.println(String.valueOf((Object) null)); // null
@@ -91,34 +91,34 @@ try {
 }
 ~~~
 
-Khi truyền `(Object) null`, phương thức `valueOf(Object)` trả chuỗi `"null"`. Khi truyền `(char[]) null`, overload mảng ký tự cần truy cập mảng và ném `NullPointerException`.
+When passing `(Object) null`, `valueOf(Object)` returns the string `"null"`. When passing `(char[]) null`, the char-array overload attempts to access the array and throws `NullPointerException`.
 
-Bẫy thú vị hơn:
+An even more interesting trap:
 
 ~~~java
 // String.valueOf(null);
 ~~~
 
-Dòng này **biên dịch được** nhưng Java chọn `valueOf(char[])`, vì `char[]` là kiểu con của `Object` và là overload cụ thể hơn trong các lựa chọn áp dụng. Kết quả là **`NullPointerException` lúc chạy**.
+This line **compiles**, yet Java selects `valueOf(char[])`, because `char[]` is a subtype of `Object` and is the more specific overload among the applicable candidates. The result is a **`NullPointerException` at runtime**.
 
-Muốn hành vi chuyển tham chiếu null thành chữ `"null"`, viết rõ:
+When you want a `null` reference converted into `"null"`, write explicitly:
 
 ~~~java
 String text = String.valueOf((Object) null);
 ~~~
 
-Hoặc nếu muốn giá trị thay thế:
+Or if you want a fallback value:
 
 ~~~java
-String text = java.util.Objects.toString(null, "(trống)");
-// (trống)
+String text = java.util.Objects.toString(null, "(empty)");
+// (empty)
 ~~~
 
-Thông điệp thực tế: **đừng kết luận từ tên phương thức**. Hãy xem overload nào được chọn theo kiểu đối số.
+Practical takeaway: **do not guess from the method name alone**. Check which overload is chosen based on argument types.
 
-## 3. Bẫy overload: Java quyết định ở thời điểm biên dịch
+## 3. Overload traps: Java decides at compile time
 
-Một lớp có thể có nhiều phương thức cùng tên nhưng khác danh sách tham số:
+A class can have multiple methods with the same name but different parameter lists:
 
 ~~~java
 static String classify(Object value) {
@@ -130,7 +130,7 @@ static String classify(String value) {
 }
 ~~~
 
-Khi gọi:
+When called:
 
 ~~~java
 System.out.println(classify("Java")); // String
@@ -138,15 +138,15 @@ System.out.println(classify(null));   // String
 System.out.println(classify((Object) null)); // Object
 ~~~
 
-Giải thích:
+Explanation:
 
-- Chuỗi `"Java"` có kiểu `String` nên overload nhận `String` khớp cụ thể nhất.
-- Literal `null` có thể chuyển sang các kiểu tham chiếu; `String` cụ thể hơn `Object` nên overload `String` được chọn.
-- `(Object) null` có **kiểu biểu thức lúc biên dịch là Object**, nên overload nhận `Object` được chọn.
+- The string `"Java"` has type `String`, so the `String` overload is the most specific match.
+- The `null` literal is convertible to any reference type; `String` is more specific than `Object`, so the `String` overload is selected.
+- `(Object) null` has **compile-time expression type `Object`**, so the `Object` overload is selected.
 
-Hàm `classify` trên là phương thức `static` ở ví dụ minh họa. Với các phương thức overload thông thường, Java vẫn phải quyết định **chữ ký phương thức** dựa vào kiểu tại thời điểm biên dịch; *override* (ghi đè phương thức) là cơ chế khác, có thể phân phối phương thức theo loại đối tượng thực lúc chạy.
+`classify` above is a `static` method in an illustrative example. Even for instance overloads, Java still determines the **method signature** from compile-time types; *overriding* is a separate mechanism that dispatches based on the actual object type at runtime.
 
-### 3.1. Hai overload không có kiểu cụ thể hơn: lỗi biên dịch
+### 3.1. Two overloads with no more-specific type: compile error
 
 ~~~java
 static String inspect(String value) {
@@ -157,21 +157,21 @@ static String inspect(Integer value) {
     return "Integer";
 }
 
-// System.out.println(inspect(null)); // LỖI BIÊN DỊCH: ambiguous
+// System.out.println(inspect(null)); // COMPILE ERROR: ambiguous
 ~~~
 
-`String` và `Integer` không phải kiểu con của nhau. Literal `null` áp dụng được cho cả hai, nên compiler không thể chọn overload tốt hơn. Sửa bằng cách nêu rõ ý định:
+`String` and `Integer` are not subtypes of one another. The `null` literal applies to both, so the compiler cannot choose a better overload. Fix by stating your intent explicitly:
 
 ~~~java
 System.out.println(inspect((String) null));  // String
 System.out.println(inspect((Integer) null)); // Integer
 ~~~
 
-Ép kiểu ở đây **chỉ giúp chọn overload**, không tạo đối tượng mới và không biến null thành nội dung chuỗi. Nếu phương thức thật truy cập nội dung của tham số mà không kiểm tra null, vẫn có thể ném ngoại lệ.
+Casting here **only guides overload resolution**; it creates no new object and does not turn `null` into string content. If the real method dereferences the parameter without a null check, it can still throw an exception.
 
-### 3.2. Vì sao System.out.println(null) gây mơ hồ?
+### 3.2. Why does `System.out.println(null)` cause ambiguity?
 
-`PrintStream` có các overload chẳng hạn:
+`PrintStream` has overloads including:
 
 ~~~java
 println(String x)
@@ -179,38 +179,38 @@ println(char[] x)
 println(Object x)
 ~~~
 
-Lời gọi:
+The call:
 
 ~~~java
-// System.out.println(null); // LỖI BIÊN DỊCH: ambiguous
+// System.out.println(null); // COMPILE ERROR: ambiguous
 ~~~
 
-`String` và `char[]` đều cụ thể hơn `Object` nhưng không kiểu nào cụ thể hơn kiểu còn lại. Compiler không chọn được.
+Both `String` and `char[]` are more specific than `Object`, yet neither is more specific than the other. The compiler cannot choose.
 
-Các lời gọi sau có ý nghĩa rõ ràng:
+The following calls have unambiguous meaning:
 
 ~~~java
 System.out.println((String) null); // null
 System.out.println((Object) null); // null
 ~~~
 
-Trong khi đó:
+Meanwhile:
 
 ~~~java
-// System.out.println((char[]) null); // NullPointerException khi chạy
+// System.out.println((char[]) null); // NullPointerException at runtime
 ~~~
 
-Sự khác biệt là overload nhận mảng ký tự định xử lý **phần tử của mảng**, không đơn thuần chuyển đối tượng mảng thành văn bản.
+The difference is that the char-array overload expects to read **the elements of the array**, rather than simply converting an object reference to text.
 
-### 3.3. StringBuilder.append(null) cũng có bẫy tương tự
+### 3.3. `StringBuilder.append(null)` has a similar trap
 
-`StringBuilder` có nhiều overload cho `String`, `CharSequence`, `Object` và `char[]`, trong số các kiểu khác.
+`StringBuilder` has multiple overloads for `String`, `CharSequence`, `Object`, and `char[]`, among other types.
 
 ~~~java
-// new StringBuilder().append(null); // LỖI BIÊN DỊCH: ambiguous
+// new StringBuilder().append(null); // COMPILE ERROR: ambiguous
 ~~~
 
-Lời gọi `null` chưa ép kiểu có thể khớp các overload tham chiếu không thể sắp thứ tự “cụ thể nhất”. Hãy nêu rõ kiểu và hành vi mong muốn:
+An uncast `null` call can match reference overloads that cannot be ordered by "most specific". Specify the desired type and behavior explicitly:
 
 ~~~java
 System.out.println(new StringBuilder().append((String) null));
@@ -220,17 +220,17 @@ System.out.println(new StringBuilder().append((Object) null));
 // null
 ~~~
 
-Nếu dùng overload `append(char[])` với mảng null, sẽ có `NullPointerException` khi chạy. Đây là ví dụ rõ cho nguyên tắc: **lỗi biên dịch do overload mơ hồ và ngoại lệ lúc chạy do truyền null vào phương thức đã chọn là hai loại lỗi khác nhau**.
+Passing a null array to `append(char[])` throws `NullPointerException` at runtime. This clearly illustrates the rule: **a compile-time ambiguous overload error and a runtime exception from passing `null` to a chosen method are two distinct kinds of errors**.
 
-## 4. String pool, intern() và hai kiểu so sánh
+## 4. String pool, `intern()`, and two kinds of equality
 
-Trong Java:
+In Java:
 
-- `a == b`, nếu `a` và `b` đều là tham chiếu đến đối tượng, kiểm tra **có cùng tham chiếu** hay không.
-- `a.equals(b)` với hai chuỗi không null kiểm tra **nội dung chuỗi bằng nhau**.
-- `String` là bất biến; hai đối tượng khác nhau hoàn toàn có thể giữ cùng nội dung.
+- `a == b`, when `a` and `b` are object references, checks whether they hold **the same reference**.
+- `a.equals(b)` on two non-null strings checks **equal string content**.
+- `String` is immutable; two distinct objects can easily hold identical content.
 
-### 4.1. Literal và new String()
+### 4.1. Literals and `new String()`
 
 ~~~java
 String a = "java";
@@ -242,19 +242,19 @@ System.out.println(a == c);      // false
 System.out.println(a.equals(c)); // true
 ~~~
 
-Các literal `"java"` trong cùng môi trường Java được intern/chia sẻ theo quy tắc của ngôn ngữ, nên `a` và `b` cùng trỏ đến một đối tượng chuỗi pooled. `new String("java")` yêu cầu tạo một đối tượng `String` mới; `c` có cùng nội dung nhưng không cùng tham chiếu với `a`.
+`"java"` literals in the same Java environment are interned/shared per language rules, so `a` and `b` point to the same pooled string object. `new String("java")` explicitly allocates a new `String` object; `c` has the same content but not the same reference as `a`.
 
-Sử dụng `equals()` khi kiểm tra mã trạng thái, username, tên sản phẩm, lựa chọn menu hoặc nội dung nhận từ API/file/database:
+Use `equals()` when checking status codes, usernames, product names, menu choices, or values read from APIs/files/databases:
 
 ~~~java
 if ("ACTIVE".equals(status)) {
-    // Xử lý khi nội dung status bằng "ACTIVE".
+    // Handle when status content equals "ACTIVE".
 }
 ~~~
 
-Không dùng `status == "ACTIVE"` để so sánh giá trị nghiệp vụ vì kết quả có thể phụ thuộc việc đối tượng có được chia sẻ hay không.
+Do not use `status == "ACTIVE"` to compare business values because the outcome can depend on whether the object happened to be shared.
 
-### 4.2. intern() trả về tham chiếu chuẩn trong string pool
+### 4.2. `intern()` returns the canonical reference in the string pool
 
 ~~~java
 String literal = "java";
@@ -265,13 +265,13 @@ System.out.println(created.intern() == literal); // true
 System.out.println(created.equals(literal));     // true
 ~~~
 
-`intern()` trả về một tham chiếu chuẩn cho nội dung đó trong *string pool*. Nếu pool đã có một chuỗi bằng nội dung thì `intern()` trả tham chiếu của chuỗi đã có; nếu chưa có, việc quản lý tham chiếu chuẩn diễn ra theo quy tắc của JVM.
+`intern()` returns a canonical reference for that content from the *string pool*. If the pool already contains a string with equal content, `intern()` returns that existing string's reference; otherwise, canonical reference management follows JVM rules.
 
-Không lạm dụng `intern()` như “mẹo tăng tốc mọi phép so sánh”. Việc đưa nhiều chuỗi riêng biệt vào pool có thể tăng áp lực bộ nhớ/chi phí quản lý; hiệu quả phải xét theo số lượng giá trị lặp lại, vòng đời và yêu cầu ứng dụng. `equals()` vẫn là API đúng để so nội dung, kể cả khi một hoặc cả hai chuỗi đã được intern.
+Do not overuse `intern()` as a "trick to speed up every comparison." Putting many distinct strings into the pool can increase memory pressure and management overhead; effectiveness depends on value repetition, lifetime, and application requirements. `equals()` remains the proper API for content comparison even when one or both strings are interned.
 
-### 4.3. Constant folding và phép nối lúc chạy
+### 4.3. Constant folding vs runtime concatenation
 
-Phân biệt biểu thức hằng với biểu thức có biến:
+Distinguish constant expressions from expressions involving variables:
 
 ~~~java
 String literal = "java";
@@ -285,9 +285,9 @@ System.out.println(literal == runtime); // false
 System.out.println(literal.equals(runtime)); // true
 ~~~
 
-`"ja" + "va"` là **biểu thức hằng** nên compiler có thể gộp thành literal `"java"` và dùng tham chiếu interned. `part + "va"` là nối chuỗi tại runtime; kết quả mới có cùng nội dung nhưng không tự động trở thành tham chiếu pooled chỉ vì nội dung trùng một literal.
+`"ja" + "va"` is a **constant expression**, so the compiler can fold it into the `"java"` literal and use the interned reference. `part + "va"` is runtime concatenation; the resulting object has identical content but does not automatically become a pooled reference merely because its content matches a literal.
 
-Nếu `part` là **biến hằng compile-time** đủ điều kiện:
+If `part` is an eligible **compile-time constant variable**:
 
 ~~~java
 final String part = "ja";
@@ -295,18 +295,18 @@ String value = part + "va";
 System.out.println(value == "java"); // true
 ~~~
 
-Vì `part` là `final String` được gán bởi một biểu thức hằng, biểu thức nối này cũng là hằng tại compile time. Đừng diễn giải rằng **mọi biến `final` đều tạo biểu thức hằng**: nếu giá trị nhận từ phương thức hoặc input runtime, nó không trở thành compile-time constant chỉ nhờ từ khóa `final`.
+Because `part` is a `final String` initialized with a constant expression, this concatenation is also a compile-time constant. Do not generalize that **every `final` variable creates a constant expression**: if its value comes from a method call or runtime input, it does not become a compile-time constant simply from the `final` keyword.
 
-**Quy tắc thực hành:** dự đoán `==` để hiểu cơ chế pool; trong mã ứng dụng, dùng `equals()` hoặc `Objects.equals()` để so giá trị.
+**Practical rule:** predict `==` to understand pooling mechanics; in application code, use `equals()` or `Objects.equals()` to compare values.
 
-## 5. Dấu + với số: thứ tự trái sang phải quyết định kết quả
+## 5. The `+` operator with numbers: left-to-right order decides the result
 
-Dấu `+` có hai vai trò:
+The `+` operator plays two roles:
 
-- Khi cả hai toán hạng phù hợp phép cộng số, Java thực hiện **cộng số** theo quy tắc numeric promotion.
-- Khi một toán hạng là `String`, Java thực hiện **nối chuỗi**, chuyển toán hạng còn lại thành biểu diễn văn bản.
+- When both operands are eligible for numeric addition, Java performs **numeric addition** per numeric promotion rules.
+- When either operand is a `String`, Java performs **string concatenation**, converting the other operand into a text representation.
 
-Các toán tử cộng/nối cùng độ ưu tiên được liên kết **từ trái sang phải**. Dấu ngoặc làm thay đổi nhóm biểu thức:
+Additive/concatenation operators share the same precedence and associate **left to right**. Parentheses alter grouping:
 
 ~~~java
 System.out.println(1 + 2 + "3");   // 33
@@ -315,14 +315,14 @@ System.out.println("1" + (2 + 3)); // 15
 System.out.println((1 + 2) + "3"); // 33
 ~~~
 
-Giải thích từng bước:
+Step-by-step explanation:
 
-1. `1 + 2 + "3"`: `1 + 2` là cộng số tạo `3`; sau đó `3 + "3"` tạo chuỗi `"33"`.
-2. `"1" + 2 + 3`: bắt đầu bằng String nên `"1" + 2` thành `"12"`; tiếp tục `"12" + 3` thành `"123"`.
-3. `"1" + (2 + 3)`: biểu thức trong ngoặc cho `5` trước, rồi nối thành `"15"`.
-4. `(1 + 2) + "3"` cho cùng nội dung `"33"` như ví dụ đầu vì hai số đã được cộng trước.
+1. `1 + 2 + "3"`: `1 + 2` is numeric addition yielding `3`; then `3 + "3"` produces `"33"`.
+2. `"1" + 2 + 3`: starts with a `String`, so `"1" + 2` becomes `"12"`; then `"12" + 3` becomes `"123"`.
+3. `"1" + (2 + 3)`: the parenthesized expression yields `5` first, then concatenates into `"15"`.
+4. `(1 + 2) + "3"` produces the same `"33"` content as the first example because the two numbers are added first.
 
-Với một biến số:
+With numeric variables:
 
 ~~~java
 int price = 10;
@@ -332,11 +332,11 @@ System.out.println("Total: " + price + fee);   // Total: 105
 System.out.println("Total: " + (price + fee)); // Total: 15
 ~~~
 
-Dấu ngoặc làm rõ ý định phép cộng. Đây là lỗi tính đúng của chương trình, không phải vấn đề hiệu năng.
+Parentheses clarify the intended addition. This is a program correctness bug, not a performance issue.
 
-### 5.1. char cộng số: thường ra mã số, không ra ký tự kế tiếp
+### 5.1. `char` plus a number: usually gives a numeric code, not the next letter
 
-`char` là một kiểu số nguyên 16 bit không dấu. Trong phép cộng số với `int`, `char` được nâng kiểu để tính toán:
+`char` is an unsigned 16-bit integer type. In numeric addition with `int`, `char` is promoted for arithmetic:
 
 ~~~java
 System.out.println('A' + 1);     // 66
@@ -344,16 +344,16 @@ System.out.println("A" + 1);     // A1
 System.out.println("char=" + 'A' + 1); // char=A1
 ~~~
 
-`'A' + 1` không in chữ `B`: biểu thức có kiểu `int` và giá trị `65 + 1 = 66`. Nếu thật sự muốn ký tự tiếp theo trong phạm vi phù hợp:
+`'A' + 1` does not print `B`: the expression has type `int` and value `65 + 1 = 66`. If you genuinely want the next character within an appropriate range:
 
 ~~~java
 char next = (char) ('A' + 1);
 System.out.println(next); // B
 ~~~
 
-Cách này chỉ là phép toán trên giá trị UTF-16 và **không phải** thuật toán tăng “ký tự Unicode hiển thị” nói chung.
+This is merely arithmetic on UTF-16 values and **is not** a general algorithm for incrementing "visible Unicode characters."
 
-### 5.2. Phép nối với null và số cùng lúc
+### 5.2. Concatenating with `null` and numbers together
 
 ~~~java
 String missing = null;
@@ -363,11 +363,11 @@ System.out.println("x=" + (1 + 2));      // x=3
 System.out.println((Object) null + "3"); // null3
 ~~~
 
-Chọn rõ dấu ngoặc và cách thay thế null. Ví dụ `"x=" + (missing == null ? 0 : Integer.parseInt(missing)) + 1` vẫn sẽ nối `1` sau khi bắt đầu bằng String; để tính tổng cần bao toàn bộ phép tính: `"x=" + ((missing == null ? 0 : Integer.parseInt(missing)) + 1)`.
+Use explicit parentheses and null-substitution rules. For example, `"x=" + (missing == null ? 0 : Integer.parseInt(missing)) + 1` still concatenates `1` after starting with a `String`; to compute the sum, wrap the entire addition: `"x=" + ((missing == null ? 0 : Integer.parseInt(missing)) + 1)`.
 
-## 6. StringBuilder.append() cũng phân biệt kiểu dữ liệu
+## 6. `StringBuilder.append()` also distinguishes data types
 
-`StringBuilder` có nhiều overload; kết quả có thể khác nhau theo biểu thức truyền vào:
+`StringBuilder` has many overloads; output can vary depending on the expression passed in:
 
 ~~~java
 StringBuilder a = new StringBuilder();
@@ -379,9 +379,9 @@ b.append('A' + 1);
 System.out.println(b); // 66
 ~~~
 
-Ở trường hợp `a`, `append(char)` in chữ `A` và `append(int)` nối ký hiệu số `1`. Ở trường hợp `b`, phép cộng `'A' + 1` thực hiện **trước khi gọi `append`**, tạo số nguyên `66`, nên overload `append(int)` hiển thị `66`.
+In case `a`, `append(char)` outputs the letter `A` and `append(int)` appends the digit `1`. In case `b`, the addition `'A' + 1` executes **before `append` is called**, producing the integer `66`, so the `append(int)` overload prints `66`.
 
-Dùng hai lời gọi riêng khi muốn nối ký tự và số, dùng phép cộng rõ ràng khi muốn tính toán:
+Use two separate calls when appending a character and a number, and explicit addition when computing a sum:
 
 ~~~java
 String message = new StringBuilder()
@@ -391,11 +391,11 @@ String message = new StringBuilder()
 // Result: 3
 ~~~
 
-Với vài phần cố định, `"Result: " + (1 + 2)` còn ngắn hơn. Không thay `+` bằng `StringBuilder` chỉ để tránh bẫy thứ tự phép toán: cả hai đều cần thể hiện đúng ý định.
+For a few fixed parts, `"Result: " + (1 + 2)` is even shorter. Do not replace `+` with `StringBuilder` merely to dodge operator-precedence pitfalls: both require expressing intent accurately.
 
-## 7. Chương trình Java 17+ chạy hoàn chỉnh
+## 7. Complete runnable Java 17+ program
 
-Tạo tệp **`StringPitfallsDemo.java`**:
+Create the file **`StringPitfallsDemo.java`**:
 
 ~~~java
 import java.util.Objects;
@@ -438,7 +438,7 @@ public class StringPitfallsDemo {
         System.out.println(
                 "inspect((String)null): " + inspect((String) null));
 
-        // Không bỏ comment: đây là lỗi overload mơ hồ khi biên dịch.
+        // Do not uncomment: these are ambiguous overload compile errors.
         // inspect(null);
         // System.out.println(null);
         // new StringBuilder().append(null);
@@ -472,14 +472,14 @@ public class StringPitfallsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac StringPitfallsDemo.java
 java StringPitfallsDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 plus null: id=null
@@ -504,22 +504,22 @@ char then string: A1
 builder: A1
 ~~~
 
-### Vì sao kết quả như vậy?
+### Why are these the results?
 
-- `missing` là tham chiếu null, được nối thành chữ `null`; nhưng `"ok".equals(missing)` vẫn là `false` và không gọi phương thức trên null.
-- `Objects.equals(null, null)` so sánh hai giá trị null nên cho `true`.
-- `String.valueOf((Object) null)` tạo chuỗi `"null"`, trong khi `String.valueOf((char[]) null)` ném `NullPointerException` vì overload mảng.
-- `classify(null)` chọn overload `String` là overload cụ thể hơn `Object`; ép kiểu `(Object) null` chuyển lựa chọn sang overload `Object`.
-- `inspect(null)` được để ở dạng comment vì `String` và `Integer` không có quan hệ kiểu cụ thể hơn; thêm cast chọn overload được mong muốn.
-- Literal, biểu thức nối hằng và `intern()` liên hệ đến cùng tham chiếu pool; đối tượng `new String(...)` và kết quả nối runtime là các đối tượng khác trong ví dụ này, dù `equals()` đều so nội dung thành `true`.
-- Các biểu thức `+` cho `33`, `123` và `15` tương ứng với nhóm phép cộng/nối.
-- `'A' + 1` cho số 66; `"A" + 1` cho chuỗi `A1`; `append('A').append(1)` cũng cho `A1`.
+- `missing` is a null reference, concatenated into the text `null`; yet `"ok".equals(missing)` remains `false` without invoking a method on `null`.
+- `Objects.equals(null, null)` compares two `null` values and returns `true`.
+- `String.valueOf((Object) null)` produces `"null"`, whereas `String.valueOf((char[]) null)` throws `NullPointerException` via the array overload.
+- `classify(null)` selects the `String` overload as more specific than `Object`; casting `(Object) null` shifts selection to the `Object` overload.
+- `inspect(null)` is commented out because `String` and `Integer` have no specificity relation; adding a cast chooses the desired overload.
+- Literals, constant concatenation expressions, and `intern()` refer to the same pool reference; `new String(...)` and runtime concatenation create distinct objects in this example, though `equals()` compares content as `true` for all of them.
+- The `+` expressions produce `33`, `123`, and `15` according to addition/concatenation grouping.
+- `'A' + 1` yields the number `66`; `"A" + 1` yields `"A1"`; `append('A').append(1)` also yields `A1`.
 
-## 8. Bài tập dự đoán và tự kiểm tra
+## 8. Prediction and self-check exercises
 
-Hãy ghi dự đoán **giá trị**, **kiểu kết quả** và liệu lỗi xảy ra **lúc biên dịch** hay **lúc chạy** trước khi xem đáp án.
+Write down your predictions for **value**, **result type**, and whether an error happens at **compile time** or **runtime** before reading the answers.
 
-### Bài 1: null và equals
+### Exercise 1: `null` and `equals`
 
 ~~~java
 String x = null;
@@ -528,9 +528,9 @@ System.out.println("go".equals(x));
 System.out.println(x == null);
 ~~~
 
-**Đáp án:** lần lượt `x=null`, `false`, `true`. `"go".equals(x)` gọi trên literal không null, còn phép `== null` kiểm tra tham chiếu.
+**Answer:** `x=null`, `false`, `true` respectively. `"go".equals(x)` invokes on a non-null literal, while `== null` checks the reference.
 
-### Bài 2: null và overload
+### Exercise 2: `null` and overloads
 
 ~~~java
 // A
@@ -543,9 +543,9 @@ String.valueOf((char[]) null);
 String.valueOf(null);
 ~~~
 
-**Đáp án:** A trả `"null"`; B ném `NullPointerException`; C **biên dịch được nhưng cũng ném `NullPointerException`** vì chọn overload nhận `char[]`. Đây là trường hợp dễ nhầm giữa lời gọi `valueOf(Object)` và `valueOf(char[])`.
+**Answer:** A returns `"null"`; B throws `NullPointerException`; C **compiles yet also throws `NullPointerException`** because it chooses the `char[]` overload. This is an easy place to confuse `valueOf(Object)` and `valueOf(char[])`.
 
-### Bài 3: overload mơ hồ
+### Exercise 3: ambiguous overloads
 
 ~~~java
 static void f(String x) {}
@@ -554,9 +554,9 @@ static void f(Integer x) {}
 // f(null);
 ~~~
 
-**Đáp án:** `f(null)` không biên dịch vì cả hai overload áp dụng và không overload nào cụ thể hơn. `f((String) null)` và `f((Integer) null)` hợp lệ về mặt lựa chọn overload.
+**Answer:** `f(null)` fails to compile because both overloads apply and neither is more specific. `f((String) null)` and `f((Integer) null)` are valid for overload resolution.
 
-### Bài 4: so sánh String
+### Exercise 4: comparing `String`s
 
 ~~~java
 String x = "ab";
@@ -569,9 +569,9 @@ System.out.println(x == z);
 System.out.println(x.equals(z));
 ~~~
 
-**Đáp án:** `true`, `false`, `true`. `y` là biểu thức hằng; `z` được tạo bằng nối lúc chạy.
+**Answer:** `true`, `false`, `true`. `y` is a constant expression; `z` is created by runtime concatenation.
 
-### Bài 5: cộng số hay nối chuỗi?
+### Exercise 5: numeric addition or string concatenation?
 
 ~~~java
 System.out.println(10 + 5 + " USD");
@@ -579,9 +579,9 @@ System.out.println("USD " + 10 + 5);
 System.out.println("USD " + (10 + 5));
 ~~~
 
-**Đáp án:** `15 USD`, `USD 105`, `USD 15`. Dấu ngoặc quyết định hai số được cộng trước hay lần lượt chuyển thành chuỗi.
+**Answer:** `15 USD`, `USD 105`, `USD 15`. Parentheses determine whether the two numbers are added first or converted to strings sequentially.
 
-### Bài 6: char và StringBuilder
+### Exercise 6: `char` and `StringBuilder`
 
 ~~~java
 System.out.println('0' + 1);
@@ -591,18 +591,18 @@ sb.append('0').append(1);
 System.out.println(sb);
 ~~~
 
-**Đáp án:** `49` và `01`. `'0'` có mã số 48; `'0' + 1` là cộng số. Hai lần `append` lần lượt thêm ký tự và chữ số.
+**Answer:** `49` and `01`. `'0'` has numeric code `48`; `'0' + 1` is numeric addition. Two `append` calls sequentially append a character and a digit.
 
-### Bài 7: hai kiểu lỗi khác nhau
+### Exercise 7: two different error kinds
 
 ~~~java
 // System.out.println(null);     // A
 // System.out.println((char[]) null); // B
 ~~~
 
-**Đáp án:** A không biên dịch vì mơ hồ giữa overload `String` và `char[]`. B chọn rõ overload `char[]` nhưng ném `NullPointerException` lúc chạy. Ép kiểu xử lý **lựa chọn overload**, không đảm bảo truyền null là hợp lệ.
+**Answer:** A does not compile due to ambiguity between `String` and `char[]` overloads. B explicitly chooses the `char[]` overload but throws `NullPointerException` at runtime. Casting handles **overload selection**; it does not make passing `null` valid.
 
-### Bài 8: final và biểu thức hằng
+### Exercise 8: `final` and constant expressions
 
 ~~~java
 final String a = "ja";
@@ -611,53 +611,53 @@ String y = "java";
 System.out.println(x == y);
 ~~~
 
-**Đáp án:** `true`. `a` là biến hằng compile-time của kiểu `String`, được gán bằng biểu thức hằng; nối với `"va"` cũng là biểu thức hằng. Không áp dụng quy tắc này cho mọi biến `final` mà giá trị chỉ được biết lúc chạy.
+**Answer:** `true`. `a` is a compile-time constant variable of type `String`, initialized with a constant expression; concatenating with `"va"` is also a constant expression. This rule does not apply to `final` variables whose values are only known at runtime.
 
-## 9. Phân biệt compile-time error, runtime error và lỗi logic
+## 9. Distinguishing compile-time errors, runtime errors, and logic errors
 
-| Tình huống | Kết quả | Nguyên nhân |
+| Case | Outcome | Cause |
 |---|---|---|
-| `String.valueOf(null)` | `NullPointerException` khi chạy | Chọn overload `char[]` cụ thể hơn `Object` |
-| `String.valueOf((Object) null)` | Chuỗi `"null"` | Chọn overload `Object` |
-| `System.out.println(null)` | Lỗi biên dịch | Overload `String` và `char[]` mơ hồ |
-| `new StringBuilder().append(null)` | Lỗi biên dịch | Các overload kiểu tham chiếu không có lựa chọn cụ thể duy nhất |
-| `missing.length()` khi `missing == null` | `NullPointerException` | Gọi phương thức trên tham chiếu null |
-| `new String("java") == "java"` | `false` | Hai đối tượng khác nhau |
-| `new String("java").equals("java")` | `true` | Nội dung bằng nhau |
-| `"Total: " + 10 + 5` | `"Total: 105"` | Nối chuỗi từ trái sang phải |
-| `"Total: " + (10 + 5)` | `"Total: 15"` | Cộng số trong ngoặc trước |
-| `'A' + 1` | `int` 66 | Phép cộng số và numeric promotion |
+| `String.valueOf(null)` | `NullPointerException` at runtime | Selects `char[]` overload, more specific than `Object` |
+| `String.valueOf((Object) null)` | String `"null"` | Selects `Object` overload |
+| `System.out.println(null)` | Compile error | `String` and `char[]` overloads are ambiguous |
+| `new StringBuilder().append(null)` | Compile error | Reference overloads have no unique most-specific choice |
+| `missing.length()` when `missing == null` | `NullPointerException` | Calling a method on a `null` reference |
+| `new String("java") == "java"` | `false` | Two distinct objects |
+| `new String("java").equals("java")` | `true` | Equal content |
+| `"Total: " + 10 + 5` | `"Total: 105"` | Left-to-right string concatenation |
+| `"Total: " + (10 + 5)` | `"Total: 15"` | Numeric addition inside parentheses first |
+| `'A' + 1` | `int` `66` | Numeric addition and numeric promotion |
 
-Điều quan trọng nhất khi gỡ lỗi là phân loại đúng:
+The most important debugging skill is classifying properly:
 
-- **Lỗi biên dịch:** JVM chưa chạy chương trình; thay đổi cast/chữ ký để compiler biết overload nào được gọi.
-- **Ngoại lệ lúc chạy:** code đã biên dịch nhưng một tham chiếu null bị sử dụng theo cách không hợp lệ; kiểm tra dữ liệu và contract.
-- **Sai logic:** code chạy bình thường nhưng kết quả không đúng yêu cầu, chẳng hạn dùng `==` so nội dung hay quên ngoặc khi cộng số.
+- **Compile-time error:** the JVM has not run the program yet; adjust casts or signatures so the compiler knows which overload to invoke.
+- **Runtime exception:** the code compiled, but a `null` reference was used illegally; check data and contracts.
+- **Logic bug:** code runs without crashing yet yields wrong results, such as using `==` for content equality or forgetting parentheses when adding numbers.
 
-Đừng dùng `try/catch` để “sửa” một lỗi overload mơ hồ: lỗi đó xảy ra trước khi chương trình có thể chạy.
+Never use `try/catch` to "fix" an ambiguous overload error: that error occurs before the program can run.
 
-## 10. Cách viết mã an toàn trong dự án thực tế
+## 10. Writing safe code in real projects
 
-### 10.1. So sánh nội dung bằng equals
+### 10.1. Compare content with `equals`
 
 ~~~java
 boolean accepted = "OK".equals(status);
 boolean same = java.util.Objects.equals(firstName, secondName);
 ~~~
 
-Cách viết giảm rủi ro `NullPointerException` do gọi `equals` trên tham chiếu có thể null. Để kiểm tra cùng tham chiếu cho mục đích nhận diện đối tượng, `==` vẫn phù hợp; vấn đề là không dùng nhầm nó như phép so sánh nội dung chuỗi.
+This reduces `NullPointerException` risk from calling `equals` on a potentially `null` reference. To test reference identity for object-identity purposes, `==` remains appropriate; the issue is misusing it for string content comparison.
 
-### 10.2. Giải quyết null theo yêu cầu nghiệp vụ
+### 10.2. Handle `null` per business requirements
 
 ~~~java
-String displayName = java.util.Objects.toString(userName, "(ẩn danh)");
+String displayName = java.util.Objects.toString(userName, "(anonymous)");
 ~~~
 
-Nếu null là dữ liệu thiếu cần thông báo, truyền giá trị thay thế có ý nghĩa. Nếu đầu vào bắt buộc không null, xác thực ở ranh giới nhận dữ liệu, ví dụ dùng `Objects.requireNonNull` với thông báo rõ ràng.
+If `null` represents missing data that needs a message, supply a meaningful fallback. If an input must never be `null`, validate at the boundary, e.g., using `Objects.requireNonNull` with a clear message.
 
-### 10.3. Làm rõ overload bằng kiểu và tên
+### 10.3. Clarify overloads with types and names
 
-Khi overload có thể dẫn đến mơ hồ với literal null, tốt hơn nên thiết kế API với tên phương thức khác nhau cho hai hành vi khác nhau nếu điều đó giúp mã dễ hiểu:
+When overloading could cause ambiguity with `null` literals, it is often better to design APIs with distinct method names for distinct behaviors if that improves clarity:
 
 ~~~java
 static String fromText(String text) {
@@ -669,9 +669,9 @@ static String fromNumber(Integer number) {
 }
 ~~~
 
-Nếu vẫn sử dụng overload, truyền biến có kiểu tĩnh rõ ràng hoặc cast phù hợp; không dùng cast tùy tiện chỉ để làm mất cảnh báo biên dịch.
+If overloads are kept, pass variables with clear static types or appropriate casts; do not add arbitrary casts merely to silence compiler warnings.
 
-### 10.4. Viết ngoặc rõ cho phép tính
+### 10.4. Use explicit parentheses for arithmetic
 
 ~~~java
 int quantity = 2;
@@ -680,43 +680,43 @@ int unitPrice = 50;
 String total = "Total: " + (quantity * unitPrice);
 ~~~
 
-Dù `*` có độ ưu tiên cao hơn `+`, dấu ngoặc vẫn giúp người đọc thấy phần tính toán riêng với phần nối chuỗi. Với phép cộng hỗn hợp, dấu ngoặc còn quyết định đúng/sai:
+Even though `*` has higher precedence than `+`, parentheses help readers separate arithmetic from string concatenation. With mixed additions, parentheses determine correctness:
 
 ~~~java
 String totalWithFee = "Total: " + (quantity * unitPrice + 10);
 ~~~
 
-### 10.5. Hiểu intern mà không phụ thuộc intern
+### 10.5. Understand `intern` without relying on it
 
-Không cần intern thủ công mọi chuỗi chỉ để so sánh:
+There is no need to manually intern every string just to compare values:
 
 ~~~java
 String source = new String("READY");
 boolean sameContent = "READY".equals(source); // true
 ~~~
 
-`equals` giữ đúng ngữ nghĩa kể cả khi chuỗi đến từ file, HTTP, database, đối tượng mới hoặc string pool. Nếu có yêu cầu tối ưu bộ nhớ cho nhiều chuỗi trùng lặp, cần đo và thiết kế riêng; không biến giả định về tham chiếu pooled thành logic nghiệp vụ.
+`equals` preserves exact semantics whether strings come from files, HTTP, databases, newly allocated objects, or the string pool. If memory optimization for many duplicate strings is required, measure and design specifically for it; never turn assumptions about pooled references into business logic.
 
-## 11. Checklist gỡ lỗi khi kết quả gây bất ngờ
+## 11. Debugging checklist for surprising results
 
-Khi gặp một biểu thức String trong Java:
+When encountering a Java `String` expression:
 
-1. **Xác định kiểu của từng biểu thức ở compile time.** Với null, hỏi overload nào hợp lệ và overload nào cụ thể nhất.
-2. **Xác định null là giá trị dữ liệu hay tham chiếu không có đối tượng.** Phép nối `+`, `String.valueOf` và lời gọi phương thức có thể xử lý khác nhau.
-3. **Hỏi đang so sánh tham chiếu hay nội dung.** `==` là nhận diện tham chiếu, `equals` là so sánh nội dung.
-4. **Xác định chuỗi được tạo khi nào.** Literal/biểu thức hằng và nối runtime khác nhau về quy tắc intern.
-5. **Thêm ngoặc để nhìn rõ phép cộng.** Một toán hạng String làm thay đổi ý nghĩa `+` thành nối chuỗi.
-6. **Đọc compiler error trước khi sửa.** Ambiguous overload là lỗi chọn chữ ký, khác hoàn toàn NullPointerException.
-7. **Chạy một chương trình tối thiểu có đầu ra xác định.** Kiểm tra cả giá trị, kiểu và trường hợp lỗi; không suy luận chỉ từ tên API.
-8. **Viết test bảo vệ hành vi.** Các giá trị null, chuỗi rỗng, literal/new String, compile-time constant, số và char là những tình huống nên có ví dụ kiểm thử tương ứng.
+1. **Determine each expression's compile-time type.** With `null`, ask which overloads apply and which is most specific.
+2. **Determine whether `null` is a data value or an absent reference.** `+` concatenation, `String.valueOf`, and method calls may behave differently.
+3. **Ask whether you are comparing references or content.** `==` is reference identity; `equals` is content equality.
+4. **Determine when the string was created.** Literals/constant expressions and runtime concatenation differ in interning rules.
+5. **Add parentheses to make addition explicit.** A single `String` operand turns subsequent `+` into string concatenation.
+6. **Read the compiler error before editing.** An ambiguous overload is a signature-selection error, completely different from `NullPointerException`.
+7. **Run a minimal program with deterministic output.** Verify value, type, and error cases; do not infer solely from API names.
+8. **Write tests guarding behavior.** `null` values, empty strings, literals/`new String`, compile-time constants, numbers, and `char` should each have test cases.
 
-## 12. Ghi nhớ
+## 12. Key takeaways
 
-Bốn nhóm bẫy có chung nguyên nhân: **cùng một cách viết gần giống nhau nhưng Java áp dụng quy tắc khác theo kiểu, ngữ cảnh và thời điểm tạo giá trị**.
+All four pitfall groups share one root cause: **similar-looking syntax triggers different Java rules depending on types, context, and when values are created**.
 
-- `null` trong phép nối có thể thành chữ `"null"`; gọi phương thức trên null có thể ném `NullPointerException`.
-- Overload được xác định theo **kiểu đối số lúc biên dịch**; cast làm rõ lựa chọn nhưng không tự sửa dữ liệu null.
-- `intern()` và constant folding liên quan đến **đối tượng được chia sẻ**; để kiểm tra nội dung String, dùng `equals()`.
-- `+` vừa cộng số vừa nối chuỗi; thứ tự trái sang phải và dấu ngoặc quyết định kết quả.
+- `null` in concatenation can become `"null"`; calling a method on `null` can throw `NullPointerException`.
+- Overload resolution uses **compile-time argument types**; casting clarifies selection but does not fix `null` data.
+- `intern()` and constant folding concern **shared objects**; to compare `String` content, use `equals()`.
+- `+` performs both numeric addition and string concatenation; left-to-right order and parentheses decide the output.
 
-Cách học hiệu quả nhất là tự đoán **biên dịch được không, nếu chạy sẽ in gì và vì sao**, rồi đối chiếu với các ví dụ Java 17+ trước khi áp dụng quy tắc vào chương trình lớn.
+The most effective way to learn is predicting **whether it compiles, what it prints if it runs, and why**, then checking against Java 17+ examples before applying these rules in larger programs.

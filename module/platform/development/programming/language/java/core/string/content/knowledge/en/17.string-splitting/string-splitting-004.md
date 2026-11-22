@@ -1,27 +1,27 @@
-# Dấu phân cách ở đầu, liên tiếp và ở cuối
+# Leading, consecutive, and trailing delimiters
 
-Khi xem dấu phân cách là **ranh giới giữa các trường**, vị trí của nó quyết định có phần tử rỗng hay không. `",a,b"` có phần trống ở đầu; `"a,,b"` có phần trống ở giữa; `"a,b,"` có phần trống cuối nếu chọn giữ lại.
+When a delimiter is treated as a **boundary between fields**, its position determines whether empty elements appear. `",a,b"` has a leading empty part; `"a,,b"` has a middle empty part; `"a,b,"` has a trailing empty part if you choose to keep it.
 
-## 1. Quan sát mọi vị trí
+## 1. Observing every position
 
-| Đầu vào | `split(",")` | `split(",", -1)` |
+| Input | `split(",")` | `split(",", -1)` |
 | --- | --- | --- |
 | `",a,b"` | `["", "a", "b"]` | `["", "a", "b"]` |
 | `"a,,b"` | `["a", "", "b"]` | `["a", "", "b"]` |
 | `"a,b,,"` | `["a", "b"]` | `["a", "b", "", ""]` |
 | `",,a,,"` | `["", "", "a"]` | `["", "", "a", "", ""]` |
-| `",,"` | Mảng độ dài 0 | Ba phần `""` |
-| `""` | Một phần `""` | Một phần `""` |
+| `",,"` | Array of length 0 | Three `""` elements |
+| `""` | One `""` element | One `""` element |
 
-**Đầu chuỗi:** regex khớp đoạn có độ dài **dương** ngay tại vị trí 0 sinh phần tử rỗng trước nó. Regex có lần khớp **zero-width** ở vị trí 0 không sinh phần rỗng đầu; bài tiếp theo giải thích tường minh với lookahead/anchor.
+**Start of string:** a regex matching a **positive-length** segment at index 0 produces an empty element before it. A regex with a **zero-width** match at index 0 does not produce a leading empty element; the next lesson explains this explicitly with lookahead/anchors.
 
-**Giữa chuỗi:** mỗi dấu phẩy khớp riêng, nên hai dấu liền nhau tạo một khoảng trống `""` ở giữa. Việc xóa phần tử rỗng ở giữa có thể làm lệch cột dữ liệu.
+**Middle of string:** each comma matches individually, so two adjacent commas create an empty gap `""` between them. Removing middle empty elements can shift data columns out of alignment.
 
-**Cuối chuỗi:** mặc định `limit=0` bỏ mọi phần tử rỗng cuối; `limit=-1` giữ lại. Quy tắc rỗng **ở cuối** khác quy tắc khớp zero-width **ở đầu**.
+**End of string:** the default `limit=0` drops all trailing empty elements; `limit=-1` preserves them. The **trailing** empty rule differs from the **leading** zero-width match rule.
 
-## 2. Mỗi dấu riêng hay gộp cả cụm?
+## 2. Each delimiter individually or collapsed as a group?
 
-Để thấy sự khác nhau giữa `","` và `",+"`, lưu `SplitBoundariesDemo.java`:
+To see the difference between `","` and `",+"`, save `SplitBoundariesDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -59,26 +59,26 @@ first only n=2 ['', 'a,,b,']
 zero width n=1 ['abc']
 ```
 
-`","` xem **mỗi** dấu phẩy là một dấu phân cách; `",+"` xem **cụm dấu phẩy liền nhau** là một lần khớp. Với `",a,,b,"`, gộp cụm làm mất trường rỗng ở giữa. Chỉ dùng `+` nếu nhiều dấu liên tiếp **thực sự mang một ý nghĩa ngăn cách duy nhất**.
+`","` treats **each** comma as a delimiter; `",+"` treats a **run of consecutive commas** as one match. For `",a,,b,"`, collapsing the group loses the middle empty field. Only use `+` if multiple consecutive delimiters **truly represent a single separator**.
 
-Chẳng hạn, `"  red   green  ".split("\\s+")` xem nhiều whitespace liền nhau là một ranh giới. Vì dấu cách đầu tạo lần khớp có độ dài dương tại vị trí đầu, vẫn có thể có chuỗi rỗng đầu; `limit=0` chỉ xóa rỗng cuối. `strip()` trước khi tách phù hợp nếu nghiệp vụ cho phép loại whitespace ngoài cùng, nhưng không phù hợp với định dạng yêu cầu bảo toàn khoảng trắng.
+For example, `"  red   green  ".split("\\s+")` treats multiple consecutive whitespace characters as one boundary. Because leading spaces produce a positive-length match at the start, a leading empty string can still appear; `limit=0` only removes trailing empty strings. Calling `strip()` before splitting is appropriate if the business rules allow stripping outer whitespace, but not for formats that require preserving spaces.
 
-## 3. Khi regex xác định ranh giới khác một dấu đơn
+## 3. When the regex boundary is not a single character
 
-- `"[,;]"` khớp từng dấu phẩy hoặc chấm phẩy; `"[,;]+"` gộp cả cụm gồm hai loại.
-- `"::"` khớp chính xác hai dấu hai chấm; `":+"` khớp một hay nhiều dấu hai chấm.
-- `Pattern.quote(delimiter)` dùng khi ký tự phân cách, ví dụ `"."` hoặc `"|"`, phải được hiểu nguyên văn.
-- Với lookahead `"(?=:)"`, regex chỉ khớp **vị trí** trước dấu `:` mà không tiêu thụ ký tự. Khi ấy `:` vẫn nằm trong token; không thể áp dụng trực tiếp bảng của dấu phẩy tiêu thụ ký tự ở trên.
+- `"[,;]"` matches each comma or semicolon; `"[,;]+"` collapses runs of either character.
+- `"::"` matches exactly two colons; `":+"` matches one or more colons.
+- `Pattern.quote(delimiter)` is used when the delimiter character, such as `"."` or `"|"`, must be interpreted literally.
+- With the lookahead `"(?=:)"`, the regex only matches the **position** before `:` without consuming characters. Then `:` remains inside the token; you cannot apply the character-consuming comma table above directly.
 
-Một định dạng cột cố định thường cần từng dấu phân cách; một danh sách từ cách bởi nhiều whitespace thường cần gộp cụm. **Đặc tả dữ liệu** quyết định cách chọn regex.
+A fixed-column format usually requires each individual delimiter; a list of words separated by varying whitespace usually requires collapsing runs. **The data specification** determines the regex choice.
 
-## Tự kiểm tra
+## Self-check
 
-1. `",,x".split(",", -1)` có mấy phần rỗng ở đầu?
-2. Vì sao `"x,,y".split(",+", -1)` có ít phần hơn `split(",", -1)`?
-3. Có nên luôn `strip()` trước `split("\\s+")` không?
-4. Dùng `split(",")` rồi loại **mọi** chuỗi rỗng có mô phỏng đúng `limit=0` không?
+1. How many leading empty elements does `",,x".split(",", -1)` have?
+2. Why does `"x,,y".split(",+", -1)` have fewer parts than `split(",", -1)`?
+3. Should you always call `strip()` before `split("\\s+")`?
+4. Does calling `split(",")` and filtering out **all** empty strings accurately simulate `limit=0`?
 
-**Đáp án:** (1) Hai. (2) `,+` gộp hai dấu thành một ranh giới, không sinh trường giữa. (3) Chỉ khi whitespace ngoài cùng không là dữ liệu. (4) Không; `limit=0` chỉ loại rỗng cuối, không loại rỗng đầu/giữa.
+**Answers:** (1) Two. (2) `,+` collapses the two commas into one boundary, producing no middle field. (3) Only when outer whitespace is not data. (4) No; `limit=0` only removes trailing empty strings, not leading or middle ones.
 
-**Ghi nhớ:** Hãy xác định **mỗi delimiter có là một ranh giới độc lập** hay **nhiều delimiter hợp thành một ranh giới**.
+**Remember:** Determine whether **each delimiter is an independent boundary** or **multiple delimiters merge into a single boundary**.

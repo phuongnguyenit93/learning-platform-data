@@ -1,44 +1,44 @@
-# Bảng kích thước, miền giá trị và hằng của kiểu số trong Java
+# Reference Table of Sizes, Value Ranges, and Constants for Numeric Types in Java
 
-## 1. Phạm vi và cách dùng bảng tra cứu
+## 1. Scope and How to Use the Reference Table
 
-Trong Java, kích thước và miền giá trị của **kiểu nguyên thủy** (*primitive type*) được đặc tả bởi ngôn ngữ, không thay đổi chỉ vì chạy trên Windows/Linux, JVM 32-bit/64-bit hay phần cứng khác. Khi cần tra cứu nhanh một giới hạn, nên dùng **hằng của lớp wrapper** như `Integer.MAX_VALUE`, `Long.MIN_VALUE`, `Double.MAX_VALUE` thay vì tự nhập lại con số dài.
+In Java, the size and value range of **primitive types** (*primitive type*) are specified by the language and do not change simply because the code runs on Windows/Linux, a 32-bit/64-bit JVM, or different hardware. When you need to quickly look up a limit, you should use **wrapper class constants** such as `Integer.MAX_VALUE`, `Long.MIN_VALUE`, and `Double.MAX_VALUE` instead of manually retyping long numbers.
 
-Bài này tổng hợp:
+This lesson summarizes:
 
-- Các kiểu nguyên thủy biểu diễn giá trị số: `byte`, `short`, `int`, `long`, `float`, `double`; đồng thời giải thích `char` — kiểu tích phân không dấu 16-bit dùng cho **đơn vị mã UTF-16**.
-- Số bit, số byte, giới hạn biểu diễn, giá trị nhỏ nhất/lớn nhất và hằng tiêu chuẩn từ các lớp wrapper.
-- Khác biệt giữa số nguyên chính xác và dấu phẩy động gần đúng; các hằng `MIN_VALUE`, `MIN_NORMAL`, `MAX_EXPONENT`, `NaN`, `Infinity`.
-- Vị trí của `BigInteger` và `BigDecimal` khi không có cận min/max cố định, cùng cách xem `precision()`, `scale()` và hằng thường dùng.
-- Ví dụ Java 17+ có thể biên dịch và chạy để xác minh bảng bằng chính API thay vì ghi nhớ.
+- Primitive types representing numeric values: `byte`, `short`, `int`, `long`, `float`, `double`; as well as explaining `char` — a 16-bit unsigned integral type used for **UTF-16 code units**.
+- Bit count, byte count, representation limits, minimum/maximum values, and standard constants from the wrapper classes.
+- Differences between exact integers and approximate floating-point numbers; the constants `MIN_VALUE`, `MIN_NORMAL`, `MAX_EXPONENT`, `NaN`, and `Infinity`.
+- The role of `BigInteger` and `BigDecimal` when there are no fixed min/max bounds, along with how to inspect `precision()`, `scale()`, and commonly used constants.
+- A Java 17+ example that can be compiled and run to verify the table via the API itself rather than memorizing it.
 
-**Quy ước:** 1 byte trong các hằng `BYTES` ở đây là 8 bit. Bảng nói về **biểu diễn giá trị của kiểu**, không phải lượng RAM chiếm bởi một object wrapper, một mảng, một field trong object, hoặc một collection. Bộ nhớ thực tế còn có header, alignment, tham chiếu, cấu trúc dữ liệu và tối ưu JVM.
+**Convention:** 1 byte in the `BYTES` constants here is 8 bits. The table describes the **value representation of the type**, not the amount of RAM occupied by a wrapper object, an array, a field inside an object, or a collection. Actual memory usage also includes object headers, alignment, references, data structures, and JVM optimizations.
 
-`boolean` không phải kiểu số; Java không quy định `boolean` có kích thước lưu trữ cố định theo cách áp dụng cho các kiểu số trong bảng dưới. Vì vậy không đưa `boolean` vào bảng số. `char` không phải loại dữ liệu số thường dùng để tính tiền/đếm nhưng là kiểu tích phân và có thể tham gia phép toán số thông qua numeric promotion; do đó được nêu riêng.
+`boolean` is not a numeric type; Java does not specify a fixed storage size for `boolean` in the same way it does for the numeric types in the table below. Therefore, `boolean` is not included in the numeric table. `char` is not a numeric data type commonly used for currency or counting, but it is an integral type and can participate in arithmetic operations through numeric promotion; hence it is listed separately.
 
-## 2. Bảng kiểu nguyên và char: kích thước, miền giá trị
+## 2. Integer Types and char: Sizes and Value Ranges
 
-| Kiểu Java | Bit | Byte | Có dấu? | Miền giá trị | Hằng lấy cận |
+| Java Type | Bits | Bytes | Signed? | Value Range | Bound Constants |
 |---|---:|---:|---|---|---|
-| `byte` | 8 | 1 | Có | `-128` đến `127` | `Byte.MIN_VALUE`, `Byte.MAX_VALUE` |
-| `short` | 16 | 2 | Có | `-32768` đến `32767` | `Short.MIN_VALUE`, `Short.MAX_VALUE` |
-| `int` | 32 | 4 | Có | `-2147483648` đến `2147483647` | `Integer.MIN_VALUE`, `Integer.MAX_VALUE` |
-| `long` | 64 | 8 | Có | `-9223372036854775808` đến `9223372036854775807` | `Long.MIN_VALUE`, `Long.MAX_VALUE` |
-| `char` | 16 | 2 | Không dấu | `0` đến `65535`, tức `U+0000`–`U+FFFF` theo giá trị đơn vị mã | `Character.MIN_VALUE`, `Character.MAX_VALUE` |
+| `byte` | 8 | 1 | Yes | `-128` to `127` | `Byte.MIN_VALUE`, `Byte.MAX_VALUE` |
+| `short` | 16 | 2 | Yes | `-32768` to `32767` | `Short.MIN_VALUE`, `Short.MAX_VALUE` |
+| `int` | 32 | 4 | Yes | `-2147483648` to `2147483647` | `Integer.MIN_VALUE`, `Integer.MAX_VALUE` |
+| `long` | 64 | 8 | Yes | `-9223372036854775808` to `9223372036854775807` | `Long.MIN_VALUE`, `Long.MAX_VALUE` |
+| `char` | 16 | 2 | Unsigned | `0` to `65535`, i.e., `U+0000`–`U+FFFF` by code unit value | `Character.MIN_VALUE`, `Character.MAX_VALUE` |
 
-Đối với `byte`, `short`, `int`, `long`, số có dấu dùng **two's complement (bù hai)**. Nếu kiểu có \(n\) bit, miền là:
+For `byte`, `short`, `int`, and `long`, signed numbers use **two's complement**. If a type has \(n\) bits, its range is:
 
 \[
 -2^{n-1} \le x \le 2^{n-1}-1.
 \]
 
-Ví dụ `int` có 32 bit nên miền là \(-2^{31}\) đến \(2^{31}-1\). Số âm nhỏ nhất có trị tuyệt đối lớn hơn số dương lớn nhất đúng 1 đơn vị. Do đó `Math.abs(Integer.MIN_VALUE)` vẫn âm vì `2147483648` không thể biểu diễn bằng `int`; điều này cần chú ý khi viết kiểm tra trị tuyệt đối.
+For example, `int` has 32 bits, so its range is \(-2^{31}\) to \(2^{31}-1\). The smallest negative number has an absolute value that is exactly 1 unit greater than the largest positive number. As a result, `Math.abs(Integer.MIN_VALUE)` remains negative because `2147483648` cannot be represented as an `int`; this requires attention when writing absolute value checks.
 
-Riêng `char` là giá trị nguyên không dấu trong đoạn \(0\) đến \(2^{16}-1\). Java dùng `char` để biểu diễn **một UTF-16 code unit**, **không bảo đảm một `char` là toàn bộ một ký tự Unicode**. Những ký tự ngoài BMP dùng hai code unit (*surrogate pair*), vì vậy xử lý ký tự Unicode đầy đủ có thể cần `String.codePoints()`, `Character.codePointAt(...)` và kiểu `int` cho code point.
+As for `char`, it is an unsigned integer value in the range \(0\) to \(2^{16}-1\). Java uses `char` to represent **one UTF-16 code unit** and **does not guarantee that one `char` equals a complete Unicode character**. Characters outside the BMP use two code units (*surrogate pair*), so full Unicode character processing may require `String.codePoints()`, `Character.codePointAt(...)`, and the `int` type for code points.
 
-### Hằng kích thước tương ứng
+### Corresponding Size Constants
 
-| Kiểu | Hằng số bit | Giá trị | Hằng số byte | Giá trị |
+| Type | Bit Constant | Value | Byte Constant | Value |
 |---|---|---:|---|---:|
 | `byte` | `Byte.SIZE` | `8` | `Byte.BYTES` | `1` |
 | `short` | `Short.SIZE` | `16` | `Short.BYTES` | `2` |
@@ -46,83 +46,83 @@ Riêng `char` là giá trị nguyên không dấu trong đoạn \(0\) đến \(2
 | `long` | `Long.SIZE` | `64` | `Long.BYTES` | `8` |
 | `char` | `Character.SIZE` | `16` | `Character.BYTES` | `2` |
 
-Các trường `SIZE`, `BYTES` là hằng `static final` của lớp wrapper tương ứng. Ví dụ dùng `Integer.SIZE` thay vì nhập cứng `32` trong code kiểm tra độ rộng bit giúp làm rõ ý nghĩa, dù giá trị Java đã cố định.
+The `SIZE` and `BYTES` fields are `static final` constants on the corresponding wrapper class. For example, using `Integer.SIZE` instead of hardcoding `32` in bit-width checks clarifies intent, even though the value in Java is already fixed.
 
-### Dạng cơ số 16 để nhận diện cận và bit dấu
+### Hexadecimal Forms for Identifying Bounds and Sign Bits
 
-| Kiểu | Cận dương lớn nhất (hex) | Cận âm nhỏ nhất (hex, mẫu bù hai) |
+| Type | Largest Positive Bound (hex) | Smallest Negative Bound (hex, two's complement pattern) |
 |---|---|---|
 | `byte` | `0x7F` | `0x80` |
 | `short` | `0x7FFF` | `0x8000` |
 | `int` | `0x7FFFFFFF` | `0x80000000` |
 | `long` | `0x7FFFFFFFFFFFFFFF` | `0x8000000000000000` |
 
-Các giá trị ở cột hex âm là **mẫu bit** của cận âm, không phải phép viết số dương bằng literal hex có ý nghĩa tùy tiện. Ví dụ `Integer.MIN_VALUE` có mẫu bit 32-bit là `0x80000000`. `Character.MAX_VALUE` tương ứng `0xFFFF` và không có bit dấu.
+The values in the negative hex column are the **bit patterns** of the negative bounds, not an arbitrary way of writing positive numbers with hex literals. For instance, `Integer.MIN_VALUE` has the 32-bit pattern `0x80000000`. `Character.MAX_VALUE` corresponds to `0xFFFF` and has no sign bit.
 
-## 3. Số dấu phẩy động: float và double không có “mọi giá trị trong khoảng”
+## 3. Floating-Point Numbers: float and double Do Not Have "Every Value in the Range"
 
-Java cung cấp hai kiểu số dấu phẩy động nhị phân theo IEEE 754:
+Java provides two binary floating-point types following IEEE 754:
 
-| Thuộc tính | `float` | `double` |
+| Property | `float` | `double` |
 |---|---|---|
-| Kích thước | 32 bit = 4 byte | 64 bit = 8 byte |
-| Bit dấu | 1 | 1 |
-| Bit exponent lưu trữ | 8 | 11 |
-| Bit fraction lưu trữ | 23 | 52 |
-| Precision nhị phân hữu hiệu cho số chuẩn hóa | 24 bit | 53 bit |
-| Độ chính xác thập phân xấp xỉ | khoảng 6–9 chữ số có nghĩa cho round-trip | khoảng 15–17 chữ số có nghĩa cho round-trip |
-| Cận hữu hạn dương lớn nhất | `Float.MAX_VALUE` ≈ `3.4028235E38` | `Double.MAX_VALUE` ≈ `1.7976931348623157E308` |
-| Cận hữu hạn âm thấp nhất | `-Float.MAX_VALUE` | `-Double.MAX_VALUE` |
-| Số dương nhỏ nhất khác 0 | `Float.MIN_VALUE` = `1.4E-45` khi in với JDK 17 (JDK 19+ có thể in `1.1754944E-38`) | `Double.MIN_VALUE` = `4.9E-324` khi in mặc định |
-| Số dương **normal** nhỏ nhất | `Float.MIN_NORMAL` = `1.17549435E-38` khi in mặc định | `Double.MIN_NORMAL` = `2.2250738585072014E-308` |
-| `MIN_EXPONENT` của số normal | `-126` | `-1022` |
-| `MAX_EXPONENT` của số normal | `127` | `1023` |
+| Size | 32 bits = 4 bytes | 64 bits = 8 bytes |
+| Sign bit | 1 | 1 |
+| Stored exponent bits | 8 | 11 |
+| Stored fraction bits | 23 | 52 |
+| Effective binary precision for normal numbers | 24 bits | 53 bits |
+| Approximate decimal precision | about 6–9 significant digits for round-trip | about 15–17 significant digits for round-trip |
+| Largest finite positive bound | `Float.MAX_VALUE` ≈ `3.4028235E38` | `Double.MAX_VALUE` ≈ `1.7976931348623157E308` |
+| Lowest finite negative bound | `-Float.MAX_VALUE` | `-Double.MAX_VALUE` |
+| Smallest nonzero positive number | `Float.MIN_VALUE` = `1.4E-45` when printed with JDK 17 (JDK 19+ may print `1.1754944E-38`) | `Double.MIN_VALUE` = `4.9E-324` when printed by default |
+| Smallest **normal** positive number | `Float.MIN_NORMAL` = `1.17549435E-38` when printed by default | `Double.MIN_NORMAL` = `2.2250738585072014E-308` |
+| `MIN_EXPONENT` of normal numbers | `-126` | `-1022` |
+| `MAX_EXPONENT` of normal numbers | `127` | `1023` |
 
-Các chuỗi ở bảng là **biểu diễn thập phân ngắn mà Java in** cho những hằng dấu phẩy động, không phải khai triển thập phân chính xác đầy đủ của các số nhị phân đó. Chẳng hạn `Float.MIN_NORMAL` có giá trị toán học nhị phân chính xác là \(2^{-126}\), trong khi `Float.toString` ở JDK 17 in `1.17549435E-38`. Từ JDK 19, thay đổi thuật toán chuyển số thực thành chuỗi có thể cho dạng ngắn hơn `1.1754944E-38`; giá trị nhị phân và bit của hằng số không đổi.
+The strings in the table are the **short decimal representations that Java prints** for those floating-point constants, not the full exact decimal expansions of those binary numbers. For example, `Float.MIN_NORMAL` has the exact binary mathematical value \(2^{-126}\), whereas `Float.toString` in JDK 17 prints `1.17549435E-38`. Starting from JDK 19, changes in the float-to-string conversion algorithm may produce a shorter form `1.1754944E-38`; the binary value and bits of the constant remain unchanged.
 
-**Rất quan trọng:** khác với `Integer.MIN_VALUE`, `Float.MIN_VALUE` và `Double.MIN_VALUE` **không phải số âm nhỏ nhất**. Chúng là **số dương nhỏ nhất lớn hơn 0 và khác 0**, thuộc loại *subnormal*. Nếu cần cận dưới hữu hạn của các giá trị `float`/`double`, dùng `-Float.MAX_VALUE` và `-Double.MAX_VALUE`.
+**Very important:** unlike `Integer.MIN_VALUE`, `Float.MIN_VALUE` and `Double.MIN_VALUE` are **not the smallest negative numbers**. They are the **smallest positive numbers greater than 0 and nonzero**, belonging to the *subnormal* category. If you need the finite lower bound of `float`/`double` values, use `-Float.MAX_VALUE` and `-Double.MAX_VALUE`.
 
-Các giá trị có thể biểu diễn được bằng `float` hoặc `double` là một **tập rời rạc**, không phải tất cả số thực trong đoạn từ cận âm tới cận dương. Khoảng cách giữa hai số biểu diễn được thay đổi tùy theo độ lớn; nhiều phân số thập phân như `0.1` không được lưu chính xác dưới dạng nhị phân.
+The values representable by `float` or `double` form a **discrete set**, not every real number in the interval from the negative bound to the positive bound. The spacing between two representable numbers changes depending on magnitude; many decimal fractions such as `0.1` are not stored exactly in binary form.
 
-### Normal, subnormal và exponent
+### Normal, Subnormal, and Exponent
 
-- **Normal:** có phần significand chuẩn hóa, nhận precision hữu hiệu 24 bit (`float`) hoặc 53 bit (`double`).
-- **Subnormal:** những giá trị rất gần 0, nhỏ hơn `MIN_NORMAL` về trị tuyệt đối; dùng cách mã hóa cho phép tiến dần xuống 0 với precision tương đối thấp hơn.
-- **`MIN_EXPONENT` và `MAX_EXPONENT`:** liên quan đến exponent của **số hữu hạn normal**, không phải chỉ số mũ nhỏ/lớn nhất trong bất kỳ cách hiển thị thập phân nào. Đừng dùng chúng như ngưỡng toàn diện cho các chuỗi `E` hoặc cho subnormal.
-- **Zero:** có hai mẫu bit `+0.0` và `-0.0`, cùng so sánh bằng nhau theo toán tử primitive `==`.
-- **Infinity và NaN:** những giá trị IEEE 754 đặc biệt, không thuộc đoạn số hữu hạn.
+- **Normal:** has a normalized significand, receiving 24 bits (`float`) or 53 bits (`double`) of effective precision.
+- **Subnormal:** values very close to 0, smaller than `MIN_NORMAL` in absolute value; uses an encoding that allows gradual underflow toward 0 with lower relative precision.
+- **`MIN_EXPONENT` and `MAX_EXPONENT`:** refer to the exponent of **finite normal numbers**, not the smallest/largest exponent in any decimal display format. Do not use them as a universal threshold for `E` strings or for subnormals.
+- **Zero:** has two bit patterns `+0.0` and `-0.0`, which compare equal under the primitive `==` operator.
+- **Infinity and NaN:** special IEEE 754 values that do not belong to the finite number range.
 
-### Hằng dành cho float và double
+### Constants for float and double
 
-| Hằng `float` | Hằng `double` | Ý nghĩa |
+| `float` Constant | `double` Constant | Meaning |
 |---|---|---|
-| `Float.SIZE` | `Double.SIZE` | Số bit: 32 và 64 |
-| `Float.BYTES` | `Double.BYTES` | Số byte: 4 và 8 |
-| `Float.MIN_VALUE` | `Double.MIN_VALUE` | Số dương subnormal nhỏ nhất khác 0 |
-| `Float.MIN_NORMAL` | `Double.MIN_NORMAL` | Số dương normal nhỏ nhất |
-| `Float.MAX_VALUE` | `Double.MAX_VALUE` | Số dương hữu hạn lớn nhất |
-| `Float.MIN_EXPONENT` | `Double.MIN_EXPONENT` | Số mũ nhị phân thấp nhất của normal |
-| `Float.MAX_EXPONENT` | `Double.MAX_EXPONENT` | Số mũ nhị phân cao nhất của normal |
-| `Float.POSITIVE_INFINITY` | `Double.POSITIVE_INFINITY` | Dương vô cực |
-| `Float.NEGATIVE_INFINITY` | `Double.NEGATIVE_INFINITY` | Âm vô cực |
+| `Float.SIZE` | `Double.SIZE` | Bit count: 32 and 64 |
+| `Float.BYTES` | `Double.BYTES` | Byte count: 4 and 8 |
+| `Float.MIN_VALUE` | `Double.MIN_VALUE` | Smallest nonzero positive subnormal number |
+| `Float.MIN_NORMAL` | `Double.MIN_NORMAL` | Smallest positive normal number |
+| `Float.MAX_VALUE` | `Double.MAX_VALUE` | Largest finite positive number |
+| `Float.MIN_EXPONENT` | `Double.MIN_EXPONENT` | Lowest binary exponent of a normal number |
+| `Float.MAX_EXPONENT` | `Double.MAX_EXPONENT` | Highest binary exponent of a normal number |
+| `Float.POSITIVE_INFINITY` | `Double.POSITIVE_INFINITY` | Positive infinity |
+| `Float.NEGATIVE_INFINITY` | `Double.NEGATIVE_INFINITY` | Negative infinity |
 | `Float.NaN` | `Double.NaN` | Not-a-Number |
 
-Có thể kiểm tra giá trị đặc biệt bằng `Float.isNaN(...)`, `Double.isNaN(...)`, `Float.isInfinite(...)`, `Double.isInfinite(...)` và `isFinite(...)` tương ứng. `NaN == NaN` là `false` theo toán tử `==`; không kiểm tra NaN bằng phép so sánh bằng trực tiếp.
+You can check special values using `Float.isNaN(...)`, `Double.isNaN(...)`, `Float.isInfinite(...)`, `Double.isInfinite(...)`, and `isFinite(...)` respectively. `NaN == NaN` is `false` under the `==` operator; do not check for NaN using direct equality comparison.
 
-Ví dụ, `Double.POSITIVE_INFINITY` **khác** `Double.MAX_VALUE`: hằng thứ nhất không hữu hạn, còn hằng thứ hai là số hữu hạn dương lớn nhất.
+For example, `Double.POSITIVE_INFINITY` **differs from** `Double.MAX_VALUE`: the former is not finite, whereas the latter is the largest positive finite number.
 
-### Miền số nguyên biểu diễn chính xác trong float/double
+### Integer Range Represented Exactly in float/double
 
-- Mọi số nguyên trong đoạn từ \(-2^{24}\) tới \(2^{24}\), tức `-16_777_216` tới `16_777_216`, đều được `float` biểu diễn chính xác. Số `16_777_217` không được biểu diễn chính xác bằng `float` và có thể làm tròn về `16_777_216`.
-- Mọi số nguyên trong đoạn từ \(-2^{53}\) tới \(2^{53}\), tức `-9_007_199_254_740_992L` tới `9_007_199_254_740_992L`, đều được `double` biểu diễn chính xác. Số `9_007_199_254_740_993L` không được biểu diễn chính xác khi ép sang `double`.
+- Every integer in the range from \(-2^{24}\) to \(2^{24}\), i.e., `-16_777_216` to `16_777_216`, is represented exactly by `float`. The number `16_777_217` is not represented exactly by `float` and may round to `16_777_216`.
+- Every integer in the range from \(-2^{53}\) to \(2^{53}\), i.e., `-9_007_199_254_740_992L` to `9_007_199_254_740_992L`, is represented exactly by `double`. The number `9_007_199_254_740_993L` is not represented exactly when cast to `double`.
 
-Những ngưỡng này không có nghĩa mọi số nguyên lớn hơn ngưỡng đều không biểu diễn được: chẳng hạn một số chẵn đủ lớn vẫn có thể biểu diễn chính xác, nhưng **không còn bảo đảm mọi số nguyên liên tiếp**.
+These thresholds do not mean that every integer above the threshold is unrepresentable: for example, a sufficiently large even number can still be represented exactly, but **consecutive integers are no longer guaranteed to all be representable**.
 
-## 4. Chương trình Java 17+ kiểm tra các hằng ngay trên JVM
+## 4. Java 17+ Program to Verify Constants Directly on the JVM
 
-Để tránh tự đoán giá trị các hằng, có thể chạy chương trình tra cứu sau. Đây là một chương trình độc lập, tên file khớp với tên `public class`.
+To avoid guessing the values of constants, you can run the following lookup program. This is a standalone program whose file name matches the `public class` name.
 
-Lưu file **`NumericTypeReference.java`**:
+Save the file **`NumericTypeReference.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -190,14 +190,14 @@ public class NumericTypeReference {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac NumericTypeReference.java
 java NumericTypeReference
 ```
 
-Kết quả tham khảo với JDK 17 (một số chuỗi float/double có thể khác trên JDK 19+):
+Reference output with JDK 17 (some float/double strings may differ on JDK 19+):
 
 ```text
 byte: 8 bits, 1 bytes; -128..127
@@ -225,69 +225,69 @@ float exact-int boundary: true
 double exact-long boundary: true
 ```
 
-**Cách đọc các dòng chính:**
+**How to read the key lines:**
 
-1. `Byte.SIZE`/`Byte.BYTES` cho `8`/`1`; tương tự với các kiểu khác. Đây là đặc tả giá trị, không phụ thuộc việc JVM 64-bit.
-2. Dòng `char` ép hai hằng sang `int` để in ra **mã số** 0 và 65535; nếu in trực tiếp `Character.MIN_VALUE`/`MAX_VALUE`, chúng được diễn giải như ký tự và không cho một bảng số dễ đọc.
-3. `Float.MIN_VALUE` và `Double.MIN_VALUE` được in là **số dương nhỏ**; `MIN_NORMAL` cho ngưỡng từ normal xuống subnormal.
-4. `BigInteger.TEN.pow(40)` là \(10^{40}\), viết dạng thập phân có **41 chữ số**. Chương trình chỉ dùng số mũ nhỏ để minh họa, không khuyến khích gọi lũy thừa rất lớn mà không kiểm soát tài nguyên.
-5. Các dòng `float exact-int boundary` và `double exact-long boundary` đều là `true`: hai số nguyên gần nhau khác giá trị chính xác có thể **trở nên bằng nhau sau khi ép sang floating point**. Kết quả này không phải `float`/`double` có phép so sánh đúng hơn; nó thể hiện **mất khả năng phân biệt hai số**.
+1. `Byte.SIZE`/`Byte.BYTES` output `8`/`1`; similarly for the other types. These are specified values and do not depend on running a 64-bit JVM.
+2. The `char` line casts both constants to `int` to print the **numeric codes** 0 and 65535; if you print `Character.MIN_VALUE`/`MAX_VALUE` directly, they are interpreted as characters and do not give an easily readable numeric table.
+3. `Float.MIN_VALUE` and `Double.MIN_VALUE` are printed as **small positive numbers**; `MIN_NORMAL` gives the threshold from normal down to subnormal.
+4. `BigInteger.TEN.pow(40)` is \(10^{40}\), which in decimal form has **41 digits**. The program uses only a small exponent for demonstration and does not encourage calling very large powers without resource limits.
+5. Both `float exact-int boundary` and `double exact-long boundary` print `true`: two nearby integers with different exact values can **become equal after casting to floating point**. This result does not mean `float`/`double` have a more accurate comparison; it demonstrates **loss of the ability to distinguish two numbers**.
 
-Đây là đầu ra cố định của các hằng và phép toán được dùng. Các phương thức `Float.toString`/`Double.toString` của Java tạo biểu diễn thập phân đủ để đọc lại giá trị dấu phẩy động theo hợp đồng API; chúng không liệt kê toàn bộ chữ số thập phân của giá trị nhị phân chính xác.
+This is the fixed output of the constants and operations used. Java's `Float.toString`/`Double.toString` methods produce a decimal representation sufficient to read back the floating-point value according to the API contract; they do not list all decimal digits of the exact binary value.
 
-## 5. BigInteger và BigDecimal: không có kích thước cố định như primitive
+## 5. BigInteger and BigDecimal: No Fixed Size Like Primitives
 
-Hai lớp `java.math.BigInteger` và `java.math.BigDecimal` là **lớp tham chiếu bất biến** (*immutable reference classes*), không phải primitive. Chúng không có `SIZE`/`BYTES` mô tả số bit lưu trữ cố định tương ứng một giá trị số duy nhất, và không định nghĩa cặp `MIN_VALUE`/`MAX_VALUE` theo kiểu `Integer`.
+The two classes `java.math.BigInteger` and `java.math.BigDecimal` are **immutable reference classes**, not primitives. They do not have `SIZE`/`BYTES` describing a fixed storage bit count corresponding to a single numeric value, and they do not define a `MIN_VALUE`/`MAX_VALUE` pair like `Integer`.
 
-| Thuộc tính | `BigInteger` | `BigDecimal` |
+| Property | `BigInteger` | `BigDecimal` |
 |---|---|---|
-| Loại giá trị | Số nguyên có độ lớn tùy ý | Số thập phân có precision tùy ý |
-| Cấu trúc khái niệm | Dữ liệu nguyên nhiều bit | Unscaled integer và `scale` |
-| Kích thước bit cố định? | Không | Không, unscaled value có độ lớn tùy ý |
-| Cận min/max cố định của giá trị? | Không có hằng cận kiểu primitive | Không có hằng cận kiểu primitive |
-| Hằng hay dùng | `ZERO`, `ONE`, `TWO`, `TEN` | `ZERO`, `ONE`, `TWO`, `TEN` |
-| Thuộc tính kích thước | `bitLength()`, biểu diễn cơ số tùy chọn | `precision()`, `scale()`, `unscaledValue()` |
-| Khởi tạo an toàn cho số viết bằng thập phân | `new BigInteger("12345678901234567890")` | `new BigDecimal("123.4500")` |
+| Value kind | Arbitrary-magnitude integer | Arbitrary-precision decimal number |
+| Conceptual structure | Multi-bit integer data | Unscaled integer and `scale` |
+| Fixed bit size? | No | No, unscaled value has arbitrary magnitude |
+| Fixed min/max value bounds? | No primitive-style bound constants | No primitive-style bound constants |
+| Common constants | `ZERO`, `ONE`, `TWO`, `TEN` | `ZERO`, `ONE`, `TWO`, `TEN` |
+| Size properties | `bitLength()`, representation in chosen radix | `precision()`, `scale()`, `unscaledValue()` |
+| Safe initialization for decimal-written numbers | `new BigInteger("12345678901234567890")` | `new BigDecimal("123.4500")` |
 
-`BigInteger.TWO` và `BigDecimal.TWO` có trong Java 17+. Cả hai lớp cũng có hằng `ZERO`, `ONE` và `TEN`. Không nhầm các hằng này với giới hạn miền giá trị: chúng là những **giá trị thường dùng**, không phải cận max/min.
+`BigInteger.TWO` and `BigDecimal.TWO` are available in Java 17+. Both classes also have `ZERO`, `ONE`, and `TEN` constants. Do not confuse these constants with range limits: they are **commonly used values**, not max/min bounds.
 
 ### BigInteger
 
-`BigInteger` không bị giới hạn vào 32 hoặc 64 bit. Ví dụ:
+`BigInteger` is not restricted to 32 or 64 bits. For example:
 
 ```java
 BigInteger large = new BigInteger("9223372036854775808");
-// Lớn hơn Long.MAX_VALUE đúng 1.
+// Greater than Long.MAX_VALUE by exactly 1.
 
 BigInteger value = BigInteger.TEN.pow(40);
 System.out.println(value.toString().length()); // 41
 System.out.println(value.signum());            // 1
 ```
 
-`bitLength()` giúp hiểu độ lớn bit; `signum()` cho `-1`, `0` hoặc `1` theo dấu. Tuy nhiên, “tùy ý” không có nghĩa vô hạn: còn giới hạn bộ nhớ, CPU, độ dài mảng và cài đặt của thư viện. Trong hệ thống tiếp nhận dữ liệu bên ngoài, cần giới hạn số chữ số đầu vào và phép toán có thể phát sinh kết quả cực lớn.
+`bitLength()` helps inspect bit magnitude; `signum()` returns `-1`, `0`, or `1` according to the sign. However, "arbitrary" does not mean infinite: there are still limits from memory, CPU, array length, and library implementation. In systems accepting external data, you need to limit input digit counts and operations that can produce extremely large results.
 
 ### BigDecimal
 
-`BigDecimal` biểu diễn giá trị bằng công thức:
+`BigDecimal` represents a value using the formula:
 
 \[
 \text{value} = \text{unscaledValue} \times 10^{-\text{scale}}.
 \]
 
-Ví dụ `new BigDecimal("123.4500")` có unscaled value bằng `1234500`, `precision() == 7`, `scale() == 4`. Số 0 cuối có thể ảnh hưởng tới **scale** và biểu diễn, dù không ảnh hưởng tới giá trị toán học.
+For example, `new BigDecimal("123.4500")` has an unscaled value of `1234500`, `precision() == 7`, and `scale() == 4`. Trailing zeros can affect the **scale** and representation, even though they do not affect the mathematical value.
 
-- **Precision** là số chữ số thập phân của unscaled value (giá trị 0 có precision 1), không phải độ rộng bit cố định.
-- **Scale** là số nguyên kiểu `int` và có thể âm, bằng 0 hoặc dương. `"1E+3"` có scale `-3`; `"1.00"` có scale `2`.
-- `MathContext` có thể quy định precision kết quả và `RoundingMode`; `setScale(...)` quy định scale của kết quả. Đây là **quy tắc tính/làm tròn**, không phải hằng cận giá trị nguyên thủy.
-- `BigDecimal` có thể tính thập phân chính xác khi dữ liệu được dựng từ chuỗi và phép toán cho phép; một số phép chia cần precision/rounding policy.
+- **Precision** is the number of decimal digits in the unscaled value (the value 0 has precision 1), not a fixed bit width.
+- **Scale** is an `int` and can be negative, zero, or positive. `"1E+3"` has scale `-3`; `"1.00"` has scale `2`.
+- `MathContext` can specify result precision and `RoundingMode`; `setScale(...)` specifies the scale of the result. These are **calculation/rounding rules**, not primitive value-bound constants.
+- `BigDecimal` can compute exact decimals when data is constructed from strings and the operation permits it; some division operations require a precision/rounding policy.
 
-Nếu đầu vào là số thập phân chính xác từ người dùng hoặc tài liệu, ưu tiên `new BigDecimal("0.1")` thay vì `new BigDecimal(0.1)`. Constructor nhận `double` phản ánh giá trị nhị phân gần đúng của `0.1` được cung cấp. `BigDecimal.valueOf(0.1)` dùng biểu diễn thập phân của `Double.toString`, nhưng không khôi phục dữ liệu đã mất trong các phép `double` trước đó.
+If the input is an exact decimal number from a user or document, prefer `new BigDecimal("0.1")` instead of `new BigDecimal(0.1)`. The constructor taking `double` reflects the approximate binary value of the `0.1` supplied. `BigDecimal.valueOf(0.1)` uses the decimal representation of `Double.toString`, but does not recover data lost in earlier `double` operations.
 
-## 6. Hằng số, literal và chuyển đổi liên quan tới miền giá trị
+## 6. Constants, Literals, and Conversions Related to Value Ranges
 
-### Literal nguyên: int là mặc định, long dùng L
+### Integer Literals: int Is Default, long Uses L
 
-Trong Java, literal số nguyên thập phân không có hậu tố thường có kiểu `int` nếu giá trị biểu diễn được; thêm `L` để thể hiện literal `long`. Ví dụ:
+In Java, an unsuffixed decimal integer literal generally has type `int` if the value is representable; add `L` to denote a `long` literal. For example:
 
 ```java
 int size = 1_000_000;
@@ -295,22 +295,22 @@ long population = 9_000_000_000L;
 long max = Long.MAX_VALUE;
 ```
 
-`9_000_000_000` không hậu tố không phải literal thập phân `int` hợp lệ dù biến đích là `long`. Việc gán sau đó không biến một literal ngoài miền `int` thành hợp lệ. Có thể sử dụng dấu gạch dưới giữa các chữ số để dễ đọc.
+`9_000_000_000` without a suffix is not a valid `int` decimal literal even if the target variable is `long`. Assignment afterward does not turn an out-of-`int`-range literal into a valid one. Underscores may be used between digits for readability.
 
-### Literal floating point: double mặc định, float dùng F/f
+### Floating-Point Literals: double Is Default, float Uses F/f
 
-`3.14` là literal `double`; `3.14f` hoặc `3.14F` là literal `float`. Với `float`, việc dùng hậu tố `f` cần thiết khi muốn biểu diễn literal dấu phẩy động bằng kiểu `float`:
+`3.14` is a `double` literal; `3.14f` or `3.14F` is a `float` literal. With `float`, using the `f` suffix is required when you want to represent a floating-point literal with the `float` type:
 
 ```java
 float f = 0.1f;
 double d = 0.1;
 ```
 
-Ngay cả khi chuỗi thập phân trông giống nhau, `f` và `d` dùng lượng bit khác nhau, nên giá trị được lưu có thể khác nhau. Không giả định ép một giá trị `double` sang `float` rồi nâng lại sang `double` sẽ phục hồi precision đã mất.
+Even when the decimal strings look identical, `f` and `d` use different numbers of bits, so the stored values can differ. Do not assume that casting a `double` value to `float` and then widening back to `double` will recover the lost precision.
 
-### Chuyển kiểu hẹp và tràn số
+### Narrowing Conversions and Overflow
 
-`int` chứa mọi giá trị `byte` và `short`, nhưng phép chuyển `int → byte`/`short` có thể làm mất bit:
+`int` holds every `byte` and `short` value, but converting `int → byte`/`short` can drop bits:
 
 ```java
 int number = 130;
@@ -318,81 +318,81 @@ byte narrowed = (byte) number;
 System.out.println(narrowed); // -126
 ```
 
-Khi cần chắc chắn giá trị nằm trong miền, hãy so sánh với `Byte.MIN_VALUE` và `Byte.MAX_VALUE` **trước khi ép**. Với phép toán `int` hoặc `long` có thể tràn, dùng `Math.addExact`, `Math.subtractExact` hoặc `Math.multiplyExact` khi cần báo lỗi thay vì âm thầm wrap. Lưu ý `Math.abs(Integer.MIN_VALUE)` cũng gây bất ngờ vì trị tuyệt đối toán học của cận âm không thể chứa trong `int`.
+When you need to be sure a value is in range, compare against `Byte.MIN_VALUE` and `Byte.MAX_VALUE` **before casting**. For `int` or `long` arithmetic that can overflow, use `Math.addExact`, `Math.subtractExact`, or `Math.multiplyExact` when you need an error reported instead of silent wrap-around. Note that `Math.abs(Integer.MIN_VALUE)` can also be surprising because the mathematical absolute value of the negative bound cannot fit in an `int`.
 
-### Không có primitive unsigned int/long riêng
+### No Separate Primitive unsigned int/long
 
-Java không có primitive `unsigned int` hoặc `unsigned long` theo kiểu C/C++. Tuy nhiên, từ Java 8 có các phương thức hỗ trợ **diễn giải unsigned** của các bit `int`/`long` như `Integer.toUnsignedString(...)`, `Integer.compareUnsigned(...)`, `Long.divideUnsigned(...)`; `Byte.toUnsignedInt(...)` và `Short.toUnsignedInt(...)` giúp đọc 8/16 bit như số không dấu.
+Java has no primitive `unsigned int` or `unsigned long` like C/C++. However, since Java 8 there have been methods supporting **unsigned interpretation** of `int`/`long` bits such as `Integer.toUnsignedString(...)`, `Integer.compareUnsigned(...)`, and `Long.divideUnsigned(...)`; `Byte.toUnsignedInt(...)` and `Short.toUnsignedInt(...)` help read 8/16 bits as unsigned numbers.
 
-Điều đó **không làm mở rộng miền lưu trữ** của `int`/`long`: các biến vẫn có mẫu bit và cách hiển thị signed của kiểu tương ứng, còn một số phép toán/helper diễn giải mẫu bit theo quy ước unsigned.
+This **does not expand the storage range** of `int`/`long`: variables still retain the bit patterns and signed display behavior of their respective types, while certain operations/helpers interpret those bit patterns under unsigned conventions.
 
-## 7. Khi nào chọn kiểu nào?
+## 7. When to Choose Which Type?
 
-| Tình huống | Lựa chọn thường hợp lý | Điểm cần kiểm tra |
+| Scenario | Typically Appropriate Choice | Things to Check |
 |---|---|---|
-| Bộ đếm, chỉ số mảng, số nguyên trong miền 32-bit | `int` | Tràn, miền âm/dương, thao tác đồng thời |
-| Số nguyên vượt miền `int` nhưng trong 64-bit | `long` | Literal `L`, tràn và chuyển `long → double` |
-| Giao thức tệp/đệm có trường 8 hoặc 16 bit | `byte`, `short` | Signed interpretation, masking, endian ở cấp byte |
-| UTF-16 code unit | `char` | Không đồng nhất với Unicode code point |
-| Mô phỏng/số thực cần tiết kiệm bộ nhớ và chấp nhận precision thấp | `float` | Sai số và nhu cầu độ chính xác |
-| Phép tính số thực phổ biến với precision nhị phân cao hơn | `double` | Làm tròn, NaN, infinity, phép so sánh gần bằng |
-| Số nguyên vượt miền `long` | `BigInteger` | CPU, RAM, số chữ số, phép toán sinh kết quả lớn |
-| Tiền/số thập phân chính xác có quy tắc làm tròn rõ | `BigDecimal` | Scale, precision, rounding mode, nguồn tạo số |
+| Counters, array indices, integers within 32-bit range | `int` | Overflow, positive/negative range, concurrent operations |
+| Integers exceeding `int` range but within 64-bit | `long` | `L` literals, overflow, and `long → double` conversion |
+| File/buffer protocols with 8- or 16-bit fields | `byte`, `short` | Signed interpretation, masking, byte-level endianness |
+| UTF-16 code units | `char` | Not identical to Unicode code point |
+| Simulations/reals needing memory savings and tolerating low precision | `float` | Rounding error and accuracy needs |
+| General floating-point math with higher binary precision | `double` | Rounding, NaN, infinity, approximate equality comparisons |
+| Integers exceeding `long` range | `BigInteger` | CPU, RAM, digit count, operations producing huge results |
+| Money/exact decimals with clear rounding rules | `BigDecimal` | Scale, precision, rounding mode, construction source |
 
-`byte` hoặc `short` không tự làm mọi phép toán nhanh hơn `int`; các phép toán số học với `byte`/`short` thường được nâng lên `int`. Chọn kiểu theo hợp đồng dữ liệu và yêu cầu lưu trữ, không chỉ theo mong muốn “giảm số bit”.
+`byte` or `short` does not automatically make all operations faster than `int`; arithmetic operations on `byte`/`short` are typically promoted to `int`. Choose types based on the data contract and storage requirements, not solely on a desire to "reduce bit count".
 
-Với tiền tệ, `BigDecimal` hoặc một số nguyên `long` đại diện đơn vị nhỏ nhất có thể phù hợp tùy nghiệp vụ. Chỉ dùng `double` nếu ứng dụng **chấp nhận rõ** sai số binary floating point và có quy tắc làm tròn/so sánh thích hợp.
+For currency, `BigDecimal` or an integer `long` representing the smallest unit can be appropriate depending on domain requirements. Only use `double` if the application **explicitly accepts** binary floating-point error and has suitable rounding/comparison rules.
 
-## 8. Các nhầm lẫn thường gặp khi tra bảng
+## 8. Common Confusions When Reading Reference Tables
 
-### Nhầm Float.MIN_VALUE là số âm thấp nhất
+### Confusing Float.MIN_VALUE with the Lowest Negative Number
 
-`Float.MIN_VALUE` là khoảng `1.4E-45`, **dương và rất gần 0**. Nếu muốn số hữu hạn âm có độ lớn lớn nhất, dùng `-Float.MAX_VALUE`. Tương tự với `Double.MIN_VALUE` và `-Double.MAX_VALUE`.
+`Float.MIN_VALUE` is about `1.4E-45`, **positive and very close to 0**. If you want the finite negative number with the largest magnitude, use `-Float.MAX_VALUE`. The same applies to `Double.MIN_VALUE` and `-Double.MAX_VALUE`.
 
-### Nhầm kích thước kiểu với kích thước object
+### Confusing Type Size with Object Size
 
-`Integer.SIZE == 32` và `Integer.BYTES == 4` không chứng minh một đối tượng `new Integer(...)` hay `Integer` boxing chiếm đúng 4 byte RAM. Một object có header và chi phí quản lý; mảng, tham chiếu, alignment và JVM còn tạo overhead. Ngoài ra, việc tạo wrapper bằng constructor đã không được khuyến nghị; dùng autoboxing hoặc `Integer.valueOf` khi cần wrapper.
+`Integer.SIZE == 32` and `Integer.BYTES == 4` do not prove that a `new Integer(...)` or boxed `Integer` object occupies exactly 4 bytes of RAM. An object has a header and management overhead; arrays, references, alignment, and the JVM add further overhead. Moreover, creating wrappers via constructors is deprecated; use autoboxing or `Integer.valueOf` when a wrapper is needed.
 
-### Nhầm char là ký tự Unicode đầy đủ
+### Confusing char with a Full Unicode Character
 
-`char` có 16 bit, nhưng một Unicode code point ngoài BMP cần hai UTF-16 code unit. Với chuỗi có emoji hoặc ký tự bổ sung, `String.length()` đếm code unit, không nhất thiết bằng số Unicode code point hoặc số ký tự người dùng cảm nhận.
+`char` has 16 bits, but a Unicode code point outside the BMP requires two UTF-16 code units. For strings containing emojis or supplementary characters, `String.length()` counts code units, which does not necessarily equal the number of Unicode code points or user-perceived characters.
 
-### Nhầm Float.MIN_EXPONENT với exponent thập phân nhỏ nhất
+### Confusing Float.MIN_EXPONENT with the Smallest Decimal Exponent
 
-`MIN_EXPONENT` và `MAX_EXPONENT` nêu phạm vi exponent **nhị phân của normal**, không phải số mũ `E` trong `toString()`. Mẫu subnormal còn có số dương nhỏ hơn `MIN_NORMAL`, và ký pháp scientific của số thập phân là chuyện trình bày khác.
+`MIN_EXPONENT` and `MAX_EXPONENT` state the **binary exponent range of normal numbers**, not the `E` exponent in `toString()`. Subnormal representations also contain positive numbers smaller than `MIN_NORMAL`, and decimal scientific notation is a separate formatting matter.
 
-### Nhầm miền hữu hạn với độ chính xác thập phân
+### Confusing Finite Range with Decimal Precision
 
-`Double.MAX_VALUE` rất lớn nhưng không có nghĩa `double` biểu diễn chính xác mọi số từ 0 đến giới hạn ấy. Giá trị dấu phẩy động là tập rời rạc. Khi độ lớn tăng, khoảng cách giữa các giá trị liên tiếp có thể vượt 1; đó là lý do nhiều số nguyên lớn gần nhau ép sang `double` có cùng kết quả.
+`Double.MAX_VALUE` is huge, but that does not mean `double` represents every number from 0 up to that limit exactly. Floating-point values form a discrete set. As magnitude increases, the gap between consecutive values can exceed 1; that is why many nearby large integers yield the same result when cast to `double`.
 
-### Nhầm BigDecimal không giới hạn gì
+### Confusing BigDecimal with Having No Limits at All
 
-`BigDecimal` có unscaled value độ lớn tùy ý, nhưng scale vẫn có kiểu `int`; dữ liệu và phép toán phải phù hợp RAM/CPU và quy tắc của API. `MathContext` quy định precision kết quả, không biến các phép tính với đầu vào khổng lồ thành an toàn tài nguyên.
+`BigDecimal` has an unscaled value of arbitrary magnitude, but `scale` still has type `int`; data and operations must fit within RAM/CPU and API rules. `MathContext` specifies result precision; it does not make operations with gigantic inputs resource-safe.
 
-### Nhầm nguyên tắc “chỉ cần cast kết quả”
+### Confusing the "Just Cast the Result" Rule
 
-Nếu hai toán hạng `int` thực hiện phép nhân bị tràn trước khi gán vào `long`, viết `long answer = (long)(a*b)` không khôi phục giá trị đúng. Cần đưa `long` **vào trước phép nhân**, chẳng hạn `(long)a * b`. Tương tự, `double ratio = 5 / 2` vẫn nhận `2.0`; dùng `5 / 2.0` nếu muốn `2.5`.
+If two `int` operands multiply and overflow before being assigned to a `long`, writing `long answer = (long)(a*b)` does not recover the correct value. You must introduce `long` **before the multiplication**, such as `(long)a * b`. Similarly, `double ratio = 5 / 2` still receives `2.0`; use `5 / 2.0` if you want `2.5`.
 
-## 9. Checklist tra cứu nhanh và tự kiểm tra
+## 9. Quick Reference Checklist and Self-Check
 
-Khi cần kiểm tra một giá trị số trong code:
+When you need to check a numeric value in code:
 
-1. Xác định đúng kiểu **biểu thức đang tính**, không chỉ kiểu biến đích.
-2. Với `byte`/`short`/`int`/`long`, lấy hằng `MIN_VALUE`, `MAX_VALUE`, `SIZE`, `BYTES` từ wrapper tương ứng.
-3. Với `float`/`double`, phân biệt **miền hữu hạn**, **precision nhị phân**, **subnormal**, `NaN` và infinity.
-4. Với `char`, phân biệt UTF-16 code unit với Unicode code point và chỉ ép sang `int` khi muốn in mã số.
-5. Với `BigInteger`/`BigDecimal`, xác định giới hạn nghiệp vụ và tài nguyên; dùng `bitLength()`, `precision()`, `scale()` theo từng loại thay vì hỏi `SIZE` cố định.
-6. Trước khi thu hẹp kiểu hoặc nhân/chia số nguyên, xác định có mất thông tin hoặc tràn hay không.
-7. Viết một test ranh giới: giá trị đúng `MAX_VALUE`, đúng `MIN_VALUE`, sát 0, số ngay ngoài miền (nếu có), và các trường hợp floating point gần ranh giới precision.
+1. Identify the exact type of the **expression being evaluated**, not just the destination variable type.
+2. For `byte`/`short`/`int`/`long`, get `MIN_VALUE`, `MAX_VALUE`, `SIZE`, and `BYTES` constants from the corresponding wrapper.
+3. For `float`/`double`, distinguish **finite range**, **binary precision**, **subnormal**, `NaN`, and infinity.
+4. For `char`, distinguish UTF-16 code unit from Unicode code point and cast to `int` only when you want to print the numeric code.
+5. For `BigInteger`/`BigDecimal`, define business and resource limits; use `bitLength()`, `precision()`, and `scale()` as appropriate instead of asking for a fixed `SIZE`.
+6. Before narrowing a type or multiplying/dividing integers, check whether data loss or overflow can occur.
+7. Write boundary tests: values equal to `MAX_VALUE`, equal to `MIN_VALUE`, near 0, just outside the range (if applicable), and floating-point cases near precision boundaries.
 
-**Tự kiểm tra 1:** Vì sao `Float.MIN_VALUE` là số dương nhưng `Integer.MIN_VALUE` là số âm? Vì hai hằng có nghĩa khác: với `Integer` là cận âm của số nguyên có dấu, còn với `Float` là giá trị dương khác 0 nhỏ nhất biểu diễn được của IEEE 754.
+**Self-Check 1:** Why is `Float.MIN_VALUE` positive while `Integer.MIN_VALUE` is negative? Because the two constants have different meanings: for `Integer`, it is the negative bound of a signed integer, whereas for `Float`, it is the smallest nonzero positive representable value in IEEE 754.
 
-**Tự kiểm tra 2:** `char` có thể chứa số `65535` không, và điều đó có nghĩa nó chứa mọi ký tự Unicode không? Có thể chứa giá trị code unit `65535`; **không**, code point Unicode có thể nằm ngoài BMP và phải biểu diễn bằng một cặp surrogate trong UTF-16.
+**Self-Check 2:** Can `char` hold the number `65535`, and does that mean it holds every Unicode character? It can hold the code unit value `65535`; **no**, a Unicode code point can lie outside the BMP and must be represented by a surrogate pair in UTF-16.
 
-**Tự kiểm tra 3:** `long` có biểu diễn được mọi số nguyên từ `0` đến `9_007_199_254_740_993` không? **Có**, vì tất cả đều nằm trong miền `long`. Nhưng `double` **không thể biểu diễn chính xác mọi số nguyên** trong khoảng đó: `2^53 + 1` đã là một ví dụ mất thông tin khi ép.
+**Self-Check 3:** Can `long` represent every integer from `0` to `9_007_199_254_740_993`? **Yes**, because all of them are within the `long` range. However, `double` **cannot represent every integer exactly** in that interval: `2^53 + 1` is already an example that loses information when cast.
 
-**Tự kiểm tra 4:** `BigInteger` có `MAX_VALUE` giống `Long.MAX_VALUE` không? **Không**. `BigInteger` không có một cận số học cố định ở 64 bit; giới hạn thực tế nằm ở tài nguyên và triển khai. Hằng `BigInteger.TEN` chỉ là số 10.
+**Self-Check 4:** Does `BigInteger` have a `MAX_VALUE` like `Long.MAX_VALUE`? **No**. `BigInteger` has no fixed arithmetic bound at 64 bits; the practical limit lies in resources and implementation. The constant `BigInteger.TEN` is simply the number 10.
 
-**Tự kiểm tra 5:** Một `BigDecimal("123.4500")` có `precision = 7`, `scale = 4` có chiếm “7 byte” không? **Không**. Precision là số chữ số thập phân có nghĩa của unscaled value, không phải kích thước lưu trữ byte.
+**Self-Check 5:** Does a `BigDecimal("123.4500")` with `precision = 7` and `scale = 4` occupy "7 bytes"? **No**. Precision is the number of significant decimal digits of the unscaled value, not byte storage size.
 
-**Ghi nhớ:** `byte/short/int/long` có miền số nguyên signed cố định; `char` là code unit 16-bit không dấu; `float/double` có miền hữu hạn, precision nhị phân hữu hạn và các giá trị đặc biệt; `BigInteger/BigDecimal` có độ lớn/precision linh hoạt nhưng không miễn giới hạn tài nguyên. Luôn tra hằng theo **kiểu và ý nghĩa cụ thể**, đặc biệt lưu ý `Float.MIN_VALUE`/`Double.MIN_VALUE` không giống cách hiểu `MIN_VALUE` của số nguyên.
+**Takeaway:** `byte/short/int/long` have fixed signed integer ranges; `char` is an unsigned 16-bit code unit; `float/double` have finite bounds, limited binary precision, and special values; `BigInteger/BigDecimal` have flexible magnitude/precision but are not exempt from resource limits. Always look up constants by **specific type and meaning**, especially noting that `Float.MIN_VALUE`/`Double.MIN_VALUE` differ from how `MIN_VALUE` is understood for integers.

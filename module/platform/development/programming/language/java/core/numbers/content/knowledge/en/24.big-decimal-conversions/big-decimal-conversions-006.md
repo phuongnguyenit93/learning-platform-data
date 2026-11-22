@@ -1,45 +1,45 @@
-# `toBigInteger()` khác `toBigIntegerExact()`: chuyển `BigDecimal` sang số nguyên chính xác
+# `toBigInteger()` vs. `toBigIntegerExact()`: Converting `BigDecimal` to Exact Integers
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-`BigDecimal` biểu diễn các giá trị thập phân có độ chính xác tùy ý; `BigInteger` biểu diễn số nguyên có độ lớn tùy ý. Khi chuyển từ `BigDecimal` sang `BigInteger`, Java cung cấp hai lựa chọn có **hợp đồng khác nhau**:
+`BigDecimal` represents decimal values with arbitrary precision; `BigInteger` represents integers of arbitrary magnitude. When converting from `BigDecimal` to `BigInteger`, Java provides two options with **different contracts**:
 
-- `toBigInteger()`: **loại bỏ phần lẻ** của giá trị thập phân, đi về **0**, rồi trả về `BigInteger`. Phép chuyển đổi này có thể mất dữ liệu mà không báo lỗi.
-- `toBigIntegerExact()`: chỉ chuyển đổi nếu giá trị có thể biểu diễn **chính xác bằng số nguyên**. Nếu có phần lẻ khác 0, ném `ArithmeticException`.
+- `toBigInteger()`: **discards the fractional part** of the decimal value, moving toward **0**, and returns a `BigInteger`. This conversion can lose data without reporting an error.
+- `toBigIntegerExact()`: converts only if the value can be represented **exactly as an integer**. If there is a non-zero fractional part, it throws `ArithmeticException`.
 
-Đây là khác biệt về **chính sách xử lý dữ liệu**, không phải chỉ khác tên phương thức. Sau bài học, bạn có thể dự đoán kết quả với số dương/âm, phần lẻ, các số 0 cuối, scientific notation; viết kiểm tra đầu vào đúng yêu cầu nghiệp vụ; và tránh nhầm lẫn với `intValue()`, `intValueExact()`, `RoundingMode` hoặc `Math.floor`.
+This is a difference in **data-handling policy**, not merely a difference in method names. After this lesson, you will be able to predict results for positive/negative numbers, fractional parts, trailing zeros, and scientific notation; write input validation matching business requirements; and avoid confusion with `intValue()`, `intValueExact()`, `RoundingMode`, or `Math.floor`.
 
-## 2. Hai phương thức trả về cùng kiểu, nhưng khác cách xử lý phần lẻ
+## 2. Two Methods Returning the Same Type, Yet Handling Fractional Parts Differently
 
-Trong `java.math.BigDecimal` có các phương thức:
+In `java.math.BigDecimal`, there are the methods:
 
 ```java
 public BigInteger toBigInteger();
 public BigInteger toBigIntegerExact();
 ```
 
-Cả hai trả về `java.math.BigInteger` có **độ lớn số nguyên tùy ý**, thay vì giới hạn ở 32 bit (`int`) hay 64 bit (`long`). Nhưng hãy chú ý đến phần lẻ:
+Both return a `java.math.BigInteger` of **arbitrary integer magnitude**, rather than being capped at 32 bits (`int`) or 64 bits (`long`). But pay attention to the fractional part:
 
-| `BigDecimal` đầu vào | `toBigInteger()` | `toBigIntegerExact()` | Lý do |
+| Input `BigDecimal` | `toBigInteger()` | `toBigIntegerExact()` | Reason |
 |---|---:|---:|---|
-| `12` | `12` | `12` | Vốn là số nguyên |
-| `12.00` | `12` | `12` | Phần thập phân chỉ gồm 0 |
-| `12.99` | `12` | **Ném `ArithmeticException`** | Có phần lẻ khác 0 |
-| `-12.99` | `-12` | **Ném `ArithmeticException`** | Có phần lẻ khác 0 |
-| `-0.75` | `0` | **Ném `ArithmeticException`** | Cắt phần lẻ về 0 |
-| `0.000` | `0` | `0` | Giá trị số học bằng 0 |
-| `1E+3` | `1000` | `1000` | Chính xác là một số nguyên |
-| `1E-3` | `0` | **Ném `ArithmeticException`** | Chính xác là 0.001 |
+| `12` | `12` | `12` | Already an integer |
+| `12.00` | `12` | `12` | Fractional part consists only of 0s |
+| `12.99` | `12` | **Throws `ArithmeticException`** | Has non-zero fractional part |
+| `-12.99` | `-12` | **Throws `ArithmeticException`** | Has non-zero fractional part |
+| `-0.75` | `0` | **Throws `ArithmeticException`** | Truncates fractional part toward 0 |
+| `0.000` | `0` | `0` | Numeric value equals 0 |
+| `1E+3` | `1000` | `1000` | Exactly an integer |
+| `1E-3` | `0` | **Throws `ArithmeticException`** | Exactly 0.001 |
 
-**Điểm cốt lõi:** `Exact` có nghĩa “không làm mất phần thập phân có nghĩa”. Nó **không đòi hỏi scale của `BigDecimal` phải bằng 0**: `12.00` có scale 2 nhưng vẫn là giá trị nguyên 12 và chuyển đổi chính xác được.
+**Key point:** `Exact` means "without losing a significant fractional part." It **does not require `BigDecimal`'s scale to be 0**: `12.00` has scale 2 yet is still the integer value 12 and converts accurately.
 
-## 3. Cơ chế: bỏ phần lẻ theo hướng 0 hay bảo toàn giá trị
+## 3. Mechanism: Truncating Toward 0 vs. Preserving Value
 
-### 3.1. `toBigInteger()` cắt về 0
+### 3.1. `toBigInteger()` Truncates Toward 0
 
-Xét biểu thức `new BigDecimal("12.99").toBigInteger()`: kết quả là `12`. Phần `.99` biến mất; không có phép làm tròn đến số nguyên gần nhất.
+Consider the expression `new BigDecimal("12.99").toBigInteger()`: the result is `12`. The `.99` part disappears; there is no rounding to the nearest integer.
 
-Với giá trị âm, kết quả là `-12`, **không phải `-13`**:
+For negative values, the result is `-12`, **not `-13`**:
 
 ```text
 -13 ----- -12.99 ----- -12 ----- 0 ----- 12 ----- 12.99 ----- 13
@@ -47,19 +47,19 @@ Với giá trị âm, kết quả là `-12`, **không phải `-13`**:
              toBigInteger(-12.99)       toBigInteger(12.99)
 ```
 
-Đi về 0 khác với đi về âm vô cực:
+Moving toward 0 differs from moving toward negative infinity:
 
-- `toBigInteger(-12.99)` = `-12`: bỏ phần lẻ, hướng về 0.
-- `Math.floor(-12.99)` = `-13.0`: lấy số nguyên theo hướng −∞.
-- `Math.ceil(-12.99)` = `-12.0`: lấy số nguyên theo hướng +∞.
+- `toBigInteger(-12.99)` = `-12`: discards fractional part, toward 0.
+- `Math.floor(-12.99)` = `-13.0`: takes integer toward −∞.
+- `Math.ceil(-12.99)` = `-12.0`: takes integer toward +∞.
 
-Mặc dù `toBigInteger()` và `Math.ceil()` cho cùng phần nguyên ở ví dụ số âm này, chúng **không phải hai phép toán tương đương** cho cả số dương và số âm.
+Although `toBigInteger()` and `Math.ceil()` give the same integer part in this negative-number example, they are **not equivalent operations** across both positive and negative numbers.
 
-Theo nghĩa số học, với `x` dương: `toBigInteger(x)` tương ứng `floor(x)`; với `x` âm: nó tương ứng `ceil(x)`; với `x` nguyên: giữ nguyên. Nếu muốn biểu đạt trực tiếp việc bỏ phần thập phân bằng một `RoundingMode`, tên tương ứng là `RoundingMode.DOWN` (hướng về 0), không phải `RoundingMode.FLOOR`.
+Arithmetically, for positive `x`: `toBigInteger(x)` corresponds to `floor(x)`; for negative `x`: it corresponds to `ceil(x)`; for integer `x`: it keeps it unchanged. If you want to express discarding the fractional part directly via a `RoundingMode`, the corresponding name is `RoundingMode.DOWN` (toward 0), not `RoundingMode.FLOOR`.
 
-### 3.2. `toBigIntegerExact()` không chấp nhận mất phần lẻ
+### 3.2. `toBigIntegerExact()` Rejects Fractional Data Loss
 
-`toBigIntegerExact()` chỉ trả về nếu chuyển đổi giữ nguyên **giá trị số học**. Ví dụ:
+`toBigIntegerExact()` returns only if the conversion preserves the **numeric value**. Examples:
 
 ```java
 new BigDecimal("42.000").toBigIntegerExact(); // BigInteger 42
@@ -67,13 +67,13 @@ new BigDecimal("-42.000").toBigIntegerExact(); // BigInteger -42
 new BigDecimal("42.001").toBigIntegerExact(); // ArithmeticException
 ```
 
-Hai số `42.000` và `-42.000` đều có scale 3 nhưng có phần thập phân bằng 0. Vì vậy, **không được kiểm tra `scale() == 0` làm điều kiện duy nhất** để quyết định có chuyển đổi chính xác được không.
+Both `42.000` and `-42.000` have scale 3, yet their fractional parts equal 0. Therefore, **do not check `scale() == 0` as the sole condition** to decide whether an exact conversion is possible.
 
-Nếu có phần lẻ khác 0, Java ném `ArithmeticException` để lập trình viên có cơ hội xử lý trường hợp đầu vào không đáp ứng hợp đồng. Nếu ứng dụng cần chấp nhận số thập phân và cố ý làm tròn, phải lựa chọn chính sách làm tròn riêng; không nên dùng `toBigInteger()` như một bước làm tròn ngầm.
+If there is a non-zero fractional part, Java throws `ArithmeticException` so the programmer has the opportunity to handle input that violates the contract. If the application needs to accept decimals and intentionally round them, you must choose a separate rounding policy; do not use `toBigInteger()` as an implicit rounding step.
 
-## 4. Chương trình Java hoàn chỉnh: kết quả từng trường hợp
+## 4. Complete Java Program: Results for Each Case
 
-**Tệp `BigDecimalToBigIntegerDemo.java`** (Java 17+):
+**File `BigDecimalToBigIntegerDemo.java`** (Java 17+):
 
 ```java
 import java.math.BigDecimal;
@@ -107,14 +107,14 @@ public class BigDecimalToBigIntegerDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac BigDecimalToBigIntegerDemo.java
 java BigDecimalToBigIntegerDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 input=12.99, trunc=12, exact=ArithmeticException
@@ -125,38 +125,38 @@ input=1000, trunc=1000, exact=1000
 input=0.001, trunc=0, exact=ArithmeticException
 ```
 
-Các dòng này cho thấy ba điều:
+These lines show three things:
 
-1. `toBigInteger()` **luôn cung cấp phần nguyên** của các giá trị bình thường trên; nó không cảnh báo việc mất `.99` hoặc `.001`.
-2. `toBigIntegerExact()` thất bại **chỉ khi giá trị không nguyên** (hoặc không thể chuyển đổi chính xác vì giới hạn tài nguyên trong những trường hợp cực đoan), chứ không đơn thuần khi chuỗi chứa dấu chấm thập phân.
-3. `toPlainString()` được dùng để hiển thị `1E+3` thành `1000`, `1E-3` thành `0.001`. Hai phương thức chuyển sang `BigInteger` luôn xuất ra số nguyên và không mang scale của đầu vào.
+1. `toBigInteger()` **always supplies an integer part** for the normal values above; it does not warn about losing `.99` or `.001`.
+2. `toBigIntegerExact()` fails **only when the value is non-integer** (or cannot be converted accurately due to resource limits in extreme cases), not simply when the string contains a decimal point.
+3. `toPlainString()` is used to display `1E+3` as `1000` and `1E-3` as `0.001`. Both `BigInteger` conversion methods always output an integer and do not carry over the input's scale.
 
-## 5. `Scale`, zero cuối và ký pháp khoa học có ảnh hưởng thế nào?
+## 5. How Do `Scale`, Trailing Zeros, and Scientific Notation Affect This?
 
-Một `BigDecimal` được mô tả bằng **unscaled value** và **scale**:
+A `BigDecimal` is described by an **unscaled value** and a **scale**:
 
 ```text
-giá trị = unscaledValue × 10^(-scale)
+value = unscaledValue × 10^(-scale)
 
 "12.000" => unscaledValue = 12000, scale = 3
 "1E+3"  => unscaledValue = 1,     scale = -3
 "1E-3"  => unscaledValue = 1,     scale = 3
 ```
 
-Bài toán `toBigIntegerExact()` là xác định **giá trị số học cuối cùng có phải số nguyên hay không**, không phải tìm xem `scale` dương, âm hoặc bằng 0.
+The task of `toBigIntegerExact()` is to determine **whether the final numeric value is an integer**, not to inspect whether `scale` is positive, negative, or zero.
 
-- Scale dương **vẫn có thể** chuyển chính xác nếu tất cả chữ số của phần lẻ đều là 0, ví dụ `12.000`.
-- Scale bằng 0 là số nguyên đã biểu diễn trực tiếp, ví dụ `12`.
-- Scale âm làm giá trị là bội số của một lũy thừa của 10, ví dụ `1E+3 = 1000`; nó vẫn nguyên.
-- Scale dương với phần lẻ khác 0 sẽ làm `toBigIntegerExact()` thất bại, ví dụ `1E-3 = 0.001`.
+- A positive scale **can still** convert exactly if all digits of the fractional part are 0, e.g. `12.000`.
+- A zero scale is an integer already represented directly, e.g. `12`.
+- A negative scale makes the value a multiple of a power of 10, e.g. `1E+3 = 1000`; it is still an integer.
+- A positive scale with a non-zero fractional part causes `toBigIntegerExact()` to fail, e.g. `1E-3 = 0.001`.
 
-**Không cần gọi `stripTrailingZeros()` trước `toBigIntegerExact()`.** Phương thức exact tự đánh giá tính nguyên của giá trị. Gọi `stripTrailingZeros()` có thể thay đổi scale và chuỗi hiển thị, nên chỉ dùng nếu nghiệp vụ thực sự cần chuẩn hóa biểu diễn.
+**There is no need to call `stripTrailingZeros()` before `toBigIntegerExact()`.** The exact method evaluates the integrality of the value itself. Calling `stripTrailingZeros()` can change the scale and display string, so use it only if business logic genuinely requires normalizing the representation.
 
-Ví dụ `2.0` và `2.00` từ chuỗi có scale lần lượt 1 và 2. Cả hai chuyển sang cùng số nguyên `2` qua `toBigIntegerExact()` mà không mất **giá trị số học**. Tuy nhiên, kết quả `BigInteger` không còn nhớ đầu vào có một hay hai chữ số thập phân. “Exact” ở đây là exact về **giá trị**, không phải “giữ nguyên định dạng”.
+For example, `2.0` and `2.00` from strings have scales 1 and 2 respectively. Both convert to the same integer `2` via `toBigIntegerExact()` without losing **numeric value**. However, the resulting `BigInteger` no longer remembers whether the input had one or two decimal places. "Exact" here means exact in **value**, not "format-preserving."
 
-## 6. `toBigInteger` khác cách làm tròn `setScale`
+## 6. How `toBigInteger` Differs from `setScale` Rounding
 
-Nếu muốn làm tròn trước khi chuyển sang số nguyên, phải viết quy tắc rõ ràng:
+If you want to round before converting to an integer, write the rule explicitly:
 
 ```java
 import java.math.BigDecimal;
@@ -171,46 +171,46 @@ System.out.println(x.setScale(0, RoundingMode.CEILING)); // -12
 System.out.println(x.setScale(0, RoundingMode.HALF_UP)); // -13
 ```
 
-Đoạn mã này là ví dụ minh họa bên trong một phương thức có thể chạy (cần đặt imports ở đầu tệp). Với `x = -12.99`:
+This snippet is an illustrative example inside a runnable method (imports must be placed at the top of the file). With `x = -12.99`:
 
-| Cách xử lý | Kết quả | Quy tắc |
+| Approach | Result | Rule |
 |---|---:|---|
-| `x.toBigInteger()` | `-12` | Cắt về 0, bỏ phần lẻ |
-| `x.setScale(0, DOWN)` | `-12` | Làm tròn về 0 |
-| `x.setScale(0, FLOOR)` | `-13` | Làm tròn về −∞ |
-| `x.setScale(0, CEILING)` | `-12` | Làm tròn về +∞ |
-| `x.setScale(0, HALF_UP)` | `-13` | Làm tròn tới gần nhất, quy tắc HALF_UP khi cách đều |
+| `x.toBigInteger()` | `-12` | Truncates toward 0, drops fraction |
+| `x.setScale(0, DOWN)` | `-12` | Rounds toward 0 |
+| `x.setScale(0, FLOOR)` | `-13` | Rounds toward −∞ |
+| `x.setScale(0, CEILING)` | `-12` | Rounds toward +∞ |
+| `x.setScale(0, HALF_UP)` | `-13` | Rounds to nearest, HALF_UP rule on ties |
 
-Khi đã làm tròn bằng `setScale(0, mode)`, có thể gọi `toBigIntegerExact()` ở bước cuối: giá trị đã có scale 0, nên bước chuyển không tiếp tục bỏ phần lẻ. Ví dụ:
+Once rounded with `setScale(0, mode)`, you can call `toBigIntegerExact()` at the final step: the value already has scale 0, so the conversion step drops no further fractional digits. Example:
 
 ```java
 BigInteger rounded = x.setScale(0, RoundingMode.FLOOR)
                       .toBigIntegerExact(); // -13
 ```
 
-Ở đây việc làm tròn là **có chủ đích** và được biểu đạt rõ trong mã. Ngược lại, `toBigIntegerExact()` trực tiếp từ `-12.99` sẽ ném ngoại lệ.
+Here, rounding is **intentional** and explicitly stated in the code. Conversely, calling `toBigIntegerExact()` directly on `-12.99` will throw an exception.
 
-**Sai lầm phổ biến:** Vì một số tài liệu gọi thao tác cắt phần lẻ là “round down”, người học dễ đồng nhất nó với `FLOOR`. Trong `RoundingMode` của Java, `DOWN` nghĩa là về **0**, còn `FLOOR` nghĩa là về **âm vô cực**. Kiểm tra với số âm sẽ làm lộ ngay sự khác biệt.
+**Common mistake:** Because some texts refer to truncating the fractional part as "round down," learners easily equate it with `FLOOR`. In Java's `RoundingMode`, `DOWN` means toward **0**, whereas `FLOOR` means toward **negative infinity**. Testing with negative numbers exposes the difference immediately.
 
-## 7. Phân biệt với `intValue()`, `longValue()` và bản `Exact`
+## 7. Distinguishing from `intValue()`, `longValue()`, and `Exact` Variants
 
-Sau `toBigInteger...`, ta nhận một `BigInteger` tùy ý độ lớn. Nếu đích cuối cùng lại là `int` hoặc `long`, cần kiểm tra **hai loại rủi ro độc lập**:
+After `toBigInteger...`, you receive a `BigInteger` of arbitrary magnitude. If the final target is `int` or `long`, you must check for **two independent risks**:
 
-1. **Có phần lẻ không?** Nếu có, phép đổi sang số nguyên có thể mất phần thập phân.
-2. **Có vượt giới hạn kiểu đích không?** Nếu có, chuyển sang `int`/`long` có thể mất các bit cao.
+1. **Is there a fractional part?** If so, converting to an integer can lose the decimal part.
+2. **Does it exceed the target type's limits?** If so, converting to `int`/`long` can lose high bits.
 
-Đó là lý do các phương thức exact khác cũng quan trọng:
+That is why the other exact methods also matter:
 
-| Phương thức từ `BigDecimal` | Mất phần lẻ được phép? | Kiểm tra giới hạn `int`/`long`? |
+| Method on `BigDecimal` | Fractional Loss Allowed? | Checks `int`/`long` Range? |
 |---|---|---|
-| `toBigInteger()` | Có | Không áp dụng: đích là `BigInteger` |
-| `toBigIntegerExact()` | Không | Không áp dụng: đích là `BigInteger` |
-| `intValue()` / `longValue()` | Có | Không, có thể mất bit cao |
-| `intValueExact()` / `longValueExact()` | Không | Có; ném `ArithmeticException` nếu ngoài miền |
+| `toBigInteger()` | Yes | Not applicable: target is `BigInteger` |
+| `toBigIntegerExact()` | No | Not applicable: target is `BigInteger` |
+| `intValue()` / `longValue()` | Yes | No, can lose high bits |
+| `intValueExact()` / `longValueExact()` | No | Yes; throws `ArithmeticException` if out of range |
 
-Ví dụ khi số nguyên vượt `int`:
+Example when the integer exceeds `int`:
 
-**Tệp `BigIntegerRangeDemo.java`:**
+**File `BigIntegerRangeDemo.java`:**
 
 ```java
 import java.math.BigDecimal;
@@ -244,13 +244,13 @@ long=2147483648
 intValueExact: ArithmeticException
 ```
 
-Giá trị `2_147_483_648` lớn hơn `Integer.MAX_VALUE` (`2_147_483_647`), nhưng vẫn vừa `long` và luôn có thể lưu bằng `BigInteger`. Dùng `toBigIntegerExact()` giúp tránh mất phần lẻ, nhưng **không tự động kiểm tra** giá trị có vừa `int` hoặc `long` khi chuyển tiếp; hãy dùng `big.intValueExact()` hoặc `big.longValueExact()` nếu cần.
+The value `2_147_483_648` is greater than `Integer.MAX_VALUE` (`2_147_483_647`), yet still fits in `long` and can always be stored in `BigInteger`. Using `toBigIntegerExact()` avoids losing fractional parts, but **does not automatically check** whether the value fits `int` or `long` when converting further; use `big.intValueExact()` or `big.longValueExact()` if needed.
 
-## 8. Thực hành: kiểm tra số lượng phải là số nguyên
+## 8. Practice: Validating That a Quantity Is a Whole Number
 
-Giả sử hệ thống đọc một trường `quantity` từ dữ liệu thập phân. Yêu cầu: số lượng phải nguyên và không âm; tuyệt đối không cho phép `2.8` biến thành `2`.
+Suppose a system reads a `quantity` field from decimal data. Requirement: the quantity must be an integer and non-negative; `2.8` must never be allowed to turn into `2`.
 
-**Tệp `WholeQuantityDemo.java`:**
+**File `WholeQuantityDemo.java`:**
 
 ```java
 import java.math.BigDecimal;
@@ -305,30 +305,30 @@ java WholeQuantityDemo
 -1.0 -> REJECTED
 ```
 
-Ở ví dụ này, việc bắt `ArithmeticException` có ý nghĩa: dữ liệu có phần lẻ vi phạm quy tắc nghiệp vụ nên được chuyển thành thông báo lỗi phù hợp. Không nên bắt rồi âm thầm thay bằng `toBigInteger()` vì sẽ biến một đầu vào không hợp lệ thành đầu vào “hợp lệ giả”.
+In this example, catching `ArithmeticException` is meaningful: data with a fractional part violates the business rule and is converted into an appropriate error message. You should not catch it and silently fall back to `toBigInteger()`, because that turns invalid input into "faked valid" input.
 
-Nếu hệ thống chỉ chấp nhận số lượng dương, bổ sung kiểm tra `quantity.signum() > 0`; nếu cần giới hạn tối đa, dùng `BigInteger.compareTo(maximum)` sau khi chuyển chính xác.
+If the system only accepts positive quantities, add a `quantity.signum() > 0` check; if a maximum limit is needed, use `BigInteger.compareTo(maximum)` after the exact conversion.
 
-### Khi nào `toBigInteger()` là lựa chọn hợp lệ?
+### When Is `toBigInteger()` a Valid Choice?
 
-Trong một số bài toán, yêu cầu **cố ý bỏ phần thập phân**. Ví dụ, lấy phần nguyên của một phép đo đã xác định rõ quy tắc cắt về 0. Khi ấy `toBigInteger()` đúng yêu cầu; hãy đặt tên biến/hàm thể hiện rõ ý định, chẳng hạn `truncatedUnits`.
+In some problems, the requirement **deliberately discards the fractional part**. For example, taking the integer part of a measurement with a clearly defined truncate-toward-zero rule. In that case `toBigInteger()` matches the requirement; name the variable/method to clearly reflect the intent, such as `truncatedUnits`.
 
-Còn với định danh, số lượng mặt hàng, số thứ tự, cấu hình giới hạn hoặc dữ liệu mà phần lẻ không hợp lệ, `toBigIntegerExact()` an toàn hơn vì thể hiện hợp đồng bằng mã và báo lỗi sớm.
+Whereas for identifiers, item counts, sequence numbers, limit configurations, or data where fractional parts are invalid, `toBigIntegerExact()` is safer because it expresses the contract in code and fails fast.
 
-## 9. Các trường hợp biên và lỗi thường gặp
+## 9. Edge Cases and Common Mistakes
 
-### 9.1. Số âm gần 0
+### 9.1. Negative Numbers Close to 0
 
 ```java
 BigDecimal x = new BigDecimal("-0.99");
 
 System.out.println(x.toBigInteger()); // 0
-// x.toBigIntegerExact() sẽ ném ArithmeticException.
+// x.toBigIntegerExact() would throw ArithmeticException.
 ```
 
-Một giá trị âm có thể bị cắt về 0. Nếu hệ thống dựa vào dấu hoặc quy tắc chỉ số nhóm, mất thông tin dấu như vậy có thể gây lỗi logic.
+A negative value can be truncated to 0. If the system relies on the sign or group-indexing rules, losing sign information like that can cause logic bugs.
 
-### 9.2. Những số 0 cuối và scale khác nhau
+### 9.2. Trailing Zeros and Different Scales
 
 ```java
 new BigDecimal("2.0").toBigIntegerExact();  // 2
@@ -336,81 +336,81 @@ new BigDecimal("2.00").toBigIntegerExact(); // 2
 new BigDecimal("2.01").toBigIntegerExact(); // ArithmeticException
 ```
 
-Tính exact dựa trên phần lẻ **có giá trị khác 0**, không phụ thuộc số chữ số đã nhập. `BigInteger` trả về không còn giữ scale.
+Exactness is based on whether the fractional part **has a non-zero value**, independent of the number of digits entered. The returned `BigInteger` no longer retains the scale.
 
-### 9.3. Khởi tạo từ `double` có thể đưa vào sai số nhị phân
+### 9.3. Initializing from `double` Can Introduce Binary Error
 
 ```java
 BigDecimal a = new BigDecimal("0.1");
 BigDecimal b = new BigDecimal(0.1);
 ```
 
-`a` biểu diễn chính xác `0.1` thập phân. `b` biểu diễn chính xác giá trị nhị phân của `double` gần 0.1, nên có nhiều chữ số phụ. **Không nên tạo `BigDecimal` từ `double` nếu cần giữ nguyên giá trị chữ số đầu vào.** Ưu tiên `BigDecimal(String)` cho dữ liệu thập phân hoặc cân nhắc `BigDecimal.valueOf(double)` khi đã có `double` và hiểu tính giới hạn của dữ liệu đó. Sau khi tạo đối tượng, phương thức chuyển đổi không thể khôi phục độ chính xác đã mất trước đó.
+`a` represents decimal `0.1` accurately. `b` represents the exact binary value of the `double` near 0.1, so it has many extra digits. **Do not create `BigDecimal` from `double` if you need to preserve the input's exact decimal digits.** Prefer `BigDecimal(String)` for decimal data or consider `BigDecimal.valueOf(double)` when you already have a `double` and understand its limitations. Once the object is created, conversion methods cannot recover precision already lost beforehand.
 
-### 9.4. Đừng bỏ qua ngoại lệ
+### 9.4. Do Not Swallow Exceptions
 
-Ví dụ này đánh mất một validation quan trọng:
+This example loses an important validation:
 
 ```java
-// Cách không nên làm nếu quy tắc đòi hỏi một số nguyên chính xác:
+// What NOT to do if rules require an exact integer:
 try {
     return amount.toBigIntegerExact();
 } catch (ArithmeticException ignored) {
-    return amount.toBigInteger(); // Âm thầm cắt phần lẻ
+    return amount.toBigInteger(); // Silently truncates the fractional part
 }
 ```
 
-Đây chỉ là minh họa đoạn thân một phương thức có biến `amount` kiểu `BigDecimal`. Nếu cần làm tròn, hãy xác định rounding mode rõ ràng và ghi nhận quyết định. Nếu cần từ chối, hãy phát sinh lỗi có ngữ cảnh.
+This only illustrates the body of a method having a `BigDecimal` variable `amount`. If rounding is needed, specify the rounding mode explicitly and document the decision. If rejection is needed, throw an error with context.
 
-### 9.5. Không lẫn ngoại lệ tính nguyên với `null` và dữ liệu không parse được
+### 9.5. Do Not Confuse Integrality Exceptions with `null` and Unparseable Data
 
-Nếu biến `BigDecimal` là `null`, gọi bất kỳ phương thức nào trong hai phương thức trên sẽ ném `NullPointerException`. Nếu chuỗi đầu vào không hợp lệ, `new BigDecimal(text)` ném `NumberFormatException` ngay lúc parse, trước khi đến giai đoạn chuyển `BigInteger`. Hai loại lỗi này khác với `ArithmeticException` do phần lẻ khác 0.
+If the `BigDecimal` variable is `null`, calling either of the two methods will throw `NullPointerException`. If the input string is invalid, `new BigDecimal(text)` throws `NumberFormatException` right at parse time, before reaching the `BigInteger` conversion stage. These two error types are distinct from `ArithmeticException` caused by a non-zero fractional part.
 
-### 9.6. Giá trị rất lớn
+### 9.6. Very Large Values
 
-`BigInteger` không giới hạn ở `Integer.MAX_VALUE` hay `Long.MAX_VALUE`, nhưng vẫn chịu giới hạn thực tế của bộ nhớ và dung lượng biểu diễn. Không coi “arbitrary precision” là “không bao giờ gặp giới hạn tài nguyên”. Cũng cần tránh chuyển tiếp về kiểu nguyên cố định mà không kiểm tra phạm vi.
+`BigInteger` is not capped at `Integer.MAX_VALUE` or `Long.MAX_VALUE`, but it is still subject to practical memory and representation limits. Do not treat "arbitrary precision" as "never hits resource limits." Also avoid converting onward to a fixed integer type without checking bounds.
 
-## 10. Bài tập tự kiểm tra (có đáp án)
+## 10. Self-Check Exercises (with Answers)
 
-1. **`new BigDecimal("8.999").toBigInteger()` cho kết quả gì?**  
-   `8`, vì cắt phần lẻ về 0.
+1. **What does `new BigDecimal("8.999").toBigInteger()` return?**  
+   `8`, because it truncates the fractional part toward 0.
 
-2. **`new BigDecimal("-8.999").toBigInteger()` cho kết quả gì?**  
-   `-8`, không phải `-9`: `toBigInteger()` không phải floor.
+2. **What does `new BigDecimal("-8.999").toBigInteger()` return?**  
+   `-8`, not `-9`: `toBigInteger()` is not floor.
 
-3. **`new BigDecimal("8.000").toBigIntegerExact()` có lỗi không?**  
-   Không. Kết quả là `BigInteger` có giá trị `8`, dù scale đầu vào lớn hơn 0.
+3. **Does `new BigDecimal("8.000").toBigIntegerExact()` throw an error?**  
+   No. The result is a `BigInteger` with value `8`, even though the input scale is greater than 0.
 
-4. **`new BigDecimal("8.001").toBigIntegerExact()` làm gì?**  
-   Ném `ArithmeticException` vì phần lẻ khác 0.
+4. **What does `new BigDecimal("8.001").toBigIntegerExact()` do?**  
+   Throws `ArithmeticException` because the fractional part is non-zero.
 
-5. **`new BigDecimal("1E+5").toBigIntegerExact()` có phải lỗi vì viết theo ký pháp khoa học?**  
-   Không. Kết quả là `100000`, một số nguyên chính xác.
+5. **Does `new BigDecimal("1E+5").toBigIntegerExact()` fail because it is written in scientific notation?**  
+   No. The result is `100000`, an exact integer.
 
-6. **Giá trị `2.99` phải làm tròn lên thành `3` theo quy tắc nghiệp vụ. Dùng phương thức nào?**  
-   `new BigDecimal("2.99").setScale(0, RoundingMode.CEILING).toBigIntegerExact()` (với số dương này cho `3`). `toBigInteger()` trực tiếp chỉ cho `2`.
+6. **The value `2.99` must be rounded up to `3` per business rules. Which method should be used?**  
+   `new BigDecimal("2.99").setScale(0, RoundingMode.CEILING).toBigIntegerExact()` (for this positive number, gives `3`). Calling `toBigInteger()` directly only gives `2`.
 
-7. **Giá trị `2147483648.00` là số nguyên chính xác nhưng vượt `int`. `toBigIntegerExact()` có thành công không?**  
-   Có. Kết quả là `2147483648` dưới dạng `BigInteger`. Nhưng chuyển tiếp bằng `intValueExact()` sẽ ném `ArithmeticException`.
+7. **The value `2147483648.00` is an exact integer but exceeds `int`. Does `toBigIntegerExact()` succeed?**  
+   Yes. The result is `2147483648` as a `BigInteger`. However, converting onward with `intValueExact()` will throw `ArithmeticException`.
 
-8. **Sự khác nhau giữa `toBigIntegerExact()` và `intValueExact()` là gì?**  
-   Cả hai đều không cho phép mất phần lẻ; `intValueExact()` còn phải bảo đảm kết quả nằm trong miền `int`, còn `BigInteger` hỗ trợ số nguyên lớn tùy ý.
+8. **What is the difference between `toBigIntegerExact()` and `intValueExact()`?**  
+   Neither permits losing a fractional part; `intValueExact()` must also ensure the result lies within the `int` range, whereas `BigInteger` supports arbitrarily large integers.
 
-## 11. Tổng kết và chọn API
+## 11. Summary and API Selection
 
-Hãy quyết định theo hợp đồng dữ liệu:
+Decide according to your data contract:
 
-| Yêu cầu | Giải pháp |
+| Requirement | Solution |
 |---|---|
-| Cố ý bỏ phần lẻ, hướng về 0 | `decimal.toBigInteger()` |
-| Chỉ chấp nhận giá trị nguyên chính xác | `decimal.toBigIntegerExact()` |
-| Phải làm tròn theo chính sách cụ thể | `decimal.setScale(0, mode).toBigIntegerExact()` |
-| Phải chuyển sang `int` chính xác | `decimal.intValueExact()` hoặc `decimal.toBigIntegerExact().intValueExact()` |
-| Phải chuyển sang `long` chính xác | `decimal.longValueExact()` hoặc `decimal.toBigIntegerExact().longValueExact()` |
+| Intentionally discard fractional part, toward 0 | `decimal.toBigInteger()` |
+| Accept only exact integer values | `decimal.toBigIntegerExact()` |
+| Must round per a specific policy | `decimal.setScale(0, mode).toBigIntegerExact()` |
+| Must convert to `int` exactly | `decimal.intValueExact()` or `decimal.toBigIntegerExact().intValueExact()` |
+| Must convert to `long` exactly | `decimal.longValueExact()` or `decimal.toBigIntegerExact().longValueExact()` |
 
-Quy tắc nhớ nhanh: **Không có `Exact`: chấp nhận cắt phần lẻ. Có `Exact`: không làm mất phần lẻ; nếu không thể giữ nguyên giá trị, báo lỗi.** Mọi trường hợp vẫn phải kiểm tra kiểu đích, khả năng null và giới hạn tài nguyên tương ứng.
+Quick mnemonic: **Without `Exact`: fractional truncation is accepted. With `Exact`: no fractional part is lost; if the value cannot be preserved, an error is raised.** In all cases, still check target types, nullability, and corresponding resource limits.
 
-Tham khảo Javadoc chính thức:
+Official Javadoc references:
 
 - [Java 21 — `BigDecimal`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html)
 - [Java 21 — `BigInteger`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigInteger.html)

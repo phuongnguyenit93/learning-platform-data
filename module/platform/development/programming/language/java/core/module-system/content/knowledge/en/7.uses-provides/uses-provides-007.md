@@ -1,14 +1,14 @@
-# Provider nhiều implementation và thứ tự
+# Multiple Provider Implementations and Ordering
 
-Java Platform Module System (JPMS) tích hợp cơ chế service provider để một module công bố implementation của một service, còn module khác sử dụng service mà không cần phụ thuộc trực tiếp vào từng class triển khai. Cơ chế này thường được gọi qua `ServiceLoader`.
+The Java Platform Module System (JPMS) integrates the service provider mechanism so that one module publishes an implementation of a service, while another module uses the service without directly depending on each implementation class. This mechanism is typically invoked via `ServiceLoader`.
 
-Một service có thể có một implementation hoặc nhiều implementation. Nhiều provider có thể được khai báo trong cùng một module, hoặc được cung cấp từ nhiều module khác nhau. Khi có nhiều provider, ứng dụng cần hiểu cách Java khám phá chúng và tự định nghĩa chính sách chọn provider phù hợp.
+A service can have one implementation or multiple implementations. Multiple providers can be declared within the same module, or supplied from several different modules. When multiple providers exist, the application needs to understand how Java discovers them and define its own policy for selecting the appropriate provider.
 
-Điểm quan trọng là **module descriptor khai báo provider nào tồn tại; nó không phải nơi định nghĩa thứ tự ưu tiên nghiệp vụ**. Nếu ứng dụng cần chọn implementation mặc định, hãy biểu diễn tiêu chí đó bằng API hoặc cấu hình rõ ràng.
+The key point is that **a module descriptor declares which providers exist; it is not the place to define business priority order**. If the application needs to choose a default implementation, express that criterion through an explicit API or configuration.
 
-## 1. Service, consumer và provider
+## 1. Service, Consumer, and Provider
 
-Giả sử ứng dụng cần chuyển đổi dữ liệu sang nhiều định dạng. Ta định nghĩa một service interface:
+Suppose an application needs to convert data into multiple formats. We define a service interface:
 
 ~~~java
 package com.example.format.spi;
@@ -18,7 +18,7 @@ public interface Formatter {
 }
 ~~~
 
-Interface `Formatter` là hợp đồng mà các implementation phải tuân theo. Module chứa API service có thể khai báo:
+The `Formatter` interface is the contract that implementations must follow. The module containing the service API can declare:
 
 ~~~java
 module com.example.format.api {
@@ -26,7 +26,7 @@ module com.example.format.api {
 }
 ~~~
 
-Module consumer sử dụng service bằng directive `uses`:
+The consumer module uses the service via the `uses` directive:
 
 ~~~java
 module com.example.app {
@@ -36,9 +36,9 @@ module com.example.app {
 }
 ~~~
 
-Directive `uses` nói rằng module ứng dụng cần tìm các provider của `Formatter`. Nó không chỉ rõ implementation cụ thể và cũng không tạo dependency trực tiếp tới module provider.
+The `uses` directive states that the application module needs to discover providers of `Formatter`. It does not specify a concrete implementation and creates no direct dependency on any provider module.
 
-Một provider module khai báo implementation bằng `provides ... with ...`:
+A provider module declares an implementation with `provides ... with ...`:
 
 ~~~java
 module com.example.format.json {
@@ -49,7 +49,7 @@ module com.example.format.json {
 }
 ~~~
 
-Class triển khai:
+Implementation class:
 
 ~~~java
 package com.example.format.json;
@@ -67,13 +67,13 @@ public final class JsonFormatter implements Formatter {
 }
 ~~~
 
-Provider class cần đáp ứng quy tắc của service provider, chẳng hạn có public no-argument constructor như ví dụ trên. JPMS cũng hỗ trợ provider method theo quy tắc của `ServiceLoader`; khi sử dụng cách đó, class được nêu sau `with` cung cấp phương thức static `provider()` trả về service type.
+The provider class must meet service provider rules, such as having a public no-argument constructor as in the example above. JPMS also supports provider methods per `ServiceLoader` rules; when using that approach, the class listed after `with` provides a static `provider()` method returning the service type.
 
-Consumer không cần import hoặc gọi trực tiếp `JsonFormatter`. Nó chỉ làm việc với interface `Formatter`.
+The consumer does not need to import or directly call `JsonFormatter`. It works solely with the `Formatter` interface.
 
-## 2. Nhiều provider trong cùng một module
+## 2. Multiple Providers in the Same Module
 
-Một module có thể cung cấp nhiều implementation cho cùng một service. Liệt kê nhiều provider class trong cùng directive `provides`, phân cách bằng dấu phẩy:
+A single module can supply multiple implementations for the same service. List multiple provider classes in the same `provides` directive, separated by commas:
 
 ~~~java
 module com.example.format.builtin {
@@ -86,9 +86,9 @@ module com.example.format.builtin {
 }
 ~~~
 
-Ba class trên đều phải thực hiện hợp đồng `Formatter` và đáp ứng quy tắc provider của Java.
+All three classes must fulfill the `Formatter` contract and meet Java's provider rules.
 
-Cấu trúc source có thể như sau:
+The source structure might look like this:
 
 ~~~text
 com.example.format.builtin/
@@ -99,13 +99,13 @@ com.example.format.builtin/
     └── TextFormatter.java
 ~~~
 
-Package chứa implementation không cần được export chỉ để `ServiceLoader` khám phá provider đã khai báo trong descriptor. Module vẫn có thể giữ các class triển khai bên trong package nội bộ, chỉ công bố service interface từ module API.
+The package containing the implementations does not need to be exported just for `ServiceLoader` to discover providers declared in the descriptor. The module can keep the implementation classes inside an internal package, exposing only the service interface from the API module.
 
-Nhiều provider trong một module hữu ích khi các implementation được phát hành, kiểm thử và quản lý cùng một đơn vị triển khai.
+Multiple providers in one module are useful when implementations are released, tested, and managed as a single deployment unit.
 
-## 3. Nhiều module cùng cung cấp một service
+## 3. Multiple Modules Providing the Same Service
 
-Một service cũng có thể được mở rộng bằng các provider module độc lập. Ví dụ:
+A service can also be extended with independent provider modules. For example:
 
 ~~~text
 application
@@ -119,7 +119,7 @@ application
     └── com.example.format.csv
 ~~~
 
-Mỗi module provider có descriptor riêng:
+Each provider module has its own descriptor:
 
 ~~~java
 // module com.example.format.json
@@ -151,7 +151,7 @@ module com.example.format.csv {
 }
 ~~~
 
-Consumer chỉ cần biết module API:
+The consumer only needs to know the API module:
 
 ~~~java
 module com.example.app {
@@ -161,13 +161,13 @@ module com.example.app {
 }
 ~~~
 
-Các module provider được đưa vào module path và module graph phù hợp. Khi service loader tìm provider trong module layer, nó có thể khám phá các provider được khai báo bởi các module trong layer đó.
+The provider modules are placed on the module path and included in the appropriate module graph. When the service loader searches for providers in a module layer, it can discover providers declared by modules in that layer.
 
-Cách tổ chức này cho phép bổ sung một định dạng mới bằng cách thêm provider module mà không buộc consumer thay đổi dependency trực tiếp tới class triển khai. Consumer vẫn cần module API và cấu hình triển khai cần đưa provider module vào môi trường chạy.
+This organization allows adding a new format by adding a provider module without forcing the consumer to change direct dependencies on implementation classes. The consumer still requires the API module, and the deployment configuration must place provider modules into the runtime environment.
 
-## 4. Khám phá provider bằng ServiceLoader
+## 4. Discovering Providers with ServiceLoader
 
-Consumer sử dụng `ServiceLoader` để tìm các implementation:
+The consumer uses `ServiceLoader` to locate implementations:
 
 ~~~java
 package com.example.app;
@@ -188,53 +188,53 @@ public class Main {
 }
 ~~~
 
-`ServiceLoader.load(Formatter.class)` tạo service loader cho service type. Việc tìm và khởi tạo provider diễn ra lười (lazy): provider được khám phá và khởi tạo khi ứng dụng duyệt iterator hoặc yêu cầu instance.
+`ServiceLoader.load(Formatter.class)` creates a service loader for the service type. Provider discovery and instantiation happen lazily: providers are discovered and instantiated as the application iterates over the iterator or requests instances.
 
-Một số điểm cần nhớ:
+A few points to remember:
 
-- Consumer khai báo `uses Formatter` trong module descriptor.
-- Provider module khai báo `provides Formatter with ...`.
-- Consumer chỉ phụ thuộc vào service API, không cần `requires` từng provider module.
-- Provider được tạo khi được yêu cầu; không nên giả định tất cả provider đã được khởi tạo ngay lúc tạo `ServiceLoader`.
-- Một `ServiceLoader` lưu cache những provider đã tải. Có thể gọi `reload()` để xóa cache và cho phép tìm lại provider.
-- `ServiceLoader` không được thiết kế để nhiều thread cùng sửa hoặc duyệt một instance một cách không đồng bộ; nếu cần dùng đồng thời, hãy quản lý việc tạo và chia sẻ instance phù hợp.
+- The consumer declares `uses Formatter` in its module descriptor.
+- Provider modules declare `provides Formatter with ...`.
+- The consumer depends only on the service API, without needing `requires` for each provider module.
+- Providers are created on demand; do not assume all providers are instantiated immediately when `ServiceLoader` is created.
+- A `ServiceLoader` caches loaded providers. You can call `reload()` to clear the cache and allow rediscovering providers.
+- `ServiceLoader` is not designed for multiple threads to concurrently mutate or iterate over a single instance without synchronization; if concurrent use is needed, manage instance creation and sharing appropriately.
 
-Nếu ứng dụng dùng custom `ModuleLayer` cho plugin, có thể tìm service trong layer cụ thể:
+If the application uses a custom `ModuleLayer` for plugins, you can locate services in that specific layer:
 
 ~~~java
 ServiceLoader<Formatter> loader =
     ServiceLoader.load(pluginLayer, Formatter.class);
 ~~~
 
-Cách này hữu ích khi plugin được nạp vào module layer riêng. `ServiceLoader.load(Formatter.class)` và `ServiceLoader.load(layer, Formatter.class)` có phạm vi tìm provider khác nhau; hãy chọn đúng layer chứa các provider cần sử dụng.
+This is useful when plugins are loaded into a dedicated module layer. `ServiceLoader.load(Formatter.class)` and `ServiceLoader.load(layer, Formatter.class)` have different provider search scopes; choose the right layer containing the providers you need to use.
 
-Với provider trên classpath theo cơ chế cũ, Java có thể đọc file cấu hình `META-INF/services/<tên-service>`. Trong named module, cách khai báo tiêu chuẩn là directive `provides` trong `module-info.java`.
+For providers on the classpath using the legacy mechanism, Java can read `META-INF/services/<service-name>` configuration files. In named modules, the standard way to declare providers is the `provides` directive in `module-info.java`.
 
-## 5. Thứ tự khám phá không phải thứ tự ưu tiên
+## 5. Discovery Order Is Not Priority Order
 
-Khi có nhiều provider, vòng lặp sau có thể trả về nhiều implementation:
+When multiple providers exist, the following loop can return multiple implementations:
 
 ~~~java
 for (Formatter formatter : ServiceLoader.load(Formatter.class)) {
-    // xử lý từng provider
+    // process each provider
 }
 ~~~
 
-Tuy nhiên, không nên dùng provider xuất hiện đầu tiên như một quy tắc chọn implementation mặc định nếu ứng dụng chưa định nghĩa chính sách đó.
+However, you should not treat the first provider returned as a rule for picking a default implementation if the application has not defined such a policy.
 
-Module descriptor không có thuộc tính như `priority = 1` cho directive `provides`. Danh sách class sau `with` chỉ khai báo các provider của service; thứ tự khai báo hoặc thứ tự khám phá không phải hợp đồng ưu tiên nghiệp vụ mà ứng dụng nên dựa vào.
+A module descriptor has no attribute like `priority = 1` for the `provides` directive. The list of classes after `with` only declares the service's providers; declaration order or discovery order is not a business priority contract that the application should rely on.
 
-Ví dụ, nếu ứng dụng cần chọn JSON formatter làm mặc định, đừng dựa vào việc `JsonFormatter` tình cờ được trả về đầu tiên. Hãy biểu diễn ưu tiên trong service API, metadata hoặc cấu hình ứng dụng.
+For example, if the application needs to pick the JSON formatter as default, do not rely on `JsonFormatter` happening to be returned first. Express priority in the service API, metadata, or application configuration.
 
-Có ba tình huống cần phân biệt:
+Three scenarios should be distinguished:
 
-1. **Duyệt tất cả provider:** thứ tự không quan trọng nếu mọi implementation đều được xử lý độc lập.
-2. **Chọn một provider:** cần chính sách chọn rõ ràng, ví dụ cấu hình tên provider hoặc mức ưu tiên.
-3. **Chạy nhiều provider theo pipeline:** cần định nghĩa thứ tự pipeline trong ứng dụng, không suy ra thứ tự từ descriptor.
+1. **Iterate all providers:** order does not matter if every implementation is processed independently.
+2. **Select one provider:** an explicit selection policy is needed, such as configuring the provider name or priority level.
+3. **Run multiple providers in a pipeline:** pipeline ordering must be defined in the application, not inferred from descriptors.
 
-## 6. Định nghĩa priority trong service API
+## 6. Defining Priority in the Service API
 
-Nếu ứng dụng cần xếp hạng provider, có thể thêm phương thức ưu tiên vào service interface:
+If the application needs to rank providers, a priority method can be added to the service interface:
 
 ~~~java
 package com.example.format.spi;
@@ -242,14 +242,14 @@ package com.example.format.spi;
 public interface Formatter {
     String format(String input);
 
-    // Số nhỏ hơn có mức ưu tiên cao hơn.
+    // Lower number has higher priority.
     default int priority() {
         return 100;
     }
 }
 ~~~
 
-Provider có thể override mức ưu tiên:
+Providers can override the priority level:
 
 ~~~java
 public final class JsonFormatter implements Formatter {
@@ -279,7 +279,7 @@ public final class XmlFormatter implements Formatter {
 }
 ~~~
 
-Consumer có thể lấy provider rồi sắp xếp theo policy:
+The consumer can retrieve providers and sort them by policy:
 
 ~~~java
 List<Formatter> formatters =
@@ -293,13 +293,13 @@ List<Formatter> formatters =
         .toList();
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- Priority nhỏ hơn đứng trước.
-- Nếu hai provider có cùng priority, tên class là tiêu chí phụ để thứ tự kết quả ổn định.
-- `Provider::get` khởi tạo instance; việc sắp xếp theo phương thức instance vì vậy sẽ tải các provider được duyệt.
+- Lower priority values come first.
+- If two providers have the same priority, the class name serves as a secondary criterion so the result order is deterministic.
+- `Provider::get` instantiates the instance; sorting by an instance method will therefore load the iterated providers.
 
-Nếu thứ tự tên class không có ý nghĩa với sản phẩm, có thể thay tie-breaker bằng quy tắc nghiệp vụ khác hoặc từ chối trường hợp trùng priority. Ví dụ, ứng dụng yêu cầu chỉ có một provider ở mức ưu tiên cao nhất:
+If class name ordering has no meaning for the product, replace the tie-breaker with another business rule or reject duplicate priorities. For example, if the application requires only a single provider at the highest priority:
 
 ~~~java
 List<Formatter> candidates =
@@ -314,19 +314,19 @@ Formatter selected = candidates.stream()
         new IllegalStateException("No Formatter provider is available"));
 ~~~
 
-Đoạn code này chọn provider có priority nhỏ nhất. Nếu nhiều provider cùng mức ưu tiên nhỏ nhất, `min` sẽ trả về một phần tử theo thứ tự duyệt hiện tại. Nếu tie là lỗi cấu hình, ứng dụng nên kiểm tra và báo lỗi khi có nhiều ứng viên cùng mức ưu tiên tốt nhất, thay vì chấp nhận kết quả phụ thuộc thứ tự khám phá.
+This snippet selects the provider with the smallest priority value. If multiple providers share the same lowest priority value, `min` returns one element according to the current iteration order. If a tie is a configuration error, the application should check and report an error when multiple candidates share the best priority, rather than accepting a result that depends on discovery order.
 
-## 7. Chọn provider bằng cấu hình
+## 7. Selecting a Provider via Configuration
 
-Không phải service nào cũng cần priority được mã hóa trong interface. Có thể để ứng dụng cấu hình provider mong muốn.
+Not every service needs priority encoded in the interface. The application can let configuration specify the desired provider.
 
-Ví dụ file cấu hình:
+Example configuration file:
 
 ~~~properties
 formatter.default=com.example.format.json.JsonFormatter
 ~~~
 
-Consumer có thể lấy danh sách provider rồi chọn theo class name:
+The consumer can retrieve the provider list and select by class name:
 
 ~~~java
 String configuredName =
@@ -344,21 +344,21 @@ Formatter selected = ServiceLoader.load(Formatter.class)
                 + configuredName));
 ~~~
 
-Trong hệ thống thực tế, nên đọc cấu hình từ nguồn cấu hình mà ứng dụng đang sử dụng, xác thực giá trị và báo lỗi rõ ràng nếu provider không tồn tại. Class name là một lựa chọn cấu hình đơn giản; hệ thống lớn có thể dùng provider id ổn định do service interface công bố để tránh phụ thuộc tên class.
+In a real system, read configuration from the application's configuration source, validate the value, and report a clear error if the provider does not exist. Class name is a simple configuration option; larger systems can use a stable provider ID exposed by the service interface to avoid depending on class names.
 
-Có thể chọn provider theo:
+Providers can be selected by:
 
-- ID ổn định do provider trả về.
-- Mức ưu tiên hoặc capability.
-- Định dạng đầu vào/đầu ra mà provider hỗ trợ.
-- Cấu hình môi trường hoặc tenant.
-- Quy tắc fallback khi provider chính không sẵn sàng.
+- A stable ID returned by the provider.
+- Priority level or capabilities.
+- Input/output formats supported by the provider.
+- Environment or tenant configuration.
+- Fallback rules when the primary provider is unavailable.
 
-Chính sách cần xác định rõ trường hợp không có provider, nhiều provider phù hợp hoặc provider bị lỗi khi khởi tạo.
+The policy must clearly define how to handle no provider, multiple matching providers, or a provider failing during instantiation.
 
-## 8. ServiceLoader.Provider và stream
+## 8. ServiceLoader.Provider and Streams
 
-Ngoài iterator, `ServiceLoader` cung cấp `stream()` để truy cập các đối tượng mô tả provider:
+Beyond iterators, `ServiceLoader` provides `stream()` to access provider descriptor objects:
 
 ~~~java
 ServiceLoader<Formatter> loader =
@@ -370,9 +370,9 @@ loader.stream().forEach(provider -> {
 });
 ~~~
 
-`ServiceLoader.Provider` cho phép xem kiểu provider trước khi yêu cầu instance bằng `get()`. Điều này hữu ích khi ứng dụng cần lọc metadata hoặc kiểm tra class trước khi khởi tạo.
+`ServiceLoader.Provider` lets you inspect the provider type before requesting an instance via `get()`. This is useful when the application needs to filter by metadata or inspect classes before instantiation.
 
-Ví dụ lọc provider theo annotation tùy biến:
+Example of filtering providers by a custom annotation:
 
 ~~~java
 loader.stream()
@@ -383,81 +383,81 @@ loader.stream()
         System.out.println(formatter.format("hello")));
 ~~~
 
-Annotation và quy tắc lọc là cơ chế do ứng dụng tự định nghĩa. JPMS không tự hiểu annotation `PreferredFormatter` và cũng không tự chọn provider được đánh dấu. Nếu dùng metadata, hãy duy trì contract rõ ràng và kiểm tra trường hợp không có hoặc có nhiều provider cùng được đánh dấu.
+Annotations and filtering rules are mechanisms defined by the application itself. JPMS does not automatically interpret a `PreferredFormatter` annotation, nor does it automatically pick marked providers. When using metadata, maintain a clear contract and check for cases where zero or multiple providers carry the marker.
 
-Lưu ý rằng `stream()` không có nghĩa mọi thao tác đều miễn phí: khi gọi `Provider.get()`, provider được khởi tạo. Nếu chỉ cần xem type, có thể sử dụng `Provider.type()` trước khi quyết định khởi tạo.
+Note that `stream()` does not mean every operation is free: calling `Provider.get()` instantiates the provider. If you only need to inspect the type, use `Provider.type()` before deciding to instantiate.
 
-## 9. Lỗi thường gặp khi có nhiều provider
+## 9. Common Mistakes with Multiple Providers
 
-**Consumer quên khai báo `uses`.** Module consumer cần khai báo service type trong descriptor. Nếu thiếu, việc sử dụng service trong named module có thể thất bại khi service loader kiểm tra quyền sử dụng.
+**Consumer forgets to declare `uses`.** The consumer module must declare the service type in its descriptor. If missing, using the service in a named module may fail when the service loader checks usage permissions.
 
-**Provider module không nằm trong module layer đang tìm kiếm.** Descriptor có `provides` đúng nhưng module provider chưa được đưa vào module path hoặc custom layer tương ứng. Hãy kiểm tra cấu hình runtime và layer được truyền cho `ServiceLoader`.
+**Provider module is not in the searched module layer.** The descriptor has the right `provides`, but the provider module has not been placed on the module path or in the corresponding custom layer. Check the runtime configuration and the layer passed to `ServiceLoader`.
 
-**Provider class không đáp ứng quy tắc khởi tạo.** Kiểm tra class provider có public no-argument constructor phù hợp hoặc provider method hợp lệ hay không.
+**Provider class does not satisfy instantiation rules.** Check whether the provider class has a valid public no-argument constructor or a valid provider method.
 
-**Provider không triển khai đúng service.** Kiểm tra kiểu trả về của provider method hoặc quan hệ kế thừa/implements giữa implementation và service interface.
+**Provider does not properly implement the service.** Check the return type of the provider method or the inheritance/`implements` relationship between the implementation and the service interface.
 
-**Consumer phụ thuộc trực tiếp vào implementation.** Nếu consumer chỉ cần service, hãy để consumer phụ thuộc vào module API và khai báo `uses`. Dependency trực tiếp tới từng provider làm giảm tính mở rộng của SPI.
+**Consumer depends directly on the implementation.** If the consumer only needs the service, have the consumer depend on the API module and declare `uses`. Direct dependencies on individual providers reduce the extensibility of SPI.
 
-**Dựa vào thứ tự provider được trả về.** Nếu nghiệp vụ yêu cầu một implementation mặc định, hãy dùng priority hoặc cấu hình rõ ràng.
+**Relying on returned provider order.** If business logic requires a default implementation, use explicit priority or configuration.
 
-**Nhiều provider cùng priority nhưng ứng dụng không định nghĩa tie-breaker.** Kết quả lựa chọn có thể không ổn định hoặc không phản ánh mong muốn. Hãy chọn một quy tắc phụ hoặc báo lỗi khi có xung đột.
+**Multiple providers share the same priority without a tie-breaker.** Selection results may be unstable or fail to reflect intent. Choose a secondary rule or report an error on conflict.
 
-**Khởi tạo tất cả provider dù chỉ cần một.** `stream().map(Provider::get)` sẽ khởi tạo những provider được duyệt. Nếu có nhiều plugin nặng, hãy lọc metadata trước khi gọi `get()` khi có thể, hoặc thiết kế registry/lifecycle riêng.
+**Instantiating all providers when only one is needed.** `stream().map(Provider::get)` instantiates every iterated provider. If there are many heavy plugins, filter metadata before calling `get()` when possible, or design a dedicated registry/lifecycle.
 
-## 10. Kiểm tra service provider trong modular JAR
+## 10. Inspecting Service Providers in Modular JARs
 
-Có thể kiểm tra descriptor của provider module sau khi đóng gói:
+You can inspect a provider module's descriptor after packaging:
 
 ~~~bash
 jar --describe-module --file build/libs/format-json.jar
 ~~~
 
-Thông tin module cần thể hiện service được cung cấp, ví dụ:
+The module info should show the provided service, for example:
 
 ~~~text
 provides com.example.format.spi.Formatter
     with com.example.format.json.JsonFormatter
 ~~~
 
-Với module chứa nhiều provider, phần `provides` cần liệt kê các implementation tương ứng.
+For a module containing multiple providers, the `provides` section should list the corresponding implementations.
 
-Khi chạy, cần bảo đảm:
+At runtime, ensure that:
 
-- Module API có mặt và được resolve.
-- Consumer module khai báo `uses` đúng service type.
-- Provider module được đưa vào module layer đang được tìm kiếm.
-- Các dependency của provider cũng được resolve.
-- Service interface và provider implementation tương thích cùng phiên bản.
+- The API module is present and resolved.
+- The consumer module declares `uses` for the exact service type.
+- Provider modules are included in the module layer being searched.
+- Provider dependencies are also resolved.
+- The service interface and provider implementations are version-compatible.
 
-Nếu sử dụng plugin layer, hãy kiểm tra layer được tạo ra có chứa các module provider dự kiến. Việc một modular JAR tồn tại trên đĩa không có nghĩa nó tự động được thêm vào mọi module layer.
+If using a plugin layer, verify that the created layer contains the expected provider modules. Simply having a modular JAR on disk does not mean it is automatically added to every module layer.
 
-## 11. Khi nào nên dùng nhiều provider?
+## 11. When to Use Multiple Providers?
 
-Nhiều provider phù hợp khi một service có nhiều implementation thay thế được, chẳng hạn:
+Multiple providers fit well when a service has multiple interchangeable implementations, such as:
 
-- Nhiều định dạng serializer/deserializer.
-- Nhiều driver hoặc adapter cho hệ thống bên ngoài.
-- Nhiều chiến lược lưu trữ.
-- Nhiều bộ xử lý theo loại dữ liệu.
-- Plugin được cài đặt độc lập theo môi trường triển khai.
+- Multiple serializer/deserializer formats.
+- Multiple drivers or adapters for external systems.
+- Multiple storage strategies.
+- Multiple processors by data type.
+- Plugins installed independently per deployment environment.
 
-Nếu các implementation không cùng thực hiện một hợp đồng ổn định hoặc có vòng đời hoàn toàn khác nhau, hãy cân nhắc thiết kế API service riêng thay vì gom tất cả vào một service interface quá rộng.
+If implementations do not share a single stable contract or have completely different lifecycles, consider designing separate service APIs instead of cramming everything into an overly broad service interface.
 
-Service provider giúp giảm phụ thuộc trực tiếp giữa consumer và implementation. Khi có nhiều provider, trách nhiệm chọn một provider hoặc điều phối nhiều provider thuộc về chính sách của ứng dụng. Module descriptor chỉ khai báo quan hệ service; nó không thay thế registry, cấu hình hoặc quy tắc ưu tiên của sản phẩm.
+Service providers reduce direct coupling between consumers and implementations. When multiple providers exist, the responsibility for picking one provider or orchestrating multiple providers belongs to the application's policy. The module descriptor only declares service relationships; it does not replace a product's registry, configuration, or priority rules.
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-Khi thiết kế service có nhiều implementation, hãy trả lời:
+When designing a service with multiple implementations, answer these questions:
 
-1. Service interface nằm trong module API nào và package đó đã được export chưa?
-2. Consumer module đã khai báo `uses` đúng service type chưa?
-3. Mỗi provider module đã khai báo `provides ... with ...` chưa?
-4. Có nhiều provider trong cùng một module hay nhiều module provider độc lập?
-5. Provider có constructor hoặc provider method hợp lệ không?
-6. Runtime đang tìm trong boot layer hay custom module layer nào?
-7. Ứng dụng cần duyệt tất cả provider, chọn một provider hay chạy theo pipeline?
-8. Nếu cần chọn một provider, priority, ID hoặc cấu hình nào quyết định kết quả?
-9. Nếu hai provider có cùng mức ưu tiên hoặc không có provider, ứng dụng xử lý thế nào?
+1. Which API module contains the service interface, and is that package exported?
+2. Has the consumer module declared `uses` for the exact service type?
+3. Has each provider module declared `provides ... with ...`?
+4. Are there multiple providers in one module or multiple independent provider modules?
+5. Do providers have valid constructors or provider methods?
+6. Is runtime searching the boot layer or which custom module layer?
+7. Does the application need to iterate all providers, select one provider, or run them as a pipeline?
+8. If selecting one provider, which priority, ID, or configuration decides the result?
+9. If two providers share the same priority or no provider exists, how does the application handle it?
 
-Khi phân biệt được khai báo provider, cơ chế khám phá của `ServiceLoader` và chính sách lựa chọn của ứng dụng, bạn có thể mở rộng hệ thống bằng nhiều implementation mà vẫn giữ consumer ít phụ thuộc và hành vi lựa chọn rõ ràng.
+By distinguishing provider declarations, `ServiceLoader`'s discovery mechanism, and the application's selection policy, you can extend a system with multiple implementations while keeping consumers loosely coupled and selection behavior explicit.

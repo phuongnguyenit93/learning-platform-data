@@ -1,52 +1,52 @@
-# Kiểm thử thứ tự, phần tử cực trị và kết quả `Optional`
+# Testing Ordering, Extreme Elements, and `Optional` Results
 
-> **Chương:** Gỡ lỗi và kiểm thử pipeline  
-> **Module:** `JAVA_STREAM_API` — học xử lý dữ liệu khai báo bằng Java Stream API qua pipeline lazy, `filter`, `map`, `reduce`, `collect`; thực hành grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers, đồng thời nhận diện các giới hạn về trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Debugging and Testing Pipelines  
+> **Module:** `JAVA_STREAM_API` — learning declarative data processing with the Java Stream API through lazy pipelines, `filter`, `map`, `reduce`, and `collect`; practicing grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers while recognizing state, resource, and performance limits.
 
-Một pipeline Stream có thể trả **đúng số lượng phần tử nhưng sai thứ tự**, tìm được **điểm cao nhất nhưng chọn sai bản ghi khi đồng hạng**, hoặc chạy tốt với nguồn có dữ liệu nhưng ném ngoại lệ khi kết quả là `Optional.empty()`. Vì thế, kiểm thử Java Stream không chỉ là so sánh một danh sách được in ra; nó phải xác nhận **ngữ nghĩa đã cam kết** của từng thao tác.
+A Stream pipeline can return **the right element count in the wrong order**, find **the highest score while picking the wrong record on a tie**, or pass on populated inputs yet throw an exception when the result is `Optional.empty()`. Therefore, testing Java Streams goes beyond checking a printed list; it must verify the **committed semantics** of each operation.
 
-Bài này tập trung vào ba nhóm kiểm thử: **thứ tự gặp phần tử (encounter order)**, **phần tử cực trị `min`/`max`**, và **kết quả có thể vắng mặt của `Optional`**. Ta xây dựng một bộ dữ liệu có điểm đồng hạng và bản ghi bị lọc, viết phép kiểm tra độc lập với thứ tự lập lịch của luồng, rồi đối chiếu giữa Stream tuần tự và song song.
+This lesson focuses on three testing areas: **encounter order**, **extreme elements `min`/`max`**, and **potentially absent `Optional` results**. We will build a dataset with tied scores and filtered-out records, write assertions independent of thread scheduling, and compare sequential and parallel Streams.
 
-Mọi đoạn mã chạy độc lập trong bài dùng **Java 17 trở lên**. Không cần bật preview feature hoặc thêm thư viện ngoài JDK.
+All standalone code in this lesson uses **Java 17 or higher**. No preview features or external libraries beyond the JDK are needed.
 
-## 1. Xác định hợp đồng kiểm thử trước khi viết mã
+## 1. Define the Test Contract Before Writing Code
 
-Giả sử hệ thống quản lý các phiếu đánh giá có:
+Suppose the system manages evaluation tickets with:
 
-| Mã phiếu | Điểm | Còn hiệu lực? | Ý nghĩa |
+| Ticket ID | Score | Active? | Role |
 | --- | ---: | --- | --- |
-| `T-01` | 80 | Có | Phiếu đầu tiên trong danh sách nguồn. |
-| `T-02` | 95 | Có | Đồng điểm cao nhất với `T-03`. |
-| `T-03` | 95 | Có | Dùng để kiểm thử phá hòa. |
-| `T-04` | 65 | Có | Đồng điểm thấp nhất còn hiệu lực với `T-06`. |
-| `T-05` | 40 | Không | Phải bị loại trước khi tìm cực trị. |
-| `T-06` | 65 | Có | Dùng để kiểm thử phá hòa ở mức điểm thấp. |
+| `T-01` | 80 | Yes | First ticket in the source list. |
+| `T-02` | 95 | Yes | Tied for highest score with `T-03`. |
+| `T-03` | 95 | Yes | Used to test tie-breaking. |
+| `T-04` | 65 | Yes | Tied for lowest active score with `T-06`. |
+| `T-05` | 40 | No | Must be excluded before finding extremes. |
+| `T-06` | 65 | Yes | Used to test tie-breaking at the low score. |
 
-Các quy tắc của báo cáo:
+Report rules:
 
-1. Chỉ xử lý bản ghi có `active == true`.
-2. Danh sách phiếu giữ nguyên **thứ tự xuất hiện trong nguồn** nếu pipeline chỉ `filter` và `map`.
-3. Danh sách xếp hạng có thứ tự **điểm giảm dần, mã phiếu tăng dần**; cùng điểm phải có kết quả xác định.
-4. Phiếu **thấp điểm nhất**: điểm tăng dần, nếu đồng điểm chọn mã tăng dần.
-5. Phiếu **cao điểm nhất**: điểm giảm dần, nếu đồng điểm chọn mã tăng dần.
-6. Nếu sau lọc không còn phiếu nào, `findFirst`, `findAny`, `min` và `max` đều trả `Optional.empty()`, không tự tạo một đối tượng giả.
+1. Process only records with `active == true`.
+2. Ticket list preserves **source appearance order** when the pipeline only uses `filter` and `map`.
+3. Ranking list is ordered by **score descending, ticket ID ascending**; tied scores must produce a deterministic result.
+4. **Lowest-scoring** ticket: score ascending, breaking ties by ID ascending.
+5. **Highest-scoring** ticket: score descending, breaking ties by ID ascending.
+6. If no tickets remain after filtering, `findFirst`, `findAny`, `min`, and `max` all return `Optional.empty()`, never synthesizing a fake object.
 
-Với dữ liệu ở bảng, kết quả kỳ vọng là:
+For the table above, expected results are:
 
 ```text
-Thứ tự phiếu còn hiệu lực: [T-01, T-02, T-03, T-04, T-06]
-Xếp hạng (điểm DESC, mã ASC): [T-02, T-03, T-01, T-04, T-06]
+Active tickets order: [T-01, T-02, T-03, T-04, T-06]
+Ranking (score DESC, id ASC): [T-02, T-03, T-01, T-04, T-06]
 findFirst: T-01
-Phiếu có điểm thấp nhất: T-04 (65)
-Phiếu có điểm cao nhất:   T-02 (95)
-Điểm min / max: 65 / 95
+Lowest-scoring ticket:  T-04 (65)
+Highest-scoring ticket: T-02 (95)
+Min / max score: 65 / 95
 ```
 
-**Đừng dùng một tiêu chí kiểm thử cho mọi thao tác.** Một kết quả `findAny` có thể là **bất kỳ** phiếu còn hiệu lực, còn `findFirst` phải là `T-01` đối với nguồn `List` có thứ tự. Sự khác biệt này là hợp đồng API, không phải lỗi.
+**Do not apply a single test criterion to every operation.** A `findAny` result may be **any** active ticket, whereas `findFirst` must be `T-01` on an ordered `List` source. That difference is part of the API contract, not a bug.
 
-## 2. Kiểm thử thứ tự: `filter`, `map`, `toList`
+## 2. Testing Order: `filter`, `map`, `toList`
 
-Với `List`, Stream có **encounter order** theo thứ tự phần tử của danh sách. Các thao tác `filter` và `map` thông thường không thay đổi thứ tự của các phần tử còn lại.
+With a `List`, a Stream has an **encounter order** matching the list's element order. Standard `filter` and `map` operations do not alter the relative order of remaining elements.
 
 ```java
 import java.util.List;
@@ -71,22 +71,22 @@ System.out.println(activeIds);
 // [T-01, T-02, T-03, T-04, T-06]
 ```
 
-Kiểm thử **thứ tự** nên so sánh danh sách đầy đủ:
+Testing **order** should compare the full list:
 
 ```java
 List<String> expected = List.of(
         "T-01", "T-02", "T-03", "T-04", "T-06");
 
 if (!activeIds.equals(expected)) {
-    throw new AssertionError("Sai thứ tự phần tử");
+    throw new AssertionError("Wrong element order");
 }
 ```
 
-Chỉ kiểm `activeIds.size() == 5` là chưa đủ: một pipeline vô tình `sorted()` cũng có thể trả năm phần tử nhưng vi phạm yêu cầu giữ thứ tự đầu vào.
+Checking only `activeIds.size() == 5` is insufficient: a pipeline that accidentally calls `sorted()` would also return five elements while violating the input-order requirement.
 
-### Thứ tự phần tử khác thứ tự gọi callback
+### Element order differs from callback invocation order
 
-Ví dụ:
+Example:
 
 ```java
 List<String> parallelIds = tickets.parallelStream()
@@ -98,13 +98,13 @@ System.out.println(parallelIds);
 // [T-01, T-02, T-03, T-04, T-06]
 ```
 
-Với nguồn `List` có thứ tự và pipeline không bỏ encounter order, `Stream.toList()` giữ thứ tự kết quả, kể cả ở chế độ song song. Điều này **không** có nghĩa các lời gọi `map` của từng phần tử sẽ chạy theo đúng thứ tự ấy hoặc trên cùng một thread.
+With an ordered `List` source and a pipeline that preserves encounter order, `Stream.toList()` preserves the output order, even in parallel mode. This does **not** mean `map` calls for individual elements execute in that exact order or on the same thread.
 
-Tránh đưa side effect bắt buộc vào `map`, `filter` hoặc `peek` rồi kiểm thử bằng thứ tự in log: có những pipeline có thể tối ưu bỏ qua bước trung gian hoặc ngắn mạch. Hãy kiểm tra **giá trị đầu ra**, không phụ thuộc dấu vết lập lịch.
+Avoid placing mandatory side effects inside `map`, `filter`, or `peek` and testing via log order: pipelines can optimize away intermediate steps or short-circuit. Assert **output values**, never scheduling traces.
 
-## 3. `findFirst` và `findAny`: kiểm thử hai hợp đồng khác nhau
+## 3. `findFirst` and `findAny`: Testing Two Different Contracts
 
-`findFirst()` lấy phần tử đầu tiên **theo encounter order** nếu nguồn có thứ tự. `findAny()` được phép trả **một phần tử bất kỳ**, nhằm tạo thêm lựa chọn tối ưu, nhất là khi chạy song song.
+`findFirst()` returns the first element **in encounter order** if the source is ordered. `findAny()` is allowed to return **any matching element**, giving the runtime freedom to optimize, especially in parallel.
 
 ```java
 import java.util.Optional;
@@ -118,34 +118,34 @@ Optional<Ticket> any = tickets.parallelStream()
         .findAny();
 
 System.out.println(first.map(Ticket::id).orElse("NONE")); // T-01
-// Không cam kết any là T-01 hay một mã cụ thể.
+// No guarantee that any is T-01 or any specific ID.
 ```
 
-Kiểm thử đúng:
+Proper test assertions:
 
 ```java
-// findFirst có expected value cụ thể vì nguồn List có thứ tự.
-check(first.isPresent(), "Phải có phiếu còn hiệu lực");
-check(first.orElseThrow().id().equals("T-01"), "findFirst sai");
+// findFirst has a specific expected value because the List source is ordered.
+check(first.isPresent(), "Must have an active ticket");
+check(first.orElseThrow().id().equals("T-01"), "Wrong findFirst");
 
-// findAny chỉ cần là một phần tử đáp ứng predicate.
-check(any.isPresent(), "findAny không được rỗng ở nguồn này");
-check(any.orElseThrow().active(), "findAny trả phiếu không hợp lệ");
+// findAny only needs to be some element satisfying the predicate.
+check(any.isPresent(), "findAny must not be empty on this source");
+check(any.orElseThrow().active(), "findAny returned inactive ticket");
 check(activeIds.contains(any.orElseThrow().id()),
-        "findAny trả phiếu ngoài tập phù hợp");
+        "findAny returned a ticket outside the matching set");
 ```
 
-`check(...)` là một hàm kiểm tra sẽ được định nghĩa trong chương trình hoàn chỉnh ở mục 7; đoạn trên minh họa cách viết điều kiện kiểm thử.
+`check(...)` is a helper method defined in the complete program in Section 7; the snippet above illustrates how to phrase assertions.
 
-**Không nên viết** `check(any.orElseThrow().id().equals("T-01"))`: điều này biến một lựa chọn thường gặp của implementation thành điều kiện bắt buộc, gây test chập chờn hoặc sai đặc tả.
+**Do not write** `check(any.orElseThrow().id().equals("T-01"))`: that turns a common implementation coincidence into a strict requirement, creating flaky tests or breaking the spec.
 
-Nếu nguồn bị gắn `unordered()` hoặc vốn không có encounter order, `findFirst` không thể khẳng định là phần tử “đầu” theo quy tắc thứ tự của ứng dụng. Khi thật sự cần “đầu tiên theo thời gian”, hãy **sắp xếp theo timestamp và khóa phá hòa** hoặc dùng một nguồn có thứ tự đã được xác định.
+If the source is marked `unordered()` or inherently lacks an encounter order, `findFirst` cannot guarantee the "first" element under application ordering rules. When you genuinely need "earliest by timestamp," **sort by timestamp plus a tie-breaker** or use a source with a defined order.
 
-## 4. Kiểm thử `min`, `max` với điểm đồng hạng
+## 4. Testing `min` and `max` with Tied Scores
 
-`Stream.min(comparator)` và `Stream.max(comparator)` trả `Optional<T>`. Khi **nhiều phần tử được comparator xem là bằng nhau**, chỉ kiểm tra điểm số vẫn chưa chứng minh rằng bản ghi được chọn đúng theo quy tắc nghiệp vụ.
+`Stream.min(comparator)` and `Stream.max(comparator)` return `Optional<T>`. When **multiple elements compare equal under the comparator**, checking only the score does not prove the right record was chosen according to business rules.
 
-Giả sử chỉ so điểm:
+Suppose you compare by score alone:
 
 ```java
 import java.util.Comparator;
@@ -156,15 +156,15 @@ Optional<Ticket> highestScore = tickets.stream()
         .filter(Ticket::active)
         .max(byScore);
 
-check(highestScore.isPresent(), "Không có điểm cao nhất");
-check(highestScore.orElseThrow().score() == 95, "Sai điểm max");
+check(highestScore.isPresent(), "No highest score found");
+check(highestScore.orElseThrow().score() == 95, "Wrong max score");
 ```
 
-Ở đây `T-02` và `T-03` đều có điểm 95. Nếu comparator chỉ xét điểm, hai phiếu **so sánh bằng nhau**, nên không được coi việc nhận đúng một trong hai ID là hợp đồng có thể giữ ổn định khi đổi cách chia hoặc thứ tự nguồn.
+Here `T-02` and `T-03` both have score 95. If the comparator inspects only score, the two tickets **compare equal**, so getting one specific ID cannot be treated as a contract that holds across splitting strategies or input reorderings.
 
-### Đặt tiêu chí phá hòa rõ ràng
+### Specify an explicit tie-breaker
 
-Với **điểm thấp nhất** và yêu cầu mã tăng dần khi đồng điểm:
+For **lowest score** with ascending ID on ties:
 
 ```java
 Comparator<Ticket> minOrder = Comparator
@@ -179,7 +179,7 @@ Ticket lowest = tickets.stream()
 System.out.println(lowest.id()); // T-04
 ```
 
-Với **điểm cao nhất** và cũng muốn mã tăng dần khi đồng điểm, `max` phải ưu tiên **mã nhỏ hơn** trong các phiếu cùng điểm. Một cách diễn đạt là đảo comparator ở tiêu chí phụ:
+For **highest score** when you also want ascending ID on ties, `max` must prefer **the smaller ID** among equal-scoring tickets. One way to express this is reversing the secondary comparator:
 
 ```java
 Comparator<Ticket> maxOrder = Comparator
@@ -194,13 +194,13 @@ Ticket highest = tickets.stream()
 System.out.println(highest.id()); // T-02
 ```
 
-Lý do: `max` chọn phần tử được comparator xem là “lớn nhất”. Khi điểm cùng là 95, `Comparator.reverseOrder()` khiến mã `"T-02"` được ưu tiên hơn `"T-03"` theo thứ tự chọn cực đại.
+Reason: `max` picks the element considered "greatest" by the comparator. At score 95, `Comparator.reverseOrder()` makes `"T-02"` compare greater than `"T-03"` for maximum selection.
 
-Đừng viết `Comparator.comparingInt(Ticket::score).thenComparing(Ticket::id)` rồi gọi `max` và **mong chọn mã nhỏ nhất**: comparator đó sẽ ưu tiên mã **lớn nhất** khi điểm bằng nhau.
+Do not write `Comparator.comparingInt(Ticket::score).thenComparing(Ticket::id)` and call `max` **expecting the smallest ID**: that comparator selects the **largest** ID when scores tie.
 
-### Dùng `sorted(...).findFirst()` để đọc đúng thứ tự xếp hạng
+### Using `sorted(...).findFirst()` to follow ranking order directly
 
-Khi đã có một quy tắc xếp hạng **điểm giảm dần, mã tăng dần**, có thể viết:
+Once you have a ranking rule **score descending, ID ascending**, you can write:
 
 ```java
 Comparator<Ticket> ranking = Comparator
@@ -218,46 +218,46 @@ System.out.println(rankingIds);
 // [T-02, T-03, T-01, T-04, T-06]
 ```
 
-`sorted(ranking).findFirst()` sẽ chọn `T-02`, giống kết quả `max(maxOrder)` với dữ liệu trên. Tuy nhiên, nếu chỉ cần **một cực trị**, `min`/`max` thường phù hợp hơn vì không cần sắp xếp toàn bộ dữ liệu như `sorted`.
+`sorted(ranking).findFirst()` selects `T-02`, matching `max(maxOrder)` on this data. However, if you only need **a single extreme element**, `min`/`max` is usually better because it avoids sorting the entire stream like `sorted` does.
 
-## 5. Kiểm thử cực trị phải loại dữ liệu không hợp lệ trước
+## 5. Testing Extremes Must Filter Invalid Data First
 
-Dòng `T-05` có điểm 40 nhưng không còn hiệu lực. Vì vậy:
+Row `T-05` has score 40 but is inactive. Therefore:
 
 ```java
 int allMin = tickets.stream()
         .mapToInt(Ticket::score)
         .min()
         .orElseThrow();
-// 40 — không đúng nếu bài toán chỉ xét phiếu active.
+// 40 — wrong if the problem considers only active tickets.
 
 int activeMin = tickets.stream()
         .filter(Ticket::active)
         .mapToInt(Ticket::score)
         .min()
         .orElseThrow();
-// 65 — đúng theo yêu cầu.
+// 65 — right per requirement.
 ```
 
-Khi kiểm thử, cần có ít nhất **một bản ghi bị lọc mà nếu quên lọc sẽ thay đổi kết quả**. Nếu dữ liệu test toàn là `active == true`, cả phiên bản đúng và phiên bản quên `filter` đều có thể vượt qua kiểm thử.
+When testing, include at least **one filtered-out record that would change the result if filtering were forgotten**. If test data has only `active == true`, both the fixed version and a buggy version missing `filter` will pass.
 
-Tương tự, có thể thử nguồn chứa **hai giá trị cực trị cùng điểm** để bắt lỗi thiếu tie-break. Các test phải được thiết kế để phân biệt mã đúng với mã sai, không chỉ để có vài con số đẹp.
+Similarly, test sources containing **two tied extreme values** to catch missing tie-breakers. Tests should be crafted to separate correct code from buggy code, not just produce nice numbers.
 
-## 6. `Optional<T>` và `OptionalInt`: kiểm thử cả trường hợp vắng mặt
+## 6. `Optional<T>` and `OptionalInt`: Test the Absent Branch Too
 
-Các thao tác sau có thể không tìm thấy kết quả:
+The following operations may yield no result:
 
-| Thao tác | Kiểu kết quả | Khi nào rỗng? |
+| Operation | Result type | When is it empty? |
 | --- | --- | --- |
-| `stream.findFirst()` | `Optional<T>` | Stream sau lọc không có phần tử. |
-| `stream.findAny()` | `Optional<T>` | Stream không có phần tử. |
-| `stream.min(comparator)` | `Optional<T>` | Không có phần tử để so sánh. |
-| `stream.max(comparator)` | `Optional<T>` | Không có phần tử để so sánh. |
-| `intStream.min()` | `OptionalInt` | Không có giá trị `int`. |
-| `intStream.max()` | `OptionalInt` | Không có giá trị `int`. |
-| `longStream.average()` | `OptionalDouble` | Không có phần tử để lấy trung bình. |
+| `stream.findFirst()` | `Optional<T>` | Stream has no elements after filtering. |
+| `stream.findAny()` | `Optional<T>` | Stream has no elements. |
+| `stream.min(comparator)` | `Optional<T>` | No elements to compare. |
+| `stream.max(comparator)` | `Optional<T>` | No elements to compare. |
+| `intStream.min()` | `OptionalInt` | No `int` values. |
+| `intStream.max()` | `OptionalInt` | No `int` values. |
+| `longStream.average()` | `OptionalDouble` | No elements to average. |
 
-Ví dụ nguồn có dữ liệu, nhưng **sau lọc rỗng**:
+Example with non-empty source that becomes **empty after filtering**:
 
 ```java
 Optional<Ticket> none = tickets.stream()
@@ -265,35 +265,35 @@ Optional<Ticket> none = tickets.stream()
         .filter(t -> t.score() > 100)
         .findFirst();
 
-check(none.isEmpty(), "Không thể có điểm > 100");
+check(none.isEmpty(), "No score > 100 can exist");
 ```
 
-### `orElse`, `orElseGet` và `orElseThrow`
+### `orElse`, `orElseGet`, and `orElseThrow`
 
 ```java
-String label = none.map(Ticket::id).orElse("(không có)");
-System.out.println(label); // (không có)
+String label = none.map(Ticket::id).orElse("(none)");
+System.out.println(label); // (none)
 
 Ticket fallback = none.orElseGet(
         () -> new Ticket("NONE", 0, false));
 System.out.println(fallback.id()); // NONE
 ```
 
-`orElse(defaultValue)` nhận giá trị đã được tính khi gọi phương thức, trong khi `orElseGet(supplier)` chỉ gọi supplier khi `Optional` rỗng. Điều này đáng kiểm thử nếu việc tạo giá trị mặc định đắt tiền hoặc có side effect.
+`orElse(defaultValue)` eagerly evaluates its argument when called, whereas `orElseGet(supplier)` invokes the supplier only if the `Optional` is empty. That distinction is worth testing when creating the fallback is expensive or has side effects.
 
-Khi **không có kết quả là lỗi nghiệp vụ**, dùng:
+When **absence is a business error**, use:
 
 ```java
 Ticket required = tickets.stream()
         .filter(t -> t.active() && t.id().equals("T-02"))
         .findFirst()
         .orElseThrow(() ->
-                new IllegalStateException("Không tìm thấy phiếu T-02"));
+                new IllegalStateException("Ticket T-02 not found"));
 ```
 
-Không gọi `get()` hoặc `getAsInt()` trên một `Optional` chưa kiểm tra chỉ vì dữ liệu mẫu hiện có phần tử. Cần có test cho **nguồn rỗng** và **nguồn sau lọc rỗng**.
+Never call `get()` or `getAsInt()` on an unchecked `Optional` just because your sample dataset happens to be non-empty. Include tests for both **an empty source** and **a source emptied by filters**.
 
-### `OptionalInt` không phải `Optional<Integer>`
+### `OptionalInt` is not `Optional<Integer>`
 
 ```java
 import java.util.OptionalInt;
@@ -314,11 +314,11 @@ System.out.println(absent.isEmpty());   // true
 System.out.println(absent.orElse(-1));  // -1
 ```
 
-Giá trị `-1` ở đây chỉ là **chính sách mặc định của ví dụ**, không phải giá trị `max` mà Java tự trả khi rỗng. Trong một hệ thống chỉ cho điểm 0–100, `-1` có thể được dùng để hiển thị “không có dữ liệu”; với nghiệp vụ khác, nên giữ `OptionalInt` hoặc dùng thông báo riêng.
+The value `-1` here is merely **this example's fallback policy**, not a default `max` returned automatically by Java when empty. In a system where valid scores are 0–100, `-1` may serve as a "no data" sentinel; in other domains, keep `OptionalInt` or return a dedicated message.
 
-## 7. Chương trình Java 17+ hoàn chỉnh với bộ kiểm thử
+## 7. Complete Java 17+ Program with Test Suite
 
-Lưu mã sau thành `StreamOrderingOptionalTests.java`. Chương trình sử dụng `record`, `List.of`, `Stream.toList` và `Optional.isEmpty`, đều có trong Java 17. Mỗi ca kiểm thử có điều kiện cụ thể và ném `AssertionError` khi sai, nên **không cần bật `-ea`**.
+Save the following code as `StreamOrderingOptionalTests.java`. It uses `record`, `List.of`, `Stream.toList`, and `Optional.isEmpty`, all standard in Java 17. Each test throws `AssertionError` explicitly on failure, so **`-ea` does not need to be enabled**.
 
 ```java
 import java.util.ArrayList;
@@ -346,18 +346,18 @@ public class StreamOrderingOptionalTests {
         }
     }
 
-    // Xếp hạng: điểm giảm dần, mã tăng dần.
+    // Ranking: score descending, ID ascending.
     private static final Comparator<Ticket> RANK_ORDER =
             Comparator.comparingInt(Ticket::score)
                     .reversed()
                     .thenComparing(Ticket::id);
 
-    // min: điểm thấp nhất; cùng điểm chọn mã nhỏ nhất.
+    // min: lowest score; smallest ID on ties.
     private static final Comparator<Ticket> MIN_ORDER =
             Comparator.comparingInt(Ticket::score)
                     .thenComparing(Ticket::id);
 
-    // max: điểm cao nhất; cùng điểm chọn mã nhỏ nhất.
+    // max: highest score; smallest ID on ties.
     private static final Comparator<Ticket> MAX_ORDER =
             Comparator.comparingInt(Ticket::score)
                     .thenComparing(Ticket::id, Comparator.reverseOrder());
@@ -421,7 +421,7 @@ public class StreamOrderingOptionalTests {
             check(any.orElseThrow().active(), "findAny trả phiếu inactive");
             check(expected.contains(any.orElseThrow().id()),
                     "findAny nằm ngoài tập đầu vào hợp lệ");
-            // Tuyệt đối không ép findAny phải bằng T-01.
+            // Never require findAny to equal T-01.
         }
     }
 
@@ -447,8 +447,8 @@ public class StreamOrderingOptionalTests {
             check(maxScore.orElse(-1) == 95, "Sai OptionalInt max");
         }
 
-        // Nếu comparator chỉ xét điểm, ID của phiếu đồng hạng
-        // không phải phần ta được phép khẳng định.
+        // If the comparator only checks score, the tied ticket's ID
+        // is not something we are allowed to assert.
         Ticket tied = data.stream()
                 .filter(Ticket::active)
                 .max(Comparator.comparingInt(Ticket::score))
@@ -480,20 +480,20 @@ public class StreamOrderingOptionalTests {
         check(noScore.isEmpty(), "Nguồn rỗng có OptionalInt max");
         check(noScore.orElse(-1) == -1, "Sai giá trị mặc định");
 
-        // Nguồn không rỗng nhưng đã bị filter loại hết.
+        // Non-empty source completely emptied by filter.
         List<Ticket> onlyInactive =
                 List.of(new Ticket("T-X", 0, false));
         check(active(onlyInactive, true).findFirst().isEmpty(),
                 "Nguồn bị lọc hết mà vẫn có phiếu");
 
-        // Optional.stream() tạo 0 hoặc 1 phần tử để xử lý tiếp.
+        // Optional.stream() yields 0 or 1 element for downstream processing.
         check(none.stream().map(Ticket::id).toList().isEmpty(),
                 "Optional rỗng phải cho Stream rỗng");
         check(active(source, false).min(MIN_ORDER)
                 .stream().map(Ticket::id).toList()
                 .equals(List.of("T-04")), "Optional có giá trị");
 
-        // orElseGet chỉ chạy supplier khi Optional rỗng.
+        // orElseGet invokes the supplier only when Optional is empty.
         AtomicInteger fallbackCalls = new AtomicInteger();
         Ticket present = active(source, false).findFirst()
                 .orElseGet(() -> {
@@ -523,13 +523,13 @@ public class StreamOrderingOptionalTests {
         List<Ticket> reversed = new ArrayList<>(fixture());
         Collections.reverse(reversed);
 
-        // Gặp phần tử đầu tiên phụ thuộc encounter order.
+        // First encountered element depends on encounter order.
         check(active(reversed, false).findFirst()
                 .orElseThrow().id().equals("T-06"),
                 "Đảo nguồn phải đổi findFirst");
 
-        // Các quy tắc xếp hạng và cực trị có phá hòa
-        // không được phụ thuộc vị trí đầu vào.
+        // Ranking and tie-broken extremes must not depend
+        // on input element positions.
         List<String> expectedRanking = List.of(
                 "T-02", "T-03", "T-01", "T-04", "T-06");
         for (boolean parallel : new boolean[] {false, true}) {
@@ -561,14 +561,14 @@ public class StreamOrderingOptionalTests {
 }
 ```
 
-Để thực hành trên máy có JDK 17 trở lên:
+To practice on a machine with JDK 17 or higher:
 
 ```text
 javac StreamOrderingOptionalTests.java
 java StreamOrderingOptionalTests
 ```
 
-Đầu ra kỳ vọng:
+Expected output:
 
 ```text
 Thứ tự active: [T-01, T-02, T-03, T-04, T-06]
@@ -577,76 +577,76 @@ Phiếu cao nhất: T-02
 ALL STREAM TESTS PASS
 ```
 
-Đây là mã minh họa và bộ kiểm thử tự chứa cho người học; **không đồng nghĩa chương trình đã được biên dịch hoặc chạy** trong bước biên soạn Markdown. Kiểm thử trong `main` dùng `AssertionError` để thất bại rõ ràng, thay vì phụ thuộc cấu hình `assert` của JVM.
+This is a self-contained illustrative program and test suite for learners; **it does not claim the program was compiled or executed** during Markdown authoring. Checks in `main` throw `AssertionError` explicitly so failures surface without depending on the JVM's `-ea` setting.
 
-## 8. Ma trận trường hợp biên cần kiểm thử
+## 8. Matrix of Boundary Cases to Test
 
-| Nhóm | Tình huống | Kết luận đúng |
+| Category | Scenario | Correct conclusion |
 | --- | --- | --- |
-| Encounter order | Nguồn `List`, `filter` rồi `map` | `toList()` giữ thứ tự của các phần tử còn lại. |
-| Song song | Cùng nguồn `List`, `parallelStream().toList()` | Thứ tự **kết quả** giữ encounter order, không cam kết thứ tự chạy lambda. |
-| `findFirst` | `List` có phần tử hợp lệ | Đúng phần tử đầu theo thứ tự nguồn. |
-| `findAny` | Cùng dữ liệu, nhất là parallel | Kết quả thuộc tập thỏa predicate; không ép một ID cố định. |
-| `min`/`max` | Có hai phần tử đồng điểm | Phải kiểm quy tắc phá hòa nếu nghiệp vụ yêu cầu một ID cụ thể. |
-| Lọc trước cực trị | Bản ghi inactive có điểm nhỏ hơn active | `min` chỉ xét những bản ghi hợp lệ. |
-| Nguồn rỗng | Không có phần tử | `findFirst`, `findAny`, `min`, `max` trả `Optional.empty()`. |
-| Sau lọc rỗng | Nguồn ban đầu không rỗng | Kết quả tìm kiếm và cực trị vẫn là Optional rỗng. |
-| Primitive | `IntStream.max()` với nguồn rỗng | `OptionalInt.empty()`, không có `0` hay `-1` mặc định. |
-| `orElseGet` | Optional có sẵn giá trị | Supplier không được gọi. |
-| Đảo thứ tự nguồn | Đảo `List` | `findFirst` có thể đổi; ranking và cực trị có tie-break phải giữ quy tắc. |
-| Map/Set unordered | Nguồn không có encounter order | Không kiểm một thứ tự duyệt cố định khi API không cam kết. |
+| Encounter order | `List` source, `filter` then `map` | `toList()` preserves the order of remaining elements. |
+| Parallel | Same `List` source, `parallelStream().toList()` | **Output** order preserves encounter order; lambda execution order is unguaranteed. |
+| `findFirst` | `List` with matching elements | Exact first element in source order. |
+| `findAny` | Same data, especially parallel | Result belongs to the predicate-matching set; do not force a fixed ID. |
+| `min`/`max` | Two tied elements | Must test tie-breaking rules if business requires a specific ID. |
+| Filter before extreme | Inactive record has smaller score than active ones | `min` considers only valid records. |
+| Empty source | Zero elements | `findFirst`, `findAny`, `min`, `max` return `Optional.empty()`. |
+| Empty after filter | Source initially non-empty | Search and extreme results are still empty `Optional`s. |
+| Primitive | `IntStream.max()` on empty source | `OptionalInt.empty()`, never a default `0` or `-1`. |
+| `orElseGet` | Optional already has a value | Supplier is never invoked. |
+| Reversed source | Reversed `List` | `findFirst` may change; tie-broken ranking and extremes must keep their rule. |
+| Unordered Map/Set | Source without encounter order | Do not assert a fixed traversal order when the API promises none. |
 
-**Một nguyên tắc quan trọng:** các khẳng định trong bộ kiểm thử phải xuất phát từ yêu cầu thật, không xuất phát từ một lần chạy quan sát được. Ví dụ, không chụp đầu ra `parallelStream().forEach(System.out::println)` làm snapshot rồi đòi tất cả lần chạy tiếp theo phải in theo đúng lịch đó.
+**Key principle:** assertions in a test suite must come from real requirements, not from a single observed run. For instance, never snapshot `parallelStream().forEach(System.out::println)` output and demand all subsequent runs print in that exact schedule.
 
-## 9. Kiểm thử bất biến theo hoán vị và tính xác định
+## 9. Permutation Invariance Testing and Determinism
 
-Khi mục tiêu là “chọn phiếu có điểm cao nhất, phá hòa bằng mã nhỏ nhất”, kết quả **không được đổi** nếu chỉ đảo vị trí các bản ghi trong danh sách. Đây là một phép **kiểm thử bất biến theo hoán vị** (*metamorphic testing*).
+When the goal is "pick the highest-scoring ticket, breaking ties by smallest ID," the result **must not change** if you merely reverse records in the list. This is a **permutation invariance test** (*metamorphic testing*).
 
 ```text
-Nguồn A: T-01, T-02, T-03, T-04, T-05, T-06
-Nguồn B: T-06, T-05, T-04, T-03, T-02, T-01
+Source A: T-01, T-02, T-03, T-04, T-05, T-06
+Source B: T-06, T-05, T-04, T-03, T-02, T-01
 
-max với tie-break:       T-02 ở cả hai nguồn
-min với tie-break:       T-04 ở cả hai nguồn
-ranking có tie-break:    cùng danh sách sắp xếp
-findFirst:               T-01 ở A, T-06 ở B
+max with tie-break:       T-02 on both sources
+min with tie-break:       T-04 on both sources
+ranking with tie-break:   same sorted list
+findFirst:                T-01 on A, T-06 on B
 ```
 
-Đây là bốn phát biểu **khác nhau**. Nếu viết test `findFirst(A) == findFirst(B)`, test đã nhầm ngữ nghĩa nguồn; nếu viết test “max trả bất kỳ phiếu 95 điểm” trong khi hợp đồng bắt buộc ưu tiên ID nhỏ nhất, test lại **quá yếu**.
+These are four **distinct** statements. Asserting `findFirst(A) == findFirst(B)` misunderstands source semantics; asserting "max returns any 95-point ticket" when the contract mandates smallest ID makes the test **too weak**.
 
-### Kiểm thử một quy tắc tổng thứ tự
+### Testing a total-order rule
 
-Để kết quả ranking xác định, comparator nên phân biệt được những trường hợp cần phân biệt. Trong dữ liệu mẫu, `score` và `id` tạo thứ tự có phá hòa. Nếu hai bản ghi có cùng cả `score` và `id` nhưng lại là hai đối tượng khác nhau về thuộc tính quan trọng khác, comparator vẫn xem chúng tương đương.
+For ranking output to be deterministic, the comparator should distinguish all cases that matter. In the sample data, `score` and `id` define a tie-broken order. If two records have both the same `score` and the same `id` yet differ in another important attribute, the comparator still treats them as equal.
 
-Khi đó cần xác định rõ:
+In that case, clarify:
 
-- Hai bản ghi cùng ID có được phép tồn tại không?
-- Nếu có, thuộc tính nào quyết định thứ tự giữa chúng?
-- Trường hợp comparator trả `0` có nghĩa hai bản ghi **tương đương theo nghiệp vụ**, hay chỉ do thiếu tiêu chí phụ?
+- Are two records with the same ID allowed to exist?
+- If so, which attribute determines their relative order?
+- When the comparator returns `0`, does that mean the two records are **business-equivalent**, or simply missing a tie-breaker?
 
-Không thêm `thenComparing` ngẫu nhiên chỉ để làm kết quả có vẻ ổn định. Tie-break phải phản ánh quy tắc nghiệp vụ hoặc một khóa định danh ổn định.
+Never tack on arbitrary `thenComparing` clauses just to make output look stable. Tie-breakers must reflect a real business rule or stable identifier.
 
-## 10. Khi nào không nên kiểm một thứ tự cụ thể?
+## 10. When Should You Avoid Asserting a Specific Order?
 
-### `forEach` trên parallel stream
+### `forEach` on a parallel stream
 
 ```java
 List.of("A", "B", "C").parallelStream()
         .forEach(System.out::print);
 ```
 
-Không được khẳng định kết quả console luôn là `ABC`. `forEach` không cam kết encounter order trong pipeline song song.
+Never assert that console output is always `ABC`. `forEach` makes no encounter-order guarantee on parallel pipelines.
 
-Nếu phải bảo đảm thứ tự tiêu thụ:
+When consumption order must be preserved:
 
 ```java
 List.of("A", "B", "C").parallelStream()
         .forEachOrdered(System.out::print); // ABC
 ```
 
-`forEachOrdered` giữ thứ tự khi nguồn có encounter order, nhưng không có nghĩa mọi phần tử được tính toán trước đó đều tuần tự. Khi cần kiểm thử dữ liệu, ưu tiên một **giá trị trả về** như `toList()` thay vì kiểm thứ tự in log.
+`forEachOrdered` preserves order when the source has encounter order, though earlier computation steps still need not run sequentially. When testing data, prefer a **returned value** like `toList()` over asserting console print order.
 
-### `unordered()` và nguồn không có thứ tự
+### `unordered()` and unordered sources
 
 ```java
 List<String> result = List.of("C", "A", "B").stream()
@@ -654,33 +654,33 @@ List<String> result = List.of("C", "A", "B").stream()
         .toList();
 ```
 
-`unordered()` cho phép bỏ ràng buộc encounter order; đừng khẳng định kết quả luôn ở cùng một thứ tự, kể cả khi một số lần chạy thực tế vẫn trả `[C, A, B]`. Với nguồn `HashSet`, thứ tự duyệt cũng không phải hợp đồng có thể dùng làm tiêu chí nghiệp vụ.
+`unordered()` allows dropping encounter-order constraints; never assert the result always keeps the same order, even if some runs happen to return `[C, A, B]`. Similarly, iterating a `HashSet` is not a contract you can rely on as a business ordering criterion.
 
-Nếu cần một thứ tự **xác định**, thêm `sorted(comparator)` phù hợp với miền dữ liệu trước khi thu thập. Đừng dựa vào thứ tự HashMap, hash code, danh sách thread hoặc kết quả một lần chạy làm nguồn chân lý.
+When a **deterministic** order is needed, add a domain-appropriate `sorted(comparator)` before collecting. Never rely on `HashMap` order, hash codes, thread lists, or a single run's output as a source of truth.
 
-## 11. Gỡ lỗi pipeline: kiểm theo giai đoạn nhưng không thay đổi ngữ nghĩa
+## 11. Debugging Pipelines: Inspect by Stage Without Altering Semantics
 
-Một pipeline phức tạp nên được gỡ lỗi bằng những **đầu ra trung gian có chủ đích**. Ví dụ, trước khi gọi `min`, có thể tạo một danh sách các phần tử hợp lệ:
+A complex pipeline is best debugged using **intentional intermediate outputs**. For example, before calling `min`, materialize the list of valid elements:
 
 ```java
 List<Ticket> eligible = tickets.stream()
         .filter(Ticket::active)
         .toList();
 
-check(eligible.size() == 5, "Sai bước lọc");
+check(eligible.size() == 5, "Wrong filter step");
 check(eligible.stream().map(Ticket::id).toList().equals(
         List.of("T-01", "T-02", "T-03", "T-04", "T-06")),
-        "Sai thứ tự sau lọc");
+        "Wrong post-filter order");
 
 Ticket minimum = eligible.stream()
         .min(minOrder)
         .orElseThrow();
-check(minimum.id().equals("T-04"), "Sai min");
+check(minimum.id().equals("T-04"), "Wrong min");
 ```
 
-Trong đoạn minh họa này, `tickets`, `Ticket`, `check` và `minOrder` là các tên từ các ví dụ trước. `eligible` là một **danh sách đã vật hóa** nên có thể tạo Stream mới nhiều lần để kiểm từng giai đoạn. Đừng giữ một biến `Stream<Ticket> s` rồi gọi liên tiếp `s.toList()` và `s.min(...)`: một Stream đã qua terminal operation không được tái sử dụng.
+In this snippet, `tickets`, `Ticket`, `check`, and `minOrder` refer to names from earlier examples. `eligible` is a **materialized list**, so you can open fresh Streams multiple times to inspect each stage. Never hold one `Stream<Ticket> s` variable and call `s.toList()` followed by `s.min(...)`: a Stream cannot be reused after a terminal operation.
 
-### `peek` chỉ hỗ trợ quan sát có điều kiện
+### `peek` provides conditional observation only
 
 ```java
 List<String> ids = tickets.stream()
@@ -690,40 +690,40 @@ List<String> ids = tickets.stream()
         .toList();
 ```
 
-Trong ví dụ tuần tự, `peek` có thể giúp quan sát dữ liệu đang chảy qua pipeline. Tuy nhiên, không được coi số dòng log là một điều kiện đúng đắn của chương trình: Stream được phép tối ưu các thao tác trung gian khi không ảnh hưởng kết quả terminal. Trên parallel stream, log có thể xuất hiện theo thứ tự khác. **Kiểm thử sản phẩm bằng giá trị đầu ra**, còn `peek` là công cụ hỗ trợ chẩn đoán.
+In a sequential run, `peek` can help watch elements flow through the pipeline. However, never treat log line counts as a correctness requirement: Streams may optimize intermediate stages when terminal results are unaffected. In parallel streams, logs can appear in any order. **Test production code by its output values**, using `peek` strictly as a diagnostic aid.
 
-### Có nên dùng JUnit?
+### Should you use JUnit?
 
-Chương trình hoàn chỉnh ở mục 7 dùng `check` để chạy độc lập không cần thư viện. Khi đưa vào dự án thực tế, nên tách từng trường hợp thành test riêng với framework như JUnit:
+The complete program in Section 7 uses `check` so it runs standalone without external libraries. In real projects, split each case into separate tests using a framework like JUnit:
 
-- Một test cho encounter order.
-- Một test cho `findFirst` và một test khác cho `findAny`.
-- Một test cho `min`/tie-break và một test cho `max`/tie-break.
-- Các test cho Optional rỗng, nguồn rỗng và các fallback.
-- Test so sánh tuần tự–song song và hoán vị nguồn.
+- One test for encounter order.
+- One test for `findFirst` and another for `findAny`.
+- One test for `min`/tie-break and another for `max`/tie-break.
+- Tests for empty `Optional`, empty sources, and fallbacks.
+- Tests comparing sequential vs. parallel and input permutations.
 
-Không cần kiểm cả số thread được tạo hoặc số lần gọi callback của một phép `findAny`: đó là chi tiết thực thi, không phải hợp đồng kết quả của Stream API.
+Do not assert the number of worker threads created or callback invocation counts during `findAny`: those are implementation details, not the Stream API result contract.
 
-## 12. Sai lầm thường gặp
+## 12. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách kiểm thử/khắc phục |
+| Mistake | Consequence | Fix / How to test |
 | --- | --- | --- |
-| Kiểm riêng số phần tử mà không so thứ tự | Pipeline sắp xếp sai vẫn có thể qua test | So sánh danh sách đầu ra đầy đủ nếu thứ tự là yêu cầu. |
-| Ép `findAny` trả phần tử đầu tiên | Test sai hợp đồng, có thể chập chờn khi parallel | Kiểm kết quả thuộc tập hợp thỏa predicate. |
-| Giả định `max` chọn mã nhỏ nhất khi comparator chỉ so điểm | Kết quả đồng hạng không xác định theo yêu cầu | Thêm tiêu chí phá hòa vào comparator. |
-| Gọi `max` với comparator điểm tăng + ID tăng mà mong ID nhỏ | Thực tế ưu tiên ID lớn khi đồng điểm | Đảo comparator ở riêng tiêu chí ID hoặc dùng ranking + `findFirst`. |
-| Quên `filter` trước `min` | Bản ghi không hợp lệ có thể trở thành cực trị | Đặt fixture có điểm thấp/cao bất thường nhưng inactive. |
-| Gọi `Optional.get()` không kiểm tra rỗng | `NoSuchElementException` | Dùng `isPresent`, `orElseGet`, `orElseThrow` với chính sách rõ. |
-| Xem `orElse(-1)` là hành vi mặc định của `OptionalInt` | Hiểu sai API và có thể che giấu thiếu dữ liệu | Kiểm `isEmpty` trước khi chọn sentinel nghiệp vụ. |
-| Quên test sau lọc rỗng | Chỉ pass khi nguồn có phần tử phù hợp | Thêm test nguồn rỗng và nguồn có tất cả phần tử bị lọc. |
-| Lấy thứ tự `forEach` song song làm expected | Test phụ thuộc lập lịch | Dùng `forEachOrdered` khi cần thứ tự, hoặc kiểm `toList()`. |
-| Dùng `HashSet` rồi đòi `findFirst` cố định | Nguồn không có encounter order xác định | Sắp xếp nguồn hoặc dùng `List` có thứ tự. |
-| Dùng lại cùng Stream sau terminal operation | `IllegalStateException` | Tạo Stream mới từ nguồn có thể duyệt lại. |
-| Biến kiểm thử thành một phép đo hiệu năng | Tốc độ chạy một lần không nói lên tính đúng | Phân biệt kiểm thử ngữ nghĩa với benchmark, dùng công cụ đo phù hợp khi cần. |
+| Checking element count without checking order | Wrongly sorted pipeline still passes | Compare full output list when order is required. |
+| Forcing `findAny` to return the first element | Test violates contract; flaky in parallel | Check result is in the predicate-matching set. |
+| Assuming `max` picks smallest ID when comparator checks score only | Tied result is unspecified per requirements | Add a tie-breaker to the comparator. |
+| Calling `max` with ascending score + ascending ID expecting smallest ID | Actually picks the largest ID on ties | Reverse the ID comparator or use ranking + `findFirst`. |
+| Forgetting `filter` before `min` | Invalid records can become extremes | Include an inactive fixture with an extreme low/high score. |
+| Calling `Optional.get()` without emptiness check | `NoSuchElementException` | Use `isPresent`, `orElseGet`, or `orElseThrow` with an explicit policy. |
+| Treating `orElse(-1)` as `OptionalInt`'s built-in default | Misunderstands API and can mask missing data | Check `isEmpty` before choosing a business sentinel. |
+| Forgetting empty-after-filter tests | Passes only when source has matching items | Add empty source and all-filtered-out source tests. |
+| Using parallel `forEach` order as expected output | Test depends on thread scheduling | Use `forEachOrdered` when order matters, or assert `toList()`. |
+| Using `HashSet` and expecting fixed `findFirst` | Source has no deterministic encounter order | Sort source or use an ordered `List`. |
+| Reusing the same Stream after a terminal operation | `IllegalStateException` | Open a new Stream from a re-traversable source. |
+| Turning functional tests into performance checks | Single-run timing proves nothing about correctness | Separate semantic tests from benchmarks; use proper tools when measuring. |
 
-## 13. Bài tập tự luyện
+## 13. Self-Practice Exercises
 
-**Bài 1 — Thứ tự sau lọc.** Với `List.of(4, 1, 6, 2, 5)`, lọc số chẵn và nhân đôi. Kết quả của `toList()` trên Stream tuần tự là gì?
+**Exercise 1 — Order after filtering.** With `List.of(4, 1, 6, 2, 5)`, filter even numbers and double them. What is `toList()` on a sequential Stream?
 
 ```java
 List<Integer> values = List.of(4, 1, 6, 2, 5);
@@ -734,35 +734,35 @@ List<Integer> result = values.stream()
 // [8, 12, 4]
 ```
 
-**Bài 2 — `findFirst` và `findAny`.** Với `List.of("A", "B", "C")`, kết quả `findFirst` nào phải đúng? Có được khẳng định `parallelStream().findAny()` luôn là `"A"` không?
+**Exercise 2 — `findFirst` vs. `findAny`.** With `List.of("A", "B", "C")`, what must `findFirst` return? Can you assert `parallelStream().findAny()` is always `"A"`?
 
-**Đáp án:** `findFirst()` trên nguồn có thứ tự phải là `"A"`; `findAny()` có thể trả phần tử bất kỳ trong danh sách và không có cam kết luôn là `"A"`.
+**Answer:** `findFirst()` on an ordered source must return `"A"`; `findAny()` may return any element in the list and makes no guarantee to always return `"A"`.
 
-**Bài 3 — Đồng hạng.** Cho ba phiếu `X` 90 điểm, `A` 90 điểm, `Z` 85 điểm. Hãy lấy phiếu có điểm cao nhất và mã tăng dần khi đồng điểm.
+**Exercise 3 — Tied scores.** Given three tickets: `X` with 90 points, `A` with 90 points, and `Z` with 85 points. Find the highest-scoring ticket, picking ascending ID on ties.
 
 ```java
 Ticket best = tickets.stream()
         .max(Comparator.comparingInt(Ticket::score)
                 .thenComparing(Ticket::id, Comparator.reverseOrder()))
         .orElseThrow();
-// Với dữ liệu X=90, A=90, Z=85: best.id() là "A".
+// With X=90, A=90, Z=85: best.id() is "A".
 ```
 
-Trong đoạn này, `tickets` được hiểu là danh sách của đề bài nhỏ, không phải fixture ở mục 7.
+In this snippet, `tickets` refers to the mini-exercise's list, not the fixture from Section 7.
 
-**Bài 4 — Không có dữ liệu.** Nếu `List.of(5, 10, 20).stream().filter(n -> n > 30).findFirst()` trả Optional rỗng, biểu thức `.orElse(-1)` sẽ cho gì?
+**Exercise 4 — No data.** If `List.of(5, 10, 20).stream().filter(n -> n > 30).findFirst()` returns an empty Optional, what does `.orElse(-1)` evaluate to?
 
-**Đáp án:** `-1`. Giá trị này do người gọi chỉ định; Stream không tự trả `-1` khi không tìm thấy phần tử.
+**Answer:** `-1`. That value is supplied by the caller; Stream never returns `-1` automatically when nothing is found.
 
-**Bài 5 — Primitive cực trị.** `IntStream.empty().min()` trả kiểu nào, và gọi `getAsInt()` ngay sẽ ra sao?
+**Exercise 5 — Primitive extremes.** What type does `IntStream.empty().min()` return, and what happens if you immediately call `getAsInt()`?
 
-**Đáp án:** Trả `OptionalInt.empty()`; gọi `getAsInt()` khi rỗng ném `NoSuchElementException`. Có thể kiểm `isPresent`, dùng `orElse`, hoặc `orElseThrow` theo nghiệp vụ.
+**Answer:** It returns `OptionalInt.empty()`; calling `getAsInt()` when empty throws `NoSuchElementException`. Check `isPresent`, use `orElse`, or use `orElseThrow` per business rules.
 
-**Bài 6 — Đảo nguồn.** Đảo thứ tự tất cả phiếu ở mục 1. Giá trị `min`, `max` có comparator phá hòa và danh sách ranking có thay đổi không? `findFirst` có thay đổi không?
+**Exercise 6 — Reversing the source.** Reverse the order of all tickets in Section 1. Do `min`, `max` with tie-breaking comparators, and the ranking list change? Does `findFirst` change?
 
-**Đáp án:** Cực trị và ranking không đổi vì comparator đã xác định quy tắc độc lập với vị trí. `findFirst` đổi theo encounter order: phiếu đầu tiên còn hiệu lực của danh sách đảo là `T-06`.
+**Answer:** Extremes and ranking do not change because the comparators specify rules independent of position. `findFirst` changes with encounter order: the first active ticket in the reversed list is `T-06`.
 
-**Bài 7 — Chuyển một Optional thành Stream.** Với `Optional<Ticket> best`, tạo danh sách chứa 0 hoặc 1 ID mà không cần `if (best.isPresent())`.
+**Exercise 7 — Turning an Optional into a Stream.** Given `Optional<Ticket> best`, create a list of 0 or 1 IDs without `if (best.isPresent())`.
 
 ```java
 List<String> ids = best.stream()
@@ -770,12 +770,12 @@ List<String> ids = best.stream()
         .toList();
 ```
 
-Với `Optional.empty()`, danh sách rỗng; với Optional có giá trị, danh sách chứa một ID. `Optional.stream()` có từ Java 9.
+With `Optional.empty()`, the list is empty; with a present Optional, the list contains one ID. `Optional.stream()` has been available since Java 9.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- **Encounter order** là thuộc tính của nguồn và pipeline: với `List`, `filter`/`map`/`toList` giữ thứ tự các phần tử còn lại; thứ tự chạy callback song song có thể khác.
-- `findFirst` phải theo encounter order của nguồn có thứ tự; `findAny` chỉ cam kết chọn một phần tử hợp lệ, **không** cam kết chọn phần tử đầu.
-- `min`/`max` cần comparator tương thích **tiêu chí nghiệp vụ và tie-break**. Nếu chỉ so điểm, không ép ID cố định trong ca đồng hạng.
-- `Optional` và `OptionalInt` có thể rỗng sau lọc hoặc trên nguồn rỗng; kiểm tra cả các nhánh có dữ liệu và không có dữ liệu, xác định rõ chính sách fallback hoặc ngoại lệ.
-- Các kiểm thử vững chắc bao gồm **so thứ tự**, **kiểm tra cực trị đồng hạng**, **Optional rỗng**, **đảo nguồn**, và **đối chiếu tuần tự/song song**; không khẳng định những hành vi mà API không bảo đảm.
+- **Encounter order** is a property of the source and pipeline: on a `List`, `filter`/`map`/`toList` preserve remaining element order; parallel callback execution order may differ.
+- `findFirst` follows encounter order on ordered sources; `findAny` only promises a valid matching element, **not** the first element.
+- `min`/`max` require comparators matching **business criteria and tie-breaking**. If comparing score alone, never assert a fixed ID on ties.
+- `Optional` and `OptionalInt` can be empty after filtering or on empty sources; test both present and absent branches and specify fallback or exception policies clearly.
+- Solid tests cover **order comparison**, **tied extreme checks**, **empty `Optional`s**, **input permutations**, and **sequential/parallel cross-checks**, never asserting behaviors the API does not guarantee.

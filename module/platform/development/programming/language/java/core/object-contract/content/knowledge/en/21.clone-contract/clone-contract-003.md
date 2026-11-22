@@ -1,28 +1,28 @@
-# `Cloneable` là marker interface và không tự khai báo phương thức `clone()`
+# `Cloneable` is a marker interface and does not declare a `clone()` method itself
 
-Trong Java, tên `Cloneable` và `clone()` rất giống nhau nhưng thuộc **hai nơi khác nhau**:
+In Java, the names `Cloneable` and `clone()` look very similar but belong to **two different places**:
 
-- `java.lang.Cloneable` là **marker interface**: một interface rỗng dùng để đánh dấu rằng một đối tượng cho phép cơ chế `Object.clone()` tạo bản sao theo từng trường (*field-for-field copy*).
-- `clone()` là phương thức được khai báo trong `java.lang.Object`, với dạng gốc `protected Object clone() throws CloneNotSupportedException`. **Không có phương thức `clone()` nào được khai báo trong `Cloneable`.**
+- `java.lang.Cloneable` is a **marker interface**: an empty interface used to mark that an object permits the `Object.clone()` mechanism to create a field-by-field copy (*field-for-field copy*).
+- `clone()` is a method declared in `java.lang.Object`, with the original form `protected Object clone() throws CloneNotSupportedException`. **There is no `clone()` method declared in `Cloneable`.**
 
-Chỉ viết `implements Cloneable` **không tự sinh phương thức `public clone()`**, không mở rộng phạm vi truy cập của `Object.clone()` và không bảo đảm rằng bên ngoài lớp có thể gọi `object.clone()`. Muốn cung cấp API sao chép cho người dùng lớp, lập trình viên thường phải **ghi đè `clone()`**, xác định kiểu trả về và mức truy cập, đồng thời quyết định cách xử lý trạng thái có thể thay đổi.
+Merely writing `implements Cloneable` **does not auto-generate a `public clone()` method**, does not widen the access scope of `Object.clone()`, and does not guarantee that code outside the class can call `object.clone()`. To provide a copying API for callers of the class, a developer usually has to **override `clone()`**, specify the return type and access level, and decide how to handle mutable state.
 
-## 1. Marker interface là gì?
+## 1. What is a marker interface?
 
-Marker interface là interface không có phương thức trừu tượng nào cần triển khai; việc một kiểu `implements` interface đó cung cấp **thông tin đánh dấu** cho cơ chế khác kiểm tra. Với `Cloneable`, tín hiệu này được `Object.clone()` sử dụng.
+A marker interface is an interface with no abstract methods to implement; having a type `implement` that interface provides **marking information** for another mechanism to inspect. For `Cloneable`, this signal is used by `Object.clone()`.
 
-Có thể hình dung đơn giản:
+You can visualize it simply:
 
 ~~~java
-// Chỉ để hiểu cấu trúc; không khai báo lại java.lang.Cloneable.
+// For structural understanding only; do not redeclare java.lang.Cloneable.
 public interface Cloneable {
-    // Không có phương thức clone().
+    // No clone() method.
 }
 ~~~
 
-Mã trên là **mô hình minh họa**, không phải một interface cần tạo trong dự án. Java đã có sẵn `java.lang.Cloneable`.
+The code above is an **illustrative model**, not an interface to create in a project. Java already includes `java.lang.Cloneable`.
 
-Ví dụ một lớp chỉ mang marker:
+Example of a class carrying only the marker:
 
 ~~~java
 final class MarkerOnly implements Cloneable {
@@ -30,42 +30,42 @@ final class MarkerOnly implements Cloneable {
 }
 ~~~
 
-Lớp này hợp lệ; nó **không phải** viết thân cho phương thức nào của `Cloneable` vì interface không yêu cầu phương thức. Tuy vậy, đoạn mã sau ở một lớp gọi thông thường sẽ không biên dịch:
+This class is valid; it **does not** have to implement the body of any method from `Cloneable` because the interface requires no methods. However, the following snippet in a normal calling class will not compile:
 
 ~~~java
 MarkerOnly value = new MarkerOnly();
-value.clone(); // Lỗi truy cập: Object.clone() vẫn là protected.
+value.clone(); // Access error: Object.clone() is still protected.
 ~~~
 
-Chú ý: đoạn trên chỉ là **mảnh mã cố ý sai** để giải thích phạm vi truy cập, không ghép vào ví dụ chạy được. Từ khóa `implements Cloneable` không giống một lời hứa rằng lớp đã có API `public clone()`.
+Note: the snippet above is only an **intentionally invalid code fragment** to explain access scope, not to be merged into a runnable example. The keyword `implements Cloneable` is not like a promise that the class already has a `public clone()` API.
 
-### Bảng phân biệt
+### Comparison table
 
-| Thành phần | Khai báo ở đâu? | Vai trò | Có thể gọi trực tiếp từ mã bên ngoài? |
+| Component | Where is it declared? | Role | Can it be called directly from external code? |
 | --- | --- | --- | --- |
-| `Cloneable` | Interface `java.lang.Cloneable` | Đánh dấu tính tương thích với cơ chế `Object.clone()` | Không có phương thức nào để gọi |
-| `Object.clone()` | Lớp `java.lang.Object` | Thực hiện bản sao theo từng trường khi điều kiện cho phép | Thường **không**, vì `protected` |
-| `public MyType clone()` | Do lớp của bạn override | Cung cấp API sao chép với kiểu trả về rõ ràng | **Có**, nếu chính lớp công khai phương thức đó |
-| Copy constructor/factory | Do lớp thiết kế, chẳng hạn `new MyType(original)` | Cách sao chép chủ động, không dựa vào marker | Có, theo mức truy cập được khai báo |
+| `Cloneable` | `java.lang.Cloneable` interface | Marks compatibility with the `Object.clone()` mechanism | No method to call |
+| `Object.clone()` | `java.lang.Object` class | Performs a field-by-field copy when conditions permit | Usually **no**, because it is `protected` |
+| `public MyType clone()` | Overridden by your class | Provides a copy API with an explicit return type | **Yes**, if the class itself exposes the method publicly |
+| Copy constructor/factory | Designed by the class, e.g., `new MyType(original)` | Explicit copying approach, not relying on the marker | Yes, according to the declared access level |
 
-**Dấu hiệu khác chức năng:** marker `Cloneable` ảnh hưởng đến cách **implementation của `Object.clone()`** kiểm tra đối tượng, nhưng không tự thêm một phương thức vào interface để người gọi sử dụng.
+**Marker vs. functionality:** the `Cloneable` marker affects how **the `Object.clone()` implementation** checks an object, but it does not add a method to the interface for callers to invoke.
 
-## 2. `Object.clone()` có chữ ký và phạm vi truy cập ra sao?
+## 2. What is the signature and access scope of `Object.clone()`?
 
-Trong Java 17, khai báo của phương thức gốc là:
+In Java 17, the declaration of the original method is:
 
 ~~~java
 protected Object clone() throws CloneNotSupportedException
 ~~~
 
-Có bốn điểm cần phân biệt:
+There are four points to distinguish:
 
-1. `protected`: phương thức gốc không phải API public tùy ý gọi trên mọi `Object`. Quy tắc truy cập `protected` của Java còn liên quan đến package và quan hệ kế thừa; không nên hiểu rằng vì một lớp là `Cloneable` thì mã bất kỳ ở bên ngoài được gọi `clone()`.
-2. `Object`: kiểu trả về của phương thức gốc rất rộng. Khi override, một lớp có thể dùng **kiểu trả về hiệp biến** (*covariant return type*), chẳng hạn `public Account clone()`.
-3. `throws CloneNotSupportedException`: đây là checked exception của phương thức gốc. Một override có thể tiếp tục khai báo ngoại lệ này, hoặc thu hẹp/bỏ checked exception trong chữ ký public.
-4. `Object.clone()` là phương thức **instance**; nó sao chép đối tượng hiện tại, chứ không phải factory static nằm trong `Cloneable`.
+1. `protected`: the original method is not a public API that can be arbitrarily called on any `Object`. Java's `protected` access rules also involve packages and inheritance relationships; one should not assume that just because a class is `Cloneable`, arbitrary external code can call `clone()`.
+2. `Object`: the return type of the original method is very broad. When overriding, a class can use a **covariant return type**, such as `public Account clone()`.
+3. `throws CloneNotSupportedException`: this is a checked exception of the original method. An override can continue declaring this exception, or narrow/omit the checked exception in its public signature.
+4. `Object.clone()` is an **instance** method; it copies the current object, rather than being a static factory located in `Cloneable`.
 
-Khi một lớp override phương thức gốc để công khai API:
+When a class overrides the original method to expose the API publicly:
 
 ~~~java
 final class Account implements Cloneable {
@@ -86,25 +86,25 @@ final class Account implements Cloneable {
 }
 ~~~
 
-Đây là **một lớp minh họa có thể biên dịch trong chương trình phù hợp**, với giả định khóa `id` không `null` được kiểm tra ở tầng nghiệp vụ. `@Override` giúp trình biên dịch xác nhận phương thức ghi đè `Object.clone()`; `public` mở quyền gọi; `Account` là kiểu trả về cụ thể. Vì lớp `Account` là `final` và triển khai `Cloneable`, lời gọi `super.clone()` bình thường không ném `CloneNotSupportedException`; nhánh `AssertionError` chỉ báo một vi phạm bất thường đối với giả định này.
+This is an **illustrative class that can compile in an appropriate program**, assuming the `id` key is checked to be non-`null` at the business layer. `@Override` lets the compiler verify that the method overrides `Object.clone()`; `public` opens calling permission; `Account` is the specific return type. Because class `Account` is `final` and implements `Cloneable`, calling `super.clone()` normally does not throw `CloneNotSupportedException`; the `AssertionError` branch only signals an abnormal violation of this assumption.
 
-Không nhất thiết phải dùng đúng mẫu trên: một lớp có thể định nghĩa copy constructor hoặc một phương thức `copy()`; và một override `clone()` cũng có thể dùng cách sao chép riêng mà không gọi `super.clone()`. Do đó, **`Cloneable` là tín hiệu dành cho cơ chế `Object.clone()`**, không phải quy tắc chung rằng mọi phương thức tên `clone` đều bắt buộc có marker.
+It is not strictly necessary to use this exact pattern: a class can define a copy constructor or a `copy()` method; and a `clone()` override can also use its own copying approach without calling `super.clone()`. Therefore, **`Cloneable` is a signal for the `Object.clone()` mechanism**, not a general rule that every method named `clone` must have the marker.
 
-## 3. Marker cho phép điều gì khi gọi `super.clone()`?
+## 3. What does the marker enable when calling `super.clone()`?
 
-Cơ chế `Object.clone()` có các bước/đặc điểm đáng nhớ:
+The `Object.clone()` mechanism has notable steps/characteristics:
 
-- Khi được gọi trên instance có kiểu runtime **không triển khai `Cloneable`**, implementation của `Object.clone()` ném `CloneNotSupportedException`.
-- Khi điều kiện marker được đáp ứng, `Object.clone()` tạo đối tượng khác có **cùng lớp runtime** và sao chép nội dung trường hiện có theo phép gán; nó không lần lượt gọi constructor để khởi tạo lại các trường như tạo object bằng `new`.
-- Trường kiểu nguyên thủy (`int`, `double`, `boolean`, …) nhận bản sao giá trị.
-- Trường kiểu tham chiếu (`List`, mảng, đối tượng mutable, …) nhận **bản sao tham chiếu**. Hai object khác nhau có thể vẫn cùng trỏ đến một object con.
-- Đây là **shallow copy** (*sao chép nông*). Nó không tự sao chép đệ quy toàn bộ cấu trúc đối tượng.
+- When called on an instance whose runtime type **does not implement `Cloneable`**, the implementation of `Object.clone()` throws `CloneNotSupportedException`.
+- When the marker condition is satisfied, `Object.clone()` creates another object of the **same runtime class** and copies existing field contents by assignment; it does not sequentially invoke constructors to re-initialize fields as creating an object with `new` does.
+- Primitive-type fields (`int`, `double`, `boolean`, ...) receive copies of their values.
+- Reference-type fields (`List`, arrays, mutable objects, ...) receive **copies of references**. Two different objects may still point to the same child object.
+- This is a **shallow copy**. It does not automatically copy the entire object structure recursively.
 
-Chẳng hạn sau khi `super.clone()` thực hiện, object nguồn và object bản sao có thể là hai `Bag` khác nhau nhưng trường `items` đều trỏ tới **cùng một `ArrayList`**. Nếu một bên sửa list đó, bên kia quan sát được nội dung đã đổi.
+For example, after `super.clone()` executes, the source object and the copied object may be two distinct `Bag` instances, yet their `items` fields both point to **the same `ArrayList`**. If one side modifies that list, the other observes the changed contents.
 
-### Nếu không có marker thì sao?
+### What if there is no marker?
 
-Ví dụ:
+Example:
 
 ~~~java
 final class NotMarked {
@@ -115,15 +115,15 @@ final class NotMarked {
 }
 ~~~
 
-Đây là lớp minh họa độc lập với mẫu `Account`. Nó **có public `clone()`** và override đúng `Object.clone()`, nhưng không `implements Cloneable`. Vì phương thức ủy quyền cho `super.clone()`, lời gọi sẽ ném `CloneNotSupportedException` trên một instance `NotMarked`.
+This is an illustrative class independent of the `Account` example. It **has a public `clone()`** and properly overrides `Object.clone()`, yet it does not `implement Cloneable`. Because the method delegates to `super.clone()`, the call will throw `CloneNotSupportedException` on a `NotMarked` instance.
 
-Điều này cho thấy **override phương thức** và **đặt marker** là hai việc khác nhau: với cách cài đặt dựa trên `Object.clone()`, cần cả quyền truy cập phù hợp lẫn điều kiện marker.
+This shows that **overriding the method** and **adding the marker** are two separate actions: for an implementation based on `Object.clone()`, both appropriate access permission and the marker condition are needed.
 
-Phân biệt thêm: nếu lớp tự viết `clone()` bằng `new NotMarked(...)` mà **không gọi `Object.clone()`**, nó có thể tự tạo bản sao mà không cần marker. Vì vậy câu “không implements `Cloneable` thì không bao giờ có thể có phương thức sao chép” là khẳng định quá rộng. Điều được `Object` quy định là hành vi của **chính `Object.clone()`**.
+Distinguish further: if a class implements `clone()` itself using `new NotMarked(...)` without **calling `Object.clone()`**, it can create a copy itself without needing the marker. Therefore, the statement "if a class does not implement `Cloneable`, it can never have a copy method" is an overgeneralization. What `Object` specifies is the behavior of **`Object.clone()` itself**.
 
-## 4. Ví dụ Java 17 chạy được: marker, protected, checked exception và shallow copy
+## 4. Runnable Java 17 example: marker, protected, checked exception, and shallow copy
 
-Tạo tệp **`CloneableMarkerDemo.java`**:
+Create file **`CloneableMarkerDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -132,13 +132,13 @@ import java.util.List;
 
 public class CloneableMarkerDemo {
 
-    // Có marker nhưng không công khai clone().
+    // Has marker but does not expose clone() publicly.
     static final class MarkerOnly implements Cloneable {
         private final int value = 7;
     }
 
-    // Công khai clone() nhưng không có marker:
-    // super.clone() sẽ ném CloneNotSupportedException.
+    // Exposes clone() publicly but has no marker:
+    // super.clone() will throw CloneNotSupportedException.
     static final class NotMarked {
         @Override
         public NotMarked clone() throws CloneNotSupportedException {
@@ -146,7 +146,7 @@ public class CloneableMarkerDemo {
         }
     }
 
-    // Trường nguyên thủy: shallow copy đủ cho ví dụ này.
+    // Primitive field: shallow copy is sufficient for this example.
     static final class Point implements Cloneable {
         private final int x;
 
@@ -164,7 +164,7 @@ public class CloneableMarkerDemo {
         }
     }
 
-    // Trường tham chiếu là danh sách mutable.
+    // Reference field is a mutable list.
     static final class Bag implements Cloneable {
         private final List<String> items;
 
@@ -175,14 +175,14 @@ public class CloneableMarkerDemo {
         @Override
         public Bag clone() {
             try {
-                return (Bag) super.clone(); // Sao chép nông.
+                return (Bag) super.clone(); // Shallow copy.
             } catch (CloneNotSupportedException e) {
                 throw new AssertionError(e);
             }
         }
 
         Bag copyWithSeparateList() {
-            return new Bag(items); // Tạo danh sách riêng bằng constructor.
+            return new Bag(items); // Create a separate list via constructor.
         }
     }
 
@@ -235,14 +235,14 @@ public class CloneableMarkerDemo {
 }
 ~~~
 
-Biên dịch/chạy trong thư mục chứa tệp (JDK 17 trở lên):
+Compile/run in the directory containing the file (JDK 17 or later):
 
 ~~~bash
 javac CloneableMarkerDemo.java
 java CloneableMarkerDemo
 ~~~
 
-**Đầu ra dự kiến:**
+**Expected output:**
 
 ~~~text
 marker present: true
@@ -261,29 +261,29 @@ array same contents: true
 inner array shared: true
 ~~~
 
-Diễn giải theo nhóm:
+Explanation by group:
 
-1. `MarkerOnly` triển khai marker, nhưng interface `Cloneable` có **0 phương thức được khai báo**. Chương trình không gọi `marker.clone()`, bởi `Object.clone()` vẫn là `protected` trong trường hợp này.
-2. `NotMarked` có override public nhưng gọi `super.clone()` khi thiếu marker, nên nhận checked exception `CloneNotSupportedException`.
-3. `Point.clone()` dùng `super.clone()` để tạo instance mới. Hai `x` bằng nhau vì kiểu nguyên thủy được sao chép theo giá trị. Nhưng `point.equals(pointCopy)` là `false`, vì lớp `Point` **không override `equals()`**, nên kế thừa equality theo identity từ `Object`.
-4. `Bag.clone()` tạo đối tượng `Bag` khác nhưng **cùng `items`** (shallow copy). Trong khi đó `copyWithSeparateList()` dùng constructor để tạo `ArrayList` khác. Khi sửa list nguồn, bản sao nông thấy `[A, B]` còn bản sao với list riêng giữ `[A]`.
-5. `int[].clone()` tạo mảng một chiều khác có cùng các phần tử nguyên thủy. `int[][].clone()` chỉ tạo **mảng ngoài** khác; các mảng con bên trong vẫn được chia sẻ.
+1. `MarkerOnly` implements the marker, but the `Cloneable` interface has **0 declared methods**. The program does not call `marker.clone()`, because `Object.clone()` remains `protected` in this case.
+2. `NotMarked` has a public override yet calls `super.clone()` without the marker, so it receives the checked exception `CloneNotSupportedException`.
+3. `Point.clone()` uses `super.clone()` to create a new instance. The two `x` values are equal because the primitive type is copied by value. However, `point.equals(pointCopy)` is `false`, because class `Point` **does not override `equals()`**, thus inheriting identity-based equality from `Object`.
+4. `Bag.clone()` creates a different `Bag` object but **with the same `items`** (shallow copy). Meanwhile, `copyWithSeparateList()` uses the constructor to create another `ArrayList`. When modifying the source list, the shallow copy sees `[A, B]` while the copy with a separate list keeps `[A]`.
+5. `int[].clone()` creates a different one-dimensional array with the same primitive elements. `int[][].clone()` only creates a different **outer array**; the inner sub-arrays are still shared.
 
-Trong ví dụ `Bag` chỉ chứa `String` (bất biến), nên sao chép riêng `ArrayList` đủ để cách ly thao tác thêm/xóa chuỗi. Nếu list chứa các đối tượng mutable, `new ArrayList<>(items)` vẫn chỉ sao chép **cấu trúc danh sách**, chưa sao chép bản thân từng phần tử.
+In the example, `Bag` only contains `String` (immutable), so copying the `ArrayList` separately suffices to isolate string addition/removal operations. If the list contains mutable objects, `new ArrayList<>(items)` still only copies **the list structure**, not each element itself.
 
-## 5. Vì sao `Cloneable reference = ...` không có `clone()`?
+## 5. Why doesn't `Cloneable reference = ...` have `clone()`?
 
-Vì `Cloneable` rỗng, một biến được khai báo với kiểu tĩnh `Cloneable` không có phương thức `clone()` trong tập API của interface:
+Because `Cloneable` is empty, a variable declared with static type `Cloneable` has no `clone()` method in the interface's API set:
 
 ~~~java
 Cloneable value = new Point(7);
 
-// value.clone(); // Không biên dịch: Cloneable không khai báo clone().
+// value.clone(); // Does not compile: Cloneable does not declare clone().
 ~~~
 
-Đây là đoạn minh họa dùng kiểu `Point` ở chương trình trước. Ngay cả khi instance runtime là `Point` đã có `public Point clone()`, **kiểu tĩnh** của biến `value` không cho phép gọi `value.clone()`. Có thể gọi `((Point) value).clone()` khi đã biết chắc kiểu runtime và thiết kế cho phép, nhưng không nên dựa vào cast như một cơ chế sao chép tổng quát.
+This is an illustrative snippet using the `Point` type from the previous program. Even when the runtime instance is a `Point` that already has `public Point clone()`, the **static type** of variable `value` does not allow calling `value.clone()`. One can call `((Point) value).clone()` when the runtime type is known for certain and the design permits, but casting should not be relied upon as a general copying mechanism.
 
-Muốn thiết kế một API generic để client gọi sao chép mà không biết concrete class, hãy khai báo **một interface riêng có phương thức sao chép rõ ràng**:
+To design a generic API so clients can invoke copying without knowing the concrete class, declare **a separate interface with an explicit copy method**:
 
 ~~~java
 interface Copyable<T> {
@@ -291,11 +291,11 @@ interface Copyable<T> {
 }
 ~~~
 
-Đây là interface minh họa. Các lớp triển khai tự quyết định ngữ nghĩa của `copy()` (sao chép nông, sao chép cấu trúc hay tạo đối tượng giá trị mới) và viết tài liệu rõ ràng. **Không** nhầm interface `Copyable<T>` tự tạo với `java.lang.Cloneable`.
+This is an illustrative interface. Implementing classes decide the semantics of `copy()` themselves (shallow copy, structural copy, or creating a new value object) and document it clearly. **Do not** confuse a custom `Copyable<T>` interface with `java.lang.Cloneable`.
 
-## 6. Vai trò của `@Override`, kiểu trả về và ngoại lệ
+## 6. Role of `@Override`, return type, and exceptions
 
-Việc override chính xác quan trọng như với các phương thức khác của `Object`:
+Overriding accurately is just as important as with other `Object` methods:
 
 ~~~java
 @Override
@@ -308,56 +308,56 @@ public Point clone() {
 }
 ~~~
 
-- `@Override` đảm bảo trình biên dịch nhận ra đây là ghi đè `Object.clone()`, không phải overload vô tình thêm tham số.
-- `public` mở rộng phạm vi truy cập từ `protected`; một override không được thu hẹp quyền so với phương thức cha.
-- `Point` là kiểu trả về hiệp biến tương thích với `Object`, giúp client không phải ép kiểu sau khi gọi `point.clone()`.
-- Không khai báo checked exception trong override là hợp lệ: phương thức ghi đè được phép bỏ `throws CloneNotSupportedException`. Chỉ khi gọi `super.clone()` trong thân phương thức mới cần xử lý ngoại lệ được khai báo bởi phương thức gốc.
-- `super.clone()` tạo shallow copy bằng cơ chế kế thừa; nó **không gọi `Point()`** để chạy lại logic khởi tạo thông thường.
+- `@Override` ensures the compiler recognizes this as an override of `Object.clone()`, not an accidental overload with added parameters.
+- `public` widens access scope from `protected`; an override cannot narrow visibility compared to the parent method.
+- `Point` is a covariant return type compatible with `Object`, saving clients from casting after calling `point.clone()`.
+- Not declaring the checked exception in the override is valid: an overriding method is allowed to omit `throws CloneNotSupportedException`. Only when calling `super.clone()` inside the method body is it necessary to handle the exception declared by the original method.
+- `super.clone()` creates a shallow copy via inheritance mechanics; it **does not call `Point()`** to re-run normal initialization logic.
 
-Nếu một lớp **không phải `final`**, subclass và quy ước kế thừa cần được xem xét kỹ. `super.clone()` sử dụng kiểu runtime của instance và có thể sao chép trường của subclass theo cùng quy tắc nông. Một subclass chứa tài nguyên mutable hoặc bất biến nghiệp vụ phức tạp có thể cần sửa cấu trúc con sau khi sao chép. Không nên mở rộng khả năng clone tùy tiện trong một hệ phân cấp mà chưa thiết kế rõ ai chịu trách nhiệm sao chép từng tầng.
+If a class is **not `final`**, subclasses and inheritance conventions must be examined carefully. `super.clone()` uses the instance's runtime type and can copy subclass fields under the same shallow rules. A subclass containing mutable resources or complex business invariants may need to adjust sub-structures after copying. You should not arbitrarily extend cloning across an inheritance hierarchy without clearly designing who is responsible for copying each level.
 
-## 7. Sao chép nông, sao chép sâu và lựa chọn thay thế
+## 7. Shallow copy, deep copy, and alternatives
 
-| Cách làm | Cái gì được tạo mới? | Điều cần lưu ý |
+| Approach | What is newly created? | Points to note |
 | --- | --- | --- |
-| `super.clone()` trên class hợp lệ | Instance bên ngoài và bản sao giá trị trường; reference field giữ nguyên tham chiếu | **Shallow copy**, có thể chia sẻ object con |
-| `array.clone()` | Một mảng mới ở tầng ngoài | Mảng đa chiều vẫn chia sẻ các mảng con |
-| `new ArrayList<>(oldList)` | Cấu trúc list mới | Phần tử object trong hai list có thể vẫn cùng tham chiếu |
-| Copy constructor `new Type(original)` | Theo logic constructor do lập trình viên định nghĩa | Có thể chủ động sao chép sâu một số trường và giữ các trường bất biến |
-| Static factory `Type.copyOf(original)` | Theo hợp đồng factory được định nghĩa | Tên `copyOf` không tự bảo đảm bản sao luôn khác instance |
-| Thiết kế object immutable | Có thể chia sẻ an toàn trạng thái bất biến | Giảm nhu cầu clone; cần bảo đảm bất biến cả ở cấu trúc con |
+| `super.clone()` on a valid class | Outer instance and copies of field values; reference fields keep original references | **Shallow copy**, may share child objects |
+| `array.clone()` | A new array at the outer level | Multi-dimensional arrays still share sub-arrays |
+| `new ArrayList<>(oldList)` | New list structure | Element objects in both lists may still share references |
+| Copy constructor `new Type(original)` | According to constructor logic defined by the developer | Can proactively deep-copy certain fields and keep immutable fields |
+| Static factory `Type.copyOf(original)` | According to the defined factory contract | The name `copyOf` does not automatically guarantee the copy is always a distinct instance |
+| Immutable object design | Immutable state can be safely shared | Reduces need for cloning; must ensure immutability in sub-structures too |
 
-**Deep copy** không phải một nút bật sẵn của `Cloneable`. Muốn sao chép sâu một object graph có mảng, list, map và đối tượng lồng nhau, phải xác định cách nhân bản từng thành phần cần tách riêng. Cần cân nhắc aliasing (hai đường trong object graph trỏ cùng object), cycle (tham chiếu vòng), tài nguyên ngoài JVM (socket/file handle), và bất biến nghiệp vụ. Việc làm sâu hoàn toàn đôi khi không khả thi hoặc không đúng mục tiêu.
+**Deep copy** is not a built-in switch of `Cloneable`. To deep copy an object graph containing arrays, lists, maps, and nested objects, you must define how to duplicate each component that needs separation. You must consider aliasing (two paths in the object graph pointing to the same object), cycles (circular references), resources outside the JVM (sockets/file handles), and business invariants. Going completely deep is sometimes infeasible or misses the goal.
 
-Nếu kiểu dữ liệu chứa chủ yếu giá trị bất biến như `String`, `LocalDate` hoặc các record chứa toàn thành phần bất biến, **copy constructor/factory** thường dễ hiểu hơn `Cloneable`. Với object immutable, việc tạo bản sao riêng có thể không cần thiết vì hai bên có thể chia sẻ cùng dữ liệu bất biến một cách an toàn.
+If a data type contains mostly immutable values like `String`, `LocalDate`, or records made entirely of immutable components, a **copy constructor/factory** is usually easier to understand than `Cloneable`. For immutable objects, creating a separate copy may be unnecessary because both sides can safely share the same immutable data.
 
-## 8. Những hiểu nhầm thường gặp
+## 8. Common misconceptions
 
-| Hiểu nhầm | Sự thật |
+| Misconception | Reality |
 | --- | --- |
-| “`implements Cloneable` tự cung cấp `public clone()`.” | `Cloneable` không khai báo phương thức; `Object.clone()` vốn là `protected` |
-| “Interface `Cloneable` định nghĩa `clone()`.” | `clone()` được khai báo trong `Object` |
-| “Cứ gọi `clone()` qua biến `Cloneable`.” | Kiểu tĩnh `Cloneable` không có API `clone()` |
-| “Override `clone()` gọi `super.clone()` là đủ cho mọi lớp.” | Có thể phải sao chép riêng trạng thái mutable để tránh chia sẻ ngoài ý muốn |
-| “Không implements `Cloneable` thì mọi phương thức tự viết tên `clone` đều thất bại.” | Chỉ cơ chế `Object.clone()` kiểm tra marker; cách sao chép thủ công có thể khác |
-| “`clone()` luôn làm `clone.equals(original)` là `true`.” | Không bắt buộc; ví dụ `Point` mặc định so identity cho kết quả `false` |
-| “Clone gọi lại constructor như `new`.” | `Object.clone()` sao chép trạng thái trường, không dùng constructor theo luồng khởi tạo thông thường |
-| “`int[][]` được clone toàn bộ tới từng hàng.” | `matrix.clone()` chỉ nhân bản mảng ngoài |
-| “Sao chép list là sao chép sâu mọi phần tử.” | `new ArrayList<>(...)` là bản sao cấu trúc list, phần tử mutable có thể dùng chung |
+| "`implements Cloneable` automatically provides `public clone()`." | `Cloneable` declares no methods; `Object.clone()` is inherently `protected` |
+| "Interface `Cloneable` defines `clone()`." | `clone()` is declared in `Object` |
+| "Just call `clone()` through a `Cloneable` variable." | Static type `Cloneable` has no `clone()` API |
+| "Overriding `clone()` and calling `super.clone()` is enough for every class." | May need to copy mutable state separately to avoid unintended sharing |
+| "Without implementing `Cloneable`, any custom method named `clone` fails." | Only the `Object.clone()` mechanism checks the marker; manual copying approaches can differ |
+| "`clone()` always makes `clone.equals(original)` `true`." | Not mandatory; for example, default `Point` compares identity and returns `false` |
+| "Clone re-calls the constructor like `new`." | `Object.clone()` copies field state, without running constructors via normal initialization flow |
+| "`int[][]` gets cloned completely down to every row." | `matrix.clone()` only duplicates the outer array |
+| "Copying a list deep-copies every element." | `new ArrayList<>(...)` is a copy of the list structure; mutable elements may be shared |
 
-## 9. Tự kiểm tra kiến thức
+## 9. Self-check questions
 
-1. **`Cloneable` khai báo bao nhiêu phương thức?** — Không có phương thức; đây là marker interface.
-2. **Một class `implements Cloneable` nhưng không override `clone()` có chắc client bên ngoài gọi được không?** — Không. `Object.clone()` vẫn có quyền truy cập `protected`.
-3. **Ai thực hiện sao chép trường nếu viết `return (Type) super.clone();`?** — Implementation của `Object.clone()`.
-4. **Điều gì xảy ra nếu `super.clone()` được gọi trên runtime class không triển khai `Cloneable`?** — `CloneNotSupportedException`.
-5. **Khi field là `List<String>`, `super.clone()` có tự tạo list mới không?** — Không; hai object chia sẻ tham chiếu list trừ khi override/cách sao chép tự sửa lại.
-6. **Tại sao mảng `int[][]` vẫn chia sẻ hàng sau `clone()`?** — Vì mảng ngoài được copy nông, từng phần tử của nó là tham chiếu mảng con.
-7. **Nếu cần một API sao chép dễ gọi, nên làm gì?** — Công khai phương thức/copy constructor/factory rõ hợp đồng, quyết định độ sâu sao chép theo dữ liệu; chỉ chọn `Cloneable`/`Object.clone()` khi hiểu rõ tính năng và giới hạn.
+1. **How many methods does `Cloneable` declare?** — Zero methods; it is a marker interface.
+2. **If a class `implements Cloneable` without overriding `clone()`, is it guaranteed that external clients can call it?** — No. `Object.clone()` still has `protected` access.
+3. **Who performs the field copying if you write `return (Type) super.clone();`?** — The implementation of `Object.clone()`.
+4. **What happens if `super.clone()` is called on a runtime class that does not implement `Cloneable`?** — `CloneNotSupportedException`.
+5. **When a field is `List<String>`, does `super.clone()` automatically create a new list?** — No; both objects share the list reference unless the override/copying approach replaces it.
+6. **Why does an `int[][]` array still share rows after `clone()`?** — Because the outer array is shallow-copied, and each of its elements is a sub-array reference.
+7. **If an easy-to-call copying API is needed, what should be done?** — Expose a method/copy constructor/factory with a clear contract, decide copy depth based on the data; only choose `Cloneable`/`Object.clone()` when you clearly understand its behavior and limitations.
 
-**Ghi nhớ:** `Cloneable` chỉ là **tín hiệu cho cơ chế của `Object.clone()`**. Nó không định nghĩa một phương thức trong interface, không tự làm `clone()` thành public và không tự cung cấp deep copy. Hãy phân biệt ba câu hỏi: **đối tượng có marker không?**, **client có quyền gọi phương thức sao chép nào?**, và **những phần dữ liệu nào thật sự được nhân bản?**
+**Remember:** `Cloneable` is only a **signal for the `Object.clone()` mechanism**. It does not define a method in the interface, does not automatically make `clone()` public, and does not automatically provide a deep copy. Distinguish three questions: **does the object have the marker?**, **which copy method do clients have permission to call?**, and **which parts of the data are actually duplicated?**
 
-### Tài liệu gốc
+### Source references
 
 - [Java SE 17 — Cloneable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Cloneable.html)
 - [Java SE 17 — Object.clone()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#clone())

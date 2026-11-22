@@ -1,89 +1,89 @@
-# Thực hành: Thiết kế định dạng nhị phân có version và length trong Java
+# Practical Exercise: Designing a Versioned and Length-Prefixed Binary Format in Java
 
-## 1. Bài toán và mục tiêu
+## 1. Problem and Objectives
 
-Giả sử ứng dụng Java cần lưu hàng nghìn bản ghi vào một tệp nhị phân hoặc truyền chúng liên tiếp qua TCP. Mỗi bản ghi có mã định danh và tên; ở phiên bản mới, bản ghi có thêm độ ưu tiên. Ta cần một định dạng mà chương trình có thể:
+Suppose a Java application needs to store thousands of records in a binary file or transmit them sequentially over TCP. Each record has an identifier and a name; in a newer version, a record also includes a priority. We need a format in which the program can:
 
-- Xác định **ranh giới** của từng bản ghi mà không phải đoán byte kết thúc.
-- Biết **phiên bản cấu trúc** để giải mã đúng trường dữ liệu.
-- Đọc tuần tự nhiều bản ghi trong cùng file/luồng TCP.
-- Phát hiện đầu vào không hợp lệ, bị cắt cụt hoặc có checksum sai.
-- Giới hạn kích thước trước khi cấp phát bộ nhớ.
-- Có chính sách rõ ràng khi gặp bản ghi thuộc phiên bản chưa được hỗ trợ.
-- Chạy được giữa các tiến trình/JDK mà không lệ thuộc serialization mặc định của class Java.
+- Determine the **boundaries** of each record without guessing end-of-record bytes.
+- Know the **structure version** to decode the data fields accurately.
+- Sequentially read multiple records within the same file or TCP stream.
+- Detect invalid, truncated, or checksum-mismatched input.
+- Bound sizes before allocating memory.
+- Have a clear policy when encountering a record of an unsupported version.
+- Work across processes/JDKs without relying on Java's default class serialization.
 
-Đây là vấn đề **binary protocol design** và **record framing**. Không nên đơn giản ghi một loạt số nguyên/chuỗi rồi kỳ vọng bên đọc tự biết lúc nào bản ghi kết thúc.
+This is a **binary protocol design** and **record framing** problem. You should not simply write a series of integers/strings and expect the reader to figure out on its own where a record ends.
 
 ~~~text
-Tệp nhị phân hoặc luồng TCP
+Binary file or TCP stream
   |
   +-- [HEADER record 1][PAYLOAD 1][CHECKSUM 1]
   +-- [HEADER record 2][PAYLOAD 2][CHECKSUM 2]
   +-- [HEADER record 3][PAYLOAD 3][CHECKSUM 3]
                  |
                  v
-        Parser theo từng frame
+        Frame-by-frame parser
                  |
-       validate -> decode theo version
+       validate -> decode by version
 ~~~
 
-**Cặp version + length giải quyết hai câu hỏi khác nhau:**
+**The version + length pair solves two different questions:**
 
-- **Version:** byte bên trong payload phải được diễn giải theo cấu trúc nào?
-- **Length:** byte của frame hiện tại kết thúc ở đâu và frame kế tiếp bắt đầu tại vị trí nào?
+- **Version:** Which structure should the bytes inside the payload be interpreted with?
+- **Length:** Where do the bytes of the current frame end and where does the next frame begin?
 
-Version không thay thế length, và length không tự nói cho decoder biết dữ liệu bên trong có cấu trúc gì.
+Version does not replace length, and length does not by itself tell the decoder what structure the inner data has.
 
-## 2. Trước tiên hãy viết đặc tả định dạng byte
+## 2. Write the Byte Format Specification First
 
-Một giao thức tốt không chỉ có code Java. Nó cần mô tả chính xác **thứ tự trường, độ dài, byte order, encoding, giới hạn và điều kiện lỗi**. Ta chọn một định dạng minh họa tên `JBIN`:
+A good protocol does not consist only of Java code. It needs to specify **field order, lengths, byte order, encoding, bounds, and error conditions** precisely. We choose an illustrative format named `JBIN`:
 
-| Offset trong frame | Độ dài | Trường | Quy tắc |
+| Offset in frame | Length | Field | Rule |
 | ---: | ---: | --- | --- |
-| 0 | 4 byte | `magic` | ASCII `JBIN`, tương đương hex `4A 42 49 4E` |
-| 4 | 1 byte | `version` | Số nguyên không dấu 0–255; hỗ trợ version 1 và 2 |
-| 5 | 4 byte | `payloadLength` | Số nguyên signed 32-bit, **big-endian**, chỉ chấp nhận 0 tới 65.536 |
-| 9 | `payloadLength` byte | `payload` | Cấu trúc theo version |
-| 9 + length | 4 byte | `crc32` | Giá trị CRC-32 **chỉ của payload**, ghi thành 32-bit big-endian |
+| 0 | 4 bytes | `magic` | ASCII `JBIN`, equivalent to hex `4A 42 49 4E` |
+| 4 | 1 byte | `version` | Unsigned integer 0–255; supports versions 1 and 2 |
+| 5 | 4 bytes | `payloadLength` | Signed 32-bit integer, **big-endian**, accepts only 0 to 65,536 |
+| 9 | `payloadLength` bytes | `payload` | Structure per version |
+| 9 + length | 4 bytes | `crc32` | CRC-32 value **of the payload only**, written as 32-bit big-endian |
 
-Tổng độ dài một frame:
+Total length of one frame:
 
 \[
 \mathrm{frameBytes} = 4 + 1 + 4 + \mathrm{payloadLength} + 4
 = 13 + \mathrm{payloadLength}.
 \]
 
-Sơ đồ byte:
+Byte diagram:
 
 ~~~text
       4B       1B          4B                 L bytes         4B
 +-----------+---------+--------------+-----------------------+----------+
 |   JBIN    | version | payloadLength|       payload         |  CRC32   |
 +-----------+---------+--------------+-----------------------+----------+
-  magic       u8          i32 BE        bytes theo version      u32 BE
+  magic       u8          i32 BE        bytes by version        u32 BE
 
-Frame 1 | Frame 2 | Frame 3 | ... | EOF tại ranh giới frame
+Frame 1 | Frame 2 | Frame 3 | ... | EOF at frame boundary
 ~~~
 
-Đây là **định dạng tự thiết kế để thực hành**, không phải tiêu chuẩn JDK. Hai chương trình khác ngôn ngữ vẫn có thể trao đổi dữ liệu nếu tuân thủ cùng đặc tả.
+This is a **custom format designed for practice**, not a JDK standard. Two programs in different languages can still exchange data if they adhere to the same specification.
 
-### Vì sao cần magic?
+### Why Do We Need Magic?
 
-Magic giúp phát hiện sớm đầu vào không đúng định dạng. Nếu bốn byte đầu không bằng `JBIN`, parser từ chối trước khi diễn giải length hoặc payload.
+Magic helps detect malformed input early. If the first four bytes do not equal `JBIN`, the parser rejects it before interpreting length or payload.
 
-Magic **không phải chứng thực bảo mật** và không bảo đảm tự động tìm lại ranh giới khi file hỏng. Việc quét tùy tiện để tìm chuỗi `JBIN` trong payload có thể nhận nhầm byte dữ liệu là header thật. Khi cần khả năng phục hồi, hãy xây cơ chế resynchronization/commit/index có quy tắc rõ ràng.
+Magic **is not a security authentication** and does not guarantee automatic boundary recovery when a file is corrupted. Arbitrarily scanning for the `JBIN` sequence inside payloads can mistake data bytes for a real header. When recovery capability is needed, build an explicit resynchronization/commit/index mechanism with clear rules.
 
-### Vì sao dùng length dạng số nguyên cố định?
+### Why Use a Fixed-Size Integer Length?
 
-Length-prefix cho phép xác định frame tiếp theo mà không cần ký tự phân cách. Điều đó quan trọng với payload nhị phân, nơi mọi giá trị byte từ 0 tới 255 đều có thể hợp lệ.
+Length-prefixing allows finding the next frame without needing a delimiter character. That matters for binary payloads, where every byte value from 0 to 255 can be valid.
 
-Nhưng đừng tin giá trị length đến từ file hoặc mạng. Bốn byte có thể được diễn giải thành một số âm hoặc hàng tỷ byte. **Kiểm tra giới hạn trước khi tạo `new byte[length]`.**
+However, do not trust a length value coming from a file or network. Four bytes can be interpreted as a negative number or billions of bytes. **Validate bounds before creating `new byte[length]`.**
 
-Ở bài này giới hạn bài tập là 65.536 byte cho **mỗi payload**, không phải tổng kích thước file. Production cần một mức tối đa phù hợp với nghiệp vụ, bộ nhớ và số connection đồng thời.
+In this exercise, the practice limit is 65,536 bytes **per payload**, not the total file size. Production needs a maximum tailored to business rules, memory, and concurrent connections.
 
-## 3. Thiết kế payload theo version
+## 3. Designing Payloads by Version
 
-Chọn hai phiên bản khác nhau có chủ đích:
+Choose two deliberately different versions:
 
 ### Version 1
 
@@ -94,11 +94,11 @@ Chọn hai phiên bản khác nhau có chủ đích:
      4B             2B             0..65535 B
 ~~~
 
-Ví dụ một message có `id=7` và `name="Alpha"`. Tên được mã hóa **UTF-8**, còn `nameLen` là **số byte UTF-8**, không phải `String.length()`.
+For example, a message with `id=7` and `name="Alpha"`. The name is encoded in **UTF-8**, while `nameLen` is the **number of UTF-8 bytes**, not `String.length()`.
 
 ### Version 2
 
-Giữ nguyên các trường v1 và **thêm cuối payload** một số nguyên `priority`:
+Keep the v1 fields and **append at the end of the payload** an integer `priority`:
 
 ~~~text
 +------------+----------------+----------------------+------------------+
@@ -107,56 +107,56 @@ Giữ nguyên các trường v1 và **thêm cuối payload** một số nguyên 
      4B             2B            n bytes                4B
 ~~~
 
-Với version 2, decoder phải đọc thêm đúng bốn byte priority. Nếu không có đủ bốn byte, frame không hợp lệ. Nếu decoder gặp byte dư không được đặc tả, **không tự im lặng bỏ qua** đối với version đã biết: có thể đã encode sai schema hoặc parser bị lệch.
+With version 2, the decoder must read exactly four more bytes for priority. If there are not four bytes available, the frame is invalid. If the decoder encounters unspecified trailing bytes, **do not silently ignore them** for a known version: the schema may have been encoded wrongly or the parser may be misaligned.
 
-### Version chưa hỗ trợ
+### Unsupported Versions
 
-Nếu reader hiện hỗ trợ version 1 và 2 nhưng bắt gặp version 99:
+If the reader currently supports versions 1 and 2 but encounters version 99:
 
-- Nó **vẫn đọc và giới hạn length** theo header chung.
-- Nó **đọc và kiểm tra toàn bộ frame** theo những quy tắc chung mà nó hiểu.
-- Nó **không tự đoán** cấu trúc payload version 99.
-- Nó có thể **bỏ qua frame nguyên vẹn** rồi đọc frame kế tiếp, nếu chính sách giao thức cho phép; hoặc **từ chối toàn bộ file/kết nối** nếu mọi message đều bắt buộc phải hiểu.
+- It **still reads and bounds length** according to the common header.
+- It **reads and validates the entire frame** according to the common rules it understands.
+- It **does not guess** the version 99 payload structure.
+- It can **skip the whole frame intact** and read the next frame, if protocol policy permits; or **reject the entire file/connection** if every message must be understood.
 
-Hai chính sách đều có thể đúng. Việc skip chỉ hợp lệ khi mỗi frame được đóng gói độc lập và không mang trạng thái làm thay đổi ý nghĩa frame sau. Nếu version mới thay đổi **cấu trúc header chung**, reader cũ có thể không skip được; khi đó cần protocol negotiation hoặc file-format major version ở cấp container.
+Both policies can be right. Skipping is only valid when each frame is self-contained and carries no state that alters the meaning of subsequent frames. If a new version changes the **common header structure**, older readers may not be able to skip it; in that case, protocol negotiation or a container-level file-format major version is required.
 
-## 4. Byte order: Java phải ghi và đọc nhất quán
+## 4. Byte Order: Java Must Write and Read Consistently
 
-Với số nguyên nhiều byte, thứ tự byte (*endianness*) phải được đặc tả. Ta chọn **big-endian**:
+For multi-byte integers, byte order (*endianness*) must be specified. We choose **big-endian**:
 
 ~~~text
-Số int 0x01020304
+int value 0x01020304
 Big-endian:    01 02 03 04
 Little-endian: 04 03 02 01
 ~~~
 
-`DataOutputStream.writeInt()` và `DataInputStream.readInt()` dùng thứ tự **big-endian**. `writeShort/readUnsignedShort` cũng trao đổi theo thứ tự byte từ cao xuống thấp.
+`DataOutputStream.writeInt()` and `DataInputStream.readInt()` use **big-endian** order. `writeShort/readUnsignedShort` also exchange bytes from most significant to least significant.
 
-`ByteBuffer` mặc định là big-endian nhưng có thể đổi bằng `order(ByteOrder.LITTLE_ENDIAN)`; đừng giả định ByteBuffer được truyền từ code khác vẫn giữ byte order mặc định. Nếu triển khai cùng định dạng bằng `ByteBuffer`, nên khai báo `buffer.order(ByteOrder.BIG_ENDIAN)` có chủ đích.
+`ByteBuffer` defaults to big-endian, but it can be changed with `order(ByteOrder.LITTLE_ENDIAN)`; do not assume a `ByteBuffer` passed from other code still retains the default byte order. If implementing the same format with `ByteBuffer`, deliberately set `buffer.order(ByteOrder.BIG_ENDIAN)`.
 
-Một reader C/Python/Go phải tuân thủ cùng endianness. Không ghi cấu trúc `struct` native tùy ý rồi coi padding/alignment của C giống Java.
+A C/Python/Go reader must follow the same endianness. Do not dump arbitrary native C `struct` layouts and assume C padding/alignment matches Java.
 
-### Unsigned và signed
+### Unsigned and Signed
 
-- Version: 1 byte không dấu, Java dùng `readUnsignedByte()` để nhận 0..255.
-- `nameLen`: 2 byte không dấu, Java dùng `readUnsignedShort()` để nhận 0..65.535.
-- `payloadLength`: 4 byte signed. Ta quy định **0..65.536 hợp lệ**, âm hoặc vượt trần là lỗi.
-- CRC32: 32-bit bit pattern, được ghi bằng `writeInt((int) crc.getValue())` và so sánh theo bit pattern khi đọc.
+- Version: 1 unsigned byte; Java uses `readUnsignedByte()` to receive 0..255.
+- `nameLen`: 2 unsigned bytes; Java uses `readUnsignedShort()` to receive 0..65,535.
+- `payloadLength`: 4 signed bytes. We specify **0..65,536 as valid**; negative or above the ceiling is an error.
+- CRC32: 32-bit bit pattern, written with `writeInt((int) crc.getValue())` and compared by bit pattern when reading.
 
-Java `byte` là signed; nếu cần in hex của một byte, dùng `value & 0xFF` để tránh sign extension.
+Java `byte` is signed; if you need to print a byte in hex, use `value & 0xFF` to avoid sign extension.
 
-## 5. UTF-8 và các bẫy độ dài chuỗi
+## 5. UTF-8 and String Length Pitfalls
 
-Ví dụ chuỗi `"A"` dài 1 ký tự UTF-16, có 1 byte UTF-8. Chuỗi `"Đ"` dài 1 UTF-16 code unit nhưng có **2 byte UTF-8**; các ký tự ngoài BMP có thể cần 4 byte UTF-8 và 2 UTF-16 code unit.
+For example, the string `"A"` is 1 UTF-16 character long and has 1 UTF-8 byte. The string `"Đ"` is 1 UTF-16 code unit long but has **2 UTF-8 bytes**; characters outside the BMP can require 4 UTF-8 bytes and 2 UTF-16 code units.
 
-Do đó, không làm thế này:
+Therefore, do not do this:
 
 ~~~java
-out.writeShort(name.length()); // SAI nếu độ dài phải tính theo byte UTF-8
+out.writeShort(name.length()); // WRONG if length must be counted in UTF-8 bytes
 out.write(name.getBytes(StandardCharsets.UTF_8));
 ~~~
 
-Mảnh code trên minh họa lỗi. Cách đúng:
+The snippet above illustrates the bug. The correct way:
 
 ~~~java
 byte[] encodedName = name.getBytes(StandardCharsets.UTF_8);
@@ -167,39 +167,39 @@ out.writeShort(encodedName.length);
 out.write(encodedName);
 ~~~
 
-`writeShort` ghi 16 bit thấp; **nó không tự từ chối** tên dài hơn 65.535 byte theo ý định giao thức, vì vậy phải kiểm tra trước.
+`writeShort` writes the lower 16 bits; **it does not automatically reject** names longer than 65,535 bytes per protocol intent, so you must check beforehand.
 
-Không dùng `DataOutputStream.writeUTF()` như thay thế tùy tiện cho định dạng vừa thiết kế. Phương thức đó dùng **modified UTF-8** với framing riêng của Java và các giới hạn riêng; nó không tương đương “u16 length + UTF-8 chuẩn” của đặc tả này. Để tương thích đa ngôn ngữ, hãy tự ghi byte UTF-8 chuẩn kèm độ dài rõ ràng.
+Do not use `DataOutputStream.writeUTF()` as an arbitrary substitute for the format just designed. That method uses **modified UTF-8** with Java's own framing and limits; it is not equivalent to this specification's "u16 length + standard UTF-8". For cross-language compatibility, write standard UTF-8 bytes explicitly along with the byte length.
 
-Decoder cũng cần chính sách cho UTF-8 lỗi. `new String(bytes, UTF_8)` có thể thay byte không hợp lệ bằng ký tự thay thế; nếu giao thức yêu cầu **từ chối dữ liệu UTF-8 hỏng**, dùng `CharsetDecoder` với `CodingErrorAction.REPORT`.
+The decoder also needs a policy for malformed UTF-8. `new String(bytes, UTF_8)` may replace invalid bytes with a replacement character; if the protocol requires **rejecting corrupted UTF-8 data**, use `CharsetDecoder` with `CodingErrorAction.REPORT`.
 
-## 6. Vì sao cần checksum? CRC32 kiểm tra được gì?
+## 6. Why Need a Checksum? What Does CRC32 Check?
 
-Ta thêm CRC-32 để phát hiện **nhiều dạng hỏng byte ngẫu nhiên** trong payload, ví dụ lỗi lưu trữ/truyền dữ liệu. CRC32 không phải encryption, không có key bí mật và **không chống giả mạo có chủ đích**: một kẻ tấn công có thể sửa payload rồi tính lại CRC.
+We add CRC-32 to detect **many forms of accidental byte corruption** in the payload, such as storage or transmission errors. CRC32 is not encryption, has no secret key, and **does not protect against intentional tampering**: an attacker can modify the payload and recompute the CRC.
 
-Ví dụ:
+Example:
 
 ~~~text
-Payload gốc         → CRC32 0x12345678 (giá trị minh họa)
-Một byte bị thay đổi → CRC32 tính lại thường khác
-Reader so sánh CRC được lưu với CRC tính lại → báo lỗi
+Original payload     → CRC32 0x12345678 (illustrative value)
+One byte modified    → recomputed CRC32 usually differs
+Reader compares stored CRC with recomputed CRC → reports error
 ~~~
 
-Ở định dạng bài tập này, CRC **chỉ bảo vệ payload**, không bảo vệ magic/version/length. Parser vẫn kiểm tra header hợp lệ và giới hạn length, nhưng nếu nghiệp vụ đòi phát hiện header bị sửa hoặc xác thực nguồn dữ liệu, cần bổ sung checksum bao phủ trường thích hợp hoặc sử dụng cơ chế xác thực mật mã như MAC/AEAD.
+In this exercise's format, CRC **only protects the payload**, not magic/version/length. The parser still checks header validity and length bounds, but if business requirements demand detecting modified headers or authenticating the data source, add a checksum covering the appropriate fields or use a cryptographic authentication mechanism like MAC/AEAD.
 
-Đối với frame rất lớn, có thể tính CRC khi streaming từng chunk mà không giữ toàn bộ payload trong RAM. Trong ví dụ dưới, vì `MAX_PAYLOAD` chỉ 65.536 byte, việc giữ payload từng frame trong một mảng là hợp lý để minh họa.
+For very large frames, CRC can be computed while streaming chunk by chunk without holding the entire payload in RAM. In the example below, since `MAX_PAYLOAD` is only 65,536 bytes, holding each frame's payload in an array is reasonable for illustration.
 
-## 7. Chương trình Java 17+ hoàn chỉnh: ghi và đọc ba frame
+## 7. Complete Java 17+ Program: Writing and Reading Three Frames
 
-Ví dụ dưới đây tự xây serializer/deserializer với `DataOutputStream` và `DataInputStream`. Nó ghi ba frame vào một luồng byte:
+The example below builds a serializer/deserializer with `DataOutputStream` and `DataInputStream`. It writes three frames into a byte stream:
 
-1. Version 1 chứa `id=7`, `name="Alpha"`.
-2. Version 99 là một frame **không hiểu payload**, nhưng có header/length/CRC hợp lệ, để thử chính sách skip.
-3. Version 2 chứa `id=8`, `name="Beta"`, `priority=42`.
+1. Version 1 containing `id=7`, `name="Alpha"`.
+2. Version 99, a frame whose **payload is unknown**, but with valid header/length/CRC, to test the skip policy.
+3. Version 2 containing `id=8`, `name="Beta"`, `priority=42`.
 
-Sau đó chương trình cố ý cắt cụt một frame và sửa một byte payload để kiểm tra hai dạng lỗi. Mọi test dùng mảng byte trong RAM để stdout không phụ thuộc filesystem hay thời gian.
+Then the program intentionally truncates a frame and flips one payload byte to test two error cases. All tests use an in-memory byte array so stdout does not depend on filesystem or timing.
 
-Lưu thành `VersionedBinaryFormatDemo.java`:
+Save as `VersionedBinaryFormatDemo.java`:
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -276,7 +276,7 @@ public class VersionedBinaryFormatDemo {
     }
 
     static Frame readFrame(DataInputStream in) throws IOException {
-        // EOF hợp lệ CHỈ khi chưa đọc byte nào của header kế tiếp.
+        // Valid EOF ONLY when no byte of the next header has been read yet.
         int first = in.read();
         if (first == -1) {
             return null;
@@ -298,9 +298,9 @@ public class VersionedBinaryFormatDemo {
         }
 
         byte[] payload = new byte[length];
-        in.readFully(payload); // EOF giữa payload => EOFException.
+        in.readFully(payload); // EOF mid-payload => EOFException.
 
-        int storedCrc = in.readInt(); // EOF giữa trailer => EOFException.
+        int storedCrc = in.readInt(); // EOF mid-trailer => EOFException.
         CRC32 calculated = new CRC32();
         calculated.update(payload);
 
@@ -387,7 +387,7 @@ public class VersionedBinaryFormatDemo {
 
         byte[] original = one.toByteArray();
 
-        // Giả lập file bị cắt mất hai byte ở cuối CRC.
+        // Simulate a file truncated by two bytes at the end of the CRC.
         byte[] truncated = Arrays.copyOf(
                 original, original.length - 2);
         boolean truncationDetected = false;
@@ -400,7 +400,7 @@ public class VersionedBinaryFormatDemo {
         System.out.println(
                 "truncated detected=" + truncationDetected);
 
-        // Header dài 9 byte; byte đầu của payload ở offset 9.
+        // Header is 9 bytes long; the first byte of payload is at offset 9.
         byte[] corrupted = original.clone();
         corrupted[9] ^= 1;
         boolean crcDetected = false;
@@ -415,7 +415,7 @@ public class VersionedBinaryFormatDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac VersionedBinaryFormatDemo.java
@@ -432,33 +432,33 @@ truncated detected=true
 crc mismatch detected=true
 ~~~
 
-### Phân tích chương trình theo từng giai đoạn
+### Step-by-Step Analysis of the Program
 
-**Bước 1 — Ghi payload:** `encodeMessage` tạo một byte array theo schema v1/v2: `id`, `nameLen` và byte UTF-8, thêm `priority` nếu là v2. Hàm kiểm tra `nameLen` và tổng payload không vượt giới hạn.
+**Step 1 — Write payload:** `encodeMessage` builds a byte array according to the v1/v2 schema: `id`, `nameLen`, and UTF-8 bytes, adding `priority` if v2. The method verifies that `nameLen` and total payload do not exceed the limits.
 
-**Bước 2 — Ghi frame:** `writeFrame` ghi magic, version, length, payload và CRC32. `DataOutputStream` quy định big-endian cho số nguyên nhiều byte. Một lời gọi tương ứng một frame có ranh giới rõ ràng.
+**Step 2 — Write frame:** `writeFrame` writes magic, version, length, payload, and CRC32. `DataOutputStream` enforces big-endian for multi-byte integers. One call corresponds to one clearly delimited frame.
 
-**Bước 3 — Đọc header:** `readFrame` cho phép trả `null` **chỉ khi EOF ở đúng đầu frame tiếp theo**. Nếu chỉ còn 1–3 byte của magic hoặc thiếu version/length, các lệnh `readUnsignedByte`/`readInt` ném `EOFException`; đó là dữ liệu cắt cụt, không phải kết thúc hợp lệ.
+**Step 3 — Read header:** `readFrame` allows returning `null` **only when EOF occurs right at the start of the next frame**. If only 1–3 bytes of magic remain or version/length is missing, `readUnsignedByte`/`readInt` throw `EOFException`; that is truncated data, not a valid end.
 
-**Bước 4 — Bảo vệ cấp phát:** `length < 0` hoặc `length > MAX_PAYLOAD` bị từ chối **trước** `new byte[length]`. Parser không tin một length do đối tác cung cấp.
+**Step 4 — Guard allocation:** `length < 0` or `length > MAX_PAYLOAD` is rejected **before** `new byte[length]`. The parser does not trust a length supplied by a peer.
 
-**Bước 5 — Đọc payload và CRC:** `readFully` buộc đọc đủ đúng `length` byte; `readInt` buộc có đủ trailer. CRC32 tính lại khác checksum lưu sẽ ném `IOException`.
+**Step 5 — Read payload and CRC:** `readFully` enforces reading the exact `length` bytes; `readInt` enforces the full trailer. A recomputed CRC32 differing from the stored checksum throws `IOException`.
 
-**Bước 6 — Phân nhánh theo version:** `decodeMessage` chỉ hiểu v1/v2. Version 99 đã được đọc trọn frame và kiểm tra CRC nên có thể bỏ qua như một đơn vị độc lập; v2 tiếp theo vẫn đọc đúng.
+**Step 6 — Branch by version:** `decodeMessage` understands only v1/v2. Version 99 was already read as a complete frame and CRC-checked, so it can be skipped as an independent unit; the following v2 frame is still read accurately.
 
-**Bước 7 — Kiểm tra schema bên trong payload:** Decoder dùng `readUnsignedShort` để nhận name length, kiểm tra còn đủ byte cho name **và trường priority nếu là v2**, giải mã UTF-8 strict, sau đó yêu cầu không còn byte dư.
+**Step 7 — Validate schema inside payload:** The decoder uses `readUnsignedShort` to get name length, verifies enough bytes remain for the name **and the priority field if v2**, performs strict UTF-8 decoding, and then requires zero leftover bytes.
 
-**Bước 8 — Test sai dữ liệu:** Trường hợp cắt mất hai byte cuối CRC sinh `EOFException`. Trường hợp sửa một byte payload nhưng giữ nguyên trailer CRC sinh `IOException` có thông báo `CRC32 mismatch`. Không có dựa vào network timing hoặc thứ tự thread.
+**Step 8 — Test corrupted data:** Truncating the last two CRC bytes raises `EOFException`. Modifying one payload byte while keeping the CRC trailer raises `IOException` with message `CRC32 mismatch`. There is no dependence on network timing or thread ordering.
 
-Ví dụ đã cố tình sử dụng `ByteArrayInputStream` để tái lập kết quả. Khi chuyển sang file hoặc socket thật, logic framing giữ nguyên, còn việc đệm, xử lý I/O và lifecycle phải thích ứng với nguồn.
+The example intentionally uses `ByteArrayInputStream` for reproducible results. When moving to real files or sockets, the framing logic stays the same, while buffering, I/O handling, and lifecycle must adapt to the source.
 
-## 8. Những quyết định thiết kế nên chốt trước khi triển khai
+## 8. Design Decisions to Lock Down Before Implementation
 
-### Header cấp file hay header mỗi record?
+### File-Level Header or Per-Record Header?
 
-Hai mô hình có thể được chọn:
+Two models can be chosen:
 
-**Mô hình A — header một lần cho cả file:**
+**Model A — once-per-file header:**
 
 ~~~text
 [FILE_MAGIC][FILE_FORMAT_VERSION]
@@ -467,9 +467,9 @@ Hai mô hình có thể được chọn:
 ...
 ~~~
 
-Phù hợp khi toàn file luôn có cùng schema/định dạng hoặc khi ứng dụng muốn negotiate một phiên bản file trước khi đọc nội dung. Reader phải biết liệu mỗi record có cùng version hay có type/version riêng.
+Suitable when the entire file always shares one schema/format or when the application wants to negotiate a file version before reading contents. The reader must know whether every record shares a version or carries its own type/version.
 
-**Mô hình B — header mỗi frame**, như bài thực hành:
+**Model B — per-frame header**, as in this exercise:
 
 ~~~text
 [MAGIC][VERSION][LENGTH][PAYLOAD][CRC]
@@ -477,61 +477,61 @@ Phù hợp khi toàn file luôn có cùng schema/định dạng hoặc khi ứng
 ...
 ~~~
 
-Phù hợp khi cần trộn các version record hoặc nối frame độc lập. Đổi lại, overhead header và CRC lặp lại trên mỗi record.
+Suitable when mixing record versions or appending frames independently is needed. In exchange, header and CRC overhead repeat on every record.
 
-Không có lựa chọn duy nhất đúng cho mọi ứng dụng. Điều quan trọng là **đặc tả nhất quán** và tính độc lập của từng frame nếu muốn skip những phiên bản không hiểu.
+There is no single right choice for every application. What matters is a **consistent specification** and independence of each frame if skipping unknown versions is desired.
 
-### Version cấp giao thức hay version cấp payload?
+### Protocol-Level Version or Payload-Level Version?
 
-Một **protocol major version** có thể mô tả cú pháp header chung; một **payload schema version** mô tả trường bên trong một loại message. Trong ví dụ chúng cùng biểu diễn bằng một byte `version` vì định dạng đơn giản.
+A **protocol major version** can describe the common header syntax; a **payload schema version** describes the fields inside a message type. In the example, they are combined into one `version` byte because the format is simple.
 
-Nếu sau này muốn đổi cả cấu trúc frame (ví dụ length từ 32-bit thành 64-bit), reader cũ không nhất thiết còn nhận ra ranh giới. Hãy xem đó là **thay đổi giao thức lớn**, không chỉ tăng version payload từ 2 lên 3.
+If later you want to change the frame structure itself (for instance, changing length from 32-bit to 64-bit), older readers will not necessarily recognize boundaries anymore. Treat that as a **major protocol change**, not just bumping payload version from 2 to 3.
 
-### Type và flags có cần không?
+### Are Type and Flags Needed?
 
-Nếu file chứa nhiều loại record, có thể mở rộng header thành:
+If a file contains multiple record types, you can extend the header to:
 
 ~~~text
 [MAGIC][FORMAT_VERSION][RECORD_TYPE][FLAGS][PAYLOAD_LENGTH][PAYLOAD][CRC]
 ~~~
 
-Khi đó đặc tả phải bổ sung:
+Then the specification must also add:
 
-- Các giá trị type/flag hợp lệ.
-- Unknown type/flag có được skip không.
-- Những flag bắt buộc người đọc hiểu để giải mã đúng payload.
-- Quy tắc dành riêng bit tương lai và thứ tự xử lý compression/encryption.
-- Kích thước tối đa sau giải nén nếu payload được nén.
+- Valid type/flag values.
+- Whether unknown type/flag values may be skipped.
+- Which flags the reader is required to understand in order to decode the payload properly.
+- Rules for reserved future bits and the order of compression/encryption processing.
+- Maximum decompressed size if the payload is compressed.
 
-Không thêm type/flag một cách tùy tiện mà quên cập nhật parser và test tương thích.
+Do not add types/flags arbitrarily while forgetting to update the parser and compatibility tests.
 
-## 9. DataInputStream so với ByteBuffer/FileChannel
+## 9. `DataInputStream` vs. `ByteBuffer`/`FileChannel`
 
-Java cung cấp nhiều mức trừu tượng:
+Java provides several abstraction levels:
 
-| Công cụ | Hữu ích khi nào? | Điểm cần chú ý |
+| Tool | When Useful? | Points to Watch |
 | --- | --- | --- |
-| `DataOutputStream` / `DataInputStream` | Ghi/đọc primitive trên OutputStream/InputStream | Big-endian; `readFully` phù hợp với frame length |
-| `ByteBuffer` | Đóng/gỡ byte từ mảng/direct buffer | Phải quản lý `position/limit/flip` và byte order |
-| `FileChannel` | Random access, đọc/ghi theo offset cho file lớn | `read`/`write` có thể chuyển một phần; phải kiểm tra vòng lặp |
-| `SocketChannel` non-blocking | Giao thức mạng với Selector | Có thể trả 0 byte; state machine phải tích lũy header/payload qua nhiều lượt |
-| `BufferedInputStream` | Giảm lần gọi I/O nhỏ khi đọc stream | Không làm thay đổi protocol framing |
-| `CRC32` | Phát hiện nhiều dạng lỗi byte ngẫu nhiên | Không xác thực/chống giả mạo |
+| `DataOutputStream` / `DataInputStream` | Writing/reading primitives over OutputStream/InputStream | Big-endian; `readFully` suits frame lengths |
+| `ByteBuffer` | Packing/unpacking bytes from arrays/direct buffers | Must manage `position/limit/flip` and byte order |
+| `FileChannel` | Random access, reading/writing by offset for large files | `read`/`write` can transfer partially; must check in a loop |
+| Non-blocking `SocketChannel` | Network protocols with Selector | Can return 0 bytes; state machine must accumulate header/payload across passes |
+| `BufferedInputStream` | Reduces small I/O calls when reading streams | Does not alter protocol framing |
+| `CRC32` | Detects many random byte errors | Not authentication / tamper-resistant |
 
-Trong demo, `DataInputStream` rất phù hợp vì `readFully` đợi/đọc đủ số byte yêu cầu hoặc ném EOF. Với non-blocking `SocketChannel`, không được giả định một lần `read(buffer)` sẽ trả đủ 9 byte header hay đủ payload. Cần một **state machine**:
+In the demo, `DataInputStream` fits well because `readFully` waits/reads the exact requested byte count or throws EOF. With a non-blocking `SocketChannel`, never assume a single `read(buffer)` returns all 9 header bytes or the full payload. A **state machine** is needed:
 
 ~~~text
 NEED_HEADER
     |
-    | nhận đủ 9 byte
+    | receive all 9 bytes
     v
 VALIDATE_LENGTH
     |
-    | length hợp lệ, cấp bộ đệm có giới hạn
+    | valid length, allocate bounded buffer
     v
 NEED_PAYLOAD_AND_CRC
     |
-    | nhận đủ length + 4 byte
+    | receive all length + 4 bytes
     v
 VERIFY_CRC
     |
@@ -539,112 +539,112 @@ VERIFY_CRC
 DECODE_OR_SKIP
     |
     v
-NEED_HEADER (frame tiếp theo)
+NEED_HEADER (next frame)
 ~~~
 
-Một request TCP có thể bị chia thành nhiều packet, hoặc nhiều frame có thể đến trong một lần `read`. Giao thức dựa trên length làm rõ cách tích lũy, không phụ thuộc ranh giới packet.
+One TCP request can be split across multiple packets, or multiple frames can arrive in one `read`. A length-based protocol makes accumulation explicit, independent of packet boundaries.
 
-## 10. File rất lớn: nên streaming theo frame
+## 10. Very Large Files: Stream Frame by Frame
 
-Một file có thể lớn hàng chục gigabyte nhưng mỗi frame chỉ dài vài kilobyte. Đừng dùng `Files.readAllBytes` để nạp cả file chỉ vì định dạng là nhị phân.
+A file may be tens of gigabytes large while each frame is only a few kilobytes long. Do not use `Files.readAllBytes` to load the entire file just because the format is binary.
 
-Với `InputStream`/`DataInputStream`, parser có thể đọc từng frame và xử lý ngay. Với `FileChannel`, có thể đọc vào buffer có giới hạn, giữ offset và phân tích incremental.
+With `InputStream`/`DataInputStream`, the parser can read one frame at a time and process it immediately. With `FileChannel`, you can read into a bounded buffer, track offsets, and parse incrementally.
 
-Quy tắc:
+Rules:
 
-- **Giới hạn payload của mỗi frame**, tổng số frame và tổng byte xử lý theo yêu cầu.
-- Đừng cấp phát `new byte[fileSize]`; xử lý từng frame.
-- Bảo vệ số frame đồng thời khi nhiều client gửi.
-- Không đưa các tham chiếu tới buffer có thể bị tái sử dụng vào job asynchronous mà không có ownership rõ ràng.
-- Theo dõi bytes read, frames rejected và nguyên nhân lỗi để có thể vận hành.
-- Khi frame lớn thật sự cần streaming, tính CRC incremental và dùng bounded input để không đọc lấn sang frame tiếp theo.
+- **Bound per-frame payload**, total frame count, and total processed bytes per requirements.
+- Do not allocate `new byte[fileSize]`; process frame by frame.
+- Guard concurrent frame count when many clients send data.
+- Do not pass references to reusable buffers into asynchronous jobs without clear ownership.
+- Track bytes read, frames rejected, and failure reasons for operations.
+- When a genuinely large frame requires streaming, compute CRC incrementally and use bounded input so it does not overread into the next frame.
 
-Trong ví dụ, ta dùng bộ đệm payload tối đa 65.536 byte, đủ nhỏ để minh họa độc lập mà không cần cơ chế xử lý hàng gigabyte.
+In the example, we use a maximum payload buffer of 65,536 bytes, small enough to demonstrate standalone without gigabyte-handling machinery.
 
-## 11. Truncation, crash và giao thức append
+## 11. Truncation, Crash, and Append Protocols
 
-Có một khác biệt quan trọng giữa **EOF hợp lệ** và **file bị cắt giữa record**:
+There is an important distinction between **valid EOF** and a **file truncated mid-record**:
 
 ~~~text
-Hợp lệ:
-[frame 1 hoàn chỉnh][frame 2 hoàn chỉnh][EOF]
+Valid:
+[complete frame 1][complete frame 2][EOF]
 
-Không hợp lệ:
-[frame 1 hoàn chỉnh][nửa header frame 2][EOF]
+Invalid:
+[complete frame 1][half header frame 2][EOF]
 
-Không hợp lệ:
-[frame 1 hoàn chỉnh][header frame 2][nửa payload][EOF]
+Invalid:
+[complete frame 1][header frame 2][half payload][EOF]
 ~~~
 
-Vì vậy `readFrame` trả `null` chỉ khi **chưa đọc byte nào của frame kế tiếp**. Sau khi đã thấy bất kỳ byte header nào, thiếu dữ liệu còn lại phải là lỗi hoặc tình trạng cần đợi thêm byte nếu đang đọc mạng chưa đóng.
+Therefore `readFrame` returns `null` only when **no byte of the next frame has been read**. Once any header byte has been seen, missing remaining data must be an error—or a state requiring waiting for more bytes if reading from an unclosed network stream.
 
-Nếu ứng dụng append record vào file và bị mất điện/JVM crash giữa một lần ghi, file có thể kết thúc bằng một frame chưa hoàn chỉnh. Những chiến lược production thường gặp:
+If an application appends records to a file and loses power or the JVM crashes mid-write, the file can end with an incomplete frame. Common production strategies:
 
-1. Đọc các frame hoàn chỉnh từ đầu và ghi nhận **offset commit hợp lệ cuối cùng**.
-2. Nếu phần cuối bị cắt, từ chối toàn file hoặc cô lập phần đuôi dở theo chính sách.
-3. Với cấu trúc append-only log, có thể phục hồi bằng cách **truncate về offset cuối hợp lệ**, nhưng chỉ khi đã kiểm chứng độc lập, không có writer khác đang hoạt động và có cơ chế lưu trạng thái phù hợp.
-4. Nếu cần durability, dùng `FileChannel.force(...)` theo chính sách và xem xét thứ tự ghi, metadata và filesystem.
-5. Nếu cần cập nhật atomic cả file, cân nhắc ghi tệp tạm hoàn chỉnh rồi move/rename phù hợp trên cùng filesystem, với lưu ý khả năng `ATOMIC_MOVE` phụ thuộc provider.
+1. Read complete frames from the start and track the **last valid commit offset**.
+2. If the tail is truncated, reject the entire file or quarantine the incomplete tail according to policy.
+3. For an append-only log, recovery can **truncate back to the last valid offset**, but only after independent verification, when no other writer is active, and with proper state persistence.
+4. When durability is needed, use `FileChannel.force(...)` per policy and consider write ordering, metadata, and filesystem behavior.
+5. When whole-file atomic updates are needed, consider writing a complete temporary file and moving/renaming on the same filesystem, noting that `ATOMIC_MOVE` support depends on the provider.
 
-**Một length-prefix không tự biến nhiều write thành giao dịch nguyên tử.** Nó giúp phát hiện record thiếu dữ liệu; khả năng phục hồi và durability là quyết định khác.
+**A length-prefix does not automatically turn multiple writes into an atomic transaction.** It helps detect incomplete records; recovery and durability are separate design decisions.
 
-## 12. Khả năng tương thích: backward, forward và schema evolution
+## 12. Compatibility: Backward, Forward, and Schema Evolution
 
-Có ba tình huống cần kiểm thử độc lập:
+Three scenarios must be tested independently:
 
-| Tình huống | Kỳ vọng nếu thiết kế hỗ trợ |
+| Scenario | Expectation If Design Supports It |
 | --- | --- |
-| Reader mới đọc record v1 | Đọc được bằng decoder v1 |
-| Reader mới đọc record v2 | Đọc được bằng decoder v2 |
-| Reader cũ gặp record v2/v99 | Skip an toàn nếu protocol cho phép; hoặc lỗi rõ ràng |
+| New reader reads v1 record | Readable using the v1 decoder |
+| New reader reads v2 record | Readable using the v2 decoder |
+| Old reader encounters v2/v99 record | Safely skipped if protocol permits; or clear error |
 
-### Backward compatibility
+### Backward Compatibility
 
-Reader mới có thể hiểu các version cũ. Trong demo, decoder xử lý v1 và v2. Đó là **khả năng đọc dữ liệu cũ**, không đồng nghĩa mọi writer cũ sẽ hiểu dữ liệu do writer mới tạo.
+New readers can understand older versions. In the demo, the decoder handles v1 and v2. That is **the ability to read older data**, which does not mean every older writer will understand data produced by a newer writer.
 
-### Forward compatibility
+### Forward Compatibility
 
-Reader cũ có thể chịu được các thay đổi mới trong phạm vi được đặc tả. Ví dụ parser đọc length, kiểm tra checksum, **skip unknown version** để tiếp tục frame sau. Nhưng nếu unknown frame thay đổi state, như thiết lập dictionary/encryption cho frame tiếp theo, skip có thể **không an toàn**.
+Old readers can tolerate newer changes within the specified scope. For example, the parser reads length, verifies checksum, and **skips unknown versions** to continue with the next frame. However, if an unknown frame alters state—such as setting a dictionary or encryption key for subsequent frames—skipping can be **unsafe**.
 
-### Migrations và defaults
+### Migrations and Defaults
 
-Nếu cần đưa record v1 lên data model mới, một cách là chọn giá trị default hợp lý cho `priority` khi đọc v1, hoặc để `null` nghĩa là “chưa có”. **Không lấy 0 làm default mà không nói rõ semantics**, vì 0 có thể là một mức priority hợp lệ.
+If you need to lift a v1 record onto a new data model, one approach is picking a sensible default for `priority` when reading v1, or leaving it `null` to mean "absent". **Do not use 0 as a default without stating the semantics clearly**, because 0 may be a valid priority level.
 
-Tương tự, khi bỏ một field ở v3, nên viết rõ v1/v2/v3 là schema nào, không chỉ coi tất cả byte sau tên là field tùy chọn không có marker.
+Similarly, when removing a field in v3, specify explicitly what the v1/v2/v3 schemas are, rather than treating all bytes after the name as optional unmarked fields.
 
-## 13. An toàn trước đầu vào không tin cậy
+## 13. Safety Against Untrusted Input
 
-Một parser nhị phân cần giả định file/input có thể bị lỗi hoặc được tạo bởi đối tác không tin cậy. Thứ tự xử lý an toàn:
+A binary parser should assume files/input can be corrupted or crafted by an untrusted peer. Safe processing order:
 
-1. **Kiểm tra magic** trước khi hiểu payload.
-2. **Đọc version có giới hạn** và xác định chính sách unknown.
-3. **Kiểm tra length** không âm, không vượt max, không gây integer overflow khi tính `header + length + trailer`.
-4. **Giới hạn cấp phát** trước khi tạo buffer.
-5. **Đọc đầy đủ đúng length** và xử lý EOF giữa frame như lỗi.
-6. **Kiểm tra checksum** theo đúng phạm vi byte đã định nghĩa.
-7. **Kiểm tra schema nội bộ**, length của chuỗi/mảng và UTF-8 hợp lệ.
-8. **Từ chối byte dư** nếu schema version đã biết không cho phép.
-9. **Giới hạn tổng tải**: số frame, tốc độ, deadline, nesting, số kết nối, memory budget và CPU.
-10. **Không xem CRC như xác thực**: nếu cần chống attacker giả mạo, dùng MAC/AEAD/chữ ký theo giao thức an toàn phù hợp.
+1. **Check magic** before interpreting the payload.
+2. **Read version within bounds** and enforce the unknown-version policy.
+3. **Validate length**: non-negative, within max, and free of integer overflow when computing `header + length + trailer`.
+4. **Bound allocation** before creating buffers.
+5. **Read the exact full length** and treat mid-frame EOF as an error.
+6. **Verify checksum** over the exact defined byte range.
+7. **Validate internal schema**, string/array lengths, and valid UTF-8.
+8. **Reject trailing bytes** if the known schema version forbids them.
+9. **Limit total load**: frame count, rate, deadlines, nesting, connection count, memory budget, and CPU.
+10. **Do not treat CRC as authentication**: if defending against tampering by an attacker, use MAC/AEAD/signatures under a proper security protocol.
 
-Đặc biệt, đoạn mã:
+In particular, this code snippet:
 
 ~~~java
 int length = in.readInt();
-byte[] payload = new byte[length]; // NGUY HIỂM nếu chưa kiểm tra
+byte[] payload = new byte[length]; // DANGEROUS if not yet validated
 ~~~
 
-là anti-pattern. Một length âm gây lỗi cấp phát; một length cực lớn có thể dẫn đến `OutOfMemoryError`. Trong bài demo, `MAX_PAYLOAD` được kiểm tra trước allocation. Trong production, còn phải hạn chế số frame đang được giữ đồng thời.
+is an anti-pattern. A negative length causes an allocation error; a huge length can lead to `OutOfMemoryError`. In the demo, `MAX_PAYLOAD` is checked before allocation. In production, you must also limit how many frames are held concurrently.
 
-### Length lồng nhau
+### Nested Lengths
 
-Frame đã có `payloadLength`, nhưng payload có thể lại chứa `nameLen`, `arrayLength` hoặc danh sách element. **Mọi độ dài lồng nhau** đều phải được kiểm tra so với byte còn lại và giới hạn nghiệp vụ; không vì frame ngoài hợp lệ mà tin mọi trường trong payload đều hợp lệ.
+A frame already has `payloadLength`, yet the payload itself may contain `nameLen`, `arrayLength`, or element lists. **Every nested length** must be checked against the remaining bytes and business limits; do not trust all inner payload fields just because the outer frame passed.
 
-Ví dụ decoder demo xác nhận `nameLength <= remaining - extraBytes`. Nếu thêm một danh sách bản ghi con, parser phải giới hạn count và kiểm tra số byte cần thiết trước khi lặp hoặc cấp phát.
+For instance, the demo decoder verifies `nameLength <= remaining - extraBytes`. If adding a list of sub-records, the parser must bound the count and check the required byte count before looping or allocating.
 
-## 14. ByteBuffer: ví dụ ngắn về header big-endian
+## 14. `ByteBuffer`: Short Example of a Big-Endian Header
 
-Nếu muốn dựng header bằng `ByteBuffer` thay vì `DataOutputStream`:
+If you want to build the header with `ByteBuffer` instead of `DataOutputStream`:
 
 ~~~java
 ByteBuffer header = ByteBuffer.allocate(9)
@@ -654,14 +654,14 @@ header.putInt(0x4A42494E); // "JBIN"
 header.put((byte) 1);      // version
 header.putInt(123);       // payloadLength
 
-header.flip();             // Chuẩn bị cho channel.write(header)
+header.flip();             // Prepare for channel.write(header)
 ~~~
 
-Đây là **mảnh code minh họa**; import `java.nio.ByteBuffer` và `java.nio.ByteOrder`, và không tự gửi dữ liệu.
+This is an **illustrative snippet**; import `java.nio.ByteBuffer` and `java.nio.ByteOrder`, and note it does not send data by itself.
 
-`flip()` là bước quan trọng: sau `put`, position đứng ở cuối vùng đã ghi; nếu quên `flip` mà gọi `channel.write(header)`, có thể truyền 0 byte hoặc dữ liệu không mong muốn. Với `SocketChannel` non-blocking, ngay cả sau `flip`, `write` có thể gửi một phần header; cần giữ buffer chưa gửi hết.
+`flip()` is crucial: after `put`, position sits at the end of the written region; if you forget `flip` and call `channel.write(header)`, it may transmit 0 bytes or unwanted data. With a non-blocking `SocketChannel`, even after `flip`, `write` may send only part of the header; you must keep the buffer until all bytes are sent.
 
-Reader phía ByteBuffer:
+Reader side with `ByteBuffer`:
 
 ~~~java
 header.order(ByteOrder.BIG_ENDIAN);
@@ -670,94 +670,94 @@ int version = Byte.toUnsignedInt(header.get());
 int length = header.getInt();
 ~~~
 
-Chỉ được gọi các lệnh `get` sau khi **đã nhận đủ 9 byte**; nếu không, `BufferUnderflowException` có thể xuất hiện. Đọc và kiểm tra length trước khi cấp phát buffer payload. Những byte này cùng đặc tả với `DataInputStream` demo.
+Only call these `get` methods after **all 9 bytes have been received**; otherwise, `BufferUnderflowException` may occur. Read and validate length before allocating the payload buffer. These bytes follow the exact same specification as the `DataInputStream` demo.
 
-## 15. Những sai lầm phổ biến
+## 15. Common Mistakes
 
-**Sai lầm 1 — Không có length-prefix.** Khi ghép nhiều record nhị phân, parser không biết ranh giới. Giải pháp: đặc tả framing theo độ dài hoặc một cơ chế đóng gói đủ chặt khác.
+**Mistake 1 — No length-prefix.** When concatenating multiple binary records, the parser does not know the boundaries. Solution: specify length-based framing or another sufficiently strict framing mechanism.
 
-**Sai lầm 2 — Chỉ có length mà không version.** Khi thêm một field, parser cũ có thể diễn giải nhầm byte. Giải pháp: schema version và chính sách tương thích.
+**Mistake 2 — Length only, no version.** When adding a field, older parsers can misinterpret bytes. Solution: schema version and a compatibility policy.
 
-**Sai lầm 3 — Quên quy định byte order.** Java, C và hệ điều hành có thể dùng cách biểu diễn khác. Giải pháp: định nghĩa big-endian/little-endian trong đặc tả và test bytes.
+**Mistake 3 — Forgetting to specify byte order.** Java, C, and operating systems can use different representations. Solution: define big-endian/little-endian in the spec and test raw bytes.
 
-**Sai lầm 4 — Dùng `String.length()` làm độ dài UTF-8.** Ký tự nhiều byte khiến reader lệch offset. Giải pháp: encode UTF-8 rồi ghi độ dài byte.
+**Mistake 4 — Using `String.length()` as UTF-8 length.** Multi-byte characters shift the reader's offset. Solution: encode UTF-8 first, then write byte length.
 
-**Sai lầm 5 — Dùng `writeUTF/readUTF` cho giao thức UTF-8 chuẩn.** Đó là modified UTF-8 có framing riêng. Giải pháp: ghi u16/u32 byteLength rồi ghi byte UTF-8 chuẩn.
+**Mistake 5 — Using `writeUTF/readUTF` for a standard UTF-8 protocol.** That is modified UTF-8 with its own framing. Solution: write u16/u32 byteLength followed by standard UTF-8 bytes.
 
-**Sai lầm 6 — Cấp phát theo length chưa kiểm tra.** Có thể tạo mảng khổng lồ hoặc âm. Giải pháp: kiểm tra phạm vi trước allocation.
+**Mistake 6 — Allocating from an unchecked length.** Can create giant or negative arrays. Solution: range-check before allocation.
 
-**Sai lầm 7 — Coi EOF giữa payload là kết thúc file hợp lệ.** Đó là frame bị cắt cụt. Giải pháp: phân biệt EOF đúng ranh giới và EOF giữa frame.
+**Mistake 7 — Treating mid-payload EOF as valid end of file.** That is a truncated frame. Solution: distinguish boundary EOF from mid-frame EOF.
 
-**Sai lầm 8 — Gặp unknown version thì đọc payload bằng schema gần giống.** Có thể sai hoàn toàn. Giải pháp: skip toàn frame nếu giao thức cho phép, hoặc lỗi rõ ràng.
+**Mistake 8 — Reading an unknown version with a similar-looking schema.** Can be completely wrong. Solution: skip the whole frame if the protocol permits, or raise a clear error.
 
-**Sai lầm 9 — Không kiểm tra byte dư của schema đã biết.** Parser có thể chấp nhận record encode lệch schema. Giải pháp: yêu cầu payload được tiêu thụ trọn vẹn khi version cố định.
+**Mistake 9 — Not checking trailing bytes in a known schema.** The parser may accept records encoded with a mismatched schema. Solution: require the payload to be consumed completely when the version is fixed.
 
-**Sai lầm 10 — Nghĩ CRC bảo vệ chống sửa giả mạo.** CRC32 không phải MAC. Giải pháp: dùng xác thực mật mã nếu có attacker.
+**Mistake 10 — Thinking CRC protects against intentional tampering.** CRC32 is not a MAC. Solution: use cryptographic authentication if attackers are in scope.
 
-**Sai lầm 11 — Giả định một lần đọc TCP trả đủ một frame.** TCP là byte stream; cần state machine tích lũy header và payload.
+**Mistake 11 — Assuming one TCP read returns a complete frame.** TCP is a byte stream; a state machine is needed to accumulate header and payload.
 
-**Sai lầm 12 — Không test nhiều frame nối tiếp.** Parser có thể đọc lấn sang frame sau hoặc không reset state đúng. Giải pháp: round-trip nhiều version, unknown version ở giữa, frame cuối, EOF và dữ liệu hỏng.
+**Mistake 12 — Not testing multiple consecutive frames.** The parser might overread into the next frame or fail to reset state properly. Solution: round-trip multiple versions, an unknown version in the middle, the final frame, EOF, and corrupted data.
 
-## 16. Bài tập thực hành và câu hỏi tự kiểm tra
+## 16. Practice Exercises and Self-Check Questions
 
-### Bài tập 1 — Đọc byte theo đặc tả
+### Exercise 1 — Reading Bytes According to the Spec
 
-Với header:
+Given the header:
 
 ~~~text
 4A 42 49 4E 01 00 00 00 0B
 ~~~
 
-Hãy xác định:
+Determine:
 
 - Magic: **`JBIN`**.
 - Version: **1**.
-- Payload length: **11 byte**.
-- Tổng frame length theo cấu trúc bài học: **13 + 11 = 24 byte**, gồm CRC32 4 byte ở cuối.
+- Payload length: **11 bytes**.
+- Total frame length per this lesson's structure: **13 + 11 = 24 bytes**, including the 4-byte CRC32 at the end.
 
-Đây chỉ là **header**, chưa có payload/CRC đi kèm để kết luận cả frame hợp lệ.
+This is **only the header**, without the accompanying payload/CRC to conclude the whole frame is valid.
 
-### Bài tập 2 — Version 1 và version 2
+### Exercise 2 — Version 1 and Version 2
 
-Nếu v1 có id=7 và name `"Alpha"`:
+If v1 has id=7 and name `"Alpha"`:
 
-- id: 4 byte.
-- name length: 2 byte.
-- UTF-8 `Alpha`: 5 byte.
-- Tổng payload v1: **11 byte**.
-- Tổng frame: **24 byte**.
+- id: 4 bytes.
+- name length: 2 bytes.
+- UTF-8 `Alpha`: 5 bytes.
+- Total v1 payload: **11 bytes**.
+- Total frame: **24 bytes**.
 
-Nếu v2 có cùng name/id và thêm priority i32 thì payload là **15 byte**, frame là **28 byte**. Không lấy số ký tự Java thay cho số byte UTF-8 khi có ký tự ngoài ASCII.
+If v2 has the same name/id plus an i32 priority, then payload is **15 bytes** and frame is **28 bytes**. Do not use Java character count in place of UTF-8 byte count when non-ASCII characters are present.
 
-### Bài tập 3 — Bổ sung loại message
+### Exercise 3 — Adding a Message Type
 
-Thêm trường type vào header: version chung, type 1 byte, length 4 byte. Cần:
+Add a type field to the header: common version, 1-byte type, 4-byte length. You need to:
 
-1. Cập nhật header size từ 9 thành 10 byte.
-2. Viết lại encoder/decoder đồng bộ.
-3. Xác định type không được hỗ trợ phải skip hay reject.
-4. Cân nhắc cách phân biệt tệp dùng header cũ với header mới (ví dụ thay format major version/magic), không âm thầm đọc sai.
+1. Update header size from 9 to 10 bytes.
+2. Rewrite encoder/decoder in sync.
+3. Decide whether unsupported types should be skipped or rejected.
+4. Consider how to distinguish files using the old header from the new header (for example, changing the format major version/magic), rather than silently misreading.
 
-### Bài tập 4 — Trường hợp length không hợp lệ
+### Exercise 4 — Invalid Length Cases
 
-Viết test với `payloadLength = -1`, `65_537`, `0`, `65_536`. Trong demo:
+Write tests with `payloadLength = -1`, `65_537`, `0`, `65_536`. In the demo:
 
-- -1 và 65.537: **từ chối**.
-- 0 và 65.536: **nằm trong phạm vi length cho phép** ở cấp frame; tuy vậy payload 0 byte không đủ schema v1/v2 và sẽ bị decoder của các version đó từ chối.
+- -1 and 65,537: **rejected**.
+- 0 and 65,536: **within the allowed length range** at the frame level; however, a 0-byte payload does not satisfy the v1/v2 schema and will be rejected by those versions' decoders.
 
-### Câu hỏi
+### Questions
 
-1. Version dùng để làm gì? **Chọn cấu trúc/ý nghĩa trường payload**.
-2. Length dùng để làm gì? **Xác định ranh giới frame, giới hạn cấp phát và hỗ trợ skip**.
-3. Có thể chỉ dùng magic để tìm frame kế tiếp không? **Không an toàn theo mặc định**, vì magic có thể xuất hiện trong payload.
-4. Byte order của `DataOutputStream.writeInt` là gì? **Big-endian**.
-5. UTF-8 byte length có luôn bằng `String.length()`? **Không**.
-6. Reader gặp unknown version mà vẫn biết frame length, có luôn được skip không? **Chỉ nếu hợp đồng giao thức cho phép và frame độc lập**.
-7. `readFully` có trả ít byte mà không báo lỗi khi EOF giữa payload không? **Không**, nó ném `EOFException` khi không đọc đủ.
-8. CRC32 có bảo mật trước attacker không? **Không**, chỉ phát hiện nhiều dạng lỗi dữ liệu ngẫu nhiên.
-9. Đọc tới EOF ở đúng ranh giới giữa hai frame khác gì EOF sau vài byte header? **Trường hợp đầu có thể hợp lệ; trường hợp sau là frame bị cắt cụt**.
-10. Nếu length = 2 GiB và reader có ít RAM thì nên làm gì? **Từ chối theo giới hạn** hoặc thiết kế streaming có budget rõ ràng; không cấp phát trực tiếp.
-11. Khi thêm field tùy chọn cần mô tả gì? **Version, presence flag/schema, thứ tự, kích thước, default và chính sách unknown**.
-12. Để lưu file có thể bị mất điện giữa lần append, cần gì ngoài length? **Phát hiện record dở, commit/recovery rule và durability policy nếu cần**.
+1. What is version used for? **Selecting the payload field structure/semantics**.
+2. What is length used for? **Determining frame boundaries, bounding allocations, and supporting skipping**.
+3. Can you use magic alone to locate the next frame? **Unsafe by default**, because magic bytes can appear inside payloads.
+4. What is the byte order of `DataOutputStream.writeInt`? **Big-endian**.
+5. Is UTF-8 byte length always equal to `String.length()`? **No**.
+6. If a reader encounters an unknown version while still knowing frame length, can it always skip it? **Only if the protocol contract allows it and frames are independent**.
+7. Does `readFully` return fewer bytes without an error on mid-payload EOF? **No**, it throws `EOFException` when it cannot read enough bytes.
+8. Is CRC32 secure against an attacker? **No**, it only detects many forms of accidental data corruption.
+9. How does EOF right at the boundary between two frames differ from EOF after a few header bytes? **The first case can be valid; the second case is a truncated frame**.
+10. If length = 2 GiB and the reader has little RAM, what should it do? **Reject per bounds** or design streaming with an explicit budget; do not allocate directly.
+11. When adding an optional field, what must be documented? **Version, presence flag/schema, order, size, default, and unknown policy**.
+12. To store a file that might lose power mid-append, what is needed besides length? **Incomplete-record detection, commit/recovery rules, and a durability policy if required**.
 
-**Ghi nhớ:** một định dạng nhị phân có **magic + version + length** giúp parser nhận biết loại dữ liệu và ranh giới record; thêm schema byte order/UTF-8, giới hạn độ dài, checksum và quy tắc lỗi thì mới thành một giao thức có thể vận hành. Luôn **kiểm tra length trước khi cấp phát**, phân biệt EOF hợp lệ với dữ liệu bị cắt cụt, và chỉ skip phiên bản chưa biết khi có cơ sở từ đặc tả. Một ví dụ round-trip đúng phải được kiểm thử bằng nhiều phiên bản, nhiều frame, đầu vào sai và khôi phục sau lỗi.
+**Remember:** a binary format with **magic + version + length** lets the parser recognize data type and record boundaries; adding byte order/UTF-8 schemas, length limits, checksums, and error rules turns it into an operable protocol. Always **validate length before allocation**, distinguish valid EOF from truncated data, and skip unknown versions only when justified by the specification. A proper round-trip example must be tested across multiple versions, multiple frames, invalid inputs, and error recovery.

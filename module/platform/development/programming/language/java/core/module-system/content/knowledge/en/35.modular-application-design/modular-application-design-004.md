@@ -1,22 +1,22 @@
-# Đặt service interface và provider implementation
+# Placing Service Interfaces and Provider Implementations
 
-## 1. Mục tiêu
+## 1. Objective
 
-Khi thiết kế ứng dụng Java modular, một service thường có nhiều implementation khác nhau: lưu file hoặc lưu database, gửi email qua SMTP hoặc API, thanh toán qua nhiều cổng, đọc dữ liệu từ nhiều định dạng. Nếu module sử dụng phụ thuộc trực tiếp vào class implementation, mỗi lần thay provider có thể buộc phải sửa dependency và module descriptor của consumer.
+When designing modular Java applications, a service often has multiple different implementations: saving to a file or to a database, sending email via SMTP or an API, processing payments through multiple gateways, or reading data from multiple formats. If a consuming module depends directly on an implementation class, changing providers can force modifications to the consumer's dependencies and module descriptor.
 
-Java Platform Module System (JPMS) hỗ trợ tách ba vai trò:
+The Java Platform Module System (JPMS) supports separating three roles:
 
-1. **Service API module** định nghĩa contract mà consumer và provider cùng hiểu.
-2. **Consumer module** sử dụng contract và khai báo service usage bằng **uses**.
-3. **Provider module** triển khai contract và đăng ký implementation bằng **provides ... with ...**.
+1. **Service API module** defines the contract understood by both consumers and providers.
+2. **Consumer module** uses the contract and declares service usage with `uses`.
+3. **Provider module** implements the contract and registers the implementation with `provides ... with ...`.
 
-Consumer phụ thuộc vào service API. Provider cũng phụ thuộc vào service API. Consumer không cần khai báo requires tới từng provider cụ thể. Runtime có thể tìm implementation phù hợp thông qua **ServiceLoader** khi provider module đã được đưa vào module layer.
+The consumer depends on the service API. The provider also depends on the service API. The consumer does not need to declare `requires` on any specific provider. At runtime, the appropriate implementation can be discovered via `ServiceLoader` once the provider module has been included in the module layer.
 
-Cách tổ chức này giảm coupling, cho phép thay hoặc bổ sung provider theo cấu hình triển khai và giữ implementation detail trong module provider.
+This organization reduces coupling, allows providers to be swapped or added via deployment configuration, and keeps implementation details inside the provider module.
 
-## 2. Phân chia trách nhiệm giữa các module
+## 2. Dividing responsibilities among modules
 
-Giả sử ứng dụng cần một service để gửi thông báo:
+Suppose an application needs a service to send notifications:
 
 ~~~text
 com.acme.notification.api
@@ -38,7 +38,7 @@ com.acme.notification.sms
         SmsNotificationSender
 ~~~
 
-Quan hệ phụ thuộc:
+Dependency relationships:
 
 ~~~text
                   +-------------------------------+
@@ -55,46 +55,46 @@ Quan hệ phụ thuộc:
           +--------------------+      +-------------------+
 ~~~
 
-Cả consumer và provider đều biết service contract. Consumer không cần biết class SMTP hoặc SMS nằm ở package nào.
+Both the consumer and the provider know the service contract. The consumer does not need to know which package contains the SMTP or SMS class.
 
 ### Service API module
 
-Module API chứa những type cần thiết để gọi service:
+The API module contains the types needed to invoke the service:
 
-- Interface hoặc abstract service type.
-- Request/response type và exception thuộc contract.
-- Enum hoặc value type cần trao đổi giữa consumer và provider.
-- Các annotation hoặc capability type thuộc contract nếu thực sự cần.
+- Service interfaces or abstract service types.
+- Request/response types and exceptions belonging to the contract.
+- Enums or value types exchanged between consumer and provider.
+- Annotations or capability types belonging to the contract if genuinely required.
 
-Module API nên nhỏ và ổn định. Không đặt implementation SMTP, JDBC, HTTP client, framework hoặc cấu hình môi trường vào module API chỉ để consumer có thể gọi interface.
+The API module should be small and stable. Do not put SMTP implementations, JDBC, HTTP clients, frameworks, or environment configurations into the API module just so the consumer can call the interface.
 
 ### Consumer module
 
-Consumer chứa logic nghiệp vụ cần sử dụng service. Nó:
+The consumer contains the business logic that needs to use the service. It:
 
-- Khai báo requires tới service API module.
-- Khai báo uses cho service type.
-- Dùng ServiceLoader để phát hiện provider.
-- Chọn provider theo quy tắc của ứng dụng nếu có nhiều implementation.
-- Xử lý trường hợp không có provider hoặc provider khởi tạo thất bại.
+- Declares `requires` on the service API module.
+- Declares `uses` for the service type.
+- Uses `ServiceLoader` to discover providers.
+- Selects a provider according to application rules if multiple implementations exist.
+- Handles cases where no provider is present or provider initialization fails.
 
-Consumer không cần import hoặc gọi trực tiếp implementation class.
+The consumer does not need to import or directly instantiate implementation classes.
 
 ### Provider module
 
-Provider chứa implementation cụ thể và dependency riêng của nó. Nó:
+The provider contains a concrete implementation and its own dependencies. It:
 
-- Khai báo requires tới service API module.
-- Khai báo provides cho service type.
-- Đặt implementation trong package nội bộ.
-- Không export package implementation nếu module khác không cần truy cập trực tiếp.
-- Quản lý cấu hình, kết nối và tài nguyên riêng của provider.
+- Declares `requires` on the service API module.
+- Declares `provides` for the service type.
+- Places the implementation in an internal package.
+- Does not export the implementation package if other modules do not need direct access.
+- Manages the provider's own configuration, connections, and resources.
 
-Provider có thể phụ thuộc vào thư viện SMTP, SDK thanh toán hoặc database driver mà consumer không cần biết.
+A provider can depend on an SMTP library, a payment SDK, or a database driver without the consumer needing to know.
 
-## 3. Định nghĩa service contract trong API module
+## 3. Defining the service contract in the API module
 
-Module descriptor của API:
+Module descriptor of the API:
 
 ~~~java
 module com.acme.notification.api {
@@ -114,7 +114,7 @@ public interface NotificationSender {
 }
 ~~~
 
-Các type được trao đổi qua interface cũng thuộc API module:
+Types exchanged through the interface also belong to the API module:
 
 ~~~java
 package com.acme.notification.spi;
@@ -135,24 +135,24 @@ public record DeliveryResult(
 }
 ~~~
 
-Vì các type này nằm trong package được export, consumer và provider có thể tham chiếu chúng khi khai báo dependency tới API module.
+Because these types reside in an exported package, consumers and providers can reference them when declaring a dependency on the API module.
 
-### Thiết kế contract ổn định
+### Designing a stable contract
 
-Service interface là ranh giới giữa hai phía. Hãy thiết kế contract theo nghiệp vụ thay vì để lộ chi tiết của một provider:
+The service interface is the boundary between both sides. Design the contract around business concepts instead of exposing details of one provider:
 
-- Dùng tên khái niệm như NotificationSender hoặc PaymentGateway thay vì SmtpSender nếu có nhiều loại provider.
-- Đưa dữ liệu cần thiết vào request/response type có ý nghĩa rõ ràng.
-- Không trả về class thuộc thư viện riêng của provider.
-- Không yêu cầu consumer truyền đối tượng kết nối hoặc cấu hình nội bộ của implementation.
-- Xác định rõ lỗi có thể xảy ra, tính đồng bộ/bất đồng bộ và timeout nếu service cần.
-- Giữ thay đổi tương thích khi thêm field hoặc mở rộng contract.
+- Use conceptual names like `NotificationSender` or `PaymentGateway` rather than `SmtpSender` if multiple provider types exist.
+- Put necessary data into meaningful request/response types.
+- Do not return classes belonging to a provider's private library.
+- Do not require consumers to pass internal implementation connection or configuration objects.
+- Clearly define possible errors, synchronous/asynchronous behavior, and timeouts if required by the service.
+- Maintain compatibility when adding fields or extending the contract.
 
-Nếu consumer phải import một class của SDK SMTP chỉ để gọi NotificationSender, abstraction đã bị rò rỉ implementation detail.
+If a consumer must import an SMTP SDK class just to invoke `NotificationSender`, the abstraction is leaking implementation details.
 
-### Không đặt implementation trong API module
+### Do not place implementations in the API module
 
-API module không nên chứa:
+The API module should not contain:
 
 ~~~java
 public final class SmtpNotificationSender
@@ -161,11 +161,11 @@ public final class SmtpNotificationSender
 }
 ~~~
 
-Nếu đặt class này trong API module, consumer có thể bị kéo theo dependency của SMTP và ranh giới service không còn rõ. Implementation nên thuộc provider module riêng.
+If this class is placed in the API module, consumers may get pulled into SMTP dependencies and the service boundary becomes blurred. Implementations belong in separate provider modules.
 
-## 4. Consumer khai báo uses
+## 4. Consumer declares `uses`
 
-Module descriptor của consumer:
+Module descriptor of the consumer:
 
 ~~~java
 module com.acme.reminder {
@@ -175,10 +175,10 @@ module com.acme.reminder {
 }
 ~~~
 
-Hai directive có mục đích khác nhau:
+The two directives serve different purposes:
 
-- **requires** cho phép consumer đọc service API module và tham chiếu các type trong package được export.
-- **uses** khai báo consumer sử dụng service type để module system và ServiceLoader biết service dependence của consumer.
+- `requires` allows the consumer to read the service API module and reference types in exported packages.
+- `uses` declares that the consumer uses the service type so the module system and `ServiceLoader` are aware of the consumer's service dependency.
 
 Consumer code:
 
@@ -207,13 +207,13 @@ public final class ReminderService {
 }
 ~~~
 
-Đối với code chạy trong named module, module chứa code gọi ServiceLoader phải khai báo **uses** cho service type. Nếu thiếu khai báo, ServiceLoader có thể ném ServiceConfigurationError khi thực hiện việc tìm provider.
+For code running in a named module, the module containing the code that invokes `ServiceLoader` must declare `uses` for the service type. If the declaration is missing, `ServiceLoader` may throw `ServiceConfigurationError` when attempting to locate providers.
 
-Nếu chỉ chạy trên classpath trong unnamed module, quy tắc khai báo uses của named module không áp dụng theo cùng cách. Tuy nhiên, nên giữ thiết kế module rõ ràng khi ứng dụng sử dụng JPMS.
+When running solely on the classpath in the unnamed module, the named-module `uses` declaration rule does not apply in the same way. However, keep the module design explicit when the application uses JPMS.
 
-### Không requires provider cụ thể trong consumer
+### Do not `requires` a specific provider in the consumer
 
-Consumer không cần viết:
+The consumer should not write:
 
 ~~~java
 module com.acme.reminder {
@@ -222,9 +222,9 @@ module com.acme.reminder {
 }
 ~~~
 
-Nếu consumer khai báo requires tới từng provider, nó đã phụ thuộc vào implementation module. Khi đổi từ email sang SMS, module descriptor và dependency graph của consumer lại phải thay đổi.
+If the consumer declares `requires` on a specific provider, it becomes coupled to that implementation module. Switching from email to SMS would force changes to the consumer's module descriptor and dependency graph.
 
-Thiết kế service-based thường chỉ cần:
+A service-based design typically only needs:
 
 ~~~java
 module com.acme.reminder {
@@ -233,11 +233,11 @@ module com.acme.reminder {
 }
 ~~~
 
-Provider được đưa vào runtime configuration hoặc module layer theo nhu cầu triển khai.
+Providers are supplied in the runtime configuration or module layer according to deployment needs.
 
-## 5. Provider module đăng ký implementation bằng provides
+## 5. Provider module registers implementation with `provides`
 
-Module email có thể triển khai service:
+The email module can implement the service:
 
 ~~~java
 module com.acme.notification.email {
@@ -270,17 +270,17 @@ public final class SmtpNotificationSender
 
     @Override
     public DeliveryResult send(Notification notification) {
-        // Gửi notification qua SMTP.
+        // Send notification via SMTP.
         return new DeliveryResult("smtp-message-id", true);
     }
 }
 ~~~
 
-Với provider class theo kiểu constructor, implementation cần là public và có public no-argument constructor để ServiceLoader tạo instance.
+For a constructor-based provider class, the implementation must be `public` and have a `public` no-argument constructor so `ServiceLoader` can instantiate it.
 
-Package implementation không cần export chỉ vì được khai báo trong provides. ServiceLoader có thể khởi tạo provider theo module descriptor. Consumer chỉ cần nhìn thấy service type trong API module.
+The implementation package does not need to be exported simply because it is declared in `provides`. `ServiceLoader` can instantiate the provider based on the module descriptor. Consumers only need visibility to the service type in the API module.
 
-Điều này giúp giữ implementation package ở mức encapsulated:
+This keeps the implementation package encapsulated:
 
 ~~~java
 module com.acme.notification.email {
@@ -291,17 +291,17 @@ module com.acme.notification.email {
 }
 ~~~
 
-Không cần thêm:
+There is no need to add:
 
 ~~~java
 exports com.acme.notification.email.internal;
 ~~~
 
-Chỉ export package provider nếu có một API độc lập khác thực sự cần truy cập trực tiếp implementation đó.
+Only export the provider package if a separate API genuinely needs direct access to that implementation.
 
-### Provider method thay cho implementation constructor
+### Provider method instead of an implementation constructor
 
-Named module cũng có thể khai báo một provider class với public static method tên **provider** trả về service type:
+A named module can also declare a provider class with a `public static` method named `provider` returning the service type:
 
 ~~~java
 package com.acme.notification.email.internal;
@@ -323,20 +323,20 @@ public final class SmtpSenderProvider {
 }
 ~~~
 
-Module descriptor khi đó dùng provider class:
+The module descriptor then names the provider class:
 
 ~~~java
 provides com.acme.notification.spi.NotificationSender
     with com.acme.notification.email.internal.SmtpSenderProvider;
 ~~~
 
-Provider method hữu ích khi implementation cần khởi tạo qua factory, cấu hình hoặc dependency nội bộ. Provider class không cần trực tiếp implement service nếu nó cung cấp method hợp lệ theo ServiceLoader provider method contract.
+A provider method is useful when the implementation requires initialization via a factory, configuration, or internal dependencies. The provider class does not need to implement the service directly if it provides a valid method matching the `ServiceLoader` provider method contract.
 
-Dù dùng constructor hay provider method, consumer vẫn nhận được service type đã công khai trong API module.
+Whether using a constructor or a provider method, consumers still receive the service type exposed in the API module.
 
-## 6. Nhiều provider có thể triển khai cùng một service
+## 6. Multiple providers can implement the same service
 
-Module SMS có thể triển khai cùng interface:
+An SMS module can implement the same interface:
 
 ~~~java
 module com.acme.notification.sms {
@@ -347,7 +347,7 @@ module com.acme.notification.sms {
 }
 ~~~
 
-Khi cả email và SMS provider được đưa vào cùng module layer, ServiceLoader có thể phát hiện nhiều implementation.
+When both the email and SMS providers are included in the same module layer, `ServiceLoader` can discover multiple implementations.
 
 Consumer:
 
@@ -360,15 +360,15 @@ for (NotificationSender sender : loader) {
 }
 ~~~
 
-Không được dựa vào thứ tự provider được trả về để biểu diễn độ ưu tiên nghiệp vụ. Nếu cần chọn provider, hãy xác định quy tắc tường minh:
+Do not rely on the order in which providers are returned to represent business priority. If a provider must be chosen, define an explicit rule:
 
-- Theo cấu hình triển khai.
-- Theo loại notification hoặc recipient.
-- Theo capability mà provider công bố.
-- Theo policy fallback khi provider chính không khả dụng.
-- Theo tenant hoặc vùng triển khai nếu đó là yêu cầu nghiệp vụ.
+- By deployment configuration.
+- By notification type or recipient.
+- By capabilities advertised by the provider.
+- By a fallback policy when the primary provider is unavailable.
+- By tenant or deployment region if required by the business domain.
 
-Ví dụ chọn theo cấu hình:
+Example selecting by configuration:
 
 ~~~java
 String selectedProviderId = configuration.notificationProvider();
@@ -384,22 +384,22 @@ NotificationSender sender = ServiceLoader
                 "Configured notification provider is unavailable"));
 ~~~
 
-Nếu hệ thống yêu cầu đúng một provider, hãy kiểm tra số lượng provider thay vì ngầm chọn provider đầu tiên. Nếu nhiều provider là hợp lệ, thiết kế API để ứng dụng quyết định rõ provider nào được sử dụng.
+If the system requires exactly one provider, verify the provider count rather than implicitly picking the first one. If multiple providers are valid, design the API so the application explicitly decides which provider is used.
 
-## 7. ServiceLoader tìm provider ở đâu?
+## 7. Where does `ServiceLoader` find providers?
 
-ServiceLoader không tự tải mọi JAR nằm trên ổ đĩa. Provider phải hiện diện trong môi trường tìm kiếm phù hợp và được module system hoặc class loader phát hiện.
+`ServiceLoader` does not automatically load every JAR on disk. A provider must be present in the appropriate search environment and discovered by the module system or class loader.
 
-Với named modules:
+With named modules:
 
-- Consumer khai báo uses.
-- Provider module khai báo provides.
-- Provider module phải được resolve vào module layer mà ServiceLoader đang tìm kiếm.
-- Module provider phải đọc được service API module và service type phải tương thích.
+- The consumer declares `uses`.
+- The provider module declares `provides`.
+- The provider module must be resolved into the module layer that `ServiceLoader` is searching.
+- The provider module must be able to read the service API module and the service type must be compatible.
 
-Với ứng dụng chạy trên module path, việc chỉ đặt provider JAR trên module path không đồng nghĩa provider chắc chắn đã nằm trong module graph. Cần bảo đảm module provider được đưa vào configuration/layer, chẳng hạn bằng cách thêm module provider vào root modules hoặc sử dụng cơ chế service binding phù hợp.
+For applications running on the module path, simply placing a provider JAR on the module path does not guarantee the provider is already in the module graph. Ensure the provider module is included in the configuration/layer—for instance, by adding the provider module to the root modules or using an appropriate service binding mechanism.
 
-Ví dụ khi chạy ứng dụng và chọn provider tường minh:
+Example of running the application and explicitly selecting a provider:
 
 ~~~text
 java
@@ -408,42 +408,42 @@ java
   --module com.acme.reminder/com.acme.reminder.app.Main
 ~~~
 
-Trong ứng dụng lớn, danh sách root modules và cách tạo layer nên được quản lý bởi build/deployment configuration. Khi tạo custom runtime image bằng jlink, có thể thêm provider module rõ ràng bằng --add-modules hoặc bật --bind-services để liên kết provider cho service usage của các module đã resolve.
+In larger applications, the list of root modules and layer creation should be managed by build/deployment configuration. When building a custom runtime image with `jlink`, provider modules can be explicitly added with `--add-modules` or linked via `--bind-services` for services used by resolved modules.
 
-### Tìm provider trong một ModuleLayer cụ thể
+### Finding providers in a specific `ModuleLayer`
 
-Nếu ứng dụng tạo module layer riêng để nạp plugin, có thể tìm provider trong layer đó:
+If an application creates a dedicated module layer to load plugins, it can look up providers in that layer:
 
 ~~~java
 ServiceLoader<NotificationSender> loader =
         ServiceLoader.load(pluginLayer, NotificationSender.class);
 ~~~
 
-Overload nhận ModuleLayer giúp xác định phạm vi tìm kiếm provider trong layer được chọn và các parent layer của nó theo hợp đồng API.
+The overload accepting a `ModuleLayer` scopes provider lookup to the selected layer and its parent layers according to the API contract.
 
-Cách này hữu ích khi một ứng dụng có nhiều nhóm plugin hoặc nhiều cấu hình provider độc lập. Cần bảo đảm service API module được chia sẻ theo cách phù hợp giữa consumer và layer chứa provider.
+This is useful when an application has multiple plugin groups or multiple independent provider configurations. Ensure the service API module is shared appropriately between the consumer and the layer containing the provider.
 
-### Provider trên classpath
+### Providers on the classpath
 
-Trong cách đóng gói classpath truyền thống, provider thường được đăng ký bằng file:
+In traditional classpath packaging, providers are typically registered via a file:
 
 ~~~text
 META-INF/services/com.acme.notification.spi.NotificationSender
 ~~~
 
-Nội dung file chứa tên đầy đủ của provider class, mỗi provider một dòng:
+The file contains the fully qualified name of each provider class, one per line:
 
 ~~~text
 com.acme.notification.email.internal.SmtpNotificationSender
 ~~~
 
-Cách đăng ký này thuộc cơ chế classpath/service configuration. Với named module, nên khai báo provider bằng **provides ... with ...** trong module-info.java. Đừng nhầm hai cơ chế đăng ký hoặc giả định rằng một provider class được khai báo theo một cách sẽ tự động được tìm thấy trong mọi loại module layer.
+This registration mechanism belongs to classpath/service configuration. For named modules, declare providers using `provides ... with ...` in `module-info.java`. Do not confuse the two registration mechanisms or assume a provider class declared one way will automatically be found in every kind of module layer.
 
-## 8. Thiết kế service API và provider implementation
+## 8. Designing the service API and provider implementation
 
-### Giữ service contract độc lập
+### Keep the service contract independent
 
-Service API nên chứa các type mà cả consumer và provider cần. Tránh để interface phụ thuộc vào provider module:
+The service API should contain the types needed by both consumers and providers. Avoid letting the interface depend on provider modules:
 
 ~~~text
 notification.api
@@ -462,11 +462,11 @@ notification.sms
     SmsClient
 ~~~
 
-Không để NotificationSender trả về SmtpMessage hoặc nhận SmtpSession. Nếu contract cần biểu diễn kết quả gửi, định nghĩa DeliveryResult trong API module.
+Do not let `NotificationSender` return `SmtpMessage` or accept `SmtpSession`. If the contract needs to represent a delivery result, define `DeliveryResult` in the API module.
 
-### Giữ dependency của provider ở phía provider
+### Keep provider dependencies on the provider side
 
-Provider email có thể cần SMTP client library; provider SMS có thể cần SDK riêng. Chỉ provider module khai báo dependency đó.
+The email provider may need an SMTP client library; the SMS provider may need its own SDK. Only the provider module declares those dependencies.
 
 ~~~java
 module com.acme.notification.email {
@@ -478,39 +478,39 @@ module com.acme.notification.email {
 }
 ~~~
 
-Consumer không cần đọc com.acme.smtp.client và không cần biết implementation dùng thư viện nào.
+The consumer does not need to read `com.acme.smtp.client` and does not need to know which library the implementation uses.
 
-### Không biến service API thành một module khổng lồ
+### Do not turn the service API into a giant module
 
-Không gom mọi interface của toàn hệ thống vào một module chung chỉ vì các module đều có thể phụ thuộc vào nó. API module nên phản ánh ranh giới contract có ý nghĩa và có vòng đời versioning phù hợp.
+Do not lump every interface in the entire system into one shared module just because all modules might depend on it. An API module should reflect meaningful contract boundaries and an appropriate versioning lifecycle.
 
-Nếu service không liên quan hoặc thay đổi theo nhịp khác nhau, hãy cân nhắc tách API module. Tránh tạo dependency graph quá rộng khiến một thay đổi nhỏ trong contract ảnh hưởng tới toàn ứng dụng.
+If services are unrelated or change at different cadences, consider splitting API modules. Avoid creating an overly broad dependency graph where a minor contract change affects the entire application.
 
-### Quản lý lifecycle và tài nguyên của provider
+### Managing provider lifecycle and resources
 
-ServiceLoader tạo provider khi consumer duyệt hoặc lấy instance. Provider có thể mở connection pool, client hoặc thread. Hãy quyết định rõ:
+`ServiceLoader` instantiates providers when the consumer iterates or retrieves an instance. A provider may open connection pools, clients, or threads. Decide clearly:
 
-- Instance provider có được dùng lâu dài hay tạo mới theo lần gọi?
-- Ai đóng resource khi ứng dụng shutdown?
-- Provider có thread-safe không?
-- Cấu hình được đọc ở thời điểm khởi tạo hay mỗi request?
-- Provider lỗi khi khởi tạo được báo cáo và xử lý như thế nào?
+- Is a provider instance long-lived or created per call?
+- Who closes resources when the application shuts down?
+- Is the provider thread-safe?
+- Is configuration read at initialization time or per request?
+- How are provider initialization failures reported and handled?
 
-ServiceLoader không phải dependency injection container đầy đủ và không tự quản lý toàn bộ lifecycle của resource do provider mở. Nếu provider cần lifecycle phức tạp, hãy thiết kế contract khởi tạo/đóng rõ ràng hoặc tích hợp với application container.
+`ServiceLoader` is not a full dependency injection container and does not automatically manage the full lifecycle of resources opened by a provider. If a provider requires complex lifecycle management, design an explicit initialization/shutdown contract or integrate with an application container.
 
-## 9. Lỗi thường gặp
+## 9. Common mistakes
 
-### Consumer requires trực tiếp provider
+### Consumer directly requires a provider
 
-Nếu consumer khai báo requires com.acme.notification.email, consumer bị gắn với implementation cụ thể. Việc thay provider có thể buộc phải sửa descriptor và dependency.
+If the consumer declares `requires com.acme.notification.email`, the consumer becomes tied to a specific implementation. Swapping providers may force descriptor and dependency edits.
 
-Cách xử lý: consumer requires service API và khai báo uses. Provider module requires API và khai báo provides.
+Fix: the consumer `requires` the service API and declares `uses`. The provider module `requires` the API and declares `provides`.
 
-### Quên exports package service API
+### Forgetting to export the service API package
 
-Consumer và provider không thể tham chiếu service interface nếu package chứa interface không được export phù hợp.
+Consumers and providers cannot reference the service interface if the package containing it is not properly exported.
 
-Cách xử lý: export package contract từ API module:
+Fix: export the contract package from the API module:
 
 ~~~java
 module com.acme.notification.api {
@@ -518,53 +518,53 @@ module com.acme.notification.api {
 }
 ~~~
 
-### Quên uses trong consumer module
+### Forgetting `uses` in the consumer module
 
-Named module gọi ServiceLoader nhưng module descriptor không khai báo uses cho service type.
+A named module invokes `ServiceLoader`, but its module descriptor does not declare `uses` for the service type.
 
-Cách xử lý: thêm uses cho đúng service interface trong module-info.java của consumer.
+Fix: add `uses` for the corresponding service interface in the consumer's `module-info.java`.
 
-### Quên provides trong provider module
+### Forgetting `provides` in the provider module
 
-Implementation class có mặt trên module path nhưng module descriptor không đăng ký provider.
+The implementation class is present on the module path, but the module descriptor does not register the provider.
 
-Cách xử lý: thêm provides ... with ... và kiểm tra provider type, constructor hoặc provider method.
+Fix: add `provides ... with ...` and verify the provider type, constructor, or provider method.
 
-### Provider không nằm trong module layer
+### Provider is not in the module layer
 
-Provider module có trên module path nhưng không được resolve vào layer đang tìm kiếm.
+The provider module is on the module path, but it was not resolved into the layer being searched.
 
-Cách xử lý: kiểm tra root modules, module finder, configuration resolution, parent layer và lựa chọn service binding. Có thể thêm provider module tường minh hoặc dùng resolveAndBind khi muốn liên kết service provider.
+Fix: check root modules, module finders, configuration resolution, parent layers, and service binding options. You can add the provider module explicitly or use `resolveAndBind` when binding service providers.
 
-### Export package implementation không cần thiết
+### Unnecessarily exporting the implementation package
 
-Nhiều dự án export package provider chỉ để ServiceLoader có thể tạo instance. Điều này làm lộ implementation package thành API.
+Many projects export the provider package just so `ServiceLoader` can instantiate it. This exposes the implementation package as API.
 
-Cách xử lý: giữ package implementation không export; đăng ký provider trong module descriptor.
+Fix: keep the implementation package unexported; register the provider in the module descriptor.
 
-### Chọn provider đầu tiên theo thứ tự tìm thấy
+### Picking the first provider by discovery order
 
-Thứ tự phát hiện provider không phải policy ưu tiên nghiệp vụ ổn định.
+Provider discovery order is not a stable business priority policy.
 
-Cách xử lý: chọn theo providerId/capability/cấu hình hoặc yêu cầu đúng số lượng provider và từ chối cấu hình mơ hồ.
+Fix: select by `providerId`/capability/configuration, or require an exact provider count and reject ambiguous configurations.
 
-### Service contract chứa type riêng của provider
+### Service contract contains provider-specific types
 
-Consumer phải phụ thuộc vào thư viện hoặc class của implementation để sử dụng API.
+Consumers end up having to depend on an implementation's library or class to use the API.
 
-Cách xử lý: chuyển type trao đổi cần thiết vào service API module và giữ type riêng ở provider module.
+Fix: move the required exchange types into the service API module and keep private types inside the provider module.
 
-### Tin rằng ServiceLoader cách ly provider không đáng tin cậy
+### Assuming `ServiceLoader` isolates untrusted providers
 
-Provider được nạp và chạy trong cùng process với ứng dụng. ServiceLoader không tạo sandbox.
+Providers are loaded and executed in the same process as the application. `ServiceLoader` does not create a sandbox.
 
-Cách xử lý: chỉ nạp provider đáng tin cậy. Nếu phải chạy plugin không đáng tin cậy, cân nhắc process/container riêng và giao thức IPC có kiểm soát.
+Fix: only load trusted providers. If untrusted plugins must be run, consider a separate process/container and a controlled IPC protocol.
 
-## 10. Ví dụ hoàn chỉnh về ba module
+## 10. Complete three-module example
 
 ### API module
 
-module-info.java:
+`module-info.java`:
 
 ~~~java
 module com.acme.codec.api {
@@ -585,7 +585,7 @@ public interface Codec {
 
 ### Consumer module
 
-module-info.java:
+`module-info.java`:
 
 ~~~java
 module com.acme.document {
@@ -622,7 +622,7 @@ public final class DocumentEncoder {
 
 ### Provider module
 
-module-info.java:
+`module-info.java`:
 
 ~~~java
 module com.acme.codec.json {
@@ -657,11 +657,11 @@ public final class JsonCodec implements Codec {
 }
 ~~~
 
-Module consumer không cần requires com.acme.codec.json. Module provider cũng không cần export package com.acme.codec.json.internal. Cả hai cùng phụ thuộc vào com.acme.codec.api.
+The consumer module does not need `requires com.acme.codec.json`. The provider module does not need to export `com.acme.codec.json.internal`. Both depend on `com.acme.codec.api`.
 
-### Chạy với provider đã được chọn
+### Running with a selected provider
 
-Một cách triển khai đơn giản là đưa provider vào root modules:
+A simple deployment approach is adding the provider to the root modules:
 
 ~~~text
 java
@@ -670,63 +670,63 @@ java
   --module com.acme.document/com.acme.document.Main
 ~~~
 
-Nếu muốn thêm provider khác, đưa module provider tương ứng vào module graph. Consumer tiếp tục dùng cùng contract.
+To add another provider, include that provider module in the module graph. The consumer continues using the same contract.
 
-## 11. Kiểm thử service API và provider
+## 11. Testing the service API and providers
 
-Nên có các loại kiểm thử sau:
+The following test categories should be covered:
 
-### Kiểm thử contract
+### Contract tests
 
-- Provider nhận đúng request type và trả về response type hợp lệ.
-- Provider thực hiện đúng semantics của interface.
-- Error mapping, timeout và validation tuân theo contract.
-- Không để type nội bộ của provider rò rỉ qua API.
+- The provider accepts valid request types and returns valid response types.
+- The provider fulfills the interface semantics correctly.
+- Error mapping, timeouts, and validation conform to the contract.
+- No internal provider types leak through the API.
 
-### Kiểm thử consumer
+### Consumer tests
 
-- Consumer hoạt động khi có provider hợp lệ.
-- Consumer xử lý khi không có provider.
-- Consumer chọn đúng provider theo cấu hình/capability.
-- Consumer không phụ thuộc vào thứ tự ServiceLoader trả về.
-- Consumer xử lý ServiceConfigurationError hoặc lỗi khởi tạo theo chính sách phù hợp.
+- The consumer works when a valid provider is present.
+- The consumer handles the absence of any provider.
+- The consumer selects the correct provider based on configuration/capabilities.
+- The consumer does not depend on the order returned by `ServiceLoader`.
+- The consumer handles `ServiceConfigurationError` or initialization failures according to an appropriate policy.
 
-### Kiểm thử module integration
+### Module integration tests
 
-- API module export đúng package.
-- Consumer module có requires và uses.
-- Provider module có requires và provides.
-- Provider implementation package không cần export vẫn được ServiceLoader phát hiện.
-- Provider module thực sự có mặt trong module layer/runtime image.
-- Chạy test bằng module path hoặc runtime image gần với môi trường triển khai.
+- The API module exports the right packages.
+- The consumer module has `requires` and `uses`.
+- The provider module has `requires` and `provides`.
+- An unexported provider implementation package is still discovered by `ServiceLoader`.
+- The provider module is actually present in the module layer/runtime image.
+- Run tests using a module path or runtime image close to the deployment environment.
 
-### Kiểm thử nhiều provider
+### Multi-provider tests
 
-- Khi có hai provider, lựa chọn có xác định và tái lập được không?
-- Khi provider được cấu hình không tồn tại, lỗi có rõ ràng không?
-- Khi provider chính lỗi, fallback có được phép theo policy không?
-- Có kiểm tra duplicate provider ID hoặc cấu hình mâu thuẫn không?
+- When two providers are present, is selection deterministic and reproducible?
+- When a configured provider does not exist, is the error clear?
+- When the primary provider fails, is fallback permitted by policy?
+- Are duplicate provider IDs or conflicting configurations checked?
 
-## 12. Checklist thiết kế
+## 12. Design checklist
 
-- Service contract có nằm trong API module độc lập không?
-- API module chỉ chứa type cần thiết cho consumer và provider không?
-- Package chứa service interface đã được export chưa?
-- Consumer module đã requires API module và khai báo uses chưa?
-- Provider module đã requires API module và khai báo provides chưa?
-- Provider implementation có public no-argument constructor hoặc provider method hợp lệ không?
-- Package implementation có thể giữ không export không?
-- Consumer có tránh requires trực tiếp provider module không?
-- Provider module có được resolve vào module layer thực tế không?
-- Có nhiều provider thì policy chọn provider đã rõ ràng chưa?
-- Contract có tránh type phụ thuộc thư viện riêng của provider không?
-- Lifecycle, resource, thread safety và lỗi khởi tạo của provider đã được xử lý chưa?
-- Có kiểm thử trường hợp không provider, nhiều provider và provider lỗi không?
-- Provider có phải code đáng tin cậy trong cùng process không?
+- Does the service contract live in an independent API module?
+- Does the API module contain only types needed by consumers and providers?
+- Is the package containing the service interface exported?
+- Does the consumer module `requires` the API module and declare `uses`?
+- Does the provider module `requires` the API module and declare `provides`?
+- Does the provider implementation have a `public` no-argument constructor or a valid provider method?
+- Can the implementation package remain unexported?
+- Does the consumer avoid `requires` directly on a provider module?
+- Is the provider module actually resolved into the target module layer?
+- If multiple providers exist, is the selection policy clear?
+- Does the contract avoid types tied to a provider's private library?
+- Are provider lifecycle, resources, thread safety, and initialization errors handled?
+- Are missing-provider, multi-provider, and failing-provider cases tested?
+- Is the provider trusted code running in the same process?
 
-**Ghi nhớ:** Đặt service interface trong API module được export; consumer khai báo **requires + uses**; provider khai báo **requires + provides**. Consumer phụ thuộc vào contract, còn provider chịu trách nhiệm implementation và dependency riêng. ServiceLoader nối hai phía tại runtime khi provider module đã được đưa vào module layer phù hợp.
+**Key takeaway:** Place the service interface in an exported API module; the consumer declares `requires` + `uses`; the provider declares `requires` + `provides`. The consumer depends on the contract, while the provider owns the implementation and its dependencies. `ServiceLoader` connects the two sides at runtime once the provider module has been included in the appropriate module layer.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle Java SE 21 API — ServiceLoader: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ServiceLoader.html
 - Java Language Specification, Java SE 21 — Service Providers and Module Declarations: https://docs.oracle.com/javase/specs/jls/se21/html/jls-7.html

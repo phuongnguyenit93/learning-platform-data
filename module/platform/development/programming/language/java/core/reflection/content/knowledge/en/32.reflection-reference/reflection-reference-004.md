@@ -1,24 +1,24 @@
-# Bảng tra cứu `Class`, `Type`, `AnnotatedType` và các loại generic trong Java Reflection
+# Reference Table of `Class`, `Type`, `AnnotatedType`, and Generic Types in Java Reflection
 
-## 1. Vì sao cần một bảng phân loại kiểu?
+## 1. Why Do We Need a Type Classification Table?
 
-Khi dùng Reflection để viết framework, serializer, trình sinh tài liệu API, bộ kiểm tra schema hoặc công cụ phân tích annotation, câu hỏi không chỉ là “đây là lớp nào?” mà còn là:
+When using Reflection to write a framework, serializer, API doc generator, schema validator, or annotation analysis tool, the question is not just "what class is this?" but also:
 
-- Trường dữ liệu khai báo `List<String>` hay một `List` dùng raw type?
-- Tham số `T` được khai báo ở đâu, ràng buộc bởi `extends Number` hay interface nào?
-- `List<? extends Number>` và `List<? super Integer>` khác nhau ở biên nào?
-- `T[]` và `List<String>[]` có gì khác `String[]`?
-- Annotation như `@NotNull` hoặc `@Mark` được đặt **trên cách sử dụng kiểu** ở mức ngoài hay đặt vào type argument?
+- Is the field declared as `List<String>` or a raw-type `List`?
+- Where is type parameter `T` declared, and is it bounded by `extends Number` or which interface?
+- On which bound do `List<? extends Number>` and `List<? super Integer>` differ?
+- How do `T[]` and `List<String>[]` differ from `String[]`?
+- Is an annotation like `@NotNull` or `@Mark` placed **on the outer type use** or placed on the type argument?
 
-Java phân biệt ba tầng:
+Java distinguishes three layers:
 
-1. `Class<?>`: đại diện cho **kiểu runtime đã được nạp** (lớp, interface, kiểu mảng, primitive, `void`); kiểu generic thường đã bị erasure.
-2. `java.lang.reflect.Type` và các subtype: diễn tả **kiểu khai báo** có thành phần generic, ví dụ `List<String>`, `T`, `? extends Number`, `T[]`.
-3. `java.lang.reflect.AnnotatedType` và các subtype: diễn tả **một lần sử dụng kiểu có thể mang type-use annotation**, chẳng hạn `List<@Mark String>`. Nó cho phép truy vấn cả kiểu nền qua `getType()` và annotation gắn ở vị trí đó.
+1. `Class<?>`: represents a **loaded runtime type** (class, interface, array type, primitive, `void`); generic types have usually undergone erasure.
+2. `java.lang.reflect.Type` and its subtypes: represent a **declared type** with generic components, such as `List<String>`, `T`, `? extends Number`, `T[]`.
+3. `java.lang.reflect.AnnotatedType` and its subtypes: represent **a type use that may carry type-use annotations**, such as `List<@Mark String>`. It allows querying both the underlying type via `getType()` and the annotations attached at that position.
 
-**Lưu ý quan trọng:** `AnnotatedType` **không kế thừa `Type`**; hai interface phục vụ hai lớp thông tin khác nhau. `AnnotatedType.getType()` trả lại một `Type` nền để tiếp tục phân tích.
+**Important note:** `AnnotatedType` **does not extend `Type`**; the two interfaces serve two different layers of information. `AnnotatedType.getType()` returns the underlying `Type` for further analysis.
 
-## 2. Sơ đồ mối quan hệ
+## 2. Relationship Diagram
 
 ~~~text
 java.lang.reflect.Type
@@ -38,23 +38,23 @@ java.lang.reflect.AnnotatedElement
 AnnotatedType.getType() -> Type
 ~~~
 
-Sơ đồ chỉ tóm tắt **các interface cần tra cứu**, không thể hiện mọi quan hệ triển khai trong JDK. `Class<?>` vừa triển khai `Type` vừa hỗ trợ các API annotation của `AnnotatedElement`, nhưng một đối tượng `Class<?>` không tự biến thành `AnnotatedType`.
+The diagram only summarizes **the interfaces needed for lookup**, not every implementation relationship in the JDK. `Class<?>` both implements `Type` and supports the annotation APIs of `AnnotatedElement`, yet a `Class<?>` object does not automatically become an `AnnotatedType`.
 
-Từ đó, **không** cast `Type` sang `AnnotatedType` theo suy đoán. Bạn phải lấy `AnnotatedType` từ API như `Field.getAnnotatedType()`, `Method.getAnnotatedReturnType()`, `Method.getAnnotatedParameterTypes()` hoặc `Class.getAnnotatedSuperclass()`.
+Therefore, **do not** cast `Type` to `AnnotatedType` by guesswork. You must obtain `AnnotatedType` from APIs such as `Field.getAnnotatedType()`, `Method.getAnnotatedReturnType()`, `Method.getAnnotatedParameterTypes()`, or `Class.getAnnotatedSuperclass()`.
 
-## 3. Bảng nhận diện 5 hình dạng `Type`
+## 3. Table for Identifying the 5 `Type` Shapes
 
-| Giá trị kiểu khai báo | Kết quả `Type` thường gặp | API trọng tâm |
+| Declared Type Value | Common `Type` Result | Core APIs |
 | --- | --- | --- |
 | `String`, `int`, `String[]`, raw `List` | `Class<?>` | `getName()`, `getTypeName()`, `isArray()`, `getComponentType()`, `getTypeParameters()` |
 | `List<String>`, `Map<String,Integer>`, `Parent<Long>` | `ParameterizedType` | `getRawType()`, `getActualTypeArguments()`, `getOwnerType()` |
-| `T` của `class Box<T>` | `TypeVariable<?>` | `getName()`, `getBounds()`, `getGenericDeclaration()`, `getAnnotatedBounds()` |
+| `T` of `class Box<T>` | `TypeVariable<?>` | `getName()`, `getBounds()`, `getGenericDeclaration()`, `getAnnotatedBounds()` |
 | `?`, `? extends Number`, `? super Integer` | `WildcardType` | `getUpperBounds()`, `getLowerBounds()` |
 | `T[]`, `List<String>[]` | `GenericArrayType` | `getGenericComponentType()` |
 
-**Không suy luận bằng `getTypeName()` đơn thuần:** chuỗi kiểu giúp hiển thị, còn `instanceof` trên các interface `Type` cho biết cấu trúc để phân nhánh đúng.
+**Do not infer solely from `getTypeName()`:** the type string helps display, whereas `instanceof` on the `Type` interfaces reveals the structure for proper branching.
 
-Ví dụ:
+Example:
 
 ~~~java
 Type type = field.getGenericType();
@@ -70,31 +70,31 @@ if (type instanceof ParameterizedType p) {
 }
 ~~~
 
-*Đây là fragment minh họa: `field` là `java.lang.reflect.Field` đã tìm được và `Type` được import từ `java.lang.reflect`. `WildcardType` thường xuất hiện **bên trong** type argument của một `ParameterizedType`, chứ không nhất thiết trực tiếp là kiểu của cả field.*
+*This is an illustrative fragment: `field` is an already retrieved `java.lang.reflect.Field` and `Type` is imported from `java.lang.reflect`. `WildcardType` typically appears **inside** a type argument of a `ParameterizedType`, rather than directly as the type of the whole field.*
 
-### 3.1. `Class<?>`: kiểu runtime, kể cả primitive và array
+### 3.1. `Class<?>`: Runtime Types, Including Primitives and Arrays
 
-`String.class`, `int.class`, `List.class`, `String[].class` đều là đối tượng `Class`, đồng thời triển khai `Type`. Đối với `Class` của mảng, `getComponentType()` trả kiểu thành phần ở **một chiều** (ví dụ `String[][].class.getComponentType() == String[].class`).
+`String.class`, `int.class`, `List.class`, and `String[].class` are all `Class` objects, and also implement `Type`. For an array `Class`, `getComponentType()` returns the component type at **one dimension** (e.g. `String[][].class.getComponentType() == String[].class`).
 
-Đừng nhầm `List.class` với `List<String>`: **không tồn tại** cú pháp `List<String>.class`. Vì erasure, đối tượng `new ArrayList<String>().getClass()` vẫn chỉ cho biết runtime class `ArrayList`, không khôi phục `String` từ chính đối tượng đó.
+Do not confuse `List.class` with `List<String>`: syntax like `List<String>.class` **does not exist**. Due to erasure, `new ArrayList<String>().getClass()` still only reveals the runtime class `ArrayList`, without recovering `String` from the object itself.
 
-`Class.getTypeParameters()` có thể mô tả **các biến kiểu khai báo của một generic class**, nhưng `Class<?>` của object **không mang giá trị type argument riêng cho instance**.
+`Class.getTypeParameters()` can describe **the type variables declared by a generic class**, but an object's `Class<?>` **does not carry per-instance type argument values**.
 
-### 3.2. `ParameterizedType`: generic type đã được tham số hóa
+### 3.2. `ParameterizedType`: Parameterized Generic Type
 
-Với field `List<String> names`, `field.getGenericType()` có thể là `ParameterizedType`:
+For a field `List<String> names`, `field.getGenericType()` can be a `ParameterizedType`:
 
-- `getRawType()` → `List.class` (với ví dụ này).
+- `getRawType()` → `List.class` (in this example).
 - `getActualTypeArguments()[0]` → `String.class`.
-- `getOwnerType()` → có thể là `null` với kiểu không cần owner; với kiểu lồng trong generic owner, cần quan sát chính xác owner type chứ đừng giả định mọi kiểu lồng đều như nhau.
+- `getOwnerType()` → can be `null` for types that do not need an owner; for types nested inside a generic owner, observe the exact owner type rather than assuming all nested types behave identically.
 
-Type argument **không nhất thiết** là `Class`. Nó có thể là `TypeVariable` (`List<T>`), `WildcardType` (`List<? extends Number>`), một `ParameterizedType` khác (`List<Map<String,Integer>>`) hoặc `GenericArrayType`.
+A type argument **does not have to be** a `Class`. It can be a `TypeVariable` (`List<T>`), a `WildcardType` (`List<? extends Number>`), another `ParameterizedType` (`List<Map<String,Integer>>`), or a `GenericArrayType`.
 
-Nếu đọc `ParameterizedType`, hãy **đệ quy** qua `getActualTypeArguments()` khi cần mô tả cấu trúc đầy đủ; dừng ở dạng nền (`Class`) hoặc biến kiểu.
+When reading a `ParameterizedType`, **recurse** through `getActualTypeArguments()` when you need to describe the full structure; stop at base forms (`Class`) or type variables.
 
-### 3.3. `TypeVariable<?>`: biến kiểu tại nơi khai báo
+### 3.3. `TypeVariable<?>`: Type Variable at the Declaration Site
 
-Ví dụ:
+Example:
 
 ~~~java
 class NumericBox<T extends Number & Comparable<T>> {
@@ -102,93 +102,93 @@ class NumericBox<T extends Number & Comparable<T>> {
 }
 ~~~
 
-`NumericBox.class.getTypeParameters()[0]` là `TypeVariable` biểu diễn `T`. Nó biết:
+`NumericBox.class.getTypeParameters()[0]` is a `TypeVariable` representing `T`. It knows:
 
 - `getName()` → `T`.
-- `getGenericDeclaration()` → declaration nơi `T` được giới thiệu (class, method hoặc constructor).
-- `getBounds()` → các upper bounds đã khai báo; ở đây là `Number` và `Comparable<T>`.
-- `getAnnotatedBounds()` → các bounds cùng type-use annotation nếu có.
+- `getGenericDeclaration()` → the declaration where `T` was introduced (class, method, or constructor).
+- `getBounds()` → the declared upper bounds; here, `Number` and `Comparable<T>`.
+- `getAnnotatedBounds()` → the bounds along with type-use annotations if present.
 
-Nếu không khai báo bounds, upper bound mặc định là `Object`. `TypeVariable` **không tự biết** rằng ở một subclass nào đó `T` đã được thay bằng `Long`. Muốn biết kiểu của `class LongBox extends NumericBox<Long>`, xem `LongBox.class.getGenericSuperclass()` rồi đọc type argument của `ParameterizedType` trả về.
+If no bounds are declared, the default upper bound is `Object`. `TypeVariable` **does not automatically know** that in some subclass `T` was substituted with `Long`. To find the type in `class LongBox extends NumericBox<Long>`, inspect `LongBox.class.getGenericSuperclass()` and read the type argument of the returned `ParameterizedType`.
 
-**Bẫy phổ biến:** cast thẳng `TypeVariable.getBounds()[i]` về `Class` có thể sai, vì `Comparable<T>` được biểu diễn bằng `ParameterizedType`.
+**Common trap:** casting `TypeVariable.getBounds()[i]` directly to `Class` can fail, because `Comparable<T>` is represented as a `ParameterizedType`.
 
-### 3.4. `WildcardType`: biên của wildcard
+### 3.4. `WildcardType`: Bounds of a Wildcard
 
-Với `List<? extends Number>`, type argument thứ nhất là `WildcardType`:
+With `List<? extends Number>`, the first type argument is a `WildcardType`:
 
-- `getUpperBounds()[0]` thường là `Number.class`.
-- `getLowerBounds()` là mảng rỗng.
+- `getUpperBounds()[0]` is typically `Number.class`.
+- `getLowerBounds()` is an empty array.
 
-Với `List<? super Integer>`:
+With `List<? super Integer>`:
 
-- `getLowerBounds()[0]` là `Integer.class`.
-- `getUpperBounds()[0]` là `Object.class`.
+- `getLowerBounds()[0]` is `Integer.class`.
+- `getUpperBounds()[0]` is `Object.class`.
 
-Với `List<?>`, upper bound mặc định là `Object` và không có lower bound. **Không** suy ra từ một `? super Integer` rằng upper bound là `Integer`; đó là **lower bound**. Các giá trị của `WildcardType` mô tả ràng buộc trong *generic declaration*, không phải nội dung thực tế mà collection runtime đang chứa.
+With `List<?>`, the default upper bound is `Object` and there is no lower bound. **Do not** infer from `? super Integer` that the upper bound is `Integer`; that is the **lower bound**. The values of `WildcardType` describe constraints in the *generic declaration*, not the actual contents stored in a collection at runtime.
 
-### 3.5. `GenericArrayType`: mảng có component không phải `Class` thuần
+### 3.5. `GenericArrayType`: Array Whose Component Is Not a Plain `Class`
 
-`T[]` trong generic class và `List<String>[]` trong chữ ký khai báo là các dạng `GenericArrayType` vì component không thể biểu diễn chỉ bằng một reifiable `Class<?>`.
+`T[]` inside a generic class and `List<String>[]` in a declared signature are forms of `GenericArrayType` because the component cannot be represented by a single reifiable `Class<?>`.
 
-Trong khi đó `String[]` và `int[][]` là `Class<?>` có `isArray() == true`. Hai API dùng để lấy một cấp thành phần:
+Meanwhile, `String[]` and `int[][]` are `Class<?>` with `isArray() == true`. Two APIs retrieve one level of component:
 
-| Trường hợp | Kiểu tại runtime Reflection | Lấy component |
+| Case | Reflection Runtime Type | Getting the Component |
 | --- | --- | --- |
 | `String[]` | `Class<?>` | `((Class<?>) t).getComponentType()` |
 | `T[]` | `GenericArrayType` | `((GenericArrayType) t).getGenericComponentType()` |
-| `List<String>[]` | `GenericArrayType` | `getGenericComponentType()` trả `ParameterizedType` |
-| `List[]` (raw array) | `Class<?>` | `getComponentType()` trả `List.class` |
+| `List<String>[]` | `GenericArrayType` | `getGenericComponentType()` returns `ParameterizedType` |
+| `List[]` (raw array) | `Class<?>` | `getComponentType()` returns `List.class` |
 
-Java cấm trực tiếp `new List<String>[5]` do generic array creation không hợp lệ; điều đó **không** ngăn khai báo field hoặc tham số có kiểu `List<String>[]` để công cụ Reflection phân tích.
+Java forbids `new List<String>[5]` directly because generic array creation is illegal; that **does not** prevent declaring a field or parameter of type `List<String>[]` for Reflection tools to analyze.
 
-## 4. Bảng `AnnotatedType`: xem annotation nằm ở đâu
+## 4. `AnnotatedType` Table: Seeing Where Annotations Live
 
-| Type-use metadata | Interface tương ứng | API xem thành phần đã chú thích |
+| Type-use Metadata | Corresponding Interface | API for Inspecting Annotated Components |
 | --- | --- | --- |
-| Một vị trí sử dụng kiểu bất kỳ | `AnnotatedType` | `getType()`, `getAnnotation(...)`, `getAnnotations()`, `getAnnotatedOwnerType()` |
+| Any type-use position | `AnnotatedType` | `getType()`, `getAnnotation(...)`, `getAnnotations()`, `getAnnotatedOwnerType()` |
 | `List<@Mark String>` | `AnnotatedParameterizedType` | `getAnnotatedActualTypeArguments()` |
-| `T` tại một vị trí dùng generic variable | `AnnotatedTypeVariable` | `getAnnotatedBounds()` |
+| `T` at a position using a generic variable | `AnnotatedTypeVariable` | `getAnnotatedBounds()` |
 | `? extends @Mark Number` | `AnnotatedWildcardType` | `getAnnotatedUpperBounds()`, `getAnnotatedLowerBounds()` |
 | `String @Mark []`, `T[]` | `AnnotatedArrayType` | `getAnnotatedGenericComponentType()` |
 
-Annotation `@Target(ElementType.TYPE_USE)` có thể đặt lên vị trí sử dụng kiểu, ví dụ type argument hoặc array dimension. Để Reflection đọc được lúc chạy, annotation phải có retention `RetentionPolicy.RUNTIME`. Annotation `CLASS` hoặc `SOURCE` sẽ không hiển thị qua runtime Reflection như annotation có `RUNTIME`.
+An annotation with `@Target(ElementType.TYPE_USE)` can be placed at type-use positions, such as a type argument or array dimension. For Reflection to read it at runtime, the annotation must have retention `RetentionPolicy.RUNTIME`. `CLASS` or `SOURCE` annotations will not appear through runtime Reflection the way `RUNTIME` annotations do.
 
-Cần phân biệt ba vị trí:
+Distinguish three positions:
 
 ~~~java
 @Mark("field-type") List<@Mark("argument") String> names;
 ~~~
 
-*Fragment trên phải nằm trong một class, có định nghĩa `@Mark` dùng `TYPE_USE`; chương trình ở mục 7 cung cấp ví dụ hoàn chỉnh.*
+*The fragment above must reside inside a class, with `@Mark` defined using `TYPE_USE`; the program in Section 7 provides a complete example.*
 
-- `Field.getAnnotatedType()` đại diện vị trí **kiểu của field**, trả annotation `field-type`.
-- Nếu kiểu là `AnnotatedParameterizedType`, `getAnnotatedActualTypeArguments()[0]` đại diện vị trí **type argument**, nhận `argument`.
-- `Field.getDeclaredAnnotations()` là **annotation được khai báo trên field** theo ngữ nghĩa declaration annotations, không thay thế cây `AnnotatedType`. Annotation có target cho cả FIELD và TYPE_USE có thể xuất hiện ở nhiều góc nhìn; hãy chọn API đúng mục đích.
+- `Field.getAnnotatedType()` represents the **field's type** position, returning the `field-type` annotation.
+- If the type is `AnnotatedParameterizedType`, `getAnnotatedActualTypeArguments()[0]` represents the **type argument** position, receiving `argument`.
+- `Field.getDeclaredAnnotations()` returns **annotations declared on the field** under declaration-annotation semantics, not replacing the `AnnotatedType` tree. Annotations targeting both `FIELD` and `TYPE_USE` can appear from multiple viewpoints; choose the API matching your purpose.
 
-Type-use annotation ở một cấp khác **không tự truyền xuống** type argument hoặc array component. Để biết annotation ở cấp nào, duyệt theo `AnnotatedType`, không chỉ xem kiểu chuỗi từ `getTypeName()`.
+A type-use annotation at one level **does not automatically propagate down** to type arguments or array components. To know which level an annotation is on, traverse via `AnnotatedType`, rather than only inspecting the string from `getTypeName()`.
 
-## 5. Tìm generic metadata từ đâu?
+## 5. Where to Retrieve Generic Metadata?
 
-| Nơi khai báo | Đọc cấu trúc generic `Type` | Đọc type-use annotation |
+| Declaration Site | Read Generic `Type` Structure | Read Type-use Annotations |
 | --- | --- | --- |
 | Field | `Field.getGenericType()` | `Field.getAnnotatedType()` |
-| Tham số method | `Method.getGenericParameterTypes()` | `Method.getAnnotatedParameterTypes()` |
-| Return type method | `Method.getGenericReturnType()` | `Method.getAnnotatedReturnType()` |
-| Ngoại lệ trong `throws` | `Method.getGenericExceptionTypes()` | `Method.getAnnotatedExceptionTypes()` |
-| Parameter của constructor | `Constructor.getGenericParameterTypes()` | `Constructor.getAnnotatedParameterTypes()` |
+| Method parameters | `Method.getGenericParameterTypes()` | `Method.getAnnotatedParameterTypes()` |
+| Method return type | `Method.getGenericReturnType()` | `Method.getAnnotatedReturnType()` |
+| Exceptions in `throws` | `Method.getGenericExceptionTypes()` | `Method.getAnnotatedExceptionTypes()` |
+| Constructor parameters | `Constructor.getGenericParameterTypes()` | `Constructor.getAnnotatedParameterTypes()` |
 | Generic superclass | `Class.getGenericSuperclass()` | `Class.getAnnotatedSuperclass()` |
 | Generic interfaces | `Class.getGenericInterfaces()` | `Class.getAnnotatedInterfaces()` |
-| Type parameter trên class | `Class.getTypeParameters()` | `TypeVariable.getAnnotatedBounds()` trên từng biến |
-| Type parameter trên method | `Method.getTypeParameters()` | `TypeVariable.getAnnotatedBounds()` trên từng biến |
+| Type parameters on class | `Class.getTypeParameters()` | `TypeVariable.getAnnotatedBounds()` on each variable |
+| Type parameters on method | `Method.getTypeParameters()` | `TypeVariable.getAnnotatedBounds()` on each variable |
 
-**Kiểm tra null và độ dài:** `Class.getGenericSuperclass()` có thể trả `null` (chẳng hạn cho `Object` hoặc interface); interface list có thể rỗng. `Method.getGenericExceptionTypes()` có thể rỗng. Khi duyệt annotation của generic superclass, nên xác thực có superclass trước.
+**Check for null and length:** `Class.getGenericSuperclass()` can return `null` (for instance on `Object` or an interface); the interface list can be empty. `Method.getGenericExceptionTypes()` can be empty. When inspecting annotations of the generic superclass, verify a superclass exists first.
 
-Đối với kiểu khai báo trên parameter, `java.lang.reflect.Parameter` cũng cung cấp `getParameterizedType()` và `getAnnotatedType()`. Nếu cần tên parameter, lưu ý `Parameter.isNamePresent()` và tùy chọn biên dịch `-parameters`; không giả định source parameter names luôn được lưu.
+For types declared on a parameter, `java.lang.reflect.Parameter` also provides `getParameterizedType()` and `getAnnotatedType()`. If parameter names are needed, note `Parameter.isNamePresent()` and the `-parameters` compiler option; do not assume source parameter names are always retained.
 
-## 6. Ví dụ đọc cây generic: lựa chọn nhánh theo `instanceof`
+## 6. Example of Reading a Generic Tree: Branching by `instanceof`
 
-Khi viết công cụ xuất sơ đồ kiểu, hãy phân nhánh theo **hình dạng thực tế**:
+When writing a tool to output a type diagram, branch by **actual shape**:
 
 ~~~java
 static String kind(Type type) {
@@ -201,23 +201,23 @@ static String kind(Type type) {
 }
 ~~~
 
-*Fragment cần `import java.lang.reflect.*;` và đặt trong một class.*
+*The fragment requires `import java.lang.reflect.*;` and must be placed inside a class.*
 
-Một bộ duyệt tổng quát có thể áp dụng:
+A general-purpose traverser can apply:
 
-1. `Class` → lấy `getTypeName()`; nếu là mảng, xử lý `getComponentType()`.
-2. `ParameterizedType` → lấy `getRawType()`, `getOwnerType()` (nếu có), rồi duyệt `getActualTypeArguments()` theo thứ tự.
-3. `TypeVariable` → lấy `getName()`, `getGenericDeclaration()` và duyệt `getBounds()` nếu muốn hiển thị ràng buộc.
-4. `WildcardType` → duyệt upper/lower bounds.
-5. `GenericArrayType` → duyệt `getGenericComponentType()` và thêm cấp mảng.
+1. `Class` → retrieve `getTypeName()`; if an array, handle `getComponentType()`.
+2. `ParameterizedType` → retrieve `getRawType()`, `getOwnerType()` (if present), then traverse `getActualTypeArguments()` in order.
+3. `TypeVariable` → retrieve `getName()`, `getGenericDeclaration()`, and traverse `getBounds()` if displaying constraints.
+4. `WildcardType` → traverse upper/lower bounds.
+5. `GenericArrayType` → traverse `getGenericComponentType()` and add an array level.
 
-Khi duyệt đệ quy, phải nhận ra khả năng có **chu kỳ tham chiếu** qua biến kiểu, ví dụ `T extends Comparable<T>`. Một thuật toán đi sâu qua `TypeVariable.getBounds()` rồi trở lại `Comparable<T>` có thể tiếp tục gặp chính `T`. Dùng tập đang thăm (*active recursion path*) hoặc giới hạn/đánh dấu những biến kiểu đã xét để tránh đệ quy vô hạn.
+When traversing recursively, recognize the possibility of **reference cycles** through type variables, such as `T extends Comparable<T>`. An algorithm descending through `TypeVariable.getBounds()` and returning to `Comparable<T>` can encounter `T` itself again. Use an active-visiting set (*active recursion path*) or track/mark visited type variables to avoid infinite recursion.
 
-Với `AnnotatedType`, cần **duyệt cây annotation song song**, không suy từ `Type` rằng annotation ở mọi cấp đều giống nhau.
+With `AnnotatedType`, you must **traverse the annotation tree in parallel**, rather than assuming from `Type` that annotations at every level are identical.
 
-## 7. Chương trình Java 17+ hoàn chỉnh: `Type` và `AnnotatedType` cùng lúc
+## 7. Complete Java 17+ Program: `Type` and `AnnotatedType` Together
 
-Tạo tệp **`GenericTypeLookupDemo.java`**:
+Create the file **`GenericTypeLookupDemo.java`**:
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -320,14 +320,14 @@ public class GenericTypeLookupDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac GenericTypeLookupDemo.java
 java GenericTypeLookupDemo
 ~~~
 
-Kết quả:
+Result:
 
 ~~~text
 list kind: ParameterizedType
@@ -348,49 +348,49 @@ argument annotation: element
 subclass binds T to: java.lang.Long
 ~~~
 
-Bài học từ output:
+Lessons from the output:
 
-- `field.getGenericType()` giữ `List<String>` dưới dạng `ParameterizedType`; type argument thứ nhất là `Class<String>`.
-- `T` của `Holder<T extends Number & Comparable<T>>` là `TypeVariable` có **hai bounds**; một trong số đó là `Comparable<T>`, bản thân là `ParameterizedType`.
-- Wildcard lấy bounds qua `WildcardType`, không phải qua `TypeVariable`.
-- `T[]` và `List<String>[]` là `GenericArrayType`, còn `String[]` là `Class`.
-- `List` raw type của field là `Class`, không phải `ParameterizedType`.
-- `AnnotatedType` của field giữ `@Mark("outer")`; annotation trên type argument được lấy ở cấp `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()`.
-- `LongHolder.class.getGenericSuperclass()` mô tả `Holder<Long>`; từ đó mới lấy được `Long` đã gắn với type parameter `T` tại quan hệ kế thừa này.
+- `field.getGenericType()` keeps `List<String>` as a `ParameterizedType`; the first type argument is `Class<String>`.
+- `T` of `Holder<T extends Number & Comparable<T>>` is a `TypeVariable` with **two bounds**; one of them is `Comparable<T>`, which is itself a `ParameterizedType`.
+- Wildcards retrieve bounds via `WildcardType`, not via `TypeVariable`.
+- `T[]` and `List<String>[]` are `GenericArrayType`, whereas `String[]` is `Class`.
+- The raw-type `List` field is `Class`, not `ParameterizedType`.
+- The field's `AnnotatedType` holds `@Mark("outer")`; the annotation on the type argument is retrieved at the `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` level.
+- `LongHolder.class.getGenericSuperclass()` describes `Holder<Long>`; from that, you can retrieve `Long` bound to type parameter `T` in this inheritance relationship.
 
-Đây là ví dụ **khám phá metadata từ declaration**, không suy đoán type argument của `new ArrayList<String>()` tại runtime.
+This example **discovers metadata from declarations**, rather than inferring the type argument of `new ArrayList<String>()` at runtime.
 
-## 8. Bảng API `AnnotatedType` mở rộng
+## 8. Extended `AnnotatedType` API Table
 
-Các subtype của `AnnotatedType` phản ánh hình dạng kiểu ở từng vị trí. Một số điểm cần kiểm tra kỹ khi triển khai:
+Subtypes of `AnnotatedType` reflect the shape of the type at each position. A few points to verify carefully when implementing:
 
 ### 8.1. `AnnotatedParameterizedType`
 
-Với `List<@Mark String>`, gọi `getAnnotatedActualTypeArguments()` để lấy từng type argument cùng annotation tương ứng. Nếu type argument lại là `Map<@Mark String, @Mark Integer>`, các phần tử bên trong có thể tiếp tục là `AnnotatedParameterizedType`. Đừng chỉ nhìn annotation ngoài cùng rồi bỏ mất annotation lồng.
+For `List<@Mark String>`, call `getAnnotatedActualTypeArguments()` to retrieve each type argument along with its corresponding annotation. If a type argument is in turn `Map<@Mark String, @Mark Integer>`, the inner elements can continue to be `AnnotatedParameterizedType`. Do not inspect only the outermost annotation and drop nested annotations.
 
 ### 8.2. `AnnotatedTypeVariable`
 
-Khi một vị trí sử dụng kiểu là biến `T`, hình dạng annotated type có thể là `AnnotatedTypeVariable`. API `getAnnotatedBounds()` cho phép đọc annotation gắn vào bounds của biến. Cần nhớ type-use annotation ở **chỗ dùng** `T` và annotation ở **chỗ khai báo bound** là hai vị trí khác nhau.
+When a type-use position is the variable `T`, the annotated type shape can be `AnnotatedTypeVariable`. The `getAnnotatedBounds()` API lets you read annotations attached to the variable's bounds. Keep in mind that a type-use annotation at the **use site** of `T` and an annotation at the **bound declaration** are two distinct positions.
 
 ### 8.3. `AnnotatedWildcardType`
 
-Với `List<? extends @Mark Number>`, annotation ở `Number` được đọc từ `getAnnotatedUpperBounds()` của `AnnotatedWildcardType` bên trong annotated parameterized type. Tương tự, `? super @Mark Integer` dùng `getAnnotatedLowerBounds()`.
+With `List<? extends @Mark Number>`, the annotation on `Number` is read from `getAnnotatedUpperBounds()` of the `AnnotatedWildcardType` inside the annotated parameterized type. Similarly, `? super @Mark Integer` uses `getAnnotatedLowerBounds()`.
 
-Điểm cần phân biệt: `WildcardType.getUpperBounds()` chỉ trả `Type[]`; nếu muốn annotation trên chính kiểu bound, cần nhánh `AnnotatedWildcardType`.
+Distinction to note: `WildcardType.getUpperBounds()` only returns `Type[]`; if you want annotations on the bound type itself, you need the `AnnotatedWildcardType` branch.
 
 ### 8.4. `AnnotatedArrayType`
 
-Java cho phép type-use annotation tại **mỗi cấp mảng**; ví dụ cú pháp `String @Mark []` gắn annotation vào một vị trí mảng. `AnnotatedArrayType.getAnnotatedGenericComponentType()` đi vào cấp phần tử tiếp theo, có thể là một `AnnotatedArrayType` khác hoặc một `AnnotatedType` đại diện base component. Với mảng nhiều chiều, không đánh đồng annotation trên `[]` ngoài và annotation trên kiểu phần tử cuối.
+Java allows type-use annotations at **each array level**; for example, the syntax `String @Mark []` attaches an annotation to one array position. `AnnotatedArrayType.getAnnotatedGenericComponentType()` steps into the next element level, which may be another `AnnotatedArrayType` or an `AnnotatedType` representing the base component. For multidimensional arrays, do not equate an annotation on the outer `[]` with an annotation on the final element type.
 
 ### 8.5. `getAnnotatedOwnerType()`
 
-Khi kiểu có owner (ví dụ một inner type nằm trong một kiểu bao), `AnnotatedType.getAnnotatedOwnerType()` (Java 9+) có thể cho biết annotated owner type hoặc `null` nếu không áp dụng. Không giả định mọi `ParameterizedType` đều có owner, hoặc owner luôn là `Class<?>`.
+When a type has an owner (such as an inner type inside an enclosing type), `AnnotatedType.getAnnotatedOwnerType()` (Java 9+) can reveal the annotated owner type or `null` if not applicable. Do not assume every `ParameterizedType` has an owner, or that the owner is always `Class<?>`.
 
-## 9. Phân biệt metadata generic, runtime erasure và reifiability
+## 9. Distinguishing Generic Metadata, Runtime Erasure, and Reifiability
 
-`Type` giúp đọc những gì còn lưu trong **generic signature** của field, method, constructor hoặc superclass. Nhưng Java generic vẫn chịu **type erasure** trong nhiều thao tác runtime.
+`Type` helps read what remains stored in the **generic signature** of a field, method, constructor, or superclass. However, Java generics are still subject to **type erasure** in many runtime operations.
 
-Ví dụ:
+Example:
 
 ~~~java
 List<String> strings = new java.util.ArrayList<>();
@@ -400,89 +400,89 @@ boolean sameRuntimeClass =
         strings.getClass() == numbers.getClass(); // true
 ~~~
 
-*Fragment này cần import `java.util.List` và đặt trong ngữ cảnh cho phép khai báo biến.*
+*This fragment requires importing `java.util.List` and must be placed in a context allowing variable declarations.*
 
-Hai object đều là instance của cùng runtime class `ArrayList`; chỉ dựa `object.getClass()` không thể biết một biến source được khai báo `List<String>` hay `List<Integer>`.
+Both objects are instances of the same runtime class `ArrayList`; using `object.getClass()` alone cannot tell whether a source variable was declared as `List<String>` or `List<Integer>`.
 
-Một số lưu ý:
+Several notes:
 
-- Generic type argument được lưu tại **vị trí khai báo** thích hợp; không phải mọi thông tin generic đều tồn tại sau compilation, và compiler có thể bỏ thông tin không được phát ra dưới dạng chữ ký có thể đọc.
-- `List<String>.class` không hợp lệ; `List.class` hợp lệ.
-- `instanceof List<String>` không hợp lệ trong Java thông thường vì dạng đó không reifiable; `instanceof List<?>` có thể hợp lệ.
-- `String[]` có runtime array class riêng (`String[].class`), nhưng `List<String>[]` là khai báo kiểu generic array; không thể tạo trực tiếp `new List<String>[3]`.
-- `Type.getTypeName()` tiện cho log, nhưng **không phải định danh runtime toàn cục**. Hai class cùng binary name được nạp bởi hai defining class loader khác nhau vẫn là các kiểu khác nhau.
+- Generic type arguments are stored at the appropriate **declaration sites**; not all generic information survives compilation, and the compiler may omit information not emitted in a readable signature form.
+- `List<String>.class` is invalid; `List.class` is valid.
+- `instanceof List<String>` is invalid in regular Java because that form is non-reifiable; `instanceof List<?>` can be valid.
+- `String[]` has its own runtime array class (`String[].class`), whereas `List<String>[]` is a generic array type declaration; `new List<String>[3]` cannot be created directly.
+- `Type.getTypeName()` is convenient for logging, but **is not a global runtime identifier**. Two classes with the same binary name loaded by two different defining class loaders are still distinct types.
 
-Khi API có thể trả `TypeVariable` hoặc `ParameterizedType`, **đừng ép kiểu bừa sang `Class<?>`**. Nếu phải lấy runtime class gần đúng, cần một quy tắc rõ về erasure/bounds và ý nghĩa với wildcard; việc đơn giản hóa này có thể làm mất thông tin và không phù hợp để tái dựng chính xác generic signature.
+When an API can return `TypeVariable` or `ParameterizedType`, **do not blindly cast to `Class<?>`**. If an approximate runtime class is needed, define a clear rule for erasure/bounds and wildcard semantics; such simplification can lose information and is unsuitable for accurately reconstructing generic signatures.
 
-## 10. Lỗi thường gặp khi xây bộ tra cứu
+## 10. Common Mistakes When Building a Lookup Utility
 
-| Sai lầm | Tại sao sai | Cách sửa |
+| Mistake | Why It Is Wrong | How to Fix |
 | --- | --- | --- |
-| Cast mọi `Field.getGenericType()` sang `Class<?>` | Field generic có thể là `ParameterizedType`, `TypeVariable`, `GenericArrayType` | Phân nhánh `instanceof` theo `Type` |
-| Dùng `Field.getType()` để đọc `List<String>` | `getType()` phản ánh kiểu erasure `List.class` | Dùng `getGenericType()` |
-| Dùng `getClass()` của object để suy ra `List<String>` | Erasure xóa type argument ở object runtime class | Đọc generic declaration/signature nếu có |
-| Cho rằng `? super Integer` có upper bound `Integer` | `Integer` là **lower bound** | Xem `getLowerBounds()` và `getUpperBounds()` |
-| Coi `T[]` luôn là `Class` | Component `T` không reifiable | Dùng `GenericArrayType` khi Reflection trả dạng này |
-| Dùng `getDeclaredAnnotations()` để tìm mọi type-use annotation | Declaration annotations và annotation trên cây type-use khác vị trí | Dùng `getAnnotatedType()` rồi duyệt annotated arguments/bounds |
-| Bỏ qua type-use annotation ở type argument | Annotation có thể nằm bên trong generic nesting | Duyệt `AnnotatedParameterizedType` |
-| Duyệt bounds `T extends Comparable<T>` vô hạn | Quay lại cùng type variable `T` | Theo dõi những biến đang duyệt |
-| Dùng `getSimpleName()` làm khóa cho mọi kiểu | Dễ trùng package; kiểu local/anonymous khó mô tả | Dùng key có cấu trúc và namespace phù hợp |
-| Tin rằng annotation SOURCE/CLASS hiện diện lúc chạy | Retention không phải `RUNTIME` | Chỉ kỳ vọng các annotation được lưu để runtime Reflection đọc |
-| Bỏ qua lỗi generic signature | Metadata bytecode có thể thiếu dependency hoặc signature không hợp lệ | Xử lý `TypeNotPresentException`, `MalformedParameterizedTypeException`, `GenericSignatureFormatError` theo ngữ cảnh |
+| Casting every `Field.getGenericType()` to `Class<?>` | A generic field can be `ParameterizedType`, `TypeVariable`, `GenericArrayType` | Branch with `instanceof` on `Type` |
+| Using `Field.getType()` to read `List<String>` | `getType()` reflects the erased type `List.class` | Use `getGenericType()` |
+| Using `getClass()` of an object to infer `List<String>` | Erasure removes type arguments from the object's runtime class | Read generic declaration/signature if available |
+| Assuming `? super Integer` has upper bound `Integer` | `Integer` is the **lower bound** | Check `getLowerBounds()` and `getUpperBounds()` |
+| Treating `T[]` as always being `Class` | Component `T` is non-reifiable | Handle `GenericArrayType` when Reflection returns that shape |
+| Using `getDeclaredAnnotations()` to find all type-use annotations | Declaration annotations and annotations on the type-use tree live at different positions | Use `getAnnotatedType()` and traverse annotated arguments/bounds |
+| Ignoring type-use annotations on type arguments | Annotations can sit inside generic nesting | Traverse `AnnotatedParameterizedType` |
+| Traversing `T extends Comparable<T>` bounds infinitely | Loops back to the same type variable `T` | Track variables currently being traversed |
+| Using `getSimpleName()` as a key for all types | Easy package collisions; local/anonymous types are hard to describe | Use a structured key with an appropriate namespace |
+| Believing `SOURCE`/`CLASS` annotations are present at runtime | Retention is not `RUNTIME` | Only expect annotations retained for runtime Reflection reading |
+| Ignoring generic signature errors | Bytecode metadata may have missing dependencies or invalid signatures | Handle `TypeNotPresentException`, `MalformedParameterizedTypeException`, `GenericSignatureFormatError` per context |
 
-Một framework nên tách **khâu phát hiện kiểu**, **đọc annotation theo vị trí**, **chuẩn hóa/hiển thị**, **giải quyết tên class** và **xử lý lỗi** thành những bước độc lập để dễ kiểm tra.
+A framework should separate **type discovery**, **positional annotation reading**, **normalization/formatting**, **class name resolution**, and **error handling** into independent steps for easier testing.
 
-## 11. Chọn API theo câu hỏi thực tế
+## 11. Choosing an API by Practical Question
 
-- **“Tôi cần biết field có runtime class gì?”** → `Field.getType()`.
-- **“Tôi cần biết field khai báo `List<String>` hay `List<T>`?”** → `Field.getGenericType()` rồi phân nhánh `Type`.
-- **“Tôi cần annotation trên kiểu của field và trong type argument?”** → `Field.getAnnotatedType()`; duyệt `AnnotatedParameterizedType` hoặc subtype tương ứng.
-- **“Tôi cần generic return type của method?”** → `Method.getGenericReturnType()`.
-- **“Tôi cần type-use annotation trên giá trị trả về?”** → `Method.getAnnotatedReturnType()`.
-- **“Tôi cần bounds của generic parameter `T`?”** → `Class.getTypeParameters()` hoặc `Method.getTypeParameters()` rồi `TypeVariable.getBounds()` / `getAnnotatedBounds()`.
-- **“Tôi muốn xem `T` trong superclass được gắn với `Long` như thế nào?”** → `Subclass.class.getGenericSuperclass()` và `ParameterizedType.getActualTypeArguments()`.
-- **“Tôi muốn phân biệt `? extends X` với `? super X`?”** → `WildcardType.getUpperBounds()` / `getLowerBounds()`.
-- **“Tôi cần xử lý `T[]`?”** → `GenericArrayType.getGenericComponentType()`.
-- **“Tôi cần xem array type reifiable `String[]`?”** → `Class.isArray()` / `Class.getComponentType()`.
-- **“Tôi muốn giữ đầy đủ nested annotation?”** → xây traversal song song giữa `AnnotatedType` và `Type`, không chỉ dùng một chuỗi tên.
+- **"I need to know what runtime class a field has?"** → `Field.getType()`.
+- **"I need to know whether a field is declared `List<String>` or `List<T>`?"** → `Field.getGenericType()`, then branch on `Type`.
+- **"I need annotations on the field's type and inside its type arguments?"** → `Field.getAnnotatedType()`; traverse `AnnotatedParameterizedType` or the corresponding subtype.
+- **"I need the generic return type of a method?"** → `Method.getGenericReturnType()`.
+- **"I need type-use annotations on the return value?"** → `Method.getAnnotatedReturnType()`.
+- **"I need the bounds of generic parameter `T`?"** → `Class.getTypeParameters()` or `Method.getTypeParameters()`, then `TypeVariable.getBounds()` / `getAnnotatedBounds()`.
+- **"I want to see how `T` in a superclass is bound to `Long`?"** → `Subclass.class.getGenericSuperclass()` and `ParameterizedType.getActualTypeArguments()`.
+- **"I want to distinguish `? extends X` from `? super X`?"** → `WildcardType.getUpperBounds()` / `getLowerBounds()`.
+- **"I need to handle `T[]`?"** → `GenericArrayType.getGenericComponentType()`.
+- **"I need to inspect a reifiable array type `String[]`?"** → `Class.isArray()` / `Class.getComponentType()`.
+- **"I want to preserve all nested annotations?"** → build a parallel traversal of `AnnotatedType` and `Type`, rather than relying on a single name string.
 
-## 12. Gợi ý kiểm thử bộ duyệt kiểu trong dự án
+## 12. Suggestions for Testing a Type Traverser in a Project
 
-Để bộ phân tích generic hoạt động đáng tin, nên có fixture bao gồm:
+For a generic analyzer to work reliably, include fixtures covering:
 
-1. **Raw và parameterized:** `List`, `List<String>`, `Map<String, List<Integer>>`.
+1. **Raw and parameterized:** `List`, `List<String>`, `Map<String, List<Integer>>`.
 2. **Type variable:** `class Box<T>`, `<T extends Number & Comparable<T>>`.
 3. **Wildcard:** `List<?>`, `List<? extends Number>`, `List<? super Integer>`.
 4. **Array:** `String[]`, `T[]`, `List<String>[]`.
-5. **Type-use annotation nhiều cấp:** `@Mark List<@Mark String>`, annotation ở wildcard bound và array dimension.
+5. **Multi-level type-use annotations:** `@Mark List<@Mark String>`, annotations on wildcard bounds and array dimensions.
 6. **Subclass substitution:** `class StringBox extends Box<String>`.
-7. **Nesting và owner:** generic member type khi code của bạn hỗ trợ.
-8. **Null/rỗng:** class không có generic superclass, không có type parameters, annotation không có retention runtime.
-9. **Malformed/missing types:** nếu công cụ đọc bytecode ngoài kiểm soát, xử lý lỗi phản chiếu thay vì crash không rõ nguyên nhân.
-10. **Chu kỳ bounds:** `T extends Comparable<T>` không làm traversal đệ quy vô hạn.
+7. **Nesting and owner:** generic member types when your code supports them.
+8. **Null/empty:** classes without a generic superclass, without type parameters, annotations without runtime retention.
+9. **Malformed/missing types:** if the tool reads bytecode outside its control, handle reflection errors instead of crashing unexpectedly.
+10. **Bound cycles:** `T extends Comparable<T>` does not cause infinite recursive traversal.
 
-Assertion nên dựa vào **hình dạng `Type`, tên/bounds và đúng vị trí annotation** thay vì dựa vào chuỗi `toString()` tình cờ, thứ tự không được đảm bảo của mảng members hay class loader identity hash code.
+Assertions should rely on **`Type` shapes, names/bounds, and exact annotation positions** rather than incidental `toString()` strings, non-guaranteed member array ordering, or class loader identity hash codes.
 
-## 13. Tự kiểm tra
+## 13. Self-Check
 
-1. `Class<?>` có triển khai `Type` không? **Có.**
-2. `AnnotatedType` có phải subtype của `Type` không? **Không; `getType()` trả `Type` nền.**
-3. `List<String>` thường được mô tả bằng interface nào khi gọi `Field.getGenericType()`? **`ParameterizedType`.**
-4. `List<?>` chứa kiểu gì trong `getActualTypeArguments()[0]`? **`WildcardType`.**
-5. `T` của `class Box<T>` là interface gì? **`TypeVariable<?>`.**
-6. `T[]` có nhất thiết là `Class<?>` không? **Không; nó thường là `GenericArrayType`.**
-7. `String[]` thì sao? **`Class<?>` với `isArray() == true`.**
-8. Trong `List<@Mark String>`, lấy annotation của type argument bằng API nào? **`AnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0].getAnnotation(Mark.class)`.**
-9. `? super Integer` có lower bound là gì? **`Integer.class`; upper bound mặc định thường là `Object.class`.**
-10. `new ArrayList<String>().getClass()` có trực tiếp biết `String` không? **Không; generic type argument bị erasure khỏi runtime class của object.**
-11. Với `T extends Comparable<T>`, tại sao traversal ngây thơ có thể vòng lặp? **Bounds lại tham chiếu cùng `TypeVariable T`.**
-12. `@Target(TYPE_USE)` đủ để Reflection đọc annotation lúc chạy chưa? **Chưa; cần retention `RUNTIME`.**
+1. Does `Class<?>` implement `Type`? **Yes.**
+2. Is `AnnotatedType` a subtype of `Type`? **No; `getType()` returns the underlying `Type`.**
+3. Which interface typically describes `List<String>` when calling `Field.getGenericType()`? **`ParameterizedType`.**
+4. What type does `List<?>` hold in `getActualTypeArguments()[0]`? **`WildcardType`.**
+5. What interface is `T` of `class Box<T>`? **`TypeVariable<?>`.**
+6. Is `T[]` necessarily a `Class<?>`? **No; it is usually a `GenericArrayType`.**
+7. What about `String[]`? **`Class<?>` with `isArray() == true`.**
+8. In `List<@Mark String>`, which API retrieves the annotation on the type argument? **`AnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0].getAnnotation(Mark.class)`.**
+9. What is the lower bound of `? super Integer`? **`Integer.class`; the default upper bound is usually `Object.class`.**
+10. Does `new ArrayList<String>().getClass()` directly know `String`? **No; generic type arguments are erased from the object's runtime class.**
+11. With `T extends Comparable<T>`, why can a naive traversal loop? **The bounds reference the same `TypeVariable T` again.**
+12. Is `@Target(TYPE_USE)` enough for Reflection to read an annotation at runtime? **No; `RUNTIME` retention is required.**
 
-## 14. Kết luận
+## 14. Conclusion
 
-Hãy bắt đầu bằng **nguồn khai báo**: đọc `getGenericType` / `getGenericReturnType` / `getGenericSuperclass` khi cần cấu trúc kiểu, và đọc `getAnnotatedType` / `getAnnotatedReturnType` / `getAnnotatedSuperclass` khi cần annotation theo **vị trí sử dụng kiểu**. Sau đó phân nhánh đúng theo `Class`, `ParameterizedType`, `TypeVariable`, `WildcardType`, `GenericArrayType`; song song duyệt các subtype `AnnotatedType` để không làm mất annotation ở type argument, wildcard bound hoặc chiều mảng. Việc đọc generic signature từ Reflection giúp hiểu declaration, **không xóa được quy tắc type erasure** của đối tượng runtime.
+Start from **the declaration source**: read `getGenericType` / `getGenericReturnType` / `getGenericSuperclass` when you need type structure, and read `getAnnotatedType` / `getAnnotatedReturnType` / `getAnnotatedSuperclass` when you need annotations by **type-use position**. Then branch properly by `Class`, `ParameterizedType`, `TypeVariable`, `WildcardType`, and `GenericArrayType`; traverse `AnnotatedType` subtypes in parallel so annotations on type arguments, wildcard bounds, or array dimensions are not lost. Reading generic signatures via Reflection reveals declarations, **without erasing the type erasure rules** of runtime objects.
 
-### Tài liệu tham khảo
+### References
 
 - [Java SE 21 — `Type`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Type.html)
 - [Java SE 21 — `ParameterizedType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/ParameterizedType.html)

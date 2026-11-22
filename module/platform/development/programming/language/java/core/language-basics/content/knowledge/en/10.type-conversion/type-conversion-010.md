@@ -1,12 +1,12 @@
-# Ép kiểu tham chiếu, `instanceof` và `ClassCastException` trong Java
+# Reference Casting, `instanceof`, and `ClassCastException` in Java
 
-> **Java core — language-basics / Chuyển đổi kiểu**  
-> **Yêu cầu:** JDK 17+; một tệp Java độc lập, không cần thư viện ngoài.  
-> **Mục tiêu:** Phân biệt *upcasting* và *downcasting* tham chiếu, hiểu **kiểu khai báo** và **kiểu thực tế** của đối tượng, kiểm tra bằng `instanceof` (bao gồm *pattern matching* Java 17), và nhận diện/né tránh `ClassCastException` khi ép kiểu không hợp lệ lúc chạy.
+> **Java core — language-basics / Type Conversion**  
+> **Requirements:** JDK 17+; a standalone Java file, no external libraries needed.  
+> **Objective:** Distinguish reference *upcasting* and *downcasting*, understand the **declared type** and **actual type** of an object, check with `instanceof` (including Java 17 *pattern matching*), and recognize/avoid `ClassCastException` on invalid casts at runtime.
 
-## 1. Ép kiểu tham chiếu không biến đối tượng thành đối tượng khác
+## 1. Reference casting does not turn an object into another object
 
-Xét hệ phân cấp:
+Consider the hierarchy:
 
 ~~~java
 abstract class Animal {
@@ -14,60 +14,60 @@ abstract class Animal {
 }
 class Dog extends Animal {
     @Override String sound() { return "woof"; }
-    void fetch() { /* chỉ Dog có hành vi này */ }
+    void fetch() { /* only Dog has this behavior */ }
 }
 class Cat extends Animal {
     @Override String sound() { return "meow"; }
 }
 ~~~
 
-Một biến kiểu `Animal` có thể tham chiếu một đối tượng thật sự thuộc `Dog`:
+A variable of type `Animal` can reference an object that is actually a `Dog`:
 
 ~~~java
-Animal pet = new Dog(); // Upcast ngầm từ Dog lên Animal.
+Animal pet = new Dog(); // Implicit upcast from Dog to Animal.
 ~~~
 
-Phân biệt rõ hai khái niệm:
+Distinguish two concepts clearly:
 
-- **Kiểu khai báo / static type:** `Animal` là kiểu compiler nhìn thấy cho biến `pet`. Vì vậy gọi `pet.sound()` được, nhưng `pet.fetch()` **không** biên dịch vì `Animal` không khai báo phương thức `fetch()`.
-- **Kiểu thực tế / runtime class:** object mà `pet` trỏ đến vẫn là một `Dog`. Java dispatch `pet.sound()` tới bản ghi đè của `Dog`.
-- **Ép kiểu tham chiếu:** thay cách compiler xem một tham chiếu theo quan hệ kiểu cho phép; **không tạo, sao chép, thay class hoặc thay dữ liệu** của object.
+- **Declared type / static type:** `Animal` is the type the compiler sees for the variable `pet`. Therefore `pet.sound()` can be called, whereas `pet.fetch()` **does not** compile because `Animal` does not declare a `fetch()` method.
+- **Actual type / runtime class:** the object that `pet` points to is still a `Dog`. Java dispatches `pet.sound()` to `Dog`'s override.
+- **Reference casting:** changes how the compiler views a reference according to permitted type relationships; **does not create, copy, change the class of, or alter the data** of the object.
 
-Nếu cần phương thức riêng của `Dog` và biết chắc object thật sự là Dog:
+If you need `Dog`-specific methods and know for sure the object is actually a `Dog`:
 
 ~~~java
-Dog dog = (Dog) pet; // Downcast tường minh.
+Dog dog = (Dog) pet; // Explicit downcast.
 dog.fetch();
 ~~~
 
-Sau cast, `pet` và `dog` vẫn trỏ tới **cùng object Dog**. Việc ép kiểu này không giống `Integer.parseInt` hay chuyển đổi chuỗi thành số: nó không chuyển dữ liệu bên trong đối tượng.
+After the cast, `pet` and `dog` still point to the **same `Dog` object**. This cast is not like `Integer.parseInt` or converting a string to a number: it does not transform data inside the object.
 
-## 2. Upcast và downcast khác nhau thế nào?
+## 2. How do upcast and downcast differ?
 
-| Trường hợp | Ví dụ | Có cần cast tường minh? | Kiểm tra lúc chạy |
+| Case | Example | Explicit cast needed? | Runtime check |
 | --- | --- | --- | --- |
-| **Upcast** lớp con → lớp cha | `Animal a = new Dog();` | Không | An toàn theo quan hệ kế thừa |
-| Upcast đến interface được thực thi | `Runnable r = new Thread();` | Không | An toàn theo quan hệ implements |
-| **Downcast** cha → con | `Dog d = (Dog) a;` | Có | Object thực tế phải tương thích với Dog |
-| Từ `Object` → lớp cụ thể | `String s = (String) obj;` | Có | Object thực tế phải là String (hoặc subtype phù hợp) |
-| Cast `null` sang kiểu tham chiếu | `Dog d = (Dog) null;` | Có thể viết | Kết quả vẫn là `null`, **không ném `ClassCastException`** |
+| **Upcast** subclass → superclass | `Animal a = new Dog();` | No | Safe by inheritance relationship |
+| Upcast to implemented interface | `Runnable r = new Thread();` | No | Safe by `implements` relationship |
+| **Downcast** superclass → subclass | `Dog d = (Dog) a;` | Yes | Actual object must be compatible with `Dog` |
+| From `Object` → concrete class | `String s = (String) obj;` | Yes | Actual object must be `String` (or suitable subtype) |
+| Cast `null` to reference type | `Dog d = (Dog) null;` | Allowed to write | Result remains `null`, **does not throw `ClassCastException`** |
 
-Cast từ kiểu cha xuống kiểu con **có thể biên dịch** mà vẫn lỗi lúc chạy. Compiler chỉ chứng minh phép chuyển đổi *có thể* có ý nghĩa, không biết chắc runtime class của mọi object biến đó có thể trỏ tới.
+Casting from a supertype down to a subtype **can compile** and still fail at runtime. The compiler only proves the conversion *could* make sense; it does not know for certain the runtime class of every object the variable might point to.
 
-Ví dụ:
+Example:
 
 ~~~java
 Animal pet = new Cat();
-// Dog wrong = (Dog) pet; // Nếu chạy: ClassCastException.
+// Dog wrong = (Dog) pet; // At runtime: ClassCastException.
 ~~~
 
-`Cat` là một `Animal`, **không** phải một `Dog`; ép tham chiếu sang Dog không thể thay đổi sự thật đó.
+`Cat` is an `Animal`, **not** a `Dog`; casting the reference to `Dog` cannot change that fact.
 
-Ở chiều ngược lại, một số phép ép giữa các lớp hoàn toàn không có quan hệ chuyển kiểu khả dĩ bị **từ chối ngay tại thời điểm biên dịch**, thay vì đợi đến `ClassCastException`. Không phải mọi cú pháp `(Type) value` đều hợp lệ.
+Conversely, some casts between classes with no possible conversion relationship are **rejected immediately at compile time**, rather than waiting for `ClassCastException`. Not every `(Type) value` syntax is valid.
 
-## 3. `instanceof` kiểm tra kiểu runtime trước khi downcast
+## 3. `instanceof` checks the runtime type before downcasting
 
-Toán tử `instanceof` hỏi liệu object thật sự được tham chiếu có tương thích với kiểu được kiểm tra hay không:
+The `instanceof` operator asks whether the actual referenced object is compatible with the checked type:
 
 ~~~java
 Animal pet = new Dog();
@@ -77,15 +77,15 @@ System.out.println(pet instanceof Cat); // false
 System.out.println(pet instanceof Animal); // true
 ~~~
 
-**Java 17** hỗ trợ *pattern matching for instanceof*, gộp kiểm tra với khai báo biến đã được thu hẹp kiểu:
+**Java 17** supports *pattern matching for `instanceof`*, combining the check with declaring a narrowed variable:
 
 ~~~java
 if (pet instanceof Dog dog) {
-    dog.fetch(); // Compiler biết dog có kiểu Dog.
+    dog.fetch(); // Compiler knows dog has type Dog.
 }
 ~~~
 
-Điều này rõ ràng hơn mẫu cũ:
+This is clearer than the old pattern:
 
 ~~~java
 if (pet instanceof Dog) {
@@ -94,13 +94,13 @@ if (pet instanceof Dog) {
 }
 ~~~
 
-Phạm vi của **pattern variable** phụ thuộc luồng điều khiển: trong khối `if` trên, `dog` chỉ dùng được tại nhánh mà kiểm tra chắc chắn thành công. Đừng dùng tên đó bên ngoài vị trí compiler bảo đảm đã được gán.
+The scope of the **pattern variable** depends on control flow: in the `if` block above, `dog` is only usable on the branch where the check is guaranteed to succeed. Do not use that name outside locations where the compiler guarantees it has been assigned.
 
-**Lưu ý về `null`:** `null instanceof Dog` và `variableNull instanceof Dog` đều cho **`false`**; cú pháp `instanceof` không gây NPE chỉ vì toán hạng trái bằng `null`. Nếu một tham chiếu `null` được ép sang kiểu tham chiếu hợp lệ, kết quả vẫn là `null`; lỗi NPE chỉ có thể xảy ra **khi sau đó cố sử dụng nó như một object**.
+**Note on `null`:** `null instanceof Dog` and `variableNull instanceof Dog` both evaluate to **`false`**; `instanceof` does not cause an NPE simply because the left operand is `null`. If a `null` reference is cast to a valid reference type, the result remains `null`; an NPE can only happen **when you subsequently try to use it as an object**.
 
-## 4. Chương trình Java 17+ có thể biên dịch và chạy
+## 4. Compilable and runnable Java 17+ program
 
-Tạo tệp **ReferenceCastDemo.java**:
+Create the file **ReferenceCastDemo.java**:
 
 ~~~java
 public final class ReferenceCastDemo {
@@ -162,7 +162,7 @@ public final class ReferenceCastDemo {
         System.out.println("isDog=" + (pet instanceof Dog));
         System.out.println("isCat=" + (pet instanceof Cat));
 
-        Dog dog = (Dog) pet; // Downcast hợp lệ.
+        Dog dog = (Dog) pet; // Valid downcast.
         System.out.println("sameObject=" + (pet == dog));
         System.out.println("fetch=" + dog.fetch());
         System.out.println("describeDog=" + describe(pet));
@@ -172,7 +172,7 @@ public final class ReferenceCastDemo {
         System.out.println("describeCat=" + describe(another));
 
         try {
-            Dog wrong = (Dog) another; // Runtime là Cat.
+            Dog wrong = (Dog) another; // Runtime is Cat.
             System.out.println(wrong.fetch());
         } catch (ClassCastException ex) {
             System.out.println("animalCastFailed=true");
@@ -190,21 +190,21 @@ public final class ReferenceCastDemo {
 
         Animal absent = null;
         System.out.println("nullInstanceof=" + (absent instanceof Dog));
-        Dog nullDog = (Dog) absent; // Cast null tham chiếu hợp lệ.
+        Dog nullDog = (Dog) absent; // Casting a null reference is valid.
         System.out.println("nullCast=" + (nullDog == null));
         System.out.println("describeNull=" + describe(absent));
     }
 }
 ~~~
 
-Mở terminal tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Open a terminal in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ReferenceCastDemo.java
 java ReferenceCastDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 runtimeType=Dog
@@ -224,41 +224,41 @@ nullCast=true
 describeNull=none
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `pet` khai báo `Animal` nhưng runtime class là `Dog`; gọi `pet.sound()` chạy phiên bản `Dog.sound()` nhờ đa hình.
-2. `(Dog) pet` thành công và `pet == dog` là `true` vì cast **không tạo object mới**.
-3. `describe` dùng pattern matching `instanceof` để kiểm tra kiểu và có sẵn biến `dog`/`cat` đúng kiểu mà không cần cast riêng.
-4. `(Dog) another` biên dịch vì biến `another` có kiểu `Animal`, nhưng runtime là `Cat` nên ném `ClassCastException`.
-5. `number` thật sự chứa `Integer`. `number instanceof String` cho false; `(String) number` ném `ClassCastException`.
-6. `absent` bằng `null`: `instanceof` cho false, cast sang `Dog` vẫn nhận `null`. Truy cập phương thức qua tham chiếu ấy mới có nguy cơ gây `NullPointerException`.
+1. `pet` is declared as `Animal` but its runtime class is `Dog`; calling `pet.sound()` executes `Dog.sound()` via polymorphism.
+2. `(Dog) pet` succeeds and `pet == dog` is `true` because casting **does not create a new object**.
+3. `describe` uses pattern matching `instanceof` to check the type and directly obtain a properly typed `dog`/`cat` variable without a separate cast.
+4. `(Dog) another` compiles because `another` has type `Animal`, yet at runtime it is a `Cat`, so it throws `ClassCastException`.
+5. `number` actually holds an `Integer`. `number instanceof String` returns false; `(String) number` throws `ClassCastException`.
+6. `absent` is `null`: `instanceof` returns false, and casting to `Dog` still yields `null`. Only invoking a method through that reference risks throwing `NullPointerException`.
 
-Các khối `catch` dùng **duy nhất để minh họa lỗi kiểm tra runtime**; trong code sản xuất, ưu tiên kiểm tra, thiết kế API hoặc đa hình phù hợp thay vì dùng exception làm điều kiện phân nhánh thường xuyên.
+The `catch` blocks are used **solely to demonstrate runtime check failures**; in production code, prefer proper checks, API design, or polymorphism instead of using exceptions as routine branching conditions.
 
-## 5. Phân biệt `ClassCastException` và những lỗi gần giống
+## 5. Distinguishing `ClassCastException` from similar errors
 
-| Hiện tượng | Loại lỗi / hành vi | Lý do |
+| Symptom | Error type / behavior | Reason |
 | --- | --- | --- |
-| `Animal x = new Cat(); Dog d = (Dog) x;` | **ClassCastException** lúc chạy | Object runtime là Cat, không phải Dog |
-| `Object x = Integer.valueOf(7); String s = (String) x;` | **ClassCastException** lúc chạy | Integer không thể xem là String |
-| `Dog d = (Dog) null;` | Thành công, `d == null` | Cast null không phát sinh ClassCastException |
-| `d.fetch()` khi `d == null` | **NullPointerException** | Gọi method trên tham chiếu null |
-| `Animal a = new Dog(); a.fetch();` | **Lỗi biên dịch** | Kiểu khai báo Animal không có `fetch()` |
-| `String s = (String) new Dog(...);` với lớp không liên quan | **Lỗi biên dịch** | Không tồn tại cast được Java chấp nhận giữa hai kiểu lớp đó |
-| Gán `Dog[]` cho `Animal[]` rồi lưu một `Cat` | Có thể **ArrayStoreException** | Runtime kiểm tra loại phần tử mảng, không phải phép ép tham chiếu trực tiếp |
+| `Animal x = new Cat(); Dog d = (Dog) x;` | **ClassCastException** at runtime | Runtime object is `Cat`, not `Dog` |
+| `Object x = Integer.valueOf(7); String s = (String) x;` | **ClassCastException** at runtime | `Integer` cannot be viewed as `String` |
+| `Dog d = (Dog) null;` | Succeeds, `d == null` | Casting `null` does not raise `ClassCastException` |
+| `d.fetch()` when `d == null` | **NullPointerException** | Calling a method on a `null` reference |
+| `Animal a = new Dog(); a.fetch();` | **Compile error** | Declared type `Animal` has no `fetch()` |
+| `String s = (String) new Dog(...);` with unrelated classes | **Compile error** | No Java-accepted cast exists between those two class types |
+| Assigning `Dog[]` to `Animal[]` then storing a `Cat` | Possible **ArrayStoreException** | Runtime checks array element type, not direct reference cast |
 
-`ClassCastException` phản ánh **một tham chiếu không tương thích với kiểu mà chương trình muốn ép**; NPE nói rằng không có object tại tham chiếu được sử dụng. Hai lỗi có nguyên nhân và cách sửa khác nhau.
+`ClassCastException` reflects **a reference incompatible with the type the program attempts to cast to**; NPE indicates there is no object at the dereferenced pointer. The two errors have different causes and fixes.
 
-## 6. Khi nào nên cast, khi nào tránh cast?
+## 6. When should you cast, and when should you avoid casting?
 
-**Ưu tiên đa hình** nếu hành vi có thể được mô tả bởi kiểu cha hoặc interface:
+**Prefer polymorphism** if behavior can be described by a supertype or interface:
 
 ~~~java
 Animal pet = new Dog("Milo");
-System.out.println(pet.sound()); // Không cần biết subtype.
+System.out.println(pet.sound()); // No need to know subtype.
 ~~~
 
-Chỉ downcast khi thật sự cần API đặc thù của subtype và điều kiện tương thích được kiểm tra:
+Only downcast when subtype-specific APIs are genuinely needed and compatibility is checked:
 
 ~~~java
 if (pet instanceof Dog dog) {
@@ -266,26 +266,26 @@ if (pet instanceof Dog dog) {
 }
 ~~~
 
-Một số nguyên tắc:
+Some principles:
 
-- **Dựa vào hợp đồng kiểu:** API trả `Animal` không có nghĩa đối tượng luôn là `Dog`. Đừng cast chỉ vì “test thử thấy chạy”.
-- **Không bắt `ClassCastException` để thay thế `instanceof`** trong luồng bình thường; bắt exception phù hợp khi xử lý lỗi bất thường hoặc ở ranh giới cần kiểm soát lỗi.
-- **Dùng pattern matching đúng mức:** `instanceof Dog dog` gọn hơn kiểm tra rồi cast lặp, nhưng dùng lạm dụng nhiều điều kiện subtype có thể báo hiệu thiết kế cần đa hình/strategy.
-- **Đừng nhầm cast với chuyển đổi giá trị:** `(String) Integer.valueOf(7)` không phải cách biến số thành chuỗi; dùng `String.valueOf(7)` nếu thật sự muốn chuyển nội dung.
-- **Lưu ý generic type erasure:** không thể dùng `obj instanceof java.util.List<String>` để kiểm tra đầy đủ tham số kiểu ở runtime; việc kiểm tra `instanceof List<?>` chỉ xác nhận lớp/kiểu gốc, không xác nhận mọi phần tử là String.
+- **Rely on type contracts:** an API returning `Animal` does not mean the object is always a `Dog`. Do not cast just because “it worked in a quick test”.
+- **Do not catch `ClassCastException` instead of `instanceof`** in normal control flow; catch exceptions appropriately when handling abnormal failures or at error-handling boundaries.
+- **Use pattern matching judiciously:** `instanceof Dog dog` is cleaner than checking and then casting repeatedly, yet overusing many subtype checks may signal a design needing polymorphism/strategy.
+- **Do not confuse casting with value conversion:** `(String) Integer.valueOf(7)` is not how you turn a number into a string; use `String.valueOf(7)` if you genuinely want to convert content.
+- **Note generic type erasure:** you cannot use `obj instanceof java.util.List<String>` to check full type arguments at runtime; checking `instanceof List<?>` only confirms the raw class/type, not that every element is a `String`.
 
-## 7. Bài tập tự luyện
+## 7. Self-practice exercises
 
-**Bài 1.** Cho `Animal a = new Dog("Max");`. Tại sao `a.sound()` hợp lệ còn `a.fetch()` không biên dịch? Viết một cách gọi `fetch()` an toàn.
+**Exercise 1.** Given `Animal a = new Dog("Max");`. Why is `a.sound()` valid while `a.fetch()` does not compile? Write a safe way to call `fetch()`.
 
-**Bài 2.** Cho `Animal animal = new Cat("Miu");`. Dự đoán `animal instanceof Dog` và hành vi của `(Dog) animal`; chỉ ra thời điểm lỗi xảy ra.
+**Exercise 2.** Given `Animal animal = new Cat("Miu");`. Predict `animal instanceof Dog` and the behavior of `(Dog) animal`; point out when the error occurs.
 
-**Bài 3.** Thay `Animal animal = null;` trong phép kiểm tra `instanceof`. Kết quả là gì? Vì sao `(Dog) animal` tự nó không phát sinh NPE hoặc ClassCastException?
+**Exercise 3.** Substitute `Animal animal = null;` into the `instanceof` check. What is the result? Why does `(Dog) animal` itself not throw NPE or `ClassCastException`?
 
-**Bài 4.** Cho `Object obj = Integer.valueOf(5);`. So sánh hành vi `obj instanceof String`, `(String) obj` và `String.valueOf(obj)`.
+**Exercise 4.** Given `Object obj = Integer.valueOf(5);`. Compare the behavior of `obj instanceof String`, `(String) obj`, and `String.valueOf(obj)`.
 
-**Bài 5.** Sửa hàm `describe` trong chương trình để dùng mẫu `instanceof` cho subtype; nếu truyền object là Dog, Cat hoặc null, kết quả in ra phải tương ứng.
+**Exercise 5.** Modify the `describe` method in the program to use the `instanceof` pattern for subtypes; if passed a `Dog`, `Cat`, or `null` object, the printed output should match accordingly.
 
-### Ghi nhớ
+### Takeaways
 
-**Ép kiểu tham chiếu thay đổi cách nhìn kiểu của biến, không thay đổi object.** Upcast thường an toàn và không cần cast. Downcast yêu cầu object runtime tương thích, nếu không sẽ ném **`ClassCastException`**. Dùng **`instanceof`** hoặc pattern matching Java 17 để kiểm tra khi cần API của subtype, nhớ rằng **`null instanceof Type` là false** và **cast null tham chiếu vẫn cho null**. Khi chỉ cần hành vi chung, hãy ưu tiên **đa hình** thay vì cast.
+**Reference casting changes the variable's type view, not the object itself.** Upcasts are generally safe and require no cast. Downcasts require a compatible runtime object, otherwise **`ClassCastException`** is thrown. Use **`instanceof`** or Java 17 pattern matching to check when a subtype API is needed, keeping in mind that **`null instanceof Type` is false** and **casting a `null` reference still yields `null`**. When only common behavior is needed, prefer **polymorphism** over casting.

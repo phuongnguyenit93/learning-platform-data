@@ -1,38 +1,38 @@
-# Kiểm tra đầu vào và chuyển chuỗi thành số — Java 17+
+# Validating Input and Converting Strings to Numbers — Java 17+
 
-## 1. Vì sao cần kiểm tra trước và sau khi chuyển kiểu?
+## 1. Why validate both before and after type conversion?
 
-Dữ liệu mà chương trình nhận từ bàn phím, file hoặc dòng lệnh ban đầu thường là **chuỗi**. Ngay cả khi người dùng gõ `25`, giá trị đọc qua `BufferedReader.readLine()` hay `Scanner.nextLine()` vẫn có kiểu `String`. Muốn cộng, nhân, so sánh giới hạn, ta cần **chuyển chuỗi thành kiểu số** và **xác thực dữ liệu**.
+Data a program receives from the keyboard, files, or command line usually starts out as a **string**. Even when the user types `25`, the value read via `BufferedReader.readLine()` or `Scanner.nextLine()` still has type `String`. To add, multiply, or compare against limits, you need to **convert the string into a numeric type** and **validate the data**.
 
-Ba bước không được nhầm với nhau:
+Three steps that must not be confused with each other:
 
-1. **Đọc dữ liệu:** lấy chuỗi người dùng nhập, ví dụ `"12"`.
-2. **Chuyển kiểu (parse):** dùng `Integer.parseInt("12")` để nhận số nguyên `12`; bước này có thể thất bại nếu chuỗi không có định dạng hợp lệ hoặc vượt giới hạn kiểu.
-3. **Kiểm tra ràng buộc (validation):** xác nhận giá trị thuộc miền nghiệp vụ, ví dụ số lượng `1..100`. Chuyển được `"0"` thành số `0` không có nghĩa số lượng 0 được phép.
+1. **Read the data:** obtain the string entered by the user, e.g. `"12"`.
+2. **Convert the type (parse):** use `Integer.parseInt("12")` to obtain the integer `12`; this step can fail if the string has an invalid format or exceeds the type's range.
+3. **Check constraints (validation):** confirm the value belongs to the business domain, e.g. quantity `1..100`. Successfully parsing `"0"` to `0` does not mean a quantity of 0 is permitted.
 
 ~~~text
-Chuỗi đầu vào
+Input string
     |
     v
-Kiểm tra thiếu/rỗng, chuẩn hóa hợp lệ
+Check missing/empty, normalize appropriately
     |
     v
-Chuyển thành số (parse)
+Convert to number (parse)
     |             \
-    |              \ lỗi định dạng / vượt phạm vi kiểu
+    |              \ format error / out of type range
     v               v
-Kiểm tra miền       Thông báo lỗi phù hợp
-nghiệp vụ
+Check business      Appropriate error message
+domain
     |             \
-    v              \ sai miền
-Dùng số hợp lệ       Thông báo lỗi phù hợp
+    v              \ out of domain
+Use valid number     Appropriate error message
 ~~~
 
-Mục tiêu là **không để dữ liệu xấu đi sâu vào phép tính**, đồng thời đưa ra thông báo cụ thể để người dùng sửa đầu vào.
+The goal is to **prevent bad data from propagating into calculations**, while providing a specific message so the user can fix the input.
 
-## 2. Đọc một dòng từ stdin
+## 2. Reading a line from stdin
 
-Với Java 17, có thể dùng `BufferedReader` để nhận nguyên văn một dòng:
+In Java 17, you can use `BufferedReader` to receive a line verbatim:
 
 ~~~java
 import java.io.BufferedReader;
@@ -44,13 +44,13 @@ BufferedReader reader = new BufferedReader(
 String line = reader.readLine();
 ~~~
 
-- `System.in` là luồng input chuẩn (stdin).
-- `InputStreamReader` chuyển byte thành ký tự; chỉ định `StandardCharsets.UTF_8` giúp thống nhất mã hóa.
-- `BufferedReader.readLine()` đọc một dòng, bỏ ký tự kết thúc dòng và trả về `String`.
-- Nếu **hết dữ liệu** trước khi đọc được dòng, `readLine()` trả về **`null`**.
-- Thao tác I/O có thể ném checked `IOException`, nên method phải catch hoặc declare `throws IOException`.
+- `System.in` is the standard input stream (stdin).
+- `InputStreamReader` converts bytes to characters; specifying `StandardCharsets.UTF_8` ensures consistent encoding.
+- `BufferedReader.readLine()` reads one line, removes the line terminator, and returns a `String`.
+- If **end of data** is reached before reading a line, `readLine()` returns **`null`**.
+- I/O operations can throw the checked `IOException`, so the method must catch it or declare `throws IOException`.
 
-Khi người dùng **chỉ nhấn Enter**, `readLine()` trả `""` (chuỗi rỗng), **khác** với `null` lúc EOF. Đầu vào chỉ chứa khoảng trắng như `"   "` lại là một chuỗi không rỗng về độ dài nhưng có thể bị xem là “không có nội dung” sau khi chuẩn hóa.
+When the user **simply presses Enter**, `readLine()` returns `""` (empty string), which **differs** from `null` at EOF. Input containing only whitespace like `"   "` is a string with non-zero length yet may be considered "no content" after normalization.
 
 ~~~java
 if (line == null) {
@@ -60,11 +60,11 @@ if (line == null) {
 }
 ~~~
 
-Đây là mã minh họa đặt sau khi đã đọc `line`; chương trình chạy độc lập nằm ở mục 9.
+This is illustrative code placed after `line` has been read; the standalone runnable program is in section 9.
 
-## 3. Chuẩn hóa chuỗi trước khi parse
+## 3. Normalizing strings before parsing
 
-`String.strip()` (Java 11+) loại bỏ các ký tự khoảng trắng ở hai đầu theo quy tắc Unicode mà API hỗ trợ. Nếu hợp đồng cho phép khoảng trắng đầu/cuối:
+`String.strip()` (Java 11+) removes leading and trailing whitespace characters according to the Unicode rules supported by the API. If the contract permits leading/trailing whitespace:
 
 ~~~java
 String raw = " 42 ";
@@ -79,13 +79,13 @@ System.out.println(number);
 42
 ~~~
 
-Phải kiểm tra `null` trước khi gọi `strip()`. Một chuỗi rỗng `""` hoặc chỉ có khoảng trắng sẽ không chuyển thành số bằng `Integer.parseInt`; nên thông báo “bắt buộc nhập” trước để người dùng hiểu, thay vì đưa ra một thông báo kỹ thuật khó hiểu.
+You must check for `null` before calling `strip()`. An empty string `""` or whitespace-only string will not parse into a number with `Integer.parseInt`; report a "required field" error first so the user understands, rather than showing a confusing technical error.
 
-**Không tùy tiện chỉnh sửa mọi chuỗi:** ví dụ yêu cầu tài chính hoặc mã định danh có thể quy định rất rõ có được bỏ khoảng trắng hay chấp nhận dấu cộng đầu chuỗi không. Việc chuẩn hóa phải tuân theo **hợp đồng đầu vào**.
+**Do not alter every string arbitrarily:** for example, financial rules or identifiers may strictly define whether spaces may be stripped or a leading plus sign is accepted. Normalization must follow the **input contract**.
 
-## 4. Chuyển chuỗi thành `int` và `long`
+## 4. Converting strings to `int` and `long`
 
-Các API thường dùng:
+Common APIs:
 
 ~~~java
 int age = Integer.parseInt("21");
@@ -102,11 +102,11 @@ System.out.println(population);
 9000000000
 ~~~
 
-`Integer.parseInt(String)` nhận chuỗi biểu diễn số nguyên trong phạm vi **`-2147483648..2147483647`**; `Long.parseLong` nhận số nguyên kiểu `long` với phạm vi lớn hơn. Cả hai có thể ném **unchecked `NumberFormatException`** khi chuỗi không biểu diễn được số đúng kiểu.
+`Integer.parseInt(String)` accepts strings representing integers in the range **`-2147483648..2147483647`**; `Long.parseLong` accepts `long` integers with a larger range. Both can throw the **unchecked `NumberFormatException`** when the string does not represent a valid number of that type.
 
-Ví dụ:
+Examples:
 
-| Chuỗi truyền vào `Integer.parseInt` | Kết quả |
+| String passed to `Integer.parseInt` | Result |
 |---|---|
 | `"15"` | `15` |
 | `"-8"` | `-8` |
@@ -114,12 +114,12 @@ Ví dụ:
 | `"0012"` | `12` |
 | `"3.5"` | `NumberFormatException` |
 | `"ten"` | `NumberFormatException` |
-| `"2147483648"` | `NumberFormatException` do vượt giới hạn `int` |
-| `" 12 "` | Không parse trực tiếp; cần `strip()` nếu hợp đồng cho phép |
+| `"2147483648"` | `NumberFormatException` due to exceeding `int` range |
+| `" 12 "` | Not parsed directly; requires `strip()` if the contract permits |
 
-Nếu cần **chỉ chấp nhận chữ số ASCII**, dấu hoặc định dạng đặc biệt phải được quy định và kiểm tra thêm. Chuyển số tự động không thay thế bước kiểm tra format của hệ thống.
+If you need to **accept only ASCII digits**, signs or special formats must be specified and checked explicitly. Automatic numeric parsing does not replace system format validation.
 
-Mẫu xử lý ngoại lệ:
+Exception-handling pattern:
 
 ~~~java
 try {
@@ -130,11 +130,11 @@ try {
 }
 ~~~
 
-Đoạn này giả sử `text` khác `null`; ví dụ hoàn chỉnh sẽ xử lý EOF/blank trước khi parse.
+This snippet assumes `text` is not `null`; the complete example handles EOF/blank input before parsing.
 
-## 5. Chuyển số thực: `double` và `BigDecimal`
+## 5. Converting floating-point numbers: `double` and `BigDecimal`
 
-Chuyển sang số thực dấu phẩy động:
+Converting to a floating-point number:
 
 ~~~java
 double rate = Double.parseDouble("2.5");
@@ -147,7 +147,7 @@ System.out.println(rate);
 2.5
 ~~~
 
-`Double.parseDouble` có thể hiểu dạng khoa học như `"1e3"`, đồng thời chấp nhận các giá trị đặc biệt như `"NaN"` hoặc `"Infinity"`. Nếu hợp đồng chỉ chấp nhận số thực **hữu hạn**, nên kiểm tra thêm:
+`Double.parseDouble` understands scientific notation like `"1e3"` and also accepts special values like `"NaN"` or `"Infinity"`. If the contract only accepts **finite** numbers, check additionally:
 
 ~~~java
 double value = Double.parseDouble(text.strip());
@@ -156,11 +156,11 @@ if (!Double.isFinite(value)) {
 }
 ~~~
 
-Cũng cần kiểm tra miền cho phép, ví dụ `0.0 <= value && value <= 1.0`.
+You also need to check the allowed range, such as `0.0 <= value && value <= 1.0`.
 
-### Khi cần số thập phân có ý nghĩa chính xác
+### When exact decimal representation is needed
 
-Đối với **giá tiền, tổng tiền hoặc đơn giá** cần biểu diễn thập phân nhất quán, `BigDecimal` thường phù hợp hơn `double`:
+For **prices, totals, or unit prices** requiring consistent decimal representation, `BigDecimal` is generally more suitable than `double`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -176,13 +176,13 @@ System.out.println(total.toPlainString());
 37.50
 ~~~
 
-Tránh `new BigDecimal(0.1)` khi muốn biểu diễn đúng giá trị thập phân `0.1` vì `double` không lưu chính xác số đó theo hệ nhị phân. Dùng `new BigDecimal("0.1")` hoặc `BigDecimal.valueOf(0.1)` tùy mục đích.
+Avoid `new BigDecimal(0.1)` when you want the exact decimal value `0.1`, because `double` does not store that value accurately in binary. Use `new BigDecimal("0.1")` or `BigDecimal.valueOf(0.1)` depending on your intent.
 
-**Quan trọng:** `BigDecimal` xử lý chính xác số thập phân **đã parse**, nhưng không tự xác nhận “giá hợp lệ”. Vẫn cần giới hạn miền, số chữ số thập phân, đơn vị và luật làm tròn. Chương trình mẫu chỉ cho giá có tối đa **hai chữ số sau dấu chấm**, không âm và không vượt ngưỡng.
+**Important:** `BigDecimal` handles **already-parsed** decimal numbers accurately, yet it does not automatically confirm a "valid price." You still must constrain the range, number of decimal places, unit, and rounding rules. The sample program only allows prices with at most **two digits after the decimal point**, strictly positive and within the upper limit.
 
-## 6. Định dạng số và dấu phân cách
+## 6. Number formats and separators
 
-Người dùng có thể nhập:
+Users might enter:
 
 ~~~text
 12.50
@@ -192,35 +192,35 @@ Người dùng có thể nhập:
 1e3
 ~~~
 
-Các chuỗi này **không tương đương một cách tự động**. Ví dụ `new BigDecimal("12,50")` không parse trực tiếp được. Trong ví dụ mục 9, giá có hợp đồng cố định:
+These strings are **not automatically equivalent**. For example, `new BigDecimal("12,50")` cannot be parsed directly. In the example in section 9, the price follows a fixed contract:
 
-- Chỉ dùng **chữ số ASCII `0..9`** và **dấu chấm `.`** cho phần thập phân.
-- Cho phép số nguyên như `"12"` hoặc số có 1–2 chữ số thập phân như `"12.5"` và `"12.50"`.
-- Không chấp nhận dấu phẩy, khoảng trắng ở giữa, ký hiệu tiền tệ, số mũ hoặc số âm.
-- Khoảng trắng **hai đầu** được bỏ bằng `strip()`.
-- Sau khi parse phải lớn hơn `0` và không vượt `1_000_000`.
+- Uses only **ASCII digits `0..9`** and a **dot `.`** for the fractional part.
+- Allows whole numbers like `"12"` or numbers with 1–2 decimal places like `"12.5"` and `"12.50"`.
+- Rejects commas, internal spaces, currency symbols, exponents, and negative numbers.
+- **Leading and trailing** whitespace is removed via `strip()`.
+- After parsing, it must be greater than `0` and at most `1_000_000`.
 
-Biểu thức kiểm tra định dạng Java:
+Java format-checking expression:
 
 ~~~java
 boolean validFormat = normalized.matches("[0-9]+(\\.[0-9]{1,2})?");
 ~~~
 
-Trong Java string literal, `\\.` đại diện cho ký tự dấu chấm trong regex; dấu chấm được escape để không có nghĩa “bất kỳ ký tự nào”. Dùng một quy tắc format thống nhất giúp mã không phải đoán `12,50` là mười hai phẩy năm hay một danh sách hai giá trị.
+In a Java string literal, `\\.` represents a literal dot in regex; the dot is escaped so it does not mean "any character." Using a single uniform format rule keeps the code from guessing whether `12,50` means twelve point five or a list of two values.
 
-Nếu ứng dụng hỗ trợ nhiều locale, hãy chọn một parser theo `Locale` xác định (ví dụ `NumberFormat`/`DecimalFormat`) với hợp đồng rõ và bảo đảm đã **đọc hết chuỗi hợp lệ**. Không giả định cách nhập dấu phẩy/thập phân giống nhau trên mọi hệ điều hành.
+If an application supports multiple locales, choose a parser for a specific `Locale` (such as `NumberFormat`/`DecimalFormat`) with a clear contract and verify that the **entire valid string was consumed**. Do not assume comma/decimal input conventions are identical across operating systems.
 
-## 7. Phân biệt lỗi cú pháp, vượt kiểu và sai miền nghiệp vụ
+## 7. Distinguishing syntax errors, type overflows, and business domain errors
 
-Ba lỗi sau cần xử lý khác nhau:
+These three error categories require distinct handling:
 
-| Nhóm lỗi | Ví dụ | Cách ứng xử |
+| Error group | Examples | How to handle |
 |---|---|---|
-| Thiếu dữ liệu | EOF trước khi có số lượng; chuỗi rỗng | Thông báo trường bắt buộc |
-| Không chuyển được thành kiểu số | `"abc"`, `"2.5"` cho `int`, số quá lớn cho `int` | Bắt `NumberFormatException` hoặc kiểm tra cú pháp trước |
-| Số hợp lệ về cú pháp nhưng sai miền | `0` cho số lượng phải `1..100`; giá `0.00` | Ném hoặc trả lỗi validation có thông điệp riêng |
+| Missing data | EOF before quantity; empty string | Report a required-field error |
+| Cannot convert to numeric type | `"abc"`, `"2.5"` for `int`, value too large for `int` | Catch `NumberFormatException` or validate syntax first |
+| Syntactically valid number, out of domain | `0` for quantity requiring `1..100`; price `0.00` | Throw or return a validation error with a dedicated message |
 
-Đừng dùng `assert quantity > 0` để kiểm tra đầu vào bắt buộc: câu lệnh `assert` có thể bị vô hiệu khi chạy JVM. Dùng điều kiện `if` chạy bình thường.
+Do not use `assert quantity > 0` to check required input: `assert` statements can be disabled when running the JVM. Use regular `if` conditions that always execute.
 
 ~~~java
 static int validateQuantity(String input) {
@@ -243,24 +243,24 @@ static int validateQuantity(String input) {
 }
 ~~~
 
-Với `"abc"`, lỗi đến từ parse; với `"0"`, parse thành công nhưng validation miền thất bại. Khi phát hiện sai dữ liệu, nên **ngừng bước tính toán hiện tại**, thay vì tiếp tục dùng giá trị giả định hoặc “sửa” dữ liệu bí mật.
+With `"abc"`, the error comes from parsing; with `"0"`, parsing succeeds yet domain validation fails. When invalid data is detected, **stop the current computation** rather than continuing with a guessed default or silently "fixing" the data.
 
-## 8. Chọn cách đọc input nhất quán
+## 8. Choosing a consistent input-reading approach
 
-Khi bài toán cần xác thực **mỗi trường trên một dòng**, `Scanner.nextLine()` kết hợp `Integer.parseInt` hoặc `BigDecimal(String)` giúp tách ba trách nhiệm: đọc văn bản, chuyển kiểu và kiểm tra miền. Với nguồn có thể kết thúc sớm, hãy kiểm tra `hasNextLine()` trước khi đọc.
+When a problem requires validating **one field per line**, `Scanner.nextLine()` combined with `Integer.parseInt` or `BigDecimal(String)` separates three responsibilities: reading text, converting types, and validating bounds. With a source that may end early, check `hasNextLine()` before reading.
 
-`nextInt()` đọc theo token, nên sau đó gọi `nextLine()` có thể nhận phần dư dòng số; nó cũng dùng cú pháp/locale của `Scanner` và có thể ném `InputMismatchException` thay vì `NumberFormatException` của `Integer.parseInt`. Vì chương này đang xây dựng validator chặt chẽ, ví dụ hoàn chỉnh chọn `BufferedReader.readLine()` và xử lý EOF rõ ràng.
+`nextInt()` reads by token, so calling `nextLine()` afterward may read the remainder of the number line; it also uses `Scanner`'s syntax/locale rules and can throw `InputMismatchException` instead of `Integer.parseInt`'s `NumberFormatException`. Since this chapter builds a strict validator, the complete example chooses `BufferedReader.readLine()` and handles EOF explicitly.
 
-## 9. Chương trình Java 17+ hoàn chỉnh: nhập số lượng và đơn giá
+## 9. Complete Java 17+ program: entering quantity and unit price
 
-Ví dụ nhận **hai dòng từ stdin**:
+The example reads **two lines from stdin**:
 
-1. Số lượng nguyên, từ **1 tới 100**.
-2. Đơn giá thập phân, từ **lớn hơn 0 tới 1_000_000**, dùng dấu `.`, tối đa 2 chữ số thập phân.
+1. Integer quantity, from **1 to 100**.
+2. Decimal unit price, **greater than 0 up to 1_000_000**, using a dot `.`, with at most 2 decimal places.
 
-Chương trình tính tổng `quantity × unitPrice` bằng `BigDecimal`, chuẩn hóa hiển thị đúng hai chữ số thập phân, từ chối input thiếu/sai và trả mã thoát **2** khi không hợp lệ.
+The program computes `quantity × unitPrice` using `BigDecimal`, normalizes output to two decimal places, rejects missing/invalid input, and returns exit status **2** when invalid.
 
-Lưu file **`InputNumberValidationDemo.java`**:
+Save as **`InputNumberValidationDemo.java`**:
 
 ~~~java
 import java.io.BufferedReader;
@@ -380,16 +380,16 @@ public final class InputNumberValidationDemo {
 }
 ~~~
 
-**Giải thích kỹ thuật:**
+**Technical explanation:**
 
-- Hai câu lệnh `readLine()` đọc chuỗi; chương trình kiểm tra EOF riêng để phân biệt với dòng trống.
-- `parseQuantity` bắt `NumberFormatException` từ `Integer.parseInt` và chuyển thành thông điệp phù hợp; đồng thời kiểm tra miền `1..100`.
-- `parsePrice` kiểm tra format trước, tạo `BigDecimal` từ chuỗi, so giá bằng `compareTo` và dùng `setScale(2, RoundingMode.UNNECESSARY)`. Vì input chỉ có tối đa hai chữ số thập phân nên bước đặt scale không phải làm tròn số; nó chuẩn hóa đầu ra, ví dụ `12.5` thành `12.50`.
-- Nhánh lỗi kết thúc `run` với mã `2`, không tính tổng khi đầu vào không hợp lệ.
-- `System.exit(2)` thuộc **ranh giới ứng dụng**. Không nên gọi `System.exit` trong hàm tiện ích parsing; thư viện nên cho caller quyết định lỗi nào được xử lý.
-- Các thông báo của ví dụ in ra stdout để so khớp dễ dàng. CLI production thường in lỗi qua `System.err`.
+- The two `readLine()` calls read strings; the program checks EOF separately to distinguish it from a blank line.
+- `parseQuantity` catches `NumberFormatException` from `Integer.parseInt` and translates it into a clear message, while also checking the `1..100` range.
+- `parsePrice` checks format first, constructs `BigDecimal` from the string, compares values with `compareTo`, and calls `setScale(2, RoundingMode.UNNECESSARY)`. Because the input has at most two decimal digits, setting scale does not round numbers; it normalizes output, such as turning `12.5` into `12.50`.
+- Error branches return code `2` from `run` without computing the total when input is invalid.
+- `System.exit(2)` belongs at the **application boundary**. Do not call `System.exit` inside a parsing utility; libraries should let callers decide how errors are handled.
+- Messages in the example print to stdout for straightforward matching. Production CLIs usually print errors to `System.err`.
 
-### Biên dịch
+### Compiling
 
 **Bash (Linux/macOS):**
 
@@ -403,9 +403,9 @@ javac --release 17 -encoding UTF-8 InputNumberValidationDemo.java
 javac --release 17 -encoding UTF-8 .\InputNumberValidationDemo.java
 ~~~
 
-Không cần Maven/Gradle, thư viện ngoài hoặc preview features. Chạy trong thư mục chứa file `.class` được biên dịch.
+No Maven/Gradle, external libraries, or preview features needed. Run in the directory containing the compiled `.class` file.
 
-### Trường hợp 1 — dữ liệu hợp lệ
+### Case 1 — valid data
 
 **Bash:**
 
@@ -430,9 +430,9 @@ total=37.50
 status=OK
 ~~~
 
-Trường hợp này trả **exit status 0**.
+This case returns **exit status 0**.
 
-### Trường hợp 2 — số lượng không phải số nguyên
+### Case 2 — quantity is not an integer
 
 **Bash:**
 
@@ -453,9 +453,9 @@ quantity?
 error: quantity must be an integer
 ~~~
 
-Chương trình không đọc tiếp đơn giá sau khi từ chối số lượng; **exit status 2**.
+The program does not read the unit price after rejecting the quantity; **exit status 2**.
 
-### Trường hợp 3 — chuyển được số nhưng ngoài miền
+### Case 3 — parsed as a number but out of range
 
 **Bash:**
 
@@ -476,9 +476,9 @@ quantity?
 error: quantity must be 1..100
 ~~~
 
-`"0"` parse thành số nguyên thành công, nhưng không thỏa miền nghiệp vụ `1..100`. **Exit status 2**.
+`"0"` parses as an integer successfully, yet violates the `1..100` business domain. **Exit status 2**.
 
-### Trường hợp 4 — dùng dấu phẩy sai định dạng
+### Case 4 — invalid format using a comma
 
 **Bash:**
 
@@ -500,9 +500,9 @@ price?
 error: price must use digits and optional dot with 1-2 decimals
 ~~~
 
-Format giá được quy định sử dụng `.`, không chấp nhận `,`. **Exit status 2**.
+The price format is defined to use `.`, rejecting `,`. **Exit status 2**.
 
-### Trường hợp 5 — giá bằng 0
+### Case 5 — price equals 0
 
 **Bash:**
 
@@ -524,9 +524,9 @@ price?
 error: price must be > 0 and <= 1000000
 ~~~
 
-`"0.00"` đúng format và parse được thành `BigDecimal`, nhưng sai quy tắc **giá phải lớn hơn 0**; **exit status 2**.
+`"0.00"` matches the format and parses to `BigDecimal`, yet violates the rule that **price must be greater than 0**; **exit status 2**.
 
-### Trường hợp 6 — hết dữ liệu trước khi nhập giá
+### Case 6 — end of data before entering price
 
 **Bash:**
 
@@ -548,79 +548,79 @@ price?
 error: price is missing
 ~~~
 
-Hết input khiến `readLine()` thứ hai trả `null`; chương trình thông báo thiếu trường, không tự suy ra `0`. **Exit status 2**.
+End of input causes the second `readLine()` to return `null`; the program reports a missing field instead of assuming `0`. **Exit status 2**.
 
-## 10. Những lỗi thường gặp
+## 10. Common mistakes
 
-| Sai lầm | Vì sao sai? | Cách sửa |
+| Mistake | Why is it wrong? | How to fix |
 |---|---|---|
-| Tưởng `readLine()` trả số đã chuyển | API trả `String` hoặc `null` | Gọi parse sau khi kiểm tra đầu vào |
-| Đọc `null.strip()` khi EOF | `NullPointerException` | Kiểm tra `null` trước |
-| Xử lý chuỗi rỗng như số 0 | Dễ tạo dữ liệu giả | Phân biệt thiếu dữ liệu với số 0 thực sự |
-| Parse `"abc"` không bắt lỗi | `NumberFormatException` | Catch đúng loại hoặc thông báo lỗi |
-| Parse `"2147483648"` bằng `int` rồi coi là số hợp lệ | Ngoài phạm vi `int` | Dùng kiểu phù hợp và kiểm tra miền |
-| `int n = Integer.parseInt(s);` rồi không kiểm tra `n` | `n` có thể là 0, âm hoặc quá giới hạn nghiệp vụ | Validate miền sau parse |
-| Dùng `double` để cộng tiền và kỳ vọng chính xác thập phân tuyệt đối | Dấu phẩy động có thể làm tròn nhị phân | `BigDecimal` và quy tắc scale/rounding rõ |
-| Tưởng `Double.parseDouble("NaN")` là số hữu hạn hợp lệ | NaN là giá trị đặc biệt | `Double.isFinite` nếu hợp đồng cần |
-| Tưởng `12,50` luôn parse giống `12.50` | Parser/locale khác nhau | Chọn format rõ và kiểm tra |
-| Dùng `==` để so chuỗi nhập | `==` so identity | Dùng `equals` hoặc parse số |
-| Trộn `Scanner.nextInt()` với `nextLine()` không xử lý phần cuối dòng | Có thể đọc chuỗi rỗng ngoài ý muốn | Dùng `nextLine()` + parse hoặc tiêu thụ hết dòng đúng cách |
-| Dùng `assert` để validate input bắt buộc | Assertion có thể bị tắt | Dùng `if`/throw/validation luôn chạy |
-| Nuốt `NumberFormatException` rồi tự động dùng 0 | Che giấu dữ liệu sai | Thông báo hoặc yêu cầu nhập lại theo hợp đồng |
-| Nhầm lỗi cú pháp với lỗi miền | Hai vấn đề cần xử lý riêng | Parse trước, validate sau |
+| Assuming `readLine()` returns a converted number | The API returns `String` or `null` | Call parse after checking the input |
+| Calling `null.strip()` at EOF | `NullPointerException` | Check for `null` first |
+| Treating an empty string as 0 | Easily fabricates bogus data | Distinguish missing data from an actual 0 |
+| Parsing `"abc"` without error handling | `NumberFormatException` | Catch the right exception or report the error |
+| Parsing `"2147483648"` with `int` and assuming validity | Exceeds `int` range | Use an appropriate type and check range |
+| `int n = Integer.parseInt(s);` without checking `n` | `n` may be 0, negative, or past business limits | Validate the domain after parsing |
+| Using `double` for money totals expecting exact decimal precision | Floating-point binary rounding can occur | Use `BigDecimal` and explicit scale/rounding rules |
+| Assuming `Double.parseDouble("NaN")` is a valid finite number | NaN is a special value | Check `Double.isFinite` if required by the contract |
+| Assuming `12,50` always parses like `12.50` | Parsers and locales differ | Choose a clear format and validate it |
+| Using `==` to compare input strings | `==` compares reference identity | Use `equals` or parse as a number |
+| Mixing `Scanner.nextInt()` with `nextLine()` without handling line remainder | Can read unexpected empty strings | Use `nextLine()` + parse or consume the line properly |
+| Using `assert` to validate required input | Assertions can be disabled | Use always-on `if`/throw/validation logic |
+| Swallowing `NumberFormatException` and silently using 0 | Hides invalid data | Report the error or re-prompt per contract |
+| Confusing syntax errors with domain errors | Two distinct issues needing separate handling | Parse first, validate domain afterward |
 
-## 11. Bài tập và đáp án
+## 11. Exercises and answers
 
-**A.** Với `String s = " 18 ";`, cách chuyển thành `int` nếu cho phép khoảng trắng hai đầu?
+**A.** Given `String s = " 18 ";`, how do you convert it to `int` if leading and trailing whitespace is allowed?
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 int n = Integer.parseInt(s.strip()); // 18
 ~~~
 
-**B.** `Integer.parseInt("2.5")` trả gì?
+**B.** What does `Integer.parseInt("2.5")` return?
 
-**Đáp án:** ném `NumberFormatException` vì `2.5` không phải biểu diễn một số nguyên `int` hợp lệ.
+**Answer:** it throws `NumberFormatException` because `2.5` does not represent a valid `int` integer.
 
-**C.** Nếu quantity = `0` nhưng `Integer.parseInt("0")` thành công thì dữ liệu hợp lệ chưa?
+**C.** If quantity is `0` and `Integer.parseInt("0")` succeeds, is the data valid yet?
 
-**Đáp án:** **Chưa**. Hợp đồng ví dụ yêu cầu `1..100`, nên số lượng 0 phải bị từ chối bởi validation.
+**Answer:** **No**. The example contract requires `1..100`, so quantity 0 must be rejected by validation.
 
-**D.** Nếu muốn dữ liệu thập phân chính xác để tính giá tiền, dùng `new BigDecimal("12.50")` hay `new BigDecimal(12.50)`?
+**D.** If you need exact decimal values to calculate prices, should you use `new BigDecimal("12.50")` or `new BigDecimal(12.50)`?
 
-**Đáp án:** ưu tiên `new BigDecimal("12.50")` khi đầu vào là chuỗi số thập phân đã được kiểm tra; tránh tạo từ `double` vì độ chính xác nhị phân.
+**Answer:** prefer `new BigDecimal("12.50")` when the input is a validated decimal string; avoid constructing from `double` due to binary floating-point precision.
 
-**E.** `BufferedReader.readLine()` trả `null` khi nào?
+**E.** When does `BufferedReader.readLine()` return `null`?
 
-**Đáp án:** khi đạt EOF trước khi đọc một dòng, khác với `""` khi đọc dòng rỗng.
+**Answer:** when EOF is reached before reading a line, unlike `""` when reading a blank line.
 
-**F.** Vì sao `Double.parseDouble("NaN")` chưa đủ để xác thực một phép đo bắt buộc hữu hạn?
+**F.** Why is `Double.parseDouble("NaN")` insufficient to validate a measurement required to be finite?
 
-**Đáp án:** `NaN` là giá trị `double` đặc biệt; kiểm tra `Double.isFinite` và miền giá trị thích hợp.
+**Answer:** `NaN` is a special `double` value; check `Double.isFinite` and the appropriate domain range.
 
-**G.** `12,50` bị ví dụ từ chối do lý do nào?
+**G.** For what reason is `12,50` rejected by the example?
 
-**Đáp án:** lỗi **định dạng**: hợp đồng cho đơn giá yêu cầu chữ số ASCII và dấu thập phân `.`, không phải dấu phẩy.
+**Answer:** a **format** error: the unit price contract requires ASCII digits and a dot `.` decimal separator, not a comma.
 
-**H.** Với `2` và `12.50`, tổng tiền theo ví dụ là bao nhiêu?
+**H.** With `2` and `12.50`, what is the total according to the example?
 
-**Đáp án:** `25.00` vì `2 × 12.50 = 25.00`.
+**Answer:** `25.00` because `2 × 12.50 = 25.00`.
 
-## 12. Checklist và kết luận
+## 12. Checklist and conclusion
 
-- [ ] Biết input từ `readLine()`/`nextLine()` là chuỗi cần chuyển đổi.
-- [ ] Phân biệt EOF (`null`), chuỗi rỗng và chuỗi toàn khoảng trắng.
-- [ ] Kiểm tra `null` trước khi chuẩn hóa `strip()`.
-- [ ] Sử dụng `Integer.parseInt`, `Long.parseLong` cho số nguyên.
-- [ ] Hiểu `NumberFormatException` và giới hạn phạm vi kiểu số.
-- [ ] Biết `Double.parseDouble` và kiểm tra giá trị hữu hạn khi cần.
-- [ ] Biết dùng `BigDecimal` từ `String` để xử lý thập phân chính xác.
-- [ ] Chọn quy tắc dấu thập phân, khoảng trắng, số chữ số theo hợp đồng.
-- [ ] Kiểm tra miền nghiệp vụ sau bước parse.
-- [ ] Không dùng `assert` hoặc giá trị mặc định tùy tiện để thay validation.
-- [ ] Hiểu bẫy trộn `Scanner.nextInt()` và `nextLine()`.
-- [ ] Đọc và hiểu thông báo lỗi, exit status trong CLI.
-- [ ] Chạy `InputNumberValidationDemo.java` trên JDK 17+ cho cả trường hợp hợp lệ và sai, đối chiếu stdout.
+- [ ] Know that input from `readLine()`/`nextLine()` is a string requiring conversion.
+- [ ] Distinguish EOF (`null`), empty strings, and whitespace-only strings.
+- [ ] Check for `null` before normalizing with `strip()`.
+- [ ] Use `Integer.parseInt` and `Long.parseLong` for integers.
+- [ ] Understand `NumberFormatException` and numeric type bounds.
+- [ ] Know `Double.parseDouble` and check for finite values when needed.
+- [ ] Know how to use `BigDecimal` from `String` for exact decimal arithmetic.
+- [ ] Choose rules for decimal separators, whitespace, and digit counts per contract.
+- [ ] Check business domain bounds after the parse step.
+- [ ] Do not use `assert` or arbitrary default values to replace validation.
+- [ ] Understand the trap of mixing `Scanner.nextInt()` and `nextLine()`.
+- [ ] Read and understand error messages and exit statuses in CLIs.
+- [ ] Run `InputNumberValidationDemo.java` on JDK 17+ for both valid and invalid cases, verifying stdout.
 
-**Kết luận:** **Đọc chuỗi, chuyển thành số và kiểm tra dữ liệu hợp lệ** là ba bước khác nhau nhưng liên tiếp. Chương trình Java vững chắc phải xử lý được input thiếu, sai cú pháp hoặc ngoài phạm vi, đồng thời dùng kiểu số phù hợp với nghiệp vụ. Chỉ tính toán sau khi tất cả các bước kiểm tra bắt buộc đều thành công.
+**Conclusion:** **Reading a string, converting it to a number, and validating the data** are three distinct yet sequential steps. A robust Java program must handle missing input, syntax errors, and out-of-range values while choosing numeric types suited to the domain. Perform calculations only after all required checks have succeeded.

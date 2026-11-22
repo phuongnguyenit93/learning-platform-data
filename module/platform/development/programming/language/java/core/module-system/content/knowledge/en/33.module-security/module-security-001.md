@@ -1,45 +1,45 @@
-# Encapsulation như một lớp giảm bề mặt truy cập
+# Encapsulation as an Attack Surface Reduction Layer
 
-## 1. Encapsulation và attack surface
+## 1. Encapsulation and Attack Surface
 
-Trong Java, **encapsulation** là cách tổ chức trạng thái và hành vi sao cho người dùng một thành phần chỉ tiếp cận được những thao tác mà thành phần đó chủ động công khai. Lớp có thể giữ dữ liệu trong field private, cung cấp method có kiểm soát và che giấu các lớp triển khai phía sau một interface hoặc API ổn định.
+In Java, **encapsulation** is the practice of organizing state and behavior so that users of a component can only access the operations that the component intentionally exposes. A class can keep data in private fields, provide controlled methods, and hide implementation classes behind a stable interface or API.
 
-Trong Java Platform Module System (JPMS), encapsulation được mở rộng từ phạm vi lớp và package lên phạm vi module. Module descriptor xác định package nào được export, package nào chỉ dùng nội bộ và package nào được mở cho deep reflection.
+In the Java Platform Module System (JPMS), encapsulation is extended from the class and package scope to the module scope. The module descriptor specifies which packages are exported, which packages are for internal use only, and which packages are opened for deep reflection.
 
-Một bề mặt truy cập nhỏ giúp giảm số điểm mà mã bên ngoài có thể gọi, cấu hình hoặc tác động trực tiếp. Trong ngữ cảnh security, điều đó có nghĩa là giảm số API, trạng thái và chi tiết triển khai mà ứng dụng phải bảo vệ trước đầu vào không tin cậy hoặc cách sử dụng sai.
+A small attack surface reduces the number of points that external code can call, configure, or directly affect. In a security context, this means reducing the number of APIs, states, and implementation details that an application must protect against untrusted input or misuse.
 
-Ví dụ, một module thanh toán có thể chỉ công khai API:
+For example, a payment module might only expose its API:
 
     module com.example.payment {
         exports com.example.payment.api;
     }
 
-Các package triển khai như:
+Implementation packages such as:
 
     com.example.payment.internal
     com.example.payment.persistence
     com.example.payment.crypto
 
-được giữ kín nếu không export hoặc open. Consumer chỉ nhìn thấy những kiểu được thiết kế để sử dụng. Module có thể thay đổi cách xác thực, lưu trữ hoặc mã hóa nội bộ mà không biến các lớp đó thành hợp đồng công khai.
+are kept hidden if not exported or opened. Consumers only see the types designed for use. The module can change how it authenticates, stores, or encrypts internally without turning those classes into a public contract.
 
-Encapsulation là một lớp giảm bề mặt truy cập, không phải một sandbox hoàn chỉnh. Nó hỗ trợ kiểm soát khả năng truy cập của mã Java trong module system; nó không tự bảo vệ ứng dụng khỏi mọi lỗi logic, dữ liệu đầu vào độc hại, lỗ hổng native code hoặc mã đã được cấp quyền thực thi bên trong tiến trình.
+Encapsulation is an attack surface reduction layer, not a complete sandbox. It helps control the accessibility of Java code within the module system; it does not by itself protect an application from all logic bugs, malicious input data, native code vulnerabilities, or code already granted execution privileges within the process.
 
-## 2. Từ access modifier đến ranh giới module
+## 2. From Access Modifiers to Module Boundaries
 
-Java có nhiều lớp kiểm soát truy cập. Mỗi lớp giải quyết một phạm vi khác nhau:
+Java has multiple layers of access control. Each layer addresses a different scope:
 
-| Cơ chế | Phạm vi | Ý nghĩa |
+| Mechanism | Scope | Meaning |
 |---|---|---|
-| private | Thành viên của lớp | Chỉ mã trong lớp khai báo được truy cập trực tiếp |
-| package-private | Các lớp trong cùng package | Hỗ trợ cộng tác nội bộ giữa các lớp cùng package |
-| protected | Package và lớp con theo quy tắc Java | Hỗ trợ mở rộng có kiểm soát |
-| public | Mọi nơi có thể truy cập kiểu/package | Công khai ở cấp ngôn ngữ, nhưng vẫn chịu quy tắc module |
-| exports | Package của một named module | Cho phép module khác đọc và truy cập các kiểu public trong package |
-| opens | Package của một named module | Cho phép deep reflection vào package theo quy tắc JPMS |
+| private | Members of the class | Only code within the declaring class can access directly |
+| package-private | Classes in the same package | Supports internal collaboration between classes in the same package |
+| protected | Package and subclasses per Java rules | Supports controlled extension |
+| public | Anywhere the type/package is accessible | Public at the language level, but still subject to module rules |
+| exports | Package of a named module | Allows other modules to read and access public types in the package |
+| opens | Package of a named module | Allows deep reflection into the package per JPMS rules |
 
-Modifier public không có nghĩa là mọi module đều có thể dùng lớp. Một public class nằm trong package không được export vẫn được giữ ngoài bề mặt truy cập thông thường của module.
+The `public` modifier does not mean every module can use the class. A public class located in a non-exported package is still kept outside the module's normal access surface.
 
-Ví dụ:
+For example:
 
     module com.example.payment {
         exports com.example.payment.api;
@@ -54,15 +54,15 @@ Ví dụ:
         }
     }
 
-Dù PaymentTokenVerifier là public, module khác không thể sử dụng nó theo cách truy cập thông thường vì package com.example.payment.internal không được export.
+Even though `PaymentTokenVerifier` is `public`, other modules cannot use it via normal access because the `com.example.payment.internal` package is not exported.
 
-Điều này giúp module giữ quyền kiểm soát nơi implementation được sử dụng. Nếu sau này thay lớp verifier bằng một service hoặc một implementation khác, consumer không bị phụ thuộc trực tiếp vào chi tiết đó.
+This helps the module retain control over where the implementation is used. If the verifier class is later replaced by a service or a different implementation, consumers do not directly depend on that detail.
 
-## 3. Thiết kế API nhỏ để giảm điểm truy cập
+## 3. Designing a Small API to Reduce Access Points
 
-Một module nên công khai những thao tác mà consumer cần, không công khai toàn bộ các lớp tạo nên implementation.
+A module should expose the operations that consumers need, not all the classes that make up the implementation.
 
-Ví dụ một API thanh toán:
+Example of a payment API:
 
     package com.example.payment.api;
 
@@ -80,53 +80,53 @@ Ví dụ một API thanh toán:
             boolean accepted) {
     }
 
-Consumer chỉ cần gọi PaymentService:
+Consumers only need to call `PaymentService`:
 
     PaymentResult result = paymentService.charge(request);
 
-Các lớp xác thực, kiểm tra hạn mức, truy cập database, xử lý khóa và ghi audit log có thể nằm trong package nội bộ. Không cần export những lớp đó chỉ để consumer phối hợp trực tiếp.
+Validation, limit checking, database access, key handling, and audit logging classes can reside in internal packages. There is no need to export those classes just for consumers to coordinate directly.
 
-Thiết kế API nhỏ có một số lợi ích bảo mật:
+Designing a small API provides several security benefits:
 
-- Giảm số phương thức có thể bị gọi từ bên ngoài.
-- Giảm số trạng thái nội bộ mà consumer có thể quan sát hoặc cố thay đổi.
-- Tập trung kiểm tra đầu vào tại một số điểm vào được xác định.
-- Giảm khả năng consumer gọi sai thứ tự các bước nội bộ.
-- Hạn chế việc lộ thông tin nhạy cảm qua kiểu dữ liệu hoặc exception không cần thiết.
-- Cho phép thay đổi implementation mà không mở rộng hợp đồng tương thích.
+- Reduces the number of methods that can be invoked from outside.
+- Reduces the amount of internal state that consumers can observe or attempt to modify.
+- Centralizes input validation at a few well-defined entry points.
+- Reduces the likelihood of consumers calling internal steps in the wrong order.
+- Limits the exposure of sensitive information through unnecessary data types or exceptions.
+- Allows changing the implementation without expanding the compatibility contract.
 
-API nhỏ không thay thế validation. Một method public vẫn phải kiểm tra dữ liệu đầu vào, xác thực danh tính và quyền thực hiện thao tác. Encapsulation giúp định vị các điểm cần kiểm tra và tránh để consumer bỏ qua chúng bằng cách gọi thẳng lớp nội bộ.
+A small API does not replace validation. A public method must still validate input data, authenticate identity, and authorize the operation. Encapsulation helps locate the points where checks are needed and prevents consumers from bypassing them by calling internal classes directly.
 
-## 4. Không export package nội bộ
+## 4. Do Not Export Internal Packages
 
-Một package nên được export khi nó là phần API được hỗ trợ. Ví dụ:
+A package should be exported only when it is part of the supported API. For example:
 
     module com.example.identity {
         exports com.example.identity.api;
     }
 
-Còn các package sau được giữ nội bộ:
+Whereas the following packages are kept internal:
 
     com.example.identity.internal
     com.example.identity.crypto
     com.example.identity.persistence
     com.example.identity.audit
 
-Nếu export toàn bộ package chỉ để thuận tiện cho một ứng dụng khác, module có thể vô tình biến implementation detail thành API. Khi đó consumer có thể phụ thuộc vào lớp nội bộ, constructor, exception hoặc thứ tự xử lý mà module chưa từng cam kết duy trì.
+If all packages are exported merely for the convenience of another application, the module may inadvertently turn implementation details into API. Consumers may then depend on internal classes, constructors, exceptions, or processing order that the module never committed to maintaining.
 
-Một số hệ quả:
+Some consequences:
 
-- Việc refactor hoặc thay thế implementation trở nên khó khăn.
-- Consumer có thể bỏ qua validation ở API chính và gọi trực tiếp lớp nội bộ.
-- Các lớp có quyền truy cập dữ liệu hoặc tài nguyên nhạy cảm được lộ rộng hơn.
-- Khó giới hạn quyền truy cập theo vai trò của từng module.
-- Bề mặt cần kiểm tra tương thích và bảo mật tăng lên.
+- Refactoring or replacing the implementation becomes difficult.
+- Consumers can bypass validation on the main API and call internal classes directly.
+- Classes with access to sensitive data or resources are exposed more broadly.
+- It becomes harder to restrict access by the role of each module.
+- The surface area requiring compatibility and security review increases.
 
-Không export package nội bộ không có nghĩa mã nội bộ tự động an toàn. Các lớp trong module vẫn cần tuân thủ access modifier, kiểm tra đầu vào, quản lý tài nguyên và nguyên tắc least privilege.
+Not exporting internal packages does not mean internal code is automatically secure. Classes within the module must still adhere to access modifiers, input validation, resource management, and the principle of least privilege.
 
-## 5. Qualified exports và quyền truy cập có chủ đích
+## 5. Qualified Exports and Intentional Access
 
-JPMS hỗ trợ **qualified exports**, tức chỉ export package cho một nhóm module được nêu rõ.
+JPMS supports **qualified exports**, which export a package only to a specified group of modules.
 
     module com.example.payment {
         exports com.example.payment.api;
@@ -135,19 +135,19 @@ JPMS hỗ trợ **qualified exports**, tức chỉ export package cho một nhó
             to com.example.payment.adapter;
     }
 
-Trong ví dụ này, package API được công khai rộng rãi cho module đọc được module payment. Package SPI chỉ được export tới module adapter có tên cụ thể.
+In this example, the API package is broadly exposed to modules that read the payment module. The SPI package is only exported to the specifically named adapter module.
 
-Qualified exports hữu ích khi một module có một extension point dành cho module khác đã biết. Nó giúp thu hẹp phạm vi consumer có thể truy cập package.
+Qualified exports are useful when a module has an extension point intended for other known modules. It helps narrow the scope of consumers that can access the package.
 
-Tuy nhiên, qualified exports vẫn là một phần của module descriptor và hợp đồng kiến trúc. Nếu module đích có thể bị thay thế bởi mã không đáng tin cậy hoặc không được quản lý, việc cấp quyền truy cập package cần được xem xét cẩn thận.
+However, qualified exports are still part of the module descriptor and architectural contract. If the target module could be replaced by untrusted or unmanaged code, granting package access needs careful consideration.
 
-Không nên dùng qualified exports như cách cấp quyền cho mọi test module hoặc mọi plugin mà không có lý do thiết kế rõ ràng. Nếu quyền chỉ cần trong test, cấu hình test launcher hoặc build tool thường phù hợp hơn.
+Do not use qualified exports as a way to grant access to every test module or every plugin without a clear design reason. If access is only needed in tests, test launcher or build tool configuration is usually more appropriate.
 
-## 6. opens và rủi ro từ deep reflection
+## 6. `opens` and Risks from Deep Reflection
 
-Directive **opens** cho phép framework hoặc thư viện dùng reflection sâu vào package, bao gồm truy cập thành viên không public trong những điều kiện JPMS cho phép.
+The **opens** directive allows frameworks or libraries to use deep reflection into a package, including accessing non-public members under conditions permitted by JPMS.
 
-Ví dụ:
+For example:
 
     module com.example.payment {
         exports com.example.payment.api;
@@ -155,63 +155,63 @@ Ví dụ:
             to com.example.orm;
     }
 
-Module ORM có thể cần reflection để ánh xạ entity hoặc đọc metadata. Việc mở package được giới hạn cho module com.example.orm thay vì mở toàn bộ module.
+The ORM module may need reflection to map entities or read metadata. Opening the package is restricted to the `com.example.orm` module instead of opening the entire module.
 
-Một khai báo rộng hơn:
+A broader declaration:
 
     open module com.example.payment {
         exports com.example.payment.api;
     }
 
-sẽ mở tất cả package của module cho deep reflection. Cách này có thể thuận tiện với framework cũ nhưng làm giảm encapsulation vì nhiều thành phần nội bộ trở nên có thể được truy cập qua reflection.
+opens all packages of the module for deep reflection. This approach can be convenient for legacy frameworks, but it weakens encapsulation because many internal components become accessible via reflection.
 
-Nên ưu tiên mở package cụ thể và đúng module đích. Chỉ dùng open module khi framework thực sự cần quyền rộng và phạm vi đó đã được chấp nhận trong thiết kế.
+Prefer opening specific packages to the exact target modules. Only use `open module` when the framework genuinely requires broad access and that scope has been accepted in the design.
 
-Reflection không phải cách để bỏ qua mọi quy tắc truy cập. Các thao tác như setAccessible(true) có thể bị giới hạn bởi JPMS; truy cập sâu vào package chưa mở có thể dẫn đến InaccessibleObjectException. Mở package cũng không biến field private thành API ổn định, nó chỉ cấp quyền reflection trong phạm vi được phép.
+Reflection is not a way to bypass all access rules. Operations like `setAccessible(true)` can be restricted by JPMS; deep access into an unopened package can result in `InaccessibleObjectException`. Opening a package also does not turn private fields into a stable API; it only grants reflection access within the permitted scope.
 
-## 7. Runtime options có thể làm yếu encapsulation
+## 7. Runtime Options Can Weaken Encapsulation
 
-Java launcher có các option cho phép điều chỉnh ranh giới module khi chạy:
+The Java launcher has options that allow adjusting module boundaries at runtime:
 
-| Option | Tác dụng | Tác động đến encapsulation |
+| Option | Effect | Impact on encapsulation |
 |---|---|---|
-| --add-exports | Export thêm package tới module đích | Mở truy cập thông thường tới kiểu public trong package |
-| --add-opens | Mở package cho deep reflection | Cho phép framework truy cập thành viên không public |
-| --add-reads | Bổ sung quan hệ readability | Cho phép module đọc module khác |
-| --patch-module | Bổ sung lớp hoặc tài nguyên vào module đích | Thay đổi nội dung module trong cấu hình chạy |
+| `--add-exports` | Exports an additional package to target modules | Opens normal access to public types in the package |
+| `--add-opens` | Opens a package for deep reflection | Allows frameworks to access non-public members |
+| `--add-reads` | Adds a readability relationship | Allows a module to read another module |
+| `--patch-module` | Adds classes or resources to a target module | Modifies module contents in the runtime configuration |
 
-Ví dụ:
+For example:
 
     java --add-exports com.example.payment/com.example.payment.internal=ALL-UNNAMED \
          --module-path mods \
          --module com.example.application/com.example.application.Main
 
-Lệnh này export package internal tới các unnamed modules. Nó có thể giúp tương thích tạm thời với thư viện cũ, nhưng cũng làm tăng số mã có thể truy cập package đó.
+This command exports the `internal` package to unnamed modules. It can provide temporary compatibility with legacy libraries, but it also increases the amount of code that can access that package.
 
-Ví dụ mở package cho reflection:
+Example of opening a package for reflection:
 
     java --add-opens com.example.payment/com.example.payment.persistence=ALL-UNNAMED \
          --module-path mods \
          --module com.example.application/com.example.application.Main
 
-Không nên thêm các option này vào production một cách mặc định. Hãy xác định framework nào cần quyền, package nào cần mở và module nào là đích. Sau đó ghi lại lý do, giới hạn phạm vi và có kế hoạch loại bỏ khi dependency được cập nhật.
+Do not add these options to production by default. Identify which framework needs access, which package needs to be opened, and which module is the target. Then document the reason, limit the scope, and plan to remove them when dependencies are updated.
 
-## 8. Encapsulation và nguyên tắc least privilege
+## 8. Encapsulation and the Principle of Least Privilege
 
-Nguyên tắc **least privilege** yêu cầu mỗi thành phần chỉ nhận quyền cần thiết để thực hiện nhiệm vụ.
+The principle of **least privilege** requires each component to receive only the permissions necessary to perform its task.
 
-Trong JPMS, có thể áp dụng bằng cách:
+In JPMS, this can be applied by:
 
-- Chỉ export package API thực sự cần cho consumer.
-- Dùng qualified exports khi chỉ một số module cần package SPI.
-- Chỉ mở package cho reflection khi framework có yêu cầu cụ thể.
-- Tránh open module nếu chỉ một package cần được mở.
-- Tránh dùng ALL-UNNAMED khi có thể chỉ định một module đích.
-- Giữ dependency requires ở mức cần thiết.
-- Không expose lớp nội bộ hoặc capability nhạy cảm qua API công khai.
-- Tách module theo trách nhiệm để quyền truy cập dễ được hiểu và quản lý.
+- Only exporting API packages that consumers truly need.
+- Using qualified exports when only a few modules need an SPI package.
+- Only opening packages for reflection when a framework has a specific requirement.
+- Avoiding `open module` if only a single package needs to be opened.
+- Avoiding `ALL-UNNAMED` when a specific target module can be specified.
+- Keeping `requires` dependencies to what is necessary.
+- Not exposing internal classes or sensitive capabilities through public APIs.
+- Separating modules by responsibility so access rights are easy to understand and manage.
 
-Ví dụ:
+For example:
 
     module com.example.secrets {
         exports com.example.secrets.api;
@@ -219,15 +219,15 @@ Ví dụ:
             to com.example.orm;
     }
 
-Module consumer có thể sử dụng API công khai. ORM có thể reflection vào package persistence theo mục đích đã xác định. Package crypto và internal vẫn được giữ kín.
+Consumer modules can use the public API. The ORM can reflect into the `persistence` package for its designated purpose. The `crypto` and `internal` packages remain hidden.
 
-Tuy vậy, JPMS không phải hệ thống phân quyền người dùng hoặc sandbox cho mã độc. Một module khác có thể có quyền truy cập thông qua các directive hoặc runtime option đã cấp; mã cùng tiến trình còn có thể sử dụng các API khác như JNI hoặc native code. Encapsulation cần được kết hợp với xác thực, authorization, kiểm tra dữ liệu, quản lý secret, cập nhật dependency và cấu hình triển khai an toàn.
+However, JPMS is not a user authorization system or a sandbox for malicious code. Another module can gain access via granted directives or runtime options; code in the same process can also use other APIs such as JNI or native code. Encapsulation must be combined with authentication, authorization, input validation, secret management, dependency updates, and secure deployment configuration.
 
-## 9. Service provider không nhất thiết phải export implementation
+## 9. Service Providers Do Not Necessarily Have to Export Implementations
 
-ServiceLoader cho phép module cung cấp implementation mà không cần export package chứa lớp provider.
+`ServiceLoader` allows a module to provide an implementation without needing to export the package containing the provider class.
 
-Ví dụ:
+For example:
 
     module com.example.payment.api {
         exports com.example.payment.api;
@@ -241,74 +241,74 @@ Ví dụ:
             with com.example.payment.internal.DefaultPaymentProvider;
     }
 
-Package com.example.payment.internal có thể được giữ kín. Consumer tìm provider thông qua service type công khai, không cần import implementation class.
+The `com.example.payment.internal` package can remain hidden. Consumers discover the provider through the public service type without needing to import the implementation class.
 
-Cách này giúp giữ ranh giới giữa contract và implementation. Consumer chỉ phụ thuộc vào interface được hỗ trợ, còn module provider có thể thay đổi lớp triển khai mà không buộc consumer biết tên lớp nội bộ.
+This approach preserves the boundary between contract and implementation. Consumers only depend on the supported interface, while the provider module can change the implementation class without forcing consumers to know internal class names.
 
-Không cần export package implementation chỉ để ServiceLoader phát hiện provider được khai báo bằng provides trong module descriptor. Nếu provider được đóng gói theo cơ chế classpath cũ, cấu hình META-INF/services có các quy tắc riêng; dù vậy, việc công khai API vẫn nên tách khỏi chi tiết triển khai.
+There is no need to export the implementation package just for `ServiceLoader` to discover a provider declared with `provides` in the module descriptor. If a provider is packaged using the legacy classpath mechanism, `META-INF/services` configuration has its own rules; even so, exposing the API should still be separated from implementation details.
 
-## 10. Kiểm thử mà không mở rộng API production
+## 10. Testing Without Expanding the Production API
 
-Test có thể cần kiểm tra nội bộ, nhưng không nên vì thế mà export package trong module descriptor phát hành.
+Tests may need to inspect internals, but you should not export packages in the released module descriptor for that reason.
 
-Ưu tiên test qua public API:
+Prefer testing through the public API:
 
     PaymentResult result = paymentService.charge(request);
     assertTrue(result.accepted());
 
-Nếu cần truy cập public class trong package nội bộ ở test, có thể dùng --add-exports trong cấu hình test. Nếu framework cần deep reflection, có thể dùng --add-opens trong test runtime. Nếu test cần package-private access, build tool có thể cấu hình --patch-module để đưa test classes vào module đang kiểm thử.
+If tests need to access public classes in internal packages, `--add-exports` can be used in the test configuration. If a framework needs deep reflection, `--add-opens` can be used in the test runtime. If tests need package-private access, the build tool can configure `--patch-module` to place test classes into the module under test.
 
-Ví dụ runtime test:
+Test runtime example:
 
     java --add-opens com.example.payment/com.example.payment.internal=ALL-UNNAMED \
          -jar junit-platform-console-standalone.jar
 
-Cấu hình cụ thể phụ thuộc cách test framework và build tool tổ chức module path, classpath và test classes. Những option test-only nên nằm trong task test, không nên bị đưa vào script khởi chạy production.
+The exact configuration depends on how the test framework and build tool organize the module path, classpath, and test classes. Test-only options should stay in test tasks and should not be placed into production startup scripts.
 
-Nếu test chạy trong một named module riêng, hãy chỉ định tên module đó thay cho ALL-UNNAMED khi có thể. Cấp quyền hẹp hơn giúp test phản ánh chính xác ranh giới dự kiến.
+If tests run in a separate named module, specify that module name instead of `ALL-UNNAMED` when possible. Granting narrower access helps tests accurately reflect the intended boundaries.
 
-## 11. Cách đánh giá bề mặt truy cập của một module
+## 11. How to Evaluate a Module's Access Surface
 
-Có thể bắt đầu bằng việc đọc module descriptor:
+You can start by reading the module descriptor:
 
     jar --describe-module --file payment.jar
 
-Kiểm tra:
+Check:
 
-1. Module export những package nào?
-2. Có qualified exports không và các module đích có thực sự cần chúng không?
-3. Module có directive opens hoặc được khai báo open module không?
-4. Các directive requires có phản ánh dependency thực sự không?
-5. Có package nội bộ nào đang bị export chỉ vì framework hoặc test không?
-6. Có runtime option --add-exports hoặc --add-opens nào được thêm trong script deploy không?
-7. Service provider có thể được khai báo bằng provides để giữ implementation package kín không?
+1. Which packages does the module export?
+2. Are there qualified exports, and do the target modules really need them?
+3. Does the module have `opens` directives or is it declared as an `open module`?
+4. Do the `requires` directives reflect actual dependencies?
+5. Are any internal packages being exported just for a framework or tests?
+6. Are any `--add-exports` or `--add-opens` runtime options added in deployment scripts?
+7. Can service providers be declared with `provides` to keep implementation packages hidden?
 
-Có thể dùng:
+You can use:
 
     java --show-module-resolution \
          --module-path mods \
          --module com.example.application/com.example.application.Main
 
-để xem module graph được resolve lúc chạy. Kiểm tra cả lệnh launcher thực tế vì option command line có thể làm thay đổi ranh giới truy cập so với module descriptor.
+to view the module graph resolved at runtime. Also inspect the actual launcher command because command-line options can alter access boundaries compared to the module descriptor.
 
-Việc đọc descriptor không chứng minh module an toàn. Nó chỉ giúp hiểu một phần bề mặt truy cập do JPMS công khai và những ngoại lệ runtime đang được áp dụng.
+Reading the descriptor does not prove a module is secure. It only helps understand part of the access surface exposed by JPMS and the runtime exceptions being applied.
 
-## 12. Ghi nhớ
+## 12. Takeaways
 
-- Encapsulation thu hẹp những kiểu, trạng thái và thao tác mà mã bên ngoài có thể truy cập.
-- Một module nên export API được hỗ trợ, giữ package implementation ở phạm vi nội bộ.
-- Modifier public không tự vượt qua ranh giới package export của JPMS.
-- Qualified exports giới hạn package cho module đích cụ thể nhưng vẫn là một phần của hợp đồng module.
-- opens phục vụ deep reflection; open module mở rộng phạm vi reflection tới tất cả package.
-- --add-exports và --add-opens có thể làm yếu encapsulation trong runtime; chỉ cấp đúng package và đúng module cần thiết.
-- ServiceLoader cho phép đăng ký provider mà không cần export package implementation.
-- Test-only access nên được cấu hình trong build/test runtime, không thêm vào production API chỉ vì tiện.
-- Encapsulation không phải sandbox hoàn chỉnh; cần kết hợp với authentication, authorization, validation, secret management và cập nhật dependency.
-- Đọc module descriptor và launcher options để hiểu bề mặt truy cập thực tế.
+- Encapsulation narrows the types, states, and operations that external code can access.
+- A module should export its supported API and keep implementation packages internal.
+- The `public` modifier does not bypass JPMS package export boundaries on its own.
+- Qualified exports restrict a package to specific target modules, but remain part of the module contract.
+- `opens` serves deep reflection; `open module` expands reflection scope to all packages.
+- `--add-exports` and `--add-opens` can weaken encapsulation at runtime; grant them only for the exact packages and modules needed.
+- `ServiceLoader` allows registering providers without exporting implementation packages.
+- Test-only access should be configured in the build/test runtime, not added to the production API for convenience.
+- Encapsulation is not a complete sandbox; it must be combined with authentication, authorization, validation, secret management, and dependency updates.
+- Inspect the module descriptor and launcher options to understand the actual access surface.
 
-**Encapsulation là một lớp phòng vệ bằng cách giới hạn những điểm mã bên ngoài có thể tiếp cận.** Giữ API nhỏ, package nội bộ kín và quyền reflection có phạm vi giúp giảm bề mặt cần bảo vệ, đồng thời giữ cho module dễ thay đổi và dễ kiểm soát hơn.
+**Encapsulation is a layer of defense by limiting the points external code can reach.** Keeping APIs small, internal packages hidden, and reflection rights scoped helps reduce the surface that needs protection, while keeping the module easier to change and govern.
 
-## Tài liệu tham khảo
+## References
 
 - Java Platform Module System — JEP 261: https://openjdk.org/jeps/261
 - Java SE 21 API — Module: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Module.html

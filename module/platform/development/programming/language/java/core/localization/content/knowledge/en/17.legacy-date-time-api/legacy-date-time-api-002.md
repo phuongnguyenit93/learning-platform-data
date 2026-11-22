@@ -1,23 +1,23 @@
-# SimpleDateFormat và DateFormatSymbols trong Java: định dạng ngày giờ theo Locale bằng API cũ
+# SimpleDateFormat and DateFormatSymbols in Java: Locale-Based Date-Time Formatting with the Legacy API
 
-## Mục tiêu
+## Objectives
 
-Trước khi Java 8 đưa `java.time` vào thư viện chuẩn, các ứng dụng Java thường dùng `java.util.Date`, `java.util.Calendar`, `java.text.DateFormat` và `java.text.SimpleDateFormat` để định dạng hoặc phân tích ngày giờ. `java.text.DateFormatSymbols` bổ sung những tên hiển thị theo ngôn ngữ — tháng, thứ, thời kỳ sáng/chiều, kỷ nguyên và tên múi giờ — mà `SimpleDateFormat` có thể sử dụng.
+Before Java 8 introduced `java.time` into the standard library, Java applications commonly used `java.util.Date`, `java.util.Calendar`, `java.text.DateFormat`, and `java.text.SimpleDateFormat` to format or parse dates and times. `java.text.DateFormatSymbols` supplies the localized display names — months, weekdays, AM/PM periods, eras, and time zone names — that `SimpleDateFormat` can use.
 
-Bài học giúp bạn:
+This lesson helps you:
 
-- Phân biệt **`SimpleDateFormat` quyết định cách ghép/parse ngày giờ theo pattern** với **`DateFormatSymbols` cung cấp các tên và ký hiệu được bản địa hóa**.
-- Tạo formatter với `Locale` tường minh, đặt `TimeZone` phù hợp và hiểu `Date` biểu diễn một thời điểm, không gắn ngôn ngữ hay múi giờ giao diện.
-- Đọc những ký hiệu pattern dễ nhầm như `M`/`L`, `y`/`Y`, `H`/`h`, `a`, `E`, `z`, `Z`, `X`.
-- Tùy chỉnh tên tháng bằng `DateFormatSymbols` mà không tự thay đổi dữ liệu hoặc logic lịch.
-- Phân biệt **kiểm tra ngày hợp lệ** và **parse hết chuỗi**, nhận biết `setLenient(false)`, `ParsePosition` và rủi ro năm có hai chữ số.
-- Tránh chia sẻ `SimpleDateFormat` mutable giữa các luồng; xác định khi nào nên chuyển sang `java.time.format.DateTimeFormatter` trên Java 17+.
+- Distinguish **`SimpleDateFormat`, which decides how to assemble/parse dates and times by pattern**, from **`DateFormatSymbols`, which provides the localized names and symbols**.
+- Create a formatter with an explicit `Locale`, set an appropriate `TimeZone`, and understand that `Date` represents an instant in time, not attached to any UI language or time zone.
+- Read easily confused pattern letters such as `M`/`L`, `y`/`Y`, `H`/`h`, `a`, `E`, `z`, `Z`, `X`.
+- Customize month names with `DateFormatSymbols` without altering calendar data or logic.
+- Distinguish **valid date checking** from **consuming the entire string**, understanding `setLenient(false)`, `ParsePosition`, and two-digit year risks.
+- Avoid sharing mutable `SimpleDateFormat` instances across threads; determine when to migrate to `java.time.format.DateTimeFormatter` on Java 17+.
 
-Đây là bài về **API ngày giờ cũ**. Những dự án mới thường ưu tiên `java.time`, nhưng hiểu hai lớp trên vẫn quan trọng khi bảo trì ứng dụng legacy, tương tác với thư viện cũ hoặc kiểm tra chuỗi ngày giờ đang được xử lý ở các tầng hệ thống.
+This lesson covers the **legacy date-time API**. New projects generally prefer `java.time`, but understanding these two classes remains important when maintaining legacy applications, interacting with older libraries, or inspecting how date-time strings are handled across system layers.
 
-## 1. Vị trí của hai lớp trong mô hình API cũ
+## 1. Where the two classes sit in the legacy API model
 
-`SimpleDateFormat` kế thừa `DateFormat`; `DateFormatSymbols` là lớp chứa thông tin ký hiệu/chuỗi cần thiết cho việc bản địa hóa ngày giờ.
+`SimpleDateFormat` extends `DateFormat`; `DateFormatSymbols` is the class that holds the symbol/string information needed for date-time localization.
 
 ```text
 Date / Calendar         Locale + TimeZone
@@ -25,32 +25,32 @@ Date / Calendar         Locale + TimeZone
        v                       v
     SimpleDateFormat <---- DateFormatSymbols
        |                         |
-       |                         +-- tên tháng / tên thứ
-       |                         +-- AM/PM / kỷ nguyên
-       |                         +-- tên múi giờ / ký tự pattern cục bộ
+       |                         +-- month names / weekday names
+       |                         +-- AM/PM / eras
+       |                         +-- time zone names / local pattern chars
        |
-       +-- format(Date) -> String hiển thị
+       +-- format(Date) -> display String
        +-- parse(String) -> Date
 ```
 
-Phân biệt trách nhiệm:
+Separating responsibilities:
 
-| Thành phần | Vai trò |
+| Component | Role |
 | --- | --- |
-| `Date` | Đại diện một thời điểm trên trục thời gian; không tự lưu `Locale` hoặc tên múi giờ hiển thị. |
-| `Calendar` | Chuyển đổi và tính toán các trường lịch theo múi giờ, quy tắc lịch và locale liên quan. |
-| `Locale` | Quy ước ngôn ngữ/vùng cần áp dụng khi định dạng hoặc đọc tên ngày tháng. |
-| `TimeZone` | Quy tắc offset/múi giờ để chuyển một thời điểm thành ngày giờ cục bộ. |
-| `SimpleDateFormat` | Pattern, định dạng và phân tích ngày giờ; có trạng thái mutable. |
-| `DateFormatSymbols` | Bộ tên/chuỗi và ký hiệu được bản địa hóa phục vụ bộ định dạng kiểu cũ. |
+| `Date` | Represents an instant on the timeline; does not store a `Locale` or display time zone name. |
+| `Calendar` | Converts and computes calendar fields according to time zone, calendar rules, and related locale. |
+| `Locale` | Language/region conventions to apply when formatting or parsing date/month names. |
+| `TimeZone` | Offset/time zone rules to convert an instant into local date and time. |
+| `SimpleDateFormat` | Pattern, date-time formatting and parsing; holds mutable state. |
+| `DateFormatSymbols` | Set of localized names/strings and symbols serving the legacy formatter. |
 
-**Không đồng nhất ngôn ngữ với múi giờ.** Một người đọc tiếng Việt có thể đang ở Paris; một người đọc tiếng Anh có thể muốn trình bày dữ liệu theo giờ UTC. `Locale` quyết định kiểu biểu diễn theo văn hóa, còn `TimeZone` quyết định quy đổi thời điểm sang giờ địa phương.
+**Do not equate language with time zone.** A Vietnamese reader might be in Paris; an English reader might want data presented in UTC. `Locale` determines cultural presentation style, while `TimeZone` determines converting an instant into local time.
 
-Ví dụ, `2026-10-28T15:04:05Z` là một thời điểm UTC. Khi định dạng với UTC, các trường giờ là 15:04:05; khi định dạng theo một múi giờ khác, các trường đó có thể thay đổi dù `Date` đầu vào không đổi.
+For example, `2026-10-28T15:04:05Z` is a UTC instant. When formatted in UTC, the time fields are 15:04:05; when formatted in another time zone, those fields can change even though the input `Date` does not change.
 
 ## 2. SimpleDateFormat: pattern + Locale + TimeZone
 
-Một cách tạo formatter:
+One way to create a formatter:
 
 ```java
 import java.text.SimpleDateFormat;
@@ -62,17 +62,17 @@ SimpleDateFormat format = new SimpleDateFormat(
 format.setTimeZone(TimeZone.getTimeZone("UTC"));
 ```
 
-Đây là đoạn minh họa trong một phương thức, không phải chương trình chạy độc lập. Các thao tác có ý nghĩa riêng:
+This is an illustrative snippet inside a method, not a standalone runnable program. Each operation has a distinct meaning:
 
-- `"dd MMMM yyyy HH:mm:ss"` là **pattern định dạng**: ngày hai chữ số, tên tháng đầy đủ, năm, giờ 24h, phút và giây.
-- `Locale.forLanguageTag("vi-VN")` yêu cầu tên tháng cùng quy ước liên quan theo tiếng Việt.
-- `setTimeZone(...)` chọn múi giờ dùng để diễn giải một `Date` khi format hoặc parse.
+- `"dd MMMM yyyy HH:mm:ss"` is the **format pattern**: two-digit day, full month name, year, 24-hour time, minutes, and seconds.
+- `Locale.forLanguageTag("vi-VN")` requests Vietnamese month names and related conventions.
+- `setTimeZone(...)` chooses the time zone used to interpret a `Date` when formatting or parsing.
 
-`SimpleDateFormat` có nhiều constructor, trong đó có `SimpleDateFormat(String pattern)` sử dụng default locale thích hợp, `SimpleDateFormat(String pattern, Locale locale)` và `SimpleDateFormat(String pattern, DateFormatSymbols symbols)`. Khi muốn hành vi nhất quán giữa máy phát triển/CI/production, **truyền `Locale` tường minh** thay vì dựa hoàn toàn vào default JVM.
+`SimpleDateFormat` has multiple constructors, including `SimpleDateFormat(String pattern)` using the appropriate default locale, `SimpleDateFormat(String pattern, Locale locale)`, and `SimpleDateFormat(String pattern, DateFormatSymbols symbols)`. When you want consistent behavior across development/CI/production machines, **pass `Locale` explicitly** instead of relying entirely on the JVM default.
 
-Một điểm cần nhớ: formatter được xây dựng từ những cấu hình đó tại thời điểm tạo. Đổi `Locale.setDefault(...)` trong JVM về sau **không có nghĩa đối tượng `SimpleDateFormat` cũ tự cập nhật** toàn bộ pattern, ký hiệu và cấu hình.
+One point to remember: a formatter is built from those configurations at construction time. Changing `Locale.setDefault(...)` in the JVM later **does not mean an existing `SimpleDateFormat` object automatically updates** all of its patterns, symbols, and settings.
 
-### Format một Date
+### Formatting a Date
 
 ```java
 import java.time.Instant;
@@ -84,83 +84,83 @@ Date moment = Date.from(
 String text = format.format(moment);
 ```
 
-Đây là đoạn minh họa trong một phương thức, sử dụng biến `format` đã tạo trước đó. `Date.from(Instant)` giúp chọn **thời điểm đầu vào cố định** để ví dụ không phụ thuộc đồng hồ hệ thống. `SimpleDateFormat` nhận `Date` và trả `String` đã định dạng.
+This is an illustrative snippet inside a method, using the `format` variable created earlier. `Date.from(Instant)` lets you pick a **fixed input instant** so the example does not depend on the system clock. `SimpleDateFormat` accepts a `Date` and returns a formatted `String`.
 
-Dù `Date` có tên dễ khiến người học nghĩ là “một ngày”, `java.util.Date` mang thông tin thời điểm (độ chính xác mili giây), không phải đối tượng `LocalDate` độc lập múi giờ. Việc format thành ngày/tháng/năm phụ thuộc múi giờ mà formatter đang dùng.
+Even though `Date`'s name easily makes learners think of "a calendar date", `java.util.Date` carries instant information (millisecond precision), not a time-zone-independent `LocalDate`. Formatting it into day/month/year depends on the time zone the formatter is using.
 
-## 3. Đọc pattern của SimpleDateFormat
+## 3. Reading SimpleDateFormat patterns
 
-Pattern gồm các **chữ cái có ý nghĩa đặc biệt** và phần chữ văn bản cố định. Số lần lặp chữ có thể quyết định dạng số hay dạng tên.
+Patterns consist of **letters with special meaning** and literal fixed text. The number of repeated letters can determine numeric form versus name form.
 
-| Chữ pattern | Ý nghĩa thông thường | Minh họa |
+| Pattern letter | Typical meaning | Illustration |
 | --- | --- | --- |
-| `y` | Năm của lịch (year) | `yyyy` → `2026` |
-| `M` | Tháng, dạng số hoặc tên theo ngữ cảnh | `MM` → `10`, `MMMM` → `October` |
-| `L` | Tháng dạng stand-alone, khi dữ liệu locale hỗ trợ phân biệt | `LLLL` → tên tháng ở ngữ cảnh độc lập |
-| `d` | Ngày trong tháng | `dd` → `28` |
-| `E` | Tên thứ | `EEEE` → `Wednesday` |
-| `u` | Số ngày trong tuần, thứ Hai là 1 | `u` cho thứ Tư → `3` |
-| `H` | Giờ trong ngày, 0–23 | `HH` → `15` |
-| `h` | Giờ theo chu kỳ 1–12 | `hh` → `03`, cần ngữ cảnh AM/PM |
-| `a` | Ký hiệu AM/PM | `a` → `PM` ở en-US |
-| `m` | Phút | `mm` → `04` |
-| `s` | Giây | `ss` → `05` |
-| `S` | Mili giây | `SSS` → `123` |
-| `z` | Múi giờ theo tên/biểu diễn chung | `z` → tên hoặc dạng offset |
-| `Z` | Offset theo dạng RFC 822 | `Z` → `+0700` |
-| `X` | Offset theo dạng ISO 8601, tùy số chữ X | `XXX` → `+07:00`, UTC có thể là `Z` |
-| `Y` | Week-based year (năm theo tuần) | Có thể khác `y` quanh năm mới |
+| `y` | Calendar year | `yyyy` → `2026` |
+| `M` | Month, numeric or context-sensitive name | `MM` → `10`, `MMMM` → `October` |
+| `L` | Stand-alone month, when locale data distinguishes it | `LLLL` → month name in stand-alone context |
+| `d` | Day of month | `dd` → `28` |
+| `E` | Day name in week | `EEEE` → `Wednesday` |
+| `u` | Day number of week, Monday is 1 | `u` for Wednesday → `3` |
+| `H` | Hour in day, 0–23 | `HH` → `15` |
+| `h` | Hour in 1–12 cycle | `hh` → `03`, needs AM/PM context |
+| `a` | AM/PM marker | `a` → `PM` in en-US |
+| `m` | Minute | `mm` → `04` |
+| `s` | Second | `ss` → `05` |
+| `S` | Millisecond | `SSS` → `123` |
+| `z` | Time zone name/general representation | `z` → name or offset form |
+| `Z` | RFC 822 time zone offset | `Z` → `+0700` |
+| `X` | ISO 8601 offset, depending on number of X letters | `XXX` → `+07:00`, UTC can be `Z` |
+| `Y` | Week-based year | Can differ from `y` around New Year |
 
-Ví dụ trong `Locale.US` và UTC, `"EEEE, dd MMMM yyyy HH:mm:ss XXX"` có thể tạo:
+For example, in `Locale.US` and UTC, `"EEEE, dd MMMM yyyy HH:mm:ss XXX"` can produce:
 
 ```text
 Wednesday, 28 October 2026 15:04:05 Z
 ```
 
-### Những cặp dễ nhầm
+### Easily confused pairs
 
-**`M` so với `m`:** `M` viết hoa là tháng; `m` viết thường là phút. `"MM:mm"` không phải “tháng:tháng”, mà là “tháng:phút”.
+**`M` vs. `m`:** uppercase `M` is month; lowercase `m` is minute. `"MM:mm"` is not "month:month", but "month:minute".
 
-**`H` so với `h`:** `H` dành cho giờ 24h; `h` cho giờ 12h. Nếu dùng `hh` mà không có `a`, chuỗi có thể mơ hồ giữa sáng/chiều.
+**`H` vs. `h`:** `H` is for 24-hour time; `h` is for 12-hour time. Using `hh` without `a` can make the string ambiguous between morning and afternoon.
 
-**`y` so với `Y`:** `Y` là **năm theo tuần**, liên quan tuần đầu/cuối của năm và quy tắc tuần của `Calendar`/locale. Gần giao thừa, `YYYY` có thể tạo con số khác năm dương lịch `yyyy`. Đối với ngày đơn thông thường, thường muốn `yyyy-MM-dd` chứ không phải `YYYY-MM-dd`.
+**`y` vs. `Y`:** `Y` is the **week-based year**, tied to the first/last week of the year and the week rules of `Calendar`/locale. Near New Year's Eve, `YYYY` can produce a different number from the calendar year `yyyy`. For ordinary dates, you normally want `yyyy-MM-dd`, not `YYYY-MM-dd`.
 
-**`M` so với `L`:** trong một số ngôn ngữ, tên tháng ở câu chứa ngày khác dạng tên tháng đứng một mình. `M` mô tả dạng theo ngữ cảnh định dạng; `L` mô tả dạng stand-alone. Không phải locale/provider nào cũng thể hiện sự khác biệt và không nên tự suy rằng mọi `DateFormatSymbols` tùy biến sẽ thay đúng mọi dạng `L`.
+**`M` vs. `L`:** in some languages, a month name in a phrase containing a day differs from a month name standing alone. `M` describes the formatting-context form; `L` describes the stand-alone form. Not every locale/provider exhibits a difference, and you should not assume that any custom `DateFormatSymbols` will replace all `L` forms properly.
 
-**`u` ở SimpleDateFormat khác `u` ở java.time:** trong `SimpleDateFormat`, `u` là ngày trong tuần theo thứ tự từ thứ Hai. Trong `DateTimeFormatter` hiện đại, `u` biểu thị năm proleptic. **Không sao chép pattern giữa hai API mà không rà lại ý nghĩa từng ký hiệu**.
+**`u` in SimpleDateFormat differs from `u` in java.time:** in `SimpleDateFormat`, `u` is the day number of the week starting from Monday. In modern `DateTimeFormatter`, `u` represents the proleptic year. **Do not copy patterns between the two APIs without reviewing the meaning of each symbol.**
 
-### Dấu nháy và ký tự văn bản
+### Quotes and literal text
 
-Để chèn văn bản cố định có chữ cái vốn là pattern, bao quanh bằng dấu nháy đơn:
+To insert fixed text containing letters that are pattern characters, enclose it in single quotes:
 
 ```java
 new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm", Locale.US);
 ```
 
-Nếu muốn một dấu nháy đơn literal trong pattern, dùng `''`. Một pattern sai dấu nháy hoặc chứa chữ pattern không hợp lệ có thể dẫn đến `IllegalArgumentException` hay kết quả không mong muốn.
+If you want a literal single quote in the pattern, use `''`. A pattern with mismatched quotes or invalid pattern letters can lead to `IllegalArgumentException` or unexpected results.
 
-Đừng xem pattern là văn bản tùy ý: các chữ cái ASCII thuộc bảng pattern có ngữ nghĩa riêng. Đặc biệt, pattern định dạng ngày của API cũ không tự tương thích hoàn toàn với cú pháp ICU, JavaScript hoặc `java.time`.
+Do not treat a pattern as arbitrary plain text: ASCII letters belonging to the pattern table have special semantics. In particular, legacy API date format patterns are not automatically fully compatible with ICU, JavaScript, or `java.time` syntax.
 
-## 4. DateFormatSymbols là gì?
+## 4. What is DateFormatSymbols?
 
-`DateFormatSymbols` lưu những mảng/tập chuỗi bản địa hóa mà formatter có thể sử dụng để diễn đạt **các trường lịch bằng chữ**.
+`DateFormatSymbols` stores the localized string arrays/sets that a formatter can use to express **text-based calendar fields**.
 
-Một số API quan trọng:
+Some important APIs:
 
-| API | Thông tin |
+| API | Information |
 | --- | --- |
-| `DateFormatSymbols.getInstance(locale)` | Lấy bộ ký hiệu theo locale được yêu cầu |
-| `getMonths()` / `setMonths(...)` | Tên tháng đầy đủ |
-| `getShortMonths()` / `setShortMonths(...)` | Tên tháng viết tắt |
-| `getWeekdays()` / `setWeekdays(...)` | Tên thứ đầy đủ |
-| `getShortWeekdays()` / `setShortWeekdays(...)` | Tên thứ viết tắt |
-| `getAmPmStrings()` / `setAmPmStrings(...)` | Các chuỗi cho AM/PM |
-| `getEras()` / `setEras(...)` | Tên kỷ nguyên dùng trong lịch liên quan |
-| `getZoneStrings()` / `setZoneStrings(...)` | Bảng chuỗi tên múi giờ phục vụ hiển thị |
-| `getLocalPatternChars()` / `setLocalPatternChars(...)` | Tập ký tự pattern được bản địa hóa cho `applyLocalizedPattern` |
-| `clone()` | Tạo bản sao khi cần tách trạng thái |
+| `DateFormatSymbols.getInstance(locale)` | Gets the symbol set for the requested locale |
+| `getMonths()` / `setMonths(...)` | Full month names |
+| `getShortMonths()` / `setShortMonths(...)` | Abbreviated month names |
+| `getWeekdays()` / `setWeekdays(...)` | Full weekday names |
+| `getShortWeekdays()` / `setShortWeekdays(...)` | Abbreviated weekday names |
+| `getAmPmStrings()` / `setAmPmStrings(...)` | Strings for AM/PM |
+| `getEras()` / `setEras(...)` | Era names used in the related calendar |
+| `getZoneStrings()` / `setZoneStrings(...)` | Table of time zone name strings for display |
+| `getLocalPatternChars()` / `setLocalPatternChars(...)` | Localized pattern character set for `applyLocalizedPattern` |
+| `clone()` | Creates a copy when state isolation is needed |
 
-Ví dụ:
+Example:
 
 ```java
 import java.text.DateFormatSymbols;
@@ -172,39 +172,39 @@ String october = us.getMonths()[Calendar.OCTOBER];
 String wednesday = us.getWeekdays()[Calendar.WEDNESDAY];
 ```
 
-Đây là đoạn minh họa trong một phương thức. Với locale en-US thông thường, `october` là `October`, `wednesday` là `Wednesday`.
+This is an illustrative snippet inside a method. In a typical en-US locale, `october` is `October` and `wednesday` is `Wednesday`.
 
-### Chỉ số của mảng không giống nhau
+### Array indices are not the same
 
-Đây là lỗi cực dễ mắc:
+This is a very easy mistake to make:
 
-- Các hằng `Calendar.JANUARY` đến `Calendar.DECEMBER` nhận giá trị từ **0 đến 11**. Vì thế `months[Calendar.OCTOBER]` trỏ đến tháng Mười.
-- `Calendar.SUNDAY` đến `Calendar.SATURDAY` dùng giá trị từ **1 đến 7**. Mảng `getWeekdays()` thường dành phần tử index 0 không sử dụng, và vị trí thực tương ứng với các hằng `Calendar`.
+- The constants `Calendar.JANUARY` through `Calendar.DECEMBER` have values from **0 to 11**. Thus `months[Calendar.OCTOBER]` points to October.
+- `Calendar.SUNDAY` through `Calendar.SATURDAY` use values from **1 to 7**. The `getWeekdays()` array typically leaves index 0 unused, and the actual positions correspond to the `Calendar` constants.
 
-Không viết `weekdays[0]` rồi nghĩ đó là Chủ nhật. Không lấy `months[10]` rồi nghĩ index 10 là tháng Mười; theo hằng `Calendar`, tháng Mười là index 9.
+Do not write `weekdays[0]` thinking it is Sunday. Do not take `months[10]` thinking index 10 is October; according to the `Calendar` constants, October is index 9.
 
-Mảng tháng của API cũ có thể có phần tử thứ 13 dành cho lịch hỗ trợ tháng bổ sung. Đừng giả định mọi locale đều đúng 12 tên hoặc mọi giá trị ngoài 12 đều nên tự gán vào dữ liệu khác. Khi cần một tháng chuẩn của Gregorian, dùng hằng `Calendar` thích hợp.
+The legacy API month array may contain a 13th element for calendars supporting an extra month. Do not assume every locale has exactly 12 names or that any value beyond 12 should be arbitrarily mapped to other data. When you need a standard Gregorian month, use the appropriate `Calendar` constant.
 
-### Không dùng DateFormatSymbols làm kho dữ liệu múi giờ
+### Do not use DateFormatSymbols as a time zone database
 
-`getZoneStrings()` chủ yếu là bảng **tên hiển thị**, không phải nguồn tính offset, quy tắc daylight saving time hoặc danh sách múi giờ chuẩn để định tuyến dữ liệu. Các quy tắc thuộc `TimeZone` trong API cũ hoặc `ZoneId`/`ZoneRules` trong `java.time`.
+`getZoneStrings()` is primarily a table of **display names**, not a source for computing offsets, daylight saving time rules, or a canonical list of time zones for routing data. Those rules belong to `TimeZone` in the legacy API or `ZoneId`/`ZoneRules` in `java.time`.
 
-Tương tự, `DateFormatSymbols` không thay thế `ResourceBundle` của ứng dụng để quản lý thông điệp dịch. Nó là tập ký hiệu lịch do formatter dùng; tiêu đề màn hình, thông báo lỗi và nhãn nút vẫn cần bộ tài nguyên riêng.
+Similarly, `DateFormatSymbols` does not replace your application's `ResourceBundle` for managing translated messages. It is the set of calendar symbols used by the formatter; screen titles, error messages, and button labels still need their own resource bundles.
 
-## 5. SimpleDateFormat sử dụng DateFormatSymbols như thế nào?
+## 5. How SimpleDateFormat uses DateFormatSymbols
 
-Khi bạn tạo:
+When you create:
 
 ```java
 SimpleDateFormat formatter = new SimpleDateFormat(
         "EEEE, dd MMMM yyyy", Locale.US);
 ```
 
-`SimpleDateFormat` có bộ ký hiệu phù hợp với locale để biến `EEEE` thành tên thứ và `MMMM` thành tên tháng. Không cần tự tra tên trong mảng rồi nối văn bản bằng chuỗi.
+`SimpleDateFormat` gets a symbol set appropriate for the locale to turn `EEEE` into a weekday name and `MMMM` into a month name. There is no need to look up names in arrays manually and concatenate strings.
 
-`DateFormatSymbols` cho phép **ghi đè bộ tên và ký hiệu** khi có yêu cầu cụ thể, ví dụ một báo cáo chuyên biệt muốn gọi tháng Mười là “Harvest” thay vì “October”. Đây là nhu cầu tùy biến có chủ đích, không phải cách dịch tên tháng thường dùng cho toàn ứng dụng.
+`DateFormatSymbols` lets you **override the set of names and symbols** when there is a specific requirement, for instance a specialized report that wants to call October "Harvest" instead of "October". This is an intentional customization need, not the normal way to translate month names for the whole application.
 
-### Tùy chỉnh tên tháng
+### Customizing month names
 
 ```java
 import java.text.DateFormatSymbols;
@@ -222,34 +222,34 @@ SimpleDateFormat custom = new SimpleDateFormat(
         "dd MMMM yyyy", symbols);
 ```
 
-Đây là đoạn minh họa trong một phương thức; để format một thời điểm chính xác cần đặt `TimeZone` và truyền `Date` phù hợp.
+This is an illustrative snippet inside a method; to format an instant accurately, you need to set `TimeZone` and pass an appropriate `Date`.
 
-Điểm quan trọng:
+Key points:
 
-1. Lấy mảng tháng từ bộ ký hiệu dự định dùng.
-2. Sửa index theo `Calendar.OCTOBER`, không đoán bằng số thứ tự tháng hiển thị.
-3. Gọi `setMonths(...)` để cung cấp mảng đã sửa cho `DateFormatSymbols`.
-4. Truyền symbols vào constructor `SimpleDateFormat(String, DateFormatSymbols)`, hoặc dùng `formatter.setDateFormatSymbols(symbols)` trên formatter đã có.
-5. Sau đó formatter được cấu hình với tên tháng tùy chỉnh khi xử lý dạng tháng phù hợp với bộ ký hiệu.
+1. Obtain the month array from the symbol set you intend to use.
+2. Modify the index via `Calendar.OCTOBER`, without guessing by the display month number.
+3. Call `setMonths(...)` to supply the modified array back to `DateFormatSymbols`.
+4. Pass the symbols to the `SimpleDateFormat(String, DateFormatSymbols)` constructor, or call `formatter.setDateFormatSymbols(symbols)` on an existing formatter.
+5. Thereafter, the formatter is configured with the custom month name when handling month formats matched by the symbol set.
 
-Tùy biến này có thể ảnh hưởng **cả format lẫn parse tên tháng**. Vì thế, nếu chỉ muốn đổi văn bản trong một báo cáo, hãy cô lập formatter đó; đừng thay đổi một cấu hình dùng chung với parser đầu vào mà không đánh giá hậu quả.
+This customization can affect **both formatting and parsing of month names**. Therefore, if you only want to change text in a single report, isolate that formatter; do not alter a configuration shared with an input parser without evaluating the consequences.
 
-Các phương thức getter/setter của `DateFormatSymbols` xử lý các mảng theo hợp đồng lớp. Dù có các cơ chế sao chép bảo vệ, cách dễ hiểu là tạo một bộ symbols riêng cho mỗi cấu hình chuyên dụng, sửa mảng rồi gọi setter, tránh dùng một biến symbols mutable như tài nguyên toàn cục có thể bị đổi tùy ý.
+`DateFormatSymbols` getters and setters handle arrays according to the class contract. Even with defensive copying mechanisms, the cleanest approach is to create a separate symbol set for each specialized configuration, modify the array, and call the setter, avoiding using a mutable symbols variable as a global resource that can be altered arbitrarily.
 
-### Khác nhau giữa thay pattern và thay symbols
+### Difference between changing the pattern and changing symbols
 
-- **Thay pattern:** quyết định **trường nào, theo thứ tự nào, và có hiện tên tháng hay không**. Ví dụ `"dd/MM/yyyy"` → `"EEEE, dd MMMM yyyy"`.
-- **Thay symbols:** quyết định **chuỗi tên tháng/thứ/AM-PM nào** được dùng cho các trường chữ tương ứng.
-- **Thay locale:** chọn bộ quy ước bản địa hóa, thường gồm tên và một số quy tắc lịch/hiển thị.
-- **Thay múi giờ:** quyết định ngày/giờ cục bộ và offset tương ứng khi format/parse.
+- **Changing the pattern:** determines **which fields, in what order, and whether month names are shown**. For example, `"dd/MM/yyyy"` → `"EEEE, dd MMMM yyyy"`.
+- **Changing symbols:** determines **which month/weekday/AM-PM name strings** are used for the corresponding text fields.
+- **Changing locale:** selects the set of localization conventions, typically including names and certain calendar/display rules.
+- **Changing time zone:** determines the local date/time and corresponding offset when formatting/parsing.
 
-Không gọi `DateFormatSymbols.setMonths` rồi kỳ vọng chuỗi `"dd/MM/yyyy"` bỗng hiển thị tên tháng: pattern `MM` vẫn yêu cầu tháng dạng số. Muốn tên đầy đủ, dùng `MMMM` trong pattern.
+Do not call `DateFormatSymbols.setMonths` and expect the pattern `"dd/MM/yyyy"` to suddenly display month names: the `MM` pattern still asks for a numeric month. For full names, use `MMMM` in the pattern.
 
-## 6. Ví dụ Java 17+ đầy đủ: formatter, symbols và parse
+## 6. Complete Java 17+ example: formatter, symbols, and parsing
 
-Ví dụ sau được thiết kế để chạy độc lập trên JDK 17 trở lên, không phụ thuộc đồng hồ hiện tại hoặc múi giờ mặc định.
+The following example is designed to run standalone on JDK 17 or later, independent of the current clock or default time zone.
 
-Tạo file `LegacyDateFormattingDemo.java`:
+Create the file `LegacyDateFormattingDemo.java`:
 
 ```java
 import java.text.DateFormatSymbols;
@@ -316,7 +316,7 @@ public class LegacyDateFormattingDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 LegacyDateFormattingDemo.java
@@ -335,25 +335,25 @@ Invalid date rejected
 Parsed prefix: true, index=10/14
 ```
 
-### Giải thích từng kết quả
+### Explaining each result
 
-1. Pattern `EEEE, dd MMMM yyyy HH:mm:ss XXX` hiển thị tên thứ/tên tháng tiếng Anh, giờ 24h và offset UTC ký hiệu `Z` cho `XXX`.
-2. `symbols.getMonths()[Calendar.OCTOBER]` trả `October`.
-3. `symbols.getWeekdays()[Calendar.WEDNESDAY]` trả `Wednesday`.
-4. Sau khi sửa bộ ký hiệu riêng, formatter `custom` dùng tên `Harvest` cho tháng Mười và tạo `28 Harvest 2026`.
-5. Formatter `standard` đã tạo riêng trước đó vẫn hiển thị `October`. Việc sửa `symbols` dành cho formatter mới không làm thay đổi trạng thái của formatter này.
-6. `setLenient(false)` khiến parser từ chối ngày `2026-02-30` không tồn tại trong lịch Gregorian được dùng ở ví dụ.
-7. Tuy vậy `parse(input, position)` vẫn đọc được tiền tố `2026-10-28` rồi dừng trước `tail`. Index 10 trên chuỗi 14 ký tự nghĩa là **chưa tiêu thụ hết đầu vào**, dù ngày trong tiền tố hợp lệ.
+1. The pattern `EEEE, dd MMMM yyyy HH:mm:ss XXX` displays English weekday/month names, 24-hour time, and the UTC offset denoted `Z` for `XXX`.
+2. `symbols.getMonths()[Calendar.OCTOBER]` returns `October`.
+3. `symbols.getWeekdays()[Calendar.WEDNESDAY]` returns `Wednesday`.
+4. After modifying its separate symbol set, the `custom` formatter uses the name `Harvest` for October and produces `28 Harvest 2026`.
+5. The `standard` formatter created separately earlier still displays `October`. Modifying `symbols` for the new formatter does not change this formatter's state.
+6. `setLenient(false)` causes the parser to reject the date `2026-02-30`, which does not exist in the Gregorian calendar used in the example.
+7. However, `parse(input, position)` still reads the prefix `2026-10-28` and stops before `tail`. Index 10 out of a 14-character string means **the input was not fully consumed**, even though the date in the prefix is valid.
 
-Đây chính là hai nhóm vấn đề tách biệt: **ngôn ngữ hiển thị** được quyết định qua symbols và pattern; **kiểm tra đầu vào** đòi xét cả leniency lẫn số ký tự đã đọc.
+These are two separate groups of concerns: **display language** is governed by symbols and patterns; **input validation** requires checking both leniency and the number of characters consumed.
 
-## 7. Parse: từ chuỗi thành Date có những bẫy gì?
+## 7. Parsing: what traps exist when going from String to Date?
 
-`SimpleDateFormat.parse(String)` trả `Date`; `parse(String, ParsePosition)` cho phép theo dõi vị trí đã đọc. Cần hiểu ít nhất ba vấn đề:
+`SimpleDateFormat.parse(String)` returns a `Date`; `parse(String, ParsePosition)` lets you track how far the parser read. You need to understand at least three issues:
 
-### 7.1. Mặc định lenient có thể sửa ngày “sai” thành ngày khác
+### 7.1. Default leniency can turn a "wrong" date into another date
 
-`DateFormat`/`Calendar` thường cho phép diễn giải linh hoạt khi parsing nếu chưa tắt chế độ lenient. Ví dụ ngày “30 tháng 2” không tồn tại có thể bị chuẩn hóa sang ngày của tháng 3 nếu parser đang lenient.
+`DateFormat`/`Calendar` normally allow flexible interpretation during parsing if lenient mode has not been turned off. For example, a nonexistent date like "February 30" can be normalized into a March date if the parser is lenient.
 
 ```java
 SimpleDateFormat parser = new SimpleDateFormat(
@@ -361,13 +361,13 @@ SimpleDateFormat parser = new SimpleDateFormat(
 parser.setLenient(false);
 ```
 
-Đoạn minh họa trong một phương thức. `setLenient(false)` yêu cầu kiểm tra ngày tháng nghiêm ngặt hơn theo lịch mà formatter sử dụng. Một chuỗi `"2026-02-30"` sẽ bị từ chối trong lịch Gregorian thông thường, thay vì silently đổi thành ngày mới.
+An illustrative snippet inside a method. `setLenient(false)` enforces stricter date checking according to the calendar used by the formatter. A string `"2026-02-30"` will be rejected in a standard Gregorian calendar instead of silently rolling over into a new date.
 
-Tuy vậy, **`setLenient(false)` không có nghĩa parse sẽ đọc hết chuỗi**. Ví dụ `"2026-10-28tail"` vẫn có thể được parse thành một `Date` từ phần đầu hợp lệ.
+However, **`setLenient(false)` does not mean parsing will consume the entire string**. For example, `"2026-10-28tail"` can still be parsed into a `Date` from its valid leading portion.
 
-### 7.2. Parser có thể chỉ đọc một tiền tố
+### 7.2. The parser may only read a prefix
 
-Đây là logic kiểm tra toàn phần:
+Here is full-input checking logic:
 
 ```java
 String input = "2026-10-28tail";
@@ -379,47 +379,47 @@ boolean complete = parsed != null
         && pos.getIndex() == input.length();
 ```
 
-Đoạn này giả định biến `parser` đã tạo ở trên, đã import `ParsePosition` và `Date`. `complete` là `false` vì parser dừng trước chữ `tail`.
+This snippet assumes the `parser` variable created above, with `ParsePosition` and `Date` imported. `complete` is `false` because the parser stops before `tail`.
 
-Khi `parse(String)` không nhận được đầu vào ngay từ đầu, nó có thể ném `ParseException`; khi parser trả kết quả cho phần đầu mà còn suffix, overload đó vẫn có thể **không ném lỗi**. Vì vậy không thể chỉ dựa vào “không exception”.
+When `parse(String)` fails to recognize input right at the start, it can throw `ParseException`; when the parser produces a result for the leading part and a suffix remains, that overload may still **not throw an error**. Therefore, you cannot rely solely on "no exception".
 
-`ParsePosition.getErrorIndex()` giúp chẩn đoán khi parse thất bại. Nó không thay cho kiểm tra `getIndex()` nếu yêu cầu không còn ký tự thừa.
+`ParsePosition.getErrorIndex()` helps diagnose when parsing fails. It does not replace checking `getIndex()` if trailing characters are disallowed.
 
-### 7.3. Năm có hai chữ số phụ thuộc cửa sổ diễn giải
+### 7.3. Two-digit years depend on an interpretation window
 
-Với pattern `"yy"`, `SimpleDateFormat` dùng một **cửa sổ 100 năm** để giải thích năm hai chữ số. Mặc định của cửa sổ này phụ thuộc thời điểm tạo formatter (thường bắt đầu khoảng 80 năm trước và kết thúc khoảng 20 năm sau), nên cùng chuỗi `"30"` có thể được hiểu khác khi chương trình chạy ở thời điểm khác.
+With the `"yy"` pattern, `SimpleDateFormat` uses a **100-year window** to interpret two-digit years. The default for this window depends on when the formatter is created (typically starting about 80 years prior and ending about 20 years ahead), so the same string `"30"` may be interpreted differently when the program runs at a different point in time.
 
-Nếu bắt buộc xử lý năm hai chữ số legacy, có thể kiểm soát bằng `set2DigitYearStart(Date startDate)`, đồng thời ghi rõ hợp đồng nhập. Nhưng với input mới, **ưu tiên năm bốn chữ số** và yêu cầu người dùng nhập đầy đủ, thay vì dựa vào cửa sổ năm ngầm.
+If you are forced to handle legacy two-digit years, you can control it with `set2DigitYearStart(Date startDate)` while clearly documenting the input contract. For new inputs, however, **prefer four-digit years** and require users to enter the full year instead of relying on an implicit year window.
 
-### 7.4. Tên tháng và thứ là dữ liệu ngôn ngữ
+### 7.4. Month and weekday names are language data
 
-Parser dùng `"dd MMMM yyyy"` cần nhận tên tháng phù hợp với locale và symbols của formatter. Chuỗi tên tháng tiếng Anh không mặc nhiên parse đúng với một formatter được tạo bằng locale tiếng Việt, và ngược lại.
+A parser using `"dd MMMM yyyy"` needs to recognize month names matching the formatter's locale and symbols. An English month-name string will not automatically parse properly with a formatter created using a Vietnamese locale, and vice versa.
 
-Nếu người dùng nhập số ngày dưới dạng `yyyy-MM-dd` theo một hợp đồng máy đọc cố định, không cần tạo parser dựa vào tên tháng đã dịch. Đối với dữ liệu nhập từ hệ thống khác, nên dùng API parse ISO hoặc schema riêng thay vì tùy tiện dùng locale mặc định JVM.
+If users/systems enter numeric dates like `yyyy-MM-dd` under a fixed machine-readable contract, there is no need to build a parser relying on translated month names. For inputs coming from external systems, use an ISO parsing API or an explicit schema rather than casually relying on the JVM default locale.
 
-## 8. DateFormatSymbols: tùy chỉnh được nhưng không thay thế định dạng nghiệp vụ
+## 8. DateFormatSymbols: customizable, but not a substitute for business formatting
 
-Một số ứng dụng legacy từng tùy biến `DateFormatSymbols` để đổi tên thứ, tên tháng hoặc chuỗi AM/PM. Kỹ thuật này vẫn có ích trong tình huống hẹp, nhưng nên phân biệt:
+Some legacy applications customized `DateFormatSymbols` to change weekday names, month names, or AM/PM strings. This technique is still useful in narrow scenarios, but you should distinguish:
 
-- **Tên theo ngôn ngữ thông thường:** thường chỉ cần `new SimpleDateFormat(pattern, locale)`. JDK/provider đã có dữ liệu tên tháng/thứ cho nhiều locale.
-- **Tên chuyên ngành hoặc yêu cầu riêng:** có thể tùy biến symbols trong formatter của đúng màn hình/báo cáo.
-- **Chính sách lịch hoặc cách tính ngày:** không thể giải quyết chỉ bằng đổi text của symbols.
-- **Múi giờ và chuyển DST:** không thể điều khiển chính xác bằng cách đổi tên trong `getZoneStrings`.
-- **Dịch thông báo ứng dụng:** dùng `ResourceBundle`/hệ thống i18n thay vì nhét mọi chuỗi vào `DateFormatSymbols`.
+- **Standard language names:** usually `new SimpleDateFormat(pattern, locale)` is all you need. The JDK/providers already supply month/weekday name data for many locales.
+- **Domain-specific names or custom requirements:** you can customize symbols on the formatter for that specific screen/report.
+- **Calendar policies or date calculation rules:** cannot be solved merely by changing text in symbols.
+- **Time zones and DST transitions:** cannot be controlled accurately by changing names in `getZoneStrings`.
+- **Translating application messages:** use `ResourceBundle`/an i18n system instead of stuffing arbitrary strings into `DateFormatSymbols`.
 
-Tùy biến tên tháng có thể có tác dụng ngược khi input được parse: một tháng được đổi tên có thể yêu cầu parser nhận tên mới, còn tên chuẩn có thể không được nhận như trước. Cần kiểm thử cả hai chiều nếu formatter dùng cho nhập liệu.
+Customizing month names can have side effects when inputs are parsed: a renamed month may require the parser to recognize the new name, while the standard name may no longer be accepted as before. Test both directions if the formatter is used for input.
 
-### Tên múi giờ có thể thay đổi theo provider
+### Time zone names can change across providers
 
-Pattern `z` có thể hiển thị tên múi giờ hoặc dạng offset phụ thuộc zone/locale/dữ liệu JDK. Tên có thể thay đổi theo bản cập nhật dữ liệu ngôn ngữ hoặc múi giờ. Nếu cần output máy đọc ổn định, đừng dùng tên `z` làm giao thức.
+The `z` pattern can display a time zone name or an offset form depending on the zone/locale/JDK data. Names can change across language data or time zone data updates. If you need stable machine-readable output, do not use `z` names as a protocol.
 
-Pattern `X` hoặc `XXX` tạo offset theo cú pháp ISO 8601 nhưng offset đơn lẻ **không chứa đầy đủ ZoneId hoặc quy tắc lịch sử DST**. Ví dụ `+07:00` không thay thế định danh khu vực như `Asia/Ho_Chi_Minh` khi hệ thống cần xử lý lịch sử/quy tắc vùng.
+The `X` or `XXX` pattern produces offsets in ISO 8601 syntax, but a bare offset **does not contain the full ZoneId or historical DST rules**. For example, `+07:00` does not replace a region identifier like `Asia/Ho_Chi_Minh` when the system needs historical/regional rules.
 
-Khi trao đổi thời điểm giữa dịch vụ, ưu tiên định dạng ISO-8601 có offset/UTC thích hợp theo schema, hoặc dùng kiểu thời gian mà thư viện serialization hỗ trợ, không dùng một `SimpleDateFormat` UI có tên tháng được dịch.
+When exchanging points in time between services, prefer ISO-8601 formats with an appropriate offset/UTC per schema, or use temporal types supported by your serialization library, rather than a UI `SimpleDateFormat` with translated month names.
 
-## 9. Rủi ro thread safety: SimpleDateFormat mutable
+## 9. Thread-safety risks: SimpleDateFormat is mutable
 
-**`SimpleDateFormat` không bảo đảm an toàn khi nhiều luồng cùng format/parse trên một instance mà không đồng bộ.** Formatter lưu trạng thái như calendar, number format và timezone, có thể thay đổi trong lúc xử lý. Chia sẻ một formatter ở biến `static` rồi dùng đồng thời cho mọi request có thể gây dữ liệu sai, exception bất thường hoặc lỗi khó tái hiện.
+**`SimpleDateFormat` is not guaranteed to be safe when multiple threads format/parse on the same instance without synchronization.** The formatter stores state such as calendar, number format, and time zone, which can be mutated during processing. Sharing a formatter in a `static` field and using it concurrently across all requests can cause corrupted data, unexpected exceptions, or hard-to-reproduce bugs.
 
 Anti-pattern:
 
@@ -428,35 +428,35 @@ private static final SimpleDateFormat SHARED =
         new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 ```
 
-Đây chỉ là khai báo minh họa trong một lớp. `final` chỉ ngăn thay tham chiếu, **không làm bản thân `SimpleDateFormat` bất biến hoặc thread-safe**.
+This is only an illustrative field declaration inside a class. `final` only prevents reassigning the reference; **it does not make `SimpleDateFormat` itself immutable or thread-safe**.
 
-Các hướng xử lý:
+Mitigations:
 
-1. **Tạo instance riêng cho mỗi tác vụ:** đơn giản và rõ ràng khi lưu lượng không quá lớn.
-2. **Dùng đồng bộ hóa thích hợp** nếu bắt buộc dùng một formatter chung, nhưng phải kiểm soát cả lời gọi đổi cấu hình.
-3. **Dùng `ThreadLocal` có kỷ luật** trong hệ thống legacy nếu cần, đánh giá vòng đời thread pool và nguy cơ rò rỉ/giữ trạng thái.
-4. **Ưu tiên `DateTimeFormatter`** của `java.time` khi có thể chuyển đổi; formatter này bất biến và được thiết kế an toàn cho sử dụng đồng thời.
+1. **Create a separate instance per task:** simple and clear when traffic is not excessive.
+2. **Use appropriate synchronization** if a shared formatter is unavoidable, while also guarding any calls that change configuration.
+3. **Use `ThreadLocal` with discipline** in legacy systems if needed, evaluating thread-pool lifecycles and the risk of leaks/retained state.
+4. **Prefer `DateTimeFormatter`** from `java.time` whenever migration is possible; this formatter is immutable and designed to be safe for concurrent use.
 
-Không nên gắn một `DateFormatSymbols` mutable dùng chung cho nhiều formatter rồi đổi nó trong khi nhiều request đang chạy. Hãy xây formatter cục bộ/độc lập và coi dữ liệu cấu hình đã xuất bản là cố định.
+Do not attach a shared mutable `DateFormatSymbols` to multiple formatters and mutate it while requests are running. Build formatters locally/independently and treat published configuration data as fixed.
 
-### Cẩn thận với việc thay config sau khi dùng
+### Beware of changing configuration after use
 
-`SimpleDateFormat` có setter như `applyPattern(...)`, `setTimeZone(...)`, `setLenient(...)` và `setDateFormatSymbols(...)`. Một formatter có thể bị thay đổi từ nơi khác mà người gọi không hay biết. Nếu một đối tượng cần trình bày theo nhiều locale/múi giờ, cách chắc chắn là tạo formatter theo request, không sửa một instance global theo từng người dùng.
+`SimpleDateFormat` has setters such as `applyPattern(...)`, `setTimeZone(...)`, `setLenient(...)`, and `setDateFormatSymbols(...)`. A formatter could be mutated elsewhere without the caller realizing it. If an object needs to format in multiple locales/time zones, the safe approach is to create a formatter per request rather than mutating a global instance per user.
 
-## 10. Những khác biệt cần nhớ khi chuyển sang java.time
+## 10. Key differences to remember when migrating to java.time
 
-Từ Java 8, các loại trong `java.time` tách rõ vai trò:
+Since Java 8, the types in `java.time` separate roles clearly:
 
-| API cũ | Hướng thay thế thường gặp |
+| Legacy API | Common modern replacement |
 | --- | --- |
-| `Date` đại diện thời điểm | `Instant` cho điểm thời gian UTC |
-| `Calendar` + timezone | `ZonedDateTime` hoặc `OffsetDateTime` tùy ý nghĩa |
-| Ngày không gắn giờ | `LocalDate` |
+| `Date` representing an instant | `Instant` for a UTC point in time |
+| `Calendar` + time zone | `ZonedDateTime` or `OffsetDateTime` depending on meaning |
+| Date without time | `LocalDate` |
 | `TimeZone` | `ZoneId`, `ZoneOffset` |
 | `SimpleDateFormat` | `DateTimeFormatter` |
-| Tên tháng/thứ tùy biến qua symbols | Formatter theo `Locale` hoặc `DateTimeFormatterBuilder` với map text nếu có nhu cầu đặc biệt |
+| Custom month/weekday names via symbols | Locale-based formatter or `DateTimeFormatterBuilder` with a text map if special needs exist |
 
-Ví dụ hiện đại:
+Modern example:
 
 ```java
 import java.time.Instant;
@@ -472,73 +472,73 @@ String text = formatter.format(
         Instant.parse("2026-10-28T15:04:05Z"));
 ```
 
-Đây là đoạn minh họa trong một phương thức. Kết quả theo locale en-US và UTC là:
+This is an illustrative snippet inside a method. The result in en-US and UTC is:
 
 ```text
 Wednesday, 28 October 2026 15:04:05 Z
 ```
 
-Điểm quan trọng:
+Key points:
 
-- Với `DateTimeFormatter`, ký hiệu năm proleptic là `u`/`uuuu`. Không sao chép nguyên `SimpleDateFormat` pattern theo thói quen nếu nó dùng các ký hiệu có ngữ nghĩa khác.
-- `DateTimeFormatter` là **immutable** và thread-safe; có thể lưu một instance phù hợp làm cấu hình dùng lại.
-- `java.time` tách rõ thời điểm, ngày riêng, ngày giờ cục bộ và vùng giờ. Chọn đúng kiểu giúp tránh lỗi suy múi giờ từ locale.
-- Các tùy chọn parse nghiêm ngặt và resolver style của `DateTimeFormatter` có hợp đồng khác `SimpleDateFormat#setLenient(false)`; migration cần test input/output thật, không chỉ thay tên class.
+- With `DateTimeFormatter`, the proleptic year symbol is `u`/`uuuu`. Do not copy a `SimpleDateFormat` pattern verbatim out of habit if it uses symbols with different semantics.
+- `DateTimeFormatter` is **immutable** and thread-safe; an appropriately configured instance can be stored and reused.
+- `java.time` cleanly separates instants, dates, local date-times, and time zones. Choosing the right type helps avoid bugs like inferring a time zone from a locale.
+- Strict parsing options and resolver styles of `DateTimeFormatter` have a different contract from `SimpleDateFormat#setLenient(false)`; migration requires testing real inputs and outputs, not just renaming classes.
 
-Nếu code cũ đưa vào/ra `Date`, có thể chuyển đổi `Date#toInstant()` và `Date.from(Instant)` ở ranh giới tích hợp. Không nhất thiết thay toàn bộ codebase một lần; có thể chuyển dần formatter UI và parser đầu vào trước.
+If legacy code passes/returns `Date`, you can convert with `Date#toInstant()` and `Date.from(Instant)` at the integration boundary. You do not have to replace the entire codebase at once; you can migrate UI formatters and input parsers incrementally first.
 
-## 11. Lỗi phổ biến
+## 11. Common mistakes
 
-| Sai lầm | Hậu quả | Cách đúng |
+| Mistake | Consequence | Correct approach |
 | --- | --- | --- |
-| Dùng `new SimpleDateFormat(pattern)` ở mọi nơi | Đầu ra phụ thuộc default locale của JVM | Truyền locale rõ ràng |
-| Không đặt `TimeZone` cho dữ liệu cần quy đổi nhất quán | Cùng Date có thể hiển thị giờ khác giữa máy | Chọn zone theo nghiệp vụ/người dùng |
-| Nghĩ `Date` tự mang locale và zone | Nhầm vai trò của instant và trình bày | Tách `Date/Instant`, `Locale` và `TimeZone` |
-| Dùng `MM` thay cho tên tháng | `MM` ra số tháng, không ra tên | Dùng `MMMM` hoặc `MMM` |
-| Dùng `mm` thay cho tháng | `mm` là phút | Dùng `MM` hoặc `MMMM` |
-| Dùng `YYYY` cho ngày lịch thông thường | Week-based year có thể lệch quanh giao thừa | Thường dùng `yyyy` trong SimpleDateFormat |
-| Dùng `hh` không có `a` | Mơ hồ giờ sáng/chiều | Dùng `HH` hoặc `hh a` |
-| Nghĩ `DateFormatSymbols` quyết định múi giờ | Tên hiển thị khác quy tắc offset/DST | Dùng `TimeZone`/`ZoneId` đúng vai trò |
-| Dùng index 0 cho Chủ nhật | Mảng thứ theo `Calendar.SUNDAY=1` | Dùng hằng `Calendar` |
-| Đổi tên tháng bằng symbols nhưng pattern vẫn là `MM` | Không thấy tên tùy chỉnh | Dùng `MMMM` |
-| Bỏ `setLenient(false)` khi parse đầu vào ngày nghiêm ngặt | Ngày sai có thể bị chuẩn hóa | Tắt lenient và kiểm tra phần dư |
-| Chỉ dùng `parse(String)` làm validation | Có thể parse tiền tố rồi bỏ hậu tố | Dùng `ParsePosition` kiểm tra hết input |
-| Dùng `yy` mà không kiểm soát cửa sổ năm | Kết quả phụ thuộc thời điểm tạo formatter | Dùng năm đầy đủ, hoặc `set2DigitYearStart` |
-| Dùng chung một `SimpleDateFormat` trong nhiều thread | Lỗi race vì formatter mutable | Instance riêng hoặc chuyển sang `DateTimeFormatter` |
-| Sao chép pattern từ SimpleDateFormat sang DateTimeFormatter nguyên xi | Một số chữ pattern, ví dụ `u`, khác nghĩa | Rà bảng pattern của từng API |
-| Dùng tên timezone theo `z` để trao đổi API | Văn bản thay theo locale/provider và không đủ ZoneId | Dùng schema ISO-8601/zone ID rõ nghĩa |
+| Using `new SimpleDateFormat(pattern)` everywhere | Output depends on the JVM default locale | Pass locale explicitly |
+| Not setting `TimeZone` for data needing consistent conversion | The same Date can display different times across machines | Choose zone per business logic/user |
+| Thinking `Date` carries a locale and zone | Confuses an instant with its presentation | Separate `Date/Instant`, `Locale`, and `TimeZone` |
+| Using `MM` for month name | `MM` outputs numeric month, not name | Use `MMMM` or `MMM` |
+| Using `mm` for month | `mm` is minutes | Use `MM` or `MMMM` |
+| Using `YYYY` for ordinary calendar dates | Week-based year can diverge around New Year | Usually use `yyyy` in SimpleDateFormat |
+| Using `hh` without `a` | Ambiguous AM/PM hour | Use `HH` or `hh a` |
+| Thinking `DateFormatSymbols` determines the time zone | Display names differ from offset/DST rules | Use `TimeZone`/`ZoneId` in its proper role |
+| Using index 0 for Sunday | Weekday array follows `Calendar.SUNDAY=1` | Use `Calendar` constants |
+| Changing month names via symbols while pattern is still `MM` | Custom name does not appear | Use `MMMM` |
+| Omitting `setLenient(false)` for strict date input parsing | Invalid dates may be normalized | Disable leniency and check remainder |
+| Using only `parse(String)` as validation | May parse a prefix and ignore a suffix | Use `ParsePosition` to check full input |
+| Using `yy` without controlling the year window | Result depends on when formatter was created | Use full year, or `set2DigitYearStart` |
+| Sharing one `SimpleDateFormat` across multiple threads | Race conditions because formatter is mutable | Separate instances or switch to `DateTimeFormatter` |
+| Copying patterns verbatim from SimpleDateFormat to DateTimeFormatter | Some pattern letters, like `u`, differ in meaning | Check each API's pattern table |
+| Using `z` timezone names for API exchange | Text varies by locale/provider and lacks full ZoneId | Use ISO-8601 schemas / unambiguous zone IDs |
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-check exercises
 
-**Bài 1 — Pattern.** Với `"dd/MM/yyyy HH:mm"`, giải thích từng chữ pattern. Nếu muốn tên tháng đầy đủ bằng tiếng Anh và tên thứ, hãy viết pattern phù hợp. Vì sao `MM` không hiển thị `October`?
+**Exercise 1 — Patterns.** For `"dd/MM/yyyy HH:mm"`, explain each pattern letter. If you want the full English month name and weekday name, write an appropriate pattern. Why does `MM` not display `October`?
 
-**Bài 2 — Mảng symbols.** Gọi `DateFormatSymbols.getInstance(Locale.US)`. Nêu index để lấy tháng Mười và thứ Tư bằng hằng `Calendar`. Tại sao không thể dùng index 0 làm Chủ nhật?
+**Exercise 2 — Symbol arrays.** Call `DateFormatSymbols.getInstance(Locale.US)`. State the indices to retrieve October and Wednesday using `Calendar` constants. Why can you not use index 0 as Sunday?
 
-**Bài 3 — Tùy biến.** Đổi tên tháng Mười thành `Harvest` bằng `getMonths`/`setMonths` rồi tạo `SimpleDateFormat("dd MMMM yyyy", symbols)`. Nếu pattern đổi thành `"dd/MM/yyyy"`, có còn thấy chữ `Harvest` không? Vì sao?
+**Exercise 3 — Customization.** Rename October to `Harvest` via `getMonths`/`setMonths` and create `SimpleDateFormat("dd MMMM yyyy", symbols)`. If the pattern changes to `"dd/MM/yyyy"`, will `Harvest` still appear? Why?
 
-**Bài 4 — Locale so với TimeZone.** Một `Date` cho thời điểm `2026-10-28T15:04:05Z`. Nếu giữ `Locale.US` nhưng đổi `TimeZone` từ UTC sang một vùng khác, phần nào của output có thể thay đổi? Nếu giữ UTC nhưng đổi locale, phần nào thay đổi?
+**Exercise 4 — Locale vs. TimeZone.** A `Date` represents the instant `2026-10-28T15:04:05Z`. If you keep `Locale.US` and change `TimeZone` from UTC to another region, which parts of the output can change? If you keep UTC and change the locale, which parts change?
 
-**Bài 5 — Parse.** `SimpleDateFormat("yyyy-MM-dd")` có `setLenient(false)`. Nó nên xử lý `2026-02-30` ra sao? Nếu input là `2026-10-28tail`, vì sao chỉ tắt lenient vẫn chưa đủ để xác thực toàn chuỗi? Hãy dùng `ParsePosition`.
+**Exercise 5 — Parsing.** `SimpleDateFormat("yyyy-MM-dd")` has `setLenient(false)`. How should it handle `2026-02-30`? If the input is `2026-10-28tail`, why is turning off leniency alone not enough to validate the entire string? Use `ParsePosition`.
 
-**Bài 6 — Year.** Giải thích vì sao `YYYY-MM-dd` có thể nguy hiểm ở cuối năm. Phân biệt `y` và `Y` trong `SimpleDateFormat`, rồi so sánh ý nghĩa `u` ở `SimpleDateFormat` và `DateTimeFormatter`.
+**Exercise 6 — Year.** Explain why `YYYY-MM-dd` can be dangerous at year-end. Distinguish `y` and `Y` in `SimpleDateFormat`, then compare the meaning of `u` in `SimpleDateFormat` and `DateTimeFormatter`.
 
-**Bài 7 — Concurrency.** Một backend đặt `static final SimpleDateFormat` dùng cho mọi request. Tại sao `final` không đảm bảo thread safety? Đề xuất hai cách xử lý với code legacy và một phương án dùng `DateTimeFormatter`.
+**Exercise 7 — Concurrency.** A backend declares a `static final SimpleDateFormat` used for all requests. Why does `final` not guarantee thread safety? Propose two solutions for legacy code and one approach using `DateTimeFormatter`.
 
-**Bài 8 — Migration.** Chuyển đoạn định dạng `Date` theo UTC/Locale.US sang `DateTimeFormatter`. Hãy chọn `Instant`, `ZoneOffset.UTC` và pattern có `uuuu`. Trường hợp nào vẫn cần `Date.from(Instant)` để tương tác với thư viện cũ?
+**Exercise 8 — Migration.** Convert formatting a `Date` in UTC/Locale.US to `DateTimeFormatter`. Choose `Instant`, `ZoneOffset.UTC`, and a pattern with `uuuu`. In what cases is `Date.from(Instant)` still needed to interoperate with legacy libraries?
 
-## 13. Ghi nhớ
+## 13. Key takeaways
 
-**`SimpleDateFormat` là bộ định dạng/parser mutable dựa trên pattern, `Locale` và `TimeZone`; `DateFormatSymbols` là nguồn tên tháng/thứ/AM-PM và các chuỗi lịch được bản địa hóa có thể tùy chỉnh.** Hai lớp phối hợp để biến dữ liệu thời gian thành văn bản mà con người đọc được, nhưng không phải nguồn sự thật cho quy tắc múi giờ hay dữ liệu thông điệp của ứng dụng.
+**`SimpleDateFormat` is a mutable formatter/parser driven by pattern, `Locale`, and `TimeZone`; `DateFormatSymbols` is the customizable source of month/weekday/AM-PM names and localized calendar strings.** Both classes work together to turn temporal data into human-readable text, but they are not the source of truth for time zone rules or application message data.
 
-Khi duy trì ứng dụng cũ:
+When maintaining legacy applications:
 
-1. Chọn `Locale` và `TimeZone` tường minh.
-2. Kiểm tra kỹ ký hiệu pattern, nhất là `M`/`m`, `y`/`Y`, `H`/`h` và cách quote.
-3. Khi parse, kết hợp `setLenient(false)` với `ParsePosition` nếu cần từ chối chuỗi có phần dư.
-4. Không chia sẻ `SimpleDateFormat` mutable giữa các luồng mà không đồng bộ.
-5. Với thiết kế mới, ưu tiên `java.time` và `DateTimeFormatter`, đồng thời kiểm tra sự khác biệt pattern khi di chuyển mã.
+1. Choose `Locale` and `TimeZone` explicitly.
+2. Check pattern symbols carefully, especially `M`/`m`, `y`/`Y`, `H`/`h`, and quoting.
+3. When parsing, combine `setLenient(false)` with `ParsePosition` if strings with trailing characters must be rejected.
+4. Do not share mutable `SimpleDateFormat` instances across threads without synchronization.
+5. For new designs, prefer `java.time` and `DateTimeFormatter`, and verify pattern differences when migrating code.
 
-### Tài liệu API tham khảo
+### API reference documentation
 
 - [`SimpleDateFormat` – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/SimpleDateFormat.html)
 - [`DateFormatSymbols` – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DateFormatSymbols.html)

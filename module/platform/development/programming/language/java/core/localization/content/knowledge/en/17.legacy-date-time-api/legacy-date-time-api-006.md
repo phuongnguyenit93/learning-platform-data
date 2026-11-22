@@ -1,113 +1,113 @@
-# Vì sao không chia sẻ `SimpleDateFormat` tùy ý giữa nhiều luồng?
+# Why Should `SimpleDateFormat` Not Be Shared Arbitrarily Across Multiple Threads?
 
-## 1. Vấn đề trong ứng dụng Java xử lý đồng thời
+## 1. The problem in concurrent Java applications
 
-`java.text.SimpleDateFormat` là API cũ dùng để định dạng và phân tích ngày giờ dựa trên pattern như `dd/MM/yyyy`, `yyyy-MM-dd HH:mm:ss` và các quy tắc locale. Nó xuất hiện nhiều trong ứng dụng Java lâu năm, xử lý dữ liệu `Date`, báo cáo, log và tích hợp hệ thống.
+`java.text.SimpleDateFormat` is a legacy API for formatting and parsing dates and times based on patterns such as `dd/MM/yyyy`, `yyyy-MM-dd HH:mm:ss`, and locale rules. It appears widely in long-lived Java applications, processing `Date` values, reports, logs, and system integrations.
 
-Ví dụ một ứng dụng web có nhiều request chạy cùng lúc:
+Consider a web application handling many concurrent requests:
 
 ```java
-// Ví dụ PHẢN DIỆN: không dùng chung theo cách này trong nhiều thread.
+// ANTI-PATTERN: do not share across multiple threads like this.
 private static final SimpleDateFormat FORMAT =
         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 ```
 
-Rồi nhiều luồng cùng gọi:
+Then multiple threads call concurrently:
 
 ```java
 String text = FORMAT.format(date);  // Thread A
 Date value = FORMAT.parse(input);   // Thread B
 ```
 
-Mẫu này **không an toàn chỉ vì biến `FORMAT` là `static final`**. `SimpleDateFormat` và lớp cha `DateFormat` chứa **trạng thái có thể thay đổi**; ngay cả các thao tác định dạng/phân tích cũng sử dụng trạng thái nội bộ. Java không bảo đảm nhiều thread được gọi `format` và `parse` đồng thời trên cùng một instance nếu thiếu đồng bộ hóa thích hợp.
+This pattern **is not safe merely because the `FORMAT` variable is `static final`**. `SimpleDateFormat` and its superclass `DateFormat` hold **mutable state**; even formatting and parsing operations mutate internal state. Java does not guarantee that multiple threads may call `format` and `parse` concurrently on the same instance without proper synchronization.
 
-Điều có thể xảy ra là kết quả sai, parser không ổn định, lỗi chỉ xuất hiện dưới tải cao hoặc một thread quan sát cấu hình do thread khác thay đổi. Một lần thử chạy thành công **không chứng minh** an toàn đa luồng.
+What can happen is wrong output, unstable parsing, bugs that surface only under high load, or one thread observing configuration changed by another thread. A single successful test run **does not prove** thread safety.
 
-> **Quy tắc thiết kế:** `SimpleDateFormat` nên thuộc sở hữu của một luồng/tác vụ tại một thời điểm, hoặc mọi thao tác trên instance chia sẻ phải được đồng bộ hóa nhất quán. Với mã Java mới, ưu tiên `java.time.format.DateTimeFormatter` là bất biến và thread-safe.
+> **Design rule:** `SimpleDateFormat` should be owned by one thread/task at a time, or every operation on a shared instance must be consistently synchronized. For new Java code, prefer `java.time.format.DateTimeFormatter`, which is immutable and thread-safe.
 
-## 2. `SimpleDateFormat` mutable ở đâu?
+## 2. Where is `SimpleDateFormat` mutable?
 
-`SimpleDateFormat` kế thừa `DateFormat` và sử dụng các thành phần liên quan đến ngày/giờ và số. Một số trạng thái/thiết lập đáng chú ý:
+`SimpleDateFormat` extends `DateFormat` and uses components related to date/time and numbers. Notable mutable state/settings include:
 
-| Thành phần hoặc thao tác | Vì sao liên quan đến tính mutable? |
+| Component or operation | Why is it tied to mutability? |
 | --- | --- |
-| `Calendar` của `DateFormat` | Tham gia tính toán các trường năm, tháng, ngày, giờ, múi giờ khi parse/format |
-| `NumberFormat` liên quan | Tham gia đọc/ghi các phần có chữ số của ngày giờ |
-| `applyPattern(...)` | Thay đổi pattern của formatter hiện có |
-| `setTimeZone(...)` | Thay đổi múi giờ dùng để diễn giải/hiển thị |
-| `setLenient(...)` | Thay đổi quy tắc chấp nhận ngày không hợp lệ |
-| `setDateFormatSymbols(...)` | Thay đổi ký hiệu và tên tháng/ngày liên quan đến locale |
-| `setCalendar(...)`, `setNumberFormat(...)` | Thay đổi các thành phần phục vụ parse/format |
+| `DateFormat`'s `Calendar` | Participates in computing year, month, day, hour, and timezone fields during parse/format |
+| Associated `NumberFormat` | Participates in reading/writing numeric parts of date and time |
+| `applyPattern(...)` | Changes the pattern of an existing formatter |
+| `setTimeZone(...)` | Changes the time zone used for interpretation/display |
+| `setLenient(...)` | Changes the rules for accepting invalid dates |
+| `setDateFormatSymbols(...)` | Changes locale-related symbols and month/day names |
+| `setCalendar(...)`, `setNumberFormat(...)` | Replaces the components used for parse/format |
 
-Một instance `SimpleDateFormat` là **một đối tượng có cấu hình và trạng thái thao tác**. Bản thân `format` hay `parse` không phải phép biến đổi thuần (pure function) được API hứa hẹn thread-safe.
+A `SimpleDateFormat` instance is **an object with both configuration and operational state**. Neither `format` nor `parse` is a pure transformation promised by the API to be thread-safe.
 
-Hãy hình dung hai lời gọi trên **cùng một instance**:
+Picture two calls on **the same instance**:
 
 ```text
 Thread A: format(dateA)             Thread B: parse(textB)
     │                                   │
-    ├── cập nhật trạng thái lịch         │
-    │                                   ├── dùng/cập nhật trạng thái lịch
-    ├── đọc các trường lịch              │
-    │                                   ├── đọc/ghi các trường của parser
-    └── tạo chuỗi kết quả                └── tạo Date/kết quả
+    ├── update calendar state           │
+    │                                   ├── use/update calendar state
+    ├── read calendar fields            │
+    │                                   ├── read/write parser fields
+    └── build result string             └── build Date/result
 ```
 
-Sơ đồ chỉ minh họa **nguy cơ xen kẽ các thao tác trên trạng thái chung**, không phải lời khẳng định rằng mọi JDK thực hiện các bước theo chính xác thứ tự này. Điểm quan trọng là **không có hợp đồng đồng bộ nội bộ đủ cho việc chia sẻ tùy ý**.
+This diagram only illustrates **the risk of interleaved operations on shared state**, not a claim that every JDK executes steps in this exact order. The key point is that **there is no internal synchronization contract sufficient for arbitrary sharing**.
 
-Hậu quả có thể thay đổi theo JDK, môi trường và kiểu dữ liệu. Không nên dựa vào một lỗi cụ thể như `NumberFormatException` hoặc kết quả sai ngày để “xác nhận” rằng chỉ khi lỗi đó xuất hiện mới có race condition.
+Symptoms can vary by JDK, environment, and input data. Do not rely on a specific error like `NumberFormatException` or a wrong date to "confirm" that a race condition exists only when that error appears.
 
-## 3. `static final` không đồng nghĩa với immutable
+## 3. `static final` does not mean immutable
 
-Có ba khái niệm thường bị nhầm:
+Three distinct concepts are often confused:
 
-- **`static`**: tham chiếu thuộc lớp, thường được mọi instance và thread sử dụng chung.
-- **`final`**: sau khi khởi tạo, tham chiếu không được gán sang một đối tượng khác.
-- **Immutable/thread-safe**: là **hợp đồng hành vi của đối tượng**; `static final` không tự biến một formatter mutable thành immutable hoặc tự đồng bộ các phương thức của nó.
+- **`static`**: a class-level reference, typically shared across all instances and threads.
+- **`final`**: after initialization, the reference cannot be reassigned to another object.
+- **Immutable/thread-safe**: an **object behavioral contract**; `static final` does not turn a mutable formatter into an immutable one or automatically synchronize its methods.
 
-Ví dụ:
+Example:
 
 ```java
 private static final SimpleDateFormat SHARED =
         new SimpleDateFormat("dd/MM/yyyy", Locale.US);
 
-// Hợp lệ về mặt cú pháp Java, nhưng vẫn sửa nội dung SHARED:
+// Valid Java syntax, yet still mutates SHARED's internals:
 SHARED.setLenient(false);
 SHARED.setTimeZone(TimeZone.getTimeZone("UTC"));
 SHARED.applyPattern("yyyy-MM-dd");
 ```
 
-Đây là **đoạn mã minh họa**, cần các import `SimpleDateFormat`, `Locale`, `TimeZone` và nằm trong phạm vi class/method thích hợp. `final` chỉ ngăn lệnh `SHARED = new SimpleDateFormat(...)`; nó không chặn các setter.
+This is an **illustrative code snippet**, requiring imports for `SimpleDateFormat`, `Locale`, and `TimeZone` within an appropriate class/method scope. `final` only prevents `SHARED = new SimpleDateFormat(...)`; it does not prevent calling setters.
 
-Thậm chí khi ứng dụng **không gọi setter** sau khi khởi tạo, vẫn không nên cho rằng nhiều luồng có thể gọi `format`/`parse` song song trên cùng instance. Cấu hình đã được thiết lập một lần **không đủ** để biến lớp legacy này thành thread-safe.
+Even when an application **never calls setters** after initialization, you must not assume multiple threads can call `format`/`parse` concurrently on the same instance. Configuring it once **is not enough** to make this legacy class thread-safe.
 
-### Hai kiểu lỗi khác nhau
+### Two distinct failure modes
 
-**Tranh chấp trạng thái khi format/parse:** hai thread dùng cùng formatter cùng lúc. Kết quả có thể không ổn định do trạng thái nội bộ bị can thiệp.
+**State contention during format/parse:** two threads use the same formatter at the same time. Results can become corrupted due to interference on internal state.
 
-**Tranh chấp cấu hình:** một thread gọi `setTimeZone`, `applyPattern` hoặc `setLenient` trong khi thread khác định dạng. Thread sau có thể dùng một cấu hình không phải của request đó. Ngay cả nếu bao riêng `format` trong khóa nhưng setter không dùng cùng khóa, thiết kế vẫn không an toàn.
+**Configuration contention:** one thread calls `setTimeZone`, `applyPattern`, or `setLenient` while another thread formats. The latter thread may use a configuration not meant for its request. Even if `format` alone is wrapped in a lock while setters do not use the same lock, the design remains unsafe.
 
-## 4. Khi nào chia sẻ thực sự có rủi ro?
+## 4. When does sharing actually pose a risk?
 
-Một `SimpleDateFormat` **dùng cục bộ và tuần tự** hoàn toàn có thể hoạt động đúng. Rủi ro xuất hiện khi **cùng một instance** có thể được truy cập đồng thời mà không có hợp đồng bảo vệ.
+A `SimpleDateFormat` **used locally and sequentially** can work completely fine. Risk arises when **the same instance** can be accessed concurrently without a synchronization contract.
 
-| Tình huống | Đánh giá |
+| Scenario | Assessment |
 | --- | --- |
-| Tạo formatter trong một phương thức, chỉ thread đó dùng rồi bỏ | Phù hợp, không có trạng thái formatter chung |
-| Một thread duy nhất sử dụng formatter qua nhiều thao tác tuần tự | Không có race giữa các thread trên formatter đó |
-| Một formatter lưu trong singleton rồi nhiều request cùng `format` | **Không an toàn** nếu không bảo vệ toàn bộ truy cập |
-| Một formatter `static final`, nhiều thread chỉ gọi `parse` | Vẫn **không được bảo đảm an toàn** |
-| `synchronized` quanh **mọi** truy cập formatter dùng chung | Có thể bảo vệ tính đúng đắn, nhưng tuần tự hóa thao tác |
-| Mỗi thread có formatter riêng qua `ThreadLocal` và quản lý vòng đời | Có thể dùng được, nhưng thêm chi phí/quản lý trạng thái |
-| Một `DateTimeFormatter` immutable dùng chung | Được thiết kế thread-safe theo hợp đồng `java.time` |
+| Creating a formatter inside a method, used only by that thread and discarded | Appropriate; no shared formatter state |
+| A single thread using a formatter across multiple sequential operations | No cross-thread race on that formatter |
+| Storing a formatter in a singleton and having multiple requests call `format` | **Unsafe** unless all accesses are guarded |
+| A `static final` formatter where multiple threads only call `parse` | Still **not guaranteed safe** |
+| `synchronized` around **every** access to a shared formatter | Can preserve correctness, but serializes operations |
+| Each thread gets its own formatter via `ThreadLocal` with lifecycle management | Workable, but adds state/lifecycle overhead |
+| A shared immutable `DateTimeFormatter` | Designed thread-safe per the `java.time` contract |
 
-“Chỉ đọc” dễ gây hiểu lầm ở đây: `FORMAT.format(date)` có vẻ chỉ đọc `date`, nhưng **phương thức của đối tượng formatter mutable** không được hứa hẹn là read-only đối với mọi trạng thái nội bộ.
+"Read-only" is misleading here: `FORMAT.format(date)` looks like it only reads `date`, yet **methods of a mutable formatter object** are not guaranteed to be read-only with respect to internal state.
 
-Trong ứng dụng dùng thread pool, các tác vụ có thể tái sử dụng thread hoặc chạy song song khác thời điểm. Không nên suy luận một formatter an toàn chỉ từ việc các lần thử tình cờ không trùng nhau.
+In applications using thread pools, tasks may reuse threads or execute concurrently at different times. Do not infer a formatter is safe merely because test runs happened not to overlap.
 
-## 5. Ví dụ phản diện: formatter chung không bảo vệ
+## 5. Anti-pattern example: unprotected shared formatter
 
-Ví dụ dưới chỉ nhằm chỉ ra thiết kế cần tránh; **không có đầu ra được cam kết** và không nên dùng làm mã production:
+The following example only illustrates a design to avoid; **no output is guaranteed** and it must not be used as production code:
 
 ```java
 import java.text.SimpleDateFormat;
@@ -120,21 +120,21 @@ public class UnsafeSharedFormatter {
                     "yyyy-MM-dd HH:mm:ss", Locale.US);
 
     public static String render(Date date) {
-        // Nhiều thread gọi đồng thời: không được bảo đảm an toàn.
+        // Concurrent calls from multiple threads: not guaranteed safe.
         return SHARED.format(date);
     }
 }
 ```
 
-Class này biên dịch được nhưng không có `main`; nó minh họa cách một dịch vụ có thể vô tình chia sẻ trạng thái formatter qua biến `static`.
+This class compiles without a `main` method; it illustrates how a service can accidentally share formatter state via a `static` variable.
 
-Có thể cả nghìn lần thử đều ra đúng; không vì thế mà mã hợp lệ về concurrency. Nếu lỗi xuất hiện, nó còn có thể bị ảnh hưởng bởi dữ liệu đầu vào, scheduling, JIT và implementation JDK. **Không xây dựng unit test yêu cầu race phải xảy ra**; concurrency bug là vi phạm hợp đồng, không nhất thiết có biểu hiện ổn định.
+A thousand test runs might all succeed; that still does not make the code concurrency-safe. When bugs appear, they can also depend on input data, scheduling, JIT, and JDK implementation. **Do not write unit tests that require a race to reproduce**; a concurrency bug is a contract violation, not necessarily something with deterministic symptoms.
 
-## 6. Cách 1: tạo `SimpleDateFormat` mới cho mỗi tác vụ
+## 6. Approach 1: create a new `SimpleDateFormat` per task
 
-Đây là cách đơn giản nhất nếu phải dùng API cũ nhưng lượng thao tác không quá lớn: **không chia sẻ formatter**.
+This is the simplest approach when you must use the legacy API and operation volume is moderate: **do not share the formatter**.
 
-Tạo tệp **`TaskLocalSimpleDateFormatDemo.java`**:
+Create the file **`TaskLocalSimpleDateFormatDemo.java`**:
 
 ```java
 import java.text.SimpleDateFormat;
@@ -158,7 +158,7 @@ public class TaskLocalSimpleDateFormatDemo {
             for (int i = 0; i < 3; i++) {
                 final int id = i;
                 tasks.add(() -> {
-                    // Mỗi task sở hữu formatter riêng của nó.
+                    // Each task owns its own formatter.
                     SimpleDateFormat formatter =
                             new SimpleDateFormat(
                                     "yyyy-MM-dd HH:mm:ss", Locale.US);
@@ -185,14 +185,14 @@ public class TaskLocalSimpleDateFormatDemo {
 }
 ```
 
-Chạy bằng JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 TaskLocalSimpleDateFormatDemo.java
 java -cp . TaskLocalSimpleDateFormatDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 task-0: 1970-01-01 00:00:00 -> 0
@@ -200,17 +200,17 @@ task-1: 1970-01-01 00:00:01 -> 1000
 task-2: 1970-01-01 00:00:02 -> 2000
 ```
 
-**Vì sao an toàn cho formatter?** Mỗi `Callable` tạo một instance `SimpleDateFormat` riêng, cấu hình UTC và không đưa instance đó cho thread khác. Không có formatter mutable dùng chung.
+**Why is this safe for the formatter?** Each `Callable` creates its own `SimpleDateFormat` instance, configures UTC, and never hands that instance to another thread. There is no shared mutable formatter.
 
-Thứ tự thực thi các task không được bảo đảm, nhưng chương trình thu các `Future` theo thứ tự gửi đi rồi mới in, nên stdout ở ví dụ được giữ ổn định. Múi giờ được đặt rõ thành UTC để không phụ thuộc múi giờ của máy.
+Task execution order is not guaranteed, but the program collects `Future`s in submission order before printing, keeping stdout stable in the example. The time zone is explicitly set to UTC so it does not depend on the machine's time zone.
 
-**Đổi lại:** mỗi lần gọi cần khởi tạo formatter. Với nhu cầu lượng lớn, có thể đánh giá hiệu năng thực tế; không tối ưu quá sớm bằng việc đưa cùng một formatter mutable vào biến toàn cục.
+**Trade-off:** each invocation allocates a formatter. Under high throughput, measure actual performance; do not prematurely optimize by moving a mutable formatter into a global variable.
 
-## 7. Cách 2: đồng bộ hóa nhất quán khi dùng chung formatter
+## 7. Approach 2: consistent synchronization when sharing a formatter
 
-Khi không thể thay kiến trúc ngay, một khóa chung có thể bảo vệ một instance `SimpleDateFormat`. Điều kiện là **mọi** đường truy cập — cả `format`, `parse` và các setter có thể thay trạng thái — phải theo cùng một chính sách đồng bộ.
+When the architecture cannot be changed immediately, a shared lock can protect a `SimpleDateFormat` instance. The requirement is that **every** access path — `format`, `parse`, and any state-mutating setters — must follow the same synchronization policy.
 
-Tạo tệp **`SynchronizedLegacyDemo.java`**:
+Create the file **`SynchronizedLegacyDemo.java`**:
 
 ```java
 import java.text.SimpleDateFormat;
@@ -240,7 +240,7 @@ public class SynchronizedLegacyDemo {
         Date date = new Date(id * 1000L);
 
         synchronized (FORMAT_LOCK) {
-            // Cả format và parse cùng được bảo vệ bởi một khóa.
+            // Both format and parse are protected by the same lock.
             String text = SHARED.format(date);
             Date parsed = SHARED.parse(text);
             return "task-" + id + ": " + text
@@ -269,14 +269,14 @@ public class SynchronizedLegacyDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 SynchronizedLegacyDemo.java
 java -cp . SynchronizedLegacyDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 task-0: 1970-01-01 00:00:00 -> 0
@@ -284,15 +284,15 @@ task-1: 1970-01-01 00:00:01 -> 1000
 task-2: 1970-01-01 00:00:02 -> 2000
 ```
 
-**Điều kiện an toàn rất quan trọng:** các phương thức/đường mã khác không được gọi `SHARED.format`, `SHARED.parse`, `SHARED.setTimeZone` hoặc `SHARED.applyPattern` ngoài khóa mà bạn quy định. Nếu chỉ một nhánh mã bỏ qua khóa, race vẫn có thể xảy ra.
+**Critical safety condition:** no other method or code path may call `SHARED.format`, `SHARED.parse`, `SHARED.setTimeZone`, or `SHARED.applyPattern` outside your designated lock. If even a single code path skips the lock, races can still occur.
 
-**Chi phí:** nhiều request phải lần lượt đi qua cùng một vùng khóa, có thể tạo điểm nghẽn nếu tải lớn. Không nên coi `synchronized` là phương án tối ưu mặc định cho mọi ứng dụng. Và việc khóa **chính formatter** (`synchronized (SHARED)`) cũng chỉ đúng khi mọi nơi thống nhất dùng đúng monitor đó; một đối tượng khóa riêng thường giúp kiểm soát phạm vi truy cập rõ hơn.
+**Cost:** concurrent requests must queue through the same critical section, which can create a bottleneck under high load. Do not treat `synchronized` as the default optimal solution for every application. Locking on **the formatter itself** (`synchronized (SHARED)`) also only works when every caller agrees on that exact monitor; a dedicated private lock object usually makes access control clearer.
 
-## 8. Cách 3: `ThreadLocal<SimpleDateFormat>` — hữu ích nhưng cần quản lý vòng đời
+## 8. Approach 3: `ThreadLocal<SimpleDateFormat>` — useful, but requires lifecycle management
 
-`ThreadLocal` tạo mối liên hệ giữa **mỗi thread** và **một giá trị riêng**. Nếu mỗi thread lấy formatter của chính nó, các thao tác trên formatter đó không tranh chấp trực tiếp với formatter của thread khác.
+`ThreadLocal` associates **each thread** with **its own instance**. When each thread obtains its own formatter, operations on that formatter do not contend directly with another thread's formatter.
 
-Ví dụ một lớp tiện ích có thể viết:
+Example utility class:
 
 ```java
 import java.text.SimpleDateFormat;
@@ -323,24 +323,24 @@ public final class LegacyThreadLocalFormats {
 }
 ```
 
-Đây là một **class tiện ích biên dịch được nhưng không có `main`**; nó minh họa một hướng thiết kế, không phải bài chạy độc lập.
+This is a **compilable utility class without a `main` method**; it illustrates a design pattern rather than a standalone runnable demo.
 
-Cần cân nhắc:
+Considerations:
 
-- Trong **thread pool**, thread có thể sống lâu và phục vụ nhiều request. Formatter của thread sẽ tồn tại và được tái sử dụng; điều này có thể tốt cho hiệu năng nhưng cũng khiến **cấu hình hoặc trạng thái gắn với request cũ bị rò sang request sau** nếu code sửa formatter.
-- Khi cần giải phóng trạng thái theo vòng đời request/task, dùng `remove()` trong `finally` tại ranh giới thích hợp. Sau khi remove, lần `get()` kế tiếp sẽ tạo formatter mới.
-- Nếu locale/zone/pattern thay đổi theo request, một formatter `ThreadLocal` cấu hình cố định **không tự đáp ứng** từng người dùng. Không nên đổi timezone của giá trị trong thread rồi quên reset.
-- `ThreadLocal` không phải phép thay thế cho kiến trúc bất biến và làm tăng công việc kiểm soát memory/vòng đời, đặc biệt trong application server hoặc thread pool sống lâu.
+- In a **thread pool**, threads can be long-lived and serve many requests. A thread's formatter remains alive and is reused; this can help performance, yet also allows **configuration or state tied to an earlier request to leak into a subsequent request** if code mutates the formatter.
+- When state must be released at request/task boundaries, call `remove()` in a `finally` block at the appropriate boundary. After `remove()`, the next `get()` creates a fresh formatter.
+- If locale/zone/pattern vary per request, a fixed-configuration `ThreadLocal` formatter **does not automatically adapt** to each user. Do not mutate the thread-local formatter's timezone and forget to reset it.
+- `ThreadLocal` is no substitute for an immutable architecture and increases memory/lifecycle management work, especially in application servers or long-lived thread pools.
 
-Nếu chỉ cần format một ngày trong request, tạo formatter mới hoặc dùng `DateTimeFormatter` thường ít rủi ro hơn duy trì `ThreadLocal`.
+If you just need to format a date in a request, creating a fresh formatter or using `DateTimeFormatter` is usually less risky than maintaining a `ThreadLocal`.
 
-## 9. Cách 4 được khuyến nghị cho mã mới: `DateTimeFormatter`
+## 9. Approach 4 recommended for new code: `DateTimeFormatter`
 
-API `java.time.format.DateTimeFormatter` được thiết kế **immutable** và **thread-safe**. Một formatter đã tạo có thể được gọi đồng thời từ nhiều thread; không cần `synchronized` hoặc `ThreadLocal` chỉ để bảo vệ formatter.
+The `java.time.format.DateTimeFormatter` API is designed to be **immutable** and **thread-safe**. A constructed formatter can be called concurrently from multiple threads; neither `synchronized` nor `ThreadLocal` is needed just to protect the formatter.
 
-Đối với ngày giờ UTC, sử dụng cùng `Instant` từ epoch và một formatter chia sẻ:
+For UTC date-time, using the same `Instant` from epoch and one shared formatter:
 
-Tạo **`ModernFormatterConcurrencyDemo.java`**:
+Create **`ModernFormatterConcurrencyDemo.java`**:
 
 ```java
 import java.time.Instant;
@@ -389,14 +389,14 @@ public class ModernFormatterConcurrencyDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 ModernFormatterConcurrencyDemo.java
 java -cp . ModernFormatterConcurrencyDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 task-0: 1970-01-01 00:00:00 Z -> 0
@@ -404,59 +404,59 @@ task-1: 1970-01-01 00:00:01 Z -> 1
 task-2: 1970-01-01 00:00:02 Z -> 2
 ```
 
-Khác biệt:
+Differences:
 
-1. `SHARED` là cùng một formatter mà tất cả task sử dụng đồng thời theo **hợp đồng an toàn đa luồng**.
-2. `Instant` bất biến và biểu diễn một thời điểm tuyệt đối; `withZone(ZoneOffset.UTC)` cung cấp múi giờ cần thiết để in thời gian.
-3. Phép parse có offset `XXX`, nên có thể lấy `Instant` từ kết quả parsed. Nếu pattern chỉ có giờ/ngày mà không có zone/offset, không nên mặc định có đủ thông tin để chuyển thành thời điểm tuyệt đối.
-4. Kết quả được lấy qua các `Future` theo thứ tự, tránh phụ thuộc lịch chạy của executor.
+1. `SHARED` is the exact same formatter used concurrently by all tasks under its **thread-safety contract**.
+2. `Instant` is immutable and represents an absolute point in time; `withZone(ZoneOffset.UTC)` supplies the zone required to print time fields.
+3. Parsing includes the `XXX` offset, so an `Instant` can be extracted from the parsed result. If the pattern only contains date/time without zone or offset, you cannot assume it holds enough information to convert to an absolute instant.
+4. Results are collected from `Future`s in order, avoiding dependence on executor scheduling.
 
-### Cách chuyển từ `Date` sang `java.time`
+### How to convert from `Date` to `java.time`
 
-Khi API cũ trả về `java.util.Date`, có thể chuyển sang `Instant`:
+When a legacy API returns `java.util.Date`, convert it to `Instant`:
 
 ```java
 Date legacyDate = new Date(0L);
 Instant instant = legacyDate.toInstant();
 ```
 
-Đây là **trích đoạn** cần import `java.util.Date` và `java.time.Instant`. Có thể format `instant` bằng `DateTimeFormatter` đã cấu hình zone.
+This is a **snippet** requiring `java.util.Date` and `java.time.Instant` imports. You can format `instant` with a zone-configured `DateTimeFormatter`.
 
-Ngược lại, khi một API legacy bắt buộc nhận `Date`, có thể dùng `Date.from(instant)`. Nhưng chuyển đổi kiểu dữ liệu **không tự xác định locale, zone hay pattern**. Khi migrate, cần đảm bảo ngữ nghĩa thời gian và dữ liệu đầu vào vẫn đúng.
+Conversely, when a legacy API requires a `Date`, you can use `Date.from(instant)`. However, converting the data type **does not automatically pick a locale, zone, or pattern**. When migrating, ensure temporal semantics and input expectations stay accurate.
 
-## 10. Không nhầm pattern và kiểu thời gian khi migrate
+## 10. Do not confuse patterns and temporal types when migrating
 
-`SimpleDateFormat` dùng pattern như `yyyy-MM-dd`; `DateTimeFormatter` cũng có các ký tự tương tự nhưng **không bảo đảm mọi ký tự mang ngữ nghĩa giống hệt** ở hai API.
+`SimpleDateFormat` uses patterns like `yyyy-MM-dd`; `DateTimeFormatter` has similar letters yet **does not guarantee every letter carries identical semantics** across the two APIs.
 
-Ví dụ:
+For example:
 
-- `DateTimeFormatter` có `u` cho **proleptic year**, còn `y` là **year-of-era**. Với parser `ResolverStyle.STRICT`, `uuuu` thường thích hợp hơn `yyyy` khi đọc ngày lịch Gregorian không có era.
-- `SimpleDateFormat` dùng `Date`/`Calendar`, trong khi API mới khuyến nghị `LocalDate`, `LocalDateTime`, `OffsetDateTime`, `ZonedDateTime` hoặc `Instant` tùy ý nghĩa.
-- `LocalDateTime` **không phải `Instant`**. Nó không có zone/offset; muốn chuyển sang thời điểm tuyệt đối cần một zone hoặc offset được chọn theo nghiệp vụ.
-- Locale và zone là **hai cấu hình khác nhau**. Ngôn ngữ Việt Nam không bắt buộc người dùng đang ở múi giờ `Asia/Ho_Chi_Minh`.
-- Để parse ngày không hợp lệ, `SimpleDateFormat.setLenient(false)` và `DateTimeFormatter.withResolverStyle(ResolverStyle.STRICT)` là hai cách thuộc hai API khác nhau; cần kiểm thử các trường hợp biên trước khi coi việc migrate tương đương.
+- `DateTimeFormatter` has `u` for **proleptic year**, whereas `y` is **year-of-era**. With a `ResolverStyle.STRICT` parser, `uuuu` is usually preferred over `yyyy` when parsing Gregorian calendar dates without an era.
+- `SimpleDateFormat` uses `Date`/`Calendar`, whereas the modern API recommends `LocalDate`, `LocalDateTime`, `OffsetDateTime`, `ZonedDateTime`, or `Instant` depending on meaning.
+- `LocalDateTime` **is not an `Instant`**. It has no zone/offset; converting it to an absolute point in time requires a zone or offset chosen by business logic.
+- Locale and zone are **two separate configurations**. Using the Vietnamese language does not require the user to be in `Asia/Ho_Chi_Minh`.
+- For rejecting invalid dates, `SimpleDateFormat.setLenient(false)` and `DateTimeFormatter.withResolverStyle(ResolverStyle.STRICT)` belong to two different APIs; test boundary cases before assuming migration equivalence.
 
-Vì vậy, đổi tên class và copy nguyên pattern không phải một chiến lược migration đầy đủ. Nên kiểm thử cả format, parse, timezone, ngày nhuận, lịch và hành vi error.
+Therefore, renaming the class and copying the pattern verbatim is not a complete migration strategy. Test formatting, parsing, timezones, leap years, calendars, and error behavior.
 
-## 11. Locale và timezone trong một dịch vụ đa người dùng
+## 11. Locale and timezone in a multi-user service
 
-Vấn đề chia sẻ formatter còn nguy hiểm hơn nếu ứng dụng dùng cùng `SimpleDateFormat` rồi **thay đổi cấu hình cho từng request**:
+Sharing a formatter becomes even more dangerous if an application uses the same `SimpleDateFormat` and **mutates its configuration per request**:
 
 ```java
-// PHẢN DIỆN: hai request thay đổi cùng một object.
+// ANTI-PATTERN: two requests mutate the same object.
 SHARED.setTimeZone(userTimeZone);
 String text = SHARED.format(date);
 ```
 
-Một request A có thể đặt `Asia/Ho_Chi_Minh`, nhưng trước khi A gọi `format`, request B thay nó thành `Europe/Berlin`. Kết quả của A có thể dùng timezone của B. Đây là vấn đề **state chia sẻ trong cấu hình**, khác với race do các thao tác format/parse nội bộ.
+Request A may set `Asia/Ho_Chi_Minh`, but before A calls `format`, request B changes it to `Europe/Berlin`. A's output can end up using B's timezone. This is a **shared configuration state** bug, distinct from internal format/parse state races.
 
-Thiết kế phù hợp:
+Proper design:
 
-- Với legacy API, tạo formatter **riêng theo request** với `Locale` và `TimeZone` của request; không đặt timezone của formatter toàn cục qua mỗi request.
-- Với API mới, tạo formatter gốc bất biến rồi lấy biến thể từ `withLocale(userLocale)` và `withZone(userZone)`. Hai phương thức trả một formatter có cấu hình mới mà **không sửa đối tượng gốc**.
-- Không gọi `Locale.setDefault` hoặc `TimeZone.setDefault` theo từng request; các giá trị default này là trạng thái JVM có thể ảnh hưởng các luồng khác.
+- With the legacy API, create a formatter **per request** with the request's `Locale` and `TimeZone`; do not set the timezone on a global formatter per request.
+- With the modern API, create an immutable base formatter and derive variants with `withLocale(userLocale)` and `withZone(userZone)`. Both methods return a formatter with the updated configuration **without mutating the original**.
+- Do not call `Locale.setDefault` or `TimeZone.setDefault` per request; these defaults are JVM-wide state that can affect other threads.
 
-Trích đoạn có `DateTimeFormatter`:
+Snippet with `DateTimeFormatter`:
 
 ```java
 DateTimeFormatter perRequest = BASE
@@ -465,95 +465,95 @@ DateTimeFormatter perRequest = BASE
 String text = perRequest.format(instant);
 ```
 
-Đây là **đoạn mã minh họa**, giả định `BASE`, `userLocale`, `userZone`, `instant` đã được khai báo. Tính bất biến cho phép mỗi request có cấu hình riêng mà không gây đột biến trên formatter gốc.
+This is an **illustrative code snippet**, assuming `BASE`, `userLocale`, `userZone`, and `instant` are already declared. Immutability lets each request hold its own configuration without mutating the base formatter.
 
-Một lựa chọn lưu cache formatter theo pattern/locale/zone cũng khả thi, miễn cấu trúc cache an toàn đa luồng và khóa cache chứa **đầy đủ những chiều cấu hình ảnh hưởng kết quả**. Không tạo cache không giới hạn từ chuỗi pattern tùy ý của người dùng.
+Caching formatters by pattern/locale/zone is also viable, provided the cache structure is thread-safe and the cache key includes **all configuration dimensions that affect output**. Do not build an unbounded cache from arbitrary user-supplied pattern strings.
 
-## 12. Các tình huống lỗi thực tế và cách phân biệt
+## 12. Real-world failure scenarios and how to distinguish them
 
-### 12.1. Đầu ra sai không lặp lại được
+### 12.1. Non-reproducible wrong output
 
-Triệu chứng: cùng ngày/giờ nhưng đôi khi formatter chung cho chuỗi khác, hoặc parser nhận kết quả không ổn định dưới tải. Nguyên nhân có thể liên quan tới truy cập đồng thời vào trạng thái mutable, nhưng cần kiểm tra dữ liệu, locale, timezone và các setter trước khi kết luận. Không chỉ sửa bằng cách thay đổi thứ tự task hoặc thêm `sleep`.
+Symptom: for the same date/time, a shared formatter occasionally produces a different string, or the parser returns unstable results under load. The cause may involve concurrent access to mutable state, though you should inspect input data, locale, timezone, and setters before concluding. Do not "fix" it merely by reordering tasks or adding `sleep`.
 
-### 12.2. Lỗi parser ngẫu nhiên
+### 12.2. Random parser exceptions
 
-Khi các luồng đồng thời gọi `parse`, trạng thái nội bộ của formatter cũ có thể bị can thiệp. Một số triển khai/hành vi có thể dẫn tới exception hoặc giá trị không như mong đợi. Không ghi một **loại exception cố định** làm hệ quả bắt buộc ở mọi JDK; không có bảo đảm lỗi sẽ xuất hiện ở lần chạy nào.
+When concurrent threads call `parse`, the legacy formatter's internal state can be corrupted. Some implementations/scenarios can throw exceptions or yield unexpected values. Do not document a single **fixed exception type** as a guaranteed outcome on every JDK; there is no guarantee which run will exhibit a failure.
 
-### 12.3. Cùng formatter nhưng timezone đổi giữa các request
+### 12.3. Same formatter, timezone changes between requests
 
-Vấn đề này thường dễ suy luận từ `setTimeZone`: setter thay một **đối tượng chia sẻ**. Ngay cả khi không có lỗi parser, kết quả có thể sai vùng giờ. Giải pháp là cấu hình theo request hoặc áp dụng đồng bộ và chính sách chia sẻ nghiêm ngặt.
+This issue is typically easy to trace to `setTimeZone`: the setter mutates a **shared object**. Even without parser exceptions, output can reflect the wrong time zone. The fix is per-request configuration or strict synchronization and sharing policies.
 
-### 12.4. Formatter được đồng bộ nhưng một helper khác bỏ qua khóa
+### 12.4. Formatter is synchronized, but a helper bypasses the lock
 
-Giả sử controller đồng bộ `format` nhưng một background task gọi `SHARED.parse(...)` trực tiếp. Thiết kế vẫn có race. Một cách ngăn ngừa là bọc formatter trong **dịch vụ có API duy nhất** và không để lộ trực tiếp instance mutable ra bên ngoài; mọi truy cập đều được điều phối thống nhất.
+Suppose a controller synchronizes `format` while a background task calls `SHARED.parse(...)` directly. The design still has a race. One prevention technique is wrapping the formatter in a **service with a single API** and never exposing the mutable instance externally; all accesses are coordinated uniformly.
 
-### 12.5. Đổi sang `DateTimeFormatter` nhưng vẫn có lỗi đồng thời
+### 12.5. Switched to `DateTimeFormatter`, yet concurrency bugs persist
 
-Hãy kiểm tra phần khác của hệ thống: `HashMap` bị sửa đồng thời, dữ liệu thời gian mutable do API legacy trả về, các cấu hình `Locale`/`TimeZone` default bị đổi toàn cục, hoặc chia sẻ một `DateTimeFormatterBuilder` vẫn đang được chỉnh sửa.
+Inspect other parts of the system: concurrently mutated `HashMap`s, mutable temporal objects returned by legacy APIs, globally mutated `Locale`/`TimeZone` defaults, or sharing a `DateTimeFormatterBuilder` that is still being modified.
 
-`DateTimeFormatter` an toàn **không làm tất cả mã xung quanh tự động an toàn**.
+A thread-safe `DateTimeFormatter` **does not automatically make all surrounding code thread-safe**.
 
-## 13. Đo và kiểm thử concurrency sao cho có ý nghĩa
+## 13. Measuring and testing concurrency meaningfully
 
-Một phép thử tạo nhiều thread, lặp 10.000 lần rồi không thấy lỗi là tín hiệu hữu ích về một lần chạy, nhưng **không có giá trị chứng minh** lớp `SimpleDateFormat` thread-safe. Race condition có thể phụ thuộc scheduling, CPU/JVM, tải hệ thống và đường mã cụ thể.
+A test spawning multiple threads for 10,000 iterations without failing is a useful signal for a single run, yet **has zero value as proof** that `SimpleDateFormat` is thread-safe. Race conditions can depend on scheduling, CPU/JVM, system load, and specific code paths.
 
-Thay vì tìm lỗi ngẫu nhiên bằng mọi giá, hãy tổ chức QA:
+Instead of trying to force random failures at any cost, organize QA systematically:
 
-1. **Rà soát ownership:** formatter được tạo ở đâu, lưu tại `static`, singleton, bean Spring, thread pool hay scope cục bộ?
-2. **Tìm mọi đường gọi:** `format`, `parse`, `applyPattern`, `setTimeZone`, `setLenient`, `setCalendar`... trên cùng instance.
-3. **Phân loại cách bảo vệ:** per-task, thread confinement, synchronized toàn bộ, hoặc migrate sang immutable.
-4. **Dùng dữ liệu cố định:** `Date(0)`, mốc UTC, locale rõ ràng; không phụ thuộc clock và default timezone của CI.
-5. **Thu kết quả có thứ tự:** với executor, thu `Future` rồi so sánh expected, tránh thất bại chỉ vì thứ tự log khác nhau.
-6. **Kiểm thử định dạng và parse:** không chỉ gọi `format` mà bỏ qua nhánh `parse`; các nhánh xử lý có thể dùng trạng thái khác nhau.
-7. **Kiểm thử cấu hình theo request:** ít nhất hai zone/locale và trường hợp nhiều request đồng thời, đặc biệt nếu code cũ từng dùng setter trên formatter dùng chung.
-8. **Kiểm thử sau migrate:** định dạng ngày, giờ, năm nhuận, DST, ngày không hợp lệ, dấu vùng giờ và ngôn ngữ. So sánh hợp đồng nghiệp vụ, không chỉ chuỗi trong một môi trường.
-9. **Đo hiệu năng sau khi đúng:** benchmark phương án per-call, synchronized, `ThreadLocal`, `DateTimeFormatter` trên workload thực tế; không lựa chọn giải pháp nguy hiểm chỉ vì giả định tạo formatter tốn tài nguyên.
+1. **Audit ownership:** where is the formatter created—stored in `static`, a singleton, a Spring bean, a thread pool, or local scope?
+2. **Trace every call site:** `format`, `parse`, `applyPattern`, `setTimeZone`, `setLenient`, `setCalendar`, etc. on the same instance.
+3. **Classify protection strategy:** per-task, thread confinement, full synchronization, or migration to immutable.
+4. **Use fixed data:** `Date(0)`, UTC timestamps, explicit locales; never depend on the CI clock or default timezone.
+5. **Collect results in order:** with executors, collect `Future`s and assert expected values, avoiding flakiness from log ordering.
+6. **Test both formatting and parsing:** do not test `format` while ignoring `parse` branches; different branches may touch different state.
+7. **Test per-request configuration:** at least two zones/locales and concurrent requests, especially if legacy code ever called setters on a shared formatter.
+8. **Test after migration:** dates, times, leap years, DST, invalid dates, zone signs, and languages. Compare business contracts, not just strings in one environment.
+9. **Benchmark performance after correctness:** benchmark per-call, synchronized, `ThreadLocal`, and `DateTimeFormatter` on realistic workloads; never choose an unsafe design based on assuming formatter creation is expensive.
 
-Các ví dụ chạy được ở phần 6–9 có output ổn định nhờ thiết lập UTC và lấy kết quả theo thứ tự. Một stress test cố tình dùng cùng formatter **không đồng bộ** nếu được viết thêm chỉ nên dùng để **tái hiện rủi ro**, không đưa vào chương trình nghiệp vụ, không tự tuyên bố “chạy đúng một lần là an toàn”.
+The runnable examples in sections 6–9 produce stable output by configuring UTC and collecting results in order. If an intentionally **unsynchronized** stress test is ever written against a shared formatter, use it strictly to **reproduce the risk**—never put it in production code and never declare "it ran fine once so it's safe."
 
-## 14. Câu hỏi thường gặp
+## 14. Frequently asked questions
 
-**Có thể dùng `SimpleDateFormat` trong một method bình thường không?**
+**Can `SimpleDateFormat` be used inside a normal method?**
 
-Có. Nếu formatter được tạo và dùng bởi một tác vụ tại một thời điểm, không bị công bố ra cho các thread khác, việc sử dụng tuần tự là bình thường. Vấn đề là **cùng instance bị truy cập đồng thời**.
+Yes. If a formatter is created and used by one task at a time without being published to other threads, sequential use is normal. The problem is **concurrent access to the same instance**.
 
-**Chỉ gọi `format`, không dùng `parse`, thì có an toàn không?**
+**Is calling only `format`, without `parse`, safe?**
 
-Không được bảo đảm. Hợp đồng của `SimpleDateFormat` không cho phép suy ra rằng các lời gọi `format` song song trên cùng đối tượng mutable là thread-safe.
+Not guaranteed. `SimpleDateFormat`'s contract does not permit inferring that concurrent `format` calls on the same mutable object are thread-safe.
 
-**`static final` có bảo đảm không?**
+**Does `static final` guarantee safety?**
 
-Không. `final` chỉ cố định tham chiếu, không ngăn object thay đổi trạng thái nội bộ hoặc bị setter thay cấu hình.
+No. `final` only fixes the reference; it does not prevent the object from mutating internal state or having its configuration changed via setters.
 
-**Chỉ thêm `synchronized` vào một method gọi formatter được không?**
+**Is adding `synchronized` to just one method calling the formatter enough?**
 
-Chỉ khi **mọi** đường truy cập cùng instance đều đi qua cùng khóa và không có chỗ nào sửa trạng thái ngoài khóa. Nếu application lộ instance cho bên khác gọi trực tiếp, bảo đảm dễ bị phá vỡ. Đồng bộ hóa toàn bộ cũng có thể gây nghẽn.
+Only if **every** access path to that same instance goes through the same lock and nothing mutates state outside the lock. If the application exposes the instance for direct calls elsewhere, that guarantee breaks easily. Full synchronization can also cause contention.
 
-**`ThreadLocal` có phải lúc nào cũng tốt hơn tạo mới?**
+**Is `ThreadLocal` always better than creating a new instance?**
 
-Không. Nó giảm tạo object trong một số tình huống nhưng cần quản lý lifecycle, xóa state phù hợp và ngăn rò cấu hình giữa các request trong thread pool. Tạo mới thường dễ kiểm chứng hơn.
+No. It reduces object allocation in some scenarios but requires lifecycle management, proper state cleanup, and preventing config leakage across requests in thread pools. Creating a fresh instance is often easier to verify.
 
-**`DateTimeFormatter` có an toàn khi nhiều thread cùng dùng không?**
+**Is `DateTimeFormatter` safe when used by multiple threads simultaneously?**
 
-Có, theo hợp đồng API; nó bất biến và thread-safe. Nhưng mỗi thread vẫn cần dữ liệu thời gian và cấu hình locale/zone đúng, đồng thời mã xung quanh phải quản lý các trạng thái mutable khác một cách riêng biệt.
+Yes, per its API contract; it is immutable and thread-safe. However, each thread still needs proper temporal data and locale/zone configuration, and surrounding code must manage other mutable state separately.
 
-**Có thể dùng `SimpleDateFormat` mãi nếu đã khóa đúng không?**
+**Can `SimpleDateFormat` be kept forever if properly locked?**
 
-Có thể giữ tạm trong hệ thống legacy khi mọi truy cập được kiểm soát và hiệu năng chấp nhận được. Tuy nhiên, với mã mới hoặc lần nâng cấp đáng kể, `java.time` thường cho mô hình dữ liệu rõ hơn và tránh được nguy cơ chia sẻ formatter mutable.
+It can be kept temporarily in legacy systems when all accesses are controlled and performance is acceptable. However, for new code or major upgrades, `java.time` typically provides a clearer data model and eliminates mutable-formatter sharing risks.
 
-## 15. Bảng chọn giải pháp
+## 15. Solution comparison table
 
-| Giải pháp | Độ an toàn khi thực hiện đúng | Chi phí / giới hạn | Khi nào cân nhắc |
+| Solution | Safety when implemented properly | Cost / limitations | When to consider |
 | --- | --- | --- | --- |
-| Tạo `SimpleDateFormat` trong từng task | Không chia sẻ formatter mutable | Có chi phí khởi tạo | Sửa nhanh, đơn giản, lượng tải phù hợp |
-| `synchronized` mọi truy cập chung | An toàn nếu mọi đường dùng cùng khóa | Tuần tự hóa, dễ bỏ sót một code path | Legacy khó sửa, cần kiểm soát một chỗ |
-| `ThreadLocal<SimpleDateFormat>` | Mỗi thread có formatter riêng | Quản lý vòng đời, cấu hình và cleanup | Có lý do đo đạc rõ trong hệ thống legacy |
-| `DateTimeFormatter` dùng chung | Immutable, thread-safe theo API | Phải migrate kiểu ngày/pattern/zone có ý nghĩa | Phương án ưu tiên cho mã Java hiện đại |
+| Create `SimpleDateFormat` per task | No shared mutable formatter | Allocation/initialization cost | Quick, simple fix under moderate load |
+| `synchronized` around all shared accesses | Safe if all paths use the same lock | Serialization; easy to miss a code path | Legacy code hard to refactor, single-point control needed |
+| `ThreadLocal<SimpleDateFormat>` | Each thread has its own formatter | Lifecycle, config, and cleanup management | Measured justification in a legacy system |
+| Shared `DateTimeFormatter` | Immutable, thread-safe per API | Requires meaningful migration of types/patterns/zones | Preferred choice for modern Java code |
 
-## 16. Ghi nhớ
+## 16. Key takeaways
 
-- **`SimpleDateFormat` là formatter mutable, không thread-safe.** Các thao tác `format` và `parse` trên cùng instance không được chia sẻ tùy ý giữa nhiều thread.
-- **`static final` cố định tham chiếu chứ không bất biến hóa đối tượng.** Vẫn có race khi dùng formatter legacy chung.
-- **Cách tránh rủi ro:** tạo formatter riêng cho từng tác vụ, đồng bộ hóa **mọi** truy cập, hoặc quản lý một instance theo từng thread với vòng đời rõ ràng.
-- **Khuyến nghị cho mã mới:** dùng `java.time.format.DateTimeFormatter` bất biến và thread-safe; vẫn cần chọn đúng loại thời gian, locale, zone và pattern.
-- **Đừng lấy kết quả của stress test làm hợp đồng an toàn.** Không thấy lỗi không có nghĩa thread-safe; chất lượng thiết kế dựa trên API contract và việc quản lý trạng thái chia sẻ đúng cách.
+- **`SimpleDateFormat` is a mutable, non-thread-safe formatter.** `format` and `parse` operations on the same instance must not be shared arbitrarily across multiple threads.
+- **`static final` fixes the reference rather than making the object immutable.** Races still occur with a shared legacy formatter.
+- **How to avoid the risk:** create a separate formatter per task, synchronize **all** accesses, or manage a per-thread instance with a clear lifecycle.
+- **Recommendation for new code:** use immutable, thread-safe `java.time.format.DateTimeFormatter`; still choose the right temporal type, locale, zone, and pattern.
+- **Do not treat stress-test results as a safety contract.** Seeing no failures does not mean thread-safe; design quality rests on API contracts and proper shared-state management.

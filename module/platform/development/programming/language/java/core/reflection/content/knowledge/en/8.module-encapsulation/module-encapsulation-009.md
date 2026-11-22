@@ -1,54 +1,54 @@
-# Giới hạn của `--illegal-access` trong Java hiện đại
+# Limitations of `--illegal-access` in Modern Java
 
-## 1. Vấn đề mà `--illegal-access` từng giải quyết
+## 1. The Problem That `--illegal-access` Used to Solve
 
-Trước Java 9, nhiều thư viện dùng Reflection để mở những field, method, constructor nội bộ của JDK, ví dụ gọi `setAccessible(true)` đối với member không public trong các package thuộc `java.base`. Cách này dựa vào chi tiết triển khai, dễ bị phá vỡ khi JDK cập nhật. Kể từ Java 9, **Java Platform Module System (JPMS)** đưa ra quy tắc đóng gói mạnh (*strong encapsulation*): mỗi module quyết định package nào được `exports` (truy cập công khai) và package nào được `opens` (cho phép deep reflection).
+Before Java 9, many libraries used Reflection to open internal JDK fields, methods, and constructors—such as calling `setAccessible(true)` on non-public members in packages belonging to `java.base`. That approach relied on implementation details and broke easily on JDK upgrades. Starting in Java 9, the **Java Platform Module System (JPMS)** introduced *strong encapsulation* rules: each module decides which packages are `exports`-ed (public access) and which packages are `opens`-ed (allowing deep reflection).
 
-`--illegal-access` là tùy chọn khởi chạy JVM được đưa vào để hỗ trợ chuyển đổi ứng dụng cũ sử dụng **illegal reflective access vào các package của JDK từng có trong Java 8**. Nó không phải công tắc vô hiệu hóa mọi quy tắc truy cập Java, không tạo quyền truy cập cho toàn bộ ứng dụng/modular library tùy ý và không hợp thức hóa mã dùng API nội bộ.
+`--illegal-access` was a JVM launch option introduced to assist migrating legacy applications that used **illegal reflective access to JDK packages that existed in Java 8**. It was never a switch disabling all Java access rules, did not grant arbitrary access across all application/modular libraries, and did not legitimize code using internal APIs.
 
-**Điểm phải nhớ với Java hiện đại: kể từ JDK 17, `--illegal-access=permit`, `warn`, `debug` và `deny` đều không còn tác dụng cấp quyền.** Trong các JDK hiện hành còn chấp nhận cú pháp này, JVM chỉ cảnh báo tùy chọn đã lỗi thời/bị bỏ qua. Không thể dùng `--illegal-access=permit` để chữa `InaccessibleObjectException` trên JDK 17+.
+**Essential takeaway for modern Java: since JDK 17, `--illegal-access=permit`, `warn`, `debug`, and `deny` all no longer grant access.** In current JDKs that still accept this syntax, the JVM merely warns that the option is obsolete/ignored. You cannot use `--illegal-access=permit` to fix `InaccessibleObjectException` on JDK 17+.
 
-## 2. Dòng thời gian: Java 8 → 9–15 → 16 → 17+
+## 2. Timeline: Java 8 → 9–15 → 16 → 17+
 
-| Phiên bản | Trạng thái đóng gói JDK và `--illegal-access` | Hệ quả thực tế |
+| Version | JDK Encapsulation and `--illegal-access` Status | Practical Consequence |
 | --- | --- | --- |
-| Java 8 và cũ hơn | Chưa có JPMS hay tùy chọn `--illegal-access`. | Reflection vẫn chịu kiểm tra quyền truy cập Java và các giới hạn khác; một số thư viện truy cập được chi tiết JDK nội bộ. |
-| JDK 9–15 | JPMS được giới thiệu; chế độ mặc định tương đương `--illegal-access=permit` đối với nhiều package JDK đã tồn tại từ Java 8. | Cho phép một số truy cập Reflection cũ trong giai đoạn chuyển tiếp; lần truy cập bất hợp lệ đầu tiên được cảnh báo trong chế độ permit. |
-| JDK 16 | JEP 396 đổi mặc định thành `--illegal-access=deny`, bật strong encapsulation theo mặc định. | `--illegal-access=permit` vẫn có thể tạm khôi phục quyền truy cập tương thích trước đó cho phạm vi mà tùy chọn hỗ trợ. |
-| JDK 17 trở lên | JEP 403 biến `--illegal-access` thành tùy chọn **obsolete/ignored**. | Các giá trị `permit`/`warn`/`debug`/`deny` không nới hoặc siết thêm quyền; muốn deep reflection phải mở rõ package phù hợp bằng cơ chế JPMS. |
+| Java 8 and earlier | Neither JPMS nor `--illegal-access` existed. | Reflection still underwent Java access checks and other limits; some libraries accessed internal JDK details. |
+| JDK 9–15 | JPMS was introduced; default mode was equivalent to `--illegal-access=permit` for many JDK packages existing since Java 8. | Permitted some legacy Reflection accesses during the transition period; the first illegal access triggered a warning in permit mode. |
+| JDK 16 | JEP 396 changed the default to `--illegal-access=deny`, enabling strong encapsulation by default. | `--illegal-access=permit` could still temporarily restore prior compatibility access within the option's supported scope. |
+| JDK 17 and later | JEP 403 made `--illegal-access` an **obsolete/ignored** option. | `permit`/`warn`/`debug`/`deny` values neither loosen nor tighten permissions; deep reflection requires explicitly opening the appropriate package via JPMS mechanisms. |
 
-Trong giai đoạn JDK 9–16, các chế độ lịch sử là:
+During JDK 9–16, the historical modes were:
 
-- `permit`: nới quyền Reflection theo phạm vi tương thích cũ; cảnh báo lần đầu.
-- `warn`: tương tự về việc cho phép, nhưng cảnh báo cho từng truy cập bất hợp lệ.
-- `debug`: như `warn`, kèm stack trace nhằm tìm caller.
-- `deny`: không nới quyền; truy cập vẫn có thể được phép bởi những cấu hình tường minh khác như `--add-opens`.
+- `permit`: relaxed Reflection permissions within the legacy compatibility scope; warned once on first occurrence.
+- `warn`: similar in allowing access, yet warned on every illegal access.
+- `debug`: like `warn`, plus stack traces to locate the caller.
+- `deny`: did not relax permissions; access could still be permitted by other explicit configurations such as `--add-opens`.
 
-Các cờ trên **không áp dụng chung cho mọi module do lập trình viên tạo**. Đặc biệt, trên JDK 17+, viết `--illegal-access=deny` cũng không phải cách khóa mọi sự mở quyền đang có: JVM bỏ qua tùy chọn này; các `--add-opens` cụ thể vẫn quyết định quyền truy cập được thêm vào.
+Those flags **did not apply universally to every developer-created module**. In particular, on JDK 17+, writing `--illegal-access=deny` is also not a way to lock down existing open permissions: the JVM ignores this option, and specific `--add-opens` flags still govern added access permissions.
 
-## 3. Vì sao `setAccessible(true)` không còn vượt được mọi rào cản?
+## 3. Why Does `setAccessible(true)` No Longer Bypass Every Barrier?
 
-Reflection có thể tìm ra một member nhưng chưa chắc có quyền đọc hoặc gọi member đó. Cần phân biệt:
+Reflection can find a member without necessarily having permission to read or invoke that member. Distinguish:
 
-1. `getDeclaredMethod()`, `getDeclaredField()`, `getDeclaredConstructor()`: **lấy metadata** về member có khai báo trong kiểu, kể cả private. Việc lấy metadata không tự cấp quyền sử dụng.
-2. `setAccessible(true)`: yêu cầu bỏ qua một phần kiểm tra truy cập thông thường cho member, **chỉ thành công khi JPMS cho phép**. Nếu package của named module không mở cho module gọi và điều kiện khác không thỏa, có thể ném `java.lang.reflect.InaccessibleObjectException`.
-3. `trySetAccessible()`: phiên bản thuận tiện trả `false` khi không thể cho phép truy cập, thay vì `InaccessibleObjectException` trong trường hợp không có quyền; vẫn cần xử lý ngoại lệ liên quan nếu có.
-4. `Method.invoke()`, `Field.get()` hoặc constructor invocation: thực sự dùng member. Nếu chưa được phép, các API này có thể ném `IllegalAccessException` (khác với ngoại lệ khi yêu cầu bật quyền).
+1. `getDeclaredMethod()`, `getDeclaredField()`, `getDeclaredConstructor()`: **retrieves metadata** about members declared in a type, including private ones. Retrieving metadata does not grant permission to use them.
+2. `setAccessible(true)`: requests bypassing part of normal access checks for the member, **succeeding only when JPMS permits it**. If the named module's package is not opened to the calling module and no other condition holds, it can throw `java.lang.reflect.InaccessibleObjectException`.
+3. `trySetAccessible()`: convenient variant returning `false` when access cannot be enabled, instead of `InaccessibleObjectException` in permission-denied cases; related exceptions must still be handled if applicable.
+4. `Method.invoke()`, `Field.get()`, or constructor invocation: actually uses the member. If not yet permitted, these APIs can throw `IllegalAccessException` (different from the exception when requesting to enable access).
 
-Ngay cả một public class trong package **đã `exports`** cũng không tự mở private member cho ứng dụng khác. `exports` và `opens` có tác dụng khác nhau:
+Even a public class in an **`exports`-ed** package does not automatically open private members to another application. `exports` and `opens` have different effects:
 
-| Cấu hình | Truy cập public type/member bằng Java thông thường | Deep reflection vào private member từ module khác |
+| Configuration | Accessing Public Types/Members via Normal Java | Deep Reflection into Private Members from Another Module |
 | --- | --- | --- |
-| Package `exports` đến module gọi | Được phép, nếu các điều kiện truy cập Java khác cũng thỏa. | Không tự động được phép. |
-| Package `opens` đến module gọi | Không tự động cho phép code khác compile tham chiếu public type khi package không `exports`. | Được phép yêu cầu `setAccessible(true)` trong những điều kiện JPMS thích hợp. |
-| `exports` và `opens` | Cho phép cả truy cập public thông thường và deep reflection thuộc phạm vi đã cấp. | Có thể hoạt động. |
-| Package không export/open cho caller | Không được truy cập thông thường từ caller. | Bị từ chối deep reflection. |
+| Package `exports`-ed to calling module | Permitted, if other Java access conditions also hold. | Not automatically permitted. |
+| Package `opens`-ed to calling module | Does not automatically let other code compile references to public types when the package is not `exports`-ed. | Permitted to request `setAccessible(true)` under appropriate JPMS conditions. |
+| Both `exports` and `opens` | Permits both normal public access and deep reflection within the granted scope. | Can work. |
+| Package neither exported nor opened to caller | No normal access from caller. | Deep reflection is rejected. |
 
-## 4. Ví dụ Java 17+: lỗi thật và cách mở đúng một package
+## 4. Java 17+ Example: Real Error and Properly Opening One Package
 
-Ví dụ dưới dùng **module tự tạo**, không phụ thuộc field nội bộ của `String` hay lớp nội bộ JDK có thể thay đổi. Module `demo.lib` cho phép lớp ngoài nhìn thấy `Greeter` qua `exports demo.api`, nhưng chưa cho phép truy cập deep reflection tới `private secret()`.
+The example below uses a **custom module**, avoiding reliance on internal fields of `String` or JDK internal classes that may change. Module `demo.lib` lets external classes see `Greeter` via `exports demo.api`, yet does not yet permit deep reflection access to `private secret()`.
 
-Tạo cấu trúc thư mục:
+Create the directory layout:
 
 ~~~text
 project/
@@ -61,7 +61,7 @@ project/
 └── Main.java
 ~~~
 
-**Tệp `src/demo.lib/module-info.java`:**
+**File `src/demo.lib/module-info.java`:**
 
 ~~~java
 module demo.lib {
@@ -69,7 +69,7 @@ module demo.lib {
 }
 ~~~
 
-**Tệp `src/demo.lib/demo/api/Greeter.java`:**
+**File `src/demo.lib/demo/api/Greeter.java`:**
 
 ~~~java
 package demo.api;
@@ -81,7 +81,7 @@ public class Greeter {
 }
 ~~~
 
-**Tệp `Main.java`:** chương trình nằm trên class path, tức thuộc *unnamed module*.
+**File `Main.java`:** the program sits on the class path, belonging to the *unnamed module*.
 
 ~~~java
 import demo.api.Greeter;
@@ -102,14 +102,14 @@ public class Main {
 }
 ~~~
 
-Đứng tại thư mục `project`, biên dịch với JDK 17+:
+From the `project` directory, compile with JDK 17+:
 
 ~~~bash
 javac --release 17 -d mods --module-source-path src -m demo.lib
 javac --release 17 --module-path mods --add-modules demo.lib -d classes Main.java
 ~~~
 
-### Chạy 1: không mở package
+### Run 1: Without Opening the Package
 
 ~~~bash
 java --module-path mods --add-modules demo.lib -cp classes Main
@@ -121,29 +121,29 @@ Stdout:
 blocked=InaccessibleObjectException
 ~~~
 
-`getDeclaredMethod("secret")` đã tìm được method nhưng `setAccessible(true)` không có quyền mở private member. Vì vậy không in ra `hello`.
+`getDeclaredMethod("secret")` found the method, yet `setAccessible(true)` lacked permission to open the private member. Hence `hello` is not printed.
 
-### Chạy 2: thêm `--illegal-access=permit`
+### Run 2: Adding `--illegal-access=permit`
 
 ~~~bash
 java --illegal-access=permit --module-path mods --add-modules demo.lib -cp classes Main
 ~~~
 
-Stdout vẫn là:
+Stdout remains:
 
 ~~~text
 blocked=InaccessibleObjectException
 ~~~
 
-Trên OpenJDK 24, JVM còn phát cảnh báo ra stderr, chẳng hạn:
+On OpenJDK 24, the JVM also emits a warning to stderr, such as:
 
 ~~~text
 OpenJDK 64-Bit Server VM warning: Ignoring option --illegal-access=permit; support was removed in 17.0
 ~~~
 
-Dòng cảnh báo, định dạng và việc tương lai JVM có chấp nhận cú pháp cũ nữa hay không phụ thuộc phiên bản. **Điểm học tập là kết quả truy cập không thay đổi.** Đồng thời, `--illegal-access` lịch sử vốn không phải cơ chế mở tùy ý module ứng dụng như `demo.lib`.
+The exact warning text, format, and whether future JVMs still accept the legacy syntax depend on the version. **The learning point is that the access outcome does not change.** At the same time, historical `--illegal-access` was never a mechanism to arbitrarily open application modules such as `demo.lib`.
 
-### Chạy 3: cấp quyền đúng package và đúng caller
+### Run 3: Granting Permission to the Right Package and Right Caller
 
 ~~~bash
 java --add-opens demo.lib/demo.api=ALL-UNNAMED --module-path mods --add-modules demo.lib -cp classes Main
@@ -155,68 +155,68 @@ Stdout:
 result=hello
 ~~~
 
-`--add-opens demo.lib/demo.api=ALL-UNNAMED` mở package `demo.api` thuộc module `demo.lib` cho các unnamed module (thường là code trên class path). Khi ấy `setAccessible(true)` thành công.
+`--add-opens demo.lib/demo.api=ALL-UNNAMED` opens package `demo.api` of module `demo.lib` to unnamed modules (typically code on the class path). Then `setAccessible(true)` succeeds.
 
-**Kết luận từ ví dụ:** với nhu cầu deep reflection, quyền được thêm theo **module/package/caller**, không phải một cờ toàn cục `--illegal-access`. Cả ba lệnh và kết quả ở trên đã được kiểm tra với mã Java 17 tương thích.
+**Conclusion from the example:** for deep reflection needs, permissions are added per **module/package/caller**, not via a global `--illegal-access` flag. All three commands and results above were verified with Java 17-compatible code.
 
-## 5. Cấu hình thay thế đúng mục đích
+## 5. Purpose-Built Replacement Configurations
 
-### `--add-opens`: cho phép deep reflection
+### `--add-opens`: Permitting Deep Reflection
 
-Cú pháp runtime:
+Runtime syntax:
 
 ~~~text
---add-opens <module-nguồn>/<package>=<module-đích>
+--add-opens <source-module>/<package>=<target-module>
 ~~~
 
-Ví dụ cho code trên class path truy cập private member thuộc `java.lang`:
+Example for class path code accessing private members in `java.lang`:
 
 ~~~bash
 java --add-opens java.base/java.lang=ALL-UNNAMED -cp classes Main
 ~~~
 
-Dòng này chỉ minh họa **cú pháp mở một package của JDK**, không phải lệnh chạy cho module `demo.lib` trong phần 4. Ví dụ phần 4 cần `--add-opens demo.lib/demo.api=ALL-UNNAMED`. Không có cơ sở để mở mọi package `java.base` chỉ vì một thư viện báo lỗi với một package cụ thể.
+This line only illustrates the **syntax for opening a JDK package**, not the command for running module `demo.lib` in section 4. Section 4's example needs `--add-opens demo.lib/demo.api=ALL-UNNAMED`. There is no justification for opening every package of `java.base` simply because a library threw an error on one specific package.
 
-Nếu caller là **named module**, thay `ALL-UNNAMED` bằng tên module gọi, ví dụ:
+If the caller is a **named module**, replace `ALL-UNNAMED` with the calling module's name, e.g.:
 
 ~~~text
 --add-opens demo.lib/demo.api=app.consumer
 ~~~
 
-`--add-opens` thường là biện pháp tương thích tạm thời cho thư viện cũ; chọn package thực sự cần mở theo thông báo lỗi và tài liệu của thư viện. Quyền này cho phép caller có khả năng vượt kiểm tra truy cập thông thường với các member thuộc package đó.
+`--add-opens` is usually a temporary compatibility measure for legacy libraries; choose the package genuinely needing opening based on the error message and the library's documentation. This permission lets the caller bypass normal access checks for members in that package.
 
-### `--add-exports`: cho phép sử dụng public API của package chưa export
+### `--add-exports`: Allowing Use of Public APIs in an Unexported Package
 
-Cú pháp:
+Syntax:
 
 ~~~text
---add-exports <module-nguồn>/<package>=<module-đích>
+--add-exports <source-module>/<package>=<target-module>
 ~~~
 
-Dùng khi thư viện/ứng dụng cần dùng **public type và public member** của package chưa được export. Có thể cần cờ ở cả lúc biên dịch và lúc chạy. `--add-exports` không tương đương với cho phép deep reflection tới private member; trường hợp đó thường cần `--add-opens`.
+Use when a library/application needs **public types and public members** of an unexported package. The flag may be needed at both compile time and runtime. `--add-exports` is not equivalent to allowing deep reflection into private members; that case typically requires `--add-opens`.
 
-### Khai báo chính thức trong `module-info.java`
+### Official Declaration in `module-info.java`
 
-Nếu **sở hữu** module thư viện và chủ động quyết định API, có thể khai báo:
+If you **own** the library module and deliberately decide its API, you can declare:
 
 ~~~java
 module demo.lib {
-    exports demo.api;              // Cho code ngoài dùng public API
-    opens demo.api to app.consumer; // Chỉ cho named module app.consumer deep reflection
+    exports demo.api;              // Allow external code to use the public API
+    opens demo.api to app.consumer; // Allow deep reflection only for named module app.consumer
 }
 ~~~
 
-Đây là ví dụ cấu hình cho tình huống **có module `app.consumer`**; đừng thay trực tiếp vào dự án class path ở phần 4 nếu chưa có module đó. Có thể khai báo `opens demo.api;` để mở package cho mọi module, nhưng nên chọn phạm vi hẹp phù hợp với kiến trúc. `open module ...` mở tất cả package của module cho reflection, thường rộng hơn nhu cầu thực tế.
+This is a configuration example for a situation **where module `app.consumer` exists**; do not paste it directly into section 4's class path project without that module. You can declare `opens demo.api;` to open the package to every module, yet prefer a narrow scope fitting your architecture. `open module ...` opens all packages of the module for reflection, which is usually broader than needed.
 
-Trong ứng dụng sử dụng framework, tốt nhất cấu hình `opens` (hoặc `opens ... to ...`) tại module mà mình kiểm soát, theo đúng tài liệu framework. Nếu vấn đề nằm ở internals của **JDK**, lập trình viên không sửa được `java.base/module-info.java` để thêm `opens`; phải dùng API công khai, cập nhật thư viện hoặc khai báo cờ runtime hẹp.
+In applications using frameworks, it is best to configure `opens` (or `opens ... to ...`) in a module you control, following the framework's documentation. If the issue lies in **JDK** internals, developers cannot edit `java.base/module-info.java` to add `opens`; you must use public APIs, update the library, or supply a narrow runtime flag.
 
-### `--add-reads` không thay thế `--add-opens`
+### `--add-reads` Does Not Replace `--add-opens`
 
-`--add-reads` thay đổi quan hệ **readability** giữa module; nó không mở private member của package. Khi debug `InaccessibleObjectException`, thêm `--add-reads` không tự giải quyết thiếu quyền deep reflection.
+`--add-reads` changes **readability** relationships between modules; it does not open private members of a package. When debugging `InaccessibleObjectException`, adding `--add-reads` does not resolve missing deep reflection permission.
 
-## 6. Chẩn đoán lỗi khi nâng từ Java 8/11 lên Java 17+
+## 6. Diagnosing Errors When Upgrading from Java 8/11 to Java 17+
 
-Thông báo điển hình:
+Typical message:
 
 ~~~text
 java.lang.reflect.InaccessibleObjectException:
@@ -224,61 +224,61 @@ Unable to make ... accessible: module java.base
 does not "opens java.lang" to unnamed module ...
 ~~~
 
-Văn bản chính xác có thể khác giữa JDK và member. Những phần cần xác định là:
+Exact wording can vary across JDKs and members. The items to identify are:
 
-1. **Module nguồn:** ví dụ `java.base`.
-2. **Package bị đóng:** ví dụ `java.lang`.
-3. **Caller cần quyền:** ví dụ `unnamed module` cho class path hoặc tên một named module.
-4. **Tác vụ truy cập:** deep reflection vào non-public member hay tham chiếu thông thường tới public API trong package không export?
+1. **Source module:** e.g., `java.base`.
+2. **Closed package:** e.g., `java.lang`.
+3. **Caller needing permission:** e.g., `unnamed module` for the class path, or the name of a named module.
+4. **Access operation:** deep reflection into non-public members, or normal reference to a public API in an unexported package?
 
-Nếu thật sự cần deep reflection và không thể chuyển sang API hỗ trợ chính thức, một tùy chọn thử có phạm vi hẹp là:
+If deep reflection is truly necessary and migrating to an officially supported API is not yet possible, a narrowly scoped test option is:
 
 ~~~text
 --add-opens java.base/java.lang=ALL-UNNAMED
 ~~~
 
-Đây là **ví dụ được suy ra từ thông báo giả định nêu trên**, không phải lời khuyên thêm cờ đó cho mọi dự án.
+This is an **example inferred from the hypothetical message above**, not advice to add that flag to every project.
 
-Quy trình xử lý hợp lý:
+Sound troubleshooting workflow:
 
-- **Xác định thư viện gọi Reflection:** đọc stack trace và phụ thuộc liên quan. Có thể chính thư viện serialize, dependency injection, ORM, bytecode proxy, mocking hoặc công cụ kiểm thử đang truy cập JDK internals.
-- **Ưu tiên cập nhật dependency:** bản mới thường đã dùng API Java được hỗ trợ hoặc cơ chế phù hợp với JPMS. Tránh tự duy trì danh sách dài `--add-opens` nếu còn giải pháp đúng cấp API.
-- **Nếu module là do mình viết:** chỉnh `module-info.java` theo đúng phạm vi `exports` hoặc `opens` cần thiết.
-- **Nếu buộc mở package runtime:** chỉ thêm từng `--add-opens` được chứng minh cần thiết, đặt vào cấu hình JVM chạy chương trình và môi trường test thực sự. Cấu hình cho một tiến trình `java` không tự động áp dụng cho tiến trình JVM khác do công cụ build tạo.
-- **Chạy lại trên phiên bản JDK triển khai thực tế:** có thể có thêm lỗi khi code chạm tới package khác. Không kết luận một cờ là đủ cho mọi môi trường từ một stack trace duy nhất.
+- **Identify the library invoking Reflection:** inspect the stack trace and relevant dependencies. A serialization, dependency injection, ORM, bytecode proxy, mocking, or testing library itself may be accessing JDK internals.
+- **Prioritize updating dependencies:** newer releases often already use supported Java APIs or JPMS-compliant mechanisms. Avoid maintaining a long list of `--add-opens` when an API-level fix exists.
+- **If you authored the module:** update `module-info.java` with the exact required `exports` or `opens` scope.
+- **If forced to open a package at runtime:** add only each `--add-opens` proven necessary, placing it in the JVM config running the program and real test environment. Configuration for one `java` process does not automatically apply to another JVM process spawned by a build tool.
+- **Retest on the exact target deployment JDK version:** additional errors may surface when code reaches other packages. Never conclude from a single stack trace that one flag suffices for all environments.
 
-Cách nhanh để xác định Java runtime đang chạy:
+Quick way to check the running Java runtime:
 
 ~~~bash
 java -version
 ~~~
 
-Nếu lệnh test/IDE/production dùng JDK khác với terminal, cần xác minh JVM **thực sự khởi chạy ứng dụng**. Đừng dựa vào `javac -version` của một terminal để kết luận toàn bộ hệ thống đã sử dụng cùng runtime.
+If test/IDE/production commands use a different JDK from your terminal, verify the JVM **actually launching the application**. Do not rely on `javac -version` in one terminal to assume the whole system uses the same runtime.
 
-## 7. Những hiểu lầm quan trọng
+## 7. Important Misconceptions
 
-| Nhận định sai | Sửa cho đúng |
+| Wrong Assumption | Correction |
 | --- | --- |
-| “Thêm `--illegal-access=permit` là đủ khi nâng lên JDK 17+.” | Cờ đã obsolete và bị bỏ qua từ JDK 17. |
-| “`--illegal-access=deny` vẫn đang chặn quyền trên JDK mới.” | Trạng thái quyền trên JDK 17+ không do cờ này quyết định; các tùy chọn cụ thể khác vẫn có tác dụng. |
-| “`setAccessible(true)` luôn bỏ qua private bất kể module.” | JPMS có thể từ chối với `InaccessibleObjectException`. |
-| “`getDeclaredField()` tìm được field nghĩa là đọc được.” | Khả năng nhìn metadata khác với quyền truy cập giá trị. |
-| “`--add-exports` và `--add-opens` giống nhau.” | `exports` liên quan truy cập public API; `opens` hỗ trợ deep reflection. |
-| “`ALL-UNNAMED` cho phép một named module gọi.” | `ALL-UNNAMED` nhắm tới code thuộc unnamed modules, thường là class path. |
-| “Mở toàn bộ JDK internals là cách sửa bền vững.” | Dùng API chính thức, thư viện tương thích và chỉ mở package cụ thể khi cần. |
-| “Mọi lỗi `IllegalAccessException` đều do `--illegal-access`.” | Có thể liên quan Java visibility, module readability, package export/open, caller hoặc đường gọi cụ thể; cần đọc ngoại lệ và stack trace. |
+| "Adding `--illegal-access=permit` is enough when upgrading to JDK 17+." | The flag is obsolete and ignored starting in JDK 17. |
+| "`--illegal-access=deny` is still blocking permissions on modern JDKs." | Permission state on JDK 17+ is not governed by this flag; other specific options still take effect. |
+| "`setAccessible(true)` always bypasses private regardless of modules." | JPMS can reject it with `InaccessibleObjectException`. |
+| "`getDeclaredField()` finding a field means it can be read." | Visibility of metadata differs from permission to access values. |
+| "`--add-exports` and `--add-opens` are the same." | `exports` governs public API access; `opens` supports deep reflection. |
+| "`ALL-UNNAMED` grants permission to a single named module." | `ALL-UNNAMED` targets code in unnamed modules, typically on the class path. |
+| "Opening all JDK internals is a sustainable fix." | Use official APIs, compatible libraries, and open only specific packages when needed. |
+| "Every `IllegalAccessException` is caused by `--illegal-access`." | It can involve Java visibility, module readability, package export/open, caller, or call path; read the exception and stack trace. |
 
-**Ngoại lệ lịch sử cần hiểu đúng:** JEP 403 vẫn cho phép một số API nội bộ quan trọng như `sun.misc.Unsafe` tiếp tục tồn tại theo cơ chế đặc biệt. Điều đó không có nghĩa toàn bộ JDK internals được mở, cũng không biến API không chuẩn thành hợp đồng ổn định.
+**Historical exception to understand accurately:** JEP 403 still allowed certain key internal APIs such as `sun.misc.Unsafe` to remain under special mechanisms. That does not mean all JDK internals are open, nor does it turn non-standard APIs into stable contracts.
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-1. Trên JDK 17+, chạy ba lệnh trong phần 4. Giải thích tại sao `Greeter.class.getDeclaredMethod("secret")` thành công nhưng `method.setAccessible(true)` bị từ chối trước khi mở package.
-2. Thay `setAccessible(true)` bằng `System.out.println(method.trySetAccessible());`. Dự đoán `false` khi thiếu quyền và `true` khi có `--add-opens`; nhớ bỏ dòng `invoke` hoặc xử lý riêng nếu chỉ muốn thử khả năng mở.
-3. Tại sao `exports demo.api` không cho truy cập private method? Nếu caller chuyển thành named module `app.consumer`, cần thay mục tiêu `ALL-UNNAMED` bằng gì?
-4. Nếu thư viện chỉ cần public type của package chưa export, nên đánh giá `--add-exports` hay `--add-opens` trước? Nếu cần deep reflection vào private field thì chọn gì?
-5. Trên JDK 17+, nếu ứng dụng cũ chạy với `--illegal-access=warn`, cảnh báo cũ có còn đóng vai trò công cụ phát hiện từng truy cập nữa không? Tại sao?
+1. On JDK 17+, run the three commands in section 4. Explain why `Greeter.class.getDeclaredMethod("secret")` succeeds while `method.setAccessible(true)` is rejected before opening the package.
+2. Replace `setAccessible(true)` with `System.out.println(method.trySetAccessible());`. Predict `false` when permission is missing and `true` when `--add-opens` is present; remember to remove or guard the `invoke` line if you only want to test opening capability.
+3. Why does `exports demo.api` not allow accessing a private method? If the caller becomes named module `app.consumer`, what should replace `ALL-UNNAMED`?
+4. If a library only needs public types of an unexported package, should you evaluate `--add-exports` or `--add-opens` first? Which should you choose if deep reflection into private fields is required?
+5. On JDK 17+, if a legacy application runs with `--illegal-access=warn`, do the old warnings still act as a per-access detection tool? Why?
 
-## Tài liệu chính thức
+## Official Documentation
 
 - [JEP 261 — Module System](https://openjdk.org/jeps/261)
 - [JEP 396 — Strongly Encapsulate JDK Internals by Default (JDK 16)](https://openjdk.org/jeps/396)

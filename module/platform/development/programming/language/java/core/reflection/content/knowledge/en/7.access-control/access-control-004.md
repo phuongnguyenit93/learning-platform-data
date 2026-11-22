@@ -1,63 +1,63 @@
-# `canAccess` và đối tượng đích phù hợp trong Java Reflection
+# `canAccess` and the appropriate target object in Java Reflection
 
-## 1. Vấn đề cần giải quyết
+## 1. Problem to solve
 
-Khi dùng Reflection, lấy được một `Field`, `Method` hoặc `Constructor` **không có nghĩa là mã đang chạy được phép truy cập thành viên đó**. Bước tra cứu (`getDeclaredField`, `getDeclaredMethod`, `getDeclaredConstructor`) và bước kiểm tra quyền truy cập là hai việc khác nhau.
+When using Reflection, obtaining a `Field`, `Method`, or `Constructor` **does not mean the running code is allowed to access that member**. The lookup step (`getDeclaredField`, `getDeclaredMethod`, `getDeclaredConstructor`) and the access check step are two different things.
 
-Từ Java 9, `AccessibleObject.canAccess(Object obj)` giúp kiểm tra **mã gọi hiện tại** có thể truy cập thành viên được phản chiếu hay không, trong ngữ cảnh **đối tượng đích phù hợp**. Ba nhóm đối tượng Reflection hỗ trợ phương thức này là:
+Since Java 9, `AccessibleObject.canAccess(Object obj)` helps check whether **the current calling code** can access the reflected member, in the context of an **appropriate target object**. The three groups of Reflection objects that support this method are:
 
-- `Field`: trường dữ liệu, thuộc instance hoặc static;
-- `Method`: phương thức, thuộc instance hoặc static;
-- `Constructor`: hàm tạo, không có instance đích trước khi khởi tạo.
+- `Field`: a data field, instance or static;
+- `Method`: a method, instance or static;
+- `Constructor`: a constructor, which has no target instance before instantiation.
 
-Điểm mấu chốt: đối số `obj` của `canAccess` là **đối tượng đích để xét quyền truy cập**, không phải giá trị trường, tham số phương thức, hoặc tên lớp. Với thành viên static và constructor, phải truyền `null`.
+Key point: the `obj` argument of `canAccess` is the **target object for evaluating access permission**, not a field value, method argument, or class name. For static members and constructors, `null` must be passed.
 
-## 2. Chọn `obj` đúng với loại thành viên
+## 2. Choosing the right `obj` for the member kind
 
-| Đối tượng Reflection | Đối số `canAccess(obj)` hợp lệ | Ví dụ |
+| Reflection object | Valid `canAccess(obj)` argument | Example |
 | --- | --- | --- |
-| `Field` instance | Một đối tượng khác `null`, là instance của lớp khai báo trường hoặc lớp con | `field.canAccess(customer)` |
-| `Method` instance | Một đối tượng khác `null`, là instance của lớp khai báo phương thức hoặc lớp con | `method.canAccess(customer)` |
-| `Field` static | **`null`** | `field.canAccess(null)` |
-| `Method` static | **`null`** | `method.canAccess(null)` |
+| Instance `Field` | A non-`null` object that is an instance of the field's declaring class or a subclass | `field.canAccess(customer)` |
+| Instance `Method` | A non-`null` object that is an instance of the method's declaring class or a subclass | `method.canAccess(customer)` |
+| Static `Field` | **`null`** | `field.canAccess(null)` |
+| Static `Method` | **`null`** | `method.canAccess(null)` |
 | `Constructor` | **`null`** | `ctor.canAccess(null)` |
 
-**Quan trọng:** đây là quy tắc riêng cho `canAccess`. Một số API gọi Reflection khác có thể có quy tắc cho tham số đối tượng đích khác (ví dụ `Field.get` có thể bỏ qua đối tượng truyền vào đối với trường static); không được suy ngược quy tắc ấy cho `canAccess`.
+**Important:** this is a rule specific to `canAccess`. Some other Reflection invocation APIs may have different rules for the target object parameter (for example `Field.get` can ignore the passed object for a static field); do not extrapolate that rule backward onto `canAccess`.
 
-Một instance của **lớp con** vẫn có thể là đối tượng đích hợp lệ cho thành viên instance được khai báo ở lớp cha. Điều kiện kiểu đích hợp lệ chỉ là **điều kiện đầu vào**; chưa đủ để kết luận có quyền truy cập. Đặc biệt với `protected` qua các package, kiểu receiver còn có thể ảnh hưởng đến kết quả kiểm tra quyền theo quy tắc Java.
+An instance of a **subclass** can still be a valid target object for an instance member declared in a superclass. Having a valid target type is only an **input precondition**; it is not enough to conclude access is permitted. Especially with `protected` across packages, the receiver type can also affect the access check result under Java rules.
 
-### Khi truyền sai đối tượng đích
+### When passing the wrong target object
 
-`canAccess` **ném `IllegalArgumentException`**, thay vì trả `false`, nếu:
+`canAccess` **throws `IllegalArgumentException`**, rather than returning `false`, if:
 
-1. Thành viên là **instance field / instance method** nhưng `obj == null`;
-2. Thành viên là instance field / method nhưng `obj` không phải instance của lớp khai báo (hoặc lớp con phù hợp);
-3. Thành viên là **static field / static method / constructor** nhưng `obj != null`.
+1. The member is an **instance field / instance method** and `obj == null`;
+2. The member is an instance field / method and `obj` is not an instance of the declaring class (or an appropriate subclass);
+3. The member is a **static field / static method / constructor** and `obj != null`.
 
-Vì vậy, cần phân biệt:
+Therefore, distinguish:
 
-- `false` = đối số đích đã đúng dạng, nhưng mã gọi **không có quyền truy cập** theo trạng thái/quy tắc hiện tại;
-- `IllegalArgumentException` = **đối tượng đích đưa vào `canAccess` không hợp lệ**. Đây không phải một kết quả kiểm tra quyền `false`.
+- `false` = the target argument has the right form, but the calling code **lacks access permission** under the current state/rules;
+- `IllegalArgumentException` = **the target object passed to `canAccess` is invalid**. This is not an access check result of `false`.
 
-## 3. `canAccess` kiểm tra quyền của ai?
+## 3. Whose permission does `canAccess` check?
 
-`canAccess` trả lời câu hỏi: **caller hiện tại** có được phép truy cập thành viên được phản chiếu trên đối tượng đích này không?
+`canAccess` answers the question: is **the current caller** allowed to access the reflected member on this target object?
 
-Phép kiểm tra liên quan đến nhiều yếu tố:
+The check involves several factors:
 
-- `public`, `protected`, package-private, `private` của thành viên và khả năng truy cập lớp khai báo;
-- vị trí của mã gọi: lớp, package, quan hệ kế thừa;
-- với ứng dụng dùng JPMS (Java Platform Module System): ranh giới module, package được `exports` hoặc `opens`, tùy loại quyền đang dùng;
-- cờ tắt kiểm tra quyền Java language access control của chính đối tượng `Field`/`Method`/`Constructor` đó, được bật khi `trySetAccessible()` hoặc `setAccessible(true)` thành công;
-- kiểu đối tượng đích, nhất là quy tắc receiver của thành viên `protected` trong một số trường hợp kế thừa khác package.
+- `public`, `protected`, package-private, `private` of the member and accessibility of the declaring class;
+- location of the calling code: class, package, inheritance relationship;
+- for applications using JPMS (Java Platform Module System): module boundaries, whether the package is `exports` or `opens`, depending on the type of access used;
+- the flag that suppresses Java language access control checks on that specific `Field`/`Method`/`Constructor` object, enabled when `trySetAccessible()` or `setAccessible(true)` succeeds;
+- the target object's type, especially the receiver rule for `protected` members in certain cross-package inheritance cases.
 
-Nếu cờ bỏ qua kiểm tra quyền đang được bật thành công, `canAccess` trả `true` khi `obj` hợp lệ. Nếu cờ chưa bật, nó xét quyền của caller theo cơ chế kiểm soát truy cập Java (Reflection có điều chỉnh riêng về module readability theo Javadoc).
+If the access-check suppression flag has been successfully enabled, `canAccess` returns `true` when `obj` is valid. If the flag is not enabled, it checks the caller's permission under Java access control (Reflection has specific adjustments for module readability per the Javadoc).
 
-**Không nên coi `canAccess` là đặc điểm cố định của riêng một `Field` hay `Method`.** Khi gọi nó từ các lớp khác nhau, kết quả có thể khác, vì caller thay đổi. Chuyển một `Method` qua helper rồi gọi `canAccess` trong helper cũng khiến ngữ cảnh kiểm tra gắn với helper, không tự chuyển quyền của caller ban đầu.
+**Do not treat `canAccess` as a fixed property of a `Field` or `Method` alone.** When called from different classes, the result can differ because the caller changes. Passing a `Method` to a helper and calling `canAccess` inside the helper also ties the check context to the helper, without automatically transferring the original caller's permissions.
 
-## 4. Ví dụ Java 17+ chạy độc lập
+## 4. Standalone runnable Java 17+ example
 
-Lưu thành file `CanAccessDemo.java`. Hai lớp `CanAccessDemo` và `AccessTarget` là **hai lớp top-level khác nhau** trong cùng file và cùng package mặc định; nhờ đó ví dụ về `private` không bị ảnh hưởng bởi quan hệ nestmate của các lớp lồng nhau.
+Save as `CanAccessDemo.java`. The two classes `CanAccessDemo` and `AccessTarget` are **two different top-level classes** in the same file and default package; because of this, the `private` example is not affected by the nestmate relationship of nested classes.
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -81,16 +81,16 @@ public class CanAccessDemo {
         Constructor<AccessTarget> constructor =
                 AccessTarget.class.getDeclaredConstructor();
 
-        // Instance member: truyền instance đích hợp lệ.
+        // Instance member: pass a valid target instance.
         System.out.println("public field: " + publicField.canAccess(target));
         System.out.println("instance method: " + instanceMethod.canAccess(target));
 
-        // Static member và constructor: truyền null.
+        // Static member and constructor: pass null.
         System.out.println("static field: " + staticField.canAccess(null));
         System.out.println("static method: " + staticMethod.canAccess(null));
         System.out.println("constructor: " + constructor.canAccess(null));
 
-        // Đích hợp lệ nhưng private: caller không có quyền mặc định.
+        // Valid target but private: caller has no default permission.
         System.out.println("private before: " + privateField.canAccess(target));
 
         try {
@@ -117,7 +117,7 @@ public class CanAccessDemo {
             System.out.println("constructor + non-null: IllegalArgumentException");
         }
 
-        // Hai lớp cùng unnamed module: có thể bật quyền trong ví dụ này.
+        // Two classes in the same unnamed module: permission can be enabled in this example.
         boolean enabled = privateField.trySetAccessible();
         System.out.println("opened private: " + enabled);
         System.out.println("private after: " + privateField.canAccess(target));
@@ -141,14 +141,14 @@ class AccessTarget {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac CanAccessDemo.java
 java CanAccessDemo
 ~~~
 
-Kết quả trên JDK 17+ khi hai lớp được chạy trong cùng unnamed module (như lệnh trên):
+Output on JDK 17+ when the two classes are run in the same unnamed module (as in the command above):
 
 ~~~text
 public field: true
@@ -166,54 +166,54 @@ private after: true
 secret value: demo
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-1. Trường `count` và phương thức `ping` là public, mã `CanAccessDemo` ở cùng package với `AccessTarget`, và `target` là instance hợp lệ: `canAccess(target)` trả `true`.
-2. `total` và `reset` là static; constructor không có instance đích: phải dùng `canAccess(null)`.
-3. `secret` là `private` của **một lớp top-level khác**. Caller `CanAccessDemo` không được truy cập mặc định, nên kết quả `false` dù `target` đúng kiểu.
-4. Bốn lời gọi trong khối `try` cố tình vi phạm quy tắc của tham số `obj`. Mỗi lời gọi phát sinh `IllegalArgumentException` trước khi đưa ra kết luận có quyền hay không.
-5. `trySetAccessible()` thành công trong ví dụ cùng unnamed module; trạng thái cờ cho phép bỏ qua kiểm tra truy cập ngôn ngữ, nên `canAccess(target)` đổi thành `true` và `Field.get(target)` đọc được trường private. Điều đó **không bảo đảm thành công với mọi module hoặc mọi thành viên**.
+1. Field `count` and method `ping` are public, `CanAccessDemo` code is in the same package as `AccessTarget`, and `target` is a valid instance: `canAccess(target)` returns `true`.
+2. `total` and `reset` are static; the constructor has no target instance: `canAccess(null)` must be used.
+3. `secret` is `private` to **another top-level class**. Caller `CanAccessDemo` does not have default access, so the result is `false` even though `target` has the right type.
+4. The four calls inside `try` blocks intentionally violate the `obj` parameter rule. Each call triggers `IllegalArgumentException` before reaching a conclusion on whether access is permitted.
+5. `trySetAccessible()` succeeds in this same-unnamed-module example; the flag state enables bypassing language access checks, so `canAccess(target)` changes to `true` and `Field.get(target)` can read the private field. That **does not guarantee success across all modules or all members**.
 
-## 5. Dùng `canAccess` cùng `trySetAccessible` như thế nào?
+## 5. How to use `canAccess` together with `trySetAccessible`
 
-`canAccess(obj)` là **phép kiểm tra**; nó không tự thay đổi quyền truy cập. `trySetAccessible()` là **yêu cầu bật cờ bỏ qua kiểm tra truy cập** nếu được phép:
+`canAccess(obj)` is a **check**; it does not change access permission itself. `trySetAccessible()` is a **request to enable the access-check suppression flag** if allowed:
 
 ~~~java
-// Minh họa trong ngữ cảnh đã có:
-// Field field = ...; Object receiver = ...; receiver đúng kiểu.
+// Illustration in an existing context:
+// Field field = ...; Object receiver = ...; receiver has the right type.
 if (!field.canAccess(receiver)) {
     if (!field.trySetAccessible()) {
-        throw new IllegalAccessException("Không thể bật quyền Reflection");
+        throw new IllegalAccessException("Cannot enable Reflection access");
     }
 }
 Object value = field.get(receiver);
 ~~~
 
-Đây là đoạn code **minh họa trong phương thức có xử lý/khai báo checked exception**; nó không phải chương trình độc lập. Chỉ thực hiện yêu cầu mở quyền đối với thành viên mà ứng dụng được phép và thật sự cần truy cập.
+This snippet is an **illustration inside a method that handles/declares checked exceptions**; it is not a standalone program. Only request opening access for members that the application is permitted and genuinely needs to access.
 
-- `canAccess` không mở quyền; `false` không đồng nghĩa với `trySetAccessible` chắc chắn sẽ thành công.
-- `trySetAccessible` trả `true` nếu bật được cờ; trả `false` khi không thể bật do giới hạn truy cập thông thường, chẳng hạn package của module khác không mở thích hợp cho caller. Nó vẫn có thể ném `SecurityException` trong môi trường áp dụng Security Manager.
-- `setAccessible(true)` có mục tiêu tương tự, nhưng có thể ném `InaccessibleObjectException` nếu không thể bật cờ do hạn chế đóng gói module.
-- `isAccessible()` đã deprecated từ Java 9. Tên của nó dễ gây hiểu nhầm: nó chỉ phản ánh cờ bỏ qua kiểm tra quyền, **không** trả lời đầy đủ caller có quyền truy cập hay không. Dùng `canAccess` cho câu hỏi kiểm tra quyền hiện tại.
-- `canAccess` trả `true` không có nghĩa thao tác kế tiếp chắc chắn thành công vì còn các điều kiện khác: đối số của `Method.invoke`, kiểu dữ liệu khi `Field.set`, trạng thái `final`, ngoại lệ từ phương thức đích và các yếu tố runtime khác.
+- `canAccess` does not open access; `false` does not imply `trySetAccessible` will definitely succeed.
+- `trySetAccessible` returns `true` if the flag could be enabled; it returns `false` when it cannot be enabled due to normal access restrictions, such as another module's package not being appropriately opened to the caller. It can still throw `SecurityException` in an environment enforcing a Security Manager.
+- `setAccessible(true)` has a similar goal, but can throw `InaccessibleObjectException` if the flag cannot be enabled due to module encapsulation restrictions.
+- `isAccessible()` has been deprecated since Java 9. Its name is misleading: it only reflects the access-check suppression flag and does **not** fully answer whether the caller has permission to access. Use `canAccess` for checking current access permission.
+- `canAccess` returning `true` does not mean the next operation is guaranteed to succeed, because other conditions remain: arguments to `Method.invoke`, data types in `Field.set`, `final` status, exceptions from the target method, and other runtime factors.
 
-### Các trạng thái dễ nhầm lẫn
+### Easily confused states
 
-| Trường hợp | Kết quả thường thấy | Lý do |
+| Case | Typical result | Reason |
 | --- | --- | --- |
-| Public instance field, receiver đúng kiểu, lớp/package truy cập được | `true` | Caller có quyền thông thường. |
-| Private instance field của lớp top-level khác, receiver đúng kiểu | `false` | Receiver hợp lệ nhưng quyền bị hạn chế. |
-| Instance field, receiver `null` | `IllegalArgumentException` | Sai loại đối tượng đích. |
-| Instance method, receiver không thuộc lớp khai báo hoặc lớp con | `IllegalArgumentException` | Sai loại đối tượng đích. |
-| Static method, receiver là một object | `IllegalArgumentException` | Static đòi `null`. |
-| Constructor, receiver là object | `IllegalArgumentException` | Constructor đòi `null`. |
-| Private field, đã `trySetAccessible()` thành công, receiver đúng kiểu | `true` | Đã bật cờ bỏ qua kiểm tra truy cập. |
+| Public instance field, matching receiver type, accessible class/package | `true` | Caller has normal permission. |
+| Private instance field of another top-level class, matching receiver type | `false` | Receiver is valid, but permission is restricted. |
+| Instance field, `null` receiver | `IllegalArgumentException` | Wrong target object kind. |
+| Instance method, receiver not of declaring class or subclass | `IllegalArgumentException` | Wrong target object kind. |
+| Static method, receiver is an object | `IllegalArgumentException` | Static requires `null`. |
+| Constructor, receiver is an object | `IllegalArgumentException` | Constructor requires `null`. |
+| Private field, `trySetAccessible()` succeeded, matching receiver type | `true` | Access-check suppression flag is enabled. |
 
-## 6. Bẫy trong code thực tế
+## 6. Pitfalls in real-world code
 
-### Nhầm đối số của `canAccess` với đối số của `invoke`
+### Confusing the `canAccess` argument with `invoke` arguments
 
-Với instance method:
+For an instance method:
 
 ~~~java
 Method m = String.class.getMethod("substring", int.class);
@@ -223,18 +223,18 @@ System.out.println(m.canAccess(receiver)); // true
 System.out.println(m.invoke(receiver, 3));  // lection
 ~~~
 
-`canAccess(receiver)` nhận **receiver**, không nhận `3`. `invoke(receiver, 3)` nhận receiver **và** đối số truyền cho `substring`. Nếu gọi `m.canAccess(3)`, đây là `Integer` chứ không phải `String`, nên ném `IllegalArgumentException`. Đoạn code trên minh họa cần đặt trong hàm có xử lý/khai báo ngoại lệ checked.
+`canAccess(receiver)` takes the **receiver**, not `3`. `invoke(receiver, 3)` takes the receiver **and** the argument passed to `substring`. Calling `m.canAccess(3)` passes an `Integer` instead of a `String`, throwing `IllegalArgumentException`. The illustrative snippet above must be placed in a method that handles/declares checked exceptions.
 
-### Nhầm `null` ở constructor với chưa được phép tạo instance
+### Confusing `null` on a constructor with not being allowed to create an instance
 
-`constructor.canAccess(null)` chỉ kiểm tra quyền đối với constructor. `null` là giá trị bắt buộc của tham số kiểm tra, **không phải tham số truyền vào constructor**. Khi muốn tạo instance, dùng `constructor.newInstance(args...)` với các tham số thật và xử lý ngoại lệ thích hợp.
+`constructor.canAccess(null)` only checks permission for the constructor. `null` is the required value for the check parameter, **not an argument passed to the constructor**. When you want to create an instance, call `constructor.newInstance(args...)` with the real arguments and handle appropriate exceptions.
 
-### Bỏ qua kiểm tra kiểu trước khi kiểm tra quyền
+### Skipping type checks before permission checks
 
-Nếu viết tiện ích chung để gọi Reflection, trước hết xác định có phải static hay constructor không, rồi kiểm tra receiver:
+If writing a shared utility to perform Reflection calls, first determine whether it is static or a constructor, then validate the receiver:
 
 ~~~java
-// Mã phác họa áp dụng khi đã có AccessibleObject member.
+// Sketch applicable when AccessibleObject member is already available.
 if (member instanceof Constructor<?>) {
     // canAccess(null)
 } else if (member instanceof Field field) {
@@ -244,31 +244,31 @@ if (member instanceof Constructor<?>) {
 }
 ~~~
 
-Đoạn trên là mô tả logic, không phải hàm hoàn chỉnh. Với instance member, cần kiểm tra `receiver != null` và `declaringClass.isInstance(receiver)` trước khi gọi `canAccess(receiver)`, để lỗi dữ liệu đích được báo rõ ràng. `Class.isInstance` phù hợp với instance lớp con, thay vì chỉ so sánh chính xác `receiver.getClass() == declaringClass`.
+The snippet above describes logic, not a complete function. For an instance member, check `receiver != null` and `declaringClass.isInstance(receiver)` before calling `canAccess(receiver)`, so target-data errors are reported clearly. `Class.isInstance` handles subclass instances, rather than only comparing exact `receiver.getClass() == declaringClass`.
 
-### Hiểu sai module và `public`
+### Misunderstanding modules and `public`
 
-Một phương thức `public` không tự động truy cập được từ mọi module nếu lớp hoặc package khai báo không được xuất phù hợp. Ngược lại, có thể lấy metadata bằng `getDeclaredMethod` nhưng chưa có quyền `invoke`. Khi ứng dụng ở các named module khác nhau, `exports` liên quan đến quyền sử dụng API công khai; `opens` liên quan đến khả năng thực hiện deep reflection. Quyền mở bằng `trySetAccessible` không được xem như một cách vượt mọi ranh giới module.
+A `public` method is not automatically accessible from every module if the declaring class or package is not appropriately exported. Conversely, metadata can be obtained with `getDeclaredMethod` without yet having permission to `invoke`. When an application runs across different named modules, `exports` relates to using public APIs; `opens` relates to performing deep reflection. Opening with `trySetAccessible` must not be viewed as a way to bypass all module boundaries.
 
-## 7. Checklist quyết định `canAccess` theo từng bước
+## 7. Step-by-step `canAccess` decision checklist
 
-1. **Xác định loại thành viên:** `Field`, `Method` hay `Constructor`.
-2. **Xác định static hay instance:** `Modifier.isStatic(member.getModifiers())` áp dụng cho field/method.
-3. **Chọn receiver:** static/constructor → `null`; instance → object thuộc lớp khai báo hoặc lớp con.
-4. **Gọi `canAccess(receiver)`:** xử lý riêng trường hợp sai receiver gây `IllegalArgumentException`.
-5. **Nếu trả `false`:** xem quyền lớp/package/module và chính sách ứng dụng; chỉ cân nhắc `trySetAccessible()` khi cần và được phép.
-6. **Thực thi Reflection:** `Field.get/set`, `Method.invoke` hoặc `Constructor.newInstance`; tiếp tục xử lý các lỗi đặc thù của thao tác.
+1. **Identify the member kind:** `Field`, `Method`, or `Constructor`.
+2. **Determine static vs instance:** `Modifier.isStatic(member.getModifiers())` applies to fields/methods.
+3. **Choose the receiver:** static/constructor → `null`; instance → an object of the declaring class or a subclass.
+4. **Call `canAccess(receiver)`:** handle separately the case where an invalid receiver causes `IllegalArgumentException`.
+5. **If it returns `false`:** examine class/package/module permissions and application policy; consider `trySetAccessible()` only when needed and allowed.
+6. **Execute Reflection:** `Field.get/set`, `Method.invoke`, or `Constructor.newInstance`; continue handling operation-specific errors.
 
-### Tự kiểm tra
+### Self-check
 
-- Có một `Field` private thuộc instance; truyền một instance đúng lớp vào `canAccess` nhưng chưa mở quyền. Kết quả là gì? **Thường là `false` nếu caller không có quyền**, không phải `IllegalArgumentException`.
-- Có một `Method` static public; gọi `canAccess(new Object())` thì sao? **`IllegalArgumentException`**, vì static phải truyền `null`.
-- Có `Field` instance khai báo trong `Base`, đối tượng thực tế là `Derived extends Base`. Receiver hợp lệ không? **Có**; sau đó mới xét quyền truy cập của caller.
-- `trySetAccessible()` trả `false` thì có nên gọi `get` trên private field như thể đã mở quyền? **Không**; cần xử lý thiếu quyền hoặc thay đổi thiết kế/API.
+- You have a private instance `Field`; you pass an instance of the right class to `canAccess` without having opened access. What is the result? **Usually `false` if the caller lacks permission**, not `IllegalArgumentException`.
+- You have a public static `Method`; what happens if you call `canAccess(new Object())`? **`IllegalArgumentException`**, because static requires passing `null`.
+- You have an instance `Field` declared in `Base`, and the actual object is `Derived extends Base`. Is the receiver valid? **Yes**; only after that is the caller's access permission evaluated.
+- If `trySetAccessible()` returns `false`, should you call `get` on a private field as if access had been opened? **No**; you must handle the lack of permission or change the design/API.
 
-**Kết luận:** `canAccess(obj)` cần **đúng đối tượng đích trước**, rồi mới đánh giá **quyền của caller**. `false` biểu thị không được phép truy cập với đối tượng hợp lệ; đối tượng sai loại gây `IllegalArgumentException`. Static member và constructor phải truyền `null`.
+**Conclusion:** `canAccess(obj)` requires **the right target object first**, and only then evaluates **the caller's permission**. `false` indicates access is not permitted with a valid target object; a wrong target type causes `IllegalArgumentException`. Static members and constructors must pass `null`.
 
-### Tài liệu chính thức
+### Official documentation
 
 - [JDK 17 — AccessibleObject.canAccess(Object)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html#canAccess(java.lang.Object))
 - [JDK 17 — AccessibleObject.trySetAccessible()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html#trySetAccessible())

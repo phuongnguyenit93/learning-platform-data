@@ -1,18 +1,18 @@
-# Locale.of và các hằng Locale có sẵn trong Java
+# Locale.of and Built-in Locale Constants in Java
 
-## 1. Bài toán: tạo đúng Locale để xử lý ngôn ngữ và vùng
+## 1. The Problem: Creating the Right Locale to Handle Language and Region
 
-Một ứng dụng có thể cần hiển thị nội dung cho người dùng Việt Nam (`vi-VN`), người dùng tiếng Anh ở Hoa Kỳ (`en-US`), tiếng Anh ở Anh (`en-GB`) hoặc tiếng Pháp ở Canada (`fr-CA`). Mỗi lựa chọn đại diện cho một **`Locale`**: tập thông tin nhận diện ngôn ngữ và bối cảnh vùng, có thể gồm script (hệ chữ), variant và các extension.
+An application may need to display content for users in Vietnam (`vi-VN`), English users in the United States (`en-US`), English in the United Kingdom (`en-GB`), or French in Canada (`fr-CA`). Each choice represents a **`Locale`**: a set of information identifying a language and regional context, which may include a script (writing system), variant, and extensions.
 
-Trong Java, lớp `java.util.Locale` cung cấp các đối tượng dùng bởi `ResourceBundle`, `NumberFormat`, `DateTimeFormatter`, `Collator` và nhiều API khác. Để tạo một `Locale` phổ biến, có thể gọi factory `Locale.of(...)` hoặc dùng các **hằng được định nghĩa sẵn** như `Locale.US`, `Locale.ENGLISH`, `Locale.JAPAN`.
+In Java, the `java.util.Locale` class provides objects used by `ResourceBundle`, `NumberFormat`, `DateTimeFormatter`, `Collator`, and many other APIs. To create a common `Locale`, you can call the `Locale.of(...)` factory or use **predefined constants** such as `Locale.US`, `Locale.ENGLISH`, and `Locale.JAPAN`.
 
-**Điều cốt lõi:** `Locale` là mô tả *ngôn ngữ/vùng*, không phải câu đã được dịch, không phải múi giờ hay đơn vị tiền của giao dịch. `Locale.of("vi", "VN")` không tự động biến chuỗi tiếng Anh thành tiếng Việt; nó tạo đối tượng ngữ cảnh để các thành phần phù hợp biết cách xử lý.
+**Key point:** A `Locale` is a *language/region* descriptor, not a translated sentence, not a time zone, and not a transaction currency. `Locale.of("vi", "VN")` does not automatically turn English strings into Vietnamese; it creates a context object so appropriate components know how to behave.
 
-Mục tiêu bài học: hiểu các overload của `Locale.of`, chọn chính xác các hằng phổ biến, phân biệt ngôn ngữ và vùng, đọc lại các thành phần của locale, biết lúc nào dùng thẻ BCP 47/`Locale.Builder` và tránh lỗi phiên bản JDK.
+Lesson objectives: understand the overloads of `Locale.of`, choose common constants accurately, distinguish language and region, read back locale components, know when to use BCP 47 tags/`Locale.Builder`, and avoid JDK version errors.
 
-## 2. Tạo Locale với Locale.of(...) — có từ Java 19
+## 2. Creating a Locale with Locale.of(...) — Available Since Java 19
 
-Từ **Java 19**, `Locale` cung cấp ba factory method tĩnh:
+Since **Java 19**, `Locale` provides three static factory methods:
 
 ```java
 Locale.of(String language)
@@ -20,92 +20,92 @@ Locale.of(String language, String country)
 Locale.of(String language, String country, String variant)
 ```
 
-Ba tham số có ý nghĩa khác nhau:
+The three parameters have different meanings:
 
-| Tham số | Giá trị thường gặp | Chức năng |
+| Parameter | Common Values | Purpose |
 | --- | --- | --- |
-| `language` | `"vi"`, `"en"`, `"fr"`, `"ja"` | Mã ngôn ngữ (thường từ ISO 639), được chuẩn hóa về chữ thường |
-| `country` / region | `"VN"`, `"US"`, `"GB"`, `"JP"` | Mã quốc gia/vùng (thường ISO 3166-1 alpha-2 hoặc UN M.49 dạng ba chữ số), được chuẩn hóa về chữ hoa |
-| `variant` | `"POSIX"` | Biến thể bổ sung, giữ nguyên chữ hoa/thường; chỉ dùng khi thực sự có yêu cầu |
+| `language` | `"vi"`, `"en"`, `"fr"`, `"ja"` | Language code (usually from ISO 639), normalized to lowercase |
+| `country` / region | `"VN"`, `"US"`, `"GB"`, `"JP"` | Country/region code (usually ISO 3166-1 alpha-2 or three-digit UN M.49), normalized to uppercase |
+| `variant` | `"POSIX"` | Additional variant, preserving letter case; use only when actually required |
 
-Ví dụ:
+Example:
 
 ```java
-Locale vietnamese = Locale.of("vi");              // Chỉ ngôn ngữ
-Locale vietnam = Locale.of("vi", "VN");            // Ngôn ngữ + vùng
+Locale vietnamese = Locale.of("vi");              // Language only
+Locale vietnam = Locale.of("vi", "VN");            // Language + region
 Locale americanEnglish = Locale.of("en", "US");
 Locale withVariant = Locale.of("en", "US", "POSIX");
 ```
 
-Các đối tượng này được tạo bằng factory, **không thay đổi** `Locale` mặc định của JVM và không trực tiếp thay đổi format của một ứng dụng. Hãy chuyển `Locale` đến API cần dùng.
+These objects are created by the factory; they **do not change** the JVM's default `Locale` and do not directly change an application's formatting. Pass the `Locale` to the API that needs it.
 
-`Locale.of` chuẩn hóa hai thành phần language và country: `Locale.of("EN", "us")` biểu diễn cùng locale với `Locale.of("en", "US")`. Factory này **không kiểm tra đầy đủ cú pháp** của mã được cung cấp; truyền ký hiệu tùy tiện vẫn có thể tạo ra đối tượng không có ý nghĩa đối với provider dữ liệu locale. Các tham số `null` gây `NullPointerException`. Vì vậy, phải kiểm tra lựa chọn locale của hệ thống ở tầng ứng dụng.
+`Locale.of` normalizes the language and country components: `Locale.of("EN", "us")` represents the same locale as `Locale.of("en", "US")`. This factory **does not perform full syntax validation** on the supplied codes; passing arbitrary symbols can still create an object that has no meaning to locale data providers. `null` arguments cause a `NullPointerException`. Therefore, system locale choices must be validated at the application layer.
 
-### Điểm rất dễ nhầm: Locale.of không nhận một thẻ BCP 47 duy nhất
+### A Very Common Pitfall: Locale.of Does Not Accept a Single BCP 47 Tag
 
-Hai cách viết sau có ý nghĩa khác nhau:
+The following two expressions have different meanings:
 
 ```java
 Locale correct = Locale.of("en", "US");
 Locale alsoCorrect = Locale.forLanguageTag("en-US");
 
-// SAI MỤC ĐÍCH: toàn bộ "en-US" được xem là một tham số language.
+// WRONG INTENT: the entire "en-US" is treated as a single language argument.
 Locale incorrect = Locale.of("en-US");
 ```
 
-`Locale.of(String)` cần **mã ngôn ngữ riêng**, ví dụ `"en"`, chứ không phân tích chuỗi ghép `"en-US"` thành language + region. Nếu nhận một chuỗi thẻ locale từ cấu hình, HTTP header hoặc hồ sơ người dùng, dùng `Locale.forLanguageTag("en-US")`; nếu cần kiểm tra cú pháp BCP 47 nghiêm ngặt, cân nhắc `Locale.Builder`.
+`Locale.of(String)` expects a **standalone language code**, such as `"en"`, rather than parsing a combined string `"en-US"` into language + region. If you receive a locale tag string from configuration, an HTTP header, or a user profile, use `Locale.forLanguageTag("en-US")`; if strict BCP 47 syntax checking is needed, consider `Locale.Builder`.
 
-### Khi nào dùng overload thứ ba?
+### When to Use the Third Overload?
 
-`Locale.of("en", "US", "POSIX")` có thêm variant. Variant là một phần định danh locale; không dùng variant để nhét múi giờ, tên người dùng, mã tiền hoặc bất kỳ nhãn tùy ý nào. Các trường hợp cần script như `zh-Hant-TW` hoặc extension như `th-TH-u-nu-thai` nên dùng `Locale.forLanguageTag` hoặc `Locale.Builder`; `Locale.of` không có đối số dành riêng cho script và extension.
+`Locale.of("en", "US", "POSIX")` adds a variant. A variant is part of the locale identifier; do not use a variant to stuff in a time zone, username, currency code, or any arbitrary label. Cases requiring a script such as `zh-Hant-TW` or an extension such as `th-TH-u-nu-thai` should use `Locale.forLanguageTag` or `Locale.Builder`; `Locale.of` has no dedicated parameters for scripts and extensions.
 
-## 3. Các hằng Locale thường dùng
+## 3. Commonly Used Locale Constants
 
-Java đã định nghĩa những đối tượng phổ biến bằng hằng `public static final`. Dùng hằng khi nó có **đúng ý nghĩa** mà chương trình cần: code gọn, tránh nhập sai mã, và rõ mục đích.
+Java defines common objects as `public static final` constants. Use a constant when it has the **exact meaning** your program needs: the code is concise, avoids typos in codes, and makes the intent clear.
 
-### 3.1. Hằng chỉ có ngôn ngữ
+### 3.1. Language-Only Constants
 
-| Hằng | Language tag | Ý nghĩa |
+| Constant | Language tag | Meaning |
 | --- | --- | --- |
-| `Locale.ENGLISH` | `en` | Tiếng Anh, chưa chỉ định vùng |
-| `Locale.FRENCH` | `fr` | Tiếng Pháp, chưa chỉ định vùng |
-| `Locale.GERMAN` | `de` | Tiếng Đức, chưa chỉ định vùng |
-| `Locale.ITALIAN` | `it` | Tiếng Ý, chưa chỉ định vùng |
-| `Locale.JAPANESE` | `ja` | Tiếng Nhật, chưa chỉ định vùng |
-| `Locale.KOREAN` | `ko` | Tiếng Hàn, chưa chỉ định vùng |
-| `Locale.CHINESE` | `zh` | Tiếng Trung, chưa chỉ định vùng/script |
+| `Locale.ENGLISH` | `en` | English, no region specified |
+| `Locale.FRENCH` | `fr` | French, no region specified |
+| `Locale.GERMAN` | `de` | German, no region specified |
+| `Locale.ITALIAN` | `it` | Italian, no region specified |
+| `Locale.JAPANESE` | `ja` | Japanese, no region specified |
+| `Locale.KOREAN` | `ko` | Korean, no region specified |
+| `Locale.CHINESE` | `zh` | Chinese, no region/script specified |
 
-Ví dụ, `Locale.ENGLISH` tương đương về giá trị với `Locale.of("en")`; nó **không tự động** mang quốc gia Hoa Kỳ. Điều này quan trọng khi chọn tài nguyên dịch theo ngôn ngữ, thay vì áp đặt vùng mặc định.
+For example, `Locale.ENGLISH` is equivalent in value to `Locale.of("en")`; it **does not automatically** carry the United States country code. This matters when selecting translation resources by language rather than imposing a default region.
 
-### 3.2. Hằng có ngôn ngữ và vùng
+### 3.2. Constants with Language and Region
 
-| Hằng | Language tag | Ý nghĩa |
+| Constant | Language tag | Meaning |
 | --- | --- | --- |
-| `Locale.US` | `en-US` | Tiếng Anh ở Hoa Kỳ |
-| `Locale.UK` | `en-GB` | Tiếng Anh ở Vương quốc Anh |
-| `Locale.CANADA` | `en-CA` | Tiếng Anh ở Canada |
-| `Locale.CANADA_FRENCH` | `fr-CA` | Tiếng Pháp ở Canada |
-| `Locale.FRANCE` | `fr-FR` | Tiếng Pháp ở Pháp |
-| `Locale.GERMANY` | `de-DE` | Tiếng Đức ở Đức |
-| `Locale.ITALY` | `it-IT` | Tiếng Ý ở Ý |
-| `Locale.JAPAN` | `ja-JP` | Tiếng Nhật ở Nhật Bản |
-| `Locale.KOREA` | `ko-KR` | Tiếng Hàn ở Hàn Quốc |
-| `Locale.CHINA` | `zh-CN` | Tiếng Trung ở Trung Quốc |
-| `Locale.TAIWAN` | `zh-TW` | Tiếng Trung trong ngữ cảnh Đài Loan |
+| `Locale.US` | `en-US` | English in the United States |
+| `Locale.UK` | `en-GB` | English in the United Kingdom |
+| `Locale.CANADA` | `en-CA` | English in Canada |
+| `Locale.CANADA_FRENCH` | `fr-CA` | French in Canada |
+| `Locale.FRANCE` | `fr-FR` | French in France |
+| `Locale.GERMANY` | `de-DE` | German in Germany |
+| `Locale.ITALY` | `it-IT` | Italian in Italy |
+| `Locale.JAPAN` | `ja-JP` | Japanese in Japan |
+| `Locale.KOREA` | `ko-KR` | Korean in South Korea |
+| `Locale.CHINA` | `zh-CN` | Chinese in China |
+| `Locale.TAIWAN` | `zh-TW` | Chinese in the Taiwan context |
 
-Các hằng liên quan đến tiếng Trung cần hiểu thêm:
+The constants related to Chinese require further understanding:
 
-- `Locale.PRC` là alias có cùng giá trị với `Locale.CHINA`.
-- `Locale.SIMPLIFIED_CHINESE` có cùng giá trị với `Locale.CHINA` (`zh-CN`).
-- `Locale.TRADITIONAL_CHINESE` có cùng giá trị với `Locale.TAIWAN` (`zh-TW`).
+- `Locale.PRC` is an alias with the same value as `Locale.CHINA`.
+- `Locale.SIMPLIFIED_CHINESE` has the same value as `Locale.CHINA` (`zh-CN`).
+- `Locale.TRADITIONAL_CHINESE` has the same value as `Locale.TAIWAN` (`zh-TW`).
 
-**Đừng suy luận rằng các hằng trên chứa script `Hans` hay `Hant`.** Tên `SIMPLIFIED_CHINESE` và `TRADITIONAL_CHINESE` là tên hằng lịch sử gắn với vùng; việc muốn *chỉ định script tường minh* cần `Locale.forLanguageTag("zh-Hans-CN")` hoặc `Locale.forLanguageTag("zh-Hant-TW")`. `zh-TW` và `zh-Hant-TW` có thể dẫn đến kết quả hiển thị tương tự trong một số API, nhưng **không phải hai đối tượng `Locale` có cùng thành phần**.
+**Do not infer that the constants above contain the `Hans` or `Hant` script.** The names `SIMPLIFIED_CHINESE` and `TRADITIONAL_CHINESE` are historical constant names tied to regions; wanting to *explicitly specify the script* requires `Locale.forLanguageTag("zh-Hans-CN")` or `Locale.forLanguageTag("zh-Hant-TW")`. `zh-TW` and `zh-Hant-TW` may lead to similar display results in some APIs, but they **are not two `Locale` objects with the same components**.
 
-### 3.3. Locale.ROOT là trường hợp đặc biệt
+### 3.3. Locale.ROOT Is a Special Case
 
-`Locale.ROOT` có language, country và variant rỗng. Nó không biểu diễn tiếng Anh hay quốc gia nào. Đây là locale trung tính, thường hữu ích khi phần xử lý cần quy tắc độc lập với tùy chọn của người dùng, hoặc làm locale gốc trong các hệ thống tài nguyên.
+`Locale.ROOT` has an empty language, country, and variant. It does not represent English or any country. It is the neutral locale, often useful when processing needs rules independent of user preferences, or as the root locale in resource systems.
 
-Ví dụ:
+Example:
 
 ```java
 Locale root = Locale.ROOT;
@@ -115,22 +115,22 @@ System.out.println(root.getCountry().isEmpty());  // true
 System.out.println(root.toLanguageTag());         // und
 ```
 
-`"und"` là thẻ “undetermined language” trong kết quả BCP 47. Không dùng `Locale.ROOT` làm “bản dịch tiếng Anh mặc định” một cách mặc nhiên; bản dịch dự phòng phải được cấu hình riêng.
+`"und"` is the “undetermined language” tag in BCP 47 output. Do not implicitly use `Locale.ROOT` as a “default English translation”; a fallback translation must be configured separately.
 
-### 3.4. Không phải mọi locale đều có hằng
+### 3.4. Not Every Locale Has a Constant
 
-API không có hằng `Locale.VIETNAM` hoặc `Locale.VIETNAMESE`. Với tiếng Việt:
+The API does not have a `Locale.VIETNAM` or `Locale.VIETNAMESE` constant. For Vietnamese:
 
 ```java
 Locale vietnam = Locale.of("vi", "VN"); // Java 19+
 Locale vietnamFromTag = Locale.forLanguageTag("vi-VN"); // Java 7+
 ```
 
-Hai đối tượng biểu diễn cùng language/region và so sánh bằng `equals`. Không nên “mượn” `Locale.CHINESE` hay `Locale.ENGLISH` làm fallback chỉ vì chưa thấy hằng phù hợp.
+The two objects represent the same language/region and compare equal with `equals`. You should not “borrow” `Locale.CHINESE` or `Locale.ENGLISH` as a fallback just because you do not see a matching constant.
 
-## 4. Ví dụ Java 21: tạo, so sánh và đọc Locale
+## 4. Java 21 Example: Creating, Comparing, and Reading Locales
 
-Tạo tệp **`LocaleFactoryDemo.java`** (một file Java độc lập):
+Create the file **`LocaleFactoryDemo.java`** (a standalone Java file):
 
 ```java
 import java.util.Locale;
@@ -156,14 +156,14 @@ public class LocaleFactoryDemo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 21**:
+Compile and run with **JDK 21**:
 
 ```bash
 javac -encoding UTF-8 LocaleFactoryDemo.java
 java LocaleFactoryDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Vietnam tag: vi-VN
@@ -176,28 +176,28 @@ CHINA aliases: true
 TAIWAN aliases: true
 ```
 
-Điểm cần quan sát:
+Points to observe:
 
-1. `Locale.of("EN", "us")` được chuẩn hóa thành `en-US`, nên `equals(Locale.US)` là `true`.
-2. `Locale.ENGLISH` là `en`, khác `Locale.US` là `en-US`: chọn ngôn ngữ chưa đồng nghĩa chọn vùng.
-3. `Locale.ROOT.toLanguageTag()` trả về `und`; đây không phải ngôn ngữ cụ thể.
-4. Với thẻ `zh-Hant-TW`, `getScript()` trả `"Hant"` và `getCountry()` trả `"TW"`. Factory `Locale.of("zh", "TW")` không tự động chứa `Hant`.
-5. Các hằng alias so sánh bằng nhau theo `equals` vì có cùng giá trị locale.
+1. `Locale.of("EN", "us")` is normalized to `en-US`, so `equals(Locale.US)` is `true`.
+2. `Locale.ENGLISH` is `en`, different from `Locale.US` which is `en-US`: choosing a language is not the same as choosing a region.
+3. `Locale.ROOT.toLanguageTag()` returns `und`; this is not a specific language.
+4. For the tag `zh-Hant-TW`, `getScript()` returns `"Hant"` and `getCountry()` returns `"TW"`. The factory `Locale.of("zh", "TW")` does not automatically contain `Hant`.
+5. The alias constants compare equal according to `equals` because they have the same locale value.
 
-Lưu ý: nếu dùng `Locale.of` trong file này với JDK 17, biên dịch sẽ thất bại vì method chưa tồn tại ở Java 17; lỗi thuộc **mức phiên bản API**, không phải thiếu `import`.
+Note: if you use `Locale.of` in this file with JDK 17, compilation will fail because the method does not exist in Java 17; the error is at the **API version level**, not a missing `import`.
 
-## 5. Chọn cách tạo Locale phù hợp
+## 5. Choosing the Right Way to Create a Locale
 
-| Tình huống | API nên dùng | Lý do |
+| Situation | Recommended API | Reason |
 | --- | --- | --- |
-| Cần locale đã có hằng, ví dụ tiếng Anh ở Mỹ | `Locale.US` | Rõ nghĩa và ít nhập sai |
-| Đã biết mã language và region riêng, trên Java 19+ | `Locale.of("vi", "VN")` | Ngắn, đúng với dữ liệu thành phần |
-| Chỉ cần ngôn ngữ, Java 19+ | `Locale.of("fr")` | Giữ region chưa được chỉ định |
-| Nhận chuỗi language tag BCP 47 | `Locale.forLanguageTag("en-GB")` | Phân tích thành phần từ một chuỗi thẻ |
-| Cần script/extension, hoặc kiểm tra cú pháp chặt hơn | `new Locale.Builder()...build()` | Tạo đầy đủ trường và kiểm tra tính đúng dạng |
-| Dự án vẫn biên dịch với Java 17 | `Locale.forLanguageTag("vi-VN")` hoặc `new Locale("vi", "VN")` | `Locale.of` chưa có ở Java 17; constructor cũ về sau bị đánh dấu deprecated |
+| Need a locale that already has a constant, e.g., US English | `Locale.US` | Clear meaning and less prone to typos |
+| Separate language and region codes are known, on Java 19+ | `Locale.of("vi", "VN")` | Concise, matches component data |
+| Language only, Java 19+ | `Locale.of("fr")` | Keeps region unspecified |
+| Receiving a BCP 47 language tag string | `Locale.forLanguageTag("en-GB")` | Parses components from a tag string |
+| Need script/extension, or stricter syntax checking | `new Locale.Builder()...build()` | Sets all fields and checks well-formedness |
+| Project still compiles with Java 17 | `Locale.forLanguageTag("vi-VN")` or `new Locale("vi", "VN")` | `Locale.of` does not exist in Java 17; old constructors were later marked deprecated |
 
-### Ví dụ dùng Builder để biểu thị script
+### Example Using Builder to Express a Script
 
 ```java
 Locale traditionalChinese = new Locale.Builder()
@@ -210,29 +210,29 @@ System.out.println(traditionalChinese.toLanguageTag());
 // zh-Hant-TW
 ```
 
-Builder báo lỗi cú pháp không đúng dạng thông qua `IllformedLocaleException`. Nó không thể chứng minh ngôn ngữ/vùng đó có bản dịch trong ứng dụng hoặc được các locale provider hỗ trợ đầy đủ. `Locale.forLanguageTag` có cách xử lý một số thẻ sai dạng theo hướng khoan dung hơn Builder; nếu input cần xác thực nghiêm ngặt, phải định nghĩa chính sách kiểm tra riêng.
+Builder reports malformed syntax errors via `IllformedLocaleException`. It cannot prove that the language/region has translations in the application or is fully supported by locale providers. `Locale.forLanguageTag` handles some malformed tags more leniently than Builder; if input requires strict validation, you must define your own validation policy.
 
-### Với Java 17 phải làm gì?
+### What Should Be Done for Java 17?
 
-`Locale.forLanguageTag("vi-VN")` tồn tại từ Java 7 và là cách ngắn gọn, không phải sử dụng constructor cũ, khi nguồn đầu vào là thẻ ngôn ngữ. `new Locale("vi", "VN")` vẫn hoạt động trên Java 17; các constructor `Locale(String...)` được đánh dấu **deprecated từ Java 19**. Đừng sao chép `Locale.of` vào thư viện phải chạy/biên dịch với mức `--release 17`.
+`Locale.forLanguageTag("vi-VN")` has existed since Java 7 and is a concise way, without using the old constructors, when the input source is a language tag. `new Locale("vi", "VN")` still works on Java 17; the `Locale(String...)` constructors were marked **deprecated as of Java 19**. Do not copy `Locale.of` into a library that must run/compile at `--release 17`.
 
-## 6. Cách đọc thông tin bên trong một Locale
+## 6. How to Read Information Inside a Locale
 
-Các phương thức thường gặp:
+Common methods:
 
-| Phương thức | Kết quả | Ghi chú |
+| Method | Result | Notes |
 | --- | --- | --- |
-| `getLanguage()` | Ví dụ `"vi"` | Mã language, không phải tên hiển thị |
-| `getCountry()` | Ví dụ `"VN"` | Mã region; có thể rỗng |
-| `getScript()` | Ví dụ `"Hant"` | Rỗng nếu không đặt script |
-| `getVariant()` | Ví dụ `"POSIX"` | Rỗng nếu không có variant |
-| `toLanguageTag()` | Ví dụ `"vi-VN"` | Dạng thẻ BCP 47, phù hợp lưu/chuyển thông tin locale giữa hệ thống |
-| `toString()` | Ví dụ `"vi_VN"` | Biểu diễn mang tính truyền thống của Java; không phải BCP 47 |
-| `getDisplayLanguage(displayLocale)` | Tên ngôn ngữ dành cho người đọc | Phụ thuộc locale hiển thị và dữ liệu JDK |
-| `getDisplayCountry(displayLocale)` | Tên vùng dành cho người đọc | Phụ thuộc locale hiển thị và dữ liệu JDK |
-| `getDisplayName(displayLocale)` | Tên có thể hiển thị cho người dùng | Không nên hardcode stdout theo mọi JDK/CLDR |
+| `getLanguage()` | e.g., `"vi"` | Language code, not the display name |
+| `getCountry()` | e.g., `"VN"` | Region code; may be empty |
+| `getScript()` | e.g., `"Hant"` | Empty if no script is set |
+| `getVariant()` | e.g., `"POSIX"` | Empty if there is no variant |
+| `toLanguageTag()` | e.g., `"vi-VN"` | BCP 47 tag form, suitable for storing/transmitting locale info between systems |
+| `toString()` | e.g., `"vi_VN"` | Legacy Java representation; not BCP 47 |
+| `getDisplayLanguage(displayLocale)` | Human-readable language name | Depends on display locale and JDK data |
+| `getDisplayCountry(displayLocale)` | Human-readable region name | Depends on display locale and JDK data |
+| `getDisplayName(displayLocale)` | Name suitable for displaying to users | Should not hardcode stdout across all JDKs/CLDR |
 
-Ví dụ:
+Example:
 
 ```java
 Locale selected = Locale.of("vi", "VN");
@@ -243,58 +243,58 @@ System.out.println(selected.getCountry());  // VN
 System.out.println(selected.toString());    // vi_VN
 System.out.println(selected.toLanguageTag()); // vi-VN
 
-// Tên hiển thị theo ngôn ngữ giao diện (ở đây là tiếng Anh):
+// Display name in the UI language (here, English):
 String label = selected.getDisplayName(ui);
 ```
 
-Không dùng `toString()` làm language tag gửi qua HTTP hoặc làm giá trị cấu hình BCP 47, vì nó thường dùng dấu gạch dưới (`vi_VN`) thay cho dấu gạch ngang (`vi-VN`). Trong hệ thống sử dụng BCP 47, dùng `toLanguageTag()` để xuất và `forLanguageTag(...)` để nhập.
+Do not use `toString()` as a language tag sent over HTTP or as a BCP 47 configuration value, because it typically uses an underscore (`vi_VN`) instead of a hyphen (`vi-VN`). In systems using BCP 47, use `toLanguageTag()` for output and `forLanguageTag(...)` for input.
 
-Chỉ gọi `Locale.getAvailableLocales()` không có nghĩa tất cả các locale trả về đều đã có chuỗi dịch trong ứng dụng. Đây là tập locale các provider hỗ trợ trong runtime, khác với danh sách ngôn ngữ mà **sản phẩm** quyết định hỗ trợ. Hãy quản lý danh sách hỗ trợ riêng (ví dụ `Set<Locale>` hoặc tập các language tag được cho phép).
+Simply calling `Locale.getAvailableLocales()` does not mean all returned locales already have translated strings in the application. That is the set of locales supported by providers in the runtime, which differs from the list of languages the **product** decides to support. Manage the supported list separately (for example, a `Set<Locale>` or a set of allowed language tags).
 
-## 7. Ứng dụng thực tế và các sai lầm cần tránh
+## 7. Practical Applications and Mistakes to Avoid
 
-Giả sử dịch vụ thông báo có người dùng chọn tiếng Việt, còn một quản trị viên chọn tiếng Anh ở Mỹ. Chương trình chọn `Locale.of("vi","VN")` cho thông báo người thứ nhất và `Locale.US` cho người thứ hai; sau đó đưa locale vào `ResourceBundle`/formatter tương ứng. **Không nên gọi `Locale.setDefault(...)` cho từng request**: mặc định locale là trạng thái chung của JVM và có thể ảnh hưởng các request khác chạy đồng thời.
+Suppose a notification service has one user who chooses Vietnamese and an administrator who chooses US English. The program picks `Locale.of("vi","VN")` for the first user's notification and `Locale.US` for the second; it then passes the locale to the corresponding `ResourceBundle`/formatter. **Do not call `Locale.setDefault(...)` per request**: the default locale is shared JVM state and can affect other concurrently running requests.
 
-Những lỗi hay gặp:
+Common mistakes:
 
-- **Nhầm language-only với language + country:** `Locale.ENGLISH` là `en`, không tương đương `Locale.US`. Việc định dạng ngày/số có thể khác tùy locale và provider.
-- **Truyền cả `"vi-VN"` vào `Locale.of(String)`:** factory không tự tách thẻ; dùng `Locale.of("vi", "VN")` hoặc `forLanguageTag("vi-VN")`.
-- **Gọi `Locale.of` trong code biên dịch cho Java 17:** API có từ Java 19. Chọn API tương thích mức phiên bản thực tế; code demo của bài này chạy trên JDK 21.
-- **Dùng `Locale.CHINA` và cho rằng script `Hans` đã được lưu:** hằng có tag `zh-CN`, không phải `zh-Hans-CN`; script cần khai báo tường minh khi là một phần yêu cầu.
-- **Coi `Locale.ROOT` là locale của người dùng:** root là locale trung tính, không đại diện cho một ngôn ngữ cụ thể.
-- **Tin rằng `Locale.of` kiểm tra tất cả mã đầu vào:** factory chuẩn hóa case nhưng không bảo đảm mọi giá trị có cú pháp, ngữ nghĩa hay tài nguyên hợp lệ.
-- **Lấy locale để suy ra múi giờ hoặc tiền tệ giao dịch:** `Locale` không chứa `ZoneId` và không quyết định đơn vị tiền của một đơn hàng. Các giá trị đó cần được chọn riêng theo nghiệp vụ.
-- **So sánh hiển thị tên locale như giá trị chuẩn:** `getDisplayName` có thể đổi theo ngôn ngữ UI và phiên bản dữ liệu; so sánh định danh bằng `equals` hoặc language tag đã kiểm soát.
-- **Dùng `Locale.getDefault()` ở chỗ cần locale người dùng:** kết quả phụ thuộc tiến trình/máy chủ. Truyền locale tường minh.
+- **Confusing language-only with language + country:** `Locale.ENGLISH` is `en`, not equivalent to `Locale.US`. Date/number formatting can differ depending on locale and provider.
+- **Passing the entire `"vi-VN"` into `Locale.of(String)`:** the factory does not split tags automatically; use `Locale.of("vi", "VN")` or `forLanguageTag("vi-VN")`.
+- **Calling `Locale.of` in code compiled for Java 17:** the API was introduced in Java 19. Choose an API compatible with the actual version level; this lesson's demo code runs on JDK 21.
+- **Using `Locale.CHINA` and assuming the `Hans` script is stored:** the constant has the tag `zh-CN`, not `zh-Hans-CN`; the script must be declared explicitly when it is part of the requirement.
+- **Treating `Locale.ROOT` as a user's locale:** root is a neutral locale and does not represent a specific language.
+- **Believing `Locale.of` validates all input codes:** the factory normalizes case but does not guarantee every value has valid syntax, semantics, or resources.
+- **Using a locale to infer a time zone or transaction currency:** `Locale` does not contain a `ZoneId` and does not determine the currency unit of an order. Those values must be chosen separately according to business logic.
+- **Comparing display names as canonical values:** `getDisplayName` can change depending on the UI language and data version; compare identifiers using `equals` or controlled language tags.
+- **Using `Locale.getDefault()` where a user locale is needed:** the result depends on the process/server. Pass the locale explicitly.
 
-## 8. Tự kiểm tra kiến thức
+## 8. Self-Check Questions
 
-**Câu 1.** `Locale.of("en")` và `Locale.US` có bằng nhau không?
+**Question 1.** Are `Locale.of("en")` and `Locale.US` equal?
 
-**Đáp án:** Không. Đối tượng thứ nhất chỉ có language `en`, đối tượng thứ hai có language `en` và country `US`. `Locale.ENGLISH` mới tương đương về giá trị với `Locale.of("en")`.
+**Answer:** No. The first object only has language `en`, while the second has language `en` and country `US`. `Locale.ENGLISH` is equivalent in value to `Locale.of("en")`.
 
-**Câu 2.** Đầu vào cấu hình chứa một chuỗi `"zh-Hant-TW"`. Nên dùng phương thức nào?
+**Question 2.** Configuration input contains the string `"zh-Hant-TW"`. Which method should be used?
 
-**Đáp án:** `Locale.forLanguageTag("zh-Hant-TW")` để phân tích đầy đủ language, script và region. Nếu xây từ những trường riêng và cần kiểm tra cú pháp chặt, dùng `Locale.Builder`.
+**Answer:** `Locale.forLanguageTag("zh-Hant-TW")` to parse the full language, script, and region. If building from separate fields and strict syntax validation is needed, use `Locale.Builder`.
 
-**Câu 3.** `Locale.of("fr", "CA")` có giống `Locale.CANADA` không?
+**Question 3.** Is `Locale.of("fr", "CA")` the same as `Locale.CANADA`?
 
-**Đáp án:** Không. `Locale.CANADA` có tag `en-CA`; `Locale.of("fr", "CA")` có tag `fr-CA` và bằng `Locale.CANADA_FRENCH`.
+**Answer:** No. `Locale.CANADA` has tag `en-CA`; `Locale.of("fr", "CA")` has tag `fr-CA` and equals `Locale.CANADA_FRENCH`.
 
-**Câu 4.** Tại sao ví dụ sử dụng JDK 21?
+**Question 4.** Why does the example use JDK 21?
 
-**Đáp án:** Vì `Locale.of(...)` bắt đầu từ **Java 19**. Dự án Java 17 có thể dùng `Locale.forLanguageTag(...)`; không được dựa vào `Locale.of(...)` khi cần tương thích Java 17.
+**Answer:** Because `Locale.of(...)` starts in **Java 19**. Java 17 projects can use `Locale.forLanguageTag(...)`; do not rely on `Locale.of(...)` when Java 17 compatibility is required.
 
-**Câu 5.** Hai locale `zh-TW` và `zh-Hant-TW` có giống nhau hoàn toàn không?
+**Question 5.** Are the two locales `zh-TW` and `zh-Hant-TW` completely identical?
 
-**Đáp án:** Không. Thẻ thứ hai khai báo script `Hant` tường minh; thẻ thứ nhất không chứa script dù provider có thể suy luận cách xử lý thích hợp cho vùng.
+**Answer:** No. The second tag explicitly declares the `Hant` script; the first does not contain a script even though a provider may infer appropriate handling for the region.
 
-## 9. Ghi nhớ
+## 9. Key Takeaways
 
-- `Locale.of(language[, country[, variant]])` là factory có từ **Java 19**, dành cho những thành phần locale tách riêng. Nó không phải parser của một chuỗi language tag.
-- Hằng `Locale.ENGLISH`, `Locale.US`, `Locale.FRANCE`, `Locale.JAPAN`… giúp dùng locale thông dụng với ngữ nghĩa rõ. Một hằng chỉ ngôn ngữ **khác** hằng có ngôn ngữ và vùng.
-- `Locale.ROOT` là locale trung tính; `Locale.CHINA`/`SIMPLIFIED_CHINESE` và `Locale.TAIWAN`/`TRADITIONAL_CHINESE` là những cặp hằng có cùng giá trị.
-- Cần script, extension hoặc đầu vào language tag: dùng `Locale.forLanguageTag`/`Locale.Builder`. Cần chạy Java 17: tránh `Locale.of`.
-- Dùng `toLanguageTag()` khi trao đổi thẻ BCP 47, `equals` để so sánh giá trị locale và truyền locale tường minh khi định dạng/dịch theo từng người dùng.
+- `Locale.of(language[, country[, variant]])` is a factory introduced in **Java 19** for separate locale components. It is not a parser for a language tag string.
+- Constants such as `Locale.ENGLISH`, `Locale.US`, `Locale.FRANCE`, `Locale.JAPAN`… help use common locales with clear semantics. A language-only constant is **different** from a constant with language and region.
+- `Locale.ROOT` is the neutral locale; `Locale.CHINA`/`SIMPLIFIED_CHINESE` and `Locale.TAIWAN`/`TRADITIONAL_CHINESE` are pairs of constants with the same value.
+- Need a script, extension, or language tag input: use `Locale.forLanguageTag`/`Locale.Builder`. Need to run on Java 17: avoid `Locale.of`.
+- Use `toLanguageTag()` when exchanging BCP 47 tags, `equals` to compare locale values, and pass the locale explicitly when formatting/translating per user.
 
-**Tài liệu tham khảo chính thức:** [Java SE 21 — java.util.Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html); [Java SE 17 — java.util.Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html).
+**Official reference documentation:** [Java SE 21 — java.util.Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html); [Java SE 17 — java.util.Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html).

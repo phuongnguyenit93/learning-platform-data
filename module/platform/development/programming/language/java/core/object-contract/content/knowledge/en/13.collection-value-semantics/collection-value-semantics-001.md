@@ -1,40 +1,40 @@
-# `List.equals()` xét phần tử theo thứ tự
+# `List.equals()` Compares Elements by Order
 
-## 1. Hai danh sách bằng nhau khi nào?
+## 1. When Are Two Lists Equal?
 
-Trong Java, `java.util.List.equals(Object)` xác định **bằng nhau theo giá trị của một dãy có thứ tự**. Hai danh sách được xem là bằng nhau khi và chỉ khi:
+In Java, `java.util.List.equals(Object)` defines **value equality of an ordered sequence**. Two lists are considered equal if and only if:
 
-1. Đối tượng đem so sánh cũng là một `List`.
-2. Hai danh sách có **cùng số lượng phần tử**.
-3. Với mỗi chỉ số hợp lệ `i`, phần tử ở vị trí `i` của danh sách thứ nhất bằng phần tử ở **đúng vị trí `i`** của danh sách thứ hai. Nếu cả hai phần tử là `null` thì được xem là bằng nhau tại vị trí đó; nếu không, so sánh bằng `equals` của phần tử.
+1. The object being compared is also a `List`.
+2. Both lists have the **same number of elements**.
+3. For every valid index `i`, the element at position `i` of the first list equals the element at the **exact same position `i`** of the second list. If both elements are `null`, they are considered equal at that position; otherwise, they are compared using the element's `equals` method.
 
-Diễn đạt bằng điều kiện:
+Expressed as a condition:
 
 ```text
 left.equals(right)
-    = right là List
+    = right is a List
       AND left.size() == right.size()
-      AND mọi i trong [0, size):
+      AND for all i in [0, size):
           Objects.equals(left.get(i), right.get(i)) == true
 ```
 
-Đoạn trên là **mô tả khái niệm**, không phải mã thư viện Java hay bản cài đặt tối ưu. API không bắt buộc phải gọi `get(i)` trên từng phần tử theo cách trên; việc duyệt bằng iterator thường phù hợp hơn cho một số implementation, chẳng hạn danh sách liên kết.
+The snippet above is a **conceptual description**, not Java library source code or an optimal implementation. The API does not require calling `get(i)` on each element in this manner; iterating with an iterator is often more suitable for certain implementations, such as linked lists.
 
-Ví dụ:
+Examples:
 
 ```text
-["Java", "Spring"] ==giá_trị==> ["Java", "Spring"]    đúng
-["Java", "Spring"] ==giá_trị==> ["Spring", "Java"]    sai
-["Java", "Java"]   ==giá_trị==> ["Java"]             sai
+["Java", "Spring"] ==value==> ["Java", "Spring"]    true
+["Java", "Spring"] ==value==> ["Spring", "Java"]    false
+["Java", "Java"]   ==value==> ["Java"]             false
 ```
 
-**Thứ tự và số lần xuất hiện đều quan trọng.** Chỉ có cùng những phần tử, hoặc cùng tổng số phần tử, là chưa đủ. Đây là đặc điểm thiết yếu phân biệt `List` với `Set`.
+**Both order and frequency matter.** Simply having the same elements, or the same total number of elements, is not enough. This is the essential characteristic that distinguishes `List` from `Set`.
 
-Trong phần dưới, `list.equals(other)` luôn là phép so sánh giá trị. Biểu thức `list == other` lại hỏi hai biến có cùng tham chiếu không.
+In the sections below, `list.equals(other)` is always a value comparison. The expression `list == other`, on the other hand, asks whether two variables hold the same reference.
 
-## 2. Quy tắc theo từng chỉ số
+## 2. Index-by-Index Rule
 
-Hãy so sánh:
+Let us compare:
 
 ```java
 List<String> a = List.of("A", "B", "A");
@@ -42,30 +42,30 @@ List<String> b = List.of("A", "B", "A");
 List<String> c = List.of("A", "A", "B");
 ```
 
-Các đoạn trên dùng kiểu `List` và có thể đặt trong một phương thức sau khi `import java.util.List;`; chưa phải một tệp hoàn chỉnh.
+The snippets above use the `List` type and can be placed inside a method after `import java.util.List;`; they do not form a complete file yet.
 
-| Chỉ số | `a` | `b` | `c` | `a` so với `b` | `a` so với `c` |
+| Index | `a` | `b` | `c` | `a` vs `b` | `a` vs `c` |
 | --- | --- | --- | --- | --- | --- |
-| 0 | A | A | A | Bằng | Bằng |
-| 1 | B | B | A | Bằng | **Khác** |
-| 2 | A | A | B | Bằng | Khác |
+| 0 | A | A | A | Equal | Equal |
+| 1 | B | B | A | Equal | **Different** |
+| 2 | A | A | B | Equal | Different |
 
-Vì thế `a.equals(b)` là `true` còn `a.equals(c)` là `false`. Dù `a` và `c` có cùng tập giá trị và cùng số lần xuất hiện từng giá trị, chúng có **thứ tự khác nhau**. `List.equals` không tự sắp xếp lại trước khi so sánh.
+Therefore, `a.equals(b)` is `true` while `a.equals(c)` is `false`. Even though `a` and `c` have the same set of values and the same occurrence count for each value, they have **different orders**. `List.equals` does not sort before comparing.
 
-Những trường hợp cần ghi nhớ:
+Cases to remember:
 
-- **Danh sách rỗng:** hai `List` rỗng bằng nhau, kể cả khác implementation; một danh sách rỗng không bằng danh sách có một phần tử `null`.
-- **Độ dài khác:** kết quả `false` dù phần đầu của danh sách dài trùng hoàn toàn với danh sách ngắn.
-- **Phần tử lặp:** `["x","x","y"]` khác `["x","y","x"]`. Một `Set` có thể loại phần tử lặp, `List` thì giữ.
-- **Đổi vị trí hai phần tử bằng nhau:** không làm danh sách khác về giá trị, vì phép so sánh tại mỗi vị trí vẫn đúng.
-- **Đổi vị trí hai phần tử khác nhau:** thường làm kết quả `equals` thay đổi, trừ khi các vị trí liên quan vẫn chứa những phần tử được coi là bằng nhau theo chính `equals` của chúng.
+- **Empty lists:** two empty `List` instances are equal, even across different implementations; an empty list does not equal a list containing a single `null` element.
+- **Different lengths:** the result is `false` even if the prefix of the longer list matches the shorter list completely.
+- **Duplicate elements:** `["x","x","y"]` differs from `["x","y","x"]`. A `Set` may deduplicate elements, whereas a `List` preserves them.
+- **Swapping two equal elements:** does not make the list differ in value, because the comparison at every position remains true.
+- **Swapping two unequal elements:** usually changes the `equals` result, unless the positions involved still contain elements considered equal according to their own `equals`.
 
-## 3. Không phụ thuộc implementation cụ thể
+## 3. Independence from Specific Implementations
 
-`List.equals` là **hợp đồng của interface `List`**. Vì vậy, hai danh sách cùng phần tử và thứ tự phải bằng nhau dù một bên là `ArrayList`, bên kia là `LinkedList`, hay một danh sách không thể sửa được tạo bởi `List.of`.
+`List.equals` is a **contract of the `List` interface**. Therefore, two lists with the same elements and order must be equal even if one is an `ArrayList` and the other is a `LinkedList`, or an unmodifiable list created by `List.of`.
 
 ```java
-// Đặt trong main với các import java.util.* tương ứng.
+// Place inside main with appropriate java.util.* imports.
 List<String> array = new ArrayList<>(List.of("one", "two"));
 List<String> linked = new LinkedList<>(List.of("one", "two"));
 
@@ -74,17 +74,17 @@ System.out.println(array.equals(linked));  // true
 System.out.println(linked.equals(array));  // true
 ```
 
-Hai biến trỏ đến **hai đối tượng khác nhau** và **hai lớp triển khai khác nhau**, nhưng nội dung dãy tương đương. Điều này minh họa tính đối xứng của hợp đồng `equals`.
+The two variables point to **two different objects** and **two different implementation classes**, yet their sequence contents are equivalent. This demonstrates the symmetry of the `equals` contract.
 
-Không nên cài đặt `equals` của một lớp `List` tùy biến theo kiểu bắt buộc `obj.getClass() == getClass()`, bởi như vậy có thể làm một `List` mới không bằng `ArrayList` cùng phần tử, trái với hợp đồng chung của `List`.
+You should not implement `equals` in a custom `List` class by requiring `obj.getClass() == getClass()`, because doing so could prevent a new `List` from equaling an `ArrayList` with the same elements, violating the general `List` contract.
 
-Về bản chất, tính bằng nhau của `List` **không phụ thuộc** khả năng sửa được, dung lượng cấp phát nội bộ, cách lưu phần tử hay lớp triển khai. Những thuộc tính đó có thể ảnh hưởng đến hiệu năng và hành vi thao tác thêm/xóa, nhưng không nên làm thay đổi kết quả so sánh giá trị.
+Essentially, `List` equality **does not depend** on mutability, internal allocated capacity, element storage mechanism, or implementation class. Those properties may affect performance and the behavior of add/remove operations, but should not alter the result of value comparison.
 
-## 4. Giá trị bằng nhau của từng phần tử: `equals`, kiểu và `null`
+## 4. Element Value Equality: `equals`, Types, and `null`
 
-### Phần tử được so sánh theo hợp đồng riêng
+### Elements Are Compared by Their Own Contract
 
-`List.equals` không biết thế nào là hai phần tử "giống nhau" về nghiệp vụ; nó dựa vào `equals` của từng phần tử. Chẳng hạn:
+`List.equals` does not know what makes two elements "the same" in domain terms; it relies on the `equals` method of each element. For example:
 
 ```java
 record Book(String isbn) {}
@@ -95,15 +95,15 @@ List<Book> second = List.of(new Book("978-1"));
 System.out.println(first.equals(second)); // true
 ```
 
-Đoạn trên minh họa một `record` và hai danh sách; có thể đặt các khai báo đúng vị trí trong một tệp Java 17+. Record `Book` tự có `equals` dựa trên `isbn`, nên hai đối tượng `Book` khác tham chiếu vẫn bằng nhau.
+The snippet above illustrates a `record` and two lists; the declarations can be placed in their proper positions in a Java 17+ file. The `Book` record automatically provides an `equals` based on `isbn`, so two `Book` objects with different references are still equal.
 
-Ngược lại, nếu `Book` là lớp thông thường không override `equals`, hai lần `new Book(...)` sẽ không tự động bằng nhau chỉ vì các trường trùng nội dung. Kết quả `List.equals` vì thế cũng sẽ là `false`.
+Conversely, if `Book` is a regular class that does not override `equals`, two `new Book(...)` calls will not automatically be equal just because their fields share identical content. Consequently, the `List.equals` result will also be `false`.
 
-Một danh sách `List<Integer>` chứa `1` khác giá trị so với một `List<Long>` chứa `1L`: `Integer.equals(Long)` trả `false`. Java không tự chuyển kiểu số để làm bằng nhau ở cấp phần tử.
+A `List<Integer>` containing `1` differs in value from a `List<Long>` containing `1L`: `Integer.equals(Long)` returns `false`. Java does not automatically convert numeric types to make them equal at the element level.
 
-### Phần tử `null`
+### `null` Elements
 
-Một số implementation cho phép chứa `null`, ví dụ `ArrayList`. Hai vị trí cùng `null` được coi là bằng nhau:
+Some implementations allow `null`, such as `ArrayList`. Two positions that are both `null` are considered equal:
 
 ```java
 List<String> withNull1 = new ArrayList<>(Arrays.asList("A", null));
@@ -112,13 +112,13 @@ List<String> withNull2 = new LinkedList<>(Arrays.asList("A", null));
 System.out.println(withNull1.equals(withNull2)); // true
 ```
 
-`List.equals` có cách so sánh tương đương `Objects.equals(elementA, elementB)`: hai `null` bằng nhau, một `null` và một phần tử khác `null` thì không. **`List.of(...)` không chấp nhận phần tử `null`** và sẽ ném `NullPointerException` khi tạo danh sách; đây là giới hạn của factory, không phải quy tắc rằng `List.equals` cấm `null`.
+`List.equals` performs a comparison equivalent to `Objects.equals(elementA, elementB)`: two `null` values are equal, while one `null` and one non-`null` element are not. **`List.of(...)` does not accept `null` elements** and will throw a `NullPointerException` upon list creation; this is a limitation of the factory, not a rule that `List.equals` forbids `null`.
 
-Nếu chính biến danh sách là `null`, gọi `list.equals(other)` sẽ ném `NullPointerException`; có thể dùng `Objects.equals(listA, listB)` khi một trong hai **tham chiếu danh sách** có thể `null`. Phải phân biệt danh sách `[null]` (một phần tử) với tham chiếu danh sách `null` (không có đối tượng `List`).
+If the list variable itself is `null`, calling `list.equals(other)` will throw a `NullPointerException`; you can use `Objects.equals(listA, listB)` when either **list reference** may be `null`. Be sure to distinguish a `[null]` list (one element) from a `null` list reference (no `List` object).
 
-## 5. Ví dụ Java 17 độc lập: kiểm tra thứ tự và implementation
+## 5. Standalone Java 17 Example: Checking Order and Implementations
 
-Tạo tệp `ListEqualsOrderDemo.java`:
+Create the file `ListEqualsOrderDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -179,14 +179,14 @@ public class ListEqualsOrderDemo {
 }
 ```
 
-Lệnh chạy:
+Run commands:
 
 ```bash
 javac ListEqualsOrderDemo.java
 java ListEqualsOrderDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 same reference: false
@@ -203,74 +203,74 @@ nested reordered: false
 set ignores order: true
 ```
 
-**Giải thích:** `a` là `ArrayList`, `same` là `LinkedList`. Hai đối tượng không cùng tham chiếu nhưng bằng nhau vì ba vị trí khớp. `reordered` giữ cùng số lần xuất hiện các chữ nhưng đổi thứ tự, nên không bằng `a`. `shorter` thiếu phần tử cuối, không bằng `a`. Các phần còn lại minh họa so sánh `null`, đối tượng giá trị dưới dạng record, danh sách lồng nhau và sự khác nhau giữa `List` với `Set`.
+**Explanation:** `a` is an `ArrayList`, and `same` is a `LinkedList`. The two objects do not share the same reference, yet they are equal because all three positions match. `reordered` keeps the same occurrence counts of the letters but changes the order, so it does not equal `a`. `shorter` is missing the last element, so it does not equal `a`. The remaining parts demonstrate `null` comparison, value objects as records, nested lists, and the difference between `List` and `Set`.
 
-Lưu ý `HashSet` ở cuối chỉ dùng để đối chiếu khái niệm: `Set.equals` dựa trên việc chứa cùng các phần tử, **không quan tâm thứ tự duyệt**. Không nên dùng `new HashSet<>(listA).equals(new HashSet<>(listB))` để thay cho `List.equals`, vì việc chuyển sang `Set` có thể làm mất thông tin thứ tự **và số lần xuất hiện**.
+Note that `HashSet` at the end is only used for conceptual contrast: `Set.equals` is based on containing the same elements, **regardless of iteration order**. Do not use `new HashSet<>(listA).equals(new HashSet<>(listB))` as a substitute for `List.equals`, because converting to a `Set` can discard order **and occurrence count** information.
 
-## 6. `List.hashCode()` cũng phụ thuộc thứ tự
+## 6. `List.hashCode()` Also Depends on Order
 
-Hợp đồng của `List` quy định `hashCode()` được tính tuần tự từ phần tử đầu đến cuối. Tư duy thuật toán:
+The `List` contract specifies that `hashCode()` is computed sequentially from the first element to the last. Algorithmic idea:
 
 ```java
-// Thuật toán mô tả theo hợp đồng List; list là một biến List có sẵn.
+// Algorithm illustrating the List contract; list is an existing List variable.
 int hash = 1;
 for (Object element : list) {
     hash = 31 * hash + (element == null ? 0 : element.hashCode());
 }
 ```
 
-Đây là đoạn minh họa, không phải một chương trình độc lập. Phép toán `int` có thể tràn theo quy tắc số nguyên Java; đó là một phần của cách tính hash, không phải lỗi.
+This is an illustrative snippet, not a standalone program. The `int` arithmetic may overflow according to Java integer rules; that is part of the hash calculation, not a bug.
 
-Hệ quả:
+Consequences:
 
-- Hai `List` bằng nhau phải có cùng hash, dù thuộc những implementation khác nhau.
-- Thứ tự các phần tử có thể ảnh hưởng hash. Ví dụ, với phần tử `String`, `["A","B"]` thường có hash khác `["B","A"]`.
-- Hai danh sách **khác nhau** vẫn có thể có cùng hash do collision; không được dùng `hashCode()` thay cho `equals()` để kết luận hai dãy bằng nhau.
-- Phần tử `null` đóng góp `0` ở vị trí tương ứng; nó vẫn chiếm một vị trí trong dãy và ảnh hưởng số lần áp dụng phép nhân `31`.
-- Nếu phần tử trong danh sách thay đổi dữ liệu quyết định `equals/hashCode`, hash của chính danh sách có thể thay đổi, dù bạn không thêm/xóa phần tử trong danh sách.
+- Two equal `List` instances must have the same hash, even if they belong to different implementations.
+- Element order can affect the hash. For example, with `String` elements, `["A","B"]` typically has a different hash from `["B","A"]`.
+- Two **unequal** lists can still have the same hash due to collisions; you must never use `hashCode()` instead of `equals()` to conclude that two sequences are equal.
+- A `null` element contributes `0` at its corresponding position; it still occupies a position in the sequence and affects how many times the multiplication by `31` is applied.
+- If an element in the list mutates data that determines `equals/hashCode`, the hash of the list itself can change, even if you did not add or remove elements in the list.
 
-Ví dụ `["A","B"]` có hash:
+For example, `["A","B"]` has the hash:
 
 ```text
-Bắt đầu h = 1
-Sau "A": h = 31 * 1  + 65 = 96
-Sau "B": h = 31 * 96 + 66 = 3042
+Start h = 1
+After "A": h = 31 * 1  + 65 = 96
+After "B": h = 31 * 96 + 66 = 3042
 
-Với ["B","A"]:
-Sau "B": h = 31 * 1  + 66 = 97
-Sau "A": h = 31 * 97 + 65 = 3072
+For ["B","A"]:
+After "B": h = 31 * 1  + 66 = 97
+After "A": h = 31 * 97 + 65 = 3072
 ```
 
-Những phép tính này minh họa việc **đổi thứ tự dẫn tới mã băm khác** trong ví dụ cụ thể. Chúng không chứng minh mọi phép hoán vị đều cho mã băm khác.
+These calculations illustrate that **changing order leads to a different hash code** in this concrete example. They do not prove that every permutation yields a different hash code.
 
-## 7. Khác biệt với `Arrays.equals`, `Objects.equals`, `Set.equals`
+## 7. Differences from `Arrays.equals`, `Objects.equals`, `Set.equals`
 
-| Cách so sánh | Ý nghĩa | Điểm cần phân biệt |
+| Comparison Method | Meaning | Key Distinction |
 | --- | --- | --- |
-| `listA.equals(listB)` | So sánh độ dài và từng phần tử **theo thứ tự**, đối số phải là `List`. | Dùng hợp đồng `equals` của từng phần tử. |
-| `Objects.equals(listA, listB)` | So sánh hai tham chiếu có thể `null` an toàn. | Khi cả hai là danh sách khác `null`, ủy quyền tới `listA.equals(listB)`. |
-| `Arrays.equals(arrayA, arrayB)` | So sánh nội dung hai mảng cùng kiểu tương ứng theo vị trí. | Phải gọi `Arrays.equals`, vì mảng Java tự nó không override `Object.equals`. |
-| `Arrays.deepEquals(arrayA, arrayB)` | So sánh sâu mảng tham chiếu, xử lý phần tử là mảng lồng nhau. | Không tự biến so sánh `List` thành tập hợp không thứ tự. |
-| `setA.equals(setB)` | Hai `Set` có cùng phần tử theo quan hệ bằng nhau của phần tử. | Không quan tâm thứ tự và không chứa phần tử trùng. |
-| `listA == listB` | So sánh hai tham chiếu `List`. | Không so sánh nội dung dãy. |
+| `listA.equals(listB)` | Compares length and each element **in order**; argument must be a `List`. | Uses the `equals` contract of each element. |
+| `Objects.equals(listA, listB)` | Safely compares two possibly `null` references. | When both are non-`null` lists, delegates to `listA.equals(listB)`. |
+| `Arrays.equals(arrayA, arrayB)` | Compares the contents of two arrays of matching type by position. | Must call `Arrays.equals`, because Java arrays themselves do not override `Object.equals`. |
+| `Arrays.deepEquals(arrayA, arrayB)` | Deeply compares reference arrays, handling nested array elements. | Does not automatically turn a `List` comparison into an unordered set. |
+| `setA.equals(setB)` | Two `Set` instances have the same elements according to element equality. | Ignores order and contains no duplicate elements. |
+| `listA == listB` | Compares two `List` references. | Does not compare sequence contents. |
 
-**Danh sách chứa mảng là bẫy thường gặp.** Nếu `List<int[]>` chứa hai mảng `new int[]{1,2}` khác nhau, `List.equals` sẽ gọi `equals` của phần tử mảng; mảng dùng mặc định `Object.equals` theo **tham chiếu**. Vì vậy hai danh sách có phần tử mảng chứa cùng các số vẫn có thể **không bằng nhau**. Khi muốn so nội dung mảng, phải thiết kế so sánh phần tử bằng `Arrays.equals` hoặc chuyển sang những kiểu giá trị phù hợp.
+**Lists containing arrays are a common pitfall.** If a `List<int[]>` contains two different `new int[]{1,2}` arrays, `List.equals` will call `equals` on the array elements; arrays use the default `Object.equals` by **reference**. Thus, two lists whose array elements hold the same numbers can still be **unequal**. When you want to compare array contents, you must design element comparison using `Arrays.equals` or convert to suitable value types.
 
-**Danh sách lồng danh sách** có hành vi khác: vì mỗi phần tử bên trong cũng là `List`, so sánh từng phần tử sẽ gọi `List.equals` ở cấp tiếp theo, theo thứ tự của từng danh sách con. Đây là lý do `nested1.equals(nested2)` trong ví dụ trả `true`.
+**Lists nested inside lists** behave differently: because each inner element is also a `List`, comparing each element calls `List.equals` at the next level, following the order of each sublist. This is why `nested1.equals(nested2)` in the example returns `true`.
 
-## 8. Khi danh sách hoặc phần tử thay đổi
+## 8. When a List or Its Elements Change
 
-Vì `equals` và `hashCode` của `List` phụ thuộc vào **nội dung có thứ tự tại thời điểm gọi**, các thao tác sau có thể làm kết quả thay đổi:
+Because `equals` and `hashCode` of a `List` depend on its **ordered contents at the time of the call**, the following operations can change the result:
 
-- `add`, `remove`, `clear`: đổi số lượng và/hoặc các vị trí.
-- `set(index, value)`: giữ kích thước nhưng đổi phần tử tại một vị trí.
-- `Collections.sort`, `Collections.reverse`, hoặc đổi thứ tự thủ công: giữ tập phần tử nhưng thay đổi thứ tự.
-- Sửa **trạng thái bên trong một phần tử mutable** có tham gia `equals/hashCode`: dãy giữ nguyên tham chiếu ở từng vị trí nhưng ý nghĩa bằng nhau có thể đổi.
-- Sửa nội dung một **danh sách con** trong `List<List<T>>`: danh sách ngoài có thể đổi kết quả `equals/hashCode` dù chưa thêm hoặc xóa phần tử ngoài.
+- `add`, `remove`, `clear`: change the count and/or positions.
+- `set(index, value)`: preserves the size but changes the element at a position.
+- `Collections.sort`, `Collections.reverse`, or manual reordering: keeps the same set of elements but changes the order.
+- Mutating **internal state of a mutable element** that participates in `equals/hashCode`: the sequence keeps the same reference at each position, yet equality semantics can change.
+- Modifying the contents of a **sublist** inside `List<List<T>>`: the outer list can change its `equals/hashCode` result even without adding or removing outer elements.
 
-Khi dùng một `List` mutable làm khóa `HashMap` hoặc phần tử của `HashSet`, các thay đổi kể trên có thể làm giá trị hash đổi trong khi cấu trúc băm **không tự lập chỉ mục lại entry**. Hệ quả là `containsKey`, `get`, `contains`, `remove` có thể không tìm được entry đã lưu. Vì vậy, khóa phải giữ ổn định về `equals/hashCode` trong suốt thời gian tồn tại ở cấu trúc băm.
+When using a mutable `List` as a `HashMap` key or `HashSet` element, the changes above can alter the hash value while the hash structure **does not automatically re-index the entry**. Consequently, `containsKey`, `get`, `contains`, and `remove` may fail to find the stored entry. Therefore, keys must remain stable with respect to `equals/hashCode` throughout their lifetime in a hash structure.
 
-Ví dụ minh họa dùng tệp độc lập `ListKeyDemo.java`:
+Illustrative example using the standalone file `ListKeyDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -324,49 +324,49 @@ safe key unchanged: true
 safe lookup: new
 ```
 
-Không in `map.get(key)` sau khi sửa vì kết quả phụ thuộc cách bảng băm tra cứu; ví dụ tập trung vào điều chắc chắn: **danh sách được sửa, hash đổi, nhưng entry cũ vẫn tồn tại**. `List.copyOf(key)` tạo một danh sách không sửa được và không bị thay đổi bởi thao tác thêm phần tử vào `key` sau đó. Với `String` bất biến, giá trị của `safeKey` cũng ổn định.
+We do not print `map.get(key)` after modifying it because the result depends on how the hash table performs lookups; the example focuses on what is guaranteed: **the list is modified, the hash changes, yet the old entry still exists**. `List.copyOf(key)` creates an unmodifiable list that is unaffected by subsequent element additions to `key`. With immutable `String` elements, the value of `safeKey` is also stable.
 
-Cần phân biệt **không sửa được danh sách** với **bất biến sâu**. Nếu `List.copyOf` chứa những đối tượng mutable, sửa trạng thái của phần tử có thể vẫn làm thay đổi kết quả `equals/hashCode` của danh sách được sao chép. Nếu cần một khóa băm ổn định, phải bảo đảm cả các phần tử và những dữ liệu con mà phép bằng nhau phụ thuộc cũng ổn định.
+Be sure to distinguish an **unmodifiable list** from **deep immutability**. If `List.copyOf` contains mutable objects, mutating an element's state can still alter the `equals/hashCode` result of the copied list. If you need a stable hash key, you must ensure that both the elements and any nested data on which equality depends are also stable.
 
-## 9. Độ phức tạp, hợp đồng và một số lỗi thực tế
+## 9. Complexity, Contracts, and Common Real-World Mistakes
 
-Đối với hai danh sách có cùng kích thước `n`, việc so sánh có thể phải xét đến `n` cặp phần tử; độ phức tạp tổng quát của một lần duyệt tuyến tính là **O(n)** cộng thêm chi phí `equals` của từng phần tử. Nó có thể dừng sớm ngay khi phát hiện khác nhau ở một vị trí. Nếu kích thước khác, có thể loại ngay. Bản thân `List.equals` không yêu cầu sắp xếp hay phân tích tập hợp, nên không nên tự chuyển dữ liệu thành `Set` để so sánh khi thứ tự quan trọng.
+For two lists of the same size `n`, comparison may have to inspect up to `n` pairs of elements; the overall complexity of a linear pass is **O(n)** plus the cost of each element's `equals`. It can short-circuit as soon as a difference is found at any position. If the sizes differ, they can be rejected immediately. `List.equals` itself requires neither sorting nor set analysis, so you should not manually convert data to a `Set` to compare when order matters.
 
-Những nhầm lẫn dễ gặp:
+Common misconceptions:
 
-1. **Chỉ kiểm tra `containsAll`:** `a.containsAll(b)` và `b.containsAll(a)` không chứng minh hai danh sách bằng nhau; thiếu kiểm tra thứ tự và số lần lặp.
-2. **Chuyển sang `HashSet` rồi so:** mất thông tin thứ tự và phần tử lặp, dẫn đến `true` cho những danh sách không bằng nhau.
-3. **So bằng `==`:** chỉ so tham chiếu, bỏ qua hai danh sách khác instance nhưng cùng nội dung.
-4. **So bằng `toString()`:** biểu diễn chuỗi dùng cho hiển thị, không phải hợp đồng bình đẳng. Hai kiểu dữ liệu khác nhau có thể có chuỗi tương tự; một số phần tử có `toString` không phù hợp để định danh.
-5. **So riêng hash:** cùng `hashCode` không chứng minh `equals` là `true`.
-6. **Tự viết `equals` cho custom `List` nhưng quên quy tắc đối xứng/kiểu:** một `ArrayList` và custom list cùng dãy phải tuân thủ hợp đồng của `List`; lỗi triển khai custom có thể làm hai hướng cho kết quả khác nhau.
-7. **Dùng `List.of` với `null`:** factory này cấm `null`, dù nhiều implementation khác cho phép.
-8. **Nghĩ `List.copyOf` khiến mọi đối tượng con bất biến:** bản sao không sửa được ở cấp danh sách nhưng phần tử mutable vẫn có thể bị sửa.
-9. **So sánh hai danh sách đang bị sửa đồng thời:** nếu collection không được đồng bộ thích hợp, có thể có kết quả không ổn định hoặc ngoại lệ; phải tạo snapshot ổn định hay dùng cơ chế phối hợp phù hợp trước khi so sánh.
+1. **Checking only `containsAll`:** `a.containsAll(b)` and `b.containsAll(a)` do not prove two lists are equal; they miss order and repetition count checks.
+2. **Converting to `HashSet` then comparing:** loses order and duplicate element information, leading to `true` for unequal lists.
+3. **Comparing with `==`:** compares only references, ignoring two lists that are different instances with identical contents.
+4. **Comparing via `toString()`:** string representation is for display, not an equality contract. Two different data types may produce similar strings; some elements have `toString` implementations unsuitable for identity.
+5. **Comparing hashes alone:** having the same `hashCode` does not prove `equals` is `true`.
+6. **Writing custom `List` `equals` but forgetting symmetry/type rules:** an `ArrayList` and a custom list with the same sequence must obey the `List` contract; a custom implementation bug can cause the two directions to produce different results.
+7. **Using `List.of` with `null`:** this factory forbids `null`, even though many other implementations allow it.
+8. **Assuming `List.copyOf` makes all child objects immutable:** the copy is unmodifiable at the list level, but mutable elements can still be modified.
+9. **Comparing two lists while they are being concurrently modified:** if the collection is not properly synchronized, unstable results or exceptions may occur; you must take a stable snapshot or use an appropriate coordination mechanism before comparing.
 
-Nếu một đối tượng phần tử cài đặt `equals` sai hợp đồng (chẳng hạn không đối xứng hoặc bắc cầu), so sánh ở cấp danh sách cũng có thể biểu lộ sự bất nhất. `List.equals` **dựa vào** `equals` của phần tử và không tự sửa các lỗi ở cấp phần tử.
+If an element object implements `equals` in violation of its contract (for instance, lacking symmetry or transitivity), list-level comparison may also exhibit inconsistencies. `List.equals` **relies on** element `equals` and does not automatically fix element-level bugs.
 
-## 10. Checklist và tự kiểm tra
+## 10. Checklist and Self-Check
 
-Trước khi quyết định hai danh sách có bằng nhau hay không, hãy hỏi:
+Before deciding whether two lists are equal, ask:
 
-- Có cùng số phần tử không? `[]` khác `[null]`.
-- Mỗi chỉ số có một cặp phần tử bằng nhau theo `equals` không?
-- Việc lặp phần tử và vị trí xuất hiện có ảnh hưởng đến nghiệp vụ không?
-- Các phần tử có định nghĩa `equals` phù hợp không, đặc biệt với class tự tạo hoặc mảng?
-- Cần so sánh `List` có thể `null` không? Nếu có, dùng `Objects.equals` cho **tham chiếu danh sách**.
-- Danh sách hoặc phần tử có thể sửa không? Nếu dùng làm khóa băm, tính ổn định phải được đảm bảo.
-- Yêu cầu thực sự là "cùng dãy có thứ tự" hay "cùng tập phần tử"? Chọn `List.equals` hoặc `Set.equals` theo **ngữ nghĩa nghiệp vụ**.
+- Do they have the same number of elements? `[]` differs from `[null]`.
+- Does each index have a pair of elements that are equal according to `equals`?
+- Do element repetition and position of appearance matter to the business logic?
+- Do the elements define an appropriate `equals`, especially for custom classes or arrays?
+- Do you need to compare possibly `null` `List` references? If so, use `Objects.equals` for the **list references**.
+- Can the list or its elements be mutated? If used as a hash key, stability must be guaranteed.
+- Is the true requirement "same ordered sequence" or "same set of elements"? Choose `List.equals` or `Set.equals` according to **business semantics**.
 
-**Câu hỏi tự luyện:**
+**Self-practice questions:**
 
-1. `List.of(1, 2, 1).equals(List.of(1, 1, 2))` trả gì? Vì sao?
-2. `new ArrayList<>(List.of("a")).equals(new LinkedList<>(List.of("a")))` trả gì?
-3. Hai `List` cùng kích thước, cùng hash có nhất thiết `equals == true` không?
-4. `[null, "x"]` và `["x", null]` có bằng nhau không nếu implementation đều cho phép `null`?
-5. Vì sao `List<int[]>` thường không so nội dung của từng mảng như mong đợi?
-6. Đổi vị trí hai phần tử có thể làm `List.hashCode` đổi không? Có bắt buộc mọi lần đổi vị trí đều làm hash khác không?
-7. Vì sao `List.copyOf` chứa các phần tử mutable vẫn có thể không phù hợp làm khóa băm?
-8. Khi ứng dụng không quan tâm thứ tự nhưng cần loại phần tử lặp, nên biểu diễn bằng `List` hay `Set`?
+1. What does `List.of(1, 2, 1).equals(List.of(1, 1, 2))` return? Why?
+2. What does `new ArrayList<>(List.of("a")).equals(new LinkedList<>(List.of("a")))` return?
+3. Do two `List` instances of the same size and same hash necessarily have `equals == true`?
+4. Are `[null, "x"]` and `["x", null]` equal if both implementations allow `null`?
+5. Why does `List<int[]>` usually not compare the contents of each array as expected?
+6. Can swapping two elements change `List.hashCode`? Must every swap produce a different hash?
+7. Why might a `List.copyOf` containing mutable elements still be unsuitable as a hash key?
+8. When an application does not care about order but needs to eliminate duplicate elements, should it represent the data with a `List` or a `Set`?
 
-**Ghi nhớ:** `List.equals()` so sánh **độ dài và từng cặp phần tử ở cùng chỉ số**, không phụ thuộc implementation. **Thứ tự và số lần xuất hiện đều có ý nghĩa**. `List.hashCode()` cũng được tính theo thứ tự, vì vậy hãy giữ dữ liệu liên quan đến bình đẳng ổn định khi dùng danh sách trong cấu trúc băm.
+**Takeaway:** `List.equals()` compares **length and each pair of elements at the same index**, independent of implementation. **Both order and occurrence count matter.** `List.hashCode()` is also computed by order, so keep equality-relevant data stable when using lists in hash structures.

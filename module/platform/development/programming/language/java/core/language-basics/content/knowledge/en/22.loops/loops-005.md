@@ -1,40 +1,40 @@
-# Vòng lặp vô hạn và điều kiện bảo đảm kết thúc trong Java
+# Infinite loops and termination guarantees in Java
 
-> **Java core — language-basics / Vòng lặp**  
-> **Môi trường:** Java 17+, ví dụ một file tự chứa, chỉ dùng JDK.  
-> **Mục tiêu:** Phân biệt vòng lặp vô hạn do lỗi với vòng lặp chạy lâu có chủ đích; xác định điều kiện dừng, trạng thái tiến triển, giới hạn số lượt và cách tránh bẫy `continue`, `break`, tràn số.
+> **Java core — language-basics / Loops**  
+> **Environment:** Java 17+, self-contained single-file examples, JDK only.  
+> **Goal:** Distinguish buggy infinite loops from intentional long-running loops; identify stopping conditions, progression state, iteration limits, and how to avoid traps with `continue`, `break`, and integer overflow.
 
-## 1. Thế nào là vòng lặp vô hạn?
+## 1. What is an infinite loop?
 
-Một vòng lặp tiếp tục khi điều kiện lặp còn `true` (hoặc cố ý dùng `for (;;)`/`while (true)`). Nó trở thành **vòng lặp vô hạn** khi không có đường đi thực tế khiến luồng thoát khỏi vòng lặp.
+A loop continues while its loop condition remains `true` (or when intentionally using `for (;;)`/`while (true)`). It becomes an **infinite loop** when there is no realistic execution path that causes flow to exit the loop.
 
 ~~~java
-// Ví dụ lỗi: KHÔNG CHẠY đoạn này.
+// Buggy example: DO NOT RUN this snippet.
 // int count = 0;
 // while (count < 3) {
 //     System.out.println(count);
-//     // Quên count++: count mãi bằng 0.
+//     // Forgot count++: count stays 0 forever.
 // }
 ~~~
 
-Có hai tình huống cần phân biệt:
+There are two situations to distinguish:
 
-- **Vô hạn ngoài ý muốn:** Biến không cập nhật, điều kiện không thể sai, bỏ qua cập nhật bằng `continue`, hoặc tràn số làm vòng lặp quay lại trạng thái cũ.
-- **Vô hạn có chủ đích:** Bộ xử lý sự kiện, server hoặc worker chạy cho tới khi nhận tín hiệu dừng. Loại này vẫn cần cơ chế **hủy, ngắt, thoát hoặc đóng tài nguyên** rõ ràng.
+- **Unintentional infinite loop:** Variable is not updated, condition can never become false, update is skipped by `continue`, or overflow wraps the loop back to a previous state.
+- **Intentional infinite loop:** Event processors, servers, or workers that run until receiving a stop signal. This kind still needs a clear **cancellation, interruption, exit, or resource-closing** mechanism.
 
-Đừng coi “chạy rất lâu” đồng nghĩa “vô hạn”. Một vòng lặp có giới hạn hàng triệu lần vẫn hữu hạn, nhưng có thể tốn CPU hoặc làm ứng dụng thiếu phản hồi. Ngược lại, có điều kiện thoát trong mã **không bảo đảm** điều kiện đó nhất định sẽ xảy ra khi dữ liệu từ bên ngoài không hợp tác.
+Do not equate “runs very long” with “infinite”. A loop bounded by millions of iterations is still finite, though it can consume CPU or make the application unresponsive. Conversely, merely having an exit condition in code **does not guarantee** that the condition will necessarily occur when external data does not cooperate.
 
-## 2. Ba câu hỏi để đánh giá khả năng kết thúc
+## 2. Three questions to evaluate termination
 
-Đối với mỗi vòng lặp, hãy xác định:
+For every loop, determine:
 
-1. **Điều kiện tiếp tục / dừng:** Khi nào phép kiểm tra trở thành false, hoặc khi nào `break`/`return` được thực hiện?
-2. **Trạng thái tiến triển:** Trong mọi đường chạy tiếp, biến hoặc dữ liệu nào được cập nhật để tiến gần điểm dừng?
-3. **Giới hạn:** Có miền hữu hạn, giới hạn số lượt thử, deadline hoặc tín hiệu hủy đáng tin cậy không?
+1. **Continuation / stopping condition:** When does the check become false, or when is `break`/`return` executed?
+2. **Progression state:** Along every continuing path, which variable or data is updated to move closer to the stopping point?
+3. **Bounds:** Is there a finite domain, retry limit, deadline, or reliable cancellation signal?
 
-Một cách chứng minh hữu ích là tìm *loop variant* (đại lượng đo tiến triển): một số nguyên **không âm**, **giảm nghiêm ngặt mỗi lượt** khi vòng lặp tiếp tục và không bị reset hoặc tràn số. Khi đó nó không thể giảm mãi, nên vòng lặp phải dừng nếu mỗi lượt đều hoàn thành.
+A useful proof technique is finding a *loop variant* (a progress measure): a **non-negative** integer that **strictly decreases on every iteration** when the loop continues and is never reset or overflowed. Then it cannot decrease forever, so the loop must stop if every iteration completes.
 
-Ví dụ:
+Example:
 
 ~~~java
 int remaining = 4;
@@ -45,11 +45,11 @@ while (remaining > 0) {
 }
 ~~~
 
-Bất biến có ích: đầu mỗi lượt, `remaining >= 0`. Variant: `remaining`. Mỗi lượt giảm đúng 1, đến 0 thì `remaining > 0` false. Với biến ban đầu bằng 4, thân chạy bốn lần.
+Useful invariant: at the start of each iteration, `remaining >= 0`. Variant: `remaining`. Each pass decreases by exactly 1, and at 0 `remaining > 0` is false. Starting with 4, the body runs four times.
 
-**Điều kiện cần nêu rõ:** Lập luận trên giả định thân vòng lặp luôn chạy đến bước cập nhật (không bị treo chờ bên ngoài) và phép tính không vi phạm miền/giới hạn kiểu số.
+**Condition to state explicitly:** The argument above assumes the loop body always reaches the update step (is not hung waiting externally) and arithmetic does not violate numeric type domains/limits.
 
-## 3. Ví dụ có bảo đảm kết thúc với `for` và `while`
+## 3. Examples with termination guarantees using `for` and `while`
 
 ~~~java
 static int countUp(int limit) {
@@ -61,9 +61,9 @@ static int countUp(int limit) {
 }
 ~~~
 
-Với `limit = 4`, `i` đi qua 0, 1, 2, 3 và dừng khi `i == 4`. Với `limit <= 0`, thân chạy 0 lần. Điều kiện biên và cập nhật nằm gần nhau nên dễ kiểm tra.
+For `limit = 4`, `i` steps through 0, 1, 2, 3 and stops when `i == 4`. For `limit <= 0`, the body runs 0 times. Boundary condition and update sit close together, making verification easy.
 
-Ví dụ đếm ngược:
+Countdown example:
 
 ~~~java
 static int countdown(int start) {
@@ -77,9 +77,9 @@ static int countdown(int start) {
 }
 ~~~
 
-Với `start = 3`, variant là `remaining`: 3 → 2 → 1 → 0. Với `start <= 0`, vòng lặp không chạy.
+For `start = 3`, the variant is `remaining`: 3 → 2 → 1 → 0. For `start <= 0`, the loop does not run.
 
-Ví dụ tiến triển không cần giảm mỗi lần đúng 1:
+Example of progression without decrementing by exactly 1 each time:
 
 ~~~java
 int n = 15;
@@ -91,27 +91,27 @@ while (n > 0) {
 // rounds == 4
 ~~~
 
-Khi `n` là số nguyên dương, `n / 2 < n` và kết quả không âm, nên số lượt hữu hạn. Một variant tốt cần thể hiện **tiến triển trên mọi nhánh có thể quay lại đầu vòng lặp**.
+When `n` is a positive integer, `n / 2 < n` and the result is non-negative, so the number of iterations is finite. A good variant must demonstrate **progress along every branch that can loop back to the top**.
 
-## 4. Những lỗi khiến trạng thái không tiến triển
+## 4. Mistakes that prevent state from progressing
 
-| Lỗi | Ví dụ | Cách sửa |
+| Mistake | Example | Fix |
 | --- | --- | --- |
-| Quên cập nhật biến | `while (i < 5) { print(i); }` | Tăng `i` hoặc làm trạng thái thay đổi trong mọi đường đi |
-| Cập nhật sai chiều | `while (i < 5) { i--; }` khi `i=0` | Cập nhật hướng tới ngưỡng dừng |
-| `continue` bỏ qua cập nhật | `while (i < 5) { if (i==2) continue; i++; }` | Di chuyển cập nhật trước `continue` hoặc dùng `for` phù hợp |
-| Điều kiện luôn đúng | `while (true)` không có cơ chế thoát | Thiết kế `break`, `return` hoặc tín hiệu hủy |
-| Điều kiện chỉ phụ thuộc ngoại cảnh | Chờ một giá trị không bao giờ đến | Giới hạn retry, timeout và xử lý hết hạn |
-| Tràn số ở biến điều khiển | `i++` sau `Integer.MAX_VALUE` | Dùng giới hạn phù hợp và không dựa vào overflow để dừng |
+| Forgetting to update variable | `while (i < 5) { print(i); }` | Increment `i` or ensure state changes on every path |
+| Updating in the wrong direction | `while (i < 5) { i--; }` when `i=0` | Update toward the stopping threshold |
+| `continue` skips update | `while (i < 5) { if (i==2) continue; i++; }` | Move update before `continue` or use an appropriate `for` |
+| Always-true condition | `while (true)` with no exit mechanism | Design `break`, `return`, or cancellation signal |
+| Condition depends solely on external input | Waiting for a value that never arrives | Limit retries, set timeouts, and handle expiration |
+| Overflow on control variable | `i++` after `Integer.MAX_VALUE` | Use appropriate bounds and do not rely on overflow to stop |
 
-Ví dụ `continue` đúng với vòng `while`:
+Correct `continue` example with a `while` loop:
 
 ~~~java
 int i = 0;
 int oddCount = 0;
 
 while (i < 6) {
-    i++; // Cập nhật TRƯỚC mọi continue.
+    i++; // Update BEFORE every continue.
     if (i % 2 == 0) {
         continue;
     }
@@ -120,32 +120,32 @@ while (i < 6) {
 // i == 6; oddCount == 3 (1, 3, 5).
 ~~~
 
-Trong `while`, `continue` nhảy thẳng tới kiểm tra điều kiện. Trong `for (init; condition; update)`, `continue` sẽ chuyển tới **biểu thức update** rồi mới kiểm tra điều kiện, miễn không có luồng thoát bất thường.
+In `while`, `continue` jumps straight to the condition check. In `for (init; condition; update)`, `continue` transfers to the **update expression** before checking the condition, provided there is no abnormal exit.
 
-**Tràn `int`:** `Integer.MAX_VALUE + 1` trở thành `Integer.MIN_VALUE`. Vòng như sau có thể chạy mãi vì mọi giá trị `int` đều thỏa `i <= Integer.MAX_VALUE`:
+**`int` overflow:** `Integer.MAX_VALUE + 1` becomes `Integer.MIN_VALUE`. A loop like the following can run forever because every `int` value satisfies `i <= Integer.MAX_VALUE`:
 
 ~~~java
-// KHÔNG CHẠY: điều kiện luôn đúng với kiểu int.
+// DO NOT RUN: condition is always true for type int.
 // for (int i = 0; i <= Integer.MAX_VALUE; i++) {
 //     // ...
 // }
 ~~~
 
-Dùng điều kiện giới hạn thực sự có thể thành false, tránh so sánh với giá trị lớn nhất của kiểu, và cân nhắc `long` hay một thiết kế lặp khác nếu miền đếm lớn.
+Use a bounding condition that can actually become false, avoid comparing against the type's maximum value, and consider `long` or a different loop design if the counting range is large.
 
-## 5. `while (true)` có thể đúng nếu có lối ra hữu hạn
+## 5. `while (true)` can be correct if it has finite exits
 
-Dùng vòng vô hạn có chủ đích khi **điểm dừng được quyết định trong thân**. Ví dụ đọc một dãy cho tới khi thấy số dương hoặc hết dữ liệu:
+Use an intentional infinite loop when **the stopping point is decided inside the body**. For example, reading a sequence until seeing a positive number or reaching the end of data:
 
 ~~~java
 static String firstPositive(int[] values) {
     int index = 0;
     while (true) {
         if (index >= values.length) {
-            return "NOT_FOUND"; // Hết dữ liệu -> kết thúc.
+            return "NOT_FOUND"; // Out of data -> terminate.
         }
 
-        int candidate = values[index++]; // Tiến triển trước continue.
+        int candidate = values[index++]; // Progress before continue.
         if (candidate <= 0) {
             continue;
         }
@@ -154,15 +154,15 @@ static String firstPositive(int[] values) {
 }
 ~~~
 
-Dù điều kiện vòng là hằng `true`, hàm vẫn **bảo đảm kết thúc** với mảng hữu hạn: `index` tăng mỗi lượt, hoặc tìm được số dương để `return`, hoặc đến `values.length` để `return`. Không truy cập ngoài mảng, kể cả mảng rỗng vì kiểm tra trước khi lấy phần tử.
+Even though the loop condition is the constant `true`, the function is still **guaranteed to terminate** for finite arrays: `index` increases every pass, either finding a positive number to `return`, or reaching `values.length` to `return`. There is no out-of-bounds access, even for an empty array, because it checks before reading an element.
 
-Đây là bằng chứng dừng dựa trên đại lượng `values.length - index` (không âm và giảm mỗi lượt có thể lặp lại).
+This is a termination proof based on the quantity `values.length - index` (non-negative and decreasing on each repeatable pass).
 
-**Nếu nguồn dữ liệu là mạng/bàn phím** thay vì mảng hữu hạn, việc “sớm muộn gì cũng có dữ liệu hợp lệ” chỉ là giả định. Cần tính đến hết luồng, timeout, lỗi I/O và tín hiệu hủy.
+**If the data source is network/keyboard** rather than a finite array, assuming “valid data will arrive sooner or later” is only an assumption. You must account for end-of-stream, timeouts, I/O errors, and cancellation signals.
 
-## 6. Chặn số lần thử, xử lý `break` và hủy tác vụ
+## 6. Capping attempts, handling `break`, and task cancellation
 
-Một giới hạn rõ ràng làm vòng lặp dừng ngay cả khi chưa tìm thấy kết quả:
+An explicit cap causes the loop to stop even when no result has been found:
 
 ~~~java
 static String tryGuess(int[] guesses, int target, int maxAttempts) {
@@ -179,9 +179,9 @@ static String tryGuess(int[] guesses, int target, int maxAttempts) {
 }
 ~~~
 
-Vì `attempts` tăng mỗi lượt và `bound` cố định, không âm và không vượt độ dài mảng, vòng lặp dừng tối đa `bound` lượt. Hàm phân biệt thành công với hết lượt thử thay vì giả định kết thúc nghĩa là đã tìm thấy.
+Because `attempts` increases each pass and `bound` is fixed, non-negative, and does not exceed array length, the loop stops in at most `bound` passes. The function distinguishes success from exhausting attempts rather than assuming stopping means a match was found.
 
-Một ví dụ ngắn cho `break`:
+A short example for `break`:
 
 ~~~java
 int attempts = 0;
@@ -194,13 +194,13 @@ while (true) {
 // attempts == 2.
 ~~~
 
-`break` rời vòng gần nhất; `return` rời phương thức. Tuy nhiên, **chỉ đặt `break` trong thân chưa phải bằng chứng dừng**: phải chỉ ra vì sao điều kiện dẫn tới `break` cuối cùng chắc chắn đúng.
+`break` exits the innermost loop; `return` exits the method. However, **merely putting `break` in the body is not a termination proof**: you must show why the condition leading to `break` will ultimately become true.
 
-Với worker/service chạy lâu, bổ sung cơ chế hủy bằng cách phù hợp (ví dụ `Thread.interrupt()` và xử lý ngắt ở nơi chờ), tránh vòng `while (true)` quay liên tục không nghỉ làm chiếm CPU. Nếu dùng cờ dừng chia sẻ giữa các luồng, cần cơ chế nhìn thấy cập nhật đúng như `volatile` hoặc lớp đồng bộ phù hợp; biến boolean thường không đảm bảo đủ tính hiển thị giữa các luồng.
+For long-running workers/services, add an appropriate cancellation mechanism (such as `Thread.interrupt()` and handling interruption at wait points), avoiding a busy-spinning `while (true)` loop that wastes CPU. If using a stop flag shared across threads, proper update visibility is required such as `volatile` or an appropriate synchronization class; a plain boolean variable does not guarantee sufficient cross-thread visibility.
 
-## 7. Chương trình Java 17+ runnable
+## 7. Runnable Java 17+ program
 
-Tạo file **LoopTerminationDemo.java**:
+Create the file **LoopTerminationDemo.java**:
 
 ~~~java
 public final class LoopTerminationDemo {
@@ -311,14 +311,14 @@ public final class LoopTerminationDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 LoopTerminationDemo.java
 java LoopTerminationDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 forCount4=4
@@ -338,29 +338,29 @@ breakAfter=2
 intOverflow=-2147483648
 ~~~
 
-Những dòng `positiveMissing`, `positiveEmpty` và `guessStop` cho thấy lối thoát khi không thành công. `oddsUpTo6=3` chứng tỏ `continue` không chặn cập nhật biến điều khiển. `intOverflow` minh họa vì sao không dùng giới hạn `Integer.MAX_VALUE` theo cách khiến điều kiện luôn true.
+The lines `positiveMissing`, `positiveEmpty`, and `guessStop` show the exit path when unsuccessful. `oddsUpTo6=3` proves `continue` does not block updating the control variable. `intOverflow` illustrates why you should not use `Integer.MAX_VALUE` as a bound in a way that keeps the condition always true.
 
-## 8. Checklist và bài tập
+## 8. Checklist and exercises
 
-| Câu hỏi trước khi chấp nhận vòng lặp | Yêu cầu |
+| Question before accepting a loop | Requirement |
 | --- | --- |
-| Điều kiện dừng là gì? | Có điều kiện trở thành false hoặc lối thoát bảo đảm đạt được |
-| Tiến triển đo bằng đại lượng nào? | Không âm, tiến về giới hạn theo mọi đường tiếp tục |
-| Có đường `continue` không cập nhật? | Cập nhật trước `continue` hoặc có update bảo đảm |
-| Biến đếm có thể tràn số không? | Kiểm tra miền số và cấu trúc điều kiện |
-| Có đang phụ thuộc vào input/nguồn ngoài? | Có giới hạn, timeout, EOF hoặc hủy |
-| Khi hết lượt mà chưa thành công? | Trả trạng thái thất bại riêng, không suy diễn là thành công |
+| What is the stopping condition? | There is a condition that becomes false or a guaranteed reachable exit |
+| What quantity measures progress? | Non-negative, moving toward the bound on every continuing path |
+| Is there an un-updated `continue` path? | Update before `continue` or have a guaranteed update |
+| Can the counter overflow? | Check numeric range and condition structure |
+| Does it depend on external input/sources? | Have limits, timeouts, EOF, or cancellation |
+| When attempts run out without success? | Return a distinct failure status; do not infer success |
 
-**Bài 1.** Xác định vì sao `int i=0; while(i<5){ if(i==2)continue; i++; }` kẹt ở `i == 2`, sau đó sửa bằng cách bảo đảm tăng `i` ở mọi đường đi.
+**Exercise 1.** Identify why `int i=0; while(i<5){ if(i==2)continue; i++; }` gets stuck at `i == 2`, then fix it by ensuring `i` is incremented on every path.
 
-**Bài 2.** Dùng variant để giải thích tại sao `while (remaining > 0) { remaining--; }` kết thúc khi `remaining` là số nguyên không âm ban đầu.
+**Exercise 2.** Use a variant to explain why `while (remaining > 0) { remaining--; }` terminates when `remaining` is initially a non-negative integer.
 
-**Bài 3.** Thay `n /= 2` thành `n = n - 2` cho `n=15`. Viết điều kiện dừng sao cho không có giá trị âm gây hành vi sai ý định.
+**Exercise 3.** Change `n /= 2` to `n = n - 2` for `n=15`. Write a stopping condition so that negative values do not cause unintended behavior.
 
-**Bài 4.** Viết `while(true)` để tìm phần tử phù hợp trong mảng hữu hạn. Phải có các trường hợp kết thúc nào khi mảng rỗng hoặc không tìm thấy?
+**Exercise 4.** Write `while(true)` to find a matching element in a finite array. What termination cases must be present when the array is empty or no match is found?
 
-**Bài 5.** Thiết kế hàm thử đăng nhập tối đa 3 lần: nếu đúng, trả thành công; nếu hết 3 lần, trả thất bại. Giải thích vì sao chỉ chờ người dùng nhập đúng không phải một bảo đảm kết thúc.
+**Exercise 5.** Design a login attempt function allowing at most 3 attempts: if correct, return success; if 3 attempts are exhausted, return failure. Explain why merely waiting for the user to enter the right input is not a termination guarantee.
 
-### Ghi nhớ
+### Key takeaway
 
-**Bảo đảm kết thúc = có điểm dừng + tiến triển đáng tin cậy + không mất điểm dừng do tràn số, đường nhánh hoặc dữ liệu bên ngoài.** Với vòng lặp hữu hạn, dùng giới hạn hoặc một variant không âm giảm nghiêm ngặt. Với `while(true)`, cần lối thoát có thể chứng minh và cơ chế hủy thích hợp; tránh vòng quay chiếm CPU không mục đích.
+**Termination guarantee = a stopping point + reliable progress + not losing the stopping point due to overflow, branching paths, or external data.** For finite loops, use a bound or a strictly decreasing non-negative variant. For `while(true)`, a provable exit and appropriate cancellation mechanism are needed; avoid pointless CPU-spinning loops.

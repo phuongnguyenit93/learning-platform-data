@@ -1,92 +1,92 @@
-# Phân biệt chọn locale ứng dụng với cơ chế dự phòng ResourceBundle
+# Distinguishing Application Locale Selection from the `ResourceBundle` Fallback Mechanism
 
-## 1. Hai quyết định khác nhau thường bị nhầm là một
+## 1. Two Different Decisions Often Confused as One
 
-Một ứng dụng Java hỗ trợ nhiều ngôn ngữ thường phải trả lời **hai câu hỏi** trước khi hiển thị một thông điệp:
+A Java application supporting multiple languages typically has to answer **two questions** before displaying a message:
 
-1. **Ứng dụng chọn locale nào cho người dùng/yêu cầu hiện tại?** Ví dụ, dựa vào ngôn ngữ người dùng đã lưu, header `Accept-Language`, các locale sản phẩm thực sự hỗ trợ và locale mặc định do sản phẩm quy định.
-2. **Với locale đã chọn, `ResourceBundle` tải tệp tài nguyên nào và lấy một khóa ở đâu?** Java tìm các bundle ứng viên, có thể thử locale mặc định của JVM và kế thừa khóa từ bundle cha.
+1. **Which locale does the application choose for the current user/request?** For example, based on the user's saved language, the `Accept-Language` header, the locales the product actually supports, and the product-defined default locale.
+2. **Given the chosen locale, which resource file does `ResourceBundle` load and where does a key come from?** Java searches candidate bundles, may try the JVM's default locale, and inherits keys from parent bundles.
 
-Câu hỏi thứ nhất là **chính sách của ứng dụng** (application locale selection/negotiation); câu hỏi thứ hai là **cơ chế tra cứu tài nguyên** (resource-bundle lookup/fallback). Chúng liên quan nhưng không thay thế nhau.
+The first question is **application policy** (application locale selection/negotiation); the second is a **resource lookup mechanism** (resource-bundle lookup/fallback). They are related, yet do not replace each other.
 
-Ví dụ: Người dùng yêu cầu tiếng Pháp Canada (`fr-CA`), nhưng sản phẩm chỉ cung cấp `vi-VN` và `en-US`. Ứng dụng có thể chủ động chọn `vi-VN` làm fallback sản phẩm. Nếu bỏ qua bước này và gọi thẳng `ResourceBundle.getBundle("Messages", Locale.CANADA_FRENCH)`, Java có thể tìm tài nguyên theo locale mặc định của máy chủ, chẳng hạn `en-US`. Đây là **hai quyết định dẫn đến hai kết quả khác nhau**.
+For example: a user requests Canadian French (`fr-CA`), while the product only provides `vi-VN` and `en-US`. The application can intentionally choose `vi-VN` as the product fallback. If you skip this step and call `ResourceBundle.getBundle("Messages", Locale.CANADA_FRENCH)` directly, Java may resolve resources using the server's default locale, such as `en-US`. These are **two decisions leading to two different outcomes**.
 
-> **Nguyên tắc:** Locale của giao diện phải được quyết định ở tầng ứng dụng; bundle được tìm thấy là phương tiện cung cấp dữ liệu dịch. Không nên suy ngược “ứng dụng đang dùng locale nào” chỉ từ tệp bundle được tải.
+> **Principle:** The UI locale must be decided at the application layer; the bundle found is the vehicle that supplies translation data. Do not infer backward “which locale the application is using” merely from the loaded bundle file.
 
-## 2. Bốn lớp cần phân biệt
+## 2. Four Layers to Distinguish
 
-| Lớp | Đầu vào | Quyết định | Ví dụ |
+| Layer | Input | Decision | Example |
 | --- | --- | --- | --- |
-| Sở thích người dùng | Cấu hình tài khoản, yêu cầu HTTP | Người dùng **muốn** ngôn ngữ nào | `fr-CA` |
-| Chọn locale ứng dụng | Sở thích + danh sách locale hỗ trợ + fallback sản phẩm | Giao diện **sẽ dùng** locale nào | `vi-VN` |
-| Chọn `ResourceBundle` | Base name, locale ứng dụng, classpath/module và luật tra cứu | Bundle **được tải** | `Messages_vi.properties` |
-| Tìm khóa trong bundle | `getString("button.save")` | Giá trị ở bundle hiện tại hay bundle cha | `Messages.properties` |
+| User preference | Account settings, HTTP request | Which language the user **wants** | `fr-CA` |
+| Application locale selection | Preferences + supported locales list + product fallback | Which locale the UI **will use** | `vi-VN` |
+| `ResourceBundle` selection | Base name, application locale, classpath/module, and lookup rules | Which bundle **gets loaded** | `Messages_vi.properties` |
+| Key lookup in bundle | `getString("button.save")` | Value from current bundle or parent bundle | `Messages.properties` |
 
-Một luồng minh họa:
+An illustrative flow:
 
 ```text
-Ưu tiên người dùng: fr-CA
+User preference: fr-CA
           |
           v
-[CHÍNH SÁCH ỨNG DỤNG]
+[APPLICATION POLICY]
 Supported: vi-VN, en-US
-Không có fr -> fallback sản phẩm: vi-VN
+No fr -> product fallback: vi-VN
           |
           v
-Locale ứng dụng: vi-VN
+Application locale: vi-VN
           |
           v
 [RESOURCEBUNDLE LOOKUP]
-Messages_vi_VN? (không)
-Messages_vi?    (có) ---> chọn bundle vi
-Messages?       (có) ---> parent cho các khóa chưa có
+Messages_vi_VN? (no)
+Messages_vi?    (yes) ---> select vi bundle
+Messages?       (yes) ---> parent for missing keys
           |
           v
-getString("greeting")   -> từ Messages_vi
-getString("button.save")-> từ Messages (base)
+getString("greeting")   -> from Messages_vi
+getString("button.save")-> from Messages (base)
 ```
 
-Ở đây có **ba loại fallback** cần gọi tên chính xác:
+Here there are **three kinds of fallback** to name accurately:
 
-- **Fallback chọn locale sản phẩm:** từ sở thích không được hỗ trợ sang một locale mà ứng dụng công bố hỗ trợ; do ứng dụng định nghĩa.
-- **Fallback chọn bundle:** từ locale ứng viên cụ thể (`vi-VN`) xuống locale rộng hơn (`vi`), có thể tới base bundle, và với `getBundle` mặc định còn có quy tắc thử locale mặc định JVM.
-- **Fallback giá trị của khóa:** bundle đã chọn thiếu `button.save`, `getString` có thể đi qua chuỗi bundle cha để tìm cùng khóa.
+- **Product locale selection fallback:** from an unsupported preference to a locale the application declares supported; defined by the application.
+- **Bundle selection fallback:** from a specific candidate locale (`vi-VN`) to a broader locale (`vi`), possibly to the base bundle, and with default `getBundle` there is also the rule of trying the JVM default locale.
+- **Key value fallback:** when the selected bundle lacks `button.save`, `getString` can walk the parent bundle chain to find the key.
 
-Sự kiện “chọn `Messages_vi`” không chứng minh ứng dụng đã đổi locale `vi-VN` thành `vi`. Nó chỉ cho biết tài nguyên cụ thể nhất sẵn có cho nội dung đó.
+The event “selected `Messages_vi`” does not prove the application changed locale `vi-VN` into `vi`. It only indicates the most specific resource available for that content.
 
-## 3. Tầng ứng dụng tự quyết định locale trước khi tải tài nguyên
+## 3. The Application Layer Decides the Locale Before Loading Resources
 
-Một ứng dụng cần định nghĩa rõ **supported locales** (các locale có thể phục vụ) và **product fallback locale** (locale mặc định của sản phẩm). Những dữ liệu này **không tự xuất hiện** khi chỉ gọi `ResourceBundle.getBundle`.
+An application must explicitly define **supported locales** (the locales it can serve) and **product fallback locale** (the product's default locale). This data **does not appear automatically** simply by calling `ResourceBundle.getBundle`.
 
-Các nguồn sở thích thường gặp, theo chính sách tùy sản phẩm:
+Common preference sources, under product-specific policy:
 
-1. Lựa chọn ngôn ngữ đã lưu trong tài khoản hoặc chọn tạm thời trong giao diện.
-2. Sở thích do client gửi, ví dụ `Accept-Language: fr-CA,fr;q=0.9,en-US;q=0.7`.
-3. Locale mặc định đã cấu hình cho sản phẩm, ví dụ `vi-VN`.
+1. A language choice saved in the account or temporarily selected in the UI.
+2. Client-sent preferences, such as `Accept-Language: fr-CA,fr;q=0.9,en-US;q=0.7`.
+3. A default locale configured for the product, such as `vi-VN`.
 
-Ứng dụng có thể ưu tiên lựa chọn tường minh hơn header, nhưng phải tự quy định và kiểm thử thứ tự ưu tiên. `Accept-Language` là **danh sách ưu tiên có trọng số**, không phải một BCP 47 language tag duy nhất; vì vậy không truyền nguyên chuỗi header vào `Locale.forLanguageTag(...)`.
+The application can prioritize explicit choices over headers, but it must define and test the priority order itself. `Accept-Language` is a **weighted priority list**, not a single BCP 47 language tag; therefore, do not pass the entire header string into `Locale.forLanguageTag(...)`.
 
-Một thuật toán ứng dụng đơn giản:
+A simple application algorithm:
 
 ```text
-1. Đọc ưu tiên của người dùng (có thể nhiều locale).
-2. Chuẩn hóa / phân tích cú pháp hợp lệ.
-3. Đối chiếu với danh sách locale sản phẩm hỗ trợ.
-4. Nếu khớp chính xác, chọn locale đó.
-5. Nếu chính sách cho phép, khớp ngôn ngữ hoặc script phù hợp.
-6. Nếu không khớp, chọn fallback sản phẩm đã công bố.
-7. Truyền locale cuối cùng tới i18n/message service và formatter.
+1. Read user preferences (possibly multiple locales).
+2. Normalize / parse valid syntax.
+3. Compare against the product's supported locales list.
+4. If exact match, select that locale.
+5. If policy allows, match an appropriate language or script.
+6. If unmatched, choose the published product fallback.
+7. Pass the final locale to the i18n/message service and formatters.
 ```
 
-Ví dụ, sản phẩm hỗ trợ `en-US` nhưng người dùng yêu cầu `en-GB`. Ứng dụng **có thể** chọn `en-US` vì cùng tiếng Anh nếu chính sách cho phép. Tuy nhiên, việc này có thể làm mất phân biệt vùng khi định dạng ngày tháng; trong ứng dụng phức tạp, **locale ngôn ngữ giao diện** và **locale định dạng** có thể được quản lý riêng.
+For example, the product supports `en-US` while the user requests `en-GB`. The application **may** select `en-US` for sharing English if policy permits. However, this can lose regional distinction when formatting dates; in complex applications, **UI language locale** and **formatting locale** can be managed separately.
 
-Với vùng có nhiều ngôn ngữ, không tự suy từ `Locale.getCountry()` sang language. Cũng không tự đổi tiền tệ hay múi giờ khi chọn locale hiển thị: chúng là dữ liệu và chính sách độc lập.
+For regions with multiple languages, do not automatically infer language from `Locale.getCountry()`. Also do not automatically change currency or time zone when choosing a display locale: they are independent data and policies.
 
-### 3.1. Khớp ưu tiên theo tiêu chuẩn
+### 3.1. Standard Priority Matching
 
-Java hỗ trợ `Locale.LanguageRange.parse(...)` để phân tích danh sách ưu tiên và `Locale.lookup(...)` hoặc `Locale.filter(...)` để khớp các locale được hỗ trợ. Các phương thức này thực hiện một kiểu tìm kiếm theo RFC 4647, nhưng **chính sách chọn fallback cuối cùng** vẫn do ứng dụng quyết định.
+Java supports `Locale.LanguageRange.parse(...)` to parse priority lists and `Locale.lookup(...)` or `Locale.filter(...)` to match supported locales. These methods perform a style of search per RFC 4647, yet **the final fallback selection policy** is still decided by the application.
 
-Ví dụ minh họa **nằm trong một phương thức**:
+Illustrative example **inside a method**:
 
 ```java
 List<Locale.LanguageRange> priorities =
@@ -103,13 +103,13 @@ Locale appLocale = matched != null
         : Locale.forLanguageTag("vi-VN");
 ```
 
-Với danh sách trên, `en-US` là lựa chọn có mặt trong supported locales và có trong preference list, vì thế `matched` là `en-US`. Nếu danh sách sở thích chỉ có `fr-CA` và `fr`, `lookup` không tìm được lựa chọn được hỗ trợ, trả `null`; ứng dụng sẽ chọn `vi-VN` từ cấu hình fallback.
+With the list above, `en-US` is present in supported locales and in the preference list, so `matched` is `en-US`. If the preference list had only `fr-CA` and `fr`, `lookup` finds no supported choice and returns `null`; the application selects `vi-VN` from fallback configuration.
 
-Đừng giả định `Locale.lookup` tự hiểu chất lượng bản dịch, chủ đích kinh doanh hay việc “fr chắc chắn đổi sang en”. Nó chỉ là một thuật toán khớp định danh ngôn ngữ.
+Do not assume `Locale.lookup` understands translation quality, business intent, or that “fr definitely converts to en”. It is strictly a language identifier matching algorithm.
 
-## 4. `ResourceBundle` làm gì sau khi nhận locale?
+## 4. What Does `ResourceBundle` Do After Receiving a Locale?
 
-Giả sử một nhóm tài nguyên `Messages` có các tệp trên classpath:
+Suppose a `Messages` resource group has these files on the classpath:
 
 ```text
 Messages.properties
@@ -119,7 +119,7 @@ Messages_en.properties
 Messages_en_US.properties
 ```
 
-Khi yêu cầu `vi-VN`, các ứng viên phổ biến (khi locale có language+region và không có script/variant) là:
+When requesting `vi-VN`, the typical candidates (when the locale has language+region and no script/variant) are:
 
 ```text
 Messages_vi_VN
@@ -127,29 +127,29 @@ Messages_vi
 Messages              (base bundle, Locale.ROOT)
 ```
 
-Java có thể tải bundle cụ thể và liên kết bundle ít cụ thể hơn làm cha. Nếu `Messages_vi_VN` tồn tại và được chọn, một khóa thiếu ở đây có thể được tìm trong `Messages_vi` rồi `Messages`. Khi không có tệp `vi_VN`, Java có thể chọn `Messages_vi` làm bundle trả về. Nếu cả bundle `vi_VN` lẫn `vi` đều thiếu, hành vi **khác nhau** giữa overload mặc định và `Control` cấm thử fallback locale của JVM.
+Java can load a specific bundle and link less specific bundles as parents. If `Messages_vi_VN` exists and is selected, a key missing there can be looked up in `Messages_vi` and then `Messages`. When `vi_VN` is absent, Java can pick `Messages_vi` as the returned bundle. If both `vi_VN` and `vi` bundles are missing, behavior **differs** between the default overload and a `Control` that forbids trying the JVM fallback locale.
 
-Đây là mô hình đơn giản cho language/region. Các tag có script, variant hoặc các trường hợp đặc biệt có thể cho ra danh sách candidate dài và thứ tự khác. Muốn quan sát danh sách chính xác cho một locale trong môi trường classpath, có thể dùng `ResourceBundle.Control.getCandidateLocales(...)`.
+This is the simple model for language/region. Tags with scripts, variants, or special cases can yield longer candidate lists and different ordering. To observe the exact list for a locale in a classpath environment, you can use `ResourceBundle.Control.getCandidateLocales(...)`.
 
-Tên BCP 47 như `vi-VN` dùng dấu gạch ngang, còn hậu tố tệp `.properties` thường là `_vi_VN`. Đừng coi `Messages_vi_VN` là một language tag.
+BCP 47 names like `vi-VN` use hyphens, whereas `.properties` file suffixes normally use `_vi_VN`. Do not treat `Messages_vi_VN` as a language tag.
 
-### 4.1. Đúng bản chất của “fallback sang JVM default”
+### 4.1. The True Nature of “Fallback to JVM Default”
 
-Với `ResourceBundle.getBundle("Messages", requestedLocale)` ở chế độ mặc định, cơ chế tìm kiếm có thể:
+With `ResourceBundle.getBundle("Messages", requestedLocale)` in default mode, the search mechanism may:
 
-1. Thử các bundle ứng viên của locale yêu cầu (từ cụ thể đến rộng hơn).
-2. Nếu **chưa tìm thấy bundle không phải base** cho locale yêu cầu, thử các ứng viên tương ứng với locale mặc định của JVM.
-3. Nếu vẫn không có bundle cụ thể hơn, dùng base bundle (`Messages.properties`) đã tìm được; nếu không có bundle khả dụng thì ném `MissingResourceException`.
+1. Try candidate bundles for the requested locale (from most specific to broadest).
+2. If **no non-base bundle was found** for the requested locale, try candidates corresponding to the JVM's default locale.
+3. If still no more-specific bundle exists, use the base bundle (`Messages.properties`) if found; if no bundle is available, throw `MissingResourceException`.
 
-Vì vậy, **base bundle không nhất thiết được trả về ngay khi tìm thấy**: nó có thể được giữ lại trong khi Java thử locale mặc định của JVM. Hành vi mặc định phụ thuộc vào base name, tài nguyên tồn tại, locale yêu cầu, locale mặc định, provider/caching và môi trường module/classpath.
+Therefore, **the base bundle is not necessarily returned immediately upon being found**: it may be held back while Java tries the JVM's default locale. Default behavior depends on base name, existing resources, requested locale, default locale, providers/caching, and module/classpath environment.
 
-Ví dụ: máy chủ default locale là `en-US`, có `Messages.properties` và `Messages_en_US.properties`, nhưng không có `Messages_fr` hay `Messages_fr_CA`. Gọi `getBundle("Messages", fr-CA)` có thể trả `Messages_en_US`, **không phải `Messages.properties`**. Điều này là fallback của **bundle loader**, không phải bằng chứng ứng dụng đã chủ động chọn ngôn ngữ tiếng Anh.
+Example: the server's default locale is `en-US`, `Messages.properties` and `Messages_en_US.properties` exist, and neither `Messages_fr` nor `Messages_fr_CA` exists. Calling `getBundle("Messages", fr-CA)` can return `Messages_en_US`, **not `Messages.properties`**. This is a **bundle loader** fallback, not proof that the application intentionally chose English.
 
-Nếu đã có `Messages_fr.properties`, Java tìm thấy một bundle không phải base cho `fr-CA` và sẽ không phải thử nhánh `en-US` chỉ để chọn bundle. Thiếu khóa trong `Messages_fr` lại là một câu chuyện **kế thừa khóa** qua parent chain, không đồng nghĩa tìm một bundle mới theo default locale.
+If `Messages_fr.properties` already exists, Java finds a non-base bundle for `fr-CA` and will not need to try the `en-US` branch just to pick a bundle. A missing key in `Messages_fr` is a matter of **key inheritance** along the parent chain, not searching for a new bundle using the default locale.
 
-### 4.2. `getNoFallbackControl` loại bỏ đúng loại fallback nào?
+### 4.2. Which Exact Fallback Does `getNoFallbackControl` Eliminate?
 
-Khi ứng dụng chạy trên classpath / unnamed module, Java 17 hỗ trợ:
+When the application runs on the classpath / unnamed module, Java 17 supports:
 
 ```java
 ResourceBundle.Control control =
@@ -160,25 +160,25 @@ ResourceBundle bundle =
         ResourceBundle.getBundle("Messages", selectedLocale, control);
 ```
 
-`getNoFallbackControl(...)` làm `Control.getFallbackLocale(...)` trả `null`. Nó **ngăn bước chuyển sang default locale JVM** khi không tìm thấy bundle cụ thể cho locale mục tiêu.
+`getNoFallbackControl(...)` makes `Control.getFallbackLocale(...)` return `null`. It **prevents the step of switching to the JVM default locale** when no specific bundle is found for the target locale.
 
-Nó **không** có nghĩa:
+It **does not** mean:
 
-- Không được dùng `Messages_vi` khi chọn `vi-VN`.
-- Không được dùng `Messages.properties` (base bundle).
-- Không được kế thừa khóa từ bundle cha.
-- Bảo đảm có bản dịch đầy đủ cho mọi khóa.
-- Tự thực hiện negotiation để chọn locale thuộc supported list.
+- `Messages_vi` cannot be used when `vi-VN` is selected.
+- `Messages.properties` (the base bundle) cannot be used.
+- Keys cannot be inherited from parent bundles.
+- Complete translations are guaranteed for every key.
+- Negotiation is automatically performed to pick a locale in the supported list.
 
-Tên dễ gây nhầm: “no fallback” ở đây chỉ áp dụng tới **fallback locale do `Control.getFallbackLocale` quyết định**, không phải mọi tầng fallback của tài nguyên.
+The name is misleading: “no fallback” here applies only to **the fallback locale provided by `Control.getFallbackLocale`**, not every layer of resource fallback.
 
-**Lưu ý Java Module System (JPMS):** Các overload `getBundle(..., ResourceBundle.Control)` không được hỗ trợ khi gọi từ **named module**, có thể ném `UnsupportedOperationException`. Ví dụ tiếp theo chạy ứng dụng Java đơn giản trên classpath (unnamed module). Với named module, thiết kế theo cơ chế `ResourceBundleProvider`/quy tắc tài nguyên module thay vì sao chép nguyên cách dùng `Control`.
+**Java Module System (JPMS) note:** The `getBundle(..., ResourceBundle.Control)` overloads are unsupported when called from a **named module** and can throw `UnsupportedOperationException`. The next example runs a simple Java application on the classpath (unnamed module). With named modules, design using `ResourceBundleProvider`/module resource rules instead of copying `Control` usage verbatim.
 
-## 5. Ví dụ Java 17 chạy được: cùng yêu cầu, ba kết quả fallback
+## 5. Runnable Java 17 Example: Same Request, Three Fallback Outcomes
 
-Ví dụ này **cố ý** giả lập JVM default locale là `en-US` trong một ứng dụng dòng lệnh độc lập để minh họa rủi ro. Không gọi `Locale.setDefault` cho từng request trong dịch vụ nhiều người dùng vì đây là thay đổi toàn JVM.
+This example **intentionally** simulates a JVM default locale of `en-US` in a standalone CLI app to illustrate the risk. Never call `Locale.setDefault` per request in a multi-user service because it is a JVM-wide mutation.
 
-Tạo chính xác bốn tệp cùng thư mục:
+Create these exact four files in the same directory:
 
 ```text
 LocaleFallbackDemo.java
@@ -223,7 +223,7 @@ public class LocaleFallbackDemo {
     );
 
     private static Locale chooseAppLocale(Locale requested) {
-        // Chính sách đơn giản, minh họa: chỉ nhận khớp chính xác.
+        // Simple illustrative policy: accept exact matches only.
         return SUPPORTED.contains(requested)
                 ? requested
                 : PRODUCT_FALLBACK;
@@ -233,7 +233,7 @@ public class LocaleFallbackDemo {
         Locale originalDefault = Locale.getDefault();
 
         try {
-            // Chỉ dùng trong demo cô lập để tái hiện JVM fallback.
+            // Used only in this isolated demo to reproduce JVM fallback.
             Locale.setDefault(Locale.US);
 
             Locale requested = Locale.CANADA_FRENCH; // fr-CA
@@ -277,14 +277,14 @@ public class LocaleFallbackDemo {
 }
 ```
 
-Biên dịch và chạy trên classpath bằng JDK 17 trở lên, lưu các tệp ở UTF-8:
+Compile and run on the classpath with JDK 17 or later, saving the files as UTF-8:
 
 ```bash
 javac -encoding UTF-8 LocaleFallbackDemo.java
 java -cp . LocaleFallbackDemo
 ```
 
-**Stdout kỳ vọng:**
+**Expected stdout:**
 
 ```text
 requested=fr-CA
@@ -297,21 +297,21 @@ strictBase=true
 appSave=Save
 ```
 
-Phân tích từng kết quả:
+Analysis of each result:
 
-- `requested=fr-CA`: sở thích đầu vào, **chưa** phải locale được sản phẩm chấp nhận.
-- `appLocale=vi-VN`: kết quả từ `chooseAppLocale`, do **chính sách ứng dụng** quyết định vì `fr-CA` không nằm trong supported list.
-- `appBundle=vi`: không có `Messages_vi_VN.properties`, Java dùng `Messages_vi.properties` cho appLocale `vi-VN`. Hai locale này hợp lệ khi khác nhau: một là lựa chọn ứng dụng, một là mức dữ liệu dịch có sẵn.
-- `appGreeting=Xin chào`: khóa `greeting` có mặt ở `Messages_vi`.
-- `naiveBundle=en-US` và `naiveGreeting=Howdy`: gọi thẳng `getBundle` bằng `fr-CA` mà không chọn locale ứng dụng; Java không tìm được bản Pháp nên đi sang **JVM default `en-US`**.
-- `strictBase=true`: cùng locale yêu cầu `fr-CA` nhưng với no-JVM-fallback control, không có bundle Pháp, Java nhận base bundle `Messages.properties`; `getLocale()` bằng `Locale.ROOT`.
-- `appSave=Save`: `Messages_vi` không có khóa `button.save`, nên `getString` lấy từ parent `Messages.properties`. Đây là **fallback của khóa**, độc lập với việc chọn bundle. Một bản dịch tiếng Việt chưa đủ khóa có thể lộ chữ tiếng Anh ngay cả khi ứng dụng đã chọn `vi-VN` đúng.
+- `requested=fr-CA`: input preference, **not yet** a locale accepted by the product.
+- `appLocale=vi-VN`: result from `chooseAppLocale`, decided by **application policy** because `fr-CA` is not in the supported list.
+- `appBundle=vi`: without `Messages_vi_VN.properties`, Java uses `Messages_vi.properties` for appLocale `vi-VN`. It is valid for these two locales to differ: one is the application's choice, the other is the granularity of available translation data.
+- `appGreeting=Xin chào`: key `greeting` is present in `Messages_vi`.
+- `naiveBundle=en-US` and `naiveGreeting=Howdy`: calling `getBundle` directly with `fr-CA` without application locale selection; Java finds no French bundle and moves to **JVM default `en-US`**.
+- `strictBase=true`: same requested locale `fr-CA` but with no-JVM-fallback control, no French bundle exists, so Java receives the base bundle `Messages.properties`; `getLocale()` equals `Locale.ROOT`.
+- `appSave=Save`: `Messages_vi` lacks key `button.save`, so `getString` retrieves it from parent `Messages.properties`. This is **key fallback**, independent of bundle selection. An incomplete Vietnamese translation can expose English text even when the app properly selected `vi-VN`.
 
-Lưu ý: dùng `try/finally` chỉ để khôi phục mặc định JVM sau demo; `Locale.setDefault(...)` vẫn thay đổi trạng thái toàn tiến trình và không phù hợp trong ứng dụng server chạy đồng thời. Demo giả định không có `Messages_fr*`, `Messages_en*` khác trong classpath và không có lớp `Messages` tương ứng. Nếu thêm tệp cùng base name, thứ tự/chọn bundle sẽ thay đổi có chủ đích.
+Note: `try/finally` is used solely to restore the JVM default after the demo; `Locale.setDefault(...)` still mutates process-wide state and is unsuitable in concurrent server applications. The demo assumes no other `Messages_fr*` or `Messages_en*` files on the classpath and no matching `Messages` class. Adding files with the same base name will intentionally alter bundle ordering/selection.
 
-## 6. Quy tắc quan trọng: tìm bundle khác với tìm khóa
+## 6. Important Rule: Finding a Bundle Differs from Finding a Key
 
-Xét:
+Consider:
 
 ```properties
 # Messages.properties
@@ -324,46 +324,46 @@ menu.close=Close
 menu.open=Mở
 ```
 
-Nếu chọn `vi-VN` và Java chọn `Messages_vi`:
+If `vi-VN` is chosen and Java selects `Messages_vi`:
 
-| Lời gọi | Kết quả | Nguồn |
+| Call | Result | Source |
 | --- | --- | --- |
-| `bundle.getLocale()` | `vi` | Bundle được chọn |
-| `bundle.getString("menu.open")` | `Mở` | Bundle `vi` |
-| `bundle.getString("menu.close")` | `Close` | Bundle cha/base |
-| `bundle.getString("menu.exit")` | `MissingResourceException` | Không có ở chuỗi bundle |
+| `bundle.getLocale()` | `vi` | Selected bundle |
+| `bundle.getString("menu.open")` | `Mở` | `vi` bundle |
+| `bundle.getString("menu.close")` | `Close` | Parent/base bundle |
+| `bundle.getString("menu.exit")` | `MissingResourceException` | Absent in the bundle chain |
 
-Không có sự kiện “`getString` đổi locale ứng dụng sang tiếng Anh”; nó đơn thuần trả chuỗi từ parent khi key thiếu. Bất kỳ ứng dụng nào muốn hỗ trợ tiếng Việt đầy đủ cần **kiểm tra độ phủ của khóa** (coverage), không chỉ kiểm tra `getBundle` tải được.
+There is no event where “`getString` switches the application locale to English”; it merely returns the string from the parent when a key is missing. Any application wanting full Vietnamese support must **test key coverage**, not just check that `getBundle` loads.
 
-Một rủi ro khác: một chuỗi dịch có thể dùng tham số `{0}`, `{1}` hoặc ngữ pháp khác; fallback lấy chuỗi từ base nhưng formatter, con số hoặc ngày lại theo locale yêu cầu. Do đó không trộn chuỗi từng ngôn ngữ một cách vô ý; hãy có chính sách fallback về nội dung và test hiển thị với tham số.
+Another risk: a translated string may use parameters `{0}`, `{1}` or different grammar; fallback pulls a string from base while formatters, numbers, or dates still follow the requested locale. Therefore, avoid inadvertently mixing strings across languages; establish a content fallback policy and test rendering with parameters.
 
-## 7. Bảng hành vi cho các cách gọi thường gặp
+## 7. Behavior Table for Common Call Patterns
 
-Giả sử JVM default locale là `en-US`, tồn tại các tệp `Messages.properties`, `Messages_vi.properties`, `Messages_en_US.properties`, không có bản `fr` hoặc `fr_CA`:
+Assume the JVM default locale is `en-US`, files `Messages.properties`, `Messages_vi.properties`, and `Messages_en_US.properties` exist, and no `fr` or `fr_CA` exists:
 
-| Yêu cầu | Cách gọi | Bundle được trả | Vì sao |
+| Request | Call | Returned Bundle | Why |
 | --- | --- | --- | --- |
-| `vi-VN` | `getBundle("Messages", viVN)` | `vi` | Có bản gần nhất theo ngôn ngữ |
-| `vi-VN` | `getBundle("Messages", viVN, noJvmFallback)` | `vi` | Không cần thử JVM default |
-| `fr-CA` | `getBundle("Messages", frCA)` | `en-US` | Không có bản Pháp, nên thử JVM default |
-| `fr-CA` | `getBundle("Messages", frCA, noJvmFallback)` | `ROOT` (base) | Không thử JVM default; còn base |
-| `vi-VN` sau app fallback từ `fr-CA` | `getBundle("Messages", selectedViVN, noJvmFallback)` | `vi` | Do sản phẩm chọn locale rồi mới tra cứu |
+| `vi-VN` | `getBundle("Messages", viVN)` | `vi` | Closest language-level match exists |
+| `vi-VN` | `getBundle("Messages", viVN, noJvmFallback)` | `vi` | No need to try JVM default |
+| `fr-CA` | `getBundle("Messages", frCA)` | `en-US` | No French version, so tries JVM default |
+| `fr-CA` | `getBundle("Messages", frCA, noJvmFallback)` | `ROOT` (base) | Does not try JVM default; base remains |
+| `vi-VN` after app fallback from `fr-CA` | `getBundle("Messages", selectedViVN, noJvmFallback)` | `vi` | Product chose the locale before looking up |
 
-Nếu bỏ cả `Messages.properties` và không còn bất cứ bundle nào phù hợp theo quy tắc tìm kiếm, Java sẽ ném `MissingResourceException`. `getNoFallbackControl` **không bảo đảm** luôn có dữ liệu; nó chỉ đổi chiến lược thử fallback locale của JVM.
+If `Messages.properties` is also removed and no matching bundle remains under search rules, Java throws `MissingResourceException`. `getNoFallbackControl` **does not guarantee** data will always be found; it only changes the strategy for trying the JVM's fallback locale.
 
-Trong một hệ thống có nhiều hơn hai thành phần locale, script/variant làm ứng viên đa dạng hơn; bảng trên mô tả đúng **bộ tệp giả định** và không phải bảng tra cứu tổng quát cho mọi locale có thể có.
+In a system with more than two locale components, script/variant expand the candidate list; the table above describes the exact **assumed file set** and is not a general lookup table for every possible locale.
 
-## 8. Vì sao `getBundle().getLocale()` không nên dùng làm locale của cả ứng dụng?
+## 8. Why `getBundle().getLocale()` Should Not Be Used as the Whole Application's Locale
 
-Giả sử người dùng được chọn `vi-VN` nhưng trong hệ thống chỉ tồn tại `Messages_vi.properties`. `bundle.getLocale()` trả `vi` vì đó là bundle đã tìm thấy. Nếu lại dùng:
+Suppose a user is assigned `vi-VN`, yet only `Messages_vi.properties` exists in the system. `bundle.getLocale()` returns `vi` because that is the bundle found. If you then do:
 
 ```java
 Locale wrongFormattingLocale = bundle.getLocale();
 ```
 
-thì ứng dụng vô tình đánh mất thông tin region `VN` từ lựa chọn ban đầu. Số tiền, ngày, ngôn ngữ và quy ước vùng có thể bị định dạng theo locale quá chung. Tương tự, `getBundle(... fr-CA ...)` có thể trả bundle `en-US` do JVM default; `getLocale()` lúc này không phản ánh ý muốn của người dùng.
+the application accidentally loses the `VN` region information from the original selection. Monetary amounts, dates, language, and regional conventions may be formatted with an overly generic locale. Likewise, `getBundle(... fr-CA ...)` might return the `en-US` bundle due to JVM default; `getLocale()` at that point does not reflect the user's intent.
 
-Thiết kế nên giữ hai biến tường minh:
+The design should keep two variables explicit:
 
 ```java
 Locale uiLocale = Locale.forLanguageTag("vi-VN");
@@ -374,23 +374,23 @@ ResourceBundle labels = ResourceBundle.getBundle(
                 ResourceBundle.Control.FORMAT_PROPERTIES)
 );
 
-// uiLocale là locale ứng dụng đã chọn.
-// labels.getLocale() chỉ cho biết bundle cụ thể được trả.
+// uiLocale is the chosen application locale.
+// labels.getLocale() only tells which specific bundle was returned.
 ```
 
-Đây là đoạn mã minh họa đặt trong class hoặc method. Formatter nên được cấp **locale trình bày đã quyết định**, có thể là `uiLocale` hoặc `formattingLocale` riêng, theo thiết kế sản phẩm. Đừng dùng `labels.getLocale()` để ghi đè state locale người dùng.
+This is an illustrative snippet placed inside a class or method. Formatters should be given the **decided presentation locale**, which may be `uiLocale` or a separate `formattingLocale` depending on product design. Do not use `labels.getLocale()` to overwrite the user's locale state.
 
-## 9. Thiết kế dịch vụ nhiều người dùng
+## 9. Multi-User Service Design
 
-Trên backend Java, các request có thể đến đồng thời:
+On a Java backend, requests can arrive concurrently:
 
 ```text
-Request A: người dùng vi-VN ─┐
-                             ├── cùng JVM ── cùng tài nguyên, nhiều locale
-Request B: người dùng en-US ─┘
+Request A: user vi-VN ─┐
+                       ├── same JVM ── shared resources, multiple locales
+Request B: user en-US ─┘
 ```
 
-Nếu request A chạy `Locale.setDefault(viVN)` còn request B chạy `Locale.setDefault(enUS)`, hai request có thể ghi đè trạng thái chung và gây kết quả không ổn định. Cách làm đúng là truyền locale theo request:
+If request A runs `Locale.setDefault(viVN)` and request B runs `Locale.setDefault(enUS)`, the two requests can overwrite shared state and cause erratic results. The right approach is to pass the locale per request:
 
 ```java
 String renderGreeting(Locale uiLocale) {
@@ -400,92 +400,92 @@ String renderGreeting(Locale uiLocale) {
 }
 ```
 
-Đây là đoạn minh họa trong một lớp. Với chính sách cần tránh JVM-default fallback, trên classpath có thể dùng overload `Control` như phần trước; trên named module cần cơ chế provider phù hợp.
+This is an illustrative snippet inside a class. For policies requiring avoiding JVM-default fallback, on the classpath you can use the `Control` overload as before; in named modules you need an appropriate provider mechanism.
 
-Các tầng thường dùng:
+Typical layers:
 
-- **Locale resolver:** chọn `uiLocale` từ profile và request, đối chiếu supported list, trả về product fallback nếu cần.
-- **Message service:** tải bundle với `uiLocale` đã chọn, lấy key và xử lý placeholder; kiểm soát fallback chính xác.
-- **Formatter:** tạo `NumberFormat`/`DateTimeFormatter` với locale trình bày, chọn `ZoneId` độc lập.
-- **Validation/error boundary:** xuất **mã lỗi ổn định** cho hệ thống, dịch thông điệp khi hiển thị, không coi nội dung tiếng người dùng là định danh nghiệp vụ.
+- **Locale resolver:** picks `uiLocale` from profile and request, checks the supported list, returns product fallback if needed.
+- **Message service:** loads the bundle with the selected `uiLocale`, retrieves keys and formats placeholders; strictly controls fallback.
+- **Formatter:** creates `NumberFormat`/`DateTimeFormatter` with the presentation locale, selects `ZoneId` independently.
+- **Validation/error boundary:** emits **stable error codes** for the system, translates messages on display, and never treats localized text as a business identifier.
 
-Cấu hình locale mặc định của JVM vẫn hữu ích cho ứng dụng dòng lệnh một người dùng hoặc khi môi trường chủ động định nghĩa mặc định. Nhưng với server nhiều người dùng, không dùng nó như quyết định fallback không được công bố của sản phẩm.
+JVM default locale configuration remains useful for single-user CLI apps or when the environment intentionally defines a default. Yet for multi-user servers, never use it as an unpublished product fallback decision.
 
-## 10. Hai chính sách fallback có thể kết hợp như thế nào?
+## 10. How Can the Two Fallback Policies Be Combined?
 
-### Chính sách A: Chỉ cho người dùng dùng locale được sản phẩm hỗ trợ
+### Policy A: Allow Users Only Product-Supported Locales
 
-Ví dụ supported `vi-VN, en-US`, fallback sản phẩm `vi-VN`. UI tự chọn locale theo profile/`Accept-Language`; sau đó tìm bundle. Khi không có tài nguyên tương ứng, hệ thống coi là lỗi triển khai hoặc dùng tài nguyên gốc theo quy tắc đã định. Ưu điểm: hành vi rõ, có thể kiểm soát trải nghiệm người dùng.
+For example, supported `vi-VN, en-US`, product fallback `vi-VN`. The UI selects the locale by profile/`Accept-Language`; then looks up the bundle. When a corresponding resource is missing, the system treats it as a deployment bug or uses the base resource per defined rules. Advantage: clear behavior, controllable user experience.
 
-### Chính sách B: Cho phép locale rộng hơn nhưng fallback bản dịch
+### Policy B: Allow Broader Locales While Falling Back Translations
 
-Ứng dụng có thể chấp nhận `fr-CA` để **định dạng** ngày, giờ và số, dù chưa có bản tiếng Pháp; còn **ngôn ngữ thông điệp** được fallback rõ ràng sang tiếng Anh hoặc tiếng Việt. Muốn làm tốt, nên tách `formattingLocale` khỏi `messageLocale`, hoặc cung cấp chiến lược fallback cho message resolver; không cần ép tất cả dữ liệu đi theo bundle được tải.
+An application might accept `fr-CA` for **formatting** dates, times, and numbers even without a French translation; meanwhile, **message language** explicitly falls back to English or Vietnamese. To do this cleanly, separate `formattingLocale` from `messageLocale`, or provide a fallback strategy for the message resolver; there is no need to force all data to follow whichever bundle happened to load.
 
-Một mô hình là:
+One model is:
 
 ```text
 User preference: fr-CA
       ├── formattingLocale = fr-CA
-      └── messageLocale    = en-US (product fallback được công bố)
+      └── messageLocale    = en-US (published product fallback)
                                    │
                                    └── Messages_en_US / Messages_en / base
 ```
 
-Hai chính sách đều có thể đúng tùy sản phẩm. Vấn đề là phải **quy định và kiểm thử rõ**, thay vì để JVM default ngầm quyết định ngôn ngữ người dùng sẽ thấy.
+Both policies can be valid depending on the product. The key is to **specify and test them clearly**, rather than letting the JVM default silently decide which language the user sees.
 
-### Có nên dùng `Messages.properties` như “bản dịch mặc định”?
+### Should `Messages.properties` Be Used as the “Default Translation”?
 
-Có thể, nếu nó chứa bản dịch của ngôn ngữ fallback sản phẩm. Tuy nhiên base bundle là tài nguyên cuối của parent chain, **không tự thay việc chọn product locale**. Một tệp base tiếng Anh có thể làm lộ tiếng Anh ở một màn hình đã chọn tiếng Việt khi bản Việt thiếu khóa. Vì thế:
+It can, if it contains translations in the product's fallback language. However, the base bundle is the final resource in the parent chain and **does not replace selecting a product locale**. An English base file can leak English onto a screen that selected Vietnamese when the Vietnamese file lacks a key. Therefore:
 
-1. Xác định ngôn ngữ của base bundle bằng quy ước dự án.
-2. Đảm bảo mọi locale được tuyên bố hỗ trợ có đủ key quan trọng và placeholder.
-3. Cho phép fallback key chỉ theo chính sách đã công bố; cân nhắc fail-fast ở môi trường kiểm thử cho bản dịch thiếu.
-4. Không dựa vào default locale JVM để hoàn thiện các bản dịch thiếu.
+1. Define the base bundle's language by project convention.
+2. Ensure every locale declared supported has all critical keys and placeholders.
+3. Permit key fallback only per published policy; consider failing fast in test environments for missing translations.
+4. Do not rely on the JVM default locale to fill in missing translations.
 
-## 11. Cách kiểm tra, chẩn đoán và xác minh
+## 11. How to Inspect, Diagnose, and Verify
 
-Khi người dùng báo “đã chọn tiếng Việt nhưng lại thấy tiếng Anh”, cần tách từng bằng chứng:
+When a user reports “selected Vietnamese yet saw English”, separate each piece of evidence:
 
-| Cần biết | Quan sát |
+| What to Know | What to Observe |
 | --- | --- |
-| Sở thích người dùng được đọc là gì? | Language tag hoặc danh sách `Accept-Language` |
-| App cuối cùng chọn gì? | Log `uiLocale.toLanguageTag()` sau locale resolver |
-| JVM default là gì? | `Locale.getDefault()`, chỉ để chẩn đoán |
-| Bundle nào được tải? | `bundle.getLocale()` và base name |
-| Khóa đang lấy từ bundle nào? | Kiểm tra trong tệp bundle hiện tại và parent; `getLocale()` một mình không chỉ rõ nơi từng khóa xuất phát |
-| Bản dịch có đủ khóa không? | Test độ phủ và placeholder ở build/test |
-| Cách gọi `getBundle` là gì? | Có dùng `Control` hay provider? classpath hay named module? |
-| Có cache/triển khai trộn phiên bản không? | Xem vòng đời cache, class loader, tài nguyên sau deploy |
+| What user preference was read? | Language tag or `Accept-Language` list |
+| What did the app ultimately choose? | Log `uiLocale.toLanguageTag()` after the locale resolver |
+| What is the JVM default? | `Locale.getDefault()`, for diagnostics only |
+| Which bundle was loaded? | `bundle.getLocale()` and base name |
+| Which bundle is the key coming from? | Inspect the current bundle file and parent files; `getLocale()` alone does not show where each individual key came from |
+| Does the translation have all keys? | Coverage and placeholder tests in build/test |
+| How was `getBundle` called? | Was `Control` or a provider used? Classpath or named module? |
+| Are caches/deployments mixing versions? | Check cache lifecycle, class loader, and deployed resources |
 
-**Không nên log nội dung nhạy cảm của người dùng** chỉ để chẩn đoán localization. Log locale, mã key, mã lỗi và bundle được chọn khi cần thiết thường đủ.
+**Do not log sensitive user content** just to diagnose localization. Logging the locale, key name, error code, and selected bundle when needed is usually sufficient.
 
-`ResourceBundle` có cache. Khi thay tệp `.properties` trong lúc JVM đang chạy, kết quả đọc có thể chưa đổi do cache. Tùy kiến trúc, cần triển khai lại, cấu hình TTL/`needsReload`, hoặc `ResourceBundle.clearCache(...)`; không mặc định rằng sửa tệp lập tức thay đổi mọi bundle. Đồng thời, classpath nhiều JAR có thể chứa cùng base bundle, cần kiểm tra thực tế nơi tệp được đóng gói.
+`ResourceBundle` caches bundles. When replacing `.properties` files while the JVM is running, read results may not change due to caching. Depending on architecture, redeploy, configure TTL/`needsReload`, or call `ResourceBundle.clearCache(...)`; do not assume editing a file immediately updates all bundles. Also, multiple JARs on the classpath may contain the same base bundle, so verify where files are actually packaged.
 
-## 12. Kiểm thử hành vi đúng tầng
+## 12. Testing Behavior at the Right Layer
 
-Bộ kiểm thử nên tách **hai nhóm**:
+The test suite should separate **two groups**:
 
-**Nhóm 1 — locale resolver (chính sách ứng dụng)**
+**Group 1 — locale resolver (application policy)**
 
-- Profile chọn `vi-VN`, request header chọn `en-US`: thuật toán ưu tiên cấu hình người dùng đúng như quy tắc sản phẩm.
-- Sở thích `fr-CA` không hỗ trợ: app chọn fallback sản phẩm, độc lập default locale JVM.
-- Sở thích `en-GB` với supported `en-US`: test chính sách có hoặc không cho fallback theo ngôn ngữ.
-- Header nhiều tag và `q`: parse/lookup đúng thứ tự ưu tiên, không gọi `forLanguageTag` với nguyên chuỗi header.
+- Profile selects `vi-VN`, request header selects `en-US`: algorithm prioritizes user settings per product rules.
+- Unsupported preference `fr-CA`: app chooses product fallback, independent of JVM default locale.
+- Preference `en-GB` with supported `en-US`: test policy with or without language-level fallback.
+- Multi-tag header with `q`: parses/looks up in proper priority order without passing the entire header string to `forLanguageTag`.
 
-**Nhóm 2 — resource lookup (Java runtime / file thực tế)**
+**Group 2 — resource lookup (Java runtime / actual files)**
 
-- Có `Messages_vi_VN`: trả bundle `vi-VN`.
-- Không có `Messages_vi_VN` nhưng có `Messages_vi`: trả bundle `vi`.
-- Không có bundle của `fr-CA`: so sánh overload mặc định với `getNoFallbackControl` trong môi trường default `en-US`.
-- Tệp `vi` thiếu một key: xác nhận key từ bundle cha hoặc phát hiện thiếu theo chính sách coverage.
-- Không có bundle thỏa mãn: ném `MissingResourceException`.
-- Cùng selectedLocale nhưng đổi JVM default: kết quả không được làm ứng dụng chọn một locale sản phẩm khác.
+- `Messages_vi_VN` exists: returns `vi-VN` bundle.
+- `Messages_vi_VN` absent but `Messages_vi` exists: returns `vi` bundle.
+- No bundle for `fr-CA`: compare the default overload with `getNoFallbackControl` in an environment with default `en-US`.
+- File `vi` misses a key: confirm key comes from parent bundle or detect omission under coverage policy.
+- No satisfying bundle exists: throws `MissingResourceException`.
+- Same `selectedLocale` with changed JVM default: result must not cause the application to choose a different product locale.
 
-Trường hợp test thay `Locale.setDefault` cần chạy cô lập, tránh làm hỏng các test chạy đồng thời. Bài demo đặt lại default trong `finally`, nhưng vẫn không nên chạy song song với test khác phụ thuộc global default.
+Tests that mutate `Locale.setDefault` must run in isolation to avoid breaking concurrent tests. The demo restores the default in `finally`, yet still should not run in parallel with other tests that depend on the global default.
 
-### 12.1. Một bài tập nhỏ quan sát candidate locales
+### 12.1. Small Exercise to Observe Candidate Locales
 
-Đoạn sau độc lập và chạy với JDK 17:
+The following snippet is standalone and runs with JDK 17:
 
 ```java
 import java.util.Locale;
@@ -507,14 +507,14 @@ public class CandidateLocalesDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 CandidateLocalesDemo.java
 java CandidateLocalesDemo
 ```
 
-Stdout chính xác trong Java 17:
+Exact stdout in Java 17:
 
 ```text
 vi-VN
@@ -522,55 +522,55 @@ vi
 (base)
 ```
 
-Đoạn code trên chỉ **liệt kê candidate locales**, không thử tìm tệp `Messages`, cũng không hiển thị fallback sang default JVM: fallback JVM là bước tìm kiếm bổ sung do `getFallbackLocale` quyết định, không nằm trong danh sách candidate cho `vi-VN`.
+The code above only **lists candidate locales**; it does not attempt to find `Messages` files, nor does it show fallback to the JVM default: JVM fallback is an additional search step determined by `getFallbackLocale`, not part of the candidate list for `vi-VN`.
 
-## 13. Những hiểu lầm hay gặp
+## 13. Common Misconceptions
 
-| Hiểu lầm | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| `getBundle(requested)` tự chọn locale sản phẩm được hỗ trợ | Nó tra bundle theo thuật toán Java; supported locales là chính sách app |
-| `Locale.getDefault()` là ngôn ngữ do người dùng chọn | Đây là trạng thái mặc định JVM; có thể khác mỗi request |
-| `getNoFallbackControl` cấm mọi fallback | Nó cấm fallback locale do `getFallbackLocale` cung cấp; vẫn có candidate/base/parent |
-| Có `Messages.properties` thì Java luôn dùng base trước JVM default | Base có thể được giữ lại trong khi tìm bundle của JVM default |
-| `bundle.getLocale()` luôn bằng locale yêu cầu | Giá trị này phản ánh bundle thực sự được trả |
-| Một key thiếu làm Java “đổi sang bundle default JVM” | Key lookup đi dọc parent chain của bundle được chọn; đừng lẫn với bundle selection |
-| `Messages_vi` tồn tại nghĩa là bản dịch Việt đã đủ | Cần test toàn bộ key và placeholder |
-| Chọn locale ứng dụng đủ để quyết định múi giờ và tiền tệ | `ZoneId` và `Currency` là quyết định riêng |
-| `ResourceBundle.Control` chạy giống nhau trên classpath và named module | Overload `Control` không được hỗ trợ khi gọi từ named module |
-| Đổi default locale theo từng HTTP request là an toàn | Default là trạng thái chung JVM, dễ ảnh hưởng request khác |
+| `getBundle(requested)` automatically picks a supported product locale | It looks up bundles per Java's algorithm; supported locales are an app policy |
+| `Locale.getDefault()` is the user-chosen language | It is JVM default state; it can differ from every request |
+| `getNoFallbackControl` forbids all fallbacks | It forbids the fallback locale provided by `getFallbackLocale`; candidate/base/parent still apply |
+| If `Messages.properties` exists, Java always uses base before JVM default | Base may be held back while searching bundles for the JVM default |
+| `bundle.getLocale()` always equals the requested locale | This value reflects the bundle actually returned |
+| A missing key makes Java “switch to the JVM default bundle” | Key lookup walks the parent chain of the selected bundle; do not confuse with bundle selection |
+| `Messages_vi` existing means Vietnamese translations are complete | Must test all keys and placeholders |
+| Selecting an app locale is enough to decide time zone and currency | `ZoneId` and `Currency` are separate decisions |
+| `ResourceBundle.Control` works identically on classpath and named modules | `Control` overloads are unsupported when called from named modules |
+| Changing default locale per HTTP request is safe | Default is JVM-shared state, easily affecting other requests |
 
-## 14. Câu hỏi tự luyện và đáp án
+## 14. Self-Practice Questions and Answers
 
-**Câu 1.** Người dùng gửi `fr-CA`, ứng dụng chỉ hỗ trợ `vi-VN` và `en-US`. Máy chủ đang default `ja-JP`. Ai quyết định UI hiển thị tiếng Việt?
+**Question 1.** A user sends `fr-CA`, and the app supports only `vi-VN` and `en-US`. The server defaults to `ja-JP`. Who decides that the UI renders in Vietnamese?
 
-**Đáp án:** locale resolver của ứng dụng có quy tắc fallback sản phẩm sang `vi-VN`. `ResourceBundle` không thể tự suy diễn điều này chỉ từ `fr-CA` và default JVM `ja-JP`.
+**Answer:** The application's locale resolver with a product fallback rule to `vi-VN`. `ResourceBundle` cannot deduce this solely from `fr-CA` and JVM default `ja-JP`.
 
-**Câu 2.** App đã chọn `vi-VN`, bundle được trả có locale `vi`. Đây có phải lỗi?
+**Question 2.** The app selected `vi-VN`, and the returned bundle has locale `vi`. Is this a bug?
 
-**Đáp án:** chưa chắc. Nếu chưa có `Messages_vi_VN` nhưng có `Messages_vi`, Java chọn bản theo ngôn ngữ là hợp lệ. Vẫn nên giữ `vi-VN` cho formatter nếu đó là locale trình bày đã quyết định.
+**Answer:** Not necessarily. If `Messages_vi_VN` does not exist yet `Messages_vi` does, Java picking the language-level file is valid. You should still keep `vi-VN` for formatters if that is the decided presentation locale.
 
-**Câu 3.** `getNoFallbackControl` có ngăn lấy `button.save` từ `Messages.properties` khi `Messages_vi.properties` thiếu khóa không?
+**Question 3.** Does `getNoFallbackControl` prevent fetching `button.save` from `Messages.properties` when `Messages_vi.properties` is missing the key?
 
-**Đáp án:** không. Nó chỉ ngăn tìm **fallback locale** theo `Control.getFallbackLocale`, không ngăn chuỗi bundle cha.
+**Answer:** No. It only prevents searching for a **fallback locale** via `Control.getFallbackLocale`, not walking the parent bundle chain.
 
-**Câu 4.** Có base bundle và bundle `en-US`, default JVM `en-US`, yêu cầu `fr-CA` không có bản Pháp. Overload mặc định thường trả gì?
+**Question 4.** Base bundle and `en-US` bundle exist, JVM default is `en-US`, and request `fr-CA` has no French bundle. What does the default overload usually return?
 
-**Đáp án:** `en-US` vì Java thử default locale trước khi kết luận dùng base; thử `getNoFallbackControl` sẽ trả base trong điều kiện bộ tệp giả định ở bài.
+**Answer:** `en-US` because Java tries the default locale before concluding to use base; trying `getNoFallbackControl` will return base under the file set assumed in this lesson.
 
-**Câu 5.** App hiển thị tiếng Anh cho một khóa đơn lẻ giữa màn hình tiếng Việt, nhưng `bundle.getLocale()` vẫn là `vi`. Nên kiểm tra gì?
+**Question 5.** The app shows English for a single key in the middle of a Vietnamese screen, yet `bundle.getLocale()` is still `vi`. What should be checked?
 
-**Đáp án:** kiểm tra khóa đó có trong `Messages_vi` hay chỉ trong parent/base; sau đó bổ sung dịch và test coverage. Không vội thay đổi locale resolver vì bundle đã được chọn đúng.
+**Answer:** Check whether that key exists in `Messages_vi` or only in parent/base; then add the translation and coverage tests. Do not rush to change the locale resolver since the bundle was selected correctly.
 
-## 15. Tóm lược kiến thức cần nhớ
+## 15. Summary of Key Takeaways
 
-- **Locale selection**: quyết định của sản phẩm cho từng người dùng hoặc request, dựa trên preferences, supported locales và fallback rõ ràng.
-- **Bundle selection**: thuật toán Java tìm tài nguyên phù hợp với locale đã truyền, có candidate locales, base bundle và có thể thêm fallback tới default locale JVM ở overload mặc định.
-- **Key inheritance**: khi bundle đã chọn thiếu key, `getString` tra bundle cha; đây không phải chọn lại locale ứng dụng.
-- **`getNoFallbackControl`**: chặn fallback sang default locale JVM khi dùng `ResourceBundle.Control` trên classpath, nhưng vẫn cho candidate và base/parent hoạt động.
-- **Thiết kế ổn định**: giữ locale của ứng dụng tường minh, ghi nhận bundle locale như thông tin chẩn đoán, test thiếu khóa và không dùng `Locale.setDefault` theo từng request.
+- **Locale selection**: a product decision for each user or request, based on preferences, supported locales, and explicit fallback.
+- **Bundle selection**: Java's algorithm to find a matching resource for the passed locale, involving candidate locales, base bundle, and potentially falling back to the JVM default locale in the default overload.
+- **Key inheritance**: when the selected bundle lacks a key, `getString` looks up parent bundles; this is not re-selecting the application locale.
+- **`getNoFallbackControl`**: blocks fallback to the JVM default locale when using `ResourceBundle.Control` on the classpath, while still allowing candidate and base/parent lookup.
+- **Stable design**: keep the application's locale explicit, log the bundle locale as diagnostic info, test missing keys, and never call `Locale.setDefault` per request.
 
-Tài liệu tham khảo chính thức cho Java 17:
+Official documentation references for Java 17:
 
 - [`ResourceBundle` — Resource Bundle Search and Loading Strategy](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html)
-- [`ResourceBundle.Control` — `getCandidateLocales` và `getNoFallbackControl`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html)
+- [`ResourceBundle.Control` — `getCandidateLocales` and `getNoFallbackControl`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html)
 - [`Locale` — Language Ranges and Matching](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html)

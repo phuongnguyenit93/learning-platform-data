@@ -1,110 +1,110 @@
-# Ngôn ngữ Java là gì và dùng để diễn đạt bài toán như thế nào?
+# What Is the Java Language and How Is It Used to Express a Problem?
 
-Khi mới học lập trình, nhiều người thấy chương trình chỉ là những dòng chữ có dấu `;`, dấu `{}` và từ khóa khó nhớ. Cách nhìn hữu ích hơn là: **Java là một ngôn ngữ để biến quy tắc giải quyết một bài toán thành các chỉ dẫn mà máy tính có thể kiểm tra và thực thi**. Ta cần hiểu bài toán trước, sau đó chọn dữ liệu, đặt tên, mô tả điều kiện và tính toán bằng Java.
+When first learning to program, many people see a program as just lines of text with `;`, `{}`, and hard-to-remember keywords. A more useful perspective is: **Java is a language for turning rules that solve a problem into instructions that a computer can verify and execute**. We need to understand the problem first, then choose the data, assign names, describe conditions, and compute using Java.
 
-Bài này dành cho người mới học Java core. Bạn sẽ xây dựng và chạy một chương trình nhỏ mà không cần thư viện ngoài hay framework.
+This lesson is for beginners learning core Java. You will build and run a small program without needing external libraries or frameworks.
 
-## 1. Sau bài học, bạn làm được gì?
+## 1. What Will You Be Able to Do After This Lesson?
 
-- Phân biệt **ngôn ngữ Java**, tệp mã nguồn `.java`, trình biên dịch `javac`, tệp bytecode `.class` và JVM.
-- Chuyển một yêu cầu bằng tiếng Việt thành **đầu vào → quy tắc xử lý → đầu ra** có thể kiểm chứng.
-- Nhận diện vai trò của biến, kiểu dữ liệu, biểu thức, điều kiện, phương thức và lời gọi trong một chương trình Java đơn giản.
-- Tạo một lớp Java có `main`, biên dịch bằng `javac` và chạy bằng `java`.
-- Thử các giá trị thường gặp, giá trị biên và dữ liệu sai; phân biệt lỗi cú pháp, lỗi khi chạy và lỗi logic.
-- Hiểu giới hạn của một chương trình minh họa: quy tắc nghiệp vụ phải do bài toán xác định, Java không tự suy ra điều người dùng muốn.
+- Distinguish between the **Java language**, `.java` source files, the `javac` compiler, `.class` bytecode files, and the JVM.
+- Turn a Vietnamese requirement into verifiable **input → processing rules → output**.
+- Identify the roles of variables, data types, expressions, conditions, methods, and calls in a simple Java program.
+- Create a Java class with `main`, compile it with `javac`, and run it with `java`.
+- Test typical values, boundary values, and invalid data; distinguish between syntax errors, runtime errors, and logic errors.
+- Understand the limits of a demonstration program: business rules must be defined by the problem, and Java does not automatically infer what the user wants.
 
-## 2. Java là gì?
+## 2. What Is Java?
 
-**Java** là một ngôn ngữ lập trình có cú pháp và quy tắc kiểu dữ liệu. Với Java, ta có thể viết ứng dụng dòng lệnh, hệ thống máy chủ, công cụ xử lý dữ liệu, ứng dụng doanh nghiệp và nhiều chương trình khác. Java còn là tên thường được dùng để nói về hệ sinh thái công cụ, thư viện và môi trường chạy liên quan.
+**Java** is a programming language with syntax and data type rules. With Java, we can write command-line applications, server systems, data processing tools, enterprise applications, and many other programs. Java is also a name commonly used to refer to the related ecosystem of tools, libraries, and runtime environment.
 
-Ví dụ, hai dòng sau đang **diễn đạt một ý định** bằng cú pháp Java:
+For example, the following two lines **express an intent** in Java syntax:
 
 ~~~java
 int numberOfBooks = 3;
 System.out.println(numberOfBooks * 25_000);
 ~~~
 
-Đọc bằng tiếng Việt: “Có 3 cuốn sách, mỗi cuốn giá 25.000 đồng; in tổng tiền.” Kết quả là `75000`. Máy không hiểu “cuốn sách” theo nghĩa đời thực; máy thao tác với **số 3**, **số 25.000** và phép nhân theo quy tắc ta viết.
+Read in Vietnamese: “There are 3 books, each costing 25,000 dong; print the total amount.” The result is `75000`. The machine does not understand “book” in the real-world sense; it operates on **the number 3**, **the number 25,000**, and multiplication according to the rules we write.
 
-Java không phải JavaScript. Tên giống nhau nhưng đó là hai ngôn ngữ khác nhau với hệ thống kiểu, cú pháp và môi trường thực thi khác nhau.
+Java is not JavaScript. Their names are similar, but they are two different languages with different type systems, syntax, and execution environments.
 
-### Mã nguồn được chạy như thế nào?
+### How Is Source Code Executed?
 
 ~~~mermaid
 flowchart LR
-    A["Bài toán và quy tắc"] --> B["ShippingQuote.java<br/>mã nguồn"]
-    B --> C["javac<br/>kiểm tra và biên dịch"]
+    A["Problem and rules"] --> B["ShippingQuote.java<br/>source code"]
+    B --> C["javac<br/>checks and compiles"]
     C --> D["ShippingQuote.class<br/>bytecode"]
-    D --> E["JVM chạy chương trình"]
-    E --> F["Kết quả hoặc lỗi khi chạy"]
+    D --> E["JVM runs the program"]
+    E --> F["Result or runtime error"]
 ~~~
 
-- **`.java`:** tệp văn bản chứa mã nguồn mà người lập trình viết.
-- **`javac`:** trình biên dịch Java trong JDK; phát hiện nhiều lỗi cú pháp và kiểu dữ liệu, sau đó tạo bytecode nếu biên dịch thành công.
-- **`.class`:** tệp chứa bytecode cho JVM; không phải bản văn mã nguồn.
-- **JVM (Java Virtual Machine):** môi trường thực thi bytecode. JVM còn kiểm tra và thực hiện nhiều hoạt động lúc chạy.
-- **JDK (Java Development Kit):** bộ công cụ phát triển, gồm `javac`, công cụ `java` và các thành phần cần thiết để xây dựng/chạy ứng dụng.
+- **`.java`:** a text file containing the source code that the programmer writes.
+- **`javac`:** the Java compiler in the JDK; detects many syntax and data type errors, then produces bytecode if compilation succeeds.
+- **`.class`:** a file containing bytecode for the JVM; it is not plain source code text.
+- **JVM (Java Virtual Machine):** the execution environment for bytecode. The JVM also performs verification and many operations at runtime.
+- **JDK (Java Development Kit):** the development toolkit, including `javac`, the `java` tool, and the components needed to build/run applications.
 
-Trên máy khác, mã đã biên dịch có thể chạy với JVM tương thích nếu phiên bản Java và các phụ thuộc phù hợp. Vì vậy, “viết một lần, chạy mọi nơi” là **mục tiêu khả chuyển**, không có nghĩa mọi chương trình Java đều chạy trên mọi máy mà không cần cấu hình.
+On another machine, compiled code can run with a compatible JVM if the Java version and dependencies match. Therefore, “write once, run anywhere” is a **portability goal**, not a guarantee that every Java program runs on every machine without configuration.
 
-## 3. Từ đề bài tiếng Việt đến mô hình xử lý
+## 3. From a Vietnamese Problem Statement to a Processing Model
 
-Giả sử cửa hàng giao hàng đặt ra **quy tắc minh họa** (không phải bảng giá của một đơn vị vận chuyển thật):
+Suppose a delivery store sets an **illustrative rule** (not a real shipping carrier's rate table):
 
-> Tính tổng số tiền khách phải trả. Nếu khách là thành viên hoặc giá trị đơn hàng từ **500.000 VND trở lên**, miễn phí giao. Nếu không, phí giao cơ bản **15.000 VND** cho tối đa 5 km; từ km thứ 6, cộng **2.000 VND** cho mỗi km vượt quá 5 km.
+> Calculate the total amount the customer must pay. If the customer is a member or the order value is **500,000 VND or more**, shipping is free. Otherwise, the base shipping fee is **15,000 VND** for up to 5 km; starting from the 6th km, add **2,000 VND** for each km beyond 5 km.
 
-Chúng ta chưa nên mở trình soạn thảo và viết `if` ngay. Trước hết hãy xác định hợp đồng của bài toán.
+We should not open the editor and write `if` right away. First, let us define the contract of the problem.
 
-| Thành phần | Tên trong Java | Ý nghĩa/giới hạn |
+| Component | Name in Java | Meaning/Constraint |
 | --- | --- | --- |
-| Đầu vào 1 | `orderValueVnd`: `long` | Tiền hàng, tính bằng **VND nguyên**, không âm |
-| Đầu vào 2 | `distanceKm`: `int` | Số kilomet nguyên không âm |
-| Đầu vào 3 | `member`: `boolean` | Khách có phải thành viên hay không |
-| Trung gian | `shippingVnd`: `long` | Phí giao tính từ ba đầu vào |
-| Đầu ra | `totalVnd`: `long` | Tiền hàng + phí giao |
-| Lỗi dữ liệu | `IllegalArgumentException` | Ví dụ giá tiền hoặc quãng đường âm |
+| Input 1 | `orderValueVnd`: `long` | Goods value, in **whole VND**, non-negative |
+| Input 2 | `distanceKm`: `int` | Non-negative whole number of kilometers |
+| Input 3 | `member`: `boolean` | Whether the customer is a member |
+| Intermediate | `shippingVnd`: `long` | Shipping fee calculated from the three inputs |
+| Output | `totalVnd`: `long` | Goods value + shipping fee |
+| Data error | `IllegalArgumentException` | For example, negative price or distance |
 
-Cần công bố thêm những giả định để tránh hiểu sai:
+Additional assumptions should be stated explicitly to avoid misunderstanding:
 
-- Khoảng cách được làm tròn/ghi nhận **theo số km nguyên** trước khi truyền vào chương trình; bài này chưa giải quyết số km thập phân.
-- “Từ 500.000 trở lên” bao gồm **đúng 500.000**, nên dùng `>=`, không dùng `>`.
-- Miễn phí giao chỉ thay đổi `shippingVnd`, không thay đổi giá trị hàng.
-- Phép tính không bao gồm giảm giá, thuế, COD hay chi phí khác vì đề bài không yêu cầu.
-- Dữ liệu sai phải được báo lỗi thay vì âm thầm đổi thành 0.
+- Distance is rounded/recorded **as a whole number of km** before being passed into the program; this lesson does not handle decimal km yet.
+- “500,000 or more” includes **exactly 500,000**, so use `>=`, not `>`.
+- Free shipping only changes `shippingVnd`, not the goods value.
+- The calculation does not include discounts, taxes, COD, or other fees because the problem does not ask for them.
+- Invalid data must be reported as an error instead of silently turning into 0.
 
-Những lựa chọn trên là **quy tắc nghiệp vụ**. Java chỉ cung cấp cách biểu diễn chúng chính xác.
+The choices above are **business rules**. Java only provides the way to represent them accurately.
 
-### Viết thuật toán bằng lời trước khi viết Java
+### Writing the Algorithm in Words Before Writing Java
 
-1. Nhận giá trị đơn, số km và trạng thái thành viên.
-2. Từ chối giá trị đơn âm hoặc số km âm.
-3. Nếu là thành viên **hoặc** giá trị đơn từ 500.000, phí giao bằng 0.
-4. Nếu không, phí giao bằng 15.000 cộng 2.000 cho mỗi km vượt quá 5.
-5. Lấy giá trị đơn cộng phí giao và in cả hai thành phần cùng tổng.
+1. Receive the order value, the number of km, and the membership status.
+2. Reject a negative order value or a negative number of km.
+3. If the customer is a member **or** the order value is at least 500,000, the shipping fee is 0.
+4. Otherwise, the shipping fee is 15,000 plus 2,000 for each km over 5.
+5. Add the shipping fee to the order value and print both components along with the total.
 
-Chính chuỗi bước này mới là “lời giải”. Java giúp biến lời giải thành các câu lệnh có thể thực thi, thay vì tự nghĩ ra thuật toán cho chúng ta.
+This sequence of steps is the actual “solution”. Java helps turn the solution into executable statements, rather than inventing the algorithm for us.
 
-## 4. Java biểu đạt từng phần của bài toán bằng gì?
+## 4. How Does Java Express Each Part of the Problem?
 
-| Ý trong bài toán | Công cụ Java | Ví dụ ngắn |
+| Idea in the problem | Java tool | Short example |
 | --- | --- | --- |
-| Lưu một giá trị | Biến và kiểu | `long orderValueVnd = 300_000L;` |
-| Biểu diễn có/không | `boolean` | `boolean member = false;` |
-| Tính toán | Biểu thức | `15_000L + 3L * 2_000L` |
-| So sánh với ngưỡng | Toán tử so sánh | `orderValueVnd >= 500_000L` |
-| Kết hợp các điều kiện | Toán tử logic | `member || orderValueVnd >= 500_000L` |
-| Chọn nhánh | `if` / `else` hoặc `return` sớm | Miễn phí hay tính phí |
-| Đặt tên cho một khả năng | Phương thức | `calculateShipping(...)` |
-| Nhận dữ liệu từ lệnh chạy | Tham số `String[] args` | `args[0]` chứa văn bản đầu tiên |
-| Hiển thị kết quả | `System.out.println(...)` | In ra tổng tiền |
+| Store a value | Variable and type | `long orderValueVnd = 300_000L;` |
+| Represent yes/no | `boolean` | `boolean member = false;` |
+| Compute | Expression | `15_000L + 3L * 2_000L` |
+| Compare against a threshold | Comparison operator | `orderValueVnd >= 500_000L` |
+| Combine conditions | Logical operator | `member || orderValueVnd >= 500_000L` |
+| Choose a branch | `if` / `else` or early `return` | Free or charged |
+| Name a capability | Method | `calculateShipping(...)` |
+| Receive data from the run command | `String[] args` parameter | `args[0]` holds the first text argument |
+| Display results | `System.out.println(...)` | Print the total amount |
 
-Dấu gạch dưới trong số như `300_000L` chỉ để dễ đọc: giá trị vẫn là ba trăm nghìn. Hậu tố `L` chỉ literal kiểu `long`. Phép `||` mang nghĩa **HOẶC**, chỉ cần một điều kiện đúng thì toàn biểu thức đúng.
+The underscores in a number like `300_000L` are only for readability: the value is still three hundred thousand. The suffix `L` indicates a `long` literal. The `||` operator means **OR**; only one condition needs to be true for the entire expression to be true.
 
-Bạn không phải thuộc lòng mọi cú pháp trước khi hiểu bài toán; hãy liên hệ mỗi câu lệnh với **một điều cần làm** trong yêu cầu.
+You do not have to memorize every piece of syntax before understanding the problem; connect each statement to **something that needs to be done** in the requirement.
 
-## 5. Chương trình Java hoàn chỉnh, có thể biên dịch và chạy
+## 5. A Complete Java Program That Can Be Compiled and Run
 
-Tạo tệp tên chính xác **`ShippingQuote.java`** và chép toàn bộ mã sau. Ví dụ tương thích với JDK 17 trở lên, đồng thời không cần tính năng đặc thù Java 17.
+Create a file named exactly **`ShippingQuote.java`** and copy all of the following code. The example is compatible with JDK 17 and later, and does not require features specific to Java 17.
 
 ~~~java
 import java.util.Locale;
@@ -180,36 +180,36 @@ public class ShippingQuote {
 }
 ~~~
 
-**Giải thích các khối chính:**
+**Explanation of the main blocks:**
 
-- `public class ShippingQuote` định nghĩa lớp chứa chương trình. Với lớp `public` này, tên tệp phải là `ShippingQuote.java`.
-- `main(String[] args)` là điểm bắt đầu thông thường khi chạy lớp bằng lệnh `java ShippingQuote ...`. Các đối số sau tên lớp đi vào mảng `args` dưới dạng **chuỗi**, chưa phải số.
-- `Long.parseLong(...)` và `Integer.parseInt(...)` biến chuỗi có định dạng số hợp lệ thành giá trị số tương ứng; dữ liệu sai gây `NumberFormatException`.
-- `calculateShipping` là một **phương thức** đặt tên cho thao tác tính phí. Đầu vào và giá trị trả về được khai báo ngay tại chữ ký; phương thức không tự đọc bàn phím hay in kết quả.
-- `if` kiểm tra quy tắc, `return 0L` kết thúc phương thức sớm khi đủ điều kiện miễn phí.
-- `Math.max(0L, (long) distanceKm - 5L)` cho số km **vượt quá 5**, không tạo số âm; ép sang `long` trước phép trừ giúp phép tính dùng kiểu đủ rộng.
-- `Math.multiplyExact` và `Math.addExact` tính toán số nguyên và ném `ArithmeticException` nếu phép toán bị tràn trong kiểu `long`. Đây là cách kiểm soát rủi ro khi mở rộng bài toán.
-- Ba nhánh `catch` báo ba nhóm lỗi khác nhau. `NumberFormatException` là một loại `IllegalArgumentException` nên phải bắt nhánh cụ thể trước nhánh tổng quát; `ArithmeticException` là loại ngoại lệ khác.
+- `public class ShippingQuote` defines the class containing the program. With this `public` class, the file name must be `ShippingQuote.java`.
+- `main(String[] args)` is the standard entry point when running the class with `java ShippingQuote ...`. The arguments after the class name go into the `args` array as **strings**, not numbers yet.
+- `Long.parseLong(...)` and `Integer.parseInt(...)` convert strings with valid numeric formatting into their corresponding numeric values; invalid data causes `NumberFormatException`.
+- `calculateShipping` is a **method** that gives a name to the fee calculation operation. Its inputs and return value are declared right in its signature; the method does not read from the keyboard or print results itself.
+- `if` checks the rules, and `return 0L` exits the method early when the free-shipping condition is met.
+- `Math.max(0L, (long) distanceKm - 5L)` gives the number of km **beyond 5**, without producing a negative number; casting to `long` before subtraction ensures the calculation uses a wide enough type.
+- `Math.multiplyExact` and `Math.addExact` perform integer arithmetic and throw `ArithmeticException` if the operation overflows the `long` type. This is a way to control risk as the problem scales.
+- The three `catch` branches report three different error groups. `NumberFormatException` is a kind of `IllegalArgumentException`, so the more specific branch must be caught before the more general one; `ArithmeticException` is a different exception type.
 
-Đây là **một lớp Java thực thi được**, không cần tạo thêm `package` hoặc cài thêm thư viện ngoài JDK.
+This is **one executable Java class**, with no need to create an extra `package` or install libraries outside the JDK.
 
-## 6. Biên dịch, chạy và đọc kết quả
+## 6. Compiling, Running, and Reading the Output
 
-Mở terminal tại đúng thư mục chứa `ShippingQuote.java`. Kiểm tra JDK:
+Open a terminal in the exact directory containing `ShippingQuote.java`. Check the JDK:
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Tiếp theo:
+Next:
 
 ~~~bash
 javac -encoding UTF-8 ShippingQuote.java
 java ShippingQuote 300000 8 false
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Tien hang: 300000 VND
@@ -217,15 +217,15 @@ Phi giao: 21000 VND
 Tong cong: 321000 VND
 ~~~
 
-Vì sao phí giao là 21.000?
+Why is the shipping fee 21,000?
 
-1. `member = false` và `300000 < 500000` nên **không** được miễn phí.
-2. Khoảng cách 8 km vượt mức cơ bản 5 km đúng **3 km**.
-3. Phí cộng thêm: `3 * 2000 = 6000`.
-4. Phí giao: `15000 + 6000 = 21000`.
-5. Tổng cộng: `300000 + 21000 = 321000`.
+1. `member = false` and `300000 < 500000`, so free shipping does **not** apply.
+2. The 8 km distance exceeds the 5 km base limit by **3 km**.
+3. Extra fee: `3 * 2000 = 6000`.
+4. Shipping fee: `15000 + 6000 = 21000`.
+5. Total: `300000 + 21000 = 321000`.
 
-Thử tiếp giá trị **đúng ngưỡng**:
+Next, test the value **right at the threshold**:
 
 ~~~bash
 java ShippingQuote 500000 8 false
@@ -237,7 +237,7 @@ Phi giao: 0 VND
 Tong cong: 500000 VND
 ~~~
 
-Và khách **thành viên**:
+And a **member** customer:
 
 ~~~bash
 java ShippingQuote 120000 8 true
@@ -249,28 +249,28 @@ Phi giao: 0 VND
 Tong cong: 120000 VND
 ~~~
 
-Cách chạy này là **chương trình dòng lệnh**. Thông tin nhập qua `args` do người dùng truyền lúc chạy, khác với việc đọc tương tác từng dòng từ bàn phím. Khi chỉ muốn học cấu trúc ngôn ngữ, chọn input qua tham số làm ví dụ gọn và dễ lặp lại.
+This way of running is a **command-line program**. Information passed through `args` is supplied by the user at launch, unlike interactively reading line by line from the keyboard. When you only want to learn language structure, taking input via arguments keeps the example concise and easy to repeat.
 
-## 7. Đọc một dòng Java theo nghĩa của nó
+## 7. Reading a Line of Java by Its Meaning
 
-Xét:
+Consider:
 
 ~~~java
 long extraKm = Math.max(0L, (long) distanceKm - 5L);
 ~~~
 
-Ta có thể đọc từ phải sang trái:
+We can read it from right to left:
 
-1. `distanceKm` đang là số nguyên `int`.
-2. `(long) distanceKm` chuyển giá trị sang kiểu `long`.
-3. Trừ 5 để biết phần khoảng cách vượt ngưỡng.
-4. `Math.max(0L, ...)` lấy giá trị lớn hơn, tránh phần vượt là số âm.
-5. Gán kết quả cho biến có tên `extraKm` và kiểu `long`.
-6. Dấu `;` kết thúc câu lệnh khai báo/gán giá trị này.
+1. `distanceKm` is an `int` integer.
+2. `(long) distanceKm` converts the value to type `long`.
+3. Subtract 5 to find the distance beyond the threshold.
+4. `Math.max(0L, ...)` takes the larger value, avoiding a negative excess.
+5. Assign the result to a variable named `extraKm` of type `long`.
+6. The `;` ends this declaration/assignment statement.
 
-Đây là minh họa cho **biểu thức** (phần được tính thành một giá trị) nằm trong **câu lệnh** (một hành động của chương trình).
+This illustrates an **expression** (the part evaluated to a value) inside a **statement** (an action of the program).
 
-Ví dụ khác:
+Another example:
 
 ~~~java
 if (member || orderValueVnd >= FREE_AT_VND) {
@@ -278,82 +278,82 @@ if (member || orderValueVnd >= FREE_AT_VND) {
 }
 ~~~
 
-- `if` hỏi điều kiện có đúng không.
-- `()` chứa điều kiện.
-- `||` ghép hai điều kiện. Java đánh giá ngắn mạch: nếu `member` đã đúng, không cần đánh giá vế sau.
-- `{}` nhóm các câu lệnh thuộc nhánh.
-- `return` trả lại kết quả và kết thúc lời gọi phương thức đó.
+- `if` asks whether the condition is true.
+- `()` holds the condition.
+- `||` combines two conditions. Java uses short-circuit evaluation: if `member` is already true, there is no need to evaluate the right-hand side.
+- `{}` groups the statements belonging to the branch.
+- `return` returns the result and ends that method call.
 
-**Dấu `=` là phép gán, còn `==` là phép so sánh bằng nhau** (với kiểu phù hợp). Nhầm hai khái niệm này có thể gây lỗi biên dịch hoặc lỗi logic.
+**`=` is assignment, whereas `==` is equality comparison** (for compatible types). Confusing these two concepts can cause compilation errors or logic errors.
 
-## 8. Kiểu dữ liệu phải phù hợp với ý nghĩa bài toán
+## 8. Data Types Must Match the Meaning of the Problem
 
-Trong Java, kiểu dữ liệu không chỉ là phần trang trí bên cạnh tên biến. Kiểu quyết định dạng giá trị được lưu và những phép toán hợp lệ.
+In Java, a data type is not merely decoration next to a variable name. The type determines the form of the value stored and which operations are valid.
 
-| Kiểu | Thể hiện điều gì trong bài này? | Điều cần tránh |
+| Type | What does it represent in this lesson? | What to avoid |
 | --- | --- | --- |
-| `int` | Quãng đường km nguyên, trong miền hợp lệ của `int` | Chuyển một chuỗi quá lớn thành `int` |
-| `long` | Giá trị tiền VND nguyên và tổng tiền | Tính vượt giới hạn `long` |
-| `boolean` | Có/không là thành viên | Hiểu một chuỗi bất kỳ là giá trị `true` |
-| `String` | Các tham số dạng văn bản trong `args` | Mang chuỗi vào phép cộng số mà chưa chuyển kiểu |
+| `int` | Whole km distance, within the valid range of `int` | Parsing a string that is too large into an `int` |
+| `long` | Whole VND money amounts and total amount | Computing beyond the `long` limit |
+| `boolean` | Yes/no membership status | Treating any arbitrary string as `true` |
+| `String` | Text arguments in `args` | Passing strings into numeric addition without converting types |
 
-Tiền có đơn vị **VND nguyên** nên dùng kiểu số nguyên. `double` là số chấm động hữu ích trong nhiều phép tính khoa học, nhưng không nên mặc nhiên dùng nó để biểu diễn tiền chính xác đến đơn vị nhỏ nhất vì biểu diễn nhị phân có thể gây sai số. Với tiền có phần thập phân hoặc quy tắc làm tròn phức tạp, có thể cần `BigDecimal` và quy tắc đơn vị/làm tròn riêng.
+Money is denominated in **whole VND**, so integer types are used. `double` is a floating-point number useful in many scientific calculations, but it should not be used by default to represent money accurately to the smallest unit because binary representation can introduce rounding errors. For money with fractional parts or complex rounding rules, `BigDecimal` and explicit unit/rounding rules may be needed.
 
-Cũng đừng dùng tên biến mơ hồ như `x`, `a`, `n` cho mọi thứ. `orderValueVnd` và `shippingVnd` dài hơn nhưng cho thấy cả **ý nghĩa** lẫn **đơn vị**, giảm khả năng cộng nhầm tiền với kilomet.
+Also avoid vague variable names like `x`, `a`, `n` for everything. `orderValueVnd` and `shippingVnd` are longer, but they show both the **meaning** and the **unit**, reducing the chance of accidentally adding money to kilometers.
 
-## 9. Trường hợp biên và lỗi cần nghĩ đến
+## 9. Boundary Cases and Errors to Consider
 
-Một chương trình chạy đúng với ví dụ 300.000 VND chưa đủ chứng minh thuật toán đúng. Hãy dùng các ca sau làm **bảng kiểm thử bằng tay**:
+A program running correctly on the 300,000 VND example is not enough to prove the algorithm is right. Use the following cases as a **manual test table**:
 
-| Input: tiền, km, thành viên | Phí giao kỳ vọng | Lý do |
+| Input: amount, km, member | Expected shipping fee | Reason |
 | --- | ---: | --- |
-| `300000 0 false` | 15.000 | Chưa vượt 5 km |
-| `300000 5 false` | 15.000 | Chính xác điểm kết thúc giá cơ bản |
-| `300000 6 false` | 17.000 | Vượt 1 km |
-| `300000 8 false` | 21.000 | Vượt 3 km |
-| `499999 8 false` | 21.000 | Ngay dưới ngưỡng miễn phí |
-| `500000 8 false` | 0 | Đúng ngưỡng miễn phí |
-| `120000 8 true` | 0 | Thành viên |
-| `0 8 false` | 21.000 | Tiền hàng bằng 0 vẫn hợp lệ theo giả định |
-| `-1 8 false` | Không tính, báo lỗi | Tiền âm |
-| `300000 -1 false` | Không tính, báo lỗi | Khoảng cách âm |
-| `abc 8 false` | Không tính, báo lỗi | Không chuyển thành `long` được |
-| `300000 8 yes` | Không tính, báo lỗi | Không thuộc `true/false` |
-| `300000 8` | In hướng dẫn sử dụng | Thiếu đối số |
+| `300000 0 false` | 15,000 | Has not exceeded 5 km |
+| `300000 5 false` | 15,000 | Exact end point of the base fee |
+| `300000 6 false` | 17,000 | 1 km over |
+| `300000 8 false` | 21,000 | 3 km over |
+| `499999 8 false` | 21,000 | Just below the free-shipping threshold |
+| `500000 8 false` | 0 | Exactly at the free-shipping threshold |
+| `120000 8 true` | 0 | Member |
+| `0 8 false` | 21,000 | Order value of 0 is still valid per assumptions |
+| `-1 8 false` | Not calculated, reports error | Negative amount |
+| `300000 -1 false` | Not calculated, reports error | Negative distance |
+| `abc 8 false` | Not calculated, reports error | Cannot convert to `long` |
+| `300000 8 yes` | Not calculated, reports error | Not in `true/false` |
+| `300000 8` | Prints usage instructions | Missing argument |
 
-Một lỗi điển hình là viết `orderValueVnd > 500_000L` thay vì `>=`. Hầu hết các ví dụ khác vẫn qua, nhưng **đúng 500.000** sẽ bị tính phí sai. Đây là lỗi logic: chương trình có thể biên dịch và chạy, nhưng **kết quả trái yêu cầu**.
+A typical mistake is writing `orderValueVnd > 500_000L` instead of `>=`. Most other examples still pass, but **exactly 500,000** will be charged incorrectly. This is a logic error: the program can compile and run, yet **the result violates the requirement**.
 
-### Ba nhóm vấn đề khác nhau
+### Three Different Categories of Issues
 
-**Lỗi biên dịch:** Viết sai cú pháp, tên biến hoặc kiểu không tương thích. Ví dụ:
+**Compile-time errors:** Writing invalid syntax, variable names, or incompatible types. For example:
 
 ~~~java
-// Sai: thiếu dấu ; ở cuối câu lệnh.
+// Wrong: missing ; at the end of the statement.
 long fee = 15_000L
 ~~~
 
-`javac` báo lỗi và không tạo chương trình hợp lệ để chạy.
+`javac` reports an error and does not produce a valid runnable program.
 
-**Lỗi lúc chạy:** Mã đã biên dịch, nhưng đầu vào hoặc trạng thái gây ngoại lệ. Ví dụ, `Long.parseLong("abc")` ném `NumberFormatException`; chương trình có thể bắt và báo cho người dùng.
+**Runtime errors:** The code compiles, but inputs or state cause an exception. For example, `Long.parseLong("abc")` throws `NumberFormatException`; the program can catch it and notify the user.
 
-**Lỗi logic:** Mã biên dịch, chạy bình thường nhưng làm sai quy tắc. Ví dụ `distanceKm >= 5` tính phụ phí ngay tại km thứ 5 nếu thuật toán viết sai. Vì vậy, test phải dựa vào **đề bài**, không chỉ dựa vào việc “máy không báo lỗi”.
+**Logic errors:** The code compiles and runs normally, but implements the rules incorrectly. For example, `distanceKm >= 5` charges the extra fee starting at the 5th km if the algorithm is written wrong. Therefore, tests must be based on the **problem specification**, not merely on whether “the machine reported no error”.
 
-Các trường hợp như giá trị số quá lớn, thiếu tham số hoặc chuỗi `TRUE` cũng cần được quyết định bằng hợp đồng. Ví dụ này chấp nhận `TRUE` vì chủ động chuyển chữ thường trước khi kiểm tra.
+Cases such as overly large numeric values, missing arguments, or the string `TRUE` also need to be decided by the contract. This example accepts `TRUE` because it deliberately converts to lowercase before checking.
 
-## 10. Vì sao nên tách phương thức xử lý khỏi `main`?
+## 10. Why Separate the Processing Method from `main`?
 
-`main` chịu trách nhiệm nhận và chuyển đổi **đầu vào của chương trình**, gọi xử lý và in kết quả. `calculateShipping` chịu trách nhiệm **quy tắc tính phí**.
+`main` is responsible for receiving and converting **program inputs**, calling processing, and printing results. `calculateShipping` is responsible for the **fee calculation rules**.
 
-Sự phân chia giúp:
+This separation helps you:
 
-- Đọc nhanh một hàm và biết nó trả về gì.
-- Thử tính phí với nhiều tham số mà không phải giả lập terminal.
-- Thay đổi cách lấy đầu vào (dòng lệnh, giao diện, API) mà không viết lại toàn bộ quy tắc.
-- Tránh rải số `500_000`, `15_000` và `2_000` khắp nơi nhờ đặt thành hằng số có tên.
+- Quickly read one method and know what it returns.
+- Test fee calculation with many arguments without simulating a terminal.
+- Change how input is obtained (command line, UI, API) without rewriting all the rules.
+- Avoid scattering `500_000`, `15_000`, and `2_000` everywhere by giving them named constants.
 
-Không cần tạo nhiều lớp hay framework chỉ để tính phí vận chuyển. Đối với ví dụ nhỏ, **một lớp và một phương thức rõ ràng** là đủ.
+There is no need to create many classes or frameworks just to calculate shipping fees. For a small example, **one class and one clear method** are enough.
 
-Có thể tự kiểm tra vài lời gọi trong một chương trình thử nghiệm:
+You can verify a few calls yourself in a test program:
 
 ~~~java
 System.out.println(ShippingQuote.calculateShipping(300_000, 8, false)); // 21000
@@ -361,50 +361,50 @@ System.out.println(ShippingQuote.calculateShipping(500_000, 8, false)); // 0
 System.out.println(ShippingQuote.calculateShipping(300_000, 5, false)); // 15000
 ~~~
 
-Ba câu lệnh trên chỉ là **đoạn minh họa đặt bên trong một phương thức** ở cùng thư mục/package mặc định; không phải một tệp Java độc lập. Một bước học tiếp theo là biến các kỳ vọng này thành kiểm thử tự động.
+The three statements above are only an **illustrative snippet placed inside a method** in the same default directory/package; they are not a standalone Java file. A next learning step is turning these expectations into automated tests.
 
-## 11. Những điều ngôn ngữ Java không tự làm thay bạn
+## 11. Things the Java Language Does Not Do for You
 
-Java có trình biên dịch kiểm tra nhiều quy tắc, nhưng **không tự biết đúng sai nghiệp vụ**.
+Java has a compiler that checks many rules, but it **does not automatically know business correctness**.
 
-Ví dụ:
+For example:
 
-- `javac` có thể kiểm tra `calculateShipping` trả về giá trị `long` theo các đường điều khiển hợp lệ.
-- Nó không thể kết luận “phí cơ bản phải là 15.000” trừ khi bạn diễn đạt điều ấy trong mã và kiểm thử đối chiếu yêu cầu.
-- Nó không tự quyết định nên thu phí theo số km thực, số km làm tròn hay vùng giao hàng.
-- Nó không tự bảo đảm dữ liệu từ người dùng, cơ sở dữ liệu hoặc mạng luôn có giá trị hợp lệ.
-- Một chương trình Java có thể chạy trên nhiều nền tảng phù hợp, nhưng đường dẫn, kết nối mạng, encoding và thư viện ngoài vẫn có thể ảnh hưởng khi triển khai.
+- `javac` can check that `calculateShipping` returns a `long` value along all valid control-flow paths.
+- It cannot conclude “the base fee must be 15,000” unless you express that in code and test against the requirement.
+- It does not decide on its own whether to charge by actual km, rounded km, or delivery zones.
+- It does not automatically guarantee that data from users, databases, or the network always has valid values.
+- A Java program can run across many suitable platforms, but file paths, network connections, encoding, and external libraries can still affect deployment.
 
-**Chương trình đúng** cần cả hai: ngôn ngữ thực thi đúng mã được viết và **mã đó diễn đạt đúng bài toán**.
+A **correct program** requires both: the language executing the written code accurately, and **that code accurately expressing the problem**.
 
-## 12. Tự luyện tập: biến một yêu cầu mới thành mã
+## 12. Self-Practice: Turning a New Requirement into Code
 
-**Bài 1 — Dự đoán trước khi chạy.** Giữ nguyên chương trình, chạy `java ShippingQuote 499999 5 false`. Phí giao và tổng cộng phải là bao nhiêu?
+**Exercise 1 — Predict before running.** Keeping the program unchanged, run `java ShippingQuote 499999 5 false`. What should the shipping fee and total be?
 
-*Đáp án kiểm tra:* phí giao `15000`, tổng `514999`.
+*Verification answer:* shipping fee `15000`, total `514999`.
 
-**Bài 2 — Đổi quy tắc.** Cửa hàng đổi ngưỡng miễn phí từ 500.000 lên 600.000 VND. Hãy chỉ ra dòng cần đổi, rồi thử cả `599999` và `600000` với khách không là thành viên.
+**Exercise 2 — Change a rule.** The store raises the free-shipping threshold from 500,000 to 600,000 VND. Point out the line to change, then test both `599999` and `600000` for a non-member customer.
 
-*Gợi ý:* đổi `FREE_AT_VND` rồi kiểm tra phía dưới và đúng ngưỡng. Đừng sửa kết quả dự đoán trước khi đọc lại yêu cầu.
+*Hint:* change `FREE_AT_VND`, then check both below and right at the threshold. Do not edit your predicted answer before re-reading the requirement.
 
-**Bài 3 — Truy vết.** Với `orderValueVnd = 200_000`, `distanceKm = 10` và `member = false`, đi lần lượt qua `if`, `extraKm`, `extraFee`, `shippingVnd` và `totalVnd`.
+**Exercise 3 — Trace.** With `orderValueVnd = 200_000`, `distanceKm = 10`, and `member = false`, step sequentially through `if`, `extraKm`, `extraFee`, `shippingVnd`, and `totalVnd`.
 
-*Đáp án:* `extraKm = 5`, `extraFee = 10000`, `shippingVnd = 25000`, `totalVnd = 225000`.
+*Answer:* `extraKm = 5`, `extraFee = 10000`, `shippingVnd = 25000`, `totalVnd = 225000`.
 
-**Bài 4 — Tìm lỗi logic.** Một bạn viết:
+**Exercise 4 — Find the logic bug.** Someone writes:
 
 ~~~java
 long extraKm = Math.max(0L, (long) distanceKm - 4L);
 ~~~
 
-Điều gì xảy ra với đơn không được miễn phí giao ở 5 km? Tại sao sai so với đặc tả?
+What happens to a non-free-shipping order at 5 km? Why does it violate the specification?
 
-*Đáp án:* sẽ thu thêm 2.000 VND ngay ở km thứ 5; đề bài nói chỉ thu thêm từ km thứ 6.
+*Answer:* an extra 2,000 VND will be charged right at the 5th km; the specification states extra charges only start from the 6th km.
 
-**Bài 5 — Tự thiết kế bài toán mới.** Viết bảng **đầu vào / đầu ra / giả định / quy tắc / trường hợp biên** cho một vấn đề nhỏ như đổi phút sang giờ, tính tiền vé theo độ tuổi hoặc tìm số lớn nhất trong ba số. Sau đó viết giả mã bằng tiếng Việt trước khi chuyển sang Java.
+**Exercise 5 — Design a new problem yourself.** Write an **input / output / assumptions / rules / boundary cases** table for a small problem such as converting minutes to hours, calculating ticket prices by age, or finding the largest of three numbers. Then write pseudocode in Vietnamese before translating it into Java.
 
-**Tiêu chí hoàn thành:** Bạn giải thích được một yêu cầu đời thực, ánh xạ từng thành phần sang dữ liệu và câu lệnh Java, biên dịch/chạy được chương trình, và tự chỉ ra ít nhất ba trường hợp khiến kết quả có thể sai nếu quy tắc viết thiếu chính xác.
+**Completion criteria:** You can explain a real-world requirement, map each component to Java data and statements, compile/run the program, and point out at least three cases where the result could be wrong if a rule is written imprecisely.
 
-## Ghi nhớ
+## Key Takeaways
 
-Java là **ngôn ngữ diễn đạt thuật toán và quy tắc** theo một cú pháp có thể biên dịch, kiểm tra kiểu và thực thi trên JVM. Để dùng Java giải bài toán, hãy đi từ **yêu cầu rõ → dữ liệu và đơn vị rõ → điều kiện/tính toán rõ → mã chạy được → kiểm thử cả đầu vào thường và biên**. Khi biết mỗi biến, câu lệnh và phương thức đang đại diện cho điều gì trong bài toán, việc học các cấu trúc Java ở mức chi tiết hơn sẽ có ý nghĩa hơn việc chỉ ghi nhớ từ khóa.
+Java is a **language for expressing algorithms and rules** using syntax that can be compiled, type-checked, and executed on the JVM. To use Java to solve a problem, proceed from **clear requirements → clear data and units → clear conditions/calculations → runnable code → testing both normal and boundary inputs**. When you know what each variable, statement, and method represents in the problem, learning Java constructs in greater detail becomes much more meaningful than merely memorizing keywords.

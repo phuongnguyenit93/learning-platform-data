@@ -1,6 +1,6 @@
-# `Number` là lớp trừu tượng và hợp đồng chuyển đổi giá trị trong Java
+# `Number` as an Abstract Class and Value-Conversion Contract in Java
 
-Trong Java, `java.lang.Number` là **lớp trừu tượng (abstract class)** làm kiểu cha chung cho nhiều lớp biểu diễn số: `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `BigInteger`, `BigDecimal` và một số lớp số học đồng thời như `AtomicInteger`, `AtomicLong`. Mục đích của nó không phải cung cấp một “kiểu số chung có thể tự cộng, trừ, nhân, chia”, mà là cung cấp **giao diện ở cấp đối tượng để chuyển giá trị số sang một số kiểu nguyên thủy**.
+In Java, `java.lang.Number` is an **abstract class** serving as the common superclass for many numeric classes: `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `BigInteger`, `BigDecimal`, and several concurrent numeric classes such as `AtomicInteger` and `AtomicLong`. Its purpose is not to provide a "universal numeric type that can directly add, subtract, multiply, and divide," but to provide an **object-level interface for converting numeric values into several primitive types**.
 
 ```java
 Number a = Integer.valueOf(42);
@@ -8,35 +8,35 @@ Number b = Long.valueOf(4_294_967_297L);
 Number c = new java.math.BigDecimal("12.75");
 
 System.out.println(a.intValue()); // 42
-System.out.println(b.intValue()); // 1: không còn giữ đủ giá trị long.
-System.out.println(c.intValue()); // 12: phần thập phân bị loại bỏ.
+System.out.println(b.intValue()); // 1: no longer preserves the full long value.
+System.out.println(c.intValue()); // 12: fractional part is discarded.
 ```
 
-Cả ba cùng có kiểu tham chiếu `Number`, nhưng **hành vi chuyển đổi phụ thuộc lớp cụ thể của đối tượng**. Phương thức `intValue()` không cam kết luôn chính xác: có thể làm mất phần lẻ, mất độ lớn, mất bit quan trọng hoặc trả kết quả đổi dấu.
+All three share the reference type `Number`, but **the conversion behavior depends on the concrete class of the object**. The `intValue()` method does not guarantee exactness: it may lose the fractional part, lose magnitude, drop significant bits, or return a result with a flipped sign.
 
-**Mục tiêu của bài:** hiểu hợp đồng của lớp `Number`, phân biệt phương thức trừu tượng và phương thức đã triển khai, sử dụng đa hình, nhận ra các chuyển đổi có thể mất thông tin, và quyết định khi nào cần cơ chế chuyển đổi *exact* riêng của từng kiểu.
+**Lesson objectives:** understand the contract of the `Number` class, distinguish abstract methods from implemented methods, use polymorphism, recognize conversions that can lose information, and decide when to use each type's own *exact* conversion mechanism.
 
-## 1. Vị trí của `Number` trong hệ thống kiểu Java
+## 1. Position of `Number` in the Java Type System
 
-Khai báo cơ bản của JDK:
+Basic JDK declaration:
 
 ```java
 public abstract class Number implements java.io.Serializable {
-    // Các phương thức chuyển giá trị sang kiểu nguyên thủy.
+    // Methods for converting the value to primitive types.
 }
 ```
 
-`Number` thuộc `java.lang` nên không cần `import`. Nó là một **class**, không phải interface; không thể tạo đối tượng bằng `new Number()` vì lớp là `abstract`.
+`Number` belongs to `java.lang`, so it does not require an `import`. It is a **class**, not an interface; you cannot instantiate it with `new Number()` because the class is `abstract`.
 
 ```java
-// Number n = new Number(); // Lỗi biên dịch: Number là abstract.
+// Number n = new Number(); // Compile-time error: Number is abstract.
 
 Number n1 = Integer.valueOf(10);
 Number n2 = Double.valueOf(2.5);
 Number n3 = new java.math.BigInteger("12345678901234567890");
 ```
 
-Sơ đồ khái niệm:
+Conceptual diagram:
 
 ```text
 Object
@@ -45,43 +45,43 @@ Object
        ├── Float / Double
        ├── BigInteger / BigDecimal
        ├── AtomicInteger / AtomicLong
-       └── Các lớp con Number khác
+       └── Other Number subclasses
 ```
 
-Một số lớp kể trên là **wrapper của primitive**, một số không phải wrapper:
+Some of the classes above are **primitive wrappers**, while others are not wrappers:
 
-| Loại | Ví dụ | Đặc điểm |
+| Category | Examples | Characteristics |
 | --- | --- | --- |
-| Wrapper số nguyên | `Byte`, `Short`, `Integer`, `Long` | Đối tượng bất biến chứa giá trị primitive tương ứng |
-| Wrapper số thực | `Float`, `Double` | Đối tượng bất biến chứa giá trị binary32/binary64 |
-| Số nguyên tùy ý độ lớn | `BigInteger` | Bất biến, không giới hạn bởi 32/64 bit cố định (trong giới hạn bộ nhớ/triển khai) |
-| Số thập phân | `BigDecimal` | Bất biến, giá trị gồm phần nguyên không tỷ lệ và `scale`; phù hợp thập phân chính xác |
-| Số trong ngữ cảnh đồng thời | `AtomicInteger`, `AtomicLong` | Có thể thay đổi giá trị bằng thao tác atomic; không phải wrapper bất biến |
+| Integer wrappers | `Byte`, `Short`, `Integer`, `Long` | Immutable objects holding the corresponding primitive value |
+| Floating-point wrappers | `Float`, `Double` | Immutable objects holding a binary32/binary64 value |
+| Arbitrary-precision integer | `BigInteger` | Immutable, not bounded by fixed 32/64 bits (within memory/implementation limits) |
+| Decimal number | `BigDecimal` | Immutable, value consists of an unscaled integer and `scale`; suitable for exact decimals |
+| Numbers in concurrent contexts | `AtomicInteger`, `AtomicLong` | Value can be mutated via atomic operations; not immutable wrappers |
 
-**Đừng hiểu `Number` là bảo đảm mọi lớp con đều bất biến hoặc thread-safe.** Đối tượng wrapper như `Integer` là bất biến; `AtomicInteger` lại có thể cập nhật. Mặc dù `Number` triển khai `Serializable`, các quyết định về biểu diễn bền vững, định dạng trao đổi, quy tắc so sánh và an toàn dữ liệu vẫn là trách nhiệm của API/kiểu cụ thể.
+**Do not interpret `Number` as guaranteeing that every subclass is immutable or thread-safe.** Wrapper objects such as `Integer` are immutable; `AtomicInteger`, on the other hand, can be updated. Even though `Number` implements `Serializable`, decisions about persistent representation, interchange formats, comparison rules, and data safety remain the responsibility of the specific API/type.
 
-## 2. Hợp đồng sáu phương thức chuyển đổi
+## 2. The Six-Method Conversion Contract
 
-Theo API Java SE 17, `Number` khai báo sáu phương thức chính:
+According to the Java SE 17 API, `Number` declares six primary methods:
 
-| Phương thức | Kiểu trả về | Trong `Number` | Bảo đảm |
+| Method | Return type | In `Number` | Guarantee |
 | --- | --- | --- | --- |
-| `intValue()` | `int` | **Trừu tượng** | Trả giá trị sau chuyển đổi sang `int` theo lớp triển khai |
-| `longValue()` | `long` | **Trừu tượng** | Trả giá trị sau chuyển đổi sang `long` |
-| `floatValue()` | `float` | **Trừu tượng** | Trả giá trị sau chuyển đổi sang `float` |
-| `doubleValue()` | `double` | **Trừu tượng** | Trả giá trị sau chuyển đổi sang `double` |
-| `byteValue()` | `byte` | **Có triển khai mặc định** | Mặc định lấy `(byte) intValue()` |
-| `shortValue()` | `short` | **Có triển khai mặc định** | Mặc định lấy `(short) intValue()` |
+| `intValue()` | `int` | **Abstract** | Returns the value after conversion to `int` according to the implementing class |
+| `longValue()` | `long` | **Abstract** | Returns the value after conversion to `long` |
+| `floatValue()` | `float` | **Abstract** | Returns the value after conversion to `float` |
+| `doubleValue()` | `double` | **Abstract** | Returns the value after conversion to `double` |
+| `byteValue()` | `byte` | **Has default implementation** | By default returns `(byte) intValue()` |
+| `shortValue()` | `short` | **Has default implementation** | By default returns `(short) intValue()` |
 
-Bốn phương thức trừu tượng yêu cầu **lớp con cụ thể phải cung cấp cách trả giá trị tương ứng**, trừ khi kế thừa một triển khai từ lớp cha trung gian. Hai phương thức `byteValue` và `shortValue` **không trừu tượng** trong `Number`, và lớp con có thể ghi đè nếu cần.
+The four abstract methods require **concrete subclasses to provide the corresponding value-returning behavior**, unless inherited from an intermediate superclass. The two methods `byteValue` and `shortValue` are **not abstract** in `Number`, and subclasses may override them if needed.
 
-### Tại sao không có `charValue()` hay `booleanValue()`?
+### Why are there no `charValue()` or `booleanValue()`?
 
-`char` và `boolean` đều là primitive Java, nhưng không thuộc sáu primitive được `Number` cung cấp chuyển đổi. `char` đại diện một đơn vị mã UTF-16, không phải kiểu số có dấu theo cùng hợp đồng; `boolean` không phải kiểu số. Vì vậy, **không có `Number.charValue()`, `Number.booleanValue()` hoặc `Number.stringValue()`**.
+Both `char` and `boolean` are Java primitives, but they are not among the six primitives for which `Number` provides conversions. `char` represents a UTF-16 code unit rather than a signed numeric type under the same contract; `boolean` is not a numeric type. Therefore, **there is no `Number.charValue()`, `Number.booleanValue()`, or `Number.stringValue()`**.
 
-Muốn chuỗi, có thể gọi `toString()` của **đối tượng cụ thể**, nhưng `Number` không cam kết mọi lớp con sẽ dùng cùng một định dạng hiển thị hoặc cùng radix. Muốn phân tích chuỗi thành số, sử dụng parser riêng như `Integer.parseInt`, `Double.parseDouble`, `new BigInteger(String)`, `new BigDecimal(String)`; **`Number` không có phương thức static `parse` tổng quát**.
+If you want a string, you can call `toString()` on the **concrete object**, though `Number` does not promise that all subclasses use the same display format or radix. To parse a string into a number, use dedicated parsers such as `Integer.parseInt`, `Double.parseDouble`, `new BigInteger(String)`, `new BigDecimal(String)`; **`Number` has no general static `parse` method**.
 
-### Mã dạng đơn giản để hiểu hợp đồng
+### Simplified code to understand the contract
 
 ```java
 public abstract class Number implements java.io.Serializable {
@@ -100,11 +100,11 @@ public abstract class Number implements java.io.Serializable {
 }
 ```
 
-Đây là **sơ đồ mô tả API**, không phải mã cần viết lại để thay `java.lang.Number` có sẵn trong JDK. Các chú thích truy xuất nguồn và chi tiết triển khai thực tế có thể khác; điều quan trọng là bốn phương thức abstract và hai phương thức có triển khai mặc định.
+This is an **API illustration**, not code to rewrite to replace `java.lang.Number` built into the JDK. Annotations, source attributions, and actual implementation details may differ; what matters is having four abstract methods and two methods with default implementations.
 
-## 3. Đa hình: kiểu khai báo là `Number`, kiểu runtime quyết định hành vi
+## 3. Polymorphism: Declared Type is `Number`, Runtime Type Decides Behavior
 
-`Number` cho phép một API nhận nhiều kiểu số dưới cùng một kiểu tham chiếu:
+`Number` lets an API accept multiple numeric types under a single reference type:
 
 ```java
 static void showAsDouble(Number number) {
@@ -112,44 +112,44 @@ static void showAsDouble(Number number) {
 }
 ```
 
-Nếu truyền một `Integer`, một `Long` hoặc `BigDecimal`, Java gọi phương thức `doubleValue()` **được triển khai bởi đối tượng thực tế** (dynamic dispatch). Đây là đa hình; không phải tất cả số được “tự biến” thành `double` ngay lúc gán cho biến `Number`.
+If you pass an `Integer`, a `Long`, or a `BigDecimal`, Java calls the `doubleValue()` method **implemented by the actual object** (dynamic dispatch). That is polymorphism; not all numbers are "automatically turned" into `double` the moment they are assigned to a `Number` variable.
 
 ```java
 Number n = Long.valueOf(9_007_199_254_740_993L);
 System.out.println(n.longValue());   // 9007199254740993
-System.out.println(n.doubleValue()); // 9.007199254740992E15 (mất 1 đơn vị).
+System.out.println(n.doubleValue()); // 9.007199254740992E15 (loses 1 unit).
 ```
 
-`n` vẫn tham chiếu đối tượng `Long` giữ giá trị nguyên đúng. **Chỉ kết quả trả về của `doubleValue()`** có thể mất chính xác. Bản thân việc gán `Long` vào biến `Number` không tự thu hẹp giá trị.
+`n` still references the `Long` object holding the exact integer value. **Only the return value of `doubleValue()`** can lose precision. Assigning a `Long` to a `Number` variable does not by itself narrow the value.
 
-### `Number` không có toán tử số học chung
+### `Number` has no general arithmetic operators
 
 ```java
 Number x = Integer.valueOf(3);
 Number y = Double.valueOf(2.5);
 
-// Number sum = x + y; // Không biên dịch: + không được định nghĩa cho Number.
+// Number sum = x + y; // Does not compile: + is not defined for Number.
 double approximate = x.doubleValue() + y.doubleValue(); // 5.5.
 ```
 
-Trong Java, toán tử `+` cho số nguyên thủy hoặc toán tử ghép chuỗi; nó **không được overload bởi class `Number`**. Việc hai đối tượng cùng là `Number` không cho Java biết nên dùng số nguyên lớn, số thập phân, hay chấm động nhị phân cho phép cộng.
+In Java, the `+` operator applies to primitive numbers or string concatenation; it **is not overloaded by the `Number` class**. Two objects both being `Number` does not tell Java whether to use big integers, decimals, or binary floating-point for addition.
 
-Nếu **chủ động** chuyển cả hai sang `double`, phép cộng theo binary64 có thể hợp lý cho số đo gần đúng. Nhưng đó là **quyết định thuật toán**, không phải phép cộng trừu tượng giữ chính xác với mọi lớp con `Number`.
+If you **deliberately** convert both to `double`, binary64 addition may be reasonable for approximate measurements. But that is an **algorithmic decision**, not an abstract addition that preserves exactness across all `Number` subclasses.
 
-## 4. Hợp đồng là “chuyển giá trị”, không phải “giữ nguyên mọi thông tin”
+## 4. The Contract Is "Convert Value," Not "Preserve All Information"
 
-Java API nói rõ: ngữ nghĩa chi tiết của `intValue`, `longValue`, `floatValue`, `doubleValue`... do **triển khai cụ thể** quyết định. Các chuyển đổi thường tương tự widening/narrowing primitive conversion, nên có thể:
+The Java API states clearly: the detailed semantics of `intValue`, `longValue`, `floatValue`, `doubleValue`, etc. are decided by the **concrete implementation**. Conversions generally mirror widening/narrowing primitive conversions, so they may:
 
-1. **Mất phần lẻ:** `3.75` chuyển sang `int` thành `3`.
-2. **Mất độ lớn:** `long` lớn hơn miền `int` chuyển sang `int` giữ mẫu bit thấp theo quy tắc thu hẹp nguyên.
-3. **Thay đổi dấu:** số nguyên dương lớn có thể thành `int` âm.
-4. **Mất độ chính xác:** một `long` vượt độ chính xác nguyên liên tiếp của `double` bị làm tròn.
-5. **Mất miền hữu hạn:** `BigDecimal` rất lớn chuyển sang `double` có thể trở thành `Infinity`.
-6. **Phụ thuộc trạng thái nếu lớp con có thể thay đổi:** `AtomicInteger.intValue()` đọc một giá trị tại thời điểm gọi.
+1. **Lose the fractional part:** `3.75` converted to `int` becomes `3`.
+2. **Lose magnitude:** a `long` outside the `int` range converted to `int` keeps the low-order bit pattern per integer narrowing rules.
+3. **Change sign:** a large positive integer can become a negative `int`.
+4. **Lose precision:** a `long` beyond the contiguous integer precision of `double` gets rounded.
+5. **Lose finiteness:** a very large `BigDecimal` converted to `double` can become `Infinity`.
+6. **Depend on state if the subclass is mutable:** `AtomicInteger.intValue()` reads a value at the time of the call.
 
-`Number` **không hứa** sẽ ném exception nếu giá trị không thể biểu diễn chính xác dưới kiểu đích. Nếu nghiệp vụ đòi hỏi “không mất thông tin”, cần dùng các phương thức **exact** của loại số phù hợp hoặc kiểm tra miền/bước làm tròn riêng.
+`Number` **does not promise** to throw an exception if a value cannot be represented exactly in the target type. If business logic requires "no information loss," use the **exact** methods of the appropriate numeric type or perform explicit range/rounding checks.
 
-### Ví dụ: `long` thu hẹp xuống `int`
+### Example: `long` narrowing to `int`
 
 ```java
 Number n = Long.valueOf(4_294_967_297L);
@@ -157,18 +157,18 @@ System.out.println(n.longValue()); // 4294967297
 System.out.println(n.intValue());  // 1
 ```
 
-Giá trị ban đầu bằng `2^32 + 1`. Khi chuyển thành `int` 32 bit, các bit cao bị bỏ đi và 32 bit thấp biểu diễn 1. **Không có `ArithmeticException`** ở lời gọi `intValue()` này.
+The original value equals `2^32 + 1`. When converted to a 32-bit `int`, the high bits are discarded and the low 32 bits represent 1. **There is no `ArithmeticException`** on this `intValue()` call.
 
-Tương tự:
+Similarly:
 
 ```java
 Number n = new java.math.BigInteger("2147483648");
 System.out.println(n.intValue()); // -2147483648
 ```
 
-Giá trị `2^31` không nằm trong miền `int` có dấu; 32 bit thấp có bit dấu bằng 1, nên kết quả thành `Integer.MIN_VALUE`. Dữ liệu không còn cùng dấu và độ lớn ban đầu.
+The value `2^31` is outside the signed `int` range; the low 32 bits have the sign bit set to 1, so the result becomes `Integer.MIN_VALUE`. The data no longer has the original sign and magnitude.
 
-### Ví dụ: `double` sang `int`
+### Example: `double` to `int`
 
 ```java
 System.out.println(Double.valueOf(3.75).intValue()); // 3
@@ -177,24 +177,24 @@ System.out.println(Double.valueOf(Double.NaN).intValue()); // 0
 System.out.println(Double.valueOf(Double.POSITIVE_INFINITY).intValue()); // 2147483647
 ```
 
-Các quy tắc chuyển primitive floating-point sang integer trong Java gồm bỏ phần lẻ theo hướng về 0, NaN thành 0, và giới hạn về giá trị cực đại/cực tiểu của kiểu nguyên trong các trường hợp ngoài miền. **Không được** diễn giải 0 trả về từ NaN là phép đo thật sự bằng 0. Nếu dữ liệu ngoại vi chứa NaN/Infinity, hãy xác thực bằng `Double.isFinite` trước khi chuyển.
+Java's floating-point-to-integer primitive conversion rules include truncating the fractional part toward 0, converting NaN to 0, and clamping to the maximum/minimum value of the integer type in out-of-range cases. **Do not** interpret a 0 returned from NaN as an actual measurement of 0. If external data can contain NaN/Infinity, validate with `Double.isFinite` before converting.
 
-## 5. Vì sao `byteValue()` và `shortValue()` dễ gây bất ngờ?
+## 5. Why `byteValue()` and `shortValue()` Easily Cause Surprises
 
-Mặc định `Number.byteValue()` tương đương với gọi `intValue()` rồi cast `byte`; `shortValue()` tương tự:
+By default, `Number.byteValue()` is equivalent to calling `intValue()` and then casting to `byte`; `shortValue()` is analogous:
 
 ```java
 byte small = (byte) 258; // 2.
 short shortResult = (short) 65537; // 1.
 ```
 
-Một lớp con chỉ cần triển khai bốn phương thức trừu tượng, và có thể kế thừa hai hành vi này. Do đó, ngay cả khi lớp con lưu dữ liệu trong `long`, gọi `byteValue()` theo mặc định sẽ qua bước `intValue()`. Các lớp con có thể override nếu hợp đồng của chúng cần hành vi khác.
+A subclass only needs to implement the four abstract methods, and can inherit these two behaviors. Therefore, even if a subclass stores data in a `long`, calling `byteValue()` by default goes through `intValue()`. Subclasses may override them if their contract requires different behavior.
 
-**Kết luận:** tên `byteValue()` không có nghĩa “kiểm tra giá trị vừa miền byte”; nó chỉ yêu cầu một kết quả kiểu `byte`. Nếu muốn phát hiện mất dữ liệu, xem các phương thức `byteValueExact()` của `BigInteger` hoặc `BigDecimal`, thay vì mặc định tin `Number.byteValue()`.
+**Conclusion:** the name `byteValue()` does not mean "check that the value fits in the byte range"; it only asks for a `byte` result. If you want to detect data loss, look at `byteValueExact()` on `BigInteger` or `BigDecimal`, rather than trusting `Number.byteValue()` by default.
 
-## 6. Tự triển khai một lớp con `Number`
+## 6. Implementing Your Own `Number` Subclass
 
-Khi có một loại số tự định nghĩa cần tham gia API nhận `Number`, ta có thể tạo lớp con và cài đặt bốn phương thức trừu tượng:
+When you have a custom numeric type that needs to participate in APIs accepting `Number`, you can create a subclass and implement the four abstract methods:
 
 ```java
 static final class CounterNumber extends Number {
@@ -226,67 +226,67 @@ static final class CounterNumber extends Number {
 }
 ```
 
-Đây là **lớp lồng trong một class khác**, minh họa với dữ liệu lưu `long`. Chương trình đầy đủ có ở phần 11.
+This is a **nested class inside another class**, illustrating data stored in `long`. The complete program is in section 11.
 
-- `longValue()` giữ nguyên giá trị đã lưu.
-- `intValue()` có thể tràn theo quy tắc cast `long -> int`.
-- `floatValue()` và `doubleValue()` có thể làm tròn số nguyên lớn.
-- `byteValue()` và `shortValue()` được kế thừa từ `Number`, thông qua `intValue()`.
+- `longValue()` preserves the stored value.
+- `intValue()` can overflow according to `long -> int` cast rules.
+- `floatValue()` and `doubleValue()` can round large integers.
+- `byteValue()` and `shortValue()` are inherited from `Number`, going through `intValue()`.
 
 ```java
 System.out.println(new CounterNumber(258L).byteValue()); // 2
 ```
 
-**Lưu ý thiết kế:** mở rộng `Number` không tự tạo các API parse, format, cộng, so sánh hay hợp đồng equality có ý nghĩa. Nếu class đại diện tiền, phân số, đơn vị đo hoặc số bất biến riêng, cần thiết kế những thao tác đó một cách độc lập, và xem xét có thực sự cần kế thừa `Number` hay không. Đây là lựa chọn kiến trúc, không phải điều kiện bắt buộc của mọi lớp “có giá trị số”.
+**Design note:** extending `Number` does not automatically create parsing, formatting, addition, comparison, or meaningful equality contracts. If a class represents money, fractions, units of measurement, or custom immutable numbers, you must design those operations independently, and consider whether extending `Number` is genuinely needed. That is an architectural choice, not a mandatory requirement for every class that "has a numeric value."
 
-## 7. Phương thức `Exact` thuộc lớp con, không thuộc `Number`
+## 7. `Exact` Methods Belong to Subclasses, Not `Number`
 
-`Number` không có `intValueExact()` hoặc `longValueExact()` dùng chung. Tuy nhiên các lớp số lớn cung cấp API kiểm tra mất thông tin.
+`Number` has no shared `intValueExact()` or `longValueExact()`. However, the big-number classes provide APIs that check for information loss.
 
-| Loại | Phương thức | Bảo đảm / phản ứng |
+| Type | Method | Guarantee / reaction |
 | --- | --- | --- |
-| `BigInteger` | `intValueExact()`, `longValueExact()`, `shortValueExact()`, `byteValueExact()` | Ném `ArithmeticException` nếu giá trị nguyên vượt miền kiểu đích |
-| `BigDecimal` | `intValueExact()`, `longValueExact()`, `shortValueExact()`, `byteValueExact()` | Ném `ArithmeticException` nếu có phần lẻ khác 0 **hoặc** không vừa miền đích |
-| `BigDecimal` | `toBigIntegerExact()` | Ném `ArithmeticException` nếu có phần thập phân khác 0 |
-| `long` sang `int` | `Math.toIntExact(long)` | Ném `ArithmeticException` nếu `long` không vừa `int` |
+| `BigInteger` | `intValueExact()`, `longValueExact()`, `shortValueExact()`, `byteValueExact()` | Throws `ArithmeticException` if the integer value exceeds the target type's range |
+| `BigDecimal` | `intValueExact()`, `longValueExact()`, `shortValueExact()`, `byteValueExact()` | Throws `ArithmeticException` if there is a non-zero fractional part **or** it does not fit in the target range |
+| `BigDecimal` | `toBigIntegerExact()` | Throws `ArithmeticException` if there is a non-zero fractional part |
+| `long` to `int` | `Math.toIntExact(long)` | Throws `ArithmeticException` if `long` does not fit in `int` |
 
-### `BigDecimal`: `intValue` và `intValueExact` là hai chính sách
+### `BigDecimal`: `intValue` and `intValueExact` are two policies
 
 ```java
 java.math.BigDecimal value =
         new java.math.BigDecimal("12.75");
 
 System.out.println(value.intValue()); // 12
-// value.intValueExact(); // ArithmeticException: bỏ phần lẻ khác 0.
+// value.intValueExact(); // ArithmeticException: discards non-zero fractional part.
 ```
 
-`intValue()` trên `BigDecimal` bỏ phần lẻ và khi giá trị nguyên vượt miền `int` có thể chỉ giữ 32 bit thấp. `intValueExact()` yêu cầu giá trị **là số nguyên** và **vừa `int`**. Chẳng hạn `new BigDecimal("12.00").intValueExact()` trả 12, vì phần thập phân toán học bằng 0.
+`intValue()` on `BigDecimal` discards the fractional part and, when the integer part exceeds the `int` range, may retain only the low 32 bits. `intValueExact()` requires the value to **be an integer** and **fit in `int`**. For example, `new BigDecimal("12.00").intValueExact()` returns 12, because its mathematical fractional part is 0.
 
-### `BigInteger`: chỉ cần kiểm tra giới hạn
+### `BigInteger`: only needs bounds checking
 
 ```java
 java.math.BigInteger tooLarge =
         new java.math.BigInteger("2147483648");
 
 System.out.println(tooLarge.intValue()); // -2147483648
-// tooLarge.intValueExact(); // ArithmeticException: vượt Integer.MAX_VALUE.
+// tooLarge.intValueExact(); // ArithmeticException: exceeds Integer.MAX_VALUE.
 ```
 
-`BigInteger` luôn biểu diễn một số nguyên, nên không có phần lẻ cần bỏ; API exact chủ yếu kiểm tra **miền kiểu đích**.
+`BigInteger` always represents an integer, so there is no fractional part to discard; the exact APIs primarily check the **target type's range**.
 
-### `long` sang `int` khi đang làm việc với primitive
+### `long` to `int` when working with primitives
 
 ```java
 long count = 4_294_967_297L;
-// int unsafe = (int) count;       // 1, mất bit cao.
+// int unsafe = (int) count;       // 1, loses high bits.
 // int safe = Math.toIntExact(count); // ArithmeticException.
 ```
 
-Các API exact này **không phải phương thức của `Number`**. Khi biến chỉ có kiểu khai báo `Number`, trình biên dịch không biết có `intValueExact` trên mọi subtype hay không. Phải thiết kế hợp đồng đầu vào, kiểm tra loại cụ thể hoặc chọn một API có kiểu chính xác hơn.
+These exact APIs **are not methods on `Number`**. When a variable only has declared type `Number`, the compiler does not know whether `intValueExact` exists on every subtype. You must design the input contract, check the concrete type, or choose an API with more specific types.
 
-## 8. Xử lý một `Number` không rõ lớp mà không mất dữ liệu âm thầm
+## 8. Handling a `Number` of Unknown Class Without Silent Data Loss
 
-Một cách *không nên làm* khi muốn giữ nguyên thập phân:
+A way you *should not* use when you want to preserve exact decimals:
 
 ```java
 static java.math.BigDecimal badConversion(Number n) {
@@ -294,9 +294,9 @@ static java.math.BigDecimal badConversion(Number n) {
 }
 ```
 
-Hàm này chuyển mọi loại số sang `double` trước: `BigInteger` lớn có thể mất chữ số và `BigDecimal` chính xác có thể bị làm tròn; `new BigDecimal(double)` sẽ mô tả **chính xác xấp xỉ nhị phân** đã được đưa vào, không khôi phục dữ liệu gốc. Ngoài ra `Double.NaN` và vô cực không thể tạo `BigDecimal` theo cách này.
+This function converts every numeric type to `double` first: a large `BigInteger` can lose digits and an exact `BigDecimal` can be rounded; `new BigDecimal(double)` will describe the **exact binary approximation** passed in, rather than recovering the original data. In addition, `Double.NaN` and infinities cannot construct a `BigDecimal` this way.
 
-Một ví dụ **có hợp đồng rõ** chỉ chấp nhận kiểu thập phân và kiểu nguyên thích hợp:
+An example with a **clear contract** accepting only appropriate decimal and integer types:
 
 ```java
 static java.math.BigDecimal toExactDecimal(Number n) {
@@ -318,29 +318,29 @@ static java.math.BigDecimal toExactDecimal(Number n) {
 }
 ```
 
-Đây là phương thức minh họa Java 17+ (dùng `instanceof` pattern matching). Nó **chủ động từ chối** `Float`, `Double`, `AtomicInteger` và mọi subtype lạ để tránh suy diễn sai rằng `Number.doubleValue()` bảo đảm thập phân chính xác.
+This is a Java 17+ illustrative method (using `instanceof` pattern matching). It **deliberately rejects** `Float`, `Double`, `AtomicInteger`, and any unfamiliar subtype to avoid the false inference that `Number.doubleValue()` guarantees exact decimals.
 
-Nếu ứng dụng muốn chấp nhận `double` hữu hạn, có thể đưa ra quy tắc riêng như `BigDecimal.valueOf(d)`, nhưng phải hiểu **giá trị `double` đã được làm tròn trước đó** và phân biệt với `new BigDecimal(d)`. Với dữ liệu đo xấp xỉ, chính sách cho phép làm tròn có thể hợp lý; với giao thức số thập phân chính xác, chỉ chấp nhận các loại rõ ràng như trên sẽ an toàn hơn.
+If an application wants to accept finite `double` values, it can define an explicit rule such as `BigDecimal.valueOf(d)`, while understanding that **the `double` value was already rounded beforehand** and distinguishing it from `new BigDecimal(d)`. For approximate measurement data, a policy permitting rounding may be reasonable; for exact decimal protocols, accepting only explicit types as above is safer.
 
-**Thông điệp thiết kế:** đừng kỳ vọng một phương thức `Number` tự quyết định đúng độ chính xác cho mọi hệ thống. Càng cần giữ chính xác, kiểu tham số/kiểu trả về càng nên **cụ thể**.
+**Design takeaway:** do not expect a `Number` method to automatically choose the right precision for every system. The more exactness must be preserved, the more **specific** parameter and return types should be.
 
-## 9. `Number` khác autoboxing, unboxing và generic arithmetic
+## 9. `Number` Differs from Autoboxing, Unboxing, and Generic Arithmetic
 
-### Boxing không biến `Number` thành primitive
+### Boxing does not turn `Number` into a primitive
 
 ```java
 Number a = 42;      // int -> Integer (boxing) -> Number (upcast).
 Number b = 1.25;    // double -> Double (boxing) -> Number.
 int x = a.intValue();
 
-// int y = a; // Không biên dịch: không unbox trực tiếp một Number bất kỳ.
+// int y = a; // Does not compile: cannot directly unbox an arbitrary Number.
 ```
 
-Java hỗ trợ **unboxing** từ các wrapper được ngôn ngữ xác định như `Integer`, `Double`, `Long`, chứ không có quy tắc unboxing từ **mọi subtype `Number`**. Lời gọi `intValue()` là gọi phương thức, không phải tự động chuyển tất cả `Number` thành primitive theo cùng phép toán.
+Java supports **unboxing** from language-specified wrappers such as `Integer`, `Double`, and `Long`, not an unboxing rule from **any `Number` subtype**. Calling `intValue()` is a method call, not an automatic conversion of all `Number` instances to primitives under the same operation.
 
-Khi một biến có kiểu `Integer`, biểu thức như `Integer boxed = 3; int v = boxed;` có thể dùng unboxing ngầm. Nếu boxed bằng `null`, phép unboxing phát sinh `NullPointerException`. Tương tự, `Number n = null; n.intValue()` gây NPE vì gọi phương thức trên tham chiếu null.
+When a variable has type `Integer`, an expression like `Integer boxed = 3; int v = boxed;` can use implicit unboxing. If `boxed` is `null`, unboxing throws `NullPointerException`. Likewise, `Number n = null; n.intValue()` causes an NPE because a method is invoked on a null reference.
 
-### Generic `T extends Number` không tự cung cấp toán tử `+`
+### Generic `T extends Number` does not provide the `+` operator
 
 ```java
 static double sumAsDouble(
@@ -353,13 +353,13 @@ static double sumAsDouble(
 }
 ```
 
-Phương thức này có thể dùng cho `List<Integer>`, `List<Long>`, `List<BigDecimal>`..., nhưng kết quả **là tổng xấp xỉ binary64**, không bảo đảm thập phân chính xác hoặc miễn overflow. `List<? extends Number>` chỉ mô tả ràng buộc kiểu; nó không làm Java cho phép `n1 + n2` trên các đối tượng `Number`.
+This method can work with `List<Integer>`, `List<Long>`, `List<BigDecimal>`, etc., but the result **is a binary64 approximate sum**, guaranteeing neither exact decimals nor freedom from overflow. `List<? extends Number>` only expresses a type constraint; it does not make Java allow `n1 + n2` on `Number` objects.
 
-Với thư viện tính tiền, tổng số nguyên lớn hoặc phân số hữu tỉ, thường nên nhận `List<BigDecimal>`, `List<BigInteger>`, hoặc một kiểu giá trị riêng có hợp đồng rõ. Đừng sử dụng generic `Number` rồi ép tất cả sang `double` nếu yêu cầu loại trừ mất dữ liệu.
+For libraries handling money, large-integer totals, or rational fractions, it is usually better to accept `List<BigDecimal>`, `List<BigInteger>`, or a dedicated value type with a clear contract. Do not use generic `Number` and coerce everything to `double` if requirements forbid data loss.
 
-## 10. Equality, thứ tự và tính biến đổi không được `Number` chuẩn hóa
+## 10. Equality, Ordering, and Mutability Are Not Standardized by `Number`
 
-Hai đối tượng có giá trị toán học giống nhau không nhất thiết so sánh bằng nhau khi gọi `equals`:
+Two objects with the same mathematical value do not necessarily compare equal when calling `equals`:
 
 ```java
 System.out.println(
@@ -370,7 +370,7 @@ System.out.println(
             .equals(new java.math.BigDecimal("1.00"))); // false.
 ```
 
-`Integer.equals` yêu cầu đối tượng cùng kiểu `Integer` và cùng giá trị; `Long.equals` có quy tắc kiểu tương ứng. Với `BigDecimal`, `equals` còn xét **scale**, nên 1.0 khác 1.00; trong khi `compareTo` cho thấy giá trị toán học bằng nhau:
+`Integer.equals` requires an object of the same type `Integer` with the same value; `Long.equals` has the corresponding type rule. For `BigDecimal`, `equals` also considers **scale**, so 1.0 differs from 1.00; whereas `compareTo` shows their mathematical values are equal:
 
 ```java
 java.math.BigDecimal x = new java.math.BigDecimal("1.0");
@@ -378,9 +378,9 @@ java.math.BigDecimal y = new java.math.BigDecimal("1.00");
 System.out.println(x.compareTo(y) == 0); // true.
 ```
 
-`Number` **không đặt một quy tắc `equals`/`hashCode`/`compareTo` chung giữa mọi subtype**. Không nên gọi `new HashSet<Number>()` rồi kỳ vọng nó tự gộp `Integer(1)`, `Long(1L)` và `BigDecimal("1.0")` thành một phần tử.
+`Number` **does not establish a universal `equals`/`hashCode`/`compareTo` rule across all subtypes**. You should not create `new HashSet<Number>()` expecting it to merge `Integer(1)`, `Long(1L)`, and `BigDecimal("1.0")` into a single element.
 
-Một số `Number` còn **mutable**:
+Some `Number` types are also **mutable**:
 
 ```java
 java.util.concurrent.atomic.AtomicInteger counter =
@@ -390,11 +390,11 @@ counter.incrementAndGet();
 System.out.println(snapshotSource.intValue()); // 4.
 ```
 
-`snapshotSource` tham chiếu **cùng đối tượng** `AtomicInteger` đã đổi giá trị, không phải ảnh chụp `3`. Nếu cần giá trị snapshot bất biến, hãy đọc primitive tại thời điểm có chủ đích (`int snapshot = counter.intValue()`) rồi lưu riêng. `intValue` của `AtomicInteger` trả giá trị quan sát tại lời gọi; nếu nhiều luồng cập nhật, các lần gọi liên tiếp không nhất thiết cùng một số.
+`snapshotSource` references **the same `AtomicInteger` object** whose value changed, not a snapshot of `3`. If you need an immutable snapshot value, read a primitive at an intentional point in time (`int snapshot = counter.intValue()`) and store it separately. `AtomicInteger.intValue` returns the value observed at the time of the call; if multiple threads update it, consecutive calls need not return the same number.
 
-## 11. Chương trình Java 17+ độc lập
+## 11. Standalone Java 17+ Program
 
-Tạo tệp `NumberContractDemo.java`:
+Create the file `NumberContractDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -474,14 +474,14 @@ public class NumberContractDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 NumberContractDemo.java
 java NumberContractDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 Integer: int=42, long=42
@@ -502,75 +502,75 @@ Decimal equals by scale: false
 Decimal compareTo numerically: true
 ```
 
-Chương trình kiểm chứng bốn ý chính: cùng kiểu tham chiếu `Number` có thể chứa nhiều kiểu số; chuyển đổi sang `int`/`long` có thể làm mất giá trị; hai phương thức `byteValue/shortValue` có mặc định; chuyển đổi *exact* và bình đẳng `equals` là **hợp đồng của kiểu cụ thể**, không phải của mọi `Number`.
+The program verifies four main points: the same `Number` reference type can hold many numeric types; converting to `int`/`long` can lose values; `byteValue/shortValue` have defaults; *exact* conversions and `equals` equality are **contracts of the specific type**, not of every `Number`.
 
-## 12. Cách chọn kiểu và cách thiết kế API
+## 12. How to Choose Types and Design APIs
 
-| Nhu cầu | Lựa chọn thường phù hợp | Lý do |
+| Need | Usually suitable choice | Reason |
 | --- | --- | --- |
-| Hiển thị thống kê xấp xỉ từ nhiều lớp số, sai số được chấp nhận | `Number` rồi `doubleValue()` **có chủ đích** | Dễ viết API đa hình; phải kiểm tra finite/độ chính xác |
-| API yêu cầu số nguyên đúng miền `int` | `int`/`Integer` với kiểm tra đầu vào, hoặc `intValueExact` trên loại hỗ trợ | Không tin `Number.intValue` để phát hiện overflow |
-| Số nguyên không giới hạn trong 64 bit | `BigInteger` | Tránh mất bit bởi `longValue/intValue` |
-| Tài chính hoặc phép toán decimal chính xác | `BigDecimal` | Giữ cách biểu diễn thập phân và kiểm soát rounding |
-| Chỉ lưu primitive 32/64 bit, cần hiệu suất/memory rõ | `int`/`long`/`double` | Tránh boxing không cần thiết trong vòng lặp nóng |
-| Giá trị số có thể thay đổi giữa các luồng | `AtomicInteger`/`AtomicLong` nếu đúng nhu cầu đồng thời | Có API atomic; đọc `Number` chỉ là lấy một giá trị |
-| Danh sách dị loại để trình bày/ghi log | `List<Number>` | Dùng chung kiểu tham chiếu; không suy ra arithmetic/equality |
-| Thao tác cộng/trừ trên nhiều kiểu mà **phải** giữ chính xác | Thiết kế kiểu số riêng hoặc chọn kiểu chuẩn hóa phù hợp | `Number` không mô tả phép toán algebra hay quy tắc rounding |
+| Display approximate statistics from multiple numeric classes, error tolerated | `Number` then **deliberate** `doubleValue()` | Easy polymorphic API; must check finiteness/precision |
+| API requiring an integer within `int` range | `int`/`Integer` with input validation, or `intValueExact` on supporting types | Do not trust `Number.intValue` to detect overflow |
+| Integers not bounded by 64 bits | `BigInteger` | Avoids bit loss from `longValue/intValue` |
+| Finance or exact decimal arithmetic | `BigDecimal` | Preserves decimal representation and controls rounding |
+| Storing only 32/64-bit primitives with clear performance/memory needs | `int`/`long`/`double` | Avoids unnecessary boxing in hot loops |
+| Numeric value mutable across threads | `AtomicInteger`/`AtomicLong` if concurrency fits | Provides atomic API; reading `Number` only takes a single value |
+| Heterogeneous list for presentation/logging | `List<Number>` | Shared reference type; do not infer arithmetic/equality |
+| Addition/subtraction across types that **must** stay exact | Design a custom numeric type or choose an appropriate canonical type | `Number` does not describe algebraic operations or rounding rules |
 
-### Hợp đồng API nên ghi rõ những gì?
+### What should an API contract specify?
 
-Nếu định nghĩa phương thức nhận `Number`, nên trả lời:
+If you define a method taking `Number`, answer:
 
-1. Có cho phép **mọi** subtype `Number` không, hay chỉ `Integer`/`Long`/`BigDecimal`?
-2. Có chấp nhận NaN, vô cực, số âm, phần thập phân hay không?
-3. Có thể mất độ chính xác, cắt phần lẻ, thay đổi dấu hoặc tràn không?
-4. Giá trị có thể bị thay đổi giữa hai lần đọc từ một `Number` mutable không?
-5. Kết quả trả về mang kiểu nào; lỗi nhập liệu và overflow được báo thế nào?
-6. Nếu chuyển sang `double`, sai số và miền độ lớn cho phép là bao nhiêu?
-7. Có cần quy tắc `equals`/`compareTo` liên kiểu hay chỉ xử lý riêng từng subtype?
+1. Are **all** `Number` subtypes allowed, or only `Integer`/`Long`/`BigDecimal`?
+2. Are NaN, infinity, negative numbers, or fractional parts accepted?
+3. Can precision loss, truncation, sign change, or overflow occur?
+4. Can the value change between two reads from a mutable `Number`?
+5. What type does the return value have; how are input errors and overflow reported?
+6. If converting to `double`, what error tolerance and magnitude range are acceptable?
+7. Is a cross-type `equals`/`compareTo` rule needed, or is each subtype handled separately?
 
-Trong API công khai, **chấp nhận `Number` vì linh hoạt** phải đi kèm **tài liệu về độ chính xác và conversion**. Nếu chỉ có một kiểu số hợp lệ theo nghiệp vụ, nhận đúng kiểu đó thường đơn giản và an toàn hơn.
+In public APIs, **accepting `Number` for flexibility** must be paired with **documentation on precision and conversion**. If business rules allow only one valid numeric type, accepting that exact type is usually simpler and safer.
 
-## 13. Những lỗi hay gặp
+## 13. Common Mistakes
 
-| Nhầm lẫn | Điều xảy ra | Cách xử lý |
+| Misconception | What happens | How to handle |
 | --- | --- | --- |
-| Tưởng `Number` là interface | Nó là **abstract class**, có phương thức đã triển khai | Dùng `extends Number` khi tạo subtype |
-| Cố tạo `new Number()` | Lỗi biên dịch | Tạo đối tượng lớp con cụ thể |
-| Tưởng đủ triển khai `intValue()` | `longValue`, `floatValue`, `doubleValue` còn abstract | Triển khai cả bốn nếu không được kế thừa từ lớp cha |
-| Tin `n.intValue()` luôn kiểm tra miền | `Long(4294967297)` trả 1 | Dùng checked/exact conversion nếu bắt buộc |
-| Tin `n.doubleValue()` bảo toàn mọi số nguyên | `2^53+1` không giữ chính xác trong binary64 | Giữ `long`/`BigInteger` nếu cần |
-| Tin `n.byteValue()` tự ném lỗi nếu quá 127 | Mặc định cast từ `intValue` | Dùng exact API phù hợp |
-| Tưởng `Number` hỗ trợ `x + y` | Toán tử `+` không được định nghĩa cho hai `Number` | Chọn kiểu số/chiến lược toán học tường minh |
-| Dùng `new BigDecimal(n.doubleValue())` để “bảo toàn” dữ liệu | Dữ liệu đã mất trước khi xây `BigDecimal` | Nhận loại hỗ trợ exact và chuyển trực tiếp |
-| Xem mọi `Number` là wrapper bất biến | `AtomicInteger` thay đổi được | Chú ý tính mutable và snapshot |
-| Tưởng `Number` chuẩn hóa `equals` và `compareTo` | Mỗi subtype có hợp đồng riêng | Tránh equality/hashing liên kiểu chưa thiết kế |
-| Tưởng gán `Number n = 2` biến số nguyên thành `double` | Giá trị được boxing thành `Integer` | Phân biệt boxing, upcast và conversion |
-| Gọi `n.intValue()` trên `null` | `NullPointerException` | Kiểm tra null tại biên |
-| Dùng `Number` cho tiền chính xác nhưng lại cộng qua `doubleValue` | Độ chính xác decimal có thể mất | Dùng `BigDecimal` và chính sách làm tròn |
-| Giữ `Number` qua serialization mà không định nghĩa schema | Kiểu cụ thể/precision có thể mơ hồ khi liên hệ với hệ khác | Xác định loại số, format, scale và chính sách chuyển đổi trong giao thức |
+| Thinking `Number` is an interface | It is an **abstract class** with implemented methods | Use `extends Number` when creating a subtype |
+| Trying to instantiate `new Number()` | Compile-time error | Instantiate a concrete subclass |
+| Thinking implementing `intValue()` is enough | `longValue`, `floatValue`, `doubleValue` remain abstract | Implement all four unless inherited from a superclass |
+| Trusting `n.intValue()` to always check range | `Long(4294967297)` returns 1 | Use checked/exact conversion when required |
+| Trusting `n.doubleValue()` to preserve every integer | `2^53+1` is not preserved exactly in binary64 | Keep `long`/`BigInteger` if needed |
+| Trusting `n.byteValue()` to automatically throw above 127 | Default casts from `intValue` | Use an appropriate exact API |
+| Thinking `Number` supports `x + y` | The `+` operator is not defined for two `Number`s | Choose explicit numeric types/math strategy |
+| Using `new BigDecimal(n.doubleValue())` to "preserve" data | Data is already lost before constructing `BigDecimal` | Accept types supporting exactness and convert directly |
+| Treating every `Number` as an immutable wrapper | `AtomicInteger` is mutable | Pay attention to mutability and snapshots |
+| Thinking `Number` standardizes `equals` and `compareTo` | Each subtype has its own contract | Avoid undesigned cross-type equality/hashing |
+| Thinking `Number n = 2` turns the integer into `double` | The value is boxed to `Integer` | Distinguish boxing, upcasting, and conversion |
+| Calling `n.intValue()` on `null` | `NullPointerException` | Check for null at the boundary |
+| Using `Number` for exact money but summing via `doubleValue` | Decimal precision can be lost | Use `BigDecimal` and a rounding policy |
+| Passing `Number` through serialization without a defined schema | Concrete type/precision can become ambiguous across systems | Specify numeric type, format, scale, and conversion policy in the protocol |
 
-## 14. Tự kiểm tra
+## 14. Self-Check
 
-1. `Number` là class, interface hay abstract class? Vì sao không dùng `new Number()`?
-2. Bốn phương thức abstract của `Number` là gì? Hai phương thức nào có triển khai mặc định, và mặc định dùng cách nào?
-3. Vì sao `Number n = Long.valueOf(4_294_967_297L); n.intValue()` trả 1 chứ không ném exception?
-4. Một `BigDecimal("12.75")` cho `intValue()` bằng bao nhiêu? `intValueExact()` có hành vi gì?
-5. Vì sao `BigInteger("2147483648").intValue()` có thể **âm** dù số gốc dương?
-6. `Number n = Integer.valueOf(3)` có thể dùng `int x = n;` không? Tại sao `int x = n.intValue();` hợp lệ?
-7. Tại sao `List<? extends Number>` không làm phép cộng `+` giữa hai phần tử trở thành hợp lệ?
-8. Vì sao chuyển `BigInteger` lớn qua `doubleValue()` rồi tạo `BigDecimal` không bảo toàn mọi chữ số?
-9. Khi nào `AtomicInteger` thuộc `Number` có thể cho hai kết quả `intValue()` khác nhau liên tiếp?
-10. Vì sao `Integer.valueOf(1).equals(Long.valueOf(1L))` là false? `BigDecimal("1.0")` và `BigDecimal("1.00")` có giống nhau theo `equals` và `compareTo` không?
-11. Nếu API chỉ chấp nhận số nguyên vừa `int`, nên thay `Number.intValue()` không kiểm tra bằng hợp đồng nào?
-12. Với một loại đơn vị đo mới, việc `extends Number` có tự tạo toán tử arithmetic hoặc comparator không?
+1. Is `Number` a class, an interface, or an abstract class? Why can you not use `new Number()`?
+2. What are the four abstract methods of `Number`? Which two methods have default implementations, and how do those defaults work?
+3. Why does `Number n = Long.valueOf(4_294_967_297L); n.intValue()` return 1 instead of throwing an exception?
+4. What does `intValue()` return on `BigDecimal("12.75")`? How does `intValueExact()` behave?
+5. Why can `BigInteger("2147483648").intValue()` be **negative** even though the original number is positive?
+6. Given `Number n = Integer.valueOf(3)`, can you write `int x = n;`? Why is `int x = n.intValue();` valid?
+7. Why does `List<? extends Number>` not make `+` between two elements valid?
+8. Why does converting a large `BigInteger` via `doubleValue()` and then creating a `BigDecimal` not preserve all digits?
+9. When can an `AtomicInteger` typed as `Number` return two different results from consecutive `intValue()` calls?
+10. Why is `Integer.valueOf(1).equals(Long.valueOf(1L))` false? Are `BigDecimal("1.0")` and `BigDecimal("1.00")` equal under `equals` and `compareTo`?
+11. If an API only accepts integers that fit in `int`, what contract should replace unchecked `Number.intValue()`?
+12. For a new unit-of-measurement type, does `extends Number` automatically provide arithmetic operators or comparators?
 
-## 15. Tài liệu chính thức
+## 15. Official Documentation
 
-- [`java.lang.Number` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html): mô tả lớp abstract, bốn phương thức abstract, hai phương thức có mặc định và cảnh báo mất thông tin khi conversion.
-- [`java.math.BigDecimal` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): hợp đồng chuyển kiểu và các phương thức `intValueExact`, `longValueExact`, `toBigIntegerExact`.
-- [`java.math.BigInteger` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): số nguyên lớn, `intValueExact`/`longValueExact` và chuyển đổi cắt bit thấp.
-- [Java Language Specification `5.1.2 và `5.1.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html): widening/narrowing primitive conversions.
-- [`java.util.concurrent.atomic.AtomicInteger` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicInteger.html): lớp số nguyên cập nhật atomic có kế thừa `Number`.
+- [`java.lang.Number` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html): describes the abstract class, four abstract methods, two defaulted methods, and warnings about information loss during conversion.
+- [`java.math.BigDecimal` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): type-conversion contract and `intValueExact`, `longValueExact`, `toBigIntegerExact`.
+- [`java.math.BigInteger` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): large integers, `intValueExact`/`longValueExact`, and low-bit truncation conversions.
+- [Java Language Specification `5.1.2 and `5.1.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html): widening/narrowing primitive conversions.
+- [`java.util.concurrent.atomic.AtomicInteger` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicInteger.html): atomically updated integer class that extends `Number`.
 
-**Kết luận:** `Number` là **kiểu cha trừu tượng cho các đối tượng số có khả năng chuyển sang sáu primitive**. Nó cho đa hình chuyển đổi, **không cam kết** arithmetic chung, độ chính xác, bình đẳng liên kiểu hoặc tính bất biến. `intValue`/`longValue`/`floatValue`/`doubleValue` có thể làm mất thông tin; hai phương thức `byteValue`/`shortValue` có mặc định thông qua `intValue`. Khi cần miền số, phần lẻ hoặc độ chính xác được bảo đảm, hãy chọn **kiểu cụ thể và checked/exact conversion** thay vì coi mọi `Number` như một giá trị số có thể hoán đổi hoàn toàn.
+**Conclusion:** `Number` is an **abstract superclass for numeric objects capable of converting to six primitives**. It provides conversion polymorphism, and **does not guarantee** general arithmetic, precision, cross-type equality, or immutability. `intValue`/`longValue`/`floatValue`/`doubleValue` can lose information; `byteValue`/`shortValue` default to going through `intValue`. When numeric range, fractional parts, or precision must be guaranteed, choose **specific types and checked/exact conversions** instead of treating every `Number` as a completely interchangeable numeric value.

@@ -1,29 +1,29 @@
-# Chia cho 0 trong Java: phân biệt vô cực và NaN
+# Division by 0 in Java: Distinguishing Infinity and NaN
 
-Trong Java, câu hỏi “chia cho 0 sẽ xảy ra chuyện gì?” **không có cùng một đáp án cho mọi kiểu số**. Với phép chia **số nguyên** (`int`, `long` và các kiểu nguyên nhỏ được nâng lên `int`), số chia bằng 0 dẫn đến `ArithmeticException` khi phép toán được thực hiện. Với phép chia **dấu phẩy động** (`float` hoặc `double`), Java sử dụng các giá trị đặc biệt IEEE 754: `Infinity`, `-Infinity` và `NaN`.
+In Java, the question "what happens when dividing by 0?" **does not have the same answer for all numeric types**. For **integer** division (`int`, `long`, and smaller integer types promoted to `int`), a divisor of 0 leads to `ArithmeticException` when the operation is executed. For **floating-point** division (`float` or `double`), Java uses IEEE 754 special values: `Infinity`, `-Infinity`, and `NaN`.
 
-Quy tắc cần nhớ:
+Rules to remember:
 
-- **Số hữu hạn khác 0 / ±0.0 → vô cực có dấu (`Infinity` hoặc `-Infinity`).**
+- **Finite non-zero number / ±0.0 → signed infinity (`Infinity` or `-Infinity`).**
 - **±0.0 / ±0.0 → `NaN` (*Not a Number*).**
-- **Phép chia nguyên với số chia 0 → `ArithmeticException`**, không sinh `Infinity` hoặc `NaN`.
-- Vô cực và NaN còn có thể xuất hiện **không phải do chia cho 0**, chẳng hạn số thực tràn phạm vi hoặc các phép toán vô định khác.
+- **Integer division with divisor 0 → `ArithmeticException`**, not `Infinity` or `NaN`.
+- Infinity and NaN can also appear **without dividing by 0**, such as floating-point overflow or other indeterminate operations.
 
-Bài học dưới đây dùng Java 17+ và phân biệt **kết quả tính toán**, **cách Java hiển thị kết quả** và **cách kiểm tra/xử lý giá trị bất thường**.
+The lesson below uses Java 17+ and distinguishes **computation results**, **how Java displays results**, and **how to check/handle abnormal values**.
 
-## 1. Vì sao Java có kết quả vô cực và NaN?
+## 1. Why Does Java Have Infinity and NaN Results?
 
-`float` và `double` là kiểu số dấu phẩy động nhị phân theo IEEE 754. Ngoài các giá trị hữu hạn, chúng chứa các mã biểu diễn riêng cho:
+`float` and `double` are binary floating-point types according to IEEE 754. Beyond finite values, they contain dedicated bit patterns for:
 
-| Giá trị | Ý nghĩa thực tế | Java |
+| Value | Practical Meaning | Java |
 | --- | --- | --- |
-| Dương vô cực | Kết quả vượt phía dương của miền số hữu hạn hoặc phép toán được định nghĩa cho ra dương vô cực | `Double.POSITIVE_INFINITY`, `Float.POSITIVE_INFINITY` |
-| Âm vô cực | Kết quả vượt phía âm hoặc phép toán được định nghĩa cho ra âm vô cực | `Double.NEGATIVE_INFINITY`, `Float.NEGATIVE_INFINITY` |
-| NaN | Kết quả số thực không xác định theo các quy tắc IEEE 754, ví dụ `0.0 / 0.0` | `Double.NaN`, `Float.NaN` |
-| Dương zero | Số 0 có bit dấu bằng 0 | `0.0`, `0.0f` |
-| Âm zero | Số 0 có bit dấu bằng 1 | `-0.0`, `-0.0f` |
+| Positive infinity | Result exceeds the positive side of the finite range or an operation is defined to yield positive infinity | `Double.POSITIVE_INFINITY`, `Float.POSITIVE_INFINITY` |
+| Negative infinity | Result exceeds the negative side or an operation is defined to yield negative infinity | `Double.NEGATIVE_INFINITY`, `Float.NEGATIVE_INFINITY` |
+| NaN | Undefined floating-point result under IEEE 754 rules, e.g. `0.0 / 0.0` | `Double.NaN`, `Float.NaN` |
+| Positive zero | Zero with sign bit 0 | `0.0`, `0.0f` |
+| Negative zero | Zero with sign bit 1 | `-0.0`, `-0.0f` |
 
-Java mặc định in `Double.POSITIVE_INFINITY` là `Infinity`, in `Double.NEGATIVE_INFINITY` là `-Infinity` và in `Double.NaN` là `NaN`. Những chữ này là cách biểu diễn văn bản của **giá trị kiểu số thực**, không phải chuỗi được phép trộn tùy ý với phép toán nguyên.
+By default, Java prints `Double.POSITIVE_INFINITY` as `Infinity`, `Double.NEGATIVE_INFINITY` as `-Infinity`, and `Double.NaN` as `NaN`. These words are textual representations of **floating-point numeric values**, not strings that can be arbitrarily mixed with integer operations.
 
 ```java
 double plusInfinity = Double.POSITIVE_INFINITY;
@@ -34,22 +34,22 @@ System.out.println(minusInfinity); // -Infinity
 System.out.println(notANumber);    // NaN
 ```
 
-**NaN không có nghĩa “giá trị là số 0”, “lỗi bằng 0” hay “chưa khởi tạo”.** Nó là một giá trị đặc biệt mang ý nghĩa rằng phép tính không có kết quả số thực thông thường theo quy tắc của kiểu.
+**`NaN` does not mean "the value is 0", "zero error", or "uninitialized".** It is a special value indicating that the computation has no ordinary floating-point numeric result under the type's rules.
 
-## 2. Số hữu hạn khác 0 chia cho zero: vô cực có dấu
+## 2. Finite Non-Zero Number Divided by Zero: Signed Infinity
 
-Đối với `double`, khi tử số **hữu hạn và khác 0**, còn mẫu số là `+0.0` hoặc `-0.0`, kết quả là vô cực; dấu của kết quả phụ thuộc vào dấu của hai toán hạng.
+For `double`, when the numerator is **finite and non-zero**, and the denominator is `+0.0` or `-0.0`, the result is infinity; the sign of the result depends on the signs of both operands.
 
-| Biểu thức | Kết quả | Diễn giải |
+| Expression | Result | Interpretation |
 | --- | --- | --- |
-| `1.0 / 0.0` | `Infinity` | Dương / zero dương |
-| `-1.0 / 0.0` | `-Infinity` | Âm / zero dương |
-| `1.0 / -0.0` | `-Infinity` | Dương / zero âm |
-| `-1.0 / -0.0` | `Infinity` | Âm / zero âm |
-| `10.0 / 0.0` | `Infinity` | Tử số dương hữu hạn |
-| `0.0 / 0.0` | `NaN` | Tử số không khác 0 — quy tắc khác |
+| `1.0 / 0.0` | `Infinity` | Positive / positive zero |
+| `-1.0 / 0.0` | `-Infinity` | Negative / positive zero |
+| `1.0 / -0.0` | `-Infinity` | Positive / negative zero |
+| `-1.0 / -0.0` | `Infinity` | Negative / negative zero |
+| `10.0 / 0.0` | `Infinity` | Finite positive numerator |
+| `0.0 / 0.0` | `NaN` | Numerator is not non-zero — different rule |
 
-Ví dụ:
+Example:
 
 ```java
 System.out.println(1.0 / 0.0);   // Infinity
@@ -58,20 +58,20 @@ System.out.println(1.0 / -0.0);  // -Infinity
 System.out.println(-1.0 / -0.0); // Infinity
 ```
 
-**Không có exception chỉ vì mẫu số số thực bằng 0.** Bởi vậy `try/catch (ArithmeticException ...)` không phải cách thông thường để phát hiện phép chia `double` cho 0. Phải kiểm tra miền đầu vào hoặc kết quả sau phép tính.
+**There is no exception solely because a floating-point denominator is 0.** Therefore, `try/catch (ArithmeticException ...)` is not the usual way to detect `double` division by 0. You must validate the input domain or check the result after computation.
 
-### `float` cũng có hành vi tương ứng
+### `float` Has Corresponding Behavior
 
 ```java
 float result = 5.0f / 0.0f;       // Float.POSITIVE_INFINITY
 float indeterminate = 0.0f / 0.0f; // Float.NaN
 ```
 
-`5.0f` và `0.0f` có kiểu `float`, còn `5.0` và `0.0` có kiểu `double`. Hậu tố `f`/`F` giúp ghi rõ kiểu literal `float`.
+`5.0f` and `0.0f` have type `float`, whereas `5.0` and `0.0` have type `double`. The `f`/`F` suffix explicitly specifies a `float` literal.
 
-## 3. Zero chia cho zero: vì sao lại là NaN?
+## 3. Zero Divided by Zero: Why Is It NaN?
 
-Khi **cả tử số và mẫu số đều bằng zero**, phép chia dấu phẩy động cho `NaN` bất kể zero mang dấu nào:
+When **both the numerator and denominator are zero**, floating-point division yields `NaN` regardless of the sign of either zero:
 
 ```java
 double a = 0.0 / 0.0;   // NaN
@@ -80,13 +80,13 @@ double c = 0.0 / -0.0;  // NaN
 double d = -0.0 / -0.0; // NaN
 ```
 
-**Vô cực và NaN là hai trạng thái khác nhau.** Nếu tử số hữu hạn khác 0 và mẫu bằng 0, dấu của tỷ số xác định được theo quy tắc số thực nên nhận vô cực có dấu. Nếu tử số cũng bằng 0, không có một tỷ số xác định chung cho biểu thức `0/0`, vì vậy quy tắc số thực cho `NaN`.
+**Infinity and NaN are two different states.** If the numerator is finite and non-zero and the denominator is 0, the sign of the ratio is determined by floating-point rules, yielding signed infinity. If the numerator is also 0, there is no single defined ratio for `0/0`, so floating-point rules yield `NaN`.
 
-Đừng diễn giải `NaN` như một số quá lớn: nó **không phải vô cực** và không có thứ tự số học thông thường. Hơn nữa, các giá trị `NaN` có thể phát sinh từ nhiều phép toán không xác định khác, không riêng `0.0 / 0.0`.
+Do not interpret `NaN` as a huge number: it is **not infinity** and has no ordinary arithmetic ordering. Moreover, `NaN` values can arise from many other indeterminate operations, not just `0.0 / 0.0`.
 
-## 4. Số nguyên chia cho 0: `ArithmeticException`
+## 4. Integer Divided by 0: `ArithmeticException`
 
-Với `int` và `long`, Java **không có giá trị vô cực hoặc NaN**. Nếu mẫu số bằng 0, phép chia nguyên tại thời điểm chạy ném `ArithmeticException`.
+For `int` and `long`, Java **has no infinity or NaN values**. If the denominator is 0, integer division throws `ArithmeticException` at runtime.
 
 ```java
 int dividend = 10;
@@ -106,33 +106,33 @@ Output:
 integer division by zero
 ```
 
-**Kiểu của biểu thức tại thời điểm chia** mới quyết định hành vi, không phải kiểu biến dùng để lưu kết quả:
+**The type of the expression at the time of division** determines the behavior, not the type of the variable used to store the result:
 
 ```java
 int a = 1;
 int b = 0;
 
-// double wrong = a / b; // thực thi sẽ ném ArithmeticException trước khi gán
-double floating = (double) a / b; // Infinity: toán hạng bên trái đã là double
+// double wrong = a / b; // executing this throws ArithmeticException before assignment
+double floating = (double) a / b; // Infinity: left operand is already double
 double alsoFloating = a / (double) b; // Infinity
-double literalFloating = 1.0 / 0;     // Infinity: int 0 được nâng thành double
+double literalFloating = 1.0 / 0;     // Infinity: int 0 is promoted to double
 ```
 
-Dòng `wrong` được chú thích là **minh họa mã ném exception khi thực thi**, không phải lỗi do gán kiểu. Khi hai toán hạng đều là `int`, `a / b` là phép chia `int`. Nếu chuyển một toán hạng sang `double` **trước** phép chia, Java thực hiện phép chia dấu phẩy động.
+The `wrong` line is commented out to **illustrate code that throws an exception at runtime**, not a type-assignment error. When both operands are `int`, `a / b` is `int` division. If you convert one operand to `double` **before** dividing, Java performs floating-point division.
 
-Với hai `byte`/`short`, phép chia số học thường nâng lên `int`; `byte b = 0; int x = 1 / b;` cũng ném `ArithmeticException`. Với kiểu `long`, `1L / 0L` ném cùng loại exception.
+With two `byte`/`short` values, arithmetic division normally promotes to `int`; `byte b = 0; int x = 1 / b;` also throws `ArithmeticException`. For `long`, `1L / 0L` throws the same exception type.
 
-**Lưu ý:** `ArithmeticException` có thể có những nguyên nhân số học nguyên khác. Không nên dựa hoàn toàn vào thông điệp chi tiết của exception để suy luận chính xác nghiệp vụ.
+**Note:** `ArithmeticException` can have other integer arithmetic causes. You should not rely completely on the detailed exception message to infer exact business logic.
 
-## 5. Dấu âm của zero quan trọng như thế nào?
+## 5. How Important Is the Negative Sign of Zero?
 
-IEEE 754 và Java phân biệt `+0.0` với `-0.0` ở **biểu diễn bit**. Tuy nhiên, phép so sánh số học `==` cho chúng bằng nhau:
+IEEE 754 and Java distinguish `+0.0` from `-0.0` in **bit representation**. However, the arithmetic comparison `==` treats them as equal:
 
 ```java
 System.out.println(0.0 == -0.0); // true
 ```
 
-Các phép toán có thể nhận ra dấu khác nhau:
+Operations can observe the different sign:
 
 ```java
 System.out.println(1.0 / 0.0);  // Infinity
@@ -140,33 +140,33 @@ System.out.println(1.0 / -0.0); // -Infinity
 System.out.println(-1.0 / Double.POSITIVE_INFINITY); // -0.0
 ```
 
-Có thể xem bit gốc:
+You can inspect the raw bits:
 
 ```java
 long positiveZeroBits = Double.doubleToRawLongBits(0.0);  // 0
 long negativeZeroBits = Double.doubleToRawLongBits(-0.0); // Long.MIN_VALUE
 ```
 
-Không nên viết một kiểm tra `denominator == 0.0` rồi nghĩ rằng nó phân biệt được dấu zero; phép `==` coi hai giá trị zero bằng nhau.
+Do not write a `denominator == 0.0` check and assume it distinguishes the sign of zero; `==` treats both zero values as equal.
 
-### Khi số thực hữu hạn chia cho vô cực
+### When a Finite Floating-Point Number Is Divided by Infinity
 
-Hành vi đối xứng cũng đáng chú ý:
+The symmetric behavior is also worth noting:
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 | --- | --- |
 | `1.0 / Double.POSITIVE_INFINITY` | `0.0` |
 | `-1.0 / Double.POSITIVE_INFINITY` | `-0.0` |
 | `1.0 / Double.NEGATIVE_INFINITY` | `-0.0` |
 | `-1.0 / Double.NEGATIVE_INFINITY` | `0.0` |
 
-Đây là các phép chia số thực hợp lệ. Zero có dấu còn có thể xuất hiện do **underflow** khi một kết quả quá nhỏ về trị tuyệt đối so với khả năng biểu diễn.
+These are valid floating-point divisions. Signed zero can also appear due to **underflow** when a result is too small in absolute magnitude to be represented.
 
-## 6. Nếu có vô cực hoặc NaN trong phép toán tiếp theo
+## 6. If Infinity or NaN Appears in Subsequent Operations
 
-Một kết quả vô cực hoặc NaN có thể tiếp tục tham gia các biểu thức:
+An infinity or NaN result can continue participating in expressions:
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 | --- | --- |
 | `Double.POSITIVE_INFINITY + 100.0` | `Infinity` |
 | `Double.POSITIVE_INFINITY + Double.NEGATIVE_INFINITY` | `NaN` |
@@ -177,7 +177,7 @@ Một kết quả vô cực hoặc NaN có thể tiếp tục tham gia các bi�
 | `1.0 / Double.POSITIVE_INFINITY` | `0.0` |
 | `1.0 % 0.0` | `NaN` |
 
-**NaN thường lan truyền** qua các phép toán số thực. Ví dụ `(0.0 / 0.0) + 10.0` vẫn ra `NaN`, chứ không trở thành số 10.
+**NaN generally propagates** through floating-point operations. For example, `(0.0 / 0.0) + 10.0` still produces `NaN`, rather than becoming 10.
 
 ```java
 double infinity = 1.0 / 0.0;
@@ -187,37 +187,37 @@ System.out.println(infinity + 1.0); // Infinity
 System.out.println(nan + 1.0);      // NaN
 ```
 
-### Phép dư `%` cũng có quy tắc riêng
+### The Remainder Operator `%` Also Has Its Own Rules
 
-Với `double`/`float`, `1.0 % 0.0` cho `NaN`. Với `int`/`long`, `1 % 0` ném `ArithmeticException` khi thực thi.
+For `double`/`float`, `1.0 % 0.0` produces `NaN`. For `int`/`long`, `1 % 0` throws `ArithmeticException` at runtime.
 
 ```java
 System.out.println(1.0 % 0.0); // NaN
 ```
 
-Toán tử `%` của Java dùng phép lấy dư theo ngữ nghĩa của ngôn ngữ, không đồng nhất với phép toán `Math.IEEEremainder` trong mọi trường hợp. Đừng tự cho rằng kết quả hoặc cách xử lý phần dư giống mọi ngôn ngữ lập trình khác.
+Java's `%` operator computes remainder according to the language's semantics, which is not identical to `Math.IEEEremainder` in all cases. Do not assume its result or remainder handling matches every other programming language.
 
-## 7. Vô cực không chỉ đến từ phép chia cho 0
+## 7. Infinity Does Not Only Come From Division by 0
 
-Một số dấu phẩy động hữu hạn có thể vượt phạm vi biểu diễn khi nhân hoặc thực hiện các phép toán khác:
+A finite floating-point number can exceed the representable range during multiplication or other operations:
 
 ```java
 double overflow = Double.MAX_VALUE * 2.0;
 System.out.println(overflow); // Infinity
 ```
 
-`Double.MAX_VALUE` là giá trị `double` hữu hạn dương lớn nhất. Khi kết quả vượt khả năng biểu diễn hữu hạn, phép toán có thể cho `Infinity` ngay cả khi không hề chia cho 0.
+`Double.MAX_VALUE` is the largest positive finite `double` value. When a result exceeds the finite representable capacity, the operation can yield `Infinity` even without dividing by 0.
 
-Ở phía ngược lại, **underflow** có thể làm một kết quả khác 0 về mặt toán học trở thành zero có dấu:
+On the opposite side, **underflow** can turn a mathematically non-zero result into signed zero:
 
 ```java
 double underflow = Double.MIN_VALUE / 2.0;
 System.out.println(underflow); // 0.0
 ```
 
-`Double.MIN_VALUE` trong Java là **số `double` dương nhỏ nhất lớn hơn 0** (*positive subnormal*), **không** phải số hữu hạn âm lớn nhất về trị tuyệt đối. Do đó chia tiếp cho 2 sẽ làm tròn về `+0.0`.
+`Double.MIN_VALUE` in Java is the **smallest positive `double` number greater than 0** (*positive subnormal*), **not** the finite negative number with the largest absolute value. Therefore, dividing it further by 2 rounds to `+0.0`.
 
-Một số phép toán không xác định khác cũng sinh NaN:
+Other indeterminate operations also produce NaN:
 
 ```java
 double invalidRoot = Math.sqrt(-1.0); // NaN
@@ -225,19 +225,19 @@ double undefined = Double.POSITIVE_INFINITY
         - Double.POSITIVE_INFINITY; // NaN
 ```
 
-**Không thể kết luận “mẫu số bằng 0” chỉ bằng cách thấy `Infinity`**; cũng không thể kết luận “tử và mẫu đều bằng 0” chỉ bằng cách thấy `NaN`. Muốn tìm nguyên nhân, hãy kiểm tra đầu vào và các bước trung gian.
+**You cannot conclude "the denominator was 0" merely by seeing `Infinity`**; nor can you conclude "both numerator and denominator were 0" merely by seeing `NaN`. To find the cause, inspect the inputs and intermediate steps.
 
-## 8. Cách phát hiện `Infinity`, `-Infinity` và `NaN`
+## 8. How to Detect `Infinity`, `-Infinity`, and `NaN`
 
-Java cung cấp API chuyên dụng:
+Java provides dedicated APIs:
 
-| API | `Infinity` | `-Infinity` | `NaN` | Số hữu hạn |
+| API | `Infinity` | `-Infinity` | `NaN` | Finite Number |
 | --- | --- | --- | --- | --- |
 | `Double.isInfinite(x)` | `true` | `true` | `false` | `false` |
 | `Double.isNaN(x)` | `false` | `false` | `true` | `false` |
 | `Double.isFinite(x)` | `false` | `false` | `false` | `true` |
 
-`Float` có các API tương ứng: `Float.isInfinite`, `Float.isNaN` và `Float.isFinite`.
+`Float` has corresponding APIs: `Float.isInfinite`, `Float.isNaN`, and `Float.isFinite`.
 
 ```java
 double positiveInfinity = 1.0 / 0.0;
@@ -249,9 +249,9 @@ System.out.println(Double.isFinite(positiveInfinity));    // false
 System.out.println(Double.isFinite(42.0));                // true
 ```
 
-### Vì sao không nên kiểm tra NaN bằng `==`?
+### Why Should You Not Check for NaN With `==`?
 
-Theo ngữ nghĩa số học dấu phẩy động, NaN không bằng bất kỳ giá trị nào, **kể cả chính nó**:
+Under floating-point arithmetic semantics, NaN is not equal to any value, **including itself**:
 
 ```java
 double x = Double.NaN;
@@ -260,17 +260,17 @@ System.out.println(x == x);          // false
 System.out.println(Double.isNaN(x)); // true
 ```
 
-Các phép so sánh thứ tự với NaN như `x < 1.0`, `x >= 1.0` đều `false`. Riêng `x != x` là `true` khi `x` là NaN. Trong code thực tế, `Double.isNaN(x)` diễn đạt ý định rõ hơn mẹo `x != x`.
+Ordering comparisons with NaN such as `x < 1.0` and `x >= 1.0` are all `false`. Only `x != x` is `true` when `x` is NaN. In real code, `Double.isNaN(x)` expresses intent more clearly than the `x != x` trick.
 
-`Double.compare` có quy tắc sắp xếp NaN và zero có dấu để phục vụ các tình huống cần thứ tự nhất quán. Nó không đồng nghĩa với `==` về mọi trường hợp đặc biệt: chẳng hạn `0.0 == -0.0` là `true` nhưng `Double.compare(0.0, -0.0)` không bằng 0.
+`Double.compare` has ordering rules for NaN and signed zero to support scenarios needing consistent ordering. It is not synonymous with `==` for every special case: for example, `0.0 == -0.0` is `true`, whereas `Double.compare(0.0, -0.0)` is not 0.
 
-## 9. Nên kiểm tra đầu vào hay kiểm tra đầu ra?
+## 9. Should You Validate Inputs or Validate Outputs?
 
-Có hai chính sách khác nhau, tùy hợp đồng nghiệp vụ.
+There are two different policies, depending on the business contract.
 
-### Chính sách A: Không cho mẫu số bằng zero
+### Policy A: Disallow a Zero Denominator
 
-Nếu API của bạn đòi hỏi **mẫu khác 0**, hãy kiểm tra mẫu trước khi chia:
+If your API requires a **non-zero denominator**, check the denominator before dividing:
 
 ```java
 static double divideFiniteInputs(double numerator, double denominator) {
@@ -288,34 +288,34 @@ static double divideFiniteInputs(double numerator, double denominator) {
 }
 ```
 
-Đây là **method minh họa phải đặt trong một class**, không phải chương trình Java độc lập. Mẫu `denominator == 0.0` chủ động từ chối cả `+0.0` lẫn `-0.0`. Kiểm tra `Double.isFinite` sau phép chia còn bắt trường hợp **overflow sang vô cực dù mẫu không bằng 0**, và các kết quả không hữu hạn khác.
+This is an **illustrative method that must be placed inside a class**, not a standalone Java program. The check `denominator == 0.0` actively rejects both `+0.0` and `-0.0`. Checking `Double.isFinite` after division also catches **overflow to infinity even when the denominator is non-zero**, as well as other non-finite results.
 
-Phần xử lý lỗi là **chính sách của API**, không phải exception Java tự động ném cho phép chia số thực. `IllegalArgumentException` và `ArithmeticException` ở ví dụ trên do **chính người lập trình viết ra**.
+The error handling is an **API policy**, not an automatic Java exception thrown for floating-point division. `IllegalArgumentException` and `ArithmeticException` in the example above are **explicitly written by the programmer**.
 
-### Chính sách B: Chấp nhận giá trị IEEE 754
+### Policy B: Accept IEEE 754 Values
 
-Trong một số tính toán khoa học, việc tạo `Infinity` hoặc `NaN` có thể được giữ lại có chủ đích và được xử lý ở tầng phân tích kết quả:
+In some scientific computations, producing `Infinity` or `NaN` may be intentionally preserved and handled at the result-analysis layer:
 
 ```java
 double ratio = numerator / denominator;
 if (Double.isNaN(ratio)) {
-    // Xử lý phép toán không xác định
+    // Handle undefined operation
 } else if (Double.isInfinite(ratio)) {
-    // Xử lý vô cực theo mô hình của ứng dụng
+    // Handle infinity according to the application's model
 } else {
-    // Xử lý kết quả hữu hạn
+    // Handle finite result
 }
 ```
 
-Đoạn này là **ví dụ nằm trong method có các biến đã khai báo**. Đừng mặc định biến mọi `NaN` thành 0: `0` có thể là giá trị hợp lệ, khiến lỗi dữ liệu bị che khuất.
+This snippet is an **example inside a method with already-declared variables**. Do not blindly convert every `NaN` into 0: `0` can be a valid value, causing data errors to be masked.
 
-Đối với tính tiền, chia số lượng hoặc phân bổ tài nguyên, thông thường cần thiết kế quy tắc làm tròn, phạm vi và kiểm tra dữ liệu rõ ràng; `double`/`float` không phải công cụ lưu tiền thập phân chính xác. `BigDecimal` có quy tắc phép chia và exception riêng, **không** áp dụng trực tiếp bảng IEEE 754 của `double`.
+For financial calculations, dividing quantities, or resource allocation, you generally need explicit rounding rules, ranges, and data validation; `double`/`float` are not tools for storing exact decimal currency. `BigDecimal` has its own division rules and exceptions, and **does not** directly apply `double`'s IEEE 754 table.
 
-## 10. Một số bẫy khi chuyển kiểu và truyền dữ liệu
+## 10. Some Traps in Type Conversion and Data Transfer
 
-### Cast vô cực hoặc NaN sang số nguyên
+### Casting Infinity or NaN to an Integer
 
-Narrowing từ `double` sang `int` không ném exception trong trường hợp `Infinity` hay `NaN`; Java áp dụng quy tắc chuyển đổi được định nghĩa:
+Narrowing from `double` to `int` does not throw an exception for `Infinity` or `NaN`; Java applies defined conversion rules:
 
 ```java
 int positive = (int) Double.POSITIVE_INFINITY; // Integer.MAX_VALUE
@@ -323,19 +323,19 @@ int negative = (int) Double.NEGATIVE_INFINITY; // Integer.MIN_VALUE
 int nan = (int) Double.NaN;                    // 0
 ```
 
-Điều này đặc biệt nguy hiểm nếu bạn cố “chữa” kết quả phép chia bằng cast. Mọi giá trị `NaN` đều trở thành `0` khi cast trực tiếp sang `int`; vô cực được chặn tại biên `int`. Việc cast **không chứng minh dữ liệu đầu vào hợp lệ**.
+This is especially dangerous if you try to "fix" a division result by casting. Every `NaN` value becomes `0` when cast directly to `int`; infinities are clamped at the `int` bounds. Casting **does not prove the input data is valid**.
 
-### Chuỗi đầu ra không tự kể nguyên nhân
+### Output Strings Do Not Explain the Cause by Themselves
 
-`String.valueOf(Double.POSITIVE_INFINITY)` tạo chuỗi `"Infinity"`, `String.valueOf(Double.NaN)` tạo `"NaN"`. Giá trị gốc vẫn là số thực. Java có thể parse các chuỗi hợp lệ này bằng `Double.parseDouble("Infinity")` hay `Double.parseDouble("NaN")`; tuy nhiên giao thức bên ngoài như JSON tiêu chuẩn **không mặc nhiên cho phép** NaN/vô cực dưới dạng số JSON. Khi xuất dữ liệu cần xác định rõ cách biểu diễn, ví dụ từ chối hoặc ánh xạ sang cấu trúc lỗi riêng theo contract.
+`String.valueOf(Double.POSITIVE_INFINITY)` produces the string `"Infinity"`, and `String.valueOf(Double.NaN)` produces `"NaN"`. The underlying value is still a floating-point number. Java can parse these valid strings using `Double.parseDouble("Infinity")` or `Double.parseDouble("NaN")`; however, external protocols like standard JSON **do not allow** NaN/infinity as JSON numbers by default. When exporting data, define the representation clearly—for example, rejecting them or mapping them to a separate error structure per contract.
 
-### Không nhầm NaN với `null` hoặc chuỗi rỗng
+### Do Not Confuse NaN With `null` or Empty Strings
 
-`Double.NaN` là một giá trị primitive `double`. `null` chỉ áp dụng cho tham chiếu như `Double` wrapper. Khi `Double` wrapper chứa `null` bị *unbox* trong phép chia, có thể xảy ra `NullPointerException` **trước cả khi tính toán**. Đây là tình huống hoàn toàn khác `0.0 / 0.0` sinh `NaN`.
+`Double.NaN` is a primitive `double` value. `null` only applies to references such as the `Double` wrapper. When a `Double` wrapper containing `null` is *unboxed* in a division operation, a `NullPointerException` can occur **even before the computation**. That is a completely different situation from `0.0 / 0.0` producing `NaN`.
 
-## 11. Chương trình Java 17+ kiểm chứng đầy đủ
+## 11. Complete Java 17+ Verification Program
 
-Lưu thành tệp **`FloatingDivideByZeroDemo.java`**:
+Save as **`FloatingDivideByZeroDemo.java`**:
 
 ```java
 public class FloatingDivideByZeroDemo {
@@ -390,14 +390,14 @@ public class FloatingDivideByZeroDemo {
 }
 ```
 
-Tại thư mục chứa file, chạy bằng JDK 17 trở lên:
+In the directory containing the file, run with JDK 17 or higher:
 
 ```bash
 javac FloatingDivideByZeroDemo.java
 java FloatingDivideByZeroDemo
 ```
 
-Output chính xác:
+Exact output:
 
 ```text
 positiveOverZero=Infinity
@@ -429,31 +429,31 @@ castInfinity=2147483647
 castNaN=0
 ```
 
-Bốn dòng đầu chứng minh dấu của tử và mẫu quyết định dấu vô cực. Các dòng `zeroOverZero` và `infinityOverInfinity` chứng minh NaN không đồng nghĩa với “mẫu số bằng 0”. `integerDivideByZero` và `promotedDivision` cho thấy chỉ một bước chuyển kiểu **trước khi chia** đã đổi hoàn toàn hành vi.
+The first four lines prove that the signs of the numerator and denominator determine the sign of infinity. The `zeroOverZero` and `infinityOverInfinity` lines prove that NaN is not synonymous with "denominator is 0". `integerDivideByZero` and `promotedDivision` show that just one type conversion step **before division** completely changes the behavior.
 
-## 12. Lỗi phổ biến và checklist giải bài
+## 12. Common Pitfalls and Problem-Solving Checklist
 
-| Nhận định | Đúng hay sai? | Giải thích |
+| Claim | True or False? | Explanation |
 | --- | --- | --- |
-| “Mọi phép chia cho 0 trong Java đều ném exception.” | Sai | `float`/`double` có `Infinity` hoặc `NaN`; phép chia nguyên mới ném `ArithmeticException`. |
-| “`1.0 / 0.0` trả `NaN`.” | Sai | Tử hữu hạn khác zero nên trả `Infinity`. |
-| “`0.0 / 0.0` trả `Infinity`.” | Sai | Đây là `NaN`. |
-| “`-0.0` giống hoàn toàn `+0.0`.” | Sai | `==` coi bằng nhau nhưng dấu zero ảnh hưởng phép chia và bit lưu. |
-| “`double x = 1 / 0` sẽ cho `Infinity`.” | Sai | Hai toán hạng `int`; chia nguyên ném exception trước khi gán. |
-| “Dùng `Double.isNaN(x)` để phát hiện vô cực.” | Sai | Dùng `Double.isInfinite(x)` cho vô cực; `isNaN` chỉ cho NaN. |
-| “`Double.NaN == Double.NaN` đúng.” | Sai | Theo `==` số thực, NaN không bằng chính nó. |
-| “Thấy `Infinity` tức là chắc chắn đã chia cho 0.” | Sai | Overflow số thực cũng tạo vô cực. |
-| “Thấy `NaN` tức là chắc chắn tử và mẫu đều bằng 0.” | Sai | `Infinity/Infinity`, `0*Infinity` và nhiều phép khác cũng sinh NaN. |
-| “Cast `NaN` sang `int` sẽ ném exception.” | Sai | `(int) Double.NaN` cho 0. |
-| “`try/catch ArithmeticException` đủ bảo vệ phép chia `double`.” | Sai | Cần kiểm tra mẫu, tính hữu hạn của đầu vào và/hoặc kết quả. |
+| "Every division by 0 in Java throws an exception." | False | `float`/`double` produce `Infinity` or `NaN`; only integer division throws `ArithmeticException`. |
+| "`1.0 / 0.0` returns `NaN`." | False | The numerator is finite and non-zero, so it returns `Infinity`. |
+| "`0.0 / 0.0` returns `Infinity`." | False | It is `NaN`. |
+| "`-0.0` is completely identical to `+0.0`." | False | `==` considers them equal, but the sign of zero affects division and stored bits. |
+| "`double x = 1 / 0` will yield `Infinity`." | False | Both operands are `int`; integer division throws an exception before assignment. |
+| "Use `Double.isNaN(x)` to detect infinity." | False | Use `Double.isInfinite(x)` for infinity; `isNaN` is only for NaN. |
+| "`Double.NaN == Double.NaN` is true." | False | Under floating-point `==`, NaN does not equal itself. |
+| "Seeing `Infinity` means division by 0 definitely occurred." | False | Floating-point overflow also creates infinity. |
+| "Seeing `NaN` means both numerator and denominator were definitely 0." | False | `Infinity/Infinity`, `0*Infinity`, and many other operations also produce NaN. |
+| "Casting `NaN` to `int` will throw an exception." | False | `(int) Double.NaN` produces 0. |
+| "`try/catch ArithmeticException` is enough to guard `double` division." | False | You need to check the denominator, finiteness of inputs, and/or the result. |
 
-Khi gặp phép chia trong code, hãy kiểm tra theo trình tự:
+When encountering division in code, check in this order:
 
-1. **Kiểu của biểu thức tại phép chia là gì?** `int/long` → chia zero ném exception; `float/double` → quy tắc IEEE 754.
-2. **Tử số là hữu hạn khác 0 hay bằng 0?** Với mẫu zero, tử khác 0 dẫn đến vô cực có dấu; zero/zero dẫn đến NaN.
-3. **Mẫu zero có dấu gì?** `+0.0` và `-0.0` có thể cho dấu vô cực khác nhau.
-4. **Đã có Infinity/NaN trong toán hạng từ trước chưa?** Nếu có, phân tích quy tắc lan truyền thay vì chỉ tập trung mẫu zero.
-5. **Contract có cho kết quả không hữu hạn không?** Nếu không, kiểm tra `Double.isFinite` của đầu vào/kết quả và trả lỗi rõ ràng.
-6. **Đừng chữa lỗi bằng cast hoặc chuỗi hiển thị.** Việc chuyển vô cực/NaN sang kiểu khác có thể che mất thông tin về lỗi.
+1. **What is the expression type at the division?** `int/long` → division by zero throws an exception; `float/double` → IEEE 754 rules.
+2. **Is the numerator finite non-zero or zero?** With a zero denominator, non-zero numerator leads to signed infinity; zero/zero leads to NaN.
+3. **What sign does the zero denominator have?** `+0.0` and `-0.0` can yield opposite signs of infinity.
+4. **Was Infinity/NaN already present in an operand?** If so, analyze propagation rules instead of focusing only on a zero denominator.
+5. **Does the contract allow non-finite results?** If not, check `Double.isFinite` on inputs/results and return a clear error.
+6. **Do not mask errors with casts or display strings.** Converting infinity/NaN to another type can hide error information.
 
-**Ghi nhớ:** Với phép chia số thực, **khác 0 chia cho ±0.0 tạo ±Infinity; ±0.0 chia cho ±0.0 tạo NaN**. Với phép chia nguyên, mẫu 0 ném `ArithmeticException`. Muốn kiểm soát đúng nghiệp vụ, hãy xác định kiểu phép toán, kiểm tra dữ liệu và xử lý `Infinity`/`NaN` tường minh.
+**Remember:** For floating-point division, **non-zero divided by ±0.0 produces ±Infinity; ±0.0 divided by ±0.0 produces NaN**. For integer division, a denominator of 0 throws `ArithmeticException`. To control business behavior properly, identify the operation type, validate inputs, and handle `Infinity`/`NaN` explicitly.

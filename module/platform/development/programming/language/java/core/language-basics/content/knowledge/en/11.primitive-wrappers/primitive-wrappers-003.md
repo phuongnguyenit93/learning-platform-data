@@ -1,64 +1,64 @@
-# Unboxing tham chiếu `null` gây `NullPointerException` trong Java
+# Unboxing a `null` Reference Causes `NullPointerException` in Java
 
-> **Java core — language-basics / Lớp bao nguyên thủy**  
-> **Yêu cầu:** Java 17+, một chương trình Java chạy độc lập, không cần thư viện ngoài.  
-> **Mục tiêu:** Nhận diện vị trí Java tự **unbox** wrapper về primitive, giải thích vì sao wrapper bằng `null` phát sinh `NullPointerException` (NPE), và chọn cách kiểm tra hoặc quy định dữ liệu đầu vào trước khi tính toán.
+> **Java core — language-basics / Primitive Wrappers**  
+> **Requirements:** Java 17+, a standalone runnable Java program, no external libraries needed.  
+> **Objective:** Identify where Java automatically **unboxes** a wrapper to a primitive, explain why a `null` wrapper triggers `NullPointerException` (NPE), and choose how to validate or specify input data before computing.
 
-## 1. Unboxing là gì và vì sao `null` gây lỗi?
+## 1. What Is Unboxing and Why Does `null` Cause an Error?
 
-Các lớp bao nguyên thủy (*wrapper classes*) như `Integer`, `Long`, `Double`, `Boolean` và `Character` là **kiểu tham chiếu**. Chúng có thể nhận `null`; các kiểu nguyên thủy tương ứng như `int`, `long`, `double`, `boolean` và `char` thì không.
+Primitive wrapper classes (*wrapper classes*) such as `Integer`, `Long`, `Double`, `Boolean`, and `Character` are **reference types**. They can accept `null`; the corresponding primitive types such as `int`, `long`, `double`, `boolean`, and `char` cannot.
 
-**Unboxing** là chuyển một giá trị wrapper thành primitive tương ứng, thường được compiler thực hiện tự động:
+**Unboxing** converts a wrapper value into the corresponding primitive, often performed automatically by the compiler:
 
 ~~~java
 Integer wrapped = 12;
-int value = wrapped; // Tự động unboxing: tương đương lấy intValue().
+int value = wrapped; // Auto-unboxing: equivalent to calling intValue().
 ~~~
 
-Nếu tham chiếu wrapper bằng `null`, không có object nào để lấy giá trị primitive:
+If the wrapper reference is `null`, there is no object from which to extract a primitive value:
 
 ~~~java
 Integer missing = null;
-// int value = missing; // Chạy đến đây sẽ ném NullPointerException.
+// int value = missing; // Executing this will throw NullPointerException.
 ~~~
 
-Java có thể tự sinh thao tác gần tương đương `missing.intValue()`. Vì `missing == null` nên việc gọi phương thức để lấy giá trị primitive gây **NPE**.
+Java can automatically generate an operation roughly equivalent to `missing.intValue()`. Because `missing == null`, calling a method to obtain the primitive value causes an **NPE**.
 
-**Quan trọng:** Bản thân câu lệnh `Integer missing = null;` **không** gây NPE. Lỗi xảy ra tại **điểm sử dụng cần primitive**. Wrapper và primitive có hợp đồng dữ liệu khác nhau: wrapper có thể biểu diễn “thiếu giá trị”, primitive thì không.
+**Important:** The statement `Integer missing = null;` itself does **not** cause an NPE. The error occurs at **the usage site that requires a primitive**. Wrappers and primitives have different data contracts: a wrapper can represent "missing value", whereas a primitive cannot.
 
-## 2. Những chỗ Java có thể unbox ngầm
+## 2. Places Where Java Can Unbox Implicitly
 
-| Ngữ cảnh | Ví dụ có thể gây NPE | Lý do |
+| Context | Example That Can Cause NPE | Reason |
 | --- | --- | --- |
-| Gán wrapper sang primitive | `Integer x = null; int n = x;` | Cần `int` nên unbox `Integer` |
-| Phép toán số học | `Integer x = null; int sum = x + 1;` | `+` cần toán hạng số nguyên thủy |
-| So sánh với primitive | `Integer x = null; boolean ok = x == 0;` | So sánh số dẫn tới unbox `x` |
-| Điều kiện Boolean | `Boolean flag = null; if (flag) { ... }` | `if` cần `boolean` |
-| Phép logic Boolean | `Boolean flag = null; boolean ok = flag && true;` | Vế trái phải được unbox |
-| Tăng/giảm wrapper | `Integer x = null; x++;` | Phải đọc giá trị số trước khi tăng |
-| Biểu thức ba ngôi | `Integer x = null; int n = true ? x : 10;` | Nhánh được chọn cần giá trị `int` |
+| Assigning a wrapper to a primitive | `Integer x = null; int n = x;` | Needs `int` so it unboxes `Integer` |
+| Arithmetic operations | `Integer x = null; int sum = x + 1;` | `+` requires primitive numeric operands |
+| Comparing with a primitive | `Integer x = null; boolean ok = x == 0;` | Numeric comparison leads to unboxing `x` |
+| Boolean condition | `Boolean flag = null; if (flag) { ... }` | `if` requires `boolean` |
+| Boolean logical operation | `Boolean flag = null; boolean ok = flag && true;` | The left operand must be unboxed |
+| Incrementing/decrementing a wrapper | `Integer x = null; x++;` | Must read the numeric value before incrementing |
+| Ternary expression | `Integer x = null; int n = true ? x : 10;` | The chosen branch needs an `int` value |
 
-**Ngược lại:** `x == null` **không unbox `x`** vì đang so sánh một tham chiếu với `null`. Nó là cách kiểm tra `null` hợp lệ. So sánh hai biến `Integer` bằng `==` có thể chỉ so identity tham chiếu; đừng dùng phép so ấy để suy ra hai **giá trị** wrapper bằng nhau.
+**Conversely:** `x == null` **does not unbox `x`** because it is comparing a reference against `null`. It is a valid way to check for `null`. Comparing two `Integer` variables with `==` may only compare reference identity; do not use that comparison to deduce that two wrapper **values** are equal.
 
-### Hai tình huống dễ gây nhầm
+### Two Easily Confused Situations
 
 ~~~java
 Integer count = null;
-boolean missing = (count == null); // true: không unbox.
-// boolean zero = (count == 0);    // NPE: cần unbox để so với int 0.
+boolean missing = (count == null); // true: does not unbox.
+// boolean zero = (count == 0);    // NPE: must unbox to compare with int 0.
 ~~~
 
 ~~~java
 Boolean approved = null;
-// if (approved) { ... } // NPE: điều kiện if yêu cầu boolean.
+// if (approved) { ... } // NPE: if condition requires boolean.
 boolean safeApproved = Boolean.TRUE.equals(approved); // false.
 ~~~
 
-`Boolean.TRUE.equals(approved)` an toàn khi đối số là `null`. Cách này có nghĩa nghiệp vụ: **chỉ đúng khi giá trị tường minh là true**, còn `false` và `null` đều xử lý như false. Nếu thiếu dữ liệu phải báo lỗi, **không** nên âm thầm đổi `null` thành false.
+`Boolean.TRUE.equals(approved)` is safe when the argument is `null`. This approach has a business meaning: **true only when the value is explicitly true**, while both `false` and `null` are treated as false. If missing data must raise an error, do **not** silently convert `null` into false.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh, chạy được
+## 3. Complete, Runnable Java 17+ Example
 
-Tạo tệp **UnboxingNullDemo.java** với toàn bộ nội dung sau:
+Create the file **UnboxingNullDemo.java** with the full content below:
 
 ~~~java
 import java.util.Objects;
@@ -143,14 +143,14 @@ public final class UnboxingNullDemo {
 }
 ~~~
 
-Biên dịch/chạy từ thư mục chứa tệp (Bash, PowerShell hoặc Command Prompt):
+Compile/run from the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 UnboxingNullDemo.java
 java UnboxingNullDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 present=7
@@ -168,30 +168,30 @@ requiredError=quantity is required
 nonNullSum=8
 ~~~
 
-Giải thích kết quả:
+Output explanation:
 
-1. `requiredQuantity(present)` nhận `Integer(7)` hợp lệ, trả primitive 7. `missing == null` chỉ kiểm tra tham chiếu nên không gây lỗi.
-2. `quantityOrZero(null)` chọn số 0 theo hợp đồng hàm. `Boolean.TRUE.equals(null)` trả false. Biểu thức `missing != null && missing > 0` dừng tại vế trái false nên không unbox.
-3. Gán sang `int`, cộng với 1, so với `int 0` và dùng `Boolean` trong `if` đều cần unboxing của một tham chiếu `null`: cả bốn khối bắt NPE tương ứng.
-4. `true ? missing : 10` chọn nhánh `missing`, nhưng kiểu biểu thức kết quả cần `int`, nên unboxing xảy ra và gây NPE. Dấu `?:` **không tự động bảo vệ khỏi null**.
-5. `Objects.requireNonNull(missing, "quantity is required")` ném NPE **có chủ đích tại ranh giới hàm**, với thông điệp ổn định `quantity is required`.
-6. Mảng `Integer[]` chứa một phần tử `null`. Guard từng phần tử trước phép `sum += element` giúp chỉ cộng các giá trị có mặt: `3 + 5 = 8`.
+1. `requiredQuantity(present)` receives a valid `Integer(7)` and returns primitive 7. `missing == null` only checks the reference, so it causes no error.
+2. `quantityOrZero(null)` chooses 0 according to the method's contract. `Boolean.TRUE.equals(null)` returns false. The expression `missing != null && missing > 0` stops at the false left-hand side, so it does not unbox.
+3. Assigning to `int`, adding 1, comparing with `int 0`, and using `Boolean` in `if` all require unboxing a `null` reference: all four blocks catch the corresponding NPE.
+4. `true ? missing : 10` chooses the `missing` branch, but the overall expression result type requires `int`, so unboxing occurs and causes an NPE. The `?:` operator **does not automatically protect against null**.
+5. `Objects.requireNonNull(missing, "quantity is required")` throws an NPE **intentionally at the method boundary**, with the stable message `quantity is required`.
+6. The `Integer[]` array contains one `null` element. Guarding each element before `sum += element` ensures only present values are summed: `3 + 5 = 8`.
 
-Các khối `catch` ở đây **chỉ để minh họa từng nguồn NPE và in kết quả dễ kiểm chứng**. Trong ứng dụng thật, hãy kiểm tra đầu vào và xử lý đúng nghiệp vụ **trước khi unbox**, thay vì dùng `try/catch NullPointerException` như luồng điều khiển bình thường.
+The `catch` blocks here **are solely to demonstrate each source of NPE and print verifiable output**. In real applications, validate inputs and apply business rules **before unboxing**, rather than using `try/catch NullPointerException` as normal control flow.
 
-## 4. Đặt kiểm tra ở đâu cho đúng?
+## 4. Where Should Checks Be Placed?
 
-Đầu tiên cần quyết định `null` có phải trạng thái hợp lệ không.
+First, decide whether `null` is a valid state.
 
-| Hợp đồng nghiệp vụ | Cách xử lý | Lưu ý |
+| Business Contract | How to Handle | Notes |
 | --- | --- | --- |
-| Giá trị **bắt buộc** | `Objects.requireNonNull(x, "x required")` | Phát hiện sớm, lỗi rõ tại ranh giới API |
-| Giá trị tùy chọn, có default hợp lệ | `x != null ? x : defaultValue` | Chỉ dùng default khi nghiệp vụ cho phép |
-| Cờ chỉ đúng khi tường minh true | `Boolean.TRUE.equals(flag)` | `null` được xem như không bật |
-| Cần bỏ qua giá trị thiếu trong danh sách | `if (element != null) sum += element;` | Kiểm tra **từng phần tử**, không chỉ array/list |
-| `null` biểu thị trạng thái chưa nhập | Giữ wrapper hoặc trả lỗi nghiệp vụ | Không tự biến thành 0/false khi điều đó sai nghĩa |
+| **Required** value | `Objects.requireNonNull(x, "x required")` | Detect early; clear error at API boundary |
+| Optional value with valid default | `x != null ? x : defaultValue` | Use default only when business rules allow |
+| Flag true only when explicitly true | `Boolean.TRUE.equals(flag)` | `null` is treated as not enabled |
+| Need to skip missing values in a list | `if (element != null) sum += element;` | Check **each element**, not just the array/list |
+| `null` represents an unentered state | Keep the wrapper or return a business error | Do not convert to 0/false when that changes meaning |
 
-Nếu dữ liệu buộc phải có mặt, cách sau rõ ràng:
+If the data must be present, the following is clear:
 
 ~~~java
 static int requireScore(Integer score) {
@@ -199,55 +199,55 @@ static int requireScore(Integer score) {
 }
 ~~~
 
-Hàm từ chối `null` **trước khi** chuyển sang `int`. Nếu yêu cầu đầu vào của một API là primitive và không có lý do biểu diễn thiếu dữ liệu, bạn có thể khai báo tham số `int` ngay từ đầu; tuy vậy, **người gọi vẫn có thể gây NPE** ở chỗ chuyển `Integer null` thành `int` trước lời gọi.
+The method rejects `null` **before** converting to `int`. If an API's input is required to be primitive and there is no reason to represent missing data, you can declare the parameter as `int` from the start; however, **callers can still cause an NPE** at the point where they convert a `null Integer` into `int` before the call.
 
-## 5. Guard an toàn và bẫy short-circuit
+## 5. Safe Guards and Short-Circuit Traps
 
 ~~~java
 Integer quantity = null;
 
-boolean positive = quantity != null && quantity > 0; // false, an toàn.
+boolean positive = quantity != null && quantity > 0; // false, safe.
 // boolean wrongOrder = quantity > 0 && quantity != null; // NPE.
 // boolean wrongOperator = quantity != null & quantity > 0; // NPE.
 ~~~
 
-`&&` và `||` có **short-circuit**. Với `a && b`, vế phải **không chạy** khi vế trái false. Toán tử boolean `&`, trái lại, đánh giá cả hai vế nên có thể unbox một wrapper null dù điều kiện trước đã false.
+`&&` and `||` **short-circuit**. With `a && b`, the right side **does not run** when the left side is false. The boolean `&` operator, by contrast, evaluates both sides and can therefore unbox a null wrapper even when the preceding condition was false.
 
-Với biểu thức ba ngôi, cần xác định **kiểu của toàn biểu thức**, không chỉ nhìn từng nhánh:
+For ternary expressions, determine **the type of the entire expression**, not just each individual branch:
 
 ~~~java
 Integer nullable = null;
 int safe = nullable == null ? 10 : nullable; // 10.
 ~~~
 
-Ở đây kiểm tra `nullable == null` chọn nhánh `10`, tránh unboxing null. Nếu chọn nhánh `nullable`, nó chỉ được unbox khi đã không null.
+Here the check `nullable == null` selects branch `10`, avoiding unboxing null. If the `nullable` branch is selected, it is only unboxed when already non-null.
 
-**Chú ý:** `Objects.equals(a, b)` là cách so sánh wrapper chịu được `null`. Nhưng `Objects.equals(null, null)` trả **true**; chỉ dùng nếu quy tắc đó hợp nghiệp vụ.
+**Note:** `Objects.equals(a, b)` is a null-safe way to compare wrappers. However, `Objects.equals(null, null)` returns **true**; use it only if that rule fits the business logic.
 
-## 6. Nhận diện NPE qua stack trace và kiểu dữ liệu
+## 6. Identifying NPEs via Stack Traces and Data Types
 
-Khi nhìn một NPE thực tế:
+When looking at a real NPE:
 
-1. Tìm frame đầu tiên thuộc mã của bạn và **dòng** phát sinh lỗi.
-2. Xác định biến nào có kiểu **wrapper** như `Integer`/`Boolean`, thay vì primitive.
-3. Kiểm tra biểu thức có **ngữ cảnh đòi primitive**: toán tử `+`, `-`, `*`, `/`, so sánh với literal số, `if (Boolean)`, phép gán sang primitive hoặc `?:`.
-4. Lần về nơi wrapper được gán `null`: dữ liệu DB nullable, DTO, kết quả tìm kiếm, phần tử collection hoặc giá trị chưa khởi tạo.
-5. Quyết định một trong hai hợp đồng: **từ chối null sớm** hoặc **xử lý null hợp lệ theo quy tắc**. Bổ sung testcase cho cả trường hợp giá trị hợp lệ và `null`.
+1. Find the first frame belonging to your code and the **line** where the error occurred.
+2. Identify which variable has a **wrapper** type such as `Integer`/`Boolean`, rather than a primitive.
+3. Check the expression for a **context requiring a primitive**: `+`, `-`, `*`, `/` operators, comparison with a numeric literal, `if (Boolean)`, assignment to a primitive, or `?:`.
+4. Trace back to where the wrapper was assigned `null`: nullable DB data, DTO, search result, collection element, or uninitialized field.
+5. Decide on one of two contracts: **reject null early** or **handle null validly per rules**. Add test cases for both valid values and `null`.
 
-**Không nhầm lỗi khác:** `Integer.parseInt("abc")` ném `NumberFormatException`, không phải NPE do unboxing. Còn `Integer.parseInt(null)` cũng cần được xem xét theo tài liệu API riêng, không suy diễn mọi lỗi liên quan `null` đều là NPE tự động.
+**Do not confuse with other errors:** `Integer.parseInt("abc")` throws `NumberFormatException`, not an unboxing NPE. `Integer.parseInt(null)` must also be checked against its specific API documentation rather than assuming every `null`-related failure is an automatic unboxing NPE.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-**Bài 1.** Cho `Integer x = null;`. Dự đoán `x == null`, `x == 0` và `int y = x;`. Giải thích cụ thể thao tác nào buộc unbox.
+**Exercise 1.** Given `Integer x = null;`. Predict `x == null`, `x == 0`, and `int y = x;`. Specifically explain which operations force unboxing.
 
-**Bài 2.** Cho `Boolean approved = null;`. Viết một cách kiểm tra an toàn khi nghiệp vụ xem `null` như false, và một cách từ chối `null` khi trạng thái phê duyệt là bắt buộc.
+**Exercise 2.** Given `Boolean approved = null;`. Write one safe check when business rules treat `null` as false, and one check that rejects `null` when an approval status is required.
 
-**Bài 3.** Cho `Integer[] data = {2, null, 4};`. Viết hàm tính tổng, bỏ qua phần tử null một cách có chủ đích. Nêu kết quả mong đợi.
+**Exercise 3.** Given `Integer[] data = {2, null, 4};`. Write a method to compute the sum, intentionally skipping null elements. State the expected result.
 
-**Bài 4.** Vì sao `Integer a = null; int chosen = true ? a : 5;` gây NPE? Sửa thành biểu thức ba ngôi có guard.
+**Exercise 4.** Why does `Integer a = null; int chosen = true ? a : 5;` cause an NPE? Fix it into a guarded ternary expression.
 
-**Bài 5.** Một API nhận `Integer quantity` nhưng không chấp nhận giá trị thiếu. Viết hàm kiểm tra ngay đầu vào, thông báo lỗi cụ thể, sau đó thực hiện tính toán chỉ với giá trị hợp lệ.
+**Exercise 5.** An API receives `Integer quantity` and does not accept missing values. Write a method that checks immediately at input with a specific error message, then performs calculations only with valid values.
 
-### Ghi nhớ
+### Key Takeaways
 
-**`null` có thể tồn tại trong wrapper nhưng không thể biến thành một giá trị primitive.** NPE do unboxing thường xuất hiện ngay tại **gán, phép toán, so sánh, điều kiện hoặc biểu thức ba ngôi** cần primitive. Phát hiện bằng cách đọc kiểu dữ liệu và ngữ cảnh toán tử; phòng tránh bằng **hợp đồng null rõ ràng**, guard đúng thứ tự, `Objects.requireNonNull` cho dữ liệu bắt buộc hoặc default có chủ đích khi dữ liệu được phép thiếu.
+**`null` can exist in a wrapper, but it cannot become a primitive value.** Unboxing NPEs typically appear right at an **assignment, operation, comparison, condition, or ternary expression** that requires a primitive. Spot them by reading the data types and operator context; prevent them with **clear null contracts**, properly ordered guards, `Objects.requireNonNull` for required data, or intentional defaults when data is allowed to be missing.

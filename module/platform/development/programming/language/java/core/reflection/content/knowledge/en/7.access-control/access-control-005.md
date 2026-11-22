@@ -1,64 +1,64 @@
-# setAccessible khác trySetAccessible trong Java Reflection
+# How setAccessible differs from trySetAccessible in Java Reflection
 
-## 1. Vì sao cần hai API này?
+## 1. Why are both APIs needed?
 
-Trong Reflection, các đối tượng `Field`, `Method`, `Constructor` đều kế thừa `AccessibleObject`. Bình thường, khi đọc/ghi field, gọi method hoặc khởi tạo đối tượng qua những đối tượng này, JVM kiểm tra quy tắc truy cập Java (`public`, `protected`, package-private, `private`) và ranh giới module.
+In Reflection, `Field`, `Method`, and `Constructor` objects all inherit from `AccessibleObject`. Normally, when reading/writing a field, invoking a method, or instantiating an object through these objects, the JVM enforces Java access rules (`public`, `protected`, package-private, `private`) and module boundaries.
 
-`setAccessible(true)` và `trySetAccessible()` cùng nhằm **yêu cầu bỏ qua việc kiểm tra quyền truy cập Java tại thời điểm sử dụng đối tượng Reflection** khi JVM cho phép. Khác biệt chính là **cách thông báo khi không thể bật quyền truy cập**:
+Both `setAccessible(true)` and `trySetAccessible()` aim to **request bypassing Java access checks at the time the Reflection object is used** when the JVM allows it. The main difference is **how they report when access cannot be enabled**:
 
-- `setAccessible(true)`: không trả về giá trị; nếu JVM không cho phép bật quyền, thường ném `InaccessibleObjectException`.
-- `trySetAccessible()`: trả về `true` nếu đã bật được (hoặc vốn đã bật), `false` nếu JVM không cho phép bật quyền vì giới hạn truy cập/module.
-- Cả hai vẫn tuân thủ quy tắc bảo vệ của Java Platform Module System (JPMS); không có API nào tự vượt qua package không mở của một module khác.
+- `setAccessible(true)`: returns no value; if the JVM does not allow enabling access, it usually throws `InaccessibleObjectException`.
+- `trySetAccessible()`: returns `true` if it succeeded in enabling (or it was already enabled), `false` if the JVM does not allow enabling access due to access/module restrictions.
+- Both still obey the protection rules of the Java Platform Module System (JPMS); neither API bypasses an unopened package of another module on its own.
 
-Việc **tìm thấy thành viên** và việc **được phép sử dụng thành viên** là hai bước riêng biệt. Ví dụ `getDeclaredField("secret")` có thể trả về metadata của một field `private`, nhưng `field.get(object)` có thể ném `IllegalAccessException` nếu chưa được phép truy cập.
+**Finding a member** and **being permitted to use a member** are two separate steps. For example, `getDeclaredField("secret")` can return metadata for a `private` field, yet `field.get(object)` can throw `IllegalAccessException` if access has not been permitted.
 
-## 2. So sánh chính xác
+## 2. Exact comparison
 
-| Tiêu chí | `setAccessible(true)` | `trySetAccessible()` |
+| Criterion | `setAccessible(true)` | `trySetAccessible()` |
 | --- | --- | --- |
-| Khai báo API | `void setAccessible(boolean flag)` | `boolean trySetAccessible()` |
-| Giá trị trả về | Không có | `true` hoặc `false` |
-| Khi có thể bật | Đặt cờ bỏ qua access check thành `true` | Đặt cờ thành `true`, trả `true` |
-| Khi bị chặn bởi giới hạn module | Ném `InaccessibleObjectException` (unchecked) | Trả `false` |
-| Khi đã bật từ trước | Gọi `true` tiếp vẫn cho phép | Trả `true` mà không cần bật lại |
-| Khi muốn tắt cờ | `setAccessible(false)` | Không có tham số để tắt |
-| Khả dụng | API cũ, có từ các phiên bản Java trước | Có từ Java 9 |
-| Khi Security Manager cũ từ chối quyền | Có thể ném `SecurityException` | Có thể ném `SecurityException`, **không bảo đảm trả `false`** |
+| API signature | `void setAccessible(boolean flag)` | `boolean trySetAccessible()` |
+| Return value | None | `true` or `false` |
+| When it can be enabled | Sets the access-check suppression flag to `true` | Sets the flag to `true`, returns `true` |
+| When blocked by module limits | Throws `InaccessibleObjectException` (unchecked) | Returns `false` |
+| When already enabled | Calling `true` again is still allowed | Returns `true` without needing to re-enable |
+| When wanting to turn off the flag | `setAccessible(false)` | Has no parameter to turn off |
+| Availability | Legacy API, present in earlier Java versions | Available since Java 9 |
+| When a legacy Security Manager denies permission | Can throw `SecurityException` | Can throw `SecurityException`, **not guaranteed to return `false`** |
 
-**Không nhầm `trySetAccessible()` với `canAccess(receiver)`:**
+**Do not confuse `trySetAccessible()` with `canAccess(receiver)`:**
 
-- `trySetAccessible()` **thử thay đổi** cờ cho đối tượng Reflection.
-- `canAccess(receiver)` **kiểm tra hiện tại** liệu caller có thể sử dụng đối tượng Reflection với receiver phù hợp hay không; bản thân nó không bật quyền.
-- `isAccessible()` đã deprecated từ Java 9 vì tên dễ gây hiểu lầm: nó phản ánh cờ override, không nhất thiết phản ánh việc caller thực sự truy cập được thành viên. Khi cần hỏi quyền truy cập hiện tại, ưu tiên `canAccess(...)`.
+- `trySetAccessible()` **attempts to change** the flag on the Reflection object.
+- `canAccess(receiver)` **checks currently** whether the caller can use the Reflection object with a suitable receiver; it does not enable access itself.
+- `isAccessible()` has been deprecated since Java 9 because its name is misleading: it reflects the override flag, not necessarily whether the caller can actually access the member. When checking current access permission, prefer `canAccess(...)`.
 
-## 3. Cơ chế bên trong: cờ của đối tượng Reflection
+## 3. Internal mechanism: flag on the Reflection object
 
-Giả sử có field khai báo là `private String secret` trong lớp khác:
+Suppose a field is declared as `private String secret` in another class:
 
 ```text
 getDeclaredField("secret")
     |
     v
-Nhận metadata Field (chưa được tự động cấp quyền truy cập)
+Receive Field metadata (access permission is not automatically granted)
     |
-    +--> field.get(instance) --> có thể IllegalAccessException
+    +--> field.get(instance) --> may throw IllegalAccessException
     |
     +--> field.trySetAccessible()
     |          |
-    |          +--> true: dùng field.get(instance)
-    |          +--> false: chọn cách truy cập khác / xử lý giới hạn
+    |          +--> true: use field.get(instance)
+    |          +--> false: choose another access path / handle restriction
     |
     +--> field.setAccessible(true)
                |
-               +--> thành công: dùng field.get(instance)
-               +--> bị module chặn: InaccessibleObjectException
+               +--> success: use field.get(instance)
+               +--> blocked by module: InaccessibleObjectException
 ```
 
-Cờ này gắn với **đối tượng `Field`/`Method`/`Constructor` đang dùng**; nó không sửa từ khóa `private` trong mã nguồn, không biến member thành `public` và không cấp quyền cho mọi nơi trong chương trình. Khi gọi `setAccessible(false)`, lần sử dụng sau lại tuân theo access check thông thường. Nếu một thành viên vốn có thể truy cập công khai, `canAccess(...)` vẫn có thể trả `true` dù cờ override đang là `false`.
+This flag is attached to **the specific `Field`/`Method`/`Constructor` object being used**; it does not edit the `private` keyword in source code, does not turn the member into `public`, and does not grant permission everywhere in the program. When `setAccessible(false)` is called, subsequent uses follow normal access checks again. If a member is already publicly accessible, `canAccess(...)` can still return `true` even while the override flag is `false`.
 
-## 4. Ví dụ đầy đủ: cả hai API đều thành công khi được phép
+## 4. Complete example: both APIs succeed when allowed
 
-Lưu dưới tên `AccessibleDemo.java`. Hai lớp top-level được khai báo **trong cùng một tệp**; `Vault.secret` là `private` đối với `AccessibleDemo`.
+Save as `AccessibleDemo.java`. Two top-level classes are declared **in the same file**; `Vault.secret` is `private` to `AccessibleDemo`.
 
 ```java
 import java.lang.reflect.Field;
@@ -97,7 +97,7 @@ class Vault {
 }
 ```
 
-Biên dịch/chạy trên Java 17+ bằng classpath thông thường:
+Compile/run on Java 17+ using the standard classpath:
 
 ```bash
 javac AccessibleDemo.java
@@ -117,21 +117,21 @@ After set: true
 Read again: abc123
 ```
 
-Giải thích:
+Explanation:
 
-1. `getDeclaredField` tìm được field `private`, nhưng chưa mở quyền; `canAccess(vault)` trả `false`.
-2. `trySetAccessible()` trả `true` vì hai lớp ở cùng unnamed module khi chạy trên classpath; `field.get(vault)` đọc thành công.
-3. `setAccessible(false)` bỏ cờ override; lần đọc tiếp theo ném `IllegalAccessException` như quy tắc truy cập Java.
-4. `setAccessible(true)` bật lại quyền và không trả giá trị; `canAccess(vault)` xác nhận có thể đọc.
-5. Field là `final` nhưng ở đây **chỉ đọc**, không thay đổi giá trị.
+1. `getDeclaredField` finds the `private` field, but permission is not opened yet; `canAccess(vault)` returns `false`.
+2. `trySetAccessible()` returns `true` because both classes are in the same unnamed module when running on the classpath; `field.get(vault)` reads successfully.
+3. `setAccessible(false)` clears the override flag; the next read throws `IllegalAccessException` per Java access rules.
+4. `setAccessible(true)` re-enables permission and returns no value; `canAccess(vault)` confirms it can be read.
+5. The field is `final`, but here it is **only read**, not modified.
 
-**Lưu ý receiver:** Với field/method instance, `canAccess(obj)` cần một đối tượng đúng kiểu khai báo hoặc kiểu con. Với field/method `static` và constructor, truyền `null` vào `canAccess(null)`. Truyền sai receiver có thể ném `IllegalArgumentException`.
+**Receiver note:** For instance fields/methods, `canAccess(obj)` needs an object of the declaring class or a subclass. For `static` fields/methods and constructors, pass `null` to `canAccess(null)`. Passing the wrong receiver can throw `IllegalArgumentException`.
 
-## 5. Ví dụ khi JPMS không cho phép truy cập sâu
+## 5. Example when JPMS disallows deep access
 
-Từ Java 9, một **named module** có thể xuất khẩu package cho API công khai mà vẫn giữ kín các member nội bộ. Ví dụ, trong JDK 17+ mặc định, package `java.lang` của module `java.base` được export nhưng **không mở để truy cập sâu** cho ứng dụng trên classpath.
+Since Java 9, a **named module** can export a package for public APIs while keeping internal members encapsulated. For example, in JDK 17+ by default, package `java.lang` of module `java.base` is exported but **not open for deep reflection** to an application on the classpath.
 
-Lưu dưới tên `JdkModuleAccessDemo.java`:
+Save as `JdkModuleAccessDemo.java`:
 
 ```java
 import java.lang.reflect.Field;
@@ -153,98 +153,98 @@ public class JdkModuleAccessDemo {
 }
 ```
 
-Chạy trong môi trường JDK 17+ thông thường, **không** thêm tùy chọn mở package và không có agent/cấu hình mở quyền khác:
+Run in a standard JDK 17+ environment, **without** adding package-opening options and without agents/other permission-opening configurations:
 
 ```bash
 javac JdkModuleAccessDemo.java
 java JdkModuleAccessDemo
 ```
 
-Stdout điển hình:
+Typical stdout:
 
 ```text
 trySetAccessible: false
 setAccessible: InaccessibleObjectException
 ```
 
-Cả hai API được gọi trên cùng một `Field`: lần thử đầu thất bại không tự mở quyền; lần gọi `setAccessible(true)` sau đó ném exception vì `java.base/java.lang` chưa được mở cho unnamed module.
+Both APIs are called on the same `Field`: the first failing attempt does not automatically open permission; the subsequent `setAccessible(true)` call throws an exception because `java.base/java.lang` has not been opened to the unnamed module.
 
-Nếu **chủ động mở đúng package** khi khởi động để minh họa cơ chế (không phải cấu hình khuyến nghị cho ứng dụng sản xuất):
+If you **explicitly open the right package** at startup to illustrate the mechanism (not a recommended configuration for production applications):
 
 ```bash
 java --add-opens java.base/java.lang=ALL-UNNAMED JdkModuleAccessDemo
 ```
 
-Khi đó stdout trở thành:
+Then stdout becomes:
 
 ```text
 trySetAccessible: true
 setAccessible: enabled
 ```
 
-`--add-opens` tác động tới quyền mở package tại lúc khởi động JVM; bản thân `trySetAccessible()` không làm package được mở. Ví dụ dùng field nội bộ `String.value` **chỉ để quan sát access control**, không nên dựa vào cấu trúc riêng của JDK để viết logic ứng dụng.
+`--add-opens` affects package opening permissions at JVM startup; `trySetAccessible()` itself does not cause the package to be opened. The example uses internal field `String.value` **only to observe access control**, and application logic should not rely on internal JDK structures.
 
-## 6. Quy tắc module cần hiểu
+## 6. Module rules to understand
 
-| Quan hệ/thiết lập | Có thể bật Reflection để truy cập member `private`? |
+| Relationship/setup | Can Reflection be enabled to access `private` members? |
 | --- | --- |
-| Caller và lớp khai báo ở cùng module | Thông thường có thể |
-| Lớp ở unnamed module hoặc open module | Thông thường có thể, nếu không có ràng buộc bảo mật khác |
-| Lớp ở named module khác, package chỉ được `exports` | **Không** đủ để truy cập sâu member `private` |
-| Lớp ở named module khác, package được `opens` đến module caller | Có thể |
-| Chạy với `--add-opens source.module/package=target.module` đúng đối tượng | Có thể theo phạm vi package đã mở |
+| Caller and declaring class in the same module | Usually yes |
+| Class in an unnamed module or open module | Usually yes, if no other security constraints apply |
+| Class in another named module, package is only `exports` | **Not** enough for deep access to `private` members |
+| Class in another named module, package is `opens` to the caller's module | Yes |
+| Run with `--add-opens source.module/package=target.module` targeting the right module | Yes, within the opened package scope |
 
-`exports` chủ yếu phục vụ sử dụng API công khai từ module khác; `opens` cho phép truy cập Reflection sâu khi được cấp tới module caller. `--add-exports` riêng lẻ không thay thế `--add-opens` cho field `private`.
+`exports` primarily serves using public APIs from another module; `opens` allows deep Reflection access when granted to the caller's module. `--add-exports` alone does not replace `--add-opens` for `private` fields.
 
-Một số trường hợp member `public` và lớp `public` trong package đã export cũng có thể được `setAccessible(true)` theo quy định API; không cần mở package cho **mọi** thao tác Reflection. Sự khác biệt quan trọng ở đây là quyền truy cập sâu tới member không công khai của module khác.
+In some cases, `public` members and `public` classes in an exported package can also accept `setAccessible(true)` per the API specification; opening the package is not needed for **every** Reflection operation. The crucial distinction here is deep access to non-public members of another module.
 
-## 7. Chọn API phù hợp trong chương trình
+## 7. Choosing the right API in a program
 
-Khi quyền truy cập sâu là **tùy chọn**, ưu tiên thử có điều kiện và có đường xử lý khi thất bại:
+When deep access is **optional**, prefer a conditional attempt with a failure-handling path:
 
 ```java
-// Giả sử field và instance đã được lấy đúng kiểu.
+// Assume field and instance were obtained with the right types.
 if (field.canAccess(instance) || field.trySetAccessible()) {
     Object value = field.get(instance);
-    // Dùng value theo nghiệp vụ.
+    // Use value per business logic.
 } else {
-    // Không có quyền: dùng public API hoặc thông báo cấu hình module cần thiết.
+    // No permission: use public API or report required module configuration.
 }
 ```
 
-Đây là **đoạn minh họa đặt trong phương thức xử lý**, không phải một chương trình độc lập. `field.get(instance)` vẫn có thể ném `IllegalAccessException` theo khai báo API; caller cần `throws` hoặc bắt exception đúng cách. Không dùng `trySetAccessible()` như cách che đi mọi lỗi bảo mật: nếu chương trình phụ thuộc bắt buộc vào field riêng tư, cần thông báo thiếu `opens` hoặc thiết kế lại giao diện công khai.
+This is an **illustrative snippet placed inside a handling method**, not a standalone program. `field.get(instance)` can still throw `IllegalAccessException` per its API signature; the caller must declare `throws` or catch the exception properly. Do not use `trySetAccessible()` to mask security errors: if the program strictly depends on a private field, it should report the missing `opens` or redesign the public interface.
 
-Khi quyền này là **bắt buộc** và muốn thất bại sớm, có thể dùng:
+When this permission is **mandatory** and you want to fail fast, you can use:
 
 ```java
-// Minh họa trong ngữ cảnh đã có biến Field field.
-field.setAccessible(true); // Có thể ném InaccessibleObjectException.
+// Illustration in a context that already has Field field.
+field.setAccessible(true); // Can throw InaccessibleObjectException.
 ```
 
-Nếu cần xử lý thất bại có chủ đích, bắt `InaccessibleObjectException` và cung cấp thông báo cấu hình cụ thể; không nuốt exception rồi tiếp tục truy cập như thể thành công.
+If intentional failure handling is needed, catch `InaccessibleObjectException` and provide a specific configuration message; do not swallow the exception and continue accessing as if it succeeded.
 
-## 8. Lỗi thường gặp
+## 8. Common mistakes
 
-| Lỗi hoặc ngộ nhận | Điều thực tế xảy ra | Hướng xử lý |
+| Mistake or misconception | What actually happens | How to handle it |
 | --- | --- | --- |
-| Nghĩ `trySetAccessible()` chỉ kiểm tra, không đổi trạng thái | Nó **thử bật** cờ `accessible` thành `true` | Dùng `canAccess(...)` nếu chỉ cần kiểm tra |
-| Nghĩ `trySetAccessible()` không bao giờ ném exception | Với Security Manager có hiệu lực trên một số JDK cũ, vẫn có thể ném `SecurityException` | Phân biệt từ chối module (`false`) với từ chối bảo mật (exception) |
-| Bắt `IllegalAccessException` quanh `setAccessible(true)` | Khi bị JPMS chặn ở bước bật quyền, ngoại lệ là `InaccessibleObjectException` | Bắt ngoại lệ ở đúng giai đoạn |
-| `getDeclaredField` thành công nên nghĩ `get` luôn thành công | Metadata tồn tại không đồng nghĩa có quyền sử dụng | Kiểm tra `canAccess`, bật quyền khi được phép |
-| Package đã `exports` mà field `private` vẫn bị chặn | `exports` không đồng nghĩa với `opens` | Ưu tiên public API; nếu thật sự cần deep reflection, cấu hình `opens` rõ phạm vi |
-| Gọi `canAccess(null)` cho field instance | Receiver sai, gây `IllegalArgumentException` | Truyền instance thuộc kiểu khai báo |
-| Dùng `isAccessible()` để kết luận member gọi được | API deprecated, chỉ phản ánh cờ override | Dùng `canAccess(receiver)` |
-| Nghĩ `setAccessible(true)` cho phép sửa mọi `final` field | Không thể bật quyền ghi với những final field không thể sửa như `static final`, final field của record hoặc hidden class | Không phụ thuộc vào việc sửa các field này |
+| Thinking `trySetAccessible()` only checks without changing state | It **attempts to turn on** the `accessible` flag to `true` | Use `canAccess(...)` if you only need to check |
+| Thinking `trySetAccessible()` never throws an exception | With an active Security Manager on some older JDKs, it can still throw `SecurityException` | Distinguish module denial (`false`) from security denial (exception) |
+| Catching `IllegalAccessException` around `setAccessible(true)` | When blocked by JPMS during the enable step, the exception is `InaccessibleObjectException` | Catch the exception at the right stage |
+| Assuming `get` always succeeds because `getDeclaredField` succeeded | Metadata existing does not mean having permission to use it | Check `canAccess`, enable permission when allowed |
+| Package is `exports` yet a `private` field is still blocked | `exports` is not the same as `opens` | Prefer public APIs; if deep reflection is truly needed, configure `opens` with clear scope |
+| Calling `canAccess(null)` for an instance field | Wrong receiver, causing `IllegalArgumentException` | Pass an instance of the declaring type |
+| Using `isAccessible()` to conclude a member is callable | Deprecated API, only reflects the override flag | Use `canAccess(receiver)` |
+| Thinking `setAccessible(true)` allows modifying every `final` field | Write access cannot be enabled for non-modifiable final fields such as `static final`, record final fields, or hidden class final fields | Do not rely on modifying these fields |
 
-Không khuyến khích mở rộng hàng loạt package nội bộ JDK chỉ để làm cho Reflection chạy được. Framework cần truy cập sâu thường nên có cơ chế cấu hình `opens` chính xác hoặc sử dụng API công khai và các hợp đồng mở rộng phù hợp.
+Broadly opening internal JDK packages just to make Reflection run is discouraged. Frameworks needing deep access should normally provide precise `opens` configuration mechanisms or use public APIs and proper extension contracts.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-check questions
 
-1. Nếu `trySetAccessible()` trả `true`, lời gọi có làm thay đổi từ khóa `private` của member không? **Không**; chỉ thay đổi cờ trên đối tượng Reflection.
-2. Vì sao `trySetAccessible()` có thể trả `false` trong khi `getDeclaredField` vẫn tìm thấy field? Vì tra cứu metadata khác với quyền truy cập sâu.
-3. `setAccessible(false)` có luôn khiến `canAccess(...)` thành `false` không? **Không**; member `public` đang truy cập hợp lệ vẫn có thể đọc/gọi được.
-4. Với named module khác không mở package, nên xử lý thế nào? Ưu tiên API công khai hoặc yêu cầu module chủ sở hữu mở chính xác package cần thiết; `trySetAccessible()` không tự vượt giới hạn module.
+1. If `trySetAccessible()` returns `true`, does the call change the member's `private` keyword? **No**; it only changes the flag on the Reflection object.
+2. Why can `trySetAccessible()` return `false` while `getDeclaredField` still finds the field? Because metadata lookup is separate from deep access permission.
+3. Does `setAccessible(false)` always make `canAccess(...)` become `false`? **No**; a `public` member that is legitimately accessible can still be read/invoked.
+4. For another named module that does not open its package, how should you handle it? Prefer public APIs or ask the owning module to open the exact package needed; `trySetAccessible()` does not bypass module limits on its own.
 
-**Ghi nhớ:** `setAccessible(true)` phù hợp khi muốn yêu cầu bật quyền và xử lý **exception** nếu không thể; `trySetAccessible()` phù hợp khi muốn **thử bật quyền với kết quả boolean** để rẽ nhánh. Cả hai cùng chịu ràng buộc truy cập/module của JVM.
+**Remember:** `setAccessible(true)` fits when you want to request enabling access and handle an **exception** if it is not possible; `trySetAccessible()` fits when you want to **try enabling access with a boolean result** for branching. Both are subject to the JVM's access/module constraints.
 
-Tham khảo API chính thức: [`java.lang.reflect.AccessibleObject` trong Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html).
+Official API reference: [`java.lang.reflect.AccessibleObject` in Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html).

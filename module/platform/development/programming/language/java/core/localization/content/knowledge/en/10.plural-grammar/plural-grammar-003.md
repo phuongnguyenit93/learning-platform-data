@@ -1,139 +1,139 @@
-# Biên bao gồm, biên loại trừ và các nhánh choice trong Java MessageFormat
+# Inclusive Bounds, Exclusive Bounds, and Choice Branches in Java MessageFormat
 
-## 1. Bài toán: một con số có thể cần cách diễn đạt khác nhau
+## 1. The Problem: A Number May Require Different Phrasing
 
-Thông báo chứa số lượng thường không thể ghép một chuỗi cố định cho mọi giá trị:
+Messages containing quantities usually cannot concatenate a single fixed string for all values:
 
-- `0` tệp: “Không có tệp”.
-- `1` tệp: “Một tệp”.
-- `2` tệp: “2 tệp”.
+- `0` files: “No files”.
+- `1` file: “One file”.
+- `2` files: “2 files”.
 
-Trong Java, `java.text.ChoiceFormat` định nghĩa **các nhánh văn bản theo khoảng giá trị số**. `java.text.MessageFormat` tích hợp cơ chế đó thông qua cú pháp:
+In Java, `java.text.ChoiceFormat` defines **text branches by numeric value ranges**. `java.text.MessageFormat` integrates that mechanism via the syntax:
 
 ```text
 {argumentIndex,choice,limit#text|limit<text|...}
 ```
 
-Một mẫu cơ bản:
+A basic pattern:
 
 ```text
 {0,choice,0#no files|1#one file|1<{0,number,integer} files}
 ```
 
-Khi đối số thứ `0` là `0`, chọn `no files`; khi bằng `1`, chọn `one file`; khi lớn hơn `1`, chọn nhánh thứ ba rồi định dạng giá trị số trong `{0,number,integer}`.
+When argument `0` is `0`, `no files` is selected; when it equals `1`, `one file` is selected; when it is greater than `1`, the third branch is selected and the numeric value is formatted inside `{0,number,integer}`.
 
-Điểm cốt lõi của bài này là hiểu **biên bao gồm (`#`), biên loại trừ (`<`), thứ tự các nhánh**, cách Java quyết định nhánh tại đúng ranh giới và cách phối hợp `ChoiceFormat` với `MessageFormat`.
+The core of this lesson is understanding **inclusive bounds (`#`), exclusive bounds (`<`), branch ordering**, how Java decides the branch right at the boundary, and how to combine `ChoiceFormat` with `MessageFormat`.
 
-Lưu ý phạm vi: `choice` là phép chọn theo **ngưỡng số học**. Nó có thể diễn đạt vài trường hợp số lượng đơn giản, nhưng **không tự thay thế các quy tắc số nhiều đầy đủ theo ngôn ngữ tự nhiên**.
+Scope note: `choice` is a selection based on **numeric thresholds**. It can express a few simple quantity cases, but it **does not automatically replace full natural-language plural rules**.
 
-## 2. Cú pháp của một choice pattern
+## 2. Syntax of a Choice Pattern
 
-Mỗi lựa chọn có ba phần:
+Each choice has three parts:
 
 ```text
 limit comparator format
 ```
 
-Trong đó:
+Where:
 
-| Thành phần | Ý nghĩa | Ví dụ |
+| Component | Meaning | Example |
 |---|---|---|
-| `limit` | Ngưỡng số để bắt đầu áp dụng nhánh | `0`, `1`, `2.5` |
-| `comparator` | Quan hệ với ngưỡng: `#` hoặc `<` | `1#`, `1<` |
-| `format` | Chuỗi được xuất ra khi nhánh được chọn | `one file`, `many files` |
-| `|` | Dấu phân cách các lựa chọn | `0#zero|1#one` |
+| `limit` | Numeric threshold at which the branch starts applying | `0`, `1`, `2.5` |
+| `comparator` | Relation to the threshold: `#` or `<` | `1#`, `1<` |
+| `format` | String output when the branch is selected | `one file`, `many files` |
+| `|` | Separator between choices | `0#zero|1#one` |
 
-Ví dụ:
+Example:
 
 ```text
 0#none|1#one|1<many
 ```
 
-Ở đây không có các câu lệnh `if/else` độc lập. Java chuyển mỗi lựa chọn thành một **ngưỡng hiệu lực**, rồi tìm nhánh tương ứng với giá trị số.
+There are no independent `if/else` statements here. Java converts each choice into an **effective threshold**, and then finds the branch corresponding to the numeric value.
 
-### `#` — biên bao gồm
+### `#` — inclusive bound
 
-`1#one` có nghĩa nhánh `one` **bắt đầu được áp dụng từ giá trị 1, bao gồm chính 1**. Khi chưa chạm ngưỡng của nhánh phía sau, giá trị có thể tiếp tục ở nhánh này.
+`1#one` means the `one` branch **starts applying from the value 1, including 1 itself**. Until the threshold of a subsequent branch is reached, values remain in this branch.
 
-Cụ thể, trong chuỗi `0#none|1#one|1<many`:
+Specifically, in the string `0#none|1#one|1<many`:
 
-- `0` chọn `none`.
-- `1` chọn `one`.
-- `1.5` chọn `many`.
+- `0` selects `none`.
+- `1` selects `one`.
+- `1.5` selects `many`.
 
-### `<` — biên loại trừ
+### `<` — exclusive bound
 
-`1<many` có nghĩa nhánh `many` chỉ bắt đầu khi giá trị **lớn hơn 1 một cách nghiêm ngặt**. Tại đúng `1`, nhánh này chưa có hiệu lực; tại một giá trị lớn hơn `1`, nó có hiệu lực.
+`1<many` means the `many` branch only starts when the value is **strictly greater than 1**. At exactly `1`, this branch is not yet active; at a value greater than `1`, it becomes active.
 
-Đặt hai mốc cạnh nhau:
+Placing the two thresholds side by side:
 
 ```text
 1#one|1<many
 ```
 
-Điều này đặc biệt hữu ích để tách **bằng 1** và **lớn hơn 1** mà không phải viết vô số mốc nguyên `2`, `3`, `4`.
+This is especially useful for separating **equal to 1** and **greater than 1** without having to write endless integer thresholds `2`, `3`, `4`.
 
-### `|` ngăn cách các nhánh
+### `|` separates branches
 
-`|` là dấu phân cách trong choice pattern. Mẫu:
-
-```text
-0#zero|1#one|1<more
-```
-
-có đúng **ba lựa chọn**. Khi một phần nội dung đòi hỏi dùng ký tự mang nghĩa đặc biệt trong cú pháp pattern, cần xử lý quy tắc quote/escape của `ChoiceFormat` và `MessageFormat`; không thể đơn giản chèn văn bản bất kỳ chứa `|` hoặc dấu nháy rồi mong parser hiểu đúng. Nên để mẫu đơn giản, và kiểm thử kỹ khi phải chứa ký tự cú pháp.
-
-## 3. Mô hình khoảng giá trị: hiểu toàn bộ chứ không chỉ ranh giới
-
-Với pattern:
+`|` is the delimiter in a choice pattern. The pattern:
 
 ```text
 0#zero|1#one|1<more
 ```
 
-ta có thể xem kết quả như sau, trong miền các số thông thường:
+has exactly **three choices**. When part of the content requires characters with special meaning in pattern syntax, you must handle the quoting/escaping rules of `ChoiceFormat` and `MessageFormat`; you cannot simply insert arbitrary text containing `|` or quotes and expect the parser to understand it properly. Keep patterns simple, and test thoroughly when they must contain syntax characters.
 
-| Giá trị đầu vào `n` | Nhánh chọn | Giải thích |
+## 3. Value Range Model: Understanding the Whole Range, Not Just the Boundaries
+
+With the pattern:
+
+```text
+0#zero|1#one|1<more
+```
+
+we can view the results as follows, in the domain of ordinary numbers:
+
+| Input Value `n` | Selected Branch | Explanation |
 |---:|---|---|
-| `-2` | `zero` | Dưới ngưỡng đầu tiên: Java vẫn chọn nhánh đầu |
-| `0` | `zero` | `0#` bao gồm 0 |
-| `0.5` | `zero` | Chưa đến ngưỡng `1#` |
-| `1` | `one` | `1#` bao gồm 1; `1<` chưa áp dụng |
-| `1.0001` | `more` | Đã lớn hơn 1 |
-| `2` | `more` | Vẫn thuộc nhánh cuối |
-| `10` | `more` | Không có nhánh tiếp theo, nên dùng nhánh cuối |
+| `-2` | `zero` | Below the first threshold: Java still selects the first branch |
+| `0` | `zero` | `0#` includes 0 |
+| `0.5` | `zero` | Has not reached the `1#` threshold yet |
+| `1` | `one` | `1#` includes 1; `1<` does not apply yet |
+| `1.0001` | `more` | Already greater than 1 |
+| `2` | `more` | Still belongs to the last branch |
+| `10` | `more` | No next branch, so the last branch is used |
 
-Một cách diễn đạt thực tế là:
+A practical way to express this is:
 
-- Nhánh đầu: mọi `n < 1`, bao gồm cả các giá trị dưới 0.
-- Nhánh thứ hai: chỉ `n = 1` trong mô hình `double` có hai giới hạn liên tiếp `1#` và `1<`.
-- Nhánh thứ ba: mọi `n > 1`.
+- First branch: all `n < 1`, including values below 0.
+- Second branch: only `n = 1` in the `double` model with two consecutive limits `1#` and `1<`.
+- Third branch: all `n > 1`.
 
-**Cảnh báo về nhánh đầu tiên:** `ChoiceFormat` không tự báo “không có lựa chọn” khi số nhỏ hơn mọi limit. Nó dùng **nhánh đầu**. Vì vậy, nếu số lượng âm là dữ liệu không hợp lệ, phải kiểm tra trước; đừng coi pattern trên đã tự ngăn việc hiển thị `-2` tệp như `zero`.
+**Warning about the first branch:** `ChoiceFormat` does not automatically report “no matching choice” when a number is smaller than all limits. It uses the **first branch**. Therefore, if negative counts are invalid data, validate beforehand; do not assume the pattern above prevents displaying `-2` files as `zero`.
 
-## 4. Cơ chế chọn nhánh thực tế
+## 4. Actual Branch Selection Mechanism
 
-`ChoiceFormat` lưu các limit đã được chuẩn hóa thành các ngưỡng số `double`. Về mặt khái niệm, Java chọn nhánh có **ngưỡng hiệu lực lớn nhất nhưng không lớn hơn giá trị cần format**; nếu không vượt được ngưỡng đầu tiên thì vẫn dùng nhánh đầu.
+`ChoiceFormat` stores limits normalized as `double` numeric thresholds. Conceptually, Java selects the branch with the **largest effective threshold that is not greater than the value being formatted**; if the value does not exceed the first threshold, the first branch is still used.
 
-Với toán tử:
+With the operators:
 
-- `#`: ngưỡng hiệu lực là chính số được viết.
-- `<`: ngưỡng hiệu lực được dịch đến giá trị `double` biểu diễn được kế tiếp phía trên số được viết, để bảo đảm dấu **lớn hơn** mang tính loại trừ.
+- `#`: the effective threshold is the written number itself.
+- `<`: the effective threshold is shifted to the next representable `double` value above the written number, ensuring the **greater than** comparison is exclusive.
 
-Đó là lý do `1#one` và `1<many` có thể cùng ghi mốc `1` nhưng vẫn là hai giới hạn hiệu lực khác nhau. Với Java `double`:
+That is why `1#one` and `1<many` can both write the threshold `1` yet remain two distinct effective limits. In Java `double`:
 
 ```text
 1#one  -> effective limit 1.0
 1<many -> effective limit 1.0000000000000002
 ```
 
-Số `1.0000000000000002` là `Math.nextUp(1.0)`, tức số `double` nhỏ nhất lớn hơn `1.0`. Đây **không phải** quy tắc “cộng 0.0000000000000002” cho mọi ngưỡng; khoảng cách giữa các số dấu phẩy động phụ thuộc độ lớn của ngưỡng.
+The number `1.0000000000000002` is `Math.nextUp(1.0)`, the smallest `double` greater than `1.0`. This is **not** a rule of “add 0.0000000000000002” for every threshold; the spacing between floating-point numbers depends on the magnitude of the threshold.
 
-Vì vậy, khi cần xét đúng ranh giới của dữ liệu `double`, hãy hiểu `<` là một biên loại trừ chính xác theo biểu diễn số, không phải “bằng ngưỡng cộng một” theo đơn vị đếm.
+Therefore, when checking exact boundaries of `double` data, understand `<` as an exact exclusive bound in floating-point representation, not as “threshold plus one” in counting units.
 
-## 5. Ví dụ chạy được: kiểm chứng các giá trị sát biên
+## 5. Runnable Example: Verifying Values Near Boundaries
 
-Tạo tệp `ChoiceBoundaryDemo.java`:
+Create the file `ChoiceBoundaryDemo.java`:
 
 ```java
 import java.text.ChoiceFormat;
@@ -160,14 +160,14 @@ public class ChoiceBoundaryDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac ChoiceBoundaryDemo.java
 java ChoiceBoundaryDemo
 ```
 
-Output được kiểm chứng trên JDK:
+Verified output on the JDK:
 
 ```text
 -2.0 => zero
@@ -180,27 +180,27 @@ limits=[0.0, 1.0, 1.0000000000000002]
 nextUp(1.0) => more
 ```
 
-Điểm quan trọng nằm ở hai dòng cuối: `getLimits()` cho thấy Java lưu mốc `1<` bằng số `double` kế tiếp sau 1. `Math.nextUp(1.0)` đi vào nhánh `more`, còn chính `1.0` ở nhánh `one`.
+The key insight lies in the last two lines: `getLimits()` shows that Java stores the `1<` limit as the next `double` after 1. `Math.nextUp(1.0)` enters the `more` branch, while `1.0` itself stays in the `one` branch.
 
-Ví dụ này dùng `double` vì `ChoiceFormat` kế thừa `NumberFormat` và xác định các khoảng bằng ngưỡng số học. Trong nghiệp vụ đếm đối tượng, bạn thường dùng số nguyên không âm; vậy cần validate trước khi gửi vào formatter.
+This example uses `double` because `ChoiceFormat` extends `NumberFormat` and defines intervals by numeric thresholds. In object-counting business logic, you typically use non-negative integers; thus you should validate before passing values to the formatter.
 
-## 6. Thứ tự các lựa chọn bắt buộc tăng dần
+## 6. Choice Ordering Must Be Strictly Ascending
 
-Các nhánh trong một choice pattern phải được khai báo theo **thứ tự giới hạn hiệu lực tăng dần**. Ví dụ hợp lệ:
+Branches in a choice pattern must be declared in **ascending order of effective limits**. Valid example:
 
 ```text
 0#none|1#one|1<more
 ```
 
-Một mẫu sai:
+An invalid pattern:
 
 ```text
 0#none|2#two|1#one
 ```
 
-Các ngưỡng `0` → `2` → `1` không tăng dần. Khi khởi tạo `ChoiceFormat` hoặc parse `MessageFormat` chứa mẫu choice tương ứng, Java ném `IllegalArgumentException`.
+The thresholds `0` → `2` → `1` are not ascending. When constructing `ChoiceFormat` or parsing a `MessageFormat` containing the corresponding choice pattern, Java throws `IllegalArgumentException`.
 
-Đoạn kiểm chứng độc lập, lưu `InvalidChoiceOrder.java`:
+Standalone verification snippet, saved as `InvalidChoiceOrder.java`:
 
 ```java
 import java.text.ChoiceFormat;
@@ -217,65 +217,65 @@ public class InvalidChoiceOrder {
 }
 ```
 
-Chạy `javac InvalidChoiceOrder.java` và `java InvalidChoiceOrder`:
+Run `javac InvalidChoiceOrder.java` and `java InvalidChoiceOrder`:
 
 ```text
 Invalid choice order
 ```
 
-Ngay cả khi các mốc viết ra trông giống nhau, hãy xét **toán tử**:
+Even when the written thresholds look identical, consider the **operator**:
 
-- `1#one|1<more` có ngưỡng hiệu lực tăng (1.0 rồi nextUp(1.0)), nên hợp lệ.
-- `1<more|1#one` đi ngược lại thứ tự ngưỡng hiệu lực, nên không hợp lệ.
+- `1#one|1<more` has increasing effective thresholds (`1.0` then `nextUp(1.0)`), so it is valid.
+- `1<more|1#one` reverses the order of effective thresholds, so it is invalid.
 
-Đừng sắp xếp choice theo độ dài câu, thứ tự từ điển hoặc thứ tự “zero, many, one”; sắp theo **mốc toán học đã xác định**.
+Do not order choices by sentence length, alphabetical order, or “zero, many, one”; order them by their **defined mathematical thresholds**.
 
-## 7. Cạm bẫy: `2#many` không đồng nghĩa `>1`
+## 7. Pitfall: `2#many` Does Not Mean `>1`
 
-Hai pattern nhìn gần giống nhưng khác logic:
+Two patterns look similar but have different logic:
 
 ```text
 0#zero|1#one|2#many
 0#zero|1#one|1<many
 ```
 
-Với **số nguyên không âm**, cả hai thường cho cùng kết quả ở 0, 1, 2, 3. Nhưng với số thực:
+For **non-negative integers**, both usually produce the same results at 0, 1, 2, 3. But for floating-point numbers:
 
-| Giá trị | `...|2#many` | `...|1<many` |
+| Value | `...|2#many` | `...|1<many` |
 |---:|---|---|
 | `1.0` | `one` | `one` |
 | `1.1` | `one` | `many` |
 | `1.5` | `one` | `many` |
 | `2.0` | `many` | `many` |
 
-Nếu yêu cầu thật sự là “nằm trong nhánh nhiều khi **n > 1**”, phải dùng `1<`. Còn nếu nghiệp vụ chỉ chấp nhận số đếm nguyên, `2#` có thể diễn tả cùng ranh giới mong muốn nhưng làm giả định “số lượng là nguyên” trở thành điều kiện quan trọng cần được kiểm tra.
+If the true requirement is “in the many branch when **n > 1**”, you must use `1<`. If business logic only accepts integer counts, `2#` can express the same desired boundary, but it turns the assumption “quantity is an integer” into an important condition that must be validated.
 
-Tương tự:
+Similarly:
 
 ```text
 0#non-positive|0<positive
 ```
 
-sẽ chọn `non-positive` cho mọi số `n <= 0` và `positive` cho `n > 0`. Trong cách dùng này, nhánh đầu cũng bao trùm các giá trị âm nhỏ hơn mốc đầu tiên.
+will select `non-positive` for every number `n <= 0` and `positive` for `n > 0`. In this usage, the first branch also covers negative values smaller than the first threshold.
 
-## 8. Các nhánh choice bên trong MessageFormat
+## 8. Choice Branches Inside MessageFormat
 
-`ChoiceFormat` tự format một giá trị `Number` thành chuỗi. `MessageFormat` kết hợp nhiều tham số trong một thông báo, cho phép viết `choice` ngay bên trong placeholder:
+`ChoiceFormat` formats a `Number` value into a string by itself. `MessageFormat` combines multiple parameters in one message, allowing `choice` to be written directly inside a placeholder:
 
 ```text
 Found {0,choice,0#no files|1#one file|1<{0,number,integer} files}.
 ```
 
-Ở đây:
+Here:
 
-- `0` đầu tiên là **vị trí đối số** (argument index), không phải giá trị số 0.
-- `choice` yêu cầu dùng logic ngưỡng của `ChoiceFormat`.
-- `0#no files`, `1#one file`, `1<...` là ba nhánh.
-- Trong nhánh thứ ba, `{0,number,integer}` là placeholder con để format lại **cùng đối số số 0** với kiểu hiển thị số nguyên.
+- The first `0` is the **argument index**, not the numeric value 0.
+- `choice` requests `ChoiceFormat` threshold logic.
+- `0#no files`, `1#one file`, `1<...` are the three branches.
+- In the third branch, `{0,number,integer}` is a nested sub-placeholder to reformat the **same argument 0** with integer display style.
 
-### Chương trình Java 17+ độc lập
+### Standalone Java 17+ program
 
-Lưu thành `MessageChoiceDemo.java`:
+Save as `MessageChoiceDemo.java`:
 
 ```java
 import java.text.MessageFormat;
@@ -296,7 +296,7 @@ public class MessageChoiceDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac MessageChoiceDemo.java
@@ -312,39 +312,39 @@ Found 2 files.
 Found 12 files.
 ```
 
-Với `count = 2`, `MessageFormat` chọn nhánh `1<`, sau đó nhận thấy chuỗi nhánh chứa placeholder `{0,number,integer}` và định dạng tiếp nó với locale `Locale.US`.
+With `count = 2`, `MessageFormat` selects the `1<` branch, then sees that the branch string contains `{0,number,integer}` and formats it further using `Locale.US`.
 
-**Phân biệt hai tầng xử lý:**
+**Distinguish the two processing stages:**
 
-1. **Chọn nhánh:** dựa vào số đầu vào và các giới hạn `#` / `<`.
-2. **Tạo thông điệp:** sử dụng chuỗi của nhánh đã chọn; nếu có placeholder lồng, `MessageFormat` xử lý theo quy tắc của nó.
+1. **Branch selection:** based on the input number and the `#` / `<` limits.
+2. **Message generation:** uses the selected branch's string; if it contains nested placeholders, `MessageFormat` processes them according to its rules.
 
-Không đặt `{0,number,integer}` trong toàn bộ nhánh nếu bạn chỉ muốn hiển thị “one” ở trường hợp bằng 1. Kỹ thuật dùng placeholder lồng hữu ích khi cùng một nhánh cần đưa số thật vào câu.
+Do not place `{0,number,integer}` in every branch if you only want to display “one” for the 1 case. Nested placeholders are useful when the same branch needs to embed the actual number into the sentence.
 
-## 9. Tại sao MessageFormat xử lý mẫu choice lồng được?
+## 9. Why Can MessageFormat Process Nested Choice Patterns?
 
-Theo hành vi `MessageFormat` của Java, nếu một nhánh của `ChoiceFormat` được chọn và **chuỗi kết quả chứa dấu `{`**, hệ thống có thể phân tích tiếp chuỗi đó như một mẫu `MessageFormat`, dùng cùng tập đối số để thay các placeholder lồng.
+Per Java's `MessageFormat` behavior, if a `ChoiceFormat` branch is selected and **the resulting string contains `{`**, the system can re-parse that string as a `MessageFormat` pattern, using the same argument array to substitute nested placeholders.
 
-Điều này giải thích tại sao đoạn:
+This explains why the fragment:
 
 ```text
 1<{0,number,integer} files
 ```
 
-có thể hiển thị `2 files` thay vì trả nguyên văn `{0,number,integer} files`.
+can display `2 files` instead of literally returning `{0,number,integer} files`.
 
-Tuy nhiên, sự lồng pattern dẫn đến hai điều cần cẩn thận:
+However, pattern nesting brings two things to be careful about:
 
-- Nếu thông điệp hiển thị cần dấu ngoặc nhọn literal, dấu nháy đơn hoặc ký tự cú pháp `|`, phải tuân thủ quy tắc quoting của `MessageFormat` và `ChoiceFormat`; việc escape ở một tầng chưa chắc đủ ở tầng tiếp theo. Kiểm thử các chuỗi thực tế chứa ký tự đặc biệt.
-- Không đưa văn bản người dùng không đáng tin vào **pattern** rồi biên dịch như cú pháp `MessageFormat`. Đưa dữ liệu người dùng vào **arguments**; pattern nên nằm trong resource/config đã được kiểm soát.
+- If the displayed message needs literal braces, single quotes, or the syntax character `|`, you must obey the quoting rules of both `MessageFormat` and `ChoiceFormat`; escaping at one layer may not suffice at the next layer. Test actual strings containing special characters.
+- Do not pass untrusted user text into a **pattern** to be compiled as `MessageFormat` syntax. Pass user data in **arguments**; patterns should reside in controlled resources/configuration.
 
-Trong ứng dụng đa ngôn ngữ, các bản dịch của pattern nên giữ chính xác chỉ số argument. Khi nhánh chứa placeholder lồng, kiểm thử toàn bộ trường hợp theo từng locale để phát hiện ngoặc và dấu nháy sai.
+In multilingual applications, pattern translations should preserve the exact argument indices. When branches contain nested placeholders, test all cases per locale to catch mismatched braces and quotes.
 
-## 10. Chọn nhánh theo giá trị gốc, không theo số đã làm tròn để hiển thị
+## 10. Branch Selection Uses the Raw Value, Not the Rounded Display Number
 
-Một điểm gây lỗi hiển thị: `ChoiceFormat` so sánh **giá trị số thật**, không chọn nhánh dựa trên chuỗi đã được làm tròn bởi `{0,number,integer}`.
+A common cause of display bugs: `ChoiceFormat` compares the **actual numeric value**, not the string rounded by `{0,number,integer}`.
 
-Ví dụ chương trình độc lập `ChoiceRoundingDemo.java`:
+Standalone example program `ChoiceRoundingDemo.java`:
 
 ```java
 import java.text.MessageFormat;
@@ -363,14 +363,14 @@ public class ChoiceRoundingDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac ChoiceRoundingDemo.java
 java ChoiceRoundingDemo
 ```
 
-Output đã kiểm tra:
+Verified output:
 
 ```text
 one
@@ -378,15 +378,15 @@ one
 2 items
 ```
 
-Tại `1.4`, nhánh **`1<`** được chọn đúng vì 1.4 lớn hơn 1, nhưng `{0,number,integer}` làm tròn phần hiển thị thành **1**. Kết quả `1 items` nghe có vẻ mâu thuẫn. Đó không phải lỗi của `ChoiceFormat`; đó là hậu quả khi nghiệp vụ cho phép số thực trong khi mẫu từ ngữ giả định một số đếm nguyên.
+At `1.4`, the **`1<`** branch is correctly selected because 1.4 is greater than 1, but `{0,number,integer}` rounds the displayed value to **1**. The result `1 items` sounds contradictory. That is not a bug in `ChoiceFormat`; it is the consequence of business logic allowing floating-point numbers while the wording template assumes an integer count.
 
-Nếu số là **số lượng đối tượng**, hãy xác thực là số nguyên không âm trước khi định dạng; nếu số là đại lượng liên tục, hãy chọn pattern phù hợp với số thập phân và ngữ nghĩa thực tế.
+If the number is an **object count**, validate that it is a non-negative integer before formatting; if the number is a continuous measurement, choose patterns appropriate for decimals and real semantics.
 
-## 11. Trường hợp bằng 0, số âm và miền không mong muốn
+## 11. Zero, Negative Numbers, and Unexpected Domains
 
-Pattern `0#none|1#one|1<many` chỉ ổn khi đã xác định miền đầu vào. Với số âm, `ChoiceFormat` thường chọn nhánh đầu (`none`), vì nó không có nhánh nào có giới hạn thấp hơn `0`. Trong ứng dụng quản lý số lượng, cách xử lý đúng là **không đưa số âm hợp lệ hóa ngầm** bằng cách đổi thành “không có”.
+The pattern `0#none|1#one|1<many` only works reliably when the input domain is constrained. For negative numbers, `ChoiceFormat` still selects the first branch (`none`), because it has no branch with a limit lower than `0`. In applications managing counts, the proper handling is **not to silently normalize negative numbers** by turning them into “none”.
 
-Một hàm tự kiểm tra số đếm trước khi format có thể viết như sau (đoạn code dùng trong class đã import `MessageFormat`):
+A helper method validating counts before formatting can be written as follows (code snippet placed in a class that imports `MessageFormat`):
 
 ```java
 static String filesMessage(MessageFormat formatter, int count) {
@@ -397,82 +397,82 @@ static String filesMessage(MessageFormat formatter, int count) {
 }
 ```
 
-Không dùng số thực `double` có giá trị không hữu hạn như `NaN` hay các giá trị vô cực từ input không được kiểm soát làm số lượng. Nếu số đến từ JSON, database hoặc phép tính, hãy kiểm tra loại dữ liệu và miền hợp lệ trước khi chọn nhánh.
+Do not use `double` values with non-finite states like `NaN` or infinities from unvalidated inputs as counts. If a number comes from JSON, a database, or a calculation, validate its data type and valid range before selecting a branch.
 
-Nếu cần nhánh riêng cho số âm để **hiển thị lỗi hoặc trạng thái**, có thể thiết kế ngưỡng bắt đầu bằng số âm hoặc `-∞`, nhưng phải bảo đảm tính liên tục, đúng thứ tự và ý nghĩa cho tất cả giá trị. Với nghiệp vụ thông thường, validate và báo lỗi rõ ràng dễ bảo trì hơn.
+If a separate branch for negative numbers is needed to **display an error or status**, you can design thresholds starting with negative numbers or `-∞`, while ensuring continuity, proper order, and meaningfulness for all values. For normal business logic, validating and reporting clear errors is easier to maintain.
 
-## 12. ChoiceFormat không tự hiểu mọi quy tắc số nhiều
+## 12. ChoiceFormat Does Not Automatically Understand All Plural Rules
 
-Ngữ cảnh cha “Số nhiều và ngữ pháp” khiến `choice` thường được dùng cho phân biệt `0`, `1` và `n > 1`. Tuy nhiên, **quy tắc số nhiều không giống nhau ở mọi ngôn ngữ**.
+In the parent context of “Plurals and grammar”, `choice` is often used to distinguish `0`, `1`, and `n > 1`. However, **plural rules are not the same across all languages**.
 
-Một số ngôn ngữ dùng các nhóm phụ thuộc chữ số cuối, bội số, phần thập phân hoặc hình thái ngữ pháp. `ChoiceFormat` chọn theo **các khoảng liên tiếp của một giá trị số**, không tự áp dụng các hạng plural theo CLDR. Vì thế, một pattern đơn giản cho tiếng Anh không thể tự suy ra quy tắc đầy đủ của tiếng Ả Rập, Nga, Ba Lan và nhiều ngôn ngữ khác.
+Some languages use groups depending on the last digit, multiples, fractional parts, or grammatical morphology. `ChoiceFormat` selects by **contiguous intervals of a numeric value** and does not automatically apply CLDR plural categories. Therefore, a simple English pattern cannot infer the full rules of Arabic, Russian, Polish, and many other languages.
 
-Điều nên làm:
+What you should do:
 
-1. Dùng `ChoiceFormat` khi bài toán thật sự là **chia các khoảng số rõ ràng** hoặc vài trường hợp số lượng đơn giản do sản phẩm quy định.
-2. Đừng sao chép cùng một pattern `0#...|1#...|1<...` sang mọi locale mà không xem xét quy tắc ngôn ngữ.
-3. Với sản phẩm i18n lớn, cần quy tắc plural theo locale, ordinal, gender, case hoặc các dạng ngữ pháp phức tạp, hãy cân nhắc thư viện có hỗ trợ **plural rules** thực sự (ví dụ ICU4J) và quản lý bản dịch theo ngôn ngữ.
-4. Dù dùng thư viện nào, vẫn kiểm thử các giá trị **0, 1, 2**, những mốc quan trọng theo từng locale và số thập phân nếu sản phẩm chấp nhận.
+1. Use `ChoiceFormat` when the problem genuinely involves **partitioning clear numeric ranges** or a few simple quantity cases defined by the product.
+2. Do not copy the same `0#...|1#...|1<...` pattern to every locale without reviewing language rules.
+3. For large i18n products requiring locale-specific plural rules, ordinals, gender, case, or complex grammatical forms, consider a library with real **plural rules** support (such as ICU4J) and manage translations per language.
+4. Regardless of the library used, still test **0, 1, 2**, key thresholds per locale, and decimal numbers if the product accepts them.
 
-Choice là cơ chế rẽ nhánh theo **giá trị**, còn plural là quy tắc về **ngôn ngữ**; chúng có vùng giao nhau nhưng không hoàn toàn trùng nhau.
+Choice is a **value-based** branching mechanism, whereas plural is a **language** rule; they overlap, but they are not identical.
 
-## 13. Các lỗi phổ biến và cách sửa
+## 13. Common Mistakes and Fixes
 
-| Lỗi | Vì sao sai | Cách sửa |
+| Mistake | Why It Is Wrong | How to Fix |
 |---|---|---|
-| Viết `1#many` và mong >1 | `#` bao gồm cả 1 | Dùng `1<many` nếu muốn nghiêm ngặt >1 |
-| Viết `2#many` và cho phép số thực | `1.5` vẫn ở nhánh `one` | Dùng `1<` hoặc validate số nguyên |
-| Đảo `0, 2, 1` | Limit phải tăng dần | Sắp theo ngưỡng tăng |
-| Chỉ có `0#zero|1#one` | Mọi số >1 vẫn vào nhánh cuối `one` | Thêm nhánh `1<many` |
-| Cho rằng dưới limit đầu sẽ không có kết quả | `ChoiceFormat` dùng nhánh đầu | Validate miền số hoặc chọn limit phủ toàn bộ miền |
-| Cho rằng `<` là “bằng hoặc lớn hơn” | `<` có biên loại trừ | Dùng `#` khi cần bao gồm giá trị limit |
-| Dùng `Math.nextUp(1)` rồi so output `double` | Literal `1` có thể chọn overload kiểu float | Viết `Math.nextUp(1.0)` để lấy kết quả double |
-| Định dạng `1.4` thành số nguyên rồi chọn theo “1” | Choice chọn theo số gốc, format là bước sau | Validate miền hoặc tránh làm tròn gây mâu thuẫn |
-| Chèn `|`, `'` và `{` tùy ý vào pattern | Ký tự có nghĩa cú pháp | Quote đúng từng tầng; viết test với bản dịch thật |
-| Giả định `choice` là CLDR plural | Chỉ có lựa chọn bằng ngưỡng | Sử dụng plural rules theo ngôn ngữ khi cần |
+| Writing `1#many` and expecting >1 | `#` includes 1 itself | Use `1<many` if strictly >1 is desired |
+| Writing `2#many` while allowing decimals | `1.5` stays in the `one` branch | Use `1<` or validate integers |
+| Ordering `0, 2, 1` | Limits must be ascending | Sort by ascending thresholds |
+| Having only `0#zero|1#one` | All numbers >1 stay in the last branch `one` | Add a `1<many` branch |
+| Assuming values below the first limit yield no result | `ChoiceFormat` uses the first branch | Validate the numeric domain or pick limits covering the whole domain |
+| Assuming `<` means “equal to or greater than” | `<` is an exclusive bound | Use `#` when the limit value must be included |
+| Using `Math.nextUp(1)` and comparing `double` output | Literal `1` may select the `float` overload | Write `Math.nextUp(1.0)` for a `double` result |
+| Formatting `1.4` as an integer and expecting selection by “1” | Choice selects by raw number; formatting happens afterward | Validate the domain or avoid contradictory rounding |
+| Inserting `|`, `'`, and `{` arbitrarily into patterns | Characters have syntactic meaning | Quote each layer properly; write tests with real translations |
+| Assuming `choice` is CLDR plural | It only selects by thresholds | Use language-specific plural rules when needed |
 
-## 14. Bộ trường hợp biên nên kiểm thử
+## 14. Boundary Test Case Suite
 
-Với pattern `0#zero|1#one|1<more`, một bộ kiểm thử tối thiểu:
+For the pattern `0#zero|1#one|1<more`, a minimal test suite:
 
-| Test input | Kết quả kỳ vọng | Mục đích |
+| Test Input | Expected Output | Purpose |
 |---:|---|---|
-| `0.0` | `zero` | Biên bao gồm đầu |
-| `0.5` | `zero` | Giá trị giữa hai giới hạn |
-| `1.0` | `one` | Chạm chính xác biên `1#` |
-| `Math.nextUp(1.0)` | `more` | Giá trị double đầu tiên lớn hơn 1 |
-| `2.0` | `more` | Sau biên loại trừ |
-| `-1.0` | `zero` | Hiểu hành vi dưới giới hạn đầu |
-| `1.4` trong MessageFormat dùng định dạng integer | `1 items` | Phát hiện sự khác nhau giữa chọn nhánh và hiển thị |
+| `0.0` | `zero` | First inclusive boundary |
+| `0.5` | `zero` | Value between two limits |
+| `1.0` | `one` | Exact hit on `1#` boundary |
+| `Math.nextUp(1.0)` | `more` | First `double` value greater than 1 |
+| `2.0` | `more` | Past exclusive boundary |
+| `-1.0` | `zero` | Understand behavior below the first limit |
+| `1.4` in MessageFormat with integer format | `1 items` | Detect discrepancy between branch selection and display |
 
-Với các pattern dùng trong bản dịch, nên kiểm thử cả **chuỗi được hiển thị** và **ý nghĩa của lựa chọn**, không chỉ kiểm tra code không ném ngoại lệ. Nếu count được giới hạn là nguyên không âm, test thêm validation `-1` phải bị từ chối trước khi vào formatter.
+For patterns used in translations, test both **the displayed string** and **the semantic correctness of the choice**, not just that the code throws no exceptions. If `count` is restricted to non-negative integers, also test that validation rejects `-1` before it reaches the formatter.
 
-## 15. Tự kiểm tra kiến thức
+## 15. Knowledge Self-Check
 
-**Câu 1.** `1#one` có bao gồm số 1 không?  
-**Đáp án:** Có. `#` là biên bao gồm.
+**Question 1.** Does `1#one` include the number 1?  
+**Answer:** Yes. `#` is an inclusive bound.
 
-**Câu 2.** `1<more` có bao gồm 1 không?  
-**Đáp án:** Không. Nó chỉ áp dụng khi lớn hơn 1.
+**Question 2.** Does `1<more` include 1?  
+**Answer:** No. It applies only when strictly greater than 1.
 
-**Câu 3.** `0#zero|1#one|1<more`, input 0.75 chọn nhánh nào?  
-**Đáp án:** `zero`; ngưỡng `1#` chưa đạt.
+**Question 3.** Given `0#zero|1#one|1<more`, which branch does input 0.75 select?  
+**Answer:** `zero`; the `1#` threshold has not been reached.
 
-**Câu 4.** Với cùng pattern, input 1.0001 chọn nhánh nào?  
-**Đáp án:** `more` vì lớn hơn 1.
+**Question 4.** With the same pattern, which branch does input 1.0001 select?  
+**Answer:** `more` because it is greater than 1.
 
-**Câu 5.** `0#zero|1#one|2#many` có phân biệt đúng 1.5 và 2 không?  
-**Đáp án:** 1.5 vẫn chọn `one`, 2 chọn `many`. Nếu cần mọi số thực lớn hơn 1 vào `many`, dùng `1<many`.
+**Question 5.** Does `0#zero|1#one|2#many` properly distinguish 1.5 and 2?  
+**Answer:** 1.5 still selects `one`, while 2 selects `many`. If all real numbers greater than 1 must enter `many`, use `1<many`.
 
-**Câu 6.** Tại sao `0#zero|2#two|1#one` không hợp lệ?  
-**Đáp án:** Các giới hạn không tăng dần; Java ném `IllegalArgumentException`.
+**Question 6.** Why is `0#zero|2#two|1#one` invalid?  
+**Answer:** The limits are not ascending; Java throws `IllegalArgumentException`.
 
-**Câu 7.** Vì sao MessageFormat có thể hiện `1 items` cho giá trị 1.4?  
-**Đáp án:** `ChoiceFormat` chọn nhánh lớn hơn 1 theo số gốc; placeholder `number,integer` làm tròn cách hiển thị sau đó.
+**Question 7.** Why can MessageFormat display `1 items` for the value 1.4?  
+**Answer:** `ChoiceFormat` selects the greater-than-1 branch based on the raw number; the `number,integer` placeholder rounds the displayed representation afterward.
 
-**Câu 8.** Có thể dùng một pattern choice để thay mọi quy tắc số nhiều của tất cả ngôn ngữ không?  
-**Đáp án:** Không. ChoiceFormat chia khoảng số, không tự thực thi toàn bộ plural rules theo locale.
+**Question 8.** Can a single choice pattern replace all plural rules of every language?  
+**Answer:** No. ChoiceFormat partitions numeric intervals; it does not execute full locale-specific plural rules.
 
-**Ghi nhớ:** Trong `ChoiceFormat`, **`#` nghĩa là “từ mốc này, kể cả mốc”**, còn **`<` nghĩa là “lớn hơn mốc, loại trừ mốc”**. Các nhánh phải được xếp theo giới hạn hiệu lực tăng dần. Khi nhúng vào `MessageFormat`, lựa chọn nhánh và định dạng số là hai giai đoạn; cần kiểm thử cả hai.
+**Key Takeaway:** In `ChoiceFormat`, **`#` means “from this threshold, inclusive”**, while **`<` means “greater than this threshold, exclusive”**. Branches must be ordered by ascending effective limits. When embedded in `MessageFormat`, branch selection and number formatting are two distinct stages; both must be tested.
 
-**Tài liệu chính thức:** [Java SE 17 — ChoiceFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ChoiceFormat.html) · [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html) · [Java SE 17 — Math.nextUp](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#nextUp(double)).
+**Official documentation:** [Java SE 17 — ChoiceFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ChoiceFormat.html) · [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html) · [Java SE 17 — Math.nextUp](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#nextUp(double)).

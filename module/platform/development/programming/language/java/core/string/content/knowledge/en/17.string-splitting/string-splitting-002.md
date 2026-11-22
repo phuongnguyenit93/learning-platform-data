@@ -1,20 +1,20 @@
-# `String.split(regex, limit)`: dương, bằng 0 và âm
+# `String.split(regex, limit)`: positive, zero, and negative
 
-Tham số `limit` trả lời hai câu hỏi: **số phần kết quả được giới hạn ra sao** và **các phần rỗng cuối có bị bỏ hay không**. Ví dụ, dấu `=` đầu tiên có thể ngăn cách key với value chứa thêm nhiều dấu `=`; dữ liệu bảng lại cần bảo toàn các trường rỗng cuối.
+The `limit` parameter answers two questions: **how the number of resulting parts is bounded** and **whether trailing empty elements are discarded**. For example, the first `=` sign may separate a key from a value that contains additional `=` signs; tabular data, on the other hand, needs to preserve trailing empty fields.
 
-## 1. Ba chế độ tách
+## 1. Three splitting modes
 
-| `limit` | Quy tắc | Phần rỗng cuối |
+| `limit` | Rule | Trailing empty elements |
 | --- | --- | --- |
-| Số dương `n` | Áp dụng regex tối đa `n-1` lần, kết quả **không quá `n` phần tử** | Giữ nếu đã tạo ra |
-| `0` | Tách tối đa | Bỏ **toàn bộ** phần tử rỗng ở cuối |
-| Số âm (thường `-1`) | Tách tối đa | Giữ phần tử rỗng ở cuối |
+| Positive `n` | Applies the regex at most `n-1` times; result has **at most `n` elements** | Kept if already produced |
+| `0` | Splits as many times as possible | Discards **all** trailing empty elements |
+| Negative (usually `-1`) | Splits as many times as possible | Keeps trailing empty elements |
 
-`split(regex)` đồng nghĩa `split(regex, 0)`. Giá trị âm `-1` và `-5` cùng quy tắc; số âm không có nghĩa tách ngược từ phải sang trái. `limit=1` không thực hiện lần tách nào và trả lại toàn chuỗi trong một phần tử.
+`split(regex)` is synonymous with `split(regex, 0)`. Negative values `-1` and `-5` follow the same rule; a negative number does not mean splitting right-to-left. `limit=1` performs no splits and returns the entire string in a single element.
 
-Xét `String s = "a:b::";`:
+Consider `String s = "a:b::";`:
 
-| Lời gọi | Nội dung kết quả | `length` |
+| Call | Result contents | `length` |
 | --- | --- | --- |
 | `s.split(":", 1)` | `["a:b::"]` | 1 |
 | `s.split(":", 2)` | `["a", "b::"]` | 2 |
@@ -24,11 +24,11 @@ Xét `String s = "a:b::";`:
 | `s.split(":", 0)` | `["a", "b"]` | 2 |
 | `s.split(":", -1)` | `["a", "b", "", ""]` | 4 |
 
-Với `limit=3`, chỉ có hai lần cắt. Phần cuối `":"` là **phần dư chưa bị tách**, không phải một ký tự dấu phân cách bị bỏ quên. `limit=10` chỉ đặt mức trần, không tự chèn thêm sáu phần trống.
+With `limit=3`, there are only two cuts. The trailing `":"` is the **unsplit remainder**, not a delimiter character that was overlooked. `limit=10` only sets an upper cap; it does not insert six extra empty parts.
 
-## 2. Chương trình Java 17+ kiểm chứng mọi nhánh
+## 2. Java 17+ program verifying every branch
 
-Lưu `SplitLimitDemo.java`:
+Save as `SplitLimitDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -75,13 +75,13 @@ delimiter only len=0 []
 key/value len=2 ["host", "a=b"]
 ```
 
-Hàm `show` cố ý in `length` và bọc token trong dấu nháy. `Arrays.toString` mặc định khó phân biệt mảng không phần tử với mảng chứa một chuỗi rỗng.
+The `show` method intentionally prints `length` and wraps tokens in quotes. By default, `Arrays.toString` makes it hard to distinguish a zero-element array from an array containing a single empty string.
 
-Hai trường hợp biên: `"".split(":", 0)` có **một** phần tử `""` vì regex không tìm thấy dấu `:` nào; `":".split(":", 0)` tạo các đoạn đều rỗng và chúng bị xóa hết ở cuối, nên có **0** phần tử.
+Two edge cases: `"".split(":", 0)` has **one** element `""` because the regex finds no `:` at all; `":".split(":", 0)` produces only empty segments and they are all stripped at the end, so it has **0** elements.
 
-## 3. Ứng dụng: chỉ tách key/value một lần
+## 3. Application: splitting key/value only once
 
-`limit=2` thường là lựa chọn đúng khi dấu phân cách chỉ có ý nghĩa ở lần xuất hiện đầu tiên:
+`limit=2` is usually the right choice when the delimiter is only meaningful at its first occurrence:
 
 ```java
 String line = "endpoint=https://example.org?q=a=b";
@@ -89,29 +89,29 @@ String[] pair = line.split("=", 2);
 // ["endpoint", "https://example.org?q=a=b"]
 ```
 
-Nếu dùng `split("=")`, value bị chia vụn theo những dấu `=` bên trong chính nó. Với `"enabled="`, `split("=", 2)` trả `["enabled", ""]`, còn mặc định chỉ `["enabled"]` vì bỏ trường rỗng cuối. Kiểm tra `pair.length == 2` trước khi truy cập `pair[1]`: đầu vào không có dấu `=` cho mảng chỉ một phần tử.
+If you use `split("=")`, the value gets broken up at the `=` signs inside it. For `"enabled="`, `split("=", 2)` returns `["enabled", ""]`, whereas the default only returns `["enabled"]` because it drops the trailing empty field. Check `pair.length == 2` before accessing `pair[1]`: an input without `=` yields a single-element array.
 
-`limit=2` cũng áp dụng cho cấu hình `"level:WARN:retry-later"` khi dấu `:` đầu tiên phân tách khóa và toàn bộ thông điệp còn lại.
+`limit=2` also applies to config entries like `"level:WARN:retry-later"` where the first `:` separates the key from the entire remaining message.
 
-## 4. Giữ phần rỗng cuối và các giới hạn của `limit`
+## 4. Keeping trailing empty parts and `limit` limitations
 
-`"A,B,,".split(",")` chỉ cho `["A", "B"]`; `split(",", -1)` trả đủ `["A", "B", "", ""]`. Dù ở `limit=0`, phần rỗng **giữa** `"A,,B"` và phần rỗng **đầu** `",A,B"` vẫn được giữ nếu delimiter khớp độ dài dương. Bài về trường rỗng cuối dùng các trường hợp này để kiểm tra schema và khôi phục dữ liệu.
+`"A,B,,".split(",")` only yields `["A", "B"]`; `split(",", -1)` returns all `["A", "B", "", ""]`. Even with `limit=0`, **middle** empty elements in `"A,,B"` and **leading** empty elements in `",A,B"` are still kept if the delimiter matches positive length. The lesson on trailing empty fields uses these cases for schema validation and data reconstruction.
 
-Cần phân biệt thêm:
+Additional distinctions to note:
 
-- Regex khớp **độ rộng 0** ngay vị trí đầu chuỗi không tạo phần tử rỗng đầu; quy tắc này khác chuyện bỏ rỗng **cuối** theo `limit=0`.
-- `limit` không biến regex thành dấu phân cách literal. Dấu chấm cần `"\\."` hoặc `Pattern.quote(".")`.
-- `stream.limit(n)` sau `Pattern.splitAsStream` chỉ lấy tối đa `n` token, trong khi `split(input, n)` đưa **toàn phần dư** vào phần tử cuối.
-- Không giá trị `limit` nào thay parser CSV có dấu nháy.
+- A **zero-width** regex match right at the start of the string does not create a leading empty element; this rule is different from discarding **trailing** empty elements under `limit=0`.
+- `limit` does not turn a regex into a literal delimiter. A dot still needs `"\\."` or `Pattern.quote(".")`.
+- `stream.limit(n)` after `Pattern.splitAsStream` only takes at most `n` tokens, whereas `split(input, n)` puts **the entire remainder** into the last element.
+- No `limit` value replaces a CSV parser that handles quotes.
 
-## 5. Tự kiểm tra
+## 5. Self-check
 
-1. `"user=hello=world".split("=", 2)` giữ dấu `=` thứ hai không?
-2. `"x:y::".split(":", 3)` có phần tử thứ ba nào?
-3. `"x:y::".split(":", 0)` và `split(":", -1)` khác nhau thế nào?
-4. `"a:b".split(":", 10)` có đúng mười phần không?
-5. `"a,b".split(":", 0)` có trả mảng rỗng khi không có dấu `:` không?
+1. Does `"user=hello=world".split("=", 2)` keep the second `=` sign?
+2. What is the third element of `"x:y::".split(":", 3)`?
+3. How do `"x:y::".split(":", 0)` and `split(":", -1)` differ?
+4. Does `"a:b".split(":", 10)` have exactly ten elements?
+5. Does `"a,b".split(":", 0)` return an empty array when there is no `:`?
 
-**Đáp án:** (1) Có, trong `"hello=world"`. (2) `":"`. (3) Mảng hai phần so với mảng bốn phần có hai chuỗi rỗng cuối. (4) Không, hai phần. (5) Không, một phần tử `"a,b"`.
+**Answers:** (1) Yes, inside `"hello=world"`. (2) `":"`. (3) A two-element array versus a four-element array with two trailing empty strings. (4) No, two elements. (5) No, one element `"a,b"`.
 
-**Ghi nhớ:** `limit>0` là mức trần **số phần**, `0` xóa chuỗi rỗng cuối, còn số âm giữ chúng.
+**Remember:** `limit>0` is a cap on **the number of parts**, `0` removes trailing empty strings, and negative values keep them.

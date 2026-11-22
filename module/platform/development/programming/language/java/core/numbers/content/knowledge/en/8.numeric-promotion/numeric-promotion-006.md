@@ -1,169 +1,169 @@
-# Kiểu của phép tăng giảm khác phép cộng rồi gán trong Java
+# Why increment/decrement types differ from add-and-assign in Java
 
-Trong Java, ba cách viết tưởng như tương đương dưới đây **không giống nhau về quy tắc kiểu**:
-
-```java
-byte b = 10;
-b++;        // Hợp lệ.
-b += 1;     // Hợp lệ.
-// b = b + 1; // Lỗi biên dịch: b + 1 có kiểu int, không tự gán vào byte.
-```
-
-Cả ba đều có ý định tăng giá trị lên 1, nhưng Java áp dụng **binary numeric promotion** cho phép cộng thông thường, trong khi phép tăng `++` và phép gán kết hợp `+=` có **quy tắc chuyển đổi ngược vào kiểu biến**. Nắm được sự khác biệt này giúp giải thích lỗi `possible lossy conversion from int to byte`, tránh mất dữ liệu do thu hẹp kiểu ngầm và hiểu đúng giá trị của biểu thức tiền tố/hậu tố.
-
-Bài học thuộc nhóm **Nâng kiểu biểu thức** của **Java core – numbers**, tập trung vào kiểu của phép tăng/giảm `++`/`--` so với phép cộng rồi gán, cũng như các hệ quả với `byte`, `short`, `char`, `int`, `long` và wrapper.
-
-## 1. Nhìn nhanh: phép tính và phép gán là hai giai đoạn
-
-Xét:
+In Java, the three seemingly equivalent ways of writing below **do not share the same type rules**:
 
 ```java
 byte b = 10;
-int sum = b + 1;    // 11, phép cộng có kiểu int.
+b++;        // Valid.
+b += 1;     // Valid.
+// b = b + 1; // Compile error: b + 1 has type int, cannot auto-assign to byte.
 ```
 
-Dù `b` lưu một `byte` và giá trị 11 nằm trong miền `byte`, **biểu thức `b + 1` có kiểu `int`**. Lý do là quy tắc *binary numeric promotion* của toán tử `+`: với các kiểu `byte`, `short`, `char`, toán hạng thường được nâng thành `int` để thực hiện phép tính.
+All three intend to increase the value by 1, but Java applies **binary numeric promotion** to ordinary addition, whereas the increment operator `++` and compound assignment `+=` have **rules that convert back into the variable's type**. Understanding this distinction explains the `possible lossy conversion from int to byte` error, avoids data loss from implicit narrowing, and clarifies the value of prefix/postfix expressions.
 
-Do đó:
+This lesson belongs to the **Expression type promotion** group of **Java core – numbers**, focusing on the typing of increment/decrement `++`/`--` compared to add-and-assign, as well as the implications for `byte`, `short`, `char`, `int`, `long`, and wrappers.
+
+## 1. Quick look: computation and assignment are two phases
+
+Consider:
 
 ```java
 byte b = 10;
-// b = b + 1; // Không biên dịch: biểu thức int không được tự thu hẹp về byte.
-b = (byte) (b + 1); // Hợp lệ, có cast tường minh.
+int sum = b + 1;    // 11, addition has type int.
 ```
 
-Trong khi đó:
+Even though `b` holds a `byte` and the value 11 fits in the `byte` range, **the expression `b + 1` has type `int`**. The reason is the *binary numeric promotion* rule of the `+` operator: for `byte`, `short`, and `char`, operands are typically promoted to `int` to perform the calculation.
+
+Therefore:
 
 ```java
 byte b = 10;
-b++;     // Hợp lệ, cập nhật byte.
-++b;     // Hợp lệ, cập nhật byte.
-b += 1;  // Hợp lệ, cập nhật byte.
+// b = b + 1; // Does not compile: int expression is not auto-narrowed to byte.
+b = (byte) (b + 1); // Valid, with explicit cast.
 ```
 
-Bảng tóm tắt:
+Meanwhile:
 
-| Cú pháp | Kiểu phép toán trung gian | Kiểu của biểu thức | Ghi giá trị về biến kiểu hẹp? |
+```java
+byte b = 10;
+b++;     // Valid, updates byte.
+++b;     // Valid, updates byte.
+b += 1;  // Valid, updates byte.
+```
+
+Summary table:
+
+| Syntax | Intermediate operation type | Type of the expression | Writes back to narrow variable? |
 | --- | --- | --- | --- |
-| `b + 1` với `b` là `byte` | `int` | `int` | Chưa gán |
-| `b = b + 1` | `int` | Biểu thức phép gán có kiểu `byte` **nếu hợp lệ** | Không biên dịch nếu không cast |
-| `b = (byte)(b + 1)` | `int`, sau đó ép về `byte` | `byte` | Có, cast tường minh |
-| `b += 1` | Tính tổng theo quy tắc số học rồi chuyển về `byte` | `byte` | Có, chuyển kiểu ngầm theo compound assignment |
-| `b++` | Tăng giá trị và chuyển về kiểu của biến | `byte` | Có, hậu tố trả **giá trị cũ** |
-| `++b` | Tăng giá trị và chuyển về kiểu của biến | `byte` | Có, tiền tố trả **giá trị mới** |
+| `b + 1` where `b` is `byte` | `int` | `int` | Not assigned |
+| `b = b + 1` | `int` | Assignment expression has type `byte` **if valid** | Does not compile without a cast |
+| `b = (byte)(b + 1)` | `int`, then cast to `byte` | `byte` | Yes, explicit cast |
+| `b += 1` | Computes sum per arithmetic rules then converts to `byte` | `byte` | Yes, implicit conversion via compound assignment |
+| `b++` | Increments value and converts back to variable's type | `byte` | Yes, postfix returns **old value** |
+| `++b` | Increments value and converts back to variable's type | `byte` | Yes, prefix returns **new value** |
 
-Ghi chú về bảng: phép `b = b + 1` là mã không hợp lệ với biến `byte` thông thường; ô “kiểu của biểu thức phép gán nếu hợp lệ” chỉ mô tả quy tắc chung của toán tử gán, không có nghĩa Java cho phép phép gán ấy. Cũng cần phân biệt **kiểu của biểu thức `++b`** là `byte` với **kiểu số học trung gian** có thể được nâng lên trước khi chuyển trở lại `byte`.
+Note on the table: `b = b + 1` is invalid code for an ordinary `byte` variable; the cell "assignment expression type if valid" only describes the general rule for the assignment operator, not that Java permits that assignment. Also distinguish the **type of the expression `++b`** (`byte`) from the **intermediate arithmetic type** that may be promoted before converting back to `byte`.
 
-## 2. Vì sao `byte + 1` có kiểu int?
+## 2. Why does `byte + 1` have type int?
 
-Java định nghĩa nhóm phép toán số học nhị phân gồm `+`, `-`, `*`, `/`, `%`. Khi chúng áp dụng lên các toán hạng nguyên thủy, Java thực hiện *binary numeric promotion*:
+Java defines the binary arithmetic operators `+`, `-`, `*`, `/`, and `%`. When applied to primitive operands, Java performs *binary numeric promotion*:
 
-1. Nếu một toán hạng là `double`, phép toán theo `double`.
-2. Nếu không, nhưng có một toán hạng là `float`, phép toán theo `float`.
-3. Nếu không, nhưng có một toán hạng là `long`, phép toán theo `long`.
-4. Nếu không, phép toán theo **`int`**, kể cả khi cả hai toán hạng ban đầu là `byte`, `short` hoặc `char`.
+1. If one operand is `double`, the operation uses `double`.
+2. Otherwise, if one operand is `float`, the operation uses `float`.
+3. Otherwise, if one operand is `long`, the operation uses `long`.
+4. Otherwise, the operation uses **`int`**, even when both original operands are `byte`, `short`, or `char`.
 
-Ví dụ:
+Example:
 
 ```java
 byte a = 10;
 byte b = 20;
-int sum = a + b;       // Hợp lệ.
-// byte wrong = a + b; // Không biên dịch.
+int sum = a + b;       // Valid.
+// byte wrong = a + b; // Does not compile.
 
 short s = 1;
-int nextShort = s + 1; // Kiểu biểu thức: int.
+int nextShort = s + 1; // Expression type: int.
 
 char ch = 'A';
-int nextCode = ch + 1; // 66, kiểu int.
+int nextCode = ch + 1; // 66, type int.
 
 long l = 5L;
-long nextLong = l + 1; // Kiểu long do có một toán hạng long.
+long nextLong = l + 1; // Type long because one operand is long.
 ```
 
-Lỗi `byte wrong = a + b` là lỗi **kiểu tĩnh tại lúc biên dịch**. Không có một phép “thử cộng trước rồi xem kết quả có vừa byte không” đối với biểu thức có biến thông thường. Ngay cả khi tại thời điểm chạy `a=10` và `b=20`, biểu thức vẫn được Java định kiểu là `int`.
+The error in `byte wrong = a + b` is a **compile-time static type error**. There is no "try adding first and see if the result fits in byte" step for expressions involving ordinary variables. Even if at runtime `a=10` and `b=20`, the expression is still typed as `int` by Java.
 
-### Ngoại lệ cần biết: hằng số compile-time
+### Important exception: compile-time constants
 
-Không được phát biểu quá rộng rằng “không thể gán bất kỳ biểu thức cộng có kiểu int nào cho byte”. Java có quy tắc **thu hẹp hằng số khi khởi tạo hoặc gán**, nếu biểu thức là *constant expression* và giá trị nằm trong miền kiểu đích:
+Do not overgeneralize by saying "no addition expression of type int can ever be assigned to byte". Java has a **constant narrowing rule during initialization or assignment** if the expression is a *constant expression* and its value lies within the target type's range:
 
 ```java
-byte a = 10 + 20; // Hợp lệ: hằng số 30, vừa byte.
+byte a = 10 + 20; // Valid: constant 30, fits in byte.
 
 final byte x = 10;
-byte y = x + 20;  // Hợp lệ: x là constant variable, tổng 30 là constant expression.
+byte y = x + 20;  // Valid: x is a constant variable, sum 30 is a constant expression.
 ```
 
-Nhưng:
+However:
 
 ```java
 byte a = 10;
-// a = a + 20;    // Không biên dịch: a không phải constant variable.
+// a = a + 20;    // Does not compile: a is not a constant variable.
 ```
 
-Nếu một hằng số nằm ngoài miền, vẫn bị từ chối:
+If a constant falls outside the range, it is still rejected:
 
 ```java
-// byte invalid = 100 + 100; // Không biên dịch: 200 vượt Byte.MAX_VALUE.
+// byte invalid = 100 + 100; // Does not compile: 200 exceeds Byte.MAX_VALUE.
 ```
 
-Quy tắc hằng số này khác với phép cập nhật giá trị của **một biến có thể thay đổi**. `final byte x` không thể dùng `x++` hoặc `x += 1`.
+This constant rule is distinct from updating the value of **a mutable variable**. A `final byte x` cannot use `x++` or `x += 1`.
 
-## 3. Cơ chế của ++ và --: tăng giảm và lưu ngược kiểu biến
+## 3. Mechanism of ++ and --: increment/decrement and store back in variable type
 
-Hai toán tử `++` và `--` tác động trực tiếp lên **biến** có kiểu số hợp lệ. Chúng cập nhật giá trị biến thêm hoặc bớt 1, thực hiện chuyển đổi cần thiết để lưu trở lại đúng kiểu biến.
+The two operators `++` and `--` act directly on a **variable** of a valid numeric type. They update the variable's value by adding or subtracting 1, performing the necessary conversion to store it back in the exact type of the variable.
 
 ```java
 byte b = 10;
-b++; // b = 11, vẫn là byte.
+b++; // b = 11, still byte.
 
 short s = 10;
---s; // s = 9, vẫn là short.
+--s; // s = 9, still short.
 
 char c = 'A';
-++c; // c là 'B', vẫn là char.
+++c; // c is 'B', still char.
 ```
 
-Với các kiểu nhỏ như `byte`, `short` và `char`, phép tính trung gian được nâng kiểu theo quy tắc số học phù hợp, rồi giá trị được chuyển về kiểu của biến. Đây là nguyên nhân `b++` hợp lệ dù `b = b + 1` không hợp lệ.
+For small types like `byte`, `short`, and `char`, the intermediate calculation is promoted under the appropriate arithmetic rules, and then the value is converted back to the variable's type. This is why `b++` is valid even though `b = b + 1` is not.
 
-**Kiểu của cả biểu thức tiền tố và hậu tố là kiểu của biến**. Vì vậy, nếu `b` có kiểu `byte`, thì `++b` và `b++` có kiểu `byte`. Khi biểu thức ấy tiếp tục tham gia một phép toán nhị phân khác, nó **lại có thể được nâng lên `int`** ở bước tiếp theo.
+**The type of both prefix and postfix expressions is the type of the variable**. Thus, if `b` has type `byte`, then `++b` and `b++` have type `byte`. When that expression subsequently participates in another binary operation, it **can again be promoted to `int`** in the next step.
 
-Ví dụ:
+Example:
 
 ```java
 byte b = 10;
-byte afterIncrement = ++b; // Hợp lệ: ++b có kiểu byte.
-int computed = b++ + 1;    // Phép cộng ngoài cùng có kiểu int.
-// byte other = b++ + 1;   // Không biên dịch nếu không cast.
+byte afterIncrement = ++b; // Valid: ++b has type byte.
+int computed = b++ + 1;    // Outermost addition has type int.
+// byte other = b++ + 1;   // Does not compile without a cast.
 ```
 
-Ở đây, cú pháp `++` không “tắt mọi quy tắc nâng kiểu”. Nó chỉ có quy tắc **riêng cho biểu thức tăng/giảm và phép cập nhật biến**.
+Here, the `++` syntax does not "turn off all promotion rules". It simply has **its own rules for increment/decrement expressions and variable updates**.
 
-### Biến nào có thể được tăng hoặc giảm?
+### Which variables can be incremented or decremented?
 
-Toán hạng của `++`/`--` phải là một biến kiểu số có thể ghi được. Không thể áp dụng cho literal, kết quả phép cộng, biến `final`, hoặc `boolean`:
+The operand of `++`/`--` must be a writable numeric variable. They cannot be applied to literals, addition results, `final` variables, or `boolean`:
 
 ```java
 int i = 10;
-i++; // Hợp lệ.
+i++; // Valid.
 
-// 10++;      // Sai: literal không phải biến.
-// (i + 1)++; // Sai: kết quả cộng không phải biến.
-// boolean flag = false; flag++; // Sai: boolean không phải kiểu số.
+// 10++;      // Invalid: literal is not a variable.
+// (i + 1)++; // Invalid: addition result is not a variable.
+// boolean flag = false; flag++; // Invalid: boolean is not a numeric type.
 
 final int fixed = 5;
-// fixed++;   // Sai: không được cập nhật biến final.
+// fixed++;   // Invalid: cannot update a final variable.
 ```
 
-Một phần tử mảng, field của object hoặc biến cục bộ có thể dùng `++` nếu thỏa điều kiện là biến có thể gán và kiểu phù hợp.
+An array element, object field, or local variable can use `++` if it satisfies the condition of being an assignable variable of an appropriate type.
 
-## 4. Tiền tố và hậu tố khác giá trị biểu thức, không khác kiểu biến
+## 4. Prefix and postfix differ in expression value, not variable type
 
-Cả `++x` và `x++` đều làm biến `x` tăng 1. Điểm khác nhau là **giá trị biểu thức**:
+Both `++x` and `x++` increase variable `x` by 1. The difference lies in the **expression value**:
 
-- `++x` (*prefix*) cập nhật trước rồi cho giá trị mới.
-- `x++` (*postfix*) cho giá trị cũ, sau đó biến vẫn được cập nhật.
-- Với `x` kiểu `byte`, **cả hai biểu thức có kiểu `byte`**, không phải `int` chỉ vì đang thực hiện cộng thêm 1.
+- `++x` (*prefix*) updates first and then yields the new value.
+- `x++` (*postfix*) yields the old value, while the variable is still updated afterward.
+- With `x` of type `byte`, **both expressions have type `byte`**, not `int` just because 1 is being added.
 
 ```java
 byte a = 10;
@@ -173,18 +173,18 @@ byte b = 10;
 byte newValue = ++b; // newValue = 11, b = 11.
 ```
 
-Hậu tố **không có nghĩa phép tăng bị hoãn đến dòng tiếp theo**: sau khi biểu thức hậu tố đã được đánh giá, biến đã được cập nhật. Chỉ có **giá trị biểu thức được trả ra** là giá trị cũ.
+Postfix **does not mean the increment is delayed until the next line**: once the postfix expression has been evaluated, the variable has already been updated. Only the **returned expression value** is the old value.
 
-Ví dụ:
+Example:
 
 ```java
 int n = 5;
 int result = n++ + 10;
-// result = 15 vì n++ tạo giá trị 5.
-// Sau biểu thức, n = 6.
+// result = 15 because n++ produces value 5.
+// After the expression, n = 6.
 ```
 
-Ngược lại:
+Conversely:
 
 ```java
 int n = 5;
@@ -192,35 +192,35 @@ int result = ++n + 10;
 // result = 16; n = 6.
 ```
 
-Trong ứng dụng thực tế, tránh viết biểu thức lồng nhiều `++`/`--` khi không cần: nó làm người đọc khó theo dõi thứ tự đánh giá dù Java quy định thứ tự cụ thể. Một câu lệnh tăng riêng thường rõ ràng hơn.
+In real-world applications, avoid nesting multiple `++`/`--` in one expression unnecessarily: it makes evaluation order hard for readers to follow even though Java defines a strict order. A separate increment statement is usually clearer.
 
-## 5. Phép gán kết hợp += khác phép cộng rồi gán
+## 5. Compound assignment += differs from add-and-assign
 
-Cú pháp:
+The syntax:
 
 ```java
 byte b = 10;
 b += 1;
 ```
 
-có thể hiểu gần với:
+can be understood approximately as:
 
 ```java
 b = (byte) (b + 1);
 ```
 
-Quy tắc chung: biểu thức `E1 op= E2` tương đương về ý nghĩa kiểu với `E1 = (T)((E1) op (E2))`, trong đó `T` là kiểu của `E1`. **Khác biệt quan trọng:** toán hạng trái `E1` chỉ được đánh giá **một lần** trong phép gán kết hợp. Quy tắc này áp dụng cho nhiều toán tử gán kết hợp, không riêng `+=`.
+General rule: the expression `E1 op= E2` is equivalent in typing semantics to `E1 = (T)((E1) op (E2))`, where `T` is the type of `E1`. **Important difference:** the left operand `E1` is evaluated **only once** in compound assignment. This rule applies to many compound assignment operators, not just `+=`.
 
-Với `byte`:
+With `byte`:
 
 ```java
 byte b = 10;
-b += 1;     // Hợp lệ: 11.
-b = (byte) (b + 1); // Hợp lệ: 12.
-// b = b + 1;       // Không biên dịch.
+b += 1;     // Valid: 11.
+b = (byte) (b + 1); // Valid: 12.
+// b = b + 1;       // Does not compile.
 ```
 
-Đối với giá trị và biến đơn giản, `b++` và `b += 1` thường cùng tăng 1 và lưu về kiểu `byte`. Nhưng khi đặt bên trong biểu thức khác, **`b++` trả giá trị cũ**, còn **`b += 1` trả giá trị đã cập nhật**, tương tự `++b` ở khía cạnh này:
+For simple values and variables, `b++` and `b += 1` both increment by 1 and store back into `byte`. However, when placed inside another expression, **`b++` returns the old value**, whereas **`b += 1` returns the updated value**, similar to `++b` in that respect:
 
 ```java
 int x = 5;
@@ -233,20 +233,20 @@ int z = 5;
 int fromPrefix = ++z; // fromPrefix=6, z=6
 ```
 
-### Compound assignment có thể thu hẹp kiểu ngầm
+### Compound assignment can implicitly narrow types
 
 ```java
 byte b = 1;
-b += 1000; // Hợp lệ về cú pháp, nhưng mất thông tin: kết quả -23.
+b += 1000; // Syntactically valid, but loses information: result -23.
 ```
 
-Ở đây `1 + 1000 = 1001`; khi chuyển về `byte` 8 bit, giữ 8 bit thấp: `1001 mod 256 = 233`; diễn giải có dấu của byte là `233 - 256 = -23`. Không có `ArithmeticException` tự động.
+Here `1 + 1000 = 1001`; when converted to 8-bit `byte`, keeping the low 8 bits gives `1001 mod 256 = 233`; signed byte interpretation is `233 - 256 = -23`. No `ArithmeticException` is thrown automatically.
 
-Điểm nguy hiểm là **compiler chấp nhận cú pháp, không bảo đảm kết quả nằm trong miền nghiệp vụ**. Ngay cả các phép gán kết hợp với kiểu toán hạng phải mở rộng hơn như `b += 1L` cũng có thể làm phép tính rồi thu hẹp về `byte`. Hãy dùng kiểu đủ rộng và kiểm tra biên nếu không được mất thông tin.
+The danger is that **the compiler accepts the syntax without guaranteeing the result stays within business bounds**. Even compound assignments with wider right-hand operand types like `b += 1L` can perform the operation and narrow back to `byte`. Use a wide enough type and check bounds if information loss is unacceptable.
 
-## 6. Tràn kiểu nhỏ với ++ và --
+## 6. Small-type overflow with ++ and --
 
-Vì kết quả cuối phải lưu lại vào kiểu biến, việc tăng giảm tại ranh giới có thể **quay vòng**:
+Because the final result must be stored back into the variable's type, incrementing/decrementing at boundaries can **wrap around**:
 
 ```java
 byte b = Byte.MAX_VALUE;  // 127
@@ -259,71 +259,71 @@ char c = Character.MAX_VALUE; // '\uFFFF'
 c++;                          // '\u0000'
 ```
 
-Với `char`, cần nhớ đây là **đơn vị mã UTF-16 16 bit không dấu** trong Java, có phạm vi `0..65535`. Có thể tăng/giảm `char` theo số học nhưng **không nên sử dụng cách đó như một phương pháp duyệt Unicode code point**: ký tự ngoài BMP dùng surrogate pair, và tăng từng `char` không tương đương tăng từng ký tự Unicode hoàn chỉnh.
+For `char`, remember it is a **16-bit unsigned UTF-16 code unit** in Java, with range `0..65535`. You can increment/decrement `char` arithmetically, but **do not use that as a way to iterate over Unicode code points**: characters outside the BMP use surrogate pairs, and incrementing `char` by `char` is not equivalent to stepping through complete Unicode characters.
 
-Một biểu thức như:
+An expression such as:
 
 ```java
 byte b = 127;
-int sum = b + 1; // 128, không tràn ở phép cộng int.
-b++;             // b trở thành -128 sau khi chuyển về byte.
+int sum = b + 1; // 128, does not overflow in int addition.
+b++;             // b becomes -128 after converting back to byte.
 ```
 
-cho thấy rõ sự khác biệt giữa **giá trị int từ phép cộng** và **giá trị đã gán lại vào byte**.
+clearly shows the difference between the **`int` value from addition** and the **value stored back into `byte`**.
 
-Khi giá trị 128 có ý nghĩa hợp lệ trong bài toán, hãy **đổi kiểu lưu trữ sang `int`** thay vì cố tăng biến `byte`.
+When 128 is a valid meaningful value in your problem, **change the storage type to `int`** rather than forcing a `byte` variable to increment.
 
-## 7. Với int và long: khác biệt cú pháp vẫn tồn tại, nhưng kiểu cộng thường đủ lớn hơn
+## 7. With int and long: syntax differences still exist, though addition type is usually wide enough
 
-Với `int`:
+With `int`:
 
 ```java
 int n = 10;
-n = n + 1; // Hợp lệ, vế phải kiểu int.
-n += 1;    // Hợp lệ.
-n++;       // Hợp lệ.
-++n;       // Hợp lệ.
+n = n + 1; // Valid, right-hand side has type int.
+n += 1;    // Valid.
+n++;       // Valid.
+++n;       // Valid.
 ```
 
-Với `long`, dùng `long` trong biểu thức số học có `long`:
+With `long`, `long` is used in arithmetic expressions containing `long`:
 
 ```java
 long n = 10L;
-n = n + 1; // Hợp lệ: long + int được nâng thành long.
+n = n + 1; // Valid: long + int is promoted to long.
 n += 1;
 n++;
 ```
 
-Nhưng **`int`/`long` vẫn có thể tràn**:
+However, **`int`/`long` can still overflow**:
 
 ```java
 int n = Integer.MAX_VALUE;
-n++; // Integer.MIN_VALUE, không tự ném exception.
+n++; // Integer.MIN_VALUE, does not throw an exception automatically.
 ```
 
-Sự khác biệt kiểu dễ thấy nhất với `byte`, `short`, `char` vì kết quả `+` là `int`. Với `int` hoặc `long`, cả ba cách cập nhật thường cùng hợp lệ, nhưng cách nhận **giá trị cũ/mới** và cách kiểm tra tràn vẫn khác nhau.
+The type difference is most noticeable with `byte`, `short`, and `char` because the result of `+` is `int`. With `int` or `long`, all three update forms usually compile, yet how they yield **old/new values** and how overflow is checked still matter.
 
-Nếu cần phát hiện tràn `int` hoặc `long` thay vì cho phép quay vòng, sử dụng các phương thức checked:
+If you need to detect `int` or `long` overflow instead of allowing wrap-around, use the checked methods:
 
 ```java
-int next = Math.incrementExact(n); // Ném ArithmeticException nếu n == Integer.MAX_VALUE.
-int previous = Math.decrementExact(n); // Kiểm tra tràn khi giảm.
+int next = Math.incrementExact(n); // Throws ArithmeticException if n == Integer.MAX_VALUE.
+int previous = Math.decrementExact(n); // Checks overflow when decrementing.
 ```
 
-Phải **gán lại** kết quả nếu muốn cập nhật biến: `n = Math.incrementExact(n)`. Khác `n++`, lời gọi `Math.incrementExact(n)` riêng lẻ không sửa `n`.
+You must **reassign** the result if you want to update the variable: `n = Math.incrementExact(n)`. Unlike `n++`, calling `Math.incrementExact(n)` alone does not modify `n`.
 
-## 8. Có thể dùng Math.incrementExact cho byte hay short không?
+## 8. Can Math.incrementExact be used for byte or short?
 
-`Math.incrementExact` có overload cho `int` và `long`, không có overload trả `byte` hoặc `short`. Nếu gọi:
+`Math.incrementExact` has overloads for `int` and `long`, with no overload returning `byte` or `short`. If you call:
 
 ```java
 byte b = 127;
-int result = Math.incrementExact(b); // Trả 128, KHÔNG ném exception.
+int result = Math.incrementExact(b); // Returns 128, DOES NOT throw an exception.
 ```
 
-Java nâng `b` lên `int` trước khi gọi phương thức. Giá trị 128 **vẫn nằm trong miền `int`**, nên `Math.incrementExact` không coi đây là tràn. Nó không biết bạn định gán lại kết quả vào `byte`.
+Java promotes `b` to `int` before calling the method. The value 128 **still fits within `int`**, so `Math.incrementExact` does not treat it as overflow. It has no way of knowing you intend to assign the result back to `byte`.
 
-Muốn tăng `byte` **có kiểm tra đúng miền byte**, có thể viết:
+To increment a `byte` **with proper byte-range checking**, you can write:
 
 ```java
 static byte incrementByteExact(byte value) {
@@ -335,46 +335,46 @@ static byte incrementByteExact(byte value) {
 }
 ```
 
-Nếu là phép giảm, cần kiểm tra `next < Byte.MIN_VALUE` và cân nhắc sử dụng `Math.decrementExact`. Với `short`, thay miền kiểm tra bằng `Short.MIN_VALUE`/`Short.MAX_VALUE`. Với `char`, kiểm tra trong `0..Character.MAX_VALUE`.
+For decrementing, check `next < Byte.MIN_VALUE` and consider using `Math.decrementExact`. For `short`, replace the range checks with `Short.MIN_VALUE`/`Short.MAX_VALUE`. For `char`, check within `0..Character.MAX_VALUE`.
 
-Thực tế, nhiều bài toán nên lưu số lượng tăng giảm bằng `int` ngay từ đầu. Sử dụng `byte`/`short` cho bộ đếm chỉ vì giá trị lúc đầu nhỏ thường làm code khó hiểu và dễ phát sinh lỗi thu hẹp kiểu.
+In practice, many problems should store incremented/decremented counts in `int` from the start. Using `byte`/`short` for counters merely because initial values are small often makes code harder to read and prone to narrowing bugs.
 
-## 9. Wrapper: ++ với Byte, Short, Integer có thể unbox/box
+## 9. Wrappers: ++ with Byte, Short, Integer can unbox/box
 
-Java cho phép tăng/giảm biến kiểu wrapper số như `Byte`, `Short`, `Integer` hoặc `Long`:
+Java allows incrementing/decrementing numeric wrapper variables such as `Byte`, `Short`, `Integer`, or `Long`:
 
 ```java
 Byte boxed = 10;
-boxed++; // Unbox, cộng 1, chuyển kiểu/box lại; boxed giữ giá trị 11.
+boxed++; // Unbox, add 1, convert type/box back; boxed holds value 11.
 ```
 
-Wrapper là kiểu đối tượng có thể `null`. Khi toán tử cần lấy giá trị số bên trong, Java phải **unbox**. Do đó:
+Wrappers are object types that can be `null`. When an operator needs the underlying numeric value, Java must **unbox**. Therefore:
 
 ```java
 Integer count = null;
-// count++; // Ném NullPointerException khi chạy vì unbox null.
+// count++; // Throws NullPointerException at runtime due to unboxing null.
 ```
 
-Không nhầm lẫn lỗi này với lỗi biên số học. `Integer` wrapper không tự biến `++` thành phép tăng checked, và `Byte` wrapper vẫn có thể quay vòng:
+Do not confuse this with an arithmetic boundary error. The `Integer` wrapper does not make `++` a checked increment, and a `Byte` wrapper can still wrap around:
 
 ```java
 Byte b = Byte.MAX_VALUE;
-b++; // b là -128 sau khi box lại.
+b++; // b is -128 after boxing back.
 ```
 
-Với collection/DTO có wrapper nullable, hãy xác định cách xử lý `null` trước khi tăng và không dùng `++` mù quáng. Nếu giá trị bắt buộc luôn có, primitive thường thể hiện rõ hợp đồng hơn.
+With collections/DTOs containing nullable wrappers, decide how to handle `null` before incrementing and avoid using `++` blindly. If a value must always be present, a primitive usually expresses that contract more clearly.
 
-## 10. Thứ tự đánh giá và side effect: không lặp tính toán khi thay bằng phép gán
+## 10. Evaluation order and side effects: do not duplicate evaluation when rewriting as assignment
 
-Với biến đơn giản, `b += 1` gần với `b = (byte)(b + 1)`. Nhưng khi vế trái là một biểu thức có side effect, thay thế máy móc có thể khiến nó bị đánh giá **hai lần**:
+For a simple variable, `b += 1` is close to `b = (byte)(b + 1)`. But when the left-hand side is an expression with side effects, a mechanical replacement can cause it to be evaluated **twice**:
 
 ```java
 int[] values = {10, 20, 30};
 int i = 0;
-values[i++] += 1; // Chỉ tăng i một lần; values[0] thành 11.
+values[i++] += 1; // Increments i only once; values[0] becomes 11.
 ```
 
-Nếu đổi một cách ngây thơ thành:
+If naively rewritten as:
 
 ```java
 int[] values = {10, 20, 30};
@@ -382,11 +382,11 @@ int i = 0;
 values[i++] = values[i++] + 1;
 ```
 
-thì hai lần `i++` làm chỉ số được đánh giá khác nhau: giá trị ở phía đọc có thể đến từ phần tử kế tiếp. Không còn tương đương.
+then the two occurrences of `i++` cause the index to be evaluated differently: the value on the read side can come from the next element. It is no longer equivalent.
 
-Chính vì vậy, trong đặc tả Java, phép gán kết hợp được mô tả bằng công thức tương đương **kèm điều kiện vế trái chỉ được đánh giá một lần**. Nếu cần refactor một biểu thức phức tạp, hãy tách vế trái hoặc lưu chỉ số/đối tượng vào biến cục bộ rõ ràng.
+For this reason, in the Java specification, compound assignment is described by the equivalence formula **with the condition that the left-hand side is evaluated only once**. If you need to refactor a complex expression, extract the left-hand target or store the index/object in a clear local variable.
 
-Ví dụ dễ đọc:
+Readable example:
 
 ```java
 int[] values = {10, 20, 30};
@@ -395,11 +395,11 @@ values[index] += 1;
 index++;
 ```
 
-`++` với phần tử mảng hay field cũng đánh giá địa chỉ/biến đích theo quy tắc ngôn ngữ; không nên tùy tiện thay thế bằng biểu thức có nhiều lần đánh giá cùng một vế trái.
+`++` on an array element or field also evaluates the target address/variable once per language rules; never casually replace it with an expression that evaluates the same left-hand side multiple times.
 
-## 11. Chương trình Java 17+ chạy độc lập
+## 11. Standalone Java 17+ program
 
-Lưu thành **`IncrementTypeDemo.java`**:
+Save as **`IncrementTypeDemo.java`**:
 
 ```java
 public class IncrementTypeDemo {
@@ -466,14 +466,14 @@ public class IncrementTypeDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 hoặc mới hơn:
+Compile/run with JDK 17 or newer:
 
 ```bash
 javac IncrementTypeDemo.java
 java IncrementTypeDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 addition-int=11
@@ -494,33 +494,33 @@ byte-exact=overflow
 boxed-byte-wrap=-128
 ```
 
-**Phân tích quan trọng:**
+**Key analysis:**
 
-- `b + 1` tạo biểu thức `int`, nhưng `b++`, `++b`, `b += 1` cập nhật được `byte`.
-- `b++` trả 10 rồi cập nhật thành 11; `++b` cập nhật từ 11 lên 12 và trả 12.
-- Tăng `Byte.MAX_VALUE` trở thành `Byte.MIN_VALUE`, giảm `Short.MIN_VALUE` thành `Short.MAX_VALUE`; tăng `Character.MAX_VALUE` quay về 0.
-- `x += 1000` được phép nhưng chuyển kết quả về `byte` nên trả -23.
-- `Math.incrementExact((int) Byte.MAX_VALUE)` trả 128 vì vẫn vừa `int`. Hàm `incrementByteExact` kiểm tra giới hạn `byte` mới thực sự phát hiện lỗi.
-- `Byte` wrapper cũng quay vòng và box lại giá trị mới.
+- `b + 1` produces an `int` expression, whereas `b++`, `++b`, and `b += 1` can update `byte`.
+- `b++` returns 10 and updates to 11; `++b` updates from 11 to 12 and returns 12.
+- Incrementing `Byte.MAX_VALUE` becomes `Byte.MIN_VALUE`, decrementing `Short.MIN_VALUE` becomes `Short.MAX_VALUE`, and incrementing `Character.MAX_VALUE` wraps back to 0.
+- `x += 1000` is permitted, yet converts the result to `byte` and thus gives -23.
+- `Math.incrementExact((int) Byte.MAX_VALUE)` returns 128 because it still fits in `int`. Only `incrementByteExact`, which checks the `byte` limit, actually detects the error.
+- The `Byte` wrapper also wraps around and boxes the new value.
 
-## 12. Lỗi thường gặp và cách tránh
+## 12. Common mistakes and how to avoid them
 
-| Lỗi/nhầm lẫn | Vì sao xảy ra? | Cách xử lý |
+| Mistake/misconception | Why does it happen? | How to handle |
 | --- | --- | --- |
-| `byte b = 1; b = b + 1;` không biên dịch | `b + 1` là `int`; gán `int → byte` không tự động | Dùng `b++`, `b += 1`, cast có chủ ý, hoặc đổi sang `int` |
-| Tưởng `b++` có kiểu `int` | Nhầm kiểu phép tính trung gian với kiểu của biểu thức `++` | `b++` và `++b` có kiểu của biến, ở đây là `byte` |
-| Tưởng `b += 1` có kiểm tra tràn | `+=` có chuyển về kiểu đích, có thể mất bit | Kiểm tra miền hoặc dùng kiểu rộng hơn |
-| Dùng `Math.incrementExact(b)` để kiểm tra overflow byte | `b` được nâng lên `int`; phép tính 127+1 vẫn vừa int | Kiểm tra riêng miền byte trước khi cast |
-| Dùng `x++` khi cần giá trị mới trong biểu thức | Hậu tố trả giá trị cũ | Dùng `++x` hoặc tách câu lệnh tăng và câu lệnh đọc |
-| Dùng `++x` khi cần giá trị trước cập nhật | Tiền tố trả giá trị mới | Dùng `x++` hoặc tách biến cũ |
-| Refactor `array[i++] += 1` thành `array[i++] = array[i++] + 1` | Vế trái bị đánh giá nhiều lần | Dùng `+=` hoặc lưu chỉ số trước khi cập nhật |
-| Tăng một `Byte`/`Integer` có thể null | Unboxing `null` | Kiểm tra null/hợp đồng dữ liệu |
-| Viết bộ đếm bằng `byte` chỉ vì giá trị ban đầu nhỏ | Sớm tràn và khó hiểu khi cộng/gán | Thường chọn `int` cho bộ đếm |
-| Coi quy tắc constant expression áp dụng cho mọi biến | Chỉ hằng số compile-time phù hợp miền mới được thu hẹp ngầm đặc biệt | Phân biệt literal/`final` constant và biến cập nhật runtime |
+| `byte b = 1; b = b + 1;` does not compile | `b + 1` is `int`; `int → byte` assignment is not automatic | Use `b++`, `b += 1`, an intentional cast, or switch to `int` |
+| Thinking `b++` has type `int` | Confusing the intermediate operation type with the `++` expression type | `b++` and `++b` have the variable's type, here `byte` |
+| Thinking `b += 1` checks for overflow | `+=` converts back to target type, which can lose bits | Check range or use a wider type |
+| Using `Math.incrementExact(b)` to check byte overflow | `b` is promoted to `int`; 127+1 still fits in int | Check byte bounds explicitly before casting |
+| Using `x++` when the new value is needed in the expression | Postfix returns the old value | Use `++x` or separate the increment and read statements |
+| Using `++x` when the value before update is needed | Prefix returns the new value | Use `x++` or keep a separate old-value variable |
+| Refactoring `array[i++] += 1` to `array[i++] = array[i++] + 1` | Left-hand side evaluated multiple times | Use `+=` or save the index before updating |
+| Incrementing a nullable `Byte`/`Integer` | Unboxing `null` | Check for null / enforce data contract |
+| Writing a counter as `byte` just because initial value is small | Overflows early and causes confusing add/assign errors | Usually choose `int` for counters |
+| Assuming the constant expression rule applies to any variable | Only compile-time constants within range get special implicit narrowing | Distinguish literal/`final` constants from runtime-updated variables |
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-check exercises
 
-**Bài 1 — Dự đoán lỗi biên dịch.** Xác định dòng nào hợp lệ, lý do và kiểu biểu thức:
+**Exercise 1 — Predict compile errors.** Identify which lines are valid, the reason, and the expression type:
 
 ```java
 byte b = 5;
@@ -532,9 +532,9 @@ b += 1;
 b = (byte) (b + 1);
 ```
 
-Giải thích vì sao `b + 1` là `int`, còn `++b`/`b++` là `byte`.
+Explain why `b + 1` is `int`, while `++b`/`b++` are `byte`.
 
-**Bài 2 — Giá trị cũ và mới.** Dự đoán `a`, `b`, `x`:
+**Exercise 2 — Old and new values.** Predict `a`, `b`, `x`:
 
 ```java
 int x = 10;
@@ -542,28 +542,28 @@ int a = x++;
 int b = ++x;
 ```
 
-Đáp án: `a=10`, `b=12`, `x=12`.
+Answer: `a=10`, `b=12`, `x=12`.
 
-**Bài 3 — Tràn sau phép tăng.** Cho `byte b = 127`, tính kết quả của `b++` và `b += 1`. Vì sao không ném ngoại lệ? Viết phiên bản có kiểm tra để fail fast.
+**Exercise 3 — Overflow after increment.** Given `byte b = 127`, compute the result of `b++` and `b += 1`. Why is no exception thrown? Write a checked version to fail fast.
 
-**Bài 4 — Kiểu nhỏ và hằng số.** Tại sao `byte b = 1 + 2;` hợp lệ trong khi `byte b = 1; b = b + 2;` không hợp lệ? Hãy thử `final byte x = 5; byte y = x + 1;` và `final byte x = 120; byte y = x + 20;`.
+**Exercise 4 — Small types and constants.** Why is `byte b = 1 + 2;` valid while `byte b = 1; b = b + 2;` is invalid? Test `final byte x = 5; byte y = x + 1;` and `final byte x = 120; byte y = x + 20;`.
 
-**Bài 5 — char và Unicode.** Giải thích `char c = Character.MAX_VALUE; c++;`. Vì sao không nên dùng tăng `char` để duyệt mọi ký tự Unicode ngoài BMP?
+**Exercise 5 — char and Unicode.** Explain `char c = Character.MAX_VALUE; c++;`. Why should you not increment `char` to iterate over all Unicode characters outside the BMP?
 
-**Bài 6 — Đánh giá vế trái một lần.** So sánh side effect của `array[i++] += 1` với `array[i++] = array[i++] + 1`. Hãy biến đổi code để giữ semantics mà vẫn dễ đọc.
+**Exercise 6 — Evaluate left-hand side once.** Compare the side effects of `array[i++] += 1` with `array[i++] = array[i++] + 1`. Transform the code to preserve semantics while staying readable.
 
-**Bài 7 — Wrapper nullable.** Với `Integer n = null;`, dự đoán `n++`. Thiết kế validation để phân biệt “chưa nhập” và “đang bằng 0”.
+**Exercise 7 — Nullable wrappers.** Given `Integer n = null;`, predict `n++`. Design validation to distinguish "not entered" from "currently 0".
 
-**Bài 8 — Kiểm tra byte.** Viết `decrementByteExact(byte value)` phát hiện `Byte.MIN_VALUE`; kiểm thử `-127`, `-128`, `0`, `127`. Đảm bảo ngoại lệ chỉ xảy ra khi phép giảm không vừa byte.
+**Exercise 8 — Byte range check.** Write `decrementByteExact(byte value)` to detect `Byte.MIN_VALUE`; test `-127`, `-128`, `0`, `127`. Ensure an exception occurs only when decrementing does not fit in byte.
 
-## 14. Ghi nhớ
+## 14. Key takeaways
 
-- **`byte`/`short`/`char` cộng với số nguyên thông thường được nâng lên `int`**. Vì vậy `b = b + 1` với `byte b` thường không biên dịch.
-- **`++b`, `b++`, `b += 1` có thể cập nhật biến kiểu hẹp** nhờ quy tắc chuyển kết quả về kiểu biến.
-- **Kiểu biểu thức `++b` và `b++` là kiểu của biến**, dù bước tính toán trung gian có thể được nâng kiểu.
-- **Hậu tố trả giá trị cũ, tiền tố trả giá trị mới**; cả hai đều cập nhật biến khi được đánh giá.
-- **Compound assignment có chuyển kiểu ngầm và chỉ đánh giá vế trái một lần**. Vì vậy nó không phải luôn tương đương với cách viết vế trái hai lần.
-- **Hợp lệ về kiểu không có nghĩa an toàn trước tràn**: `byte`, `short`, `char`, `int`, `long` đều có giới hạn. `Math.incrementExact` chỉ kiểm tra miền của overload `int`/`long` được chọn, không tự kiểm tra miền byte.
-- Khi bài toán cần giữ kết quả số học thật sự, **dùng kiểu đủ rộng và kiểm tra biên trước khi thu hẹp**; khi yêu cầu là cập nhật biến kiểu nhỏ, hãy nêu rõ chính sách xử lý overflow.
+- **`byte`/`short`/`char` added to an ordinary integer are promoted to `int`**. Thus `b = b + 1` with `byte b` normally does not compile.
+- **`++b`, `b++`, and `b += 1` can update narrow-type variables** thanks to rules converting the result back to the variable's type.
+- **The expression type of `++b` and `b++` is the variable's type**, even though the intermediate computation step may be promoted.
+- **Postfix returns the old value, prefix returns the new value**; both update the variable when evaluated.
+- **Compound assignment performs implicit type conversion and evaluates the left-hand side only once**. Therefore it is not always equivalent to writing the left-hand side twice.
+- **Type validity does not mean overflow safety**: `byte`, `short`, `char`, `int`, and `long` all have limits. `Math.incrementExact` only checks the bounds of the selected `int`/`long` overload, not `byte` bounds automatically.
+- When a problem must preserve true arithmetic results, **use a wide enough type and check bounds before narrowing**; when the requirement is updating a small-type variable, state the overflow handling policy clearly.
 
-Sự khác biệt nằm ở **quy tắc của từng toán tử và kiểu của biểu thức**: phép cộng bình thường áp dụng nâng kiểu số học, còn tăng/giảm và gán kết hợp có quy tắc riêng cho cập nhật biến. Nắm rõ hai bước “tính theo kiểu nào” và “lưu về kiểu nào” là cách phân tích chính xác mọi ví dụ thuộc nhóm này.
+The difference lies in **each operator's rules and the expression type**: ordinary addition applies numeric promotion, while increment/decrement and compound assignment have their own variable-update rules. Clearly separating the two steps—"which type is used to compute" and "which type is used to store"—is the accurate way to analyze any example in this category.

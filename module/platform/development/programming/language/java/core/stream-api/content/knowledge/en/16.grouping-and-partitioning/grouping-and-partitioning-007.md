@@ -1,40 +1,40 @@
-# Xử lý khóa phân nhóm null và nhóm không có phần tử
+# Handling Null Grouping Keys and Empty Groups
 
-Trong Java Stream API, `Collectors.groupingBy` có thể biến nhiều bản ghi thành một `Map<K, List<T>>`, còn `Collectors.partitioningBy` chia chúng thành hai nhánh `true` và `false`. Tuy nhiên, dữ liệu thực tế thường có **khóa phân nhóm thiếu thông tin** hoặc một **nhóm dự kiến không nhận được phần tử nào**. Nếu không xác định rõ cách xử lý, báo cáo có thể ném ngoại lệ, bỏ sót nhóm, hiển thị sai số lượng hoặc nhầm giữa “không có dữ liệu” với “có nhóm nhưng chưa có dữ liệu phù hợp”.
+In the Java Stream API, `Collectors.groupingBy` can turn multiple records into a `Map<K, List<T>>`, while `Collectors.partitioningBy` splits them into two branches, `true` and `false`. However, real-world data often has **missing grouping keys** or an **expected group that receives no elements**. Without a clear handling policy, a report may throw exceptions, omit groups, display wrong counts, or confuse "no data" with "group exists but no matching records".
 
-Bài học thuộc chương **Phân nhóm và phân hoạch** của module `JAVA_STREAM_API`. Nội dung tập trung vào hợp đồng của `groupingBy` khi classifier trả `null`, cách biểu diễn giá trị phân nhóm vắng mặt, phân biệt nhóm **không xuất hiện** với nhóm **rỗng do lọc downstream**, sự khác biệt của `partitioningBy`, và tác động của thứ tự thao tác, nguồn parallel, tài nguyên và hiệu năng. Những khái niệm này kết nối trực tiếp với pipeline lazy, `filter`, `map` và `collect`.
+This lesson belongs to the **Grouping and Partitioning** chapter of the `JAVA_STREAM_API` module. It focuses on the contract of `groupingBy` when the classifier returns `null`, how to represent absent grouping values, distinguishing groups that **do not appear** from groups that are **empty due to downstream filtering**, how `partitioningBy` differs, and the impact of operation ordering, parallel sources, resources, and performance. These concepts connect directly to lazy pipelines, `filter`, `map`, and `collect`.
 
-Các ví dụ cơ bản dùng cú pháp Java 8. Phần sử dụng `Collectors.filtering` được ghi rõ là yêu cầu **Java 9 trở lên**.
+Basic examples use Java 8 syntax. Sections using `Collectors.filtering` explicitly note that they require **Java 9 or later**.
 
-## 1. Phân biệt ba trạng thái rất dễ nhầm
+## 1. Distinguishing Three Easily Confused States
 
-Giả sử quản lý công việc theo nhóm `"Backend"`, `"Frontend"` và `"QA"`.
+Suppose we manage tasks across `"Backend"`, `"Frontend"`, and `"QA"` teams.
 
-Có ít nhất ba tình huống:
+There are at least three distinct situations:
 
-1. **Khóa của một công việc là `null`**: công việc chưa được phân nhóm. Đây là vấn đề về giá trị do *classifier* trả về.
-2. **Không có công việc nào thuộc `"QA"`**: nếu chỉ thu thập từ danh sách công việc, `groupingBy` thường **không tạo khóa `"QA"`**.
-3. **Có công việc thuộc `"Frontend"`, nhưng không công việc nào đạt một điều kiện lọc ở downstream collector**: khóa `"Frontend"` có thể vẫn xuất hiện với **danh sách rỗng** hoặc kết quả `count = 0`.
+1. **A task's key is `null`**: the task has not been assigned to a group. This is an issue with the value returned by the *classifier*.
+2. **There are no tasks belonging to `"QA"`**: if you only collect from the task list, `groupingBy` normally **does not create a `"QA"` key**.
+3. **There are tasks belonging to `"Frontend"`, but none satisfy a filter in a downstream collector**: the `"Frontend"` key can still appear with an **empty list** or a `count = 0` result.
 
-Ba trạng thái không tương đương:
+These three states are not equivalent:
 
 ```text
-Dữ liệu đầu vào
+Input data
    |
-   +-- Task(team = null) ----------> classifier không có khóa
+   +-- Task(team = null) ------------> classifier has no key
    |
-   +-- Không tồn tại Task(team=QA) --> Map không có khóa QA
+   +-- No Task(team=QA) exists ------> Map has no QA key
    |
    +-- Task(team=Frontend)
             |
-            +-- downstream filter loại hết --> Frontend = []
+            +-- downstream filter drops all --> Frontend = []
 ```
 
-Chúng cần các chiến lược xử lý khác nhau. `Optional.empty()`, không có key trong Map và `Collections.emptyList()` không phải một khái niệm duy nhất.
+They require different handling strategies. `Optional.empty()`, an absent Map key, and `Collections.emptyList()` are not the same concept.
 
-## 2. groupingBy hoạt động thế nào?
+## 2. How Does groupingBy Work?
 
-Một biểu thức thường gặp:
+A common expression:
 
 ```java
 import java.util.Arrays;
@@ -52,26 +52,26 @@ System.out.println(byFirstLetter.get('b')); // [bear, bird]
 System.out.println(byFirstLetter.containsKey('c')); // false
 ```
 
-`groupingBy(classifier)` áp dụng hàm `classifier` lên từng phần tử đã đi qua các thao tác trung gian trước đó, rồi chuyển phần tử ấy đến bộ tích lũy của nhóm tương ứng. Mặc định, downstream collector là `toList()`.
+`groupingBy(classifier)` applies the `classifier` function to each element that passed preceding intermediate operations, then routes that element to the corresponding group's accumulator. By default, the downstream collector is `toList()`.
 
-Có thể tưởng tượng hợp đồng logic:
+You can visualize the logical contract as:
 
 ```text
 Stream<T>
    │
-   ├── classifier(t) -> k1 -> tích lũy nhóm k1
-   ├── classifier(t) -> k2 -> tích lũy nhóm k2
-   └── classifier(t) -> k1 -> tích lũy nhóm k1
+   ├── classifier(t) -> k1 -> accumulate group k1
+   ├── classifier(t) -> k2 -> accumulate group k2
+   └── classifier(t) -> k1 -> accumulate group k1
                               │
                               ▼
                          Map<K,List<T>>
 ```
 
-Map chứa các khóa **thực sự xuất hiện ở những phần tử được phân loại**. `groupingBy` không biết danh sách tất cả giá trị khóa hợp lệ trong miền nghiệp vụ và không tự tạo nhóm cho những khóa chưa từng thấy.
+The Map contains only the keys **that actually appeared among classified elements**. `groupingBy` does not know the full list of valid keys in the business domain and does not automatically create groups for unseen keys.
 
-## 3. Khóa null: groupingBy không chấp nhận classifier trả null
+## 3. Null Keys: groupingBy Does Not Accept a Classifier Returning null
 
-Đây là lỗi phổ biến nhất:
+This is the most common error:
 
 ```java
 import java.util.Arrays;
@@ -103,25 +103,25 @@ List<Task> tasks = Arrays.asList(
 );
 ```
 
-Nếu chạy:
+If you run:
 
 ```java
-// Ví dụ lỗi: cố ý minh họa classifier trả null.
+// Error example: intentionally illustrates classifier returning null.
 Map<String, List<Task>> invalid = tasks.stream()
         .collect(Collectors.groupingBy(Task::team));
 ```
 
-Pipeline sẽ ném `NullPointerException` khi `Task::team` trả `null`. Thông điệp ngoại lệ trên nhiều JDK là `element cannot be mapped to a null key`.
+The pipeline will throw `NullPointerException` when `Task::team` returns `null`. The exception message on many JDKs is `element cannot be mapped to a null key`.
 
-**Quan trọng:** kể cả một số triển khai `Map` (ví dụ `HashMap`) có hỗ trợ **khóa `null`**, `Collectors.groupingBy` vẫn không chấp nhận **kết quả phân loại `null`**. Truyền `HashMap::new` vào overload có `mapFactory` cũng **không bỏ được quy tắc này**.
+**Important:** even though some `Map` implementations (such as `HashMap`) support **`null` keys**, `Collectors.groupingBy` still does not accept **`null` classification results**. Passing `HashMap::new` to the overload with `mapFactory` **does not bypass this rule**.
 
-Tương tự, `Collectors.groupingByConcurrent` không nên được dùng để xử lý khóa phân nhóm `null`; nó cũng yêu cầu khóa classifier hợp lệ, và các cấu trúc `ConcurrentMap` thông dụng không nhận khóa `null`.
+Similarly, `Collectors.groupingByConcurrent` must not be used to handle `null` grouping keys; it also requires valid classifier keys, and common `ConcurrentMap` implementations reject `null` keys.
 
-### Phân biệt phần tử nguồn null và khóa null
+### Distinguishing null source elements from null keys
 
-`List<Task>` còn có thể chứa **chính phần tử `null`**, khiến method reference `Task::team` ném `NullPointerException` trước khi trả được bất kỳ khóa nào. Đó là vấn đề đầu vào khác với một đối tượng Task hợp lệ có trường `team == null`.
+A `List<Task>` can also contain **a `null` element itself**, causing the method reference `Task::team` to throw `NullPointerException` before returning any key. That is a different input issue from a valid `Task` object whose `team` field is `null`.
 
-Nếu danh sách có thể chứa Task null:
+If the list may contain null `Task` entries:
 
 ```java
 import java.util.Objects;
@@ -132,11 +132,11 @@ Map<String, List<Task>> safeInput = tasks.stream()
         .collect(Collectors.groupingBy(Task::team));
 ```
 
-Ở đây hai bước lọc xử lý hai nguyên nhân khác nhau: bản ghi null và khóa null. Chỉ dùng `filter(Objects::nonNull)` **không đủ** để loại Task có team null.
+Here, the two filter steps address two different causes: null records and null keys. Using `filter(Objects::nonNull)` alone **is not enough** to exclude tasks with a null team.
 
-## 4. Chính sách A: loại bản ghi chưa có khóa
+## 4. Policy A: Dropping Records Without a Key
 
-Nếu yêu cầu báo cáo chỉ tính các công việc đã được phân công, có thể bỏ những bản ghi có `team == null` ngay trước `groupingBy`:
+If report requirements only include assigned tasks, you can exclude records with `team == null` right before `groupingBy`:
 
 ```java
 Map<String, List<Task>> assignedOnly = tasks.stream()
@@ -148,18 +148,18 @@ System.out.println(assignedOnly.get("Frontend").size()); // 1
 System.out.println(assignedOnly.containsKey("QA"));      // false
 ```
 
-Ưu điểm: đơn giản, rõ ý nghĩa, tránh phải biểu diễn nhóm thiếu khóa. Nhược điểm: **công việc T02 không còn xuất hiện trong báo cáo này**.
+Pros: simple, clear intent, avoids representing a missing-key group. Cons: **task T02 no longer appears in this report**.
 
-Chỉ áp dụng chính sách lọc khi việc bỏ dữ liệu là chủ đích nghiệp vụ. Nếu hệ thống cần kiểm toán, thống kê số lượng chưa được phân công hoặc hiển thị cảnh báo thiếu thông tin, không nên âm thầm loại Task ấy.
+Only apply a filtering policy when dropping data is an intentional business decision. If the system needs auditing, unassigned task counts, or missing-data warnings, do not silently drop those tasks.
 
-## 5. Chính sách B: dùng một khóa đại diện rõ ràng
+## 5. Policy B: Using an Explicit Placeholder Key
 
-Nếu muốn giữ cả các công việc chưa phân công, ta có thể chuyển `null` thành một khóa **không null**:
+If you want to keep unassigned tasks as well, convert `null` into a **non-null** key:
 
 ```java
 private static final String UNASSIGNED = "[CHUA_PHAN_NHOM]";
 
-// Minh họa trong phạm vi lớp chứa hằng UNASSIGNED:
+// Illustrated within the scope of the class holding constant UNASSIGNED:
 Map<String, List<Task>> byTeam = tasks.stream()
         .collect(Collectors.groupingBy(
                 task -> task.team() == null
@@ -171,19 +171,19 @@ System.out.println(byTeam.get(UNASSIGNED).size()); // 1
 System.out.println(byTeam.get("Backend").size());   // 2
 ```
 
-Cách này tiện khi xuất báo cáo hoặc hiển thị giao diện. Tuy nhiên, **khóa thay thế không được va chạm với một giá trị khóa thật**. Nếu người dùng thực sự có thể tạo team tên `"[CHUA_PHAN_NHOM]"`, hai nhóm sẽ bị nhập làm một.
+This is convenient when exporting reports or rendering UIs. However, **the placeholder key must not collide with a real key value**. If users can actually create a team named `"[CHUA_PHAN_NHOM]"`, the two groups will be merged into one.
 
-Các lựa chọn tốt hơn cho dự án thật gồm:
+Better options for production projects include:
 
-- Dành riêng mã định danh nội bộ không được dùng làm team ID, và chỉ chuyển mã này thành nhãn giao diện ở bước hiển thị.
-- Sử dụng enum hoặc kiểu khóa miền nghiệp vụ có trường hợp `UNASSIGNED` riêng biệt.
-- Dùng `Optional<String>` làm khóa để không phải phát minh một chuỗi giả.
+- Reserving an internal identifier that cannot be used as a team ID, and translating it to a UI label only at the presentation layer.
+- Using an enum or domain key type with a distinct `UNASSIGNED` case.
+- Using `Optional<String>` as the key so you do not have to invent a sentinel string.
 
-Không nên chọn `""` một cách tùy tiện nếu chuỗi rỗng cũng là giá trị dữ liệu cần phân biệt.
+Do not arbitrarily pick `""` if the empty string is also a data value that needs to be distinguished.
 
-## 6. Chính sách C: dùng Optional làm khóa Map
+## 6. Policy C: Using Optional as the Map Key
 
-`Optional.ofNullable` chuyển team `null` thành `Optional.empty()`. Quan trọng: **`Optional.empty()` là một đối tượng Optional không null**, nên có thể dùng làm khóa trong `groupingBy`.
+`Optional.ofNullable` converts a `null` team into `Optional.empty()`. Crucially: **`Optional.empty()` is a non-null Optional object**, so it can be used as a key in `groupingBy`.
 
 ```java
 import java.util.Optional;
@@ -202,18 +202,18 @@ System.out.println(
 ); // 2
 ```
 
-Mô hình này biểu diễn rõ hai trường hợp:
+This model clearly represents both cases:
 
-- `Optional.of("Backend")`: khóa team có giá trị.
-- `Optional.empty()`: team chưa tồn tại.
+- `Optional.of("Backend")`: team key with a value.
+- `Optional.empty()`: team is absent.
 
-Vì `Optional` có `equals`/`hashCode` phù hợp, nhiều Optional chứa cùng team được xem là cùng khóa. Đối với một Map kết quả dùng trong nội bộ xử lý, cách này giữ được sự khác biệt giữa thiếu khóa và tên team thật.
+Because `Optional` implements `equals`/`hashCode` properly, multiple Optionals wrapping the same team are treated as the same key. For an intermediate Map used internally during processing, this preserves the distinction between a missing key and a real team name.
 
-Đổi lại, API đầu ra sẽ là `Map<Optional<String>, List<Task>>`, nên những nơi đọc Map phải chủ động xử lý Optional. Không nhất thiết xuất trực tiếp kiểu khóa này ra JSON, SQL hoặc giao diện; ở ranh giới hệ thống, nên chuyển thành mô hình báo cáo rõ nghĩa.
+In return, the output API type becomes `Map<Optional<String>, List<Task>>`, so callers reading the Map must handle `Optional` explicitly. You do not have to expose this key type directly to JSON, SQL, or UI; convert it into a domain-friendly report model at system boundaries.
 
-### Nếu null phải là lỗi dữ liệu
+### When null must be treated as a data error
 
-Có những trường hợp team là bắt buộc, và thiếu team là **lỗi** chứ không phải một nhóm. Khi đó kiểm tra trước khi collect sẽ rõ hơn:
+Sometimes a team is mandatory, and a missing team is an **error** rather than a group. Validating before or during collection makes that explicit:
 
 ```java
 import java.util.Objects;
@@ -222,16 +222,16 @@ Map<String, List<Task>> strictGroups = tasks.stream()
         .collect(Collectors.groupingBy(task ->
                 Objects.requireNonNull(
                         task.team(),
-                        "Task " + task.id() + " chua co team"
+                        "Task " + task.id() + " has no team"
                 )
         ));
 ```
 
-Trên dữ liệu ví dụ, đoạn này cố ý ném `NullPointerException` kèm thông điệp nghiệp vụ. Nếu hệ thống muốn báo nhiều bản ghi lỗi trong một lần nhập, cần bước kiểm tra/thu thập lỗi riêng thay vì dừng ở lỗi đầu tiên.
+On the sample data, this intentionally throws `NullPointerException` with a business message. If the system needs to report multiple invalid records in a single import pass, use a separate validation/error-collection step instead of failing on the first error.
 
-## 7. Nhóm không có phần tử: groupingBy không tự sinh khóa
+## 7. Empty Groups: groupingBy Does Not Auto-Generate Keys
 
-Nguồn chỉ chứa team Backend và Frontend:
+The source contains only Backend and Frontend teams:
 
 ```java
 Map<String, Long> counts = tasks.stream()
@@ -247,17 +247,17 @@ System.out.println(counts.containsKey("QA"));   // false
 System.out.println(counts.get("QA"));           // null
 ```
 
-Kết quả `null` của `counts.get("QA")` ở đây có nghĩa **Map không chứa khóa QA**, không phải classifier đã được phép trả null. Hai sự kiện hoàn toàn khác nhau.
+The `null` result of `counts.get("QA")` here means **the Map does not contain the QA key**, not that the classifier was allowed to return null. Those are two completely different events.
 
-Đừng nhầm:
+Do not confuse this with:
 
 ```java
-counts.getOrDefault("QA", 0L) // trả 0L, nhưng KHÔNG thêm khóa QA
+counts.getOrDefault("QA", 0L) // returns 0L, but DOES NOT add the QA key
 ```
 
-`getOrDefault` chỉ trả về giá trị dự phòng cho lần tra cứu. Sau lời gọi này, `counts.containsKey("QA")` vẫn bằng `false`.
+`getOrDefault` only returns a fallback value for that lookup. After this call, `counts.containsKey("QA")` is still `false`.
 
-Tương tự:
+Similarly:
 
 ```java
 Map<String, List<Task>> groups = tasks.stream()
@@ -273,13 +273,13 @@ System.out.println(qa.isEmpty());             // true
 System.out.println(groups.containsKey("QA")); // false
 ```
 
-`qa` ở đây là danh sách dự phòng, không phải một nhóm mới trong Map.
+`qa` here is a fallback list, not a new group stored in the Map.
 
-## 8. Muốn luôn hiện tất cả nhóm dự kiến? Bổ sung tập khóa miền nghiệp vụ
+## 8. Always Showing All Expected Groups? Add the Business Domain Key Set
 
-Nếu báo cáo bắt buộc có Backend, Frontend và QA kể cả khi chưa có công việc, ta phải cung cấp **danh sách các team dự kiến** từ chính yêu cầu nghiệp vụ. Stream của Task không tự biết danh sách này.
+If a report must include Backend, Frontend, and QA even when there are no tasks, we must supply the **list of expected teams** from the business requirements. The Stream of tasks cannot know this list on its own.
 
-### Cách 1: chuẩn hóa Map sau khi collect
+### Approach 1: Normalize the Map after collect
 
 ```java
 import java.util.Arrays;
@@ -312,16 +312,16 @@ System.out.println(report.get("QA").size()); // 0
 System.out.println(report.containsKey("QA")); // true
 ```
 
-Cách này có hai ưu điểm:
+This approach has two advantages:
 
-1. Các team xuất hiện theo thứ tự định nghĩa trong `expectedTeams` nhờ `LinkedHashMap`.
-2. Nhóm không có phần tử vẫn được biểu diễn tường minh bằng một danh sách rỗng.
+1. Teams appear in the order defined by `expectedTeams` thanks to `LinkedHashMap`.
+2. Groups with no elements are explicitly represented by an empty list.
 
-**Lưu ý:** `Collections.emptyList()` là danh sách không sửa được. Nếu báo cáo cần bổ sung phần tử sau khi thu thập, hãy tạo `new ArrayList<>()` cho nhóm rỗng thay vì gọi `add` trên danh sách bất biến. Không nên sửa nội dung các danh sách khi kết quả đang được đọc ở nhiều luồng mà không có cơ chế đồng bộ.
+**Note:** `Collections.emptyList()` is an unmodifiable list. If the report needs elements added after collection, create `new ArrayList<>()` for empty groups rather than calling `add` on an immutable list. Do not mutate the contents of these lists while the result is being read across multiple threads without synchronization.
 
-Nếu muốn giữ cả các team nằm ngoài tập dự kiến, hãy quy định rõ chính sách bổ sung chúng vào báo cáo. Vòng lặp trên chỉ tạo báo cáo cho các team trong `expectedTeams`.
+If you also want to retain teams outside the expected set, define an explicit policy for adding them to the report. The loop above only builds the report for teams in `expectedTeams`.
 
-### Cách 2: chỉ bổ sung nhóm thiếu
+### Approach 2: Only populate missing groups
 
 ```java
 Map<String, List<Task>> mutableGroups = tasks.stream()
@@ -339,7 +339,7 @@ System.out.println(mutableGroups.containsKey("QA")); // true
 System.out.println(mutableGroups.get("QA").isEmpty()); // true
 ```
 
-Cách này bổ sung các nhóm thiếu ngay trên Map đã thu thập, đồng thời giữ các nhóm đã có. Nhưng Map do `groupingBy` trả về theo overload mặc định **không cam kết kiểu cụ thể, mutability hay thứ tự duyệt**. Nếu dự án cần sửa Map sau đó như một phần hợp đồng đáng tin cậy, nên chỉ định `mapFactory` để tạo một Map mutable đã biết:
+This adds missing groups directly onto the collected Map while preserving existing groups. However, the Map returned by `groupingBy`'s default overload **does not guarantee a concrete type, mutability, or iteration order**. If the project relies on mutating the Map afterward as part of a reliable contract, specify a `mapFactory` to create a known mutable Map:
 
 ```java
 Map<String, List<Task>> mutableGroups = tasks.stream()
@@ -358,15 +358,15 @@ for (String team : expectedTeams) {
 }
 ```
 
-Nếu muốn **đúng thứ tự của expectedTeams** ngay cả khi các nhóm gốc gặp theo thứ tự khác, cách tạo một `LinkedHashMap` mới từ danh sách khóa dự kiến ở **Cách 1** rõ nghĩa hơn.
+If you want the **exact order of `expectedTeams`** even when original groups are encountered in a different order, building a new `LinkedHashMap` from the expected key list as in **Approach 1** expresses the intent more clearly.
 
-## 9. Filter trước grouping khác với filtering bên trong grouping
+## 9. Filtering Before Grouping vs. Filtering Inside Grouping
 
-Đây là điểm tinh tế nhất của nhóm rỗng.
+This is the subtlest aspect of empty groups.
 
-Giả sử muốn nhóm công việc theo team nhưng chỉ giữ **các công việc đã hoàn thành**. Dữ liệu có team Frontend nhưng tất cả công việc của Frontend chưa hoàn thành.
+Suppose we want to group tasks by team while keeping only **completed tasks**. The data has a Frontend team, but none of Frontend's tasks are completed.
 
-### Lọc ở upstream: nhóm có thể biến mất
+### Upstream filtering: groups can disappear
 
 ```java
 Map<String, List<Task>> doneOnly = tasks.stream()
@@ -378,11 +378,11 @@ System.out.println(doneOnly.containsKey("Backend"));  // true
 System.out.println(doneOnly.containsKey("Frontend")); // false
 ```
 
-Vì chỉ những Task `done == true` mới đi đến `groupingBy`, classifier **chưa bao giờ thấy** khóa Frontend. Không có cách nào để Collector tự suy ra Frontend là một nhóm cần hiển thị.
+Because only tasks with `done == true` reach `groupingBy`, the classifier **never sees** the Frontend key. There is no way for the Collector to infer that Frontend is a group that should be displayed.
 
-### Lọc ở downstream: nhóm được giữ dù kết quả rỗng
+### Downstream filtering: groups are preserved even when empty
 
-Từ **Java 9**, `Collectors.filtering(predicate, downstream)` cho phép kiểm tra từng phần tử **sau khi đã xác định nhóm**:
+Since **Java 9**, `Collectors.filtering(predicate, downstream)` allows checking each element **after its group has been identified**:
 
 ```java
 Map<String, List<Task>> doneByTeam = tasks.stream()
@@ -401,22 +401,22 @@ System.out.println(doneByTeam.containsKey("Frontend")); // true
 System.out.println(doneByTeam.containsKey("QA"));       // false
 ```
 
-Sự khác biệt không chỉ là hiệu năng; **đó là ngữ nghĩa của báo cáo**.
+The difference is not merely performance; **it is the semantics of the report**.
 
 ```text
-Trước grouping:
+Before grouping:
   source → filter(done) → groupingBy(team)
-                         Frontend không còn xuất hiện
+                         Frontend no longer appears
 
-Trong downstream:
+In downstream:
   source → groupingBy(team, filtering(done, toList()))
-                         Frontend được tạo với []
-                         QA vẫn không tồn tại nếu không có Task nào
+                         Frontend is created with []
+                         QA still does not exist if there is no Task for it
 ```
 
-**Điều kiện:** dù có `Collectors.filtering`, classifier vẫn được gọi trước để tạo nhóm. Nó vẫn phải trả khóa không null. Do đó `filter(task -> task.team() != null)` hoặc bước chuẩn hóa khóa vẫn cần có nếu nguồn cho phép team null.
+**Condition:** even with `Collectors.filtering`, the classifier is still invoked first to form the group. It must still return a non-null key. Therefore, `filter(task -> task.team() != null)` or a key normalization step is still required if the source allows null teams.
 
-### Với counting cũng vậy
+### Same behavior with counting
 
 ```java
 Map<String, Long> doneCounts = tasks.stream()
@@ -434,11 +434,11 @@ System.out.println(doneCounts.get("Frontend")); // 0
 System.out.println(doneCounts.containsKey("QA")); // false
 ```
 
-Ở đây `Frontend → 0L` là một mục có thật trong Map. Đây là giá trị khác với việc không có khóa QA.
+Here `Frontend → 0L` is an actual entry in the Map. That value is distinct from the absence of the QA key.
 
-### Phương án cho Java 8
+### Approach for Java 8
 
-Java 8 **không có** `Collectors.filtering`. Nếu muốn giữ nhóm rỗng khi không có phần tử khớp điều kiện, có thể nhóm tất cả các Task đã có khóa hợp lệ trước, rồi lọc từng danh sách:
+Java 8 **does not have** `Collectors.filtering`. If you want to preserve empty groups when no element matches a condition, you can group all tasks that have valid keys first, and then filter each list:
 
 ```java
 Map<String, List<Task>> allGroups = tasks.stream()
@@ -458,11 +458,11 @@ System.out.println(doneGroups.containsKey("Frontend")); // true
 System.out.println(doneGroups.get("Frontend").isEmpty()); // true
 ```
 
-Đây là cách dễ hiểu nhưng cần danh sách trung gian cho từng nhóm và phải duyệt lại để lọc. Khi có Java 9+, `Collectors.filtering` thường trực tiếp hơn.
+This approach is easy to understand, but requires intermediate lists for each group and a second pass to filter them. When Java 9+ is available, `Collectors.filtering` is usually more direct.
 
-## 10. partitioningBy: luôn có hai khóa true và false
+## 10. partitioningBy: Always Has Both true and false Keys
 
-`Collectors.partitioningBy(predicate)` giải một bài toán đặc biệt: phân chia theo **một điều kiện boolean**. Kết quả có hai khóa `Boolean.TRUE` và `Boolean.FALSE`, **kể cả khi một nhánh không có phần tử**.
+`Collectors.partitioningBy(predicate)` solves a specialized problem: splitting by **a single boolean condition**. The result has both `Boolean.TRUE` and `Boolean.FALSE` keys, **even when one branch has no elements**.
 
 ```java
 import java.util.Arrays;
@@ -480,7 +480,7 @@ System.out.println(partitions.get(false));  // []
 System.out.println(partitions.containsKey(false)); // true
 ```
 
-Ngay cả Stream **hoàn toàn rỗng**, collector phân hoạch vẫn trả về hai mục:
+Even on a **completely empty** Stream, the partitioning collector still returns two entries:
 
 ```java
 Map<Boolean, List<Integer>> emptyPartitions =
@@ -492,7 +492,7 @@ System.out.println(emptyPartitions.get(true));   // []
 System.out.println(emptyPartitions.get(false));  // []
 ```
 
-Ngược lại, `groupingBy` với classifier kiểu Boolean **không bảo đảm hai khóa** khi một nhánh không có phần tử:
+Conversely, `groupingBy` with a Boolean classifier **does not guarantee both keys** when one branch has no elements:
 
 ```java
 Map<Boolean, List<Integer>> groupedBoolean = scores.stream()
@@ -502,9 +502,9 @@ System.out.println(groupedBoolean.containsKey(true));  // true
 System.out.println(groupedBoolean.containsKey(false)); // false
 ```
 
-`groupingBy` chỉ tạo nhóm có dữ liệu, còn `partitioningBy` có hợp đồng **đúng hai phân hoạch**, mỗi phân hoạch mang kết quả downstream của nó.
+`groupingBy` only creates groups that have data, whereas `partitioningBy` has a contract of **exactly two partitions**, each holding its downstream result.
 
-### partitioningBy với downstream counting
+### partitioningBy with downstream counting
 
 ```java
 Map<Boolean, Long> countsByPassing = scores.stream()
@@ -517,15 +517,15 @@ System.out.println(countsByPassing.get(true));  // 3
 System.out.println(countsByPassing.get(false)); // 0
 ```
 
-Nếu nguồn rỗng, cả hai phân hoạch có giá trị `0L`. Bộ đếm zero của phân hoạch không phải một key bị thiếu.
+If the source is empty, both partitions hold `0L`. A zero count on a partition is not a missing key.
 
-**Giới hạn:** `partitioningBy` chỉ áp dụng được khi bài toán tự nhiên là **hai nhánh** của cùng một predicate. Nếu cần ba hay nhiều nhóm như Backend, Frontend, QA, phải dùng `groupingBy` và chủ động bổ sung nhóm thiếu nếu cần.
+**Limitation:** `partitioningBy` only applies when the problem naturally splits into **two branches** of the same predicate. If you need three or more groups such as Backend, Frontend, QA, you must use `groupingBy` and explicitly fill in missing groups if needed.
 
-## 11. Phân nhóm lồng nhau: nhóm ngoài có thể tồn tại khi nhóm trong thiếu
+## 11. Nested Grouping: Outer Group Can Exist While Inner Group Is Missing
 
-Một báo cáo có thể cần phân nhóm theo team rồi theo trạng thái. Ở cấp nhóm trong, việc vắng một trạng thái cũng làm mất khóa tương ứng.
+A report may need to group by team and then by status. At the inner grouping level, the absence of a status also causes its corresponding key to be missing.
 
-Ví dụ:
+Example:
 
 ```java
 Map<String, Map<Boolean, List<Task>>> nestedGrouping = tasks.stream()
@@ -544,7 +544,7 @@ System.out.println(
 ); // false
 ```
 
-Nếu yêu cầu mỗi team xuất hiện cả hai trạng thái `true` và `false`, hãy thay downstream `groupingBy(Task::done)` bằng `partitioningBy(Task::done)`:
+If each team that appears must include both `true` and `false` statuses, replace the downstream `groupingBy(Task::done)` with `partitioningBy(Task::done)`:
 
 ```java
 Map<String, Map<Boolean, List<Task>>> nestedPartition = tasks.stream()
@@ -558,11 +558,11 @@ System.out.println(nestedPartition.get("Frontend").get(true));  // []
 System.out.println(nestedPartition.get("Frontend").get(false).size()); // 1
 ```
 
-Điều này **chỉ bổ sung hai phân hoạch bên trong những team đã xuất hiện**. Team QA vẫn không có trong Map ngoài. Muốn QA xuất hiện, cần có danh sách team dự kiến và một bước bổ sung khóa ngoài như phần 8.
+This **only populates both partitions inside teams that appeared**. Team QA is still absent from the outer Map. To make QA appear, you need the expected team list and an outer-key population step as shown in Section 8.
 
-## 12. Parallel stream, groupingByConcurrent và vấn đề thứ tự
+## 12. Parallel Streams, groupingByConcurrent, and Ordering Issues
 
-Khi dùng `parallelStream()`, `groupingBy` thông thường có thể tạo nhiều Map trung gian rồi gộp. `groupingByConcurrent` cung cấp một Collector **concurrent và unordered**, có thể phù hợp khi chỉ cần nhóm theo khóa và không quan tâm encounter order.
+When using `parallelStream()`, regular `groupingBy` may allocate multiple intermediate Maps and merge them. `groupingByConcurrent` provides a **concurrent and unordered** Collector, which can fit when you only need to group by key and do not care about encounter order.
 
 ```java
 import java.util.concurrent.ConcurrentMap;
@@ -577,38 +577,38 @@ ConcurrentMap<String, Long> concurrentCounts = tasks.parallelStream()
 System.out.println(concurrentCounts.get("Backend")); // 2
 ```
 
-Một số nguyên tắc phải giữ:
+Several rules must be maintained:
 
-- `groupingByConcurrent` **không cho phép classifier trả null**; vẫn phải lọc, chuẩn hóa hoặc chuyển sang khóa Optional không null.
-- Các khóa không có phần tử vẫn **không tự xuất hiện**.
-- Collector là `UNORDERED`, vì thế nếu downstream tạo List, **thứ tự của phần tử trong mỗi nhóm không được cam kết** như khi thu thập có encounter order.
-- `ConcurrentMap` không có nghĩa mọi `List` hoặc object mutable bên trong map đều tự an toàn để sửa đồng thời **sau** khi collect.
-- Không suy luận parallel/concurrent luôn nhanh hơn: phân bố khóa, mức tranh chấp, chi phí kết hợp và kích thước nguồn quyết định hiệu năng.
+- `groupingByConcurrent` **does not allow the classifier to return null**; you still must filter, normalize, or convert to a non-null Optional key.
+- Keys with no elements still **do not appear automatically**.
+- The collector is `UNORDERED`, so if the downstream builds a List, **element order within each group is not guaranteed** as it would be when collecting with encounter order.
+- `ConcurrentMap` does not mean every `List` or mutable object inside the map is automatically safe for concurrent modification **after** collection.
+- Do not assume parallel/concurrent is always faster: key distribution, contention, combination cost, and source size determine actual performance.
 
-Nếu báo cáo cần giữ thứ tự công việc theo ngày hoặc thứ tự nhập, nên xác định rõ khóa sắp xếp và dùng collector/order thích hợp, hoặc sắp xếp có quy tắc sau khi thu thập. Đừng dựa vào thứ tự duyệt không được API cam kết.
+If a report must preserve task order by date or input order, explicitly define a sort key and use an appropriate collector/order, or sort deterministically after collection. Do not rely on an iteration order not guaranteed by the API.
 
-## 13. Xử lý thiếu khóa và thiếu nhóm khi thống kê
+## 13. Handling Missing Keys and Missing Groups in Statistics
 
-Với `Collectors.counting`, `summingLong`, `averagingInt` hay `mapping`, việc một nhóm không xuất hiện có nghĩa **không có bất kỳ phần tử nào tạo nhóm đó**. Còn nếu nhóm được tạo trước nhưng downstream lọc hết, giá trị mặc định của downstream là một kết quả riêng:
+With `Collectors.counting`, `summingLong`, `averagingInt`, or `mapping`, a missing group means **no element mapped to that group**. On the other hand, if the group was created first and the downstream filtered everything out, the downstream's default value is a distinct result:
 
-| Tình huống | Kết quả ví dụ | Có `containsKey`? |
+| Situation | Example result | `containsKey`? |
 | --- | --- | --- |
-| Không có Task nào thuộc QA | `get("QA") == null` | Không |
-| Có Frontend, downstream lọc tất cả Task | `get("Frontend").isEmpty()` | Có |
-| Có Frontend, downstream `filtering` rồi `counting` | `get("Frontend") == 0L` | Có |
-| `partitioningBy` không có phần tử thỏa predicate | `get(true).isEmpty()` | Có |
-| `partitioningBy(..., counting())` trên Stream rỗng | `get(true) == 0L` và `get(false) == 0L` | Có cho cả hai |
-| Key là `Optional.empty()` | Nhóm chứa các Task chưa có team | Có, nếu đã gặp Task có team null |
+| No Task belongs to QA | `get("QA") == null` | No |
+| Frontend exists, downstream filters out all Tasks | `get("Frontend").isEmpty()` | Yes |
+| Frontend exists, downstream `filtering` then `counting` | `get("Frontend") == 0L` | Yes |
+| `partitioningBy` has no element matching predicate | `get(true).isEmpty()` | Yes |
+| `partitioningBy(..., counting())` on empty Stream | `get(true) == 0L` and `get(false) == 0L` | Yes for both |
+| Key is `Optional.empty()` | Group containing Tasks without a team | Yes, if a Task with null team was seen |
 
-**Đừng dùng giá trị mặc định để suy ra dữ liệu gốc đã tồn tại.** Ví dụ `summingLong` có thể trả 0 vì tổng các giá trị dương/âm triệt tiêu nhau, chứ không nhất thiết vì nhóm rỗng. Tương tự, `getOrDefault` có thể che giấu việc khóa thật sự không có trong Map nếu caller không kiểm tra `containsKey`.
+**Do not use default values to infer whether original data existed.** For example, `summingLong` can return 0 because positive and negative values cancel out, not necessarily because the group was empty. Similarly, `getOrDefault` can mask the fact that a key is genuinely absent from the Map if the caller does not check `containsKey`.
 
-Với báo cáo cần phân biệt ba trạng thái `MISSING`, `EMPTY`, `NON_EMPTY`, có thể thiết kế DTO hoặc enum báo cáo tường minh thay vì suy luận từ `null` và kích thước danh sách. Ví dụ `Map` rỗng hoàn toàn là một dữ kiện khác với Map có ba khóa, mỗi khóa chứa danh sách rỗng.
+For reports that need to distinguish three states (`MISSING`, `EMPTY`, `NON_EMPTY`), design an explicit DTO or report enum instead of inferring from `null` and list sizes. For instance, a completely empty `Map` is a different fact from a Map with three keys where each key holds an empty list.
 
-## 14. Vòng đời Stream và chi phí bộ nhớ
+## 14. Stream Lifecycle and Memory Cost
 
-`groupingBy`, `partitioningBy` và các biến thể của chúng đều là **terminal collect**. Chúng tiêu thụ pipeline một lần; không được tái sử dụng cùng instance Stream sau khi collect.
+`groupingBy`, `partitioningBy`, and their variants are all **terminal collect** operations. They consume the pipeline once; you cannot reuse the same Stream instance after `collect`.
 
-Với nguồn giữ tài nguyên như `Files.lines`, `collect` **không tự đóng Stream nguồn**. Cần dùng `try-with-resources` ngay tại nơi sở hữu nguồn:
+For resource-backed sources such as `Files.lines`, `collect` **does not automatically close the source Stream**. Use `try-with-resources` where the source is owned:
 
 ```java
 import java.io.IOException;
@@ -631,20 +631,20 @@ static Map<String, Long> countNonEmptyLinesByPrefix(Path path)
 }
 ```
 
-Ví dụ giả định mỗi dòng không rỗng đều có ký tự đầu; việc `filter` ở đây tránh lỗi `substring(0, 1)` với chuỗi rỗng. Lỗi đọc phát sinh trong quá trình duyệt lazy có thể xuất hiện dưới dạng `UncheckedIOException`, và `try-with-resources` vẫn bảo đảm đóng Stream đã mở.
+The example assumes every non-empty line has a first character; `filter` here prevents `substring(0, 1)` from failing on empty strings. Read errors occurring during lazy traversal can surface as `UncheckedIOException`, and `try-with-resources` still guarantees the opened Stream is closed.
 
-Nếu giữ toàn bộ phần tử trong `Map<K,List<T>>`, bộ nhớ có thể tăng gần theo số phần tử đầu vào, cộng thêm chi phí Map và các List. Khi chỉ cần số lượng/tổng, dùng downstream `counting`/`summingLong` sẽ tránh phải giữ toàn bộ bản ghi, nhưng vẫn có chi phí theo số nhóm. Khi phải bổ sung hàng nghìn nhóm dự kiến, cũng cần cân nhắc kích thước Map và số container rỗng.
+If all elements are retained in `Map<K,List<T>>`, memory can grow roughly proportionally to the number of input elements plus Map and List overhead. When only counts/sums are needed, using downstream `counting`/`summingLong` avoids retaining all records, though it still incurs cost proportional to the number of groups. When populating thousands of expected groups, also consider Map size and empty container overhead.
 
-## 15. Ví dụ tổng hợp: báo cáo team có cả nhóm chưa phân công và nhóm rỗng
+## 15. Combined Example: Team Report with Both Unassigned and Empty Groups
 
-Yêu cầu báo cáo:
+Report requirements:
 
-- Công việc có `team == null` phải xuất hiện trong nhóm **Chưa phân công**.
-- Các team Backend, Frontend, QA **đều phải có mặt**, kể cả khi không có công việc.
-- Mỗi nhóm chỉ hiển thị công việc đã hoàn thành, nhưng **nhóm không biến mất** nếu không có công việc hoàn thành.
-- Thứ tự trình bày phải cố định: Backend, Frontend, QA, Chưa phân công.
+- Tasks with `team == null` must appear in the **Unassigned** group.
+- Backend, Frontend, and QA teams **must all be present**, even when they have no tasks.
+- Each group displays only completed tasks, yet **the group does not disappear** if it has no completed tasks.
+- Display order must be fixed: Backend, Frontend, QA, Unassigned.
 
-Ở đây sử dụng Java 9+ vì downstream `Collectors.filtering`:
+This uses Java 9+ for downstream `Collectors.filtering`:
 
 ```java
 import java.util.Arrays;
@@ -654,12 +654,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-String unassigned = "[CHUA_PHAN_NHOM]"; // mã dành riêng, không trùng team thật
+String unassigned = "[CHUA_PHAN_NHOM]"; // reserved code, does not collide with real teams
 List<String> teamOrder = Arrays.asList(
         "Backend", "Frontend", "QA", unassigned
 );
 
-// tasks là danh sách Task được tạo ở phần 3.
+// tasks is the Task list created in Section 3.
 Map<String, List<Task>> collected = tasks.stream()
         .collect(Collectors.groupingBy(
                 task -> task.team() == null
@@ -687,47 +687,47 @@ System.out.println(report.get(unassigned).size()); // 0
 System.out.println(report.containsKey("QA"));      // true
 ```
 
-Những điểm chính:
+Key points:
 
-1. Classifier **không bao giờ trả null** nhờ khóa riêng cho công việc chưa phân nhóm.
-2. `Collectors.filtering` giữ các nhóm đã quan sát được, dù nhóm đó không có công việc hoàn thành.
-3. `LinkedHashMap` tạo báo cáo theo thứ tự mong muốn và bổ sung nhóm QA chưa từng xuất hiện ở nguồn.
-4. `Collections.emptyList()` chỉ dùng làm giá trị đọc cho nhóm không có phần tử, không dùng để cập nhật bằng `add`.
-5. Báo cáo chỉ có các nhóm trong `teamOrder`. Nếu nguồn chứa team hợp lệ khác, phải xác định chính sách hiển thị bổ sung hoặc coi đó là dữ liệu ngoài cấu hình.
+1. The classifier **never returns null** thanks to the reserved key for unassigned tasks.
+2. `Collectors.filtering` retains observed groups even when a group has no completed tasks.
+3. `LinkedHashMap` constructs the report in the desired order and adds the QA group that never appeared in the source.
+4. `Collections.emptyList()` is used only as a read-only value for groups with no elements, not for updates via `add`.
+5. The report includes only groups in `teamOrder`. If the source contains another valid team, define an additional display policy or treat it as out-of-config data.
 
-Nếu cần một trường thống kê bổ sung như tổng số việc, tổng việc hoàn thành và số việc bị bỏ vì thiếu team, hãy thiết kế báo cáo hoặc downstream collector chứa đủ thông tin đó. Không nên dựa trên một `Map<String,List<Task>>` chỉ gồm Task đã hoàn thành để suy ngược tổng số Task ban đầu.
+If additional statistics are needed—such as total tasks, total completed tasks, and tasks skipped due to missing teams—design a report or downstream collector that captures all of them. Do not try to reverse-engineer the initial total task count from a `Map<String,List<Task>>` that contains only completed tasks.
 
-## 16. Lỗi thường gặp và cách khắc phục
+## 16. Common Mistakes and How to Fix Them
 
-| Sai lầm | Hậu quả | Cách khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| `groupingBy(Task::team)` khi `team == null` | Ném `NullPointerException` | Lọc, thay bằng mã riêng hoặc nhóm theo `Optional.ofNullable` |
-| Đổi `groupingBy` sang `HashMap::new` để nhận khóa null | Không giải quyết hợp đồng classifier của `groupingBy` | Đảm bảo classifier trả khóa không null |
-| Chỉ lọc `Objects::nonNull` trên các Task | Vẫn có thể gặp khóa team null | Kiểm tra riêng `task.team() != null` |
-| Bỏ Task chưa có team nhưng báo cáo cần thống kê chúng | Mất thông tin nghiệp vụ | Chọn chính sách giữ nhóm chưa phân công |
-| Dùng chuỗi thay thế có thể trùng tên team thật | Gộp nhầm hai nhóm | Mã riêng, enum/kiểu khóa hoặc `Optional` |
-| Dùng `groupingBy` rồi mong mọi team cấu hình có mặt | Nhóm không xuất hiện sẽ không có khóa | Bổ sung các khóa từ danh sách team dự kiến |
-| `getOrDefault("QA", emptyList())` rồi tưởng Map đã có QA | Không có khóa mới | Dùng Map báo cáo mới hoặc `computeIfAbsent` |
-| Lọc `done` trước `groupingBy` nhưng cần giữ nhóm chưa hoàn thành | Nhóm bị biến mất | Dùng downstream `Collectors.filtering` trên Java 9+ |
-| Dùng `Collectors.filtering` và mong cả nhóm chưa từng xuất hiện được tạo | Downstream không tự biết khóa từ miền nghiệp vụ | Cung cấp danh sách khóa dự kiến |
-| Dùng `groupingBy` theo Boolean và mong luôn có cả true/false | Nhánh chưa thấy phần tử bị thiếu | Dùng `partitioningBy` |
-| Dùng `groupingByConcurrent` để giữ thứ tự phần tử trong nhóm | Collector unordered | Chọn collector/order phù hợp |
-| Xem `0` là bằng chứng nhóm chưa có Task | Tổng số có thể bằng 0 do quy tắc số học | Kiểm tra `containsKey` và lưu đủ thống kê |
-| Terminal `collect` xong nghĩ nguồn tệp đã đóng | Tài nguyên còn mở | Dùng `try-with-resources` |
+| `groupingBy(Task::team)` when `team == null` | Throws `NullPointerException` | Filter, replace with a reserved code, or group by `Optional.ofNullable` |
+| Changing `groupingBy` to `HashMap::new` to accept null keys | Does not bypass `groupingBy`'s classifier contract | Ensure the classifier returns non-null keys |
+| Filtering only `Objects::nonNull` on Tasks | Can still encounter null team keys | Check `task.team() != null` separately |
+| Dropping Tasks without a team when the report needs to count them | Loss of business data | Choose a policy that retains an unassigned group |
+| Using a placeholder string that can collide with a real team name | Accidentally merges two groups | Use a reserved code, enum/key type, or `Optional` |
+| Using `groupingBy` and expecting every configured team to appear | Unseen groups have no key | Populate keys from the expected team list |
+| Calling `getOrDefault("QA", emptyList())` and assuming QA is now in the Map | No new key is added | Build a new report Map or use `computeIfAbsent` |
+| Filtering `done` before `groupingBy` when incomplete groups must remain | Groups disappear | Use downstream `Collectors.filtering` on Java 9+ |
+| Using `Collectors.filtering` and expecting unseen groups to be created | Downstream does not know domain keys automatically | Supply the expected key list |
+| Using `groupingBy` on Boolean and expecting both true/false | Branch with no elements is missing | Use `partitioningBy` |
+| Using `groupingByConcurrent` to preserve element order within groups | Collector is unordered | Choose an appropriate collector/ordering |
+| Treating `0` as proof a group had no Tasks | Sum can be 0 due to arithmetic | Check `containsKey` and retain sufficient statistics |
+| Assuming terminal `collect` closes file sources | Resources remain open | Use `try-with-resources` |
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-Check Questions
 
-1. `groupingBy` có chấp nhận classifier trả `null` khi dùng `HashMap::new` không? **Không**; nó vẫn ném `NullPointerException`.
-2. `Optional.ofNullable(team)` giúp gì? **Tạo khóa Optional không null**; `Optional.empty()` biểu diễn team vắng mặt.
-3. Khi không có Task thuộc QA, `groupingBy` có tạo `QA → []` không? **Không**; nó không tự sinh khóa QA.
-4. `map.getOrDefault("QA", emptyList())` có tự thêm QA vào Map không? **Không**; chỉ trả danh sách dự phòng.
-5. Vì sao lọc `Task::done` **trước** grouping khác `Collectors.filtering(Task::done, toList())` **bên trong** grouping? **Vì** lọc trước có thể loại mọi phần tử của nhóm khiến khóa biến mất, còn downstream giữ nhóm từng được phân loại.
-6. `Collectors.filtering` có từ Java mấy? **Java 9**; trên Java 8 có thể nhóm rồi lọc các danh sách.
-7. `partitioningBy` trên Stream rỗng trả mấy khóa? **Hai**: `true` và `false`, mỗi khóa có kết quả downstream rỗng.
-8. `groupingBy(x -> predicate(x))` có luôn trả hai khóa Boolean không? **Không**; chỉ tạo khóa của nhánh đã có phần tử.
-9. `groupingBy(team, partitioningBy(done))` có làm team chưa từng xuất hiện được thêm vào Map ngoài không? **Không**; nó chỉ đảm bảo hai phân hoạch **bên trong những team có dữ liệu**.
-10. `groupingByConcurrent` có cho classifier trả null không? **Không**; và nó không cam kết encounter order.
-11. Vì sao không nên coi danh sách rỗng và khóa không tồn tại là một trạng thái? **Vì** báo cáo có thể cần phân biệt nhóm đã quan sát nhưng không có phần tử hợp lệ với nhóm chưa hề xuất hiện.
-12. Để luôn xuất Backend, Frontend, QA, cần bổ sung thông tin gì? **Danh sách các team dự kiến**, rồi tạo/bổ sung Map kết quả theo danh sách đó.
+1. Does `groupingBy` accept a classifier returning `null` when using `HashMap::new`? **No**; it still throws `NullPointerException`.
+2. What does `Optional.ofNullable(team)` do? **Creates a non-null Optional key**; `Optional.empty()` represents an absent team.
+3. When no Task belongs to QA, does `groupingBy` create `QA → []`? **No**; it does not auto-generate the QA key.
+4. Does `map.getOrDefault("QA", emptyList())` add QA to the Map? **No**; it only returns a fallback list.
+5. Why does filtering `Task::done` **before** grouping differ from `Collectors.filtering(Task::done, toList())` **inside** grouping? **Because** pre-filtering can eliminate all elements of a group and make its key vanish, whereas downstream filtering keeps groups that were classified.
+6. Which Java version introduced `Collectors.filtering`? **Java 9**; on Java 8 you can group first and then filter the lists.
+7. How many keys does `partitioningBy` return on an empty Stream? **Two**: `true` and `false`, each with an empty downstream result.
+8. Does `groupingBy(x -> predicate(x))` always return two Boolean keys? **No**; it creates keys only for branches that had elements.
+9. Does `groupingBy(team, partitioningBy(done))` add an unseen team to the outer Map? **No**; it only guarantees both partitions **inside teams that have data**.
+10. Does `groupingByConcurrent` allow a classifier to return null? **No**; and it does not guarantee encounter order.
+11. Why should an empty list and an absent key not be treated as the same state? **Because** a report may need to distinguish a group that was observed with no valid elements from a group that never appeared.
+12. To always output Backend, Frontend, and QA, what extra information is required? **The list of expected teams**, and then building/populating the result Map from that list.
 
-**Nguyên tắc áp dụng:** Hãy quyết định rõ **khóa thiếu dữ liệu được loại, báo lỗi hay đưa vào nhóm riêng**, và **nhóm không có phần tử cần biến mất hay được giữ với kết quả rỗng**. `groupingBy` không nhận khóa classifier null và không tự sinh nhóm chưa thấy; `partitioningBy` luôn cung cấp hai khóa Boolean; `Collectors.filtering` giữ nhóm đã quan sát được nhưng không tạo nhóm ngoài miền dữ liệu. Thiết kế đúng ngữ nghĩa trước rồi mới tối ưu song song, bộ nhớ và hiệu năng.
+**Guiding principle:** Explicitly decide whether **keys with missing data are dropped, rejected with an error, or placed into a dedicated group**, and whether **groups with no elements should disappear or be kept with an empty result**. `groupingBy` does not accept null classifier keys and does not auto-generate unseen groups; `partitioningBy` always provides both Boolean keys; `Collectors.filtering` keeps observed groups but does not create groups outside the observed data. Get the semantics right first before optimizing parallelism, memory, and performance.

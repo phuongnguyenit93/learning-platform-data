@@ -1,62 +1,62 @@
-# Kiểm thử tra cứu bằng đối tượng bằng nhau trong HashMap và HashSet
+# Testing Lookup With Equal Objects in HashMap and HashSet
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Giả sử một hệ thống lưu trạng thái tài khoản trong HashMap theo khóa gồm mã tổ chức và mã người dùng. Khi đã lưu với đối tượng **new UserKey("team-a", 42)**, hệ thống phải tra cứu được bằng **một đối tượng UserKey khác có đúng các giá trị đó**. Tương tự, HashSet phải nhận ra hai đối tượng khác tham chiếu nhưng bằng nhau về mặt khóa logic là cùng một phần tử.
+Suppose a system stores account state in a HashMap keyed by an organization ID and a user ID. Once stored with **new UserKey("team-a", 42)**, the system must be able to look it up using **another UserKey object with those exact same values**. Similarly, a HashSet must recognize two objects with distinct references yet equal logical keys as the same element.
 
-Bài kiểm thử không dừng ở **map.get()** hoặc **set.contains()** đơn lẻ; cần chứng minh mối quan hệ giữa **identity**, **equals()**, **hashCode()**, hành vi tra cứu/cập nhật và tính duy nhất, đồng thời xác nhận các khóa khác nhau thực sự không bị nhận nhầm.
+The test does not stop at an isolated **map.get()** or **set.contains()**; it must prove the relationship among **identity**, **equals()**, **hashCode()**, lookup/update behavior, and uniqueness, while also confirming that different keys are not mistakenly matched.
 
-Các khái niệm cần phân biệt:
+Concepts to distinguish:
 
-- **a == b:** hai biến tham chiếu cùng một object.
-- **a.equals(b):** hai object được xem là bằng nhau theo hợp đồng equality do lớp định nghĩa.
-- **a.hashCode():** số nguyên dùng phục vụ phân vùng hash khi tổ chức dữ liệu. Hai đối tượng bằng nhau theo equals() bắt buộc trả cùng hashCode().
-- **Khóa logic:** danh tính nghiệp vụ do các field tham gia equals/hashCode xác định. Hai object riêng biệt có thể biểu diễn cùng khóa logic.
+- **a == b:** two variables reference the exact same object.
+- **a.equals(b):** two objects are considered equal according to the equality contract defined by the class.
+- **a.hashCode():** an integer used for hash partitioning when organizing data. Two objects that are equal under equals() must return the same hashCode().
+- **Logical key:** the business identity determined by the fields participating in equals/hashCode. Two separate objects can represent the same logical key.
 
-Một chương trình chỉ thêm một đối tượng a rồi tra cứu lại cũng bằng **chính a** là kiểm thử yếu: lớp kế thừa equals/hashCode mặc định của Object cũng có thể vượt qua. Hãy luôn tạo **b** độc lập với a nhưng bằng nhau theo giá trị.
+A program that only inserts an object a and then looks it up again using **the same a** is a weak test: even a class inheriting Object's default equals/hashCode can pass it. Always construct **b** independently from a yet equal in value.
 
-## 2. HashMap và HashSet nhận diện đối tượng bằng nhau thế nào?
+## 2. How Do HashMap and HashSet Recognize Equal Objects?
 
-**HashMap<K, V>** dùng hash của key để xác định vùng tìm kiếm phù hợp và so sánh key bằng quan hệ equals để tìm entry. Khi **put(a, "ACTIVE")**, lệnh **get(b)** và **containsKey(b)** có thể tìm đúng entry nếu b bằng a và đáp ứng hợp đồng hash. Khi tiếp tục **put(b, "UPDATED")**, Map phải cập nhật cùng khóa logic, không sinh một entry mới.
+**HashMap<K, V>** uses the key's hash to locate the appropriate search bucket and compares keys via the equals relation to find the entry. After **put(a, "ACTIVE")**, **get(b)** and **containsKey(b)** can find the right entry if b equals a and satisfies the hash contract. When subsequently calling **put(b, "UPDATED")**, the Map must update that same logical key without creating a new entry.
 
-**HashSet<E>** lưu các phần tử duy nhất theo equality/hash. Sau **add(a)**, lệnh **contains(b)** phải trả true và **add(b)** phải trả false nếu b bằng a; kích thước Set không tăng.
+**HashSet<E>** stores unique elements based on equality/hashing. After **add(a)**, **contains(b)** must return true and **add(b)** must return false if b equals a; the Set's size does not increase.
 
-| Phép kiểm | Kết quả mong đợi với a và b bằng nhau nhưng khác tham chiếu |
+| Check | Expected result for equal-value, distinct-reference a and b |
 | --- | --- |
 | **a != b** | true |
-| **a.equals(b)** và **b.equals(a)** | true |
+| **a.equals(b)** and **b.equals(a)** | true |
 | **a.hashCode() == b.hashCode()** | true |
 | **map.put(a, v); map.get(b)** | v |
 | **map.containsKey(b)** | true |
-| **map.put(b, v2)** | cập nhật value cho cùng khóa logic; Map vẫn có 1 entry nếu ban đầu rỗng |
-| **set.add(a); set.contains(b)** | true khi contains |
-| **set.add(a); set.add(b)** | lần thêm đầu true, lần sau false; Set vẫn có 1 phần tử |
+| **map.put(b, v2)** | updates value for the same logical key; Map still has 1 entry if initially empty |
+| **set.add(a); set.contains(b)** | true for contains |
+| **set.add(a); set.add(b)** | first add returns true, second returns false; Set still has 1 element |
 
-Không được kết luận hai object bằng nhau chỉ vì hash trùng: **collision được phép**. HashMap/HashSet phải phân biệt hai đối tượng có equals() false dù hashCode bằng nhau.
+Do not conclude two objects are equal merely because their hashes match: **collisions are permitted**. HashMap/HashSet must still distinguish two objects whose equals() returns false even if their hashCodes are equal.
 
-## 3. Hợp đồng equals() và hashCode()
+## 3. The equals() and hashCode() Contract
 
-**equals()** phải thỏa các điều kiện, giả sử trạng thái có liên quan không thay đổi:
+**equals()** must satisfy these conditions, assuming relevant state does not change:
 
-1. **Reflexive:** a.equals(a) là true.
-2. **Symmetric:** a.equals(b) và b.equals(a) cho cùng kết quả.
-3. **Transitive:** nếu a bằng b, b bằng c, thì a bằng c.
-4. **Consistent:** so sánh lặp lại trên những object có trạng thái không đổi cho cùng kết quả.
-5. **Non-null:** a.equals(null) là false với a khác null.
+1. **Reflexive:** a.equals(a) is true.
+2. **Symmetric:** a.equals(b) and b.equals(a) return the same result.
+3. **Transitive:** if a equals b and b equals c, then a equals c.
+4. **Consistent:** repeated comparisons on objects with unchanged state return the same result.
+5. **Non-null:** a.equals(null) is false for non-null a.
 
-**hashCode()** yêu cầu:
+**hashCode()** requires:
 
-- Lặp lại trên cùng đối tượng với thông tin equality không đổi trong một lần thực thi phải trả cùng kết quả.
-- **Nếu a.equals(b) == true thì a.hashCode() == b.hashCode().**
-- Nếu a không bằng b, hash có thể trùng hoặc khác; không bắt buộc khác nhau.
+- Repeated calls on the same object with unchanged equality information during a single execution must return the same result.
+- **If a.equals(b) == true then a.hashCode() == b.hashCode().**
+- If a does not equal b, hashes may collide or differ; they are not required to be different.
 
-Nếu override equals() để so sánh theo field nhưng không override hashCode() tương thích, hai instance có thể equals true nhưng có hash khác nhau, dẫn tới tra cứu lỗi trong HashMap/HashSet. Hãy dùng cùng các thành phần xác định khóa logic cho cả hai phương thức. Với khóa cần ổn định lâu dài trong collection, nên chọn dữ liệu immutable; nếu field tham gia hash bị sửa sau khi thêm, collection không tự tổ chức lại theo hash mới.
+If you override equals() to compare by fields without overriding a compatible hashCode(), two instances can have equals true yet different hash codes, causing lookup failures in HashMap/HashSet. Use the exact same components defining the logical key for both methods. For keys that must stay stable long-term in collections, choose immutable data; if a field participating in hashing is modified after insertion, the collection does not automatically re-index it under the new hash.
 
-## 4. Chương trình Java 17+ chạy độc lập
+## 4. Standalone, Runnable Java 17+ Program
 
-Lớp UserKey được khai báo **final**, trường **tenantId** và **userId** cũng final. Phương thức equals() so sánh hai trường; hashCode() tính từ cùng hai trường. Mã dưới đây kiểm tra bằng một object mới cùng giá trị, chèn Map/Set, cập nhật bằng object tương đương, và từ chối khóa khác.
+The UserKey class is declared **final**, and the **tenantId** and **userId** fields are also final. The equals() method compares both fields; hashCode() is computed from those same two fields. The code below tests with a new object having the same values, inserts into Map/Set, updates using an equivalent object, and rejects a different key.
 
-Tạo tệp **EqualKeyLookupDemo.java**:
+Create the file **EqualKeyLookupDemo.java**:
 
 ~~~java
 import java.util.HashMap;
@@ -171,14 +171,14 @@ public class EqualKeyLookupDemo {
 }
 ~~~
 
-Lệnh biên dịch và chạy với JDK 17 trở lên:
+Compile and run commands for JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 EqualKeyLookupDemo.java
 java EqualKeyLookupDemo
 ~~~
 
-**Stdout mong đợi chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 Khác tham chiếu: true
@@ -198,13 +198,13 @@ Set chứa khóa khác: false
 Tất cả kiểm thử thành công.
 ~~~
 
-Giải thích: **first** và **equivalent** có identity khác, nhưng bằng nhau theo đúng hai field làm khóa. HashMap tra cứu được bằng equivalent, cập nhật bằng equivalent giữ đúng một entry; HashSet nhận ra giá trị tương đương và không thêm trùng. **different** không bằng first vì userId khác. Hàm **require(...)** ném AssertionError ngay khi điều kiện không đạt, khác với câu lệnh **assert** của Java có thể bị vô hiệu hóa khi thiếu cờ **-ea**.
+Explanation: **first** and **equivalent** have different identities, yet are equal across the exact two key fields. HashMap looks up using equivalent, updates using equivalent while keeping exactly one entry, and reading via first sees the updated value; HashSet recognizes the equivalent value and does not add a duplicate. **different** does not equal first because userId differs. The **require(...)** helper throws AssertionError immediately when a condition is not met, unlike Java's **assert** statement which can be disabled when the **-ea** flag is omitted.
 
-Bài kiểm thử không in toàn bộ HashMap/HashSet để so thứ tự phần tử vì **không có bảo đảm về thứ tự lặp** của hai collection này.
+The test does not print the entire HashMap/HashSet to assert element order because **there is no guaranteed iteration order** for these two collections.
 
-## 5. Viết kiểm thử JUnit Jupiter (JUnit 5)
+## 5. Writing JUnit Jupiter (JUnit 5) Tests
 
-Trong ứng dụng thực tế, hãy dùng assertion có thông báo rõ ràng. Đoạn dưới là **mã test bổ sung**, yêu cầu dependency JUnit 5 và lớp EqualKeyLookupDemo ở cùng package, không phải chương trình độc lập chạy chỉ bằng lệnh java.
+In real applications, use assertions with clear messages. The snippet below is **supplementary test code**, requiring the JUnit 5 dependency and the EqualKeyLookupDemo class in the same package, not a standalone program run solely with the java command.
 
 ~~~java
 import static org.junit.jupiter.api.Assertions.*;
@@ -286,13 +286,13 @@ class EqualKeyLookupDemoTest {
 }
 ~~~
 
-Khi xây dựng test riêng cho class của dự án, thay UserKey bằng khóa thực tế. Nếu khóa gồm nhiều field, phải kiểm thử ít nhất một trường hợp **khác ở từng field tham gia equality**; nếu không, equals() quá rộng có thể xem nhầm hai khóa khác nhau là cùng khóa.
+When writing dedicated tests for a project class, replace UserKey with your actual key. If a key consists of multiple fields, test at least one case **differing in each field participating in equality**; otherwise, an overly broad equals() may mistakenly treat two different keys as the same key.
 
-## 6. Phân biệt collision với equality
+## 6. Distinguishing Collisions From Equality
 
-Hai đối tượng **không bằng nhau nhưng có cùng hashCode** vẫn phải được HashMap/HashSet lưu và tra cứu độc lập. Có thể dựng collision cố ý bằng một lớp mà hashCode() luôn trả 1. Điều này **vẫn thỏa hợp đồng** (các khóa bằng nhau chắc chắn có hash như nhau) nhưng kém hiệu năng nghiêm trọng với tập lớn.
+Two objects that are **unequal yet have the same hashCode** must still be stored and looked up independently by HashMap/HashSet. You can intentionally create a collision using a class whose hashCode() always returns 1. This **still satisfies the contract** (equal keys definitely have the same hash), though it performs severely poorly on large sets.
 
-Ví dụ bổ sung minh họa, giả định có import **java.util.Map** và **java.util.HashMap**:
+Supplementary illustrative example, assuming imports for **java.util.Map** and **java.util.HashMap**:
 
 ~~~java
 record CollisionKey(int id) {
@@ -306,7 +306,7 @@ Map<CollisionKey, String> map = new HashMap<>();
 map.put(new CollisionKey(1), "ONE");
 map.put(new CollisionKey(2), "TWO");
 
-// Hai khóa có hash trùng nhưng equals khác.
+// Two keys have colliding hashes yet unequal equals.
 if (!"ONE".equals(map.get(new CollisionKey(1)))
         || !"TWO".equals(map.get(new CollisionKey(2)))
         || map.size() != 2) {
@@ -314,68 +314,68 @@ if (!"ONE".equals(map.get(new CollisionKey(1)))
 }
 ~~~
 
-Đoạn minh họa này không phải tệp Java độc lập: đặt record và các statement vào ngữ cảnh khai báo phù hợp, chẳng hạn record ở mức lớp và các statement trong test method. Một collision không chứng minh lỗi equals/hashCode. **Không dùng hash hằng trong ứng dụng sản xuất** chỉ để đơn giản hóa việc tính hash.
+This illustrative snippet is not a standalone Java file: place the record and statements in an appropriate declaration context, such as the record at class level and the statements inside a test method. A collision does not prove an equals/hashCode bug. **Do not use a constant hash in production applications** merely to simplify hash computation.
 
-## 7. Các tình huống lỗi thường gặp
+## 7. Common Failure Scenarios
 
-### 7.1. Override equals() mà quên hashCode()
+### 7.1. Overriding equals() While Forgetting hashCode()
 
-Giả sử lớp chỉ ghi đè equals() để so sánh tenantId và userId nhưng để hashCode() kế thừa Object. Hai instance khác nhau có thể equals true nhưng hashCode khác, khiến HashMap/HashSet tìm sai vùng và trả kết quả không mong muốn.
+Suppose a class only overrides equals() to compare tenantId and userId while letting hashCode() inherit from Object. Two distinct instances can have equals true yet different hashCodes, causing HashMap/HashSet to search the wrong bucket and return unexpected results.
 
-**Không nên cố tình viết test luôn mong đợi lỗi tra cứu** cho kiểu lớp hỏng này, vì identity hash có thể trùng tình cờ; sự thất bại không được bảo đảm trên mọi lần chạy. Test phải khẳng định trực tiếp **a.equals(b) ⇒ a.hashCode()==b.hashCode()** cùng với hành vi tìm kiếm.
+**Do not intentionally write tests that always expect lookup failure** for this kind of broken class, because identity hashes can collide by chance; failure is not guaranteed across every run. Tests must directly assert **a.equals(b) ⇒ a.hashCode()==b.hashCode()** alongside lookup behavior.
 
-### 7.2. Dùng == để so sánh String trong equals()
+### 7.2. Using == to Compare Strings in equals()
 
-**tenantId == other.tenantId** so sánh tham chiếu, trong khi hai String khác object có thể chứa cùng nội dung. Dùng **tenantId.equals(other.tenantId)** khi chắc chắn non-null; dùng **Objects.equals(...)** khi cần hỗ trợ null.
+**tenantId == other.tenantId** compares references, whereas two distinct String objects can contain the same text. Use **tenantId.equals(other.tenantId)** when guaranteed non-null; use **Objects.equals(...)** when null support is required.
 
-### 7.3. Không thống nhất tiêu chí equality và hash
+### 7.3. Misaligned Equality and Hash Criteria
 
-Nếu equals() xem hai khóa cùng userId là bằng nhau bất kể tenantId, nhưng hashCode() đưa cả tenantId vào tính toán, hai khóa được equals xem là bằng nhau có thể có hash khác: sai hợp đồng. Ngược lại, nếu hashCode() chỉ dùng userId còn equals() dùng cả tenantId và userId thì hợp đồng có thể vẫn đúng, nhưng dễ tạo nhiều collision hơn.
+If equals() treats two keys with the same userId as equal regardless of tenantId, while hashCode() includes tenantId in its calculation, two keys deemed equal by equals may have different hashes: a contract bug. Conversely, if hashCode() only uses userId while equals() uses both tenantId and userId, the contract can remain valid, though it tends to produce more collisions.
 
-### 7.4. Sửa khóa mutable sau khi chèn
+### 7.4. Mutating a Key After Insertion
 
-Nếu equals/hashCode dựa trên trường **code** mutable, lệnh **map.put(key, value)** lưu entry theo hash ban đầu. Sau **key.code = "new-code"**, gọi **map.containsKey(key)** bằng chính tham chiếu cũ vẫn **có thể thất bại** vì collection không tự di chuyển entry đến vùng hash mới. HashSet gặp rủi ro tương tự.
+If equals/hashCode depends on a mutable **code** field, **map.put(key, value)** stores the entry under the initial hash. After **key.code = "new-code"**, calling **map.containsKey(key)** even with the exact same old reference **can still fail** because the collection does not move the entry to the new hash bucket. HashSet faces the exact same risk.
 
-Ưu tiên dùng **final field với thành phần immutable**, hoặc một record chỉ chứa các component an toàn. Nếu thực sự phải thay khóa, quản lý thao tác xóa khóa ở trạng thái cũ và thêm khóa mới có kiểm soát; tránh để đối tượng bên ngoài sửa trực tiếp dữ liệu làm khóa.
+Prefer **final fields with immutable components**, or a record containing only safe components. If a key truly must change, manage removing the key under its old state and inserting the new key in a controlled manner; avoid letting external objects directly mutate data serving as a key.
 
-### 7.5. equals() bất đối xứng giữa lớp cha và lớp con
+### 7.5. Asymmetric equals() Between Parent and Subclass
 
-Lớp cha có thể cho rằng nó bằng một instance lớp con, nhưng lớp con yêu cầu thêm field và không coi là bằng lớp cha. Khi **a.equals(b) != b.equals(a)**, hợp đồng bị phá vỡ và tra cứu trong collection có thể phụ thuộc hướng so sánh. Với kiểu khóa giá trị, **final class** hoặc **record** thường giúp diễn đạt equality minh bạch. Nếu cần kế thừa, phải kiểm thử đối xứng và bắc cầu giữa mọi kiểu liên quan.
+A parent class might consider itself equal to a subclass instance, whereas the subclass requires an extra field and does not consider itself equal to the parent. When **a.equals(b) != b.equals(a)**, the contract is broken and collection lookup can depend on comparison direction. For value key types, a **final class** or **record** usually helps express equality cleanly. If inheritance is needed, test symmetry and transitivity across all related types.
 
-### 7.6. Dùng map.get() == null để kết luận khóa không tồn tại
+### 7.6. Using map.get() == null to Conclude a Key Does Not Exist
 
-**HashMap cho phép value null**: một khóa b có thể tồn tại, **map.containsKey(b)==true**, nhưng **map.get(b)==null**. Nếu bài toán cần phân biệt khóa chưa chèn và khóa ánh xạ tới null, hãy kiểm tra **containsKey**. HashSet.contains trực tiếp trả boolean.
+**HashMap permits null values**: a key b may exist, with **map.containsKey(b)==true**, while **map.get(b)==null**. If the use case needs to distinguish an absent key from a key mapped to null, check **containsKey**. HashSet.contains directly returns a boolean.
 
-### 7.7. Kiểm thử chỉ bằng một instance
+### 7.7. Testing With Only One Instance
 
-Chèn a rồi gọi get(a) không chứng minh được lookup bằng khóa tương đương. Test phải tạo b khác identity, assert chúng bằng nhau và tra bằng b. Kiểm tra chỉ có cùng hash cũng không đủ để chứng minh equality.
+Inserting a and then calling get(a) does not prove lookup by an equivalent key. A test must construct b with a distinct identity, assert they are equal, and look up using b. Checking only for matching hashes is also insufficient to prove equality.
 
-### 7.8. Nhầm record với bất biến sâu
+### 7.8. Confusing record With Deep Immutability
 
-Một **record** tự sinh equals/hashCode dựa vào các component, nhưng component có thể là List, array hoặc một object mutable. Nếu component có trạng thái thay đổi và tham gia hashCode, khóa record vẫn có thể mất tính ổn định. Record đơn giản với String và primitive an toàn hơn; với component mutable cần hợp đồng defensive copy và equality phù hợp.
+A **record** auto-generates equals/hashCode from its components, yet a component can be a List, array, or mutable object. If a component has mutable state and participates in hashCode, the record key can still lose stability. Simple records with Strings and primitives are safer; with mutable components, a defensive copy and suitable equality contract are needed.
 
-## 8. Ma trận ca kiểm thử quan trọng
+## 8. Matrix of Important Test Cases
 
-| Trường hợp | Dữ liệu | Kết quả cần chứng minh |
+| Case | Data | Result to prove |
 | --- | --- | --- |
-| Positive equality | Hai instance khác nhau, cùng mọi trường khóa | Map get/containsKey và Set contains tìm thấy |
-| Put/update trùng khóa logic | put(a), sau đó put(b) | Map chỉ có một entry và giữ giá trị mới |
-| Add trùng phần tử | add(a), sau đó add(b) | add(b) false và size không tăng |
-| Negative theo mã người dùng | Cùng tenant, userId khác | Không khớp |
-| Negative theo tổ chức | Cùng userId, tenant khác | Không khớp |
-| Phản xạ/đối xứng/bắc cầu | Tạo a, b, c bằng nhau | Tất cả tính chất equals đều đúng |
-| Hash contract | a.equals(b) true | hashCode(a)==hashCode(b) |
-| Collision | Hai khóa khác nhau, cố ý cùng hash | Collection vẫn phân biệt |
-| Null value trong Map | put(a, null) | containsKey(b) true dù get(b) null |
-| Mutable key | Field hash thay đổi sau khi chèn | Nhận diện nguy cơ và sửa thiết kế khóa |
-| Kế thừa / proxy | Các kiểu khóa liên quan theo thiết kế | Không phá symmetry/transitivity |
-| Nhiều phần tử | Thêm nhiều khóa có trùng và không trùng | Số lượng và giá trị đúng; không dựa vào thứ tự |
+| Positive equality | Two distinct instances, all key fields identical | Map get/containsKey and Set contains find the entry |
+| Duplicate logical key put/update | put(a), then put(b) | Map has only one entry and holds the new value |
+| Duplicate element add | add(a), then add(b) | add(b) returns false and size does not grow |
+| Negative by user ID | Same tenant, different userId | Does not match |
+| Negative by organization | Same userId, different tenant | Does not match |
+| Reflexive/symmetric/transitive | Create equal a, b, c | All equals properties hold |
+| Hash contract | a.equals(b) is true | hashCode(a)==hashCode(b) |
+| Collision | Two distinct keys, intentionally identical hash | Collection still distinguishes them |
+| Null value in Map | put(a, null) | containsKey(b) is true even though get(b) is null |
+| Mutable key | Hash field mutates after insertion | Identify risk and fix key design |
+| Inheritance / proxy | Related key types per design | Does not break symmetry/transitivity |
+| Multiple elements | Insert multiple duplicate and non-duplicate keys | Counts and values are accurate; do not rely on order |
 
-**Không nên khẳng định các hashCode của object khác nhau bắt buộc khác nhau** hoặc Map/Set luôn có một thứ tự duyệt cụ thể. Những kỳ vọng đó nằm ngoài hợp đồng Java.
+**Do not assert that hashCodes of distinct objects must differ** or that Map/Set always have a specific iteration order. Those expectations lie outside the Java contract.
 
-## 9. Dùng record để biểu diễn khóa theo giá trị
+## 9. Using record to Represent Value Keys
 
-Với Java 17+, record gọn khi các component đúng là thông tin nhận diện khóa logic. Ví dụ sau là **mảnh mã minh họa**, cần các import Map, HashMap tương ứng và đặt các statement trong method:
+With Java 17+, a record is concise when its components are the exact information identifying the logical key. The example below is an **illustrative code snippet**, requiring corresponding Map and HashMap imports and placing the statements inside a method:
 
 ~~~java
 record UserKey(String tenantId, int userId) {}
@@ -385,22 +385,22 @@ UserKey equivalent = new UserKey("team-a", 42);
 Map<UserKey, String> map = new HashMap<>();
 map.put(first, "ACTIVE");
 
-// map.get(equivalent) trả "ACTIVE".
-// map.containsKey(equivalent) trả true.
+// map.get(equivalent) returns "ACTIVE".
+// map.containsKey(equivalent) returns true.
 ~~~
 
-Record tự cung cấp equals/hashCode theo các component; vẫn phải kiểm tra rằng **toàn bộ component** thực sự thuộc khóa logic. Nếu một trường chỉ là dữ liệu mô tả không nên tham gia equality, hãy định nghĩa kiểu khóa tách biệt chứa đúng các field cần thiết, thay vì dùng record bao gồm cả trường mô tả. Việc khai báo record không bảo đảm các object do component trỏ tới là bất biến sâu.
+A record automatically provides equals/hashCode across its components; you must still check that **all components** genuinely belong to the logical key. If a field is only descriptive metadata that should not participate in equality, define a separate key type containing only the required fields rather than using a record that includes descriptive fields. Declaring a record does not guarantee the objects referenced by its components are deeply immutable.
 
-## 10. Checklist đánh giá PASS
+## 10. PASS Evaluation Checklist
 
-Một bộ kiểm thử nên kết luận PASS cho hợp đồng lookup khi:
+A test suite should conclude PASS for the lookup contract when:
 
-- Hai **đối tượng riêng biệt** có cùng nội dung khóa được chứng minh khác identity nhưng bằng nhau cả hai chiều equals().
-- equals() phản xạ, đối xứng, bắc cầu, nhất quán và trả false với null; các đối tượng bằng nhau có cùng hashCode().
-- Map đã lưu a vẫn tìm bằng b, cập nhật bằng b không tăng số khóa logic và đọc bằng a thấy value mới.
-- Set đã chứa a vẫn tìm bằng b; thêm b không tăng số phần tử.
-- Các khóa không bằng nhau không bị nhầm, kể cả khi trùng hash.
-- Không dùng field mutable làm thay đổi nghĩa/hash của khóa sau khi chèn; nếu có chia sẻ trạng thái thì thiết kế xử lý theo hợp đồng.
-- Assertions thực sự được thực thi; kết quả không phụ thuộc thứ tự HashMap/HashSet hay identity hash may rủi.
+- Two **separate objects** with identical key content are proven to have different identities yet are equal in both directions of equals().
+- equals() is reflexive, symmetric, transitive, consistent, and returns false for null; equal objects share the same hashCode().
+- A Map that stored a still finds it using b, updating via b does not increase the logical key count, and reading via a sees the new value.
+- A Set containing a still finds it using b; adding b does not increase element count.
+- Unequal keys are not confused, even when hashes collide.
+- No mutable field alters a key's meaning/hash after insertion; if state is shared, the design handles it according to contract.
+- Assertions actually execute; results do not depend on HashMap/HashSet iteration order or lucky identity hashes.
 
-**Kết luận:** phép thử quyết định là **thêm một instance vào HashMap/HashSet rồi tra cứu bằng instance khác nhưng bằng nhau theo equals() và có hashCode tương thích**. Kết hợp phép thử đó với cập nhật/chống trùng, negative case, collision và sự ổn định của khóa để kiểm chứng đúng hợp đồng đối tượng trong ứng dụng Java.
+**Conclusion:** the decisive check is **inserting one instance into HashMap/HashSet and looking it up with another instance that is equal under equals() and has a compatible hashCode()**. Combine that check with update/deduplication, negative cases, collisions, and key stability to properly verify the object contract in Java applications.

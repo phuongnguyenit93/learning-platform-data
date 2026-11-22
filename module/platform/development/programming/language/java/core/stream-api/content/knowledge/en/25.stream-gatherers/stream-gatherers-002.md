@@ -1,30 +1,30 @@
-# Phân biệt Gatherer với map, mapMulti và Collector
+# Distinguishing Gatherer from map, mapMulti, and Collector
 
-Khi thiết kế một pipeline Java Stream, bốn công cụ dễ bị đặt cạnh nhau là `map`, `mapMulti`, **Stream Gatherer** và **Collector**. Chúng đều tham gia chuyển đổi hoặc tổng hợp dữ liệu, nhưng **không làm cùng một việc**. Chọn sai công cụ có thể khiến code phức tạp, làm mất phần tử, mất thứ tự, chia sẻ trạng thái không an toàn hoặc trả về một kết quả không phù hợp với yêu cầu.
+When designing a Java Stream pipeline, four tools that are often placed side by side are `map`, `mapMulti`, **Stream Gatherer**, and **Collector**. They all participate in transforming or aggregating data, yet **they do not do the same thing**. Choosing the wrong tool can make code unnecessarily complex, lose elements, break ordering, share state unsafely, or return a result shape that does not fit the requirement.
 
-Điểm cần ghi nhớ ngay từ đầu:
+Key points to keep in mind from the start:
 
-- **`map`**: mỗi phần tử đầu vào tạo **một phần tử đầu ra** qua hàm ánh xạ.
-- **`mapMulti`**: mỗi phần tử đầu vào có thể phát **0, 1 hoặc nhiều phần tử đầu ra** qua một consumer; thường dùng khi không cần duy trì trạng thái qua các phần tử đầu vào.
-- **`gather` với `Gatherer`**: thao tác trung gian mở rộng; có thể phát 0..n phần tử, **giữ trạng thái riêng**, quyết định dừng tích hợp và thực hiện bước hoàn tất.
-- **`collect` với `Collector`**: thao tác kết thúc để **tích lũy đầu vào thành một kết quả cuối**, ví dụ `List`, `Map`, số liệu thống kê hoặc DTO.
+- **`map`**: each input element produces **one output element** via a mapping function.
+- **`mapMulti`**: each input element can emit **0, 1, or many output elements** through a consumer; typically used when there is no need to maintain state across input elements.
+- **`gather` with `Gatherer`**: an extensible intermediate operation; it can emit 0..n elements, **hold private state**, decide when to stop integrating, and perform a finalization step.
+- **`collect` with `Collector`**: a terminal operation to **accumulate inputs into a single final result**, such as a `List`, `Map`, summary metrics, or a DTO.
 
-Bài thuộc chương **Stream Gatherer** của module **JAVA_STREAM_API**, nơi người học đã gặp pipeline lazy, `filter`, `map`, `reduce` và `collect`, cũng như grouping, collector tùy chỉnh, `Spliterator` và xử lý song song. Chúng ta sẽ phân biệt công cụ theo **kiểu kết quả, cách dùng trạng thái, tính lazy, thứ tự, dừng sớm và hợp đồng song song**, sau đó triển khai ví dụ Java 24 hoàn chỉnh và các bài tập thực hành.
+This lesson belongs to the **Stream Gatherer** chapter of the **JAVA_STREAM_API** module, where learners have already encountered lazy pipelines, `filter`, `map`, `reduce`, and `collect`, as well as grouping, custom collectors, `Spliterator`, and parallel processing. We will distinguish these tools by **result shape, state usage, laziness, ordering, short-circuiting, and parallel contract**, then implement a complete Java 24 example and practice exercises.
 
-## 1. Mức JDK và vị trí của từng API trong pipeline
+## 1. JDK availability and pipeline position of each API
 
-| API | Có từ JDK | Vai trò | Hình dạng kết quả |
+| API | Available since JDK | Role | Result shape |
 |---|---:|---|---|
 | `Stream.map(Function)` | Java 8 | *Intermediate operation* | `Stream<R>` |
 | `Stream.mapMulti(BiConsumer)` | Java 16 | *Intermediate operation* | `Stream<R>` |
-| `Stream.gather(Gatherer)` | Java 24 chính thức | *Intermediate operation* | `Stream<R>` |
-| `Stream.collect(Collector)` | Java 8 | *Terminal operation* | `R`, thường không phải Stream |
+| `Stream.gather(Gatherer)` | Java 24 official | *Intermediate operation* | `Stream<R>` |
+| `Stream.collect(Collector)` | Java 8 | *Terminal operation* | `R`, usually not a Stream |
 
-Stream Gatherers xuất hiện dưới dạng **preview** ở Java 22 và Java 23, rồi trở thành tính năng chính thức trong **Java 24**. Những ví dụ dùng `Gatherer` ở bài này hướng tới **JDK 24 trở lên**. Không thể sao chép chúng nguyên vẹn vào một dự án Java 8, 11, 17 hoặc 21 rồi mong biên dịch được.
+Stream Gatherers appeared as a **preview** in Java 22 and Java 23, then became an official feature in **Java 24**. The examples using `Gatherer` in this lesson target **JDK 24 and later**. You cannot copy them verbatim into a Java 8, 11, 17, or 21 project and expect them to compile.
 
-### 1.1. Intermediate operation khác terminal operation
+### 1.1. Intermediate operations vs. terminal operations
 
-`map`, `mapMulti` và `gather` đều trả về **một Stream mới** để có thể nối thêm các bước:
+`map`, `mapMulti`, and `gather` all return **a new Stream** so additional steps can be chained:
 
 ```java
 List<String> result = source
@@ -33,9 +33,9 @@ List<String> result = source
         .toList();
 ```
 
-Ở đây, `map` và `filter` mô tả pipeline. `toList()` mới là **terminal operation** kích hoạt xử lý và trả danh sách.
+Here, `map` and `filter` describe the pipeline. `toList()` is the **terminal operation** that triggers execution and returns a list.
 
-Ngược lại:
+Conversely:
 
 ```java
 Map<String, Long> counts = source
@@ -44,33 +44,33 @@ Map<String, Long> counts = source
                 Collectors.counting()));
 ```
 
-`collect` đã kết thúc pipeline và trả `Map`. Nếu muốn tiếp tục dùng Stream trên các entry, phải tạo một Stream **mới** từ `counts.entrySet()`, chứ không thể nối `.filter(...)` trực tiếp lên `Map`.
+`collect` terminates the pipeline and returns a `Map`. If you want to continue using Stream operations on its entries, you must create a **new** Stream from `counts.entrySet()`, rather than chaining `.filter(...)` directly onto the `Map`.
 
-### 1.2. Một bảng quyết định ngắn
+### 1.2. A short decision table
 
-| Câu hỏi nghiệp vụ | Công cụ nên nghĩ tới trước |
+| Business question | Tool to consider first |
 |---|---|
-| “Đổi `Order` thành mã đơn?” | `map` |
-| “Một đơn có nhiều dòng, muốn phát từng dòng?” | `flatMap` hoặc `mapMulti` |
-| “Muốn số thứ tự hoặc tổng lũy kế sau **mỗi dòng**?” | `Gatherer` có trạng thái |
-| “Muốn chia các dòng liên tiếp thành cửa sổ?” | `Gatherers.windowFixed` hoặc Gatherer tùy biến |
-| “Muốn dừng Gatherer sau một quy tắc nội bộ?” | `Gatherer.Integrator` có tín hiệu `boolean` |
-| “Muốn tổng doanh thu **cuối cùng** theo SKU?” | `collect(groupingBy(...))` hoặc `toMap` |
-| “Muốn số lượng, min, max, average của một trường số?” | `summarizingInt`/`summarizingLong` |
-| “Muốn một báo cáo đa chỉ số khi pipeline kết thúc?” | `Collector` tùy biến hoặc `Collectors.teeing` |
+| "Convert `Order` to order ID?" | `map` |
+| "An order has multiple lines; emit each line?" | `flatMap` or `mapMulti` |
+| "Need a sequence number or cumulative total after **each line**?" | Stateful `Gatherer` |
+| "Split consecutive lines into windows?" | `Gatherers.windowFixed` or a custom Gatherer |
+| "Stop the Gatherer based on an internal rule?" | `Gatherer.Integrator` with a `boolean` signal |
+| "Need the **final** total revenue by SKU?" | `collect(groupingBy(...))` or `toMap` |
+| "Need count, min, max, and average of a numeric field?" | `summarizingInt`/`summarizingLong` |
+| "Need a multi-metric report when the pipeline finishes?" | Custom `Collector` or `Collectors.teeing` |
 
-**Không có công cụ nào luôn tốt hơn công cụ còn lại**. Lựa chọn đúng là công cụ đơn giản nhất diễn đạt **đúng số đầu ra, đúng thời điểm phát kết quả và đúng trạng thái cần lưu**.
+**No single tool is always better than the others.** The right choice is the simplest tool that expresses **the right number of outputs, the right emission timing, and the right state to retain**.
 
-## 2. map: một phần tử thành một phần tử
+## 2. map: one element to one element
 
-Chữ ký cốt lõi:
+Core signature:
 
 ```java
 <R> Stream<R> map(
         Function<? super T, ? extends R> mapper);
 ```
 
-Đối với mỗi phần tử `T` được pipeline thực sự xử lý, mapper trả về **một giá trị `R`**. Giá trị đó có thể là một đối tượng phức tạp, một collection, thậm chí là `null`; `map` **không tự loại null** hay làm phẳng collection.
+For each element `T` actually processed by the pipeline, the mapper returns **one `R` value**. That value may be a complex object, a collection, or even `null`; `map` **does not automatically remove nulls** or flatten collections.
 
 ```java
 import java.util.Arrays;
@@ -86,18 +86,18 @@ List<String> cleaned = words.stream()
 System.out.println(cleaned); // [java, stream, api]
 ```
 
-Mỗi chuỗi đầu vào tạo **một chuỗi** trong kết quả. Nếu một đơn hàng có danh sách dòng sản phẩm:
+Each input string produces **one string** in the result. If an order has a list of item lines:
 
 ```java
 Stream<List<OrderLine>> nested = orders.stream()
         .map(Order::getLines);
 ```
 
-Kết quả vẫn là `Stream<List<OrderLine>>`: một phần tử đầu ra là **cả danh sách con**. `map` không có trách nhiệm nối các danh sách thành một Stream dòng sản phẩm.
+The result is still `Stream<List<OrderLine>>`: one output element is **the entire sublist**. `map` is not responsible for concatenating those lists into a single Stream of order lines.
 
-### 2.1. Khi không nên viết stateful map
+### 2.1. When not to write a stateful map
 
-Một cách viết sai là giữ biến đếm chung bên ngoài mapper:
+An incorrect pattern is keeping a shared counter outside the mapper:
 
 ```java
 int[] counter = {0};
@@ -105,31 +105,31 @@ int[] counter = {0};
 List<String> numbered = words.parallelStream()
         .map(word -> (++counter[0]) + ":" + word)
         .collect(Collectors.toList());
-// SAI: mảng mutable được chia sẻ giữa các worker.
+// WRONG: mutable array is shared across workers.
 ```
 
-Lỗi này có hai tầng:
+This bug has two layers:
 
-1. `map` được thiết kế cho hàm **non-interfering** và thường **stateless**; biến đếm bên ngoài biến phép ánh xạ thành thao tác phụ thuộc thứ tự và trạng thái.
-2. Khi Stream song song, cập nhật `counter[0]` có **data race**; số thứ tự có thể trùng, mất hoặc không tương ứng encounter order.
+1. `map` is designed for **non-interfering** and normally **stateless** functions; an external counter turns the mapping into an order-dependent, stateful operation.
+2. When the Stream runs in parallel, updating `counter[0]` causes a **data race**; sequence numbers can be duplicated, lost, or fail to match encounter order.
 
-Nếu chỉ cần **đánh số theo vị trí một List**, có thể dùng `IntStream.range(0, list.size())`. Nếu cần biến đổi trạng thái theo dãy phần tử một cách tổng quát, **Gatherer tuần tự** thể hiện ý định rõ hơn.
+If you only need **positional numbering for a List**, you can use `IntStream.range(0, list.size())`. If you need a general stateful transformation across a sequence of elements, a **sequential Gatherer** expresses the intent much more clearly.
 
-## 3. mapMulti: phát nhiều phần tử không cần tạo Stream con
+## 3. mapMulti: emitting multiple elements without creating sub-streams
 
-`Stream.mapMulti` có từ **Java 16**. Chữ ký khái quát:
+`Stream.mapMulti` was introduced in **Java 16**. General signature:
 
 ```java
 <R> Stream<R> mapMulti(
         BiConsumer<? super T, ? super Consumer<R>> mapper);
 ```
 
-Mapper nhận:
+The mapper receives:
 
-- Một phần tử đầu vào kiểu `T`.
-- Một `Consumer<R>` (gọi là `emit` trong ví dụ) để phát các giá trị đầu ra.
+- An input element of type `T`.
+- A `Consumer<R>` (named `emit` in the example) to emit output values.
 
-Mapper có thể gọi `emit.accept(...)` **không lần nào, một lần hoặc nhiều lần**:
+The mapper may call `emit.accept(...)` **zero times, once, or many times**:
 
 ```java
 List<Integer> values = List.of(1, 2, 3);
@@ -146,11 +146,11 @@ List<Integer> output = values.stream()
 System.out.println(output); // [1, 10, 3, 30]
 ```
 
-Số `2` không phát phần tử nào; mỗi số lẻ phát hai kết quả. Đây là điều `map` không thực hiện trực tiếp được vì `map` ánh xạ mỗi phần tử đầu vào thành **một giá trị**.
+The number `2` emits no elements; each odd number emits two results. This is something `map` cannot do directly because `map` maps each input element to **one value**.
 
-### 3.1. So với flatMap
+### 3.1. Comparison with flatMap
 
-`flatMap` từ Java 8 có thể giải bài toán tương tự bằng việc trả **Stream con**:
+`flatMap` since Java 8 can solve the same problem by returning a **sub-stream**:
 
 ```java
 List<Integer> output = List.of(1, 2, 3).stream()
@@ -161,49 +161,49 @@ List<Integer> output = List.of(1, 2, 3).stream()
 // [1, 10, 3, 30]
 ```
 
-Trong `mapMulti`, mapper phát trực tiếp qua `emit.accept`; trong `flatMap`, mapper trả `Stream<R>`. `mapMulti` có thể tránh tạo một Stream con cho mỗi phần tử, đặc biệt hữu ích khi mỗi đầu vào tạo ít phần tử con. Nhưng **không được suy ra mapMulti luôn nhanh hơn**; cần đo chi phí thực tế.
+In `mapMulti`, the mapper emits directly through `emit.accept`; in `flatMap`, the mapper returns `Stream<R>`. `mapMulti` can avoid creating a sub-stream for every element, which is especially useful when each input produces only a few child elements. However, **you must not assume `mapMulti` is always faster**; measure the actual cost.
 
-### 3.2. Giới hạn của mapMulti
+### 3.2. Limitations of mapMulti
 
-`mapMulti` rất hợp lý khi xử lý **mỗi phần tử độc lập** và phát ra 0..n giá trị. Nó không cung cấp riêng:
+`mapMulti` is well-suited when processing **each element independently** and emitting 0..n values. It does not natively provide:
 
-- Một `initializer` tạo trạng thái cho toàn bộ lượt biến đổi.
-- Một `finisher` để đẩy dữ liệu còn tồn đọng khi nguồn kết thúc.
-- Một `Integrator` trả tín hiệu dừng tích hợp theo quy tắc của phép biến đổi.
-- Một `combiner` để mô tả cách kết hợp trạng thái khi được phép tích hợp song song.
+- An `initializer` to create state for the entire transformation pass.
+- A `finisher` to push remaining buffered data when the source ends.
+- An `Integrator` returning a signal to stop integration according to the transformation's rules.
+- A `combiner` to describe how to merge state when parallel integration is allowed.
 
-Có thể cố lưu state bên ngoài callback, nhưng làm vậy khiến chương trình phụ thuộc thứ tự/lịch chạy và dễ vi phạm yêu cầu stateless của Stream. Khi bài toán thật sự **liên kết các phần tử kế tiếp**, `Gatherer` là lựa chọn có hợp đồng rõ hơn.
+One could try storing state outside the callback, but doing so makes the program depend on ordering/scheduling and easily violates Stream's statelessness requirements. When the problem genuinely **links consecutive elements**, `Gatherer` is the choice with the clearer contract.
 
-## 4. Gatherer: phép biến đổi trung gian có khả năng giữ trạng thái
+## 4. Gatherer: an intermediate transformation capable of holding state
 
-Giao diện `Gatherer<T, A, R>` mô tả:
+The `Gatherer<T, A, R>` interface describes:
 
-- **`T`**: kiểu phần tử đầu vào.
-- **`A`**: kiểu trạng thái tích lũy, thường có thể thay đổi qua các bước.
-- **`R`**: kiểu phần tử đầu ra được phát cho pipeline phía sau.
+- **`T`**: input element type.
+- **`A`**: accumulated state type, typically mutable across steps.
+- **`R`**: output element type emitted to the downstream pipeline.
 
-Ở mức khái niệm:
+At a conceptual level:
 
 ```text
 Stream<T>
     |
     v
- Gatherer initializer ---> trạng thái A
+ Gatherer initializer ---> state A
     |
     v
  integrator(A, T, downstream)
     |      |
-    |      +-- có thể push 0..n phần tử R
-    |      +-- có thể trả true / false để tiếp tục / dừng
+    |      +-- may push 0..n R elements
+    |      +-- may return true / false to continue / stop
     |
     v
- finisher(A, downstream)  [nếu cần]
+ finisher(A, downstream)  [if needed]
     |
     v
-Stream<R> ---> map/filter/limit/collect/... tiếp theo
+Stream<R> ---> subsequent map/filter/limit/collect/...
 ```
 
-Khác với `Collector`, Gatherer vẫn nằm ở **giữa pipeline**. Ví dụ:
+Unlike `Collector`, a Gatherer stays **in the middle of the pipeline**. For example:
 
 ```java
 List<RunningTotal> totals = transactions.stream()
@@ -212,74 +212,74 @@ List<RunningTotal> totals = transactions.stream()
         .toList();
 ```
 
-Đoạn này giả định đã định nghĩa kiểu `RunningTotal` và Gatherer `runningTotals()`; mã tự chạy đầy đủ nằm ở phần 7.
+This snippet assumes the `RunningTotal` type and the `runningTotals()` Gatherer are already defined; the complete self-contained runnable code is in section 7.
 
-### 4.1. Những bộ phận quan trọng
+### 4.1. Key parts
 
-| Bộ phận | Ý nghĩa | Khác `mapMulti` ở đâu? |
+| Part | Meaning | How does it differ from `mapMulti`? |
 |---|---|---|
-| `initializer` | Tạo trạng thái `A` của quá trình tích hợp | `mapMulti` không có tham số này |
-| `integrator` | Nhận state, phần tử nguồn và downstream | Có thể dựa vào state qua các phần tử |
-| `downstream.push(R)` | Phát phần tử tới pipeline tiếp theo | Trả `boolean`, báo còn chấp nhận đầu ra không |
-| `integrator` trả `boolean` | Báo có tiếp tục tích hợp đầu vào không | Có giao thức dừng riêng |
-| `finisher` | Dùng trạng thái cuối để phát thêm nếu cần | `mapMulti` không có bước hoàn tất |
-| `combiner` | Cách kết hợp trạng thái trong Gatherer có thể tích hợp song song | Không phải mọi Gatherer cần hoặc có combiner |
+| `initializer` | Creates state `A` for the integration process | `mapMulti` does not have this parameter |
+| `integrator` | Receives state, source element, and downstream | Can rely on state across elements |
+| `downstream.push(R)` | Emits an element to the next pipeline stage | Returns `boolean`, indicating whether output is still accepted |
+| `integrator` returning `boolean` | Indicates whether to continue integrating inputs | Has its own stopping protocol |
+| `finisher` | Uses final state to emit more if needed | `mapMulti` has no finalization step |
+| `combiner` | Strategy for merging state in parallel-capable Gatherers | Not every Gatherer needs or has a combiner |
 
-Không phải Gatherer nào cũng bắt buộc có state/finisher. Với biến đổi stateless, có overload không cần state, nhưng khi `map` hoặc `mapMulti` đã đủ, thêm Gatherer thường chỉ làm code khó đọc hơn.
+Not every Gatherer is required to have state or a finisher. For stateless transformations, overloads without state exist, though when `map` or `mapMulti` is sufficient, adding a Gatherer usually makes the code harder to read.
 
-### 4.2. Các biến thể tạo Gatherer
+### 4.2. Gatherer creation variants
 
-Ví dụ Gatherer **tuần tự có trạng thái**:
+Example of a **stateful sequential** Gatherer:
 
 ```java
 Gatherer<T, State, R> gatherer = Gatherer.ofSequential(
         State::new,
         (state, value, downstream) -> {
-            // Cập nhật state.
-            // Có thể downstream.push(output).
+            // Update state.
+            // May call downstream.push(output).
             return true;
         });
 ```
 
-Ví dụ Gatherer **tuần tự có bước hoàn tất**:
+Example of a **sequential Gatherer with a finisher**:
 
 ```java
 Gatherer<T, State, R> gatherer = Gatherer.ofSequential(
         State::new,
         (state, value, downstream) -> {
-            // Tích lũy, có thể phát đầu ra.
+            // Accumulate, may emit output.
             return true;
         },
         (state, downstream) -> {
-            // Phát phần dữ liệu còn lại khi hoàn tất nếu cần.
+            // Emit remaining data upon completion if needed.
         });
 ```
 
-Đây là những mẫu chữ ký, không phải chương trình tự chạy do các kiểu `T`, `State`, `R` và quy tắc tích hợp chưa được định nghĩa. Cần dùng chúng khi thiết kế Gatherer cụ thể, thay vì gắn một state mutable dùng chung bên ngoài Stream.
+These are signature templates, not runnable programs since `T`, `State`, `R`, and the integration rules have not been defined yet. Use them when designing a concrete Gatherer, rather than attaching shared mutable state outside the Stream.
 
-### 4.3. push(false) và return false không phải “lọc bỏ”
+### 4.3. push(false) and return false do not mean "filter out"
 
-Với integrator:
+With an integrator:
 
 ```java
 (state, value, downstream) -> {
     if (!isValid(value)) {
-        return true; // Bỏ qua phần tử, tiếp tục xử lý đầu vào khác.
+        return true; // Skip element, continue processing remaining inputs.
     }
     return downstream.push(transform(value));
 }
 ```
 
-- Không gọi `push` nghĩa là **không phát đầu ra cho phần tử này**.
-- Trả `true` nghĩa là **tiếp tục tích hợp** nếu downstream còn nhu cầu.
-- Trả `false` nghĩa là **Gatherer muốn dừng tích hợp đầu vào**.
-- `downstream.push(...)` trả `false` khi downstream từ chối thêm đầu ra; nên truyền tín hiệu dừng khi phù hợp.
+- Not calling `push` means **emitting no output for this element**.
+- Returning `true` means **continuing integration** if downstream still demands elements.
+- Returning `false` means **the Gatherer wants to stop integrating inputs**.
+- `downstream.push(...)` returns `false` when downstream rejects further output; propagate the stop signal when appropriate.
 
-Không dùng `return false` chỉ để bỏ một phần tử không hợp lệ. Điều đó làm mất những phần tử hợp lệ nằm sau nó.
+Do not use `return false` merely to skip an invalid element. Doing so drops all valid elements that follow it.
 
-## 5. Collector: tập trung vào một kết quả cuối
+## 5. Collector: focused on a single final result
 
-`Collector<T, A, R>` mô tả phép *mutable reduction* từ phần tử `T` qua trạng thái `A` thành **kết quả cuối `R`**.
+`Collector<T, A, R>` describes a *mutable reduction* from `T` elements through state `A` into **a final result `R`**.
 
 ```java
 Map<String, Long> revenueBySku = lines.stream()
@@ -288,68 +288,68 @@ Map<String, Long> revenueBySku = lines.stream()
                 Collectors.summingLong(LineView::amountCents)));
 ```
 
-`collect` tiêu thụ pipeline và trả `Map<String, Long>`. Nó **không phát một Stream kết quả trung gian sau mỗi `LineView`** để các thao tác Stream phía sau tiếp tục lọc theo tổng lũy kế.
+`collect` consumes the pipeline and returns `Map<String, Long>`. It **does not emit an intermediate Stream of results after each `LineView`** for downstream Stream operations to filter by cumulative total.
 
-### 5.1. Năm thành phần của Collector
+### 5.1. Five components of a Collector
 
-| Thành phần | Chức năng |
+| Component | Function |
 |---|---|
-| `supplier` | Tạo container tích lũy mới |
-| `accumulator` | Cập nhật container khi nhận phần tử |
-| `combiner` | Gộp hai container, nhất là khi framework chia nhánh |
-| `finisher` | Chuyển container thành kết quả cuối |
-| `characteristics` | Mô tả `CONCURRENT`, `UNORDERED`, `IDENTITY_FINISH` |
+| `supplier` | Creates a new accumulator container |
+| `accumulator` | Updates the container upon receiving an element |
+| `combiner` | Merges two containers, especially when the framework splits work |
+| `finisher` | Transforms the container into the final result |
+| `characteristics` | Describes `CONCURRENT`, `UNORDERED`, `IDENTITY_FINISH` |
 
-Gatherer cũng có initializer/integrator/finisher, nhưng **không nên đồng nhất máy móc các cặp tên gần giống nhau**:
+Gatherers also have initializer/integrator/finisher, yet **you should not mechanically equate similarly named pairs**:
 
-- `Collector.accumulator` nhận phần tử để xây một kết quả giảm dần; nó không có downstream để `push` từng phần tử đầu ra.
-- `Gatherer.integrator` có thể phát **nhiều đầu ra ngay trong lúc duyệt**, có thể dừng sớm, và phần đầu ra ấy vẫn đi qua các intermediate operation tiếp theo.
-- `Collector.finisher` tạo kết quả `R` của terminal `collect`; `Gatherer.finisher` có thể **phát thêm phần tử Stream**.
-- Một Gatherer được tạo bằng `ofSequential` không cần combiner cho tích hợp song song; Collector hợp lệ phải có `combiner` theo hợp đồng ngay cả khi ứng dụng hiện chủ yếu chạy tuần tự.
+- `Collector.accumulator` receives elements to build one reduced result; it has no downstream to `push` individual output elements to.
+- `Gatherer.integrator` can emit **multiple outputs right during traversal**, can short-circuit, and those outputs continue flowing through subsequent intermediate operations.
+- `Collector.finisher` produces the final `R` result of terminal `collect`; `Gatherer.finisher` can **emit additional Stream elements**.
+- A Gatherer created with `ofSequential` does not need a combiner for parallel integration; a valid Collector must have a `combiner` by contract even if the application currently runs mostly sequentially.
 
-### 5.2. Gatherer.fold và Collector có vẻ giống nhau ở đâu?
+### 5.2. Where do Gatherer.fold and Collector look similar?
 
-Một số Gatherer chuẩn, chẳng hạn `Gatherers.fold`, có thể giảm nhiều phần tử thành một giá trị rồi phát giá trị ấy vào Stream. Về **dữ liệu xuất ra**, nó có thể gần một reduction/collector; về **vị trí trong pipeline**, nó vẫn là intermediate operation:
+Some standard Gatherers, such as `Gatherers.fold`, can reduce multiple elements into a single value and emit that value into the Stream. In terms of **data produced**, it can look close to a reduction/collector; in terms of **pipeline position**, it remains an intermediate operation:
 
 ```java
-// Sơ đồ ý tưởng:
+// Conceptual sketch:
 source.gather(foldingGatherer)
       .map(this::formatSummary)
       .toList();
 
-// Trong khi collect kết thúc pipeline:
+// Whereas collect ends the pipeline:
 Summary summary = source.collect(summaryCollector);
 ```
 
-Hai dòng là hai phương án độc lập, cần nguồn Stream mới mỗi lần; `foldingGatherer`, `Summary` và `summaryCollector` là kiểu/giá trị giả định. Chọn `collect` khi nghiệp vụ chỉ cần kết quả cuối; chọn Gatherer khi kết quả cần **tiếp tục đi qua các bước Stream** hoặc cần một giao thức tích hợp/phát đầu ra phức tạp.
+The two lines represent two independent approaches, each needing a fresh Stream source; `foldingGatherer`, `Summary`, and `summaryCollector` are placeholder types/values. Choose `collect` when the business requirement only needs the final result; choose Gatherer when the result needs to **continue flowing through Stream steps** or requires a complex integration/emission protocol.
 
-## 6. Bảng so sánh đầy đủ bốn công cụ
+## 6. Full comparison table of the four tools
 
-| Tiêu chí | `map` | `mapMulti` | `Gatherer` | `Collector` |
+| Criterion | `map` | `mapMulti` | `Gatherer` | `Collector` |
 |---|---|---|---|---|
-| Bước trong pipeline | Intermediate | Intermediate | Intermediate | Terminal |
-| Đầu ra mỗi phần tử đầu vào | Đúng một giá trị | 0..n giá trị | 0..n giá trị, tùy state | Tích lũy, không phát Stream trung gian |
-| Kiểu kết quả lời gọi | `Stream<R>` | `Stream<R>` | `Stream<R>` | `R` |
-| State cục bộ sống qua nhiều input | Không phải mô hình được cung cấp | Không phải mô hình được cung cấp | Có thể có `A` riêng | Có trạng thái tích lũy `A` |
-| Bước hoàn tất để phát thêm phần tử | Không | Không | Có thể có | Finisher trả một kết quả cuối |
-| Tín hiệu dừng tích hợp riêng | Không | Không | Có, `boolean` từ integrator | Không phải giao thức của collector |
-| Có thể tiếp tục `filter/map/limit` trực tiếp | Có | Có | Có | Không, vì đã kết thúc Stream |
-| Khi song song | Hàm thường phải stateless/non-interfering | Callback thường phải stateless/non-interfering | Phụ thuộc thiết kế Gatherer và combiner | Phụ thuộc hợp đồng supplier/accumulator/combiner |
-| Trường hợp nên ưu tiên | Biến đổi đơn giản 1:1 | Phát 0..n từ một input độc lập | Biến đổi có trạng thái, cửa sổ, phát khi kết thúc, dừng có quy tắc | Tổng hợp cuối, grouping, báo cáo |
+| Step in pipeline | Intermediate | Intermediate | Intermediate | Terminal |
+| Outputs per input element | Exactly one value | 0..n values | 0..n values, state-dependent | Accumulates, does not emit an intermediate Stream |
+| Call return type | `Stream<R>` | `Stream<R>` | `Stream<R>` | `R` |
+| Local state living across inputs | Not a provided model | Not a provided model | Can have private `A` | Has accumulator state `A` |
+| Finalization step to emit extra elements | No | No | Optional | Finisher returns a single final result |
+| Dedicated integration stop signal | No | No | Yes, `boolean` from integrator | Not part of collector protocol |
+| Can chain `filter/map/limit` directly afterward | Yes | Yes | Yes | No, because the Stream has ended |
+| In parallel | Function normally must be stateless/non-interfering | Callback normally must be stateless/non-interfering | Depends on Gatherer design and combiner | Depends on supplier/accumulator/combiner contract |
+| When to prefer | Simple 1:1 transformation | Emitting 0..n from an independent input | Stateful transformations, windows, emit-on-finish, rule-based stopping | Final aggregation, grouping, reports |
 
-**Cẩn trọng với từ “0..n”:** không có nghĩa một pipeline luôn phát đúng mọi phần tử dự kiến nếu phía sau dùng `limit`, `findFirst` hoặc một terminal operation ngắn mạch. Stream có thể dừng sớm; Gatherer còn có giao thức dừng riêng. Hãy kiểm thử theo **hợp đồng kết quả** chứ không lấy số lần gọi lambda làm chỉ số nghiệp vụ.
+**Be careful with the phrase "0..n":** it does not mean a pipeline will always emit every expected element if `limit`, `findFirst`, or another short-circuiting terminal operation follows. Streams can stop early; Gatherers also have their own stopping protocol. Test against **the output contract** rather than using lambda invocation counts as a business metric.
 
-## 7. Ví dụ Java 24 hoàn chỉnh: map, mapMulti, Gatherer, Collector trên cùng dữ liệu
+## 7. Complete Java 24 example: map, mapMulti, Gatherer, and Collector on the same data
 
-Bài toán: có danh sách đơn hàng, mỗi đơn chứa nhiều dòng chi tiết. Ta cần:
+Problem: given a list of orders, each containing multiple detail lines. We need:
 
-1. **`map`** để lấy mã từng đơn.
-2. **`mapMulti`** để phát các dòng chi tiết kèm mã đơn, bỏ đơn không có chi tiết.
-3. **`Gatherer`** để phát **doanh thu lũy kế sau mỗi dòng**, kèm số thứ tự dòng.
-4. **`Collector`** để tạo một báo cáo cuối gồm số dòng, tổng đơn vị hàng và tổng doanh thu.
-5. Dùng `groupingBy` để tính doanh thu theo SKU.
+1. **`map`** to extract each order's ID.
+2. **`mapMulti`** to emit detail lines paired with the order ID, omitting orders with no items.
+3. **`Gatherer`** to emit **cumulative revenue after each line**, along with a line sequence number.
+4. **`Collector`** to produce a final report with line count, total units, and total revenue.
+5. Use `groupingBy` to compute revenue by SKU.
 
-Lưu toàn bộ đoạn dưới đây thành `GathererComparisonDemo.java`. Ví dụ sử dụng các `record` và `Stream.toList()`, nên phù hợp với yêu cầu **JDK 24+** của `Gatherer`.
+Save the entire code below as `GathererComparisonDemo.java`. The example uses `record`s and `Stream.toList()`, matching the **JDK 24+** requirement of `Gatherer`.
 
 ```java
 import java.util.List;
@@ -364,10 +364,10 @@ public class GathererComparisonDemo {
     record Item(String sku, int quantity, long unitPriceCents) {
         Item {
             if (sku == null || sku.isEmpty()) {
-                throw new IllegalArgumentException("sku không hợp lệ");
+                throw new IllegalArgumentException("Invalid sku");
             }
             if (quantity <= 0 || unitPriceCents < 0) {
-                throw new IllegalArgumentException("Số lượng/đơn giá sai");
+                throw new IllegalArgumentException("Invalid quantity/unitPrice");
             }
         }
     }
@@ -375,7 +375,7 @@ public class GathererComparisonDemo {
     record Order(String id, List<Item> items) {
         Order {
             if (id == null || items == null) {
-                throw new IllegalArgumentException("Order không hợp lệ");
+                throw new IllegalArgumentException("Invalid Order");
             }
             items = List.copyOf(items);
         }
@@ -396,13 +396,13 @@ public class GathererComparisonDemo {
             long units,
             long revenueCents) {}
 
-    // A: trạng thái dành riêng cho Gatherer.
+    // A: dedicated state for the Gatherer.
     static final class RunningState {
         long lineNumber;
         long amountCents;
     }
 
-    // Gatherer trung gian có trạng thái; mỗi dòng phát một snapshot.
+    // Stateful intermediate Gatherer; emits one snapshot per line.
     static Gatherer<LineView, RunningState, RunningTotal>
             runningTotals() {
         return Gatherer.ofSequential(
@@ -417,7 +417,7 @@ public class GathererComparisonDemo {
                 });
     }
 
-    // Collector kết thúc pipeline; trả một Report.
+    // Terminal Collector; returns a single Report.
     static Collector<LineView, long[], Report>
             reportCollector() {
         return Collector.of(
@@ -449,14 +449,14 @@ public class GathererComparisonDemo {
                 new Order("D03", List.of())
         );
 
-        // 1) map: mỗi đơn tạo đúng một mã đơn.
+        // 1) map: each order produces exactly one order ID.
         List<String> orderIds = orders.stream()
                 .map(Order::id)
                 .toList();
         System.out.println(orderIds);
         // [D01, D02, D03]
 
-        // 2) mapMulti: mỗi đơn phát 0..n LineView.
+        // 2) mapMulti: each order emits 0..n LineViews.
         List<LineView> lines = orders.stream()
                 .<LineView>mapMulti((order, emit) -> {
                     for (Item item : order.items()) {
@@ -471,9 +471,9 @@ public class GathererComparisonDemo {
                 .toList();
 
         System.out.println(lines.size()); // 3
-        // D01 phát 2 dòng; D02 phát 1 dòng; D03 phát 0 dòng.
+        // D01 emits 2 lines; D02 emits 1 line; D03 emits 0 lines.
 
-        // 3) Gatherer: phát tổng doanh thu sau mỗi dòng.
+        // 3) Gatherer: emits total revenue after each line.
         List<RunningTotal> running = lines.stream()
                 .gather(runningTotals())
                 .toList();
@@ -483,14 +483,14 @@ public class GathererComparisonDemo {
         //  RunningTotal[lineNumber=2, amountCents=250],
         //  RunningTotal[lineNumber=3, amountCents=550]]
 
-        // 4) Collector: chỉ trả một kết quả cuối.
+        // 4) Collector: returns only a single final result.
         Report report = lines.stream()
                 .collect(reportCollector());
 
         System.out.println(report);
         // Report[lineCount=3, units=6, revenueCents=550]
 
-        // 5) Một Collector có sẵn để nhóm theo SKU.
+        // 5) A built-in Collector to group by SKU.
         Map<String, Long> revenueBySku = lines.stream()
                 .collect(Collectors.groupingBy(
                         LineView::sku,
@@ -501,7 +501,7 @@ public class GathererComparisonDemo {
         System.out.println(revenueBySku);
         // {P01=500, P02=50}
 
-        // 6) Gatherer là intermediate operation nên còn lọc tiếp được.
+        // 6) Gatherer is an intermediate operation, so further filtering is possible.
         List<RunningTotal> overTwoHundred = lines.stream()
                 .gather(runningTotals())
                 .filter(total -> total.amountCents() > 200)
@@ -514,40 +514,40 @@ public class GathererComparisonDemo {
 }
 ```
 
-### 7.1. Phân tích kết quả
+### 7.1. Result analysis
 
-| Bước | Số phần tử đầu vào | Số đầu ra | Nội dung trọng tâm |
+| Step | Input element count | Output count | Core behavior |
 |---|---:|---:|---|
-| `orders.stream().map(Order::id)` | 3 đơn | 3 mã đơn | **1:1**, vẫn giữ D03 |
-| `orders.stream().mapMulti(...)` | 3 đơn | 3 dòng chi tiết | **0..n**, D03 không tạo dòng |
-| `lines.stream().gather(runningTotals())` | 3 dòng | 3 snapshot | Dòng 1: 200; dòng 2: 250; dòng 3: 550 |
-| `lines.stream().collect(reportCollector())` | 3 dòng | Một `Report` | 3 dòng, 6 đơn vị, 550 cents |
-| `groupingBy(..., summingLong(...))` | 3 dòng | Một `Map` | P01: 500, P02: 50 |
+| `orders.stream().map(Order::id)` | 3 orders | 3 order IDs | **1:1**, still keeps D03 |
+| `orders.stream().mapMulti(...)` | 3 orders | 3 detail lines | **0..n**, D03 produces no lines |
+| `lines.stream().gather(runningTotals())` | 3 lines | 3 snapshots | Line 1: 200; line 2: 250; line 3: 550 |
+| `lines.stream().collect(reportCollector())` | 3 lines | One `Report` | 3 lines, 6 units, 550 cents |
+| `groupingBy(..., summingLong(...))` | 3 lines | One `Map` | P01: 500, P02: 50 |
 
-Để đạt **doanh thu lũy kế**, Gatherer phải biết tổng tiền từ các dòng **trước đó**. `mapMulti` có thể phát dòng chi tiết của từng đơn, nhưng không nên dùng một biến `sum` nằm ngoài callback để giả làm state xuyên phần tử. Trong Collector, chúng ta chỉ cần báo cáo cuối, nên không phải tạo một danh sách snapshot rồi lấy phần tử cuối.
+To achieve **cumulative revenue**, the Gatherer must know the total amount from **previous** lines. `mapMulti` can emit the detail lines of each order, but you must not use an external `sum` variable outside the callback to fake cross-element state. In the Collector, we only need the final report, so there is no need to build a list of snapshots and take the last element.
 
-### 7.2. Vì sao dùng Math.multiplyExact và Math.addExact?
+### 7.2. Why use Math.multiplyExact and Math.addExact?
 
-`quantity × unitPriceCents` có thể vượt miền `long` nếu số liệu lớn. Ví dụ bảo vệ phép nhân bằng `Math.multiplyExact`; cả Gatherer và Collector đều dùng `Math.addExact` để phát hiện tổng tràn. Nếu số học vượt phạm vi `long`, chương trình ném `ArithmeticException` thay vì âm thầm tạo báo cáo sai.
+`quantity × unitPriceCents` can exceed the `long` range if the numbers are large. The example guards multiplication with `Math.multiplyExact`; both the Gatherer and Collector use `Math.addExact` to detect sum overflow. If arithmetic exceeds the `long` range, the program throws `ArithmeticException` instead of silently producing a wrong report.
 
-Với bài toán tiền tệ thực tế, còn phải xác định đơn vị tiền, chính sách giảm giá, hoàn tiền và chuyển đổi ngoại tệ. Ví dụ cố ý dùng cents nguyên để tránh sai số do `double`, không ngụ ý mọi dữ liệu tiền tệ đều biểu diễn được an toàn bằng `long`.
+For real-world monetary problems, you must also define currency units, discount policies, refunds, and currency conversions. The example intentionally uses integer cents to avoid `double` precision errors; it does not imply all monetary data can be safely represented with `long`.
 
-### 7.3. Vì sao tạo Stream mới cho mỗi phép?
+### 7.3. Why create a new Stream for each operation?
 
-Một đối tượng `Stream` chỉ được tiêu thụ một lần. `orders` và `lines` là các `List` có thể duyệt lại, nên ta gọi `stream()` mới cho mỗi phép kiểm tra. Không được gọi `collect` xong rồi dùng tiếp `map` trên chính Stream đã tiêu thụ.
+A `Stream` object can only be consumed once. `orders` and `lines` are `List`s that can be traversed again, so we call a fresh `stream()` for each check. You must not call `collect` and then reuse `map` on the already-consumed Stream.
 
-## 8. Ví dụ Gatherer có finisher: gộp phần tử liên tiếp
+## 8. Gatherer with finisher example: collapsing consecutive elements
 
-Một số bài toán không chỉ cần state sau từng dòng mà còn cần **phát phần dữ liệu đang giữ khi đầu vào kết thúc**. Ví dụ, ta muốn nén chuỗi phần tử thành các “đợt” gồm những giá trị liên tiếp giống nhau:
+Some problems not only require state after each line, but also need to **emit held data when the input ends**. For example, suppose we want to compress a sequence of elements into "runs" of consecutive identical values:
 
 ```text
-Đầu vào: A, A, B, B, B, A
-Đầu ra:  A:2, B:3, A:1
+Input:  A, A, B, B, B, A
+Output: A:2, B:3, A:1
 ```
 
-Nếu chỉ dùng `groupingBy` để đếm theo khóa, kết quả là `{A=3, B=3}` và **không thể hiện hai đợt A tách nhau**. Nếu dùng `mapMulti` thông thường, mỗi phần tử không có state được cung cấp để nhớ đợt hiện tại. Gatherer tuần tự có state và finisher diễn đạt đúng bài toán.
+If you only use `groupingBy` to count by key, the result is `{A=3, B=3}` and **cannot represent two separate runs of A**. If you use regular `mapMulti`, each element is not provided state to remember the current run. A stateful sequential Gatherer with a finisher expresses the problem accurately.
 
-### 8.1. Code Java 24
+### 8.1. Java 24 code
 
 ```java
 import java.util.List;
@@ -607,29 +607,29 @@ public class ConsecutiveRunsDemo {
 }
 ```
 
-**Giải thích:** integrator giữ `current` và `count`. Khi gặp giá trị mới, nó **phát đợt đã hoàn thành**, rồi bắt đầu đợt mới. Đợt cuối không có “giá trị tiếp theo” để kích hoạt bước phát; vì vậy `finisher` đẩy đợt cuối ra downstream. Chương trình giả định phần tử đầu vào **khác null**, để giá trị `null` được dùng làm sentinel “chưa có đợt”. Nếu null là dữ liệu hợp lệ, cần một cờ trạng thái riêng.
+**Explanation:** the integrator holds `current` and `count`. When a new value arrives, it **emits the completed run**, then starts a new run. The last run has no "next value" to trigger emission; therefore, `finisher` pushes the final run downstream. The program assumes input elements are **non-null**, so `null` is used as a sentinel meaning "no active run yet". If `null` is valid data, a separate state flag is needed.
 
-### 8.2. Vì sao phải giữ encounter order?
+### 8.2. Why must encounter order be preserved?
 
-Kết quả `A:2, B:3, A:1` mô tả **những lần xuất hiện liên tiếp**. Nếu nguồn không có encounter order, ranh giới các đợt không có ý nghĩa ổn định. Dùng một `List` có thứ tự hoặc sắp xếp theo một khóa nghiệp vụ trước khi `gather`.
+The result `A:2, B:3, A:1` describes **consecutive occurrences**. If the source has no encounter order, run boundaries have no stable meaning. Use an ordered `List` or sort by a business key before calling `gather`.
 
-### 8.3. Vì sao không dùng Collector để nén các đợt?
+### 8.3. Why not use Collector to collapse runs?
 
-Có thể viết Collector tùy biến với state và combiner phức tạp để xử lý các phân đoạn, nhưng phải giải bài toán gộp **đợt cuối của nhánh trái với đợt đầu của nhánh phải**. Gatherer tuần tự phù hợp hơn khi yêu cầu là **phát từng đợt theo thứ tự** để pipeline phía sau tiếp tục xử lý.
+You could write a custom Collector with complex state and combiner to process segments, but you would have to solve merging **the last run of the left branch with the first run of the right branch**. A sequential Gatherer is more suitable when the requirement is to **emit each run in order** for the downstream pipeline to process further.
 
-Đây cũng là trường hợp `Gatherers.windowFixed` không hoàn toàn thay thế: cửa sổ cố định chia theo **kích thước**, còn bài toán này chia theo **ranh giới thay đổi giá trị**.
+This is also a case where `Gatherers.windowFixed` is not a full substitute: fixed windows split by **size**, whereas this problem splits by **value-change boundaries**.
 
-## 9. Thứ tự, xử lý song song và trạng thái
+## 9. Ordering, parallel processing, and state
 
-Không thể chọn công cụ chỉ bằng câu “nên chạy nhanh hơn trên parallel stream”.
+You cannot choose a tool merely by saying "it should run faster on a parallel stream".
 
-### 9.1. map và mapMulti
+### 9.1. map and mapMulti
 
-`map` và `mapMulti` diễn đạt tốt các phép biến đổi **không can thiệp nguồn**, thường **stateless**. Với parallel stream, các lambda có thể được gọi bằng nhiều worker, theo lịch không giống encounter order. Nếu nguồn là `List` có thứ tự và kết quả thu thập bằng `toList()`, Stream vẫn phải đáp ứng hợp đồng thứ tự đầu ra phù hợp; nhưng **thứ tự thực thi side effect trong lambda không được bảo đảm**.
+`map` and `mapMulti` express **non-interfering**, typically **stateless** transformations well. With a parallel stream, lambdas can be invoked by multiple workers in a schedule that differs from encounter order. If the source is an ordered `List` and results are collected with `toList()`, Stream must still satisfy the appropriate output ordering contract; however, **the execution order of side effects inside lambdas is not guaranteed**.
 
 ### 9.2. Gatherer.ofSequential
 
-Một Gatherer được tạo bằng `Gatherer.ofSequential` **không cung cấp combiner để tích hợp trạng thái song song tùy tiện**. Điều đó phù hợp cho các phép biến đổi mà kết quả mỗi bước phụ thuộc trạng thái từ bước trước.
+A Gatherer created with `Gatherer.ofSequential` **does not provide a combiner for arbitrary parallel state integration**. That fits transformations where each step's result depends on state from the previous step.
 
 ```java
 List<Long> ordered = List.of(5L, 3L, -2L, 7L);
@@ -639,39 +639,39 @@ List<RunningTotal> totals = ordered.parallelStream()
         .toList();
 ```
 
-Khi nguồn có encounter order, yêu cầu tổng lũy kế là `5, 8, 6, 13` theo thứ tự ấy. `ofSequential` không biến bài toán tổng lũy kế thành phép reduction có thể chia tùy ý; việc yêu cầu parallel stream không mặc nhiên đem lại lợi ích cho giai đoạn trạng thái tuần tự. Không dựa vào tên thread cụ thể hoặc thứ tự gọi lambda như một hợp đồng.
+When the source has encounter order, the required cumulative totals are `5, 8, 6, 13` in that order. `ofSequential` does not turn the cumulative total problem into an arbitrarily splittable reduction; requesting a parallel stream does not automatically bring benefits to a sequential stateful stage. Do not rely on specific thread names or lambda call order as a contract.
 
-### 9.3. Collector không CONCURRENT vẫn dùng được trên parallel stream
+### 9.3. Non-CONCURRENT Collectors still work on parallel streams
 
-`Collectors.toList()` hay `Collectors.groupingBy(...)` có thể chạy đúng trên parallel stream mà không cần accumulator của chúng nhận ghi đồng thời trên **cùng container**. Framework có thể tạo trạng thái riêng cho các nhánh và gọi `combiner` để gộp.
+`Collectors.toList()` or `Collectors.groupingBy(...)` can execute properly on a parallel stream without their accumulators receiving concurrent writes on **the same container**. The framework can create separate state for branches and invoke `combiner` to merge them.
 
-`Collectors.groupingByConcurrent(...)` hoặc `toConcurrentMap(...)` có tính chất khác về chiến lược tích lũy và thứ tự; không đổi sang concurrent collector chỉ vì tên gọi hấp dẫn. Nếu kết quả phụ thuộc thứ tự đầu/cuối, thay collector có thể **đổi ngữ nghĩa**.
+`Collectors.groupingByConcurrent(...)` or `toConcurrentMap(...)` have different properties regarding accumulation strategy and ordering; do not switch to a concurrent collector just because the name sounds appealing. If the result depends on head/tail order, changing the collector can **change semantics**.
 
-### 9.4. Mutable state và ownership
+### 9.4. Mutable state and ownership
 
-| Công cụ | Nên giữ state ở đâu? | Tránh điều gì? |
+| Tool | Where should state be kept? | What to avoid? |
 |---|---|---|
-| `map` | Không cần state xuyên các phần tử | Biến đếm chung bên ngoài lambda |
-| `mapMulti` | State cục bộ trong một lần gọi để phát phần tử độc lập | Map chung hoặc List chung bị callback sửa đồng thời |
-| `Gatherer.ofSequential` | Trạng thái mới từ `initializer` | Một đối tượng `static` dùng chung cho nhiều pipeline |
-| `Collector` | Container từ `supplier`, được framework quản lý | Supplier luôn trả lại một container dùng chung; combiner sai |
+| `map` | No state needed across elements | Shared counter variable outside the lambda |
+| `mapMulti` | Local state within one invocation to emit independent elements | Shared Map or List mutated concurrently by callbacks |
+| `Gatherer.ofSequential` | Fresh state from `initializer` | A `static` object shared across multiple pipelines |
+| `Collector` | Container from `supplier`, managed by the framework | Supplier always returning one shared container; broken combiner |
 
-Trong Gatherer, nếu phải phát một collection được lưu trong state, hãy **chụp bản sao** trước khi `push`. Nếu `push(state.list)` rồi `clear()`, các output đã phát có thể bị thay đổi do cùng giữ tham chiếu tới một List mutable.
+In a Gatherer, if you must emit a collection stored in state, **take a copy** before calling `push`. If you `push(state.list)` and then `clear()`, previously emitted outputs can be mutated because they share a reference to the same mutable List.
 
-## 10. Hiệu năng, bộ nhớ và ngắn mạch
+## 10. Performance, memory, and short-circuiting
 
-### 10.1. Bộ nhớ của từng giải pháp
+### 10.1. Memory footprint of each approach
 
-- `map` có thể xử lý từng phần tử mà không cần giữ toàn bộ đầu vào; bộ nhớ phụ thuộc pipeline và terminal operation.
-- `mapMulti` có thể tránh tạo một Stream con cho từng phần tử nguồn; nếu đẩy toàn bộ output vào `toList()`, bộ nhớ kết quả vẫn tăng theo số phần tử được giữ.
-- Gatherer lũy kế chỉ cần hai bộ đếm, tức trạng thái **`O(1)`**; Gatherer chia cửa sổ kích thước `k` có thể cần **`O(k)`** bộ đệm.
-- Collector tính tổng/đếm có thể chỉ giữ **`O(1)`** trạng thái; `groupingBy` giữ trạng thái theo số nhóm, còn `toList` giữ toàn bộ các phần tử đầu ra.
+- `map` can process one element at a time without holding the entire input; memory depends on the pipeline and terminal operation.
+- `mapMulti` can avoid creating a sub-stream for every source element; if all outputs are pushed into `toList()`, result memory still grows with the number of retained elements.
+- A cumulative Gatherer only needs two counters, i.e., **`O(1)`** state; a window Gatherer of size `k` may need an **`O(k)`** buffer.
+- A summing/counting Collector may hold only **`O(1)`** state; `groupingBy` holds state proportional to the number of groups, while `toList` holds all output elements.
 
-Không phải dùng Gatherer nghĩa là luôn tiết kiệm bộ nhớ. Một Gatherer phát các List lớn rồi `collect(toList())` vẫn có thể cần giữ hầu hết dữ liệu.
+Using a Gatherer does not always mean saving memory. A Gatherer that emits large Lists and then calls `collect(toList())` may still need to retain most of the data.
 
-### 10.2. Short-circuit
+### 10.2. Short-circuiting
 
-Một pipeline như:
+A pipeline like:
 
 ```java
 List<RunningTotal> firstTwo = transactions.stream()
@@ -680,13 +680,13 @@ List<RunningTotal> firstTwo = transactions.stream()
         .toList();
 ```
 
-có thể ngừng sau khi downstream nhận đủ hai kết quả. Gatherer cần tôn trọng tín hiệu `downstream.push(...)` và không giả định mọi giao dịch nguồn đã được tích hợp. `collect` tự nó không phải phép biến đổi trung gian để phát dần snapshot cho các bước Stream tiếp theo.
+can stop after downstream receives two results. A Gatherer should respect the `downstream.push(...)` signal and not assume all source transactions have been integrated. `collect` itself is not an intermediate transformation to incrementally emit snapshots to subsequent Stream steps.
 
-Với `mapMulti`, nếu callback phát nhiều phần tử trong một lần gọi, không dựa vào việc một terminal operation ngắn mạch sẽ luôn ngăn **mọi** `emit.accept` còn lại ngay lập tức. Hãy tránh side effect trong callback; ngắn mạch là hợp đồng về kết quả đầu ra, không phải bảo đảm đếm số lần callback.
+With `mapMulti`, if a callback emits multiple elements in one call, do not assume a short-circuiting terminal operation will always prevent **every** remaining `emit.accept` immediately. Avoid side effects in callbacks; short-circuiting is a contract on output results, not a guarantee of callback invocation counts.
 
-### 10.3. Nguồn I/O vẫn phải được đóng
+### 10.3. I/O sources still must be closed
 
-Một Stream từ `Files.lines` có thể nắm giữ tài nguyên:
+A Stream from `Files.lines` can hold resources:
 
 ```java
 try (Stream<String> lines = Files.lines(path)) {
@@ -697,45 +697,45 @@ try (Stream<String> lines = Files.lines(path)) {
 }
 ```
 
-`map`, `mapMulti`, `gather` và `collect` **không thay thế** `try-with-resources` cho nguồn I/O. Đoạn code minh họa giả định `path` được khai báo và phương thức gọi có xử lý `IOException`. Nếu một Gatherer dùng Stream con hoặc tài nguyên riêng, cũng phải hiểu rõ vòng đời tài nguyên ấy.
+`map`, `mapMulti`, `gather`, and `collect` **do not replace** `try-with-resources` for I/O sources. The snippet assumes `path` is declared and the enclosing method handles `IOException`. If a Gatherer uses sub-streams or its own resources, you must also understand the lifecycle of those resources.
 
-### 10.4. Đo đúng trước khi tối ưu
+### 10.4. Measure properly before optimizing
 
-Đừng kết luận `mapMulti` nhanh hơn `flatMap`, hoặc Gatherer nhanh hơn Collector, chỉ từ một ví dụ có vài phần tử. Kết quả phụ thuộc:
+Do not conclude `mapMulti` is faster than `flatMap`, or `Gatherer` is faster than `Collector`, from an example with a few elements. Results depend on:
 
-- Kích thước nguồn và số phần tử con trung bình trên mỗi phần tử cha.
-- Chi phí cấp phát đối tượng trung gian.
-- Trạng thái mutable, phép kết hợp và yêu cầu thứ tự.
-- Khả năng chia việc của `Spliterator`.
-- Chi phí terminal operation và lượng dữ liệu phải giữ.
+- Source size and average number of child elements per parent element.
+- Intermediate object allocation overhead.
+- Mutable state, combining operations, and ordering requirements.
+- Splitting capability of the `Spliterator`.
+- Cost of the terminal operation and amount of data retained.
 
-Nếu hiệu năng thực sự quan trọng, dùng dữ liệu đại diện, kiểm tra tương đương kết quả trước, khởi động JVM, đo nhiều lần và cân nhắc JMH. Chọn thuật toán đúng trước khi tối ưu.
+If performance truly matters, use representative data, verify result equivalence first, warm up the JVM, measure multiple runs, and consider JMH. Choose the right algorithm before optimizing.
 
-## 11. Những lỗi dễ mắc và cách sửa
+## 11. Common pitfalls and fixes
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Pitfall | Consequence | Fix |
 |---|---|---|
-| Dùng `map` cho danh sách con rồi mong phẳng thành từng dòng | `Stream<List<T>>` thay vì `Stream<T>` | Dùng `flatMap` hoặc `mapMulti` |
-| Dùng `mapMulti` với counter mutable ngoài callback | Data race hoặc kết quả phụ thuộc lịch xử lý | Dùng nguồn có chỉ số hoặc Gatherer có state |
-| Dùng `mapMulti` khi cần phát phần tồn ở cuối nguồn | Không có finisher | Dùng Gatherer có finisher |
-| Trả `false` trong integrator chỉ để lọc một đầu vào | Dừng toàn bộ phần tích hợp | Không push và trả `true` |
-| Không xét giá trị trả về của `downstream.push` | Tiêu thụ nguồn thừa hoặc sai quy tắc dừng | Lan truyền tín hiệu khi thích hợp |
-| Initializer của Gatherer trả state static | Các pipeline lẫn trạng thái, có thể race | Tạo state mới cho mỗi lượt tích hợp |
-| Phát tham chiếu mutable rồi sửa sau đó | Những output trước thay đổi nội dung | Phát snapshot/DTO mới |
-| Dùng `collect` rồi nối `filter` trực tiếp trên kết quả | `collect` đã kết thúc Stream | Tạo Stream mới từ kết quả nếu cần |
-| Viết Gatherer lũy kế để chỉ lấy tổng cuối | Code phức tạp không cần thiết | Dùng `sum`/`reduce` hoặc Collector |
-| Chỉ đổi `toMap` sang `toConcurrentMap` để tăng tốc | Có thể mất thứ tự đầu/cuối | Xác định yêu cầu encounter order và benchmark |
-| Kỳ vọng `Gatherer` chạy trên JDK 21 | API chưa sẵn có chính thức | Nâng JDK 24+ hoặc chọn API tương thích |
-| Dựa vào `HashMap.toString()` để kiểm tra thứ tự | Không có cam kết thứ tự khóa | So nội dung hoặc chọn Map có thứ tự |
-| Quên đóng `Files.lines` sau terminal operation | Rò rỉ file handle | `try-with-resources` |
+| Using `map` on sublists expecting flattened lines | `Stream<List<T>>` instead of `Stream<T>` | Use `flatMap` or `mapMulti` |
+| Using `mapMulti` with an external mutable counter | Data race or schedule-dependent results | Use an indexed source or stateful Gatherer |
+| Using `mapMulti` when remaining state must be emitted at end | No finisher available | Use a Gatherer with a finisher |
+| Returning `false` in integrator just to filter one input | Stops all further integration | Do not push and return `true` |
+| Ignoring the return value of `downstream.push` | Consumes excess source or breaks stopping rules | Propagate the signal when appropriate |
+| Gatherer initializer returning static state | Pipelines mix state, potential race | Create fresh state per integration pass |
+| Emitting a mutable reference and mutating it afterward | Earlier outputs change contents | Emit a snapshot/new DTO |
+| Calling `collect` then chaining `filter` directly on the result | `collect` already ended the Stream | Create a new Stream from the result if needed |
+| Writing a cumulative Gatherer just to get a final sum | Unnecessarily complex code | Use `sum`/`reduce` or a Collector |
+| Blindly switching `toMap` to `toConcurrentMap` for speed | May lose head/tail order | Clarify encounter order requirements and benchmark |
+| Expecting `Gatherer` to run on JDK 21 | API not officially available yet | Upgrade to JDK 24+ or choose a compatible API |
+| Relying on `HashMap.toString()` to check order | No key order guarantee | Compare contents or choose an ordered Map |
+| Forgetting to close `Files.lines` after terminal operation | File handle leak | Use `try-with-resources` |
 
-## 12. Bài tập thực hành và lời giải
+## 12. Practice exercises and solutions
 
-### Bài 1. Chọn map hay mapMulti
+### Exercise 1. Choosing map or mapMulti
 
-Cho `List<String> words = List.of("A", "B", "C")`. Muốn biến mỗi chuỗi thành độ dài thì dùng API nào? Muốn mỗi chuỗi phát cả chuỗi gốc và chuỗi viết thường thì sao?
+Given `List<String> words = List.of("A", "B", "C")`. Which API should be used to transform each string into its length? What if each string should emit both the original string and its lowercase version?
 
-**Đáp án:** Độ dài là phép **1:1**, dùng `map(String::length)`. Phát hai chuỗi cho mỗi phần tử có thể dùng `mapMulti`:
+**Answer:** Length is a **1:1** mapping, so use `map(String::length)`. Emitting two strings per element can use `mapMulti`:
 
 ```java
 List<String> pairs = words.stream()
@@ -747,9 +747,9 @@ List<String> pairs = words.stream()
 // [A, a, B, b, C, c]
 ```
 
-### Bài 2. Làm phẳng danh sách con
+### Exercise 2. Flattening sublists
 
-Cho `List<List<Integer>> nested = List.of(List.of(1, 2), List.of(), List.of(3))`. Dùng `mapMulti` phát từng số.
+Given `List<List<Integer>> nested = List.of(List.of(1, 2), List.of(), List.of(3))`. Use `mapMulti` to emit each number.
 
 ```java
 List<Integer> flat = nested.stream()
@@ -762,61 +762,61 @@ List<Integer> flat = nested.stream()
 // [1, 2, 3]
 ```
 
-`flatMap(List::stream)` cũng phù hợp và có thể ngắn hơn. Không cần Gatherer có trạng thái cho bài toán này.
+`flatMap(List::stream)` is also appropriate and can be shorter. No stateful Gatherer is needed for this problem.
 
-### Bài 3. Tính tổng hay tổng lũy kế?
+### Exercise 3. Total sum or cumulative sum?
 
-Đầu vào `[5, 3, -2]`. Một dashboard chỉ cần tổng cuối; dashboard khác cần `[5, 8, 6]` sau từng giao dịch. Nên dùng gì?
+Input `[5, 3, -2]`. One dashboard only needs the final total; another dashboard needs `[5, 8, 6]` after each transaction. What should be used?
 
-**Đáp án:** Tổng cuối dùng `mapToLong(...).sum()` hoặc `reduce`. Tổng lũy kế dùng Gatherer có state như `runningTotals()` hoặc Gatherer chuẩn `Gatherers.scan` khi phù hợp.
+**Answer:** Final total uses `mapToLong(...).sum()` or `reduce`. Cumulative total uses a stateful Gatherer such as `runningTotals()` or the standard Gatherer `Gatherers.scan` when suitable.
 
-### Bài 4. Khác biệt giữa Collector và Gatherer
+### Exercise 4. Difference between Collector and Gatherer
 
-`orders.stream().collect(groupingBy(...))` có thể nối trực tiếp `.filter(...)` để lọc **các nhóm đã được tạo** không?
+Can `orders.stream().collect(groupingBy(...))` directly chain `.filter(...)` to filter **the created groups**?
 
-**Đáp án:** Không, `collect` trả Map và kết thúc Stream. Có thể tạo `map.entrySet().stream()` từ kết quả Map. Gatherer thì là intermediate operation và có thể nối tiếp `filter` ngay trên những phần tử nó phát.
+**Answer:** No, `collect` returns a Map and terminates the Stream. You can create `map.entrySet().stream()` from the Map result. A Gatherer, on the other hand, is an intermediate operation and can directly chain `filter` onto the elements it emits.
 
-### Bài 5. Trả false trong Gatherer
+### Exercise 5. Returning false in a Gatherer
 
-Gatherer nhận `[-1, 2, 3]`, chỉ muốn bỏ số âm. Nếu khi gặp `-1` nó trả `false`, điều gì xảy ra?
+A Gatherer receives `[-1, 2, 3]` and only wants to drop negative numbers. If it returns `false` when encountering `-1`, what happens?
 
-**Đáp án:** Gatherer ngừng tích hợp, nên các số 2 và 3 không được xử lý. Để **lọc** số âm, không gọi `push` nhưng trả `true`.
+**Answer:** The Gatherer stops integrating, so 2 and 3 are never processed. To **filter** negative numbers, do not call `push` and return `true`.
 
-### Bài 6. Vì sao cần finisher?
+### Exercise 6. Why is a finisher needed?
 
-Gatherer nhóm các giá trị liên tiếp: `A,A,B,B,B,A`. Nếu chỉ phát một nhóm khi gặp giá trị khác, nhóm nào bị mất nếu không có finisher?
+A Gatherer groups consecutive values: `A,A,B,B,B,A`. If it only emits a group when encountering a different value, which group is lost without a finisher?
 
-**Đáp án:** Nhóm cuối `A:1` không được phát vì không còn phần tử kế tiếp để đóng nhóm. Finisher phát phần tồn ở cuối Stream.
+**Answer:** The final group `A:1` is not emitted because there is no next element to close the group. The finisher emits the remainder at the end of the Stream.
 
-### Bài 7. Bài toán song song
+### Exercise 7. Parallelism problem
 
-Một Gatherer đánh số liên tiếp theo thời điểm nhận đầu vào; nguồn lại là `HashSet` không có encounter order được bảo đảm. `ofSequential` có tự xác định thứ tự thời gian không?
+A Gatherer numbers elements sequentially by input arrival; the source is a `HashSet` with no guaranteed encounter order. Does `ofSequential` automatically determine chronological order?
 
-**Đáp án:** Không. `ofSequential` quy định cách tích hợp tuần tự, không tự sắp xếp. Cần nguồn có encounter order phù hợp hoặc `sorted(comparator)` theo thời gian và quy tắc phá hòa.
+**Answer:** No. `ofSequential` specifies sequential integration, not automatic sorting. You need a source with an appropriate encounter order or `sorted(comparator)` by time and tie-breaking rules.
 
-### Bài 8. Kiểm tra trạng thái dùng chung
+### Exercise 8. Checking shared state
 
-Một Gatherer có `initializer` là `() -> SHARED`, trong đó `SHARED` là đối tượng mutable static. Vì sao điều này nguy hiểm?
+A Gatherer has `initializer` `() -> SHARED`, where `SHARED` is a static mutable object. Why is this dangerous?
 
-**Đáp án:** Nhiều lần thực thi có thể chia sẻ cùng đối tượng, làm lẫn số đếm và dữ liệu. Nếu các pipeline chạy đồng thời còn có nguy cơ data race. Dùng `State::new` để tạo state riêng.
+**Answer:** Multiple executions can share the same object, mixing counts and data. If pipelines run concurrently, there is also a risk of data race. Use `State::new` to create private state.
 
-### Bài 9. Kiểm thử nguồn rỗng
+### Exercise 9. Testing empty sources
 
-Với Stream rỗng, `map` và `mapMulti` sẽ phát bao nhiêu phần tử? Một Gatherer có finisher có bắt buộc phát 0 phần tử không?
+With an empty Stream, how many elements will `map` and `mapMulti` emit? Is a Gatherer with a finisher required to emit 0 elements?
 
-**Đáp án:** `map` và `mapMulti` không nhận phần tử đầu vào nào, nên không phát phần tử. **Gatherer có finisher** có thể được thiết kế để phát một giá trị mặc định hoặc báo cáo tổng kết khi hoàn tất, tùy hợp đồng; ví dụ `consecutiveRuns` không phát gì vì không có nhóm dở dang. Không được giả định mọi Gatherer đều xử lý nguồn rỗng giống `map`.
+**Answer:** `map` and `mapMulti` receive no input elements, so they emit no elements. **A Gatherer with a finisher** can be designed to emit a default value or a summary report upon completion, depending on its contract; for instance, `consecutiveRuns` emits nothing because there is no unfinished group. Do not assume every Gatherer handles empty sources identically to `map`.
 
-### Bài 10. Chọn công cụ cho báo cáo
+### Exercise 10. Choosing a tool for reporting
 
-Có 50.000 dòng giao dịch, yêu cầu tính số dòng, tổng tiền và tổng tiền theo SKU, nhưng **không** cần các mốc lũy kế. Có nên viết Gatherer tự quản một `HashMap` và chỉ phát kết quả ở cuối?
+There are 50,000 transaction lines, requiring line count, total amount, and total amount by SKU, **without** needing cumulative milestones. Should you write a Gatherer managing a `HashMap` manually and emitting only at the end?
 
-**Đáp án:** Không cần. Một collector có sẵn hoặc custom `Collector` là lựa chọn tự nhiên để trả báo cáo cuối. Gatherer chỉ đáng cân nhắc nếu cần các phép biến đổi trung gian, phát kết quả theo từng mốc hoặc tiếp tục pipeline với nhiều đầu ra.
+**Answer:** No need. A built-in collector or a custom `Collector` is the natural choice to return a final report. A Gatherer is only worth considering if you need intermediate transformations, emitting results at milestones, or continuing the pipeline with multiple outputs.
 
-## 13. Bài tập mở rộng: thống kê theo cửa sổ rồi lọc
+## 13. Extended exercise: window statistics followed by filtering
 
-**Đề bài:** Một cảm biến gửi dãy nhiệt độ có thứ tự. Cần chia thành các cửa sổ **ba mẫu liên tiếp**, tính trung bình từng cửa sổ, rồi chỉ giữ những cửa sổ có trung bình vượt ngưỡng.
+**Prompt:** A sensor sends an ordered sequence of temperatures. We need to split them into windows of **three consecutive samples**, compute the average of each window, and keep only windows whose average exceeds a threshold.
 
-Hướng xây dựng trên Java 24:
+Approach in Java 24:
 
 ```java
 List<Double> hotWindows = temperatures.stream()
@@ -829,23 +829,23 @@ List<Double> hotWindows = temperatures.stream()
         .toList();
 ```
 
-Đây là đoạn minh họa giả định có `List<Double> temperatures` và `double threshold` được khai báo. Vì `Gatherers.windowFixed` phát các List cửa sổ, sau đó `map` ánh xạ **một cửa sổ thành một trung bình**; cuối cùng `filter` loại cửa sổ không vượt ngưỡng. Bài toán cho thấy **Gatherer không thay thế map hay filter**: chúng phối hợp trong cùng pipeline.
+This illustrative snippet assumes `List<Double> temperatures` and `double threshold` are already declared. Because `Gatherers.windowFixed` emits window Lists, `map` then maps **one window to one average**; finally `filter` removes windows that do not exceed the threshold. This problem shows **Gatherer does not replace map or filter**: they collaborate in the same pipeline.
 
-Nếu yêu cầu cửa sổ **trượt** thay vì cửa sổ không chồng lấn, hãy cân nhắc `Gatherers.windowSliding` với việc kiểm tra hợp đồng về độ dài cửa sổ và thứ tự đầu vào. Nếu chỉ cần trung bình toàn bộ chuỗi, `mapToDouble(...).average()` đơn giản hơn rất nhiều.
+If **sliding** windows are required instead of non-overlapping windows, consider `Gatherers.windowSliding` while checking the contract on window length and input ordering. If only the average of the entire sequence is needed, `mapToDouble(...).average()` is much simpler.
 
-## 14. Checklist trước khi chọn API
+## 14. Checklist before choosing an API
 
-1. **Nhu cầu cần một đầu ra hay nhiều đầu ra cho mỗi input?** Một đầu ra đơn giản thì ưu tiên `map`.
-2. **Các đầu ra của một phần tử có thể tính độc lập không?** Nếu có, `mapMulti` hoặc `flatMap` thường đủ.
-3. **Có cần giữ state giữa các input không?** Nếu có, xem xét Gatherer.
-4. **Có phải phát phần dữ liệu còn lại khi nguồn kết thúc không?** Nếu có, thiết kế finisher hoặc dùng Gatherer chuẩn phù hợp.
-5. **Cần một kết quả cuối hay một Stream kết quả để tiếp tục xử lý?** Kết quả cuối ưu tiên `collect`; Stream trung gian ưu tiên `gather`.
-6. **Hợp đồng phiên bản JDK ra sao?** `map`/`collect` từ Java 8; `mapMulti` từ 16; `Gatherer` chính thức từ 24.
-7. **Có thứ tự nghiệp vụ không?** Tổng lũy kế và nhóm liên tiếp cần encounter order được xác định.
-8. **Có trạng thái mutable dùng chung không?** Tránh side effect trong `map`/`mapMulti`; tạo state mới cho Gatherer/Collector.
-9. **Có yêu cầu ngắn mạch không?** Phân biệt “lọc một phần tử” với “dừng toàn bộ tích hợp”.
-10. **Có cần tương thích xử lý song song không?** Kiểm tra combiner/hợp đồng collector hoặc tính tuần tự của Gatherer và chi phí giữ thứ tự.
-11. **Có dữ liệu null, rỗng, số tiền tràn hoặc I/O cần đóng không?** Quy định chính sách trước khi viết pipeline.
-12. **Có thể dùng API chuẩn đơn giản hơn không?** `Collectors.summarizingLong`, `groupingBy`, `Gatherers.scan`, `windowFixed` hoặc `windowSliding` có thể giải quyết bài toán.
+1. **Does the requirement need one output or multiple outputs per input?** For a simple single output, prefer `map`.
+2. **Can the outputs of one element be computed independently?** If yes, `mapMulti` or `flatMap` is usually enough.
+3. **Is state needed across inputs?** If yes, consider Gatherer.
+4. **Must remaining data be emitted when the source ends?** If yes, design a finisher or use a suitable standard Gatherer.
+5. **Do you need one final result or a Stream of results for further processing?** Prefer `collect` for a final result; prefer `gather` for an intermediate Stream.
+6. **What is the JDK version contract?** `map`/`collect` since Java 8; `mapMulti` since 16; `Gatherer` official since 24.
+7. **Is there a business order?** Cumulative totals and consecutive runs require a defined encounter order.
+8. **Is there shared mutable state?** Avoid side effects in `map`/`mapMulti`; create fresh state for Gatherer/Collector.
+9. **Is short-circuiting required?** Distinguish "filtering one element" from "stopping the entire integration".
+10. **Is parallel compatibility required?** Check combiner/collector contract or Gatherer sequentiality and ordering overhead.
+11. **Are there nulls, empty inputs, overflowing amounts, or I/O to close?** Define policies before writing the pipeline.
+12. **Can a simpler standard API be used?** `Collectors.summarizingLong`, `groupingBy`, `Gatherers.scan`, `windowFixed`, or `windowSliding` might solve the problem.
 
-**Kết luận:** `map` giải quyết **1:1**, `mapMulti` xử lý **0..n giá trị độc lập từ một đầu vào**, Gatherer mở rộng khả năng **biến đổi trung gian có trạng thái, dừng sớm và finisher**, còn Collector **tích lũy thành kết quả cuối**. Khác biệt cốt lõi không nằm ở việc cả bốn đều có lambda, mà ở **dòng dữ liệu đầu ra, vòng đời trạng thái và hợp đồng thực thi**. Chọn đúng công cụ giúp pipeline JAVA_STREAM_API ngắn gọn, chính xác và dễ kiểm soát thứ tự, hiệu năng cũng như tài nguyên khi nâng cấp JDK.
+**Conclusion:** `map` solves **1:1**, `mapMulti` handles **0..n independent values from one input**, Gatherer extends capabilities with **stateful intermediate transformations, short-circuiting, and finisher**, and Collector **accumulates into a final result**. The core difference does not lie in all four taking lambdas, but in **output data flow, state lifecycle, and execution contract**. Choosing the right tool keeps JAVA_STREAM_API pipelines concise, accurate, and easy to reason about regarding ordering, performance, and resources when upgrading the JDK.

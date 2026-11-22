@@ -1,12 +1,12 @@
-# So sánh gọi trực tiếp, Method.invoke và MethodHandle trong Java
+# Comparing Direct Calls, Method.invoke, and MethodHandle in Java
 
-Trong Java, cùng một method có thể được gọi bằng nhiều cách: **gọi trực tiếp** bằng cú pháp Java thông thường, **gọi phản chiếu** qua `java.lang.reflect.Method.invoke(...)` hoặc **gọi động có chữ ký kiểu** qua `java.lang.invoke.MethodHandle`. Cả ba có thể dẫn đến cùng một hành vi nghiệp vụ, nhưng khác nhau ở thời điểm kiểm tra kiểu, cách tìm method, xử lý giá trị primitive, quyền truy cập, exception và cơ hội tối ưu hóa.
+In Java, the same method can be invoked in multiple ways: **direct call** using ordinary Java syntax, **reflective call** via `java.lang.reflect.Method.invoke(...)`, or **typed dynamic call** via `java.lang.invoke.MethodHandle`. All three can lead to the same business behavior, yet they differ in type-checking timing, method lookup, primitive value handling, access control, exceptions, and optimization opportunities.
 
-Đây là một bài thực hành trong Java Core – Reflection. Mục tiêu không phải kết luận rằng một API luôn nhanh nhất, mà là **hiểu khi nào mỗi cách phù hợp và quan sát chính xác hành vi trên Java 17+**.
+This is a practice lesson in Java Core – Reflection. The goal is not to conclude that one API is always fastest, but to **understand when each approach fits and accurately observe behavior on Java 17+**.
 
-## 1. Ba cơ chế ở một cái nhìn
+## 1. Three Mechanisms at a Glance
 
-Giả sử có class:
+Suppose we have a class:
 
 ```java
 class Calculator {
@@ -16,18 +16,18 @@ class Calculator {
 }
 ```
 
-Đây là đoạn minh họa, không phải chương trình hoàn chỉnh.
+This is an illustrative snippet, not a complete program.
 
-### A. Gọi trực tiếp
+### A. Direct call
 
 ```java
 Calculator calculator = new Calculator();
 int result = calculator.add(3, 4);
 ```
 
-Compiler biết `Calculator`, tên method, số lượng và kiểu đối số. Nếu đổi tên method hoặc truyền đối số không phù hợp, thông thường lỗi được phát hiện khi biên dịch lại. Với instance method có dispatch động, JVM vẫn chọn implementation được override phù hợp ở runtime; “gọi trực tiếp” **không đồng nghĩa** mọi lời gọi được quyết định cứng tại compile time.
+The compiler knows `Calculator`, the method name, and the argument count and types. If the method name changes or incompatible arguments are passed, errors are normally caught upon recompilation. For instance methods with dynamic dispatch, the JVM still chooses the appropriate overridden implementation at runtime; "direct call" **does not mean** every call is statically bound at compile time.
 
-### B. Reflection qua Method.invoke
+### B. Reflection via Method.invoke
 
 ```java
 Method method = Calculator.class.getDeclaredMethod(
@@ -35,7 +35,7 @@ Method method = Calculator.class.getDeclaredMethod(
 Object result = method.invoke(new Calculator(), 3, 4);
 ```
 
-Đoạn minh họa giả định có import `java.lang.reflect.Method`, method được truy cập hợp lệ và xử lý checked exception. `getDeclaredMethod(...)` dùng **tên dưới dạng chuỗi** và đúng kiểu tham số để lấy metadata. Sau đó `invoke(...)` mới thực sự gọi method. Kết quả kiểu `int` được **boxing** thành `Integer` vì `Method.invoke` trả `Object`.
+This snippet assumes `java.lang.reflect.Method` is imported, the method is accessible, and checked exceptions are handled. `getDeclaredMethod(...)` uses the **name as a string** and exact parameter types to fetch metadata. Only afterward does `invoke(...)` actually run the method. The `int` return value is **boxed** into `Integer` because `Method.invoke` returns `Object`.
 
 ### C. MethodHandle
 
@@ -47,90 +47,90 @@ MethodHandle handle = MethodHandles.lookup().findVirtual(
 int result = (int) handle.invokeExact(new Calculator(), 3, 4);
 ```
 
-Đoạn minh họa cần import `java.lang.invoke.*` và xử lý `Throwable`. `findVirtual` tìm instance method có **return type là `int`** và **hai tham số `int`**. `MethodHandle` chưa gắn receiver nên khi gọi, `Calculator` là đối số đầu tiên. `invokeExact` đòi hỏi kiểu tĩnh tại call site khớp chính xác kiểu handle; kết quả là `int`, không cần đi qua một kết quả `Object` do API trả về như `Method.invoke`.
+This snippet requires importing `java.lang.invoke.*` and handling `Throwable`. `findVirtual` looks up an instance method with **return type `int`** and **two `int` parameters**. The `MethodHandle` has no bound receiver yet, so at invocation time `Calculator` is the first argument. `invokeExact` requires the static type at the call site to match the handle's type exactly; the result is `int`, without going through an API-returned `Object` result like `Method.invoke`.
 
-Lưu ý: MethodHandle cũng có thể dùng để tìm constructor, getter/setter, static method, default method và xây tổ hợp lời gọi bằng các phép thích nghi handle. Ví dụ trong bài tập trung vào lời gọi method thường gặp.
+Note: `MethodHandle` can also look up constructors, getters/setters, static methods, default methods, and compose call pipelines via handle adaptations. The examples here focus on common method calls.
 
-## 2. So sánh chi tiết
+## 2. Detailed Comparison
 
-| Tiêu chí | Gọi trực tiếp | `Method.invoke` | `MethodHandle` |
+| Criterion | Direct call | `Method.invoke` | `MethodHandle` |
 |---|---|---|---|
-| Xác định method | Symbol Java trong mã nguồn | Tra cứu đối tượng `Method`, thường bằng tên chuỗi | Tra cứu hoặc chuyển đổi thành handle có `MethodType` |
-| Kiểm tra kiểu | Compiler kiểm tra lời gọi | `invoke` kiểm tra receiver và đối số ở runtime | `invokeExact` yêu cầu chữ ký call site trùng chính xác; `invoke` có thể thích nghi |
-| Kiểu trả về | Khai báo của method, ví dụ `int` | `Object`, primitive bị boxing, `void` là `null` | Kiểu trả về trong `MethodType`, ví dụ `int` |
-| Receiver instance | Viết `receiver.method(...)` | Đối số đầu tiên của `Method.invoke` | Có thể là đối số đầu của `findVirtual` handle hoặc được bind sẵn |
-| Chữ ký | Theo mã nguồn, có overload resolution | Thường `getMethod(name, paramTypes...)` | `MethodType` có kiểu trả về và các kiểu tham số |
-| Exception từ method đích | Ném theo luồng Java thông thường | Bọc trong `InvocationTargetException` | MethodHandle invocation thông thường ném trực tiếp exception từ target |
-| Access control | Theo luật Java trong source và runtime | Reflection kiểm tra access/module; có API thử mở quyền | `Lookup` có quyền theo lookup class/module; access kiểm tra khi tạo handle |
-| Đổi tên method | Compiler thường bắt usage source cũ | Chuỗi cũ có thể thất bại khi chạy | Chuỗi dùng trong lookup cũng có thể thất bại khi chạy |
-| Chuyển đổi đối số | Quy tắc Java compiler áp dụng cho lời gọi nguồn | Boxing/unboxing và primitive widening hợp lệ theo Reflection, không narrowing tùy ý | `invokeExact` không tự chuyển đổi; `invoke`/adapters hỗ trợ chuyển đổi hợp lệ |
-| Phù hợp | Logic ứng dụng thông thường | Framework cần metadata, introspection, gọi linh hoạt | Framework/runtime cần lời gọi động theo kiểu, combinators và tối ưu hóa |
+| Method identification | Java symbol in source code | Look up `Method` object, usually by string name | Look up or adapt into a handle with `MethodType` |
+| Type checking | Compiler checks the call | `invoke` checks receiver and arguments at runtime | `invokeExact` requires exact call-site signature match; `invoke` can adapt |
+| Return type | Declared by the method, e.g. `int` | `Object`, primitives are boxed, `void` is `null` | Return type in `MethodType`, e.g. `int` |
+| Receiver instance | Written as `receiver.method(...)` | First argument of `Method.invoke` | Can be the first arg of a `findVirtual` handle or pre-bound |
+| Signature | From source, with overload resolution | Usually `getMethod(name, paramTypes...)` | `MethodType` with return type and parameter types |
+| Exception from target method | Thrown via normal Java flow | Wrapped in `InvocationTargetException` | `MethodHandle` invocation normally throws the target exception directly |
+| Access control | Per Java rules in source and runtime | Reflection checks access/modules; has APIs to attempt opening access | `Lookup` carries permissions per lookup class/module; access checked on handle creation |
+| Renaming the method | Compiler usually catches stale source usages | Old strings can fail at runtime | Strings used in lookup can also fail at runtime |
+| Argument conversion | Java compiler rules apply to source calls | Valid Reflection boxing/unboxing and primitive widening, no arbitrary narrowing | `invokeExact` does not auto-convert; `invoke`/adapters support valid conversions |
+| Best suited for | Ordinary application logic | Frameworks needing metadata, introspection, flexible invocation | Frameworks/runtimes needing typed dynamic calls, combinators, and optimization |
 
-**Điểm then chốt:** MethodHandle không “lấy mất tính động” của Reflection. Khi dùng `findVirtual(Class, String, MethodType)`, bạn vẫn có tên method bằng chuỗi và vẫn có thể gặp lỗi lookup sau refactor. Ưu điểm chủ yếu là **mô hình invocation có kiểu rõ ràng và khả năng tổ hợp/adaptation**, không phải loại bỏ mọi rủi ro liên kết runtime.
+**Key point:** `MethodHandle` does not "remove the dynamism" of Reflection. When using `findVirtual(Class, String, MethodType)`, you still pass a method name as a string and can still hit lookup errors after refactoring. Its primary advantage is a **strongly typed invocation model and composability/adaptation**, not eliminating every runtime linking risk.
 
-## 3. Quá trình từ lookup đến invocation
+## 3. The Path from Lookup to Invocation
 
-Phân biệt hai bước độc lập:
+Distinguish two independent steps:
 
 ```text
-                  CHỌN METHOD                       THỰC THI
-Gọi trực tiếp:  symbol/compiler               -> invokevirtual/invokestatic...
+                  SELECT METHOD                       EXECUTE
+Direct call:    symbol/compiler                -> invokevirtual/invokestatic...
 Reflection:     Class.getMethod(...)           -> Method.invoke(...)
 MethodHandle:   Lookup.findVirtual/findStatic  -> invokeExact/invoke/...
                     |                                  |
-               thông tin thành viên              chạy nghiệp vụ thật
+               member metadata                   run actual logic
 ```
 
-Các API `Class.getMethod(...)` hay `Lookup.findVirtual(...)` dùng để tìm thành viên, **không tự gọi method nghiệp vụ**. Chỉ bước invocation mới thực hiện logic target. Việc tải/resolve lớp hoặc kiểm tra quyền khi lookup vẫn có thể gây lỗi và hoạt động JVM khác; không nên suy rằng lookup hoàn toàn vô tác động trong mọi môi trường.
+APIs like `Class.getMethod(...)` or `Lookup.findVirtual(...)` locate a member; they **do not invoke the business method**. Only the invocation step runs the target logic. Class loading/resolution or permission checks during lookup can still throw errors and trigger other JVM activity; do not assume lookup is completely side-effect-free in all environments.
 
-### `Method.invoke` là phương thức trên một đối tượng metadata
+### `Method.invoke` is a method on a metadata object
 
-Một `Method` là metadata của method khai báo. Để gọi instance method:
+A `Method` is metadata for a declared method. To call an instance method:
 
 ```java
 Object value = method.invoke(receiver, arg1, arg2);
 ```
 
-- `receiver` phải là instance tương thích với declaring class của method.
-- Với static method, tham số receiver bị bỏ qua theo API; thường truyền `null` để minh bạch.
-- Với method không tham số, có thể truyền không đối số, hoặc đối số mảng thích hợp.
-- `Method.invoke` khai báo `Object` là kiểu trả về; cần cast/unbox khi muốn dùng kiểu cụ thể.
-- Nếu invoked method ném exception, `invoke` ném `InvocationTargetException` chứa lỗi gốc trong `getCause()`.
+- `receiver` must be an instance compatible with the method's declaring class.
+- For static methods, the receiver parameter is ignored per the API; passing `null` is customary for clarity.
+- For zero-parameter methods, you can pass no arguments or an appropriate array argument.
+- `Method.invoke` declares `Object` as its return type; cast/unbox when you need a concrete type.
+- If the invoked method throws an exception, `invoke` throws `InvocationTargetException` containing the original error in `getCause()`.
 
-**Cảnh báo varargs:** bản thân `Method.invoke(Object, Object...)` là một Java varargs API. Nếu truyền array làm **một tham số của method đích**, cần chuẩn bị đúng mảng `Object[]` chứa một phần tử, tránh compiler trải nhầm array thành danh sách tham số của `invoke`. Đây là vấn đề ở lớp gọi Reflection, không phải thay đổi signature của target.
+**Varargs warning:** `Method.invoke(Object, Object...)` is itself a Java varargs API. When passing an array as **a single parameter of the target method**, prepare a proper `Object[]` containing one element so the compiler does not mistakenly spread the array as `invoke`'s argument list. This is a Reflection call-layer concern, not a change to the target's signature.
 
-### `MethodHandle` là điểm gọi có kiểu
+### `MethodHandle` is a typed invocation point
 
-`MethodHandle.type()` trả về một `MethodType` gồm return type và danh sách tham số **của chính handle**. Với instance method `int add(int,int)`, kết quả `findVirtual` chưa bind receiver có dạng:
+`MethodHandle.type()` returns a `MethodType` holding the return type and parameter list **of the handle itself**. For instance method `int add(int,int)`, an unbound `findVirtual` result has the form:
 
 ```text
 (Calculator,int,int)int
 ```
 
-Đối số đầu tiên là receiver; hai đối số còn lại là tham số Java của method đích. Dùng `bindTo(calculator)` sẽ biến handle đó thành:
+The first argument is the receiver; the remaining two arguments are the target method's Java parameters. Calling `bindTo(calculator)` turns that handle into:
 
 ```text
 (int,int)int
 ```
 
-Khi đó caller không truyền receiver nữa. Binding làm thay đổi **chữ ký handle**, không sửa class hoặc tạo một method mới trong class đích.
+The caller then no longer passes the receiver. Binding changes **the handle's signature**, without modifying the class or creating a new method in the target class.
 
-Cũng cần phân biệt:
+Also distinguish:
 
-- `findVirtual(...)`: tìm virtual instance method; handle cần receiver và có virtual dispatch phù hợp.
-- `findStatic(...)`: tìm static method; handle **không có receiver**.
-- `findConstructor(...)`: handle biểu diễn thao tác tạo đối tượng; kiểu trả về handle là class mới tạo.
-- `Lookup.unreflect(Method)`: có thể tạo MethodHandle từ `Method`, nhưng vẫn chịu điều kiện quyền truy cập phù hợp.
-- `invokeExact(...)`: call site phải có tham số **và return type** trùng chính xác với `handle.type()`.
-- `invoke(...)`: có thể áp dụng thích nghi kiểu theo `asType` trong các chuyển đổi được hỗ trợ; không thể coi là chuyển mọi kiểu tùy ý.
-- `invokeWithArguments(...)`: giao diện linh hoạt lấy danh sách đối số như `Object`; thích hợp tiện ích/framework, nhưng không nên dùng để suy ra hiệu năng của `invokeExact`.
-- Các combinator như `asType`, `bindTo`, `filterArguments`, `insertArguments` cho phép xây đường gọi phù hợp mà không cần viết wrapper method thông thường cho mọi trường hợp.
+- `findVirtual(...)`: looks up a virtual instance method; the handle requires a receiver and performs appropriate virtual dispatch.
+- `findStatic(...)`: looks up a static method; the handle **has no receiver**.
+- `findConstructor(...)`: a handle representing object creation; the handle's return type is the newly constructed class.
+- `Lookup.unreflect(Method)`: can create a `MethodHandle` from a `Method`, still subject to appropriate access checks.
+- `invokeExact(...)`: the call site must match `handle.type()`'s parameter types **and return type** exactly.
+- `invoke(...)`: can apply `asType`-style type adaptations among supported conversions; do not assume it converts arbitrary types.
+- `invokeWithArguments(...)`: flexible interface taking arguments as `Object`s; handy for utilities/frameworks, yet should not be used to infer `invokeExact` performance.
+- Combinators such as `asType`, `bindTo`, `filterArguments`, and `insertArguments` let you construct tailored call pipelines without writing ordinary wrapper methods for every case.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh, có output kiểm chứng
+## 4. Complete Java 17+ Example with Verified Output
 
-Chương trình bên dưới dùng một `Calculator` có instance method, static method và một method cố tình ném lỗi. Nó đối chiếu kết quả khi gọi trực tiếp, Reflection, MethodHandle chưa bind/bound, `invokeWithArguments`, đồng thời kiểm tra **hai kiểu lỗi khác nhau**.
+The program below uses a `Calculator` with an instance method, a static method, and a method that intentionally throws an error. It compares results across direct calls, Reflection, unbound/bound `MethodHandle`, and `invokeWithArguments`, while testing **two distinct error categories**.
 
-Lưu thành **`InvocationComparisonDemo.java`**:
+Save as **`InvocationComparisonDemo.java`**:
 
 ```java
 import java.lang.invoke.MethodHandle;
@@ -219,14 +219,14 @@ public class InvocationComparisonDemo {
 }
 ```
 
-Lệnh biên dịch/chạy:
+Compile/run commands:
 
 ```bash
 javac --release 17 -encoding UTF-8 InvocationComparisonDemo.java
 java InvocationComparisonDemo
 ```
 
-**Stdout thực tế của chương trình trên:**
+**Actual stdout of the program above:**
 
 ```text
 direct: 17
@@ -243,25 +243,25 @@ reflection target error: IllegalArgumentException
 handle target error: IllegalArgumentException
 ```
 
-Ví dụ đã được biên dịch với `javac --release 17` và chạy để đối chiếu stdout; không yêu cầu phụ thuộc ngoài JDK.
+The example was compiled with `javac --release 17` and run to verify stdout; no dependencies outside the JDK are required.
 
-### Đọc từng kết quả
+### Reading Each Result
 
-1. `Calculator(10).add(3, 4)` trả `10 + 3 + 4 = 17` ở cả ba đường gọi hợp lệ.
-2. Reflection trả `Object` mang giá trị runtime `Integer(17)`. Trong Java source, `invoke` nhận đối số primitive qua varargs `Object...`, nên cần boxing khi đóng gói đối số.
-3. Handle chưa bind có chữ ký `(Calculator,int,int)int`. `invokeExact(calculator, 3, 4)` cần receiver và hai số nguyên `int`.
-4. `bindTo(calculator)` cố định receiver; chữ ký trở thành `(int,int)int`.
-5. `invokeWithArguments(3, 4)` nhận cách truyền linh hoạt, trả giá trị trong dạng `Object`, nên ở ví dụ nhận `17` qua `Object generic`.
-6. `findStatic` có chữ ký `(String,int)String` và không nhận `Calculator` làm receiver.
-7. Truyền chuỗi `"3"` cho Reflection method yêu cầu `int` bị từ chối với `IllegalArgumentException`. Reflection không tự parse văn bản thành số nguyên.
-8. Dòng `long wrong = (long) bound.invokeExact(3, 4)` cố tình dùng **return type của call site là `long`**, nhưng handle trả `int`. Điều đó dẫn đến `WrongMethodTypeException`, kể cả khi đối số `int` đều đúng.
-9. `risky(0)` thực sự ném `IllegalArgumentException`. Qua `Method.invoke`, lỗi target được bọc trong `InvocationTargetException`. Qua MethodHandle, lỗi target đi thẳng ra ngoài trong trường hợp này. Hai dòng cùng in tên `IllegalArgumentException` vì code chỉ in **cause hoặc exception thật**, không in lớp wrapper của Reflection.
+1. `Calculator(10).add(3, 4)` returns `10 + 3 + 4 = 17` across all three valid invocation paths.
+2. Reflection returns an `Object` holding the runtime value `Integer(17)`. In Java source, `invoke` receives primitive arguments through `Object...` varargs, so boxing happens when packing arguments.
+3. The unbound handle has signature `(Calculator,int,int)int`. `invokeExact(calculator, 3, 4)` requires the receiver and two `int`s.
+4. `bindTo(calculator)` fixes the receiver; the signature becomes `(int,int)int`.
+5. `invokeWithArguments(3, 4)` accepts flexible argument passing and returns the value as `Object`, so the example receives `17` via `Object generic`.
+6. `findStatic` has signature `(String,int)String` and does not take `Calculator` as a receiver.
+7. Passing the string `"3"` to a Reflection method expecting `int` is rejected with `IllegalArgumentException`. Reflection does not automatically parse text into integers.
+8. The line `long wrong = (long) bound.invokeExact(3, 4)` intentionally uses a **call-site return type of `long`**, whereas the handle returns `int`. That triggers `WrongMethodTypeException`, even though both `int` arguments match.
+9. `risky(0)` actually throws `IllegalArgumentException`. Via `Method.invoke`, the target error is wrapped in `InvocationTargetException`. Via `MethodHandle`, the target error passes straight out in this case. Both lines print `IllegalArgumentException` because the code prints **the actual cause or exception**, not Reflection's wrapper class.
 
-## 5. Phân biệt invokeExact, invoke và invokeWithArguments
+## 5. Distinguishing invokeExact, invoke, and invokeWithArguments
 
-Ba cách dùng MethodHandle không thể hoán đổi một cách tùy ý.
+These three `MethodHandle` invocation forms cannot be swapped arbitrarily.
 
-### invokeExact: ràng buộc chặt kiểu tĩnh tại call site
+### invokeExact: strict static typing at the call site
 
 ```java
 MethodHandle h = MethodHandles.lookup().findStatic(
@@ -270,153 +270,153 @@ MethodHandle h = MethodHandles.lookup().findStatic(
 int value = (int) h.invokeExact(2, 3);
 ```
 
-Đây là đoạn minh họa riêng, yêu cầu xử lý `Throwable`, và `Integer.sum(int,int)` là static method. Trình biên dịch Java gán cho call site chữ ký gồm hai `int` và kết quả `int`. Nếu viết `Object value = h.invokeExact(2, 3)`, return type ở call site sẽ là `Object` và **không khớp** handle trả `int`, dẫn đến `WrongMethodTypeException` khi chạy. Ép kiểu `(int)` ở mã nguồn có ý nghĩa thật đối với kiểu tĩnh được ghi tại call site; nó không phải cast trang trí.
+This is a separate illustrative snippet requiring `Throwable` handling, and `Integer.sum(int,int)` is a static method. The Java compiler gives the call site a signature of two `int`s returning `int`. If you write `Object value = h.invokeExact(2, 3)`, the call-site return type becomes `Object`, which **does not match** a handle returning `int`, causing `WrongMethodTypeException` at runtime. The `(int)` cast in source code genuinely defines the static type recorded at the call site; it is not a decorative cast.
 
-### invoke: có thể thích nghi nhưng vẫn có giới hạn
+### invoke: adapts types, yet still has limits
 
 ```java
 int value = (int) h.invoke(2, 3);
 ```
 
-`invoke` không bắt buộc khớp tuyệt đối như `invokeExact` và có thể vận dụng quy tắc conversion thích hợp của MethodHandle. Tuy nhiên không phải mọi khác biệt đều được hỗ trợ, và chi phí/thành công tùy loại chuyển đổi. Có thể dùng `h.asType(desiredMethodType)` khi cần tạo adapter có chữ ký mục tiêu rõ ràng.
+`invoke` does not enforce exact matching like `invokeExact` and can apply `MethodHandle` conversion rules where applicable. However, not every mismatch is supported, and cost/success depends on the conversion kind. You can use `h.asType(desiredMethodType)` when you need an adapter with an explicit target signature.
 
-### invokeWithArguments: thuận tiện cho danh sách runtime
+### invokeWithArguments: convenient for runtime argument lists
 
 ```java
 Object value = h.invokeWithArguments(2, 3);
 ```
 
-Đoạn này hữu dụng cho framework có danh sách đối số dạng `Object[]` hoặc `List<?>`. Nó thường có nhiều công việc thích nghi/đóng gói hơn một lời gọi `invokeExact` với kiểu ổn định, nên không nên dùng kết quả đo của nó để suy ra hiệu năng tối đa của MethodHandle.
+This is handy for frameworks holding argument lists as `Object[]` or `List<?>`. It generally performs more adaptation/boxing work than a statically typed `invokeExact` call, so its timings should not be used to infer the peak performance of `MethodHandle`.
 
-Cả ba snippet này giả định `h` nằm trong phạm vi phù hợp, có imports liên quan và exception được xử lý. Một chương trình đầy đủ đã có ở mục 4.
+All three snippets assume `h` is in scope with the relevant imports and exception handling. A complete program is already provided in Section 4.
 
-## 6. Boxing, primitive và overload là nguồn lỗi phổ biến
+## 6. Boxing, Primitives, and Overloads Are Common Bug Sources
 
 ### Method.invoke
 
-Giả sử method đích có chữ ký `int sum(int,int)`:
+Suppose the target method has signature `int sum(int,int)`:
 
-- `Method.invoke(target, 2, 3)` cho phép primitive arguments được boxing trước khi đi qua `Object...`; Reflection thực hiện chuyển đổi tương thích để gọi method đích.
-- Trả về `int` được boxing thành `Integer` ở lớp kết quả `Object`.
-- Nếu method đích trả `void`, kết quả `Method.invoke` là `null`.
-- Passing `null` vào tham số primitive không hợp lệ.
-- Truyền `Integer` khi tham số yêu cầu `long` có thể được unbox và primitive widening theo quy tắc Reflection; truyền `Long` khi yêu cầu `int` không tự narrowing. Truyền `String` không tự parse thành số.
+- `Method.invoke(target, 2, 3)` lets primitive arguments be boxed before passing through `Object...`; Reflection performs compatible conversions to invoke the target method.
+- Returning `int` is boxed into `Integer` in the `Object` result slot.
+- If the target method returns `void`, the result of `Method.invoke` is `null`.
+- Passing `null` to a primitive parameter is invalid.
+- Passing `Integer` when the parameter expects `long` can be unboxed and primitive-widened per Reflection rules; passing `Long` when `int` is expected will not auto-narrow. Passing `String` will not auto-parse into a number.
 
-### getMethod lookup phải khớp kiểu tham số
+### getMethod lookup must match parameter types
 
 ```java
 Method m = Calculator.class.getMethod("add", int.class, int.class);
 ```
 
-`getMethod("add", Integer.class, Integer.class)` **không tương đương**, dù Java source có autoboxing. Phần lookup bằng `getMethod` không thực hiện overload resolution linh hoạt như compiler. MethodHandle lookup còn thêm **return type** vào `MethodType`.
+`getMethod("add", Integer.class, Integer.class)` **is not equivalent**, even though Java source has autoboxing. Lookup via `getMethod` does not perform flexible overload resolution like the compiler. `MethodHandle` lookup also includes the **return type** in `MethodType`.
 
-### Lưu ý generic và array
+### Generics and arrays note
 
-Java generic phần lớn bị xóa kiểu ở bytecode (type erasure), nên Reflection và MethodHandle lookup dựa trên kiểu runtime đã erased, không phải tham số kiểu `List<String>` như symbol độc lập. MethodHandle có combinator cho array spreading/collecting; khi một method nhận `int[]` hoặc `Object[]`, hãy kiểm tra chữ ký handle và cách truyền varargs để không nhầm một mảng đối số với một đối số là mảng.
+Java generics are largely erased in bytecode (type erasure), so Reflection and `MethodHandle` lookup operate on erased runtime types, not type arguments like `List<String>` as standalone symbols. `MethodHandle` provides combinators for array spreading/collecting; when a method takes `int[]` or `Object[]`, check the handle signature and varargs passing carefully so you do not confuse an array of arguments with a single array argument.
 
-## 7. Access control, lỗi tra cứu và exception
+## 7. Access Control, Lookup Errors, and Exceptions
 
-### Quyền truy cập không tự biến mất khi dùng Reflection
+### Access rules do not vanish when using Reflection
 
-- Gọi trực tiếp chịu access rule từ mã nguồn, package, module và tính hợp lệ ở runtime.
-- `Class.getDeclaredMethod` **có thể tìm thấy** private method, nhưng điều đó không đồng nghĩa `Method.invoke` được phép gọi.
-- `Method.setAccessible(true)` / `trySetAccessible()` có thể cho phép deep reflection **chỉ khi các quy tắc module/package cho phép**. Việc dùng bừa bãi có thể bị từ chối hoặc làm thiết kế khó kiểm soát.
-- `MethodHandles.lookup()` tạo `Lookup` có quyền gắn với lớp gọi. `findVirtual`, `findStatic` và `unreflect` kiểm tra các điều kiện tiếp cận tương ứng.
-- Với private members, `MethodHandles.privateLookupIn(...)` là lựa chọn có kiểm tra quyền và điều kiện mở package phù hợp, không phải cách vượt mọi module encapsulation.
+- Direct calls obey access rules from source, package, module, and runtime validity.
+- `Class.getDeclaredMethod` **can find** a private method, yet that does not mean `Method.invoke` is allowed to call it.
+- `Method.setAccessible(true)` / `trySetAccessible()` can enable deep reflection **only when module/package rules allow**. Indiscriminate use may be denied or make the design hard to govern.
+- `MethodHandles.lookup()` creates a `Lookup` carrying permissions bound to the calling class. `findVirtual`, `findStatic`, and `unreflect` check the corresponding access conditions.
+- For private members, `MethodHandles.privateLookupIn(...)` is an option with proper permission checks and open-package requirements, not a way to bypass all module encapsulation.
 
-**Không được coi Reflection hay MethodHandle là phương tiện vượt phân quyền.** Chúng là cơ chế gọi code trong những giới hạn runtime và module. Lúc thiết kế plugin/tool runner, việc gọi method nào còn cần allowlist và authorization ở mức ứng dụng.
+**Never treat Reflection or MethodHandle as a privilege-escalation mechanism.** They are code-invocation mechanisms operating within runtime and module boundaries. When designing a plugin/tool runner, which methods may be invoked still requires application-level allowlists and authorization.
 
-### Tra cứu lỗi và gọi lỗi là hai nhóm riêng
+### Lookup errors and invocation errors are two distinct groups
 
-| Tình huống | Reflection | MethodHandle |
+| Situation | Reflection | MethodHandle |
 |---|---|---|
-| Tên method sai | `NoSuchMethodException` lúc `getMethod`/`getDeclaredMethod` | `NoSuchMethodException` lúc `Lookup.find...` |
-| Không truy cập được | `IllegalAccessException` / `InaccessibleObjectException` tùy bước | `IllegalAccessException` lúc lookup hoặc chuyển handle |
-| Receiver sai | Thường `IllegalArgumentException` tại `Method.invoke` | Lỗi liên quan mismatch kiểu/receiver tùy cơ chế invoke |
-| Đối số không khớp | `IllegalArgumentException` tại `Method.invoke` | `WrongMethodTypeException` ở call site không thích hợp hoặc conversion-related exception |
-| Method đích ném lỗi | `InvocationTargetException` bao lỗi gốc | Thường ném trực tiếp lỗi gốc từ target |
-| Lớp đích khởi tạo thất bại | Có thể thấy `ExceptionInInitializerError`/lỗi liên quan | Cũng có thể gặp lỗi initialization, tùy lúc method đích được gọi |
+| Wrong method name | `NoSuchMethodException` at `getMethod`/`getDeclaredMethod` | `NoSuchMethodException` at `Lookup.find...` |
+| Inaccessible | `IllegalAccessException` / `InaccessibleObjectException` depending on step | `IllegalAccessException` at lookup or handle conversion |
+| Wrong receiver | Typically `IllegalArgumentException` at `Method.invoke` | Type/receiver mismatch error depending on invoke form |
+| Mismatched arguments | `IllegalArgumentException` at `Method.invoke` | `WrongMethodTypeException` at an incompatible call site or conversion-related exception |
+| Target method throws | `InvocationTargetException` wrapping original error | Normally throws target's original error directly |
+| Target class initialization fails | May surface `ExceptionInInitializerError`/related error | May also encounter initialization errors when target method is invoked |
 
-Không nên bắt mọi `Exception` rồi báo “method không tồn tại”. Phân biệt lookup/permission/type mismatch với lỗi nghiệp vụ của target. Khi log exception từ `Method.invoke`, xem `InvocationTargetException.getCause()` nhưng vẫn nên giữ thông tin wrapper/context khi chẩn đoán.
+Do not catch every `Exception` and report "method does not exist". Distinguish lookup/permission/type mismatch from target business errors. When logging exceptions from `Method.invoke`, inspect `InvocationTargetException.getCause()` while still retaining wrapper/context information for diagnosis.
 
-## 8. Hiệu năng: so sánh đúng cách, tránh kết luận tuyệt đối
+## 8. Performance: Measure Properly, Avoid Absolute Claims
 
-Thứ tự “gọi trực tiếp nhanh hơn MethodHandle nhanh hơn Reflection” đôi khi là một kinh nghiệm phổ biến, **không phải định luật cho mọi JDK và tình huống**.
+The rule of thumb "direct call is faster than MethodHandle which is faster than Reflection" is sometimes common lore, **not an absolute law across all JDKs and scenarios**.
 
-Những yếu tố phải xem:
+Factors to examine:
 
-1. **JIT và inlining:** compiler có thể tối ưu lời gọi trực tiếp rất tốt khi biết target; MethodHandle với handle ổn định cũng có cơ hội tối ưu hóa mạnh. Reflection trong các JDK hiện đại cũng đã được cải tiến, không thể dựa mãi trên một benchmark cũ.
-2. **Chi phí lookup:** nếu lấy `Method`/`MethodHandle` mới ở **mỗi vòng lặp**, bạn đang đo cả discovery và invocation, không chỉ chi phí gọi.
-3. **Kiểu đối số và boxing:** Reflection phải đi qua giao diện `Object...`; `invokeWithArguments` cũng có chuyển đổi/đóng gói. Một benchmark trả `Object` và benchmark trả `int` chưa chắc so sánh cùng lượng công việc.
-4. **Monomorphic vs megamorphic call sites:** số loại target và khả năng JVM biết trước handle ảnh hưởng rất lớn đến tối ưu hóa.
-5. **Workload thật:** khi method đích thực hiện I/O, database, tính toán lớn hoặc network, overhead dispatch có thể nhỏ hơn nhiều so với công việc thực.
-6. **JDK/runtime version và warmup:** JVM cần warmup; kết quả có thể khác trên Java 17, 21 hoặc JDK tương lai và giữa các triển khai.
-7. **Benchmark dead-code elimination:** nếu không sử dụng kết quả, JIT có thể loại bỏ phần việc, khiến số đo vô nghĩa.
+1. **JIT and inlining:** the compiler can optimize direct calls heavily when targets are known; `MethodHandle` with stable handles also has strong optimization opportunities. Reflection in modern JDKs has improved substantially as well, so you cannot rely indefinitely on old benchmarks.
+2. **Lookup cost:** if you fetch a fresh `Method`/`MethodHandle` on **every loop iteration**, you are measuring both discovery and invocation, not call overhead alone.
+3. **Argument types and boxing:** Reflection goes through an `Object...` interface; `invokeWithArguments` also incurs adaptation/boxing. A benchmark returning `Object` and a benchmark returning `int` may not be doing equal work.
+4. **Monomorphic vs. megamorphic call sites:** the number of target types and whether the JVM can statically know the handle strongly affect optimization.
+5. **Real workload:** when the target method performs I/O, database queries, heavy computation, or network calls, dispatch overhead may be tiny compared to the actual work.
+6. **JDK/runtime version and warmup:** the JVM requires warmup; results can differ across Java 17, 21, or future JDKs and across implementations.
+7. **Benchmark dead-code elimination:** if the result goes unused, the JIT may eliminate the work, making measurements meaningless.
 
-Một phép đo nghiêm túc nên dùng **JMH (Java Microbenchmark Harness)**, có warmup, nhiều lần đo, fork JVM và consumer/return value để giữ công việc quan sát được. Dùng cùng implementation và dữ liệu, **cache** method và handle nếu đó là cách ứng dụng thật hoạt động, tách riêng phép đo lookup. Sau đó mới so sánh latency/throughput kèm JDK và cấu hình JVM.
+A serious benchmark should use **JMH (Java Microbenchmark Harness)**, with warmup, multiple iterations, JVM forks, and blackholes/return values to keep work observable. Use identical implementations and data, **cache** methods and handles if that reflects real application behavior, and measure lookup separately. Only then compare latency/throughput alongside the JDK and JVM flags.
 
-Nếu cần đo quyết định kiến trúc, đừng benchmark `Method.invoke` với target làm I/O trong khi nhánh khác chỉ cộng hai số. Cũng không nên khuyên chuyển mọi code sang MethodHandle chỉ vì một microbenchmark. Khả năng bảo trì và tính rõ ràng của code thường quan trọng hơn vài nanosecond trong nghiệp vụ bình thường.
+When evaluating architectural choices, do not benchmark `Method.invoke` on a target doing I/O against direct addition of two numbers. Nor should you advise rewriting all code to `MethodHandle` based on a single microbenchmark. Code maintainability and clarity usually matter far more than a few nanoseconds in ordinary business logic.
 
-## 9. Khi nào nên chọn cách nào?
+## 9. When to Choose Which Approach?
 
-| Nhu cầu | Gợi ý |
+| Need | Recommendation |
 |---|---|
-| Gọi method đã biết rõ ở compile time | **Gọi trực tiếp**, ưu tiên interface/method reference rõ ràng |
-| Framework cần liệt kê annotation, method, generic metadata | **Reflection metadata**; gọi qua `Method.invoke` nếu cần tính linh hoạt |
-| Runtime xây call chain động, cần adapters/combinators có kiểu | **MethodHandle** |
-| Chạy cùng một method động nhiều lần với cấu trúc ổn định | Cân nhắc **cache MethodHandle** và đánh giá bằng benchmark thật |
-| Input là tên class/method từ config | Reflection hoặc Lookup đều cần **validate allowlist, schema, quyền** |
-| Code dùng proxy, serializer, DI hoặc RPC | Chọn công cụ theo framework và API contract, không chỉ theo lý thuyết tốc độ |
-| Logic thông thường có API ổn định | Không thêm Reflection/MethodHandle nếu lời gọi trực tiếp đã đơn giản và phù hợp |
+| Calling a method known statically at compile time | **Direct call**, preferring clear interfaces/method references |
+| Framework needing to list annotations, methods, generic metadata | **Reflection metadata**; invoke via `Method.invoke` if flexibility is needed |
+| Runtime building dynamic call chains needing typed adapters/combinators | **MethodHandle** |
+| Running the same dynamic method repeatedly with stable structure | Consider **caching `MethodHandle`** and evaluating with real benchmarks |
+| Input is class/method names from configuration | Both Reflection and Lookup require **allowlist, schema, and permission validation** |
+| Code using proxies, serializers, DI, or RPC | Choose the tool based on framework and API contract, not speed lore alone |
+| Ordinary logic with a stable API | Do not add Reflection/MethodHandle when direct calls are already simple and suitable |
 
-Một thực hành hay là tách giai đoạn **discovery** (đọc `Method`/annotation hoặc tìm `MethodHandle`) và **execution** (gọi thật). Khám phá metadata không nên tự chạy nghiệp vụ. Chỉ sau khi kiểm tra schema và quyền, executor mới thực hiện `invoke`.
+A good practice is separating **discovery** (reading `Method`/annotations or resolving a `MethodHandle`) from **execution** (actually invoking). Metadata discovery should never execute business logic on its own. Only after checking schemas and permissions should the executor invoke.
 
-## 10. Những lỗi người học thường gặp
+## 10. Common Learner Mistakes
 
-- **Nhầm Reflection với MethodHandle:** `Method` là đối tượng metadata với API `invoke(Object,Object...)`; `MethodHandle` là callable với `MethodType`, có thể bind/adapt/combine. Chúng không phải cùng một abstraction.
-- **Quên receiver của `findVirtual`:** handle ban đầu thường có receiver là đối số đầu tiên. `bindTo` mới cố định đối tượng.
-- **Cho rằng `invokeExact` tự widening `int` thành `long`:** Không; cả return type của call site cũng phải khớp.
-- **Cho rằng `Method.invoke` trả `int`:** API luôn trả `Object`; primitive được boxing.
-- **Bỏ quên `InvocationTargetException`:** Reflection wrapper che cause thực sự nếu không mở ra.
-- **Tra cứu bằng kiểu wrapper thay primitive:** `int.class` khác `Integer.class` khi lookup.
-- **Bỏ qua access/module rules:** Tìm thấy private method không đồng nghĩa có quyền thực thi nó.
-- **Tạo method/handle mới mỗi lần gọi rồi đo tốc độ:** Số liệu trộn lookup cost và invocation cost.
-- **Tin rằng handle luôn nhanh hơn:** Cần test thực nghiệm trên JDK và workload thực tế.
-- **Đổi tên method mà quên chuỗi runtime:** `getMethod("oldName",...)` và `findVirtual(...,"oldName",...)` đều có thể hỏng sau refactor nếu string không được cập nhật.
+- **Confusing Reflection with MethodHandle:** `Method` is a metadata object with an `invoke(Object,Object...)` API; `MethodHandle` is a callable with a `MethodType` that can be bound, adapted, and combined. They are not the same abstraction.
+- **Forgetting `findVirtual`'s receiver:** the initial handle usually takes the receiver as its first argument. `bindTo` fixes that object.
+- **Assuming `invokeExact` auto-widens `int` to `long`:** No; the call site's return type must match as well.
+- **Assuming `Method.invoke` returns `int`:** the API always returns `Object`; primitives are boxed.
+- **Forgetting `InvocationTargetException`:** Reflection's wrapper hides the real cause if not unwrapped.
+- **Looking up with wrapper types instead of primitives:** `int.class` differs from `Integer.class` during lookup.
+- **Ignoring access/module rules:** finding a private method does not mean having permission to execute it.
+- **Creating a new method/handle on every call and benchmarking speed:** the numbers mix lookup cost with invocation cost.
+- **Believing handles are always faster:** test empirically on the target JDK and realistic workload.
+- **Renaming a method while forgetting runtime strings:** both `getMethod("oldName",...)` and `findVirtual(...,"oldName",...)` can break after refactoring if strings are not updated.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** `Method.invoke(calculator, 3, 4)` gọi method trả `int`. Biến nhận là `Object` sẽ chứa kiểu nào?
+**Question 1.** `Method.invoke(calculator, 3, 4)` invokes a method returning `int`. What type does the receiving `Object` variable hold?
 
-Một `Integer` đã boxing giá trị `int`, giả sử method thực thi thành công.
+An `Integer` boxing the `int` value, assuming the method executes successfully.
 
-**Câu 2.** Vì sao `findVirtual(Calculator.class, "add", methodType(int.class,int.class,int.class))` có kiểu handle `(Calculator,int,int)int`?
+**Question 2.** Why does `findVirtual(Calculator.class, "add", methodType(int.class,int.class,int.class))` produce a handle of type `(Calculator,int,int)int`?
 
-Vì virtual method cần **receiver** đầu tiên ở call site của handle, trước hai tham số của method gốc. `MethodType` truyền vào `findVirtual` mô tả signature Java của method **không tính receiver**, còn handle trả về có thêm receiver.
+Because a virtual method requires the **receiver** first at the handle's call site, ahead of the original method's two parameters. The `MethodType` passed to `findVirtual` describes the method's Java signature **excluding the receiver**, while the returned handle includes the receiver.
 
-**Câu 3.** Có `Method` từ `getMethod` nghĩa là method đã chạy?
+**Question 3.** Does obtaining a `Method` from `getMethod` mean the method has already run?
 
-Không. Lookup trả metadata; `Method.invoke` mới yêu cầu thực thi.
+No. Lookup returns metadata; `Method.invoke` triggers execution.
 
-**Câu 4.** Vì sao `long x = (long) bound.invokeExact(3,4)` lỗi dù có thể đổi một giá trị `int` sang `long` trong Java bình thường?
+**Question 4.** Why does `long x = (long) bound.invokeExact(3,4)` fail even though an `int` can be converted to `long` in normal Java?
 
-Vì `invokeExact` đòi hỏi **return type của call site là `int`** theo kiểu handle. Khai báo/cast sang `long` ngay tại call site làm chữ ký yêu cầu khác và ném `WrongMethodTypeException`. Nếu muốn chuyển đổi, nhận `int` trước rồi widening trong Java: `int tmp = (int) bound.invokeExact(3,4); long x = tmp;`, hoặc dùng adapter hợp lệ.
+Because `invokeExact` requires the **call site's return type to be `int`** to match the handle's type. Declaring/casting to `long` directly at the call site changes the requested signature and throws `WrongMethodTypeException`. To convert, receive `int` first and widen in Java: `int tmp = (int) bound.invokeExact(3,4); long x = tmp;`, or use an appropriate adapter.
 
-**Câu 5.** Khi method đích ném `IllegalArgumentException`, khác biệt nổi bật giữa Reflection và MethodHandle?
+**Question 5.** When the target method throws `IllegalArgumentException`, what is the key difference between Reflection and MethodHandle?
 
-`Method.invoke` bọc target exception trong `InvocationTargetException`, còn invocation qua MethodHandle thông thường ném trực tiếp exception của target. Cần phân biệt lỗi thực thi với lỗi lookup/chữ ký.
+`Method.invoke` wraps the target exception in `InvocationTargetException`, whereas `MethodHandle` invocation normally throws the target's exception directly. Execution errors must be distinguished from lookup/signature errors.
 
-**Câu 6.** Cách nào luôn nhanh nhất?
+**Question 6.** Which approach is always fastest?
 
-Không có đáp án cố định cho mọi JDK và ứng dụng. Với method đã biết tĩnh, thường ưu tiên direct call vì rõ ràng và compiler kiểm tra kiểu; nếu yêu cầu động, thử Reflection/MethodHandle theo chức năng, dùng JMH đo trên môi trường tương ứng.
+There is no single fixed answer across all JDKs and applications. For statically known methods, direct calls are usually preferred for clarity and compile-time type checking; when dynamism is required, try Reflection/MethodHandle according to functionality and benchmark with JMH on the target environment.
 
-## Tài liệu tham khảo
+## References
 
 - Java SE 17 API: [`java.lang.reflect.Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html) — metadata, `invoke`, access, `InvocationTargetException`.
 - Java SE 17 API: [`java.lang.invoke.MethodHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandle.html) — `invokeExact`, `invoke`, adapters.
-- Java SE 17 API: [`java.lang.invoke.MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html) — `findVirtual`, `findStatic`, `unreflect`, kiểm tra quyền.
-- Java SE 17 API: [`java.lang.invoke.MethodType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodType.html) — chữ ký kiểu của handle.
-- [OpenJDK JMH](https://github.com/openjdk/jmh) — microbenchmark cho JVM; đo đúng workload và cấu hình thực tế.
-- Java Language Specification §15.12 (method invocation), JVM Specification §6.5 (lệnh invoke), §5 (loading/linking/initialization).
+- Java SE 17 API: [`java.lang.invoke.MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html) — `findVirtual`, `findStatic`, `unreflect`, access checks.
+- Java SE 17 API: [`java.lang.invoke.MethodType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodType.html) — handle type signatures.
+- [OpenJDK JMH](https://github.com/openjdk/jmh) — microbenchmarking for the JVM; measure realistic workloads and configurations.
+- Java Language Specification §15.12 (method invocation), JVM Specification §6.5 (invoke instructions), §5 (loading/linking/initialization).
 
-**Ghi nhớ:** **Gọi trực tiếp** có cú pháp rõ và compiler kiểm tra kiểu; **`Method.invoke`** gọi động qua metadata, đối số/kết quả có giao diện `Object` và bọc exception đích; **`MethodHandle`** có chữ ký `MethodType`, hỗ trợ lời gọi kiểu chặt, binding và adaptation. Chọn theo nhu cầu và hành vi thực tế trước khi tối ưu hiệu năng.
+**Key takeaway:** **Direct calls** offer clean syntax and compile-time type checking; **`Method.invoke`** invokes dynamically via metadata with an `Object` argument/return interface and wraps target exceptions; **`MethodHandle`** carries a `MethodType` signature supporting strict typed calls, binding, and adaptation. Choose based on requirements and actual behavior before optimizing performance.

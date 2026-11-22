@@ -1,15 +1,15 @@
-# RandomGenerator và RandomGeneratorFactory từ Java 17
+# RandomGenerator and RandomGeneratorFactory Since Java 17
 
-## 1. Vì sao Java 17 bổ sung API số ngẫu nhiên?
+## 1. Why did Java 17 add a new random number API?
 
-Trước Java 17, nhiều chương trình quen với `java.util.Random`, `ThreadLocalRandom`, `SplittableRandom` hoặc `SecureRandom`. Mỗi lựa chọn có thế mạnh riêng, nhưng việc thay đổi thuật toán và truy vấn đặc điểm của bộ sinh còn thiếu một API thống nhất. **Java 17 giới thiệu `java.util.random.RandomGenerator` và `RandomGeneratorFactory`** như giao diện và cơ chế lựa chọn thuật toán trong `java.base` (JEP 356).
+Before Java 17, many programs relied on `java.util.Random`, `ThreadLocalRandom`, `SplittableRandom`, or `SecureRandom`. Each choice had its strengths, yet swapping algorithms and querying generator characteristics lacked a unified API. **Java 17 introduced `java.util.random.RandomGenerator` and `RandomGeneratorFactory`** as a common interface and algorithm selection mechanism in `java.base` (JEP 356).
 
-Bài này tập trung vào hai thành phần:
+This lesson focuses on two components:
 
-- **`RandomGenerator`**: giao diện chung để **sử dụng** một bộ sinh số ngẫu nhiên, thường là số *giả ngẫu nhiên* (*pseudorandom*).
-- **`RandomGeneratorFactory<T extends RandomGenerator>`**: factory để **tìm, lựa chọn, kiểm tra đặc tính và tạo** các instance của một thuật toán cụ thể.
+- **`RandomGenerator`**: the common interface for **using** a random number generator, typically *pseudorandom*.
+- **`RandomGeneratorFactory<T extends RandomGenerator>`**: the factory for **discovering, selecting, inspecting properties, and creating** instances of a specific algorithm.
 
-Hai vai trò bổ sung cho nhau: mã nghiệp vụ nên phụ thuộc vào `RandomGenerator` khi chỉ cần phát sinh số; mã cấu hình, khởi tạo hoặc lựa chọn thuật toán mới cần quan tâm đến `RandomGeneratorFactory`.
+The two roles complement each other: business code should depend on `RandomGenerator` when it only needs to draw numbers; configuration, initialization, or algorithm-selection code deals with `RandomGeneratorFactory`.
 
 ```java
 import java.util.random.RandomGenerator;
@@ -19,49 +19,49 @@ RandomGeneratorFactory<RandomGenerator> factory =
         RandomGeneratorFactory.of("L64X128MixRandom");
 RandomGenerator rng = factory.create();
 
-int die = rng.nextInt(1, 7); // 1, 2, 3, 4, 5 hoặc 6
+int die = rng.nextInt(1, 7); // 1, 2, 3, 4, 5, or 6
 ```
 
-Đây là **đoạn mã minh họa** để đặt trong một method hoặc lớp Java, chưa phải chương trình độc lập. Ví dụ đầy đủ với lệnh `javac`/`java` ở phần 7.
+This is an **illustrative snippet** meant to go inside a Java method or class, not a standalone program. A complete example with `javac`/`java` commands appears in section 7.
 
-### Giả ngẫu nhiên có nghĩa là gì?
+### What does pseudorandom mean?
 
-Một thuật toán giả ngẫu nhiên tạo dãy kết quả từ **trạng thái nội bộ**. Mỗi lần gọi như `nextInt()` thường làm bộ sinh tiến sang trạng thái tiếp theo. Dãy số được thiết kế có đặc tính thống kê hữu ích, nhưng về nguyên tắc xác định bởi thuật toán và trạng thái/seed ban đầu.
+A pseudorandom algorithm produces a sequence of results from **internal state**. Each call like `nextInt()` typically advances the generator to its next state. The sequence is designed to have useful statistical properties, but in principle is determined by the algorithm and initial state/seed.
 
-Vì vậy, “random” ở đây **không đồng nghĩa với ngẫu nhiên dùng cho bảo mật**. Seed dễ đoán hoặc thuật toán không có khả năng chống dự đoán sẽ không thích hợp cho token đăng nhập, khóa, mã OTP hoặc bí mật phiên. Với yêu cầu bảo mật, dùng `java.security.SecureRandom` và thiết kế bảo mật chuyên biệt; `SecureRandom` cũng thực thi `RandomGenerator` trong Java 17 nhưng không thể thay bằng bất kỳ PRNG nhanh nào.
+Therefore, “random” here **does not mean cryptographically secure randomness**. Predictable seeds or algorithms lacking resistance to prediction are unsuitable for login tokens, keys, OTP codes, or session secrets. For security requirements, use `java.security.SecureRandom` and dedicated security design; `SecureRandom` also implements `RandomGenerator` in Java 17, yet cannot be replaced by any fast PRNG.
 
-## 2. Phân biệt giao diện, factory và thuật toán
+## 2. Distinguishing interface, factory, and algorithm
 
-`RandomGenerator` là một **interface**, không thể dùng `new RandomGenerator()`. Nó cung cấp các phương thức như `nextInt()`, `nextLong()`, `nextDouble()` và stream để ứng dụng tiêu thụ kết quả.
+`RandomGenerator` is an **interface**, so you cannot write `new RandomGenerator()`. It provides methods such as `nextInt()`, `nextLong()`, `nextDouble()`, and streams for applications to consume results.
 
-`RandomGeneratorFactory` là một **lớp factory có tham số kiểu**, mỗi factory gắn với một thuật toán nhất định. Ví dụ `RandomGeneratorFactory.of("L64X128MixRandom")` tìm factory cho thuật toán có tên đã chọn; `factory.create()` tạo một instance để dùng.
+`RandomGeneratorFactory` is a **generic factory class**, where each factory corresponds to a specific algorithm. For example, `RandomGeneratorFactory.of("L64X128MixRandom")` looks up the factory for the chosen algorithm name; `factory.create()` creates an instance to use.
 
 ```text
-Tên thuật toán ──→ RandomGeneratorFactory ──create()──→ RandomGenerator
+Algorithm name ──→ RandomGeneratorFactory ──create()──→ RandomGenerator
                     │                         │
                     │ name(), stateBits()     └── nextInt(), nextDouble(), ...
                     │ period(), isSplittable()
-                    └── thông tin và khả năng của thuật toán
+                    └── algorithm info and capabilities
 ```
 
-Các lựa chọn tạo bộ sinh:
+Options for creating a generator:
 
-| Cách tạo | Tác dụng | Khi nào dùng |
+| Creation method | Effect | When to use |
 | --- | --- | --- |
-| `RandomGenerator.getDefault()` | Tạo một bộ sinh với thuật toán mặc định của runtime. | Không yêu cầu cụ thể về danh tính thuật toán. |
-| `RandomGenerator.of("L64X128MixRandom")` | Tạo bộ sinh theo tên thuật toán. | Muốn thuật toán có tên xác định, không cần quản lý factory. |
-| `RandomGeneratorFactory.getDefault().create()` | Lấy factory mặc định rồi tạo bộ sinh. | Cần thêm metadata từ factory hoặc muốn tạo nhiều instance. |
-| `RandomGeneratorFactory.of(name).create()` | Tạo bộ sinh từ thuật toán được chọn. | Khởi tạo có cấu hình tên thuật toán. |
-| `RandomGeneratorFactory.of(name).create(seed)` | Yêu cầu tạo bộ sinh từ seed `long`. | Thí nghiệm, tái lập kết quả và kiểm thử theo thuật toán cố định. |
-| `RandomGeneratorFactory.all()` | Stream các factory khả dụng, không gồm thuật toán bị đánh dấu deprecated. | Khám phá/lọc thuật toán theo khả năng, metadata. |
+| `RandomGenerator.getDefault()` | Creates a generator with the runtime's default algorithm. | No specific requirement on algorithm identity. |
+| `RandomGenerator.of("L64X128MixRandom")` | Creates a generator by algorithm name. | Want a named algorithm without managing a factory. |
+| `RandomGeneratorFactory.getDefault().create()` | Gets the default factory and creates a generator. | Need additional factory metadata or want to create multiple instances. |
+| `RandomGeneratorFactory.of(name).create()` | Creates a generator from the selected algorithm. | Initialization configurable by algorithm name. |
+| `RandomGeneratorFactory.of(name).create(seed)` | Requests creating a generator from a `long` seed. | Experiments, reproducible results, and tests with a fixed algorithm. |
+| `RandomGeneratorFactory.all()` | Streams available factories, excluding algorithms marked deprecated. | Discovering/filtering algorithms by capability and metadata. |
 
-**Đừng giả định thuật toán mặc định bất biến theo JDK hoặc phiên bản.** Đặc tả `getDefault()` cho phép lựa chọn thuật toán thay đổi theo thời gian. Nếu cần tái hiện dãy từ một thuật toán cụ thể, hãy chọn **tên thuật toán**, kiểm soát seed và thứ tự các lời gọi.
+**Do not assume the default algorithm is invariant across JDKs or versions.** The `getDefault()` specification allows the chosen algorithm to change over time. If you need to reproduce a sequence from a specific algorithm, specify the **algorithm name**, control the seed, and fix the call order.
 
-Với `RandomGeneratorFactory.of(name)`, tên không tồn tại sẽ gây `IllegalArgumentException`; không nên tự nhận mọi thuật toán có trong một runtime khác đều hiện diện ở runtime của mình.
+With `RandomGeneratorFactory.of(name)`, a nonexistent name throws `IllegalArgumentException`; do not assume every algorithm present in one runtime exists in yours.
 
-## 3. Cách lấy và sử dụng bộ sinh trong Java 17
+## 3. Obtaining and using generators in Java 17
 
-### 3.1. Lựa chọn mặc định
+### 3.1. Default choice
 
 ```java
 RandomGenerator rng = RandomGenerator.getDefault();
@@ -72,18 +72,18 @@ double unit = rng.nextDouble(); // [0.0, 1.0)
 boolean flag = rng.nextBoolean();
 ```
 
-Các lời gọi trên cung cấp các kiểu cơ bản. `nextInt()` không truyền phạm vi có thể tạo bất kỳ giá trị `int` nào; `nextDouble()` tạo một giá trị không âm, nhỏ hơn 1.0. Giá trị thực tế **thay đổi theo trạng thái bộ sinh**. Không nên ghi một dãy stdout cụ thể cho bộ sinh không có seed được kiểm soát.
+These calls provide primitive types. `nextInt()` without range arguments can produce any `int` value; `nextDouble()` produces a non-negative value strictly less than 1.0. Actual values **change with generator state**. Do not hardcode a specific stdout sequence for a generator without a controlled seed.
 
-### 3.2. Chọn thuật toán theo tên
+### 3.2. Selecting an algorithm by name
 
 ```java
 RandomGenerator rng = RandomGenerator.of("L64X128MixRandom");
-System.out.println(rng.nextInt(100)); // một số nguyên từ 0 đến 99
+System.out.println(rng.nextInt(100)); // an integer from 0 to 99
 ```
 
-Tên `L64X128MixRandom` là một thuật toán thuộc nhóm **LXM** có trong Java 17. Tên thuật toán là cấu hình kỹ thuật, không nên nhầm với tên lớp triển khai có thể thay đổi hay định danh của một instance.
+`L64X128MixRandom` is an algorithm belonging to the **LXM** family introduced in Java 17. The algorithm name is a technical configuration identifier and should not be confused with an implementation class name that might change or the identity of a single instance.
 
-### 3.3. Factory và seed
+### 3.3. Factory and seed
 
 ```java
 RandomGeneratorFactory<RandomGenerator> factory =
@@ -99,29 +99,29 @@ for (int i = 0; i < 10; i++) {
 System.out.println(sameSequence); // true
 ```
 
-Với **cùng thuật toán hỗ trợ seed `long`**, cùng seed và cùng **chuỗi lời gọi**, hai bộ sinh bắt đầu từ cùng trạng thái và cho các giá trị tương ứng giống nhau. Điều này có ích khi tái tạo một phép mô phỏng hoặc lỗi kiểm thử.
+For **the same algorithm supporting `long` seeds**, the same seed, and the same **call sequence**, two generators start from the same state and yield matching corresponding values. This is useful when reproducing a simulation or test failure.
 
-Phải hiểu đúng giới hạn của factory: API có ba overload `create()`, `create(long seed)` và `create(byte[] seed)`. Đặc tả cho phép `create(long)` **quay về hành vi tương tự `create()` nếu thuật toán không hỗ trợ seed kiểu `long`**; overload nhận `byte[]` cũng có điều kiện hỗ trợ riêng. Vì vậy, muốn có reproducibility đáng tin cậy, chọn thuật toán đã xác minh hỗ trợ kiểu seed sử dụng thay vì giả định mọi provider đều giống nhau.
+Understand the factory's limitations: the API has three overloads `create()`, `create(long seed)`, and `create(byte[] seed)`. The specification permits `create(long)` to **fall back to behavior equivalent to `create()` if the algorithm does not support `long` seeds**; the `byte[]` overload also has its own support conditions. Thus, for reliable reproducibility, pick an algorithm verified to support your chosen seed type rather than assuming all providers behave alike.
 
-## 4. Phạm vi số, kiểu dữ liệu và stream
+## 4. Number ranges, data types, and streams
 
-Điểm mạnh của interface chung là API nhất quán cho các kiểu số và nhiều dạng phân phối:
+A key strength of the common interface is a consistent API across numeric types and distributions:
 
-| Lời gọi | Miền kết quả / ý nghĩa |
+| Call | Result range / meaning |
 | --- | --- |
-| `rng.nextInt()` | Giá trị `int` được sinh từ toàn bộ miền giá trị `int`. |
-| `rng.nextInt(10)` | Số nguyên từ **0 đến 9**, chặn trên 10 **không** nằm trong miền. |
-| `rng.nextInt(5, 10)` | Số nguyên từ **5 đến 9**, tức `[5, 10)`. |
-| `rng.nextLong(100L, 200L)` | Giá trị `long` thuộc `[100, 200)`. |
-| `rng.nextDouble()` | Giá trị `double` trong `[0.0, 1.0)`. |
-| `rng.nextDouble(2.0, 5.0)` | Giá trị `double` thuộc `[2.0, 5.0)`. |
-| `rng.nextBoolean()` | Giá trị logic `true` hoặc `false`. |
-| `rng.nextGaussian()` | Giá trị theo phân phối chuẩn với kỳ vọng 0, độ lệch chuẩn 1. |
-| `rng.nextExponential()` | Giá trị không âm theo phân phối mũ với kỳ vọng 1. |
-| `rng.ints(5, 1, 7)` | `IntStream` **gồm 5 giá trị**, mỗi giá trị trong `[1, 7)`. |
-| `rng.longs(...)`, `rng.doubles(...)` | Các biến thể stream cho `long` và `double`. |
+| `rng.nextInt()` | `int` value drawn from the entire `int` value range. |
+| `rng.nextInt(10)` | Integer from **0 to 9**; upper bound 10 is **not** in range. |
+| `rng.nextInt(5, 10)` | Integer from **5 to 9**, i.e., `[5, 10)`. |
+| `rng.nextLong(100L, 200L)` | `long` value in `[100, 200)`. |
+| `rng.nextDouble()` | `double` value in `[0.0, 1.0)`. |
+| `rng.nextDouble(2.0, 5.0)` | `double` value in `[2.0, 5.0)`. |
+| `rng.nextBoolean()` | Boolean value `true` or `false`. |
+| `rng.nextGaussian()` | Normally distributed value with mean 0 and standard deviation 1. |
+| `rng.nextExponential()` | Non-negative exponentially distributed value with mean 1. |
+| `rng.ints(5, 1, 7)` | `IntStream` **of 5 values**, each in `[1, 7)`. |
+| `rng.longs(...)`, `rng.doubles(...)` | Stream variants for `long` and `double`. |
 
-**Chặn trái inclusive, chặn phải exclusive** đối với các overload nhận `origin` và `bound`. Đây là cách thiết kế thuận tiện: sinh mặt xúc xắc sáu mặt bằng `nextInt(1, 7)`, thay vì `nextInt(1, 6)` khiến mặt 6 không bao giờ xuất hiện.
+**Left bound inclusive, right bound exclusive** for overloads taking `origin` and `bound`. This design is convenient: simulate a six-sided die with `nextInt(1, 7)`, rather than `nextInt(1, 6)` where face 6 would never appear.
 
 ```java
 int die = rng.nextInt(1, 7);
@@ -131,15 +131,15 @@ int[] fiveDice = rng.ints(5, 1, 7).toArray();
 double[] tenFractions = rng.doubles(10).toArray();
 ```
 
-Các overload stream nhận `streamSize` có số phần tử hữu hạn. Các overload không truyền kích thước tạo stream có thể hoạt động gần như vô hạn, cần giới hạn bằng `limit(n)` hoặc short-circuit operation. **Đừng thu thập stream vô hạn vào một danh sách/array**.
+Stream overloads accepting `streamSize` have a finite number of elements. Overloads without a size argument create effectively unlimited streams that must be bounded via `limit(n)` or a short-circuiting operation. **Never collect an unbounded stream into a list or array.**
 
-Tham số không hợp lệ có thể dẫn đến `IllegalArgumentException`: `rng.nextInt(0)` có bound không dương; `rng.nextInt(10, 10)` có origin không nhỏ hơn bound; `rng.ints(-1)` có số phần tử âm. Xác thực dữ liệu đầu vào trước khi gọi.
+Invalid arguments can throw `IllegalArgumentException`: `rng.nextInt(0)` has a non-positive bound; `rng.nextInt(10, 10)` has an origin not less than bound; `rng.ints(-1)` has a negative element count. Validate inputs before calling.
 
-Số được sinh từ `nextDouble()` không phải số thập phân chính xác dành cho kế toán; việc nhân với 100 và chuyển sang `BigDecimal` cũng không tự biến nó thành nguồn số ngẫu nhiên có thể kiểm toán hoặc tài chính an toàn.
+Numbers produced by `nextDouble()` are not exact decimal numbers for accounting; multiplying by 100 and converting to `BigDecimal` does not turn it into an auditable or financially safe random source.
 
-## 5. RandomGeneratorFactory: khám phá và đánh giá thuật toán
+## 5. RandomGeneratorFactory: discovering and evaluating algorithms
 
-Factory cung cấp metadata giúp chọn thuật toán dựa theo **yêu cầu sử dụng**.
+The factory provides metadata to help choose an algorithm based on **usage requirements**.
 
 ```java
 RandomGeneratorFactory<RandomGenerator> factory =
@@ -149,28 +149,28 @@ System.out.println(factory.name());       // L64X128MixRandom
 System.out.println(factory.isSplittable()); // true
 ```
 
-Các phương thức metadata quan trọng:
+Important metadata methods:
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| `name()` | Tên định danh thuật toán mà factory tạo ra. |
-| `group()` | Nhóm thuật toán, chẳng hạn LXM hay Legacy. |
-| `stateBits()` | Số bit biểu diễn trạng thái của thuật toán; **không đồng nghĩa số bit entropy của seed**. |
-| `period()` | Chu kỳ thuật toán dưới dạng `BigInteger`; trả `BigInteger.ZERO` nếu không xác định được. |
-| `equidistribution()` | Thông tin mức `k`-equidistribution của thuật toán. |
-| `isSplittable()` | Có hỗ trợ tạo bộ sinh mới qua cơ chế `split` không. |
-| `isJumpable()` | Có hỗ trợ nhảy xa trong chu kỳ không. |
-| `isLeapable()` | Có hỗ trợ bước nhảy rất xa không. |
-| `isArbitrarilyJumpable()` | Có hỗ trợ nhảy tùy khoảng không. |
-| `isStreamable()` | Có hỗ trợ stream các **generator** mới qua giao diện chuyên biệt không. |
-| `isDeprecated()` | Thuật toán đã bị đánh dấu không nên tiếp tục dùng hay chưa. |
-| `isStatistical()`, `isStochastic()`, `isHardware()` | Các thuộc tính phân loại nguồn hoặc cách tạo số. |
+| `name()` | Identifying name of the algorithm created by the factory. |
+| `group()` | Algorithm group, such as LXM or Legacy. |
+| `stateBits()` | Number of bits representing the algorithm's state; **not synonymous with seed entropy bits**. |
+| `period()` | Algorithm period as a `BigInteger`; returns `BigInteger.ZERO` if indeterminate. |
+| `equidistribution()` | Information on the algorithm's `k`-equidistribution level. |
+| `isSplittable()` | Whether it supports creating new generators via `split`. |
+| `isJumpable()` | Whether it supports long jumps within its period. |
+| `isLeapable()` | Whether it supports very large leaps. |
+| `isArbitrarilyJumpable()` | Whether it supports arbitrary jump distances. |
+| `isStreamable()` | Whether it supports streaming new **generators** through the specialized interface. |
+| `isDeprecated()` | Whether the algorithm has been marked as deprecated. |
+| `isStatistical()`, `isStochastic()`, `isHardware()` | Properties classifying the source or generation method. |
 
-**Metadata không phải thang điểm chất lượng toàn diện.** Một `period` dài hoặc `stateBits()` lớn không chứng minh an toàn mật mã, phù hợp mọi mô phỏng hay bảo đảm dãy độc lập tuyệt đối giữa các seed.
+**Metadata is not a comprehensive quality score.** A long `period` or large `stateBits()` does not prove cryptographic security, suitability for every simulation, or absolute independence across seeds.
 
-### Lọc các factory thay vì đoán thuật toán
+### Filtering factories instead of guessing algorithm names
 
-Ví dụ chọn một factory không deprecated, hỗ trợ split và có ít nhất 128 bit trạng thái:
+Example selecting a non-deprecated factory that supports splitting and has at least 128 state bits:
 
 ```java
 import java.util.random.RandomGenerator;
@@ -182,43 +182,43 @@ RandomGeneratorFactory<RandomGenerator> chosen = RandomGeneratorFactory.all()
         .filter(f -> f.stateBits() >= 128)
         .findFirst()
         .orElseThrow(() -> new IllegalStateException(
-                "Không tìm thấy thuật toán phù hợp"));
+                "No suitable algorithm found"));
 
 System.out.println(chosen.name());
 RandomGenerator generator = chosen.create();
 ```
 
-Đây là **đoạn đặt trong thân phương thức**, không phải chương trình độc lập. `all()` đã loại các thuật toán deprecated theo đặc tả Java 17, nên điều kiện `!f.isDeprecated()` ở đây chỉ thể hiện rõ yêu cầu. Không cam kết thuật toán được chọn là gì: danh sách thuật toán khả dụng có thể khác giữa JDK/provider, và thứ tự stream không nên dùng để xác lập một lựa chọn có tính lâu dài.
+This is a **snippet inside a method body**, not a standalone program. `all()` already excludes deprecated algorithms under the Java 17 specification, so `!f.isDeprecated()` here simply makes the requirement explicit. There is no guarantee which algorithm gets picked: the list of available algorithms can vary across JDKs/providers, and stream order should not be relied upon to lock in a long-term choice.
 
-Nếu **tái lập kết quả** quan trọng, hãy lưu **tên thuật toán + seed + phiên bản/thông số cần thiết + lịch trình gọi API**. Không nên lọc rồi gọi `findFirst()` tại mỗi lần chạy và mặc định lựa chọn luôn giống nhau.
+If **result reproducibility** matters, store the **algorithm name + seed + required version/parameters + API call schedule**. Do not filter and call `findFirst()` on every run while assuming the selection stays the same.
 
-### Factory mặc định
+### Default factory
 
-`RandomGeneratorFactory.getDefault()` trả factory của thuật toán thỏa tối thiểu **`stateBits() >= 64`**, nhưng không cam kết tên thuật toán giữ nguyên qua các phiên bản. `RandomGenerator.getDefault()` có chủ đích tương tự ở mức instance. Đừng hardcode stdout các giá trị từ bộ sinh mặc định.
+`RandomGeneratorFactory.getDefault()` returns the factory of an algorithm satisfying at least **`stateBits() >= 64`**, without guaranteeing the algorithm name stays identical across versions. `RandomGenerator.getDefault()` has the same intent at the instance level. Do not hardcode stdout values from the default generator.
 
-## 6. Các nhóm thuật toán và cách chọn trong thực tế
+## 6. Algorithm groups and practical selection
 
-Java 17 mô tả các nhóm chính:
+Java 17 describes the main groups:
 
-- **Legacy**: các bộ sinh lâu đời như `Random`, `ThreadLocalRandom`, `SplittableRandom` và `SecureRandom` trong hệ sinh thái Java. Một phần vẫn thích hợp do yêu cầu tương thích hoặc trường hợp chuyên biệt.
-- **LXM**: kết hợp ý tưởng *linear congruential generator* và *xor-based generator*, với biến thể như `L64X128MixRandom`, `L64X256MixRandom`. Phù hợp nhiều workload mô phỏng và hỗ trợ splitting ở các biến thể tương ứng.
-- **Xoroshiro/Xoshiro**: gồm các thuật toán như `Xoroshiro128PlusPlus` và `Xoshiro256PlusPlus`, cung cấp đặc tính hiệu suất và hỗ trợ jumping trong các implementation Java 17 tương ứng.
+- **Legacy**: long-standing generators such as `Random`, `ThreadLocalRandom`, `SplittableRandom`, and `SecureRandom` in the Java ecosystem. Some remain appropriate for compatibility or specialized cases.
+- **LXM**: combines *linear congruential generator* and *xor-based generator* ideas, with variants such as `L64X128MixRandom` and `L64X256MixRandom`. Suitable for many simulation workloads and supports splitting in corresponding variants.
+- **Xoroshiro/Xoshiro**: includes algorithms like `Xoroshiro128PlusPlus` and `Xoshiro256PlusPlus`, providing performance characteristics and jumping support in corresponding Java 17 implementations.
 
-Chọn theo vấn đề:
+Choosing by problem:
 
-| Nhu cầu | Hướng lựa chọn |
+| Need | Selection approach |
 | --- | --- |
-| Code thông thường, không ràng buộc thuật toán | `RandomGenerator.getDefault()` hoặc factory mặc định. |
-| Phép mô phỏng cần tái lập dãy | Tên thuật toán cố định + seed cố định + trật tự gọi được kiểm soát. |
-| Nhiều tác vụ song song cần các bộ sinh riêng | Thuật toán hỗ trợ `SplittableGenerator` hoặc `JumpableGenerator`; thiết kế phân bổ generator theo worker/task. |
-| Cần tương thích chuỗi số cũ của `java.util.Random` | Giữ `Random`/thuật toán tương thích, thử lại các trường hợp quan trọng. |
-| Token, mã xác thực, khóa, nonce nhạy cảm bảo mật | `SecureRandom`; không chọn LXM/Xoshiro chỉ vì tốc độ hoặc chu kỳ lớn. |
+| General code with no algorithm constraints | `RandomGenerator.getDefault()` or default factory. |
+| Simulations needing sequence replay | Fixed algorithm name + fixed seed + controlled call order. |
+| Multiple parallel tasks needing dedicated generators | Algorithm supporting `SplittableGenerator` or `JumpableGenerator`; design generator allocation per worker/task. |
+| Compatibility with legacy `java.util.Random` sequences | Keep `Random`/compatible algorithm, test critical cases. |
+| Security-sensitive tokens, verification codes, keys, nonces | `SecureRandom`; do not pick LXM/Xoshiro just for speed or large period. |
 
-Trong phần lớn bài tập số học, nên bắt đầu với interface `RandomGenerator`, sau đó mới bổ sung yêu cầu về seed, thuật toán và splitting nếu bài toán thực sự cần. Một thuật toán phức tạp không tự động làm phần mềm “random hơn” theo mọi ý nghĩa.
+In most numerical exercises, start with the `RandomGenerator` interface, and add requirements for seeds, algorithms, and splitting only if the problem truly needs them. A complex algorithm does not automatically make software “more random” in every sense.
 
-## 7. Chương trình Java 17+ hoàn chỉnh và đầu ra có thể kiểm tra
+## 7. Complete Java 17+ program and verifiable output
 
-Lưu chương trình sau vào **`RandomGeneratorDemo.java`**:
+Save the following program into **`RandomGeneratorDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -266,14 +266,14 @@ public class RandomGeneratorDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa file, với **JDK 17 trở lên**:
+Compile and run in the directory containing the file, with **JDK 17 or higher**:
 
 ```bash
 javac RandomGeneratorDemo.java
 java RandomGeneratorDemo
 ```
 
-Đầu ra kỳ vọng với API và thuật toán được chỉ định:
+Expected output for the specified API and algorithm:
 
 ```text
 algorithm = L64X128MixRandom
@@ -287,26 +287,26 @@ stream bounds valid = true
 default state bits >= 64 = true
 ```
 
-Ví dụ cố tình in **tên thuật toán và các điều kiện đúng/sai** thay cho giá trị cụ thể của từng lần rút. Giá trị random vẫn khác nhau giữa các lần gọi hoặc seed, nhưng mọi lần rút trong đoạn mã đều phải thỏa miền đã khai báo. Hai instance có cùng thuật toán và seed `2026L`, lại được gọi cùng số lần theo cùng thứ tự, cho dãy khớp nhau.
+The example intentionally prints **the algorithm name and boolean conditions** instead of specific values from each draw. Random values still vary across calls or seeds, yet every draw in the code must satisfy the declared range. Two instances with the same algorithm and seed `2026L`, called the same number of times in the same order, yield matching sequences.
 
-Nếu thay bằng `getDefault()` hoặc để factory chọn thuật toán động qua `all()`, không được dựa vào danh tính thuật toán hay chuỗi số mặc định như một hợp đồng cố định của ứng dụng.
+If you replace it with `getDefault()` or let the factory pick an algorithm dynamically via `all()`, do not rely on the default algorithm identity or number sequence as a fixed application contract.
 
-## 8. Splittable và Jumpable: tạo luồng số cho tính toán song song
+## 8. Splittable and Jumpable: creating number streams for parallel computing
 
-Khi nhiều tác vụ cùng dùng bộ sinh giả ngẫu nhiên, **một `RandomGenerator` dùng chung có thể không thread-safe**. Giao diện cơ sở không bảo đảm đồng bộ. Sử dụng một generator riêng cho mỗi worker hoặc một chiến lược phân bổ phù hợp là cách tiếp cận thường gặp.
+When multiple tasks share pseudorandom generation, **a single shared `RandomGenerator` may not be thread-safe**. The base interface does not guarantee synchronization. Using a separate generator per worker or an appropriate allocation strategy is the standard approach.
 
-Java 17 giới thiệu các giao diện lồng trong `RandomGenerator` để mô tả khả năng đặc biệt:
+Java 17 introduces nested interfaces inside `RandomGenerator` to describe specialized capabilities:
 
-- `RandomGenerator.SplittableGenerator`: tạo một generator mới thông qua `split()`, phục vụ việc phân nhánh công việc.
-- `RandomGenerator.JumpableGenerator`: có thao tác `jump()` để tiến tới một vị trí cách xa trong dãy trạng thái.
-- `RandomGenerator.LeapableGenerator` và `ArbitrarilyJumpableGenerator`: các biến thể bổ sung về khoảng nhảy.
-- `RandomGenerator.StreamableGenerator`: cung cấp cách tạo stream gồm nhiều generator.
+- `RandomGenerator.SplittableGenerator`: creates a new generator via `split()`, serving work branching.
+- `RandomGenerator.JumpableGenerator`: provides `jump()` to advance to a distant position in the state cycle.
+- `RandomGenerator.LeapableGenerator` and `ArbitrarilyJumpableGenerator`: additional variants for jump distances.
+- `RandomGenerator.StreamableGenerator`: provides ways to create streams of multiple generators.
 
-Các khả năng này là **tùy thuật toán**, không có trên mọi `RandomGenerator`. Chỉ ép kiểu khi đã xác thực loại hoặc biết chắc thuật toán.
+These capabilities are **algorithm-dependent**, not present on every `RandomGenerator`. Only cast when you have verified the type or know the exact algorithm.
 
-### Ví dụ split() với thuật toán LXM
+### Example of split() with an LXM algorithm
 
-Đây là chương trình Java 17+ độc lập, lưu thành `SplitDemo.java`:
+This is a standalone Java 17+ program; save as `SplitDemo.java`:
 
 ```java
 import java.util.random.RandomGenerator;
@@ -333,14 +333,14 @@ public class SplitDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac SplitDemo.java
 java SplitDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 parent valid = true
@@ -348,19 +348,19 @@ child valid = true
 different objects = true
 ```
 
-`split()` trả về một generator riêng có thể được chuyển cho tác vụ khác. **Không hiểu `split()` là chứng minh toán học tuyệt đối rằng mọi dãy sinh ra đều độc lập trong mọi tình huống.** Ý tưởng của thuật toán là hạn chế chồng lặp và hỗ trợ chia công việc. Khi cần tính tái lập của mô phỏng chạy song song, phải kiểm soát cả **thứ tự tách generator, ánh xạ generator vào task và lịch gọi**, vì thay đổi lịch xử lý có thể đổi phần dãy được từng task sử dụng.
+`split()` returns a separate generator that can be handed to another task. **Do not treat `split()` as an absolute mathematical proof that all generated sequences are independent in every scenario.** The algorithmic idea is to minimize overlap and support work division. When parallel simulation reproducibility is needed, you must also control **generator split order, task-to-generator mapping, and call scheduling**, because changing execution schedules can alter which slice of the sequence each task consumes.
 
-Tương tự, nếu cần `jump()`, hãy chọn thuật toán có `factory.isJumpable() == true` rồi sử dụng giao diện `RandomGenerator.JumpableGenerator`. Gọi `jump()` không phải “xin số ngẫu nhiên mạnh hơn”; nó thay đổi vị trí generator trong chu trình theo quy tắc thuật toán, hỗ trợ phân hoạch công việc.
+Similarly, if you need `jump()`, choose an algorithm with `factory.isJumpable() == true` and use `RandomGenerator.JumpableGenerator`. Calling `jump()` does not “ask for stronger random numbers”; it shifts the generator's position in its cycle according to algorithm rules to support work partitioning.
 
-### ThreadLocalRandom liên quan thế nào?
+### How does ThreadLocalRandom relate?
 
-`ThreadLocalRandom.current()` vẫn hữu ích trong code nhiều luồng khi mỗi luồng cần truy cập bộ sinh của chính luồng đó. Nó là API lâu đời và triển khai `RandomGenerator`. Với kiến trúc chia tác vụ linh hoạt hoặc fork/join, các generator hỗ trợ `split()` có thể thích hợp hơn. Việc chia sẻ một instance bất kỳ không được mặc định an toàn chỉ vì biến có kiểu `RandomGenerator`.
+`ThreadLocalRandom.current()` remains useful in multithreaded code when each thread needs access to its own generator. It is a long-standing API and implements `RandomGenerator`. For flexible task-splitting architectures or fork/join, generators supporting `split()` may be more appropriate. Sharing an arbitrary instance must not be assumed safe merely because its variable type is `RandomGenerator`.
 
-## 9. Seed, tính tái lập và giới hạn cần hiểu
+## 9. Seeds, reproducibility, and limits to understand
 
-### 9.1. Tại sao seed quan trọng?
+### 9.1. Why do seeds matter?
 
-Seed giúp khởi tạo trạng thái ban đầu của generator. Cùng thuật toán và seed phù hợp, kết hợp cùng lịch gọi hàm, thường cho cùng dãy số, rất hữu ích khi tái hiện lỗi. Ví dụ:
+A seed initializes the starting state of a generator. The same algorithm and an appropriate seed, combined with the same call schedule, typically yield the same sequence of numbers, which is very useful when reproducing bugs. For example:
 
 ```java
 RandomGeneratorFactory<RandomGenerator> factory =
@@ -369,47 +369,47 @@ RandomGeneratorFactory<RandomGenerator> factory =
 RandomGenerator a = factory.create(1234L);
 RandomGenerator b = factory.create(1234L);
 
-// Dãy nextLong() của a và b sẽ khớp nếu thứ tự lời gọi tương ứng như nhau.
+// The nextLong() sequences of a and b will match if the corresponding call order is identical.
 ```
 
-Nếu một bên gọi thêm `nextInt()` trước, trạng thái có thể tiến khác; các giá trị tiếp theo không còn khớp cặp theo kỳ vọng. Tương tự, gọi stream và gọi đơn lẻ với cùng số lượng mẫu không luôn được đặc tả phải cho **cùng dãy giá trị theo từng vị trí**; Java chỉ bảo đảm các giá trị tuân theo cùng kiểu chọn phân phối/phạm vi. Không dùng sự tương đương giữa phương thức stream và vòng lặp đơn lẻ làm hợp đồng tái lập nếu chưa được thuật toán/implementation bảo đảm.
+If one side calls an extra `nextInt()` beforehand, its state can advance differently; subsequent values will no longer match pairwise as expected. Likewise, stream calls versus individual calls with the same sample count are not always specified to return **the exact same position-by-position sequence**; Java only guarantees values follow the same distribution/range selection. Do not treat equivalence between stream methods and single-call loops as a reproducibility contract unless guaranteed by the specific algorithm/implementation.
 
-### 9.2. Seed cố định có an toàn không?
+### 9.2. Is a fixed seed secure?
 
-**Không.** Seed cố định làm dãy dễ tái hiện và có thể dễ đoán. Ngay cả seed từ đồng hồ hiện tại cũng không bảo đảm đủ entropy cho bảo mật. Dùng seed cố định cho kiểm thử/mô phỏng có chủ đích; không dùng để sinh session token, mật khẩu, mã khôi phục hoặc khóa.
+**No.** A fixed seed makes the sequence repeatable and potentially predictable. Even a seed from the current clock does not guarantee enough entropy for security. Use fixed seeds deliberately for testing/simulation; never use them to generate session tokens, passwords, recovery codes, or keys.
 
-`RandomGeneratorFactory.create()` không truyền seed thường phù hợp khi không yêu cầu lặp lại cùng dãy, nhưng **không biến thuật toán thường thành CSPRNG**. Bảo mật dựa vào thuật toán và nguồn entropy được thiết kế cho mục đích đó; dùng `SecureRandom`.
+`RandomGeneratorFactory.create()` without a seed is generally fine when repeating the same sequence is not desired, yet it **does not turn an ordinary algorithm into a CSPRNG**. Security relies on algorithms and entropy sources designed for that purpose; use `SecureRandom`.
 
-### 9.3. Ghi chép gì để tái hiện kết quả?
+### 9.3. What should be logged to reproduce results?
 
-Nếu một phép mô phỏng phải chạy lại để so sánh, nên ghi:
+If a simulation must be rerun for comparison, log:
 
-1. Tên thuật toán, ví dụ `L64X128MixRandom`.
-2. Giá trị và kiểu seed đã dùng.
-3. Phiên bản JDK/provider khi khả năng tái hiện chéo môi trường là yêu cầu.
-4. Trình tự gọi phương thức, số lượng giá trị, các tham số bound/origin.
-5. Với chương trình song song, sơ đồ `split()`, số worker và cách phân phối task.
+1. Algorithm name, e.g., `L64X128MixRandom`.
+2. Value and type of the seed used.
+3. JDK/provider version when cross-environment reproducibility is required.
+4. Method call sequence, value counts, and bound/origin parameters.
+5. For parallel programs, the `split()` topology, worker count, and task distribution scheme.
 
-**Seed không phải bản snapshot đầy đủ của trạng thái sau nhiều lần rút**. Nó mô tả cách khởi tạo; muốn quay lại giữa dãy phải tái thực hiện đúng các bước hoặc có cơ chế lưu trạng thái được cung cấp/kiểm chứng. Không tự giả định mọi implementation cho phép serialization, hoặc có API khôi phục trạng thái.
+**A seed is not a full snapshot of state after many draws.** It describes initialization; to return to the middle of a sequence, you must replay the exact steps or use a provided/verified state-saving mechanism. Never assume every implementation supports serialization or provides a state-restoration API.
 
-## 10. Những lỗi thường gặp khi chuyển từ Random sang API Java 17
+## 10. Common mistakes when migrating from Random to the Java 17 API
 
-1. **Nhập nhầm package.** `RandomGenerator` và `RandomGeneratorFactory` nằm trong `java.util.random`, khác `java.util.Random`.
-2. **Cố gọi `new RandomGenerator()`.** Đây là interface; tạo bằng `getDefault()`, `of(name)` hoặc factory.
-3. **Nhầm chặn trên của range.** `nextInt(1, 7)` sinh 1–6, không sinh 7; `nextInt(6)` sinh 0–5.
-4. **Dùng `getDefault()` rồi kỳ vọng cùng thuật toán ở mọi JDK.** Thuật toán mặc định có thể thay đổi. Cố định `name` khi cần.
-5. **Dùng cùng seed nhưng thay đổi chuỗi gọi.** Khả năng tái hiện phụ thuộc thuật toán và thứ tự tiêu thụ dãy.
-6. **Cho rằng mọi thuật toán hỗ trợ seed `long` giống nhau.** Factory có cơ chế fallback nếu thuật toán không hỗ trợ kiểu seed yêu cầu. Chọn thuật toán cụ thể đã kiểm chứng.
-7. **Gọi `factory.isSplittable()` và hiểu rằng interface cơ sở có `split()`.** `split()` thuộc `RandomGenerator.SplittableGenerator`; cần kiểu phù hợp.
-8. **Chia sẻ generator giữa nhiều thread mà không biết thread safety.** `RandomGenerator` không cam kết thread-safe; tổ chức một generator riêng cho worker hoặc dùng cơ chế chuyên dụng.
-9. **Dùng PRNG thông thường cho bảo mật.** Chọn `SecureRandom` cho token/khóa/bí mật nhạy cảm, bất kể chu kỳ PRNG dài ra sao.
-10. **Tạo stream vô hạn rồi thu thập toàn bộ.** Với `ints()`/`doubles()` không kích thước, dùng `limit(n)` hoặc quá trình tiêu thụ có điểm dừng.
-11. **Cho rằng `stateBits` = entropy của seed hoặc “mức an toàn”.** Đây là kích thước trạng thái, không phải thước đo chống dự đoán mật mã.
-12. **Kiểm thử bằng giá trị ngẫu nhiên hardcode.** Với code không dùng named algorithm + seed và thứ tự lời gọi cố định, hãy kiểm tra bất biến như range, độ dài stream, uniqueness theo yêu cầu thống kê phù hợp; tránh test chỉ vì “hôm nay số này khác số kia”.
+1. **Wrong package import.** `RandomGenerator` and `RandomGeneratorFactory` live in `java.util.random`, separate from `java.util.Random`.
+2. **Trying to call `new RandomGenerator()`.** It is an interface; instantiate via `getDefault()`, `of(name)`, or a factory.
+3. **Confusing upper range bounds.** `nextInt(1, 7)` generates 1–6, not 7; `nextInt(6)` generates 0–5.
+4. **Using `getDefault()` and expecting the same algorithm on every JDK.** The default algorithm can change. Fix `name` when needed.
+5. **Using the same seed while changing the call sequence.** Reproducibility depends on the algorithm and consumption order.
+6. **Assuming every algorithm supports `long` seeds identically.** Factories have a fallback mechanism if an algorithm does not support the requested seed type. Pick a specific verified algorithm.
+7. **Checking `factory.isSplittable()` and assuming the base interface has `split()`.** `split()` belongs to `RandomGenerator.SplittableGenerator`; use the proper type.
+8. **Sharing a generator across threads without checking thread safety.** `RandomGenerator` does not promise thread safety; give each worker its own generator or use a dedicated mechanism.
+9. **Using ordinary PRNGs for security.** Choose `SecureRandom` for sensitive tokens/keys/secrets regardless of how long a PRNG's period is.
+10. **Creating an unbounded stream and collecting all elements.** For unsized `ints()`/`doubles()`, use `limit(n)` or a bounded consumption condition.
+11. **Thinking `stateBits` equals seed entropy or “security level”.** It is the state size, not a measure of cryptographic unpredictability.
+12. **Testing with hardcoded random values.** For code not using a named algorithm + seed with fixed call order, test invariants such as range, stream length, and uniqueness per appropriate statistical requirements; avoid tests asserting only that “today's number differs from yesterday's”.
 
-## 11. Ứng dụng: mô phỏng xúc xắc có thể tái lập
+## 11. Application: reproducible dice simulation
 
-Trong bài kiểm thử hoặc mô phỏng, có thể truyền `RandomGenerator` vào hàm thay vì khởi tạo trực tiếp, giúp test kiểm soát đầu vào ngẫu nhiên.
+In tests or simulations, you can pass a `RandomGenerator` into a function instead of instantiating it directly, letting tests control the random input.
 
 ```java
 import java.util.random.RandomGenerator;
@@ -440,69 +440,69 @@ public class DiceSimulation {
 }
 ```
 
-Lưu `DiceSimulation.java` rồi chạy:
+Save `DiceSimulation.java` and run:
 
 ```bash
 javac DiceSimulation.java
 java DiceSimulation
 ```
 
-Đầu ra:
+Output:
 
 ```text
 same total = true
 total in [3, 18] = true
 ```
 
-Hàm `roll()` chỉ phụ thuộc giao diện `RandomGenerator`, nên dễ đổi thuật toán hoặc truyền generator đã được cấu hình từ ngoài. Trong ứng dụng lớn hơn, đây cũng là cách tách **logic nghiệp vụ mô phỏng** khỏi **chính sách chọn thuật toán và quản lý seed**.
+The `roll()` function depends only on the `RandomGenerator` interface, making it easy to swap algorithms or inject a preconfigured generator from outside. In larger applications, this also separates **simulation business logic** from **algorithm-selection and seed-management policy**.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**Câu 1. `RandomGenerator` và `RandomGeneratorFactory` khác nhau ở đâu?**
+**Question 1. How do `RandomGenerator` and `RandomGeneratorFactory` differ?**
 
-`RandomGenerator` cung cấp phương thức sinh giá trị; `RandomGeneratorFactory` lựa chọn thuật toán, truy vấn metadata và tạo instance.
+`RandomGenerator` provides value-generation methods; `RandomGeneratorFactory` selects algorithms, queries metadata, and creates instances.
 
-**Câu 2. Tại sao `rng.nextInt(1, 7)` phù hợp để mô phỏng xúc xắc?**
+**Question 2. Why is `rng.nextInt(1, 7)` suitable for simulating a die?**
 
-Vì giá trị thuộc miền `[1, 7)`, tức 1 đến 6, mỗi giá trị khả dĩ thuộc tập sáu mặt.
+Because values lie in `[1, 7)`, i.e., 1 through 6, covering every possible value of a six-sided die.
 
-**Câu 3. Nếu dùng `RandomGenerator.getDefault()` với seed ngầm, có thể kiểm thử bằng một dãy cố định bất biến không?**
+**Question 3. If you use `RandomGenerator.getDefault()` with an implicit seed, can you test against an invariant hardcoded sequence?**
 
-Không nên. Thuật toán mặc định có thể thay đổi và trạng thái khởi tạo cũng không được cố định qua các lần chạy.
+You should not. The default algorithm can change and the initial state is not fixed across runs.
 
-**Câu 4. Muốn tái hiện dãy trong test cần gì?**
+**Question 4. What is needed to reproduce a sequence in a test?**
 
-Ít nhất phải kiểm soát thuật toán hỗ trợ seed, giá trị seed và **đúng thứ tự gọi các phương thức**; nếu chạy song song, cần thêm chính sách chia và phân phối dãy.
+At minimum, control an algorithm supporting seeds, the seed value, and **the exact method call order**; if running in parallel, also add stream splitting and distribution policies.
 
-**Câu 5. `factory.isSplittable()` dùng để làm gì?**
+**Question 5. What is `factory.isSplittable()` used for?**
 
-Để xác định factory tạo thuật toán hỗ trợ khả năng tách thành các generator phục vụ phân nhánh công việc; lời gọi `split()` thuộc `RandomGenerator.SplittableGenerator`.
+To determine whether the factory creates an algorithm that supports splitting into generators for branching work; `split()` belongs to `RandomGenerator.SplittableGenerator`.
 
-**Câu 6. Một thuật toán có `period()` rất lớn có dùng sinh khóa bảo mật được không?**
+**Question 6. Can an algorithm with a huge `period()` be used to generate security keys?**
 
-Không thể kết luận như vậy. Period lớn và stateBits nhiều không bảo đảm khả năng chống dự đoán; dùng `SecureRandom` theo tiêu chuẩn bảo mật.
+You cannot draw that conclusion. A large period and many `stateBits` do not guarantee unpredictability; use `SecureRandom` per security standards.
 
-**Câu 7. `factory.create(123L)` có đảm bảo seed được áp dụng cho mọi thuật toán không?**
+**Question 7. Does `factory.create(123L)` guarantee the seed is applied for every algorithm?**
 
-Không. Theo hợp đồng factory, khi thuật toán không hỗ trợ kiểu `long`, lời gọi có thể fallback sang `create()` không tham số.
+No. Per the factory contract, when an algorithm does not support `long` seeds, the call may fall back to parameterless `create()`.
 
-**Câu 8. `RandomGeneratorFactory.all()` trả về gì?**
+**Question 8. What does `RandomGeneratorFactory.all()` return?**
 
-Một `Stream<RandomGeneratorFactory<RandomGenerator>>` của các thuật toán khả dụng (không gồm thuật toán bị đánh dấu deprecated trong Java 17), dùng để lọc hoặc xem metadata; tập hợp thực tế có thể khác theo JDK/provider.
+A `Stream<RandomGeneratorFactory<RandomGenerator>>` of available algorithms (excluding algorithms marked deprecated in Java 17), used for filtering or inspecting metadata; the actual set may differ across JDKs/providers.
 
-**Câu 9. Vì sao không nên dùng chung một generator bất kỳ giữa nhiều tác vụ?**
+**Question 9. Why should an arbitrary generator not be shared across multiple tasks?**
 
-Vì `RandomGenerator` không cam kết thread-safe; concurrent use có thể dẫn tới race hoặc lịch tiêu thụ dãy không tái hiện được. Tùy workload, dùng generator riêng, `split()`/`jump()` hoặc `ThreadLocalRandom`.
+Because `RandomGenerator` does not promise thread safety; concurrent use can cause races or non-reproducible sequence consumption schedules. Depending on workload, use dedicated generators, `split()`/`jump()`, or `ThreadLocalRandom`.
 
-**Câu 10. Khi nào nên truyền `RandomGenerator` làm tham số hàm?**
+**Question 10. When should `RandomGenerator` be passed as a function parameter?**
 
-Khi muốn tách logic sử dụng số ngẫu nhiên khỏi logic chọn thuật toán/seed, giúp dễ thay implementation và tái hiện test.
+When you want to decouple logic consuming random numbers from algorithm/seed selection logic, making it easy to swap implementations and reproduce tests.
 
-## 13. Tài liệu tham khảo chính thức
+## 13. Official references
 
-- [Oracle Java SE 17 — RandomGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/RandomGenerator.html): giao diện, giới hạn phạm vi, phương thức sinh số và stream.
-- [Oracle Java SE 17 — RandomGeneratorFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/RandomGeneratorFactory.html): factory, `all()`, `of()`, `create()`, thông tin thuật toán và giới hạn seed.
-- [Oracle Java SE 17 — java.util.random](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/package-summary.html): nhóm thuật toán và gợi ý lựa chọn.
-- [OpenJDK JEP 356 — Enhanced Pseudo-Random Number Generators](https://openjdk.org/jeps/356): mục tiêu thay đổi API trong Java 17.
+- [Oracle Java SE 17 — RandomGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/RandomGenerator.html): interface, range bounds, generation methods, and streams.
+- [Oracle Java SE 17 — RandomGeneratorFactory](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/RandomGeneratorFactory.html): factory, `all()`, `of()`, `create()`, algorithm info, and seed limits.
+- [Oracle Java SE 17 — java.util.random](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/package-summary.html): algorithm families and selection advice.
+- [OpenJDK JEP 356 — Enhanced Pseudo-Random Number Generators](https://openjdk.org/jeps/356): goals of the API additions in Java 17.
 
-**Ghi nhớ:** Từ Java 17, **`RandomGenerator` là hợp đồng sinh số**, còn **`RandomGeneratorFactory` là cơ chế chọn và tạo thuật toán**. Hãy chọn rõ seed/thuật toán khi cần tái lập, chọn `SplittableGenerator` hoặc `JumpableGenerator` cho workload có yêu cầu tương ứng, chú ý miền `[origin, bound)` và **luôn dùng `SecureRandom` cho dữ liệu nhạy cảm bảo mật**.
+**Key takeaway:** Since Java 17, **`RandomGenerator` is the number-generation contract**, while **`RandomGeneratorFactory` is the mechanism to select and instantiate algorithms**. Explicitly choose seed/algorithm when reproducibility is needed, choose `SplittableGenerator` or `JumpableGenerator` for corresponding workloads, watch `[origin, bound)` bounds, and **always use `SecureRandom` for security-sensitive data**.

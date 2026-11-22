@@ -1,13 +1,13 @@
-# Sao chép phòng vệ để bảo vệ trường mảng hoặc tập hợp trong Java
+# Defensive Copying to Protect Array or Collection Fields in Java
 
-## 1. Vì sao một trường `private final` vẫn có thể bị sửa?
+## 1. Why can a `private final` field still be modified?
 
-Sao chép phòng vệ (*defensive copying*) là tạo một bản dữ liệu riêng tại ranh giới giữa đối tượng và mã bên ngoài, để bên ngoài không thể sửa **trạng thái nội bộ** thông qua một tham chiếu được chia sẻ. Kỹ thuật này đặc biệt quan trọng với mảng và các tập hợp có thể thay đổi, vì cả hai đều là đối tượng được truyền và trả về **qua tham chiếu** trong Java.
+**Defensive copying** is creating a private copy of data at the boundary between an object and external code, so external code cannot modify **internal state** through a shared reference. This technique is especially important for arrays and mutable collections, because both are objects passed and returned **by reference** in Java.
 
-Xét một lớp giữ dữ liệu đo lường:
+Consider a class holding measurement data:
 
 ```java
-// Ví dụ cố ý không an toàn; chưa phải chương trình độc lập.
+// Intentionally unsafe example; not yet a standalone program.
 final class UnsafeMeasurements {
     private final int[] values;
 
@@ -21,50 +21,50 @@ final class UnsafeMeasurements {
 }
 ```
 
-Gọi `new UnsafeMeasurements(source)` chỉ sao chép **tham chiếu** từ biến `source` sang field `values`; nó không sao chép các phần tử. Bởi vậy:
+Calling `new UnsafeMeasurements(source)` only copies the **reference** from the `source` variable into the `values` field; it does not copy the elements. Therefore:
 
-- Nếu bên gọi sửa `source[0]` sau khi khởi tạo, nội dung `values` bên trong thay đổi theo.
-- Nếu bên gọi nhận `getValues()` rồi sửa mảng trả về, nó đang sửa trực tiếp field nội bộ.
-- `private` chỉ ngăn truy cập field trực tiếp từ mã khác, còn `final` chỉ cấm **gán lại tham chiếu** `values`; cả hai không cấm thay đổi phần tử của mảng đã tham chiếu.
+- If the caller modifies `source[0]` after initialization, the internal contents of `values` change along with it.
+- If the caller receives `getValues()` and modifies the returned array, it is directly modifying the internal field.
+- `private` only prevents direct field access from other code, while `final` only forbids **reassigning the `values` reference**; neither forbids modifying elements of the referenced array.
 
-Với `List`, `Set`, `Map`, cùng vấn đề xảy ra khi constructor giữ nguyên tập hợp đầu vào hoặc getter trả ra collection mutable nội bộ. Hiện tượng nhiều vị trí cùng giữ tham chiếu đến một đối tượng gọi là **aliasing**.
+With `List`, `Set`, and `Map`, the same problem occurs when a constructor retains the input collection directly or a getter returns an internal mutable collection. Multiple places holding a reference to the same object is called **aliasing**.
 
-Bài học quan trọng trong chủ đề hợp đồng đối tượng: nếu `equals()` hoặc `hashCode()` dựa vào mảng/collection này, một sửa đổi từ bên ngoài có thể làm hai đối tượng thay đổi quan hệ bằng nhau hoặc khiến khóa đang nằm trong `HashMap`/`HashSet` không còn tra cứu đúng. Defensive copying giúp thiết lập và giữ bất biến (*invariant*) của lớp.
+An important lesson in the object contract topic: if `equals()` or `hashCode()` relies on this array/collection, an external modification can change two objects' equality relation or cause a key sitting in a `HashMap`/`HashSet` to stop looking up properly. Defensive copying helps establish and preserve the class's **invariant**.
 
-## 2. Hai chiều cần bảo vệ: lúc nhận vào và lúc trả ra
+## 2. Two directions to protect: on receipt and on return
 
-Một lớp thực sự muốn kiểm soát trạng thái phải xem xét **cả đầu vào và đầu ra**:
+A class that truly wants to control its state must examine **both input and output**:
 
-1. **Copy-in:** sao chép đối tượng mutable được truyền cho constructor hoặc setter, trước khi lưu vào field.
-2. **Copy-out:** sao chép đối tượng mutable trước khi trả cho mã bên ngoài bằng getter hoặc phương thức cung cấp dữ liệu.
+1. **Copy-in:** copy the mutable object passed to a constructor or setter before storing it in a field.
+2. **Copy-out:** copy the mutable object before returning it to external code via a getter or data-providing method.
 
-Nếu chỉ sao chép ở constructor nhưng getter trả mảng gốc bên trong, đối tượng vẫn bị phá từ phía đầu ra. Nếu chỉ sao chép ở getter nhưng constructor giữ nguyên mảng đầu vào, bên gọi vẫn có thể sửa nội bộ bằng tham chiếu đã truyền vào.
+If you only copy in the constructor while the getter returns the original internal array, the object can still be broken from the output side. If you only copy in the getter while the constructor keeps the input array directly, the caller can still mutate internal state through the reference it passed in.
 
-Minh họa:
+Illustration:
 
 ```text
-Trường hợp nguy hiểm:
+Dangerous case:
 caller.source ───────────┐
-                         ├──> cùng mảng mutable <── getter
+                         ├──> same mutable array <── getter
 object.internal ─────────┘
 
 Copy-in + copy-out:
 caller.source ──copy──> object.internal ──copy──> caller.snapshot
      ↑                        ↑                           ↑
-  mảng riêng              mảng riêng                  mảng riêng
+separate array           separate array              separate array
 ```
 
-Đối với field có kiểu bất biến thật sự, chẳng hạn `String`, không cần sao chép chỉ để chống sửa nội dung. Nhưng một container không cho phép sửa không tự động làm cho **các phần tử được chứa** trở nên bất biến.
+For fields of genuinely immutable types, such as `String`, copying is not needed merely to prevent content mutation. However, an unmodifiable container does not automatically make **the contained elements** immutable.
 
-## 3. Mảng một chiều: `clone()` hoặc `Arrays.copyOf()`
+## 3. One-dimensional arrays: `clone()` or `Arrays.copyOf()`
 
-Với mảng một chiều chứa primitive như `int[]`, cả `clone()` và `Arrays.copyOf(input, input.length)` tạo một mảng **mới** và sao chép các giá trị. Bản sao độc lập với mảng nguồn về khả năng sửa phần tử.
+For a one-dimensional array holding primitives such as `int[]`, both `clone()` and `Arrays.copyOf(input, input.length)` create a **new** array and copy the values. The copy is independent of the source array with respect to element modification.
 
 ```java
 import java.util.Arrays;
 import java.util.Objects;
 
-// Mảnh code bên trong lớp đang sở hữu int[].
+// Code snippet inside a class owning int[].
 private final int[] values;
 
 public Example(int[] input) {
@@ -76,21 +76,21 @@ public int[] values() {
 }
 ```
 
-Đoạn trên chỉ minh họa phương thức và field trong một lớp tên `Example`; muốn biên dịch độc lập cần bao bọc chúng trong khai báo lớp hợp lệ. Với dữ liệu không `null`, cũng có thể dùng `Arrays.copyOf(input, input.length)`; đối với đoạn mảng, có `Arrays.copyOfRange(...)`. Sao chép không có nghĩa là sắp xếp, chuẩn hóa hay lọc; các phần tử được giữ nguyên theo thứ tự.
+The snippet above only illustrates methods and a field inside a class named `Example`; to compile standalone, they must be wrapped in a valid class declaration. With non-`null` data, `Arrays.copyOf(input, input.length)` can also be used; for array slices, there is `Arrays.copyOfRange(...)`. Copying does not mean sorting, normalizing, or filtering; elements are preserved in order.
 
-Lưu ý phạm vi: `clone()` trên **mảng một chiều có phần tử là object mutable** vẫn chỉ tạo bản sao *nông* (*shallow copy*): hai mảng chứa các tham chiếu đến **chính cùng các object phần tử**. Ví dụ, sao chép `StringBuilder[]` tạo mảng vỏ mới, nhưng `StringBuilder` bên trong vẫn bị chia sẻ. Với `String[]`, các phần tử `String` bất biến nên một bản sao nông của mảng thường là đủ.
+Scope note: `clone()` on a **one-dimensional array whose elements are mutable objects** still creates only a *shallow copy*: the two arrays hold references to **the exact same element objects**. For example, copying a `StringBuilder[]` creates a new outer shell array, yet the `StringBuilder` instances inside remain shared. For `String[]`, `String` elements are immutable, so a shallow copy of the array is usually sufficient.
 
-## 4. Collection: bản sao độc lập và view không sửa được
+## 4. Collections: independent copies vs unmodifiable views
 
 ### 4.1. `List.copyOf`, `Set.copyOf`, `Map.copyOf`
 
-Từ Java 10, `List.copyOf(collection)` tạo một danh sách **không hỗ trợ thao tác sửa** với các phần tử của collection tại thời điểm sao chép. Tương tự có `Set.copyOf` và `Map.copyOf`. Đây là lựa chọn gọn khi dữ liệu phần tử cũng bất biến và bạn muốn API chỉ đọc:
+Since Java 10, `List.copyOf(collection)` creates an **unmodifiable** list with the collection's elements at the time of copying. Similarly, there are `Set.copyOf` and `Map.copyOf`. This is a concise option when element data is also immutable and you want a read-only API:
 
 ```java
 import java.util.List;
 import java.util.Objects;
 
-// Mảnh code bên trong một lớp lưu danh sách String.
+// Code snippet inside a class storing a list of Strings.
 private final List<String> tags;
 
 public Example(List<String> source) {
@@ -98,76 +98,76 @@ public Example(List<String> source) {
 }
 
 public List<String> tags() {
-    return tags; // Được vì collection không cho sửa và String là bất biến.
+    return tags; // Allowed because the collection forbids edits and String is immutable.
 }
 ```
 
-**Các giới hạn cần biết:**
+**Limitations to know:**
 
-- `List.copyOf`, `Set.copyOf`, `Map.copyOf` từ chối phần tử `null`; `Map.copyOf` còn từ chối key/value `null`. Tùy lớp mà kiểm tra và thông báo lỗi phù hợp.
-- `Set.copyOf` nhận dữ liệu collection và chỉ giữ các phần tử phân biệt; thứ tự duyệt của set tạo ra không được hứa hẹn. `Map.copyOf` cũng không hứa hẹn thứ tự duyệt. Nếu thứ tự có ý nghĩa, cần cách lưu và công bố thứ tự phù hợp.
-- Nếu nguồn đã thuộc loại immutable phù hợp, `copyOf` **có thể tái sử dụng** object nguồn; bạn không nên dựa vào việc nó luôn cấp phát một instance mới. Bất biến cần chứng minh nằm ở khả năng sửa thông qua API và tính ổn định của giá trị phần tử.
-- `copyOf` sao chép **cấu trúc collection**, nhưng **không tự sao chép sâu các phần tử**. Một `List<StringBuilder>` có thể là danh sách không cho `add`/`set` nhưng các `StringBuilder` bên trong vẫn thay đổi được.
+- `List.copyOf`, `Set.copyOf`, and `Map.copyOf` reject `null` elements; `Map.copyOf` also rejects `null` keys/values. Validate and report errors appropriately depending on the class.
+- `Set.copyOf` takes collection data and retains only distinct elements; iteration order of the resulting set is not promised. `Map.copyOf` also does not promise iteration order. If order is meaningful, choose an appropriate storage representation and document the ordering.
+- If the source is already of a suitable immutable kind, `copyOf` **may reuse** the source object; you should not rely on it always allocating a new instance. The immutability to verify lies in whether edits are blocked through the API and whether element values remain stable.
+- `copyOf` copies the **collection structure**, yet **does not automatically deep copy the elements**. A `List<StringBuilder>` may be a list that disallows `add`/`set`, while the `StringBuilder` instances inside can still be modified.
 
-### 4.2. `Collections.unmodifiableList` chưa chắc là snapshot
+### 4.2. `Collections.unmodifiableList` is not necessarily a snapshot
 
-Một **view không sửa được** vẫn có thể phản ánh thay đổi của collection backing mà nó bọc:
+An **unmodifiable view** can still reflect changes to the backing collection it wraps:
 
 ```java
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// Mảnh code minh họa.
+// Illustrative snippet.
 List<String> source = new ArrayList<>(List.of("A"));
 List<String> view = Collections.unmodifiableList(source);
 source.add("B");
 System.out.println(view); // [A, B]
 ```
 
-Mặc dù `view.add(...)` sẽ ném `UnsupportedOperationException`, dữ liệu hiển thị qua `view` đã thay đổi do bên ngoài sửa `source`. Không nên nhầm **không cho sửa qua view** với **snapshot độc lập**.
+Even though `view.add(...)` will throw `UnsupportedOperationException`, the data visible through `view` changed because `source` was modified externally. Do not confuse **disallowing modification through a view** with an **independent snapshot**.
 
-Nếu bạn cần giữ giao diện không sửa được, cho phép `null`, hoặc cần bảo toàn thứ tự chèn theo một cấu trúc cụ thể, có thể tạo bản sao trước rồi bọc:
+If you need to keep an unmodifiable interface, allow `null`, or preserve insertion order via a specific structure, you can make a copy first and then wrap it:
 
 ```java
-// Mảnh code minh họa.
+// Illustrative snippet.
 List<String> snapshot =
     Collections.unmodifiableList(new ArrayList<>(source));
 ```
 
-`snapshot` không đổi cấu trúc khi `source` thêm/xóa/sửa vị trí về sau, mặc dù nếu phần tử bên trong là object mutable thì cả hai vẫn có thể giữ cùng tham chiếu phần tử. Trên Java 17, khi các phần tử không `null` và không có yêu cầu view đặc thù, `List.copyOf(source)` thường đơn giản hơn.
+`snapshot` does not change structure when `source` subsequently adds/removes/reorders elements, although if elements inside are mutable objects, both still hold the same element references. On Java 17, when elements are non-`null` and there are no special view requirements, `List.copyOf(source)` is usually simpler.
 
-Tương tự, có thể dùng `Collections.unmodifiableSet(new LinkedHashSet<>(source))` để tạo snapshot set có thứ tự chèn và không cho sửa qua wrapper, hoặc `Collections.unmodifiableMap(new LinkedHashMap<>(source))` khi API cần giữ thứ tự bản đồ. Việc chọn collection cụ thể cần bám yêu cầu dữ liệu.
+Similarly, you can use `Collections.unmodifiableSet(new LinkedHashSet<>(source))` to create a set snapshot that preserves insertion order and disallows edits through the wrapper, or `Collections.unmodifiableMap(new LinkedHashMap<>(source))` when the API must preserve map order. Choosing the concrete collection should follow data requirements.
 
-### 4.3. Getter cho collection
+### 4.3. Getters for collections
 
-Có hai chiến lược hợp lý:
+There are two sensible strategies:
 
-- **Cung cấp collection bất biến đã lưu:** getter trả trực tiếp `List<String>` được tạo bằng `List.copyOf`, khi phần tử `String` là bất biến. Không cần cấp phát bản sao ở mỗi lượt đọc.
-- **Cung cấp snapshot mỗi lần gọi:** nếu lớp chủ động thay đổi collection nội bộ, getter có thể trả `List.copyOf(internal)` hoặc `new ArrayList<>(internal)` bọc unmodifiable, tùy ngữ nghĩa API. Người gọi nhận ảnh chụp cấu trúc tại thời điểm sao chép.
+- **Expose an already-stored immutable collection:** the getter directly returns a `List<String>` created via `List.copyOf`, when `String` elements are immutable. No copy allocation is needed on every read.
+- **Provide a snapshot on each call:** if the class actively mutates an internal collection, the getter can return `List.copyOf(internal)` or `new ArrayList<>(internal)` wrapped as unmodifiable, depending on API semantics. The caller receives a structural snapshot as of copy time.
 
-Không coi một getter trả `Collections.unmodifiableList(internalMutableList)` là snapshot: thay đổi về sau của nội bộ vẫn xuất hiện qua view. Nếu đó chính là ngữ nghĩa mong muốn, hãy diễn đạt rõ trong hợp đồng API; nếu cần giá trị bất biến tại thời điểm gọi, phải tạo bản sao.
+Do not treat a getter returning `Collections.unmodifiableList(internalMutableList)` as a snapshot: subsequent internal edits still show up through the view. If that is indeed the intended semantics, state it clearly in the API contract; if an immutable value as of call time is required, a copy must be made.
 
-## 5. Bản sao nông và bản sao sâu
+## 5. Shallow copy vs deep copy
 
-Một bản sao **nông** chỉ sao chép lớp container đầu tiên. Nó đủ nếu container chứa primitive hoặc các đối tượng bất biến. Bản sao **sâu** phải sao chép tiếp những thành phần mutable bên trong đến độ sâu cần thiết để không còn đường sửa ngoài ý muốn.
+A **shallow** copy duplicates only the first container layer. It suffices if the container holds primitives or immutable objects. A **deep** copy must continue copying mutable components inside to the required depth so no unintended mutation path remains.
 
-| Kiểu field | Copy nông thông thường | Có đủ để ngăn thay đổi từ ngoài? |
+| Field type | Typical shallow copy | Sufficient to prevent external changes? |
 | --- | --- | --- |
-| `int[]` | `array.clone()` | Có, đối với nội dung mảng primitive đó |
-| `String[]` | `array.clone()` | Có, vì `String` bất biến |
-| `StringBuilder[]` | `array.clone()` | Không, các builder vẫn được chia sẻ |
-| `int[][]` | `matrix.clone()` | Không, các mảng hàng `int[]` vẫn được chia sẻ |
-| `List<String>` | `List.copyOf(list)` | Có về phần tử String và cấu trúc danh sách |
-| `List<MutableItem>` | `List.copyOf(list)` | Không, các `MutableItem` vẫn được chia sẻ |
-| `Map<String, MutableValue>` | `Map.copyOf(map)` | Không, các value mutable vẫn có thể bị sửa |
+| `int[]` | `array.clone()` | Yes, for the contents of that primitive array |
+| `String[]` | `array.clone()` | Yes, because `String` is immutable |
+| `StringBuilder[]` | `array.clone()` | No, the builders remain shared |
+| `int[][]` | `matrix.clone()` | No, the `int[]` row arrays remain shared |
+| `List<String>` | `List.copyOf(list)` | Yes for `String` elements and list structure |
+| `List<MutableItem>` | `List.copyOf(list)` | No, the `MutableItem` objects remain shared |
+| `Map<String, MutableValue>` | `Map.copyOf(map)` | No, the mutable values can still be modified |
 
-Đối với `int[][]`, cần sao chép **mảng ngoài và từng mảng hàng**; không cần giả định ma trận là hình chữ nhật:
+For `int[][]`, you must copy **the outer array and each row array**; do not assume the matrix is rectangular:
 
 ```java
 import java.util.Objects;
 
-// Mảnh code minh họa một hàm riêng cho int[][].
+// Snippet illustrating a dedicated helper for int[][].
 static int[][] deepCopy(int[][] source) {
     Objects.requireNonNull(source, "source");
     int[][] result = new int[source.length][];
@@ -178,18 +178,18 @@ static int[][] deepCopy(int[][] source) {
 }
 ```
 
-Hàm này cố ý không chấp nhận hàng `null`; có thể giữ `null` nếu hợp đồng dữ liệu cho phép bằng cách xử lý tường minh. Khi field là `List<List<String>>`, một hướng là tạo `List.copyOf` cho từng danh sách con và tiếp tục `List.copyOf` cho danh sách ngoài; do `String` bất biến, kết quả không cho sửa ở cả hai cấp. Với `List<Person>` mà `Person` mutable, phải xác định cách sao chép `Person` hoặc lưu một immutable DTO/snapshot tương ứng; không có phép `deepCopy()` tổng quát nào luôn đúng cho mọi mô hình đối tượng.
+This function intentionally rejects `null` rows; `null` can be preserved if the data contract allows it by handling it explicitly. When a field is `List<List<String>>`, one approach is calling `List.copyOf` on each sublist and then `List.copyOf` on the outer list; since `String` is immutable, the result disallows modification at both levels. For `List<Person>` where `Person` is mutable, you must define how to copy `Person` or store a corresponding immutable DTO/snapshot; there is no generic `deepCopy()` that is always right for every object model.
 
-## 6. Ví dụ Java 17 chạy được: lỗi aliasing và ba cách khắc phục
+## 6. Runnable Java 17 example: aliasing bug and three fixes
 
-Chương trình sau cho thấy:
+The following program demonstrates:
 
-1. Khóa `UnsafeKey` giữ mảng nguồn, làm hash thay đổi khi bên ngoài sửa mảng.
-2. `SafeKey` sao chép mảng ở cả constructor và getter, giữ nguyên ngữ nghĩa của `equals/hashCode`.
-3. `Labels` giữ danh sách `String` không sửa được bằng `List.copyOf`.
-4. `IntGrid` sao chép sâu ma trận `int[][]` ở cả đầu vào và đầu ra, đồng thời so sánh theo nội dung.
+1. Key `UnsafeKey` retains the source array, causing its hash to change when the array is modified externally.
+2. `SafeKey` copies the array in both constructor and getter, preserving `equals/hashCode` semantics.
+3. `Labels` stores an unmodifiable `String` list via `List.copyOf`.
+4. `IntGrid` deep-copies an `int[][]` matrix on both input and output, and compares by contents.
 
-Lưu vào tệp **`DefensiveCopyDemo.java`**:
+Save to **`DefensiveCopyDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -343,14 +343,14 @@ public class DefensiveCopyDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp với **JDK 17+**:
+Compile and run in the directory containing the file with **JDK 17+**:
 
 ```bash
 javac DefensiveCopyDemo.java
 java DefensiveCopyDemo
 ```
 
-Kết quả xác định:
+Deterministic output:
 
 ```text
 Unsafe values: [9, 2]
@@ -366,18 +366,18 @@ Grid row 1: [3, 4]
 Grid equals same contents: true
 ```
 
-**Vì sao có những kết quả này?**
+**Why do these results occur?**
 
-- `UnsafeKey` giữ tham chiếu trực tiếp tới `source`; đổi `source[0]` cũng đổi nội dung mà `equals()` và `hashCode()` nhìn thấy. Hash của mảng `{1, 2}` và `{9, 2}` thực sự khác nhau theo `Arrays.hashCode(int[])`. Nếu một khóa như vậy được thêm vào `HashSet` hoặc `HashMap` rồi bị sửa, thao tác tìm kiếm có thể thất bại do hash đã đổi; không cần phụ thuộc chi tiết bucket để chứng minh rủi ro.
-- `SafeKey` sao chép lúc nhận đầu vào **và** lúc xuất mảng. Các thay đổi `original[0] = 9` và `returned[1] = 99` chỉ ảnh hưởng hai mảng của bên gọi, không chạm mảng trong `safe`. Do đó hash ổn định; một `SafeKey` mới cùng phần tử được tìm thấy trong `HashSet`.
-- `Labels` chụp cấu trúc danh sách tại thời điểm constructor chạy. Thêm `"green"` vào danh sách nguồn không sửa bản đã lưu; getter trả collection không hỗ trợ `add`. Các phần tử ở đây là `String` bất biến nên không có aliasing mutable ở cấp phần tử.
-- `IntGrid` chụp cả mảng ngoài và từng hàng. Thay đổi mảng nguồn hay ma trận trả về đều không đổi field; `Arrays.deepEquals` và `Arrays.deepHashCode` phù hợp để so/hash nội dung mảng lồng nhau.
+- `UnsafeKey` keeps a direct reference to `source`; changing `source[0]` also changes the contents seen by `equals()` and `hashCode()`. The hashes of arrays `{1, 2}` and `{9, 2}` actually differ under `Arrays.hashCode(int[])`. If such a key is added to a `HashSet` or `HashMap` and then modified, lookup operations can fail because the hash changed; there is no need to rely on bucket details to demonstrate the risk.
+- `SafeKey` copies on input **and** on array output. The modifications `original[0] = 9` and `returned[1] = 99` only affect the caller's two arrays, without touching the array inside `safe`. Thus, the hash is stable; a new `SafeKey` with the same elements is found in `HashSet`.
+- `Labels` snapshots the list structure when the constructor runs. Adding `"green"` to the source list does not alter the stored copy; the getter returns a collection that does not support `add`. The elements here are immutable `String` values, so there is no mutable aliasing at the element level.
+- `IntGrid` snapshots both the outer array and each row. Modifying the source array or the returned matrix does not alter the field; `Arrays.deepEquals` and `Arrays.deepHashCode` are appropriate for comparing/hashing nested array contents.
 
-## 7. Defensive copying gắn với `equals()` và `hashCode()` thế nào?
+## 7. How does defensive copying relate to `equals()` and `hashCode()`?
 
-Nếu đối tượng là **value object** được định nghĩa bằng nội dung mảng hay tập hợp, nên giữ dữ liệu đó ổn định để phép so sánh có ý nghĩa lâu dài.
+If an object is a **value object** defined by the contents of an array or collection, keep that data stable so comparisons remain meaningful over time.
 
-Với mảng:
+For arrays:
 
 ```java
 @Override
@@ -393,23 +393,23 @@ public int hashCode() {
 }
 ```
 
-Đây là hai phương thức trong `SafeKey` ở ví dụ trước, không phải chương trình độc lập.
+These are the two methods from `SafeKey` in the previous example, not a standalone program.
 
-Với ma trận `int[][]`, `Arrays.deepEquals` phải đi cùng `Arrays.deepHashCode` nếu equality là theo nội dung ở các hàng. Nếu chỉ dùng `Objects.equals(array1, array2)` thì thông thường bạn đang so **tham chiếu mảng**, không phải phần tử. Nếu chỉ dùng `Arrays.equals` cho `int[][]` thì các mảng hàng vẫn được so theo tham chiếu.
+For an `int[][]` matrix, `Arrays.deepEquals` must pair with `Arrays.deepHashCode` if equality is by row contents. If you only use `Objects.equals(array1, array2)`, you are normally comparing **array references**, not elements. If you only use `Arrays.equals` for `int[][]`, the row arrays are still compared by reference.
 
-Với `List<String>`, `List.equals` và `List.hashCode` đã có ngữ nghĩa nội dung và thứ tự được định nghĩa nhất quán. Đừng viết hash thủ công dựa trên danh sách rồi cho phép người gọi sửa list hoặc sửa object phần tử liên quan đến equality.
+For `List<String>`, `List.equals` and `List.hashCode` already have consistently defined content and order semantics. Do not write a manual hash based on a list and then allow callers to mutate the list or mutate element objects involved in equality.
 
-**Một điểm then chốt:** defensive copy bảo vệ khỏi những thay đổi **qua alias được phát ra hoặc nhận vào**. Nó không tự động biến tất cả đối tượng thành bất biến nếu chính class vẫn cung cấp setter sửa những trường tham gia equality/hash. Nếu cần dùng làm khóa hash ổn định, cần thiết kế các thành phần định danh bất biến hoặc tránh thay đổi chúng trong thời gian object nằm trong collection băm.
+**A key point:** defensive copying protects against modifications **through aliases given out or received**. It does not automatically make all objects immutable if the class itself still provides setters modifying fields used in equality/hashing. If it needs to be used as a stable hash key, design immutable identifying components or avoid mutating them while the object sits in a hash collection.
 
-## 8. Record, constructor và các đối tượng lồng nhau
+## 8. Records, constructors, and nested objects
 
-Record Java không tự động sao chép array/collection. Component field của record là `private final`, nhưng dữ liệu được tham chiếu có thể mutable. Có thể dùng **compact canonical constructor** để copy-in và ghi đè accessor để copy-out khi component là mảng:
+Java records do not automatically copy arrays/collections. A record's component field is `private final`, yet the referenced data can be mutable. You can use a **compact canonical constructor** to copy-in and override the accessor to copy-out when the component is an array:
 
 ```java
 import java.util.Arrays;
 import java.util.Objects;
 
-// Ví dụ minh họa record độc lập nhưng không có main.
+// Illustrative standalone record example without main.
 record BytePacket(byte[] payload) {
     public BytePacket {
         payload = Objects.requireNonNull(payload).clone();
@@ -433,12 +433,12 @@ record BytePacket(byte[] payload) {
 }
 ```
 
-**Vì sao còn phải ghi đè `equals/hashCode`?** Equality/hash mặc định sinh cho record với component kiểu mảng **không** tự so nội dung mảng sâu; hai record chứa hai mảng khác instance nhưng cùng byte có thể bị coi khác nhau theo mặc định. Nếu mục tiêu là so payload byte theo nội dung, phải dùng hai phương thức mảng tương ứng như trên.
+**Why must `equals/hashCode` also be overridden?** The default equality/hash generated for a record with an array-type component **does not** automatically compare array contents deeply; two records holding two different array instances with identical bytes may be treated as unequal by default. If the goal is comparing byte payloads by content, you must use the two corresponding array methods as shown above.
 
-Nếu record chứa `List<String>`, có thể làm:
+If a record contains `List<String>`, you can write:
 
 ```java
-// Minh họa record khác, Java 17.
+// Another record illustration, Java 17.
 record TagSnapshot(List<String> tags) {
     public TagSnapshot {
         tags = List.copyOf(tags);
@@ -446,86 +446,86 @@ record TagSnapshot(List<String> tags) {
 }
 ```
 
-Khi dữ liệu là `String` bất biến, getter `tags()` mặc định có thể trả trực tiếp immutable list. Nếu record giữ `List<MutableItem>`, cần sao chép/phong tỏa từng phần tử theo quy tắc của lớp; chỉ `List.copyOf` là chưa đủ.
+When the data consists of immutable `String` values, the default `tags()` getter can directly return the immutable list. If the record holds `List<MutableItem>`, you must copy/freeze each element according to the class's rules; `List.copyOf` alone is insufficient.
 
-## 9. Những sai sót hay gặp
+## 9. Common mistakes
 
-| Sai sót | Vì sao nguy hiểm | Khắc phục |
+| Mistake | Why it is dangerous | Fix |
 | --- | --- | --- |
-| Constructor lưu thẳng mảng/`ArrayList` đầu vào | Bên gọi giữ alias sửa nội bộ bất cứ lúc nào | Copy-in trước khi lưu |
-| Constructor đã copy, getter lại trả field mảng trực tiếp | Bên gọi sửa nội bộ qua getter | Copy-out mỗi lượt hoặc API chỉ đọc an toàn |
-| Chỉ dùng `Collections.unmodifiableList(source)` | Đây là view; thay đổi của `source` vẫn hiển thị | Tạo snapshot trước hoặc `List.copyOf` |
-| Dùng `List.copyOf` cho phần tử mutable và tưởng đã deep copy | Phần tử vẫn được chia sẻ | Sao chép phần tử, dùng value bất biến hoặc DTO |
-| Dùng `matrix.clone()` cho `int[][]` | Các hàng `int[]` vẫn alias | Clone từng hàng |
-| Dùng `Arrays.asList(array)` rồi nghĩ đã tách khỏi mảng | Danh sách có kích thước cố định vẫn được **back bởi mảng gốc**; `set` và sửa mảng ảnh hưởng lẫn nhau | Dùng snapshot phù hợp như `List.copyOf(Arrays.asList(array))` khi phần tử phù hợp |
-| Giữ `final List<MutableItem>` | `final` không bất biến hóa list hoặc phần tử | Chọn immutable representation và defensive copy |
-| Expose `Map<K, MutableValue>` dù `Map.copyOf` | Các value vẫn có thể đổi | Sao chép/đóng băng value và xử lý nested objects |
-| Copy-in nhưng cho setter sửa khóa equality | Hash vẫn đổi do chính class | Thiết kế khóa ổn định hoặc giới hạn vòng đời sử dụng |
-| Dùng `List.copyOf` khi dữ liệu hợp lệ có `null` | Ném `NullPointerException` | Định nghĩa null policy và chọn cách copy phù hợp |
-| Sao chép đối tượng mutable mà không có snapshot nhất quán giữa các thread | Có thể đọc dữ liệu hỗn hợp khi nguồn đang bị sửa | Đồng bộ/đọc dưới lock hoặc trao đổi dữ liệu bất biến |
+| Constructor stores input array/`ArrayList` directly | Caller keeps an alias to mutate internal state at any time | Copy-in before storing |
+| Constructor copied, yet getter returns array field directly | Caller mutates internal state via getter | Copy-out on each call or provide a safe read-only API |
+| Using only `Collections.unmodifiableList(source)` | It is a view; changes to `source` still appear | Create a snapshot first or use `List.copyOf` |
+| Using `List.copyOf` for mutable elements and assuming deep copy | Elements remain shared | Copy elements, use immutable values, or DTOs |
+| Using `matrix.clone()` for `int[][]` | The `int[]` rows remain aliased | Clone each row |
+| Using `Arrays.asList(array)` and thinking it is detached from the array | The fixed-size list is still **backed by the original array**; `set` and array edits affect each other | Use a proper snapshot such as `List.copyOf(Arrays.asList(array))` when elements fit |
+| Holding `final List<MutableItem>` | `final` does not make the list or elements immutable | Choose an immutable representation and defensive copy |
+| Exposing `Map<K, MutableValue>` despite `Map.copyOf` | Values can still be mutated | Copy/freeze values and handle nested objects |
+| Copy-in, yet providing a setter that mutates equality keys | Hash still changes because of the class itself | Design stable keys or restrict usage lifecycle |
+| Using `List.copyOf` when valid data contains `null` | Throws `NullPointerException` | Define a null policy and pick a suitable copy approach |
+| Copying a mutable object without a consistent snapshot across threads | May read mixed data while source is being edited | Synchronize/read under lock or exchange immutable data |
 
-## 10. Điều gì không được tự động đảm bảo bởi bản sao?
+## 10. What is not automatically guaranteed by copying?
 
-### 10.1. Copy không đồng nghĩa với hoàn toàn immutable
+### 10.1. Copying does not mean completely immutable
 
-Một class có thể tạo bản sao mảng ở constructor/getter, nhưng vẫn có một phương thức nội bộ `updateValue(i, v)` thay đổi mảng; khi đó object **vẫn mutable**, chỉ là không bị thay đổi qua alias từ bên ngoài. API cần nêu rõ liệu đối tượng là snapshot cố định hay là đối tượng mutable có kiểm soát.
+A class may copy arrays in its constructor/getter yet still have an internal method `updateValue(i, v)` that modifies the array; in that case, the object **is still mutable**, just protected from mutation through external aliases. The API should state clearly whether the object is a fixed snapshot or a controlled mutable object.
 
-### 10.2. Deep copy phải có nghĩa cụ thể
+### 10.2. Deep copy must have concrete meaning
 
-Với đồ thị đối tượng phức tạp, vòng tham chiếu, object liên kết hoặc tài nguyên như file/socket, “copy sâu tất cả” không phải luôn khả thi hoặc mong muốn. Chọn mức bảo vệ tại ranh giới dữ liệu: trường nào phải bất biến, phần tử nào được chia sẻ an toàn, phần tử nào cần snapshot. Khi cần, dùng constructor copy hoặc phương thức tạo snapshot do chính loại phần tử định nghĩa.
+For complex object graphs, reference cycles, linked objects, or resources like files/sockets, "deep copy everything" is not always feasible or desirable. Choose the protection boundary for data: which fields must be immutable, which elements are safe to share, and which elements need snapshots. When needed, use a copy constructor or snapshot creation method defined by the element type itself.
 
-### 10.3. Copy khi bị ghi đồng thời không tạo snapshot nguyên tử
+### 10.3. Copying during concurrent writes does not create an atomic snapshot
 
-Ví dụ, một thread đang thêm/xóa phần tử vào `ArrayList` trong lúc thread khác gọi `List.copyOf(source)`: cách sao chép không tự mang lại sự đồng bộ giữa threads. Tương tự, copy các phần tử mảng khi thread khác sửa có thể thấy các giá trị ở những thời điểm khác nhau. Nếu cần snapshot nhất quán trong môi trường đồng thời, cả phía ghi và phía copy cần tuân thủ một giao thức đồng bộ phù hợp, hoặc chuyển sang dữ liệu bất biến/cơ chế snapshot được thiết kế cho concurrency.
+For example, one thread adds/removes elements in an `ArrayList` while another thread calls `List.copyOf(source)`: copying does not by itself provide synchronization between threads. Similarly, copying array elements while another thread modifies them can observe values from different points in time. If a consistent snapshot is needed in a concurrent environment, both writers and copiers must follow a proper synchronization protocol, or switch to immutable data/snapshot mechanisms designed for concurrency.
 
-### 10.4. Sao chép có chi phí
+### 10.4. Copying has a cost
 
-Copy-in và copy-out tiêu tốn bộ nhớ và thời gian tỷ lệ với lượng dữ liệu được sao chép. Với getter được gọi liên tục trên mảng lớn, copy-out có thể đắt. Có thể thiết kế API truy vấn cụ thể như `size()`, `get(index)` trả primitive/bất biến, trả iterator/snapshot có kiểm soát, hoặc lưu sẵn immutable collection và trả trực tiếp. Tối ưu khi vẫn giữ đúng cam kết về tính bất biến và bảo vệ trạng thái.
+Copy-in and copy-out consume memory and time proportional to the amount of data copied. For a getter called repeatedly on large arrays, copy-out can be expensive. You can design specific query APIs such as `size()`, `get(index)` returning primitives/immutables, return a controlled iterator/snapshot, or pre-store an immutable collection and return it directly. Optimize while preserving commitments about immutability and state protection.
 
-## 11. Checklist khi review mã nguồn
+## 11. Code review checklist
 
-1. Class có field là mảng, collection hoặc object chứa trạng thái mutable không?
-2. Constructor, builder, factory và setter có giữ lại tham chiếu mutable mà bên ngoài tiếp tục sở hữu không?
-3. Getter, accessor, method callback hoặc phương thức trả phần tử có tiết lộ tham chiếu mutable nội bộ không?
-4. Copy hiện tại là shallow hay deep? Các phần tử và collection lồng nhau có còn alias không?
-5. Chọn immutable snapshot hay unmodifiable view? Nguồn được sửa về sau có làm dữ liệu trả ra thay đổi không?
-6. Quy tắc `null`, duplicate, thứ tự và canonicalization của collection có được giữ đúng không?
-7. `equals/hashCode` có dùng trạng thái mutable bị lộ ra ngoài không? Hash có thể đổi sau khi dùng làm khóa `HashMap/HashSet` không?
-8. Có trường hợp concurrent writer và copier không? Snapshot có cần nhất quán nguyên tử không?
-9. Bài kiểm tra đã thử **sửa đầu vào sau constructor** và **sửa kết quả getter** ở mọi cấp nested chưa?
+1. Does the class have fields that are arrays, collections, or objects holding mutable state?
+2. Do constructors, builders, factories, and setters retain mutable references that external code continues to own?
+3. Do getters, accessors, callback methods, or element-returning methods expose internal mutable references?
+4. Is the current copy shallow or deep? Do elements and nested collections still have aliases?
+5. Was an immutable snapshot or an unmodifiable view chosen? Will modifying the source later alter returned data?
+6. Are rules for `null`, duplicates, ordering, and canonicalization of the collection preserved properly?
+7. Do `equals/hashCode` use externally exposed mutable state? Can the hash change after use as a `HashMap/HashSet` key?
+8. Are there concurrent writers and copiers? Does the snapshot need atomic consistency?
+9. Have tests tried **mutating the input after the constructor** and **mutating the getter result** at every nested level?
 
-Một phép thử hiệu quả là tạo object từ dữ liệu mutable, ghi nhận giá trị, sửa nguồn, đọc lại; sau đó sửa cả dữ liệu mà accessor trả về và kiểm tra object lần nữa. Đối với khóa hash, thêm object vào `HashSet`, tác động qua các alias có thể tồn tại, rồi kiểm tra equality/hash và tra cứu. Đừng chỉ thử trường hợp không có sửa đổi.
+An effective test is creating the object from mutable data, recording values, mutating the source, and reading back; then also mutating the data returned by the accessor and checking the object again. For hash keys, add the object to a `HashSet`, act through any potential aliases, and then verify equality/hash and lookup. Do not test only the no-mutation case.
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-**Câu 1.** `private final int[] scores` có khiến mọi phần tử trong `scores` bất biến không?
+**Question 1.** Does `private final int[] scores` make every element in `scores` immutable?
 
-**Đáp án:** Không. `final` ngăn gán lại field tham chiếu, nhưng `scores[0] = 123` vẫn có thể xảy ra nếu có quyền truy cập mảng.
+**Answer:** No. `final` prevents reassigning the reference field, yet `scores[0] = 123` can still happen if someone has access to the array.
 
-**Câu 2.** Nếu constructor đã gọi `input.clone()` nhưng getter trả `internalArray` trực tiếp, lớp đã được bảo vệ hoàn toàn chưa?
+**Question 2.** If the constructor already called `input.clone()` yet the getter returns `internalArray` directly, is the class fully protected?
 
-**Đáp án:** Chưa. Bên gọi vẫn có thể sửa mảng nhận từ getter. Cần trả bản sao hoặc thiết kế API đọc không tiết lộ mutable reference.
+**Answer:** Not yet. Callers can still modify the array received from the getter. You must return a copy or design a read API that does not expose the mutable reference.
 
-**Câu 3.** `Collections.unmodifiableList(input)` và `List.copyOf(input)` có giống nhau về việc bên ngoài sửa `input` sau này không?
+**Question 3.** Are `Collections.unmodifiableList(input)` and `List.copyOf(input)` the same with respect to external code mutating `input` later?
 
-**Đáp án:** Không. `unmodifiableList` chỉ tạo view không cho sửa qua view nhưng phản ánh thay đổi từ backing list; `List.copyOf` chụp cấu trúc và không cho sửa cấu trúc bản snapshot. Cả hai đều không tự sao chép sâu object phần tử.
+**Answer:** No. `unmodifiableList` only creates a view disallowing edits through the view, yet reflecting changes from the backing list; `List.copyOf` snapshots the structure and disallows structural edits on the snapshot. Neither automatically deep copies element objects.
 
-**Câu 4.** Sao chép `int[][] original` bằng `original.clone()` đã đủ để các phần tử `original[0][0]` độc lập chưa?
+**Question 4.** Is copying `int[][] original` with `original.clone()` enough to make elements `original[0][0]` independent?
 
-**Đáp án:** Chưa. Các hàng vẫn là mảng dùng chung; cần sao chép từng mảng con.
+**Answer:** Not yet. The rows are still shared arrays; each subarray must be copied as well.
 
-**Câu 5.** `List.copyOf(List<StringBuilder>)` ngăn được việc người giữ tham chiếu đến một `StringBuilder` gọi `append` không?
+**Question 5.** Does `List.copyOf(List<StringBuilder>)` stop someone holding a reference to a `StringBuilder` from calling `append`?
 
-**Đáp án:** Không. `List.copyOf` chỉ ngăn sửa cấu trúc qua API list; `StringBuilder` vẫn là object mutable được chia sẻ.
+**Answer:** No. `List.copyOf` only prevents structural edits via the list API; `StringBuilder` remains a shared mutable object.
 
-**Câu 6.** Có thể trả trực tiếp một `List<String>` đã lưu bằng `List.copyOf` từ getter mà vẫn bảo vệ nội bộ không?
+**Question 6.** Can a `List<String>` stored using `List.copyOf` be returned directly from a getter while still protecting internal state?
 
-**Đáp án:** Có, khi chính list không hỗ trợ sửa và các phần tử `String` bất biến; việc gọi `add/set/remove` qua getter không sửa được trạng thái của lớp.
+**Answer:** Yes, when the list itself does not support modification and the `String` elements are immutable; calling `add/set/remove` via the getter cannot modify the class's state.
 
-**Câu 7.** Một value object có `hashCode()` dựa vào mảng mutable; bạn đã copy-in và copy-out nhưng bản thân lớp còn method sửa mảng nội bộ. Có thể dùng làm khóa `HashMap` không cần cân nhắc nữa không?
+**Question 7.** A value object has `hashCode()` based on a mutable array; you did copy-in and copy-out, yet the class itself still has a method mutating the internal array. Can it be used as a `HashMap` key without further thought?
 
-**Đáp án:** Chưa. Defensive copy ngăn aliasing ngoài ý muốn, không ngăn các phương thức của class làm thay đổi thành phần equality/hash. Cần giữ thành phần hash ổn định trong lúc làm khóa hoặc chọn thiết kế khác.
+**Answer:** Not yet. Defensive copying prevents unintended aliasing; it does not prevent the class's own methods from changing equality/hash components. Hash components must be kept stable while acting as a key, or another design should be chosen.
 
 ---
 
-**Ghi nhớ:** Với mảng và collection mutable, hãy xác định **ai sở hữu dữ liệu tại mỗi ranh giới API**. Thường cần copy-in khi nhận, copy-out khi công bố; chọn snapshot thay vì view nếu muốn tách khỏi thay đổi tương lai. Sao chép nông chỉ đủ khi phần tử bất biến; dữ liệu lồng nhau cần chính sách sao chép sâu phù hợp. Bảo vệ trạng thái giúp `equals()` và `hashCode()` nhất quán khi chúng dựa trên các giá trị đó.
+**Takeaway:** For arrays and mutable collections, determine **who owns the data at each API boundary**. Usually you need copy-in on receipt and copy-out on publication; choose a snapshot over a view if you want isolation from future changes. Shallow copying only suffices when elements are immutable; nested data requires an appropriate deep-copying policy. Protecting state keeps `equals()` and `hashCode()` consistent when they rely on those values.

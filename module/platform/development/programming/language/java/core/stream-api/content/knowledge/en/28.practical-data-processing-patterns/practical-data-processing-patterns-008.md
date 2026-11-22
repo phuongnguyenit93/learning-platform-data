@@ -1,26 +1,26 @@
-# Tạo histogram và phân khoảng giá trị
+# Building Histograms and Value Bucketing
 
-Trong xử lý dữ liệu thực tế, một danh sách số đôi khi khó mang lại thông tin tổng quan. Ví dụ có hàng nghìn thời gian phản hồi API, điểm kiểm tra, kích thước đơn hàng hoặc giá trị đo cảm biến: thay vì xem từng con số, ta muốn biết **bao nhiêu phần tử rơi vào từng khoảng**. Đó là tư duy tạo **histogram** (bảng phân bố tần suất) và **phân khoảng giá trị** (*bucketing/binning*).
+In practical data processing, a raw list of numbers rarely gives a clear big-picture view. Given thousands of API response times, exam scores, order sizes, or sensor readings, instead of inspecting individual numbers we want to know **how many elements fall into each interval**. That is the idea behind **histograms** (frequency distributions) and **bucketing/binning**.
 
-Bài học thuộc chương **Mẫu xử lý dữ liệu thực tế** của module `JAVA_STREAM_API`. Ta sẽ thiết kế các khoảng đúng ranh giới, chọn giữa `groupingBy`/`counting` và bộ tích lũy nguyên thủy, xử lý giá trị âm, điểm nằm ngoài miền, khoảng có độ rộng khác nhau, `double` đặc biệt, nhóm không có phần tử, và cân nhắc hiệu năng, bộ nhớ, song song, nguồn I/O. Các pipeline đều dựa trên tư duy khai báo `filter`, `map`, `collect`; khi cần tổng hợp nhiều chỉ số ta cũng sẽ đối chiếu với `reduce` và `summaryStatistics`.
+This lesson belongs to the **Practical Data Processing Patterns** chapter of the `JAVA_STREAM_API` module. We will design boundary-accurate buckets, choose between `groupingBy`/`counting` and primitive accumulators, handle negative values, out-of-range points, variable-width intervals, special `double` values, and empty buckets, while weighing performance, memory, parallelism, and I/O sources. Pipelines rely on declarative `filter`, `map`, and `collect`; for multi-metric summaries we also compare against `reduce` and `summaryStatistics`.
 
-> Các ví dụ Java chính dùng API có từ **Java 8**. Mỗi đoạn mã là một ví dụ độc lập hoặc sử dụng biến/hàm đã giới thiệu ở phần trước. Chọn giới hạn khoảng và chính sách với giá trị không hợp lệ là **quyết định nghiệp vụ**, không phải mặc định của Java Stream API.
+> Main Java examples use APIs available since **Java 8**. Each snippet is self-contained or uses variables/helpers introduced earlier. Choosing bucket bounds and invalid-value policies is a **business decision**, not a Java Stream API default.
 
-## 1. Histogram khác gì danh sách hoặc grouping thông thường?
+## 1. How Does a Histogram Differ from a List or Plain Grouping?
 
-Giả sử có các điểm kiểm tra:
+Suppose we have exam scores:
 
 ```text
 0, 9, 10, 18, 20, 45, 57, 60, 76, 88, 99, 100, -5, 120
 ```
 
-Nếu chỉ tính `average()`, ta biết một giá trị trung bình nhưng chưa biết điểm tập trung ở đâu. Nếu dùng `distinct()`, ta biết các điểm khác nhau nhưng cũng chưa biết tần suất theo mức. Histogram giải quyết câu hỏi khác:
+Calling `average()` yields one mean value without showing where scores cluster. Calling `distinct()` reveals unique scores without frequencies per band. A histogram answers a different question:
 
-> Trong từng mức 0–9, 10–19, ..., 90–100 có **bao nhiêu điểm hợp lệ**?
+> In each band 0–9, 10–19, ..., 90–100, **how many valid scores** fall inside?
 
-Ví dụ bảng tần suất:
+Example frequency table:
 
-| Khoảng điểm | Số lượng |
+| Score Band | Count |
 | --- | ---: |
 | 0–9 | 2 |
 | 10–19 | 2 |
@@ -33,51 +33,51 @@ Ví dụ bảng tần suất:
 | 80–89 | 1 |
 | 90–100 | 2 |
 
-Tổng số điểm thuộc miền `0..100` là **12**. Hai giá trị `-5` và `120` nằm ngoài miền nên cần một chính sách: loại bỏ, đếm riêng hoặc coi là lỗi dữ liệu. Không được lặng lẽ đưa chúng vào một khoảng hợp lệ nếu báo cáo cần phân biệt lỗi đo.
+The total number of scores within `0..100` is **12**. Values `-5` and `120` lie outside the domain and require an explicit policy: discard, count separately, or treat as data errors. Never silently fold them into a valid bucket if the report must isolate measurement errors.
 
-Một histogram có thể gồm ba thành phần:
+A histogram consists of three parts:
 
-1. **Quy tắc phân khoảng:** ánh xạ mỗi giá trị vào một khóa khoảng.
-2. **Bộ đếm:** cộng 1 cho khoảng tương ứng.
-3. **Biểu diễn:** nhãn khoảng, số lượng, tần suất tương đối hoặc biểu đồ.
+1. **Bucketing rule:** maps each value to a bucket key.
+2. **Counter:** increments by 1 for the corresponding bucket.
+3. **Presentation:** bucket labels, counts, relative frequencies, or charts.
 
-Phân khoảng là bước tạo **khóa**; histogram là kết quả **thống kê số lượng theo khóa đó**. Nếu sau này cần tổng, trung bình hoặc min/max cho mỗi khoảng, ta có thể giữ cùng quy tắc phân khoảng và đổi downstream collector.
+Bucketing is the **key-assignment** step; the histogram is the resulting **count aggregation per key**. If you later need sums, averages, or min/max per bucket, you can keep the exact same bucketing rule and swap the downstream collector.
 
-## 2. Xác định ranh giới trước khi viết code
+## 2. Define Boundaries Before Writing Code
 
-Quy ước dễ sử dụng nhất là khoảng **đóng ở bên trái, mở ở bên phải**:
+The cleanest convention uses **left-closed, right-open** intervals:
 
 ```text
-[0, 10)    chứa 0, 1, ..., 9
-[10, 20)   chứa 10, 11, ..., 19
-[20, 30)   chứa 20, 21, ..., 29
+[0, 10)    contains 0, 1, ..., 9
+[10, 20)   contains 10, 11, ..., 19
+[20, 30)   contains 20, 21, ..., 29
 ...
-[90, 100)  chứa 90, ..., 99
+[90, 100)  contains 90, ..., 99
 ```
 
-Với quy ước này, điểm nằm đúng ranh giới như `10` chỉ thuộc **một** khoảng, không bị đếm hai lần. Công thức cho giá trị nguyên không âm trong miền bắt đầu tại 0:
+With this convention, a boundary value such as `10` belongs to **only one** bucket and is never double-counted. Formula for non-negative integers starting at 0:
 
 ```java
 int width = 10;
 int bucketIndex = value / width;
 ```
 
-Tuy nhiên, dữ liệu ví dụ cho phép điểm **100** và muốn đúng **10 nhóm**. Nếu dùng `100 / 10`, ta nhận chỉ số 10, vượt các nhóm có chỉ số `0..9`.
+However, our sample data allows score **100** and wants exactly **10 buckets**. Computing `100 / 10` yields index 10, outside indices `0..9`.
 
-Có hai lựa chọn hợp lệ nhưng khác ngữ nghĩa:
+Two valid options with different semantics:
 
-| Chính sách | Miền hợp lệ | Cách biểu diễn điểm 100 |
+| Policy | Valid Domain | How Score 100 Is Represented |
 | --- | --- | --- |
-| **Mười khoảng đều rộng 10** | `[0,100)` | 100 thuộc nhóm ngoài miền hoặc khoảng thứ 11 |
-| **Mười mức điểm, mức cuối bao gồm 100** | `[0,100]` | Nhóm cuối là `90–100`, rộng hơn các nhóm trước một giá trị nguyên |
+| **Ten uniform width-10 intervals** | `[0,100)` | 100 falls into an out-of-range bucket or an 11th bucket |
+| **Ten score bands, last band includes 100** | `[0,100]` | Final band is `90–100`, wider by one integer than earlier bands |
 
-Bài ví dụ điểm số chọn **chính sách thứ hai** và ghi rõ ngoại lệ của nhóm cuối. Không gọi tất cả nhóm là những khoảng số nguyên có kích thước hoàn toàn bằng nhau trong chính sách này.
+This lesson's score example uses the **second policy** and explicitly documents the final band's exception. Under that policy, do not describe all buckets as equal-width integer intervals.
 
-Với dữ liệu thực, hãy ghi rõ các quyết định: cận dưới/cận trên có bao gồm không; khoảng dưới/ngoài miền được đếm ở đâu; và báo cáo có cần hiển thị nhóm đếm bằng 0 hay không.
+On real data, document every decision: whether lower/upper bounds are inclusive, where underflow/overflow points are counted, and whether zero-count buckets must appear in reports.
 
-## 3. Histogram với groupingBy và counting
+## 3. Histograms with groupingBy and counting
 
-Khi các giá trị đã nằm trong `int[]`, có thể dùng `Arrays.stream` để tạo `IntStream` rồi `boxed()` thành `Stream<Integer>` trước khi gọi `Collectors.groupingBy`:
+When values are in an `int[]`, `Arrays.stream` creates an `IntStream`, which `boxed()` turns into `Stream<Integer>` for `Collectors.groupingBy`:
 
 ```java
 import java.util.Arrays;
@@ -105,17 +105,17 @@ System.out.println(countsByBucket.get(9)); // 2
 System.out.println(countsByBucket.get(3)); // null
 ```
 
-Phân tích pipeline:
+Pipeline breakdown:
 
-- `filter` chỉ giữ điểm trong miền hợp lệ `0..100`.
-- `boxed()` chuyển `IntStream` sang `Stream<Integer>`, vì `groupingBy` là Collector dành cho Stream của object.
-- Hàm phân khoảng `Math.min(score / 10, 9)` tạo khóa từ 0 tới 9; riêng 100 được đưa vào khóa 9.
-- `Collectors.counting()` đếm các phần tử trong mỗi khoảng.
-- `TreeMap::new` khiến các khóa số được duyệt theo thứ tự tăng dần.
+- `filter` retains only scores in `0..100`.
+- `boxed()` converts `IntStream` to `Stream<Integer>`, because `groupingBy` collects object Streams.
+- The bucketing function `Math.min(score / 10, 9)` produces keys `0..9`, folding 100 into bucket 9.
+- `Collectors.counting()` counts elements per bucket.
+- `TreeMap::new` ensures numeric bucket keys iterate in ascending order.
 
-**Cảnh báo:** `groupingBy` chỉ tạo khóa đã thực sự gặp. Không có điểm nào thuộc 30–39 nên Map **không có khóa 3**; `get(3)` trả `null` chứ không trả `0L`.
+**Warning:** `groupingBy` creates keys only for buckets actually observed. Because no score fell in 30–39, the Map **has no key 3**; `get(3)` returns `null`, not `0L`.
 
-Nếu muốn hiển thị đủ 10 khoảng:
+To print all 10 buckets:
 
 ```java
 for (int i = 0; i < 10; i++) {
@@ -129,11 +129,11 @@ for (int i = 0; i < 10; i++) {
 }
 ```
 
-`getOrDefault` chỉ trả giá trị dự phòng; nó **không thêm** nhóm vắng vào Map. Nếu một API báo cáo yêu cầu đầy đủ 10 khóa, hãy tạo Map báo cáo mới hoặc bổ sung các khóa tường minh.
+`getOrDefault` supplies a fallback value; it **does not insert** missing keys into the Map. If a reporting API requires all 10 keys present, construct a new report Map or populate missing keys explicitly.
 
-### Vì sao không dùng toMap hai tham số?
+### Why Not Two-Argument toMap?
 
-Nếu hai điểm khác nhau rơi vào cùng một khoảng, `Collectors.toMap(keyMapper, valueMapper)` sẽ gặp **khóa trùng** và ném `IllegalStateException`. Có thể dùng overload có `Long::sum` làm merge function, nhưng `groupingBy(..., counting())` diễn đạt “đếm theo nhóm” trực tiếp hơn:
+When two scores land in the same bucket, `Collectors.toMap(keyMapper, valueMapper)` hits a **duplicate key** and throws `IllegalStateException`. You can pass `Long::sum` as a merge function, though `groupingBy(..., counting())` expresses "count by group" more directly:
 
 ```java
 Map<Integer, Long> alternative = Arrays.stream(scores)
@@ -146,17 +146,17 @@ Map<Integer, Long> alternative = Arrays.stream(scores)
         ));
 ```
 
-Hai cách đều cho tần suất theo chỉ số khoảng; loại Map, thứ tự và các đặc tính có thể khác nếu không chỉ rõ factory.
+Both produce bucket frequencies; Map type, ordering, and mutability may differ unless a factory is specified.
 
-## 4. Histogram nguyên thủy bằng IntStream.collect ba tham số
+## 4. Primitive Histograms via Three-Argument IntStream.collect
 
-Với số lượng khoảng **ít và cố định**, không nhất thiết phải boxing từng `int` hoặc tạo các đối tượng khóa. `IntStream` hỗ trợ `collect` nhận **supplier**, **accumulator** và **combiner**.
+When bucket counts are **small and fixed**, there is no need to box every `int` or allocate key objects. `IntStream` supports a three-argument `collect` accepting **supplier**, **accumulator**, and **combiner**.
 
-Để vừa đếm 10 mức điểm, vừa giữ số phần tử ngoài miền, ta dành:
+To count the 10 score bands while also tracking out-of-range items, allocate:
 
-- Chỉ số `0..9`: 10 khoảng điểm;
-- Chỉ số `10`: điểm dưới 0;
-- Chỉ số `11`: điểm trên 100.
+- Indices `0..9`: the 10 score bands;
+- Index `10`: scores below 0;
+- Index `11`: scores above 100.
 
 ```java
 import java.util.Arrays;
@@ -189,17 +189,17 @@ System.out.println(Arrays.toString(histogram));
 // [2, 2, 1, 0, 1, 1, 1, 1, 1, 2, 1, 1]
 ```
 
-Ở đây `long[]` là **bộ tích lũy mutable**, còn `long` giữ số lần xuất hiện. Ba tham số phải thỏa hợp đồng:
+Here `long[]` is a **mutable accumulator**, and `long` stores counts. The three arguments must obey this contract:
 
-| Tham số | Trong ví dụ | Tại sao cần |
+| Parameter | In Example | Why Needed |
 | --- | --- | --- |
-| Supplier | `() -> new long[12]` | Mỗi lần gọi cấp mảng đếm **mới**, khởi tạo 0 |
-| Accumulator | Phân loại một `int` rồi tăng đúng một ô | Mỗi phần tử đi vào đúng một nhóm |
-| Combiner | Cộng từng ô của mảng bên phải vào bên trái | Gộp kết quả các nhánh khi chạy song song |
+| Supplier | `() -> new long[12]` | Allocates a **fresh** zeroed array each time invoked |
+| Accumulator | Classifies one `int` and increments one slot | Routes each element into exactly one bucket |
+| Combiner | Adds each right-array slot into left array | Merges partition results in parallel execution |
 
-Không dùng một mảng `long[]` tạo bên ngoài và trả lại cùng instance từ Supplier. Khi chạy song song, từng nhánh cần trạng thái riêng theo hợp đồng của `IntStream.collect`; chia sẻ mảng thường có thể gây **data race** và làm kết quả sai.
+Never allocate a `long[]` outside and return that same instance from the Supplier. In parallel runs, each branch needs its own state per `IntStream.collect`'s contract; sharing one array causes **data races** and wrong counts.
 
-Ví dụ dùng cùng Collector với nguồn song song:
+Using the same Collector on a parallel source:
 
 ```java
 long[] parallelHistogram = Arrays.stream(scores)
@@ -223,24 +223,24 @@ System.out.println(Arrays.equals(histogram, parallelHistogram));
 // true
 ```
 
-Vì mỗi ô được cộng độc lập, phép gộp không phụ thuộc cách phân nhánh (trong phạm vi không tràn `long`). Tuy nhiên, parallel **không mặc nhiên nhanh hơn**. Với 14 số và 12 ô, chi phí chia/gộp mảng có thể lớn hơn thời gian xử lý.
+Because each slot adds independently, merging does not depend on partition tree shape (assuming no `long` overflow). Still, parallel is **not automatically faster**. With 14 numbers and 12 slots, splitting and merging arrays costs more than sequential counting.
 
-### Khi nào chọn mảng thay vì Map?
+### When to Choose an Array Over a Map?
 
-| Tình huống | Mảng `long[]` | `Map<K,Long>` |
+| Scenario | `long[]` Array | `Map<K,Long>` |
 | --- | --- | --- |
-| Số khoảng cố định, ít | Thường hợp lý | Có thể dùng nhưng nhiều đối tượng hơn |
-| Khoảng được đánh số liên tục | Truy cập trực tiếp theo chỉ số | Cần mã hóa khóa |
-| Khoảng thưa, số lượng chưa biết | Dễ lãng phí bộ nhớ | Thường linh hoạt hơn |
-| Nhãn là chuỗi hoặc cấu trúc phức tạp | Cần lớp ánh xạ chỉ số ↔ nhãn | Khóa có thể biểu diễn trực tiếp |
-| Chạy song song | Mỗi nhánh có mảng riêng rồi gộp | Combiner có thể gộp Map |
-| Muốn thống kê nhiều đại lượng mỗi nhóm | Cần thiết kế container/DTO | Downstream collector đa dạng |
+| Fixed, small bucket count | Usually sensible | Works, with more object allocations |
+| Contiguously numbered buckets | Direct index access | Requires key encoding |
+| Sparse or unbounded bucket count | Wastes memory | Usually more flexible |
+| String labels or structured keys | Needs index ↔ label mapping | Keys express labels directly |
+| Parallel execution | Per-branch array then merge | Combiner merges Maps |
+| Multiple metrics per bucket | Needs custom container/DTO | Supports rich downstream collectors |
 
-Đừng chọn mảng chỉ vì muốn “tối ưu”: nếu tên khoảng hoặc ranh giới thay đổi liên tục theo cấu hình, Map/DTO có thể dễ bảo trì hơn.
+Do not pick arrays purely for "optimization": if bucket names or bounds change dynamically via config, Map/DTO designs can be much easier to maintain.
 
-## 5. Đếm đầy đủ, đếm hợp lệ và tỷ lệ phần trăm
+## 5. Total Counts, Valid Counts, and Percentages
 
-Một histogram dùng cho báo cáo cần xác định rõ **mẫu số**. Từ mảng trên:
+A reporting histogram must clearly define its **denominator**. From the array above:
 
 ```java
 long validCount = 0L;
@@ -258,7 +258,7 @@ System.out.println(aboveRange); // 1
 System.out.println(totalInput); // 14
 ```
 
-Nếu báo cáo tỷ trọng từng mức điểm **trên các điểm hợp lệ**, tính:
+To report each band's share **of valid scores**:
 
 ```java
 for (int i = 0; i < 10; i++) {
@@ -269,24 +269,24 @@ for (int i = 0; i < 10; i++) {
 }
 ```
 
-Chọn `Double.NaN` cho trường hợp mẫu số bằng 0 ở đây là **một quyết định biểu diễn**: “không xác định vì không có điểm hợp lệ”. Nếu ứng dụng muốn hiển thị `"N/A"` hoặc trả `OptionalDouble.empty()`, có thể thiết kế kiểu kết quả phù hợp. Tránh hiển thị 0% như thể đã thống kê từ một tập có dữ liệu.
+Returning `Double.NaN` when the denominator is 0 is a **representation choice**: "undefined due to zero valid scores". If the UI wants `"N/A"` or `OptionalDouble.empty()`, design the result type accordingly. Avoid showing 0% as though computed from real observations.
 
-Đặc biệt, tổng tỷ trọng có thể hiển thị 99,99% hoặc 100,01% do **làm tròn từng nhóm**. Hãy giữ số lượng nguyên làm dữ liệu gốc; phần trăm chỉ là một dạng trình bày.
+Note also that displayed percentages may sum to 99.99% or 100.01% due to **per-bucket rounding**. Preserve raw integer counts as ground truth; percentages are strictly derived presentation.
 
-Có thể dùng `LongStream.of(histogram).limit(10).sum()` để cộng các ô hợp lệ, nhưng một vòng lặp rõ ràng như trên thường đơn giản trong phần trình bày báo cáo.
+You could write `LongStream.of(histogram).limit(10).sum()` to sum valid slots, though a clear loop like above is often simplest in report formatting.
 
-## 6. Giá trị âm: dùng Math.floorDiv, không chỉ phép chia /
+## 6. Negative Values: Use Math.floorDiv, Not Plain /
 
-Khi các khoảng bắt đầu từ 0 và dữ liệu có số âm, phép chia nguyên trong Java **làm tròn về 0**, không phải làm tròn xuống. Điều này khiến cách viết `value / 10` phân khoảng sai với các giá trị âm.
+When buckets start at 0 and data includes negative numbers, integer division in Java **truncates toward 0**, not toward negative infinity. Thus `value / 10` mis-buckets negative values.
 
 ```java
-System.out.println(-1 / 10);                 // 0  (không đúng nhóm [-10, 0))
+System.out.println(-1 / 10);                 // 0  (wrong bucket for [-10, 0))
 System.out.println(Math.floorDiv(-1, 10));   // -1
 System.out.println(Math.floorDiv(-10, 10));  // -1
 System.out.println(Math.floorDiv(-11, 10));  // -2
 ```
 
-Nếu các khoảng có độ rộng 10 và gốc 0:
+For width-10 intervals anchored at 0:
 
 ```text
 bucket -3 = [-30, -20)
@@ -297,7 +297,7 @@ bucket  1 = [ 10,  20)
 bucket  2 = [ 20,  30)
 ```
 
-Dữ liệu kiểm tra:
+Test data:
 
 ```java
 import java.util.Arrays;
@@ -321,7 +321,7 @@ System.out.println(frequency);
 // {-3=1, -2=2, -1=2, 0=2, 1=2, 2=1}
 ```
 
-Với mỗi khóa `bucket`, nhãn khoảng có thể được tính trên `long` để tránh tràn khi nhân khóa với độ rộng:
+For each `bucket` key, compute interval labels in `long` to avoid overflow when multiplying key by width:
 
 ```java
 for (Map.Entry<Integer, Long> entry : frequency.entrySet()) {
@@ -335,7 +335,7 @@ for (Map.Entry<Integer, Long> entry : frequency.entrySet()) {
 }
 ```
 
-**Lưu ý:** đối với dữ liệu nguyên với gốc khác 0, hãy xét độ lệch `value - origin`. Nếu hai toán hạng có thể gần hai đầu miền `int`, trừ trên `int` có thể tràn. Ta có thể nâng phép trừ lên `long` trước rồi mới chia:
+**Note:** for integer data with a non-zero origin, use the offset `value - origin`. If both operands can lie near opposite ends of `int`, `int` subtraction overflows. Promote subtraction to `long` before dividing:
 
 ```java
 static long uniformBucket(int value, int origin, int width) {
@@ -348,46 +348,46 @@ static long uniformBucket(int value, int origin, int width) {
 }
 ```
 
-Cách này xử lý các khoảng có gốc bất kỳ, bao gồm cả khi `value` âm hoặc `origin` âm, mà không phụ thuộc vào cách làm tròn về 0 của phép chia `int`.
+This handles intervals with any origin, including negative `value` or negative `origin`, free from `int` truncation toward zero.
 
-## 7. Khoảng có độ rộng không đều
+## 7. Variable-Width Intervals
 
-Không phải mọi histogram đều chia thành các đoạn bằng nhau. Ví dụ phân mức thời gian phản hồi API:
+Not all histograms divide into equal widths. Consider bucketing API response latencies:
 
 ```text
-[0, 100)      phản hồi rất nhanh
-[100, 300)    phản hồi nhanh
-[300, 1000)   phản hồi chậm
-[1000, 5000)  phản hồi rất chậm
-ngoài miền     lỗi đo hoặc cảnh báo riêng
+[0, 100)      very fast response
+[100, 300)    fast response
+[300, 1000)   slow response
+[1000, 5000)  very slow response
+out of range  measurement error or separate alert
 ```
 
-Ta có thể mô tả ranh giới bằng mảng tăng nghiêm ngặt:
+Represent boundaries as a strictly increasing array:
 
 ```java
 int[] edges = {0, 100, 300, 1000, 5000};
 ```
 
-Quy tắc: phần tử có giá trị bằng ranh giới trái thì **thuộc nhóm bắt đầu tại ranh giới đó**, còn giá trị bằng ranh giới trên cuối cùng (`5000`) **nằm ngoài tất cả khoảng**.
+Rule: a value equal to a left edge **belongs to the bucket starting at that edge**, while a value equal to the final upper edge (`5000`) lies **outside all buckets**.
 
-### Tìm khoảng bằng binarySearch
+### Finding Buckets with binarySearch
 
-Với các ranh giới tăng dần và không trùng nhau:
+Given strictly increasing, distinct boundaries:
 
 ```java
 import java.util.Arrays;
 
 static int findBucket(int value, int[] edges) {
-    // Giả định edges đã được kiểm tra: ít nhất 2 phần tử,
-    // tăng nghiêm ngặt, và không bị sửa khi xử lý.
+    // Assumes edges are validated: at least 2 elements,
+    // strictly increasing, and immutable during processing.
     int pos = Arrays.binarySearch(edges, value);
 
     if (pos >= 0) {
-        // Bằng cận trái của một khoảng, trừ cận trên cuối cùng.
+        // Matches a left boundary, except the final upper bound.
         return pos == edges.length - 1 ? -1 : pos;
     }
 
-    // Mã kết quả âm của binarySearch chứa insertion point.
+    // Negative binarySearch result encodes the insertion point.
     int insertionPoint = -pos - 1;
     int index = insertionPoint - 1;
 
@@ -413,11 +413,11 @@ static void validateEdges(int[] edges) {
 }
 ```
 
-`Arrays.binarySearch` trả vị trí của giá trị nếu khớp ranh giới, hoặc số âm mã hóa **vị trí có thể chèn** nếu không khớp. Vì có `k` khoảng với `k+1` ranh giới, mỗi lần tìm có chi phí khoảng `O(log k)`.
+`Arrays.binarySearch` returns the index if an exact edge matches, or a negative value encoding the **insertion point** otherwise. For `k` buckets with `k + 1` edges, each lookup takes roughly `O(log k)`.
 
-**Quan trọng:** hãy chạy `validateEdges(edges)` **một lần trước khi tạo pipeline**, không kiểm tra toàn bộ cấu hình cho từng phần tử. Mảng `edges` cần được giữ cố định trong suốt quá trình Stream xử lý; thay đổi nó đồng thời làm quy tắc phân khoảng không ổn định.
+**Important:** call `validateEdges(edges)` **once before building the pipeline**, rather than re-validating the config on every element. Keep `edges` unmodified while the Stream executes; mutating it mid-run makes bucket assignment inconsistent.
 
-### Thu thập vào mảng đếm
+### Collecting into a Count Array
 
 ```java
 import java.util.Arrays;
@@ -447,29 +447,29 @@ System.out.println(Arrays.toString(counts));
 // [2, 2, 2, 2]
 ```
 
-Chính sách ví dụ là **loại các giá trị ngoài miền**. Hai phần tử `-1` và `100` không được đếm trong bốn khoảng. Nếu cần đối chiếu số lượng bản ghi, nên có hai ô riêng cho underflow/overflow như phần 4, hoặc một bộ báo cáo lưu cả số lượng hợp lệ và không hợp lệ.
+This example's policy **excludes out-of-range values**. Elements `-1` and `100` are not counted in the four buckets. If reconciliation counts are needed, reserve two extra slots for underflow/overflow as in section 4, or return a report object tracking both valid and invalid counts.
 
-### Cảnh báo khi so sánh các khoảng có độ rộng khác nhau
+### Warning When Comparing Variable-Width Intervals
 
-Một khoảng rộng có thể chứa nhiều phần tử chỉ vì **nó rộng hơn**. Nếu muốn so sánh mật độ trên trục số liên tục, cần cân nhắc dùng **mật độ tần suất** thay vì chỉ so sánh chiều cao đếm:
+A wider bucket can hold more items simply because **it is wider**. To compare density along a continuous axis, consider **frequency density** rather than raw bar height alone:
 
 ```text
-tần suất tương đối của nhóm = count / validCount
-mật độ trong một khoảng     = count / (validCount * độ rộng khoảng)
+group relative frequency  = count / validCount
+density in an interval    = count / (validCount * interval width)
 ```
 
-Bởi vậy, với các khoảng `[0,10)` và `[10,100)`, cùng có 20 phần tử không có nghĩa hai vùng có mật độ bằng nhau. Mật độ là khái niệm thống kê riêng, và cách vẽ biểu đồ cần phản ánh đúng độ rộng khoảng để người xem không bị hiểu nhầm.
+Thus, across `[0, 10)` and `[10, 100)`, having 20 elements in both does not mean equal density. Density is a distinct statistical measure, and charts must represent interval widths accurately so viewers are not misled.
 
-## 8. Dữ liệu double: NaN, vô cực và sai số tại ranh giới
+## 8. Double Data: NaN, Infinity, and Boundary Precision
 
-Với `DoubleStream`, phân khoảng cần kiểm tra thêm **giá trị đặc biệt**:
+With `DoubleStream`, bucketing must also check **special values**:
 
-- `Double.NaN` không có vị trí bình thường trên trục số.
-- `Double.POSITIVE_INFINITY` và `Double.NEGATIVE_INFINITY` không thuộc miền hữu hạn.
-- Số thực có sai số biểu diễn; phép chia cho độ rộng như `0.1` có thể tạo kết quả sát ranh giới nhưng không đúng như kỳ vọng toán học.
-- `-0.0` và `0.0` cần một quy tắc hiển thị nhất quán nếu chúng có ý nghĩa khác trong miền ứng dụng.
+- `Double.NaN` has no standard position on the number line.
+- `Double.POSITIVE_INFINITY` and `Double.NEGATIVE_INFINITY` lie outside finite ranges.
+- Floating-point numbers have representation error; dividing by widths like `0.1` can land right on boundaries unexpectedly.
+- `-0.0` and `0.0` need consistent handling if your domain distinguishes them.
 
-Ví dụ nguồn:
+Example source:
 
 ```java
 import java.util.Arrays;
@@ -502,22 +502,22 @@ System.out.println(Arrays.toString(buckets));
 // [1, 1, 2]
 ```
 
-Các khoảng của ví dụ là `[0,1)`, `[1,2)` và `[2,3)`. Có bốn mẫu hợp lệ, bốn mẫu bị loại (hai ngoài miền, một NaN và một vô cực). Nếu lỗi đo là thông tin quan trọng, hãy ghi lại các nhóm bị loại thay vì chỉ lọc mất dữ liệu.
+The buckets here are `[0, 1)`, `[1, 2)`, and `[2, 3)`. Four samples are valid, and four are excluded (two out of range, one NaN, one infinity). When measurement errors matter, track rejected categories rather than silently filtering them away.
 
-**Về `DoubleStream.collect`:** API nhận ba tham số như `IntStream.collect` nhưng accumulator có kiểu `ObjDoubleConsumer<R>`. Không thể gọi `DoubleStream.collect(Collectors.groupingBy(...))` trực tiếp; muốn dùng Collector thông thường, phải chuyển sang `Stream<Double>` hoặc `mapToObj(...)`.
+**About `DoubleStream.collect`:** it takes three arguments like `IntStream.collect`, with an accumulator of type `ObjDoubleConsumer<R>`. You cannot pass `Collectors.groupingBy(...)` directly to `DoubleStream.collect`; to use standard object Collectors, convert via `boxed()` or `mapToObj(...)`.
 
-### Phân khoảng thập phân chính xác
+### Exact Decimal Bucketing
 
-Đối với giá trị tiền tệ, `0.1` và `0.01` biểu diễn dưới dạng `double` có thể không chính xác tuyệt đối. Nếu ranh giới phải chính xác theo nghiệp vụ:
+For currency, `0.1` and `0.01` cannot be represented exactly in binary `double`. When bucket boundaries must be exact:
 
-- Lưu giá trị dưới dạng `long` theo đơn vị nhỏ nhất (đồng, cent, milliunit...), rồi phân khoảng trên số nguyên; hoặc
-- Dùng `BigDecimal` và phép so sánh `compareTo` theo các ranh giới đã xác định.
+- Store values as `long` minor units (cents, milliunits, etc.) and bucket on integers; or
+- Use `BigDecimal` and `compareTo` against explicit boundary values.
 
-Không dùng ép kiểu `(int) value` như một thay thế phổ quát cho `Math.floor`, vì ép từ số thực về `int` cắt phần thập phân theo hướng 0 và có giới hạn miền giá trị.
+Never use `(int) value` casting as a universal substitute for `Math.floor`, because floating-point-to-`int` casts truncate toward 0 and saturate on range limits.
 
-## 9. Nhóm không có phần tử cần được hiển thị rõ
+## 9. Empty Buckets Should Be Surfaced Explicitly
 
-Với `groupingBy(..., counting())`, Map chỉ chứa khóa được thấy. Nếu báo cáo luôn phải hiển thị các mức tần suất, có thể dựng Map theo thứ tự từ cấu hình thay vì cố suy từ Map đã thu thập:
+With `groupingBy(..., counting())`, the Map holds only observed keys. If a report must always list every frequency band, construct the ordered Map from configuration rather than inferring it from the collected Map:
 
 ```java
 import java.util.LinkedHashMap;
@@ -538,26 +538,26 @@ System.out.println(report.get("30-39")); // 0
 System.out.println(report.containsKey("30-39")); // true
 ```
 
-Đây là **một Map báo cáo mới** có đủ các nhãn khoảng, kể cả khoảng không có dữ liệu. `LinkedHashMap` giữ thứ tự chèn nên có thể in bảng theo 0–9, 10–19, ... 90–100, thay vì dựa vào thứ tự duyệt của `HashMap`.
+This creates **a new report Map** containing every bucket label, including zero-count bands. `LinkedHashMap` preserves insertion order so the table prints 0–9, 10–19, ..., 90–100 instead of relying on `HashMap` iteration order.
 
-Đừng nhầm `getOrDefault(i, 0L)` với việc Map gốc tự có nhóm đó; phương thức chỉ trả một giá trị dự phòng. Việc bổ sung nhóm trống là trách nhiệm của tầng báo cáo hoặc logic cấu hình.
+Do not confuse `getOrDefault(i, 0L)` with the original Map actually containing that key; it only returns a fallback. Filling empty buckets is the responsibility of the reporting layer or configuration builder.
 
-Nếu ứng dụng cần phân biệt **“khoảng chưa được quan sát”** với **“khoảng được đo nhưng số lượng bằng 0”**, phải lưu thêm trạng thái nguồn dữ liệu hoặc kỳ đo. Chỉ một giá trị số `0` không đủ để khẳng định nguyên nhân.
+If the application must distinguish **"bucket not observed yet"** from **"bucket observed with count 0"**, store additional source or window state. A plain `0` alone cannot tell those cases apart.
 
-## 10. Histogram so với partitioningBy và summaryStatistics
+## 10. Histograms vs. partitioningBy and summaryStatistics
 
-Các API tổng hợp có hình dạng kết quả khác nhau:
+Aggregation APIs yield different result shapes:
 
-| Mục tiêu | Cách làm phù hợp | Đặc điểm |
+| Goal | Suitable Approach | Characteristics |
 | --- | --- | --- |
-| Chỉ cần min, max, count, sum, average | `IntStream.summaryStatistics()` | Không tạo các bucket |
-| Chỉ chia hai nhóm theo điều kiện | `Collectors.partitioningBy(predicate)` | Luôn có khóa `true` và `false` |
-| Nhiều khoảng hoặc nhiều loại | `groupingBy(classifier, counting())` | Số nhóm linh hoạt |
-| Nhiều khoảng cố định, đánh chỉ số liên tiếp | `IntStream.collect` với `long[]` | Tránh boxing từng phần tử |
-| Cần nhiều phần tử gốc trong từng khoảng | `groupingBy(classifier)` | Giữ `List<T>` nên tốn bộ nhớ hơn |
-| Cần thống kê nhiều chỉ số trong mỗi khoảng | `groupingBy(classifier, downstream)` hoặc container tùy chỉnh | Chọn downstream theo dữ liệu cần có |
+| Need only min, max, count, sum, average | `IntStream.summaryStatistics()` | Creates no buckets |
+| Split into two groups by predicate | `Collectors.partitioningBy(predicate)` | Always contains keys `true` and `false` |
+| Multiple intervals or categories | `groupingBy(classifier, counting())` | Flexible bucket count |
+| Fixed, contiguously indexed intervals | `IntStream.collect` with `long[]` | Avoids boxing every element |
+| Need original elements inside each bucket | `groupingBy(classifier)` | Retains `List<T>`, using more memory |
+| Need multiple metrics per bucket | `groupingBy(classifier, downstream)` or custom container | Pick downstream matching required metrics |
 
-Ví dụ nếu chỉ quan tâm **đạt hoặc không đạt** ngưỡng 50:
+For example, if you only care about **pass vs. fail** at threshold 50:
 
 ```java
 import java.util.Arrays;
@@ -576,9 +576,9 @@ System.out.println(passFail.get(true));  // 6
 System.out.println(passFail.get(false)); // 6
 ```
 
-`partitioningBy` tự cung cấp cả hai khóa Boolean ngay cả khi một nhánh không có phần tử. Nhưng khi cần 10 mức điểm, nó không thay cho một phép phân khoảng nhiều nhóm.
+`partitioningBy` always populates both Boolean keys even if one branch is empty. Yet when 10 score bands are needed, it cannot replace multi-bucket classification.
 
-Để lấy thống kê miền hợp lệ mà không tạo histogram:
+To compute summary statistics on valid scores without building a histogram:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -592,11 +592,11 @@ System.out.println(stats.getMin());   // 0
 System.out.println(stats.getMax());   // 100
 ```
 
-Có thể dùng cả histogram và summary statistics trong cùng báo cáo, nhưng hai phép terminal riêng biệt trên một nguồn **không thể tái sử dụng cùng instance Stream**. Với mảng, tạo hai Stream mới được; với tệp I/O hoặc nguồn một lần, cần thiết kế bộ tích lũy chung nếu muốn chỉ đọc một lượt.
+You can combine both a histogram and summary statistics in one report, though two separate terminal operations **cannot reuse the same Stream instance**. On arrays, open two fresh streams; on I/O files or single-pass sources, design a single combined accumulator to read once.
 
-## 11. Dữ liệu thiếu, ngoại lệ và chính sách nhập liệu
+## 11. Missing Data, Outliers, and Ingestion Policies
 
-Nguồn `IntStream` không chứa `null`, nhưng danh sách wrapper `List<Integer>` có thể chứa null. Ví dụ:
+An `IntStream` never contains `null`, yet a wrapper `List<Integer>` can. For example:
 
 ```java
 import java.util.Arrays;
@@ -611,9 +611,9 @@ IntStream validValues = rawScores.stream()
         .mapToInt(Integer::intValue);
 ```
 
-Biểu thức này chủ động **loại giá trị vắng mặt**. Nếu cần đếm số bản ghi bị thiếu, không nên dùng riêng pipeline như vậy rồi coi tổng sau lọc bằng tổng đầu vào.
+This expression actively **drops missing values**. If you need to count missing records, do not use this pipeline alone and treat the post-filter count as total input.
 
-Một mô hình báo cáo rõ nghĩa có thể có:
+A clean report model might track:
 
 ```text
 totalRows
@@ -624,25 +624,25 @@ validCount
 bins[0..k-1]
 ```
 
-Khi thu thập từ `List<Integer>` có null, người viết có thể dùng `Stream<Integer>.collect` với container riêng để phân loại `null` và số hợp lệ trong một lượt. Đây là dạng **mutable reduction**: Supplier phải tạo container mới, accumulator cập nhật đúng trường, combiner gộp từng trường khi chạy parallel.
+When collecting from a nullable `List<Integer>`, use `Stream<Integer>.collect` with a custom container to classify `null` and valid numbers in one pass. This is **mutable reduction**: the supplier creates a fresh container, the accumulator updates fields, and the combiner merges containers in parallel runs.
 
-Nếu đơn vị dữ liệu là số thực, còn phải tách riêng `NaN` và `Infinity`. Nếu một giá trị nằm ngoài giới hạn cấu hình, hãy quyết định **bỏ qua, báo lỗi, ghi nhóm ngoài miền hay giới hạn cứng (clamp)**. Clamp mọi giá trị ngoài miền vào nhóm đầu/cuối có thể tạo biểu đồ trông hợp lệ nhưng che giấu lỗi đo.
+For floating-point inputs, also separate `NaN` and `Infinity`. When values exceed configured bounds, decide whether to **skip, raise an error, record underflow/overflow buckets, or clamp**. Clamping every outlier into the first/last bucket produces plausible-looking charts that hide measurement errors.
 
-Đối với phép đếm tăng rất lớn, `long` có giới hạn. Đối với phép tính tổng trong mỗi bucket, `int`/`long` cũng có thể tràn. Chọn kiểu số và chính sách kiểm tra tràn theo quy mô dữ liệu.
+For very large counts, `long` has bounds. For sums inside buckets, `int`/`long` can overflow too. Choose numeric types and overflow checks to match data scale.
 
-## 12. Mẫu histogram cho luồng sự kiện thực tế
+## 12. Practical Event-Stream Histogram Pattern
 
-Giả sử dịch vụ giám sát cần theo dõi độ trễ (mili giây) của các yêu cầu API. Những khoảng mức độ phục vụ được quy định:
+Suppose a monitoring service tracks API request latencies (in milliseconds) across defined service-level bands:
 
 ```text
-[0, 100)      rất nhanh
-[100, 300)    bình thường
-[300, 1000)   chậm
-[1000, 5000)  rất chậm
-ngoài miền    đo lỗi hoặc giá trị cần điều tra
+[0, 100)      very fast
+[100, 300)    normal
+[300, 1000)   slow
+[1000, 5000)  very slow
+out of range  measurement error or values needing investigation
 ```
 
-Để biểu diễn kết quả với các nhãn rõ ràng, tạo một bộ xử lý hoàn chỉnh:
+To represent results cleanly, build a complete processor:
 
 ```java
 import java.util.Arrays;
@@ -651,7 +651,7 @@ final class LatencyHistogram {
     private static final int[] EDGES = {0, 100, 300, 1000, 5000};
 
     static long[] summarize(int[] latencyMillis) {
-        int[] edges = EDGES; // cấu hình bất biến trong lúc xử lý
+        int[] edges = EDGES; // immutable configuration during processing
 
         long[] result = Arrays.stream(latencyMillis)
                 .collect(
@@ -692,7 +692,7 @@ final class LatencyHistogram {
 }
 ```
 
-Ví dụ:
+Example:
 
 ```java
 int[] latencies = {20, 90, 100, 250, 299, 300, 999, 1000, 6000, -3};
@@ -703,63 +703,63 @@ System.out.println(Arrays.toString(report));
 // [2, 3, 2, 1, 1, 1]
 ```
 
-Mảng kết quả có bốn ô cho khoảng hợp lệ, một ô dưới miền và một ô trên miền. Chỉ số ngoài miền được tính từ `edges.length - 1` và `edges.length`, không trộn với các khoảng hợp lệ.
+The result array has four slots for valid intervals, one slot for underflow, and one slot for overflow. Out-of-range indices are `edges.length - 1` and `edges.length`, kept separate from valid intervals.
 
-Với bộ ranh giới `{0,100,300,1000,5000}`, có **4 khoảng**, nên độ dài mảng là `4 + 2 = 6`. Cách tính `new long[edges.length + 1]` phù hợp vì `edges.length = 5`.
+With boundaries `{0, 100, 300, 1000, 5000}`, there are **4 intervals**, so total array length is `4 + 2 = 6`. Sizing as `new long[edges.length + 1]` matches because `edges.length = 5`.
 
-Ví dụ phân loại:
+Classification trace:
 
-- 20 và 90 → `[0,100)`: 2.
-- 100, 250 và 299 → `[100,300)`: 3.
-- 300 và 999 → `[300,1000)`: 2.
-- 1000 → `[1000,5000)`: 1.
-- 6000 → trên miền: 1.
-- -3 → dưới miền: 1.
+- 20 and 90 → `[0, 100)`: 2.
+- 100, 250, and 299 → `[100, 300)`: 3.
+- 300 and 999 → `[300, 1000)`: 2.
+- 1000 → `[1000, 5000)`: 1.
+- 6000 → above range: 1.
+- -3 → below range: 1.
 
-**Ghi chú triển khai:** lớp chứa phiên bản `findBucket` tương đương hàm đã học ở phần 7 để ví dụ có thể dùng độc lập. `EDGES` là mảng cấu hình biết trước, tăng nghiêm ngặt và **không được sửa** khi xử lý. Nếu cấu hình đến từ tệp, hãy sao chép nó, chạy `validateEdges` một lần và quản lý như dữ liệu bất biến trong suốt lượt thống kê.
+**Implementation note:** the class includes a `findBucket` matching section 7 so the example stands alone. `EDGES` is a pre-known, strictly increasing config array that **must not be mutated** during processing. If boundaries come from a file, copy them, run `validateEdges` once, and treat them as immutable throughout aggregation.
 
-## 13. Cân nhắc song song và hiệu năng
+## 13. Parallelism and Performance Considerations
 
-Với histogram, công việc mỗi phần tử thường khá nhẹ: xác định khóa và tăng bộ đếm. Có một số cách xử lý, mỗi cách có đánh đổi:
+In histograms, per-element work is usually lightweight: compute bucket key and increment counter. Several approaches exist with trade-offs:
 
-| Cách tiếp cận | Điểm mạnh | Chi phí hoặc giới hạn |
+| Approach | Strengths | Costs or Limits |
 | --- | --- | --- |
-| `IntStream` tuần tự + `long[]` | Ít object, dễ hiểu, ghi vào một mảng | Một luồng xử lý |
-| `IntStream.parallel().collect(...)` với mảng riêng | Có thể chia việc, combiner cộng các mảng | Tạo nhiều mảng và cộng `O(k)` theo số lần gộp |
-| `Stream<Integer>.collect(groupingBy(..., counting()))` | Linh hoạt với nhóm động, downstream | Boxing và Map/Long trung gian |
-| `groupingByConcurrent(..., counting())` | Phù hợp khi không cần encounter order và số nhóm linh hoạt | Có thể tranh chấp khi nhiều giá trị vào cùng khóa |
-| Tự ghi `sharedCounts[index]++` trong `parallel().forEach(...)` | Trông ngắn | **Không an toàn** vì tăng không nguyên tử |
+| Sequential `IntStream` + `long[]` | Few objects, simple, single array | Single-threaded |
+| `IntStream.parallel().collect(...)` with private arrays | Splits work, combiner sums arrays | Allocates arrays and adds `O(k)` per merge |
+| `Stream<Integer>.collect(groupingBy(..., counting()))` | Flexible dynamic buckets and downstreams | Boxing plus Map/Long allocations |
+| `groupingByConcurrent(..., counting())` | Good when encounter order is unneeded and keys are dynamic | Contention when many values hit the same key |
+| Mutating `sharedCounts[index]++` inside `parallel().forEach(...)` | Looks short | **Unsafe**: non-atomic increment |
 
-Ví dụ **không được dùng** với parallel:
+Example **never to use** in parallel:
 
 ```java
 long[] sharedCounts = new long[10];
 
-// SAI: nhiều luồng có thể cập nhật cùng một ô mà không đồng bộ.
+// WRONG: multiple threads may update the same slot without synchronization.
 Arrays.stream(scores)
         .parallel()
         .filter(s -> s >= 0 && s <= 100)
         .forEach(s -> sharedCounts[Math.min(s / 10, 9)]++);
 ```
 
-Mỗi biểu thức `x++` là đọc–tăng–ghi, không phải phép toán nguyên tử; số đếm có thể thấp hơn thực tế.
+Each `x++` is a read–increment–write sequence, not an atomic operation; counts will be lost.
 
-Thay bằng `IntStream.collect` có Supplier tạo mảng riêng và combiner gộp từng ô như phần 4. Nếu thực sự cần cấu trúc chia sẻ đồng thời, có thể dùng `AtomicLongArray` hoặc các bộ đếm đồng thời thích hợp, nhưng việc đồng bộ có overhead và không nhất thiết tốt hơn mảng cục bộ.
+Replace it with `IntStream.collect` supplying private arrays and a slot-wise combiner as in section 4. If concurrent shared counters are genuinely needed, `AtomicLongArray` or specialized concurrent counters work, though synchronization overhead does not always beat thread-local/branch-local arrays.
 
-**Một lưu ý về thứ tự:** histogram tần suất thuần túy thường không cần encounter order vì phép đếm là giao hoán. Tuy nhiên, nếu một bucket đồng thời lưu **ba phần tử đầu tiên** hoặc một chuỗi mô tả theo thứ tự xuất hiện, kết quả không còn đơn thuần là histogram và cần quy tắc bảo toàn thứ tự.
+**A note on order:** pure frequency histograms usually do not need encounter order because counting is commutative. However, if a bucket also retains **the first three samples** or an ordered sequence, the output is no longer purely a histogram and requires order-preserving rules.
 
-Kích thước bộ nhớ cũng quan trọng:
+Memory sizing also matters:
 
-- Mảng đếm `k` khoảng cần `O(k)` trạng thái cho mỗi bộ tích lũy.
-- Map đếm chỉ cần lưu các khoảng đã xuất hiện, thường `O(số khóa thực tế)`.
-- `groupingBy(...)` mặc định lưu danh sách phần tử trong từng nhóm, có thể cần `O(n)` bộ nhớ cho phần tử nguồn.
-- Với cửa sổ thời gian lăn (rolling histogram), phải quyết định cách loại giá trị cũ, không thể chỉ cộng mãi vào cùng histogram nếu muốn đại diện cho một cửa sổ hữu hạn.
+- A `k`-bucket count array uses `O(k)` state per accumulator.
+- A counting Map stores only observed buckets, typically `O(actual keys)`.
+- Default `groupingBy(...)` stores full element lists per bucket, potentially consuming `O(n)` memory.
+- For rolling time-window histograms, you must decide how to expire old values rather than incrementing forever.
 
-Chỉ chạy benchmark trên JDK và khối lượng dữ liệu đại diện sau khi thuật toán đã đúng với tất cả biên.
+Run benchmarks on your target JDK and realistic workloads only after correctness across all boundaries is verified.
 
-## 14. Nguồn I/O và histogram không giữ toàn bộ dữ liệu
+## 14. I/O Sources and Streaming Histograms Without Loading Everything
 
-Với một tệp chứa **mỗi dòng là số nguyên** biểu thị độ trễ, có thể xây histogram ngay khi đọc, tránh nạp toàn bộ tệp thành List:
+For a file containing **one integer per line** representing latency, you can build the histogram while streaming instead of loading the entire file into a List:
 
 ```java
 import java.io.IOException;
@@ -793,23 +793,23 @@ static long[] readHistogram(Path path) throws IOException {
 }
 ```
 
-Giả định tất cả dòng không rỗng đều là số nguyên hợp lệ; nếu dòng có chữ hoặc vượt miền `int`, `Integer.parseInt` sẽ ném `NumberFormatException`. Hệ thống thật cần chính sách ghi nhận số dòng lỗi, loại bỏ hoặc dừng xử lý.
+This assumes every non-empty line is a valid `int`; text or out-of-range numbers cause `Integer.parseInt` to throw `NumberFormatException`. Production systems need an explicit policy to count, skip, or abort on malformed lines.
 
-Điều quan trọng là `Files.lines` tạo một Stream **giữ tài nguyên**, nên phải đóng bằng `try-with-resources`. Terminal `collect` **không tự đóng tệp**; cả khi dữ liệu rỗng, lỗi parse hoặc downstream dừng sớm, vẫn cần giải phóng nguồn.
+Crucially, `Files.lines` returns a Stream **holding an OS resource**, so close it with `try-with-resources`. Terminal `collect` **does not close the file**; even on empty files, parse failures, or short-circuiting downstream, the resource must still be released.
 
-Một số lỗi I/O xảy ra khi duyệt lazy có thể xuất hiện dưới dạng `UncheckedIOException`. Nên phân biệt chúng với lỗi định dạng dữ liệu, không bắt mọi ngoại lệ rồi biến thành một histogram toàn số 0, vì làm như vậy có thể che giấu tệp bị hỏng.
+Lazy I/O errors during traversal may surface as `UncheckedIOException`. Distinguish them from data-format errors, and never catch everything to return an all-zero histogram that hides a corrupted file.
 
-## 15. Bài tập thực hành và tiêu chí kiểm thử
+## 15. Practice Exercises and Test Criteria
 
-### Bài tập A: histogram điểm số có hai nhóm ngoại lệ
+### Exercise A: Score Histogram with Two Outlier Slots
 
-Viết một phương thức nhận `int[]` và trả mảng `long[12]` theo hợp đồng của phần 4. Dùng dữ liệu:
+Write a method accepting `int[]` and returning `long[12]` per section 4's contract. Use:
 
 ```java
 int[] sample = {0, 9, 10, 99, 100, -1, 101};
 ```
 
-Kết quả mong đợi:
+Expected result:
 
 ```text
 bucket 0 (0-9)      = 2
@@ -817,21 +817,21 @@ bucket 1 (10-19)    = 1
 bucket 9 (90-100)   = 2
 underflow           = 1
 overflow            = 1
-tất cả bucket khác  = 0
-tổng số phần tử     = 7
+all other buckets   = 0
+total elements      = 7
 ```
 
-Điều kiện đạt: số lượng ở các bucket và hai ô ngoại lệ cộng lại đúng bằng độ dài nguồn; kết quả giống nhau ở pipeline tuần tự và song song.
+Acceptance criteria: bucket counts plus both outlier slots sum exactly to the source length; sequential and parallel pipelines produce identical arrays.
 
-### Bài tập B: khoảng âm và ranh giới
+### Exercise B: Negative Intervals and Boundaries
 
-Dùng `Math.floorDiv` với độ rộng 10:
+Use `Math.floorDiv` with width 10:
 
 ```java
 int[] samples = {-11, -10, -1, 0, 9, 10};
 ```
 
-Kết quả:
+Result:
 
 ```text
 [-20,-10) -> 1
@@ -840,11 +840,11 @@ Kết quả:
 [ 10, 20) -> 1
 ```
 
-Hãy giải thích vì sao `-1 / 10` không thể thay cho `Math.floorDiv(-1, 10)`.
+Explain why `-1 / 10` cannot replace `Math.floorDiv(-1, 10)`.
 
-### Bài tập C: khoảng không đều
+### Exercise C: Variable-Width Intervals
 
-Với `edges = {0,10,25,50,100}`, xác minh:
+With `edges = {0, 10, 25, 50, 100}`, verify:
 
 ```text
 findBucket(-1)   = -1
@@ -859,51 +859,51 @@ findBucket(99)   = 3
 findBucket(100)  = -1
 ```
 
-Thử truyền ranh giới trùng hoặc giảm dần và xác minh `validateEdges` từ chối cấu hình.
+Test duplicate or decreasing boundaries and verify `validateEdges` rejects the configuration.
 
-### Bài tập D: đếm histogram nhiều mức độ trễ
+### Exercise D: Multi-Band Latency Histogram
 
-Mở rộng `LatencyHistogram` để trả một đối tượng gồm `total, accepted, underflow, overflow` và `bins`. Ghi nhãn từ `edges`, đếm số trường hợp dưới/trên miền, rồi xuất một bảng có cả nhóm số lượng bằng 0. Khi dùng báo cáo trong môi trường thật, hãy định nghĩa điều gì xảy ra nếu cấu hình ranh giới thay đổi giữa hai lượt chạy.
+Extend `LatencyHistogram` to return an object holding `total`, `accepted`, `underflow`, `overflow`, and `bins`. Generate labels from `edges`, track below/above-range counts, and print a table including zero-count buckets. In real production reports, define what happens if boundary config changes between two runs.
 
-## 16. Những lỗi thường gặp
+## 16. Common Pitfalls
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `value / width` cho số âm | `-1` có thể rơi vào bucket 0 | Dùng `Math.floorDiv` |
-| Không quy định điểm bằng cận trên | Đếm sai `100` hoặc tạo bucket thừa | Chọn `[min,max)` hoặc ngoại lệ nhóm cuối tường minh |
-| Đưa outlier vào nhóm cuối không báo | Che giấu dữ liệu không hợp lệ | Underflow/overflow riêng hoặc báo lỗi |
-| Dùng `groupingBy` và mong mọi khoảng đều có key | Bucket rỗng không xuất hiện | Bổ sung từ cấu hình hoặc dùng mảng |
-| `toMap` hai tham số cho nhiều giá trị chung khoảng | `IllegalStateException` do khóa trùng | `groupingBy(counting)` hoặc merge function |
-| `Map.get(missingKey)` rồi coi null là 0 | Có thể gây `NullPointerException` hoặc nhầm nghĩa | `getOrDefault` hoặc biểu diễn dữ liệu rỗng rõ ràng |
-| Lấy phần trăm chia cho toàn bộ đầu vào nhưng ghi “trên điểm hợp lệ” | Tỷ trọng không khớp định nghĩa | Xác định mẫu số và ghi nhãn |
-| `counts[index]++` từ `parallel().forEach` | Data race, mất lần đếm | Bộ tích lũy riêng qua `collect` |
-| Supplier trả cùng mảng mutable trong các nhánh | Tranh chấp hoặc gộp chính nó | Tạo mảng mới mỗi lần |
-| `Double.NaN` hoặc Infinity không được kiểm tra | Quy tắc phân khoảng không rõ | Kiểm tra `Double.isFinite` |
-| Cắt `double` sang `int` để “làm tròn xuống” | Sai với số âm, có thể vượt miền | `Math.floor` và xác thực miền |
-| Tạo bins từ ranh giới chưa sắp xếp | Binary search trả nhóm sai | `validateEdges` trước pipeline |
-| Sửa mảng edges khi pipeline đang chạy | Các giá trị cùng miền có thể vào nhóm khác nhau | Cấu hình bất biến trong lượt xử lý |
-| Dùng `groupingBy` mặc định để giữ tất cả bản ghi khi chỉ cần count | Bộ nhớ `O(n)` không cần thiết | Downstream `counting` hoặc `long[]` |
-| Dùng `parallel()` chỉ vì dữ liệu là số | Overhead có thể vượt lợi ích | Đo sau khi thuật toán đúng |
-| Đọc `Files.lines` mà không đóng | Giữ tài nguyên I/O | `try-with-resources` |
+| Using `value / width` on negatives | `-1` lands in bucket 0 | Use `Math.floorDiv` |
+| Leaving upper bound undefined | Miscounts `100` or adds an extra bucket | Pick `[min, max)` or explicit final-bucket rule |
+| Folding outliers into end buckets silently | Masks invalid data | Track separate underflow/overflow or fail |
+| Expecting `groupingBy` to emit empty keys | Zero-count buckets are absent | Populate from config or use arrays |
+| Two-arg `toMap` when multiple values share a bucket | `IllegalStateException` on duplicate key | Use `groupingBy(counting)` or a merge function |
+| Treating `Map.get(missingKey)` null as 0 carelessly | Risks `NullPointerException` or ambiguity | Use `getOrDefault` or explicit empty entries |
+| Dividing by total input while labeling "of valid scores" | Percentages contradict definition | Define denominator and label clearly |
+| `counts[index]++` inside `parallel().forEach` | Data race, lost increments | Private accumulators via `collect` |
+| Supplier returning the same mutable array | Contention or self-merging corruption | Allocate a fresh array per supplier call |
+| Skipping `Double.NaN` or Infinity checks | Undefined bucketing behavior | Filter/check `Double.isFinite` |
+| Casting `double` to `int` to "floor" | Wrong for negatives, risks range truncation | Use `Math.floor` and validate range |
+| Building bins from unsorted boundaries | Binary search returns wrong buckets | Call `validateEdges` before pipeline |
+| Mutating edges array mid-pipeline | Same-range values land in different buckets | Keep config immutable during run |
+| Default `groupingBy` storing lists when only counts needed | Unnecessary `O(n)` memory | Use `counting` downstream or `long[]` |
+| Adding `parallel()` just because data is numeric | Overhead can exceed speedup | Benchmark after proving correctness |
+| Reading `Files.lines` without closing | Leaks OS file handles | Use `try-with-resources` |
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-Check Questions
 
-1. Histogram trả lời câu hỏi gì? **Số lượng hoặc tỷ lệ phần tử nằm trong từng khoảng giá trị**.
-2. Quy ước `[10,20)` có nhận giá trị 20 không? **Không**, nhưng nhận 10.
-3. Trong chính sách 10 mức điểm 0–100, tại sao điểm 100 cần xử lý riêng? **Vì 100/10 = 10, vượt chỉ số 0..9**.
-4. Vì sao `groupingBy(counting())` có thể không có khóa của một khoảng? **Vì không phần tử nào tạo ra khóa đó**.
-5. Khi nào cần `boxed()`? **Khi chuyển IntStream thành Stream<Integer> để dùng Collector object như groupingBy**.
-6. Vì sao `IntStream.collect` dùng ba hàm? **Nó tạo bộ tích lũy mutable, tích lũy từng int và gộp hai bộ chứa**.
-7. Mảng `long[12]` trong ví dụ dùng hai ô cuối cho gì? **Điểm dưới 0 và điểm trên 100**.
-8. Vì sao `Math.floorDiv(-1,10)` đúng hơn `-1/10`? **Vì nó làm tròn xuống về -1, đúng khoảng [-10,0)**.
-9. Nhãn của một nhóm số âm có chỉ số -2, gốc 0 và bước 10 là gì? **[-20,-10)**.
-10. Với mảng ranh giới, giá trị đúng bằng cận trái vào nhóm nào? **Nhóm bắt đầu tại cận đó**, trừ cận trên cuối cùng nằm ngoài miền.
-11. Tại sao nên kiểm tra mảng ranh giới trước pipeline? **Vì binarySearch yêu cầu tăng dần và việc kiểm tra mỗi giá trị rất lãng phí**.
-12. `Double.NaN` nên đưa vào bucket 0 không? **Không**, cần chính sách missing/invalid riêng.
-13. Nếu các khoảng rộng khác nhau, chỉ so sánh raw count có thể gây nhầm gì? **Khoảng rộng thường chứa nhiều điểm hơn dù mật độ thấp**.
-14. `partitioningBy` có thay `groupingBy` khi cần 10 khoảng không? **Không**, nó chỉ phân thành true/false.
-15. Nếu chỉ cần count theo bucket, tại sao không nên `groupingBy` mặc định ra List? **Vì nó giữ các phần tử trong bộ nhớ không cần thiết**.
-16. Có thể cập nhật chung một `long[]` bằng `parallel().forEach` an toàn không? **Không**, tăng ô mảng không nguyên tử.
-17. Khi nguồn là `Files.lines`, `collect` có tự đóng tệp không? **Không**, phải dùng `try-with-resources`.
+1. What question does a histogram answer? **The count or share of elements falling into each value interval**.
+2. Does `[10, 20)` include 20? **No**, though it includes 10.
+3. In a 10-band 0–100 policy, why does 100 need special handling? **Because `100 / 10 = 10`, outside indices `0..9`**.
+4. Why can `groupingBy(counting())` omit a bucket key? **Because no element produced that key**.
+5. When is `boxed()` needed? **When converting `IntStream` to `Stream<Integer>` for object collectors like `groupingBy`**.
+6. Why does `IntStream.collect` take three functions? **To create a mutable container, accumulate each `int`, and combine two containers**.
+7. What do the last two slots of `long[12]` represent in the example? **Scores below 0 and scores above 100**.
+8. Why is `Math.floorDiv(-1, 10)` right while `-1 / 10` is wrong? **It floors to `-1`, matching `[-10, 0)`**.
+9. What is the label for bucket index `-2` with origin `0` and step `10`? **`[-20, -10)`**.
+10. With an edges array, which bucket gets a value equal to a left edge? **The bucket starting at that edge**, except the final upper bound which is out of range.
+11. Why validate the edges array before the pipeline? **Because `binarySearch` requires ascending order and validating per element is wasteful**.
+12. Should `Double.NaN` go into bucket 0? **No**; define a separate missing/invalid policy.
+13. When bucket widths differ, what error does comparing raw counts cause? **Wider intervals appear taller even when density is lower**.
+14. Can `partitioningBy` replace `groupingBy` for 10 buckets? **No**; it only splits into `true`/`false`.
+15. If you only need counts per bucket, why avoid default `groupingBy` to Lists? **It buffers all elements in memory needlessly**.
+16. Is updating one shared `long[]` in `parallel().forEach` safe? **No**; array-slot increments are non-atomic.
+17. When the source is `Files.lines`, does `collect` close the file? **No**; use `try-with-resources`.
 
-**Nguyên tắc áp dụng:** Tạo histogram đúng bắt đầu từ **định nghĩa khoảng và ranh giới**, rồi mới chọn `groupingBy(..., counting())` hay `IntStream.collect` với mảng đếm. Hãy quy định rõ nhóm rỗng, điểm biên, giá trị âm, outlier, dữ liệu thiếu và mẫu số của tỷ lệ phần trăm. Khi tối ưu, bảo đảm accumulator/combiner đúng hợp đồng, cấu hình bất biến, nguồn I/O được đóng, và chỉ dùng parallel khi phép đo trên dữ liệu thực cho thấy lợi ích.
+**Guiding rule:** Correct histograms begin with **defining intervals and boundaries**, then choosing between `groupingBy(..., counting())` and `IntStream.collect` with a count array. Explicitly define empty buckets, boundary points, negative values, outliers, missing data, and percentage denominators. When optimizing, keep accumulators/combiners contract-compliant, configuration immutable, I/O streams closed, and use parallelism only when benchmarks on real data prove a benefit.

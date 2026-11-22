@@ -1,43 +1,43 @@
-# BigDecimal không có NaN hoặc vô cực trong Java
+# BigDecimal Has No NaN or Infinity in Java
 
-`BigDecimal` và `double` đều biểu diễn số, nhưng **không có cùng tập giá trị**. Các kiểu dấu phẩy động nhị phân `double`/`float` theo IEEE 754 hỗ trợ ba loại giá trị đặc biệt: **NaN** (*Not a Number*), **dương vô cực** (`+Infinity`) và **âm vô cực** (`-Infinity`). `java.math.BigDecimal` **không có bất kỳ giá trị nào trong ba loại đó**; nó dùng số nguyên unscaled và scale để biểu diễn các **giá trị thập phân hữu hạn**, với miền độ lớn thực tế bị giới hạn bởi tài nguyên và kiểu `int` của scale.
+`BigDecimal` and `double` both represent numbers, yet they **do not share the same value set**. The IEEE 754 binary floating-point types `double`/`float` support three kinds of special values: **NaN** (*Not a Number*), **positive infinity** (`+Infinity`), and **negative infinity** (`-Infinity`). `java.math.BigDecimal` **has none of those three values**; it uses an unscaled integer and a scale to represent **finite decimal values**, with practical magnitude range limited by resources and the `int` type of scale.
 
-Hậu quả quan trọng:
+Important consequences:
 
-- Không tạo được một `BigDecimal` “chứa NaN” hoặc “chứa Infinity” bằng constructor hay `valueOf(double)`.
-- Các phép `BigDecimal` không dùng vô cực để biểu diễn phép chia cho zero; chúng **ném `ArithmeticException`**.
-- `BigDecimal` rất lớn/nhỏ vẫn hữu hạn trong mô hình decimal, nhưng khi gọi `doubleValue()` có thể bị chuyển thành `Infinity` hoặc `0.0` do giới hạn của binary64.
-- Khi một API dùng `double` giao dữ liệu cho tầng `BigDecimal`, phải **xác thực số hữu hạn trước khi chuyển** và chọn chính sách lỗi rõ ràng.
+- You cannot construct a `BigDecimal` "containing NaN" or "containing Infinity" via constructors or `valueOf(double)`.
+- `BigDecimal` operations do not use infinity to represent division by zero; they **throw `ArithmeticException`**.
+- Very large/small `BigDecimal` values remain finite in the decimal model, yet calling `doubleValue()` can convert them to `Infinity` or `0.0` due to binary64 limits.
+- When an API using `double` hands data to a `BigDecimal` layer, you must **validate finite numbers before converting** and choose an explicit error policy.
 
-Bài Knowledge thuộc nhóm **Mô hình BigDecimal** của Java Core, trình bày cơ chế và ví dụ Java 17+ kiểm chứng từng ranh giới.
+This Knowledge article belongs to the **BigDecimal Model** group of Java Core, presenting mechanisms and Java 17+ examples verifying each boundary.
 
-## 1. Tập giá trị: BigDecimal so với double
+## 1. Value Set: BigDecimal vs. double
 
-Một đối tượng `BigDecimal` được mô tả bằng cặp `unscaledValue`, `scale`, với công thức:
+A `BigDecimal` object is described by an `unscaledValue`, `scale` pair, with the formula:
 
 ~~~text
 value = unscaledValue × 10^(-scale)
 ~~~
 
-Trong đó `unscaledValue` là một số nguyên `BigInteger` và `scale` là số nguyên `int`. Với một cặp hợp lệ và có thể xây được, kết quả là một số thập phân hữu hạn; **không có mã đặc biệt để biểu diễn NaN hoặc vô cực**.
+Here `unscaledValue` is a `BigInteger` and `scale` is an `int`. For a valid and constructible pair, the result is a finite decimal number; **there is no special code to represent NaN or infinity**.
 
-| Thuộc tính | `double` / `float` | `BigDecimal` |
+| Property | `double` / `float` | `BigDecimal` |
 | --- | --- | --- |
-| Biểu diễn | IEEE 754 binary64/binary32 | Decimal qua unscaled integer và scale |
-| NaN | Có | **Không** |
-| `+Infinity`, `-Infinity` | Có | **Không** |
-| Số 0 có dấu `+0.0`/`-0.0` | Phân biệt được dấu ở biểu diễn bit | **Không giữ riêng negative zero** |
-| Số hữu hạn rất lớn | Có giới hạn exponent và độ chính xác nhị phân | Không có giới hạn exponent kiểu binary64; vẫn chịu giới hạn scale `int` và bộ nhớ |
-| `1.0 / 0.0` | `Infinity` | `divide(BigDecimal.ZERO)` ném `ArithmeticException` |
-| `0.0 / 0.0` | `NaN` | `BigDecimal.ZERO.divide(BigDecimal.ZERO)` ném `ArithmeticException` |
-| Giá trị 1/3 chính xác ở decimal hữu hạn | Không biểu diễn chính xác | `divide` không rounding ném lỗi; có thể tính xấp xỉ với chính sách |
-| Kiểu dữ liệu kết quả | Primitive `double` hoặc `float` | Object `BigDecimal` bất biến |
+| Representation | IEEE 754 binary64/binary32 | Decimal via unscaled integer and scale |
+| NaN | Yes | **No** |
+| `+Infinity`, `-Infinity` | Yes | **No** |
+| Signed zero `+0.0`/`-0.0` | Sign distinguishable in bit representation | **Does not retain a separate negative zero** |
+| Very large finite numbers | Has binary exponent and precision limits | No binary64-style exponent limit; still subject to `int` scale and memory limits |
+| `1.0 / 0.0` | `Infinity` | `divide(BigDecimal.ZERO)` throws `ArithmeticException` |
+| `0.0 / 0.0` | `NaN` | `BigDecimal.ZERO.divide(BigDecimal.ZERO)` throws `ArithmeticException` |
+| Exact 1/3 in finite decimal | Not represented exactly | `divide` without rounding throws error; can approximate with policy |
+| Result data type | Primitive `double` or `float` | Immutable `BigDecimal` object |
 
-Không thể suy ra rằng “BigDecimal chính xác hơn” nghĩa là nó hỗ trợ mọi trạng thái của IEEE 754. **Độ chính xác và tập giá trị là hai vấn đề khác nhau.** `BigDecimal` thường thích hợp với số tiền và decimal cố định; `double` thích hợp nhiều phép đo và tính toán số học cần dải exponent rộng, đồng thời mang các giá trị đặc biệt.
+One cannot infer that "BigDecimal is more accurate" means it supports every IEEE 754 state. **Precision and value set are two different concerns.** `BigDecimal` generally fits money and fixed decimals; `double` fits many measurements and numerical computations requiring wide exponent ranges alongside special values.
 
-## 2. NaN và Infinity có thể xuất hiện trong double như thế nào?
+## 2. How Can NaN and Infinity Appear in double?
 
-Trong Java, các biểu thức dấu phẩy động có thể tạo ra giá trị không hữu hạn:
+In Java, floating-point expressions can produce non-finite values:
 
 ~~~java
 double nan = 0.0 / 0.0;         // NaN
@@ -49,24 +49,24 @@ System.out.println(Double.isInfinite(positive)); // true
 System.out.println(Double.isFinite(negative));   // false
 ~~~
 
-NaN còn có thể xuất hiện từ `Math.sqrt(-1.0)` hoặc `Infinity - Infinity`. Infinity có thể xuất hiện khi phép tính `double` bị overflow. Đây là những kết quả hợp lệ theo ngữ nghĩa dấu phẩy động, **không nhất thiết là ngoại lệ Java được ném**.
+NaN can also arise from `Math.sqrt(-1.0)` or `Infinity - Infinity`. Infinity can arise when a `double` calculation overflows. These are valid results per floating-point semantics, **not necessarily Java exceptions thrown**.
 
-Ba công cụ nên nhớ:
+Three utilities to remember:
 
-- `Double.isNaN(x)`: xác định NaN, thay vì `x == Double.NaN` (luôn false với NaN).
-- `Double.isInfinite(x)`: xác định dương hoặc âm vô cực.
-- `Double.isFinite(x)`: true nếu và chỉ nếu không phải NaN/vô cực.
+- `Double.isNaN(x)`: detects NaN, instead of `x == Double.NaN` (which is always false for NaN).
+- `Double.isInfinite(x)`: detects positive or negative infinity.
+- `Double.isFinite(x)`: true if and only if neither NaN nor infinite.
 
-Có API tương ứng trên `Float`. `Double.isFinite(-0.0)` vẫn là true: số 0, dù có dấu âm trong binary64, là một giá trị **hữu hạn**.
+Corresponding APIs exist on `Float`. `Double.isFinite(-0.0)` is still true: 0, even with a negative sign in binary64, is a **finite** value.
 
-Không dùng `x != x` thay `isNaN` trong mã nghiệp vụ nếu có API trực tiếp; cách đó khó đọc và dễ khiến người bảo trì bỏ lỡ ý định xác thực.
+Do not use `x != x` instead of `isNaN` in business code when a direct API exists; that style is harder to read and makes it easy for maintainers to miss validation intent.
 
-## 3. Tạo BigDecimal từ NaN hoặc Infinity sẽ lỗi
+## 3. Creating BigDecimal from NaN or Infinity Fails
 
-Các cách tạo đối tượng không thể biến trạng thái không hữu hạn thành một giá trị `BigDecimal`:
+Object creation methods cannot turn a non-finite state into a `BigDecimal` value:
 
 ~~~java
-// Mỗi lời gọi sau ném NumberFormatException:
+// Each of the following calls throws NumberFormatException:
 new BigDecimal(Double.NaN);
 new BigDecimal(Double.POSITIVE_INFINITY);
 BigDecimal.valueOf(Double.NaN);
@@ -75,9 +75,9 @@ new BigDecimal("NaN");
 new BigDecimal("Infinity");
 ~~~
 
-**`NumberFormatException`** trong các trường hợp này thể hiện rằng đầu vào không thể là một biểu diễn `BigDecimal` hợp lệ. Constructor `BigDecimal(double)` không chấp nhận NaN/Infinity; `BigDecimal.valueOf(double)` dùng `Double.toString(double)`, nhưng dạng chuỗi `"NaN"` hoặc `"Infinity"` cũng không được constructor chuỗi của `BigDecimal` chấp nhận.
+**`NumberFormatException`** in these cases indicates that the input cannot be a valid `BigDecimal` representation. The `BigDecimal(double)` constructor rejects NaN/Infinity; `BigDecimal.valueOf(double)` uses `Double.toString(double)`, yet string forms `"NaN"` or `"Infinity"` are also rejected by `BigDecimal`'s string constructor.
 
-Điểm phân biệt quan trọng:
+Important distinction:
 
 ~~~java
 Double.parseDouble("NaN");         // Double.NaN
@@ -87,13 +87,13 @@ Double.parseDouble("Infinity");    // Double.POSITIVE_INFINITY
 // new BigDecimal("Infinity"); // NumberFormatException
 ~~~
 
-**Cùng một văn bản không nhất thiết được hai parser chấp nhận.** `Double.parseDouble` phục vụ kiểu `double` với các giá trị đặc biệt; `BigDecimal(String)` yêu cầu cú pháp số thập phân hữu hạn hợp lệ. Không cố parse chuỗi đặc biệt thành decimal rồi giả định ngoại lệ đồng nghĩa giá trị bằng zero.
+**The same text is not necessarily accepted by both parsers.** `Double.parseDouble` serves `double` with special values; `BigDecimal(String)` requires valid finite decimal number syntax. Do not attempt to parse special strings into decimal and assume an exception means a value of zero.
 
-Cũng không phải `BigDecimal.valueOf(Double.MAX_VALUE)` là vô cực. `Double.MAX_VALUE` vẫn là giá trị **hữu hạn** (dù rất lớn) và có thể chuyển sang `BigDecimal`. Ngoại lệ chỉ xảy ra khi **giá trị double đầu vào đã là NaN hoặc ±Infinity** hoặc không thể chuyển đổi theo các giới hạn khác của API.
+Nor is `BigDecimal.valueOf(Double.MAX_VALUE)` infinite. `Double.MAX_VALUE` is still a **finite** value (though very large) and can be converted to `BigDecimal`. An exception occurs only when **the input double value is already NaN or ±Infinity** or cannot be converted under other API limits.
 
-## 4. Chia cho zero: ArithmeticException thay vì Infinity hoặc NaN
+## 4. Division by Zero: ArithmeticException Instead of Infinity or NaN
 
-So sánh phép chia cùng biểu thức toán học:
+Compare division on the same mathematical expressions:
 
 ~~~java
 double infinity = 1.0 / 0.0; // Infinity
@@ -103,11 +103,11 @@ double undefined = 0.0 / 0.0; // NaN
 // BigDecimal.ZERO.divide(BigDecimal.ZERO); // ArithmeticException
 ~~~
 
-`BigDecimal` không có phần tử vô cực/NaN trong tập giá trị, nên không có một đối tượng hợp lệ để biểu diễn các kết quả ấy. Với phép chia cho zero, hành vi là **ném ngoại lệ**.
+`BigDecimal` has no infinity/NaN element in its value set, so there is no valid object to represent those results. For division by zero, the behavior is to **throw an exception**.
 
-Với `BigDecimal.ZERO.divide(BigDecimal.ZERO)`, thông báo exception có thể khác trường hợp `BigDecimal.ONE.divide(BigDecimal.ZERO)`; không dùng `getMessage()` như một mã lỗi nghiệp vụ ổn định. Nên bắt theo **loại ngoại lệ** hoặc — tốt hơn — kiểm tra tiền điều kiện `divisor.signum() == 0` trước khi tính nếu cần thông báo dễ hiểu.
+For `BigDecimal.ZERO.divide(BigDecimal.ZERO)`, the exception message may differ from `BigDecimal.ONE.divide(BigDecimal.ZERO)`; do not rely on `getMessage()` as a stable business error code. Catch by **exception type** or — better yet — check the precondition `divisor.signum() == 0` before computing if an understandable message is needed.
 
-Ví dụ phương thức kiểm tra mẫu số:
+Example denominator-checking method:
 
 ~~~java
 static BigDecimal safeDivide(
@@ -122,9 +122,9 @@ static BigDecimal safeDivide(
 }
 ~~~
 
-Đây là **phương thức minh họa trong một class**; caller cần kiểm tra null hoặc định nghĩa chính sách null phù hợp. Truyền `denominator = null` vào `denominator.signum()` vẫn sẽ ném `NullPointerException`; validation không thể tự động thay thế hợp đồng null.
+This is an **illustrative method inside a class**; the caller must check for null or define an appropriate null policy. Passing `denominator = null` to `denominator.signum()` will still throw `NullPointerException`; validation cannot automatically replace a null contract.
 
-**Một lỗi khác cùng lớp ngoại lệ:** phép chia **không có khai triển thập phân hữu hạn** cũng có thể ném `ArithmeticException` khi không chỉ định rounding. Ví dụ `BigDecimal.ONE.divide(new BigDecimal("3"))` không có nghiệm decimal hữu hạn; nó ném lỗi dù mẫu số khác zero.
+**Another error of the same exception class:** division **without a finite decimal expansion** can also throw `ArithmeticException` when no rounding is specified. For example, `BigDecimal.ONE.divide(new BigDecimal("3"))` has no finite decimal solution; it throws an error even though the denominator is non-zero.
 
 ~~~java
 BigDecimal third = BigDecimal.ONE.divide(
@@ -134,18 +134,18 @@ BigDecimal third = BigDecimal.ONE.divide(
 // third = 0.33333
 ~~~
 
-Đặt scale và rounding mode phù hợp sẽ xử lý **kết quả chia lặp vô hạn về thập phân**, **không** khiến phép chia cho zero trở nên hợp lệ.
+Specifying an appropriate scale and rounding mode handles **infinitely repeating decimal division results**, and does **not** make division by zero valid.
 
-## 5. BigDecimal cực lớn vẫn hữu hạn — nhưng double có thể là Infinity
+## 5. A Huge BigDecimal Is Still Finite — Yet double Can Be Infinity
 
-Một `BigDecimal` có thể biểu diễn `10^400` bằng:
+A `BigDecimal` can represent `10^400` via:
 
 ~~~java
 BigDecimal huge = new BigDecimal("1E+400");
 System.out.println(huge); // 1E+400
 ~~~
 
-Nó có một unscaled value hữu hạn và scale âm, nên là số thập phân hợp lệ. Nhưng kiểu `double` chỉ có dải exponent hữu hạn. Khi chuyển:
+It has a finite unscaled value and a negative scale, so it is a valid decimal number. However, `double` only has a finite exponent range. When converting:
 
 ~~~java
 double narrowed = huge.doubleValue();
@@ -153,9 +153,9 @@ System.out.println(narrowed);                 // Infinity
 System.out.println(Double.isFinite(narrowed)); // false
 ~~~
 
-**Không có mâu thuẫn** với tiêu đề bài: đối tượng `BigDecimal` vẫn giữ giá trị hữu hạn `1E+400`; chỉ có **kết quả của phép chuyển kiểu sang `double`** là Infinity vì vượt phạm vi số hữu hạn binary64.
+**There is no contradiction** with the article's title: the `BigDecimal` object still holds the finite value `1E+400`; only the **result of converting to `double`** is Infinity because it exceeds the finite range of binary64.
 
-Ngược lại, một decimal cực nhỏ cũng có thể làm mất thông tin khi chuyển sang binary64:
+Conversely, a tiny decimal can also lose information when converted to binary64:
 
 ~~~java
 BigDecimal tiny = new BigDecimal("1E-400");
@@ -163,19 +163,19 @@ double narrowed = tiny.doubleValue();
 System.out.println(narrowed); // 0.0
 ~~~
 
-Ở đây `tiny` khác zero về toán học, nhưng sau narrowing thành `double` nó underflow về 0.0. Một kết quả `double` **hữu hạn** (ví dụ 0.0) chưa chắc giữ nguyên giá trị decimal đầu vào.
+Here `tiny` is mathematically non-zero, yet after narrowing to `double` it underflows to 0.0. A **finite** `double` result (such as 0.0) does not necessarily preserve the input decimal value.
 
-`BigDecimal.floatValue()` cũng có nguy cơ tương tự, với dải hữu hạn còn hẹp hơn. Khi hợp đồng cần giữ giá trị decimal chính xác, hãy **tiếp tục tính toán bằng BigDecimal** và xuất dưới dạng decimal thích hợp thay vì ép sang `float`/`double`.
+`BigDecimal.floatValue()` carries the same risk, with an even narrower finite range. When a contract requires preserving exact decimal values, **keep computing with BigDecimal** and output in an appropriate decimal form instead of narrowing to `float`/`double`.
 
-Không có `doubleValueExact()` như `intValueExact()` cho số nguyên. Nếu cần kiểm tra conversion decimal→double, bạn phải đặt tiêu chí phù hợp cho phạm vi, độ chính xác được phép mất và các trạng thái không hữu hạn.
+There is no `doubleValueExact()` like `intValueExact()` for integers. If you need to verify a decimal→double conversion, you must set appropriate criteria for range, allowable precision loss, and non-finite states.
 
-## 6. Không đồng nhất “giá trị hữu hạn” với “giá trị chính xác khi qua double”
+## 6. Do Not Equate "Finite Value" with "Exact Value After Passing Through double"
 
-Có ba tình huống độc lập cần phân biệt:
+Three independent situations must be distinguished:
 
-1. **`double` hữu hạn nhưng xấp xỉ giá trị decimal mong đợi**, ví dụ literal `0.1` là một biểu diễn binary64 gần 1/10.
-2. **`BigDecimal` hữu hạn và chính xác như chuỗi decimal**, ví dụ `new BigDecimal("0.1")` giữ đúng 1/10.
-3. **`BigDecimal` hữu hạn nhưng chuyển sang `double` bị overflow/underflow/làm tròn**, ví dụ `1E+400` thành Infinity hoặc `1E-400` thành 0.0.
+1. **Finite `double` yet approximating the expected decimal value**, e.g., literal `0.1` is a binary64 representation near 1/10.
+2. **Finite `BigDecimal` and exact per decimal string**, e.g., `new BigDecimal("0.1")` holds exact 1/10.
+3. **Finite `BigDecimal` yet converting to `double` overflows/underflows/rounds**, e.g., `1E+400` becomes Infinity or `1E-400` becomes 0.0.
 
 ~~~java
 BigDecimal exact = new BigDecimal("0.1");
@@ -183,13 +183,13 @@ BigDecimal binaryExact = new BigDecimal(0.1);
 BigDecimal canonical = BigDecimal.valueOf(0.1);
 ~~~
 
-`exact` là 0.1 decimal chính xác; `binaryExact` giữ đúng giá trị binary64 của `double 0.1` nên có đuôi dài; `canonical` dựa trên dạng chuỗi round-trip của `Double.toString(0.1)`, thường là lựa chọn hợp lý khi dữ liệu bắt buộc đã đến dưới dạng `double` hữu hạn. Không có cách nào trong số đó “nâng” NaN hoặc Infinity thành một `BigDecimal` hợp lệ.
+`exact` is exact decimal 0.1; `binaryExact` keeps the exact binary64 value of `double 0.1`, hence a long tail; `canonical` relies on the round-trip string form of `Double.toString(0.1)`, generally a sensible choice when data unavoidably arrives as a finite `double`. None of those approaches "upgrades" NaN or Infinity into a valid `BigDecimal`.
 
-**Chú ý nguồn dữ liệu:** nếu một chuỗi đầu vào là `"1E+400"`, `new BigDecimal("1E+400")` biểu diễn số hữu hạn lớn trực tiếp. Nếu parse nó thành `double` trước, `Double.parseDouble("1E+400")` có thể trả Infinity, và bạn đã mất cơ hội chuyển tiếp giá trị decimal chính xác đó qua pipeline `double`.
+**Watch the data source:** if an input string is `"1E+400"`, `new BigDecimal("1E+400")` represents the large finite number directly. If parsed into `double` first, `Double.parseDouble("1E+400")` may return Infinity, and you have lost the chance to forward that exact decimal value through a `double` pipeline.
 
-## 7. Thiết kế ranh giới API an toàn
+## 7. Designing Safe API Boundaries
 
-Khi một đầu vào `double` được phép chuyển sang `BigDecimal` **chỉ khi hữu hạn**, hãy kiểm tra ở ranh giới:
+When a `double` input is permitted to convert to `BigDecimal` **only when finite**, validate at the boundary:
 
 ~~~java
 static BigDecimal requireFinite(double value) {
@@ -200,11 +200,11 @@ static BigDecimal requireFinite(double value) {
 }
 ~~~
 
-Phương thức trên thực sự tạo decimal khi giá trị `double` hữu hạn. Nó **không đảm bảo** decimal vừa tạo bằng giá trị thập phân con người dự định trước các phép tính `double`; cũng không bảo đảm decimal không sai số. Nó chỉ tránh trường hợp NaN/vô cực bị đưa vào constructor không hỗ trợ.
+The method above indeed creates a decimal when the `double` value is finite. It **does not guarantee** the created decimal equals the human-intended decimal value prior to `double` calculations; nor does it guarantee an error-free decimal. It only prevents NaN/infinity from being passed into a constructor that does not support them.
 
-Khi đầu vào từ chuỗi, có thể tạo `new BigDecimal(text)` trực tiếp, sau khi xác thực null, cú pháp, độ dài, scale, số chữ số và miền nghiệp vụ. Việc parse chuỗi có thể ném `NumberFormatException` vì nhiều lý do, không chỉ NaN/vô cực.
+When input comes from a string, you can construct `new BigDecimal(text)` directly, after validating null, syntax, length, scale, digit count, and business range. String parsing can throw `NumberFormatException` for many reasons, not just NaN/infinity.
 
-Khi kết quả decimal sắp đi tới một API nhận `double`, hãy xem xét cả hai bước:
+When a decimal result is about to go to an API taking `double`, consider both steps:
 
 ~~~java
 BigDecimal amount = new BigDecimal("1E+400");
@@ -214,13 +214,13 @@ if (!Double.isFinite(output)) {
 }
 ~~~
 
-Kiểm tra này phát hiện overflow ra Infinity, nhưng **không đủ** để loại các phép chuyển hữu hạn song mất precision hoặc underflow về 0.0. Nếu cần *exact round-trip*, hãy giữ một contract rõ về giá trị và biểu diễn; chẳng hạn chuyển lại và so sánh theo miền dữ liệu, trong đó phải lưu ý ngữ nghĩa scale và các giá trị đặc biệt.
+This check detects overflow to Infinity, yet **is insufficient** to rule out finite conversions that lose precision or underflow to 0.0. If an *exact round-trip* is required, maintain an explicit contract on value and representation; for example, convert back and compare per data domain, keeping scale semantics and special values in mind.
 
-Nếu tầng nhận dữ liệu vẫn cần biểu diễn NaN hoặc vô cực như một trạng thái nghiệp vụ, **đừng dùng BigDecimal làm “container” cho các trạng thái đó**. Tạo kiểu kết quả có phân biệt *giá trị hữu hạn*, *thiếu dữ liệu*, *không xác định* hoặc *vượt phạm vi*.
+If the receiving layer still needs to represent NaN or infinity as a business state, **do not use BigDecimal as a "container" for those states**. Create a result type that distinguishes *finite value*, *missing data*, *undefined*, or *out of range*.
 
-## 8. Chương trình Java 17+ có thể biên dịch và chạy
+## 8. Compilable and Runnable Java 17+ Program
 
-Tạo tệp `DecimalFiniteDemo.java`:
+Create file `DecimalFiniteDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -301,14 +301,14 @@ public class DecimalFiniteDemo {
 }
 ~~~
 
-Chạy trên Java 17 trở lên:
+Run on Java 17 or higher:
 
 ~~~bash
 javac DecimalFiniteDemo.java
 java DecimalFiniteDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 Double NaN detected = true
@@ -339,39 +339,39 @@ finite guard 2.5 = 2.5
 finite guard Infinity = IllegalArgumentException
 ~~~
 
-Đọc output theo cơ chế:
+Reading the output by mechanism:
 
-- Các constructor/factory từ NaN và Infinity ném **`NumberFormatException`**, vì không có đối tượng `BigDecimal` tương ứng.
-- Các phép chia `BigDecimal` không được phép theo ngữ nghĩa decimal hữu hạn ném **`ArithmeticException`**; một phép chia `1/3` với scale và rounding cụ thể có thể cho số decimal hữu hạn xấp xỉ.
-- `huge` và `tiny` là **hai BigDecimal hợp lệ và hữu hạn**; vấn đề chỉ xuất hiện khi gọi `doubleValue()`. Trường hợp dưới 0 nhưng rất nhỏ chuyển thành 0.0 mà `Double.isFinite` vẫn true, cho thấy **finite check không đồng nghĩa exactness check**.
-- `new BigDecimal("-0.00")` giữ scale hai chữ số nhưng giá trị in là `0.00`; không có mã negative-zero riêng theo IEEE 754.
-- `requireFinite` chặn Infinity **trước** khi chọn `BigDecimal.valueOf`; trong ví dụ nó báo `IllegalArgumentException` do chính ứng dụng định nghĩa, không phải lỗi parser mặc định.
+- Constructors/factories from NaN and Infinity throw **`NumberFormatException`**, because there is no corresponding `BigDecimal` value.
+- `BigDecimal` divisions not allowed under finite decimal semantics throw **`ArithmeticException`**; a `1/3` division with a specific scale and rounding can produce an approximate finite decimal number.
+- `huge` and `tiny` are **two valid, finite BigDecimals**; the issue only appears when calling `doubleValue()`. The sub-zero-magnitude yet tiny case turns into 0.0 while `Double.isFinite` stays true, showing that **a finite check is not an exactness check**.
+- `new BigDecimal("-0.00")` keeps a two-digit scale yet prints `0.00`; there is no separate negative-zero code per IEEE 754.
+- `requireFinite` intercepts Infinity **before** calling `BigDecimal.valueOf`; in the example it reports an application-defined `IllegalArgumentException`, not a default parser error.
 
-Hàm `attempt` bắt `RuntimeException` **chỉ để demo loại ngoại lệ một cách có kiểm soát**. Trong ứng dụng thật, không nên sử dụng catch quá rộng để nuốt lỗi hoặc mặc định trả 0; cần bắt có chủ đích ở biên giao tiếp, nêu rõ nguồn lỗi và giữ ngữ cảnh thích hợp.
+The `attempt` method catches `RuntimeException` **solely to demonstrate exception types in a controlled way**. In real applications, do not use overly broad catches to swallow errors or default to returning 0; catch purposefully at communication boundaries, state the error source clearly, and preserve appropriate context.
 
-## 9. Phân biệt lỗi NumberFormatException, ArithmeticException và validation error
+## 9. Distinguishing NumberFormatException, ArithmeticException, and Validation Errors
 
-| Tình huống | Loại kết quả/lỗi | Cách xử lý gợi ý |
+| Situation | Result/Error type | Suggested handling |
 | --- | --- | --- |
-| `new BigDecimal(Double.NaN)` | `NumberFormatException` | Từ chối input non-finite |
-| `BigDecimal.valueOf(Double.POSITIVE_INFINITY)` | `NumberFormatException` | Kiểm tra `Double.isFinite` trước |
-| `new BigDecimal("NaN")` hoặc `"Infinity"` | `NumberFormatException` | Báo cú pháp không hợp lệ cho decimal |
-| `BigDecimal.ONE.divide(BigDecimal.ZERO)` | `ArithmeticException` | Kiểm tra mẫu số khác zero |
-| `BigDecimal.ZERO.divide(BigDecimal.ZERO)` | `ArithmeticException` | Xử lý phép tính không xác định |
-| `BigDecimal.ONE.divide(new BigDecimal("3"))` | `ArithmeticException` | Dùng overload có rounding nếu nghiệp vụ cho phép |
-| `new BigDecimal("1E+400").doubleValue()` | `Infinity` dạng `double` | Kiểm tra overflow và thiết kế dữ liệu đầu ra |
-| `new BigDecimal("1E-400").doubleValue()` | `0.0` dạng `double` | Kiểm tra mất precision/underflow nếu quan trọng |
-| `requireFinite(Double.NaN)` trong ví dụ | `IllegalArgumentException` | Lỗi validation do ứng dụng định nghĩa |
+| `new BigDecimal(Double.NaN)` | `NumberFormatException` | Reject non-finite input |
+| `BigDecimal.valueOf(Double.POSITIVE_INFINITY)` | `NumberFormatException` | Check `Double.isFinite` beforehand |
+| `new BigDecimal("NaN")` or `"Infinity"` | `NumberFormatException` | Report invalid syntax for decimal |
+| `BigDecimal.ONE.divide(BigDecimal.ZERO)` | `ArithmeticException` | Check non-zero denominator |
+| `BigDecimal.ZERO.divide(BigDecimal.ZERO)` | `ArithmeticException` | Handle indeterminate operation |
+| `BigDecimal.ONE.divide(new BigDecimal("3"))` | `ArithmeticException` | Use overload with rounding if business permits |
+| `new BigDecimal("1E+400").doubleValue()` | `Infinity` as `double` | Check overflow and design output data |
+| `new BigDecimal("1E-400").doubleValue()` | `0.0` as `double` | Check precision loss/underflow if important |
+| `requireFinite(Double.NaN)` in example | `IllegalArgumentException` | Application-defined validation error |
 
-**Điểm cần nhớ:** `NumberFormatException` nói đầu vào **không tạo được BigDecimal hợp lệ**; `ArithmeticException` nói **phép toán decimal đã yêu cầu không thực hiện được dưới hợp đồng hiện tại**. Đừng viết `catch (NumberFormatException)` và kỳ vọng bắt luôn phép chia cho zero. Ngược lại, không nên đánh đồng mọi `ArithmeticException` với chia cho zero: phép chia decimal vô hạn không rounding cũng có thể ném cùng loại.
+**Key point:** `NumberFormatException` says the input **cannot create a valid BigDecimal**; `ArithmeticException` says the **requested decimal operation cannot be performed under the current contract**. Do not write `catch (NumberFormatException)` expecting to catch division by zero as well. Conversely, do not equate every `ArithmeticException` with division by zero: infinite decimal division without rounding can throw the same exception type.
 
-Không dựa vào nội dung `getMessage()` như một mã phân loại ổn định. Khi cần xác định nghiệp vụ “chia cho 0”, hãy kiểm tra `denominator.signum() == 0` trước phép chia và chuyển thành lỗi rõ nghĩa.
+Do not rely on `getMessage()` text as a stable classification code. When needing to identify the "division by 0" business condition, check `denominator.signum() == 0` before division and translate into a clear error.
 
-## 10. Dữ liệu thiếu, NaN và các trạng thái không hợp lệ nên được mô hình hóa riêng
+## 10. Missing Data, NaN, and Invalid States Should Be Modeled Separately
 
-`null`, `NaN`, vô cực, và số 0 mang **những ý nghĩa khác nhau**. Không nên dùng một số decimal giả như `0` hoặc `-1` để đại diện đồng thời cho tất cả trạng thái này nếu chúng có thể là giá trị nghiệp vụ hợp lệ.
+`null`, `NaN`, infinity, and 0 carry **different meanings**. Do not use a sentinel decimal like `0` or `-1` to simultaneously represent all these states if they could be valid business values.
 
-Một API trả kết quả tính toán có thể dùng một kiểu kết quả phân biệt:
+An API returning calculation results can use a discriminated result type:
 
 ~~~java
 sealed interface AmountResult
@@ -384,90 +384,90 @@ sealed interface AmountResult
 }
 ~~~
 
-Đây là **đoạn khai báo minh họa**, cần đặt trong tệp và ngữ cảnh class/package hợp lệ của ứng dụng Java 17+, không phải chương trình độc lập có `main`. Khi dùng trong hệ thống, đặt `BigDecimal` vào `Finite` **chỉ sau khi validation**, yêu cầu object không null (ví dụ kiểm tra `Objects.requireNonNull` trong constructor), và lựa chọn thêm trạng thái overflow/undefined nếu cần.
+This is an **illustrative declaration snippet** that must be placed in a valid file and class/package context of a Java 17+ application, not a standalone program with `main`. When used in a system, place `BigDecimal` into `Finite` **only after validation**, require a non-null object (e.g., check `Objects.requireNonNull` in the constructor), and optionally add overflow/undefined states if needed.
 
-Có thể chọn `Optional<BigDecimal>` nếu chỉ cần “có giá trị hữu hạn hay không”, nhưng `Optional.empty()` **không nói nguyên nhân**. Với ứng dụng cần chẩn đoán dữ liệu không hợp lệ, một kiểu kết quả có thông tin lỗi thường tốt hơn.
+You may choose `Optional<BigDecimal>` if only "is there a finite value or not" is needed, yet `Optional.empty()` **does not tell the reason**. For applications needing diagnostics on invalid data, a result type carrying error information is usually better.
 
-Với API nhận `double`, lựa chọn thường là **từ chối mọi non-finite** (fail fast) trước khi tính decimal. Nếu bài toán khoa học cần lan truyền NaN/Infinity theo IEEE 754, có thể phải giữ pipeline ở kiểu `double` hoặc tạo mô hình trạng thái rõ ràng — `BigDecimal` không tự cung cấp phép lan truyền NaN.
+For APIs accepting `double`, the usual choice is to **reject all non-finite values** (fail fast) before decimal calculation. If a scientific problem needs NaN/Infinity propagation per IEEE 754, you may need to keep the pipeline in `double` or build an explicit state model — `BigDecimal` does not natively provide NaN propagation.
 
-## 11. Lưu và trao đổi dữ liệu giữa JSON, CSV, database và BigDecimal
+## 11. Storing and Exchanging Data Between JSON, CSV, Database, and BigDecimal
 
-Khi kết nối các hệ thống, cần xác định **hợp đồng biểu diễn**:
+When connecting systems, define the **representation contract**:
 
-- Nếu trường là một số decimal hợp lệ, đọc trực tiếp dạng chuỗi decimal hoặc kiểu decimal chính xác thành `BigDecimal`; không ép qua `double` nếu cần giữ nguyên precision/scale.
-- Nếu dữ liệu nguồn có thể là NaN/Infinity, chuẩn hóa thành **trạng thái riêng** hoặc báo lỗi theo hợp đồng, không giả vờ đó là một `BigDecimal`.
-- JSON chuẩn có ngữ pháp số không bao gồm token NaN hoặc Infinity như số; nếu nhà cung cấp gửi chuỗi `"NaN"` hoặc `"Infinity"`, chuỗi đó vẫn không phải decimal hợp lệ và cần chính sách riêng. Một thư viện có thể hỗ trợ tiện ích ngoài chuẩn, nhưng không suy ra mọi parser đều như vậy.
-- Trong CSV, giá trị trống, `"NaN"` và `"0"` phải được xử lý theo quy tắc dữ liệu — chúng không tự tương đương.
-- Khi truy vấn database, cần phân biệt `NULL` với một số decimal 0; behavior của các kiểu số đặc biệt phụ thuộc hệ quản trị và kiểu cột, không nên suy luận từ Java.
+- If a field is a valid decimal number, read it directly as a decimal string or exact decimal type into `BigDecimal`; do not coerce through `double` if precision/scale must be preserved.
+- If source data can be NaN/Infinity, normalize it to a **separate state** or report an error per contract, without pretending it is a `BigDecimal`.
+- Standard JSON number syntax does not include NaN or Infinity tokens as numbers; if a provider sends strings `"NaN"` or `"Infinity"`, those strings are still not valid decimals and need a separate policy. A library may support non-standard extensions, but do not assume every parser behaves that way.
+- In CSV, blank values, `"NaN"`, and `"0"` must be handled according to data rules — they are not automatically equivalent.
+- When querying databases, distinguish `NULL` from a decimal 0; the behavior of special numeric types depends on the DBMS and column type, and should not be inferred from Java.
 
-Định dạng xuất `BigDecimal.toString()` có thể dùng ký pháp khoa học cho số rất lớn/nhỏ; `toPlainString()` tránh ký pháp khoa học nhưng có thể tạo chuỗi cực dài với scale lớn. Khi lưu dữ liệu số decimal, hãy giới hạn kích thước/scale theo nghiệp vụ để kiểm soát tài nguyên.
+`BigDecimal.toString()` output format may use scientific notation for very large/small numbers; `toPlainString()` avoids scientific notation yet can produce an extremely long string for large scales. When storing decimal numeric data, limit size/scale per business rules to control resources.
 
-## 12. Các lỗi phổ biến cần tránh
+## 12. Common Mistakes to Avoid
 
-1. **“BigDecimal chính xác hơn double nên phải có Infinity chính xác hơn.”** Sai: `BigDecimal` không biểu diễn Infinity/NaN.
-2. **“BigDecimal chia cho zero sẽ tạo Infinity.”** Sai: ném `ArithmeticException`.
-3. **“0/0 bằng 0 vì BigDecimal không có NaN.”** Sai: phép chia cho zero không hợp lệ, không được tự đổi thành 0.
-4. **“BigDecimal.valueOf(NaN) trả null.”** Sai: ném `NumberFormatException`.
-5. **“new BigDecimal("NaN") cho một số decimal đặc biệt.”** Sai: chuỗi không hợp lệ với parser decimal.
-6. **“Mọi phép chia `BigDecimal` ném ArithmeticException đều do mẫu số 0.”** Sai: khai triển thập phân vô hạn không rounding cũng có thể gây lỗi.
-7. **“Đặt rounding mode sẽ cho phép chia cho zero.”** Sai: rounding chỉ xử lý độ chính xác của phép chia hợp lệ, không tạo giá trị cho mẫu số 0.
-8. **“BigDecimal hữu hạn thì doubleValue cũng hữu hạn.”** Sai: decimal lớn có thể bị overflow thành Infinity.
-9. **“doubleValue hữu hạn nghĩa là không mất thông tin.”** Sai: nó có thể làm tròn hoặc underflow về 0.0.
-10. **“Kết quả `Double.isFinite` true chứng minh decimal ban đầu đã được bảo toàn.”** Sai: một số decimal khác zero có thể chuyển thành 0.0 và vẫn finite.
-11. **“Chuỗi số decimal rất lớn nhất định phải qua double trước.”** Sai: parse trực tiếp thành `BigDecimal` có thể giữ được dữ liệu decimal.
-12. **“BigDecimal giữ được `-0.0` như double.”** Sai: BigDecimal không có mã negative zero riêng; nó vẫn có thể giữ scale của chuỗi `"-0.00"`.
-13. **“NaN đồng nghĩa null/thiếu giá trị.”** Sai: các trạng thái mang ý nghĩa khác nhau; không gộp tùy tiện.
-14. **“Bắt mọi exception rồi trả BigDecimal.ZERO là an toàn.”** Sai: làm mất tín hiệu lỗi, có thể khiến kết quả tài chính sai.
-15. **“Không cần kiểm tra giới hạn đầu vào vì BigDecimal có độ chính xác tùy ý.”** Sai: unscaled integer, scale, tạo chuỗi và phép toán vẫn có giới hạn tài nguyên và đặc tả.
-16. **“Có thể dùng BigDecimal để tự mô phỏng IEEE 754 decimal floating point đầy đủ.”** Sai: IEEE 754 decimal có thêm các lớp giá trị đặc biệt và các ràng buộc format/exponent không giống mô hình BigDecimal.
+1. **"BigDecimal is more precise than double, so it must have a more precise Infinity."** False: `BigDecimal` does not represent Infinity/NaN.
+2. **"BigDecimal divided by zero produces Infinity."** False: it throws `ArithmeticException`.
+3. **"0/0 equals 0 because BigDecimal has no NaN."** False: division by zero is invalid and does not silently turn into 0.
+4. **"BigDecimal.valueOf(NaN) returns null."** False: it throws `NumberFormatException`.
+5. **"new BigDecimal("NaN") gives a special decimal number."** False: the string is invalid for the decimal parser.
+6. **"Every `BigDecimal` division throwing ArithmeticException is due to a zero denominator."** False: non-terminating decimal expansions without rounding can also throw it.
+7. **"Setting a rounding mode allows division by zero."** False: rounding only handles precision of valid division, and does not produce a value for a zero denominator.
+8. **"If BigDecimal is finite, doubleValue is also finite."** False: large decimals can overflow to Infinity.
+9. **"A finite doubleValue means no information was lost."** False: it can round or underflow to 0.0.
+10. **"A `Double.isFinite` true result proves the original decimal was preserved."** False: a non-zero decimal can turn into 0.0 and remain finite.
+11. **"Very large decimal number strings must go through double first."** False: parsing directly to `BigDecimal` can preserve the decimal data.
+12. **"BigDecimal keeps `-0.0` like double."** False: BigDecimal has no separate negative zero code; it can still keep the scale of `"-0.00"`.
+13. **"NaN is synonymous with null/missing value."** False: the states carry different meanings; do not merge them arbitrarily.
+14. **"Catching every exception and returning BigDecimal.ZERO is safe."** False: it hides error signals and can cause incorrect financial results.
+15. **"No need to validate input limits because BigDecimal has arbitrary precision."** False: unscaled integer, scale, string construction, and operations still have resource and specification limits.
+16. **"BigDecimal can be used to fully emulate IEEE 754 decimal floating point."** False: IEEE 754 decimal has additional special value classes and format/exponent constraints unlike the BigDecimal model.
 
-## 13. Checklist tích hợp an toàn
+## 13. Safe Integration Checklist
 
-1. Xác định trường đầu vào là **decimal chính xác** hay `double` có thể chứa NaN/Infinity.
-2. Nếu nguồn là `double`, kiểm tra `Double.isFinite` trước khi chuyển; chọn chính sách khi NaN/vô cực xuất hiện.
-3. Nếu nguồn là chuỗi, parse trực tiếp thành `BigDecimal` sau khi kiểm tra cú pháp và giới hạn input; bắt `NumberFormatException` tại ranh giới.
-4. Nếu tính phép chia decimal, xác minh mẫu số khác 0; chọn `scale`, `precision` và `RoundingMode` nếu kết quả không thể biểu diễn chính xác.
-5. Không mặc định mọi `ArithmeticException` đều nghĩa là chia cho 0.
-6. Trước khi xuất `BigDecimal` thành `double`/`float`, đánh giá khả năng overflow, underflow và mất chính xác.
-7. Phân biệt null, dữ liệu sai, số 0, NaN và vô cực theo hợp đồng API; không dùng một sentinel mơ hồ.
-8. Với tiền tệ và số liệu quan trọng, giữ phép tính ở `BigDecimal` đến tầng xuất thích hợp; không đi qua binary64 khi không cần.
-9. Thiết kế kiểm thử ranh giới cho `NaN`, `±Infinity`, số 0, mẫu số 0, `1/3`, decimal rất lớn và rất nhỏ.
-10. Khi báo lỗi cho người dùng, sử dụng thông điệp nghiệp vụ rõ ràng và tránh log thừa dữ liệu nhạy cảm.
+1. Determine whether the input field is an **exact decimal** or a `double` that may contain NaN/Infinity.
+2. If the source is `double`, check `Double.isFinite` before converting; choose a policy when NaN/infinity appears.
+3. If the source is a string, parse directly to `BigDecimal` after checking syntax and input limits; catch `NumberFormatException` at the boundary.
+4. If computing decimal division, verify a non-zero denominator; choose `scale`, `precision`, and `RoundingMode` if the result cannot be represented exactly.
+5. Do not assume every `ArithmeticException` means division by 0.
+6. Before outputting `BigDecimal` as `double`/`float`, assess risks of overflow, underflow, and precision loss.
+7. Distinguish null, malformed data, 0, NaN, and infinity per the API contract; do not use an ambiguous sentinel.
+8. For money and critical figures, keep calculations in `BigDecimal` up to the appropriate output layer; do not pass through binary64 unnecessarily.
+9. Design boundary tests for `NaN`, `±Infinity`, 0, zero denominator, `1/3`, very large decimals, and very small decimals.
+10. When reporting errors to users, use clear business messages and avoid logging sensitive data unnecessarily.
 
-## 14. Câu hỏi tự luyện
+## 14. Self-Practice Questions
 
-**Câu 1.** `new BigDecimal(Double.NaN)` trả gì? `BigDecimal.valueOf(Double.POSITIVE_INFINITY)` thì sao?
+**Question 1.** What does `new BigDecimal(Double.NaN)` return? What about `BigDecimal.valueOf(Double.POSITIVE_INFINITY)`?
 
-**Đáp án:** Cả hai ném `NumberFormatException` vì `BigDecimal` không có giá trị tương ứng với NaN hoặc vô cực.
+**Answer:** Both throw `NumberFormatException` because `BigDecimal` has no value corresponding to NaN or infinity.
 
-**Câu 2.** `BigDecimal.ONE.divide(BigDecimal.ZERO)` và `1.0/0.0` có hành vi tương tự không?
+**Question 2.** Do `BigDecimal.ONE.divide(BigDecimal.ZERO)` and `1.0/0.0` behave similarly?
 
-**Đáp án:** Không. BigDecimal ném `ArithmeticException`; `double` tạo dương Infinity.
+**Answer:** No. BigDecimal throws `ArithmeticException`; `double` produces positive Infinity.
 
-**Câu 3.** Vì sao `BigDecimal.ONE.divide(new BigDecimal("3"))` có thể ném `ArithmeticException` dù mẫu số khác zero?
+**Question 3.** Why can `BigDecimal.ONE.divide(new BigDecimal("3"))` throw `ArithmeticException` even though the denominator is non-zero?
 
-**Đáp án:** Thương 1/3 không có biểu diễn decimal hữu hạn; overload chia chính xác không cho phép tự làm tròn. Cần chỉ định precision/scale và rounding nếu nghiệp vụ cho phép xấp xỉ.
+**Answer:** The quotient 1/3 has no finite decimal representation; the exact division overload does not allow automatic rounding. You must specify precision/scale and rounding if business logic permits approximation.
 
-**Câu 4.** `new BigDecimal("1E+400")` là vô cực không? Còn kết quả `doubleValue()`?
+**Question 4.** Is `new BigDecimal("1E+400")` infinite? What about its `doubleValue()` result?
 
-**Đáp án:** BigDecimal là số hữu hạn hợp lệ; ép sang `double` có thể trở thành `Infinity` vì overflow binary64.
+**Answer:** The BigDecimal is a valid finite number; narrowing to `double` can become `Infinity` due to binary64 overflow.
 
-**Câu 5.** `new BigDecimal("1E-400").doubleValue()` có cho số hữu hạn không và có bảo toàn giá trị không?
+**Question 5.** Does `new BigDecimal("1E-400").doubleValue()` produce a finite number and preserve the value?
 
-**Đáp án:** Cho `0.0` hữu hạn trong ví dụ, nhưng không bảo toàn giá trị decimal 10^-400 khác zero.
+**Answer:** It produces finite `0.0` in the example, yet does not preserve the non-zero decimal value 10^-400.
 
-**Câu 6.** Nếu một dịch vụ trả chuỗi `"NaN"` thay vì số tiền, có nên dùng `new BigDecimal("NaN")` hoặc tự thay bằng 0?
+**Question 6.** If a service returns the string `"NaN"` instead of a monetary amount, should `new BigDecimal("NaN")` be used or should it be replaced with 0?
 
-**Đáp án:** Không. Nên xác định trạng thái “dữ liệu không hợp lệ/không xác định” trong hợp đồng và xử lý riêng, thay vì gán một amount 0 không có cơ sở.
+**Answer:** No. You should define an "invalid/undefined data" state in the contract and handle it separately, instead of assigning an unfounded 0 amount.
 
-**Câu 7.** `Double.isFinite(amount.doubleValue())` true có đủ chứng minh conversion không mất chính xác không?
+**Question 7.** Does `Double.isFinite(amount.doubleValue())` being true suffice to prove the conversion did not lose precision?
 
-**Đáp án:** Không. Tính hữu hạn không kiểm tra round-trip chính xác; underflow và làm tròn vẫn có thể xảy ra.
+**Answer:** No. Finiteness does not verify an exact round-trip; underflow and rounding can still occur.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle Java SE 21 — BigDecimal](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): mô hình unscaled/scale, khác biệt với IEEE 754 về NaN/vô cực/negative zero, lỗi khi chia 0, `doubleValue` và constructor.
+- [Oracle Java SE 21 — BigDecimal](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): unscaled/scale model, differences from IEEE 754 on NaN/infinity/negative zero, errors on division by 0, `doubleValue`, and constructors.
 - [Oracle Java SE 21 — Double](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html): `isNaN`, `isInfinite`, `isFinite`, `parseDouble`.
-- [Oracle Java SE 21 — RoundingMode](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/RoundingMode.html): chính sách làm tròn khi tính số decimal.
-- [Oracle Java SE 21 — MathContext](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/MathContext.html): precision và rounding trong phép toán BigDecimal.
-- [RFC 8259 — JSON Data Interchange Format](https://www.rfc-editor.org/rfc/rfc8259): ngữ pháp JSON number không có NaN/Infinity.
+- [Oracle Java SE 21 — RoundingMode](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/RoundingMode.html): rounding policies when computing decimal numbers.
+- [Oracle Java SE 21 — MathContext](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/MathContext.html): precision and rounding in BigDecimal operations.
+- [RFC 8259 — JSON Data Interchange Format](https://www.rfc-editor.org/rfc/rfc8259): JSON number grammar without NaN/Infinity.

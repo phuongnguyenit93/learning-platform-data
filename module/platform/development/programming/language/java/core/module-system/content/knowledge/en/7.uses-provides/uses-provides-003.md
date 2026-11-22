@@ -1,18 +1,18 @@
-# Service interface và provider implementation
+# Service Interface and Provider Implementation
 
-Trong Java, Service Provider Interface (SPI) là một cách thiết kế để một module công bố hợp đồng dịch vụ, còn module khác cung cấp phần triển khai hợp đồng đó. Module sử dụng dịch vụ chỉ phụ thuộc vào interface; nó không cần biết class cụ thể nào sẽ thực hiện công việc. Java Platform Module System (JPMS) hỗ trợ cơ chế này bằng hai directive `uses` và `provides`, kết hợp với API `ServiceLoader`.
+In Java, a Service Provider Interface (SPI) is a design pattern where one module publishes a service contract and another module provides the implementation of that contract. The module using the service depends only on the interface; it does not need to know which specific class will perform the work. The Java Platform Module System (JPMS) supports this mechanism using the two directives `uses` and `provides`, combined with the `ServiceLoader` API.
 
-Cách tổ chức này giúp thay provider mà không phải sửa consumer, cho phép nhiều implementation cùng tồn tại và giữ package triển khai ở trạng thái nội bộ. Những ví dụ quen thuộc gồm driver JDBC, logging backend, plugin, bộ mã hóa, bộ chuyển đổi định dạng và các adapter theo môi trường triển khai.
+This organization makes it possible to swap providers without modifying the consumer, allows multiple implementations to coexist, and keeps implementation packages internal. Familiar examples include JDBC drivers, logging backends, plugins, encoders, formatters, and deployment-environment adapters.
 
-## 1. Phân biệt service interface, consumer và provider
+## 1. Distinguishing Service Interface, Consumer, and Provider
 
-Một thiết kế SPI thường có ba vai trò:
+An SPI design typically has three roles:
 
-- **Service interface:** hợp đồng công khai mô tả khả năng mà ứng dụng cần, chẳng hạn `GreetingService`, `PaymentProcessor` hoặc `StorageProvider`.
-- **Consumer:** module gọi service interface để thực hiện công việc. Consumer biết kiểu interface nhưng không phụ thuộc class implementation.
-- **Provider:** module cung cấp một class thực thi service interface và đăng ký class đó với module system.
+- **Service interface:** a public contract describing a capability the application needs, such as `GreetingService`, `PaymentProcessor`, or `StorageProvider`.
+- **Consumer:** a module that calls the service interface to perform work. The consumer knows the interface type but does not depend on the implementation class.
+- **Provider:** a module that supplies a class implementing the service interface and registers that class with the module system.
 
-Luồng phụ thuộc có dạng:
+The dependency flow looks like this:
 
 ```text
              +----------------------+
@@ -28,13 +28,13 @@ Luồng phụ thuộc có dạng:
           +------------+   +----------------+
 ```
 
-Cả consumer và provider đều phụ thuộc vào module chứa service interface. Consumer không cần `requires` module provider cụ thể. Module system và `ServiceLoader` tìm implementation đã đăng ký khi ứng dụng chạy.
+Both the consumer and the provider depend on the module containing the service interface. The consumer does not need to `requires` a specific provider module. The module system and `ServiceLoader` locate registered implementations when the application runs.
 
-## 2. Service interface là hợp đồng ổn định
+## 2. The Service Interface as a Stable Contract
 
-Service interface nên thể hiện chức năng mà consumer cần, tránh để lộ chi tiết triển khai như thư viện nội bộ, cấu trúc dữ liệu riêng hoặc cách kết nối đến hệ thống bên ngoài.
+The service interface should express the functionality the consumer needs, avoiding exposing implementation details such as internal libraries, private data structures, or how external systems are connected.
 
-Ví dụ:
+Example:
 
 ```java
 package com.acme.spi;
@@ -44,7 +44,7 @@ public interface GreetingService {
 }
 ```
 
-Trong module descriptor của module API, export package chứa interface:
+In the API module's descriptor, export the package containing the interface:
 
 ```java
 module com.acme.spi {
@@ -52,13 +52,13 @@ module com.acme.spi {
 }
 ```
 
-Directive `exports` cho phép consumer import và gọi kiểu public `GreetingService`. Đây là API ở mức ngôn ngữ Java; nó không tự đăng ký implementation nào.
+The `exports` directive allows consumers to import and call the public `GreetingService` type. This is a Java language-level API; it does not register any implementation on its own.
 
-Một SPI tốt thường giữ hợp đồng nhỏ và tập trung. Nếu interface thay đổi không tương thích, tất cả provider cần được cập nhật hoặc có cơ chế tương thích ngược. Vì vậy, hãy xác định rõ tham số, giá trị trả về, exception và quy tắc vòng đời của service.
+A good SPI usually keeps its contract small and focused. If the interface changes incompatibly, all providers must be updated or a backward-compatibility mechanism must be maintained. Therefore, clearly define parameters, return values, exceptions, and service lifecycle rules.
 
-## 3. Provider implementation
+## 3. Provider Implementation
 
-Provider tạo class thực thi interface:
+The provider creates a class implementing the interface:
 
 ```java
 package com.acme.provider.internal;
@@ -76,9 +76,9 @@ public class EnglishGreetingService implements GreetingService {
 }
 ```
 
-Class provider là public và có public no-argument constructor để `ServiceLoader` có thể khởi tạo nó theo cơ chế constructor thông thường. Với provider khai báo bằng `provides` trong named module, package chứa implementation không cần export cho consumer. Consumer chỉ cần nhìn thấy service interface; việc tạo provider do cơ chế service loading đảm nhiệm.
+The provider class is public and has a public no-argument constructor so that `ServiceLoader` can instantiate it via the standard constructor mechanism. For a provider declared with `provides` in a named module, the package containing the implementation does not need to be exported to the consumer. The consumer only needs to see the service interface; provider instantiation is handled by the service loading mechanism.
 
-Descriptor của module provider:
+Provider module descriptor:
 
 ```java
 module com.acme.provider {
@@ -89,13 +89,13 @@ module com.acme.provider {
 }
 ```
 
-Directive `provides ... with ...` đăng ký implementation. Phần trước `with` là service type; phần sau là một hoặc nhiều provider class. Một module có thể đăng ký nhiều provider cho cùng một service.
+The `provides ... with ...` directive registers the implementation. The part before `with` is the service type; the part after is one or more provider classes. A single module can register multiple providers for the same service.
 
-Provider có thể cung cấp nhiều service khác nhau, miễn là các implementation thỏa mãn hợp đồng tương ứng và được khai báo trong descriptor.
+A provider can supply multiple different services, as long as the implementations satisfy their respective contracts and are declared in the descriptor.
 
-## 4. Consumer khai báo uses
+## 4. Consumer Declaring uses
 
-Module sử dụng service cần khai báo `uses` cho service type mà nó sẽ nạp:
+A module using a service needs to declare `uses` for the service type it will load:
 
 ```java
 module com.acme.consumer {
@@ -105,9 +105,9 @@ module com.acme.consumer {
 }
 ```
 
-`requires com.acme.spi` tạo quan hệ readability để mã consumer có thể tham chiếu interface. `uses com.acme.spi.GreetingService` khai báo rằng module có nhu cầu tìm provider của service đó. Hai directive phục vụ hai mục đích riêng.
+`requires com.acme.spi` establishes readability so consumer code can reference the interface. `uses com.acme.spi.GreetingService` declares that the module needs to find providers for that service. The two directives serve distinct purposes.
 
-Consumer sử dụng `ServiceLoader`:
+The consumer uses `ServiceLoader`:
 
 ```java
 package com.acme.consumer;
@@ -127,13 +127,13 @@ public class Main {
 }
 ```
 
-Consumer chỉ làm việc với `GreetingService`. Nó không import `EnglishGreetingService`, không gọi constructor provider và không cần biết tên module provider. Khi provider được phát hiện, `ServiceLoader` tạo instance và trả về dưới kiểu interface.
+The consumer works solely with `GreetingService`. It does not import `EnglishGreetingService`, does not invoke the provider constructor, and does not need to know the provider module's name. When a provider is discovered, `ServiceLoader` creates an instance and returns it under the interface type.
 
-Nếu không có provider nào được tìm thấy, vòng lặp không chạy. Ứng dụng cần quyết định rõ trường hợp service tùy chọn hay bắt buộc: có thể dùng implementation mặc định, thông báo cấu hình thiếu hoặc dừng với lỗi phù hợp.
+If no providers are found, the loop does not execute. The application must decide explicitly whether the service is optional or required: it can use a default implementation, report missing configuration, or stop with an appropriate error.
 
-## 5. Ví dụ hoàn chỉnh với ba module
+## 5. Complete Example with Three Modules
 
-Cấu trúc source:
+Source structure:
 
 ```text
 src/
@@ -148,7 +148,7 @@ src/
     └── com/acme/consumer/Main.java
 ```
 
-Module API:
+API module:
 
 ```java
 // src/com.acme.spi/module-info.java
@@ -157,7 +157,7 @@ module com.acme.spi {
 }
 ```
 
-Module provider:
+Provider module:
 
 ```java
 // src/com.acme.provider/module-info.java
@@ -169,7 +169,7 @@ module com.acme.provider {
 }
 ```
 
-Module consumer:
+Consumer module:
 
 ```java
 // src/com.acme.consumer/module-info.java
@@ -180,27 +180,27 @@ module com.acme.consumer {
 }
 ```
 
-Biên dịch cả ba module từ thư mục chứa `src`:
+Compile all three modules from the directory containing `src`:
 
 ```shell
 javac --module-source-path src -d out \
     -m com.acme.spi,com.acme.provider,com.acme.consumer
 ```
 
-Chạy consumer trên module path:
+Run the consumer on the module path:
 
 ```shell
 java --show-module-resolution --module-path out \
     --module com.acme.consumer/com.acme.consumer.Main
 ```
 
-Khi phân giải cấu hình module, Java có thể tìm module provider quan sát được có khai báo `provides` cho service mà module gốc sử dụng và đưa provider phù hợp vào cấu hình. Vì vậy, consumer không phải khai báo dependency trực tiếp tới `com.acme.provider`. Tùy chọn `--show-module-resolution` giúp quan sát các module được phân giải khi khởi chạy.
+When resolving the module configuration, Java can locate observable provider modules that declare `provides` for a service used by a root module and include the matching providers in the configuration. Thus, the consumer does not have to declare a direct dependency on `com.acme.provider`. The `--show-module-resolution` option helps observe the modules resolved at startup.
 
-Package `com.acme.provider.internal` không được export. Điều đó vẫn hợp lệ: provider implementation không phải API mà consumer gọi trực tiếp. Nếu muốn ứng dụng tham chiếu class provider trong mã nguồn, đó là một thiết kế khác và sẽ cần công khai package tương ứng.
+The `com.acme.provider.internal` package is not exported. That remains valid: the provider implementation is not an API that consumers call directly. If you want the application to reference the provider class in source code, that is a different design and would require exposing the corresponding package.
 
-## 6. Một service có thể có nhiều provider
+## 6. A Service Can Have Multiple Providers
 
-SPI cho phép nhiều module cung cấp implementation cho cùng một interface. Ví dụ:
+SPI allows multiple modules to provide implementations for the same interface. For example:
 
 ```java
 module com.acme.provider.english {
@@ -220,7 +220,7 @@ module com.acme.provider.vietnamese {
 }
 ```
 
-Consumer có thể duyệt tất cả provider:
+The consumer can iterate over all providers:
 
 ```java
 ServiceLoader<GreetingService> loader =
@@ -233,13 +233,13 @@ loader.stream()
     );
 ```
 
-Không nên dựa vào thứ tự provider như một quy tắc ưu tiên ổn định. Nếu ứng dụng cần chọn một provider cụ thể, hãy thiết kế cơ chế lựa chọn tường minh, chẳng hạn thuộc tính cấu hình, metadata riêng hoặc phương thức nhận diện capability trên interface.
+You should not rely on provider order as a stable priority rule. If the application needs to select a specific provider, design an explicit selection mechanism, such as a configuration property, custom metadata, or a capability-identifying method on the interface.
 
-Nếu nhiều provider cùng được phát hiện, consumer phải quyết định liệu nó muốn dùng tất cả, chọn một provider theo cấu hình hay từ chối khi có nhiều lựa chọn. Tránh âm thầm lấy phần tử đầu tiên nếu thứ tự không phải một phần của hợp đồng.
+If multiple providers are discovered, the consumer must decide whether it wants to use all of them, pick one based on configuration, or reject the case of multiple choices. Avoid silently picking the first element if ordering is not part of the contract.
 
-## 7. ServiceLoader và provider method
+## 7. ServiceLoader and Provider Methods
 
-Ngoài public no-argument constructor, named module có thể cung cấp provider thông qua public static provider method. Khi dùng cách này, provider class công khai một phương thức tên `provider` trả về service type:
+In addition to a public no-argument constructor, a named module can supply a provider via a public static provider method. With this approach, the provider class exposes a method named `provider` that returns the service type:
 
 ```java
 package com.acme.provider.internal;
@@ -253,7 +253,7 @@ public class GreetingProvider {
 }
 ```
 
-Module descriptor đăng ký provider class:
+The module descriptor registers the provider class:
 
 ```java
 module com.acme.provider {
@@ -264,65 +264,65 @@ module com.acme.provider {
 }
 ```
 
-Provider method hữu ích khi việc tạo implementation cần factory, cấu hình hoặc một object không được tạo trực tiếp bằng constructor public. Class provider vẫn phải đáp ứng quy tắc provider method của `ServiceLoader`; phương thức phải là `public static`, không nhận tham số và trả về kiểu tương thích với service type.
+A provider method is useful when creating the implementation requires a factory, configuration, or an object not created directly via a public constructor. The provider class must still satisfy `ServiceLoader`'s provider method rules; the method must be `public static`, take no parameters, and return a type compatible with the service type.
 
-Chỉ chọn provider method khi nó giải quyết nhu cầu khởi tạo cụ thể. Với implementation đơn giản, public no-argument constructor thường dễ hiểu hơn.
+Choose a provider method only when it solves a specific instantiation need. For simple implementations, a public no-argument constructor is usually easier to understand.
 
-## 8. SPI trên classpath và file META-INF/services
+## 8. SPI on the Classpath and META-INF/services Files
 
-Cơ chế service loading tồn tại trước JPMS. Khi provider được triển khai trên classpath, provider thường đăng ký bằng file cấu hình:
+The service loading mechanism existed before JPMS. When providers are deployed on the classpath, they are typically registered using a configuration file:
 
 ```text
 META-INF/services/com.acme.spi.GreetingService
 ```
 
-Nội dung file liệt kê tên đầy đủ của từng provider class, mỗi provider trên một dòng:
+The file lists the fully qualified name of each provider class, one provider per line:
 
 ```text
 com.acme.provider.internal.EnglishGreetingService
 com.acme.provider.internal.VietnameseGreetingService
 ```
 
-Consumer vẫn có thể sử dụng:
+The consumer can still use:
 
 ```java
 ServiceLoader<GreetingService> loader =
     ServiceLoader.load(GreetingService.class);
 ```
 
-Khi chạy trên classpath, provider được tìm qua cấu hình `META-INF/services` và class loader. Khi chạy dưới named module, provider có thể đăng ký trực tiếp bằng directive `provides` trong `module-info.java`, còn consumer khai báo `uses`.
+When running on the classpath, providers are located through `META-INF/services` configuration and the class loader. When running as a named module, providers can be registered directly via the `provides` directive in `module-info.java`, while consumers declare `uses`.
 
-Với thư viện cần hỗ trợ cả classpath lẫn module path, cần đóng gói và kiểm tra đúng metadata cho từng chế độ phân phối. Không nên giả định file `META-INF/services` và descriptor module luôn được xử lý giống nhau trong mọi kiểu đóng gói.
+For libraries that need to support both the classpath and the module path, package and verify the appropriate metadata for each distribution mode. Do not assume `META-INF/services` files and module descriptors are always handled identically across every packaging style.
 
-## 9. Lỗi thường gặp và cách chẩn đoán
+## 9. Common Errors and Diagnostics
 
-| Triệu chứng | Nguyên nhân có thể | Hướng kiểm tra |
+| Symptom | Possible Cause | How to Check |
 |---|---|---|
-| Không tìm thấy provider | Module provider không được phân giải, thiếu `provides` hoặc metadata classpath sai | Kiểm tra module path và descriptor/JAR |
-| Consumer báo lỗi khi gọi `ServiceLoader` | Named module chưa khai báo `uses` cho service type | Thêm `uses` vào descriptor consumer |
-| Provider không được tạo | Provider class hoặc constructor/provider method không đáp ứng quy tắc | Kiểm tra public class, constructor hoặc provider method |
-| Không biên dịch được service interface | Consumer thiếu `requires` module API hoặc package API chưa export | Kiểm tra module API và consumer descriptor |
-| Consumer phụ thuộc trực tiếp implementation | Mã consumer import class provider cụ thể | Chuyển dependency về service interface |
-| Có nhiều implementation nhưng chọn sai | Ứng dụng giả định thứ tự provider | Thêm chính sách chọn provider tường minh |
+| Provider not found | Provider module not resolved, missing `provides`, or incorrect classpath metadata | Check module path and descriptor/JAR |
+| Consumer errors when calling `ServiceLoader` | Named module has not declared `uses` for the service type | Add `uses` to consumer descriptor |
+| Provider cannot be instantiated | Provider class or constructor/provider method does not meet rules | Check public class, constructor, or provider method |
+| Service interface fails to compile | Consumer missing `requires` on API module or API package not exported | Check API module and consumer descriptor |
+| Consumer depends directly on implementation | Consumer code imports concrete provider class | Switch dependency to the service interface |
+| Multiple implementations exist but wrong one is chosen | Application assumes provider order | Add an explicit provider selection policy |
 
-Có thể xem descriptor của từng JAR:
+You can inspect each JAR's descriptor:
 
 ```shell
 jar --describe-module --file provider.jar
 jar --describe-module --file consumer.jar
 ```
 
-Đối với provider modular, kiểm tra mục `provides`. Đối với consumer, kiểm tra mục `uses`. Nếu ứng dụng chạy trên module path, hãy xem thêm kết quả `--show-module-resolution` để biết provider module có thực sự tham gia cấu hình chạy hay không.
+For a modular provider, check the `provides` entry. For a consumer, check the `uses` entry. If the application runs on the module path, also check the `--show-module-resolution` output to see whether the provider module actually participates in the runtime configuration.
 
-## 10. Nguyên tắc thiết kế SPI
+## 10. SPI Design Principles
 
-- Đặt service interface trong module API riêng và export package chứa interface.
-- Consumer khai báo `requires` tới API và `uses` service type.
-- Provider khai báo `requires` tới API và `provides ... with ...` trong module descriptor.
-- Giữ implementation trong package nội bộ; không export package provider nếu consumer không cần truy cập trực tiếp.
-- Thiết kế interface nhỏ, ổn định, có quy định rõ về lifecycle, lỗi và thread-safety.
-- Không dựa vào thứ tự provider để quyết định implementation được chọn.
-- Nếu hỗ trợ classpath, cung cấp file `META-INF/services` đúng tên service interface.
-- Kiểm tra module resolution và metadata của artifact trong chính môi trường triển khai.
+- Place the service interface in a dedicated API module and export the package containing the interface.
+- Have the consumer declare `requires` on the API and `uses` for the service type.
+- Have the provider declare `requires` on the API and `provides ... with ...` in its module descriptor.
+- Keep the implementation in an internal package; do not export the provider package unless consumers need direct access.
+- Keep the interface small and stable, with clear rules for lifecycle, errors, and thread-safety.
+- Do not rely on provider ordering to decide which implementation is chosen.
+- If supporting the classpath, provide a `META-INF/services` file with the exact service interface name.
+- Verify module resolution and artifact metadata in the actual deployment environment.
 
-SPI tách hợp đồng khỏi implementation. Khi consumer chỉ phụ thuộc service interface, provider có thể được thay thế, bổ sung hoặc phân phối riêng mà không làm consumer gắn chặt với class triển khai cụ thể. JPMS làm rõ quan hệ này bằng `uses` và `provides`, còn `ServiceLoader` đảm nhiệm việc khám phá và khởi tạo provider lúc chạy.
+SPI separates the contract from the implementation. When consumers depend only on the service interface, providers can be replaced, added, or distributed independently without tightly coupling consumers to concrete implementation classes. JPMS makes this relationship explicit with `uses` and `provides`, while `ServiceLoader` handles provider discovery and instantiation at runtime.

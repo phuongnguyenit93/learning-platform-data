@@ -1,32 +1,32 @@
-# Giới hạn tài nguyên của BigInteger dù không có độ rộng cố định như long
+# Resource Limits of `BigInteger` Despite Having No Fixed Width Like `long`
 
-## 1. Mục tiêu: số nguyên chính xác tùy ý không có nghĩa là vô hạn tài nguyên
+## 1. Goal: Arbitrary-Precision Integers Do Not Mean Infinite Resources
 
-`java.math.BigInteger` là lớp biểu diễn **số nguyên có dấu với độ chính xác tùy ý** (*arbitrary-precision signed integer*). Khác với `long` cố định 64 bit, `BigInteger` có thể chứa số nguyên hàng trăm, hàng nghìn hoặc rất nhiều chữ số mà không bị **tràn số theo modulo 2⁶⁴** như toán tử primitive.
+`java.math.BigInteger` is the class representing **arbitrary-precision signed integers**. Unlike 64-bit fixed `long`, `BigInteger` can hold integers with hundreds, thousands, or huge numbers of digits without **wrapping modulo 2⁶⁴** like primitive operators.
 
-Nhưng “tùy ý” **không phải “vô hạn”**. Mỗi chương trình Java vẫn chạy trong một JVM hữu hạn RAM, heap, CPU, thời gian, tài nguyên thread và giới hạn cài đặt. Một phép toán trên `BigInteger` quá lớn có thể:
+However, "arbitrary" **does not mean "infinite"**. Every Java program still runs inside a JVM with finite RAM, heap, CPU, time, thread resources, and implementation limits. An oversized `BigInteger` operation can:
 
-- Cần bộ nhớ cho đối tượng, mảng dữ liệu và các kết quả tạm.
-- Mất nhiều thời gian CPU để cộng, nhân, chia, nâng lũy thừa hoặc chuyển đổi sang chuỗi.
-- Thất bại do giới hạn kích thước dữ liệu của implementation, hoặc gây `OutOfMemoryError`.
-- Chiếm tài nguyên chung khiến các yêu cầu khác của dịch vụ chậm hoặc bị từ chối.
-- Tạo nguy cơ từ dữ liệu không đáng tin cậy, nhất là một chuỗi đầu vào dài bất thường hoặc một số mũ do người dùng quyết định.
+- Require memory for objects, data arrays, and intermediate results.
+- Take substantial CPU time to add, multiply, divide, exponentiate, or convert to strings.
+- Fail due to implementation data-size limits, or throw `OutOfMemoryError`.
+- Monopolize shared resources, slowing down or starving other service requests.
+- Pose risks from untrusted data, especially unusually long input strings or user-controlled exponents.
 
-Bài học giúp bạn phân biệt **giới hạn của kiểu dữ liệu** với **ngân sách tài nguyên của ứng dụng**, ước lượng độ lớn bằng `bitLength()`, bảo vệ các thao tác tăng trưởng nhanh và viết ví dụ Java 17+ an toàn.
+This lesson helps you distinguish **data type limits** from **application resource budgets**, estimate magnitude using `bitLength()`, guard fast-growing operations, and write safe Java 17+ examples.
 
-## 2. long cố định 64 bit, còn BigInteger mở rộng theo giá trị
+## 2. `long` Is Fixed at 64 Bits, While `BigInteger` Grows with Value
 
-| Thuộc tính | `long` | `BigInteger` |
+| Property | `long` | `BigInteger` |
 | --- | --- | --- |
-| Dạng | Primitive 64-bit có dấu | Lớp đối tượng bất biến |
-| Miền giá trị | `Long.MIN_VALUE` đến `Long.MAX_VALUE` | Không khóa ở độ rộng 64 bit; có giới hạn implementation và tài nguyên |
-| Tràn khi cộng/nhân thông thường | Có thể wrap quanh modulo 2⁶⁴ | Không wrap theo miền `long` |
-| Độ chính xác số nguyên | Chính xác trong miền `long` | Chính xác cho số nguyên mà JVM biểu diễn/tính được |
-| Bộ nhớ mỗi giá trị | Kích thước primitive cố định | Phụ thuộc độ lớn, cấu trúc đối tượng và cài đặt |
-| Độ dài kết quả | Tối đa 64 bit kiểu primitive | Có thể tăng theo phép toán |
-| Khi không đủ khả năng xử lý | Overflow số học kiểu primitive | Có thể hết bộ nhớ, quá giới hạn implementation hoặc quá ngân sách ứng dụng |
+| Form | 64-bit signed primitive | Immutable object class |
+| Value range | `Long.MIN_VALUE` to `Long.MAX_VALUE` | Not locked to 64-bit width; bounded by implementation and resources |
+| Overflow on ordinary add/multiply | Can wrap modulo 2⁶⁴ | Does not wrap at `long` bounds |
+| Integer precision | Exact within `long` range | Exact for integers the JVM can represent/compute |
+| Memory per value | Fixed primitive size | Depends on magnitude, object layout, and implementation |
+| Result length | At most 64-bit primitive | Can grow across operations |
+| When capacity is insufficient | Primitive arithmetic overflow | Can run out of memory, hit implementation limits, or exceed app budget |
 
-Ví dụ so sánh:
+Comparison example:
 
 ~~~java
 long primitive = Long.MAX_VALUE;
@@ -37,23 +37,23 @@ BigInteger extended = BigInteger.valueOf(Long.MAX_VALUE)
 System.out.println(extended);      // 9223372036854775808
 ~~~
 
-Đây là đoạn minh họa trong phương thức có import `java.math.BigInteger`, không phải chương trình độc lập.
+This is an illustrative snippet inside a method with `import java.math.BigInteger`, not a standalone program.
 
-`BigInteger` không làm mất chữ số trong phép cộng trên. Tuy nhiên, giá trị kết quả cần được biểu diễn và lưu trên heap. Nếu tiếp tục tạo những kết quả quá lớn, ứng dụng vẫn có thể thất bại.
+`BigInteger` loses no digits in the addition above. Still, the result value must be represented and stored on the heap. If the application keeps producing oversized results, it can still fail.
 
-**Không dùng `double` như phương án “tránh tràn long” nếu cần số nguyên chính xác.** `double` có 53 bit precision có nghĩa, nên nhiều số nguyên lớn không thể biểu diễn chính xác; `BigInteger` phục vụ bài toán khác hẳn.
+**Do not use `double` as a way to "avoid `long` overflow" when exact integers are needed.** `double` has 53 bits of significand precision, so many large integers cannot be represented exactly; `BigInteger` solves a completely different problem.
 
-## 3. BigInteger lưu bao nhiêu dữ liệu?
+## 3. How Much Data Does `BigInteger` Store?
 
-Về mặt toán học, một số nguyên dương `n` cần khoảng:
+Mathematically, a positive integer `n` needs about:
 
 \[
 \text{bits}(n)=\lfloor\log_2(n)\rfloor+1,\qquad n>0
 \]
 
-bit để biểu diễn phần độ lớn dưới dạng nhị phân. Với số 0, quy ước độ dài độ lớn bằng 0 bit.
+bits to represent its magnitude in binary. For 0, the magnitude length is defined as 0 bits.
 
-Java có sẵn:
+Java provides:
 
 ~~~java
 BigInteger n = BigInteger.ONE.shiftLeft(1000);
@@ -62,60 +62,60 @@ System.out.println(n.bitLength());         // 1001
 System.out.println(n.toString().length()); // 302
 ~~~
 
-`n = 2¹⁰⁰⁰` nên bit cao nhất ở vị trí 1000 (đánh số từ 0), dẫn tới **1001 bit**. Khi in thập phân, `2¹⁰⁰⁰` có **302 chữ số**.
+`n = 2¹⁰⁰⁰`, so its highest bit is at position 1000 (zero-based), giving **1001 bits**. Printed in decimal, `2¹⁰⁰⁰` has **302 digits**.
 
-### Ước lượng bộ nhớ thô theo bit
+### Estimating Raw Bit Storage
 
-Một số có `b` bit độ lớn cần ít nhất khoảng `ceil(b / 8)` byte cho phần bit thô, trước các chi phí bổ sung:
+A number with `b` magnitude bits needs at least about `ceil(b / 8)` bytes for raw bit content, before overhead:
 
 \[
 \text{rawMagnitudeBytes}\approx \left\lceil\frac{b}{8}\right\rceil.
 \]
 
-Nhưng **đây không phải kích thước heap thực của BigInteger**. Trên JVM còn có header đối tượng, trường tham chiếu, thông tin dấu, mảng/word, alignment và các đối tượng tạm. Thực tế còn phụ thuộc phiên bản JDK, architecture, GC và cách tính.
+However, **this is not the actual heap size of `BigInteger`**. The JVM also has object headers, reference fields, sign metadata, word arrays, alignment, and temporary objects. Actual size depends on JDK version, architecture, GC, and implementation.
 
-`BigInteger.toByteArray()` cũng **không phải công cụ đo heap**. API này tạo một mảng byte **two's-complement có dấu**, nên có thể phải giữ thêm bit/byte dấu và còn phát sinh bản sao.
+`BigInteger.toByteArray()` is **also not a heap-measurement tool**. This API allocates a **signed two's-complement** byte array, which may include an extra sign bit/byte and creates a copy.
 
 ~~~java
 BigInteger value = BigInteger.ONE.shiftLeft(1000);
 System.out.println(value.toByteArray().length); // 126
 ~~~
 
-Ví dụ trên có 126 byte, phù hợp với biểu diễn byte của số dương `2¹⁰⁰⁰`. Nó **không** có nghĩa đối tượng `BigInteger` chỉ chiếm 126 byte heap.
+The example above has 126 bytes, matching the byte encoding of positive `2¹⁰⁰⁰`. It **does not** mean the `BigInteger` object occupies only 126 bytes on the heap.
 
-### Với số âm, cẩn trọng về bitLength()
+### For Negative Numbers, Be Careful with `bitLength()`
 
-`BigInteger.bitLength()` được mô tả bằng biểu diễn bù hai không kể bit dấu, nên không luôn giống bit length của **độ lớn tuyệt đối** đối với số âm. Nếu mục tiêu là kiểm soát kích thước toán hạng theo độ lớn, hãy dùng:
+`BigInteger.bitLength()` is defined using two's complement excluding the sign bit, so it does not always match the bit length of the **absolute magnitude** for negative numbers. If the goal is controlling operand size by magnitude, use:
 
 ~~~java
 int magnitudeBits = value.abs().bitLength();
 ~~~
 
-`BigInteger.ZERO.bitLength()` là 0. `abs()` giữ nguyên ngữ nghĩa số nguyên chính xác; đừng ép về `long` để lấy giá trị tuyệt đối, vì như vậy có thể mất dữ liệu hoặc gặp `Long.MIN_VALUE`.
+`BigInteger.ZERO.bitLength()` is 0. `abs()` preserves exact integer semantics; never narrow to `long` to take absolute value, as that can lose data or hit `Long.MIN_VALUE`.
 
-## 4. “Không cố định 64 bit” không đồng nghĩa “không có giới hạn implementation”
+## 4. "Not Fixed at 64 Bits" Does Not Mean "No Implementation Limits"
 
-Hợp đồng `BigInteger` đảm bảo các phép toán số nguyên có độ chính xác tùy ý **trong miền mà implementation hỗ trợ**. Tài liệu API Java nêu các ràng buộc của kiểu và cảnh báo rằng những thao tác tạo kết quả vượt phạm vi được hỗ trợ có thể phát sinh `ArithmeticException`.
+The `BigInteger` contract guarantees arbitrary-precision integer operations **within the range supported by the implementation**. Java API documentation states the type's constraints and warns that operations producing results outside the supported range may throw `ArithmeticException`.
 
-Ngoài phạm vi của implementation, còn có các giới hạn độc lập:
+Beyond implementation limits, independent limits also apply:
 
-- **Kích thước mảng và đối tượng:** một mảng Java không có chiều dài vô hạn; độ lớn BigInteger phụ thuộc vào các cấu trúc dữ liệu trong bộ nhớ.
-- **Giới hạn heap:** dù lý thuyết biểu diễn được, JVM có thể không còn vùng nhớ cấp phát.
-- **Tài nguyên tạm thời:** phép nhân/chia/parse có thể cần nhiều bộ đệm hơn kích thước kết quả cuối.
-- **CPU và thời gian:** ngay cả khi đủ RAM, tính toán hoặc chuyển đổi kết quả có thể lâu hơn giới hạn xử lý yêu cầu.
-- **Giới hạn do ứng dụng đặt:** kích thước input, số chữ số output, số mũ, thời hạn request, quota tenant, ngân sách memory/CPU của container.
+- **Array and object sizes:** a Java array cannot have infinite length; `BigInteger` capacity depends on in-memory data structures.
+- **Heap limit:** even if theoretically representable, the JVM may lack allocatable heap space.
+- **Temporary resources:** multiplication/division/parsing may require larger buffers than the final result size.
+- **CPU and time:** even with sufficient RAM, computing or string-converting results can exceed request timeouts.
+- **Application-imposed limits:** input size, output digit count, exponents, request deadlines, tenant quotas, container memory/CPU budgets.
 
-Không nên ghi trong tài liệu nghiệp vụ một con số **“BigInteger tối đa luôn là X bit”** như giới hạn thực tế phổ quát. Khả năng cụ thể có thể phụ thuộc phiên bản Java, implementation và môi trường vận hành; ứng dụng nên tự đặt ngân sách nhỏ hơn, có thể kiểm soát và kiểm thử được.
+Do not write in business documentation a universal hard limit like **"maximum BigInteger is always X bits."** Specific capacity can depend on Java version, implementation, and runtime environment; applications should enforce smaller, controllable, testable budgets of their own.
 
-**Giới hạn kiểu dữ liệu** và **giới hạn an toàn của hệ thống** là hai việc khác nhau. Một máy có thể chứa số `BigInteger` với hàng triệu bit, nhưng việc cho phép từng yêu cầu web tạo số như vậy có thể vẫn không phù hợp.
+**Data type limits** and **system safety limits** are two separate concerns. A machine might hold a `BigInteger` with millions of bits, yet letting every web request build such a number can still be unsafe.
 
-## 5. Kích thước kết quả thay đổi theo phép toán
+## 5. Result Size Grows Across Operations
 
-Điểm nguy hiểm không chỉ ở đầu vào; **kết quả trung gian có thể lớn lên rất nhanh**.
+The danger lies not only in inputs; **intermediate results can grow very rapidly**.
 
-### Phép cộng và phép trừ
+### Addition and Subtraction
 
-Khi cộng hai số có độ lớn tối đa khoảng `b` bit, kết quả có thể cần khoảng `b + 1` bit. Với dữ liệu tùy ý dấu, còn có những trường hợp triệt tiêu, nhưng không nên dựa vào điều đó để bỏ giới hạn.
+When adding two numbers of magnitude up to about `b` bits, the result can take around `b + 1` bits. With arbitrary signs, cancellation can occur, yet you should not rely on cancellation to omit limits.
 
 ~~~java
 BigInteger a = BigInteger.ONE.shiftLeft(100);
@@ -126,9 +126,9 @@ System.out.println(a.bitLength());   // 101
 System.out.println(sum.bitLength()); // 102
 ~~~
 
-### Phép nhân
+### Multiplication
 
-Hai số dương có khoảng `m` và `n` bit tạo tích có không quá khoảng `m + n` bit, với độ lớn khác 0. Chẳng hạn bình phương một số có thể **gần gấp đôi số bit** cần thiết.
+Two positive numbers of about `m` and `n` bits produce a product with at most roughly `m + n` bits (when nonzero). For example, squaring a number can **nearly double the required bit count**.
 
 ~~~java
 BigInteger a = BigInteger.ONE.shiftLeft(1000);
@@ -138,11 +138,11 @@ System.out.println(a.bitLength());      // 1001
 System.out.println(square.bitLength()); // 2001
 ~~~
 
-Bên cạnh dung lượng kết quả còn có chi phí tính toán và các mảng trung gian. Implementation có thể sử dụng thuật toán nhân khác nhau theo kích thước; không nên khẳng định mọi phép nhân đều có một độ phức tạp cố định duy nhất trong mọi JDK.
+Alongside result size, there are computation costs and temporary arrays. Implementations may switch multiplication algorithms based on operand size; never claim every multiplication has one fixed complexity across all JDKs.
 
-### Nâng lũy thừa
+### Exponentiation
 
-`BigInteger.pow(int exponent)` có thể khiến kết quả tăng rất nhanh theo số mũ. Với `base > 1`:
+`BigInteger.pow(int exponent)` can make results grow very quickly with the exponent. For `base > 1`:
 
 \[
 \text{bits}(base^e) \approx e\log_2(base)+1.
@@ -153,9 +153,9 @@ BigInteger power = BigInteger.TWO.pow(1000);
 System.out.println(power.bitLength()); // 1001
 ~~~
 
-Nếu số mũ do người dùng kiểm soát và bạn không kiểm tra ngân sách, một request nhỏ kiểu `"base=2&exponent=1000000000"` có thể yêu cầu lượng dữ liệu kết quả rất lớn. **Không chạy phép tính chỉ để “xem nó có vừa hay không”**; ước lượng kích thước trước.
+If the exponent is user-controlled and unchecked against a budget, a tiny request like `"base=2&exponent=1000000000"` can demand enormous output data. **Do not run the calculation just to "see if it fits"**; estimate size beforehand.
 
-### Bình phương lặp gây tăng trưởng đặc biệt nhanh
+### Repeated Squaring Causes Especially Fast Growth
 
 ~~~java
 BigInteger n = BigInteger.TWO;
@@ -165,45 +165,45 @@ for (int i = 0; i < 10; i++) {
 System.out.println(n.bitLength()); // 1025
 ~~~
 
-Sau 10 lần bình phương, `n = 2¹⁰²⁴`, có 1025 bit. Nếu tăng số lần bình phương thêm rất nhiều, số bit tăng theo **hàm mũ của số bước**. Vì vậy một vòng lặp trông ngắn cũng có thể tạo gánh nặng lớn nếu không có điểm dừng theo kích thước.
+After 10 squarings, `n = 2¹⁰²⁴`, taking 1025 bits. Increasing the squaring count just a bit more grows bit length **exponentially in the number of steps**. Thus an innocent-looking short loop can create huge load without a size-based stop condition.
 
-## 6. Không chỉ phép toán: parse và toString cũng tốn tài nguyên
+## 6. Not Just Arithmetic: Parsing and `toString` Also Consume Resources
 
-Lấy BigInteger từ chuỗi:
+Creating `BigInteger` from a string:
 
 ~~~java
 BigInteger n = new BigInteger("123456789012345678901234567890");
 ~~~
 
-Cú pháp chuỗi nhỏ có vẻ vô hại. Nhưng với chuỗi có hàng triệu chữ số, chương trình cần đọc, kiểm tra định dạng, chuyển sang biểu diễn nhị phân, cấp phát bộ nhớ và xử lý lỗi. Nếu đầu vào không đáng tin, việc parse không giới hạn có thể là vấn đề **availability** của dịch vụ.
+Short string syntax looks harmless. Yet for strings with millions of digits, the program must read, validate format, convert to binary representation, allocate memory, and handle errors. For untrusted input, unbounded parsing can become a service **availability** issue.
 
-Tương tự, `n.toString()` phải sinh biểu diễn thập phân:
+Likewise, `n.toString()` must generate a decimal representation:
 
 ~~~java
 String decimal = n.toString();
 ~~~
 
-Một số có hàng triệu bit có thể tạo một chuỗi thập phân rất lớn. Việc ghi chuỗi đó ra log, gửi qua HTTP, chèn vào JSON hoặc lưu vào hệ thống khác tiêu tốn thêm bộ nhớ, CPU, băng thông và dung lượng lưu trữ.
+A number with millions of bits can produce a huge decimal string. Writing that string to logs, sending it over HTTP, embedding it in JSON, or storing it in another system consumes extra memory, CPU, bandwidth, and storage.
 
-### Ước lượng số chữ số thập phân
+### Estimating Decimal Digit Count
 
-Số nguyên dương có `b` bit thường có khoảng:
+A positive integer with `b` bits typically has around:
 
 \[
-\text{decimalDigits}\approx b\log_{10}(2)\approx0{,}30103b.
+\text{decimalDigits}\approx b\log_{10}(2)\approx 0.30103b.
 \]
 
-Đây là **ước lượng**, không phải một bộ kiểm tra độ dài chính xác cho mọi giá trị. Ví dụ `2¹⁰⁰⁰` có 1001 bit nhưng 302 chữ số thập phân.
+This is an **estimate**, not an exact length check for all values. For instance, `2¹⁰⁰⁰` has 1001 bits and 302 decimal digits.
 
-Với dữ liệu cần giữ nguyên, không nên làm `toString()` của một BigInteger rất lớn chỉ để hỏi “nó có lớn không?”. `abs().bitLength()` cung cấp một tín hiệu kích thước rẻ hơn so với tạo toàn bộ chuỗi.
+For data that must stay intact, do not call `toString()` on a huge `BigInteger` just to ask "is it big?" `abs().bitLength()` provides a far cheaper size signal than building the entire string.
 
-### Input cực dài có thể gây rủi ro trước khi constructor chạy
+### Extremely Long Input Can Cause Risk Before the Constructor Runs
 
-Nếu hệ thống đã tải toàn bộ body HTTP hoặc file vào một `String` khổng lồ rồi mới kiểm tra độ dài, bạn **đã cấp phát tài nguyên cho đầu vào**. Vì vậy nên giới hạn request body/field ngay tại ranh giới tiếp nhận, rồi mới kiểm tra chuỗi, parse và tính toán. Hàm parse có giới hạn ở tầng nghiệp vụ là lớp bảo vệ thứ hai, không phải thay thế toàn bộ kiểm soát ở gateway/server.
+If a system already loads an entire HTTP body or file into a gigantic `String` before checking length, it has **already allocated resources for the input**. Therefore, bound request bodies/fields right at the ingestion boundary, before string inspection, parsing, and computation. A bounded parser at the business layer is a second line of defense, not a replacement for gateway/server limits.
 
-## 7. Một hàm parse có giới hạn số chữ số
+## 7. A Digit-Limited Parsing Function
 
-Ví dụ yêu cầu hệ thống chỉ nhận số nguyên thập phân ASCII tối đa **40 chữ số**, không tính dấu `+` hoặc `-`. Đoạn code dưới đây không cần thư viện ngoài:
+For example, suppose a system accepts only ASCII decimal integers of at most **40 digits**, excluding a `+` or `-` sign. The code below needs no external libraries:
 
 ~~~java
 static BigInteger parseLimitedDecimal(String text, int maxDigits) {
@@ -233,23 +233,23 @@ static BigInteger parseLimitedDecimal(String text, int maxDigits) {
 }
 ~~~
 
-Đây là **phương thức đặt trong thân lớp**, cần `import java.math.BigInteger;`, không phải một file chạy độc lập.
+This is a **method placed inside a class body**, requiring `import java.math.BigInteger;`, not a standalone runnable file.
 
-Lựa chọn kiểm tra ASCII có chủ đích: `BigInteger(String)` có thể nhận nhiều dạng chữ số mà `Character.digit` hỗ trợ, nhưng giao thức ví dụ này quy định **chỉ 0–9 ASCII**. Đừng cho phép một tập ký tự rồi vô tình mô tả nó là “chỉ số ASCII”.
+Checking ASCII explicitly is intentional: `BigInteger(String)` can accept various Unicode digits supported by `Character.digit`, whereas this example protocol specifies **only ASCII 0–9**. Never allow a broader character set and accidentally describe it as "ASCII digits only."
 
-Điểm tốt của hàm:
+Strengths of this function:
 
-1. Kiểm tra `null`, số chữ số và độ dài **trước** khi tạo `BigInteger`.
-2. Cho phép dấu đầu chuỗi nhưng không tính nó như chữ số.
-3. Dùng vòng lặp đơn giản để kiểm tra định dạng; không cần parse rồi mới kiểm tra kích thước.
-4. Tạo giá trị chính xác nếu đầu vào hợp lệ.
-5. Báo lỗi tường minh khi vượt chính sách.
+1. Checks `null`, digit count, and length **before** constructing `BigInteger`.
+2. Allows a leading sign without counting it as a digit.
+3. Uses a simple loop to validate format; no need to parse first and check size afterward.
+4. Produces an exact value when input is valid.
+5. Fails explicitly when policy is violated.
 
-Nếu chuỗi đến từ người dùng, còn cần giới hạn **độ dài payload trước khi hình thành String** như đã trình bày ở trên. Giới hạn 40 chỉ là ví dụ, không phải ngưỡng bắt buộc của `BigInteger`.
+If strings come from users, you also need to bound **payload length before forming the `String`** as noted above. The limit 40 is only an example, not a mandatory `BigInteger` threshold.
 
-## 8. Kiểm tra số bit trước phép nhân
+## 8. Checking Bit Count Before Multiplication
 
-Với hai số khác 0 có độ dài độ lớn lần lượt là `aBits` và `bBits`, tích có **không quá `aBits + bBits` bit**. Ta có thể dùng cận trên bảo thủ này để **từ chối sớm** phép nhân có nguy cơ vượt ngân sách.
+For two nonzero numbers with magnitude bit lengths `aBits` and `bBits`, the product has **no more than `aBits + bBits` bits**. We can use this conservative upper bound to **fail fast** on multiplications risking a budget overrun.
 
 ~~~java
 static BigInteger multiplyWithinBitBudget(
@@ -271,23 +271,23 @@ static BigInteger multiplyWithinBitBudget(
 }
 ~~~
 
-Điều này là một **giới hạn bảo thủ**, không phải phép tiên đoán số bit chính xác của tích. Một tích thực tế có thể nằm trong ngân sách ngay cả khi `upperBound` lớn hơn ngưỡng: khi đó hàm **cố ý từ chối** để tránh rủi ro. Nếu nghiệp vụ không chấp nhận false rejection, hãy áp dụng phân tích phù hợp hơn hoặc dùng ngân sách lớn hơn.
+This is a **conservative limit**, not an exact prediction of the product's bit count. An actual product may fit within budget even when `upperBound` exceeds the threshold: in that case, the function **intentionally rejects** to avoid risk. If business rules cannot accept false rejections, apply a tighter analysis or raise the budget.
 
-Vì `bitLength()` trả `int`, phép cộng hai độ dài được chuyển sang `long` trước để tránh tràn số nguyên ở phép cộng cận. Đừng ước lượng bằng `a.toString().length()` và `b.toString().length()` khi input có thể cực lớn: tạo chuỗi cũng là công việc tốn tài nguyên.
+Because `bitLength()` returns `int`, the sum of the two lengths is widened to `long` first to prevent integer overflow when summing the bound. Never estimate using `a.toString().length()` and `b.toString().length()` when inputs can be gigantic: building strings is itself resource-intensive.
 
-Một cận trên không thay thế memory limit thật. Phép nhân nhỏ hơn ngân sách bit vẫn có thể cần **mảng trung gian**, gặp thiếu heap hoặc ảnh hưởng CPU.
+An upper bound does not replace real memory limits. A multiplication within bit budget can still require **intermediate arrays**, hit heap exhaustion, or impact CPU.
 
-## 9. Kiểm tra số mũ trước khi gọi pow
+## 9. Checking the Exponent Before Calling `pow`
 
-`BigInteger.pow(int exponent)` yêu cầu số mũ nguyên không âm. Nếu `exponent < 0`, API ném `ArithmeticException`. Nếu số mũ rất lớn, kết quả có thể cần số bit khổng lồ.
+`BigInteger.pow(int exponent)` requires a non-negative integer exponent. If `exponent < 0`, the API throws `ArithmeticException`. If the exponent is huge, the result can require an enormous number of bits.
 
-Với `base` khác 0 và số mũ dương, cận trên đơn giản là:
+For nonzero `base` and positive exponent, a simple upper bound is:
 
 \[
 \text{resultBits}\le \text{abs(base).bitLength()}\times exponent.
 \]
 
-Ta dùng `long` để tính tích của hai tham số kích thước:
+We use `long` to multiply the two size parameters:
 
 ~~~java
 static BigInteger powWithinBitBudget(
@@ -310,15 +310,15 @@ static BigInteger powWithinBitBudget(
 }
 ~~~
 
-Đây cũng là một **cận bảo thủ**. Ví dụ `base = 1` hoặc `base = -1` thì kết quả luôn có độ lớn 1 với mọi số mũ, nhưng phép ước lượng trên vẫn có thể từ chối khi exponent quá lớn. Nếu cần xử lý tối ưu, có thể đặc biệt hóa các base `0`, `1` và `-1`.
+This is also a **conservative bound**. For instance, if `base = 1` or `base = -1`, the result always has magnitude 1 for any exponent, yet the estimate above can reject when the exponent is huge. To optimize acceptance, `0`, `1`, and `-1` bases can be special-cased.
 
-**Lưu ý `0^0` trong Java API:** `BigInteger.pow(0)` trả `BigInteger.ONE` (kể cả khi base là 0); code trên cũng tuân theo hành vi đó. Nếu một mô hình toán học/ứng dụng muốn coi `0^0` là không hợp lệ, phải áp dụng kiểm tra nghiệp vụ riêng.
+**Note on `0^0` in the Java API:** `BigInteger.pow(0)` returns `BigInteger.ONE` (even when `base` is 0); the code above follows that behavior. If a mathematical/application model treats `0^0` as invalid, enforce a separate business check.
 
-Không phải lúc nào cũng phù hợp trả về một BigInteger khổng lồ từ lũy thừa. Nếu bạn chỉ cần `base^exponent mod modulus`, hãy dùng phép toán modulo chuyên dụng, được nói ở phần tiếp theo.
+Returning an enormous `BigInteger` from exponentiation is not always appropriate. If you only need `base^exponent mod modulus`, use the dedicated modular operation discussed in the next section.
 
-## 10. Ví dụ Java 17+ hoàn chỉnh và kiểm soát được tài nguyên
+## 10. Complete Resource-Bounded Java 17+ Example
 
-Lưu thành file `BigIntegerResourceDemo.java`:
+Save to file `BigIntegerResourceDemo.java`:
 
 ~~~java
 import java.math.BigInteger;
@@ -416,7 +416,7 @@ public class BigIntegerResourceDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 BigIntegerResourceDemo.java
@@ -438,26 +438,26 @@ oversized power=rejected
 too many digits=rejected
 ~~~
 
-Giải thích:
+Explanation:
 
-- Số `2^1000` chỉ lớn hơn một chút so với 1000 bit và vẫn rất an toàn để minh họa; không cần tạo một số có hàng triệu chữ số.
-- Chuyển `BigInteger` có giá trị lớn hơn `Long.MAX_VALUE` bằng `longValueExact()` phát sinh `ArithmeticException`. Cách này giúp phát hiện vượt miền thay vì âm thầm mất bit như `longValue()`.
-- Phép nhân nhỏ `1234 × 1234` cho kết quả chính xác `1522756`.
-- `2^10` trả `1024`, nằm trong ngân sách 2048 bit.
-- `2^2000` **không được tính** trong hàm `powBounded`: cận trên bảo thủ đã vượt ngân sách và ném lỗi trước khi tạo số lớn.
-- Chuỗi 41 chữ số bị từ chối **trước khi khởi tạo BigInteger**.
+- `2^1000` is just over 1000 bits and still completely safe to demonstrate; no need to build a number with millions of digits.
+- Narrowing a `BigInteger` larger than `Long.MAX_VALUE` with `longValueExact()` triggers `ArithmeticException`. This catches out-of-range values instead of silently dropping bits like `longValue()`.
+- Small multiplication `1234 × 1234` yields exact `1522756`.
+- `2^10` returns `1024`, well within the 2048-bit budget.
+- `2^2000` **is not computed** in `powBounded`: the conservative upper bound already exceeded the budget and threw an error before constructing the big number.
+- A 41-digit string is rejected **before initializing `BigInteger`**.
 
-Mục đích của ví dụ là thể hiện **kiểm soát tài nguyên bằng chính sách ứng dụng**, không đo benchmark CPU hoặc heap. Các ngân sách 40 chữ số/2048 bit chỉ là cấu hình minh họa; sản phẩm thực phải chọn giới hạn từ yêu cầu nghiệp vụ và thử nghiệm tải.
+The demo aims to show **resource control via application policy**, not to benchmark CPU or heap. The 40-digit/2048-bit budgets are purely illustrative settings; real products must derive limits from business requirements and load testing.
 
-## 11. Dùng modPow thay vì tạo lũy thừa khổng lồ rồi lấy mod
+## 11. Use `modPow` Instead of Building a Giant Power and Taking `mod`
 
-Nhiều bài toán chỉ cần:
+Many problems only need:
 
 \[
 a^e\bmod m
 \]
 
-với `m > 0`. Không cần tính giá trị `a^e` đầy đủ rồi mới lấy số dư. `BigInteger.modPow(BigInteger exponent, BigInteger modulus)` thực hiện phép nâng lũy thừa modulo trực tiếp.
+with `m > 0`. There is no need to compute the full `a^e` first and then take the remainder. `BigInteger.modPow(BigInteger exponent, BigInteger modulus)` performs modular exponentiation directly.
 
 ~~~java
 BigInteger base = BigInteger.valueOf(7);
@@ -468,24 +468,24 @@ BigInteger modular = base.modPow(exponent, modulus);
 System.out.println(modular); // 9
 ~~~
 
-Trong ví dụ trên, `7^100 mod 13 = 9`. Phương thức `modPow` giúp tránh phải giữ **toàn bộ `7^100`** trong kết quả trung gian chỉ để lấy số dư.
+In the example above, `7^100 mod 13 = 9`. `modPow` avoids holding **all of `7^100`** in an intermediate result just to take the remainder.
 
-Nhưng **modPow không miễn phí**: số mũ lớn, modulus lớn hoặc số lượng phép gọi nhiều vẫn cần CPU và tài nguyên. Với dữ liệu không đáng tin, vẫn phải giới hạn độ dài của base, exponent, modulus, yêu cầu modulus dương và thời hạn xử lý.
+Still, **`modPow` is not free**: huge exponents, huge moduli, or high call volumes still consume CPU and resources. With untrusted data, you must still bound the lengths of base, exponent, and modulus, enforce a positive modulus, and enforce processing deadlines.
 
-`BigInteger.modPow` còn có các quy tắc riêng cho số mũ âm (liên quan nghịch đảo modulo khi tồn tại); nếu nghiệp vụ chỉ cần lũy thừa modulo thông thường, hãy **từ chối số mũ âm từ đầu** để hợp đồng đơn giản và dễ dự đoán.
+`BigInteger.modPow` also has special rules for negative exponents (involving modular inverses when they exist); if business logic only expects standard modular exponentiation, **reject negative exponents up front** to keep the contract simple and predictable.
 
-## 12. Không tạo chuỗi khổng lồ chỉ để kiểm tra hay log
+## 12. Do Not Build Giant Strings Just to Inspect or Log
 
-Ví dụ log nguy hiểm:
+Dangerous logging example:
 
 ~~~java
-// Không nên làm với BigInteger chưa bị giới hạn kích thước:
+// Do not do this with a BigInteger without size limits:
 logger.info("Computed result: " + hugeBigInteger);
 ~~~
 
-Việc ghép chuỗi sẽ gọi `toString()` của BigInteger trước khi hoặc trong lúc tạo thông điệp, có thể khiến ứng dụng tạo một chuỗi thập phân khổng lồ. Ngay cả việc dùng logging placeholder cũng cần xem logging framework có thực sự trì hoãn format, và có giới hạn độ lớn trước khi format hay không.
+String concatenation invokes `BigInteger.toString()` before or while constructing the message, potentially forcing the application to allocate a massive decimal string. Even when using logging placeholders, verify whether the logging framework actually defers formatting and whether a size cap is applied before formatting.
 
-Thay vì log toàn bộ, nếu chính sách cho phép, có thể ghi thông tin **về kích thước**:
+Instead of logging the full number, if policy allows, log **size metadata**:
 
 ~~~java
 BigInteger value = BigInteger.ONE.shiftLeft(1000);
@@ -494,42 +494,42 @@ System.out.println("sign=" + value.signum()
 // sign=1, bits=1001
 ~~~
 
-Khi phục vụ API, cần giới hạn **cả input lẫn output**. Một chuỗi số rất dài được phép tính xong vẫn có thể vượt giới hạn của response, cache, broker, database hoặc giao thức nhận dữ liệu tiếp theo.
+When serving APIs, bound **both input and output**. A very long numeric string that finished computing can still exceed limits of the response, cache, broker, database, or downstream receiving protocol.
 
-Nếu yêu cầu phải xuất đầy đủ một kết quả cực lớn, nên có cơ chế xử lý theo lô hoặc lưu vào tài nguyên phù hợp, và đánh giá cả chi phí tạo biểu diễn decimal. Không giả định rằng vì tính toán hoàn tất thì bước serialize sẽ luôn an toàn.
+If an application truly must output a huge result in full, use streaming/batching or store it in an appropriate resource, and evaluate decimal formatting costs too. Do not assume that because computation succeeded, serialization will always be safe.
 
-## 13. Chi phí của các phép toán khác
+## 13. Costs of Other Operations
 
-| Phép toán | Dạng chi phí cần lưu ý |
+| Operation | Cost aspect to watch |
 | --- | --- |
-| `add` / `subtract` | Xử lý các phần tử biểu diễn số; tạo kết quả thích hợp |
-| `multiply` / `square` | Kích thước kết quả tăng, phép nhân dùng CPU và bộ nhớ tạm |
-| `divide` / `remainder` | Thuật toán chia số nhiều bit; chi phí phụ thuộc độ lớn của cả hai toán hạng |
-| `pow` | Độ dài kết quả có thể tăng theo số mũ |
-| `shiftLeft` | Có thể mở rộng số bit theo số lượng vị trí dịch |
-| `toString` | Tạo chuỗi decimal; CPU/bộ nhớ cho chuyển đổi và kết quả |
-| `new BigInteger(String)` | Chi phí phân tích chuỗi và chuyển biểu diễn |
-| `gcd` | Chi phí tăng với kích thước toán hạng |
-| `modPow` | Giảm nhu cầu tạo lũy thừa đầy đủ, nhưng vẫn tốn tài nguyên |
-| `isProbablePrime` / `nextProbablePrime` | Các phép kiểm tra/tìm số nguyên tố có thể tốn nhiều CPU với input lớn |
+| `add` / `subtract` | Processes numeric limbs; allocates appropriate result |
+| `multiply` / `square` | Result size grows; multiplication uses CPU and temporary memory |
+| `divide` / `remainder` | Multi-word division algorithm; cost depends on sizes of both operands |
+| `pow` | Result length can grow proportionally with exponent |
+| `shiftLeft` | Can expand bit count by shift distance |
+| `toString` | Generates decimal string; CPU/memory for conversion and string result |
+| `new BigInteger(String)` | String parsing and representation conversion cost |
+| `gcd` | Cost increases with operand sizes |
+| `modPow` | Avoids building full power, yet still consumes resources |
+| `isProbablePrime` / `nextProbablePrime` | Primality testing/searching can be CPU-heavy on large inputs |
 
-Không nên gán một con số thời gian hoặc độ phức tạp duy nhất cho mọi hoạt động BigInteger trong mọi JVM; JDK có thể lựa chọn thuật toán khác nhau theo độ dài và cấu trúc đầu vào. Điều quan trọng là **đo trên dữ liệu và runtime thực tế** đồng thời đặt giới hạn an toàn từ cấp thiết kế.
+Never assign a single runtime figure or complexity formula to all `BigInteger` operations across all JVMs; the JDK may pick different algorithms depending on operand length and structure. What matters is **measuring on real data and runtimes** while enforcing safety limits at design time.
 
-Một cảnh báo khác: phép chia cho `BigInteger.ZERO` ném `ArithmeticException` do **điều kiện toán học không hợp lệ**, chứ không phải lỗi thiếu tài nguyên. Hãy phân biệt lỗi dữ liệu, lỗi cận tài nguyên và lỗi hạ tầng khi ghi log hoặc trả phản hồi API.
+Another caution: dividing by `BigInteger.ZERO` throws `ArithmeticException` due to an **invalid mathematical condition**, not resource exhaustion. Distinguish data errors, resource-bound errors, and infrastructure errors when logging or returning API responses.
 
-## 14. Tăng trưởng không thể chặn chỉ bằng điều kiện “đầu vào nhỏ”
+## 14. Growth Cannot Be Stopped Only by "Small Input" Rules
 
-Một API nhận hai số nguyên mỗi số tối đa 100 chữ số có vẻ an toàn cho phép cộng. Nhưng nếu người dùng cung cấp thêm:
+An API accepting two integers of at most 100 digits each looks safe for addition. Yet if a user also supplies:
 
-- `repeatCount` rất lớn để nhân hoặc cộng lặp.
-- `exponent` để gọi `pow`.
-- `shiftDistance` để gọi `shiftLeft`.
-- Số lần thực hiện thuật toán tìm số nguyên tố.
-- Số lượng bước thử hoặc số lượng yêu cầu đồng thời.
+- A huge `repeatCount` for repeated multiplication or addition.
+- An `exponent` passed to `pow`.
+- A `shiftDistance` passed to `shiftLeft`.
+- Number of prime-search iterations.
+- Step counts or concurrent request counts.
 
-thì kết quả và CPU có thể vượt ngân sách dù **mỗi toán hạng đầu vào nhỏ**.
+then results and CPU can blow past the budget even though **each input operand is small**.
 
-Ví dụ vòng lặp:
+Loop example:
 
 ~~~java
 BigInteger value = BigInteger.TWO;
@@ -539,18 +539,18 @@ for (int step = 0; step < 10; step++) {
 System.out.println(value.bitLength()); // 1025
 ~~~
 
-Tăng số bước lên vài lần nữa sẽ làm kích thước tăng đột ngột. Bảo vệ tốt là định nghĩa **cận tổng chi phí** theo thuật toán, không chỉ giới hạn ký tự của một input.
+Increasing steps slightly further makes size explode abruptly. Good protection defines an **overall cost bound** for the algorithm, not just character limits on a single input.
 
-Nếu hệ thống cho phép biểu thức toán học do người dùng gửi vào, cần hạn chế cả độ sâu biểu thức, số phép toán, số mũ, kích thước kết quả trung gian và tần suất gọi. Nếu chương trình chỉ kiểm tra output sau khi phép tính hoàn tất, việc bảo vệ tài nguyên đã quá muộn.
+If a system evaluates user-submitted mathematical expressions, restrict expression depth, operation count, exponents, intermediate result sizes, and call frequency. Checking output size only after computation finishes comes too late to protect resources.
 
-## 15. Tại sao catch OutOfMemoryError không phải giải pháp?
+## 15. Why Catching `OutOfMemoryError` Is Not a Solution
 
-`OutOfMemoryError` là một `Error`, không phải một `Exception` nghiệp vụ thông thường. Khi heap cạn hoặc JVM không thể cấp phát đối tượng cần thiết, hệ thống có thể đã ở trạng thái rất hạn chế về tài nguyên.
+`OutOfMemoryError` is an `Error`, not an ordinary business `Exception`. When the heap is exhausted or the JVM cannot allocate a needed object, the system may already be in a severely resource-starved state.
 
-Không nên viết kiểu:
+Never write code like:
 
 ~~~java
-// Mẫu không nên dùng để "xử lý" số quá lớn trong nghiệp vụ:
+// Pattern to avoid for "handling" oversized numbers in business logic:
 //
 // try {
 //     return veryLargeComputation();
@@ -559,66 +559,66 @@ Không nên viết kiểu:
 // }
 ~~~
 
-Việc trả zero sẽ che giấu lỗi và tạo dữ liệu sai. Hơn nữa, việc bắt `OutOfMemoryError` **không đảm bảo** chương trình còn đủ bộ nhớ để chạy logic phục hồi an toàn; thông thường cần cơ chế quản lý tài nguyên và khôi phục dịch vụ ở tầng cao hơn.
+Returning zero masks failures and produces corrupt data. Furthermore, catching `OutOfMemoryError` **does not guarantee** the program has enough memory left to run safe recovery logic; higher-level resource management and service recovery are normally required.
 
-Giải pháp tốt hơn là:
+Better solutions:
 
-1. Giới hạn kích thước payload **trước khi** tạo chuỗi/đối tượng lớn.
-2. Kiểm tra số bit/digit và các tham số tạo tăng trưởng trước phép tính.
-3. Dùng phép toán phù hợp, như `modPow` nếu chỉ cần số dư modulo.
-4. Đặt timeout, giới hạn song song và quota tại tầng job/request.
-5. Dùng bộ đo/giám sát thích hợp cho heap, GC, CPU, latency và mức tải.
-6. Thử tải với dữ liệu sát biên ngân sách, kiểm tra hành vi khi vượt ngưỡng.
+1. Cap payload size **before** creating large strings/objects.
+2. Validate bit/digit counts and growth-driving parameters before computation.
+3. Use appropriate operations, such as `modPow` when only modular remainders are needed.
+4. Set timeouts, concurrency limits, and quotas at the job/request layer.
+5. Use proper metrics/monitoring for heap, GC, CPU, latency, and load.
+6. Load-test with data near budget edges and verify behavior when thresholds are exceeded.
 
-## 16. Timeouts và heap size: không phải bảo đảm đủ cho mọi BigInteger
+## 16. Timeouts and Heap Size: Not a Guarantee for Every `BigInteger`
 
-Cấu hình JVM như `-Xmx` đặt **giới hạn tối đa của heap**, nhưng không chỉ định một BigInteger được phép chiếm bao nhiêu. Heap còn dùng cho object khác, thread, request, cache và mảng tạm. Tăng `-Xmx` có thể giúp một workload chạy được, nhưng cũng có thể dẫn tới thời gian GC dài, áp lực bộ nhớ của máy chủ hoặc chi phí vận hành lớn.
+JVM flags like `-Xmx` set the **maximum heap ceiling**, but do not specify how much a single `BigInteger` may occupy. Heap is shared with other objects, threads, requests, caches, and temporary arrays. Increasing `-Xmx` can let a workload run, yet can also cause long GC pauses, host memory pressure, or higher operating cost.
 
-Ví dụ lệnh:
+Example command:
 
 ~~~bash
 java -Xmx256m MyBigIntegerApp
 ~~~
 
-Đây là **lệnh minh họa**; `MyBigIntegerApp` không phải một lớp được tạo trong bài. Nó chỉ giới hạn heap theo cấu hình JVM, không tự động cho phép mọi phép tính BigInteger an toàn trong giới hạn đó.
+This is an **illustrative command**; `MyBigIntegerApp` is not a class created in this lesson. It only caps heap via JVM configuration, without automatically making every `BigInteger` computation safe inside that cap.
 
-**Timeout** cũng có nhiều tầng: HTTP timeout, queue deadline, cancellation của job và giới hạn CPU của container. Không mặc định rằng gọi `Thread.interrupt()` sẽ dừng tức thì mọi phương thức BigInteger đang tính. Với workload không tin cậy hoặc tính toán dài, cân nhắc cô lập job trong tiến trình/worker riêng để có cơ chế thực thi, giới hạn và hủy phù hợp với hệ thống.
+**Timeouts** also exist at multiple layers: HTTP timeouts, queue deadlines, job cancellation, and container CPU limits. Do not assume calling `Thread.interrupt()` will instantly halt every executing `BigInteger` method. For untrusted workloads or long calculations, consider isolating jobs in separate processes/workers with execution, bounding, and cancellation mechanisms suited to the system.
 
-## 17. Thiết kế ngân sách tài nguyên theo nghiệp vụ
+## 17. Designing Business Resource Budgets
 
-Một phương án thực tế là **xác định ngân sách được phép trước khi xây API**:
+A practical approach is **defining allowed budgets before building the API**:
 
-| Tham số | Ví dụ giới hạn | Mục đích |
+| Parameter | Example limit | Purpose |
 | --- | --- | --- |
-| Số chữ số thập phân đầu vào | 1–1000 | Ngăn chuỗi quá dài |
-| Số bit đầu vào | ≤ 4096 | Giới hạn độ lớn toán hạng |
-| Số bit kết quả ước lượng | ≤ 8192 | Ngăn tăng trưởng ngoài dự kiến |
-| Exponent | 0–10000, có thể thấp hơn | Kiểm soát `pow`/lặp |
-| Số phép toán trong request | Theo workload | Chặn biểu thức dài bất thường |
-| Kích thước response | Theo hợp đồng API | Tránh serialize/log kết quả quá dài |
-| Thời hạn/CPU quota | Theo loại job | Bảo vệ thời gian đáp ứng |
-| Số job đồng thời | Theo khả năng máy | Tránh cùng lúc cấp phát lớn |
+| Input decimal digits | 1–1000 | Prevent overly long strings |
+| Input bit length | ≤ 4096 | Bound operand magnitudes |
+| Estimated result bits | ≤ 8192 | Prevent unexpected growth |
+| Exponent | 0–10000, possibly lower | Control `pow`/loops |
+| Operations per request | Per workload | Block abnormally long expressions |
+| Response size | Per API contract | Avoid serializing/logging oversized results |
+| Deadline/CPU quota | Per job type | Protect response times |
+| Concurrent jobs | Per machine capacity | Avoid simultaneous huge allocations |
 
-**Các số trong bảng là ví dụ thiết kế, không phải khuyến nghị mặc định hoặc giới hạn của Java.** Không thể chọn riêng một “bit budget” rồi kết luận dịch vụ chắc chắn an toàn: độ phức tạp thuật toán và số request đồng thời quyết định đáng kể chi phí thực tế.
+**Numbers in the table are design examples, not default recommendations or Java limits.** You cannot pick a single "bit budget" in isolation and conclude a service is safe: algorithmic complexity and concurrent requests heavily determine real cost.
 
-Nếu mỗi phép tính khác nhau có mức rủi ro khác nhau, nên đặt các giới hạn khác nhau cho parse, cộng, nhân, lũy thừa, primality test và serialize. Khi có dữ liệu người dùng, cần kiểm soát **trước** từng bước có thể làm chi phí tăng, kể cả khi những bước trước đã vượt qua validation.
+When different operations carry different risks, set separate limits for parsing, addition, multiplication, exponentiation, primality testing, and serialization. With user-supplied data, enforce controls **before** every step that can escalate cost, even if earlier steps passed validation.
 
-## 18. Khi nào dùng BigInteger, khi nào giữ long?
+## 18. When to Use `BigInteger`, When to Keep `long`?
 
-Dùng `long` nếu:
+Use `long` if:
 
-- Miền dữ liệu được quy định rõ và luôn nằm trong 64 bit.
-- Cần số lượng lớn phép toán nguyên primitive với chi phí/biểu diễn đơn giản.
-- Có thể kiểm tra overflow tường minh bằng `Math.addExact`, `Math.multiplyExact` và các quy tắc giới hạn số.
+- The data domain is well-defined and always fits in 64 bits.
+- High volumes of primitive integer math are needed with simple cost/representation.
+- Overflow can be checked explicitly with `Math.addExact`, `Math.multiplyExact`, and numeric range rules.
 
-Dùng `BigInteger` nếu:
+Use `BigInteger` if:
 
-- Giá trị nguyên hợp lệ vượt miền `long`.
-- Cần tính toán số nguyên chính xác với số bit biến thiên.
-- Bài toán dùng các phép toán số nguyên lớn như số học modulo, tính toán tổ hợp hoặc các thuật toán đặc thù.
-- Bạn đã thiết kế chính sách hạn chế tài nguyên và cách báo lỗi cho trường hợp không thể xử lý.
+- Valid integer values exceed the `long` range.
+- Exact integer arithmetic with variable bit counts is required.
+- The problem uses big-integer operations such as modular arithmetic, combinatorics, or specialized algorithms.
+- You have designed resource-limiting policies and error reporting for unprocessable cases.
 
-Một lựa chọn cân bằng: dùng `long` với `Math.addExact`/`multiplyExact` để phát hiện overflow, rồi **chuyển sang BigInteger có chủ đích** khi bài toán cho phép số lớn. Đừng làm một phép toán đã overflow bằng `long` rồi mới chuyển **kết quả sai** sang `BigInteger`; phải chuyển toán hạng trước khi tính hoặc xử lý nhánh overflow riêng.
+A balanced option: use `long` with `Math.addExact`/`multiplyExact` to detect overflow, then **intentionally promote to `BigInteger`** when the problem permits large numbers. Never perform an already-overflowed calculation in `long` and then pass the **wrong result** to `BigInteger`; convert operands before computing or handle overflow in a dedicated branch.
 
 ~~~java
 long a = Long.MAX_VALUE;
@@ -629,73 +629,73 @@ BigInteger sum = BigInteger.valueOf(a)
 System.out.println(sum); // 9223372036854775808
 ~~~
 
-## 19. Sai lầm thường gặp
+## 19. Common Mistakes
 
-| Sai lầm | Tại sao nguy hiểm | Cách làm đúng |
+| Mistake | Why dangerous | Right approach |
 | --- | --- | --- |
-| “BigInteger là vô hạn” | Heap, CPU, array và implementation vẫn hữu hạn | Dùng ngân sách tài nguyên |
-| “Không overflow long thì không thể có lỗi” | Vẫn có thể `OutOfMemoryError` hoặc giới hạn implementation | Giới hạn input/output và thao tác |
-| Đọc String có hàng triệu chữ số rồi mới kiểm tra | Payload đã tiêu tốn RAM trước khi validation | Chặn kích thước ở tầng nhận dữ liệu |
-| Chỉ giới hạn bitLength toán hạng ban đầu | `pow`, `multiply` hoặc `shiftLeft` làm kết quả lớn nhanh | Ước lượng kích thước trước từng phép |
-| Gọi `pow` với exponent do người dùng nhập trực tiếp | Có thể tạo kết quả rất lớn | Kiểm tra exponent và result bit budget |
-| Dùng `base.pow(e).mod(m)` khi chỉ cần modulo | Tạo lũy thừa đầy đủ không cần thiết | `base.modPow(e, m)` khi phù hợp |
-| `toString()` để kiểm tra kích thước mọi số | Tạo chuỗi decimal có thể rất lớn | `abs().bitLength()` và cận chi phí |
-| Dùng `toByteArray().length` như heap size | Mảng two's-complement không tính object/intermediate | Xem là encoding, không phải đo RAM |
-| Ép `BigInteger.longValue()` trước thao tác | Có thể mất bit cao | Giữ BigInteger hoặc `longValueExact()` |
-| Bắt `OutOfMemoryError` rồi trả 0 | Che giấu lỗi; không bảo đảm phục hồi | Ngăn lỗi trước; xử lý ở tầng vận hành |
-| Tăng `-Xmx` là hết mọi vấn đề | CPU/GC/concurrency và giới hạn output vẫn còn | Đo workload và đặt quota |
-| Cho rằng đo `Runtime.freeMemory()` là cận an toàn để tính | Không phản ánh đầy đủ cấp phát trung gian, GC và tải đồng thời | Dùng giới hạn thiết kế và giám sát thực tế |
-| Chỉ giới hạn ký tự đầu vào, bỏ số request | Tải đồng thời có thể gây cạn tài nguyên | Giới hạn concurrency/rate |
-| Lấy timing từ một lần chạy nhỏ rồi suy cho mọi số | Thuật toán có thể đổi theo kích thước | Benchmark nhiều dải dữ liệu |
-| Xem mọi `ArithmeticException` đều là lỗi chia 0 | Có thể có overflow giới hạn implementation, chuyển đổi exact, exponent âm... | Phân biệt theo API và ngữ cảnh |
+| "`BigInteger` is infinite" | Heap, CPU, arrays, and implementations are finite | Enforce resource budgets |
+| "If `long` doesn't overflow, no error can occur" | `OutOfMemoryError` or implementation limits can still happen | Limit inputs/outputs and operations |
+| Reading a multi-million-digit `String` before validating | Payload already consumed RAM before validation | Cap size at ingestion layer |
+| Limiting only initial operand `bitLength` | `pow`, `multiply`, or `shiftLeft` expand results fast | Estimate size before each operation |
+| Calling `pow` directly with user-entered exponent | Can build gigantic results | Validate exponent and result bit budget |
+| Using `base.pow(e).mod(m)` when only modulo is needed | Unnecessarily builds full power | `base.modPow(e, m)` when applicable |
+| Calling `toString()` to check size of any number | Builds huge decimal strings | Use `abs().bitLength()` and cost bounds |
+| Using `toByteArray().length` as heap size | Two's-complement array excludes object/intermediates | Treat as encoding, not RAM measurement |
+| Narrowing via `BigInteger.longValue()` before operations | Can drop high bits | Keep `BigInteger` or use `longValueExact()` |
+| Catching `OutOfMemoryError` and returning 0 | Masks errors; recovery not guaranteed | Prevent beforehand; handle at operational layer |
+| Assuming increasing `-Xmx` fixes everything | CPU/GC/concurrency and output limits remain | Measure workload and set quotas |
+| Treating `Runtime.freeMemory()` as a safe computation bound | Misses intermediate allocations, GC, and concurrent load | Use design limits and real monitoring |
+| Limiting only input characters, ignoring request count | Concurrent load can exhaust resources | Limit concurrency/rate |
+| Extrapolating timing from one small run to all sizes | Algorithms can change with size | Benchmark across data ranges |
+| Treating every `ArithmeticException` as divide-by-zero | Could be implementation limit overflow, exact conversion, negative exponent, etc. | Distinguish by API and context |
 
-## 20. Câu hỏi tự kiểm tra
+## 20. Self-Check Questions
 
-**Câu 1.** Tại sao `BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE)` đúng, nhưng vẫn không chứng minh BigInteger “vô hạn”?
+**Question 1.** Why is `BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE)` accurate, yet still does not prove `BigInteger` is "infinite"?
 
-**Đáp án:** BigInteger không có độ rộng 64 bit như long, nên biểu diễn được số vượt Long.MAX_VALUE. Tuy nhiên nó vẫn dùng heap và thuật toán trên một JVM hữu hạn, có giới hạn implementation và tài nguyên.
+**Answer:** `BigInteger` is not fixed at 64 bits like `long`, so it represents numbers beyond `Long.MAX_VALUE`. However, it still relies on heap and algorithms on a finite JVM with implementation and resource limits.
 
-**Câu 2.** Số `2^1000` cần bao nhiêu bit để biểu diễn độ lớn và có bao nhiêu chữ số decimal?
+**Question 2.** How many bits does `2^1000` need to represent magnitude, and how many decimal digits does it have?
 
-**Đáp án:** 1001 bit và 302 chữ số thập phân. `BigInteger.ONE.shiftLeft(1000)` là ví dụ kiểm tra.
+**Answer:** 1001 bits and 302 decimal digits. `BigInteger.ONE.shiftLeft(1000)` is the verification example.
 
-**Câu 3.** Vì sao `toByteArray().length` không phải kích thước heap của một BigInteger?
+**Question 3.** Why is `toByteArray().length` not the heap size of a `BigInteger`?
 
-**Đáp án:** Nó là độ dài **một mảng mới chứa biểu diễn two's-complement có dấu**, có thể thêm bit/byte dấu và không tính header, mảng nội bộ hay các bộ đệm khác.
+**Answer:** It is the length of **a newly allocated array holding signed two's-complement encoding**, which may include an extra sign bit/byte and excludes object headers, internal arrays, and other buffers.
 
-**Câu 4.** Nếu input chỉ 3 chữ số là `"999"` nhưng exponent bằng 1 tỷ, có thể coi an toàn không?
+**Question 4.** If the input is just 3 digits `"999"` yet the exponent is 1 billion, can it be considered safe?
 
-**Đáp án:** Không. `999^1000000000` có kích thước kết quả khổng lồ. Cần kiểm tra exponent và cận số bit kết quả trước khi tính.
+**Answer:** No. `999^1000000000` has an enormous result size. Validate exponents and result bit bounds before computing.
 
-**Câu 5.** Khi chỉ cần `7^100 mod 13`, nên dùng `pow(100).mod(13)` hay `modPow(100,13)`?
+**Question 5.** When needing only `7^100 mod 13`, should you use `pow(100).mod(13)` or `modPow(100,13)`?
 
-**Đáp án:** `modPow` phù hợp hơn vì tính số dư modulo trực tiếp mà không bắt buộc tạo lũy thừa đầy đủ.
+**Answer:** `modPow` is more suitable because it computes the modular remainder directly without building the full power.
 
-**Câu 6.** Vì sao không nên catch `OutOfMemoryError` rồi trả về `BigInteger.ZERO`?
+**Question 6.** Why should you not catch `OutOfMemoryError` and return `BigInteger.ZERO`?
 
-**Đáp án:** Cạn bộ nhớ không phải kết quả số học 0; cách đó che giấu lỗi và có thể không giúp JVM khôi phục. Phải thiết kế giới hạn tài nguyên trước.
+**Answer:** Running out of memory is not the arithmetic result 0; doing so hides errors and may leave the JVM unable to recover. Design resource limits beforehand.
 
-**Câu 7.** `BigInteger.bitLength()` và `new BigInteger(text).toString().length()` có cùng chi phí và đơn vị không?
+**Question 7.** Do `BigInteger.bitLength()` and `new BigInteger(text).toString().length()` have the same cost and units?
 
-**Đáp án:** Không. `bitLength()` trả số bit theo biểu diễn số, còn `toString()` tạo văn bản thập phân rồi `length()` đếm UTF-16 code units của văn bản. Việc chuyển số rất lớn sang chuỗi có thể tốn tài nguyên đáng kể.
+**Answer:** No. `bitLength()` returns bit count in numeric representation, whereas `toString()` builds decimal text and `length()` counts UTF-16 code units of that text. Converting huge numbers to strings can consume substantial resources.
 
-**Câu 8.** Nếu result bit budget là 2048, phép nhân có cận `aBits+bBits=2050` nhưng tích thực tế có thể chỉ 2049 bit, có nên gọi hàm kiểm tra bảo thủ là “sai” không?
+**Question 8.** If the result bit budget is 2048, a multiplication has bound `aBits+bBits=2050` while the actual product might be only 2049 bits, should the conservative checker be called "wrong"?
 
-**Đáp án:** Không; hàm được thiết kế **bảo thủ** và cố ý có thể từ chối trường hợp thực tế vẫn vừa ngân sách. Nếu cần tối ưu tỷ lệ chấp nhận, phải thiết kế cách ước lượng/kiểm tra chính xác hơn và chấp nhận chi phí tương ứng.
+**Answer:** No; the function is designed to be **conservative** and may intentionally reject cases that would actually fit in budget. To optimize acceptance rates, design a tighter estimation/check and accept the corresponding cost.
 
-## 21. Ghi nhớ và tài liệu tham khảo
+## 21. Key Takeaways and References
 
-- **`BigInteger` không bị giới hạn ở 64 bit**, nhưng không có tài nguyên vô hạn. Giới hạn thực tế do **implementation, heap, CPU, các đối tượng tạm và chính sách ứng dụng** quyết định.
-- Số bit có thể quan sát bằng `abs().bitLength()`; **đừng dùng `toByteArray()` như công cụ đo heap**.
-- **Input nhỏ có thể tạo output rất lớn** qua nhân, bình phương lặp, dịch trái và `pow`.
-- Đặt giới hạn **trước khi parse, trước phép toán nặng và trước serialize/log**. Cận trên độ lớn có thể bảo thủ, cần tài liệu rõ.
-- Khi chỉ cần lũy thừa modulo, ưu tiên `modPow` thay cho tính đầy đủ `pow` rồi lấy `mod`.
-- `OutOfMemoryError` không phải cách báo “kết quả bằng 0”; phòng tránh bằng quota, validation, timeout và cô lập tải thích hợp.
-- Dùng `long` khi miền cố định đủ; dùng `BigInteger` khi thật sự cần số nguyên lớn chính xác và đã chấp nhận chi phí.
+- **`BigInteger` is not capped at 64 bits**, yet it does not have infinite resources. Practical limits are determined by **implementation, heap, CPU, temporary objects, and application policy**.
+- Bit count can be observed via `abs().bitLength()`; **do not use `toByteArray()` as a heap-measurement tool**.
+- **Small inputs can create huge outputs** through multiplication, repeated squaring, left shifts, and `pow`.
+- Enforce limits **before parsing, before heavy operations, and before serializing/logging**. Conservative size bounds should be clearly documented.
+- When needing only modular exponentiation, prefer `modPow` over computing full `pow` then taking `mod`.
+- `OutOfMemoryError` is not a way to report "result equals 0"; prevent it with quotas, validation, timeouts, and proper load isolation.
+- Use `long` when a fixed range suffices; use `BigInteger` when large exact integers are truly needed and their costs are accepted.
 
-Tham khảo chính thức (Java 17):
+Official references (Java 17):
 
-- [BigInteger — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): giới hạn miền được hỗ trợ, `bitLength`, `multiply`, `pow`, `modPow`, `toByteArray`, `longValueExact`.
-- [Math — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `addExact` và `multiplyExact` khi cần phát hiện overflow primitive.
-- [OutOfMemoryError — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/OutOfMemoryError.html): lỗi cấp phát khi JVM không thể cung cấp đối tượng cần thiết.
-- [Java launcher options — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): tùy chọn heap `-Xmx` và các cấu hình khởi động JVM.
+- [BigInteger — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): supported range limits, `bitLength`, `multiply`, `pow`, `modPow`, `toByteArray`, `longValueExact`.
+- [Math — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `addExact` and `multiplyExact` when primitive overflow detection is needed.
+- [OutOfMemoryError — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/OutOfMemoryError.html): allocation error when the JVM cannot supply a required object.
+- [Java launcher options — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): `-Xmx` heap options and JVM startup configurations.

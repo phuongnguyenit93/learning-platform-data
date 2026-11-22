@@ -1,8 +1,8 @@
-# Tách các bước gọi dịch vụ và ghi dữ liệu khỏi phép biến đổi thuần
+# Separating Service Calls and Persistence from Pure Transformations
 
-## 1. Bài toán: kết quả đúng chưa đủ nếu tác dụng phụ không kiểm soát được
+## 1. The Problem: Correct Output Is Not Enough When Side Effects Are Uncontrolled
 
-Trong module **JAVA_STREAM_API**, chúng ta học cách xử lý dữ liệu khai báo bằng pipeline lazy với `filter`, `map`, `reduce`, `collect` và các collector. Khi phần tử chỉ là dữ liệu trong bộ nhớ, một pipeline như sau rất dễ hiểu:
+In the **JAVA_STREAM_API** module, we learn to process data declaratively using lazy pipelines with `filter`, `map`, `reduce`, `collect`, and collectors. When elements are purely in-memory values, a pipeline like this is easy to reason about:
 
 ```java
 List<Long> amounts = orders.stream()
@@ -11,11 +11,11 @@ List<Long> amounts = orders.stream()
     .toList();
 ```
 
-Nhưng hãy tưởng tượng một yêu cầu khác:
+Now imagine a different requirement:
 
-> Đối với mỗi đơn hàng đủ điều kiện, gọi dịch vụ thanh toán, sau đó ghi biên nhận vào cơ sở dữ liệu. Nếu dịch vụ lỗi hoặc thao tác ghi thất bại, phải biết đã xử lý đến đâu và có thể thử lại mà không thu tiền hai lần.
+> For each eligible order, call the payment service, then persist a receipt to the database. If the service fails or persistence throws, we must know how far processing got and be able to retry without charging twice.
 
-Phiên bản tưởng như ngắn gọn:
+A seemingly concise version:
 
 ```java
 orders.parallelStream()
@@ -24,36 +24,36 @@ orders.parallelStream()
     .forEach(receipt -> repository.save(receipt));
 ```
 
-đã đặt **hai tác dụng phụ quan trọng** bên trong pipeline:
+embeds **two critical side effects** inside the pipeline:
 
-- `gateway.charge` có thể thực hiện giao dịch bên ngoài tiến trình.
-- `repository.save` có thể ghi một bản ghi bền vững.
+- `gateway.charge` may execute an external transaction outside the process.
+- `repository.save` may persist a durable record.
 
-Một ngoại lệ xuất hiện sau khi gateway đã thu tiền **không chứng minh được giao dịch đã bị hoàn tác**. Việc thay `stream()` thành `parallelStream()` cũng có thể làm nhiều yêu cầu được gửi cùng lúc, làm thay đổi thứ tự thực thi và số giao dịch đang chạy khi phát hiện lỗi.
+An exception thrown after the gateway already charged the card **does not prove the transaction was undone**. Changing `stream()` to `parallelStream()` can also fire multiple requests concurrently, altering execution order and the number of in-flight transactions when a failure occurs.
 
-Trong chương **Ngoại lệ và tính an toàn**, chúng ta cần phân biệt:
+In the **Exceptions and Safety** chapter, we must separate:
 
-1. **Biến đổi thuần**: tính ra dữ liệu mới từ dữ liệu đầu vào, không gọi dịch vụ hay ghi trạng thái ngoài.
-2. **Ranh giới tác dụng phụ**: thao tác với HTTP, database, message broker, file, email hoặc các hệ thống khác.
-3. **Hợp đồng thất bại**: đã thành công, chắc chắn thất bại hay kết quả **chưa xác định**.
-4. **Chính sách retry và idempotency**: phát lại một yêu cầu mà không nhân đôi tác dụng không mong muốn.
+1. **Pure transformations**: computing new data from inputs without calling services or mutating external state.
+2. **Side-effect boundaries**: interactions with HTTP, databases, message brokers, files, emails, or other systems.
+3. **Failure contracts**: confirmed success, confirmed failure, or **uncertain** outcome.
+4. **Retry and idempotency policies**: replaying a request without duplicating unintended effects.
 
-Sau bài học, bạn có thể thiết kế một quy trình **lập kế hoạch bằng Stream API → kiểm tra → gọi dịch vụ có kiểm soát → ghi dữ liệu → trả báo cáo kết quả**, đồng thời chỉ rõ những bảo đảm hệ thống thật phải cung cấp ngoài Stream API.
+After this lesson, you can design a workflow of **planning with the Stream API → validation → controlled service calls → persistence → reporting results**, while clarifying what guarantees real systems must provide outside the Stream API.
 
-Ví dụ chính dùng **Java 17+** và **JUnit 5**. Các ý tưởng về tính thuần, checked exception và Stream API có thể áp dụng từ Java 8, nhưng chương trình hoàn chỉnh dùng `record` và `Stream.toList()`.
+Main examples use **Java 17+** and **JUnit 5**. Concepts of purity, checked exceptions, and the Stream API apply from Java 8 onward, while complete programs use `record` and `Stream.toList()`.
 
-## 2. Phân biệt phép biến đổi thuần, trạng thái cục bộ và tác dụng phụ
+## 2. Distinguishing Pure Transformations, Local State, and Side Effects
 
-### 2.1. Phép biến đổi thuần là gì?
+### 2.1. What Is a Pure Transformation?
 
-Một hàm được xem là **thuần** trong ngữ cảnh bài này nếu:
+A function is considered **pure** in the context of this lesson if:
 
-- Với cùng đầu vào, nó cho cùng đầu ra theo hợp đồng.
-- Không làm thay đổi trạng thái có thể quan sát được bên ngoài lời gọi.
-- Không đọc thời gian thực, gọi mạng, truy cập file hoặc phụ thuộc vào trạng thái thay đổi không được truyền vào.
-- Không sửa đối tượng đầu vào mà phần khác của chương trình cũng đang sử dụng.
+- Given the same inputs, it produces the same output per contract.
+- It causes no observable state changes outside the call.
+- It does not read the system clock, call networks, touch files, or depend on mutable state not passed in.
+- It does not mutate input objects also used elsewhere in the program.
 
-Ví dụ:
+Example:
 
 ```java
 record Price(long unitCents, long quantity) {}
@@ -65,9 +65,9 @@ static long lineTotal(Price price) {
 }
 ```
 
-Hàm nhận hai con số, tính một kết quả, không cần network hoặc database. `Math.multiplyExact` có thể ném `ArithmeticException` khi tràn số; **có thể ném lỗi không làm hàm mất tính thuần**, miễn lỗi được xác định bởi đầu vào và không gây side effect.
+The function takes two numbers and computes one result without network or database access. `Math.multiplyExact` can throw `ArithmeticException` on overflow; **being able to throw does not make a function impure**, as long as the error is determined purely by its inputs and causes no side effects.
 
-Phép biến đổi thuần có thể được sử dụng trong `map`:
+Pure transformations can be used inside `map`:
 
 ```java
 List<Long> totals = prices.stream()
@@ -75,30 +75,30 @@ List<Long> totals = prices.stream()
     .toList();
 ```
 
-### 2.2. Side effect là gì?
+### 2.2. What Is a Side Effect?
 
-Side effect là sự thay đổi hoặc tương tác **ngoài giá trị trả về của hàm**:
+A side effect is any state change or interaction **outside the function's return value**:
 
-| Hành động trong lambda | Thuần? | Nguy cơ |
+| Action inside lambda | Pure? | Risk |
 | --- | --- | --- |
-| `n -> n * 2` | Có | Chỉ cần xem tràn kiểu số nếu có |
-| `order -> new Dto(order.id(), order.amount())` | Có nếu dữ liệu đầu vào ổn định | Cần tránh đưa mutable alias ra ngoài |
-| `order -> Math.addExact(order.amount(), tax)` | Có nếu `tax` bất biến | Có thể ném ngoại lệ thuần |
-| `order -> System.currentTimeMillis()` | Không | Kết quả phụ thuộc thời gian gọi |
-| `order -> client.fetchPrice(order.sku())` | Không | I/O, timeout, trạng thái dịch vụ |
-| `order -> database.insert(order)` | Không | Ghi bền vững, có thể thất bại giữa chừng |
-| `order -> sharedList.add(order)` | Không | Mutable state ngoài, race trên stream song song |
-| `order -> logger.info(order.id())` | Có side effect | Log có thể bị bỏ qua hoặc khác thứ tự mong đợi |
-| `order -> counter.incrementAndGet()` | Không | Dù atomic, vẫn phụ thuộc số lần lambda được gọi |
+| `n -> n * 2` | Yes | Check numeric overflow if applicable |
+| `order -> new Dto(order.id(), order.amount())` | Yes if inputs are stable | Avoid exposing mutable aliases |
+| `order -> Math.addExact(order.amount(), tax)` | Yes if `tax` is immutable | Can throw a pure exception |
+| `order -> System.currentTimeMillis()` | No | Result depends on invocation time |
+| `order -> client.fetchPrice(order.sku())` | No | I/O, timeouts, service state |
+| `order -> database.insert(order)` | No | Durable write, can fail midway |
+| `order -> sharedList.add(order)` | No | External mutable state, races in parallel streams |
+| `order -> logger.info(order.id())` | Has side effects | Logs may be skipped or out of expected order |
+| `order -> counter.incrementAndGet()` | No | Even if atomic, still depends on invocation count |
 
-**Không phải mọi mutation đều bị cấm.** Một collector có thể tạo `ArrayList` hoặc `HashMap` **cục bộ** để tích lũy kết quả rồi trả giá trị. Phép gom này có trạng thái triển khai nhưng không nhất thiết tạo side effect nghiệp vụ. Điều quan trọng là **quyền sở hữu trạng thái** và việc nó có bị chia sẻ/quan sát bên ngoài khi pipeline còn chạy hay không.
+**Not all mutation is forbidden.** A collector may allocate a **local** `ArrayList` or `HashMap` to accumulate results and return a value. Such accumulation has implementation state without necessarily causing business side effects. What matters is **state ownership** and whether it is shared or observed externally while the pipeline runs.
 
-### 2.3. Đừng đồng nhất “không có I/O” với “thuần”
+### 2.3. Do Not Equate “No I/O” with “Pure”
 
-Một hàm dùng biến `static int counter` để tạo ID không có I/O, nhưng vẫn không thuần. Tương tự, một `map` sửa object đầu vào rồi trả nó tạo mutation mà caller có thể quan sát:
+A function using a `static int counter` to generate IDs performs no I/O, yet is still impure. Likewise, a `map` that mutates an input object and returns it introduces mutation observable by callers:
 
 ```java
-// Phản ví dụ nếu OrderMutable được nơi khác chia sẻ:
+// Anti-pattern if OrderMutable is shared elsewhere:
 // orders.stream()
 //     .map(order -> {
 //         order.setProcessed(true);
@@ -107,127 +107,127 @@ Một hàm dùng biến `static int counter` để tạo ID không có I/O, như
 //     .toList();
 ```
 
-Khi cần thêm trạng thái mới, ưu tiên tạo **record/DTO mới** từ trường nguồn thay vì sửa dữ liệu mà pipeline nhận vào.
+When new state is needed, prefer creating a **new record/DTO** from source fields rather than mutating inputs fed into the pipeline.
 
-## 3. Vì sao Stream API không phải công cụ điều phối giao dịch?
+## 3. Why Isn't the Stream API a Transaction Coordinator?
 
-### 3.1. Pipeline lazy không bảo đảm lambda được chạy ngay khi khai báo
+### 3.1. Lazy Pipelines Do Not Guarantee Lambdas Run Upon Declaration
 
-`filter`, `map` và `peek` là các **intermediate operations**. Chúng thường không thực thi cho tới khi một terminal operation bắt đầu:
+`filter`, `map`, and `peek` are **intermediate operations**. They typically do not run until a terminal operation starts:
 
 ```java
 var pipeline = orders.stream()
     .map(order -> {
-        System.out.println("Đang xử lý " + order.id());
+        System.out.println("Processing " + order.id());
         return order.id();
     });
 
-// Chưa có terminal operation: không nên kỳ vọng đã xử lý đơn nào.
+// No terminal operation yet: do not expect any order to be processed.
 List<String> ids = pipeline.toList();
 ```
 
-Điều này phù hợp cho biến đổi dữ liệu, nhưng không phải nơi diễn đạt yêu cầu “phải gửi email xác nhận ngay bây giờ” nếu chưa có một bước thực thi tường minh.
+This fits data transformations well, yet is the wrong place to express “send confirmation email right now” without an explicit execution step.
 
-### 3.2. Short-circuit và tối ưu hóa có thể bỏ qua công việc
+### 3.2. Short-Circuiting and Optimizations Can Skip Work
 
-`limit`, `findFirst`, `anyMatch`, `noneMatch` và các cơ chế short-circuit khác có thể không xử lý mọi phần tử nguồn.
+`limit`, `findFirst`, `anyMatch`, `noneMatch`, and other short-circuiting mechanisms may not process every source element.
 
 ```java
-// Sai nếu nghiệp vụ yêu cầu ghi mọi đơn vào audit store:
+// Wrong if business rules require writing every order to audit store:
 orders.stream()
     .peek(auditStore::save)
     .findFirst();
 ```
 
-Khi chỉ cần phần tử đầu, các phần tử sau có thể không được duyệt. Hơn nữa, Stream implementation được phép lược bỏ một số lời gọi intermediate operation khi tối ưu hóa không làm đổi kết quả terminal; ví dụ `count()` trên nguồn có kích thước đã biết có thể không duyệt từng phần tử. `peek` không phải nơi phù hợp để gắn **hành động bắt buộc**.
+When only the first element is needed, subsequent elements may never be traversed. Moreover, Stream implementations may elide some intermediate calls when optimizations preserve terminal output; e.g., `count()` on a sized source may skip iterating element by element. `peek` is not the right place for **mandatory actions**.
 
-### 3.3. Parallel stream không bảo đảm thứ tự thực thi side effect
+### 3.3. Parallel Streams Do Not Guarantee Side-Effect Execution Order
 
-`parallelStream().forEach(...)` không cam kết thứ tự gọi action theo encounter order. `forEachOrdered` giữ **thứ tự hành động** với nguồn ordered nhưng vẫn không cung cấp transaction, retry hoặc exactly-once.
+`parallelStream().forEach(...)` makes no promise to invoke actions in encounter order. `forEachOrdered` preserves **action order** for ordered sources, yet still provides no transactions, retries, or exactly-once semantics.
 
 ```java
 orders.parallelStream()
     .forEach(order -> gateway.charge(order));
-// Không cam kết thứ tự giao dịch hay trạng thái các tác vụ khác khi một tác vụ lỗi.
+// No guarantee of transaction order or state of other tasks when one fails.
 ```
 
-Ngay cả khi chuyển thành:
+Even when changed to:
 
 ```java
 orders.parallelStream()
     .forEachOrdered(order -> gateway.charge(order));
 ```
 
-thì Java vẫn không thể bảo đảm dịch vụ ngoài chỉ thu tiền một lần khi timeout hoặc khi tiến trình bị khởi động lại.
+Java still cannot ensure an external service charges only once across timeouts or process restarts.
 
-### 3.4. Ngoại lệ giữa pipeline không tự rollback side effect trước đó
+### 3.4. Mid-Pipeline Exceptions Do Not Roll Back Earlier Side Effects
 
 ```text
-Đơn O1 -> gateway thu tiền -> ghi DB thành công
-Đơn O2 -> gateway thu tiền -> ghi DB thất bại
-Đơn O3 -> chưa xử lý
-              │
-              └── Ngoại lệ Java KHÔNG tự hoàn tác tiền O1/O2.
+Order O1 -> gateway charge -> DB write succeeds
+Order O2 -> gateway charge -> DB write fails
+Order O3 -> not yet processed
+               │
+               └── Java exception DOES NOT automatically refund O1/O2.
 ```
 
-Một khối `try/catch` chỉ thay đổi luồng điều khiển **trong tiến trình**. Việc hoàn tác hoặc bù trừ giữa nhiều hệ thống là một bài toán giao dịch phân tán riêng.
+A `try/catch` block only alters **in-process** control flow. Undoing or compensating across multiple systems is a separate distributed-transactions problem.
 
-## 4. Các phản mẫu phổ biến và giới hạn thực tế của `forEach`
+## 4. Common Anti-Patterns and Practical Limits of `forEach`
 
-### 4.1. Dùng `map` cho thao tác ghi
+### 4.1. Using `map` for Write Operations
 
 ```java
-// Không nên khi mục tiêu là điều phối nghiệp vụ:
+// Avoid when the goal is business orchestration:
 var receipts = orders.stream()
     .map(gateway::charge)
     .map(repository::saveAndReturn)
     .toList();
 ```
 
-Đoạn code khó diễn đạt rõ:
+This code cannot clearly express:
 
-- Nếu `charge` thành công nhưng `saveAndReturn` lỗi, điều gì sẽ được trả?
-- Có cần dừng ở đơn đầu thất bại hay xử lý các đơn khác?
-- Nếu chạy lại pipeline, đơn nào có thể bị thu tiền hai lần?
-- Ai ghi nhận các bước đã hoàn tất để phục hồi sau crash?
+- If `charge` succeeds yet `saveAndReturn` fails, what gets returned?
+- Should processing stop on the first failing order or continue for others?
+- If the pipeline reruns, which orders risk getting charged twice?
+- What records completed steps for crash recovery?
 
-### 4.2. Dùng `peek` để ghi audit
+### 4.2. Using `peek` for Auditing
 
 ```java
-// Phản mẫu: side effect quan trọng nằm trong thao tác trung gian.
+// Anti-pattern: critical side effects placed inside an intermediate operation.
 var ids = orders.stream()
     .peek(auditStore::record)
     .map(Order::id)
     .toList();
 ```
 
-`peek` hữu ích để **quan sát/gỡ lỗi** trong một số trường hợp, nhưng số lần gọi và thời điểm gọi không nên trở thành hợp đồng ghi nhận dữ liệu bền vững.
+`peek` helps **observe/debug** in selected cases, yet call counts and timing should never form a durable persistence contract.
 
-### 4.3. `forEach` không phải API bị cấm tuyệt đối
+### 4.3. `forEach` Is Not Strictly Forbidden
 
-`forEach` là terminal operation **được thiết kế để thực thi action**. Nó phù hợp cho các thao tác đơn giản có side effect đã được chấp nhận, ví dụ in dữ liệu minh họa:
+`forEach` is a terminal operation **designed for executing actions**. It fits simple cases with acceptable side effects, such as printing illustrative output:
 
 ```java
 List.of("A", "B", "C").forEach(System.out::println);
 ```
 
-Vấn đề không nằm ở chỗ “mọi `forEach` đều sai”, mà ở **bảo đảm nghiệp vụ mà action yêu cầu**. Nếu action ghi một giao dịch cần retry, exactly-once, audit, rollback và phân loại lỗi, một vòng lặp tường minh với các port dịch vụ/repository thường diễn đạt trách nhiệm tốt hơn.
+The issue is not “every `forEach` is wrong,” but **the business guarantees the action requires**. If an action records a transaction needing retries, exactly-once handling, auditing, rollbacks, and error classification, an explicit loop over service/repository ports usually expresses responsibilities far better.
 
-## 5. Kiến trúc đề xuất: tách pha chuẩn bị và pha thực thi
+## 5. Recommended Architecture: Separating Preparation and Execution Phases
 
 ```text
-     List<Order> đầu vào đã ổn định
+     Stable input List<Order>
                  │
                  ▼
-     VALIDATE (hợp đồng dữ liệu)
+     VALIDATE (data contract)
                  │
                  ▼
      PLAN / PURE TRANSFORMS
-     filter, map, collect, kiểm tra duplicate,
-     tính total với Math.addExact
+     filter, map, collect, duplicate check,
+     sum total with Math.addExact
                  │
                  ▼
-       Plan không sửa được
+       Unmodifiable Plan
        [ChargeCommand, ...]
                  │
                  ▼
@@ -243,24 +243,24 @@ Vấn đề không nằm ở chỗ “mọi `forEach` đều sai”, mà ở **b
                UNKNOWN     FAILED
                  │
                  ▼
-       ProcessReport gồm từng kết quả
+       ProcessReport with each outcome
 ```
 
-**Pha chuẩn bị** có thể chạy nhiều lần trên cùng đầu vào mà không tạo giao dịch bên ngoài. **Pha thực thi** là nơi cấp quyền và kiểm soát các thao tác không thể đảo ngược; nó cần policy khi lỗi và idempotency.
+The **preparation phase** can run repeatedly on the same inputs without causing external transactions. The **execution phase** authorizes and controls irreversible actions; it needs error policies and idempotency.
 
-| Pha | Có thể dùng Stream API? | Có side effect bên ngoài? | Bảo đảm mong muốn |
+| Phase | Can use Stream API? | External side effects? | Desired guarantee |
 | --- | --- | --- | --- |
-| Validate | Có hoặc vòng lặp tường minh | Không | Báo lỗi dữ liệu **trước** khi ghi |
-| Prepare/Plan | Có, thường `filter/map/toList` | Không | Kết quả xác định, có thể kiểm thử |
-| Authorize/Charge | Vòng lặp/service coordinator | **Có** | Gắn idempotency key, giới hạn concurrency |
-| Save receipt | Repository/transaction API | **Có** | Trạng thái rõ, xử lý lỗi ghi |
-| Summarize results | Có, trên kết quả đã ổn định | Không | Báo đủ thành công/thất bại/chưa rõ |
+| Validate | Yes or explicit loop | No | Report data errors **before** writing |
+| Prepare/Plan | Yes, typically `filter/map/toList` | No | Deterministic, testable result |
+| Authorize/Charge | Loop/service coordinator | **Yes** | Attach idempotency keys, bound concurrency |
+| Save receipt | Repository/transaction API | **Yes** | Clear status, handle write failures |
+| Summarize results | Yes, on stabilized outcomes | No | Report successes, failures, and unknowns fully |
 
-Việc tách pha **không tự tạo transaction giữa gateway và database**; nó làm vấn đề thất bại trở nên **nhìn thấy và có chỗ giải quyết**.
+Separating phases **does not magically create a transaction between gateway and database**; it makes failure modes **visible and addressable**.
 
-## 6. Thiết kế domain model và tính thuần
+## 6. Designing the Domain Model and Purity
 
-Mô hình đơn hàng trong ví dụ:
+Order model in the example:
 
 ```java
 record Order(
@@ -278,35 +278,35 @@ record ChargeCommand(
 ) {}
 ```
 
-Trong mã hoàn chỉnh, constructor sẽ validate chuỗi không trống và `amountCents > 0`. `ready` là **quy tắc nghiệp vụ**: chỉ những đơn sẵn sàng mới được đưa vào kế hoạch charge.
+In the complete code, constructors validate non-blank strings and `amountCents > 0`. `ready` is a **business rule**: only ready orders enter the charge plan.
 
-Không chọn idempotency key bằng `UUID.randomUUID()` mỗi khi chạy lại cùng đơn, vì retry tạo key mới có thể bị gateway xem là yêu cầu giao dịch mới. Trong ví dụ:
+Do not generate idempotency keys with `UUID.randomUUID()` on every run for the same order, because a retry producing a new key looks like a new transaction to the gateway. In the example:
 
 ```java
 String stableKey = "charge:v1:" + order.id();
 ```
 
-Key được suy ra **ổn định** từ định danh giao dịch logic và phiên bản hành động. Đây chỉ là **quy ước minh họa**: hệ thống thật cần phân biệt tenant/merchant, loại hành động, phiên bản giao dịch, thời hạn giữ key và giới hạn namespace theo hợp đồng của nhà cung cấp.
+The key is derived **deterministically** from the logical transaction ID and action version. This is only an **illustrative convention**: real systems must account for tenant/merchant, action type, transaction version, key retention TTL, and provider namespace limits.
 
-### 6.1. Vì sao kiểm tra duplicate trước khi gọi dịch vụ?
+### 6.1. Why Check Duplicates Before Calling Services?
 
-Nếu hai bản ghi nguồn có cùng `orderId`, có thể là:
+If two input records share the same `orderId`, it could mean:
 
-- Dữ liệu đầu vào bị lặp.
-- Hai lệnh cho cùng một giao dịch logic.
-- Một trường hợp hoàn toàn hợp lệ nhưng cần cách gộp riêng.
+- Duplicate input data.
+- Two commands for one logical transaction.
+- A valid case requiring explicit merging.
 
-Trong bài này, **duplicate ID là lỗi**; toàn bộ input được kiểm tra trước khi thực thi. Nhờ vậy, không có tình huống đã thu tiền vài đơn rồi mới phát hiện duplicate ở cuối danh sách.
+In this lesson, **duplicate IDs are errors**; the whole input is checked before execution. That prevents charging several orders only to discover a duplicate at the end of the list.
 
-### 6.2. Trạng thái cục bộ trong `prepare` không phải side effect nghiệp vụ
+### 6.2. Local State Inside `prepare` Is Not a Business Side Effect
 
-Một `HashSet` cục bộ dùng để kiểm tra duplicate là trạng thái nội bộ của hàm. Nó không được trả ra hoặc chia sẻ với các thread khác; hàm vẫn có thể được xem là **thuần ở ranh giới công khai** nếu đầu vào ổn định và không sửa đầu vào.
+A local `HashSet` used for duplicate detection is internal function state. It is never returned or shared across threads; the function remains **pure at its public boundary** as long as inputs are stable and unmutated.
 
-Đừng đưa `HashSet` dùng chung vào `parallelStream().map(...)`. Phần validation có thể là vòng lặp tuần tự; vẫn bảo đảm luồng dữ liệu dễ hiểu và chính xác.
+Never put a shared `HashSet` inside `parallelStream().map(...)`. Validation can be a sequential loop while keeping data flow clear and exact.
 
-## 7. Chương trình Java 17 đầy đủ: chuẩn bị lệnh, rồi gọi gateway và lưu biên nhận
+## 7. Complete Java 17 Program: Prepare Commands, Then Call Gateway and Save Receipts
 
-Lưu chương trình sau vào `SafeOrderProcessing.java`. Không cần framework ngoài JDK cho phần ví dụ chính; port dịch vụ/repository được mô phỏng bằng lớp in-memory.
+Save the following program as `SafeOrderProcessing.java`. No external framework beyond the JDK is needed for the main example; service/repository ports are simulated with in-memory classes.
 
 ```java
 import java.util.ArrayList;
@@ -333,7 +333,7 @@ public final class SafeOrderProcessing {
             customerId = requireText(customerId, "customerId");
             if (amountCents <= 0L) {
                 throw new IllegalArgumentException(
-                    "amountCents phải dương"
+                    "amountCents must be positive"
                 );
             }
         }
@@ -352,7 +352,7 @@ public final class SafeOrderProcessing {
                 requireText(idempotencyKey, "idempotencyKey");
             if (amountCents <= 0L) {
                 throw new IllegalArgumentException(
-                    "amountCents phải dương"
+                    "amountCents must be positive"
                 );
             }
         }
@@ -427,13 +427,13 @@ public final class SafeOrderProcessing {
         Objects.requireNonNull(text, field);
         if (text.isBlank()) {
             throw new IllegalArgumentException(
-                field + " không được rỗng"
+                field + " cannot be blank"
             );
         }
         return text;
     }
 
-    // Pha thuần: chỉ đọc dữ liệu, validate, chuẩn bị lệnh.
+    // Pure phase: read data only, validate, prepare commands.
     public static Plan prepare(List<Order> input) {
         Objects.requireNonNull(input, "input");
         List<Order> snapshot = List.copyOf(input);
@@ -464,7 +464,7 @@ public final class SafeOrderProcessing {
         return new Plan(commands, total);
     }
 
-    // Ranh giới tác dụng phụ: có thứ tự, policy lỗi rõ ràng.
+    // Side-effect boundary: ordered, explicit error policy.
     public static ProcessReport execute(
         Plan plan,
         ChargeGateway gateway,
@@ -481,15 +481,15 @@ public final class SafeOrderProcessing {
             try {
                 receipt = Objects.requireNonNull(
                     gateway.charge(command),
-                    "Gateway không được trả receipt null"
+                    "Gateway must not return a null receipt"
                 );
                 if (!receipt.orderId().equals(command.orderId())) {
                     throw new IllegalStateException(
-                        "Receipt không khớp order ID"
+                        "Receipt does not match order ID"
                     );
                 }
             } catch (GatewayException ex) {
-                // Timeout/network error: KHÔNG khẳng định chưa thu tiền.
+                // Timeout/network error: DO NOT claim charge did not occur.
                 results.add(new ExecutionResult(
                     command.orderId(),
                     ExecutionStatus.CHARGE_UNCONFIRMED
@@ -504,7 +504,7 @@ public final class SafeOrderProcessing {
                     ExecutionStatus.RECORDED
                 ));
             } catch (StoreException ex) {
-                // Charge đã trả receipt, nhưng chưa ghi nhận bền vững.
+                // Charge returned a receipt, yet failed to persist durably.
                 results.add(new ExecutionResult(
                     command.orderId(),
                     ExecutionStatus.RECEIPT_WRITE_FAILED
@@ -515,7 +515,7 @@ public final class SafeOrderProcessing {
         return new ProcessReport(results);
     }
 
-    // Chỉ để mô phỏng: không phải gateway thanh toán thật.
+    // Simulation only: not a real payment gateway.
     public static final class FakeGateway
             implements ChargeGateway {
         private final Map<String, ChargeReceipt> byKey =
@@ -537,7 +537,7 @@ public final class SafeOrderProcessing {
         }
     }
 
-    // Chỉ để mô phỏng: không thay thế database/transaction.
+    // Simulation only: does not replace a database/transaction.
     public static final class FakeReceiptStore
             implements ReceiptStore {
         private final Map<String, ChargeReceipt> byOrder =
@@ -575,99 +575,99 @@ public final class SafeOrderProcessing {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17:
+Compile and run with JDK 17:
 
 ```bash
 javac --release 17 SafeOrderProcessing.java
 java SafeOrderProcessing
 ```
 
-### 7.1. Hợp đồng của `prepare`
+### 7.1. Contract of `prepare`
 
 `prepare`:
 
-- Không gọi gateway, không ghi database, không gửi email.
-- Dùng `List.copyOf` chụp lại cấu trúc danh sách đầu vào và từ chối phần tử `null`.
-- Kiểm tra mọi ID trùng **trước khi** lọc đơn sẵn sàng, nên ID trùng bị báo lỗi dù một đơn `ready == false`.
-- Dùng `filter` và `map` để tạo các `ChargeCommand` chỉ từ dữ liệu đã hợp lệ.
-- Sử dụng `Math.addExact` để phát hiện tổng số tiền tràn `long` trước khi bắt đầu tính phí.
-- Trả `Plan` có danh sách lệnh không sửa được và các `record` bất biến ở mức trường primitive/String.
+- Calls no gateway, writes no database, sends no emails.
+- Uses `List.copyOf` to snapshot the input list structure and reject `null` elements.
+- Checks all duplicate IDs **before** filtering ready orders, so duplicate IDs fail even if one order has `ready == false`.
+- Uses `filter` and `map` to construct `ChargeCommand`s solely from validated data.
+- Uses `Math.addExact` to detect `long` total overflow before starting any charges.
+- Returns a `Plan` with an unmodifiable command list and `record`s immutable across primitive/String fields.
 
-Điều kiện quan trọng: cấu trúc nguồn không bị sửa đồng thời **trong lúc tạo snapshot**. `List.copyOf` không tự biến việc sao chép từ một `ArrayList` đang bị thread khác sửa thành thao tác atomic.
+Important precondition: the source structure is not mutated concurrently **while creating the snapshot**. `List.copyOf` does not turn copying an `ArrayList` being mutated by another thread into an atomic operation.
 
-### 7.2. Hợp đồng của `execute`
+### 7.2. Contract of `execute`
 
 `execute`:
 
-- Là một **vòng lặp tường minh** theo thứ tự các lệnh.
-- Tách lỗi gateway khỏi lỗi ghi receipt.
-- Gắn trạng thái `CHARGE_UNCONFIRMED` thay vì đoán gateway chắc chắn chưa thu tiền khi nhận lỗi giao tiếp.
-- Gắn `RECEIPT_WRITE_FAILED` nếu gateway đã trả receipt nhưng store báo lỗi.
-- Trả một kết quả cho từng command khi **các lỗi dự kiến** là `GatewayException` hoặc `StoreException`.
+- Is an **explicit loop** following command order.
+- Separates gateway failures from receipt-writing failures.
+- Assigns `CHARGE_UNCONFIRMED` rather than guessing the gateway definitely did not charge when communication fails.
+- Assigns `RECEIPT_WRITE_FAILED` if the gateway returned a receipt yet the store reported an error.
+- Returns one outcome per command for **expected failures** (`GatewayException` or `StoreException`).
 
-Đây là **chính sách continue-on-known-error** của ví dụ: lỗi dự kiến ở một đơn không tự động dừng các đơn sau. Những lỗi lập trình/hợp đồng như gateway trả `null` hoặc receipt sai order ID được ném ra để không che giấu vi phạm bất biến; trước khi triển khai sản xuất, nên có cơ chế ghi nhận bền vững các trạng thái trước khi có thể gặp lỗi không dự kiến.
+This is the example's **continue-on-known-error policy**: an expected error on one order does not automatically stop subsequent orders. Programming/contract violations like a gateway returning `null` or a mismatched receipt order ID are thrown so invariant violations are never masked; before production deployment, durably persist states before unexpected failures can occur.
 
-### 7.3. Vì sao demo vẫn chưa phải “exactly once”?
+### 7.3. Why Is This Demo Still Not “Exactly Once”?
 
-`FakeGateway` chỉ giữ key trong `HashMap` **trong bộ nhớ**. Khi tiến trình khởi động lại, map biến mất. `FakeReceiptStore` cũng không bền vững. Chúng minh họa nơi gắn trách nhiệm chứ **không phải** implementation payment idempotency hoặc durability.
+`FakeGateway` only keeps keys in an **in-memory** `HashMap`. When the process restarts, the map vanishes. `FakeReceiptStore` is also not durable. They illustrate where responsibilities attach, **not** production payment idempotency or durability implementations.
 
-Một hệ thống thật phải có hợp đồng idempotency ở gateway, khóa duy nhất ở database, cách tra cứu trạng thái sau timeout, và có thể cần outbox/workflow trạng thái để phục hồi sau crash.
+A real system needs gateway idempotency contracts, database unique keys, post-timeout status lookup, and potentially an outbox/state workflow for crash recovery.
 
-## 8. Tách trạng thái nghiệp vụ khỏi ngoại lệ kỹ thuật
+## 8. Separating Business States from Technical Exceptions
 
-Khi một service call thất bại, không nên gom mọi trường hợp vào một boolean `success == false`. Cần phân biệt điều gì **đã được xác nhận**, điều gì **chưa biết** và điều gì **có thể thử lại**.
+When a service call fails, never collapse every case into a boolean `success == false`. Distinguish what is **confirmed**, what is **unknown**, and what is **retryable**.
 
-| Trường hợp | Điều ta biết | Trạng thái hoặc xử lý thích hợp |
+| Scenario | What we know | Appropriate state or handling |
 | --- | --- | --- |
-| Gateway trả một receipt hợp lệ, repository lưu thành công | Đã có biên nhận và được ghi nhận | `RECORDED` |
-| Gateway báo rõ “thẻ bị từ chối”, được xác nhận là **không charge** | Giao dịch không được chấp thuận | Một trạng thái nghiệp vụ `DECLINED` riêng |
-| Gateway timeout sau khi gửi request | **Không biết** gateway đã charge hay chưa | `CHARGE_UNCONFIRMED`, cần tra cứu/reconcile |
-| Gateway trả receipt, repository ném lỗi | Biết gateway đã trả kết quả charge; chưa lưu được | `RECEIPT_WRITE_FAILED`, cần phục hồi ghi |
-| Database xác nhận ghi thất bại trước khi commit | Có thể biết không ghi thành công tùy hợp đồng DB | Xử lý theo transaction/result cụ thể |
-| Mất kết nối đúng lúc commit DB | **Không được đoán** commit chưa xảy ra | Tra cứu trạng thái theo khóa duy nhất |
-| Parser phát hiện dữ liệu đầu vào sai trước khi charge | Chưa gọi dịch vụ | Báo validation error |
-| Process crash ngay sau charge, trước khi lưu | Có thể đã tạo tác dụng phụ nhưng chưa ghi trạng thái | Durable intent/outbox/reconciliation |
+| Gateway returns valid receipt, repository saves | Receipt obtained and persisted | `RECORDED` |
+| Gateway explicitly reports “card declined,” confirmed **not charged** | Transaction rejected | A dedicated `DECLINED` business state |
+| Gateway times out after sending request | **Unknown** whether gateway charged | `CHARGE_UNCONFIRMED`, needs lookup/reconcile |
+| Gateway returns receipt, repository throws | Gateway charged; persistence failed | `RECEIPT_WRITE_FAILED`, needs write recovery |
+| Database confirms write failed before commit | May know write did not happen per DB contract | Handle per specific transaction/result |
+| Connection lost right at DB commit | **Must not guess** commit did not occur | Query state by unique key |
+| Parser spots bad input before charge | Service not yet called | Report validation error |
+| Process crashes right after charge, before save | Side effect may exist without saved state | Durable intent/outbox/reconciliation |
 
-Code mẫu gộp các `GatewayException` thành `CHARGE_UNCONFIRMED` vì interface mô phỏng **không có loại lỗi decline đã xác nhận**. Trong sản phẩm thật, gateway adapter nên phân loại lỗi theo hợp đồng nhà cung cấp:
+The sample code groups `GatewayException`s into `CHARGE_UNCONFIRMED` because the simulated interface **lacks a confirmed-decline error type**. In production, the gateway adapter should classify errors per provider contract:
 
-- **Declined chắc chắn:** trả `Declined(reasonCode)` hoặc một domain result tương đương.
-- **Accepted chắc chắn:** trả receipt/id giao dịch.
-- **Không rõ sau timeout/connection reset:** trả `UnknownOutcome`, không tự động charge lại bằng key khác.
+- **Confirmed declined:** return `Declined(reasonCode)` or an equivalent domain result.
+- **Confirmed accepted:** return receipt/transaction ID.
+- **Uncertain after timeout/connection reset:** return `UnknownOutcome`; never auto-recharge with a new key.
 
-Nếu API không đủ thông tin phân biệt, **chọn trạng thái bảo thủ** và bổ sung đường tra cứu/đối soát.
+If an API lacks enough detail to distinguish, **pick the conservative state** and add a lookup/reconciliation path.
 
-### 8.1. Tại sao không nên dùng `Optional.empty()` cho mọi lỗi?
+### 8.1. Why Avoid `Optional.empty()` for All Errors?
 
-`Optional.empty()` nói “không có giá trị”, nhưng không biểu diễn được:
+`Optional.empty()` means “no value,” and cannot distinguish:
 
-1. Không có dữ liệu là bình thường.
-2. Dịch vụ xác nhận không tìm thấy.
-3. Dịch vụ timeout.
-4. Dữ liệu phản hồi không hợp lệ.
-5. Việc ghi kết quả thất bại.
+1. Normal absence of data.
+2. Service confirmed not found.
+3. Service timed out.
+4. Response data was invalid.
+5. Persisting the result failed.
 
-Nếu mọi tình huống trên đều được đổi thành `Optional.empty()`, downstream có thể xem lỗi là dữ liệu rỗng và âm thầm tạo báo cáo thiếu. Hãy dùng **kiểu kết quả có trạng thái**, ngoại lệ phân loại, hoặc một báo cáo lỗi tường minh.
+If all of these become `Optional.empty()`, downstream treats errors as empty data and silently produces incomplete reports. Use **state-bearing result types**, classified exceptions, or an explicit error report.
 
-### 8.2. Thứ tự thao tác quyết định ý nghĩa thất bại
+### 8.2. Operation Order Determines Failure Semantics
 
-Với flow `charge → save receipt`, lỗi lưu dữ liệu xảy ra **sau** một tác dụng phụ bên ngoài. Không thể chỉ bắt `StoreException` rồi coi như đã rollback charge.
+With `charge → save receipt`, a persistence error happens **after** an external side effect. You cannot merely catch `StoreException` and treat the charge as rolled back.
 
-Nếu đổi thành `save "PENDING" → charge → save "CONFIRMED"`, hệ thống có cơ sở dữ liệu tốt hơn để phục hồi, nhưng vẫn còn khoảng trống giữa các hệ thống. Việc gọi gateway không thể tự tham gia vào một transaction database thông thường nếu gateway không cung cấp cơ chế đồng bộ giao dịch tương thích.
+Switching to `save "PENDING" → charge → save "CONFIRMED"` gives the database better recovery state, yet a gap between systems still remains. A gateway call cannot automatically join a regular database transaction unless the gateway offers compatible transaction coordination.
 
-## 9. Checked exception trong lambda: đừng dùng wrapper để giấu lỗi
+## 9. Checked Exceptions in Lambdas: Do Not Use Wrappers to Hide Errors
 
-Các functional interface `Function<T,R>`, `Predicate<T>` và `Consumer<T>` của Stream API không khai `throws IOException` hoặc ngoại lệ checked tùy ý. Vì vậy:
+Stream API functional interfaces `Function<T,R>`, `Predicate<T>`, and `Consumer<T>` do not declare `throws IOException` or arbitrary checked exceptions. Therefore:
 
 ```java
-// Không biên dịch nếu client.lookup khai throws IOException:
+// Does not compile if client.lookup declares throws IOException:
 // var values = ids.stream()
 //     .map(id -> client.lookup(id))
 //     .toList();
 ```
 
-Có nhiều lựa chọn, mỗi lựa chọn phù hợp với một hợp đồng khác nhau.
+There are multiple options, each fitting a different contract.
 
-### 9.1. Lựa chọn A — gọi dịch vụ tại một vòng lặp riêng
+### 9.1. Option A — Call the Service in a Separate Loop
 
 ```java
 List<String> ids = customers.stream()
@@ -678,41 +678,41 @@ List<String> ids = customers.stream()
 
 List<CustomerProfile> profiles = new ArrayList<>();
 for (String id : ids) {
-    // Có chính sách retry/timeout/failure bên ngoài pipeline.
+    // Explicit retry/timeout/failure policy outside the pipeline.
     profiles.add(client.lookup(id));
 }
 ```
 
-Đây là **đoạn minh họa bên trong một phương thức có tham số `customers` và `client` thích hợp**. Nếu `lookup` ném checked exception, phương thức bao quanh có thể `throws` hoặc `catch` phân loại lỗi tại đúng ranh giới.
+This is an **illustrative snippet inside a method with appropriate `customers` and `client` parameters**. If `lookup` throws a checked exception, the enclosing method can declare `throws` or `catch` and classify errors right at the boundary.
 
-Ưu điểm: dễ giới hạn số lời gọi, gắn correlation ID, dừng/tiếp tục rõ ràng và đóng các tài nguyên của request theo từng lần gọi.
+Advantages: easy to bound call count, attach correlation IDs, stop/continue explicitly, and close per-request resources cleanly.
 
-### 9.2. Lựa chọn B — chuyển checked exception có chủ đích
+### 9.2. Option B — Deliberately Translate Checked Exceptions
 
-Với thao tác **đọc nguồn I/O** khi thực sự cần pipeline, Java cung cấp `UncheckedIOException`:
+For **I/O source reads** when a pipeline is truly needed, Java provides `UncheckedIOException`:
 
 ```java
 static String readTextUnchecked(Path path) {
     try {
         return Files.readString(path);
     } catch (IOException ex) {
-        throw new UncheckedIOException("Không đọc được: " + path, ex);
+        throw new UncheckedIOException("Unable to read: " + path, ex);
     }
 }
 ```
 
-Nếu gọi nó trong `map`, cần:
+When calling it in `map`, ensure you:
 
-- Giữ **cause** của `IOException`.
-- Không chuyển lỗi thành `null` hoặc `Stream.empty()` chỉ để pipeline tiếp tục.
-- Bảo đảm không có side effect quan trọng đã thực hiện một phần trước lúc lỗi, hoặc có cơ chế khôi phục.
-- Đóng tài nguyên ở owner phù hợp.
+- Preserve the `IOException` **cause**.
+- Never convert errors into `null` or `Stream.empty()` just to keep the pipeline going.
+- Ensure no critical side effect ran partially before the error, or have recovery mechanisms.
+- Close resources at the right owner.
 
-Chuyển checked sang unchecked **chỉ đổi cách truyền ngoại lệ**, không tạo rollback hoặc retry.
+Translating checked to unchecked **only changes how the exception propagates**; it adds neither rollback nor retry.
 
-### 9.3. Lựa chọn C — trả kết quả có loại
+### 9.3. Option C — Return Typed Outcomes
 
-Khi cần phân tích hàng loạt response nhưng **không ném** ở phần tử lỗi:
+When analyzing batches of responses without **throwing** on failing items:
 
 ```java
 sealed interface LookupOutcome
@@ -725,7 +725,7 @@ record LookupFailed(String id, String errorCode)
     implements LookupOutcome {}
 ```
 
-Nếu dùng kiểu này, hãy có một pha gọi dịch vụ có kiểm soát để tạo `List<LookupOutcome>` rồi **dùng Stream thuần** để phân loại:
+With this model, use a controlled service-call phase to build `List<LookupOutcome>`, then **use a pure Stream** to classify:
 
 ```java
 Map<Boolean, List<LookupOutcome>> grouped = outcomes.stream()
@@ -734,61 +734,61 @@ Map<Boolean, List<LookupOutcome>> grouped = outcomes.stream()
     ));
 ```
 
-`partitioningBy` không tự gọi dịch vụ; nó chỉ phân chia **những kết quả đã tồn tại**. Đây là cách dùng Stream API ở nơi phù hợp.
+`partitioningBy` makes no service calls; it only splits **already-materialized outcomes**. This uses the Stream API where it shines.
 
-## 10. Retry, idempotency và đối soát sau sự cố
+## 10. Retries, Idempotency, and Post-Failure Reconciliation
 
-### 10.1. Retry không làm một tác vụ trở thành an toàn nếu thiếu điều kiện
+### 10.1. Retrying Is Unsafe Without Preconditions
 
-Giả sử mạng timeout sau khi gửi lệnh charge:
+Suppose the network times out after sending a charge request:
 
 ```text
 Client                   Gateway
   │  charge(key=K)          │
   ├────────────────────────►│
-  │                         │ xử lý thành công
-  │  X mất phản hồi         │
+  │                         │ processed successfully
+  │  X response lost        │
   │                         │
-  └── Timeout              │
+  └── Timeout               │
 ```
 
-Nếu client retry bằng **key mới** hoặc gateway không có hợp đồng idempotency, một lần charge thứ hai có thể xảy ra. `catch` rồi gọi lại không giải quyết được vấn đề này.
+If the client retries with a **new key** or the gateway lacks an idempotency contract, a second charge can occur. Catching and calling again does not fix this.
 
-### 10.2. Idempotency key phải đại diện cho giao dịch logic
+### 10.2. Idempotency Keys Must Represent Logical Transactions
 
-Trong ví dụ, `"charge:v1:" + order.id()` giữ nguyên khi retry cùng lệnh. Nhưng hệ thống thật cần xác định:
+In the example, `"charge:v1:" + order.id()` stays constant when retrying the same command. Real systems must verify:
 
-- Key có duy nhất trong phạm vi merchant/tenant và loại giao dịch không?
-- Gateway giữ trạng thái key trong bao lâu?
-- Nếu cùng key nhưng **payload khác amount**, gateway từ chối hay trả kết quả cũ?
-- Khi timeout, có API tra cứu theo key hoặc transaction ID không?
-- Khi key đã hết thời hạn lưu, ứng dụng còn muốn retry hay chuyển sang xử lý thủ công?
+- Is the key unique within merchant/tenant and transaction type scope?
+- How long does the gateway retain key state?
+- If the same key arrives with a **different amount payload**, does the gateway reject it or return the old result?
+- On timeout, is there a lookup API by key or transaction ID?
+- Once a key expires, does the app retry or escalate to manual review?
 
-**Idempotency là hợp đồng của hệ thống nhận yêu cầu**, không phải thuộc tính tự nhiên của `Stream.distinct()` hay `Set`.
+**Idempotency is a contract of the receiving system**, not an inherent property of `Stream.distinct()` or `Set`.
 
-### 10.3. Retry nên nhắm đúng bước thất bại
+### 10.3. Retries Should Target the Exact Failing Step
 
-| Trạng thái | Phục hồi nên làm gì? | Điều không nên làm |
+| Status | Recovery action | What to avoid |
 | --- | --- | --- |
-| Charge chưa rõ kết quả | Tra cứu key/transaction, reconcile trước khi retry | Gửi charge mới không xác minh |
-| Charge đã có receipt, ghi DB lỗi | Thử ghi receipt **idempotent** | Thu tiền lại chỉ vì save lỗi |
-| Business decline đã xác nhận | Ghi trạng thái decline, hỏi phương án thanh toán khác | Retry vô hạn cùng điều kiện |
-| Dữ liệu input sai | Sửa dữ liệu/validation, tạo kế hoạch mới | Retry gateway khi command chưa hợp lệ |
-| Lỗi tạm thời có chứng cứ có thể retry | Retry có giới hạn và backoff theo policy | Vòng lặp vô hạn không timeout |
+| Charge outcome unknown | Query by key/transaction, reconcile before retrying | Sending a fresh unverified charge |
+| Charge has receipt, DB write failed | Retry receipt write **idempotently** | Recharging just because save failed |
+| Confirmed business decline | Record decline status, request alternate payment | Infinite retries under identical conditions |
+| Invalid input data | Fix data/validation, build a new plan | Retrying gateway with invalid command |
+| Evidence-backed transient error | Bounded retry with backoff per policy | Unbounded loop without timeouts |
 
-### 10.4. Đừng đặt retry trong `map` mà không giới hạn số lần gọi
+### 10.4. Never Put Unbounded Retries Inside `map`
 
-`map(order -> retry(() -> gateway.charge(order)))` khiến logic giao dịch khó quan sát, nhất là khi có `parallel`, `limit` hoặc một giai đoạn khác ném lỗi. Tốt hơn là cấp một **port/service coordinator** với deadline, giới hạn concurrency, status store và chính sách retry riêng.
+`map(order -> retry(() -> gateway.charge(order)))` obscures transaction logic, especially alongside `parallel`, `limit`, or exceptions from another stage. Better to provide a **port/service coordinator** with deadlines, concurrency bounds, a status store, and explicit retry policies.
 
-Nếu chỉ có một lời gọi HTTP **read-only** và không cần phân loại lỗi phức tạp, `map(client::fetch)` đôi khi vẫn là lựa chọn thực dụng. Điều quan trọng là nó **không còn thuần** và phải được đánh giá với hợp đồng thời gian, thứ tự, lỗi và nguồn — không được giả vờ mọi mapper của Stream đều là biến đổi dữ liệu trong bộ nhớ.
+If there is a single **read-only** HTTP call without complex error classification, `map(client::fetch)` can sometimes be pragmatic. Crucially, it is **no longer pure** and must be evaluated under timing, ordering, failure, and resource contracts—never pretending every Stream mapper is an in-memory data transform.
 
-## 11. Ghi dữ liệu an toàn: transaction, unique key và outbox
+## 11. Safe Persistence: Transactions, Unique Keys, and Outbox
 
-### 11.1. Transaction database chỉ bảo vệ những thao tác thuộc transaction đó
+### 11.1. A Database Transaction Protects Only Operations Inside That Transaction
 
-Nếu có nhiều lệnh SQL trên **cùng database** và cùng transaction, transaction có thể bảo đảm commit/rollback atomic theo mức cô lập và hợp đồng driver/database.
+Multiple SQL statements on **the same database** within one transaction achieve atomic commit/rollback per isolation level and driver/DB contract.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ```text
 BEGIN TRANSACTION
@@ -797,44 +797,44 @@ BEGIN TRANSACTION
 COMMIT
 ```
 
-Nhưng một lời gọi HTTP tới payment gateway **không tự động nằm trong transaction** của database. Khi HTTP thành công mà database rollback, gateway không bị rollback theo.
+Yet an HTTP call to a payment gateway **does not automatically join** that database transaction. When HTTP succeeds and the database rolls back, the gateway is not rolled back automatically.
 
-### 11.2. Outbox cho trường hợp ghi DB rồi phát sự kiện
+### 11.2. Outbox for Updating DB and Publishing Events
 
-Khi cần đồng bộ “lưu trạng thái đơn hàng” và “phát sự kiện”, **transactional outbox** là một pattern hữu ích:
+When synchronizing “save order status” and “publish event,” **transactional outbox** is a useful pattern:
 
 ```text
-Transaction trong cùng database:
+Transaction in the same database:
     UPDATE orders SET status = 'READY'
     INSERT INTO outbox(event_id, payload, status='PENDING')
 COMMIT
                    │
                    ▼
-Worker riêng đọc outbox:
-    gửi event tới broker
-    đánh dấu published / retry
+Separate worker reads outbox:
+    publish event to broker
+    mark published / retry
                    │
                    ▼
-Consumer xử lý event theo event_id idempotent
+Consumer processes event idempotently by event_id
 ```
 
-Outbox giúp tránh khoảng trống “database đã commit nhưng ứng dụng crash trước khi publish”. Tuy nhiên, worker có thể gửi event thành công rồi crash trước khi đánh dấu đã publish; event có thể **được gửi lại**. Vì thế consumer vẫn cần **deduplication/idempotency** nếu mục tiêu là tác dụng phụ logic một lần.
+Outbox closes the “database committed, then app crashed before publishing” gap. However, a worker can publish an event and crash before marking it published, causing the event to **be sent again**. Consumers still need **deduplication/idempotency** if the goal is logically once-only effects.
 
-### 11.3. Khi gọi gateway trước ghi DB, cần durable intent hoặc reconciliation
+### 11.3. Calling a Gateway Before DB Writes Requires Durable Intent or Reconciliation
 
-Với thanh toán, có thể lưu **ý định xử lý** (cùng idempotency key và dữ liệu đã xác thực) trước khi gửi gateway. Một worker thực thi có thể:
+For payments, you can persist **processing intent** (with the idempotency key and validated payload) before calling the gateway. An execution worker can:
 
-1. Lấy job có trạng thái `PENDING`.
-2. Gọi gateway bằng key ổn định.
-3. Ghi receipt/transaction ID khi nhận được xác nhận.
-4. Chuyển trạng thái sang `RECORDED`, `DECLINED` hoặc `UNKNOWN`.
-5. Đối soát job `UNKNOWN` trước khi thử lại.
+1. Claim a `PENDING` job.
+2. Call the gateway with the stable key.
+3. Save the receipt/transaction ID upon confirmation.
+4. Transition status to `RECORDED`, `DECLINED`, or `UNKNOWN`.
+5. Reconcile `UNKNOWN` jobs before retrying.
 
-Đây là **một thiết kế hệ thống**, không phải mã do `Collectors.toMap` hay `parallelStream` tạo ra. Chi tiết claim job, khóa lạc quan, deadline và thay đổi trạng thái phải phù hợp database/gateway cụ thể.
+This is **system architecture**, not something `Collectors.toMap` or `parallelStream` generates. Job claiming, optimistic locking, deadlines, and state transitions must match the specific database/gateway.
 
-### 11.4. Nếu thao tác ghi có thể chạy lại, key lưu phải duy nhất
+### 11.4. When Writes May Replay, Storage Keys Must Be Unique
 
-Ví dụ về bảng receipt:
+Example receipts table:
 
 ```text
 receipts(
@@ -845,31 +845,31 @@ receipts(
 )
 ```
 
-Các unique constraints và một câu lệnh insert/upsert có hợp đồng rõ giúp giảm khả năng ghi trùng khi retry. Nhưng **upsert** vẫn phải kiểm tra rằng dữ liệu cũ khớp với giao dịch logic; không được ghi đè một receipt có số tiền khác mà không báo lỗi.
+Unique constraints and well-contracted insert/upsert statements reduce duplicate writes on retry. Still, an **upsert** must verify existing data matches the logical transaction; never overwrite a receipt with a different amount silently.
 
-## 12. Chọn chính sách xử lý theo lô và ranh giới thành công
+## 12. Choosing Batch Policies and Completion Boundaries
 
-Có ít nhất ba lựa chọn khi gặp lỗi ở một phần tử:
+There are at least three options when an element fails:
 
-| Chính sách | Hành vi | Khi nào phù hợp |
+| Policy | Behavior | When suitable |
 | --- | --- | --- |
-| **Fail-fast** | Ngừng nhận thêm lệnh ở lỗi đầu tiên | Từng bước phải được kiểm duyệt; lỗi hiếm và không được bỏ qua |
-| **Continue with results** | Tiếp tục xử lý các lệnh còn lại, ghi trạng thái từng lệnh | Batch độc lập, cần báo cáo đầy đủ tiến độ |
-| **Durable job queue** | Lưu công việc và trạng thái, worker xử lý theo policy | Quy trình nhiều bước, cần phục hồi sau crash |
+| **Fail-fast** | Stop dispatching further commands at first error | Every step must pass inspection; errors are rare and non-ignorable |
+| **Continue with results** | Continue processing remaining commands, record each status | Independent batch items needing full progress reporting |
+| **Durable job queue** | Persist jobs and states; workers process per policy | Multi-step workflows needing crash recovery |
 
-Ví dụ `execute` ở mục 7 chọn **continue with results** cho `GatewayException` và `StoreException`. Nó **không** xử lý mọi lỗi RuntimeException: nếu code vi phạm contract, quy trình có thể dừng bất ngờ. Trong production, cần có trạng thái từng job **được lưu bền vững trước thao tác ngoài** để phục hồi khi tiến trình chết.
+The `execute` example in section 7 picks **continue with results** for `GatewayException` and `StoreException`. It **does not** catch arbitrary `RuntimeException`s: if code breaks a contract, execution stops abruptly. In production, durably persist per-job state **before external calls** to recover from process crashes.
 
-### 12.1. Phân biệt ba loại “thành công”
+### 12.1. Distinguishing Three Kinds of “Success”
 
-1. **Pha chuẩn bị thành công:** `Plan` được tạo, dữ liệu và các invariant đã qua validation.
-2. **Lời gọi gateway thành công:** hệ thống nhận được kết quả charge xác nhận.
-3. **Toàn bộ workflow thành công:** receipt được ghi bền vững, audit/outbox cần thiết được hoàn tất và trạng thái có thể truy xuất sau crash.
+1. **Preparation succeeded:** `Plan` created, data and invariants validated.
+2. **Gateway call succeeded:** system received a confirmed charge result.
+3. **Entire workflow succeeded:** receipt durably saved, required audit/outbox completed, and state is recoverable after crashes.
 
-Không gộp cả ba thành một trường `success = true` chỉ vì `collect(...)` không ném lỗi.
+Never collapse all three into a single `success = true` just because `collect(...)` threw no exception.
 
-### 12.2. Partial success phải được công bố rõ
+### 12.2. Partial Success Must Be Explicitly Reported
 
-Nếu một batch có 100 lệnh:
+If a batch has 100 commands:
 
 ```text
 RECORDED             = 94
@@ -878,37 +878,37 @@ RECEIPT_WRITE_FAILED =  3
 TOTAL                = 100
 ```
 
-Đầu ra nên thể hiện đầy đủ cả ba trạng thái và các ID tương ứng. Không trả `List<Receipt>` gồm 94 receipt rồi nói “đã xử lý 100 đơn” nếu sáu lệnh còn lại chưa hoàn tất.
+Output should surface all three statuses and their corresponding IDs. Never return a `List<Receipt>` of 94 receipts and say “processed 100 orders” when six commands remain unresolved.
 
-### 12.3. Kết quả rỗng không phải lỗi dịch vụ
+### 12.3. Empty Output Is Not a Service Error
 
-Nếu sau `filter(Order::ready)` không có command, `Plan.commands()` rỗng có thể là trạng thái hợp lệ: **không có đơn đủ điều kiện**. Trái lại, nếu có command mà gateway timeout, không được biến thành `Plan` rỗng hoặc `ProcessReport` “không có việc” để tiếp tục.
+If `filter(Order::ready)` yields zero commands, an empty `Plan.commands()` can be a valid state: **no eligible orders**. Conversely, if commands existed and the gateway timed out, never convert that into an empty `Plan` or a “nothing to do” `ProcessReport` to move on.
 
-Tách **rỗng theo nghiệp vụ** khỏi **thất bại kỹ thuật** là điều kiện cần cho báo cáo và retry.
+Separating **business-empty** from **technical failure** is essential for reporting and retries.
 
-## 13. Gọi dịch vụ trước phép biến đổi: mô hình enrichment có kiểm soát
+## 13. Calling Services Before Transformations: A Controlled Enrichment Model
 
-Không phải lúc nào service call cũng nằm ở cuối. Nhiều bài toán phải tra cứu profile, giá hoặc tỷ giá trước khi biến đổi thành kết quả:
+Service calls do not always sit at the end. Many problems require looking up profiles, prices, or exchange rates before transforming into final outputs:
 
 ```text
-Nguồn raw records
+Raw input records
     │
-    ├─ PURE: xác định request keys cần tra cứu
+    ├─ PURE: determine lookup request keys
     ▼
-List<LookupRequest> có thứ tự và không trùng
+Ordered, deduplicated List<LookupRequest>
     │
-    ├─ I/O BOUNDARY: gọi service, lưu kết quả/loại lỗi
+    ├─ I/O BOUNDARY: call service, store result/error kind
     ▼
-List<LookupOutcome> đã materialize
+Materialized List<LookupOutcome>
     │
-    ├─ PURE: join response với bản ghi nguồn
+    ├─ PURE: join responses with source records
     ▼
 List<EnrichedRecord>
     │
-    └─ I/O BOUNDARY: lưu/export kết quả theo transaction policy
+    └─ I/O BOUNDARY: save/export results per transaction policy
 ```
 
-### 13.1. Giai đoạn xác định request keys có thể thuần
+### 13.1. Determining Request Keys Can Be Pure
 
 ```java
 List<String> customerIds = orders.stream()
@@ -917,9 +917,9 @@ List<String> customerIds = orders.stream()
     .toList();
 ```
 
-Với `List` ordered, `distinct` giữ phần tử đầu tiên của mỗi ID theo encounter order. Đây là **giảm số yêu cầu tra cứu lặp** ở đầu vào; nó không phải bảo đảm service bên ngoài được gọi exactly-once nếu workflow retry/crash.
+On an ordered `List`, `distinct` keeps the first occurrence of each ID in encounter order. This **deduplicates repeated lookup keys** in the input; it does not guarantee external services are called exactly once across workflow retries/crashes.
 
-### 13.2. Giai đoạn gọi service nên trả outcome rõ ràng
+### 13.2. Service Calls Should Return Explicit Outcomes
 
 ```java
 List<LookupOutcome> outcomes = new ArrayList<>();
@@ -936,11 +936,11 @@ for (String id : customerIds) {
 }
 ```
 
-Đoạn này là **mẫu điều phối**, không phải chương trình độc lập: `profileClient`, `ProfileServiceException` và `CustomerProfile` được định nghĩa ở tầng tích hợp. Chủ ý là không che dấu request nào lỗi và chỉ chuyển **mã lỗi an toàn** sang kết quả công khai.
+This snippet is an **orchestration template**, not a standalone program: `profileClient`, `ProfileServiceException`, and `CustomerProfile` live in the integration layer. The intent is never to hide which requests failed and to expose only **safe error codes** in public outcomes.
 
-### 13.3. Giai đoạn join/transform lại có thể thuần
+### 13.3. Joining and Transforming Can Be Pure Again
 
-Sau khi tất cả kết quả đã ổn định, có thể xây map các profile thành công:
+Once all responses are stabilized, build a map of successful profiles:
 
 ```java
 Map<String, CustomerProfile> successfulProfiles =
@@ -953,19 +953,19 @@ Map<String, CustomerProfile> successfulProfiles =
         ));
 ```
 
-`Collectors.toMap` **ném lỗi khi khóa trùng** theo hợp đồng overload hai mapper. Điều này giúp phát hiện service result bị lặp không dự kiến, thay vì âm thầm ghi đè.
+`Collectors.toMap` **throws on duplicate keys** under its two-mapper overload contract. This catches unexpected duplicate service results instead of silently overwriting.
 
-Từ map này, một phép `map` thuần có thể ghép dữ liệu, nhưng phải xác định chính sách **profile thiếu**:
+From this map, a pure `map` can join the data, yet you must define a policy for **missing profiles**:
 
-- Nếu mọi profile đều bắt buộc, báo lỗi và **không xuất bản** bản join thiếu.
-- Nếu thiếu là trạng thái hợp lệ, dùng kiểu kết quả biểu diễn “không có profile”.
-- Nếu được phép bỏ bản ghi, trả số lượng/ID đã bỏ thay vì tự `filter(Objects::nonNull)` rồi xem như hoàn chỉnh.
+- If every profile is mandatory, report failure and **never publish** incomplete joins.
+- If absence is valid, use a result type explicitly modeling “no profile.”
+- If skipping records is allowed, return skipped counts/IDs instead of calling `filter(Objects::nonNull)` and treating the output as complete.
 
-## 14. Nguồn tệp và việc đóng tài nguyên trước khi bước có side effect bắt đầu
+## 14. File Sources and Closing Resources Before Side Effects Begin
 
-Với nguồn I/O, việc đọc log/CSV có thể ném lỗi **khi mở** hoặc **trong lúc duyệt**. Đặt lời gọi dịch vụ trong `map` của `Files.lines` khiến vòng đời reader bị kéo dài trong lúc chờ network và tạo khả năng đã ghi một phần trước khi phát hiện dòng cuối sai.
+With I/O sources, reading logs/CSVs can fail **when opening** or **during iteration**. Placing service calls inside `Files.lines`'s `map` keeps the reader open while waiting on the network and risks partial writes before hitting a broken final line.
 
-### 14.1. Mẫu an toàn khi đầu vào vừa bộ nhớ
+### 14.1. Safe Pattern When Input Fits in Memory
 
 ```java
 Plan plan;
@@ -977,93 +977,93 @@ try (Stream<String> lines = Files.lines(
     plan = SafeOrderProcessing.prepare(parsed);
 }
 
-// Ở đây file đã đóng và toàn bộ input đã được validate.
+// Here the file is closed and all input has been validated.
 ProcessReport report = SafeOrderProcessing.execute(
     plan, gateway, receiptStore
 );
 ```
 
-Đây là đoạn trong một phương thức có sẵn `path`, `gateway`, `receiptStore`, `OrderParser`. Các ý chính:
+This snippet assumes a method with `path`, `gateway`, `receiptStore`, and `OrderParser` in scope. Key points:
 
-- Reader/file được đóng **trước khi** bắt đầu charge.
-- Parsing/validation lỗi thì không có thao tác charge nào được chạy.
-- Có thể tính tổng và phát hiện duplicate **trước** khi tạo side effect.
-- Không tự chuyển `IOException` thành file rỗng.
+- The reader/file closes **before** any charges begin.
+- If parsing/validation fails, zero charge operations execute.
+- Totals and duplicates are checked **before** causing side effects.
+- `IOException` is never turned into an empty file.
 
-### 14.2. Khi đầu vào không thể materialize toàn bộ
+### 14.2. When Input Cannot Be Materialized Whole
 
-Với file hàng trăm GB, `toList()` sẽ dùng bộ nhớ theo số bản ghi. Có thể phải xử lý **từng chunk** hoặc dùng workflow hàng đợi:
+For hundreds-of-GB files, `toList()` consumes memory proportional to record count. You may need **chunked** processing or a queued workflow:
 
 ```text
 read 1 chunk → parse/validate chunk → persist intent → execute → checkpoint
 read next chunk → ...
 ```
 
-Khi đó, **không còn bảo đảm** “mọi dòng trong toàn file đã valid trước khi thực hiện giao dịch đầu tiên”. Phải công bố rõ chính sách partial progress và lưu checkpoint/dedup để có thể tiếp tục sau lỗi. Nếu yêu cầu all-or-nothing trên toàn file, cần thiết kế staging/validation trước execution hoặc công cụ giao dịch thích hợp.
+In that case, you **no longer have the guarantee** that “every line in the entire file validated before the first transaction.” Publish an explicit partial-progress policy and save checkpoints/dedup keys to resume after failures. If file-wide all-or-nothing is required, design staging/validation prior to execution or use an appropriate transactional engine.
 
-### 14.3. `try-with-resources` không tự rollback ghi ngoài
+### 14.3. `try-with-resources` Does Not Roll Back External Writes
 
-`try-with-resources` bảo đảm đóng stream/reader đang sở hữu; nó **không hoàn tác** các dòng đã ghi vào database trước khi lỗi I/O đọc xuất hiện. Đừng nhầm tính đúng về tài nguyên với tính nguyên tử của một workflow.
+`try-with-resources` ensures closing the owned stream/reader; it **does not undo** rows already written to a database before a read I/O error occurred. Never confuse resource-closing correctness with workflow atomicity.
 
-## 15. Xử lý song song: giới hạn concurrency trước, không chuyển bừa sang `parallelStream`
+## 15. Parallel Processing: Bound Concurrency First, Never Blindly Switch to `parallelStream`
 
-Các lời gọi dịch vụ thường là blocking I/O. Chạy đồng thời **có thể** tăng throughput, nhưng kéo theo:
+Service calls are usually blocking I/O. Concurrent calls **can** boost throughput, yet bring:
 
-- Số kết nối đang mở, rate limit và quota của service.
-- Thời gian timeout và cancellation.
-- Số yêu cầu còn đang xử lý khi một yêu cầu lỗi.
-- Thứ tự phản hồi khác với encounter order.
-- Khả năng trùng tác dụng phụ khi retry hoặc crash.
-- Trạng thái mutable trong các adapter có thể không thread-safe.
+- Open connection counts, rate limits, and service quotas.
+- Timeouts and cancellation behavior.
+- In-flight requests still executing when one fails.
+- Response order differing from encounter order.
+- Duplicate side effects on retries or crashes.
+- Mutable state inside adapters that may not be thread-safe.
 
-`parallelStream()` **không cung cấp sẵn** các hợp đồng rate limit, durable checkpoint, transaction hoặc idempotency.
+`parallelStream()` **does not provide** rate limits, durable checkpoints, transactions, or idempotency out of the box.
 
-### 15.1. `forEachOrdered` chỉ giải quyết một phần của bài toán
+### 15.1. `forEachOrdered` Solves Only Part of the Problem
 
-`forEachOrdered` duy trì encounter order của các action trên ordered stream, kể cả khi pipeline có chế độ parallel. Nhưng nó:
+`forEachOrdered` preserves action encounter order on ordered streams even in parallel mode. However, it:
 
-- Không tự biến HTTP request thành transactional.
-- Không tự lưu tiến độ bền vững.
-- Không bảo đảm một lỗi ở phần tử sau rollback tác dụng phụ trước đó.
-- Không giúp phía service xác nhận một timeout có charge thành công hay chưa.
+- Does not make HTTP requests transactional.
+- Does not persist progress durably.
+- Does not ensure a later failure rolls back earlier side effects.
+- Does not help ask the service whether a timed-out charge succeeded.
 
-Khi thứ tự giao dịch quan trọng và số lượng vừa phải, **vòng lặp tuần tự tường minh** thường là lựa chọn đơn giản và dễ kiểm thử nhất.
+When transaction order matters and volume is moderate, an **explicit sequential loop** is often the simplest and most testable option.
 
-### 15.2. Nếu cần concurrency thật sự, tạo một coordinator riêng
+### 15.2. When Genuine Concurrency Is Needed, Build a Dedicated Coordinator
 
-Thay vì `parallelStream().forEach(gateway::charge)`, một coordinator có thể dùng:
+Instead of `parallelStream().forEach(gateway::charge)`, a coordinator can enforce:
 
-1. **Bounded concurrency:** giới hạn tối đa `k` request đồng thời.
-2. **Per-request timeout:** không chờ vô hạn.
-3. **Rate limiting:** giới hạn số request theo hợp đồng dịch vụ.
-4. **Stable idempotency key:** retry cùng giao dịch logic không tạo key mới.
-5. **Per-item result:** ghi trạng thái của từng lệnh.
-6. **Durable checkpoint/reconciliation:** phục hồi sau crash.
-7. **Cancellation semantics:** biết rõ việc ngừng chờ không có nghĩa server đã ngừng xử lý.
+1. **Bounded concurrency:** cap concurrent requests at `k`.
+2. **Per-request timeout:** never wait indefinitely.
+3. **Rate limiting:** enforce request rate per service contract.
+4. **Stable idempotency keys:** retrying the same logical transaction never mints a new key.
+5. **Per-item result:** record each command's status.
+6. **Durable checkpoint/reconciliation:** recover after crashes.
+7. **Cancellation semantics:** understand that stopping waiting does not mean the server stopped processing.
 
-Các tính năng này thường được xây bằng `ExecutorService`, queue/job worker, cơ chế giới hạn concurrency hoặc framework tích hợp thích hợp. **Stream API có thể dùng để chuẩn bị danh sách lệnh và tổng hợp kết quả**, còn chính sách điều phối thuộc một thành phần riêng.
+These capabilities are typically built with `ExecutorService`, job queues/workers, concurrency limiters, or integration frameworks. **The Stream API can prepare command lists and summarize outcomes**, while orchestration policy belongs in a dedicated component.
 
-### 15.3. Không dùng stream song song để bảo đảm đúng N external calls
+### 15.3. Never Use Parallel Streams to Guarantee Exactly N External Calls
 
-`limit(10)` giới hạn **số phần tử đầu ra** được yêu cầu, không phải một hợp đồng “chỉ có đúng 10 side effect từ những mapper chạy trước đó” trong mọi pipeline song song/được tối ưu. Một số tác vụ có thể đã bắt đầu trước khi downstream short-circuit.
+`limit(10)` limits the number of requested **output elements**, not a guarantee that “only 10 upstream mapper side effects ran” under parallel or optimized execution. Extra tasks may already have started before downstream short-circuits.
 
-Nếu nghiệp vụ yêu cầu đúng một số lượng lệnh, hãy tạo `List<ChargeCommand>` có kích thước đã validate, rồi đưa danh sách đó vào coordinator. Không dựa vào thứ tự thực thi lambda để định danh giao dịch.
+If business logic requires an exact number of commands, build a validated-size `List<ChargeCommand>` first, then hand that list to the coordinator. Never rely on lambda execution order to assign transaction identities.
 
-## 16. Thứ tự đầu vào, thứ tự lưu và thứ tự hoàn tất
+## 16. Input Order, Persistence Order, and Completion Order
 
-Ba loại thứ tự cần tách riêng:
+Three kinds of ordering must stay distinct:
 
-| Loại thứ tự | Ví dụ | Có được Stream API bảo đảm? |
+| Ordering type | Example | Guaranteed by Stream API? |
 | --- | --- | --- |
-| **Encounter order** | Đơn O1, O2, O3 từ một `List` | Có theo hợp đồng nguồn/pipeline ordered |
-| **Thứ tự thực thi** | O2 gọi HTTP trước O1 khi xử lý song song | Không được cam kết bởi `parallel forEach` |
-| **Thứ tự commit/response** | O3 commit DB trước O1 | Do service, transaction và coordinator quyết định |
+| **Encounter order** | Orders O1, O2, O3 from a `List` | Yes, per ordered source/pipeline contract |
+| **Execution order** | O2 sends HTTP before O1 under parallel execution | Not promised by `parallel forEach` |
+| **Commit/response order** | O3 commits to DB before O1 | Determined by services, transactions, and coordinator |
 
-Chương trình chính `execute` duyệt `plan.commands()` tuần tự, nên **thứ tự gọi gateway** theo danh sách plan trong một tiến trình bình thường. Nhưng không thể suy ra mọi hệ thống ngoài commit theo thứ tự ấy hoặc không có request từ tác nhân khác.
+The main program's `execute` iterates `plan.commands()` sequentially, so **gateway call order** matches the plan list in a normal single-process run. Still, you cannot assume external systems commit in that order or no other actors send concurrent requests.
 
-### 16.1. Thứ tự trong một báo cáo hiển thị
+### 16.1. Ordering in a Display Report
 
-Nếu kết quả được thu từ nhiều worker song song, có thể lưu một `sequenceNumber` trong `ChargeCommand` hoặc `ExecutionResult`, rồi sắp kết quả theo số ấy **sau khi** thực thi:
+If outcomes come from multiple parallel workers, store a `sequenceNumber` in `ChargeCommand` or `ExecutionResult`, then sort results by it **after** execution:
 
 ```java
 List<ExecutionResult> orderedResults = results.stream()
@@ -1071,56 +1071,56 @@ List<ExecutionResult> orderedResults = results.stream()
     .toList();
 ```
 
-Đây là **đoạn minh họa cho một biến thể `ExecutionResult` có thêm `sequenceNumber`**, không phải lời gọi biên dịch với record hai trường ở chương trình chính. Việc sắp kết quả chỉ thay đổi **thứ tự báo cáo**, không thay đổi thứ tự các request đã đến gateway.
+This is an **illustration for an `ExecutionResult` variant adding `sequenceNumber`**, not a compiling call against the two-field record in the main program. Sorting only changes **report presentation order**, not the order requests reached the gateway.
 
-### 16.2. Dữ liệu lặp: `distinct` không phải kiểm soát ghi đúng một lần
+### 16.2. Duplicate Data: `distinct` Is Not Once-Only Write Control
 
-`distinct` loại các phần tử trùng theo `equals` trong một **lần duyệt stream**. Nó không biết lần chạy trước của ứng dụng đã ghi những giao dịch nào; không thay thế idempotency key hoặc unique constraints.
+`distinct` filters duplicates by `equals` within a **single stream traversal**. It has no memory of which transactions previous application runs persisted; it never replaces idempotency keys or unique constraints.
 
-Khi một batch được chạy lại sau crash, phải có một nguồn trạng thái bền vững để xác định lệnh nào đã hoàn thành, chưa hoàn thành hoặc chưa xác định.
+When a batch reruns after a crash, a durable state store must identify which commands already succeeded, have not run, or remain uncertain.
 
-## 17. Logging, metrics và bảo mật ở ranh giới tác dụng phụ
+## 17. Logging, Metrics, and Security at Side-Effect Boundaries
 
-Log là một side effect, nhưng thường cần thiết để vận hành. Cách làm phù hợp không phải là “cấm logging”, mà là **đặt logging tại ranh giới được điều phối**:
+Logging is a side effect, yet normally essential for operations. The right practice is not “ban logging,” but **place logging at coordinated boundaries**:
 
 ```text
 execute command
     │
-    ├─ log request ID + operation type (không log token/PII)
-    ├─ gọi gateway với timeout và idempotency key
-    ├─ log status đã phân loại + latency
-    ├─ ghi receipt
-    └─ log bước lưu và cập nhật trạng thái
+    ├─ log request ID + operation type (never log tokens/PII)
+    ├─ call gateway with timeout and idempotency key
+    ├─ log classified status + latency
+    ├─ save receipt
+    └─ log persistence step and state update
 ```
 
-**Không dùng `peek` để viết audit bắt buộc**, vì một lời gọi terminal có thể short-circuit hoặc implementation có thể tối ưu bỏ một intermediate stage không ảnh hưởng kết quả.
+**Never use `peek` for mandatory audit logging**, because a terminal call may short-circuit or an implementation may optimize away intermediate stages that do not affect the result.
 
-### 17.1. Bộ số liệu vận hành nên tách biệt
+### 17.1. Operational Metrics Should Be Separated
 
-| Metric | Đo điều gì? |
+| Metric | What it measures |
 | --- | --- |
-| `commands_planned` | Số lệnh đã được validate và lập kế hoạch |
-| `gateway_confirmed` | Số lệnh gateway trả kết quả thành công đã xác nhận |
-| `charge_unconfirmed` | Số lệnh không biết chắc kết quả sau lỗi |
-| `receipt_recorded` | Số biên nhận đã được lưu |
-| `receipt_write_failed` | Số lỗi lưu khi đã có receipt |
-| `reconciliation_pending` | Số công việc cần đối soát |
-| `retry_attempts` | Số lần thử lại, không phải số giao dịch mới |
+| `commands_planned` | Commands validated and planned |
+| `gateway_confirmed` | Commands with confirmed gateway success |
+| `charge_unconfirmed` | Commands with unknown result after error |
+| `receipt_recorded` | Receipts persisted |
+| `receipt_write_failed` | Persistence errors after receiving receipt |
+| `reconciliation_pending` | Items requiring reconciliation |
+| `retry_attempts` | Retry count, not new transactions |
 
-Tổng số command cần được đối chiếu với các trạng thái cuối của batch. Đừng dùng số dòng log `"success"` hoặc số lần lambda mapper chạy để làm dữ liệu tài chính.
+Total planned commands should reconcile against final batch statuses. Never use `"success"` log line counts or mapper invocation counts as financial records.
 
-### 17.2. Không rò rỉ dữ liệu nhạy cảm khi báo lỗi
+### 17.2. Never Leak Sensitive Data in Error Reports
 
-Một exception từ SDK có thể chứa URL, request body, token hoặc thông tin thanh toán. `ExecutionResult` trong ví dụ công khai **mã trạng thái**, không công khai `ex.getMessage()` thô. Nếu cần điều tra:
+An SDK exception may contain URLs, request bodies, tokens, or payment info. `ExecutionResult` in the example exposes **status codes**, not raw `ex.getMessage()`. When investigation is needed:
 
-- Dùng correlation ID/trace ID được tạo theo chính sách hệ thống.
-- Ghi cause vào một kênh có kiểm soát truy cập, có redaction.
-- Không lưu toàn bộ dữ liệu thẻ hoặc khóa bí mật trong `Plan`/log.
-- Tách thông báo kỹ thuật nội bộ khỏi thông báo trả ra API.
+- Use correlation IDs / trace IDs generated per system policy.
+- Log causes to an access-controlled channel with redaction.
+- Never store raw card details or secret keys inside `Plan`/logs.
+- Separate internal technical details from API-facing messages.
 
-## 18. Kiểm thử JUnit 5: chứng minh tính thuần và ranh giới side effect
+## 18. JUnit 5 Tests: Proving Purity and Side-Effect Boundaries
 
-Các test dưới đây chạy trên JDK 17 và JUnit Jupiter, sử dụng lớp `SafeOrderProcessing` ở mục 7. Chúng kiểm tra **giá trị lập kế hoạch**, **số lời gọi trong mô phỏng**, **báo cáo trạng thái** và **khả năng dùng lại key**. Chúng không giả định fake gateway là một dịch vụ thanh toán bền vững.
+The tests below run on JDK 17 and JUnit Jupiter, using `SafeOrderProcessing` from section 7. They verify **planned values**, **simulated call counts**, **status reporting**, and **key reuse**. They do not assume the fake gateway is a durable payment provider.
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1168,7 +1168,7 @@ class SafeOrderProcessingTest {
         assertThrows(IllegalArgumentException.class, () ->
             SafeOrderProcessing.prepare(duplicates)
         );
-        // Không gọi execute: prepare chỉ tạo kế hoạch.
+        // execute is not called: prepare only builds the plan.
     }
 
     @Test
@@ -1263,7 +1263,7 @@ class SafeOrderProcessingTest {
             plan,
             cmd -> {
                 throw new SafeOrderProcessing.GatewayException(
-                    "Timeout giả lập"
+                    "Simulated timeout"
                 );
             },
             receipt -> storeCalls.incrementAndGet()
@@ -1289,7 +1289,7 @@ class SafeOrderProcessingTest {
             ),
             receipt -> {
                 throw new SafeOrderProcessing.StoreException(
-                    "DB không sẵn sàng"
+                    "DB unavailable"
                 );
             }
         );
@@ -1312,7 +1312,7 @@ class SafeOrderProcessingTest {
 
         assertEquals(2, gateway.acceptedKeyCount());
         assertEquals(2, store.receiptCount());
-        // Fake in-memory không chứng minh durability sau restart.
+        // In-memory fake does not prove durability across restarts.
     }
 
     @Test
@@ -1334,50 +1334,50 @@ class SafeOrderProcessingTest {
 }
 ```
 
-### 18.1. Test nào chứng minh điều gì?
+### 18.1. What Each Test Proves
 
-| Test | Bảo đảm được kiểm chứng |
+| Test | Verified guarantee |
 | --- | --- |
-| `prepareIsDeterministicAndHasStableKeys` | Cùng input tạo plan tương đương |
-| `duplicateIdsAreRejectedBeforeExternalCalls` | Input trùng bị chặn trong pha thuần |
-| `overflowIsRejectedDuringPurePreparation` | Không charge với tổng tiền tràn miền số |
-| `planDoesNotTrackLaterSourceListStructuralChanges` | Plan không phụ thuộc việc caller sửa cấu trúc nguồn sau prepare |
-| `noReadyOrderMeansNoGatewayOrStoreCall` | Không có command thì không gọi external ports |
-| `confirmedChargeIsRecorded` | Mỗi command mô phỏng đã gọi gateway và store |
-| `gatewayTimeoutIsReportedAsUnconfirmedNotDeclined` | Timeout không bị diễn giải thành chắc chắn chưa charge |
-| `writeFailureDoesNotClaimChargeWasUndone` | Lỗi lưu receipt có trạng thái riêng |
-| `fakeGatewayDeduplicatesStableKeyAcrossTwoRuns` | Chứng minh **fake** giữ key trong cùng tiến trình, không hơn |
+| `prepareIsDeterministicAndHasStableKeys` | Identical input yields equivalent plan |
+| `duplicateIdsAreRejectedBeforeExternalCalls` | Duplicate inputs blocked in pure phase |
+| `overflowIsRejectedDuringPurePreparation` | Never charges when total overflows numeric range |
+| `planDoesNotTrackLaterSourceListStructuralChanges` | Plan unaffected by caller mutating source list after prepare |
+| `noReadyOrderMeansNoGatewayOrStoreCall` | Zero commands means external ports are not called |
+| `confirmedChargeIsRecorded` | Each simulated command called gateway and store |
+| `gatewayTimeoutIsReportedAsUnconfirmedNotDeclined` | Timeouts are not interpreted as confirmed non-charge |
+| `writeFailureDoesNotClaimChargeWasUndone` | Receipt persistence error has its own status |
+| `fakeGatewayDeduplicatesStableKeyAcrossTwoRuns` | Proves **fake** retains keys in the same process, nothing more |
 
-Trong thử nghiệm sản xuất, cần thêm **integration tests** đối với gateway sandbox, database thật và quy trình phục hồi sau restart. Unit test với fake chỉ chứng minh code điều phối nhận/đưa trạng thái đúng theo giao diện.
+In production testing, add **integration tests** against a sandbox gateway, real database, and crash-restart recovery flows. Unit tests with fakes only prove orchestration code handles and emits states according to the interface.
 
-### 18.2. Không đưa thời gian ngủ ngẫu nhiên vào unit test tính đúng
+### 18.2. Never Put Random Sleeps in Correctness Unit Tests
 
-Để mô phỏng timeout, gateway fake **ném `GatewayException`**. Unit test không cần `Thread.sleep` hoặc chờ một mạng thực, tránh test chập chờn. Những vấn đề concurrency, timeout thực, kết nối bị reset và crash giữa các bước nên được thử qua test tích hợp/chaos test có môi trường kiểm soát.
+To simulate timeouts, the fake gateway **throws `GatewayException`**. Unit tests need neither `Thread.sleep` nor real network waits, avoiding flaky tests. Real concurrency, timeouts, connection resets, and mid-step crashes should be tested via controlled integration/chaos tests.
 
-## 19. Các phản mẫu và sai lầm cần tránh
+## 19. Anti-Patterns and Mistakes to Avoid
 
-| Phản mẫu | Điều có thể sai | Cách thay thế |
+| Anti-pattern | What can go wrong | Replacement |
 | --- | --- | --- |
-| Gọi `gateway.charge` trực tiếp trong `map` | Khó kiểm soát retry, timeout, số request và partial success | Tạo `ChargeCommand` bằng `map`, gọi gateway tại coordinator |
-| Ghi DB bằng `peek` | Intermediate operation có thể không được thực hiện | Ghi qua service/repository ở bước tường minh |
-| Coi `forEachOrdered` như transaction | Có thứ tự nhưng không atomic/rollback | Transaction/workflow state theo hệ thống |
-| `parallelStream().forEach(repository::save)` với repository không thread-safe | Race, vượt connection limit | Điều phối concurrency rõ ràng |
-| `catch (Exception ex) { return null; }` trong mapper | Nuốt lỗi dữ liệu, I/O và lỗi lập trình | Domain result hoặc exception phân loại |
-| `catch (IOException ex) { return Stream.empty(); }` | File không đọc được trở thành dữ liệu rỗng | Báo nguồn thất bại, không giả thành công |
-| Retry HTTP charge bằng `UUID.randomUUID()` mới | Một giao dịch logic có nhiều key | Stable idempotency key, tra cứu trạng thái |
-| Gọi lại charge sau lỗi ghi receipt | Có thể nhân đôi giao dịch | Ghi lại receipt idempotent, không charge lại |
-| Timeout được gán `DECLINED` | Có thể gateway đã charge thành công | Dùng trạng thái **chưa xác định**, đối soát |
-| `distinct` rồi tin chỉ ghi mỗi đơn một lần vĩnh viễn | Không nhớ các lần chạy trước | Durable deduplication / unique constraints |
-| Lưu raw exception message vào response | Có nguy cơ lộ token/PII | Mã lỗi an toàn + logging redacted |
-| Một map mutable chung bị các lambda cập nhật | Non-interference và thread-safety bị vi phạm | Collector có ownership hoặc vòng lặp rõ |
-| Chỉ test kết quả `toList()` | Không phát hiện số lần gateway bị gọi hoặc trạng thái sai | Fake ports + integration tests |
-| Chạy side effects trước rồi mới validate hết batch | Đầu vào cuối lỗi khi đã charge một phần | Prepare/validate toàn bộ nếu dung lượng cho phép |
-| Materialize hàng tỷ record vào `List` | Có thể hết bộ nhớ | Staging/chunk/checkpoint có hợp đồng partial progress |
-| Cho rằng `Stream.close()` rollback mọi thao tác | Chỉ quản lý tài nguyên được gắn với stream | Thiết kế transaction/compensation riêng |
+| Calling `gateway.charge` directly in `map` | Hard to control retries, timeouts, request counts, and partial success | Build `ChargeCommand` with `map`, call gateway in coordinator |
+| Writing to DB inside `peek` | Intermediate operations may be skipped | Write via service/repository in explicit step |
+| Treating `forEachOrdered` as a transaction | Ordered, yet not atomic or rolled back | System-level transactions/workflow states |
+| `parallelStream().forEach(repository::save)` on unsafe repository | Races, exceeds connection limits | Explicit concurrency coordination |
+| `catch (Exception ex) { return null; }` inside mapper | Swallows data, I/O, and programming errors | Domain outcomes or classified exceptions |
+| `catch (IOException ex) { return Stream.empty(); }` | Unreadable file becomes empty data | Report source failure, never fake success |
+| Retrying HTTP charge with fresh `UUID.randomUUID()` | One logical transaction gets multiple keys | Stable idempotency key, status lookup |
+| Re-charging after receipt write error | Can duplicate transactions | Idempotent receipt write retry, never re-charge |
+| Assigning `DECLINED` to timeouts | Gateway may have charged successfully | Use **unconfirmed** status, reconcile |
+| Using `distinct` thinking each order saves once forever | Has no memory across runs | Durable deduplication / unique constraints |
+| Returning raw exception messages in responses | Risk of leaking tokens/PII | Safe error codes + redacted logging |
+| Updating a shared mutable map from lambdas | Violates non-interference and thread safety | Owned collector or explicit loop |
+| Testing only `toList()` output | Misses gateway call counts or wrong states | Fake ports + integration tests |
+| Running side effects before validating the batch | Tail input fails after partial charges | Prepare/validate all when size allows |
+| Materializing billions of records into `List` | Out-of-memory risk | Chunking/staging/checkpoints with partial-progress contract |
+| Assuming `Stream.close()` rolls back operations | Only manages stream-bound resources | Separate transaction/compensation design |
 
-### 19.1. Vì sao `peek` vẫn có ích?
+### 19.1. Why Is `peek` Still Useful?
 
-`peek` có thể dùng để quan sát giá trị ở một giai đoạn xử lý khi gỡ lỗi:
+`peek` can inspect values at a processing stage when debugging:
 
 ```java
 List<String> normalized = names.stream()
@@ -1387,23 +1387,23 @@ List<String> normalized = names.stream()
     .toList();
 ```
 
-Nhưng đoạn này chỉ nên được hiểu là **log chẩn đoán tùy trường hợp**. Không xác lập một hợp đồng audit rằng mỗi input phải có đúng một bản ghi và tuyệt đối không phụ thuộc vào tối ưu hóa pipeline.
+Treat this only as **ad-hoc diagnostic logging**. Never establish an audit contract assuming every input produces one record and never depend on pipeline optimization choices.
 
-### 19.2. Kiểm thử mock “đã gọi hai lần” chưa đủ cho hệ thống phân tán
+### 19.2. Mock Verification “Called Twice” Is Insufficient for Distributed Systems
 
-Một mock có thể đếm đúng hai lần gọi `gateway.charge` khi chạy bình thường; điều đó không chứng minh:
+A mock may count two `gateway.charge` calls in a happy run; that does not prove:
 
-- Giao dịch được gửi đúng một lần khi process crash.
-- Timeout xảy ra sau hay trước khi server ghi nhận.
-- Gateway thực sự hỗ trợ idempotency key.
-- Receipt được lưu bền vững ngay khi method `save` trả về.
-- Hai worker không giành cùng một job ở môi trường production.
+- The transaction runs once when the process crashes.
+- Whether a timeout happened before or after server persistence.
+- Whether the gateway actually enforces idempotency keys.
+- Whether receipts persist durably upon `save` returning.
+- That two workers never claim the same job in production.
 
-Những bảo đảm này phải được thiết kế và kiểm thử ở **ranh giới hệ thống**, không nằm trong đặc tính của Java Stream API.
+These guarantees must be designed and tested at **system boundaries**, not assumed from Java Stream API properties.
 
-## 20. Quy trình refactor một pipeline có I/O thành hai pha
+## 20. Workflow for Refactoring an I/O Pipeline into Two Phases
 
-Giả sử bạn nhận đoạn code cũ:
+Suppose you inherit legacy code:
 
 ```java
 var result = orders.stream()
@@ -1413,36 +1413,36 @@ var result = orders.stream()
     .toList();
 ```
 
-Nó trộn cả biến đổi, gọi dịch vụ và lưu dữ liệu. Một lộ trình refactor theo thứ tự:
+It mixes transformations, service calls, and persistence. A step-by-step refactoring path:
 
-### Bước 1 — Liệt kê mọi side effect thực tế
+### Step 1 — List Every Actual Side Effect
 
-Đừng chỉ nhìn tên `map`; mở định nghĩa hàm hoặc tài liệu port:
+Do not judge only by the name `map`; check function implementations or port docs:
 
-| Hàm | Đọc state bên ngoài? | Ghi state bên ngoài? | Lỗi có thể xảy ra? |
+| Function | Reads external state? | Writes external state? | Possible errors? |
 | --- | --- | --- | --- |
-| `Order::ready` | Không nếu Order bất biến | Không | Chủ yếu lỗi dữ liệu |
-| `orderToCommand` | Không | Không | Validation/overflow |
-| `gateway.charge` | Có, trạng thái dịch vụ | Có, thanh toán | Timeout, decline, lỗi server |
-| `repository.save` | Có, database | Có, ghi receipt | Conflict, timeout, lỗi DB |
+| `Order::ready` | No if Order is immutable | No | Mostly data errors |
+| `orderToCommand` | No | No | Validation/overflow |
+| `gateway.charge` | Yes, service state | Yes, payment | Timeout, decline, server error |
+| `repository.save` | Yes, database | Yes, receipt record | Conflict, timeout, DB error |
 
-Mục đích là xác định ranh giới **cần chính sách vận hành**, không chỉ thay cú pháp.
+The goal is identifying boundaries **needing operational policy**, not merely changing syntax.
 
-### Bước 2 — Dời các phép biến đổi thuần vào `prepare`
+### Step 2 — Move Pure Transformations into `prepare`
 
 ```java
 Plan plan = prepare(orders);
 ```
 
-Kiểm tra trước khi thực thi:
+Check before execution:
 
-- `orderId` hợp lệ và duy nhất.
-- `amountCents` thuộc miền dữ liệu được hỗ trợ.
-- Chỉ những đơn `ready` được đưa vào command list.
-- Tổng được tính bằng `Math.addExact` nếu không muốn tràn số âm thầm.
-- Mỗi command có key ổn định.
+- `orderId` is valid and unique.
+- `amountCents` fits supported bounds.
+- Only `ready` orders enter the command list.
+- Totals use `Math.addExact` to avoid silent overflow.
+- Every command carries a stable key.
 
-### Bước 3 — Định nghĩa port thay vì gọi SDK trực tiếp trong mapper
+### Step 3 — Define Ports Instead of Calling SDKs Directly Inside Mappers
 
 ```java
 interface ChargeGateway {
@@ -1456,17 +1456,17 @@ interface ReceiptStore {
 }
 ```
 
-Nhờ các interface này, code điều phối có thể được kiểm thử bằng fake, còn adapter thực tế chịu trách nhiệm chuyển HTTP/SQL failures thành lỗi hoặc kết quả nghiệp vụ có cấu trúc.
+With these interfaces, orchestration code can be tested using fakes, while real adapters translate HTTP/SQL failures into structured business errors or outcomes.
 
-### Bước 4 — Quyết định policy tại ranh giới
+### Step 4 — Decide Boundary Policy
 
-Ví dụ:
+For example:
 
-- Thấy lỗi gateway chưa xác định: ghi `CHARGE_UNCONFIRMED` và chuyển đối soát.
-- Thấy lỗi database khi đã có receipt: ghi `RECEIPT_WRITE_FAILED` để thử ghi lại.
-- Nếu cần dừng cả batch: **dừng** ở lỗi được phân loại và trả/bảo toàn trạng thái các lệnh đã xử lý, không coi batch tự động rollback.
+- On uncertain gateway error: record `CHARGE_UNCONFIRMED` and route to reconciliation.
+- On database error when receipt exists: record `RECEIPT_WRITE_FAILED` for persistence retry.
+- If halting the whole batch is needed: **halt** on classified failure and return/persist statuses of processed commands, never assuming the batch rolled back automatically.
 
-### Bước 5 — Xuất bản `ProcessReport` và kiểm chứng tổng
+### Step 5 — Emit `ProcessReport` and Reconcile Totals
 
 ```java
 ProcessReport report = execute(plan, gateway, receiptStore);
@@ -1481,33 +1481,33 @@ long uncertain = report.results().stream()
     .count();
 ```
 
-Các tên kiểu ở đoạn này là kiểu lồng trong `SafeOrderProcessing` (mục 7); nếu dùng mã ngoài class cần import tĩnh hoặc viết đầy đủ `SafeOrderProcessing.ProcessReport`, `SafeOrderProcessing.ExecutionStatus`.
+Type names here are nested inside `SafeOrderProcessing` (section 7); outside that class, use static imports or write `SafeOrderProcessing.ProcessReport` and `SafeOrderProcessing.ExecutionStatus`.
 
-Với chính sách continue-on-known-error và không có lỗi ngoài dự kiến, số kết quả bằng số command. Trong production, vẫn cần kiểm tra trạng thái bền vững để phát hiện các job dang dở sau crash.
+Under continue-on-known-error with no unexpected failures, outcome count equals command count. In production, also inspect durable state to catch jobs interrupted by crashes.
 
-### Bước 6 — Thêm integration tests trước khi tăng concurrency
+### Step 6 — Add Integration Tests Before Increasing Concurrency
 
-Ưu tiên kiểm thử:
+Prioritize testing:
 
-1. Timeout trước khi gateway xử lý.
-2. Timeout **sau khi** gateway xử lý.
-3. Ghi receipt thất bại sau xác nhận charge.
-4. Worker restart giữa hai bước.
-5. Retry cùng key, payload giống và payload khác.
-6. Hai worker cùng nhận một job.
-7. Kết quả truy vấn trạng thái phù hợp với báo cáo batch.
+1. Timeout before gateway processes.
+2. Timeout **after** gateway processes.
+3. Receipt persistence failure after charge confirmation.
+4. Worker restart between the two steps.
+5. Retries with the same key, identical payload vs. altered payload.
+6. Two workers attempting to claim the same job.
+7. Status lookup results matching batch reports.
 
-Chỉ khi semantics đã rõ mới thử tăng concurrency, benchmark hoặc thêm queue.
+Only once semantics are solid should you raise concurrency, benchmark, or introduce queues.
 
-## 21. Bài tập thực hành
+## 21. Practice Exercises
 
-### Bài 1 — Phân loại hàm thuần và hàm side effect
+### Exercise 1 — Classifying Pure Functions and Side-Effecting Functions
 
-Cho các hàm `normalizeName`, `calculateTax`, `LocalDate.now`, `db.insert`, `http.get`, `new Dto` và `sharedCounter.incrementAndGet`. Phân loại hàm nào có thể đặt vào `map` như phép biến đổi thuần, hàm nào cần tách ra. Giải thích khi một phương thức nhận dữ liệu immutable nhưng **gọi clock** thì vẫn không thuần.
+Given `normalizeName`, `calculateTax`, `LocalDate.now`, `db.insert`, `http.get`, `new Dto`, and `sharedCounter.incrementAndGet`. Classify which can sit inside `map` as pure transformations and which must be separated. Explain why a method taking immutable inputs yet **reading the clock** is still impure.
 
-### Bài 2 — Refactor một pipeline ghi database
+### Exercise 2 — Refactoring a Database-Writing Pipeline
 
-Biến pipeline:
+Transform:
 
 ```java
 orders.stream()
@@ -1516,131 +1516,131 @@ orders.stream()
     .toList();
 ```
 
-thành:
+into:
 
-1. `Plan` chứa những `SaveCommand` thuần.
-2. Vòng lặp gọi `repository.save`.
-3. `ProcessReport` ghi nhận mỗi command thành công hay lỗi.
+1. A `Plan` holding pure `SaveCommand`s.
+2. A loop calling `repository.save`.
+3. A `ProcessReport` recording success or error per command.
 
-Quy định liệu batch **fail-fast** hay **continue**. Không được trả một danh sách “đã lưu” mà thiếu báo cáo các command thất bại.
+Define whether the batch **fails fast** or **continues**. Never return a “saved” list omitting failed commands.
 
-### Bài 3 — Timeout không chứng minh thất bại nghiệp vụ
+### Exercise 3 — Timeouts Do Not Prove Business Failure
 
-Mô tả chuỗi sự kiện:
+Describe the event sequence:
 
 ```text
-charge(K) được gửi → gateway charge thành công → response bị mất
+charge(K) sent → gateway charges successfully → response lost
 ```
 
-Tại sao `catch (TimeoutException) { retry(newKey); }` nguy hiểm? Đề xuất quy tắc idempotency và API tra cứu giao dịch trước khi retry.
+Why is `catch (TimeoutException) { retry(newKey); }` dangerous? Propose idempotency rules and a transaction lookup API before retrying.
 
-### Bài 4 — Hai lỗi ở hai điểm khác nhau
+### Exercise 4 — Two Errors at Two Different Points
 
-Trong chương trình `SafeOrderProcessing`, mô phỏng:
+In `SafeOrderProcessing`, simulate:
 
-- Gateway ném `GatewayException` cho O1.
-- Store ném `StoreException` cho O3.
+- Gateway throwing `GatewayException` for O1.
+- Store throwing `StoreException` for O3.
 
-Kết quả mỗi đơn là gì? Có đơn nào chắc chắn chưa bị charge? Viết JUnit test đối chiếu từng `ExecutionStatus` và số lời gọi store.
+What is each order's status? Is any order guaranteed not to have been charged? Write a JUnit test checking each `ExecutionStatus` and store call count.
 
-### Bài 5 — Đơn trùng ID và tổng tiền tràn
+### Exercise 5 — Duplicate IDs and Amount Overflow
 
-Thêm hai đơn cùng `id` nhưng khác `customerId`. Kiểm chứng `prepare` từ chối trước mọi lời gọi service. Tạo thêm hai đơn có tổng amount vượt `Long.MAX_VALUE`, kiểm chứng `Math.addExact` làm pha chuẩn bị thất bại và không trả `Plan`.
+Add two orders sharing `id` with different `customerId`s. Verify `prepare` rejects them before any service calls. Also create two orders whose sum exceeds `Long.MAX_VALUE`, verifying `Math.addExact` fails the preparation phase without returning a `Plan`.
 
-### Bài 6 — Enrichment trước biến đổi thuần
+### Exercise 6 — Enrichment Before Pure Transformations
 
-Từ danh sách đơn có nhiều `customerId` trùng nhau:
+Given an order list with many repeated `customerId`s:
 
-1. Dùng Stream tạo danh sách customer ID phân biệt.
-2. Gọi dịch vụ tra cứu profile ở một bước tường minh.
-3. Trả `LookupOk` / `LookupFailed` theo từng ID.
-4. Ghép các kết quả thành báo cáo bằng các phép biến đổi thuần.
+1. Use Stream to produce distinct customer IDs.
+2. Call the profile lookup service in an explicit step.
+3. Return `LookupOk` / `LookupFailed` per ID.
+4. Join results into a report using pure transformations.
 
-Nếu một profile thiếu hoặc service timeout, lựa chọn chính sách fail-fast hay best effort và giải thích ảnh hưởng tới số liệu.
+If a profile is missing or the service times out, choose fail-fast or best-effort policy and explain how metrics are affected.
 
-### Bài 7 — Nguồn file rất lớn
+### Exercise 7 — Very Large File Sources
 
-Thiết kế pipeline nhập file CSV hàng trăm GB. Vì sao `readAllLines` hoặc `Files.lines(...).toList()` trước mọi giao dịch có thể không phù hợp? Đề xuất chunk size, validation, durable intent, checkpoint và dedup key. Nêu rõ sự khác biệt giữa “một chunk hoàn tất” và “toàn bộ file hoàn tất”.
+Design an import pipeline for a hundreds-of-GB CSV file. Why are `readAllLines` or `Files.lines(...).toList()` before all transactions unsuitable? Propose chunk sizes, validation, durable intent, checkpoints, and dedup keys. Explain the difference between “one chunk finished” and “whole file finished.”
 
-### Bài 8 — Outbox và ghi nhận sự kiện
+### Exercise 8 — Outbox and Event Publishing
 
-Một ứng dụng cần cập nhật `Order.status` trong database và publish sự kiện `OrderApproved`. Vẽ transaction outbox, worker publish và consumer idempotent. Chỉ ra khoảng trống có thể dẫn đến event được publish **hơn một lần**, và vì sao `Stream.distinct()` không giải quyết được.
+An app must update `Order.status` in the database and publish an `OrderApproved` event. Sketch the transactional outbox, publishing worker, and idempotent consumer. Point out the gap that can publish an event **more than once**, and why `Stream.distinct()` cannot solve it.
 
-### Bài 9 — Giới hạn concurrency
+### Exercise 9 — Concurrency Limits
 
-Giả sử gateway cho phép tối đa 5 request đồng thời và 100 request/phút. Lập kế hoạch cho một coordinator xử lý 1.000 lệnh:
+Suppose a gateway allows at most 5 concurrent requests and 100 requests/minute. Plan a coordinator for 1,000 commands covering:
 
-- Giới hạn tác vụ cùng lúc.
-- Cách áp dụng rate limit.
-- Deadline cho mỗi request.
+- Concurrent task limit.
+- Rate-limiting mechanism.
+- Per-request deadline.
 - Stable idempotency key.
-- Lưu kết quả từng request.
-- Đối soát những request chưa rõ trạng thái.
+- Per-request outcome persistence.
+- Reconciling unknown-status requests.
 
-Giải thích vì sao chỉ gọi `orders.parallelStream()` không đáp ứng đủ những yêu cầu này.
+Explain why simply calling `orders.parallelStream()` fails to satisfy these requirements.
 
-### Bài 10 — Bất biến và điều kiện đầu vào
+### Exercise 10 — Immutability and Input Preconditions
 
-Chứng minh `List.copyOf` giúp `Plan` không phản ánh việc caller thêm/xóa phần tử trong list gốc **sau khi tạo snapshot**. Sau đó thay `Order` bằng một class mutable có getter `amountCents` có thể bị thay đổi từ thread khác; giải thích vì sao `List.copyOf` **không deep-copy** phần tử và tại sao cần value object hoặc defensive copy.
+Prove `List.copyOf` keeps `Plan` insulated when callers add/remove elements in the original list **after snapshot creation**. Then replace `Order` with a mutable class whose `amountCents` getter can change from another thread; explain why `List.copyOf` **does not deep-copy** elements and why value objects or defensive copies are needed.
 
-### Bài 11 — Hợp đồng chính xác của `peek`
+### Exercise 11 — Exact Contract of `peek`
 
-Viết đoạn stream sử dụng `peek` để ghi log debug. Đặt các terminal operation khác nhau như `toList`, `count`, `findFirst` trên các stream mới. Giải thích vì sao số log không phải một phép đo đáng tin cho “số phần tử đã xử lý” hoặc số hành động audit đã được ghi nhận.
+Write a stream snippet using `peek` for debug logging. Apply different terminals (`toList`, `count`, `findFirst`) on fresh streams. Explain why log counts are an unreliable measure of “elements processed” or audit actions recorded.
 
-### Bài 12 — Định nghĩa “hoàn thành”
+### Exercise 12 — Defining “Completed”
 
-Một batch có 95 receipt đã lưu, 3 charge chưa rõ trạng thái và 2 receipt lưu thất bại. Thiết kế DTO trả về cho API và dashboard. Quy định:
+A batch has 95 saved receipts, 3 unconfirmed charges, and 2 failed receipt saves. Design the return DTO for API and dashboard. Specify:
 
-- Có trả HTTP 200, 207 hay trạng thái workflow bất đồng bộ không? Phụ thuộc contract API.
-- Các ID nào phải đối soát?
-- Điều kiện nào để báo “batch hoàn tất và không còn công việc pending”?
-- Khi truy vấn lại, làm sao không tạo thêm giao dịch charge ngoài ý muốn?
+- Should it return HTTP 200, 207, or an async workflow status? Depends on API contract.
+- Which IDs must be reconciled?
+- Under what condition can you report “batch complete with zero pending work”?
+- On retry queries, how do you prevent triggering unintended extra charges?
 
-## 22. Checklist thiết kế trước khi đưa vào production
+## 22. Pre-Production Design Checklist
 
-- [ ] Đã xác định rõ bước nào **thuần** và bước nào có side effect bên ngoài.
-- [ ] Validation/duplicate kiểm tra **trước** side effect khi có thể.
-- [ ] Command có định danh và idempotency key ổn định.
-- [ ] Có hợp đồng cho charge được xác nhận, decline và outcome chưa rõ.
-- [ ] Ngoại lệ được phân loại; không nuốt lỗi thành `null` hoặc kết quả rỗng.
-- [ ] Không dựa vào `peek` hoặc số lần mapper chạy để đảm bảo audit.
-- [ ] Không phụ thuộc vào `parallelStream` để tự cung cấp rate limit/transaction.
-- [ ] Đã định nghĩa fail-fast hay continue-on-error cho từng batch.
-- [ ] Có dữ liệu/tiến độ bền vững để phục hồi sau process crash.
-- [ ] Có cách tra cứu/đối soát request timeout.
-- [ ] Ghi receipt và các bước DB dùng transaction/unique constraints phù hợp.
-- [ ] Có chiến lược compensation khi nghiệp vụ yêu cầu hoàn tác giữa các hệ thống.
-- [ ] Không gọi lại charge chỉ vì bước lưu receipt lỗi.
-- [ ] Nguồn I/O có owner và `try-with-resources`.
-- [ ] Có giới hạn batch/chunk, timeout và concurrency phù hợp.
-- [ ] Báo cáo kết quả đủ các trạng thái và số lệnh còn tồn đọng.
-- [ ] Đầu ra không để lộ token, thông tin thẻ hoặc raw exception nhạy cảm.
-- [ ] Có unit test với fake ports và integration test với hệ thống thật.
-- [ ] Đã ghi rõ Stream API **không** cung cấp exactly-once hoặc distributed transaction.
+- [ ] Clearly identified which steps are **pure** and which cause external side effects.
+- [ ] Validation/duplicate checks run **before** side effects whenever possible.
+- [ ] Commands carry identifiers and stable idempotency keys.
+- [ ] Explicit contracts exist for confirmed charge, decline, and unknown outcome.
+- [ ] Exceptions are classified; never swallowed into `null` or empty results.
+- [ ] Auditing does not rely on `peek` or mapper invocation counts.
+- [ ] Rate limiting and transactions do not rely on `parallelStream`.
+- [ ] Fail-fast vs. continue-on-error is explicitly defined per batch.
+- [ ] Durable state/progress enables recovery after process crashes.
+- [ ] Timed-out requests have lookup/reconciliation paths.
+- [ ] Receipt persistence and DB steps use appropriate transactions/unique constraints.
+- [ ] Compensation strategies exist where business rules require cross-system undo.
+- [ ] Charges are never retried merely because receipt persistence failed.
+- [ ] I/O sources have clear owners and `try-with-resources`.
+- [ ] Batch/chunk sizes, timeouts, and concurrency are appropriately bounded.
+- [ ] Outcome reports include all statuses and remaining pending counts.
+- [ ] Outputs never expose tokens, card data, or sensitive raw exceptions.
+- [ ] Unit tests with fake ports and integration tests with real systems exist.
+- [ ] Documented explicitly that the Stream API provides **neither** exactly-once delivery **nor** distributed transactions.
 
-## 23. Bảng quyết định và tổng kết
+## 23. Decision Table and Summary
 
-| Bài toán | Cách làm thường phù hợp |
+| Problem | Typical appropriate approach |
 | --- | --- |
-| Biến đổi dữ liệu từ record immutable sang DTO | `map` thuần trong Stream |
-| Lọc các phần tử theo quy tắc nghiệp vụ | `filter` với predicate thuần |
-| Tính tổng, thống kê từ tập dữ liệu ổn định | `reduce`, `collect` hoặc collector thống kê |
-| Phải validate cả batch trước khi gọi hệ thống ngoài | `prepare` thuần → `Plan` immutable → `execute` |
-| Gọi API cho từng lệnh và lưu trạng thái | Service coordinator với bounded concurrency và per-item result |
-| Timeout sau request có thể đã được xử lý | Trạng thái **UNCONFIRMED**, tra cứu/reconcile |
-| Retry một lệnh có side effect | Stable idempotency key + hợp đồng của bên nhận |
-| Ghi receipt sau charge thất bại | Thử ghi lại/đối soát, **không charge lại mặc định** |
-| Cập nhật DB và phát event | Transactional outbox + consumer idempotent |
-| Cần ghi vào cùng database atomically | DB transaction theo hợp đồng database |
-| Cần xử lý nhiều file rất lớn | Chunk/staging/checkpoint, công bố partial progress |
-| Nguồn file từ `Files.lines` | `try-with-resources` trước khi đi qua ranh giới tác dụng phụ |
-| Một upstream có thể bị short-circuit | Không đặt ghi audit/charge bắt buộc vào `peek`/mapper |
-| Muốn giữ thứ tự báo cáo | Mang sequence ID và sắp kết quả sau khi thu; không đồng nhất với commit order |
-| Cần kết quả rỗng hợp lệ | Biểu diễn riêng với lỗi dịch vụ hoặc file |
-| Muốn chứng minh đúng khi lỗi | Fake ports, status assertions, integration/failure tests |
+| Transform immutable records to DTOs | Pure `map` in Stream |
+| Filter elements by business rules | `filter` with pure predicate |
+| Sum and summarize over stable datasets | `reduce`, `collect`, or summary collector |
+| Validate entire batch before calling external systems | Pure `prepare` → immutable `Plan` → `execute` |
+| Call API per command and persist status | Service coordinator with bounded concurrency and per-item results |
+| Timeout after request may have processed | **UNCONFIRMED** status, lookup/reconcile |
+| Retry a side-effecting command | Stable idempotency key + receiver contract |
+| Persist receipt after charge failed to save | Retry save/reconcile, **never recharge by default** |
+| Update DB and publish events | Transactional outbox + idempotent consumer |
+| Write to same database atomically | DB transaction per database contract |
+| Process huge files | Chunking/staging/checkpoints, expose partial progress |
+| File source from `Files.lines` | `try-with-resources` before crossing side-effect boundary |
+| Upstream may short-circuit | Never place mandatory audit/charge inside `peek`/mapper |
+| Preserve report display order | Carry sequence ID and sort after collecting; do not equate with commit order |
+| Need valid empty results | Model separately from service or file errors |
+| Prove correctness on failures | Fake ports, status assertions, integration/failure tests |
 
-### Kết luận
+### Conclusion
 
-**Tách các bước gọi dịch vụ và ghi dữ liệu khỏi phép biến đổi thuần** là một nguyên tắc thiết kế giúp Java Stream API phát huy đúng vai trò: **mô tả dữ liệu cần xử lý**, không giả làm một bộ điều phối giao dịch. `filter`, `map`, `reduce` và `collect` rất mạnh khi dùng để tạo kế hoạch và tổng hợp kết quả; còn HTTP, database, queue và các tác dụng phụ cần ranh giới có chính sách lỗi, trạng thái, timeout, retry, idempotency và quan sát vận hành rõ ràng.
+**Separating service calls and persistence from pure transformations** is a design principle that lets the Java Stream API excel at its true role: **describing data processing**, rather than masquerading as a transaction coordinator. `filter`, `map`, `reduce`, and `collect` are powerful for building plans and aggregating results; HTTP, databases, queues, and side effects need boundaries with explicit error policies, states, timeouts, retries, idempotency, and operational observability.
 
-Một pipeline ngắn chưa chắc an toàn hơn một vòng lặp có tên và hợp đồng đúng. Hãy ưu tiên **kết quả xác định ở pha thuần**, **hành động được điều phối ở pha side effect**, và **trạng thái có thể phục hồi khi lỗi**. Khi đó, cả kiểm thử, triển khai song song lẫn vận hành sau sự cố đều dễ lý giải hơn, trong khi vẫn tận dụng tốt các phép biến đổi khai báo của **JAVA_STREAM_API**.
+A short pipeline is not automatically safer than a well-named loop with proper contracts. Favor **deterministic outcomes in the pure phase**, **coordinated actions at the side-effect phase**, and **recoverable state on failures**. That makes testing, parallelization, and incident recovery far easier to reason about while still leveraging the declarative transformations of **JAVA_STREAM_API**.

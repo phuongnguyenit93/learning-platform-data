@@ -1,31 +1,31 @@
-# Khôi phục locale mặc định khi kiểm thử thay đổi cấu hình chung trong Java
+# Restoring the Default Locale When Tests Modify Global Configuration in Java
 
-## 1. Bối cảnh: vì sao một bài kiểm thử có thể làm hỏng bài khác?
+## 1. Context: Why Can One Test Break Another?
 
-`Locale.getDefault()` trả về locale mặc định của JVM khi code không được truyền một `Locale` cụ thể. Một số API và thư viện dựa vào mặc định đó để lựa chọn ngôn ngữ, quy tắc hiển thị hoặc định dạng. Trong kiểm thử, lập trình viên đôi khi gọi `Locale.setDefault(...)` để mô phỏng môi trường người dùng:
+`Locale.getDefault()` returns the JVM's default locale when code is not passed a specific `Locale`. Some APIs and libraries rely on that default to choose language, display rules, or formatting. In tests, developers sometimes call `Locale.setDefault(...)` to simulate a user's environment:
 
 ```java
 Locale.setDefault(Locale.FRANCE);
-// Gọi code dùng Locale.getDefault()...
+// Call code that uses Locale.getDefault()...
 ```
 
-Đoạn minh họa trên thay đổi **trạng thái chung của cả JVM**, không chỉ của phương thức test hiện tại. Nếu kiểm thử kết thúc mà chưa đặt lại giá trị ban đầu, những test chạy sau có thể đọc locale khác so với lúc bắt đầu, tạo lỗi phụ thuộc thứ tự chạy, kết quả định dạng khác nhau, hoặc hành vi khó tái hiện trên CI.
+The snippet above changes **shared state for the entire JVM**, not just for the current test method. If a test finishes without resetting the original value, subsequent tests may read a different locale than what was present at startup, creating order-dependent failures, differing formatting outputs, or behavior that is hard to reproduce on CI.
 
-Một lỗi khác: người viết test nhớ khôi phục `Locale.getDefault()` nhưng quên các mặc định chuyên biệt `Locale.Category.DISPLAY` và `Locale.Category.FORMAT`. Cách khôi phục đúng phải dựa trên **những giá trị thực tế đã có trước test**.
+Another mistake: a test author remembers to restore `Locale.getDefault()` but forgets the specialized defaults `Locale.Category.DISPLAY` and `Locale.Category.FORMAT`. Proper restoration must be based on **the actual values that existed before the test**.
 
-**Mục tiêu bài học:** chụp (snapshot) các mặc định locale liên quan, thử thay đổi chúng, dùng `try/finally` để khôi phục ngay cả khi test thất bại, kiểm tra trạng thái sau phục hồi và hiểu vì sao kiểm thử song song vẫn cần quản lý riêng.
+**Lesson objectives:** snapshot the relevant locale defaults, test changing them, use `try/finally` to restore them even when a test fails, verify the state after restoration, and understand why parallel tests still require separate management.
 
-## 2. Hiểu ba trạng thái locale mặc định
+## 2. Understanding the Three Default Locale States
 
-Java hỗ trợ locale mặc định chung và hai category mặc định:
+Java supports a general default locale and two category defaults:
 
-| Giá trị cần đọc | API | Vai trò |
+| Value to read | API | Role |
 | --- | --- | --- |
-| Mặc định chung | `Locale.getDefault()` | Locale mặc định của JVM, thường dùng khi một API không chỉ định category. |
-| Mặc định hiển thị | `Locale.getDefault(Locale.Category.DISPLAY)` | Ưu tiên cho tên hoặc văn bản phục vụ hiển thị, ví dụ tên ngôn ngữ/địa danh qua các API có category. |
-| Mặc định định dạng | `Locale.getDefault(Locale.Category.FORMAT)` | Ưu tiên cho định dạng số, tiền tệ, ngày giờ ở các API dùng category `FORMAT`. |
+| General default | `Locale.getDefault()` | The JVM's default locale, commonly used when an API does not specify a category. |
+| Display default | `Locale.getDefault(Locale.Category.DISPLAY)` | Preferred for names or text meant for display, such as language/place names via category-aware APIs. |
+| Format default | `Locale.getDefault(Locale.Category.FORMAT)` | Preferred for formatting numbers, currencies, and dates/times in APIs using the `FORMAT` category. |
 
-Các setter tương ứng:
+Corresponding setters:
 
 ```java
 Locale.setDefault(Locale.US);
@@ -33,20 +33,20 @@ Locale.setDefault(Locale.Category.DISPLAY, Locale.FRANCE);
 Locale.setDefault(Locale.Category.FORMAT, Locale.GERMANY);
 ```
 
-Đây là các câu lệnh minh họa, chưa phải chương trình độc lập.
+These are illustrative statements, not a standalone program.
 
-Cần nắm hai quy tắc:
+Two rules to grasp:
 
-1. `Locale.setDefault(Locale)` thay đổi locale mặc định chung **và đặt lại mặc định của cả hai category `DISPLAY`, `FORMAT`** về locale mới.
-2. `Locale.setDefault(Locale.Category, Locale)` chỉ thay đổi mặc định của category được chỉ định; nó không tự đồng bộ mọi category và base locale.
+1. `Locale.setDefault(Locale)` changes the general default locale **and resets both `DISPLAY` and `FORMAT` category defaults** to the new locale.
+2. `Locale.setDefault(Locale.Category, Locale)` changes only the specified category's default; it does not automatically synchronize all categories and the base locale.
 
-Do đó, ba giá trị có thể khác nhau hoàn toàn. Chẳng hạn, sau ba lệnh trên, base là `en-US`, DISPLAY là `fr-FR`, FORMAT là `de-DE`.
+As a result, the three values can be completely different. For instance, after the three statements above, base is `en-US`, DISPLAY is `fr-FR`, and FORMAT is `de-DE`.
 
-Dù có thể thiết lập từng category riêng, các giá trị vẫn là **trạng thái dùng chung trong JVM**, không trở thành cấu hình dành riêng cho thread hay test case.
+Even though each category can be configured separately, these values remain **shared state within the JVM**, not per-thread or per-test-case configurations.
 
-## 3. Quy tắc khôi phục an toàn: snapshot → try/finally → restore
+## 3. Safe Restoration Rule: Snapshot → try/finally → Restore
 
-Mẫu tối thiểu:
+Minimal pattern:
 
 ```java
 Locale originalBase = Locale.getDefault();
@@ -58,7 +58,7 @@ try {
     Locale.setDefault(Locale.Category.DISPLAY, Locale.FRANCE);
     Locale.setDefault(Locale.Category.FORMAT, Locale.GERMANY);
 
-    // Thực hiện các assertion của bài kiểm thử.
+    // Perform the test assertions.
 } finally {
     Locale.setDefault(originalBase);
     Locale.setDefault(Locale.Category.DISPLAY, originalDisplay);
@@ -66,15 +66,15 @@ try {
 }
 ```
 
-Đoạn này đặt bên trong phương thức Java. Thứ tự phục hồi **rất quan trọng**: phục hồi base trước, vì `setDefault(Locale)` sẽ đặt lại hai category; sau đó khôi phục `DISPLAY` và `FORMAT` từ snapshot để bảo toàn mọi giá trị khác nhau ban đầu.
+This snippet belongs inside a Java method. The restoration order **is critical**: restore base first, because `setDefault(Locale)` resets both categories; then restore `DISPLAY` and `FORMAT` from the snapshot to preserve any initially distinct values.
 
-`finally` chạy khi khối `try` kết thúc bình thường hoặc khi có exception/assertion failure (trừ các trường hợp tiến trình JVM bị dừng đột ngột, chẳng hạn `System.exit`, crash hoặc máy bị tắt). Nếu một assertion thất bại, ngoại lệ vẫn được ném tiếp sau khi `finally` chạy; không nên nuốt lỗi kiểm thử chỉ để ghi log.
+`finally` runs when the `try` block completes normally or when an exception/assertion failure occurs (except when the JVM process terminates abruptly, such as `System.exit`, a crash, or power loss). If an assertion fails, the exception is still propagated after `finally` runs; do not swallow test failures merely to log them.
 
-**Không hard-code việc khôi phục về `Locale.US`, `Locale.ENGLISH` hoặc `Locale.getDefault()` được gọi ở cuối.** “Mặc định ban đầu” khác nhau giữa máy cá nhân, CI, container và cấu hình chạy test. Giá trị mặc định phải được chụp **trước bất kỳ lệnh đổi locale nào**.
+**Do not hard-code restoring to `Locale.US`, `Locale.ENGLISH`, or calling `Locale.getDefault()` at the end.** The “initial default” differs across personal machines, CI, containers, and test configurations. Default values must be captured **before any locale-changing call**.
 
-### Vì sao không chỉ lưu base?
+### Why not save only the base default?
 
-Giả sử trước test có:
+Suppose before the test we have:
 
 ```text
 base    = en-US
@@ -82,7 +82,7 @@ DISPLAY = fr-FR
 FORMAT  = de-DE
 ```
 
-Nếu test gọi `Locale.setDefault(Locale.JAPAN)`, cả ba giá trị có thể trở thành `ja-JP`. Sau đó chỉ gọi `Locale.setDefault(originalBase)` sẽ cho:
+If the test calls `Locale.setDefault(Locale.JAPAN)`, all three values can become `ja-JP`. Calling only `Locale.setDefault(originalBase)` afterward produces:
 
 ```text
 base    = en-US
@@ -90,11 +90,11 @@ DISPLAY = en-US
 FORMAT  = en-US
 ```
 
-Đây **chưa phải trạng thái ban đầu**, vì hai category đã mất override `fr-FR` và `de-DE`. Snapshot đầy đủ ba giá trị mới có thể khôi phục chính xác.
+This is **not the original state**, because both categories lost their `fr-FR` and `de-DE` overrides. Only snapshotting all three values restores the state accurately.
 
-## 4. Chương trình Java 17+ chạy độc lập
+## 4. Standalone Java 17+ Program
 
-Tạo tệp **`LocaleDefaultRestoreDemo.java`**. Ví dụ dùng một `record` để gom ba giá trị snapshot. Chương trình hiển thị các giá trị được thay đổi trong test, phục hồi ở `finally` và kiểm tra rằng toàn bộ ba trạng thái khớp snapshot. Kết quả không phụ thuộc locale ban đầu của máy.
+Create the file **`LocaleDefaultRestoreDemo.java`**. The example uses a `record` to group the three snapshot values. The program prints the altered values during the test, restores them in `finally`, and verifies that all three states match the snapshot. The output does not depend on the machine's initial locale.
 
 ```java
 import java.util.Locale;
@@ -115,7 +115,7 @@ public class LocaleDefaultRestoreDemo {
         }
 
         void restore() {
-            // Đặt base trước vì thao tác này cũng reset hai category.
+            // Set base first because this operation also resets both categories.
             Locale.setDefault(base);
             Locale.setDefault(Locale.Category.DISPLAY, display);
             Locale.setDefault(Locale.Category.FORMAT, format);
@@ -162,14 +162,14 @@ public class LocaleDefaultRestoreDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp bằng JDK 17 trở lên:
+Compile and run in the file's directory using JDK 17 or higher:
 
 ```bash
 javac -encoding UTF-8 LocaleDefaultRestoreDemo.java
 java LocaleDefaultRestoreDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 base=en-US
@@ -178,17 +178,17 @@ format=de-DE
 restored=true
 ```
 
-*Vì sao `restored=true`?* `SavedDefaults.capture()` ghi lại ba `Locale` trước khi code đổi trạng thái. `try` thiết lập môi trường giả lập; `finally` phục hồi base, DISPLAY và FORMAT theo thứ tự an toàn. `matchesCurrent()` so sánh các object `Locale` với ảnh chụp trước test, không đoán trước locale của máy.
+*Why `restored=true`?* `SavedDefaults.capture()` records the three `Locale` values before the code changes state. `try` sets up the simulated environment; `finally` restores base, DISPLAY, and FORMAT in the safe order. `matchesCurrent()` compares the `Locale` objects against the pre-test snapshot, without guessing the machine's locale.
 
-Nếu một assertion trong `try` ném `AssertionError`, khối `finally` vẫn được chạy, sau đó lỗi được chuyển ra ngoài như kỳ vọng. Dòng `restored=true` nằm sau `finally` nên trong trường hợp assertion thất bại sẽ không được in; điều đó không đồng nghĩa khôi phục không chạy.
+If an assertion in `try` throws `AssertionError`, the `finally` block still runs, and then the error propagates as expected. The `restored=true` line comes after `finally`, so when an assertion fails it will not be printed; that does not mean restoration failed to run.
 
-### Vì sao record phù hợp ở đây?
+### Why is a record a good fit here?
 
-`record` (Java 17) giữ ba trường `Locale` làm dữ liệu snapshot có tên rõ ràng. Bạn cũng có thể dùng một class thông thường, nhưng phải lưu đủ ba thành phần. Các getter `getDefault(...)` trả các đối tượng `Locale`; việc chụp các tham chiếu này là đủ vì bản thân `Locale` bất biến theo API, còn trạng thái có thể thay đổi chính là các biến static mặc định của JVM.
+A `record` (Java 17) holds the three `Locale` fields as clearly named snapshot data. You can also use a regular class, as long as all three components are saved. The `getDefault(...)` getters return `Locale` objects; capturing these references is sufficient because `Locale` itself is immutable per the API, while the mutable state resides in the JVM's static default variables.
 
-## 5. Áp dụng với JUnit 5
+## 5. Applying This with JUnit 5
 
-Nếu một test cần thay đổi mặc định chung, hãy bao toàn bộ thao tác bằng `try/finally` ngay trong test. Đoạn minh họa sau dùng JUnit Jupiter 5; muốn chạy cần dự án có dependency JUnit 5 và test runner tương ứng. Đây **không phải một chương trình Java độc lập chỉ cần `javac`**.
+If a test must alter global defaults, wrap the entire operation in `try/finally` right inside the test. The illustrative snippet below uses JUnit Jupiter 5; running it requires a project with JUnit 5 dependencies and a corresponding test runner. It is **not a standalone Java program compiled solely with `javac`**.
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -226,115 +226,115 @@ class LocaleSensitiveTest {
 }
 ```
 
-`@ResourceLock("jvm-default-locale")` giúp JUnit Jupiter điều phối những test dùng **cùng tên tài nguyên khóa** khi thực thi song song trong cùng test plan. Mọi test thay đổi/đọc locale mặc định theo cách phụ thuộc trạng thái đều phải hợp tác dùng cùng khóa thích hợp; annotation không thể khóa các thread của ứng dụng hoặc thư viện ngoài cơ chế kiểm thử. Nếu toàn bộ bộ kiểm thử có nhiều thành phần không hợp tác hoặc có thread nền đọc locale, cách đáng tin hơn là **không đổi trạng thái chung** hoặc tách test sang JVM riêng.
+`@ResourceLock("jvm-default-locale")` helps JUnit Jupiter coordinate tests using **the same lock resource name** when executing in parallel within the same test plan. Every test that mutates/reads the default locale in a state-dependent way must cooperate using the same appropriate lock; the annotation cannot lock application threads or libraries outside the test framework's mechanism. If the overall test suite has uncooperative components or background threads reading the locale, a more reliable approach is **not mutating global state** or isolating the test in a separate JVM.
 
-### Dùng `@BeforeEach` / `@AfterEach` hay `try/finally`?
+### `@BeforeEach` / `@AfterEach` or `try/finally`?
 
-`@BeforeEach` có thể lưu snapshot vào field và `@AfterEach` phục hồi, tiện nếu nhiều test cần cùng mẫu. Tuy nhiên, nó đòi hỏi quản lý vòng đời và tránh null khi setup bị lỗi. Với một test duy nhất, `try/finally` dễ kiểm chứng hơn vì snapshot và restore đặt cạnh nhau. Nếu dùng lifecycle hooks, vẫn phải snapshot trước khi bất kỳ setup nào đổi mặc định, và khôi phục cả ba giá trị.
+`@BeforeEach` can save the snapshot into fields and `@AfterEach` can restore it, which is convenient if multiple tests follow the same pattern. However, it requires lifecycle management and avoiding nulls if setup fails. For a single test, `try/finally` is easier to verify because snapshot and restore sit side by side. If using lifecycle hooks, still snapshot before any setup alters defaults, and restore all three values.
 
-Khi framework hỗ trợ helper hoặc extension để quản lý locale tạm thời, có thể áp dụng để tránh lặp code, nhưng phải kiểm tra nó có hỗ trợ và phục hồi **cả DISPLAY và FORMAT** theo yêu cầu test hay không.
+When a framework provides a helper or extension for temporary locale management, you can use it to avoid boilerplate, provided you verify that it supports and restores **both DISPLAY and FORMAT** as required by the test.
 
-## 6. Những tình huống cần kiểm thử
+## 6. Scenarios to Test
 
-| Tình huống | Điều cần xác minh |
+| Scenario | What to verify |
 | --- | --- |
-| Test chạy bình thường | Sau test, ba mặc định khớp snapshot; không còn ảnh hưởng thứ tự. |
-| Assertion ném `AssertionError` | `finally` vẫn phục hồi; framework vẫn báo test thất bại. |
-| Code thử ném `RuntimeException` | Phục hồi xảy ra rồi ngoại lệ được chuyển tiếp; không che giấu lỗi. |
-| Base, DISPLAY, FORMAT ban đầu khác nhau | Cả ba được phục hồi, không chỉ base. |
-| Test chỉ sửa một category | Category còn lại và base không bị làm sai trong lúc khôi phục. |
-| Test lồng nhau, cùng thread | Mỗi mức snapshot tại điểm vào và phục hồi theo thứ tự LIFO. |
-| Test chạy song song trên cùng JVM | Cần phối hợp khóa hoặc tách JVM; `try/finally` một mình không bảo vệ khỏi race condition. |
-| Test ở CI có locale khác máy cá nhân | Không giả định locale đầu vào cố định; khẳng định dựa trên snapshot. |
+| Test runs normally | After the test, all three defaults match the snapshot; no order-dependent side effects remain. |
+| Assertion throws `AssertionError` | `finally` still restores; the framework still reports the test failure. |
+| Code under test throws `RuntimeException` | Restoration happens and then the exception propagates; no error swallowing. |
+| Base, DISPLAY, and FORMAT differ initially | All three are restored, not just base. |
+| Test modifies only one category | The other category and base are not corrupted during restoration. |
+| Nested tests on the same thread | Each level snapshots at entry and restores in LIFO order. |
+| Tests running in parallel on the same JVM | Requires lock coordination or JVM isolation; `try/finally` alone does not guard against race conditions. |
+| Tests on CI with a different locale from personal machine | Do not assume fixed input locales; assert relative to the snapshot. |
 
-### Ví dụ về lỗi thứ tự test
+### Example of a test-order bug
 
 ```text
 Test A:
   Locale.setDefault(Locale.FRANCE)
-  assertion thành công
-  quên restore
+  assertion succeeds
+  forgets to restore
          ↓
 Test B:
-  khởi tạo formatter không truyền Locale
-  nhận locale fr-FR thay vì môi trường ban đầu
+  creates formatter without passing Locale
+  receives fr-FR instead of the initial environment
          ↓
-B có thể sai dù chạy một mình thì đúng
+B may fail even though it passes when run alone
 ```
 
-Khi bổ sung `try/finally` vào A, test B không còn nhận ảnh hưởng kéo dài từ A trong chuỗi chạy tuần tự. Nếu A và B thực sự chạy **đồng thời**, B vẫn có thể quan sát locale tạm thời của A; vì vậy phần kiểm soát concurrency phải được giải quyết riêng.
+Adding `try/finally` to A prevents B from receiving lingering effects from A in sequential runs. If A and B actually run **concurrently**, B can still observe A's temporary locale; therefore concurrency control must be addressed separately.
 
-## 7. Kiểm thử song song và giới hạn của `try/finally`
+## 7. Parallel Testing and the Limits of `try/finally`
 
-Giả sử hai test cùng chạy trên một JVM:
+Suppose two tests run concurrently on one JVM:
 
 ```text
-Thời điểm       Test A                         Test B
-t0             lưu base=vi-VN
+Time           Test A                         Test B
+t0             save base=vi-VN
 t1             setDefault(en-US)
-t2                                            lưu base=en-US
+t2                                            save base=en-US
 t3                                            setDefault(fr-FR)
 t4             restore(vi-VN)
-t5                                            chạy assertion, thấy vi-VN
+t5                                            run assertion, sees vi-VN
 t6                                            restore(en-US)
-Kết thúc       JVM còn en-US, dù ban đầu là vi-VN
+End            JVM ends with en-US, even though it started as vi-VN
 ```
 
-Cả hai test đều có `try/finally`, nhưng do snapshot và restore bị đan xen, trạng thái cuối vẫn sai. **`try/finally` đảm bảo đường đi phục hồi trong một luồng điều khiển; nó không biến trạng thái JVM thành thread-local và không đảm bảo isolation giữa các test song song.**
+Both tests have `try/finally`, yet because snapshots and restores interleave, the final state is still wrong. **`try/finally` guarantees a cleanup path within one flow of control; it does not make JVM state thread-local and does not ensure isolation between parallel tests.**
 
-Các phương án phù hợp:
+Appropriate options:
 
-1. **Ưu tiên truyền `Locale` trực tiếp vào code dưới test.** Ví dụ dùng `NumberFormat.getNumberInstance(locale)` hoặc `DateTimeFormatter.withLocale(locale)`; khi đó không cần gọi `Locale.setDefault(...)` trong unit test.
-2. **Nếu phải test legacy code đọc default locale, chạy tuần tự hoặc khóa cùng một tài nguyên.** Đồng bộ hóa chỉ hữu ích khi mọi code liên quan tuân theo cùng quy tắc khóa. JUnit `@ResourceLock` là cơ chế điều phối test JUnit, không phải khóa ở toàn JVM.
-3. **Khi cần cô lập tuyệt đối khỏi các test khác, chạy test trong process/JVM riêng.** Mỗi JVM có default locale riêng; không chia sẻ static state.
+1. **Prefer passing `Locale` directly into the code under test.** For example, use `NumberFormat.getNumberInstance(locale)` or `DateTimeFormatter.withLocale(locale)`; then unit tests do not need to call `Locale.setDefault(...)`.
+2. **If you must test legacy code that reads the default locale, run sequentially or lock on the same resource.** Synchronization is only useful when all relevant code follows the exact same locking rule. JUnit `@ResourceLock` is a JUnit test coordination mechanism, not a JVM-wide lock.
+3. **When strict isolation from other tests is needed, run the test in a separate process/JVM.** Each JVM has its own default locale; no static state is shared.
 
-Một `synchronized` trên object trong một class test chỉ bảo vệ các thread cũng dùng đúng object đó. Nó không ngăn code ngoài lock gọi `Locale.setDefault(...)`, nên không thể xem là biện pháp chung cho mọi test.
+A `synchronized` block on an object inside a test class only protects threads that also synchronize on that exact same object. It does not stop code outside the lock from calling `Locale.setDefault(...)`, so it cannot be treated as a universal safeguard for all tests.
 
-## 8. Cách kiểm tra một lần thay đổi locale có tác dụng như mong muốn
+## 8. How to Verify a Locale Change Takes Effect as Intended
 
-Các API khác nhau dùng mặc định theo những cách khác nhau:
+Different APIs use defaults in different ways:
 
-- `Locale.getDefault()` trả base; `Locale.getDefault(Locale.Category.DISPLAY)` trả default DISPLAY; `Locale.getDefault(Locale.Category.FORMAT)` trả default FORMAT.
-- Một số formatter không được truyền locale sẽ tra mặc định theo category tương ứng **khi được tạo**. Formatter đã khởi tạo từ trước có thể tiếp tục giữ cấu hình cũ; không nên giả định đổi default làm tất cả object đã có tự cập nhật.
-- Những API nhận tham số `Locale` tường minh thường sử dụng tham số đó thay vì default; kiểm thử chúng không cần sửa default JVM.
+- `Locale.getDefault()` returns base; `Locale.getDefault(Locale.Category.DISPLAY)` returns the DISPLAY default; `Locale.getDefault(Locale.Category.FORMAT)` returns the FORMAT default.
+- Some formatters created without a locale look up the corresponding category default **when created**. Previously initialized formatters may continue holding old configurations; do not assume changing the default automatically updates all existing objects.
+- APIs taking an explicit `Locale` parameter normally use that parameter instead of defaults; testing them does not require mutating the JVM default.
 
-Khi viết assertion, nên kiểm tra trạng thái qua getter tương ứng thay vì tin rằng thay đổi một getter sẽ ảnh hưởng ngay tất cả thư viện. Nếu kiểm thử định dạng chuỗi, các dữ liệu locale của JDK/CLDR có thể thay đổi đôi chút theo phiên bản; phân biệt rõ yêu cầu hợp đồng của ứng dụng với biểu diễn phụ thuộc dữ liệu JDK.
+When writing assertions, check state via the corresponding getters rather than assuming changing one getter immediately affects every library. When testing string formatting, JDK/CLDR locale data can change slightly across versions; distinguish application contract requirements from JDK-data-dependent representations.
 
-Đặc biệt, `Locale.setDefault(...)` **không phải** thao tác đổi `TimeZone.setDefault(...)`. Nếu test thay đổi cả locale và time zone, cần snapshot/restore độc lập từng loại trạng thái; đừng nhầm `Locale.Category.FORMAT` với múi giờ.
+In particular, `Locale.setDefault(...)` is **not** an operation to change `TimeZone.setDefault(...)`. If a test modifies both locale and time zone, snapshot/restore each kind of state independently; do not confuse `Locale.Category.FORMAT` with a time zone.
 
-## 9. Các lỗi dễ mắc khi khôi phục locale
+## 9. Common Mistakes When Restoring Locales
 
-| Lỗi | Hậu quả | Sửa như thế nào |
+| Mistake | Consequence | How to fix |
 | --- | --- | --- |
-| Khôi phục về `Locale.US` mặc định | Trạng thái ban đầu của CI có thể khác `US`. | Chụp `Locale.getDefault()` trước test. |
-| Lưu base nhưng bỏ qua DISPLAY/FORMAT | Mất override category đã có từ trước. | Lưu và phục hồi cả ba. |
-| Restore category trước rồi gọi `setDefault(base)` cuối | Lệnh cuối reset các category vừa phục hồi. | Restore **base trước, category sau**. |
-| Đặt restore sau assertion mà không dùng `finally` | Assertion failure khiến restore bị bỏ qua. | Bao thao tác thay đổi trong `try/finally`. |
-| Chụp snapshot sau khi gọi `setDefault(...)` | Snapshot chứa chính cấu hình tạm thời. | Chụp trước khi thay đổi bất kỳ default nào. |
-| Ghi đè ngoại lệ kiểm thử trong `catch` | Báo pass giả dù assertion đã thất bại. | Để lỗi test được ném tiếp; dùng `finally` chỉ để cleanup. |
-| Tin `try/finally` giải quyết song song | Race giữa snapshot, mutation và restore. | Khóa các test hợp tác, chạy tuần tự hoặc tách JVM. |
-| Gọi `getDefault()` ở cuối để suy ra giá trị cũ | Tại thời điểm đó nó có thể chính là locale tạm. | Dùng snapshot đã lưu. |
-| Nghĩ format category đồng nghĩa time zone | Ngày giờ còn phụ thuộc `ZoneId`/`TimeZone`. | Quản lý time zone riêng. |
-| Tạo formatter trước khi đổi default | Không chắc formatter cũ phản ánh default mới. | Tạo formatter trong phạm vi thử nghiệm hoặc truyền locale trực tiếp. |
+| Restoring to a hardcoded `Locale.US` | CI's initial state might differ from `US`. | Capture `Locale.getDefault()` before the test. |
+| Saving base while ignoring DISPLAY/FORMAT | Loses pre-existing category overrides. | Save and restore all three. |
+| Restoring categories first and calling `setDefault(base)` last | The last call resets the categories just restored. | Restore **base first, categories second**. |
+| Placing restore after assertions without `finally` | An assertion failure skips restoration. | Wrap mutating operations in `try/finally`. |
+| Capturing the snapshot after calling `setDefault(...)` | The snapshot captures the temporary configuration itself. | Snapshot before changing any default. |
+| Swallowing test exceptions inside `catch` | Reports false passes even though assertions failed. | Let test failures propagate; use `finally` solely for cleanup. |
+| Trusting `try/finally` to handle parallelism | Races between snapshot, mutation, and restore. | Lock cooperating tests, run sequentially, or isolate the JVM. |
+| Calling `getDefault()` at the end to infer the old value | By then it may be the temporary locale itself. | Use the saved snapshot. |
+| Thinking the format category means time zone | Dates/times also depend on `ZoneId`/`TimeZone`. | Manage time zones separately. |
+| Creating formatters before changing the default | Old formatters may not reflect the new default. | Create formatters inside the test scope or pass locales directly. |
 
-## 10. Bài tập tự luyện
+## 10. Practice Exercises
 
-**Bài 1 — Phục hồi sau lỗi:** từ `LocaleDefaultRestoreDemo`, cố ý ném `new AssertionError("simulated failure")` bên trong `try`. Trong một lớp gọi bên ngoài, quan sát rằng exception vẫn được báo, nhưng snapshot của ba locale đã được khôi phục. Không biến lỗi test thành pass.
+**Exercise 1 — Restoring after failure:** starting from `LocaleDefaultRestoreDemo`, intentionally throw `new AssertionError("simulated failure")` inside `try`. In an outer caller class, observe that the exception is still reported, while the snapshot of all three locales has been restored. Do not turn a failing test into a passing one.
 
-**Bài 2 — Override category ban đầu:** trước khi chụp snapshot của một phạm vi test khác, thiết lập base `en-US`, DISPLAY `fr-FR` và FORMAT `de-DE`. Trong phạm vi test, gọi `setDefault(Locale.JAPAN)`. Kiểm chứng rằng phục hồi chỉ base làm mất hai override, còn phục hồi đầy đủ giữ lại cả ba. Cuối cùng vẫn phải restore cấu hình gốc của JVM của bài thực hành.
+**Exercise 2 — Initial category overrides:** before capturing the snapshot for another test scope, set base `en-US`, DISPLAY `fr-FR`, and FORMAT `de-DE`. Inside the test scope, call `setDefault(Locale.JAPAN)`. Verify that restoring only base loses the two overrides, whereas full restoration preserves all three. Afterward, still restore the JVM's original configuration for the lab exercise.
 
-**Bài 3 — Tránh sửa global state:** viết một hàm `formatAmount(BigDecimal amount, Locale locale)` sử dụng `NumberFormat.getNumberInstance(locale)`. Kiểm tra hai locale được truyền trực tiếp; chứng minh `Locale.getDefault()` không đổi trước và sau hai lần gọi.
+**Exercise 3 — Avoiding global state mutation:** write a `formatAmount(BigDecimal amount, Locale locale)` method using `NumberFormat.getNumberInstance(locale)`. Test two locales passed directly; prove `Locale.getDefault()` does not change before and after both calls.
 
-**Bài 4 — Kiểm soát song song:** thử giải thích lịch thực thi xen kẽ ở mục 7. Sau đó thiết kế quy tắc dùng cùng `@ResourceLock` cho các JUnit test truy cập default locale; nêu giới hạn đối với thread nền không tham gia test framework.
+**Exercise 4 — Controlling parallelism:** explain the interleaved execution schedule in section 7. Then design a rule using a shared `@ResourceLock` for JUnit tests accessing the default locale; state the limitation regarding background threads not participating in the test framework.
 
-### Checklist hoàn thành
+### Completion Checklist
 
-- [ ] Phân biệt `Locale.getDefault()` và hai mặc định theo `DISPLAY`, `FORMAT`.
-- [ ] Hiểu tác động `Locale.setDefault(Locale)` lên cả hai category.
-- [ ] Chụp ba giá trị **trước** mọi thao tác sửa default.
-- [ ] Dùng `finally` và restore theo thứ tự **base → DISPLAY → FORMAT**.
-- [ ] Không che giấu assertion failure; có thể tự xác minh trạng thái sau phục hồi.
-- [ ] Nhận diện race condition khi nhiều test cùng sửa default của JVM.
-- [ ] Biết khi nào nên truyền `Locale` tường minh hoặc cô lập test trong JVM riêng.
+- [ ] Distinguish `Locale.getDefault()` from the two category defaults `DISPLAY` and `FORMAT`.
+- [ ] Understand the effect of `Locale.setDefault(Locale)` on both categories.
+- [ ] Snapshot all three values **before** any default-mutating operation.
+- [ ] Use `finally` and restore in the order **base → DISPLAY → FORMAT**.
+- [ ] Never hide assertion failures; be able to verify post-restoration state.
+- [ ] Identify race conditions when multiple tests modify JVM defaults concurrently.
+- [ ] Know when to pass an explicit `Locale` or isolate tests in a separate JVM.
 
-Quy tắc cần ghi nhớ: **một test đã thay đổi cấu hình locale toàn JVM phải khôi phục đúng trạng thái đã thấy lúc bắt đầu, kể cả khi kiểm thử thất bại; và nếu chạy song song, mọi test liên quan phải có cơ chế cô lập/phối hợp.**
+Rule to remember: **a test that modifies JVM-wide locale configuration must restore the exact state observed at the start, even when the test fails; and if tests run in parallel, all affected tests must have an isolation/coordination mechanism.**

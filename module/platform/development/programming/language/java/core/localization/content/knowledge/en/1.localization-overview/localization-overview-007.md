@@ -1,65 +1,65 @@
-# Ranh giới giữa xử lý dữ liệu, tài nguyên và giao diện trong Java localization
+# Boundaries Between Data Processing, Resources, and UI in Java Localization
 
-## 1. Vì sao phải tách ba trách nhiệm?
+## 1. Why Separate These Three Responsibilities?
 
-Trong ứng dụng hỗ trợ nhiều ngôn ngữ và khu vực, **dữ liệu nghiệp vụ**, **tài nguyên bản địa hóa** và **cách hiển thị** thay đổi vì những lý do khác nhau. Tách chúng giúp một đơn hàng vẫn là cùng một đơn hàng khi người dùng đổi tiếng Việt sang tiếng Anh, đổi cách viết ngày tháng hoặc sử dụng thiết bị khác.
+In an application supporting multiple languages and regions, **business data**, **localization resources**, and **display formatting** change for different reasons. Separating them ensures an order remains the exact same order when a user switches from Vietnamese to English, changes date formatting, or uses another device.
 
-- **Xử lý dữ liệu (domain/application):** kiểm tra quy tắc nghiệp vụ, tính toán, lưu trữ và trao đổi các giá trị có ý nghĩa ổn định. Ví dụ: mã đơn, số tiền với đơn vị tiền tệ, thời điểm đặt hàng, trạng thái đơn hàng.
-- **Tài nguyên bản địa hóa (localization resources):** cung cấp thông điệp, nhãn, bản dịch và mẫu câu theo ngôn ngữ. Ví dụ: khóa `order.summary` có bản tiếng Việt và bản tiếng Anh.
-- **Giao diện hoặc lớp trình bày (presentation):** chọn `Locale`, múi giờ và định dạng; lấy đúng thông điệp từ tài nguyên; biến dữ liệu thành văn bản người dùng nhìn thấy. Ví dụ: cùng số tiền 1.234,50 USD có thể được trình bày khác nhau tùy locale.
+- **Data processing (domain/application):** validates business rules, computes, stores, and exchanges values with stable meaning. For example: order ID, monetary amount with currency unit, order placement instant, order status.
+- **Localization resources:** provide messages, labels, translations, and sentence templates per language. For example: key `order.summary` has a Vietnamese version and an English version.
+- **UI or presentation layer:** selects `Locale`, time zone, and formatters; retrieves the right message from resources; turns data into text the user sees. For example: the same amount 1,234.50 USD can be presented differently depending on the locale.
 
-**Nguyên tắc cốt lõi:** đổi locale phải đổi cách biểu diễn phù hợp mà không làm đổi giá trị nghiệp vụ. Một số nghiệp vụ có quy tắc riêng theo quốc gia (thuế, đơn vị được phép, pháp luật); đó là **business rule được mô hình hóa rõ ràng**, không phải hệ quả tự động của việc đổi ngôn ngữ giao diện.
+**Core principle:** changing locale must update presentation appropriately without changing business values. Some business logic has country-specific rules (taxes, allowed units, laws); those are **explicitly modeled business rules**, not automatic side effects of switching UI language.
 
-## 2. Ranh giới trách nhiệm
+## 2. Responsibility Boundaries
 
-| Câu hỏi | Lớp chịu trách nhiệm chính | Dạng dữ liệu nên dùng |
+| Question | Primarily Responsible Layer | Data Representation to Use |
 | --- | --- | --- |
-| Đơn có mã gì và tổng tiền bao nhiêu? | Domain/application | `String` ID, `BigDecimal` và `Currency` |
-| Sự kiện xảy ra lúc nào? | Domain/infrastructure | `Instant` hoặc kiểu thời gian phù hợp với ý nghĩa nghiệp vụ |
-| Hiển thị câu “Đơn hàng …” bằng ngôn ngữ nào? | Resource + presentation | Khóa thông điệp và `ResourceBundle` |
-| Viết dấu thập phân, nhóm nghìn, ngày giờ ra sao? | Presentation | `NumberFormat`, `DateTimeFormatter`, `Locale`, `ZoneId` |
-| Dùng múi giờ nào để người đọc xem thời điểm? | Presentation / lựa chọn người dùng | `ZoneId` độc lập với `Locale` |
-| Có được đặt hàng bằng đồng tiền này không? | Domain/application | Quy tắc tiền tệ, thị trường và hợp đồng |
+| What is the order ID and total amount? | Domain/application | `String` ID, `BigDecimal`, and `Currency` |
+| When did the event occur? | Domain/infrastructure | `Instant` or a time type matching business meaning |
+| Which language displays “Order …” ? | Resource + presentation | Message key and `ResourceBundle` |
+| How are decimal points, thousand grouping, and date/time written? | Presentation | `NumberFormat`, `DateTimeFormatter`, `Locale`, `ZoneId` |
+| Which time zone does the reader view the instant in? | Presentation / user choice | `ZoneId` independent of `Locale` |
+| Is ordering allowed in this currency? | Domain/application | Currency, market, and contract rules |
 
-Một luồng hiển thị điển hình:
+A typical display flow:
 
 ~~~text
-Nguồn dữ liệu / API
+Data source / API
         |
         v
 Domain: Order(id, amount, currency, placedAt)
         |
         v
-Application: kiểm tra và xử lý nghiệp vụ
+Application: validate and execute business logic
         |
         v
 Presentation adapter: (Order, Locale, ZoneId)
         |                         |
-        |                         +--> ResourceBundle: bản dịch + mẫu thông điệp
+        |                         +--> ResourceBundle: translations + message patterns
         +--> NumberFormat / DateTimeFormatter
         |
         v
-UI hoặc response dành cho người dùng
+UI or user-facing response
 ~~~
 
-Ở chiều ngược lại, **đầu vào từ giao diện** có thể cần parse theo locale (ví dụ `1.234,50`), sau đó kiểm tra hợp lệ và chuyển sang giá trị có cấu trúc trước khi đưa vào domain. Không truyền trực tiếp chuỗi hiển thị vào phép tính tiền hoặc logic nghiệp vụ.
+In the reverse direction, **UI input** may need locale-aware parsing (for example `1.234,50`), followed by validation and conversion into structured values before entering the domain. Never pass display strings directly into monetary calculations or business logic.
 
-## 3. Dữ liệu nghiệp vụ phải giữ nguyên ý nghĩa
+## 3. Business Data Must Preserve Its Meaning
 
-Ví dụ với một đơn hàng:
+Example with an order:
 
-- Lưu **giá trị tiền** dưới dạng `BigDecimal` và **đơn vị tiền** dưới dạng `Currency` hoặc mã ISO 4217; không chỉ lưu `"$1,234.50"` hay `"1.234,50"`.
-- Lưu **thời điểm thực tế** dưới dạng `Instant` khi nghiệp vụ nói đến một sự kiện tuyệt đối. Khi trình bày, kết hợp với `ZoneId`; đừng suy ra múi giờ chỉ từ ngôn ngữ.
-- Lưu **trạng thái** bằng mã ổn định (ví dụ `PENDING`, `PAID`); bản dịch “Chờ xử lý”/“Pending” thuộc tài nguyên giao diện. Không dùng bản dịch làm khóa database hoặc giá trị của enum nghiệp vụ.
-- Dữ liệu người dùng thật sự nhập (tên người, địa chỉ, văn bản mô tả) là **dữ liệu**, không tự động biến thành khóa dịch. Chỉ dịch trường có thiết kế và nguồn bản dịch rõ ràng.
+- Store **monetary amount** as `BigDecimal` and **currency unit** as `Currency` or an ISO 4217 code; do not store only `"$1,234.50"` or `"1.234,50"`.
+- Store **actual timestamp** as `Instant` when business logic refers to an absolute event. At presentation time, combine with `ZoneId`; do not infer time zone solely from language.
+- Store **status** as a stable code (for example `PENDING`, `PAID`); translations “Chờ xử lý”/“Pending” belong in UI resources. Never use translated text as a database key or business enum value.
+- Data genuinely entered by users (personal names, addresses, descriptive text) is **data**, not automatically turned into translation keys. Only translate fields with an explicit design and translation source.
 
-**Ví dụ sai:** lưu `total = "1.234,50 USD"` rồi tách chuỗi để cộng tiền; hoặc dùng `status = "Đã thanh toán"` để quyết định chuyển trạng thái. **Ví dụ đúng:** lưu `amount = 1234.50`, `currency = USD`, `status = PAID`, sau đó hiển thị theo locale yêu cầu.
+**Wrong example:** storing `total = "1.234,50 USD"` and splitting strings to add money; or using `status = "Đã thanh toán"` to drive state transitions. **Right example:** storing `amount = 1234.50`, `currency = USD`, `status = PAID`, then displaying according to the requested locale.
 
-Lưu ý: `Locale` không phải tỷ giá. Việc đổi từ `en-US` sang `vi-VN` không chuyển USD thành VND. Nếu hệ thống cần **quy đổi tiền tệ**, đó là một nghiệp vụ riêng có tỷ giá, nguồn tỷ giá, thời điểm áp dụng và quy tắc làm tròn.
+Note: `Locale` is not an exchange rate. Switching from `en-US` to `vi-VN` does not convert USD to VND. If the system needs **currency conversion**, that is a separate business operation with an exchange rate, rate source, effective time, and rounding rules.
 
-## 4. Tài nguyên bản địa hóa chứa ngôn từ, không chứa nghiệp vụ
+## 4. Localization Resources Contain Wording, Not Business Logic
 
-Java cung cấp `ResourceBundle` để chọn tài nguyên theo `Locale`. Với resource bundle dạng properties, những tệp như `messages_en.properties` và `messages_vi.properties` có cùng **khóa ổn định**, còn giá trị là bản dịch:
+Java provides `ResourceBundle` to select resources by `Locale`. With properties-based resource bundles, files such as `messages_en.properties` and `messages_vi.properties` share **stable keys**, while values are translations:
 
 ~~~properties
 # messages_en.properties
@@ -71,24 +71,24 @@ order.summary=Order {0}: {1}; placed at {2}
 order.summary=Đơn hàng {0}: {1}; đặt lúc {2}
 ~~~
 
-Ở đây, `order.summary` là **định danh thông điệp**, không phải tiếng Anh gốc. Các placeholder `{0}`, `{1}`, `{2}` lần lượt nhận mã đơn, tiền đã định dạng và thời gian đã định dạng; người dịch có thể thay thứ tự từ trong câu mà không thay đổi quy tắc nghiệp vụ.
+Here, `order.summary` is a **message identifier**, not source English text. Placeholders `{0}`, `{1}`, `{2}` receive order ID, formatted money, and formatted time respectively; translators can reorder words in the sentence without changing business rules.
 
-Các quy tắc quan trọng:
+Important rules:
 
-1. Giữ khóa nhất quán giữa các ngôn ngữ, kiểm tra khóa thiếu hoặc dư trong quá trình phát triển.
-2. Cung cấp ngữ cảnh cho người dịch: “Order” có thể là danh từ “đơn hàng” hoặc động từ “đặt hàng”.
-3. Không ghép câu từ các mảnh dịch rời rạc như “Bạn có ” + số + “ đơn hàng”; thứ tự từ và ngữ pháp có thể khác nhau. Dùng mẫu thông điệp hoàn chỉnh.
-4. `MessageFormat` có quy tắc riêng đối với dấu nháy đơn và ngoặc nhọn. Trong pattern, muốn có một dấu nháy đơn literal thường phải viết hai dấu liên tiếp; đừng giả định template là phép nối chuỗi thông thường.
-5. `ResourceBundle` có chuỗi tìm kiếm tài nguyên theo locale và có thể fallback sang bundle phù hợp khác hoặc mặc định. **Khóa không tồn tại** có thể gây `MissingResourceException`; đừng cho rằng Java luôn tự in tên khóa.
-6. Với Java 17, các tệp resource bundle `.properties` được hỗ trợ đọc nội dung quốc tế theo UTF-8 (cơ chế mặc định từ Java 9). Lưu file đúng encoding; encoding hiển thị của terminal là một vấn đề riêng.
+1. Keep keys consistent across languages; check for missing or extra keys during development.
+2. Provide context to translators: “Order” can be the noun “đơn hàng” or the verb “đặt hàng”.
+3. Do not concatenate sentences from separate translated pieces like “You have ” + count + “ orders”; word order and grammar may vary. Use complete message patterns.
+4. `MessageFormat` has special rules for single quotes and curly braces. In a pattern, to produce a literal single quote you usually write two consecutive quotes; do not assume templates behave like normal string concatenation.
+5. `ResourceBundle` follows a locale resource lookup chain and may fall back to another matching bundle or default. A **missing key** can cause `MissingResourceException`; do not assume Java always prints the key name automatically.
+6. With Java 17, `.properties` resource bundles support reading international content in UTF-8 (default behavior since Java 9). Save files with the right encoding; terminal display encoding is a separate concern.
 
-Tài nguyên bản địa hóa không nên chứa câu SQL, quy tắc tính thuế, biểu thức tính tổng tiền hay quyết định phân quyền. Nếu văn bản bản dịch có chứa HTML hoặc dữ liệu do người dùng tạo, lớp hiển thị vẫn phải escape/encode phù hợp với nơi xuất ra (HTML, JSON, v.v.); bản dịch không mặc nhiên là dữ liệu an toàn để chèn vào markup.
+Localization resources should not contain SQL statements, tax calculation rules, total formulas, or authorization decisions. If translated text contains HTML or user-generated data, the presentation layer must still escape/encode appropriately for the output target (HTML, JSON, etc.); translations are not inherently safe to inject raw into markup.
 
-## 5. Giao diện kết hợp dữ liệu, tài nguyên và định dạng
+## 5. UI Combines Data, Resources, and Formatting
 
-**`Locale`** diễn tả các quy ước ngôn ngữ/khu vực; **`ZoneId`** xác định múi giờ; **`Currency`** biểu diễn đơn vị tiền. Ba khái niệm liên quan đến trải nghiệm người dùng nhưng không thay thế cho nhau.
+**`Locale`** expresses language/regional conventions; **`ZoneId`** specifies time zone; **`Currency`** represents monetary unit. These three concepts relate to user experience, yet do not substitute for one another.
 
-Ví dụ chạy độc lập với **Java 17+**. Đặt ba file bên dưới **trong cùng một thư mục**.
+Standalone runnable example with **Java 17+**. Place the three files below **in the same directory**.
 
 **File `LocalizedOrderDemo.java`:**
 
@@ -115,7 +115,7 @@ public class LocalizedOrderDemo {
         Currency currency = order.total().currency();
         moneyFormat.setCurrency(currency);
 
-        // setCurrency không bảo đảm tự cập nhật số chữ số phần thập phân.
+        // setCurrency does not guarantee updating the number of decimal digits automatically.
         int digits = currency.getDefaultFractionDigits();
         if (digits >= 0) {
             moneyFormat.setMinimumFractionDigits(digits);
@@ -165,26 +165,26 @@ order.summary=Order {0}: {1}; placed at {2}
 order.summary=Đơn hàng {0}: {1}; đặt lúc {2}
 ~~~
 
-**Biên dịch và chạy** từ thư mục chứa ba file:
+**Compile and run** from the directory containing the three files:
 
 ~~~bash
 javac -encoding UTF-8 LocalizedOrderDemo.java
 java LocalizedOrderDemo
 ~~~
 
-Hai dòng kết quả lần lượt bắt đầu với **`en-US -> Order A-17:`** và **`vi-VN -> Đơn hàng A-17:`**. Cả hai hiển thị cùng mã đơn, cùng **1.234,50 USD về mặt giá trị** và cùng thời điểm `2026-01-15T10:30:00Z` được chuyển sang múi giờ `Asia/Ho_Chi_Minh`. Dấu phân cách số, ký hiệu/vị trí mã tiền và cách viết ngày giờ sẽ khác theo locale; chuỗi chính xác có thể khác giữa các phiên bản JDK/CLDR, nên không nên khẳng định nguyên văn toàn bộ stdout cho mọi môi trường.
+The two output lines start with **`en-US -> Order A-17:`** and **`vi-VN -> Đơn hàng A-17:`** respectively. Both show the same order ID, the same **1,234.50 USD in value**, and the same instant `2026-01-15T10:30:00Z` converted to the `Asia/Ho_Chi_Minh` time zone. Number separators, currency symbol/code position, and date/time phrasing will differ by locale; exact strings can vary across JDK/CLDR versions, so do not assert the entire stdout verbatim across all environments.
 
-Trong mã này, lớp domain chỉ giữ `Order`, `Money`, `Instant`. Hàm `render` là **ranh giới trình bày**: nhận lựa chọn locale/múi giờ, tìm thông điệp, format tiền và thời điểm. `ResourceBundle` chỉ giữ từ ngữ. `MessageFormat` sắp xếp các tham số vào câu; nếu cần quy tắc số nhiều, giống, cách chia hoặc bố cục phức tạp hơn, phải thiết kế giải pháp bản địa hóa phù hợp thay vì tự nối các chuỗi cố định.
+In this code, the domain layer holds only `Order`, `Money`, and `Instant`. The `render` method is the **presentation boundary**: it receives locale/time zone choices, looks up the message, and formats money and time. `ResourceBundle` holds only wording. `MessageFormat` places parameters into the sentence; if plurals, grammatical gender, declension, or more complex layouts are needed, design a suitable localization solution instead of concatenating fixed strings.
 
-## 6. Đầu vào và đầu ra: đặt bước chuyển đổi ở biên hệ thống
+## 6. Input and Output: Put Conversion at System Boundaries
 
-Một cấu trúc ứng dụng dễ kiểm soát là:
+An easy-to-control application structure is:
 
-1. **Input adapter (UI/API):** nhận locale và timezone từ cấu hình người dùng hoặc request; phân giải về tập locale được hỗ trợ. Nếu nhập số/ngày dưới dạng văn bản có bản địa hóa, parse ở đây rồi kiểm tra toàn bộ chuỗi đã được tiêu thụ, định dạng hợp lệ và miền giá trị.
-2. **Application/domain:** làm việc trên các giá trị chuẩn hóa. Không phải biết câu thông báo đang ở ngôn ngữ nào để tính tổng tiền, kiểm tra trạng thái hay lưu hóa đơn.
-3. **Output adapter/presenter:** nhận kết quả có cấu trúc; tạo nhãn và thông báo từ bundle, định dạng thời gian/số và trả về UI.
+1. **Input adapter (UI/API):** receives locale and time zone from user profile or request; resolves to the set of supported locales. If numbers/dates are entered as localized text, parse them here and verify full-string consumption, valid format, and value bounds.
+2. **Application/domain:** operates on normalized values. It does not need to know what language UI messages are in to calculate totals, check status, or save invoices.
+3. **Output adapter/presenter:** receives structured results; builds labels and messages from bundles, formats times/numbers, and returns them to the UI.
 
-Đối với **API dùng cho máy**, ưu tiên giữ dữ liệu có cấu trúc, chẳng hạn:
+For **machine-facing APIs**, prefer keeping structured data, such as:
 
 ~~~json
 {
@@ -196,51 +196,51 @@ Một cấu trúc ứng dụng dễ kiểm soát là:
 }
 ~~~
 
-Giao diện có thể nhận thêm các trường trình bày như `displayAmount` hoặc `displayStatus` khi cần, nhưng **không thay giá trị chuẩn** bằng chuỗi dịch. Client khác có thể tự hiển thị với locale khác mà không làm thay dữ liệu.
+The UI may additionally receive presentation fields such as `displayAmount` or `displayStatus` when needed, but **do not replace canonical values** with translated strings. Another client can render with a different locale without altering the data.
 
-Một số điểm cần phân biệt:
+Several distinctions to keep clear:
 
-- **Locale khác language:** cùng tiếng Anh, `en-US` và `en-GB` có quy ước khác; cùng ngôn ngữ không đồng nghĩa cùng múi giờ hay tiền tệ.
-- **Locale khác time zone:** người dùng chọn tiếng Việt ở châu Âu vẫn có thể muốn giờ châu Âu. Thời gian làm việc theo lịch địa phương (ví dụ “9 giờ sáng mỗi thứ Hai”) cần mô hình riêng như `LocalTime` + `ZoneId`, không thể thay tùy tiện bằng một `Instant` không kèm ngữ nghĩa.
-- **Locale khác encoding:** UTF-8 giữ ký tự Unicode khi lưu/chuyển dữ liệu; `Locale` quyết định quy ước hiển thị. Không dùng thao tác thay encoding để “dịch” văn bản.
-- **Sắp xếp khác định danh:** danh sách tên người có thể dùng `Collator` phù hợp locale cho mục tiêu hiển thị. Định danh kỹ thuật, khóa map, URL slug và quy tắc so khớp nghiệp vụ cần tiêu chí ổn định riêng; không dùng mặc định cách so sánh chữ theo giao diện.
-- **Quy tắc chữ hoa/thường:** với mã kỹ thuật không phụ thuộc ngôn ngữ, cân nhắc `Locale.ROOT` khi chuẩn hóa casing. Với văn bản tự nhiên của người dùng, cần xét đúng locale (ví dụ trường hợp chữ `i` trong tiếng Thổ Nhĩ Kỳ).
+- **Locale is not language:** within English, `en-US` and `en-GB` have different conventions; sharing a language does not imply sharing a time zone or currency.
+- **Locale is not time zone:** a user choosing Vietnamese in Europe may still want European time. Local calendar schedules (such as “9 a.m. every Monday”) require their own model like `LocalTime` + `ZoneId`, and cannot simply be replaced by an `Instant` without semantics.
+- **Locale is not encoding:** UTF-8 preserves Unicode characters when storing/transmitting data; `Locale` governs display conventions. Never use encoding changes to “translate” text.
+- **Sorting is not identity:** lists of personal names can use a locale-appropriate `Collator` for display. Technical identifiers, map keys, URL slugs, and business matching rules need their own stable criteria; do not default to UI-style text comparison.
+- **Casing rules:** for language-independent technical codes, consider `Locale.ROOT` when normalizing casing. For natural user text, consider the proper locale (for instance, the letter `i` in Turkish).
 
-## 7. Lỗi thường gặp và cách sửa
+## 7. Common Mistakes and Fixes
 
-| Lỗi thiết kế | Hệ quả | Cách sửa |
+| Design Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Domain trả thẳng “Đã thanh toán” | Đổi ngôn ngữ làm đổi giá trị điều kiện và contract | Domain trả mã `PAID`; presenter dịch nhãn |
-| Lưu `"1.234,50"` thay vì số | Parse nhầm locale, phép tính sai | Parse ở input boundary, lưu `BigDecimal` |
-| Dùng locale để suy ra đồng tiền | USD bị gắn nhãn VND nhưng không quy đổi | Gắn `Currency` với số tiền, quy đổi chỉ qua nghiệp vụ |
-| Gọi `Locale.getDefault()` rải rác | Kết quả phụ thuộc máy chủ, test khó ổn định | Truyền locale tường minh tới presenter/formatter |
-| Dùng `String.format` và nối nhãn rời rạc cho mọi câu | Ngữ pháp và thứ tự từ không chuyển dịch đúng | Dùng khóa và mẫu thông điệp hoàn chỉnh |
-| Bỏ qua key resource thiếu hoặc placeholder sai | Lỗi runtime hoặc thông điệp vô nghĩa | Kiểm tra đồng bộ key, kiểm thử từng bundle |
-| Định dạng thời gian mà không chọn múi giờ | Người dùng hiểu sai thời điểm | Domain giữ thời điểm; presenter nhận `ZoneId` |
-| Format lại số thành chuỗi rồi tính toán tiếp | Mất độ chính xác, sai làm tròn | Tính toán trên giá trị gốc; format một lần lúc hiển thị |
+| Domain returns `"Đã thanh toán"` directly | Changing language changes conditional values and contracts | Domain returns code `PAID`; presenter translates label |
+| Storing `"1.234,50"` instead of a number | Wrong locale parsing, broken math | Parse at input boundary, store `BigDecimal` |
+| Using locale to infer currency | USD gets labeled VND without conversion | Bind `Currency` to amount, convert only in business logic |
+| Calling `Locale.getDefault()` everywhere | Output depends on server, tests become flaky | Pass locale explicitly to presenter/formatter |
+| Using `String.format` and joining loose labels for every sentence | Grammar and word order do not translate cleanly | Use keys and complete message patterns |
+| Ignoring missing resource keys or mismatched placeholders | Runtime errors or garbled messages | Check key parity, test each bundle |
+| Formatting time without choosing a time zone | Users misread the time | Domain holds instant; presenter receives `ZoneId` |
+| Formatting numbers to strings then calculating further | Loss of precision, rounding errors | Compute on canonical values; format once at display |
 
-Không giữ `NumberFormat` hoặc `MessageFormat` mutable làm singleton dùng đồng thời giữa nhiều luồng nếu không đồng bộ phù hợp; tạo formatter theo request hoặc quản lý riêng theo luồng. Ngược lại, `DateTimeFormatter` là immutable và thread-safe nên có thể tái sử dụng khi cấu hình đúng.
+Do not hold mutable `NumberFormat` or `MessageFormat` instances as singletons used concurrently across threads without proper synchronization; create formatters per request or manage them per thread. Conversely, `DateTimeFormatter` is immutable and thread-safe, so it can be reused when configured properly.
 
-## 8. Kiểm thử ranh giới
+## 8. Testing the Boundaries
 
-Thay đổi locale là một phép thử kiến trúc hữu ích: **cùng dữ liệu đầu vào** được render ở ít nhất hai locale; chỉ các phần trình bày được phép thay đổi.
+Switching locales is a useful architectural test: **the same input data** is rendered in at least two locales; only presentation elements are allowed to change.
 
-Kiểm tra theo ba lớp:
+Test across three layers:
 
-- **Domain:** tính toán và trạng thái vẫn đúng khi chạy dưới môi trường có default locale khác nhau. Test `Money` và `Order` bằng giá trị, không bằng câu đã dịch.
-- **Resources:** các bundle có đủ khóa; mẫu `MessageFormat` parse được và dùng đúng số placeholder; ký tự có dấu xuất hiện đúng; fallback có chủ đích và được kiểm tra.
-- **Presentation:** locale tiếng Việt/tiếng Anh cho câu và định dạng phù hợp; cùng `Currency` và `Instant` không đổi; timezone thay đổi giờ hiển thị mà không đổi thời điểm gốc. Với số, ngày và tên tiền tệ, kiểm thử cấu trúc/đặc tính quan trọng hoặc kiểm soát chặt phiên bản locale provider thay vì snapshot toàn bộ chuỗi CLDR trên mọi JDK.
+- **Domain:** calculations and statuses stay accurate under environments with different default locales. Test `Money` and `Order` by values, not by translated sentences.
+- **Resources:** bundles have complete keys; `MessageFormat` patterns parse cleanly and use the right placeholder counts; accented characters appear properly; fallback is intentional and tested.
+- **Presentation:** Vietnamese/English locales produce matching phrasing and formats; `Currency` and `Instant` stay unchanged; time zone shifts displayed time without altering the source instant. For numbers, dates, and currency names, test structural/key properties or tightly pin the locale provider version rather than snapshotting entire CLDR strings across all JDKs.
 
-Có thể thêm các ca biên: locale chưa hỗ trợ, thiếu resource key, giá trị âm, đơn vị tiền có 0 hoặc 3 chữ số lẻ, thời điểm sát chuyển giờ mùa hè, văn bản có dấu và ký tự Unicode kết hợp, và chuỗi nhập sai dấu phân cách. Với số và ngày do người dùng nhập, kiểm thử cả trường hợp parser chấp nhận một phần chuỗi rồi bỏ phần đuôi: đó không phải input hợp lệ nếu nghiệp vụ yêu cầu khớp toàn bộ.
+You can add edge cases: unsupported locales, missing resource keys, negative values, currencies with 0 or 3 fractional digits, instants near daylight saving transitions, accented text and combining Unicode characters, and inputs with wrong separators. For user-entered numbers and dates, also test cases where a parser accepts a prefix and ignores trailing characters: that is not valid input if business rules require a full match.
 
-## 9. Áp dụng vào dự án
+## 9. Applying This in Your Project
 
-Khi thêm một màn hình hoặc endpoint có nội dung đa ngôn ngữ, hãy tự đối chiếu:
+When adding a screen or endpoint with multilingual content, cross-check:
 
-1. Dữ liệu được lưu, tính và truyền giữa các lớp có còn đúng nếu người dùng đổi ngôn ngữ không?
-2. Khóa và bản dịch có nằm trong tài nguyên thống nhất, có ngữ cảnh cho người dịch và fallback rõ ràng không?
-3. Lớp nào đang quyết định `Locale`, `ZoneId` và quy tắc định dạng? Quyết định đó có được truyền rõ tới nơi render không?
-4. Có chỗ nào dùng văn bản đã dịch để so sánh trạng thái, làm phép tính, lập khóa dữ liệu hoặc suy ra tiền tệ không?
-5. Khi thêm locale mới, phần lớn thay đổi có tập trung ở resource và presenter, thay vì phải sửa business logic không?
+1. Do stored, computed, and cross-layer data remain accurate if the user switches languages?
+2. Are keys and translations kept in unified resources, with context for translators and clear fallbacks?
+3. Which layer decides `Locale`, `ZoneId`, and formatting rules? Are those decisions passed explicitly to the rendering point?
+4. Is translated text ever used to compare statuses, perform calculations, key data, or infer currency?
+5. When adding a new locale, are most changes concentrated in resources and presenters rather than modifying business logic?
 
-Một thiết kế đạt mục tiêu khi có thể giữ nguyên **đơn hàng và quy tắc nghiệp vụ**, bổ sung một bundle ngôn ngữ mới và điều chỉnh lớp trình bày mà không phải viết lại cách xử lý dữ liệu.
+A design succeeds when you can keep **orders and business rules** intact, add a new language bundle, and adjust the presentation layer without rewriting data processing.

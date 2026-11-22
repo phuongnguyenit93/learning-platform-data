@@ -1,51 +1,51 @@
-# Phân biệt nối chuỗi hằng và nối giá trị lúc chạy trong Java
+# Distinguishing Constant String Concatenation from Runtime Value Concatenation in Java
 
-Phép toán `+` có thể nối các `String` thành một chuỗi mới, nhưng **không phải mọi biểu thức nối chuỗi đều được tính ở cùng thời điểm**. Java phân biệt:
+The `+` operator can concatenate `String` values into a new string, but **not every string concatenation expression is evaluated at the same time**. Java distinguishes:
 
-- **Nối chuỗi bằng biểu thức hằng tại thời điểm biên dịch** (*compile-time constant expression*): trình biên dịch có thể tính trước toàn bộ kết quả. `"Java" + "Core"` được xem như chuỗi literal `"JavaCore"` và kết quả hằng được **intern**.
-- **Nối chuỗi lúc chương trình chạy** (*runtime concatenation*): có ít nhất một toán hạng không tạo thành biểu thức hằng theo quy tắc ngôn ngữ. Giá trị chuỗi được ghép khi thực thi, ngay cả khi tại thời điểm đó nó có nội dung giống một literal có sẵn.
+- **Compile-time constant expression string concatenation**: the compiler can compute the entire result ahead of time. `"Java" + "Core"` is treated like the string literal `"JavaCore"` and the constant result is **interned**.
+- **Runtime concatenation**: at least one operand does not form a constant expression under the language rules. The string value is assembled at execution time, even if at that moment it has the same content as an existing literal.
 
-Sự khác biệt quan trọng khi học **String Pool, `intern()`, tính chất `final`, so sánh `==` và `equals()`**, cũng như khi đọc bytecode và đánh giá chi phí nối chuỗi.
+This distinction matters when learning **the String Pool, `intern()`, `final` semantics, `==` and `equals()` comparisons**, as well as when reading bytecode and evaluating concatenation cost.
 
-## 1. Ranh giới giữa nối hằng và nối runtime
+## 1. The Boundary Between Constant and Runtime Concatenation
 
-**Nối hằng** chỉ xảy ra khi toàn bộ biểu thức thỏa định nghĩa *constant expression* của Java: compiler xác định giá trị trước khi chương trình chạy. **Nối runtime** cần đọc giá trị không phải constant expression lúc thực thi; kết quả có thể cùng nội dung literal nhưng không tự động được intern.
+**Constant concatenation** occurs only when the entire expression satisfies Java's definition of a *constant expression*: the compiler determines the value before the program runs. **Runtime concatenation** needs to read non-constant-expression values during execution; the result may have the same content as a literal, yet it is not automatically interned.
 
 ~~~java
 String literal = "Java";
-String folded = "Ja" + "va";       // Hằng tại biên dịch
+String folded = "Ja" + "va";       // Compile-time constant
 final String constant = "Ja";
 String foldedFinal = constant + "va";
 String variable = "Ja";
-String runtime = variable + "va";   // Nối lúc chạy
+String runtime = variable + "va";   // Runtime concatenation
 ~~~
 
-`folded == literal` và `foldedFinal == literal` là `true`, còn `runtime == literal` là `false`; `runtime.equals(literal)` vẫn `true`. `final String` chỉ trở thành **constant variable** khi được khai báo kèm initializer là constant expression; `final String s = new String("Ja")` không thỏa. Bài về biểu thức hằng đã đi sâu vào các ngoại lệ, cách compiler nội tuyến hằng và ảnh hưởng đến API.
+`folded == literal` and `foldedFinal == literal` are `true`, whereas `runtime == literal` is `false`; `runtime.equals(literal)` is still `true`. A `final String` becomes a **constant variable** only when declared with an initializer that is a constant expression; `final String s = new String("Ja")` does not qualify. The lesson on constant expressions already covered the exceptions, how the compiler inlines constants, and the impact on APIs.
 
-Trọng tâm tiếp theo là phép nối **khi runtime thực thi**, thứ tự dấu `+`, bytecode và kỹ thuật nối nhiều phần.
+The focus next is concatenation **at runtime**, the evaluation order of `+`, bytecode, and techniques for joining multiple parts.
 
-## 2. Liên hệ với String Pool và phép so sánh
+## 2. Relationship to the String Pool and Comparisons
 
-**String Pool** là cơ chế Java duy trì một phiên bản chuẩn (*canonical representation*) cho các chuỗi đã được intern. Chuỗi literal và chuỗi kết quả của constant expression kiểu `String` được intern theo ngữ nghĩa ngôn ngữ. Hai biểu thức hằng có cùng nội dung vì vậy có thể tham chiếu cùng đối tượng `String`.
+The **String Pool** is the mechanism Java uses to maintain a *canonical representation* for interned strings. String literals and strings resulting from constant expressions of type `String` are interned according to language semantics. Two constant expressions with the same content can therefore reference the same `String` object.
 
-Với nối lúc chạy, nội dung có thể giống hệt chuỗi trong pool, nhưng **không vì thế mà phép nối tự động sử dụng tham chiếu trong pool**.
+With runtime concatenation, the content can be identical to a string in the pool, but **that alone does not make the concatenation automatically use the pooled reference**.
 
-Hãy biên dịch cả class sau bằng Java 17+.
+Let's compile the following full class with Java 17+.
 
-Lưu tệp `ConcatIdentityDemo.java`:
+Save the file `ConcatIdentityDemo.java`:
 
 ```java
 public class ConcatIdentityDemo {
     public static void main(String[] args) {
         String pooled = "JavaCore";
 
-        // Hai cách tạo constant expression
+        // Two ways to write constant expressions
         String folded = "Java" + "Core";
         final String constantPrefix = "Java";
         final String constantSuffix = "Core";
         String foldedFinals = constantPrefix + constantSuffix;
 
-        // Hai cách nối lúc chạy
+        // Two ways to perform runtime concatenation
         String variablePrefix = "Java";
         String runtime = variablePrefix + "Core";
 
@@ -62,14 +62,14 @@ public class ConcatIdentityDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 ConcatIdentityDemo.java
 java ConcatIdentityDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -80,22 +80,22 @@ false
 true
 ```
 
-Giải thích theo từng dòng:
+Line-by-line explanation:
 
-1. `folded == pooled` là `true` vì `"Java" + "Core"` được gộp thành chuỗi hằng `"JavaCore"` và dùng tham chiếu interned.
-2. `foldedFinals == pooled` là `true` vì hai biến `final` nhận initializer là literal, nên là constant variables; `constantPrefix + constantSuffix` cũng là biểu thức hằng.
-3. `runtime == pooled` là `false`: `variablePrefix` không phải constant variable, phép nối diễn ra lúc chạy và kết quả không tự động là đối tượng interned `"JavaCore"`.
-4. `runtime.equals(pooled)` là `true`: hai chuỗi chứa **cùng nội dung**.
-5. `runtimeFinal == pooled` là `false`: `new String("Java")` được đánh giá khi chạy; có `final` cũng không làm biểu thức nối thành hằng biên dịch.
-6. `runtimeFinal.intern() == pooled` là `true`: `intern()` trả về tham chiếu canonical trong pool ứng với nội dung `"JavaCore"`.
+1. `folded == pooled` is `true` because `"Java" + "Core"` is folded into the constant string `"JavaCore"` and uses the interned reference.
+2. `foldedFinals == pooled` is `true` because both `final` variables receive literal initializers, making them constant variables; `constantPrefix + constantSuffix` is also a constant expression.
+3. `runtime == pooled` is `false`: `variablePrefix` is not a constant variable, concatenation occurs at runtime, and the result is not automatically the interned `"JavaCore"` object.
+4. `runtime.equals(pooled)` is `true`: the two strings contain **the same content**.
+5. `runtimeFinal == pooled` is `false`: `new String("Java")` is evaluated at runtime; having `final` does not make the concatenation expression a compile-time constant.
+6. `runtimeFinal.intern() == pooled` is `true`: `intern()` returns the canonical reference in the pool corresponding to the content `"JavaCore"`.
 
-**Không dùng `==` để so sánh nội dung chuỗi.** `==` so tham chiếu đến đối tượng, nên hai `String` cùng chữ có thể cho kết quả khác nhau tùy đường tạo chuỗi. `equals()` so nội dung; với hai giá trị có thể chứa `null`, dùng `Objects.equals(a, b)` nếu muốn kết quả boolean an toàn.
+**Do not use `==` to compare string content.** `==` compares object references, so two `String` objects with identical text can give different results depending on how they were created. `equals()` compares content; for two values that may be `null`, use `Objects.equals(a, b)` when you want a safe boolean result.
 
-## 3. Phép cộng số và thứ tự đánh giá khi nối chuỗi
+## 3. Numeric Addition and Evaluation Order in String Concatenation
 
-`+` có thể là **cộng số học** hoặc **nối chuỗi** tùy kiểu toán hạng. Java đánh giá biểu thức theo thứ tự, và dấu ngoặc có thể làm thay đổi kết quả.
+`+` can be **arithmetic addition** or **string concatenation** depending on operand types. Java evaluates expressions in order, and parentheses can change the outcome.
 
-Ví dụ độc lập ở `ConcatOrderDemo.java`:
+Standalone example in `ConcatOrderDemo.java`:
 
 ```java
 public class ConcatOrderDemo {
@@ -114,14 +114,14 @@ public class ConcatOrderDemo {
 }
 ```
 
-Lệnh:
+Commands:
 
 ```bash
 javac -encoding UTF-8 ConcatOrderDemo.java
 java ConcatOrderDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 A12
@@ -132,60 +132,60 @@ false
 true
 ```
 
-- `"A" + 1 + 2` thực hiện nối từ trái sang phải, thành `"A1"` rồi `"A12"`.
-- `1 + 2 + "A"` cộng hai số thành `3` trước, rồi nối `"A"`, được `"3A"`.
-- `"A" + (1 + 2)` buộc cộng trong ngoặc, nên được `"A3"`.
-- `constantNumber` là constant variable (kiểu `int`, `final`, khởi tạo bằng literal), nên `"v" + constantNumber` là constant expression và đã được intern.
-- `variableNumber` không phải constant variable, nên `"v" + variableNumber` được thực hiện lúc chạy; so nội dung vẫn bằng `true` với `equals()`.
+- `"A" + 1 + 2` concatenates from left to right, becoming `"A1"` and then `"A12"`.
+- `1 + 2 + "A"` adds the two numbers to get `3` first, then concatenates `"A"`, yielding `"3A"`.
+- `"A" + (1 + 2)` forces addition inside parentheses, yielding `"A3"`.
+- `constantNumber` is a constant variable (type `int`, `final`, initialized with a literal), so `"v" + constantNumber` is a constant expression and is already interned.
+- `variableNumber` is not a constant variable, so `"v" + variableNumber` is performed at runtime; content comparison with `equals()` still yields `true`.
 
-Một phép tính có thể tạo ra kết quả đúng về nội dung nhưng diễn ra lúc chạy. **“Biểu thức tạo chuỗi cố định ở lần chạy này”** không đồng nghĩa với **“constant expression theo JLS”**.
+An expression can produce the exact same content yet execute at runtime. **"The expression produces a fixed string during this run"** does not mean **"a constant expression under the JLS."**
 
-## 4. Nhìn từ lúc biên dịch và bytecode
+## 4. Looking at Compilation and Bytecode
 
-Ở cấp ngôn ngữ Java, điểm cần phân biệt là **khi nào kết quả là constant expression**; cách compiler/JVM thực hiện phép nối lúc chạy là chi tiết triển khai.
+At the Java language level, the key distinction is **when the result is a constant expression**; how the compiler and JVM execute runtime concatenation is an implementation detail.
 
-Với `javac` hiện đại trên Java 17+, lệnh:
+With modern `javac` on Java 17+, the command:
 
 ```bash
 javap -c -p ConcatIdentityDemo
 ```
 
-cho phép xem bytecode của class đã biên dịch. Những dấu hiệu thường gặp:
+lets you inspect the bytecode of the compiled class. Common signs:
 
-- Với `"Java" + "Core"`, có thể thấy mã nạp literal đã gộp `"JavaCore"`, chẳng hạn instruction `ldc`; không cần một phép nối runtime để hình thành kết quả này.
-- Với `variablePrefix + "Core"`, `javac` hiện đại thường tạo `invokedynamic`, bootstrap qua `java.lang.invoke.StringConcatFactory`. Thông tin nối chuỗi/đối số được dùng khi chương trình chạy.
-- Các trình biên dịch hoặc phiên bản Java cũ có thể sinh `StringBuilder.append(...)` để nối lúc chạy. Java 9+ đã đưa ra chiến lược dựa trên `invokedynamic` qua JEP 280; vì vậy **không nên khẳng định mọi phép nối runtime đều được biên dịch thành `new StringBuilder()` trong bytecode**.
-- JIT/JVM có thể tối ưu phân bổ và ghép chuỗi trong lúc chạy mà không làm thay đổi ngữ nghĩa chương trình. Không suy ra số lần cấp phát thực tế chỉ từ một đoạn mã nguồn hoặc một phép đo `==`.
+- For `"Java" + "Core"`, you can see code loading the already-folded literal `"JavaCore"`, such as an `ldc` instruction; no runtime concatenation is needed to form this result.
+- For `variablePrefix + "Core"`, modern `javac` typically emits `invokedynamic`, bootstrapped via `java.lang.invoke.StringConcatFactory`. The concatenation recipe and arguments are used when the program runs.
+- Older compilers or Java versions may emit `StringBuilder.append(...)` for runtime concatenation. Java 9+ introduced the `invokedynamic`-based strategy via JEP 280; therefore **you should not claim that every runtime concatenation compiles to `new StringBuilder()` in bytecode**.
+- The JIT/JVM can optimize allocations and string assembly at runtime without changing program semantics. Do not infer the actual number of allocations solely from a source snippet or a `==` check.
 
-Mô hình tư duy:
+Mental model:
 
 ```text
 "Java" + "Core"
-    -> toàn constant expression
-    -> compiler tính "JavaCore"
-    -> tham chiếu tới kết quả hằng được intern
+    -> entirely a constant expression
+    -> compiler computes "JavaCore"
+    -> reference points to the interned constant result
 
 variablePrefix + "Core"
-    -> có toán hạng không phải compile-time constant
-    -> phép nối runtime
-    -> tạo nội dung mới theo giá trị hiện tại
-    -> KHÔNG mặc nhiên nhận tham chiếu String Pool
+    -> has an operand that is not a compile-time constant
+    -> runtime concatenation
+    -> creates new content from the current value
+    -> does NOT automatically receive a String Pool reference
 ```
 
-Hai đường đi có thể cho **chuỗi ký tự giống nhau**, nhưng cách xác định thời điểm nối và quan hệ tham chiếu với pool là khác nhau.
+The two paths can yield **the same character sequence**, but how the concatenation time is determined and how the reference relates to the pool differ.
 
-## 5. Tương tác với toán tử `+=`, vòng lặp và StringBuilder
+## 5. Interaction with `+=`, Loops, and StringBuilder
 
-`+=` trên `String` có ý nghĩa tương đương về mặt nối chuỗi với việc lấy giá trị hiện tại rồi nối thêm phần mới, sau đó gán lại biến.
+On `String`, `+=` is equivalent in concatenation semantics to taking the current value, appending the new part, and reassigning the variable.
 
 ```java
 String value = "a";
-value += "b"; // giá trị hiện tại + "b", được đánh giá lúc chạy
+value += "b"; // current value + "b", evaluated at runtime
 ```
 
-`value` là biến thông thường, không phải constant variable. Kể cả sau câu lệnh, `value` có nội dung `"ab"`, **không nên dựa trên tham chiếu của nó** khi so với literal `"ab"`.
+`value` is an ordinary variable, not a constant variable. Even though after the statement `value` has the content `"ab"`, **you must not rely on its reference** when comparing against the literal `"ab"`.
 
-Với các đoạn nối cố định và ngắn, toán tử `+` đọc dễ và `javac`/JVM có cơ chế tối ưu. Nhưng khi nối lặp lại nhiều phần bằng một biến tích lũy, nên cân nhắc `StringBuilder` để tránh tạo các chuỗi trung gian lặp đi lặp lại:
+For fixed, short concatenations, the `+` operator is easy to read and `javac`/the JVM optimize it. However, when repeatedly concatenating many parts into an accumulator variable, consider `StringBuilder` to avoid repeatedly creating intermediate strings:
 
 ```java
 import java.util.List;
@@ -206,45 +206,45 @@ public class JoinPartsDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 JoinPartsDemo.java
 java JoinPartsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Java Core
 true
 ```
 
-`StringBuilder` gom các phần có thể thay đổi vào vùng đệm, phù hợp với vòng lặp nhiều lần; `toString()` trả về `String` kết quả. Với các trường hợp kết hợp chuỗi bằng dấu phân tách, `String.join(...)` hoặc `Collectors.joining(...)` có thể diễn đạt ý định rõ hơn. Không dùng benchmark đơn lẻ hoặc suy đoán từ `+` để kết luận chắc chắn mức hiệu năng; cần đo với khối lượng thực tế khi tối ưu là yêu cầu.
+`StringBuilder` collects mutable parts in a buffer, making it well suited for multi-iteration loops; `toString()` returns the resulting `String`. When combining strings with a delimiter, `String.join(...)` or `Collectors.joining(...)` can express intent more clearly. Do not use isolated microbenchmarks or guesses about `+` to draw definitive performance conclusions; measure under realistic workloads when optimization is required.
 
-## 6. Quy trình kiểm tra trong bài tập và thực tế
+## 6. Checklist for Exercises and Practice
 
-Khi bắt gặp một phép nối chuỗi, hãy tự hỏi theo thứ tự:
+When you encounter a string concatenation, ask yourself in order:
 
-1. **Tất cả toán hạng có tham gia constant expression không?** Phân biệt literal, phép toán hằng được phép và constant variable với dữ liệu từ biến/phương thức.
-2. **Kết quả có được tính lúc biên dịch hay phải chờ chạy?** Nếu toàn bộ là constant expression kiểu `String` thì được gộp và intern theo quy tắc Java; nếu không thì là nối runtime.
-3. **Đang kiểm tra nội dung hay tham chiếu?** Dùng `equals()` cho nội dung; chỉ dùng `==` nếu mục tiêu thực sự là danh tính đối tượng hoặc tìm hiểu intern.
-4. **Đang ghép một biểu thức ngắn hay một vòng lặp dài?** Viết `+` cho mã đơn giản, `StringBuilder`/công cụ join khi có nhiều phần hoặc tích lũy liên tục.
-5. **Cần khẳng định chiến lược compiler/JVM không?** Xem bytecode bằng `javap` và kiểm thử trên JDK mục tiêu; đừng biến dấu hiệu của một phiên bản thành quy tắc áp dụng cho mọi bản Java.
+1. **Do all operands participate in a constant expression?** Distinguish literals, allowed constant operations, and constant variables from data coming from non-constant variables or methods.
+2. **Is the result computed at compile time or must it wait until runtime?** If the whole expression is a constant expression of type `String`, it is folded and interned according to Java rules; otherwise, it is runtime concatenation.
+3. **Are you checking content or reference?** Use `equals()` for content; use `==` only if the goal is genuinely object identity or studying interning.
+4. **Are you joining a short expression or a long loop?** Write `+` for simple code, and `StringBuilder`/joining utilities when there are many parts or continuous accumulation.
+5. **Do you need to verify the compiler/JVM strategy?** Inspect bytecode with `javap` and test on the target JDK; do not turn an observation from one version into a universal rule for all Java releases.
 
-### Tự kiểm tra
+### Self-check
 
-| Biểu thức | Constant expression? | Lý do |
+| Expression | Constant expression? | Reason |
 | --- | --- | --- |
-| `"a" + "b"` | Có | Chỉ gồm literal |
-| `"n=" + (2 * 3)` | Có | Phép toán số học là hằng |
-| `final String a = "a"; a + "b"` | Có | `a` là constant variable |
-| `String a = "a"; a + "b"` | Không | `a` không có `final` |
-| `final String a = new String("a"); a + "b"` | Không | Initializer của `a` được tính lúc chạy |
-| `"a" + args.length` | Không | `args.length` chỉ biết lúc chạy |
-| `String.valueOf(1) + "a"` | Không | Có lời gọi phương thức |
-| `"v" + 1` | Có | Literal `String` + literal nguyên thủy |
+| `"a" + "b"` | Yes | Consists solely of literals |
+| `"n=" + (2 * 3)` | Yes | Arithmetic operation is constant |
+| `final String a = "a"; a + "b"` | Yes | `a` is a constant variable |
+| `String a = "a"; a + "b"` | No | `a` is not `final` |
+| `final String a = new String("a"); a + "b"` | No | Initializer of `a` is evaluated at runtime |
+| `"a" + args.length` | No | `args.length` is only known at runtime |
+| `String.valueOf(1) + "a"` | No | Contains a method call |
+| `"v" + 1` | Yes | `String` literal + primitive literal |
 
-Các dòng có khai báo biến trong bảng là **đoạn mã minh họa đặt trong cùng scope**; đây không phải các biểu thức Java độc lập có thể copy nguyên bảng vào một file `.java`.
+The rows containing variable declarations in the table are **illustrative snippets placed within the same scope**; they are not standalone Java expressions that you can copy verbatim from the table into a `.java` file.
 
-**Ghi nhớ:** Nối hằng là trường hợp compiler xác định toàn bộ nội dung từ *constant expression* và kết quả được intern. Nối lúc chạy sử dụng giá trị thật khi thực thi, không mặc nhiên chia sẻ đối tượng trong String Pool. Việc so sánh hai `String` nên dựa vào **`equals()`**, không dựa vào sự tình cờ của `==`.
+**Remember:** Constant concatenation occurs when the compiler determines the entire content from a *constant expression* and the result is interned. Runtime concatenation uses actual execution-time values and does not automatically share an object in the String Pool. Comparing two `String` values should rely on **`equals()`**, not on the coincidence of `==`.

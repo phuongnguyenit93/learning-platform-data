@@ -1,8 +1,8 @@
-# `for` với phần khởi tạo, điều kiện và cập nhật — Java 17+
+# `for` with initialization, condition, and update — Java 17+
 
-## 1. Vòng lặp `for` truyền thống là gì?
+## 1. What is the traditional `for` loop?
 
-Trong Java, `for` truyền thống (*basic for statement*) thích hợp khi cần **khởi tạo trạng thái**, **kiểm tra điều kiện trước mỗi lượt**, rồi **cập nhật trạng thái sau lượt**. Cú pháp:
+In Java, the traditional `for` (*basic for statement*) is suitable when you need to **initialize state**, **check a condition before each iteration**, and then **update state after the iteration**. Syntax:
 
 ~~~java
 for (initialization; condition; update) {
@@ -10,7 +10,7 @@ for (initialization; condition; update) {
 }
 ~~~
 
-Ví dụ đếm từ 0 đến 2:
+Example counting from 0 to 2:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -26,43 +26,43 @@ i=1
 i=2
 ~~~
 
-| Thành phần | Ví dụ | Vai trò |
+| Component | Example | Role |
 |---|---|---|
-| **Khởi tạo** (*initialization*) | `int i = 0` | Chạy **một lần** trước lượt đầu |
-| **Điều kiện** (*condition*) | `i < 3` | Kiểm tra **trước mỗi lượt**, phải là `boolean` hoặc `Boolean` có thể unboxing |
-| **Cập nhật** (*update*) | `i++` | Chạy **sau thân vòng lặp**, trước khi kiểm tra điều kiện tiếp |
-| **Thân vòng lặp** (*body*) | `System.out.println(...)` | Chạy khi điều kiện đúng |
+| **Initialization** (*initialization*) | `int i = 0` | Runs **once** before the first iteration |
+| **Condition** (*condition*) | `i < 3` | Checked **before each iteration**; must be `boolean` or an unboxable `Boolean` |
+| **Update** (*update*) | `i++` | Runs **after the loop body**, before checking the next condition |
+| **Loop body** (*body*) | `System.out.println(...)` | Runs when the condition is true |
 
-Dấu chấm phẩy giữa ba phần trong ngoặc là **bắt buộc** ngay cả khi một phần bị bỏ trống. Đừng nhầm với `for (Type item : collection)` (*enhanced for*), có cú pháp và mục tiêu khác.
+The semicolons between the three parts in parentheses are **mandatory** even if a part is left empty. Do not confuse it with `for (Type item : collection)` (*enhanced for*), which has different syntax and purpose.
 
-## 2. Thứ tự thực thi chính xác
+## 2. Exact execution order
 
-Với `for (int i = 0; i < 2; i++)`, thứ tự là:
+For `for (int i = 0; i < 2; i++)`, the order is:
 
 ~~~text
-Khởi tạo i = 0 (một lần)
+Initialize i = 0 (once)
     ↓
-Kiểm tra i < 2
-    ├── false → kết thúc for
+Check i < 2
+    ├── false → exit for
     └── true
           ↓
-       Thân vòng lặp
+       Loop body
           ↓
-       Cập nhật i++
+       Update i++
           ↓
-       Quay lại kiểm tra i < 2
+       Go back to check i < 2
 ~~~
 
 ~~~mermaid
 flowchart TD
-    A["Chạy initialization một lần"] --> B{"condition đúng?"}
-    B -- "Không" --> E["Rời vòng for"]
-    B -- "Có" --> C["Chạy body"]
-    C --> D["Chạy update"]
+    A["Run initialization once"] --> B{"condition true?"}
+    B -- "No" --> E["Exit for loop"]
+    B -- "Yes" --> C["Run body"]
+    C --> D["Run update"]
     D --> B
 ~~~
 
-Có thể quan sát từng bước bằng hàm in log:
+You can observe each step using logging methods:
 
 ~~~java
 static int init() {
@@ -80,7 +80,7 @@ static int next(int i) {
     return i + 1;
 }
 
-// Trong main:
+// In main:
 for (int i = init(); check(i); i = next(i)) {
     System.out.println("body " + i);
 }
@@ -99,11 +99,11 @@ update 1
 check 2
 ~~~
 
-**Điểm cần nhớ:** Sau lượt cuối vẫn có bước **update**, rồi **condition** được kiểm tra và trả false. Khi điều kiện ban đầu false thì body và update **không chạy**.
+**Key point to remember:** After the last pass there is still an **update** step, and then **condition** is checked and returns false. When the condition is initially false, body and update **do not run**.
 
-## 3. Phần khởi tạo: chỉ chạy một lần
+## 3. Initialization part: runs only once
 
-Phần `initialization` thường khai báo và khởi tạo biến đếm:
+The `initialization` part typically declares and initializes a counter variable:
 
 ~~~java
 for (int index = 0; index < 4; index++) {
@@ -111,19 +111,19 @@ for (int index = 0; index < 4; index++) {
 }
 ~~~
 
-Biến đếm cũng có thể được **khai báo từ trước**:
+The counter variable can also be **declared beforehand**:
 
 ~~~java
 int index = 0;
 for (; index < 3; index++) {
-    // Dùng biến index đã có.
+    // Use the existing index variable.
 }
 System.out.println(index); // 3
 ~~~
 
-Lúc đó initialization bị bỏ trống nhưng **dấu `;` đầu vẫn phải có**.
+In that case initialization is omitted, but **the first `;` must still be present**.
 
-Java còn cho khai báo **nhiều biến cùng một kiểu** trong phần khởi tạo:
+Java also allows declaring **multiple variables of the same type** in the initialization part:
 
 ~~~java
 for (int left = 0, right = 6; left < right; left++, right--) {
@@ -139,18 +139,18 @@ for (int left = 0, right = 6; left < right; left++, right--) {
 2:4
 ~~~
 
-Không khai báo hai kiểu khác nhau trong **cùng một danh sách khai báo**:
+You cannot declare two different types in **the same declaration list**:
 
 ~~~java
-// Không hợp lệ:
+// Invalid:
 // for (int i = 0, long j = 3; i < 3; i++) { }
 ~~~
 
-Nếu cần các loại biến khác nhau, khai báo chúng trước `for`.
+If variables of different types are needed, declare them before the `for`.
 
-## 4. Phần điều kiện: kiểu boolean, được xét trước mỗi lượt
+## 4. Condition part: boolean type, checked before each iteration
 
-Ví dụ:
+Example:
 
 ~~~java
 int count = 0;
@@ -160,16 +160,16 @@ for (int i = 5; i < 5; i++) {
 System.out.println(count); // 0
 ~~~
 
-Vì `5 < 5` sai ngay lúc bắt đầu nên không có lượt lặp nào.
+Because `5 < 5` is false right at the start, there are no loop iterations.
 
-Java không có kiểu “truthy” theo nghĩa số khác 0 tự thành true:
+Java has no “truthy” concept where non-zero numbers automatically become true:
 
 ~~~java
-// Sai: int không dùng trực tiếp làm điều kiện.
+// Wrong: int cannot be used directly as a condition.
 // for (int i = 3; i; i--) { }
 ~~~
 
-Sửa bằng điều kiện boolean rõ ràng:
+Fix with an explicit boolean condition:
 
 ~~~java
 for (int i = 3; i != 0; i--) {
@@ -185,11 +185,11 @@ for (int i = 3; i != 0; i--) {
 1
 ~~~
 
-Nếu điều kiện là `Boolean` có thể null, Java sẽ cần **unboxing** lúc xét; null gây `NullPointerException`. Trong vòng lặp cơ bản nên dùng `boolean` nguyên thủy hoặc xử lý null có chủ đích.
+If the condition is a potentially null `Boolean`, Java will need **unboxing** during evaluation; null causes a `NullPointerException`. In basic loops, use primitive `boolean` or handle null intentionally.
 
-## 5. Phần cập nhật: chạy sau body, không phải trước body
+## 5. Update part: runs after the body, not before the body
 
-Cập nhật thường là `i++`, `i--`, `i += 2` hoặc một danh sách các biểu thức cập nhật:
+The update is usually `i++`, `i--`, `i += 2`, or a list of update expressions:
 
 ~~~java
 for (int i = 0; i <= 6; i += 2) {
@@ -206,7 +206,7 @@ for (int i = 0; i <= 6; i += 2) {
 6
 ~~~
 
-Nếu danh sách cập nhật có hai biểu thức:
+If the update list has two expressions:
 
 ~~~java
 for (int a = 0, b = 4; a < b; a++, b--) {
@@ -221,19 +221,19 @@ for (int a = 0, b = 4; a < b; a++, b--) {
 1/3
 ~~~
 
-Các biểu thức cập nhật được thực thi **theo thứ tự từ trái sang phải**. Trong vị trí update, `i++` và `++i` có cùng tác dụng lên `i` khi kết quả biểu thức không được dùng, dù ở ngữ cảnh khác hậu tố và tiền tố có thể trả giá trị khác nhau.
+Update expressions are executed **in order from left to right**. In the update position, `i++` and `++i` have the same effect on `i` when the expression result is unused, although in other contexts postfix and prefix can return different values.
 
-**Không phải** mọi biểu thức Java đều được dùng tùy ý ở initializer/update: danh sách này phải gồm những *statement expressions* hợp lệ, chẳng hạn gán, tăng/giảm, gọi phương thức hay tạo đối tượng; không thể đặt trần `i + 1` để thay `i++`.
+**Not** every Java expression can be used arbitrarily in initializer/update: this list must consist of valid *statement expressions*, such as assignment, increment/decrement, method invocation, or object creation; you cannot put a bare `i + 1` instead of `i++`.
 
-## 6. Có thể bỏ trống ba thành phần, nhưng phải kiểm soát kết thúc
+## 6. All three parts can be omitted, but termination must be controlled
 
-Một hoặc nhiều thành phần của `for` có thể bỏ trống:
+One or more parts of `for` can be left empty:
 
 ~~~java
 int cursor = 0;
 for (; cursor < 3;) {
     System.out.println(cursor);
-    cursor++; // Cập nhật bên trong body.
+    cursor++; // Update inside the body.
 }
 ~~~
 
@@ -245,7 +245,7 @@ for (; cursor < 3;) {
 2
 ~~~
 
-Nếu bỏ hẳn điều kiện, nó được xem là **luôn true**:
+If the condition is omitted completely, it is treated as **always true**:
 
 ~~~java
 int attempts = 0;
@@ -258,18 +258,18 @@ for (;;) {
 System.out.println(attempts); // 3
 ~~~
 
-`for (;;)` là dạng vòng lặp vô hạn theo cú pháp; muốn có điểm thoát phải thiết kế `break`, `return`, `throw` hoặc cơ chế dừng khác.
+`for (;;)` is a syntactic infinite loop; to have an exit point, you must design a `break`, `return`, `throw`, or other stopping mechanism.
 
-**Nguy cơ:** `for (int i = 0; i < 3; )` mà body không tăng `i` có thể không bao giờ kết thúc nếu không có đường thoát khác. Bỏ trống update chỉ nên dùng khi cơ chế thay đổi điều kiện nằm ở nơi rõ ràng.
+**Risk:** `for (int i = 0; i < 3; )` where the body does not increment `i` may never terminate if there is no other exit path. Leaving the update empty should only be done when the mechanism changing the condition is in a clear location.
 
-## 7. `break` và `continue` tác động đến update ra sao?
+## 7. How do `break` and `continue` affect update?
 
-Trong **basic for**:
+In **basic for**:
 
-- `break;` thoát ngay vòng lặp; không chạy phần update của lượt đang bị ngắt.
-- `continue;` bỏ phần còn lại của body, nhưng **vẫn chạy update của for**, sau đó mới kiểm tra điều kiện lượt kế.
-- `return` kết thúc phương thức; không tiếp tục update của vòng lặp ấy.
-- Nếu có exception làm thoát vòng lặp, update cũng không tự chạy như một phần `finally`.
+- `break;` immediately exits the loop; the update part of the interrupted iteration does not run.
+- `continue;` skips the rest of the body, but **still runs the `for` update**, and then checks the condition for the next iteration.
+- `return` exits the method; it does not continue the update of that loop.
+- If an exception causes the loop to exit, the update also does not run automatically like a `finally` block.
 
 ~~~java
 for (int i = 0; i < 5; i++) {
@@ -295,39 +295,39 @@ visit=3
 break=4
 ~~~
 
-Sau `continue=2`, update `i++` vẫn diễn ra nên lượt kế là 3. Sau `break=4`, vòng lặp kết thúc ngay.
+After `continue=2`, the `i++` update still happens, so the next pass is 3. After `break=4`, the loop terminates immediately.
 
-**Phân biệt với `while`:** khi tự đặt `i++` cuối body của `while`, một `continue` ở phía trước có thể bỏ qua thao tác tăng và gây lặp mãi. Với `for` truyền thống, update nằm ở phần thứ ba vẫn được chạy sau `continue` thông thường.
+**Distinction from `while`:** when manually placing `i++` at the end of a `while` body, an earlier `continue` can skip the increment and cause an infinite loop. With traditional `for`, the update in the third part still executes after a normal `continue`.
 
-## 8. Phạm vi biến đếm: khai báo ở trong hay ngoài `for`?
+## 8. Counter variable scope: declare inside or outside `for`?
 
-Một biến được khai báo trong `ForInit` dùng được ở điều kiện, phần cập nhật và thân của **chính** vòng đó; nó không còn thuộc phạm vi sau vòng:
+A variable declared in `ForInit` can be used in the condition, update part, and body of **that** loop itself; it is no longer in scope after the loop:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
     System.out.println(i);
 }
-// System.out.println(i); // Không biên dịch: i đã ngoài phạm vi.
+// System.out.println(i); // Does not compile: i is out of scope.
 ~~~
 
-Nếu ứng dụng cần biết giá trị cuối sau vòng, khai báo biến **trước** `for`:
+If the application needs to know the final value after the loop, declare the variable **before** `for`:
 
 ~~~java
 int index = 0;
 for (; index < 3; index++) {
-    // Có thể dùng index ở đây.
+    // Can use index here.
 }
 System.out.println(index); // 3.
 ~~~
 
-Không khai báo lại biến cục bộ cùng tên khi phạm vi còn chồng lấn. Biến đếm đang thay đổi trong `update` cũng không phải biến **effectively final** để lambda bắt trực tiếp; có thể sao chép giá trị của nó vào một biến cục bộ trong từng lượt nếu cần.
+Do not redeclare a local variable with the same name while scopes overlap. A counter variable being modified in `update` is also not **effectively final** to be captured directly by a lambda; you can copy its value into a local variable on each iteration if needed.
 
-Ở bài này, phạm vi là điều cần nhớ để dùng đúng ba thành phần `for`. Bài **vòng đời biến đếm** đi sâu vào thời điểm khởi tạo lại, `continue`/`break`, phạm vi lồng nhau và truy vết biến theo từng lượt.
+In this lesson, scope is what you need to remember to use the three `for` parts properly. The **counter variable lifecycle** lesson goes deeper into re-initialization timing, `continue`/`break`, nested scopes, and tracing variables iteration by iteration.
 
 
-## 9. Duyệt mảng với đúng biên
+## 9. Iterating arrays with proper bounds
 
-Mảng dài `n` chỉ có chỉ số hợp lệ `0..n-1`:
+An array of length `n` only has valid indices `0..n-1`:
 
 ~~~java
 int[] values = {4, 7, 9};
@@ -338,12 +338,12 @@ for (int i = 0; i < values.length; i++) {
 System.out.println(total); // 20.
 ~~~
 
-Điều kiện đúng để **đọc phần tử** là `i < values.length`, không phải `i <= values.length`: ở lượt `i == length`, truy cập `values[i]` sẽ ném `ArrayIndexOutOfBoundsException`. Ngược lại, khi bài toán thật sự cần **bao gồm** đầu mút, `<=` hoàn toàn có thể đúng.
+The right condition for **reading elements** is `i < values.length`, not `i <= values.length`: on the `i == length` pass, accessing `values[i]` will throw `ArrayIndexOutOfBoundsException`. Conversely, when a problem genuinely needs to **include** the endpoint, `<=` can be completely right.
 
-Duyệt ngược từ cuối mảng thường viết `for (int i = values.length - 1; i >= 0; i--)`; mảng rỗng sẽ lặp 0 lượt. Điều kiện đầu, bước cập nhật và biên cuối luôn phải tương thích. Bài **lỗi lệch một đơn vị** phân tích sâu đoạn nửa mở `[start,end)`, truy cập mảng rỗng và kiểm thử biên.
+Reverse iteration from the end of an array is commonly written `for (int i = values.length - 1; i >= 0; i--)`; an empty array will run 0 iterations. The initial condition, update step, and ending bound must always be compatible. The **off-by-one errors** lesson analyzes half-open intervals `[start,end)`, empty array access, and boundary testing in depth.
 
 
-## 10. `for` lồng nhau: initializer của vòng trong chạy lại
+## 10. Nested `for`: the inner loop's initializer runs again
 
 ~~~java
 int cells = 0;
@@ -355,19 +355,19 @@ for (int row = 0; row < 2; row++) {
 System.out.println(cells); // 6.
 ~~~
 
-Ở đây vòng ngoài có 2 lượt; mỗi lượt **khởi tạo lại `col = 0`**, rồi vòng trong chạy 3 lượt. Tổng là `2 × 3 = 6`. Nếu giới hạn vòng trong phụ thuộc `row`, không thể luôn nhân hai kích thước cố định: phải cộng số lượt trong của từng lượt ngoài.
+Here the outer loop has 2 iterations; each iteration **re-initializes `col = 0`**, and then the inner loop runs 3 iterations. The total is `2 × 3 = 6`. If the inner loop bound depends on `row`, you cannot always multiply two fixed sizes: you must sum the inner iterations of each outer iteration.
 
-Với thân chi phí hằng số và cận độc lập `n`, `m`, độ phức tạp là `O(nm)`. Bài **vòng lặp lồng nhau** sẽ truy vết từng cặp biến đếm, duyệt mảng hai chiều không đều và phân biệt `break`/`continue` có nhãn.
+With a constant-cost body and independent bounds `n`, `m`, the complexity is `O(nm)`. The **nested loops** lesson will trace each pair of counters, traverse jagged 2D arrays, and distinguish labeled `break`/`continue`.
 
 
-## 11. Chọn cú pháp để ý định rõ ràng
+## 11. Choosing syntax for clear intent
 
-| Công việc | Lựa chọn thường dễ đọc |
+| Task | Usually readable choice |
 | --- | --- |
-| Cần chỉ số hoặc thay đổi biến đếm rõ ràng | Basic `for (init; condition; update)` |
-| Chỉ cần lần lượt lấy giá trị từng phần tử | Enhanced `for (Type value : array)` |
-| Số lượt phụ thuộc sự kiện/trạng thái bên ngoài | `while` |
-| Phải thử thân ít nhất một lần rồi mới kiểm tra | `do-while` |
+| Need an index or explicit counter changes | Basic `for (init; condition; update)` |
+| Only need to retrieve each element value in sequence | Enhanced `for (Type value : array)` |
+| Iteration count depends on external events/state | `while` |
+| Must try the body at least once before checking | `do-while` |
 
 ~~~java
 int[] numbers = {4, 7, 9};
@@ -379,12 +379,12 @@ for (int value : numbers) {
 }
 ~~~
 
-Enhanced `for` không phơi bày ba thành phần của basic `for`; nếu cần truy cập bằng chỉ số, hãy dùng basic `for`. Với collection, sửa cấu trúc trong lúc đang duyệt còn liên quan tới hợp đồng của iterator. Không có loại vòng nào luôn nhanh hơn các loại khác. Bài **chọn loại vòng lặp** sẽ so sánh điểm kiểm tra điều kiện và các tình huống thực hành.
+Enhanced `for` does not expose the three parts of basic `for`; if you need access by index, use basic `for`. For collections, modifying structure while iterating also involves the iterator's contract. No loop type is universally faster than the others. The **choosing a loop type** lesson will compare condition-check points and practical scenarios.
 
 
-## 12. Chương trình Java 17 hoàn chỉnh
+## 12. Complete Java 17 program
 
-Tạo file **`BasicForThreePartsDemo.java`** với đúng nội dung:
+Create a file **`BasicForThreePartsDemo.java`** with the exact contents:
 
 ~~~java
 public final class BasicForThreePartsDemo {
@@ -485,7 +485,7 @@ public final class BasicForThreePartsDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal ở thư mục chứa file; không dùng thư viện ngoài JDK, Maven hay Gradle.
+**Requirements:** JDK 17 or later, terminal in the directory containing the file; no libraries outside the JDK, Maven, or Gradle.
 
 **Bash (Linux/macOS):**
 
@@ -542,30 +542,30 @@ infinite break=3
 after i=3
 ~~~
 
-Đối chiếu: `init` một lần; `check` chạy trước mỗi body và cả lượt kiểm tra cuối thất bại; `update` chạy sau body bình thường/continue; cặp hai biến kết thúc khi `left == right`; array có `4+7+9=20`; vòng lồng nhau có `2×3=6`; vòng `for (;;)` thoát nhờ `break`.
+Verification: `init` once; `check` runs before every body and also on the final failed check; `update` runs after normal/continue body; the two-variable pair ends when `left == right`; array sums `4+7+9=20`; nested loops have `2×3=6`; the `for (;;)` loop exits via `break`.
 
-## 13. Lỗi thường gặp và cách sửa
+## 13. Common mistakes and fixes
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| Nhầm init chạy mỗi lượt | Hiểu sai thứ tự hoặc chi phí | Init chỉ chạy **một lần** |
-| Nhầm update chạy trước body | Lệch giá trị hiển thị | Order: init → condition → body → update |
-| `i <= array.length` khi lấy `array[i]` | Truy cập vượt cuối mảng | `i < array.length` |
-| `for (int i=0; i; i++)` | Không biên dịch, điều kiện `int` | Dùng biểu thức boolean |
-| Bỏ update mà body cũng không đổi biến | Nguy cơ lặp vô hạn | Thêm cập nhật hoặc đường thoát |
-| Dùng `i++` khi muốn đếm ngược | Sai chiều lặp | Dùng `i--` với điều kiện thích hợp |
-| Tưởng `continue` bỏ cả update trong `for` | Sai luồng điều khiển | Basic `for` vẫn thực hiện update |
-| Tưởng `break` vẫn chạy update trước khi thoát | Sai giá trị cuối | `break` bỏ update |
-| Dùng `i` sau vòng khi khai báo trong init | Không thuộc phạm vi | Khai báo `i` ngoài vòng nếu cần |
-| `for(int i=0, long j=0;...)` | Cú pháp sai ở phần khai báo | Dùng cùng kiểu hoặc khai báo trước |
-| Viết `i + 1` trong update | Không phải statement expression hợp lệ | Viết `i++`, `i += 1` hoặc `i = i + 1` |
-| Dùng biến `int` tăng tới `Integer.MAX_VALUE` mà không xét overflow | Có thể tràn và lặp sai | Chọn điều kiện/kiểu phù hợp, kiểm tra biên |
-| Cố dùng `for` ba phần khi chỉ cần đọc từng phần tử | Code dài, dễ lỗi chỉ số | Cân nhắc enhanced `for` |
-| Tạo `for (...); { ... }` vô tình | Dấu `;` kết thúc loop với body rỗng | Bỏ `;` thừa trước block |
+| Confusing init as running every pass | Misunderstanding order or cost | Init runs only **once** |
+| Confusing update as running before body | Displayed values are off | Order: init → condition → body → update |
+| `i <= array.length` when reading `array[i]` | Out-of-bounds access past end of array | `i < array.length` |
+| `for (int i=0; i; i++)` | Fails to compile, `int` condition | Use a boolean expression |
+| Omitting update while body also leaves variable unchanged | Risk of infinite loop | Add an update or exit path |
+| Using `i++` when intending to count down | Wrong iteration direction | Use `i--` with an appropriate condition |
+| Thinking `continue` skips update in `for` | Wrong control flow | Basic `for` still executes update |
+| Thinking `break` still runs update before exiting | Wrong final value | `break` skips update |
+| Using `i` after the loop when declared in init | Out of scope | Declare `i` outside the loop if needed |
+| `for(int i=0, long j=0;...)` | Invalid syntax in declaration part | Use the same type or declare beforehand |
+| Writing `i + 1` in update | Not a valid statement expression | Write `i++`, `i += 1`, or `i = i + 1` |
+| Incrementing an `int` variable up to `Integer.MAX_VALUE` without considering overflow | Can overflow and loop wrongly | Choose suitable condition/type, check bounds |
+| Forcing a three-part `for` when only reading elements | Verbose code, prone to index bugs | Consider enhanced `for` |
+| Creating `for (...); { ... }` accidentally | `;` ends the loop with an empty body | Remove the stray `;` before the block |
 
-## 14. Bài tập có đáp án
+## 14. Exercises with answers
 
-### Bài A — in số chẵn từ 0 tới 8
+### Exercise A — print even numbers from 0 to 8
 
 ~~~java
 for (int i = 0; i <= 8; i += 2) {
@@ -583,7 +583,7 @@ for (int i = 0; i <= 8; i += 2) {
 8
 ~~~
 
-### Bài B — đếm ngược từ 3 tới 1
+### Exercise B — count down from 3 to 1
 
 ~~~java
 for (int i = 3; i >= 1; i--) {
@@ -599,7 +599,7 @@ for (int i = 3; i >= 1; i--) {
 1
 ~~~
 
-### Bài C — có bao nhiêu lượt?
+### Exercise C — how many iterations?
 
 ~~~java
 int count = 0;
@@ -609,9 +609,9 @@ for (int i = 10; i < 10; i++) {
 System.out.println(count);
 ~~~
 
-**Đáp án:** `0`. Điều kiện sai trước body đầu tiên.
+**Answer:** `0`. The condition is false before the first body.
 
-### Bài D — tìm lỗi khi duyệt mảng
+### Exercise D — find the bug when iterating an array
 
 ~~~java
 int[] data = {1, 2, 3};
@@ -620,9 +620,9 @@ int[] data = {1, 2, 3};
 // }
 ~~~
 
-**Đáp án:** sửa `i <= data.length` thành `i < data.length`. Chỉ số cuối là 2, không phải 3.
+**Answer:** change `i <= data.length` to `i < data.length`. The last index is 2, not 3.
 
-### Bài E — `continue` có làm tăng `i` không?
+### Exercise E — does `continue` increment `i`?
 
 ~~~java
 for (int i = 0; i < 4; i++) {
@@ -639,9 +639,9 @@ for (int i = 0; i < 4; i++) {
 3
 ~~~
 
-Với `i == 1`, `continue` chuyển sang bước **update `i++`**, rồi điều kiện được xét lại. Không bị kẹt ở 1.
+For `i == 1`, `continue` transfers to the **update `i++`** step, and then the condition is re-evaluated. It does not get stuck at 1.
 
-### Bài F — hai biến trong cùng `for`
+### Exercise F — two variables in the same `for`
 
 ~~~java
 for (int a = 0, b = 5; a < b; a++, b--) {
@@ -657,21 +657,21 @@ for (int a = 0, b = 5; a < b; a++, b--) {
 2:3
 ~~~
 
-Đến bước cập nhật kế, `a == 3`, `b == 2`, điều kiện `a < b` sai.
+At the next update step, `a == 3`, `b == 2`, and the condition `a < b` is false.
 
-## 15. Checklist và kết luận
+## 15. Checklist and conclusion
 
-- [ ] Viết được cấu trúc `for (init; condition; update) { body }`.
-- [ ] Nhớ init **một lần**, condition **trước mỗi lượt**, update **sau body**.
-- [ ] Hiểu vòng lặp có thể chạy **0 lượt** khi điều kiện đầu tiên false.
-- [ ] Biết điều kiện phải là `boolean`/`Boolean`, không phải số nguyên truthy/falsy.
-- [ ] Dùng được nhiều biến cùng kiểu ở init và nhiều biểu thức update.
-- [ ] Biết cách bỏ trống một phần, vẫn giữ hai dấu `;`.
-- [ ] Nhận ra `for (;;)` cần thiết kế cơ chế thoát.
-- [ ] Phân biệt `continue` vẫn chạy update với `break` thoát ngay.
-- [ ] Hiểu phạm vi biến đếm khai báo bên trong init.
-- [ ] Tránh lỗi off-by-one bằng `i < array.length`.
-- [ ] Biết khi nào dùng basic `for`, enhanced `for`, hay `while`.
-- [ ] Chạy `BasicForThreePartsDemo.java` với `javac`/`java` trên JDK 17+ và đối chiếu exact stdout.
+- [ ] Can write the `for (init; condition; update) { body }` construct.
+- [ ] Remember init runs **once**, condition **before each iteration**, update **after body**.
+- [ ] Understand the loop can run **0 iterations** when the initial condition is false.
+- [ ] Know the condition must be `boolean`/`Boolean`, not truthy/falsy integers.
+- [ ] Can use multiple variables of the same type in init and multiple update expressions.
+- [ ] Know how to omit a part while keeping both `;` semicolons.
+- [ ] Recognize `for (;;)` requires designing an exit mechanism.
+- [ ] Distinguish `continue` still running update from `break` exiting immediately.
+- [ ] Understand the scope of a counter variable declared inside init.
+- [ ] Avoid off-by-one errors with `i < array.length`.
+- [ ] Know when to use basic `for`, enhanced `for`, or `while`.
+- [ ] Run `BasicForThreePartsDemo.java` with `javac`/`java` on JDK 17+ and verify exact stdout.
 
-**Kết luận:** Trong Java 17+, ba phần của basic `for` biểu diễn rõ **thiết lập ban đầu**, **điều kiện tiếp tục** và **bước thay đổi sau mỗi lượt**. Để tránh lỗi, hãy kiểm tra thứ tự `init → condition → body → update`, bảo đảm điều kiện có thể kết thúc, và chú ý phạm vi biến cùng các giá trị tại biên.
+**Conclusion:** In Java 17+, the three parts of basic `for` clearly express **initial setup**, **continuation condition**, and **post-iteration change**. To avoid bugs, verify the `init → condition → body → update` order, ensure the condition can terminate, and pay attention to variable scope and boundary values.

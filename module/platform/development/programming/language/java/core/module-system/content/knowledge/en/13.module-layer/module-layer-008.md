@@ -1,38 +1,38 @@
-# Truy vấn `ModuleLayer` bằng `findModule` và `modules`
+# Querying `ModuleLayer` with `findModule` and `modules`
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Tra cứu một module đã được định nghĩa trong `ModuleLayer` theo tên bằng `findModule(String)`.
-- Liệt kê các module thuộc **chính layer hiện tại** bằng `modules()`.
-- Phân biệt việc tìm kiếm xuyên qua layer cha với việc liệt kê module của một layer.
-- Xử lý kết quả `Optional<Module>` an toàn và nhận biết những giới hạn của hai API khi làm việc với Java Platform Module System (JPMS).
+- Look up a module defined in a `ModuleLayer` by name using `findModule(String)`.
+- List the modules belonging to **the current layer itself** using `modules()`.
+- Distinguish searching across parent layers from listing the modules of a single layer.
+- Handle `Optional<Module>` results safely and recognize the limitations of both APIs when working with the Java Platform Module System (JPMS).
 
-## 1. `ModuleLayer` là gì?
+## 1. What Is `ModuleLayer`?
 
-Trong JPMS (Java 9+), `ModuleLayer` biểu diễn một nhóm module đã được **định nghĩa ở thời điểm chạy** cùng quan hệ cha giữa các layer. Mỗi module có tên thuộc layer là một đối tượng `java.lang.Module`. Layer giúp ứng dụng tổ chức những nhóm module, chẳng hạn các plugin được nạp vào layer con, trong khi vẫn dựa trên các module hệ thống ở layer cha.
+In JPMS (Java 9+), `ModuleLayer` represents a group of modules that have been **defined at runtime** along with parent relationships between layers. Each named module belonging to a layer is a `java.lang.Module` object. Layers help applications organize groups of modules, such as plugins loaded into a child layer, while still relying on system modules in a parent layer.
 
-Layer khởi động của JVM có thể lấy bằng:
+The JVM's startup layer can be obtained via:
 
 ```java
 ModuleLayer boot = ModuleLayer.boot();
 ```
 
-Các module hiện diện trong `boot` phụ thuộc vào cấu hình runtime, module graph được giải quyết khi khởi động và bản phân phối JDK; `java.base` là ví dụ chắc chắn thuộc môi trường Java module thông thường. Không nên giả định mọi module của JDK đều xuất hiện trong một layer ở mọi cách chạy.
+Which modules are present in `boot` depends on runtime configuration, the module graph resolved at startup, and the JDK distribution; `java.base` is an example guaranteed to belong to a normal modular Java environment. You should not assume every JDK module appears in a layer under every launch configuration.
 
-Hai API thường được dùng để quan sát layer là:
+Two APIs commonly used to inspect a layer are:
 
 ```java
 Optional<Module> findModule(String name);
 Set<Module> modules();
 ```
 
-Cả hai đều truy vấn những module đã có trong layer; chúng **không tự tìm JAR trên ổ đĩa, không tự resolve cấu hình và không tạo layer mới**.
+Both query modules already present in the layer; they **do not search for JARs on disk, do not resolve configurations, and do not create new layers**.
 
-## 2. `findModule(String name)` — tra cứu module theo tên
+## 2. `findModule(String name)` — Looking Up a Module by Name
 
-`findModule` nhận **tên module** (`String`) và trả về `Optional<Module>`:
+`findModule` takes a **module name** (`String`) and returns an `Optional<Module>`:
 
 ```java
 ModuleLayer boot = ModuleLayer.boot();
@@ -45,59 +45,59 @@ Optional<Module> missing = boot.findModule("com.example.does.not.exist");
 System.out.println(missing.isPresent()); // false
 ```
 
-Cách sử dụng an toàn tùy mục tiêu:
+Safe usage depending on your goal:
 
-- `ifPresent(...)` khi module là tùy chọn và chỉ cần xử lý nếu tồn tại.
-- `orElseThrow(...)` khi việc thiếu module là lỗi nghiệp vụ.
-- `map(...)` hoặc `flatMap(...)` khi cần biến đổi giá trị mà vẫn giữ ngữ nghĩa có/không.
-- `isPresent()` hoặc `isEmpty()` để kiểm tra sự tồn tại; `isEmpty()` có từ Java 11.
+- `ifPresent(...)` when the module is optional and only needs handling if it exists.
+- `orElseThrow(...)` when a missing module is a business/application error.
+- `map(...)` or `flatMap(...)` when transforming the value while preserving presence/absence semantics.
+- `isPresent()` or `isEmpty()` to check existence; `isEmpty()` has been available since Java 11.
 
-Ví dụ không gọi `Optional.get()` khi chưa kiểm tra:
+Example avoiding calling `Optional.get()` without checking:
 
 ```java
 String requestedName = "java.sql";
 ModuleLayer boot = ModuleLayer.boot();
 
 boot.findModule(requestedName).ifPresentOrElse(
-    module -> System.out.println("Tìm thấy: " + module.getName()),
-    () -> System.out.println("Module chưa có trong layer hoặc các layer cha")
+    module -> System.out.println("Found: " + module.getName()),
+    () -> System.out.println("Module is not yet in this layer or its parent layers")
 );
 ```
 
-`Optional.ifPresentOrElse` có từ Java 9. Đối số phải là **tên module** như `java.base`, `com.example.payment`, không phải tên package, class hoặc đường dẫn file.
+`Optional.ifPresentOrElse` has been available since Java 9. The argument must be a **module name** such as `java.base` or `com.example.payment`, not a package name, class name, or file path.
 
-### Phạm vi tìm kiếm: layer hiện tại và các layer cha
+### Search Scope: Current Layer and Parent Layers
 
-`layer.findModule(name)` trước hết tìm module trong `layer` đang xét. Khi không thấy ở đó, API tiếp tục tìm trong các **parent layers**. Vì vậy, kết quả có thể là module thuộc layer cha, không thuộc `layer.modules()`.
+`layer.findModule(name)` first searches for the module in the `layer` being queried. When not found there, the API continues searching in **parent layers**. Therefore, the result may be a module belonging to a parent layer, not belonging to `layer.modules()`.
 
-Hình dung cấu trúc:
+Visualizing the structure:
 
 ```text
 Boot layer
   ├── java.base
-  └── ...các module đã được giải quyết lúc khởi động
+  └── ...modules resolved at startup
         ↑
 Plugin layer
   └── com.example.plugin
 ```
 
-Khi tra từ plugin layer:
+When querying from the plugin layer:
 
-- `pluginLayer.findModule("com.example.plugin")` có thể trả về module của plugin layer.
-- `pluginLayer.findModule("java.base")` có thể trả về `java.base` từ boot layer cha.
-- `pluginLayer.modules()` chỉ chứa các module được định nghĩa trong plugin layer.
+- `pluginLayer.findModule("com.example.plugin")` can return the plugin layer's module.
+- `pluginLayer.findModule("java.base")` can return `java.base` from the parent boot layer.
+- `pluginLayer.modules()` contains only the modules defined in the plugin layer.
 
-Với các layer có nhiều cha, không nên dựa vào việc trùng tên module ở các nhánh cha để suy ra một module duy nhất theo tên. Khi cần biết module thật sự thuộc layer nào, kiểm tra `module.getLayer()` hoặc thao tác trực tiếp với `modules()` của layer mong muốn.
+For layers with multiple parents, do not rely on duplicate module names across parent branches to infer a single module by name. When you need to know which layer a module actually belongs to, check `module.getLayer()` or work directly with `modules()` on the desired layer.
 
-## 3. `modules()` — liệt kê module thuộc chính layer
+## 3. `modules()` — Listing Modules Belonging to the Layer Itself
 
-`modules()` trả về một `Set<Module>` **không thể sửa đổi** gồm những module được định nghĩa trong layer được gọi.
+`modules()` returns an **unmodifiable** `Set<Module>` consisting of the modules defined in the layer on which it is called.
 
 ```java
 ModuleLayer boot = ModuleLayer.boot();
 Set<Module> bootModules = boot.modules();
 
-System.out.println("Số module trong boot layer: " + bootModules.size());
+System.out.println("Number of modules in boot layer: " + bootModules.size());
 
 bootModules.stream()
     .map(Module::getName)
@@ -105,45 +105,45 @@ bootModules.stream()
     .forEach(System.out::println);
 ```
 
-Các điểm cần nhớ:
+Points to remember:
 
-1. Danh sách không bao gồm module chỉ có trong layer cha.
-2. Thứ tự duyệt `Set` không phải thứ tự tên module. Dùng `sorted()` nếu cần kết quả ổn định, dễ đọc hoặc kiểm thử.
-3. Tập kết quả không cho phép `add`/`remove`. Muốn lọc hoặc tích lũy, tạo một collection khác.
-4. Một layer hợp lệ có thể chứa **0 module**; khi đó `modules().isEmpty()` là `true`.
-5. `Set<Module>` chứa các đối tượng module thật; khi in thông tin, lấy tên bằng `Module::getName` hoặc truy cập metadata bằng `getDescriptor()` nếu cần.
+1. The set does not include modules present only in parent layers.
+2. Iteration order of `Set` is not module-name order. Use `sorted()` if you need deterministic, readable, or testable output.
+3. The returned set does not allow `add`/`remove`. To filter or accumulate, create another collection.
+4. A valid layer may contain **0 modules**; in that case `modules().isEmpty()` is `true`.
+5. `Set<Module>` holds the actual `Module` objects; when printing information, extract the name with `Module::getName` or access metadata via `getDescriptor()` if needed.
 
-Ví dụ lọc module theo tiền tố tên:
+Example filtering modules by name prefix:
 
 ```java
 List<String> javaModules = ModuleLayer.boot().modules().stream()
     .map(Module::getName)
     .filter(name -> name.startsWith("java."))
     .sorted()
-    .toList(); // Stream.toList() có từ Java 16
+    .toList(); // Stream.toList() available since Java 16
 
 System.out.println(javaModules);
 ```
 
-Với Java 9–15, thay `.toList()` bằng `.collect(Collectors.toList())` và import `java.util.stream.Collectors`.
+For Java 9–15, replace `.toList()` with `.collect(Collectors.toList())` and import `java.util.stream.Collectors`.
 
-## 4. So sánh nhanh hai phương thức
+## 4. Quick Comparison of the Two Methods
 
-| Câu hỏi | `findModule(String)` | `modules()` |
+| Question | `findModule(String)` | `modules()` |
 |---|---|---|
-| Dùng để làm gì? | Tìm **một** module theo tên | Lấy **tất cả** module được định nghĩa trong layer |
-| Kiểu trả về | `Optional<Module>` | `Set<Module>` |
-| Module ở layer hiện tại | Có thể tìm thấy | Có trong tập |
-| Module chỉ có ở layer cha | Có thể tìm thấy | Không có trong tập |
-| Không tìm thấy / layer rỗng | `Optional.empty()` | `Set` rỗng |
-| Có thay đổi module graph? | Không | Không |
-| Tình huống phù hợp | Kiểm tra module theo tên, lấy đối tượng module | Thống kê, lọc, liệt kê module của layer |
+| What is it for? | Looking up **one** module by name | Getting **all** modules defined in the layer |
+| Return type | `Optional<Module>` | `Set<Module>` |
+| Module in current layer | Can be found | Included in set |
+| Module only in parent layer | Can be found | Not included in set |
+| Not found / empty layer | `Optional.empty()` | Empty `Set` |
+| Modifies module graph? | No | No |
+| Suitable scenario | Checking a module by name, obtaining a `Module` object | Counting, filtering, listing a layer's modules |
 
-**Lỗi suy luận thường gặp:** thấy `layer.findModule("java.base").isPresent() == true` rồi kết luận `layer.modules()` chứa `java.base`. Điều đó chỉ đúng nếu `java.base` thực sự được định nghĩa trong chính layer này. Với layer con, module có thể đến từ cha.
+**Common reasoning mistake:** seeing `layer.findModule("java.base").isPresent() == true` and concluding that `layer.modules()` contains `java.base`. That is only true if `java.base` is actually defined in that layer itself. For a child layer, the module may come from a parent.
 
-## 5. Ví dụ chạy độc lập: layer khởi động và layer rỗng
+## 5. Standalone Runnable Example: Boot Layer and Empty Layer
 
-Lưu thành `LayerQueryDemo.java`:
+Save as `LayerQueryDemo.java`:
 
 ```java
 import java.util.Optional;
@@ -153,54 +153,54 @@ public class LayerQueryDemo {
     public static void main(String[] args) {
         ModuleLayer boot = ModuleLayer.boot();
 
-        // Tìm module cụ thể.
+        // Look up a specific module.
         Optional<Module> javaBase = boot.findModule("java.base");
-        System.out.println("java.base có trong boot? " + javaBase.isPresent());
+        System.out.println("Is java.base in boot? " + javaBase.isPresent());
 
-        // Liệt kê module của boot, chỉ in tối đa 10 tên.
+        // List boot modules, printing at most 10 names.
         Set<Module> bootModules = boot.modules();
-        System.out.println("Số module trong boot: " + bootModules.size());
+        System.out.println("Number of modules in boot: " + bootModules.size());
         bootModules.stream()
             .map(Module::getName)
             .sorted()
             .limit(10)
             .forEach(name -> System.out.println(" - " + name));
 
-        // Layer rỗng đặc biệt không có module và không có cha.
+        // Special empty layer has no modules and no parents.
         ModuleLayer empty = ModuleLayer.empty();
         System.out.println("empty.modules().isEmpty(): "
             + empty.modules().isEmpty());
         System.out.println("empty.findModule(\"java.base\").isPresent(): "
             + empty.findModule("java.base").isPresent());
 
-        // Đối tượng Module biết layer sở hữu nó.
+        // A Module object knows which layer owns it.
         javaBase.ifPresent(module ->
-            System.out.println("java.base thuộc boot: "
+            System.out.println("java.base belongs to boot: "
                 + (module.getLayer() == boot)));
     }
 }
 ```
 
-Chạy bằng JDK 9 trở lên:
+Run with JDK 9 or later:
 
 ```bash
 javac LayerQueryDemo.java
 java LayerQueryDemo
 ```
 
-Các kết luận có thể xác nhận từ ví dụ:
+Conclusions you can confirm from the example:
 
-- `boot.findModule("java.base")` tìm thấy `java.base`.
-- `boot.modules()` đưa ra tập module đã định nghĩa trong boot, với số lượng phụ thuộc môi trường.
-- `ModuleLayer.empty()` không chứa module, cũng không có cha để tìm tiếp: cả hai truy vấn đều cho kết quả rỗng.
-- `module.getLayer() == boot` kiểm tra vị trí định nghĩa của module trả về.
+- `boot.findModule("java.base")` finds `java.base`.
+- `boot.modules()` gives the set of modules defined in boot, with the count depending on the environment.
+- `ModuleLayer.empty()` contains no modules and has no parents to continue searching: both queries yield empty results.
+- `module.getLayer() == boot` checks the definition location of the returned module.
 
-## 6. Phân biệt tìm kiếm xuyên cha và liệt kê toàn bộ cây layer
+## 6. Distinguishing Parent-Traversing Lookup from Listing the Entire Layer Tree
 
-Giả sử ứng dụng có `pluginLayer` được tạo từ một `Configuration` với `boot` làm layer cha. Khi đó:
+Suppose the application has a `pluginLayer` created from a `Configuration` with `boot` as its parent layer. Then:
 
 ```java
-// pluginLayer là ModuleLayer con đã được tạo hợp lệ trước đó.
+// pluginLayer is a valid child ModuleLayer created earlier.
 Optional<Module> baseFromParent = pluginLayer.findModule("java.base");
 Set<Module> localOnly = pluginLayer.modules();
 
@@ -208,9 +208,9 @@ boolean javaBaseDefinedHere = localOnly.stream()
     .anyMatch(m -> "java.base".equals(m.getName()));
 ```
 
-`baseFromParent` có thể chứa `java.base` mặc dù `javaBaseDefinedHere` là `false`. Điều này đặc biệt quan trọng khi viết hệ thống plugin, nơi bạn muốn phân biệt các module của plugin với module nền tảng.
+`baseFromParent` can contain `java.base` even though `javaBaseDefinedHere` is `false`. This is especially important when writing a plugin system, where you want to distinguish plugin modules from foundational modules.
 
-Nếu yêu cầu là **liệt kê mọi module của layer và tất cả layer cha**, `modules()` một lần là chưa đủ. Duyệt `parents()` và hợp nhất các tập module:
+If the requirement is to **list every module of the layer and all parent layers**, calling `modules()` once is not enough. Traverse `parents()` and combine the module sets:
 
 ```java
 import java.util.ArrayDeque;
@@ -242,62 +242,62 @@ public class ModuleLayerTree {
 }
 ```
 
-Lý do sử dụng `visited`: quan hệ cha có thể tạo thành một **đồ thị có hướng không chu trình** với nhiều nhánh cùng trỏ tới một ancestor, nên một layer cha có thể được gặp qua nhiều đường. `IdentityHashMap` ở đây giúp đánh dấu từng đối tượng `ModuleLayer` đã duyệt. Nếu chỉ muốn đếm module của **một layer**, hãy dùng trực tiếp `layer.modules().size()`, không cần hàm duyệt này.
+Reason for using `visited`: parent relationships can form a **directed acyclic graph** with multiple branches pointing to the same ancestor, so a parent layer may be encountered along multiple paths. `IdentityHashMap` here marks each `ModuleLayer` object already visited. If you only want to count the modules of **a single layer**, use `layer.modules().size()` directly—no traversal helper is needed.
 
-## 7. Những điều API không làm thay bạn
+## 7. What the APIs Do Not Do for You
 
-### Không tự nạp module
+### Do Not Automatically Load Modules
 
-`findModule("com.example.plugin")` trả về rỗng nếu module đó chưa được định nghĩa trong layer hoặc các layer cha, kể cả khi trên ổ đĩa có JAR mang tên tương ứng. Để tạo layer mới với module của ứng dụng, quy trình tổng quát là:
+`findModule("com.example.plugin")` returns empty if that module has not yet been defined in the layer or its parent layers, even if a JAR with the corresponding name exists on disk. To create a new layer with application modules, the general workflow is:
 
-1. Xác định module artifacts bằng `ModuleFinder`.
-2. Resolve một `Configuration` từ các module gốc và parent configuration.
-3. Định nghĩa `ModuleLayer` mới với class loader phù hợp.
-4. Sau đó mới dùng `findModule` và `modules` trên layer đã tạo.
+1. Identify module artifacts using `ModuleFinder`.
+2. Resolve a `Configuration` from root modules and parent configurations.
+3. Define a new `ModuleLayer` with suitable class loaders.
+4. Only then use `findModule` and `modules` on the created layer.
 
-### Không đồng nghĩa với quyền truy cập
+### Not Equivalent to Access Permissions
 
-Tìm được một `Module` không chứng minh module đang gọi **đọc được** module đó, hoặc truy cập được package bên trong. Khi cần kiểm tra ở mức module:
+Finding a `Module` does not prove the calling module **can read** that module or access packages inside it. When you need to check at the module level:
 
 ```java
 Module caller = LayerQueryDemo.class.getModule();
 
 boot.findModule("java.base").ifPresent(target -> {
-    System.out.println("Caller đọc được java.base? "
+    System.out.println("Can caller read java.base? "
         + caller.canRead(target));
-    System.out.println("Package java.lang được export cho caller? "
+    System.out.println("Is package java.lang exported to caller? "
         + target.isExported("java.lang", caller));
 });
 ```
 
-Trong đoạn ví dụ trên, `boot` là biến đã được khởi tạo (`ModuleLayer.boot()`). `canRead` kiểm tra quan hệ readability; `isExported` kiểm tra export của một package tới module gọi. Các kiểm tra về mở package cho reflection dùng `isOpen` tương ứng. Chúng là những khái niệm khác với việc **module có tồn tại trong layer hay không**.
+In the snippet above, `boot` is an initialized variable (`ModuleLayer.boot()`). `canRead` checks the readability relationship; `isExported` checks whether a package is exported to the calling module. Checks for whether a package is opened for reflection use `isOpen` accordingly. These are distinct concepts from whether **a module exists in a layer**.
 
-### Không nhầm với `Configuration.findModule`
+### Do Not Confuse with `Configuration.findModule`
 
-- `ModuleLayer.findModule(String)` trả về `Optional<Module>`, tức module ở runtime sau khi được định nghĩa.
-- `Configuration.findModule(String)` trả về `Optional<ResolvedModule>` và thuộc giai đoạn giải quyết module graph.
+- `ModuleLayer.findModule(String)` returns `Optional<Module>`, representing the runtime module after definition.
+- `Configuration.findModule(String)` returns `Optional<ResolvedModule>` and belongs to the module graph resolution stage.
 
-Dùng `Configuration` khi bạn cần làm việc với cấu hình đã resolve; dùng `ModuleLayer` khi muốn quan sát các module runtime.
+Use `Configuration` when you need to work with the resolved configuration; use `ModuleLayer` when you want to inspect runtime modules.
 
-## 8. Lỗi thường gặp và cách xử lý
+## 8. Common Errors and How to Handle Them
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách làm |
+| Symptom | Common cause | What to do |
 |---|---|---|
-| `findModule(...)` rỗng dù có file JAR | JAR chưa được resolve/define vào layer phù hợp | Kiểm tra bước tạo `Configuration` và `ModuleLayer` |
-| `findModule(...)` có giá trị nhưng `modules()` không chứa module đó | Module nằm trong parent layer | So sánh `module.getLayer()` với layer đang xét |
-| `modules().add(...)` báo `UnsupportedOperationException` | Tập trả về không thể sửa đổi | Sao chép sang `HashSet`/`LinkedHashSet` nếu cần |
-| Kết quả liệt kê thay đổi thứ tự | `Set` không cam kết thứ tự trình bày | `map(Module::getName).sorted()` |
-| Gọi `optional.get()` ném `NoSuchElementException` | Không có module được tìm thấy | Dùng `orElseThrow` với thông báo hoặc `ifPresent` |
-| Tìm tên class/package mà không ra module | `findModule` chỉ nhận tên module | Xác định tên module trong `module-info.java` hay descriptor |
+| `findModule(...)` is empty despite JAR file on disk | The JAR has not been resolved/defined into an appropriate layer | Check the `Configuration` and `ModuleLayer` creation steps |
+| `findModule(...)` has a value but `modules()` does not contain it | The module is in a parent layer | Compare `module.getLayer()` with the layer being inspected |
+| `modules().add(...)` throws `UnsupportedOperationException` | The returned set is unmodifiable | Copy into a `HashSet`/`LinkedHashSet` if needed |
+| Listing order changes | `Set` does not guarantee presentation order | `map(Module::getName).sorted()` |
+| Calling `optional.get()` throws `NoSuchElementException` | No module was found | Use `orElseThrow` with a message or `ifPresent` |
+| Searching a class/package name fails to find a module | `findModule` only accepts module names | Determine the module name from `module-info.java` or the descriptor |
 
-## 9. Thực hành
+## 9. Practice
 
-1. Dùng `ModuleLayer.boot()`, tìm `java.base` và một tên module không tồn tại; in thông báo riêng cho hai trường hợp.
-2. In tên tất cả module bắt đầu bằng `java.` trong boot layer, theo thứ tự từ điển.
-3. Viết hàm `boolean isLocalModule(ModuleLayer layer, String name)` để kiểm tra module có thuộc **chính layer** không, dựa trên `modules()`. So sánh với kết quả `layer.findModule(name).isPresent()` khi bạn có một layer con.
-4. Với một layer có cha, thử `collectModules(layer)` và so sánh số module thu được với `layer.modules().size()`; giải thích vì sao hai số có thể khác.
+1. Using `ModuleLayer.boot()`, look up `java.base` and a nonexistent module name; print distinct messages for the two cases.
+2. Print the names of all modules starting with `java.` in the boot layer, in lexicographical order.
+3. Write a function `boolean isLocalModule(ModuleLayer layer, String name)` to check whether a module belongs to **the layer itself**, based on `modules()`. Compare with the result of `layer.findModule(name).isPresent()` when you have a child layer.
+4. Given a layer with a parent, try `collectModules(layer)` and compare the number of collected modules with `layer.modules().size()`; explain why the two numbers can differ.
 
-Gợi ý cho bài 3:
+Hint for Exercise 3:
 
 ```java
 static boolean isLocalModule(ModuleLayer layer, String name) {
@@ -306,11 +306,11 @@ static boolean isLocalModule(ModuleLayer layer, String name) {
 }
 ```
 
-## Ghi nhớ
+## Takeaways
 
-- `findModule(name)` tìm một module theo tên trong layer hiện tại **và các layer cha**; kết quả là `Optional<Module>`.
-- `modules()` trả về tập `Set<Module>` không thể sửa đổi của **chính layer hiện tại**.
-- Muốn xác định module nằm ở layer nào, dùng `module.getLayer()`; muốn liệt kê xuyên parent layers, tự duyệt `parents()`.
-- Hai API hỗ trợ **truy vấn trạng thái runtime** của JPMS, không tự resolve, nạp module hay cấp quyền đọc/truy cập module.
+- `findModule(name)` searches for a module by name in the current layer **and parent layers**; the result is `Optional<Module>`.
+- `modules()` returns an unmodifiable `Set<Module>` of **the current layer itself**.
+- To determine which layer a module resides in, use `module.getLayer()`; to list across parent layers, traverse `parents()` yourself.
+- Both APIs support **querying the runtime state** of JPMS; they do not automatically resolve, load modules, or grant module read/access permissions.
 
-Tham khảo API của JDK: `java.lang.ModuleLayer`, `java.lang.Module`, `java.lang.module.Configuration` và `java.lang.module.ModuleFinder`.
+JDK API reference: `java.lang.ModuleLayer`, `java.lang.Module`, `java.lang.module.Configuration`, and `java.lang.module.ModuleFinder`.

@@ -1,65 +1,65 @@
-# Hậu quả khi một lớp phá vỡ hợp đồng trong thư viện chuẩn Java
+# Consequences When a Class Breaks a Contract in the Java Standard Library
 
-Khi đưa đối tượng vào `HashMap`, `HashSet`, `TreeMap`, `TreeSet` hoặc các thuật toán sắp xếp, thư viện chuẩn **tin vào các hợp đồng** mà lớp công bố qua `equals`, `hashCode`, `Comparable` và `Comparator`. Nếu lớp cài đặt sai, mã thư viện vẫn có thể chạy đúng theo thiết kế nhưng kết quả quan sát được sẽ sai kỳ vọng: không tìm lại được phần tử, lưu các phần tử trùng về mặt logic, mất dữ liệu khi chèn, thứ tự sai hoặc thuật toán sắp xếp báo lỗi.
+When placing objects into `HashMap`, `HashSet`, `TreeMap`, `TreeSet`, or sorting algorithms, the standard library **relies on the contracts** that the class publishes via `equals`, `hashCode`, `Comparable`, and `Comparator`. If the class is implemented incorrectly, library code may still run as designed, yet the observed outcome will fail expectations: elements cannot be found again, logically duplicate elements are stored, data is lost on insertion, ordering is wrong, or sorting algorithms throw errors.
 
-Mấu chốt là phân biệt ba tình huống: **thật sự vi phạm hợp đồng**, **thay đổi trạng thái khóa sau khi lưu**, và **hai API dùng quy tắc xác định tương đương khác nhau nhưng đều hợp lệ**.
+The key is to distinguish three situations: **actually violating a contract**, **mutating key state after storage**, and **two APIs using different equivalence rules that are both valid**.
 
-## 1. Những hợp đồng mà thư viện dựa vào
+## 1. Contracts That the Library Relies On
 
-| Thành phần | Quy tắc thiết yếu | Nơi chịu ảnh hưởng |
+| Component | Essential rule | Where affected |
 | --- | --- | --- |
-| `Object.equals(Object)` | Phản xạ, đối xứng, bắc cầu, nhất quán khi thông tin so sánh không đổi; `x.equals(null)` là `false` | `List.contains`, `remove`, `HashSet`, khóa `Map`, xử lý trùng lặp |
-| `Object.hashCode()` | Nếu `a.equals(b)` thì `a.hashCode() == b.hashCode()`; hash ổn định khi dữ liệu dùng để xác định bằng nhau không đổi | `HashMap`, `HashSet`, `LinkedHashMap`, `LinkedHashSet` |
-| `Comparable.compareTo` / `Comparator.compare` | Kết quả so sánh có dấu nhất quán, phản đối xứng về dấu, có tính bắc cầu và nhất quán khi trả về `0` | `TreeSet`, `TreeMap`, `Arrays.sort`, `List.sort`, `Collections.sort` |
-| Quy tắc khóa của `Map` | Không thay đổi dữ liệu ảnh hưởng đến `equals`/`hashCode` của khóa trong lúc nó đang là khóa | Tra cứu, xóa, cập nhật mục trong bản đồ |
+| `Object.equals(Object)` | Reflexive, symmetric, transitive, consistent when comparison data does not change; `x.equals(null)` is `false` | `List.contains`, `remove`, `HashSet`, `Map` keys, duplicate handling |
+| `Object.hashCode()` | If `a.equals(b)` then `a.hashCode() == b.hashCode()`; hash stable when data used to determine equality does not change | `HashMap`, `HashSet`, `LinkedHashMap`, `LinkedHashSet` |
+| `Comparable.compareTo` / `Comparator.compare` | Comparison result has consistent sign, is antisymmetric in sign, transitive, and consistent when returning `0` | `TreeSet`, `TreeMap`, `Arrays.sort`, `List.sort`, `Collections.sort` |
+| `Map` key rule | Do not mutate data affecting `equals`/`hashCode` of a key while it is acting as a key | Lookup, removal, updating entries in the map |
 
-### Đối với `equals` và `hashCode`
+### Regarding `equals` and `hashCode`
 
-- `x.equals(x)` phải là `true` (phản xạ).
-- `x.equals(y)` phải có cùng kết quả với `y.equals(x)` (đối xứng).
-- Nếu `x.equals(y)` và `y.equals(z)` đều đúng thì `x.equals(z)` phải đúng (bắc cầu).
-- Khi dữ liệu dùng để so sánh không đổi, các lần gọi `equals` phải nhất quán; `equals(null)` phải trả `false`.
-- **Chiều bắt buộc** là `equals == true` kéo theo **cùng hash code**. Chiều ngược lại không bắt buộc: hai đối tượng khác nhau có thể có cùng hash code (va chạm hash).
+- `x.equals(x)` must be `true` (reflexive).
+- `x.equals(y)` must yield the same result as `y.equals(x)` (symmetric).
+- If both `x.equals(y)` and `y.equals(z)` are true, then `x.equals(z)` must be true (transitive).
+- When the data used for comparison does not change, repeated calls to `equals` must be consistent; `equals(null)` must return `false`.
+- **The mandatory direction** is that `equals == true` implies **the same hash code**. The reverse direction is not required: two unequal objects may have the same hash code (hash collision).
 
-Việc cài `equals` mà bỏ quên `hashCode`, hoặc để hai phương thức dùng tập thuộc tính khác nhau, rất dễ phá vỡ chiều bắt buộc trên. `HashMap` dùng hash để chọn vị trí tìm kiếm và dùng `equals` để xác định khóa tương đương trong phần phù hợp; nó không thể tự sửa một quy tắc so sánh mâu thuẫn.
+Implementing `equals` while forgetting `hashCode`, or letting the two methods use different sets of attributes, easily breaks the mandatory implication above. `HashMap` uses the hash to select a search bucket and uses `equals` to identify equivalent keys within the matching partition; it cannot fix a contradictory comparison rule on its own.
 
-### Đối với `Comparable`/`Comparator`
+### Regarding `Comparable`/`Comparator`
 
-Một thứ tự hợp lệ phải đủ nhất quán để các thuật toán sắp xếp và cấu trúc cây hoạt động. Ví dụ, nếu so sánh cho biết `a < b` và `b < c` thì không thể đồng thời cho `a > c`. Nếu `compare(a,b) == 0` thì dấu so sánh của `a` và `b` với một `c` phải nhất quán. Vi phạm có thể gây thứ tự vô lý; trong một số trường hợp `List.sort`/`Arrays.sort` ném `IllegalArgumentException: Comparison method violates its general contract!`, nhưng **không phải mọi dữ liệu đầu vào đều kích hoạt lỗi**.
+A valid ordering must be consistent enough for sorting algorithms and tree structures to operate. For instance, if comparisons state `a < b` and `b < c`, they cannot simultaneously state `a > c`. If `compare(a,b) == 0`, the comparison signs of `a` and `b` against any `c` must be consistent. Violations can cause nonsensical ordering; in some cases `List.sort`/`Arrays.sort` throws `IllegalArgumentException: Comparison method violates its general contract!`, though **not every input dataset triggers the error**.
 
-Việc `compare(a,b) == 0` trong khi `!a.equals(b)` **không tự động vi phạm hợp đồng `Comparator`**. Tuy nhiên, với `SortedSet` và `SortedMap`, nó thay đổi khái niệm “trùng nhau”; nếu cần phù hợp đầy đủ với hợp đồng chung của `Set`/`Map` thì thứ tự nên nhất quán với `equals`, hoặc sự khác biệt phải được hiểu và ghi rõ.
+Having `compare(a,b) == 0` while `!a.equals(b)` **does not automatically violate the `Comparator` contract**. However, for `SortedSet` and `SortedMap`, it alters the notion of "duplicate"; if full alignment with the general `Set`/`Map` contract is needed, the ordering should be consistent with `equals`, or the difference must be understood and documented.
 
-## 2. Hậu quả cụ thể
+## 2. Concrete Consequences
 
-### 2.1. `HashSet` có thể chứa hai đối tượng vốn phải được coi là bằng nhau
+### 2.1. `HashSet` Can Hold Two Objects That Should Be Considered Equal
 
-Giả sử `a.equals(b) == true` nhưng `a.hashCode() != b.hashCode()`. Hai phần tử có thể đi vào hai nhóm hash khác nhau. Khi đó `HashSet.add(a)` rồi `add(b)` có thể làm kích thước tăng lên `2`, mặc dù theo định nghĩa `equals` của lớp, chúng là một giá trị logic.
+Suppose `a.equals(b) == true` yet `a.hashCode() != b.hashCode()`. The two elements may go into two different hash buckets. Then `HashSet.add(a)` followed by `add(b)` can increase the size to `2`, even though according to the class's `equals` definition, they are one logical value.
 
-Vấn đề tương tự xuất hiện ở khóa `HashMap`: `get`, `containsKey`, `remove` hoặc `put` dùng một đối tượng tương đương mới có thể không truy cập đúng mục đã lưu. Các lớp thư viện này không có nghĩa vụ dò toàn bộ bảng để bù cho `hashCode` sai.
+The same problem appears with `HashMap` keys: `get`, `containsKey`, `remove`, or `put` using a new equivalent object may fail to reach the stored entry. These library classes have no obligation to scan the entire table to compensate for a broken `hashCode`.
 
-### 2.2. Khóa mutable có thể trở nên “không tìm thấy” sau khi chèn
+### 2.2. Mutable Keys Can Become "Unfindable" After Insertion
 
-Ngay cả khi `equals` và `hashCode` được viết **đúng với trạng thái hiện tại**, thay đổi thuộc tính tham gia hai phương thức sau `map.put(key, value)` vẫn nguy hiểm. Bản đồ đã sắp xếp khóa dựa trên hash tại lúc chèn; sau khi đổi trạng thái, việc tìm với hash mới có thể thất bại. Mục vẫn tồn tại trong bản đồ và vẫn chiếm bộ nhớ, nhưng API tra cứu thông thường có thể không tìm được.
+Even if `equals` and `hashCode` are written **correctly for the current state**, changing attributes that participate in those two methods after `map.put(key, value)` is still dangerous. The map already placed the key based on the hash at insertion time; after mutating state, lookups using the new hash may fail. The entry still exists in the map and still occupies memory, yet normal lookup APIs may fail to find it.
 
-Đây là **vi phạm giả định sử dụng khóa ổn định**, không nhất thiết là vi phạm hợp đồng `hashCode`: hợp đồng cho phép hash thay đổi khi dữ liệu dùng bởi `equals` thay đổi.
+This is a **violation of the stable-key usage assumption**, not necessarily a violation of the `hashCode` contract: the contract allows the hash to change when data used by `equals` changes.
 
-### 2.3. `TreeSet`/`TreeMap` có thể làm mất mục theo góc nhìn `equals`
+### 2.3. `TreeSet`/`TreeMap` Can Drop Entries From `equals`'s Perspective
 
-`TreeSet` và `TreeMap` dùng kết quả so sánh (`compareTo` hoặc `Comparator`) để tìm vị trí và quyết định hai khóa có tương đương hay không: `compare(a,b) == 0` được xử lý như một khóa đã có. Vì thế:
+`TreeSet` and `TreeMap` use comparison results (`compareTo` or `Comparator`) to find positions and decide whether two keys are equivalent: `compare(a,b) == 0` is treated as an existing key. Therefore:
 
-- `TreeSet.add` có thể trả `false` cho một phần tử mà `equals` xem là khác.
-- `TreeMap.put` với khóa so sánh bằng `0` có thể **thay giá trị của khóa cũ** thay vì thêm mục mới.
-- `contains`, `remove` và phạm vi sắp xếp phản ánh quy tắc so sánh, nên có thể khác suy nghĩ dựa trên `equals`.
+- `TreeSet.add` can return `false` for an element that `equals` considers different.
+- `TreeMap.put` with a key comparing as `0` can **overwrite the value of the old key** instead of adding a new entry.
+- `contains`, `remove`, and sorted ranges reflect the comparison rule, so they may differ from assumptions based on `equals`.
 
-Không được vội kết luận thư viện làm mất dữ liệu vì lỗi: trước tiên phải kiểm tra chính xác quy tắc bằng nhau mà cấu trúc dữ liệu đang dùng.
+Do not jump to the conclusion that the library lost data due to a bug: first check the exact equivalence rule that the data structure is using.
 
-### 2.4. Lỗi có thể lan sang tầng nghiệp vụ
+### 2.4. Bugs Can Propagate to the Business Layer
 
-Với định danh tài khoản, hàng đợi công việc, cache hoặc bộ lọc chống trùng, lỗi hợp đồng có thể làm dữ liệu trùng không được loại bỏ; truy vấn cache bỏ lỡ; chức năng xóa không xóa được phần tử kỳ vọng; thống kê kích thước sai; hoặc một khóa bị ghi đè theo quy tắc sắp xếp. Đầu ra đôi lúc thay đổi theo thứ tự thao tác, tập dữ liệu và trạng thái đối tượng, nên lỗi khó tái hiện nếu chỉ thử một trường hợp thuận lợi.
+For account identifiers, task queues, caches, or deduplication filters, contract bugs can cause duplicate data not to be eliminated; cache lookups to miss; removal operations to fail to delete expected elements; size statistics to be wrong; or a key to be overwritten according to a sorting rule. Output sometimes varies with operation order, datasets, and object state, making bugs hard to reproduce if testing only a single happy-path case.
 
-## 3. Ví dụ Java 17+: ba hiện tượng khác nhau
+## 3. Java 17+ Example: Three Different Phenomena
 
-Tệp `ContractConsequencesDemo.java` dưới đây chạy độc lập, cố ý chứa hai lớp khóa thiết kế sai hoặc sử dụng sai để quan sát hậu quả. Trường hợp `BigDecimal` ở cuối là **khác biệt được tài liệu Java công bố**, không phải bug của `BigDecimal`.
+The file `ContractConsequencesDemo.java` below runs standalone and intentionally contains two poorly designed or misused key classes to observe the consequences. The `BigDecimal` case at the end is a **documented difference in Java**, not a `BigDecimal` bug.
 
 ```java
 import java.math.BigDecimal;
@@ -72,7 +72,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class ContractConsequencesDemo {
-    // SAI: equals so sánh id, hashCode lại phụ thuộc vào hint độc lập.
+    // WRONG: equals compares id, yet hashCode depends on independent hint.
     static final class BadKey {
         final String id;
         final int hint;
@@ -93,7 +93,7 @@ public class ContractConsequencesDemo {
         }
     }
 
-    // Đúng theo trạng thái hiện tại, nhưng không an toàn khi dùng làm khóa rồi sửa id.
+    // Correct for the current state, yet unsafe when used as a key and then mutating id.
     static final class MutableKey {
         String id;
 
@@ -143,14 +143,14 @@ public class ContractConsequencesDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 ContractConsequencesDemo.java
 java ContractConsequencesDemo
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 true
@@ -165,66 +165,66 @@ false
 0
 ```
 
-Giải thích từng nhóm:
+Group-by-group explanation:
 
-1. Hai `BadKey` có cùng `id` nên `equals` trả `true`, nhưng hash code khác `1` và `2`. `HashSet` lưu được cả hai: lớp `BadKey` đã phá vỡ hợp đồng, không phải `HashSet`.
-2. `MutableKey` ban đầu có `id = "A"` nên tìm được chuỗi `stored`. Sau khi đổi thành `"B"`, mã hash của chuỗi đổi; `HashMap.get(key)` không tìm thấy mục cũ, dù `size()` vẫn bằng `1`. Ví dụ dùng chuỗi `"A"`/`"B"` để đầu ra xác định trên `HashMap` của Java chuẩn.
-3. `BigDecimal("1.0")` và `BigDecimal("1.00")` khác nhau theo `equals` vì khác scale, nhưng `compareTo` trả `0` do cùng giá trị số. `HashSet` coi là hai phần tử; `TreeSet` coi là một theo thứ tự tự nhiên. Đây là hành vi có chủ đích, cho thấy chọn cấu trúc dữ liệu cũng là chọn tiêu chí tương đương.
+1. Both `BadKey` instances have the same `id`, so `equals` returns `true`, yet their hash codes differ (`1` and `2`). `HashSet` stores both: the `BadKey` class broke the contract, not `HashSet`.
+2. `MutableKey` initially has `id = "A"`, so the string `stored` is found. After changing it to `"B"`, the string's hash code changes; `HashMap.get(key)` does not find the old entry, even though `size()` remains `1`. The example uses strings `"A"`/`"B"` so the output is deterministic on standard Java's `HashMap`.
+3. `BigDecimal("1.0")` and `BigDecimal("1.00")` differ under `equals` due to different scales, yet `compareTo` returns `0` because of the same numerical value. `HashSet` treats them as two elements; `TreeSet` treats them as one under natural ordering. This is intentional behavior, showing that choosing a data structure is also choosing an equivalence criterion.
 
-## 4. Những kiểu lỗi thường gặp khi tự cài đặt
+## 4. Common Bug Patterns When Implementing Yourself
 
-### Overload nhầm `equals` thay vì override
+### Mistakenly Overloading `equals` Instead of Overriding It
 
 ```java
-// SAI: chỉ tạo overload, không ghi đè Object.equals(Object).
+// WRONG: only creates an overload, does not override Object.equals(Object).
 public boolean equals(UserId other) {
     return other != null && value.equals(other.value);
 }
 ```
 
-`HashSet`/`HashMap` gọi chữ ký `equals(Object)`. Nếu lớp chỉ có `equals(UserId)`, chúng vẫn có thể dùng phương thức kế thừa từ `Object` (so sánh định danh tham chiếu), khiến hai giá trị cùng mã vẫn bị xem là khác nhau. Dùng `@Override` và khai báo đúng `public boolean equals(Object other)` để trình biên dịch phát hiện lỗi chữ ký.
+`HashSet`/`HashMap` invoke the `equals(Object)` signature. If a class only has `equals(UserId)`, they still use the method inherited from `Object` (comparing reference identity), causing two values with the same code to still be treated as different. Use `@Override` and declare `public boolean equals(Object other)` properly so the compiler catches signature mistakes.
 
-### Bỏ qua đối xứng hoặc bắc cầu khi kế thừa
+### Ignoring Symmetry or Transitivity Under Inheritance
 
-Một lớp cha cho phép mọi lớp con cùng `id` bằng nhau, nhưng lớp con lại bắt buộc thêm `region`, có thể tạo `parent.equals(child) == true` trong khi `child.equals(parent) == false`. Thêm nhiều đối tượng còn có thể phá tính bắc cầu. Các cấu trúc dùng `equals` không thể định nghĩa một tập hợp nhất quán khi quan hệ “bằng nhau” tự mâu thuẫn.
+A superclass allowing any subclass with the same `id` to be equal, while a subclass additionally requires `region`, can produce `parent.equals(child) == true` while `child.equals(parent) == false`. Adding more objects can also break transitivity. Structures using `equals` cannot define a consistent set when the "equality" relation contradicts itself.
 
-Khi thiết kế value object, ưu tiên giá trị bất biến, lớp `final` hoặc mô hình so sánh có chiến lược kế thừa rõ ràng. Tránh sửa `equals` theo cách làm hai phía bất đồng.
+When designing value objects, prefer immutable values, `final` classes, or a comparison model with a clear inheritance strategy. Avoid altering `equals` in a way that makes two sides disagree.
 
-### Comparator dùng phép trừ hoặc dùng dữ liệu biến đổi
+### Comparator Using Subtraction or Mutable Data
 
 ```java
-// Nguy hiểm: a - b có thể tràn số nguyên.
+// Dangerous: a - b can overflow integers.
 Comparator<Integer> bad = (a, b) -> a - b;
 
-// Đúng và tránh tràn:
+// Correct and avoids overflow:
 Comparator<Integer> good = Integer::compare;
 ```
 
-Đây là mảnh mã minh họa, không phải chương trình Java độc lập. Phép trừ số nguyên có thể tràn khiến dấu sai và làm thứ tự không nhất quán. Một `Comparator` đọc thuộc tính mutable đang thay đổi trong khi đối tượng ở `TreeSet`/`TreeMap` cũng có thể khiến thao tác tra cứu hoặc thứ tự cây không còn phù hợp với hiện trạng.
+This is an illustrative snippet, not a standalone Java program. Integer subtraction can overflow, flipping the sign and making ordering inconsistent. A `Comparator` reading a mutable attribute that changes while the object sits in `TreeSet`/`TreeMap` can also cause lookups or tree ordering to no longer match current state.
 
-### Nhầm `toString` với danh tính đối tượng
+### Confusing `toString` With Object Identity
 
-`Object.toString()` phục vụ biểu diễn văn bản, gỡ lỗi và logging; nó không thay `equals`/`hashCode`. Hai đối tượng có cùng chuỗi `toString()` không mặc nhiên bằng nhau, và bản thân chuỗi hiển thị không nhất thiết ổn định hoặc duy nhất. Đừng lấy định dạng log làm tiêu chí khóa nếu chưa xác định rõ ngữ nghĩa.
+`Object.toString()` serves text representation, debugging, and logging; it does not replace `equals`/`hashCode`. Two objects with the same `toString()` string are not automatically equal, and the displayed string itself is not necessarily stable or unique. Do not use a log format as a key criterion without explicitly defining semantics.
 
-## 5. Cách thiết kế và phòng tránh
+## 5. How to Design and Prevent Issues
 
-1. **Xác định danh tính logic trước khi viết code.** Với `UserId`, có thể chỉ `id` tham gia bằng nhau; với đối tượng miền nghiệp vụ, phải quyết định rõ có đưa phiên bản, trạng thái, loại đối tượng hoặc trường hợp kế thừa vào hay không.
-2. **Cài `equals` và `hashCode` cùng một tập thuộc tính.** Cập nhật cả hai khi thay đổi định nghĩa bằng nhau. Dùng `Objects.equals`, `Objects.hash` khi phù hợp; hash code có va chạm vẫn đúng về ngữ nghĩa, dù có thể ảnh hưởng hiệu năng.
-3. **Ưu tiên khóa bất biến.** Ví dụ `record UserId(String value) {}` ở Java 17 tự sinh `equals`/`hashCode` theo thành phần `value`. Nhưng record không tự làm cho đối tượng tham chiếu bên trong bất biến: nếu thành phần là mảng hay collection mutable, vẫn cần thiết kế sao cho so sánh và hash ổn định. Với mảng, `equals`/`hashCode` sinh bởi record dùng ngữ nghĩa tham chiếu của mảng, không tự so sánh sâu các phần tử.
-4. **Chọn quy tắc sắp xếp có chủ đích.** Khi dùng `TreeSet`/`TreeMap`, kiểm tra ý nghĩa của `compare == 0`. Nếu hai đối tượng khác nhau theo danh tính nghiệp vụ phải cùng tồn tại, comparator cần khóa phân biệt đủ mạnh, ví dụ so sánh thêm mã định danh ổn định. Nếu cố ý gộp theo một giá trị, phải chấp nhận semantics của sorted set/map.
-5. **Không thay đổi thuộc tính ảnh hưởng đến thứ tự/khóa sau khi chèn.** Muốn cập nhật, hãy loại bỏ theo trạng thái cũ trước, tạo giá trị mới hoặc cập nhật lúc đối tượng chưa nằm trong collection, rồi chèn lại; với khóa map không thể tra cứu, có thể cần xây dựng lại cấu trúc từ nguồn dữ liệu tin cậy.
-6. **Kiểm thử hợp đồng, không chỉ một lệnh `put/get`.** Tạo ít nhất ba đối tượng đại diện cho cùng giá trị, giá trị khác, lớp cha/con hoặc trạng thái khác nếu có. Kiểm tra phản xạ, đối xứng, bắc cầu, `equals(null)`, chiều kéo theo giữa `equals` và `hashCode`, cùng việc tìm/xóa bằng một đối tượng tương đương mới. Với comparator, kiểm tra ba phần tử, thứ tự đảo và trường hợp bằng `0`, đặc biệt các số ở biên.
+1. **Define logical identity before writing code.** For `UserId`, perhaps only `id` participates in equality; for a business domain object, you must clearly decide whether version, status, object type, or inheritance cases are included.
+2. **Implement `equals` and `hashCode` with the exact same set of attributes.** Update both when changing the equality definition. Use `Objects.equals` and `Objects.hash` when appropriate; hash codes with collisions remain semantically valid, though they may affect performance.
+3. **Prefer immutable keys.** For example, `record UserId(String value) {}` in Java 17 automatically generates `equals`/`hashCode` from the `value` component. However, a record does not make referenced objects inside immutable: if a component is an array or mutable collection, you still must design it so comparison and hashing remain stable. For arrays, record-generated `equals`/`hashCode` use the array's reference semantics rather than deep element comparison.
+4. **Choose sorting rules deliberately.** When using `TreeSet`/`TreeMap`, inspect the meaning of `compare == 0`. If two objects differing in business identity must coexist, the comparator needs a sufficiently distinguishing key, such as comparing a stable identifier as well. If intentionally grouping by a single value, you must accept sorted set/map semantics.
+5. **Do not modify attributes affecting ordering/keys after insertion.** To update, remove using the old state first, create a new value or update while the object is not in the collection, and then reinsert; for map keys that can no longer be looked up, you may need to rebuild the structure from a trusted data source.
+6. **Test the contract, not just a single `put/get` call.** Create at least three objects representing equal values, different values, superclass/subclass or different states if applicable. Test reflexivity, symmetry, transitivity, `equals(null)`, the implication from `equals` to `hashCode`, and lookup/removal using a new equivalent object. For comparators, test three elements, reversed order, and `0` cases, especially boundary numbers.
 
-Một phép thử rất quan trọng: nếu `a.equals(b)` trả `true` thì **bắt buộc** `a.hashCode() == b.hashCode()`. Phép thử chiều ngược lại (`hashCode` bằng nhau suy ra `equals`) là **sai** và không nên viết.
+One very important test: if `a.equals(b)` returns `true`, then `a.hashCode() == b.hashCode()` is **mandatory**. Testing the reverse direction (`hashCode` equality implies `equals`) is **wrong** and should not be written.
 
-## 6. Checklist chẩn đoán khi collection hoạt động lạ
+## 6. Diagnostic Checklist When Collections Behave Strangely
 
-| Hiện tượng | Kiểm tra đầu tiên | Cách xử lý có định hướng |
+| Symptom | First check | Targeted resolution |
 | --- | --- | --- |
-| `HashSet` giữ hai phần tử tưởng là trùng | `equals` có thật sự override `Object.equals`? Hash của hai đối tượng bằng nhau khi `equals` đúng? | Sửa quan hệ bằng nhau và hàm hash; dựng lại set sau khi sửa |
-| `HashMap.get`/`remove` không thấy khóa từng chèn | Khóa có bị sửa trường tham gia `equals`/`hashCode` sau `put`? | Dùng khóa bất biến; khôi phục hoặc dựng lại map từ dữ liệu nguồn |
-| `TreeSet` bỏ phần tử hoặc `TreeMap` ghi đè giá trị | `compareTo`/`Comparator.compare` có trả `0` cho hai khóa muốn phân biệt? | Thiết kế comparator thể hiện đúng danh tính cần lưu |
-| Kết quả sort bất thường hoặc thỉnh thoảng ném `IllegalArgumentException` | Comparator có bắc cầu, phản đối xứng về dấu và nhất quán khi trả `0`? Có tràn số hoặc trạng thái thay đổi? | Dùng phép so sánh an toàn, khóa sắp xếp ổn định, bổ sung kiểm thử bộ ba |
-| `HashSet` và `TreeSet` có kích thước khác nhau | `equals` và thứ tự tự nhiên có cùng định nghĩa tương đương? Ví dụ `BigDecimal` | Xác định nhu cầu nghiệp vụ: so theo scale hay chỉ giá trị số |
+| `HashSet` keeps two elements that appear to be duplicates | Does `equals` actually override `Object.equals`? Do the two objects' hashes match when `equals` is true? | Fix the equality relation and hash function; rebuild the set after fixing |
+| `HashMap.get`/`remove` fails to find an inserted key | Were fields participating in `equals`/`hashCode` mutated on the key after `put`? | Use immutable keys; restore or rebuild the map from source data |
+| `TreeSet` drops elements or `TreeMap` overwrites values | Does `compareTo`/`Comparator.compare` return `0` for two keys meant to be distinct? | Design a comparator reflecting the exact identity to be stored |
+| Unusual sort results or occasional `IllegalArgumentException` | Is the comparator transitive, antisymmetric in sign, and consistent when returning `0`? Is there integer overflow or mutating state? | Use safe comparisons, stable sort keys, and add triple-element tests |
+| `HashSet` and `TreeSet` have different sizes | Do `equals` and natural ordering share the same equivalence definition? E.g., `BigDecimal` | Clarify business needs: compare with scale or numerical value only |
 
-**Kết luận:** Collection của Java dựa trên hợp đồng do **lớp phần tử/khóa hoặc comparator** cung cấp. Vi phạm hợp đồng làm lộ lỗi ở thao tác tưởng như vô can (`contains`, `get`, `add`, `remove`, `sort`). Cách phòng ngừa là định nghĩa một quan hệ bằng nhau hợp lệ, sinh hash tương thích, giữ khóa ổn định và hiểu rõ tiêu chí tương đương riêng của collection có thứ tự.
+**Conclusion:** Java collections rely on contracts supplied by **the element/key class or comparator**. Breaking a contract exposes bugs in seemingly harmless operations (`contains`, `get`, `add`, `remove`, `sort`). Prevention means defining a valid equality relation, generating compatible hashes, keeping keys stable, and clearly understanding the separate equivalence criteria of ordered collections.

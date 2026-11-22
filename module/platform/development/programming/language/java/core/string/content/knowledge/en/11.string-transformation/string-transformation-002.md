@@ -1,8 +1,8 @@
-# `String.replace(CharSequence, CharSequence)` — thay thế chuỗi nguyên văn trong Java
+# `String.replace(CharSequence, CharSequence)` — Literal String Replacement in Java
 
-Khi cần thay một đoạn văn bản bằng đoạn khác trong `String`, Java cung cấp overload **`replace(CharSequence target, CharSequence replacement)`**. Phương thức tìm các lần xuất hiện **liên tiếp, khớp chính xác và không chồng lấn** của `target` rồi thay chúng bằng `replacement`. Các chuỗi được hiểu là **văn bản nguyên văn (literal)**, không phải biểu thức chính quy (regex).
+When you need to replace one text segment with another in a `String`, Java provides the **`replace(CharSequence target, CharSequence replacement)`** overload. The method finds **contiguous, exact-matching, non-overlapping** occurrences of `target` and replaces them with `replacement`. Both strings are treated as **literal text**, not regular expressions (regex).
 
-Ví dụ:
+Example:
 
 ```java
 String text = "Java Java Core";
@@ -12,26 +12,26 @@ System.out.println(updated); // Kotlin Kotlin Core
 System.out.println(text);    // Java Java Core
 ```
 
-Đây là thao tác **biến đổi nội dung** của chuỗi: kết quả trả về là một `String` mang nội dung mới; đối tượng `String` ban đầu vẫn giữ nguyên vì `String` là kiểu bất biến (*immutable*).
+This is a **content transformation** operation on a string: the return value is a `String` holding the new content; the original `String` object remains unchanged because `String` is *immutable*.
 
-## 1. Cú pháp và ý nghĩa của hai tham số
+## 1. Syntax and Meaning of the Two Parameters
 
-Chữ ký API:
+API signature:
 
 ```java
 public String replace(CharSequence target,
                       CharSequence replacement)
 ```
 
-- **`target`:** dãy ký tự cần tìm. Ví dụ `"old"` hoặc `" "`. Các lần xuất hiện được tìm theo **nội dung chính xác**, phân biệt chữ hoa/thường.
-- **`replacement`:** dãy ký tự đưa vào thay cho mỗi lần khớp. Nó được dùng **nguyên văn**; các ký tự như `$` và `\` trong replacement không có ý nghĩa đặc biệt của regex.
-- **Giá trị trả về:** chuỗi kết quả sau thay thế tất cả các lần khớp **không chồng lấn** của `target`. Nếu không có đoạn khớp, nội dung kết quả bằng nội dung ban đầu.
-- **Đối tượng nhận:** chuỗi gốc, ví dụ `text` trong `text.replace(target, replacement)`.
-- **Kiểu tham số:** `CharSequence` nên không chỉ nhận `String` mà còn có thể nhận `StringBuilder` và các kiểu triển khai `CharSequence` khác.
+- **`target`:** the character sequence to search for. For example, `"old"` or `" "`. Occurrences are matched by **exact content**, case-sensitively.
+- **`replacement`:** the character sequence inserted in place of each match. It is used **literally**; characters such as `$` and `\` in `replacement` carry no special regex meaning.
+- **Return value:** the resulting string after replacing all **non-overlapping** matches of `target`. If no segment matches, the resulting content equals the original content.
+- **Receiver object:** the source string, such as `text` in `text.replace(target, replacement)`.
+- **Parameter type:** `CharSequence`, so it accepts not only `String` but also `StringBuilder` and other `CharSequence` implementations.
 
-Các trường hợp thường gặp:
+Common cases:
 
-| Chuỗi gốc | `target` | `replacement` | Nội dung kết quả |
+| Source string | `target` | `replacement` | Resulting content |
 | --- | --- | --- | --- |
 | `"red blue red"` | `"red"` | `"green"` | `"green blue green"` |
 | `"2026/10/22"` | `"/"` | `"-"` | `"2026-10-22"` |
@@ -40,11 +40,11 @@ Các trường hợp thường gặp:
 | `"hello"` | `"xyz"` | `"?"` | `"hello"` |
 | `"AB"` | `"a"` | `"x"` | `"AB"` |
 
-Chú ý `"a.b.c".replace(".", "-")` thay đúng hai ký tự dấu chấm. Dấu `.` ở đây **không** phải toán tử regex có nghĩa “bất kỳ ký tự nào”.
+Notice `"a.b.c".replace(".", "-")` replaces the two exact dot characters. Here, `.` is **not** the regex operator meaning "any character."
 
-### Ví dụ đầy đủ chạy bằng Java 17+
+### Complete Example Runnable on Java 17+
 
-Lưu tệp `ReplaceBasicDemo.java`:
+Save the file `ReplaceBasicDemo.java`:
 
 ```java
 public class ReplaceBasicDemo {
@@ -66,14 +66,14 @@ public class ReplaceBasicDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 ReplaceBasicDemo.java
 java ReplaceBasicDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Kotlin Kotlin Core
@@ -84,33 +84,33 @@ true
 J123a
 ```
 
-Lý giải:
+Explanation:
 
-1. Hai lần xuất hiện `"Java"` đều được thay bằng `"Kotlin"`. `original` không thay đổi.
-2. `replace(".", "-")` khớp dấu chấm thật; `replace("\\.", "-")` tìm **hai ký tự** là dấu gạch chéo ngược và dấu chấm, không có trong `"a.b.c"` nên trả nội dung như cũ.
-3. Không có `"xyz"` trong `"abc"` nên kết quả vẫn có cùng nội dung với `"abc"`. Ví dụ dùng `equals()` để kiểm tra **nội dung**, không dựa vào việc hai tham chiếu có trùng nhau hay không.
-4. `new StringBuilder("av")` và `new StringBuilder("123")` được chấp nhận vì triển khai `CharSequence`. Trong chuỗi `Java`, đoạn `"av"` thay thành `"123"`, tạo `"J123a"`.
+1. Both occurrences of `"Java"` are replaced with `"Kotlin"`. `original` does not change.
+2. `replace(".", "-")` matches real dots; `replace("\\.", "-")` searches for **two characters**, a backslash followed by a dot, which does not appear in `"a.b.c"`, so it returns the same content.
+3. `"xyz"` does not appear in `"abc"`, so the result still has the same content as `"abc"`. The example uses `equals()` to check **content**, without relying on whether the two references are identical.
+4. `new StringBuilder("av")` and `new StringBuilder("123")` are accepted because they implement `CharSequence`. In `"Java"`, `"av"` is replaced with `"123"`, creating `"J123a"`.
 
-## 2. Tất cả lần khớp *không chồng lấn*, xét từ trái sang phải
+## 2. All *Non-Overlapping* Matches, Evaluated Left to Right
 
-`replace(target, replacement)` thay tất cả các lần xuất hiện **không chồng lấn** của `target`. Nếu có những lần khớp giao nhau, lần khớp sớm hơn được sử dụng trước; vị trí đã sử dụng không tiếp tục được lấy cho lần khớp khác.
+`replace(target, replacement)` replaces all **non-overlapping** occurrences of `target`. If matches overlap, the earlier match is consumed first; positions already used cannot be reused for another match.
 
-Ví dụ với `"aaaaa"`, tìm `"aa"`:
+Example with `"aaaaa"`, searching for `"aa"`:
 
 ```text
-Chuỗi:   a a a a a
-Chỉ số:  0 1 2 3 4
-Khớp 1:  [0,2)  -> X
-Khớp 2:      [2,4) -> X
-Còn lại:          a
-Kết quả: XXa
+String:    a a a a a
+Index:     0 1 2 3 4
+Match 1:   [0,2)  -> X
+Match 2:       [2,4) -> X
+Remaining:         a
+Result:    XXa
 ```
 
-Đặc biệt, `"aaa".replace("aa", "b")` trả **`"ba"`** vì dùng cặp `aa` ở vị trí 0–1, rồi giữ nguyên chữ `a` cuối; không có lần khớp thứ hai không chồng lấn.
+In particular, `"aaa".replace("aa", "b")` returns **`"ba"`** because it consumes the `aa` pair at indices 0–1 and leaves the final `a` untouched; there is no second non-overlapping match.
 
-### Ví dụ biên và thay thế không lặp vô hạn
+### Edge Cases and Non-Infinite Replacement
 
-Lưu `ReplaceEdgesDemo.java`:
+Save `ReplaceEdgesDemo.java`:
 
 ```java
 public class ReplaceEdgesDemo {
@@ -130,14 +130,14 @@ public class ReplaceEdgesDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 ReplaceEdgesDemo.java
 java ReplaceEdgesDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 XXa
@@ -150,23 +150,23 @@ ac
 true
 ```
 
-Chi tiết cần hiểu:
+Key details to understand:
 
-- `"banana".replace("ana", "X")` thành `"bXna"`: `"ana"` đầu tiên từ chỉ số 1 đến trước 4 được thay, phần `"na"` còn lại giữ nguyên. Hai lần xuất hiện tiềm năng của `"ana"` chồng lên nhau nên không thay cả hai.
-- `"aba".replace("a", "aa")` thành `"aabaa"`. **Không tiếp tục tìm `"a"` trong chính nội dung `"aa"` vừa thay vào**; nếu tìm lại liên tục như vậy sẽ khác hoàn toàn với một lượt thay thế.
-- `"abc".replace("b", "")` thành `"ac"`: replacement rỗng có tác dụng **xóa** các lần xuất hiện của target.
-- `"ab".replace("b", "$1\\")` tạo đúng `"a$1\\"` dưới dạng giá trị chuỗi Java. Dấu `$` và dấu gạch chéo ngược trong replacement là **ký tự literal**; không diễn giải group hay escape theo cú pháp regex.
+- `"banana".replace("ana", "X")` becomes `"bXna"`: the first `"ana"` from index 1 to before 4 is replaced, and the remaining `"na"` stays intact. The two potential occurrences of `"ana"` overlap, so both are not replaced.
+- `"aba".replace("a", "aa")` becomes `"aabaa"`. **It does not continue searching for `"a"` inside the newly inserted `"aa"`**; repeating indefinitely like that would behave completely differently from a single replacement pass.
+- `"abc".replace("b", "")` becomes `"ac"`: an empty replacement effectively **deletes** occurrences of `target`.
+- `"ab".replace("b", "$1\\")` produces exact `"a$1\\"` as a Java string value. `$` and backslash in `replacement` are **literal characters**; no regex group or escape syntax is interpreted.
 
-### Trường hợp `target` rỗng
+### The Empty `target` Case
 
-`""` là dãy con rỗng và có vị trí khớp ở các **ranh giới** của chuỗi. Trong trường hợp ASCII đơn giản:
+`""` is an empty sequence and matches at string **boundaries**. In the simple ASCII case:
 
 ```java
 System.out.println("aba".replace("", "-")); // -a-b-a-
 System.out.println("".replace("", "X"));    // X
 ```
 
-Điều này thường gây bất ngờ: **target rỗng không có nghĩa là không thay gì**. Nếu `target` do người dùng cung cấp, cần quyết định rõ việc cho phép chuỗi rỗng hay không:
+This is often surprising: **an empty target does not mean "replace nothing."** If `target` is user-supplied, you must explicitly decide whether to allow empty strings:
 
 ```java
 if (target == null || target.isEmpty()) {
@@ -176,11 +176,11 @@ if (target == null || target.isEmpty()) {
 String updated = original.replace(target, replacement);
 ```
 
-Đây là đoạn mã minh họa **bên trong một phương thức**, giả định `original` và `replacement` đã hợp lệ. Đặc biệt với Unicode, đừng dùng thao tác chèn tại mọi đơn vị chuỗi để thay cho thuật toán phân đoạn ký tự mà người dùng nhìn thấy; một emoji có thể chiếm nhiều đơn vị UTF-16.
+This snippet is **inside a method**, assuming `original` and `replacement` are valid. Especially with Unicode, do not use insertion at every string unit as a substitute for user-perceived character segmentation; an emoji can occupy multiple UTF-16 units.
 
-## 3. Ranh giới giữa chuỗi literal và regex
+## 3. Boundary Between Literal Strings and Regex
 
-`replace(CharSequence, CharSequence)` coi **cả `target` lẫn `replacement` là văn bản nguyên văn**. `replaceFirst(regex, replacement)` và `replaceAll(regex, replacement)` dùng biểu thức chính quy để tìm; `replacement` của chúng có cú pháp riêng cho `$1` và backslash.
+`replace(CharSequence, CharSequence)` treats **both `target` and `replacement` as literal text**. `replaceFirst(regex, replacement)` and `replaceAll(regex, replacement)` use regular expressions to search; their `replacement` has special syntax for `$1` and backslashes.
 
 ~~~java
 String source = "a.b.c";
@@ -190,11 +190,11 @@ System.out.println(source.replaceAll("\\.", "-")); // a-b-c
 System.out.println("ab".replace("b", "$1\\"));       // a$1\
 ~~~
 
-Ở overload literal, `"."` khớp đúng dấu chấm và `"$1\\"` được chèn nguyên văn. Với regex, phải escape dấu chấm thành `"\\."`; nếu pattern và replacement lấy từ dữ liệu động, `Pattern.quote(target)` và `Matcher.quoteReplacement(replacement)` giúp coi các phần tương ứng là literal. Bài so sánh `replace`, `replaceFirst`, `replaceAll` riêng trong chương trình bày sâu cách escape, nhóm bắt và lỗi regex. Khi không cần regex, chọn trực tiếp `replace(target, replacement)`.
+In the literal overload, `"."` matches an exact dot and `"$1\\"` is inserted literally. With regex, you must escape the dot as `"\\."`; if pattern and replacement come from dynamic data, `Pattern.quote(target)` and `Matcher.quoteReplacement(replacement)` ensure those parts are treated literally. The dedicated lesson comparing `replace`, `replaceFirst`, and `replaceAll` in this chapter covers escaping, capture groups, and regex pitfalls in depth. When regex is not needed, choose `replace(target, replacement)` directly.
 
-## 4. `String` bất biến và sử dụng giá trị trả về
+## 4. `String` Immutability and Using the Return Value
 
-Phương thức tìm và tạo **giá trị kết quả**, không sửa `String` nhận lời gọi:
+The method searches and produces a **result value**, without modifying the `String` receiving the call:
 
 ~~~java
 String original = "red red";
@@ -203,16 +203,16 @@ System.out.println(original); // red red
 System.out.println(updated);  // blue blue
 ~~~
 
-Nếu chỉ viết `original.replace("red", "blue");` rồi bỏ giá trị trả về, biến `original` vẫn chứa `"red red"`. Có thể gán lại một biến khi không cần dùng bản gốc; nếu cần hiển thị hay đối chiếu nội dung đã nhận, giữ `original` và `updated` riêng. Với nhiều phép thay nối tiếp, phép sau chạy trên kết quả của phép trước; thứ tự quy tắc có thể thay đổi kết quả.
+If you only write `original.replace("red", "blue");` and discard the return value, `original` still holds `"red red"`. You can reassign a variable when the original is no longer needed; if you need to display or compare against the received content, keep `original` and `updated` separate. With multiple chained replacements, each subsequent call runs on the result of the previous one; rule order can change the result.
 
-## 5. Kiểm tra null và dữ liệu đầu vào
+## 5. Null Checks and Input Data
 
-Không có đối tượng để gọi `replace()` nếu biến nhận là `null`. Ngoài ra, đối với overload `replace(CharSequence, CharSequence)`, Java yêu cầu **cả target và replacement đều khác `null`**.
+There is no object to invoke `replace()` on if the receiver variable is `null`. In addition, for the `replace(CharSequence, CharSequence)` overload, Java requires **both `target` and `replacement` to be non-`null`**.
 
 ```java
 String text = "hello";
 
-// Các lời gọi sau sẽ ném NullPointerException:
+// The following calls will throw NullPointerException:
 // text.replace((CharSequence) null, "x");
 // text.replace("l", (CharSequence) null);
 
@@ -220,7 +220,7 @@ String missing = null;
 // missing.replace("a", "b");
 ```
 
-Nếu đầu vào có thể vắng mặt, cần chọn chính sách rõ ràng: từ chối bằng ngoại lệ, giữ nguyên, hoặc trả về giá trị khác theo yêu cầu nghiệp vụ. Ví dụ utility trả về `null` nếu chuỗi gốc `null`, còn hai tham số thay thế phải hợp lệ:
+If inputs can be absent, choose an explicit policy: reject with an exception, keep unchanged, or return another value according to business requirements. Example utility returning `null` if the source string is `null`, while requiring the two replacement parameters to be valid:
 
 ```java
 import java.util.Objects;
@@ -244,25 +244,25 @@ public class SafeReplaceDemo {
 }
 ```
 
-Chạy `javac -encoding UTF-8 SafeReplaceDemo.java` và `java SafeReplaceDemo`, kết quả:
+Run `javac -encoding UTF-8 SafeReplaceDemo.java` and `java SafeReplaceDemo`, output:
 
 ```text
 a-b-c
 true
 ```
 
-Phương thức ví dụ cố ý chọn chính sách trả về `null` khi `text` thiếu. Trong API khác, ném `IllegalArgumentException` hoặc `NullPointerException` theo hợp đồng có thể phù hợp hơn. **Đừng tự biến `null` thành chuỗi `"null"`** khi nghiệp vụ chưa quy định cách xử lý.
+The example method deliberately chooses a policy of returning `null` when `text` is missing. In another API, throwing `IllegalArgumentException` or `NullPointerException` per contract might be more appropriate. **Do not silently turn `null` into the string `"null"`** when business rules have not specified that behavior.
 
-## 6. Unicode và phân biệt chữ hoa/thường
+## 6. Unicode and Case Sensitivity
 
-`String.replace(CharSequence, CharSequence)` so khớp dãy ký tự **chính xác theo nội dung UTF-16**, không tự áp dụng chuẩn hóa Unicode, không bỏ dấu và không so khớp theo văn hóa/ngôn ngữ.
+`String.replace(CharSequence, CharSequence)` matches character sequences **by exact UTF-16 content**, without automatically applying Unicode normalization, removing diacritics, or matching by culture/language.
 
-Hai biểu diễn nhìn giống nhau có thể không có cùng dãy code unit:
+Two visually identical representations can have different code unit sequences:
 
-- `"\u00E9"` là ký tự `é` dựng sẵn (U+00E9).
-- `"e\u0301"` gồm `e` (U+0065) và dấu sắc kết hợp U+0301.
+- `"\u00E9"` is the precomposed `é` character (U+00E9).
+- `"e\u0301"` consists of `e` (U+0065) and combining acute accent U+0301.
 
-Ví dụ tệp `ReplaceUnicodeDemo.java`:
+Example file `ReplaceUnicodeDemo.java`:
 
 ```java
 import java.text.Normalizer;
@@ -283,40 +283,40 @@ public class ReplaceUnicodeDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 ReplaceUnicodeDemo.java
 java ReplaceUnicodeDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Café
 CafX
 ```
 
-Chuỗi đầu không chứa chuỗi hai code point `e + dấu sắc kết hợp`, nên nội dung không đổi. Sau khi chuẩn hóa chuỗi phân rã về `NFC`, chuỗi có ký tự dựng sẵn và thay `é` bằng `X` thành công.
+The first string does not contain the two-code-point sequence `e + combining acute accent`, so its content stays unchanged. After normalizing the decomposed string to `NFC`, the string has the precomposed character and replacing `é` with `X` succeeds.
 
-Nếu yêu cầu xử lý tương đương Unicode, **chuẩn hóa cả nguồn và target** về cùng một dạng phù hợp trước khi thay; cần nhớ normalization có thể làm thay đổi code point và offset. Nếu yêu cầu là tìm kiếm không phân biệt hoa/thường, cân nhắc phép biến đổi chữ theo `Locale` hoặc thuật toán Unicode case folding phù hợp; `replace()` mặc định **không bỏ qua** chữ hoa/thường.
+If Unicode equivalence handling is required, **normalize both source and target** to the same appropriate form before replacing; remember that normalization can change code points and offsets. If case-insensitive search is required, consider `Locale`-aware case conversion or appropriate Unicode case folding algorithms; `replace()` by default **does not ignore** case.
 
-Cần thận trọng với emoji, dấu kết hợp và surrogate pairs: phương thức tìm đoạn theo UTF-16, **không cam kết** giữ ranh giới *grapheme cluster* (cụm ký tự người dùng cảm nhận). Nếu mục tiêu là thay một ký tự hiển thị hoàn chỉnh, cần xác định ranh giới Unicode theo quy tắc ứng dụng.
+Be careful with emojis, combining marks, and surrogate pairs: the method searches segments by UTF-16 and **does not guarantee** preserving *grapheme cluster* (user-perceived character) boundaries. If the goal is to replace a complete displayed character, you must determine Unicode boundaries according to application rules.
 
-## 7. Khi nào nên dùng `replace()`?
+## 7. When Should You Use `replace()`?
 
-Một số tình huống hợp lý:
+Some reasonable scenarios:
 
-- **Đổi ký hiệu phân cách cố định:** `"a/b/c".replace("/", "-")` → `"a-b-c"`.
-- **Thay token văn bản đã được nhận diện:** `"Hello, {name}!".replace("{name}", "Lan")` → `"Hello, Lan!"`, trong ngữ cảnh đầu vào và thứ tự thay thế đã được kiểm soát.
-- **Loại bỏ một đoạn cụ thể:** `"a--b".replace("--", "")` → `"ab"`.
-- **Chuẩn hóa cách viết một cụm cố định trong văn bản nội bộ:** `"ERROR: ERROR:".replace("ERROR", "WARN")` → `"WARN: WARN:"`.
+- **Changing a fixed delimiter:** `"a/b/c".replace("/", "-")` → `"a-b-c"`.
+- **Replacing a recognized text token:** `"Hello, {name}!".replace("{name}", "Lan")` → `"Hello, Lan!"`, where input and replacement order are controlled.
+- **Removing a specific segment:** `"a--b".replace("--", "")` → `"ab"`.
+- **Normalizing a fixed phrase in internal text:** `"ERROR: ERROR:".replace("ERROR", "WARN")` → `"WARN: WARN:"`.
 
-Lưu ý, **thay thế nguyên văn không phải thao tác parse**: thay `"cat"` trong `"catalog"` cũng có thể làm thay một phần từ lớn hơn. Với token nghiệp vụ, mã định danh, placeholder có escape/nesting hoặc dữ liệu cấu trúc, nên dùng parser hoặc cơ chế template chuyên dụng để tránh thay nhầm.
+Note that **literal replacement is not parsing**: replacing `"cat"` in `"catalog"` also replaces part of a larger word. For business tokens, identifiers, placeholders with escaping/nesting, or structured data, use a parser or dedicated templating mechanism to avoid accidental replacements.
 
-Với văn bản dài, nhiều mục tiêu thay thế hoặc gọi `replace()` lặp trong vòng lặp, hiệu năng phụ thuộc cách xử lý và dữ liệu. Mỗi lần gọi trả về một `String` theo ngữ nghĩa API, nhưng số lượng cấp phát thực tế là chi tiết triển khai và có thể được JVM tối ưu. Khi cần ghép nhiều phần trong vòng lặp, `StringBuilder` thường phù hợp; khi có nhiều mẫu thay thế hoặc yêu cầu tránh các lần thay lẫn nhau, nên thiết kế một phép xử lý duy nhất dựa trên quy tắc thay thế cụ thể.
+With long text, many replacement targets, or repeated `replace()` calls inside a loop, performance depends on the processing strategy and data. Each call returns a `String` per API semantics, though the actual number of allocations is an implementation detail and may be optimized by the JVM. When assembling many parts in a loop, `StringBuilder` is usually suitable; when there are many replacement patterns or you need to prevent replacements from interfering with one another, design a single-pass processor based on the specific replacement rules.
 
-Ví dụ sự khác nhau giữa **một lần gọi** và **hai lần gọi nối tiếp**:
+Example showing the difference between **one call** and **two chained calls**:
 
 ```java
 String text = "ab";
@@ -325,36 +325,36 @@ System.out.println(text.replace("a", "b")
                        .replace("b", "c"));     // cc
 ```
 
-Trong hai lần gọi nối tiếp, lần thứ hai tìm cả `"b"` cũ lẫn `"b"` do lần thứ nhất tạo ra. Điều này **khác** với một lần thay thế `target`: kết quả vừa chèn **không bị xử lý lại trong chính lần gọi đó**.
+In two chained calls, the second call matches both the old `"b"` and the `"b"` created by the first call. This **differs** from a single `target` replacement: newly inserted text **is not reprocessed within that same call**.
 
-## 8. Các lỗi thường gặp
+## 8. Common Mistakes
 
-1. **Dùng `replaceAll()` khi target là văn bản nguyên văn:** dấu `.`, `*`, `[`, `(` hoặc `\` có thể mang nghĩa regex và dẫn đến kết quả sai hoặc ngoại lệ `PatternSyntaxException`. Dùng `replace(CharSequence, CharSequence)` cho văn bản literal.
-2. **Nghĩ chỉ thay lần đầu tiên:** `replace()` thay **tất cả** lần khớp không chồng lấn; với regex, `replaceFirst()` là API riêng cho lần đầu.
-3. **Không lưu giá trị trả về:** `text.replace(...)` không biến đổi đối tượng `text` vì `String` bất biến.
-4. **Đặt `$1` trong replacement rồi chờ group substitution:** overload `replace(CharSequence, CharSequence)` **không có** group capture. `$1` được chèn nguyên văn.
-5. **Tưởng target rỗng luôn vô tác dụng:** `"ab".replace("", "-")` có thể chèn thêm ký tự ở các ranh giới; cần kiểm tra/định nghĩa chính sách đầu vào.
-6. **Quên null:** target hoặc replacement null gây `NullPointerException`; biến chuỗi nhận null cũng không thể gọi phương thức.
-7. **Nhầm khớp chuỗi con với khớp từ:** `"catalog".replace("cat", "dog")` trở thành `"dogalog"` vì `replace()` không hiểu ranh giới từ.
-8. **Trông chờ không phân biệt chữ hoa/thường:** `"Java".replace("java", "X")` vẫn là `"Java"`.
-9. **Chỉ test ASCII:** dữ liệu có dấu, Unicode normalization, emoji và dấu kết hợp có thể đòi hỏi quy tắc xử lý thêm.
-10. **Thay thế nhiều lần mà không xét thứ tự:** đầu ra từ phép thay thứ nhất có thể trở thành target của phép thứ hai nếu gọi `replace()` nối tiếp.
-11. **Dựa vào `==` để kiểm tra kết quả:** nên dùng `equals()` để so nội dung thay vì so tham chiếu.
+1. **Using `replaceAll()` when `target` is literal text:** `.`, `*`, `[`, `(`, or `\` can carry regex meaning and lead to wrong results or `PatternSyntaxException`. Use `replace(CharSequence, CharSequence)` for literal text.
+2. **Thinking it only replaces the first match:** `replace()` replaces **all** non-overlapping matches; for regex, `replaceFirst()` is the separate API for the first match.
+3. **Not storing the return value:** `text.replace(...)` does not mutate the `text` object because `String` is immutable.
+4. **Putting `$1` in `replacement` and expecting group substitution:** the `replace(CharSequence, CharSequence)` overload **has no** group capture. `$1` is inserted literally.
+5. **Thinking an empty `target` always has no effect:** `"ab".replace("", "-")` can insert characters at boundaries; validate or define an input policy.
+6. **Forgetting `null`:** a `null` target or replacement causes `NullPointerException`; a `null` string receiver cannot invoke the method either.
+7. **Confusing substring matching with word matching:** `"catalog".replace("cat", "dog")` becomes `"dogalog"` because `replace()` does not understand word boundaries.
+8. **Expecting case-insensitivity:** `"Java".replace("java", "X")` remains `"Java"`.
+9. **Testing only ASCII:** data with diacritics, Unicode normalization, emojis, and combining marks may require additional handling rules.
+10. **Replacing multiple times without considering order:** output from the first replacement can become the target of the second if `replace()` calls are chained.
+11. **Relying on `==` to verify results:** use `equals()` to compare content instead of comparing references.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-Với `String s = "aaaa";`:
+Given `String s = "aaaa";`:
 
-| Lời gọi | Kết quả | Giải thích |
+| Call | Result | Explanation |
 | --- | --- | --- |
-| `s.replace("a", "X")` | `"XXXX"` | Có bốn lần khớp literal `a` |
-| `s.replace("aa", "b")` | `"bb"` | Hai đoạn `aa` không chồng lấn |
-| `s.replace("aaa", "Z")` | `"Za"` | Một đoạn `aaa` từ trái sang phải |
-| `s.replace("a", "")` | `""` | Xóa tất cả `a` |
-| `s.replace("A", "X")` | `"aaaa"` | Phân biệt hoa/thường |
-| `s.replace("b", "X")` | `"aaaa"` | Không có target |
-| `s.replace("", "-")` | `"-a-a-a-a-"` | Thay target rỗng tại ranh giới |
+| `s.replace("a", "X")` | `"XXXX"` | Four literal matches of `a` |
+| `s.replace("aa", "b")` | `"bb"` | Two non-overlapping `aa` segments |
+| `s.replace("aaa", "Z")` | `"Za"` | One `aaa` segment from left to right |
+| `s.replace("a", "")` | `""` | Removes all `a`s |
+| `s.replace("A", "X")` | `"aaaa"` | Case-sensitive |
+| `s.replace("b", "X")` | `"aaaa"` | Target not present |
+| `s.replace("", "-")` | `"-a-a-a-a-"` | Replaces empty target at boundaries |
 
-Bạn có thể tự tạo file Java cho các ví dụ trên và dùng `System.out.println(...)` để kiểm tra. Nếu đang xử lý dữ liệu đến từ người dùng, hãy thử thêm chuỗi rỗng, `null`, target dài hơn nguồn, ký tự đặc biệt như `.`/`$`/`\` và chuỗi tiếng Việt có dấu.
+You can create your own Java file for the examples above and use `System.out.println(...)` to verify. When processing user-supplied data, also test empty strings, `null`, targets longer than the source, special characters like `.`/`$`/`\`, and Vietnamese strings with diacritics.
 
-**Ghi nhớ:** `replace(CharSequence target, CharSequence replacement)` thực hiện thay thế **mọi lần xuất hiện literal, không chồng lấn**; **target và replacement đều được hiểu nguyên văn**. `replaceAll()` dùng **regex** và có quy tắc thay thế khác. Luôn sử dụng giá trị `String` trả về, kiểm tra đầu vào `null`/rỗng theo yêu cầu, và chỉ dùng `equals()` khi cần so nội dung chuỗi.
+**Key takeaway:** `replace(CharSequence target, CharSequence replacement)` replaces **all non-overlapping literal occurrences**; **both `target` and `replacement` are interpreted literally**. `replaceAll()` uses **regex** and follows different replacement rules. Always use the returned `String` value, validate `null`/empty inputs as required, and only use `equals()` when comparing string content.

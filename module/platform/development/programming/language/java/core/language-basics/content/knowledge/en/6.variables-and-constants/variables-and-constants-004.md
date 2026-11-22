@@ -1,65 +1,65 @@
-# Yêu cầu gán giá trị trước khi đọc biến cục bộ trong Java
+# Requiring Assignment Before Reading Local Variables in Java
 
-## 1. Quy tắc cốt lõi: definite assignment
+## 1. Core Rule: Definite Assignment
 
-Một **biến cục bộ** (*local variable*) được khai báo bên trong phương thức, constructor hoặc block có thể chưa có initializer ngay tại dòng khai báo:
+A **local variable** declared inside a method, constructor, or block does not need an initializer on the declaration line itself:
 
 ~~~java
-int quantity;             // Được phép khai báo
-quantity = 4;             // Gán trước khi sử dụng
+int quantity;             // Declaration is allowed
+quantity = 4;             // Assigned before use
 System.out.println(quantity); // 4
 ~~~
 
-Tuy nhiên, **Java 17 yêu cầu biến cục bộ phải được gán chắc chắn trước khi đọc giá trị**. Quy tắc này gọi là **definite assignment** (gán chắc chắn). Nó được trình biên dịch `javac` kiểm tra bằng cách phân tích những đường điều khiển có thể đi tới chỗ đọc biến.
+However, **Java 17 requires a local variable to be definitely assigned before its value is read**. This rule is called **definite assignment**. It is checked by the `javac` compiler by analyzing the control-flow paths that can reach the variable read.
 
-Ví dụ cố tình sai:
+Deliberately invalid example:
 
 ~~~java
 static void invalid() {
     int quantity;
-    System.out.println(quantity); // LỖI BIÊN DỊCH
+    System.out.println(quantity); // COMPILE ERROR
 }
 ~~~
 
-Thông báo của `javac` thường có dạng:
+`javac` typically outputs a message like:
 
 ~~~text
 error: variable quantity might not have been initialized
 ~~~
 
-Đây là lỗi **compile-time**, không phải exception chỉ xuất hiện khi chạy. Trình biên dịch không cho phép sử dụng một biến cục bộ mà có thể chưa được gán.
+This is a **compile-time** error, not a runtime-only exception. The compiler will not allow using a local variable that might not have been assigned.
 
-> **Nhớ:** “đã khai báo” khác “đã được gán giá trị”. Không nhất thiết phải khởi tạo ngay ở câu lệnh khai báo, nhưng mọi đường thực thi đi tới nơi đọc phải bảo đảm biến đã được gán.
+> **Remember:** "declared" is different from "assigned a value". It does not have to be initialized on the declaration statement, but every execution path reaching the read must guarantee the variable has been assigned.
 
-## 2. Khai báo, gán và đọc giá trị khác nhau thế nào?
+## 2. How Do Declaration, Assignment, and Reading Differ?
 
 ~~~java
-int score;              // Khai báo, chưa có giá trị được phép đọc
-score = 80;             // Gán lần đầu
-int copied = score;     // Đọc score hợp lệ; copied được khởi tạo
-score = score + 5;      // Đọc score cũ, rồi gán score mới
+int score;              // Declared, no readable value yet
+score = 80;             // First assignment
+int copied = score;     // Valid read of score; copied is initialized
+score = score + 5;      // Reads old score, then assigns new score
 System.out.println(score); // 85
 ~~~
 
-| Câu lệnh | Có đọc giá trị cũ của `score`? | Điều kiện |
+| Statement | Reads the old value of `score`? | Condition |
 |---|---|---|
-| `int score;` | Không | Khai báo hợp lệ |
-| `score = 80;` | Không | Gán giá trị đầu tiên hợp lệ |
-| `int x = score;` | Có | `score` phải đã được gán |
-| `score = score + 1;` | Có | Đọc vế phải trước khi gán lại |
-| `score++;` | Có | Cần giá trị hiện tại để tăng |
-| `score += 1;` | Có | Phép gán kết hợp cũng dùng giá trị cũ |
+| `int score;` | No | Valid declaration |
+| `score = 80;` | No | Valid first assignment |
+| `int x = score;` | Yes | `score` must already be assigned |
+| `score = score + 1;` | Yes | Evaluates RHS before reassigning |
+| `score++;` | Yes | Needs current value to increment |
+| `score += 1;` | Yes | Compound assignment also uses the old value |
 
-Ví dụ **không biên dịch** dù có dấu `=`:
+Examples that **do not compile** even though they contain `=`:
 
 ~~~java
 int count;
-// count = count + 1; // Sai: vế phải đọc count chưa gán
-// count++;           // Sai: cần đọc count hiện tại
-// count += 1;        // Sai: cũng cần giá trị cũ
+// count = count + 1; // Invalid: RHS reads unassigned count
+// count++;           // Invalid: needs to read current count
+// count += 1;        // Invalid: also needs the old value
 ~~~
 
-Sửa bằng cách khởi tạo trước:
+Fix by initializing first:
 
 ~~~java
 int count = 0;
@@ -67,9 +67,9 @@ count++;
 System.out.println(count); // 1
 ~~~
 
-## 3. Compiler xét mọi nhánh if/else dẫn tới chỗ đọc
+## 3. The Compiler Checks Every if/else Branch Leading to a Read
 
-Trường hợp **sai**:
+**Invalid** case:
 
 ~~~java
 static String invalid(boolean passed) {
@@ -77,13 +77,13 @@ static String invalid(boolean passed) {
     if (passed) {
         result = "PASS";
     }
-    return result; // LỖI: passed có thể false
+    return result; // ERROR: passed could be false
 }
 ~~~
 
-Nếu `passed` là `false`, câu lệnh gán không được thực hiện. Vì thế `return result` có một đường đi đọc biến chưa gán.
+If `passed` is `false`, the assignment statement is not executed. Thus `return result` has a path that reads an unassigned variable.
 
-Cách sửa 1 — **gán ở cả hai nhánh**:
+Fix 1 — **assign on both branches**:
 
 ~~~java
 static String status(boolean passed) {
@@ -97,7 +97,7 @@ static String status(boolean passed) {
 }
 ~~~
 
-Cách sửa 2 — **đưa giá trị mặc định vào khai báo**:
+Fix 2 — **give a default value at declaration**:
 
 ~~~java
 static String status(boolean passed) {
@@ -109,7 +109,7 @@ static String status(boolean passed) {
 }
 ~~~
 
-Cách sửa 3 — **dùng biểu thức điều kiện** khi chỉ cần chọn một giá trị:
+Fix 3 — **use a conditional expression** when only choosing one value:
 
 ~~~java
 static String status(boolean passed) {
@@ -117,11 +117,11 @@ static String status(boolean passed) {
 }
 ~~~
 
-Cả ba đều có thể hợp lệ, nhưng hãy chọn cách phản ánh đúng yêu cầu. **Không gán giá trị giả chỉ để làm hết lỗi biên dịch** nếu giá trị ấy khiến nghiệp vụ hiểu nhầm.
+All three can be valid, but choose the one that accurately reflects the requirements. **Do not assign a dummy value just to silence a compile error** if that value misleads the business logic.
 
-## 4. Nhánh return sớm có thể giúp bảo đảm đã gán
+## 4. Early Return Branches Can Guarantee Assignment
 
-Compiler quan tâm đến **những đường có thể đi đến lệnh đọc**, không nhất thiết mọi nhánh đều phải gán cùng một biến.
+The compiler cares about **paths that can reach the read statement**, not necessarily that every branch assigns the same variable.
 
 ~~~java
 static String sign(int number) {
@@ -139,9 +139,9 @@ static String sign(int number) {
 }
 ~~~
 
-Nhánh `number < 0` đã `return`, không thể đi xuống `return label`. Những nhánh còn lại đều gán `label`, nên mã hợp lệ.
+The `number < 0` branch already executes `return`, so it cannot reach `return label`. The remaining branches all assign `label`, making the code valid.
 
-Một ví dụ ngắn hơn:
+A shorter example:
 
 ~~~java
 static int nonnegative(int value) {
@@ -153,11 +153,11 @@ static int nonnegative(int value) {
 }
 ~~~
 
-`return` hoặc `throw` có thể kết thúc đường điều khiển hiện tại. Nhưng nếu một nhánh **chỉ in lỗi rồi tiếp tục**, nó vẫn cần bảo đảm biến được gán trước khi đọc.
+`return` or `throw` can terminate the current control-flow path. However, if a branch **only prints an error and continues**, it still must ensure the variable is assigned before being read.
 
-## 5. Vòng lặp có thể không chạy lần nào
+## 5. Loops Might Run Zero Times
 
-Một `while` hoặc `for` với điều kiện kiểm tra trước có thể thực hiện **0 vòng**, nên không được mặc định xem việc gán bên trong loop là đủ.
+A `while` or `for` loop with a pre-check condition can execute **0 iterations**, so assigning inside the loop cannot be assumed sufficient by default.
 
 ~~~java
 static void invalid(int limit) {
@@ -165,11 +165,11 @@ static void invalid(int limit) {
     for (int i = 0; i < limit; i++) {
         last = i;
     }
-    // System.out.println(last); // Nếu mở comment: lỗi compile
+    // System.out.println(last); // If uncommented: compile error
 }
 ~~~
 
-Nếu `limit <= 0`, không vòng nào chạy. Cách đúng khi cần đọc kết quả sau vòng lặp là định nghĩa một giá trị khởi tạo có ý nghĩa:
+If `limit <= 0`, no iterations run. The right approach when reading a result after a loop is to define a meaningful initial value:
 
 ~~~java
 static long sumFromOneTo(int limit) {
@@ -181,13 +181,13 @@ static long sumFromOneTo(int limit) {
 }
 ~~~
 
-Với `limit = 4`, kết quả là `10`; với `limit = 0`, kết quả là `0`. Dùng `long` cho cả biến đếm và tổng để tránh tràn `int` khi `limit` rất lớn; vòng lặp vẫn có chi phí thời gian tỷ lệ với `limit` và ví dụ này chủ yếu minh họa quy tắc gán biến.
+With `limit = 4`, the result is `10`; with `limit = 0`, the result is `0`. Using `long` for both the counter and sum avoids `int` overflow for very large `limit`; the loop still takes time proportional to `limit` and this example primarily illustrates variable assignment rules.
 
-**Phân biệt:** biến `int i = 1` trong phần khởi tạo của `for` được gán rõ ràng, nên có thể đọc ở điều kiện và thân loop. Vấn đề nảy sinh khi bạn **chỉ** gán một biến khác ở bên trong loop rồi đọc **sau** loop, trong khi loop có thể không chạy.
+**Distinction:** the `int i = 1` variable in the `for` initializer is clearly assigned, so it can be read in the condition and loop body. The issue arises when you **only** assign another variable inside the loop and read it **after** the loop, while the loop might not run.
 
-## 6. Biến final cục bộ: được gán lần đầu nhưng không gán lại
+## 6. Local `final` Variables: First Assignment Allowed, No Reassignment
 
-`final` cho phép viết một **blank final local** (khai báo mà chưa gán), miễn là trước khi đọc nó đã được gán hợp lệ và không bị gán lại trên đường thực thi.
+`final` allows writing a **blank final local** (declared without assignment), provided that before being read it has been validly assigned and is not reassigned along the execution path.
 
 ~~~java
 static String mode(boolean custom) {
@@ -201,73 +201,73 @@ static String mode(boolean custom) {
 }
 ~~~
 
-Đoạn trên hợp lệ: mỗi đường thực thi gán `selected` đúng một lần trước khi đọc.
+The snippet above is valid: each execution path assigns `selected` exactly once before reading it.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 final int limit = 5;
-// limit = 6; // LỖI: biến final không thể được gán lại
+// limit = 6; // ERROR: final variable cannot be reassigned
 ~~~
 
-**`final` không tự cấp giá trị ban đầu.** Nếu khai báo `final int limit;` rồi đọc mà chưa có phép gán chắc chắn, `javac` vẫn báo lỗi.
+**`final` does not supply an initial value automatically.** If you declare `final int limit;` and read it without a definite assignment, `javac` still reports an error.
 
 
-## 7. Phạm vi áp dụng: biến cục bộ và những chỗ dễ nhầm
+## 7. Scope of Application: Local Variables and Common Confusions
 
-*Definite assignment* được kiểm tra với biến cục bộ. **Tham số** đã nhận giá trị từ bên gọi; **field** được mặc định theo kiểu (số là 0, `boolean` là `false`, tham chiếu là `null`); **phần tử mảng mới** cũng được mặc định theo kiểu.
+*Definite assignment* is checked for local variables. **Parameters** already receive values from the caller; **fields** are defaulted by type (numbers to `0`, `boolean` to `false`, references to `null`); **new array elements** are also defaulted by type.
 
 ~~~java
-int[] numbers = new int[2];  // Local numbers đã được gán reference
-System.out.println(numbers[0]); // 0: phần tử mảng được mặc định
+int[] numbers = new int[2];  // Local numbers is assigned a reference
+System.out.println(numbers[0]); // 0: array element is defaulted
 int[] missing;
-// System.out.println(missing[0]); // Lỗi compile: local missing chưa gán
+// System.out.println(missing[0]); // Compile error: local missing unassigned
 ~~~
 
-Đọc được một field tham chiếu có giá trị mặc định `null` không bảo đảm gọi method trên nó an toàn. Bài về giá trị mặc định sẽ giải thích trường hợp mảng nhiều chiều và các kiểu cụ thể.
+Being able to read a reference field defaulted to `null` does not guarantee calling a method on it is safe. The lesson on default values explains multidimensional arrays and specific types.
 
-## 8. `var` cần initializer để suy ra kiểu
+## 8. `var` Needs an Initializer to Infer Its Type
 
-Với Java 17, biến cục bộ có thể dùng `var` khi compiler suy ra kiểu từ biểu thức khởi tạo:
+In Java 17, a local variable can use `var` when the compiler can infer its type from the initializer expression:
 
 ~~~java
-var count = 5;        // Suy ra int
-var name = "Java";    // Suy ra String
-count = 6;            // Đúng, vẫn là int
+var count = 5;        // Infers int
+var name = "Java";    // Infers String
+count = 6;            // Valid, still int
 ~~~
 
-Các dòng sau không hợp lệ:
+The following lines are invalid:
 
 ~~~java
-// var count;          // Sai: thiếu initializer để suy ra kiểu
-// var name = null;    // Sai: không thể suy ra kiểu phù hợp chỉ từ null
-// count = "six";      // Sai: kiểu String không gán được cho int
+// var count;          // Invalid: missing initializer to infer type
+// var name = null;    // Invalid: cannot infer an appropriate type from null alone
+// count = "six";      // Invalid: String cannot be assigned to int
 ~~~
 
-`var` không bỏ kiểm tra kiểu và cũng không làm giảm yêu cầu gán trước khi đọc. Nếu cần khai báo trước và gán sau ở một nhánh điều khiển, hãy dùng **kiểu tường minh** như `String label;`.
+`var` does not bypass type checking, nor does it relax the requirement to assign before reading. If you need to declare first and assign later in a conditional branch, use an **explicit type** such as `String label;`.
 
-## 9. Chương trình Java 17 hoàn chỉnh, chạy được
+## 9. Complete, Runnable Java 17 Program
 
-Tạo tệp chính xác tên **`DefiniteAssignmentDemo.java`**:
+Create a file named exactly **`DefiniteAssignmentDemo.java`**:
 
 ~~~java
 public final class DefiniteAssignmentDemo {
     private DefiniteAssignmentDemo() {}
 
     static final class Settings {
-        int attempts;       // Field mặc định 0
-        boolean enabled;    // Field mặc định false
-        String note;        // Field mặc định null
+        int attempts;       // Field defaults to 0
+        boolean enabled;    // Field defaults to false
+        String note;        // Field defaults to null
     }
 
     static String review(boolean accepted) {
-        String result;      // Khai báo chưa gán
+        String result;      // Declared unassigned
         if (accepted) {
             result = "ACCEPT";
         } else {
             result = "REJECT";
         }
-        return result;      // Cả hai nhánh đều đã gán
+        return result;      // Both branches assigned
     }
 
     static String classify(int number) {
@@ -284,7 +284,7 @@ public final class DefiniteAssignmentDemo {
     }
 
     static long sum(int limit) {
-        long result = 0L;   // Cần giá trị kể cả khi loop không chạy
+        long result = 0L;   // Needs a value even if the loop does not run
         for (long i = 1; i <= limit; i++) {
             result += i;
         }
@@ -327,7 +327,7 @@ public final class DefiniteAssignmentDemo {
 }
 ~~~
 
-Dùng **JDK 17 trở lên**, mở terminal tại thư mục chứa tệp nguồn.
+Using **JDK 17 or later**, open a terminal in the directory containing the source file.
 
 **Bash (Linux/macOS):**
 
@@ -345,7 +345,7 @@ java -cp . DefiniteAssignmentDemo
 java -cp . DefiniteAssignmentDemo custom
 ~~~
 
-Đầu ra **lần chạy không có đối số**:
+Output for **the run without arguments**:
 
 ~~~text
 quantity=4
@@ -363,25 +363,25 @@ field enabled=false
 field note=null
 ~~~
 
-Khi chạy lệnh có đối số `custom`, mọi dòng vẫn như trên, **trừ dòng `mode=CUSTOM`**. Trong ví dụ này chỉ kiểm tra sự hiện diện của đối số qua `args.length > 0`; bản thân từ `custom` không được phân tích thêm.
+When running with the argument `custom`, all lines remain as above, **except the line `mode=CUSTOM`**. In this example, only the presence of arguments is checked via `args.length > 0`; the word `custom` itself is not parsed further.
 
-## 10. Cách tự chẩn đoán lỗi gán trước khi đọc
+## 10. How to Self-Diagnose Read-Before-Assignment Errors
 
-Khi gặp thông báo gần giống `variable x might not have been initialized`, hãy kiểm tra:
+When encountering an error similar to `variable x might not have been initialized`, check:
 
-1. **Biến thuộc loại nào?** Nếu là biến cục bộ, không giả định có giá trị mặc định giống field.
-2. **Vị trí đọc ở đâu?** Đọc có thể ẩn trong `x++`, `x += 1`, `return x` hoặc tham số truyền cho method.
-3. **Mọi nhánh có dẫn tới dòng đọc đều đã gán chưa?** Kiểm tra `if/else`, `switch` và các đường `return`/`throw`.
-4. **Vòng lặp có thể không chạy không?** Nếu có, giá trị gán *chỉ* trong loop chưa bảo đảm an toàn sau loop.
-5. **Đã vô tình khai báo `final` rồi gán lại chưa?** Blank final được gán lần đầu đúng đường đi; không được gán lần nữa.
-6. **Có đang dùng `var` mà thiếu initializer không?** Đổi sang kiểu tường minh hoặc khởi tạo ngay.
-7. **Giá trị mặc định bạn chọn có đúng ý nghĩa không?** Đừng dùng `0`, `false` hoặc `null` chỉ để che thiếu dữ liệu hợp lệ.
+1. **What kind of variable is it?** If it is a local variable, do not assume it has a default value like a field.
+2. **Where is the read?** Reads can hide inside `x++`, `x += 1`, `return x`, or as an argument passed to a method.
+3. **Have all branches leading to the read line assigned it?** Check `if/else`, `switch`, and `return`/`throw` paths.
+4. **Could a loop run 0 times?** If so, a value assigned *only* inside the loop is not guaranteed safe after the loop.
+5. **Was it accidentally declared `final` and reassigned?** A blank final can be assigned on the first valid path; it cannot be assigned a second time.
+6. **Are you using `var` without an initializer?** Switch to an explicit type or initialize immediately.
+7. **Is the default value you picked meaningful?** Do not use `0`, `false`, or `null` merely to hide missing valid data.
 
-Compiler kiểm tra **tính chắc chắn của phép gán**, chứ không biết giá trị ấy có đúng nghiệp vụ hay không. Chương trình có thể gán một giá trị sai hoàn toàn mà vẫn qua kiểm tra definite assignment.
+The compiler checks **the certainty of assignment**, without knowing whether that value is valid for the business logic. A program can assign a completely wrong value and still pass the definite assignment check.
 
-## 11. Bài tập ngắn kèm đáp án
+## 11. Short Exercises with Answers
 
-### Bài A — nhánh thiếu gán
+### Exercise A — branch missing an assignment
 
 ~~~java
 static int score(boolean passed) {
@@ -393,18 +393,18 @@ static int score(boolean passed) {
 }
 ~~~
 
-**Đáp án:** lỗi compile vì `passed=false` khiến `result` chưa gán. Có thể thêm `else { result = 0; }` **nếu 0 đúng yêu cầu**, hoặc xử lý nhánh sai bằng `return`/`throw` hợp lý.
+**Answer:** compile error because `passed=false` leaves `result` unassigned. You can add `else { result = 0; }` **if 0 fits the requirement**, or handle the false branch with a sensible `return`/`throw`.
 
-### Bài B — phép tăng có đọc biến không?
+### Exercise B — does incrementing read the variable?
 
 ~~~java
 int counter;
 // counter++;
 ~~~
 
-**Đáp án:** có. `counter++` phải đọc giá trị cũ nên chưa hợp lệ. Đặt `int counter = 0;` trước khi tăng.
+**Answer:** yes. `counter++` has to read the old value so it is not yet valid. Put `int counter = 0;` before incrementing.
 
-### Bài C — vì sao field không lỗi?
+### Exercise C — why does the field not error?
 
 ~~~java
 class Sample {
@@ -415,9 +415,9 @@ class Sample {
 }
 ~~~
 
-**Đáp án:** `value` là **instance field**, mặc định là `0`. Nếu `value` là biến cục bộ chưa được gán trong method, hành vi compile sẽ khác.
+**Answer:** `value` is an **instance field**, defaulting to `0`. If `value` were an unassigned local variable inside the method, compilation behavior would differ.
 
-### Bài D — vòng lặp chạy 0 lần
+### Exercise D — loop running 0 times
 
 ~~~java
 int last;
@@ -427,9 +427,9 @@ for (int i = 0; i < 0; i++) {
 // System.out.println(last);
 ~~~
 
-**Đáp án:** khi bỏ comment dòng in, biến `last` chưa chắc đã được gán. Loop không thực hiện vòng nào nên không thể dựa vào phép gán trong thân để đọc `last` sau đó.
+**Answer:** when uncommenting the print line, `last` is not guaranteed to be assigned. The loop runs zero iterations so you cannot rely on the assignment in its body to read `last` afterward.
 
-### Bài E — final được gán ở hai nhánh?
+### Exercise E — final assigned in two branches?
 
 ~~~java
 final String state;
@@ -441,19 +441,19 @@ if (ok) {
 System.out.println(state);
 ~~~
 
-**Đáp án:** hợp lệ nếu `ok` là một biến boolean đã được định nghĩa. Trên mỗi đường chạy, `state` được gán **đúng một lần** trước khi đọc.
+**Answer:** valid if `ok` is an already-defined boolean variable. On each execution path, `state` is assigned **exactly once** before being read.
 
-## 12. Checklist hoàn thành
+## 12. Completion Checklist
 
-- [ ] Biết khai báo biến cục bộ không đồng nghĩa được phép đọc trước khi gán.
-- [ ] Nhận ra thông báo `might not have been initialized` là lỗi biên dịch.
-- [ ] Phân tích được đường chạy qua `if/else`, `return` và `throw`.
-- [ ] Hiểu vòng lặp có thể thực hiện 0 lần.
-- [ ] Biết `x++`, `x += 1`, `x = x + 1` đều cần đọc giá trị cũ.
-- [ ] Phân biệt biến cục bộ với tham số, field và phần tử mảng.
-- [ ] Hiểu `final` có thể gán lần đầu sau khai báo nhưng không gán lại.
-- [ ] Hiểu `var` cần initializer để suy ra kiểu.
-- [ ] Biên dịch/chạy `DefiniteAssignmentDemo.java` và đối chiếu từng dòng kết quả.
-- [ ] Chọn giá trị khởi tạo theo yêu cầu thực, không tùy tiện để tránh lỗi compiler.
+- [ ] Know that declaring a local variable does not mean it can be read before assignment.
+- [ ] Recognize the `might not have been initialized` message as a compile error.
+- [ ] Analyze execution paths through `if/else`, `return`, and `throw`.
+- [ ] Understand that loops can execute 0 times.
+- [ ] Know that `x++`, `x += 1`, and `x = x + 1` all need to read the old value.
+- [ ] Distinguish local variables from parameters, fields, and array elements.
+- [ ] Understand that `final` can be assigned once after declaration, but not reassigned.
+- [ ] Understand that `var` needs an initializer to infer its type.
+- [ ] Compile/run `DefiniteAssignmentDemo.java` and match each output line.
+- [ ] Choose initial values based on actual requirements, not arbitrarily to avoid compiler errors.
 
-**Kết luận:** Java yêu cầu biến cục bộ phải **được gán chắc chắn trên mọi đường có thể đi tới nơi đọc**. `javac` kiểm tra điều này trước khi chạy; field và phần tử mảng có giá trị mặc định nhưng biến cục bộ thì không được đọc khi chưa gán. Hiểu definite assignment giúp viết luồng `if/else`, vòng lặp và `final` chính xác mà không cần khởi tạo giả tạo.
+**Conclusion:** Java requires local variables to be **definitely assigned on every path that can reach a read**. `javac` verifies this before execution; fields and array elements have default values, whereas local variables cannot be read while unassigned. Understanding definite assignment helps write `if/else` flows, loops, and `final` cleanly without artificial initializations.

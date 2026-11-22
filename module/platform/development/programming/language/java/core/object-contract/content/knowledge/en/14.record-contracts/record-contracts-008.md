@@ -1,62 +1,62 @@
-# Tùy biến accessor, chuẩn hóa hoặc sao chép phòng vệ phải giữ hợp đồng record
+# Customizing Accessors, Normalization, or Defensive Copying Must Preserve the Record Contract
 
-## 1. Record là kiểu mang giá trị và tính minh bạch của các component
+## 1. Records Are Value-Carrying Types and Component Transparency
 
-Trong Java 17+, **record** dùng để biểu diễn một nhóm giá trị cố định, với bộ **record component** khai báo ở header:
+In Java 17+, a **record** is used to represent a fixed group of values, with a set of **record components** declared in the header:
 
 ~~~java
 record ProductKey(String tenantId, String sku) {}
 ~~~
 
-Từ khai báo này, trình biên dịch cung cấp (nếu ta không tự khai báo thành viên tương ứng):
+From this declaration, the compiler provides (unless you manually declare the corresponding members):
 
-- Các **trường private final** tương ứng với từng component, ở đây là **tenantId** và **sku**.
-- **Canonical constructor** nhận đầy đủ các component theo đúng thứ tự và kiểu.
-- **Accessor** công khai **tenantId()**, **sku()**; khác getter JavaBean như **getSku()**.
-- **equals(Object)**, **hashCode()**, **toString()** được suy ra từ các **trường component**.
-- Record ngầm là **final**; không thể tạo subclass kế thừa record để bổ sung trường trạng thái instance.
+- **`private final` fields** corresponding to each component, here **tenantId** and **sku**.
+- **Canonical constructor** taking all components in the exact order and types.
+- Public **accessors** **tenantId()**, **sku()**; unlike JavaBean getters such as **getSku()**.
+- **equals(Object)**, **hashCode()**, **toString()** derived from the **component fields**.
+- Records are implicitly **final**; you cannot create a subclass extending a record to add instance state fields.
 
-Các field là **final**, nhưng đây là **bất biến nông (shallow immutability)**: nếu component giữ tham chiếu tới **List**, **Map**, mảng hoặc object mutable, nội dung của các object đó vẫn có thể thay đổi. Vì thế, record không tự biến toàn bộ đồ thị đối tượng thành bất biến sâu.
+The fields are **final**, yet this is **shallow immutability**: if a component holds a reference to a **List**, **Map**, array, or mutable object, the contents of those objects can still change. Therefore, a record does not automatically turn an entire object graph into deeply immutable state.
 
-Record hướng tới tính **minh bạch về trạng thái**: accessor cần mô tả nhất quán với trạng thái mà canonical constructor lưu, và equals/hashCode/toString phải phù hợp với giá trị ấy. Java cho phép tùy biến constructor, accessor và equals/hashCode, nhưng trách nhiệm duy trì hợp đồng thuộc về người viết.
+Records aim for **state transparency**: accessors must describe state consistently with what the canonical constructor stores, and equals/hashCode/toString must match that value. Java allows customizing constructors, accessors, and equals/hashCode, yet the responsibility for maintaining the contract belongs to the author.
 
-## 2. Bất biến sao chép quan trọng nhất của record
+## 2. The Most Important Copy Invariant of a Record
 
-Hợp đồng của **java.lang.Record** yêu cầu: với record **R** có component **c1, c2, ..., cn**, nếu tạo một bản sao bằng cách đưa kết quả accessor của r vào canonical constructor:
+The contract of **java.lang.Record** requires: for a record **R** with components **c1, c2, ..., cn**, if a copy is constructed by passing the accessor results of r into the canonical constructor:
 
 ~~~java
 R copy = new R(r.c1(), r.c2(), ..., r.cn());
 ~~~
 
-thì **r.equals(copy)** phải là **true**.
+then **r.equals(copy)** must be **true**.
 
-Đây là **pseudocode khái quát**, không phải một file Java có thể biên dịch vì R và các tên component chỉ là ký hiệu. Với record cụ thể:
+This is **general pseudocode**, not a compilable Java file because R and the component names are placeholders. For a concrete record:
 
 ~~~java
 ProductKey copy = new ProductKey(original.tenantId(), original.sku());
-boolean sameValue = original.equals(copy); // phải là true
+boolean sameValue = original.equals(copy); // must be true
 ~~~
 
-Đoạn trên được sử dụng trong ngữ cảnh đã có biến **original** thuộc kiểu **ProductKey**.
+The snippet above is used in a context where an **original** variable of type **ProductKey** already exists.
 
-Ngoài bất biến riêng của record, mọi override equals/hashCode phải giữ hợp đồng chung của Object:
+Beyond the record-specific invariant, any equals/hashCode override must preserve the general Object contract:
 
-1. **Phản xạ:** a.equals(a) true.
-2. **Đối xứng:** a.equals(b) có cùng kết quả với b.equals(a).
-3. **Bắc cầu:** a bằng b, b bằng c thì a bằng c.
-4. **Nhất quán:** kết quả ổn định khi các giá trị dùng so sánh không đổi.
-5. **Null:** a.equals(null) false.
-6. **Hash:** a.equals(b) true thì a.hashCode() == b.hashCode(); hash giống nhau không bắt buộc equals true.
+1. **Reflexive:** a.equals(a) is true.
+2. **Symmetric:** a.equals(b) yields the same result as b.equals(a).
+3. **Transitive:** if a equals b and b equals c, then a equals c.
+4. **Consistent:** results remain stable as long as the values used in comparison do not change.
+5. **Null:** a.equals(null) is false.
+6. **Hash:** if a.equals(b) is true then a.hashCode() == b.hashCode(); equal hashes do not require equals to be true.
 
-Với các record bình thường có component bất biến và equals/hashCode sinh tự động, các điều kiện trên thường được bảo đảm bởi chính hợp đồng của từng component. Nếu tự override accessor để **biến đổi dữ liệu lúc đọc**, hoặc sao chép một mảng nhưng tiếp tục dùng equals mặc định theo **danh tính tham chiếu**, có thể phá bất biến sao chép mà compiler không báo lỗi.
+For ordinary records with immutable components and auto-generated equals/hashCode, these conditions are usually guaranteed by each component's own contract. Overriding an accessor to **transform data on read**, or copying an array while continuing to use default equals by **reference identity**, can break the copy invariant without any compiler error.
 
-**Một chi tiết quyết định:** equals/hashCode/toString sinh ngầm từ record dựa trên **giá trị trường component**, **không có nghĩa** chúng gọi accessor tùy biến trước khi so sánh hoặc tính hash. Do đó, sửa riêng accessor không đồng nghĩa với sửa ngữ nghĩa equals.
+**A decisive detail:** the record's implicitly generated equals/hashCode/toString rely on **component field values**, which **does not mean** they call custom accessors before comparing or computing the hash. Hence modifying an accessor alone does not change equals semantics.
 
-## 3. Lỗi 1: chuẩn hóa chỉ trong accessor làm bản sao khác giá trị gốc
+## 3. Mistake 1: Normalizing Only in the Accessor Makes Copies Differ from the Original
 
-Giả sử ta muốn mã sản phẩm có chữ hoa và loại bỏ khoảng trắng bên ngoài. Cách dễ mắc lỗi là **giữ chuỗi gốc trong field**, nhưng trả về chuỗi chuẩn hóa trong accessor.
+Suppose we want product codes to be uppercase with leading and trailing whitespace removed. An easy mistake to make is **keeping the original string in the field**, while returning the normalized string in the accessor.
 
-Tạo file **AccessorNormalizationDemo.java**:
+Create the file **AccessorNormalizationDemo.java**:
 
 ~~~java
 import java.util.HashSet;
@@ -109,14 +109,14 @@ public class AccessorNormalizationDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac AccessorNormalizationDemo.java
 java AccessorNormalizationDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 bad accessor: AB-7
@@ -128,15 +128,15 @@ matching hash: true
 unique codes: 1
 ~~~
 
-### Vì sao BadCode sai?
+### Why Is BadCode Wrong?
 
-Trường component của **bad** thực chất lưu **" ab-7 "**. Accessor **bad.code()** trả về **"AB-7"** mà không cập nhật trường đã lưu. Khi dùng giá trị accessor để dựng **badCopy**, trường trong bản sao lưu **"AB-7"**. Vì equals sinh ngầm so hai trường String thực tế, **bad.equals(badCopy)** trả false.
+The component field of **bad** actually stores **" ab-7 "**. The **bad.code()** accessor returns **"AB-7"** without updating the stored field. When using the accessor value to construct **badCopy**, the field in the copy stores **"AB-7"**. Because the implicitly generated equals compares the two actual String fields, **bad.equals(badCopy)** returns false.
 
-Lỗi này tồn tại dù **bad.code()** và **badCopy.code()** cùng trả **"AB-7"**. Người gọi thấy hai giá trị accessor giống nhau nhưng equals nói chúng khác nhau; record không còn minh bạch với hợp đồng sao chép.
+This bug exists even though **bad.code()** and **badCopy.code()** both return **"AB-7"**. Callers see two identical accessor values, yet equals says they differ; the record is no longer transparent with respect to the copy contract.
 
-### Vì sao GoodCode đúng?
+### Why Is GoodCode Right?
 
-Record **GoodCode** chuẩn hóa **trước khi lưu** trong **compact canonical constructor**:
+The **GoodCode** record normalizes **before storing** in the **compact canonical constructor**:
 
 ~~~java
 GoodCode {
@@ -144,19 +144,19 @@ GoodCode {
 }
 ~~~
 
-Trong constructor dạng compact, tham số component **code** có thể được gán lại; sau khi khối chạy xong, trình biên dịch gán giá trị tham số cuối cùng vào field tương ứng. **Không gán trực tiếp this.code** trong thân compact constructor. Accessor mặc định sau đó đọc ra giá trị đã chuẩn hóa thực sự được lưu.
+In a compact constructor, the component parameter **code** can be reassigned; after the block finishes, the compiler assigns the final parameter value into the corresponding field. **Do not assign this.code directly** inside the compact constructor body. The default accessor afterward reads out the normalized value that is actually stored.
 
-Kết quả: mọi cách viết được nghiệp vụ xem là cùng mã đều tạo record cùng giá trị; bản sao dựng từ accessor cũng cùng giá trị; equals và hashCode sinh tự động tiếp tục nhất quán.
+Result: every spelling considered the same code by the business domain produces a record with the same value; a copy constructed from the accessor also has the same value; and auto-generated equals and hashCode remain consistent.
 
-**Lưu ý nghiệp vụ:** Chỉ dùng **toUpperCase(Locale.ROOT)** khi mã được quy định không phân biệt hoa/thường; không tự động áp dụng cho dữ liệu có phân biệt chữ hoa, tên người hay các mã có luật chuẩn hóa khác. Với Unicode phức tạp hoặc nhận diện tài khoản, cần quy định chuẩn hóa chính xác trước khi áp dụng.
+**Business note:** Only use **toUpperCase(Locale.ROOT)** when codes are specified as case-insensitive; do not apply it automatically to case-sensitive data, personal names, or codes with different normalization rules. For complex Unicode or account identifiers, specify exact normalization rules before applying them.
 
-## 4. Tùy biến canonical constructor đúng cách
+## 4. Customizing the Canonical Constructor Properly
 
-### Compact constructor và explicit canonical constructor
+### Compact Constructor and Explicit Canonical Constructor
 
-Hai phong cách sau cùng phục vụ việc xác thực/chuẩn hóa đầu vào, nhưng cơ chế gán field khác nhau.
+Both styles below serve input validation/normalization, though their field-assignment mechanics differ.
 
-**Compact constructor** là cách ngắn gọn khi cần xử lý từng component:
+**Compact constructor** is the concise form when processing individual components:
 
 ~~~java
 record Port(int number) {
@@ -168,7 +168,7 @@ record Port(int number) {
 }
 ~~~
 
-**Explicit canonical constructor** khai báo đủ danh sách tham số và tự gán tất cả field:
+**Explicit canonical constructor** declares the full parameter list and assigns all fields manually:
 
 ~~~java
 record Port(int number) {
@@ -181,29 +181,29 @@ record Port(int number) {
 }
 ~~~
 
-Hai khối trên là **hai định nghĩa thay thế cho cùng một record**, không đặt chung trong cùng một file. Ví dụ record ở cấp top-level với phạm vi package-private, constructor compact có thể không ghi modifier; constructor canonical explicit dùng **public** cũng hợp lệ vì tăng khả năng truy cập. Khi record tự nó được khai báo **public**, canonical constructor tường minh cũng phải đủ mức truy cập **public**.
+The two blocks above are **two alternative definitions for the same record**, not to be placed together in the same file. For a top-level record with package-private visibility, a compact constructor may omit an access modifier; an explicit canonical constructor using **public** is also valid because it widens accessibility. When the record itself is declared **public**, an explicit canonical constructor must also have at least **public** accessibility.
 
-Không được khai báo cả hai canonical constructor cho cùng chữ ký. Constructor khác nếu có phải ủy quyền đến canonical constructor (theo quy tắc constructor của record).
+You cannot declare both canonical constructors for the same signature. Other constructors, if any, must delegate to the canonical constructor (following record constructor rules).
 
-### Chuẩn hóa phải giữ tính ổn định khi dựng lại
+### Normalization Must Remain Stable When Reconstructed
 
-Nếu normalizer là hàm **N**, về mặt thiết kế cần giữ:
+If the normalizer is a function **N**, by design we must maintain:
 
 ~~~text
 N(N(x)) = N(x)
 ~~~
 
-Đây là tính **idempotent**: chuẩn hóa một lần hay nhiều lần cho cùng kết quả. Nếu constructor chuẩn hóa lần hai lại biến đổi giá trị một lần nữa, bản sao dựng từ accessor có thể không equals với bản gốc.
+This is **idempotence**: normalizing once or multiple times yields the same result. If the constructor normalizes a second time and transforms the value again, a copy built from the accessor may not equal the original.
 
-Ví dụ: **strip** và **toUpperCase(Locale.ROOT)** cho một mã đơn giản là idempotent. Các thao tác như tự động cộng phiên bản, gắn timestamp hiện tại, thêm tiền tố lặp lại hoặc sinh ID mới ở mỗi lần gọi constructor thì **không** idempotent nếu đưa kết quả accessor vào constructor.
+For example, **strip** and **toUpperCase(Locale.ROOT)** on a simple code are idempotent. Operations such as automatically incrementing a version, attaching the current timestamp, prepending a repeated prefix, or generating a new ID on every constructor call are **not** idempotent when feeding accessor output back into the constructor.
 
-Trong trường hợp constructor có kiểm tra nhiều component, cần kiểm tra cả **tổ hợp component**, không chỉ từng field riêng lẻ.
+When a constructor validates multiple components, check **combinations of components** too, not just individual fields in isolation.
 
-## 5. Chuẩn hóa nhiều component cùng nhau: giữ bất biến với canonical constructor
+## 5. Normalizing Multiple Components Together: Preserving the Invariant with the Canonical Constructor
 
-Có những giá trị có nhiều cách biểu diễn tương đương, ví dụ khoảng số với hai đầu mút không cần thứ tự nhập. Ta có thể chuẩn hóa **cả cặp** ngay trong constructor.
+Some values have multiple equivalent representations, such as numeric ranges whose endpoints do not depend on input order. You can normalize **the pair together** right inside the constructor.
 
-Tạo file **RangeRecordDemo.java**:
+Create the file **RangeRecordDemo.java**:
 
 ~~~java
 public class RangeRecordDemo {
@@ -236,14 +236,14 @@ public class RangeRecordDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac RangeRecordDemo.java
 java RangeRecordDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 range: IntRange[start=2, end=9]
@@ -252,23 +252,23 @@ copy equal: true
 contains five: true
 ~~~
 
-Hai tham số đổi chỗ nhưng trạng thái record được chuẩn hóa về cùng cặp **(2, 9)**, nên equals/hashCode mặc định đúng với ý nghĩa mới. Nếu chỉ đảo khi accessor được gọi, còn field vẫn lưu **(9, 2)**, bản sao sẽ phá bất biến tương tự **BadCode**.
+The two arguments were swapped, yet the record's state was normalized to the same pair **(2, 9)**, so default equals/hashCode match the new meaning. If swapped only when accessors are called while the fields still store **(9, 2)**, copies would break the invariant just like **BadCode**.
 
-**Giới hạn:** Quy tắc này chỉ hợp lý khi miền nghiệp vụ coi các khoảng nhập ngược đầu mút là cùng một khoảng. Nếu thứ tự đầu mút mang ý nghĩa (chẳng hạn hướng hành trình), tự đảo là sai nghiệp vụ dù vẫn giữ hợp đồng Java.
+**Limitation:** This rule only makes sense when the business domain treats reversed-endpoint intervals as the same range. If endpoint order carries meaning (such as direction of travel), swapping automatically is a domain bug even while keeping the Java contract.
 
-## 6. Lỗi 2: sao chép phòng vệ mảng nhưng giữ equals mặc định
+## 6. Mistake 2: Defensively Copying an Array While Keeping Default equals
 
-Một record có component **byte[]** dễ gây nhầm lẫn:
+A record with a **byte[]** component easily causes confusion:
 
 ~~~java
 record RawPacket(byte[] payload) {}
 ~~~
 
-Mảng **byte[]** không override **Object.equals/hashCode** theo nội dung. Vì vậy hai instance RawPacket chứa hai mảng khác nhau nhưng cùng byte sẽ không equals theo record mặc định.
+**byte[]** arrays do not override **Object.equals/hashCode** by contents. Therefore, two RawPacket instances containing two different arrays with the same bytes will not be equal under default record behavior.
 
-Nếu sửa bằng cách clone mảng trong constructor và clone tiếp trong accessor, tính an toàn khỏi sửa dữ liệu bên ngoài được cải thiện, **nhưng hợp đồng sao chép của record lại có thể bị vi phạm**: bản sao tạo từ accessor có mảng khác danh tính, trong khi equals ngầm vẫn so tham chiếu.
+If fixed by cloning the array in the constructor and cloning again in the accessor, safety against external data mutation improves, **yet the record copy contract can still be violated**: a copy built from the accessor has an array with a different identity, while the implicit equals still compares references.
 
-Tạo file **ArrayCopyContractDemo.java**:
+Create the file **ArrayCopyContractDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -345,14 +345,14 @@ public class ArrayCopyContractDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac ArrayCopyContractDemo.java
 java ArrayCopyContractDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 bad content equal: true
@@ -363,26 +363,26 @@ unique packets: 1
 after external edits: GoodPacket[payload=[1, 2, 3]]
 ~~~
 
-### Vì sao GoodPacket đúng?
+### Why Is GoodPacket Right?
 
-- **Compact constructor** clone mảng đầu vào: người gọi sửa **source** sau đó không làm thay đổi trạng thái record.
-- **Accessor** trả về một mảng clone: người gọi không nhận được tham chiếu tới mảng nội bộ.
-- **equals** dùng **Arrays.equals(byte[], byte[])** để so từng byte.
-- **hashCode** dùng **Arrays.hashCode(byte[])** để băm cùng nội dung.
-- **toString** được tùy biến thành dạng dễ đọc. Nếu để mặc định, biểu diễn mảng có thể giống **[B@...** do mảng dùng toString theo object.
-- Bản sao dựng từ accessor có mảng khác tham chiếu nhưng cùng nội dung, nên bất biến **r.equals(new R(r.component()))** được giữ.
-- Khi record dùng làm khóa HashMap/HashSet, hash không bị thay đổi bởi hai đường sửa từ bên ngoài đã được chặn.
+- **Compact constructor** clones the input array: callers mutating **source** afterward do not alter the record's state.
+- **Accessor** returns a cloned array: callers do not receive a reference to the internal array.
+- **equals** uses **Arrays.equals(byte[], byte[])** to compare byte-by-byte.
+- **hashCode** uses **Arrays.hashCode(byte[])** to hash the same contents.
+- **toString** is customized into a readable form. Left at default, the array representation can look like **[B@...** because arrays use Object's toString.
+- A copy built from the accessor has an array with a different reference yet identical contents, so the **r.equals(new R(r.component()))** invariant holds.
+- When the record is used as a HashMap/HashSet key, its hash cannot be changed through either external mutation path that has been blocked.
 
-**Không sửa bằng cách so nội dung trong equals mà giữ hashCode sinh tự động.** Nếu equals dùng Arrays.equals nhưng hashCode của record vẫn lấy từ component mảng theo danh tính, hai record bằng nội dung có thể có mã băm khác nhau. Khi thay đổi tiêu chí equals của record, phải **đổi hashCode tương ứng**.
+**Do not fix by comparing contents in equals while keeping auto-generated hashCode.** If equals uses Arrays.equals yet the record's hashCode still derives from the array component by identity, two content-equal records can have different hash codes. When changing a record's equals criterion, you must **update hashCode accordingly**.
 
-## 7. Mảng nhiều chiều và tham chiếu mutable lồng nhau
+## 7. Multi-Dimensional Arrays and Nested Mutable References
 
-Đối với **int[][]**, clone mảng ngoài thôi **không đủ**: từng hàng **int[]** vẫn có thể bị chia sẻ và thay đổi. Nếu equals dùng **Arrays.deepEquals** thì hashCode cần dùng **Arrays.deepHashCode**, đồng thời cần sao chép từng mảng con khi cam kết bất biến nội dung.
+For **int[][]**, cloning only the outer array **is not enough**: individual **int[]** rows can still be shared and mutated. If equals uses **Arrays.deepEquals**, then hashCode must use **Arrays.deepHashCode**, and each child array must be copied when promising content immutability.
 
-Một hình mẫu áp dụng trong record chứa ma trận:
+A pattern applied inside a record holding a matrix:
 
 ~~~java
-// Các đoạn trích bên trong record có component int[][] matrix.
+// Excerpts inside a record with component int[][] matrix.
 
 static int[][] copyMatrix(int[][] src) {
     Objects.requireNonNull(src);
@@ -393,28 +393,28 @@ static int[][] copyMatrix(int[][] src) {
     return result;
 }
 
-// Trong compact canonical constructor:
+// Inside the compact canonical constructor:
 matrix = copyMatrix(matrix);
 
-// Trong accessor public int[][] matrix():
+// Inside the accessor public int[][] matrix():
 return copyMatrix(matrix);
 
-// Trong equals(Object) sau kiểm tra đúng record type:
+// Inside equals(Object) after checking the exact record type:
 return Arrays.deepEquals(matrix, other.matrix);
 
-// Trong hashCode():
+// Inside hashCode():
 return Arrays.deepHashCode(matrix);
 ~~~
 
-Các đoạn trên chỉ minh họa **những phần khác nhau trong cùng record**, không phải một chương trình Java độc lập; cần import **java.util.Arrays** và **java.util.Objects**. Cặp deepEquals/deepHashCode được chọn khi ý nghĩa giá trị là **các nội dung mảng lồng nhau**. Với **int[]** một chiều dùng Arrays.equals/hashCode tương ứng.
+The snippets above only illustrate **different parts of the same record**, not a standalone Java program; **java.util.Arrays** and **java.util.Objects** must be imported. The deepEquals/deepHashCode pair is chosen when value semantics mean **nested array contents**. For 1D **int[]**, use Arrays.equals/hashCode accordingly.
 
-Nếu mảng chứa **object mutable** ở sâu bên trong, chỉ clone mảng chưa đủ. Muốn bất biến sâu phải sao chép hoặc dùng kiểu bất biến cho từng object lá; không được tuyên bố defensive copy hoàn toàn nếu còn giữ tham chiếu mutable từ người gọi.
+If an array contains **mutable objects** deep inside, cloning the array alone is not sufficient. Deep immutability requires copying or using immutable types for each leaf object; do not claim full defensive copying if mutable references from callers are still retained.
 
-## 8. List và Map: sao chép phòng vệ vẫn dùng được equals/hashCode mặc định
+## 8. List and Map: Defensive Copying Still Allows Default equals/hashCode
 
-Một record chứa **List<String>** có thể an toàn và đơn giản hơn mảng: **List.equals** và **List.hashCode** đã định nghĩa theo phần tử, còn **List.copyOf** có thể tạo biểu diễn không sửa đổi được.
+A record containing **List<String>** can be safer and simpler than an array: **List.equals** and **List.hashCode** are already defined by elements, and **List.copyOf** can create an unmodifiable representation.
 
-Tạo file **ImmutableListRecordDemo.java**:
+Create the file **ImmutableListRecordDemo.java**:
 
 ~~~java
 import java.util.ArrayList;
@@ -457,14 +457,14 @@ public class ImmutableListRecordDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac ImmutableListRecordDemo.java
 java ImmutableListRecordDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 user: u-1
@@ -475,60 +475,60 @@ accessor list cannot be modified
 final roles: [reader]
 ~~~
 
-**Vì sao không phải override equals/hashCode?** List.copyOf tạo ra một list không cho phép sửa cấu trúc và không chứa null, với các phần tử String bất biến trong ví dụ. **List.equals** so phần tử theo thứ tự và **List.hashCode** tương thích. Vì vậy equals/hashCode sinh tự động của record là phù hợp.
+**Why is overriding equals/hashCode unnecessary?** List.copyOf creates a list that disallows structural modification and contains no nulls, with immutable String elements in this example. **List.equals** compares elements in order and **List.hashCode** is compatible. Thus the record's auto-generated equals/hashCode are appropriate.
 
-**Giới hạn của List.copyOf/Map.copyOf:**
+**Limitations of List.copyOf/Map.copyOf:**
 
-- Đây là dạng sao chép **nông**. Nếu phần tử của List là một object mutable, hoặc value của Map có thể thay đổi, bản ghi vẫn có thể quan sát thấy thay đổi trong object lá.
-- List.copyOf không cho phép null phần tử; Map.copyOf không cho phép null key/value. Chọn chính sách dữ liệu trước, thay vì âm thầm thay null.
-- **List.equals** nhạy với thứ tự và số lần xuất hiện. Nếu nghiệp vụ coi roles là tập không thứ tự, cần dùng giá trị kiểu Set có hợp đồng tương ứng, hoặc chuẩn hóa cấu trúc trước khi lưu.
-- Có thể dùng cấu trúc collection bất biến khác với hợp đồng equals/hashCode thích hợp; vẫn phải kiểm tra đúng ngữ nghĩa miền.
+- This is a **shallow** copy. If a List element is a mutable object, or a Map value can change, the record can still observe changes inside leaf objects.
+- List.copyOf does not allow null elements; Map.copyOf does not allow null keys/values. Choose the data policy upfront, rather than silently substituting null.
+- **List.equals** is sensitive to order and multiplicity. If the business domain treats roles as an unordered set, use a Set-typed value with the corresponding contract, or normalize the structure before storing.
+- Other immutable collection structures with suitable equals/hashCode contracts may be used; always verify domain semantics.
 
-## 9. Tùy biến equals/hashCode và giới hạn của record
+## 9. Customizing equals/hashCode and Record Limitations
 
-### Không bỏ một component trong equals rồi quên sửa hashCode
+### Do Not Drop a Component in equals and Forget to Fix hashCode
 
-Ví dụ record sau chứa mã khách hàng và phiên bản:
+For example, the following record contains a customer code and a version:
 
 ~~~java
 record RevisionedKey(String code, int version) {}
 ~~~
 
-Mặc định, hai instance chỉ equals khi **code** và **version** đều tương đương. Nếu nghiệp vụ chỉ coi **code** là định danh và ta tự override equals chỉ dựa trên code, thì hashCode sinh tự động vốn lấy cả hai component có thể khác nhau giữa hai record được cho là equals.
+By default, two instances are equal only when both **code** and **version** match. If the business domain only treats **code** as the identifier and you manually override equals based solely on code, the auto-generated hashCode—which includes both components—can differ between two records considered equal.
 
-Cách tốt hơn thường là **thiết kế record khóa riêng** đúng phạm vi, thay vì ghi đè semantics của record đang biểu diễn đầy đủ dữ liệu:
+A better approach is usually to **design a separate key record** with the right scope, rather than overriding the semantics of a record representing full data:
 
 ~~~java
 record CustomerCode(String code) {}
 record CustomerRevision(CustomerCode id, int version) {}
 ~~~
 
-Mã dùng để gom nhóm theo khách hàng sẽ lấy **CustomerCode**, còn thông tin phiên bản có thể giữ trong CustomerRevision. Nếu thật sự cần override equals, phải override hashCode theo cùng bộ trường và vẫn duy trì bất biến sao chép.
+Code grouping by customer will take **CustomerCode**, while version information can be kept in CustomerRevision. If overriding equals is genuinely needed, override hashCode over the exact same set of fields and still preserve the copy invariant.
 
-### Các kiểu component có nghĩa equals đặc biệt
+### Component Types with Special equals Meanings
 
-- **BigDecimal**: **new BigDecimal("1.0")** không equals **new BigDecimal("1.00")**, dù compareTo trả 0. Nếu nghiệp vụ muốn cùng trị số, hãy chuẩn hóa component trong constructor (ví dụ stripTrailingZeros khi phù hợp), rồi dùng equals/hashCode mặc định nhất quán.
-- **double/float**: equals ngầm của record đối với component primitive dùng ngữ nghĩa **Double.compare/Float.compare** tương ứng, chú ý NaN và sự khác nhau giữa **+0.0** với **-0.0**. Không tùy tiện đổi equals sang phép **==** nếu chưa đồng bộ hashCode và yêu cầu miền.
-- **Collection**: List so theo thứ tự; Set so theo tập phần tử; Map so theo cặp khóa–giá trị. Chọn component đúng để equals ngầm có ý nghĩa đúng.
-- **Array**: equals/hashCode mặc định không so nội dung mảng; phải dùng wrapper giá trị hoặc tự override cặp phương thức.
+- **BigDecimal**: **new BigDecimal("1.0")** does not equal **new BigDecimal("1.00")**, even though compareTo returns 0. If the business domain wants numeric equivalence, normalize the component in the constructor (e.g., stripTrailingZeros where appropriate), then keep consistent default equals/hashCode.
+- **double/float**: a record's implicit equals for primitive components uses **Double.compare/Float.compare** semantics accordingly, paying attention to NaN and the difference between **+0.0** and **-0.0**. Do not arbitrarily switch equals to **==** without synchronizing hashCode and domain requirements.
+- **Collection**: List compares in order; Set compares as a set of elements; Map compares key–value pairs. Choose the right component so implicit equals has the right meaning.
+- **Array**: default equals/hashCode do not compare array contents; use a value wrapper or manually override the method pair.
 
-### toString cũng phải trung thực về giá trị
+### toString Must Also Be Honest About Values
 
-Record có toString ngầm dựa trên các field component. Nếu accessor có biến đổi nhưng field không đổi, toString ngầm có thể làm lộ sự không khớp giữa “giá trị lưu” và “giá trị người gọi thấy”.
+Records have an implicit toString based on component fields. If an accessor transforms data without changing the field, the implicit toString can expose the mismatch between "stored value" and "value seen by caller".
 
-Khi override toString, nên biểu diễn rõ phần giá trị có ý nghĩa, tránh dùng trạng thái bên ngoài biến động; theo hợp đồng java.lang.Record, các record bằng nhau được kỳ vọng có chuỗi biểu diễn bằng nhau (với ngoại lệ hiếm khi component tương đương nhưng chuỗi của component không giống nhau). Không dựa vào cấu trúc chuỗi toString để phân tích ngược dữ liệu: định dạng cụ thể không phải giao thức serialization.
+When overriding toString, clearly represent the meaningful value and avoid relying on fluctuating external state; under the java.lang.Record contract, equal records are expected to have equal string representations (with rare exceptions when components are equivalent yet their component strings differ). Do not rely on the toString string structure to reverse-parse data: the specific format is not a serialization protocol.
 
-## 10. Các thiết kế sai khác cần tránh
+## 10. Other Flawed Designs to Avoid
 
-### Getter cắt/ngụy trang dữ liệu nhưng constructor không cắt
+### Getter Clamping/Masking Data While Constructor Does Not
 
-Ví dụ accessor **Math.min(x, 100)** trong khi field lưu 200. Bản sao dựng từ accessor có 100, khiến equals false với giá trị gốc. Nếu muốn luôn giới hạn x ≤ 100, hãy thực hiện ngay trong canonical constructor, để field thật sự lưu giá trị chuẩn.
+For example, an accessor returning **Math.min(x, 100)** while the field stores 200. A copy built from the accessor has 100, making equals false against the original value. If x ≤ 100 should always be enforced, do it right inside the canonical constructor so the field actually stores the canonical value.
 
-### Chuẩn hóa có tác dụng phụ hoặc không idempotent
+### Normalization with Side Effects or Non-Idempotence
 
-Một constructor tự cộng sequence, sinh thời điểm hiện tại hay nối thêm hậu tố theo lần gọi có thể làm bản sao không equals với gốc. Nếu metadata như thời gian tạo cần được bảo toàn, hãy truyền nó vào component tường minh; không âm thầm sinh lại mỗi khi tái tạo bản sao.
+A constructor that auto-increments a sequence, generates the current timestamp, or appends a suffix per call can make a copy unequal to the original. If metadata such as creation time must be preserved, pass it as an explicit component; do not silently regenerate it whenever recreating a copy.
 
-### Chỉ bảo vệ đầu vào, quên bảo vệ accessor
+### Protecting Input Only, Forgetting the Accessor
 
 ~~~java
 record UnsafeData(int[] values) {
@@ -538,77 +538,77 @@ record UnsafeData(int[] values) {
 }
 ~~~
 
-Record trên chặn việc sửa mảng đầu vào ban đầu, nhưng accessor sinh mặc định **values()** trả chính tham chiếu tới mảng nội bộ; người dùng vẫn sửa được nội dung. Nếu cần bất biến giá trị thực sự, phải quyết định chính sách accessor và equals/hashCode phù hợp.
+The record above prevents mutating the initial input array, yet the default generated **values()** accessor returns the exact reference to the internal array; callers can still mutate its contents. If true value immutability is needed, decide on an appropriate accessor and equals/hashCode policy.
 
-### Chỉ bảo vệ accessor, quên constructor
+### Protecting the Accessor Only, Forgetting the Constructor
 
-Nếu constructor lưu mảng đầu vào nguyên gốc, người gọi vẫn có thể giữ biến chứa mảng và sửa nội dung sau khi record được tạo. Việc accessor clone lúc đọc không giải quyết alias từ constructor.
+If the constructor stores the raw input array directly, callers can still keep the array variable and mutate its contents after the record is created. Cloning in the accessor on read does not fix aliasing from the constructor.
 
-### Tin rằng final chặn được sửa object lồng bên trong
+### Believing final Prevents Mutating Nested Objects
 
-Record field là final nhưng **List<MutableItem>** và **Map<String, MutableItem>** có thể thay đổi qua object phần tử. Nếu muốn bất biến sâu, phải kiểm soát cả các giá trị phía trong.
+Record fields are final, yet **List<MutableItem>** and **Map<String, MutableItem>** can change through element objects. If deep immutability is desired, control inner values as well.
 
-### Chỉ kiểm tra equals mà bỏ qua hashCode
+### Testing Only equals While Ignoring hashCode
 
-HashMap/HashSet đòi equal keys có hash giống nhau. Cặp record bằng nhau qua Arrays.equals nhưng hashCode theo tham chiếu có thể gây kết quả sai và khó tái hiện. Luôn thử với **hai mảng được cấp phát độc lập**.
+HashMap/HashSet require equal keys to have identical hashes. Pairs of records equal via Arrays.equals yet having reference-based hashCode can produce wrong and hard-to-reproduce results. Always test with **two independently allocated arrays**.
 
-### Đảo ngược mục đích của accessor
+### Inverting the Purpose of an Accessor
 
-Nếu muốn một biểu diễn tiện hiển thị khác giá trị lưu, thường nên thêm **phương thức có tên rõ nghĩa**, ví dụ **formattedCode()**, **displayName()**, **normalizedForSearch()**, thay vì làm component accessor trả một giá trị mâu thuẫn với field. Phương thức phụ có thể tùy biến cách biểu diễn mà không phá bất biến copy của record.
+If a display representation differing from the stored value is desired, usually add a **clearly named method**, such as **formattedCode()**, **displayName()**, **normalizedForSearch()**, rather than making a component accessor return a value contradicting the field. An auxiliary method can customize presentation without breaking the record's copy invariant.
 
-## 11. Kiểm thử hợp đồng record một cách có hệ thống
+## 11. Systematically Testing the Record Contract
 
-Với record **R(c1, c2, ..., cn)**, hãy viết test theo các nhóm sau.
+For a record **R(c1, c2, ..., cn)**, write tests across the following categories.
 
-### A. Tính tái tạo từ accessor
+### A. Reconstructibility from Accessors
 
-Tạo **r** từ đầu vào có khả năng gây chuẩn hóa, rồi tạo bản sao:
+Create **r** from input likely to trigger normalization, then construct a copy:
 
 ~~~java
 R copy = new R(r.c1(), r.c2(), ..., r.cn());
 ~~~
 
-Trong code thật, thay R và tên component bằng record đang kiểm thử. Kiểm tra **r.equals(copy)** true, **r.hashCode() == copy.hashCode()**, và các accessor tương ứng cho giá trị logic nhất quán. Đây là kiểm tra trực tiếp hợp đồng riêng của record.
+In real code, replace R and component names with the record under test. Verify **r.equals(copy)** is true, **r.hashCode() == copy.hashCode()**, and corresponding accessors yield logically consistent values. This directly tests the record-specific contract.
 
-### B. Tính idempotent của chuẩn hóa
+### B. Idempotence of Normalization
 
-- Dựng record từ các biểu diễn được quy định là tương đương, chẳng hạn **" A1 "** và **"a1"** đối với mã không phân biệt hoa/thường.
-- Dựng lại từ accessor; không được xuất hiện thay đổi lần thứ hai.
-- Thử đầu vào null, chuỗi rỗng, cặp component sai ràng buộc; kiểm tra thông báo hoặc loại exception hợp lý.
-- Không giả định mọi chuẩn hóa là hợp lệ với miền nghiệp vụ.
+- Construct records from representations specified as equivalent, such as **" A1 "** and **"a1"** for case-insensitive codes.
+- Reconstruct from accessors; no second-pass change must occur.
+- Test null inputs, empty strings, and constraint-violating component pairs; verify sensible exception types or messages.
+- Do not assume every normalization is valid for the business domain.
 
-### C. Sao chép phòng vệ
+### C. Defensive Copying
 
-- Dùng **mảng/List mutable ban đầu** để khởi tạo, rồi sửa nguồn.
-- Lấy component qua accessor và thử sửa kết quả.
-- Nếu record tuyên bố bất biến, trạng thái observable, equals và hashCode phải ổn định sau các thử nghiệm đó.
-- Với mảng nhiều chiều, sửa **phần tử ở từng tầng**; với List/Map chứa object mutable, thử thay đổi state của object lá.
-- So bản sao với bản gốc khi chúng có các mảng được clone riêng.
+- Use an **initial mutable array/List** to construct, then mutate the source.
+- Retrieve the component via the accessor and attempt to mutate the result.
+- If the record claims immutability, observable state, equals, and hashCode must remain stable after those tests.
+- For multi-dimensional arrays, mutate **elements at every level**; for List/Map containing mutable objects, try changing the state of leaf objects.
+- Compare a copy with the original when they hold separately cloned arrays.
 
-### D. Hợp đồng Object và collection
+### D. Object and Collection Contracts
 
-- Kiểm tra **r.equals(r)**; **r.equals(null)** false; các cặp đảo chiều cho cùng kết quả.
-- Với ít nhất ba đối tượng, kiểm tra bắc cầu nếu hai phép equals liên tiếp true.
-- Nếu equals true thì hashCode bắt buộc bằng nhau; đừng yêu cầu hash khác nhau cho mọi cặp không bằng.
-- Đưa các instance bằng nhau vào **HashSet**; tra khóa HashMap bằng một bản sao dựng từ accessor phải thành công.
-- Nếu có override toString, cân nhắc trường hợp hai object equals nhưng toString khác do tham chiếu mutable hoặc trạng thái ngoài.
+- Test **r.equals(r)**; **r.equals(null)** is false; reversed pairs yield the same result.
+- With at least three objects, verify transitivity if two consecutive equals checks are true.
+- If equals is true then hashCode must be equal; do not require unequal pairs to have different hashes.
+- Insert equal instances into a **HashSet**; HashMap key lookup using a copy constructed from accessors must succeed.
+- If overriding toString, consider cases where two objects are equal yet toString differs due to mutable references or external state.
 
-### E. Tên file, khả năng chạy và API
+### E. File Naming, Runnability, and API
 
-Với record khai báo **bên trong lớp demo**, đặt tên file theo **public class** bao ngoài. Với record khai báo **public ở top-level**, đặt tên file trùng tên record. Dùng **Java 17+**; compact canonical constructor và record là tính năng chuẩn từ Java 16. Accessor do mình khai báo phải **public**, không có tham số và đúng kiểu component.
+For records declared **inside a demo class**, name the file after the enclosing **public class**. For records declared **public at top-level**, name the file after the record. Use **Java 17+**; compact canonical constructors and records are standard features since Java 16. Custom accessors you declare must be **public**, take no parameters, and match the component type.
 
-## 12. Chọn cách triển khai theo loại component
+## 12. Choosing an Implementation by Component Type
 
-| Nhu cầu | Cách triển khai phù hợp | Kiểm chứng bắt buộc |
+| Requirement | Appropriate Implementation | Mandatory Verification |
 | --- | --- | --- |
-| Component là String/primitive/Instant bất biến và ngữ nghĩa equals đã phù hợp | Giữ accessor và equals/hashCode sinh tự động | Copy invariant, các trường hợp null và chuẩn hóa |
-| Đầu vào cần strip, đổi hoa/thường, đưa về khoảng chuẩn | **Chuẩn hóa trong canonical constructor** | N(N(x)) = N(x), dựng lại từ accessor equals true |
-| Component là List/Map với các phần tử bất biến | **List.copyOf/Map.copyOf** trong constructor, thường giữ equals/hashCode mặc định | Chống alias đầu vào, không có null ngoài chính sách, copy invariant |
-| Component là mảng nhưng muốn so **nội dung** | Clone lúc vào/ra và override **cả equals lẫn hashCode** bằng Arrays tương ứng | Copy invariant, hai mảng riêng cùng nội dung, HashSet |
-| Component là mảng đa chiều hoặc cấu trúc lồng mutable | Sao chép từng tầng cần thiết; **deepEquals/deepHashCode** khi quy tắc là so sâu | Không còn mutable alias, hợp đồng từng object lá |
-| Chỉ cần chuỗi hiển thị/tính toán khác với trường lưu | Thêm **phương thức riêng** thay vì biến đổi component accessor | Accessor vẫn phản ánh được giá trị dùng để dựng lại record |
-| Muốn equals chỉ dựa vào một phần thông tin | Ưu tiên **record khóa riêng**, hoặc override nhất quán nếu thật cần | Equals/hashCode đồng bộ, copy invariant không bị hỏng |
+| Component is an immutable String/primitive/Instant and equals semantics already fit | Keep auto-generated accessors and equals/hashCode | Copy invariant, null cases, and normalization |
+| Input needs stripping, case folding, or clamping to a canonical range | **Normalize in the canonical constructor** | N(N(x)) = N(x), reconstructing from accessors yields equals true |
+| Component is List/Map with immutable elements | **List.copyOf/Map.copyOf** in constructor, usually keep default equals/hashCode | Block input aliasing, no unintended nulls, copy invariant |
+| Component is an array yet **content** comparison is wanted | Clone on input/output and override **both equals and hashCode** using corresponding Arrays methods | Copy invariant, two separate arrays with identical contents, HashSet |
+| Component is a multi-dimensional array or nested mutable structure | Copy every necessary level; **deepEquals/deepHashCode** when rule is deep comparison | No remaining mutable aliases, contract of each leaf object |
+| Only a display/computed string differing from stored field is needed | Add a **separate method** instead of altering the component accessor | Accessor still reflects the value used to reconstruct the record |
+| Want equals based on only a subset of information | Prefer a **separate key record**, or override consistently if truly necessary | Synchronized equals/hashCode, copy invariant unbroken |
 
-**Ghi nhớ:** Record cho phép tùy biến constructor, accessor và equals/hashCode nhưng các phần này tạo thành **một hợp đồng duy nhất**. Trạng thái quan sát qua accessor phải đủ để tái tạo một giá trị equals với bản gốc; chuẩn hóa nên được thực hiện **trước khi lưu**, còn defensive copy phải được thiết kế cùng **ngữ nghĩa equals/hashCode** của component. Với mảng, clone riêng chưa đủ để giữ hợp đồng: cần so/băm theo nội dung nếu accessor trả bản sao. Với collection có equals theo giá trị và phần tử bất biến, copy bất biến thường cho phép giữ nguyên các phương thức do record sinh tự động.
+**Key Takeaway:** Records allow customizing constructors, accessors, and equals/hashCode, yet these parts form **a single unified contract**. State observed through accessors must suffice to reconstruct a value equal to the original; normalization should happen **before storing**, while defensive copying must be designed alongside the component's **equals/hashCode semantics**. For arrays, cloning alone is not enough to preserve the contract: compare/hash by contents if accessors return copies. For collections with value-based equals and immutable elements, immutable copying usually lets you keep the record's auto-generated methods intact.
 
-Tham khảo đặc tả: [java.lang.Record, Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Record.html).
+Specification reference: [java.lang.Record, Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Record.html).

@@ -1,44 +1,44 @@
-# Thay đổi phần tử trong HashSet và khả năng xuất hiện giá trị trùng
+# Mutating Elements in a HashSet and the Possibility of Duplicate Values
 
-## 1. Hiện tượng: phần tử không còn giữ nguyên điều kiện bằng nhau
+## 1. Symptom: elements no longer preserve their equality condition
 
-Trong Java, `HashSet<E>` thực hiện giao diện `Set<E>` và dùng `equals(Object)` cùng `hashCode()` để kiểm tra phần tử đã có khi thực hiện các thao tác như `add` và `contains`. Với những phần tử có trạng thái xác định equality ổn định, `add(e)` không thêm thêm một phần tử thứ hai bằng `e`.
+In Java, `HashSet<E>` implements the `Set<E>` interface and uses `equals(Object)` together with `hashCode()` to check whether an element is already present during operations such as `add` and `contains`. For elements whose equality-defining state is stable, `add(e)` does not add a second element equal to `e`.
 
-Nhưng `HashSet` lưu **tham chiếu đến đối tượng**. Khi phần tử là object mutable, việc gọi setter hoặc sửa object lồng nhau có thể thay đổi điều kiện xác định bằng nhau, trong khi set không tự nhận thông báo để rà soát và xây dựng lại cấu trúc nội bộ.
+However, `HashSet` stores **references to objects**. When an element is a mutable object, calling a setter or modifying a nested object can change the condition that determines equality, while the set receives no notification to rescan and rebuild its internal structure.
 
-Đặc tả `java.util.Set` nhấn mạnh: **hành vi của set không được xác định khi giá trị của một đối tượng bị thay đổi theo cách tác động đến các phép so sánh `equals` trong lúc đối tượng còn là phần tử của set**.
+The `java.util.Set` specification emphasizes: **the behavior of a set is not specified if the value of an object is changed in a manner that affects `equals` comparisons while the object is an element in the set**.
 
-Hậu quả dễ gây nhầm:
+Confusing consequences:
 
-- Hai phần tử lúc thêm vào là khác nhau nhưng sau đó trở thành **bằng nhau** theo `equals` mà `size()` vẫn không đổi.
-- `contains` hoặc `remove` có thể không tìm thấy phần tử đã được thêm từ trước.
-- Thao tác `add` tiếp theo có thể tạo cảm giác xuất hiện phần tử trùng.
-- Các thao tác nghiệp vụ dựa vào số lượng phần tử duy nhất có thể trả kết quả sai so với ý nghĩa hiện tại của dữ liệu.
+- Two elements that were distinct when added later become **equal** according to `equals`, while `size()` remains unchanged.
+- `contains` or `remove` may fail to find an element that was previously added.
+- A subsequent `add` operation may create the appearance of duplicate elements.
+- Business operations that rely on the count of unique elements may return results inconsistent with the current meaning of the data.
 
-Đây **không phải lỗi của `HashSet`** nếu object bị thay đổi trái điều kiện ổn định mà cấu trúc dữ liệu dựa vào. Đúng hơn, người sử dụng đã không bảo đảm một giả định quan trọng khi lưu phần tử trong set.
+This is **not a bug in `HashSet`** if the object was modified contrary to the stability condition the data structure relies upon. Rather, the caller failed to uphold an important assumption when storing elements in a set.
 
-Ngược lại, việc sửa một trường **không tham gia** equality và hash, như ghi chú hiển thị khi ID xác định equality được giữ bất biến, không gây lỗi loại này.
+Conversely, modifying a field that **does not participate** in equality and hashing, such as a display note when the equality-defining ID is kept immutable, does not cause this kind of bug.
 
-## 2. Liên hệ với hợp đồng Object
+## 2. Connection to the Object contract
 
-Khi override `equals` và `hashCode`, class phải bảo đảm:
+When overriding `equals` and `hashCode`, a class must ensure:
 
-1. `equals` có tính phản xạ, đối xứng, bắc cầu; kết quả nhất quán khi dữ liệu được dùng để so sánh không thay đổi; với đối tượng khác `null` thì so với `null` trả `false`.
-2. Nếu `a.equals(b)` trả `true` thì `a.hashCode() == b.hashCode()` phải đúng.
-3. Nếu `a.equals(b)` trả `false`, hai mã băm **được phép trùng**; va chạm không làm sai contract.
-4. Trong cùng một lần thực thi, `hashCode()` phải ổn định nếu những thông tin tham gia phép so sánh equality không đổi.
+1. `equals` is reflexive, symmetric, and transitive; results are consistent as long as the data used for comparison does not change; for any non-`null` object, comparing with `null` returns `false`.
+2. If `a.equals(b)` returns `true`, then `a.hashCode() == b.hashCode()` must hold.
+3. If `a.equals(b)` returns `false`, the two hash codes **are allowed to collide**; collisions do not violate the contract.
+4. During a single execution, `hashCode()` must remain stable provided the information used in equality comparisons does not change.
 
-Hợp đồng số (2) được viết:
+Contract rule (2) is written as:
 
 `a.equals(b) ⇒ a.hashCode() == b.hashCode()`
 
-Chiều ngược lại **không bắt buộc**: cùng hash không chứng minh hai phần tử bằng nhau.
+The converse is **not required**: having the same hash does not prove two elements are equal.
 
-Một object có thể thay đổi `id`, sau đó `equals` và `hashCode` thay đổi theo `id` nhưng vẫn nhất quán với nhau. Bản thân class chưa chắc vi phạm hợp đồng `Object`. Lỗi xuất hiện khi object này **đang nằm trong `HashSet`**, vì cấu trúc dữ liệu đã được xây trên quan hệ equality/hash trước lúc thay đổi.
+An object can change its `id`, after which `equals` and `hashCode` change with `id` while remaining consistent with each other. The class itself does not necessarily violate the `Object` contract. The bug occurs when this object **is currently inside a `HashSet`**, because the data structure was built around the equality/hash relationship from before the change.
 
-## 3. Ví dụ Java 17 chạy được: hai phần tử trở thành trùng nhau
+## 3. Runnable Java 17 example: two elements become duplicates
 
-Ví dụ dưới đây so sánh `MutableItem` theo `id`; `label` chỉ phục vụ hiển thị và không tham gia equality.
+The example below compares `MutableItem` by `id`; `label` is only for display and does not participate in equality.
 
 ```java
 import java.util.HashSet;
@@ -89,33 +89,33 @@ public class HashSetMutationDemo {
         System.out.println(items.size());
         System.out.println(first.equals(second));
 
-        // Sửa trạng thái equality khi first còn trong set.
+        // Mutate equality state while first is still in the set.
         first.changeId(202);
 
         System.out.println(first.equals(second));
         System.out.println(items.size());
 
-        // Đếm bằng duyệt tuần tự, không phụ thuộc vào bucket hash.
+        // Count by sequential iteration, independent of hash buckets.
         long equalNow = items.stream()
                 .filter(item -> item.equals(second))
                 .count();
         System.out.println(equalNow);
 
-        // Chỉ sửa mô tả; equality và hash không dùng trường label.
+        // Modify only description; equality and hash do not use the label field.
         first.changeLabel("Đổi mô tả");
         System.out.println(first.equals(second));
     }
 }
 ```
 
-Lưu tệp `HashSetMutationDemo.java` bằng UTF-8, biên dịch và chạy:
+Save the file `HashSetMutationDemo.java` as UTF-8, compile, and run:
 
 ```bash
 javac -encoding UTF-8 HashSetMutationDemo.java
 java HashSetMutationDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 true
@@ -128,23 +128,23 @@ true
 true
 ```
 
-Diễn giải:
+Interpretation:
 
-- Ban đầu `first.id = 101`, `second.id = 202`: hai phần tử khác nhau. Hai lần `add` đều trả `true`; set có 2 phần tử và `first.equals(second)` là `false`.
-- Gán `first.id = 202` làm `first.equals(second)` chuyển sang `true`. Lúc này hai object khác tham chiếu nhưng bằng nhau theo quy tắc nghiệp vụ đang được class định nghĩa.
-- `items.size()` vẫn bằng `2` vì thay đổi trường của phần tử không tự gọi `remove`/`add` trên set.
-- `stream().filter(...)` nhìn lần lượt hai phần tử còn trong set và đếm được `2` phần tử hiện cùng `id`. Không có giả định về thứ tự duyệt hay cách phân bổ bucket.
-- Đổi `label` không ảnh hưởng `equals`, vì `label` không được dùng để so sánh.
+- Initially `first.id = 101`, `second.id = 202`: two distinct elements. Both `add` calls return `true`; the set has 2 elements and `first.equals(second)` is `false`.
+- Setting `first.id = 202` makes `first.equals(second)` flip to `true`. At this point, two objects with different references are equal under the business rule currently defined by the class.
+- `items.size()` remains `2` because modifying an element's field does not automatically invoke `remove`/`add` on the set.
+- `stream().filter(...)` inspects the two elements still in the set one by one and counts `2` elements that currently share the same `id`. No assumptions are made about iteration order or bucket distribution.
+- Changing `label` does not affect `equals`, because `label` is not used in comparisons.
 
-Đây là câu trả lời cụ thể cho việc **một `HashSet` có thể chứa hai phần tử hiện bằng nhau**: chúng đã được thêm khi còn khác nhau và chỉ trở thành bằng nhau sau mutation. Không có lần `add` nào trong ví dụ được gọi với hai đối tượng đang bằng nhau tại thời điểm thêm.
+This concretely answers how **a `HashSet` can hold two elements that are currently equal**: they were added while still distinct and only became equal after mutation. No `add` call in the example was invoked with two objects that were already equal at insertion time.
 
-## 4. Vì sao HashSet không tự sửa lại khi ID thay đổi?
+## 4. Why doesn't HashSet fix itself when ID changes?
 
-Ở các triển khai thường gặp, `HashSet` dùng cấu trúc hash nội bộ để xác định nơi lưu và tra cứu phần tử. Khi object được đưa vào, mã băm hiện tại của nó được dùng để tổ chức việc tra cứu. Nếu trường tạo nên hash thay đổi, mã băm mới có thể dẫn đường tìm kiếm đến vùng khác so với nơi đối tượng đang được giữ.
+In common implementations, `HashSet` uses an internal hash structure to determine where elements are stored and looked up. When an object is inserted, its current hash code is used to organize lookup. If a field contributing to the hash changes, the new hash code may direct searches to a different region from where the object is currently held.
 
-Cơ chế này giúp hiểu tại sao một phần tử bị sửa có thể bị xem như “mất” khi gọi `contains` hoặc `remove`. Tuy nhiên, **không có kết quả cố định áp dụng cho mọi phiên bản và trạng thái**, vì đặc tả `Set` đã không quy định hành vi sau khi phần tử bị thay đổi theo cách ảnh hưởng equality.
+This mechanism helps explain why a mutated element can appear "lost" when calling `contains` or `remove`. However, **there is no fixed outcome that applies across all versions and states**, because the `Set` specification leaves behavior unspecified after an element is mutated in a way that affects equality.
 
-Ví dụ minh họa (đoạn sau đặt trong phương thức có định nghĩa `MutableItem` ở trên):
+Illustrative snippet (place the following inside a method that has the `MutableItem` definition above):
 
 ```java
 Set<MutableItem> set = new HashSet<>();
@@ -157,51 +157,51 @@ boolean found = set.contains(item);
 boolean removed = set.remove(item);
 ```
 
-Không nên ghi một stdout khẳng định `found` hoặc `removed` **luôn** là `false`. Kết quả có thể phụ thuộc vào giá trị hash, va chạm và chi tiết triển khai. Điều cần học là: **sau mutation ảnh hưởng equality, không còn cơ sở tin vào việc tra cứu và xóa đúng như lúc khóa còn ổn định**.
+You should not write down stdout asserting that `found` or `removed` is **always** `false`. The result can depend on hash values, collisions, and implementation details. The lesson to learn is: **after a mutation affecting equality, there is no longer a basis to trust lookup and removal to behave as they did when the key was stable**.
 
-Tương tự, nếu sau đó gọi:
+Similarly, if you subsequently call:
 
 ```java
-// Vẫn là đoạn minh họa trong một phương thức.
+// Still an illustrative snippet inside a method.
 set.add(new MutableItem(2, "Hai"));
 ```
 
-Tùy việc phần tử cũ còn được tìm thấy bằng hash hiện tại hay không, lần thêm có thể phát hiện đối tượng bằng nhau hoặc không. Không có một giá trị trả về chung được cam kết khi đã vi phạm điều kiện giữ ổn định đối tượng phần tử.
+Depending on whether the old element is still found under the current hash, the add call may or may not detect an equal object. There is no universally guaranteed return value once the condition of keeping element objects stable has been violated.
 
-## 5. Phân biệt mutation với hash collision
+## 5. Distinguishing mutation from hash collisions
 
-Hai hiện tượng này khác nhau về bản chất:
+These two phenomena are fundamentally different:
 
-| Hiện tượng | Ý nghĩa | Có tự làm sai contract không? |
+| Phenomenon | Meaning | Does it break the contract by itself? |
 | --- | --- | --- |
-| Hai object khác nhau có cùng `hashCode` nhưng `equals` trả `false` | Va chạm hash | **Không**. `HashSet` xử lý bằng equality. |
-| Hai object `equals == true` nhưng mã băm khác nhau | Hai phương thức bất nhất | **Có**, vi phạm `Object` contract. |
-| Một object đã được thêm rồi thay đổi trường tham gia equality/hash | Thay đổi điều kiện tra cứu của phần tử đang lưu | **Không được đặc tả** bởi `Set`; không dùng như thao tác an toàn. |
-| Hai object được thêm khi khác nhau, sau đó một object sửa để bằng object kia | Hai tham chiếu hiện cùng equality vẫn có thể nằm trong set | **Có thể xảy ra** vì set không tự tái kiểm tra. |
+| Two distinct objects have the same `hashCode` but `equals` returns `false` | Hash collision | **No**. `HashSet` resolves this using equality. |
+| Two objects have `equals == true` but different hash codes | The two methods are inconsistent | **Yes**, violates the `Object` contract. |
+| An already-added object mutates a field used in equality/hash | Changes the lookup condition of a stored element | **Unspecified** by `Set`; do not treat as a safe operation. |
+| Two objects added while distinct, then one mutates to equal the other | Two references that are now equal in equality may both remain in the set | **Can happen** because the set does not re-check automatically. |
 
-Ngay cả class cố ý trả mã băm hằng số `1` cho mọi đối tượng cũng có thể gặp tình huống hai object đã được thêm khi khác nhau rồi trở thành bằng nhau. Hash code hằng không giúp set tự phát hiện thay đổi của `equals`. Sự ổn định của **toàn bộ quan hệ equality** mới là điểm then chốt.
+Even a class that intentionally returns a constant hash code `1` for every object can encounter the situation where two objects added while distinct later become equal. A constant hash code does not help the set detect changes in `equals`. The stability of the **entire equality relation** is the key point.
 
-## 6. Trường nào được phép thay đổi?
+## 6. Which fields are allowed to change?
 
-Giả sử class `Product` định nghĩa “cùng sản phẩm” bằng `productId`:
+Suppose class `Product` defines "same product" by `productId`:
 
-| Field | Mục đích | Dùng trong equality/hash? | Ảnh hưởng khi sửa trong set |
+| Field | Purpose | Used in equality/hash? | Effect when modified inside a set |
 | --- | --- | --- | --- |
-| `productId` | Định danh sản phẩm | Có | Nguy hiểm nếu sửa |
-| `displayName` | Tên hiển thị | Không | Không đổi equality/hash của mô hình này |
-| `description` | Mô tả | Không | Không đổi equality/hash của mô hình này |
-| `cachedLabel` | Kết quả hiển thị đã tính | Không | Có thể làm mới cache mà không đổi equality |
-| `quantity` | Số lượng tồn kho | Không, nếu identity chỉ theo ID | Không đổi identity; vẫn có nghĩa vụ kiểm soát logic tồn kho |
+| `productId` | Product identifier | Yes | Dangerous if modified |
+| `displayName` | Display name | No | Does not change equality/hash in this model |
+| `description` | Description | No | Does not change equality/hash in this model |
+| `cachedLabel` | Computed display result | No | Cache can be refreshed without changing equality |
+| `quantity` | Stock quantity | No, if identity is strictly by ID | Does not change identity; still requires controlling inventory logic |
 
-Bảng trên chỉ phù hợp khi business contract đã thực sự xác định equality theo `productId`. Với một value object `OrderLine(productId, quantity, price)`, `quantity` hoặc `price` có thể là thành phần quan trọng của equality; khi ấy sửa quantity/price sẽ làm thay đổi điều kiện nhận biết trùng.
+The table above is only appropriate when the business contract truly defines equality by `productId`. For a value object `OrderLine(productId, quantity, price)`, `quantity` or `price` might be important components of equality; in that case, modifying quantity/price will alter duplicate detection.
 
-Một trường khai báo `final` chưa chắc đảm bảo object bất biến sâu. Ví dụ `final List<String> tags` chỉ ngăn gán lại tham chiếu danh sách, **không ngăn thay đổi phần tử bên trong danh sách**. Nếu nội dung danh sách tham gia `equals`/`hashCode`, object vẫn có thể có hash thay đổi sau khi chèn vào set.
+A field declared `final` does not necessarily guarantee deep immutability of the object. For example, `final List<String> tags` only prevents reassigning the list reference; it **does not prevent modifying elements inside the list**. If list contents participate in `equals`/`hashCode`, the object's hash can still change after insertion into a set.
 
-Tương tự, annotation, từ khóa `transient` hoặc việc trường có setter hay không không tự quyết định trường ấy có thuộc equality. Phải dựa trên chính logic `equals`/`hashCode` và ngữ nghĩa của mô hình.
+Likewise, annotations, the `transient` keyword, or whether a field has a setter do not by themselves decide whether a field belongs to equality. You must base that on the actual `equals`/`hashCode` logic and the semantics of the model.
 
-## 7. Cách an toàn nhất: dùng khóa bất biến
+## 7. The safest approach: use immutable keys
 
-Đối với dữ liệu biểu diễn khóa của một set, hãy ưu tiên kiểu bất biến. Trong Java 17, `record` với các component nguyên thủy là một lựa chọn gọn, dễ hiểu:
+For data representing a set's key, prefer immutable types. In Java 17, a `record` with primitive components is a concise, easy-to-understand choice:
 
 ```java
 import java.util.HashSet;
@@ -220,14 +220,14 @@ public class ImmutableKeyDemo {
 }
 ```
 
-Lưu `ImmutableKeyDemo.java` rồi chạy:
+Save `ImmutableKeyDemo.java` and run:
 
 ```bash
 javac ImmutableKeyDemo.java
 java ImmutableKeyDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -236,126 +236,126 @@ false
 true
 ```
 
-Vì component `id` là `int` và record không cho thay thế component sau khi tạo, việc dùng `ItemKey(101)` làm phần tử không bị biến thành `ItemKey(202)` qua setter. Các phương thức `equals`/`hashCode` của record dựa trên component, nên lần `add` thứ hai được nhận diện là giá trị đã tồn tại.
+Because the `id` component is an `int` and a record does not allow replacing components after creation, using `ItemKey(101)` as an element cannot be turned into `ItemKey(202)` through a setter. The record's `equals`/`hashCode` methods are based on its components, so the second `add` is recognized as an already existing value.
 
-Nếu cần “đổi khóa” từ 101 thành 202, hãy biểu diễn bằng một thao tác ở mức collection:
+If you need to "change the key" from 101 to 202, express it as a collection-level operation:
 
 ```java
-// Đoạn minh họa đặt trong phương thức có biến Set<ItemKey> ids.
+// Illustrative snippet inside a method that has Set<ItemKey> ids.
 boolean removed = ids.remove(new ItemKey(101));
 if (removed) {
     boolean added = ids.add(new ItemKey(202));
     if (!added) {
-        // Xử lý xung đột: khóa 202 đã tồn tại.
+        // Handle conflict: key 202 already exists.
     }
 }
 ```
 
-**Cần xử lý xung đột nghiệp vụ:** nếu khóa mới đã tồn tại thì phải quyết định từ chối, gộp dữ liệu, thay thế hay phục hồi khóa cũ. Hai câu lệnh `remove` và `add` không mặc nhiên là một transaction nguyên tử trong chương trình nhiều luồng.
+**Business conflicts must be handled:** if the new key already exists, you must decide whether to reject, merge data, replace, or restore the old key. The two statements `remove` and `add` are not automatically an atomic transaction in a multithreaded program.
 
-Có thể áp dụng lối thiết kế khác: lưu `Set<Id>` thay cho `Set<MutableEntity>` và duy trì bảng thông tin thực thể riêng. Cách này giữ khóa trong set ổn định, còn metadata mutable có vòng đời riêng.
+Another design style can be applied: store `Set<Id>` instead of `Set<MutableEntity>` and maintain a separate entity metadata table. This keeps keys in the set stable while mutable metadata has its own lifecycle.
 
-## 8. Nếu buộc phải sửa object đang nằm trong set
+## 8. If you are forced to modify an object currently in a set
 
-Một hướng chỉ khả thi khi bạn kiểm soát toàn bộ vòng đời là:
+An approach that is only viable when you control the entire lifecycle is:
 
-1. **Xóa phần tử khỏi set khi trường equality/hash vẫn còn ở trạng thái cũ**.
-2. Thay đổi trạng thái sau khi phần tử đã được xóa thành công.
-3. Thêm lại bằng trạng thái mới.
-4. Kiểm tra kết quả `add` và xử lý nếu đã có phần tử khác bằng khóa mới.
+1. **Remove the element from the set while the equality/hash fields are still in their old state**.
+2. Modify the state after the element has been removed successfully.
+3. Re-add it with the new state.
+4. Check the result of `add` and handle it if another element equal to the new key already exists.
 
-Ví dụ tư duy:
+Mental example:
 
 ```java
-// Chỉ an toàn nếu việc xóa diễn ra TRƯỚC khi sửa khóa.
+// Only safe if removal happens BEFORE modifying the key.
 if (set.remove(item)) {
     item.changeId(2);
     boolean added = set.add(item);
-    // Nếu added == false: phải có chính sách cho trường hợp trùng.
+    // If added == false: there must be a policy for the duplicate case.
 }
 ```
 
-Đoạn này không tự giải quyết vấn đề khi có nhiều luồng cùng thao tác; toàn bộ quy trình phải được đồng bộ hóa hoặc bảo vệ bằng cơ chế giao dịch theo yêu cầu hệ thống. Nếu việc thêm thất bại và phải rollback, cần giữ thông tin về trạng thái cũ để khôi phục có kiểm soát.
+This snippet does not by itself solve concurrent operations from multiple threads; the entire workflow must be synchronized or protected by a transactional mechanism as required by the system. If adding fails and requires rollback, information about the old state must be retained for a controlled recovery.
 
-**Không** ưu tiên kỹ thuật “sửa trước, rồi gọi `remove`”: khi hash đã đổi, remove có thể không tìm được phần tử cũ. Nếu đã xảy ra lỗi, quy trình xử lý khác với một lần thay đổi bình thường.
+Do **not** favor a technique of "mutate first, then call `remove`": once the hash has changed, `remove` may fail to locate the old element. If a bug has already occurred, the recovery workflow differs from a normal change.
 
-## 9. Khôi phục một HashSet có phần tử đã thay đổi
+## 9. Recovering a HashSet whose elements were mutated
 
-Nếu đã có dữ liệu ở trạng thái không còn đáp ứng tính duy nhất theo equality hiện tại:
+If data is already in a state that no longer satisfies uniqueness under current equality:
 
-1. Ngăn hoặc phối hợp các thao tác thay đổi đồng thời trong thời gian khắc phục.
-2. Duyệt các phần tử thực tế và thu thập thông tin cần giữ; không chỉ dùng `contains` để kết luận một phần tử có/không.
-3. Xác định cặp/nhóm phần tử hiện bằng nhau và cách giải quyết xung đột: giữ đối tượng nào, hợp nhất dữ liệu ra sao, có cần báo lỗi nghiệp vụ không.
-4. Tạo một cấu trúc mới bằng các khóa hoặc value object bất biến sau khi xử lý trùng.
-5. Thay thế tham chiếu đến cấu trúc cũ theo quy trình kiểm soát; thêm bảo đảm ngăn sửa khóa lần nữa.
+1. Prevent or coordinate concurrent mutating operations during remediation.
+2. Iterate over the actual elements and collect the information to keep; do not rely solely on `contains` to conclude whether an element is present or absent.
+3. Identify pairs/groups of elements that are now equal and how to resolve conflicts: which object to keep, how to merge data, and whether a business error needs to be reported.
+4. Build a new structure using immutable keys or value objects after resolving duplicates.
+5. Replace the reference to the old structure in a controlled process; add safeguards to prevent mutating keys again.
 
-Có thể tạo `new HashSet<>(oldSet)`, nhưng nó sẽ loại bỏ phần tử bị xem là trùng theo equality hiện tại. Nếu những phần tử ấy chứa thông tin mô tả hoặc dữ liệu khác nhau, việc loại bỏ có thể khiến mất dữ liệu có ý nghĩa. Vì vậy **dựng lại collection sau khi đã có chính sách giải quyết trùng**, không mặc nhiên xem copy constructor là công cụ sửa mọi vấn đề.
+You can construct `new HashSet<>(oldSet)`, but it will drop elements considered duplicates under current equality. If those elements hold different descriptive information or data, dropping them can cause meaningful data loss. Therefore, **rebuild the collection after establishing a duplicate-resolution policy**, rather than blindly treating the copy constructor as a universal fix.
 
-Không dựa vào việc tạm đổi ID về giá trị cũ để `remove` rồi đổi trở lại như một giải pháp tổng quát. Bạn có thể không biết giá trị cũ; các xung đột đã xuất hiện cũng có thể khó phục hồi.
+Do not rely on temporarily reverting the ID to its old value to `remove` and then changing it back as a general solution. You may not know the old value; conflicts that have already arisen may also be hard to restore.
 
-## 10. Unmodifiable set có ngăn vấn đề không?
+## 10. Does an unmodifiable set prevent the problem?
 
-Không tự động.
+Not automatically.
 
-`Collections.unmodifiableSet(source)` trả về một view không cho thêm/xóa qua chính view ấy. Nếu mã khác vẫn giữ tham chiếu đến phần tử mutable hoặc đến set nguồn, dữ liệu và các phần tử vẫn có thể thay đổi.
+`Collections.unmodifiableSet(source)` returns a view that disallows adding/removing through that view itself. If other code still holds a reference to a mutable element or to the source set, the data and elements can still change.
 
-`Set.copyOf(source)` tạo một set không cho chỉnh sửa cấu trúc qua API của nó, nhưng **không deep copy** mọi phần tử. Một `MutableItem` được đặt trong set ấy vẫn là cùng đối tượng mutable nếu có nơi khác giữ tham chiếu. Đổi trường equality vẫn có thể làm hỏng các giả định về phần tử ổn định.
+`Set.copyOf(source)` creates a set that disallows structural modification through its API, yet it **does not deep copy** every element. A `MutableItem` placed inside such a set is still the same mutable object if a reference is held elsewhere. Changing equality fields can still break assumptions about stable elements.
 
-Phân biệt:
+Distinguish:
 
-- **Unmodifiable collection:** người dùng không sửa cấu trúc collection qua giao diện được trả về.
-- **Immutable element:** dữ liệu định nghĩa equality/hash của phần tử không thay đổi.
-- **Stable set semantics:** đòi hỏi phần tử giữ điều kiện equality/hash đúng trong suốt thời gian thuộc set.
+- **Unmodifiable collection:** callers cannot modify the collection's structure through the returned interface.
+- **Immutable element:** the data defining an element's equality/hash does not change.
+- **Stable set semantics:** requires elements to maintain proper equality/hash conditions throughout their time in the set.
 
-Một record có component là `List` mutable cũng không tự trở thành immutable sâu. Có thể dùng defensive copy thích hợp như `List.copyOf` trong constructor cho thành phần cần giữ ổn định.
+A record with a mutable `List` component does not automatically become deeply immutable either. Appropriate defensive copying such as `List.copyOf` in the constructor can be used for components that need to stay stable.
 
-## 11. Iterator, fail-fast và đa luồng
+## 11. Iterators, fail-fast, and multithreading
 
-Thay đổi một trường của đối tượng được tham chiếu trong set thường không phải một thao tác thay đổi **cấu trúc collection**. Vì vậy không thể trông chờ `ConcurrentModificationException` để phát hiện mọi trường hợp đổi `id` hoặc `hashCode`. Cơ chế fail-fast của iterator vốn cũng chỉ là best-effort.
+Modifying a field of an object referenced inside a set is normally not a **structural modification of the collection**. Therefore, you cannot count on `ConcurrentModificationException` to detect every case of changing `id` or `hashCode`. An iterator's fail-fast mechanism is also best-effort anyway.
 
-Nếu nhiều luồng cùng sửa, tra cứu hoặc duyệt các object mutable, còn cần thiết kế đồng bộ hóa và bảo đảm hiển thị bộ nhớ. Một collection concurrent có thể bảo vệ thao tác cấu trúc riêng của nó, nhưng **không tự khiến dữ liệu định nghĩa equality của phần tử trở nên ổn định**.
+If multiple threads concurrently modify, look up, or iterate over mutable objects, synchronization design and memory visibility guarantees are also required. A concurrent collection can protect its own structural operations, yet it **does not automatically make elements' equality-defining data stable**.
 
-Một entity ORM có ID gán sau khi lưu cũng cần cân nhắc kỹ. Nếu `equals`/`hashCode` dựa vào ID từ `null` thành giá trị thực sau khi đối tượng đã được cho vào set, thay đổi vòng đời ấy có thể ảnh hưởng đến chính những giả định đang học. Không áp dụng quy tắc “dùng ID” một cách máy móc mà bỏ qua thời điểm ID ổn định và semantics của ORM.
+An ORM entity whose ID is assigned after saving also requires careful thought. If `equals`/`hashCode` relies on an ID changing from `null` to a real value after the object has already been placed in a set, that lifecycle change can affect the exact assumptions being studied here. Do not mechanically apply a "use ID" rule while ignoring when the ID stabilizes and ORM semantics.
 
-## 12. Checklist trước khi chọn class làm phần tử HashSet
+## 12. Checklist before choosing a class as a HashSet element
 
-- **Định nghĩa equality:** hai phần tử bằng nhau khi nào theo miền nghiệp vụ?
-- **Tương thích hash:** mọi cặp bằng nhau có cùng `hashCode` không?
-- **Trạng thái ổn định:** trường trực tiếp hoặc gián tiếp được dùng trong equality/hash có thể đổi không?
-- **Tham chiếu lồng nhau:** danh sách, mảng, object con trong khóa có thể thay đổi nội dung không?
-- **Vòng đời:** có setter hoặc sự kiện tự động sửa ID khi object vẫn thuộc set không?
-- **Phương án thay đổi:** nếu phải đổi khóa, đã có quy trình remove trước, thay đổi sau, add lại và xử lý xung đột chưa?
-- **Chế độ kiểm thử:** đã kiểm tra kịch bản hai phần tử khác nhau trở thành bằng nhau, mà không dựa vào thứ tự bucket hoặc giá trị `contains` chưa?
+- **Equality definition:** when are two elements equal according to the business domain?
+- **Hash compatibility:** does every equal pair have the same `hashCode`?
+- **State stability:** can fields used directly or indirectly in equality/hash change?
+- **Nested references:** can lists, arrays, or child objects inside the key change contents?
+- **Lifecycle:** is there any setter or automatic event that modifies the ID while the object is still in the set?
+- **Change strategy:** if a key must change, is there a workflow to remove first, mutate second, re-add, and handle conflicts?
+- **Test regime:** have you tested the scenario where two distinct elements become equal, without relying on bucket order or specific `contains` values?
 
-## 13. Câu hỏi tự luyện
+## 13. Self-practice questions
 
-**Câu 1.** Hai phần tử được thêm khi có ID lần lượt 1 và 2. Sau đó ID của phần tử thứ nhất bị đổi thành 2. Set có tự giảm `size()` còn 1 không?
+**Question 1.** Two elements are added with IDs 1 and 2 respectively. Afterward, the first element's ID is changed to 2. Does the set automatically shrink `size()` to 1?
 
-**Đáp án:** Không có cơ chế bắt buộc kiểm tra lại equality sau khi trường của phần tử bị sửa. Trong ví dụ Java 17 đã chạy, set giữ 2 tham chiếu mặc dù hai object trở thành bằng nhau theo `equals`.
+**Answer:** There is no mandatory mechanism to re-check equality after an element's field is modified. In the Java 17 example we ran, the set kept 2 references even though the two objects became equal according to `equals`.
 
-**Câu 2.** Hai đối tượng có cùng mã băm nhưng `equals` trả `false`. `HashSet` có được giữ cả hai không?
+**Question 2.** Two objects have the same hash code, yet `equals` returns `false`. Can `HashSet` keep both?
 
-**Đáp án:** Có. Va chạm hash được cho phép; trong trạng thái hợp lệ, so sánh equality giúp nhận diện hai phần tử khác nhau.
+**Answer:** Yes. Hash collisions are permitted; in a valid state, equality comparison identifies the two elements as distinct.
 
-**Câu 3.** Một class so sánh theo `immutableId` nhưng cho sửa `displayName`. Việc thay tên khi đối tượng thuộc set có gây lỗi đang bàn không?
+**Question 3.** A class compares by `immutableId` while allowing `displayName` to be modified. Does changing the name while the object is in a set cause the bug discussed here?
 
-**Đáp án:** Không, miễn là tên không tham gia trực tiếp hay gián tiếp vào equality/hash. Các vấn đề nghiệp vụ và concurrency vẫn phải xử lý riêng.
+**Answer:** No, provided the name does not participate directly or indirectly in equality/hash. Business and concurrency concerns must still be handled separately.
 
-**Câu 4.** Nếu `hashCode` luôn trả `1` thì các phần tử có thể trở thành trùng sau mutation không?
+**Question 4.** If `hashCode` always returns `1`, can elements still become duplicates after mutation?
 
-**Đáp án:** Có. Hash hằng số không làm set tự đánh giá lại equality. Hai phần tử có thể chuyển từ khác nhau sang bằng nhau sau khi trường dùng trong `equals` đổi.
+**Answer:** Yes. A constant hash does not make the set re-evaluate equality automatically. Two elements can switch from unequal to equal after a field used in `equals` changes.
 
-**Câu 5.** Vì sao không nên viết bài test yêu cầu `set.contains(mutatedItem)` luôn `false`?
+**Question 5.** Why shouldn't you write a test requiring `set.contains(mutatedItem)` to always be `false`?
 
-**Đáp án:** Vì `Set` không đặc tả hành vi khi phần tử bị sửa theo cách ảnh hưởng equality trong thời gian thuộc set. Trạng thái và implementation có thể cho các kết quả khác nhau. Cần kiểm tra việc **ngăn thay đổi khóa**, không coi hậu quả riêng của một JVM là contract.
+**Answer:** Because `Set` does not specify behavior when an element is modified in a way that affects equality while belonging to the set. Different states and implementations may yield different results. You should test **preventing key mutation**, rather than treating a specific JVM's side effect as a contract.
 
-## 14. Ghi nhớ
+## 14. Takeaways
 
-1. `HashSet` xác định tính trùng lặp theo `equals` và `hashCode` khi thao tác với các phần tử.
-2. **Không thay đổi dữ liệu tham gia equality/hash khi phần tử đang thuộc set**. Đặc tả `Set` không bảo đảm kết quả cho tình huống này.
-3. Hai object lúc thêm khác nhau có thể **trở thành bằng nhau** sau mutation; set vẫn có thể giữ hai tham chiếu, như ví dụ cụ thể.
-4. `contains`, `remove` hoặc `add` sau mutation không còn là bằng chứng đáng tin cho tính duy nhất.
-5. Ưu tiên khóa bất biến; nếu phải đổi khóa, quản lý remove/modify/add cùng chính sách giải quyết xung đột.
-6. Unmodifiable set không làm các element mutable trở thành immutable; `final` không tự bảo đảm bất biến sâu.
+1. `HashSet` determines duplicates via `equals` and `hashCode` when operating on elements.
+2. **Do not modify data participating in equality/hash while the element is in the set**. The `Set` specification provides no guarantees for this situation.
+3. Two objects distinct when added can **become equal** after mutation; the set can still hold two references, as shown in the concrete example.
+4. `contains`, `remove`, or `add` after mutation is no longer reliable proof of uniqueness.
+5. Prefer immutable keys; if a key must change, manage remove/modify/add along with a conflict resolution policy.
+6. An unmodifiable set does not make mutable elements immutable; `final` does not automatically guarantee deep immutability.
 
-Tài liệu đối chiếu: [`Set` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html), [`HashSet`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashSet.html), [`Object.equals/hashCode`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html) và [`Collections.unmodifiableSet`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collections.html#unmodifiableSet(java.util.Set)).
+Reference documentation: [`Set` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html), [`HashSet`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashSet.html), [`Object.equals/hashCode`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html), and [`Collections.unmodifiableSet`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collections.html#unmodifiableSet(java.util.Set)).

@@ -1,62 +1,62 @@
-# Độ ưu tiên, tính kết hợp và thứ tự đánh giá toán hạng trong Java
+# Precedence, Associativity, and Operand Evaluation Order in Java
 
-> **Java core – numbers · Số học nguyên**  
-> **Mục tiêu:** Phân biệt đúng *precedence*, *associativity* và *evaluation order*; đọc được các biểu thức số học nguyên, bitwise và điều kiện; dự đoán kết quả khi toán hạng có tác dụng phụ; biết khi nào phải đặt ngoặc để chương trình rõ nghĩa và an toàn.
+> **Java core – numbers · Integer arithmetic**  
+> **Goal:** Correctly distinguish *precedence*, *associativity*, and *evaluation order*; read integer arithmetic, bitwise, and conditional expressions; predict results when operands have side effects; know when to add parentheses so programs are unambiguous and safe.
 
-## 1. Ba quy tắc trả lời ba câu hỏi khác nhau
+## 1. Three Rules Answering Three Different Questions
 
-Khi đọc biểu thức Java như:
+When reading a Java expression like:
 
 ```java
 int result = 2 + 3 * 4;
 ```
 
-Ta cần phân biệt **ba khái niệm**:
+We must distinguish **three concepts**:
 
-| Khái niệm | Câu hỏi cần trả lời | Ví dụ |
+| Concept | Question it answers | Example |
 | --- | --- | --- |
-| **Độ ưu tiên toán tử** (*operator precedence*) | Toán tử nào **gắn với toán hạng nào**, biểu thức được nhóm như thế nào? | `2 + 3 * 4` được nhóm `2 + (3 * 4)`, kết quả 14 |
-| **Tính kết hợp** (*associativity*) | Các toán tử **cùng mức ưu tiên** được nhóm theo bên trái hay bên phải? | `20 - 6 - 2` nhóm `(20 - 6) - 2`, kết quả 12 |
-| **Thứ tự đánh giá** (*evaluation order*) | Các **toán hạng/biểu thức con được thực thi** theo trình tự nào, đặc biệt nếu gọi hàm hoặc sửa biến? | Trong `a() + b() * c()`, Java đánh giá `a()` trước `b()` rồi `c()`, mặc dù phép nhân có độ ưu tiên cao hơn |
+| **Operator precedence** | Which operator **binds to which operands**, and how is the expression grouped? | `2 + 3 * 4` is grouped as `2 + (3 * 4)`, result `14` |
+| **Associativity** | How are operators of the **same precedence level** grouped: left or right? | `20 - 6 - 2` groups as `(20 - 6) - 2`, result `12` |
+| **Evaluation order** | In what sequence are **operands/subexpressions executed**, especially if calling methods or modifying variables? | In `a() + b() * c()`, Java evaluates `a()` before `b()` and then `c()`, even though multiplication has higher precedence |
 
-**Điểm mấu chốt:** “`*` ưu tiên hơn `+`” **không có nghĩa** hàm tạo toán hạng cho phép nhân chắc chắn chạy trước hàm tạo toán hạng cho phép cộng. *Precedence* quyết định **cấu trúc phép tính**; *evaluation order* quyết định **trình tự thực hiện biểu thức con**.
+**Key insight:** "`*` has higher precedence than `+`" **does not mean** a method supplying an operand to multiplication runs before a method supplying an operand to addition. *Precedence* decides **operation structure**; *evaluation order* decides **subexpression execution sequence**.
 
-Ví dụ sau đánh giá `left()` trước rồi mới đến `middle()` và `right()`, nhưng vẫn nhân hai kết quả cuối trước khi cộng:
+The following example evaluates `left()` first, then `middle()` and `right()`, yet still multiplies the last two results before adding:
 
 ```java
 int answer = left() + middle() * right();
-// Nhóm tương đương: left() + (middle() * right())
-// Thứ tự gọi hàm: left(), middle(), right()
+// Equivalent grouping: left() + (middle() * right())
+// Function call order: left(), middle(), right()
 ```
 
-Mặc dù một số compiler có thể tối ưu việc tính toán, hành vi quan sát được của chương trình Java phải tuân thủ ngữ nghĩa thứ tự đánh giá được quy định.
+Although some compilers may optimize computations, the observable behavior of a Java program must obey the specified evaluation order semantics.
 
-## 2. Bảng độ ưu tiên toán tử thường gặp
+## 2. Precedence Table of Common Operators
 
-Đọc **từ trên xuống dưới**: mức trên có độ ưu tiên cao hơn mức dưới. Đây là bảng thực hành tập trung vào số học và các toán tử thường xuất hiện cùng biểu thức số.
+Read **from top to bottom**: higher rows have higher precedence than lower rows. This is a practical table focusing on arithmetic and operators commonly appearing alongside numeric expressions.
 
-| Mức (cao → thấp) | Toán tử | Ví dụ và cách nhóm |
+| Level (high → low) | Operators | Example and grouping |
 | --- | --- | --- |
-| Hậu tố (*postfix*) | `expr++`, `expr--` | `i++` trả giá trị cũ rồi tăng biến |
-| Đơn ngôi (*unary*) | `++expr`, `--expr`, `+expr`, `-expr`, `~expr`, `!expr` | `-a * b` nhóm `(-a) * b` |
-| Nhân/chia/chia dư | `*`, `/`, `%` | `a + b * c` nhóm `a + (b * c)` |
-| Cộng/trừ | `+`, `-` | `a + b << 2` nhóm `(a + b) << 2` |
-| Dịch bit | `<<`, `>>`, `>>>` | `1 << 2 + 1` nhóm `1 << (2 + 1)` |
-| So sánh thứ tự | `<`, `<=`, `>`, `>=`, `instanceof` | `a + b < c` nhóm `(a + b) < c` |
-| So sánh bằng | `==`, `!=` | `a < b == flag` nhóm `(a < b) == flag` |
-| AND bitwise/boolean | `&` | `(a & b) == c` phải đặt ngoặc nếu muốn so sánh kết quả AND |
-| XOR bitwise/boolean | `^` | `a ^ b & c` nhóm `a ^ (b & c)` |
-| OR bitwise/boolean | `|` | `a | b ^ c` nhóm `a | (b ^ c)` |
-| AND logic ngắn mạch | `&&` | `checkA() && checkB()` |
-| OR logic ngắn mạch | `||` | `checkA() || checkB()` |
-| Điều kiện | `? :` | `a ? x : b ? y : z` là `a ? x : (b ? y : z)` |
-| Gán và gán kết hợp | `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, `|=`, `<<=`, `>>=`, `>>>=` | `a = b = c` nhóm `a = (b = c)` |
+| Postfix | `expr++`, `expr--` | `i++` returns old value then increments variable |
+| Unary | `++expr`, `--expr`, `+expr`, `-expr`, `~expr`, `!expr` | `-a * b` groups as `(-a) * b` |
+| Multiplicative | `*`, `/`, `%` | `a + b * c` groups as `a + (b * c)` |
+| Additive | `+`, `-` | `a + b << 2` groups as `(a + b) << 2` |
+| Shift | `<<`, `>>`, `>>>` | `1 << 2 + 1` groups as `1 << (2 + 1)` |
+| Relational | `<`, `<=`, `>`, `>=`, `instanceof` | `a + b < c` groups as `(a + b) < c` |
+| Equality | `==`, `!=` | `a < b == flag` groups as `(a < b) == flag` |
+| Bitwise/boolean AND | `&` | `(a & b) == c` requires parentheses to compare the AND result |
+| Bitwise/boolean XOR | `^` | `a ^ b & c` groups as `a ^ (b & c)` |
+| Bitwise/boolean OR | `\|` | `a \| b ^ c` groups as `a \| (b ^ c)` |
+| Short-circuit logical AND | `&&` | `checkA() && checkB()` |
+| Short-circuit logical OR | `\|\|` | `checkA() \|\| checkB()` |
+| Conditional | `? :` | `a ? x : b ? y : z` is `a ? x : (b ? y : z)` |
+| Assignment and compound assignment | `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, `\|=`, `<<=`, `>>=`, `>>>=` | `a = b = c` groups as `a = (b = c)` |
 
-**Lưu ý về bảng:** ngoặc tròn `(...)` chủ động chỉ định cách nhóm; truy cập thành viên, gọi phương thức, indexing, cast, tạo đối tượng và các cấu trúc đặc biệt của ngữ pháp cũng có quy tắc riêng. Bảng trên là phần quy tắc quan trọng khi học biểu thức, **không phải toàn bộ ngữ pháp Java**.
+**Note on the table:** parentheses `(...)` explicitly specify grouping; member access, method invocation, array indexing, casts, object creation, and special grammar constructs also have their own rules. The table above covers the key rules when learning expressions, **not the entire Java grammar**.
 
-Trong code production, dấu ngoặc thường đáng dùng ngay cả khi không bắt buộc, nhất là lúc kết hợp shift, bitwise, so sánh và điều kiện.
+In production code, parentheses are often worth adding even when not strictly required, especially when combining shifts, bitwise ops, comparisons, and conditionals.
 
-### Ví dụ nhanh để đọc đúng bảng
+### Quick Examples for Reading the Table
 
 ```java
 int a = 2 + 3 * 4;         // 14 = 2 + 12
@@ -68,15 +68,15 @@ int f = 2 | 4 & 3;         // 2 = 2 | (4 & 3)
 boolean g = (5 & 3) == 1; // true
 ```
 
-Biểu thức `5 & 3 == 1` **không tương đương** `(5 & 3) == 1`. Vì `==` có độ ưu tiên cao hơn `&`, Java cố nhóm `5 & (3 == 1)`. Vế phải lúc đó là `boolean`, còn vế trái là `int`, gây **lỗi biên dịch**. Khi kiểm tra bit bằng mask, viết rõ `(value & mask) == expected` hoặc `(value & mask) != 0`.
+The expression `5 & 3 == 1` is **not equivalent** to `(5 & 3) == 1`. Because `==` has higher precedence than `&`, Java tries to group `5 & (3 == 1)`. The right-hand side is then `boolean` while the left-hand side is `int`, causing a **compile error**. When testing bits with a mask, explicitly write `(value & mask) == expected` or `(value & mask) != 0`.
 
-## 3. Tính kết hợp: nhóm từ trái hoặc từ phải
+## 3. Associativity: Left-Grouping vs. Right-Grouping
 
-**Associativity** chỉ có ý nghĩa khi biểu thức gồm các toán tử có cách nhóm có thể gây nhập nhằng tại cùng một mức ưu tiên.
+**Associativity** only matters when an expression contains operators whose grouping would otherwise be ambiguous at the same precedence level.
 
-### 3.1. Nhiều toán tử nhị phân kết hợp trái
+### 3.1. Most Binary Operators Associate Left-to-Right
 
-Các toán tử số học như `+`, `-`, `*`, `/` và `%` ở cùng mức tương ứng được nhóm **từ trái sang phải**.
+Arithmetic operators such as `+`, `-`, `*`, `/`, and `%` at their respective levels are grouped **from left to right**.
 
 ```text
 20 - 6 - 2
@@ -93,51 +93,51 @@ int leftGrouped = 20 - 6 - 2;      // 12
 int rightGrouped = 20 - (6 - 2);   // 16
 
 int quotient = 100 / 5 / 2;       // 10 = (100 / 5) / 2
-int other = 100 / (5 / 2);        // 50: 5 / 2 = 2, rồi 100 / 2
+int other = 100 / (5 / 2);        // 50: 5 / 2 = 2, then 100 / 2
 ```
 
-Vì phép chia nguyên bỏ phần thập phân theo hướng về 0, thay ngoặc có thể thay đổi đáng kể kết quả. Ví dụ `7 / 2 * 2 = 6`, dù biểu thức toán học trên số thực `(7/2)×2 = 7`. Trong Java, `/` và `*` **cùng mức ưu tiên**; cách nhóm bên trái và kiểu số của toán hạng mới quyết định kết quả.
+Because integer division truncates fractional parts toward zero, changing parentheses can drastically alter the result. For example, `7 / 2 * 2 = 6`, even though mathematically on real numbers `(7/2)×2 = 7`. In Java, `/` and `*` share **the same precedence level**; left-grouping and the operand numeric types determine the result.
 
-Tương tự, `1 << 2 << 1` nhóm `(1 << 2) << 1`, kết quả 8. Các toán tử shift ở cùng mức có cách nhóm trái.
+Similarly, `1 << 2 << 1` groups as `(1 << 2) << 1`, yielding `8`. Shift operators at the same level associate left-to-right.
 
-### 3.2. Phép gán kết hợp phải
+### 3.2. Assignment Associates Right-to-Left
 
 ```java
 int a, b, c;
 a = b = c = 7;
 ```
 
-Cách nhóm là:
+The grouping is:
 
 ```text
 a = (b = (c = 7))
 ```
 
-Cả ba biến đều nhận 7. Biểu thức gán trả về giá trị được gán, vì vậy kết quả của `c = 7` được dùng làm giá trị để gán cho `b`, rồi `a`.
+All three variables receive `7`. An assignment expression returns the assigned value, so the result of `c = 7` is used as the value assigned to `b`, and then to `a`.
 
-**Không suy ra** từ tính kết hợp phải rằng “mọi toán hạng đều được thực thi từ phải sang trái”. Phần **đánh giá vế trái của phép gán** và các biểu thức con vẫn có quy tắc đánh giá riêng. Cách nhóm của biểu thức và thứ tự thực thi có thể khác nhau.
+**Do not infer** from right-associativity that "all operands are executed from right to left". **Evaluating the left-hand side of an assignment** and subexpressions still follows their own evaluation rules. Expression grouping and execution order can differ.
 
-### 3.3. Toán tử ba ngôi kết hợp phải
+### 3.3. Ternary Conditional Operator Associates Right-to-Left
 
 ```java
 int value = false ? 10 : true ? 20 : 30;
-// Nhóm: false ? 10 : (true ? 20 : 30)
-// Kết quả: 20
+// Grouping: false ? 10 : (true ? 20 : 30)
+// Result: 20
 ```
 
-Để dễ bảo trì, đặt ngoặc rõ ràng trong biểu thức điều kiện lồng nhau, hoặc dùng `if/else` nếu nội dung phức tạp. Chỉ **một** trong hai nhánh tương ứng với kết quả điều kiện được đánh giá.
+For maintainability, place explicit parentheses in nested conditional expressions, or use `if/else` if the logic is complex. Only **one** of the two branches corresponding to the condition outcome is evaluated.
 
-## 4. Java đánh giá toán hạng theo thứ tự từ trái sang phải
+## 4. Java Evaluates Operands Left-to-Right
 
-Với phần lớn biểu thức toán tử nhị phân thông thường, Java **đánh giá toán hạng bên trái trước**, rồi toán hạng bên phải; sau đó mới thực hiện phép toán với các giá trị thu được.
+For most ordinary binary operator expressions, Java **evaluates the left operand first**, then the right operand, and only then performs the operation with the resulting values.
 
-Xét:
+Consider:
 
 ```java
 int result = first() + second() * third();
 ```
 
-Cây cấu trúc phép tính:
+Operation structure tree:
 
 ```text
          (+)
@@ -147,32 +147,32 @@ Cây cấu trúc phép tính:
        second() third()
 ```
 
-Trình tự thực thi khi chạy:
+Runtime execution sequence:
 
 ```text
-1. Gọi first(), giữ giá trị trả về
-2. Gọi second(), giữ giá trị trả về
-3. Gọi third(), giữ giá trị trả về
-4. Nhân kết quả second() với third()
-5. Cộng kết quả first() vào tích
+1. Call first(), keep return value
+2. Call second(), keep return value
+3. Call third(), keep return value
+4. Multiply results of second() and third()
+5. Add result of first() to the product
 ```
 
-Đây là ví dụ điển hình chứng minh **độ ưu tiên phép toán** không đồng nghĩa **ưu tiên chạy hàm**.
+This is a classic example proving that **operator precedence** does not mean **function call priority**.
 
-Lệnh gọi phương thức cũng đánh giá các đối số theo thứ tự từ trái sang phải. Ví dụ `method(first(), second())` gọi `first()` trước `second()`; nếu đối số thứ nhất ném ngoại lệ, đối số thứ hai không được đánh giá.
+Method calls also evaluate arguments from left to right. For example, `method(first(), second())` calls `first()` before `second()`; if the first argument throws an exception, the second argument is not evaluated.
 
-Java còn bảo đảm sự quan sát nhất quán các tác dụng phụ theo thứ tự quy định, kể cả khi compiler hoặc máy ảo tối ưu các biểu thức không gây thay đổi hành vi quan sát được.
+Java also guarantees consistent observation of side effects in the specified order, even when the compiler or VM optimizes expressions in ways that do not change observable behavior.
 
-## 5. Increment/decrement: tiền tố và hậu tố
+## 5. Increment/Decrement: Prefix and Postfix
 
-`++x` và `x++` đều tăng biến `x` thêm 1, nhưng **giá trị của biểu thức** khác nhau.
+`++x` and `x++` both increment variable `x` by `1`, but **the expression value** differs.
 
-| Cách viết | Giá trị biểu thức | Giá trị biến sau thao tác |
+| Syntax | Expression value | Variable value after operation |
 | --- | --- | --- |
-| `++x` | Giá trị **mới** của `x` | Đã tăng 1 |
-| `x++` | Giá trị **cũ** của `x` | Đã tăng 1 |
-| `--x` | Giá trị **mới** sau giảm | Đã giảm 1 |
-| `x--` | Giá trị **cũ** trước giảm | Đã giảm 1 |
+| `++x` | **New** value of `x` | Incremented by 1 |
+| `x++` | **Old** value of `x` | Incremented by 1 |
+| `--x` | **New** value after decrement | Decremented by 1 |
+| `x--` | **Old** value before decrement | Decremented by 1 |
 
 ```java
 int i = 1;
@@ -180,21 +180,21 @@ int a = i++; // a = 1, i = 2
 int b = ++i; // b = 3, i = 3
 ```
 
-Một biểu thức có nhiều tác dụng phụ vẫn có kết quả **được Java xác định**, nhưng dễ gây lỗi khi đọc:
+An expression with multiple side effects still has a **Java-defined** result, though it is error-prone when reading:
 
 ```java
 int i = 1;
 int result = i++ + i++ * 10;
-// Toán hạng trái của +: i++ trả 1, i thành 2.
-// Toán hạng trái của *: i++ trả 2, i thành 3.
-// Phép nhân: 2 * 10 = 20.
-// Phép cộng: 1 + 20 = 21.
-// Sau cùng: result = 21, i = 3.
+// Left operand of +: i++ returns 1, i becomes 2.
+// Left operand of *: i++ returns 2, i becomes 3.
+// Multiplication: 2 * 10 = 20.
+// Addition: 1 + 20 = 21.
+// Finally: result = 21, i = 3.
 ```
 
-Nếu nhầm rằng “nhân chạy trước nên `i++` của phép nhân phải chạy trước”, bạn sẽ dự đoán sai. Đây chính là sự khác nhau giữa **gắn toán tử với toán hạng** và **thực thi toán hạng**.
+If you mistakenly think "multiplication runs first so the multiplication's `i++` must run first", you will predict the wrong answer. This is precisely the difference between **binding operators to operands** and **executing operands**.
 
-Dù Java xác định rõ kết quả, trong code nghiệp vụ nên tách tác dụng phụ để tránh người đọc phải mô phỏng trạng thái biến:
+Even though Java defines the result clearly, in business code you should separate side effects so readers do not have to mentally simulate variable state:
 
 ```java
 int i = 1;
@@ -203,47 +203,47 @@ int second = i++;
 int result = first + second * 10; // 21
 ```
 
-## 6. Toán tử logic ngắn mạch khác bitwise/boolean không ngắn mạch
+## 6. Short-Circuit Logical Operators vs. Non-Short-Circuit Bitwise/Boolean Operators
 
-Với toán hạng kiểu `boolean`:
+For `boolean` operands:
 
-- `a && b`: luôn đánh giá `a`; nếu `a` là `false` thì **bỏ qua** `b`.
-- `a || b`: luôn đánh giá `a`; nếu `a` là `true` thì **bỏ qua** `b`.
-- `a & b`, `a | b`, `a ^ b` dùng được với `boolean` nhưng **đánh giá cả hai vế** (trừ khi việc đánh giá vế trước bị dừng bởi ngoại lệ); không có tính ngắn mạch như `&&`, `||`.
-- Với số nguyên, `&`, `|`, `^` là các toán tử bitwise; `&&`/`||` **không dùng cho số nguyên**.
+- `a && b`: always evaluates `a`; if `a` is `false`, **skips** `b`.
+- `a || b`: always evaluates `a`; if `a` is `true`, **skips** `b`.
+- `a & b`, `a | b`, `a ^ b` work with `boolean`, but **evaluate both sides** (unless evaluation of the first side aborts via an exception); there is no short-circuiting like `&&`, `||`.
+- For integers, `&`, `|`, `^` are bitwise operators; `&&`/`||` **cannot be used on integers**.
 
 ```java
 int divisor = 0;
-boolean safe = divisor != 0 && 100 / divisor > 10; // false, không chia 0
+boolean safe = divisor != 0 && 100 / divisor > 10; // false, no division by 0
 ```
 
-Trong biểu thức trên, nếu thay `&&` bằng `&`, vế phải vẫn chạy và dẫn đến `ArithmeticException: / by zero`. Vì vậy thứ tự đánh giá và việc **có đánh giá hay không** là một phần của tính đúng đắn, không chỉ là chuyện hiệu năng.
+In the expression above, replacing `&&` with `&` causes the right side to run and throw `ArithmeticException: / by zero`. Thus evaluation order and **whether evaluation happens at all** are part of correctness, not merely performance.
 
 ```java
-boolean accepted = true || expensiveCheck(); // expensiveCheck() không được gọi
-boolean both = true & expensiveCheck();       // expensiveCheck() được gọi
+boolean accepted = true || expensiveCheck(); // expensiveCheck() is not called
+boolean both = true & expensiveCheck();       // expensiveCheck() is called
 ```
 
-Toán tử ba ngôi `condition ? whenTrue : whenFalse` cũng chỉ đánh giá một nhánh sau khi đã đánh giá điều kiện. Trong một biểu thức lồng nhau, đặt ngoặc hoặc dùng cấu trúc điều khiển khi nhánh có tác dụng phụ.
+The ternary operator `condition ? whenTrue : whenFalse` also evaluates only one branch after evaluating the condition. In nested expressions, add parentheses or use control statements when branches have side effects.
 
-## 7. Ngoặc tròn thay đổi cách nhóm, không tự đảo thứ tự chạy
+## 7. Parentheses Change Grouping, Not Automatically Execution Order
 
-Dùng ngoặc để nêu rõ ý định:
+Use parentheses to clarify intent:
 
 ```java
 int defaultValue = 2 + 3 * 4;   // 14
 int overridden = (2 + 3) * 4;   // 20
 ```
 
-Nhưng:
+However:
 
 ```java
 int result = first() + (second() * third());
 ```
 
-vẫn gọi `first()` trước, rồi `second()`, rồi `third()`. Ngoặc ở đây làm rõ **cách nhóm đã có sẵn**; không ra lệnh “chạy `second()` trước `first()`”.
+still calls `first()` first, then `second()`, then `third()`. Parentheses here clarify **the existing grouping**; they do not instruct Java to "run `second()` before `first()`".
 
-Nếu bạn thật sự muốn điều chỉnh thứ tự tác dụng phụ, hãy viết biểu thức thành nhiều câu lệnh theo thứ tự mong muốn:
+If you truly want to control the order of side effects, write the expression as multiple statements in the desired sequence:
 
 ```java
 int secondValue = second();
@@ -252,11 +252,11 @@ int firstValue = first();
 int result = firstValue + secondValue * thirdValue;
 ```
 
-Không nên thay đổi cách nhóm tùy tiện vì với phép trừ/chia nguyên, tràn số hay phép cộng số thực, việc đổi ngoặc có thể đổi kết quả.
+Do not arbitrarily alter grouping, because with integer subtraction/division, overflow, or floating-point addition, changing parentheses can change the result.
 
-## 8. Riêng với số học nguyên: kiểu toán hạng và phép chia quan trọng không kém độ ưu tiên
+## 8. Specific to Integer Arithmetic: Operand Types and Division Matter as Much as Precedence
 
-### 8.1. Phép nhân, chia, chia dư cùng mức
+### 8.1. Multiplication, Division, and Remainder Share the Same Level
 
 ```java
 int a = 7 / 2 * 2;       // (7 / 2) * 2 = 3 * 2 = 6
@@ -265,31 +265,31 @@ int c = 20 % 6 * 3;      // (20 % 6) * 3 = 2 * 3 = 6
 int d = 20 % (6 * 3);    // 20 % 18 = 2
 ```
 
-Cả `/`, `*` và `%` có cùng mức ưu tiên; vì thế thứ tự kết hợp trái giải thích sự khác nhau. Phép chia nguyên Java làm tròn thương về **0**: `-7 / 2 == -3`, `7 / -2 == -3`. Phần dư `a % b` thỏa `a == (a / b) * b + (a % b)` trong các trường hợp nguyên thông thường (kể cả tình huống tràn đặc biệt của `MIN_VALUE / -1` theo cách Java xác định), và phần dư có dấu cùng dấu với số bị chia khi khác 0.
+`/`, `*`, and `%` all share the same precedence level; hence left-associativity explains the differences. Java integer division truncates the quotient toward **0**: `-7 / 2 == -3`, `7 / -2 == -3`. Remainder `a % b` satisfies `a == (a / b) * b + (a % b)` in ordinary integer cases (including the special overflow case of `MIN_VALUE / -1` as defined by Java), and a non-zero remainder takes the sign of the dividend.
 
-### 8.2. Phép toán thực hiện theo kiểu sau numeric promotion
+### 8.2. Operations Execute in the Post-Numeric-Promotion Type
 
 ```java
 int x = 1_500_000_000;
-long wrong = x * 2;           // -1294967296L: phép nhân int tràn trước
-long correct = (long) x * 2; // 3000000000L: chuyển x sang long trước
+long wrong = x * 2;           // -1294967296L: int multiplication overflows first
+long correct = (long) x * 2; // 3000000000L: convert x to long first
 ```
 
-Đây là hiệu ứng của **kiểu toán hạng** và **thời điểm cast**, không phải độ ưu tiên đơn thuần. Trong `(long) x * 2`, `(long) x` trở thành `long` trước phép nhân, khiến phép nhân được tính bằng `long`. Gán kết quả phép nhân `int` sang biến `long` sau khi đã tràn không thể lấy lại bit đã mất.
+This is an effect of **operand types** and **cast timing**, not pure precedence. In `(long) x * 2`, `(long) x` becomes `long` before the multiplication, causing the multiplication to run as `long`. Assigning an `int` multiplication result to a `long` variable after it has already overflowed cannot recover lost bits.
 
-Tương tự, `byte`, `short` và `char` thường được nâng thành `int` khi tham gia phép toán số học nhị phân:
+Similarly, `byte`, `short`, and `char` are generally promoted to `int` when participating in binary arithmetic operations:
 
 ```java
 byte a = 10, b = 20;
-int sum = a + b;      // int, giá trị 30
-// byte bad = a + b;  // lỗi biên dịch: expression int không thể gán ngầm vào byte
+int sum = a + b;      // int, value 30
+// byte bad = a + b;  // compile error: int expression cannot implicitly assign to byte
 ```
 
-**Ngoại lệ liên quan hằng:** compiler cho phép một số biểu thức hằng `int` gán cho `byte`/`short`/`char` nếu nằm trong miền phù hợp, ví dụ `byte p = 10 + 20;`. Điều này không biến `byte + byte` thành phép toán có kết quả `byte`.
+**Constant exception:** the compiler allows certain `int` constant expressions to be assigned to `byte`/`short`/`char` if within the target range, such as `byte p = 10 + 20;`. This does not turn `byte + byte` into an operation returning `byte`.
 
-### 8.3. Dấu âm đơn ngôi và giá trị biên
+### 8.3. Unary Minus and Boundary Values
 
-`-` đơn ngôi có độ ưu tiên cao hơn `*` và `+` nhị phân:
+Unary `-` has higher precedence than binary `*` and `+`:
 
 ```java
 int a = -2 * 3;      // (-2) * 3 = -6
@@ -297,54 +297,54 @@ int b = 2 * -3;      // 2 * (-3) = -6
 int c = -(2 + 3);    // -5
 ```
 
-Với `Integer.MIN_VALUE`, phủ định ở kiểu `int` tạo kết quả tràn:
+With `Integer.MIN_VALUE`, negating in `int` produces an overflowed result:
 
 ```java
 int min = Integer.MIN_VALUE;
-int same = -min;                 // vẫn là Integer.MIN_VALUE
+int same = -min;                 // still Integer.MIN_VALUE
 long positive = -(long) min;     // 2147483648L
 ```
 
-Việc mở rộng kiểu phải diễn ra **trước phép đổi dấu** nếu muốn có kết quả toán học dương đúng. Dùng `Math.negateExact` nếu cần phát hiện tràn thay vì chấp nhận vòng bit.
+Type widening must occur **before negation** if you want the true positive mathematical result. Use `Math.negateExact` if overflow must be detected instead of accepting bit wraparound.
 
-## 9. Dịch bit, mask và phép so sánh
+## 9. Bit Shifts, Masks, and Comparisons
 
-Trong nhóm số học nguyên, việc nhầm ưu tiên giữa cộng, dịch bit và so sánh rất phổ biến:
+In integer arithmetic, confusing precedence among addition, bit shifts, and comparisons is very common:
 
 ```java
-int a = 1 << 3 + 1;       // 16 vì 1 << (3 + 1)
+int a = 1 << 3 + 1;       // 16 because 1 << (3 + 1)
 int b = (1 << 3) + 1;     // 9
 
 int flags = 0b1010;
 boolean hasBit = (flags & 0b0010) != 0; // true
 ```
 
-Để kiểm tra bit bằng mask, nên luôn dùng ngoặc:
+To test bits with a mask, always use parentheses:
 
 ```java
 if ((flags & mask) != 0) {
-    // Có ít nhất một bit trong mask được bật.
+    // At least one bit in mask is set.
 }
 ```
 
-`flags & mask != 0` không được nhóm như phép kiểm tra mong muốn: phép `!=` gắn chặt hơn `&` và gây lỗi kiểu `int & boolean`.
+`flags & mask != 0` does not group as the intended check: `!=` binds tighter than `&`, causing an `int & boolean` type error.
 
-Nhớ rằng toán tử dịch bit thực hiện trên `int` hoặc `long` sau promotion. `>>` dịch phải giữ dấu, `>>>` dịch phải điền 0. Khi số lượng bit dịch là biểu thức số học, cả **ưu tiên dấu cộng** lẫn **loại của toán hạng trái** đều ảnh hưởng kết quả.
+Remember that shift operators execute on `int` or `long` after promotion. `>>` is arithmetic (sign-extending) right shift, while `>>>` is logical (zero-fill) right shift. When the shift distance is an arithmetic expression, both **addition precedence** and **the left operand's type** affect the result.
 
-## 10. Thứ tự đánh giá trong phép gán và compound assignment
+## 10. Evaluation Order in Assignment and Compound Assignment
 
-Phép gán kết hợp phải, nhưng vế trái có thể là biến, trường hoặc phần tử mảng có biểu thức truy cập cần đánh giá. Đừng gộp “đặt nhóm từ phải” với “chạy từ phải”.
+Assignment associates right-to-left, but the left-hand side can be a variable, field, or array element with an access expression that must be evaluated. Do not conflate "right-grouping" with "running right-to-left".
 
-Ví dụ:
+For example:
 
 ```java
 int[] numbers = {10, 20};
 int index = 0;
 numbers[index++] = 99;
-// Phần tử numbers[0] thành 99, index thành 1.
+// Element numbers[0] becomes 99, index becomes 1.
 ```
 
-Với **compound assignment** như `x += expression`, Java lưu giá trị hiện có của vế trái để thực hiện phép toán kết hợp trước khi ghi kết quả; đối với vế trái có chỉ mục/receiver phức tạp, chúng chỉ được đánh giá một lần theo quy tắc của phép gán kết hợp.
+With **compound assignment** such as `x += expression`, Java saves the existing value of the left-hand side to perform the combined operation before writing the result; for left-hand sides with complex indices/receivers, they are evaluated only once per compound assignment rules.
 
 ```java
 int x = 1;
@@ -352,35 +352,35 @@ x += (x = 5);
 System.out.println(x); // 6
 ```
 
-Diễn giải: vế trái của `+=` đọc và giữ giá trị cũ `1`; vế phải `(x = 5)` đặt `x` thành `5` và có giá trị `5`; phép `+=` sử dụng giá trị đã giữ `1 + 5` rồi gán cuối cùng `6` cho `x`.
+Trace: the left-hand side of `+=` reads and saves the old value `1`; the right-hand side `(x = 5)` sets `x` to `5` and evaluates to `5`; `+=` uses the saved value `1 + 5` and finally assigns `6` to `x`.
 
-Phép gán kết hợp cũng chứa chuyển kiểu ngầm về kiểu của biến bên trái. Ví dụ:
+Compound assignment also includes an implicit cast to the left-hand variable's type. For example:
 
 ```java
 byte count = 127;
-count += 1;          // count thành -128 do ép hẹp, không ném lỗi
-// count = count + 1; // lỗi biên dịch vì count + 1 có kiểu int
+count += 1;          // count becomes -128 due to narrowing cast, no error thrown
+// count = count + 1; // compile error because count + 1 has type int
 ```
 
-Về khái niệm, `E1 op= E2` gần với `E1 = (T)((E1) op (E2))` trong đó `T` là kiểu của `E1`, **nhưng `E1` chỉ được đánh giá một lần**. Vì vậy không được triển khai thay bằng phép gán thường một cách máy móc nếu `E1` có tác dụng phụ hoặc là vị trí truy cập mảng/phương thức.
+Conceptually, `E1 op= E2` is close to `E1 = (T)((E1) op (E2))` where `T` is the type of `E1`, **except `E1` is evaluated only once**. Therefore, do not mechanically rewrite it as a regular assignment if `E1` has side effects or involves array/method access.
 
-## 11. Khi xảy ra ngoại lệ, thứ tự đánh giá quyết định tác dụng phụ nào đã xảy ra
+## 11. When Exceptions Occur, Evaluation Order Determines Which Side Effects Already Happened
 
-Phép chia nguyên cho 0 ném `ArithmeticException`. Với biểu thức:
+Integer division by zero throws `ArithmeticException`. In the expression:
 
 ```java
 int result = numerator() / denominator();
 ```
 
-Java đánh giá `numerator()` trước rồi `denominator()`. Sau đó phép chia được thực hiện; nếu mẫu số bằng 0 thì ném ngoại lệ. Nếu `numerator()` đã in log hoặc cập nhật biến, tác dụng phụ đó đã xảy ra.
+Java evaluates `numerator()` first and then `denominator()`. Next the division is executed; if the divisor is zero, an exception is thrown. If `numerator()` logged output or updated a variable, that side effect has already occurred.
 
-Trong `left() + right()`, nếu `left()` ném ngoại lệ thì `right()` không được gọi. Cùng nguyên lý áp dụng cho các đối số hàm đánh giá từ trái sang phải. Còn trong `&&`/`||`, một vế có thể không được đánh giá vì ngắn mạch ngay cả khi không có ngoại lệ.
+In `left() + right()`, if `left()` throws an exception, `right()` is not called. The same principle applies to method arguments evaluated left-to-right. Meanwhile, in `&&`/`||`, one side may not be evaluated due to short-circuiting even without an exception.
 
-Khi logic chỉ có ý nghĩa nếu các bước thành công, phân chia thành các câu lệnh riêng thường làm rõ hơn những nơi có thể phát sinh ngoại lệ và những thay đổi trạng thái đã thực hiện.
+When logic only makes sense if steps succeed, splitting into separate statements makes clearer where exceptions can arise and which state changes have already happened.
 
-## 12. Chương trình Java 17+ tự chạy và kết quả
+## 12. Standalone Runnable Java 17+ Program and Output
 
-Tạo file **`OperatorEvaluationDemo.java`**:
+Create a file **`OperatorEvaluationDemo.java`**:
 
 ```java
 public class OperatorEvaluationDemo {
@@ -444,14 +444,14 @@ public class OperatorEvaluationDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ```bash
 javac OperatorEvaluationDemo.java
 java OperatorEvaluationDemo
 ```
 
-**Kết quả chuẩn:**
+**Exact output:**
 
 ```text
 precedence: A B C => 14
@@ -466,83 +466,83 @@ conditional: test else => 20
 division: numerator denominator => / by zero
 ```
 
-Những điểm cần quan sát:
+Key observations:
 
-- Dù phép nhân có mức ưu tiên cao hơn phép cộng, `A` vẫn được đánh giá trước `B` và `C`. Kết quả tính toán là `2 + (3 * 4) = 14`.
-- Phép trừ kết hợp trái: `(20 − 6) − 2 = 12`.
-- `1 << 2 + 1` lấy số bit dịch là `3`; phép `&` trên `5` và `3` cho `1`.
-- Hai lần `i++` lần lượt đọc `1` và `2`; kết quả `21` và `i` cuối cùng bằng `3`.
-- `+=` giữ giá trị cũ của vế trái nên `x` cuối cùng bằng `6`.
-- `right` không in ra với `&&` khi vế trái sai, và với `||` khi vế trái đúng.
-- Toán tử `?:` chỉ gọi `else` khi điều kiện sai.
-- Phép chia đã gọi cả `numerator` lẫn `denominator` trước khi phát hiện số chia bằng 0.
+- Even though multiplication has higher precedence than addition, `A` is still evaluated before `B` and `C`. The computed result is `2 + (3 * 4) = 14`.
+- Subtraction associates left-to-right: `(20 − 6) − 2 = 12`.
+- `1 << 2 + 1` takes a shift distance of `3`; `&` on `5` and `3` gives `1`.
+- The two `i++` calls read `1` and `2` in turn; the result is `21` and final `i` equals `3`.
+- `+=` retains the old left-hand value, so final `x` equals `6`.
+- `right` is not printed for `&&` when the left side is false, nor for `||` when the left side is true.
+- The `?:` operator only invokes `else` when the condition is false.
+- The division invoked both `numerator` and `denominator` before detecting the zero divisor.
 
-## 13. Lỗi hay gặp trong thực tế
+## 13. Common Real-World Mistakes
 
-| Nhầm lẫn | Vì sao sai và cách khắc phục |
+| Misconception | Why it is wrong and how to fix it |
 | --- | --- |
-| “`*` ưu tiên cao hơn nên hàm ở vế nhân được gọi trước” | Java đánh giá toán hạng bên trái trước; ưu tiên chỉ xác định nhóm phép toán |
-| “Kết hợp trái nghĩa là mọi hàm/phép toán đều chạy ngay lập tức từ trái sang phải” | Kết hợp quyết định cây biểu thức; kết quả phép toán chỉ tính khi đủ toán hạng, trong khi việc gọi hàm có thứ tự riêng |
-| “`a = b = c` chạy mọi thứ từ phải sang trái” | Đây là **cách nhóm phép gán**; việc đánh giá các biểu thức làm vế trái có quy tắc riêng |
-| “`100 / 5 / 2` = `100 / (5 / 2)`” | Cách nhóm khác nhau; phép chia nguyên còn làm tròn về 0 |
-| “`1 << 2 + 1` dịch 2 bit rồi cộng 1” | `+` ưu tiên hơn `<<`; thực tế dịch 3 bit |
-| “`flags & mask != 0` kiểm tra mask” | `!=` ưu tiên hơn `&`; cần `(flags & mask) != 0` |
-| “`&&` và `&` giống nhau với boolean” | `&&` có ngắn mạch, `&` đánh giá cả hai vế |
-| “`i++ + i++` là không có thứ tự trong Java” | Java quy định thứ tự trái sang phải; vẫn nên tránh vì khó bảo trì |
-| “`long x = intA * intB` tránh tràn `int`” | Tràn có thể đã xảy ra trong phép nhân trước khi gán; cast trước phép nhân |
-| “Ngoặc cho phép gọi hàm bên phải trước” | Ngoặc đổi cấu trúc phép tính, không tự đảo thứ tự đánh giá các hàm |
-| “`x += y` luôn tương đương `x = x + y`” | Có chuyển kiểu ngầm và bảo đảm vị trí bên trái chỉ được đánh giá một lần |
-| “Thay đổi ngoặc luôn cho cùng kết quả theo toán học” | Chia nguyên, tràn số, số thực nhị phân và tác dụng phụ đều có thể làm kết quả khác |
+| "`*` has higher precedence, so the function on the multiplication side is called first" | Java evaluates the left operand first; precedence only determines operation grouping |
+| "Left-associative means every function/operation executes immediately from left to right" | Associativity determines the expression tree; an operation executes only once its operands are ready, while function calls follow their own order |
+| "`a = b = c` runs everything from right to left" | That is **assignment grouping**; evaluating left-hand expressions follows its own rules |
+| "`100 / 5 / 2` = `100 / (5 / 2)`" | Different grouping; integer division also truncates toward zero |
+| "`1 << 2 + 1` shifts by 2 bits then adds 1" | `+` has higher precedence than `<<`; it actually shifts by 3 bits |
+| "`flags & mask != 0` checks the mask" | `!=` has higher precedence than `&`; write `(flags & mask) != 0` |
+| "`&&` and `&` are identical for booleans" | `&&` short-circuits, `&` evaluates both sides |
+| "`i++ + i++` is unordered in Java" | Java specifies left-to-right order; still avoid it for maintainability |
+| "`long x = intA * intB` avoids `int` overflow" | Overflow can already happen in multiplication before assignment; cast before multiplying |
+| "Parentheses make the right-hand function run first" | Parentheses change operation structure, not operand evaluation order |
+| "`x += y` is always equivalent to `x = x + y`" | Includes an implicit cast and guarantees the left-hand target is evaluated only once |
+| "Changing parentheses always yields the same mathematical result" | Integer division, overflow, binary floating-point, and side effects can all change results |
 
-## 14. Bài tập tự kiểm tra
+## 14. Self-Check Exercises
 
-Hãy tính kết quả theo Java, không dựa riêng vào trực giác về toán học.
+Compute the results according to Java semantics, not solely by mathematical intuition.
 
-**Bài 1.** Kết quả của `int x = 2 + 4 * 3 - 5;` là gì?
+**Exercise 1.** What is the result of `int x = 2 + 4 * 3 - 5;`?
 
-**Bài 2.** `int x = 32 / 4 / 2;` khác thế nào với `int y = 32 / (4 / 2);`?
+**Exercise 2.** How does `int x = 32 / 4 / 2;` differ from `int y = 32 / (4 / 2);`?
 
-**Bài 3.** `int x = 1 << 1 + 2;` cho số nào?
+**Exercise 3.** What number does `int x = 1 << 1 + 2;` produce?
 
-**Bài 4.** Với `int flags = 0b1100; int mask = 0b0100;`, viết điều kiện boolean để kiểm tra bit của `mask` có bật trong `flags` không.
+**Exercise 4.** Given `int flags = 0b1100; int mask = 0b0100;`, write a boolean condition to check whether the bit in `mask` is set in `flags`.
 
-**Bài 5.** Sau đoạn này, `result` và `i` có giá trị bao nhiêu?
+**Exercise 5.** After this snippet, what are the values of `result` and `i`?
 
 ```java
 int i = 1;
 int result = ++i + i++ * 3;
 ```
 
-**Bài 6.** Vì sao hai biểu thức sau có thể cho kết quả khác nhau?
+**Exercise 6.** Why can the two expressions below give different results?
 
 ```java
 int a = 7 / 2 * 2;
 int b = 7 * 2 / 2;
 ```
 
-**Bài 7.** `boolean ok = false && (10 / 0 > 1);` có gây ngoại lệ lúc chạy không? So với việc dùng `&` thì sao?
+**Exercise 7.** Does `boolean ok = false && (10 / 0 > 1);` throw an exception at runtime? How does that compare to using `&`?
 
-**Bài 8.** `int x = 1; x += (x = 4);` sẽ để `x` bằng mấy? Vì sao?
+**Exercise 8.** What will `x` equal after `int x = 1; x += (x = 4);`? Why?
 
-### Đáp án giải thích
+### Answer Explanations
 
-1. `2 + 12 - 5 = 9`, do `*` ưu tiên hơn `+`/`-`.
+1. `2 + 12 - 5 = 9`, because `*` has higher precedence than `+`/`-`.
 2. `x = (32/4)/2 = 4`; `y = 32/(4/2) = 16`.
 3. `1 << (1 + 2) = 1 << 3 = 8`.
-4. `boolean enabled = (flags & mask) != 0;`, kết quả `true`.
-5. `++i` trả `2` và để `i=2`; `i++` tiếp theo trả `2` rồi để `i=3`; `result = 2 + 2*3 = 8`.
-6. Trong `7 / 2 * 2`, phép chia nguyên cho `3` trước rồi nhân được `6`; trong `7 * 2 / 2`, nhân trước cho `14` rồi chia cho `2` được `7`.
-7. `false && ...` ngắn mạch nên không đánh giá phép chia; không ném ngoại lệ. Với `false & ...`, Java đánh giá vế phải và phép chia cho 0 ném `ArithmeticException`. *Trong bài tập, số chia bằng literal 0 nằm trong biểu thức runtime; biểu thức được biên dịch và lỗi xảy ra nếu thực sự đánh giá phép chia.*
-8. `x += (x = 4)` giữ `x` ban đầu là `1` cho vế trái; vế phải gán `4`; kết quả phép cộng là `1+4=5`, nên `x` cuối cùng bằng `5`.
+4. `boolean enabled = (flags & mask) != 0;`, result `true`.
+5. `++i` returns `2` and sets `i=2`; the next `i++` returns `2` and sets `i=3`; `result = 2 + 2*3 = 8`.
+6. In `7 / 2 * 2`, integer division gives `3` first and multiplying gives `6`; in `7 * 2 / 2`, multiplying first gives `14` and dividing by `2` gives `7`.
+7. `false && ...` short-circuits so the division is not evaluated; no exception is thrown. With `false & ...`, Java evaluates the right side and dividing by 0 throws `ArithmeticException`. *In this exercise, the literal 0 divisor is inside a runtime expression; the expression compiles and the error occurs only if the division is actually evaluated.*
+8. `x += (x = 4)` retains the initial `x` of `1` for the left-hand side; the right-hand side assigns `4`; the addition gives `1+4=5`, so final `x` equals `5`.
 
-## 15. Checklist khi đọc hoặc viết biểu thức phức tạp
+## 15. Checklist for Reading or Writing Complex Expressions
 
-1. **Xác định kiểu** của từng toán hạng: `int`, `long`, `boolean` hay kiểu tham chiếu? Phép toán có promote, cast hẹp hoặc tràn không?
-2. **Nhóm biểu thức** theo ngoặc và độ ưu tiên; khi cùng mức, xác định tính kết hợp.
-3. **Đánh dấu thứ tự đánh giá toán hạng**, nhất là các lời gọi hàm, `++`/`--`, phép gán và truy cập mảng.
-4. **Kiểm tra ngắn mạch** ở `&&`, `||` và nhánh của `?:`; vế nào có thể bị bỏ qua?
-5. **Kiểm tra ngoại lệ** và tác dụng phụ: vế nào đã chạy trước khi một phép chia 0, truy cập sai hoặc hàm ném lỗi?
-6. **Thêm ngoặc và tách câu lệnh** nếu người đọc phải nhớ nhiều quy tắc cùng lúc; ưu tiên tính rõ ràng trong code tính tiền, dữ liệu bit và điều kiện xác thực.
-7. **Không áp dụng biến đổi đại số tùy tiện**: tính toán trên integer có giới hạn miền và phép chia nguyên; trên floating-point có làm tròn và các giá trị đặc biệt.
+1. **Identify the type** of each operand: `int`, `long`, `boolean`, or reference type? Does the operation promote, narrow-cast, or overflow?
+2. **Group the expression** using parentheses and precedence; at the same level, determine associativity.
+3. **Mark operand evaluation order**, especially method calls, `++`/`--`, assignments, and array accesses.
+4. **Check short-circuiting** in `&&`, `||`, and branches of `?:`; which side can be skipped?
+5. **Check exceptions** and side effects: which side has already run before a division by 0, invalid access, or throwing call?
+6. **Add parentheses and split statements** if readers must juggle multiple rules at once; prioritize clarity in monetary calculations, bit manipulation, and validation conditions.
+7. **Do not apply arbitrary algebraic transformations**: integer arithmetic has range limits and integer division; floating-point has rounding and special values.
 
-**Ghi nhớ:** **Ưu tiên** chọn phép toán gắn với toán hạng; **kết hợp** quyết định cách nhóm các toán tử cùng cấp; **thứ tự đánh giá** quyết định biểu thức con nào thực sự chạy trước. Phân biệt chính xác cả ba giúp bạn dự đoán đúng giá trị, tác dụng phụ và ngoại lệ của biểu thức Java.
+**Key Takeaway:** **Precedence** chooses which operators bind to which operands; **associativity** decides how operators of equal rank group; **evaluation order** decides which subexpressions actually run first. Distinguishing all three accurately lets you predict the values, side effects, and exceptions of Java expressions.

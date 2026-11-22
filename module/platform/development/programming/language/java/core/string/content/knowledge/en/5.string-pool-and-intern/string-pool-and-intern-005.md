@@ -1,96 +1,96 @@
-# String.intern và tham chiếu chuẩn hóa theo nội dung
+# `String.intern` and Content-Based Reference Canonicalization
 
-Trong Java, hai đối tượng `String` có thể chứa **cùng nội dung** nhưng mang **hai tham chiếu khác nhau**. Phương thức `String.intern()` giải quyết một nhu cầu riêng: lấy **tham chiếu chuẩn dùng chung cho cùng nội dung chuỗi** từ *string pool*. Nhờ vậy, khi hai chuỗi đã được intern và có nội dung bằng nhau, kết quả `intern()` của chúng tham chiếu đến **cùng một đối tượng**.
+In Java, two `String` objects can hold **the same content** yet have **two different references**. The `String.intern()` method solves a specific need: obtaining **a shared canonical reference for the same string content** from the *string pool*. As a result, when two strings have been interned and have equal content, their `intern()` results reference **the same object**.
 
-Từ “chuẩn hóa” trong bài này có nghĩa là **chuẩn hóa tham chiếu theo nội dung (canonicalization)**; nó **không** có nghĩa tự chuẩn hóa chữ hoa/chữ thường, khoảng trắng hoặc Unicode (NFC/NFD). Để viết chương trình đúng, cần tách rõ ba thao tác: **tạo hoặc giữ đối tượng `String`**, **so nội dung bằng `equals()`**, và **lấy tham chiếu từ pool bằng `intern()`**.
+The word "canonicalization" in this lesson means **content-based reference canonicalization**; it does **not** mean automatically normalizing letter case, whitespace, or Unicode (NFC/NFD). To write correct programs, clearly separate three operations: **creating or holding a `String` object**, **comparing content with `equals()`**, and **obtaining a pooled reference with `intern()`**.
 
-## 1. Nội dung chuỗi và định danh đối tượng khác nhau
+## 1. String Content and Object Identity Are Different
 
-Ví dụ:
+Example:
 
 ```java
 String a = new String("Java");
 String b = new String("Java");
 ```
 
-Mỗi biểu thức `new String("Java")` tạo một **đối tượng `String` mới**, nên `a` và `b` là hai tham chiếu khác nhau, dù nội dung giống hệt:
+Each `new String("Java")` expression creates a **new `String` object**, so `a` and `b` are two distinct references, even though the content is identical:
 
 ```text
-a ──────> String #1 ── nội dung "Java"
-b ──────> String #2 ── nội dung "Java"
+a ──────> String #1 ── content "Java"
+b ──────> String #2 ── content "Java"
 ```
 
-- `a.equals(b)` trả `true` vì `String.equals()` kiểm tra cùng dãy ký tự.
-- `a == b` trả `false` vì `==` giữa hai biến kiểu tham chiếu hỏi chúng có trỏ đến **cùng đối tượng** hay không.
-- Cả hai đối tượng đều **immutable**: nội dung `String` không bị sửa sau khi đối tượng hình thành. Bất biến nội dung không đồng nghĩa mọi chuỗi bằng nhau đều là một đối tượng.
+- `a.equals(b)` returns `true` because `String.equals()` checks for the same sequence of characters.
+- `a == b` returns `false` because `==` between two reference-type variables asks whether they point to **the same object**.
+- Both objects are **immutable**: the content of a `String` cannot be modified after the object is created. Content immutability does not mean every equal string is the same object.
 
-Ngược lại:
+Conversely:
 
 ```java
 String x = "Java";
 String y = x;
 ```
 
-`y = x` chỉ sao chép giá trị **tham chiếu**, vì vậy `x == y` là `true`. Hiện tượng này không cần `intern()`: cả hai biến trỏ đến một đối tượng ngay từ phép gán.
+`y = x` merely copies the **reference** value, so `x == y` is `true`. This behavior does not require `intern()`: both variables point to the same object directly from the assignment.
 
-## 2. String pool và hợp đồng của `intern()`
+## 2. The String Pool and the Contract of `intern()`
 
-*String pool* là kho do lớp `String` quản lý để các chuỗi cùng nội dung có thể dùng chung một đối tượng chuẩn. Đây là cơ chế liên quan đến **định danh tham chiếu**, không thay đổi quy tắc so nội dung của `String.equals()`.
+The *String pool* is a store managed by the `String` class so that strings with the same content can share a single canonical object. This is a mechanism concerned with **reference identity**; it does not change the content-comparison rules of `String.equals()`.
 
-Với biến không null `s`, lời gọi:
+For a non-null variable `s`, the call:
 
 ```java
 String canonical = s.intern();
 ```
 
-có ý nghĩa:
+means:
 
-1. Nếu pool đã có một `String` có nội dung `equals(s)`, `intern()` trả về **tham chiếu đến đối tượng đã có trong pool**.
-2. Nếu chưa có, pool ghi nhận chính đối tượng `s` làm đại diện chuẩn và trả về tham chiếu của nó, theo hợp đồng `String.intern()`.
-3. Sau đó, các lời gọi `intern()` trên chuỗi khác nhưng **cùng nội dung** sẽ nhận cùng tham chiếu chuẩn, miễn các đối tượng và nội dung được xét theo hợp đồng Java.
+1. If the pool already contains a `String` whose content satisfies `equals(s)`, `intern()` returns **a reference to the object already in the pool**.
+2. Otherwise, the pool records the `s` object itself as the canonical representation and returns its reference, according to the `String.intern()` contract.
+3. Subsequently, calls to `intern()` on other strings with **the same content** receive the same canonical reference, provided the objects and content are evaluated under Java's contract.
 
-Đặc tính cốt lõi cho hai chuỗi **không null** `s` và `t`:
+The core property for two **non-null** strings `s` and `t`:
 
 ```java
 s.intern() == t.intern()
 ```
 
-có cùng giá trị logic với:
+has the same boolean value as:
 
 ```java
 s.equals(t)
 ```
 
-Đây chính là bảo đảm cần hiểu: **nội dung bằng nhau ⇒ kết quả intern có cùng tham chiếu**; nội dung khác nhau ⇒ kết quả intern không cùng đối tượng. Không cần (và không nên) dựa vào địa chỉ bộ nhớ, thứ tự cấp phát hoặc cách JVM triển khai pool để dùng hợp đồng này.
+This is the guarantee to understand: **equal content ⇒ interned results share the same reference**; different content ⇒ interned results are not the same object. You do not need (and should not) rely on memory addresses, allocation order, or how a JVM implements the pool in order to use this contract.
 
-### Sơ đồ khái niệm
+### Conceptual diagram
 
-Giả sử pool đã có chuỗi `"Java"`:
+Suppose the pool already contains the string `"Java"`:
 
 ```text
-a ────────> String #1: "Java" (ngoài đối tượng chuẩn)
+a ────────> String #1: "Java" (non-canonical object)
                             \
                              \ a.intern()
                               v
-String pool ["Java"] ──────> String chuẩn: "Java"
+String pool ["Java"] ──────> Canonical String: "Java"
                               ^
                              / b.intern()
                             /
-b ────────> String #2: "Java" (ngoài đối tượng chuẩn)
+b ────────> String #2: "Java" (non-canonical object)
 ```
 
-Hai lời gọi `a.intern()` và `b.intern()` dẫn tới **cùng đối tượng chuẩn**. Tuy nhiên, lời gọi **không tự gán lại** biến `a` hay `b`. Muốn một biến giữ tham chiếu chuẩn, phải dùng kết quả: `a = a.intern();`.
+Both `a.intern()` and `b.intern()` lead to **the same canonical object**. However, calling the method **does not automatically reassign** `a` or `b`. If you want a variable to hold the canonical reference, you must use the return value: `a = a.intern();`.
 
-### Điều gì không được suy ra?
+### What must not be inferred?
 
-- `s.intern()` **không nhất thiết** trả đối tượng khác `s`. Nếu chính `s` được chọn làm đại diện chuẩn (hoặc đã là đại diện chuẩn), có thể có `s == s.intern()`. Ngược lại, khi pool đã có đại diện khác, biểu thức đó có thể là `false`.
-- `intern()` không sửa nội dung của `s` và không “hợp nhất” tất cả các biến đang giữ các đối tượng khác nhau.
-- Hai đối tượng `String` được tạo độc lập không trở thành cùng đối tượng chỉ vì cùng gọi `equals()`. `equals()` là phép kiểm tra nội dung, không đổi tham chiếu.
-- `intern()` là phương thức của đối tượng; gọi qua `null` sẽ gây `NullPointerException`.
+- `s.intern()` does **not necessarily** return a different object from `s`. If `s` itself is chosen as the canonical representation (or already is the canonical representation), `s == s.intern()` can be `true`. Conversely, when the pool already holds another representation, that expression can be `false`.
+- `intern()` does not modify the content of `s` and does not "merge" all variables currently holding different objects.
+- Two independently created `String` objects do not become the same object just by calling `equals()`. `equals()` is a content check; it does not change references.
+- `intern()` is an instance method; calling it on `null` throws `NullPointerException`.
 
-## 3. Ví dụ hoàn chỉnh: intern trả đối tượng chuẩn, biến cũ vẫn giữ nguyên
+## 3. Complete Example: `intern` Returns the Canonical Object While the Old Variable Stays Unchanged
 
-Lưu mã dưới tên **`InternReferenceDemo.java`**:
+Save the code as **`InternReferenceDemo.java`**:
 
 ```java
 public class InternReferenceDemo {
@@ -125,7 +125,7 @@ public class InternReferenceDemo {
 }
 ```
 
-Tại thư mục có tệp, dùng JDK 17+:
+In the directory containing the file, using JDK 17+:
 
 ```bash
 javac InternReferenceDemo.java
@@ -145,21 +145,21 @@ builder.equals(canonical): true
 builder after assignment == literal: true
 ```
 
-**Diễn giải:**
+**Interpretation:**
 
-1. Literal `"Java"` được intern tự động, nên biến `literal` trỏ đến đại diện trong pool.
-2. `new String("Java")` tạo một đối tượng `String` riêng. Vì vậy `fromNew == literal` là `false`, nhưng `fromNew.equals(literal)` là `true`.
-3. `fromNew.intern()` trả đại diện `"Java"` trong pool, do đó có cùng tham chiếu với `literal`.
-4. `StringBuilder.toString()` tạo một đối tượng kết quả, nội dung bằng `"Java"` nhưng khác đối tượng literal. `fromBuilder.intern()` tìm thấy đại diện chuẩn và trả về tham chiếu ấy.
-5. Sau khi gọi `intern()`, biến `fromBuilder` **vẫn** giữ tham chiếu cũ: `fromBuilder == canonical` là `false`. Chỉ câu lệnh `fromBuilder = fromBuilder.intern();` cuối cùng mới cập nhật biến, khiến `fromBuilder == literal` trở thành `true`.
+1. The literal `"Java"` is interned automatically, so `literal` points to the representation in the pool.
+2. `new String("Java")` creates a separate `String` object. Thus `fromNew == literal` is `false`, while `fromNew.equals(literal)` is `true`.
+3. `fromNew.intern()` returns the `"Java"` representation in the pool, so it has the same reference as `literal`.
+4. `StringBuilder.toString()` creates a result object whose content equals `"Java"` but is distinct from the literal object. `fromBuilder.intern()` finds the canonical representation and returns that reference.
+5. After calling `intern()`, `fromBuilder` **still** holds the old reference: `fromBuilder == canonical` is `false`. Only the final statement `fromBuilder = fromBuilder.intern();` updates the variable, making `fromBuilder == literal` become `true`.
 
-Ví dụ cố ý dùng literal có sẵn trước khi intern để kết quả tham chiếu **không phụ thuộc** vào việc một chuỗi nội dung chưa gặp lần nào sẽ được thêm vào pool ra sao.
+The example intentionally uses an existing literal before calling `intern()` so that the reference outcome **does not depend** on how a never-before-seen string content gets added to the pool.
 
-## 4. Literal, hằng biên dịch và nối chuỗi lúc chạy
+## 4. Literals, Compile-Time Constants, and Runtime Concatenation
 
-Không cần gọi `intern()` khi chỉ muốn một string literal: **các string literal của Java được intern**. Theo quy tắc của Java, các **biểu thức hằng kiểu `String`** được tính ở thời điểm biên dịch cũng có cùng đặc tính. Nhưng nối chuỗi dựa trên biến không phải hằng biên dịch là một thao tác lúc chạy; đừng coi kết quả đó là literal.
+There is no need to call `intern()` when you only want a string literal: **Java string literals are interned**. Under Java's rules, **constant expressions of type `String`** evaluated at compile time share the same property. However, concatenation based on a non-compile-time-constant variable is a runtime operation; do not treat its result as a literal.
 
-Lưu **`InternConstantDemo.java`**:
+Save **`InternConstantDemo.java`**:
 
 ```java
 public class InternConstantDemo {
@@ -201,20 +201,20 @@ literal.equals(runtime): true
 literal == runtime.intern(): true
 ```
 
-Vì sao?
+Why?
 
-- `"Ja" + "va"` là **hằng biên dịch**. Trình biên dịch coi nó là `"Java"`; đại diện literal được intern.
-- `constantPart` là **constant variable**: một biến `final` kiểu `String` được khởi tạo bằng biểu thức hằng. `constantPart + "va"` cũng là biểu thức hằng, nên nhận cùng tham chiếu với literal.
-- `mutablePart` không phải constant variable. `mutablePart + "va"` được nối lúc chạy, tạo đối tượng kết quả riêng; vì vậy `literal == runtime` là `false`, dù nội dung bằng nhau.
-- `runtime.intern()` tìm đại diện literal đã có trong pool. Kết quả `literal == runtime.intern()` là `true`.
+- `"Ja" + "va"` is a **compile-time constant**. The compiler treats it as `"Java"`; the literal representation is interned.
+- `constantPart` is a **constant variable**: a `final` variable of type `String` initialized with a constant expression. `constantPart + "va"` is also a constant expression, so it receives the same reference as the literal.
+- `mutablePart` is not a constant variable. `mutablePart + "va"` is concatenated at runtime, creating a separate result object; thus `literal == runtime` is `false`, even though the content is equal.
+- `runtime.intern()` finds the existing literal representation in the pool. The result `literal == runtime.intern()` is `true`.
 
-**Chú ý:** không phải **mọi biến `final`** đều tạo biểu thức hằng. Ví dụ `final String part = getInput();` không phải hằng biên dịch, vì giá trị chỉ biết lúc chạy. Phân biệt theo **constant expression**, không chỉ nhìn từ khóa `final`.
+**Note:** Not **every `final` variable** forms a constant expression. For example, `final String part = getInput();` is not a compile-time constant because its value is only known at runtime. Judge by **constant expression** rules, not merely by the `final` keyword.
 
-**Bài học thực hành:** việc `==` đôi khi cho `true` với hai chuỗi bằng nhau là hệ quả của literal/intern. Nó không biến `==` thành phép so nội dung cho các chuỗi bất kỳ.
+**Practical takeaway:** `==` sometimes returning `true` for two equal strings is a consequence of literals/interning. It does not turn `==` into a content-comparison operator for arbitrary strings.
 
-## 5. Hai chuỗi động cùng nội dung: intern cho cùng tham chiếu dù pool có gì trước đó
+## 5. Two Dynamic Strings with Equal Content: `intern` Yields the Same Reference Regardless of Pool History
 
-Ta có thể kiểm tra thuộc tính chuẩn hóa tham chiếu mà **không cần đoán** pool đã chứa giá trị hay chưa.
+You can verify reference canonicalization **without guessing** whether the pool already contains the value.
 
 **`InternInvariantDemo.java`**
 
@@ -253,24 +253,24 @@ first.intern == other.intern: false
 first unchanged content: quartz
 ```
 
-- Hai lời gọi `new String(letters)` tạo hai đối tượng khác nhau.
-- Vì nội dung `first` và `second` bằng nhau, **bất kể** pool có `"quartz"` từ trước hay không, `first.intern() == second.intern()` phải là `true`.
-- `other` có chữ đầu là `Q` thay vì `q`; `String.equals()` phân biệt hoa/thường, nên đại diện intern cũng khác.
-- Lời gọi `intern()` không thay đổi `first`: nội dung vẫn là `"quartz"` và biến chưa được gán lại.
+- Two calls to `new String(letters)` create two distinct objects.
+- Because `first` and `second` have equal content, **regardless** of whether `"quartz"` was already in the pool, `first.intern() == second.intern()` must be `true`.
+- `other` starts with `Q` instead of `q`; `String.equals()` is case-sensitive, so the interned representation is also different.
+- Calling `intern()` does not change `first`: its content remains `"quartz"` and the variable was not reassigned.
 
-Nếu pool **chưa** có đại diện tương đương, đặc tả của `intern()` cho phép chính đối tượng đầu tiên được thêm vào làm đại diện. Nếu pool **đã** có, nó trả đại diện hiện hữu. Vì không kiểm soát được mọi chuỗi mà JVM/thư viện có thể đã intern trước đó, ví dụ không giả định `first == first.intern()` luôn đúng hoặc luôn sai.
+If the pool does **not yet** contain an equivalent representation, the specification of `intern()` allows the first object itself to be added as the canonical representation. If the pool **already** contains one, it returns the existing representation. Because you do not control every string that the JVM or libraries may have interned earlier, examples should not assume `first == first.intern()` is always true or always false.
 
-## 6. “Chuẩn hóa tham chiếu” khác với chuẩn hóa văn bản Unicode
+## 6. "Reference Canonicalization" Is Different from Unicode Text Normalization
 
-`String.intern()` dùng tiêu chí **cùng nội dung theo `String.equals()`**, nên không tự xóa khoảng trắng, đổi chữ hoa thành chữ thường, hay chuẩn hóa Unicode.
+`String.intern()` uses **content equality under `String.equals()`**, so it does not automatically trim whitespace, convert uppercase to lowercase, or normalize Unicode.
 
-Chẳng hạn:
+For example:
 
-- `"ready"` và `"READY"` không `equals()`, vì khác chữ hoa/thường. Chúng có hai tham chiếu chuẩn khác nhau.
-- `"Java"` và `"Java "` không `equals()`, vì một chuỗi có dấu cách ở cuối.
-- `"\u00E9"` (é dạng dựng sẵn: một code point) và `"e\u0301"` (e và dấu sắc kết hợp: hai code point) có thể trông giống nhau nhưng **không** `equals()` và **không** trở thành một đối tượng chỉ nhờ `intern()`.
+- `"ready"` and `"READY"` are not `equals()`, because their case differs. They have two different canonical references.
+- `"Java"` and `"Java "` are not `equals()`, because one string has a trailing space.
+- `"\u00E9"` (precomposed é: one code point) and `"e\u0301"` (e plus combining acute accent: two code points) may look identical, yet they are **not** `equals()` and do **not** become the same object merely via `intern()`.
 
-Nếu yêu cầu nghiệp vụ cần so sánh các dạng Unicode tương đương, **chuẩn hóa văn bản trước** bằng `java.text.Normalizer`, rồi mới so sánh hoặc intern nếu thật sự cần chia sẻ tham chiếu.
+If business requirements call for comparing equivalent Unicode forms, **normalize the text first** using `java.text.Normalizer`, and only then compare or intern if reference sharing is genuinely needed.
 
 **`InternUnicodeDemo.java`**
 
@@ -312,21 +312,21 @@ NFC equals: true
 NFC intern ==: true
 ```
 
-`Normalizer.Form.NFC` giải quyết dạng Unicode tương đương trong ví dụ. Nó không mặc định giải quyết phân biệt hoa/thường, ngữ nghĩa ngôn ngữ, hay các quy tắc so sánh theo locale. Dùng `intern()` **sau** bước chuẩn hóa chỉ khi việc chia sẻ tham chiếu thật sự có ích; `equals()` trên chuỗi đã chuẩn hóa vẫn đủ để kiểm tra nội dung.
+`Normalizer.Form.NFC` resolves the Unicode equivalence in this example. By default it does not address case sensitivity, linguistic semantics, or locale-specific comparison rules. Use `intern()` **after** the normalization step only when reference sharing is genuinely beneficial; `equals()` on normalized strings is already sufficient to check content.
 
-## 7. Khi nào dùng `intern()` và khi nào dùng `equals()`?
+## 7. When to Use `intern()` and When to Use `equals()`
 
-| Mục tiêu | Công cụ phù hợp | Lý do |
+| Goal | Appropriate tool | Reason |
 |---|---|---|
-| Kiểm tra hai chuỗi biểu diễn cùng văn bản | `a.equals(b)`, hoặc `Objects.equals(a, b)` khi có thể null | Đúng theo nội dung mà không phụ thuộc pool |
-| Đảm bảo hai chuỗi có nội dung bằng nhau dùng cùng tham chiếu chuẩn | `a.intern()`, `b.intern()` | Hai kết quả `intern()` của chuỗi bằng nhau có cùng định danh |
-| So sánh hai biến có trỏ đúng cùng một đối tượng hay không | `a == b` | So sánh định danh đối tượng, không tự so nội dung |
-| Lấy một literal làm chuỗi hằng | Viết `"text"` | Literal được intern tự động |
-| Tìm khóa bằng văn bản trong `HashMap<String, ...>` | Để `HashMap` sử dụng `equals()`/`hashCode()` | Không cần intern để lookup đúng |
-| Giảm đối tượng lặp lại của tập giá trị tương đối nhỏ, xuất hiện nhiều lần | Cân nhắc intern nếu đo đạc xác nhận có lợi | Pool cũng tốn bộ nhớ và chi phí xử lý; cần đo trên workload thực |
-| Chuẩn hóa chữ Unicode hoặc so không phân biệt hoa/thường | `Normalizer` hoặc quy tắc so sánh văn bản riêng | Intern không thực hiện các phép biến đổi văn bản |
+| Check whether two strings represent the same text | `a.equals(b)`, or `Objects.equals(a, b)` when null is possible | Accurate for content without depending on the pool |
+| Ensure two strings with equal content use the same canonical reference | `a.intern()`, `b.intern()` | Two `intern()` results of equal strings share the same identity |
+| Check whether two variables point to the exact same object | `a == b` | Compares object identity, does not compare content by itself |
+| Obtain a literal as a constant string | Write `"text"` | Literals are interned automatically |
+| Look up a key by text in `HashMap<String, ...>` | Let `HashMap` use `equals()`/`hashCode()` | Interning is not needed for accurate lookup |
+| Reduce duplicate objects for a relatively small, frequently repeated set of values | Consider interning if measurements confirm a benefit | The pool also incurs memory and processing cost; measure on real workloads |
+| Normalize Unicode text or compare case-insensitively | `Normalizer` or dedicated text-comparison rules | Interning does not perform text transformations |
 
-### Ví dụ: HashMap vẫn tra khóa đúng dù tham chiếu khác nhau
+### Example: `HashMap` still looks up keys accurately even with different references
 
 **`MapWithoutInternDemo.java`**
 
@@ -363,84 +363,84 @@ lookup: 7
 contains: true
 ```
 
-`HashMap<String, Integer>` dùng `hashCode()` và `equals()` của `String` để nhận diện khóa. Việc `input` là đối tượng riêng **không** ngăn tra cứu. Nếu chỉ cần tra cứu, intern từng khóa hoặc từng đầu vào là không cần thiết và có thể gây thêm chi phí.
+`HashMap<String, Integer>` uses `String`'s `hashCode()` and `equals()` to identify keys. The fact that `input` is a separate object does **not** prevent lookup. When only lookup is needed, interning each key or each input is unnecessary and can add extra overhead.
 
-### So sánh an toàn khi có thể null
+### Null-safe comparison
 
-`intern()` và `equals()` đều gọi trên đối tượng. Với `candidate == null`, `candidate.intern()` và `candidate.equals("READY")` đều ném `NullPointerException`. Có thể dùng:
+Both `intern()` and `equals()` are invoked on an object. When `candidate == null`, both `candidate.intern()` and `candidate.equals("READY")` throw `NullPointerException`. You can use:
 
 ```java
-"READY".equals(candidate);          // an toàn nếu candidate null
-java.util.Objects.equals(a, b);      // an toàn nếu a/b null
+"READY".equals(candidate);          // safe if candidate is null
+java.util.Objects.equals(a, b);      // safe if a or b is null
 ```
 
-Đây là **đoạn minh họa**, không phải chương trình độc lập. `Objects.equals(null, null)` trả `true` vì cả hai tham chiếu cùng null; điều đó không tạo một chuỗi rỗng hay đối tượng intern nào.
+This is an **illustrative snippet**, not a standalone program. `Objects.equals(null, null)` returns `true` because both references are null; it does not create an empty string or any interned object.
 
-## 8. Hợp đồng của intern và các giới hạn thực tế
+## 8. The Contract of `intern` and Practical Limits
 
-### 8.1. Tại sao không dùng `==` thay cho `equals()` trong mã nghiệp vụ?
+### 8.1. Why not use `==` instead of `equals()` in business code?
 
-Nếu **cả hai tham chiếu chắc chắn đã intern**, `==` sẽ phản ánh nội dung bằng nhau. Tuy nhiên, trong chương trình thực tế, dữ liệu có thể đến từ file, HTTP, cơ sở dữ liệu, `StringBuilder`, người dùng hoặc thư viện bên ngoài. Không có bảo đảm mọi đầu vào đã intern, trừ khi chính ứng dụng thiết kế và duy trì ràng buộc đó.
+If **both references are guaranteed to be interned**, `==` reflects content equality. However, in real-world programs, data can arrive from files, HTTP, databases, `StringBuilder`, users, or external libraries. There is no guarantee that all inputs are interned unless the application itself enforces and maintains that invariant.
 
-Một đoạn mã như:
+A snippet like:
 
 ```java
 if (status == "READY") { /* ... */ }
 ```
 
-là **mã minh họa lỗi khi dùng để so nội dung**: nó có thể vô tình chạy đúng với literal nhưng sai với một `new String("READY")` hay kết quả được tạo lúc chạy. Nếu mục tiêu là so nội dung, viết:
+is **buggy illustrative code when used to compare content**: it might accidentally pass with literals yet fail on a `new String("READY")` or a runtime-created result. If the goal is content comparison, write:
 
 ```java
 if ("READY".equals(status)) { /* ... */ }
 ```
 
-Điều này rõ ý định hơn và an toàn khi `status` có thể null.
+This expresses intent more clearly and is safe when `status` may be null.
 
-### 8.2. Intern không thay thế quản lý dữ liệu
+### 8.2. Interning is not a substitute for data management
 
-Không nên tự động intern **mọi** chuỗi đi vào ứng dụng:
+You should not automatically intern **every** string entering an application:
 
-- Mỗi lần intern cần tra cứu/duy trì dữ liệu của pool; gọi dày đặc có chi phí CPU, bộ nhớ và tương tác với quản lý bộ nhớ.
-- Nếu nhiều giá trị **duy nhất** hoặc đầu vào không giới hạn số lượng, lợi ích chia sẻ nhỏ trong khi chi phí vẫn phát sinh.
-- Nếu nội dung nhỏ, lặp lại rất nhiều, có thể tiết kiệm số đối tượng trùng nhau; song phải đo đạc bằng profiler/benchmark trên dữ liệu đại diện để biết có thực sự có lợi.
-- Không dựa vào giả định “mọi chuỗi đã intern sống vĩnh viễn” hoặc “pool không bao giờ tốn bộ nhớ”: chính sách lưu giữ/thu gom và cách triển khai có thể khác theo JVM và phiên bản.
-- Không coi intern như một cơ chế quản lý cache nghiệp vụ đầy đủ: không có metadata, giới hạn kích thước hay chính sách loại bỏ riêng theo ứng dụng để tùy chỉnh như một cache thông thường.
+- Every intern call requires looking up/maintaining pool data; calling it heavily incurs CPU, memory, and memory-management interaction costs.
+- If many values are **unique** or input cardinality is unbounded, the sharing benefit is small while the cost still occurs.
+- If values are small and heavily repeated, it may reduce duplicate objects; however, you must measure with a profiler/benchmark on representative data to see whether it actually helps.
+- Do not rely on assumptions like "all interned strings live forever" or "the pool never consumes memory": retention/collection policies and implementations can vary across JVMs and versions.
+- Do not treat interning as a full-featured application cache: it has no metadata, size limit, or application-specific eviction policy to tune like a regular cache.
 
-Nếu tập nhãn trạng thái nhỏ và được kiểm soát, có thể cân nhắc enum hoặc mã định danh nghiệp vụ thay vì ép mọi giá trị người dùng nhập thành chuỗi intern.
+If the set of status labels is small and controlled, consider an `enum` or business identifier instead of forcing every user-supplied value into an interned string.
 
-### 8.3. Không dùng chuỗi intern làm khóa đồng bộ tùy tiện
+### 8.3. Do not use interned strings as arbitrary synchronization locks
 
-Ví dụ:
+Example:
 
 ```java
 synchronized (userId.intern()) {
-    // mã minh họa: khóa có thể bị chia sẻ ngoài ý muốn
+    // illustrative code: the lock may be shared unintentionally
 }
 ```
 
-Đây là **ví dụ cần tránh**, không phải mẫu đồng bộ khuyến nghị. Mọi thành phần intern nội dung giống `userId` đều có thể nhận cùng đối tượng khóa, kể cả mã khác nằm ngoài vùng kiểm soát. Điều này có thể gây tranh chấp khóa hoặc tương tác không dự kiến giữa các thành phần. Hãy quản lý khóa riêng có vòng đời và phạm vi rõ ràng; không biến string pool chung thành hệ thống khóa nghiệp vụ.
+This is an **example to avoid**, not a recommended synchronization pattern. Any component interning the same content as `userId` can obtain the same lock object, including unrelated code outside your control. This can cause lock contention or unexpected interactions between components. Manage dedicated locks with explicit lifecycles and scopes; do not turn the shared string pool into a business locking system.
 
-### 8.4. Tham chiếu chuẩn không phải là giá trị được băm
+### 8.4. A canonical reference is not a hash value
 
-`intern()` không trả về ID số, mã băm hay con trỏ bộ nhớ có thể đem lưu vào file. Nó trả về **tham chiếu `String`**. Không nên dùng `System.identityHashCode()` để thay kiểm tra `==` hoặc để xác nhận tham chiếu chuẩn: giá trị hash định danh không nhất thiết duy nhất cho mọi đối tượng. Khi cần kiểm tra nội dung, `equals()` vẫn là lựa chọn đúng.
+`intern()` does not return a numeric ID, hash code, or memory pointer that can be saved to a file. It returns a **`String` reference**. Do not use `System.identityHashCode()` as a substitute for `==` checks or to verify canonical references: identity hash codes are not guaranteed to be unique across all objects. When content needs to be checked, `equals()` remains the right choice.
 
-## 9. Những hiểu nhầm thường gặp
+## 9. Common Misconceptions
 
-| Hiểu nhầm | Sự thật | Cách làm đúng |
+| Misconception | Reality | Right approach |
 |---|---|---|
-| Hai chuỗi có cùng nội dung thì `==` luôn `true` | `==` so tham chiếu; hai đối tượng riêng có thể `equals()` nhưng không `==` | Dùng `equals()` cho nội dung |
-| Gọi `a.intern();` sẽ khiến biến `a` trỏ sang pool | `intern()` **trả về** tham chiếu chuẩn; không tự gán biến | Khi thật sự cần, dùng `a = a.intern();` |
-| Intern tạo đối tượng mới mỗi lần | Nếu đã có đại diện, trả tham chiếu hiện hữu; nếu chưa, có thể thêm chính đối tượng gọi | Hiểu đúng hợp đồng pool |
-| Mọi lời gọi `s.intern()` chắc chắn khiến `s == s.intern()` | Tùy `s` đã là đối tượng chuẩn hay chưa | Chỉ dựa vào `s.intern() == t.intern()` với chuỗi bằng nhau |
-| `"Ja" + "va"` và nối biến lúc chạy có cùng hành vi tham chiếu | Biểu thức hằng được xử lý lúc biên dịch; nối lúc chạy sinh kết quả riêng | Không suy tính bằng nhau qua `==` |
-| Intern sẽ xử lý Unicode, dấu, chữ hoa/thường | Pool chỉ gom những chuỗi `equals()` | Chuẩn hóa nội dung trước nếu nghiệp vụ yêu cầu |
-| Muốn `HashMap` tra chuỗi chính xác phải intern | `HashMap` dựa trên `equals()` và `hashCode()` | Dùng khóa `String` bình thường |
-| Càng intern nhiều càng tiết kiệm bộ nhớ | Pool và chi phí xử lý có overhead; chuỗi ít lặp lại không chắc có lợi | Đo đạc, chỉ dùng khi có lý do |
-| Có thể dùng chuỗi intern làm lock mặc định | Các phần khác của JVM có thể chia sẻ cùng đối tượng chuẩn | Dùng cơ chế khóa thuộc quyền kiểm soát của ứng dụng |
+| Two strings with equal content are always `==` `true` | `==` compares references; two separate objects can be `equals()` without being `==` | Use `equals()` for content |
+| Calling `a.intern();` makes variable `a` point to the pool | `intern()` **returns** the canonical reference; it does not reassign the variable | When truly needed, use `a = a.intern();` |
+| Interning creates a new object every time | If a representation exists, it returns the existing reference; if not, it may add the caller object itself | Understand the pool contract properly |
+| Every `s.intern()` call guarantees `s == s.intern()` | Depends on whether `s` is already the canonical object | Rely only on `s.intern() == t.intern()` for equal strings |
+| `"Ja" + "va"` and runtime variable concatenation have the same reference behavior | Constant expressions are handled at compile time; runtime concatenation produces a separate result | Do not infer equality via `==` |
+| Interning handles Unicode, diacritics, and case | The pool only groups strings that are `equals()` | Normalize content beforehand if business rules require it |
+| `HashMap` requires interning to look up strings accurately | `HashMap` relies on `equals()` and `hashCode()` | Use normal `String` keys |
+| The more you intern, the more memory you save | The pool and lookup processing have overhead; low-duplication strings are unlikely to benefit | Measure, and use only with good reason |
+| Interned strings can be used as default locks | Other parts of the JVM can share the same canonical object | Use a locking mechanism under your application's control |
 
-## 10. Tự kiểm tra kiến thức
+## 10. Knowledge Self-Check
 
-Đọc chương trình sau và dự đoán kết quả trước khi chạy:
+Read the following program and predict the output before running it:
 
 **`InternSelfCheck.java`**
 
@@ -479,10 +479,10 @@ true
 false
 ```
 
-- `a` là literal đã intern; `b` là một đối tượng mới có cùng nội dung nên ban đầu `a == b` là `false`.
-- `c = b.intern()` lấy đại diện literal `"cat"`, vì thế `a == c` là `true`.
-- `b.equals(c)` là `true` bởi nội dung giống nhau, không liên quan trực tiếp đến định danh.
-- `b = b.intern()` cập nhật biến `b` thành tham chiếu chuẩn nên `a == b` chuyển thành `true`.
-- `"CAT"` khác `"cat"` theo `equals()`, do vậy các kết quả intern có tham chiếu khác nhau.
+- `a` is an interned literal; `b` is a new object with the same content, so initially `a == b` is `false`.
+- `c = b.intern()` retrieves the literal `"cat"` representation, so `a == c` is `true`.
+- `b.equals(c)` is `true` because the contents are identical, unrelated directly to object identity.
+- `b = b.intern()` updates variable `b` to the canonical reference, so `a == b` becomes `true`.
+- `"CAT"` differs from `"cat"` under `equals()`, so their interned results have different references.
 
-**Ghi nhớ:** `equals()` trả lời câu hỏi **“hai chuỗi có cùng nội dung không?”**; `intern()` trả một **tham chiếu chuẩn** cho nội dung đó; `==` trả lời câu hỏi **“hai tham chiếu có trỏ cùng một đối tượng không?”**. Khi biết chắc hai chuỗi đều đã intern, có thể dùng `==` để kiểm tra tính đồng nhất của chúng; còn trong logic ứng dụng thông thường, `equals()`/`Objects.equals()` diễn đạt đúng yêu cầu so sánh văn bản và tránh phụ thuộc vào chi tiết xuất xứ của chuỗi.
+**Remember:** `equals()` answers **"do two strings have the same content?"**; `intern()` returns a **canonical reference** for that content; `==` answers **"do two references point to the same object?"**. When you know for certain that both strings are interned, `==` can check their identity; in ordinary application logic, `equals()`/`Objects.equals()` accurately expresses text comparison and avoids depending on where a string came from.

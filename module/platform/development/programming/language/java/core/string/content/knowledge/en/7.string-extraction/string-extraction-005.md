@@ -1,12 +1,12 @@
-# Trường hợp biên âm, vượt độ dài hoặc đảo thứ tự khi trích xuất chuỗi
+# Negative, Out-of-Length, or Reversed Boundary Cases When Extracting Substrings
 
-Khi trích xuất một phần nội dung bằng `String.substring(...)` trong Java, lỗi dễ gặp nhất không nằm ở ký tự cần lấy mà ở **phạm vi chỉ số**: vị trí bắt đầu âm, vị trí kết thúc vượt quá độ dài hoặc hai vị trí bị đảo ngược. Những trường hợp này cần được phân biệt với các phạm vi **hợp lệ nhưng rỗng**, cũng như phạm vi hợp lệ theo UTF-16 nhưng cắt giữa một ký tự Unicode.
+When extracting a portion of content with `String.substring(...)` in Java, the most common mistake is not the character to extract, but the **index range**: a negative start position, an end position exceeding the length, or two reversed positions. These cases must be distinguished from **valid but empty** ranges, as well as ranges that are valid in UTF-16 but slice through the middle of a Unicode character.
 
-Bài học tập trung vào quy tắc biên của `substring(beginIndex)`, `substring(beginIndex, endIndex)` và `subSequence(start, end)`, cách đọc lỗi, cách kiểm tra dữ liệu đầu vào và những tình huống thực tế như lấy hậu tố, dùng kết quả `indexOf()` hoặc trích xuất văn bản có emoji.
+This lesson focuses on the boundary rules of `substring(beginIndex)`, `substring(beginIndex, endIndex)`, and `subSequence(start, end)`, how to interpret errors, how to validate input data, and practical scenarios such as extracting suffixes, using `indexOf()` results, or extracting text containing emojis.
 
-## 1. Quy ước chỉ số cần giữ trước khi kiểm tra lỗi
+## 1. Index Conventions to Keep in Mind Before Checking Errors
 
-`substring(begin, end)` lấy khoảng nửa mở `[begin, end)` tính theo UTF-16 code unit: lấy `begin`, bỏ `end`, và có độ dài `end - begin` khi hợp lệ. Với nguồn dài `n`, các **biên** hợp lệ có thể nhận giá trị từ `0` đến `n`, dù chỉ số ký tự cuối là `n - 1`.
+`substring(begin, end)` takes the half-open interval `[begin, end)` measured in UTF-16 code units: `begin` is included, `end` is excluded, and the length is `end - begin` when valid. For a source of length `n`, valid **boundaries** can take values from `0` to `n`, even though the last character's index is `n - 1`.
 
 ```java
 String s = "Java";
@@ -14,25 +14,25 @@ System.out.println(s.substring(1, 3)); // av
 System.out.println(s.substring(4, 4).isEmpty()); // true
 ```
 
-Trọng tâm xử lý lỗi là phân biệt **biên hợp lệ nhưng rỗng** với biên âm, vượt độ dài và đảo thứ tự. `substring(begin)` tương đương về nội dung với `substring(begin, s.length())` khi hợp lệ.
+The focus of error handling is distinguishing **valid but empty boundaries** from negative, out-of-length, and reversed boundaries. `substring(begin)` is equivalent in content to `substring(begin, s.length())` when valid.
 
-## 2. Ba điều kiện bắt buộc của phạm vi `[begin, end)`
+## 2. Three Required Conditions for the Range `[begin, end)`
 
-Công thức hợp lệ cho `text.substring(begin, end)` là:
+The validity formula for `text.substring(begin, end)` is:
 
 ```text
 0 <= begin <= end <= text.length()
 ```
 
-Chỉ cần **một** trong các điều kiện sau xảy ra, phạm vi đã sai:
+If even **one** of the following conditions occurs, the range is invalid:
 
-1. **Chỉ số âm:** `begin < 0`, hoặc `end < 0`. Ví dụ `substring(-1, 2)`, `substring(0, -1)`.
-2. **Vượt độ dài:** `end > length()` hoặc `begin > length()`. Ví dụ chuỗi dài 4 nhưng yêu cầu `substring(0, 5)`, `substring(5)`.
-3. **Đảo thứ tự:** `begin > end`, kể cả khi cả hai đều nằm trong khoảng từ 0 đến `length()`. Ví dụ `substring(3, 1)`.
+1. **Negative index:** `begin < 0`, or `end < 0`. For example, `substring(-1, 2)`, `substring(0, -1)`.
+2. **Exceeds length:** `end > length()` or `begin > length()`. For example, a string of length 4 given `substring(0, 5)`, `substring(5)`.
+3. **Reversed order:** `begin > end`, even when both lie between 0 and `length()`. For example, `substring(3, 1)`.
 
-Java báo lỗi **`IndexOutOfBoundsException`** khi vi phạm hợp đồng chỉ số của `substring`. Chi tiết thông báo ngoại lệ có thể khác nhau theo phiên bản JDK; không nên viết logic nghiệp vụ dựa vào chuỗi thông báo đó. Ngoại lệ xảy ra **tại lời gọi trích xuất**, trước khi nhận được bất kỳ chuỗi kết quả nào.
+Java reports **`IndexOutOfBoundsException`** when the index contract of `substring` is violated. Exception message details can vary across JDK versions; business logic should not depend on that message string. The exception occurs **at the extraction call**, before any resulting string is returned.
 
-Để kiểm tra nhanh, có thể dùng biểu thức:
+For a quick check, you can use the expression:
 
 ```java
 boolean valid = begin >= 0
@@ -40,19 +40,19 @@ boolean valid = begin >= 0
         && end <= text.length();
 ```
 
-Đây là **đoạn mã minh họa**, giả sử `text != null`. Nếu cả ba mệnh đề đều đúng thì `begin` và `end` đều nằm trong ranh giới hợp lệ; không cần thêm điều kiện `begin <= text.length()` vì nó đã suy ra từ `begin <= end <= text.length()`. Nếu `text == null` thì truy cập `text.length()` sẽ ném `NullPointerException`, một lỗi khác lỗi chỉ số.
+This is an **illustrative snippet**, assuming `text != null`. If all three clauses are true, both `begin` and `end` lie within valid boundaries; there is no need to add `begin <= text.length()` because it already follows from `begin <= end <= text.length()`. If `text == null`, accessing `text.length()` throws `NullPointerException`, which is a different error from an index error.
 
-### Không đồng nhất phạm vi sai với phạm vi rỗng
+### Do Not Confuse an Invalid Range with an Empty Range
 
-- `begin == end` là **hợp lệ**, cho kết quả `""`.
-- `begin > end` là **không hợp lệ**, Java ném ngoại lệ.
-- Chuỗi nguồn `""` có độ dài 0 nên chỉ có một phạm vi hợp lệ: `substring(0, 0)`; riêng phiên bản một tham số thì `substring(0)`.
-- `substring(0, length())` luôn là một phạm vi hợp lệ nếu chuỗi nguồn không null.
-- `substring(length(), length())` cũng luôn hợp lệ; nhiều thuật toán cần trường hợp này để mô tả “phần đuôi không có ký tự”.
+- `begin == end` is **valid**, yielding `""`.
+- `begin > end` is **invalid**; Java throws an exception.
+- The source string `""` has length 0, so it has only one valid range: `substring(0, 0)`; for the single-parameter version, `substring(0)`.
+- `substring(0, length())` is always a valid range if the source string is non-null.
+- `substring(length(), length())` is also always valid; many algorithms need this case to represent “an empty tail with no characters”.
 
-## 3. Ví dụ Java 17+ kiểm tra từng trường hợp biên
+## 3. Java 17+ Example Checking Each Boundary Case
 
-Lưu tệp sau thành **`SubstringBoundsDemo.java`**:
+Save the following file as **`SubstringBoundsDemo.java`**:
 
 ```java
 public class SubstringBoundsDemo {
@@ -86,7 +86,7 @@ public class SubstringBoundsDemo {
 }
 ```
 
-Biên dịch và chạy tại thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac SubstringBoundsDemo.java
@@ -109,46 +109,46 @@ source length: 4
 [0,0) -> <> (length=0)
 ```
 
-Trong ví dụ, chỉ bắt `IndexOutOfBoundsException` để **minh họa phân loại** các trường hợp. Trong ứng dụng thật, tốt hơn nên kiểm tra tham số hoặc xác định chính sách lỗi trước khi gọi `substring()`; bắt rồi bỏ qua mọi ngoại lệ có thể che mất lỗi lập trình.
+In the example, `IndexOutOfBoundsException` is caught solely to **demonstrate classifying** the cases. In real applications, it is better to validate arguments or define an error policy before calling `substring()`; catching and ignoring every exception can hide programming bugs.
 
-## 4. So sánh miền chỉ số để tránh dùng sai API
+## 4. Comparing Index Domains to Avoid Misusing APIs
 
-| API | Điều kiện hợp lệ | Điểm cần kiểm tra |
+| API | Validity Condition | Point to Check |
 | --- | --- | --- |
-| `s.substring(begin)` | `0 <= begin <= n` | `begin == n` cho chuỗi rỗng |
-| `s.substring(begin, end)` | `0 <= begin <= end <= n` | Thứ tự hai biên phải đúng |
-| `s.subSequence(begin, end)` | `0 <= begin <= end <= n` | Trả kiểu khai báo `CharSequence` |
-| `s.charAt(index)` | `0 <= index < n` | `charAt(n)` không hợp lệ |
+| `s.substring(begin)` | `0 <= begin <= n` | `begin == n` yields an empty string |
+| `s.substring(begin, end)` | `0 <= begin <= end <= n` | Order of the two bounds must be valid |
+| `s.subSequence(begin, end)` | `0 <= begin <= end <= n` | Declared return type is `CharSequence` |
+| `s.charAt(index)` | `0 <= index < n` | `charAt(n)` is invalid |
 
-Cùng một offset `n` có thể hợp lệ cho **ranh giới** của `substring` nhưng không hợp lệ cho `charAt`. Tương tự, `substring(k, k)` không đọc code unit ở `k`; nó trả đoạn rỗng, còn `substring(k, k + 1)` chỉ lấy một code unit nếu `k < n`. Các phương thức không tự điều chỉnh chỉ số sai.
+The same offset `n` can be valid as a **boundary** for `substring` yet invalid for `charAt`. Likewise, `substring(k, k)` does not read the code unit at `k`; it returns an empty segment, whereas `substring(k, k + 1)` takes one code unit if `k < n`. These methods do not automatically adjust invalid indices.
 
-## 5. Lỗi off-by-one: `end` bị loại trừ
+## 5. Off-by-One Error: `end` Is Exclusive
 
-Lỗi lệch một đơn vị (*off-by-one*) thường xảy ra vì nhầm `end` là vị trí ký tự cuối **được lấy**. Ví dụ muốn lấy ký tự ở vị trí 1, 2 và 3 của `"Java"`:
+Off-by-one errors often happen by mistaking `end` for the position of the last character **included**. For example, to take characters at positions 1, 2, and 3 of `"Java"`:
 
 ```java
-"Java".substring(1, 3); // "av": chỉ lấy vị trí 1 và 2
-"Java".substring(1, 4); // "ava": lấy vị trí 1, 2, 3
+"Java".substring(1, 3); // "av": only takes positions 1 and 2
+"Java".substring(1, 4); // "ava": takes positions 1, 2, 3
 ```
 
-Mọi biểu thức trên là đoạn mã minh họa.
+All expressions above are illustrative snippets.
 
-Nếu chỉ số kết thúc **bao gồm** theo yêu cầu bên ngoài là `lastInclusive`, phép trích xuất có thể dùng `substring(begin, lastInclusive + 1)` **chỉ sau khi** đã xác minh `lastInclusive` là chỉ số phần tử có thật, tức `0 <= lastInclusive < length`, và `begin <= lastInclusive`. Không nên tự cộng 1 cho một giá trị bất kỳ vì có thể vượt `length()` hoặc gây tràn số nguyên với giá trị rất lớn.
+If an external requirement gives an **inclusive** ending index `lastInclusive`, extraction can use `substring(begin, lastInclusive + 1)` **only after** verifying that `lastInclusive` is an actual element index—meaning `0 <= lastInclusive < length` and `begin <= lastInclusive`. Never blindly add 1 to an arbitrary value, as that can exceed `length()` or cause integer overflow for very large values.
 
-Một kiểu yêu cầu khác là “lấy **count** code unit từ vị trí **start**”. Dạng tự nhiên là `substring(start, start + count)`, nhưng cần bảo vệ:
+Another type of requirement is “take **count** code units starting from position **start**”. The natural form is `substring(start, start + count)`, but you must guard:
 
 - `start >= 0`;
 - `count >= 0`;
 - `start <= length()`;
 - `count <= length() - start`.
 
-Cách kiểm tra bằng `count <= length() - start` tránh phải tính `start + count` trước khi bảo đảm không tràn số nguyên. Chỉ tính tổng sau khi đã xác thực.
+Checking `count <= length() - start` avoids computing `start + count` before ensuring there is no integer overflow. Compute the sum only after validation.
 
-## 6. Kiểm tra đầu vào trước khi trích xuất
+## 6. Validating Input Before Extraction
 
-Có hai cách hợp lý tùy hợp đồng nghiệp vụ: **từ chối phạm vi sai** bằng ngoại lệ có thông điệp rõ ràng, hoặc **chấp nhận điều chỉnh phạm vi** nếu yêu cầu bài toán cho phép. Không nên âm thầm ép mọi chỉ số sai vào khoảng hợp lệ khi người gọi cần được biết dữ liệu đầu vào có lỗi.
+There are two reasonable approaches depending on the business contract: **reject invalid ranges** with a clear exception message, or **allow adjusting the range** if the problem requirements permit. Never silently clamp every invalid index into bounds when the caller needs to know the input data is erroneous.
 
-### 6.1. Chính sách nghiêm ngặt: phạm vi sai phải báo lỗi
+### 6.1. Strict Policy: Invalid Ranges Must Report an Error
 
 **`StrictSliceDemo.java`**
 
@@ -203,11 +203,11 @@ Rejected reversed bounds
 Rejected negative begin
 ```
 
-Trong phương thức `slice`, điều kiện gộp đã đủ để chặn `begin` âm, `end` nằm trước `begin`, hoặc `end` vượt độ dài. Nếu `begin > length` thì không thể đồng thời thỏa `end >= begin` và `end <= length`, nên cũng bị chặn. Ở đây mã **chủ động** ném `IllegalArgumentException` cho tham số không đạt hợp đồng của hàm trợ giúp; đây không phải lời khẳng định `substring` tự ném ngoại lệ đó. Một API có thể lựa chọn loại ngoại lệ hoặc kiểu kết quả khác cho phù hợp thiết kế.
+In `slice`, the combined condition is sufficient to block negative `begin`, `end` preceding `begin`, or `end` exceeding length. If `begin > length`, it cannot simultaneously satisfy `end >= begin` and `end <= length`, so that is also blocked. Here the code **explicitly** throws `IllegalArgumentException` for arguments violating the helper function's contract; this is not claiming that `substring` itself throws that exception. An API may choose a different exception type or return type to match its design.
 
-### 6.2. Chính sách giới hạn phạm vi: chỉ khi đề bài cho phép
+### 6.2. Range-Clamping Policy: Only When the Specification Allows It
 
-Giả sử yêu cầu là “lấy tối đa `maxUnits` code unit đầu tiên”; nếu `maxUnits` lớn hơn độ dài thì chỉ lấy toàn bộ chuỗi, nhưng giá trị âm vẫn là đầu vào không hợp lệ:
+Suppose the requirement is “take at most the first `maxUnits` code units”; if `maxUnits` exceeds the length, take the whole string, while a negative value remains invalid input:
 
 **`PrefixLimitDemo.java`**
 
@@ -248,21 +248,21 @@ java PrefixLimitDemo
 <>
 ```
 
-`Math.min(maxUnits, text.length())` phù hợp vì tên và hợp đồng của hàm nói rõ **“tối đa”**. Nếu người gọi yêu cầu **chính xác 10 ký tự** mà chuỗi chỉ dài 4, cắt còn 4 một cách lặng lẽ có thể che lỗi dữ liệu. Không nên đảo `begin/end`, lấy trị tuyệt đối chỉ số âm hoặc tự ý đưa mọi phạm vi về giới hạn mà không được phép theo yêu cầu nghiệp vụ.
+`Math.min(maxUnits, text.length())` fits because the function's name and contract clearly state **“at most”**. If the caller requested **exactly 10 characters** and the string was only 4 long, silently truncating to 4 could hide data errors. Do not swap `begin/end`, take the absolute value of negative indices, or arbitrarily clamp every range without business authorization.
 
-## 7. Trường hợp âm xuất hiện từ phép tính và API tìm kiếm
+## 7. Negative Cases Arising from Arithmetic and Search APIs
 
-### 7.1. Lấy `n` ký tự cuối khi `n` lớn hơn độ dài
+### 7.1. Taking the Last `n` Characters When `n` Exceeds Length
 
-Mẫu quen thuộc:
+Familiar pattern:
 
 ```java
 String tail = text.substring(text.length() - n);
 ```
 
-Chỉ đúng khi `0 <= n <= text.length()`. Nếu `text = "Java"` và `n = 5`, điểm bắt đầu là `4 - 5 = -1`, gây ngoại lệ. Nếu `n = -1`, điểm bắt đầu là `5`, cũng vượt chiều dài. Với `n = 0`, kết quả hợp lệ là `""`.
+This is only correct when `0 <= n <= text.length()`. If `text = "Java"` and `n = 5`, the start position is `4 - 5 = -1`, causing an exception. If `n = -1`, the start position is `5`, also exceeding the length. For `n = 0`, the valid result is `""`.
 
-Bản có kiểm tra nghiêm ngặt:
+Strict checked version:
 
 **`SuffixBoundsDemo.java`**
 
@@ -306,19 +306,19 @@ java SuffixBoundsDemo
 Rejected suffix longer than source
 ```
 
-Tên `lastUnits` nói rõ `n` là **số code unit UTF-16**, chưa chắc là số ký tự mà người dùng nhìn thấy; ở phần Unicode bên dưới sẽ chỉ ra giới hạn này.
+The name `lastUnits` makes clear that `n` is a **count of UTF-16 code units**, not necessarily the number of user-visible characters; the Unicode section below highlights this limitation.
 
-### 7.2. `indexOf()` trả `-1` khi không tìm thấy
+### 7.2. `indexOf()` Returns `-1` When Not Found
 
-Nhiều lỗi biên âm xuất phát từ việc lấy kết quả `indexOf()` rồi đưa thẳng vào `substring()`:
+Many negative-boundary bugs stem from taking the result of `indexOf()` and passing it straight into `substring()`:
 
 ```java
 String line = "name=value";
-int separator = line.indexOf(':'); // -1 vì không có dấu ':'
-String head = line.substring(0, separator); // sai: end = -1
+int separator = line.indexOf(':'); // -1 because there is no ':'
+String head = line.substring(0, separator); // wrong: end = -1
 ```
 
-Đây là đoạn mã minh họa cố tình sai, không phải chương trình hoàn chỉnh. `-1` là **giá trị báo không tìm thấy**, không phải một chỉ số hợp lệ. Hãy xử lý trước:
+This is an intentionally buggy illustrative snippet, not a complete program. `-1` is a **not-found sentinel**, not a valid index. Handle it first:
 
 **`DelimiterDemo.java`**
 
@@ -358,67 +358,67 @@ No delimiter
 Value=<start>
 ```
 
-Khi dấu phân cách nằm ở cuối, `separator + 1 == length()` vẫn là ranh giới hợp lệ, cho chuỗi rỗng. Khi ở đầu, `substring(1)` hợp lệ nếu chuỗi có một hoặc nhiều code unit. Chỉ khi không tìm thấy mới cần trả trạng thái khác hoặc báo lỗi theo yêu cầu ứng dụng.
+When the delimiter is at the very end, `separator + 1 == length()` is still a valid boundary, giving an empty string. When at the beginning, `substring(1)` is valid if the string has one or more code units. Only when not found should you return a different status or report an error according to application requirements.
 
-## 8. Biên số học đúng chưa chắc là biên Unicode đúng
+## 8. Arithmetically Valid Bounds Are Not Necessarily Valid Unicode Bounds
 
-Kiểm tra `0 <= begin <= end <= length` chỉ bảo vệ phạm vi UTF-16. Với `"A😊B"`, `length() == 4` và `substring(1, 2)` hoàn toàn **hợp lệ về chỉ số**, nhưng chỉ lấy high surrogate của emoji. Nếu muốn lấy trọn một code point tại vị trí UTF-16 `1`, có thể viết:
+Checking `0 <= begin <= end <= length` only protects UTF-16 ranges. For `"A😊B"`, `length() == 4` and `substring(1, 2)` is completely **index-valid**, yet it only captures the high surrogate of the emoji. To extract a full code point at UTF-16 position `1`, you can write:
 
 ```java
 String text = "A😊B";
 int end = text.offsetByCodePoints(1, 1);
-String emoji = text.substring(1, end); // lấy đúng emoji
+String emoji = text.substring(1, end); // extracts the full emoji
 ```
 
-Khi xác thực đầu vào, hãy tách câu hỏi **“offset có nằm trong phạm vi hợp lệ?”** khỏi câu hỏi **“offset có chia đôi code point hoặc grapheme cluster không?”**. API code point xử lý surrogate pair; phân đoạn grapheme giải quyết thêm dấu kết hợp và emoji nhiều code point.
+When validating input, separate the question **“are the offsets within valid bounds?”** from **“do the offsets split a code point or grapheme cluster?”**. Code point APIs handle surrogate pairs; grapheme segmentation additionally handles combining marks and multi-code-point emojis.
 
-## 9. Cách thiết kế và kiểm thử các trường hợp biên
+## 9. How to Design and Test Boundary Cases
 
-### 9.1. Xác định chính sách trước khi triển khai
+### 9.1. Define Policy Before Implementation
 
-Trước mỗi hàm trích xuất, nên trả lời:
+Before writing any extraction function, answer:
 
-1. Tham số là **offset UTF-16**, số code point hay số cụm ký tự hiển thị?
-2. Vị trí kết thúc là **exclusive** hay người gọi đang cung cấp chỉ số cuối **inclusive**?
-3. Nếu đầu vào âm, vượt độ dài hoặc đảo chiều, hàm sẽ **ném ngoại lệ**, trả kết quả thể hiện thất bại, hay cắt tới biên gần nhất?
-4. Chuỗi rỗng và phạm vi `begin == end` có hợp lệ theo yêu cầu hay không?
-5. Nếu ranh giới số học đúng nhưng cắt nửa surrogate/grapheme, hàm có phải từ chối hay điều chỉnh ranh giới không?
+1. Are the parameters **UTF-16 offsets**, code point counts, or visible character cluster counts?
+2. Is the end position **exclusive**, or is the caller supplying an **inclusive** last index?
+3. If input is negative, exceeds length, or is reversed, will the function **throw an exception**, return a failure indicator, or clamp to the nearest boundary?
+4. Are empty strings and `begin == end` ranges valid under the requirements?
+5. If arithmetic bounds are valid but split a surrogate/grapheme, must the function reject or adjust the boundary?
 
-Cùng một `substring` có thể được dùng cho API nghiêm ngặt hay API “lấy tối đa”; chính sách đầu vào do hàm bao ngoài quyết định. Nếu văn bản đến từ người dùng hay hệ thống ngoài, cần tránh biến một chỉ số không tin cậy thành ngoại lệ không được xử lý. Nếu chỉ số đến từ mã nội bộ mà đáng lẽ luôn đúng, ngoại lệ có thể là tín hiệu phát hiện lỗi lập trình hữu ích.
+The same `substring` can be used for either a strict API or an “up to N” API; the outer wrapper function decides the input policy. If text comes from users or external systems, avoid letting an untrusted index turn into an unhandled exception. If indices come from internal code that should always be correct, an exception can be a useful signal for catching programming bugs.
 
-### 9.2. Ma trận kiểm thử nhanh
+### 9.2. Quick Test Matrix
 
-Với `text = "Java"`, `n = 4`, các ca kiểm tra thiết yếu gồm:
+For `text = "Java"`, `n = 4`, essential test cases include:
 
-| Trường hợp | Input | Kết quả mong đợi |
+| Case | Input | Expected Result |
 |---|---|---|
-| Toàn bộ chuỗi | `[0, 4)` | `"Java"` |
-| Đoạn giữa | `[1, 3)` | `"av"` |
-| Phạm vi rỗng giữa chuỗi | `[2, 2)` | `""` |
-| Phạm vi rỗng tại cuối | `[4, 4)` | `""` |
-| Chỉ số âm ở đầu | `[-1, 2)` | Ngoại lệ |
-| Chỉ số âm ở cuối | `[0, -1)` | Ngoại lệ |
-| Vượt chiều dài ở cuối | `[0, 5)` | Ngoại lệ |
-| Cả hai vượt chiều dài | `[5, 5)` | Ngoại lệ |
-| Đảo thứ tự | `[3, 2)` | Ngoại lệ |
-| Chuỗi rỗng | `""` và `[0, 0)` | `""` |
-| Chuỗi rỗng, index 1 | `""` và `[0, 1)` | Ngoại lệ |
-| Ký tự ngoài BMP | `"A😊B"`, `[1, 2)` | Phạm vi hợp lệ, nhưng cắt đôi surrogate |
+| Entire string | `[0, 4)` | `"Java"` |
+| Middle slice | `[1, 3)` | `"av"` |
+| Empty range in middle | `[2, 2)` | `""` |
+| Empty range at end | `[4, 4)` | `""` |
+| Negative start index | `[-1, 2)` | Exception |
+| Negative end index | `[0, -1)` | Exception |
+| End exceeds length | `[0, 5)` | Exception |
+| Both exceed length | `[5, 5)` | Exception |
+| Reversed order | `[3, 2)` | Exception |
+| Empty string | `""` and `[0, 0)` | `""` |
+| Empty string, index 1 | `""` and `[0, 1)` | Exception |
+| Non-BMP character | `"A😊B"`, `[1, 2)` | Valid range, but splits surrogate |
 
-Các kiểm thử này kiểm tra **ranh giới**, **trường hợp rỗng**, **độ dài**, và **tính đúng đắn Unicode** riêng biệt. Đừng coi việc `substring()` không ném ngoại lệ là bằng chứng phần cắt phù hợp với ý nghĩa “ký tự” của sản phẩm.
+These tests verify **boundaries**, **empty cases**, **length**, and **Unicode correctness** separately. Do not treat `substring()` not throwing an exception as proof that the slice matches the product's meaning of “character”.
 
-### 9.3. Bẫy hay gặp khi sửa lỗi
+### 9.3. Common Traps When Fixing Bugs
 
-- **Tự đảo tham số** nếu `begin > end`: không thể biết người gọi gõ nhầm hay cố ý truyền phạm vi đảo; sửa âm thầm có thể thay đổi ý nghĩa kết quả.
-- **Đổi chỉ số âm thành 0** khi lỗi đến từ `indexOf() == -1`: điều đó có thể khiến chương trình trích dữ liệu sai thay vì nhận ra dấu phân cách không tồn tại.
-- **Cắt tối đa `length`** trong hàm yêu cầu chính xác số ký tự: dữ liệu thiếu sẽ bị che giấu. Chỉ clamp khi hợp đồng hàm cho phép.
-- **Dùng `charAt(length)` vì `substring(length)` hợp lệ**: hai API có miền chỉ số khác nhau.
-- **Quên kết thúc loại trừ**: `substring(0, length - 1)` bỏ ký tự cuối; `substring(0, length + 1)` vượt biên.
-- **Dùng `length()` làm số “ký tự hiển thị”**: chuỗi có surrogate pair hoặc dấu kết hợp làm phép tính lệch với cách người đọc cảm nhận.
+- **Swapping parameters automatically** when `begin > end`: you cannot tell whether the caller made a typo or passed a reversed range intentionally; silent fixing can alter the meaning of the result.
+- **Turning a negative index into 0** when the error came from `indexOf() == -1`: this can make the program extract the wrong data instead of recognizing that the delimiter is missing.
+- **Clamping to `length`** in a function requiring an exact number of characters: missing data will be masked. Only clamp when the function's contract permits it.
+- **Using `charAt(length)` because `substring(length)` is valid**: the two APIs have different index domains.
+- **Forgetting exclusive end:** `substring(0, length - 1)` drops the last character; `substring(0, length + 1)` goes out of bounds.
+- **Using `length()` as the count of “visible characters”**: strings with surrogate pairs or combining marks make that calculation diverge from what a reader perceives.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-Đoán kết quả hoặc trường hợp ném ngoại lệ khi `s = "ABCD"`:
+Predict the output or exception cases when `s = "ABCD"`:
 
 ```java
 String s = "ABCD";
@@ -427,7 +427,7 @@ System.out.println("<" + s.substring(1, 1) + ">");
 System.out.println("<" + s.substring(s.length()) + ">");
 System.out.println("<" + s.substring(0, s.length()) + ">");
 
-// Xét riêng từng dòng bên dưới:
+// Consider each line below separately:
 // s.substring(-1, 2);
 // s.substring(2, 5);
 // s.substring(3, 2);
@@ -435,16 +435,16 @@ System.out.println("<" + s.substring(0, s.length()) + ">");
 // s.charAt(4);
 ```
 
-**Đáp án:**
+**Answers:**
 
-- Ba lệnh `println` lần lượt in `<>`, `<>` và `<ABCD>`.
-- `substring(-1, 2)` sai vì bắt đầu âm.
-- `substring(2, 5)` sai vì `end = 5 > length = 4`.
-- `substring(3, 2)` sai vì `begin > end`.
-- `substring(4, 4)` hợp lệ, trả `""`.
-- `charAt(4)` sai vì miền hợp lệ của `charAt` chỉ là `0..3`.
+- The three `println` statements print `<>`, `<>`, and `<ABCD>`, respectively.
+- `substring(-1, 2)` is invalid because the start is negative.
+- `substring(2, 5)` is invalid because `end = 5 > length = 4`.
+- `substring(3, 2)` is invalid because `begin > end`.
+- `substring(4, 4)` is valid and returns `""`.
+- `charAt(4)` is invalid because the valid domain of `charAt` is only `0..3`.
 
-**Quy tắc nhớ nhanh:**
+**Quick rule of thumb:**
 
 ```text
 substring(begin, end):
@@ -457,4 +457,4 @@ charAt(index):
     0 <= index < length
 ```
 
-Cần nhớ thêm một bước: các bất đẳng thức trên bảo vệ **phạm vi UTF-16**; muốn trích đúng một code point hoặc cụm ký tự hiển thị, phải dùng ranh giới Unicode tương ứng. Khi ứng dụng phân biệt rõ chỉ số âm, chỉ số vượt độ dài, thứ tự đảo, phạm vi rỗng và giới hạn Unicode, các thao tác trích xuất trở nên dễ kiểm tra và khó phát sinh lỗi dữ liệu âm thầm.
+Remember one extra step: the inequalities above protect **UTF-16 ranges**; to extract a complete code point or visible character cluster, use the corresponding Unicode boundaries. When an application clearly distinguishes negative indices, out-of-length indices, reversed order, empty ranges, and Unicode limits, extraction operations become easy to test and unlikely to introduce silent data corruption.

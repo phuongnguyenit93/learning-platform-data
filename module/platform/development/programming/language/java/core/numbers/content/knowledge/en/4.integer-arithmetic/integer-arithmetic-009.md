@@ -1,68 +1,68 @@
-# Trường hợp `MIN_VALUE` chia cho `-1` trong Java
+# The Case of `MIN_VALUE` Divided by `-1` in Java
 
-## 1. Kết quả gây bất ngờ
+## 1. A Surprising Result
 
-Trong toán học, nếu `a` là số nguyên âm thì `a / -1` là số đối dương của `a`. Nhưng trong Java, **`Integer.MIN_VALUE / -1` vẫn bằng `Integer.MIN_VALUE`**, và **`Long.MIN_VALUE / -1L` vẫn bằng `Long.MIN_VALUE`**.
+In mathematics, if `a` is a negative integer, then `a / -1` is the positive opposite of `a`. In Java, however, **`Integer.MIN_VALUE / -1` still equals `Integer.MIN_VALUE`**, and **`Long.MIN_VALUE / -1L` still equals `Long.MIN_VALUE`**.
 
-Đó là một trường hợp đặc biệt của **phép chia số nguyên có dấu**, được Java quy định rõ, không phải hành vi ngẫu nhiên của máy hoặc lỗi do JVM.
+This is a special case of **signed integer division**, explicitly specified by Java, not random hardware behavior or a JVM bug.
 
 ~~~java
 int intResult = Integer.MIN_VALUE / -1;   // -2147483648
 long longResult = Long.MIN_VALUE / -1L;  // -9223372036854775808
 ~~~
 
-Đoạn trên là mã minh họa; phía dưới có các chương trình đầy đủ để biên dịch và chạy.
+The snippet above is illustrative code; full programs to compile and run appear below.
 
-**Vì sao?** Giá trị số nguyên nhỏ nhất có độ lớn tuyệt đối lớn hơn số nguyên dương lớn nhất cùng kiểu một đơn vị:
+**Why?** The minimum integer value has a magnitude greater by one than the maximum positive integer of the same type:
 
-| Kiểu | `MIN_VALUE` | `MAX_VALUE` | Giá trị toán học `MIN_VALUE / -1` |
+| Type | `MIN_VALUE` | `MAX_VALUE` | Mathematical value of `MIN_VALUE / -1` |
 |---|---:|---:|---:|
-| `int` (32 bit) | −2.147.483.648 | 2.147.483.647 | **2.147.483.648** — vượt miền `int` |
-| `long` (64 bit) | −9.223.372.036.854.775.808 | 9.223.372.036.854.775.807 | **9.223.372.036.854.775.808** — vượt miền `long` |
+| `int` (32 bit) | −2,147,483,648 | 2,147,483,647 | **2,147,483,648** — exceeds `int` range |
+| `long` (64 bit) | −9,223,372,036,854,775,808 | 9,223,372,036,854,775,807 | **9,223,372,036,854,775,808** — exceeds `long` range |
 
-Kết quả dương chính xác không thể chứa trong kiểu số nguyên ban đầu. Phép chia thông thường `/` của Java **không báo overflow**: với cặp toán hạng duy nhất gây tràn thương có dấu là `MIN_VALUE` và `-1`, kết quả được quy định bằng chính `MIN_VALUE`.
+The exact positive result cannot fit in the original integer type. Java's standard division `/` **does not report overflow**: for the unique pair of operands causing signed quotient overflow—`MIN_VALUE` and `-1`—the result is specified to be `MIN_VALUE` itself.
 
-Điểm phân biệt cốt lõi:
+Key distinction:
 
-- **Chia cho `0`:** phép chia nguyên phát sinh `ArithmeticException`.
-- **Chia `MIN_VALUE` cho `-1`:** **không** phát sinh `ArithmeticException`; kết quả là `MIN_VALUE`.
-- **Chia các giá trị nguyên còn lại cho `-1`:** kết quả đúng bằng số đối của giá trị bị chia, nằm trong miền kiểu đích.
+- **Dividing by `0`:** integer division throws `ArithmeticException`.
+- **Dividing `MIN_VALUE` by `-1`:** does **not** throw `ArithmeticException`; the result is `MIN_VALUE`.
+- **Dividing all other integer values by `-1`:** the result equals the exact negation of the dividend, which lies within the target type's range.
 
-## 2. Cơ chế: miền không đối xứng và phép chia nguyên
+## 2. Mechanism: Asymmetric Range and Integer Division
 
-### 2.1. Tại sao miền số âm rộng hơn phía dương?
+### 2.1. Why Is the Negative Range Wider Than the Positive Side?
 
-Java sử dụng biểu diễn số nguyên có dấu theo dạng **bù hai (*two's complement*)** với độ rộng cố định. Với `int` 32 bit, giá trị nhỏ nhất là `-2^31` và lớn nhất là `2^31 - 1`. Với `long` 64 bit, giá trị nhỏ nhất là `-2^63` và lớn nhất là `2^63 - 1`.
+Java uses fixed-width **two's complement** signed integer representation. For 32-bit `int`, the minimum value is `-2^31` and the maximum is `2^31 - 1`. For 64-bit `long`, the minimum value is `-2^63` and the maximum is `2^63 - 1`.
 
-Vì vậy, kiểu `int` có thể lưu `-2147483648` nhưng **không thể** lưu `+2147483648`; kiểu `long` có thể lưu `-9223372036854775808` nhưng **không thể** lưu `+9223372036854775808`. Khi chia giá trị nhỏ nhất cho `-1`, thương toán học thuộc phía dương vượt quá `MAX_VALUE` đúng một đơn vị.
+Consequently, `int` can store `-2147483648` but **cannot** store `+2147483648`; `long` can store `-9223372036854775808` but **cannot** store `+9223372036854775808`. When dividing the minimum value by `-1`, the positive mathematical quotient exceeds `MAX_VALUE` by exactly one.
 
-Ở mức bit, giá trị `Integer.MIN_VALUE` có mẫu `0x80000000`, còn `Long.MIN_VALUE` có mẫu `0x8000000000000000L`. Các mẫu này không đổi khi thực hiện phép lấy số đối trong độ rộng tương ứng, do số đối toán học không thể biểu diễn. Java quy định riêng cho phép chia tương ứng để bảo đảm kết quả nhất quán.
+At the bit level, `Integer.MIN_VALUE` has the pattern `0x80000000`, and `Long.MIN_VALUE` has the pattern `0x8000000000000000L`. These bit patterns remain unchanged when negated within their respective widths because the mathematical opposite is unrepresentable. Java explicitly specifies the corresponding division behavior to guarantee consistent results.
 
-### 2.2. Quy tắc chia nguyên thông thường
+### 2.2. Standard Integer Division Rules
 
-Với toán hạng thuộc kiểu nguyên, toán tử `/`:
+For operands of integer types, the `/` operator:
 
-1. Tính thương nguyên và **loại phần lẻ về phía 0** (*truncate toward zero*), không tự làm tròn xuống theo nghĩa toán học.
-2. Nếu số chia bằng `0`, ném `ArithmeticException`.
-3. Nếu số bị chia là `Integer.MIN_VALUE` và số chia là `-1` trong phép toán kiểu `int`, trả `Integer.MIN_VALUE`. Trường hợp `long` tương ứng trả `Long.MIN_VALUE`.
-4. Các phép chia nguyên khác trả kết quả nằm trong miền của kiểu kết quả và không ném lỗi chỉ vì kết quả có dấu âm.
+1. Computes the integer quotient and **truncates the fractional part toward zero** (*truncate toward zero*), rather than mathematically rounding down.
+2. If the divisor equals `0`, throws `ArithmeticException`.
+3. If the dividend is `Integer.MIN_VALUE` and the divisor is `-1` in an `int` operation, returns `Integer.MIN_VALUE`. The corresponding `long` case returns `Long.MIN_VALUE`.
+4. Other integer divisions return a result within the result type's range and do not throw errors simply because the result is negative.
 
-Ví dụ:
+Examples:
 
-| Phép tính kiểu `int` | Kết quả `/` | Giải thích |
+| `int` operation | `/` result | Explanation |
 |---|---:|---|
-| `7 / 3` | `2` | Bỏ phần dư |
-| `-7 / 3` | `-2` | Làm tròn về 0 |
-| `7 / -3` | `-2` | Làm tròn về 0 |
-| `-7 / -3` | `2` | Làm tròn về 0 |
-| `Integer.MIN_VALUE / 1` | `Integer.MIN_VALUE` | Vẫn nằm trong miền |
-| `Integer.MIN_VALUE / -1` | `Integer.MIN_VALUE` | **Tràn thương đặc biệt, không ném lỗi** |
+| `7 / 3` | `2` | Drops remainder |
+| `-7 / 3` | `-2` | Truncates toward 0 |
+| `7 / -3` | `-2` | Truncates toward 0 |
+| `-7 / -3` | `2` | Truncates toward 0 |
+| `Integer.MIN_VALUE / 1` | `Integer.MIN_VALUE` | Still within range |
+| `Integer.MIN_VALUE / -1` | `Integer.MIN_VALUE` | **Special quotient overflow, no exception thrown** |
 
-**Lưu ý về kiểu:** Khi chia hai biến `byte`, `short` hoặc `char`, Java nâng toán hạng lên `int` theo *binary numeric promotion*. Các giá trị kiểu nhỏ được mở rộng rồi thực hiện chia trong `int`, nên **trường hợp tràn `MIN_VALUE / -1` chỉ đáng xét đối với phép chia mang kiểu tính toán `int` hoặc `long`**. Một biến `short` bằng `Short.MIN_VALUE` chia cho `-1` có thương `32768` hợp lệ trong `int`; gán kết quả ngược về `short` sẽ cần kiểm tra/ép kiểu riêng.
+**Note on types:** When dividing two `byte`, `short`, or `char` variables, Java promotes the operands to `int` via *binary numeric promotion*. Narrower values are widened and then divided in `int`, so **the `MIN_VALUE / -1` overflow case only matters for divisions evaluated in `int` or `long`**. A `short` variable equal to `Short.MIN_VALUE` divided by `-1` yields the quotient `32768`, which is valid in `int`; assigning the result back to `short` requires separate checking/casting.
 
-### 2.3. Không cần dấu âm đứng trong literal
+### 2.3. The Minus Sign Does Not Need to Be in a Literal
 
-`-1` trong biểu thức Java là toán tử âm một ngôi áp dụng lên literal `1`. Còn `Integer.MIN_VALUE` là hằng số `int` bằng `-2147483648`. Kết quả phép chia được xác định dựa trên **giá trị và kiểu toán hạng**, bất kể giá trị `-1` được tạo từ literal, biến, hoặc phương thức:
+`-1` in a Java expression is the unary minus operator applied to the literal `1`. Meanwhile, `Integer.MIN_VALUE` is an `int` constant equal to `-2147483648`. The division result depends on the **values and types of the operands**, regardless of whether `-1` comes from a literal, variable, or method:
 
 ~~~java
 int min = Integer.MIN_VALUE;
@@ -70,11 +70,11 @@ int divisor = -1;
 int quotient = min / divisor; // Integer.MIN_VALUE
 ~~~
 
-Đây là một đoạn minh họa; tình huống không thay đổi khi thay `divisor` bằng tham số truyền từ ngoài vào. Chính vì kết quả không ném exception, một phép chia như vậy có thể đi qua các nhánh xử lý thông thường mà ứng dụng không nhận ra overflow.
+This is an illustrative snippet; the situation does not change when `divisor` is replaced by an external parameter. Precisely because no exception is thrown, such a division can pass through normal code branches without the application noticing the overflow.
 
-## 3. Chương trình Java 17+ minh họa trực tiếp
+## 3. Direct Runnable Java 17+ Demonstration
 
-Tạo tệp `MinValueDivisionDemo.java`:
+Create a file `MinValueDivisionDemo.java`:
 
 ~~~java
 public class MinValueDivisionDemo {
@@ -94,14 +94,14 @@ public class MinValueDivisionDemo {
 }
 ~~~
 
-Dùng JDK 17 trở lên, chạy trong thư mục chứa tệp:
+Using JDK 17 or later, run in the directory containing the file:
 
 ~~~bash
 javac MinValueDivisionDemo.java
 java MinValueDivisionDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 intMin=-2147483648
@@ -114,39 +114,39 @@ normal=-2
 exactPositive=2147483648
 ~~~
 
-Các dòng `intDiv` và `longDiv` thể hiện chính xác trường hợp ngoại lệ về **giá trị kết quả**. Hai dòng `intRem` và `longRem` cho biết phần dư là 0; một phần dư bằng 0 **không chứng minh thương không bị tràn**. Dòng `exactPositive` cho thấy mở rộng `int` sang `long` **trước khi chia** sẽ nhận thương chính xác 2.147.483.648.
+The `intDiv` and `longDiv` lines demonstrate the exact edge case in **result value**. The `intRem` and `longRem` lines show a remainder of `0`; a zero remainder **does not prove the quotient did not overflow**. The `exactPositive` line shows that widening `int` to `long` **before dividing** yields the exact quotient `2,147,483,648`.
 
-## 4. Phần dư `%` và quan hệ với phép chia
+## 4. The Remainder `%` and Its Relationship with Division
 
-Trong Java, phép chia lấy dư nguyên `a % b` có cùng trường hợp chia cho 0 gây `ArithmeticException`, nhưng:
+In Java, integer remainder `a % b` shares the divide-by-zero `ArithmeticException` case, yet:
 
 ~~~java
 Integer.MIN_VALUE % -1  // 0
 Long.MIN_VALUE % -1L    // 0L
 ~~~
 
-Đó là kết quả **được quy định**, không phải dấu hiệu cho thấy phép chia an toàn. Với các phép chia không phải chia cho 0, số dư thỏa quan hệ:
+That is a **specified** result, not a sign that the division was safe. For divisions where the divisor is non-zero, the remainder satisfies the identity:
 
 `a == (a / b) * b + (a % b)`
 
-Khi `a = Integer.MIN_VALUE` và `b = -1`, biểu thức này vẫn đúng theo **số học `int` có tràn**: thương mang giá trị `Integer.MIN_VALUE`; nhân thương với `-1` cũng tràn trở lại `Integer.MIN_VALUE`; cộng phần dư 0 không đổi. Không thể dùng quan hệ này mà tính bằng cùng kiểu `int` để phát hiện overflow.
+When `a = Integer.MIN_VALUE` and `b = -1`, this identity still holds under **overflowing `int` arithmetic**: the quotient has value `Integer.MIN_VALUE`; multiplying the quotient by `-1` also overflows back to `Integer.MIN_VALUE`; adding remainder `0` leaves it unchanged. You cannot use this identity computed in the same `int` type to detect overflow.
 
-Ngoài ra, dấu của số dư `%` trong Java đi theo số bị chia (*dividend*) hoặc bằng 0. Ví dụ `-7 % 3` bằng `-1`, đi cùng `-7 / 3` bằng `-2`. Đây là phần của phép chia làm tròn về 0, khác một số định nghĩa phép modulo trong toán học.
+Additionally, the sign of the `%` remainder in Java follows the dividend or is `0`. For instance, `-7 % 3` equals `-1`, paired with `-7 / 3` equaling `-2`. This is part of truncating division toward zero, differing from some mathematical modulo definitions.
 
-### Phân biệt `Math.floorDiv` và `/`
+### Distinguishing `Math.floorDiv` and `/`
 
-`Math.floorDiv(a, b)` làm tròn thương **về âm vô cùng** (*floor*), nên `Math.floorDiv(-7, 3)` bằng `-3` trong khi `-7 / 3` bằng `-2`. Nhưng `Math.floorDiv` **không loại bỏ trường hợp tràn**:
+`Math.floorDiv(a, b)` rounds the quotient **toward negative infinity** (*floor*), so `Math.floorDiv(-7, 3)` equals `-3` while `-7 / 3` equals `-2`. However, `Math.floorDiv` **does not eliminate the overflow case**:
 
 ~~~java
 Math.floorDiv(Integer.MIN_VALUE, -1) // Integer.MIN_VALUE
 Math.floorMod(Integer.MIN_VALUE, -1) // 0
 ~~~
 
-Vì vậy, dùng `Math.floorDiv` để thay đổi cách làm tròn là hợp lý khi bài toán cần quy tắc đó, **nhưng không được coi nó là phép chia có kiểm tra overflow**.
+Therefore, using `Math.floorDiv` to change rounding semantics is appropriate when the problem requires that rule, **but it must not be treated as overflow-checked division**.
 
-## 5. Vì sao đổi kiểu *sau* khi chia không giúp được?
+## 5. Why Changing Type *After* Division Does Not Help
 
-Sự khác biệt giữa hai biểu thức sau là **thời điểm mở rộng kiểu**:
+The difference between the two expressions below is the **timing of type widening**:
 
 ~~~java
 int min = Integer.MIN_VALUE;
@@ -155,32 +155,32 @@ long tooLate = (long) (min / -1);
 long safeForIntMin = ((long) min) / -1;
 ~~~
 
-- `tooLate`: `min / -1` chạy trong kiểu `int` và trả `-2147483648`; sau đó cast sang `long` chỉ giữ lại kết quả đã tràn.
-- `safeForIntMin`: `min` được chuyển thành `long` **trước phép chia**; `2147483648` nằm trong miền `long`, nên phép chia trả thương dương chính xác.
+- `tooLate`: `min / -1` runs in `int` and returns `-2147483648`; casting to `long` afterward merely preserves the already-overflowed result.
+- `safeForIntMin`: `min` is converted to `long` **before the division**; `2147483648` fits within `long`, so the division returns the exact positive quotient.
 
-### Trường hợp `Long.MIN_VALUE`
+### The `Long.MIN_VALUE` Case
 
-Không tồn tại kiểu nguyên thủy Java nào rộng hơn `long`. Vì vậy, ép kiểu trong họ integer primitive không thể biểu diễn chính xác `Long.MIN_VALUE / -1L`. Khi thật sự cần thương toán học dương 9.223.372.036.854.775.808, dùng `BigInteger`:
+No primitive Java integer type is wider than `long`. Therefore, casting within the primitive integer family cannot accurately represent `Long.MIN_VALUE / -1L`. When the exact positive mathematical quotient `9,223,372,036,854,775,808` is genuinely needed, use `BigInteger`:
 
 ~~~java
 BigInteger exact = BigInteger.valueOf(Long.MIN_VALUE)
         .divide(BigInteger.valueOf(-1));
 ~~~
 
-Đây là **đoạn minh họa**, giả sử đã import `java.math.BigInteger`. Trong `BigInteger`, kết quả không giới hạn ở 64 bit cố định (nhưng vẫn bị giới hạn bởi bộ nhớ và tài nguyên). Nếu hệ thống cuối cùng bắt buộc trả về `long`, phải thông báo lỗi hoặc có chính sách riêng; không thể nhét thương đó vào `long` mà giữ chính xác.
+This is an **illustrative snippet**, assuming `java.math.BigInteger` is imported. In `BigInteger`, results are not bound to a fixed 64 bits (though still limited by memory and resources). If the system ultimately requires returning a `long`, it must report an error or follow a separate policy; that quotient cannot be stuffed into a `long` accurately.
 
-## 6. Phát hiện overflow thay vì nhận kết quả bị cuốn vòng
+## 6. Detecting Overflow Instead of Accepting Wraparound
 
-Khi API có yêu cầu phép chia **phải chính xác trong kiểu `int`**, hãy kiểm tra hai điều kiện trước khi dùng `/`:
+When an API requires division to **be exact within `int`**, check two conditions before using `/`:
 
-1. Số chia `divisor == 0`: không có phép chia nguyên hợp lệ.
-2. `dividend == Integer.MIN_VALUE && divisor == -1`: thương toán học không nằm trong miền `int`.
+1. Divisor `divisor == 0`: no valid integer division exists.
+2. `dividend == Integer.MIN_VALUE && divisor == -1`: the mathematical quotient does not fit in `int`.
 
-Với `long`, thay `Integer.MIN_VALUE` bằng `Long.MIN_VALUE` và dùng toán hạng `long`. Kiểm tra này bao phủ trường hợp thương chia nguyên vượt miền, vì chia một số nguyên cho trị tuyệt đối của số chia từ 1 trở lên không làm tăng trị tuyệt đối của số bị chia, ngoại trừ phép đổi dấu đối với `MIN_VALUE / -1`.
+For `long`, replace `Integer.MIN_VALUE` with `Long.MIN_VALUE` and use `long` operands. This check covers integer quotient overflow, because dividing an integer by a divisor of magnitude 1 or greater cannot increase the dividend's magnitude, except when negating via `MIN_VALUE / -1`.
 
-### Ví dụ độc lập: phép chia có kiểm tra
+### Standalone Example: Checked Division
 
-Tạo tệp `CheckedDivisionDemo.java`:
+Create a file `CheckedDivisionDemo.java`:
 
 ~~~java
 public class CheckedDivisionDemo {
@@ -234,7 +234,7 @@ javac CheckedDivisionDemo.java
 java CheckedDivisionDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 12 / -3=-4
@@ -244,18 +244,18 @@ longOverflow=long quotient overflow
 zeroDivisor=division by zero
 ~~~
 
-Phép kiểm tra tập trung ở **ranh giới thao tác số học**, giúp người gọi phân biệt phép chia cho 0 với overflow. Các thông điệp lỗi được đặt tường minh trong chương trình để đầu ra ổn định; không nên dựa vào chuỗi `ArithmeticException` mặc định của một JVM cụ thể để làm hợp đồng dữ liệu.
+Checks are centralized at the **arithmetic operation boundary**, helping callers distinguish division by zero from overflow. Error messages are explicitly set in the program for stable output; you should not rely on a specific JVM's default `ArithmeticException` message string as a data contract.
 
-**Đừng dùng `Math.abs(divisor)` như cách kiểm tra duy nhất**: `Math.abs(Integer.MIN_VALUE)` cũng nhận kết quả âm `Integer.MIN_VALUE`, vì trị tuyệt đối dương vượt miền `int`. Tương tự, `Math.negateExact(Integer.MIN_VALUE)` có thể phát hiện việc phủ định vượt miền, nhưng gọi phủ định để thay cho phép chia với mọi loại số chia là không cần thiết; hãy kiểm tra chính xác điều kiện phép chia.
+**Do not use `Math.abs(divisor)` as the sole check**: `Math.abs(Integer.MIN_VALUE)` also yields the negative result `Integer.MIN_VALUE`, because the positive magnitude exceeds the `int` range. Similarly, `Math.negateExact(Integer.MIN_VALUE)` can detect negation overflow, but calling negation instead of division for every divisor is unnecessary; check the exact division condition directly.
 
-## 7. Khi cần phép chia chính xác bằng `BigInteger`
+## 7. When Exact Division Requires `BigInteger`
 
-Nếu yêu cầu giữ lại thương toán học của phép chia `MIN_VALUE / -1`, chọn một kiểu đủ rộng **trước phép chia**:
+If preserving the mathematical quotient of `MIN_VALUE / -1` is required, choose a sufficiently wide type **before dividing**:
 
-- Với `int`: sử dụng `long` là đủ cho thương dương 2.147.483.648.
-- Với `long`: sử dụng `BigInteger` để có thương dương 9.223.372.036.854.775.808.
+- For `int`: using `long` suffices for the positive quotient `2,147,483,648`.
+- For `long`: using `BigInteger` yields the positive quotient `9,223,372,036,854,775,808`.
 
-Tạo tệp `ExactMinDivisionDemo.java`:
+Create a file `ExactMinDivisionDemo.java`:
 
 ~~~java
 import java.math.BigInteger;
@@ -289,7 +289,7 @@ javac ExactMinDivisionDemo.java
 java ExactMinDivisionDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 wideIntQuotient=2147483648
@@ -298,54 +298,54 @@ asLong=out of range
 bigRemainder=0
 ~~~
 
-`BigInteger.longValueExact()` ném `ArithmeticException` khi giá trị không còn vừa `long`. So với `longValue()` có thể cắt mất bit cao, phiên bản `Exact` phù hợp khi **mất thông tin không được phép**. Phép chia `BigInteger.divide` với các toán hạng nguyên sử dụng thương làm tròn về 0, tương ứng với cách làm tròn chia nguyên của Java trong những trường hợp thương có thể biểu diễn.
+`BigInteger.longValueExact()` throws `ArithmeticException` when the value no longer fits in `long`. Compared to `longValue()`, which can truncate high bits, the `Exact` variant fits when **silent data loss is unacceptable**. `BigInteger.divide` with integer operands uses a quotient truncated toward zero, matching Java's integer division rounding in representable cases.
 
-## 8. Hệ quả với logic nghiệp vụ và an toàn dữ liệu
+## 8. Consequences for Business Logic and Data Safety
 
-Dù hiếm gặp, `MIN_VALUE / -1` đáng chú ý khi đầu vào là số nguyên bất kỳ do người dùng hoặc dịch vụ khác gửi tới. Nếu một phép chia xuất hiện trong tính toán giới hạn, quota, phân chia khối lượng, bộ đếm hoặc kiểm tra ngưỡng, **giá trị đáng lẽ dương nhưng lại âm** có thể làm sai nhánh điều kiện.
+Although rare, `MIN_VALUE / -1` matters when inputs are arbitrary integers sent by users or external services. If a division appears in limit calculations, quotas, volume splits, counters, or threshold checks, **a value that should be positive turning negative** can trigger the wrong conditional branch.
 
-Ví dụ giả định:
+Hypothetical example:
 
 ~~~java
 int quotient = amount / divisor;
 if (quotient >= 0) {
-    // Xử lý cho trường hợp không âm
+    // Handle non-negative case
 }
 ~~~
 
-Đây là **đoạn minh họa**. Nếu `amount == Integer.MIN_VALUE` và `divisor == -1`, nhánh trên sẽ không chạy, mặc dù thương toán học là số dương. Một kiểm tra `divisor != 0` là cần thiết nhưng **chưa đủ** để bảo đảm thương biểu diễn chính xác.
+This is an **illustrative snippet**. If `amount == Integer.MIN_VALUE` and `divisor == -1`, the branch above will not execute, even though the mathematical quotient is positive. A `divisor != 0` check is necessary but **not sufficient** to guarantee an exact representable quotient.
 
-Khi thiết kế xử lý:
+When designing handling:
 
-- Nếu API cho phép kết quả `int`/`long` cố định: kiểm tra và thông báo overflow trước khi chia.
-- Nếu phép toán phải chính xác với mọi đầu vào trong miền `int`: nâng lên `long` trước khi chia (và quyết định kiểu kết quả trả ra).
-- Nếu phải chính xác với mọi đầu vào trong miền `long`: sử dụng `BigInteger` cho phép tính/kết quả phù hợp.
-- Nếu quy tắc làm tròn về âm vô cùng quan trọng: `Math.floorDiv` giải quyết **cách làm tròn**, nhưng vẫn cần kiểm tra riêng trường hợp tràn.
+- If the API permits only fixed `int`/`long` results: check and report overflow before dividing.
+- If the operation must be exact for all inputs in the `int` range: widen to `long` before dividing (and decide the return type).
+- If it must be exact for all inputs in the `long` range: use `BigInteger` for the appropriate calculation/result.
+- If floor rounding toward negative infinity matters: `Math.floorDiv` handles **the rounding rule**, yet still requires checking the overflow case separately.
 
-Khi viết test, kiểm tra **biên**, không chỉ các số đẹp: `MIN_VALUE / 1`, `MIN_VALUE / -1`, `MIN_VALUE % -1`, `MAX_VALUE / -1`, `0 / -1`, số chia `0` và một phép chia âm có phần dư như `-7 / 3`.
+When writing tests, test **boundaries**, not just clean numbers: `MIN_VALUE / 1`, `MIN_VALUE / -1`, `MIN_VALUE % -1`, `MAX_VALUE / -1`, `0 / -1`, divisor `0`, and a negative division with remainder like `-7 / 3`.
 
-## 9. Những nhầm lẫn thường gặp
+## 9. Common Misconceptions
 
-| Phát biểu | Đánh giá | Giải thích |
+| Statement | Verdict | Explanation |
 |---|---|---|
-| “Chia `MIN_VALUE` cho `-1` sẽ ném `ArithmeticException`.” | Sai | Phép chia nguyên `/` trả `MIN_VALUE` theo đặc tả. |
-| “`MIN_VALUE / -1` cho `MAX_VALUE`.” | Sai | Kết quả là **`MIN_VALUE`**, không phải giá trị dương lớn nhất. |
-| “Phần dư bằng 0 có nghĩa phép chia không overflow.” | Sai | `MIN_VALUE % -1` bằng 0 dù thương tràn. |
-| “Ép kết quả phép chia từ `int` sang `long` sẽ sửa overflow.” | Sai | Cần mở rộng **trước khi tính**. |
-| “`Math.floorDiv` tự phát hiện tràn thương.” | Sai | Nó thay quy tắc làm tròn, không kiểm tra biên `MIN_VALUE / -1`. |
-| “`BigInteger` bị tràn như `long` khi chia.” | Sai | Không bị giới hạn bởi độ rộng 64 bit; bị giới hạn bởi tài nguyên thực tế. |
-| “Bảo vệ phép chia cho 0 là đủ để tính toán an toàn.” | Sai | Còn phải kiểm tra thương vượt miền nếu bài toán yêu cầu tính chính xác. |
+| "Dividing `MIN_VALUE` by `-1` throws `ArithmeticException`." | False | Integer division `/` returns `MIN_VALUE` per the specification. |
+| "`MIN_VALUE / -1` produces `MAX_VALUE`." | False | The result is **`MIN_VALUE`**, not the maximum positive value. |
+| "A remainder of 0 means the division did not overflow." | False | `MIN_VALUE % -1` equals `0` even though the quotient overflows. |
+| "Casting the division result from `int` to `long` fixes overflow." | False | You must widen **before computing**. |
+| "`Math.floorDiv` automatically detects quotient overflow." | False | It changes the rounding rule, without checking the `MIN_VALUE / -1` boundary. |
+| "`BigInteger` overflows like `long` during division." | False | It is not bounded by 64-bit width; it is bounded by available system resources. |
+| "Guarding against division by 0 is enough for safe arithmetic." | False | You must also check quotient overflow if the problem requires exact arithmetic. |
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-1. Vì sao phép chia `Integer.MIN_VALUE / -1` có thương toán học không thể biểu diễn bằng `int`?
-2. Java thực sự trả giá trị gì khi thực hiện phép chia đó? Có ném exception không?
-3. `Long.MIN_VALUE / -1L` có cùng vấn đề không? Cần kiểu nào để biểu diễn thương dương chính xác?
-4. Kết quả `Integer.MIN_VALUE % -1` bằng bao nhiêu? Có thể xem phép `%` là cơ chế phát hiện overflow không?
-5. Hai biểu thức `(long) (Integer.MIN_VALUE / -1)` và `((long) Integer.MIN_VALUE) / -1` khác gì nhau?
-6. `Math.floorDiv(-7, 3)` khác `-7 / 3` như thế nào? `Math.floorDiv(Integer.MIN_VALUE, -1)` có tự tránh overflow không?
-7. Viết điều kiện tối thiểu để phép chia `int x / int y` trả thương chính xác hoặc phát sinh lỗi, không bao giờ âm thầm cuốn vòng ở biên.
+1. Why does `Integer.MIN_VALUE / -1` have a mathematical quotient that cannot be represented in `int`?
+2. What value does Java actually return for that division? Does it throw an exception?
+3. Does `Long.MIN_VALUE / -1L` have the same issue? Which type is needed to represent the exact positive quotient?
+4. What does `Integer.MIN_VALUE % -1` equal? Can `%` serve as an overflow detection mechanism?
+5. How do `(long) (Integer.MIN_VALUE / -1)` and `((long) Integer.MIN_VALUE) / -1` differ?
+6. How does `Math.floorDiv(-7, 3)` differ from `-7 / 3`? Does `Math.floorDiv(Integer.MIN_VALUE, -1)` automatically avoid overflow?
+7. Write the minimal condition for `int x / int y` to return an exact quotient or throw an error, never silently wrapping at the boundary.
 
-**Đáp án gợi ý:** (1) Miền `int` không đối xứng, thiếu số dương `2147483648`. (2) Trả `Integer.MIN_VALUE`, không ném exception. (3) Có; dùng `BigInteger` nếu cần thương chính xác. (4) `0`; không. (5) Biểu thức thứ nhất tràn trước khi cast, biểu thức thứ hai được nâng lên `long` trước phép chia. (6) `-3` so với `-2`; `floorDiv` vẫn trả `MIN_VALUE` ở biên. (7) Kiểm tra `y == 0` và `x == Integer.MIN_VALUE && y == -1` trước khi dùng `x / y`.
+**Suggested Answers:** (1) The `int` range is asymmetric, lacking positive `2147483648`. (2) Returns `Integer.MIN_VALUE`, no exception thrown. (3) Yes; use `BigInteger` if an exact quotient is needed. (4) `0`; no. (5) The first overflows before casting, while the second widens to `long` before dividing. (6) `-3` vs. `-2`; `floorDiv` still returns `MIN_VALUE` at the boundary. (7) Check `y == 0` and `x == Integer.MIN_VALUE && y == -1` before evaluating `x / y`.
 
-**Ghi nhớ:** Trong phép chia số nguyên có dấu của Java, **`MIN_VALUE / -1` là trường hợp thương toán học vượt miền nhưng toán tử `/` vẫn trả chính `MIN_VALUE`**. Nếu kết quả phải chính xác, hãy **kiểm tra overflow hoặc mở rộng kiểu trước phép tính**; chia cho 0 là lỗi riêng biệt.
+**Key Takeaway:** In Java signed integer division, **`MIN_VALUE / -1` is the case where the mathematical quotient exceeds the range, yet the `/` operator still returns `MIN_VALUE` itself**. If the result must be exact, **check for overflow or widen the type before the operation**; division by zero is a separate error.

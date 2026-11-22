@@ -1,8 +1,8 @@
-# Tên biến cục bộ và thông tin debug không phải API Core Reflection thông thường
+# Local Variable Names and Debug Information Are Not Standard Core Reflection APIs
 
-## 1. Vấn đề: Reflection thấy được gì trong một phương thức?
+## 1. The Problem: What Does Reflection See Inside a Method?
 
-Giả sử một phương thức Java có **tham số** `owner`, `amount` và **biến cục bộ** `fee`, `label`:
+Suppose a Java method has **parameters** `owner`, `amount` and **local variables** `fee`, `label`:
 
 ~~~java
 public static int compute(String owner, int amount) {
@@ -12,35 +12,35 @@ public static int compute(String owner, int amount) {
 }
 ~~~
 
-Có ba câu hỏi rất khác nhau:
+There are three very different questions:
 
-1. **Phương thức nhận những kiểu tham số nào?** Core Reflection trả lời bằng `Method.getParameterTypes()`, `getGenericParameterTypes()`, `getParameterCount()`.
-2. **Tên khai báo của tham số là gì?** `Method.getParameters()` trả về các `Parameter`, nhưng tên gốc `owner`, `amount` chỉ đáng tin khi class file có metadata tương ứng, thường do `javac -parameters` tạo.
-3. **Trong thân phương thức có các biến cục bộ nào, tên và giá trị của chúng là gì?** **Không có API `Method.getLocalVariables()` trong Core Reflection**. Tên `fee`, `label` có thể được compiler ghi trong thông tin debug tùy chọn của bytecode, nhưng API `java.lang.reflect` thông thường không cung cấp danh sách đó và cũng không cho đọc giá trị local của một stack frame đang chạy.
+1. **Which parameter types does the method accept?** Core Reflection answers with `Method.getParameterTypes()`, `getGenericParameterTypes()`, and `getParameterCount()`.
+2. **What are the declared names of the parameters?** `Method.getParameters()` returns `Parameter` objects, but original names `owner`, `amount` are reliable only when the class file has corresponding metadata, typically produced by `javac -parameters`.
+3. **Which local variables exist in the method body, and what are their names and values?** **There is no `Method.getLocalVariables()` API in Core Reflection.** Names `fee` and `label` may be recorded by the compiler in optional bytecode debug information, but ordinary `java.lang.reflect` APIs do not provide that list and cannot read local values of a running stack frame.
 
-Sự khác nhau này quan trọng khi viết công cụ inspector, serializer, dependency injection, framework gọi method động, debugger hoặc công cụ phân tích bytecode. Người học cần tách rõ **cấu trúc của class**, **chữ ký phương thức**, **metadata debug** và **trạng thái stack frame tại một thời điểm**.
+This distinction matters when writing inspectors, serializers, dependency injection containers, dynamic method invocation frameworks, debuggers, or bytecode analysis tools. Learners must separate **class structure**, **method signatures**, **debug metadata**, and **stack frame state at a point in time**.
 
-Bài học chỉ tập trung vào Java Core và giới hạn Reflection; các công cụ bytecode/debug chuyên dụng được giới thiệu để chọn giải pháp khi cần, không triển khai debugger hoàn chỉnh.
+This lesson focuses solely on Java Core and Reflection limits; specialized bytecode/debug tools are introduced for choosing a solution when needed, not to implement a full debugger.
 
-## 2. Field, tham số và biến cục bộ là ba loại dữ liệu khác nhau
+## 2. Fields, Parameters, and Local Variables Are Three Different Kinds of Data
 
-| Thành phần | Khai báo điển hình | Nơi tồn tại/ý nghĩa | API phù hợp |
+| Component | Typical declaration | Where it lives / meaning | Appropriate API |
 | --- | --- | --- | --- |
-| **Instance field** | `private String name;` trong class | Trạng thái của một object | `Class.getDeclaredFields()`, `Field.get(obj)` theo quyền |
-| **Static field** | `static int counter;` trong class | Trạng thái gắn với class | `Class.getDeclaredFields()`, `Field.get(null)` theo quyền |
-| **Formal parameter** | `String owner, int amount` trong khai báo method | Đầu vào được khai báo trong **chữ ký method/constructor** | `Executable.getParameters()`, `Parameter`, `Method.getParameterTypes()` |
-| **Local variable** | `int fee = ...;` trong thân method | Biến theo phạm vi ngôn ngữ trong thân method; có thể được biểu diễn tại local slot/stack hoặc tối ưu hóa | Không có API Core Reflection thông thường để liệt kê/đọc như `Field` |
-| **Temporary value** | Giá trị trung gian trong phép tính bytecode | Không nhất thiết có tên source hoặc vị trí lưu ổn định | Công cụ bytecode/debug đặc thù, nếu có bằng chứng phù hợp |
+| **Instance field** | `private String name;` in a class | State of an object | `Class.getDeclaredFields()`, `Field.get(obj)` as permitted |
+| **Static field** | `static int counter;` in a class | State associated with a class | `Class.getDeclaredFields()`, `Field.get(null)` as permitted |
+| **Formal parameter** | `String owner, int amount` in method declaration | Input declared in the **method/constructor signature** | `Executable.getParameters()`, `Parameter`, `Method.getParameterTypes()` |
+| **Local variable** | `int fee = ...;` in method body | Language-scoped variable inside a method body; may be represented in a local slot/stack or optimized away | No standard Core Reflection API to list/read like `Field` |
+| **Temporary value** | Intermediate value in bytecode computation | Not necessarily named in source or stored in a stable location | Specialized bytecode/debug tools, if suitable evidence exists |
 
-**`Field` chỉ mô tả field**, không đại diện cho `int fee` hay `String label` trong method. Do đó, `getDeclaredFields()` không phải giải pháp “quét tất cả biến” trong class.
+**`Field` only describes fields**; it does not represent `int fee` or `String label` inside a method. Therefore, `getDeclaredFields()` is not a solution for "scanning all variables" in a class.
 
-**`Parameter` mô tả tham số được khai báo của một `Executable`** (`Method` hoặc `Constructor`), không mô tả mọi local variable trong thân method. Dù biến `fee` được dùng để tính toán, nó không xuất hiện trong `getParameters()`.
+**`Parameter` describes declared parameters of an `Executable`** (`Method` or `Constructor`), not every local variable in a method body. Even though `fee` is used in computation, it does not appear in `getParameters()`.
 
-**Một runtime local cũng không tương đương một “ô nhớ cố định”.** JVM có khái niệm local-variable array của mỗi frame, nhưng việc ánh xạ tên biến source vào slot phụ thuộc compiler, phạm vi bytecode, tối ưu hóa và thông tin debug tùy chọn; không thể suy ra một cách phổ quát từ API Reflection.
+**A runtime local is also not equivalent to a "fixed memory cell".** The JVM has the concept of each frame's local-variable array, but mapping source variable names to slots depends on the compiler, bytecode scope, optimizations, and optional debug information; it cannot be universally inferred from Reflection APIs.
 
-## 3. Core Reflection truy cập metadata tham số đến đâu?
+## 3. How Far Does Core Reflection Access Parameter Metadata?
 
-Ví dụ API:
+API example:
 
 ~~~java
 Method method = Example.class.getDeclaredMethod(
@@ -50,29 +50,29 @@ Class<?>[] types = method.getParameterTypes();
 Parameter[] parameters = method.getParameters();
 ~~~
 
-Đây là đoạn minh họa cần các import `java.lang.reflect.Method` và `java.lang.reflect.Parameter` cùng class `Example` chứa method tương ứng; ví dụ runnable đầy đủ nằm ở phần sau.
+This illustrative snippet requires importing `java.lang.reflect.Method` and `java.lang.reflect.Parameter` along with an `Example` class containing the corresponding method; a full runnable example appears in a later section.
 
-Những API đáng nắm:
+APIs worth knowing:
 
-| API | Trả về | Điều không thể suy ra |
+| API | Returns | What cannot be inferred |
 | --- | --- | --- |
-| `Method.getName()` | Tên method | Không cho tên các biến trong thân method |
-| `Method.getParameterCount()` | Số tham số được mô tả trong method descriptor | Không cho tên local |
-| `Method.getParameterTypes()` | Các `Class<?>` ứng với kiểu tham số runtime | Không giữ đầy đủ generic arguments |
-| `Method.getGenericParameterTypes()` | Metadata kiểu generic được khai báo khi có | Không phải metadata local variables |
-| `Method.getParameters()` | Mảng `Parameter` theo thứ tự tham số | Không có nghĩa tên khai báo luôn được lưu |
-| `Parameter.getName()` | Tên tham số từ metadata nếu có; có thể là tên tổng hợp `arg0`, `arg1` | Không bảo đảm là tên trong mã nguồn |
-| `Parameter.isNamePresent()` | `true` nếu class file có tên cho tham số đó trong **MethodParameters** | Không chứng minh thông tin debug của local có mặt |
-| `Parameter.getType()` | Kiểu thô runtime của tham số | Không cho giá trị local |
-| `Parameter.isSynthetic()`, `isImplicit()` | Cờ mô tả tham số do compiler tạo/ngầm định nếu được ghi nhận | Không phải phép đo mọi biến tạm trong thân method |
+| `Method.getName()` | Method name | Does not give names of variables inside the method body |
+| `Method.getParameterCount()` | Number of parameters described in the method descriptor | Does not give local names |
+| `Method.getParameterTypes()` | `Class<?>` objects matching runtime parameter types | Does not preserve full generic arguments |
+| `Method.getGenericParameterTypes()` | Declared generic type metadata when present | Not local-variable metadata |
+| `Method.getParameters()` | Array of `Parameter` in parameter order | Does not mean declared names are always stored |
+| `Parameter.getName()` | Parameter name from metadata if present; may be synthesized `arg0`, `arg1` | Not guaranteed to be the name in source code |
+| `Parameter.isNamePresent()` | `true` if the class file has a name for that parameter in **MethodParameters** | Does not prove local debug information is present |
+| `Parameter.getType()` | Raw runtime type of the parameter | Does not give local values |
+| `Parameter.isSynthetic()`, `isImplicit()` | Flags describing compiler-generated/implicit parameters if recorded | Not a measure of all temporary variables in the method body |
 
-**Quy tắc an toàn:** chỉ hiển thị `getName()` như tên tham số gốc khi `isNamePresent()` trả **true**. Nếu `false`, có thể nhận `arg0`, `arg1`… theo vị trí. Các tên này hữu ích cho hiển thị fallback nhưng không nên xem là hợp đồng nghiệp vụ ổn định.
+**Safe rule:** display `getName()` as the original parameter name only when `isNamePresent()` returns **true**. If `false`, you may get `arg0`, `arg1`, ... by position. These names are useful for fallback display but should not be treated as a stable business contract.
 
-Cờ `-parameters` dành riêng cho việc lưu tên tham số phương thức/constructor trong class file để Reflection đọc. Không suy từ việc stack trace có số dòng rằng tên tham số đã được lưu.
+The `-parameters` flag is specifically for storing method/constructor parameter names in the class file for Reflection to read. Do not infer from a stack trace having line numbers that parameter names were stored.
 
-## 4. Ví dụ Java 17+ có thể chạy và so sánh hai cách biên dịch
+## 4. Runnable Java 17+ Example Comparing Two Compilation Modes
 
-Lưu nguyên văn chương trình thành **LocalNameDemo.java**:
+Save the program verbatim as **LocalNameDemo.java**:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -105,14 +105,14 @@ public class LocalNameDemo {
 }
 ~~~
 
-**Lượt A — biên dịch với cấu hình `javac` mặc định, không bật `-parameters`:**
+**Run A — compile with default `javac` configuration, without `-parameters`:**
 
 ~~~bash
 javac -encoding UTF-8 LocalNameDemo.java
 java LocalNameDemo
 ~~~
 
-Đầu ra của class được biên dịch **không có MethodParameters chứa tên tham số**:
+Output of the class compiled **without MethodParameters containing parameter names**:
 
 ~~~text
 method=compute
@@ -123,14 +123,14 @@ return=int
 result=5
 ~~~
 
-**Lượt B — biên dịch lại cùng tệp với `-parameters`:**
+**Run B — recompile the same file with `-parameters`:**
 
 ~~~bash
 javac -encoding UTF-8 -parameters LocalNameDemo.java
 java LocalNameDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 method=compute
@@ -141,59 +141,59 @@ return=int
 result=5
 ~~~
 
-`result=5` vì `fee=20/10=2`, chuỗi `"Lan:2"` có năm ký tự.
+`result=5` because `fee=20/10=2`, and the string `"Lan:2"` has five characters.
 
-Trong cả hai lượt, **Core Reflection vẫn nhận đúng số lượng và kiểu tham số**, vẫn tìm được method bằng `getDeclaredMethod("compute", String.class, int.class)`, và `compute` vẫn chạy như nhau. Thứ thay đổi là **tên tham số được lưu trong class file và hiển thị qua Parameter**.
+In both runs, **Core Reflection still gets the exact parameter count and types**, still finds the method with `getDeclaredMethod("compute", String.class, int.class)`, and `compute` still runs identically. What changes is **the parameter names stored in the class file and exposed via Parameter**.
 
-Quan trọng hơn, dù đã bật `-parameters`, chương trình **không có** một lệnh `method.getLocalVariables()` để liệt kê `fee`, `label` qua Reflection. Đây là hai biến nằm **trong thân method**, khác vị trí metadata của `owner`, `amount`.
+More importantly, even with `-parameters` enabled, the program **has no** `method.getLocalVariables()` call to list `fee` and `label` through Reflection. Those are two variables **inside the method body**, a different metadata location from `owner` and `amount`.
 
-**Điều kiện để so sánh đúng:** biên dịch lại thật sự cùng class vào thư mục đang chạy và không dùng file `.class` cũ trong classpath. Các build tool/IDE có thể bật `-parameters` hoặc các tùy chọn compiler theo cấu hình dự án; trong bài thực hành này dùng trực tiếp `javac` với tùy chọn như ghi ở trên.
+**Condition for a valid comparison:** genuinely recompile the same class into the running directory and do not use an old `.class` file on the classpath. Build tools/IDEs may enable `-parameters` or other compiler options according to project configuration; in this hands-on exercise, use `javac` directly with the options written above.
 
-## 5. Thông tin debug trong bytecode: LocalVariableTable
+## 5. Debug Information in Bytecode: LocalVariableTable
 
-Class file có thể chứa các attribute tùy chọn phục vụ debug. Với tên biến cục bộ, thành phần thường gặp là **LocalVariableTable** nằm trong thuộc tính **Code** của method.
+A class file can contain optional attributes for debugging. For local variable names, the common component is **LocalVariableTable**, located inside a method's **Code** attribute.
 
-Một entry của **LocalVariableTable** chứa thông tin như:
+An entry of **LocalVariableTable** contains fields such as:
 
-| Trường | Ý nghĩa |
+| Field | Meaning |
 | --- | --- |
-| `start_pc` | Offset bytecode bắt đầu vùng sống được mô tả |
-| `length` | Độ dài vùng bytecode nơi entry có ý nghĩa |
-| `name_index` | Tham chiếu tên biến trong constant pool |
-| `descriptor_index` | Tham chiếu mô tả kiểu JVM của biến |
-| `index` | Slot trong local-variable array của frame |
+| `start_pc` | Bytecode offset where the described live range begins |
+| `length` | Length of the bytecode range over which the entry is meaningful |
+| `name_index` | Reference to the variable name in the constant pool |
+| `descriptor_index` | Reference to the JVM type descriptor of the variable |
+| `index` | Slot in the frame's local-variable array |
 
-Đây là **metadata gắn với một vùng bytecode**, không phải một tập giá trị luôn tồn tại và truy cập được từ object **Method**. Cùng một slot có thể được sử dụng lại cho biến khác khi phạm vi sống không chồng lên nhau; một biến trong source có thể không có entry phù hợp trong bytecode được tối ưu hoặc biến đổi.
+This is **metadata attached to a bytecode region**, not a collection of values that always exists and can be accessed from a **Method** object. The same slot can be reused for another variable when live ranges do not overlap; a source variable might not have a corresponding entry in optimized or transformed bytecode.
 
-Ngoài **LocalVariableTable**, class file có thể có **LocalVariableTypeTable** để mô tả chữ ký kiểu generic của một số biến. Sự xuất hiện của những bảng này phụ thuộc compiler, chế độ sinh debug và các bước biến đổi class file.
+In addition to **LocalVariableTable**, a class file may have **LocalVariableTypeTable** to describe generic type signatures of some variables. Whether these tables appear depends on the compiler, debug-generation mode, and class-file transformation steps.
 
-Các loại metadata hay bị lẫn:
+Metadata types often confused with one another:
 
-| Attribute/cơ chế | Thông tin | Cách tạo/đọc phổ biến |
+| Attribute / Mechanism | Information | Common way to generate / read |
 | --- | --- | --- |
-| **MethodParameters** | Tên và cờ một số tham số method/constructor | `javac -parameters`; `Executable.getParameters()` |
-| **LocalVariableTable** | Tên/kiểu/slot/vùng bytecode của local, có thể gồm tham số | `javac -g:vars` hoặc `-g`; xem `javap -l`, bytecode parser, debugger |
-| **LocalVariableTypeTable** | Signature kiểu generic cho một số local variable | Debug metadata khi được phát hành |
-| **LineNumberTable** | Ánh xạ bytecode offset sang dòng nguồn | `javac` debug lines; debugger và stack trace có thể tận dụng |
-| **SourceFile** | Tên tệp nguồn | Debug source metadata |
-| **StackMapTable** | Thông tin kiểu dùng cho bytecode verification | **Không** phải danh sách tên local source |
+| **MethodParameters** | Names and flags of certain method/constructor parameters | `javac -parameters`; `Executable.getParameters()` |
+| **LocalVariableTable** | Name/type/slot/bytecode range of locals, may include parameters | `javac -g:vars` or `-g`; view with `javap -l`, bytecode parser, debugger |
+| **LocalVariableTypeTable** | Generic type signature for certain local variables | Debug metadata when emitted |
+| **LineNumberTable** | Maps bytecode offsets to source lines | `javac` debug lines; debuggers and stack traces can leverage it |
+| **SourceFile** | Source file name | Debug source metadata |
+| **StackMapTable** | Type information used for bytecode verification | **Not** a list of source local names |
 
-Những bảng này **không thay thế nhau**. Đặc biệt, **`-g:vars` không làm `Parameter.isNamePresent()` thành true** theo hợp đồng API `Parameter`: phương thức đó kiểm tra thông tin tên được khai báo qua **MethodParameters**, không dùng LocalVariableTable để tái tạo tên tham số.
+These tables **do not replace one another**. In particular, **`-g:vars` does not make `Parameter.isNamePresent()` become true** under the `Parameter` API contract: that method checks name information declared via **MethodParameters**, not using LocalVariableTable to reconstruct parameter names.
 
-## 6. Tùy chọn javac: -parameters khác -g:vars thế nào?
+## 6. javac Options: How Does `-parameters` Differ from `-g:vars`?
 
-| Lệnh biên dịch | Tên tham số qua Core Reflection | LocalVariableTable |
+| Compilation command | Parameter names via Core Reflection | LocalVariableTable |
 | --- | --- | --- |
-| `javac LocalNameDemo.java` | Thông thường `arg0`, `arg1`, `isNamePresent=false` | Mặc định `javac` không bật thông tin debug local variables |
-| `javac -parameters LocalNameDemo.java` | `owner`, `amount`, `isNamePresent=true` | Không vì thế tự yêu cầu `LocalVariableTable` |
-| `javac -g:vars LocalNameDemo.java` | Vẫn không có tên tham số qua `Parameter.isNamePresent()` nếu thiếu `-parameters` | Có thông tin debug local theo khả năng compiler |
-| `javac -parameters -g:vars LocalNameDemo.java` | Có tên tham số | Có metadata local |
-| `javac -g LocalNameDemo.java` | Không tự tương đương `-parameters` | Sinh đầy đủ thông tin debug, gồm local variables |
-| `javac -g:none -parameters LocalNameDemo.java` | Vẫn có tên tham số nhờ `-parameters` | Không yêu cầu debug local variables |
+| `javac LocalNameDemo.java` | Typically `arg0`, `arg1`, `isNamePresent=false` | By default `javac` does not enable local-variable debug info |
+| `javac -parameters LocalNameDemo.java` | `owner`, `amount`, `isNamePresent=true` | Does not thereby request `LocalVariableTable` |
+| `javac -g:vars LocalNameDemo.java` | Still no parameter names via `Parameter.isNamePresent()` if `-parameters` is missing | Has local debug info as supported by the compiler |
+| `javac -parameters -g:vars LocalNameDemo.java` | Has parameter names | Has local metadata |
+| `javac -g LocalNameDemo.java` | Not automatically equivalent to `-parameters` | Generates full debug info, including local variables |
+| `javac -g:none -parameters LocalNameDemo.java` | Still has parameter names thanks to `-parameters` | Does not request local-variable debug info |
 
-**Lưu ý:** `-g:vars` chỉ chọn metadata cho local variables; nếu cần đồng thời số dòng/tệp nguồn, dùng `-g` hoặc tổ hợp phù hợp như `-g:lines,vars,source`.
+**Note:** `-g:vars` selects metadata only for local variables; if you also need line numbers/source file, use `-g` or an appropriate combination such as `-g:lines,vars,source`.
 
-Để trực tiếp quan sát cấu trúc trong bytecode, hãy chạy lần lượt:
+To directly observe the structure in bytecode, run in sequence:
 
 ~~~bash
 javac -encoding UTF-8 -parameters -g LocalNameDemo.java
@@ -201,7 +201,7 @@ javap -v -p LocalNameDemo
 javap -c -l -p LocalNameDemo
 ~~~
 
-Trong `javap -v`, tìm vùng **MethodParameters** của method **compute**; trong phần **Code** của method, tìm **LocalVariableTable**. `javap -l` giúp liệt kê thông tin dòng và bảng local khi có. Dạng rút gọn minh họa sau cho thấy ý tưởng, **không phải bản sao nguyên vẹn tất cả dòng output**:
+In `javap -v`, look for the **MethodParameters** section of method **compute**; inside the method's **Code** section, look for **LocalVariableTable**. `javap -l` lists line information and local tables when present. The following abbreviated illustration shows the idea, **not a verbatim copy of every output line**:
 
 ~~~text
 MethodParameters:
@@ -218,119 +218,119 @@ LocalVariableTable:
   ...           ...   label   Ljava/lang/String;
 ~~~
 
-Các số `Start`, `Length`, `Slot` phụ thuộc bytecode compiler tạo ra. Không viết test dựa trên số slot và offset giả định ổn định giữa các bản JDK hoặc các tùy chọn compiler.
+The numbers `Start`, `Length`, and `Slot` depend on the bytecode the compiler emits. Do not write tests relying on slot numbers and offsets assumed to be stable across JDK versions or compiler options.
 
-**Giải thích quan trọng:** nhìn thấy `fee` và `label` bằng công cụ đọc class file chứng minh bytecode có **metadata debug** về chúng. Điều đó **không tạo thêm phương thức** `getLocalVariables()` cho đối tượng Reflection **Method**, và **không có nghĩa có thể đọc giá trị của chúng từ mọi thời điểm hoặc thread**.
+**Important explanation:** seeing `fee` and `label` with a class-file reader proves the bytecode has **debug metadata** about them. That **does not add a** `getLocalVariables()` **method** to the Reflection **Method** object, and **does not mean their values can be read from any time or thread**.
 
-## 7. Tên biến và giá trị biến đang chạy là hai bài toán riêng
+## 7. Variable Names and Running Variable Values Are Two Separate Problems
 
-### Đọc tên biến từ class file
+### Reading Variable Names from a Class File
 
-Một công cụ phân tích bytecode có thể đọc bảng **LocalVariableTable** nếu bảng tồn tại. Nó cần giải mã cấu trúc class file và ánh xạ local slot với phạm vi bytecode; đây là công việc của công cụ class-file/bytecode chứ không phải thao tác `Field.get`.
+A bytecode analysis tool can read the **LocalVariableTable** if it exists. It must decode the class-file structure and map local slots to bytecode ranges; that is the job of a class-file/bytecode tool, not a `Field.get` operation.
 
-Nếu class được biên dịch thiếu debug metadata, đã bị strip, obfuscate hoặc biến đổi, tên local gốc có thể không còn. **Không thể bảo đảm khôi phục chính xác tên trong source chỉ từ bytecode**. Công cụ decompiler đôi khi đặt tên phỏng đoán; đó không phải tên gốc được chứng minh.
+If a class was compiled without debug metadata, or was stripped, obfuscated, or transformed, original local names may no longer remain. **Accurate recovery of source names from bytecode alone cannot be guaranteed.** Decompilers sometimes invent guessed names; those are not proven original names.
 
-### Đọc giá trị local trong lúc phương thức đang thực thi
+### Reading Local Values While a Method Is Executing
 
-Giá trị runtime của local gắn với **stack frame** và thời điểm thực thi, không phải thuộc tính của class hay instance. Debugger cần dừng/quan sát đúng thread và frame rồi dùng cơ chế debug/VM thích hợp; nó còn phụ thuộc khả năng JVM, thông tin debug, trạng thái tối ưu hóa, phạm vi biến và quyền/khả năng kết nối.
+The runtime value of a local belongs to a **stack frame** and an execution point, not a property of a class or instance. A debugger must suspend/inspect the right thread and frame and use appropriate debug/VM mechanisms; it also depends on JVM capabilities, debug info, optimization state, variable scope, and connection permissions/capabilities.
 
-Ví dụ trong debugger, `fee` có thể quan sát được khi execution đang dừng tại dòng sử dụng nó. Nhưng nếu method đã return, frame tương ứng không còn để lấy giá trị local như một field của object. `Method` không thể đọc lại giá trị `fee` chỉ nhờ biết tên method.
+For instance, in a debugger, `fee` can be observed while execution is paused on a line that uses it. Once the method has returned, however, the corresponding frame no longer exists to retrieve local values like an object field. `Method` cannot read `fee`'s value back merely by knowing the method name.
 
-**Stack trace** cũng không phải dữ liệu local: `StackTraceElement` có tên class, method, tệp nguồn/dòng khi khả dụng, nhưng không chứa tên và giá trị mọi biến cục bộ. `StackWalker` cho khả năng duyệt frame metadata nâng cao, không phải API đọc tất cả local như debugger.
+**Stack traces** are not local data either: `StackTraceElement` has class name, method name, and source file/line when available, but does not contain the names and values of all local variables. `StackWalker` provides advanced frame-metadata traversal, not a debugger-style API to read all locals.
 
-### Công cụ chuyên dụng khi thật sự cần
+### Specialized Tools When Truly Needed
 
-| Nhu cầu | Hướng công cụ | Giới hạn cần hiểu |
+| Need | Tooling direction | Limitations to understand |
 | --- | --- | --- |
-| Hiển thị tên/kiểu tham số public API | Core Reflection `Method.getParameters()` + `-parameters` | Metadata tùy chọn, cần kiểm tra `isNamePresent()` |
-| Phân tích danh sách local trong bytecode | `javap`, class-file parser; thư viện ASM khi dự án cần | Không bảo đảm debug metadata tồn tại |
-| Dừng chương trình và xem stack frame/local | **JDI/JDWP**, IDE debugger | Có thể thiếu thông tin, giá trị phụ thuộc trạng thái frame, có quyền và phiên debug |
-| Instrumentation/agent/VM tooling | **JVMTI**, agent chuyên dụng hoặc công cụ quan sát thích hợp | Phạm vi kỹ thuật cao, phụ thuộc năng lực VM và chính sách triển khai |
-| Theo dõi giá trị phục vụ nghiệp vụ | Logging/tracing/telemetry do code chủ động xuất ra | Thiết kế dữ liệu cần ghi; tránh thu thập thông tin nhạy cảm |
+| Display public API parameter names/types | Core Reflection `Method.getParameters()` + `-parameters` | Optional metadata; must check `isNamePresent()` |
+| Inspect list of locals in bytecode | `javap`, class-file parser; ASM library when a project needs it | Debug metadata is not guaranteed to exist |
+| Pause program and inspect stack frames/locals | **JDI/JDWP**, IDE debugger | Info may be missing; values depend on frame state, permissions, and debug session |
+| Instrumentation/agent/VM tooling | **JVMTI**, specialized agent, or suitable observability tools | High technical scope; depends on VM capabilities and deployment policy |
+| Track values for business purposes | Logging/tracing/telemetry explicitly emitted by code | Design what data to record; avoid collecting sensitive info |
 
-Với **JDI** (Java Debug Interface), debugger có thể truy vấn local-variable metadata từ method và đọc giá trị ở stack frame khi hợp lệ; thiếu debug metadata có thể dẫn đến **AbsentInformationException**. Đây là API riêng cho debug, **không đồng nghĩa Core Reflection dùng trong ứng dụng thông thường**.
+With **JDI** (Java Debug Interface), a debugger can query local-variable metadata from a method and read values in a stack frame when valid; missing debug metadata can result in **AbsentInformationException**. This is a dedicated debugging API, **not synonymous with Core Reflection used in ordinary applications**.
 
-## 8. Hạn chế thực tế đối với tool sinh tự động
+## 8. Practical Limitations for Auto-Generation Tools
 
-### Đừng dựa vào tên tham số khi chưa xác minh
+### Do Not Rely on Parameter Names Without Verification
 
-Nếu viết router gọi method theo tên tham số, trình biên dịch không bật `-parameters` có thể chỉ cho `arg0`, `arg1`. Điều này đặc biệt dễ xảy ra khi thư viện được biên dịch ngoài tầm kiểm soát hoặc build pipeline không nhất quán.
+If you write a router that invokes methods by parameter name, a compiler without `-parameters` may provide only `arg0`, `arg1`. This happens especially easily when libraries are compiled outside your control or build pipelines are inconsistent.
 
-Khi tên tham số quan trọng cho hợp đồng API, hãy:
-1. Quy định rõ cờ compile cho source bạn kiểm soát.
-2. Dùng `Parameter.isNamePresent()` để phát hiện thiếu metadata.
-3. Xác định fallback hoặc báo lỗi cấu hình rõ ràng; không đoán tên tham số từ vị trí.
-4. Cân nhắc annotation khai báo key ổn định (ví dụ annotation tự định nghĩa) khi đó thực sự là hợp đồng dữ liệu.
+When parameter names matter for an API contract, do the following:
+1. Explicitly specify compiler flags for sources you control.
+2. Use `Parameter.isNamePresent()` to detect missing metadata.
+3. Define a fallback or explicit configuration error; do not guess parameter names from position.
+4. Consider an annotation declaring a stable key (for example a custom annotation) when it is truly a data contract.
 
-### Đừng biến debug metadata thành API hợp đồng
+### Do Not Turn Debug Metadata into an API Contract
 
-`LocalVariableTable` được thiết kế cho mục đích debug và có thể thiếu hoặc khác giữa các bản build. Không dùng `fee` hay `label` như key ổn định trong serializer, cấu hình, JSON hoặc giao diện người dùng.
+`LocalVariableTable` is designed for debugging and may be missing or differ between builds. Do not use `fee` or `label` as stable keys in serializers, configuration, JSON, or user interfaces.
 
-Đổi tên local không làm thay đổi chữ ký method theo cách Reflection dùng để tra cứu `getDeclaredMethod`; nhưng nếu một tool phụ thuộc tên từ bytecode debug thì tool đó trở nên mong manh. Một compiler có thể loại bỏ hoặc thay đổi local khi tối ưu hóa, instrumentation cũng có thể viết lại metadata.
+Renaming a local variable does not change the method signature as Reflection uses it to look up `getDeclaredMethod`; however, if a tool depends on names from debug bytecode, that tool becomes fragile. A compiler can eliminate or alter locals when optimizing, and instrumentation can rewrite metadata as well.
 
-### Đừng kết luận metadata phản ánh tất cả source
+### Do Not Conclude Metadata Reflects All Source
 
-Một local trong source có thể bị chia phạm vi, gộp slot hoặc không xuất hiện như một biến riêng biệt có thể quan sát. Một số biến do compiler sinh ra cũng có thể xuất hiện, trong khi biến từ source không còn tên. Chỉ dùng những gì class file thực tế ghi nhận; không khẳng định đầy đủ.
+A local in source may have its scope split, share slots, or fail to appear as a distinct observable variable. Some compiler-generated variables may also appear, while source variables lose their names. Use only what the class file actually records; do not claim completeness.
 
-### Không cố truy cập local bằng setAccessible(true)
+### Do Not Try to Access Locals Using setAccessible(true)
 
-`AccessibleObject.setAccessible(true)` liên quan đến kiểm tra quyền truy cập **member Reflection** như field/method/constructor trong phạm vi được phép; nó không tạo API truy vấn local của một stack frame. Không có `Field` cho biến `fee` để áp dụng `Field.get`.
+`AccessibleObject.setAccessible(true)` relates to access checks on **Reflection members** such as fields/methods/constructors within permitted boundaries; it does not create an API to query locals of a stack frame. There is no `Field` for variable `fee` to apply `Field.get` to.
 
-## 9. Các nhầm lẫn phổ biến
+## 9. Common Misconceptions
 
-| Nhầm lẫn | Điều đúng | Cách kiểm chứng |
+| Misconception | Fact | How to verify |
 | --- | --- | --- |
-| “`getDeclaredFields()` thấy mọi biến trong class” | Chỉ field được khai báo trên class đó; không liệt kê biến bên trong method | So sánh danh sách Field với source có `fee`, `label` |
-| “`getParameters()` trả tên local variable” | Nó trả formal parameter của method/constructor | Xem `owner`, `amount` so với `fee`, `label` |
-| “Có `-g` tức là `Parameter.isNamePresent()` chắc chắn true” | `-g` và `-parameters` là hai cơ chế metadata khác nhau | Compile hai cấu hình rồi chạy chương trình |
-| “`-parameters` lưu tất cả biến cục bộ” | Nó lưu metadata tên tham số, không bật bảng debug local theo mục đích đó | Dùng `javap -v -p` |
-| “`LocalVariableTable` có tên thì `Method` đọc được giá trị local” | Metadata bytecode khác dữ liệu một frame runtime | Kiểm tra API thực tế của `java.lang.reflect.Method` |
-| “Stack trace sẽ cho tất cả local values” | Stack trace chứa vị trí gọi/metadata frame, không có danh sách giá trị local | In `new Exception().getStackTrace()` |
-| “`arg0` là chắc chắn tên tác giả đặt” | Thường là tên fallback khi thiếu MethodParameters | Kiểm tra `isNamePresent()` |
-| “Decompiler luôn khôi phục chính xác tên source” | Có thể tạo tên suy đoán khi thiếu debug metadata | So sánh class biên dịch với `-g:none` và `-g` |
+| "`getDeclaredFields()` sees every variable in a class" | Only fields declared on that class; does not list variables inside methods | Compare the Field list with source containing `fee`, `label` |
+| "`getParameters()` returns local variable names" | It returns formal parameters of the method/constructor | Compare `owner`, `amount` with `fee`, `label` |
+| "With `-g`, `Parameter.isNamePresent()` is definitely true" | `-g` and `-parameters` are two different metadata mechanisms | Compile both configurations and run the program |
+| "`-parameters` stores all local variables" | It stores parameter-name metadata, not enabling local debug tables for that purpose | Use `javap -v -p` |
+| "If `LocalVariableTable` has a name, `Method` can read the local value" | Bytecode metadata differs from runtime frame data | Check the actual API of `java.lang.reflect.Method` |
+| "A stack trace gives all local values" | Stack traces contain call location/frame metadata, not a list of local values | Print `new Exception().getStackTrace()` |
+| "`arg0` is definitely the name the author chose" | Usually a fallback name when MethodParameters is absent | Check `isNamePresent()` |
+| "Decompilers always accurately recover source names" | May generate guessed names when debug metadata is missing | Compare classes compiled with `-g:none` vs `-g` |
 
-## 10. Thực hành theo trình tự
+## 10. Step-by-Step Practice
 
-**Bài 1 — Tên tham số:** chạy `LocalNameDemo` sau khi biên dịch không có `-parameters`, rồi bật cờ này. Ghi lại sự thay đổi của `getName()` và `isNamePresent()`; giải thích vì sao `getParameterCount()` không đổi.
+**Exercise 1 — Parameter names:** run `LocalNameDemo` after compiling without `-parameters`, then enable that flag. Record the changes in `getName()` and `isNamePresent()`; explain why `getParameterCount()` does not change.
 
-**Bài 2 — Metadata debug:** biên dịch `-g:vars` mà không có `-parameters`. Dùng `javap -v -p` để tìm `LocalVariableTable`; chạy `LocalNameDemo` và giải thích vì sao `Parameter.isNamePresent()` vẫn có thể false.
+**Exercise 2 — Debug metadata:** compile with `-g:vars` without `-parameters`. Use `javap -v -p` to find `LocalVariableTable`; run `LocalNameDemo` and explain why `Parameter.isNamePresent()` can still be false.
 
-**Bài 3 — Hai loại metadata cùng xuất hiện:** biên dịch `-parameters -g`, kiểm tra **MethodParameters** và **LocalVariableTable** trong `javap -v`. So sánh `owner`/`amount` với `fee`/`label` ở các bảng khác nhau.
+**Exercise 3 — Both metadata types present:** compile with `-parameters -g`, inspect **MethodParameters** and **LocalVariableTable** in `javap -v`. Compare `owner`/`amount` with `fee`/`label` across the different tables.
 
-**Bài 4 — Không có debug:** biên dịch `-g:none` rồi kiểm tra bằng `javap -l -p`. Nhận xét những thông tin bị thiếu, và vì sao ứng dụng vẫn chạy đúng dù không có tên local source.
+**Exercise 4 — Without debug:** compile with `-g:none` then inspect with `javap -l -p`. Note which information is missing, and why the application still runs properly even without source local names.
 
-**Bài 5 — Field so với local:** thêm `private int counter;` vào class, dùng `LocalNameDemo.class.getDeclaredFields()`. Chỉ ra field **counter** nhưng không có biến local **fee** hoặc **label**.
+**Exercise 5 — Fields vs locals:** add `private int counter;` to the class, use `LocalNameDemo.class.getDeclaredFields()`. Point out the **counter** field while local variables **fee** and **label** are absent.
 
-**Bài 6 — Thiết kế inspector:** viết hàm nhận `Method`, xuất tên method, danh sách kiểu tham số và tên tham số nếu `isNamePresent()`; nếu thiếu tên, in nhãn **parameter #0**, **parameter #1**. Không phụ thuộc tên fallback như thể đó là tên source.
+**Exercise 6 — Inspector design:** write a function accepting a `Method` that outputs the method name, list of parameter types, and parameter names if `isNamePresent()`; if names are missing, print labels **parameter #0**, **parameter #1**. Do not rely on fallback names as if they were source names.
 
-## 11. Tự kiểm tra kiến thức
+## 11. Knowledge Self-Check
 
-**Câu 1.** `Method.getParameters()` và `Class.getDeclaredFields()` có đọc được `fee` trong ví dụ không?  
-**Đáp án:** Không. `fee` là local trong thân method; hai API trên mô tả formal parameters và field.
+**Question 1.** Can `Method.getParameters()` and `Class.getDeclaredFields()` read `fee` in the example?  
+**Answer:** No. `fee` is a local inside the method body; those two APIs describe formal parameters and fields.
 
-**Câu 2.** Vì sao `getName()` có thể là `arg0` ngay khi tên source là `owner`?  
-**Đáp án:** Class file có thể thiếu MethodParameters ghi tên gốc; kiểm tra `isNamePresent()`.
+**Question 2.** Why can `getName()` be `arg0` even when the source name is `owner`?  
+**Answer:** The class file may lack MethodParameters recording original names; check `isNamePresent()`.
 
-**Câu 3.** Cờ `-parameters` khác `-g:vars` thế nào?  
-**Đáp án:** `-parameters` lưu tên formal parameters cho Core Reflection; `-g:vars` lưu thông tin debug local variables trong bytecode.
+**Question 3.** How does the `-parameters` flag differ from `-g:vars`?  
+**Answer:** `-parameters` stores formal parameter names for Core Reflection; `-g:vars` stores local-variable debug information in bytecode.
 
-**Câu 4.** Biết tên `label` từ `javap` có đủ để lấy giá trị hiện tại của nó bằng Reflection không?  
-**Đáp án:** Không. Debug metadata không đồng nghĩa một frame đang tồn tại và không tạo API đọc giá trị local trong `java.lang.reflect`.
+**Question 4.** Is knowing the name `label` from `javap` enough to retrieve its current value using Reflection?  
+**Answer:** No. Debug metadata does not imply an active frame exists and does not create an API to read local values in `java.lang.reflect`.
 
-**Câu 5.** Nếu một framework cần key tên tham số ổn định thì nên làm gì?  
-**Đáp án:** Kiểm soát build `-parameters`, xác thực metadata hoặc dùng annotation/metadata hợp đồng tường minh.
+**Question 5.** If a framework needs stable parameter-name keys, what should it do?  
+**Answer:** Control builds with `-parameters`, validate metadata, or use explicit contract annotations/metadata.
 
-**Câu 6.** JDI và JVMTI thuộc cùng cấp API với Reflection thông thường không?  
-**Đáp án:** Không. Chúng là cơ chế debugger/VM tooling chuyên biệt với điều kiện hoạt động và quyền riêng.
+**Question 6.** Do JDI and JVMTI belong to the same API tier as ordinary Reflection?  
+**Answer:** No. They are specialized debugger/VM tooling mechanisms with their own operating conditions and permissions.
 
-**Tiêu chí hoàn thành:** bạn giải thích được khác biệt **field – formal parameter – local variable**, chạy hai lần biên dịch cho kết quả `isNamePresent()` khác nhau, nhận diện **MethodParameters** và **LocalVariableTable** khi đọc bytecode, và biết khi nào cần debugger hoặc class-file tooling thay vì cố dùng Reflection.
+**Completion criteria:** you can explain the difference between **field – formal parameter – local variable**, run two compilations producing different `isNamePresent()` results, identify **MethodParameters** and **LocalVariableTable** when reading bytecode, and know when a debugger or class-file tooling is required instead of trying to force Reflection.
 
-## 12. Nguồn chuẩn để tra cứu
+## 12. Authoritative References
 
-- [Java SE: `java.lang.reflect.Parameter` và `isNamePresent()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Parameter.html) — ngữ nghĩa tên tham số theo MethodParameters.
-- [Java SE: `java.lang.reflect.Executable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Executable.html) — API dùng chung cho Method và Constructor.
-- [JDK `javac` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html) — tùy chọn `-parameters`, `-g`, `-g:vars`.
+- [Java SE: `java.lang.reflect.Parameter` and `isNamePresent()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Parameter.html) — semantics of parameter names via MethodParameters.
+- [Java SE: `java.lang.reflect.Executable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Executable.html) — shared API for Method and Constructor.
+- [JDK `javac` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html) — `-parameters`, `-g`, `-g:vars` options.
 - [JVMS, Class File Format §4.7](https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html) — MethodParameters, LocalVariableTable, LocalVariableTypeTable.
-- [Java SE: `com.sun.jdi` package](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/com/sun/jdi/package-summary.html) — cơ chế debug ngoài Core Reflection.
+- [Java SE: `com.sun.jdi` package](https://docs.oracle.com/en/java/javase/21/docs/api/jdk.jdi/com/sun/jdi/package-summary.html) — debugging mechanism outside Core Reflection.
 
-Thông tin debug là nguồn dữ liệu hữu ích khi có mặt và được dùng đúng mục đích; **không phải cam kết rằng API Reflection mặc định có thể khôi phục tên hoặc giá trị của mọi local variable trong một phương thức Java**.
+Debug information is a useful data source when present and used for its intended purpose; **it is not a guarantee that default Reflection APIs can recover the names or values of all local variables in a Java method**.

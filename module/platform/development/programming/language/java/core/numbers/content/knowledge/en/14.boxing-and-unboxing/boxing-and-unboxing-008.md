@@ -1,43 +1,43 @@
-# Objects.equals và xử lý wrapper có thể null trong Java
+# Objects.equals and Handling Nullable Wrappers in Java
 
-Trong Java, các kiểu wrapper như `Integer`, `Long`, `Double`, `Boolean` là **kiểu tham chiếu**, vì vậy biến wrapper có thể chứa `null`. Dù autoboxing/unboxing khiến nhiều biểu thức trông giống đang làm việc với primitive, **unboxing một tham chiếu null sẽ ném `NullPointerException`**. Mặt khác, gọi `a.equals(b)` cũng ném ngoại lệ nếu `a == null`.
+In Java, wrapper types such as `Integer`, `Long`, `Double`, and `Boolean` are **reference types**, so wrapper variables can hold `null`. Even though autoboxing/unboxing makes many expressions look like they work with primitives, **unboxing a null reference throws `NullPointerException`**. On the other hand, calling `a.equals(b)` also throws an exception if `a == null`.
 
-`java.util.Objects.equals(a, b)` là công cụ tiêu chuẩn để so sánh hai đối tượng **mà không cần gọi `equals` trên một tham chiếu có thể null**. Tuy nhiên nó **không** tự chuyển `Integer` thành `Long`, **không** unbox để so sánh số học và **không** thay thế chính sách xử lý dữ liệu thiếu. Bài học trình bày cơ chế, các góc cạnh và cách viết code Java 17+ an toàn.
+`java.util.Objects.equals(a, b)` is the standard tool for comparing two objects **without calling `equals` on a potentially null reference**. However, it does **not** automatically convert `Integer` to `Long`, does **not** unbox for numeric comparison, and does **not** replace a missing-data handling policy. This lesson presents the mechanism, corner cases, and how to write safe Java 17+ code.
 
-## 1. Wrapper nullable khác primitive như thế nào?
+## 1. How do nullable wrappers differ from primitives?
 
 ~~~java
-int primitive = 0;          // Luôn có giá trị int
-Integer wrapper = null;     // Có thể null
+int primitive = 0;          // Always has an int value
+Integer wrapper = null;     // Can be null
 Integer boxed = 0;          // Autoboxing: int -> Integer
 int unboxed = boxed;        // Unboxing: Integer -> int
 ~~~
 
-Các wrapper `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `Character` và `Boolean` là các lớp tham chiếu. Chúng có thể đại diện cho **giá trị cụ thể** hoặc **không có đối tượng** (`null`). `null` không đồng nghĩa với số 0, `false` hoặc NaN.
+The wrappers `Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`, `Character`, and `Boolean` are reference classes. They can represent a **concrete value** or **no object** (`null`). `null` is not synonymous with zero, `false`, or NaN.
 
-| Trạng thái | Ví dụ | Ý nghĩa |
+| State | Example | Meaning |
 | --- | --- | --- |
-| Primitive `int` | `0` | Có giá trị số nguyên 0 |
-| Wrapper `Integer` | `Integer.valueOf(0)` | Có object chứa giá trị 0 |
-| Wrapper `Integer` | `null` | Không có object để lấy giá trị |
-| Primitive `double` | `Double.NaN` | Có một giá trị `double` đặc biệt; **không phải null** |
+| Primitive `int` | `0` | Has integer value 0 |
+| Wrapper `Integer` | `Integer.valueOf(0)` | Has an object containing value 0 |
+| Wrapper `Integer` | `null` | No object from which to retrieve a value |
+| Primitive `double` | `Double.NaN` | Has a special `double` value; **not null** |
 
-Một wrapper null có thể xuất hiện từ trường dữ liệu tùy chọn, một ô thiếu trong dữ liệu ngoài, giá trị trả về của API hoặc phần tử trong collection. Nếu yêu cầu nghiệp vụ phân biệt “không biết” và “bằng 0”, dùng wrapper nullable có thể phù hợp; nếu trường luôn bắt buộc, primitive hoặc validation không-null thường giúp loại bỏ một trạng thái lỗi.
+A null wrapper can arise from an optional data field, a missing cell in external data, an API return value, or a collection element. If business requirements distinguish “unknown” from “equals 0”, using a nullable wrapper may fit; if a field is always required, primitives or non-null validation typically eliminate an error state.
 
-## 2. Ba cách so sánh và mức an toàn khi null
+## 2. Three comparison approaches and null-safety levels
 
-### Cách 1 — `a.equals(b)`
+### Approach 1 — `a.equals(b)`
 
 ~~~java
 Integer a = null;
 Integer b = 5;
 
-// a.equals(b); // NullPointerException: a là null
+// a.equals(b); // NullPointerException: a is null
 ~~~
 
-Khi `a` không null, lời gọi `a.equals(b)` trả về boolean theo hợp đồng equality của object. Nhưng nếu `a` có thể null, bạn phải kiểm tra trước.
+When `a` is non-null, calling `a.equals(b)` returns a boolean according to the object's equality contract. However, if `a` might be null, you must check first.
 
-### Cách 2 — `Objects.equals(a, b)`
+### Approach 2 — `Objects.equals(a, b)`
 
 ~~~java
 import java.util.Objects;
@@ -50,7 +50,7 @@ boolean second = Objects.equals(a, null);  // true
 boolean third = Objects.equals(null, null); // true
 ~~~
 
-`Objects.equals` định nghĩa logic tương đương:
+`Objects.equals` defines equivalent logic:
 
 ~~~java
 static boolean equivalentToObjectsEquals(Object a, Object b) {
@@ -58,33 +58,33 @@ static boolean equivalentToObjectsEquals(Object a, Object b) {
 }
 ~~~
 
-Đây là **phương thức minh họa**, không phải định nghĩa thay thế của thư viện Java. Các nhánh có ý nghĩa:
+This is an **illustrative method**, not a replacement for the Java library definition. The branches mean:
 
-- Hai đối số cùng null → `true`, vì cùng tham chiếu null.
-- Một null, một khác null → `false`.
-- Hai đối tượng cùng tham chiếu → `true`.
-- Hai object khác tham chiếu và `a` khác null → gọi `a.equals(b)`.
+- Both arguments null → `true`, because both are the null reference.
+- One null, one non-null → `false`.
+- Two objects sharing the same reference → `true`.
+- Two objects with different references and `a` non-null → calls `a.equals(b)`.
 
-Cụm “null-safe” nghĩa là công cụ **không gọi một phương thức instance trên đối số đầu tiên đang null**. Nó không có nghĩa có thể che mọi lỗi trong custom `equals` do lập trình viên tự viết, hoặc biến dữ liệu null thành một giá trị số.
+The phrase “null-safe” means the utility **does not call an instance method on a first argument that is null**. It does not mean it can mask every bug in a developer's custom `equals`, or turn null data into a numeric value.
 
-### Cách 3 — toán tử `==`
+### Approach 3 — the `==` operator
 
-`==` có **hai ngữ nghĩa** tùy kiểu tĩnh của toán hạng:
+`==` has **two semantics** depending on the static types of its operands:
 
 ~~~java
 Integer x = Integer.valueOf(5);
 Integer y = Integer.valueOf(5);
 int five = 5;
 
-boolean numberComparison = (x == five);  // true, unbox x
-boolean referenceComparison = (x == y);  // kiểm tra cùng tham chiếu
+boolean numberComparison = (x == five);  // true, unboxes x
+boolean referenceComparison = (x == y);  // checks for same reference
 ~~~
 
-Ở phép `x == five`, Java unbox `Integer` thành `int` rồi so sánh primitive; nếu `x` null có thể ném `NullPointerException`. Ở `x == y` khi **cả hai toán hạng là các tham chiếu `Integer`**, Java so sánh tham chiếu object. Kết quả có thể phụ thuộc cơ chế cache đối tượng; không dùng `==` để biểu thị value equality giữa wrapper. Ngoại lệ đáng nhớ: `x == null` là phép so sánh tham chiếu, **không unbox `x`** và an toàn.
+In `x == five`, Java unboxes `Integer` to `int` and compares primitives; if `x` is null, it can throw `NullPointerException`. In `x == y` when **both operands are `Integer` references**, Java compares object references. The result can depend on object caching; do not use `==` to express value equality between wrappers. Notable exception: `x == null` is a reference comparison, **does not unbox `x`**, and is safe.
 
-## 3. `Objects.equals` không tự unbox hoặc nâng kiểu
+## 3. `Objects.equals` does not auto-unbox or promote types
 
-Các wrapper số triển khai `equals` theo lớp cụ thể. Vì vậy:
+Numeric wrappers implement `equals` per concrete class. Therefore:
 
 ~~~java
 Integer count = Integer.valueOf(10);
@@ -95,62 +95,62 @@ boolean differentWrappers = Objects.equals(count, total);         // false
 boolean literalsWithDifferentTypes = Objects.equals(10, 10L);     // false
 ~~~
 
-Ở dòng cuối, Java boxing đối số `10` thành `Integer` và `10L` thành `Long` khi truyền cho phương thức nhận `Object`; `Objects.equals` không thực hiện phép số học `10 == 10L`.
+On the last line, Java boxes the arguments `10` to `Integer` and `10L` to `Long` when passing them to a method accepting `Object`; `Objects.equals` does not perform the arithmetic comparison `10 == 10L`.
 
-So sánh nhanh:
+Quick comparison:
 
-| Biểu thức | Kết quả | Tại sao? |
+| Expression | Result | Why? |
 | --- | --- | --- |
-| `Objects.equals(null, null)` | `true` | Cả hai tham chiếu null |
-| `Objects.equals(null, 10)` | `false` | Chỉ một bên null |
-| `Objects.equals(10, 10)` | `true` | Cùng wrapper `Integer`, cùng giá trị |
-| `Objects.equals(10, 10L)` | `false` | `Integer` khác `Long` |
+| `Objects.equals(null, null)` | `true` | Both references are null |
+| `Objects.equals(null, 10)` | `false` | Only one side is null |
+| `Objects.equals(10, 10)` | `true` | Same `Integer` wrapper, same value |
+| `Objects.equals(10, 10L)` | `false` | `Integer` differs from `Long` |
 | `10 == 10L` | `true` | Primitive numeric promotion |
-| `Objects.equals(Double.NaN, Double.NaN)` | `true` | `Double.equals` xem hai NaN bằng nhau |
-| `Objects.equals(+0.0, -0.0)` | `false` | `Double.equals` phân biệt zero có dấu |
+| `Objects.equals(Double.NaN, Double.NaN)` | `true` | `Double.equals` treats two NaNs as equal |
+| `Objects.equals(+0.0, -0.0)` | `false` | `Double.equals` distinguishes signed zeros |
 
-**Không nên dùng `Objects.equals` để so sánh trị số giữa nhiều wrapper khác kiểu.** Nếu cần coi `Integer(10)` và `Long(10)` như cùng một số, phải định nghĩa miền số và quy tắc chuyển kiểu. Ví dụ, khi chắc chắn hai đối số là wrapper số nguyên trong phạm vi `long` và không null, có thể dùng `a.longValue() == b.longValue()`. Không chuyển bừa mọi `Number` sang `doubleValue()`: số nguyên lớn có thể mất độ chính xác.
+**You should not use `Objects.equals` to compare numeric values across different wrapper types.** If `Integer(10)` and `Long(10)` need to be treated as the same number, define the numeric range and type-conversion rules. For example, when both arguments are guaranteed to be non-null integer wrappers within the `long` range, you can use `a.longValue() == b.longValue()`. Do not blindly convert every `Number` to `doubleValue()`: large integers can lose precision.
 
-## 4. Unboxing null: lỗi không biến mất nhờ autoboxing
+## 4. Unboxing null: errors do not vanish thanks to autoboxing
 
-Ví dụ này **cố ý gây lỗi khi chạy** nếu bỏ comment:
+This example **intentionally throws at runtime** if uncommented:
 
 ~~~java
 Integer count = null;
 
 // int primitive = count;   // NullPointerException: unboxing
-// int next = count + 1;    // NullPointerException: toán tử + phải unbox
+// int next = count + 1;    // NullPointerException: + operator must unbox
 // boolean positive = count > 0; // NullPointerException
 // boolean zero = (count == 0);  // NullPointerException
 ~~~
 
-Dù `count` có kiểu wrapper, toán tử số học hoặc so sánh với primitive cần lấy giá trị `int` từ object. Khi object là null, unboxing không thể thực hiện.
+Even though `count` has a wrapper type, arithmetic operators or comparisons with primitives must extract the `int` value from the object. When the object is null, unboxing cannot proceed.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 Integer count = null;
-boolean isAbsent = (count == null); // true, không unbox
-boolean same = Objects.equals(count, null); // true, không unbox
+boolean isAbsent = (count == null); // true, no unboxing
+boolean same = Objects.equals(count, null); // true, no unboxing
 ~~~
 
-Sự khác biệt giữa `count == null` và `count == 0` rất quan trọng. Câu đầu kiểm tra tình trạng có object hay không; câu sau cố lấy giá trị số từ wrapper.
+The distinction between `count == null` and `count == 0` is critical. The first checks whether an object exists; the second attempts to extract a numeric value from the wrapper.
 
-Đối với `Boolean` cũng vậy:
+The same applies to `Boolean`:
 
 ~~~java
 Boolean enabled = null;
-// if (enabled) { } // NullPointerException do unboxing Boolean
+// if (enabled) { } // NullPointerException due to Boolean unboxing
 if (Boolean.TRUE.equals(enabled)) {
-    // Chạy chỉ khi enabled là Boolean.TRUE
+    // Runs only when enabled is Boolean.TRUE
 }
 ~~~
 
-`Boolean.TRUE.equals(enabled)` an toàn vì hằng `Boolean.TRUE` chắc chắn không null. Nó coi cả null lẫn false là “không bật”, **chỉ phù hợp nếu nghiệp vụ chấp nhận cách gộp này**. Nếu null nghĩa là “chưa xác định”, đừng tự biến nó thành false mà không định nghĩa chính sách.
+`Boolean.TRUE.equals(enabled)` is safe because the constant `Boolean.TRUE` is guaranteed non-null. It treats both null and false as “not enabled”, **which is only appropriate if business logic accepts merging them**. If null means “undetermined”, do not silently turn it into false without defining a policy.
 
-## 5. Dùng short-circuit `&&` và `||` để kiểm tra trước khi unbox
+## 5. Using short-circuit `&&` and `||` to check before unboxing
 
-Trong các điều kiện, Java đánh giá `&&` và `||` từ trái sang phải và chỉ đánh giá vế phải khi cần. Ta có thể dùng tính chất này để tránh unboxing null:
+In conditions, Java evaluates `&&` and `||` from left to right and only evaluates the right-hand side when necessary. We can leverage this property to prevent null unboxing:
 
 ~~~java
 Integer count = null;
@@ -159,19 +159,19 @@ boolean positive = count != null && count > 0; // false
 boolean missingOrPositive = count == null || count > 0; // true
 ~~~
 
-- Với `&&`, nếu `count != null` đã false thì vế `count > 0` không được chạy.
-- Với `||`, nếu `count == null` đã true thì vế `count > 0` không được chạy.
+- With `&&`, if `count != null` is already false, the `count > 0` side is not executed.
+- With `||`, if `count == null` is already true, the `count > 0` side is not executed.
 
-**Thứ tự điều kiện không được đảo tùy tiện:**
+**Condition order must not be reversed arbitrarily:**
 
 ~~~java
-// count > 0 && count != null  // Sai: có thể unbox null trước
-// count > 0 || count == null  // Sai: có thể unbox null trước
+// count > 0 && count != null  // Wrong: can unbox null first
+// count > 0 || count == null  // Wrong: can unbox null first
 ~~~
 
-Với toán tử boolean không-short-circuit `&` hoặc `|`, cả hai vế được đánh giá (khi dùng boolean), nên **không** áp dụng mẹo null guard như trên. Đây là vấn đề quan trọng khi refactor điều kiện hoặc xây biểu thức filter.
+With the non-short-circuit boolean operators `&` or `|`, both sides are evaluated (when used on booleans), so the null-guard pattern above **does not** apply. This matters when refactoring conditions or building filter expressions.
 
-Một phương thức kiểm tra giá trị dương nullable có thể viết rõ ràng:
+A method checking for a positive nullable value can be written clearly:
 
 ~~~java
 static boolean isPositive(Integer value) {
@@ -179,13 +179,13 @@ static boolean isPositive(Integer value) {
 }
 ~~~
 
-Phương thức này chủ ý trả `false` nếu không có giá trị; đó là một **quy ước nghiệp vụ** cần được thể hiện rõ trong tên hàm và tài liệu.
+This method intentionally returns `false` if no value is present; that is a **business convention** that should be made explicit in the method name and documentation.
 
-## 6. Chọn mặc định hay từ chối null?
+## 6. Choose a default or reject null?
 
-`Objects.equals` phục vụ **so sánh**, không trả giá trị thay thế. Khi ứng dụng cần dùng primitive, phải ra quyết định cụ thể với null.
+`Objects.equals` serves **comparison**, not returning a replacement value. When an application needs to use a primitive, a concrete decision must be made for null.
 
-### Cách A — trả về giá trị mặc định
+### Option A — return a default value
 
 ~~~java
 Integer optionalCount = null;
@@ -193,19 +193,19 @@ int safeCount = java.util.Objects.requireNonNullElse(optionalCount, 0);
 // safeCount = 0
 ~~~
 
-`Objects.requireNonNullElse(value, defaultValue)` trả giá trị đầu nếu khác null; nếu không thì trả default. **Default cũng bắt buộc khác null**, nếu cả hai đều null sẽ ném `NullPointerException`. Đối với wrapper, phương thức này trả về **wrapper**; trong ví dụ, gán vào `int` diễn ra unboxing sau khi đã có default không null.
+`Objects.requireNonNullElse(value, defaultValue)` returns the first value if non-null; otherwise it returns the default. **The default must also be non-null**; if both are null, it throws `NullPointerException`. For wrappers, this method returns a **wrapper**; in the example, assigning to `int` performs unboxing after a non-null default is obtained.
 
-Với biểu thức tạo default tốn tài nguyên, có `Objects.requireNonNullElseGet(value, supplier)`; supplier được gọi khi giá trị ban đầu null và phải trả giá trị không null. Nếu đối số đầu đã có giá trị, supplier không bị gọi.
+For expensive default-creation expressions, there is `Objects.requireNonNullElseGet(value, supplier)`; the supplier is invoked when the initial value is null and must return a non-null value. If the first argument already has a value, the supplier is not called.
 
-Một lựa chọn tương tự là:
+A similar option is:
 
 ~~~java
 int safeCount = optionalCount == null ? 0 : optionalCount;
 ~~~
 
-Toán tử điều kiện ở đây chọn giá trị primitive an toàn sau khi kiểm tra null. Tuy nhiên **đừng** mặc định mọi null đều là 0: tổng đơn hàng chưa được nhập, tuổi chưa biết và số lượng chính xác bằng 0 thường là các trạng thái khác nhau.
+The conditional operator here selects a safe primitive value after checking null. However, **do not** assume every null means 0: an unentered order total, an unknown age, and an exact quantity of 0 are usually distinct states.
 
-### Cách B — báo lỗi ngay tại ranh giới
+### Option B — fail immediately at the boundary
 
 ~~~java
 static int requireCount(Integer value) {
@@ -213,17 +213,17 @@ static int requireCount(Integer value) {
 }
 ~~~
 
-Hàm này ném `NullPointerException` với thông báo khi null và unbox sau khi đã xác nhận có object. Nếu null đại diện cho **đầu vào không hợp lệ**, bạn có thể chọn `IllegalArgumentException` hoặc một kiểu lỗi nghiệp vụ khác theo quy ước API.
+This method throws `NullPointerException` with a message when null and unboxes after confirming an object exists. If null represents **invalid input**, you may prefer `IllegalArgumentException` or another business exception type per API conventions.
 
-### Cách C — giữ rõ trạng thái thiếu
+### Option C — preserve the missing state explicitly
 
-Nếu thiếu dữ liệu là hợp lệ, bạn có thể giữ `Integer` nullable, dùng `Optional<Integer>` ở một số API trả về, hoặc mô hình hóa trạng thái riêng. Hãy xác định quy tắc downstream: tính toán phải dừng, bỏ qua phần tử thiếu, hay trả về kết quả “chưa đủ dữ liệu”? Đừng chọn một giá trị giả như `-1` hoặc 0 nếu nó cũng có thể là giá trị thật.
+If missing data is valid, you can keep a nullable `Integer`, use `Optional<Integer>` on certain return APIs, or model a distinct state. Define downstream rules: should computation halt, skip missing elements, or return an “insufficient data” result? Do not pick a sentinel value like `-1` or 0 if it could also be a real value.
 
-## 7. So sánh nullable ở các vị trí thực tế
+## 7. Comparing nullable values in real-world spots
 
-### DTO và đối tượng nghiệp vụ
+### DTOs and business objects
 
-Giả sử hai request có trường `Integer quantity` cho phép null. Nếu cần kiểm tra xem trường có thay đổi so với bản cũ hay không:
+Suppose two requests have a nullable `Integer quantity` field. If you need to check whether the field changed compared to the old version:
 
 ~~~java
 static boolean quantityChanged(Integer oldQuantity, Integer newQuantity) {
@@ -231,9 +231,9 @@ static boolean quantityChanged(Integer oldQuantity, Integer newQuantity) {
 }
 ~~~
 
-Khi cả hai đều null, hàm trả false (không thay đổi); khi chỉ một bên null, hàm trả true; khi hai bên có cùng `Integer`, trả false. Điều này khác với chính sách “null nghĩa là 0”: nếu nghiệp vụ coi null và 0 là giống nhau, phải chuẩn hóa **một cách công khai** trước khi so sánh.
+When both are null, the function returns false (unchanged); when only one side is null, it returns true; when both hold the same `Integer`, it returns false. This differs from a “null means 0” policy: if business logic treats null and 0 as identical, normalize **explicitly** before comparing.
 
-### Collection và tìm kiếm
+### Collections and lookup
 
 ~~~java
 java.util.List<Integer> values = java.util.Arrays.asList(1, null, 3);
@@ -241,9 +241,9 @@ boolean hasMissing = values.contains(null); // true
 boolean hasThree = values.contains(3);      // true
 ~~~
 
-Các collection sử dụng equality theo hợp đồng của phần tử; `List.contains` theo `equals`, nên có thể xử lý null nếu triển khai collection cho phép. Tuy nhiên, với `HashMap`/`HashSet` và wrapper làm khóa, đừng gộp `Integer(3)` với `Long(3)`; `Objects.equals` không hề xóa ranh giới kiểu này.
+Collections use equality according to element contracts; `List.contains` follows `equals`, so it can handle null if the collection implementation allows it. However, with `HashMap`/`HashSet` and wrapper keys, do not conflate `Integer(3)` with `Long(3)`; `Objects.equals` never erases this type boundary.
 
-### Sắp xếp danh sách có null
+### Sorting a list containing null
 
 ~~~java
 java.util.List<Integer> values =
@@ -252,13 +252,13 @@ values.sort(java.util.Comparator.nullsFirst(Integer::compare));
 // [null, 1, 3]
 ~~~
 
-`Integer::compare` so sánh các giá trị không null; `Comparator.nullsFirst` xử lý null trước khi chuyển cho comparator nội bộ. Có thể dùng `nullsLast` nếu muốn xếp giá trị thiếu cuối danh sách.
+`Integer::compare` compares non-null values; `Comparator.nullsFirst` handles null before delegating to the inner comparator. `nullsLast` can be used if missing values belong at the end of the list.
 
-**Đừng dùng `Integer::compare` trực tiếp cho danh sách có null** khi chưa có lớp xử lý: unboxing đối số null có thể ném `NullPointerException` trong quá trình sort.
+**Do not pass `Integer::compare` directly on a list containing null** without a wrapper handler: unboxing a null argument can throw `NullPointerException` during sorting.
 
-## 8. `Objects.equals` và mảng, đối tượng cấu trúc phức tạp
+## 8. `Objects.equals` with arrays and complex structured objects
 
-Hai mảng khác tham chiếu nhưng có cùng phần tử không được xem bằng nhau bằng `Objects.equals`:
+Two arrays with different references yet identical elements are not considered equal by `Objects.equals`:
 
 ~~~java
 Integer[] a = {1, null};
@@ -268,13 +268,13 @@ boolean shallow = java.util.Objects.equals(a, b);     // false
 boolean deep = java.util.Objects.deepEquals(a, b);    // true
 ~~~
 
-Mảng Java không override `Object.equals` theo nội dung; `Objects.equals` do đó so sánh cùng tham chiếu. `Objects.deepEquals` nhận biết mảng và so sánh phần tử (kể cả mảng lồng nhau) một cách thích hợp; hoặc dùng `Arrays.equals`/`Arrays.deepEquals` theo dạng dữ liệu. Không cho rằng tên phương thức “Objects” tự động so sánh sâu mọi object: đối với class tự định nghĩa, logic equality vẫn phụ thuộc triển khai `equals`.
+Java arrays do not override `Object.equals` by content; `Objects.equals` therefore compares reference equality. `Objects.deepEquals` recognizes arrays and compares elements (including nested arrays) appropriately; or use `Arrays.equals`/`Arrays.deepEquals` according to the data shape. Do not assume the class name “Objects” automatically deep-compares every object: for custom classes, equality logic still depends on their `equals` implementation.
 
-Cẩn trọng khi viết class có field wrapper nullable: nếu dùng `equals` tự viết, `hashCode` nên sử dụng chính những field phù hợp, chẳng hạn `Objects.hash(fieldA, fieldB)`, để tuân theo hợp đồng “hai object bằng nhau phải có hash code bằng nhau”. Với Java `record`, equality sinh tự động cho component theo quy tắc của ngôn ngữ; vẫn cần hiểu ý nghĩa của giá trị null và kiểu của component.
+Be careful when writing classes with nullable wrapper fields: if writing a custom `equals`, `hashCode` should use the matching fields, such as `Objects.hash(fieldA, fieldB)`, to honor the contract that “two equal objects must have equal hash codes”. With Java `record`s, equality is auto-generated for components per language rules; you still must understand the meaning of null values and component types.
 
-## 9. Ví dụ Java 17+ hoàn chỉnh có thể chạy
+## 9. Complete runnable Java 17+ example
 
-Lưu tệp `NullableWrapperDemo.java`:
+Save file `NullableWrapperDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -343,14 +343,14 @@ public class NullableWrapperDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17 trở lên:
+Compile and run with Java 17 or higher:
 
 ~~~bash
 javac NullableWrapperDemo.java
 java NullableWrapperDemo
 ~~~
 
-Kết quả stdout:
+Stdout output:
 
 ~~~text
 missing == null: true
@@ -373,63 +373,63 @@ signed zero equals: false
 BigDecimal scale equals: false
 ~~~
 
-Chương trình xác nhận được cả đường đi có và không có null, wrapper khác kiểu, unboxing an toàn/không an toàn, thứ tự sắp xếp null và sự khác nhau giữa equality sâu/nông. Lưu ý `try/catch` ở đây chỉ dùng để minh họa ngoại lệ do unboxing null; **không nên dùng bắt ngoại lệ thay kiểm tra null** như một luồng xử lý thường ngày.
+The program verifies both null and non-null paths, different wrapper types, safe/unsafe unboxing, null sort ordering, and the difference between shallow and deep equality. Note that `try/catch` here is solely used to demonstrate the exception from null unboxing; **you should not use exception catching instead of null checks** as a routine control flow.
 
-## 10. Những giới hạn cần nhớ của `Objects.equals`
+## 10. Limitations of `Objects.equals` to remember
 
-- **Không tự biến null thành số 0:** `Objects.equals(null, 0)` là `false`; null vẫn là trạng thái vắng mặt.
-- **Không nâng kiểu wrapper khi equality:** `Objects.equals(10, 10L)` là `false` vì `Integer` khác `Long`.
-- **Không tự so sánh mảng theo phần tử:** dùng `Arrays.equals`, `Arrays.deepEquals` hoặc `Objects.deepEquals`.
-- **Không xử lý null bên trong logic khác:** `Objects.equals(a, b)` không làm cho `a + 1` an toàn nếu `a == null`.
-- **Không giải quyết số thực theo tolerance:** `Objects.equals(0.1 + 0.2, 0.3)` trả `false`; định nghĩa riêng tolerance nếu bài toán yêu cầu.
-- **Không sửa hợp đồng `BigDecimal.equals`:** `new BigDecimal("1.0")` và `new BigDecimal("1.00")` có giá trị toán học bằng nhau theo `compareTo == 0` nhưng `equals` trả `false` vì khác scale.
-- **Không đồng nhất Boolean null với false:** `Objects.equals(null, Boolean.FALSE)` trả `false`; nếu dùng `Boolean.TRUE.equals(value)` thì bạn đang chủ động diễn giải null giống “không bật” cho mục đích kiểm tra.
+- **Does not automatically turn null into 0:** `Objects.equals(null, 0)` is `false`; null remains an absent state.
+- **Does not promote wrappers during equality:** `Objects.equals(10, 10L)` is `false` because `Integer` differs from `Long`.
+- **Does not automatically compare arrays element-by-element:** use `Arrays.equals`, `Arrays.deepEquals`, or `Objects.deepEquals`.
+- **Does not handle null inside other logic:** `Objects.equals(a, b)` does not make `a + 1` safe if `a == null`.
+- **Does not resolve floating-point numbers by tolerance:** `Objects.equals(0.1 + 0.2, 0.3)` returns `false`; define a separate tolerance if the problem requires it.
+- **Does not change `BigDecimal.equals`'s contract:** `new BigDecimal("1.0")` and `new BigDecimal("1.00")` have equal mathematical values under `compareTo == 0`, yet `equals` returns `false` because of differing scales.
+- **Does not equate Boolean null with false:** `Objects.equals(null, Boolean.FALSE)` returns `false`; if using `Boolean.TRUE.equals(value)`, you are actively interpreting null as “not enabled” for that check.
 
-Một số lỗi phổ biến là dùng `if (wrapper == 0)` trước khi kiểm tra null, viết `wrapper.equals(other)` dù wrapper nullable, dựa vào `==` để so giá trị của hai wrapper, hoặc ép các giá trị null về mặc định tại quá nhiều lớp hệ thống làm mất dấu nguồn dữ liệu thiếu.
+Common bugs include writing `if (wrapper == 0)` before checking null, calling `wrapper.equals(other)` when the wrapper is nullable, relying on `==` to compare two wrappers' values, or forcing null values to defaults across too many system layers and losing track of where missing data originated.
 
-## 11. Cách lựa chọn khi xây dựng API
+## 11. Choosing approaches when building APIs
 
-| Yêu cầu | Cách xử lý | Điểm cần chú ý |
+| Requirement | Approach | Points to watch |
 | --- | --- | --- |
-| So sánh hai wrapper nullable theo object equality | `Objects.equals(a, b)` | Hai null bằng nhau; các wrapper khác kiểu không tự bằng nhau |
-| Kiểm tra wrapper null | `value == null` hoặc `value != null` | Không unbox |
-| Dùng wrapper trong phép toán | Null guard rồi unbox | Thông báo lỗi/mặc định theo hợp đồng |
-| Dùng Boolean nullable trong điều kiện | `Boolean.TRUE.equals(flag)` hoặc ba nhánh | Phân biệt false với không xác định nếu cần |
-| Có giá trị mặc định hợp lệ | `Objects.requireNonNullElse(value, defaultValue)` | Default phải khác null; không che dữ liệu thiếu ngoài ý muốn |
-| Bắt buộc có giá trị | `Objects.requireNonNull(value, message)` | Fail fast tại ranh giới |
-| Sắp xếp list có null | `Comparator.nullsFirst/nullsLast` | Comparator bên trong chỉ xử lý non-null |
-| Equality mảng | `Arrays.equals` hoặc `Objects.deepEquals` | Chọn đúng mức nông/sâu |
-| So sánh số học khác wrapper type | Chuẩn hóa theo miền số đã xác định | Tránh ép mọi `Number` về `double` gây mất chính xác |
+| Compare two nullable wrappers by object equality | `Objects.equals(a, b)` | Two nulls are equal; wrappers of different types are not automatically equal |
+| Check if a wrapper is null | `value == null` or `value != null` | Does not unbox |
+| Use a wrapper in arithmetic | Null guard then unbox | Error message/default per contract |
+| Use a nullable Boolean in a condition | `Boolean.TRUE.equals(flag)` or three branches | Distinguish false from unknown if needed |
+| Valid default value exists | `Objects.requireNonNullElse(value, defaultValue)` | Default must be non-null; avoid unintentionally masking missing data |
+| Value is mandatory | `Objects.requireNonNull(value, message)` | Fail fast at the boundary |
+| Sort a list containing null | `Comparator.nullsFirst/nullsLast` | Inner comparator only handles non-null |
+| Array equality | `Arrays.equals` or `Objects.deepEquals` | Choose the right shallow/deep level |
+| Cross-wrapper-type numeric comparison | Normalize according to a defined numeric range | Avoid casting every `Number` to `double` which loses precision |
 
-## 12. Tự luyện và đáp án
+## 12. Self-practice and answers
 
-**Câu 1.** Với `Integer x = null`, kết quả của `Objects.equals(x, null)` và `x == 0` là gì?
+**Question 1.** Given `Integer x = null`, what are the results of `Objects.equals(x, null)` and `x == 0`?
 
-**Đáp án:** `Objects.equals(x, null)` là `true`; `x == 0` cố unbox null và ném `NullPointerException`.
+**Answer:** `Objects.equals(x, null)` is `true`; `x == 0` attempts to unbox null and throws `NullPointerException`.
 
-**Câu 2.** `Objects.equals(Integer.valueOf(3), Long.valueOf(3L))` trả gì? Còn `3 == 3L`?
+**Question 2.** What does `Objects.equals(Integer.valueOf(3), Long.valueOf(3L))` return? And `3 == 3L`?
 
-**Đáp án:** Lời gọi đầu trả `false` do khác wrapper; phép so sánh primitive trả `true` sau numeric promotion.
+**Answer:** The first call returns `false` due to different wrapper types; the primitive comparison returns `true` after numeric promotion.
 
-**Câu 3.** Với `Boolean approved = null`, viết một điều kiện không ném NPE và chỉ nhận đúng true.
+**Question 3.** Given `Boolean approved = null`, write a condition that does not throw NPE and only accepts true.
 
-**Đáp án:** `Boolean.TRUE.equals(approved)`. Nếu null cần phân biệt với false, bổ sung nhánh xử lý riêng.
+**Answer:** `Boolean.TRUE.equals(approved)`. If null must be distinguished from false, add a separate handling branch.
 
-**Câu 4.** Tại sao `count != null && count > 0` an toàn hơn `count > 0 && count != null`?
+**Question 4.** Why is `count != null && count > 0` safer than `count > 0 && count != null`?
 
-**Đáp án:** `&&` đánh giá từ trái sang phải và short-circuit. Biểu thức đầu kiểm tra null trước; biểu thức sau đã unbox trước khi kiểm tra.
+**Answer:** `&&` evaluates from left to right and short-circuits. The first expression checks null beforehand; the second already unboxes before checking.
 
-**Câu 5.** Hai mảng `Integer[]` mới tạo với cùng phần tử có nhất thiết `Objects.equals` là true không?
+**Question 5.** Must two newly created `Integer[]` arrays with identical elements necessarily have `Objects.equals` return true?
 
-**Đáp án:** Không. `Objects.equals` dùng equality tham chiếu của mảng; dùng `Arrays.equals` hoặc `Objects.deepEquals` để so sánh phần tử.
+**Answer:** No. `Objects.equals` uses array reference equality; use `Arrays.equals` or `Objects.deepEquals` to compare elements.
 
-**Câu 6.** Nếu null phải được coi là một giá trị “chưa cung cấp”, có nên thay nó bằng 0 chỉ để tránh NPE không?
+**Question 6.** If null must be treated as a “not provided” value, should it be replaced with 0 just to avoid NPE?
 
-**Đáp án:** Không nên, trừ khi đặc tả nghiệp vụ quy định rõ null tương đương 0. Có thể giữ nullable/`Optional` hoặc từ chối input không hợp lệ để bảo toàn ý nghĩa dữ liệu.
+**Answer:** No, unless the business specification explicitly defines null as equivalent to 0. Keep nullable/`Optional` or reject invalid input to preserve data meaning.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — Objects.equals và deepEquals](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Objects.html).
+- [Java SE 21 — Objects.equals and deepEquals](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Objects.html).
 - [Java SE 21 — Integer.equals](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html#equals(java.lang.Object)).
 - [Java SE 21 — Boolean](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Boolean.html).
 - [Java SE 21 — Comparator.nullsFirst](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Comparator.html#nullsFirst(java.util.Comparator)).

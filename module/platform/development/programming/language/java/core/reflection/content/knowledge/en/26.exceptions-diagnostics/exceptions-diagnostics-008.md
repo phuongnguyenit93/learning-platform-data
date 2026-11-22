@@ -1,103 +1,103 @@
-# GenericSignatureFormatError, TypeNotPresentException và MalformedParameterizedTypeException khi dùng Java Reflection
+# GenericSignatureFormatError, TypeNotPresentException, and MalformedParameterizedTypeException in Java Reflection
 
-## 1. Vì sao reflection đọc generic lại phát sinh lỗi?
+## 1. Why Does Reading Generics via Reflection Throw Errors?
 
-Khi chương trình Java biên dịch các kiểu như `List<String>` hoặc `class Child extends Parent<Long>`, JVM chủ yếu làm việc với **kiểu đã xóa (erasure)**, còn thông tin tham số kiểu được compiler lưu trong thuộc tính **`Signature`** của class file khi cần. Các API `java.lang.reflect` đọc metadata này để tạo cây `Type` (`Class`, `ParameterizedType`, `TypeVariable`, `WildcardType`, `GenericArrayType`).
+When a Java program compiles types such as `List<String>` or `class Child extends Parent<Long>`, the JVM primarily operates on **erased types (type erasure)**, while type-parameter information is stored by the compiler in the class file's **`Signature`** attribute when needed. `java.lang.reflect` APIs read this metadata to construct the `Type` tree (`Class`, `ParameterizedType`, `TypeVariable`, `WildcardType`, `GenericArrayType`).
 
-Ví dụ, trường `List<String> names` thường có hai lớp thông tin:
+For example, a field `List<String> names` typically has two layers of information:
 
-| Lớp thông tin | Diễn đạt | Truy cập |
+| Information layer | Representation | Access |
 | --- | --- | --- |
-| Descriptor sau erasure | `Ljava/util/List;` | `Field.getType()` trả `List.class` |
-| Generic signature | `Ljava/util/List<Ljava/lang/String;>;` | `Field.getGenericType()` trả một `ParameterizedType` chứa `String` |
+| Erased descriptor | `Ljava/util/List;` | `Field.getType()` returns `List.class` |
+| Generic signature | `Ljava/util/List<Ljava/lang/String;>;` | `Field.getGenericType()` returns a `ParameterizedType` containing `String` |
 
-**Hệ quả:** Một class có thể được tải, một field có thể được tìm thấy và kiểu raw `List` có thể được đọc, nhưng thao tác **phân tích hoặc phân giải generic signature** vẫn thất bại. Không nên coi `Class.forName(...)` thành công là bằng chứng mọi metadata generic đều hợp lệ.
+**Consequence:** A class can be loaded, a field can be found, and the raw type `List` can be read, yet **parsing or resolving the generic signature** can still fail. Do not treat `Class.forName(...)` succeeding as proof that all generic metadata is valid.
 
-Ba lỗi của bài là:
+The three errors covered in this article are:
 
-- `java.lang.reflect.GenericSignatureFormatError`: biểu diễn `Signature` **sai cú pháp** theo đặc tả JVM.
-- `java.lang.TypeNotPresentException`: metadata cần **một kiểu không thể phân giải**, thường do thiếu class/dependency khi chạy.
-- `java.lang.reflect.MalformedParameterizedTypeException`: cấu trúc tham số hóa **sai về ngữ nghĩa**, dù chuỗi signature có thể đúng cú pháp.
+- `java.lang.reflect.GenericSignatureFormatError`: the `Signature` representation is **syntactically malformed** per the JVM specification.
+- `java.lang.TypeNotPresentException`: metadata requires **a type that cannot be resolved**, usually due to a missing class/dependency at runtime.
+- `java.lang.reflect.MalformedParameterizedTypeException`: the parameterization structure is **semantically invalid**, even though the signature string may be syntactically valid.
 
-Chúng thường xuất hiện khi quét thư viện, ORM, serialization, dependency injection, annotation processor/runtime scanner, proxy/bridge metadata, plugin hoặc class do công cụ bytecode sinh/biến đổi. Tuy nhiên đây **không phải** ba lỗi mà mọi reflection call đều ném; phụ thuộc API và phần metadata mà nó cần phân giải.
+They commonly appear during library scanning, ORM, serialization, dependency injection, annotation processing/runtime scanning, proxy/bridge metadata inspection, plugins, or classes generated/transformed by bytecode tools. However, these are **not** three errors that every reflection call throws; it depends on the API and the metadata it needs to resolve.
 
-## 2. Bảng phân biệt nhanh ba lỗi
+## 2. Quick Comparison Table of the Three Errors
 
-| Lỗi | Quan hệ kế thừa | Tình huống đặc trưng | Hướng kiểm tra |
+| Error | Inheritance hierarchy | Characteristic scenario | Inspection direction |
 | --- | --- | --- | --- |
-| `GenericSignatureFormatError` | `Error → LinkageError → ClassFormatError → GenericSignatureFormatError` | Thuộc tính `Signature` không tuân thủ grammar, ví dụ thiếu dấu kết thúc | Kiểm tra class file, bytecode generator/transformer, phiên bản artifact |
-| `TypeNotPresentException` | `RuntimeException` | `Signature` đề cập `com.example.Missing` nhưng class loader không tìm thấy định nghĩa | Đọc `typeName()`, `getCause()` và dependency/classpath/module path |
-| `MalformedParameterizedTypeException` | `RuntimeException` | Signature có tham số hóa nhưng không thể tạo `ParameterizedType` hợp lệ, ví dụ số type arguments sai | Kiểm tra số lượng/owner type của tham số generic, version mismatch và bytecode đã biến đổi |
+| `GenericSignatureFormatError` | `Error → LinkageError → ClassFormatError → GenericSignatureFormatError` | The `Signature` attribute violates the grammar, e.g., missing a terminator | Inspect class file, bytecode generator/transformer, artifact version |
+| `TypeNotPresentException` | `RuntimeException` | `Signature` mentions `com.example.Missing` but the class loader cannot find its definition | Check `typeName()`, `getCause()`, and dependencies/classpath/module path |
+| `MalformedParameterizedTypeException` | `RuntimeException` | Signature is parameterized yet cannot form a valid `ParameterizedType`, e.g., wrong number of type arguments | Check type argument count/owner type, version mismatch, and transformed bytecode |
 
-**Ranh giới quan trọng:** `GenericSignatureFormatError` là một `Error`, không phải `Exception`; `catch (RuntimeException e)` không bắt được nó. Hai lỗi còn lại đều là unchecked `RuntimeException`. Không nên dùng `catch (Throwable)` bừa bãi và tiếp tục khởi tạo hệ thống sau khi phát hiện class metadata hỏng.
+**Important boundary:** `GenericSignatureFormatError` is an `Error`, not an `Exception`; `catch (RuntimeException e)` cannot catch it. The other two are unchecked `RuntimeException`s. Do not blindly `catch (Throwable)` and keep initializing the system after detecting corrupted class metadata.
 
-### 2.1. `GenericSignatureFormatError` — lỗi cú pháp của Signature
+### 2.1. `GenericSignatureFormatError` — Syntax Error in Signature
 
-Theo Java API, lỗi xảy ra khi một reflection method cần diễn giải một thuộc tính `Signature` không tuân thủ cú pháp đặc tả class file. Ví dụ minh họa **chỉ là chuỗi trong class file, không phải mã Java hợp lệ**:
+Per the Java API, this error occurs when a reflection method needs to interpret a `Signature` attribute that does not conform to the class file specification syntax. The illustrative example below **is just a string inside a class file, not valid Java code**:
 
 ~~~text
-Hợp lệ:
+Valid:
 Ljava/util/List<Ljava/lang/String;>;
 
-Sai cú pháp (thiếu dấu kết thúc cho type arguments và class type):
+Malformed syntax (missing closing delimiters for type arguments and class type):
 Ljava/util/List<Ljava/lang/String;
 ~~~
 
-Một `Signature` sai có thể được viết bởi bytecode generator, instrumentation/weaver, obfuscator hoặc quá trình sửa class file. Compiler `javac` bình thường không xuất ra kiểu lỗi này từ mã nguồn Java hợp lệ. Đừng tạo ví dụ bằng cách viết `List<String, Integer>` trong source rồi mong chạy đến reflection: source sẽ bị compiler từ chối trước.
+A malformed `Signature` can be written by a bytecode generator, instrumentation/weaver, obfuscator, or class-file editing step. A normal `javac` compiler does not emit this kind of error from valid Java source code. Do not try to build a reproduction by writing `List<String, Integer>` in source and expecting it to reach reflection: the compiler will reject the source first.
 
-Vì thuộc tính `Signature` là metadata bổ sung, lỗi có thể chỉ lộ ra khi API parse generic được gọi. Mặt khác, class file hỏng nghiêm trọng có thể bị JVM từ chối sớm bằng lỗi khác; không được bảo đảm mọi trường hợp sai bytecode đều đợi đến `getGenericType()`.
+Because the `Signature` attribute is supplementary metadata, the error may only surface when generic-parsing APIs are invoked. Conversely, a severely corrupted class file may be rejected earlier by the JVM with a different error; it is not guaranteed that every bytecode defect waits until `getGenericType()`.
 
-### 2.2. `TypeNotPresentException` — không tìm thấy kiểu khi phân giải metadata
+### 2.2. `TypeNotPresentException` — Type Not Found While Resolving Metadata
 
-Đây là exception unchecked thuộc **`java.lang`**. API `typeName()` trả tên kiểu không có định nghĩa, và `getCause()` có thể chứa nguyên nhân, ví dụ `ClassNotFoundException`; cause được phép `null`. Có thể thấy lỗi khi reflection đọc generic signature, hoặc khi đọc annotation runtime chứa giá trị `Class` không phân giải được.
+This is an unchecked exception in **`java.lang`**. Its `typeName()` API returns the name of the missing type, and `getCause()` may hold the underlying cause, such as `ClassNotFoundException`; the cause is allowed to be `null`. You may see this error when reflection reads a generic signature, or when reading a runtime annotation containing an unresolvable `Class` value.
 
-Ví dụ: source ban đầu có `List<demo.Absent>`; sau khi đóng gói, `demo.Absent` biến mất nhưng `Holder.class` vẫn giữ generic `Signature`. Field raw type vẫn là `java.util.List`; lúc `getGenericType()` phân giải tham số kiểu, lỗi xuất hiện.
+Example: original source had `List<demo.Absent>`; after packaging, `demo.Absent` is gone while `Holder.class` still retains the generic `Signature`. The raw field type remains `java.util.List`; when `getGenericType()` resolves the type argument, the error surfaces.
 
-Đừng đồng nhất với:
+Do not equate it with:
 
-- `ClassNotFoundException`: checked exception thường gặp khi chủ động tìm class theo tên bằng `Class.forName(...)` / `ClassLoader.loadClass(...)`; cũng có thể nằm trong `cause`.
-- `NoClassDefFoundError`: lỗi liên kết/tải khi JVM cần một định nghĩa class tại runtime; không mặc định biến thành `TypeNotPresentException`.
-- `NoSuchMethodException` / `NoSuchFieldException`: tra cứu thành viên không tồn tại, không nói rằng `Signature` generic bị lỗi.
+- `ClassNotFoundException`: a checked exception commonly met when actively looking up a class by name via `Class.forName(...)` / `ClassLoader.loadClass(...)`; may also sit inside `cause`.
+- `NoClassDefFoundError`: a linkage/loading error when the JVM requires a class definition at runtime; does not automatically turn into `TypeNotPresentException`.
+- `NoSuchMethodException` / `NoSuchFieldException`: looking up a non-existent member, which says nothing about a broken generic `Signature`.
 
-### 2.3. `MalformedParameterizedTypeException` — sai cấu trúc type arguments
+### 2.3. `MalformedParameterizedTypeException` — Invalid Type Argument Structure
 
-Đây là unchecked `RuntimeException`: reflection cần tạo một kiểu tham số hóa nhưng biểu diễn đó **không hợp lệ về ngữ nghĩa**. Ví dụ tiêu biểu trong Java API: số lượng đối số kiểu không phù hợp với khai báo của raw type.
+This is an unchecked `RuntimeException`: reflection needs to construct a parameterized type, yet that representation is **semantically invalid**. A classic example in the Java API: the number of type arguments does not match the raw type's declaration.
 
-Ví dụ minh họa bằng chuỗi signature (không phải chương trình Java chạy được):
+Illustrative example using signature strings (not a runnable Java program):
 
 ~~~text
-Đúng cú pháp, và hợp lệ với java.util.List<E>:
+Syntactically valid, and valid for java.util.List<E>:
 Ljava/util/List<Ljava/lang/String;>;
 
-Đúng dạng cú pháp tham số hóa nhưng sai số lượng đối số cho List<E>:
+Syntactically parameterized, but wrong argument count for List<E>:
 Ljava/util/List<Ljava/lang/String;Ljava/lang/Integer;>;
 ~~~
 
-`List` chỉ khai báo **một** biến kiểu `E`; hai type arguments không thể tương ứng với khai báo này. Đây là lỗi khác hẳn việc thiếu ký tự trong grammar. Các vấn đề metadata owner/nested parameterization không phù hợp cũng cần được xem xét, nhưng không nên khẳng định mọi bound generic bị vi phạm đều chắc chắn ném exception này: cách kiểm tra cụ thể phụ thuộc API và biểu diễn được tạo.
+`List` declares only **one** type variable `E`; two type arguments cannot match this declaration. This is a completely different error from missing grammar characters. Issues with incompatible owner/nested parameterization metadata should also be considered, though you should not assert that every violated generic bound necessarily throws this exception: exact checks depend on the API and constructed representation.
 
-## 3. API nào có thể phát hiện các lỗi này?
+## 3. Which APIs Can Trigger These Errors?
 
-Các method truy vấn **generic metadata** trong Java SE 21 thường công bố ba lỗi trên trong JavaDoc, tùy thuộc vào signature cụ thể:
+Methods querying **generic metadata** in Java SE 21 typically document these three errors in their Javadoc, depending on the specific signature:
 
-| API | Metadata đang phân giải |
+| API | Metadata being resolved |
 | --- | --- |
-| `Class.getGenericSuperclass()` | Superclass dạng `Parent<String>` |
-| `Class.getGenericInterfaces()` | Interface dạng `Comparable<MyType>` |
-| `Field.getGenericType()` | Kiểu khai báo của field như `Map<String, User>` |
-| `Method.getGenericReturnType()` | Kiểu trả về khai báo như `List<Response>` |
-| `Method.getGenericParameterTypes()` | Các tham số như `Optional<Request>` |
-| `Constructor/Method.getGenericExceptionTypes()` | Kiểu trong mệnh đề `throws` của `Executable` |
-| `Class.getTypeParameters()` / `Method.getTypeParameters()` | Khai báo biến kiểu và các giới hạn (bounds) |
+| `Class.getGenericSuperclass()` | Superclass such as `Parent<String>` |
+| `Class.getGenericInterfaces()` | Interfaces such as `Comparable<MyType>` |
+| `Field.getGenericType()` | Declared field type such as `Map<String, User>` |
+| `Method.getGenericReturnType()` | Declared return type such as `List<Response>` |
+| `Method.getGenericParameterTypes()` | Parameters such as `Optional<Request>` |
+| `Constructor/Method.getGenericExceptionTypes()` | Types in `Executable`'s `throws` clause |
+| `Class.getTypeParameters()` / `Method.getTypeParameters()` | Type variable declarations and bounds |
 
-Một số phép truy vấn có thể tạo `Type` lazily; lỗi có thể phát sinh khi truy cập sâu hơn vào `ParameterizedType.getActualTypeArguments()`, `TypeVariable.getBounds()` hoặc kiểu owner. Do đó, khi chẩn đoán, ghi lại **phương thức reflection chính xác** và **thời điểm chạm vào cây Type**, không chỉ tên class đang scan.
+Some queries may construct `Type` objects lazily; errors may arise when reaching deeper into `ParameterizedType.getActualTypeArguments()`, `TypeVariable.getBounds()`, or owner types. Therefore, when diagnosing, log **the exact reflection method** and **the point where the `Type` tree is touched**, not merely the name of the class being scanned.
 
-Các API trả kiểu sau erasure như `Field.getType()` hoặc `Method.getReturnType()` không có cùng nghĩa với API generic; thành công ở API raw không chứng minh Signature hay dependencies của type arguments đầy đủ.
+APIs returning erased types like `Field.getType()` or `Method.getReturnType()` do not carry the same semantics as generic APIs; succeeding on raw APIs does not prove the `Signature` or type-argument dependencies are intact.
 
-## 4. Ví dụ Java 17+: tái hiện TypeNotPresentException thật
+## 4. Java 17+ Example: Reproducing a Real TypeNotPresentException
 
-Ví dụ dưới đây tạo một class có field `List<Absent>`, biên dịch đầy đủ, sau đó **cố ý xóa một class trong thư mục thử nghiệm**. Metadata generic còn đề cập `demo.Absent`, nhưng class không còn trong classpath. Lưu ý: chỉ xóa file thử nghiệm được tạo trong thư mục riêng; không xóa class của dự án đang chạy.
+The example below creates a class with a `List<Absent>` field, compiles it completely, and then **deliberately deletes one class in the test directory**. Generic metadata still mentions `demo.Absent`, yet the class is no longer on the classpath. Note: only delete the test file created in an isolated directory; do not delete classes from a running project.
 
-Tạo ba tệp đúng tên:
+Create three files with exact names:
 
 **`src/demo/Absent.java`**
 
@@ -145,7 +145,7 @@ public class GenericDiagnosticDemo {
 }
 ~~~
 
-Trong một thư mục thử nghiệm mới, tạo `src/demo` và `classes`, đặt các file vào đường dẫn trên rồi thực hiện:
+In a new test directory, create `src/demo` and `classes`, place the files at the paths above, and run:
 
 ~~~bash
 javac --release 17 -d classes src/demo/Absent.java src/demo/Holder.java src/GenericDiagnosticDemo.java
@@ -153,9 +153,9 @@ rm classes/demo/Absent.class
 java -cp classes GenericDiagnosticDemo
 ~~~
 
-Trên Windows PowerShell, thay dòng `rm` bằng `Remove-Item classes/demo/Absent.class`; các lệnh `javac` và `java` vẫn như trên.
+On Windows PowerShell, replace the `rm` line with `Remove-Item classes/demo/Absent.class`; the `javac` and `java` commands remain the same.
 
-**Stdout** của tình huống này trên JDK 17+:
+**Stdout** of this scenario on JDK 17+:
 
 ~~~text
 Erased field type: java.util.List
@@ -163,36 +163,36 @@ Missing generic type: demo.Absent
 Cause class: java.lang.ClassNotFoundException
 ~~~
 
-Điều đáng học: `Class.forName("demo.Holder")`, `getDeclaredField("values")` và `field.getType()` vẫn chạy được. `field.getGenericType()` mới buộc reflection phân giải `Absent` trong generic signature và ném `TypeNotPresentException`. Nếu bạn giữ `Absent.class`, lời gọi này trả `java.util.List<demo.Absent>` bình thường.
+Key takeaway: `Class.forName("demo.Holder")`, `getDeclaredField("values")`, and `field.getType()` all succeed. Only `field.getGenericType()` forces reflection to resolve `Absent` in the generic signature and throws `TypeNotPresentException`. If you keep `Absent.class`, that call returns `java.util.List<demo.Absent>` normally.
 
-Khi phân tích file đã biên dịch, dùng:
+When analyzing a compiled file, use:
 
 ~~~bash
 javap -v -p -classpath classes demo.Holder
 ~~~
 
-Trong output của `javap`, tìm trường `values` và dòng `Signature` để thấy metadata giữ tham chiếu tới `demo.Absent`. Đây là lệnh chẩn đoán class file, output dài và phụ thuộc bản JDK nên không cần so khớp toàn bộ output.
+In the `javap` output, locate the `values` field and its `Signature` line to see the metadata holding a reference to `demo.Absent`. This is a class-file diagnostic command; its output is verbose and JDK-version dependent, so matching the entire output is unnecessary.
 
-## 5. Quy trình chẩn đoán trong ứng dụng thực tế
+## 5. Diagnostic Workflow in Real Applications
 
-Khi framework scan generic type của class từ thư viện khác, thực hiện theo thứ tự:
+When a framework scans generic types of classes from another library, proceed in order:
 
-1. **Ghi rõ vị trí lỗi.** Class, tên field/method, API gây lỗi (ví dụ `Field.getGenericType()`), exception đầy đủ, `typeName()` nếu là `TypeNotPresentException`, cause và stack trace. Không log dữ liệu nghiệp vụ nhạy cảm.
-2. **Kiểm tra nguồn class đang thực sự được tải.** Xem `clazz.getProtectionDomain().getCodeSource()` khi có giá trị và class loader/module liên quan; kiểm tra có hai phiên bản JAR của cùng thư viện hoặc class trùng ở nhiều class loader không.
-3. **Đối chiếu runtime dependencies.** Với `TypeNotPresentException`, tìm class thiếu trong artifact và dependency tree; kiểm tra shading/relocation, optional dependency, đóng gói module và phiên bản API–implementation.
-4. **Đọc class file.** Dùng `javap -v -p`, xem `Signature` và raw descriptor. Với `GenericSignatureFormatError`, kiểm tra grammar và công cụ sinh/sửa bytecode. Với `MalformedParameterizedTypeException`, so arity và cấu trúc type arguments với khai báo generic thực tế của raw type.
-5. **Tái hiện trong classpath tối giản.** Chạy cùng JDK và cùng cặp JAR đang triển khai; có thể thử build sạch, nhưng không thay class file sản xuất trực tiếp khi đang phân tích. Tìm bước build/weaving/obfuscation thay đổi `Signature`.
-6. **Khắc phục tại nguồn.** Bổ sung dependency chính xác, đồng bộ binary versions, sửa bytecode transformer/generator, hoặc loại bỏ artifact hỏng rồi build lại; không dùng `--add-opens` như cách chữa mặc định vì đây thường không phải lỗi quyền truy cập reflection.
+1. **Log the exact failure location.** Class, field/method name, failing API (e.g., `Field.getGenericType()`), full exception, `typeName()` if `TypeNotPresentException`, cause, and stack trace. Do not log sensitive business data.
+2. **Check the actual loaded class source.** Inspect `clazz.getProtectionDomain().getCodeSource()` when available and the associated class loader/module; check whether two JAR versions of the same library or duplicate classes exist across multiple class loaders.
+3. **Compare runtime dependencies.** For `TypeNotPresentException`, locate the missing class in artifacts and the dependency tree; inspect shading/relocation, optional dependencies, module packaging, and API–implementation versions.
+4. **Inspect the class file.** Use `javap -v -p` to inspect `Signature` and the raw descriptor. For `GenericSignatureFormatError`, check the grammar and bytecode generation/modification tools. For `MalformedParameterizedTypeException`, compare type-argument arity and structure against the raw type's actual generic declaration.
+5. **Reproduce on a minimal classpath.** Run with the same JDK and the same deployed JAR pair; you can test a clean build, but do not mutate production class files directly while analyzing. Identify any build/weaving/obfuscation step altering `Signature`.
+6. **Fix at the source.** Add the exact dependency, align binary versions, fix the bytecode transformer/generator, or remove the corrupted artifact and rebuild; do not use `--add-opens` as a default fix since this is usually not a reflection access-permission error.
 
-### Một mẫu xử lý lỗi có chủ đích
+### An Intentional Error-Handling Pattern
 
-Đoạn sau là **phần thân mẫu** của một hàm đọc generic field type, không phải một chương trình độc lập:
+The snippet below is a **sample method body** for reading a generic field type, not a standalone program:
 
 ~~~java
 try {
     return field.getGenericType();
 } catch (TypeNotPresentException ex) {
-    // typeName() cho biết kiểu thiếu; cause có thể null.
+    // typeName() identifies the missing type; cause may be null.
     throw new IllegalStateException(
             "Missing generic type " + ex.typeName()
             + " on " + field, ex);
@@ -200,38 +200,38 @@ try {
     throw new IllegalStateException(
             "Invalid parameterized type on " + field, ex);
 } catch (java.lang.reflect.GenericSignatureFormatError err) {
-    // Metadata class file bị hỏng: báo lỗi rõ ràng rồi dừng.
+    // Corrupted class file metadata: report clearly and stop.
     throw new IllegalStateException(
             "Invalid generic signature on " + field, err);
 }
 ~~~
 
-Trong framework có vòng scan lớn, có thể ghi chẩn đoán theo từng class để biết module nào bị ảnh hưởng. Tuy nhiên, chỉ **fallback từ `getGenericType()` sang `getType()`** khi nghiệp vụ cho phép mất toàn bộ type arguments; ví dụ, serializer cần kiểu `List<User>` mà chỉ còn `List.class` thì tiếp tục đoán `User` sẽ gây lỗi dữ liệu.
+In a framework with a large scan loop, recording diagnostics per class helps reveal which module is affected. However, **only fall back from `getGenericType()` to `getType()`** when business logic permits losing all type arguments; for example, if a serializer needs `List<User>` and only gets `List.class`, continuing by guessing `User` will corrupt data.
 
-**Lưu ý về catch `Error`:** việc bắt riêng `GenericSignatureFormatError` có thể hữu ích ở ranh giới chẩn đoán để bổ sung ngữ cảnh, nhưng đừng bắt mọi `Error` rồi cho hệ thống tiếp tục. Lỗi Signature cho thấy artifact hoặc metadata có vấn đề cần sửa tại nguồn.
+**Note on catching `Error`:** catching `GenericSignatureFormatError` specifically at a diagnostic boundary can help add context, but do not catch all `Error`s and let the system continue. A `Signature` error indicates a broken artifact or metadata that must be fixed at the source.
 
-## 6. Những hiểu nhầm cần tránh
+## 6. Misconceptions to Avoid
 
-| Nhận định dễ sai | Điều đúng |
+| Misconception | Fact |
 | --- | --- |
-| “`Class.forName` thành công thì metadata generic chắc chắn đọc được.” | Generic `Signature` có thể được phân tích/phân giải về sau, lúc gọi API tương ứng. |
-| “Cả ba đều là exception từ `java.lang.reflect`.” | `TypeNotPresentException` thuộc `java.lang`; `GenericSignatureFormatError` là `Error`. |
-| “`GenericSignatureFormatError` giống `MalformedParameterizedTypeException`.” | Cái trước sai grammar; cái sau có thể đúng grammar nhưng sai ngữ nghĩa của kiểu tham số hóa. |
-| “`TypeNotPresentException` luôn có cause.” | `getCause()` có thể `null`; nên đọc `typeName()` trước. |
-| “Xóa một class trong `List<Absent>` luôn làm `Holder` không load được.” | Khi `Absent` chỉ hiện diện trong generic signature, raw field descriptor có thể vẫn hợp lệ; lỗi chỉ xuất hiện khi đọc metadata generic. |
-| “`ClassNotFoundException`, `NoClassDefFoundError` và `TypeNotPresentException` giống nhau.” | Chúng có hierarchy, thời điểm và ngữ cảnh phát sinh khác nhau. |
-| “Có thể sửa generic metadata bằng `setAccessible(true)`.” | `setAccessible` tác động kiểm tra truy cập member, không sửa classpath hay bytecode Signature. |
-| “Bất kỳ mã Java sai generic nào cũng tạo ra lỗi runtime này.” | `javac` chặn phần lớn source sai generic từ lúc compile; lỗi runtime này thường đến từ metadata nhị phân hoặc môi trường tải. |
+| “If `Class.forName` succeeds, generic metadata can definitely be read.” | Generic `Signature` may be parsed/resolved later, when the corresponding API is called. |
+| “All three are exceptions from `java.lang.reflect`.” | `TypeNotPresentException` is in `java.lang`; `GenericSignatureFormatError` is an `Error`. |
+| “`GenericSignatureFormatError` is the same as `MalformedParameterizedTypeException`.” | The former is a grammar error; the latter can be syntactically valid yet semantically invalid for the parameterized type. |
+| “`TypeNotPresentException` always has a cause.” | `getCause()` may be `null`; check `typeName()` first. |
+| “Deleting a class in `List<Absent>` always prevents `Holder` from loading.” | When `Absent` only appears in the generic signature, the raw field descriptor can remain valid; the error only surfaces when reading generic metadata. |
+| “`ClassNotFoundException`, `NoClassDefFoundError`, and `TypeNotPresentException` are the same.” | They have different hierarchies, timing, and triggering contexts. |
+| “Generic metadata can be fixed with `setAccessible(true)`.” | `setAccessible` affects member access checks, not the classpath or bytecode `Signature`. |
+| “Any Java code with wrong generics produces these runtime errors.” | `javac` rejects most bad generic source at compile time; these runtime errors usually come from binary metadata or the loading environment. |
 
-## 7. Tự kiểm tra kiến thức
+## 7. Self-Check Knowledge Questions
 
-1. Với field `List<Missing>`, vì sao `getType()` có thể trả về `List.class` còn `getGenericType()` lại thất bại?
-2. Phân biệt một `Signature` thiếu dấu kết thúc với chữ ký `List<String, Integer>` bị ghi vào class file của một raw type chỉ có một type parameter.
-3. Khi bắt `TypeNotPresentException`, hai thông tin nào giúp xác định dependency bị thiếu?
-4. Vì sao `catch (RuntimeException)` không chặn `GenericSignatureFormatError`?
-5. Trường hợp nào dùng fallback sang kiểu raw an toàn, và khi nào phải dừng để tránh deserialize dữ liệu sai?
+1. For a `List<Missing>` field, why can `getType()` return `List.class` while `getGenericType()` fails?
+2. Distinguish a `Signature` missing a closing delimiter from a `List<String, Integer>` signature written into a class file for a raw type with only one type parameter.
+3. When catching `TypeNotPresentException`, which two pieces of information help identify the missing dependency?
+4. Why does `catch (RuntimeException)` not intercept `GenericSignatureFormatError`?
+5. When is falling back to the raw type safe, and when must you stop to avoid deserializing invalid data?
 
-### Tài liệu Java API chính thức
+### Official Java API References
 
 - Java SE 21, `GenericSignatureFormatError`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/GenericSignatureFormatError.html
 - Java SE 21, `TypeNotPresentException`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/TypeNotPresentException.html

@@ -1,33 +1,33 @@
-# Test ServiceLoader với provider module
+# Testing ServiceLoader with Provider Modules
 
-## 1. Mục tiêu của bài kiểm thử
+## 1. Test Objectives
 
-Trong Java Platform Module System (JPMS), **ServiceLoader** là cơ chế chuẩn để consumer tìm những implementation của một service type mà không phải phụ thuộc trực tiếp vào class provider. Consumer chỉ cần service interface, còn provider module khai báo cung cấp implementation thông qua module descriptor.
+In the Java Platform Module System (JPMS), **ServiceLoader** is the standard mechanism for consumers to discover implementations of a service type without directly depending on provider classes. A consumer needs only the service interface, while provider modules declare their implementations in their module descriptors.
 
-Khi test ServiceLoader trong một ứng dụng modular, cần kiểm tra nhiều điều hơn việc tạo được object:
+When testing ServiceLoader in a modular application, you must verify more than object instantiation:
 
-- Service interface được đặt ở module API và export đúng package.
-- Consumer hoặc test module có khai báo **uses** cho service type.
-- Provider module khai báo **provides ... with ...** hợp lệ.
-- Provider module được phân giải vào module graph hoặc module layer cần kiểm thử.
-- ServiceLoader dùng đúng layer/class loader để tìm provider.
-- Provider trả về đúng hành vi theo hợp đồng.
-- Test không giả định thứ tự provider.
-- Trường hợp không có provider hoặc provider cấu hình sai được xử lý có chủ đích.
+- The service interface resides in an API module with its package properly exported.
+- The consumer or test module declares **uses** for the service type.
+- Provider modules declare a valid **provides ... with ...** directive.
+- Provider modules are resolved into the module graph or module layer under test.
+- ServiceLoader uses the right layer/class loader to locate providers.
+- Providers deliver behavior conforming to the contract.
+- Tests do not assume provider ordering.
+- Cases with no providers or misconfigured providers are handled intentionally.
 
-Ví dụ ở bài này sử dụng **Java 17 trở lên**, một service contract TextFormatter, hai provider module và một named test module có main method tự kiểm tra kết quả. Cách này không cần thư viện test ngoài, giúp thấy rõ cơ chế JPMS trước khi chuyển sang JUnit.
+The example in this article uses **Java 17 or later**, a TextFormatter service contract, two provider modules, and a named test module with a main method that verifies results itself. This avoids external test libraries so JPMS mechanics are clear before moving to JUnit.
 
-## 2. Phân biệt ba vai trò trong service loading
+## 2. Distinguishing Three Roles in Service Loading
 
-Mô hình có ba loại module:
+The model has three module roles:
 
-**API module** định nghĩa service type mà cả consumer và provider cùng tham chiếu.
+**API module** defines the service type referenced by both consumers and providers.
 
-**Provider module** triển khai service type và đăng ký provider trong module-info.java.
+**Provider module** implements the service type and registers the provider in module-info.java.
 
-**Consumer/test module** tuyên bố sử dụng service bằng uses rồi truy vấn ServiceLoader.
+**Consumer/test module** declares service consumption with uses and queries ServiceLoader.
 
-Sơ đồ:
+Diagram:
 
 ~~~text
 com.acme.format.tests
@@ -45,13 +45,13 @@ com.acme.format.upper    com.acme.format.reverse
        ServiceLoader discovery
 ~~~
 
-Test module không cần requires trực tiếp com.acme.format.upper hoặc com.acme.format.reverse. Chính tính độc lập đó là điều cần xác nhận: consumer chỉ dựa vào service contract, còn provider có thể thay đổi độc lập.
+The test module does not need to directly require com.acme.format.upper or com.acme.format.reverse. That independence is precisely what to verify: the consumer relies solely on the service contract, while providers can change independently.
 
-Có thể có nhiều implementation cùng cung cấp một service. Vì vậy, unit/integration test phải kiểm tra theo định danh hoặc behavior, không dùng giả định provider đầu tiên luôn là một implementation cụ thể.
+Multiple implementations can provide the same service. Therefore, unit/integration tests should verify by identity or behavior rather than assuming the first provider is always a specific implementation.
 
-## 3. Cấu trúc dự án
+## 3. Project Structure
 
-Sắp xếp source như sau:
+Organize sources as follows:
 
 ~~~text
 service-test/
@@ -75,13 +75,13 @@ service-test/
 └── test-mods/
 ~~~
 
-Mỗi thư mục module chứa module-info.java ở gốc. Các class thuộc package riêng, tránh split package giữa named modules.
+Each module directory contains module-info.java at its root. Classes belong to distinct packages, avoiding split packages across named modules.
 
-Đặt code production trong src và code kiểm thử trong test-src để dễ tách artifact. Module tests được biên dịch vào test-mods, không đưa class kiểm thử vào JAR production.
+Keep production code in src and test code in test-src to separate artifacts easily. The tests module compiles into test-mods, keeping test classes out of production JARs.
 
-## 4. Định nghĩa service API
+## 4. Defining the Service API
 
-Tạo file src/com.acme.format.api/module-info.java:
+Create src/com.acme.format.api/module-info.java:
 
 ~~~java
 module com.acme.format.api {
@@ -89,7 +89,7 @@ module com.acme.format.api {
 }
 ~~~
 
-Tạo service type:
+Create the service type:
 
 ~~~java
 package com.acme.format.api;
@@ -101,18 +101,18 @@ public interface TextFormatter {
 }
 ~~~
 
-Hợp đồng có hai method:
+The contract has two methods:
 
-- name() trả về định danh ổn định của provider.
-- format(text) chuyển đổi một chuỗi theo quy tắc của provider.
+- name() returns a stable identifier for the provider.
+- format(text) transforms a string according to the provider's rules.
 
-Định danh này phục vụ lựa chọn và kiểm tra provider. Trong hệ thống thực tế, API có thể khai báo thêm metadata, cấu hình và quy tắc xử lý lỗi, nhưng nên giữ hợp đồng nhỏ và độc lập với implementation.
+This identifier supports selecting and verifying providers. In real systems, the API may declare additional metadata, configuration, and error-handling rules, while keeping the contract small and independent of implementations.
 
-Package com.acme.format.api được export vì cả provider và consumer cần tham chiếu TextFormatter. Nếu API package không được export, provider khác module không thể implement type thông thường bằng code Java.
+Package com.acme.format.api is exported because both providers and consumers need to reference TextFormatter. If the API package were not exported, providers in other modules could not implement the type in ordinary Java code.
 
-## 5. Viết provider module thứ nhất
+## 5. Writing the First Provider Module
 
-Tạo src/com.acme.format.upper/module-info.java:
+Create src/com.acme.format.upper/module-info.java:
 
 ~~~java
 module com.acme.format.upper {
@@ -148,15 +148,15 @@ public final class UpperFormatter implements TextFormatter {
 }
 ~~~
 
-Module provider cần requires module API vì implementation dùng TextFormatter. Chỉ thị provides đăng ký implementation cho service.
+The provider module needs requires on the API module because the implementation uses TextFormatter. The provides directive registers the implementation for the service.
 
-Package com.acme.format.upper **không phải export** cho test module. Test chỉ cần biết interface; ServiceLoader và module system xử lý việc truy cập provider theo metadata service.
+Package com.acme.format.upper **does not have to be exported** to the test module. The test only needs the interface; ServiceLoader and the module system handle provider instantiation via service metadata.
 
-Provider class trong ví dụ là public, có public constructor không tham số và implement đúng TextFormatter. Đây là cách đăng ký provider class phổ biến. Named module cũng có thể dùng provider method trong những tình huống factory, nhưng không cần cho ví dụ này.
+The provider class in this example is public, has a public no-arg constructor, and implements TextFormatter directly. That is the standard way to register a provider class. Named modules can also use a provider method in factory scenarios, though it is not needed for this example.
 
-## 6. Viết provider module thứ hai
+## 6. Writing the Second Provider Module
 
-Descriptor của src/com.acme.format.reverse/module-info.java:
+Descriptor for src/com.acme.format.reverse/module-info.java:
 
 ~~~java
 module com.acme.format.reverse {
@@ -191,13 +191,13 @@ public final class ReverseFormatter implements TextFormatter {
 }
 ~~~
 
-Lúc này hai named modules cùng provide TextFormatter nhưng không cùng chứa package. Mỗi provider chỉ cần requires module API, không cần biết hoặc phụ thuộc provider còn lại.
+Now two named modules both provide TextFormatter without sharing any package. Each provider only requires the API module and has no knowledge of or dependency on the other provider.
 
-Cùng một service type có thể có nhiều provider. Thêm provider thứ ba chỉ cần một module mới đăng ký provides đúng cách, nếu module đó được đưa vào layer đang sử dụng.
+A single service type can have many providers. Adding a third provider only requires a new module registering provides properly, provided that module is included in the active layer.
 
-## 7. Tạo named test module có uses
+## 7. Creating a Named Test Module with uses
 
-Descriptor của test module ở test-src/com.acme.format.tests/module-info.java:
+Descriptor for the test module at test-src/com.acme.format.tests/module-info.java:
 
 ~~~java
 module com.acme.format.tests {
@@ -206,25 +206,25 @@ module com.acme.format.tests {
 }
 ~~~
 
-Hai chỉ thị thực hiện hai công việc riêng:
+The two directives perform separate jobs:
 
-- requires com.acme.format.api cho phép test module đọc service contract.
-- uses com.acme.format.api.TextFormatter thông báo test module là service consumer.
+- requires com.acme.format.api lets the test module read the service contract.
+- uses com.acme.format.api.TextFormatter declares the test module as a service consumer.
 
-Việc có requires không thay thế uses. Trong named module, khi code gọi ServiceLoader cho một service type, caller module cần khai báo uses cho service đó theo quy định của API.
+Having requires does not replace uses. In a named module, when code calls ServiceLoader for a service type, the caller module must declare uses for that service per API rules.
 
-Đáng chú ý, descriptor không có:
+Notably, the descriptor does not contain:
 
 ~~~text
 requires com.acme.format.upper;
 requires com.acme.format.reverse;
 ~~~
 
-Test đang kiểm tra discovery thông qua service metadata, không kiểm tra liên kết trực tiếp tới implementation. Nếu thêm requires tới từng provider chỉ để kiểm thử thì đã làm yếu tính linh hoạt của SPI.
+The test verifies discovery through service metadata, not direct linkage to implementations. Adding requires for each provider just to test would undermine the flexibility of the SPI.
 
-## 8. Kiểm thử provider discovery và behavior
+## 8. Testing Provider Discovery and Behavior
 
-Tạo ServiceDiscoveryTest.java trong package com.acme.format.tests:
+Create ServiceDiscoveryTest.java in package com.acme.format.tests:
 
 ~~~java
 package com.acme.format.tests;
@@ -296,19 +296,19 @@ public final class ServiceDiscoveryTest {
 }
 ~~~
 
-Test làm ba loại kiểm tra:
+The test performs three checks:
 
-1. **Discovery**: có đúng hai provider theo danh sách tên kỳ vọng.
-2. **Uniqueness**: không có hai provider trùng tên logic.
-3. **Contract behavior**: upper và reverse thực hiện đúng phép biến đổi.
+1. **Discovery**: exactly two providers matching the expected names.
+2. **Uniqueness**: no two providers share the same logical name.
+3. **Contract behavior**: upper and reverse perform the expected transformations.
 
-Không dùng iterator().next() để coi provider đầu tiên là upper, vì thứ tự provider không phải hợp đồng ưu tiên nghiệp vụ. Dùng Set và Map làm test không phụ thuộc thứ tự duyệt.
+Do not call iterator().next() assuming the first provider is upper, because provider order is not a business priority contract. Using Set and Map keeps the test independent of iteration order.
 
-Trong ví dụ, ServiceLoader.load(ModuleLayer.boot(), service) chỉ tìm provider trong boot layer và các layer tổ tiên liên quan theo quy tắc API. Đối với plugin layer tự tạo, nên truyền layer của plugin thay vì mặc định boot layer.
+In this example, ServiceLoader.load(ModuleLayer.boot(), service) searches providers only in the boot layer and relevant ancestor layers per API rules. For custom plugin layers, pass the plugin layer instead of defaulting to the boot layer.
 
-## 9. Biên dịch production modules
+## 9. Compiling Production Modules
 
-Từ thư mục service-test, biên dịch ba module production:
+From the service-test directory, compile the three production modules:
 
 ~~~bash
 javac --module-source-path src \
@@ -331,13 +331,13 @@ mods/
     └── com/acme/format/reverse/ReverseFormatter.class
 ~~~
 
-Đây là ba exploded modules. Mỗi module có descriptor riêng và package riêng. Khi đưa thư mục mods lên module path, Java launcher có thể tìm chúng theo tên module.
+These are three exploded modules. Each has its own descriptor and package. Placing mods on the module path allows the Java launcher to locate them by module name.
 
-Nếu sử dụng modular JAR thay vì exploded modules, hãy kiểm tra mỗi JAR có module-info.class ở gốc. Kiểm tra thông tin provides bằng lệnh jar --describe-module.
+If using modular JARs instead of exploded modules, verify each JAR has module-info.class at its root. Inspect provides declarations with jar --describe-module.
 
-## 10. Biên dịch named test module
+## 10. Compiling the Named Test Module
 
-Biên dịch test module dựa trên module API đã có trong mods:
+Compile the test module against the API module already in mods:
 
 ~~~bash
 javac --module-source-path test-src \
@@ -346,20 +346,20 @@ javac --module-source-path test-src \
       -m com.acme.format.tests
 ~~~
 
-Ở đây:
+Here:
 
-- --module-source-path test-src tìm module-info.java và source test.
-- --module-path mods cung cấp service API và các module production đã biên dịch.
-- -d test-mods giữ test output riêng biệt.
-- -m com.acme.format.tests chọn đúng named test module.
+- --module-source-path test-src locates module-info.java and test sources.
+- --module-path mods provides the service API and compiled production modules.
+- -d test-mods keeps test output separate.
+- -m com.acme.format.tests selects the exact named test module.
 
-Bởi vì test module chỉ import TextFormatter, nó không cần import UpperFormatter hoặc ReverseFormatter; các provider được tìm ở runtime.
+Because the test module imports only TextFormatter, it does not need to import UpperFormatter or ReverseFormatter; providers are discovered at runtime.
 
-Test module cũng có module-info.class tại gốc thư mục test-mods/com.acme.format.tests.
+The test module also gets module-info.class at the root of test-mods/com.acme.format.tests.
 
-## 11. Chạy test với provider modules được phân giải
+## 11. Running Tests with Provider Modules Resolved
 
-Một module có mặt trên module path chưa chắc đã được phân giải thành root/module của boot layer trong mọi cấu hình. Để bài kiểm thử có điều kiện rõ ràng, đưa provider modules vào root set một cách tường minh:
+A module merely sitting on the module path is not guaranteed to be resolved as a root/module in the boot layer in every configuration. To make test conditions explicit, add provider modules to the root set explicitly:
 
 ~~~bash
 java --module-path mods:test-mods \
@@ -367,15 +367,15 @@ java --module-path mods:test-mods \
      --module com.acme.format.tests/com.acme.format.tests.ServiceDiscoveryTest
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 java --module-path "mods;test-mods" --add-modules com.acme.format.upper,com.acme.format.reverse --module com.acme.format.tests/com.acme.format.tests.ServiceDiscoveryTest
 ~~~
 
-Nhờ --add-modules, cả upper và reverse được phân giải vào boot layer. Test gọi ServiceLoader.load(ModuleLayer.boot(), TextFormatter.class) nên có thể khám phá provider của các module đó.
+Thanks to --add-modules, both upper and reverse are resolved into the boot layer. Because the test calls ServiceLoader.load(ModuleLayer.boot(), TextFormatter.class), it discovers the providers from those modules.
 
-Đầu ra minh họa:
+Sample output:
 
 ~~~text
 upper from module com.acme.format.upper
@@ -383,15 +383,15 @@ reverse from module com.acme.format.reverse
 ServiceLoader integration test passed
 ~~~
 
-Thứ tự hai dòng provider có thể khác nhau. Điều quan trọng là Set tên provider và hành vi đã được xác minh.
+The order of the two provider lines may vary. What matters is that the Set of provider names and their behavior are verified.
 
-Phân biệt rõ **module path** với **resolved modules**: JAR xuất hiện trên module path không phải lời đảm bảo mọi module trong thư mục đều tham gia module graph. Trong test integration cần cố định cấu hình module roots/module layer để kết quả tái lập được.
+Clearly distinguish **module path** from **resolved modules**: a JAR appearing on the module path does not guarantee every module in the directory joins the module graph. In integration tests, pin module roots/layer configuration so results are reproducible.
 
-## 12. Test khi không có provider
+## 12. Testing When No Providers Are Present
 
-Cần xác minh consumer xử lý được tình huống không có implementation.
+You should verify that the consumer handles the case with zero implementations.
 
-Tạo NoProviderTest.java:
+Create NoProviderTest.java:
 
 ~~~java
 package com.acme.format.tests;
@@ -419,54 +419,54 @@ public final class NoProviderTest {
 }
 ~~~
 
-Test này chỉ hợp lệ khi layer đang được kiểm tra **không chứa provider module**. Vì vậy, cần chuẩn bị một module path fixture không có upper/reverse. Ví dụ trên Linux/macOS, sau khi compile:
+This test is only valid when the layer under test **contains no provider modules**. Therefore, prepare a module path fixture without upper/reverse. For example on Linux/macOS, after compiling:
 
 ~~~bash
 mkdir -p only-api-mods
 cp -R mods/com.acme.format.api only-api-mods/
 ~~~
 
-Chạy với thư mục only-api-mods và test-mods, không đưa mods đầy đủ lên module path:
+Run with only-api-mods and test-mods, omitting the full mods directory from the module path:
 
 ~~~bash
 java --module-path only-api-mods:test-mods \
      --module com.acme.format.tests/com.acme.format.tests.NoProviderTest
 ~~~
 
-Kết quả mong đợi:
+Expected result:
 
 ~~~text
 No-provider test passed
 ~~~
 
-Trên Windows có thể tạo thư mục tương ứng và copy exploded module com.acme.format.api bằng File Explorer hoặc PowerShell, sau đó dùng dấu chấm phẩy phân cách module path.
+On Windows, create the corresponding directory and copy the exploded com.acme.format.api module via File Explorer or PowerShell, then separate module path entries with semicolons.
 
-Không gọi test no-provider trên module path chứa cả provider modules rồi coi kết quả rỗng là đảm bảo. Module resolution và service binding có thể đưa provider vào boot layer. Fixture âm tính cần **thực sự cách ly** provider artifacts.
+Do not run the no-provider test on a module path containing provider modules and treat an empty result as guaranteed. Module resolution and service binding may pull providers into the boot layer. A negative fixture must **genuinely isolate** provider artifacts.
 
-## 13. Test chỉ một provider
+## 13. Testing a Single Provider
 
-Ngoài test hai provider và test không có provider, có thể kiểm tra cấu hình chỉ một implementation.
+In addition to two-provider and zero-provider tests, you can verify a single-implementation configuration.
 
-Chuẩn bị fixture module path chỉ chứa API module và upper module; rồi chạy test dành riêng cho single-provider scenario. Với test này, Set kỳ vọng là:
+Prepare a module path fixture containing only the API module and upper module, then run a test tailored for the single-provider scenario. For this test, the expected Set is:
 
 ~~~java
 Set<String> expected = Set.of("upper");
 ~~~
 
-Mục đích:
+Goals:
 
-- Xác nhận consumer không cần biết provider reverse.
-- Xác nhận module descriptor của upper đăng ký đúng service.
-- Xác nhận behavior upper ổn định.
-- Phát hiện dependency vô tình kéo thêm provider ngoài mong muốn.
+- Confirm the consumer does not need to know about the reverse provider.
+- Confirm upper's module descriptor registers the service properly.
+- Confirm upper's behavior is stable.
+- Catch dependencies that accidentally pull in unwanted providers.
 
-Trong môi trường build nhiều profile, chẳng hạn test, staging và production, việc kiểm thử cùng service contract với các provider set khác nhau giúp phát hiện lỗi cấu hình phân phối trước khi deploy.
+In multi-profile build environments such as test, staging, and production, testing the same service contract across different provider sets catches distribution configuration errors before deployment.
 
-## 14. Provider method và cách kiểm thử
+## 14. Provider Methods and How to Test Them
 
-Trong named module, provider có thể được tạo từ **provider class** hoặc từ một static method tên provider của class được nêu trong mệnh đề provides.
+In a named module, a provider can be created from a **provider class** or from a static method named provider on the class named in the provides clause.
 
-Ví dụ module descriptor:
+Example module descriptor:
 
 ~~~java
 module com.acme.format.special {
@@ -495,59 +495,59 @@ public final class FormatterFactory {
 }
 ~~~
 
-Trong đó ConfiguredFormatter là implementation phù hợp của TextFormatter thuộc module provider. Khi test, cần bảo đảm:
+Here ConfiguredFormatter is a suitable TextFormatter implementation inside the provider module. When testing, ensure:
 
-- Module được phân giải vào layer cần kiểm thử.
-- Mệnh đề provides đúng service type.
-- Method provider có chữ ký hợp lệ và trả về instance phù hợp.
-- Việc tạo provider không ném exception.
-- Behavior của instance đáp ứng contract.
+- The module is resolved into the layer under test.
+- The provides clause names the exact service type.
+- The provider method has a valid signature and returns an appropriate instance.
+- Instantiating the provider does not throw an exception.
+- Instance behavior satisfies the contract.
 
-ServiceLoader.Provider.type() có thể biểu diễn type theo cơ chế cung cấp provider, nên nếu cần kiểm tra implementation thật, hãy kiểm tra instance nhận được từ Provider.get() thay vì giả định class được khai báo sau with luôn chính là runtime class của object.
+ServiceLoader.Provider.type() may represent the type per the provider mechanism, so if you need to check the real implementation, inspect the instance returned by Provider.get() rather than assuming the class after with is always the object's runtime class.
 
-## 15. Kiểm tra descriptor và metadata provides
+## 15. Inspecting Descriptors and provides Metadata
 
-Nếu ServiceLoader trả về kết quả rỗng, một bước chẩn đoán nhanh là kiểm tra module descriptor:
+If ServiceLoader returns an empty result, a quick diagnostic step is inspecting the module descriptor:
 
 ~~~bash
 javap -v -p mods/com.acme.format.upper/module-info.class
 ~~~
 
-Với modular JAR:
+For modular JARs:
 
 ~~~bash
 jar --describe-module --file dist/com.acme.format.upper.jar
 ~~~
 
-Những thông tin cần xem:
+Details to verify:
 
-- Tên module có đúng com.acme.format.upper không?
-- Có requires com.acme.format.api không?
-- Có provides com.acme.format.api.TextFormatter with ... không?
-- Provider class có tồn tại và đúng tên package không?
+- Is the module name exact (com.acme.format.upper)?
+- Does it have requires com.acme.format.api?
+- Does it have provides com.acme.format.api.TextFormatter with ...?
+- Does the provider class exist with the exact package name?
 
-Kiểm tra descriptor của test module:
+Inspect the test module descriptor:
 
 ~~~bash
 javap -v -p test-mods/com.acme.format.tests/module-info.class
 ~~~
 
-Trong đó phải có uses com.acme.format.api.TextFormatter. Nếu test module thiếu uses, việc gọi ServiceLoader từ named module có thể phát sinh ServiceConfigurationError.
+It must contain uses com.acme.format.api.TextFormatter. If the test module omits uses, calling ServiceLoader from a named module can raise ServiceConfigurationError.
 
-Không nhầm **service contract có thể import** với **service đã được provider đăng ký**: requires/exports giúp truy cập type; uses/provides giúp mô tả quan hệ service.
+Do not confuse **being able to import the service contract** with **a service being registered by a provider**: requires/exports grants type access; uses/provides describes the service relationship.
 
-## 16. ServiceLoader và service binding
+## 16. ServiceLoader and Service Binding
 
-Có hai bước khác nhau:
+There are two separate steps:
 
-1. **Module resolution/service binding** quyết định provider modules nào được đưa vào module configuration.
-2. **ServiceLoader** truy vấn layer/class loader và tạo instance của provider khi code duyệt service.
+1. **Module resolution/service binding** decides which provider modules enter the module configuration.
+2. **ServiceLoader** queries the layer/class loader and instantiates providers when code iterates the service.
 
-Khi tự tạo module layer, Configuration.resolve(...) phân giải roots và requires, còn Configuration.resolveAndBind(...) có thể bổ sung các module cung cấp service theo uses/provides.
+When creating custom module layers, Configuration.resolve(...) resolves roots and requires, whereas Configuration.resolveAndBind(...) can additionally bind modules providing services per uses/provides.
 
-Trong integration test dùng module layer động, nên xây dựng fixture theo cách tường minh và kiểm tra danh sách module của configuration trước khi gọi ServiceLoader.load(layer, ServiceType.class).
+In integration tests using dynamic module layers, construct fixtures explicitly and inspect configuration modules before calling ServiceLoader.load(layer, ServiceType.class).
 
-Ví dụ truy vấn provider tại một layer được truyền vào:
+Example querying providers in a supplied layer:
 
 ~~~java
 public static void verifyLayer(ModuleLayer layer) {
@@ -563,26 +563,26 @@ public static void verifyLayer(ModuleLayer layer) {
 }
 ~~~
 
-Method trên là đoạn mã bên trong một class đang import TextFormatter, ServiceLoader và ModuleLayer. Nếu caller là named module, descriptor của caller cần có uses cho service type.
+The method above sits inside a class importing TextFormatter, ServiceLoader, and ModuleLayer. If the caller is a named module, the caller's descriptor must declare uses for the service type.
 
-**Service binding không đồng nghĩa provider được khởi tạo.** Resolution chuẩn bị module graph; instance provider chỉ được tạo khi ServiceLoader thực sự yêu cầu.
+**Service binding does not mean providers are instantiated.** Resolution prepares the module graph; provider instances are created only when ServiceLoader actually requests them.
 
-## 17. Test provider load thất bại
+## 17. Testing Provider Load Failures
 
-Một provider cấu hình sai có thể gây **ServiceConfigurationError** khi ServiceLoader phát hiện hoặc khởi tạo provider.
+A misconfigured provider can throw **ServiceConfigurationError** when ServiceLoader discovers or instantiates it.
 
-Các trường hợp cần test âm tính:
+Negative cases to test:
 
-- Provider module khai báo tên class sau with không tồn tại.
-- Implementation không thực hiện service contract.
-- Constructor hoặc provider method ném exception.
-- Provider method trả về null hoặc type không phù hợp.
-- Dependency runtime của provider bị thiếu.
-- Service type bị nạp thành hai bản Class khác nhau qua các class loader.
+- Provider module specifies a non-existent class after with.
+- Implementation does not implement the service contract.
+- Constructor or provider method throws an exception.
+- Provider method returns null or an incompatible type.
+- Runtime dependency of the provider is missing.
+- Service type is loaded as two distinct Class objects across class loaders.
 
-Trong named module, nhiều lỗi mô tả provider không hợp lệ có thể được phát hiện ngay khi biên dịch descriptor/provider. Để tạo fixture lỗi runtime, cần kiểm soát cách đóng gói hoặc điều kiện runtime, không nên cố tình đưa source không biên dịch được vào test bình thường.
+In named modules, many invalid provider declarations are caught at compile time when compiling the descriptor/provider. To create runtime failure fixtures, control packaging or runtime conditions rather than placing uncompilable sources into normal tests.
 
-Consumer có thể xử lý theo chính sách:
+Consumers can handle errors according to policy:
 
 ~~~java
 try {
@@ -597,11 +597,11 @@ try {
 }
 ~~~
 
-Lỗi provider không nên bị nuốt hoàn toàn nếu tính năng yêu cầu service bắt buộc. Ghi rõ module, provider name và cause giúp chẩn đoán.
+Provider errors should not be silently swallowed if a feature requires a mandatory service. Logging the module, provider name, and cause aids diagnosis.
 
-## 18. Không kiểm tra provider theo thứ tự
+## 18. Do Not Test Providers by Order
 
-Một sai lầm phổ biến:
+A common mistake:
 
 ~~~java
 TextFormatter first = ServiceLoader
@@ -612,23 +612,23 @@ TextFormatter first = ServiceLoader
 assert "upper".equals(first.name());
 ~~~
 
-Đoạn này phụ thuộc thứ tự provider và giả định luôn có ít nhất một provider. Thứ tự có thể thay đổi khi module path, packaging hoặc layer thay đổi.
+This snippet depends on provider ordering and assumes at least one provider exists. Ordering can change when the module path, packaging, or layers change.
 
-Cách phù hợp hơn:
+A better approach:
 
-- Thu thập provider theo một key ổn định.
-- Kiểm tra tập key tìm được.
-- Phát hiện trùng key khi contract yêu cầu duy nhất.
-- Kiểm tra từng behavior thông qua interface.
-- Nếu nghiệp vụ có thứ tự ưu tiên, định nghĩa policy riêng thay vì dựa trên thứ tự ServiceLoader.
+- Collect providers by a stable key.
+- Verify the discovered set of keys.
+- Detect duplicate keys when the contract requires uniqueness.
+- Verify each behavior through the interface.
+- If business logic requires priority ordering, define an explicit policy rather than relying on ServiceLoader iteration order.
 
-Ví dụ có thể dùng Map<String, TextFormatter> hoặc Set<String>. Với provider bắt buộc, báo lỗi rõ ràng khi Set rỗng thay vì gọi next() mù.
+For example, use Map<String, TextFormatter> or Set<String>. For mandatory providers, raise a clear error when the Set is empty instead of calling next() blindly.
 
-## 19. Test với JUnit và framework runner
+## 19. Testing with JUnit and Framework Runners
 
-Khi chuyển sang JUnit 5, các assertion ở ví dụ trên có thể được viết bằng @Test và Assertions.
+When moving to JUnit 5, assertions from the examples above can be written using @Test and Assertions.
 
-Ví dụ:
+Example:
 
 ~~~java
 @Test
@@ -644,15 +644,15 @@ void discoversExpectedProviders() {
 }
 ~~~
 
-Đây là phần thân test method; cần import Test, HashSet, Set, ServiceLoader, TextFormatter và assertEquals. Tên module JUnit API thường là org.junit.jupiter.api, nhưng cấu hình engine/launcher và module path phụ thuộc phiên bản JUnit và build tool.
+This is the test method body; you need to import Test, HashSet, Set, ServiceLoader, TextFormatter, and assertEquals. The JUnit API module name is typically org.junit.jupiter.api, while engine/launcher and module path configuration depend on the JUnit version and build tool.
 
-Với named test module, descriptor cần requires những test framework modules mà code import, đồng thời có thể cần qualified opens nếu runner thực hiện deep reflection. Nếu test được patch vào production module, có thể cần --add-reads/--add-opens trong cấu hình test riêng.
+For a named test module, the descriptor needs requires for the test framework modules imported by code, and may need qualified opens if the runner performs deep reflection. If tests are patched into the production module, --add-reads/--add-opens may be needed in dedicated test settings.
 
-Không thêm dependency JUnit vào production module-info.java chỉ để chạy test nếu nó không phải dependency runtime thực sự của ứng dụng.
+Do not add JUnit dependencies to production module-info.java just to run tests if they are not real runtime dependencies of the application.
 
-## 20. TCCL và ServiceLoader.load(service)
+## 20. TCCL and ServiceLoader.load(service)
 
-Có hai cách gọi đáng phân biệt:
+Distinguish two invocation forms:
 
 ~~~java
 ServiceLoader<TextFormatter> viaContextLoader =
@@ -665,81 +665,81 @@ ServiceLoader<TextFormatter> viaLayer =
         );
 ~~~
 
-Overload load(service) sử dụng thread context class loader (TCCL) và quy tắc provider discovery tương ứng. Trong ứng dụng container hoặc plugin, TCCL có thể khác giữa các thread.
+The load(service) overload uses the thread context class loader (TCCL) and its corresponding provider discovery rules. In container or plugin applications, TCCL can differ across threads.
 
-Overload nhận ModuleLayer giúp test kiểm soát rõ layer được truy vấn. Tuy vậy, kết quả vẫn phụ thuộc provider modules nào đã được phân giải vào layer đó.
+The overload taking ModuleLayer gives tests explicit control over the queried layer. Still, results depend on which provider modules were resolved into that layer.
 
-Khi test ServiceLoader trong thread pool:
+When testing ServiceLoader in thread pools:
 
-- Không giả định TCCL của worker giống thread tạo test nếu framework không cam kết.
-- Nếu thay đổi TCCL, khôi phục giá trị cũ trong finally.
-- Không chia sẻ cùng một ServiceLoader cho nhiều thread nếu không có đồng bộ phù hợp.
-- Dùng layer tường minh khi bài kiểm thử nhằm xác nhận service registry của một module layer cụ thể.
+- Do not assume a worker thread's TCCL matches the test-creating thread unless the framework guarantees it.
+- If changing TCCL, restore the previous value in a finally block.
+- Do not share a single ServiceLoader instance across threads without proper synchronization.
+- Use an explicit layer when the test aims to verify the service registry of a specific module layer.
 
-## 21. Những lỗi thường gặp
+## 21. Common Errors
 
-**Không thấy provider dù JAR nằm trên module path**
+**Provider not found even though JAR is on the module path**
 
-Module provider có thể chưa được phân giải vào layer đang truy vấn. Dùng --add-modules cho fixture xác định, hoặc kiểm tra service binding/module layer theo cách ứng dụng tạo configuration.
+The provider module may not have been resolved into the queried layer. Use --add-modules for deterministic fixtures, or inspect service binding/module layer creation in your application.
 
-**Consumer không khai báo uses**
+**Consumer fails to declare uses**
 
-Named module gọi ServiceLoader nhưng thiếu uses cho service type. Bổ sung uses trong module-info.java của consumer/test module.
+A named module calls ServiceLoader without declaring uses for the service type. Add uses to the consumer/test module's module-info.java.
 
-**Provider không khai báo provides**
+**Provider fails to declare provides**
 
-Implementation class có mặt không đủ. Named provider module phải khai báo provides ... with ... hợp lệ.
+Having an implementation class is not enough. A named provider module must declare a valid provides ... with ....
 
-**Package chứa implementation không được export**
+**Implementation package is not exported**
 
-Điều này thường **không phải lỗi**. ServiceLoader không yêu cầu export provider implementation package chỉ để tạo service. Chỉ export package API chứa service contract khi consumer/provider cần import.
+This is usually **not an error**. ServiceLoader does not require exporting the provider's implementation package just to instantiate the service. Export only the API package containing the service contract when consumers/providers need to import it.
 
-**Provider có nhiều bản service interface**
+**Provider sees a different copy of the service interface**
 
-Nếu hai class loader định nghĩa riêng một service interface cùng tên, provider có thể không được xem là subtype đúng. Dùng chung API module/class loader để đảm bảo type identity.
+If two class loaders separately define a service interface with the same name, the provider may not be recognized as a valid subtype. Share the same API module/class loader to preserve type identity.
 
-**Test chỉ kiểm tra có ít nhất một provider**
+**Test checks only that at least one provider exists**
 
-Bài test như vậy có thể vượt qua dù thiếu provider quan trọng. Hãy kiểm tra tập provider mong đợi nếu test fixture xác định chính xác module set.
+Such a test can pass even when a critical provider is missing. Check the expected set of providers when the test fixture specifies the exact module set.
 
-**No-provider test vẫn thấy implementation**
+**No-provider test still sees implementations**
 
-Có thể provider module đang nằm trong boot layer do root configuration hoặc service binding. Tạo module path fixture chỉ gồm API và test, không đưa provider artifacts vào.
+Provider modules might be entering the boot layer via root configuration or service binding. Build a module path fixture containing only the API and tests, excluding provider artifacts.
 
 **ServiceConfigurationError**
 
-Kiểm tra descriptor, provider factory/constructor, dependency runtime và cause. Một provider lỗi có thể khiến iteration thất bại trước khi test thu thập hết các implementation.
+Check the descriptor, provider factory/constructor, runtime dependencies, and cause. One broken provider can abort iteration before the test collects all implementations.
 
-**Test chạy với classpath khác module path**
+**Tests behave differently on classpath vs. module path**
 
-META-INF/services của classpath và provides trong named module là hai cơ chế đăng ký khác nhau. Hãy xác nhận cách đóng gói của từng dependency và loader/layer mà ServiceLoader thực sự sử dụng.
+Classpath META-INF/services and named-module provides are two different registration mechanisms. Verify how each dependency is packaged and which loader/layer ServiceLoader actually uses.
 
-## 22. Quy trình thực hành
+## 22. Practical Workflow
 
-1. Tạo service API trong một named module riêng và export package chứa service type.
-2. Tạo ít nhất một provider module với requires API và provides ... with ....
-3. Tạo named test module với requires API và uses service type.
-4. Biên dịch production modules bằng javac --module-source-path.
-5. Biên dịch test module với --module-path trỏ tới production artifacts.
-6. Chạy test với module path chứa đúng fixture; dùng --add-modules để đưa provider modules mong muốn vào boot layer khi cần tính xác định.
-7. Truy vấn ServiceLoader.load(ModuleLayer.boot(), ServiceType.class) hoặc load(layer, ...) nếu có layer riêng.
-8. Kiểm tra provider identity, module name và behavior, không dựa vào thứ tự iteration.
-9. Chuẩn bị fixture âm tính không có provider và kiểm tra kết quả rỗng.
-10. Khi test thất bại, kiểm tra module-info.class, module resolution và module path trước khi sửa source implementation.
+1. Create the service API in a dedicated named module and export the package containing the service type.
+2. Create at least one provider module with requires on the API and provides ... with ....
+3. Create a named test module with requires on the API and uses for the service type.
+4. Compile production modules with javac --module-source-path.
+5. Compile the test module with --module-path pointing to production artifacts.
+6. Run tests with a module path containing the exact fixture; use --add-modules to place desired provider modules into the boot layer for determinism.
+7. Query ServiceLoader.load(ModuleLayer.boot(), ServiceType.class) or load(layer, ...) for custom layers.
+8. Verify provider identity, module name, and behavior without relying on iteration order.
+9. Prepare a negative fixture with no providers and verify an empty result.
+10. When tests fail, inspect module-info.class, module resolution, and the module path before modifying implementation code.
 
-## 23. Ghi nhớ
+## 23. Takeaways
 
-- ServiceLoader chỉ tìm provider đã được đăng ký và có mặt trong phạm vi layer/class loader được truy vấn.
-- Consumer named module khai báo uses; provider named module khai báo provides ... with ....
-- Provider không cần export package implementation chỉ để được ServiceLoader khởi tạo.
-- Test named module có thể chỉ requires service API, không requires provider modules.
-- Module path chứa một artifact không đồng nghĩa module đó chắc chắn thuộc resolved module graph.
-- --add-modules hữu ích để cố định provider set trong integration test.
-- Test nên kiểm tra tập provider và behavior, không giả định thứ tự ServiceLoader.
-- Test không có provider cần môi trường module path/layer thực sự không chứa provider.
-- ServiceConfigurationError chỉ ra lỗi discovery/initialization, không nhất thiết là lỗi business method.
-- Với plugin layer tự tạo, dùng ServiceLoader.load(layer, service) để kiểm tra đúng layer.
-- TCCL tác động tới load(service); kiểm soát TCCL khi test chạy trên nhiều thread.
-- Không đưa test dependency hoặc quyền reflective access rộng vào production descriptor nếu không cần.
+- ServiceLoader discovers only registered providers present within the queried layer/class loader scope.
+- Consumer named modules declare uses; provider named modules declare provides ... with ....
+- Providers do not need to export implementation packages just for ServiceLoader instantiation.
+- A test named module can require only the service API without requiring provider modules.
+- An artifact existing on the module path does not mean that module is necessarily in the resolved module graph.
+- --add-modules is useful for pinning provider sets in integration tests.
+- Tests should verify the provider set and behavior rather than assuming ServiceLoader ordering.
+- Zero-provider tests need a module path/layer environment genuinely free of providers.
+- ServiceConfigurationError indicates a discovery/initialization failure, not necessarily a business method bug.
+- For custom plugin layers, use ServiceLoader.load(layer, service) to inspect the right layer.
+- TCCL affects load(service); control TCCL when tests run across multiple threads.
+- Keep test dependencies and broad reflective permissions out of production descriptors unless necessary.
 
-**Kết luận:** Test ServiceLoader trong JPMS phải xác minh cả metadata **uses/provides**, module resolution, phạm vi provider discovery và behavior của implementation. Một test module độc lập dùng service API, provider fixture xác định và các assertion không phụ thuộc thứ tự sẽ giúp phát hiện lỗi đóng gói và cấu hình trước khi ứng dụng chạy thực tế.
+**Conclusion:** Testing ServiceLoader in JPMS must verify **uses/provides** metadata, module resolution, provider discovery scope, and implementation behavior. An independent test module using the service API, deterministic provider fixtures, and order-independent assertions catches packaging and configuration errors before the application reaches production.

@@ -1,28 +1,28 @@
-# Chọn mức đồng bộ theo hợp đồng nhất quán cần có
+# Choosing Synchronization Levels Based on the Required Consistency Contract
 
-## 1. Bài toán: “đúng” nghĩa là gì khi nhiều luồng cùng cập nhật số?
+## 1. The Problem: What Does "Correct" Mean When Multiple Threads Update Numbers?
 
-Trong ứng dụng đa luồng, nhiều worker có thể đồng thời tăng bộ đếm, cộng tổng doanh thu, trừ hàng tồn kho hoặc cập nhật số lượt và tổng giá trị. Cùng là dữ liệu số, nhưng mỗi nghiệp vụ cần **mức nhất quán khác nhau**:
+In a multithreaded application, multiple workers may concurrently increment a counter, accumulate revenue totals, deduct inventory, or update both counts and total amounts. Even though all of these involve numeric data, each business case needs a **different level of consistency**:
 
-- Một dashboard chỉ cần số request gần đúng *tại thời điểm quan sát* trong lúc các request vẫn đến.
-- Một API cấp số thứ tự yêu cầu mỗi lần cấp nhận một giá trị duy nhất, không làm mất lần tăng.
-- Một giao dịch đặt chỗ phải bảo đảm không có hai luồng cùng sử dụng một suất cuối cùng.
-- Một báo cáo gồm `count` và `total` phải phản ánh **cùng một trạng thái**; không được đọc `count` mới nhưng `total` cũ nếu chúng có ràng buộc với nhau.
+- A dashboard only needs an approximate request count *at observation time* while requests continue arriving.
+- A sequence-number API requires every caller to receive a unique value without losing increments.
+- A reservation transaction must guarantee two threads cannot both claim the last remaining slot.
+- A report containing `count` and `total` must reflect **the same state**; you must not read a new `count` paired with an old `total` when they are constrained together.
 
-Vì thế câu hỏi đúng trước khi chọn `volatile`, `AtomicLong`, `LongAdder` hay `synchronized` là: **Hợp đồng nhất quán cần bảo đảm điều gì và ở thời điểm nào?**
+Thus, the right question before choosing `volatile`, `AtomicLong`, `LongAdder`, or `synchronized` is: **What consistency contract must be guaranteed, and at what point in time?**
 
-Bài học này tập trung vào chọn cơ chế đồng bộ cho dữ liệu số trong **một tiến trình JVM** với Java 17+. Đồng bộ giữa nhiều JVM, database và dịch vụ phân tán cần một hợp đồng giao dịch/phối hợp khác; các primitive bên dưới không tự giải quyết phạm vi đó.
+This lesson focuses on choosing synchronization mechanisms for numeric data within **a single JVM process** on Java 17+. Synchronization across multiple JVMs, databases, and distributed services requires different transaction/coordination contracts; the primitives below do not solve that scope on their own.
 
-## 2. Ba vấn đề nền tảng: atomicity, visibility và ordering
+## 2. Three Foundational Concerns: Atomicity, Visibility, and Ordering
 
-### 2.1. Atomicity — phép cập nhật có bị xen kẽ làm mất dữ liệu không?
+### 2.1. Atomicity — Can an Update Be Interleaved and Lose Data?
 
 ```java
 class UnsafeCounter {
     private long count;
 
     void increment() {
-        count++; // đọc -> cộng 1 -> ghi; không phải thao tác nguyên tử
+        count++; // read -> add 1 -> write; not an atomic operation
     }
 
     long get() {
@@ -31,11 +31,11 @@ class UnsafeCounter {
 }
 ```
 
-Nếu hai luồng cùng đọc `count == 5`, rồi cùng ghi `6`, ứng dụng có thể mất một lần tăng. Đây là **race condition**. Ngay cả khi một lần đọc/ghi `long` được thực hiện nguyên tử trên nền tảng/JVM cụ thể, biểu thức `count++` vẫn là chuỗi thao tác đọc–sửa–ghi và không được bảo vệ khỏi mất cập nhật.
+If two threads both read `count == 5` and both write `6`, the application can lose an increment. This is a **race condition**. Even when a single `long` read or write is atomic on a given platform/JVM, the expression `count++` remains a read–modify–write sequence and is unprotected against lost updates.
 
-### 2.2. Visibility — luồng khác có nhìn thấy thay đổi không?
+### 2.2. Visibility — Do Other Threads See the Change?
 
-Không có quan hệ đồng bộ phù hợp, một luồng có thể tiếp tục dùng giá trị cũ hoặc compiler/CPU/JVM sắp xếp thao tác theo những tối ưu được Java Memory Model (JMM) cho phép. `volatile` bảo đảm khả năng quan sát và các quan hệ thứ tự *happens-before* nhất định:
+Without proper synchronization relationships, a thread may continue using stale values, or the compiler/CPU/JVM may reorder operations under optimizations permitted by the Java Memory Model (JMM). `volatile` guarantees visibility and certain *happens-before* ordering relationships:
 
 ```java
 class ShutdownSignal {
@@ -47,55 +47,55 @@ class ShutdownSignal {
 
     void work() {
         while (!stopped) {
-            // Kiểm tra tín hiệu dừng từ luồng khác.
+            // Check stop signal from another thread.
         }
     }
 }
 ```
 
-Đoạn code minh họa một tín hiệu; vòng bận (*busy spin*) không nhất thiết là thiết kế tốt cho công việc thật. Có thể dùng blocking queue, interruption hoặc cơ chế phối hợp khác để tránh đốt CPU.
+This snippet illustrates a signal; a busy spin is not necessarily good design for real workloads. You can use a blocking queue, interruption, or another coordination mechanism to avoid burning CPU.
 
-Một phép ghi vào biến `volatile` *happens-before* lần đọc tiếp theo của cùng biến đó quan sát theo quy tắc JMM. Tuy nhiên `volatile` **không** biến `count++` thành nguyên tử và **không** làm cả nhóm biến trở thành một giao dịch.
+A write to a `volatile` variable *happens-before* subsequent reads of that same variable under JMM rules. However, `volatile` **does not** make `count++` atomic and **does not** turn a group of variables into a transaction.
 
-### 2.3. Ordering — các thao tác có xuất hiện theo thứ tự cần thiết không?
+### 2.3. Ordering — Do Operations Appear in the Required Order?
 
-JMM cho phép một số tối ưu sắp xếp lại thao tác khi quan sát từ luồng khác, miễn các quy tắc hợp lệ được giữ. `synchronized`, `volatile`, phép toán atomic và các cấu trúc concurrency chuẩn tạo ra các ranh giới thứ tự/visibility theo hợp đồng của chúng.
+The JMM permits certain instruction reorderings as observed from other threads, provided legal rules are respected. `synchronized`, `volatile`, atomic operations, and standard concurrency constructs establish ordering/visibility boundaries per their contracts.
 
-Chẳng hạn, một luồng ghi các trường dữ liệu rồi phát tín hiệu qua một biến `volatile`, luồng khác đọc tín hiệu phù hợp rồi đọc dữ liệu sẽ có quan hệ happens-before thích hợp. Điều này chỉ đúng khi toàn bộ quy tắc phát hành/đọc được thực hiện đúng; không phải cứ thêm một biến `volatile` bất kỳ là mọi dữ liệu chia sẻ đều an toàn.
+For example, when one thread writes data fields and then signals via a `volatile` variable, another thread that properly reads the signal and then reads the data obtains the appropriate happens-before relationship. This holds only when the full publication/read protocol is followed properly; merely adding an arbitrary `volatile` variable does not make all shared data safe.
 
-## 3. Chọn mức nhất quán trước khi chọn công cụ
+## 3. Choose the Consistency Level Before Choosing the Tool
 
-| Hợp đồng cần đạt | Cơ chế thường phù hợp | Bảo đảm chủ yếu |
+| Required contract | Commonly suitable mechanism | Primary guarantee |
 | --- | --- | --- |
-| Một cờ trạng thái độc lập được phát hành/đọc giữa các luồng | `volatile` hoặc `AtomicBoolean` | Visibility và thứ tự phù hợp; không có cập nhật ghép |
-| Mỗi lần tăng một bộ đếm đơn phải được ghi nhận, cần kết quả tức thời | `AtomicInteger` / `AtomicLong` | Phép toán atomic cho **một biến** |
-| Thống kê tổng số sự kiện với rất nhiều luồng ghi, chấp nhận đọc không phải snapshot nguyên tử khi đang cập nhật | `LongAdder`, `DoubleAdder` | Tổng hợp thông lượng tốt; `sum()` không phải snapshot nguyên tử dưới concurrent update |
-| Cần chọn max/min/tổng tích lũy bằng phép gộp nhất quán với nhiều writer | `AtomicLong` với CAS/update, `LongAccumulator` khi phù hợp | Atomic update một trạng thái hoặc phép tích lũy song song có quy tắc |
-| Phải kiểm tra điều kiện rồi cập nhật như **một hành động** | `compareAndSet` loop hoặc khóa | Điều kiện và thay đổi cùng một điểm quyết định |
-| Nhiều trường liên quan phải luôn thỏa bất biến và snapshot nhất quán | `synchronized`, `ReentrantLock` hoặc trạng thái immutable trong `AtomicReference` | Cập nhật và đọc **cả trạng thái** theo một giao thức |
-| Nhiều hàng DB hoặc nhiều dịch vụ phải nhất quán | Giao dịch DB, optimistic locking/version, protocol phân tán | Hợp đồng ngoài phạm vi JVM local |
+| An independent status flag published/read across threads | `volatile` or `AtomicBoolean` | Visibility and proper ordering; no compound updates |
+| Every increment of a single counter must be recorded with immediate exact reads | `AtomicInteger` / `AtomicLong` | Atomic operations on **one variable** |
+| Counting total events with very many writers, tolerating non-atomic snapshot reads during updates | `LongAdder`, `DoubleAdder` | High-throughput aggregation; `sum()` is not an atomic snapshot under concurrent updates |
+| Maintaining max/min/accumulated total via consistent merges across writers | `AtomicLong` with CAS/update, `LongAccumulator` when appropriate | Atomic single-state updates or parallel accumulation with rules |
+| Must check a condition and update as **one action** | `compareAndSet` loop or lock | Condition and mutation share one decision point |
+| Multiple related fields must always satisfy an invariant and consistent snapshots | `synchronized`, `ReentrantLock`, or immutable state in `AtomicReference` | Updating and reading **the whole state** under one protocol |
+| Multiple DB rows or multiple services must remain consistent | DB transactions, optimistic locking/versioning, distributed protocols | Contract outside local JVM scope |
 
-Các lựa chọn trên là **định hướng**, không phải phép thay thế tự động. `AtomicLong` không chữa lỗi khi một nghiệp vụ trải qua nhiều biến; `LongAdder` không phù hợp để cấp mã thứ tự chính xác tại thời điểm tăng; khóa có thể an toàn nhưng làm giảm khả năng chạy song song nếu phạm vi quá rộng.
+These choices are **guidelines**, not automatic substitutes. `AtomicLong` does not fix bugs when business logic spans multiple variables; `LongAdder` is unsuitable for issuing exact sequence numbers at increment time; locks can be safe while hurting parallelism if scoped too broadly.
 
-## 4. Trường hợp 1 — Chỉ cần nhìn thấy một trạng thái
+## 4. Case 1 — Only Needing Visibility of One State
 
-Đối với một cờ độc lập như `enabled`, `stopped` hay `ready`, `volatile boolean` thường đủ nếu tất cả thao tác chỉ là ghi/đọc trạng thái và giao thức phát hành phù hợp.
+For an independent flag such as `enabled`, `stopped`, or `ready`, `volatile boolean` is usually sufficient if all operations are simple state writes/reads with proper publication.
 
 ```java
 private volatile boolean enabled = true;
 
-// Luồng điều khiển:
+// Control thread:
 enabled = false;
 
-// Các worker:
+// Workers:
 if (!enabled) {
     return;
 }
 ```
 
-Đây là các đoạn nhúng của một lớp, không phải một chương trình Java độc lập.
+These are embedded snippets of a class, not a standalone Java program.
 
-**Phân biệt với điều kiện đọc–rồi–ghi:** nếu hai worker cần “chỉ một người chuyển từ `false` sang `true` và thực thi công việc”, đoạn:
+**Distinguish from check-then-write conditions:** if two workers require "only one transitions from `false` to `true` and executes the job," the code:
 
 ```java
 if (!started) {
@@ -104,21 +104,21 @@ if (!started) {
 }
 ```
 
-vẫn có race ngay cả khi `started` là `volatile`. Hai luồng có thể cùng đọc `false`. Hợp đồng “chỉ một luồng thắng” cần một hành động nguyên tử:
+still races even when `started` is `volatile`. Two threads can both read `false`. The "only one thread wins" contract needs an atomic action:
 
 ```java
 AtomicBoolean started = new AtomicBoolean(false);
 
 if (started.compareAndSet(false, true)) {
-    startJob(); // chỉ luồng đổi false -> true thành công chạy
+    startJob(); // only the thread that succeeds false -> true runs this
 }
 ```
 
-Đoạn này cần `import java.util.concurrent.atomic.AtomicBoolean;`. `compareAndSet` thực hiện phép đổi có điều kiện atomically trên một biến. Với công việc có thể thất bại, cần thêm thiết kế phục hồi trạng thái `started`/retry phù hợp; CAS chỉ giải quyết quyền bắt đầu một lần, không tự tạo workflow tin cậy.
+This snippet requires `import java.util.concurrent.atomic.AtomicBoolean;`. `compareAndSet` performs the conditional swap atomically on one variable. For jobs that can fail, add appropriate recovery/retry design for `started`; CAS only solves single-start ownership, not reliable workflow execution on its own.
 
-## 5. Trường hợp 2 — Bộ đếm đơn cần kết quả chính xác tại điểm quan sát
+## 5. Case 2 — Single Counter Needing Exact Results at Observation Points
 
-`AtomicInteger` và `AtomicLong` hữu ích khi tất cả thông tin phải bảo vệ nằm trong **một giá trị**:
+`AtomicInteger` and `AtomicLong` work well when all information to protect resides in **a single value**:
 
 ```java
 import java.util.concurrent.atomic.AtomicLong;
@@ -130,26 +130,26 @@ long beforeIncrement = count.getAndIncrement();
 long current = count.get();
 ```
 
-Mỗi lời gọi atomic cập nhật/đọc trạng thái của biến đó theo thứ tự nhất quán (*linearizable*), không mất tăng nếu mọi worker cùng dùng đúng biến. `getAndIncrement()` trả giá trị cũ; `incrementAndGet()` trả giá trị mới.
+Each atomic call updates/reads that variable's state in a consistent (*linearizable*) order, losing no increments if all workers use that same variable properly. `getAndIncrement()` returns the old value; `incrementAndGet()` returns the new value.
 
-Tuy nhiên hai lời gọi liên tiếp **không tạo ra một transaction**. Ví dụ:
+However, two consecutive calls **do not create a transaction**. For example:
 
 ```java
 if (count.get() < 100) {
-    count.incrementAndGet(); // vẫn có thể vượt 100 vì một worker khác xen vào
+    count.incrementAndGet(); // can still exceed 100 because another worker interleaves
 }
 ```
 
-Cả `get()` và `incrementAndGet()` đều nguyên tử riêng lẻ, nhưng phép **kiểm tra–rồi–cập nhật** chưa được thực hiện nguyên tử.
+Both `get()` and `incrementAndGet()` are individually atomic, yet the **check-then-update** is not performed atomically.
 
-### 5.1. Dùng CAS cho cập nhật có điều kiện
+### 5.1. Using CAS for Conditional Updates
 
-Ví dụ một bộ đếm quota có giới hạn `limit`:
+Example of a quota counter with bound `limit`:
 
 ```java
 static boolean tryClaim(AtomicInteger used, int limit) {
     if (limit < 0) {
-        throw new IllegalArgumentException("limit phải không âm");
+        throw new IllegalArgumentException("limit must be non-negative");
     }
 
     while (true) {
@@ -160,16 +160,16 @@ static boolean tryClaim(AtomicInteger used, int limit) {
         if (used.compareAndSet(current, current + 1)) {
             return true;
         }
-        // Một luồng khác đã đổi used: đọc lại và thử tiếp.
+        // Another thread changed used: re-read and retry.
     }
 }
 ```
 
-Đây là **phương thức nhúng** cần `import java.util.concurrent.atomic.AtomicInteger;`. Giả thiết `used` được tạo với số không âm và chỉ được thay đổi theo giao thức hợp lệ. Với giới hạn `int` dương không vượt miền, phép cộng tránh tràn khi `current < limit`. Việc `compareAndSet` thành công là **điểm tuyến tính hóa** cho thao tác nhận một suất; mọi luồng tranh chấp một suất cuối cùng sẽ không thể cùng thắng nếu cùng dùng `used`.
+This is an **embedded method** requiring `import java.util.concurrent.atomic.AtomicInteger;`. Assume `used` is initialized non-negative and only modified via valid protocols. With a positive `int` limit within range, the addition avoids overflow since `current < limit`. A successful `compareAndSet` is the **linearization point** for claiming a slot; competing threads vying for the last slot cannot both win if they share `used`.
 
-CAS loop có thể thử lại nhiều lần dưới tranh chấp và yêu cầu xử lý đúng state/overflow. Nếu nghiệp vụ gồm nhiều biến, một CAS trên `used` không đủ; cần đưa toàn bộ trạng thái vào cùng một đối tượng immutable cập nhật atomically hoặc sử dụng khóa.
+A CAS loop may retry multiple times under contention and requires proper state/overflow handling. If business logic involves multiple variables, CAS on `used` alone is insufficient; bundle the entire state into one immutable object updated atomically or use a lock.
 
-### 5.2. `updateAndGet` và tác dụng phụ
+### 5.2. `updateAndGet` and Side Effects
 
 ```java
 AtomicLong maxSeen = new AtomicLong(0);
@@ -178,13 +178,13 @@ long newMax = maxSeen.updateAndGet(
         current -> Math.max(current, 42L));
 ```
 
-Lambda cập nhật của một số phương thức atomic **có thể được gọi lại** khi tranh chấp. Nó phải không có tác dụng phụ: tránh gọi API thanh toán, ghi DB, gửi email hoặc tăng một bộ đếm khác trong lambda. Chỉ tính trạng thái mới từ trạng thái cũ; thực hiện side effect sau khi xác định kết quả theo thiết kế nghiệp vụ.
+Update lambdas on certain atomic methods **may be re-invoked** under contention. They must be side-effect-free: avoid calling payment APIs, writing to DBs, sending emails, or incrementing another counter inside the lambda. Compute only the new state from the old state; perform side effects afterward once the result is determined per your business design.
 
-`AtomicLong` có thể tràn số như `long` bình thường; tính nguyên tử **không** bổ sung kiểm tra tràn tự động. Nếu lượng đếm không được phép quay vòng, đưa kiểm tra/ngoại lệ tràn vào một cập nhật nguyên tử được thiết kế đúng.
+`AtomicLong` can overflow like an ordinary `long`; atomicity **does not** add automatic overflow checks. If counts must never wrap around, place overflow checks/exceptions inside a properly designed atomic update.
 
-## 6. Trường hợp 3 — Thống kê có rất nhiều writer: `LongAdder`
+## 6. Case 3 — High-Writer Statistics: `LongAdder`
 
-Với mục tiêu như “đếm số request đã thấy” trong hệ thống có nhiều luồng, `LongAdder` phân tán cập nhật nội bộ để giảm tranh chấp trên một điểm nóng:
+For goals like "counting requests seen" in a system with many threads, `LongAdder` distributes updates internally to reduce contention on a single hotspot:
 
 ```java
 import java.util.concurrent.atomic.LongAdder;
@@ -197,15 +197,15 @@ requests.add(5L);
 long currentlyObserved = requests.sum();
 ```
 
-**Hợp đồng quan trọng:** `LongAdder.sum()` **không phải snapshot nguyên tử** khi nhiều luồng đang cập nhật. Kết quả có thể không gồm đồng thời mọi cập nhật đang diễn ra. Nếu bạn cần kiểm tra giới hạn quota ở đúng thời điểm mỗi cập nhật hoặc cần một giá trị trả về duy nhất sau mỗi `increment`, hãy dùng cơ chế có hợp đồng atomic phù hợp, không dùng `LongAdder` thay `AtomicLong` một cách máy móc.
+**Crucial contract:** `LongAdder.sum()` **is not an atomic snapshot** while multiple threads are updating. The result may omit some ongoing concurrent updates. If you must check a quota limit at the exact moment of each update or need a unique return value after each `increment`, use a mechanism with the right atomic contract rather than mechanically swapping `LongAdder` for `AtomicLong`.
 
-Sau khi tất cả writer hoàn tất và có quan hệ đồng bộ xác nhận hoàn tất (chẳng hạn chờ mọi `Future.get()`), `sum()` phản ánh các cập nhật đã kết thúc. Ví dụ ở mục 9 kiểm chứng điều này.
+After all writers complete and a synchronization edge confirms completion (such as awaiting all `Future.get()` calls), `sum()` reflects the completed updates. Section 9's example verifies this.
 
-`LongAdder.reset()` và `sumThenReset()` cũng không nên dùng để giả định có **snapshot chính xác khi writer còn đang cập nhật**. Hãy áp dụng chúng khi không có concurrent updates, hoặc khi nghiệp vụ chấp nhận số liệu chỉ mang tính giám sát theo từng khoảng không hoàn toàn sắc nét.
+`LongAdder.reset()` and `sumThenReset()` should likewise not be used assuming an **exact snapshot while writers are still updating**. Apply them when no concurrent updates occur, or when the business accepts monitoring metrics over intervals that are not strictly crisp.
 
-Nếu giá trị là số thực, `DoubleAdder` có ý tưởng tương tự, nhưng do thứ tự cộng dấu phẩy động có thể khác nhau giữa các luồng, kết quả không bảo đảm trùng bit qua những lần chạy.
+If values are floating-point, `DoubleAdder` follows the same idea, except that because floating-point addition order can vary across threads, results are not guaranteed to match bit-for-bit across runs.
 
-### 6.1. Bộ đếm theo nhãn trong `ConcurrentHashMap`
+### 6.1. Per-Label Counters in `ConcurrentHashMap`
 
 ```java
 import java.util.concurrent.ConcurrentHashMap;
@@ -219,18 +219,18 @@ counts.computeIfAbsent("failure", key -> new LongAdder()).increment();
 long success = counts.get("success").sum();
 ```
 
-`computeIfAbsent` tạo/tra cứu giá trị theo khóa an toàn với concurrent access trên `ConcurrentHashMap`. Mỗi `LongAdder` tiếp tục ghi nhận các lần tăng. Nhưng đọc nhiều nhãn liên tiếp **không tạo thành một snapshot toàn map**; tổng các nhãn quan sát khi cập nhật đang diễn ra có thể không khớp bộ đếm toàn hệ thống tại một thời điểm duy nhất.
+`computeIfAbsent` safely creates/looks up values per key under concurrent access on `ConcurrentHashMap`. Each `LongAdder` then records increments. However, reading multiple labels sequentially **does not form a whole-map snapshot**; the sum of labels observed during ongoing updates may not match a system-wide counter at a single point in time.
 
-Nếu cần “thành công + thất bại = tổng số request” tại cùng một snapshot chuẩn để đối soát, hãy thiết kế cơ chế snapshot nhất quán hoặc lấy kết quả sau khi toàn bộ kỳ ghi đã kết thúc.
+If "success + failure = total requests" must hold in one exact snapshot for reconciliation, design a consistent snapshot mechanism or collect results after the entire write period finishes.
 
-## 7. Trường hợp 4 — Nhiều giá trị phải giữ chung một bất biến
+## 7. Case 4 — Multiple Values Must Preserve a Joint Invariant
 
-Giả sử mỗi giao dịch được chấp nhận làm đồng thời hai việc:
+Suppose every accepted transaction does two things together:
 
-1. Tăng `count` lên 1.
-2. Tăng `total` thêm 2 đơn vị.
+1. Increments `count` by 1.
+2. Increases `total` by 2 units.
 
-Bất biến nghiệp vụ yêu cầu một snapshot phải luôn thỏa `total == 2 * count`. Hai `AtomicLong` riêng biệt không đủ để bảo đảm đọc được một cặp trạng thái nhất quán:
+The business invariant requires every snapshot to satisfy `total == 2 * count`. Two separate `AtomicLong` variables cannot guarantee reading a consistent pair of states:
 
 ```java
 AtomicLong count = new AtomicLong();
@@ -243,12 +243,12 @@ total.addAndGet(2);
 // Reader:
 long seenCount = count.get();
 long seenTotal = total.get();
-// Hai giá trị trên có thể đến từ hai thời điểm khác nhau.
+// These two values may come from two different instants.
 ```
 
-Mỗi biến cập nhật nguyên tử, nhưng **cả cặp không được cập nhật cùng một lúc**. Reader có thể quan sát `count` mới và `total` cũ. `volatile` trên cả hai trường cũng không biến hai lời ghi thành một giao dịch.
+Each variable updates atomically, yet **the pair is not updated simultaneously**. A reader can observe the new `count` and old `total`. Putting `volatile` on both fields does not turn two writes into one transaction either.
 
-### 7.1. `synchronized`: một khóa bảo vệ toàn bộ trạng thái
+### 7.1. `synchronized`: One Lock Protecting the Entire State
 
 ```java
 record Snapshot(long count, long total) {}
@@ -268,15 +268,15 @@ final class Ledger {
 }
 ```
 
-Đây là một ví dụ lớp/record có thể đặt vào chương trình cùng package. Mọi writer gọi `add`, mọi reader lấy cặp bằng `snapshot`, và **không có đường truy cập khác bỏ qua khóa**. Khi đó việc sửa hai trường và việc đọc hai trường được tuần tự hóa qua cùng monitor.
+This is a class/record example you can place in a program in the same package. Every writer calls `add`, every reader obtains the pair via `snapshot`, and **no other access path bypasses the lock**. Then modifying both fields and reading both fields are serialized through the same monitor.
 
-`snapshot()` trả về một record bất biến chứa **cặp giá trị được đọc trong cùng critical section**. Ngay khi monitor được thả, worker khác có thể cập nhật Ledger; snapshot có thể trở nên cũ nhưng vẫn **nhất quán nội tại**. Cũ không đồng nghĩa với bị rách giữa các trường.
+`snapshot()` returns an immutable record containing **the pair of values read inside the same critical section**. As soon as the monitor is released, another worker may update `Ledger`; the snapshot may become stale, yet it remains **internally consistent**. Stale does not mean torn across fields.
 
-Nếu chỉ đánh dấu `add` là `synchronized` nhưng `snapshot` đọc trường trực tiếp không đồng bộ, chưa có hợp đồng đầy đủ cho việc đọc cùng một trạng thái. Tất cả đường truy cập phải tuân thủ cùng giao thức bảo vệ.
+If only `add` is marked `synchronized` while `snapshot` reads the fields directly without synchronization, there is no complete contract for reading the same state. All access paths must follow the same protection protocol.
 
-### 7.2. Khóa tường minh khi cần điều khiển phức tạp hơn
+### 7.2. Explicit Locks When Finer Control Is Needed
 
-`ReentrantLock` cũng có thể bảo vệ cùng invariant:
+`ReentrantLock` can protect the same invariant:
 
 ```java
 import java.util.concurrent.locks.ReentrantLock;
@@ -305,15 +305,15 @@ final class LockedTotal {
 }
 ```
 
-Dùng `try/finally` để bảo đảm giải phóng khóa khi có ngoại lệ. `ReentrantLock` phù hợp nếu cần `tryLock`, khóa có thể bị ngắt khi chờ, nhiều condition hoặc mức điều khiển cao hơn. Với một invariant đơn giản, `synchronized` thường dễ đọc và ít nơi viết sai hơn.
+Use `try/finally` to ensure unlocking if an exception occurs. `ReentrantLock` is suitable if you need `tryLock`, interruptible lock waiting, multiple conditions, or finer control. For a simple invariant, `synchronized` is often easier to read and harder to get wrong.
 
-Khi nhiều khóa xuất hiện, phải định nghĩa thứ tự giữ khóa để tránh deadlock; không giữ khóa quá rộng trong khi chờ I/O, gọi dịch vụ chậm hoặc chạy callback không kiểm soát.
+When multiple locks exist, define a lock acquisition order to avoid deadlocks; never hold locks too broadly while waiting on I/O, calling slow services, or invoking uncontrolled callbacks.
 
-`ReadWriteLock` có thể hỗ trợ nhiều reader đồng thời khi đọc chiếm ưu thế và thao tác được tổ chức đúng, nhưng không bảo đảm luôn nhanh hơn monitor; chi phí lock và contention phụ thuộc workload.
+`ReadWriteLock` can support multiple concurrent readers when reads dominate and operations are structured properly, though it is not guaranteed to outperform a monitor; lock overhead and contention depend on the workload.
 
-### 7.3. State immutable trong một `AtomicReference`
+### 7.3. Immutable State in One `AtomicReference`
 
-Một lựa chọn khác cho một cặp trạng thái là biểu diễn **toàn bộ invariant thành một đối tượng immutable** và thay cả đối tượng trong một thao tác atomic:
+Another option for a pair of states is representing **the entire invariant as one immutable object** and swapping the whole object in one atomic operation:
 
 ```java
 import java.util.concurrent.atomic.AtomicReference;
@@ -329,36 +329,36 @@ state.updateAndGet(previous ->
 State snapshot = state.get();
 ```
 
-Đây là đoạn nhúng. Đọc `state.get()` cho một bản snapshot nhất quán của **cả hai trường trong đối tượng immutable**. `updateAndGet` có thể gọi lambda nhiều lần khi tranh chấp; lambda phải thuần túy và không thực hiện side effect. Mỗi bản cập nhật tạo đối tượng mới nên có chi phí cấp phát và retry; không mặc định giải pháp này tốt hơn một khóa cho mọi tải.
+This is an embedded snippet. Reading `state.get()` yields a consistent snapshot of **both fields inside the immutable object**. `updateAndGet` may call the lambda multiple times under contention; the lambda must be pure and free of side effects. Every update allocates a new object, incurring allocation and retry costs; do not assume this approach beats a lock for all workloads.
 
-Nếu invariant nằm trong nhiều đối tượng hoặc tài nguyên ngoài JVM (tài khoản DB, message broker), atomic publication của một `State` trong JVM không đủ để tạo transaction toàn hệ thống.
+If the invariant spans multiple objects or resources outside the JVM (DB accounts, message brokers), atomic publication of a `State` inside the JVM is insufficient to create a system-wide transaction.
 
-## 8. `happens-before`, thời điểm quan sát và ranh giới một phép toán
+## 8. `happens-before`, Observation Timing, and Operation Boundaries
 
-Một hợp đồng nhất quán cần nêu rõ **khi nào** caller được phép coi dữ liệu là hoàn tất.
+A consistency contract must specify **when** callers are allowed to treat data as finalized.
 
-Trong Java, các quan hệ happens-before thường gặp gồm:
+In Java, common happens-before relationships include:
 
-- Một monitor unlock *happens-before* lần lock tiếp theo trên cùng monitor.
-- Một ghi `volatile` *happens-before* một đọc phù hợp sau đó trên biến volatile đó.
-- Các lớp atomic và cấu trúc trong `java.util.concurrent` cung cấp các bảo đảm bộ nhớ theo tài liệu API.
-- Tác động của một task trong executor xảy ra trước khi một luồng khác nhận kết quả thông qua `Future.get()` theo quy tắc memory consistency của API.
+- A monitor unlock *happens-before* every subsequent lock acquisition on the same monitor.
+- A `volatile` write *happens-before* every subsequent matching read of that volatile variable.
+- Atomic classes and constructs in `java.util.concurrent` provide memory guarantees per their API documentation.
+- Actions of a task in an executor happen before another thread retrieves the result via `Future.get()` under the API's memory consistency rules.
 
-Khi đã đợi **toàn bộ** `Future.get()` hoàn tất, một reader có thể lấy tổng cuối của các bộ đếm mà không còn concurrent writer từ chính nhóm tác vụ đó. Trái lại, đọc giữa chừng từ nhiều cấu trúc riêng biệt có thể không phản ánh một thời điểm chung, dù mỗi cấu trúc riêng lẻ thread-safe.
+Once **all** `Future.get()` calls have completed, a reader can fetch final counter totals with no concurrent writers remaining from that group of tasks. Conversely, reading mid-flight across multiple separate structures may not reflect one shared instant, even if each structure is individually thread-safe.
 
-### Phân biệt ba hợp đồng thường bị nhầm
+### Distinguishing Three Commonly Confused Contracts
 
-**An toàn khỏi data race:** Các truy cập được đồng bộ đúng; không bị đọc/ghi sai theo JMM.
+**Freedom from data races:** Accesses are properly synchronized; no illegal reads/writes under the JMM.
 
-**Atomic/linearizable cho một thao tác:** Lời gọi đơn như `AtomicLong.incrementAndGet()` có thể được hiểu như xảy ra tại một điểm giữa lúc bắt đầu và lúc trả về.
+**Atomic/linearizable for one operation:** A single call like `AtomicLong.incrementAndGet()` can be reasoned about as taking effect at a single point between invocation and return.
 
-**Snapshot nhất quán của nhiều biến:** Tất cả thành phần phải đến từ cùng một trạng thái hợp lệ (chẳng hạn cùng monitor hoặc cùng đối tượng immutable được publish atomically).
+**Consistent snapshot of multiple variables:** All components must originate from one valid state (such as under the same monitor or the same immutable object published atomically).
 
-Một hệ thống có thể đáp ứng tiêu chí thứ nhất và thứ hai cho từng biến nhưng vẫn vi phạm tiêu chí thứ ba. Đây chính là lý do **chọn mức đồng bộ theo hợp đồng**, thay vì chỉ hỏi “có thread-safe không?”.
+A system can satisfy the first and second criteria per variable while still violating the third. That is precisely why you **choose synchronization levels by contract**, rather than merely asking "is it thread-safe?"
 
-## 9. Chương trình Java 17+ hoàn chỉnh: so sánh `AtomicLong`, `LongAdder`, snapshot có khóa
+## 9. Complete Java 17+ Program: Comparing `AtomicLong`, `LongAdder`, and Locked Snapshots
 
-Lưu file **`ConsistencyContractDemo.java`**:
+Save **`ConsistencyContractDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -411,7 +411,7 @@ public class ConsistencyContractDemo {
                 }));
             }
 
-            // Chờ mọi writer hoàn tất trước khi đọc số liệu cuối.
+            // Wait for all writers to complete before reading final metrics.
             for (Future<?> future : futures) {
                 future.get();
             }
@@ -431,14 +431,14 @@ public class ConsistencyContractDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ConsistencyContractDemo.java
 java ConsistencyContractDemo
 ```
 
-Stdout chính xác khi các tác vụ hoàn tất bình thường:
+Exact stdout when tasks complete normally:
 
 ```text
 atomic count = 40000
@@ -448,106 +448,106 @@ snapshot total = 80000
 snapshot invariant = true
 ```
 
-**Cơ chế và ý nghĩa kết quả:**
+**Mechanism and meaning of the output:**
 
-1. Bốn worker, mỗi worker chạy 10.000 vòng. Tổng số vòng là 40.000.
-2. `AtomicLong` nhận một phép tăng nguyên tử ở mỗi vòng; nó phù hợp nếu cần đọc một counter chính xác tại một thời điểm quan sát.
-3. `LongAdder` cũng nhận 40.000 lần tăng. `sum()` được đọc **sau khi** tất cả `Future.get()` hoàn tất, nên kết quả cuối là 40.000. Đọc khi còn writer sẽ không có hợp đồng snapshot atomic.
-4. `Ledger.add(2)` bảo vệ cùng lúc `count++` và `total += 2`; `snapshot()` giữ cùng monitor khi chụp cả hai giá trị. Bất biến `total == 2 * count` được bảo toàn trong snapshot.
-5. Mặc dù ba loại bộ đếm cho cùng tổng cuối, **ba lời gọi trong mỗi vòng không phải giao dịch chung**. Nếu đọc đồng thời khi worker còn chạy, `atomicCount`, `adderCount` và `ledger` có thể báo khác nhau vì chúng được cập nhật nối tiếp. Ví dụ minh họa các hợp đồng riêng biệt, không xác nhận ba nguồn luôn đồng nhất tức thời.
+1. Four workers, each running 10,000 iterations. Total iterations equal 40,000.
+2. `AtomicLong` receives one atomic increment per iteration; it fits when an exact counter needs to be read at an observation point.
+3. `LongAdder` also receives 40,000 increments. `sum()` is read **after** all `Future.get()` calls complete, so the final result is 40,000. Reading while writers remain active would not have an atomic snapshot contract.
+4. `Ledger.add(2)` guards `count++` and `total += 2` together; `snapshot()` holds the same monitor while capturing both values. The invariant `total == 2 * count` is preserved in the snapshot.
+5. Although all three counters yield the same final count, **the three calls inside each loop iteration are not a joint transaction**. If read concurrently while workers are running, `atomicCount`, `adderCount`, and `ledger` can report different values because they are updated sequentially. The example illustrates separate contracts, not instantaneous agreement across all three sources.
 
-Chương trình dùng `try/finally` để gọi `shutdown()` cho executor trong Java 17. Ứng dụng thực tế còn cần chính sách về timeout, hủy task, interruption và chờ shutdown phù hợp; `shutdown()` không có nghĩa chờ tất cả task hoàn tất. Ở đây vòng `Future.get()` đã đợi các task được gửi trước khi đọc.
+The program uses `try/finally` to call `shutdown()` on the executor in Java 17. Real applications also need policies for timeouts, task cancellation, interruption, and awaiting termination; `shutdown()` does not mean waiting for all tasks to finish. Here, the `Future.get()` loop already awaited the submitted tasks before reading.
 
-## 10. Những quyết định có thể làm mất tính nhất quán
+## 10. Decisions That Can Break Consistency
 
-### 10.1. Chia một invariant thành nhiều primitive atomic
+### 10.1. Splitting One Invariant Across Multiple Atomic Primitives
 
-Nếu `availableSlots` và `reservedSlots` phải cùng nhau thỏa tổng cố định, cập nhật riêng hai `AtomicInteger` có thể tạo ra khoảng thời gian mà reader thấy cặp không hợp lệ. Để bảo vệ trạng thái liên quan, dùng một lock chung hoặc một snapshot immutable duy nhất trong `AtomicReference`.
+If `availableSlots` and `reservedSlots` must together satisfy a fixed sum, updating two `AtomicInteger` variables separately can create a window where readers see an invalid pair. To protect related state, use a shared lock or a single immutable snapshot inside `AtomicReference`.
 
-### 10.2. Đặt `volatile` cho `int` rồi gọi `++`
+### 10.2. Putting `volatile` on `int` and Calling `++`
 
-`volatile int count` vẫn không biến thao tác `count++` thành nguyên tử. Chọn `AtomicInteger.incrementAndGet()` hoặc monitor nếu số đếm phải phản ánh mọi lần tăng.
+`volatile int count` still does not turn `count++` into an atomic operation. Choose `AtomicInteger.incrementAndGet()` or a monitor if the counter must reflect every increment.
 
-### 10.3. Dùng `LongAdder.sum()` để quyết định “còn quota không?”
+### 10.3. Using `LongAdder.sum()` to Decide "Is Quota Available?"
 
-`sum()` trong lúc cập nhật không bảo đảm snapshot tuyến tính hóa; logic “`if(sum() < limit) increment()`” có cả vấn đề snapshot lẫn vấn đề check-then-act. Dùng CAS/lock/giao dịch thiết kế cho reservation.
+`sum()` during updates does not guarantee a linearized snapshot; "`if(sum() < limit) increment()`" suffers from both snapshot skew and check-then-act races. Use CAS/locks/transactions designed for reservation.
 
-### 10.4. Bảo vệ writer nhưng bỏ quên reader
+### 10.4. Guarding Writers While Forgetting Readers
 
-`synchronized void update()` không giúp phương thức đọc trực tiếp trường không có đồng bộ trở thành snapshot nhất quán. Phải bảo vệ **tất cả** đường đọc/ghi của state theo cùng giao thức.
+`synchronized void update()` does not make an unsynchronized method reading fields directly see a consistent snapshot. You must guard **all** read and write paths of the state under the same protocol.
 
-### 10.5. Giữ lock trong lúc gọi dịch vụ ngoài
+### 10.5. Holding Locks While Calling External Services
 
-Gọi database, HTTP API hoặc mã callback không kiểm soát trong lock có thể kéo dài critical section, gây contention và rủi ro deadlock. Khi cần tính nguyên tử qua tài nguyên ngoài, không thể đơn thuần “bọc cả API call bằng synchronized” và mong transaction phân tán xuất hiện.
+Calling databases, HTTP APIs, or uncontrolled callbacks inside a lock lengthens the critical section, causing contention and deadlock risks. When atomicity across external resources is required, you cannot simply "wrap the whole API call in synchronized" and expect a distributed transaction to appear.
 
-### 10.6. Cho rằng `ConcurrentHashMap` làm nguyên tử mọi thao tác ghép
+### 10.6. Assuming `ConcurrentHashMap` Makes All Compound Operations Atomic
 
-`ConcurrentHashMap.compute`, `putIfAbsent` và các thao tác theo khóa có hợp đồng đồng thời riêng, nhưng tính thread-safe của map không làm thao tác trên **nhiều khóa** trở thành một transaction. Ví dụ chuyển giá trị giữa hai tài khoản ở hai khóa cần giao thức nhất quán lớn hơn.
+`ConcurrentHashMap.compute`, `putIfAbsent`, and per-key operations have their own concurrency contracts, yet the map's thread safety does not make operations across **multiple keys** a single transaction. For example, transferring a value between two accounts under two keys requires a broader consistency protocol.
 
-### 10.7. Quên tràn số, sai số số thực và định nghĩa chính xác
+### 10.7. Forgetting Overflow, Floating-Point Error, and Exact Definitions
 
-`AtomicLong` giữ atomicity nhưng không ngăn phép cộng `long` tràn miền. `DoubleAdder` là tổng dấu phẩy động, có thể khác bit vì thứ tự cộng không cố định. Nếu cộng tiền, chọn kiểu số và thiết kế nhất quán phù hợp (chẳng hạn integer minor units trong miền không tràn, hoặc `BigDecimal` sau khi xét yêu cầu hiệu năng); concurrency primitive không tự sửa độ chính xác số học.
+`AtomicLong` preserves atomicity yet does not stop `long` addition from overflowing. `DoubleAdder` is a floating-point sum that can differ bit-for-bit due to non-fixed addition order. When summing money, choose appropriate numeric types and consistency designs (such as integer minor units within non-overflowing bounds, or `BigDecimal` after evaluating performance needs); concurrency primitives do not fix arithmetic precision.
 
-## 11. Đo lường và kiểm thử hợp đồng
+## 11. Measuring and Testing the Contract
 
-**Trước khi benchmark**, viết các assertion theo hợp đồng. Ví dụ với trường hợp tổng cuối như bài demo: khi tất cả task đã hoàn tất, `atomicCount.get() == workers * iterations`, `adderCount.sum() == workers * iterations`, `snapshot.total() == 2 * snapshot.count()`.
+**Before benchmarking**, write assertions matching the contract. For example, in the final-total case like the demo: once all tasks complete, `atomicCount.get() == workers * iterations`, `adderCount.sum() == workers * iterations`, and `snapshot.total() == 2 * snapshot.count()`.
 
-Nếu reader đọc giữa lúc còn writer, chỉ kiểm tra bất biến **được cơ chế thực sự bảo đảm**. Với `Ledger`, mọi snapshot phải nhất quán nội tại. Không kiểm tra ba cấu trúc độc lập luôn có cùng count tại từng thời điểm vì chương trình chưa hề tạo transaction giữa chúng.
+If readers read while writers remain active, assert only invariants **actually guaranteed by the mechanism**. For `Ledger`, every snapshot must be internally consistent. Do not assert that three independent structures always hold identical counts at every instant, since the program never created a transaction across them.
 
-Kiểm thử race nên chạy đủ thread, nhiều vòng và dữ liệu khác nhau, nhưng việc chạy 100 lần không lộ lỗi **không chứng minh** một chương trình thiếu đồng bộ là đúng. Lập luận theo happens-before, atomicity và invariant mới là cốt lõi; công cụ concurrency testing có thể hỗ trợ tìm interleaving khó thấy.
+Race tests should run enough threads, iterations, and varied inputs, yet passing 100 runs without exposing a bug **does not prove** an unsynchronized program is correct. Reasoning via happens-before, atomicity, and invariants is foundational; concurrency testing tools can help uncover subtle interleavings.
 
-Về hiệu năng, cần xem xét:
+For performance, consider:
 
-- Số writer cạnh tranh, tần suất cập nhật, số lần đọc giá trị.
-- Chi phí lock contention, allocation cho immutable state và CAS retry.
-- Tỷ lệ read/write và phạm vi critical section.
-- Yêu cầu throughput hay latency, môi trường CPU/JVM/JIT cụ thể.
-- Giá trị kinh doanh của việc đọc một snapshot chính xác thay vì số liệu giám sát gần đúng.
+- Contending writer count, update frequency, and read frequency.
+- Lock contention costs, immutable state allocations, and CAS retries.
+- Read/write ratio and critical section scope.
+- Throughput vs. latency requirements, and the specific CPU/JVM/JIT environment.
+- Business value of reading an exact snapshot versus approximate monitoring metrics.
 
-`LongAdder` có thể cho thông lượng tốt ở điểm nóng nhiều writer, nhưng không có “nhanh hơn N lần” cố định. Dùng benchmark như JMH cho so sánh vi mô, đo workload thật cho quyết định kiến trúc.
+`LongAdder` can provide strong throughput at high-writer hotspots, yet there is no fixed "N times faster" multiplier. Use benchmarks like JMH for micro-comparisons and measure real workloads for architectural decisions.
 
-## 12. Checklist quyết định cho một dữ liệu số dùng chung
+## 12. Decision Checklist for Shared Numeric Data
 
-Khi nhận yêu cầu mới, có thể tự trả lời tuần tự:
+When receiving a new requirement, answer sequentially:
 
-1. **State nào được chia sẻ?** Một cờ, một số, một cặp số, một map, hay giao dịch giữa dịch vụ?
-2. **Phải đúng ở thời điểm nào?** Trong từng lần cập nhật, khi reader gọi API, khi hết một batch hay chỉ cuối kỳ?
-3. **Đọc giá trị “gần đúng khi đang ghi” có được không?** Nếu có, bộ đếm thống kê kiểu `LongAdder` có thể phù hợp. Nếu không, cần cơ chế snapshot rõ ràng.
-4. **Có bước kiểm tra rồi thay đổi không?** CAS/lock cần bao phủ cả hai, tránh `get` rồi `set` tách biệt.
-5. **Có invariant giữa nhiều trường không?** Bảo vệ cùng một critical section hoặc publish immutable state atomically.
-6. **Phạm vi chỉ trong một JVM?** Nếu DB hoặc dịch vụ khác cùng tham gia, cần thiết kế transaction/idempotency/version ngoài JVM.
-7. **Ai được phép ghi, ai được phép đọc?** Cô lập state, thống nhất giao thức; không để “đường tắt” đọc/ghi bypass synchronization.
-8. **Kiểu số có đủ miền và độ chính xác?** Chống tràn số, phân biệt `double` và thập phân chính xác; đồng bộ không thay thế chính sách số học.
+1. **What state is shared?** A flag, a number, a pair of numbers, a map, or a cross-service transaction?
+2. **When must it be exact?** On every update, whenever a reader calls an API, at batch end, or only at period close?
+3. **Is an "approximate value during writes" acceptable?** If yes, statistical counters like `LongAdder` may fit. If no, an explicit snapshot mechanism is needed.
+4. **Is there a check-then-modify step?** CAS/locks must cover both, avoiding separate `get` then `set`.
+5. **Is there an invariant across multiple fields?** Protect under one critical section or publish immutable state atomically.
+6. **Is the scope within one JVM?** If a DB or other service participates, design transactions/idempotency/versioning outside the JVM.
+7. **Who can write and who can read?** Encapsulate state and unify the protocol; leave no "shortcut" reads/writes bypassing synchronization.
+8. **Does the numeric type have sufficient range and precision?** Guard against overflow, distinguish `double` from exact decimals; synchronization does not replace arithmetic policy.
 
-Bảng tóm lược nhanh:
+Quick summary table:
 
-| Bạn cần | Ưu tiên xem xét |
+| You need | Consider first |
 | --- | --- |
-| Tín hiệu dừng/ready đơn giản | `volatile`/`AtomicBoolean` |
-| Mọi lần tăng một giá trị được tính đúng, đọc atomic | `AtomicLong`/`AtomicInteger` |
-| Rất nhiều writer cập nhật metric, `sum()` chỉ cần quan sát | `LongAdder`/`DoubleAdder` |
-| Cấp suất theo điều kiện | CAS loop hoặc lock bao trọn check–update |
-| Nhiều trường có invariant và snapshot | `synchronized`, `ReentrantLock`, hoặc `AtomicReference` tới immutable state |
-| Đối soát giữa nhiều JVM hoặc DB | Giao dịch, versioning, giao thức phân tán phù hợp |
+| Simple stop/ready signal | `volatile`/`AtomicBoolean` |
+| Every increment of one value counted accurately, atomic reads | `AtomicLong`/`AtomicInteger` |
+| Very many writers updating metrics, `sum()` only for observation | `LongAdder`/`DoubleAdder` |
+| Conditional slot allocation | CAS loop or lock spanning check–update |
+| Multiple fields with invariants and snapshots | `synchronized`, `ReentrantLock`, or `AtomicReference` to immutable state |
+| Reconciliation across multiple JVMs or DBs | Transactions, versioning, appropriate distributed protocols |
 
-## 13. Bài tập tự luyện
+## 13. Self-Practice Exercises
 
-1. Tại sao `volatile int count; count++;` vẫn có thể mất lượt tăng? Hãy mô tả hai interleaving của hai worker.
-2. Một dịch vụ cần cấp 100 vé và không vượt quá 100. Vì sao `if (atomic.get() < 100) atomic.incrementAndGet()` chưa đúng? Hãy dùng CAS để thiết kế phép claim.
-3. Dashboard hiển thị tổng request/s mỗi giây với hàng trăm worker. Có cần snapshot tuyến tính hóa của từng lần đọc hay `LongAdder.sum()` là đủ? Câu trả lời phụ thuộc hợp đồng nào?
-4. `successCount` và `failedCount` được tăng trong hai cấu trúc khác nhau. Tại sao đọc hai bộ đếm liên tiếp không chắc tạo cùng snapshot?
-5. Nếu thay `Ledger` của bài demo bằng hai `AtomicLong`, invariant `total == 2 * count` còn được bảo đảm tại mọi lần đọc trong lúc cập nhật không? Giải thích.
-6. Viết phiên bản `Ledger` dùng `AtomicReference<State>` với `record State(long count, long total)`. Chứng minh lambda update không có side effect.
-7. Vì sao `Future.get()` của tất cả worker thay đổi điều có thể khẳng định về tổng cuối, nhưng **không** biến các cập nhật lúc đang chạy thành giao dịch xuyên ba bộ đếm?
-8. Một service có hai bản sao JVM và cùng thay đổi một hàng tồn kho trong DB. Vì sao `synchronized` trong mỗi bản sao không đủ? Đề xuất ranh giới transaction thích hợp.
+1. Why can `volatile int count; count++;` still lose increments? Describe two interleavings of two workers.
+2. A service must issue 100 tickets and never exceed 100. Why is `if (atomic.get() < 100) atomic.incrementAndGet()` still wrong? Design a claim operation using CAS.
+3. A dashboard displays requests/sec every second with hundreds of workers. Does it need a linearized snapshot on every read, or is `LongAdder.sum()` enough? Which contract does the answer depend on?
+4. `successCount` and `failedCount` are incremented in two different structures. Why does reading both counters sequentially not guarantee capturing the same snapshot?
+5. If you replace `Ledger` in the demo with two `AtomicLong` fields, is the invariant `total == 2 * count` still guaranteed on every read during updates? Explain.
+6. Write a `Ledger` version using `AtomicReference<State>` with `record State(long count, long total)`. Show that the update lambda has no side effects.
+7. Why does awaiting `Future.get()` of all workers change what can be asserted about final totals, yet **does not** turn mid-run updates into a transaction across the three counters?
+8. A service runs two JVM replicas that both modify one inventory row in a DB. Why is `synchronized` inside each replica insufficient? Propose an appropriate transaction boundary.
 
-**Gợi ý trả lời:** (1) `++` gồm đọc–tính–ghi; hai luồng có thể cùng đọc giá trị cũ. (2) Cần CAS có điều kiện trên cùng biến. (3) Nếu giám sát chấp nhận số liệu trong lúc writer đang cập nhật không tuyến tính hóa, LongAdder có thể hợp lệ. (4) Mỗi lần đọc xảy ra ở thời điểm khác nhau, không có snapshot chung. (5) Không, các cập nhật và đọc hai biến không nguyên tử như một nhóm. (6) AtomicReference publish cặp immutable trong một lần thay đổi; lambda có thể chạy lại. (7) Sau khi tất cả task xong thì không còn writer từ nhóm đó, nhưng quá trình giữa chừng vẫn có thể khác thời điểm. (8) Khóa JVM chỉ có hiệu lực trong tiến trình; transaction/row lock/version tại DB bảo vệ trạng thái dùng chung.
+**Suggested answers:** (1) `++` involves read–compute–write; two threads can both read the old value. (2) Conditional CAS on the same variable is needed. (3) If monitoring tolerates non-linearized metrics while writers update, `LongAdder` can be valid. (4) Each read occurs at a different instant with no shared snapshot. (5) No; updates and reads across two variables are not atomic as a group. (6) `AtomicReference` publishes the immutable pair in one swap; the lambda may re-run. (7) Once all tasks complete, no writers from that group remain, whereas mid-run reads can reflect different instants. (8) JVM locks apply only within one process; DB transactions/row locks/versioning protect shared state.
 
-## 14. Ghi nhớ khi áp dụng
+## 14. Takeaways for Practice
 
-Chọn cơ chế đồng bộ bắt đầu từ **đơn vị bất biến của nghiệp vụ**, rồi mới cân nhắc hiệu năng. Một cờ cần visibility, một bộ đếm cần atomic increment, thống kê có thể chấp nhận phép đọc trong lúc cập nhật không tuyến tính hóa, còn một nhóm biến phải được cập nhật và quan sát theo một giao thức thống nhất. Đảm bảo mỗi caller hiểu trạng thái được hứa hẹn là **một giá trị chính xác**, **một snapshot nội tại nhất quán**, hay **một số liệu giám sát tại thời điểm quan sát**.
+Choosing a synchronization mechanism starts from **the business unit of invariance**, then considers performance. A flag needs visibility, a counter needs atomic increments, statistics can tolerate non-linearized reads during updates, and a group of variables must be updated and observed under a unified protocol. Make sure every caller understands whether the promised state is **one exact value**, **an internally consistent snapshot**, or **an observational metric at read time**.
 
-Tài liệu Java SE 17:
+Java SE 17 Documentation:
 - [`java.util.concurrent.atomic`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/package-summary.html) (`AtomicLong`, `AtomicReference`, `LongAdder`).
 - [`ExecutorService`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html), [`Future`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html).
 - [Java Language Specification §17 — Threads and Locks](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html).

@@ -1,48 +1,48 @@
-# HALF_UP và HALF_DOWN khi giá trị nằm đúng giữa
+# HALF_UP and HALF_DOWN When a Value Lies Exactly Halfway
 
-## Vấn đề cần hiểu
+## The Problem to Understand
 
-Trong Java, `RoundingMode.HALF_UP` và `RoundingMode.HALF_DOWN` đều làm tròn về **giá trị gần nhất**. Chúng chỉ khác nhau khi giá trị ban đầu **cách đều hai mức đích**, gọi là *đúng giữa* (*tie* hay *halfway case*).
+In Java, both `RoundingMode.HALF_UP` and `RoundingMode.HALF_DOWN` round toward **the nearest value**. They differ only when the original value is **equidistant from the two target levels**, called *exact halfway* (a *tie* or *halfway case*).
 
-Ví dụ, giữ hai chữ số sau dấu thập phân: `2.34` và `2.35` cách nhau `0.01`, còn `2.345` cách mỗi số `0.005`. Khi đó:
+For example, keeping two digits after the decimal point: `2.34` and `2.35` are `0.01` apart, while `2.345` is `0.005` away from each. Then:
 
-- `HALF_UP` chọn `2.35` (xa số 0 hơn).
-- `HALF_DOWN` chọn `2.34` (gần số 0 hơn).
-- `2.344` không đúng giữa: cả hai chọn `2.34`.
-- `2.346` không đúng giữa: cả hai chọn `2.35`.
+- `HALF_UP` chooses `2.35` (farther from 0).
+- `HALF_DOWN` chooses `2.34` (closer to 0).
+- `2.344` is not halfway: both choose `2.34`.
+- `2.346` is not halfway: both choose `2.35`.
 
-Với mục tiêu giữ `s` chữ số thập phân, hai mức liền kề cách nhau `10^-s` và điểm giữa cách mỗi mức `(10^-s)/2`. Ở `scale = 2`, nửa bước chính xác là `0.005`.
+With the target of keeping `s` decimal places, two adjacent levels are `10^-s` apart and the midpoint is `(10^-s)/2` from each level. At `scale = 2`, the exact half-step is `0.005`.
 
 ```text
 2.34           2.345           2.35
  |---------------|---------------|
        0.005           0.005
-           đúng giữa
+           exact halfway
 ```
 
-**Cần xét toàn bộ phần chữ số bị loại.** `2.345000` vẫn đúng giữa vì chỉ thêm số 0 cuối; `2.345001` không còn đúng giữa vì nằm gần `2.35` hơn. Việc “chữ số đầu bị loại là 5” chưa đủ để kết luận có tie.
+**All discarded digits must be examined.** `2.345000` is still exact halfway because only trailing zeros are added; `2.345001` is no longer exact halfway because it is closer to `2.35`. "The first discarded digit is 5" alone is not enough to conclude there is a tie.
 
-## Quy tắc khi số dương và số âm
+## Rules for Positive and Negative Numbers
 
-| Số ban đầu, giữ 2 chữ số | HALF_UP | HALF_DOWN | Giải thích |
+| Original number, keep 2 digits | HALF_UP | HALF_DOWN | Explanation |
 |---|---|---|---|
-| `2.344` | `2.34` | `2.34` | Gần mức thấp hơn |
-| `2.345` | `2.35` | `2.34` | Tie dương |
-| `2.346` | `2.35` | `2.35` | Gần mức cao hơn |
-| `-2.344` | `-2.34` | `-2.34` | Gần `-2.34` |
-| `-2.345` | `-2.35` | `-2.34` | Tie âm |
-| `-2.346` | `-2.35` | `-2.35` | Gần `-2.35` |
-| `0.005` | `0.01` | `0.00` | Tie sát 0 |
-| `-0.005` | `-0.01` | `0.00` | Tie âm sát 0 |
-| `2.34501` | `2.35` | `2.35` | Trên điểm giữa |
+| `2.344` | `2.34` | `2.34` | Closer to lower level |
+| `2.345` | `2.35` | `2.34` | Positive tie |
+| `2.346` | `2.35` | `2.35` | Closer to higher level |
+| `-2.344` | `-2.34` | `-2.34` | Closer to `-2.34` |
+| `-2.345` | `-2.35` | `-2.34` | Negative tie |
+| `-2.346` | `-2.35` | `-2.35` | Closer to `-2.35` |
+| `0.005` | `0.01` | `0.00` | Tie near 0 |
+| `-0.005` | `-0.01` | `0.00` | Negative tie near 0 |
+| `2.34501` | `2.35` | `2.35` | Above midpoint |
 
-Điểm quan trọng nhất: **“UP” không có nghĩa kết quả số học tăng**. Với `-2.345`, `HALF_UP` cho `-2.35`, tức là số nhỏ hơn trên trục số nhưng **xa 0 hơn**; `HALF_DOWN` cho `-2.34`, tức là **gần 0 hơn**. Với `-0.005` và `HALF_DOWN`, `BigDecimal` trả `0.00` (số 0 có scale 2), không cần một kết quả “-0.00”.
+Most important point: **"UP" does not mean the numeric result increases**. With `-2.345`, `HALF_UP` gives `-2.35`, which is smaller on the number line but **farther from 0**; `HALF_DOWN` gives `-2.34`, which is **closer to 0**. With `-0.005` and `HALF_DOWN`, `BigDecimal` returns `0.00` (zero with scale 2), without needing a "-0.00" result.
 
-Khi giá trị **không** đúng giữa, cả hai chế độ đều chọn số gần nhất bất kể dấu; ví dụ `-2.346` thành `-2.35` ở cả hai chế độ.
+When a value is **not** exact halfway, both modes choose the nearest number regardless of sign; for example `-2.346` becomes `-2.35` in both modes.
 
-## Java 17+ — chương trình chạy độc lập
+## Java 17+ — Standalone Runnable Program
 
-Tạo file `HalfTieDemo.java`:
+Create the file `HalfTieDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -87,14 +87,14 @@ public class HalfTieDemo {
 }
 ```
 
-Dùng JDK 17 hoặc mới hơn:
+Use JDK 17 or newer:
 
 ```bash
 javac HalfTieDemo.java
 java HalfTieDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 value | HALF_UP | HALF_DOWN
@@ -111,59 +111,59 @@ value | HALF_UP | HALF_DOWN
 precision 3 | 12.4 | 12.3
 ```
 
-Giải thích mã:
+Code explanation:
 
-1. `new BigDecimal(raw)` nhận biểu diễn **thập phân chính xác** từ chuỗi, giúp các trường hợp tie đúng như mô tả.
-2. `setScale(2, mode)` yêu cầu chính xác 2 chữ số sau dấu thập phân và áp dụng chế độ nếu phải loại chữ số.
-3. `1 / 8 = 0.125` nằm giữa `0.12` và `0.13`; `divide(eight, 2, mode)` trả về `0.13` theo `HALF_UP`, `0.12` theo `HALF_DOWN`.
-4. `new MathContext(3, mode)` yêu cầu **3 chữ số có nghĩa**, nên `12.35` thành `12.4` hoặc `12.3`.
-5. `BigDecimal` là kiểu **bất biến**. `setScale`, `divide` và `round` trả về kết quả mới; không thay đổi đối tượng cũ. Muốn lưu thì gán lại, chẳng hạn `value = value.setScale(2, mode)`.
+1. `new BigDecimal(raw)` accepts an **exact decimal representation** from a string, keeping tie cases as described.
+2. `setScale(2, mode)` requires exactly 2 digits after the decimal point and applies the mode if digits must be discarded.
+3. `1 / 8 = 0.125` lies between `0.12` and `0.13`; `divide(eight, 2, mode)` returns `0.13` under `HALF_UP`, `0.12` under `HALF_DOWN`.
+4. `new MathContext(3, mode)` requires **3 significant digits**, so `12.35` becomes `12.4` or `12.3`.
+5. `BigDecimal` is an **immutable** type. `setScale`, `divide`, and `round` return new results; they do not modify the old object. To keep it, reassign, such as `value = value.setScale(2, mode)`.
 
-## Scale, precision và độ lớn một bước làm tròn
+## Scale, Precision, and Step Size of One Rounding Unit
 
-**Scale** là số chữ số bên phải dấu thập phân. `setScale(2, mode)` làm tròn theo phần trăm đơn vị; `setScale(0, mode)` làm tròn tới đơn vị; `setScale(-1, mode)` làm tròn tới hàng chục.
+**Scale** is the number of digits to the right of the decimal point. `setScale(2, mode)` rounds to hundredths; `setScale(0, mode)` rounds to units; `setScale(-1, mode)` rounds to tens.
 
-**Precision** trong `MathContext` là **tổng số chữ số có nghĩa**, không phải riêng phần thập phân. Ví dụ `12.35` có 4 chữ số có nghĩa; làm tròn về precision 3 tạo tie giữa `12.3` và `12.4`.
+**Precision** in `MathContext` is **the total number of significant digits**, not only the fractional part. For example, `12.35` has 4 significant digits; rounding to precision 3 creates a tie between `12.3` and `12.4`.
 
-| Mục tiêu | Đầu vào | HALF_UP | HALF_DOWN |
+| Target | Input | HALF_UP | HALF_DOWN |
 |---|---|---|---|
 | `setScale(2)` | `7.125` | `7.13` | `7.12` |
 | `setScale(0)` | `-2.5` | `-3` | `-2` |
 | `setScale(-1)` | `145` | `150` | `140` |
 | `MathContext(3)` | `12.35` | `12.4` | `12.3` |
 
-Làm tròn ở scale âm có thể cho biểu diễn ký pháp khoa học trong `BigDecimal`; `toPlainString()` hiển thị theo dạng thông thường. Nếu `setScale` cần loại chữ số nhưng không cung cấp `RoundingMode`, phép gọi có thể ném `ArithmeticException`. `RoundingMode.UNNECESSARY` cũng ném lỗi khi cần làm tròn, hữu ích nếu hợp đồng dữ liệu yêu cầu kết quả chính xác tuyệt đối ở scale đích.
+Rounding at a negative scale can produce a scientific notation representation in `BigDecimal`; `toPlainString()` displays it in ordinary form. If `setScale` needs to discard digits without a `RoundingMode` provided, the call can throw `ArithmeticException`. `RoundingMode.UNNECESSARY` also throws an error when rounding is required, useful if the data contract requires an exact result at the target scale.
 
-## Những lỗi hiểu và áp dụng thường gặp
+## Common Misunderstandings and Misapplications
 
-### 1. Thấy chữ số 5 rồi tự cho là đúng giữa
+### 1. Seeing Digit 5 and Assuming It Is Exact Halfway
 
-Ở scale 2, `2.34499` ở dưới nửa bước nên cả hai về `2.34`; `2.34500` là tie nên cho kết quả khác; `2.34501` ở trên nửa bước nên cả hai về `2.35`. Khi kiểm thử phải có các giá trị ngay trước, đúng tại và ngay sau điểm giữa.
+At scale 2, `2.34499` is below the half-step so both go to `2.34`; `2.34500` is a tie so it gives different results; `2.34501` is above the half-step so both go to `2.35`. When testing, include values just below, exactly at, and just above the midpoint.
 
-### 2. Nhầm HALF_UP với UP, CEILING hoặc Math.round
+### 2. Confusing HALF_UP with UP, CEILING, or Math.round
 
-`RoundingMode.UP` luôn đi xa số 0 khi phải loại chữ số; `DOWN` luôn đi về 0. `CEILING` về phía dương và `FLOOR` về phía âm. Chúng khác với `HALF_UP`/`HALF_DOWN` vì hai chế độ HALF ưu tiên **mức gần nhất**.
+`RoundingMode.UP` always moves away from 0 when discarding digits; `DOWN` always moves toward 0. `CEILING` goes toward positive and `FLOOR` toward negative. They differ from `HALF_UP`/`HALF_DOWN` because the two HALF modes prioritize **the nearest level**.
 
-`Math.round(-2.5)` trả `-2`: tại tie, `Math.round` lựa chọn về phía dương trên trục số, khác `BigDecimal("-2.5").setScale(0, RoundingMode.HALF_UP)` cho `-3`. Vì vậy, không thay `RoundingMode` bằng `Math.round` theo trực giác tên gọi.
+`Math.round(-2.5)` returns `-2`: at a tie, `Math.round` picks toward the positive direction on the number line, unlike `BigDecimal("-2.5").setScale(0, RoundingMode.HALF_UP)` which gives `-3`. Therefore, do not substitute `RoundingMode` with `Math.round` based on name intuition.
 
-### 3. Dùng double làm mất tính chính xác của tie
+### 3. Using double Destroys Tie Exactness
 
-`new BigDecimal(2.675)` nhận giá trị nhị phân xấp xỉ mà `double` đang lưu, có thể không đúng bằng `2.675`. Điểm giữa thập phân có thể bị lệch khiến kết quả bất ngờ. Để diễn đạt giá trị thập phân chính xác, dùng `new BigDecimal("2.675")`; tại scale 2 với `HALF_UP`, kết quả là `2.68`.
+`new BigDecimal(2.675)` receives the approximate binary value currently stored by `double`, which may not equal `2.675` exactly. The decimal midpoint can shift, causing unexpected results. To express an exact decimal value, use `new BigDecimal("2.675")`; at scale 2 with `HALF_UP`, the result is `2.68`.
 
-`BigDecimal.valueOf(2.675)` chuyển qua chuỗi biểu diễn của `double` và thường gần với giá trị con người mong đợi hơn constructor nhận `double`, nhưng **không khôi phục được độ chính xác đã mất** trong các phép toán `double` trước đó.
+`BigDecimal.valueOf(2.675)` converts via `double`'s string representation and is usually closer to what humans expect than the `double` constructor, but **cannot recover precision already lost** in earlier `double` operations.
 
-### 4. Làm tròn ở bước trung gian tùy ý
+### 4. Rounding Arbitrarily at Intermediate Steps
 
-Hai khoản `1.245`: làm tròn từng khoản tại scale 2 với `HALF_UP` rồi cộng cho `1.25 + 1.25 = 2.50`. Nếu cộng trước rồi làm tròn một lần, `1.245 + 1.245 = 2.490` cho `2.49`. Cùng một chế độ nhưng khác kết quả vì **thời điểm làm tròn** khác nhau. Quy định nghiệp vụ phải nêu cả thời điểm, scale và chế độ.
+Two items of `1.245`: rounding each item at scale 2 with `HALF_UP` and then adding gives `1.25 + 1.25 = 2.50`. Adding first and rounding once gives `1.245 + 1.245 = 2.490`, yielding `2.49`. Same mode yet different results because **when rounding happens** differs. Business rules must specify timing, scale, and mode.
 
-### 5. Chọn chế độ vì “nghe hợp lý”
+### 5. Choosing a Mode Because It "Sounds Reasonable"
 
-Không có quy tắc phổ quát rằng mọi khoản tiền phải dùng `HALF_UP` hoặc `HALF_DOWN`. Hãy theo yêu cầu của hệ thống, chuẩn hay hợp đồng. Còn `HALF_EVEN`, một chính sách phổ biến khác, chọn chữ số cuối được giữ là **số chẵn** tại tie: ở scale 2, `2.345` thành `2.34` nhưng `2.355` thành `2.36`. `HALF_EVEN` không đồng nghĩa với `HALF_DOWN`.
+There is no universal rule that all monetary amounts must use `HALF_UP` or `HALF_DOWN`. Follow the requirements of the system, standard, or contract. Meanwhile `HALF_EVEN`, another common policy, selects the last retained digit that is **even** at a tie: at scale 2, `2.345` becomes `2.34` whereas `2.355` becomes `2.36`. `HALF_EVEN` is not synonymous with `HALF_DOWN`.
 
-## Áp dụng và tự kiểm tra
+## Applying and Self-Checking
 
-Trước khi triển khai, trả lời được: đầu vào có giữ chính xác giá trị thập phân không; mục tiêu là scale hay precision; khi tie phải đi xa hay gần số 0; làm tròn ở bước nào; đã kiểm thử số âm và các số sát hai bên tie hay chưa. Dùng `RoundingMode` tường minh trong `setScale`, `divide` hoặc `round(MathContext)`.
+Before implementing, be able to answer: does the input preserve exact decimal values; is the goal scale or precision; on a tie should it go away from or toward 0; at which step should rounding occur; have negative numbers and numbers right on both sides of the tie been tested? Use an explicit `RoundingMode` in `setScale`, `divide`, or `round(MathContext)`.
 
-**Bài tự kiểm tra:** Làm tròn `-7.1250` tới 2 chữ số. Đây là tie giữa `-7.12` và `-7.13`, nên `HALF_UP` cho **`-7.13`**, `HALF_DOWN` cho **`-7.12`**. Nếu đổi thành `-7.1251`, cả hai đều cho `-7.13` do gần `-7.13` hơn.
+**Self-check exercise:** Round `-7.1250` to 2 digits. This is a tie between `-7.12` and `-7.13`, so `HALF_UP` gives **`-7.13`**, and `HALF_DOWN` gives **`-7.12`**. If changed to `-7.1251`, both give `-7.13` since it is closer to `-7.13`.
 
-**Ghi nhớ:** Hai chế độ đều làm tròn về mức gần nhất; **chỉ tại điểm đúng giữa**, `HALF_UP` chọn xa số 0 và `HALF_DOWN` chọn gần số 0.
+**Takeaway:** Both modes round to the nearest level; **only at the exact halfway point**, `HALF_UP` chooses away from 0 and `HALF_DOWN` chooses toward 0.

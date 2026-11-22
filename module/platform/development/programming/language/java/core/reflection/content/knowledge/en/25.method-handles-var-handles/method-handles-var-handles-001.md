@@ -1,28 +1,28 @@
-# Phân biệt core reflection với `java.lang.invoke`
+# Distinguishing Core Reflection from `java.lang.invoke`
 
-## 1. Hai API cùng làm việc với thành phần Java tại runtime nhưng có vai trò khác nhau
+## 1. Two APIs Working with Java Elements at Runtime with Different Roles
 
-**Core reflection** là tập API chủ yếu trong `java.lang.Class` và `java.lang.reflect` (`Method`, `Constructor`, `Field`, `Parameter`, `Modifier`, `RecordComponent`...). Nó phù hợp khi chương trình cần **khám phá metadata** của một kiểu: tìm phương thức, trường, constructor, annotation, tham số, modifier, kiểu generic; sau đó có thể gọi phương thức, tạo đối tượng hoặc đọc/ghi trường qua các đối tượng metadata.
+**Core reflection** is the set of APIs primarily in `java.lang.Class` and `java.lang.reflect` (`Method`, `Constructor`, `Field`, `Parameter`, `Modifier`, `RecordComponent`...). It is suitable when a program needs to **discover metadata** of a type: finding methods, fields, constructors, annotations, parameters, modifiers, and generic types; and then invoking methods, creating objects, or reading/writing fields through those metadata objects.
 
-**`java.lang.invoke`** cung cấp các đối tượng thao tác được định kiểu như `MethodHandle`, `VarHandle`, cùng `MethodHandles.Lookup`, `MethodType`, `CallSite` và các công cụ kết hợp handle. Nó phù hợp khi đã xác định thao tác cần thực hiện và muốn **biểu diễn lời gọi hoặc quyền truy cập dưới dạng handle có chữ ký cụ thể**, dễ kết hợp/chuyển đổi cho dynamic invocation; `VarHandle` còn hỗ trợ các chế độ truy cập bộ nhớ và thao tác nguyên tử.
+**`java.lang.invoke`** provides typed operation objects such as `MethodHandle` and `VarHandle`, along with `MethodHandles.Lookup`, `MethodType`, `CallSite`, and handle combinator tools. It is suitable when you have already determined the operation to perform and want to **represent a call or access as a handle with a specific signature**, easy to compose/adapt for dynamic invocation; `VarHandle` also supports memory access modes and atomic operations.
 
-Chúng có phần giao nhau, nhưng không phải API thay thế toàn bộ cho nhau: `MethodHandle` không cung cấp kho metadata annotation/generic như `Method`, còn `Method` không thay thế các access mode và compare-and-set của `VarHandle`. Cả hai vẫn tuân thủ kiểm soát truy cập của ngôn ngữ và hệ thống module.
+They have some overlap, but they are not complete replacements for each other: `MethodHandle` does not provide a store of annotation/generic metadata like `Method`, and `Method` does not replace the access modes and compare-and-set of `VarHandle`. Both still obey the access controls of the language and the module system.
 
-| Câu hỏi | Core reflection | `java.lang.invoke` |
+| Question | Core reflection | `java.lang.invoke` |
 | --- | --- | --- |
-| Đối tượng chính | `Class<?>`, `Method`, `Constructor<?>`, `Field` | `MethodHandle`, `VarHandle`, `MethodType`, `MethodHandles.Lookup` |
-| Tìm thành viên | `getMethod`, `getDeclaredMethods`, `getDeclaredField`… | `Lookup.findVirtual`, `findStatic`, `findConstructor`, `findVarHandle`… |
-| Khám phá annotation/generic/parameter | Mạnh và trực tiếp qua metadata | Không phải nhiệm vụ chính; thường dùng reflection nếu cần |
-| Gọi method | `Method.invoke(receiver, Object...)` | `handle.invokeExact(...)`, `handle.invoke(...)`, `invokeWithArguments(...)` |
-| Tạo instance | `Constructor.newInstance(Object...)` | Constructor `MethodHandle` có chữ ký kiểu `(args)Instance` |
-| Trường | `Field.get/set` cùng các biến thể primitive | `VarHandle.get/set`, CAS, atomic update, memory ordering |
-| Kiểu tại điểm gọi | Tham số/giá trị trả về đi qua `Object`, có boxing/unboxing | `MethodType` và chữ ký tại điểm gọi, đặc biệt nghiêm ngặt với `invokeExact` |
-| Ngoại lệ do method đích ném | `Method.invoke` gói trong `InvocationTargetException` | `MethodHandle` truyền trực tiếp ngoại lệ của đích |
-| Quyền truy cập | Java access checks, `setAccessible` trong giới hạn module | Quyền nằm ở `Lookup`; tra cứu handle phải thỏa access checks |
+| Primary objects | `Class<?>`, `Method`, `Constructor<?>`, `Field` | `MethodHandle`, `VarHandle`, `MethodType`, `MethodHandles.Lookup` |
+| Finding members | `getMethod`, `getDeclaredMethods`, `getDeclaredField`… | `Lookup.findVirtual`, `findStatic`, `findConstructor`, `findVarHandle`… |
+| Discovering annotations/generics/parameters | Strong and direct through metadata | Not its primary role; typically uses reflection if needed |
+| Invoking a method | `Method.invoke(receiver, Object...)` | `handle.invokeExact(...)`, `handle.invoke(...)`, `invokeWithArguments(...)` |
+| Creating an instance | `Constructor.newInstance(Object...)` | Constructor `MethodHandle` with type signature `(args)Instance` |
+| Fields | `Field.get/set` and primitive variants | `VarHandle.get/set`, CAS, atomic updates, memory ordering |
+| Types at the call site | Parameters/return value pass through `Object`, with boxing/unboxing | `MethodType` and call-site signature, especially strict with `invokeExact` |
+| Exceptions thrown by target method | `Method.invoke` wraps in `InvocationTargetException` | `MethodHandle` propagates the target's exception directly |
+| Access permissions | Java access checks, `setAccessible` within module boundaries | Permissions reside in `Lookup`; looking up a handle must pass access checks |
 
-## 2. Core reflection: khám phá trước, gọi qua đối tượng metadata
+## 2. Core Reflection: Discover First, Invoke Through Metadata Objects
 
-Ví dụ đoạn code đặt trong một phương thức (chưa phải chương trình độc lập):
+Example code snippet placed inside a method (not a standalone program):
 
 ```java
 Method method = String.class.getMethod("substring", int.class);
@@ -30,20 +30,20 @@ Object answer = method.invoke("java", 2);
 System.out.println(answer); // va
 ```
 
-`getMethod` tìm phương thức public theo **tên và các kiểu tham số**, còn `Method.invoke` yêu cầu receiver với phương thức instance. Kết quả có kiểu biên dịch `Object` dù `substring` khai báo trả `String`; đối số nguyên thủy `2` được boxing trong lời gọi varargs. Với phương thức `static`, receiver truyền cho `Method.invoke` có thể là `null`.
+`getMethod` finds a public method by **name and parameter types**, and `Method.invoke` requires a receiver for instance methods. The result has compile-time type `Object` even though `substring` is declared to return `String`; the primitive argument `2` is boxed in the varargs call. For `static` methods, the receiver passed to `Method.invoke` can be `null`.
 
-Reflection hữu ích khi chưa biết cấu trúc kiểu lúc biên dịch. Ví dụ framework kiểm tra annotation để ánh xạ HTTP route, công cụ serialize cần đọc field/generic type, test runner quét method có annotation, hoặc trình khám phá class liệt kê constructor và modifier. `getMethods()` chỉ lấy các public method (kể cả được kế thừa), còn `getDeclaredMethods()` lấy method khai báo trực tiếp trong class, bất kể modifier nhưng không lấy method kế thừa. Tìm thấy thành viên private **không đồng nghĩa có quyền gọi**.
+Reflection is useful when the type structure is unknown at compile time. For example, a framework inspecting annotations to map HTTP routes, a serialization tool needing to read fields/generic types, a test runner scanning for annotated methods, or a class explorer listing constructors and modifiers. `getMethods()` only retrieves public methods (including inherited ones), whereas `getDeclaredMethods()` retrieves methods declared directly in the class regardless of modifier, without inherited methods. Finding a private member **does not mean you have permission to invoke it**.
 
-Các ràng buộc cần nhớ:
+Constraints to keep in mind:
 
-- `Method.invoke` có thể thực hiện các chuyển đổi được reflection cho phép, như unboxing và một số widening primitive; nó không ép kiểu tùy ý.
-- `Method.invoke` gói exception do code đích ném vào `InvocationTargetException`; lấy `getCause()` để xem lỗi gốc. Lỗi tra cứu và lỗi truy cập phát sinh theo các nhánh ngoại lệ khác.
-- `Field.getInt`/`setInt` thao tác với trường `int` mà không cần tự ép `Object`; tuy nhiên `Field` không tự cung cấp compare-and-set nguyên tử và các access mode của `VarHandle`.
-- `setAccessible(true)` không luôn thành công: strong encapsulation của Java Platform Module System vẫn đặt giới hạn.
+- `Method.invoke` can perform conversions permitted by reflection, such as unboxing and certain primitive widenings; it does not cast arbitrarily.
+- `Method.invoke` wraps exceptions thrown by target code in `InvocationTargetException`; call `getCause()` to see the underlying error. Lookup errors and access errors occur along different exception paths.
+- `Field.getInt`/`setInt` operate on `int` fields without manually casting `Object`; however, `Field` itself does not provide atomic compare-and-set or the access modes of `VarHandle`.
+- `setAccessible(true)` does not always succeed: strong encapsulation in the Java Platform Module System still imposes boundaries.
 
-## 3. `MethodHandle`: tham chiếu lời gọi có chữ ký rõ ràng
+## 3. `MethodHandle`: Call Reference with an Explicit Signature
 
-Một `MethodHandle` biểu diễn một phép gọi có kiểu. `MethodType` mô tả chính xác danh sách tham số và kiểu trả về của handle; `handle.type()` cho biết chữ ký **sau khi handle được tạo**, không nhất thiết giống chữ ký khai báo ban đầu của method.
+A `MethodHandle` represents a typed invocation. `MethodType` describes the exact parameter list and return type of the handle; `handle.type()` tells you the signature **after the handle is created**, which is not necessarily identical to the method's original declared signature.
 
 ```java
 MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -54,44 +54,44 @@ String answer = (String) substring.invokeExact("java", 2);
 System.out.println(answer); // va
 ```
 
-Đây là fragment cần đặt trong method khai báo `throws Throwable` (hoặc bắt exception) và import `java.lang.invoke.*`. Đối với `findVirtual`, `MethodType.methodType(String.class, int.class)` mô tả **method đích** `substring(int) -> String`; handle thu được có thêm receiver `String` ở vị trí đầu tiên, nên kiểu thực tế là `(String,int)String`.
+This is a fragment that must be placed inside a method declaring `throws Throwable` (or catching exceptions) and importing `java.lang.invoke.*`. For `findVirtual`, `MethodType.methodType(String.class, int.class)` describes the **target method** `substring(int) -> String`; the resulting handle has the `String` receiver added in the first position, so its actual type is `(String,int)String`.
 
-Những cách tạo handle thường dùng:
+Common ways to create handles:
 
-| Phương thức `Lookup` | Phép gọi thu được |
+| `Lookup` method | Resulting operation |
 | --- | --- |
-| `findVirtual(Owner.class, name, methodType)` | Instance method; receiver đứng đầu tham số của handle |
-| `findStatic(Owner.class, name, methodType)` | Static method; không có receiver |
-| `findConstructor(Owner.class, methodType(void.class, ...))` | Gọi constructor; handle trả về instance `Owner` |
-| `findGetter` / `findSetter` | Handle thao tác trường tương ứng, theo quyền lookup |
-| `unreflect(Method)` / `unreflectConstructor(Constructor)` | Chuyển đối tượng reflection thành handle nếu có quyền cần thiết |
-| `findSpecial(...)` | Lời gọi mang ngữ nghĩa `invokespecial`, cần ngữ cảnh và quyền đặc biệt |
+| `findVirtual(Owner.class, name, methodType)` | Instance method; receiver comes first in the handle's parameters |
+| `findStatic(Owner.class, name, methodType)` | Static method; no receiver |
+| `findConstructor(Owner.class, methodType(void.class, ...))` | Constructor call; handle returns an `Owner` instance |
+| `findGetter` / `findSetter` | Handle operating on the corresponding field, subject to lookup permissions |
+| `unreflect(Method)` / `unreflectConstructor(Constructor)` | Converts a reflection object into a handle if required permissions are held |
+| `findSpecial(...)` | Call with `invokespecial` semantics, requiring special context and permissions |
 
-Các phương thức kết hợp như `bindTo(receiver)`, `asType(newType)`, `filterArguments` hoặc `guardWithTest` có thể tạo handle mới từ handle đang có. Điều này hữu ích trong bộ điều phối lời gọi động khi muốn chuẩn bị đường gọi một lần rồi tái sử dụng.
+Combinator methods such as `bindTo(receiver)`, `asType(newType)`, `filterArguments`, or `guardWithTest` can create new handles from existing ones. This is useful in dynamic call dispatchers when you want to prepare a call path once and reuse it.
 
-**`invokeExact` và `invoke` khác nhau ở việc khớp chữ ký:**
+**`invokeExact` and `invoke` differ in signature matching:**
 
-- `invokeExact`: chữ ký tại call site, gồm receiver, số lượng, kiểu tham số **và kiểu trả về**, phải khớp chính xác `handle.type()`; sai sẽ gây `WrongMethodTypeException`. Vì thế thường phải ép kiểu kết quả, ví dụ `int n = (int) handle.invokeExact(obj, 3);`.
-- `invoke`: cho phép các chuyển đổi theo quy tắc `asType` khi tương thích, chẳng hạn boxing/unboxing và reference cast phù hợp. Nó vẫn kiểm tra kiểu, không tự biến mọi `Object` thành kiểu tùy ý.
-- `invokeWithArguments`: chấp nhận danh sách đối số động thông qua `Object`/`List`, tiện khi chưa có signature tĩnh nhưng thêm overhead và chuyển đổi; không phải lúc nào cũng nên dùng.
+- `invokeExact`: the signature at the call site—including receiver, parameter count, parameter types, **and return type**—must match `handle.type()` exactly; a mismatch throws `WrongMethodTypeException`. Because of this, you typically need to cast the result, for example `int n = (int) handle.invokeExact(obj, 3);`.
+- `invoke`: allows conversions according to `asType` rules when compatible, such as boxing/unboxing and valid reference casts. It still checks types and does not turn any `Object` into an arbitrary type.
+- `invokeWithArguments`: accepts a dynamic argument list via `Object`/`List`, convenient when there is no static signature yet, though it adds overhead and conversions; it should not always be used.
 
-Ví dụ `MethodHandle` xử lý target exception trực tiếp, không tự đóng gói nó trong `InvocationTargetException` như `Method.invoke`. Khi thiết kế API public, không nhất thiết lan truyền `throws Throwable` khắp ứng dụng; có thể bắt/ánh xạ lỗi tại lớp adapter.
+For example, `MethodHandle` handles target exceptions directly without wrapping them in `InvocationTargetException` like `Method.invoke`. When designing a public API, you do not necessarily need to propagate `throws Throwable` across the entire application; you can catch/map errors at the adapter layer.
 
-## 4. `VarHandle`: truy cập biến có semantics bộ nhớ/atomic
+## 4. `VarHandle`: Variable Access with Memory/Atomic Semantics
 
-`VarHandle` mô tả quyền truy cập một **biến**: instance field, static field hoặc phần tử mảng. Khác `Field`, nó có các nhóm access mode và có thể tham gia thuật toán đồng bộ không khóa khi loại biến và access mode hỗ trợ. Một handle có kiểu giá trị (`varType()`) và danh sách tọa độ (`coordinateTypes()`); ví dụ instance field `Counter.value` có kiểu giá trị `int` và tọa độ `Counter`, còn phần tử `int[]` có tọa độ `int[]` cùng chỉ số `int`.
+`VarHandle` describes access to a **variable**: an instance field, a static field, or an array element. Unlike `Field`, it has access mode groups and can participate in lock-free synchronization algorithms when the variable type and access mode support them. A handle has a value type (`varType()`) and a list of coordinate types (`coordinateTypes()`); for example, the instance field `Counter.value` has value type `int` and coordinate `Counter`, whereas an `int[]` element has coordinates `int[]` and index `int`.
 
-| Nhóm access mode | Ví dụ | Ý nghĩa chủ đạo |
+| Access mode group | Examples | Primary meaning |
 | --- | --- | --- |
-| Plain | `get`, `set` | Truy cập thông thường, không yêu cầu ordering bổ sung cho đồng bộ giữa thread |
-| Opaque | `getOpaque`, `setOpaque` | Ordering yếu hơn acquire/release, nhưng có tính nhất quán riêng của opaque access |
-| Acquire / Release | `getAcquire`, `setRelease` | Công bố/tiếp nhận dữ liệu theo ordering acquire/release khi phối hợp đúng |
-| Volatile | `getVolatile`, `setVolatile` | Ngữ nghĩa truy cập volatile trong Java Memory Model |
-| Atomic | `compareAndSet`, `compareAndExchange`, `getAndSet`, `getAndAdd` | Thao tác read-modify-write nguyên tử, với ngữ nghĩa ordering cụ thể theo access mode |
+| Plain | `get`, `set` | Ordinary access, requiring no additional ordering for cross-thread synchronization |
+| Opaque | `getOpaque`, `setOpaque` | Weaker ordering than acquire/release, but with the consistency guarantees specific to opaque access |
+| Acquire / Release | `getAcquire`, `setRelease` | Publishes/receives data with acquire/release ordering when properly paired |
+| Volatile | `getVolatile`, `setVolatile` | Volatile access semantics under the Java Memory Model |
+| Atomic | `compareAndSet`, `compareAndExchange`, `getAndSet`, `getAndAdd` | Atomic read-modify-write operations with specific ordering semantics per access mode |
 
-**Không phải mọi mode đều hỗ trợ cho mọi biến.** Chẳng hạn `getAndAdd` không có ý nghĩa cho mọi kiểu reference; dùng `isAccessModeSupported(VarHandle.AccessMode.GET_AND_ADD)` nếu cần kiểm tra động. Với field `final`, các mode ghi hay cập nhật nguyên tử không được hỗ trợ. Không suy luận rằng `get` hay `set` thông thường bảo đảm đồng bộ giữa thread; chọn mode và thiết kế happens-before phù hợp.
+**Not every mode is supported for every variable.** For example, `getAndAdd` does not make sense for all reference types; use `isAccessModeSupported(VarHandle.AccessMode.GET_AND_ADD)` if you need to check dynamically. For `final` fields, write or atomic update modes are not supported. Do not assume that plain `get` or `set` guarantees cross-thread synchronization; choose modes and design happens-before relationships appropriately.
 
-Đối với mảng, có thể tạo handle mà không có field:
+For arrays, you can create a handle without a field:
 
 ```java
 VarHandle element = MethodHandles.arrayElementVarHandle(int[].class);
@@ -100,11 +100,11 @@ boolean swapped = element.compareAndSet(values, 1, 8, 9);
 System.out.println(swapped + ", " + values[1]); // true, 9
 ```
 
-Đây là fragment cần import `java.lang.invoke.*`; `compareAndSet` dùng tọa độ `(array, index)` rồi tới expected/new value. Trong bài toán concurrency, tránh suy nghĩ rằng một CAS đơn lẻ bảo đảm mọi invariants của cấu trúc dữ liệu nhiều trường: còn cần phân tích tranh chấp, visibility, vòng lặp retry và trường hợp ABA nếu có.
+This is a fragment requiring `import java.lang.invoke.*;`; `compareAndSet` takes the coordinates `(array, index)` followed by the expected/new value. In concurrency problems, avoid assuming that a single CAS guarantees all invariants of a multi-field data structure: you still need to analyze contention, visibility, retry loops, and ABA issues if any.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: cùng một lớp, ba cách tương tác
+## 5. Complete Java 17+ Example: One Class, Three Ways to Interact
 
-Lưu mã sau thành tệp **`ReflectionInvokeDemo.java`**. Ví dụ dùng một nested class `Counter` có constructor, instance method, static method và private field. Code ở cùng nest nên lookup có quyền truy cập private field trong ví dụ; với class nằm ở module/package khác phải xét lại access control.
+Save the following code as **`ReflectionInvokeDemo.java`**. The example uses a nested class `Counter` with a constructor, instance method, static method, and private field. Because the code is in the same nest, the lookup has permission to access the private field in this example; for classes in different modules/packages, access control must be re-evaluated.
 
 ```java
 import java.lang.invoke.MethodHandle;
@@ -132,7 +132,7 @@ public class ReflectionInvokeDemo {
     }
 
     public static void main(String[] args) throws Throwable {
-        // Core reflection: tìm metadata rồi gọi/đọc/ghi.
+        // Core reflection: discover metadata, then invoke/read/write.
         Constructor<Counter> constructor = Counter.class.getConstructor(int.class);
         Counter a = constructor.newInstance(5);
         Method method = Counter.class.getMethod("add", int.class);
@@ -143,7 +143,7 @@ public class ReflectionInvokeDemo {
         System.out.println("reflect invoke: " + reflectResult);
         System.out.println("reflect field: " + field.getInt(a));
 
-        // MethodHandle: tạo handle có chữ ký rõ ràng rồi gọi.
+        // MethodHandle: create handles with explicit signatures, then invoke.
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         MethodHandle mhCtor = lookup.findConstructor(
                 Counter.class, MethodType.methodType(void.class, int.class));
@@ -158,7 +158,7 @@ public class ReflectionInvokeDemo {
         System.out.println("handle invokeExact: " + result);
         System.out.println("static handle: " + description);
 
-        // VarHandle: truy cập field và cập nhật nguyên tử.
+        // VarHandle: access field and perform atomic updates.
         VarHandle var = lookup.findVarHandle(Counter.class, "value", int.class);
         int before = (int) var.get(b);
         var.set(b, 20);
@@ -172,7 +172,7 @@ public class ReflectionInvokeDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 ReflectionInvokeDemo.java
@@ -192,22 +192,22 @@ var getAndAdd previous: 25
 var volatile read: 30
 ```
 
-Diễn giải: biến `a` tăng từ `5` lên `7` bằng reflection rồi bị đặt thành `9`. Biến `b` được tạo qua constructor handle với `10`, tăng thành `13` qua instance method handle. `VarHandle` đọc `13`, đặt `20`, đổi có điều kiện `20 -> 25`, sau đó tăng `25 -> 30`; `getAndAdd` trả **giá trị cũ `25`**. Các thao tác chạy tuần tự để minh họa contract; ví dụ không tuyên bố chứng minh tính đúng đắn của thuật toán nhiều thread.
+Explanation: variable `a` increases from `5` to `7` via reflection and is then set to `9`. Variable `b` is created through the constructor handle with `10` and incremented to `13` via the instance method handle. `VarHandle` reads `13`, sets `20`, conditionally swaps `20 -> 25`, and then adds `25 -> 30`; `getAndAdd` returns the **previous value `25`**. The operations run sequentially to illustrate the contract; the example does not claim to prove correctness of a multi-threaded algorithm.
 
-## 6. Lỗi thường gặp và câu hỏi tự kiểm tra
+## 6. Common Mistakes and Self-Check Questions
 
-- Dùng `getDeclaredMethod` rồi nghĩ đã được phép gọi member private: **sai**; tìm thấy metadata và có quyền thực thi là hai bước riêng.
-- Đưa toàn bộ tham số vào `Object[]` khi dùng `invokeExact` và kỳ vọng tự thích ứng: **sai**; kiểu tại call site phải khớp handle, hoặc chủ động dùng `asType`/`invoke`/`invokeWithArguments` theo mục đích.
-- Nghĩ `MethodType` của `findVirtual` đã gồm receiver: **sai**; receiver xuất hiện trong kiểu của handle kết quả, còn `MethodType` truyền vào mô tả phương thức đích.
-- Coi `VarHandle.set` thông thường và `setVolatile` là có semantics bộ nhớ như nhau: **sai**; ordering là một phần contract.
-- Bỏ qua `Lookup`/JPMS hoặc xem `privateLookupIn` như cửa hậu tự động: **sai**; kiểm tra quyền vẫn được áp dụng.
+- Calling `getDeclaredMethod` and assuming you are already allowed to invoke a private member: **false**; finding metadata and having permission to execute are two separate steps.
+- Putting all arguments into an `Object[]` when calling `invokeExact` and expecting automatic adaptation: **false**; the call-site types must match the handle, or you must deliberately use `asType`/`invoke`/`invokeWithArguments` as appropriate.
+- Thinking the `MethodType` passed to `findVirtual` already includes the receiver: **false**; the receiver appears in the resulting handle's type, whereas the `MethodType` passed in describes the target method.
+- Treating plain `VarHandle.set` and `setVolatile` as having the same memory semantics: **false**; ordering is part of the contract.
+- Ignoring `Lookup`/JPMS or viewing `privateLookupIn` as an automatic backdoor: **false**; permission checks still apply.
 
-Tự kiểm tra:
+Self-check:
 
-1. Muốn lấy annotation của một method chưa biết tên lúc biên dịch, dùng `Method` hay `MethodHandle`? **`Method`** qua core reflection.
-2. Với `findVirtual` của method `int inc(int x)`, handle có cần tham số receiver không? **Có**, receiver đứng trước `int x`.
-3. Muốn cập nhật một field `int` có điều kiện nguyên tử, dùng `Field.setInt` hay `VarHandle.compareAndSet`? **`VarHandle.compareAndSet`**.
-4. Target ném `IOException`: `Method.invoke` và `invokeExact` biểu hiện giống hệt nhau không? **Không**; reflection gói target exception trong `InvocationTargetException`, method handle chuyển tiếp trực tiếp exception.
-5. `VarHandle.getAndAdd(receiver, 5)` trả về gì? **Giá trị trước phép cộng**, khi mode đó được hỗ trợ.
+1. If you want to get the annotations of a method whose name is unknown at compile time, do you use `Method` or `MethodHandle`? **`Method`** via core reflection.
+2. For `findVirtual` on the method `int inc(int x)`, does the handle need a receiver parameter? **Yes**, the receiver comes before `int x`.
+3. If you want to atomically and conditionally update an `int` field, do you use `Field.setInt` or `VarHandle.compareAndSet`? **`VarHandle.compareAndSet`**.
+4. The target throws `IOException`: do `Method.invoke` and `invokeExact` behave identically? **No**; reflection wraps the target exception in `InvocationTargetException`, whereas a method handle forwards the exception directly.
+5. What does `VarHandle.getAndAdd(receiver, 5)` return? **The value before the addition**, when that mode is supported.
 
-Đọc thêm: [Javadoc `java.lang.reflect.Method` (Java 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html), [Javadoc `MethodHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandle.html), [Javadoc `MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html), [Javadoc `VarHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/VarHandle.html), [JEP 416](https://openjdk.org/jeps/416).
+Further reading: [Javadoc `java.lang.reflect.Method` (Java 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html), [Javadoc `MethodHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandle.html), [Javadoc `MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html), [Javadoc `VarHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/VarHandle.html), [JEP 416](https://openjdk.org/jeps/416).

@@ -1,54 +1,54 @@
-# Giữ constructor, setter và bất biến đối tượng làm ranh giới thiết kế khi dùng Reflection
+# Keeping Constructors, Setters, and Object Invariants as Design Boundaries When Using Reflection
 
-Một `Field` có thể ghi được bằng Reflection nhưng điều đó chưa có nghĩa thao tác ghi là **hợp lệ về nghiệp vụ**. Ví dụ `Registration` yêu cầu sức chứa từ 1 đến 10, số người không vượt sức chứa và danh sách không bị sửa từ bên ngoài. Gán trực tiếp `capacity = 0` phá invariant dù JVM chấp nhận thao tác.
+A `Field` may be writable via Reflection, yet that does not mean the write is **valid by business rules**. For instance, `Registration` requires capacity from 1 to 10, attendees not exceeding capacity, and the list not being mutated externally. Directly assigning `capacity = 0` breaks the invariant even though the JVM accepts the operation.
 
-Bài này tập trung vào **ranh giới trạng thái**: tạo qua constructor/factory có kiểm tra, cập nhật qua setter hoặc domain method duy trì invariant, chỉ công bố object sau validation. Với quan hệ nhiều field, hai setter độc lập có thể để lộ trạng thái trung gian sai; một thao tác atomic theo hợp đồng domain thường phù hợp hơn. Ví dụ phản chứng dùng `Field.setInt` để cho thấy vì sao khả năng truy cập không thay thế domain contract.
+This article focuses on **state boundaries**: creating via validated constructors/factories, updating via setters or domain methods that maintain invariants, and publishing objects only after validation. For multi-field relationships, two independent setters can expose invalid intermediate state; an atomic operation under the domain contract is usually better. A counterexample uses `Field.setInt` to demonstrate why accessibility does not replace domain contracts.
 
-## 1. Constructor, setter và invariant có vai trò khác nhau
+## 1. Constructors, setters, and invariants have distinct roles
 
-**Invariant** là điều kiện mà một đối tượng được thiết kế để duy trì trong suốt vòng đời quan sát được của nó. Ví dụ một lớp `Registration` có:
+An **invariant** is a condition an object is designed to uphold throughout its observable lifecycle. For example, a `Registration` class has:
 
-- `code` không phải `null` hoặc chuỗi trắng; định danh không thay đổi sau khi tạo.
-- `capacity` nằm trong khoảng `1..10`.
+- `code` is neither `null` nor blank; the identifier does not change after creation.
+- `capacity` lies in the range `1..10`.
 - `attendees.size() <= capacity`.
-- Danh sách người tham dự không được để mã gọi bên ngoài sửa lén mà không thông qua phương thức kiểm tra.
+- The attendee list must not be silently mutated by external callers bypassing validation methods.
 
-Những quy tắc này được kiểm tra ở những ranh giới sau:
+These rules are enforced at the following boundaries:
 
-| Ranh giới | Trách nhiệm | Ví dụ |
+| Boundary | Responsibility | Example |
 |---|---|---|
-| Constructor hoặc static factory | Nhận đủ giá trị tối thiểu, kiểm tra trước khi đối tượng được sử dụng | `new Registration("JAVA", 3)` |
-| Setter có chủ đích | Kiểm tra một phép thay đổi có hợp lệ so với trạng thái hiện tại | `setCapacity(2)` |
-| Phương thức nghiệp vụ | Bảo vệ quy tắc phụ thuộc nhiều field và diễn đạt ý định rõ | `register("Lan")`, `reschedule(start,end)` |
-| Getter / view | Cung cấp cách quan sát trạng thái mà không lộ mutable internals | `List.copyOf(...)`, danh sách không sửa được |
-| Reflection adapter | Tìm chữ ký, chuyển đối số, **gọi constructor/method công khai** rồi giữ nguyên lỗi | `Constructor.newInstance(...)`, `Method.invoke(...)` |
+| Constructor or static factory | Accept minimum required values, validate before the object can be used | `new Registration("JAVA", 3)` |
+| Intentional setter | Verify that a single change is valid against current state | `setCapacity(2)` |
+| Business method | Protect multi-field rules and express intent clearly | `register("Lan")`, `reschedule(start,end)` |
+| Getter / view | Provide a way to observe state without exposing mutable internals | `List.copyOf(...)`, unmodifiable list |
+| Reflection adapter | Look up signatures, convert arguments, **invoke public constructors/methods**, and preserve errors | `Constructor.newInstance(...)`, `Method.invoke(...)` |
 
-Một setter công khai **không tự động tốt** chỉ vì có tiền tố `set`. Setter cho phép tùy ý sửa `id` hoặc sửa từng field của một invariant liên trường có thể khiến đối tượng luôn có lúc ở trạng thái sai. Những dữ liệu không nên đổi hãy giữ `final` hoặc chỉ cung cấp một phép cập nhật nguyên khối có validation. Với domain model, ý nghĩa của phương thức thường quan trọng hơn chuẩn tên JavaBeans.
+A public setter is **not automatically good** just because it has a `set` prefix. A setter allowing arbitrary changes to `id` or individual fields of a cross-field invariant can leave the object in an invalid state at times. Data that should not change should stay `final` or expose only an atomic validated update. In domain models, method meaning usually matters more than JavaBeans naming conventions.
 
-## 2. Ba đường đi qua Reflection và hậu quả
+## 2. Three Reflection paths and their consequences
 
-Giả sử runtime đã có `Class<?>` và dữ liệu cấu hình:
+Suppose runtime already has `Class<?>` and configuration data:
 
 ~~~text
-Đầu vào ngoài (cấu hình / JSON / plugin metadata)
+External input (config / JSON / plugin metadata)
                      |
                      v
-       Chuẩn hóa + validate cấu trúc
+       Normalize + structural validation
                      |
-          Chọn ranh giới domain
+          Select domain boundary
            /                  \
           v                    v
  Constructor/factory      Setter/method
           |                    |
           +---------+----------+
                     v
-       Đối tượng với invariant hợp lệ
+      Object with valid invariants
                     |
                     v
-             Hoạt động tiếp
+            Further operations
 ~~~
 
-### Đường nên ưu tiên: gọi constructor phù hợp
+### Preferred path: invoke an appropriate constructor
 
 ~~~java
 Constructor<Registration> constructor =
@@ -56,34 +56,34 @@ Constructor<Registration> constructor =
 Registration registration = constructor.newInstance("JAVA", 3);
 ~~~
 
-Đây là **đoạn trích** từ chương trình đầy đủ ở mục 3. `getConstructor(...)` chỉ tìm **constructor public** có đúng danh sách **kiểu tham số**. `int.class` khác `Integer.class` trong bước tìm chữ ký, dù `newInstance(...)` có thể nhận đối số `Integer` được unbox khi gọi constructor nhận `int`.
+This is an **excerpt** from the full program in section 3. `getConstructor(...)` only finds **public constructors** with the exact **parameter type** list. `int.class` differs from `Integer.class` during signature lookup, even though `newInstance(...)` can accept an `Integer` argument that gets unboxed when invoking a constructor taking `int`.
 
-Khi constructor tự ném `IllegalArgumentException` vì dữ liệu sai, `Constructor.newInstance` ném `InvocationTargetException` có `getCause()` là exception gốc. Công cụ không được bỏ qua sự từ chối rồi cố gán field bằng đường khác.
+When a constructor throws `IllegalArgumentException` due to invalid data, `Constructor.newInstance` throws `InvocationTargetException` whose `getCause()` is the original exception. Tools must not ignore that rejection and try assigning fields through another route.
 
-### Đường cập nhật: gọi setter hoặc method công khai
+### Update path: invoke a public setter or method
 
 ~~~java
 Method method = Registration.class.getMethod("setCapacity", int.class);
 method.invoke(registration, 2);
 ~~~
 
-`getMethod(...)` tìm method public với tên và kiểu tham số tương ứng. `Method.invoke(...)` thực thi **logic trong setter**: khoảng hợp lệ, tương quan với các field khác, cập nhật và những hậu điều kiện mà lớp tự đảm bảo. Nếu setter từ chối, lỗi target được bọc trong `InvocationTargetException`; việc unwrap cause phục vụ chẩn đoán, không tạo lý do để bỏ validation.
+`getMethod(...)` finds a public method with the matching name and parameter types. `Method.invoke(...)` runs the **logic inside the setter**: valid range, correlation with other fields, update, and postconditions guaranteed by the class itself. If the setter rejects it, the target error is wrapped in `InvocationTargetException`; unwrapping the cause aids diagnostics and gives no excuse to skip validation.
 
-### Đường rủi ro: ghi thẳng field
+### Risky path: writing fields directly
 
 ~~~java
 Field field = Registration.class.getDeclaredField("capacity");
-field.setAccessible(true); // Chỉ minh họa trong môi trường có quyền phù hợp
+field.setAccessible(true); // Illustrative only in an environment with appropriate permissions
 field.setInt(registration, 0);
 ~~~
 
-**Không dùng đoạn này làm chiến lược cập nhật dữ liệu ứng dụng.** Nếu quyền truy cập sâu được cho phép, `Field.setInt(...)` ghi giá trị vào field mà **không gọi `setCapacity`**. Đối tượng có thể mang `capacity = 0` dù setter cấm. Đây là lỗi ở cấp **hợp đồng domain**, ngay cả khi thao tác Reflection thành công về mặt kỹ thuật.
+**Do not use this as an application data update strategy.** If deep access is allowed, `Field.setInt(...)` writes into the field **without calling `setCapacity`**. The object can hold `capacity = 0` even though the setter forbids it. This is a failure at the **domain contract** level, even when the Reflection operation succeeds technically.
 
-`getDeclaredField` chỉ giúp tìm field được khai báo trực tiếp trên lớp, kể cả field private. Nó không có nghĩa hệ thống cho phép đọc/ghi field đó trong mọi cấu hình Java Platform Module System (JPMS). `setAccessible(true)` có thể bị từ chối nếu package trong named module khác không được mở (`opens`). Quyền truy cập sâu cũng không có nghĩa có quyền sửa mọi `final`; đặc biệt record fields, static final fields và final fields của hidden classes có giới hạn riêng. Đừng coi `setAccessible` là bước mặc định của mọi công cụ.
+`getDeclaredField` only helps locate a field declared directly on the class, including private fields. It does not mean the system permits reading/writing that field in every Java Platform Module System (JPMS) configuration. `setAccessible(true)` can be denied if a package in another named module is not opened (`opens`). Deep access also does not grant permission to mutate every `final` field; in particular, record fields, static final fields, and final fields of hidden classes have specific restrictions. Do not treat `setAccessible` as a default step in every tool.
 
-## 3. Chương trình Java 17+ hoàn chỉnh, có cả ví dụ phản chứng
+## 3. Complete Java 17+ program, including counterexample
 
-Tạo file **`ConstructionBoundaryDemo.java`** với toàn bộ mã sau. Trong chương trình, `Registration` là lớp `public static final` lồng trong một chương trình độc lập; invariant được định nghĩa trong constructor, `setCapacity` và `register`. Cuối chương trình có **một thử nghiệm cố ý ghi thẳng field** để chứng minh setter đã bị bypass; sau đó chương trình phục hồi trạng thái qua setter.
+Create file **`ConstructionBoundaryDemo.java`** with all the code below. In the program, `Registration` is a `public static final` class nested inside a standalone program; invariants are defined in the constructor, `setCapacity`, and `register`. Near the end, there is **an intentional direct field write test** proving the setter was bypassed; the program then restores valid state through the setter.
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -201,14 +201,14 @@ public class ConstructionBoundaryDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục có file:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 ConstructionBoundaryDemo.java
 java ConstructionBoundaryDemo
 ~~~
 
-**Stdout đã kiểm chứng khi chạy Java 17-compatible trong unnamed module:**
+**Verified stdout when running Java 17-compatible in unnamed module:**
 
 ~~~text
 created = JAVA, 3, [Lan, Minh], valid=true
@@ -220,65 +220,65 @@ field bypass = 0, valid=false
 restored = true
 ~~~
 
-**Diễn giải từng nhóm kết quả:**
+**Interpretation of each result group:**
 
-1. Constructor kiểm tra `code` rồi gọi `setCapacity`. Hai lần `register.invoke(...)` thêm người vào danh sách mới, cập nhật lại bằng `List.copyOf(...)`; trạng thái ban đầu hợp lệ.
-2. `setCapacity.invoke(r, 1)` chạy setter, nhưng một nhóm đã có hai người nên bị từ chối. `InvocationTargetException.getCause()` là `IllegalArgumentException("capacity below attendees")`. Không có thay đổi một phần vào `capacity`.
-3. `constructor.newInstance(" ", 3)` thực thi constructor; mã rỗng khiến constructor từ chối. Đây là trường hợp **target constructor** ném exception, được wrapper Reflection giữ cause.
-4. `getAttendees().add("An")` thất bại vì danh sách trả về không sửa được. Nếu getter lộ `ArrayList` nội bộ có thể sửa, caller đã có cách phá invariant **không cần Reflection**.
-5. `setCapacity.invoke(r, 2)` thành công vì `2` đủ cho hai người, sau đó `validState()` tiếp tục bằng `true`.
-6. Ví dụ phản chứng `Field.setInt(r, 0)` ghi trực tiếp vào `capacity`, không gọi logic setter, kết quả `valid=false`. Đoạn cuối khôi phục bằng setter hợp lệ.
-7. Chương trình chạy trong một unnamed module. Trong named-module application, đoạn `setAccessible(true)` có thể thất bại; điều đó càng nhấn mạnh rằng công cụ không nên thiết kế dựa trên việc luôn có quyền mở private field.
+1. The constructor checks `code` and calls `setCapacity`. Two `register.invoke(...)` calls add attendees into a new list, updated via `List.copyOf(...)`; initial state is valid.
+2. `setCapacity.invoke(r, 1)` executes the setter, but the group already has two attendees so it is rejected. `InvocationTargetException.getCause()` is `IllegalArgumentException("capacity below attendees")`. There is no partial update to `capacity`.
+3. `constructor.newInstance(" ", 3)` executes the constructor; the blank code causes the constructor to reject. This is a case of the **target constructor** throwing an exception, whose cause is preserved by the Reflection wrapper.
+4. `getAttendees().add("An")` fails because the returned list is unmodifiable. If the getter exposed the internal mutable `ArrayList`, callers would have a way to break the invariant **without Reflection**.
+5. `setCapacity.invoke(r, 2)` succeeds because `2` fits two attendees, after which `validState()` remains `true`.
+6. The counterexample `Field.setInt(r, 0)` writes directly to `capacity` without invoking setter logic, resulting in `valid=false`. The final snippet restores state via the valid setter.
+7. The program runs in an unnamed module. In a named-module application, `setAccessible(true)` may fail; that further underscores that tools should not be designed around always having permission to open private fields.
 
-`showRejection` chỉ bắt `InvocationTargetException` của ví dụ. Trong một binder thực tế, cần xử lý riêng `NoSuchMethodException`, `IllegalAccessException`, `InstantiationException`, `IllegalArgumentException` do sai đối số gọi Reflection, và những lỗi liên quan đến hệ thống module. Không gom mọi lỗi vào một nhãn “validation thất bại”.
+`showRejection` only catches `InvocationTargetException` for the example. In a real binder, handle `NoSuchMethodException`, `IllegalAccessException`, `InstantiationException`, `IllegalArgumentException` from mismatched Reflection arguments, and module-system errors separately. Never lump all errors under a single "validation failed" label.
 
-## 4. Ranh giới thiết kế cho công cụ Reflection
+## 4. Design boundaries for Reflection tools
 
-Khi viết mapper, DI container nhỏ, plugin loader hoặc tool nhập cấu hình, nên ra quyết định theo **hợp đồng khởi tạo/cập nhật**.
+When writing a mapper, small DI container, plugin loader, or configuration ingestion tool, make decisions according to the **initialization/update contract**.
 
-| Nhu cầu | Hướng ưu tiên | Tránh |
+| Need | Preferred approach | Avoid |
 |---|---|---|
-| Tạo đối tượng có trường bắt buộc | Constructor tham số, named factory, builder có bước `build()` kiểm tra | Tạo object rỗng rồi nhồi private fields |
-| Đổi một giá trị độc lập | Method công khai có kiểm tra, ví dụ `setCapacity(...)` | `Field.set(...)` bỏ qua setter |
-| Đổi nhiều field phụ thuộc nhau | Method cập nhật nguyên khối, tạo immutable object mới | Gọi nhiều setter làm lộ trạng thái trung gian sai |
-| Nạp một value object bất biến | Constructor/canonical constructor của record | Ghi trực tiếp `final` field sau khi dựng |
-| Điền collection | Chuyển đổi dữ liệu đầu vào và sao chép bảo vệ | Giữ tham chiếu `List` mutable của caller |
-| Schema thiếu method cần thiết | Báo mapping không hỗ trợ, hoặc dùng adapter do chủ lớp định nghĩa | Thử `setAccessible(true)` để “lách” hợp đồng |
-| Sai giá trị domain | Trả validation error giữ cause và tên property | Bỏ validation để cố tạo object |
-| DTO chứa dữ liệu thuần | Có thể dùng binder/Bean convention đã thống nhất | Áp dụng cùng giả định cho mọi domain entity |
+| Construct an object with required fields | Parameterized constructor, named factory, builder with validating `build()` | Creating an empty object and stuffing private fields |
+| Change an independent value | Validated public method, e.g. `setCapacity(...)` | `Field.set(...)` bypassing the setter |
+| Change multiple interdependent fields | Atomic update method, constructing a new immutable object | Calling multiple setters exposing invalid intermediate state |
+| Populate an immutable value object | Constructor / record canonical constructor | Directly writing `final` fields after construction |
+| Populate collections | Convert input data and defensively copy | Retaining caller's mutable `List` reference |
+| Schema lacks required method | Report unsupported mapping, or use an adapter defined by class owner | Trying `setAccessible(true)` to "circumvent" the contract |
+| Invalid domain value | Return validation error preserving cause and property name | Skipping validation just to force object creation |
+| Pure data DTO | May use agreed binder/Bean conventions | Applying the same assumption to every domain entity |
 
-**Metadata không phải hợp đồng đủ mạnh.** Biết field có kiểu `int` chỉ bảo đảm điều kiện kiểu ở mức Java; nó không nói rằng số chỗ phải thuộc khoảng nào hoặc phụ thuộc bao nhiêu người đã đăng ký. Kể cả annotation `@NotNull` hoặc `@Min`, tool phải biết rõ lúc nào và bằng cơ chế nào validator được chạy. Đọc annotation bằng Reflection **không tự kích hoạt validation**. Nếu công cụ quyết định dùng Bean Validation, nó cần gọi validator theo kiến trúc thực tế và kiểm soát thời điểm object trở nên visible.
+**Metadata is not a strong enough contract.** Knowing a field has type `int` only guarantees Java type rules; it does not say what range the capacity must fall within or how it depends on registered attendees. Even with `@NotNull` or `@Min` annotations, the tool must know explicitly when and how validators run. Reading annotations via Reflection **does not automatically trigger validation**. If a tool decides to use Bean Validation, it must invoke the validator per real architecture and control when the object becomes visible.
 
-Một mapping pipeline hợp lý:
+A sensible mapping pipeline:
 
 ~~~text
 Untrusted input
     |
     v
-Parse theo schema -> chuyển kiểu -> lỗi cấu trúc nếu sai
+Parse per schema -> convert types -> structural error if invalid
     |
     v
-Chọn constructor/factory theo contract đã cho phép
+Select constructor/factory per permitted contract
     |
     v
-Gọi constructor -> validation ở domain
+Invoke constructor -> domain validation
     |
-    +-- Reject -> trả lỗi, giữ cause, không publish object
-    |
-    v
-Gọi các method cập nhật cho phép (nếu có)
-    |
-    +-- Reject -> bỏ object chưa publish / rollback theo kiến trúc
+    +-- Reject -> return error, preserve cause, do not publish object
     |
     v
-Xác nhận object hợp lệ, sau đó mới publish
+Invoke permitted update methods (if any)
+    |
+    +-- Reject -> discard unpublished object / rollback per architecture
+    |
+    v
+Confirm object is valid, only then publish
 ~~~
 
-Nếu một tool tạo object thành công rồi nhiều setter về sau gây lỗi, tool phải đảm bảo **đối tượng chưa được công bố hoặc lưu vào hệ thống** trước khi hoàn tất. Không có transaction tự động chỉ nhờ dùng Reflection. Với update trên object đã tồn tại và được chia sẻ, cần thiết kế atomic operation hoặc transaction/domain command phù hợp; nếu fail giữa chừng có thể còn trạng thái trung gian.
+If a tool constructs an object successfully and later setters fail, the tool must ensure **the object has not yet been published or persisted into the system** before completion. No automatic transaction comes merely from using Reflection. For updates on an existing shared object, design an atomic operation or appropriate transaction/domain command; failing partway can leave intermediate state.
 
-## 5. Bất biến phụ thuộc nhiều field: setter rời rạc có thể chưa đủ
+## 5. Multi-field invariants: separate setters may be insufficient
 
-Xét khoảng thời gian:
+Consider a time window:
 
 ~~~java
 public record TimeWindow(LocalDate start, LocalDate end) {
@@ -290,21 +290,21 @@ public record TimeWindow(LocalDate start, LocalDate end) {
 }
 ~~~
 
-Đây là **mảnh mã minh họa** cần đặt trong một tệp Java hợp lệ và `import java.time.LocalDate;` nếu chạy riêng. Record có canonical constructor kiểm tra rằng `start <= end`. Khi cần cập nhật, tạo một record mới qua constructor hợp lệ:
+This is an **illustrative code snippet** that must be placed in a valid Java file with `import java.time.LocalDate;` if compiled separately. The record has a canonical constructor verifying `start <= end`. When an update is needed, construct a new record through the valid constructor:
 
 ~~~java
 TimeWindow next = new TimeWindow(newStart, newEnd);
 ~~~
 
-Nếu thiết kế một mutable class có cả `setStart` và `setEnd` độc lập, thứ tự gọi có thể tạm thời vi phạm `start <= end`. Ví dụ đang là ngày 10 đến ngày 20, muốn đổi thành ngày 21 đến ngày 30: gọi `setStart(21)` trước sẽ có lúc `start > end`; gọi `setEnd(30)` trước có thể được nhưng phụ thuộc vào dữ liệu. Một phương thức `reschedule(newStart, newEnd)` kiểm tra cặp giá trị **trước khi commit cả hai** sẽ rõ ràng hơn.
+If you design a mutable class with independent `setStart` and `setEnd`, call order can temporarily violate `start <= end`. For example, currently day 10 to day 20, wanting to change to day 21 to day 30: calling `setStart(21)` first creates a moment where `start > end`; calling `setEnd(30)` first might work, yet depends on the data. A `reschedule(newStart, newEnd)` method validating the pair of values **before committing both** is far clearer.
 
-Bài học cho công cụ tạo object từ nhiều field: **“Có setter” không đồng nghĩa “có thể set theo thứ tự tùy ý”.** Công cụ phải biết protocol được định nghĩa bởi chủ lớp. Constructor nhận đủ tham số, immutable value object hoặc builder thường phù hợp hơn khi invariant là quan hệ liên trường.
+Lesson for tools building objects from multiple fields: **"Having setters" does not mean "can be set in arbitrary order".** The tool must know the protocol defined by the class owner. Full-argument constructors, immutable value objects, or builders are usually better suited when invariants span multiple fields.
 
-### Đừng gọi method có thể override từ constructor một cách vô ý
+### Do not inadvertently call overridable methods from constructors
 
-Trong demo, `Registration` là `final` nên không có subclass override `setCapacity`. Nhưng ở một lớp **không `final`**, gọi setter có thể override từ constructor sẽ dispatch sang method của subclass trước khi phần subclass được khởi tạo đầy đủ. Đây có thể là nguồn lỗi hoặc rò rỉ `this`.
+In the demo, `Registration` is `final`, so no subclass overrides `setCapacity`. However, in a **non-`final`** class, calling an overridable setter from a constructor dispatches to the subclass method before the subclass state is fully initialized. This can cause bugs or `this` escape.
 
-Thiết kế tổng quát an toàn hơn: constructor dùng **private helper không override được** để validate, rồi gán field; setter gọi lại cùng helper ấy. Ví dụ mảnh minh họa:
+A safer general design: the constructor calls a **non-overridable private helper** to validate and then assigns the field; the setter calls that same helper. Illustrative snippet:
 
 ~~~java
 private static int requireCapacity(int value) {
@@ -314,39 +314,39 @@ private static int requireCapacity(int value) {
     return value;
 }
 
-// Bên trong constructor hoặc setter:
+// Inside constructor or setter:
 this.capacity = requireCapacity(value);
 ~~~
 
-Đoạn trên không biên dịch độc lập vì giả sử nằm trong lớp có field `capacity` và biến `value`. Không nên xây abstraction Reflection buộc mọi class phải có no-args constructor chỉ để gán field sau đó.
+The snippet above does not compile standalone because it assumes a class containing field `capacity` and variable `value`. Do not build a Reflection abstraction forcing every class to have a no-args constructor just to assign fields afterward.
 
-## 6. Setter, field, accessor và Java Platform Module System
+## 6. Setters, fields, accessors, and the Java Platform Module System
 
-Các API Reflection thường gặp:
+Common Reflection APIs:
 
-| API | Phạm vi tìm | Đảm bảo gì? |
+| API | Search scope | What does it guarantee? |
 |---|---|---|
-| `type.getConstructor(paramTypes)` | Constructor **public** với chữ ký chính xác | Có metadata constructor; việc gọi còn chịu access rules |
-| `type.getDeclaredConstructor(paramTypes)` | Constructor được khai báo trong type, bất kể modifier | Có metadata; có thể không gọi được nếu non-public |
-| `type.getMethod(name, paramTypes)` | Method **public** có thể thấy, bao gồm inherited phù hợp | Có metadata method; `invoke` vẫn có thể thất bại |
-| `type.getDeclaredMethod(name, paramTypes)` | Method khai báo trực tiếp trong type | Bao gồm non-public; không tự cấp quyền gọi |
-| `type.getField(name)` | Field public có thể thấy | Không chạy setter khi `Field.set` |
-| `type.getDeclaredField(name)` | Field khai báo trực tiếp, gồm private | Không tự cấp quyền đọc/ghi hoặc validation |
-| `AccessibleObject.trySetAccessible()` | Thử mở quyền truy cập nếu runtime cho phép | Trả `false` khi không thể mở, không biến member thành domain API |
+| `type.getConstructor(paramTypes)` | **public** constructor with exact signature | Constructor metadata; calling remains subject to access rules |
+| `type.getDeclaredConstructor(paramTypes)` | Constructor declared in type, regardless of modifier | Metadata; may not be invocable if non-public |
+| `type.getMethod(name, paramTypes)` | Visible **public** method, including matching inherited | Method metadata; `invoke` can still fail |
+| `type.getDeclaredMethod(name, paramTypes)` | Method declared directly in type | Includes non-public; grants no invocation permission |
+| `type.getField(name)` | Visible public field | Does not run setter on `Field.set` |
+| `type.getDeclaredField(name)` | Directly declared field, including private | Grants no read/write permission or validation |
+| `AccessibleObject.trySetAccessible()` | Attempts to open access if runtime permits | Returns `false` when unable to open; does not turn member into domain API |
 
-**JPMS:** `exports` và `opens` là hai khái niệm khác nhau. Package `exports` cho phép sử dụng public API từ module khác theo điều kiện tương ứng; deep Reflection vào non-public members của module khác thường cần package `opens` tới module công cụ. Thêm `--add-opens` cho JVM có thể giúp một trường hợp tích hợp cụ thể, nhưng là quyết định triển khai/module policy, **không phải cách sửa mặc định** khi công cụ không tìm thấy setter.
+**JPMS:** `exports` and `opens` are two different concepts. Package `exports` permits using public APIs from another module under corresponding conditions; deep Reflection into non-public members of another module typically requires `opens` to the tool's module. Passing `--add-opens` to the JVM can help a specific integration case, yet it is a deployment/module-policy decision, **not the default fix** when a tool cannot find a setter.
 
-**`final` không phải giấy phép ghi ngược:** Từ `Field` Java 17, một số loại final field không thể sửa qua Reflection, chẳng hạn `static final`, final fields trong record và final fields trong hidden class. Với những final instance field khác, Javadoc cảnh báo việc sửa sau khi object đã được công bố có thể cho kết quả không dự đoán được. Thiết kế công cụ không nên dựa vào sửa final field để “re-hydrate” domain entity.
+**`final` is not a license to overwrite:** Since Java 17 `Field`, certain kinds of final fields cannot be mutated via Reflection, such as `static final`, final fields in records, and final fields in hidden classes. For other final instance fields, Javadoc warns that mutating them after the object has been published can produce unpredictable results. Tool designs should not rely on mutating final fields to "re-hydrate" domain entities.
 
-**`private` không tự làm object bất biến:** Nếu getter trả lại một `List` có thể sửa do object giữ nội bộ, caller vẫn có thể thay đổi dữ liệu mà không cần Reflection. Trong demo, `List.copyOf` tạo danh sách không sửa được để giữ ranh giới; khi nhận input mutable, có thể chủ động tạo snapshot thay vì giữ tham chiếu của caller.
+**`private` does not automatically make an object immutable:** If a getter returns a mutable `List` held internally by the object, callers can still mutate the data without Reflection. In the demo, `List.copyOf` creates an unmodifiable list to preserve the boundary; when accepting mutable input, proactively create a snapshot instead of retaining the caller's reference.
 
-### Method signature phải đúng, không suy luận từ tên
+### Method signatures must match; do not infer from names
 
-Reflection tìm method theo **tên và mảng kiểu tham số**, ví dụ `getMethod("setCapacity", int.class)`. `getMethod("setCapacity", Integer.class)` sẽ không tự khớp với tham số `int`. Giá trị đưa cho `Method.invoke` có thể trải qua invocation conversions như unboxing nhưng bước tra cứu chữ ký là riêng biệt. Với overload, tự lấy method đầu tiên có tên “set...” có thể dẫn tới chọn sai contract. Một binder nên chọn method theo schema rõ ràng hoặc fail với thông báo có ích.
+Reflection looks up methods by **name and parameter type array**, e.g., `getMethod("setCapacity", int.class)`. `getMethod("setCapacity", Integer.class)` will not automatically match an `int` parameter. Values passed to `Method.invoke` may undergo invocation conversions like unboxing, yet the signature lookup step is separate. With overloads, naively taking the first method starting with `"set..."` can select the wrong contract. A binder should select methods from an explicit schema or fail with a helpful diagnostic.
 
-## 7. Validation và exception không được phép biến mất
+## 7. Validation and exceptions must not disappear
 
-Nếu constructor hay setter từ chối dữ liệu, thao tác phản chiếu sẽ có ngoại lệ ở tầng gọi:
+If a constructor or setter rejects data, the reflective call surfaces an exception at the call site:
 
 ~~~java
 try {
@@ -357,62 +357,62 @@ try {
 }
 ~~~
 
-Đây là **đoạn xử lý minh họa**: các biến `method`, `target`, `value` giả định đã có và cần xử lý thêm `IllegalAccessException`. Cách bọc trong `IllegalStateException(String, Throwable)` giữ cause, giúp log và caller truy ngược lỗi domain. Có thể ném lại chính loại ngoại lệ gốc nếu hợp đồng API cho phép. Không lấy mỗi `cause.getMessage()` rồi tạo một exception mới không có cause.
+This is an **illustrative handling snippet**: variables `method`, `target`, and `value` are assumed present, and `IllegalAccessException` must also be handled. Wrapping in `IllegalStateException(String, Throwable)` preserves the cause, allowing logs and callers to trace the domain error. You may rethrow the original exception type if the API contract allows. Never extract only `cause.getMessage()` and construct a new exception without a cause.
 
-Phân biệt:
+Distinguish:
 
-- **Sai schema hoặc conversion:** JSON string `"abc"` không đổi được thành `int`, method không tồn tại hoặc receiver sai kiểu. Đây là lỗi adapter/binding; `Method.invoke` có thể ném `IllegalArgumentException` trực tiếp vì đối số sai.
-- **Đầu vào đúng kiểu nhưng trái domain invariant:** `setCapacity(0)` tồn tại, đối số `int` hợp lệ về mặt kiểu, nhưng setter ném `IllegalArgumentException("capacity must be 1..10")`; Reflection bọc lỗi target trong `InvocationTargetException`.
-- **Thiếu quyền truy cập:** `IllegalAccessException` hoặc `InaccessibleObjectException` liên quan đến accessibility/module boundary. Không sửa bằng cách bỏ validator.
-- **Lỗi hệ thống:** `LinkageError`, `ExceptionInInitializerError` hoặc `Error` có thể không được xử lý như validation errors; đừng bắt `Throwable` rồi giả như chỉ một property không hợp lệ.
+- **Schema or conversion error:** JSON string `"abc"` fails conversion to `int`, method does not exist, or receiver has wrong type. This is an adapter/binding error; `Method.invoke` may throw `IllegalArgumentException` directly due to bad arguments.
+- **Type-valid input violating domain invariant:** `setCapacity(0)` exists, the `int` argument is valid by type, yet the setter throws `IllegalArgumentException("capacity must be 1..10")`; Reflection wraps the target error in `InvocationTargetException`.
+- **Missing access rights:** `IllegalAccessException` or `InaccessibleObjectException` relates to accessibility/module boundaries. Do not fix by removing validators.
+- **System errors:** `LinkageError`, `ExceptionInInitializerError`, or `Error` must not be treated as validation errors; do not catch `Throwable` and pretend a single property was simply invalid.
 
-Nếu binder trả danh sách lỗi cho người dùng, nên ghi **tên property, kiểu mong đợi, giá trị được phép hoặc message domain an toàn**, đồng thời giữ cause cho log nội bộ khi thích hợp. Không công khai stack trace hoặc bí mật cấu hình ra phản hồi bên ngoài.
+If a binder returns a list of errors to the user, record **property name, expected type, allowed values, or safe domain message**, while keeping the cause for internal logs where appropriate. Do not expose stack traces or configuration secrets in external responses.
 
-## 8. Lựa chọn thiết kế theo loại đối tượng
+## 8. Choosing designs by object type
 
-**DTO / JavaBean thuần:** Có thể phù hợp với no-args constructor và setters, nếu chính lớp đó chủ ý là cấu trúc nhận dữ liệu. Nếu áp dụng validation, cần chạy rõ bước validate sau binding và trước publish/execute.
+**Pure DTO / JavaBean:** Can fit no-args constructors and setters if the class itself is intentionally a data-transfer container. If validation applies, run an explicit validation step after binding and before publishing/executing.
 
-**Domain entity:** Ưu tiên constructor/factory cho trạng thái bắt buộc và domain methods thay vì setter đại trà. Entity có thể bị ràng buộc bởi vòng đời, transaction, aggregate invariants; một generic Reflection binder ít khi biết hết.
+**Domain entity:** Prefer constructors/factories for required state and domain methods over blanket setters. Entities may be bound by lifecycle, transactions, and aggregate invariants; a generic Reflection binder rarely understands all of them.
 
-**Immutable value object / record:** Constructor/canonical constructor và defensive copy bảo đảm mỗi object được tạo với trạng thái đúng. Khi cần đổi, tạo object mới; không “chọc” field `final`. Với record có component là `List`, cần chủ động `List.copyOf` trong constructor nếu muốn chống sửa collection.
+**Immutable value object / record:** Constructors/canonical constructors and defensive copies ensure every object is constructed in a valid state. When changes are needed, create a new object; do not "poke" `final` fields. For records with a `List` component, proactively use `List.copyOf` in the constructor if collection mutation must be prevented.
 
-**Third-party class không có setter:** Đọc API của thư viện, tìm constructor/builder/factory hoặc adapter chính thức. Không coi thiếu setter là lỗi cần khắc phục bằng deep field access.
+**Third-party class without setters:** Read the library's API to find official constructors/builders/factories or adapters. Never treat missing setters as a defect to work around via deep field access.
 
-**Serialization và ORM:** Một số framework có cơ chế khởi tạo đặc thù, proxy, bytecode enhancement hoặc field access theo mapping công bố. Đây là những lựa chọn có đánh đổi, **không suy ra thành quy tắc cho mọi công cụ Reflection**. Nếu framework chủ động sử dụng field access, trách nhiệm bảo đảm invariant ở điểm hợp lệ hóa/lifecycle được chỉ định phải được thiết kế, tài liệu hóa và kiểm thử.
+**Serialization and ORM:** Some frameworks use specialized instantiation, proxies, bytecode enhancement, or field access per published mappings. These are deliberate trade-offs, **not rules to generalize to every Reflection tool**. If a framework intentionally uses field access, responsibility for upholding invariants at designated validation/lifecycle points must be designed, documented, and tested.
 
-**Plugin loader / configurable service:** Ưu tiên interface/factory contract hoặc `ServiceLoader` khi có thể; chỉ dùng Reflection tạo lớp từ tên runtime nếu kiểm soát nguồn class và xác minh contract. Gọi constructor công khai đáng tin cậy giúp tránh tạo instance ở trạng thái nửa vời.
+**Plugin loader / configurable service:** Prefer interface/factory contracts or `ServiceLoader` when possible; only instantiate classes from runtime names via Reflection when class sources are controlled and contracts are verified. Calling trusted public constructors avoids creating half-initialized instances.
 
-## 9. Checklist cho người viết công cụ Reflection
+## 9. Checklist for Reflection tool authors
 
-Trước khi hỗ trợ một loại đối tượng mới, xác định:
+Before supporting a new kind of object, determine:
 
-1. **Đối tượng hợp lệ là gì?** Liệt kê invariant của từng field và quan hệ giữa các field.
-2. **Ai sở hữu validation?** Constructor, factory, domain method, validator ngoài, hay một kết hợp được định nghĩa rõ?
-3. **Bước nào cho phép publish object?** Chỉ công bố sau khi mọi bước tạo/cập nhật và validation cần thiết thành công.
-4. **Tool dùng API nào?** Ưu tiên public constructor/method hợp lệ; không fallback sang private field writes khi bị từ chối.
-5. **Có alias mutable không?** Kiểm tra defensive copies của collections, arrays, date/time mutable types và nested objects nếu cần.
-6. **Có nhiều field phụ thuộc nhau không?** Dùng method atomic, constructor đủ tham số hoặc builder thay vì setter theo thứ tự ngẫu nhiên.
-7. **Có quyền JPMS không?** Xác minh access trước khi gọi, thông báo rõ thiếu access; không dựa vào `setAccessible` mặc định.
-8. **Ngoại lệ có giữ cause không?** Tách lỗi schema/Reflection và validation domain, không nuốt lỗi target.
-9. **Cần tránh áp đặt JavaBeans không?** Kiểu domain không nhất thiết phải lộ setter cho mọi property.
-10. **Có kiểm thử trạng thái xấu không?** Xác nhận dữ liệu sai bị từ chối và object đã công bố không chuyển sang trạng thái bất hợp lệ.
+1. **What constitutes a valid object?** List invariants of each field and cross-field relationships.
+2. **Who owns validation?** Constructor, factory, domain method, external validator, or a clearly defined combination?
+3. **At which step may the object be published?** Publish only after all required construction/update and validation steps succeed.
+4. **Which APIs does the tool use?** Prefer valid public constructors/methods; never fall back to private field writes when rejected.
+5. **Are there mutable aliases?** Check defensive copies for collections, arrays, mutable date/time types, and nested objects if needed.
+6. **Are multiple fields interdependent?** Use atomic methods, full-parameter constructors, or builders instead of setters in arbitrary order.
+7. **Are JPMS permissions satisfied?** Verify access before invoking, report missing access clearly; do not rely on `setAccessible` by default.
+8. **Do exceptions preserve causes?** Separate schema/Reflection errors from domain validation, without swallowing target errors.
+9. **Should imposing JavaBeans be avoided?** Domain types do not need to expose setters for every property.
+10. **Are invalid states tested?** Verify bad inputs are rejected and published objects never transition into invalid states.
 
-### Bài tập áp dụng
+### Practice exercises
 
-1. Trong ví dụ `Registration`, thử `constructor.newInstance("JAVA", 0)`. Phân biệt exception ngoài cùng với cause và giải thích tại sao constructor gọi `setCapacity`.
-2. Đổi `setCapacity.invoke(r, 1)` thành `Field.setInt(r, 1)` trong một test tách biệt. Bất biến nào bị vi phạm và vì sao?
-3. Thay `getAttendees()` bằng cách trả trực tiếp một `ArrayList` mutable bên trong. Hãy mô tả cách caller có thể phá invariant mà không sử dụng Reflection.
-4. Thiết kế lệnh `replaceAttendees(List<String>)` bảo đảm cả danh sách và số chỗ vẫn hợp lệ, chỉ commit khi kiểm tra xong.
-5. Từ một cặp ngày `start/end`, viết một phương thức `reschedule(start,end)` kiểm tra cả hai trước khi cập nhật. Giải thích điểm yếu của hai setter độc lập.
-6. Khi chạy trong named module, hãy mô tả vì sao `getDeclaredField` có thể thành công nhưng `trySetAccessible()` lại trả `false`.
-7. Đối với một record chứa `List<String>`, viết canonical constructor kiểm tra dữ liệu và dùng `List.copyOf`. Thử sửa collection từ caller.
+1. In the `Registration` example, try `constructor.newInstance("JAVA", 0)`. Distinguish the outer exception from its cause and explain why the constructor calls `setCapacity`.
+2. Replace `setCapacity.invoke(r, 1)` with `Field.setInt(r, 1)` in an isolated test. Which invariant is violated and why?
+3. Change `getAttendees()` to directly return the internal mutable `ArrayList`. Describe how a caller can break the invariant without using Reflection.
+4. Design a `replaceAttendees(List<String>)` command ensuring both the list and capacity remain valid, committing only after checks pass.
+5. Given a `start/end` date pair, write a `reschedule(start,end)` method checking both before updating. Explain the weakness of two independent setters.
+6. When running in a named module, explain why `getDeclaredField` can succeed yet `trySetAccessible()` returns `false`.
+7. For a record containing `List<String>`, write a canonical constructor validating the data and using `List.copyOf`. Try mutating the collection from the caller.
 
-**Điểm cần nhớ:** Reflection giúp tìm và gọi code tại runtime; nó **không thay thế** contract của lớp. Với object có bất biến, constructor/factory và các phương thức cập nhật có kiểm tra là ranh giới chính. Tránh biến `Field.set` thành lối tắt khi model từ chối một thay đổi, và thiết kế thời điểm publish, tính nguyên tử, defensive copy, access policy cùng chẩn đoán exception một cách có chủ đích.
+**Key takeaway:** Reflection helps locate and invoke code at runtime; it **does not replace** a class's contract. For objects with invariants, constructors/factories and validated update methods are the primary boundaries. Avoid turning `Field.set` into a shortcut when the model rejects a change, and intentionally design publication timing, atomicity, defensive copies, access policies, and exception diagnostics.
 
-### Tài liệu tham khảo
+### References
 
 - [Javadoc Java 17 — `Constructor.newInstance`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...))
 - [Javadoc Java 17 — `Method.invoke`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...))
-- [Javadoc Java 17 — `Field` và giới hạn ghi final field](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html)
-- [Javadoc Java 17 — `AccessibleObject` và giới hạn JPMS](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html)
+- [Javadoc Java 17 — `Field` and final-field write limits](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html)
+- [Javadoc Java 17 — `AccessibleObject` and JPMS limits](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html)
 - [Javadoc Java 17 — `List.copyOf`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html#copyOf(java.util.Collection))

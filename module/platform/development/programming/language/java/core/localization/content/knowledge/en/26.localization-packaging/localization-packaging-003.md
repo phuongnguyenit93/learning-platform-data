@@ -1,8 +1,8 @@
-# Bộ nhớ đệm ResourceBundle và clearCache trong Java
+# ResourceBundle Caching and clearCache in Java
 
-## 1. Vì sao file dịch đã đổi mà giao diện vẫn hiện nội dung cũ?
+## 1. Why Does the UI Still Show Old Content After the Translation File Changed?
 
-`java.util.ResourceBundle` là cơ chế tiêu chuẩn của Java để tổ chức tài nguyên bản địa hóa như thông điệp, nhãn giao diện và văn bản cho nhiều `Locale`. Một ứng dụng thường gọi:
+`java.util.ResourceBundle` is Java's standard mechanism for organizing localization resources such as messages, UI labels, and text across multiple `Locale`s. An application typically calls:
 
 ~~~java
 ResourceBundle messages = ResourceBundle.getBundle(
@@ -10,23 +10,23 @@ ResourceBundle messages = ResourceBundle.getBundle(
 String title = messages.getString("page.title");
 ~~~
 
-**Đây là snippet đặt trong một phương thức Java**, cần import `java.util.ResourceBundle` và `java.util.Locale`, đồng thời ứng dụng thật phải có bundle mang base name `i18n.Messages` trên đường tải tài nguyên. Đoạn ví dụ Java **độc lập, chạy ngay không cần file properties** nằm ở mục 8.
+**This is a snippet placed inside a Java method**, requiring imports of `java.util.ResourceBundle` and `java.util.Locale`, and the real application must have a bundle with base name `i18n.Messages` on the resource loading path. A **standalone Java example that runs immediately without needing properties files** is in section 8.
 
-Một tình huống quen thuộc: ứng dụng tải `Messages_vi.properties`, nhà phát triển thay câu dịch trong file, nhưng yêu cầu tiếp theo vẫn nhận câu cũ. Một nguyên nhân có thể là **cache của ResourceBundle**. `getBundle(...)` không bắt buộc tìm/đọc lại nguồn tài nguyên mỗi lần được gọi; Java **cache các instance ResourceBundle theo mặc định** và có thể trả lại cùng đối tượng khi lookup lặp lại.
+A familiar scenario: the application loads `Messages_vi.properties`, a developer updates a translation string in the file, yet the next request still receives the old string. One possible reason is the **ResourceBundle cache**. `getBundle(...)` is not required to search/re-read the resource source on every call; Java **caches ResourceBundle instances by default** and may return the same object on repeated lookups.
 
-Bộ nhớ đệm mang lại hiệu quả:
+Caching provides clear benefits:
 
-- Giảm số lần tìm và đọc các file `.properties` hoặc khởi tạo lớp `ListResourceBundle`.
-- Giảm chi phí tìm candidate locale, fallback và dựng quan hệ parent bundle.
-- Hữu ích với ứng dụng web có nhiều request cùng dùng một bộ từ khóa dịch.
+- Reduces repeated lookups and reads of `.properties` files or instantiations of `ListResourceBundle` classes.
+- Reduces the cost of candidate locale lookup, fallback, and building parent bundle relationships.
+- Useful for web applications where many requests share the same set of translation keys.
 
-Tuy nhiên, cache đặt ra những câu hỏi về **thời điểm nhìn thấy cập nhật**, **phạm vi vô hiệu hóa**, **vòng đời class loader/module**, **đồng thời** và **triển khai nhiều máy chủ**.
+However, caching raises questions about **when updates become visible**, **invalidation scope**, **class loader/module lifecycle**, **concurrency**, and **multi-server deployments**.
 
-**Kết luận mở đầu:** `ResourceBundle.clearCache` **xóa mục khỏi cache nội bộ được chọn**, không chỉnh nội dung file, không thay đổi đối tượng bundle mà ứng dụng đang giữ và không bảo đảm mọi lớp cache bên ngoài cũng được làm mới.
+**Opening takeaway:** `ResourceBundle.clearCache` **removes entries from the selected internal cache**; it does not edit file contents, does not mutate bundle objects already held by the application, and does not guarantee that every external cache layer is also refreshed.
 
-## 2. Mô hình nạp ResourceBundle và phạm vi cache
+## 2. The ResourceBundle Loading Model and Cache Scope
 
-Một họ resource bundle có **base name** chung và nhiều phiên bản theo `Locale`:
+A resource bundle family shares a **base name** and has multiple versions by `Locale`:
 
 ~~~text
 src/main/resources/
@@ -37,36 +37,36 @@ src/main/resources/
     └── Messages_vi_VN.properties
 ~~~
 
-**Đây là sơ đồ cấu trúc dự án minh họa**, không phải những file được tạo bởi chương trình trong bài.
+**This is an illustrative project structure diagram**, not files created by the program in this article.
 
-Ví dụ khi gọi `getBundle("i18n.Messages", new Locale("vi", "VN"))`, Java tìm các **candidate locales** thích hợp, lựa chọn bundle có sẵn rồi thiết lập parent chain khi cần. Một khóa không có trong bundle chi tiết có thể được lấy từ parent. Việc tìm candidate có thể thêm fallback đến default locale tùy API và `Control` đang dùng.
+For example, when calling `getBundle("i18n.Messages", new Locale("vi", "VN"))`, Java searches for suitable **candidate locales**, picks an available bundle, and sets up the parent chain as needed. A key missing in a specific bundle can be fetched from a parent. Candidate lookup may also fall back to the default locale depending on the API and `Control` in use.
 
-### 2.1. ResourceBundle là đối tượng chứ không chỉ là file
+### 2.1. ResourceBundle Is an Object, Not Just a File
 
-`ResourceBundle` có thể là:
+A `ResourceBundle` can be:
 
-- `PropertyResourceBundle` đọc dữ liệu `.properties`.
-- `ListResourceBundle` dựa trên lớp Java.
-- Một subclass tùy chỉnh; trong classpath/unnamed module, `ResourceBundle.Control` có thể triển khai format đặc biệt, ví dụ lưu bản dịch trong cơ sở dữ liệu hoặc tài nguyên bên ngoài.
+- A `PropertyResourceBundle` reading `.properties` data.
+- A Java-class-based `ListResourceBundle`.
+- A custom subclass; on the classpath/unnamed module, `ResourceBundle.Control` can implement special formats, such as storing translations in a database or external resource.
 
-Cache lưu **bundle instances** và thông tin cần thiết để tái sử dụng trong quá trình `getBundle`. Một `ResourceBundle` có thể có **parent bundle**. Do đó khi một key được lấy từ parent, kết quả nhìn thấy có thể phụ thuộc cả bundle con và bundle cha đã được nạp/cached.
+The cache stores **bundle instances** and the information needed to reuse them during `getBundle`. A `ResourceBundle` can have a **parent bundle**. Therefore, when a key is retrieved from a parent, the observed result may depend on both the child bundle and the parent bundle that were loaded/cached.
 
-### 2.2. Cùng tên không đồng nghĩa cùng instance trong mọi trường hợp
+### 2.2. Same Name Does Not Mean Same Instance in Every Case
 
-Việc tìm cache chịu ảnh hưởng của nhiều thông tin trong yêu cầu tải, như:
+Cache lookup is influenced by multiple details in the load request, such as:
 
-- Base name của họ bundle.
-- Locale được dùng trong lookup và candidate/fallback thực tế.
-- Module hoặc ClassLoader liên quan.
-- Trạng thái cache, thời hạn sống và nguồn dữ liệu đang được nạp.
+- The base name of the bundle family.
+- The locale used in the lookup and the actual candidates/fallback.
+- The associated `Module` or `ClassLoader`.
+- Cache state, time-to-live, and the data source currently being loaded.
 
-Đừng phát biểu rằng mọi lời gọi `getBundle("i18n.Messages")` trên tất cả class loader, module và JVM đều trả **một** instance toàn cục. Mỗi runtime có ngữ cảnh nạp khác nhau; tài nguyên cùng tên trong hai class loader còn có thể là **hai bộ file khác nhau**.
+Do not claim that every call to `getBundle("i18n.Messages")` across all class loaders, modules, and JVMs returns **one** global instance. Each runtime has its own loading context; resources with the same name in two class loaders can even be **two different sets of files**.
 
-**Cũng không nên xem đối tượng `Control` là một namespace cache độc lập.** Theo tài liệu Java, `getFormats` và `getCandidateLocales` phải nhất quán khi tải cùng base name; thay Control không nhất thiết làm cache cũ biến mất. Tùy biến cấu hình cần thiết kế nhất quán và có chiến lược clear/reload.
+**Nor should a `Control` object be treated as an independent cache namespace.** According to Java documentation, `getFormats` and `getCandidateLocales` must remain consistent when loading the same base name; swapping a `Control` does not necessarily invalidate old cache entries. Custom configurations must be designed consistently with an explicit clear/reload strategy.
 
-## 3. Caching mặc định: lợi ích và hậu quả
+## 3. Default Caching: Benefits and Consequences
 
-Theo Java SE 17, các instance `ResourceBundle` **được cache mặc định**. Nếu bundle vẫn có hiệu lực trong cache, nhiều lần gọi `getBundle` có thể trả **cùng instance**.
+Under Java SE 17, `ResourceBundle` instances are **cached by default**. As long as a bundle remains valid in the cache, multiple calls to `getBundle` may return the **same instance**.
 
 ~~~java
 ResourceBundle first = ResourceBundle.getBundle(
@@ -76,119 +76,119 @@ ResourceBundle second = ResourceBundle.getBundle(
         "i18n.Messages", Locale.forLanguageTag("vi-VN"));
 ~~~
 
-Đây là snippet minh họa với classpath đã có các resource tương ứng. Trong hoàn cảnh cache ổn định, `first == second` **có thể** đúng. Không dùng phép kiểm tra identity này làm contract xuyên class loader, ứng dụng hoặc thời điểm nâng JDK.
+This is an illustrative snippet assuming the classpath already has the corresponding resources. Under stable caching conditions, `first == second` **may** be true. Do not rely on this identity check as a contract across class loaders, applications, or JDK upgrades.
 
-### 3.1. Cache không có nghĩa giữ một đối tượng mãi mãi
+### 3.1. Caching Does Not Mean Keeping an Object Forever
 
-Dù mặc định `ResourceBundle.Control.getTimeToLive` trả `TTL_NO_EXPIRATION_CONTROL`, các bundle cached **có thể bị loại khỏi cache do điều kiện bộ nhớ**. Vì vậy:
+Although `ResourceBundle.Control.getTimeToLive` returns `TTL_NO_EXPIRATION_CONTROL` by default, cached bundles **can be evicted from the cache due to memory conditions**. Therefore:
 
-- Không dùng `==` trên bundle làm định danh bất biến.
-- Không trông đợi một lần getBundle nhất thiết luôn đọc đúng một file hoặc gọi constructor đúng một lần trong cả vòng đời.
-- Cache tồn tại nhằm tối ưu tài nguyên, không phải kho lưu dữ liệu nghiệp vụ.
-- Một reference `ResourceBundle` mà chương trình đang giữ có vòng đời **riêng** với entry trong cache.
+- Do not use `==` on bundles as an immutable identity check.
+- Do not expect a call to `getBundle` to necessarily read a file or invoke a constructor only once over the entire lifetime.
+- The cache exists for resource optimization, not as a business data store.
+- A `ResourceBundle` reference held by the program has an **independent** lifetime from its entry in the cache.
 
-Tài nguyên dịch thường là dữ liệu tĩnh theo bản phát hành. Caching mặc định phù hợp với mô hình **build → đóng gói JAR → triển khai lại ứng dụng**. Với bản dịch nóng (hot reload), phải có thiết kế rõ hơn.
+Translation resources are typically static data per release. Default caching fits the **build -> package JAR -> redeploy application** model. For hot-reloading translations, a more explicit design is required.
 
-### 3.2. Cache cả trường hợp không tìm thấy
+### 3.2. Missing Lookups Are Also Cached
 
-Khi lookup một candidate bundle không tồn tại, quá trình tải theo `ResourceBundle.Control` có thể cache một **dummy bundle** dùng làm dấu hiệu không có tài nguyên, giúp tránh tìm file thất bại lặp lại. Dummy cũng chịu quy tắc TTL của Control.
+When looking up a non-existent candidate bundle, loading via `ResourceBundle.Control` can cache a **dummy bundle** as a marker that the resource does not exist, avoiding repeated failed file searches. The dummy is also subject to the Control's TTL rules.
 
-Hệ quả: nếu một file locale mới được thêm sau lần lookup thất bại, Java có thể chưa tìm thấy nó ngay, dù file đã có mặt, do cache trạng thái **missing**. Có thể cần vô hiệu hóa cache liên quan hoặc chờ cơ chế TTL/needsReload; đồng thời phải kiểm tra đường nạp file/class loader có thực sự nhìn thấy tài nguyên mới.
+Consequence: if a new locale file is added after a failed lookup, Java may not detect it right away even though the file is present, due to the cached **missing** state. You may need to invalidate the relevant cache or wait for TTL/`needsReload`; at the same time, verify that the file loading path/class loader can actually see the new resource.
 
-Đừng dùng `MissingResourceException` làm tín hiệu chắc chắn “tệp vừa được thêm không tồn tại” mà chưa xét cache và cơ chế packaging.
+Do not treat `MissingResourceException` as definitive proof that "the newly added file does not exist" without checking the cache and packaging mechanism.
 
-## 4. clearCache(): xóa những gì, không xóa những gì?
+## 4. clearCache(): What Does It Clear, and What Doesn't It Clear?
 
-Java SE 17 cung cấp hai overload:
+Java SE 17 provides two overloads:
 
 ~~~java
 ResourceBundle.clearCache();
 ResourceBundle.clearCache(classLoader);
 ~~~
 
-Đây là **snippet minh họa**; `classLoader` phải là một `ClassLoader` hợp lệ, thường được lấy từ module hoặc lớp ứng dụng tương ứng.
+This is an **illustrative snippet**; `classLoader` must be a valid `ClassLoader`, typically obtained from the corresponding module or application class.
 
-| API | Phạm vi được mô tả trong Java SE 17 |
+| API | Scope described in Java SE 17 |
 | --- | --- |
-| `ResourceBundle.clearCache()` | Xóa các bundle trong cache được nạp bởi **caller’s module** |
-| `ResourceBundle.clearCache(ClassLoader loader)` | Xóa các bundle trong cache được nạp bằng **class loader được truyền vào** |
+| `ResourceBundle.clearCache()` | Clears cached bundles loaded by the **caller's module** |
+| `ResourceBundle.clearCache(ClassLoader loader)` | Clears cached bundles loaded using the **passed-in class loader** |
 
-**Không đánh đồng hai overload.** Trong môi trường dùng named modules, nhiều class loader, application server hoặc plugin class loader, câu “`clearCache()` luôn xóa toàn bộ bundle của mọi plugin” là sai.
+**Do not equate the two overloads.** In environments with named modules, multiple class loaders, application servers, or plugin class loaders, claiming "`clearCache()` always clears every bundle of every plugin" is false.
 
-### 4.1. Thực tế khi xóa cache
+### 4.1. What Actually Happens When Clearing the Cache
 
 ~~~text
-Lần 1: getBundle(...) -> tạo bundle A, đưa vào cache
-Lần 2: getBundle(...) -> có thể dùng lại A
+Call 1: getBundle(...) -> creates bundle A, stores in cache
+Call 2: getBundle(...) -> may reuse A
              |
              v
        clearCache(loader)
              |
              v
-Lần 3: getBundle(...) -> lookup lại -> có thể tạo bundle B
+Call 3: getBundle(...) -> looks up again -> may create bundle B
 
-Các biến đang tham chiếu bundle A vẫn giữ A.
+Variables still referencing bundle A continue holding A.
 ~~~
 
-`clearCache(loader)` **không sửa dữ liệu trong bundle A**. Nếu một service giữ:
+`clearCache(loader)` **does not mutate the data inside bundle A**. If a service holds:
 
 ~~~java
-private static final ResourceBundle MESSAGES = /* bundle đã nạp */;
+private static final ResourceBundle MESSAGES = /* loaded bundle */;
 ~~~
 
-thì việc clear cache không tự thay giá trị của `MESSAGES`; service phải **gọi getBundle lại và thay reference** theo chính sách của nó. Đoạn trên là khai báo minh họa, không phải file Java độc lập.
+then clearing the cache does not automatically change the value of `MESSAGES`; the service must **call `getBundle` again and replace the reference** per its own policy. The snippet above is an illustrative declaration, not a standalone Java file.
 
-`clearCache` cũng không:
+`clearCache` also does not:
 
-- Xóa resource files, sửa `.properties`, ghi file mới hoặc kiểm tra nội dung cập nhật.
-- Loại bản sao mà ứng dụng giữ trong `Map`, `LoadingCache`, `ThreadLocal` hoặc singleton riêng.
-- Làm mới các `MessageFormat`, template HTML hoặc UI strings đã format và lưu riêng.
-- Buộc các JVM/node khác trong cluster vô hiệu hóa bộ nhớ đệm.
-- Đóng mọi class loader, giải phóng mọi object ngay lập tức.
-- Bảo đảm classpath/JAR đang chạy có thể nhìn thấy phiên bản file mới vừa thay đổi.
+- Delete resource files, edit `.properties`, write new files, or validate updated contents.
+- Remove copies held by the application in a `Map`, `LoadingCache`, `ThreadLocal`, or custom singleton.
+- Refresh `MessageFormat` instances, HTML templates, or formatted UI strings stored separately.
+- Force other JVMs/nodes in a cluster to invalidate their caches.
+- Close class loaders or immediately free all objects.
+- Guarantee that the running classpath/JAR can see the newly modified version of a file.
 
-### 4.2. Clear cache không phải API xóa theo một key đơn lẻ
+### 4.2. clearCache Is Not an API to Invalidate a Single Key
 
-Java `ResourceBundle` không có overload `clearCache(baseName, locale)` trong API tiêu chuẩn. `clearCache(ClassLoader)` tác động đến **các bundles được nạp bởi loader đó**, không chỉ một base name, nên có thể làm phát sinh chi phí reload ở nhiều module/tính năng.
+Java `ResourceBundle` has no `clearCache(baseName, locale)` overload in the standard API. `clearCache(ClassLoader)` affects **all bundles loaded by that loader**, not just one base name, so it can trigger reload overhead across many modules/features.
 
-Trong hệ thống lớn, không gọi `clearCache` mỗi request chỉ để lấy một label vừa đổi. Nếu dữ liệu phải hot reload theo từng tenant/locale, cân nhắc cache ứng dụng có namespace/version và cơ chế invalidation được thiết kế cho phạm vi đó.
+In large systems, do not call `clearCache` on every request just to pick up one changed label. If data must hot-reload per tenant/locale, consider an application-level cache with namespaces/versions and an invalidation mechanism designed for that scope.
 
-### 4.3. Vì sao tham số class loader quan trọng?
+### 4.3. Why Does the Class Loader Parameter Matter?
 
-Ở hệ thống application server, plugin, OSGi hoặc hệ thống dùng nhiều loader, cùng tên bundle có thể tồn tại ở các ngữ cảnh khác nhau. Xóa cache bằng loader của lớp A không đảm bảo entry nạp bằng loader B sẽ bị xóa.
+In application servers, plugins, OSGi, or multi-loader systems, the same bundle name can exist in different contexts. Clearing the cache using class A's loader does not guarantee entries loaded by loader B are cleared.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~java
 ClassLoader loader = MyApplication.class.getClassLoader();
 ResourceBundle.clearCache(loader);
 ~~~
 
-Đây là snippet yêu cầu lớp `MyApplication` thực sự tồn tại trong dự án. Trong chương trình độc lập mục 8, ta dùng chính `BundleCacheDemo.class.getClassLoader()` nên không cần lớp bên ngoài.
+This snippet requires class `MyApplication` to actually exist in the project. In the standalone program in section 8, we use `BundleCacheDemo.class.getClassLoader()` directly so no external class is needed.
 
-**Không truyền null**: `clearCache((ClassLoader) null)` gây `NullPointerException` theo tài liệu JDK.
+**Do not pass null**: `clearCache((ClassLoader) null)` throws `NullPointerException` per JDK documentation.
 
-## 5. TTL: chủ động điều khiển thời gian cache
+## 5. TTL: Proactively Controlling Cache Lifetime
 
-`ResourceBundle.Control` cho phép cấu hình `getTimeToLive(baseName, locale)` và `needsReload(...)` với các `getBundle` overload có tham số `Control`.
+`ResourceBundle.Control` allows configuring `getTimeToLive(baseName, locale)` and `needsReload(...)` with `getBundle` overloads that accept a `Control`.
 
-Các giá trị đáng nhớ:
+Key constants to remember:
 
-| Giá trị từ `getTimeToLive` | Ý nghĩa |
+| Return value from `getTimeToLive` | Meaning |
 | --- | --- |
-| `TTL_NO_EXPIRATION_CONTROL` | Cache không kiểm soát hết hạn theo TTL (mặc định) |
-| `TTL_DONT_CACHE` | Không đưa instance được nạp vào cache |
-| `0L` | Khi lấy lại từ cache, cần **xác minh** có cần reload |
-| Một số dương, ví dụ `5_000L` | Thời hạn tính theo **mili giây** trước khi kiểm tra lại |
+| `TTL_NO_EXPIRATION_CONTROL` | Cache does not control expiration by TTL (default) |
+| `TTL_DONT_CACHE` | Do not place the loaded instance into the cache |
+| `0L` | When retrieving from cache again, **check** whether a reload is needed |
+| A positive number, e.g. `5_000L` | Duration in **milliseconds** before re-checking |
 
-**TTL hết hạn KHÔNG đồng nghĩa chắc chắn reload.** Theo hợp đồng `getBundle`, sau khi TTL hết hạn, `Control.needsReload` được hỏi xem nguồn tài nguyên đã thay đổi hay không:
+**TTL expiration does NOT automatically mean a reload occurs.** Per the `getBundle` contract, after the TTL expires, `Control.needsReload` is queried to see if the resource source has changed:
 
-- Trả `true`: bundle cached bị loại và được nạp lại.
-- Trả `false`: bundle có thể được giữ lại, cập nhật mốc TTL và tiếp tục tái sử dụng.
+- Returns `true`: the cached bundle is discarded and reloaded.
+- Returns `false`: the bundle can be retained, its TTL timestamp updated, and it continues to be reused.
 
-Vì thế, nếu `getTimeToLive` trả `0L` mà `needsReload` luôn trả `false`, bạn **không** đạt được “mỗi lần gọi đều tạo instance mới”. Nếu mục tiêu thực sự là bỏ cache, dùng `TTL_DONT_CACHE` cho bundle tương ứng; nhưng phải cân nhắc chi phí I/O và độ ổn định.
+Therefore, if `getTimeToLive` returns `0L` while `needsReload` always returns `false`, you **do not** achieve "create a new instance on every call." If the real goal is to skip caching, use `TTL_DONT_CACHE` for the corresponding bundle; however, weigh the I/O cost and stability impact.
 
-### 5.1. Một Control có TTL theo base name
+### 5.1. A Control with Per-Base-Name TTL
 
 ~~~java
 ResourceBundle.Control policy = new ResourceBundle.Control() {
@@ -201,11 +201,11 @@ ResourceBundle.Control policy = new ResourceBundle.Control() {
 };
 ~~~
 
-Đoạn này có thể đặt trong phương thức Java; cần import `Locale` và `ResourceBundle`. Nó **chỉ thiết lập thời điểm kiểm tra**, chưa bảo đảm nạp lại nếu tài nguyên nguồn vẫn được `needsReload` đánh giá là không thay đổi.
+This snippet can be placed inside a Java method; `Locale` and `ResourceBundle` must be imported. It **only sets when checks occur**; it does not guarantee reloading if `needsReload` still evaluates the source resource as unchanged.
 
-### 5.2. needsReload dựa trên dữ liệu nào?
+### 5.2. What Data Does needsReload Rely On?
 
-Chữ ký:
+Signature:
 
 ~~~java
 boolean needsReload(String baseName, Locale locale,
@@ -213,73 +213,73 @@ boolean needsReload(String baseName, Locale locale,
         long loadTime)
 ~~~
 
-Đây là chữ ký minh họa, không phải method hoàn chỉnh. `loadTime` là mốc thời gian nạp dạng mili giây kể từ Unix epoch; mặc định JDK so sánh thời gian sửa tài nguyên khi có thể. Với format custom (database, REST, JSON, XML…), bạn thường cần **định nghĩa** cách xác định thay đổi (version, ETag hoặc modified time) và cách tải bundle mới trong `newBundle`.
+This is an illustrative signature, not a complete method. `loadTime` is the load timestamp in milliseconds since the Unix epoch; by default the JDK compares resource modification times when possible. For custom formats (database, REST, JSON, XML…), you usually need to **define** how changes are detected (version, ETag, or modified time) and how the new bundle is loaded in `newBundle`.
 
-Đừng gọi mạng hoặc database quá tốn kém mỗi lần TTL hết hạn nếu lượng request lớn. Có thể dùng cache metadata/version nhẹ hơn và hạn chế số lần refresh; cần thiết kế concurrency, lỗi tải và fallback khi nguồn tạm thời không khả dụng.
+Do not make expensive network or database calls every time the TTL expires under heavy request load. You can use a lighter metadata/version cache and rate-limit refreshes; design for concurrency, loading errors, and fallbacks when the source is temporarily unavailable.
 
-### 5.3. newBundle(..., reload) và các tầng cache khác
+### 5.3. newBundle(..., reload) and Other Cache Layers
 
-Khi quyết định reload, `ResourceBundle.Control.newBundle` nhận flag `reload`. Với tài nguyên nằm sau URL/URLConnection, cache bên dưới có thể giữ bản cũ dù ResourceBundle cache đã bị clear. Cách triển khai custom phải **đọc lại nguồn thực sự**; trong một số tình huống cần tắt URLConnection caching khi mở connection để reload.
+When a reload is decided, `ResourceBundle.Control.newBundle` receives the `reload` flag. For resources behind a `URL`/`URLConnection`, underlying caches may hold an old copy even after the `ResourceBundle` cache has been cleared. Custom implementations must **re-read the actual source**; in some situations `URLConnection` caching must be disabled when opening the connection for a reload.
 
-Cũng cần nhớ bundle class-based được nạp bởi class loader đã tồn tại **không nhất thiết có thể “nạp lại class phiên bản mới”** chỉ bằng `ResourceBundle.clearCache`. Đổi class bytecode thường đòi hỏi class loader hoặc cơ chế deployment phù hợp.
+Remember too that class-based bundles loaded by an existing class loader **cannot necessarily "reload a new class version"** merely with `ResourceBundle.clearCache`. Changing class bytecode generally requires a new class loader or an appropriate deployment mechanism.
 
-## 6. Thiết kế cập nhật bản dịch nóng: chọn giải pháp theo yêu cầu
+## 6. Designing Hot Translation Updates: Choosing a Solution Based on Requirements
 
-### 6.1. Ứng dụng chỉ cập nhật bản dịch khi deploy
+### 6.1. Applications Updating Translations Only on Deployment
 
-Phổ biến nhất:
+The most common setup:
 
-1. Đặt file `Messages*.properties` trong resources.
-2. Build JAR và deploy theo phiên bản.
-3. Để ResourceBundle cache mặc định giúp lookup nhanh.
-4. Khi có bản dịch mới, build/deploy lại, không cần yêu cầu hệ thống đọc file classpath bị thay nóng.
+1. Place `Messages*.properties` files in resources.
+2. Build the JAR and deploy by version.
+3. Let default `ResourceBundle` caching keep lookups fast.
+4. When new translations arrive, rebuild/redeploy instead of requiring the system to hot-read modified classpath files.
 
-Ưu điểm: đơn giản, nhất quán giữa code và key dịch, ít rủi ro runtime vừa đọc bản dịch cũ vừa đọc bản dịch mới.
+Advantages: simple, consistent between code and translation keys, and low risk of the runtime reading a mix of old and new translations.
 
-### 6.2. Ứng dụng có file bản dịch ngoài JAR
+### 6.2. Applications with Translation Files Outside the JAR
 
-Nếu file dịch có thể cập nhật trong khi server đang chạy:
+If translation files can be updated while the server is running:
 
-1. Quy định thư mục nguồn và cách loader/Control tìm tài nguyên.
-2. Chọn TTL phù hợp hoặc cơ chế sự kiện version change.
-3. Khi refresh, kiểm tra encoding, toàn vẹn dữ liệu và thiếu key.
-4. Thay reference bundle tại biên của request/transaction; không cập nhật tùy tiện giữa lúc render một trang.
-5. Nếu cache ứng dụng bổ sung giữ dữ liệu format, invalidation phải bao phủ cả những tầng đó.
-6. Có test xác nhận **bản dịch mới có thể được tìm thấy bằng loader hiện tại**; không giả định việc sửa file trên ổ đĩa đủ.
+1. Specify the source directory and how the loader/`Control` locates resources.
+2. Choose a suitable TTL or a version-change event mechanism.
+3. On refresh, validate encoding, data integrity, and missing keys.
+4. Swap bundle references at request/transaction boundaries; do not update arbitrarily mid-page render.
+5. If additional application caches store formatted data, invalidation must cover those layers as well.
+6. Have tests verifying **the new translations can be found by the active loader**; do not assume editing a file on disk suffices.
 
-Khi thư mục nguồn không nằm trong đường tìm kiếm của `ClassLoader` hoặc jar không được thay, `clearCache` không tự bổ sung nó vào đường nạp.
+If the source directory is not on the `ClassLoader`'s search path or the JAR was not replaced, `clearCache` will not automatically add it to the loading path.
 
-### 6.3. Ứng dụng nhiều JVM hoặc nhiều node
+### 6.3. Multi-JVM or Multi-Node Applications
 
-`ResourceBundle.clearCache` chỉ tác động **trong JVM đang gọi**. Nếu dịch vụ triển khai trên nhiều node:
+`ResourceBundle.clearCache` only affects **the calling JVM**. If the service runs across multiple nodes:
 
-- Ghi version/đợt triển khai tài nguyên.
-- Phân phối sự kiện invalidation đến các node cần làm mới.
-- Kiểm tra tất cả node có thể đọc cùng phiên bản source.
-- Giữ giao diện của một request nhất quán trên cùng snapshot resource.
-- Có kế hoạch rollback khi bản dịch lỗi, thiếu key hoặc không đạt QA.
+- Track the resource version/release batch.
+- Distribute invalidation events to the nodes that need refreshing.
+- Ensure all nodes can read the same source version.
+- Keep a single request's UI consistent against one resource snapshot.
+- Have a rollback plan when translations are corrupt, missing keys, or fail QA.
 
-Không coi một lần gọi Java trên node A đã xóa cache của node B.
+Do not assume a Java call on node A cleared node B's cache.
 
-## 7. ResourceBundle.Control và named modules
+## 7. ResourceBundle.Control and Named Modules
 
-Một giới hạn kiến trúc quan trọng trong **Java Platform Module System (JPMS)**:
+An important architectural limitation in the **Java Platform Module System (JPMS)**:
 
-- `ResourceBundle.Control` được thiết kế cho ứng dụng ở **unnamed module/classpath**.
-- Gọi `ResourceBundle.getBundle(..., Control)` **từ named module** có thể ném `UnsupportedOperationException` theo hợp đồng Java SE 17.
-- Với kiến trúc named modules, Java hỗ trợ `ResourceBundleProvider`/service provider và các `getBundle` overload theo module; không giả định có thể mang nguyên mọi tùy biến `Control` từ classpath sang modulepath.
+- `ResourceBundle.Control` is designed for applications in the **unnamed module/classpath**.
+- Calling `ResourceBundle.getBundle(..., Control)` **from a named module** may throw `UnsupportedOperationException` per the Java SE 17 contract.
+- For named-module architectures, Java supports `ResourceBundleProvider`/service providers and module-aware `getBundle` overloads; do not assume every `Control` customization can be carried over unchanged from classpath to module path.
 
-Chương trình demo ở mục 8 được biên dịch/chạy **trên classpath** theo lệnh `javac` và `java` thông thường, nên áp dụng `Control` như một ví dụ Java 17 hợp lệ.
+The demo program in section 8 is compiled/run **on the classpath** using standard `javac` and `java` commands, so applying `Control` is a valid Java 17 example.
 
-### 7.1. Phạm vi clearCache trong module
+### 7.1. clearCache Scope in Modules
 
-`ResourceBundle.clearCache()` trên Java 17 xóa các cached bundles **được nạp bởi caller’s module**. `ResourceBundle.clearCache(loader)` xóa theo class loader cụ thể. Hai overload có phạm vi riêng, và named module có thêm quy tắc encapsulation/resources.
+On Java 17, `ResourceBundle.clearCache()` clears cached bundles **loaded by the caller's module**. `ResourceBundle.clearCache(loader)` clears by the specified class loader. The two overloads have distinct scopes, and named modules enforce additional resource/encapsulation rules.
 
-Nếu ứng dụng dựa trên JPMS, xác định rõ **caller module**, loader, cách resource được khai báo/mở và cách lookup được thực hiện. Khi không chắc, viết integration test đúng packaging runtime, không chỉ chạy trong IDE classpath.
+If an application uses JPMS, clearly identify the **caller module**, loader, how resources are declared/opened, and how lookup is performed. When unsure, write an integration test using the real runtime packaging rather than only running on the IDE classpath.
 
-## 8. Chương trình Java 17 hoàn chỉnh: cache, DONT_CACHE và clearCache
+## 8. Complete Java 17 Program: Cache, DONT_CACHE, and clearCache
 
-Ví dụ tạo các bundle **trong bộ nhớ**, không cần file `.properties` hay mạng. Mỗi bundle mới nhận giá trị tăng dần `v1`, `v2`,… nên dễ quan sát **khi nào Java đã thực sự tạo instance mới**.
+This example creates bundles **in memory**, without needing `.properties` files or a network. Each new bundle receives an incrementing value `v1`, `v2`,… making it easy to observe **when Java actually creates a new instance**.
 
 **File `BundleCacheDemo.java`:**
 
@@ -363,14 +363,14 @@ public class BundleCacheDemo {
 }
 ~~~
 
-**Biên dịch và chạy Java 17+:**
+**Compile and run on Java 17+:**
 
 ~~~bash
 javac -encoding UTF-8 BundleCacheDemo.java
 java BundleCacheDemo
 ~~~
 
-**Stdout đã được kiểm thử** trên JDK có hành vi Java SE 17 tương ứng:
+**Verified stdout** on a JDK with corresponding Java SE 17 behavior:
 
 ~~~text
 first=v1
@@ -384,97 +384,97 @@ sameAfterClear=false
 createdTotal=4
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Lần tải `demo.Cached` đầu tạo `v1`; lần tiếp theo nhận **cùng instance** vì Control cho `TTL_NO_EXPIRATION_CONTROL`.
-2. Sau hai lần tải cached, bộ đếm tạo bundle là `1`.
-3. `demo.Fresh` được gán `TTL_DONT_CACHE`, nên hai lần tải lần lượt sinh `v2` và `v3`. Hai tham chiếu này không trỏ cùng một object.
-4. `ResourceBundle.clearCache(loader)` vô hiệu hóa các cache entries gắn với loader; tải lại `demo.Cached` tạo `v4`.
-5. `first` vẫn trỏ tới `v1` dù entry của nó đã bị clear. `clearCache` **không sửa bundle đang được tham chiếu**.
-6. Tổng cộng bốn instance đã được tạo.
+1. The first load of `demo.Cached` creates `v1`; the next load receives the **same instance** because `Control` returns `TTL_NO_EXPIRATION_CONTROL`.
+2. After two cached loads, the bundle creation counter is `1`.
+3. `demo.Fresh` is assigned `TTL_DONT_CACHE`, so two loads produce `v2` and `v3` respectively. Those two references do not point to the same object.
+4. `ResourceBundle.clearCache(loader)` invalidates cache entries tied to `loader`; reloading `demo.Cached` creates `v4`.
+5. `first` still points to `v1` even though its cache entry was cleared. `clearCache` **does not mutate already-referenced bundles**.
+6. A total of four instances were created.
 
-`ListResourceBundle` trong chương trình **không tạo file và không truy cập mạng**; `Control.newBundle` khởi tạo resource trực tiếp để minh họa cache. Đây là **một trình diễn có kiểm soát**, không phải ví dụ đọc file dịch nóng trong môi trường production. `AtomicInteger` dùng để tăng bộ đếm an toàn nếu demo được mở rộng cho nhiều thread; điều đó không khiến mọi tùy biến `Control` bất kỳ tự động thread-safe.
+The `ListResourceBundle` in this program **creates no files and makes no network calls**; `Control.newBundle` constructs the resource directly to illustrate caching. This is **a controlled demonstration**, not a production hot-reloading translation file reader. `AtomicInteger` increments the counter safely if the demo is extended across threads; that does not make every arbitrary `Control` implementation automatically thread-safe.
 
-### 8.1. Vì sao không cần Thread.sleep để kiểm thử?
+### 8.1. Why Is Thread.sleep Not Needed for Testing?
 
-Ví dụ không thử TTL tính bằng mili giây. Nó dùng hai chính sách rõ nghĩa:
+The example does not test millisecond-based TTLs. It uses two well-defined policies:
 
-- `TTL_NO_EXPIRATION_CONTROL`: theo hành vi cache mặc định.
-- `TTL_DONT_CACHE`: luôn tạo bundle mới khi yêu cầu nạp.
+- `TTL_NO_EXPIRATION_CONTROL`: uses default caching behavior.
+- `TTL_DONT_CACHE`: always creates a new bundle on load requests.
 
-Kết quả không phụ thuộc thời gian ngủ/tốc độ máy. Khi test TTL dương và `needsReload`, nên dùng fake clock/metadata test hoặc một nguồn có version thay đổi kiểm soát được, tránh kiểm thử mong manh dựa trên mtime và `Thread.sleep`.
+The result does not depend on sleep durations or machine speed. When testing positive TTLs and `needsReload`, use a fake clock/metadata test or a source with controlled version changes, avoiding brittle tests based on mtime and `Thread.sleep`.
 
-### 8.2. Vì sao custom format hợp lệ?
+### 8.2. Why Is the Custom Format Valid?
 
-`getFormats` trả `List.of("demo.memory")`, và `newBundle` hiểu đúng format đó. Đây là một định dạng **tự định nghĩa** trong Control, không phải file extension được JDK tìm tự động. Vì locale là `Locale.ROOT` và fallback được vô hiệu hóa, kết quả demo không phụ thuộc default locale của máy.
+`getFormats` returns `List.of("demo.memory")`, and `newBundle` handles that exact format. This is a **custom-defined** format within `Control`, not a file extension searched automatically by the JDK. Because the locale is `Locale.ROOT` and fallback is disabled, the demo output does not depend on the machine's default locale.
 
-Trong ứng dụng thật nếu Control đọc từ file/DB, hãy đảm bảo `getFormats`, `newBundle`, `getTimeToLive` và `needsReload` thống nhất cùng một mô hình nguồn dữ liệu.
+In a real application where `Control` reads from files or a DB, ensure `getFormats`, `newBundle`, `getTimeToLive`, and `needsReload` agree on a single data-source model.
 
-## 9. Những lỗi thường gặp
+## 9. Common Mistakes
 
-| Nhầm lẫn | Hậu quả | Cách xử lý |
+| Misconception | Consequence | Resolution |
 | --- | --- | --- |
-| Sửa file properties rồi chờ `getBundle` đọc lại ngay | Cache có thể trả resource cũ | TTL hoặc clear/reload có kiểm chứng |
-| Gọi `clearCache` rồi giữ biến `static final ResourceBundle` | UI vẫn hiện chuỗi cũ | Gọi lại `getBundle` và thay reference ở nơi cần |
-| Tưởng `clearCache()` xóa mọi bundle của mọi loader | Còn cache ở scope khác | Chọn overload theo module/loader phù hợp |
-| Tưởng `clearCache(loader)` chỉ xóa một locale | Có thể ảnh hưởng nhiều bundle cùng loader | Cân nhắc phạm vi và chi phí reload |
-| Tưởng TTL hết hạn chắc chắn tạo object mới | `needsReload` có thể trả false | Phân biệt validate với reload |
-| Đặt TTL 0 nhưng `needsReload` không phát hiện thay đổi | Vẫn nhận dữ liệu cũ | Triển khai version/mtime phù hợp |
-| Dùng `TTL_DONT_CACHE` cho mọi request bận rộn | Tốn I/O, CPU, tăng tải dịch vụ | Thiết kế TTL/snapshot hoặc cache versioned |
-| Thay đổi Control formats cho cùng base name tùy request | Cache có thể tái dùng bundle khác format | Giữ quy tắc Control nhất quán |
-| Thêm bundle mới mà loader không thấy | `clearCache` không giúp tìm file | Kiểm tra classpath/JAR/classloader |
-| Bỏ qua negative-cache/dummy | Locale mới vẫn chưa được phát hiện | Xử lý invalidation/TTL cho missing |
-| Tưởng xóa cache làm GC ngay | Object còn tham chiếu vẫn tồn tại | Loại app references khi an toàn |
-| Dùng Control overload trong named module | Có thể `UnsupportedOperationException` | Dùng kiến trúc module/provider phù hợp |
-| Refresh mỗi key trong lúc render một trang | Chuỗi cùng trang lệch phiên bản bản dịch | Dùng một snapshot per request |
-| Một node clear cache và tưởng toàn cluster đã xong | Các node khác vẫn hiển thị bản cũ | Phối hợp invalidation/deployment |
-| Chỉ test trên IDE classpath rồi deploy qua modulepath | Scope/loading behavior khác | Integration test đúng packaging |
+| Editing `.properties` and expecting `getBundle` to re-read immediately | Cache may return old resource | Verified TTL or clear/reload |
+| Calling `clearCache` while holding a `static final ResourceBundle` field | UI still shows old strings | Call `getBundle` again and update references where needed |
+| Assuming `clearCache()` clears all bundles across all loaders | Stale cache remains in other scopes | Pick the overload matching the module/loader |
+| Assuming `clearCache(loader)` clears only one locale | Can affect many bundles on the same loader | Weigh scope and reload cost |
+| Assuming TTL expiration guarantees a new object is created | `needsReload` may return false | Distinguish validation from reload |
+| Setting TTL 0 while `needsReload` fails to detect changes | Still receives stale data | Implement proper version/mtime checks |
+| Using `TTL_DONT_CACHE` for every busy request | Wastes I/O and CPU, raises service load | Design TTL/snapshots or versioned caching |
+| Varying `Control` formats for the same base name per request | Cache may reuse a bundle of another format | Keep `Control` rules consistent |
+| Adding a new bundle that the loader cannot see | `clearCache` cannot find the file | Inspect classpath/JAR/class loader |
+| Ignoring negative-cache/dummy entries | New locale remains undetected | Handle invalidation/TTL for missing entries |
+| Assuming clearing cache triggers immediate GC | Referenced objects stay alive | Drop app references when safe |
+| Using the `Control` overload in a named module | May throw `UnsupportedOperationException` | Use an appropriate module/provider architecture |
+| Refreshing per key mid-page render | Strings on the same page mix translation versions | Use one snapshot per request |
+| One node clears cache and assumes the whole cluster is done | Other nodes still show old translations | Coordinate invalidation/deployment |
+| Testing only on IDE classpath then deploying via modulepath | Different scope/loading behavior | Integration-test with actual packaging |
 
-## 10. Kiểm thử cần có
+## 10. Tests to Include
 
-Một module sử dụng ResourceBundle nên có các nhóm kiểm thử:
+A module using `ResourceBundle` should have these test groups:
 
-1. **Cache hit:** hai lần tải cùng base name/locale/loader/control khi chưa hết hạn cho cùng nội dung, không bắt buộc refetch.
-2. **clearCache(loader):** sau clear, lần tải kế tiếp theo loader đó nhận bundle được nạp từ nguồn mới; reference cũ vẫn giữ dữ liệu trước đó.
-3. **clearCache() module scope:** nếu dùng JPMS, kiểm tra đúng phạm vi caller module, không suy rộng ra toàn JVM.
-4. **TTL_DONT_CACHE:** hai lần getBundle tạo các instance độc lập khi cơ chế Control không cache.
-5. **TTL dương và TTL 0:** xác nhận expired dẫn đến kiểm tra `needsReload`, nhưng chỉ tạo bundle mới khi return true hoặc do các điều kiện cache khác.
-6. **Fallback:** thiếu key trong locale cụ thể và key có trong parent; kiểm tra kết quả sau refresh parent.
-7. **Negative lookup:** thiếu bundle, sau đó thêm; xác nhận chính sách phát hiện mới, kể cả cache dấu “không tồn tại”.
-8. **ClassLoader:** hai loader có bundle cùng tên nhưng nguồn khác nhau; clear đúng loader không làm lẫn dữ liệu.
-9. **Multi-thread:** nhiều request đồng thời đọc bundle, clear/reload trong khi có reference cũ; không có dữ liệu nửa chừng hoặc crash.
-10. **Multi-node:** phiên bản bản dịch đúng trên từng node và có invalidation orchestration khi cần.
-11. **Packaging:** so classpath/unnamed module và modulepath/named module; tránh Control unsupported ở named module.
-12. **Lỗi tài nguyên:** không có base name, thiếu key, lỗi parsing properties, encoding không hợp lệ, I/O không thành công; thông báo lỗi và fallback có chính sách.
-13. **Hành vi khi sửa file thực:** ghi mới hợp lệ, kiểm tra loader có thấy file và `needsReload` đánh giá mtime/version đúng, không chỉ “clear cache trả về không ném lỗi”.
-14. **Hiệu năng:** đo cache hit rate, độ trễ reload, kích thước heap và số lượt đọc nguồn, đặc biệt với TTL ngắn.
+1. **Cache hit:** two loads with the same base name/locale/loader/control before expiration return the same content without forced refetching.
+2. **clearCache(loader):** after clearing, the next load via that loader receives a bundle loaded from the updated source; old references retain prior data.
+3. **clearCache() module scope:** if using JPMS, verify the exact caller-module scope rather than extrapolating to the entire JVM.
+4. **TTL_DONT_CACHE:** two `getBundle` calls create independent instances when the `Control` policy disables caching.
+5. **Positive TTL and TTL 0:** verify expiration triggers `needsReload`, while a new bundle is created only when it returns true or under other cache conditions.
+6. **Fallback:** missing key in specific locale while key exists in parent; verify behavior after refreshing parent.
+7. **Negative lookup:** missing bundle, then added later; confirm the policy for detecting new bundles, including cached "missing" markers.
+8. **ClassLoader:** two loaders having bundles with the same name from different sources; clearing one loader does not mix data.
+9. **Multi-thread:** concurrent requests reading bundles and clearing/reloading while old references remain active; no half-updated data or crashes.
+10. **Multi-node:** translation versions stay accurate per node with invalidation orchestration when required.
+11. **Packaging:** compare classpath/unnamed module vs. modulepath/named module; avoid unsupported `Control` usage in named modules.
+12. **Resource errors:** missing base name, missing key, properties parsing errors, invalid encoding, I/O failures; explicit error messages and policy-defined fallback.
+13. **Real file modification behavior:** write a valid update, verify the loader sees the file and `needsReload` evaluates mtime/version properly, not merely "clearCache returned without throwing."
+14. **Performance:** measure cache hit rate, reload latency, heap size, and source read counts, especially with short TTLs.
 
-Nếu cần thứ tự cập nhật chặt, nên kiểm thử với **version cụ thể** thay vì chỉ so “mới hơn” bằng thời gian hệ thống. Filesystem mtime có độ phân giải khác nhau; clock skew hoặc cập nhật trong cùng tick có thể khiến logic phát hiện thay đổi không ổn định.
+If strict update ordering is required, test with **explicit version numbers** rather than comparing "newer" solely via system clock. Filesystem mtimes have varying resolutions; clock skew or updates within the same tick can make change-detection logic flaky.
 
-## 11. Bài tập thực hành
+## 11. Practice Exercises
 
-1. Chạy `BundleCacheDemo`, chỉ ra chính xác hai lời gọi nào trả cùng instance và hai lời gọi nào tạo mới.
-2. Bỏ `ResourceBundle.clearCache(loader)`; dự đoán `afterClear` trở thành giá trị nào trong chương trình và bộ đếm cuối.
-3. Đổi `getTimeToLive` để `demo.Cached` cũng trả `TTL_DONT_CACHE`. Kiểm tra số lần `newBundle` được gọi và giải thích trade-off.
-4. Tạo hai base name có cùng loader và cho phép caching; sau `clearCache(loader)`, kiểm tra tác động lên cả hai bundle.
-5. Tạo `Messages.properties`, `Messages_vi.properties` và load `Locale.forLanguageTag("vi-VN")` với fallback cụ thể; thay một khóa trong bundle cha, rồi kiểm tra hiệu quả của refresh.
-6. Tạo một `Control` trả TTL 0 và `needsReload` trả false; giải thích vì sao mỗi lần getBundle **không** tất yếu tạo instance mới.
-7. Tạo một `Control` dùng version number ở nguồn (không dùng `Thread.sleep`); khi version thay đổi, `needsReload` trả true. Kiểm thử bundle được nạp lại.
-8. Giữ `ResourceBundle` trong một field singleton, sau clear cache gọi `getString` trên field cũ và bundle mới; giải thích kết quả.
-9. Thử thêm một file locale trong thư mục **không nằm trên classpath**; giải thích vì sao clear cache không tự giúp loader tìm file.
-10. Dùng hai `ClassLoader` khác nhau để nạp resource cùng base name; quan sát phạm vi `clearCache(loader)`.
-11. Viết checklist hot reload khi chạy nhiều JVM: xác định nguồn sự thật, version, cơ chế thông báo, scope invalidate và kiểm thử rollback.
-12. Tìm hiểu `ResourceBundleProvider` trong named module, so khác biệt với Control ở unnamed module.
+1. Run `BundleCacheDemo` and point out exactly which two calls return the same instance and which two calls create new ones.
+2. Remove `ResourceBundle.clearCache(loader)`; predict what `afterClear` becomes in the program and what the final counter value is.
+3. Modify `getTimeToLive` so `demo.Cached` also returns `TTL_DONT_CACHE`. Check how many times `newBundle` is called and explain the trade-off.
+4. Create two base names sharing the same loader with caching enabled; after `clearCache(loader)`, check the effect on both bundles.
+5. Create `Messages.properties` and `Messages_vi.properties` and load `Locale.forLanguageTag("vi-VN")` with explicit fallback; update a key in the parent bundle and check the effect of refreshing.
+6. Create a `Control` whose `getTimeToLive` returns 0 and `needsReload` returns false; explain why every `getBundle` call does **not** necessarily create a new instance.
+7. Create a `Control` using a version number at the source (without `Thread.sleep`); when the version changes, `needsReload` returns true. Test that the bundle reloads.
+8. Hold a `ResourceBundle` in a singleton field; after clearing the cache, call `getString` on both the old field and the newly fetched bundle, and explain the output.
+9. Try adding a locale file in a directory **not on the classpath**; explain why clearing the cache does not help the loader find the file.
+10. Use two different `ClassLoader` instances to load resources with the same base name; observe the scope of `clearCache(loader)`.
+11. Write a hot-reload checklist for multi-JVM deployments: identify source of truth, versioning, notification mechanism, invalidation scope, and rollback testing.
+12. Investigate `ResourceBundleProvider` in named modules and compare its differences with `Control` in unnamed modules.
 
-## 12. Tóm tắt
+## 12. Summary
 
-`ResourceBundle` **cache các bundle đã tải theo mặc định** để giảm chi phí lookup và khởi tạo. `ResourceBundle.clearCache()` xóa theo **caller module**, còn `clearCache(ClassLoader)` xóa theo **loader được truyền**; cả hai không sửa các bundle object mà mã nguồn vẫn giữ reference.
+`ResourceBundle` **caches loaded bundles by default** to reduce lookup and instantiation overhead. `ResourceBundle.clearCache()` clears entries for the **caller module**, whereas `clearCache(ClassLoader)` clears entries for the **passed-in loader**; neither mutates bundle objects to which application code still holds references.
 
-Khi cần tải lại bản dịch, phải phân biệt **xóa cache** với **nguồn tài nguyên thực sự có thể được tải lại**. `ResourceBundle.Control.getTimeToLive` quyết định thời điểm kiểm tra, `needsReload` quyết định có cần nạp mới sau khi expired; `TTL_DONT_CACHE` vô hiệu hóa caching. Một số lookup không tồn tại cũng được cache dưới dạng dấu hiệu thiếu, và class loader/JAR/JPMS có thể hạn chế việc nhìn thấy tài nguyên mới.
+When translations must be reloaded, distinguish **clearing the cache** from **whether the underlying resource source can actually be reloaded**. `ResourceBundle.Control.getTimeToLive` controls when checks happen, `needsReload` determines whether a reload is required after expiration, and `TTL_DONT_CACHE` disables caching. Missing lookups can also be cached as absent markers, and class loaders/JARs/JPMS can restrict visibility of new resources.
 
-Chọn chiến lược theo sản phẩm: **cache mặc định + redeploy** cho tài nguyên đóng gói cố định; **TTL/versioned reload + invalidation chính xác** khi thực sự cần hot reload; quản lý cùng một snapshot trong request và phối hợp giữa các node khi chạy phân tán. Không gọi clearCache dàn trải mỗi request nếu không có nhu cầu.
+Choose a strategy suited to the product: **default caching + redeploy** for statically packaged resources; **TTL/versioned reload + targeted invalidation** when hot reload is genuinely needed; keep a single snapshot per request and coordinate across nodes in distributed deployments. Do not call `clearCache` indiscriminately on every request when unnecessary.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `ResourceBundle` (Cache Management, clearCache, getBundle): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html
 - Java SE 17, `ResourceBundle.Control` (getTimeToLive, needsReload, newBundle): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html

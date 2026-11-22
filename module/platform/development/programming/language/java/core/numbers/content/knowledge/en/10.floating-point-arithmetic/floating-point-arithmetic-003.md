@@ -1,31 +1,31 @@
-# Overflow, underflow và giá trị subnormal trong phép toán dấu phẩy động Java
+# Overflow, Underflow, and Subnormal Values in Java Floating-Point Arithmetic
 
-## 1. Mục tiêu và bức tranh tổng quát
+## 1. Objectives and Big Picture
 
-Các kiểu `float` và `double` của Java dùng số dấu phẩy động nhị phân theo IEEE 754. Chúng biểu diễn được nhiều số rất lớn và rất nhỏ nhưng **miền giá trị hữu hạn** và **độ chính xác** có giới hạn. Một phép toán có kết quả toán học hợp lệ vẫn có thể cho `Infinity`, `0.0` hoặc một số *subnormal* khi lưu vào `float`/`double`.
+Java's `float` and `double` types use binary floating-point numbers according to IEEE 754. They can represent many very large and very small numbers, but their **finite value range** and **precision** are limited. An operation with a valid mathematical result can still yield `Infinity`, `0.0`, or a *subnormal* number when stored into `float`/`double`.
 
-Bài học tập trung vào ba hiện tượng:
+This lesson focuses on three phenomena:
 
-- **Overflow (tràn trên):** độ lớn kết quả vượt miền số hữu hạn biểu diễn được; với phép toán Java thông thường, kết quả có thể trở thành `+Infinity` hoặc `-Infinity`.
-- **Underflow (tràn dưới):** kết quả khác 0 về mặt toán học quá gần 0 để được giữ với độ chính xác thông thường; Java có thể làm tròn thành số subnormal, hoặc thành `+0.0`/`-0.0`.
-- **Subnormal (số dưới chuẩn):** số hữu hạn khác 0 có độ lớn nhỏ hơn số dương *normal* nhỏ nhất, giúp biểu diễn giá trị gần 0 theo cơ chế *gradual underflow*.
+- **Overflow:** the magnitude of the result exceeds the representable finite range; in ordinary Java operations, the result can become `+Infinity` or `-Infinity`.
+- **Underflow:** a mathematically non-zero result is too close to 0 to be kept at normal precision; Java may round it to a subnormal number, or to `+0.0`/`-0.0`.
+- **Subnormal:** a finite non-zero number whose magnitude is smaller than the smallest positive *normal* number, helping represent values near 0 via *gradual underflow*.
 
-Không nên nhầm các hiện tượng này với **integer overflow** (số nguyên quay vòng theo modulo) hoặc lỗi biên dịch khi một literal có số mũ không thể biểu diễn.
+Do not confuse these phenomena with **integer overflow** (integers wrapping around modulo $2^n$) or a compile-time error when a literal has an unrepresentable exponent.
 
-## 2. Phạm vi IEEE 754 trong float và double
+## 2. IEEE 754 Ranges in `float` and `double`
 
-| Thuộc tính | `float` (binary32) | `double` (binary64) |
+| Property | `float` (binary32) | `double` (binary64) |
 | --- | --- | --- |
-| Tổng số bit | 32 | 64 |
-| Bit dấu | 1 | 1 |
-| Bit số mũ | 8 | 11 |
-| Bit phân số lưu trữ | 23 | 52 |
-| Độ chính xác hiệu dụng của số normal | 24 bit | 53 bit |
-| Số dương normal nhỏ nhất | 2⁻¹²⁶ ≈ 1,17549435 × 10⁻³⁸ | 2⁻¹⁰²² ≈ 2,2250738585072014 × 10⁻³⁰⁸ |
-| Số dương subnormal nhỏ nhất | 2⁻¹⁴⁹ ≈ 1,4 × 10⁻⁴⁵ | 2⁻¹⁰⁷⁴ ≈ 4,9 × 10⁻³²⁴ |
-| Số hữu hạn dương lớn nhất | ≈ 3,4028235 × 10³⁸ | ≈ 1,7976931348623157 × 10³⁰⁸ |
+| Total bits | 32 | 64 |
+| Sign bit | 1 | 1 |
+| Exponent bits | 8 | 11 |
+| Stored fraction bits | 23 | 52 |
+| Effective precision of normal numbers | 24 bits | 53 bits |
+| Smallest positive normal number | 2⁻¹²⁶ ≈ 1.17549435 × 10⁻³⁸ | 2⁻¹⁰²² ≈ 2.2250738585072014 × 10⁻³⁰⁸ |
+| Smallest positive subnormal number | 2⁻¹⁴⁹ ≈ 1.4 × 10⁻⁴⁵ | 2⁻¹⁰⁷⁴ ≈ 4.9 × 10⁻³²⁴ |
+| Largest positive finite number | ≈ 3.4028235 × 10³⁸ | ≈ 1.7976931348623157 × 10³⁰⁸ |
 
-Java có sẵn các hằng số hữu ích:
+Java provides built-in useful constants:
 
 ~~~java
 Float.MAX_VALUE
@@ -36,31 +36,31 @@ Double.MIN_NORMAL
 Double.MIN_VALUE
 ~~~
 
-**Rất dễ nhầm:** `Double.MIN_VALUE` **không phải giá trị âm nhỏ nhất**. Nó là **số dương khác 0 nhỏ nhất**, tức số subnormal dương thấp nhất. Giá trị hữu hạn âm có độ lớn lớn nhất là `-Double.MAX_VALUE`. Điều tương tự áp dụng cho `Float.MIN_VALUE`.
+**Very easy to confuse:** `Double.MIN_VALUE` **is not the smallest negative value**. It is the **smallest positive non-zero number**, i.e. the lowest positive subnormal number. The finite negative value with the largest magnitude is `-Double.MAX_VALUE`. The same applies to `Float.MIN_VALUE`.
 
-Miền số hữu hạn của `double` có khoảng âm, số 0 và khoảng dương; thêm vào đó còn có `-Infinity`, `+Infinity` và `NaN` (*Not a Number*). IEEE 754 phân biệt **`+0.0` và `-0.0`** bằng bit dấu dù toán tử `==` coi chúng bằng nhau.
+The finite domain of `double` has a negative interval, zero, and a positive interval; in addition, there are `-Infinity`, `+Infinity`, and `NaN` (*Not a Number*). IEEE 754 distinguishes **`+0.0` and `-0.0`** by their sign bit even though the `==` operator considers them equal.
 
-## 3. Vì sao có số normal và subnormal?
+## 3. Why Are There Normal and Subnormal Numbers?
 
-Một số nhị phân *normal* khác 0 về ý tưởng có dạng:
+A non-zero *normal* binary number conceptually has the form:
 
 \[
 (-1)^s \times (1.f)_2 \times 2^e
 \]
 
-Trong đó `s` là bit dấu, `f` là các bit phân số và `e` là số mũ đã giải mã. Số `1` ở đầu phần định trị của giá trị normal là bit **ngầm định**. Vì thế `double` lưu 52 bit phân số nhưng có 53 bit có nghĩa đối với normal (và `float` là 23 + 1 = 24 bit).
+Where `s` is the sign bit, `f` represents the fraction bits, and `e` is the decoded exponent. The leading `1` of the significand of a normal value is an **implicit** bit. Therefore, `double` stores 52 fraction bits but has 53 significant bits for normal numbers (and `float` has 23 + 1 = 24 bits).
 
-Ở số mũ thấp nhất, không thể tiếp tục giảm số mũ normal. Chuẩn IEEE 754 cho phép **subnormal** sử dụng định trị không còn bit `1` ngầm định:
+At the lowest exponent, the normal exponent cannot be decreased any further. The IEEE 754 standard allows **subnormal** numbers to use a significand without the implicit leading `1` bit:
 
 \[
 (-1)^s \times (0.f)_2 \times 2^{e_{\min}}
 \]
 
-Cụ thể, với binary64: số normal dương nhỏ nhất là 2⁻¹⁰²²; một số subnormal có dạng `k × 2⁻¹⁰⁷⁴`, với `k` nguyên từ 1 đến 2⁵²−1. Khoảng cách giữa hai subnormal dương liền nhau luôn bằng `Double.MIN_VALUE`.
+Specifically, for binary64: the smallest positive normal number is 2⁻¹⁰²²; a subnormal number has the form `k × 2⁻¹⁰⁷⁴`, with integer `k` from 1 to 2⁵²−1. The gap between two consecutive positive subnormal numbers is always `Double.MIN_VALUE`.
 
-Bởi vậy, Java có thể biểu diễn những số nhỏ hơn `Double.MIN_NORMAL` mà chưa phải làm tròn ngay về 0. Đổi lại, **số bit có nghĩa hiệu dụng giảm dần** khi độ lớn của subnormal tiến về 0.
+Therefore, Java can represent numbers smaller than `Double.MIN_NORMAL` without immediately rounding to 0. In return, **the number of effective significant bits decreases** as the magnitude of a subnormal approaches 0.
 
-<text>Hình dung tiến dần về 0:</text>
+<text>Visualizing approaching 0:</text>
 
 ~~~text
 ... normal ...  2^-1022  |  subnormal ...  2^-1074  |  +0.0
@@ -68,9 +68,9 @@ Bởi vậy, Java có thể biểu diễn những số nhỏ hơn `Double.MIN_NO
            MIN_NORMAL                 MIN_VALUE
 ~~~
 
-Biểu đồ là minh họa khái niệm; khoảng cách trên trục số không được vẽ theo tỷ lệ.
+The diagram is a conceptual illustration; spacing along the number line is not drawn to scale.
 
-### Biên normal/subnormal
+### Normal/Subnormal Boundary
 
 ~~~java
 double smallestNormal = Double.MIN_NORMAL;
@@ -82,11 +82,11 @@ System.out.println(largestSubnormal > 0.0);            // true
 System.out.println(Math.nextUp(0.0) == smallestSubnormal); // true
 ~~~
 
-Các đoạn mã ngắn trong bài, trừ chương trình hoàn chỉnh ở phần 8, được viết để đặt bên trong một phương thức hoặc `main`.
+The short code snippets in this lesson, except the complete program in Section 8, are written to be placed inside a method or `main`.
 
-## 4. Overflow: kết quả vượt số hữu hạn lớn nhất
+## 4. Overflow: Result Exceeds the Largest Finite Number
 
-Xét phép nhân:
+Consider multiplication:
 
 ~~~java
 double x = Double.MAX_VALUE;
@@ -95,20 +95,20 @@ System.out.println(overflow);                 // Infinity
 System.out.println(Double.isInfinite(overflow)); // true
 ~~~
 
-`Double.MAX_VALUE` là số `double` hữu hạn dương lớn nhất. Kết quả toán học của phép nhân gấp đôi lớn hơn rất nhiều miền số hữu hạn, nên phép nhân được làm tròn theo quy tắc floating point và trả `+Infinity`.
+`Double.MAX_VALUE` is the largest positive finite `double`. The mathematical result of doubling it is far larger than the finite range, so the multiplication is rounded according to floating-point rules and returns `+Infinity`.
 
-Với kết quả âm vượt giới hạn, có thể nhận `-Infinity`:
+For a negative result exceeding the limit, you can get `-Infinity`:
 
 ~~~java
 double negativeOverflow = -Double.MAX_VALUE * 2.0;
 System.out.println(negativeOverflow); // -Infinity
 ~~~
 
-Một số điểm quan trọng:
+Several important points:
 
-1. Phép toán số thực Java thông thường **không ném `ArithmeticException`** vì overflow/underflow.
-2. `Infinity` là một giá trị floating point đặc biệt. Các phép tính tiếp theo có thể tiếp tục cho `Infinity` hoặc tạo `NaN`, chẳng hạn `Infinity - Infinity`.
-3. Overflow có thể xảy ra ngay cả khi **kết quả cuối của phép biến đổi đại số** đáng lẽ hữu hạn: kết quả trung gian có thể tràn trước.
+1. Ordinary Java floating-point operations **do not throw `ArithmeticException`** on overflow/underflow.
+2. `Infinity` is a special floating-point value. Subsequent calculations can keep yielding `Infinity` or produce `NaN`, such as `Infinity - Infinity`.
+3. Overflow can happen even when the **final result of an algebraic transformation** should be finite: an intermediate result may overflow first.
 
 ~~~java
 double a = 1e200;
@@ -121,9 +121,9 @@ System.out.println(unstable);   // Infinity
 System.out.println(rearranged); // 1.0E200
 ~~~
 
-Trong số học thực, hai biểu thức bằng nhau khi `b != 0`. Trong số học floating point, phép nhân trung gian `a * b` đã overflow. Biến đổi thứ tự tính toán chỉ phù hợp khi hiểu miền giá trị, quy tắc làm tròn, xử lý số 0/Infinity/NaN và các yêu cầu chính xác của bài toán.
+In real arithmetic, the two expressions are equal when `b != 0`. In floating-point arithmetic, the intermediate multiplication `a * b` overflowed. Changing the order of computation is only appropriate when you understand the value range, rounding rules, handling of zero/Infinity/NaN, and the accuracy requirements of the problem.
 
-### Infinity khác NaN
+### Infinity Differs from NaN
 
 ~~~java
 double inf = Double.MAX_VALUE * 2.0;
@@ -133,11 +133,11 @@ System.out.println(Double.isInfinite(inf)); // true
 System.out.println(Double.isNaN(undefined)); // true
 ~~~
 
-`NaN` biểu diễn kết quả không xác định trong ngữ nghĩa dấu phẩy động; không phải số vô hạn. Ví dụ khác: `0.0 / 0.0` cho `NaN`, còn `1.0 / 0.0` cho `Infinity`. Cả ba kết quả đều không làm ném ngoại lệ số học.
+`NaN` represents an undefined result in floating-point semantics; it is not an infinite number. Another example: `0.0 / 0.0` yields `NaN`, while `1.0 / 0.0` yields `Infinity`. None of these three results throws an arithmetic exception.
 
-## 5. Underflow: kết quả quá nhỏ để giữ đủ độ chính xác
+## 5. Underflow: Result Too Small to Keep Full Precision
 
-Với số thực, underflow xảy ra ở đầu **gần số 0** của dải số. Phải phân biệt *kết quả subnormal vẫn khác 0* với *kết quả đã làm tròn thành 0*.
+For floating-point numbers, underflow happens at the **near-zero** end of the number range. You must distinguish a *subnormal result that is still non-zero* from a *result that has been rounded to 0*.
 
 ~~~java
 double smallButRepresentable = Double.MIN_NORMAL / 2.0;
@@ -148,15 +148,15 @@ System.out.println(smallButRepresentable < Double.MIN_NORMAL); // true
 System.out.println(tooSmall); // 0.0
 ~~~
 
-`Double.MIN_NORMAL / 2` bằng 2⁻¹⁰²³ và biểu diễn được như một số subnormal. `Double.MIN_VALUE / 2` bằng 2⁻¹⁰⁷⁵, nằm đúng giữa 0 và số subnormal dương nhỏ nhất. Làm tròn **nearest, ties to even** cho ra `+0.0`.
+`Double.MIN_NORMAL / 2` equals 2⁻¹⁰²³ and is representable as a subnormal number. `Double.MIN_VALUE / 2` equals 2⁻¹⁰⁷⁵, lying exactly halfway between 0 and the smallest positive subnormal number. **Round to nearest, ties to even** produces `+0.0`.
 
-**Lưu ý về thuật ngữ IEEE 754:** underflow theo nghĩa điều kiện ngoại lệ kỹ thuật liên quan đến tính *tininess* và mất độ chính xác. Trong bài học lập trình Java, “underflow thành subnormal/zero” mô tả hành vi vùng độ lớn rất nhỏ. Không nên khẳng định rằng **mọi** kết quả subnormal đều là một lỗi hay một phép toán underflow không chính xác: nhiều kết quả subnormal (như chia `MIN_NORMAL` cho 2) vẫn chính xác.
+**Note on IEEE 754 terminology:** underflow as a technical exception condition relates to *tininess* and loss of accuracy. In Java programming lessons, "underflow to subnormal/zero" describes behavior in the very small magnitude region. You should not claim that **every** subnormal result is a bug or an inaccurate underflow operation: many subnormal results (such as dividing `MIN_NORMAL` by 2) are still exact.
 
-### Gradual underflow
+### Gradual Underflow
 
-Nếu không có subnormal, một kết quả dương nhỏ hơn `MIN_NORMAL` phải đột ngột trở thành 0. Subnormal giúp chuyển tiếp **dần dần**: rất nhiều giá trị nhỏ vẫn khác 0, nhưng độ chính xác tương đối kém dần.
+Without subnormals, a positive result smaller than `MIN_NORMAL` would abruptly become 0. Subnormals provide a **gradual** transition: many small values remain non-zero, though relative accuracy degrades progressively.
 
-Ví dụ:
+Example:
 
 ~~~java
 double halfNormal = Double.MIN_NORMAL / 2.0;
@@ -166,11 +166,11 @@ System.out.println(halfNormal != 0.0); // true
 System.out.println(smaller != 0.0);    // true
 ~~~
 
-Đây là hành vi hữu ích khi một phép trừ của hai số dương gần nhau tạo giá trị rất nhỏ; vẫn có thể giữ được thông tin về sự khác nhau nếu kết quả nằm trong miền subnormal biểu diễn được.
+This behavior is useful when subtracting two close positive numbers yields a very small value; information about the difference can still be preserved if the result lies within the representable subnormal range.
 
-## 6. Dấu của zero khi underflow
+## 6. Sign of Zero on Underflow
 
-`double` phân biệt `+0.0` và `-0.0`. Một phép toán dương quá nhỏ thường làm tròn về `+0.0`; phép toán âm tương ứng có thể làm tròn về `-0.0`.
+`double` distinguishes `+0.0` and `-0.0`. A positive operation that is too small usually rounds to `+0.0`; the corresponding negative operation can round to `-0.0`.
 
 ~~~java
 double positiveZero = Double.MIN_VALUE / 2.0;
@@ -183,21 +183,21 @@ System.out.println(1.0 / positiveZero); // Infinity
 System.out.println(1.0 / negativeZero); // -Infinity
 ~~~
 
-Do đó không được kết luận hai giá trị floating point có biểu diễn bit giống nhau chỉ vì `a == b`. Khi cần quan sát dấu của số 0 hoặc bit của NaN, có thể dùng `Double.doubleToRawLongBits`; với `float`, dùng `Float.floatToRawIntBits`. Cơ chế so sánh số thực, sắp xếp và serialization phải xác định rõ có quan tâm `-0.0` hay không.
+Therefore, do not conclude that two floating-point values have identical bit representations just because `a == b`. When you need to inspect the sign of zero or the bits of NaN, you can use `Double.doubleToRawLongBits`; for `float`, use `Float.floatToRawIntBits`. Floating-point comparison, sorting, and serialization mechanisms must explicitly define whether `-0.0` matters.
 
-## 7. API Java để phát hiện tình trạng số thực
+## 7. Java APIs to Detect Floating-Point Conditions
 
-| API | Mục đích |
+| API | Purpose |
 | --- | --- |
-| `Double.isFinite(x)`, `Float.isFinite(x)` | Kiểm tra x là số hữu hạn (bao gồm ±0, normal và subnormal) |
-| `Double.isInfinite(x)`, `Float.isInfinite(x)` | Kiểm tra ±Infinity |
-| `Double.isNaN(x)`, `Float.isNaN(x)` | Kiểm tra NaN |
-| `Double.MIN_NORMAL`, `Float.MIN_NORMAL` | Ngưỡng dương nhỏ nhất của số normal |
-| `Double.MIN_VALUE`, `Float.MIN_VALUE` | Số dương khác 0 nhỏ nhất: subnormal thấp nhất |
-| `Math.ulp(x)` | Khoảng cách theo đơn vị cuối cùng (*unit in last place*) tại x |
-| `Math.nextUp(x)`, `Math.nextDown(x)` | Giá trị floating point kề trên/kề dưới |
+| `Double.isFinite(x)`, `Float.isFinite(x)` | Check if x is a finite number (including ±0, normal, and subnormal) |
+| `Double.isInfinite(x)`, `Float.isInfinite(x)` | Check for ±Infinity |
+| `Double.isNaN(x)`, `Float.isNaN(x)` | Check for NaN |
+| `Double.MIN_NORMAL`, `Float.MIN_NORMAL` | Smallest positive threshold of normal numbers |
+| `Double.MIN_VALUE`, `Float.MIN_VALUE` | Smallest positive non-zero number: lowest subnormal |
+| `Math.ulp(x)` | Unit in the last place spacing at x |
+| `Math.nextUp(x)`, `Math.nextDown(x)` | Adjacent upper/lower floating-point value |
 
-Hàm nhận diện subnormal hữu hạn, khác 0:
+Function to detect finite, non-zero subnormals:
 
 ~~~java
 static boolean isSubnormal(double x) {
@@ -207,9 +207,9 @@ static boolean isSubnormal(double x) {
 }
 ~~~
 
-Đây là một phương thức Java 17 độc lập trong thân lớp (chưa có `main`). Điều kiện `x != 0.0` loại cả `+0.0` và `-0.0`. Điều kiện `isFinite` loại Infinity/NaN; `Math.abs(x) < MIN_NORMAL` phân biệt miền subnormal với miền normal. Biểu thức tương tự áp dụng cho `float` với `Float.MIN_NORMAL` và `Float.isFinite`.
+This is a standalone Java 17 method inside a class body (without `main`). The condition `x != 0.0` excludes both `+0.0` and `-0.0`. The condition `isFinite` excludes Infinity/NaN; `Math.abs(x) < MIN_NORMAL` separates the subnormal range from the normal range. A similar expression applies to `float` using `Float.MIN_NORMAL` and `Float.isFinite`.
 
-Đặc biệt:
+In particular:
 
 ~~~java
 System.out.println(Math.ulp(0.0) == Double.MIN_VALUE); // true
@@ -217,13 +217,13 @@ System.out.println(Math.ulp(Double.MIN_NORMAL) == Double.MIN_VALUE); // true
 System.out.println(Math.nextUp(0.0) == Double.MIN_VALUE); // true
 ~~~
 
-Một số floating point hữu hạn *normal* có bước nhảy phụ thuộc độ lớn. Ở vùng subnormal dương, các giá trị liên tiếp cách nhau đúng `Double.MIN_VALUE`.
+A *normal* finite floating-point number has a step size depending on its magnitude. In the positive subnormal region, consecutive values are spaced apart by exactly `Double.MIN_VALUE`.
 
-Không nên dùng `Math.getExponent(x)` một mình để phát hiện subnormal, vì nó trả `Double.MIN_EXPONENT - 1` cho **cả zero lẫn subnormal** (với `double` là −1023).
+You should not use `Math.getExponent(x)` alone to detect subnormals, because it returns `Double.MIN_EXPONENT - 1` for **both zero and subnormals** (−1023 for `double`).
 
-## 8. Chương trình Java 17+ đầy đủ, biên dịch và quan sát
+## 8. Complete Java 17+ Program: Compile and Observe
 
-Tạo tệp `FloatingRangeDemo.java`:
+Create the file `FloatingRangeDemo.java`:
 
 ~~~java
 public class FloatingRangeDemo {
@@ -267,14 +267,14 @@ public class FloatingRangeDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 FloatingRangeDemo.java
 java FloatingRangeDemo
 ~~~
 
-Kết quả stdout:
+Stdout output:
 
 ~~~text
 overflow=Infinity
@@ -294,27 +294,27 @@ float infinity=true
 NaN detected=true
 ~~~
 
-Phân tích từng nhóm kết quả:
+Analysis of each group of results:
 
-- `MAX_VALUE * 2` tràn thành Infinity; `isFinite` báo false.
-- `MIN_NORMAL / 2` thuộc vùng subnormal nhưng còn khác 0; chương trình kiểm tra bằng miền giá trị chứ không chỉ dựa trên định dạng in.
-- `MIN_VALUE / 2` nhỏ hơn giá trị dương khác 0 nhỏ nhất, nên được làm tròn thành 0.
-- Underflow của số âm có thể tạo `-0.0`; phép lấy nghịch đảo minh họa dấu có ý nghĩa.
-- `Double.parseDouble` xử lý chuỗi ngoài miền thành Infinity/0 theo quy tắc chuyển đổi floating point; phép parse không thay thế được việc **kiểm tra miền** nếu ứng dụng yêu cầu kết quả hữu hạn khác 0.
-- `float` cũng có dải subnormal và overflow, nhưng với biên gần 0/Infinity lớn nhỏ khác `double`.
-- `Infinity - Infinity` tạo NaN.
+- `MAX_VALUE * 2` overflows to Infinity; `isFinite` reports false.
+- `MIN_NORMAL / 2` falls in the subnormal region while remaining non-zero; the program checks by value range rather than relying only on print formatting.
+- `MIN_VALUE / 2` is smaller than the smallest non-zero positive value, so it rounds to 0.
+- Underflow of a negative number can produce `-0.0`; taking the reciprocal demonstrates that the sign is meaningful.
+- `Double.parseDouble` converts out-of-range strings to Infinity/0 per floating-point conversion rules; parsing does not replace **range validation** if the application requires non-zero finite results.
+- `float` also has a subnormal range and overflow, but with different thresholds near 0/Infinity compared to `double`.
+- `Infinity - Infinity` produces NaN.
 
-## 9. Literal số quá lớn/nhỏ: khác với kết quả phép toán runtime
+## 9. Literals That Are Too Large/Small: Different from Runtime Operation Results
 
-Literals dấu phẩy động trong mã nguồn Java có quy tắc ở thời điểm biên dịch. Các ví dụ này **không biên dịch**:
+Floating-point literals in Java source code have compile-time rules. These examples **do not compile**:
 
 ~~~java
-// double tooLarge = 1e309; // literal double ngoài miền
-// double tooSmall = 1e-400; // literal double khác 0 quá nhỏ để thành nonzero
-// float alsoTooLarge = 1e39f; // literal float ngoài miền
+// double tooLarge = 1e309; // double literal out of range
+// double tooSmall = 1e-400; // non-zero double literal too small to remain nonzero
+// float alsoTooLarge = 1e39f; // float literal out of range
 ~~~
 
-Khi cần minh họa overflow/underflow runtime, thực hiện phép toán từ các giá trị hợp lệ hoặc parse từ chuỗi ở runtime:
+When you need to demonstrate runtime overflow/underflow, perform operations from valid values or parse from strings at runtime:
 
 ~~~java
 double overflowRuntime = 1e308 * 10.0;
@@ -324,36 +324,36 @@ System.out.println(overflowRuntime);  // Infinity
 System.out.println(underflowRuntime); // 0.0
 ~~~
 
-`Double.parseDouble("1e309")` trả Infinity và `Double.parseDouble("1e-400")` trả 0.0; khi giá trị chuỗi đến từ cấu hình/người dùng, lập trình viên cần kiểm tra để tránh silently chấp nhận dữ liệu mất miền.
+`Double.parseDouble("1e309")` returns Infinity and `Double.parseDouble("1e-400")` returns 0.0; when string values come from configuration or users, developers need to validate them to avoid silently accepting out-of-range data.
 
-Lưu ý riêng: literal `0.0` hoàn toàn hợp lệ; `0x0.0p0` cũng vậy. Giới hạn đối với literal *khác 0* quá nhỏ phản ánh quy tắc biên dịch, không có nghĩa ngôn ngữ cấm số 0.
+Special note: the literal `0.0` is completely valid; `0x0.0p0` is as well. The restriction on overly small *non-zero* literals reflects compile-time rules, not that the language forbids zero.
 
-## 10. Underflow không giống mất độ chính xác thông thường
+## 10. Underflow Is Not the Same as Ordinary Loss of Precision
 
-Phần lớn số thập phân không có biểu diễn nhị phân hữu hạn, chẳng hạn `0.1`. Điều đó tạo ra **rounding error**, nhưng không nhất thiết là underflow:
+Most decimal numbers have no finite binary representation, such as `0.1`. That produces **rounding error**, but not necessarily underflow:
 
 ~~~java
 double x = 0.1 + 0.2;
 System.out.println(x); // 0.30000000000000004
 ~~~
 
-`0.30000000000000004` là kết quả làm tròn của các số normal và phép cộng; nó **không** thuộc vùng subnormal. Underflow liên quan đến độ lớn quá nhỏ gần 0, không phải mọi sai số dấu phẩy động.
+`0.30000000000000004` is the rounded result of normal numbers and addition; it is **not** in the subnormal region. Underflow concerns magnitudes too small near 0, not every floating-point error.
 
-Một kết quả subnormal vẫn có thể là biểu diễn **chính xác** của phép toán. Ví dụ, `Double.MIN_NORMAL / 2.0` là 2⁻¹⁰²³ và có thể biểu diễn chính xác dưới dạng subnormal. Khác biệt giữa **miền (range)** và **độ chính xác (precision)** là nền tảng của việc phân tích floating point.
+A subnormal result can still be an **exact** representation of an operation. For example, `Double.MIN_NORMAL / 2.0` is 2⁻¹⁰²³ and can be represented exactly as a subnormal. The distinction between **range** and **precision** is fundamental to floating-point analysis.
 
-Ngoài ra, đừng nhầm underflow của **giá trị** với underflow của **số mũ trong hàm Math.exp**: ví dụ `Math.exp(-1000)` có thể trả 0.0 vì kết quả toán học quá nhỏ để biểu diễn bằng `double`, không phải do số mũ nguyên trong máy “quay vòng”.
+Additionally, do not confuse underflow of a **value** with exponent underflow in `Math.exp`: for instance, `Math.exp(-1000)` can return 0.0 because the mathematical result is too small to represent as a `double`, not because a machine integer exponent "wrapped around".
 
-## 11. Các vấn đề phổ biến và cách xử lý
+## 11. Common Issues and How to Handle Them
 
-### 11.1. Intermediate overflow dù kết quả mong muốn hữu hạn
+### 11.1. Intermediate Overflow Even When the Desired Result Is Finite
 
-Công thức độ dài vector:
+The vector length formula:
 
 \[
 \sqrt{x^2 + y^2}
 \]
 
-có thể overflow ở `x*x`/`y*y` dù kết quả cuối vẫn nhỏ hơn `Double.MAX_VALUE`.
+can overflow in `x*x`/`y*y` even though the final result is still smaller than `Double.MAX_VALUE`.
 
 ~~~java
 double x = 1e308;
@@ -366,9 +366,9 @@ System.out.println(naive);  // Infinity
 System.out.println(stable); // 1.4142135623730951E308
 ~~~
 
-`Math.hypot` được thiết kế giảm nguy cơ overflow/underflow trung gian. Nó vẫn trả Infinity khi độ lớn cuối cùng thật sự vượt dải biểu diễn.
+`Math.hypot` is designed to reduce the risk of intermediate overflow/underflow. It still returns Infinity when the final magnitude truly exceeds the representable range.
 
-### 11.2. Tích của nhiều số rất nhỏ bị làm tròn thành 0
+### 11.2. Product of Many Very Small Numbers Rounded to 0
 
 ~~~java
 double a = 1e-200;
@@ -382,107 +382,107 @@ System.out.println(lostFirst); // 0.0
 System.out.println(keptFirst); // 1.0E-200
 ~~~
 
-Khi tính tích/xác suất của rất nhiều số nhỏ, đôi lúc chuyển sang **log-domain** (cộng logarithm thay vì nhân trực tiếp, rồi áp dụng biến đổi ổn định khi cần) giúp tránh underflow trung gian. Phải đặc biệt xử lý số 0, giá trị âm, NaN và yêu cầu trả lại giá trị cuối có thể hoặc không thể biểu diễn.
+When computing products or probabilities of many very small numbers, sometimes moving to the **log-domain** (summing logarithms instead of multiplying directly, then applying stable transformations when needed) helps avoid intermediate underflow. Special care is needed for zero, negative values, NaN, and whether the final returned value is representable.
 
-### 11.3. Định dạng in khác với tính chính xác
+### 11.3. Print Formatting Differs from Exactness
 
-Java in `Double.MIN_VALUE` là `4.9E-324`; biểu thức đó là chuỗi thập phân ngắn đủ để round-trip về cùng giá trị `double`, không phải khẳng định giá trị nhị phân đúng bằng số hữu tỉ thập phân có bốn chữ số 4.9.
+Java prints `Double.MIN_VALUE` as `4.9E-324`; that expression is a short decimal string sufficient to round-trip back to the same `double` value, not a claim that the binary value is strictly equal to the two-digit decimal rational 4.9 × 10⁻³²⁴.
 
-Tương tự, `System.out.println(0.1)` in `0.1`, nhưng lưu trữ nội bộ là số binary64 xấp xỉ 0,1. Đừng suy ra tính chính xác chỉ từ số chữ số hiển thị.
+Similarly, `System.out.println(0.1)` prints `0.1`, while internal storage is a binary64 approximation of 0.1. Do not infer exactness solely from the displayed digits.
 
-### 11.4. Kiểm tra kết quả trước khi sử dụng
+### 11.4. Validate Results Before Use
 
-Ví dụ nhận số thực từ một phép tính:
+Example receiving a floating-point number from a computation:
 
 ~~~java
 static double requireFinite(double value) {
     if (!Double.isFinite(value)) {
-        throw new IllegalArgumentException("Kết quả phải hữu hạn");
+        throw new IllegalArgumentException("Result must be finite");
     }
     return value;
 }
 ~~~
 
-Hàm này từ chối Infinity/NaN nhưng **cho phép 0 và subnormal**. Nếu nghiệp vụ cấm kết quả khác 0 bị mất thành 0, không có cách nhìn **chỉ vào kết quả 0.0 cuối cùng** để biết trước phép tính từng có một giá trị nhỏ hơn miền lưu trữ. Cần kiểm soát dữ liệu đầu vào, dùng phương pháp số ổn định hơn hoặc mô hình độ chính xác rộng hơn.
+This function rejects Infinity/NaN but **allows 0 and subnormals**. If business rules forbid a non-zero result from collapsing to 0, there is no way to tell **merely by looking at the final `0.0` result** whether an earlier step had a value smaller than the storage range. You need to control input data, use a more numerically stable method, or use a wider-precision model.
 
-### 11.5. Khi nào dùng BigDecimal?
+### 11.5. When to Use `BigDecimal`?
 
-`BigDecimal` biểu diễn hệ thập phân với độ chính xác tùy ý (giới hạn tài nguyên và phạm vi scale) và quy tắc làm tròn có kiểm soát. Nó phù hợp với số tiền, dữ liệu thập phân chính xác hoặc phép tính cần giữ nhiều chữ số hơn `double`:
+`BigDecimal` represents base-10 numbers with arbitrary precision (bounded by resources and scale range) and controlled rounding rules. It fits currency, exact decimal data, or calculations needing more digits than `double`:
 
 ~~~java
 import java.math.BigDecimal;
 
-// Đoạn minh họa bên trong phương thức:
+// Illustrative snippet inside a method:
 BigDecimal x = new BigDecimal("1e400");
 BigDecimal y = x.multiply(BigDecimal.TEN);
 System.out.println(y.toEngineeringString()); // 10E+400
 ~~~
 
-`BigDecimal` không có giá trị NaN/Infinity giống `double`; không phải công cụ thay thế `double` cho mọi bài toán khoa học. Khi lập `BigDecimal` từ số thập phân cần giữ nguyên, ưu tiên constructor chuỗi (`new BigDecimal("0.1")`) hoặc `BigDecimal.valueOf(double)` phù hợp; `new BigDecimal(0.1)` giữ chính xác **giá trị nhị phân đã bị xấp xỉ** trước đó.
+`BigDecimal` has no `NaN`/`Infinity` values like `double`; it is not a drop-in replacement for `double` across all scientific problems. When constructing a `BigDecimal` from a decimal number that must be preserved verbatim, prefer the string constructor (`new BigDecimal("0.1")`) or `BigDecimal.valueOf(double)` as appropriate; `new BigDecimal(0.1)` preserves the exact **binary value that was already approximated** beforehand.
 
-Lựa chọn kiểu dữ liệu phụ thuộc bài toán: phép đo kỹ thuật chấp nhận sai số thường vẫn dùng `double`; tài chính và dữ liệu decimal exact thường dùng `BigDecimal`; bài toán rất lớn/nhỏ có thể cần scale, log-domain hoặc thư viện số chuyên dụng.
+Data type selection depends on the problem: engineering measurements that tolerate error typically still use `double`; finance and exact decimal data typically use `BigDecimal`; extremely large/small problems may require scaling, log-domain, or specialized numerical libraries.
 
-## 12. Giá trị biên và những điều không nên nhầm
+## 12. Boundary Values and Things Not to Confuse
 
-| Biểu thức (đặt trong một phương thức) | Kết quả/ý nghĩa |
+| Expression (placed inside a method) | Result/Meaning |
 | --- | --- |
-| `Double.MAX_VALUE * 2.0` | `Infinity`: overflow dương |
-| `-Double.MAX_VALUE * 2.0` | `-Infinity`: overflow âm |
-| `Double.MIN_NORMAL / 2.0` | Subnormal dương khác 0, **chính xác** |
-| `Double.MIN_VALUE / 2.0` | `+0.0` theo round-to-nearest ties-to-even |
+| `Double.MAX_VALUE * 2.0` | `Infinity`: positive overflow |
+| `-Double.MAX_VALUE * 2.0` | `-Infinity`: negative overflow |
+| `Double.MIN_NORMAL / 2.0` | Positive non-zero subnormal, **exact** |
+| `Double.MIN_VALUE / 2.0` | `+0.0` by round-to-nearest ties-to-even |
 | `-Double.MIN_VALUE / 2.0` | `-0.0` |
 | `Math.nextUp(0.0)` | `Double.MIN_VALUE` |
 | `Math.nextDown(0.0)` | `-Double.MIN_VALUE` |
-| `Double.isFinite(Double.MIN_VALUE)` | `true`: subnormal vẫn hữu hạn |
+| `Double.isFinite(Double.MIN_VALUE)` | `true`: subnormals are still finite |
 | `Double.isNaN(Double.POSITIVE_INFINITY)` | `false` |
-| `Double.NaN == Double.NaN` | `false` theo phép `==` của IEEE 754 |
-| `Double.compare(-0.0, +0.0) < 0` | `true`: thứ tự theo `Double.compare` phân biệt signed zero |
-| `1.0 / 0.0` | `Infinity`, không ném `ArithmeticException` |
-| `1 / 0` | Lỗi phép chia số nguyên: khác quy tắc chia floating point |
+| `Double.NaN == Double.NaN` | `false` under IEEE 754 `==` |
+| `Double.compare(-0.0, +0.0) < 0` | `true`: ordering via `Double.compare` distinguishes signed zero |
+| `1.0 / 0.0` | `Infinity`, does not throw `ArithmeticException` |
+| `1 / 0` | Integer division error: differs from floating-point division rules |
 
-### Java 17 và strict floating point
+### Java 17 and Strict Floating Point
 
-Từ **Java 17**, ngữ nghĩa floating point luôn strict theo Java Language Specification (JEP 306). Từ khóa `strictfp` vẫn tồn tại để tương thích mã cũ nhưng không còn cần thiết để bắt buộc strict trên Java 17+. Điều này giúp mã `float`/`double` có các quy tắc xác định của ngôn ngữ, nhưng **không loại bỏ** overflow, underflow, subnormal hay rounding error.
+Starting in **Java 17**, floating-point semantics are always strict under the Java Language Specification (JEP 306). The `strictfp` keyword still exists for backward compatibility with older code, but is no longer needed to enforce strict behavior on Java 17+. This gives `float`/`double` code deterministic language rules, but **does not eliminate** overflow, underflow, subnormals, or rounding error.
 
-Java không cung cấp qua phép toán floating point thông thường cơ chế tự động ném exception cho mọi overflow/underflow hoặc một cờ trạng thái IEEE 754 mà lập trình viên có thể luôn truy cập trực tiếp. Nếu hệ thống cần phát hiện rủi ro, hãy kết hợp kiểm tra giá trị (`isFinite`, miền subnormal) với thiết kế thuật toán và dữ liệu đầu vào.
+Java does not provide, through ordinary floating-point operations, a mechanism that automatically throws exceptions on every overflow/underflow or an IEEE 754 status flag that programmers can always access directly. If a system needs to detect risks, combine value checks (`isFinite`, subnormal range) with algorithm design and input data control.
 
-## 13. Tự kiểm tra
+## 13. Self-Check
 
-**Câu 1.** Vì sao `Double.MIN_VALUE` lớn hơn 0 nhưng nhỏ hơn `Double.MIN_NORMAL`?
+**Question 1.** Why is `Double.MIN_VALUE` greater than 0 yet smaller than `Double.MIN_NORMAL`?
 
-Vì `MIN_VALUE` là số subnormal dương nhỏ nhất (2⁻¹⁰⁷⁴), còn `MIN_NORMAL` là số normal dương nhỏ nhất (2⁻¹⁰²²). Tên `MIN_VALUE` ở đây nói đến độ lớn **dương khác 0**, không phải điểm âm cực tiểu của trục số.
+Because `MIN_VALUE` is the smallest positive subnormal number (2⁻¹⁰⁷⁴), whereas `MIN_NORMAL` is the smallest positive normal number (2⁻¹⁰²²). The name `MIN_VALUE` here refers to **positive non-zero** magnitude, not the minimum negative point on the number line.
 
-**Câu 2.** `Double.MIN_NORMAL / 2.0` có bắt buộc bằng 0 hay mất chính xác không?
+**Question 2.** Must `Double.MIN_NORMAL / 2.0` become 0 or lose precision?
 
-Không. 2⁻¹⁰²³ là một giá trị subnormal có thể biểu diễn **chính xác** dưới dạng binary64.
+No. 2⁻¹⁰²³ is a subnormal value that can be represented **exactly** in binary64.
 
-**Câu 3.** Vì sao `Double.MIN_VALUE / 2.0` cho `0.0`?
+**Question 3.** Why does `Double.MIN_VALUE / 2.0` yield `0.0`?
 
-Vì giá trị toán học 2⁻¹⁰⁷⁵ nằm giữa 0 và giá trị dương khác 0 nhỏ nhất; mặc định round-to-nearest ties-to-even chọn +0.0.
+Because the mathematical value 2⁻¹⁰⁷⁵ lies halfway between 0 and the smallest non-zero positive value; the default round-to-nearest ties-to-even chooses +0.0.
 
-**Câu 4.** Có thể dựa vào `Double.isFinite(result)` để phát hiện mọi underflow không?
+**Question 4.** Can you rely on `Double.isFinite(result)` to detect all underflow?
 
-Không. `0.0` và các số subnormal đều **hữu hạn**. `isFinite` nhận biết NaN/Infinity; dưới chuẩn cần kiểm tra thêm điều kiện khác 0 và `abs(result) < MIN_NORMAL`, còn việc làm tròn thành 0 cần được phát hiện bằng thông tin về bài toán hoặc phép tính trước đó.
+No. Both `0.0` and subnormal numbers are **finite**. `isFinite` detects NaN/Infinity; detecting subnormals additionally requires checking non-zero and `abs(result) < MIN_NORMAL`, while rounding to 0 must be detected using knowledge of the problem or earlier computation steps.
 
-**Câu 5.** Vì sao `Math.hypot(x, y)` thường an toàn hơn `Math.sqrt(x*x + y*y)`?
+**Question 5.** Why is `Math.hypot(x, y)` usually safer than `Math.sqrt(x*x + y*y)`?
 
-Nó được thiết kế hạn chế overflow và underflow trong các kết quả trung gian khi tính khoảng cách; việc bình phương trực tiếp có thể tạo Infinity/0 trước khi căn bậc hai được áp dụng.
+It is designed to mitigate intermediate overflow and underflow when computing distance; direct squaring can produce Infinity/0 before the square root is applied.
 
-**Câu 6.** Có nên thay mọi phép tính `double` bằng `BigDecimal`?
+**Question 6.** Should every `double` calculation be replaced with `BigDecimal`?
 
-Không. `BigDecimal` hữu ích khi cần chính xác thập phân và kiểm soát làm tròn; nó thay đổi mô hình dữ liệu, tốc độ, bộ nhớ và thuật toán. Với bài toán khoa học/kỹ thuật, chọn `double` và thuật toán số ổn định có thể là lựa chọn phù hợp hơn.
+No. `BigDecimal` is useful when decimal exactness and rounding control are required; it changes the data model, speed, memory footprint, and algorithms. For scientific/engineering problems, choosing `double` and numerically stable algorithms may be the better option.
 
-## 14. Tóm tắt và tham khảo
+## 14. Summary and References
 
-- **Overflow:** độ lớn vượt miền hữu hạn → thường `±Infinity`, cần kiểm tra `isFinite`/`isInfinite`.
-- **Underflow:** độ lớn quá gần 0 → kết quả subnormal hoặc bị làm tròn về `±0.0`; không nhất thiết là một ngoại lệ Java.
-- **Subnormal:** giá trị khác 0 có `abs(x) < MIN_NORMAL`; giúp *gradual underflow* nhưng có ít bit có nghĩa hiệu dụng.
-- `MIN_VALUE` là số dương khác 0 nhỏ nhất, còn `MIN_NORMAL` là số normal dương nhỏ nhất.
-- Viết thuật toán tránh kết quả trung gian quá lớn/quá nhỏ và kiểm tra NaN, Infinity, zero có dấu, tính chính xác theo nhu cầu.
+- **Overflow:** magnitude exceeds finite range → typically `±Infinity`; check `isFinite`/`isInfinite`.
+- **Underflow:** magnitude too close to 0 → subnormal result or rounded to `±0.0`; not necessarily a Java exception.
+- **Subnormal:** non-zero value with `abs(x) < MIN_NORMAL`; provides *gradual underflow* but has fewer effective significant bits.
+- `MIN_VALUE` is the smallest non-zero positive number, whereas `MIN_NORMAL` is the smallest positive normal number.
+- Write algorithms to avoid overly large/small intermediate results and check NaN, Infinity, signed zero, and accuracy as needed.
 
-Tài liệu tra cứu:
+Reference documentation:
 
-- [Java SE 17 — Double](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html) và [Float](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html): `MAX_VALUE`, `MIN_NORMAL`, `MIN_VALUE` và các API kiểm tra.
+- [Java SE 17 — Double](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html) and [Float](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html): `MAX_VALUE`, `MIN_NORMAL`, `MIN_VALUE`, and inspection APIs.
 - [Java SE 17 — Math](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `ulp`, `nextUp`, `nextDown`, `hypot`.
-- [JLS SE 17 — Floating-Point Types, Formats, and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): số hữu hạn, subnormal, NaN, Infinity và zero.
-- [JEP 306 — Restore Always-Strict Floating-Point Semantics](https://openjdk.org/jeps/306): thay đổi ngữ nghĩa strict của Java 17.
+- [JLS SE 17 — Floating-Point Types, Formats, and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): finite numbers, subnormals, NaN, Infinity, and zero.
+- [JEP 306 — Restore Always-Strict Floating-Point Semantics](https://openjdk.org/jeps/306): strict semantics change in Java 17.

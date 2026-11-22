@@ -1,10 +1,10 @@
-# Phần tử mảng trong Collection vẫn dùng quan hệ bằng nhau của mảng
+# Array Elements in a Collection Still Use Array Equality
 
-## 1. Điều gì xảy ra khi đưa mảng vào Collection?
+## 1. What Happens When You Put an Array into a Collection?
 
-Trong Java, `List`, `Set` và `Map` thường sử dụng các phương thức `equals()` hoặc `hashCode()` của đối tượng phần tử hay khóa để quyết định hai giá trị có tương đương hay không. **Collection không tự đổi quy tắc so sánh của phần tử mảng thành so sánh từng phần tử bên trong mảng.**
+In Java, `List`, `Set`, and `Map` typically use the `equals()` or `hashCode()` methods of element or key objects to determine whether two values are equivalent. **A Collection does not automatically change an array element's comparison rule to element-by-element comparison inside the array.**
 
-Xét hai mảng độc lập:
+Consider two independent arrays:
 
 ```java
 int[] a = {1, 2, 3};
@@ -15,21 +15,21 @@ System.out.println(a.equals(b));        // false
 System.out.println(Arrays.equals(a, b)); // true
 ```
 
-*Đây là đoạn lệnh minh họa đặt bên trong phương thức có `import java.util.Arrays;`. Chương trình đầy đủ ở mục 6.*
+*This is an illustrative snippet placed inside a method with `import java.util.Arrays;`. The full program is in Section 6.*
 
-Mặc dù `a` và `b` chứa các số nguyên giống nhau theo cùng thứ tự, chúng là **hai đối tượng mảng khác nhau**. Mảng Java **không ghi đè `Object.equals()` để so nội dung**. Do đó:
+Even though `a` and `b` contain the same integers in the same order, they are **two different array objects**. Java arrays **do not override `Object.equals()` to compare contents**. Therefore:
 
-- `a == b` là `false` vì khác tham chiếu.
-- `a.equals(b)` cũng `false` vì kế thừa so sánh tham chiếu từ `Object`.
-- `Arrays.equals(a, b)` là `true` vì phương thức tiện ích này **chủ động so từng phần tử tương ứng**.
+- `a == b` is `false` because the references differ.
+- `a.equals(b)` is also `false` because it inherits reference comparison from `Object`.
+- `Arrays.equals(a, b)` is `true` because this utility method **actively compares each corresponding element**.
 
-Đây chính là điểm dễ nhầm: khi mảng trở thành phần tử của `Collection`, nó **vẫn là một object mảng với equality mặc định của mảng**, chứ không được Collection biến thành value object. Cùng dữ liệu không đồng nghĩa cùng phần tử theo `equals()` của mảng.
+This is the common trap: when an array becomes an element of a `Collection`, it **remains an array object with default array equality**, rather than being turned into a value object by the Collection. Same data does not mean equal elements under array `equals()`.
 
-> **Quy tắc nhớ nhanh:** Collection dùng hợp đồng equality của phần tử. Phần tử là mảng Java thì equality mặc định là theo identity của mảng; muốn so nội dung phải chọn một cách biểu diễn hoặc thuật toán riêng.
+> **Quick rule to remember:** A Collection uses its elements' equality contract. If an element is a Java array, default equality is by array identity; to compare contents, you must choose a dedicated representation or algorithm.
 
-## 2. Sự khác nhau giữa mảng và Collection có phần tử thông thường
+## 2. Difference Between Arrays and Collections with Regular Elements
 
-Hai `List<Integer>` có các phần tử số giống nhau theo cùng thứ tự thường `equals()` nhau vì `Integer.equals()` so giá trị số:
+Two `List<Integer>` instances with identical numeric elements in the same order are normally `equals()` because `Integer.equals()` compares numeric values:
 
 ```java
 List<Integer> numbers1 = List.of(1, 2, 3);
@@ -38,7 +38,7 @@ List<Integer> numbers2 = List.of(1, 2, 3);
 System.out.println(numbers1.equals(numbers2)); // true
 ```
 
-Nhưng với **List chứa phần tử mảng**:
+However, with a **List containing array elements**:
 
 ```java
 int[] a = {1, 2, 3};
@@ -52,34 +52,34 @@ System.out.println(list1.contains(b));   // false
 System.out.println(list1.contains(a));   // true
 ```
 
-*Các đoạn code trên minh họa trong một phương thức với `import java.util.List;`.*
+*The snippets above illustrate code inside a method with `import java.util.List;`.*
 
-Lý do: hợp đồng `List.equals()` yêu cầu hai list có cùng số phần tử, và **cặp phần tử ở mỗi vị trí phải bằng nhau**. Khi phần tử là `int[]`, lời so sánh phần tử dùng `equals()` của mảng. `list1` có `a` còn `list2` có `b`, nên khác nhau dù `Arrays.equals(a, b)` là `true`.
+Reason: the `List.equals()` contract requires both lists to have the same number of elements, and **the pair of elements at each position must be equal**. When the element type is `int[]`, element comparison calls the array's `equals()`. `list1` holds `a` while `list2` holds `b`, so they differ even though `Arrays.equals(a, b)` is `true`.
 
-`List.contains(o)` cũng sử dụng quan hệ equality để tìm phần tử. Một object mảng mới có cùng nội dung không tự được nhận diện là phần tử cũ. Ngược lại, cùng tham chiếu `a` thì được nhận diện.
+`List.contains(o)` also uses the equality relation to search for an element. A new array object with the same contents is not automatically recognized as the old element. Conversely, the same reference `a` is recognized.
 
-| Biểu thức | Ý nghĩa | Với hai mảng `a` và `b` độc lập nhưng cùng nội dung |
+| Expression | Meaning | For Two Independent Arrays `a` and `b` with Same Content |
 | --- | --- | --- |
-| `a == b` | Cùng tham chiếu? | `false` |
-| `a.equals(b)` | Equality mặc định của mảng? | `false` |
-| `Arrays.equals(a, b)` | Nội dung một chiều tương ứng bằng nhau? | `true` |
-| `List.of(a).equals(List.of(b))` | List có phần tử bằng nhau theo `equals()`? | `false` |
-| `List.of(a).contains(b)` | Có phần tử bằng `b` theo equality mặc định? | `false` |
-| `List.of(a).contains(a)` | Có cùng đối tượng mảng `a`? | `true` |
+| `a == b` | Same reference? | `false` |
+| `a.equals(b)` | Default array equality? | `false` |
+| `Arrays.equals(a, b)` | Corresponding one-dimensional contents equal? | `true` |
+| `List.of(a).equals(List.of(b))` | Lists have equal elements under `equals()`? | `false` |
+| `List.of(a).contains(b)` | Contains an element equal to `b` under default equality? | `false` |
+| `List.of(a).contains(a)` | Contains the same array object `a`? | `true` |
 
-Nên phân biệt **mảng là phần tử của Collection** với **dữ liệu đã được chuyển thành các phần tử giá trị của Collection**:
+Distinguish **an array as a Collection element** from **data converted into value elements of a Collection**:
 
-- `List<int[]>` chứa mảng như một đối tượng phần tử.
-- `List<Integer>` chứa từng `Integer`; equality của mỗi `Integer` là theo giá trị.
-- `List<List<Integer>>` so các list con theo `List.equals()`, nếu các phần tử bên trong có equality phù hợp.
+- `List<int[]>` holds arrays as element objects.
+- `List<Integer>` holds individual `Integer` objects; each `Integer`'s equality is by value.
+- `List<List<Integer>>` compares inner lists via `List.equals()`, provided the inner elements have appropriate equality.
 
-Một Collection không có khái niệm mặc định “bóc mảng ở bất kỳ độ sâu nào rồi so các giá trị”.
+A Collection has no built-in concept of "unwrapping arrays at arbitrary depth and comparing values".
 
-## 3. Tác động lên List, Set và Map
+## 3. Impact on List, Set, and Map
 
 ### 3.1. List: equals, contains, indexOf, remove
 
-Một `ArrayList<int[]>` hoặc `List<int[]>` sử dụng equality của mảng khi kiểm tra `contains()` hay tìm chỉ số bằng `indexOf()`. Nếu gọi `remove(Object)` bằng một mảng mới cùng nội dung, nó cũng không xóa mảng đã lưu, vì không tìm thấy phần tử bằng nhau theo quy tắc của mảng.
+An `ArrayList<int[]>` or `List<int[]>` uses array equality when checking `contains()` or finding an index via `indexOf()`. Calling `remove(Object)` with a new array holding identical contents also fails to remove the stored array, because no equal element is found under array rules.
 
 ```java
 List<int[]> rows = new ArrayList<>();
@@ -91,11 +91,11 @@ System.out.println(rows.indexOf(oldRow));               // 0
 System.out.println(rows.remove(new int[]{10, 20}));     // false
 ```
 
-*Đây là đoạn minh họa nằm trong phương thức với `import java.util.ArrayList;` và `import java.util.List;`. Phương thức `remove(Object)` của `List` trả về `boolean`, khác `remove(int index)`.*
+*This is an illustrative snippet inside a method with `import java.util.ArrayList;` and `import java.util.List;`. `List`'s `remove(Object)` returns `boolean`, unlike `remove(int index)`.*
 
-### 3.2. HashSet: không tự loại mảng trùng nội dung
+### 3.2. HashSet: Does Not Deduplicate Arrays with Identical Contents
 
-`HashSet` dựa trên `hashCode()/equals()` của phần tử. Các đối tượng mảng có `hashCode()` và `equals()` kế thừa từ `Object`, nên hai mảng khác tham chiếu sẽ được xem là **hai phần tử khác nhau**, kể cả khi mọi phần tử con bằng nhau.
+`HashSet` relies on element `hashCode()/equals()`. Array objects inherit `hashCode()` and `equals()` from `Object`, so two arrays with different references are treated as **two distinct elements**, even when all inner elements are equal.
 
 ```java
 Set<int[]> set = new HashSet<>();
@@ -105,11 +105,11 @@ set.add(new int[]{1, 2});
 System.out.println(set.size()); // 2
 ```
 
-Không được suy từ `Arrays.equals(first, second)` là `true` rằng `HashSet<int[]>` sẽ coi chúng là trùng nhau. Việc hai đối tượng có giá trị hash tình cờ giống nhau cũng không khiến chúng tự thành một phần tử: `HashSet` vẫn cần kiểm tra equality. Ngược lại, nếu thêm **chính instance mảng** hai lần, `HashSet` chỉ giữ một phần tử.
+Do not infer from `Arrays.equals(first, second)` being `true` that `HashSet<int[]>` will treat them as duplicates. Even if two objects happen to share a hash value, that does not merge them into one element: `HashSet` still checks equality. On the other hand, adding the **exact same array instance** twice keeps only one element in `HashSet`.
 
-### 3.3. HashMap: mảng dùng làm khóa vẫn được so theo identity
+### 3.3. HashMap: Arrays Used as Keys Are Still Compared by Identity
 
-Với `HashMap<int[], String>`, mảng khóa mới có cùng nội dung thường không tra được mapping được lưu bằng mảng khác:
+With `HashMap<int[], String>`, a new key array with identical contents generally cannot look up a mapping stored under another array:
 
 ```java
 Map<int[], String> map = new HashMap<>();
@@ -121,27 +121,27 @@ System.out.println(map.get(new int[]{1, 2})); // null
 System.out.println(map.get(key));              // stored
 ```
 
-*Đoạn minh họa dùng `java.util.Map` và `java.util.HashMap`.*
+*Illustrative snippet using `java.util.Map` and `java.util.HashMap`.*
 
-Điều này vẫn đúng về mặt hợp đồng `HashMap`: khóa mới không bằng khóa cũ theo `equals()` của mảng. Muốn map sử dụng **giá trị của mảng làm định danh**, cần gói dữ liệu mảng trong một kiểu khóa định nghĩa `equals()/hashCode()` theo nội dung, hoặc chuyển mảng thành một dạng key khác có semantics giá trị rõ ràng.
+This still conforms to the `HashMap` contract: the new key does not equal the old key under array `equals()`. To make the map use **the array's value as identity**, wrap the array data in a key type defining content-based `equals()/hashCode()`, or convert the array into another key type with clear value semantics.
 
-Còn nếu mảng là **giá trị** thay vì khóa, ví dụ `Map<String, int[]>`, việc `get("id")` được hay không dựa vào `String` làm khóa. Nhưng so sánh hai `Map<String, int[]>` bằng `Map.equals()` vẫn xét `equals()` của các **giá trị** tương ứng; hai mảng value khác tham chiếu nhưng cùng nội dung sẽ không tự được xem là bằng nhau.
+If the array is a **value** rather than a key, such as `Map<String, int[]>`, whether `get("id")` succeeds depends on `String` as the key. However, comparing two `Map<String, int[]>` instances with `Map.equals()` still checks `equals()` of the corresponding **values**; two value arrays with different references and identical contents will not automatically be considered equal.
 
-## 4. Những phương thức Arrays nào thực sự so nội dung?
+## 4. Which `Arrays` Methods Actually Compare Contents?
 
-`java.util.Arrays` cung cấp các phép so sánh rõ ràng dành cho mảng:
+`java.util.Arrays` provides explicit comparison operations for arrays:
 
-| Phương thức | Tình huống áp dụng | Điểm cần nhớ |
+| Method | Applicable Scenario | Key Point to Remember |
 | --- | --- | --- |
-| `Arrays.equals(int[], int[])` và các overload primitive | So hai mảng nguyên thủy một chiều | So các phần tử cùng vị trí bằng quy tắc tương ứng với kiểu dữ liệu. |
-| `Arrays.equals(Object[], Object[])` | So mảng đối tượng một chiều | So từng phần tử bằng equality tương ứng; phần tử **lại là mảng** thì mặc định vẫn so identity của mảng con. |
-| `Arrays.deepEquals(Object[], Object[])` | So mảng đối tượng có cấu trúc lồng, gồm mảng con | Khi gặp mảng con, đi sâu theo nội dung; phù hợp với nhiều tình huống mảng đa chiều. |
-| `Arrays.hashCode(array)` | Tính hash theo nội dung một chiều | Phải đi cùng `Arrays.equals(...)` thích hợp khi làm kiểu khóa giá trị. |
-| `Arrays.deepHashCode(Object[])` | Hash theo nội dung mảng lồng | Đi cặp với `Arrays.deepEquals(...)` khi chọn chính sách equality sâu. |
-| `Arrays.toString(array)` | In mảng một chiều dễ đọc | Chỉ là biểu diễn; không định nghĩa equality. |
-| `Arrays.deepToString(Object[])` | In mảng lồng dễ đọc | Cũng chỉ dùng cho biểu diễn, không làm thay đổi equality. |
+| `Arrays.equals(int[], int[])` and primitive overloads | Comparing two 1D primitive arrays | Compares elements at matching positions using rules for that data type. |
+| `Arrays.equals(Object[], Object[])` | Comparing 1D object arrays | Compares each element using its equality; if an element **is itself an array**, it still defaults to inner array identity. |
+| `Arrays.deepEquals(Object[], Object[])` | Comparing nested object arrays, including subarrays | When encountering a subarray, recurses by content; suitable for many multidimensional array cases. |
+| `Arrays.hashCode(array)` | Computing 1D content-based hash | Must pair with the matching `Arrays.equals(...)` when creating a value key type. |
+| `Arrays.deepHashCode(Object[])` | Hash based on nested array contents | Pairs with `Arrays.deepEquals(...)` when choosing deep equality policy. |
+| `Arrays.toString(array)` | Printing a 1D array readably | Representation only; does not define equality. |
+| `Arrays.deepToString(Object[])` | Printing nested arrays readably | Also for representation only; does not alter equality. |
 
-Ví dụ mảng hai chiều trong Java thực chất là **mảng các mảng**, nên:
+For example, a two-dimensional array in Java is actually an **array of arrays**, so:
 
 ```java
 int[][] a = {{1, 2}, {3}};
@@ -151,19 +151,19 @@ System.out.println(Arrays.equals(a, b));     // false
 System.out.println(Arrays.deepEquals(a, b)); // true
 ```
 
-Ở đây `Arrays.equals(a, b)` được chọn theo overload `Object[]` vì `int[][]` là mảng gồm các phần tử `int[]`. Hai phần tử `int[]` độc lập không bằng nhau theo `Object.equals()`. `Arrays.deepEquals(a, b)` nhận ra các mảng con và so nội dung nguyên thủy tương ứng.
+Here `Arrays.equals(a, b)` resolves to the `Object[]` overload because `int[][]` is an array of `int[]` elements. The two independent `int[]` elements are not equal under `Object.equals()`. `Arrays.deepEquals(a, b)` recognizes the subarrays and compares their corresponding primitive contents.
 
-Lưu ý sự khác nhau giữa các kiểu:
+Note the differences among the cases:
 
 - `Arrays.equals(new int[]{1,2}, new int[]{1,2})` → `true`.
-- `Arrays.equals(new int[][]{{1}}, new int[][]{{1}})` → `false` vì so hai mảng con theo tham chiếu.
+- `Arrays.equals(new int[][]{{1}}, new int[][]{{1}})` → `false` because it compares the two subarrays by reference.
 - `Arrays.deepEquals(new int[][]{{1}}, new int[][]{{1}})` → `true`.
 
-Nếu chỉ cần xử lý mảng nguyên thủy một chiều, `Arrays.equals()` là lựa chọn trực tiếp và dễ hiểu. Với mảng lồng, dùng `deepEquals` khi ngữ nghĩa nghiệp vụ thật sự cần so đến nội dung các cấp. Các phương thức `Arrays.equals` không biến mảng thành object có `equals()` theo nội dung cho những nơi khác sử dụng.
+If you only handle one-dimensional primitive arrays, `Arrays.equals()` is the direct, clear choice. For nested arrays, use `deepEquals` when business semantics genuinely require comparing contents across levels. The `Arrays.equals` methods do not turn arrays into objects with content-based `equals()` for other code to use.
 
-## 5. Vì sao việc bọc bằng List.of, Arrays.asList hay List.copyOf chưa đủ?
+## 5. Why Wrapping with `List.of`, `Arrays.asList`, or `List.copyOf` Is Not Enough
 
-Một sai lầm thường gặp là cho rằng chỉ cần đặt mảng vào một list bất biến thì equality của mảng sẽ trở thành equality theo nội dung. Trên thực tế:
+A common mistake is thinking that simply placing arrays inside an unmodifiable list turns array equality into content-based equality. In reality:
 
 ```java
 int[] a = {1, 2};
@@ -175,20 +175,20 @@ List<int[]> second = List.of(b);
 System.out.println(first.equals(second)); // false
 ```
 
-`List.of(...)` tạo list không sửa được cấu trúc, **không sao chép sâu phần tử mảng** và không ghi đè phương thức của `int[]`. Nếu đổi `a[0]`, nội dung array đang chứa trong `first` cũng đổi. Tương tự, `List.copyOf(...)` tạo list không sửa được cấu trúc với các phần tử của nguồn, nhưng vẫn có thể chứa các object mutable.
+`List.of(...)` creates a structurally unmodifiable list; it **does not deep-copy array elements** and does not override `int[]`'s methods. If `a[0]` is modified, the contents of the array stored inside `first` also change. Similarly, `List.copyOf(...)` creates a structurally unmodifiable list of the source's elements, yet can still hold mutable objects.
 
-`Arrays.asList(...)` cũng dễ gây nhầm lẫn với mảng primitive. Đặc biệt:
+`Arrays.asList(...)` also causes confusion with primitive arrays. Specifically:
 
 ```java
 List<int[]> oneElement = Arrays.asList(new int[]{1, 2, 3});
 System.out.println(oneElement.size()); // 1
 ```
 
-Đây là một list **có một phần tử kiểu `int[]`**, không phải `List<Integer>` có ba phần tử. Primitive `int[]` không tự tách và boxing thành ba `Integer` cho lời gọi varargs này.
+This is a list **with one element of type `int[]`**, not a `List<Integer>` with three elements. A primitive `int[]` is not automatically unpacked and boxed into three `Integer` objects for this varargs call.
 
-Đối với mảng tham chiếu `String[]`, `Arrays.asList(stringArray)` thường tạo danh sách các phần tử `String` vì `String[]` khớp trực tiếp tham số varargs `T...`. Hai trường hợp rất khác nhau nên cần kiểm tra kiểu generic và ý nghĩa chính xác của dữ liệu.
+For a reference array `String[]`, `Arrays.asList(stringArray)` normally creates a list of `String` elements because `String[]` matches the `T...` varargs parameter directly. The two cases behave very differently, so always check the generic type and exact meaning of the data.
 
-Nếu muốn một `List<Integer>` từ `int[]`, có thể chủ động boxing:
+If you want a `List<Integer>` from `int[]`, you can box explicitly:
 
 ```java
 int[] source = {1, 2, 3};
@@ -199,13 +199,13 @@ List<Integer> values = Arrays.stream(source)
 System.out.println(values.equals(List.of(1, 2, 3))); // true
 ```
 
-Trong Java 17+, `Stream.toList()` tạo list không sửa được cấu trúc. Các phần tử lúc này là `Integer`, nên equality của phần tử xét giá trị. Cách chuyển đổi này thay đổi mô hình dữ liệu và có chi phí boxing; chỉ nên dùng khi thật sự cần list các số nguyên theo giá trị.
+In Java 17+, `Stream.toList()` creates a structurally unmodifiable list. The elements are now `Integer`, so element equality checks values. This conversion changes the data model and incurs boxing overhead; use it only when you truly need a value-based list of integers.
 
-## 6. Chương trình Java 17+ hoàn chỉnh, có thể tự chạy
+## 6. Complete, Standalone Runnable Java 17+ Program
 
-Chương trình minh họa một chuỗi hành vi cụ thể: array identity, `List.contains()`, `HashSet`, `HashMap`, so mảng lồng, sự khác biệt của `Arrays.asList` và một **wrapper so nội dung**.
+The program demonstrates a concrete sequence of behaviors: array identity, `List.contains()`, `HashSet`, `HashMap`, nested array comparison, the `Arrays.asList` distinction, and a **content-comparing wrapper**.
 
-Tạo tệp `ArrayCollectionEqualityDemo.java`:
+Create the file `ArrayCollectionEqualityDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -218,7 +218,7 @@ import java.util.Set;
 
 public class ArrayCollectionEqualityDemo {
 
-    // Value wrapper: bảo vệ snapshot và định nghĩa equality theo nội dung.
+    // Value wrapper: protects snapshot and defines content-based equality.
     record IntArrayKey(int[] values) {
         IntArrayKey {
             Objects.requireNonNull(values, "values");
@@ -290,22 +290,22 @@ public class ArrayCollectionEqualityDemo {
 
         int[] source = {5, 6};
         IntArrayKey snapshot = new IntArrayKey(source);
-        source[0] = 9;               // Sửa input sau constructor.
+        source[0] = 9;               // Mutate input after constructor.
         int[] exported = snapshot.values();
-        exported[0] = 10;            // Sửa array trả ra từ accessor.
+        exported[0] = 10;            // Mutate array returned from accessor.
         System.out.println(Arrays.toString(snapshot.values()));
     }
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ArrayCollectionEqualityDemo.java
 java ArrayCollectionEqualityDemo
 ```
 
-Stdout theo đúng thứ tự:
+Stdout in exact order:
 
 ```text
 false
@@ -328,59 +328,59 @@ number-sequence
 [5, 6]
 ```
 
-Giải thích kết quả:
+Explanation of results:
 
-1. Ba dòng đầu lần lượt cho biết hai instance mảng khác nhau, `Object.equals()` của array vẫn so tham chiếu, nhưng `Arrays.equals` so nội dung là `true`.
-2. `listA.equals(listB)` và `listA.contains(b)` đều `false` vì phần tử mảng `a` và `b` không `equals()` nhau. `listA.contains(a)` là `true` vì đây là cùng đối tượng.
-3. `rawSet.size() == 2`: cùng nội dung không bị loại trùng khi phần tử là hai đối tượng array khác nhau. Tìm bằng mảng mới tiếp tục thất bại.
-4. `rawMap.get(b)` là `null` còn `rawMap.get(a)` là `stored`: làm khóa `HashMap` bằng array mặc định là chọn **identity của array**, không chọn nội dung.
-5. Với hai mảng hai chiều, `Arrays.equals` cho `false` vì mảng con khác tham chiếu; `Arrays.deepEquals` cho `true` vì nội dung lồng giống nhau.
-6. Hai `List<Integer>` cùng dãy giá trị bằng nhau; `Arrays.asList(new int[]{...})` lại chỉ có một phần tử `int[]`.
-7. `valueList.contains(new IntArrayKey(b))` là `true`: wrapper cung cấp equality theo nội dung. `valueSet.size()` là `1` vì hai wrapper có cùng nội dung khóa. Tra cứu `valueMap` bằng wrapper tạo mới thành công.
-8. `snapshot` vẫn in `[5, 6]` dù mảng đầu vào đã bị sửa và accessor trả ra mảng đã bị sửa: wrapper chủ động **copy phòng vệ** ở cả lúc nhận và lúc trả dữ liệu.
+1. The first three lines show respectively that the two array instances differ, array `Object.equals()` still compares references, whereas `Arrays.equals` compares contents and returns `true`.
+2. `listA.equals(listB)` and `listA.contains(b)` are both `false` because array elements `a` and `b` are not `equals()`. `listA.contains(a)` is `true` because it is the same object.
+3. `rawSet.size() == 2`: identical contents are not deduplicated when elements are two distinct array objects. Searching with a new array continues to fail.
+4. `rawMap.get(b)` is `null` while `rawMap.get(a)` is `stored`: using a raw array as a `HashMap` key defaults to **array identity**, not contents.
+5. For two 2D arrays, `Arrays.equals` yields `false` because the subarrays have different references; `Arrays.deepEquals` yields `true` because nested contents match.
+6. Two `List<Integer>` instances with the same value sequence are equal; `Arrays.asList(new int[]{...})` still has only one `int[]` element.
+7. `valueList.contains(new IntArrayKey(b))` is `true`: the wrapper provides content-based equality. `valueSet.size()` is `1` because the two wrappers have the same key content. Looking up `valueMap` with a newly created wrapper succeeds.
+8. `snapshot` still prints `[5, 6]` even though the input array was mutated and the array returned by the accessor was mutated: the wrapper actively performs **defensive copying** both on input and on output.
 
-Kết quả không phụ thuộc vào giá trị số cụ thể của `Object.hashCode()`, vì chương trình không in identity hash hay thứ tự duyệt `HashSet`.
+The output does not depend on specific numeric values of `Object.hashCode()`, because the program prints neither identity hashes nor `HashSet` iteration order.
 
-## 7. Tạo value wrapper đúng cách: equals, hashCode và bất biến
+## 7. Building a Proper Value Wrapper: equals, hashCode, and Immutability
 
-Khi thật sự cần mảng **là một khóa giá trị**, lớp bọc thường rõ ràng hơn cố dùng trực tiếp `int[]`. `IntArrayKey` trong chương trình có ba trách nhiệm:
+When you genuinely need an array **as a value key**, a wrapper class is usually clearer than trying to use `int[]` directly. `IntArrayKey` in the program has three responsibilities:
 
-**(1) Equality theo nội dung:** `Arrays.equals(values, that.values)` quyết định hai khóa có cùng dãy số và thứ tự hay không.
+**(1) Content-based equality:** `Arrays.equals(values, that.values)` determines whether two keys have the same sequence of numbers and order.
 
-**(2) Hash tương thích:** `Arrays.hashCode(values)` phản ánh nội dung đúng theo `Arrays.equals(...)`. Nếu hai wrapper bằng nhau, chúng có cùng hash. Không được chỉ ghi đè `equals()` rồi giữ hash mặc định của `Object`.
+**(2) Compatible hash:** `Arrays.hashCode(values)` reflects contents consistently with `Arrays.equals(...)`. If two wrappers are equal, they have the same hash. Never override `equals()` alone while keeping `Object`'s default hash.
 
-**(3) Snapshot ổn định:** constructor `Arrays.copyOf(...)` để ngăn code ngoài sửa array đã giao, và accessor cũng trả bản sao. Nếu chỉ có `private final int[] values` nhưng lưu trực tiếp array đầu vào, code ngoài vẫn có thể thay các phần tử. Khi làm khóa `HashMap` hoặc phần tử `HashSet`, nội dung mutable làm hash thay đổi có thể khiến thao tác tra cứu hoạt động sai.
+**(3) Stable snapshot:** the constructor calls `Arrays.copyOf(...)` to prevent external code from mutating the passed-in array, and the accessor also returns a copy. If you only have `private final int[] values` yet store the input array directly, external code can still alter its elements. When used as a `HashMap` key or `HashSet` element, mutable contents changing the hash can break lookup operations.
 
-Một `record` thông thường như:
+A plain `record` such as:
 
 ```java
 record BadArrayKey(int[] values) {}
 ```
 
-**không tự có equality theo nội dung mảng**. Record mặc định tính equality theo các component, nhưng component là mảng vẫn được so theo equality của array; `new BadArrayKey(new int[]{1,2})` và một `BadArrayKey` khác chứa mảng `{1,2}` riêng biệt không tự bằng nhau. `record` cũng không tự sao chép sâu các object tham chiếu. Nếu dùng record làm wrapper, cần ghi đè `equals()/hashCode()` tương thích và bảo vệ dữ liệu mutable như ví dụ đầy đủ.
+**does not automatically get content-based array equality**. A record computes equality across its components by default, yet an array component is still compared using array equality; `new BadArrayKey(new int[]{1,2})` and another `BadArrayKey` holding a separate `{1,2}` array are not automatically equal. A `record` also does not automatically deep-copy referenced objects. When using a record as a wrapper, override compatible `equals()/hashCode()` and protect mutable data as in the full example.
 
-### Mảng đối tượng, mảng lồng và wrapper tổng quát
+### Object Arrays, Nested Arrays, and General Wrappers
 
-Nếu mảng chứa `String` hoặc value object có `equals()` thích hợp, dùng `Arrays.equals(Object[], Object[])` có thể đủ vì nó so từng phần tử bằng nhau theo equality của phần tử.
+If an array contains `String` or value objects with proper `equals()`, using `Arrays.equals(Object[], Object[])` can suffice because it compares each element using element equality.
 
-Nếu mỗi phần tử lại là mảng, `Arrays.equals(Object[], Object[])` có thể vẫn so identity của mảng con. Khi bài toán cần so toàn bộ cấu trúc lồng, cân nhắc `Arrays.deepEquals` và `Arrays.deepHashCode` theo cặp. Cần xác định trước xem thứ tự và phân biệt `null` ở các cấp có quan trọng không; `deepEquals` không phải chính sách chuẩn cho mọi đồ thị đối tượng tùy ý.
+If each element is itself an array, `Arrays.equals(Object[], Object[])` will still compare subarray identity. When the problem requires comparing the entire nested structure, consider pairing `Arrays.deepEquals` and `Arrays.deepHashCode`. Determine beforehand whether order and `null` distinction at each level matter; `deepEquals` is not a universal policy for arbitrary object graphs.
 
-Nếu phần tử mảng là đối tượng mutable khác, dù wrapper đã `Arrays.copyOf` lớp mảng bên ngoài, **các phần tử tham chiếu bên trong vẫn được chia sẻ**. Muốn snapshot thực sự ổn định, phải áp dụng copy phòng vệ hoặc thiết kế bất biến cho các phần tử có ảnh hưởng equality/hash. Không có cơ chế tự sao chép sâu mọi object graph trong Java.
+If array elements are other mutable objects, even if the wrapper runs `Arrays.copyOf` on the outer array, **the inner referenced elements remain shared**. To get a truly stable snapshot, apply defensive copying or immutable design to elements that affect equality/hash. Java has no built-in mechanism to automatically deep-copy every object graph.
 
-## 8. Khi nào có thể dùng array identity, khi nào cần so theo giá trị?
+## 8. When Is Array Identity Fine, and When Is Value Comparison Needed?
 
-Không phải dùng mảng làm phần tử hay khóa Collection luôn sai. Quyết định phụ thuộc vào nghĩa của dữ liệu:
+Using an array as a Collection element or key is not always wrong. The decision depends on what the data means:
 
-| Nhu cầu | Hướng xử lý |
+| Need | Approach |
 | --- | --- |
-| Theo dõi **chính instance mảng** như một buffer/tài nguyên riêng | Giữ tham chiếu mảng trực tiếp có thể phù hợp, vì identity là điều mong muốn. |
-| Chỉ cần in hoặc so sánh hai mảng độc lập một lần | Dùng `Arrays.toString` hoặc `Arrays.equals`/`Arrays.deepEquals` trực tiếp, không cần wrapper. |
-| `List` chứa các dãy số và muốn `contains` nhận dãy khác instance nhưng cùng nội dung | Dùng value wrapper hoặc biểu diễn bằng `List<Integer>` nếu mô hình và chi phí boxing phù hợp. |
-| `HashSet` phải loại các mảng có cùng nội dung | Bọc bằng kiểu có equality/hash theo nội dung và snapshot ổn định. |
-| `HashMap` dùng mảng làm khóa logic | Dùng wrapper bất biến với `equals()` và `hashCode()` tương ứng, hoặc encode khóa bằng một value type thích hợp. |
-| Cấu trúc mảng nhiều cấp cần so sâu | Dùng `Arrays.deepEquals/deepHashCode` theo cặp khi phù hợp với semantics cần thiết. |
+| Tracking **the specific array instance** as a buffer or dedicated resource | Keeping the array reference directly may be appropriate, because identity is desired. |
+| Only needing to print or compare two independent arrays once | Use `Arrays.toString` or `Arrays.equals`/`Arrays.deepEquals` directly, without a wrapper. |
+| `List` holding number sequences where `contains` should match a different instance with the same contents | Use a value wrapper or represent as `List<Integer>` if the model and boxing cost fit. |
+| `HashSet` needing to deduplicate arrays with identical contents | Wrap in a type with content-based equality/hash and a stable snapshot. |
+| `HashMap` using an array as a logical key | Use an immutable wrapper with matching `equals()` and `hashCode()`, or encode the key as a suitable value type. |
+| Multi-level array structures needing deep comparison | Pair `Arrays.deepEquals/deepHashCode` when appropriate for the required semantics. |
 
-Một cách chuyển `int[]` thành `List<Integer>` trong Java 17+ là:
+One way to convert `int[]` into `List<Integer>` in Java 17+ is:
 
 ```java
 int[] input = {1, 2, 3};
@@ -392,47 +392,47 @@ List<Integer> values = Arrays.stream(input)
 System.out.println(values.equals(List.of(1, 2, 3))); // true
 ```
 
-*Đoạn minh họa nằm trong phương thức đã import `Arrays` và `List`.* Đây là **chuyển đổi mô hình từ mảng nguyên thủy thành list phần tử boxed**, không phải thay đổi equality của `int[]`. Có chi phí boxing và bộ nhớ cho collection, nên cân nhắc theo mục đích. Nếu cần xử lý một dãy primitive mà không cần Collection semantics, tiếp tục dùng array và `Arrays.equals` có thể đơn giản hơn.
+*Illustrative snippet inside a method with `Arrays` and `List` imported.* This is a **model conversion from a primitive array to a list of boxed elements**, not changing the equality of `int[]`. It has boxing and collection memory overhead, so weigh it against your goal. If you need to process a primitive sequence without Collection semantics, continuing to use arrays and `Arrays.equals` may be simpler.
 
-## 9. Các lỗi thường gặp
+## 9. Common Mistakes
 
-**Lỗi 1 — Nghĩ `Collection.equals()` tự so sâu tất cả kiểu phần tử.** Equality của Collection thường đi qua equality của từng phần tử. Phần tử mảng khác instance thì `equals()` mặc định không so nội dung.
+**Mistake 1 — Thinking `Collection.equals()` automatically deep-compares all element types.** Collection equality normally delegates to each element's equality. For array elements of different instances, default `equals()` does not compare contents.
 
-**Lỗi 2 — Dùng `array.toString()` để tạo khóa.** Mảng thường có chuỗi biểu diễn kiểu/tên lớp và hash, không mô tả nội dung như `Arrays.toString(array)`. Dù dùng `Arrays.toString` để in, không nên tự động coi chuỗi mô tả là kiểu khóa thay vì value type có hợp đồng rõ ràng.
+**Mistake 2 — Using `array.toString()` to build keys.** Arrays typically produce a string showing class/type name and hash, not contents like `Arrays.toString(array)`. Even when using `Arrays.toString` for printing, do not casually treat formatted strings as keys instead of a value type with a clear contract.
 
-**Lỗi 3 — Dùng `Arrays.equals` cho mảng đa chiều rồi cho rằng đã so sâu.** Với `int[][]`, phần tử bên ngoài là `int[]` nên `Arrays.equals` chỉ so equality mặc định của mảng con. Nếu muốn so từng giá trị lồng, dùng `Arrays.deepEquals`.
+**Mistake 3 — Using `Arrays.equals` on multidimensional arrays and assuming deep comparison.** For `int[][]`, the outer elements are `int[]`, so `Arrays.equals` only checks default equality of the subarrays. To compare nested values, use `Arrays.deepEquals`.
 
-**Lỗi 4 — Bọc array trong `record` rồi nghĩ equality đã theo nội dung.** Record equality vẫn dùng semantics của từng component, mà array component là kiểu tham chiếu với equality theo identity. Muốn nội dung, ghi đè đúng `equals()/hashCode()`.
+**Mistake 4 — Wrapping an array in a `record` and assuming content equality.** Record equality still uses each component's semantics, and an array component is a reference type with identity equality. For content equality, override `equals()/hashCode()` properly.
 
-**Lỗi 5 — Quên hashCode của wrapper.** `HashSet`, `HashMap` dựa vào cả `hashCode` và `equals`. Wrapper có content equality nhưng identity hash có thể phá contract và làm lookup thất bại.
+**Mistake 5 — Forgetting the wrapper's `hashCode`.** `HashSet` and `HashMap` rely on both `hashCode` and `equals`. A wrapper with content equality but identity hash breaks the contract and causes lookups to fail.
 
-**Lỗi 6 — Chỉ đánh dấu trường array là `final`.** `final` ngăn gán một mảng khác vào trường nhưng không ngăn `values[0] = ...`. Nếu nội dung tham gia hash, phải bảo vệ snapshot.
+**Mistake 6 — Only marking the array field `final`.** `final` prevents reassigning another array to the field, not `values[0] = ...`. If contents participate in hashing, protect the snapshot.
 
-**Lỗi 7 — Nhầm `Arrays.asList(int[])` thành `List<Integer>`.** Nó tạo một list có một phần tử `int[]`. Muốn từng số nguyên như phần tử Collection, cần boxing/chuyển đổi tường minh.
+**Mistake 7 — Confusing `Arrays.asList(int[])` with `List<Integer>`.** It creates a list with a single `int[]` element. To treat each integer as a Collection element, explicit boxing/conversion is required.
 
-**Lỗi 8 — Đồng nhất mọi dạng Map theo `equals()`.** `IdentityHashMap` dùng identity một cách chủ đích; `TreeMap` chọn tương đương khóa theo `Comparator`/`Comparable`; bài này nói về các collection/map thông thường sử dụng hợp đồng equality của phần tử/khóa, đặc biệt `List`, `HashSet`, `HashMap`.
+**Mistake 8 — Treating all Map types identically under `equals()`.** `IdentityHashMap` intentionally uses identity; `TreeMap` determines key equivalence via `Comparator`/`Comparable`; this lesson covers standard collections/maps using element/key equality contracts, especially `List`, `HashSet`, and `HashMap`.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Hai mảng `int[]` riêng biệt cùng chứa `{4,5}` có bằng nhau theo `Object.equals()` không?  
-**Đáp án:** Không. Mảng dùng reference equality mặc định; `Arrays.equals` mới so nội dung một chiều.
+**Q1.** Are two separate `int[]` arrays both containing `{4,5}` equal under `Object.equals()`?  
+**Answer:** No. Arrays use reference equality by default; `Arrays.equals` is what compares 1D contents.
 
-**Câu 2.** `new HashSet<int[]>()` thêm hai mảng mới cùng dữ liệu có thể có `size() == 1` vì nội dung trùng không?  
-**Đáp án:** Không. Khi cả hai là instance riêng, Set coi là hai phần tử khác nhau; `size() == 2`.
+**Q2.** Can `new HashSet<int[]>()` adding two new arrays with identical data end up with `size() == 1` because of duplicate contents?  
+**Answer:** No. Since both are separate instances, the Set treats them as two distinct elements; `size() == 2`.
 
-**Câu 3.** `List.of(new int[]{1}).equals(List.of(new int[]{1}))` cho kết quả gì?  
-**Đáp án:** `false`, vì mỗi list có một phần tử là mảng khác tham chiếu.
+**Q3.** What does `List.of(new int[]{1}).equals(List.of(new int[]{1}))` return?  
+**Answer:** `false`, because each list has one element that is an array with a different reference.
 
-**Câu 4.** `Arrays.deepEquals` và `Arrays.equals` khác nhau như thế nào với `int[][]`?  
-**Đáp án:** `Arrays.equals` so mỗi mảng con theo equality mặc định của mảng, còn `deepEquals` so tiếp nội dung các mảng con.
+**Q4.** How do `Arrays.deepEquals` and `Arrays.equals` differ for `int[][]`?  
+**Answer:** `Arrays.equals` compares each subarray using default array equality, whereas `deepEquals` recurses into the contents of subarrays.
 
-**Câu 5.** Một record có component `int[]` được Java tự sinh equality theo nội dung array chưa?  
-**Đáp án:** Chưa. Cần định nghĩa equality/hash theo `Arrays.equals/Arrays.hashCode` và bảo vệ tính bất biến nếu dùng làm khóa.
+**Q5.** Does Java automatically generate content-based array equality for a record with an `int[]` component?  
+**Answer:** No. You must define equality/hash using `Arrays.equals/Arrays.hashCode` and protect immutability if used as a key.
 
-**Câu 6.** Muốn tra cứu `HashMap` bằng một array khác instance nhưng cùng nội dung thì nên làm gì?  
-**Đáp án:** Dùng value wrapper bất biến có `equals()` và `hashCode()` theo nội dung, hoặc chuyển biểu diễn khóa thành value type phù hợp; đừng dùng `int[]` trực tiếp nếu cần content equality.
+**Q6.** What should you do if you want to look up a `HashMap` using an array of a different instance with the same contents?  
+**Answer:** Use an immutable value wrapper with content-based `equals()` and `hashCode()`, or convert the key representation to an appropriate value type; do not use `int[]` directly when content equality is needed.
 
-**Câu 7.** Vì sao wrapper phải copy mảng ở constructor và accessor khi nội dung dùng làm khóa?  
-**Đáp án:** Để bên ngoài không thể thay giá trị tham gia equality/hash trong thời gian object nằm trong collection băm.
+**Q7.** Why must a wrapper copy the array in both the constructor and accessor when its contents are used as a key?  
+**Answer:** So external code cannot alter values participating in equality/hash while the object resides in a hash collection.
 
-Điểm cần nhớ: **Collection tuân theo hợp đồng equality của đối tượng phần tử. Mảng Java tự thân dùng identity equality; `Arrays.equals/deepEquals` chỉ so nội dung khi bạn gọi rõ ràng.** Nếu nghiệp vụ cần các mảng khác instance nhưng cùng nội dung được xem là cùng giá trị trong `List`, `Set` hoặc `Map`, hãy biểu diễn chúng bằng một kiểu khóa hoặc phần tử có content equality và hash tương thích.
+Point to remember: **A Collection obeys the equality contract of its element objects. Java arrays themselves use identity equality; `Arrays.equals/deepEquals` compares contents only when you call it explicitly.** If business logic requires separate array instances with identical contents to be treated as the same value in a `List`, `Set`, or `Map`, represent them with a key or element type that has content-based equality and a compatible hash.

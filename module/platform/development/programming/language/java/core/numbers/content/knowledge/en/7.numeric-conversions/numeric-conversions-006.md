@@ -1,48 +1,48 @@
-# Chuyển NaN, vô cực và số ngoài phạm vi sang kiểu nguyên trong Java
+# Converting NaN, Infinity, and Out-of-Range Numbers to Integer Types in Java
 
-Trong Java, ép kiểu từ số dấu phẩy động (`float`, `double`) sang số nguyên (`byte`, `short`, `int`, `long`; và cả `char`) là **narrowing primitive conversion**. Đây không đơn thuần là “bỏ phần thập phân”: với **`NaN`**, **`+Infinity`**, **`-Infinity`** hoặc giá trị hữu hạn nằm ngoài miền kiểu đích, Java có các quy tắc chuyển đổi xác định.
+In Java, casting from a floating-point number (`float`, `double`) to an integer (`byte`, `short`, `int`, `long`; as well as `char`) is a **narrowing primitive conversion**. This is not merely "dropping the fractional part": for **`NaN`**, **`+Infinity`**, **`-Infinity`**, or finite values outside the target type's range, Java defines specific conversion rules.
 
-Ba điều cần ghi nhớ ngay:
+Three things to remember immediately:
 
-1. **Giá trị hữu hạn trong phạm vi:** bỏ phần phân số **hướng về 0**; ví dụ `(int) 3.9 == 3` và `(int) -3.9 == -3`.
-2. **Chuyển trực tiếp `float`/`double` sang `int` hoặc `long`:** `NaN` thành `0`; giá trị quá lớn hoặc `+Infinity` thành `MAX_VALUE`; giá trị quá âm hoặc `-Infinity` thành `MIN_VALUE`.
-3. **Chuyển sang `byte`, `short`, `char`:** Java **trước hết chuyển sang `int`**, sau đó thu hẹp `int` về kiểu nhỏ bằng cách bỏ các bit cao. Vì thế `(byte) Double.POSITIVE_INFINITY` thành **`-1`**, không phải `Byte.MAX_VALUE`.
+1. **Finite values within range:** drop the fractional part **toward 0**; for example, `(int) 3.9 == 3` and `(int) -3.9 == -3`.
+2. **Direct conversion of `float`/`double` to `int` or `long`:** `NaN` becomes `0`; overly large values or `+Infinity` become `MAX_VALUE`; overly negative values or `-Infinity` become `MIN_VALUE`.
+3. **Conversion to `byte`, `short`, `char`:** Java **converts to `int` first**, then narrows `int` to the smaller type by discarding high bits. Thus `(byte) Double.POSITIVE_INFINITY` becomes **`-1`**, not `Byte.MAX_VALUE`.
 
-Các chuyển đổi nguyên thủy này **không tự ném ngoại lệ do tràn miền**. Nếu chương trình cần từ chối dữ liệu không hữu hạn, vượt miền hoặc có phần lẻ, phải **kiểm tra rõ ràng trước khi cast**.
+These primitive conversions **do not automatically throw an exception on out-of-range overflow**. If a program must reject non-finite, out-of-range, or fractional data, it must **check explicitly before casting**.
 
-## 1. Nguồn và đích: chuyển kiểu nào đang được nói đến?
+## 1. Source and target: which conversion is being discussed?
 
-Bài này chỉ xét **giá trị kiểu `float` hoặc `double` khi chuyển sang kiểu nguyên**:
+This lesson covers only **`float` or `double` values converted to integer types**:
 
-| Kiểu đích | Miền giá trị |
+| Target type | Value range |
 | --- | --- |
-| `byte` | -128 đến 127 |
-| `short` | -32.768 đến 32.767 |
-| `int` | -2.147.483.648 đến 2.147.483.647 |
-| `long` | -9.223.372.036.854.775.808 đến 9.223.372.036.854.775.807 |
-| `char` | 0 đến 65.535 (đơn vị mã UTF-16, không dấu) |
+| `byte` | -128 to 127 |
+| `short` | -32,768 to 32,767 |
+| `int` | -2,147,483,648 to 2,147,483,647 |
+| `long` | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 |
+| `char` | 0 to 65,535 (UTF-16 code unit, unsigned) |
 
-`char` được đưa vào để hiểu đúng quy tắc chuyển kiểu của Java, nhưng không nên dùng `char` để lưu số lượng hoặc tính toán số nguyên thông thường.
+`char` is included to accurately understand Java's conversion rules, though `char` should not be used to store counts or perform ordinary integer arithmetic.
 
-`NaN` (*Not a Number*) và vô cực (`+Infinity`, `-Infinity`) là các giá trị đặc biệt của `float`/`double`, **không phải giá trị nguyên**. `NaN` có thể xuất hiện từ `0.0 / 0.0`, `+Infinity` có thể đến từ `1.0 / 0.0` hoặc overflow dấu phẩy động, `-Infinity` có thể đến từ `-1.0 / 0.0`. Ngoài ra, `Double.MAX_VALUE` tuy là **số hữu hạn** vẫn lớn hơn rất nhiều so với `Long.MAX_VALUE`.
+`NaN` (*Not a Number*) and infinities (`+Infinity`, `-Infinity`) are special values of `float`/`double`, **not integer values**. `NaN` can arise from `0.0 / 0.0`, `+Infinity` can come from `1.0 / 0.0` or floating-point overflow, and `-Infinity` can come from `-1.0 / 0.0`. Moreover, `Double.MAX_VALUE`, while a **finite number**, is vastly larger than `Long.MAX_VALUE`.
 
-Không nên đánh đồng ba tình huống:
+Do not conflate three situations:
 
-- **Phần lẻ trong miền:** có thể cắt về 0 mà không chạm biên, ví dụ `7.8 → 7`.
-- **Ngoài miền:** có thể nhận giá trị giới hạn `MAX_VALUE`/`MIN_VALUE` khi chuyển trực tiếp thành `int`/`long`.
-- **`NaN` hoặc vô cực:** là giá trị đặc biệt và được xử lý theo quy tắc riêng; bản thân không chứa một số nguyên hữu hạn cần chuyển.
+- **In-range fractional part:** can be truncated toward 0 without hitting bounds, e.g. `7.8 → 7`.
+- **Out of range:** can receive the boundary value `MAX_VALUE`/`MIN_VALUE` when converting directly to `int`/`long`.
+- **`NaN` or infinity:** special values handled by dedicated rules; they do not contain a finite integer to convert.
 
-## 2. Quy tắc chính xác theo Java: chuyển sang `int` hoặc `long`
+## 2. Exact Java rules: converting to `int` or `long`
 
-Theo quy tắc thu hẹp từ dấu phẩy động sang số nguyên của Java, khi kiểu đích là `int` hoặc `long`, có thể hình dung thành ba bước:
+According to Java's floating-point-to-integer narrowing rules, when the target type is `int` or `long`, it can be pictured in three steps:
 
-1. Nếu nguồn là **`NaN`**, kết quả là **`0`** thuộc kiểu đích.
-2. Nếu nguồn là **số hữu hạn khác NaN** và phần nguyên sau khi cắt về 0 nằm trong phạm vi, kết quả là phần nguyên đó.
-3. Nếu độ lớn vượt miền (kể cả **`+Infinity`/`-Infinity`**), kết quả **bị chặn tại biên đích**: lớn quá → `MAX_VALUE`, âm quá → `MIN_VALUE`.
+1. If the source is **`NaN`**, the result is **`0`** of the target type.
+2. If the source is a **finite non-NaN number** and the integer part after truncating toward 0 fits in range, the result is that integer part.
+3. If the magnitude exceeds the range (including **`+Infinity`/`-Infinity`**), the result **is clamped at the target bound**: too large → `MAX_VALUE`, too negative → `MIN_VALUE`.
 
-Bước 2 sử dụng **truncation toward zero**, không phải làm tròn đến số nguyên gần nhất:
+Step 2 uses **truncation toward zero**, not rounding to the nearest integer:
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 | --- | ---: |
 | `(int) 3.9` | `3` |
 | `(int) -3.9` | `-3` |
@@ -55,33 +55,33 @@ Bước 2 sử dụng **truncation toward zero**, không phải làm tròn đế
 | `(int) 1e100` | `2147483647` |
 | `(long) -1e100` | `-9223372036854775808` |
 
-**Điểm quan trọng:** `(int) Double.POSITIVE_INFINITY` cho `Integer.MAX_VALUE`, nhưng điều này **không có nghĩa** vô cực là một số nguyên lớn có thể lưu chính xác. Java chỉ quy định một kết quả cast. Dữ liệu ban đầu đã không thể biểu diễn trong `int`.
+**Key point:** `(int) Double.POSITIVE_INFINITY` yields `Integer.MAX_VALUE`, but that **does not mean** infinity is a large integer that can be stored accurately. Java simply defines a cast result. The original data was already unrepresentable in `int`.
 
-Tương tự, `(int) 1e100` và `(int) Double.POSITIVE_INFINITY` có thể cùng ra `Integer.MAX_VALUE`. Nhìn giá trị `int` cuối cùng **không thể biết** nó đến từ số hợp lệ, từ số lớn bị chặn hay từ vô cực; vì vậy không nên chỉ dựa vào kết quả sau cast để xác nhận dữ liệu.
+Similarly, `(int) 1e100` and `(int) Double.POSITIVE_INFINITY` can both produce `Integer.MAX_VALUE`. Looking at the final `int` value, **you cannot tell** whether it came from a valid number, a clamped large number, or infinity; therefore, do not rely solely on the post-cast result to validate data.
 
-Các phép cast này **khác hẳn** việc thu hẹp `long` sang `int`. Với `long → int`, Java bỏ các bit cao nên `(int) 3_000_000_000L` bằng `-1294967296`. Với `double → int`, giá trị nguồn `3_000_000_000.0` lại thành **`2147483647`** do quy tắc chuyển từ dấu phẩy động.
+These casts are **completely different** from narrowing `long` to `int`. For `long → int`, Java discards the high bits, so `(int) 3_000_000_000L` equals `-1294967296`. For `double → int`, the source value `3_000_000_000.0` instead becomes **`2147483647`** due to floating-point conversion rules.
 
-## 3. Vì sao `byte` và `short` xử lý khác `int`?
+## 3. Why do `byte` and `short` behave differently from `int`?
 
-Với đích là `byte`, `short` hoặc `char`, Java áp dụng quy trình **hai giai đoạn**:
+For targets `byte`, `short`, or `char`, Java applies a **two-stage** process:
 
-1. Thu hẹp `float`/`double` sang **`int`**, theo quy tắc `NaN → 0`, cắt về 0, chặn biên `int` nếu ngoài miền.
-2. Thu hẹp giá trị `int` trung gian sang `byte`, `short` hay `char` bằng cách **giữ lại các bit thấp** phù hợp với kiểu đích.
+1. Narrow `float`/`double` to **`int`**, following `NaN → 0`, truncate toward 0, clamp to `int` bounds if out of range.
+2. Narrow the intermediate `int` value to `byte`, `short`, or `char` by **keeping the low bits** matching the target type.
 
-Đối với số có dấu `byte`/`short`, mẫu bit được diễn giải theo bù hai; với `char` là giá trị không dấu 16 bit. Bước thứ hai **không phải clamp về giới hạn `byte`/`short`**.
+For signed `byte`/`short`, the bit pattern is interpreted in two's complement; for `char`, it is a 16-bit unsigned value. The second step **does not clamp to `byte`/`short` limits**.
 
-Ví dụ chuyển `+Infinity` sang `byte`:
+Example of converting `+Infinity` to `byte`:
 
 ```text
 +Infinity
-  → chuyển double sang int: Integer.MAX_VALUE = 2147483647 (0x7FFFFFFF)
-  → chuyển int sang byte: giữ 8 bit thấp = 0xFF
-  → byte có dấu: -1
+  → convert double to int: Integer.MAX_VALUE = 2147483647 (0x7FFFFFFF)
+  → convert int to byte: keep low 8 bits = 0xFF
+  → signed byte: -1
 ```
 
-Vì thế:
+Therefore:
 
-| Biểu thức | Giá trị cuối |
+| Expression | Final value |
 | --- | ---: |
 | `(byte) Double.NaN` | `0` |
 | `(short) Double.NaN` | `0` |
@@ -91,15 +91,15 @@ Vì thế:
 | `(short) Double.NEGATIVE_INFINITY` | `0` |
 | `(byte) 130.9` | `-126` |
 | `(byte) 1e100` | `-1` |
-| `(char) Double.POSITIVE_INFINITY` | ký tự có mã `65535` |
+| `(char) Double.POSITIVE_INFINITY` | character with code `65535` |
 
-Ví dụ `(byte) 130.9`: bước 1 cắt `130.9` thành `int 130` (vẫn trong miền `int`), bước 2 giữ 8 bit thấp của `130` là `0x82`, diễn giải dạng `byte` có dấu thành **-126**. Đây là hai quy tắc liên tiếp, **không phải** làm tròn `130.9` xuống -126 theo số học.
+For example, `(byte) 130.9`: step 1 truncates `130.9` to `int 130` (still within `int` range), and step 2 keeps the low 8 bits of `130`, which is `0x82`, interpreted as signed `byte` **-126**. These are two consecutive rules, **not** arithmetically rounding `130.9` down to -126.
 
-**Không suy luận** rằng ép từ `double` sang `byte` luôn “saturate tại ±128”. Kết quả tùy **bit của `int` trung gian**; với `+Infinity`, kết quả `byte` âm là hoàn toàn hợp lệ theo đặc tả Java.
+**Do not infer** that casting from `double` to `byte` always "saturates at ±128." The result depends on the **bits of the intermediate `int`**; for `+Infinity`, a negative `byte` result is completely valid under the Java specification.
 
-## 4. Chuyển NaN: tại sao ra 0 mà không báo lỗi?
+## 4. Converting NaN: why does it produce 0 without an error?
 
-`Double.NaN` và `Float.NaN` đại diện cho trạng thái *Not a Number*. Với phép narrowing floating-point → integral, Java quy định `NaN` thành 0 ở bước chuyển sang `int` hoặc `long`. Nếu đích là `byte`, `short` hay `char`, `int 0` trung gian cũng cho kết quả 0.
+`Double.NaN` and `Float.NaN` represent the *Not a Number* state. For floating-point → integral narrowing, Java specifies that `NaN` becomes 0 in the conversion step to `int` or `long`. If the target is `byte`, `short`, or `char`, the intermediate `int 0` also yields 0.
 
 ```java
 int a = (int) Double.NaN;     // 0
@@ -107,15 +107,15 @@ long b = (long) Float.NaN;    // 0L
 byte c = (byte) Double.NaN;   // 0
 ```
 
-Điểm nguy hiểm là **0 có thể đồng thời là dữ liệu nghiệp vụ hợp lệ**. Nếu hệ thống nhận một giá trị đo không hợp lệ là `NaN` rồi cast thẳng sang `int`, kết quả `0` có thể bị hiểu sai thành “không có số lượng”, “nhiệt độ bằng 0” hoặc một mã trạng thái hợp lệ.
+The danger is that **0 can simultaneously be valid business data**. If a system receives an invalid measurement `NaN` and casts it straight to `int`, the result `0` can be misinterpreted as "zero quantity," "temperature equals 0," or a valid status code.
 
-Đừng dùng `value == Double.NaN` để phát hiện NaN: `NaN` không bằng chính nó trong phép so sánh dấu phẩy động. Dùng `Double.isNaN(value)` hoặc `Float.isNaN(value)`.
+Do not use `value == Double.NaN` to detect NaN: `NaN` is not equal to itself in floating-point comparisons. Use `Double.isNaN(value)` or `Float.isNaN(value)`.
 
-`Double.isFinite(value)`/`Float.isFinite(value)` thuận tiện hơn nếu **mọi giá trị đặc biệt** (NaN và cả ±Infinity) đều phải bị từ chối.
+`Double.isFinite(value)`/`Float.isFinite(value)` is more convenient when **all special values** (both NaN and ±Infinity) must be rejected.
 
-## 5. Vô cực: quy tắc ép kiểu khác phép chia cho 0
+## 5. Infinity: cast rules differ from division by zero
 
-`Double.POSITIVE_INFINITY` và `Double.NEGATIVE_INFINITY` là các giá trị hợp lệ của kiểu `double` theo ngữ nghĩa IEEE 754. Phép chia `1.0 / 0.0` trả `+Infinity`, khác với phép chia số nguyên `1 / 0`, vốn ném `ArithmeticException` khi thực hiện.
+`Double.POSITIVE_INFINITY` and `Double.NEGATIVE_INFINITY` are valid values of type `double` under IEEE 754 semantics. Dividing `1.0 / 0.0` returns `+Infinity`, unlike integer division `1 / 0`, which throws `ArithmeticException` when executed.
 
 ```java
 double positive = Double.POSITIVE_INFINITY;
@@ -128,13 +128,13 @@ long longMax = (long) positive; // Long.MAX_VALUE
 long longMin = (long) negative; // Long.MIN_VALUE
 ```
 
-Trong phép cast primitive này Java không ném `ArithmeticException`. Thay vào đó, giá trị vô cực **bị chặn** ở biên của `int`/`long` trước khi có thể tiếp tục thu hẹp sang kiểu nhỏ.
+In this primitive cast, Java does not throw `ArithmeticException`. Instead, infinity **is clamped** at the `int`/`long` boundary before any further narrowing to smaller types can happen.
 
-Tuy nhiên, có sự khác biệt giữa **giá trị nguồn trước cast** và **giá trị được chọn sau cast**. Một chương trình cần giữ ý nghĩa “nguồn bị lỗi/vô cực” phải kiểm tra nguồn **trước khi chuyển kiểu**; sau cast, thông tin rằng nó từng là vô cực đã biến mất.
+However, there is a difference between the **source value before the cast** and the **chosen value after the cast**. A program that needs to preserve the meaning "source was invalid/infinite" must inspect the source **before converting**; after the cast, the information that it was ever infinite is gone.
 
-## 6. Số hữu hạn ngoài miền vẫn bị chặn: không cần NaN hay Infinity
+## 6. Out-of-range finite numbers are still clamped: no NaN or Infinity needed
 
-Một `double` có thể hữu hạn và lớn hơn `Integer.MAX_VALUE` nhiều lần. Ví dụ `1e100` là hữu hạn, nhưng tích cực lớn hơn cả `Long.MAX_VALUE`:
+A `double` can be finite and many times larger than `Integer.MAX_VALUE`. For example, `1e100` is finite, yet vastly greater than even `Long.MAX_VALUE`:
 
 ```java
 double big = 1e100;
@@ -143,7 +143,7 @@ int toInt = (int) big;   // 2147483647
 long toLong = (long) big; // 9223372036854775807
 ```
 
-Số âm ngoài miền cũng bị chặn ở biên âm:
+Out-of-range negative numbers are also clamped at the negative boundary:
 
 ```java
 double small = -1e100;
@@ -152,18 +152,18 @@ int toInt = (int) small;   // -2147483648
 long toLong = (long) small; // -9223372036854775808
 ```
 
-Với giá trị chỉ hơi ngoài miền `int`:
+For a value just slightly outside `int` range:
 
 ```java
-double d = 2_147_483_648.0; // Integer.MAX_VALUE + 1, biểu diễn chính xác bằng double
-int converted = (int) d;    // 2147483647, không phải -2147483648
+double d = 2_147_483_648.0; // Integer.MAX_VALUE + 1, represented exactly as double
+int converted = (int) d;    // 2147483647, not -2147483648
 ```
 
-Điều này khác với cast `(int) 2_147_483_648L` từ `long`: cast `long → int` cắt bit, cho `-2147483648`. Với cast từ `double`, Java **chặn ở `Integer.MAX_VALUE`**. Phân biệt **kiểu nguồn** rất quan trọng trước khi dự đoán kết quả.
+This differs from casting `(int) 2_147_483_648L` from `long`: a `long → int` cast truncates bits, yielding `-2147483648`. When casting from `double`, Java **clamps at `Integer.MAX_VALUE`**. Distinguishing the **source type** is critical before predicting the result.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone runnable Java 17+ program
 
-Tạo tệp `FloatToIntegerDemo.java`:
+Create the file `FloatToIntegerDemo.java`:
 
 ```java
 public class FloatToIntegerDemo {
@@ -215,14 +215,14 @@ public class FloatToIntegerDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FloatToIntegerDemo.java
 java FloatToIntegerDemo
 ```
 
-Kết quả stdout (các giá trị đã được kiểm chứng trên JDK):
+Stdout output (values verified on the JDK):
 
 ```text
 3.9 -> int: 3
@@ -247,44 +247,44 @@ checkedInt(Infinity): rejected
 BigDecimal out of range: rejected
 ```
 
-Trong ví dụ này:
+In this example:
 
-- Các dòng `3.9`, `-3.9` và `-0.0` chứng minh phép chuyển sang `int` **cắt về 0**, bao gồm cả việc mất dấu của `-0.0`.
-- Các dòng `NaN`, `Infinity` và `1e100` chứng minh **0 hoặc chặn biên** khi đích trực tiếp là `int`/`long`.
-- Các dòng `byte` và `char` chứng minh **giai đoạn chuyển qua `int` rồi bỏ bit cao**.
-- Hàm `checkedInt` minh họa **phát hiện dữ liệu ngoài miền, không hữu hạn hoặc không nguyên** thay vì âm thầm làm mất thông tin.
-- `BigDecimal.intValueExact()` minh họa một API ném ngoại lệ khi số thập phân chính xác không thể chuyển thành số nguyên đích mà vẫn giữ giá trị.
+- The `3.9`, `-3.9`, and `-0.0` lines demonstrate that conversion to `int` **truncates toward 0**, including losing the sign of `-0.0`.
+- The `NaN`, `Infinity`, and `1e100` lines demonstrate **0 or boundary clamping** when the direct target is `int`/`long`.
+- The `byte` and `char` lines demonstrate **converting through `int` and then discarding high bits**.
+- `checkedInt` illustrates **detecting out-of-range, non-finite, or non-integer data** instead of silently losing information.
+- `BigDecimal.intValueExact()` illustrates an API that throws an exception when an exact decimal number cannot be converted to the target integer while preserving its value.
 
-## 8. Chuyển đổi có kiểm tra: từ chối mất dữ liệu thay vì chấp nhận cast
+## 8. Checked conversion: rejecting data loss instead of accepting casts
 
-Nếu nghiệp vụ cần chuyển một phép đo `double` sang `int` và **chỉ chấp nhận số nguyên hữu hạn nằm trong miền**, hãy kiểm tra đủ ba điều kiện **trước khi cast**:
+If business logic needs to convert a `double` measurement to `int` and **only accepts finite whole numbers within range**, check all three conditions **before casting**:
 
-1. **Hữu hạn:** `Double.isFinite(v)` để loại `NaN` và ±Infinity.
-2. **Nằm trong phạm vi:** `Integer.MIN_VALUE <= v && v <= Integer.MAX_VALUE` (các giới hạn này đều biểu diễn chính xác bằng `double`).
-3. **Không có phần lẻ:** `v == Math.rint(v)`. `Math.rint` trả giá trị `double` nguyên gần nhất theo quy tắc làm tròn của nó; dùng **để so sánh xem `v` đã nguyên chưa**, không dùng kết quả rint để âm thầm thay đổi dữ liệu.
+1. **Finite:** `Double.isFinite(v)` to exclude `NaN` and ±Infinity.
+2. **In range:** `Integer.MIN_VALUE <= v && v <= Integer.MAX_VALUE` (both bounds are represented exactly in `double`).
+3. **No fractional part:** `v == Math.rint(v)`. `Math.rint` returns the nearest integral `double` under its rounding rule; use it **to check whether `v` is already whole**, not to silently alter data with the `rint` result.
 
-Hàm `checkedInt` trong chương trình đầy đủ thực hiện cả ba kiểm tra. Với nguồn `NaN`, điều kiện `Double.isFinite` đặc biệt quan trọng: các so sánh kiểu `v < min`, `v > max` hoặc `v != ...` cần được hiểu đúng với NaN. Mã kiểm tra thường nên có nhánh `isFinite` rõ ràng để tránh vô tình chấp nhận NaN.
+The `checkedInt` function in the full program performs all three checks. For a `NaN` source, the `Double.isFinite` condition is especially critical: comparisons like `v < min`, `v > max`, or `v != ...` must be properly understood with NaN. Validation code should normally include an explicit `isFinite` branch to avoid accidentally accepting NaN.
 
-Nếu yêu cầu **cho phép cắt phần lẻ** (ví dụ từ 7.9 thành 7), bỏ điều kiện `Math.rint`, nhưng vẫn kiểm tra `isFinite` và miền **trước** phép cast. Nếu yêu cầu **làm tròn** theo chính sách (nearest, floor, ceiling), áp dụng quy tắc làm tròn được chọn rồi **kiểm tra miền của kết quả** trước khi chuyển.
+If the requirement **permits truncating the fractional part** (e.g., 7.9 becoming 7), omit the `Math.rint` condition, but still check `isFinite` and the range **before** the cast. If **rounding** per a policy (nearest, floor, ceiling) is required, apply the chosen rounding rule and then **check the result's range** before converting.
 
-### Kiểm tra riêng cho `long`: biên dương cần lưu ý
+### Special check for `long`: watch the positive bound
 
-Kiểm tra một `double` để cast an toàn sang `long` phức tạp hơn nhìn qua, vì **`Long.MAX_VALUE` không được biểu diễn chính xác bằng `double`**. Khi chuyển `Long.MAX_VALUE` sang `double`, giá trị được làm tròn thành **`2^63`**, là số nằm **ngoài miền `long`**. Vì vậy biểu thức:
+Validating a `double` to safely cast to `long` is trickier than it looks, because **`Long.MAX_VALUE` is not represented exactly as a `double`**. When converting `Long.MAX_VALUE` to `double`, the value rounds to **`2^63`**, which lies **outside the `long` range**. Therefore, the expression:
 
 ```java
-// KHÔNG phải phép kiểm tra đầy đủ đối với double:
+// NOT a complete check for double:
 if (v <= Long.MAX_VALUE) {
-    // Có thể chấp nhận cả v == 2^63 do Long.MAX_VALUE bị làm tròn lên.
+    // Can accept v == 2^63 as well because Long.MAX_VALUE was rounded up.
 }
 ```
 
-không đủ nghiêm ngặt cho biên dương. Với nguồn `double`, có thể kiểm tra miền bằng hai ngưỡng biểu diễn chính xác là **`-2^63`** (được phép) và **`+2^63`** (phải từ chối):
+is not strict enough for the positive boundary. With a `double` source, you can check the range using two exactly representable thresholds: **`-2^63`** (allowed) and **`+2^63`** (must be rejected):
 
 ```java
 static long checkedLong(double v) {
     if (!Double.isFinite(v)
-            || v < -0x1.0p63   // v nhỏ hơn Long.MIN_VALUE
-            || v >= 0x1.0p63   // v lớn hơn hoặc bằng 2^63
+            || v < -0x1.0p63   // v less than Long.MIN_VALUE
+            || v >= 0x1.0p63   // v greater than or equal to 2^63
             || v != Math.rint(v)) {
         throw new IllegalArgumentException("not an in-range integer");
     }
@@ -292,66 +292,66 @@ static long checkedLong(double v) {
 }
 ```
 
-Đây là **đoạn phương thức minh họa**, cần đặt trong một class khi dùng thực tế. Các literal hexa dấu phẩy động `0x1.0p63` biểu diễn chính xác `2^63` dưới dạng `double`. Vì vậy `checkedLong` chấp nhận `-2^63`, nhưng từ chối `+2^63`. Điều kiện `Math.rint` từ chối giá trị có phần lẻ biểu diễn được.
+This is an **illustrative method snippet**; place it inside a class for real use. The floating-point hex literal `0x1.0p63` represents `2^63` exactly as a `double`. Thus `checkedLong` accepts `-2^63`, but rejects `+2^63`. The `Math.rint` condition rejects values with representable fractional parts.
 
-Cần biết thêm: nguồn `double` đã **có độ chính xác hữu hạn**. Ngay cả khi giá trị sau kiểm tra là một số nguyên, không thể suy ra mọi chữ số của một số nguyên đầu vào rất lớn ban đầu còn nguyên; một phép chuyển `long → double` trước đó có thể đã làm tròn. **Kiểm tra sau cùng không phục hồi thông tin đã mất trước khi chuyển.**
+Also note: a `double` source already **has finite precision**. Even if the validated value is an integer, you cannot infer that every digit of a very large original integer remained intact; an earlier `long → double` conversion could have rounded it. **Final validation cannot restore information lost prior to conversion.**
 
-### Khi đầu vào là dữ liệu thập phân chính xác
+### When the input is exact decimal data
 
-Nếu nhập từ JSON/chuỗi thập phân và cần phân biệt số có phần lẻ, vượt miền, hoặc yêu cầu giữ chính xác, cân nhắc **`BigDecimal` từ chuỗi**:
+If reading from JSON/decimal strings and you need to distinguish numbers with fractions, out-of-range values, or preserve exactness, consider **`BigDecimal` from a string**:
 
 ```java
 int valid = new java.math.BigDecimal("2147483647.0").intValueExact();
 // 2147483647
 
 // new java.math.BigDecimal("2147483648").intValueExact();
-// ArithmeticException: vượt miền int.
+// ArithmeticException: exceeds int range.
 
 // new java.math.BigDecimal("7.5").intValueExact();
-// ArithmeticException: có phần lẻ.
+// ArithmeticException: has fractional part.
 ```
 
-`BigDecimal.intValueExact()` và `longValueExact()` kiểm tra khả năng chuyển **không mất giá trị**. Nhưng `BigDecimal` từ chuỗi thập phân hữu hạn **không đại diện trực tiếp cho NaN hoặc vô cực**; dữ liệu đặc biệt phải được xử lý theo quy tắc xác thực đầu vào. Tạo `BigDecimal` từ một `double` đã bị làm tròn cũng không thể khôi phục chữ số nguyên ban đầu bị mất.
+`BigDecimal.intValueExact()` and `longValueExact()` test whether conversion is possible **without losing value**. However, `BigDecimal` constructed from finite decimal strings **does not directly represent NaN or infinity**; special data must be handled by input validation rules. Creating a `BigDecimal` from an already-rounded `double` also cannot recover lost original integer digits.
 
-## 9. Phân biệt cast, `Math.round` và `Math.toIntExact`
+## 9. Distinguishing cast, `Math.round`, and `Math.toIntExact`
 
-| Cách chuyển | Hành vi chủ yếu | Có báo lỗi do không vừa phạm vi? |
+| Conversion method | Primary behavior | Reports an error when out of range? |
 | --- | --- | --- |
-| `(int) someDouble` | Cắt phần lẻ về 0; NaN → 0; quá miền → biên `int` | Không |
-| `(long) someDouble` | Tương tự, dùng miền `long` | Không |
-| `(byte) someDouble` | Qua `int` rồi bỏ bit cao xuống 8 bit | Không |
-| `Math.round(double)` | Làm tròn về số nguyên gần nhất theo quy tắc của API; trả `long` | Không; NaN/±Infinity được xử lý đặc biệt |
-| `Math.round(float)` | Làm tròn về số nguyên gần nhất theo quy tắc của API; trả `int` | Không; NaN/±Infinity được xử lý đặc biệt |
-| `Math.toIntExact(long)` | Chuyển `long` sang `int` và kiểm tra miền | **Có**: `ArithmeticException` nếu vượt miền |
-| `BigDecimal.intValueExact()` | Chuyển giá trị thập phân chính xác sang `int`, kiểm tra phần lẻ/miền | **Có**: `ArithmeticException` nếu không chính xác |
+| `(int) someDouble` | Truncates fraction toward 0; NaN → 0; out of range → `int` bound | No |
+| `(long) someDouble` | Same, using `long` range | No |
+| `(byte) someDouble` | Through `int`, then discards high bits down to 8 bits | No |
+| `Math.round(double)` | Rounds to nearest integer per API rules; returns `long` | No; NaN/±Infinity handled specially |
+| `Math.round(float)` | Rounds to nearest integer per API rules; returns `int` | No; NaN/±Infinity handled specially |
+| `Math.toIntExact(long)` | Converts `long` to `int` and checks range | **Yes**: `ArithmeticException` if out of range |
+| `BigDecimal.intValueExact()` | Converts exact decimal value to `int`, checks fraction/range | **Yes**: `ArithmeticException` if not exact |
 
-`Math.round` là **phép làm tròn**, không đồng nghĩa với cast cắt về 0: `(int) 3.9 == 3`, nhưng `Math.round(3.9) == 4L`. Với NaN, `Math.round` trả 0; với ±Infinity, trả biên nguyên của kiểu kết quả. Phải chọn API theo **chính sách làm tròn** mong muốn.
+`Math.round` is a **rounding operation**, not synonymous with truncating toward 0 via cast: `(int) 3.9 == 3`, whereas `Math.round(3.9) == 4L`. For NaN, `Math.round` returns 0; for ±Infinity, it returns the integer bound of the return type. You must select the API matching the desired **rounding policy**.
 
-`Math.toIntExact` **không có overload nhận `double`**. Viết `Math.toIntExact((long) value)` có thể đã **chặn giá trị ở miền `long` hoặc cắt phần lẻ trước khi kiểm tra**. Điều này không thay thế bước xác thực nguồn `double`.
+`Math.toIntExact` **has no overload taking `double`**. Writing `Math.toIntExact((long) value)` may already have **clamped the value to the `long` range or truncated its fraction before checking**. This does not replace validating the `double` source.
 
-Khi giải bài toán tiền tệ, mã giao dịch, phân trang, số lượng hoặc số đo có giới hạn, nên xác định rõ liệu giá trị `NaN`/Infinity có thể xuất hiện hay không, có cho phép phần lẻ hay không, miền hợp lệ là gì và chính sách làm tròn nào được phép. Cast đơn giản chỉ phù hợp khi đã chấp nhận ngữ nghĩa mất dữ liệu của Java.
+When solving problems involving money, transaction IDs, pagination, quantities, or bounded measurements, specify clearly whether `NaN`/Infinity can occur, whether fractions are allowed, what the valid range is, and which rounding policy is permitted. A simple cast is appropriate only when Java's lossy semantics are acceptable.
 
-## 10. Những nhầm lẫn thường gặp
+## 10. Common misconceptions
 
-1. **“Cast `double` sang `int` sẽ quấn vòng như cast `long` sang `int`.”** Sai. `double → int` chặn biên khi vượt miền, còn `long → int` bỏ bit cao.
-2. **“`NaN` luôn ném lỗi khi cast thành số nguyên.”** Sai: narrowing primitive chuyển NaN thành 0.
-3. **“`+Infinity` chuyển sang `byte` bằng `127`.”** Sai: bước `double → int` cho `Integer.MAX_VALUE`, sau đó `int → byte` cho `-1`.
-4. **“`(int) -3.9` bằng -4.”** Sai: cắt về 0 nên bằng -3; đó không phải `Math.floor`.
-5. **“Vượt phạm vi cast sẽ tự báo `ArithmeticException`.”** Sai: primitive cast dùng quy tắc chuyển đổi, không tự ném lỗi do vượt miền.
-6. **“Kiểm tra `v <= Long.MAX_VALUE` bằng `double` là đủ.”** Sai ở biên dương vì `Long.MAX_VALUE` được làm tròn thành `2^63` khi so với `double`.
-7. **“Chỉ cần kiểm tra `v < min || v > max` để bắt mọi giá trị xấu.”** Sai: NaN có so sánh đặc biệt; hãy xác thực hữu hạn rõ ràng.
-8. **“Sau cast không thấy Infinity thì dữ liệu đã hợp lệ.”** Sai: nhiều nguồn rất khác nhau cùng tạo ra `MAX_VALUE`, `MIN_VALUE` hoặc 0.
-9. **“`Math.round` và cast đều bỏ phần thập phân về 0.”** Sai: `Math.round` thực hiện làm tròn.
-10. **“`BigDecimal.valueOf(double)` tự phục hồi chữ số đã mất.”** Sai: việc chuyển đổi một số nguyên lớn qua `double` có thể làm tròn trước đó; thông tin bị mất không thể lấy lại.
+1. **"Casting `double` to `int` wraps around like casting `long` to `int`."** False. `double → int` clamps at bounds when out of range, whereas `long → int` discards high bits.
+2. **"`NaN` always throws an error when cast to an integer."** False: primitive narrowing turns NaN into 0.
+3. **"`+Infinity` converted to `byte` equals `127`."** False: the `double → int` step gives `Integer.MAX_VALUE`, then `int → byte` gives `-1`.
+4. **"`(int) -3.9` equals -4."** False: it truncates toward 0, so it equals -3; it is not `Math.floor`.
+5. **"Out-of-range casts automatically raise `ArithmeticException`."** False: primitive casts follow conversion rules and do not throw on out-of-range values.
+6. **"Checking `v <= Long.MAX_VALUE` with `double` is enough."** False at the positive bound because `Long.MAX_VALUE` rounds to `2^63` when converted to `double`.
+7. **"Checking `v < min || v > max` alone catches all bad values."** False: NaN has special comparison behavior; validate finiteness explicitly.
+8. **"If Infinity does not appear after casting, the data was valid."** False: very different sources all produce `MAX_VALUE`, `MIN_VALUE`, or 0.
+9. **"`Math.round` and casting both strip the decimal part toward 0."** False: `Math.round` performs rounding.
+10. **"`BigDecimal.valueOf(double)` automatically restores lost digits."** False: converting a large integer through `double` may have rounded earlier; lost information cannot be retrieved.
 
-## 11. Tự kiểm tra
+## 11. Self-check
 
-- `(int) Double.NaN` bằng gì? **0**.
-- `(long) Double.NEGATIVE_INFINITY` bằng gì? **Long.MIN_VALUE**.
-- `(byte) Double.POSITIVE_INFINITY` bằng gì? **-1**, vì chuyển qua `int` rồi giữ 8 bit thấp.
-- `(int) -8.99` bằng gì? **-8**, do cắt phần lẻ về 0.
-- `(int) 3_000_000_000.0` bằng gì? **Integer.MAX_VALUE**, không phải kết quả cast từ `long`.
-- `Math.toIntExact((long) Double.NaN)` có phát hiện NaN không? **Không**: cast sang `long` đã cho 0 trước khi `toIntExact` nhận được đối số.
-- Muốn chấp nhận *chỉ* các giá trị nguyên hữu hạn trong miền `int`, cần làm gì? **Kiểm tra `Double.isFinite`, min/max và không có phần lẻ trước khi cast**, hoặc dùng giải pháp thập phân chính xác phù hợp nguồn dữ liệu.
+- What does `(int) Double.NaN` equal? **0**.
+- What does `(long) Double.NEGATIVE_INFINITY` equal? **Long.MIN_VALUE**.
+- What does `(byte) Double.POSITIVE_INFINITY` equal? **-1**, because it converts through `int` and keeps the low 8 bits.
+- What does `(int) -8.99` equal? **-8**, due to truncating the fractional part toward 0.
+- What does `(int) 3_000_000_000.0` equal? **Integer.MAX_VALUE**, not the result of casting from `long`.
+- Does `Math.toIntExact((long) Double.NaN)` detect NaN? **No**: casting to `long` already produced 0 before `toIntExact` received the argument.
+- To accept *only* finite integer values within the `int` range, what should you do? **Check `Double.isFinite`, min/max, and no fractional part before casting**, or use an exact decimal solution appropriate for the data source.
 
-**Ghi nhớ:** chuyển `float`/`double` sang `int`/`long` là **cắt về 0, NaN → 0, vượt miền/±Infinity → biên**. Chuyển sang `byte`/`short`/`char` còn có **bước thu hẹp từ `int`**, nên kết quả có thể âm hoặc bất ngờ. Nếu dữ liệu phải chính xác và hợp lệ, **xác thực trước khi chuyển**, thay vì kiểm tra giá trị đã mất thông tin sau cast.
+**Remember:** converting `float`/`double` to `int`/`long` **truncates toward 0, NaN → 0, out-of-range/±Infinity → bound**. Converting to `byte`/`short`/`char` adds a **narrowing step from `int`**, so the result can be negative or unexpected. If data must be exact and valid, **validate before converting**, instead of inspecting already-lossy values after the cast.

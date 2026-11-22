@@ -1,58 +1,58 @@
-# Locale.equals(), stripExtensions() và giới hạn của toString() khi lưu trữ
+# Locale.equals(), stripExtensions(), and the Limitations of toString() for Storage
 
-## 1. Mục tiêu và bối cảnh
+## 1. Objective and Context
 
-`java.util.Locale` mô tả ngôn ngữ, hệ chữ viết, vùng lãnh thổ, biến thể và các extension có thể tác động đến hành vi bản địa hóa. Khi xử lý nhiều `Locale`, ba thao tác dễ nhầm lẫn là:
+`java.util.Locale` describes language, script, territory/region, variant, and extensions that can influence localization behavior. When working with multiple `Locale` instances, three easily confused operations are:
 
-- **`equals(Object)`:** kiểm tra hai đối tượng `Locale` có cùng toàn bộ danh tính locale hay không.
-- **`stripExtensions()`:** tạo biểu diễn locale **không còn extension**, vẫn giữ language, script, country và variant.
-- **`toString()`:** xuất biểu diễn văn bản truyền thống của Java, thuận tiện để nhìn nhanh nhưng **không phải định dạng trao đổi/lưu trữ BCP 47**.
+- **`equals(Object)`:** checks whether two `Locale` objects have the exact same full locale identity.
+- **`stripExtensions()`:** creates a locale representation **with no extensions**, while preserving language, script, country, and variant.
+- **`toString()`:** outputs Java's traditional text representation, convenient for quick inspection, but **not a BCP 47 exchange/storage format**.
 
-Để lưu trữ, trao đổi thẻ ngôn ngữ với hệ thống khác, sử dụng **`toLanguageTag()`** và phục hồi bằng `Locale.forLanguageTag(...)` hoặc `Locale.Builder.setLanguageTag(...)`, với kiểm tra dữ liệu đầu vào phù hợp.
+For storing or exchanging language tags with other systems, use **`toLanguageTag()`** and restore via `Locale.forLanguageTag(...)` or `Locale.Builder.setLanguageTag(...)`, with appropriate input validation.
 
-Ví dụ:
+Examples:
 
 ```text
 en-US                   language=en, region=US
-en-US-u-nu-thai         cùng language/region nhưng có Unicode extension nu=thai
+en-US-u-nu-thai         same language/region but has Unicode extension nu=thai
 sr-Latn-RS              language=sr, script=Latn, region=RS
 sr-Cyrl-RS              language=sr, script=Cyrl, region=RS
 ```
 
-Hai locale có cùng ngôn ngữ và vùng **chưa chắc bằng nhau** nếu script, variant hoặc extension khác nhau.
+Two locales with the same language and region are **not necessarily equal** if their script, variant, or extensions differ.
 
-## 2. `equals(Object)` so sánh những gì?
+## 2. What Does `equals(Object)` Compare?
 
-`Locale.equals(Object)` trả về `true` nếu đối tượng kia cũng là `Locale` và có cùng các thành phần định danh: **language, script, country/region, variant và extensions**. Đây là phép so sánh toàn bộ danh tính locale, không phải so sánh "gần giống" hoặc đo mức độ tương thích ngôn ngữ.
+`Locale.equals(Object)` returns `true` if the other object is also a `Locale` and has the same identifying components: **language, script, country/region, variant, and extensions**. This is a comparison of the entire locale identity, not a "similar" match or a measure of language compatibility.
 
-| Locale thứ nhất | Locale thứ hai | `equals` | Lý do |
+| First Locale | Second Locale | `equals` | Reason |
 | --- | --- | --- | --- |
-| `en-US` | `en-US` | `true` | Các thành phần tương đương |
-| `en-US` | `en-GB` | `false` | Region khác |
-| `sr-Latn-RS` | `sr-Cyrl-RS` | `false` | Script khác |
-| `en-US` | `en-US-u-nu-thai` | `false` | Extension khác |
-| `en-US-u-nu-thai` | `en-US-u-ca-buddhist` | `false` | Cùng language/region, extension khác |
-| `EN-us-u-NU-thai` | `en-US-u-nu-thai` | `true` sau khi parse | Thẻ không phân biệt hoa/thường; `Locale` chuẩn hóa dạng hợp lệ |
+| `en-US` | `en-US` | `true` | Equivalent components |
+| `en-US` | `en-GB` | `false` | Different region |
+| `sr-Latn-RS` | `sr-Cyrl-RS` | `false` | Different script |
+| `en-US` | `en-US-u-nu-thai` | `false` | Different extensions |
+| `en-US-u-nu-thai` | `en-US-u-ca-buddhist` | `false` | Same language/region, different extensions |
+| `EN-us-u-NU-thai` | `en-US-u-nu-thai` | `true` after parsing | Tags are case-insensitive; `Locale` normalizes to valid form |
 
-**Lưu ý:** bảng áp dụng cho các đối tượng tạo bằng `Locale.forLanguageTag(...)`, không khẳng định có thể dùng phép so sánh chuỗi nguyên bản để thay `equals`. Ví dụ, `"EN-us".equals("en-US")` trong Java trả `false` vì `String.equals` phân biệt chữ hoa/thường, còn các `Locale` tạo từ hai thẻ đó có thể bằng nhau.
+**Note:** the table applies to objects created via `Locale.forLanguageTag(...)`, and does not claim raw string comparison can replace `equals`. For example, `"EN-us".equals("en-US")` in Java returns `false` because `String.equals` is case-sensitive, whereas the `Locale` objects created from those two tags can be equal.
 
-Vì `equals` kiểm tra đầy đủ định danh nên `Locale` có thể dùng làm key cho `HashMap`/`HashSet`; phương thức `hashCode()` tuân theo cùng quy ước. Nhưng nếu bài toán cần gom theo ngôn ngữ hoặc vùng, hãy **chọn tiêu chí gom nhóm riêng**, thay vì mong `equals` bỏ qua những thành phần không quan tâm.
+Because `equals` checks full identity, `Locale` can be used as a key in `HashMap`/`HashSet`; `hashCode()` follows the same contract. However, if the problem requires grouping by language or region, **choose a dedicated grouping criterion** instead of expecting `equals` to ignore irrelevant components.
 
-Ví dụ phân biệt ba câu hỏi:
+Example distinguishing three questions:
 
-- "**Có cùng chính xác locale không?**" → `a.equals(b)`.
-- "**Có cùng language không?**" → so sánh `a.getLanguage()` với `b.getLanguage()` (cần hiểu rằng cùng language chưa chắc cùng script/nội dung).
-- "**Có cùng identity nếu bỏ qua extension không?**" → `a.stripExtensions().equals(b.stripExtensions())`, **chỉ** khi nghiệp vụ cho phép bỏ qua extension.
+- "**Is it the exact same locale?**" → `a.equals(b)`.
+- "**Is it the same language?**" → compare `a.getLanguage()` with `b.getLanguage()` (understanding that the same language does not guarantee the same script/content).
+- "**Is it the same identity if extensions are ignored?**" → `a.stripExtensions().equals(b.stripExtensions())`, **only** when business logic permits ignoring extensions.
 
-## 3. `stripExtensions()` loại bỏ phần nào?
+## 3. What Does `stripExtensions()` Remove?
 
-BCP 47 có các extension, ví dụ:
+BCP 47 supports extensions, for example:
 
-- `en-US-u-nu-thai`: extension `u`, khóa Unicode `nu` có giá trị `thai` (hệ chữ số Thái).
-- `en-US-u-ca-buddhist`: extension `u`, khóa `ca` có giá trị `buddhist` (lựa chọn lịch Phật giáo).
-- `ja-JP-u-ca-japanese`: extension yêu cầu hệ lịch Nhật.
+- `en-US-u-nu-thai`: extension `u`, Unicode key `nu` with value `thai` (Thai numbering system).
+- `en-US-u-ca-buddhist`: extension `u`, key `ca` with value `buddhist` (Buddhist calendar preference).
+- `ja-JP-u-ca-japanese`: extension requesting the Japanese calendar system.
 
-`stripExtensions()` loại bỏ **toàn bộ extension** (kể cả Unicode extension và các nhóm extension khác). Nó **không** bỏ language, script, region hay variant.
+`stripExtensions()` removes **all extensions** (including Unicode extensions and other extension groups). It **does not** remove language, script, region, or variant.
 
 ```text
 en-US-u-nu-thai       --stripExtensions()--> en-US
@@ -60,23 +60,23 @@ zh-Hant-TW-u-nu-hanidec --stripExtensions()--> zh-Hant-TW
 sr-Latn-RS            --stripExtensions()--> sr-Latn-RS
 ```
 
-Đầu vào là `Locale`, đầu ra cũng là `Locale`. `Locale` là immutable nên lời gọi **không sửa đối tượng ban đầu**. Nếu không có extension, Java có thể trả về chính instance hiện tại; **không** viết logic nghiệp vụ dựa trên việc so sánh hai tham chiếu bằng `==`. Hãy dùng `equals` để kiểm tra giá trị.
+The input is a `Locale`, and the output is also a `Locale`. `Locale` is immutable, so the call **does not mutate the original object**. If there are no extensions, Java may return the current instance itself; **do not** write business logic that relies on comparing two references with `==`. Use `equals` to check value equality.
 
-Quan trọng: `stripExtensions()` không có nghĩa là "tổng quát hóa hoàn toàn" hoặc "đưa về locale ngôn ngữ gốc". Ví dụ `sr-Latn-RS` và `sr-RS` vẫn khác nhau sau khi strip vì script `Latn` vẫn hiện diện. Để khái quát theo ngôn ngữ phải xác định quy tắc riêng, có thể sử dụng `getLanguage()`, và chấp nhận mất các sắc thái khác.
+Important: `stripExtensions()` does not mean "completely generalize" or "reduce to the base language locale". For example, `sr-Latn-RS` and `sr-RS` still differ after stripping because the `Latn` script remains present. To generalize by language, you must define a specific rule, possibly using `getLanguage()`, while accepting the loss of other distinctions.
 
-### Khi nào nên dùng?
+### When Should It Be Used?
 
-Trong một hệ thống mà **khóa tra cứu tài nguyên chỉ quan tâm language/script/region/variant**, việc strip extension trước khi tra cứu có thể là chính sách chủ ý. Ví dụ nội dung bản dịch có thể không phân biệt lựa chọn số chữ Thái hay số Latin, trong khi thành phần định dạng số thì vẫn cần phân biệt.
+In a system where **resource lookup keys only care about language/script/region/variant**, stripping extensions before lookup can be an intentional policy. For example, translated copy may not distinguish between Thai digits and Latin digits, whereas the number-formatting component still needs to distinguish them.
 
-### Khi nào không nên dùng?
+### When Should It Not Be Used?
 
-Đừng strip một locale ngay trước khi định dạng lịch, số hoặc tiền tệ nếu extension liên quan là cấu hình mà người dùng thực sự yêu cầu. Việc loại bỏ `u-nu-thai` hoặc `u-ca-buddhist` có thể làm mất ý định lựa chọn hệ chữ số/lịch; mức độ ảnh hưởng thực tế phụ thuộc API/provider hỗ trợ extension nào.
+Do not strip a locale right before formatting calendars, numbers, or currencies if the relevant extension is a configuration the user actually requested. Removing `u-nu-thai` or `u-ca-buddhist` can discard the user's numbering/calendar preference; the actual impact depends on which extensions the API/provider supports.
 
-Cần chú ý khác biệt giữa hai tiêu chí: **bằng nhau sau khi bỏ extension** và **thay thế nhau an toàn ở mọi nơi**. Kết quả thứ nhất không đảm bảo kết quả thứ hai.
+Keep in mind the difference between two criteria: **equal after stripping extensions** and **safely interchangeable everywhere**. The first outcome does not guarantee the second.
 
-## 4. Ví dụ Java 17+: `equals` và `stripExtensions`
+## 4. Java 17+ Example: `equals` and `stripExtensions`
 
-Tạo file `LocaleEqualityDemo.java`:
+Create the file `LocaleEqualityDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -109,14 +109,14 @@ public class LocaleEqualityDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac LocaleEqualityDemo.java
 java LocaleEqualityDemo
 ```
 
-Đầu ra chính xác:
+Exact output:
 
 ```text
 false
@@ -131,41 +131,41 @@ sr_RS_#Latn
 sr-Latn-RS
 ```
 
-Giải thích lần lượt:
+Step-by-step explanation:
 
-1. `base` khác `thaiDigits` vì `thaiDigits` có extension `u-nu-thai`.
-2. Khi bỏ extension, `thaiDigits` còn `en-US` và bằng `base`.
-3. `getUnicodeLocaleType("nu")` trả về `thai` trước khi strip; sau strip trả `null` vì không còn keyword `nu`.
-4. Hai locale có extension khác nhau (`nu` so với `ca`) không bằng nhau.
-5. Parse `EN-us-u-NU-thai` cho cùng định danh với `en-US-u-nu-thai`.
-6. Script Latin và Cyrillic khác nhau; strip không xóa script.
-7. Cùng `latin`, `toString()` trả `sr_RS_#Latn` theo biểu diễn Java, còn `toLanguageTag()` trả `sr-Latn-RS` theo BCP 47.
+1. `base` differs from `thaiDigits` because `thaiDigits` has the `u-nu-thai` extension.
+2. After stripping extensions, `thaiDigits` becomes `en-US` and equals `base`.
+3. `getUnicodeLocaleType("nu")` returns `thai` before stripping; after stripping it returns `null` because the `nu` keyword is gone.
+4. Two locales with different extensions (`nu` versus `ca`) are not equal.
+5. Parsing `EN-us-u-NU-thai` yields the same identity as `en-US-u-nu-thai`.
+6. Latin and Cyrillic scripts differ; stripping does not remove script.
+7. For the same `latin` object, `toString()` returns `sr_RS_#Latn` in Java's representation, while `toLanguageTag()` returns `sr-Latn-RS` per BCP 47.
 
-**Lưu ý về kiểm chứng:** giá trị `null` hiển thị ở stdout do `System.out.println(String)` nhận kết quả `null`, không phải chuỗi literal `"null"` được lưu làm locale keyword.
+**Verification note:** the `null` printed to stdout comes from `System.out.println(String)` receiving a `null` result, not a literal `"null"` string stored as a locale keyword.
 
-## 5. Tại sao `toString()` không phù hợp làm định dạng lưu trữ?
+## 5. Why Is `toString()` Unsuitable as a Storage Format?
 
-`Locale.toString()` xuất chuỗi theo quy tắc lịch sử của Java: thường ngăn cách language, country và variant bằng dấu gạch dưới `_`, và biểu diễn script/extensions có thể chứa `#`. Một số ví dụ:
+`Locale.toString()` outputs a string according to Java's historical rules: typically separating language, country, and variant with underscores `_`, and script/extensions representations may include `#`. A few examples:
 
-| Đối tượng `Locale` | `toString()` | `toLanguageTag()` |
+| `Locale` Object | `toString()` | `toLanguageTag()` |
 | --- | --- | --- |
 | `Locale.US` | `en_US` | `en-US` |
 | `Locale.forLanguageTag("sr-Latn-RS")` | `sr_RS_#Latn` | `sr-Latn-RS` |
 | `Locale.forLanguageTag("zh-Hant-TW-u-nu-hanidec")` | `zh_TW_#Hant_u-nu-hanidec` | `zh-Hant-TW-u-nu-hanidec` |
 
-Các chuỗi `en_US` hay `sr_RS_#Latn` là biểu diễn riêng theo API `toString`; chúng **không phải** BCP 47 language tag. Đưa chúng trực tiếp vào `Locale.forLanguageTag` có thể bị xem là sai cú pháp và mất thông tin, vì parser này mong đợi tag dạng `en-US` với dấu `-`.
+Strings like `en_US` or `sr_RS_#Latn` are custom representations according to the `toString` API; they are **not** BCP 47 language tags. Passing them directly into `Locale.forLanguageTag` may be treated as invalid syntax and lose information, because that parser expects hyphenated tags like `en-US`.
 
-Ba giới hạn thực tế:
+Three practical limitations:
 
-1. **Không phải hợp đồng trao đổi chuẩn:** nếu API bên ngoài mong BCP 47, chuỗi từ `toString` không đáp ứng.
-2. **Không có cặp parse toàn năng tương ứng:** Java không cung cấp hợp đồng chung "đưa mọi kết quả `toString` vào `forLanguageTag` để khôi phục nguyên vẹn". `forLanguageTag` được thiết kế cho BCP 47, không phải để đọc chuỗi legacy.
-3. **Dễ sai khi tự tách hoặc thay dấu:** script, variant và extensions làm chuỗi legacy phức tạp hơn `language_COUNTRY`. Không dùng `replace('_', '-')` làm parser/chuyển đổi tổng quát.
+1. **Not a standard exchange contract:** if an external API expects BCP 47, strings from `toString` do not comply.
+2. **No universal inverse parsing pair:** Java does not provide a general contract that "passing any `toString` output into `forLanguageTag` restores the locale intact". `forLanguageTag` is designed for BCP 47, not for reading legacy strings.
+3. **Error-prone to split or replace delimiters manually:** script, variant, and extensions make legacy strings more complex than `language_COUNTRY`. Do not use `replace('_', '-')` as a general-purpose parser or converter.
 
-`toString()` vẫn hữu ích cho debug/log nếu người đọc biết đó là biểu diễn Java. Nhưng một chuỗi được ghi xuống cơ sở dữ liệu, JSON, URL, message queue hoặc gửi sang hệ thống khác nên có **schema rõ ràng**: nếu trường đó là BCP 47 language tag, ghi bằng `toLanguageTag()`.
+`toString()` remains useful for debugging/logging if readers recognize it as a Java representation. However, a string written to a database, JSON, URL, message queue, or sent to another system should have an **explicit schema**: if the field is a BCP 47 language tag, write it using `toLanguageTag()`.
 
-### Minh họa rủi ro mất dữ liệu
+### Demonstrating the Risk of Data Loss
 
-Tạo `LocaleStorageDemo.java`:
+Create `LocaleStorageDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -194,14 +194,14 @@ public class LocaleStorageDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac LocaleStorageDemo.java
 java LocaleStorageDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 zh_TW_#Hant_u-nu-hanidec
@@ -212,13 +212,13 @@ zh-Hant-TW
 false
 ```
 
-`und` đại diện cho language "undetermined" khi xuất tag; ở đây xuất hiện vì `forLanguageTag` không chấp nhận chuỗi legacy có `_` là thẻ BCP 47 hợp lệ. Phần `true` chứng minh thẻ `toLanguageTag()` của ví dụ này được phục hồi bằng `Builder.setLanguageTag()` mà vẫn giữ script, region và Unicode extension. Sau `stripExtensions()`, tag chỉ còn `zh-Hant-TW` nên không còn bằng `original`.
+`und` stands for "undetermined" language when exporting a tag; here it appears because `forLanguageTag` does not accept the legacy underscore string as a valid BCP 47 tag. The `true` result proves that the `toLanguageTag()` string in this example is restored by `Builder.setLanguageTag()` while preserving script, region, and Unicode extension. After `stripExtensions()`, only `zh-Hant-TW` remains, so it is no longer equal to `original`.
 
-**Phạm vi bảo đảm:** ví dụ dùng một `Locale` BCP 47 hợp lệ ngay từ đầu. Các `Locale` legacy được dựng bằng API cũ với variant không phù hợp ngữ pháp BCP 47 có thể không round-trip hoàn toàn qua `toLanguageTag`/`forLanguageTag`. Khi thiết kế schema mới, nên ưu tiên các locale hợp lệ theo BCP 47; khi di chuyển dữ liệu cũ, kiểm tra từng trường hợp thay vì giả định mọi chuỗi đều chuyển đổi không mất mát.
+**Scope of guarantee:** the example starts with a valid BCP 47 `Locale`. Legacy `Locale` objects constructed with old APIs using variants that do not fit BCP 47 grammar may not round-trip completely through `toLanguageTag`/`forLanguageTag`. When designing a new schema, prefer BCP 47-valid locales; when migrating legacy data, inspect each case instead of assuming all strings convert losslessly.
 
-## 6. Quy trình lưu và phục hồi locale thực tế
+## 6. Practical Workflow for Storing and Restoring Locales
 
-Dùng trường tên rõ ràng như `localeTag`, `languageTag` với giá trị ví dụ `"vi-VN"` hoặc `"en-US-u-nu-thai"`. Lưu thẻ sau khi chuẩn hóa bằng `toLanguageTag()`; phục hồi bằng builder nếu cần **từ chối đầu vào sai cú pháp**.
+Use clearly named fields such as `localeTag` or `languageTag` with example values like `"vi-VN"` or `"en-US-u-nu-thai"`. Store the tag after normalizing with `toLanguageTag()`; restore using Builder if you need to **reject syntactically invalid input**.
 
 ```java
 import java.util.IllformedLocaleException;
@@ -267,55 +267,55 @@ true
 Invalid language tag
 ```
 
-Trong luồng này, `Builder.setLanguageTag` kiểm tra **cú pháp tag**. Nó không bảo đảm mọi mã ngôn ngữ đều thuộc một tập nghiệp vụ cho phép, cũng không bảo đảm các tài nguyên ngôn ngữ hay extension đều được runtime hỗ trợ. Ứng dụng có thể kiểm tra thêm danh sách `supportedLocales` khi cần.
+In this flow, `Builder.setLanguageTag` validates **tag syntax**. It does not guarantee every language code belongs to an allowed business set, nor does it guarantee language resources or extensions are supported by the runtime. The application can additionally check a `supportedLocales` list when needed.
 
-**Phân biệt parser:**
+**Distinguishing parsers:**
 
-- `Locale.forLanguageTag(tag)` **dễ dãi**: gặp subtag sai có thể bỏ subtag lỗi và toàn bộ phần sau mà không ném lỗi.
-- `Locale.Builder.setLanguageTag(tag)` **nghiêm ngặt** với cú pháp malformed: ném `IllformedLocaleException`.
-- Cả hai không phải bộ xác minh đầy đủ sự tồn tại của locale trong mọi registry hay khả năng hỗ trợ của ứng dụng.
+- `Locale.forLanguageTag(tag)` is **lenient**: upon hitting an invalid subtag, it may drop the faulty subtag and everything after it without throwing an error.
+- `Locale.Builder.setLanguageTag(tag)` is **strict** on malformed syntax: it throws `IllformedLocaleException`.
+- Neither is a complete verifier of locale existence in all registries or of application support.
 
-Trong chương trình thực tế, chỉ sử dụng `stripExtensions()` để xây khóa **riêng** cho một trường hợp có chủ đích. Nếu muốn giữ lựa chọn lịch/chữ số người dùng khi lưu, đừng strip trước khi ghi `localeTag`.
+In production code, use `stripExtensions()` only to build a **separate** key for an intentional case. If you want to preserve the user's calendar/digit choices when saving, do not strip before writing `localeTag`.
 
-## 7. Lựa chọn phép so sánh theo nghiệp vụ
+## 7. Choosing a Comparison Method Based on Business Logic
 
-| Câu hỏi | Mẫu API | Điều cần chấp nhận |
+| Question | API Pattern | What Must Be Accepted |
 | --- | --- | --- |
-| Hai lựa chọn locale có hoàn toàn trùng không? | `a.equals(b)` | Script/variant/extension khác đều bị phân biệt |
-| Hai locale có cùng phần chính khi bỏ mọi extension không? | `a.stripExtensions().equals(b.stripExtensions())` | Extension đã bị cố ý bỏ qua |
-| Hai locale có cùng ngôn ngữ không? | `a.getLanguage().equals(b.getLanguage())` | Region, script, variant, extension không được xét |
-| Có cần giữ cấu hình số/lịch trong khóa cache formatter không? | Giữ `Locale` đầy đủ làm key | Extension có thể ảnh hưởng kết quả định dạng |
-| Cần gửi locale dưới dạng chuỗi cho API? | `locale.toLanguageTag()` | Chuỗi là BCP 47, không phải `toString()` |
-| Cần xem nhanh đối tượng trong log? | `locale.toString()` | Chỉ dùng làm thông tin chẩn đoán |
+| Do two locale choices match completely? | `a.equals(b)` | Any difference in script/variant/extension is distinguished |
+| Do two locales share the same core parts when all extensions are removed? | `a.stripExtensions().equals(b.stripExtensions())` | Extensions have been intentionally ignored |
+| Do two locales have the same language? | `a.getLanguage().equals(b.getLanguage())` | Region, script, variant, and extensions are not examined |
+| Should number/calendar settings stay in formatter cache keys? | Keep the full `Locale` as key | Extensions can affect formatting output |
+| Need to send a locale as a string to an API? | `locale.toLanguageTag()` | String is BCP 47, not `toString()` |
+| Need to quickly inspect the object in logs? | `locale.toString()` | Use only as diagnostic info |
 
-Ví dụ, cache tên bản dịch theo ngôn ngữ có thể chủ đích bỏ qua extension; ngược lại, cache formatter với hai lựa chọn `en-US` và `en-US-u-nu-thai` cần cân nhắc giữ extension trong khóa vì việc bỏ qua có nguy cơ dùng nhầm cấu hình số. Có thể không phải mọi provider đều xử lý `nu`, nhưng quyết định key phải dựa trên hợp đồng định dạng của chương trình.
+For example, a translation-name cache by language may intentionally ignore extensions; conversely, a formatter cache for `en-US` and `en-US-u-nu-thai` should consider keeping extensions in the key because omitting them risks reusing the wrong numbering configuration. Not every provider may act on `nu`, yet the key decision must follow the program's formatting contract.
 
-Nếu muốn một cơ chế fallback như "`en-US-u-nu-thai` → `en-US` → `en`", hãy xây và ghi rõ chính sách fallback của ứng dụng hoặc sử dụng API quản lý tài nguyên có hỗ trợ fallback tương ứng. **`stripExtensions()` không tự thực hiện cả chuỗi fallback** đó: nó chỉ trả về một đối tượng không có extension.
+If you want a fallback chain such as "`en-US-u-nu-thai` → `en-US` → `en`", build and document your application's fallback policy or use a resource-management API with corresponding fallback support. **`stripExtensions()` does not perform that entire fallback chain by itself**: it only returns an object without extensions.
 
-## 8. Những lỗi thường gặp
+## 8. Common Mistakes
 
-| Lỗi | Vì sao sai | Khắc phục |
+| Mistake | Why It Is Wrong | Fix |
 | --- | --- | --- |
-| `Locale.forLanguageTag("en_US")` | `_` không phải dấu phân tách subtag BCP 47; có thể ra `und` | Dùng `en-US` trong dữ liệu BCP 47 |
-| `a.equals(b)` khi chỉ muốn so ngôn ngữ | `equals` xét tất cả thành phần | So sánh `getLanguage()` theo yêu cầu |
-| `stripExtensions()` rồi nghĩ đã bỏ script/region | Hàm chỉ bỏ extensions | Xử lý từng thành phần qua getter |
-| Bỏ extension trước khi lưu mọi locale | Làm mất thông tin như `nu`, `ca` | Lưu tag đầy đủ với `toLanguageTag()` |
-| Lưu `toString()` và parse lại bằng `forLanguageTag` | Không phải định dạng đồng nhất | Lưu BCP 47 `toLanguageTag()` |
-| Tự chuyển `_` thành `-` trên mọi chuỗi legacy | Variant/script/extensions có thể bị hiểu sai | Di trú dữ liệu theo schema biết trước |
-| Dùng `==` để so hai `Locale` | `==` kiểm tra cùng tham chiếu | Dùng `equals` |
-| Xem equality của `Locale` là quy tắc chọn bản dịch | Bằng nhau không phải "cùng tài nguyên" | Xác định chính sách resource/fallback |
+| `Locale.forLanguageTag("en_US")` | `_` is not a BCP 47 subtag separator; may yield `und` | Use `en-US` in BCP 47 data |
+| `a.equals(b)` when only comparing language | `equals` checks all components | Compare `getLanguage()` as required |
+| Calling `stripExtensions()` thinking it removes script/region | The method only removes extensions | Handle individual components via getters |
+| Stripping extensions before saving all locales | Loses information such as `nu`, `ca` | Save the full tag with `toLanguageTag()` |
+| Saving `toString()` and re-parsing with `forLanguageTag` | Not a uniform format | Store BCP 47 `toLanguageTag()` |
+| Blindly converting `_` to `-` on all legacy strings | Variant/script/extensions may be misinterpreted | Migrate data according to a known schema |
+| Using `==` to compare two `Locale` instances | `==` checks reference identity | Use `equals` |
+| Treating `Locale` equality as a translation selection rule | Equality does not mean "same resources" | Define an explicit resource/fallback policy |
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-1. `en-US` có bằng `en-US-u-nu-thai` theo `equals` không? **Không**, vì một bên có extension `nu`.
-2. `en-US-u-nu-thai` sau `stripExtensions()` tạo tag gì? **`en-US`**.
-3. `sr-Latn-RS` và `sr-Cyrl-RS` có trở nên bằng nhau sau strip không? **Không**, script khác nhau và không bị loại bỏ.
-4. Nếu cần lưu locale trong JSON để một hệ thống khác đọc, chọn `toString` hay `toLanguageTag`? **`toLanguageTag`**, lưu trường với hợp đồng BCP 47.
-5. `Locale.forLanguageTag(locale.toString())` có khôi phục chắc chắn mọi locale không? **Không**. `toString()` có cú pháp riêng, chẳng hạn `sr_RS_#Latn`.
-6. Khi có locale dùng Unicode extension `u-ca-buddhist`, có nên strip extension trước khi cache mọi formatter không? **Không mặc định**; chỉ bỏ nếu nghiệp vụ chứng minh extension không ảnh hưởng kết quả.
+1. Is `en-US` equal to `en-US-u-nu-thai` according to `equals`? **No**, because one side has the `nu` extension.
+2. What tag does `en-US-u-nu-thai` produce after `stripExtensions()`? **`en-US`**.
+3. Do `sr-Latn-RS` and `sr-Cyrl-RS` become equal after stripping? **No**, their scripts differ and are not removed.
+4. When storing a locale in JSON for another system to read, choose `toString` or `toLanguageTag`? **`toLanguageTag`**, storing the field under a BCP 47 contract.
+5. Does `Locale.forLanguageTag(locale.toString())` reliably restore every locale? **No**. `toString()` has its own syntax, such as `sr_RS_#Latn`.
+6. When a locale uses the Unicode extension `u-ca-buddhist`, should extensions be stripped before caching every formatter? **Not by default**; only drop them if business logic proves the extension does not affect the output.
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 21 — java.util.Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html): `equals`, `hashCode`, `stripExtensions`, `toString`, `toLanguageTag`, `forLanguageTag`.
 - [Java SE 21 — Locale.Builder](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.Builder.html): `setLanguageTag`, `build`.
-- [RFC 5646 — Tags for Identifying Languages](https://www.rfc-editor.org/rfc/rfc5646): cú pháp và ý nghĩa BCP 47.
+- [RFC 5646 — Tags for Identifying Languages](https://www.rfc-editor.org/rfc/rfc5646): BCP 47 syntax and semantics.

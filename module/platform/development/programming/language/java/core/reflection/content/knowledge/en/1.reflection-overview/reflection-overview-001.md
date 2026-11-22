@@ -1,41 +1,41 @@
-# Reflection trong Java: Là gì và vấn đề cần giải quyết?
+# Reflection in Java: What Is It and What Problem Does It Solve?
 
-Reflection (phản chiếu) là cơ chế cho phép chương trình Java **tìm hiểu cấu trúc của kiểu dữ liệu và thao tác với một số thành phần của kiểu đó khi chương trình đang chạy**. Thay vì chỉ gọi trực tiếp những lớp, phương thức đã được viết rõ trong mã nguồn, chương trình có thể tra cứu thông tin từ một đối tượng `Class<?>`, tìm constructor/phương thức/field theo tên hoặc đặc điểm, rồi tạo đối tượng, gọi phương thức hay truy cập giá trị khi phù hợp.
+Reflection is a mechanism that allows a Java program to **inspect the structure of a data type and manipulate certain members of that type while the program is running**. Instead of only directly calling classes and methods explicitly written in source code, a program can look up information from a `Class<?>` object, find constructors/methods/fields by name or characteristics, and then create objects, invoke methods, or access values when appropriate.
 
-Bài này tập trung vào **lý do Reflection tồn tại, cách tư duy về nó, quy trình sử dụng cơ bản và chi phí đánh đổi**. Mục tiêu là hiểu khi nào cần một cơ chế động; chưa cần dùng Reflection để can thiệp sâu vào thành phần `private`.
+This lesson focuses on **why Reflection exists, how to think about it, the basic usage workflow, and the trade-offs involved**. The goal is to understand when a dynamic mechanism is needed; there is no need yet to use Reflection to reach deeply into `private` members.
 
-## 1. Vấn đề: mã nguồn không phải lúc nào cũng biết trước mọi kiểu
+## 1. The Problem: Source Code Does Not Always Know Every Type in Advance
 
-Với Java thông thường, lập trình viên viết rõ kiểu và lời gọi:
+In regular Java, developers explicitly write types and calls:
 
 ```java
 Greeter greeter = new Greeter();
 String message = greeter.sayHello("An");
 ```
 
-Compiler kiểm tra rằng `Greeter` tồn tại và có phương thức `sayHello(String)`. Đây là cách nên ưu tiên vì rõ ràng, được kiểm tra kiểu lúc biên dịch và dễ bảo trì.
+The compiler checks that `Greeter` exists and has a `sayHello(String)` method. This is the preferred approach because it is clear, type-checked at compile time, and easy to maintain.
 
-Nhưng có những chương trình **chỉ biết phải xử lý lớp nào tại runtime**:
+However, there are programs that **only know which class to process at runtime**:
 
-- Một thư viện chuyển đối tượng thành JSON cần biết đối tượng thực tế có những thuộc tính nào.
-- Một bộ chạy kiểm thử cần tìm các phương thức được đánh dấu bằng annotation và gọi từng phương thức phù hợp.
-- Một container dependency injection cần tìm constructor hoặc metadata để tạo và nối các đối tượng.
-- Một hệ thống plugin có thể nhận tên lớp/cấu hình do người dùng chọn sau khi chương trình đã được biên dịch.
-- Một công cụ quan sát chương trình cần in tên lớp, phương thức hoặc field mà không viết riêng cho từng lớp.
+- A library that converts objects to JSON needs to know what properties an actual object has.
+- A test runner needs to find methods marked with an annotation and invoke each matching method.
+- A dependency injection container needs to find constructors or metadata to create and wire objects together.
+- A plugin system may receive a class name or configuration chosen by a user after the program has already been compiled.
+- A program inspection tool needs to print class, method, or field names without writing custom code for every single class.
 
-Ví dụ, khi đang viết thư viện JSON, tác giả không thể biết trước toàn bộ lớp `Customer`, `Order`, `Product` ... mà ứng dụng tương lai sẽ đưa vào. Viết `if/else` cho mọi lớp không khả thi. Thư viện cần một cách chung để **khám phá metadata của bất kỳ kiểu được hỗ trợ** và xử lý theo quy tắc.
+For example, when writing a JSON library, the author cannot know in advance all the `Customer`, `Order`, `Product` ... classes that future applications will pass in. Writing `if/else` branches for every class is not feasible. The library needs a general way to **discover the metadata of any supported type** and process it according to rules.
 
-Reflection giải quyết chính nhu cầu đó: **làm việc với cấu trúc chương trình khi cấu trúc cụ thể chỉ được xác định lúc chạy**.
+Reflection solves that exact need: **working with program structure when the concrete structure is only determined at runtime**.
 
-## 2. Reflection là gì?
+## 2. What Is Reflection?
 
-Reflection API thuộc chủ yếu về:
+The Reflection API belongs primarily to:
 
-- `java.lang.Class`: đại diện runtime của một kiểu Java và là điểm bắt đầu để khám phá metadata.
-- `java.lang.reflect`: các đối tượng mô tả thành phần của kiểu, tiêu biểu `Constructor`, `Method`, `Field`, `Modifier`.
-- `java.lang.annotation` và `java.lang.reflect.AnnotatedElement`: hỗ trợ tra cứu annotation tại runtime khi annotation được khai báo với retention phù hợp.
+- `java.lang.Class`: the runtime representation of a Java type and the starting point for discovering metadata.
+- `java.lang.reflect`: objects describing members of a type, notably `Constructor`, `Method`, `Field`, `Modifier`.
+- `java.lang.annotation` and `java.lang.reflect.AnnotatedElement`: support looking up annotations at runtime when annotations are declared with an appropriate retention.
 
-Một đối tượng thông thường biểu diễn **dữ liệu/trạng thái**, còn `Class<?>` biểu diễn **thông tin về kiểu** của đối tượng đó. Ví dụ:
+A regular object represents **data/state**, whereas `Class<?>` represents **information about the type** of that object. For example:
 
 ```java
 String text = "Hello";
@@ -43,57 +43,57 @@ Class<?> type = text.getClass();
 System.out.println(type.getName()); // java.lang.String
 ```
 
-Ba cách thường gặp để có `Class<?>`:
+Three common ways to obtain a `Class<?>`:
 
-| Cách | Khi nào dùng | Lưu ý |
+| Way | When to Use | Notes |
 | --- | --- | --- |
-| `MyType.class` | Biết kiểu ngay khi viết mã | Không cần có instance; được compiler kiểm tra tên kiểu |
-| `value.getClass()` | Đang có một đối tượng và muốn biết lớp thực tế | `value` không được là `null` |
-| `Class.forName("com.example.MyType")` | Có tên lớp dạng chuỗi ở runtime | Có thể phát sinh `ClassNotFoundException`; biến thể một tham số có thể kích hoạt khởi tạo lớp |
+| `MyType.class` | When the type is known while writing code | No instance needed; the compiler checks the type name |
+| `value.getClass()` | When you already have an object and want to know its actual class | `value` must not be `null` |
+| `Class.forName("com.example.MyType")` | When you have the class name as a string at runtime | May throw `ClassNotFoundException`; the single-argument variant may trigger class initialization |
 
-Reflection **không tự động biến một chuỗi bất kỳ thành mã Java**, và cũng không có nghĩa là luôn được phép truy cập mọi thành phần nội bộ. Nó cung cấp metadata cùng các thao tác động trong giới hạn access control, module system và môi trường chạy.
+Reflection **does not automatically turn an arbitrary string into Java code**, nor does it mean you are always permitted to access all internal members. It provides metadata along with dynamic operations within the limits of access control, the module system, and the runtime environment.
 
-### Quan hệ giữa lớp, đối tượng và metadata
+### Relationship Between Classes, Objects, and Metadata
 
 ```text
-Mã đã biên dịch + lớp được nạp bởi ClassLoader
+Compiled code + class loaded by ClassLoader
                       |
                       v
-                 Class<?>          (metadata của kiểu)
+                 Class<?>          (type metadata)
                  /   |   \
                 /    |    \
-         Constructor Method Field  (mô tả thành phần)
+         Constructor Method Field  (member descriptors)
                 |       |
                 v       v
-        Tạo đối tượng   Gọi phương thức / đọc, ghi field
+         Create object  Invoke method / read, write field
 ```
 
-Cùng một lớp có thể tạo ra nhiều instance; chúng có trạng thái riêng nhưng cùng chia sẻ thông tin về định nghĩa kiểu. `Class<?>` không chứa bản sao độc lập của dữ liệu từng instance.
+The same class can produce many instances; they have their own state while sharing information about the type definition. `Class<?>` does not hold an independent copy of each instance's data.
 
-## 3. Reflection hoạt động theo những bước nào?
+## 3. What Steps Does Reflection Follow?
 
-1. **Xác định kiểu cần xử lý**: nhận `Class<?>` từ `.class`, `getClass()` hoặc tên lớp.
-2. **Khám phá metadata**: đọc tên lớp, superclass, interface, annotation; tìm constructor, method, field phù hợp.
-3. **Lựa chọn thành phần**: ví dụ chọn phương thức tên `sayHello` có đúng một tham số `String`. Tên đơn thuần có thể chưa đủ vì Java cho phép overload.
-4. **Thực hiện thao tác động nếu cần**: tạo instance bằng `Constructor.newInstance(...)`, gọi bằng `Method.invoke(...)`, hoặc đọc field bằng `Field.get(...)`.
-5. **Xử lý rủi ro runtime**: tên không tồn tại, sai chữ ký, sai đối tượng nhận lời gọi, thiếu quyền truy cập, code được gọi ném exception...
+1. **Identify the type to process**: obtain `Class<?>` from `.class`, `getClass()`, or a class name.
+2. **Discover metadata**: read the class name, superclass, interfaces, and annotations; find matching constructors, methods, and fields.
+3. **Select a member**: for example, choose the method named `sayHello` with exactly one `String` parameter. The name alone may not be enough because Java allows overloading.
+4. **Perform dynamic operations if needed**: create an instance with `Constructor.newInstance(...)`, invoke with `Method.invoke(...)`, or read a field with `Field.get(...)`.
+5. **Handle runtime risks**: nonexistent names, wrong signatures, wrong receiver object, missing access permissions, exceptions thrown by the invoked code...
 
-Một số phương thức thường dùng:
+Some commonly used methods:
 
-| Nhu cầu | API ví dụ | Ý nghĩa |
+| Need | Example API | Meaning |
 | --- | --- | --- |
-| Đọc tên kiểu | `clazz.getName()`, `clazz.getSimpleName()` | Tên đầy đủ hoặc tên ngắn |
-| Tìm phương thức public | `clazz.getMethod(name, parameterTypes...)` | Tìm cả phương thức public được kế thừa |
-| Xem phương thức khai báo trực tiếp | `clazz.getDeclaredMethods()` | Bao gồm cả phương thức non-public được khai báo trong lớp, không tự bao gồm inherited |
-| Tìm constructor | `clazz.getDeclaredConstructor(parameterTypes...)` | Constructor được khai báo phù hợp |
-| Tìm field | `clazz.getDeclaredField(name)` | Field được khai báo trong lớp |
-| Xem annotation runtime | `clazz.getAnnotation(SomeAnnotation.class)` | Đọc annotation có `RetentionPolicy.RUNTIME` nếu hiện diện |
+| Read type name | `clazz.getName()`, `clazz.getSimpleName()` | Full name or simple name |
+| Find a public method | `clazz.getMethod(name, parameterTypes...)` | Also searches inherited public methods |
+| Inspect directly declared methods | `clazz.getDeclaredMethods()` | Includes non-public methods declared in the class; does not automatically include inherited ones |
+| Find a constructor | `clazz.getDeclaredConstructor(parameterTypes...)` | Matching declared constructor |
+| Find a field | `clazz.getDeclaredField(name)` | Field declared in the class |
+| Inspect runtime annotation | `clazz.getAnnotation(SomeAnnotation.class)` | Reads an annotation with `RetentionPolicy.RUNTIME` if present |
 
-Phân biệt `getMethod` với `getDeclaredMethod`: cách thứ nhất chỉ tìm thành phần `public` (bao gồm inherited), cách thứ hai tìm thành phần **được khai báo trong lớp hiện tại** bất kể mức truy cập, nhưng việc tìm thấy metadata **không đồng nghĩa** việc được phép gọi/truy cập.
+Distinguishing `getMethod` from `getDeclaredMethod`: the first only searches `public` members (including inherited ones), while the second searches members **declared in the current class** regardless of access level, though finding metadata **does not mean** you are permitted to invoke or access it.
 
-## 4. Ví dụ Java 17+: tìm và gọi phương thức khi đang chạy
+## 4. Java 17+ Example: Finding and Invoking a Method at Runtime
 
-Tạo một file tên **`ReflectionIntro.java`**:
+Create a file named **`ReflectionIntro.java`**:
 
 ```java
 import java.lang.reflect.Method;
@@ -105,134 +105,134 @@ public class ReflectionIntro {
         }
 
         public String sayHello(String name) {
-            return "Xin chào, " + name + "!";
+            return "Hello, " + name + "!";
         }
     }
 
     public static void main(String[] args) throws ReflectiveOperationException {
-        // 1. Lấy metadata của lớp cần làm việc.
+        // 1. Get metadata of the class to work with.
         Class<?> type = Greeter.class;
-        System.out.println("Lớp: " + type.getSimpleName());
+        System.out.println("Class: " + type.getSimpleName());
 
-        // 2. Tạo đối tượng qua constructor không tham số.
+        // 2. Create an object via the no-argument constructor.
         Object instance = type.getDeclaredConstructor().newInstance();
 
-        // 3. Tra cứu chính xác phương thức public sayHello(String).
+        // 3. Look up the exact public method sayHello(String).
         Method method = type.getMethod("sayHello", String.class);
 
-        // 4. Gọi phương thức trên đối tượng vừa tạo.
+        // 4. Invoke the method on the newly created object.
         Object result = method.invoke(instance, "An");
-        System.out.println("Phương thức: " + method.getName());
-        System.out.println("Kết quả: " + result);
+        System.out.println("Method: " + method.getName());
+        System.out.println("Result: " + result);
     }
 }
 ```
 
-Biên dịch và chạy (có JDK 17 trở lên):
+Compile and run (with JDK 17 or later):
 
 ```bash
 javac ReflectionIntro.java
 java ReflectionIntro
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
-Lớp: Greeter
-Phương thức: sayHello
-Kết quả: Xin chào, An!
+Class: Greeter
+Method: sayHello
+Result: Hello, An!
 ```
 
-**Giải thích theo trình tự:**
+**Step-by-step explanation:**
 
-- `Greeter.class` cho biết runtime đang thao tác với lớp nào; kiểu biến là `Class<?>` vì đoạn xử lý muốn làm việc với metadata chung.
-- `getDeclaredConstructor()` tìm constructor không tham số. `newInstance()` tạo một `Greeter` thực sự; biến `instance` được khai báo `Object` vì lời gọi động có thể trả về nhiều kiểu.
-- `getMethod("sayHello", String.class)` tìm phương thức `public` theo **tên + kiểu tham số**. Nếu đổi tên hoặc đổi chữ ký, việc tìm kiếm sẽ lỗi tại runtime.
-- `invoke(instance, "An")` gọi phương thức trên instance. Vì `Method.invoke` trả về `Object`, người gọi có thể phải kiểm tra và ép kiểu kết quả để dùng tiếp.
+- `Greeter.class` tells the runtime which class it is working with; the variable type is `Class<?>` because this code wants to work with general metadata.
+- `getDeclaredConstructor()` finds the no-argument constructor. `newInstance()` creates an actual `Greeter`; the `instance` variable is declared as `Object` because dynamic calls may return various types.
+- `getMethod("sayHello", String.class)` finds a `public` method by **name + parameter types**. If the name or signature changes, the lookup will fail at runtime.
+- `invoke(instance, "An")` invokes the method on the instance. Because `Method.invoke` returns `Object`, the caller may need to check and cast the result for further use.
 
-Ở đây compiler **không cần thấy lời gọi** `instance.sayHello("An")`. Việc xác định phương thức được dời sang runtime. Tuy nhiên ví dụ vẫn dùng `Greeter.class` để dễ hiểu; trong ứng dụng thật, biến `type` có thể đến từ một cấu hình/plugin và không biết trước ở mã của framework.
+Here the compiler **does not need to see the call** `instance.sayHello("An")`. Method resolution is deferred to runtime. However, the example still uses `Greeter.class` for clarity; in a real application, the `type` variable might come from a configuration or plugin and be unknown in the framework's code.
 
-### So sánh lời gọi thông thường với lời gọi động
+### Comparing Direct Calls with Dynamic Calls
 
-| Tiêu chí | Gọi trực tiếp | Dùng Reflection |
+| Criterion | Direct Call | Using Reflection |
 | --- | --- | --- |
-| Cú pháp | `greeter.sayHello("An")` | `method.invoke(greeter, "An")` |
-| Chọn phương thức | Compiler giải quyết từ mã nguồn và kiểu khai báo | Chương trình tra cứu `Method` ở runtime |
-| Sai tên/chữ ký | Thường bị báo khi biên dịch | Có thể ném exception khi chạy |
-| Kiểu kết quả | `String` đã biết | Giá trị trả về từ `invoke` là `Object` |
-| Khả năng xử lý kiểu chưa biết trước | Giới hạn bởi thiết kế API tĩnh | Linh hoạt hơn nhờ metadata |
-| Tính đơn giản, kiểm tra kiểu và tối ưu | Thường tốt hơn | Phức tạp và dễ lỗi hơn |
+| Syntax | `greeter.sayHello("An")` | `method.invoke(greeter, "An")` |
+| Method selection | The compiler resolves it from source code and declared types | The program looks up `Method` at runtime |
+| Wrong name/signature | Usually reported at compile time | May throw an exception at runtime |
+| Result type | `String` is already known | The return value from `invoke` is `Object` |
+| Handling previously unknown types | Limited by static API design | More flexible thanks to metadata |
+| Simplicity, type checking, and optimization | Usually better | More complex and error-prone |
 
-Reflection **bổ sung** cho gọi phương thức thông thường; nó không khiến thiết kế hướng đối tượng, interface hay đa hình trở nên lỗi thời.
+Reflection **complements** regular method calls; it does not make object-oriented design, interfaces, or polymorphism obsolete.
 
-## 5. Năm tình huống Reflection thật sự có ích
+## 5. Five Situations Where Reflection Is Truly Useful
 
-**1. Thư viện serialization/deserialization.** Một serializer có thể duyệt field/getter và annotation của lớp runtime để ánh xạ dữ liệu. Framework thực tế có thể kết hợp Reflection với accessor đã sinh hoặc những tối ưu khác; không phải mọi lần xử lý JSON đều bắt buộc dùng Reflection.
+**1. Serialization/deserialization libraries.** A serializer can inspect the fields/getters and annotations of a runtime class to map data. Real-world frameworks may combine Reflection with generated accessors or other optimizations; not every JSON processing step has to use Reflection.
 
-**2. Dependency injection và cấu hình dựa trên annotation.** Một container có thể tìm class/constructor được khai báo và chọn cách khởi tạo theo metadata, sau đó giải quyết dependency. Cấu trúc này cho phép thêm thành phần mới mà không phải viết từng lời gọi `new` vào container.
+**2. Dependency injection and annotation-based configuration.** A container can discover declared classes/constructors and choose how to instantiate them based on metadata, then resolve dependencies. This structure lets you add new components without writing individual `new` calls inside the container.
 
-**3. Test runner.** JUnit và công cụ tương tự có thể phát hiện phương thức kiểm thử thông qua annotation rồi thực thi trong quy trình chung. Annotation muốn được tìm trực tiếp bằng Reflection tại runtime cần được giữ lại ở runtime; không phải annotation nào cũng như vậy.
+**3. Test runners.** JUnit and similar tools can discover test methods through annotations and then execute them within a unified workflow. An annotation that needs to be found directly via Reflection at runtime must be retained at runtime; not all annotations are.
 
-**4. Plugin / hệ thống cấu hình mở rộng.** Tên lớp cụ thể có thể lấy từ cấu hình, được load và kiểm tra trước khi sử dụng. Nếu plugin có contract ổn định, nên tiếp tục dựa trên interface để gọi chức năng chính; Reflection có thể chỉ phục vụ bước khám phá/khởi tạo.
+**4. Plugins / extensible configuration systems.** Concrete class names can be read from configuration, loaded, and verified before use. If plugins follow a stable contract, you should continue calling core functionality through an interface; Reflection may only serve the discovery/instantiation step.
 
-**5. Công cụ phân tích/debug.** Một công cụ có thể trình bày tên lớp, danh sách method/field và annotation để giúp quan sát mã đang chạy. Việc liệt kê metadata không nhất thiết phải gọi phương thức hay thay đổi trạng thái đối tượng.
+**5. Analysis/debugging tools.** A tool can present class names, method/field lists, and annotations to help inspect running code. Listing metadata does not necessarily have to invoke methods or mutate object state.
 
-Điểm chung: **code hạ tầng tổng quát cần hiểu kiểu dữ liệu mà nó chưa biết khi được viết ra**.
+Common thread: **general-purpose infrastructure code needs to understand data types that it did not know when it was written**.
 
-## 6. Những giới hạn và đánh đổi cần hiểu ngay từ đầu
+## 6. Limitations and Trade-offs to Understand from the Start
 
-### Lỗi chuyển từ compile time sang runtime
+### Errors Shift from Compile Time to Runtime
 
-Với gọi trực tiếp, IDE/compiler thường phát hiện phương thức không tồn tại. Với Reflection, tên thường được lưu bằng chuỗi nên `getMethod("syaHello", String.class)` vẫn biên dịch nhưng sẽ ném `NoSuchMethodException` khi chạy.
+With direct calls, the IDE/compiler usually catches nonexistent methods. With Reflection, names are often stored as strings, so `getMethod("syaHello", String.class)` still compiles but will throw `NoSuchMethodException` at runtime.
 
-Các lỗi cần phân biệt:
+Errors to distinguish:
 
-- `ClassNotFoundException`: không tìm thấy lớp theo tên ở `Class.forName`.
-- `NoSuchMethodException` / `NoSuchFieldException`: không tìm thấy thành phần cần tra cứu.
-- `IllegalAccessException` hoặc `InaccessibleObjectException`: vấn đề quyền truy cập/strong encapsulation tùy API và thời điểm.
-- `IllegalArgumentException`: đối tượng nhận lời gọi hoặc số lượng/kiểu đối số không thích hợp.
-- `InvocationTargetException`: method/constructor được gọi **đã ném exception**; xem `getCause()` để biết nguyên nhân bên trong.
+- `ClassNotFoundException`: class not found by name in `Class.forName`.
+- `NoSuchMethodException` / `NoSuchFieldException`: the looked-up member was not found.
+- `IllegalAccessException` or `InaccessibleObjectException`: access permission or strong encapsulation issues depending on the API and timing.
+- `IllegalArgumentException`: inappropriate receiver object or invalid number/types of arguments.
+- `InvocationTargetException`: the invoked method/constructor **threw an exception**; inspect `getCause()` to see the underlying cause.
 
-Ví dụ ở trên khai báo `throws ReflectiveOperationException` để giữ trọng tâm ở cơ chế, không phải mẫu xử lý lỗi production. Trong chương trình thực tế, hãy bổ sung xử lý ngoại lệ phù hợp với contract của ứng dụng và ghi log có ngữ cảnh.
+The example above declares `throws ReflectiveOperationException` to keep focus on the mechanism rather than production error-handling patterns. In real programs, add exception handling suited to the application's contract and log with context.
 
-### Encapsulation và Java Module System (JPMS)
+### Encapsulation and the Java Module System (JPMS)
 
-Tìm thấy field/method `private` qua `getDeclaredField` hoặc `getDeclaredMethod` **không có nghĩa** được tự ý truy cập. `setAccessible(true)` có thể bị từ chối, đặc biệt với package không được `opens` trong module có tên; không nên xem đây là cách vượt mọi ranh giới bảo vệ. Ứng dụng nên ưu tiên API `public` và contract đã thiết kế rõ. Trong Java modules, `exports` phục vụ truy cập API thông thường, còn `opens` cho phép deep reflection tới package được chỉ định khi cần.
+Finding a `private` field/method via `getDeclaredField` or `getDeclaredMethod` **does not mean** you may freely access it. `setAccessible(true)` can be rejected, especially for packages that are not `opens` in a named module; do not treat it as a way to bypass all protective boundaries. Applications should prefer `public` APIs and clearly designed contracts. In Java modules, `exports` serves normal API access, whereas `opens` permits deep reflection into the specified package when needed.
 
-### Hiệu năng
+### Performance
 
-Tra cứu metadata, kiểm tra truy cập, đóng gói/unbox tham số và lời gọi động có thể gây chi phí so với lời gọi trực tiếp; JVM có tối ưu Reflection nhưng không nên mặc định mọi lời gọi đều ngang nhau. Tránh lặp lại tra cứu cùng một `Method` trong vòng lặp nóng nếu có thể cache metadata. Chỉ benchmark khi có vấn đề hiệu năng thực tế; lựa chọn kiến trúc không nên dựa trên một con số benchmark không có ngữ cảnh.
+Metadata lookup, access checks, argument boxing/unboxing, and dynamic invocation can incur overhead compared to direct calls; the JVM does optimize Reflection, but you should not assume all calls are equal. Avoid repeatedly looking up the same `Method` inside a hot loop if metadata can be cached. Only benchmark when there is an actual performance issue; architectural choices should not be based on a single context-free benchmark number.
 
-### Khả năng bảo trì, refactor và bảo mật
+### Maintainability, Refactoring, and Security
 
-Tên class/method dưới dạng chuỗi thường không được công cụ refactor kiểm tra đầy đủ. Dùng Reflection trên dữ liệu do người dùng cung cấp mà không giới hạn danh sách lớp/hành động được phép có thể dẫn đến thực thi hành vi ngoài dự kiến. Nếu cần nhận class từ cấu hình, hãy xác thực danh sách được phép, kiểm tra interface/contract, giới hạn quyền và xử lý lỗi rõ ràng.
+Class/method names as strings are often not thoroughly checked by refactoring tools. Using Reflection on user-supplied data without restricting the allowed list of classes/actions can lead to unintended execution. If you must accept class names from configuration, validate against an allowlist, verify the interface/contract, restrict permissions, and handle errors clearly.
 
-Ở một số môi trường tối ưu theo mô hình đóng (ví dụ native image), các kiểu hoặc thành phần truy cập động có thể cần được đăng ký metadata/cấu hình build theo công cụ đang dùng.
+In some closed-world optimization environments (such as native image), dynamically accessed types or members may need to be registered in metadata/build configuration according to the tool in use.
 
-## 7. Khi nào nên ưu tiên giải pháp khác?
+## 7. When Should You Prefer Another Solution?
 
-Nếu chương trình đã biết các kiểu và hành vi từ đầu, hãy chọn **gọi trực tiếp, interface, polymorphism, generic hoặc factory**. Ví dụ, nhiều đối tượng cùng triển khai `Notifier` thì gọi `notifier.send(...)` qua interface đơn giản và an toàn kiểu hơn là Reflection để tìm tên phương thức `send`.
+If the program already knows the types and behaviors from the start, choose **direct calls, interfaces, polymorphism, generics, or factories**. For example, when multiple objects implement `Notifier`, calling `notifier.send(...)` through the interface is simpler and more type-safe than using Reflection to look up a method named `send`.
 
-Dùng Reflection khi có **lý do động thực sự**: khám phá type/annotation chưa biết trước, khởi tạo theo metadata, tích hợp framework hoặc công cụ tổng quát. Thường nên cô lập nó ở lớp hạ tầng và trả ra một API có kiểu rõ ràng cho phần còn lại của ứng dụng.
+Use Reflection when there is a **genuine dynamic reason**: discovering previously unknown types/annotations, instantiating from metadata, or building framework/general-purpose tooling. It is usually best to isolate it in an infrastructure layer and expose a strongly typed API to the rest of the application.
 
-Một cách tự kiểm tra trước khi chọn Reflection:
+A self-check before choosing Reflection:
 
-1. Kiểu hoặc phương thức cần gọi có biết được ngay khi viết code không? Nếu có, lời gọi trực tiếp thường tốt hơn.
-2. Một interface hoặc factory có biểu diễn contract cần thiết được không? Nếu có, ưu tiên contract đó.
-3. Metadata nào thật sự cần đọc, và thành phần đó có public hay được mở hợp lệ không?
-4. Sai tên, sai chữ ký hoặc không có class sẽ được kiểm soát như thế nào?
-5. Có thể cache metadata và giới hạn lớp/hành động được phép ở ranh giới runtime không?
+1. Are the type and method to call already known while writing the code? If yes, a direct call is usually better.
+2. Can an interface or factory express the required contract? If yes, prefer that contract.
+3. What metadata is actually needed, and is that member public or legitimately opened?
+4. How will wrong names, wrong signatures, or missing classes be handled?
+5. Can metadata be cached and allowed classes/actions restricted at the runtime boundary?
 
-## 8. Điều cần nhớ
+## 8. Key Takeaways
 
-Reflection cho Java khả năng **tự quan sát metadata và thao tác động với class, constructor, method, field tại runtime**. Nó giải quyết bài toán những thư viện/công cụ tổng quát phải xử lý các kiểu chưa biết trước khi biên dịch. Cái giá là giảm kiểm tra kiểu tại compile time, thêm xử lý lỗi runtime, cân nhắc quyền truy cập và khả năng bảo trì/hiệu năng.
+Reflection gives Java the ability to **introspect metadata and dynamically operate on classes, constructors, methods, and fields at runtime**. It solves the problem where general-purpose libraries/tools must handle types unknown at compile time. The cost is reduced compile-time type checking, additional runtime error handling, and access-control as well as maintainability/performance considerations.
 
-Hãy nhớ công thức: **chỉ cần hành vi cụ thể → gọi trực tiếp qua contract; cần khám phá cấu trúc động → cân nhắc Reflection và kiểm soát chặt ranh giới của nó**.
+Remember the rule of thumb: **when you only need specific behavior → call directly through a contract; when you need to discover structure dynamically → consider Reflection and tightly control its boundary**.
 
-### Tự kiểm tra hiểu bài
+### Check Your Understanding
 
-- Vì sao một thư viện JSON không thể viết sẵn lời gọi tới mọi lớp của ứng dụng?
-- Sự khác nhau giữa `Greeter.class`, `obj.getClass()` và `Class.forName(...)` là gì?
-- Vì sao `getMethod("sayHello", String.class)` phải chỉ rõ kiểu tham số?
-- Vì sao tìm thấy một field `private` chưa đảm bảo có thể đọc field đó?
-- Trong dự án có interface ổn định, tại sao nên gọi qua interface sau bước khám phá plugin?
+- Why can't a JSON library hardcode calls to every class in an application?
+- What is the difference between `Greeter.class`, `obj.getClass()`, and `Class.forName(...)`?
+- Why must `getMethod("sayHello", String.class)` explicitly specify parameter types?
+- Why does finding a `private` field not guarantee that the field can be read?
+- In a project with a stable interface, why should you call through the interface after the plugin discovery step?

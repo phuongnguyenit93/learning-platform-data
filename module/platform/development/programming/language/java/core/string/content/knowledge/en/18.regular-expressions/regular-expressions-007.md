@@ -1,24 +1,24 @@
-# CASE_INSENSITIVE, UNICODE_CASE và UNICODE_CHARACTER_CLASS trong Java Regex
+# CASE_INSENSITIVE, UNICODE_CASE, and UNICODE_CHARACTER_CLASS in Java Regex
 
-## 1. Vì sao cần phân biệt ba cờ?
+## 1. Why Must You Distinguish the Three Flags?
 
-Trong Java, `java.util.regex.Pattern` biên dịch một biểu thức chính quy (regular expression), còn `Matcher` kiểm tra biểu thức đó trên chuỗi. Tham số `flags` của `Pattern.compile(regex, flags)` thay đổi cách engine hiểu phép so khớp. Ba cờ dễ bị nhầm lẫn:
+In Java, `java.util.regex.Pattern` compiles a regular expression, and `Matcher` checks that expression against a string. The `flags` parameter of `Pattern.compile(regex, flags)` alters how the engine interprets matching. Three flags are easily confused:
 
-- `Pattern.CASE_INSENSITIVE`: bật **so khớp không phân biệt hoa/thường**; mặc định phần xử lý hoa/thường này theo US-ASCII.
-- `Pattern.UNICODE_CASE`: khi đã bật so khớp không phân biệt hoa/thường, dùng **quy tắc Unicode case folding** thay vì chỉ US-ASCII. Bản thân cờ này **không bật** chế độ bỏ qua hoa/thường.
-- `Pattern.UNICODE_CHARACTER_CLASS`: cho các lớp ký tự định nghĩa sẵn và các lớp POSIX như `\d`, `\w`, `\s`, `\p{Alpha}`, `\p{Digit}` hoạt động theo định nghĩa Unicode. Cờ này **ngầm bật UNICODE_CASE**, nhưng **không ngầm bật CASE_INSENSITIVE**.
+- `Pattern.CASE_INSENSITIVE`: enables **case-insensitive matching**; by default, this case handling follows US-ASCII.
+- `Pattern.UNICODE_CASE`: when case-insensitive matching is already enabled, uses **Unicode case folding rules** instead of US-ASCII only. By itself, this flag **does not enable** case-insensitive matching.
+- `Pattern.UNICODE_CHARACTER_CLASS`: makes predefined character classes and POSIX classes such as `\d`, `\w`, `\s`, `\p{Alpha}`, and `\p{Digit}` follow Unicode definitions. This flag **implicitly enables UNICODE_CASE**, yet **does not implicitly enable CASE_INSENSITIVE**.
 
-Vì thế, “không phân biệt hoa/thường” và “nhận diện lớp ký tự Unicode” là hai vấn đề độc lập. Một regex có thể hỗ trợ chữ số Unicode mà vẫn phân biệt `é` với `É`; hoặc có thể so khớp `é` với `É` nhưng `\d` vẫn chỉ nhận các chữ số ASCII.
+Therefore, "case-insensitivity" and "Unicode character class recognition" are two independent concerns. A regex can support Unicode digits while still distinguishing `é` from `É`; or it can match `é` with `É` while `\d` still accepts only ASCII digits.
 
-| Cờ Java | Ký hiệu ngay trong regex | Điều thay đổi trực tiếp | Điều không tự làm |
+| Java Flag | Inline regex syntax | What it changes directly | What it does not do automatically |
 | --- | --- | --- | --- |
-| `CASE_INSENSITIVE` | `(?i)` | Bỏ qua khác biệt hoa/thường khi so khớp, mặc định dựa trên US-ASCII | Không tự mở rộng `\d`, `\w`, `\s` thành Unicode |
-| `UNICODE_CASE` | `(?u)` | Dùng Unicode case folding **khi chế độ không phân biệt hoa/thường đã bật** | Không tự bật `CASE_INSENSITIVE`; không đổi các lớp ký tự thành Unicode |
-| `UNICODE_CHARACTER_CLASS` | `(?U)` (chữ `U` viết hoa) | Áp dụng quy tắc Unicode cho các lớp ký tự định nghĩa sẵn/POSIX; đồng thời ngầm bật `UNICODE_CASE` | Không tự bật `CASE_INSENSITIVE`; không xóa dấu hay chuẩn hóa Unicode |
+| `CASE_INSENSITIVE` | `(?i)` | Ignores uppercase/lowercase differences when matching, defaulting to US-ASCII | Does not automatically expand `\d`, `\w`, `\s` to Unicode |
+| `UNICODE_CASE` | `(?u)` | Uses Unicode case folding **when case-insensitive mode is already enabled** | Does not enable `CASE_INSENSITIVE`; does not convert character classes to Unicode |
+| `UNICODE_CHARACTER_CLASS` | `(?U)` (uppercase `U`) | Applies Unicode rules to predefined/POSIX character classes; also implicitly enables `UNICODE_CASE` | Does not enable `CASE_INSENSITIVE`; does not strip accents or normalize Unicode |
 
-## 2. CASE_INSENSITIVE: không phân biệt hoa/thường kiểu mặc định
+## 2. CASE_INSENSITIVE: Default Case-Insensitive Matching
 
-`Pattern.CASE_INSENSITIVE` làm cho `"java"` khớp `"JAVA"`. Nó cũng tác động đến ký tự chữ cái trong literal, tập ký tự và các nhóm regex thích hợp. Tuy nhiên, theo hợp đồng của `Pattern`, khi dùng riêng cờ này, so khớp không phân biệt hoa/thường mặc định giả định **US-ASCII**. Ví dụ với `é` và `É` sẽ thể hiện giới hạn:
+`Pattern.CASE_INSENSITIVE` makes `"java"` match `"JAVA"`. It also affects alphabetic literals, character sets, and appropriate regex groups. However, per `Pattern`'s contract, when used alone, case-insensitive matching defaults to assuming **US-ASCII**. An example with `é` and `É` demonstrates this limitation:
 
 ```java
 import java.util.regex.Pattern;
@@ -33,27 +33,27 @@ System.out.println(ascii);  // true
 System.out.println(accent); // false
 ```
 
-Hai đoạn trên là các câu lệnh minh họa (có thể chạy trong `jshell`), không phải một lớp Java độc lập. Phương thức `matches()` yêu cầu **toàn bộ đầu vào** khớp regex; `find()` tìm một đoạn con phù hợp. Khác biệt giữa hai phương thức này không liên quan đến cờ.
+The two statements above are illustrative snippets (runnable in `jshell`), not a standalone Java class. The `matches()` method requires the **entire input** to match the regex; `find()` locates a matching subsequence. The difference between these two methods is unrelated to flags.
 
-Sử dụng `(?i)` khi muốn khai báo cờ ngay trong regex, chẳng hạn `Pattern.compile("(?i)java")`. Trong mã Java, hai cách sau tương đương về ý nghĩa với regex này:
+Use `(?i)` when you want to declare the flag inline in the regex, such as `Pattern.compile("(?i)java")`. In Java code, the following two forms are semantically equivalent for this regex:
 
 ```java
 Pattern.compile("java", Pattern.CASE_INSENSITIVE);
 Pattern.compile("(?i)java");
 ```
 
-## 3. UNICODE_CASE: làm Unicode case folding hoạt động cùng CASE_INSENSITIVE
+## 3. UNICODE_CASE: Making Unicode Case Folding Work with CASE_INSENSITIVE
 
-Cờ `Pattern.UNICODE_CASE` điều chỉnh **cách** đối chiếu hoa/thường khi `CASE_INSENSITIVE` đang có hiệu lực. Nó không tự biến biểu thức thành case-insensitive. Với hai ký tự `é` (U+00E9) và `É` (U+00C9):
+The `Pattern.UNICODE_CASE` flag adjusts **how** case comparison works when `CASE_INSENSITIVE` is active. It does not turn an expression case-insensitive on its own. With the two characters `é` (U+00E9) and `É` (U+00C9):
 
-| Bộ cờ | `"é"` có khớp `"É"` không? | Vì sao? |
+| Flag combination | Does `"é"` match `"É"`? | Why? |
 | --- | --- | --- |
-| Không cờ | Không | So khớp có phân biệt hoa/thường |
-| Chỉ `CASE_INSENSITIVE` | Không | Bỏ qua hoa/thường theo US-ASCII mặc định |
-| Chỉ `UNICODE_CASE` | Không | Chưa bật bỏ qua hoa/thường |
-| `CASE_INSENSITIVE \| UNICODE_CASE` | Có | Bật bỏ qua hoa/thường và dùng Unicode case folding |
+| No flags | No | Matching is case-sensitive |
+| `CASE_INSENSITIVE` only | No | Ignores case using default US-ASCII rules |
+| `UNICODE_CASE` only | No | Case-insensitive mode is not enabled yet |
+| `CASE_INSENSITIVE \| UNICODE_CASE` | Yes | Enables case-insensitive matching and uses Unicode case folding |
 
-Cách kết hợp đúng là dùng phép OR bitwise `|`:
+The right way to combine them is with the bitwise OR operator `|`:
 
 ```java
 Pattern p = Pattern.compile(
@@ -63,26 +63,26 @@ Pattern p = Pattern.compile(
 boolean found = p.matcher("\u00C9").matches(); // true
 ```
 
-Hoặc đặt cả hai cờ trong biểu thức: `(?iu)é`. Chữ `i` bật không phân biệt hoa/thường; chữ `u` chọn cách xử lý Unicode. Dùng `(?u)` một mình không đạt yêu cầu này.
+Or place both flags inside the expression: `(?iu)é`. The letter `i` enables case-insensitivity; the letter `u` selects Unicode handling. Using `(?u)` alone does not achieve this.
 
-**Ranh giới cần nhớ:** Unicode case folding không đồng nghĩa với xóa dấu, chuyển tự hay chuẩn hóa văn bản. Ví dụ `é` và `e` là hai chữ khác nhau; chuỗi một ký tự `é` (dạng dựng sẵn) và chuỗi `e` + dấu sắc kết hợp (dạng phân rã) cũng không được tự động xem là tương đương chỉ vì bật `UNICODE_CASE`. Khi cần cùng một chuẩn biểu diễn, cân nhắc `java.text.Normalizer` với NFC/NFD theo yêu cầu; việc chuẩn hóa phải được thiết kế riêng.
+**Boundary to remember:** Unicode case folding does not mean accent removal, transliteration, or text normalization. For instance, `é` and `e` are two different letters; similarly, a single-character `é` (precomposed form) and `e` + combining acute accent (decomposed form) are not automatically considered equivalent just by enabling `UNICODE_CASE`. When a consistent representation is needed, consider `java.text.Normalizer` with NFC/NFD as required; normalization must be designed separately.
 
-Case folding trong regex cũng không thay thế phép biến đổi chữ hoa/thường phụ thuộc ngôn ngữ như `String.toLowerCase(Locale)`. Với các luật xử lý tên riêng, thứ tự từ điển hoặc ngôn ngữ cụ thể, cần kiểm thử dữ liệu thực tế thay vì giả định một phép so khớp có thể đáp ứng mọi quy tắc bản địa hóa.
+Case folding in regex also does not replace locale-dependent case conversions such as `String.toLowerCase(Locale)`. For rules handling proper names, dictionary order, or specific languages, test with real data instead of assuming one matching mode satisfies every localization rule.
 
-## 4. UNICODE_CHARACTER_CLASS: mở rộng ý nghĩa của lớp ký tự
+## 4. UNICODE_CHARACTER_CLASS: Expanding the Meaning of Character Classes
 
-Không bật `UNICODE_CHARACTER_CLASS`, một số lớp ký tự định nghĩa sẵn thường được hiểu theo phạm vi US-ASCII:
+Without `UNICODE_CHARACTER_CLASS`, several predefined character classes are normally interpreted according to US-ASCII scope:
 
-| Regex | Mặc định (US-ASCII) | Khi bật `UNICODE_CHARACTER_CLASS` |
+| Regex | Default (US-ASCII) | With `UNICODE_CHARACTER_CLASS` enabled |
 | --- | --- | --- |
-| `\d` | Chữ số `0` đến `9` | Chữ số thập phân Unicode, tương ứng `\p{IsDigit}` |
-| `\w` | `[a-zA-Z_0-9]` | Gồm chữ cái Unicode, dấu kết hợp, chữ số, dấu nối thuộc lớp connector và join control theo định nghĩa Java |
-| `\s` | Các khoảng trắng ASCII tiêu chuẩn như space, tab, xuống dòng | Ký tự khoảng trắng theo Unicode `White_Space` |
-| `\p{Alpha}` | Chữ cái ASCII | Ký tự có thuộc tính Unicode `Alphabetic` |
-| `\p{Digit}` | Chữ số ASCII | Chữ số thập phân Unicode |
-| `\p{ASCII}` | Vẫn chỉ ASCII | Vẫn chỉ ASCII; cờ không biến mọi lớp thành “mọi ký tự” |
+| `\d` | Digits `0` through `9` | Unicode decimal digits, corresponding to `\p{IsDigit}` |
+| `\w` | `[a-zA-Z_0-9]` | Includes Unicode letters, combining marks, digits, connector punctuation, and join controls per Java's definition |
+| `\s` | Standard ASCII whitespace such as space, tab, newline | Whitespace characters per Unicode `White_Space` |
+| `\p{Alpha}` | ASCII letters | Characters with Unicode `Alphabetic` property |
+| `\p{Digit}` | ASCII digits | Unicode decimal digits |
+| `\p{ASCII}` | Still ASCII only | Still ASCII only; the flag does not turn every class into "any character" |
 
-Ví dụ `"١٢٣"` gồm ba chữ số Arabic-Indic: `\d+` mặc định không khớp toàn bộ, nhưng sẽ khớp khi bật `UNICODE_CHARACTER_CLASS`. Tương tự, `"café"` không khớp toàn bộ `\w+` mặc định, nhưng khớp khi bật cờ này.
+For example, `"١٢٣"` consists of three Arabic-Indic digits: default `\d+` does not match the whole string, whereas it matches when `UNICODE_CHARACTER_CLASS` is enabled. Likewise, `"café"` does not match default `\w+` in full, but matches when this flag is enabled.
 
 ```java
 Pattern asciiDigits = Pattern.compile("\\d+");
@@ -95,19 +95,19 @@ System.out.println(asciiDigits.matcher(digits).matches());   // false
 System.out.println(unicodeDigits.matcher(digits).matches()); // true
 ```
 
-**Điểm phân biệt quan trọng:** `UNICODE_CASE` **không** làm `\d` hay `\w` mở rộng phạm vi; muốn đổi các lớp đó thì dùng `UNICODE_CHARACTER_CLASS`. Ngược lại, `UNICODE_CHARACTER_CLASS` có ngầm bật `UNICODE_CASE` nhưng vẫn cần `CASE_INSENSITIVE` nếu muốn bỏ qua hoa/thường:
+**Important distinction:** `UNICODE_CASE` **does not** expand the scope of `\d` or `\w`; to change those classes, use `UNICODE_CHARACTER_CLASS`. Conversely, `UNICODE_CHARACTER_CLASS` implicitly enables `UNICODE_CASE`, yet still needs `CASE_INSENSITIVE` if you want to ignore letter case:
 
-- `Pattern.compile("é", Pattern.UNICODE_CHARACTER_CLASS)` vẫn không khớp `"É"` với `matches()`.
-- `Pattern.compile("é", Pattern.UNICODE_CHARACTER_CLASS | Pattern.CASE_INSENSITIVE)` sẽ khớp `"É"`.
-- `Pattern.compile("(?U)\\w+")` nhận dạng `\w` theo Unicode, còn `Pattern.compile("(?iU)é")` vừa dùng Unicode character classes vừa bỏ qua hoa/thường.
+- `Pattern.compile("é", Pattern.UNICODE_CHARACTER_CLASS)` still does not match `"É"` with `matches()`.
+- `Pattern.compile("é", Pattern.UNICODE_CHARACTER_CLASS | Pattern.CASE_INSENSITIVE)` will match `"É"`.
+- `Pattern.compile("(?U)\\w+")` recognizes `\w` per Unicode, while `Pattern.compile("(?iU)é")` both uses Unicode character classes and ignores case.
 
-Các lớp như `\p{L}` (ký tự thuộc nhóm Letter của Unicode) và `\p{Nd}` (Decimal_Number) **đã là các thuộc tính Unicode được gọi tường minh**, kể cả khi chưa bật `UNICODE_CHARACTER_CLASS`. Vì vậy `\p{L}+` là một lựa chọn rõ nghĩa khi chỉ cần chữ cái Unicode, không nhất thiết phải bật `(?U)` cho toàn regex.
+Classes such as `\p{L}` (Unicode Letter category characters) and `\p{Nd}` (Decimal_Number) **are already explicit Unicode properties**, even without `UNICODE_CHARACTER_CLASS` enabled. Thus `\p{L}+` is an explicit choice when only Unicode letters are needed, without having to enable `(?U)` for the entire regex.
 
-Lưu ý rằng khái niệm “word” trong `\w` khi bật Unicode **rộng hơn chữ cái đơn thuần**. Nó có thể nhận các dấu kết hợp và một số ký tự điều khiển nối chữ. Nếu kiểm tra tên người, mã tài khoản hay định danh, đừng mặc nhiên coi `(?U)\w+` là bộ quy tắc nghiệp vụ hoàn chỉnh.
+Note that the notion of "word" in `\w` when Unicode is enabled **is broader than plain letters**. It can accept combining marks and certain join-control characters. When validating personal names, account IDs, or identifiers, do not assume `(?U)\w+` is a complete business rule.
 
-## 5. Ví dụ Java 17+ có thể biên dịch và chạy
+## 5. Compilable and Runnable Java 17+ Example
 
-Lưu chương trình UTF-8 vào `RegexUnicodeFlagsDemo.java`. Các chuỗi `\u00E9`, `\u00C9` và `\u0661`–`\u0663` là cách viết Unicode escape trong mã nguồn Java để ví dụ tái hiện được mà không phụ thuộc bàn phím:
+Save the UTF-8 program to `RegexUnicodeFlagsDemo.java`. The sequences `\u00E9`, `\u00C9`, and `\u0661`–`\u0663` are Unicode escapes in Java source code so the example is reproducible regardless of keyboard layout:
 
 ```java
 import java.util.regex.Pattern;
@@ -143,14 +143,14 @@ public class RegexUnicodeFlagsDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 RegexUnicodeFlagsDemo.java
 java RegexUnicodeFlagsDemo
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 ASCII letters = true
@@ -166,13 +166,13 @@ Accent, iU = true
 Explicit letter class = true
 ```
 
-Đọc kết quả theo hai nhóm: bốn dòng đầu cho thấy **bật `i` và `u` cùng nhau** mới so khớp chữ hoa/thường Unicode; các dòng chữ số/word cho thấy **`U`** thay đổi lớp ký tự. Dòng `Accent, U only` xác nhận `U` không tự bật `i`; dòng `Accent, iU` cho thấy `U` đã ngầm có `u`. Dòng cuối cho thấy có thể gọi lớp thuộc tính Unicode tường minh mà không bật `U`.
+Read the output in two groups: the first four lines show that **enabling `i` and `u` together** is what matches Unicode uppercase/lowercase letters; the digit/word lines show that **`U`** changes character classes. The `Accent, U only` line confirms `U` does not automatically enable `i`; the `Accent, iU` line shows `U` already implies `u`. The final line shows you can invoke an explicit Unicode property class without enabling `U`.
 
-## 6. Chọn cách cấu hình cờ và phạm vi áp dụng
+## 6. Choosing How to Configure Flags and Their Scope
 
-Có ba cách phổ biến:
+There are three common approaches:
 
-**Dùng cờ khi biên dịch `Pattern`:** phù hợp khi tạo pattern tái sử dụng nhiều lần và muốn cấu hình tách khỏi regex.
+**Passing flags when compiling `Pattern`:** suited when creating a reusable pattern and keeping configuration separate from the regex.
 
 ```java
 Pattern search = Pattern.compile(
@@ -182,53 +182,53 @@ Pattern search = Pattern.compile(
 boolean result = search.matcher("CAFE").matches(); // true
 ```
 
-**Dùng inline flag ở đầu regex:** phù hợp với API chỉ nhận biểu thức chuỗi, ví dụ `String.matches(String regex)`:
+**Using inline flags at the start of the regex:** suited for APIs that take only a string expression, such as `String.matches(String regex)`:
 
 ```java
 boolean a = "\u00C9".matches("(?iu)\u00E9");  // true
 boolean b = "caf\u00E9".matches("(?U)\\w+"); // true
 ```
 
-**Giới hạn cờ cho một nhóm:** Java hỗ trợ cú pháp `(?flags:...)`. Ví dụ `(?i:[a-z]+)` chỉ bật chế độ không phân biệt hoa/thường bên trong nhóm; `(?iu:é)` bật cả `i` và `u` cho nhóm đó. Khi cần một phần quy tắc giữ phân biệt hoa/thường, scoped flags giúp diễn đạt phạm vi chính xác. Có thể tắt cờ inline phù hợp bằng dạng `(?-i:...)`.
+**Scoping flags to a group:** Java supports the syntax `(?flags:...)`. For example, `(?i:[a-z]+)` enables case-insensitivity only inside the group; `(?iu:é)` enables both `i` and `u` for that group. When part of a rule must remain case-sensitive, scoped flags express the exact scope clearly. Inline flags can be turned off appropriately with `(?-i:...)`.
 
-Chữ trong embedded flag phân biệt hoa/thường: `u` viết thường chỉ chế độ Unicode-aware case folding; `U` viết hoa bật Unicode character classes. Đừng đọc `(?u)` và `(?U)` là cùng một tùy chọn.
+Letters in embedded flags are case-sensitive: lowercase `u` specifies Unicode-aware case folding; uppercase `U` enables Unicode character classes. Do not read `(?u)` and `(?U)` as the same option.
 
-**Quy tắc về dấu gạch chéo trong Java:** chuỗi Java `"\\d+"` biểu diễn regex `\d+` (vì Java cần escape ký tự `\`). Do đó `"(?U)\\d+"` biểu diễn regex `(?U)\d+`. Viết `"\d+"` trực tiếp trong Java string là sai cú pháp escape của Java. Nếu regex lấy từ cấu hình hoặc chuỗi đã được tạo sẵn, số lần escape phụ thuộc lớp biểu diễn chứ không thay đổi ý nghĩa của `\d`.
+**Backslash rule in Java:** the Java string `"\\d+"` represents the regex `\d+` (because Java needs to escape `\`). Hence `"(?U)\\d+"` represents the regex `(?U)\d+`. Writing `"\d+"` directly in a Java string is invalid Java escape syntax. If the regex comes from configuration or an already constructed string, the number of escapes depends on the representation layer, not on any change in the meaning of `\d`.
 
-## 7. Những lựa chọn thực tế và lỗi dễ gặp
+## 7. Practical Choices and Common Mistakes
 
-| Yêu cầu | Lựa chọn tiêu biểu | Lý do |
+| Requirement | Typical choice | Reason |
 | --- | --- | --- |
-| Mã chỉ gồm chữ Latin ASCII và số ASCII, không phân biệt hoa/thường | `Pattern.compile("[a-z0-9_-]+", Pattern.CASE_INSENSITIVE)` | Giữ tập ký tự đầu vào hẹp, rõ ràng |
-| So khớp chữ có dấu mà không phân biệt hoa/thường | `CASE_INSENSITIVE \| UNICODE_CASE` hoặc `(?iu)` | Cần cả việc bật case-insensitive lẫn Unicode folding |
-| Nhận chữ số thập phân từ các hệ chữ viết Unicode bằng `\d` | `(?U)\d+` | Mở rộng lớp `\d` theo Unicode |
-| Cho phép chữ cái Unicode nhưng kiểm soát rõ tập ký tự | `\p{L}+` hoặc một tập `\p{L}`, `\p{M}`, `\p{Nd}` được thiết kế riêng | Không phụ thuộc việc `\w` có chấp nhận thêm dấu nối và ký tự đặc biệt |
-| Chỉ nhận ký tự số từ `0` đến `9` | `[0-9]+` | Ràng buộc ASCII rõ ràng ngay cả khi pattern có `(?U)` |
+| Code consisting only of ASCII Latin letters and ASCII digits, case-insensitive | `Pattern.compile("[a-z0-9_-]+", Pattern.CASE_INSENSITIVE)` | Keeps the allowed input character set narrow and clear |
+| Matching accented letters case-insensitively | `CASE_INSENSITIVE \| UNICODE_CASE` or `(?iu)` | Needs both case-insensitivity enabled and Unicode folding |
+| Accepting decimal digits from Unicode scripts via `\d` | `(?U)\d+` | Expands `\d` to Unicode |
+| Allowing Unicode letters while keeping explicit control over the character set | `\p{L}+` or a custom set of `\p{L}`, `\p{M}`, `\p{Nd}` | Does not rely on `\w` accepting extra connectors and special characters |
+| Accepting only digits `0` through `9` | `[0-9]+` | Explicit ASCII constraint even if the pattern has `(?U)` |
 
-Các lỗi cần tránh:
+Mistakes to avoid:
 
-1. **Nghĩ `UNICODE_CASE` tự bỏ qua hoa/thường.** Cần kết hợp `CASE_INSENSITIVE`.
-2. **Nghĩ `CASE_INSENSITIVE` tự khiến `\w` nhận tất cả chữ Unicode.** Cờ thay đổi so khớp hoa/thường, không phải lớp ký tự.
-3. **Nghĩ `(?U)` tự làm mọi so khớp case-insensitive.** `U` ngầm có `u` nhưng không có `i`.
-4. **Dùng `\d` mà quên yêu cầu nghiệp vụ.** `(?U)\d` nhận chữ số Unicode; `[0-9]` mới nói rõ “chỉ số ASCII”. Điều này quan trọng khi chuỗi phải tương thích với giao thức, định dạng hay hệ thống chỉ nhận ASCII.
-5. **Dùng `(?U)\w+` như bộ lọc tên/username tuyệt đối.** Hãy định nghĩa rõ tập ký tự, độ dài, chuẩn hóa và các quy tắc riêng cho dữ liệu đầu vào.
-6. **Nhầm hoa/thường Unicode với bỏ dấu hoặc so sánh ngôn ngữ.** `"é"` và `"e"` vẫn khác nhau; normalization và collation là những chủ đề độc lập.
-7. **Quên phân biệt `matches()` và `find()`, hoặc quên Java string escaping.** Một pattern đúng vẫn có thể cho kết quả khác kỳ vọng nếu kiểm tra toàn chuỗi thay vì đoạn con hoặc escape sai.
+1. **Thinking `UNICODE_CASE` automatically ignores case.** It must be combined with `CASE_INSENSITIVE`.
+2. **Thinking `CASE_INSENSITIVE` automatically makes `\w` match all Unicode letters.** That flag changes case matching, not character classes.
+3. **Thinking `(?U)` automatically makes all matching case-insensitive.** `U` implies `u`, not `i`.
+4. **Using `\d` while forgetting business requirements.** `(?U)\d` accepts Unicode digits; `[0-9]` explicitly states "ASCII digits only". This matters when strings must comply with ASCII-only protocols, formats, or systems.
+5. **Using `(?U)\w+` as a complete name/username filter.** Explicitly define allowed character sets, lengths, normalization, and domain-specific rules for input data.
+6. **Confusing Unicode case folding with accent stripping or linguistic comparison.** `"é"` and `"e"` are still different; normalization and collation are independent topics.
+7. **Forgetting to distinguish `matches()` from `find()`, or forgetting Java string escaping.** A valid pattern can still yield unexpected results if validating the whole string instead of a substring or if escaped incorrectly.
 
-Hiệu năng: tài liệu JDK lưu ý `CASE_INSENSITIVE` có thể thêm ít chi phí, còn `UNICODE_CASE` và `UNICODE_CHARACTER_CLASS` có thể tăng chi phí xử lý. Chọn cờ theo yêu cầu thực tế, tái sử dụng `Pattern` đã biên dịch khi dùng lặp lại, và đo đạc bằng dữ liệu thực nếu hiệu năng quan trọng. Kết quả cụ thể còn phụ thuộc phiên bản JDK và phiên bản dữ liệu Unicode mà JDK hỗ trợ.
+Performance: the JDK documentation notes that `CASE_INSENSITIVE` may impose a slight performance penalty, while `UNICODE_CASE` and `UNICODE_CHARACTER_CLASS` may increase processing cost. Choose flags based on actual requirements, reuse compiled `Pattern` instances across repeated calls, and measure with realistic data if performance matters. Exact behavior also depends on the JDK version and the Unicode data version it supports.
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-**Câu 1.** Vì sao `Pattern.compile("\\d+")` không khớp toàn bộ chuỗi `"١٢٣"` nhưng `Pattern.compile("(?U)\\d+")` lại khớp?
+**Question 1.** Why does `Pattern.compile("\\d+")` not match the entire string `"١٢٣"`, whereas `Pattern.compile("(?U)\\d+")` does?
 
-**Giải thích:** `\d` mặc định là chữ số ASCII; `(?U)` chuyển lớp này sang phạm vi chữ số thập phân Unicode. Hai mẫu đều dùng `matches()` để kiểm tra toàn chuỗi.
+**Explanation:** `\d` defaults to ASCII digits; `(?U)` switches this class to Unicode decimal digits. Both patterns use `matches()` to check the entire string.
 
-**Câu 2.** Nếu đã bật `UNICODE_CHARACTER_CLASS`, liệu `"é"` có tự khớp `"É"` hay không?
+**Question 2.** If `UNICODE_CHARACTER_CLASS` is enabled, will `"é"` automatically match `"É"`?
 
-**Giải thích:** Không. Cờ `U` ngầm bật `UNICODE_CASE` để định nghĩa quy tắc folding nhưng không bật `CASE_INSENSITIVE`. Muốn bỏ qua hoa/thường, thêm `CASE_INSENSITIVE` hoặc dùng `(?iU)`.
+**Explanation:** No. The `U` flag implicitly enables `UNICODE_CASE` to define folding rules, but does not enable `CASE_INSENSITIVE`. To ignore case, add `CASE_INSENSITIVE` or use `(?iU)`.
 
-**Câu 3.** Khi chỉ muốn nhận số ASCII, nên viết `\\d+` với `(?U)` hay `[0-9]+`?
+**Question 3.** When you only want to accept ASCII digits, should you write `\\d+` with `(?U)` or `[0-9]+`?
 
-**Giải thích:** `[0-9]+` nêu rõ tập ký tự ASCII cần chấp nhận, ổn định về phạm vi khi pattern được dùng chung với các cờ Unicode khác.
+**Explanation:** `[0-9]+` explicitly declares the ASCII character set to accept, keeping the scope stable when the pattern is combined with other Unicode flags.
 
-**Tài liệu tham khảo:** [Java SE 17 — `java.util.regex.Pattern`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html), đặc biệt phần “Predefined Character classes”, “Unicode Support” và mô tả ba hằng `CASE_INSENSITIVE`, `UNICODE_CASE`, `UNICODE_CHARACTER_CLASS`.
+**Reference:** [Java SE 17 — `java.util.regex.Pattern`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html), especially the sections "Predefined Character classes", "Unicode Support", and the descriptions of `CASE_INSENSITIVE`, `UNICODE_CASE`, and `UNICODE_CHARACTER_CLASS`.

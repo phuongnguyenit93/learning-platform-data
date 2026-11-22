@@ -1,25 +1,25 @@
-# Bộ nhớ đệm `hashCode` của `String` là chi tiết cài đặt
+# `String` `hashCode` Caching Is an Implementation Detail
 
-## 1. Ý chính: giá trị băm là hợp đồng API, cách lưu đệm là nội bộ
+## 1. Main idea: the hash value is an API contract; caching is internal
 
-`String` trong Java là kiểu **bất biến** (*immutable*): sau khi một đối tượng `String` được tạo, dãy ký tự của đối tượng đó không thay đổi. Vì thế, giá trị `hashCode()` tính từ nội dung của cùng một `String` luôn ổn định.
+`String` in Java is **immutable**: once a `String` object is created, its sequence of characters never changes. Therefore, the `hashCode()` value computed from the contents of a given `String` is always stable.
 
-Cần phân biệt hai điều:
+Two things must be distinguished:
 
-1. **Hợp đồng được Java công khai:** `String.hashCode()` phải tính hash theo công thức đã ghi trong tài liệu API. Hai chuỗi có nội dung bằng nhau theo `equals` phải có cùng hash; chuỗi rỗng có hash bằng `0`. Chương trình được phép dựa vào các tính chất này.
-2. **Cách JDK tối ưu phép tính:** Một số triển khai, như OpenJDK 17, lưu kết quả hash đã tính trong các trường riêng của đối tượng để tránh phải quét lại ký tự. Cấu trúc trường, điều kiện cache, thời điểm lưu và cách đồng bộ là **chi tiết cài đặt**. Chương trình ứng dụng không nên phụ thuộc vào chúng.
+1. **The public Java contract:** `String.hashCode()` must compute the hash according to the formula documented in the API specification. Two strings with equal content under `equals` must have the same hash; the empty string has hash `0`. Programs are allowed to rely on these properties.
+2. **How the JDK optimizes the calculation:** Some implementations, such as OpenJDK 17, store the computed hash in private fields of the object to avoid rescanning characters. Field structure, caching conditions, storage timing, and synchronization are **implementation details**. Application code must not depend on them.
 
-Nói cách khác, kết quả `s.hashCode()` được xác định bởi *nội dung* của `s` và hợp đồng API, không phải bởi việc JVM có dùng bộ nhớ đệm hay không. Việc có cache cũng không biến `hashCode()` thành hàm định danh đối tượng hoặc hàm băm mật mã.
+In other words, the result of `s.hashCode()` is determined by the *content* of `s` and the API contract, not by whether the JVM uses a cache. Having a cache also does not turn `hashCode()` into an object identity function or a cryptographic hash.
 
-## 2. Công thức chính thức của `String.hashCode()`
+## 2. The official formula of `String.hashCode()`
 
-Tài liệu Java định nghĩa hash cho chuỗi gồm `n` đơn vị ký tự `char` là:
+The Java documentation defines the hash of a string of `n` `char` units as:
 
 ```text
 h = s[0] × 31^(n-1) + s[1] × 31^(n-2) + ... + s[n-1]
 ```
 
-Phép tính sử dụng kiểu `int` 32-bit của Java. Viết dưới dạng vòng lặp tương đương:
+The computation uses Java's 32-bit `int` type. Written as an equivalent loop:
 
 ```java
 static int calculateHash(String text) {
@@ -31,44 +31,44 @@ static int calculateHash(String text) {
 }
 ```
 
-Đây là **phương thức minh họa** có thể đặt vào một lớp Java; nó thể hiện công thức, không mô phỏng cơ chế cache của `String`.
+This is an **illustrative method** that can be placed inside a Java class; it demonstrates the formula, not `String`'s caching mechanism.
 
-- `s.charAt(i)` truy cập một **UTF-16 code unit**; các ký tự ngoài BMP (ví dụ nhiều emoji) được biểu diễn bằng hai `char` và cả hai tham gia phép băm.
-- `int` có thể tràn; Java dùng phép toán số nguyên 32-bit với phần bit thấp được giữ lại. Không thêm `long` hoặc cách xử lý overflow khác nếu muốn tính đúng hash chuẩn của `String`.
-- Với chuỗi rỗng, không có lần lặp nào, nên kết quả là `0`.
-- Công thức phụ thuộc vào thứ tự và giá trị các `char`, không phụ thuộc vào charset mã hóa file, encoding của terminal, địa chỉ đối tượng hay cách JVM lưu chuỗi trong bộ nhớ.
-- Giá trị có thể âm vì kết quả được diễn giải như `int` có dấu. Hash không phải một số thứ tự hay ID duy nhất.
+- `s.charAt(i)` accesses one **UTF-16 code unit**; characters outside the BMP (such as many emojis) are represented by two `char` values, and both participate in the hash.
+- `int` can overflow; Java uses 32-bit integer arithmetic where the low 32 bits are retained. Do not switch to `long` or add custom overflow handling if you want the exact standard `String` hash.
+- For an empty string, there are zero iterations, so the result is `0`.
+- The formula depends on the order and values of the `char` units, not on file encoding, terminal encoding, object address, or how the JVM stores the string in memory.
+- The value can be negative because the result is interpreted as a signed `int`. A hash is not a sequence number or a unique ID.
 
-Ví dụ, `"Aa"` và `"BB"` có hash giống nhau:
+For example, `"Aa"` and `"BB"` have the same hash:
 
 ```text
 "Aa": 65 × 31 + 97 = 2112
 "BB": 66 × 31 + 66 = 2112
 ```
 
-Hai chuỗi này **khác nội dung** dù có cùng `hashCode()`. Đây là *va chạm hash* (*hash collision*), không phải lỗi của Java.
+These two strings have **different content** even though they share the same `hashCode()`. This is a *hash collision*, not a bug in Java.
 
-## 3. Cache hoạt động như thế nào trong một triển khai cụ thể?
+## 3. How does caching work in a concrete implementation?
 
-Một cách triển khai tối ưu phổ biến của `String.hashCode()` là:
+A common optimization strategy for `String.hashCode()` is:
 
-1. Nếu đã lưu được hash cho chính đối tượng `String` hiện tại, trả lại giá trị đã lưu.
-2. Nếu chưa có kết quả được lưu, tính hash theo công thức chuẩn.
-3. Có thể ghi kết quả vào một trường riêng để những lần gọi sau không phải duyệt lại chuỗi.
+1. If a hash has already been stored for the current `String` object, return the stored value.
+2. If no cached value exists yet, compute the hash using the standard formula.
+3. Optionally write the result into a private field so subsequent calls do not have to scan the string again.
 
-Vì `String` bất biến nên kết quả không cần bị vô hiệu hóa khi nội dung “thay đổi”: muốn tạo nội dung khác thì Java tạo ra một kết quả kiểu `String` khác (trừ những tối ưu trả lại cùng đối tượng khi nội dung không thay đổi). Thao tác như `concat`, `replace`, `substring` không cho phép sửa ký tự trực tiếp trong đối tượng gốc.
+Because `String` is immutable, the cached result never needs to be invalidated when content "changes": producing different content creates another `String` result (aside from optimizations that return the same object when no change occurs). Operations like `concat`, `replace`, or `substring` cannot mutate characters inside the original object.
 
-**Ví dụ cụ thể của OpenJDK 17:** mã nguồn lớp `java.lang.String` có các trường riêng `hash` (kiểu `int`) và `hashIsZero` (kiểu `boolean`). Khi cần, `hashCode()` có thể tính hash dựa trên cách mã hóa nội bộ rồi lưu kết quả. Nếu hash thật bằng `0`, cờ `hashIsZero` giúp phân biệt trường hợp “đã tính và bằng 0” với “chưa có giá trị hash được lưu” mà không cần quét lại chuỗi.
+**Concrete example from OpenJDK 17:** the `java.lang.String` source code contains private fields `hash` (type `int`) and `hashIsZero` (type `boolean`). When needed, `hashCode()` can compute the hash based on the internal encoding and store the result. If the true hash is `0`, the `hashIsZero` flag distinguishes "already computed and equal to 0" from "no hash value stored yet" without rescanning the string.
 
-Chi tiết này nhằm giải thích *vì sao có thể tối ưu*, không phải lời hứa rằng mọi JDK, mọi bản phát hành hoặc mọi đường đi của JVM đều có hai trường mang đúng những tên đó. Trong các bản OpenJDK cũ hơn, xử lý hash bằng `0` từng khác; triển khai trong tương lai cũng có thể đổi.
+This detail explains *how optimization is possible*, not a promise that every JDK, every release, or every JVM execution path has two fields with those exact names. In older OpenJDK releases, handling a hash of `0` worked differently; future implementations may also change.
 
-**Lưu ý về hash bằng 0:** `0` hoàn toàn là kết quả hợp lệ, không tự động có nghĩa “chưa được cache”. Cả `""` lẫn chuỗi gồm một ký tự NUL (`"\0"`) đều có hash bằng `0`. Do đó, tuyệt đối không suy luận rằng những chuỗi có hash `0` luôn được tính lại hoặc luôn đã lưu vào bộ nhớ đệm.
+**Note on hash equal to 0:** `0` is a completely valid result and does not automatically mean "not cached yet." Both `""` and a string containing a single NUL character (`"\0"`) have a hash of `0`. Therefore, never assume that strings with hash `0` are always recomputed or always cached.
 
-Không nên viết mã reflection để đọc/sửa các trường riêng như `hash`, `hashIsZero` hoặc `value`. Chúng không thuộc API công khai, có thể bị module system ngăn truy cập và việc can thiệp có nguy cơ phá vỡ hành vi của các cấu trúc dùng khóa chuỗi.
+Do not write reflection code to read or modify private fields such as `hash`, `hashIsZero`, or `value`. They are not part of the public API, may be blocked by the module system, and tampering with them risks breaking data structures keyed by strings.
 
-## 4. Ví dụ Java 17+ chạy độc lập
+## 4. Standalone Java 17+ example
 
-Lưu thành file **`StringHashCodeDemo.java`**:
+Save as **`StringHashCodeDemo.java`**:
 
 ```java
 import java.util.HashMap;
@@ -115,14 +115,14 @@ public class StringHashCodeDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac StringHashCodeDemo.java
 java StringHashCodeDemo
 ```
 
-**Stdout chính xác** theo hợp đồng Java 17+:
+**Exact stdout** per the Java 17+ contract:
 
 ```text
 Aa hash: 2112
@@ -140,93 +140,93 @@ Original: Aa
 Concatenated: Aa!
 ```
 
-Diễn giải:
+Interpretation:
 
-- `first.hashCode()` và `second.hashCode()` đều bằng `2112` nhưng `first.equals(second)` là `false`: cùng hash không có nghĩa là cùng chuỗi.
-- `equalCopy` được tạo từ một mảng `char` mới, nên là đối tượng khác `first` nhưng có cùng nội dung; vì thế hash của hai đối tượng bằng nhau.
-- Chuỗi rỗng và chuỗi chứa ký tự NUL đều có hash bằng `0`. Output này **không cho biết** triển khai hiện tại có cache kết quả `0` hay không.
-- `calculateHash(first)` cho kết quả giống `first.hashCode()` mà không dùng một trường cache nào. Điều này minh họa kết quả theo đặc tả, không kiểm tra cấu trúc dữ liệu nội bộ của JDK.
-- `HashMap` vẫn giữ cả hai khóa `"Aa"` và `"BB"` vì ngoài hash, cơ chế so sánh khóa còn xét quan hệ bằng nhau khi cần.
-- `concat("!")` tạo chuỗi có nội dung mới; biến `first` vẫn tham chiếu đến giá trị `"Aa"` ban đầu. Do đó, hash của đối tượng gốc không phải được “cập nhật để theo nội dung mới”.
+- `first.hashCode()` and `second.hashCode()` are both `2112`, yet `first.equals(second)` is `false`: identical hashes do not mean identical strings.
+- `equalCopy` was created from a new `char` array, so it is a different object from `first` but shares the same content; thus both objects produce the same hash.
+- Both the empty string and the NUL-character string have hash `0`. This output **does not tell you** whether the current implementation caches the `0` result.
+- `calculateHash(first)` returns the same value as `first.hashCode()` without using any cache field. This illustrates the specification result, not an inspection of internal JDK data structures.
+- `HashMap` still stores both keys `"Aa"` and `"BB"` because, in addition to the hash, key lookup checks equality when needed.
+- `concat("!")` produces a string with new content; `first` still refers to the original `"Aa"`. Therefore, the original object's hash is not "updated to track new content."
 
-**Không thể chứng minh cache bằng một đoạn code chỉ in giá trị `hashCode()`.** Một triển khai luôn tính lại hash và một triển khai có cache vẫn phải cho cùng các kết quả trên.
+**You cannot prove caching with code that merely prints `hashCode()`.** An implementation that always recomputes the hash and one that caches it must still produce the exact same output above.
 
-## 5. Chi phí tính toán và giới hạn của tối ưu hóa cache
+## 5. Computation cost and limits of cache optimization
 
-Nếu tính lại công thức bằng cách đi qua `n` code unit thì số bước tỷ lệ với chiều dài chuỗi: **O(n)**. Với chiến lược cache, lần tính đầu có thể là O(n), còn lần đọc lại một giá trị đã lưu thường là **O(1)** về mặt số thao tác với dữ liệu chuỗi.
+Recomputing the formula across `n` code units takes steps proportional to string length: **O(n)**. With a caching strategy, the first computation can be O(n), while reading a stored value afterward is typically **O(1)** in terms of operations over string data.
 
-Đây là mô hình giải thích một tối ưu khả dĩ, **không phải cam kết độ phức tạp cho mọi lần gọi** của mọi triển khai `String.hashCode()`. Kết quả thực tế còn chịu ảnh hưởng của JIT, escape analysis, constant folding, độ dài chuỗi, việc đối tượng có dùng lại hay không và cách triển khai JVM.
+This model explains a possible optimization, **not a complexity guarantee on every call** across every `String.hashCode()` implementation. Actual runtime behavior is also affected by JIT, escape analysis, constant folding, string length, whether the object is reused, and the JVM implementation.
 
-| Tình huống | Điều có thể kỳ vọng về mặt ứng dụng |
+| Scenario | What an application can expect |
 | --- | --- |
-| Gọi `hashCode()` nhiều lần trên cùng đối tượng `String` | Luôn nhận cùng giá trị; JDK có thể tận dụng giá trị đã tính. |
-| Tạo rất nhiều đối tượng `String` bằng nhau về nội dung | Mỗi đối tượng vẫn có trạng thái nội bộ riêng; không được giả định mọi đối tượng chia sẻ cùng cache. |
-| Hash bằng `0` | Kết quả là `0`; việc tránh tính lại tùy triển khai. |
-| Thay đổi cách lưu chuỗi giữa các phiên bản JDK | Công thức và kết quả công khai phải giữ nguyên; kỹ thuật lưu byte và cache có thể khác. |
-| Gọi `hashCode()` từ nhiều thread | Mọi lời gọi phải trả kết quả đúng; không được dựa vào việc hash chỉ được tính một lần. |
+| Calling `hashCode()` repeatedly on the same `String` object | Always returns the same value; the JDK may reuse the computed value. |
+| Creating many distinct `String` objects with equal content | Each object still has its own internal state; do not assume all objects share a cache. |
+| Hash equal to `0` | Result is `0`; whether recomputation is avoided depends on the implementation. |
+| Changing string storage across JDK versions | The public formula and results must stay identical; byte storage and caching techniques may differ. |
+| Calling `hashCode()` from multiple threads | Every call must return the correct result; do not rely on the hash being computed only once. |
 
-Khi đánh giá hiệu năng, cần đo **ứng dụng thật** bằng phương pháp benchmark phù hợp như JMH. Không nên kết luận dựa trên `System.nanoTime()` quanh một hoặc vài lần gọi `hashCode()`, vì mã có thể được JIT tối ưu, loại bỏ phép tính hoặc thay đổi theo warm-up.
+When evaluating performance, measure **real applications** using a proper benchmarking methodology such as JMH. Do not draw conclusions from wrapping `System.nanoTime()` around one or a few `hashCode()` calls, as the code may be JIT-optimized, eliminated, or behave differently before warm-up.
 
-## 6. Thread safety: vì sao trường cache không nhất thiết phải là `final`?
+## 6. Thread safety: why the cache field does not have to be `final`
 
-`String` có nội dung bất biến, nhưng một triển khai có thể **lưu trạng thái tính toán nội bộ** vào trường cache sau khi khởi tạo đối tượng. “Bất biến” của `String` ở cấp API nói về nội dung ký tự quan sát được, không bắt buộc tất cả bit trong bộ nhớ đối tượng đều bất biến sau constructor.
+`String` has immutable content, yet an implementation can **store internal computed state** in a cache field after object construction. `String` "immutability" at the API level refers to observable character content; it does not require every bit in the object's memory to remain immutable after the constructor finishes.
 
-Trong OpenJDK 17, phần tối ưu hash được thiết kế để các lần gọi đồng thời có thể đọc hoặc ghi cache mà không cần khóa tường minh. Nếu hai thread cùng lần đầu gọi `hashCode()`, một số phép tính có thể bị lặp lại. Do phép tính băm dựa trên nội dung bất biến, kết quả công khai vẫn như nhau. Mã nguồn OpenJDK mô tả trường hợp này là một kiểu *benign data race* với những ràng buộc cụ thể để giữ kết quả đúng.
+In OpenJDK 17, the hash optimization is designed so concurrent calls can read or write the cache without explicit locking. If two threads call `hashCode()` for the first time simultaneously, some computation may be repeated. Because the hash calculation is based on immutable content, the public result remains identical. The OpenJDK source describes this case as a form of *benign data race* subject to specific constraints to preserve correctness.
 
-Nhận định trên chỉ áp dụng cho thiết kế được kiểm soát trong `String`, **không phải khuyến nghị chung** rằng lập trình viên có thể thoải mái đặt các trường cache có data race trong đối tượng do mình viết. Với lớp mutable hoặc phép tính có side effect, cache thiếu đồng bộ có thể dẫn đến lỗi hoặc dữ liệu không nhất quán.
+That observation applies only to the carefully controlled design inside `String`, **not as general advice** that developers can freely leave data races on cache fields in their own classes. For mutable classes or computations with side effects, unsynchronized caches can cause bugs or inconsistent data.
 
-Ứng dụng nhiều thread có thể gọi `hashCode()` trên cùng một `String` bình thường; không cần tự khóa chuỗi để bảo vệ cache nội bộ. Tuy nhiên, **không được dùng số lần tính hash, số lần ghi trường cache hoặc trạng thái cache làm cơ chế giao tiếp giữa các thread**.
+Multi-threaded applications can call `hashCode()` on the same `String` normally; there is no need to synchronize on the string to protect its internal cache. However, **never use hash calculation count, cache field writes, or cache state as a synchronization or communication mechanism between threads**.
 
-## 7. Liên hệ với `equals`, `HashMap` và bộ nhớ
+## 7. Relationship with `equals`, `HashMap`, and memory
 
-Hợp đồng liên quan:
+Relevant contracts:
 
-- Nếu `a.equals(b)` là `true` thì `a.hashCode() == b.hashCode()` phải là `true`.
-- Nếu hai hash bằng nhau thì **không suy ra** `equals` là `true`.
-- `String.equals` so sánh nội dung; toán tử `==` so sánh tham chiếu. Tối ưu cache hash không thay đổi hai quy tắc này.
-- `HashMap` và `HashSet` dùng hash để hỗ trợ tìm bucket/vị trí tra cứu và dùng quan hệ bằng nhau để phân biệt khóa khi cần. `HashMap` còn có thể trộn bit hash trong triển khai riêng; cấu trúc bucket không phải một phần của hợp đồng `String.hashCode()`.
-- `String.hashCode()` **không dùng để mã hóa an toàn**, kiểm tra tính toàn vẹn chống sửa đổi hay lưu mật khẩu. Hash 32-bit dễ va chạm và dự đoán được; nếu cần mật mã, dùng API và thuật toán bảo mật phù hợp.
+- If `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()` must be `true`.
+- If two hashes are equal, that **does not imply** `equals` is `true`.
+- `String.equals` compares content; the `==` operator compares references. Hash caching does not change either rule.
+- `HashMap` and `HashSet` use hashes to locate lookup buckets/slots and use equality to distinguish keys when needed. `HashMap` may also perturb hash bits in its own implementation; bucket layout is not part of the `String.hashCode()` contract.
+- `String.hashCode()` is **not for secure encryption**, tamper-resistant integrity checks, or password storage. A 32-bit hash is easy to collide and predict; for security, use appropriate cryptographic APIs and algorithms.
 
-Một số chi tiết riêng tư của OpenJDK còn liên quan đến *Compact Strings*: từ JDK 9, nhiều chuỗi được lưu hiệu quả bằng mảng byte và thông tin biểu diễn Latin-1/UTF-16 thay vì luôn dùng mảng `char` như trước. Cách lưu này có thể ảnh hưởng chi phí bộ nhớ và đường tính toán, nhưng **không đổi công thức hash theo các UTF-16 code unit logic**. Vì vậy, không suy kích thước đối tượng hoặc số byte cache từ công thức hash; chúng phụ thuộc phiên bản JDK, JVM và cấu hình.
+Some private OpenJDK details also relate to *Compact Strings*: since JDK 9, many strings are stored efficiently using a byte array and Latin-1/UTF-16 representation metadata rather than always using a `char` array as before. That storage layout can affect memory cost and computation paths, yet **it does not alter the hash formula over logical UTF-16 code units**. Therefore, do not deduce object size or cached bytes from the hash formula; those depend on the JDK version, JVM, and flags.
 
-Có trường cache cũng không đồng nghĩa với việc mọi `String` lập tức tốn chi phí quét ký tự tính hash. Một triển khai có thể tính **lười** (*lazy*) khi hash được yêu cầu; việc có hay chưa có giá trị lưu là trạng thái nội bộ. Mã ứng dụng chỉ nên dựa vào dữ liệu công khai: chuỗi, kết quả `equals` và `hashCode()`.
+Having a cache field also does not mean every `String` immediately incurs the cost of scanning characters to compute its hash. An implementation can compute it **lazily** when requested; whether a value is already stored is internal state. Application code should rely only on public facts: the string's text, `equals`, and `hashCode()`.
 
-## 8. Sai lầm thường gặp và cách tránh
+## 8. Common mistakes and how to avoid them
 
-**Sai lầm 1: “`String.hashCode()` nhanh O(1) trên mọi lần gọi vì Java luôn cache.”**
+**Mistake 1: "`String.hashCode()` is O(1) on every call because Java always caches it."**
 
-Điều đúng là một triển khai có thể cache và lần đọc cache thường rẻ. Đặc tả không yêu cầu cấu trúc cache cụ thể; không thể đảm bảo lần gọi đầu, hai thread cùng gọi hoặc mọi JVM đều chỉ phải làm một lượng việc cố định.
+What is true is that an implementation may cache it and reading a cached value is usually cheap. The specification does not mandate a specific cache structure; you cannot guarantee the first call, concurrent calls, or every JVM performs only a fixed amount of work.
 
-**Sai lầm 2: “Nếu hash bằng `0` thì chưa tính.”**
+**Mistake 2: "If the hash is `0`, it hasn't been computed yet."**
 
-`0` là giá trị hash hợp lệ, ví dụ `""` và `"\0"`. Một số bản OpenJDK có cờ riêng đánh dấu hash đã tính bằng `0`. Không suy đoán cache chỉ từ giá trị trả về.
+`0` is a valid hash value, such as for `""` and `"\0"`. Some OpenJDK builds use a separate flag marking a computed hash of `0`. Do not guess cache state from the return value alone.
 
-**Sai lầm 3: “Hai chuỗi có hash giống nhau là cùng nội dung.”**
+**Mistake 3: "Two strings with the same hash have the same content."**
 
-`"Aa"` và `"BB"` đều có hash `2112` nhưng không bằng nhau. Khi cần kiểm tra nội dung, dùng `equals`; không thay bằng so sánh `hashCode()`.
+`"Aa"` and `"BB"` both have hash `2112` yet are unequal. When checking content, use `equals`; never replace it with `hashCode()` comparison.
 
-**Sai lầm 4: “Muốn tối ưu, sửa trường `hash` bằng reflection.”**
+**Mistake 4: "To optimize, modify the `hash` field via reflection."**
 
-Trường riêng thuộc triển khai nội bộ; can thiệp phá vỡ tính nhất quán và có thể không thực hiện được do kiểm soát truy cập của module system. Không phụ thuộc vào layout đối tượng.
+Private fields are internal implementation details; tampering breaks consistency and may be blocked by module system access controls. Do not depend on object layout.
 
-**Sai lầm 5: “Cache hash đồng nghĩa String có thể bị đổi nội dung.”**
+**Mistake 5: "Hash caching means String content can be mutated."**
 
-Cache chỉ ghi lại kết quả tính toán, không thay đổi các ký tự của `String`. Các thao tác tạo nội dung khác không chỉnh trực tiếp chuỗi gốc.
+The cache only records a computed value; it does not alter the characters of the `String`. Operations producing different content do not edit the original string in place.
 
-**Sai lầm 6: “Có thể nhìn thời gian một lần gọi để xác định chắc chắn cache.”**
+**Mistake 6: "You can time a single call to prove caching exists."**
 
-JIT, inlining, constant folding, warm-up và benchmark sai cách có thể làm phép đo vô nghĩa. Không dùng thời gian đo thô như bằng chứng về cấu trúc nội bộ.
+JIT, inlining, constant folding, warm-up, and flawed microbenchmarks can make timings meaningless. Do not use raw elapsed time as proof of internal structure.
 
-## 9. Quy tắc áp dụng trong mã Java
+## 9. Rules for writing Java code
 
-1. Dùng `String.hashCode()` bình thường khi API thu thập hoặc cấu trúc dữ liệu cần hash; không tự tính lại hoặc tự cache trừ khi có lý do nghiệp vụ/đo đạc rõ ràng.
-2. Dùng `equals` để xác định nội dung bằng nhau; dùng `==` chỉ khi thật sự cần kiểm tra cùng tham chiếu.
-3. Khi dùng `String` làm khóa `HashMap`/`HashSet`, có thể dựa vào tính bất biến và hợp đồng `equals`/`hashCode`, không dựa vào cơ chế cache của một bản JDK.
-4. Chấp nhận hash collision như hiện tượng bình thường. Đừng sử dụng hash làm ID duy nhất, dấu vân tay mật mã hoặc thay thế toàn bộ dữ liệu gốc.
-5. Khi đọc mã nguồn JDK để học tối ưu, phân biệt rõ **“OpenJDK phiên bản X thực hiện như thế nào”** với **“Java SE API cam kết điều gì”**.
+1. Use `String.hashCode()` normally when collection APIs or data structures require a hash; do not reimplement or manually cache it unless a clear business/measurement reason exists.
+2. Use `equals` to check content equality; use `==` only when you genuinely need reference identity comparison.
+3. When using `String` as keys in `HashMap`/`HashSet`, rely on immutability and the `equals`/`hashCode` contract, not on a specific JDK's caching mechanism.
+4. Accept hash collisions as normal. Never use `hashCode()` as a unique ID, cryptographic fingerprint, or replacement for the original data.
+5. When reading JDK source code to study optimizations, clearly separate **"how OpenJDK version X implements it"** from **"what the Java SE API guarantees."**
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — `String.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#hashCode()) — nguồn chính thức của công thức và giá trị hash.
-- [Java SE 17 — `Object.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#hashCode()) — hợp đồng chung giữa hash và equality.
-- [OpenJDK 17 — mã nguồn `java.lang.String`](https://github.com/openjdk/jdk17/blob/master/src/java.base/share/classes/java/lang/String.java) — ví dụ cụ thể về trường `hash`/`hashIsZero` và cách tối ưu; đây là phần triển khai, không phải API công khai.
+- [Java SE 17 — `String.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#hashCode()) — authoritative source for the hash formula and values.
+- [Java SE 17 — `Object.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#hashCode()) — general contract between hash and equality.
+- [OpenJDK 17 — `java.lang.String` source code](https://github.com/openjdk/jdk17/blob/master/src/java.base/share/classes/java/lang/String.java) — concrete example of `hash`/`hashIsZero` fields and optimization; this is implementation, not public API.

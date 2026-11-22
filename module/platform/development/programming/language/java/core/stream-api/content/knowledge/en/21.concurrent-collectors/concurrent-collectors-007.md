@@ -1,69 +1,69 @@
-# Kiểm tra tranh chấp khóa, tính đúng và chi phí đồng bộ
+# Checking Key Contention, Correctness, and Synchronization Overhead
 
-## Bối cảnh và mục tiêu
+## Context and Goals
 
-Khi dùng **Java Stream API** để tổng hợp dữ liệu bằng `parallelStream()`, việc chọn một *concurrent collector* như `groupingByConcurrent()` hoặc `toConcurrentMap()` có thể giảm công việc hợp nhất kết quả trung gian. Đổi lại, nhiều luồng có thể cùng cập nhật một cấu trúc dữ liệu, phát sinh tranh chấp tại khóa hoặc tại bộ tích lũy của từng nhóm. Một phép thu thập chạy đúng vẫn có thể chậm hơn phiên bản tuần tự.
+When using the **Java Stream API** to aggregate data with `parallelStream()`, choosing a *concurrent collector* like `groupingByConcurrent()` or `toConcurrentMap()` can reduce the work of merging intermediate results. In return, multiple threads may update a single data structure concurrently, causing contention on keys or on each group's accumulator. A collection operation that runs correctly can still be slower than the sequential version.
 
-Bài học thuộc chương **Thu thập đồng thời**, tập trung vào ba câu hỏi:
+This lesson belongs to the **Concurrent Collection** chapter, focusing on three questions:
 
-1. **Tính đúng:** Mỗi phần tử đã được tính đủ một lần chưa? Kết quả có phụ thuộc thứ tự xử lý hoặc lịch chạy của các luồng không?
-2. **Tranh chấp:** Những luồng nào cùng cập nhật một khóa, một giá trị tích lũy hoặc một điểm đồng bộ?
-3. **Chi phí:** Thời gian chờ, thao tác nguyên tử, hợp nhất, cấp phát và lập lịch có lớn hơn lợi ích xử lý song song không?
+1. **Correctness:** Was every element counted exactly once? Does the result depend on processing order or thread scheduling?
+2. **Contention:** Which threads update the same key, accumulator value, or synchronization point concurrently?
+3. **Overhead:** Do waiting time, atomic operations, merging, allocation, and scheduling exceed the benefit of parallel processing?
 
-Đích đến là biết kiểm chứng bằng dữ liệu tham chiếu, tạo tải có phân bố khóa khác nhau, đo đúng bằng công cụ phù hợp và chọn phương án thu thập theo đặc tính bài toán. Các ví dụ dùng Java 17 trở lên (do có `record`) và không yêu cầu thứ tự đầu ra của nhóm.
+The goal is to know how to verify with reference data, generate workloads with different key distributions, measure properly with the right tools, and choose a collection strategy suited to the problem's characteristics. Examples use Java 17 or newer (because of `record`) and do not require group output ordering.
 
-## 1. Những gì concurrent collector thực sự bảo đảm
+## 1. What a Concurrent Collector Actually Guarantees
 
-Một collector mô tả cách **tạo vùng tích lũy**, **nạp phần tử**, **kết hợp vùng tích lũy** và **hoàn tất kết quả**. Các `Collector.Characteristics` ảnh hưởng đến cách Stream có thể thực thi:
+A collector describes how to **create an accumulation container**, **incorporate elements**, **combine containers**, and **finish the result**. `Collector.Characteristics` flags affect how Stream can execute:
 
-| Đặc tính | Ý nghĩa đối với thực thi song song |
+| Characteristic | Meaning for Parallel Execution |
 | --- | --- |
-| `CONCURRENT` | Hàm tích lũy của collector cho phép nhiều luồng gọi đồng thời trên cùng một vùng kết quả theo hợp đồng của collector. |
-| `UNORDERED` | Kết quả không cam kết giữ thứ tự gặp phần tử (*encounter order*). |
-| `IDENTITY_FINISH` | Hàm hoàn tất có thể là phép đồng nhất; không có bước đổi kiểu kết quả riêng biệt. |
+| `CONCURRENT` | The collector's accumulator allows multiple threads to call it concurrently on the same result container per the collector's contract. |
+| `UNORDERED` | The result does not guarantee preserving element *encounter order*. |
+| `IDENTITY_FINISH` | The finisher function can be the identity function; there is no separate result type conversion step. |
 
-`groupingByConcurrent(classifier, downstream)` trả về `ConcurrentMap` và là collector **concurrent, unordered**. Trong khi đó, `groupingBy(...)` thông thường không mang đặc tính `CONCURRENT`, dù được dùng với `parallelStream()`.
+`groupingByConcurrent(classifier, downstream)` returns a `ConcurrentMap` and is a **concurrent, unordered** collector. Meanwhile, regular `groupingBy(...)` does not carry the `CONCURRENT` characteristic, even when used with `parallelStream()`.
 
-Điều quan trọng: **collector concurrent không có nghĩa mọi thành phần đầu ra đều an toàn cho việc sửa đồng thời tùy ý**. Ví dụ, `groupingByConcurrent(Txn::region, toList())` có thể thu thập đúng trong terminal operation vì collector phối hợp cập nhật downstream, nhưng các `List` nhận được không được bảo đảm là danh sách có thể sửa đồng thời sau khi `collect()` kết thúc. Thứ tự phần tử trong từng danh sách cũng không được bảo đảm.
+Crucially: **a concurrent collector does not mean every output component is safe for arbitrary concurrent mutation**. For example, `groupingByConcurrent(Txn::region, toList())` can collect accurately during the terminal operation because the collector coordinates downstream updates, yet the resulting `List`s are not guaranteed to be concurrently modifiable after `collect()` completes. Element order inside each list is not guaranteed either.
 
-`groupingByConcurrent(key, counting())` hoặc `groupingByConcurrent(key, summingLong(...))` vẫn hợp lệ, dù chính `counting()` hay `summingLong()` không phải downstream `CONCURRENT`: collector bên ngoài chịu trách nhiệm phối hợp cập nhật. Các bản triển khai OpenJDK thông dụng có thể đồng bộ ở bộ chứa của từng khóa khi downstream không concurrent; đó là **chi tiết triển khai**, không phải lời hứa rằng Java luôn dùng một kiểu khóa cụ thể.
+`groupingByConcurrent(key, counting())` or `groupingByConcurrent(key, summingLong(...))` is still valid, even though `counting()` or `summingLong()` itself is not a `CONCURRENT` downstream: the outer collector is responsible for coordinating updates. Common OpenJDK implementations may synchronize on each key's container when the downstream is not concurrent; that is an **implementation detail**, not a promise that Java always uses a specific lock type.
 
-Hãy phân biệt ba phương án:
+Distinguish three approaches:
 
-| Phương án | Cách thu thập | Chi phí dễ xuất hiện |
+| Approach | How It Collects | Common Overhead |
 | --- | --- | --- |
-| `stream().collect(groupingBy(...))` | Một luồng tổng hợp tuần tự | Không tận dụng xử lý nhiều lõi, nhưng ít chi phí điều phối. |
-| `parallelStream().collect(groupingBy(...))` | Các nhánh tạo kết quả riêng rồi dùng combiner để hợp nhất | Tạo nhiều map, ghép nhóm và cấp phát khi merge. |
-| `parallelStream().collect(groupingByConcurrent(...))` | Nhiều luồng có thể cùng đóng góp vào map kết quả | Tranh chấp khóa/ô cập nhật ở khóa nóng, chi phí bộ nhớ và điều phối đồng thời. |
+| `stream().collect(groupingBy(...))` | One thread aggregates sequentially | Does not use multiple cores, but low coordination overhead. |
+| `parallelStream().collect(groupingBy(...))` | Branches build separate results then use combiner to merge | Creating multiple maps, merging groups, and allocation during merge. |
+| `parallelStream().collect(groupingByConcurrent(...))` | Multiple threads can contribute together to the result map | Key/cell update contention on hot keys, memory and concurrent coordination cost. |
 
-Không có phương án nào nhanh nhất trong mọi trường hợp. `parallelStream()` cũng không bảo đảm tự động dùng nhiều luồng hơn mức hệ thống hiện có.
+No single approach is fastest in every scenario. Nor does `parallelStream()` guarantee automatically using more threads than the system has available.
 
-## 2. Tranh chấp xuất hiện ở đâu?
+## 2. Where Does Contention Appear?
 
-Giả sử một triệu giao dịch được nhóm theo vùng bán hàng. Nếu 90% giao dịch cùng mang khóa `"HOT"`, phần lớn các thao tác cập nhật dồn vào một nhóm. Nếu giao dịch được phân đều cho hàng nghìn khóa, các luồng có cơ hội cập nhật những nhóm khác nhau.
+Suppose one million transactions are grouped by sales region. If 90% of transactions carry the key `"HOT"`, most updates converge on a single group. If transactions are evenly spread across thousands of keys, threads have opportunities to update different groups.
 
 ```mermaid
 flowchart LR
-    A[Luồng 1] --> H[Khóa HOT]
-    B[Luồng 2] --> H
-    C[Luồng 3] --> H
-    H --> D[Bộ tích lũy cùng nhóm]
-    E[Luồng 4] --> K[Khóa K42]
-    F[Luồng 5] --> M[Khóa K93]
+    A[Thread 1] --> H[Key HOT]
+    B[Thread 2] --> H
+    C[Thread 3] --> H
+    H --> D[Same group accumulator]
+    E[Thread 4] --> K[Key K42]
+    F[Thread 5] --> M[Key K93]
 ```
 
-Có nhiều tầng chi phí khác nhau:
+There are multiple layers of cost:
 
-- **Tranh chấp ở map:** tạo khóa mới, `computeIfAbsent()`, `merge()` hoặc cập nhật cùng vị trí có thể cần phối hợp qua CAS, cơ chế của `ConcurrentHashMap` và đôi khi khóa nội bộ.
-- **Tranh chấp ở downstream:** nhiều giao dịch cùng khóa phải cập nhật bộ tích lũy của khóa đó. Nếu downstream không hỗ trợ cập nhật đồng thời, collector phải bảo đảm không xảy ra data race khi tích lũy.
-- **Chia sẻ bộ nhớ:** dù không tranh một monitor, cache coherence và cập nhật nguyên tử vẫn tiêu tốn tài nguyên; các bộ đếm nằm gần nhau còn có thể gặp *false sharing*.
-- **Chi phí khác:** chia tác vụ, chuyển việc giữa luồng, cấp phát map/buffer, GC và bước hợp nhất có thể lớn so với thao tác tính toán thực tế.
+- **Map contention:** creating new keys, `computeIfAbsent()`, `merge()`, or updating the same slot may require coordination via CAS, `ConcurrentHashMap` mechanics, and sometimes internal locking.
+- **Downstream contention:** many transactions with the same key must update that key's accumulator. If the downstream does not support concurrent updates, the collector must ensure no data race occurs during accumulation.
+- **Memory sharing:** even without contending on a monitor, cache coherence and atomic updates consume resources; adjacent counters can also experience *false sharing*.
+- **Other overhead:** task splitting, work stealing between threads, map/buffer allocation, GC, and merging steps can outweigh the actual computation work.
 
-Vì vậy, **số khóa phân biệt** và **phân bố tần suất từng khóa** thường quan trọng hơn chỉ riêng số phần tử. Một khóa chiếm 90% dữ liệu có thể trở thành nút thắt dù tổng cộng có hàng nghìn khóa.
+Therefore, **the number of distinct keys** and **per-key frequency distribution** often matter more than element count alone. A key accounting for 90% of data can become a bottleneck even when there are thousands of keys in total.
 
-## 3. Ví dụ thu thập đúng bằng Java Stream API
+## 3. Correct Collection Example with the Java Stream API
 
-Xét một loại giao dịch có mã, vùng và số tiền (cho phép âm để biểu diễn hoàn tiền). Bài toán là tính tổng theo vùng. Bản tuần tự làm *oracle* để đối chiếu với các phương án song song.
+Consider a transaction type with id, region, and amount (allowing negative values to represent refunds). The task is to compute totals by region. The sequential version serves as an *oracle* to verify the parallel approaches.
 
 ```java
 import java.util.ArrayList;
@@ -112,7 +112,7 @@ public class ConcurrentCollectorAudit {
             Map<String, Long> merged = parallelWithMerge(txns);
             Map<String, Long> concurrent = parallelConcurrent(txns);
             if (!expected.equals(merged) || !expected.equals(concurrent)) {
-                throw new AssertionError("Sai tổng theo vùng ở lần " + attempt);
+                throw new AssertionError("Wrong regional sum at attempt " + attempt);
             }
         }
 
@@ -122,14 +122,14 @@ public class ConcurrentCollectorAudit {
         long counted = counts.values().stream()
                 .mapToLong(Long::longValue).sum();
         if (counted != txns.size()) {
-            throw new AssertionError("Thiếu hoặc lặp giao dịch");
+            throw new AssertionError("Missing or duplicate transactions");
         }
 
         long inputTotal = txns.stream().mapToLong(Txn::amount).sum();
         long outputTotal = parallelConcurrent(txns).values().stream()
                 .mapToLong(Long::longValue).sum();
         if (inputTotal != outputTotal) {
-            throw new AssertionError("Tổng toàn cục không khớp");
+            throw new AssertionError("Global total mismatch");
         }
     }
 
@@ -137,68 +137,68 @@ public class ConcurrentCollectorAudit {
         verify(data(200_000, 1_000, false));
         verify(data(200_000, 1_000, true));
         verify(List.of());
-        System.out.println("Các phép kiểm tra đều đạt");
+        System.out.println("All checks passed");
     }
 }
 ```
 
-Lưu dưới tên `ConcurrentCollectorAudit.java`, biên dịch bằng `javac ConcurrentCollectorAudit.java` và chạy bằng `java ConcurrentCollectorAudit` với JDK 17+. Việc lặp lại phép thu thập giúp tăng cơ hội bắt lỗi không ổn định khi có tranh chấp; **20 lần thành công không phải là chứng minh tuyệt đối rằng một collector tự viết là thread-safe**.
+Save as `ConcurrentCollectorAudit.java`, compile with `javac ConcurrentCollectorAudit.java`, and run with `java ConcurrentCollectorAudit` on JDK 17+. Repeating the collection increases the chance of catching flaky bugs under contention; **20 successful runs is not absolute proof that a custom collector is thread-safe**.
 
-Ở đây phép cộng `long` có tính kết hợp và giao hoán trong miền dữ liệu được chọn, nên so sánh bằng `Map.equals()` có ý nghĩa. Với số thực dấu phẩy động, thứ tự cộng khác nhau có thể tạo sai khác nhỏ do làm tròn; lúc đó cần tiêu chí sai số phù hợp, không mặc định yêu cầu bằng nhau bit-for-bit. Nếu phép giảm phụ thuộc thứ tự, không thể tùy tiện chuyển sang collector `UNORDERED`.
+Here `long` addition is associative and commutative within the chosen data range, so comparing via `Map.equals()` makes sense. For floating-point numbers, different addition orders can produce tiny rounding differences; in that case use an appropriate error tolerance rather than expecting bit-for-bit equality by default. If a reduction depends on order, you cannot arbitrarily switch to an `UNORDERED` collector.
 
-Phép `.unordered()` là chủ ý thể hiện kết quả không phụ thuộc encounter order. `groupingByConcurrent()` vốn đã không cam kết thứ tự; gọi `.unordered()` không tự sửa được các hàm classifier hoặc mapper có side effect.
+Calling `.unordered()` intentionally expresses that the result does not depend on encounter order. `groupingByConcurrent()` already makes no ordering guarantee; calling `.unordered()` does not fix classifier or mapper functions that have side effects.
 
-## 4. Những lỗi tính đúng dễ bị nhầm với lỗi hiệu năng
+## 4. Correctness Bugs Easily Mistaken for Performance Issues
 
-### Chia sẻ cấu trúc không an toàn
+### Sharing an Unsafe Structure
 
-Đoạn mã sau **sai** vì nhiều luồng cùng cập nhật `HashMap` mà không có đồng bộ:
+The following code is **wrong** because multiple threads update a `HashMap` without synchronization:
 
 ```java
 Map<String, Long> totals = new java.util.HashMap<>();
 txns.parallelStream().forEach(txn ->
         totals.merge(txn.region(), (long) txn.amount(), Long::sum));
-// Không dùng mẫu này trong chương trình thật.
+// Do not use this pattern in real programs.
 ```
 
-Đổi thành `ConcurrentHashMap` chỉ bảo vệ các thao tác của map; điều đó **không tự biến mọi giá trị mutable trong map thành thread-safe**. Ví dụ, mẫu `computeIfAbsent(key, k -> new ArrayList<>()).add(x)` vẫn có thể gây data race vì nhiều luồng gọi `add()` trên cùng `ArrayList`.
+Switching to `ConcurrentHashMap` only protects map operations; it **does not automatically make every mutable value inside the map thread-safe**. For instance, `computeIfAbsent(key, k -> new ArrayList<>()).add(x)` can still cause a data race because multiple threads call `add()` on the same `ArrayList`.
 
-Hai thay thế an toàn theo đúng nhu cầu tổng hợp là:
+Two safe alternatives matching the aggregation need are:
 
 ```java
-// Collector điều phối toàn bộ quá trình tích lũy:
+// Collector coordinates the entire accumulation process:
 Map<String, Long> totals1 = txns.parallelStream().collect(
         Collectors.groupingByConcurrent(
                 Txn::region, Collectors.summingLong(Txn::amount)));
 
-// Merge của ConcurrentMap là thao tác cập nhật theo khóa:
+// ConcurrentMap merge is a per-key update operation:
 ConcurrentMap<String, Long> totals2 = txns.parallelStream().collect(
         Collectors.toConcurrentMap(
                 Txn::region, txn -> (long) txn.amount(), Long::sum));
 ```
 
-Hàm gộp `Long::sum` không làm thay đổi trạng thái bên ngoài và phù hợp với phép cộng. Khi dùng `toConcurrentMap()`, cần truyền hàm merge hợp lệ nếu có khả năng hai phần tử trùng khóa; dạng không có merge function sẽ báo lỗi với khóa trùng.
+The merge function `Long::sum` does not mutate external state and fits addition. When using `toConcurrentMap()`, pass a valid merge function if two elements can share a key; the form without a merge function fails on duplicate keys.
 
-### Tự công bố collector concurrent sai sự thật
+### Falsely Declaring a Collector Concurrent
 
-Khi viết `Collector.of(...)`, chỉ khai báo `Collector.Characteristics.CONCURRENT` nếu **chính accumulator** thật sự an toàn khi nhiều luồng gọi đồng thời trên cùng đối tượng tích lũy. Việc supplier tạo `ArrayList` hay `HashMap` thông thường rồi gắn cờ `CONCURRENT` không khiến chúng tự trở nên an toàn. Một số lần chạy có thể cho kết quả đúng ngẫu nhiên, nhưng không có bảo đảm.
+When writing `Collector.of(...)`, only declare `Collector.Characteristics.CONCURRENT` if **the accumulator itself** is genuinely safe when called concurrently by multiple threads on the same accumulation object. Having the supplier create a regular `ArrayList` or `HashMap` and attaching `CONCURRENT` does not magically make them safe. Some runs might happen to yield the right output, with no guarantee.
 
-### Kiểm tra quá ít bất biến
+### Checking Too Few Invariants
 
-Chỉ so tổng toàn cục có thể bỏ sót việc ghi nhầm khóa: hai nhóm sai nhưng có tổng bù trừ vẫn vượt qua phép kiểm tra. Khi kiểm chứng kết quả, nên kết hợp:
+Comparing only the global total can miss misassigned keys: two wrong groups with offsetting errors still pass the check. When verifying results, combine:
 
-1. So sánh **từng khóa và giá trị** với bản tham chiếu tuần tự.
-2. Kiểm tra tổng số phần tử trong các nhóm bằng kích thước đầu vào đối với phép đếm.
-3. Kiểm tra tổng tiền hoặc tổng trọng số của đầu vào và đầu ra nếu phép biến đổi bảo toàn đại lượng đó.
-4. Chạy các ca **rỗng, một khóa, nhiều khóa, phân bố lệch và trùng khóa**, lặp lại với các kích thước tải khác nhau.
+1. Comparing **every key and value** against the sequential reference.
+2. Checking the sum of group element counts equals input size for counting operations.
+3. Checking total amount or total weight of inputs and outputs if the transformation preserves that quantity.
+4. Running **empty, single-key, many-key, skewed, and duplicate-key** cases repeatedly across varying workload sizes.
 
-`classifier` và `mapper` phải không có side effect gây tranh chấp và không được dựa trên trạng thái mutable thay đổi giữa các lần gọi. Với các collector nhóm theo map, hãy tránh khóa `null` vì các collector chuẩn có thể từ chối kết quả phân loại `null`. Không sửa collection nguồn trong lúc stream đang duyệt nếu nguồn không cho phép.
+`classifier` and `mapper` must have no contending side effects and must not rely on mutable state changing across calls. For map-grouping collectors, avoid `null` keys since standard collectors may reject `null` classification results. Do not modify the source collection while a stream traverses it if the source does not permit it.
 
-## 5. Đo chi phí đồng bộ theo phương pháp có thể lặp lại
+## 5. Measuring Synchronization Overhead Reproducibly
 
-Không kết luận phương án nhanh hơn chỉ từ một lần đo `System.nanoTime()` trong `main()`: kết quả dễ bị ảnh hưởng bởi JIT, khởi tạo common pool, GC và tiến trình khác. Với Java, **JMH** là lựa chọn phù hợp để so sánh throughput hoặc thời gian trung bình giữa các cách collect.
+Do not declare an approach faster from a single `System.nanoTime()` measurement in `main()`: results are easily skewed by JIT compilation, common pool initialization, GC, and background processes. For Java, **JMH** is the right choice to compare throughput or average time across collection methods.
 
-Ví dụ lớp benchmark dưới đây cần JMH trong cấu hình build; đặt vào file `CollectorBenchmark.java`. Mỗi phép đo đều trả về kết quả để JMH có thể tiêu thụ, còn việc tạo dữ liệu đặt ngoài vùng đo.
+The benchmark class example below requires JMH in the build configuration; place it in `CollectorBenchmark.java`. Each benchmark method returns its result so JMH can consume it, while data creation is placed outside the measured region.
 
 ```java
 import java.util.List;
@@ -215,7 +215,7 @@ import org.openjdk.jmh.annotations.*;
 @Warmup(iterations = 3)
 @Measurement(iterations = 5)
 @Fork(2)
-@Threads(1) // Đo một lần gọi benchmark; bên trong có parallelStream.
+@Threads(1) // Measure one benchmark invocation; uses parallelStream inside.
 public class CollectorBenchmark {
     record Txn(String region, long amount) {}
 
@@ -257,25 +257,25 @@ public class CollectorBenchmark {
 }
 ```
 
-Các biến kiểm soát cần ghi trong báo cáo: phiên bản JDK, số lõi CPU và mức tải máy, kích thước dữ liệu, số khóa, tỷ lệ khóa nóng, mức song song của common pool, cấu hình heap và GC. Đừng chạy nhiều benchmark stream song song cùng lúc rồi coi như đo riêng từng thuật toán: chúng có thể tranh CPU và common pool với nhau.
+Control variables to record in a report: JDK version, CPU core count and machine load, data size, key count, hot-key ratio, common pool parallelism, heap configuration, and GC. Do not run multiple parallel stream benchmarks simultaneously and treat them as isolated algorithm measurements: they compete for CPU and the common pool.
 
-Ngoài thời gian, cần quan sát **mức cấp phát/GC** (chẳng hạn JMH `-prof gc`) và dùng Java Flight Recorder hoặc profiler để truy dấu các điểm chờ. Sự kiện như `jdk.JavaMonitorEnter` có thể hỗ trợ tìm tranh chấp trên monitor; tuy nhiên, không phải mọi chi phí CAS hay cache contention đều xuất hiện dưới dạng một lần chờ monitor. Thread dump với nhiều luồng `BLOCKED` tại cùng vị trí là dấu hiệu cần điều tra, nhưng không thay cho đo CPU và allocation.
+Beyond elapsed time, inspect **allocation/GC rate** (such as JMH `-prof gc`) and use Java Flight Recorder or a profiler to trace wait points. Events like `jdk.JavaMonitorEnter` can help locate monitor contention; however, not all CAS cost or cache contention appears as a monitor wait. A thread dump showing many `BLOCKED` threads at the same spot is a clue worth investigating, but does not replace CPU and allocation profiling.
 
-Một cách đọc kết quả có ích:
+A useful way to interpret results:
 
-| Quan sát | Giả thuyết cần kiểm tra | Hướng thử nghiệm |
+| Observation | Hypothesis to Test | Experiment Direction |
 | --- | --- | --- |
-| Nhiều khóa, dữ liệu lớn; `groupingByConcurrent` tốt hơn | Ít va chạm giữa các nhóm, tránh một phần merge | Tăng/giảm số khóa, giữ số phần tử cố định. |
-| Một khóa hoặc phần lớn dữ liệu dồn một khóa; concurrent chậm | Các cập nhật cùng downstream phải phối hợp | Thử giảm độ lệch hoặc dùng bộ tích lũy có khả năng phân tán cập nhật. |
-| `groupingBy` song song chậm và allocation lớn | Tạo nhiều map tạm và hợp nhất tốn kém | Đo allocation và số nhóm khi tăng mức song song. |
-| Cả hai bản song song chậm với dữ liệu nhỏ | Chi phí chia tác vụ, lịch chạy và collector lấn át công việc | Dịch chuyển kích thước đầu vào; đối chiếu bản tuần tự. |
-| Thời gian dao động lớn | JIT, GC, lịch OS, cạnh tranh CPU hoặc môi trường đo không ổn định | Tăng số fork/measurement, giảm tiến trình nền, xem GC/JFR. |
+| Many keys, large data; `groupingByConcurrent` performs better | Fewer collisions across groups, avoids part of map merging | Increase/decrease key count while keeping element count fixed. |
+| One key or most data hits one key; concurrent is slow | Updates on the same downstream must coordinate | Reduce skew or try an accumulator that distributes updates. |
+| Parallel `groupingBy` is slow with high allocation | Creating many temporary maps and merging is costly | Measure allocation and group count as parallelism increases. |
+| Both parallel versions are slow on small data | Task splitting, scheduling, and collector overhead outweigh work | Sweep input sizes; compare against sequential baseline. |
+| High timing variance | JIT, GC, OS scheduling, CPU contention, or unstable test environment | Increase forks/measurements, reduce background processes, check GC/JFR. |
 
-Đây là các **giả thuyết**, không phải kết quả benchmark được bảo đảm trước. Khi số phần tử hoặc hàm xử lý thay đổi, thứ tự nhanh/chậm cũng có thể đổi.
+These are **hypotheses**, not pre-guaranteed benchmark outcomes. When element count or processing functions change, the ranking from fastest to slowest can also shift.
 
-## 6. Khi khóa nóng thực sự là nút thắt: LongAdder
+## 6. When a Hot Key Is Truly the Bottleneck: LongAdder
 
-Đối với **đếm hoặc cộng số nguyên theo khóa** và không cần đọc một snapshot nhất quán trong lúc các luồng đang ghi, `LongAdder` thường là một lựa chọn để giảm tranh chấp trên cùng bộ đếm. Ví dụ sau dùng `ConcurrentHashMap` và `LongAdder` như phương án cập nhật song song trực tiếp:
+For **counting or summing integers per key** without needing a consistent snapshot while threads are still writing, `LongAdder` is often an option to reduce contention on the same counter. The example below uses `ConcurrentHashMap` and `LongAdder` as a direct parallel-update approach:
 
 ```java
 import java.util.concurrent.ConcurrentHashMap;
@@ -288,43 +288,43 @@ txns.parallelStream().forEach(txn ->
         accumulators.computeIfAbsent(txn.region(), key -> new LongAdder())
                 .add(txn.amount()));
 
-// Chỉ đọc kết quả sau khi terminal operation đã hoàn thành.
+// Read results only after the terminal operation has completed.
 Map<String, Long> snapshot = accumulators.entrySet().stream()
         .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> entry.getValue().sum()));
 ```
 
-`LongAdder` phân tán cập nhật thành nhiều ô nội bộ khi cần; đổi lại, nó có thêm chi phí bộ nhớ và việc gọi `sum()` **trong lúc vẫn có cập nhật** không cho một snapshot nguyên tử. Khi mọi công việc đã hoàn tất, phép `sum()` thích hợp để lấy tổng cuối cùng. Nếu cần thứ tự hoặc trạng thái nhất quán xuyên nhiều khóa ngay trong lúc cập nhật, phải thiết kế cơ chế phối hợp khác.
+`LongAdder` stripes updates across multiple internal cells when needed; in return, it carries extra memory cost and calling `sum()` **while updates are still happening** does not yield an atomic snapshot. Once all work has completed, `sum()` is appropriate for obtaining the final total. If you need ordering or cross-key consistent state mid-update, you must design a different coordination mechanism.
 
-Đừng mặc định `LongAdder` luôn nhanh hơn `groupingByConcurrent(..., summingLong(...))`: lợi ích phụ thuộc mức tranh chấp, số khóa, thời gian xử lý mỗi phần tử và chi phí tạo bộ đếm. Đồng thời, cách dùng `forEach` ở đây có trạng thái dùng chung được kiểm soát bằng các cấu trúc concurrent; khi không cần kiểm soát chi tiết, collector chuẩn thường dễ đọc và dễ kiểm chứng hơn.
+Do not assume `LongAdder` is always faster than `groupingByConcurrent(..., summingLong(...))`: benefits depend on contention level, key count, per-element processing time, and counter creation cost. Meanwhile, the `forEach` usage here involves shared state controlled via concurrent structures; when fine-grained control is unnecessary, standard collectors are usually easier to read and verify.
 
-## 7. Quy trình kiểm tra và ra quyết định
+## 7. Verification and Decision Workflow
 
-Với một pipeline thu thập đồng thời trong ứng dụng thực tế, có thể làm theo trình tự:
+For a concurrent collection pipeline in a real application, you can follow this sequence:
 
-1. **Xác nhận phép toán:** xác định có được phép bỏ encounter order hay không; hàm gộp phải phù hợp với cách chia/ghép song song. Với phép tính phụ thuộc thứ tự, chọn thuật toán tôn trọng thứ tự.
-2. **Lập oracle:** tính kết quả tuần tự từ cùng dữ liệu; so sánh từng khóa, tổng đếm và những bất biến nghiệp vụ. Dùng phép so sánh sai số khi cần đối với số thực.
-3. **Thiết kế tải đối chứng:** ít khóa/nhiều khóa, khóa nóng/phân bố đều, tải nhỏ/lớn, xử lý mỗi phần tử rẻ/đắt. Giữ dữ liệu cố định khi so sánh giữa thuật toán.
-4. **Đo với JMH:** warmup, nhiều iteration và fork, công khai môi trường đo. Quan sát cả thời gian lẫn allocation/GC.
-5. **Xác nhận nút thắt bằng profile:** xem điểm đồng bộ, mức sử dụng CPU và thao tác tạo/merge map; tránh suy kết luận từ CPU thấp hoặc một stack trace duy nhất.
-6. **Thử phương án phù hợp:** `groupingBy` tuần tự, `groupingBy` song song, `groupingByConcurrent`, `toConcurrentMap`, hoặc bộ đếm như `LongAdder`; sau mỗi thay đổi cần chạy lại kiểm tra tính đúng.
+1. **Validate the operation:** determine whether encounter order may be dropped; the merge function must fit parallel splitting and merging. For order-dependent computations, choose an algorithm that respects order.
+2. **Establish an oracle:** compute sequential results from the same data; compare every key, total count, and business invariants. Use tolerance comparisons when needed for floating-point values.
+3. **Design benchmark workloads:** few keys/many keys, hot key/uniform distribution, small/large load, cheap/expensive per-element work. Hold data constant when comparing algorithms.
+4. **Measure with JMH:** warm-up, multiple iterations and forks, publish the test environment. Observe both latency and allocation/GC.
+5. **Confirm bottlenecks with profiling:** inspect synchronization points, CPU utilization, and map creation/merging; avoid jumping to conclusions from low CPU or a single stack trace.
+6. **Try appropriate options:** sequential `groupingBy`, parallel `groupingBy`, `groupingByConcurrent`, `toConcurrentMap`, or counters like `LongAdder`; re-run correctness checks after every change.
 
-Một mô hình chi phí để định hướng suy nghĩ là:
+A cost model to guide thinking is:
 
 \[
-T_{\text{thực thi}} \approx T_{\text{duyệt/xử lý}} + T_{\text{phối hợp}} + T_{\text{hợp nhất}} + T_{\text{cấp phát/GC}} + T_{\text{lập lịch}}
+T_{\text{execution}} \approx T_{\text{traversal/processing}} + T_{\text{coordination}} + T_{\text{merge}} + T_{\text{allocation/GC}} + T_{\text{scheduling}}
 \]
 
-Đây chỉ là cách **phân loại nguồn chi phí**, không phải công thức dự đoán chính xác thời gian: các thành phần có thể chạy chồng lấp. Khi các luồng bị dồn về cùng nhóm, tăng độ song song có thể làm phần phối hợp tăng nhanh hơn lợi ích chia nhỏ công việc.
+This is only a way to **categorize cost sources**, not an exact time prediction formula: components can overlap. When threads pile onto the same group, increasing parallelism can cause coordination cost to grow faster than the benefit of splitting work.
 
-## 8. Bài tập thực hành
+## 8. Practice Exercises
 
-Sử dụng hai bộ dữ liệu trong `ConcurrentCollectorAudit`: `data(200_000, 1_000, false)` và `data(200_000, 1_000, true)`. Trước tiên chạy kiểm tra tính đúng, rồi chuyển sang benchmark JMH ở kích thước lớn hơn.
+Use the two datasets in `ConcurrentCollectorAudit`: `data(200_000, 1_000, false)` and `data(200_000, 1_000, true)`. First run the correctness check, then move to a JMH benchmark at larger sizes.
 
-- **Bài 1 — Dữ liệu lệch:** sửa tỷ lệ khóa `HOT` từ 90% thành 50% và 99%. Ghi lại thời gian của ba phương án thu thập. Giải thích bằng mật độ cập nhật vào cùng nhóm, không suy diễn rằng mọi máy cho cùng kết quả.
-- **Bài 2 — Số lượng khóa:** giữ nguyên tổng số giao dịch, thử `groups = 1`, `8`, `1_024`, `65_536`. So sánh thời gian, số nhóm thật sự sinh ra và allocation.
-- **Bài 3 — Lỗi chủ động:** đọc đoạn `HashMap` dùng chung ở mục 4, xác định data race và lý do một vài lần thử vẫn có thể in ra tổng đúng. Thay bằng một trong hai collector đã học; không sử dụng bản lỗi trong ứng dụng.
-- **Bài 4 — Chọn cấu trúc:** với một khóa rất nóng, so sánh `groupingByConcurrent(..., summingLong(...))` và phương án `LongAdder`; kiểm tra kết quả bằng oracle trước khi so tốc độ.
+- **Exercise 1 — Skewed data:** change the `HOT` key ratio from 90% to 50% and 99%. Record the timings of the three collection approaches. Explain in terms of update density on the same group, without assuming every machine yields identical results.
+- **Exercise 2 — Key count:** keep total transaction count fixed, try `groups = 1`, `8`, `1_024`, `65_536`. Compare timing, actual number of groups produced, and allocation.
+- **Exercise 3 — Intentional bug:** read the shared `HashMap` snippet in section 4, identify the data race and why a few trial runs might still print the right total. Replace it with one of the two collectors learned; never use the buggy version in applications.
+- **Exercise 4 — Structure selection:** with one very hot key, compare `groupingByConcurrent(..., summingLong(...))` and the `LongAdder` approach; verify results with the oracle before comparing speeds.
 
-Khi báo cáo, ít nhất hãy trình bày bảng gồm **kích thước đầu vào, số khóa, tỷ lệ khóa nóng, thuật toán, thời gian đo, allocation/GC và kết quả kiểm tra tính đúng**. Một kết luận tốt nêu cả điều kiện đo lẫn giới hạn suy rộng: *concurrent collector là công cụ bảo đảm cách tích lũy đồng thời theo hợp đồng, còn lợi ích hiệu năng phải được chứng minh trên phân bố dữ liệu và phần cứng cụ thể*.
+When reporting, include at least a table showing **input size, key count, hot-key ratio, algorithm, measured time, allocation/GC, and correctness check result**. A good conclusion states both measurement conditions and generalization limits: *a concurrent collector is a tool guaranteeing concurrent accumulation per contract, whereas performance gains must be proven on concrete data distributions and hardware*.

@@ -1,28 +1,28 @@
-# `AnnotatedArrayType` và annotation ở các chiều mảng — Java Reflection
+# `AnnotatedArrayType` and Annotations on Array Dimensions — Java Reflection
 
-## 1. Vấn đề: một mảng nhiều chiều có nhiều vị trí được annotation
+## 1. The problem: a multidimensional array has multiple annotation positions
 
-Trong Java, annotation có `@Target(ElementType.TYPE_USE)` có thể nằm **trên kiểu phần tử** hoặc **trên từng chiều của kiểu mảng**. Ví dụ:
+In Java, an annotation with `@Target(ElementType.TYPE_USE)` can be placed **on the element type** or **on each dimension of the array type**. Example:
 
 ~~~java
 @Pos("element") String @Pos("outer") [] @Pos("inner") [] matrix;
 ~~~
 
-Giả sử `@Pos` là annotation TYPE_USE được giữ ở runtime. Khai báo trên có ba vị trí độc lập:
+Suppose `@Pos` is a `TYPE_USE` annotation retained at runtime. The declaration above has three independent positions:
 
-- `@Pos("outer")`: vị trí **mảng ngoài cùng**, có kiểu nền `String[][]`.
-- `@Pos("inner")`: vị trí **mảng thành phần**, có kiểu nền `String[]`.
-- `@Pos("element")`: vị trí **kiểu phần tử cuối cùng**, có kiểu nền `String`.
+- `@Pos("outer")`: the **outermost array** position, with underlying type `String[][]`.
+- `@Pos("inner")`: the **component array** position, with underlying type `String[]`.
+- `@Pos("element")`: the **final element type** position, with underlying type `String`.
 
-Nếu chỉ gọi `Field.getType()` hoặc `Field.getGenericType()`, ta nhận cấu trúc kiểu nhưng **không truy vấn được annotation riêng tại từng chiều**. Java Reflection biểu diễn cây này bằng `AnnotatedType`, cụ thể là các nút `AnnotatedArrayType`.
+If you only call `Field.getType()` or `Field.getGenericType()`, you receive the type structure but **cannot query annotations separately at each dimension**. Java Reflection represents this tree using `AnnotatedType`, specifically `AnnotatedArrayType` nodes.
 
-**Quy tắc ghi nhớ:** một mảng có `n` chiều cần được duyệt qua `n` nút `AnnotatedArrayType` trước khi tới kiểu phần tử, có thể được annotation riêng.
+**Rule to remember:** an `n`-dimensional array must be traversed through `n` `AnnotatedArrayType` nodes before reaching the element type, which may carry its own annotations.
 
-## 2. `AnnotatedArrayType` là gì?
+## 2. What is `AnnotatedArrayType`?
 
-`java.lang.reflect.AnnotatedArrayType` là giao diện con của `AnnotatedType` (từ Java 8) mô tả một **vị trí sử dụng kiểu mảng**, kèm các type-use annotations của **chính vị trí đó**.
+`java.lang.reflect.AnnotatedArrayType` is a subinterface of `AnnotatedType` (since Java 8) describing an **array type-use position**, together with the type-use annotations of **that exact position**.
 
-Hai thao tác quan trọng:
+Two key operations:
 
 ~~~java
 AnnotatedType root = field.getAnnotatedType();
@@ -34,19 +34,19 @@ if (root instanceof AnnotatedArrayType array) {
 }
 ~~~
 
-Đây là đoạn minh họa trong một phương thức có biến `Field field`, import `java.lang.reflect.*`; chưa phải chương trình độc lập.
+This is an illustrative snippet inside a method that has a `Field field` variable and `import java.lang.reflect.*`; it is not a standalone program.
 
-- `root.getType()` trả **kiểu nền** dạng `java.lang.reflect.Type`. Với `String[][]`, giá trị đó thông thường là `Class` của kiểu mảng; với `T[]`, nó có thể là `GenericArrayType`.
-- `root.getAnnotation(Pos.class)` hỏi annotation nằm tại **nút root hiện tại**, không tự gộp annotation của các chiều bên trong.
-- `getAnnotatedGenericComponentType()` đi xuống **chính xác một mức kiểu thành phần**, nhưng vẫn giữ metadata type-use annotation tại mức tiếp theo.
-- Sau khi đi qua đủ chiều, ta đến kiểu phần tử như `String`, `int`, `T` hoặc `List<String>`. Nút cuối không nhất thiết là `AnnotatedArrayType`.
-- `AnnotatedArrayType.getAnnotatedOwnerType()` trả `null`: một kiểu mảng không phải trường hợp owner type của một member class.
+- `root.getType()` returns the **underlying type** as a `java.lang.reflect.Type`. For `String[][]`, that value is typically the `Class` of the array type; for `T[]`, it can be a `GenericArrayType`.
+- `root.getAnnotation(Pos.class)` queries annotations located at **the current root node**, without automatically collecting annotations from inner dimensions.
+- `getAnnotatedGenericComponentType()` steps down **exactly one component type level**, while preserving type-use annotation metadata at the next level.
+- After stepping through all dimensions, you reach the element type such as `String`, `int`, `T`, or `List<String>`. The final node is not necessarily an `AnnotatedArrayType`.
+- `AnnotatedArrayType.getAnnotatedOwnerType()` returns `null`: an array type is not an owner-type case of a member class.
 
-Javadoc của `AnnotatedArrayType` không chỉ dành cho mảng có annotation. Ngay cả khi một chiều **không có annotation**, nó vẫn có thể là nút `AnnotatedArrayType`; khi đó `getAnnotations().length == 0` và `getAnnotation(Pos.class) == null`.
+The Javadoc of `AnnotatedArrayType` is not limited to annotated arrays. Even when a dimension **has no annotations**, it can still be an `AnnotatedArrayType` node; in that case `getAnnotations().length == 0` and `getAnnotation(Pos.class) == null`.
 
-## 3. Phân biệt annotation trên phần tử và trên dấu `[]`
+## 3. Distinguishing annotations on the element vs. on `[]`
 
-So sánh ba khai báo:
+Compare these three declarations:
 
 ~~~java
 @Pos("element") String[] first;
@@ -54,17 +54,17 @@ String @Pos("dimension") [] second;
 @Pos("element") String @Pos("dimension") [] third;
 ~~~
 
-Giả sử chúng nằm trong một class dùng annotation `@Pos` có `TYPE_USE` và `RUNTIME`.
+Assume they are inside a class using an `@Pos` annotation with `TYPE_USE` and `RUNTIME`.
 
-| Khai báo | Annotation ở nút mảng `String[]` | Annotation ở nút phần tử `String` |
+| Declaration | Annotation on `String[]` array node | Annotation on `String` element node |
 | --- | --- | --- |
-| `@Pos("element") String[] first` | Không | `element` |
-| `String @Pos("dimension") [] second` | `dimension` | Không |
+| `@Pos("element") String[] first` | None | `element` |
+| `String @Pos("dimension") [] second` | `dimension` | None |
 | `@Pos("element") String @Pos("dimension") [] third` | `dimension` | `element` |
 
-**Đặt annotation trước `String` không tương đương đặt annotation trước `[]`.**
+**Placing an annotation before `String` is not equivalent to placing an annotation before `[]`.**
 
-Mã kiểm tra từng nơi:
+Code to inspect each location:
 
 ~~~java
 AnnotatedType root = field.getAnnotatedType();
@@ -75,15 +75,15 @@ AnnotatedType component =
 Pos onElement = component.getAnnotation(Pos.class);
 ~~~
 
-Ví dụ chỉ minh họa khi `field` là field mảng, `Pos` khả dụng và đã khai báo/xử lý ngoại lệ ở phần gọi Reflection. Không ép kiểu sang `AnnotatedArrayType` khi field thực tế không có kiểu mảng.
+This example is only illustrative when `field` is an array field, `Pos` is available, and exceptions are declared/handled around the Reflection calls. Do not cast to `AnnotatedArrayType` when the field does not actually have an array type.
 
-### Với mảng hai chiều
+### With a two-dimensional array
 
 ~~~java
 @Pos("element") String @Pos("outer") [] @Pos("inner") [] matrix;
 ~~~
 
-Ta đi theo thứ tự:
+We traverse in this order:
 
 ~~~text
 AnnotatedArrayType: String[][]   → @Pos("outer")
@@ -95,35 +95,35 @@ AnnotatedArrayType: String[]     → @Pos("inner")
 AnnotatedType:      String      → @Pos("element")
 ~~~
 
-Chiều ngoài là **nút đầu tiên** mà `Field.getAnnotatedType()` trả về, không phải chiều cuối. Vì thế đừng đảo thứ tự annotation trong lúc tạo schema JSON hoặc thông báo lỗi.
+The outer dimension is **the first node** returned by `Field.getAnnotatedType()`, not the last dimension. So do not reverse the annotation order when generating JSON schemas or error messages.
 
-Đối với ba chiều trở lên, áp dụng cùng quy tắc đệ quy: mỗi lần gọi `getAnnotatedGenericComponentType()` bỏ đi một chiều mảng bên ngoài và chuyển xuống nút kiểu thành phần kế tiếp.
+For three or more dimensions, apply the same recursive rule: each call to `getAnnotatedGenericComponentType()` peels off one outer array dimension and moves down to the next component type node.
 
-## 4. Lấy metadata annotation ở mức nào?
+## 4. At what level do you retrieve annotation metadata?
 
-Có ba câu hỏi khác nhau:
+There are three different questions:
 
-| Câu hỏi | API |
+| Question | API |
 | --- | --- |
-| Field được khai báo với kiểu gì, bỏ qua generic? | `field.getType()` |
-| Field có cấu trúc generic gì? | `field.getGenericType()` |
-| Type-use annotation đặt trên chiều mảng và phần tử nào? | `field.getAnnotatedType()`, sau đó duyệt `AnnotatedArrayType` |
+| What type was the field declared with, ignoring generics? | `field.getType()` |
+| What generic structure does the field have? | `field.getGenericType()` |
+| Which type-use annotations are placed on array dimensions and the element? | `field.getAnnotatedType()`, then traverse `AnnotatedArrayType` |
 
-Một `Field` cũng là `AnnotatedElement`, nhưng:
+A `Field` is also an `AnnotatedElement`, yet:
 
 ~~~java
 field.getDeclaredAnnotations();
 ~~~
 
-hỏi annotation khai báo **trên chính field**, không tự gom annotation type-use trên `String` hay từng `[]`.
+queries annotations declared **on the field itself**, without automatically collecting type-use annotations on `String` or each `[]`.
 
-Ngay cả khi `field.getDeclaredAnnotations()` trả mảng trống, `field.getAnnotatedType()` và các node con vẫn có thể chứa annotation ở các vị trí kiểu. Đó không phải dữ liệu mâu thuẫn; chúng mô tả **hai mục tiêu annotation khác nhau**.
+Even when `field.getDeclaredAnnotations()` returns an empty array, `field.getAnnotatedType()` and its child nodes can still contain annotations at type positions. That is not contradictory data; they describe **two different annotation targets**.
 
-Chú ý `getAnnotatedType().getType()` trả `Type`, không luôn là `Class<?>`. Nếu làm việc với kiểu generic array như `T[]`, ép trực tiếp sang `Class<?>` có thể gây `ClassCastException`.
+Note that `getAnnotatedType().getType()` returns `Type`, not always `Class<?>`. When working with generic array types like `T[]`, casting directly to `Class<?>` can cause a `ClassCastException`.
 
-## 5. Chương trình Java 17+ hoàn chỉnh: duyệt từng chiều mảng
+## 5. Complete Java 17+ program: traversing each array dimension
 
-Lưu mã sau vào **`AnnotatedArrayDemo.java`**:
+Save the following code into **`AnnotatedArrayDemo.java`**:
 
 ~~~java
 import java.lang.annotation.*;
@@ -204,7 +204,7 @@ public class AnnotatedArrayDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 AnnotatedArrayDemo.java
@@ -230,30 +230,30 @@ parameter[0] java.lang.String[] @param-dimension
 parameter[1] java.lang.String @param-element
 ~~~
 
-### Giải thích đầy đủ
+### Full explanation
 
-1. **`matrix`**: `walk` đi từ kiểu `String[][]` xuống `String[]`, rồi tới `String`. Annotation ở mỗi nút lần lượt là `outer`, `inner`, `element`. Tên kiểu nền được in bằng `Type.getTypeName()`, không phụ thuộc `toString()` của implementation Reflection.
-2. **`field annotations=0`**: annotation `@Pos` chỉ có target `TYPE_USE`. Nó gắn lên các phần của **kiểu field**, không phải annotation khai báo riêng trên đối tượng `Field`.
-3. **`groups`**: kiểu ngoài cùng là `List<...>`, nên root là `AnnotatedParameterizedType`. Phải đi vào `getAnnotatedActualTypeArguments()[0]`, rồi mới gặp `AnnotatedArrayType` biểu diễn `String[]`.
-4. **`genericArray`**: kiểu nền là `T[]`, được biểu diễn bằng `GenericArrayType`, không phải `Class` của một mảng đã biết kiểu phần tử cụ thể. Nhưng `AnnotatedArrayType` vẫn giúp đi từ `T[]` xuống type variable `T`.
-5. **`T.bound`**: annotation `@Pos("bound")` ở khai báo `T extends Number`; nó **không tự động xuất hiện trên mọi lần dùng `T`**, nên `generic[1]` có `@-`. Phải lấy bound bằng `TypeVariable.getAnnotatedBounds()`.
-6. **Method**: `getAnnotatedReturnType()` và `getAnnotatedParameterTypes()` cũng giữ annotation theo từng chiều mảng; không chỉ field mới làm được.
+1. **`matrix`**: `walk` steps from `String[][]` down to `String[]`, then to `String`. The annotations at each node are `outer`, `inner`, and `element` respectively. Underlying type names are printed using `Type.getTypeName()`, independent of Reflection implementation `toString()`.
+2. **`field annotations=0`**: the `@Pos` annotation only has target `TYPE_USE`. It attaches to parts of the **field type**, not as a declaration annotation on the `Field` object itself.
+3. **`groups`**: the outermost type is `List<...>`, so the root is `AnnotatedParameterizedType`. You must enter `getAnnotatedActualTypeArguments()[0]` before encountering the `AnnotatedArrayType` representing `String[]`.
+4. **`genericArray`**: the underlying type is `T[]`, represented by `GenericArrayType` rather than a `Class` of an array with a known concrete element type. Still, `AnnotatedArrayType` lets you step down from `T[]` to type variable `T`.
+5. **`T.bound`**: `@Pos("bound")` is on the `T extends Number` declaration; it **does not automatically appear on every use of `T`**, so `generic[1]` has `@-`. Bounds must be retrieved via `TypeVariable.getAnnotatedBounds()`.
+6. **Method**: `getAnnotatedReturnType()` and `getAnnotatedParameterTypes()` also preserve annotations per array dimension; this is not limited to fields.
 
-Ví dụ này kiểm tra metadata, không tạo đối tượng `Sample` và không đọc nội dung mảng; Reflection đọc được cấu trúc khai báo **mà không cần giá trị mảng thực tế**.
+This example inspects metadata without instantiating `Sample` and without reading array contents; Reflection reads the declared structure **without needing actual array values**.
 
-## 6. Generic array, parameterized type và kiểu thành phần
+## 6. Generic arrays, parameterized types, and component types
 
-Có hai kiểu mảng cần phân biệt khi xem `Type` nền:
+There are two kinds of arrays to distinguish when inspecting the underlying `Type`:
 
-| Khai báo | `AnnotatedType` root | `getType()` root thường là |
+| Declaration | Root `AnnotatedType` | Root `getType()` is typically |
 | --- | --- | --- |
-| `String[][]` | `AnnotatedArrayType` | `Class` đại diện `String[][].class` |
-| `int[]` | `AnnotatedArrayType` | `Class` đại diện `int[].class` |
-| `T[]` trong generic class | `AnnotatedArrayType` | `GenericArrayType` |
-| `List<String>[]` trong khai báo hợp lệ | `AnnotatedArrayType` | `GenericArrayType` |
-| `List<String[]>` | `AnnotatedParameterizedType` ở root | `ParameterizedType`; nút generic argument mới là `AnnotatedArrayType` |
+| `String[][]` | `AnnotatedArrayType` | `Class` representing `String[][].class` |
+| `int[]` | `AnnotatedArrayType` | `Class` representing `int[].class` |
+| `T[]` in a generic class | `AnnotatedArrayType` | `GenericArrayType` |
+| `List<String>[]` in a valid declaration | `AnnotatedArrayType` | `GenericArrayType` |
+| `List<String[]>` | `AnnotatedParameterizedType` at root | `ParameterizedType`; the generic argument node is `AnnotatedArrayType` |
 
-Trường hợp `List<String[]>`:
+Case `List<String[]>`:
 
 ~~~text
 AnnotatedParameterizedType: List<String[]>
@@ -261,7 +261,7 @@ AnnotatedParameterizedType: List<String[]>
             └── AnnotatedType: String
 ~~~
 
-Trong khi với `List<String>[]`:
+Whereas for `List<String>[]`:
 
 ~~~text
 AnnotatedArrayType: List<String>[]
@@ -269,13 +269,13 @@ AnnotatedArrayType: List<String>[]
             └── AnnotatedType: String
 ~~~
 
-Điểm mấu chốt: hai khai báo này **khác vị trí mảng trong cây kiểu**. Một cái là **danh sách các mảng**; cái kia là **mảng các danh sách**. Việc ép kiểu root phải dựa trên cấu trúc thực tế, không dựa vào tên field hoặc giả định “có generic thì root là `AnnotatedParameterizedType`”.
+Key point: these two declarations **differ in where the array sits in the type tree**. One is **a list of arrays**; the other is **an array of lists**. Casting the root must be based on the actual structure, not on the field name or an assumption that "if generics are present, the root is `AnnotatedParameterizedType`."
 
-Khi muốn tính số chiều của một nút mảng, duyệt `while (type instanceof AnnotatedArrayType)` và đếm số lần đi xuống. Với một cây generic phức tạp, việc duyệt đầy đủ cần thêm nhánh cho `AnnotatedParameterizedType`, `AnnotatedWildcardType`, `AnnotatedTypeVariable`; riêng `AnnotatedArrayType` chỉ giải quyết đoạn đường qua các chiều mảng.
+When you want to count the dimensions of an array node, loop `while (type instanceof AnnotatedArrayType)` and count the steps downward. For a complex generic tree, full traversal requires additional branches for `AnnotatedParameterizedType`, `AnnotatedWildcardType`, and `AnnotatedTypeVariable`; `AnnotatedArrayType` alone only handles the path through the array dimensions.
 
-## 7. Vì sao không dùng `Class.getComponentType()` thay thế?
+## 7. Why not use `Class.getComponentType()` instead?
 
-Có hai API có tên gần giống nhưng nhiệm vụ khác nhau.
+There are two similarly named APIs with different responsibilities.
 
 `Class.getComponentType()`:
 
@@ -284,7 +284,7 @@ Class<?> component = String[][].class.getComponentType();
 // String[].class
 ~~~
 
-trả **Class kiểu thành phần** của một kiểu mảng runtime. Nó không giữ type-use annotations và không trực tiếp biểu diễn `T[]` có kiểu nền generic.
+returns **the component type `Class`** of a runtime array type. It does not preserve type-use annotations and cannot directly represent `T[]` with a generic underlying type.
 
 `AnnotatedArrayType.getAnnotatedGenericComponentType()`:
 
@@ -294,36 +294,36 @@ AnnotatedType next =
         ((AnnotatedArrayType) node).getAnnotatedGenericComponentType();
 ~~~
 
-trả **AnnotatedType của kiểu thành phần**, tức vẫn truy vấn được annotation gắn với chiều tiếp theo hoặc kiểu phần tử. Trong trình phân tích schema cần giữ annotation theo vị trí, API thứ hai là quan trọng.
+returns **the `AnnotatedType` of the component type**, meaning you can still query annotations attached to the next dimension or the element type. In a schema analyzer that must preserve annotations by position, the second API is essential.
 
-**Đừng chỉ đi xuống `getType()` rồi tìm cách khôi phục annotation:** thông tin annotation không được mã hóa thành nội dung của `Class`, `ParameterizedType` hay `GenericArrayType` nền. Bạn phải đi qua **cây `AnnotatedType`** song song với cây `Type`.
+**Do not descend only through `getType()` and try to recover annotations:** annotation information is not encoded into the underlying `Class`, `ParameterizedType`, or `GenericArrayType`. You must walk the **`AnnotatedType` tree** alongside the `Type` tree.
 
-## 8. Annotation ở các dấu ngoặc mảng sau tên biến
+## 8. Annotations on array brackets placed after the variable name
 
-Java cho phép cú pháp mảng kiểu cũ với `[]` sau tên biến, ví dụ:
+Java allows legacy array syntax with `[]` after the variable name, for example:
 
 ~~~java
-// Không khuyến khích cho mã mới:
+// Not recommended for new code:
 String[] names[];
 ~~~
 
-Dạng này có thể gây nhầm lẫn về vị trí chiều mảng và annotation, nhất là khi trộn với `[]` đặt gần kiểu. Trong mã mới, ưu tiên đưa toàn bộ các chiều mảng vào phần khai báo **type** trước tên biến:
+This form can cause confusion about array dimension positions and annotations, especially when mixed with `[]` placed near the type. In new code, prefer putting all array dimensions in the **type** portion before the variable name:
 
 ~~~java
 String[][] names;
 ~~~
 
-Khi có type-use annotation, đặt dấu chú thích sát chiều mảng mà nó mô tả:
+When type-use annotations are present, place each annotation right next to the array dimension it describes:
 
 ~~~java
 @Pos("element") String @Pos("outer") [] @Pos("inner") [] names;
 ~~~
 
-Nếu đang phân tích source code của thư viện hoặc bộ sinh mã, đừng suy luận vị trí annotation chỉ bằng cách đếm chuỗi `[]` trong văn bản; hãy kiểm tra kiểu tại vị trí sử dụng theo quy tắc Java và metadata biên dịch. Thứ tự chiều có thể khó đọc khi dùng cú pháp đặt bracket sau tên biến.
+If you are analyzing source code of a library or code generator, do not infer annotation positions merely by counting `[]` strings in text; check the type at the use site according to Java rules and compiled metadata. Dimension ordering can be hard to read when brackets are placed after the variable name.
 
-## 9. Bẫy của `@Target` và `@Retention`
+## 9. Pitfalls of `@Target` and `@Retention`
 
-Một annotation muốn được đọc tại runtime trong **vị trí sử dụng kiểu mảng** nên có:
+An annotation intended to be read at runtime in an **array type-use position** should have:
 
 ~~~java
 @Target(ElementType.TYPE_USE)
@@ -333,84 +333,84 @@ Một annotation muốn được đọc tại runtime trong **vị trí sử d�
 }
 ~~~
 
-Đây là mảnh khai báo cần import `java.lang.annotation.*` và đặt trong ngữ cảnh Java phù hợp.
+This is a declaration snippet requiring `import java.lang.annotation.*` and placement in a suitable Java context.
 
-- `TYPE_USE` cho phép annotation gắn trên kiểu phần tử và các chiều mảng. `ElementType.FIELD` chỉ dành cho vị trí khai báo field, không thay cho `TYPE_USE`.
-- `RetentionPolicy.RUNTIME` cần thiết nếu muốn `AnnotatedType.getAnnotation()` đọc được annotation khi JVM đang chạy. `CLASS` vẫn ghi metadata vào class file nhưng không hiển thị qua Java Reflection runtime thông thường; `SOURCE` không giữ qua biên dịch.
-- `@Target({FIELD, TYPE_USE})` cho phép dùng annotation ở nhiều vị trí. Khi đó cần xác định chính xác bạn muốn metadata của declaration hay metadata của type-use.
-- `AnnotatedType.getAnnotation(Pos.class)` chỉ kiểm tra **nút hiện tại**. Nếu `null`, hãy duyệt các chiều hoặc các generic argument tương ứng, thay vì kết luận toàn bộ field không có annotation.
-- Không có lời gọi nào trên `AnnotatedArrayType` làm JVM tự động kiểm tra các phần tử mảng có `null` hay không. Annotation là metadata; validation phải được ứng dụng/framework cài đặt riêng.
+- `TYPE_USE` lets the annotation attach to the element type and array dimensions. `ElementType.FIELD` is only for field declaration positions and does not substitute for `TYPE_USE`.
+- `RetentionPolicy.RUNTIME` is required if you want `AnnotatedType.getAnnotation()` to read the annotation while the JVM is running. `CLASS` still writes metadata to the class file, but it is not visible through normal runtime Java Reflection; `SOURCE` is not retained past compilation.
+- `@Target({FIELD, TYPE_USE})` allows using the annotation in multiple positions. In that case you must determine accurately whether you want declaration metadata or type-use metadata.
+- `AnnotatedType.getAnnotation(Pos.class)` checks only **the current node**. If it returns `null`, traverse the dimensions or corresponding generic arguments instead of concluding the entire field has no annotations.
+- No call on `AnnotatedArrayType` makes the JVM automatically check whether array elements are `null`. Annotations are metadata; validation must be implemented separately by the application/framework.
 
-## 10. Những lỗi thường gặp khi viết code Reflection
+## 10. Common mistakes when writing Reflection code
 
-| Nhầm lẫn | Điều đúng |
+| Confusion | What is true |
 | --- | --- |
-| “`String[][]` là một mảng, chỉ cần đọc annotation ở root.” | Có **hai chiều**, cần hai nút `AnnotatedArrayType`, rồi đến kiểu phần tử. |
-| “`@A String[]` và `String @A []` mang ý nghĩa type-use như nhau.” | `@A` đầu tiên gắn trên phần tử; dạng sau gắn trên chiều mảng. |
-| “`getAnnotatedGenericComponentType()` luôn trả `AnnotatedArrayType`.” | Sau chiều cuối, có thể trả AnnotatedType của `String`, `T`, `List<...>`, v.v. |
-| “`AnnotatedArrayType.getType()` luôn là `Class`.” | `T[]` và mảng của một parameterized type có thể dùng `GenericArrayType`. |
-| “Annotation ở bound của `T` tự xuất hiện ở `T[]`.” | Bound annotation và annotation của lần sử dụng `T` là các vị trí khác nhau. |
-| “Đọc `field.getDeclaredAnnotations()` là thấy annotation trên `[]`.” | Cần `field.getAnnotatedType()` và duyệt node mảng. |
-| “`getAnnotation()` trên một chiều tìm xuyên mọi chiều còn lại.” | Chỉ hỏi node hiện tại; phải đệ quy qua component. |
-| “Không có annotation trong kết quả tức kiểu mảng không được annotation.” | Có thể đang ở sai node hoặc annotation không có retention runtime. |
-| “Type-use annotation sẽ được JVM tự động thực thi để validate.” | Reflection chỉ cung cấp metadata; mã ứng dụng phải triển khai quy tắc nghiệp vụ. |
+| "`String[][]` is one array, just read annotations at the root." | It has **two dimensions**, requiring two `AnnotatedArrayType` nodes, then the element type. |
+| "`@A String[]` and `String @A []` carry the same type-use meaning." | The first `@A` attaches to the element; the second attaches to the array dimension. |
+| "`getAnnotatedGenericComponentType()` always returns `AnnotatedArrayType`." | After the last dimension, it can return the `AnnotatedType` of `String`, `T`, `List<...>`, etc. |
+| "`AnnotatedArrayType.getType()` is always a `Class`." | `T[]` and arrays of a parameterized type can use `GenericArrayType`. |
+| "An annotation on `T`'s bound automatically appears on `T[]`." | Bound annotations and annotations on a use of `T` are different positions. |
+| "Reading `field.getDeclaredAnnotations()` shows annotations on `[]`." | You need `field.getAnnotatedType()` and to traverse array nodes. |
+| "`getAnnotation()` on one dimension searches through all remaining dimensions." | It queries only the current node; you must recurse through components. |
+| "No annotation in the result means the array type is unannotated." | You might be on the wrong node or the annotation lacks runtime retention. |
+| "Type-use annotations will be automatically enforced by the JVM for validation." | Reflection only supplies metadata; application code must implement business rules. |
 
-## 11. Mẫu duyệt mảng dùng trong ứng dụng
+## 11. Array traversal pattern for applications
 
-Một tiện ích **chỉ duyệt đường mảng**, dùng cho mọi trường mảng có thể có annotation ở từng chiều:
+A utility that **only traverses the array path**, usable for any array field that may carry annotations on each dimension:
 
 ~~~java
 static void visitArray(AnnotatedType type) {
     int dimension = 0;
     while (type instanceof AnnotatedArrayType array) {
-        // Ở đây đọc annotation của chiều mảng hiện tại.
-        // Ví dụ: type.getAnnotations(), type.getType().getTypeName()
+        // Read annotations of the current array dimension here.
+        // Example: type.getAnnotations(), type.getType().getTypeName()
         dimension++;
         type = array.getAnnotatedGenericComponentType();
     }
 
-    // Đã tới loại phần tử, vẫn có thể có annotation riêng.
-    // Nếu là AnnotatedParameterizedType, có thể tiếp tục duyệt generics.
+    // Reached the element type, which may still have its own annotations.
+    // If it is an AnnotatedParameterizedType, you can continue traversing generics.
 }
 ~~~
 
-Đây là method minh họa trong một lớp có import `java.lang.reflect.*`; `dimension` đang biểu thị số mức mảng đã đi qua, không phải chỉ số chiều quy ước của một ứng dụng cụ thể.
+This is an illustrative method inside a class with `import java.lang.reflect.*`; `dimension` represents the number of array levels traversed so far, not an application-specific dimension index convention.
 
-Khi thiết kế schema/validator:
+When designing a schema/validator:
 
-1. Lấy `Field.getAnnotatedType()` hoặc API tương đương cho method parameter, return type, record component.
-2. Nếu nút là `AnnotatedArrayType`, lấy annotation tại **nút chiều mảng** rồi đi xuống `getAnnotatedGenericComponentType()`.
-3. Nếu nút là `AnnotatedParameterizedType`, đi vào `getAnnotatedActualTypeArguments()` để kiểm tra mảng nằm trong generic argument.
-4. Nếu nút là `AnnotatedWildcardType` hoặc `AnnotatedTypeVariable`, duyệt bounds đúng API.
-5. Tách phần đọc metadata khỏi phần **đánh giá dữ liệu runtime**. Type-use annotation không tự kiểm tra nội dung mảng.
-6. Kiểm tra `instanceof` trước khi ép kiểu, và không đánh đồng `Type` nền với `AnnotatedType`.
+1. Obtain `Field.getAnnotatedType()` or the equivalent API for method parameters, return types, and record components.
+2. If the node is `AnnotatedArrayType`, read annotations at **the array dimension node**, then descend into `getAnnotatedGenericComponentType()`.
+3. If the node is `AnnotatedParameterizedType`, enter `getAnnotatedActualTypeArguments()` to check arrays nested inside generic arguments.
+4. If the node is `AnnotatedWildcardType` or `AnnotatedTypeVariable`, traverse bounds using the right APIs.
+5. Separate reading metadata from **evaluating runtime data**. Type-use annotations do not validate array contents by themselves.
+6. Check `instanceof` before casting, and do not equate the underlying `Type` with `AnnotatedType`.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**Câu 1.** `@A String @B [] @C [] matrix` chứa annotation tại những vị trí nào?  
-`@B` ở chiều mảng ngoài `String[][]`; `@C` ở chiều trong `String[]`; `@A` ở kiểu phần tử `String`.
+**Question 1.** Where are the annotations located in `@A String @B [] @C [] matrix`?  
+`@B` is on the outer array dimension `String[][]`; `@C` is on the inner dimension `String[]`; `@A` is on the element type `String`.
 
-**Câu 2.** `field.getAnnotatedType().getAnnotation(A.class)` không thấy `@A` thì có nghĩa không có annotation nào trên các chiều mảng?  
-**Không.** Có thể annotation ở node con, phải đi theo `getAnnotatedGenericComponentType()`.
+**Question 2.** If `field.getAnnotatedType().getAnnotation(A.class)` does not see `@A`, does that mean there are no annotations on any array dimensions?  
+**No.** The annotation may be on a child node; you must follow `getAnnotatedGenericComponentType()`.
 
-**Câu 3.** `T[]` với `T` là type parameter có `getType()` nền thường thuộc loại nào?  
-**`GenericArrayType`**. Nhưng nút annotated root vẫn có thể là `AnnotatedArrayType`.
+**Question 3.** What kind of underlying `getType()` does `T[]` (where `T` is a type parameter) usually have?  
+**`GenericArrayType`**. However, the root annotated node can still be `AnnotatedArrayType`.
 
-**Câu 4.** `List<String[]>` có root là `AnnotatedArrayType` không?  
-**Không.** Root là `AnnotatedParameterizedType`; đi vào type argument mới gặp `AnnotatedArrayType`.
+**Question 4.** Does `List<String[]>` have an `AnnotatedArrayType` as its root?  
+**No.** The root is `AnnotatedParameterizedType`; entering the type argument yields `AnnotatedArrayType`.
 
-**Câu 5.** `List<String>[]` có root là `AnnotatedArrayType` không?  
-**Có.** Đây là mảng của danh sách; component là parameterized type.
+**Question 5.** Does `List<String>[]` have an `AnnotatedArrayType` as its root?  
+**Yes.** This is an array of lists; its component is a parameterized type.
 
-**Câu 6.** `Class.getComponentType()` và `AnnotatedArrayType.getAnnotatedGenericComponentType()` có hoán đổi được khi cần annotation mỗi chiều?  
-**Không.** API `Class` không giữ annotation type-use của component; API `AnnotatedArrayType` có thể giữ được.
+**Question 6.** Are `Class.getComponentType()` and `AnnotatedArrayType.getAnnotatedGenericComponentType()` interchangeable when per-dimension annotations are needed?  
+**No.** The `Class` API does not preserve component type-use annotations; the `AnnotatedArrayType` API can preserve them.
 
-**Câu 7.** Một annotation có `@Target(TYPE_USE)` nhưng `@Retention(CLASS)` có đọc bằng `AnnotatedType.getAnnotation()` tại runtime không?  
-**Không qua Reflection runtime thông thường.** Cần `RUNTIME`.
+**Question 7.** Can an annotation with `@Target(TYPE_USE)` but `@Retention(CLASS)` be read via `AnnotatedType.getAnnotation()` at runtime?  
+**Not via standard runtime Reflection.** `RUNTIME` is required.
 
-**Kết luận:** `AnnotatedArrayType` biểu diễn **từng mức của kiểu mảng đã được annotation**. Gọi `getAnnotation()` ở từng node, sau đó dùng `getAnnotatedGenericComponentType()` để đi từ chiều ngoài vào chiều trong và tới kiểu phần tử. Nhờ vậy không làm mất annotation khi phân tích mảng nhiều chiều, mảng generic hoặc mảng nằm trong generic argument.
+**Conclusion:** `AnnotatedArrayType` represents **each annotated level of an array type**. Call `getAnnotation()` at each node, then use `getAnnotatedGenericComponentType()` to step from outer dimensions to inner dimensions and finally to the element type. This avoids losing annotations when analyzing multidimensional arrays, generic arrays, or arrays inside generic arguments.
 
-### Tài liệu chính thức
+### Official references
 
 - [JDK 17 — `AnnotatedArrayType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedArrayType.html)
 - [JDK 17 — `AnnotatedType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedType.html)

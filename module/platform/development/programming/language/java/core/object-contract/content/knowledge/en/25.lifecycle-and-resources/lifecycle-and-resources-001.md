@@ -1,53 +1,53 @@
-# `Object.finalize()` đã bị đánh dấu `deprecated for removal`
+# `Object.finalize()` Has Been Marked `deprecated for removal`
 
-## 1. Khái niệm và trạng thái API
+## 1. Concept and API Status
 
-`java.lang.Object` là lớp gốc của hệ phân cấp lớp Java. Nó từng cung cấp phương thức:
+`java.lang.Object` is the root class of the Java class hierarchy. It used to provide the method:
 
 ```java
 @Deprecated(since = "9", forRemoval = true)
 protected void finalize() throws Throwable
 ```
 
-- `finalize()` là **finalizer**: cơ chế cũ cho phép một lớp định nghĩa thao tác khi JVM xử lý đối tượng không còn được chương trình truy cập, trước khi thu hồi bộ nhớ của đối tượng đó.
-- Bản triển khai `Object.finalize()` mặc định **không làm gì**. Trước đây, một số lớp ghi đè phương thức để giải phóng tài nguyên ngoài heap như file descriptor, socket hoặc native handle.
-- API được đánh dấu deprecated từ **Java 9**; **JEP 421 (JDK 18)** đánh dấu cơ chế finalization là *deprecated for removal*. Tại Java SE 26, `Object.finalize()` vẫn còn trong API nhưng được ghi rõ có thể bị loại bỏ trong phiên bản sau.
-- `@Deprecated(forRemoval = true)` là tín hiệu cần di chuyển khỏi API; nó **không đồng nghĩa phương thức đã bị xóa ngay** hoặc mã hiện tại chắc chắn không biên dịch.
+- `finalize()` is a **finalizer**: a legacy mechanism allowing a class to define an operation when the JVM processes an object that is no longer accessed by the program, before reclaiming that object's memory.
+- The default `Object.finalize()` implementation **does nothing**. Previously, some classes overrode the method to release off-heap resources such as file descriptors, sockets, or native handles.
+- The API was marked deprecated in **Java 9**; **JEP 421 (JDK 18)** marked the finalization mechanism as *deprecated for removal*. As of Java SE 26, `Object.finalize()` is still in the API but is explicitly documented as subject to removal in a later release.
+- `@Deprecated(forRemoval = true)` is a signal to migrate away from the API; it **does not mean the method has already been removed** or that existing code is guaranteed not to compile.
 
-Điều cần nhớ: **Không dùng `finalize()` để quản lý tài nguyên trong mã Java mới; hãy đóng tài nguyên một cách chủ động.**
+Key takeaway: **Do not use `finalize()` to manage resources in new Java code; close resources explicitly.**
 
-## 2. Finalization hoạt động thế nào và vì sao không đáng tin
+## 2. How Finalization Works and Why It Is Unreliable
 
-Diễn tiến khái quát khi finalization đang được JVM bật:
+General progression when finalization is enabled by the JVM:
 
-1. Một đối tượng có finalizer không còn được tham chiếu theo cách khiến chương trình sử dụng nó nữa.
-2. Garbage collector (GC) có thể nhận diện đối tượng đủ điều kiện finalization và JVM có thể sắp lịch thực thi finalizer.
-3. Finalizer, nếu được gọi, chạy bằng luồng không do ứng dụng trực tiếp lựa chọn. Sau đó, GC còn cần kiểm tra lại khả năng truy cập đối tượng trước khi thu hồi bộ nhớ.
+1. An object with a finalizer is no longer referenced in a way that keeps the program using it.
+2. The garbage collector (GC) may identify the object as eligible for finalization, and the JVM may schedule execution of the finalizer.
+3. The finalizer, if invoked, runs on a thread not directly chosen by the application. Afterward, the GC still needs to recheck the object's reachability before reclaiming memory.
 
-**Không có cam kết finalizer chạy ngay, chạy trước khi JVM kết thúc, hay chạy trước một thời hạn cụ thể.** Một đối tượng có thể không được finalization trong suốt thời gian chương trình hoạt động. Gọi `System.gc()` hay `System.runFinalization()` không biến việc dọn dẹp thành hợp đồng bảo đảm.
+**There is no guarantee that a finalizer runs immediately, runs before the JVM terminates, or runs before a specific deadline.** An object might never undergo finalization during the entire lifetime of the program. Calling `System.gc()` or `System.runFinalization()` does not turn cleanup into a guaranteed contract.
 
-Các vấn đề cốt lõi:
+Core issues:
 
-| Vấn đề | Hệ quả |
+| Issue | Consequence |
 | --- | --- |
-| Thời điểm không xác định | File descriptor, socket hoặc bộ nhớ native có thể bị giữ lâu dù đối tượng Java không còn được dùng. |
-| Chi phí GC và lưu giữ đối tượng | Đối tượng cần finalization có thể phải đi qua quá trình xử lý bổ sung trước khi bộ nhớ được thu hồi. |
-| Rủi ro bảo mật | Finalizer có thể truy cập trạng thái đối tượng chưa được khởi tạo hoàn chỉnh hoặc làm đối tượng “sống lại” (*object resurrection*). |
-| Khó kiểm soát lỗi và đồng thời | Finalizer chạy trên luồng không xác định; ngoại lệ không được bắt trong finalizer bị bỏ qua. |
-| Khó kiểm thử | Kết quả phụ thuộc GC, thời điểm thực thi và trạng thái JVM; bài test có thể lúc qua lúc trượt. |
+| Nondeterministic timing | File descriptors, sockets, or native memory may be held for a long time even though the Java object is no longer used. |
+| GC overhead and object retention | Objects requiring finalization may have to go through additional processing before memory is reclaimed. |
+| Security risks | A finalizer can access partially initialized object state or bring the object "back to life" (*object resurrection*). |
+| Difficult error and concurrency control | Finalizers run on an unspecified thread; uncaught exceptions in a finalizer are ignored. |
+| Difficult testing | Results depend on GC, execution timing, and JVM state; tests may pass intermittently or flake. |
 
-Đối với một đối tượng, JVM không tự gọi finalizer quá một lần; điều đó vẫn **không bảo đảm sẽ có một lần nào** trước khi chương trình dừng. GC quản lý **bộ nhớ heap**, không tự biết khi nào nghiệp vụ đã sử dụng xong mọi tài nguyên hệ điều hành.
+For a given object, the JVM will not automatically call the finalizer more than once; that still **does not guarantee even a single invocation** before the program stops. The GC manages **heap memory**, and does not automatically know when business logic has finished using all operating system resources.
 
-## 3. Những tên gần giống nhưng khác bản chất
+## 3. Similar-Looking Names with Different Natures
 
-- `finalize()`: callback dọn dẹp kiểu cũ gắn với vòng đời đối tượng và GC; đã deprecated for removal.
-- `finally`: khối lệnh của `try/catch/finally`, thực thi khi luồng điều khiển rời `try` theo các quy tắc thông thường; có thể dùng để gọi `close()`.
-- `final`: từ khóa cấm gán lại biến, ghi đè phương thức hoặc kế thừa lớp tùy ngữ cảnh; không liên quan đến finalizer.
-- `close()` và `AutoCloseable`: giao diện quản lý vòng đời tài nguyên theo chủ ý của người gọi, thường kết hợp `try-with-resources`.
+- `finalize()`: legacy cleanup callback tied to object lifecycle and GC; deprecated for removal.
+- `finally`: block of `try/catch/finally`, executed when control flow leaves `try` under normal rules; can be used to call `close()`.
+- `final`: keyword prohibiting variable reassignment, method overriding, or class inheritance depending on context; unrelated to finalizers.
+- `close()` and `AutoCloseable`: interface for intentional caller-driven resource lifecycle management, typically combined with `try-with-resources`.
 
-## 4. Giải pháp khi mã cần đóng tài nguyên
+## 4. Solution When Code Needs to Close Resources
 
-Khi một lớp sở hữu file, socket, kết nối hoặc handle cần đóng đúng hạn, cho lớp thực hiện `AutoCloseable` và tổ chức bên sử dụng gọi `close()` tại ranh giới sở hữu; cách thông dụng nhất là `try-with-resources`. Java gọi `close()` khi rời khối trong luồng thực thi bình thường, kể cả khi thân khối ném ngoại lệ. Đây là hợp đồng theo luồng điều khiển, không phải một tác dụng phụ của GC.
+When a class owns a file, socket, connection, or handle that must be closed on time, have the class implement `AutoCloseable` and arrange for the consumer to call `close()` at the ownership boundary; the most common approach is `try-with-resources`. Java calls `close()` when leaving the block in normal execution flow, including when the block body throws an exception. This is a control-flow contract, not a GC side effect.
 
 ```java
 try (var reader = java.nio.file.Files.newBufferedReader(path)) {
@@ -55,43 +55,43 @@ try (var reader = java.nio.file.Files.newBufferedReader(path)) {
 }
 ```
 
-Đây là đoạn minh họa nằm trong phương thức có biến `path` kiểu `Path`, với ngoại lệ `IOException` được xử lý hoặc khai báo phù hợp. Bài chuyên sâu về `AutoCloseable` phân tích thứ tự đóng, ownership và suppressed exceptions.
+This is an illustrative snippet inside a method that has a `path` variable of type `Path`, with `IOException` handled or declared appropriately. The in-depth lesson on `AutoCloseable` analyzes closing order, ownership, and suppressed exceptions.
 
-## 5. Cleaner chỉ có vai trò dự phòng
+## 5. Cleaner Only Plays a Fallback Role
 
-`java.lang.ref.Cleaner` (Java 9+) cho phép đăng ký một cleaning action độc lập và gọi `Cleanable.clean()` chủ động. Khi chỉ dựa vào GC kích hoạt, hành động này **không có hạn chót** và có thể không chạy trước lúc JVM thoát. Không dùng Cleaner để thay thế `close()` hoặc để commit, flush dữ liệu bắt buộc. Nếu dùng cho native handle, action không được giữ tham chiếu mạnh tới chính đối tượng được theo dõi. Bài Cleaner cuối chương giải thích thiết kế trạng thái độc lập và các bẫy tham chiếu.
+`java.lang.ref.Cleaner` (Java 9+) allows registering an independent cleaning action and calling `Cleanable.clean()` proactively. When relying solely on GC triggers, this action **has no deadline** and may not run before the JVM exits. Do not use Cleaner to replace `close()` or to commit or flush mandatory data. If used for a native handle, the action must not hold a strong reference to the tracked object itself. The Cleaner lesson at the end of the chapter explains independent state design and reference traps.
 
-## 6. Rà soát mã cũ và kiểm tra khả năng tương thích
+## 6. Auditing Legacy Code and Checking Compatibility
 
-Khi bảo trì codebase có finalizer:
+When maintaining a codebase with finalizers:
 
-1. Tìm lớp ghi đè `finalize()`, cả ở source và các thư viện phụ thuộc. Kiểm tra tài nguyên nào thực sự được sở hữu, ai chịu trách nhiệm đóng và đường đi xử lý ngoại lệ.
-2. Chuyển thao tác dọn dẹp chính sang `close()` hoặc API đóng tương đương; cập nhật nơi gọi bằng `try-with-resources` hoặc `finally` khi thích hợp.
-3. Nếu cần lớp dự phòng cho native resource, cân nhắc `Cleaner` với state không tham chiếu tới chính đối tượng được đăng ký.
-4. Kiểm thử đường đi bình thường, ngoại lệ, gọi `close()` lặp lại, và trường hợp đóng tài nguyên chưa từng dùng.
-5. Thử chạy với finalization bị tắt để phát hiện phụ thuộc còn sót:
+1. Find classes overriding `finalize()`, both in source code and dependent libraries. Inspect which resources are actually owned, who is responsible for closing them, and the exception-handling path.
+2. Move primary cleanup operations to `close()` or an equivalent closing API; update call sites with `try-with-resources` or `finally` when appropriate.
+3. If a fallback layer is needed for native resources, consider `Cleaner` with state that does not reference the registered object itself.
+4. Test normal paths, exception paths, repeated `close()` calls, and closing a resource that was never used.
+5. Try running with finalization disabled to detect remaining dependencies:
 
 ```bash
-# Tùy chọn có từ JDK 18; thay App bằng main class thực tế.
+# Option available since JDK 18; replace App with the actual main class.
 java --finalization=disabled App
 ```
 
-Có thể dùng `jdeprscan --for-removal your-app.jar` để tìm các tham chiếu API chuẩn đã đánh dấu for removal trong file JAR. Tuy nhiên việc quét bytecode **không thay cho việc tìm các phương thức `finalize()` do dự án tự khai báo**; cần kiểm tra source, thư viện và hành vi tài nguyên. Không dùng `System.runFinalization()` như biện pháp khắc phục: API này cũng deprecated for removal và không cung cấp sự bảo đảm dọn dẹp cần thiết.
+You can use `jdeprscan --for-removal your-app.jar` to find references to standard APIs marked for removal in a JAR file. However, bytecode scanning **does not replace searching for `finalize()` methods declared by the project itself**; you need to inspect source code, libraries, and resource behavior. Do not use `System.runFinalization()` as a workaround: this API is also deprecated for removal and does not provide the required cleanup guarantee.
 
-## 7. Sai lầm phổ biến và cách ghi nhớ
+## 7. Common Mistakes and How to Remember
 
-- **Sai:** “GC thu hồi đối tượng thì mọi file/socket của nó được đóng đúng lúc.” **Đúng:** GC chủ yếu thu hồi bộ nhớ Java; tài nguyên ngoài heap cần vòng đời đóng riêng.
-- **Sai:** “Dùng `finally` và `finalize()` là như nhau.” **Đúng:** `finally` thuộc luồng thực thi của mã; `finalize()` phụ thuộc cơ chế finalization.
-- **Sai:** “`deprecated for removal` có nghĩa là `finalize()` đã bị xóa.” **Đúng:** Nó cảnh báo có kế hoạch loại bỏ trong tương lai; hãy kiểm tra API/JDK mục tiêu.
-- **Sai:** “Đăng ký Cleaner là có thể bỏ `close()`.” **Đúng:** Cleaner chỉ phù hợp làm lớp bảo vệ dự phòng không bảo đảm thời điểm.
-- **Sai:** “Chờ `System.gc()` cho tới khi finalizer chạy là test ổn định.” **Đúng:** Hãy test thao tác đóng chủ động và trạng thái tài nguyên quan sát được.
+- **Wrong:** “When the GC reclaims an object, all its files/sockets are closed on time.” **Right:** The GC primarily reclaims Java memory; off-heap resources need their own closing lifecycle.
+- **Wrong:** “Using `finally` and `finalize()` is the same.” **Right:** `finally` belongs to code execution flow; `finalize()` depends on the finalization mechanism.
+- **Wrong:** “`deprecated for removal` means `finalize()` has already been removed.” **Right:** It warns of planned removal in the future; check the target API/JDK.
+- **Wrong:** “Registering a Cleaner lets you omit `close()`.” **Right:** Cleaner is only suitable as a fallback safeguard with no timing guarantee.
+- **Wrong:** “Waiting on `System.gc()` until the finalizer runs is a stable test.” **Right:** Test explicit closing operations and observable resource state instead.
 
-**Nguyên tắc thiết kế:** đối tượng nào sở hữu tài nguyên thì phải cung cấp cách đóng rõ ràng; mã sử dụng phải xác định được thời điểm đóng. `Object.finalize()` là cơ chế lịch sử cần loại khỏi thiết kế mới.
+**Design principle:** whichever object owns a resource must provide a clear way to close it; consuming code must determine the closing time. `Object.finalize()` is a historical mechanism that should be excluded from new designs.
 
-## 8. Tài liệu chính thức
+## 8. Official Documentation
 
 - [JEP 421 — Deprecate Finalization for Removal](https://openjdk.org/jeps/421)
-- [Java SE 26 — API `java.lang.Object.finalize()`](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/Object.html#finalize())
+- [Java SE 26 — `java.lang.Object.finalize()` API](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/Object.html#finalize())
 - [Java SE 26 — JLS §12.6, Finalization of Class Instances](https://docs.oracle.com/en/java/javase/26/docs/specs/jls/jls-12.html#jls-12.6)
 - [Java SE 26 — `Cleaner` API](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/ref/Cleaner.html)
 - [Java SE 26 — `AutoCloseable` API](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/AutoCloseable.html)

@@ -1,30 +1,30 @@
-# Các nhóm thao tác với String trong Java: đọc, so sánh, tìm kiếm, biến đổi và chuyển mã
+# String Operation Categories in Java: Reading, Comparing, Searching, Transforming, and Encoding
 
-Trong Java, `String` là kiểu tham chiếu biểu diễn văn bản. Năm nhóm thao tác thường gặp gồm: **đọc/trích xuất**, **so sánh**, **tìm kiếm**, **biến đổi** và **chuyển đổi/mã hóa**. Mỗi nhóm giải quyết một mục đích khác nhau; chọn đúng API giúp code dễ hiểu và tránh lỗi với Unicode, biểu thức chính quy hoặc dữ liệu từ hệ thống ngoài.
+In Java, `String` is a reference type representing text. Five common categories of operations include: **reading/extracting**, **comparing**, **searching**, **transforming**, and **converting/encoding**. Each category serves a distinct purpose; choosing the right API keeps code readable and avoids bugs with Unicode, regular expressions, or data from external systems.
 
-## 1. Quy tắc nền tảng trước khi thao tác
+## 1. Fundamental rules before operating on strings
 
-1. **`String` bất biến (immutable):** `replace()`, `strip()`, `substring()`, `toUpperCase()` trả về kết quả nhưng không sửa chuỗi gốc. Phải gán `s = s.strip();` nếu muốn lưu giá trị sau biến đổi. Nếu không có thay đổi, một phương thức có thể trả về cùng đối tượng; không dựa vào danh tính tham chiếu để quyết định nội dung.
-2. **Chỉ số bắt đầu từ 0, biên cuối không bao gồm:** `"Java".substring(1, 3)` là `"av"`. Giá trị chỉ số không hợp lệ gây `StringIndexOutOfBoundsException`.
-3. **Đơn vị chỉ số của String là UTF-16 code unit:** `"🚀".length() == 2` dù emoji là một Unicode code point. `charAt()` có thể trả về nửa surrogate pair; `codePoints()` phù hợp hơn khi muốn duyệt code point. Một ký tự hiển thị cũng có thể gồm nhiều code point, ví dụ chữ cộng dấu kết hợp.
-4. **`null` khác `""`:** `null` không có đối tượng; chuỗi rỗng có `length() == 0`. Gọi `length()` hoặc bất cứ instance method nào trên null gây `NullPointerException`.
-5. **Văn bản khác byte:** `String` chứa văn bản, `byte[]` chứa dữ liệu byte. Chuyển qua lại cần chọn charset, thông thường `StandardCharsets.UTF_8`, ở cả hai đầu.
+1. **`String` is immutable:** `replace()`, `strip()`, `substring()`, and `toUpperCase()` return results without modifying the original string. You must assign `s = s.strip();` if you want to keep the transformed value. If no change occurs, a method may return the same object; do not rely on reference identity to determine content.
+2. **Indices are 0-based, end boundary is exclusive:** `"Java".substring(1, 3)` is `"av"`. Invalid index values throw `StringIndexOutOfBoundsException`.
+3. **String's index unit is the UTF-16 code unit:** `"🚀".length() == 2` even though the emoji is one Unicode code point. `charAt()` may return half of a surrogate pair; `codePoints()` is more appropriate when iterating by code point. A visible character can also consist of multiple code points, such as a base letter plus a combining accent.
+4. **`null` differs from `""`:** `null` has no object; an empty string has `length() == 0`. Calling `length()` or any instance method on null throws `NullPointerException`.
+5. **Text differs from bytes:** `String` holds text, whereas `byte[]` holds byte data. Converting between them requires selecting a charset, typically `StandardCharsets.UTF_8`, on both ends.
 
-## 2. Đọc và trích xuất
+## 2. Reading and extracting
 
-| Nhu cầu | Phương thức | Ghi nhớ |
+| Need | Method | Note |
 |---|---|---|
-| Đo độ dài | `length()` | Số UTF-16 code unit |
-| Chuỗi rỗng | `isEmpty()` | `true` chỉ khi độ dài bằng 0 |
-| Rỗng hoặc toàn whitespace | `isBlank()` | Dùng quy tắc whitespace của `Character.isWhitespace` |
-| Đọc một code unit | `charAt(index)` | Trả về `char` |
-| Đọc một code point | `codePointAt(index)` | Trả về `int`, index vẫn tính theo UTF-16 |
-| Đếm code point | `codePointCount(begin, end)` | Hai biên là chỉ số UTF-16 |
-| Duyệt code point | `codePoints()` | Trả về `IntStream` |
-| Lấy đoạn | `substring(begin, end)` | Lấy từ begin đến trước end |
-| Lấy dạng `CharSequence` | `subSequence(begin, end)` | Dùng khi API nhận `CharSequence` |
-| Sao chép các `char` | `toCharArray()`, `getChars(...)` | Vẫn theo code unit UTF-16 |
-| Duyệt từng dòng | `lines()` | Trả về `Stream<String>` |
+| Measure length | `length()` | Number of UTF-16 code units |
+| Empty string | `isEmpty()` | `true` only when length is 0 |
+| Empty or whitespace-only | `isBlank()` | Uses `Character.isWhitespace` rules |
+| Read one code unit | `charAt(index)` | Returns `char` |
+| Read one code point | `codePointAt(index)` | Returns `int`; index is still in UTF-16 units |
+| Count code points | `codePointCount(begin, end)` | Both bounds are UTF-16 indices |
+| Iterate code points | `codePoints()` | Returns `IntStream` |
+| Extract slice | `substring(begin, end)` | Takes from begin up to before end |
+| Extract as `CharSequence` | `subSequence(begin, end)` | Use when an API accepts `CharSequence` |
+| Copy `char` values | `toCharArray()`, `getChars(...)` | Still based on UTF-16 code units |
+| Iterate line by line | `lines()` | Returns `Stream<String>` |
 
 ~~~java
 String s = "Java 🚀";
@@ -36,7 +36,7 @@ s.codePoints().forEach(cp -> System.out.print(Character.toString(cp)));
 System.out.println();                                // Java 🚀
 ~~~
 
-Muốn cắt theo **số code point**, dùng `offsetByCodePoints()` để tính vị trí UTF-16 rồi mới `substring()`:
+To slice by **code point count**, use `offsetByCodePoints()` to compute the UTF-16 position before calling `substring()`:
 
 ~~~java
 String s = "A🚀B";
@@ -44,16 +44,16 @@ int end = s.offsetByCodePoints(0, 2);
 System.out.println(s.substring(0, end)); // A🚀
 ~~~
 
-`s.substring(0, 2)` trong trường hợp này cắt giữa hai code unit của 🚀 và tạo chuỗi chứa surrogate lẻ. Nếu phải thao tác theo **grapheme cluster** (ký tự người dùng nhìn thấy), chỉ tính code point vẫn chưa đủ; cần bộ phân đoạn văn bản phù hợp.
+`s.substring(0, 2)` in this case slices between the two code units of 🚀 and produces a string containing an unpaired surrogate. If you must operate by **grapheme cluster** (user-perceived character), counting code points alone is still insufficient; an appropriate text-segmentation utility is needed.
 
-## 3. So sánh: nội dung, chữ hoa và thứ tự
+## 3. Comparing: content, letter case, and ordering
 
-- `a.equals(b)`: so nội dung chính xác theo code unit và có phân biệt hoa/thường.
-- `a.equalsIgnoreCase(b)`: so không phân biệt chữ hoa/thường theo quy tắc Unicode của Java, không thay thế đối chiếu ngôn ngữ tự nhiên đầy đủ.
-- `a.compareTo(b)`: so thứ tự từ điển theo UTF-16, trả **âm / 0 / dương**; không mặc định chỉ có `-1, 0, 1`. `compareToIgnoreCase(b)` bỏ qua hoa/thường.
-- `a.contentEquals(charSequence)`: so nội dung với một `CharSequence` như `StringBuilder`.
-- `a.regionMatches(...)`: so hai vùng con, có biến thể bỏ qua hoa/thường.
-- `Objects.equals(a, b)`: so an toàn khi tham chiếu có thể null.
+- `a.equals(b)`: compares exact content by code unit and is case-sensitive.
+- `a.equalsIgnoreCase(b)`: compares case-insensitively according to Java's Unicode rules; does not replace full natural-language collation.
+- `a.compareTo(b)`: compares lexicographical order in UTF-16, returning **negative / 0 / positive**; do not assume it only returns `-1, 0, 1`. `compareToIgnoreCase(b)` ignores letter case.
+- `a.contentEquals(charSequence)`: compares content against a `CharSequence` such as `StringBuilder`.
+- `a.regionMatches(...)`: compares two subregions, with an overload to ignore case.
+- `Objects.equals(a, b)`: compares safely when references may be null.
 
 ~~~java
 import java.util.Objects;
@@ -69,9 +69,9 @@ System.out.println("Java".contentEquals(
         new StringBuilder("Java")));                      // true
 ~~~
 
-**Lỗi phổ biến:** `==` so danh tính tham chiếu, **không** so nội dung. String pool có thể làm hai literal trỏ cùng đối tượng, khiến ví dụ `"abc" == "abc"` có kết quả true nhưng không bảo đảm cho chuỗi tạo lúc chạy. Dùng `"expected".equals(candidate)` hoặc `Objects.equals(...)` khi có khả năng null.
+**Common mistake:** `==` compares reference identity, **not** content. The string pool can make two literals point to the same object, causing `"abc" == "abc"` to evaluate to true, yet that is not guaranteed for runtime-created strings. Use `"expected".equals(candidate)` or `Objects.equals(...)` when null is possible.
 
-Khi cần **sắp xếp tên hiển thị theo một ngôn ngữ** như tiếng Việt, dùng `java.text.Collator` với locale phù hợp thay vì dựa vào `compareTo()`:
+When you need to **sort display names according to a language** such as Vietnamese, use `java.text.Collator` with the appropriate locale instead of relying on `compareTo()`:
 
 ~~~java
 import java.text.Collator;
@@ -79,22 +79,22 @@ import java.util.Locale;
 
 Collator collator = Collator.getInstance(Locale.forLanguageTag("vi-VN"));
 int result = collator.compare("An", "Ánh");
-// result âm, bằng 0 hoặc dương theo quy tắc collation của locale.
+// result is negative, 0, or positive according to the locale's collation rules.
 ~~~
 
-Kết quả collation phụ thuộc dữ liệu locale, cấu hình mức phân biệt dấu/hoa thường (`strength`) và môi trường; không suy ra thứ tự theo ngôn ngữ từ giá trị Unicode code point.
+Collation results depend on locale data, accent/case sensitivity configuration (`strength`), and environment; do not infer language-specific ordering from Unicode code point values.
 
-## 4. Tìm kiếm chuỗi con và biểu thức chính quy
+## 4. Searching substrings and regular expressions
 
-| Phương thức | Kết quả | Khi dùng |
+| Method | Result | When to use |
 |---|---|---|
-| `contains(part)` | `boolean` | Có chuỗi con literal hay không |
-| `startsWith(prefix)`, `endsWith(suffix)` | `boolean` | Kiểm tra tiền tố/hậu tố |
-| `indexOf(part)` | Chỉ số xuất hiện đầu hoặc `-1` | Tìm vị trí (UTF-16) |
-| `indexOf(part, fromIndex)` | Chỉ số hoặc `-1` | Tìm tiếp từ một vị trí |
-| `lastIndexOf(part)` | Chỉ số xuất hiện cuối hoặc `-1` | Tìm từ cuối |
-| `matches(regex)` | `boolean` | **Cả chuỗi** khớp regex |
-| `Pattern` + `Matcher.find()` | `boolean`/nhóm/vị trí | Một **đoạn con** khớp regex |
+| `contains(part)` | `boolean` | Whether a literal substring is present |
+| `startsWith(prefix)`, `endsWith(suffix)` | `boolean` | Check prefix/suffix |
+| `indexOf(part)` | First occurrence index or `-1` | Find position (UTF-16) |
+| `indexOf(part, fromIndex)` | Index or `-1` | Continue searching from a position |
+| `lastIndexOf(part)` | Last occurrence index or `-1` | Search from the end |
+| `matches(regex)` | `boolean` | **Entire string** matches regex |
+| `Pattern` + `Matcher.find()` | `boolean`/groups/positions | A **substring** matches regex |
 
 ~~~java
 String text = "Java 17, Java 21";
@@ -107,7 +107,7 @@ System.out.println("ABC123".matches("[A-Z]+\\d+"));   // true
 System.out.println("x123y".matches("\\d+"));          // false
 ~~~
 
-`matches()` yêu cầu regex khớp **toàn bộ** chuỗi. Để tìm nhiều đoạn con, dùng `find()`:
+`matches()` requires the regex to match the **entire** string. To find multiple substrings, use `find()`:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -115,23 +115,23 @@ import java.util.regex.Pattern;
 
 Matcher m = Pattern.compile("\\d+").matcher("A12 B345");
 while (m.find()) {
-    System.out.println(m.group() + " tại " + m.start());
+    System.out.println(m.group() + " at " + m.start());
 }
-// 12 tại 1
-// 345 tại 5
+// 12 at 1
+// 345 at 5
 ~~~
 
-Trong Java source, regex `\d+` cần ghi bằng chuỗi `"\\d+"` vì backslash phải được escape ở tầng Java string. Dấu `.` trong regex khớp một ký tự theo quy tắc regex, không phải dấu chấm literal. Nếu người dùng nhập văn bản cần tìm, dùng `Pattern.quote(userText)` để tạo mẫu regex literal. Nếu chỉ tìm literal, `contains()`/`indexOf()` thường gọn và rõ hơn regex.
+In Java source code, the regex `\d+` must be written as the string `"\\d+"` because the backslash has to be escaped at the Java string level. The dot `.` in regex matches any character per regex rules, not a literal period. If a user supplies text to search for, use `Pattern.quote(userText)` to create a literal regex pattern. If you are only searching for literal text, `contains()`/`indexOf()` are usually shorter and clearer than regex.
 
-## 5. Biến đổi nội dung
+## 5. Transforming content
 
-### 5.1. Ghép, nối và lặp
+### 5.1. Concatenating, joining, and repeating
 
-`+` hoặc `concat()` nối chuỗi. `String.join(delimiter, elements...)` ghép các phần có dấu phân tách. `repeat(n)` lặp `n` lần (n âm gây `IllegalArgumentException`). Với nhiều phép nối trong vòng lặp lớn, `StringBuilder.append()` giảm việc tạo chuỗi trung gian; `StringBuilder` thay đổi được, nên không chia sẻ để nhiều luồng cùng sửa nếu không đồng bộ.
+`+` or `concat()` concatenates strings. `String.join(delimiter, elements...)` joins parts with a delimiter. `repeat(n)` repeats `n` times (negative `n` throws `IllegalArgumentException`). With many concatenations in a large loop, `StringBuilder.append()` reduces intermediate string creation; `StringBuilder` is mutable, so do not share it across multiple threads for concurrent modification without synchronization.
 
 ~~~java
 System.out.println("Java".concat(" 17"));                // Java 17
-System.out.println(String.join(" | ", "đọc", "tìm", "đổi")); // đọc | tìm | đổi
+System.out.println(String.join(" | ", "read", "find", "replace")); // read | find | replace
 System.out.println("ha".repeat(3));                     // hahaha
 
 StringBuilder builder = new StringBuilder();
@@ -142,11 +142,11 @@ for (int i = 1; i <= 3; i++) {
 System.out.println(builder); // 1, 2, 3
 ~~~
 
-### 5.2. Thay thế literal khác regex
+### 5.2. Literal replacement vs. regex replacement
 
-- `replace(char, char)` và `replace(CharSequence, CharSequence)`: thay các giá trị **literal**.
-- `replaceAll(regex, replacement)`: thay tất cả phần khớp **regex**. Replacement có cú pháp tham chiếu nhóm như `$1`.
-- `replaceFirst(regex, replacement)`: thay phần khớp đầu tiên.
+- `replace(char, char)` and `replace(CharSequence, CharSequence)`: replace **literal** values.
+- `replaceAll(regex, replacement)`: replaces all matches of **regex**. The replacement supports group-reference syntax like `$1`.
+- `replaceFirst(regex, replacement)`: replaces the first match.
 
 ~~~java
 System.out.println("a.b".replace(".", "-"));           // a-b
@@ -155,15 +155,15 @@ System.out.println("a12b34".replaceAll("\\d+", "#"));  // a#b#
 System.out.println("1 2 3".replaceFirst("\\d", "X"));  // X 2 3
 ~~~
 
-Khi replacement đến từ người dùng, dùng `Matcher.quoteReplacement(replacement)` để tránh `$` hoặc backslash bị diễn giải như cú pháp. Với dữ liệu literal, chọn `replace(old, new)` để giảm lỗi.
+When the replacement comes from user input, use `Matcher.quoteReplacement(replacement)` to prevent `$` or backslashes from being interpreted as special syntax. For literal data, prefer `replace(old, new)` to reduce errors.
 
-### 5.3. Khoảng trắng, chữ hoa/thường và Unicode
+### 5.3. Whitespace, letter case, and Unicode
 
-`strip()`, `stripLeading()`, `stripTrailing()` bỏ whitespace theo `Character.isWhitespace`; `trim()` chỉ bỏ các code unit ở đầu/cuối có giá trị từ U+0000 tới U+0020, vì vậy có trường hợp khác `strip()`.
+`strip()`, `stripLeading()`, and `stripTrailing()` remove whitespace according to `Character.isWhitespace`; `trim()` only removes leading/trailing code units with values from U+0000 to U+0020, so there are cases where it differs from `strip()`.
 
-`toUpperCase(locale)` và `toLowerCase(locale)` dùng quy tắc locale. Khi biểu diễn key máy không phụ thuộc ngôn ngữ mà đặc tả cho phép case folding đơn giản, sử dụng `Locale.ROOT` tường minh. Với văn bản hiển thị, dùng locale thích hợp. Việc đổi hoa/thường có thể đổi số code point hoặc độ dài chuỗi.
+`toUpperCase(locale)` and `toLowerCase(locale)` apply locale rules. When representing language-independent machine keys where the specification permits simple case folding, explicitly use `Locale.ROOT`. For display text, use the appropriate locale. Changing case can alter the code point count or string length.
 
-`java.text.Normalizer` dùng để chuẩn hóa biểu diễn Unicode. Hai chuỗi nhìn giống nhau có thể khác về code point, ví dụ ký tự `é` dựng sẵn và `e` cộng dấu sắc kết hợp:
+`java.text.Normalizer` is used to normalize Unicode representations. Two visually identical strings can differ in code points, such as precomposed `é` versus `e` plus a combining acute accent:
 
 ~~~java
 import java.text.Normalizer;
@@ -181,15 +181,15 @@ System.out.println(composed.equals(
         Normalizer.normalize(decomposed, Normalizer.Form.NFC))); // true
 ~~~
 
-NFC chuẩn hóa các biểu diễn tương đương theo Unicode, nhưng không đồng nhất mọi từ trông giống nhau. Với văn bản nhiều dòng, Java còn có `indent()`, `stripIndent()`, `translateEscapes()`; cần đọc quy tắc dấu xuống dòng/escape trước khi áp dụng.
+NFC normalizes canonically equivalent Unicode representations, but it does not equate every pair of visually similar words. For multi-line text, Java also provides `indent()`, `stripIndent()`, and `translateEscapes()`; read the newline/escape rules carefully before applying them.
 
-## 6. Chuyển đổi kiểu dữ liệu, charset và các dạng mã hóa
+## 6. Data type conversion, charsets, and encoding formats
 
-### 6.1. Giá trị Java ↔ String
+### 6.1. Java values ↔ String
 
-`String.valueOf(42)` tạo `"42"`; `String.valueOf(true)` tạo `"true"`; `String.valueOf((Object)null)` tạo **chuỗi ký tự** `"null"`, khác tham chiếu null.
+`String.valueOf(42)` creates `"42"`; `String.valueOf(true)` creates `"true"`; `String.valueOf((Object)null)` creates the **character string** `"null"`, distinct from a null reference.
 
-`Integer.parseInt()`, `Long.parseLong()`, `Double.parseDouble()` chuyển chuỗi thành số và có thể ném `NumberFormatException`. `Boolean.parseBoolean()` trả true khi bằng `"true"` không phân biệt hoa/thường, những giá trị còn lại trả false.
+`Integer.parseInt()`, `Long.parseLong()`, and `Double.parseDouble()` convert strings to numbers and may throw `NumberFormatException`. `Boolean.parseBoolean()` returns true when equal to `"true"` case-insensitively; all other values return false.
 
 ~~~java
 import java.util.Locale;
@@ -201,11 +201,11 @@ System.out.println(number); // 42
 System.out.println(code);   // ITEM-0042
 ~~~
 
-`String.format(Locale, format, args)` cho phép xác định locale rõ ràng, rất hữu ích khi văn bản gửi qua hệ thống phải ổn định. `"ITEM-%04d".formatted(42)` là cú pháp gọn nhưng dùng locale mặc định. `Integer.parseInt("12.5")` không hợp lệ. `Double.parseDouble` dùng dấu thập phân theo cú pháp Java, không tự hiểu định dạng dấu phẩy của địa phương; với dữ liệu định dạng theo locale, cân nhắc `NumberFormat` và xác thực toàn bộ đầu vào.
+`String.format(Locale, format, args)` lets you specify a locale explicitly, which is very useful when text sent across systems must remain consistent. `"ITEM-%04d".formatted(42)` is concise syntax, but it uses the default locale. `Integer.parseInt("12.5")` is invalid. `Double.parseDouble` uses Java's decimal point syntax and does not automatically interpret locale comma formatting; for locale-formatted data, consider `NumberFormat` and validate the entire input.
 
-### 6.2. Văn bản ↔ byte: charset
+### 6.2. Text ↔ bytes: charsets
 
-Encoding ánh xạ Unicode thành byte; decoding chuyển byte lại thành văn bản. Hai chiều phải thống nhất charset. Thông thường chọn `StandardCharsets.UTF_8` để tránh phụ thuộc charset mặc định của JVM/hệ điều hành.
+Encoding maps Unicode to bytes; decoding converts bytes back to text. Both directions must agree on the charset. Typically choose `StandardCharsets.UTF_8` to avoid depending on the JVM/OS default charset.
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -220,17 +220,17 @@ System.out.println(HexFormat.of().formatHex(
         "A".getBytes(StandardCharsets.UTF_8)));         // 41
 ~~~
 
-Độ dài byte khác độ dài `String`: `à` là 2 byte trong UTF-8, 🚀 là 4 byte UTF-8 nhưng 2 code unit UTF-16. Giải mã byte UTF-8 bằng charset không phù hợp có thể gây lỗi hiển thị. Một số API chuyển đổi tiện dụng thay dữ liệu sai bằng ký tự thay thế; để **từ chối** đầu vào mã hóa không hợp lệ, tạo `CharsetDecoder`/`CharsetEncoder` với `CodingErrorAction.REPORT` và xử lý `CharacterCodingException`.
+Byte length differs from `String` length: `à` is 2 bytes in UTF-8, and 🚀 is 4 bytes in UTF-8 but 2 UTF-16 code units. Decoding UTF-8 bytes with the wrong charset can cause display corruption. Some convenience conversion APIs replace invalid data with replacement characters; to **reject** invalid encoded input, create a `CharsetDecoder`/`CharsetEncoder` with `CodingErrorAction.REPORT` and handle `CharacterCodingException`.
 
-### 6.3. Base64, hex và URL encoding có mục đích khác charset
+### 6.3. Base64, hex, and URL encoding serve different purposes from charsets
 
-| Bài toán | API | Ý nghĩa |
+| Problem | API | Meaning |
 |---|---|---|
-| Unicode ↔ byte | `getBytes(UTF_8)`, `new String(bytes, UTF_8)` | Charset encoding/decoding |
-| Byte ↔ Base64 | `Base64.getEncoder()/getDecoder()` | Biểu diễn byte bằng ký tự ASCII |
-| Byte ↔ hex | `HexFormat` (Java 17+) | Biểu diễn một byte bằng hai chữ số hexadecimal |
-| Giá trị form/query parameter | `URLEncoder.encode(text, UTF_8)` / `URLDecoder.decode(...)` | Quy tắc `application/x-www-form-urlencoded`; dấu cách thành `+` |
-| Unicode code point ↔ text | `codePointAt()`, `Character.toString(int)` | Thao tác Unicode, không phải charset byte |
+| Unicode ↔ bytes | `getBytes(UTF_8)`, `new String(bytes, UTF_8)` | Charset encoding/decoding |
+| Bytes ↔ Base64 | `Base64.getEncoder()/getDecoder()` | Represent bytes using ASCII characters |
+| Bytes ↔ hex | `HexFormat` (Java 17+) | Represent each byte as two hexadecimal digits |
+| Form/query parameter values | `URLEncoder.encode(text, UTF_8)` / `URLDecoder.decode(...)` | `application/x-www-form-urlencoded` rules; spaces become `+` |
+| Unicode code point ↔ text | `codePointAt()`, `Character.toString(int)` | Unicode manipulation, not byte charsets |
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -244,11 +244,11 @@ System.out.println(encoded); // SmF2YQ==
 System.out.println(decoded); // Java
 ~~~
 
-Base64, hex và URL encoding **không bảo mật dữ liệu** vì chúng có thể đảo ngược. `URLEncoder` mã hóa theo quy tắc form, không phải công cụ mã hóa nguyên URL hay mọi path segment một cách tùy ý.
+Base64, hex, and URL encoding **do not secure data** because they are reversible. `URLEncoder` encodes according to form rules, not as a tool for arbitrarily encoding entire URLs or all path segments.
 
-## 7. Ví dụ tổng hợp: file chạy độc lập trên Java 17+
+## 7. Combined example: standalone runnable file on Java 17+
 
-Lưu đoạn dưới đây ở file UTF-8 `StringOperationsDemo.java`. Các đoạn code trước đó minh họa riêng từng API và có thể cần đặt trong class/phương thức nếu chạy độc lập.
+Save the code below in a UTF-8 file `StringOperationsDemo.java`. Earlier snippets illustrate individual APIs separately and may need to be placed inside a class/method if run on their own.
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -261,7 +261,7 @@ public class StringOperationsDemo {
     public static void main(String[] args) {
         String data = "  Java Java 🚀  ";
 
-        // Đọc
+        // Read
         System.out.println("len=" + data.length());
         System.out.println("strip=[" + data.strip() + "]");
         System.out.println("charAt2=" + data.charAt(2));
@@ -269,16 +269,16 @@ public class StringOperationsDemo {
         System.out.println("codePointsEmoji=" +
                 "🚀".codePointCount(0, "🚀".length()));
 
-        // So sánh
+        // Compare
         System.out.println("equals=" + "Java".equals(new String("Java")));
         System.out.println("compareTo=" + "Java".compareTo("Kotlin"));
 
-        // Tìm kiếm
+        // Search
         System.out.println("indexOf=" + data.indexOf("Java"));
         System.out.println("lastIndexOf=" + data.lastIndexOf("Java"));
         System.out.println("contains=" + data.contains("Java"));
 
-        // Biến đổi
+        // Transform
         System.out.println("replace=" + data.strip().replace("Java", "Core"));
         System.out.println("replaceAll=" + "a12b34".replaceAll("\\d+", "#"));
         System.out.println("upper=" + "java".toUpperCase(Locale.ROOT));
@@ -287,7 +287,7 @@ public class StringOperationsDemo {
             System.out.println("match=" + m.group() + "@" + m.start());
         }
 
-        // Chuyển mã
+        // Convert & encode
         byte[] utf8 = "Xin chào 🚀".getBytes(StandardCharsets.UTF_8);
         System.out.println("utf8Bytes=" + utf8.length);
         System.out.println("decode=" + new String(utf8, StandardCharsets.UTF_8));
@@ -297,14 +297,14 @@ public class StringOperationsDemo {
 }
 ~~~
 
-Lệnh biên dịch/chạy:
+Compile/run commands:
 
 ~~~bash
 javac -encoding UTF-8 StringOperationsDemo.java
 java StringOperationsDemo
 ~~~
 
-Kết quả tiêu chuẩn:
+Expected output:
 
 ~~~text
 len=16
@@ -327,33 +327,33 @@ decode=Xin chào 🚀
 nfcEqual=true
 ~~~
 
-`javac -encoding UTF-8` xác định encoding **mã nguồn**, còn `StandardCharsets.UTF_8` xác định encoding **dữ liệu chương trình**. Hai mục đích riêng biệt.
+`javac -encoding UTF-8` specifies the **source code** encoding, whereas `StandardCharsets.UTF_8` specifies the **program data** encoding. These are two separate purposes.
 
-## 8. Bảng chọn API và lỗi thường gặp
+## 8. API selection table and common mistakes
 
-| Khi cần… | Chọn… | Tránh… |
+| When you need… | Choose… | Avoid… |
 |---|---|---|
-| Kiểm tra rỗng/trắng | `isEmpty()`, `isBlank()` | Bỏ qua `null` |
-| So văn bản chính xác | `equals()` | Dùng `==` vì string pool |
-| So có thể null | `Objects.equals()` | Gọi instance method trên null |
-| Sắp xếp hiển thị tiếng Việt | `Collator` và locale | Mong `compareTo()` sắp theo ngôn ngữ |
-| Tìm literal | `contains()`, `indexOf()` | Regex không cần thiết |
-| Tìm đoạn theo mẫu | `Pattern` + `Matcher.find()` | Nhầm `matches()` tìm đoạn |
-| Thay thế literal | `replace()` | Nhầm `replaceAll()` xử lý `.` như dấu chấm |
-| Bỏ khoảng trắng đầu/cuối | `strip()` | Nghĩ `trim()` luôn tương đương |
-| Ghép trong vòng lặp | `StringBuilder` | Nối `+` liên tục tạo nhiều chuỗi |
-| Cắt theo code point | `offsetByCodePoints()` | Cắt đôi surrogate pair |
-| So Unicode tương đương chuẩn | `Normalizer` NFC khi cần | Chỉ nhìn hình dạng để kết luận `equals` |
-| Đổi hoa/thường key máy | `Locale.ROOT` khi phù hợp đặc tả | Phụ thuộc locale mặc định |
-| String ↔ byte | UTF-8 được chỉ định rõ | Nhầm `length()` với số byte |
-| Biểu diễn byte bằng chữ ASCII | Base64/hex | Coi đó là kỹ thuật bảo mật |
+| Check empty/blank | `isEmpty()`, `isBlank()` | Ignoring `null` |
+| Exact text equality | `equals()` | Using `==` because of the string pool |
+| Null-safe equality | `Objects.equals()` | Calling instance methods on null |
+| Vietnamese display sorting | `Collator` and locale | Expecting `compareTo()` to sort by language rules |
+| Find a literal | `contains()`, `indexOf()` | Unnecessary regex |
+| Find pattern matches | `Pattern` + `Matcher.find()` | Confusing `matches()` with substring search |
+| Literal replacement | `replace()` | Mistakenly assuming `replaceAll()` treats `.` as a literal dot |
+| Strip leading/trailing whitespace | `strip()` | Thinking `trim()` is always equivalent |
+| Concatenate in a loop | `StringBuilder` | Repeated `+` creating many strings |
+| Slice by code points | `offsetByCodePoints()` | Splitting a surrogate pair in half |
+| Canonical Unicode equality | `Normalizer` NFC when needed | Concluding `equals` from visual appearance alone |
+| Change case for machine keys | `Locale.ROOT` when spec-appropriate | Depending on default locale |
+| String ↔ bytes | Explicitly specified UTF-8 | Confusing `length()` with byte count |
+| Represent bytes as ASCII text | Base64/hex | Treating it as a security technique |
 
-### Checklist ứng dụng
+### Application checklist
 
-1. Xác định nhu cầu: đọc, so nội dung, so thứ tự theo locale, tìm literal, regex, biến đổi hay encoding.
-2. Xác định đơn vị đang thao tác: UTF-16 code unit, code point, grapheme cluster hoặc byte. Các đơn vị này khác nhau.
-3. Xử lý null, trường hợp chuỗi rỗng/whitespace, chỉ số sai, parse số lỗi và input regex đặc biệt.
-4. Ưu tiên API trực tiếp và rõ nghĩa: `equals()` cho nội dung, `replace()` cho literal, `Matcher.find()` cho đoạn khớp regex, UTF-8 tường minh khi truyền byte.
-5. Thử các dữ liệu biên: tiếng Việt có dấu, emoji, ký tự kết hợp, nhiều dòng, chữ hoa/thường, charset sai và dữ liệu byte không hợp lệ.
+1. Identify the need: reading, content comparison, locale ordering, literal search, regex, transformation, or encoding.
+2. Identify the unit being manipulated: UTF-16 code unit, code point, grapheme cluster, or byte. These units are different.
+3. Handle null, empty/whitespace cases, invalid indices, number parsing errors, and special regex input.
+4. Prefer direct, self-explanatory APIs: `equals()` for content, `replace()` for literals, `Matcher.find()` for regex matches, and explicit UTF-8 when transferring bytes.
+5. Test edge cases: accented Vietnamese text, emojis, combining characters, multi-line text, letter case, mismatched charsets, and invalid byte data.
 
-Khi hiểu rõ năm nhóm, bạn sẽ chọn được cách xử lý văn bản có ý nghĩa rõ ràng, chính xác trước những trường hợp Unicode khó và dễ bảo trì khi chương trình lớn lên.
+Once you clearly understand these five categories, you will choose text-processing approaches with clear intent, handle tricky Unicode cases accurately, and keep code maintainable as programs grow.

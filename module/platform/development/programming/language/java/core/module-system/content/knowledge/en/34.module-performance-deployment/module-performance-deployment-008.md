@@ -1,14 +1,14 @@
-# Không tối ưu bằng cách loại bỏ boundary cần thiết
+# Do Not Optimize by Removing Necessary Boundaries
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể đánh giá chi phí thực tế của module boundary trong JPMS, phân biệt chi phí khởi động với chi phí xử lý request, giải thích vì sao `exports`, `opens` và dependency rõ ràng thường không phải lý do để gộp module, lựa chọn mức phân chia module hợp lý và tối ưu đóng gói/runtime mà vẫn giữ encapsulation cần thiết.
+After this lesson, you will be able to evaluate the real cost of module boundaries in JPMS, distinguish startup cost from request-processing cost, explain why `exports`, `opens`, and explicit dependencies are rarely reasons to merge modules, choose an appropriate module granularity, and optimize packaging/runtime while preserving necessary encapsulation.
 
-## 1. Module boundary bảo vệ điều gì?
+## 1. What Do Module Boundaries Protect?
 
-Một named module xác định một đơn vị phụ thuộc và một ranh giới truy cập. Module descriptor cho biết module cần đọc module nào (`requires`), package nào được đưa ra ngoài (`exports`), package nào được mở cho deep reflection (`opens`) và service nào được sử dụng hoặc cung cấp (`uses`, `provides`).
+A named module defines a unit of dependency and an access boundary. The module descriptor specifies which modules the module needs to read (`requires`), which packages are exposed externally (`exports`), which packages are opened for deep reflection (`opens`), and which services are used or provided (`uses`, `provides`).
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.orders {
@@ -18,69 +18,69 @@ module com.acme.orders {
 }
 ~~~
 
-Thiết kế này thể hiện ba quyết định khác nhau:
+This design expresses three distinct decisions:
 
-- Module orders phụ thuộc vào module money.
-- Consumer có thể sử dụng public API trong package `com.acme.orders.api`.
-- ORM được phép deep-reflect vào package persistence.
+- The orders module depends on the money module.
+- Consumers can use the public API in package `com.acme.orders.api`.
+- The ORM is allowed to deep-reflect into the persistence package.
 
-Các package implementation khác vẫn được giữ bên trong module. Consumer không thể tự ý phụ thuộc vào mọi class public trong module chỉ vì chúng có modifier `public`.
+Other implementation packages remain internal to the module. Consumers cannot arbitrarily depend on every public class inside the module simply because it has the `public` modifier.
 
-Boundary giúp module kiểm soát hợp đồng mà nó cung cấp. Nếu xóa boundary chỉ vì muốn "nhanh hơn", ứng dụng có thể mất khả năng thay đổi implementation, tăng coupling giữa các thành phần và làm cho việc nâng cấp hoặc kiểm thử khó hơn.
+Boundaries help a module control the contract it provides. If you remove boundaries merely to be "faster," the application can lose the ability to change implementations, increase coupling between components, and make upgrades or testing harder.
 
-## 2. Không nhầm module boundary với một lần gọi hàm qua mạng
+## 2. Do Not Confuse a Module Boundary with a Network Call
 
-JPMS module là đơn vị tổ chức, phân giải dependency và kiểm soát truy cập trong cùng một JVM. Nó không phải process boundary, network boundary hay cơ chế tự động chuyển lời gọi method qua một lớp proxy.
+A JPMS module is a unit of organization, dependency resolution, and access control within the same JVM. It is not a process boundary, a network boundary, or a mechanism that automatically routes method calls through a proxy layer.
 
-Một lời gọi Java thông thường:
+A normal Java call:
 
 ~~~java
 Order order = orderService.findById(orderId);
 ~~~
 
-vẫn là lời gọi method trong cùng JVM. Nếu consumer đã có reference tới object và method được phép truy cập, việc module chứa class ở một module riêng không biến lời gọi thành RPC hay thêm một network hop.
+remains a method call within the same JVM. Once a consumer holds a reference to the object and the method is accessible, having the class reside in a separate module does not turn the call into an RPC or add a network hop.
 
-Cần phân biệt:
+It is important to distinguish:
 
-- **Module resolution** xảy ra khi JVM khởi động hoặc khi ứng dụng tạo module layer mới. Đây là công việc phân giải graph và metadata.
-- **Access/linkage checks** được áp dụng khi class được liên kết và khi JVM cần xác định quyền truy cập tới type/member.
-- **Method execution** là phần xử lý nghiệp vụ thực tế sau khi lời gọi đã được thiết lập.
-- **Reflection/service loading** có chi phí riêng do cơ chế khám phá hoặc truy cập động; chi phí này không đồng nghĩa với mọi lời gọi method giữa hai module.
+- **Module resolution** occurs when the JVM starts or when the application creates a new module layer. This is graph and metadata resolution work.
+- **Access/linkage checks** are applied when classes are linked and when the JVM needs to verify access rights to a type/member.
+- **Method execution** is the actual business processing after the call is established.
+- **Reflection/service loading** carries its own cost from dynamic discovery or access mechanisms; this cost does not apply to every method call between two modules.
 
-Vì vậy, không nên giả định mỗi method call qua module boundary đều có một khoản overhead đáng kể. JPMS không tạo ra một proxy hoặc dispatcher bắt buộc cho mọi lời gọi.
+Therefore, do not assume every method call across a module boundary carries significant overhead. JPMS does not insert a mandatory proxy or dispatcher on every call.
 
-## 3. Chi phí thực tế cần đo ở đâu?
+## 3. Where Should Real Costs Be Measured?
 
-Một ứng dụng modular vẫn có chi phí ở nhiều giai đoạn, nhưng cần xác định đúng giai đoạn trước khi tối ưu.
+A modular application still incurs costs across multiple phases, so you must identify the right phase before optimizing.
 
-| Khu vực | Công việc có thể phát sinh | Cách đánh giá |
+| Area | Work That Can Occur | How to Evaluate |
 | --- | --- | --- |
-| Startup | Tìm module, đọc descriptor, resolve graph, tạo layer và nạp class đầu tiên | Đo thời gian từ lúc process bắt đầu đến readiness |
-| Class loading | Tìm, đọc, verify và định nghĩa class | Dùng profiling hoặc log class loading khi phù hợp |
-| Reflection | Tìm constructor/field/method, kiểm tra quyền truy cập và invoke | Đo đường reflection thực tế so với API trực tiếp |
-| Service loading | Khám phá provider và khởi tạo implementation | Đo số provider, thời điểm load và chi phí khởi tạo |
-| Request handling | Xử lý nghiệp vụ, I/O, allocation, lock và thuật toán | Profile hot path bằng dữ liệu đại diện |
-| Deployment | Dung lượng runtime image, số file, startup environment | Đo kích thước artifact, cold start và thời gian cài/chạy |
+| Startup | Finding modules, reading descriptors, resolving the graph, creating layers, and loading initial classes | Measure time from process start to readiness |
+| Class loading | Finding, reading, verifying, and defining classes | Use profiling or class-loading logs when appropriate |
+| Reflection | Looking up constructors/fields/methods, checking access, and invoking | Measure actual reflection paths vs. direct APIs |
+| Service loading | Discovering providers and instantiating implementations | Measure provider count, load timing, and initialization cost |
+| Request handling | Business logic, I/O, allocations, locks, and algorithms | Profile hot paths with representative data |
+| Deployment | Runtime image size, file count, startup environment | Measure artifact size, cold start, and install/run time |
 
-Module resolution thường là chi phí khởi động, không phải chi phí lặp lại trên mỗi request. Nếu vấn đề là latency của request sau khi ứng dụng đã warm up, hãy profile code xử lý request trước khi thay đổi module descriptor.
+Module resolution is typically a startup cost, not a repeated per-request cost. If the issue is request latency after the application has warmed up, profile request-handling code before modifying module descriptors.
 
-Nếu vấn đề là cold start, hãy đo toàn bộ quá trình từ process start đến khi ứng dụng sẵn sàng nhận request. Đừng chỉ đo thời gian gọi `main` hoặc thời gian resolve một module rồi suy ra toàn bộ startup latency.
+If the issue is cold start, measure the entire process from process start until the application is ready to serve requests. Do not measure only the `main` call or the time to resolve one module and extrapolate total startup latency.
 
-## 4. Giữ boundary không có nghĩa là tạo quá nhiều module nhỏ
+## 4. Keeping Boundaries Does Not Mean Creating Too Many Tiny Modules
 
-Encapsulation tốt không đồng nghĩa với việc chia mọi package thành một module riêng. Module granularity cần phù hợp với đơn vị thay đổi, ownership, dependency và triển khai.
+Good encapsulation does not mean splitting every package into its own module. Module granularity should match units of change, ownership, dependencies, and deployment.
 
-Một module thường hợp lý khi các package bên trong:
+A module is usually reasonable when the packages inside it:
 
-- Cùng phục vụ một capability hoặc một trách nhiệm nghiệp vụ rõ ràng.
-- Có vòng đời thay đổi và phát hành tương đối đồng nhất.
-- Có thể quản lý dependency như một đơn vị.
-- Cần một public API ổn định cho các consumer khác.
-- Có implementation details nên được giữ kín khỏi consumer.
+- Together serve a clear capability or business responsibility.
+- Share a relatively uniform change and release lifecycle.
+- Can manage dependencies as a unit.
+- Need a stable public API for other consumers.
+- Have implementation details that should stay hidden from consumers.
 
-Không nên tách thành hàng chục module chỉ để mỗi class có descriptor riêng. Quá nhiều module nhỏ có thể làm tăng chi phí quản lý dependency, cấu hình build, versioning, testing và packaging. Nó cũng có thể khiến thay đổi nội bộ thường xuyên buộc nhiều module phải cập nhật descriptor.
+Do not split into dozens of modules just so each class has its own descriptor. Too many small modules can increase dependency management, build configuration, versioning, testing, and packaging overhead. It can also cause frequent internal changes to force descriptor updates across many modules.
 
-Ví dụ một module billing có thể chứa API, domain logic và persistence implementation:
+For example, a billing module may contain API, domain logic, and persistence implementation:
 
 ~~~text
 com.acme.billing/
@@ -91,7 +91,7 @@ com.acme.billing/
   com/acme/billing/persistence/
 ~~~
 
-Descriptor chỉ export các package mà consumer cần:
+The descriptor exports only the packages consumers need:
 
 ~~~java
 module com.acme.billing {
@@ -100,13 +100,13 @@ module com.acme.billing {
 }
 ~~~
 
-Khi domain logic và persistence có nhu cầu ownership, release hoặc runtime isolation riêng, hãy cân nhắc tách chúng thành module khác. Quyết định dựa trên kiến trúc và vận hành, không dựa trên một giả định rằng càng nhiều module càng nhanh hoặc càng ít module càng nhanh.
+When domain logic and persistence develop distinct ownership, release, or runtime isolation needs, consider splitting them into separate modules. Base decisions on architecture and operations, not on an assumption that more modules are always faster or fewer modules are always faster.
 
-## 5. Đừng mở rộng public surface để tránh xử lý dependency
+## 5. Do Not Widen Public Surface to Avoid Managing Dependencies
 
-Một cách "tối ưu" sai thường gặp là export tất cả package hoặc mở toàn bộ module để framework và consumer có thể truy cập tùy ý.
+A common misguided "optimization" is exporting every package or opening an entire module so frameworks and consumers can access anything arbitrarily.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.orders {
@@ -117,9 +117,9 @@ module com.acme.orders {
 }
 ~~~
 
-Cấu hình này làm public surface lớn hơn mức cần thiết. Consumer có thể bắt đầu phụ thuộc vào implementation class, repository hoặc chi tiết persistence. Framework cũng có thể deep-reflect vào những package không cần thiết.
+This configuration makes the public surface larger than necessary. Consumers may start depending on implementation classes, repositories, or persistence details. Frameworks may also deep-reflect into unnecessary packages.
 
-Thiết kế chặt hơn:
+A tighter design:
 
 ~~~java
 module com.acme.orders {
@@ -130,19 +130,19 @@ module com.acme.orders {
 }
 ~~~
 
-Nếu chỉ một module cần truy cập SPI, dùng qualified export:
+If only one module needs SPI access, use a qualified export:
 
 ~~~java
 exports com.acme.orders.spi to com.acme.integration;
 ~~~
 
-Nếu framework cần deep reflection, mở đúng package và đúng target module. Không dùng `ALL-UNNAMED` nếu framework đang chạy dưới một named module và có thể chỉ định tên module đó.
+If a framework needs deep reflection, open only the right package to the right target module. Do not use `ALL-UNNAMED` if the framework is running as a named module and its module name can be specified.
 
-Giữ exports và opens tối thiểu giúp bảo vệ khả năng thay đổi implementation. Nó cũng làm cho lỗi dependency và lỗi reflection dễ truy vết hơn vì quyền truy cập được khai báo rõ.
+Keeping exports and opens minimal protects the ability to evolve implementations. It also makes dependency and reflection errors easier to trace because access permissions are declared explicitly.
 
-## 6. Tránh gộp module chỉ để loại bỏ một dependency
+## 6. Avoid Merging Modules Just to Remove One Dependency
 
-Giả sử `com.acme.orders` dùng kiểu `Money` từ `com.acme.money`. Nếu kiểu đó xuất hiện trong public API, dependency nên được thể hiện rõ:
+Suppose `com.acme.orders` uses the `Money` type from `com.acme.money`. If that type appears in the public API, the dependency should be expressed clearly:
 
 ~~~java
 module com.acme.orders {
@@ -151,7 +151,7 @@ module com.acme.orders {
 }
 ~~~
 
-Nếu chỉ dùng kiểu money trong implementation nội bộ, có thể dùng dependency thông thường:
+If the money type is only used in internal implementation, a regular dependency suffices:
 
 ~~~java
 module com.acme.orders {
@@ -160,60 +160,60 @@ module com.acme.orders {
 }
 ~~~
 
-Chọn `requires transitive` khi consumer của orders cần readability tới module money do kiểu của money xuất hiện trong public API. Không thêm transitive chỉ để "cho mọi thứ chạy".
+Choose `requires transitive` when consumers of orders need readability to the money module because money's types appear in the public API. Do not add transitive just to "make everything run."
 
-Việc gộp hai module để bỏ một dòng `requires` có thể khiến module sở hữu quá nhiều trách nhiệm và làm mờ quyền sở hữu API. Một dependency rõ ràng thường là chi phí kiến trúc thấp hơn nhiều so với việc mất ranh giới giữa hai capability có thể thay đổi độc lập.
+Merging two modules merely to delete one `requires` line can leave a module owning too many responsibilities and blur API ownership. An explicit dependency is usually a far lower architectural cost than losing the boundary between two capabilities that can evolve independently.
 
-Trước khi gộp, hãy hỏi: hai module có thực sự cùng một ownership và vòng đời không? Chúng có cần phát hành hoặc kiểm thử độc lập không? Consumer có cần một API ổn định giữa chúng không? Nếu câu trả lời cho thấy boundary có ý nghĩa, hãy giữ dependency và đo chi phí thật nếu nghi ngờ hiệu năng.
+Before merging, ask: do the two modules truly share the same ownership and lifecycle? Do they need independent releases or testing? Do consumers need a stable API between them? If the answers indicate the boundary is meaningful, keep the dependency and measure real costs if you suspect performance issues.
 
-## 7. Tối ưu startup và module resolution đúng cách
+## 7. Optimizing Startup and Module Resolution Properly
 
-Nếu profiling cho thấy startup là vấn đề, có thể xem xét các giải pháp phù hợp với giai đoạn khởi động:
+If profiling shows startup is the bottleneck, consider solutions targeting the startup phase:
 
-- Giảm công việc nặng trong static initializer và constructor chạy khi khởi động.
-- Trì hoãn khởi tạo component chỉ dùng trong một số đường đi.
-- Tránh tạo module layer/plugin graph mới nhiều lần nếu không cần thiết.
-- Tránh quét classpath hoặc module path rộng để tìm component khi đã biết danh sách module cần dùng.
-- Kiểm soát số lượng provider được khám phá nếu ứng dụng sử dụng `ServiceLoader`.
-- Dùng runtime image phù hợp để loại bỏ module Java platform không cần thiết.
+- Reduce heavy work in static initializers and constructors executed at startup.
+- Defer initialization of components used only on certain paths.
+- Avoid creating new module layers/plugin graphs repeatedly when unnecessary.
+- Avoid broad classpath or module path scanning to discover components when the required module list is already known.
+- Control the number of providers discovered if the application uses `ServiceLoader`.
+- Use an appropriate runtime image to exclude unnecessary Java platform modules.
 
-Nếu ứng dụng tạo plugin layer động, hãy đo chi phí của việc resolve configuration, tạo class loader và khởi tạo plugin. Giữ một layer cho mỗi plugin chỉ khi isolation hoặc vòng đời yêu cầu điều đó; không tạo layer mới cho mỗi request.
+If the application creates dynamic plugin layers, measure the cost of resolving configurations, creating class loaders, and initializing plugins. Keep one layer per plugin only when isolation or lifecycle requires it; never create a new layer per request.
 
-Không nên xóa `requires` hoặc bỏ service declaration chỉ để làm graph trông nhỏ hơn nếu code vẫn cần capability tương ứng. Dependency graph phải phản ánh các kiểu và service mà ứng dụng thực sự sử dụng.
+Do not delete `requires` or drop service declarations solely to make the graph look smaller if the code still needs the corresponding capabilities. The dependency graph must reflect the types and services the application actually uses.
 
-## 8. Tối ưu runtime image mà vẫn giữ module boundary
+## 8. Optimizing the Runtime Image While Preserving Module Boundaries
 
-Với modular application, `jlink` có thể tạo runtime image chỉ chứa các module Java platform cần thiết và dependency được chọn. Điều này thường hữu ích cho dung lượng triển khai, kiểm soát runtime và giảm yêu cầu cài đặt JDK đầy đủ.
+For a modular application, `jlink` can build a runtime image containing only the needed Java platform modules and selected dependencies. This is often helpful for deployment size, runtime control, and removing the requirement to install a full JDK.
 
-Ví dụ:
+Example:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods"   --add-modules com.acme.app   --strip-debug   --no-header-files   --no-man-pages   --output runtime-image
 ~~~
 
-Trên Windows, dùng path separator `;` thay cho `:` và đường dẫn JDK tương ứng.
+On Windows, use the `;` path separator instead of `:` and the corresponding JDK path.
 
-Có thể yêu cầu liên kết service provider nếu ứng dụng cần các provider được bind:
+You can instruct the linker to bind service providers if the application needs bound providers:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods"   --add-modules com.acme.app   --bind-services   --output runtime-image
 ~~~
 
-Sau đó dùng runtime image với `jpackage`:
+Then use the runtime image with `jpackage`:
 
 ~~~bash
 jpackage --type app-image   --name AcmeOrders   --dest dist   --runtime-image runtime-image   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Việc loại bỏ module Java platform không dùng có thể giảm kích thước runtime image. Nó không đòi hỏi phải export mọi package hoặc gộp các module ứng dụng. Hãy kiểm tra service loading, reflection, charset, logging, TLS, native library và các đường chạy ít gặp trước khi phát hành image rút gọn.
+Removing unused Java platform modules can reduce runtime image size. It does not require exporting every package or merging application modules. Test service loading, reflection, charsets, logging, TLS, native libraries, and less-common execution paths before releasing a trimmed image.
 
-Không được suy ra rằng runtime image nhỏ hơn chắc chắn làm mọi request nhanh hơn. Dung lượng triển khai, thời gian tải runtime, memory footprint và throughput là các chỉ số khác nhau; cần đo riêng.
+Do not conclude that a smaller runtime image automatically makes every request faster. Deployment size, runtime download time, memory footprint, and throughput are distinct metrics; measure them separately.
 
-## 9. Reflection không phải lý do để xóa encapsulation
+## 9. Reflection Is Not a Reason to Remove Encapsulation
 
-Reflection có thể cần thiết cho framework, nhưng không nên mở mọi package để tránh cấu hình.
+Reflection may be necessary for frameworks, but you should not open every package to avoid configuration.
 
-Ví dụ mở một package persistence cho ORM:
+Example opening a persistence package to an ORM:
 
 ~~~java
 module com.acme.orders {
@@ -224,79 +224,79 @@ module com.acme.orders {
 }
 ~~~
 
-Nếu framework nằm trên class path, JVM option có thể là:
+If the framework sits on the class path, the JVM option might be:
 
 ~~~bash
 --add-opens com.acme.orders/com.acme.orders.persistence=ALL-UNNAMED
 ~~~
 
-Dùng `--add-opens` khi cần hỗ trợ runtime hoặc thư viện chưa thể khai báo qualified opens trong module descriptor. Hãy ghi lại lý do, target và package cụ thể để có thể rà soát khi nâng cấp framework.
+Use `--add-opens` when needed to support runtimes or libraries that cannot yet declare qualified opens in module descriptors. Document the reason, target, and specific package so it can be reviewed when upgrading frameworks.
 
-Nếu reflection xảy ra trong hot path, hãy đo riêng chi phí tìm member, access check và invoke. Có thể cache metadata hoặc chuyển sang API trực tiếp khi thiết kế cho phép. Tuy nhiên, đừng thay đổi module boundary trước khi biết phần nào của reflection đang gây chi phí và có thể thay thế an toàn.
+If reflection occurs on a hot path, measure member lookup, access check, and invocation costs separately. You can cache metadata or switch to direct APIs when the design permits. However, do not alter module boundaries before knowing which part of reflection is causing cost and can be safely replaced.
 
-## 10. Đo hiệu năng thay vì suy luận từ số lượng module
+## 10. Measure Performance Instead of Inferring from Module Count
 
-Khi cần so sánh hai thiết kế, hãy tạo benchmark đại diện:
+When comparing two designs, build a representative benchmark:
 
-- Cùng workload, dữ liệu đầu vào và số lượng request.
-- Cùng phiên bản JDK, JVM flags và phần cứng.
-- Warm-up phù hợp trước khi lấy số liệu.
-- Đo throughput, latency phân vị, allocation và memory footprint.
-- Đo cold start riêng với steady-state.
-- Lặp lại đủ lần để nhận biết nhiễu và biến động môi trường.
+- Same workload, input data, and request volume.
+- Same JDK version, JVM flags, and hardware.
+- Appropriate warm-up before collecting metrics.
+- Measure throughput, percentile latencies, allocations, and memory footprint.
+- Measure cold start separately from steady state.
+- Repeat enough times to recognize noise and environmental variance.
 
-JMH phù hợp cho microbenchmark JVM khi cần đo một thao tác nhỏ như method call, lookup hoặc reflection. Đối với startup và packaging, dùng phép đo end-to-end trên process mới thay vì cố suy ra từ microbenchmark.
+JMH is suited for JVM microbenchmarks when measuring a small operation such as a method call, lookup, or reflection. For startup and packaging, use end-to-end measurements on fresh processes rather than trying to extrapolate from microbenchmarks.
 
-Không nên benchmark một method call đơn lẻ rồi kết luận toàn bộ kiến trúc module là nhanh hoặc chậm. Hiệu năng thực tế thường bị chi phối bởi I/O, lock contention, allocation, thuật toán, database hoặc network trước khi module resolution trở thành vấn đề.
+Do not benchmark a single method call and conclude an entire module architecture is fast or slow. Real-world performance is usually dominated by I/O, lock contention, allocations, algorithms, databases, or networking before module resolution becomes an issue.
 
-Khi so sánh class path với module path, hãy giữ workload và runtime tương đương. Kết quả đo ở một ứng dụng cụ thể không chứng minh rằng một cơ chế luôn nhanh hơn trong mọi ứng dụng.
+When comparing the class path against the module path, keep workload and runtime equivalent. Measurements from one specific application do not prove one mechanism is always faster in every application.
 
-## 11. Triển khai có kiểm soát boundary
+## 11. Deploying with Controlled Boundaries
 
-Trước khi phát hành, xác nhận artifact vẫn giữ đúng descriptor và hành vi:
+Before releasing, verify that artifacts still preserve the intended descriptors and behavior:
 
-1. Kiểm tra `module-info.class` của từng modular JAR.
-2. Dùng `jar --describe-module` để xem `requires`, `exports`, `opens`, `uses` và `provides`.
-3. Chạy ứng dụng bằng module path như môi trường production dự kiến.
-4. Nếu dùng `jlink`, kiểm tra danh sách module trong runtime image và thử các service/provider cần thiết.
-5. Nếu dùng `jpackage`, chạy launcher từ app image hoặc installer đã cài.
-6. Kiểm tra framework reflection, cấu hình JVM option, resource và native library.
-7. Đo startup, memory và workload quan trọng trên artifact cuối cùng.
+1. Inspect `module-info.class` of each modular JAR.
+2. Use `jar --describe-module` to review `requires`, `exports`, `opens`, `uses`, and `provides`.
+3. Run the application using the module path as in the expected production environment.
+4. If using `jlink`, check the module list in the runtime image and test required services/providers.
+5. If using `jpackage`, run the launcher from the app image or installed installer.
+6. Verify framework reflection, JVM option configurations, resources, and native libraries.
+7. Measure startup, memory, and key workloads on the final artifact.
 
-Có thể xem descriptor:
+You can inspect a descriptor:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.orders.jar
 ~~~
 
-Có thể kiểm tra dependency:
+You can check dependencies:
 
 ~~~bash
 jdeps --module-path mods --check com.acme.orders
 ~~~
 
-Những lệnh này giúp kiểm tra metadata và dependency. Chúng không thay thế việc chạy integration test hoặc đo hiệu năng trên artifact được phân phối.
+These commands help verify metadata and dependencies. They do not replace running integration tests or measuring performance on the distributed artifact.
 
-## 12. Khi nào nên thay đổi boundary?
+## 12. When Should Boundaries Be Changed?
 
-Có thể cân nhắc thay đổi boundary khi:
+Consider changing boundaries when:
 
-- Hai module có cùng ownership và vòng đời, đồng thời việc tách gây dependency vòng hoặc cấu hình không cần thiết.
-- Một package export không còn consumer và có thể đóng lại sau khi xác nhận tương thích.
-- Một module đang expose implementation type ngoài ý muốn.
-- Plugin cần isolation và vòng đời riêng nên cần layer hoặc module boundary rõ hơn.
-- API public cần được tách khỏi implementation để giảm coupling.
+- Two modules share the same ownership and lifecycle, and splitting them creates circular dependencies or unnecessary configuration.
+- An exported package no longer has consumers and can be closed after confirming compatibility.
+- A module is unintentionally exposing implementation types.
+- Plugins require isolation and independent lifecycles, so clearer layer or module boundaries are needed.
+- Public APIs should be separated from implementations to reduce coupling.
 
-Không nên thay đổi chỉ vì:
+Do not change boundaries solely because:
 
-- Có thêm một dòng `requires`.
-- Số lượng module nhìn có vẻ nhiều.
-- Có một giả định chưa đo rằng method call giữa module chậm.
-- Framework báo lỗi reflection và giải pháp được đề xuất là mở toàn bộ module.
-- Runtime image lớn nhưng chưa phân tích module nào thực sự được dùng.
+- There is one extra `requires` line.
+- The number of modules looks large.
+- There is an unmeasured assumption that cross-module method calls are slow.
+- A framework reports a reflection error and the suggested fix is opening the entire module.
+- The runtime image is large, yet no analysis has been done on which modules are actually used.
 
-Một boundary tốt phải phục vụ ownership, API stability, dependency và khả năng triển khai. Nếu boundary không còn phản ánh kiến trúc, hãy điều chỉnh có chủ đích; nếu boundary vẫn có ích, tối ưu phần startup, runtime, reflection hoặc packaging đang được đo là tốn kém.
+A good boundary serves ownership, API stability, dependencies, and deployability. If a boundary no longer reflects the architecture, adjust it deliberately; if the boundary remains valuable, optimize the startup, runtime, reflection, or packaging parts that measurements show are costly.
 
-## Ghi nhớ
+## Takeaways
 
-JPMS module boundary chủ yếu quản lý dependency và quyền truy cập trong cùng JVM; nó không biến mỗi method call thành lời gọi qua mạng. Module resolution thường ảnh hưởng startup, trong khi reflection, service loading và xử lý nghiệp vụ có chi phí riêng. Hãy đo đúng giai đoạn, chọn module granularity theo ownership và vòng đời, giữ exports/opens tối thiểu, và tối ưu runtime image bằng `jlink`/ `jpackage` khi phù hợp. Không xóa boundary cần thiết chỉ dựa trên giả định hiệu năng.
+JPMS module boundaries primarily govern dependencies and access permissions within the same JVM; they do not turn every method call into a network call. Module resolution mainly affects startup, while reflection, service loading, and business processing have their own separate costs. Measure the right phase, choose module granularity based on ownership and lifecycle, keep exports/opens minimal, and optimize runtime images with `jlink` / `jpackage` where appropriate. Never remove necessary boundaries based solely on performance assumptions.

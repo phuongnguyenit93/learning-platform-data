@@ -1,21 +1,21 @@
-# Không coi module boundary là authorization nghiệp vụ
+# Do Not Treat Module Boundaries as Business Authorization
 
-## 1. Mục tiêu
+## 1. Objective
 
-Java Platform Module System (JPMS) tạo ranh giới giữa các module để kiểm soát dependency, khả năng truy cập package và mức độ đóng gói của implementation. Ranh giới này giúp tổ chức code rõ ràng và ngăn module khác phụ thuộc tùy tiện vào package nội bộ.
+The Java Platform Module System (JPMS) creates boundaries between modules to control dependencies, package accessibility, and the level of implementation encapsulation. These boundaries help organize code cleanly and prevent other modules from arbitrarily depending on internal packages.
 
-Tuy nhiên, **module boundary không phải cơ chế phân quyền nghiệp vụ cho người dùng**. JPMS không biết người đang đăng nhập là ai, họ thuộc tenant nào, có vai trò gì hoặc được phép đọc/sửa tài nguyên nào.
+However, **module boundaries are not a business authorization mechanism for users**. JPMS does not know who is logged in, which tenant they belong to, what role they hold, or which resources they are allowed to read or modify.
 
-Cần phân biệt hai câu hỏi:
+Two questions must be distinguished:
 
-- **Module access:** code thuộc module nào có thể đọc module khác, truy cập public type trong package nào, hoặc thực hiện deep reflection ở đâu?
-- **Business authorization:** người dùng hoặc service đã được xác thực có được phép thực hiện hành động cụ thể trên tài nguyên cụ thể hay không?
+- **Module access:** Which module's code can read another module, access public types in which package, or perform deep reflection where?
+- **Business authorization:** Is an authenticated user or service allowed to perform a specific action on a specific resource?
 
-Hai lớp kiểm soát này bổ sung cho nhau. Module encapsulation giúp bảo vệ cấu trúc code và hạn chế truy cập kỹ thuật ngoài ý muốn. Authorization nghiệp vụ phải được thực hiện ở application/service layer dựa trên danh tính, quyền và tài nguyên thực tế.
+These two layers of control complement each other. Module encapsulation helps protect code structure and limit unintended technical access. Business authorization must be implemented at the application/service layer based on actual identity, permissions, and resources.
 
-## 2. JPMS kiểm soát điều gì?
+## 2. What Does JPMS Control?
 
-Một named module có thể khai báo dependency và ranh giới package trong module-info.java:
+A named module can declare dependencies and package boundaries in `module-info.java`:
 
 ~~~java
 module com.acme.orders {
@@ -25,16 +25,16 @@ module com.acme.orders {
 }
 ~~~
 
-Các directive có ý nghĩa ở cấp module:
+Directives that apply at the module level:
 
-- **requires**: khai báo module hiện tại cần đọc một module khác.
-- **exports**: công khai package cho module khác truy cập các API theo quy tắc Java language.
-- **exports ... to**: chỉ export package cho một danh sách named module.
-- **opens**: mở package cho deep reflection ở runtime.
-- **opens ... to**: chỉ mở package cho một danh sách module cụ thể.
-- **uses / provides**: khai báo module sử dụng hoặc cung cấp service.
+- **requires**: declares that the current module needs to read another module.
+- **exports**: exposes a package for other modules to access APIs per Java language rules.
+- **exports ... to**: exports a package only to a list of named modules.
+- **opens**: opens a package for deep reflection at runtime.
+- **opens ... to**: opens a package only to a specific list of modules.
+- **uses / provides**: declares that a module uses or provides a service.
 
-Ví dụ module triển khai có thể giữ package nội bộ không export:
+For example, an implementation module can keep internal packages unexported:
 
 ~~~text
 com.acme.orders
@@ -42,7 +42,7 @@ com.acme.orders
   com.acme.orders.internal
 ~~~
 
-Module descriptor chỉ export package API:
+The module descriptor only exports the API package:
 
 ~~~java
 module com.acme.orders {
@@ -50,21 +50,21 @@ module com.acme.orders {
 }
 ~~~
 
-Module khác có thể dùng public API trong com.acme.orders.api nếu các điều kiện readability và access khác được đáp ứng. Code ở module khác không thể import tùy ý public class trong package com.acme.orders.internal qua cơ chế truy cập thông thường.
+Other modules can use public APIs in `com.acme.orders.api` if other readability and access conditions are met. Code in other modules cannot arbitrarily import public classes in the `com.acme.orders.internal` package through normal access mechanisms.
 
-Đây là một ranh giới kỹ thuật hữu ích: implementation có thể được thay đổi mà không biến package nội bộ thành contract cho toàn hệ thống.
+This is a useful technical boundary: the implementation can be changed without turning internal packages into a contract for the entire system.
 
-## 3. Vì sao module boundary không phải authorization nghiệp vụ?
+## 3. Why Are Module Boundaries Not Business Authorization?
 
-JPMS không mô hình hóa danh tính của người dùng cuối. Một module không biết:
+JPMS does not model end-user identity. A module does not know:
 
-- Người dùng đã đăng nhập bằng tài khoản nào.
-- Người dùng có vai trò ADMIN, MANAGER hay VIEWER không.
-- Người dùng thuộc tổ chức hoặc tenant nào.
-- Họ có quyền đọc invoice này nhưng không có quyền đọc invoice khác không.
-- Họ có được phép hoàn tiền, phê duyệt hoặc xóa dữ liệu tại thời điểm hiện tại không.
+- Which account the user logged in with.
+- Whether the user has the `ADMIN`, `MANAGER`, or `VIEWER` role.
+- Which organization or tenant the user belongs to.
+- Whether they have permission to read this invoice but not another invoice.
+- Whether they are allowed to refund, approve, or delete data at the current time.
 
-Giả sử module com.acme.orders export API:
+Suppose module `com.acme.orders` exports an API:
 
 ~~~java
 module com.acme.orders {
@@ -72,15 +72,15 @@ module com.acme.orders {
 }
 ~~~
 
-Một controller, batch job hoặc module khác có thể gọi API đó. Khi request đến từ người dùng Alice hay Bob, JVM vẫn thực thi code của module gọi theo cùng một module identity. JPMS không tự thay đổi quyền truy cập dựa trên tài khoản đang gửi HTTP request.
+A controller, batch job, or another module can call that API. When a request comes from user Alice or Bob, the JVM still executes the calling module's code under the same module identity. JPMS does not automatically change access rights based on the account sending the HTTP request.
 
-Nếu API không kiểm tra quyền nghiệp vụ, bất kỳ caller nào đã truy cập được API và có thể tạo request hợp lệ đều có thể thử thực hiện thao tác mà API cung cấp.
+If the API does not check business permissions, any caller that can access the API and construct a valid request can attempt to perform the operation the API provides.
 
-Ví dụ, việc module com.acme.admin được phép đọc package nội bộ không chứng minh người đang sử dụng màn hình admin có quyền quản trị. Tên module là danh tính của code trong module graph, không phải danh tính đã được xác thực của người dùng.
+For example, the fact that module `com.acme.admin` is allowed to read an internal package does not prove that the person using the admin screen has administrative privileges. A module name is the identity of code in the module graph, not the authenticated identity of a user.
 
-### Qualified exports vẫn không phải role-based access control
+### Qualified Exports Are Still Not Role-Based Access Control
 
-Có thể viết:
+You can write:
 
 ~~~java
 module com.acme.orders {
@@ -88,40 +88,40 @@ module com.acme.orders {
 }
 ~~~
 
-Khai báo này giới hạn module nào có thể truy cập package com.acme.orders.admin theo quy tắc module access. Nó không kiểm tra người dùng có role ADMIN hay không.
+This declaration restricts which module can access the `com.acme.orders.admin` package according to module access rules. It does not check whether the user has the `ADMIN` role.
 
-Tất cả code được chạy trong module com.acme.admin đều có cùng module identity khi xét quan hệ này. Module system không phân biệt Alice là admin còn Bob chỉ là nhân viên khi cả hai request đều đi qua cùng module.
+All code running in module `com.acme.admin` shares the same module identity when evaluating this relationship. The module system does not distinguish that Alice is an admin while Bob is only a staff member when both requests pass through the same module.
 
-Qualified exports có ích để giới hạn dependency giữa các thành phần code. Không dùng nó thay cho kiểm tra quyền của principal hoặc quyền trên từng resource.
+Qualified exports are useful for limiting dependencies between code components. Do not use them as a substitute for checking principal permissions or per-resource permissions.
 
-## 4. Authentication, authorization và module encapsulation là ba khái niệm khác nhau
+## 4. Authentication, Authorization, and Module Encapsulation Are Three Distinct Concepts
 
-| Khái niệm | Câu hỏi cần trả lời | Ví dụ cơ chế |
+| Concept | Question to Answer | Example Mechanisms |
 |---|---|---|
-| Authentication | Ai đang gọi? | Xác thực session, token, certificate, service identity |
-| Authorization | Caller này được phép làm gì trên resource nào? | Role, permission, policy, tenant/resource ownership |
-| Module encapsulation | Code của module nào được truy cập package/API nào? | requires, exports, opens, module-info.java |
+| Authentication | Who is calling? | Verifying session, token, certificate, service identity |
+| Authorization | What is this caller allowed to do on which resource? | Role, permission, policy, tenant/resource ownership |
+| Module encapsulation | Which module's code can access which package/API? | `requires`, `exports`, `opens`, `module-info.java` |
 
-Authentication tạo ra danh tính đã được xác minh. Authorization sử dụng danh tính đó cùng policy và thông tin tài nguyên để quyết định cho phép hay từ chối thao tác.
+Authentication produces a verified identity. Authorization uses that identity along with policies and resource information to decide whether to allow or deny an operation.
 
-JPMS không thay thế hai bước này. Ngược lại, một hệ thống authorization tốt cũng không làm cho module descriptor trở nên thừa: module encapsulation vẫn giúp giảm coupling, bảo vệ implementation và ngăn code phụ thuộc vào API không được công khai.
+JPMS does not replace these two steps. Conversely, a good authorization system does not make the module descriptor redundant: module encapsulation still helps reduce coupling, protect implementations, and prevent code from depending on unexposed APIs.
 
-Ví dụ một request có thể trải qua:
+For example, a request might go through:
 
-1. Server xác minh access token và lấy principal đáng tin cậy.
-2. Application xác định hành động mà request muốn thực hiện.
-3. Service tải resource cần thao tác.
-4. Authorization policy kiểm tra principal có quyền thực hiện hành động trên resource đó không.
-5. Chỉ khi policy cho phép, service mới thực hiện thay đổi.
-6. Hệ thống ghi audit event phù hợp.
+1. The server verifies the access token and obtains a trusted principal.
+2. The application determines the action the request wants to perform.
+3. The service loads the resource to operate on.
+4. The authorization policy checks whether the principal has permission to perform the action on that resource.
+5. Only when the policy allows it does the service perform the modification.
+6. The system records an appropriate audit event.
 
-Module boundary hỗ trợ cấu trúc code ở các bước này; nó không tự quyết định bước 4.
+Module boundaries support code structure in these steps; they do not decide step 4 by themselves.
 
-## 5. Thực hiện authorization tại service layer
+## 5. Performing Authorization at the Service Layer
 
-Giả sử hệ thống quản lý invoice. Người dùng chỉ được đọc invoice thuộc tenant của họ và có permission phù hợp.
+Suppose a system manages invoices. Users may only read invoices belonging to their tenant and must have the appropriate permission.
 
-Một cách tổ chức module:
+One way to organize the module:
 
 ~~~java
 module com.acme.billing {
@@ -129,9 +129,9 @@ module com.acme.billing {
 }
 ~~~
 
-Package com.acme.billing.internal chứa repository và implementation nội bộ. Package API cung cấp service cho các caller hợp lệ của ứng dụng.
+The `com.acme.billing.internal` package contains the repository and internal implementation. The API package provides services to valid callers of the application.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~java
 public final class InvoiceService {
@@ -162,20 +162,20 @@ public final class InvoiceService {
 }
 ~~~
 
-Ở đây:
+Here:
 
-- **AuthenticatedPrincipal** đại diện cho danh tính đã được server xác minh.
-- **Permission.INVOICE_READ** là hành động nghiệp vụ.
-- **invoice.tenantId()** xác định phạm vi resource.
-- **requireAllowed** từ chối request nếu principal không có quyền.
+- **AuthenticatedPrincipal** represents the identity verified by the server.
+- **Permission.INVOICE_READ** is the business action.
+- **invoice.tenantId()** identifies the resource scope.
+- **requireAllowed** rejects the request if the principal lacks permission.
 
-Không lấy principal bằng cách tin một userId hoặc role tùy ý do client gửi lên. Principal phải đến từ authentication context đáng tin cậy, ví dụ token đã được xác minh hoặc session phía server.
+Do not obtain the principal by trusting an arbitrary `userId` or role sent by the client. The principal must come from a trusted authentication context, such as a verified token or server-side session.
 
-Tương tự, các thao tác cập nhật, xóa, phê duyệt và hoàn tiền đều cần policy phù hợp. Việc người dùng nhìn thấy nút Edit trên giao diện không chứng minh họ được phép gọi API cập nhật.
+Similarly, update, delete, approve, and refund operations all require appropriate policies. The fact that a user sees an Edit button in the UI does not prove they are allowed to call the update API.
 
-## 6. Kiểm tra quyền trên từng resource, không chỉ trên chức năng
+## 6. Check Permissions per Resource, Not Just per Feature
 
-Một lỗi phổ biến là chỉ kiểm tra người dùng có quyền truy cập chức năng hay không:
+A common mistake is checking only whether the user has permission to access the feature:
 
 ~~~java
 if (actor.hasPermission(Permission.INVOICE_READ)) {
@@ -183,16 +183,16 @@ if (actor.hasPermission(Permission.INVOICE_READ)) {
 }
 ~~~
 
-Đoạn code này chưa chắc an toàn. Nếu invoiceId thuộc tenant khác, người dùng có thể đọc dữ liệu ngoài phạm vi được phép.
+This code is not necessarily safe. If `invoiceId` belongs to another tenant, the user could read data outside their permitted scope.
 
-Authorization cần xét ít nhất:
+Authorization needs to consider at least:
 
-- **Subject:** ai đang thực hiện hành động?
-- **Action:** họ muốn làm gì?
-- **Resource:** đối tượng nào bị tác động?
-- **Context:** tenant, trạng thái workflow, thời gian, mức rủi ro hoặc điều kiện nghiệp vụ liên quan.
+- **Subject:** who is performing the action?
+- **Action:** what do they want to do?
+- **Resource:** which object is being affected?
+- **Context:** tenant, workflow state, time, risk level, or relevant business conditions.
 
-Ví dụ:
+For example:
 
 ~~~java
 authorization.requireAllowed(
@@ -203,17 +203,17 @@ authorization.requireAllowed(
         invoice.status());
 ~~~
 
-Policy có thể yêu cầu người phê duyệt thuộc cùng tenant, có quyền APPROVE và invoice đang ở trạng thái PENDING.
+The policy might require the approver to belong to the same tenant, hold the `APPROVE` permission, and for the invoice to be in the `PENDING` state.
 
-Cần kiểm tra authorization ở phía server cho mọi request có thể truy cập dữ liệu hoặc thay đổi trạng thái. Không dựa vào ID khó đoán, URL ẩn, menu giao diện hoặc module không export để ngăn truy cập trái phép.
+Server-side authorization must be checked for every request that can access data or change state. Do not rely on hard-to-guess IDs, hidden URLs, UI menus, or unexported modules to prevent unauthorized access.
 
-## 7. Ranh giới module hỗ trợ security như thế nào?
+## 7. How Do Module Boundaries Support Security?
 
-Module encapsulation vẫn có giá trị bảo mật ở phạm vi phù hợp.
+Module encapsulation still has security value within an appropriate scope.
 
-### Giảm API công khai
+### Reduce Public API
 
-Chỉ export package cần cho caller. Giữ implementation, helper, repository nội bộ và class nhạy cảm trong package không export khi có thể.
+Export only packages needed by callers. Keep implementations, helpers, internal repositories, and sensitive classes in unexported packages whenever possible.
 
 ~~~java
 module com.acme.identity {
@@ -221,11 +221,11 @@ module com.acme.identity {
 }
 ~~~
 
-Các module khác phụ thuộc vào API ổn định thay vì truy cập trực tiếp vào package nội bộ. Điều này giảm bề mặt truy cập kỹ thuật và hạn chế việc code bên ngoài gọi nhầm implementation.
+Other modules depend on the stable API instead of directly accessing internal packages. This reduces the technical access surface and limits external code from accidentally calling implementation details.
 
-### Giới hạn deep reflection
+### Limit Deep Reflection
 
-Không mở package bằng opens nếu không có nhu cầu cụ thể. Framework cần reflection có thể được cấp quyền mở đúng package cho đúng module:
+Do not open packages with `opens` unless there is a specific need. Frameworks needing reflection can be granted access to open the right package to the right module:
 
 ~~~java
 module com.acme.identity {
@@ -233,71 +233,71 @@ module com.acme.identity {
 }
 ~~~
 
-Tránh dùng open module nếu chỉ một vài package cần deep reflection. Mở quá rộng có thể khiến framework hoặc code trong module được chỉ định truy cập sâu vào nhiều implementation detail hơn cần thiết.
+Avoid using `open module` if only a few packages need deep reflection. Opening too broadly can allow frameworks or code in the designated module to deeply access more implementation details than necessary.
 
-### Giảm dependency không cần thiết
+### Reduce Unnecessary Dependencies
 
-Dùng requires để khai báo dependency thật sự cần. Không đưa module nhạy cảm vào graph chỉ vì tiện gọi một helper class. Tách API và implementation thành module phù hợp có thể làm dependency rõ ràng hơn.
+Use `requires` to declare truly needed dependencies. Do not bring sensitive modules into the graph merely for the convenience of calling a helper class. Separating API and implementation into appropriate modules can make dependencies clearer.
 
-### Bảo vệ tính toàn vẹn của kiến trúc
+### Protect Architectural Integrity
 
-Các module không export package nội bộ giúp compiler và runtime phát hiện việc truy cập trái với thiết kế. Khi API thay đổi, code phụ thuộc vào implementation nội bộ ít có cơ hội âm thầm tiếp tục hoạt động.
+Modules that do not export internal packages help the compiler and runtime detect access that violates the design. When APIs change, code that depends on internal implementations has less chance of silently continuing to work.
 
-Các lợi ích này hỗ trợ defense in depth và maintainability. Chúng không thay thế authorization cho từng user, action và resource.
+These benefits support defense in depth and maintainability. They do not replace authorization for each user, action, and resource.
 
-## 8. Những giới hạn cần nhớ
+## 8. Limitations to Remember
 
-### Module identity không phải user identity
+### Module Identity Is Not User Identity
 
-Module name xác định một module trong module graph. Nó không đại diện cho tài khoản người dùng, role, tenant hoặc quyền được cấp trong database.
+A module name identifies a module in the module graph. It does not represent a user account, role, tenant, or database permission.
 
-### Public API vẫn cần kiểm tra quyền
+### Public APIs Still Need Permission Checks
 
-Một public method trong exported package có thể được nhiều thành phần gọi. Nếu method thực hiện thao tác nhạy cảm, chính application/service layer phải thực thi authorization policy.
+A public method in an exported package can be called by many components. If the method performs a sensitive operation, the application/service layer itself must enforce the authorization policy.
 
-### opens không cấp quyền nghiệp vụ
+### `opens` Does Not Grant Business Permissions
 
-opens cho phép deep reflection theo module access rules. Nó không cấp quyền đọc dữ liệu invoice, chuyển tiền hoặc thay đổi tài khoản theo policy nghiệp vụ.
+`opens` allows deep reflection according to module access rules. It does not grant permission to read invoice data, transfer money, or modify accounts under business policies.
 
-### requires không có nghĩa là được phép thực hiện mọi hành động
+### `requires` Does Not Mean Permission to Perform All Actions
 
-requires tạo readability relationship. Nó không trao role ADMIN, không cấp quyền trên dữ liệu và không chứng minh caller đã được xác thực.
+`requires` creates a readability relationship. It does not grant the `ADMIN` role, does not grant permissions on data, and does not prove the caller is authenticated.
 
-### Classpath và unnamed module cần được chú ý
+### Classpath and Unnamed Module Need Attention
 
-Code chạy trên classpath thuộc unnamed module. Unnamed module đọc mọi module. Điều đó không biến nó thành một security principal đáng tin cậy và cũng không tạo ra policy nghiệp vụ. Hãy hiểu rõ module nào thực sự được export cho unnamed module khi cấu hình ứng dụng.
+Code running on the classpath belongs to the unnamed module. The unnamed module reads every module. That does not make it a trusted security principal, nor does it create a business policy. Understand clearly which modules are actually exported to the unnamed module when configuring the application.
 
-### Reflection và tùy chọn runtime có thể thay đổi mức encapsulation
+### Reflection and Runtime Options Can Change Encapsulation Levels
 
-Các tùy chọn như **--add-exports** và **--add-opens** có thể mở rộng quyền truy cập module trong runtime configuration. Với package được mở cho **ALL-UNNAMED**, code trên classpath có thể nhận quyền truy cập tương ứng.
+Options such as **--add-exports** and **--add-opens** can expand module access in the runtime configuration. For packages opened to **ALL-UNNAMED**, code on the classpath can receive corresponding access rights.
 
-Một số API runtime cũng cho phép điều chỉnh quan hệ module trong các điều kiện caller nhất định. Vì vậy, cần kiểm soát command line, startup scripts, build configuration và quyền vận hành JVM.
+Some runtime APIs also allow adjusting module relationships under certain caller conditions. Therefore, command lines, startup scripts, build configurations, and JVM operational permissions must be controlled.
 
-Đừng coi việc package không export trong module-info.java là bằng chứng duy nhất rằng dữ liệu nghiệp vụ đã được bảo vệ.
+Do not treat the fact that a package is not exported in `module-info.java` as the sole proof that business data is protected.
 
-### JPMS không phải sandbox cho code không đáng tin cậy
+### JPMS Is Not a Sandbox for Untrusted Code
 
-Các module cùng chạy trong một JVM không tự động có process isolation riêng. Code đã được nạp và thực thi trong process có thể sử dụng các API, thread, tài nguyên và quyền của process theo những giới hạn runtime hiện có.
+Modules running together in a single JVM do not automatically have separate process isolation. Code loaded and executed in the process can use the process's APIs, threads, resources, and permissions within existing runtime limits.
 
-Nếu phải chạy plugin hoặc extension không đáng tin cậy, không nên dựa vào module boundary để cách ly nó. Hãy cân nhắc process/container riêng, OS identity riêng, giới hạn filesystem/network, credential riêng và giao thức giao tiếp được kiểm soát. Thiết kế cách ly phải phù hợp với threat model thực tế.
+If you must run untrusted plugins or extensions, do not rely on module boundaries to isolate them. Consider separate processes/containers, separate OS identities, filesystem/network restrictions, separate credentials, and controlled communication protocols. Isolation design must match the actual threat model.
 
-## 9. Defense in depth cho ứng dụng modular
+## 9. Defense in Depth for Modular Applications
 
-Một hệ thống an toàn thường phối hợp nhiều lớp:
+A secure system typically combines multiple layers:
 
-1. **Authentication:** xác minh user hoặc service identity; kiểm tra chữ ký, issuer, audience, expiry và các claim cần thiết.
-2. **Authorization:** kiểm tra action và resource ở server side; áp dụng least privilege và deny by default.
-3. **Tenant isolation:** đảm bảo truy vấn và thao tác luôn giới hạn đúng tenant; không chỉ kiểm tra ở UI hoặc controller.
-4. **Data layer:** dùng database account có quyền tối thiểu; cân nhắc row-level security hoặc constraint phù hợp để bảo vệ dữ liệu ở lớp lưu trữ.
-5. **Module encapsulation:** chỉ export API cần thiết; hạn chế opens và dependency không cần.
-6. **Runtime isolation:** tách process/container khi chạy code có mức độ tin cậy khác nhau; giới hạn network, filesystem và secrets.
-7. **Audit và monitoring:** ghi nhận ai thực hiện hành động gì trên resource nào, kết quả cho phép/từ chối và correlation ID phù hợp.
+1. **Authentication:** verify user or service identity; validate signature, issuer, audience, expiry, and required claims.
+2. **Authorization:** check action and resource on the server side; apply least privilege and deny by default.
+3. **Tenant isolation:** ensure queries and operations are always scoped to the correct tenant; do not check only in the UI or controller.
+4. **Data layer:** use a database account with minimal privileges; consider row-level security or appropriate constraints to protect data at the storage layer.
+5. **Module encapsulation:** export only necessary APIs; limit `opens` and unnecessary dependencies.
+6. **Runtime isolation:** separate processes/containers when running code with different trust levels; restrict network, filesystem, and secrets.
+7. **Audit and monitoring:** record who performed what action on which resource, allow/deny outcomes, and appropriate correlation IDs.
 
-Không phải hệ thống nào cũng cần tất cả kỹ thuật ở mức phức tạp như nhau. Chọn biện pháp theo dữ liệu, tác động của hành động và threat model. Nhưng mọi thao tác nhạy cảm phải có một quyết định authorization có thể giải thích và kiểm thử.
+Not every system needs every technique at the same level of complexity. Choose measures based on data sensitivity, action impact, and threat model. However, every sensitive operation must have an explainable and testable authorization decision.
 
-## 10. Ví dụ phân biệt module access với business authorization
+## 10. Example Distinguishing Module Access from Business Authorization
 
-Giả sử hai module:
+Suppose we have two modules:
 
 ~~~java
 module com.acme.admin {
@@ -311,11 +311,11 @@ module com.acme.billing {
 }
 ~~~
 
-Cả module admin và module web có thể phụ thuộc vào API billing nếu module graph và package access cho phép.
+Both the `admin` module and the `web` module can depend on the `billing` API if the module graph and package access allow it.
 
-Điều này chỉ trả lời câu hỏi code có thể gọi API hay không. Nó không quyết định người dùng đang gửi request có được phép thực hiện thao tác quản trị hay không.
+This only answers whether code can call the API. It does not decide whether the user sending the request is allowed to perform an administrative operation.
 
-Ví dụ:
+For example:
 
 ~~~java
 public void refundInvoice(
@@ -334,95 +334,95 @@ public void refundInvoice(
 }
 ~~~
 
-Nếu actor không có quyền refund trong tenant tương ứng, service phải từ chối dù caller nằm trong module admin, web hay batch.
+If `actor` lacks the `refund` permission in the corresponding tenant, the service must deny it regardless of whether the caller is in the `admin`, `web`, or `batch` module.
 
-Có thể bổ sung một module riêng chứa authorization policy và chỉ export API cần thiết. Tuy nhiên, mọi đường gọi đến thao tác nhạy cảm vẫn phải đi qua policy enforcement. Nếu có một public method khác bỏ qua kiểm tra, module structure tốt cũng không ngăn được lỗi đó.
+A separate module containing authorization policies can be added, exporting only the necessary APIs. However, every call path to a sensitive operation must still go through policy enforcement. If another public method bypasses the check, a good module structure will not prevent that bug.
 
-## 11. Checklist thiết kế và review
+## 11. Design and Review Checklist
 
-Khi thiết kế module:
+When designing modules:
 
-- Chỉ export package thực sự là API của module.
-- Giữ implementation nội bộ trong package không export khi có thể.
-- Chỉ dùng opens cho package và module framework thực sự cần reflection.
-- Kiểm tra các tùy chọn --add-exports, --add-opens và ALL-UNNAMED trong cấu hình runtime.
-- Không xem module name là user identity hoặc role.
-- Không xem requires là quyền được thao tác trên dữ liệu.
-- Không chạy code không đáng tin cậy trong cùng JVM chỉ dựa trên module encapsulation.
+- Export only packages that are genuinely the module's API.
+- Keep internal implementations in unexported packages when possible.
+- Use `opens` only for packages and framework modules that genuinely need reflection.
+- Check `--add-exports`, `--add-opens`, and `ALL-UNNAMED` options in runtime configurations.
+- Do not treat a module name as a user identity or role.
+- Do not treat `requires` as permission to operate on data.
+- Do not run untrusted code in the same JVM relying solely on module encapsulation.
 
-Khi thiết kế authorization:
+When designing authorization:
 
-- Principal có được tạo từ authentication context đã xác minh không?
-- Mỗi hành động nhạy cảm có kiểm tra permission ở server side không?
-- Policy có xét resource, tenant và trạng thái nghiệp vụ không?
-- Các thao tác đọc, cập nhật, xóa, phê duyệt và hoàn tiền có kiểm tra riêng phù hợp không?
-- Có ngăn truy cập chéo tenant khi client thay đổi ID trong request không?
-- Quyền có mặc định bị từ chối khi thiếu policy hoặc thiếu context không?
-- Có audit quyết định authorization và kiểm thử cả trường hợp bị từ chối không?
-- Database và hạ tầng có quyền tối thiểu phù hợp không?
+- Is the principal created from a verified authentication context?
+- Does every sensitive action check permissions on the server side?
+- Does the policy consider the resource, tenant, and business state?
+- Do read, update, delete, approve, and refund operations each have appropriate checks?
+- Is cross-tenant access prevented when the client alters an ID in the request?
+- Is access denied by default when a policy or context is missing?
+- Are authorization decisions audited and are deny cases tested?
+- Do the database and infrastructure have appropriate least-privilege permissions?
 
-## 12. Bài tập tự kiểm tra và đáp án
+## 12. Self-Check Exercises and Answers
 
-### Bài 1 — Module admin có nghĩa là user admin?
+### Exercise 1 — Does the admin module mean an admin user?
 
-Một request đi qua module com.acme.admin. Có thể kết luận người gửi request có role ADMIN không?
+A request passes through module `com.acme.admin`. Can we conclude the sender has the `ADMIN` role?
 
-**Đáp án:** Không. Module identity xác định code/module trong runtime graph, không xác định danh tính người dùng đã đăng nhập. Phải lấy principal từ authentication context và kiểm tra role/permission.
+**Answer:** No. Module identity identifies code/module in the runtime graph, not the identity of the logged-in user. The principal must be obtained from the authentication context and checked for roles/permissions.
 
-### Bài 2 — Package không export có bảo vệ invoice khỏi truy cập trái phép không?
+### Exercise 2 — Does an unexported package protect invoices from unauthorized access?
 
-Một package chứa InvoiceRepository không được export. Điều đó có đủ để đảm bảo người dùng không thể đọc invoice của tenant khác không?
+A package containing `InvoiceRepository` is not exported. Is that enough to ensure users cannot read invoices from another tenant?
 
-**Đáp án:** Không. Encapsulation hạn chế code module khác truy cập package nội bộ theo module rules. Authorization phải kiểm tra principal, hành động, invoice và tenant ở phía server; data layer có thể bổ sung isolation.
+**Answer:** No. Encapsulation restricts other modules' code from accessing internal packages per module rules. Authorization must check the principal, action, invoice, and tenant on the server side; the data layer can add isolation.
 
-### Bài 3 — Qualified exports có phải RBAC không?
+### Exercise 3 — Are qualified exports RBAC?
 
-Module billing khai báo:
+The billing module declares:
 
 ~~~java
 exports com.acme.billing.admin to com.acme.admin;
 ~~~
 
-Có thể dùng khai báo này để đảm bảo chỉ user có role ADMIN mới refund invoice không?
+Can this declaration be used to ensure only users with the `ADMIN` role can refund invoices?
 
-**Đáp án:** Không. Qualified exports giới hạn module caller, không phân biệt người dùng chạy qua module đó. Refund vẫn phải kiểm tra permission trên resource.
+**Answer:** No. Qualified exports restrict the caller module, not individual users executing through that module. Refunds must still check permissions on the resource.
 
-### Bài 4 — opens có cấp quyền đọc dữ liệu nghiệp vụ không?
+### Exercise 4 — Does `opens` grant permission to read business data?
 
-Module model mở package cho module JSON bằng opens. Module JSON có tự động được phép đọc mọi customer record không?
+The `model` module opens a package to the `JSON` module using `opens`. Is the `JSON` module automatically allowed to read all customer records?
 
-**Đáp án:** Không. opens chỉ liên quan đến deep reflection trong package ở runtime. Quyền đọc customer record phải được xác định bởi application authorization và data access policy.
+**Answer:** No. `opens` only relates to deep reflection on a package at runtime. Permission to read customer records must be determined by application authorization and data access policies.
 
-### Bài 5 — Có nên chạy plugin không đáng tin cậy trong module riêng?
+### Exercise 5 — Should untrusted plugins run in a separate module?
 
-Một plugin được đặt trong named module riêng và không được export package. Có thể coi plugin đã bị sandbox không?
+A plugin is placed in its own named module and does not export any packages. Can the plugin be considered sandboxed?
 
-**Đáp án:** Không. Các module cùng chạy trong một JVM không có process isolation tự động. Với code không đáng tin cậy, cần đánh giá process/container isolation và giới hạn OS, filesystem, network, credential.
+**Answer:** No. Modules running in the same JVM do not have automatic process isolation. For untrusted code, evaluate process/container isolation and OS, filesystem, network, and credential restrictions.
 
-### Bài 6 — Quyền ở UI đã đủ chưa?
+### Exercise 6 — Are UI permissions enough?
 
-UI chỉ hiển thị nút Delete cho user có permission. API có cần kiểm tra lại khi nhận DELETE request không?
+The UI only shows the Delete button to users with permission. Does the API need to check again when receiving a `DELETE` request?
 
-**Đáp án:** Có. Client có thể tự tạo request mà không dùng UI. Server phải xác thực principal và kiểm tra permission trên resource trước khi thực hiện thao tác.
+**Answer:** Yes. Clients can craft requests without using the UI. The server must authenticate the principal and check permissions on the resource before performing the operation.
 
-### Bài 7 — requires có trao quyền ADMIN không?
+### Exercise 7 — Does `requires` grant ADMIN privileges?
 
-Module com.acme.admin khai báo requires com.acme.billing. Điều đó có trao quyền admin trên billing data không?
+Module `com.acme.admin` declares `requires com.acme.billing`. Does that grant admin privileges over billing data?
 
-**Đáp án:** Không. requires tạo readability relationship giữa module. Role và quyền trên dữ liệu là policy nghiệp vụ riêng.
+**Answer:** No. `requires` creates a readability relationship between modules. Roles and permissions on data are separate business policies.
 
-### Bài 8 — Kiểm tra tenant ở đâu?
+### Exercise 8 — Where should tenant checks happen?
 
-Người dùng có permission INVOICE_READ nhưng invoiceId thuộc tenant khác. Chỉ kiểm tra permission chung có đủ không?
+A user has the `INVOICE_READ` permission, but `invoiceId` belongs to another tenant. Is checking only the general permission enough?
 
-**Đáp án:** Không. Cần kiểm tra resource và tenant scope. Authorization phải đánh giá cả subject, action, resource và context.
+**Answer:** No. Resource and tenant scope must be checked. Authorization must evaluate subject, action, resource, and context together.
 
-**Ghi nhớ:** JPMS kiểm soát code có thể truy cập API và package nào. Authorization nghiệp vụ quyết định một principal đã được xác thực có được phép thực hiện hành động trên resource cụ thể hay không. Dùng module encapsulation để giữ kiến trúc rõ ràng; dùng policy enforcement ở server side để bảo vệ dữ liệu và nghiệp vụ.
+**Takeaway:** JPMS controls which code can access which APIs and packages. Business authorization decides whether an authenticated principal is permitted to perform an action on a specific resource. Use module encapsulation to keep architecture clean; use server-side policy enforcement to protect data and business logic.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 21 — Java Platform Module System, module declarations và access control: https://docs.oracle.com/en/java/javase/21/docs/specs/jls/jls-7.html
+- Oracle Java SE 21 — Java Platform Module System, module declarations and access control: https://docs.oracle.com/en/java/javase/21/docs/specs/jls/jls-7.html
 - Oracle Java SE 21 API — Module: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Module.html
-- Oracle Java SE 21 — javac options --add-exports và --add-reads: https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html
-- Oracle Java SE 21 — java launcher options --add-exports và --add-opens: https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
+- Oracle Java SE 21 — javac options `--add-exports` and `--add-reads`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html
+- Oracle Java SE 21 — java launcher options `--add-exports` and `--add-opens`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html
 - OpenJDK JEP 261 — Module System: https://openjdk.org/jeps/261

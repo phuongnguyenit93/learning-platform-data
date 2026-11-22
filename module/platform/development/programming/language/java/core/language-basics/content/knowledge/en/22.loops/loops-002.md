@@ -1,24 +1,24 @@
-# `do-while` thực thi thân ít nhất một lần trong Java
+# `do-while` executes the body at least once in Java
 
-> **Java core — language-basics / Vòng lặp**  
-> **Môi trường:** JDK 17+, một file Java độc lập, không cần thư viện ngoài.  
-> **Mục tiêu:** Hiểu vì sao `do-while` kiểm tra điều kiện **sau** thân, chọn đúng giữa `while` và `do-while`, sử dụng vòng lặp để thử lại thao tác, và tránh các lỗi liên quan đến dấu `;`, `break`, `continue`.
+> **Java core — language-basics / Loops**  
+> **Environment:** JDK 17+, a single standalone Java file, no external libraries needed.  
+> **Goal:** Understand why `do-while` checks the condition **after** the body, choose correctly between `while` and `do-while`, use the loop to retry operations, and avoid mistakes related to `;`, `break`, and `continue`.
 
-## 1. Cú pháp và thứ tự thực thi
+## 1. Syntax and execution order
 
 ~~~java
 do {
-    // Công việc cần thực hiện.
+    // Work to be performed.
 } while (condition);
 ~~~
 
-**Thứ tự khi chương trình đi tới vòng lặp:**
+**Order when execution reaches the loop:**
 
-1. Thực thi thân `do { ... }` **trước khi kiểm tra điều kiện lần đầu**.
-2. Sau khi thân hoàn thành bình thường, đánh giá `condition`, bắt buộc có kiểu `boolean` hoặc `Boolean` có thể unbox.
-3. Nếu điều kiện `true`, quay lại thực thi thân; nếu `false`, thoát vòng lặp và chạy câu lệnh kế tiếp.
+1. Execute the `do { ... }` body **before checking the condition for the first time**.
+2. After the body completes normally, evaluate `condition`, which must have type `boolean` or an unboxable `Boolean`.
+3. If the condition is `true`, go back and execute the body again; if `false`, exit the loop and run the next statement.
 
-Nếu chương trình đã đi tới `do` thì thân **được bắt đầu ít nhất một lần**, kể cả điều kiện sẽ sai ngay ở lần kiểm tra đầu tiên. Điều đó không có nghĩa mọi câu lệnh trong thân chắc chắn chạy xong: `break`, `return`, ngoại lệ hoặc luồng bị ngắt có thể kết thúc sớm.
+Once execution reaches `do`, the body **starts at least once**, even if the condition will be false on the very first check. That does not mean every statement in the body is guaranteed to finish: `break`, `return`, an exception, or an interrupted flow can end it early.
 
 ~~~java
 int count = 0;
@@ -28,12 +28,12 @@ do {
     System.out.println("count=" + count);
 } while (count < 3);
 
-// In count=1, count=2, count=3.
+// Prints count=1, count=2, count=3.
 ~~~
 
-Dấu **`;` sau `while (condition)` là bắt buộc** trong cú pháp `do-while`. Đây là khác biệt dễ quên so với `while (condition) { ... }` thông thường.
+The **`;` after `while (condition)` is mandatory** in `do-while` syntax. This is an easily forgotten difference compared to a regular `while (condition) { ... }`.
 
-## 2. So sánh `while` và `do-while` khi điều kiện sai ngay từ đầu
+## 2. Comparing `while` and `do-while` when the condition is initially false
 
 ~~~java
 int a = 0;
@@ -50,28 +50,28 @@ System.out.println(a); // 0
 System.out.println(b); // 1
 ~~~
 
-| Tiêu chí | `while` | `do-while` |
+| Criterion | `while` | `do-while` |
 | --- | --- | --- |
-| Kiểm tra điều kiện lần đầu | **Trước** thân | **Sau** thân |
-| Điều kiện ban đầu false | Thân chạy **0 lần** | Thân chạy **1 lần** |
-| Phù hợp với | Công việc chỉ được phép chạy nếu điều kiện đang đúng | Công việc phải thử/thực hiện lần đầu rồi mới quyết định lặp |
-| Dấu `;` ở cuối cấu trúc | Không đặt sau khối `while { ... }` | **Phải có** sau `while (condition)` |
+| First condition check | **Before** the body | **After** the body |
+| Initially false condition | Body runs **0 times** | Body runs **1 time** |
+| Suitable for | Work that is only allowed to run if the condition is currently true | Work that must try/run once before deciding whether to repeat |
+| `;` at the end of the construct | Not placed after `while { ... }` block | **Must be present** after `while (condition)` |
 
-Đừng chọn `do-while` chỉ vì cú pháp ngắn. Hãy hỏi: **có cần thực hiện thao tác đầu tiên trước khi biết nên lặp lại không?** Nếu cần kiểm tra điều kiện trước khi cho phép thao tác, `while` hoặc `for` thường hợp lý hơn.
+Do not choose `do-while` merely for short syntax. Ask: **does the first operation need to happen before knowing whether to repeat?** If you need to check a condition before allowing an operation, `while` or `for` is usually more appropriate.
 
-## 3. Bảng diễn tiến một vòng lặp cụ thể
+## 3. Execution trace table for a concrete loop
 
-Giả sử `n = 0` và điều kiện `n < 3`:
+Suppose `n = 0` and the condition is `n < 3`:
 
-| Lượt thân | `n` trước thân | `n` sau `n++` | Kiểm tra `n < 3` | Tiếp tục? |
+| Body pass | `n` before body | `n` after `n++` | Check `n < 3` | Continue? |
 | ---: | ---: | ---: | --- | --- |
-| 1 | 0 | 1 | true | Có |
-| 2 | 1 | 2 | true | Có |
-| 3 | 2 | 3 | false | Không |
+| 1 | 0 | 1 | true | Yes |
+| 2 | 1 | 2 | true | Yes |
+| 3 | 2 | 3 | false | No |
 
-Bảng này giúp kiểm tra lỗi lệch một lần (*off-by-one*). Trong `do-while`, điều kiện được đánh giá **sau khi** `n` đã tăng, nên chương trình in ba lượt, không phải bốn.
+This table helps check for off-by-one errors (*off-by-one*). In `do-while`, the condition is evaluated **after** `n` has been incremented, so the program prints three passes, not four.
 
-Một tình huống đơn giản chỉ muốn thực thi đúng một lần:
+A simple case where you only want to execute exactly once:
 
 ~~~java
 int executions = 0;
@@ -81,11 +81,11 @@ do {
 // executions == 1.
 ~~~
 
-Cú pháp này hợp lệ, nhưng nếu **luôn chỉ thực hiện một lần** thì một khối lệnh thường dễ đọc hơn; không cần ép công việc một lần vào vòng lặp.
+This syntax is valid, but if something **always runs only once**, a regular statement block is usually easier to read; there is no need to force a one-time task into a loop.
 
-## 4. Ví dụ sử dụng: thử lại cho tới khi đầu vào hợp lệ
+## 4. Usage example: retrying until input is valid
 
-Với chương trình nhập liệu, có thể cần **đọc lần đầu**, kiểm tra kết quả, rồi hỏi lại khi không hợp lệ. Ví dụ dưới đây sử dụng mảng đầu vào mô phỏng để chạy bằng CLI mà không phải nhập tay:
+For an input-reading program, it may be necessary to **read the first attempt**, validate the result, and prompt again when invalid. The example below uses a simulated input array so it can run from the CLI without manual typing:
 
 ~~~java
 int[] candidates = {-2, 0, 7};
@@ -100,19 +100,19 @@ do {
 System.out.println("selected=" + selected);
 ~~~
 
-Kết quả lần lượt là `candidate=-2`, `candidate=0`, `candidate=7` và `selected=7`.
+The output is `candidate=-2`, `candidate=0`, `candidate=7`, and `selected=7`.
 
-**Lưu ý an toàn:** Ví dụ có ít nhất một phần tử. Nếu mảng có thể rỗng, phải kiểm tra độ dài **trước khi vào `do`** vì thân vẫn thử truy cập mảng một lần. Điều kiện `index < candidates.length` ngăn việc lặp tiếp quá giới hạn nhưng **không bảo vệ lần truy cập đầu tiên**.
+**Safety note:** The example has at least one element. If the array could be empty, you must check its length **before entering `do`** because the body still attempts to access the array once. The condition `index < candidates.length` prevents further iterations beyond the bound, but **does not protect the first access**.
 
-Ngoài ra, nếu dữ liệu thử hết mà vẫn không có phần tử hợp lệ, vòng lặp cũng kết thúc vì hết dữ liệu; ứng dụng thực cần phân biệt **hết lượt thử** với **đã có kết quả hợp lệ**, ví dụ kiểm tra `selected > 0` sau vòng lặp.
+Additionally, if the test data runs out without any valid element, the loop also ends because the data is exhausted; real applications must distinguish between **running out of attempts** and **having a valid result**, for example by checking `selected > 0` after the loop.
 
-## 5. `break` và `continue` trong `do-while`
+## 5. `break` and `continue` in `do-while`
 
-- `break;` kết thúc ngay vòng lặp gần nhất; điều kiện ở cuối vòng **không** được đánh giá cho lượt bị `break`.
-- `continue;` bỏ qua phần thân còn lại của lượt hiện tại và chuyển tới bước **đánh giá điều kiện `while (...)`** rồi mới quyết định có vào lượt mới hay không.
-- `return` kết thúc phương thức, có thể đồng thời kết thúc vòng lặp; ngoại lệ chưa xử lý cũng có thể ngắt luồng.
+- `break;` immediately terminates the innermost loop; the condition at the end of the loop is **not** evaluated for the iteration interrupted by `break`.
+- `continue;` skips the remaining body of the current iteration and jumps to **evaluating the `while (...)` condition** before deciding whether to enter a new iteration.
+- `return` terminates the method, which can simultaneously exit the loop; an unhandled exception can also interrupt flow.
 
-Ví dụ với `break`:
+Example with `break`:
 
 ~~~java
 int tries = 0;
@@ -123,51 +123,51 @@ do {
         break;
     }
 } while (tries < 4);
-// In: breakAt=2; tries == 2.
+// Prints: breakAt=2; tries == 2.
 ~~~
 
-Ví dụ với `continue`:
+Example with `continue`:
 
 ~~~java
 int i = 0;
 do {
-    i++;                         // Luôn cập nhật i trước continue.
+    i++;                         // Always update i before continue.
     if (i % 2 == 0) {
         continue;
     }
     System.out.println("odd=" + i);
 } while (i < 4);
-// In odd=1, odd=3; i == 4.
+// Prints odd=1, odd=3; i == 4.
 ~~~
 
-Ở lượt `i == 2`, `continue` không trở lại đầu thân ngay lập tức: Java **kiểm tra `i < 4`** trước. Nếu quên cập nhật biến kiểm soát trước `continue`, vòng lặp có thể không bao giờ kết thúc.
+On the `i == 2` pass, `continue` does not jump straight back to the top of the body: Java **checks `i < 4`** first. If you forget to update the control variable before `continue`, the loop may never terminate.
 
-## 6. Các lỗi phổ biến
+## 6. Common mistakes
 
-| Lỗi | Vì sao nguy hiểm | Cách sửa |
+| Mistake | Why it is dangerous | Fix |
 | --- | --- | --- |
-| Quên `;` sau `while (condition)` | Sai cú pháp `do-while` | Viết `} while (condition);` |
-| Nghĩ điều kiện được xét trước thân | Có thể chạy một lần ngoài ý muốn | Dùng `while` nếu phải kiểm tra trước |
-| Điều kiện không bao giờ false | Vòng lặp vô hạn, tốn tài nguyên | Cập nhật trạng thái và quy định điểm dừng |
-| `continue` trước thao tác cập nhật | Có thể kẹt cùng một trạng thái | Cập nhật trước `continue` hoặc thiết kế lại |
-| Dùng `do` để truy cập mảng có thể rỗng | Truy cập sai chỉ số ở lượt đầu | Guard kiểm tra rỗng trước vòng lặp |
-| Cho rằng kết thúc vòng nghĩa là dữ liệu hợp lệ | Có thể dừng do hết lượt thử | Kiểm tra riêng trạng thái thành công |
-| Dùng `int` thay vì boolean làm điều kiện | Không biên dịch trong Java | So sánh tường minh như `count < limit` |
+| Forgetting `;` after `while (condition)` | Invalid `do-while` syntax | Write `} while (condition);` |
+| Thinking the condition is checked before the body | May run once unintentionally | Use `while` if pre-checking is required |
+| Condition never becomes false | Infinite loop, wastes resources | Update state and define a stopping point |
+| `continue` before the update operation | Can get stuck on the same state | Update before `continue` or redesign |
+| Using `do` to access a possibly empty array | Out-of-bounds access on the first pass | Guard with an emptiness check before the loop |
+| Assuming loop exit means valid data | May have stopped due to exhausting attempts | Check the success status separately |
+| Using `int` instead of boolean as the condition | Does not compile in Java | Use an explicit comparison like `count < limit` |
 
-Ví dụ vòng lặp dễ bị vô hạn, **không nên chạy**:
+Example of a loop prone to becoming infinite, **do not run**:
 
 ~~~java
 // int x = 0;
 // do {
 //     System.out.println(x);
-// } while (x < 3); // x không đổi, điều kiện luôn đúng.
+// } while (x < 3); // x does not change, condition is always true.
 ~~~
 
-`Boolean` wrapper có giá trị `null` cũng không phải một giá trị điều kiện hợp lệ lúc chạy: Java sẽ cố unbox và có thể ném `NullPointerException`. Dùng biến `boolean` nguyên thủy hoặc đảm bảo wrapper không null.
+A `Boolean` wrapper with value `null` is also not a valid runtime condition value: Java will attempt to unbox it and may throw `NullPointerException`. Use a primitive `boolean` variable or ensure the wrapper is non-null.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone runnable Java 17+ program
 
-Tạo file **DoWhileDemo.java**:
+Create the file **DoWhileDemo.java**:
 
 ~~~java
 public final class DoWhileDemo {
@@ -229,14 +229,14 @@ public final class DoWhileDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (PowerShell, Command Prompt hoặc Bash):
+Compile and run in the directory containing the file (PowerShell, Command Prompt, or Bash):
 
 ~~~bash
 javac -encoding UTF-8 DoWhileDemo.java
 java DoWhileDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 whileInitiallyFalse=0
@@ -257,22 +257,22 @@ continueCount=4
 once=1
 ~~~
 
-Đối chiếu: `doInitiallyFalse=1` khẳng định thân chạy một lần khi điều kiện ban đầu false; `round=1..3` thể hiện kiểm tra điều kiện sau thân; `breakCount=2` và `continueCount=4` minh họa hai lệnh điều khiển. `valid=true` chứng minh giá trị cuối cùng hợp lệ, thay vì chỉ suy luận từ việc vòng lặp đã dừng.
+Verification: `doInitiallyFalse=1` confirms the body runs once when the condition is initially false; `round=1..3` demonstrates post-body condition checking; `breakCount=2` and `continueCount=4` illustrate the two control statements. `valid=true` proves the final value is valid, rather than merely inferring it from the fact that the loop stopped.
 
-## 8. Bài tập và checklist
+## 8. Exercises and checklist
 
-**Bài 1.** Với `int n = 5;`, so sánh số lần thân được chạy của `while (n < 3)` và `do { n++; } while (n < 3);`. Giải thích nguyên nhân.
+**Exercise 1.** Given `int n = 5;`, compare how many times the body runs for `while (n < 3)` and `do { n++; } while (n < 3);`. Explain why.
 
-**Bài 2.** Viết `do-while` tăng biến `i` từ 0 và in `i` cho đến khi `i == 4`. Lập bảng trạng thái trước thân, sau thân và sau phép kiểm tra.
+**Exercise 2.** Write a `do-while` loop that increments `i` from 0 and prints `i` until `i == 4`. Create a state table showing values before the body, after the body, and after the condition check.
 
-**Bài 3.** Cho một danh sách số có thể rỗng: hãy bổ sung guard trước `do` để tránh truy cập sai phần tử đầu tiên, và trả trạng thái lỗi nếu hết danh sách mà chưa gặp số dương.
+**Exercise 3.** Given a list of numbers that might be empty: add a guard before `do` to avoid invalid access to the first element, and return an error status if the list ends without encountering a positive number.
 
-**Bài 4.** Chèn `continue` khi `i` là số chẵn, chỉ in số lẻ từ 1 đến 5. Đặt thao tác cập nhật ở đâu để chắc chắn vòng lặp kết thúc?
+**Exercise 4.** Insert `continue` when `i` is even, printing only odd numbers from 1 to 5. Where should the update operation be placed to guarantee the loop terminates?
 
-**Bài 5.** Dùng `break` khi gặp giá trị cần tìm và giải thích điều kiện cuối vòng có còn được đánh giá trong lượt bị `break` hay không.
+**Exercise 5.** Use `break` when encountering the target value and explain whether the loop-end condition is still evaluated on the iteration that executes `break`.
 
-**Checklist:** Điều kiện boolean hợp lệ chưa? Biến kiểm soát có thay đổi trong mọi đường đi cần thiết không? Lượt đầu tiên có an toàn không? Có phân biệt dừng do thành công, giới hạn hay lỗi không? Đã ghi `;` kết thúc cú pháp `do-while` chưa?
+**Checklist:** Is the boolean condition valid? Does the control variable change on every necessary path? Is the first pass safe? Do you distinguish stopping due to success, limits, or errors? Did you write the `;` terminating the `do-while` syntax?
 
-### Ghi nhớ
+### Key takeaway
 
-**`do { ... } while (condition);` luôn bắt đầu thực hiện thân trước lần kiểm tra điều kiện đầu tiên.** Nó thích hợp cho công việc **phải thử một lần rồi mới quyết định lặp**. Khác với `while`, điều kiện ban đầu false không ngăn lượt đầu; hãy kiểm tra an toàn đầu vào, điểm dừng và vị trí cập nhật biến, đặc biệt khi dùng `continue`.
+**`do { ... } while (condition);` always starts executing the body before the first condition check.** It is suitable for tasks that **must be attempted once before deciding to repeat**. Unlike `while`, an initially false condition does not prevent the first pass; check input safety, stopping points, and variable update placement, especially when using `continue`.

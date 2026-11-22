@@ -1,81 +1,81 @@
-# Phân biệt loại phần tử trùng với giữ tất cả phần tử rồi sắp xếp
+# Distinguishing Deduplication from Keeping All Elements and Sorting
 
-Khi làm việc với dữ liệu Java, **sắp xếp** và **loại phần tử trùng** là hai thao tác khác nhau. Sắp xếp chỉ thay đổi thứ tự các phần tử theo một quy tắc; loại trùng làm giảm số phần tử bằng cách giữ một đại diện cho mỗi nhóm được coi là tương đương. Một `TreeSet` thực hiện cả hai hành vi: duy trì thứ tự và chỉ giữ **một phần tử trong mỗi nhóm có kết quả so sánh bằng `0`**. Ngược lại, `List.sort(...)` hoặc `Stream.sorted(...)` sắp xếp nhưng **giữ nguyên các lần xuất hiện**, kể cả giá trị lặp.
+When working with Java data, **sorting** and **deduplicating** are two distinct operations. Sorting only changes the order of elements according to a rule; deduplicating reduces the number of elements by keeping one representative for each group considered equivalent. A `TreeSet` performs both behaviors: maintaining order and keeping only **one element per group whose comparison result is `0`**. Conversely, `List.sort(...)` or `Stream.sorted(...)` sorts while **preserving all occurrences**, including duplicate values.
 
-Đây là khác biệt quan trọng trong chủ đề **tập hợp có thứ tự** và hợp đồng đối tượng: việc quyết định hai phần tử “trùng” trong `TreeSet` dựa trên **`compareTo` hoặc `Comparator.compare`**, không nhất thiết trùng với `equals`.
+This is an important distinction in the topic of **ordered collections** and object contracts: deciding whether two elements are “duplicates” in `TreeSet` relies on **`compareTo` or `Comparator.compare`**, which does not necessarily match `equals`.
 
-## 1. Hai yêu cầu khác nhau dẫn tới hai kết quả khác nhau
+## 1. Two different requirements lead to two different results
 
-Giả sử dữ liệu đầu vào là:
+Suppose the input data is:
 
 ```text
 [pear, apple, pear, banana, apple]
 ```
 
-Ta có thể muốn:
+We might want:
 
-| Yêu cầu | Kết quả | Ý nghĩa |
+| Requirement | Result | Meaning |
 | --- | --- | --- |
-| Giữ nguyên dữ liệu | `[pear, apple, pear, banana, apple]` | Thứ tự nhập và số lần xuất hiện không đổi |
-| **Chỉ sắp xếp** tăng dần | `[apple, apple, banana, pear, pear]` | Giữ đủ 5 phần tử, chỉ đổi vị trí |
-| **Loại trùng rồi sắp xếp** | `[apple, banana, pear]` | Còn 3 giá trị khác nhau |
-| **Đếm số lần xuất hiện theo thứ tự khóa** | `{apple=2, banana=1, pear=2}` | Giữ thông tin tần suất dù mỗi khóa hiển thị một lần |
+| Keep data unchanged | `[pear, apple, pear, banana, apple]` | Input order and occurrence counts unchanged |
+| **Sort only** ascending | `[apple, apple, banana, pear, pear]` | Keep all 5 elements, only change positions |
+| **Deduplicate then sort** | `[apple, banana, pear]` | 3 distinct values remain |
+| **Count occurrences in key order** | `{apple=2, banana=1, pear=2}` | Preserve frequency information even though each key appears once |
 
-Nếu đang xử lý đơn hàng, lượt truy cập, bản ghi log hoặc điểm số, việc tự ý cho dữ liệu vào `Set` có thể làm **mất những bản ghi lặp có ý nghĩa**. Trái lại, nếu mục tiêu là tập các tên kỹ năng không trùng, việc loại trùng có thể chính là yêu cầu.
+If processing orders, visit logs, log records, or scores, carelessly putting data into a `Set` can **lose meaningful duplicate records**. Conversely, if the goal is a set of unique skill names, deduplication may be the exact requirement.
 
-**Câu hỏi thiết kế đầu tiên phải là:** cần *giữ mọi lần xuất hiện*, *giữ một phần tử đại diện*, hay *giữ số lần xuất hiện của mỗi nhóm*?
+**The first design question must be:** do we need to *keep every occurrence*, *keep one representative element*, or *keep the occurrence count of each group*?
 
-## 2. `List.sort` và `Stream.sorted`: sắp thứ tự, không xóa phần tử
+## 2. `List.sort` and `Stream.sorted`: order elements without deleting any
 
-Một `List` cho phép nhiều phần tử bằng nhau xuất hiện tại các vị trí khác nhau. Với `ArrayList` mutable, ta có thể sắp xếp tại chỗ:
+A `List` allows multiple equal elements to appear at different positions. With a mutable `ArrayList`, we can sort in place:
 
 ```java
-// Minh họa một đoạn trong phương thức, không phải chương trình độc lập.
+// Illustrates a snippet inside a method, not a standalone program.
 List<String> words = new ArrayList<>(
         List.of("pear", "apple", "pear", "banana", "apple"));
 words.sort(Comparator.naturalOrder());
 // words: [apple, apple, banana, pear, pear]
 ```
 
-`List.sort(comparator)` thay đổi thứ tự **ngay trong list**. Các phần tử trùng vẫn chiếm từng vị trí riêng. Nó là phép sắp xếp ổn định (*stable sort*): khi comparator trả `0` cho hai phần tử, thứ tự tương đối ban đầu của chúng được giữ. Nếu list không cho phép thay đổi cấu trúc/nội dung, ví dụ `List.of(...)`, không gọi `sort` trực tiếp trên đó; tạo `new ArrayList<>(source)` hoặc dùng stream.
+`List.sort(comparator)` changes order **directly inside the list**. Duplicate elements still occupy their own positions. It is a *stable sort*: when the comparator returns `0` for two elements, their original relative order is preserved. If a list does not allow structural/content modification, such as `List.of(...)`, do not call `sort` directly on it; create `new ArrayList<>(source)` or use a stream.
 
-`Stream.sorted()` tạo một luồng sắp xếp mới, không có tác dụng loại trùng:
+`Stream.sorted()` produces a newly sorted stream without deduplicating:
 
 ```java
-// Minh họa một đoạn trong phương thức:
+// Illustrates a snippet inside a method:
 List<String> sorted = source.stream()
         .sorted()
         .toList();
 ```
 
-Với stream có thứ tự (*ordered stream*), `sorted` được bảo đảm ổn định; với stream không có encounter order, tính ổn định không được bảo đảm. `toList()` trả về danh sách không sửa được bằng các phương thức thay đổi list theo hợp đồng của `Stream.toList()`, nên nếu cần chỉnh sửa sau khi sắp, thu về `ArrayList` thích hợp.
+For an *ordered stream*, `sorted` is guaranteed stable; for a stream without encounter order, stability is not guaranteed. `toList()` returns a list that cannot be modified via list-mutating methods under `Stream.toList()`'s contract, so if modification after sorting is needed, collect into a suitable `ArrayList`.
 
-**Không có bước `distinct()` trong hai thao tác trên**, vì vậy số lượng phần tử được giữ nguyên.
+**There is no `distinct()` step in the two operations above**, so the element count is preserved.
 
-## 3. `TreeSet`: vừa sắp xếp vừa loại trùng theo thứ tự so sánh
+## 3. `TreeSet`: both sorts and deduplicates by comparison order
 
-`TreeSet<E>` thuộc họ `NavigableSet`/`SortedSet`, duy trì các phần tử theo:
+`TreeSet<E>` belongs to the `NavigableSet`/`SortedSet` family, maintaining elements according to:
 
-- **Thứ tự tự nhiên** của `Comparable`, khi dùng `new TreeSet<>()` và các phần tử có thể so sánh với nhau.
-- **Thứ tự do `Comparator` chỉ định**, khi dùng `new TreeSet<>(comparator)`.
+- **Natural ordering** of `Comparable`, when using `new TreeSet<>()` and elements are mutually comparable.
+- **Ordering specified by `Comparator`**, when using `new TreeSet<>(comparator)`.
 
-Quy tắc phân biệt phần tử của `TreeSet` là:
+`TreeSet`'s rule for distinguishing elements is:
 
 ```text
-compare(a, b) < 0  -> a đứng trước b
-compare(a, b) = 0  -> a và b được xem là cùng một phần tử theo thứ tự của set
-compare(a, b) > 0  -> a đứng sau b
+compare(a, b) < 0  -> a comes before b
+compare(a, b) = 0  -> a and b are treated as the same element under the set's ordering
+compare(a, b) > 0  -> a comes after b
 ```
 
-Với thứ tự tự nhiên, `compare(a,b)` có nghĩa là `a.compareTo(b)`; với comparator, là `comparator.compare(a,b)`.
+Under natural ordering, `compare(a,b)` means `a.compareTo(b)`; with a comparator, it is `comparator.compare(a,b)`.
 
-Khi thêm một phần tử mới mà phép so sánh với phần tử đang có trả `0`, `TreeSet.add` trả `false` và không thêm một entry thứ hai. `size()` không tăng. Nếu cần biết một phần tử đã có đại diện hay chưa, có thể dùng `contains` theo cùng quy tắc thứ tự, nhưng **không suy ra hai đối tượng giống nhau hoàn toàn về mọi trường**.
+When adding a new element whose comparison against an existing element returns `0`, `TreeSet.add` returns `false` and does not add a second entry. `size()` does not increase. To check whether a representative for an element is already present, `contains` can be used under the same ordering rule, though **do not infer that two objects are identical across all fields**.
 
-Các phép thêm/xóa/tìm kiếm cơ bản trong `TreeSet` được tài liệu Java bảo đảm chi phí theo bậc `log(n)` trong cấu trúc cây. Còn toàn bộ quá trình tạo tập từ `n` phần tử sẽ có chi phí tổng hợp tương ứng với các lần chèn. Sự khác biệt **không chỉ nằm ở hiệu năng**: quan trọng hơn là `TreeSet` loại bớt dữ liệu theo quan hệ tương đương của comparator.
+Basic add/remove/search operations in `TreeSet` are guaranteed by Java documentation to have `log(n)`-order cost in the tree structure. Meanwhile, building a whole set from `n` elements has a cumulative cost corresponding to the insertions. The difference **is not solely about performance**: more importantly, `TreeSet` drops data according to the comparator's equivalence relation.
 
-## 4. Ví dụ Java 17+ chạy được: nhìn rõ số lượng và thứ tự
+## 4. Runnable Java 17+ example: seeing counts and ordering clearly
 
-Lưu toàn bộ chương trình thành **`SortVersusSetDemo.java`**:
+Save the entire program as **`SortVersusSetDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -144,14 +144,14 @@ public class SortVersusSetDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac SortVersusSetDemo.java
 java SortVersusSetDemo
 ```
 
-Đầu ra xác định:
+Deterministic output:
 
 ```text
 Original: [pear, apple, pear, banana, apple]
@@ -172,47 +172,47 @@ BigDecimal HashSet size: 2
 BigDecimal TreeSet size: 1
 ```
 
-**Giải thích:**
+**Explanation:**
 
-1. `sorted` giữ nguyên 5 phần tử của `source`, chỉ xếp theo thứ tự tự nhiên của `String`. Hai từ `apple` và hai từ `pear` vẫn còn nguyên.
-2. `new TreeSet<>(source)` chỉ giữ một bản của mỗi chuỗi trùng theo thứ tự tự nhiên, còn 3 phần tử.
-3. `source.stream().distinct().sorted()` cho kết quả giống `TreeSet` **trong ví dụ chuỗi với thứ tự tự nhiên**, vì `String.equals` và `String.compareTo` nhất quán. Hai cách không được coi là tương đương cho mọi comparator.
-4. `TreeMap<String,Integer>` dùng mỗi chuỗi làm khóa và cộng số lần xuất hiện; kết quả có thứ tự khóa tăng dần, **không mất tần suất**.
-5. `String.CASE_INSENSITIVE_ORDER.compare("Java","java") == 0` nhưng `"Java".equals("java")` là `false`. `TreeSet` dùng comparator này chỉ giữ một phần tử đại diện cho nhóm `Java/java/JAVA`. Vì `"Java"` được thêm đầu tiên, nó là đại diện còn giữ trong ví dụ; `"Kotlin"` là nhóm thứ hai.
-6. `spellings.stream().sorted(String.CASE_INSENSITIVE_ORDER)` sắp theo cùng comparator nhưng **giữ cả bốn phần tử**. Với stream có thứ tự từ `List`, các chuỗi có kết quả compare `0` giữ thứ tự tương đối ban đầu.
-7. Hai `BigDecimal` có giá trị số học bằng nhau theo `compareTo` nhưng khác `scale`, nên `equals` trả `false`. Vì thế `HashSet` (theo `equals`/`hashCode`) giữ 2 phần tử, trong khi `TreeSet` (theo `compareTo`) giữ 1.
+1. `sorted` preserves all 5 elements of `source`, simply arranging them by `String`'s natural ordering. Both `apple`s and both `pear`s remain intact.
+2. `new TreeSet<>(source)` retains only one copy of each duplicate string under natural ordering, leaving 3 elements.
+3. `source.stream().distinct().sorted()` yields the same result as `TreeSet` **in the string example with natural ordering**, because `String.equals` and `String.compareTo` are consistent. The two approaches must not be assumed equivalent for every comparator.
+4. `TreeMap<String,Integer>` uses each string as a key and sums occurrences; the result has ascending key order, **without losing frequencies**.
+5. `String.CASE_INSENSITIVE_ORDER.compare("Java","java") == 0` whereas `"Java".equals("java")` is `false`. `TreeSet` using this comparator retains only one representative element for the `Java/java/JAVA` group. Since `"Java"` was added first, it is the representative kept in the example; `"Kotlin"` is the second group.
+6. `spellings.stream().sorted(String.CASE_INSENSITIVE_ORDER)` sorts by the same comparator yet **keeps all four elements**. With an ordered stream from a `List`, strings comparing as `0` preserve their initial relative order.
+7. The two `BigDecimal` values have equal numeric value under `compareTo` yet different `scale`, so `equals` returns `false`. Thus `HashSet` (by `equals`/`hashCode`) keeps 2 elements, whereas `TreeSet` (by `compareTo`) keeps 1.
 
-## 5. `equals()` và `compareTo()`: hai quan hệ tương đương có thể khác nhau
+## 5. `equals()` and `compareTo()`: two equivalence relations that can diverge
 
-Trong Java, `Set` thường gợi liên tưởng “không chứa hai phần tử `equals` bằng nhau”. Nhưng `TreeSet` dùng quan hệ so sánh của nó để thực hiện mọi thao tác xác định phần tử. Do đó, để một `SortedSet` đáp ứng đầy đủ hợp đồng `Set` theo nghĩa của `equals`, thứ tự sắp xếp nên **nhất quán với `equals`**:
+In Java, `Set` commonly evokes “contains no two `equals`-equal elements”. However, `TreeSet` uses its comparison relation to perform all element-identification operations. Therefore, for a `SortedSet` to fully satisfy the `Set` contract in the sense of `equals`, the sort order should be **consistent with `equals`**:
 
 ```java
-// Quy tắc mong muốn khi nói thứ tự nhất quán với equals:
+// Desired rule when saying ordering is consistent with equals:
 (a.compareTo(b) == 0) == a.equals(b)
 ```
 
-Nếu hai vế khác nhau, hành vi nội bộ của `TreeSet` vẫn được xác định theo comparator, nhưng nó có thể gây bất ngờ khi so với `HashSet` hoặc quy ước set dựa trên `equals`.
+If the two sides differ, `TreeSet`'s internal behavior is still well-defined by the comparator, yet it can be surprising when compared with `HashSet` or `equals`-based set conventions.
 
-**Trường hợp 1: `compare(a,b) == 0` dù `a.equals(b)` là `false`.** Hai giá trị bị `TreeSet` gộp thành một nhóm. Ví dụ: so sánh `String` không phân biệt hoa/thường, hoặc `BigDecimal("1.0")` và `BigDecimal("1.00")`.
+**Case 1: `compare(a,b) == 0` even though `a.equals(b)` is `false`.** Two values are merged into one group by `TreeSet`. Examples: case-insensitive `String` comparison, or `BigDecimal("1.0")` and `BigDecimal("1.00")`.
 
-**Trường hợp 2: `a.equals(b)` là `true` nhưng comparator cho kết quả khác `0`.** `TreeSet` có thể giữ hai phần tử mà `equals` coi là bằng nhau, nếu comparator dùng một tiêu chí khác. Đây cũng là sự không nhất quán giữa quan hệ sắp xếp và quan hệ bằng nhau.
+**Case 2: `a.equals(b)` is `true` yet the comparator yields a non-`0` result.** `TreeSet` may retain two elements that `equals` treats as equal, if the comparator uses a different criterion. This is also an inconsistency between the ordering relation and the equality relation.
 
-Đặc biệt, không được dùng `hashCode()` để đoán `TreeSet` sẽ loại trùng ra sao. `TreeSet` không phân biệt phần tử bằng `hashCode`; nó dùng **thứ tự so sánh**.
+In particular, never use `hashCode()` to predict how `TreeSet` will deduplicate. `TreeSet` does not distinguish elements by `hashCode`; it uses **comparison order**.
 
-### Comparator chỉ so một phần thuộc tính
+### Comparator comparing only a subset of attributes
 
-Giả sử mỗi bản ghi có `name` và `id` độc lập:
+Suppose each record has independent `name` and `id`:
 
 ```java
 record Item(long id, String name) {}
 
-// Một ví dụ về comparator chỉ xét tên:
+// An example of a name-only comparator:
 Comparator<Item> byName = Comparator.comparing(Item::name);
 ```
 
-Đây là **đoạn minh họa cần đặt trong lớp/phương thức thích hợp**; `record Item` có thể khai báo bên ngoài hoặc trong phạm vi cục bộ hợp lệ. Hai `Item` với ID khác nhau nhưng cùng `name` có `byName.compare(a,b) == 0`, nên `TreeSet<>(byName)` sẽ chỉ giữ một đại diện nếu cả hai được thêm vào. Điều đó đúng nếu tên là khóa phân biệt theo nghiệp vụ, nhưng **sai** nếu bản ghi có ID khác nhau vẫn cần giữ cả hai.
+This is an **illustrative snippet to be placed in an appropriate class/method**; `record Item` can be declared outside or in a valid local scope. Two `Item`s with different IDs yet the same `name` have `byName.compare(a,b) == 0`, so `TreeSet<>(byName)` will keep only one representative if both are added. That is right if name is the business distinguishing key, yet **wrong** if records with different IDs must both be kept.
 
-Nếu muốn **sắp xếp theo tên nhưng giữ tất cả bản ghi**, dùng một `List<Item>` và `sort(byName)`. Nếu muốn mỗi ID duy nhất trong `TreeSet` và thứ tự trước hết theo tên, có thể dùng comparator thêm tiêu chí phá hòa (*tie-breaker*) phù hợp:
+If you want to **sort by name while keeping all records**, use a `List<Item>` and `sort(byName)`. If you want each ID unique in `TreeSet` ordered primarily by name, you can use a comparator with an appropriate *tie-breaker*:
 
 ```java
 Comparator<Item> byNameThenId = Comparator
@@ -220,67 +220,67 @@ Comparator<Item> byNameThenId = Comparator
         .thenComparingLong(Item::id);
 ```
 
-Khi `id` duy nhất và cùng xác định tính bằng nhau, comparator này tránh gộp hai bản ghi chỉ vì trùng tên. Tuy nhiên, nếu `equals` của lớp sử dụng quy tắc khác thì vẫn phải kiểm tra tính nhất quán; thêm `id` không tự động giải quyết mọi mô hình.
+When `id` is unique and also determines equality, this comparator avoids merging two records merely because their names match. However, if the class's `equals` uses another rule, consistency must still be checked; adding `id` does not automatically solve every model.
 
-## 6. Khi nào dùng `Stream.distinct()`, và cần nhớ điều gì?
+## 6. When to use `Stream.distinct()`, and what to remember?
 
-`Stream.distinct()` trả về các phần tử phân biệt theo **`Object.equals`**, không nhận một comparator để định nghĩa cách gộp nhóm. Với stream có encounter order (như `List.stream()`), nó giữ phần tử xuất hiện **đầu tiên** trong mỗi nhóm theo `equals`. Sau đó có thể sắp xếp:
+`Stream.distinct()` returns elements distinct according to **`Object.equals`**, and does not accept a comparator to define grouping. For a stream with encounter order (such as `List.stream()`), it retains the **first** appearing element in each `equals`-group. Afterward you can sort:
 
 ```java
-// Giữ một bản cho mỗi giá trị equals tương đương, rồi sắp xếp:
+// Keep one copy per equals-equivalent value, then sort:
 List<String> result = source.stream()
         .distinct()
         .sorted()
         .toList();
 ```
 
-Đây là chuỗi thao tác dễ hiểu khi quy tắc loại trùng là `equals` và tiêu chí sắp xếp là thứ tự tự nhiên. Tuy nhiên:
+This is an easy-to-understand pipeline when the deduplication rule is `equals` and the sort criterion is natural ordering. However:
 
-- `distinct()` **không loại trùng theo comparator tùy chọn**. Với `"Java"` và `"java"`, `distinct()` coi đó là hai chuỗi khác nhau vì `String.equals` phân biệt hoa/thường.
-- `sorted(comparator).distinct()` vẫn loại theo `equals`, **không đổi sang quy tắc comparator trả `0`**. Thứ tự hai thao tác có thể ảnh hưởng đại diện/encounter order trong các trường hợp khác nhau; hãy xác định ngữ nghĩa trước.
-- Nếu cần loại trùng **theo một khóa nghiệp vụ**, có thể nhóm theo khóa trong `Map`, hoặc dùng comparator phù hợp trong `TreeSet`, nhưng phải xác định rõ đại diện nào được giữ. Không giả định một API ngẫu nhiên chọn “bản mới nhất” hay “bản tốt nhất”.
-- Với stream song song có thứ tự, `distinct` có thể đòi hỏi xử lý trạng thái và chi phí đáng kể; hiệu năng không quan trọng bằng tính đúng của quy tắc loại trùng.
+- `distinct()` **does not deduplicate by an arbitrary comparator**. For `"Java"` and `"java"`, `distinct()` treats them as two different strings because `String.equals` is case-sensitive.
+- `sorted(comparator).distinct()` still deduplicates by `equals`, **not switching to the comparator-returns-`0` rule**. The order of those two operations can affect the representative/encounter order in different cases; define semantics first.
+- If deduplication **by a business key** is needed, you can group by key in a `Map`, or use an appropriate comparator in `TreeSet`, though you must clearly specify which representative is kept. Do not assume an API randomly picks “the newest copy” or “the best copy”.
+- For ordered parallel streams, `distinct` can require stateful processing and considerable cost; performance matters less than correctness of the deduplication rule.
 
-`distinct()` cũng dựa trên `equals`/`hashCode` đúng hợp đồng. Nếu lớp tự viết cài đặt `equals` theo giá trị mà quên `hashCode`, kết quả loại trùng dựa trên hash có thể sai. Với `TreeSet`, vấn đề tương ứng là `compareTo`/`Comparator` phải biểu diễn đúng tính tương đương mong muốn.
+`distinct()` also relies on a contract-compliant `equals`/`hashCode`. If a custom class implements value-based `equals` yet forgets `hashCode`, hash-based deduplication can yield wrong results. For `TreeSet`, the corresponding requirement is that `compareTo`/`Comparator` must express the desired equivalence properly.
 
-## 7. Nếu cần cả thứ tự và số lượng của các giá trị lặp
+## 7. If you need both ordering and counts of duplicate values
 
-Không nhất thiết phải chọn giữa “mất các bản sao” và “không sắp xếp”. Có nhiều mô hình phù hợp:
+You do not necessarily have to choose between “losing duplicates” and “not sorting”. Several suitable patterns exist:
 
-| Nhu cầu | Công cụ | Điều cần nhớ |
+| Need | Tool | What to remember |
 | --- | --- | --- |
-| Sắp xếp và giữ toàn bộ bản ghi | `ArrayList.sort`, `List.sort`, `Stream.sorted` | Có thể có nhiều phần tử bằng nhau |
-| Giữ một đại diện mỗi nhóm so sánh và duy trì thứ tự | `TreeSet` | Trùng do comparator trả `0` |
-| Loại trùng theo `equals`, sau đó sắp | `stream().distinct().sorted(...)` | Quy tắc loại trùng của `distinct` không phải comparator |
-| Đếm tần suất theo khóa có thứ tự | `TreeMap<K,Integer>` cộng dồn | Dữ liệu đếm giữ tổng lần xuất hiện |
-| Đếm tần suất theo `equals` rồi trình bày theo thứ tự riêng | `HashMap<K,Integer>` rồi sắp các entry | Quy tắc đếm và quy tắc trình bày có thể khác nhau |
-| Loại trùng mà vẫn giữ thứ tự xuất hiện đầu tiên | `LinkedHashSet` hoặc ordered `Stream.distinct` | Thứ tự đầu vào, không phải thứ tự đã sắp |
+| Sort and keep every record | `ArrayList.sort`, `List.sort`, `Stream.sorted` | Multiple equal elements can be present |
+| Keep one representative per comparison group and maintain order | `TreeSet` | Duplicates when comparator returns `0` |
+| Deduplicate by `equals`, then sort | `stream().distinct().sorted(...)` | `distinct`'s deduplication rule is not the comparator |
+| Count frequencies by ordered key | `TreeMap<K,Integer>` accumulating | Count data preserves total occurrences |
+| Count frequencies by `equals` then present in a separate order | `HashMap<K,Integer>` then sort entries | Counting rule and display rule can differ |
+| Deduplicate while preserving first-seen order | `LinkedHashSet` or ordered `Stream.distinct` | Input order, not sorted order |
 
-`TreeMap` cũng dùng comparator/ `compareTo` để xác định **khóa tương đương**. Nếu comparator gộp hai chuỗi khác nhau, `merge` vào `TreeMap` sẽ cộng số lần của cùng một nhóm comparator, không còn đếm từng giá trị `equals` riêng biệt. Đây có thể là chủ đích của báo cáo không phân biệt chữ hoa/thường; nếu không, nó là lỗi phân nhóm.
+`TreeMap` also uses comparator/`compareTo` to identify **equivalent keys**. If a comparator merges two different strings, `merge` into `TreeMap` will sum counts of the same comparator group, no longer counting each distinct `equals` value separately. That may be intentional for a case-insensitive report; otherwise, it is a grouping bug.
 
-Nếu yêu cầu là **multiset có thứ tự** (giữ nhiều bản sao của mỗi phần tử), Java Collections Framework không có lớp `TreeMultiset` chuẩn sẵn. Một `TreeMap<K,Integer>` lưu bộ đếm là cách triển khai đơn giản; muốn giữ từng bản ghi chi tiết, `List` đã sắp xếp thường phù hợp hơn. `PriorityQueue` có thể giữ giá trị lặp và lấy phần tử ưu tiên bằng `poll`, nhưng **việc duyệt iterator của queue không được bảo đảm là theo thứ tự sắp xếp**, nên không thay thế trực tiếp danh sách được sắp.
+If an **ordered multiset** (retaining multiple copies of each element) is required, the Java Collections Framework has no built-in standard `TreeMultiset` class. A `TreeMap<K,Integer>` storing counts is a simple implementation; to keep each detailed record, a sorted `List` is usually more suitable. `PriorityQueue` can hold duplicate values and retrieve the priority element with `poll`, yet **iterator traversal of the queue is not guaranteed to be in sorted order**, so it does not directly replace a sorted list.
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common misconceptions
 
-1. **“`TreeSet` chỉ sắp xếp, không xóa dữ liệu.”** Sai. Nó có ngữ nghĩa set, loại phần tử tương đương theo comparator.
-2. **“`List.sort` tự loại bản ghi trùng.”** Sai. List vẫn giữ đủ số lần xuất hiện.
-3. **“`TreeSet` luôn dùng `equals` để phát hiện trùng.”** Sai. `compareTo == 0` hoặc `Comparator.compare == 0` mới là điều kiện xác định cùng phần tử theo thứ tự.
-4. **“`TreeSet` trùng với `HashSet` về kết quả.”** Không chắc. `HashSet` dùng `equals`/`hashCode`; `TreeSet` dùng so sánh thứ tự.
-5. **“`sorted(comparator).distinct()` loại trùng theo comparator.”** Sai. `distinct` vẫn dùng `equals`.
-6. **“Comparator chỉ so tên vẫn giữ mọi người có tên giống nhau.”** Sai nếu cho vào `TreeSet`, vì compare `0` sẽ gộp nhóm.
-7. **“Có thể tự do thay đổi trường sắp xếp sau khi thêm vào `TreeSet`.”** Không an toàn. Cấu trúc cây phụ thuộc thứ tự; thay đổi trường tham gia comparator/`compareTo` khi phần tử đang nằm trong set có thể làm tra cứu, xóa, duyệt sai kỳ vọng.
-8. **“Có thể dùng `Set` để đếm số lần xuất hiện.”** `Set` chỉ lưu một đại diện mỗi nhóm; để biết tần suất phải đếm riêng hoặc dùng `Map<K,Integer>`.
-9. **“Hash bằng nhau nghĩa là `TreeSet` gộp phần tử.”** Không. `TreeSet` không dùng mã băm để phân biệt phần tử.
-10. **“Comparator trả `0` chỉ là hai phần tử đứng gần nhau.”** Trong `TreeSet`, `0` còn có nghĩa chúng **không thể cùng tồn tại như hai entry riêng biệt**.
+1. **“`TreeSet` only sorts, it does not delete data.”** False. It has set semantics, eliminating elements equivalent under the comparator.
+2. **“`List.sort` automatically drops duplicate records.”** False. A list retains all occurrences.
+3. **“`TreeSet` always uses `equals` to detect duplicates.”** False. `compareTo == 0` or `Comparator.compare == 0` is the condition defining the same element by order.
+4. **“`TreeSet` matches `HashSet` in results.”** Not necessarily. `HashSet` uses `equals`/`hashCode`; `TreeSet` uses ordering comparison.
+5. **“`sorted(comparator).distinct()` deduplicates by the comparator.”** False. `distinct` still uses `equals`.
+6. **“A name-only comparator still keeps everyone with the same name.”** False if placed into a `TreeSet`, because comparing as `0` merges the group.
+7. **“You can freely mutate sort fields after adding to `TreeSet`.”** Unsafe. The tree structure depends on ordering; mutating fields participating in comparator/`compareTo` while an element is in the set can break lookup, removal, and traversal expectations.
+8. **“You can use `Set` to count occurrences.”** `Set` stores only one representative per group; to track frequencies, count separately or use `Map<K,Integer>`.
+9. **“Equal hashes mean `TreeSet` merges elements.”** No. `TreeSet` does not use hash codes to distinguish elements.
+10. **“Comparator returning `0` just means two elements sit next to each other.”** In `TreeSet`, `0` also means they **cannot coexist as two separate entries**.
 
-## 9. Checklist trước khi chọn cấu trúc dữ liệu
+## 9. Checklist before choosing a data structure
 
-- **Dữ liệu lặp có ý nghĩa không?** Nếu có, tránh dùng `Set` làm bước sắp xếp mặc định.
-- **Quy tắc nào xác định trùng?** `equals`, khóa ID nghiệp vụ, hay comparator (ví dụ không phân biệt hoa/thường)?
-- **Một nhóm trùng cần giữ bản đại diện nào?** Bản đầu tiên, bản mới nhất, bản có mức ưu tiên cao nhất hay tổng tần suất?
-- **Cần thứ tự khi nào?** Ngay khi thêm phần tử (`TreeSet`, `TreeMap`) hay chỉ khi xuất kết quả (`List.sort`)?
-- **Lớp tự viết có nhất quán giữa `equals` và `compareTo` không?** Nếu không, phải hiểu rõ khác biệt giữa `HashSet` và `TreeSet`.
-- **Các trường quyết định thứ tự có bất biến không?** Một phần tử trong `TreeSet` không nên bị sửa làm thay đổi vị trí logic của nó.
-- **Sau khi xử lý, số phần tử phải bằng số đầu vào hay số nhóm duy nhất?** Đây là kiểm tra nhanh giúp phát hiện thao tác loại trùng ngoài ý muốn.
+- **Do duplicate records matter?** If yes, avoid using `Set` as a default sorting step.
+- **Which rule defines duplicates?** `equals`, business ID key, or a comparator (e.g., case-insensitive)?
+- **Which representative should a duplicate group keep?** First copy, newest copy, highest-priority copy, or total frequency?
+- **When is ordering needed?** Immediately upon inserting elements (`TreeSet`, `TreeMap`) or only when outputting results (`List.sort`)?
+- **Is your custom class consistent between `equals` and `compareTo`?** If not, clearly understand the difference between `HashSet` and `TreeSet`.
+- **Are fields determining order immutable?** An element inside `TreeSet` must not be mutated in a way that alters its logical position.
+- **After processing, should element count equal input count or unique group count?** This is a quick check that helps catch unintended deduplication.
 
-**Ghi nhớ:** **Sắp xếp** không đồng nghĩa **loại trùng**. Dùng `List.sort`/`Stream.sorted` khi cần giữ tất cả phần tử và chỉ thay đổi thứ tự; dùng `TreeSet` khi thật sự cần tập phần tử duy nhất **theo quan hệ so sánh**; dùng `TreeMap<K,Integer>` khi cần giữ tần suất theo khóa đã sắp xếp. Trước khi đưa đối tượng vào `TreeSet`, luôn kiểm tra `compare(a,b) == 0` có đúng là tiêu chí “trùng” mà nghiệp vụ mong muốn hay không.
+**Takeaway:** **Sorting** is not synonymous with **deduplicating**. Use `List.sort`/`Stream.sorted` when all elements must be preserved and only order changes; use `TreeSet` when you genuinely need a set of unique elements **under the comparison relation**; use `TreeMap<K,Integer>` when you need frequencies by sorted key. Before putting objects into `TreeSet`, always check whether `compare(a,b) == 0` is truly the “duplicate” criterion business logic intends.

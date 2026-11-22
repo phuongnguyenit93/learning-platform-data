@@ -1,41 +1,41 @@
-# Chọn `String` hay `CharSequence` cho tham số API Java
+# Choosing `String` or `CharSequence` for Java API Parameters
 
-## 1. Nguyên tắc: chọn theo hợp đồng mà phương thức cần
+## 1. Principle: choose according to the contract the method needs
 
-Java có hai cách quen thuộc để mô tả tham số văn bản: `String` là một lớp cụ thể, nội dung **bất biến**; `CharSequence` là một **interface** mô tả dãy ký tự có thể đọc. `String implements CharSequence`, nên bất kỳ đối tượng `String` nào cũng có thể truyền cho tham số `CharSequence`.
+Java has two familiar ways to describe a text parameter: `String` is a concrete class whose content is **immutable**; `CharSequence` is an **interface** describing a readable sequence of characters. `String implements CharSequence`, so any `String` object can be passed to a `CharSequence` parameter.
 
-**Nên dùng `CharSequence`** khi phương thức chỉ cần duyệt, đếm hoặc phân tích các ký tự và có thể làm đúng với nhiều loại nguồn như `String`, `StringBuilder`, `StringBuffer`, `CharBuffer`. **Nên dùng `String`** khi phương thức thật sự cần một giá trị bất biến, API bên trong yêu cầu `String`, cần lưu trạng thái lâu dài hoặc dùng nhiều thao tác riêng của lớp `String`.
+**Use `CharSequence`** when the method only needs to iterate, count, or analyze characters and can work properly with multiple source types such as `String`, `StringBuilder`, `StringBuffer`, and `CharBuffer`. **Use `String`** when the method truly needs an immutable value, internal APIs require `String`, long-term state storage is needed, or many `String`-specific operations are used.
 
-Ví dụ ý định hai API:
+Example of the intent behind two APIs:
 
 ```java
-// Chỉ đọc ký tự ngay trong lời gọi:
+// Read characters only during the call:
 int countAsciiDigits(CharSequence text);
 
-// Lưu lại nhãn ở dạng giá trị bất biến:
+// Store the label as an immutable value:
 void setPermanentLabel(String label);
 ```
 
-Đây là các chữ ký minh họa, không phải chương trình độc lập. Quyết định nằm ở **ngữ nghĩa sử dụng**, không đơn thuần là chọn kiểu tổng quát nhất. `CharSequence` không hứa bất biến, không tự mang lại an toàn đa luồng và cũng không mặc nhiên tránh việc sao chép dữ liệu.
+These are illustrative signatures, not a standalone program. The decision lies in **usage semantics**, not simply picking the most general type. `CharSequence` does not promise immutability, does not automatically provide thread safety, and does not implicitly avoid copying data.
 
-## 2. So sánh đặc điểm quan trọng
+## 2. Comparison of key characteristics
 
-| Tiêu chí | `String` | `CharSequence` |
+| Criterion | `String` | `CharSequence` |
 | --- | --- | --- |
-| Loại | Lớp `final` cụ thể. | Interface cho dãy ký tự. |
-| Dữ liệu đầu vào | Giá trị `String` (hoặc `null` nếu API cho phép). | `String`, `StringBuilder`, `StringBuffer`, `CharBuffer`, triển khai riêng. |
-| Bất biến | Nội dung đối tượng `String` không thay đổi. | **Không bảo đảm**: đối tượng thực tế có thể mutable. |
-| Thao tác chung | `length()`, `charAt()`, `subSequence()`, `toString()`. | Các thao tác trên cùng, cùng `chars()`, `codePoints()` trong Java hiện đại. |
-| Thao tác riêng của `String` | `strip()`, `startsWith()`, `substring()`, `replace()`, `split()`, ... | Không có trong hợp đồng của interface. |
-| So sánh giá trị | `String.equals`/`hashCode` nhất quán theo nội dung với `String`. | Interface không áp đặt mọi triển khai `equals`/`hashCode` phải theo nội dung. |
-| Lưu giá trị về sau | Phù hợp nhờ tính bất biến. | Phải xem xét biến đổi của nguồn, thường chụp `String` trước khi lưu. |
-| Chi phí | Đã là `String`; không cần ép kiểu trước khi gọi API cần `String`. | Có thể đọc trực tiếp nhiều nguồn, nhưng đôi khi cần `toString()` và cấp phát. |
+| Kind | Concrete `final` class. | Interface for a character sequence. |
+| Input data | `String` value (or `null` if the API allows). | `String`, `StringBuilder`, `StringBuffer`, `CharBuffer`, custom implementations. |
+| Immutability | The content of a `String` object does not change. | **Not guaranteed**: the actual object may be mutable. |
+| Common operations | `length()`, `charAt()`, `subSequence()`, `toString()`. | The same operations above, along with `chars()` and `codePoints()` in modern Java. |
+| `String`-specific operations | `strip()`, `startsWith()`, `substring()`, `replace()`, `split()`, ... | Not part of the interface contract. |
+| Value comparison | `String.equals`/`hashCode` are content-consistent with `String`. | The interface does not enforce that every implementation's `equals`/`hashCode` is content-based. |
+| Storing the value for later | Suitable thanks to immutability. | Must consider source mutation; usually capture a `String` before storing. |
+| Cost | Already a `String`; no conversion needed before calling APIs requiring `String`. | Can read multiple sources directly, though sometimes requires `toString()` and allocation. |
 
-**Lưu ý:** Biến có kiểu `String` vẫn có thể được gán tham chiếu tới một `String` khác; chính **nội dung của từng đối tượng `String`** mới bất biến. Ngoài ra, tham số kiểu `CharSequence` không làm cho nguồn `StringBuilder` trở thành chỉ đọc đối với các phần mã khác vẫn giữ tham chiếu tới nó.
+**Note:** A variable of type `String` can still be reassigned a reference to another `String`; it is the **content of each `String` object** that is immutable. Furthermore, a `CharSequence` parameter does not make a `StringBuilder` source read-only for other parts of code that still hold a reference to it.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh
+## 3. Complete Java 17+ example
 
-Tạo file `CharSequenceApiDemo.java`:
+Create the file `CharSequenceApiDemo.java`:
 
 ```java
 import java.nio.CharBuffer;
@@ -43,7 +43,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 public class CharSequenceApiDemo {
-    // Phương thức chỉ cần đọc dãy ký tự theo interface.
+    // Method only needs to read the character sequence via the interface.
     static int countAsciiDigits(CharSequence text) {
         Objects.requireNonNull(text, "text");
         int count = 0;
@@ -56,7 +56,7 @@ public class CharSequenceApiDemo {
         return count;
     }
 
-    // Chuyển sang String khi cần một giá trị ổn định để xử lý.
+    // Convert to String when a stable value is needed for processing.
     static String normalizedCode(CharSequence text) {
         String stable = Objects.requireNonNull(text, "text").toString();
         return stable.strip().toUpperCase(Locale.ROOT);
@@ -84,14 +84,14 @@ public class CharSequenceApiDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac CharSequenceApiDemo.java
 java CharSequenceApiDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 String: 1
@@ -103,13 +103,13 @@ Content equals: true
 Object equals: false
 ```
 
-`countAsciiDigits` nhận ba kiểu văn bản và chỉ đọc `length()`, `charAt()`. `normalizedCode` chụp dữ liệu thành `String` trước khi gọi `strip()` và `toUpperCase(Locale.ROOT)`; chuỗi `captured` giữ nguyên `"X2"` dù bên gọi sửa `StringBuilder` thành `"x29"` sau đó. Đây là minh họa khác biệt giữa **nhận tham số rộng** và **giữ giá trị bất biến**.
+`countAsciiDigits` accepts three text types and only reads `length()` and `charAt()`. `normalizedCode` captures the data as a `String` before calling `strip()` and `toUpperCase(Locale.ROOT)`; the `captured` string remains `"X2"` even though the caller modifies `StringBuilder` to `"x29"` afterward. This illustrates the difference between **accepting a broad parameter** and **retaining an immutable value**.
 
-## 4. Trường hợp `CharSequence` thích hợp hơn
+## 4. When `CharSequence` is more appropriate
 
-Một phương thức **xử lý đồng bộ ngay trong lời gọi**, chỉ dùng `length()`, `charAt()` và `subSequence()` để đọc, thường có thể nhận `CharSequence`. API linh hoạt hơn cho người gọi đang giữ dữ liệu trong `StringBuilder` hoặc `CharBuffer`.
+A method that **processes synchronously during the call**, using only `length()`, `charAt()`, and `subSequence()` for reading, can often accept `CharSequence`. The API is more flexible for callers holding data in a `StringBuilder` or `CharBuffer`.
 
-Chẳng hạn:
+For example:
 
 ```java
 static boolean containsAtSign(CharSequence input) {
@@ -123,25 +123,25 @@ static boolean containsAtSign(CharSequence input) {
 }
 ```
 
-Đây là một hàm **minh họa**, không phải file chạy độc lập, và kiểm tra dấu `@` không đồng nghĩa xác thực email. Kiểu `CharSequence` nói đúng điều thuật toán cần: đọc từng đơn vị ký tự.
+This is an **illustrative** function, not a standalone runnable file, and checking for an `@` sign is not equivalent to email validation. The `CharSequence` type expresses exactly what the algorithm needs: reading each character unit.
 
-Các API có sẵn của Java cũng thể hiện cách thiết kế này: `Pattern.matcher(CharSequence)` chấp nhận nguồn đầu vào trừu tượng để khớp regex; `Appendable.append(CharSequence)` chấp nhận dữ liệu văn bản tổng quát. Không nhất thiết mọi thao tác văn bản đều phải yêu cầu `String`.
+Built-in Java APIs also reflect this design approach: `Pattern.matcher(CharSequence)` accepts an abstract input source for regex matching; `Appendable.append(CharSequence)` accepts general text data. Not every text operation needs to require `String`.
 
-**Giới hạn cần nói rõ:** Nếu `StringBuilder` bị một luồng khác sửa đồng thời lúc hàm gọi `length()` hoặc `charAt()`, kết quả có thể không nhất quán; thậm chí có thể gặp lỗi chỉ số nếu độ dài đổi. Interface này **không cung cấp** cơ chế đồng bộ. Hợp đồng của API cần yêu cầu caller không sửa trong khi đọc, đồng bộ phù hợp, hoặc snapshot thành `String`.
+**Limitation to state clearly:** If a `StringBuilder` is modified concurrently by another thread while the function calls `length()` or `charAt()`, the result may be inconsistent; an index error may even occur if the length changes. This interface **does not provide** a synchronization mechanism. The API contract must require the caller not to modify during reading, synchronize appropriately, or snapshot to a `String`.
 
-Việc nhận `CharSequence` cũng không tự động làm code hiệu quả hơn. Một `CharBuffer` có `position`/`limit` thay đổi vùng quan sát, các triển khai có chi phí đọc khác nhau, và thuật toán phụ thuộc `String` có thể phải gọi `toString()` về sau.
+Accepting `CharSequence` also does not automatically make code more efficient. A `CharBuffer` has `position`/`limit` changing the observed region, different implementations have different read costs, and algorithms that depend on `String` may have to call `toString()` later.
 
-## 5. Trường hợp `String` thích hợp hơn
+## 5. When `String` is more appropriate
 
-Nên chọn `String` nếu:
+Choose `String` if:
 
-- **Lưu lâu dài:** lưu trường thành viên, cache, hàng đợi, job bất đồng bộ hoặc kết quả mà caller có thể giữ sau khi lời gọi kết thúc.
-- **Giá trị phải ổn định:** validation, hashing và xử lý nghiệp vụ về sau phải dựa trên cùng nội dung đã nhận.
-- **Dùng phương thức riêng `String`:** `strip()`, `replace()`, `split()`, `startsWith()` hoặc chuyển tiếp đến thư viện yêu cầu `String`.
-- **So sánh hoặc lưu khóa theo nội dung:** `String.equals`, `hashCode` và tính bất biến của `String` giúp giá trị khóa có hành vi ổn định.
-- **Hợp đồng public có chủ đích hẹp:** API chỉ hỗ trợ một giá trị text đã chuẩn hóa thành `String`, hoặc cần giữ tương thích phiên bản cũ.
+- **Long-term storage:** storing in member fields, caches, queues, asynchronous jobs, or results that the caller may hold after the call finishes.
+- **Value must remain stable:** validation, hashing, and subsequent business processing must rely on the exact same content received.
+- **Using `String`-specific methods:** `strip()`, `replace()`, `split()`, `startsWith()`, or forwarding to a library that requires `String`.
+- **Comparing or storing content-based keys:** `String.equals`, `hashCode`, and `String` immutability give key values stable behavior.
+- **Intentionally narrow public contract:** the API only supports a text value normalized to `String`, or needs to preserve backward compatibility with older versions.
 
-Thậm chí có thể nhận `CharSequence` ở ranh giới công khai rồi chụp thành `String` ngay khi cần lưu:
+You can even accept `CharSequence` at the public boundary and capture it as a `String` immediately when storage is needed:
 
 ```java
 import java.util.Objects;
@@ -159,13 +159,13 @@ final class Label {
 }
 ```
 
-Đây là **đoạn minh họa một lớp**, không phải chương trình `main` độc lập. Sau khi constructor nhận `StringBuilder`, đối tượng `Label` giữ một giá trị `String` ổn định, không thay đổi theo `StringBuilder` nguồn. Nếu chỉ muốn cho phép `String` ngay từ đầu, khai báo tham số `String` cũng là thiết kế hợp lệ.
+This is a **single-class illustration**, not a standalone `main` program. After the constructor receives a `StringBuilder`, the `Label` object holds a stable `String` value that does not change with the source `StringBuilder`. If you only want to allow `String` from the start, declaring a `String` parameter is also a valid design.
 
-Nếu vừa **kiểm tra dữ liệu rồi lưu**, nên chụp `String` trước, kiểm tra trên **chính bản đã chụp** và lưu đúng bản đó. Cách kiểm tra trực tiếp một `CharSequence` mutable rồi về sau chụp/lưu có thể khiến giá trị đã kiểm tra khác giá trị được dùng.
+If you both **validate data and store it**, capture a `String` first, validate **that exact captured copy**, and store that same copy. Validating a mutable `CharSequence` directly and capturing/storing later can cause the validated value to differ from the value actually used.
 
-## 6. Quy tắc ownership khi dùng \`CharSequence\`
+## 6. Ownership rules when using \`CharSequence\`
 
-\`CharSequence\` cho phép API đọc nhiều loại nguồn, nhưng không biến \`StringBuilder\` thành bất biến. Nếu chỉ đọc ngay trong lời gọi, tài liệu hóa yêu cầu nguồn không bị thay đổi đồng thời. Nếu cần giữ giá trị cho cache, hàng đợi hoặc xử lý bất đồng bộ, hãy **snapshot một lần** khi nhận:
+\`CharSequence\` allows an API to read multiple source types, but it does not make \`StringBuilder\` immutable. If reading only immediately within the call, document the requirement that the source is not modified concurrently. If you need to keep the value for a cache, queue, or asynchronous processing, **snapshot it once** upon receipt:
 
 ~~~java
 final class Label {
@@ -180,11 +180,11 @@ final class Label {
 }
 ~~~
 
-Bản \`String\` đã chụp không đổi sau khi bên gọi sửa nguồn. Tuy nhiên việc gọi \`toString()\` trong khi một nguồn mutable **đang bị sửa đồng thời** không mặc nhiên là snapshot nguyên tử; cần thỏa thuận chuyển giao quyền sở hữu hoặc đồng bộ hóa. \`subSequence()\` cũng có thể là view chia sẻ dữ liệu tùy triển khai. Khi API trả view, phải công bố vòng đời và cơ chế cập nhật.
+The captured \`String\` copy does not change after the caller modifies the source. However, calling \`toString()\` while a mutable source **is being modified concurrently** is not implicitly an atomic snapshot; an ownership handoff agreement or synchronization is required. \`subSequence()\` may also be a data-sharing view depending on the implementation. When an API returns a view, it must publish its lifecycle and update mechanism.
 
-## 7. So sánh nội dung cần ngữ nghĩa được chỉ định
+## 7. Content comparison requires specified semantics
 
-\`String.equals(Object)\` so sánh nội dung với \`String\`, nhưng các implementation của \`CharSequence\` không có quy tắc \`equals/hashCode\` thống nhất. Khi chỉ muốn so sánh văn bản hiện tại:
+\`String.equals(Object)\` compares content against a \`String\`, but \`CharSequence\` implementations do not have a unified \`equals/hashCode\` rule. When you only want to compare the current text:
 
 ~~~java
 CharSequence candidate = new StringBuilder("key");
@@ -192,17 +192,17 @@ System.out.println("key".contentEquals(candidate)); // true
 System.out.println("key".equals(candidate));        // false
 ~~~
 
-Với khóa lưu dài hạn, dùng \`String\` snapshot và \`Map<String, ...>\` khi nghiệp vụ muốn equality theo văn bản. Không giả định \`HashMap<CharSequence, ...>\` sẽ gộp các kiểu nguồn cùng ký tự hoặc bảo đảm khóa ổn định. Phân tích chi tiết \`StringBuilder\`, \`StringBuffer\`, \`CharBuffer\` và \`subSequence\` thuộc bài chuyên sâu ngay sau bài chọn kiểu tham số.
+For long-term stored keys, use a \`String\` snapshot and \`Map<String, ...>\` when business logic requires text-based equality. Do not assume \`HashMap<CharSequence, ...>\` will merge source types with the same characters or guarantee stable keys. Detailed analysis of \`StringBuilder\`, \`StringBuffer\`, \`CharBuffer\`, and \`subSequence\` belongs to the deep-dive article immediately following this parameter-type selection article.
 
-## 8. Unicode và đơn vị đếm ký tự
+## 8. Unicode and character counting units
 
-`String` và `CharSequence` trong Java chủ yếu biểu diễn dãy **đơn vị mã UTF-16**:
+`String` and `CharSequence` in Java primarily represent sequences of **UTF-16 code units**:
 
-- `length()` đếm số đơn vị UTF-16, không nhất thiết là số Unicode code point.
-- `charAt(i)` trả một `char` 16-bit; code point nằm ngoài BMP có thể cần một **cặp surrogate** và chiếm hai vị trí.
-- `codePoints()` có thể duyệt các code point, nhưng “ký tự” người dùng nhìn thấy (*grapheme cluster*) có thể gồm nhiều code point kết hợp.
+- `length()` counts the number of UTF-16 code units, not necessarily the number of Unicode code points.
+- `charAt(i)` returns a 16-bit `char`; code points outside the BMP may require a **surrogate pair** and occupy two positions.
+- `codePoints()` can iterate over code points, but a user-perceived "character" (*grapheme cluster*) may consist of multiple combining code points.
 
-Ví dụ Java trong một phương thức:
+Java example inside a method:
 
 ```java
 String emoji = "😀";
@@ -210,25 +210,25 @@ System.out.println(emoji.length()); // 2
 System.out.println(emoji.codePointCount(0, emoji.length())); // 1
 ```
 
-Nếu API cần đếm “10 ký tự người dùng nhìn thấy”, cả `String.length()` lẫn `CharSequence.length()` đều chưa đủ cho mọi Unicode; cần thuật toán hoặc thư viện phân đoạn grapheme phù hợp. Việc chọn `String` hay `CharSequence` không tự quyết định đơn vị đếm cho nghiệp vụ.
+If an API needs to count "10 user-perceived characters", neither `String.length()` nor `CharSequence.length()` is sufficient for all Unicode; an appropriate grapheme segmentation algorithm or library is needed. Choosing `String` or `CharSequence` does not by itself determine the counting unit for business logic.
 
-## 9. Tương thích khi sửa chữ ký API đã phát hành
+## 9. Compatibility when changing a published API signature
 
-Giả sử thư viện hiện có:
+Suppose an existing library has:
 
 ```java
 public void submit(String text) {
-    // Logic đang tồn tại.
+    // Existing logic.
 }
 ```
 
-Đổi thẳng thành `submit(CharSequence text)` có thể vẫn cho phép **mã nguồn gọi bằng `String`** biên dịch lại vì `String implements CharSequence`. Nhưng chữ ký ở mức **JVM bytecode descriptor** thay đổi: chương trình đã biên dịch trước đó tìm `submit(String)` có thể không chạy với phiên bản thư viện chỉ còn `submit(CharSequence)` và gặp `NoSuchMethodError`.
+Changing it directly to `submit(CharSequence text)` may still allow **source code calling with `String`** to recompile because `String implements CharSequence`. However, the signature at the **JVM bytecode descriptor** level changes: a previously compiled program looking for `submit(String)` may fail to run against a library version that only has `submit(CharSequence)` and encounter `NoSuchMethodError`.
 
-Để xem xét tương thích nhị phân, có thể giữ phương thức cũ và **thêm overload**:
+To consider binary compatibility, you can keep the old method and **add an overload**:
 
 ```java
 public void submit(String text) {
-    // Giữ hành vi hiện có.
+    // Preserve existing behavior.
 }
 
 public void submit(CharSequence text) {
@@ -236,36 +236,36 @@ public void submit(CharSequence text) {
 }
 ```
 
-Đây là đoạn minh họa trong lớp với `import java.util.Objects;`. Khi có cả hai overload, lời gọi bằng biến có kiểu biên dịch `String` chọn overload `String` do cụ thể hơn. Các overload khác có thể gây mơ hồ hoặc đổi cách phân giải lời gọi; cần thử API từ góc nhìn caller. Thêm overload cũng tăng việc phải duy trì nhất quán hành vi. Nếu API cũ vốn đáp ứng nhu cầu, giữ `String` có thể đơn giản hơn.
+This is an illustrative snippet inside a class with `import java.util.Objects;`. When both overloads exist, a call with a variable of compile-time type `String` selects the `String` overload because it is more specific. Other overloads can cause ambiguity or change call resolution; test the API from the caller's perspective. Adding overloads also increases the burden of maintaining consistent behavior. If the old API already meets requirements, keeping `String` may be simpler.
 
-## 10. Xử lý `null`, hiệu năng và hợp đồng API
+## 10. Handling `null`, performance, and API contracts
 
-**Chính sách `null`:** cả `String` lẫn `CharSequence` là kiểu tham chiếu, nên đều có thể nhận `null`. Chọn rõ trường hợp hợp lệ/không hợp lệ và biểu diễn bằng tài liệu, annotation phù hợp hoặc `Objects.requireNonNull(text, "text")` nếu yêu cầu bắt buộc.
+**`null` policy:** both `String` and `CharSequence` are reference types, so both can receive `null`. Clearly choose valid/invalid cases and express them through documentation, appropriate annotations, or `Objects.requireNonNull(text, "text")` if required.
 
-**Không giả định `toString()` miễn phí:** Với `String`, `toString()` trả chính đối tượng; với `StringBuilder` và các nguồn khác, nó có thể tạo/copy chuỗi mới. Nếu chỉ duyệt ký tự ngắn hạn và nguồn không đổi trong lúc gọi, đọc `CharSequence` trực tiếp có thể tránh chuyển đổi không cần thiết. Nếu tính ổn định quan trọng, tạo snapshot là chi phí có chủ đích.
+**Do not assume `toString()` is free:** For `String`, `toString()` returns the object itself; for `StringBuilder` and other sources, it may create/copy a new string. If only iterating characters short-term and the source does not change during the call, reading `CharSequence` directly can avoid unnecessary conversion. If stability matters, creating a snapshot is an intentional cost.
 
-**Không lưu nguyên tham chiếu mutable khi xử lý bất đồng bộ:** Trước khi đưa dữ liệu vào thread/task/queue cần xác định ai sở hữu nguồn và khi nào nguồn có thể bị sửa. Chụp `String` tại ranh giới nếu cần giữ đúng nội dung đã nhận. Đừng dựa vào việc kiểu tham số `CharSequence` có vẻ chỉ đọc để suy ra thread-safe.
+**Do not store mutable references as-is in asynchronous processing:** Before passing data to a thread/task/queue, determine who owns the source and when the source can be modified. Capture a `String` at the boundary if you need to preserve the exact received content. Do not rely on the `CharSequence` parameter type appearing read-only to infer thread safety.
 
-**Không ràng buộc mọi API vào interface bằng mọi giá:** Một thư viện nên chọn kiểu tham số phản ánh đúng mô hình dữ liệu. Nếu mọi bước của phương thức đều cần `String` và caller đã có `String`, tham số `String` là lựa chọn rõ nghĩa; nếu thuật toán chỉ cần duyệt ký tự của nhiều nguồn, `CharSequence` là lựa chọn tự nhiên.
+**Do not force every API onto an interface at all costs:** A library should choose parameter types that accurately reflect its data model. If every step of the method needs `String` and the caller already has `String`, a `String` parameter is the clear choice; if the algorithm only needs to traverse characters from multiple sources, `CharSequence` is the natural choice.
 
-Một checklist quyết định:
+A decision checklist:
 
-| Câu hỏi | Gợi ý |
+| Question | Suggestion |
 | --- | --- |
-| Chỉ đọc ký tự ngay trong phương thức, không giữ nguồn? | Xem xét `CharSequence`. |
-| Cần nhận trực tiếp `StringBuilder`, `CharBuffer`? | `CharSequence` đem lại tính linh hoạt. |
-| Cần lưu và sử dụng sau? | Dùng `String` hoặc nhận `CharSequence` rồi snapshot. |
-| Cần phương thức chỉ `String` mới có? | Chọn `String` hoặc chuyển đổi ở ranh giới rõ ràng. |
-| Cần khóa theo nội dung? | `String` có equality/hash và tính bất biến phù hợp. |
-| Thay chữ ký public của thư viện? | Xem xét source/binary compatibility trước. |
+| Only reading characters immediately inside the method, without retaining the source? | Consider `CharSequence`. |
+| Need to accept `StringBuilder`, `CharBuffer` directly? | `CharSequence` provides flexibility. |
+| Need to store and use later? | Use `String` or accept `CharSequence` and snapshot it. |
+| Need methods exclusive to `String`? | Choose `String` or convert at a clear boundary. |
+| Need content-based keys? | `String` has suitable equality/hash and immutability. |
+| Changing a library's public signature? | Check source/binary compatibility first. |
 
-## 11. Câu hỏi thực hành
+## 11. Practice questions
 
-1. Vì sao `countAsciiDigits(CharSequence)` nhận được `StringBuilder` mà không cần caller đổi thành `String`? Trong trường hợp nào vẫn phải lưu ý thay đổi đồng thời nguồn?
-2. Sau khi `normalizedCode(builder)` trả `"X2"`, vì sao `builder.append("9")` không sửa `captured`?
-3. Vì sao `String.contentEquals(CharSequence)` có thể cho kết quả khác `String.equals(Object)` với `StringBuilder`?
-4. Khi tạo job bất đồng bộ nhận `CharSequence`, khi nào nên chụp `String` để job xử lý đúng dữ liệu tại thời điểm enqueue?
-5. Nếu đổi `submit(String)` thành `submit(CharSequence)`, vì sao một ứng dụng đã compile với phiên bản cũ có thể lỗi mặc dù lời gọi trong mã nguồn vẫn hợp lệ?
-6. Vì sao `length()` không luôn bằng số Unicode code point hoặc số ký tự người dùng nhìn thấy?
+1. Why can `countAsciiDigits(CharSequence)` accept a `StringBuilder` without requiring the caller to convert it to `String`? In what situation must concurrent source modification still be watched out for?
+2. After `normalizedCode(builder)` returns `"X2"`, why does `builder.append("9")` not modify `captured`?
+3. Why can `String.contentEquals(CharSequence)` yield a different result from `String.equals(Object)` with a `StringBuilder`?
+4. When creating an asynchronous job that accepts `CharSequence`, when should you capture a `String` so the job processes the exact data at enqueue time?
+5. If `submit(String)` is changed to `submit(CharSequence)`, why might an application compiled against the old version fail even though the call in source code remains valid?
+6. Why is `length()` not always equal to the number of Unicode code points or user-perceived characters?
 
-**Kết luận:** Dùng `CharSequence` khi hợp đồng chỉ cần **đọc dãy ký tự** và có lợi khi hỗ trợ nhiều nguồn văn bản. Dùng `String` khi cần **giá trị bất biến, so sánh/lưu trữ ổn định hoặc các API chuyên biệt**. Khi nhận `CharSequence` mà cần giữ lâu, hãy chụp một `String` tại ranh giới phù hợp và xử lý quyền sở hữu, đồng bộ nguồn cho đúng.
+**Conclusion:** Use `CharSequence` when the contract only needs to **read a character sequence** and supporting multiple text sources is beneficial. Use `String` when you need **immutable values, stable comparison/storage, or specialized APIs**. When accepting `CharSequence` and needing to retain it long-term, capture a `String` at an appropriate boundary and handle source ownership and synchronization properly.

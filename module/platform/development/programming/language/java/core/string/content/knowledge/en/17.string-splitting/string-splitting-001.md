@@ -1,53 +1,53 @@
-# `String.split(regex)`: regex là quy tắc tìm dấu phân cách
+# `String.split(regex)`: regex is the rule for finding delimiters
 
-Trong Java, `String.split(...)` tìm **những đoạn khớp biểu thức chính quy (regex)** rồi tách chuỗi tại các đoạn đó. Tham số không nhất thiết là một ký tự phân cách nguyên văn. Vì vậy, `"a.b.c".split(".")` **không** cho `["a", "b", "c"]`: trong regex, `.` là wildcard khớp gần như mọi ký tự.
+In Java, `String.split(...)` finds **substrings matching a regular expression (regex)** and splits the string at those matches. The argument is not necessarily a literal delimiter character. Therefore, `"a.b.c".split(".")` does **not** produce `["a", "b", "c"]`: in regex, `.` is a wildcard that matches almost any character.
 
-Bài này tập trung vào **cách viết regex** và **hai tầng escape của Java**. Các bài tiếp theo khai thác riêng `limit`, phần tử rỗng, zero-width, `Pattern.quote`, stream và dữ liệu CSV.
+This lesson focuses on **how to write regexes** and **Java's two layers of escaping**. Subsequent lessons cover `limit`, empty elements, zero-width matches, `Pattern.quote`, streams, and CSV data separately.
 
-## 1. Hợp đồng của `String.split`
+## 1. The `String.split` contract
 
-Hai overload:
+Two overloads:
 
 ```java
 public String[] split(String regex)
 public String[] split(String regex, int limit)
 ```
 
-Cả hai trả `String[]` gồm những đoạn nằm **giữa các lần regex khớp**; đoạn khớp đóng vai trò dấu phân cách không được giữ thành token riêng. Overload một tham số tương đương `split(regex, 0)`: mặc định bỏ toàn bộ phần tử rỗng **ở cuối**. Nếu cần kiểm soát số phần hoặc giữ trường cuối rỗng, dùng overload có `limit`.
+Both return a `String[]` containing the segments **between regex matches**; the matched segment acting as the delimiter is not kept as a separate token. The one-argument overload is equivalent to `split(regex, 0)`: by default, it discards all **trailing** empty elements. If you need to control the number of parts or preserve trailing empty fields, use the overload with `limit`.
 
 ```java
 String[] colors = "red,green,blue".split(",");
 // ["red", "green", "blue"]
 ```
 
-Dấu phẩy không phải metacharacter của Java regex, nên mẫu `","` cũng là dấu phẩy nguyên văn. Nhưng nhiều ký tự khác mang nghĩa cú pháp:
+A comma is not a Java regex metacharacter, so the pattern `","` is also a literal comma. However, many other characters carry syntactic meaning:
 
-| Mục tiêu | Đối số trong source Java | Regex nhận được |
+| Target | Argument in Java source | Resulting regex |
 | --- | --- | --- |
-| Dấu phẩy literal | `","` | `,` |
-| Dấu chấm literal | `"\\."` | `\.` |
-| Dấu gạch đứng literal | `"\\|"` | `\|` |
-| Một hoặc nhiều whitespace | `"\\s+"` | `\s+` |
-| Dấu phẩy hoặc chấm phẩy | `"[,;]"` | Character class |
-| Một hay nhiều dấu hai chấm | `":+"` | `:+` |
-| Dấu phân cách nguyên văn động | `Pattern.quote(delimiter)` | Khớp chính xác chuỗi cấu hình |
+| Literal comma | `","` | `,` |
+| Literal dot | `"\\."` | `\.` |
+| Literal pipe | `"\\|"` | `\|` |
+| One or more whitespace characters | `"\\s+"` | `\s+` |
+| Comma or semicolon | `"[,;]"` | Character class |
+| One or more colons | `":+"` | `:+` |
+| Dynamic literal delimiter | `Pattern.quote(delimiter)` | Matches the exact configured string |
 
-Các ký hiệu như `.`, `|`, `+`, `*`, `?`, `[ ]`, `( )`, `\` có vai trò đặc biệt ở những ngữ cảnh regex nhất định. Đừng đưa thẳng delimiter nhận từ bên ngoài vào `split` nếu mục tiêu là khớp nguyên văn.
+Symbols such as `.`, `|`, `+`, `*`, `?`, `[ ]`, `( )`, `\` have special roles in certain regex contexts. Do not pass an external delimiter directly into `split` if the goal is a literal match.
 
-## 2. Hai tầng escape của Java
+## 2. Java's two layers of escaping
 
-Để khớp một **dấu chấm thật**, regex engine cần `\.`. Nhưng dấu `\` cũng là ký tự escape trong string literal Java; để chuỗi Java chứa `\` phải viết `\\`. Vậy mã Java cần `split("\\.")`.
+To match a **literal dot**, the regex engine needs `\.`. However, `\` is also the escape character in Java string literals; for a Java string to contain `\`, you must write `\\`. Thus, Java code needs `split("\\.")`.
 
-- `split(".")`: Java hợp lệ, regex khớp nhiều ký tự thường, sai mục tiêu dấu chấm.
-- `split("\\.")`: Java hợp lệ, regex khớp đúng ký tự `.`.
-- `split("\.")`: Java source không hợp lệ vì escape `\.` của literal không tồn tại.
-- `split("\\s+")`: Java truyền regex `\s+`, khớp một hoặc nhiều whitespace tùy chế độ regex.
+- `split(".")`: Valid Java, regex matches most ordinary characters, wrong for matching a dot.
+- `split("\\.")`: Valid Java, regex matches the exact `.` character.
+- `split("\.")`: Invalid Java source because the literal escape `\.` does not exist.
+- `split("\\s+")`: Java passes the regex `\s+`, matching one or more whitespace characters depending on the regex mode.
 
-Lưu ý: Java 15+ có **escape chuỗi literal** `\s` mang nghĩa một dấu cách. Vì vậy viết `split("\s+")` trong Java hiện đại sẽ tạo regex ` +` (một hay nhiều dấu cách) thay vì nhóm whitespace `\s+` mà người viết thường mong đợi.
+Note: Java 15+ has the **string literal escape** `\s`, which means a single space. Therefore, writing `split("\s+")` in modern Java creates the regex ` +` (one or more spaces) instead of the `\s+` whitespace class that writers usually expect.
 
-## 3. Chạy ví dụ để kiểm tra regex
+## 3. Running an example to verify regexes
 
-Lưu `RegexSplitDemo.java` rồi biên dịch bằng JDK 17+:
+Save `RegexSplitDemo.java` and compile with JDK 17+:
 
 ```java
 import java.util.Arrays;
@@ -86,28 +86,28 @@ java RegexSplitDemo
 [left, middle, right]
 ```
 
-Dòng đầu là `0` vì regex `.` khớp mọi ký tự trong chuỗi ví dụ và `limit=0` mặc định bỏ tất cả phần rỗng cuối. Đó là ví dụ **mẫu hợp lệ nhưng sai nghĩa dữ liệu**.
+The first line is `0` because the regex `.` matches every character in the example string and `limit=0` discards all trailing empty parts by default. That is an example of a **syntactically valid pattern with the wrong data semantics**.
 
-Với `"a,,b"`, `split(",")` giữ phần rỗng ở giữa, còn `split(",+")` xem cụm hai dấu phẩy là **một** lần khớp và không tạo cột rỗng ở giữa. Cách nào đúng tùy dữ liệu: nhóm whitespace giữa từ có thể gộp, còn hai dấu phẩy trong dữ liệu cột thường biểu thị một trường rỗng.
+For `"a,,b"`, `split(",")` preserves the middle empty element, whereas `split(",+")` treats the pair of commas as **one** match and does not produce an empty column in between. Which one is right depends on the data: whitespace groups between words can be collapsed, whereas two commas in columnar data usually represent an empty field.
 
-## 4. Giới hạn và cách xử lý lỗi
+## 4. Limitations and error handling
 
-- Regex chưa đóng, ví dụ `"["`, khiến `split` ném `PatternSyntaxException`; không trả mảng rỗng để báo lỗi.
-- `"a,b".split(null)` hoặc gọi `split` trên tham chiếu chuỗi nguồn `null` gây `NullPointerException`.
-- Regex `\s` mặc định của Java không nhất thiết bao phủ mọi whitespace Unicode. Khi cần phạm vi Unicode rộng, cân nhắc `Pattern.UNICODE_CHARACTER_CLASS` và kiểm thử chính xác tập ký tự.
-- Regex quá phức tạp từ đầu vào không tin cậy có thể gây backtracking tốn CPU. Khi delimiter là văn bản nguyên vẹn, `Pattern.quote` giúp tránh diễn giải nhầm thành cú pháp regex.
-- `split("")` không phải bộ tách grapheme cluster Unicode; ký tự người dùng nhìn thấy có thể chứa nhiều code point hoặc UTF-16 code unit.
-- `String.split(",")` không hiểu dấu nháy của CSV, dù có dùng `limit=-1`. Với CSV thực, cần parser hiểu trạng thái nháy và dòng nhiều dòng.
+- An unclosed regex, such as `"["`, causes `split` to throw `PatternSyntaxException`; it does not return an empty array to signal an error.
+- `"a,b".split(null)` or calling `split` on a `null` source string reference throws `NullPointerException`.
+- Java's default `\s` regex does not necessarily cover all Unicode whitespace. When broad Unicode coverage is needed, consider `Pattern.UNICODE_CHARACTER_CLASS` and test the exact character set.
+- Overly complex regexes from untrusted input can cause CPU-intensive backtracking. When the delimiter is literal text, `Pattern.quote` prevents misinterpretation as regex syntax.
+- `split("")` is not a Unicode grapheme cluster splitter; a user-perceived character may contain multiple code points or UTF-16 code units.
+- `String.split(",")` does not understand CSV quotes, even with `limit=-1`. For real CSV, you need a parser that tracks quote state and multi-line records.
 
-Khi cùng mẫu được dùng thường xuyên, `Pattern.compile(regex).split(input, limit)` cho phép tái sử dụng `Pattern`. Các quy tắc về `limit` tương tự `String.split`.
+When the same pattern is used frequently, `Pattern.compile(regex).split(input, limit)` allows reusing the `Pattern`. The rules for `limit` are the same as for `String.split`.
 
-## 5. Tự kiểm tra
+## 5. Self-check
 
-1. Vì sao `"api.example.org".split(".")` không tách theo dấu chấm? Viết hai cách sửa.
-2. Regex nào tách `"one;two,three"` tại `;` hoặc `,`?
-3. Vì sao `"a,,b".split(",+")` có ít token hơn `split(",")`?
-4. Nếu dấu phân cách từ cấu hình có giá trị `"|+|"`, nên chuẩn bị regex như thế nào?
+1. Why does `"api.example.org".split(".")` not split on dots? Write two ways to fix it.
+2. Which regex splits `"one;two,three"` at `;` or `,`?
+3. Why does `"a,,b".split(",+")` produce fewer tokens than `split(",")`?
+4. If a delimiter from configuration has the value `"|+|"`, how should you prepare the regex?
 
-**Đáp án:** (1) `.` là wildcard; dùng `"\\."` hoặc `Pattern.quote(".")`. (2) `"[,;]"`. (3) `+` gộp các dấu liên tiếp; có thể làm mất trường rỗng. (4) Dùng `Pattern.quote(delimiter)`.
+**Answers:** (1) `.` is a wildcard; use `"\\."` or `Pattern.quote(".")`. (2) `"[,;]"`. (3) `+` collapses consecutive delimiters; this can lose empty fields. (4) Use `Pattern.quote(delimiter)`.
 
-**Ghi nhớ:** Trước khi đếm token, phải biết **chính xác vùng nào trong đầu vào sẽ khớp regex**.
+**Remember:** Before counting tokens, you must know **the exact regions of the input that the regex will match**.

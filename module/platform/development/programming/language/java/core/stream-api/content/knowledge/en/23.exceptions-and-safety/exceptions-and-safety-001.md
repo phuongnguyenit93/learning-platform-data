@@ -1,55 +1,55 @@
-# Lan truyền ngoại lệ từ nguồn, hàm ánh xạ và phép toán kết thúc
+# Exception Propagation from Source, Mapping Functions, and Terminal Operations
 
-Java Stream API giúp mô tả xử lý dữ liệu bằng pipeline `filter`, `map`, `reduce` và `collect`. Nhưng khi dữ liệu không hợp lệ, nguồn I/O gặp sự cố hoặc một Collector không thể hoàn tất, **ngoại lệ xuất hiện ở đâu và được lan truyền như thế nào?** Đây là câu hỏi quan trọng trong cả code nghiệp vụ lẫn kiểm thử.
+The Java Stream API lets you describe data processing with a pipeline of `filter`, `map`, `reduce`, and `collect`. But when data is invalid, an I/O source fails, or a Collector cannot complete, **where do exceptions arise and how are they propagated?** This is a critical question in both business logic and testing.
 
-Một đặc điểm cốt lõi của Stream là **lazy evaluation**: phần lớn intermediate operation không duyệt dữ liệu ngay khi được khai báo. Ngoại lệ của hàm `map` hoặc `filter` vì vậy thường chỉ xuất hiện khi terminal operation thực sự yêu cầu tính phần tử. Với nguồn có tài nguyên như `Files.lines`, còn phải phân biệt lỗi **mở nguồn** với lỗi **đọc trong khi duyệt**, và nhớ rằng việc xử lý kết thúc không tự đóng nguồn.
+A core characteristic of Stream is **lazy evaluation**: most intermediate operations do not traverse data immediately when declared. Exceptions from `map` or `filter` therefore typically appear only when a terminal operation actually requests elements to be computed. With resource-backed sources like `Files.lines`, you must also distinguish **source-opening** errors from **iteration-reading** errors, and remember that finishing processing does not automatically close the source.
 
-Bài thuộc chương **Ngoại lệ và tính an toàn** của module `JAVA_STREAM_API`. Ta sẽ lần lượt phân tích ba lớp lỗi — **nguồn**, **phép biến đổi** và **terminal operation** — rồi xây cách xử lý fail-fast hoặc gom lỗi theo từng bản ghi, giữ nguyên nguyên nhân, quản lý `try-with-resources`, kiểm thử pipeline song song và tránh những giả định nguy hiểm về việc tất cả phần tử đều được xử lý.
+This lesson belongs to the **Exceptions and Safety** chapter of the `JAVA_STREAM_API` module. We will analyze three error layers in turn — **source**, **transformations**, and **terminal operations** — and then build fail-fast or per-record error-collecting strategies, preserve causes, manage `try-with-resources`, test parallel pipelines, and avoid dangerous assumptions that every element is processed.
 
-> **Môi trường:** Các ví dụ Stream chính sử dụng API **Java 8 trở lên**. Mỗi khối mã có thể là đoạn trong `main`, JShell hoặc một phương thức độc lập theo mô tả; các class/helper có thể đặt riêng. Những ví dụ cố ý ném ngoại lệ được đánh dấu rõ. Việc lựa chọn bỏ qua dữ liệu, ghi nhận lỗi hay dừng toàn bộ là **chính sách nghiệp vụ**, không phải hành vi được Java Stream API tự quyết định.
+> **Environment:** The main Stream examples use the **Java 8 or later** API. Each code block may represent a snippet in `main`, JShell, or a standalone method as described; classes/helpers can be placed separately. Examples that intentionally throw exceptions are clearly marked. Choosing whether to skip data, record errors, or halt the entire pipeline is a **business policy**, not a behavior automatically decided by the Java Stream API.
 
-## 1. Ngoại lệ có thể xuất hiện ở ba tầng khác nhau
+## 1. Exceptions Can Occur at Three Different Layers
 
-Một pipeline điển hình:
+A typical pipeline:
 
 ```text
-Nguồn Stream<T>
+Stream<T> Source
    |
-   |  [1] tạo và đọc nguồn
-   |      - IOException khi mở tệp
-   |      - UncheckedIOException khi duyệt dòng
-   |      - IllegalStateException từ nguồn tự viết
+   |  [1] source creation and reading
+   |      - IOException when opening file
+   |      - UncheckedIOException when iterating lines
+   |      - IllegalStateException from custom source
    v
 filter / map / flatMap / peek
    |
-   |  [2] hàm trong pipeline
-   |      - NumberFormatException khi parse
-   |      - NullPointerException khi truy cập null
-   |      - IllegalArgumentException khi validate
+   |  [2] functions in the pipeline
+   |      - NumberFormatException on parse
+   |      - NullPointerException on null access
+   |      - IllegalArgumentException on validation
    v
 collect / reduce / count / forEach / findFirst
    |
-   |  [3] thao tác kết thúc và Collector
-   |      - IllegalStateException do khóa toMap trùng
-   |      - ArithmeticException từ phép cộng kiểm tra tràn
-   |      - ngoại lệ từ accumulator/combiner/finisher
+   |  [3] terminal operations and Collector
+   |      - IllegalStateException due to duplicate toMap key
+   |      - ArithmeticException from overflow-checked addition
+   |      - exceptions from accumulator/combiner/finisher
    v
-Kết quả hoặc ngoại lệ
+Result or exception
 ```
 
-| Tầng | Thời điểm thường gặp | Ví dụ | Hướng xử lý |
+| Layer | Typical timing | Example | Handling approach |
 | --- | --- | --- | --- |
-| Tạo nguồn | Khi gọi factory nguồn | `Files.lines(path)` không mở được tệp | Bắt hoặc khai báo `IOException` ở ranh giới I/O |
-| Duyệt nguồn lazy | Khi terminal kéo phần tử | Lỗi đọc từ `Files.lines` sau vài dòng | Xử lý `UncheckedIOException`, bảo đảm đóng nguồn |
-| Intermediate operation | Khi phần tử thực sự đi qua hàm | `Integer.parseInt("abc")` trong `map` | Fail-fast hoặc chuyển lỗi thành giá trị |
-| Terminal operation | Trong quá trình thu thập/rút gọn | `toMap` gặp khóa trùng; `reduce` ném lỗi | Chọn merge policy/collector đúng, không che mất lỗi |
-| Dọn dẹp tài nguyên | Khi gọi `Stream.close()` hoặc thoát `try` | Close handler ném lỗi | Theo dõi ngoại lệ chính và suppressed exceptions |
+| Source creation | When calling source factory | `Files.lines(path)` cannot open file | Catch or declare `IOException` at I/O boundary |
+| Lazy source iteration | When terminal pulls elements | Read error from `Files.lines` after a few lines | Handle `UncheckedIOException`, ensure source is closed |
+| Intermediate operation | When element actually passes through function | `Integer.parseInt("abc")` in `map` | Fail-fast or convert error into a value |
+| Terminal operation | During collection/reduction | `toMap` hits duplicate key; `reduce` throws | Choose right merge policy/collector, do not hide errors |
+| Resource cleanup | When calling `Stream.close()` or exiting `try` | Close handler throws exception | Track primary exception and suppressed exceptions |
 
-**Quy tắc:** xác định **nơi gây ra lỗi** và **nơi lỗi được quan sát**. Hai nơi này không nhất thiết trùng nhau. Với Stream, lời gọi tạo pipeline thường chỉ lắp ráp các bước; lỗi trong lambda có thể xuất hiện muộn hơn tại lời gọi terminal.
+**Rule:** identify **where the error originates** and **where the error is observed**. These two places do not necessarily coincide. With Stream, the call that builds the pipeline usually only assembles the stages; an error inside a lambda may surface later at the terminal call.
 
-## 2. Lazy evaluation: viết map không đồng nghĩa đã chạy map
+## 2. Lazy Evaluation: Writing map Does Not Mean map Has Run
 
-Đoạn mã sau **chưa parse chuỗi nào** tại thời điểm gọi `map`:
+The following snippet **has not parsed any string** at the moment `map` is called:
 
 ```java
 import java.util.Arrays;
@@ -60,16 +60,16 @@ import java.util.stream.Stream;
 List<String> raw = Arrays.asList("10", "20", "not-a-number");
 
 Stream<Integer> numbers = raw.stream()
-        .map(Integer::parseInt); // chưa duyệt phần tử
+        .map(Integer::parseInt); // has not iterated elements yet
 
-// Lỗi thường xuất hiện tại terminal operation:
+// Error usually surfaces at the terminal operation:
 List<Integer> parsed = numbers.collect(Collectors.toList());
 // NumberFormatException: For input string "not-a-number"
 ```
 
-`Integer::parseInt` có thể ném `NumberFormatException`, một `RuntimeException`. Trong pipeline này, phép thu thập vào danh sách cần toàn bộ kết quả nên cuối cùng gặp phần tử không hợp lệ.
+`Integer::parseInt` can throw `NumberFormatException`, a `RuntimeException`. In this pipeline, collecting into a list requires all results, so it eventually encounters the invalid element.
 
-Sai lầm phổ biến là đặt `try/catch` quanh **chỉ đoạn dựng Stream**:
+A common mistake is placing `try/catch` around **only the Stream construction block**:
 
 ```java
 Stream<Integer> pending;
@@ -77,14 +77,14 @@ Stream<Integer> pending;
 try {
     pending = raw.stream().map(Integer::parseInt);
 } catch (NumberFormatException ex) {
-    // Không bắt được lỗi parse phát sinh lúc collect phía sau.
+    // Does not catch parse errors thrown later during collect.
     throw new IllegalStateException("Cannot parse input", ex);
 }
 
-pending.collect(Collectors.toList()); // lỗi xuất hiện ở đây
+pending.collect(Collectors.toList()); // error surfaces here
 ```
 
-Muốn bắt lỗi tại ranh giới xử lý, đặt `try/catch` quanh **terminal operation**:
+To catch errors at the processing boundary, wrap `try/catch` around the **terminal operation**:
 
 ```java
 try {
@@ -97,21 +97,21 @@ try {
 }
 ```
 
-Không nhất thiết mọi intermediate lambda đều được gọi. Ví dụ một số pipeline có nguồn biết trước kích thước và terminal `count()` có thể được tối ưu để **không thực hiện `map`**:
+Not every intermediate lambda is guaranteed to be invoked. For example, some pipelines whose source has a known size and whose terminal is `count()` can be optimized to **skip executing `map`**:
 
 ```java
 long count = raw.stream()
-        .map(Integer::parseInt) // có thể không chạy
+        .map(Integer::parseInt) // may not run
         .count();
 
-System.out.println(count); // Có thể là 3, không nhất thiết ném lỗi parse
+System.out.println(count); // May be 3, without necessarily throwing a parse error
 ```
 
-**Đừng dùng `count()` kèm một `map` chỉ để “ép kiểm tra hợp lệ”** nếu mục đích không phải là kết quả được Stream yêu cầu. Nếu bắt buộc kiểm tra toàn bộ dữ liệu, hãy thiết kế một terminal tiêu thụ giá trị đã biến đổi hoặc một phép tổng hợp lỗi riêng.
+**Do not use `count()` with a `map` just to “force validation”** if the mapped values are not needed by the Stream result. If you must validate all data, design a terminal operation that consumes the transformed values or a dedicated error-aggregation operation.
 
-## 3. Ngoại lệ từ nguồn: mở nguồn khác đọc nguồn
+## 3. Source Exceptions: Opening the Source Differs from Reading the Source
 
-Với nguồn tệp:
+With a file source:
 
 ```java
 import java.io.IOException;
@@ -128,12 +128,12 @@ static long countLines(Path path) throws IOException {
 }
 ```
 
-Có **hai thời điểm gây lỗi khác nhau**:
+There are **two distinct failure points**:
 
-1. **Tạo nguồn:** `Files.lines(...)` có thể ném `IOException` ngay khi mở tệp, ví dụ không tồn tại hoặc không có quyền truy cập.
-2. **Tiêu thụ nguồn:** việc đọc tệp xảy ra lazy. Nếu I/O thất bại khi duyệt, Stream từ `Files.lines` có thể ném `UncheckedIOException` từ terminal operation.
+1. **Source creation:** `Files.lines(...)` can throw `IOException` immediately when opening the file, for example if it does not exist or lacks permissions.
+2. **Source consumption:** reading the file happens lazily. If I/O fails during iteration, the Stream from `Files.lines` can throw `UncheckedIOException` from the terminal operation.
 
-`UncheckedIOException` là một `RuntimeException` bọc một `IOException`. Khi cần truy cập nguyên nhân I/O đã được bọc, dùng `getCause()`:
+`UncheckedIOException` is a `RuntimeException` wrapping an `IOException`. When you need the wrapped I/O cause, use `getCause()`:
 
 ```java
 import java.io.UncheckedIOException;
@@ -149,13 +149,13 @@ try {
 }
 ```
 
-`countLines` được khai báo `throws IOException` để biểu diễn lỗi được kiểm tra ở tầng nguồn. Ngoại lệ runtime như `UncheckedIOException` vẫn có thể lan ra mà không cần khai báo trong chữ ký.
+`countLines` is declared `throws IOException` to represent checked errors at the source layer. Runtime exceptions like `UncheckedIOException` can still propagate without being declared in the signature.
 
-**Lưu ý:** `Stream.count()` có các tối ưu dựa vào kích thước nguồn nếu phù hợp; không thiết kế mã kiểm thử phụ thuộc vào việc mỗi dòng chắc chắn được materialize trong mọi trường hợp. Muốn kiểm tra nội dung, nên dùng pipeline cần đọc/parse dữ liệu đó.
+**Note:** `Stream.count()` has optimizations based on source size when applicable; do not write test code that depends on every line definitely being materialized in all cases. To inspect content, use a pipeline that needs to read/parse that data.
 
-### Nguồn tự viết cũng có thể ném lỗi khi duyệt
+### Custom Sources Can Also Throw During Iteration
 
-Nếu một `Iterator`, `Spliterator` hoặc supplier phát phần tử ném `RuntimeException`, lỗi có thể đi ra khi terminal kéo tới phần tử tương ứng:
+If an `Iterator`, `Spliterator`, or element-emitting supplier throws a `RuntimeException`, the error can emerge when the terminal pulls the corresponding element:
 
 ```java
 import java.util.Iterator;
@@ -193,13 +193,13 @@ try {
 }
 ```
 
-`try/catch` bên ngoài terminal có thể bắt lỗi nhưng **không thể khôi phục Iterator đã tiêu thụ dở**. Muốn thử lại, phải tạo **nguồn mới** với chính sách retry và tính nhất quán dữ liệu rõ ràng.
+An outer `try/catch` around the terminal can catch the error, but **cannot recover a partially consumed Iterator**. To retry, you must create a **new source** with an explicit retry policy and data consistency guarantees.
 
-## 4. Ngoại lệ từ map, filter, flatMap và các callback
+## 4. Exceptions from map, filter, flatMap, and Callbacks
 
-Các hàm trong Stream thường được biểu diễn bằng `Function`, `Predicate`, `Consumer` hoặc primitive functional interface. Nếu callback ném một `RuntimeException` hoặc `Error`, chúng thường lan ra khỏi quá trình thực thi pipeline; Stream không tự chuyển một phần tử lỗi thành `Optional.empty()` hay tự ghi log cho bạn.
+Functions in a Stream are typically represented by `Function`, `Predicate`, `Consumer`, or primitive functional interfaces. If a callback throws a `RuntimeException` or `Error`, it generally propagates out of pipeline execution; Stream does not automatically turn a failing element into `Optional.empty()` or log it for you.
 
-### map: lỗi parse hoặc chuyển kiểu
+### map: Parse or Type-Conversion Errors
 
 ```java
 import java.util.Arrays;
@@ -210,12 +210,12 @@ List<Integer> numbers = Arrays.asList("7", "x", "12")
         .stream()
         .map(Integer::parseInt)
         .collect(Collectors.toList());
-// NumberFormatException tại "x"
+// NumberFormatException at "x"
 ```
 
-Đoạn trên là **ví dụ fail-fast**. Danh sách đầu ra không được trả về bình thường nếu phép parse ném ngoại lệ. Đừng giả định Java sẽ trả danh sách `[7]` như một kết quả hoàn chỉnh và bỏ qua phần tử lỗi.
+The snippet above is a **fail-fast example**. The output list is not returned normally if parsing throws an exception. Do not assume Java will return `[7]` as a complete result and skip the invalid element.
 
-### filter: Predicate cũng có thể ném ngoại lệ
+### filter: Predicate Can Also Throw Exceptions
 
 ```java
 import java.util.Arrays;
@@ -225,9 +225,9 @@ boolean hasHighValue = Arrays.asList("10", "bad", "50")
         .anyMatch(text -> Integer.parseInt(text) > 40);
 ```
 
-Với phiên bản tuần tự và thứ tự trên, predicate gặp `"bad"` trước khi tới `"50"` nên ném `NumberFormatException`. Nếu đầu tiên là `"50"`, `anyMatch` có thể trả `true` mà không đánh giá các phần tử sau.
+With the sequential version and this order, the predicate encounters `"bad"` before reaching `"50"`, so it throws `NumberFormatException`. If `"50"` came first, `anyMatch` could return `true` without evaluating subsequent elements.
 
-### flatMap: lỗi của nguồn lồng nhau
+### flatMap: Errors from Nested Sources
 
 ```java
 import java.util.Arrays;
@@ -242,9 +242,9 @@ List<String> tokens = records.stream()
         .collect(Collectors.toList());
 ```
 
-Đoạn này hợp lệ với ba chuỗi không null. Nhưng nếu `line` là `null` thì `line.split(...)` ném `NullPointerException` khi mapper được chạy. Với nguồn tệp lồng nhau, một `flatMap` có thể kéo phần tử từ stream con và gặp lỗi khi duyệt stream con. Theo hợp đồng `flatMap`, **mỗi stream con được trả về được đóng sau khi nội dung của nó được đặt vào pipeline**; tuy nhiên, điều đó không thay thế việc đóng stream nguồn bên ngoài nếu nó giữ tài nguyên.
+This snippet is valid for three non-null strings. But if `line` is `null`, `line.split(...)` throws `NullPointerException` when the mapper runs. With nested file sources, `flatMap` may pull elements from a sub-stream and hit an error while iterating that sub-stream. By the `flatMap` contract, **each returned sub-stream is closed after its contents are placed into the pipeline**; however, that does not replace closing the outer source stream if it holds resources.
 
-### Hàm có side effect: ngoại lệ không tự hoàn tác tác dụng phụ
+### Functions with Side Effects: Exceptions Do Not Roll Back Side Effects
 
 ```java
 import java.util.Arrays;
@@ -260,36 +260,36 @@ values.stream().forEach(value -> {
 });
 ```
 
-Có thể đã in `"Processed: A"` trước khi lỗi xảy ra. Nếu thay in log bằng ghi database, gửi email hoặc gọi API, những tác động đã thực hiện **không tự bị rollback** vì Stream ném ngoại lệ. Cần thiết kế transaction/idempotency ở tầng nghiệp vụ nếu mong muốn tất cả hoặc không gì cả.
+`"Processed: A"` may already have been printed before the error occurs. If instead of logging you write to a database, send an email, or call an API, actions already performed **are not automatically rolled back** when the Stream throws an exception. You need transaction/idempotency design at the business layer if all-or-nothing semantics are required.
 
-## 5. Checked exception không tự đi qua Function
+## 5. Checked Exceptions Do Not Pass Through Function Directly
 
-`Function<T,R>.apply` không khai báo `throws IOException`. Vì vậy lambda sau **không hợp lệ khi biên dịch**:
+`Function<T,R>.apply` does not declare `throws IOException`. Therefore the following lambda **fails to compile**:
 
 ```java
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-// SAI: Files.size(...) ném checked IOException.
+// WRONG: Files.size(...) throws checked IOException.
 List<Long> sizes = paths.stream()
         .map(path -> Files.size(path))
         .collect(java.util.stream.Collectors.toList());
 ```
 
-Đây là ví dụ minh họa lỗi biên dịch; `paths` được giả định là `List<Path>`. Compiler không cho phép bỏ qua checked exception của `Files.size` trong `Function`.
+This example illustrates a compilation error; `paths` is assumed to be `List<Path>`. The compiler does not allow ignoring the checked exception from `Files.size` inside `Function`.
 
-Có ba cách chọn chính sách:
+There are three policy choices:
 
-1. **Chuyển sang unchecked exception có nguyên nhân**, ví dụ `UncheckedIOException`, khi cần fail-fast.
-2. **Chuyển kết quả thành giá trị chứa lỗi** (Result/Outcome) để giữ dữ liệu hợp lệ và lỗi.
-3. **Đưa thao tác I/O ra ngoài pipeline** hoặc dùng vòng lặp rõ ràng nếu cần xử lý checked exception phức tạp.
+1. **Wrap into an unchecked exception preserving the cause**, such as `UncheckedIOException`, when fail-fast is needed.
+2. **Convert the outcome into an error-carrying value** (Result/Outcome) to retain both valid data and errors.
+3. **Move the I/O operation outside the pipeline** or use an explicit loop if complex checked-exception handling is required.
 
-Không nên dùng một generic “sneaky throw” để né kiểm tra exception chỉ vì muốn giữ cú pháp Stream ngắn gọn; nó có thể khiến hợp đồng API khó đọc và khó vận hành.
+You should not use a generic “sneaky throw” to bypass exception checking just to keep Stream syntax concise; it can make API contracts harder to read and operate.
 
-## 6. Cách fail-fast đúng: UncheckedIOException giữ nguyên cause
+## 6. Proper Fail-Fast: UncheckedIOException Preserving Cause
 
-Ví dụ chuyển từng đường dẫn thành kích thước tệp:
+Example converting each path into file size:
 
 ```java
 import java.io.IOException;
@@ -313,7 +313,7 @@ static List<Long> readSizes(List<Path> paths) {
 }
 ```
 
-Tại ranh giới gọi:
+At the call boundary:
 
 ```java
 try {
@@ -325,31 +325,31 @@ try {
 }
 ```
 
-Tại sao chọn `UncheckedIOException` thay vì `new RuntimeException(ex)`?
+Why choose `UncheckedIOException` instead of `new RuntimeException(ex)`?
 
-- Kiểu ngoại lệ **nói rõ đây là lỗi I/O**.
-- `getCause()` có kiểu `IOException`.
-- Stack trace giữ chuỗi nguyên nhân từ thao tác gốc.
+- The exception type **clearly states this is an I/O error**.
+- `getCause()` has return type `IOException`.
+- The stack trace preserves the cause chain from the original operation.
 
-`UncheckedIOException` không biến lỗi thành “đã xử lý thành công”. Nó chỉ cho phép lỗi đi qua callback không khai báo checked exception, để tầng ngoài quyết định báo lỗi, retry hoặc trả trạng thái thất bại.
+`UncheckedIOException` does not turn the error into “handled successfully.” It only lets the error travel through a callback that does not declare checked exceptions, so the outer layer can decide whether to report the error, retry, or return a failed status.
 
-**Không nên bắt `Exception` một cách quá rộng trong mapper** rồi biến tất cả lỗi thành 0. Lỗi I/O, lỗi parse, lỗi lập trình và vi phạm hợp đồng nghiệp vụ có thể cần chính sách khác nhau.
+**Do not catch `Exception` too broadly inside a mapper** and turn every error into `0`. I/O errors, parse errors, programming bugs, and business contract violations may require different policies.
 
-## 7. Xử lý một phần tử lỗi: fail-fast, bỏ qua, hay giữ cả lỗi?
+## 7. Handling a Failing Element: Fail-Fast, Skip, or Keep Errors?
 
-Không có một lựa chọn đúng cho mọi hệ thống.
+There is no single right choice for every system.
 
-| Chính sách | Cách biểu diễn | Ưu điểm | Rủi ro |
+| Policy | Representation | Advantages | Risks |
 | --- | --- | --- | --- |
-| **Fail-fast** | Ném exception tại phần tử lỗi | Không che dữ liệu hỏng | Dừng toàn bộ kết quả, có thể đã có side effect |
-| **Skip có chủ đích** | Bỏ phần tử không hợp lệ sau khi xác thực | Tiếp tục xử lý dữ liệu tốt | Mất dữ liệu nếu không đếm/ghi nhận số lỗi |
-| **Giữ lỗi dưới dạng dữ liệu** | `ParseResult` hoặc kiểu `Either` | Báo cáo được cả thành công và thất bại | Cần định nghĩa kiểu kết quả và xử lý rõ ràng |
-| **Fallback** | Giá trị mặc định có ý nghĩa nghiệp vụ | Đầu ra liên tục nếu lỗi được phép | Có thể che sai lệch nghiêm trọng |
-| **Retry** | Khởi tạo thao tác/nguồn mới theo chính sách | Có ích với một số lỗi tạm thời | Có thể lặp tác dụng phụ hoặc gặp cùng lỗi vĩnh viễn |
+| **Fail-fast** | Throw exception on invalid element | Never hides corrupted data | Halts entire result, side effects may remain |
+| **Intentional skip** | Drop invalid element after validation | Continues processing good data | Data loss if error count is not tracked/recorded |
+| **Keep errors as data** | `ParseResult` or `Either` type | Reports both successes and failures | Requires defining result type and handling it explicitly |
+| **Fallback** | Meaningful business default value | Continuous output when errors are tolerable | Can mask serious discrepancies |
+| **Retry** | Re-create operation/source per policy | Useful for certain transient errors | May repeat side effects or hit same permanent error |
 
-Với số liệu kinh doanh, bỏ âm thầm một dòng lỗi có thể làm báo cáo sai. Với telemetry, hệ thống có thể chọn tiếp tục nhưng phải ghi số dòng hỏng để theo dõi chất lượng dữ liệu.
+For financial/business figures, silently dropping an erroneous row can corrupt reports. For telemetry, the system may choose to continue while recording the count of bad rows to monitor data quality.
 
-### Chỉ bỏ qua dữ liệu hợp lệ theo quy tắc đã được xác định
+### Only Skip Data According to Explicitly Defined Rules
 
 ```java
 import java.util.Arrays;
@@ -369,13 +369,13 @@ List<Integer> parsed = raw.stream()
 System.out.println(parsed); // [10, -3, 25]
 ```
 
-Pipeline này chỉ giải quyết **null/chuỗi rỗng**, vì chúng bị lọc trước khi parse. Nếu chuỗi là `"abc"`, `Integer.parseInt` vẫn ném `NumberFormatException`. Đừng gọi pipeline này là “tự bỏ qua mọi bản ghi sai”.
+This pipeline only handles **null/blank strings**, because they are filtered out before parsing. If a string is `"abc"`, `Integer.parseInt` still throws `NumberFormatException`. Do not describe this pipeline as “automatically skipping all bad records.”
 
-Một cách an toàn hơn là dùng `Result` để phân biệt lỗi parse thực tế và vẫn giữ thông tin bản ghi gốc.
+A safer approach is using `Result` to distinguish actual parse errors while retaining original record information.
 
-## 8. Mẫu Result: chuyển lỗi parse thành một giá trị có thể thu thập
+## 8. The Result Pattern: Turning Parse Errors into Collectible Values
 
-Ví dụ Java 8, không cần `record` hoặc thư viện bên ngoài:
+Java 8 example, without requiring `record` or external libraries:
 
 ```java
 public final class ParseResult {
@@ -430,7 +430,7 @@ public final class ParseResult {
 }
 ```
 
-Mỗi phần tử được biểu diễn thành **một kết quả thành công hoặc thất bại**, không làm hỏng cả Stream vì một lỗi dữ liệu có thể dự đoán được:
+Each element is represented as **a success or failure outcome**, preventing one predictable data error from breaking the entire Stream:
 
 ```java
 import java.util.Arrays;
@@ -453,7 +453,7 @@ System.out.println(byValidity.get(true));  // 2
 System.out.println(byValidity.get(false)); // 3
 ```
 
-Lấy các giá trị thành công:
+Extracting the successful values:
 
 ```java
 List<Integer> accepted = results.stream()
@@ -464,7 +464,7 @@ List<Integer> accepted = results.stream()
 System.out.println(accepted); // [10, -3]
 ```
 
-Lấy thông tin lỗi:
+Extracting error details:
 
 ```java
 List<String> errors = results.stream()
@@ -475,13 +475,13 @@ List<String> errors = results.stream()
 System.out.println(errors.size()); // 3
 ```
 
-**Lợi ích:** có thể đối chiếu `total = accepted + rejected`. Các lỗi được dự kiến như chuỗi rỗng hoặc giá trị không phải số trở thành dữ liệu có thể báo cáo.
+**Benefit:** you can reconcile `total = accepted + rejected`. Expected errors such as blank strings or non-numeric values become reportable data.
 
-**Giới hạn:** mẫu này không đồng nghĩa nên bắt `OutOfMemoryError`, `StackOverflowError` hoặc mọi `RuntimeException` rồi coi chúng như lỗi của một bản ghi. Đối với lỗi hạ tầng và lỗi lập trình không thể phục hồi, fail-fast có thể an toàn hơn.
+**Limitation:** this pattern does not mean you should catch `OutOfMemoryError`, `StackOverflowError`, or every `RuntimeException` and treat them as per-record data errors. For unrecoverable infrastructure or programming errors, fail-fast can be safer.
 
-## 9. Một lượt xử lý dữ liệu tốt và lỗi mà không cần lưu tất cả kết quả
+## 9. Single-Pass Processing of Valid Data and Errors Without Storing All Results
 
-`results.stream().collect(toList())` ở phần trước giữ mọi `ParseResult` trong bộ nhớ. Với nguồn lớn, có thể tạo một thống kê nhỏ trong một lượt thu thập:
+`results.stream().collect(toList())` in the previous section keeps every `ParseResult` in memory. For large sources, you can build compact statistics in a single collection pass:
 
 ```java
 import java.util.List;
@@ -512,7 +512,7 @@ final class ImportSummary {
 }
 ```
 
-Sử dụng:
+Usage:
 
 ```java
 import java.util.Arrays;
@@ -532,26 +532,26 @@ System.out.println(summary.rejected()); // 3
 System.out.println(summary.sum());      // 7
 ```
 
-Supplier `ImportSummary::new` tạo accumulator riêng khi framework cần nhiều nhánh. `merge` kết hợp đầy đủ ba trường, không bỏ sót dữ liệu. Thiết kế này không lưu `String` lỗi cụ thể; nếu cần kiểm toán từng bản ghi hỏng, hãy lưu riêng theo giới hạn, ghi ra đích có chính sách tài nguyên hoặc trả một danh sách lỗi có giới hạn.
+The `ImportSummary::new` supplier creates a separate accumulator when the framework needs multiple branches. `merge` combines all three fields completely without dropping data. This design does not store individual error `String`s; if you need to audit each bad record, store them separately with a bounded limit, write them to a resource-managed destination, or return a capped list of errors.
 
-Không ghi từ `ImportSummary.add` vào một `ArrayList` dùng chung ở bên ngoài mà không đồng bộ. Với parallel stream, việc có một accumulator mới cho mỗi nhánh mới là điều kiện để mutable reduction theo mẫu này hoạt động đúng. `long` vẫn có thể tràn trên các tập dữ liệu cực lớn; nếu nghiệp vụ đòi chính xác tuyệt đối, cần cơ chế kiểm tra số học.
+Do not write from `ImportSummary.add` into a shared external `ArrayList` without synchronization. With a parallel stream, having a fresh accumulator per branch is required for mutable reduction under this pattern to work correctly. `long` can still overflow on extremely large datasets; if the domain requires absolute precision, checked arithmetic is needed.
 
-## 10. Ngoại lệ từ terminal operation
+## 10. Exceptions from Terminal Operations
 
-Nhiều người chỉ nhìn vào `map` hoặc `filter` khi tìm lỗi, nhưng terminal operation cũng có thể chủ động ném ngoại lệ:
+Many developers only look at `map` or `filter` when hunting for bugs, yet terminal operations can also actively throw exceptions:
 
-| Terminal | Tình huống lỗi | Ghi chú |
+| Terminal | Error scenario | Notes |
 | --- | --- | --- |
-| `collect(toMap(...))` | Khóa trùng mà không có merge function | `IllegalStateException` |
-| `collect(groupingBy(...))` | Classifier tạo khóa null | `NullPointerException` với collector chuẩn |
-| `reduce(...)` | Operator ném lỗi, ví dụ `Math.addExact` tràn | Exception từ accumulator/combiner |
-| `forEach(...)` | Consumer ném lỗi | Tác dụng phụ trước lỗi không tự rollback |
-| `findFirst()` | Phần tử được chọn là null | Có thể ném `NullPointerException` |
-| `Optional.get()` sau terminal | `Optional` rỗng | `NoSuchElementException` từ `get` |
-| `collect(customCollector)` | Supplier/accumulator/combiner/finisher có lỗi | Lỗi tùy vào code của Collector |
-| `count()` | Không yêu cầu mọi bước intermediate chạy | Không dùng `count` để đảm bảo validation side effect |
+| `collect(toMap(...))` | Duplicate key without merge function | `IllegalStateException` |
+| `collect(groupingBy(...))` | Classifier produces null key | `NullPointerException` with standard collector |
+| `reduce(...)` | Operator throws, e.g., `Math.addExact` overflow | Exception from accumulator/combiner |
+| `forEach(...)` | Consumer throws | Side effects before the error do not roll back |
+| `findFirst()` | Selected element is null | May throw `NullPointerException` |
+| `Optional.get()` after terminal | Empty `Optional` | `NoSuchElementException` from `get` |
+| `collect(customCollector)` | Bug in supplier/accumulator/combiner/finisher | Exception depends on Collector code |
+| `count()` | Does not require all intermediate steps to run | Do not rely on `count` for validation side effects |
 
-### Ví dụ toMap gặp khóa trùng
+### Example: toMap Encountering Duplicate Keys
 
 ```java
 import java.util.Arrays;
@@ -564,10 +564,10 @@ Map<Integer, String> byLength = Arrays.asList("cat", "dog")
                 String::length,
                 s -> s
         ));
-// IllegalStateException: cả hai chuỗi đều tạo key 3.
+// IllegalStateException: both strings produce key 3.
 ```
 
-Lỗi ở đây không phải parse dữ liệu mà là **không định nghĩa cách giải quyết khóa trùng**. Nếu mục tiêu giữ tất cả chuỗi theo độ dài, dùng `groupingBy`:
+The error here is not data parsing, but **failing to define how duplicate keys are resolved**. If the goal is to keep all strings by length, use `groupingBy`:
 
 ```java
 import java.util.List;
@@ -579,9 +579,9 @@ Map<Integer, List<String>> grouped = Arrays.asList("cat", "dog")
 System.out.println(grouped.get(3)); // [cat, dog]
 ```
 
-Nếu nghiệp vụ muốn chọn một phần tử theo quy tắc, dùng `toMap(keyMapper,valueMapper,mergeFunction)`, nhưng hàm merge phải hợp lệ và độc lập với thứ tự nếu kết quả cần bền vững khi chạy song song.
+If business logic wants to select one element according to a rule, use `toMap(keyMapper, valueMapper, mergeFunction)`, keeping the merge function valid and order-independent if results must remain stable under parallel execution.
 
-### Ví dụ reduce có toán tử ném lỗi
+### Example: reduce with an Operator That Throws
 
 ```java
 import java.util.Arrays;
@@ -592,9 +592,9 @@ int sum = Arrays.asList(Integer.MAX_VALUE, 1)
 // ArithmeticException: integer overflow
 ```
 
-`Math.addExact` hữu ích khi phải phát hiện tràn thay vì cho phép vòng lại giá trị. Tuy nhiên, với parallel reduction, phép gộp các phần có thể tạo những tổng trung gian khác nhau. Nếu kết quả toán học tổng cuối nằm trong miền nhưng một cách gộp trung gian vượt miền, ngoại lệ có thể phụ thuộc cách phân nhóm. Cần xác định hợp đồng số học và chọn kiểu/thuật toán đáp ứng yêu cầu trước khi so sánh tuần tự với song song.
+`Math.addExact` is useful when overflow must be detected instead of allowing wrap-around. However, in parallel reduction, combining sub-parts may produce different intermediate sums. If the final mathematical sum fits in range while an intermediate grouping overflows, whether an exception is thrown can depend on partitioning. Define the arithmetic contract and pick the appropriate type/algorithm before comparing sequential and parallel execution.
 
-### Optional rỗng không phải lỗi nếu đã mô hình hóa đúng
+### An Empty Optional Is Not an Error When Modeled Properly
 
 ```java
 import java.util.Arrays;
@@ -608,11 +608,11 @@ Optional<Integer> firstEven = Arrays.asList(1, 3, 5)
 System.out.println(firstEven.isPresent()); // false
 ```
 
-Đừng gọi `firstEven.get()` khi nó rỗng. Chọn `orElse`, `orElseGet` hoặc `orElseThrow` với thông báo nghiệp vụ rõ ràng, tùy bài toán.
+Do not call `firstEven.get()` when it is empty. Choose `orElse`, `orElseGet`, or `orElseThrow` with a clear business message depending on the problem.
 
-## 11. Kiểm soát thứ tự và short-circuit khi xảy ra lỗi
+## 11. Controlling Order and Short-Circuiting When Errors Occur
 
-Một terminal operation dừng sớm có thể **không duyệt tới phần tử không hợp lệ**:
+A short-circuiting terminal operation may **never reach an invalid element**:
 
 ```java
 import java.util.Arrays;
@@ -624,9 +624,9 @@ boolean found = Arrays.asList("100", "bad", "10")
 System.out.println(found); // true
 ```
 
-Ở đây số `100` đầu tiên đã đủ để trả `true`; `"bad"` đứng sau không cần được parse trong thực thi tuần tự.
+Here the first number `100` is enough to return `true`; `"bad"` later in the list does not need to be parsed in sequential execution.
 
-Tương tự:
+Similarly:
 
 ```java
 int first = Arrays.asList("7", "invalid")
@@ -638,15 +638,15 @@ int first = Arrays.asList("7", "invalid")
 System.out.println(first); // 7
 ```
 
-Việc không gặp lỗi trong một terminal **không chứng minh** mọi bản ghi hợp lệ.
+Not encountering an error in a terminal operation **does not prove** that all records are valid.
 
-### Parallel stream có thể xử lý phần tử khác thứ tự thời gian
+### Parallel Streams May Process Elements Out of Temporal Order
 
-Trên `parallelStream()`, framework có thể tính các phần tử ở nhiều nhánh trước khi biết terminal đã có đủ kết quả. Không được khẳng định “có `limit(1)` nên các phần tử khác chắc chắn chưa bị gọi mapper”. Tính đúng của một pipeline song song không được dựa vào side effect hoặc khả năng ném lỗi ở một vị trí thời gian cụ thể.
+On a `parallelStream()`, the framework can evaluate elements across multiple branches before knowing the terminal already has enough results. You cannot assert “because there is `limit(1)`, other elements definitely had their mapper skipped.” The correctness of a parallel pipeline must not rely on side effects or throwing an exception at a specific point in time.
 
-Nếu yêu cầu là **kiểm tra tất cả bản ghi và báo lỗi nếu bất kỳ bản ghi nào sai**, hãy thiết kế phép thu thập kết quả kiểm tra toàn bộ, không dùng `findAny`, `anyMatch` hoặc `limit` làm công cụ đảm bảo mọi phần tử đã được kiểm tra.
+If the requirement is to **validate every record and fail if any record is invalid**, design a collection/reduction operation that inspects the entire dataset, rather than using `findAny`, `anyMatch`, or `limit` as a mechanism to guarantee all elements were checked.
 
-### peek không nên dùng để kiểm chứng việc ném ngoại lệ
+### peek Should Not Be Used to Verify Exception Throwing
 
 ```java
 long length = Arrays.asList("A", "B", "C")
@@ -659,11 +659,11 @@ long length = Arrays.asList("A", "B", "C")
         .count();
 ```
 
-Pipeline có kích thước nguồn biết trước và `count()` có thể được tối ưu mà không chạy `peek`. `peek` phù hợp để **quan sát tạm thời**, không nên gắn việc xác thực bắt buộc hoặc ghi nghiệp vụ vào đó.
+A pipeline with a known source size and `count()` can be optimized without running `peek`. `peek` is suited for **temporary observation**, not for attaching mandatory validation or business writes.
 
-## 12. Lan truyền lỗi khi chạy parallel: không dựa vào “lỗi đầu tiên”
+## 12. Error Propagation in Parallel Execution: Do Not Rely on the “First Error”
 
-Khi dùng `parallel()`, nhiều tác vụ có thể đang xử lý các phần dữ liệu khác nhau. Một phép `map` hoặc `reduce` có thể ném lỗi trong một tác vụ khi tác vụ khác vẫn đang làm việc.
+When using `parallel()`, multiple tasks may process different portions of the data simultaneously. A `map` or `reduce` operation can throw an error in one task while other tasks are still running.
 
 ```java
 import java.util.stream.IntStream;
@@ -680,15 +680,15 @@ int total = IntStream.range(0, 1000)
         .sum();
 ```
 
-Nếu pipeline ném ngoại lệ:
+If the pipeline throws an exception:
 
-- **Không bảo đảm** phần tử lỗi có chỉ số nhỏ hơn sẽ được báo trước.
-- Không dùng thứ tự stack trace hoặc thứ tự log các worker để suy encounter order.
-- Có thể có các tác vụ khác đã xử lý một phần dữ liệu; không nên dựa vào side effect “tất cả hoặc không”.
-- Ngoại lệ có thể đi qua lớp thực thi song song và có chuỗi `cause`; hãy giữ nguyên stack trace/causes để chẩn đoán thay vì chỉ ghi `ex.getMessage()`.
-- Không yêu cầu mọi lỗi đồng thời đều xuất hiện đầy đủ dưới dạng một tập kết quả. Fail-fast không phải cơ chế thu thập tất cả lỗi.
+- There is **no guarantee** that the failing element with the smaller index will be reported first.
+- Do not use stack trace ordering or worker log order to infer encounter order.
+- Other tasks may have already processed part of the data; do not rely on “all or nothing” side effects.
+- Exceptions may pass through the parallel execution layer with a `cause` chain; preserve the full stack trace/causes for diagnostics rather than only logging `ex.getMessage()`.
+- Do not expect all concurrent errors to be returned together in a single result set. Fail-fast is not an error-collecting mechanism.
 
-Ví dụ cách xử lý ở ranh giới:
+Example of boundary handling:
 
 ```java
 try {
@@ -705,23 +705,23 @@ try {
 
     System.out.println(total);
 } catch (RuntimeException ex) {
-    // Ghi cả exception/stack trace và cause nếu có.
+    // Log the full exception/stack trace and any cause.
     ex.printStackTrace();
-    throw ex; // giữ nguyên lỗi để tầng gọi xử lý
+    throw ex; // rethrow intact for the caller to handle
 }
 ```
 
-Không nên viết test cố định `ex.getMessage().equals("Invalid element: 200")` cho pipeline song song này. Hãy kiểm tra **loại tình huống lỗi** và tính đúng của chính sách xử lý, hoặc chuyển tất cả lỗi dự kiến thành giá trị trước khi thu thập nếu cần báo cáo đầy đủ.
+Do not write a test hardcoding `ex.getMessage().equals("Invalid element: 200")` for this parallel pipeline. Assert the **category of failure** and correctness of the handling policy, or convert all expected errors into values before collecting if full reporting is required.
 
-### Concurrent collector không xóa lỗi nghiệp vụ
+### Concurrent Collectors Do Not Eliminate Business Errors
 
-`groupingByConcurrent` hay `toConcurrentMap` có thể tích lũy an toàn theo hợp đồng nhưng classifier, mapper hoặc merge function vẫn có thể ném exception. Bật `CONCURRENT` không khiến các hàm đó tự trở thành không ném lỗi. Tương tự, một Collector thường không concurrent vẫn có thể chạy đúng trên parallel stream bằng các container riêng và combiner hợp lệ.
+`groupingByConcurrent` or `toConcurrentMap` accumulate safely according to their contract, yet classifiers, mappers, or merge functions can still throw exceptions. Enabling `CONCURRENT` does not make those functions exception-free. Likewise, a regular non-concurrent Collector can run correctly on a parallel stream using separate containers and a valid combiner.
 
-## 13. Vòng đời tài nguyên: terminal operation không tự close
+## 13. Resource Lifecycle: Terminal Operations Do Not Auto-Close
 
-`Stream` có `close()` nhưng nhiều nguồn trong bộ nhớ không giữ tài nguyên. Những nguồn I/O như `Files.lines` cần đóng rõ ràng.
+`Stream` has `close()`, though many in-memory sources hold no resources. I/O sources such as `Files.lines` must be closed explicitly.
 
-Mẫu đúng:
+Correct pattern:
 
 ```java
 import java.io.IOException;
@@ -747,18 +747,18 @@ static List<Integer> readNumbers(Path path)
 }
 ```
 
-Nếu có dòng chứa `"abc"`:
+If a line contains `"abc"`:
 
-1. `Files.lines` được mở trong biểu thức tạo resource.
-2. `map(Integer::parseInt)` ném `NumberFormatException` khi duyệt dòng đó.
-3. `try-with-resources` vẫn gọi `close()` đối với Stream đã mở.
-4. `NumberFormatException` có thể tiếp tục lan ra caller.
+1. `Files.lines` is opened in the resource declaration.
+2. `map(Integer::parseInt)` throws `NumberFormatException` when iterating that line.
+3. `try-with-resources` still calls `close()` on the opened Stream.
+4. `NumberFormatException` can continue propagating to the caller.
 
-Không phải vì đã gọi `collect(...)` mà nguồn tự được đóng. Nếu muốn trả Stream lazy cho caller, phải **chuyển quyền sở hữu và trách nhiệm đóng** cho caller một cách rõ ràng. Không trả Stream từ một `try-with-resources` đã đóng Reader bên trong.
+Calling `collect(...)` does not automatically close the source. If you want to return a lazy Stream to a caller, you must **explicitly transfer ownership and closing responsibility** to the caller. Never return a Stream from inside a `try-with-resources` block that already closes the underlying Reader.
 
-### Reader.lines và quyền sở hữu Reader
+### Reader.lines and Reader Ownership
 
-`BufferedReader.lines()` trả một Stream các dòng nhưng đóng Stream đó **không nhất thiết đóng Reader** theo cách bạn mong muốn. Cách rõ ràng là đóng chính `BufferedReader` sở hữu dữ liệu:
+`BufferedReader.lines()` returns a Stream of lines, but closing that Stream **does not necessarily close the Reader** in the way you might expect. The explicit approach is to close the `BufferedReader` that owns the underlying resource:
 
 ```java
 import java.io.BufferedReader;
@@ -777,13 +777,13 @@ static long countWarnings(Path path) throws IOException {
 }
 ```
 
-Với nguồn tự định nghĩa từ `Spliterator`, Java không tự biết bạn giữ socket, connection hay Reader nào. Đừng cho rằng việc tiêu thụ Spliterator thành công đồng nghĩa tài nguyên đã được giải phóng.
+With custom sources created from a `Spliterator`, Java does not automatically know what socket, connection, or Reader you hold. Do not assume that successfully consuming the Spliterator means the resource has been released.
 
-## 14. Lỗi trong close và suppressed exceptions
+## 14. Errors in close and Suppressed Exceptions
 
-Khi xử lý dữ liệu ném lỗi, thao tác dọn dẹp cũng có thể thất bại. `try-with-resources` giữ ngoại lệ của phần thân làm **ngoại lệ chính**, và gắn ngoại lệ đóng tài nguyên vào `getSuppressed()`.
+When processing throws an error, cleanup may also fail. `try-with-resources` keeps the body's exception as the **primary exception**, and attaches resource-closing exceptions to `getSuppressed()`.
 
-Ví dụ dùng `Stream.onClose` để minh họa:
+Example using `Stream.onClose` to illustrate:
 
 ```java
 import java.util.stream.Stream;
@@ -808,19 +808,19 @@ try (Stream<String> source = Stream.of("A")
 }
 ```
 
-Hai exception có vai trò khác nhau:
+The two exceptions play distinct roles:
 
-- `IllegalArgumentException("processing failed")` ném từ terminal callback.
-- `IllegalStateException("close failed")` ném khi `try-with-resources` đóng Stream.
-- Ngoại lệ thứ hai được ghi vào danh sách **suppressed** của ngoại lệ thứ nhất, nên không làm mất ngữ cảnh nguyên nhân ban đầu.
+- `IllegalArgumentException("processing failed")` is thrown from the terminal callback.
+- `IllegalStateException("close failed")` is thrown when `try-with-resources` closes the Stream.
+- The second exception is recorded in the **suppressed** list of the first exception, preserving the original failure context.
 
-Nếu phần thân **không ném lỗi**, ngoại lệ từ `close()` có thể trở thành lỗi được caller nhận. `onClose` có thể đăng ký nhiều handler; khi đóng, các handler được gọi theo thứ tự đăng ký và vẫn cố gắng chạy các handler còn lại nếu một handler ném lỗi. Các lỗi bổ sung có thể được gắn dưới dạng suppressed exceptions theo hợp đồng.
+If the body **does not throw**, the exception from `close()` can become the error received by the caller. `onClose` can register multiple handlers; upon closing, handlers run in registration order and still attempt to run remaining handlers if one throws. Additional errors can be attached as suppressed exceptions per the contract.
 
-**Không nên viết catch trống quanh `close`** rồi giả vờ pipeline thành công. Lỗi dọn dẹp có thể quan trọng, nhất là khi tài nguyên cần flush/commit dữ liệu. Đồng thời, khi log sự cố, nên giữ cả primary, causes và suppressed exceptions.
+**Do not write an empty catch around `close`** and pretend the pipeline succeeded. Cleanup errors can matter, especially when resources must flush/commit data. Likewise, when logging failures, retain primary, causes, and suppressed exceptions.
 
-## 15. onClose không thay thế try-with-resources
+## 15. onClose Does Not Replace try-with-resources
 
-`onClose` đăng ký hành vi sẽ chạy **khi Stream được đóng**, không phải “khi terminal operation kết thúc”:
+`onClose` registers behavior that runs **when the Stream is closed**, not “when the terminal operation finishes”:
 
 ```java
 import java.util.stream.Stream;
@@ -829,12 +829,12 @@ Stream<String> stream = Stream.of("A", "B")
         .onClose(() -> System.out.println("closed"));
 
 stream.forEach(System.out::println);
-// Chưa có bảo đảm in "closed".
+// No guarantee that "closed" is printed yet.
 
-stream.close(); // lúc này handler close chạy
+stream.close(); // close handler runs now
 ```
 
-Để bảo đảm handler được gọi cả khi terminal thất bại:
+To guarantee the handler runs even when the terminal fails:
 
 ```java
 try (Stream<String> stream = Stream.of("A", "B")
@@ -843,15 +843,15 @@ try (Stream<String> stream = Stream.of("A", "B")
 }
 ```
 
-Trên tệp/Reader/network, nên để `try-with-resources` bao quanh đúng nguồn sở hữu tài nguyên, hoặc bao quanh Stream có close handler đúng. Không dựa vào `forEach`, `findFirst`, `count`, `collect` hay `reduce` để tự đóng nguồn.
+For files/Readers/network resources, wrap `try-with-resources` around the true resource owner, or around a Stream with proper close handlers. Do not rely on `forEach`, `findFirst`, `count`, `collect`, or `reduce` to close the source automatically.
 
-### Tài nguyên có vòng đời ngoài Stream
+### Resources with Lifecycles Outside Stream
 
-Nếu một database transaction hoặc một kết nối cần rollback/commit, việc đóng Stream chỉ là một phần của giao thức tài nguyên. Một `RuntimeException` từ mapper không đảm bảo transaction tự rollback nếu bạn không quản lý transaction trong tầng gọi. Luôn xác định rõ quyền sở hữu, thứ tự commit/rollback và trách nhiệm phát lại thao tác.
+If a database transaction or connection requires rollback/commit, closing the Stream is only one part of the resource protocol. A `RuntimeException` from a mapper does not guarantee the transaction rolls back automatically unless you manage the transaction in the calling layer. Always define ownership, commit/rollback ordering, and operation replay responsibilities clearly.
 
-## 16. Retry phải tạo nguồn mới và kiểm soát idempotency
+## 16. Retries Must Create a New Source and Control Idempotency
 
-Sau khi pipeline lỗi, Stream **đã hoặc có thể đã bị tiêu thụ một phần**. Không được retry bằng cách gọi terminal lần nữa trên cùng Stream:
+After a pipeline fails, the Stream **has been or may have been partially consumed**. Never retry by invoking a terminal operation again on the same Stream:
 
 ```java
 import java.util.Arrays;
@@ -861,11 +861,11 @@ Stream<Integer> source = Arrays.asList(1, 2, 3).stream();
 
 int first = source.mapToInt(Integer::intValue).sum();
 
-// SAI: không thể chạy lại terminal trên cùng source.
+// WRONG: cannot run another terminal on the same source.
 int second = source.mapToInt(Integer::intValue).sum();
 ```
 
-Nếu muốn retry xử lý từ dữ liệu có thể tái tạo, hãy dùng **factory tạo Stream mới**:
+If you want to retry processing from reproducible data, use a **factory that creates a fresh Stream**:
 
 ```java
 import java.util.Arrays;
@@ -887,19 +887,19 @@ int attempt2 = fresh.get()
 System.out.println(attempt1 == attempt2); // true
 ```
 
-Ví dụ chỉ minh họa việc tạo nguồn mới; **không phải khuyến nghị retry mọi lỗi**. Lỗi parse `"abc"` là lỗi dữ liệu vĩnh viễn, thử lại với cùng input sẽ không giúp ích. Với lỗi tạm thời như I/O, cần xác định số lần thử, khoảng nghỉ, timeout, tính nguyên vẹn của snapshot và xem các tác động ngoài (ghi database, gọi API) có **idempotent** không.
+This example only illustrates creating a new source; **it is not a recommendation to retry every error**. A parse error on `"abc"` is a permanent data error—retrying with the same input will not help. For transient errors like I/O, define attempt limits, backoff intervals, timeouts, snapshot integrity, and whether external effects (database writes, API calls) are **idempotent**.
 
-Với `Files.lines`, mỗi lần thử phải mở và đóng một Stream mới. Không giữ lại một Reader đã duyệt dở hoặc đã đóng.
+With `Files.lines`, each attempt must open and close a new Stream. Do not retain a partially read or closed Reader.
 
-## 17. Null, Optional và exception không nên bị trộn lẫn
+## 17. Null, Optional, and Exceptions Should Not Be Mixed
 
-Có ba tình huống khác nhau:
+There are three distinct situations:
 
-- **Không có giá trị hợp lệ**: có thể biểu diễn bằng `Optional.empty()`.
-- **Giá trị đầu vào không hợp lệ**: tùy nghiệp vụ có thể trả `ParseResult` thất bại hoặc ném `IllegalArgumentException`.
-- **Lỗi hạ tầng khi đọc dữ liệu**: cần giữ thông tin `IOException`/`UncheckedIOException` và chính sách phục hồi riêng.
+- **No valid value exists**: can be represented with `Optional.empty()`.
+- **Invalid input value**: depending on business logic, return a failed `ParseResult` or throw `IllegalArgumentException`.
+- **Infrastructure error while reading data**: preserve `IOException`/`UncheckedIOException` details and apply a separate recovery policy.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.Arrays;
@@ -914,30 +914,30 @@ int fallback = firstLarge.orElse(-1);
 System.out.println(fallback); // -1
 ```
 
-`Optional.empty()` ở đây đơn giản vì **không có số nào lớn hơn 100**, chứ không phải có lỗi I/O. Nếu mapper trước `findFirst` ném `NumberFormatException`, lỗi không tự biến thành Optional rỗng.
+`Optional.empty()` occurs here simply because **no number is greater than 100**, not because an I/O error happened. If a mapper before `findFirst` throws `NumberFormatException`, the error does not turn into an empty Optional.
 
-### Không trả null làm dấu hiệu lỗi nếu có thể tránh
+### Avoid Returning null as an Error Signal When Possible
 
-`map` có thể phát `null`, nhưng nhiều terminal/collector không chấp nhận null hoặc xử lý theo các hợp đồng khác nhau. Ví dụ `Collectors.toMap` không dùng giá trị null như một bản ghi hợp lệ; `findFirst` có thể ném `NullPointerException` nếu phần tử được chọn là null.
+`map` can emit `null`, but many terminals/collectors reject null or treat it under different contracts. For example, `Collectors.toMap` does not accept null values in standard map accumulation; `findFirst` can throw `NullPointerException` if the selected element is null.
 
-Thay vì trả null mỗi khi parse thất bại rồi `filter(Objects::nonNull)`, mẫu `ParseResult` giữ được **nguyên nhân** và **số lượng lỗi**. Nếu thật sự chọn bỏ qua lỗi, hãy ghi rõ đó là chính sách được phép.
+Instead of returning null whenever parsing fails and then calling `filter(Objects::nonNull)`, the `ParseResult` pattern preserves both **the cause** and **error counts**. If you truly choose to drop errors, document clearly that it is an allowed policy.
 
-## 18. Thông báo lỗi, log và dữ liệu nhạy cảm
+## 18. Error Messages, Logs, and Sensitive Data
 
-Thông báo ngoại lệ có thể giúp chẩn đoán, nhưng cũng có thể vô tình lộ dữ liệu người dùng hoặc nội dung tệp.
+Exception messages help diagnostics, yet can accidentally expose user data or file contents.
 
-Một thông báo lỗi tốt thường chứa:
+A good error message usually contains:
 
-- Loại thao tác thất bại: mở tệp, đọc dòng, parse, phân nhóm hay kết thúc.
-- Định danh nguồn hoặc vị trí phù hợp (nếu được phép): tên luồng dữ liệu, số dòng, mã tác vụ.
-- Lỗi gốc được giữ dưới dạng `cause`, thay vì chỉ chuyển thành chuỗi.
-- Thông tin hành động: dừng nhập, bỏ qua một bản ghi, hay retry ở tầng có trách nhiệm.
+- The failing operation type: opening a file, reading a line, parsing, grouping, or finalizing.
+- An appropriate source identifier or location (when allowed): stream name, line number, job ID.
+- The original error preserved as `cause`, rather than merely formatted into a string.
+- Action context: abort import, skip one record, or retry at the responsible layer.
 
-Không nên ghi toàn bộ số thẻ, mật khẩu, token truy cập hoặc dữ liệu nhạy cảm vào exception message. Nếu cần log một dòng bị lỗi, hãy áp dụng quy tắc rút gọn/ẩn dữ liệu của hệ thống và phân biệt log vận hành với báo cáo lỗi dữ liệu.
+Do not include full card numbers, passwords, access tokens, or sensitive data in exception messages. If an offending line must be logged, apply the system's truncation/masking rules and separate operational logs from data error reports.
 
-### Gắn số dòng vào dữ liệu trước khi parse
+### Attaching Line Numbers to Data Before Parsing
 
-Nếu muốn báo lỗi kèm vị trí mà không lưu mọi phần tử vào Map ngoài Stream, có thể ghép chỉ số với dòng đã đọc:
+If you want to report errors with position without storing all elements in an external Map, you can pair the index with each read line:
 
 ```java
 import java.util.Arrays;
@@ -963,28 +963,28 @@ System.out.println(report);
 // [line=1, value=10, line=2, invalid integer, line=3, value=30]
 ```
 
-Ví dụ dùng List có thứ tự và truy cập theo chỉ số. Với tệp rất lớn, không nên nạp toàn bộ `Files.lines` thành List chỉ để lấy số dòng; có thể thiết kế cấu trúc `LineRecord` được đánh số theo một lượt đọc tuần tự, hoặc dùng API đọc dòng phù hợp. Không dùng một biến `int[]` ngoài pipeline để tăng số dòng từ nhiều luồng song song.
+This example uses an ordered List with indexed access. For very large files, do not load all of `Files.lines` into a List just to get line numbers; design a `LineRecord` numbered in a single sequential read pass, or use an appropriate line-reading API. Do not increment a shared external `int[]` counter from multiple parallel threads.
 
-## 19. Kiểm thử lan truyền ngoại lệ
+## 19. Testing Exception Propagation
 
-Một bộ kiểm thử nên có cả hành vi bình thường lẫn đầu vào lỗi, không chỉ chạy với dữ liệu đẹp.
+A test suite should cover both normal behavior and erroneous inputs, not just happy-path data.
 
-| Ca thử | Kỳ vọng |
+| Test case | Expectation |
 | --- | --- |
-| Dữ liệu hợp lệ | Terminal trả kết quả đúng |
-| `map(Integer::parseInt)` gặp chuỗi không hợp lệ | `NumberFormatException` lan ra nếu fail-fast |
-| `filter`/`anyMatch` dừng trước phần tử lỗi | Không đòi kiểm tra mọi phần tử |
-| `toMap` gặp khóa trùng | Lỗi nếu không có merge policy |
-| Nguồn tệp không mở được | Lỗi `IOException` khi tạo nguồn |
-| Lỗi I/O khi đọc lazy | `UncheckedIOException` hoặc thông tin nguồn thích hợp |
-| Mapper ném lỗi trong `try-with-resources` | Nguồn vẫn được đóng |
-| Mapper và close cùng ném | Ngoại lệ chính giữ lỗi xử lý; close được suppressed |
-| Song song có nhiều phần tử lỗi | Không giả định phần tử nào được báo trước |
-| Dùng `ParseResult` | Có thể tính số hợp lệ/lỗi, tổng bản ghi bảo toàn |
-| Nguồn rỗng | Kết quả phù hợp, không “tạo ra” lỗi giả |
-| Retry | Nguồn mới; không chạy lại Stream cũ |
+| Valid data | Terminal returns expected result |
+| `map(Integer::parseInt)` hits invalid string | `NumberFormatException` propagates if fail-fast |
+| `filter`/`anyMatch` stops before invalid element | Does not require inspecting every element |
+| `toMap` hits duplicate key | Throws if no merge policy |
+| File source cannot be opened | `IOException` on source creation |
+| I/O error during lazy read | `UncheckedIOException` or appropriate source error |
+| Mapper throws inside `try-with-resources` | Source is still closed |
+| Mapper and close both throw | Primary keeps processing error; close error is suppressed |
+| Parallel run with multiple bad elements | Do not assume which element fails first |
+| Using `ParseResult` | Can count valid/invalid items; total record count preserved |
+| Empty source | Appropriate result, no spurious errors |
+| Retry | Fresh source; do not reuse old Stream |
 
-### Ví dụ kiểm thử thủ công việc lỗi parse lan ra
+### Example: Manually Testing Parse Error Propagation
 
 ```java
 import java.util.Arrays;
@@ -1006,9 +1006,9 @@ if (!thrown) {
 }
 ```
 
-Lưu ý test này dùng terminal `collect(toList())` để yêu cầu thực sự materialize các phần tử sau `map`. Nếu thay bằng `count()`, không thể dựa vào việc tất cả mapper đều được gọi.
+Note that this test uses terminal `collect(toList())` to force materializing elements after `map`. If replaced with `count()`, you cannot rely on every mapper invocation running.
 
-### Ví dụ kiểm thử dữ liệu lỗi được giữ lại
+### Example: Testing Retained Error Records
 
 ```java
 import java.util.Arrays;
@@ -1030,60 +1030,60 @@ if (!Long.valueOf(2L).equals(counts.get(true))
 }
 ```
 
-Cách này xác minh **chính sách phân loại** chứ không chỉ tính toán xong một kết quả số. Đối với lỗi không thể phục hồi như nguồn tệp bị hỏng, đừng ép nó trở thành một bản ghi lỗi thông thường nếu xử lý tiếp sẽ tạo kết quả thiếu tin cậy.
+This verifies the **classification policy** rather than just computing a single numeric result. For unrecoverable errors like a corrupted file source, do not force them into regular per-record error items if continuing would produce untrustworthy output.
 
-## 20. Các bẫy khi “xử lý hết mọi exception” trong pipeline
+## 20. Pitfalls When “Handling All Exceptions” in a Pipeline
 
-| Cách viết hoặc giả định | Vấn đề | Thay thế phù hợp |
+| Pattern or assumption | Problem | Better alternative |
 | --- | --- | --- |
-| Bao `try/catch` quanh chỉ `stream.map(...)` | Lambda chưa thực thi | Bao quanh terminal hoặc xử lý trong lambda |
-| Nghĩ `count()` buộc mọi `map` chạy | Tối ưu có thể bỏ mapper | Dùng phép tiêu thụ kết quả cần validation |
-| Catch `Exception` và trả 0 ở mọi lỗi | Che lỗi nguồn, lỗi lập trình, dữ liệu sai | Phân loại lỗi và chính sách rõ ràng |
-| Bắt `IOException` trực tiếp trong `Function` mà không khai báo | Không biên dịch nếu không bắt/wrap đúng | `UncheckedIOException` hoặc kiểu Result |
-| Ném `new RuntimeException(ex.getMessage())` | Mất cause/stack trace gốc | Giữ cause trong exception mới |
-| Dùng null như “lỗi parse” rồi xóa tất cả | Không thể kiểm toán lỗi bị loại | `ParseResult` hoặc bộ đếm lỗi |
-| Nghĩ `collect` tự đóng `Files.lines` | Rò rỉ tài nguyên | `try-with-resources` |
-| Nghĩ `BufferedReader.lines().close()` luôn đóng Reader | Không xác định đúng owner | Đóng chính Reader |
-| Nghĩ `onClose` chạy khi `forEach` hoàn tất | Handler chỉ chạy khi close | Gọi close hoặc `try-with-resources` |
-| Nuốt ngoại lệ close | Che mất lỗi dọn dẹp | Giữ suppressed exceptions/log đầy đủ |
-| Retry trên cùng Stream đã dùng | Stream dùng một lần | Factory nguồn mới |
-| Retry thao tác gửi/ghi không idempotent | Có thể tạo tác dụng phụ trùng | Thiết kế transaction/idempotency |
-| Mong `limit(1)` luôn chạy đúng một mapper trong parallel | Có thể có xử lý thêm ở nhánh khác | Không ràng buộc vào số callback |
-| Mong exception đầu tiên theo thứ tự nguồn trong parallel | Lịch thực thi không cố định | Không assert message của phần tử lỗi cụ thể |
-| Ghi toàn bộ bản ghi lỗi vào exception/log | Có thể lộ dữ liệu nhạy cảm | Rút gọn, ẩn thông tin không cần thiết |
-| Biến mọi `RuntimeException` thành lỗi dữ liệu | Lỗi lập trình có thể bị che | Chỉ bắt lỗi dự kiến, loại khác fail-fast |
-| Dùng side effect rồi nghĩ exception rollback | Các tác động trước lỗi vẫn tồn tại | Transaction hoặc xử lý dữ liệu thuần |
+| Wrapping only `stream.map(...)` in `try/catch` | Lambda has not executed yet | Wrap the terminal or handle inside the lambda |
+| Thinking `count()` forces every `map` to run | Optimizations may skip mapper | Use an operation that consumes results needing validation |
+| Catching `Exception` and returning `0` everywhere | Masks source, bug, and data errors | Classify errors with explicit policies |
+| Catching `IOException` directly in `Function` without handling | Won't compile unless caught/wrapped properly | `UncheckedIOException` or Result type |
+| Throwing `new RuntimeException(ex.getMessage())` | Loses original cause/stack trace | Preserve cause in the new exception |
+| Using null as “parse error” and filtering all out | Cannot audit dropped errors | `ParseResult` or error counters |
+| Thinking `collect` auto-closes `Files.lines` | Resource leak | `try-with-resources` |
+| Thinking `BufferedReader.lines().close()` always closes Reader | Unclear resource owner | Close the Reader directly |
+| Thinking `onClose` runs when `forEach` finishes | Handler only runs on close | Call close or use `try-with-resources` |
+| Swallowing close exceptions | Hides cleanup failures | Keep suppressed exceptions / full logs |
+| Retrying on the same consumed Stream | Stream is single-use | New source factory |
+| Retrying non-idempotent write/send operations | Can create duplicate side effects | Transaction/idempotency design |
+| Expecting `limit(1)` to run mapper only once in parallel | Other branches may process ahead | Do not depend on callback invocation count |
+| Expecting first source-order exception in parallel | Execution schedule is non-deterministic | Do not assert a specific element's error message |
+| Dumping whole bad record into exceptions/logs | May leak sensitive data | Truncate, mask unnecessary info |
+| Turning every `RuntimeException` into a data error | Programming bugs may be hidden | Catch only expected errors; fail-fast on others |
+| Using side effects and expecting exception rollback | Effects before failure persist | Transactions or pure data processing |
 
-## 21. Checklist thiết kế an toàn trước khi đưa vào ứng dụng
+## 21. Safety Design Checklist Before Production
 
-1. **Nguồn ở đâu?** Mảng/List trong bộ nhớ, Iterator một lần, `Files.lines`, Reader hay nguồn network?
-2. **Điểm mở nguồn có ném checked exception không?** Tách lỗi mở và lỗi duyệt lazy.
-3. **Lambda nào có thể ném lỗi?** `map`, `filter`, `flatMap`, classifier, comparator, accumulator?
-4. **Terminal có thể ném gì?** `toMap` khóa trùng, `reduce` tràn số, `Optional.get` rỗng?
-5. **Lỗi nào thuộc dữ liệu, lỗi nào thuộc hạ tầng?** Không dùng một fallback cho mọi loại.
-6. **Cần fail-fast hay kết quả từng bản ghi?** Nếu muốn báo cáo lỗi, thiết kế `Result` và thống kê.
-7. **Có bỏ qua phần tử không?** Nếu có, lưu số lượng và chính sách để không làm báo cáo sai.
-8. **Có phụ thuộc vào số lần callback chạy không?** `count` và short-circuit có thể bỏ qua thao tác.
-9. **Có chạy song song không?** Không dựa vào thứ tự lỗi hoặc side effect; kiểm tra Collector/combiner.
-10. **Có nguồn I/O không?** Ai là chủ sở hữu và ai chịu trách nhiệm close?
-11. **Nếu xử lý và close cùng lỗi?** Có giữ primary, cause, suppressed exceptions?
-12. **Nếu retry?** Có tạo nguồn mới và bảo đảm snapshot/idempotency?
-13. **Thông báo lỗi có lộ dữ liệu nhạy cảm không?** Chỉ giữ thông tin cần thiết cho chẩn đoán.
-14. **Test có kiểm tra nguồn rỗng, bản ghi lỗi, ngoại lệ tại terminal và đóng tài nguyên không?**
+1. **Where is the source?** In-memory array/List, one-shot Iterator, `Files.lines`, Reader, or network source?
+2. **Does opening the source throw a checked exception?** Separate open errors from lazy iteration errors.
+3. **Which lambdas can throw?** `map`, `filter`, `flatMap`, classifier, comparator, accumulator?
+4. **What can the terminal throw?** `toMap` duplicate keys, `reduce` overflow, empty `Optional.get`?
+5. **Which errors are data errors vs. infrastructure errors?** Never use one fallback for everything.
+6. **Do you need fail-fast or per-record results?** If reporting errors is needed, design `Result` and summary counters.
+7. **Are elements skipped?** If so, record counts and policy so reports are not skewed.
+8. **Does logic depend on callback invocation count?** `count` and short-circuiting may skip operations.
+9. **Is it running in parallel?** Do not rely on error ordering or side effects; verify Collector/combiner.
+10. **Is there an I/O source?** Who owns it and who is responsible for closing it?
+11. **What if both processing and close fail?** Are primary, cause, and suppressed exceptions preserved?
+12. **What if retrying?** Is a fresh source created, with snapshot and idempotency ensured?
+13. **Do error messages leak sensitive data?** Keep only information necessary for diagnosis.
+14. **Do tests cover empty sources, invalid records, terminal exceptions, and resource closing?**
 
-## 22. Bài tập thực hành
+## 22. Practice Exercises
 
-### Bài tập A: bắt lỗi ở đúng thời điểm
+### Exercise A: Catching Errors at the Right Time
 
-Tạo `Stream<Integer>` từ `["10","invalid","30"]` bằng `map(Integer::parseInt)`. Đặt `try/catch` quanh phần **khai báo pipeline** rồi quan sát vì sao không thấy lỗi. Chuyển `try/catch` bao quanh `collect(toList())` và giải thích sự khác biệt.
+Create a `Stream<Integer>` from `["10","invalid","30"]` using `map(Integer::parseInt)`. Put `try/catch` around the **pipeline declaration** and observe why no error is caught. Move `try/catch` around `collect(toList())` and explain the difference.
 
-### Bài tập B: chuyển checked exception thành unchecked có nguyên nhân
+### Exercise B: Wrapping Checked Exceptions with Preserved Cause
 
-Dùng `List<Path>` và `Files.size`. Viết mapper bắt `IOException` rồi ném `UncheckedIOException`; ở tầng gọi, kiểm tra `ex.getCause()` là lỗi I/O gốc. Thử một đường dẫn không tồn tại.
+Use a `List<Path>` and `Files.size`. Write a mapper catching `IOException` and throwing `UncheckedIOException`; at the call site, check that `ex.getCause()` is the original I/O error. Test with a non-existent path.
 
-### Bài tập C: từ fail-fast sang báo cáo lỗi
+### Exercise C: From Fail-Fast to Error Reporting
 
-Đọc `["10", "abc", "", "-3", null]` thành `ParseResult`. Báo cáo:
+Read `["10", "abc", "", "-3", null]` into `ParseResult`. Report:
 
 ```text
 accepted = 2
@@ -1091,49 +1091,49 @@ rejected = 3
 sum = 7
 ```
 
-Dùng `partitioningBy` hoặc `ImportSummary`. Không được làm mất số lượng bản ghi đầu vào khi chỉ bỏ các lỗi parse.
+Use `partitioningBy` or `ImportSummary`. Do not lose track of total input record count when handling parse errors.
 
-### Bài tập D: lỗi từ terminal
+### Exercise D: Exceptions from Terminals
 
-Gọi `Collectors.toMap(String::length, s -> s)` trên `["cat","dog"]`. Giải thích `IllegalStateException` do khóa trùng. Đổi sang `groupingBy(String::length)` để giữ cả hai phần tử.
+Call `Collectors.toMap(String::length, s -> s)` on `["cat","dog"]`. Explain the `IllegalStateException` caused by duplicate keys. Switch to `groupingBy(String::length)` to retain both elements.
 
-### Bài tập E: exception khi close
+### Exercise E: Exceptions on Close
 
-Tạo `Stream.of("A").onClose(...)` với close handler ném lỗi; trong `forEach` cũng ném lỗi. Dùng `try-with-resources` và xác nhận ngoại lệ xử lý là primary, lỗi close nằm trong `getSuppressed()`.
+Create `Stream.of("A").onClose(...)` with a close handler that throws an exception; also throw inside `forEach`. Use `try-with-resources` and confirm the processing exception is primary while the close error is in `getSuppressed()`.
 
-### Bài tập F: parallel và short-circuit
+### Exercise F: Parallelism and Short-Circuiting
 
-Dùng nguồn có nhiều chuỗi sai định dạng. So `findFirst`, `anyMatch`, `collect` trong hai chế độ. Ghi rõ terminal nào **có thể** không kiểm tra mọi phần tử, và vì sao không được viết test ràng buộc phần tử lỗi được báo trước ở parallel.
+Use a source with multiple malformed strings. Compare `findFirst`, `anyMatch`, and `collect` in both modes. State clearly which terminals **might** skip inspecting every element, and why tests must not assert which failing element is reported first in parallel mode.
 
-### Bài tập G: nguồn tệp và vòng đời tài nguyên
+### Exercise G: File Sources and Resource Lifecycle
 
-Viết hàm đọc tệp điểm, parse từng dòng và thống kê hợp lệ/lỗi. Dùng `Files.lines` trong `try-with-resources`. Thử nguồn rỗng, dòng sai định dạng, thiếu tệp và dữ liệu lớn; phân biệt lỗi mở `IOException` với lỗi duyệt `UncheckedIOException`.
+Write a function that reads a scores file, parses each line, and computes valid/error statistics. Use `Files.lines` inside `try-with-resources`. Test empty sources, malformed lines, missing files, and large datasets; distinguish opening `IOException` from iteration `UncheckedIOException`.
 
-## 23. Câu hỏi tự kiểm tra
+## 23. Self-Check Questions
 
-1. Vì sao lỗi trong `map` thường không xuất hiện tại dòng tạo pipeline? **Vì intermediate operation thường lazy, chạy khi terminal yêu cầu phần tử**.
-2. `NumberFormatException` có phải checked exception không? **Không, nó là `RuntimeException`**.
-3. Gọi `map(Integer::parseInt).count()` có bắt buộc parse mọi phần tử không? **Không**, tối ưu có thể bỏ mapper nếu không ảnh hưởng count.
-4. `Files.lines(path)` có thể ném gì khi mở nguồn? **`IOException`**.
-5. Khi đọc từ `Files.lines` gặp lỗi giữa quá trình duyệt, có thể nhận ngoại lệ nào? **`UncheckedIOException`**.
-6. `UncheckedIOException.getCause()` trả loại nào? **`IOException`**.
-7. `Function.apply` có cho lambda ném `IOException` trực tiếp mà không xử lý không? **Không**, checked exception không được khai báo trong chữ ký đó.
-8. Khi nào nên dùng `UncheckedIOException`? **Khi cần fail-fast qua functional interface và giữ cause I/O**.
-9. Khi nào nên dùng kiểu `ParseResult`? **Khi lỗi dữ liệu dự kiến cần được báo cáo thay vì dừng toàn bộ**.
-10. Tại sao không nên catch `Exception` rồi trả 0? **Có thể che lỗi nghiêm trọng và làm dữ liệu sai**.
-11. `Collectors.toMap` hai tham số gặp khóa trùng sẽ ra sao? **Ném `IllegalStateException`**.
-12. `Optional.empty()` có đồng nghĩa pipeline gặp lỗi không? **Không, nó có thể chỉ báo không có kết quả**.
-13. `anyMatch` trả `true` có chứng minh mọi bản ghi hợp lệ không? **Không, nó có thể dừng sớm**.
-14. Với parallel stream, exception từ phần tử nào phải xuất hiện đầu tiên? **Không có bảo đảm theo thứ tự nguồn**.
-15. Nếu `forEach` đã gọi API ngoài rồi ném exception, API ngoài có tự rollback không? **Không**.
-16. `collect` có tự đóng `Files.lines` không? **Không**, cần `try-with-resources`.
-17. Đối với `BufferedReader.lines()`, nên đóng tài nguyên nào? **Đóng chính BufferedReader sở hữu nguồn**.
-18. `onClose` chạy khi terminal hoàn tất hay khi Stream được close? **Khi close**.
-19. Nếu xử lý và close cùng lỗi trong `try-with-resources`, lỗi nào là primary? **Lỗi xử lý; lỗi close được ghi ở suppressed exceptions**.
-20. Sau một terminal operation lỗi, có nên gọi terminal lại trên cùng Stream không? **Không**, phải tạo Stream mới nếu cần thử lại.
-21. Nếu muốn retry I/O, cần cân nhắc gì? **Số lần thử, snapshot và idempotency của tác dụng phụ**.
-22. Vì sao cần giữ `cause` và suppressed exceptions? **Để không đánh mất nguyên nhân và lỗi dọn dẹp**.
-23. Nếu xử lý nhiều bản ghi và muốn đếm lỗi, nên giữ gì? **Tổng đầu vào, số hợp lệ, số lỗi và chính sách phân loại**.
-24. Tại sao cần kiểm thử cả xử lý tuần tự và song song? **Parallel có lịch xử lý và cách gộp khác, có thể lộ lỗi state/combiner**.
+1. Why don't errors in `map` usually appear at the line where the pipeline is created? **Because intermediate operations are usually lazy and run when the terminal requests elements**.
+2. Is `NumberFormatException` a checked exception? **No, it is a `RuntimeException`**.
+3. Does calling `map(Integer::parseInt).count()` guarantee parsing every element? **No**, optimizations can skip the mapper if it does not affect the count.
+4. What can `Files.lines(path)` throw when opening the source? **`IOException`**.
+5. When reading from `Files.lines` fails midway through iteration, what exception can be thrown? **`UncheckedIOException`**.
+6. What type does `UncheckedIOException.getCause()` return? **`IOException`**.
+7. Does `Function.apply` let a lambda throw `IOException` directly without handling it? **No**, checked exceptions are not declared in that signature.
+8. When should `UncheckedIOException` be used? **When fail-fast is needed across a functional interface while preserving the I/O cause**.
+9. When should a `ParseResult`-style type be used? **When expected data errors need to be reported rather than halting the entire run**.
+10. Why shouldn't you catch `Exception` and return `0`? **It can hide serious errors and corrupt results**.
+11. What happens when two-argument `Collectors.toMap` encounters duplicate keys? **It throws `IllegalStateException`**.
+12. Does `Optional.empty()` mean the pipeline encountered an error? **No, it may simply indicate no matching result**.
+13. Does `anyMatch` returning `true` prove all records are valid? **No, it can short-circuit early**.
+14. With a parallel stream, which element's exception is guaranteed to appear first? **There is no source-order guarantee**.
+15. If `forEach` called an external API and then threw an exception, is the external call automatically rolled back? **No**.
+16. Does `collect` automatically close `Files.lines`? **No**, `try-with-resources` is required.
+17. For `BufferedReader.lines()`, which resource should be closed? **Close the BufferedReader that owns the source**.
+18. Does `onClose` run when the terminal finishes or when the Stream is closed? **When closed**.
+19. If both processing and close fail in `try-with-resources`, which error is primary? **The processing error; the close error is recorded in suppressed exceptions**.
+20. After a terminal operation fails, should you invoke a terminal again on the same Stream? **No**, a fresh Stream must be created to retry.
+21. What must be considered when retrying I/O? **Attempt count, snapshot consistency, and idempotency of side effects**.
+22. Why should `cause` and suppressed exceptions be preserved? **To avoid losing the root cause and cleanup errors**.
+23. When processing many records and counting errors, what should be retained? **Total input count, valid count, error count, and classification policy**.
+24. Why should both sequential and parallel execution be tested? **Parallel mode has different scheduling and merging, which can expose state/combiner bugs**.
 
-**Nguyên tắc áp dụng:** Ngoại lệ trong Java Stream API phải được hiểu theo **thời điểm thực thi** chứ không chỉ theo dòng code nơi khai báo. Phân biệt lỗi khi mở nguồn với lỗi khi duyệt lazy, nhớ rằng callback có thể ném lỗi từ `map`/`filter` tới terminal, và tránh kỳ vọng short-circuit hay parallel sẽ kiểm tra đúng một tập phần tử cố định. Chọn fail-fast hoặc kết quả mang lỗi theo yêu cầu nghiệp vụ, **giữ nguyên cause**, không nuốt lỗi hạ tầng, và luôn quản lý vòng đời tài nguyên bằng `try-with-resources`. Một pipeline an toàn không chỉ trả kết quả đúng khi mọi thứ thuận lợi, mà còn báo lỗi chính xác, có thể chẩn đoán và không làm thất thoát dữ liệu khi gặp sự cố.
+**Guiding Principle:** Exceptions in the Java Stream API must be understood by **execution timing** rather than just the line of code where they are declared. Distinguish errors when opening a source from errors during lazy iteration, remember that callbacks can propagate errors from `map`/`filter` to terminals, and avoid expecting short-circuit or parallel execution to inspect a fixed set of elements. Choose fail-fast or error-carrying results according to business requirements, **preserve causes**, never swallow infrastructure errors, and always manage resource lifecycles with `try-with-resources`. A safe pipeline not only produces correct results when everything goes smoothly, but also reports errors accurately, remains diagnosable, and prevents data loss when failures occur.

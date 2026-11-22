@@ -1,61 +1,61 @@
-# Vì sao cùng một JAR có thể có hành vi khác theo vị trí đặt
+# Why the Same JAR Can Behave Differently Depending on Placement
 
-Một JAR chỉ là gói chứa class, resource và metadata. Bản thân file JAR không quyết định cách Java áp dụng quy tắc module. Khi khởi chạy, vị trí đưa JAR vào `--class-path` hay `--module-path` quyết định nó được nạp như một phần của unnamed module, một explicit module hay một automatic module. Vì vậy, cùng một file có thể chạy được ở chế độ này nhưng phát sinh lỗi truy cập hoặc phân giải phụ thuộc ở chế độ kia.
+A JAR is simply a package containing classes, resources, and metadata. The JAR file itself does not decide how Java applies module rules. At launch time, placing the JAR on `--class-path` or `--module-path` determines whether it is loaded as part of the unnamed module, an explicit module, or an automatic module. Therefore, the same file may run in one mode but trigger access errors or dependency resolution failures in the other.
 
-## 1. Đặt JAR trên classpath
+## 1. Placing a JAR on the Classpath
 
-Classpath được truyền bằng `-cp` hoặc `--class-path`. Class loader tìm class và resource trong các thư mục/JAR đã liệt kê. Các class được nạp từ classpath thuộc unnamed module gắn với class loader tương ứng.
+The classpath is passed via `-cp` or `--class-path`. The class loader searches for classes and resources in the listed directories/JARs. Classes loaded from the classpath belong to the unnamed module associated with the corresponding class loader.
 
-Nếu JAR có `module-info.class`, Java bỏ qua descriptor đó khi JAR nằm trên classpath. Các khai báo `requires`, `exports`, `opens`, `uses` và `provides` không được dùng để áp dụng ranh giới module cho JAR này. Mã ứng dụng vẫn chịu các quy tắc truy cập Java thông thường như `public`, `protected`, package-private và `private`, nhưng không bị giới hạn bởi `exports` của module descriptor.
+If the JAR has `module-info.class`, Java ignores that descriptor when the JAR is on the classpath. The `requires`, `exports`, `opens`, `uses`, and `provides` declarations are not used to enforce module boundaries for this JAR. Application code is still subject to normal Java access rules such as `public`, `protected`, package-private, and `private`, but is not restricted by the module descriptor's `exports`.
 
-Nếu JAR không có `module-info.class`, kết quả cũng là các class thuộc unnamed module. Vì vậy, hai JAR có cấu trúc module khác nhau vẫn có thể hoạt động tương tự khi cả hai được đưa lên classpath: descriptor module không tham gia vào quá trình phân giải.
+If the JAR does not have `module-info.class`, the result is also classes belonging to the unnamed module. Thus, two JARs with different module structures can still behave similarly when both are placed on the classpath: the module descriptor does not participate in resolution.
 
-## 2. Đặt JAR trên module path
+## 2. Placing a JAR on the Module Path
 
-Module path được truyền bằng `--module-path` hoặc `-p`. Java tìm module, đọc descriptor và xây dựng cấu hình module trước khi chạy ứng dụng.
+The module path is passed via `--module-path` or `-p`. Java locates modules, reads their descriptors, and builds a module configuration before running the application.
 
-Có hai trường hợp:
+There are two cases:
 
-- **Explicit module:** JAR có `module-info.class`. Tên module và các quan hệ phụ thuộc được khai báo trong descriptor. Một module chỉ đọc các module mà nó khai báo bằng `requires`; mã bên ngoài chỉ truy cập được các package được `exports`. Truy cập reflection sâu còn phụ thuộc vào `opens` hoặc `open module`.
-- **Automatic module:** JAR không có `module-info.class`. Java tạo một module có tên từ thuộc tính `Automatic-Module-Name` trong manifest nếu có; nếu không, tên được suy ra từ tên file JAR. Automatic module đọc các module khác và export tất cả package, giúp thư viện cũ tham gia module path trong giai đoạn chuyển đổi.
+- **Explicit module:** The JAR contains `module-info.class`. The module name and dependency relationships are declared in the descriptor. A module reads only the modules it declares via `requires`; external code can access only the packages that are `exports`-ed. Deep reflection access also depends on `opens` or `open module`.
+- **Automatic module:** The JAR does not have `module-info.class`. Java creates a module whose name is taken from the `Automatic-Module-Name` attribute in the manifest if present; otherwise, the name is derived from the JAR file name. An automatic module reads other modules and exports all packages, helping legacy libraries participate in the module path during a transition period.
 
-Automatic module có tên module và tham gia vào module resolution, dù chưa có descriptor do tác giả thư viện khai báo. Nó là cầu nối tương thích, không cung cấp mức đóng gói chặt như explicit module.
+An automatic module has a module name and participates in module resolution, even without a descriptor declared by the library author. It is a compatibility bridge and does not provide the strict encapsulation of an explicit module.
 
-## 3. Cùng một JAR được hiểu khác nhau như thế nào?
+## 3. How Is the Same JAR Interpreted Differently?
 
-| Nội dung của JAR | Khi đặt trên classpath | Khi đặt trên module path |
+| Contents of the JAR | When placed on the classpath | When placed on the module path |
 |---|---|---|
-| Có `module-info.class` | Descriptor bị bỏ qua; class thuộc unnamed module | Là explicit module; descriptor được áp dụng |
-| Không có `module-info.class` | Class thuộc unnamed module | Là automatic module; tên được suy ra hoặc lấy từ manifest |
-| Có `Automatic-Module-Name` | Thuộc tính này không tạo module trên classpath | Thuộc tính được dùng làm tên automatic module |
-| Có package không export | Package vẫn có thể được dùng theo access modifier Java thông thường | Module khác không thể truy cập package đó qua ranh giới module |
-| Có package cần reflection sâu | Không có ranh giới module của JAR để chặn reflection | Cần package được mở bằng `opens` hoặc cơ chế mở phù hợp |
+| Has `module-info.class` | Descriptor is ignored; classes belong to the unnamed module | Is an explicit module; descriptor is enforced |
+| Does not have `module-info.class` | Classes belong to the unnamed module | Is an automatic module; name is derived or taken from the manifest |
+| Has `Automatic-Module-Name` | This attribute does not create a module on the classpath | The attribute is used as the automatic module name |
+| Has a non-exported package | The package can still be used according to normal Java access modifiers | Other modules cannot access that package across the module boundary |
+| Has a package needing deep reflection | No JAR module boundary blocks reflection | Requires the package to be opened via `opens` or an appropriate opening mechanism |
 
-Điểm khác biệt lớn nhất là module identity và ranh giới truy cập. Một class public nằm trong package không export có thể được ứng dụng classpath sử dụng, nhưng ứng dụng thuộc named module sẽ không truy cập được package đó nếu module chứa nó không export package. Tương tự, thư viện dùng reflection sâu có thể hoạt động trên classpath nhưng gặp `InaccessibleObjectException` khi chạy dưới explicit module chưa mở package tương ứng.
+The biggest difference is module identity and access boundaries. A public class in a non-exported package can be used by a classpath application, whereas an application in a named module cannot access that package if the containing module does not export it. Similarly, a library using deep reflection may work on the classpath but encounter `InaccessibleObjectException` when running under an explicit module that has not opened the corresponding package.
 
-## 4. Các khác biệt dễ xuất hiện trong ứng dụng
+## 4. Differences Likely to Appear in Applications
 
-### Readability và dependency
+### Readability and Dependency
 
-Unnamed module đọc các module khác. Ngược lại, named module không tự động đọc unnamed module. Vì thế, một ứng dụng đã chuyển sang module path có thể không nhìn thấy thư viện chỉ được đặt trên classpath, dù thư viện đó vẫn có mặt trong lệnh chạy. Hãy kiểm tra module khai báo `requires` và vị trí thực tế của từng dependency.
+The unnamed module reads other modules. Conversely, a named module does not automatically read the unnamed module. Therefore, an application that has moved to the module path may not see a library placed only on the classpath, even though that library is present in the launch command. Check the module's `requires` declarations and the actual placement of each dependency.
 
-### Export và reflection
+### Export and Reflection
 
-`exports` cho phép module khác truy cập các kiểu public trong package được export. `opens` cho phép framework hoặc thư viện reflection truy cập sâu vào package theo phạm vi được khai báo. Hai directive này có mục đích khác nhau: export phục vụ truy cập kiểu ở mức Java; open phục vụ reflection.
+`exports` allows other modules to access public types in the exported package. `opens` allows frameworks or reflection libraries to perform deep reflection into the package according to the declared scope. These two directives serve different purposes: export is for Java-level type access; open is for reflection.
 
-### Service loading và resource scanning
+### Service Loading and Resource Scanning
 
-Ứng dụng classpath thường khai báo provider của `ServiceLoader` qua file `META-INF/services/<tên-interface>`. Ứng dụng modular có thể khai báo `uses` và `provides ... with ...` trong `module-info.java`. Khi chuyển JAR giữa hai vị trí, hãy kiểm tra cách thư viện đăng ký và tìm provider.
+Classpath applications commonly declare `ServiceLoader` providers via the file `META-INF/services/<interface-name>`. Modular applications can declare `uses` and `provides ... with ...` in `module-info.java`. When moving a JAR between the two locations, check how the library registers and discovers providers.
 
-Một số framework quét class dựa trên classpath hoặc thuộc tính `java.class.path`. Khi thư viện chuyển sang module path, cách quét đó có thể không nhìn thấy mọi JAR/resource như trước. Kết quả phụ thuộc vào framework và cách nó hỗ trợ module path.
+Some frameworks scan classes based on the classpath or the `java.class.path` property. When a library moves to the module path, that scanning approach may no longer see all JARs/resources as before. The outcome depends on the framework and how it supports the module path.
 
-### Trùng package
+### Duplicate Packages
 
-Classpath có thể nhận class từ nhiều JAR cùng đóng góp vào một package. Trong module path, việc hai named module cùng chứa một package có thể gây lỗi split package khi dựng cấu hình module. Vì vậy, một cách đóng gói từng chạy được trên classpath có thể thất bại sau khi tách thành nhiều named module.
+The classpath can accept classes from multiple JARs contributing to the same package. On the module path, having two named modules contain the same package can cause a split-package error when building the module configuration. Therefore, a packaging layout that previously worked on the classpath can fail once split into multiple named modules.
 
-## 5. Ví dụ khởi chạy
+## 5. Launch Examples
 
-Giả sử `lib.jar` là thư viện có module descriptor:
+Suppose `lib.jar` is a library with a module descriptor:
 
 ```java
 module com.example.lib {
@@ -63,7 +63,7 @@ module com.example.lib {
 }
 ```
 
-Ứng dụng modular khai báo:
+The modular application declares:
 
 ```java
 module com.example.app {
@@ -71,42 +71,42 @@ module com.example.app {
 }
 ```
 
-Khi chạy trên classpath, descriptor của cả hai JAR bị bỏ qua. Ví dụ trên Windows:
+When running on the classpath, the descriptors of both JARs are ignored. Example on Windows:
 
 ```shell
 java -cp "app.jar;lib.jar" com.example.app.Main
 ```
 
-Khi chạy như ứng dụng modular, đặt hai JAR trong thư mục `mods` và khởi chạy module:
+When running as a modular application, place both JARs in the `mods` directory and launch the module:
 
 ```shell
 java --module-path mods --module com.example.app/com.example.app.Main
 ```
 
-Ở lệnh thứ hai, Java phân giải `com.example.app`, đọc `requires com.example.lib` và chỉ cho phép ứng dụng truy cập các package mà thư viện export. Nếu `lib.jar` không export package chứa một kiểu mà ứng dụng sử dụng, quá trình biên dịch hoặc chạy sẽ báo lỗi truy cập module.
+In the second command, Java resolves `com.example.app`, reads `requires com.example.lib`, and allows the application to access only the packages exported by the library. If `lib.jar` does not export the package containing a type used by the application, compilation or execution will report a module access error.
 
-Với JAR cũ không có `module-info.class`, đặt nó trên module path sẽ biến nó thành automatic module. Ứng dụng named module phải dùng đúng tên automatic module trong `requires`; nên khai báo `Automatic-Module-Name` trong manifest để tên không thay đổi khi tên file JAR thay đổi.
+For a legacy JAR without `module-info.class`, placing it on the module path turns it into an automatic module. A named-module application must use the exact automatic module name in `requires`; `Automatic-Module-Name` should be declared in the manifest so the name does not change when the JAR file name changes.
 
-## 6. Cách xác định JAR đang được dùng theo chế độ nào
+## 6. How to Determine Which Mode a JAR Is Using
 
-Có thể dùng các lệnh sau để kiểm tra artifact và quá trình phân giải module:
+The following commands can be used to inspect artifacts and module resolution:
 
 ```shell
-# Xem descriptor hoặc tên automatic module của JAR
+# View the descriptor or automatic module name of a JAR
 jar --describe-module --file lib.jar
 
-# Hiển thị module được phân giải khi khởi chạy ứng dụng modular
+# Display modules resolved when launching a modular application
 java --show-module-resolution --module-path mods --module com.example.app/com.example.app.Main
 ```
 
-Khi một ứng dụng chạy khác giữa IDE, Gradle/Maven và dòng lệnh, hãy so sánh lệnh Java thực tế của từng môi trường. Kiểm tra `-cp`, `--class-path`, `--module-path`, module descriptor, dependency graph và các tham số mở module. Cấu hình trong file build chưa đủ để kết luận JVM đang nhận JAR theo chế độ nào; lệnh chạy cuối cùng mới cho biết điều đó.
+When an application behaves differently across an IDE, Gradle/Maven, and the command line, compare the actual Java command from each environment. Check `-cp`, `--class-path`, `--module-path`, module descriptors, the dependency graph, and flags that open modules. Configuration in the build file is not enough to conclude which mode the JVM is receiving the JAR in; the final launch command reveals that.
 
-## 7. Quy tắc lựa chọn
+## 7. Selection Guidelines
 
-- Dùng classpath khi duy trì ứng dụng legacy và chưa cần ranh giới module.
-- Dùng module path với explicit module khi muốn khai báo dependency rõ ràng, kiểm soát package được export và giới hạn reflection.
-- Dùng automatic module như bước chuyển tiếp cho thư viện cũ; ưu tiên tên ổn định bằng `Automatic-Module-Name`, sau đó bổ sung `module-info.java` khi thư viện sẵn sàng.
-- Không đưa cùng một artifact vào cả classpath lẫn module path trong cùng ứng dụng nếu không có lý do rõ ràng; việc nạp trùng có thể tạo ra class identity và dependency khó dự đoán.
-- Khi chuyển một ứng dụng từ classpath sang module path, kiểm tra lại `requires`, `exports`, `opens`, service provider, resource scanning và split package.
+- Use the classpath when maintaining a legacy application that does not yet need module boundaries.
+- Use the module path with explicit modules when you want clear dependency declarations, control over exported packages, and restricted reflection.
+- Use automatic modules as a transition step for legacy libraries; prefer a stable name via `Automatic-Module-Name`, then add `module-info.java` when the library is ready.
+- Do not place the same artifact on both the classpath and the module path in the same application without a clear reason; duplicate loading can create unpredictable class identities and dependencies.
+- When migrating an application from the classpath to the module path, re-check `requires`, `exports`, `opens`, service providers, resource scanning, and split packages.
 
-Java Platform Module System có từ Java 9. Vì vậy, khi điều tra hành vi khác nhau, hãy xác định JDK đang chạy và vị trí thật của JAR trước khi sửa mã nguồn.
+The Java Platform Module System has existed since Java 9. Therefore, when investigating different behaviors, verify the running JDK and the actual location of the JAR before modifying source code.

@@ -1,62 +1,62 @@
-# Quy tắc giới hạn số bit dịch theo kiểu toán hạng trong Java
+# Shift Distance Limits by Operand Type in Java
 
-> **Java core — language-basics / Toán tử bit**  
-> **Môi trường:** JDK 17+, chỉ dùng thư viện chuẩn.  
-> **Mục tiêu:** Biết Java xác định số bit dịch thực sự theo **kiểu của toán hạng bên trái sau khi nâng kiểu**, giải thích vì sao dịch 32/64 bit hoặc dịch với số âm không báo lỗi, và tránh mất dữ liệu vì chuyển sang `long` quá muộn.
+> **Java core — language-basics / Bitwise operators**  
+> **Environment:** JDK 17+, standard library only.  
+> **Goal:** Know how Java determines the actual shift distance from the **type of the left operand after numeric promotion**, explain why 32/64-bit shifts or negative shift counts do not throw errors, and avoid data loss caused by widening to `long` too late.
 
-## 1. Toán tử dịch bit và hai toán hạng
+## 1. Bit-Shift Operators and Their Two Operands
 
-Java có ba toán tử dịch bit dành cho các kiểu số nguyên:
+Java has three bit-shift operators for integral types:
 
-| Toán tử | Ý nghĩa | Ví dụ |
+| Operator | Meaning | Example |
 | --- | --- | --- |
-| `x << n` | Dịch trái, điền bit 0 ở bên phải | `1 << 3` → 8 |
-| `x >> n` | Dịch phải **có dấu**, giữ bit dấu ở bên trái | `-8 >> 1` → -4 |
-| `x >>> n` | Dịch phải **không dấu**, điền bit 0 ở bên trái | `-8 >>> 1` → 2147483644 |
+| `x << n` | Left shift, fills 0 bits on the right | `1 << 3` → 8 |
+| `x >> n` | **Signed** right shift, preserves the sign bit on the left | `-8 >> 1` → -4 |
+| `x >>> n` | **Unsigned** right shift, fills 0 bits on the left | `-8 >>> 1` → 2147483644 |
 
-Trong `x << n`, `x` là **giá trị bị dịch**, `n` là **số lượng dịch** (*shift distance*). Cả hai phải là kiểu nguyên (hoặc wrapper được unbox); `float`, `double` và `boolean` không được dùng làm toán hạng dịch.
+In `x << n`, `x` is the **value being shifted**, and `n` is the **shift distance**. Both must be integral types (or unboxed wrappers); `float`, `double`, and `boolean` cannot be used as shift operands.
 
-**Đừng hiểu số lượng dịch là số bit Java sẽ dùng nguyên vẹn.** Java chỉ lấy một số bit thấp của `n`, theo kiểu kết quả của toán hạng **trái**.
+**Do not assume Java uses the shift distance verbatim.** Java takes only a specific number of low bits of `n`, determined by the promoted type of the **left** operand.
 
-## 2. Quy tắc quan trọng nhất: `int` dùng 5 bit thấp, `long` dùng 6 bit thấp
+## 2. The Most Important Rule: `int` Uses the Low 5 Bits, `long` Uses the Low 6 Bits
 
-| Kiểu toán hạng trái **sau unary numeric promotion** | Độ rộng | Bit thấp của số lượng dịch được dùng | Số lượng dịch hiệu lực |
+| Left operand type **after unary numeric promotion** | Width | Low bits of shift distance used | Effective shift distance |
 | --- | ---: | --- | --- |
-| `int` | 32 bit | 5 bit thấp, mask `0x1F` | `n & 0x1F`, từ 0 đến 31 |
-| `long` | 64 bit | 6 bit thấp, mask `0x3F` | `n & 0x3F`, từ 0 đến 63 |
-| `byte`, `short`, `char` | Nâng thành `int` | **5 bit thấp**, không phải 3/4 bit | `n & 0x1F` |
+| `int` | 32 bits | Low 5 bits, mask `0x1F` | `n & 0x1F`, from 0 to 31 |
+| `long` | 64 bits | Low 6 bits, mask `0x3F` | `n & 0x3F`, from 0 to 63 |
+| `byte`, `short`, `char` | Promoted to `int` | **Low 5 bits**, not 3 or 4 bits | `n & 0x1F` |
 
-Ví dụ dễ nhớ:
+Memorable examples:
 
 ~~~java
 int a = 1;
 System.out.println(a << 31); // -2147483648
-System.out.println(a << 32); // 1, vì 32 & 31 == 0
-System.out.println(a << 33); // 2, vì 33 & 31 == 1
+System.out.println(a << 32); // 1, because 32 & 31 == 0
+System.out.println(a << 33); // 2, because 33 & 31 == 1
 
 long b = 1L;
 System.out.println(b << 32); // 4294967296
-System.out.println(b << 64); // 1, vì 64 & 63 == 0
-System.out.println(b << 65); // 2, vì 65 & 63 == 1
+System.out.println(b << 64); // 1, because 64 & 63 == 0
+System.out.println(b << 65); // 2, because 65 & 63 == 1
 ~~~
 
-**Mấu chốt:** `1 << 32` bằng **1**, không phải 0; còn `1L << 32` bằng **4294967296**. Java không tự động ném ngoại lệ khi số lượng dịch đạt hoặc vượt độ rộng bit.
+**Key point:** `1 << 32` equals **1**, not 0; whereas `1L << 32` equals **4294967296**. Java does not automatically throw an exception when the shift distance reaches or exceeds the bit width.
 
-Đây là phép lấy **các bit thấp của khoảng dịch**, không phải cơ chế kiểm tra `n <= 31` hay `n <= 63` rồi từ chối trường hợp vượt giới hạn.
+This is a rule that extracts **the low bits of the shift distance**, not a validation mechanism that checks `n <= 31` or `n <= 63` and rejects out-of-range cases.
 
-## 3. Số lượng dịch âm vẫn được mask
+## 3. Negative Shift Distances Are Still Masked
 
-Java **không báo lỗi** chỉ vì số lượng dịch âm; số nguyên âm cũng có dạng bit, và Java vẫn lấy các bit thấp:
+Java **does not report an error** just because a shift distance is negative; negative integers also have a bit pattern, and Java still masks the low bits:
 
 ~~~java
 int intEffective = -1 & 0x1F;  // 31
 long longEffective = -1 & 0x3F; // 63
 
-int highInt = 1 << -1;   // như 1 << 31: -2147483648
-long highLong = 1L << -1; // như 1L << 63: -9223372036854775808
+int highInt = 1 << -1;   // same as 1 << 31: -2147483648
+long highLong = 1L << -1; // same as 1L << 63: -9223372036854775808
 ~~~
 
-| Biểu thức | Số lượng dịch hiệu lực | Kết quả |
+| Expression | Effective shift distance | Result |
 | --- | ---: | ---: |
 | `1 << 0` | 0 | 1 |
 | `1 << 31` | 31 | -2147483648 |
@@ -68,29 +68,29 @@ long highLong = 1L << -1; // như 1L << 63: -9223372036854775808
 | `1L << 64` | 0 | 1 |
 | `1L << -1` | 63 | -9223372036854775808 |
 
-Không nên dùng mask tự động của toán tử dịch làm cách “kiểm tra hợp lệ” input. Nếu nghiệp vụ quy định chỉ chấp nhận `0 <= n && n < 32` hoặc `0 <= n && n < 64` thì **kiểm tra trước** rồi mới dịch; nếu không, input bất thường có thể âm thầm biến thành một khoảng dịch khác.
+Do not rely on the shift operator's automatic masking as a way to "validate" input. If your domain only allows `0 <= n && n < 32` or `0 <= n && n < 64`, **check the bounds first** before shifting; otherwise, invalid inputs can silently turn into a completely different shift distance.
 
-## 4. Kiểu toán hạng **trái** quyết định độ rộng, không phải biến nhận kết quả
+## 4. The **Left** Operand's Type Determines the Width, Not the Target Variable
 
-Hai toán hạng của toán tử dịch được áp dụng *unary numeric promotion* riêng biệt. Kiểu của **toán hạng trái đã nâng kiểu** là kiểu kết quả; toán hạng phải chỉ cung cấp số lượng dịch.
+The two operands of a shift operator undergo *unary numeric promotion* separately. The type of the **promoted left operand** is the result type; the right operand only supplies the shift distance.
 
 ~~~java
 int x = 1;
 
-long tooLate = x << 40;        // int dịch 40 -> 40 & 31 = 8 -> 256
-long correct = ((long) x) << 40; // long dịch đúng 40 -> 1099511627776
+long tooLate = x << 40;        // int shifted by 40 -> 40 & 31 = 8 -> 256
+long correct = ((long) x) << 40; // long shifted by 40 -> 1099511627776
 ~~~
 
-`tooLate` có kiểu `long` ở **biến đích**, nhưng phép dịch được thực hiện bằng `int` trước khi gán. Kể cả `(long) (x << 40)` cũng chuyển kiểu **sau phép dịch**, nên vẫn cho 256.
+`tooLate` has type `long` on the **destination variable**, yet the shift itself is performed as `int` before assignment. Even `(long) (x << 40)` casts **after the shift**, so it still produces 256.
 
-Dùng `1L` hoặc cast bên trái **trước phép dịch** khi cần dãy 64 bit:
+Use `1L` or cast the left side **before shifting** when you need a 64-bit range:
 
 ~~~java
 long bit40 = 1L << 40;    // 1099511627776
-long bit40b = (long) 1 << 40; // cùng kết quả
+long bit40b = (long) 1 << 40; // same result
 ~~~
 
-Kiểu **toán hạng phải** không nâng kiểu kết quả bên trái thành `long`:
+The **right operand's** type does not widen the left result to `long`:
 
 ~~~java
 int value = 1;
@@ -98,56 +98,56 @@ long distance = 33L;
 int shifted = value << distance; // 2: 33 & 31 = 1
 ~~~
 
-**Kết luận:** Trong phép `left << distance`, hãy nhìn vào **kiểu left**, không nhìn kiểu của `distance` hay kiểu biến đích.
+**Conclusion:** In `left << distance`, look at **the type of `left`**, not the type of `distance` or the destination variable's type.
 
-## 5. `byte`, `short`, `char` được nâng thành `int`
+## 5. `byte`, `short`, and `char` Are Promoted to `int`
 
-Dù `byte` có 8 bit, `short`/`char` có 16 bit, phép dịch vẫn dùng **quy tắc 32 bit** vì toán hạng trái được nâng thành `int` trước phép toán:
+Even though `byte` is 8 bits and `short`/`char` are 16 bits, shifts still follow the **32-bit rule** because the left operand is promoted to `int` before the operation:
 
 ~~~java
 byte small = 1;
 short brief = 1;
 char ch = 1;
 
-int a = small << 8;  // 256, không phải 0
+int a = small << 8;  // 256, not 0
 int b = brief << 16; // 65536
-int c = ch << 32;    // 1, vì 32 & 31 = 0
+int c = ch << 32;    // 1, because 32 & 31 = 0
 ~~~
 
-Dòng `byte result = small << 8;` không biên dịch khi `small` là biến: biểu thức có kiểu `int`, không được gán ngầm vào `byte`. Nếu ép về `byte` sau phép dịch, giá trị có thể bị cắt mất các bit cao:
+`byte result = small << 8;` does not compile when `small` is a variable: the expression has type `int`, which cannot be implicitly assigned to `byte`. If you cast back to `byte` after shifting, the high bits can be truncated:
 
 ~~~java
 byte narrowed = (byte) (small << 8); // 0
 ~~~
 
-Đừng nghĩ “dịch byte quá 8 bit nên bị mask theo 8” — phép dịch trả `int`; chỉ khi cast về `byte` mới bị thu hẹp về 8 bit.
+Do not think "shifting a `byte` by more than 8 bits masks modulo 8"—the shift returns `int`; narrowing to 8 bits happens only if you cast back to `byte`.
 
-## 6. Quy tắc mask áp dụng cho cả `<<`, `>>`, `>>>`
+## 6. The Masking Rule Applies to `<<`, `>>`, and `>>>` Alike
 
-Không chỉ phép dịch trái: cả ba toán tử đều dùng quy tắc 5/6 bit thấp của số lượng dịch.
+Not just left shift: all three operators use the low 5/6 bits of the shift distance.
 
 ~~~java
 int x = -8;
-int signed = x >> 33;   // -4, vì 33 & 31 = 1
-int unsigned = x >>> 33; // 2147483644, cũng dịch 1 bit
+int signed = x >> 33;   // -4, because 33 & 31 = 1
+int unsigned = x >>> 33; // 2147483644, also shifts by 1 bit
 ~~~
 
-`>>` giữ bit dấu khi dịch phải; `>>>` điền bit 0 từ bên trái. Chúng có thể cho kết quả rất khác nhau khi `x` âm, nhưng **quy tắc giới hạn số lượng dịch là giống nhau**.
+`>>` preserves the sign bit when shifting right; `>>>` fills 0 bits from the left. They can yield very different values when `x` is negative, but **the shift-distance masking rule is identical**.
 
-| Biểu thức | Kết quả | Vì sao |
+| Expression | Result | Why |
 | --- | ---: | --- |
-| `-8 >> 1` | -4 | Dịch phải số âm và giữ dấu |
-| `-8 >> 33` | -4 | 33 trở thành 1 |
-| `-8 >>> 1` | 2147483644 | Điền 0 từ bên trái |
-| `-8 >>> 33` | 2147483644 | 33 trở thành 1 |
-| `1 >>> 32` | 1 | 32 trở thành 0 |
-| `1L >>> 64` | 1 | 64 trở thành 0 |
+| `-8 >> 1` | -4 | Right-shifts negative number, preserving sign |
+| `-8 >> 33` | -4 | 33 becomes 1 |
+| `-8 >>> 1` | 2147483644 | Fills 0 from the left |
+| `-8 >>> 33` | 2147483644 | 33 becomes 1 |
+| `1 >>> 32` | 1 | 32 becomes 0 |
+| `1L >>> 64` | 1 | 64 becomes 0 |
 
-Điều này không đồng nghĩa với các phép dịch “không thể mất bit”. Phép dịch trái có thể đẩy bit cao ra khỏi miền biểu diễn, dẫn tới kết quả âm hoặc mất dữ liệu; Java không tự ném ngoại lệ tràn số vì phép dịch.
+This does not mean shifts "cannot lose bits." Left shifts can push high bits out of the representable width, producing negative results or data loss; Java does not automatically throw an overflow exception for shifts.
 
-## 7. Chương trình Java 17+ runnable
+## 7. Runnable Java 17+ Program
 
-Tạo file **ShiftDistanceDemo.java**:
+Create the file **ShiftDistanceDemo.java**:
 
 ~~~java
 public final class ShiftDistanceDemo {
@@ -195,14 +195,14 @@ public final class ShiftDistanceDemo {
 }
 ~~~
 
-Mở terminal trong thư mục chứa file và chạy (Bash, PowerShell hoặc Command Prompt):
+Open a terminal in the directory containing the file and run (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ShiftDistanceDemo.java
 java ShiftDistanceDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 int31=-2147483648
@@ -229,29 +229,29 @@ maskedIntMinusOne=31
 maskedLongMinusOne=63
 ~~~
 
-Các dòng `int32=1` và `long64=1` cho thấy Java **mask số lượng dịch**, không dừng ở biên 32/64. `lateWiden=256` và `earlyWiden=1099511627776` chứng minh cần chuyển kiểu bên trái trước phép dịch. Các dòng `byteShift`, `shortShift` và `charShift32` chứng minh `byte`/`short`/`char` sử dụng quy tắc `int`.
+The lines `int32=1` and `long64=1` demonstrate that Java **masks the shift distance** rather than clamping or stopping at the 32/64 boundary. `lateWiden=256` and `earlyWiden=1099511627776` prove you must widen the left operand before shifting. `byteShift`, `shortShift`, and `charShift32` prove that `byte`/`short`/`char` follow the `int` rule.
 
-## 8. Checklist và bài tập
+## 8. Checklist and Exercises
 
-| Nếu cần... | Hãy nhớ... |
+| If you need to... | Remember... |
 | --- | --- |
-| Dịch `int` | Số lượng dịch hiệu lực `n & 0x1F` |
-| Dịch `long` | Số lượng dịch hiệu lực `n & 0x3F` |
-| Dịch `byte`/`short`/`char` | Trái được nâng thành `int` trước phép dịch |
-| Lấy bit thứ 40 | Dùng `1L << 40`, không phải `1 << 40` |
-| Kiểm tra input số lượng dịch | Kiểm tra miền cụ thể trước khi thực hiện phép dịch |
-| Dịch phải số âm | Phân biệt `>>` giữ dấu và `>>>` điền 0 |
+| Shift an `int` | Effective shift distance is `n & 0x1F` |
+| Shift a `long` | Effective shift distance is `n & 0x3F` |
+| Shift `byte`/`short`/`char` | Left operand is promoted to `int` before shifting |
+| Set bit 40 | Use `1L << 40`, not `1 << 40` |
+| Validate shift-distance input | Check the specific range before executing the shift |
+| Right-shift negative numbers | Distinguish sign-preserving `>>` from zero-filling `>>>` |
 
-**Bài 1.** Dự đoán `1 << 32`, `1 << 33`, `1L << 32`, `1L << 64`. Giải thích vì sao kết quả khác nhau theo kiểu toán hạng bên trái.
+**Exercise 1.** Predict `1 << 32`, `1 << 33`, `1L << 32`, and `1L << 64`. Explain why the results differ based on the left operand's type.
 
-**Bài 2.** So sánh `long x = 1 << 40;` và `long y = 1L << 40;`. Vì sao chỉ một cách thực sự dịch 40 bit của `long`?
+**Exercise 2.** Compare `long x = 1 << 40;` and `long y = 1L << 40;`. Why does only one of them actually shift by 40 bits in `long`?
 
-**Bài 3.** Cho `byte b = 1;`. Tính `b << 8`, nêu kiểu kết quả, rồi giải thích `(byte)(b << 8)`.
+**Exercise 3.** Given `byte b = 1;`, compute `b << 8`, state the result type, and explain `(byte)(b << 8)`.
 
-**Bài 4.** Với `int n = -8;`, tính `n >> 33` và `n >>> 33`. Hai phép dùng khoảng dịch hiệu lực nào?
+**Exercise 4.** Given `int n = -8;`, compute `n >> 33` and `n >>> 33`. What effective shift distance do both operations use?
 
-**Bài 5.** Nếu hệ thống yêu cầu số bit dịch từ 0 đến 31, vì sao không nên chỉ dùng `value << userCount` mà không validate `userCount`?
+**Exercise 5.** If a system requires the shift count to be between 0 and 31, why should you not simply execute `value << userCount` without validating `userCount`?
 
-### Ghi nhớ
+### Key Takeaways
 
-**Java chỉ dùng 5 bit thấp của số lượng dịch cho `int` và 6 bit thấp cho `long`.** `byte`, `short`, `char` nâng thành `int` trước phép dịch. Quy tắc áp dụng cho cả `<<`, `>>`, `>>>`, kể cả số lượng dịch âm hoặc vượt độ rộng; chúng không tự báo lỗi. Nếu cần 64 bit, hãy làm cho **toán hạng trái** là `long` trước phép dịch.
+**Java uses only the low 5 bits of the shift distance for `int` and the low 6 bits for `long`.** `byte`, `short`, and `char` promote to `int` before shifting. This rule applies to all three operators (`<<`, `>>`, `>>>`), including negative or oversized shift counts; they never throw an error on their own. If you need 64 bits, make the **left operand** a `long` before the shift.

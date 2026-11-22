@@ -1,20 +1,20 @@
-# `Object.equals()` mặc định dựa trên danh tính
+# `Object.equals()` Defaults to Identity
 
-## 1. Mục tiêu và khái niệm
+## 1. Objective and Concepts
 
-Khi một lớp Java không ghi đè `equals(Object)`, phương thức kế thừa từ `java.lang.Object` chỉ kiểm tra **danh tính đối tượng** (object identity). Điều này giải thích tại sao hai thể hiện có cùng giá trị các trường vẫn có thể trả `false` khi gọi `equals()`.
+When a Java class does not override `equals(Object)`, the method inherited from `java.lang.Object` only checks **object identity**. This explains why two instances with the exact same field values can still return `false` when calling `equals()`.
 
-Cần phân biệt:
+We must distinguish:
 
-- **Danh tính (identity):** hai tham chiếu có trỏ tới **đúng cùng một đối tượng** hay không.
-- **Giá trị (value):** những dữ liệu đối tượng lưu giữ, chẳng hạn một điểm có `x = 2` và `y = 3`.
-- **Bằng nhau theo giá trị (value equality):** quy tắc do lớp chủ động định nghĩa để coi hai đối tượng có các giá trị liên quan là bằng nhau.
+- **Identity:** whether two references point to **the exact same object**.
+- **Value:** the data an object stores, such as a point with `x = 2` and `y = 3`.
+- **Value equality:** a rule explicitly defined by a class to treat two objects with relevant matching values as equal.
 
-`Point p1 = new Point(2, 3);` và `Point p2 = new Point(2, 3);` tạo **hai đối tượng riêng**. Nếu lớp `Point` không định nghĩa lại `equals()`, `p1.equals(p2)` là `false`, dù tọa độ giống nhau. Ngược lại, `Point alias = p1;` chỉ sao chép tham chiếu; `p1` và `alias` cùng chỉ tới một đối tượng.
+`Point p1 = new Point(2, 3);` and `Point p2 = new Point(2, 3);` create **two separate objects**. If the `Point` class does not redefine `equals()`, `p1.equals(p2)` is `false`, even though the coordinates match. Conversely, `Point alias = p1;` only copies the reference; `p1` and `alias` point to one object.
 
-## 2. Cơ chế mặc định của `Object.equals()`
+## 2. The Default Mechanism of `Object.equals()`
 
-Mọi lớp Java thông thường kế thừa `Object` trực tiếp hoặc gián tiếp. Khi lớp không override `equals(Object)`, hành vi mặc định tương đương:
+Every regular Java class inherits from `Object` directly or indirectly. When a class does not override `equals(Object)`, the default behavior is equivalent to:
 
 ```java
 public boolean equals(Object obj) {
@@ -22,21 +22,21 @@ public boolean equals(Object obj) {
 }
 ```
 
-Đoạn trên minh họa thân phương thức của `Object`, **không phải chương trình độc lập**. Với hai tham chiếu, `==` kiểm tra xem chúng có trỏ tới **cùng đối tượng**. Nó không tự duyệt tất cả các trường, không so sánh `toString()` và không kiểm tra xem hai đối tượng có “nội dung giống nhau” hay không.
+The snippet above illustrates the method body of `Object`, **not a standalone program**. For two references, `==` checks whether they point to **the same object**. It does not automatically inspect all fields, does not compare `toString()`, and does not check whether two objects have “identical content”.
 
-| Biểu thức với `a` khác null | Kết quả nếu dùng `Object.equals()` | Giải thích |
+| Expression with non-null `a` | Result if using `Object.equals()` | Explanation |
 | --- | --- | --- |
-| `a.equals(a)` | `true` | Một đối tượng đồng nhất với chính nó. |
-| `a.equals(alias)` khi `alias = a` | `true` | Hai biến giữ cùng tham chiếu. |
-| `a.equals(b)` khi `b` là đối tượng mới | `false` | Hai thực thể khác danh tính, dù các trường bằng nhau. |
-| `a.equals(null)` | `false` | Không đối tượng nào đồng nhất với null. |
-| `a == alias` | `true` | `==` so danh tính của tham chiếu. |
+| `a.equals(a)` | `true` | An object is identical to itself. |
+| `a.equals(alias)` when `alias = a` | `true` | Two variables hold the same reference. |
+| `a.equals(b)` when `b` is a new object | `false` | Two entities with different identities, even if fields are equal. |
+| `a.equals(null)` | `false` | No object is identical to null. |
+| `a == alias` | `true` | `==` compares reference identity. |
 
-**Chú ý dispatch động:** `a.equals(b)` thực thi triển khai `equals` của lớp thực tế của `a`. Vì thế `equals()` chỉ đồng nghĩa với `==` khi triển khai được gọi là phương thức mặc định của `Object` (hoặc một override cố ý giữ cùng logic). Những lớp như `String` có quy tắc khác.
+**Note on dynamic dispatch:** `a.equals(b)` executes the `equals` implementation of `a`'s actual runtime class. Therefore `equals()` is synonymous with `==` only when the invoked implementation is `Object`'s default method (or an override that intentionally keeps the same logic). Classes like `String` have different rules.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh
+## 3. Complete Java 17+ Example
 
-Tạo tệp `ObjectEqualsDemo.java` với đúng tên public class:
+Create the file `ObjectEqualsDemo.java` with the exact public class name:
 
 ```java
 import java.util.HashSet;
@@ -44,7 +44,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class ObjectEqualsDemo {
-    // Kế thừa equals/hashCode mặc định của Object.
+    // Inherits Object's default equals/hashCode.
     static final class PlainPoint {
         final int x;
         final int y;
@@ -55,7 +55,7 @@ public class ObjectEqualsDemo {
         }
     }
 
-    // Chủ động định nghĩa equality dựa trên hai tọa độ.
+    // Explicitly defines equality based on the two coordinates.
     static final class ValuePoint {
         final int x;
         final int y;
@@ -112,14 +112,14 @@ public class ObjectEqualsDemo {
 }
 ```
 
-Lệnh biên dịch và chạy:
+Compile and run commands:
 
 ```bash
 javac ObjectEqualsDemo.java
 java ObjectEqualsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 first == alias: true
@@ -135,88 +135,88 @@ s1.equals(s2): true
 Objects.equals(null, null): true
 ```
 
-Phân tích:
+Analysis:
 
-1. `first` và `alias` cùng trỏ tới một `PlainPoint`, nên cả `==` và `equals()` mặc định đều là `true`.
-2. `first` và `second` là hai lần `new` độc lập: tọa độ giống nhau nhưng danh tính khác nhau, nên cả hai phép so sánh là `false`.
-3. `v1` và `v2` là hai `ValuePoint` riêng: `==` là `false` nhưng `equals()` là `true` vì lớp tự so sánh `x` và `y`.
-4. `HashSet` tìm được `v2` dù chỉ đã thêm `v1` bởi vì `equals()` và `hashCode()` của `ValuePoint` nhất quán.
-5. Hai lần `new String("java")` tạo hai đối tượng `String` riêng. `String` đã override `equals()` để so nội dung chuỗi, nên `==` là `false` và `equals()` là `true`.
-6. `Objects.equals(null, null)` cho `true`, thể hiện cách so sánh null-safe khác với gọi phương thức trực tiếp trên null.
+1. `first` and `alias` point to the same `PlainPoint`, so both `==` and the default `equals()` are `true`.
+2. `first` and `second` are two independent `new` creations: the coordinates match, but the identities differ, so both comparisons are `false`.
+3. `v1` and `v2` are two separate `ValuePoint`s: `==` is `false`, while `equals()` is `true` because the class compares `x` and `y`.
+4. `HashSet` finds `v2` even though only `v1` was added because `ValuePoint`'s `equals()` and `hashCode()` are consistent.
+5. Two `new String("java")` calls create two separate `String` objects. `String` overrides `equals()` to compare string content, so `==` is `false` and `equals()` is `true`.
+6. `Objects.equals(null, null)` returns `true`, demonstrating a null-safe comparison unlike calling a method directly on null.
 
-## 4. Khi nào nên giữ hoặc ghi đè `equals()`?
+## 4. When Should You Keep or Override `equals()`?
 
-**Giữ mặc định** khi sự khác nhau giữa các thể hiện là điều có ý nghĩa: hai đối tượng độc lập phải được phân biệt ngay cả khi một số thuộc tính trùng nhau. Đây là lựa chọn thiết kế hợp lệ, không phải lỗi Java.
+**Keep the default** when the distinction between instances is meaningful: two independent objects must be distinguished even if some attributes match. This is a valid design choice, not a Java flaw.
 
-**Ghi đè** khi lớp đại diện cho một giá trị, chẳng hạn tọa độ, số tiền (bao gồm đơn vị tiền), khóa định danh, hoặc một value object với quy tắc rõ ràng. Khi đó quyết định các trường nào thực sự tạo nên sự bằng nhau. Trong `ValuePoint`:
+**Override** when the class represents a value, such as coordinates, monetary amounts (including currency unit), identifier keys, or a value object with clear rules. In that case, decide which fields truly constitute equality. In `ValuePoint`:
 
-- `this == other` trả lời nhanh trường hợp cùng tham chiếu.
-- `instanceof ValuePoint point` xử lý đúng trường hợp null hoặc sai kiểu trước khi truy cập trường; cú pháp pattern matching này hỗ trợ ở Java 17.
-- `x == point.x && y == point.y` so các thành phần tạo nên giá trị.
-- `hashCode()` dùng đúng những thành phần đó, tương thích với `equals()`.
+- `this == other` quickly answers the same-reference case.
+- `instanceof ValuePoint point` properly handles null or mismatched types before accessing fields; this pattern matching syntax is supported in Java 17.
+- `x == point.x && y == point.y` compares the components that form the value.
+- `hashCode()` uses those exact same components, staying compatible with `equals()`.
 
-Java record có thể thích hợp cho các value object đơn giản. Ví dụ `record Point(int x, int y) {}` được Java tạo `equals()`/`hashCode()` dựa trên các component; **đó là hành vi riêng của record**, không phải `Object.equals()` mặc định.
+A Java record can be suitable for simple value objects. For example, `record Point(int x, int y) {}` has `equals()`/`hashCode()` generated by Java based on its components; **that is record-specific behavior**, not the default `Object.equals()`.
 
-### Hợp đồng của `equals`
+### The `equals` Contract
 
-Một triển khai `equals` đúng cần đảm bảo:
+A proper `equals` implementation must guarantee:
 
-1. **Phản xạ:** `x.equals(x)` là `true` nếu `x` khác null.
-2. **Đối xứng:** nếu `x.equals(y)` là `true` thì `y.equals(x)` cũng là `true`.
-3. **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` là `true` thì `x.equals(z)` là `true`.
-4. **Nhất quán:** khi trạng thái tham gia phép so sánh không đổi, gọi lại không tự ý cho kết quả khác.
-5. **Với null:** `x.equals(null)` là `false` nếu `x` khác null.
+1. **Reflexivity:** `x.equals(x)` is `true` if `x` is non-null.
+2. **Symmetry:** if `x.equals(y)` is `true`, then `y.equals(x)` is also `true`.
+3. **Transitivity:** if `x.equals(y)` and `y.equals(z)` are `true`, then `x.equals(z)` is `true`.
+4. **Consistency:** when state involved in the comparison does not change, repeated calls do not arbitrarily yield different results.
+5. **For null:** `x.equals(null)` is `false` if `x` is non-null.
 
-So danh tính mặc định của `Object` thỏa mãn cả năm tính chất. Khi tự ghi đè, cần cân nhắc kế thừa và các trường có thể thay đổi để tránh phá vỡ hợp đồng.
+`Object`'s default identity comparison satisfies all five properties. When overriding it yourself, you must consider inheritance and mutable fields to avoid breaking the contract.
 
-### Hợp đồng giữa `equals` và `hashCode`
+### The Contract Between `equals` and `hashCode`
 
-Khi `a.equals(b)` trả `true` thì `a.hashCode() == b.hashCode()` **bắt buộc** cũng phải là `true`. Chiều ngược lại không đúng: hai đối tượng không bằng nhau vẫn có thể cùng hash (collision). Vì vậy hash bằng nhau **không chứng minh** hai đối tượng đồng nhất.
+When `a.equals(b)` returns `true`, `a.hashCode() == b.hashCode()` **must** also be `true`. The converse is not true: two unequal objects can still share the same hash (a collision). Therefore, equal hashes **do not prove** two objects are identical.
 
-Nếu chỉ ghi đè `equals()` theo giá trị nhưng tiếp tục dùng `Object.hashCode()`, hai đối tượng được coi là bằng nhau có thể nhận hash khác nhau và phá vỡ giả định của `HashMap`/`HashSet`. Do đó khi thay đổi logic equality phải thiết kế `hashCode()` tương ứng. Tránh thay đổi các trường tham gia equality/hash trong thời gian đối tượng đang là khóa của hash collection.
+If you only override `equals()` by value while continuing to use `Object.hashCode()`, two objects considered equal may receive different hashes and break the assumptions of `HashMap`/`HashSet`. Consequently, when changing equality logic, you must design `hashCode()` accordingly. Avoid mutating fields involved in equality/hashing while an object is serving as a key in a hash collection.
 
-`Object.hashCode()` mặc định hỗ trợ hợp đồng cho equality theo danh tính. Giá trị trả về **không được đảm bảo là địa chỉ bộ nhớ** hay duy nhất toàn cục. `System.identityHashCode(obj)` lấy hash theo cơ chế danh tính kể cả khi lớp override `hashCode()`, nhưng vẫn có khả năng trùng hash nên không thể thay `==`.
+The default `Object.hashCode()` supports the contract for identity-based equality. The returned value **is not guaranteed to be a memory address** or globally unique. `System.identityHashCode(obj)` retrieves the identity-based hash even when the class overrides `hashCode()`, yet hash collisions are still possible, so it cannot replace `==`.
 
-## 5. Những tình huống dễ hiểu sai
+## 5. Easily Misunderstood Situations
 
-| Tình huống | Cách hiểu đúng |
+| Situation | Correct Understanding |
 | --- | --- |
-| `new String("A").equals(new String("A"))` | `true` vì `String` override theo nội dung, không phải hành vi mặc định. |
-| Hai mảng `new int[]{1, 2}` được tạo riêng | Mảng kế thừa `Object.equals()`, nên hai mảng khác danh tính. Dùng `Arrays.equals(a, b)` để so các phần tử mảng một chiều; cân nhắc `Arrays.deepEquals` cho mảng lồng nhau. |
-| Hai `List` chứa dãy phần tử tương ứng bằng nhau | Các triển khai `List` chuẩn so theo phần tử; không thể suy từ hành vi mặc định của `Object`. |
-| `a.equals(null)` | `false` nếu `a` khác null. Nhưng `null.equals(a)` ném `NullPointerException`, vì null không có phương thức để gọi. |
-| `Objects.equals(a, b)` | Hai null được coi bằng nhau, một null một khác là không bằng, còn lại gọi `a.equals(b)`. |
-| `==` với kiểu nguyên thủy | So **giá trị nguyên thủy**, không so danh tính. Chỉ khi toán hạng là tham chiếu mới kiểm tra cùng đối tượng. |
-| `==` với các đối tượng wrapper hoặc chuỗi | Kết quả có thể chịu ảnh hưởng boxing, cache hoặc string interning. Khi mục đích là so giá trị, dùng `equals()` phù hợp. |
+| `new String("A").equals(new String("A"))` | `true` because `String` overrides it by content, not default behavior. |
+| Two separately created `new int[]{1, 2}` arrays | Arrays inherit `Object.equals()`, so the two arrays have different identities. Use `Arrays.equals(a, b)` to compare one-dimensional array elements; consider `Arrays.deepEquals` for nested arrays. |
+| Two `List`s containing equal corresponding sequences of elements | Standard `List` implementations compare element by element; this cannot be inferred from `Object`'s default behavior. |
+| `a.equals(null)` | `false` if `a` is non-null. However, `null.equals(a)` throws `NullPointerException`, because null has no method to call. |
+| `Objects.equals(a, b)` | Two nulls are considered equal, one null and one non-null are unequal, otherwise `a.equals(b)` is called. |
+| `==` with primitive types | Compares **primitive values**, not identity. Only when operands are references does it check for the same object. |
+| `==` with wrapper objects or strings | Results can be affected by boxing, caching, or string interning. When the goal is value comparison, use `equals()` appropriately. |
 
-**Không dựa vào `toString()`, `hashCode()` hoặc địa chỉ giả định** để đánh giá danh tính. `hashCode()` không phải khóa định danh duy nhất. Cũng không giả định hai đối tượng mới luôn có tất cả trạng thái khác nhau; hai đối tượng riêng có thể cùng giá trị, và chính điểm này làm nổi bật khác biệt giữa identity và equality.
+**Do not rely on `toString()`, `hashCode()`, or assumed addresses** to evaluate identity. `hashCode()` is not a unique identifier key. Nor should you assume two new objects always have all different state; two separate objects can share the same value, and this very point highlights the difference between identity and equality.
 
-## 6. Chọn công cụ so sánh phù hợp
+## 6. Choosing the Right Comparison Tool
 
-| Nhu cầu | Sử dụng | Điều cần kiểm tra |
+| Need | Use | What to Check |
 | --- | --- | --- |
-| Hai biến có trỏ đúng cùng đối tượng? | `a == b` | So tham chiếu; cũng dùng `a == null`. |
-| Hai đối tượng có bằng nhau theo quy tắc của lớp? | `a.equals(b)` | `a` phải khác null; đọc hợp đồng `equals` của lớp. |
-| So sánh có thể gặp null? | `Objects.equals(a, b)` | Hai null được xem là bằng nhau. |
-| Viết value object của mình? | Override `equals()` và `hashCode()` cùng nhau, hoặc dùng record | Chọn rõ các thành phần tham gia equality. |
-| Tra cứu trong `HashMap`/`HashSet`? | Theo `equals()` kết hợp `hashCode()` | Hai đối tượng bằng nhau phải có hash bằng nhau; khóa không nên đổi trạng thái có ảnh hưởng đến hash. |
+| Do two variables point to the exact same object? | `a == b` | Compares references; also use `a == null`. |
+| Are two objects equal by the class's rules? | `a.equals(b)` | `a` must be non-null; read the class's `equals` contract. |
+| Comparison that might encounter null? | `Objects.equals(a, b)` | Two nulls are considered equal. |
+| Writing your own value object? | Override `equals()` and `hashCode()` together, or use a record | Clearly choose the components participating in equality. |
+| Lookup in `HashMap`/`HashSet`? | By `equals()` combined with `hashCode()` | Equal objects must have equal hashes; keys should not mutate state affecting the hash. |
 
-## 7. Tự kiểm tra
+## 7. Self-Check
 
-**Câu 1:** Nếu `PlainPoint b = a;`, `a.equals(b)` và `a == b` trả gì khi `PlainPoint` không override `equals`?
+**Question 1:** If `PlainPoint b = a;`, what do `a.equals(b)` and `a == b` return when `PlainPoint` does not override `equals`?
 
-**Trả lời:** Cả hai là `true` vì cùng tham chiếu.
+**Answer:** Both are `true` because they share the same reference.
 
-**Câu 2:** Hai lần `new PlainPoint(2, 3)` có bằng nhau theo `Object.equals()` không?
+**Question 2:** Are two `new PlainPoint(2, 3)` calls equal according to `Object.equals()`?
 
-**Trả lời:** Không. Hai đối tượng riêng có danh tính khác nhau, dù các trường trùng nhau.
+**Answer:** No. Two separate objects have different identities, even though their fields match.
 
-**Câu 3:** Vì sao `new String("x").equals(new String("x"))` là `true`?
+**Question 3:** Why is `new String("x").equals(new String("x"))` `true`?
 
-**Trả lời:** `String` có triển khai `equals()` so nội dung chuỗi; nó không dùng cách so danh tính mặc định.
+**Answer:** `String` has an `equals()` implementation that compares string content; it does not use the default identity comparison.
 
-**Câu 4:** Hai đối tượng có mã hash bằng nhau thì có chắc chắn `equals()` bằng nhau hoặc `==` không?
+**Question 4:** If two objects have equal hash codes, are they guaranteed to be equal by `equals()` or `==`?
 
-**Trả lời:** Không. Hash collision có thể xảy ra. Chỉ có chiều “`equals()` bằng nhau ⇒ mã hash bằng nhau” là điều hợp đồng bắt buộc.
+**Answer:** No. Hash collisions can happen. Only the direction “`equals()` is equal ⇒ hash codes are equal” is required by the contract.
 
-**Ghi nhớ:** `Object.equals()` mặc định trả lời câu hỏi **“có phải cùng một đối tượng không?”**. Câu hỏi **“có cùng giá trị có ý nghĩa không?”** cần một định nghĩa `equals()` riêng của lớp.
+**Remember:** The default `Object.equals()` answers the question **“is it the same object?”**. The question **“do they have the same meaningful value?”** requires a class's own `equals()` definition.

@@ -1,19 +1,19 @@
-# Module path tìm module theo tên
+# The module path finds modules by name
 
-Trong Java Platform Module System (JPMS), **module path** là nơi Java tìm các mô-đun có thể dùng khi biên dịch và khởi chạy. Điểm cốt lõi là JPMS định danh một mô-đun bằng **module name** trong module descriptor, chứ không tìm dependency bằng tên lớp hoặc tên file JAR như classpath truyền thống.
+In the Java Platform Module System (JPMS), the **module path** is where Java searches for modules usable at compile time and launch time. The core principle is that JPMS identifies a module by its **module name** in the module descriptor, rather than looking up dependencies by class name or JAR filename like the traditional classpath.
 
-Khi một mô-đun khai báo requires, Java tìm mô-đun có tên tương ứng trên module path hoặc trong các mô-đun nền tảng mà runtime cung cấp. Sau đó, bộ phân giải xây dựng module graph từ các mô-đun gốc và những dependency mà chúng yêu cầu.
+When a module declares requires, Java searches for a module with the corresponding name on the module path or among the platform modules provided by the runtime. The resolver then builds the module graph from the root modules and the dependencies they require.
 
-## 1. Module path là gì?
+## 1. What is the module path?
 
-Module path là danh sách các vị trí chứa mô-đun. Một vị trí có thể là:
+The module path is a list of locations containing modules. A location can be:
 
-- Modular JAR có module-info.class.
-- Thư mục mô-đun đã biên dịch dạng exploded module, trong đó có module-info.class.
-- JAR cũ không có descriptor nhưng được nhận diện thành automatic module khi nằm trên module path.
-- Thư mục chứa nhiều modular JAR hoặc exploded module.
+- A modular JAR containing module-info.class.
+- A compiled module directory in exploded module form containing module-info.class.
+- A legacy JAR without a descriptor that is recognized as an automatic module when placed on the module path.
+- A directory containing multiple modular JARs or exploded modules.
 
-Ví dụ thư mục:
+Example directory:
 
 ~~~text
 project/
@@ -27,25 +27,25 @@ project/
     └── commons-text-1.11.0.jar
 ~~~
 
-Trong ví dụ này, mods chứa hai modular JAR và một exploded module. JAR trong libs có thể trở thành automatic module nếu được đưa vào module path và không có module descriptor.
+In this example, mods contains two modular JARs and one exploded module. The JAR in libs can become an automatic module if placed on the module path without a module descriptor.
 
-Khi chạy ứng dụng, có thể chỉ định các vị trí này:
+When running the application, these locations can be specified:
 
 ~~~bash
 java --module-path mods:libs -m com.example.orders/com.example.orders.Main
 ~~~
 
-Dấu hai chấm phân tách các phần tử đường dẫn trên Unix-like. Trên Windows, dùng dấu chấm phẩy:
+Colons separate path entries on Unix-like systems. On Windows, use semicolons:
 
 ~~~powershell
 java --module-path "mods;libs" -m com.example.orders/com.example.orders.Main
 ~~~
 
-Có thể dùng tùy chọn ngắn **-p** thay cho **--module-path**.
+The short option **-p** can be used instead of **--module-path**.
 
-## 2. Java tìm mô-đun theo module name
+## 2. Java locates modules by module name
 
-Giả sử mô-đun orders có descriptor:
+Suppose the orders module has the descriptor:
 
 ~~~java
 module com.example.orders {
@@ -53,7 +53,7 @@ module com.example.orders {
 }
 ~~~
 
-Mô-đun customer có descriptor:
+The customer module has the descriptor:
 
 ~~~java
 module com.example.customer {
@@ -61,15 +61,15 @@ module com.example.customer {
 }
 ~~~
 
-Khi biên dịch hoặc chạy orders, JPMS cần tìm một mô-đun có tên chính xác là **com.example.customer**. Tên này được lấy từ module-info.class của modular JAR hoặc exploded module.
+When compiling or running orders, JPMS needs to find a module named exactly **com.example.customer**. This name is taken from the module-info.class of the modular JAR or exploded module.
 
-Ví dụ file có tên:
+For example, a file named:
 
 ~~~text
 customer-library-2.0.jar
 ~~~
 
-nhưng descriptor bên trong khai báo:
+whose internal descriptor declares:
 
 ~~~java
 module com.example.customer {
@@ -77,17 +77,17 @@ module com.example.customer {
 }
 ~~~
 
-thì module name vẫn là **com.example.customer**. Tên file JAR có thể thay đổi mà không làm thay đổi module name, miễn là descriptor vẫn giữ nguyên.
+still has the module name **com.example.customer**. The JAR filename can change without changing the module name, as long as the descriptor remains the same.
 
-Điều này khác với automatic module: khi JAR không có module-info.class và không khai báo Automatic-Module-Name, tên mô-đun được suy ra từ tên file JAR. Vì vậy, cần phân biệt module name tường minh và tên suy ra.
+This differs from an automatic module: when a JAR lacks module-info.class and does not declare Automatic-Module-Name, the module name is derived from the JAR filename. Therefore, it is necessary to distinguish explicit module names from derived names.
 
-Module name là định danh dùng trong các chỉ thị requires, exports to, opens to, uses, provides và trong lệnh khởi chạy bằng -m.
+The module name is the identifier used in requires, exports to, opens to, uses, provides directives, and in launch commands using -m.
 
-## 3. requires kết nối các mô-đun trong module graph
+## 3. requires connects modules in the module graph
 
-Module path cho biết Java có thể tìm thấy những mô-đun nào. Module descriptor cho biết mô-đun nào cần đọc mô-đun nào.
+The module path tells Java which modules can be found. Module descriptors tell which module needs to read which module.
 
-Ví dụ ba mô-đun:
+Example of three modules:
 
 ~~~text
 com.example.app
@@ -100,9 +100,9 @@ com.example.customer
     └── requires java.sql
 ~~~
 
-Khi ứng dụng khởi chạy từ com.example.app, bộ phân giải bắt đầu từ mô-đun gốc và lần theo các chỉ thị requires để xây dựng module graph.
+When the application launches from com.example.app, the resolver starts from the root module and follows requires directives to build the module graph.
 
-Có thể biểu diễn:
+This can be expressed as:
 
 ~~~java
 module com.example.app {
@@ -122,30 +122,30 @@ module com.example.customer {
 }
 ~~~
 
-Nếu một dependency không được tìm thấy theo module name, quá trình biên dịch hoặc khởi chạy có thể thất bại với lỗi như:
+If a dependency is not found by module name, compilation or startup can fail with an error such as:
 
 ~~~text
 error: module not found: com.example.customer
 ~~~
 
-hoặc:
+or:
 
 ~~~text
 java.lang.module.FindException:
 Module com.example.customer not found
 ~~~
 
-Cách sửa là kiểm tra module name thực tế và bảo đảm mô-đun tương ứng nằm trong module path hoặc nguồn mô-đun thích hợp.
+The fix is to check the actual module name and ensure the corresponding module resides on the module path or an appropriate module source.
 
-## 4. Observable module và resolved module
+## 4. Observable modules and resolved modules
 
-Hai khái niệm này giúp hiểu vì sao một JAR có trong module path nhưng chưa chắc đã được nạp vào module graph.
+These two concepts explain why a JAR present on the module path is not necessarily loaded into the module graph.
 
-**Observable module** là mô-đun mà bộ phân giải có thể tìm thấy thông qua các module finder, chẳng hạn module path và các mô-đun hệ thống của JDK.
+An **observable module** is a module that the resolver can locate through module finders, such as the module path and JDK system modules.
 
-**Resolved module** là mô-đun đã được đưa vào module graph sau quá trình phân giải từ các mô-đun gốc và dependency của chúng.
+A **resolved module** is a module that has been placed into the module graph after resolution from the root modules and their dependencies.
 
-Ví dụ module path có:
+For example, the module path contains:
 
 ~~~text
 mods/
@@ -155,41 +155,41 @@ mods/
 └── com.example.unused.jar
 ~~~
 
-Nếu ứng dụng gốc là com.example.app và nó chỉ yêu cầu com.example.customer, mô-đun reporting hoặc unused có thể vẫn quan sát được trên module path nhưng không thuộc module graph được phân giải của lần chạy đó.
+If the root application is com.example.app and it only requires com.example.customer, the reporting or unused modules may still be observable on the module path yet not belong to the resolved module graph of that run.
 
-Điều này có nghĩa việc đặt một JAR vào module path chỉ làm cho mô-đun có thể được tìm thấy. Nó không đồng nghĩa mọi mô-đun trong thư mục đều tự động trở thành dependency của ứng dụng.
+This means placing a JAR on the module path only makes the module findable. It does not mean every module in the directory automatically becomes a dependency of the application.
 
-Để bổ sung một mô-đun làm root module khi khởi chạy, dùng **--add-modules**:
+To add a module as a root module at launch time, use **--add-modules**:
 
 ~~~bash
 java --module-path mods --add-modules com.example.reporting \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Tùy chọn này yêu cầu mô-đun reporting được đưa vào tập mô-đun gốc để phân giải. Các dependency requires của nó cũng được xem xét khi xây dựng module graph.
+This option instructs the reporting module to be included in the root module set for resolution. Its requires dependencies are also considered when building the module graph.
 
-## 5. Mô-đun gốc được chọn như thế nào?
+## 5. How are root modules selected?
 
-Khi khởi chạy một ứng dụng modular, tùy chọn **-m** hoặc **--module** chỉ định mô-đun gốc và lớp main:
+When launching a modular application, the **-m** or **--module** option specifies the root module and the main class:
 
 ~~~bash
 java --module-path mods \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~text
 module.name/main.class
 ~~~
 
-Trong đó:
+Where:
 
-- module.name là module name của mô-đun ứng dụng.
-- main.class là tên đầy đủ của lớp có phương thức main.
-- --module-path xác định nơi tìm các mô-đun.
+- module.name is the module name of the application module.
+- main.class is the fully qualified name of the class with the main method.
+- --module-path specifies where to find modules.
 
-Có thể thêm một hoặc nhiều root module bằng --add-modules:
+One or more root modules can be added with --add-modules:
 
 ~~~bash
 java --module-path mods \
@@ -197,38 +197,38 @@ java --module-path mods \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Mỗi root module sẽ được phân giải cùng các dependency mà nó yêu cầu. Nếu tên root module không tồn tại trên module path hoặc trong nguồn mô-đun tương ứng, JVM sẽ báo không tìm thấy mô-đun.
+Each root module will be resolved along with the dependencies it requires. If a root module name does not exist on the module path or in the corresponding module sources, the JVM will report module not found.
 
-Đối với lệnh chạy một lớp truyền thống bằng tên lớp sau -cp, lớp main thuộc unnamed module. Đây là cách khởi chạy theo classpath, không phải khởi chạy named module bằng -m.
+For a traditional command running a class by class name after -cp, the main class belongs to the unnamed module. That is a classpath launch, not launching a named module with -m.
 
-## 6. Module path khác classpath ở điểm nào?
+## 6. How does the module path differ from the classpath?
 
-Classpath và module path đều giúp JVM tìm mã đã biên dịch, nhưng chúng dùng mô hình định danh và truy cập khác nhau.
+Both the classpath and the module path help the JVM locate compiled code, but they use different identity and access models.
 
-| Đặc điểm | Classpath | Module path |
+| Characteristic | Classpath | Module path |
 | --- | --- | --- |
-| Đơn vị tìm kiếm | Lớp và tài nguyên trong thư mục/JAR | Mô-đun theo module name |
-| Descriptor | Không dùng module descriptor để tạo named module | Dùng module-info.class hoặc quy tắc automatic module |
-| Dependency | Thường được quản lý bởi build tool và class loader | Khai báo bằng requires trong module descriptor |
-| Đóng gói package | Không có ranh giới JPMS giữa các JAR trên classpath | Package chịu kiểm soát bởi exports và opens |
-| Danh tính | Các lớp thuộc unnamed module tương ứng | Named module hoặc automatic module |
-| Truy cập | Theo quy tắc class loader và Java language | Theo cả quy tắc Java và module readability/access |
+| Lookup unit | Classes and resources in directories/JARs | Modules by module name |
+| Descriptor | Does not use module descriptors to form named modules | Uses module-info.class or automatic module rules |
+| Dependencies | Typically managed by build tools and class loaders | Declared with requires in the module descriptor |
+| Package encapsulation | No JPMS boundaries between JARs on the classpath | Packages are controlled by exports and opens |
+| Identity | Classes belong to the corresponding unnamed module | Named module or automatic module |
+| Access | Follows class loader and Java language rules | Follows both Java rules and module readability/access |
 
-Một named module không thể viết requires tới unnamed module vì unnamed module không có module name. Nếu một thư viện chỉ nằm trên classpath, mô-đun có tên không thể tham chiếu nó bằng một chỉ thị requires thông thường.
+A named module cannot write requires on the unnamed module because the unnamed module has no module name. If a library is only on the classpath, a named module cannot reference it with a standard requires directive.
 
-Nếu cần dùng thư viện cũ từ named module, có thể đưa JAR lên module path để Java nhận diện nó thành automatic module, hoặc sử dụng một bản thư viện đã có module descriptor.
+If a legacy library needs to be used from a named module, the JAR can be placed on the module path so Java recognizes it as an automatic module, or a version of the library that already has a module descriptor can be used.
 
-## 7. Tên file JAR không phải lúc nào cũng là module name
+## 7. The JAR filename is not always the module name
 
-Với modular JAR, tên module được khai báo trong module-info.class.
+For a modular JAR, the module name is declared in module-info.class.
 
-Ví dụ:
+Example:
 
 ~~~text
 customer-client-2.1.jar
 ~~~
 
-có thể chứa:
+may contain:
 
 ~~~java
 module org.example.customer {
@@ -236,35 +236,35 @@ module org.example.customer {
 }
 ~~~
 
-Khi đó module name là **org.example.customer**.
+In that case, the module name is **org.example.customer**.
 
-Với JAR không có descriptor:
+For a JAR without a descriptor:
 
-- Nếu manifest có Automatic-Module-Name, Java dùng giá trị đó.
-- Nếu không có thuộc tính này, Java suy ra tên từ tên file JAR.
+- If the manifest has Automatic-Module-Name, Java uses that value.
+- If that attribute is absent, Java derives the name from the JAR filename.
 
-Kiểm tra bằng:
+Check with:
 
 ~~~bash
 jar --describe-module --file libs/customer-client-2.1.jar
 ~~~
 
-Kết quả cho biết module name mà JDK nhận diện, loại mô-đun và các package hoặc chỉ thị liên quan.
+The output shows the module name recognized by the JDK, the module type, and related packages or directives.
 
-Không nên sửa requires theo suy đoán từ artifactId hoặc tên file. Hãy xác minh module name trên đúng artifact đang được build hoặc triển khai.
+Do not guess requires from an artifactId or filename. Verify the module name on the exact artifact being built or deployed.
 
-## 8. Nhiều vị trí module path và vấn đề trùng tên
+## 8. Multiple module path locations and name collision issues
 
-Có thể cung cấp nhiều vị trí module path:
+Multiple module path locations can be supplied:
 
 ~~~bash
 java --module-path mods:libs:plugins \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Java có thể tìm mô-đun trong các vị trí được cấu hình. Tuy nhiên, module graph yêu cầu tên mô-đun phải được định danh rõ ràng. Nếu nhiều artifact cung cấp cùng một module name trong cùng module finder hoặc cấu hình, quá trình tìm kiếm/phân giải có thể báo lỗi trùng mô-đun.
+Java can search for modules across the configured locations. However, the module graph requires module names to be unambiguously identified. If multiple artifacts provide the same module name in the same module finder or configuration, discovery/resolution can report duplicate modules.
 
-Ví dụ:
+Example:
 
 ~~~text
 libs/
@@ -272,15 +272,15 @@ libs/
 └── customer-2.0.jar
 ~~~
 
-Nếu cả hai cùng khai báo module name com.example.customer hoặc cùng suy ra một automatic module name, không nên đặt cả hai vào cùng module configuration.
+If both declare the module name com.example.customer or derive the same automatic module name, both should not be placed into the same module configuration.
 
-Hãy chọn phiên bản phù hợp bằng dependency management của Gradle hoặc Maven, rồi xác nhận module path cuối cùng chỉ chứa một mô-đun cho tên cần dùng.
+Select the appropriate version via Gradle or Maven dependency management, then verify the final module path contains only one module for the needed name.
 
-Tên file khác nhau không làm cho hai mô-đun cùng tên trở thành hai dependency độc lập.
+Different filenames do not turn two modules with the same name into two independent dependencies.
 
-## 9. Module path của javac và java cần nhất quán
+## 9. javac and java module paths must be consistent
 
-Khi biên dịch mã nguồn modular, cung cấp dependency trên module path:
+When compiling modular source code, provide dependencies on the module path:
 
 ~~~bash
 javac --module-path libs \
@@ -289,64 +289,64 @@ javac --module-path libs \
     -m com.example.app
 ~~~
 
-Lệnh trên cho javac biết:
+The command tells javac:
 
-- libs chứa dependency đã biên dịch.
-- src chứa các source module theo cấu trúc module source path.
-- out là thư mục output.
-- com.example.app là mô-đun cần biên dịch.
+- libs contains compiled dependencies.
+- src contains module sources following the module source path structure.
+- out is the output directory.
+- com.example.app is the module to compile.
 
-Khi chạy, cung cấp các mô-đun đã biên dịch và dependency:
+When running, provide the compiled modules and dependencies:
 
 ~~~bash
 java --module-path out:libs \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Nếu compile dùng module path nhưng runtime lại thiếu một dependency, ứng dụng có thể biên dịch thành công rồi thất bại khi khởi chạy.
+If compilation uses a module path yet runtime is missing a dependency, the application can compile successfully and then fail at launch.
 
-Ngược lại, thêm một JAR vào classpath khi ứng dụng được khởi chạy bằng -m không tự biến JAR đó thành một named module mà requires có thể tham chiếu.
+Conversely, adding a JAR to the classpath when launching the application with -m does not turn that JAR into a named module that requires can reference.
 
-## 10. Các tùy chọn liên quan đến module graph
+## 10. Options related to the module graph
 
-Một số tùy chọn JVM hữu ích khi làm việc với module path:
+Several JVM options are useful when working with the module path:
 
-| Tùy chọn | Mục đích |
+| Option | Purpose |
 | --- | --- |
-| --module-path hoặc -p | Chỉ định nơi tìm mô-đun. |
-| --module hoặc -m | Chỉ định mô-đun gốc và lớp main. |
-| --add-modules | Bổ sung mô-đun gốc cần phân giải. |
-| --show-module-resolution | Hiển thị quá trình phân giải mô-đun khi khởi chạy. |
-| --list-modules | Liệt kê các mô-đun mà runtime quan sát được trong cấu hình. |
-| --limit-modules | Giới hạn tập mô-đun hệ thống có thể quan sát. |
-| --upgrade-module-path | Cung cấp mô-đun thay thế cho mô-đun hệ thống theo cơ chế upgrade. |
-| --patch-module | Bổ sung lớp/tài nguyên vào một mô-đun đã có. |
+| --module-path or -p | Specifies where to locate modules. |
+| --module or -m | Specifies the root module and main class. |
+| --add-modules | Adds root modules to resolve. |
+| --show-module-resolution | Displays module resolution during startup. |
+| --list-modules | Lists modules observable by the runtime in the configuration. |
+| --limit-modules | Restricts the set of observable system modules. |
+| --upgrade-module-path | Provides replacement modules for system modules under the upgrade mechanism. |
+| --patch-module | Adds classes/resources to an existing module. |
 
-Không nên nhầm --upgrade-module-path với module path thông thường. Nó phục vụ cơ chế thay thế một số mô-đun hệ thống theo quy tắc riêng của JPMS.
+Do not confuse --upgrade-module-path with the regular module path. It serves the mechanism for replacing certain system modules according to specific JPMS rules.
 
-Tương tự, --patch-module không phải cách thông thường để thêm một dependency mới. Nó bổ sung nội dung vào một mô-đun đã xác định.
+Similarly, --patch-module is not the normal way to add a new dependency. It supplements the contents of an already identified module.
 
-## 11. Kiểm tra mô-đun nào được tìm thấy và phân giải
+## 11. Checking which modules are found and resolved
 
-Khi gặp lỗi module not found hoặc muốn biết module graph thực tế, có thể kiểm tra theo trình tự:
+When encountering a module not found error or wanting to see the actual module graph, check in sequence:
 
-### Bước 1: Xác định module name của artifact
+### Step 1: Identify the artifact's module name
 
 ~~~bash
 jar --describe-module --file libs/customer.jar
 ~~~
 
-Xác nhận tên mô-đun bên trong JAR. Nếu là automatic module, xem tên lấy từ manifest hoặc tên file.
+Confirm the module name inside the JAR. If it is an automatic module, check the name obtained from the manifest or filename.
 
-### Bước 2: Kiểm tra runtime nhìn thấy những mô-đun nào
+### Step 2: Check which modules the runtime sees
 
 ~~~bash
 java --module-path mods:libs --list-modules
 ~~~
 
-Lệnh này giúp kiểm tra các mô-đun hệ thống và mô-đun trên module path mà runtime có thể quan sát.
+This command checks the system modules and module path modules observable by the runtime.
 
-### Bước 3: Xem quá trình phân giải
+### Step 3: Observe the resolution process
 
 ~~~bash
 java --show-module-resolution \
@@ -354,63 +354,63 @@ java --show-module-resolution \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Đầu ra cho biết các mô-đun được resolve và quan hệ dependency liên quan. Đây là bằng chứng hữu ích khi một mô-đun có trên module path nhưng không xuất hiện trong graph như dự kiến.
+The output shows resolved modules and related dependency relationships. This is useful evidence when a module is on the module path yet does not appear in the graph as expected.
 
-### Bước 4: Kiểm tra dependency của mô-đun
+### Step 4: Inspect the module's dependencies
 
 ~~~bash
 jdeps --module-path mods:libs --check com.example.app
 ~~~
 
-jdeps hỗ trợ phân tích dependency và kiểm tra module descriptor. Khi cần phân tích một JAR cụ thể, có thể dùng thêm các tùy chọn như --print-module-deps hoặc --list-deps.
+jdeps helps analyze dependencies and check module descriptors. When analyzing a specific JAR, options such as --print-module-deps or --list-deps can also be used.
 
-### Bước 5: Đối chiếu lệnh build và lệnh triển khai
+### Step 5: Compare the build command and deployment command
 
-So sánh module path ở compile-time với module path ở runtime. Kiểm tra phiên bản JDK, vị trí artifact và module name của từng dependency. IDE có thể tự bổ sung module path nên lệnh chạy trực tiếp trong terminal là phép kiểm tra quan trọng.
+Compare the compile-time module path with the runtime module path. Check the JDK version, artifact locations, and module name of each dependency. IDEs may automatically add module paths, so running directly in the terminal is an important verification step.
 
-## 12. Những lỗi thường gặp
+## 12. Common errors
 
-| Thông báo hoặc hiện tượng | Nguyên nhân thường gặp | Hướng kiểm tra |
+| Message or Symptom | Common Cause | How to Check |
 | --- | --- | --- |
-| module not found | JAR thiếu, sai module name hoặc sai module path | Dùng jar --describe-module và kiểm tra --module-path. |
-| FindException: Module ... not found | Root module hoặc dependency requires không quan sát được | Kiểm tra tên sau -m/--add-modules và các requires. |
-| Duplicate module | Nhiều artifact cùng cung cấp một module name | Loại bỏ phiên bản hoặc artifact trùng. |
-| Mã nguồn không import được package | Thiếu requires hoặc package chưa exports | Kiểm tra descriptor của mô-đun gọi và mô-đun sở hữu API. |
-| Chạy bằng IDE được nhưng terminal lỗi | IDE và terminal dùng module path khác nhau | So sánh lệnh chạy và dependency thực tế. |
-| JAR có trong thư mục nhưng không xuất hiện trong graph | Mô-đun chỉ observable, chưa được resolve từ root | Kiểm tra requires, root module và --add-modules. |
-| JAR trên classpath nhưng requires không tìm thấy | JAR thuộc unnamed module | Đưa JAR lên module path hoặc thay đổi thiết kế tích hợp. |
+| module not found | Missing JAR, wrong module name, or wrong module path | Use jar --describe-module and check --module-path. |
+| FindException: Module ... not found | Root module or requires dependency is not observable | Check names after -m/--add-modules and requires directives. |
+| Duplicate module | Multiple artifacts provide the same module name | Remove duplicate version or artifact. |
+| Source code cannot import package | Missing requires or package is not exported | Check descriptors of the calling module and API-owning module. |
+| Runs in IDE but fails in terminal | IDE and terminal use different module paths | Compare the run command and actual dependencies. |
+| JAR is in directory but missing from graph | Module is only observable, not resolved from roots | Check requires, root modules, and --add-modules. |
+| JAR on classpath yet requires cannot find it | JAR belongs to the unnamed module | Move JAR to the module path or change integration design. |
 
-## 13. Nguyên tắc sử dụng module path
+## 13. Principles for using the module path
 
-- Dùng module name đã xác minh trong module-info.java và lệnh -m.
-- Giữ module path của compile-time và runtime nhất quán với cấu hình triển khai.
-- Tách rõ thư viện trên module path và thư viện trên classpath.
-- Chỉ thêm root module bằng --add-modules khi có nhu cầu phân giải cụ thể.
-- Tránh đưa nhiều phiên bản có cùng module name vào một module configuration.
-- Dùng jar --describe-module để xác định tên mô-đun của JAR.
-- Dùng --show-module-resolution để hiểu module graph thực tế.
-- Không xem việc một JAR có mặt trên module path là bằng chứng rằng nó đã được resolve.
+- Use verified module names in module-info.java and the -m command.
+- Keep compile-time and runtime module paths consistent with the deployment configuration.
+- Clearly separate libraries on the module path from libraries on the classpath.
+- Only add root modules with --add-modules when there is a specific resolution need.
+- Avoid placing multiple versions with the same module name into one module configuration.
+- Use jar --describe-module to identify a JAR's module name.
+- Use --show-module-resolution to understand the actual module graph.
+- Do not treat the presence of a JAR on the module path as proof that it has been resolved.
 
-Module path tìm mô-đun theo tên và module descriptor. Module graph sau đó được hình thành từ các mô-đun gốc cùng những quan hệ requires của chúng. Khi phân biệt rõ vị trí tìm kiếm, module name và trạng thái resolution, việc chẩn đoán dependency của ứng dụng modular sẽ chính xác hơn.
+The module path finds modules by name and module descriptor. The module graph is then formed from the root modules along with their requires relationships. Clearly distinguishing lookup locations, module names, and resolution status makes diagnosing modular application dependencies more accurate.
 
-## 14. Tự kiểm tra
+## 14. Self-check
 
-**Tình huống 1:** Một JAR tên customer-client.jar chứa module-info.class khai báo module org.example.customer. Mô-đun ứng dụng cần viết requires theo tên nào?
+**Scenario 1:** A JAR named customer-client.jar contains a module-info.class declaring module org.example.customer. Which name should the application module write in requires?
 
-Trả lời: requires org.example.customer. Với modular JAR, module name lấy từ module descriptor, không lấy trực tiếp từ tên file.
+Answer: requires org.example.customer. For a modular JAR, the module name comes from the module descriptor, not directly from the filename.
 
-**Tình huống 2:** Một JAR đã có trong thư mục mods nhưng không xuất hiện trong module graph của ứng dụng. Có thể do đâu?
+**Scenario 2:** A JAR is already in the mods directory yet does not appear in the application's module graph. Why might that happen?
 
-Trả lời: JAR có thể observable trên module path nhưng chưa được resolve từ root module. Kiểm tra requires, root module và tùy chọn --add-modules.
+Answer: The JAR may be observable on the module path yet not resolved from the root modules. Check requires, root modules, and the --add-modules option.
 
-**Tình huống 3:** Mô-đun app khai báo requires orders; orders khai báo requires customer. App có cần khai báo requires customer không?
+**Scenario 3:** Module app declares requires orders; orders declares requires customer. Does app need to declare requires customer?
 
-Trả lời: Nếu mã của app trực tiếp sử dụng kiểu thuộc customer, app cần quan hệ readability phù hợp. Nếu chỉ orders sử dụng customer và dependency không được truyền tiếp bằng requires transitive, app không tự động đọc customer.
+Answer: If app's code directly uses types belonging to customer, app needs an appropriate readability relationship. If only orders uses customer and the dependency is not propagated via requires transitive, app does not automatically read customer.
 
-**Tình huống 4:** Có thể đặt hai phiên bản của cùng một named module trong hai thư mục khác nhau trên module path không?
+**Scenario 4:** Can two versions of the same named module be placed in two different directories on the module path?
 
-Trả lời: Không nên. Nếu cả hai cùng cung cấp một module name trong cùng module configuration, việc tìm và phân giải có thể báo trùng mô-đun. Hãy chọn một phiên bản.
+Answer: No. If both provide the same module name in the same module configuration, lookup and resolution can report duplicate modules. Choose one version.
 
-**Tình huống 5:** Thư viện nằm trên classpath, nhưng named module khai báo requires tới thư viện đó. Vì sao không hoạt động?
+**Scenario 5:** A library is on the classpath, yet a named module declares requires on that library. Why doesn't it work?
 
-Trả lời: Trên classpath, thư viện thuộc unnamed module và không có module name để requires tham chiếu. Đưa thư viện lên module path để được nhận diện thành automatic module hoặc dùng bản modular của thư viện.
+Answer: On the classpath, the library belongs to the unnamed module and has no module name for requires to reference. Move the library to the module path so it is recognized as an automatic module, or use a modularized version of the library.

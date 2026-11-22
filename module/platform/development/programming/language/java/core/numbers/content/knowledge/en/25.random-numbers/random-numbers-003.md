@@ -1,22 +1,22 @@
-# Math.random và giới hạn sử dụng trong Java
+# Math.random and Its Usage Limits in Java
 
-## 1. Math.random() là gì?
+## 1. What is Math.random()?
 
-`Math.random()` là phương thức `static` của `java.lang.Math`, dùng để lấy **một giá trị `double` giả ngẫu nhiên** (pseudorandom) trong khoảng từ `0.0` đến dưới `1.0`. Cú pháp đơn giản, không cần import:
+`Math.random()` is a `static` method of `java.lang.Math` used to obtain **a pseudorandom `double` value** from `0.0` up to (but excluding) `1.0`. The syntax is simple and requires no import:
 
 ```java
 double value = Math.random();
 ```
 
-Hợp đồng giá trị trả về:
+Return value contract:
 
 ```text
 0.0 <= value < 1.0
 ```
 
-Nghĩa là **0.0 thuộc khoảng**, còn **1.0 không thuộc khoảng**. Các giá trị được chọn giả ngẫu nhiên, phân bố *xấp xỉ đồng đều* trong khoảng này. Mỗi lần gọi lấy một giá trị mới từ chuỗi số do bộ sinh tạo ra; không có bảo đảm rằng các giá trị liên tiếp sẽ khác nhau.
+This means **0.0 is included in the range**, whereas **1.0 is excluded from the range**. Values are chosen pseudorandomly with an *approximately uniform* distribution over this interval. Each call draws a new value from the generator's number sequence; there is no guarantee that consecutive values will differ.
 
-Ví dụ, trong một lần chạy, kết quả *có thể* giống:
+For example, in one run, the output *might* look like:
 
 ```text
 0.182...
@@ -24,102 +24,102 @@ Ví dụ, trong một lần chạy, kết quả *có thể* giống:
 0.407...
 ```
 
-Đây chỉ là ví dụ minh họa hình dạng dữ liệu, **không phải stdout cố định**. Không viết test dựa trên các số cụ thể đó.
+This is only an illustration of the data shape, **not fixed stdout**. Do not write tests based on those specific numbers.
 
-`Math.random()` thường phù hợp với các bài tập mô phỏng đơn giản, chọn ngẫu nhiên để hiển thị hoặc các trò chơi nhỏ **không có yêu cầu bảo mật**. Sử dụng đúng cũng cần hiểu giới hạn của nó: khoảng giá trị, độ chính xác `double`, cách chuyển thành số nguyên, khả năng tái lập kết quả, chất lượng ngẫu nhiên và chi phí khi gọi từ nhiều luồng.
+`Math.random()` is generally suitable for simple simulation exercises, random selection for display, or small games **with no security requirements**. Using it properly also requires understanding its limitations: value range, `double` precision, integer conversion, result reproducibility, randomness quality, and cost when called from multiple threads.
 
-## 2. Hành vi của bộ sinh và ý nghĩa “giả ngẫu nhiên”
+## 2. Generator behavior and the meaning of “pseudorandom”
 
-Theo hợp đồng Java 17, lần gọi `Math.random()` đầu tiên khởi tạo một bộ sinh số giả ngẫu nhiên như thể tạo một đối tượng `new java.util.Random()`; những lời gọi tiếp theo dùng chung bộ sinh đó.
+Under the Java 17 contract, the first call to `Math.random()` initializes a pseudorandom number generator as if creating a `new java.util.Random()` instance; subsequent calls share that same generator.
 
 ```text
 Math.random() ─┐
-Math.random() ─┼──> bộ sinh Random dùng chung ──> double trong [0.0, 1.0)
+Math.random() ─┼──> shared Random generator ──> double in [0.0, 1.0)
 Math.random() ─┘
 ```
 
-Một bộ sinh giả ngẫu nhiên tạo ra chuỗi số theo thuật toán và trạng thái nội bộ. Nhìn từ ngoài, chuỗi có thể hữu ích cho thống kê và mô phỏng, nhưng nó không tương đương với nguồn ngẫu nhiên bí mật hoặc ngẫu nhiên vật lý. Không được suy ra rằng một số “khó đoán bằng mắt” thì phù hợp làm mã xác thực.
+A pseudorandom generator produces a number sequence from an algorithm and internal state. From the outside, the sequence can be useful for statistics and simulation, but it is not equivalent to a secret source of randomness or physical randomness. One must not conclude that a number that “looks hard to guess by eye” is suitable as a verification code.
 
-Các hệ quả quan trọng:
+Important consequences:
 
-- **Không truyền seed cho `Math.random()`:** phương thức không có tham số và không cho người gọi đặt hay đọc seed của bộ sinh dùng chung. Bạn không thể yêu cầu “chạy lại đúng dãy vừa rồi” bằng API này.
-- **Trạng thái được chia sẻ:** nhiều lời gọi ở các phần khác nhau của ứng dụng cùng tiêu thụ chuỗi từ bộ sinh bên trong. Việc gọi thêm ở một nơi có thể thay đổi số mà nơi khác nhận được.
-- **An toàn khi có nhiều luồng gọi:** Java đồng bộ hóa việc sử dụng đúng cách. Tuy nhiên, nhiều luồng gọi với tốc độ rất cao có thể gặp cạnh tranh truy cập bộ sinh dùng chung và giảm hiệu năng.
-- **Không an toàn cho bảo mật:** thuật toán `Random` thông thường không nhằm chống dự đoán hoặc tấn công mật mã.
+- **No seed can be passed to `Math.random()`:** the method takes no parameters and does not let the caller set or read the seed of the shared generator. You cannot ask it to “replay the exact sequence just produced” with this API.
+- **Shared state:** calls in different parts of an application consume the sequence from the same internal generator. Adding calls in one place can change the numbers received elsewhere.
+- **Thread-safe when called by multiple threads:** Java properly synchronizes access. However, many threads calling it at very high rates may encounter contention on the shared generator and suffer reduced performance.
+- **Not cryptographically secure:** the ordinary `Random` algorithm is not designed to resist prediction or cryptographic attacks.
 
-Các đặc điểm này khiến `Math.random()` rất tiện cho ví dụ ngắn, nhưng kém phù hợp khi hệ thống cần kiểm soát nguồn ngẫu nhiên, quản lý seed, chạy song song quy mô lớn hoặc tạo token bảo mật.
+These characteristics make `Math.random()` very convenient for short examples, but poorly suited when a system needs control over the randomness source, seed management, large-scale parallel execution, or security token generation.
 
-## 3. Tạo số nguyên bằng Math.random()
+## 3. Generating integers with Math.random()
 
-Muốn mô phỏng xúc xắc sáu mặt từ 1 đến 6, một cách thường gặp là:
+To simulate a six-sided die from 1 to 6, a common approach is:
 
 ```java
 int dice = (int) (Math.random() * 6) + 1;
 ```
 
-Giải thích từng bước:
+Step-by-step explanation:
 
-1. `Math.random()` trả `r` với `0.0 <= r < 1.0`.
-2. `r * 6` có giá trị từ `0.0` đến dưới `6.0`.
-3. Ép `(int)` với một số hữu hạn không âm sẽ bỏ phần thập phân, cho kết quả từ `0` đến `5`.
-4. Cộng `1` được số nguyên từ `1` đến `6`.
+1. `Math.random()` returns `r` with `0.0 <= r < 1.0`.
+2. `r * 6` has a value from `0.0` up to below `6.0`.
+3. Casting `(int)` on a finite non-negative number drops the fractional part, yielding `0` to `5`.
+4. Adding `1` produces an integer from `1` to `6`.
 
-Dấu ngoặc quanh phép nhân **rất quan trọng**. So sánh:
+The parentheses around the multiplication are **critical**. Compare:
 
 ```java
 int correct = (int) (Math.random() * 10); // 0..9
-int wrong   = (int) Math.random() * 10;   // luôn là 0
+int wrong   = (int) Math.random() * 10;   // always 0
 ```
 
-Ở dòng sai, `(int) Math.random()` luôn bằng `0`, vì kết quả gốc nhỏ hơn `1.0`, rồi mới nhân `10`. Java không tự điều chỉnh thứ tự phép tính theo ý định người viết.
+In the wrong line, `(int) Math.random()` is always `0` because the original result is less than `1.0`, and only then is it multiplied by `10`. Java does not adjust operator precedence to match the author's intent.
 
-Để tạo số nguyên trong `[min, max]` (*hai đầu đều bao gồm*), công thức phổ biến cho **khoảng nhỏ, hợp lệ** là:
+To generate an integer in `[min, max]` (*both ends inclusive*), the common formula for a **small, valid range** is:
 
 ```java
 int value = min + (int) (Math.random() * (max - min + 1));
 ```
 
-Ví dụ `min = 5`, `max = 9` sẽ cho các số 5, 6, 7, 8, 9. Nhưng công thức này có những **giới hạn quan trọng**:
+For example, `min = 5`, `max = 9` produces 5, 6, 7, 8, 9. However, this formula has **important limitations**:
 
-- `max - min + 1` được tính bằng `int` trong ví dụ. Với khoảng lớn, phép tính có thể **tràn số nguyên** trước khi nhân với `Math.random()`.
-- Phép đổi từ `double` sang `int` và phép nhân dấu phẩy động có giới hạn độ chính xác. Với số lượng kết quả rất lớn hoặc nhu cầu phân bố đều nghiêm ngặt, cách nhân rồi ép kiểu không phải lựa chọn tốt.
-- Phương thức tạo `double` từ một tập giá trị rời rạc hữu hạn; chia số lượng trạng thái đó cho các khoảng nguyên có thể có độ chênh xác suất rất nhỏ. Với yêu cầu lấy số nguyên đồng đều, nên ưu tiên API sinh số nguyên theo khoảng thay vì tự biến đổi từ `double`.
-- Nếu `min > max`, đầu vào không hợp lệ; không nên âm thầm tính tiếp.
+- `max - min + 1` is computed as an `int` in the example. For large ranges, the calculation can **overflow integer bounds** before multiplying by `Math.random()`.
+- Converting from `double` to `int` and floating-point multiplication have precision limits. For very large sample counts or strict uniform distribution needs, multiplying and casting is not a good choice.
+- The method produces a `double` from a finite discrete set of values; dividing those states across integer buckets can introduce a tiny probability bias. When uniform integers are required, prefer a range-based integer generation API instead of manually transforming a `double`.
+- If `min > max`, the input is invalid; do not silently proceed with the calculation.
 
-Đối với số nguyên trong đoạn `[min, max)` (*bao gồm min, không bao gồm max*), `ThreadLocalRandom.current().nextInt(min, max)` hoặc một `RandomGenerator.nextInt(min, max)` làm rõ ý nghĩa giới hạn và xử lý việc lấy giá trị nguyên một cách phù hợp hơn. Với `max == Integer.MAX_VALUE`, đừng vô tình tính `max + 1` bằng `int` để cố tạo khoảng đóng; hãy chọn overload/ràng buộc khác phù hợp.
+For integers in `[min, max)` (*min inclusive, max exclusive*), `ThreadLocalRandom.current().nextInt(min, max)` or a `RandomGenerator.nextInt(min, max)` clarifies the boundary semantics and handles integer sampling more appropriately. When `max == Integer.MAX_VALUE`, do not accidentally compute `max + 1` in `int` trying to build a closed interval; choose a suitable overload or constraint instead.
 
-## 4. Lỗi off-by-one: biên bao gồm và loại trừ
+## 4. Off-by-one errors: inclusive and exclusive bounds
 
-Điều thường khiến code tạo số ngẫu nhiên sai là nhầm `[a, b]` với `[a, b)`.
+What commonly makes random number generation code wrong is confusing `[a, b]` with `[a, b)`.
 
-| Yêu cầu | Cách dùng `Math.random()` cho ví dụ nhỏ | Kết quả |
+| Requirement | Using `Math.random()` for small examples | Result |
 | --- | --- | --- |
-| Số nguyên từ 0 đến 9 | `(int) (Math.random() * 10)` | 0..9 |
-| Số nguyên từ 1 đến 10 | `1 + (int) (Math.random() * 10)` | 1..10 |
-| Xúc xắc sáu mặt | `1 + (int) (Math.random() * 6)` | 1..6 |
-| Hai lựa chọn 0 hoặc 1 | `(int) (Math.random() * 2)` | 0 hoặc 1 |
-| Xác suất xấp xỉ 25% | `Math.random() < 0.25` | `boolean` |
-| Một số thực trong `[0, 1)` | `Math.random()` | `double` |
+| Integer from 0 to 9 | `(int) (Math.random() * 10)` | 0..9 |
+| Integer from 1 to 10 | `1 + (int) (Math.random() * 10)` | 1..10 |
+| Six-sided die | `1 + (int) (Math.random() * 6)` | 1..6 |
+| Two choices 0 or 1 | `(int) (Math.random() * 2)` | 0 or 1 |
+| Approximately 25% probability | `Math.random() < 0.25` | `boolean` |
+| A floating-point number in `[0, 1)` | `Math.random()` | `double` |
 
-Trong điều kiện `Math.random() < 0.25`, kết quả `true` có xác suất xấp xỉ 25% theo mô hình phân bố đã nêu. Một số lần chạy ít ỏi không có lý do gì phải cho đúng 25% số lần `true`.
+In the condition `Math.random() < 0.25`, `true` occurs with an approximate probability of 25% under the stated distribution model. A small number of runs has no reason to yield `true` exactly 25% of the time.
 
-Các lỗi phổ biến khác:
+Other common mistakes:
 
 ```java
-int a = (int) (Math.random() * 6);      // 0..5, không phải 1..6
+int a = (int) (Math.random() * 6);      // 0..5, not 1..6
 int b = (int) (Math.random() * 6) + 1;  // 1..6
 
 int c = Math.round((float) (Math.random() * 6)); // 0..6,
-                                                  // xác suất ở hai biên khác phần giữa
+                                                  // probabilities at the two ends differ from the middle
 ```
 
-`Math.round` làm tròn về số nguyên gần nhất, khiến khoảng giá trị gần hai đầu chỉ chiếm xấp xỉ một nửa chiều rộng so với các khoảng giữa; vì thế **không** phải cách thay thế tương đương cho `floor` khi muốn các số nguyên có xác suất gần như nhau.
+`Math.round` rounds to the nearest integer, making the intervals near the two ends occupy roughly half the width of the middle intervals; therefore, it is **not** an equivalent substitute for `floor` when you want integers with nearly equal probability.
 
-Không nên kiểm tra `Math.random() == 1.0`: điều kiện ấy luôn `false` theo hợp đồng API. Nếu muốn cho phép số ở **cận trên**, hãy xác định rõ bài toán là số nguyên hay số thực. Với đoạn số thực đóng, công thức chuyển đổi đơn giản `min + Math.random() * (max - min)` cũng không đảm bảo mọi giá trị biên có xác suất như nhau; và làm tròn dấu phẩy động có thể ảnh hưởng cận. Đừng hứa hẹn tính chất toán học mà biểu diễn hữu hạn không bảo đảm.
+Do not check `Math.random() == 1.0`: that condition is always `false` by the API contract. If you want to allow the **upper bound**, clarify whether the problem is integer or floating-point. Even for a closed floating-point interval, the simple scaling formula `min + Math.random() * (max - min)` does not guarantee every boundary value has equal probability, and floating-point rounding can affect the bounds. Do not promise mathematical properties that a finite representation does not guarantee.
 
-## 5. Ví dụ hoàn chỉnh Java 17+: kiểm tra khoảng mà không đoán số ngẫu nhiên
+## 5. Complete Java 17+ example: checking ranges without guessing random numbers
 
-Lưu tệp `MathRandomDemo.java`:
+Save the file `MathRandomDemo.java`:
 
 ```java
 import java.security.SecureRandom;
@@ -165,14 +165,14 @@ public class MathRandomDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac MathRandomDemo.java
 java MathRandomDemo
 ```
 
-Stdout **ổn định về các điều kiện được in**, dù những giá trị được sinh bên trong thay đổi giữa các lần chạy:
+Stdout is **deterministic for the printed conditions**, even though the internally generated values vary across runs:
 
 ```text
 Math.random in [0,1): true
@@ -182,15 +182,15 @@ Same seed, same sequence: true
 Secure byte length: 16
 ```
 
-Bài học của ví dụ: khi kiểm tra giá trị giả ngẫu nhiên, hãy kiểm tra những thuộc tính có bảo đảm (kiểu dữ liệu, phạm vi, cấu trúc, khả năng tái lập với seed xác định). Đừng assert một giá trị cố định từ `Math.random()`.
+Lesson from the example: when testing pseudorandom values, verify guaranteed properties (data type, range, structure, reproducibility with a fixed seed). Do not assert a specific hardcoded value from `Math.random()`.
 
-`SecureRandom` chỉ được dùng để minh họa cách tạo byte phù hợp cho trường hợp nhạy cảm về an toàn; 16 byte có đủ cho một ứng dụng cụ thể hay không phụ thuộc vào thiết kế token, entropy yêu cầu, thời hạn và cơ chế chống phát lại.
+`SecureRandom` is only used here to illustrate generating bytes suitable for security-sensitive cases; whether 16 bytes is sufficient for a specific application depends on token design, required entropy, expiration, and replay protection.
 
-## 6. Hạn chế về khả năng tái lập và kiểm thử
+## 6. Reproducibility and testability limitations
 
-Trong mô phỏng, lập trình viên thường muốn chạy **cùng đầu vào và cùng seed thì nhận cùng chuỗi ngẫu nhiên** để gỡ lỗi và so sánh kết quả. `Math.random()` không nhận seed và dùng trạng thái ẩn dùng chung, nên khó kiểm soát theo từng test.
+In simulations, developers often want **the same input and same seed to yield the same random sequence** for debugging and comparing results. `Math.random()` does not accept a seed and uses hidden shared state, making per-test control difficult.
 
-Thay bằng đối tượng `java.util.Random` có seed được truyền từ bên ngoài:
+Replace it with a `java.util.Random` instance whose seed is passed in from outside:
 
 ```java
 import java.util.Random;
@@ -209,15 +209,15 @@ public class SeededRandomDemo {
 }
 ```
 
-Chạy `javac SeededRandomDemo.java` và `java SeededRandomDemo`, stdout:
+Run `javac SeededRandomDemo.java` and `java SeededRandomDemo`, stdout:
 
 ```text
 Repeatable: true
 ```
 
-Hai đối tượng `Random` độc lập với cùng seed và **cùng thứ tự lời gọi** tạo cùng chuỗi. Nếu một đối tượng gọi `nextInt` thêm một lần, dãy tiếp theo sẽ bị lệch so với đối tượng còn lại. Seed có ý nghĩa để tái hiện test, **không phải** để bảo mật.
+Two independent `Random` objects with the same seed and **same call order** produce the same sequence. If one object calls `nextInt` an extra time, the subsequent sequence will be shifted relative to the other. Seeds are meant for reproducing tests, **not** for security.
 
-Với thiết kế có thể test, nên truyền nguồn sinh số vào đối tượng nghiệp vụ (dependency injection) thay vì gọi `Math.random()` trực tiếp ở mọi nơi:
+For a testable design, inject the number-generation source into business objects (dependency injection) instead of calling `Math.random()` directly everywhere:
 
 ```java
 import java.util.Objects;
@@ -236,15 +236,15 @@ public class DiceService {
 }
 ```
 
-Đây là class có thể biên dịch trên Java 17+, không có `main`. Để chạy ứng dụng, truyền một instance như `new DiceService(new java.util.Random(42L))`. Khi cần triển khai khác, người gọi có thể truyền generator khác tương thích với `RandomGenerator`. Việc test không còn phụ thuộc vào bộ sinh ẩn của `Math.random()`.
+This is a class that compiles on Java 17+ without a `main` method. To run an application, pass an instance such as `new DiceService(new java.util.Random(42L))`. When a different implementation is needed, the caller can pass any other generator compatible with `RandomGenerator`. Testing no longer depends on the hidden generator of `Math.random()`.
 
-`RandomGenerator` là interface chuẩn từ Java 17, giúp tách mã nghiệp vụ khỏi thuật toán sinh số. Nếu yêu cầu **tái hiện tuyệt đối trong môi trường khác nhau**, hãy ghi rõ loại bộ sinh, seed, thứ tự sử dụng và phiên bản thực thi; tránh giả định mọi thuật toán hoặc mọi phiên bản đều cho cùng chuỗi chỉ vì seed giống nhau.
+`RandomGenerator` is a standard interface since Java 17, helping decouple business code from the generation algorithm. If **exact reproducibility across different environments** is required, specify the generator type, seed, usage order, and runtime version; avoid assuming every algorithm or version produces the same sequence merely because the seed is identical.
 
-## 7. Giới hạn khi dùng nhiều luồng
+## 7. Multithreading limitations
 
-`Math.random()` dùng một bộ sinh chia sẻ. Java bảo đảm gọi được an toàn từ nhiều luồng, nên bạn **không phải tự khóa** cho mỗi lần gọi. Nhưng với tác vụ có tần suất sinh ngẫu nhiên cao từ nhiều luồng, việc chia sẻ có thể dẫn tới cạnh tranh và làm chậm.
+`Math.random()` uses a shared generator. Java ensures it is safe to call from multiple threads, so you **do not have to lock manually** around each call. However, for workloads with high-frequency random generation across many threads, sharing can lead to contention and slowdowns.
 
-Với workload song song không nhạy cảm về bảo mật, `ThreadLocalRandom` thường phù hợp hơn:
+For parallel workloads that are not security-sensitive, `ThreadLocalRandom` is usually more suitable:
 
 ```java
 import java.util.concurrent.ThreadLocalRandom;
@@ -253,29 +253,29 @@ int id = ThreadLocalRandom.current().nextInt(1000, 2000);
 double unit = ThreadLocalRandom.current().nextDouble();
 ```
 
-Hai đoạn lệnh trên chỉ là **minh họa ở bên trong phương thức hoặc lớp**, không phải Java file chạy độc lập. `nextInt(1000, 2000)` cho các giá trị từ 1000 đến 1999; 2000 là biên **không bao gồm**. `nextDouble()` cũng cho số trong `[0.0, 1.0)`.
+These two statements are only **illustrative snippets inside a method or class**, not a standalone runnable Java file. `nextInt(1000, 2000)` produces values from 1000 to 1999; 2000 is the **exclusive** bound. `nextDouble()` also returns a number in `[0.0, 1.0)`.
 
-Lợi ích và giới hạn:
+Benefits and limitations:
 
-- Bộ sinh dành cho mỗi luồng giúp tránh phần lớn tranh chấp với một `Random` dùng chung.
-- Không có cơ chế thiết lập seed cho `ThreadLocalRandom.current()` bằng API thông thường. Vì vậy nó không thích hợp nếu muốn tự điều khiển dãy bằng seed trong test.
-- `ThreadLocalRandom` cũng **không phải nguồn ngẫu nhiên bảo mật**.
-- Trong các mô phỏng song song yêu cầu tái lập, có thể cấp generator riêng cho mỗi task với seed được quản lý rõ ràng, hoặc nghiên cứu `SplittableRandom`/`RandomGenerator` phù hợp. Cần quy định việc chia các dòng ngẫu nhiên theo task để tránh thay đổi kết quả khi thay lịch luồng.
+- A per-thread generator avoids most contention compared to a single shared `Random`.
+- There is no mechanism to set a seed for `ThreadLocalRandom.current()` via the normal API. Thus, it is unsuitable if you want to control the sequence with a seed in tests.
+- `ThreadLocalRandom` is also **not a cryptographically secure source of randomness**.
+- In parallel simulations requiring reproducibility, you can assign a dedicated generator per task with an explicitly managed seed, or look into `SplittableRandom`/an appropriate `RandomGenerator`. You must define how random streams are partitioned per task to avoid changing results when thread scheduling changes.
 
-Việc dùng nhiều luồng tự nó không làm `Math.random()` sinh ra giá trị ngoài khoảng; giới hạn chính ở đây là khả năng kiểm soát và hiệu năng khi cạnh tranh cao.
+Using multiple threads does not by itself cause `Math.random()` to return out-of-range values; the main limitations here are controllability and performance under high contention.
 
-## 8. Giới hạn bảo mật: tuyệt đối không tạo bí mật bằng Math.random()
+## 8. Security limitation: never generate secrets with Math.random()
 
-Một chuỗi số khó đoán khi quan sát vài lần **không đồng nghĩa** khó dự đoán với người tấn công. `Math.random()` và `Random` được thiết kế cho mục đích giả ngẫu nhiên thông thường, không có bảo đảm về sức mạnh mật mã.
+A sequence that looks hard to guess after observing a few values **does not mean** it is hard for an attacker to predict. `Math.random()` and `Random` are designed for general pseudorandomness and offer no cryptographic strength guarantees.
 
-Không dùng `Math.random()` để tạo:
+Do not use `Math.random()` to generate:
 
-- Mã OTP, mã xác nhận giao dịch, mã reset mật khẩu.
-- Session token, API key, access token, nonce phục vụ bảo mật.
-- Khóa mã hóa, salt yêu cầu sinh ngẫu nhiên an toàn hoặc dữ liệu liên quan tới kiểm soát truy cập.
-- Giá trị có thể mang lợi ích kinh tế cho kẻ đoán đúng, nếu việc bảo vệ chống dự đoán là một phần yêu cầu.
+- OTP codes, transaction confirmation codes, password reset codes.
+- Session tokens, API keys, access tokens, security nonces.
+- Encryption keys, salts requiring secure random generation, or data related to access control.
+- Values that could yield financial gain if guessed correctly, where resistance to prediction is part of the requirement.
 
-Dùng `java.security.SecureRandom` cho mục đích mật mã. Ví dụ tạo 32 byte ngẫu nhiên:
+Use `java.security.SecureRandom` for cryptographic purposes. Example generating 32 random bytes:
 
 ```java
 import java.security.SecureRandom;
@@ -291,27 +291,27 @@ public class SecureBytesDemo {
 }
 ```
 
-Chạy `javac SecureBytesDemo.java` rồi `java SecureBytesDemo`:
+Run `javac SecureBytesDemo.java` then `java SecureBytesDemo`:
 
 ```text
 Generated bytes: 32
 ```
 
-Đoạn code không in các byte bí mật ra log. Khi chuyển byte thành token, cần dùng encoding an toàn (ví dụ Base64 URL-safe), quản lý vòng đời token và lưu trữ phù hợp. Tạo byte ngẫu nhiên an toàn là một phần của thiết kế bảo mật, không tự nó giải quyết xác thực hay phân quyền.
+The code does not log the secret bytes. When converting bytes to tokens, use safe encoding (such as URL-safe Base64), manage token lifecycles, and store them properly. Generating secure random bytes is one part of security design and does not by itself solve authentication or authorization.
 
-Không cố cải thiện `Math.random()` bằng cách nhân, làm tròn, ghép nhiều kết quả hoặc đặt lại seed của một `Random` khác. Các thao tác đó không biến nguồn giả ngẫu nhiên không bảo mật thành nguồn đáp ứng yêu cầu mật mã.
+Do not try to “improve” `Math.random()` by multiplying, rounding, combining multiple outputs, or reseeding another `Random`. Those operations do not turn a non-cryptographic pseudorandom source into one that meets cryptographic requirements.
 
-## 9. Giới hạn thống kê và số dấu phẩy động
+## 9. Statistical and floating-point limitations
 
-Một `double` có độ chính xác nhị phân hữu hạn (thường được mô tả bằng 53 bit significand). Vì vậy, các kết quả từ `Math.random()` là một **tập rời rạc hữu hạn** những số trong khoảng `[0.0, 1.0)`, chứ không phải mọi số thực của toán học.
+A `double` has finite binary precision (commonly described as a 53-bit significand). Therefore, results from `Math.random()` form a **finite discrete set** of numbers in `[0.0, 1.0)`, rather than every mathematical real number.
 
-Ba hệ quả:
+Three consequences:
 
-**Thứ nhất, phân bố chỉ xấp xỉ đồng đều.** Đối với mô phỏng thông thường điều này thường đủ tốt. Với thuật toán cần đặc tính thống kê cao, chu kỳ dài, các luồng độc lập hoặc yêu cầu được kiểm chứng riêng, cần chọn bộ sinh và thiết kế phép thử phù hợp, không mặc định `Math.random()` là tối ưu.
+**First, the distribution is only approximately uniform.** For ordinary simulations this is usually good enough. For algorithms needing high statistical quality, long periods, independent streams, or dedicated verification, select an appropriate generator and test design rather than assuming `Math.random()` is optimal.
 
-**Thứ hai, phép chuyển khoảng không tự bảo toàn mọi tính chất lý tưởng.** Khi nhân `Math.random()` với một số nguyên rồi ép `int`, cách ánh xạ từ các trạng thái `double` hữu hạn đến các số nguyên có thể tạo sai lệch phân bố nhỏ. Đối với khoảng nguyên, API `nextInt(bound)` hay `nextInt(origin, bound)` thích hợp hơn việc tự viết phép đổi khi cần tính đúng đắn và xử lý các biên.
+**Second, range transformations do not automatically preserve all ideal properties.** When multiplying `Math.random()` by an integer and casting to `int`, mapping from finite `double` states to integers can introduce tiny distribution biases. For integer ranges, `nextInt(bound)` or `nextInt(origin, bound)` is better than writing a custom conversion when correctness and boundary handling matter.
 
-**Thứ ba, nhân/cộng số thực có thể làm tròn hoặc tràn.** Ví dụ:
+**Third, floating-point multiplication/addition can round or overflow.** For example:
 
 ```java
 double min = 0.0;
@@ -319,43 +319,43 @@ double max = 10.0;
 double value = min + Math.random() * (max - min);
 ```
 
-Trong trường hợp đơn giản này, `value` nằm trong `[0.0, 10.0)` theo cách hiểu thông thường. Nhưng với các số `double` rất lớn, rất gần nhau hoặc không hữu hạn, phép `max - min`, nhân và cộng có thể tràn, mất precision hoặc bị làm tròn tới cận trên. Tránh đem công thức giản đơn áp dụng vô điều kiện cho mọi dải `double`.
+In this simple case, `value` falls in `[0.0, 10.0)` in the ordinary sense. However, for very large, very close, or non-finite `double` numbers, `max - min`, multiplication, and addition can overflow, lose precision, or round up to the upper bound. Avoid unconditionally applying this naive formula to arbitrary `double` ranges.
 
-Nếu đang dùng Java 17+ và cần các số `double` trong khoảng, xem các API `nextDouble(origin, bound)` của `RandomGenerator` hoặc `ThreadLocalRandom`, đồng thời kiểm tra đầu vào theo hợp đồng của API. Khi bài toán yêu cầu tiền tệ hay phép tính decimal chính xác, không nên lấy `double` từ `Math.random()` rồi giả định phép tính sau đó không còn sai số nhị phân.
+If you are on Java 17+ and need `double` values in a range, consider `nextDouble(origin, bound)` on `RandomGenerator` or `ThreadLocalRandom`, and validate inputs according to the API contract. When a problem involves currency or exact decimal arithmetic, do not take a `double` from `Math.random()` and assume subsequent calculations will be free of binary rounding error.
 
-## 10. Chọn API sinh số ngẫu nhiên phù hợp
+## 10. Choosing the right random number generation API
 
-| API | Hợp lý khi | Lưu ý |
+| API | Appropriate when | Notes |
 | --- | --- | --- |
-| `Math.random()` | Ví dụ ngắn, mô phỏng đơn giản, không cần quản lý seed | Trả `double` trong `[0,1)`; seed ẩn, bộ sinh dùng chung; không bảo mật |
-| `new Random(seed)` | Test có thể lặp lại, thuật toán muốn chủ động quản lý seed | Có trạng thái riêng; đồng seed + cùng lời gọi tạo cùng dãy; không bảo mật |
-| `ThreadLocalRandom.current()` | Tạo số thường xuyên trong nhiều luồng | Ít tranh chấp, có API khoảng nguyên; không cho caller đặt seed; không bảo mật |
-| `SplittableRandom` | Mô phỏng cần chia bộ sinh thành các luồng/task riêng | Có thể đặt seed; không an toàn để chia sẻ cùng instance giữa nhiều luồng; không bảo mật |
-| `RandomGenerator` (Java 17+) | Muốn tách thuật toán sinh số khỏi nghiệp vụ; lựa chọn/đổi implementation | Interface, tự nó không bảo đảm an toàn mật mã hay thread safety |
-| `SecureRandom` | Sinh byte/token hoặc giá trị nhạy cảm về bảo mật | Có bảo đảm mật mã theo provider/thuật toán; có thể tốn tài nguyên hơn |
+| `Math.random()` | Short examples, simple simulations, no seed management needed | Returns `double` in `[0,1)`; hidden seed, shared generator; not secure |
+| `new Random(seed)` | Repeatable tests, algorithms needing explicit seed control | Has own state; same seed + same calls produce same sequence; not secure |
+| `ThreadLocalRandom.current()` | Frequent generation across multiple threads | Low contention, has integer range APIs; caller cannot set seed; not secure |
+| `SplittableRandom` | Simulations needing to split generators into separate streams/tasks | Seedable; unsafe to share one instance across threads; not secure |
+| `RandomGenerator` (Java 17+) | Decoupling generation algorithm from business logic; swapping implementations | Interface; does not by itself guarantee cryptographic security or thread safety |
+| `SecureRandom` | Generating bytes/tokens or security-sensitive values | Cryptographic guarantees per provider/algorithm; may incur higher resource cost |
 
-Với `ThreadLocalRandom`, `Random`, `SplittableRandom`, `SecureRandom`, các overload và tính chất của từng API có thể khác nhau. Hãy dùng đúng phương thức thay vì giả định mọi lớp đều có cùng signature.
+Across `ThreadLocalRandom`, `Random`, `SplittableRandom`, and `SecureRandom`, overloads and properties of each API may differ. Use the exact methods appropriately rather than assuming all classes share identical signatures.
 
-Nguồn tham khảo chính thức (Java 17):
+Official references (Java 17):
 
 - [Math — random()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#random())
 - [Random](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Random.html)
 - [ThreadLocalRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ThreadLocalRandom.html)
 - [SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html)
-- [java.util.random và RandomGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/package-summary.html)
+- [java.util.random and RandomGenerator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/package-summary.html)
 
-## 11. Kiểm thử đúng: test tính chất thay vì một mẫu cụ thể
+## 11. Proper testing: test properties instead of a specific sample
 
-Với `Math.random()`, tránh test kiểu:
+With `Math.random()`, avoid tests like:
 
 ```java
-// Sai: không có bảo đảm sample == 0.5.
+// Wrong: there is no guarantee that sample == 0.5.
 if (Math.random() != 0.5) {
     throw new AssertionError("Unexpected random value");
 }
 ```
 
-Nên kiểm tra đúng hợp đồng:
+Instead, verify the contract:
 
 ```java
 double r = Math.random();
@@ -364,38 +364,38 @@ if (!(r >= 0.0 && r < 1.0)) {
 }
 ```
 
-Đây là những đoạn lệnh ngắn đặt trong phương thức, không phải file độc lập. Với phép đổi số nguyên theo yêu cầu, kiểm tra cả cận dưới và cận trên. Khi phải khẳng định dãy kết quả cụ thể của thuật toán nghiệp vụ, hãy truyền một nguồn sinh số có thể điều khiển hoặc giả lập và test riêng phần tính toán.
+These are short snippets placed inside a method, not standalone files. When converting to integer ranges as required, check both lower and upper bounds. When you must assert a specific sequence of business algorithm results, pass a controllable or mock number source and test the calculation logic separately.
 
-Kiểm thử thống kê cần số mẫu và tiêu chí phù hợp; việc lấy 20 giá trị rồi thấy tỷ lệ mỗi số khác nhau không đủ để kết luận thuật toán sai. Ngược lại, vài mẫu trông có vẻ phân bố đều cũng không chứng minh bộ sinh thích hợp cho bảo mật.
+Statistical testing requires an appropriate sample size and criteria; drawing 20 values and seeing unequal frequencies is not enough to conclude the algorithm is buggy. Conversely, a few seemingly evenly spread samples do not prove a generator is suitable for security.
 
-## 12. Các sai lầm thường gặp
+## 12. Common mistakes
 
-| Sai lầm | Điều gì xảy ra | Cách khắc phục |
+| Mistake | What happens | Fix |
 | --- | --- | --- |
-| Nghĩ `Math.random()` có thể trả `1.0` | Sai về cận trên | Ghi nhớ `0.0 <= r < 1.0` |
-| Dùng `(int) Math.random() * n` | Luôn nhận 0 với `n` hữu hạn trong phép nhân nguyên | Dùng `(int) (Math.random() * n)` |
-| Dùng `Math.round(Math.random() * n)` để lấy 0..n đồng đều | Các điểm biên có xác suất khác điểm trong | Với khoảng nguyên, dùng `nextInt` |
-| Nhầm `nextInt(1, 6)` nghĩa là xúc xắc 1..6 | Chỉ tạo 1..5 | Dùng `nextInt(1, 7)` |
-| Tính `max - min + 1` bằng `int` cho khoảng lớn | Có thể overflow | Dùng API khoảng hỗ trợ kiểu phù hợp và kiểm tra biên |
-| Muốn test tái lập nhưng gọi `Math.random()` trực tiếp | Không thể kiểm soát seed/trình tự trên từng test | Truyền `Random` hoặc `RandomGenerator` có seed |
-| Dùng `Math.random()` cho mã xác nhận/token | Có nguy cơ dự đoán, không đạt yêu cầu bảo mật | Dùng `SecureRandom` và thiết kế token an toàn |
-| Một lượng lớn luồng cùng gọi `Math.random()` liên tục | Có thể tranh chấp bộ sinh dùng chung | Cân nhắc `ThreadLocalRandom` hoặc generator theo task |
-| Suy từ một lần chạy rằng mọi kết quả đều xuất hiện đều | Nhầm hiện tượng ngẫu nhiên với đảm bảo tuyệt đối | Phân tích xác suất, chọn mẫu và tiêu chí thống kê phù hợp |
-| Cho rằng nhân với 10 tạo đúng 10 giá trị `double` | Vẫn là `double` liên tục theo khoảng giá trị rời rạc hữu hạn | Ép nguyên đúng chỗ nếu cần giá trị nguyên |
+| Thinking `Math.random()` can return `1.0` | Wrong about upper bound | Remember `0.0 <= r < 1.0` |
+| Using `(int) Math.random() * n` | Always evaluates to 0 for finite `n` in integer multiplication | Use `(int) (Math.random() * n)` |
+| Using `Math.round(Math.random() * n)` for uniform 0..n | Boundary points have different probabilities than interior points | For integer ranges, use `nextInt` |
+| Confusing `nextInt(1, 6)` as a 1..6 die | Only generates 1..5 | Use `nextInt(1, 7)` |
+| Computing `max - min + 1` in `int` for wide ranges | Can overflow | Use range APIs supporting the proper type and validate bounds |
+| Wanting reproducible tests while calling `Math.random()` directly | Cannot control seed/sequence per test | Inject a seeded `Random` or `RandomGenerator` |
+| Using `Math.random()` for verification codes/tokens | Predictable, fails security requirements | Use `SecureRandom` and secure token design |
+| Many threads calling `Math.random()` continuously | Contention on the shared generator | Consider `ThreadLocalRandom` or per-task generators |
+| Inferring from one run that all outcomes appear evenly | Confusing random behavior with an absolute guarantee | Perform probability analysis and choose proper sample sizes and statistical criteria |
+| Assuming multiplying by 10 creates exactly 10 `double` values | Remains a continuous-range `double` over finite discrete values | Cast/sample as integer properly if integers are needed |
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-check questions
 
-1. **Khoảng của `Math.random()` là gì?** `[0.0, 1.0)`, nghĩa là có 0.0 nhưng không có 1.0.
-2. **Vì sao `(int) Math.random() * 6` không mô phỏng xúc xắc?** Vì ép `int` trước phép nhân biến kết quả thành 0.
-3. **Cách mô phỏng xúc xắc bằng `Math.random()` là gì?** `1 + (int) (Math.random() * 6)`, phù hợp bài tập nhỏ không cần chất lượng/khả năng bảo mật đặc biệt.
-4. **Tại sao không dùng `Math.random()` để tạo password-reset token?** Vì nguồn `Random` bên trong không được thiết kế để chống dự đoán theo yêu cầu mật mã; nên dùng `SecureRandom`.
-5. **Khi test muốn cùng seed cho ra cùng chuỗi, nên làm thế nào?** Dùng `new Random(seed)` hoặc một generator hỗ trợ seed, đảm bảo cùng thuật toán và cùng trình tự gọi.
-6. **`ThreadLocalRandom.current().nextInt(1, 7)` có thể trả 7 không?** Không; biên trên 7 là exclusive, kết quả từ 1 đến 6.
-7. **Nếu nhiều luồng cần hàng triệu số ngẫu nhiên cho mô phỏng, giới hạn nào của `Math.random()` cần lưu ý?** Trạng thái dùng chung có thể gây contention; cân nhắc generator theo luồng hoặc theo task.
-8. **Một số `double` nhìn ngẫu nhiên có phải là đủ an toàn để tạo khóa bí mật?** Không; phân bố nhìn có vẻ tốt và bảo mật chống dự đoán là hai yêu cầu khác nhau.
+1. **What is the range of `Math.random()`?** `[0.0, 1.0)`, meaning 0.0 is included but 1.0 is excluded.
+2. **Why does `(int) Math.random() * 6` not simulate a die?** Because casting to `int` before multiplying turns the result into 0.
+3. **How do you simulate a die with `Math.random()`?** `1 + (int) (Math.random() * 6)`, suitable for small exercises without special quality or security needs.
+4. **Why should `Math.random()` not be used to generate a password-reset token?** Because its underlying `Random` source is not designed to resist prediction under cryptographic requirements; use `SecureRandom`.
+5. **When tests need the same seed to produce the same sequence, what should you do?** Use `new Random(seed)` or a seedable generator, ensuring the same algorithm and call sequence.
+6. **Can `ThreadLocalRandom.current().nextInt(1, 7)` return 7?** No; the upper bound 7 is exclusive, so results are from 1 to 6.
+7. **If multiple threads need millions of random numbers for simulation, which limit of `Math.random()` should you watch out for?** Shared state can cause contention; consider per-thread or per-task generators.
+8. **Is a random-looking `double` safe enough to create a secret key?** No; an apparently good distribution and cryptographic unpredictability are two different requirements.
 
-## 14. Kết luận
+## 14. Conclusion
 
-`Math.random()` là công cụ ngắn gọn để lấy một `double` giả ngẫu nhiên trong `[0.0, 1.0)`. Nó phù hợp cho bài tập và mô phỏng nhỏ, nhưng có giới hạn do bộ sinh dùng chung, seed không kiểm soát được, tính rời rạc của `double`, rủi ro sai biên khi chuyển sang số nguyên và đặc biệt là **không bảo đảm an toàn mật mã**.
+`Math.random()` is a concise utility to obtain a pseudorandom `double` in `[0.0, 1.0)`. It fits small exercises and simple simulations, but has limitations due to its shared generator, uncontrollable seed, discrete `double` representation, off-by-one risks when converting to integers, and especially its **lack of cryptographic security**.
 
-Hãy chọn API theo yêu cầu: `Random(seed)` cho test tái lập, `ThreadLocalRandom` cho tải song song thông thường, `RandomGenerator` để tách mã nghiệp vụ khỏi bộ sinh, và `SecureRandom` khi giá trị cần chống dự đoán. Khi chuyển đổi khoảng, phải định nghĩa chính xác **biên bao gồm/loại trừ** và test theo những thuộc tính API thực sự bảo đảm.
+Choose the API based on requirements: `Random(seed)` for reproducible tests, `ThreadLocalRandom` for general parallel workloads, `RandomGenerator` to decouple business code from the generator, and `SecureRandom` when values must resist prediction. When converting ranges, define **inclusive/exclusive bounds** precisely and test properties the API actually guarantees.

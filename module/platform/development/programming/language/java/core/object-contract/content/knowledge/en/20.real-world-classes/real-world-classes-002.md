@@ -1,52 +1,52 @@
-# Phân biệt kiểu khai báo với lớp thực tế của đối tượng trong Java
+# Distinguishing Between Declared Type and Actual Object Class in Java
 
-## 1. Hai loại thông tin trên cùng một biến tham chiếu
+## 1. Two Kinds of Information on the Same Reference Variable
 
-Khi đọc mã Java, cần phân biệt **kiểu khai báo** (*declared/static type*) của biến hoặc biểu thức với **lớp thực tế** (*runtime class*) của đối tượng mà tham chiếu đó đang trỏ tới.
+When reading Java code, you need to distinguish the **declared type** (*declared/static type*) of a variable or expression from the **actual class** (*runtime class*) of the object that the reference points to.
 
 ```java
 Animal pet = new Dog();
 ```
 
-Đây là **một câu lệnh minh họa** (giả sử `Dog extends Animal`), chưa phải chương trình hoàn chỉnh:
+This is **an illustrative statement** (assuming `Dog extends Animal`), not a complete program:
 
-- `Animal` là **kiểu khai báo** của biến `pet`, được trình biên dịch biết trong lúc kiểm tra mã.
-- `new Dog()` tạo ra **đối tượng thực tế** thuộc lớp `Dog` lúc chương trình chạy.
-- Biến `pet` giữ tham chiếu tới đối tượng `Dog`. Việc biến có kiểu `Animal` không biến đối tượng `Dog` thành đối tượng `Animal` thuần túy.
-- Vì `Dog` là lớp con của `Animal`, phép gán này là **upcasting** hợp lệ và không cần ép kiểu tường minh.
+- `Animal` is the **declared type** of the variable `pet`, known to the compiler during code checking.
+- `new Dog()` creates the **actual object** belonging to class `Dog` at runtime.
+- The variable `pet` holds a reference to the `Dog` object. Having a variable of type `Animal` does not turn the `Dog` object into a plain `Animal` object.
+- Because `Dog` is a subclass of `Animal`, this assignment is valid **upcasting** and requires no explicit cast.
 
-Khái niệm tương tự áp dụng khi biến được khai báo bằng một **interface**:
+The same concept applies when a variable is declared with an **interface**:
 
 ```java
 CharSequence text = new StringBuilder("Java");
 ```
 
-Trong ví dụ này, `CharSequence` là kiểu khai báo, còn `StringBuilder` là lớp thực tế. Interface chỉ quy định hợp đồng mà đối tượng có thể thực hiện; interface tự nó không phải lớp cụ thể được tạo ra bằng `new CharSequence()`.
+In this example, `CharSequence` is the declared type, and `StringBuilder` is the actual class. An interface only specifies a contract that an object can implement; an interface itself is not a concrete class instantiated with `new CharSequence()`.
 
-## 2. Trình biên dịch dùng kiểu khai báo để quyết định điều gì?
+## 2. What Does the Compiler Decide Using the Declared Type?
 
-Kiểu khai báo chi phối những thao tác có thể viết **hợp lệ tại vị trí mã đang biên dịch**:
+The declared type governs what operations can be written **validly at the call site being compiled**:
 
-- Tên và chữ ký phương thức có thể gọi (phương thức phải được nhìn thấy và phù hợp qua kiểu khai báo).
-- Thuộc tính có thể truy cập, bao gồm các quy tắc phạm vi truy cập và cách chọn **field**.
-- Cách giải quyết **overloading**: chọn chữ ký khi có nhiều phương thức trùng tên nhưng khác danh sách tham số, dựa trên các kiểu được biết tại thời điểm biên dịch.
-- Khả năng gán tham chiếu, các ràng buộc tham số generic và yêu cầu ép kiểu khi cần truy cập API chỉ có ở lớp con.
+- Method names and signatures that can be called (the method must be visible and compatible through the declared type).
+- Accessible fields, including access-scope rules and **field** selection.
+- **Overloading** resolution: choosing a signature when multiple methods share the same name with different parameter lists, based on types known at compile time.
+- Reference assignability, generic type parameter bounds, and casting requirements when accessing APIs that exist only on a subclass.
 
-Ví dụ:
+Example:
 
 ```java
 Animal pet = new Dog();
-pet.speak();     // Hợp lệ nếu Animal khai báo hoặc kế thừa speak()
-// pet.fetch();  // LỖI BIÊN DỊCH nếu chỉ Dog có fetch()
+pet.speak();     // Valid if Animal declares or inherits speak()
+// pet.fetch();  // COMPILE ERROR if only Dog has fetch()
 ```
 
-Cho dù đối tượng thực tế là `Dog`, trình biên dịch chỉ biết rằng biểu thức `pet` có kiểu `Animal`, nên không cho phép gọi trực tiếp phương thức chỉ tồn tại ở `Dog` mà chưa kiểm tra/ép kiểu.
+Even though the actual object is a `Dog`, the compiler only knows that the expression `pet` has type `Animal`, so it does not allow calling a method that exists only on `Dog` directly without checking/casting first.
 
-**Lưu ý về `var`:** `var pet = new Dog()` làm trình biên dịch **suy luận kiểu khai báo là `Dog`** tại chỗ khai báo. `var` không có nghĩa biến trở thành kiểu động hay tự thay đổi kiểu theo đối tượng ở các lần gán sau.
+**Note on `var`:** `var pet = new Dog()` causes the compiler to **infer the declared type as `Dog`** at the declaration site. `var` does not mean the variable becomes dynamically typed or changes its type according to the object on subsequent assignments.
 
-## 3. JVM dùng lớp thực tế để quyết định điều gì?
+## 3. What Does the JVM Decide Using the Actual Class?
 
-Đối với các **phương thức thể hiện có thể ghi đè** (overridable instance methods), sau khi chữ ký lời gọi đã được xác định hợp lệ, Java sử dụng **dynamic dispatch**: bản cài đặt được thực thi phụ thuộc vào lớp thực tế của receiver.
+For **overridable instance methods**, once the call signature has been validated, Java uses **dynamic dispatch**: the executed implementation depends on the actual class of the receiver.
 
 ```java
 class Animal {
@@ -58,18 +58,18 @@ class Dog extends Animal {
     String speak() { return "Dog"; }
 }
 
-// Trong một phương thức:
+// Inside a method:
 Animal pet = new Dog();
 System.out.println(pet.speak()); // Dog
 ```
 
-Đoạn trên là minh họa nhiều khai báo lớp và lời gọi, chưa phải tệp có `main`. Trình biên dịch chấp nhận `pet.speak()` vì kiểu `Animal` có phương thức `speak()`. Khi chạy, đối tượng receiver là `Dog`, nên bản ghi đè `Dog.speak()` được gọi.
+The snippet above illustrates multiple class declarations and a call, not a file with `main`. The compiler accepts `pet.speak()` because the `Animal` type has a `speak()` method. At runtime, the receiver object is a `Dog`, so the overridden `Dog.speak()` implementation is called.
 
-**Không phải mọi thao tác đều dispatch theo lớp thực tế:** truy cập field, chọn overload, gọi phương thức `static` (method hiding) và việc chọn API hợp lệ vẫn phụ thuộc kiểu tại lúc biên dịch. Phương thức `private` không được ghi đè; `final` không thể bị ghi đè; constructor cũng không được override.
+**Not every operation dispatches on the actual class:** field access, overload selection, `static` method calls (method hiding), and valid API selection still depend on the compile-time type. `private` methods are not overridden; `final` methods cannot be overridden; constructors are not overridden either.
 
-## 4. Ví dụ Java 17+ đầy đủ: phương thức, field, overload, cast và `getClass()`
+## 4. Complete Java 17+ Example: Methods, Fields, Overloads, Casts, and `getClass()`
 
-Lưu chương trình sau vào tệp **`DeclaredVsRuntimeTypeDemo.java`**:
+Save the following program to **`DeclaredVsRuntimeTypeDemo.java`**:
 
 ```java
 public class DeclaredVsRuntimeTypeDemo {
@@ -152,14 +152,14 @@ public class DeclaredVsRuntimeTypeDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac DeclaredVsRuntimeTypeDemo.java
 java DeclaredVsRuntimeTypeDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 declared Animal, speak: Dog.speak
@@ -177,36 +177,36 @@ null.getClass: NullPointerException
 Cat cast to Dog: ClassCastException
 ```
 
-Kết quả chỉ phụ thuộc vào quan hệ lớp và lời gọi được định nghĩa trong ví dụ, không phụ thuộc danh tính tham chiếu hay thứ tự collection.
+The output depends only on the class relationships and calls defined in the example, not on reference identity or collection ordering.
 
-## 5. Giải thích vì sao các dòng kết quả khác nhau
+## 5. Explaining Why the Output Lines Differ
 
-**Ghi đè phương thức — dùng lớp thực tế.** `pet.speak()` chạy bản của `Dog` dù `pet` được khai báo `Animal`, vì `speak()` là phương thức thể hiện được `Dog` override.
+**Method overriding — uses the actual class.** `pet.speak()` runs `Dog`'s implementation even though `pet` is declared as `Animal`, because `speak()` is an instance method overridden by `Dog`.
 
-**Field hiding — dùng kiểu của biểu thức truy cập.** Cả `Animal` và `Dog` khai báo field cùng tên `label`. `pet.label` nhìn qua biểu thức kiểu `Animal` nên lấy `"Animal field"`; sau khi ép kiểu, `dog.label` nhìn qua kiểu `Dog` nên lấy `"Dog field"`. Field không có cơ chế override động như instance method. Tình huống hai field cùng tên thường nên tránh vì làm mã khó hiểu.
+**Field hiding — uses the type of the access expression.** Both `Animal` and `Dog` declare a field named `label`. `pet.label` is viewed through an expression of type `Animal`, so it reads `"Animal field"`; after casting, `dog.label` is viewed through type `Dog`, so it reads `"Dog field"`. Fields do not have dynamic overriding like instance methods. Having two fields with the same name should generally be avoided because it makes code confusing.
 
-**Overloading — chọn chữ ký lúc biên dịch.** `pet.describe(new Dog())` chỉ thấy `describe(Animal)` qua kiểu khai báo `Animal`, nên chọn chữ ký này. Khi `dog.describe(new Dog())`, kiểu biểu thức là `Dog`, có cả `describe(Animal)` lẫn `describe(Dog)` và chọn chữ ký đặc hiệu hơn `describe(Dog)`. Trong chương trình này không có ghi đè `describe(Animal)` ở `Dog`, nên kết quả đầu tiên là của phương thức kế thừa.
+**Overloading — signature chosen at compile time.** `pet.describe(new Dog())` only sees `describe(Animal)` through the declared type `Animal`, so it picks that signature. With `dog.describe(new Dog())`, the expression type is `Dog`, which has both `describe(Animal)` and `describe(Dog)` and chooses the more specific signature `describe(Dog)`. In this program `Dog` does not override `describe(Animal)`, so the first result comes from the inherited method.
 
-**Cast không thay đổi đối tượng thực tế.** `(Dog) pet` chỉ tạo một biểu thức có kiểu `Dog` sau khi JVM kiểm tra đối tượng thực tế tương thích. Không có đối tượng mới và bản thân lớp của đối tượng không đổi. Nếu `pet` thực tế là `Cat`, ép xuống `Dog` ném `ClassCastException`.
+**Casting does not change the actual object.** `(Dog) pet` only produces an expression of type `Dog` after the JVM verifies that the actual object is compatible. No new object is created, and the object's own class does not change. If `pet` is actually a `Cat`, downcasting to `Dog` throws `ClassCastException`.
 
-**`instanceof` kiểm tra tương thích kiểu.** Một `ServiceDog` là lớp con của `Dog`, nên `service instanceof Dog` là `true` dù `service.getClass() == Dog.class` là `false` (lớp thực tế chính xác là `ServiceDog`). Trong Java 17, cú pháp `pet instanceof Dog matchedDog` vừa kiểm tra vừa khai báo biến đã được thu hẹp kiểu bên trong nhánh điều kiện.
+**`instanceof` checks type compatibility.** A `ServiceDog` is a subclass of `Dog`, so `service instanceof Dog` is `true` even though `service.getClass() == Dog.class` is `false` (the exact actual class is `ServiceDog`). In Java 17, the syntax `pet instanceof Dog matchedDog` both checks the type and declares a narrowed-type variable inside the conditional branch.
 
-## 6. `getClass()` và `instanceof` trả lời hai câu hỏi khác nhau
+## 6. `getClass()` and `instanceof` Answer Two Different Questions
 
-| Biểu thức | Câu hỏi được trả lời | Ví dụ `new ServiceDog()` |
+| Expression | Question Answered | Example `new ServiceDog()` |
 | --- | --- | --- |
-| `obj.getClass() == Dog.class` | Đối tượng có **lớp thực tế chính xác** là `Dog` không? | `false` |
-| `obj instanceof Dog` | Đối tượng có là instance của `Dog` **hoặc lớp con của `Dog`** không? | `true` |
-| `Dog.class.isInstance(obj)` | Kiểm tra tương thích runtime theo class token | `true` |
-| `obj.getClass().getSuperclass()` | Lấy superclass trực tiếp của lớp runtime | `Dog.class` đối với `ServiceDog` |
+| `obj.getClass() == Dog.class` | Is the object's **exact actual class** `Dog`? | `false` |
+| `obj instanceof Dog` | Is the object an instance of `Dog` **or a subclass of `Dog`**? | `true` |
+| `Dog.class.isInstance(obj)` | Checks runtime compatibility via a class token | `true` |
+| `obj.getClass().getSuperclass()` | Gets the direct superclass of the runtime class | `Dog.class` for `ServiceDog` |
 
-`Object.getClass()` là phương thức `final` trả về đối tượng `Class<?>` đại diện **lớp thực tế** của receiver. Khi `obj == null`, `obj.getClass()` ném `NullPointerException`; `obj instanceof Dog` trả về `false` khi `obj` là `null`.
+`Object.getClass()` is a `final` method that returns a `Class<?>` object representing the **actual class** of the receiver. When `obj == null`, `obj.getClass()` throws `NullPointerException`; `obj instanceof Dog` returns `false` when `obj` is `null`.
 
-Trong hệ thống dùng proxy hoặc lớp con được framework tạo lúc chạy, `getClass()` có thể cho một **lớp proxy**. Vì vậy muốn biết một đối tượng có hỗ trợ interface/kiểu cơ sở hay không, thường nên kiểm tra bằng `instanceof` hoặc API framework thích hợp thay vì chỉ so sánh chính xác `getClass() == SomeClass.class`.
+In systems using proxies or runtime framework-generated subclasses, `getClass()` may return a **proxy class**. Therefore, when you want to know whether an object supports an interface or base type, you should usually check with `instanceof` or an appropriate framework API rather than relying solely on an exact `getClass() == SomeClass.class` comparison.
 
-## 7. Liên hệ với hợp đồng `equals()` trong `object-contract`
+## 7. Connection to the `equals()` Contract in `object-contract`
 
-`equals(Object)` được khai báo trong `java.lang.Object` và có thể được lớp con ghi đè. Vì thế:
+`equals(Object)` is declared in `java.lang.Object` and can be overridden by subclasses. Therefore:
 
 ```java
 Object left = new ValueKey(7);
@@ -214,20 +214,20 @@ Object right = new ValueKey(7);
 System.out.println(left.equals(right));
 ```
 
-Đoạn trên giả sử một lớp `ValueKey` có `equals(Object)` thích hợp; tuy **kiểu khai báo của `left` là `Object`**, lời gọi `left.equals(right)` vẫn có thể chạy bản override của lớp runtime `ValueKey` và trả `true` theo giá trị. Nếu `ValueKey` không ghi đè `equals`, mặc định `Object.equals` so sánh danh tính và hai đối tượng `new` khác nhau thường không bằng nhau.
+The snippet above assumes a `ValueKey` class with an appropriate `equals(Object)`; although the **declared type of `left` is `Object`**, the call `left.equals(right)` can still execute the override from the runtime class `ValueKey` and return `true` by value. If `ValueKey` does not override `equals`, the default `Object.equals` compares identity, and two different `new` objects will normally not be equal.
 
-Khi cài đặt `equals`, hai cách kiểm tra kiểu thường gặp là:
+When implementing `equals`, two common ways to check the type are:
 
 ```java
 if (obj == null || getClass() != obj.getClass()) return false;
 
-// Hoặc trong một chính sách cho phép kiểu con phù hợp:
+// Or under a policy that allows compatible subtypes:
 if (!(obj instanceof ValueKey other)) return false;
 ```
 
-Đây là **hai phương án thiết kế thay thế**, không phải hai lệnh phải dùng đồng thời. Cách `getClass()` đòi cùng lớp runtime chính xác; cách `instanceof` có thể chấp nhận lớp con. Dù chọn cách nào, `equals()` vẫn phải thỏa tính phản xạ, đối xứng, bắc cầu, nhất quán, xử lý `null`, đồng thời `hashCode()` phải đồng bộ. Đặc biệt, cho phép lớp con bằng lớp cha một chiều có thể vi phạm tính đối xứng hoặc bắc cầu nếu mỗi lớp dùng tiêu chí khác nhau.
+These are **two alternative design options**, not two statements to use simultaneously. The `getClass()` approach requires the exact same runtime class; the `instanceof` approach can accept subclasses. Whichever option you choose, `equals()` must still satisfy reflexivity, symmetry, transitivity, consistency, and `null` handling, and `hashCode()` must stay in sync. In particular, allowing a subclass to equal a superclass in only one direction can violate symmetry or transitivity if each class uses different criteria.
 
-Ví dụ lớp giá trị cuối cùng không cho kế thừa:
+Example of a `final` value class that disallows inheritance:
 
 ```java
 final class ValueKey {
@@ -247,13 +247,13 @@ final class ValueKey {
 }
 ```
 
-Đây là **khai báo lớp có thể biên dịch khi đặt vào một tệp Java thích hợp**, không phải chương trình có `main`. Vì `ValueKey` là `final`, kiểm tra `instanceof ValueKey` không tạo vấn đề với các lớp con tự định nghĩa; hai đối tượng `new ValueKey(7)` được coi là bằng nhau theo `id`. Lời gọi `equals` vẫn dispatch về `ValueKey.equals` dù tham chiếu được khai báo là `Object`.
+This is a **compilable class declaration when placed in an appropriate Java file**, not a program with `main`. Because `ValueKey` is `final`, checking `instanceof ValueKey` does not create issues with user-defined subclasses; two `new ValueKey(7)` objects are considered equal by `id`. The `equals` call still dispatches to `ValueKey.equals` even when the reference is declared as `Object`.
 
-## 8. Ép kiểu an toàn và giới hạn cần nhớ
+## 8. Safe Casting and Limitations to Remember
 
-**Upcast** (lớp con sang lớp cha/interface) là chuyển đổi tham chiếu hợp lệ: `Animal pet = new Dog()`. Nhưng bạn chỉ gọi trực tiếp được các phương thức mà kiểu khai báo nhìn thấy.
+**Upcasting** (subclass to superclass/interface) is a valid reference conversion: `Animal pet = new Dog()`. However, you can only directly call methods visible through the declared type.
 
-**Downcast** (lớp cha/interface sang lớp con) cần kiểm tra runtime: `Dog d = (Dog) pet`. Nếu lớp thực tế không tương thích, JVM ném `ClassCastException`. Java 17 có pattern matching cho `instanceof` để xử lý an toàn và gọn hơn:
+**Downcasting** (superclass/interface to subclass) requires a runtime check: `Dog d = (Dog) pet`. If the actual class is incompatible, the JVM throws `ClassCastException`. Java 17 provides pattern matching for `instanceof` to handle this more safely and concisely:
 
 ```java
 if (pet instanceof Dog d) {
@@ -261,32 +261,32 @@ if (pet instanceof Dog d) {
 }
 ```
 
-Đoạn trên giả định `pet`, `Dog` và `fetch()` như ví dụ lớn. `instanceof` không khiến một đối tượng `Animal` thuần túy trở thành `Dog`; nó chỉ **kiểm tra rồi làm rõ kiểu của tham chiếu** trong nhánh hợp lệ.
+The snippet above assumes `pet`, `Dog`, and `fetch()` as in the larger example. `instanceof` does not turn a plain `Animal` object into a `Dog`; it only **checks and then narrows the type of the reference** inside the valid branch.
 
-**`null` không có lớp thực tế.** Biến `Animal pet = null;` vẫn có kiểu khai báo `Animal`, nhưng không trỏ tới đối tượng nào. Không nên gọi phương thức thể hiện qua `pet` khi nó là `null`. Kiểm tra `pet == null` hoặc `pet instanceof Dog` tùy mục đích (vế sau trả `false` với `null`).
+**`null` has no actual class.** The variable `Animal pet = null;` still has declared type `Animal`, but points to no object. Do not invoke instance methods through `pet` when it is `null`. Check `pet == null` or `pet instanceof Dog` depending on your goal (the latter returns `false` for `null`).
 
-**Generic type không khôi phục trực tiếp từ `getClass()`.** Ví dụ `List<String>` và `List<Integer>` dùng cùng lớp triển khai runtime như `ArrayList` khi tạo bởi `new ArrayList<>()` do cơ chế type erasure. Kiểu tham số `<String>`/`<Integer>` giúp trình biên dịch kiểm tra cách dùng, nhưng `list.getClass()` không cung cấp `Class<List<String>>` riêng để phân biệt chúng ở runtime.
+**Generic types cannot be recovered directly from `getClass()`.** For example, `List<String>` and `List<Integer>` share the same runtime implementation class such as `ArrayList` when created via `new ArrayList<>()` due to type erasure. Type parameters `<String>`/`<Integer>` help the compiler check usage, but `list.getClass()` does not provide separate `Class<List<String>>` metadata to distinguish them at runtime.
 
-## 9. Các nhầm lẫn thường gặp
+## 9. Common Misconceptions
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| `Animal pet = new Dog()` nghĩa là chỉ có đối tượng `Animal` | Đối tượng được tạo là `Dog`; `Animal` là kiểu khai báo của tham chiếu |
-| Lời gọi phương thức luôn theo kiểu khai báo | Phương thức thể hiện được override chạy theo lớp receiver thực tế |
-| `pet.label` dùng field của `Dog` vì runtime là `Dog` | Truy cập field dùng kiểu của biểu thức (`Animal`) |
-| Overload được chọn theo lớp runtime của tham số | Chữ ký overload được quyết định lúc biên dịch theo kiểu áp dụng của biểu thức và tham số |
-| `(Dog) pet` tạo một đối tượng `Dog` mới | Ép kiểu chỉ đổi góc nhìn kiểu tham chiếu sau kiểm tra runtime |
-| `instanceof Dog` giống `getClass() == Dog.class` | `instanceof` chấp nhận lớp con; `getClass() ==` đòi chính xác lớp runtime |
-| Mọi biến tham chiếu đều có đối tượng runtime | Biến có thể `null`; lúc đó không có lớp thực tế của đối tượng |
-| Khai báo `Object x = new ValueKey(7)` sẽ luôn gọi `Object.equals` | Nếu `ValueKey` override `equals`, lời gọi chạy bản override theo lớp thực tế |
+| `Animal pet = new Dog()` means there is only an `Animal` object | The created object is a `Dog`; `Animal` is the declared type of the reference |
+| Method calls always follow the declared type | Overridden instance methods run according to the actual receiver class |
+| `pet.label` uses `Dog`'s field because runtime is `Dog` | Field access uses the type of the expression (`Animal`) |
+| Overload is selected by the runtime class of arguments | The overload signature is decided at compile time by the applicable types of the expression and arguments |
+| `(Dog) pet` creates a new `Dog` object | Casting only changes the type view of the reference after a runtime check |
+| `instanceof Dog` is the same as `getClass() == Dog.class` | `instanceof` accepts subclasses; `getClass() ==` requires the exact runtime class |
+| Every reference variable has a runtime object | A variable can be `null`; in that case there is no actual object class |
+| Declaring `Object x = new ValueKey(7)` will always call `Object.equals` | If `ValueKey` overrides `equals`, the call runs the override based on the actual class |
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. `Animal x = new Dog();` — kiểu khai báo của `x` là gì, lớp thực tế là gì? **`Animal` và `Dog`.**
-2. `x.speak()` gọi phương thức nào khi `Dog` override `speak`? **`Dog.speak()`** do dynamic dispatch.
-3. `x.label` đọc field nào nếu cả hai lớp có field `label`? **Field nhìn thấy qua kiểu `Animal`**.
-4. `Animal x = new ServiceDog(); x instanceof Dog` và `x.getClass() == Dog.class` là gì? **`true` và `false`.**
-5. `Animal x = null; x.getClass()` có trả `Animal.class` không? **Không**; ném `NullPointerException`.
-6. Nếu một phương thức chỉ tồn tại trên `Dog`, có gọi `x.fetch()` trực tiếp khi `x` khai báo là `Animal` được không? **Không**; cần kiểm tra kiểu rồi thu hẹp/ép kiểu tham chiếu.
+1. `Animal x = new Dog();` — what is the declared type of `x`, and what is the actual class? **`Animal` and `Dog`.**
+2. Which method does `x.speak()` call when `Dog` overrides `speak`? **`Dog.speak()`** due to dynamic dispatch.
+3. Which field does `x.label` read if both classes have a `label` field? **The field visible through the `Animal` type**.
+4. For `Animal x = new ServiceDog();`, what are `x instanceof Dog` and `x.getClass() == Dog.class`? **`true` and `false`.**
+5. Does `Animal x = null; x.getClass()` return `Animal.class`? **No**; it throws `NullPointerException`.
+6. If a method exists only on `Dog`, can you call `x.fetch()` directly when `x` is declared as `Animal`? **No**; you must check the type and then narrow/cast the reference.
 
-**Ghi nhớ:** **Kiểu khai báo** quyết định Java cho phép bạn *viết lời gọi nào* và chọn chữ ký/field ở thời điểm biên dịch; **lớp thực tế** quyết định *bản ghi đè nào được thực thi* ở runtime và kết quả của `getClass()`/`instanceof`. Phân biệt hai lớp thông tin này giúp hiểu polymorphism, casting và hợp đồng đối tượng chính xác.
+**Key Takeaway:** The **declared type** determines which calls Java lets you *write* and selects signatures/fields at compile time; the **actual class** determines *which override is executed* at runtime as well as the results of `getClass()` and `instanceof`. Distinguishing these two layers of information helps you understand polymorphism, casting, and object contracts accurately.

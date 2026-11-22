@@ -1,58 +1,58 @@
-# Hợp đồng của đối tượng là gì và vì sao mã gọi cần dựa vào hợp đồng?
+# What Is an Object Contract and Why Should Calling Code Rely on It?
 
-## 1. Hiểu đúng về hợp đồng của đối tượng
+## 1. Understanding Object Contracts Correctly
 
-Trong lập trình hướng đối tượng, **hợp đồng (contract)** là tập các cam kết về **hành vi có thể quan sát từ bên ngoài** của một đối tượng: người sử dụng được phép gọi gì, cần đáp ứng điều kiện nào, và có thể tin tưởng điều gì sau khi gọi. Hợp đồng có thể được mô tả bằng giao diện công khai, tài liệu API, đặc tả nghiệp vụ, kiểm thử và những quy tắc chung của Java.
+In object-oriented programming, a **contract** is the set of commitments about an object's **externally observable behavior**: what users are allowed to call, what conditions must be met, and what can be relied upon after calling. A contract can be described through public interfaces, API documentation, business specifications, tests, and Java's general rules.
 
-Ví dụ, một đối tượng hàng đợi cam kết rằng phần tử được thêm trước sẽ được lấy ra trước (FIFO). Mã gọi có thể dựa vào thứ tự đó mà không cần biết bên trong đối tượng lưu dữ liệu bằng mảng, danh sách liên kết hay cấu trúc nào khác.
+For example, a queue object promises that the element added first will be retrieved first (FIFO). Calling code can rely on that order without needing to know whether the object stores data internally in an array, a linked list, or another structure.
 
-**Chữ ký phương thức chưa phải toàn bộ hợp đồng.** Hai lớp cùng có `String dequeue()` đều biên dịch được; nhưng nếu một lớp lấy phần tử cũ nhất và lớp kia lấy phần tử mới nhất thì chúng không thực hiện cùng một hợp đồng. Trình biên dịch giúp kiểm tra kiểu dữ liệu và khả năng truy cập, còn nhiều quy tắc hành vi phải được định nghĩa và kiểm chứng riêng.
+**A method signature is not the entire contract.** Two classes that both have `String dequeue()` will both compile; however, if one class removes the oldest element and the other removes the newest element, they do not implement the same contract. The compiler helps check data types and accessibility, while many behavioral rules must be defined and verified separately.
 
-Cũng cần phân biệt: “hợp đồng của đối tượng” theo nghĩa rộng là các cam kết hành vi của bất kỳ đối tượng nào; nó không chỉ nói về lớp `java.lang.Object` hay riêng `equals()`/`hashCode()`.
+It is also important to distinguish: an "object contract" in the broad sense refers to the behavioral commitments of any object; it is not only about the `java.lang.Object` class or `equals()`/`hashCode()` alone.
 
-## 2. Một hợp đồng thường chứa những gì?
+## 2. What Does a Contract Typically Contain?
 
-| Thành phần | Nội dung cần xác định | Ví dụ với hàng đợi |
+| Component | What needs to be defined | Queue example |
 | --- | --- | --- |
-| Thao tác công khai | Đối tượng cho phép thực hiện việc gì? | `enqueue`, `dequeue`, `size` |
-| Tiền điều kiện (precondition) | Mã gọi phải bảo đảm điều gì trước khi gọi? | Công việc thêm vào không được `null` hoặc chuỗi trắng |
-| Hậu điều kiện (postcondition) | Nếu thao tác thành công, kết quả hoặc trạng thái phải thế nào? | `dequeue` trả về công việc cũ nhất và giảm kích thước đi 1 |
-| Bất biến (invariant) | Điều gì luôn đúng ở trạng thái hợp lệ của đối tượng? | `size() >= 0`; các công việc đang chờ tuân theo FIFO |
-| Xử lý trường hợp lỗi | Khi đầu vào không hợp lệ hoặc thiếu dữ liệu sẽ xảy ra gì? | Lấy từ hàng đợi rỗng ném `NoSuchElementException` |
-| Đặc tính được bảo đảm khác | Khả năng thay đổi, thứ tự, tính nhất quán, luồng, v.v. | Chỉ được xem là thread-safe nếu hợp đồng có cam kết rõ |
+| Public operations | What does the object allow to be done? | `enqueue`, `dequeue`, `size` |
+| Precondition | What must calling code guarantee before calling? | An added task must not be `null` or a blank string |
+| Postcondition | If the operation succeeds, what must the result or state be? | `dequeue` returns the oldest task and reduces the size by 1 |
+| Invariant | What is always true in a valid state of the object? | `size() >= 0`; pending tasks follow FIFO |
+| Error case handling | What happens when input is invalid or data is missing? | Dequeuing from an empty queue throws `NoSuchElementException` |
+| Other guaranteed properties | Mutability, ordering, consistency, threading, etc. | Only considered thread-safe if the contract explicitly promises it |
 
-Không phải API nào cũng cần ghi từng mục dưới dạng trang trọng. Tuy vậy, **những gì ảnh hưởng đến cách dùng đúng phải đủ rõ để người gọi không phải đoán**.
+Not every API needs to record every item in a formal format. Even so, **anything that affects proper usage must be clear enough that callers do not have to guess**.
 
-Ba ranh giới trách nhiệm quan trọng:
+Three important responsibility boundaries:
 
-- **Người gọi** tuân thủ tiền điều kiện đã công bố: chẳng hạn không truyền công việc trống.
-- **Đối tượng thực thi** bảo đảm hậu điều kiện, bất biến và cách báo lỗi đã hứa khi được sử dụng hợp lệ.
-- **Tài liệu hợp đồng** phải nêu rõ các trường hợp đặc biệt: giá trị `null`, bộ sưu tập rỗng, thao tác thất bại, giới hạn dữ liệu hoặc khả năng sử dụng đồng thời.
+- **The caller** complies with the published preconditions: for example, not passing an empty task.
+- **The implementing object** guarantees the promised postconditions, invariants, and error reporting when used validly.
+- **The contract documentation** must clearly state special cases: `null` values, empty collections, failed operations, data limits, or concurrent usage capability.
 
-Nếu hợp đồng không hứa điều gì, người gọi không nên suy ra cam kết đó chỉ vì phiên bản hiện tại tình cờ hoạt động như vậy.
+If the contract does not promise something, callers should not infer that commitment merely because the current version happens to behave that way.
 
-## 3. Vì sao mã gọi phải dựa vào hợp đồng?
+## 3. Why Must Calling Code Rely on the Contract?
 
-**Tách nhu cầu sử dụng khỏi cách cài đặt.** Mã gọi chỉ cần biết `dequeue()` trả về công việc cũ nhất. Khi đổi cấu trúc lưu trữ, mã gọi không phải sửa nếu cam kết này vẫn giữ nguyên. Đây là cơ sở của tính đóng gói và thiết kế theo abstraction.
+**Decoupling usage needs from implementation details.** Calling code only needs to know that `dequeue()` returns the oldest task. When changing the storage structure, calling code does not need to be modified as long as this commitment remains intact. This is the foundation of encapsulation and abstraction-based design.
 
-**Cho phép thay thế implementation.** Một đối tượng khác có thể được dùng thay nếu nó thỏa cùng những yêu cầu mà người gọi đang dựa vào. Tính thay thế này là ý tưởng trung tâm của nguyên lý Liskov Substitution: chỉ trùng chữ ký phương thức là chưa đủ; kết quả, điều kiện gọi và hành vi lỗi cũng phải tương thích.
+**Enabling implementation substitution.** Another object can be used as a replacement if it satisfies the same requirements that the caller relies on. This substitutability is the central idea of the Liskov Substitution Principle: matching method signatures alone is not enough; results, calling conditions, and error behavior must also be compatible.
 
-**Giảm sự phụ thuộc dễ vỡ.** Nếu mã gọi đọc trực tiếp trường nội bộ, giả định một lớp luôn dùng `ArrayDeque`, hoặc dựa vào thứ tự không được cam kết, một lần tối ưu nội bộ có thể làm chương trình sai dù API công khai không đổi.
+**Reducing fragile dependencies.** If calling code reads internal fields directly, assumes a class always uses `ArrayDeque`, or relies on an unpromised ordering, an internal optimization can break program correctness even though the public API has not changed.
 
-**Giúp xác định lỗi và viết kiểm thử.** Khi đặc tả nói “lấy ra theo FIFO”, ta có thể kiểm thử FIFO trên mọi implementation. Nếu kết quả khác, lỗi nằm ở bên vi phạm hợp đồng; không cần suy đoán dựa trên chi tiết nội bộ.
+**Helping pinpoint bugs and write tests.** When the specification states "retrieves in FIFO order", we can test FIFO across every implementation. If the result differs, the bug lies with the side that violated the contract; there is no need to guess based on internal details.
 
-**Giúp API dễ học và dễ bảo trì.** Người mới sử dụng biết rõ đầu vào hợp lệ, kết quả mong đợi và ngoại lệ cần xử lý. Nhóm phát triển biết những hành vi nào phải giữ khi refactor.
+**Making APIs easier to learn and maintain.** New users clearly know valid inputs, expected results, and exceptions to handle. The development team knows which behaviors must be preserved when refactoring.
 
-## 4. Ví dụ Java 17+: người gọi chỉ biết hợp đồng hàng đợi
+## 4. Java 17+ Example: Caller Only Knows the Queue Contract
 
-Giả sử hệ thống xử lý công việc theo thứ tự được gửi đến. Ta công bố hợp đồng `TaskQueue`:
+Suppose a system processes tasks in the order they are submitted. We publish the `TaskQueue` contract:
 
-1. `enqueue(task)` chỉ chấp nhận chuỗi khác `null` và không trắng; gọi thành công thêm công việc vào cuối hàng.
-2. `dequeue()` lấy và xóa công việc cũ nhất; nếu rỗng, ném `NoSuchElementException` và không đổi trạng thái.
-3. `size()` cho biết số công việc đang chờ; số này không âm.
-4. Ví dụ không cam kết an toàn khi nhiều luồng truy cập đồng thời.
+1. `enqueue(task)` only accepts non-`null` and non-blank strings; a successful call appends the task to the end of the queue.
+2. `dequeue()` retrieves and removes the oldest task; if empty, it throws `NoSuchElementException` and does not change state.
+3. `size()` indicates the number of pending tasks; this number is non-negative.
+4. The example does not promise safety when multiple threads access it concurrently.
 
-Tạo tệp `ContractDemo.java`:
+Create the file `ContractDemo.java`:
 
 ```java
 import java.util.ArrayDeque;
@@ -107,14 +107,14 @@ public final class ContractDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ContractDemo.java
 java ContractDemo
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 build
@@ -123,48 +123,48 @@ test
 empty
 ```
 
-**Giải thích các cam kết được thực hiện:**
+**Explanation of the commitments being fulfilled:**
 
-- `process` nhận kiểu `TaskQueue`, chỉ gọi các thao tác được công bố. Trong ví dụ, nó nhận một hàng đợi mới, ban đầu rỗng.
-- `addLast` và `removeFirst` thực hiện FIFO; mã gọi không phải biết đến `Deque`.
-- Kiểm tra đầu vào diễn ra trước khi thêm; `enqueue(null)` hoặc `enqueue("   ")` ném `IllegalArgumentException` và không thêm công việc.
-- `removeFirst()` của `ArrayDeque` ném `NoSuchElementException` khi rỗng mà không xóa gì; `process` có thể xử lý trường hợp này theo hợp đồng.
-- `size()` đọc đúng số phần tử hiện có. Nếu thay `ArrayDeque` bằng một cấu trúc khác, implementation mới vẫn phải giữ FIFO, điều kiện đầu vào, các ngoại lệ và ý nghĩa của `size`.
+- `process` accepts the `TaskQueue` type and only calls the published operations. In the example, it receives a new, initially empty queue.
+- `addLast` and `removeFirst` implement FIFO; calling code does not need to know about `Deque`.
+- Input validation happens before adding; `enqueue(null)` or `enqueue("   ")` throws `IllegalArgumentException` and does not add a task.
+- `ArrayDeque`'s `removeFirst()` throws `NoSuchElementException` when empty without removing anything; `process` can handle this case according to the contract.
+- `size()` reads the exact number of current elements. If `ArrayDeque` is replaced by another structure, the new implementation must still preserve FIFO, input conditions, exceptions, and the meaning of `size`.
 
-Mã phía ngoài sẽ gặp lỗi logic nếu một implementation mới âm thầm chuyển sang LIFO, dù tên phương thức và kiểu trả về không đổi. Đây chính là lý do mã gọi phụ thuộc vào **hành vi đã cam kết**, không phải chỉ vào interface.
+External code will encounter logic bugs if a new implementation silently switches to LIFO, even if the method names and return types remain unchanged. This is precisely why calling code depends on **committed behavior**, not just the interface.
 
-## 5. Các hợp đồng quen thuộc ngay trong Java
+## 5. Familiar Contracts Right Inside Java
 
-Java có nhiều ví dụ cho thấy hợp đồng đi xa hơn chữ ký phương thức:
+Java has many examples showing that a contract goes beyond method signatures:
 
-- **`Object.equals(Object)`:** nếu dùng để định nghĩa sự bằng nhau, phương thức phải tuân theo các tính chất phản xạ, đối xứng, bắc cầu, nhất quán (khi thông tin liên quan không đổi), và `x.equals(null)` phải là `false` với `x` khác `null`.
-- **`Object.hashCode()`:** hai đối tượng bằng nhau theo `equals` phải có cùng mã băm; hai đối tượng có cùng mã băm không nhất thiết bằng nhau. Vì vậy, `HashMap`/`HashSet` có thể dựa vào cả hai hợp đồng.
-- **`Comparable.compareTo`:** bên gọi dùng dấu âm, 0, dương để suy ra thứ tự; implementation phải bảo đảm quy tắc so sánh nhất quán được công bố. Sắp xếp có thể sai hoặc ném ngoại lệ nếu comparator vi phạm hợp đồng.
-- **`List.get(index)`:** người gọi dựa vào chỉ số, thứ tự và ngoại lệ cho chỉ số ngoài phạm vi, không phải vào việc danh sách lưu phần tử trong mảng hay nút liên kết.
+- **`Object.equals(Object)`:** when used to define equality, the method must obey reflexivity, symmetry, transitivity, consistency (when relevant information does not change), and `x.equals(null)` must be `false` for non-`null` `x`.
+- **`Object.hashCode()`:** two objects equal according to `equals` must have the same hash code; two objects with the same hash code are not necessarily equal. Therefore, `HashMap`/`HashSet` can rely on both contracts.
+- **`Comparable.compareTo`:** callers use negative, 0, and positive signs to infer order; implementations must ensure the published consistent comparison rules. Sorting can produce wrong results or throw exceptions if a comparator violates the contract.
+- **`List.get(index)`:** callers rely on the index, ordering, and out-of-bounds exceptions, not on whether the list stores elements in an array or linked nodes.
 
-Các hợp đồng này vẫn có những giới hạn cần đọc trong tài liệu API cụ thể. Ví dụ, `toString()` **không** mặc định bảo đảm chuỗi có định dạng ổn định để máy khác phân tích; nếu cần định dạng trao đổi dữ liệu, hãy dùng một đặc tả định dạng rõ ràng.
+These contracts still have boundaries that must be read in the specific API documentation. For example, `toString()` does **not** by default guarantee a string with a stable format for other machines to parse; if a data exchange format is needed, use an explicit format specification.
 
-## 6. Cách đọc và thiết kế hợp đồng trong thực tế
+## 6. How to Read and Design Contracts in Practice
 
-1. **Nêu hành vi quan sát được.** Với mỗi phương thức, hỏi: đầu vào hợp lệ là gì, kết quả có ý nghĩa gì, và trạng thái nào được phép thay đổi?
-2. **Làm rõ tình huống biên.** Đặc tả `null`, giá trị rỗng, số âm, phần tử không tồn tại, tràn số và lỗi; không để người gọi tự đoán.
-3. **Ghi hợp đồng ở nơi người dùng API nhìn thấy.** Trong Java, dùng tên kiểu và phương thức rõ ràng, JavaDoc (`@param`, `@return`, `@throws`), interface và tài liệu mô tả bất biến. Annotation kiểm tra null hoặc validation có thể hỗ trợ, nhưng không tự diễn đạt mọi quy tắc hành vi.
-4. **Viết kiểm thử theo hợp đồng.** Ví dụ: thêm A rồi B phải lấy A rồi B; lấy từ hàng đợi rỗng phải ném ngoại lệ đã nêu; đầu vào không hợp lệ không làm thay đổi kích thước. Chạy cùng bộ kiểm thử cho mọi implementation.
-5. **Kiểm tra khả năng thay thế.** Khi tạo subclass hay implementation mới, đừng tùy tiện đòi hỏi tiền điều kiện mạnh hơn, trả kết quả yếu hơn, hoặc thay quy tắc lỗi mà bên gọi đang phụ thuộc.
-6. **Phân biệt bảo đảm với chi tiết cài đặt.** FIFO là hợp đồng trong ví dụ; sử dụng `ArrayDeque`, dung lượng bộ nhớ, thứ tự trường private hay dòng log nội bộ không phải cam kết cho mã gọi.
+1. **State observable behavior.** For each method, ask: what are the valid inputs, what does the result mean, and what state is allowed to change?
+2. **Clarify boundary cases.** Specify `null`, empty values, negative numbers, non-existent elements, integer overflow, and errors; do not leave callers to guess.
+3. **Document the contract where API users can see it.** In Java, use clear type and method names, JavaDoc (`@param`, `@return`, `@throws`), interfaces, and invariant documentation. Null-checking or validation annotations can assist, but do not express every behavioral rule on their own.
+4. **Write contract tests.** For example: adding A then B must retrieve A then B; removing from an empty queue must throw the stated exception; invalid input must not change the size. Run the same test suite against every implementation.
+5. **Check substitutability.** When creating a subclass or a new implementation, do not arbitrarily require stronger preconditions, return weaker results, or change error rules that callers depend on.
+6. **Distinguish guarantees from implementation details.** FIFO is a contract in the example; using `ArrayDeque`, memory capacity, private field order, or internal log lines are not commitments to calling code.
 
-Một API tốt còn phải nói rõ mức độ an toàn luồng, việc lưu hay sao chép dữ liệu đầu vào, quyền sở hữu tài nguyên và chính sách thay đổi trạng thái **khi những yếu tố đó ảnh hưởng đến người sử dụng**. Không mặc định một object bất biến hoặc thread-safe chỉ vì nó có interface nhỏ.
+A good API must also clearly state thread-safety guarantees, whether input data is stored or copied, resource ownership, and state-mutation policies **when those factors affect users**. Do not assume an object is immutable or thread-safe just because it has a small interface.
 
-## 7. Các nhầm lẫn thường gặp
+## 7. Common Misconceptions
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “Có cùng interface là thay thế được.” | Còn phải giữ các quy tắc hành vi mà người gọi được quyền trông đợi. |
-| “Chạy thử một lần thấy đúng thì đó là hợp đồng.” | Một kết quả quan sát được chưa chứng minh lời bảo đảm lâu dài; hãy dựa vào đặc tả và kiểm thử. |
-| “Precondition bị vi phạm nhưng object vẫn phải xử lý thành công.” | Người gọi chịu trách nhiệm với tiền điều kiện; hành vi khi vi phạm cần xem đặc tả cụ thể. |
-| “Có `equals()` là đã có toàn bộ object contract.” | `equals`/`hashCode` chỉ là những hợp đồng cụ thể trong số nhiều hợp đồng hành vi. |
-| “Chỉ cần trả đúng dữ liệu, ngoại lệ nào cũng được.” | Loại lỗi, thời điểm ném và việc trạng thái có bị thay đổi hay không cũng có thể là phần quan trọng của hợp đồng. |
+| "Having the same interface means they are substitutable." | The behavioral rules that callers have a right to expect must also be preserved. |
+| "Running a test once and seeing it work means that is the contract." | A single observed result does not prove a long-term guarantee; rely on the specification and tests. |
+| "Even if a precondition is violated, the object must still succeed." | The caller is responsible for preconditions; behavior upon violation must be checked in the specific specification. |
+| "Having `equals()` means you have the entire object contract." | `equals`/`hashCode` are just specific contracts among many behavioral contracts. |
+| "As long as the right data is returned, any exception is fine." | The error type, when it is thrown, and whether state is mutated can also be an important part of the contract. |
 
-**Tự kiểm tra:** Nếu thay implementation hàng đợi nhưng `dequeue()` lấy phần tử cuối cùng trước, mã Java có còn biên dịch không? Có thể có. Mã gọi có còn đúng không? Không, vì implementation mới đã vi phạm cam kết FIFO. Nếu thay cấu trúc lưu trữ nhưng mọi cam kết công khai vẫn đúng, mã gọi có cần biết việc thay đổi không? Không.
+**Self-check:** If you replace the queue implementation and `dequeue()` retrieves the last element first, does the Java code still compile? Possibly yes. Is the calling code still correct? No, because the new implementation violated the FIFO commitment. If you change the storage structure while all public commitments remain valid, does calling code need to know about the change? No.
 
-**Ghi nhớ:** Hợp đồng là ranh giới tin cậy giữa đối tượng và mã sử dụng nó. Đóng gói giúp giấu cách làm; hợp đồng cho biết điều gì vẫn phải đúng bất kể cách làm thay đổi.
+**Takeaway:** A contract is the trust boundary between an object and the code using it. Encapsulation hides how things are done; the contract tells you what must remain true regardless of how the implementation changes.

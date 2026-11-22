@@ -1,81 +1,81 @@
-# Thẻ ngôn ngữ BCP 47 và dấu phân cách trong Java
+# BCP 47 Language Tags and Separators in Java
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Đọc và viết thẻ ngôn ngữ (language tag) theo BCP 47, chẳng hạn `vi-VN`, `en-US`, `zh-Hant-TW`.
-- Phân biệt dấu gạch nối `-` của BCP 47 với dấu gạch dưới `_` trong cách hiển thị `Locale` kiểu cũ và tên file resource bundle.
-- Chuyển đổi, chuẩn hóa, kiểm tra cú pháp thẻ ngôn ngữ bằng `java.util.Locale`.
-- Xử lý đúng dữ liệu locale đến từ URL, cấu hình, HTTP và tránh nhầm cú pháp hợp lệ với locale được ứng dụng hỗ trợ.
+- Read and write language tags according to BCP 47, such as `vi-VN`, `en-US`, and `zh-Hant-TW`.
+- Distinguish the BCP 47 hyphen `-` from the underscore `_` in legacy `Locale` formatting and resource bundle filenames.
+- Convert, normalize, and validate language tag syntax using `java.util.Locale`.
+- Properly handle locale data coming from URLs, configuration, and HTTP, and avoid confusing valid syntax with application-supported locales.
 
-Bài thuộc chủ đề **Mô hình Locale** của Java Core. `Locale` mô tả ngôn ngữ và các quy ước khu vực được ưu tiên; bản thân nó không phải múi giờ, bản dịch hay tập dữ liệu định dạng.
+This lesson belongs to the **Locale Model** topic of Java Core. `Locale` describes the preferred language and regional conventions; it is not itself a time zone, translation, or formatting dataset.
 
-## 2. BCP 47 biểu diễn những gì?
+## 2. What does BCP 47 represent?
 
-**BCP 47** là chuẩn thẻ nhận diện ngôn ngữ (được mô tả chủ yếu trong RFC 5646). Một thẻ gồm nhiều **subtag** ghép bằng **dấu gạch nối ASCII `-` (hyphen-minus)**, theo thứ tự có quy tắc.
+**BCP 47** is the standard for language identification tags (primarily specified in RFC 5646). A tag consists of multiple **subtags** joined by an **ASCII hyphen `-` (hyphen-minus)**, in a prescribed order.
 
-| Ví dụ | Cách đọc |
+| Example | How to read |
 | --- | --- |
-| `vi` | Tiếng Việt, chưa chỉ định vùng |
-| `vi-VN` | Tiếng Việt ở Việt Nam |
-| `en-US` | Tiếng Anh ở Hoa Kỳ |
-| `en-GB` | Tiếng Anh ở Vương quốc Anh |
-| `zh-Hans-CN` | Tiếng Trung, chữ giản thể, vùng Trung Quốc |
-| `zh-Hant-TW` | Tiếng Trung, chữ phồn thể, vùng Đài Loan |
-| `sr-Latn-RS` | Tiếng Serbia, chữ Latin, vùng Serbia |
-| `es-419` | Tiếng Tây Ban Nha, vùng 419 (Mỹ Latinh và Caribe) |
-| `th-TH-u-nu-thai` | Tiếng Thái ở Thái Lan, yêu cầu hệ chữ số Thái qua Unicode extension |
+| `vi` | Vietnamese, no region specified yet |
+| `vi-VN` | Vietnamese in Vietnam |
+| `en-US` | English in the United States |
+| `en-GB` | English in the United Kingdom |
+| `zh-Hans-CN` | Chinese, Simplified script, China region |
+| `zh-Hant-TW` | Chinese, Traditional script, Taiwan region |
+| `sr-Latn-RS` | Serbian, Latin script, Serbia region |
+| `es-419` | Spanish, region 419 (Latin America and the Caribbean) |
+| `th-TH-u-nu-thai` | Thai in Thailand, requesting the Thai numbering system via a Unicode extension |
 
-Với các thẻ thông dụng, cấu trúc dễ nhớ là:
+For common tags, an easy-to-remember structure is:
 
 ```text
 language[-Script][-REGION][-variant...][-extension...][-x-privateuse...]
 ```
 
-Các thành phần chính:
+The main components:
 
-1. **Language**: thường là mã ISO 639 gồm hai hoặc ba chữ cái, ví dụ `vi`, `en`, `ja`; trường ngôn ngữ của Java còn hỗ trợ các mã chữ cái dài hơn theo quy tắc tương ứng.
-2. **Script**: bốn chữ cái (ISO 15924), ví dụ `Latn`, `Cyrl`, `Hans`, `Hant`. Script nói về hệ chữ viết; **không** phải quốc gia.
-3. **Region**: hai chữ cái (thường mã ISO 3166-1) hoặc ba chữ số (UN M.49), ví dụ `VN`, `US`, `419`.
-4. **Variant**: biến thể ngôn ngữ với quy tắc subtag riêng (thường 5–8 ký tự chữ/số, hoặc bốn ký tự bắt đầu bằng chữ số), ví dụ `sl-rozaj-biske`.
-5. **Extension**: nhóm bắt đầu bằng một ký tự đơn, ví dụ `-u-` trong `en-US-u-ca-gregory-nu-latn`; `ca` đề cập lịch, `nu` đề cập hệ chữ số.
-6. **Private use**: bắt đầu bằng `-x-`; thông tin riêng của hệ thống, cần thỏa thuận giữa bên phát và bên nhận để có ý nghĩa.
+1. **Language**: typically a two- or three-letter ISO 639 code, such as `vi`, `en`, `ja`; Java's language field also supports longer alphabetic codes according to the corresponding rules.
+2. **Script**: four letters (ISO 15924), such as `Latn`, `Cyrl`, `Hans`, `Hant`. Script refers to the writing system; it is **not** a country.
+3. **Region**: two letters (usually an ISO 3166-1 code) or three digits (UN M.49), such as `VN`, `US`, `419`.
+4. **Variant**: a language variant with specific subtag rules (usually 5–8 alphanumeric characters, or four characters starting with a digit), such as `sl-rozaj-biske`.
+5. **Extension**: a group starting with a single character, such as `-u-` in `en-US-u-ca-gregory-nu-latn`; `ca` refers to calendar, `nu` refers to numbering system.
+6. **Private use**: starts with `-x-`; system-specific information requiring agreement between sender and receiver to carry meaning.
 
-Đây là **mẫu tóm tắt cho trường hợp thường gặp**, không phải toàn bộ ngữ pháp RFC 5646 (chuẩn còn có extlang và một số thẻ kế thừa/grandfathered). Đừng tự dựng trình phân tích BCP 47 chỉ từ mẫu tóm tắt đó.
+This is a **summary pattern for common cases**, not the full RFC 5646 grammar (the standard also includes extlang and certain grandfathered tags). Do not build your own BCP 47 parser solely from that summary pattern.
 
-**Quy ước chữ hoa/thường:** `language` viết thường, `Script` viết hoa chữ đầu, `REGION` viết hoa; ví dụ `zh-Hant-TW`. Các subtag của BCP 47 về cơ bản không phân biệt hoa/thường, vì thế `EN-us` và `en-US` cùng nhận diện một thẻ; cách viết chuẩn hóa giúp lưu trữ và so sánh nhất quán.
+**Casing convention:** `language` is lowercase, `Script` is Title Case, and `REGION` is uppercase; for example `zh-Hant-TW`. BCP 47 subtags are essentially case-insensitive, so `EN-us` and `en-US` identify the same tag; normalized casing helps store and compare consistently.
 
-## 3. Dấu `-` và `_`: ba ngữ cảnh cần tách biệt
+## 3. `-` and `_`: three contexts to keep separate
 
-| Ngữ cảnh | Giá trị ví dụ | Quy tắc |
+| Context | Example values | Rule |
 | --- | --- | --- |
-| Thẻ ngôn ngữ BCP 47 (API, cấu hình, HTTP) | `vi-VN`, `zh-Hant-TW` | Phân tách subtag bằng **`-`** |
-| `Locale.toString()` của Java (biểu diễn lịch sử) | `vi_VN`, `en_US`; có thể có thêm phần script/variant/extension | Thường dùng **`_`**; **không** phải chuỗi BCP 47 |
-| Hậu tố tên file `ResourceBundle` | `messages_vi_VN.properties` | Dấu **`_`** là quy ước đặt tên file Java, không phải thẻ gửi ra HTTP |
+| BCP 47 language tag (APIs, configuration, HTTP) | `vi-VN`, `zh-Hant-TW` | Subtags separated by **`-`** |
+| Java's `Locale.toString()` (historical representation) | `vi_VN`, `en_US`; may include script/variant/extension parts | Typically uses **`_`**; **not** a BCP 47 string |
+| `ResourceBundle` filename suffix | `messages_vi_VN.properties` | The **`_`** is a Java file naming convention, not a tag sent over HTTP |
 
-Không truyền `en_US` thẳng cho API yêu cầu BCP 47. Đặc biệt, `Locale.forLanguageTag("en_US")` **không** tự chuyển dấu `_` thành `-`: dấu `_` làm phần đầu không hợp lệ, có thể dẫn tới locale rỗng (`toLanguageTag()` trả `und`). Mặt khác, không lấy `Locale.toString()` làm dữ liệu trao đổi nếu đối tác yêu cầu thẻ BCP 47; chuỗi legacy có thêm quy tắc cho script, variant và extension.
+Do not pass `en_US` directly to APIs expecting BCP 47. Specifically, `Locale.forLanguageTag("en_US")` does **not** automatically convert `_` to `-`: the `_` makes the initial segment invalid, which can result in an empty locale (`toLanguageTag()` returns `und`). Conversely, do not use `Locale.toString()` as exchange data when a partner expects a BCP 47 tag; the legacy string has additional rules for script, variant, and extension.
 
-Nếu cần tạo BCP 47 từ đối tượng Java, dùng **`locale.toLanguageTag()`**. Nếu cần tạo đối tượng từ BCP 47, dùng **`Locale.forLanguageTag(tag)`** hoặc `Locale.Builder.setLanguageTag(tag)`.
+When you need to produce BCP 47 from a Java object, use **`locale.toLanguageTag()`**. When you need to create an object from BCP 47, use **`Locale.forLanguageTag(tag)`** or `Locale.Builder.setLanguageTag(tag)`.
 
-Với dữ liệu cũ có dạng `language_REGION`, chỉ chuyển đổi khi **đã biết rõ schema đầu vào**: tách các trường được định nghĩa riêng (`language`, `region`, `script`...) rồi đưa vào `Locale.Builder`; không dùng `replace('_', '-')` như bộ chuẩn hóa tổng quát cho mọi chuỗi `Locale.toString()`.
+For legacy data in the form `language_REGION`, only convert when **the input schema is clearly known**: split out the separately defined fields (`language`, `region`, `script`, etc.) and pass them into `Locale.Builder`; do not use `replace('_', '-')` as a general-purpose normalizer for arbitrary `Locale.toString()` strings.
 
-## 4. Java 17+: API quan trọng
+## 4. Java 17+: Key APIs
 
-| API | Công dụng và hành vi cần nhớ |
+| API | Purpose and behavior to remember |
 | --- | --- |
-| `Locale.forLanguageTag(String)` | Đọc thẻ BCP 47 theo cách **dễ dãi**: gặp subtag sai cú pháp thì bỏ subtag đó và các subtag sau nó; không ném `IllformedLocaleException` trong tình huống này |
-| `new Locale.Builder().setLanguageTag(String).build()` | Đọc **nghiêm ngặt**: thẻ sai cú pháp sẽ ném `IllformedLocaleException`; phù hợp khi kiểm tra dữ liệu người dùng |
-| `locale.toLanguageTag()` | Xuất thẻ BCP 47 với quy tắc chuẩn hóa của Java; đây là API để trao đổi thẻ |
-| `locale.getLanguage()`, `getScript()`, `getCountry()`, `getVariant()` | Lấy thành phần của đối tượng thay vì tự cắt chuỗi theo vị trí |
-| `locale.getUnicodeLocaleType("nu")` | Đọc giá trị Unicode extension tương ứng (ví dụ `thai`) |
-| `locale.toString()` | Biểu diễn theo truyền thống Java; dùng để chẩn đoán/legacy, không thay `toLanguageTag()` |
+| `Locale.forLanguageTag(String)` | Reads a BCP 47 tag **leniently**: when encountering a malformed subtag, it discards that subtag and all following subtags; does not throw `IllformedLocaleException` in this case |
+| `new Locale.Builder().setLanguageTag(String).build()` | Reads **strictly**: a malformed tag throws `IllformedLocaleException`; suitable when validating user input |
+| `locale.toLanguageTag()` | Outputs a BCP 47 tag using Java's normalization rules; this is the API for exchanging tags |
+| `locale.getLanguage()`, `getScript()`, `getCountry()`, `getVariant()` | Retrieves object components instead of slicing strings by position |
+| `locale.getUnicodeLocaleType("nu")` | Reads the corresponding Unicode extension value (e.g. `thai`) |
+| `locale.toString()` | Traditional Java representation; use for diagnostics/legacy, not as a replacement for `toLanguageTag()` |
 
-Cú pháp đúng **chưa đủ** để bảo đảm ngôn ngữ/vùng đó có dữ liệu định dạng, bản dịch hoặc được sản phẩm hỗ trợ. `Locale.Builder` kiểm tra dạng cú pháp, **không tra cứu toàn bộ mã trong IANA Language Subtag Registry**. Muốn giới hạn tập locale ứng dụng hỗ trợ, kiểm tra thêm theo danh sách ứng dụng.
+Valid syntax is **not enough** to guarantee that the language/region has formatting data, translations, or product support. `Locale.Builder` validates syntactic form, **not by looking up all codes in the IANA Language Subtag Registry**. To restrict to the set of locales the application supports, check against the application's list as well.
 
-## 5. Ví dụ chạy được: đọc, xuất và phát hiện lỗi dấu phân cách
+## 5. Runnable example: reading, outputting, and detecting separator errors
 
-Tạo file `LanguageTagsDemo.java`:
+Create the file `LanguageTagsDemo.java`:
 
 ```java
 import java.util.IllformedLocaleException;
@@ -97,10 +97,10 @@ public class LanguageTagsDemo {
         System.out.println(Locale.US.toString());
         System.out.println(Locale.US.toLanguageTag());
 
-        // Dấu '_' không hợp lệ trong thẻ BCP 47.
+        // '_' is not valid in a BCP 47 tag.
         System.out.println(Locale.forLanguageTag("en_US").toLanguageTag());
 
-        // Parser dễ dãi giữ tiền tố hợp lệ trước subtag sai.
+        // The lenient parser keeps the valid prefix before the invalid subtag.
         System.out.println(Locale.forLanguageTag("en-US-invalid_thing").toLanguageTag());
 
         try {
@@ -113,14 +113,14 @@ public class LanguageTagsDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac LanguageTagsDemo.java
 java LanguageTagsDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 vi-VN
@@ -136,17 +136,17 @@ en-US
 invalid tag
 ```
 
-Giải thích:
+Explanation:
 
-- `vi-vn` chuẩn hóa thành `vi-VN`; các hàm getter lấy `vi` và `VN`.
-- `zh-Hant-TW` tách được script `Hant`; `-u-nu-thai` chứa Unicode locale keyword `nu` với giá trị `thai`.
-- Cùng một `Locale.US` có `toString() = en_US` nhưng `toLanguageTag() = en-US`. Đây là **hai định dạng khác nhau**.
-- Với `en_US`, `forLanguageTag` không sửa dấu phân cách: kết quả tương đương locale ngôn ngữ chưa xác định, thẻ xuất thành `und`.
-- Với `en-US-invalid_thing`, parser giữ `en-US` rồi bỏ đoạn không hợp lệ. `Builder` thay vào đó phát hiện lỗi; code bắt ngoại lệ thay vì để đầu vào bị sửa âm thầm.
+- `vi-vn` normalizes to `vi-VN`; the getters retrieve `vi` and `VN`.
+- `zh-Hant-TW` parses the script `Hant`; `-u-nu-thai` contains the Unicode locale keyword `nu` with value `thai`.
+- The same `Locale.US` has `toString() = en_US` but `toLanguageTag() = en-US`. These are **two different formats**.
+- With `en_US`, `forLanguageTag` does not fix the separator: the result is equivalent to an undetermined-language locale, outputting `und`.
+- With `en-US-invalid_thing`, the parser keeps `en-US` and drops the invalid tail. `Builder` instead detects the error; the code catches the exception instead of letting input be silently altered.
 
-## 6. Tạo thẻ bằng các trường thay vì ghép chuỗi thủ công
+## 6. Building tags from fields instead of manual string concatenation
 
-Khi dữ liệu là các trường riêng, `Locale.Builder` giúp đặt đúng thành phần và đúng dấu phân cách:
+When data comes as separate fields, `Locale.Builder` helps set the right components and the right separator:
 
 ```java
 import java.util.Locale;
@@ -179,13 +179,13 @@ Latn
 RS
 ```
 
-Một cách ứng dụng điều này khi chuyển dữ liệu legacy có schema rõ ràng: nhận hai trường `language = "en"` và `region = "US"`, gọi `setLanguage("en").setRegion("US")`, rồi dùng `toLanguageTag()` để xuất `en-US`. Không cần tự ghép dấu gạch nối và đoán vị trí script/region.
+One way to apply this when converting legacy data with a clear schema: receive two fields `language = "en"` and `region = "US"`, call `setLanguage("en").setRegion("US")`, then use `toLanguageTag()` to output `en-US`. No need to manually concatenate hyphens and guess script/region positions.
 
-## 7. Dùng tag ngoài thực tế: nhận đầu vào và kiểm tra hỗ trợ
+## 7. Using tags in practice: accepting input and checking support
 
-Ví dụ ứng dụng chỉ công bố ba locale `vi-VN`, `en-US`, `ja-JP`. Trước tiên kiểm tra cú pháp bằng builder, sau đó **so sánh với danh sách được hỗ trợ**; tất cả trường hợp trống, sai cú pháp hoặc không được hỗ trợ dùng mặc định `vi-VN`.
+Suppose an application only publishes three locales: `vi-VN`, `en-US`, and `ja-JP`. First validate syntax with the builder, then **compare against the supported list**; all blank, malformed, or unsupported cases fall back to the default `vi-VN`.
 
-Tạo file `SupportedLocaleDemo.java`:
+Create the file `SupportedLocaleDemo.java`:
 
 ```java
 import java.util.IllformedLocaleException;
@@ -234,40 +234,40 @@ vi-VN
 vi-VN
 ```
 
-Ở đây `EN-us` được chuẩn hóa thành `en-US`. `en_US` sai cú pháp BCP 47; `fr-FR` có cú pháp đúng nhưng chưa được ứng dụng hỗ trợ. Hai trường hợp đều rơi về mặc định theo **chính sách ví dụ**. Ứng dụng khác có thể trả HTTP 400, yêu cầu người dùng chọn lại hoặc áp dụng quy tắc fallback theo ngôn ngữ; đó là quyết định sản phẩm, không phải hành vi bắt buộc của BCP 47.
+Here `EN-us` is normalized to `en-US`. `en_US` has invalid BCP 47 syntax; `fr-FR` has valid syntax but is not yet supported by the application. Both cases fall back to the default per the **example policy**. Another application might return HTTP 400, ask the user to choose again, or apply language-based fallback rules; that is a product decision, not mandatory BCP 47 behavior.
 
-Trong HTTP, các giá trị tag như `vi-VN` có thể xuất hiện ở `Content-Language` hoặc là một phần danh sách `Accept-Language`. **Cả chuỗi** `Accept-Language: vi-VN,vi;q=0.9,en;q=0.7` là danh sách có trọng số, **không phải một BCP 47 tag**: phải phân tích cú pháp header/danh sách trước khi đưa từng tag vào `Locale`. Java cung cấp `Locale.LanguageRange.parse(...)` để làm việc với danh sách preference; không đưa nguyên chuỗi đó cho `Locale.forLanguageTag(...)`.
+In HTTP, tag values such as `vi-VN` may appear in `Content-Language` or as part of an `Accept-Language` list. **The entire string** `Accept-Language: vi-VN,vi;q=0.9,en;q=0.7` is a weighted list, **not a single BCP 47 tag**: you must parse the header/list before feeding individual tags into `Locale`. Java provides `Locale.LanguageRange.parse(...)` to work with preference lists; do not pass that entire string to `Locale.forLanguageTag(...)`.
 
-## 8. Lưu ý khi lưu trữ, so sánh và fallback
+## 8. Notes on storage, comparison, and fallback
 
-- Lưu định danh trao đổi bằng `toLanguageTag()` sau khi đã kiểm tra đầu vào. Nếu hỗ trợ legacy, chuyển ở ranh giới nhận dữ liệu, ghi rõ schema tương thích.
-- So sánh chuỗi nên dùng dạng chuẩn hóa; `en`, `en-US` và `en-GB` là các mức xác định khác nhau. Đừng mặc định chúng có cùng dữ liệu hay cùng bản dịch.
-- Nếu cần ghép nội dung theo ngôn ngữ, dùng cơ chế fallback của ứng dụng hoặc `ResourceBundle`; tên file như `messages_vi_VN.properties` có dấu `_` theo quy tắc đặt tên bundle, nhưng API `Locale` vẫn nhận `vi-VN`.
-- Unicode extension như `u-ca-buddhist` hay `u-nu-thai` thể hiện yêu cầu về lịch/hệ chữ số. Việc bộ định dạng cụ thể có áp dụng extension hay không còn phụ thuộc API, provider và dữ liệu locale; không suy luận rằng mọi thư viện đều hỗ trợ.
-- Thẻ ngôn ngữ **không mang múi giờ**. Không suy ra `Asia/Ho_Chi_Minh` chỉ từ `vi-VN`; thời gian cần `ZoneId` độc lập.
-- `und` là subtag "undetermined" (ngôn ngữ không xác định) khi xuất BCP 47; khi parse vào `Locale`, `getLanguage()` có thể là chuỗi rỗng. Nó không có nghĩa là tiếng Anh hay tiếng Việt mặc định.
+- Store exchange identifiers using `toLanguageTag()` after validating input. If supporting legacy formats, convert at the data ingestion boundary and document the compatibility schema clearly.
+- String comparisons should use normalized forms; `en`, `en-US`, and `en-GB` are different levels of specificity. Do not assume they share the same data or translations.
+- When matching content by language, use the application's fallback mechanism or `ResourceBundle`; filenames like `messages_vi_VN.properties` use `_` per bundle naming rules, while `Locale` APIs still accept `vi-VN`.
+- Unicode extensions such as `u-ca-buddhist` or `u-nu-thai` express a request for calendar/numbering system. Whether a specific formatter applies the extension depends on the API, provider, and locale data; do not assume every library supports it.
+- Language tags **do not carry a time zone**. Do not infer `Asia/Ho_Chi_Minh` solely from `vi-VN`; time handling requires an independent `ZoneId`.
+- `und` is the "undetermined" subtag (undetermined language) when exporting BCP 47; when parsed into `Locale`, `getLanguage()` may be an empty string. It does not mean English or Vietnamese by default.
 
-## 9. Lỗi thường gặp và cách sửa
+## 9. Common mistakes and fixes
 
-| Sai lầm | Hệ quả | Cách làm đúng |
+| Mistake | Consequence | Correct approach |
 | --- | --- | --- |
-| Gửi `en_US` cho API đòi BCP 47 | Tag sai cú pháp; parser dễ dãi có thể cho `und` | Gửi `en-US` |
-| Dùng `locale.toString()` để lưu/gửi thẻ | Gặp ký pháp legacy với `_`, và có thể có các đoạn đặc biệt | Dùng `locale.toLanguageTag()` |
-| Nghĩ `forLanguageTag` luôn báo lỗi | Có thể bỏ đuôi sai mà không thông báo | Dùng `Locale.Builder.setLanguageTag` nếu phải từ chối tag sai |
-| Nghĩ builder bảo đảm tên ngôn ngữ tồn tại/được hỗ trợ | Chỉ kiểm tra well-formed, không bảo đảm registry hoặc dữ liệu UI | Kiểm tra danh sách locale ứng dụng |
-| Dựng tag bằng nối chuỗi vị trí cố định | Lẫn script/region/variant/extension | Dùng `Locale.Builder` và getter |
-| Đổi toàn bộ `_` thành `-` với mọi chuỗi legacy | Có thể diễn giải sai variant/extension | Chỉ chuyển theo schema được biết rõ |
-| Xem quốc gia quyết định ngôn ngữ hoặc múi giờ | Chọn sai nội dung/vùng giờ | Tách language, region và `ZoneId` |
+| Sending `en_US` to an API expecting BCP 47 | Malformed tag; lenient parsers may yield `und` | Send `en-US` |
+| Using `locale.toString()` to store/send tags | Produces legacy `_` notation and possibly special segments | Use `locale.toLanguageTag()` |
+| Thinking `forLanguageTag` always reports errors | May silently drop invalid trailing subtags | Use `Locale.Builder.setLanguageTag` when malformed tags must be rejected |
+| Thinking builder guarantees the language name exists/is supported | Only checks well-formedness, not registry or UI data | Check against the application's supported locale list |
+| Building tags via fixed-position string concatenation | Mixes up script/region/variant/extension | Use `Locale.Builder` and getters |
+| Replacing all `_` with `-` on every legacy string | Can misinterpret variant/extension | Convert only according to a clearly known schema |
+| Treating country as determining language or time zone | Selects wrong content/time zone | Separate language, region, and `ZoneId` |
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-1. `zh-Hant-TW` có các phần nào? **Đáp án:** language `zh`, script `Hant`, region `TW`.
-2. Chuỗi nào hợp lệ khi truyền vào `Locale.forLanguageTag` như một BCP 47 tag: `pt-BR` hay `pt_BR`? **Đáp án:** `pt-BR`; dấu phân cách subtag là `-`.
-3. Tại sao không dùng riêng `Locale.forLanguageTag` để xác thực input? **Đáp án:** có thể âm thầm bỏ subtag sai và phần phía sau, làm mất thông tin; builder nghiêm ngặt hơn.
-4. `Locale.US.toString()` và `Locale.US.toLanguageTag()` khác nhau thế nào? **Đáp án:** lần lượt là `en_US` và `en-US`.
-5. `ja-JP-u-ca-japanese` có nghĩa mọi thư viện Java buộc phải định dạng lịch Nhật không? **Đáp án:** không; extension diễn đạt yêu cầu, việc hỗ trợ thuộc về API/provider.
+1. What parts does `zh-Hant-TW` have? **Answer:** language `zh`, script `Hant`, region `TW`.
+2. Which string is valid when passed to `Locale.forLanguageTag` as a BCP 47 tag: `pt-BR` or `pt_BR`? **Answer:** `pt-BR`; the subtag separator is `-`.
+3. Why not rely solely on `Locale.forLanguageTag` to validate input? **Answer:** it may silently discard invalid subtags and everything after them, losing information; builder is stricter.
+4. How do `Locale.US.toString()` and `Locale.US.toLanguageTag()` differ? **Answer:** they are `en_US` and `en-US`, respectively.
+5. Does `ja-JP-u-ca-japanese` mean every Java library must format using the Japanese calendar? **Answer:** no; the extension expresses a request, while support belongs to the API/provider.
 
-## Tài liệu tham khảo
+## References
 
 - [RFC 5646 — Tags for Identifying Languages](https://www.rfc-editor.org/rfc/rfc5646)
 - [Java SE 21 — `java.util.Locale`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html)

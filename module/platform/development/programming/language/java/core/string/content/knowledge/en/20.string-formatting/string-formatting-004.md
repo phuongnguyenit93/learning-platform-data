@@ -1,82 +1,82 @@
-# Căn lề, đệm ký tự và phân nhóm chữ số khi định dạng chuỗi Java
+# Alignment, Character Padding, and Digit Grouping in Java String Formatting
 
-## 1. Bài toán và công cụ
+## 1. Problem and Tools
 
-Khi tạo báo cáo dạng văn bản, bảng điều khiển (console), hóa đơn hay dòng log, ta thường muốn **căn các cột thẳng hàng**, **thêm ký tự đệm cho đủ chiều rộng** và **phân nhóm chữ số** để dễ đọc:
+When generating text reports, console tables, invoices, or log lines, we often want to **align columns neatly**, **add padding characters to reach a width**, and **group digits** for readability:
 
 ```text
-Tên           Số lượng        Doanh thu
+Name          Quantity        Revenue
 Java                 42         1,234,567
 Spring                7            12,500
 ```
 
-Java cung cấp cơ chế định dạng bằng **format string** trong `String.format(...)`, `System.out.printf(...)` và `java.util.Formatter`. Các API này dùng chung quy tắc định dạng, nhưng khác cách nhận kết quả:
+Java provides a formatting mechanism via **format strings** in `String.format(...)`, `System.out.printf(...)`, and `java.util.Formatter`. These APIs share the same formatting rules, but differ in how the result is delivered:
 
-- `String.format(Locale, format, args...)` **trả về một `String`**, thuận tiện để đưa vào biến, ghi file hoặc trả về từ phương thức.
-- `System.out.printf(Locale, format, args...)` **ghi trực tiếp ra standard output**; nếu muốn xuống dòng, thêm `%n` vào chuỗi format.
-- `Formatter` cho phép ghi nhiều lần vào một đối tượng đích; đa số ví dụ cơ bản dùng `String.format` hoặc `printf` là đủ.
-- `"Hello %s".formatted(name)` (Java 15+) cũng sử dụng ngữ nghĩa Formatter, nhưng không có tham số `Locale` trực tiếp trong cách gọi này; khi cần kết quả nhất quán giữa môi trường, ưu tiên overload có `Locale` tường minh.
+- `String.format(Locale, format, args...)` **returns a `String`**, convenient to store in a variable, write to a file, or return from a method.
+- `System.out.printf(Locale, format, args...)` **writes directly to standard output**; if you want a newline, add `%n` to the format string.
+- `Formatter` allows writing multiple times to a destination object; most basic examples only need `String.format` or `printf`.
+- `"Hello %s".formatted(name)` (Java 15+) also uses Formatter semantics, but has no direct `Locale` parameter in this call form; when consistent results across environments are required, prefer the overload with an explicit `Locale`.
 
-Ba yêu cầu dễ bị nhầm là:
+Three requirements that are easily confused are:
 
-1. **Căn lề (alignment)**: nội dung nằm bên trái hay bên phải vùng có độ rộng tối thiểu.
-2. **Đệm (padding)**: thêm khoảng trắng hoặc số `0` để đủ vùng đó.
-3. **Phân nhóm số (grouping)**: thêm ký hiệu phân tách giữa các nhóm chữ số, do `Locale` quyết định.
+1. **Alignment**: whether content sits on the left or right of a region with a minimum width.
+2. **Padding**: adding spaces or `0` digits to fill that region.
+3. **Digit grouping**: adding separator symbols between groups of digits, determined by `Locale`.
 
-Căn lề và đệm xử lý cách trình bày; phân nhóm thay đổi cách hiển thị các chữ số. Chúng có thể kết hợp, nhưng phải dùng đúng cờ định dạng.
+Alignment and padding handle layout; grouping changes how digits are displayed. They can be combined, but the right format flags must be used.
 
-## 2. Cú pháp một định dạng trong Java
+## 2. Syntax of a Format Specifier in Java
 
-Một conversion có dạng tổng quát:
+A conversion has the general form:
 
 ```text
 %[argument_index$][flags][width][.precision]conversion
 ```
 
-Dấu ngoặc vuông ở dòng trên chỉ thành phần **tùy chọn trong mô tả**, không phải ký tự nhập nguyên xi vào format string.
+Square brackets in the line above indicate **optional components in the description**, not characters typed verbatim into a format string.
 
-| Thành phần | Ví dụ | Ý nghĩa |
+| Component | Example | Meaning |
 | --- | --- | --- |
-| `%` | `%10s` | Bắt đầu một chỉ thị định dạng. |
-| `argument_index$` | `%2$s` | Tùy chọn lấy đối số theo vị trí, đánh số từ `1`. |
-| `flags` | `-`, `0`, `,`, `+`, `(` | Các hành vi như căn trái, đệm số không, phân nhóm, hiển thị dấu. |
-| `width` | `10` trong `%10s` | **Chiều rộng tối thiểu** của trường xuất. |
-| `.precision` | `.2` trong `%.2f` | Ý nghĩa phụ thuộc conversion: số chữ số sau dấu thập phân với `%f`, độ dài hiển thị tối đa cho `%s`. |
-| `conversion` | `s`, `d`, `f` | Loại định dạng của đối số. |
+| `%` | `%10s` | Starts a format specifier. |
+| `argument_index$` | `%2$s` | Optionally selects an argument by position, numbered from `1`. |
+| `flags` | `-`, `0`, `,`, `+`, `(` | Behaviors such as left-align, zero-pad, grouping, sign display. |
+| `width` | `10` in `%10s` | **Minimum width** of the output field. |
+| `.precision` | `.2` in `%.2f` | Meaning depends on conversion: digits after decimal point for `%f`, maximum display length for `%s`. |
+| `conversion` | `s`, `d`, `f` | Formatting type of the argument. |
 
-Các conversion dùng nhiều trong bài:
+Conversions frequently used in this lesson:
 
-| Conversion | Dùng cho | Ví dụ |
+| Conversion | Used For | Example |
 | --- | --- | --- |
-| `%s` | Chuỗi/đối tượng hiển thị dạng chuỗi | `"%10s"` |
-| `%d` | Số nguyên hệ thập phân | `"%08d"` |
-| `%f` | Số thực dạng thập phân cố định | `"%,12.2f"` |
-| `%%` | In ký tự phần trăm `%` | `"100%%"` |
-| `%n` | Xuống dòng theo nền tảng đang chạy | `"Done%n"` |
+| `%s` | String/object displayed as a string | `"%10s"` |
+| `%d` | Decimal integer | `"%08d"` |
+| `%f` | Fixed-point decimal floating-point number | `"%,12.2f"` |
+| `%%` | Prints a literal percent character `%` | `"100%%"` |
+| `%n` | Platform-specific newline | `"Done%n"` |
 
-Không phải mọi cờ đều dùng được với mọi conversion. Chẳng hạn `0` là cờ đệm số, **không phải** cờ đệm chuỗi `%s`; còn dấu phẩy phân nhóm `,` áp dụng với một số conversion số thích hợp chứ không áp dụng cho `%s`.
+Not every flag can be used with every conversion. For example, `0` is a numeric padding flag, **not** a string padding flag for `%s`; and the grouping comma `,` applies to certain compatible numeric conversions, not `%s`.
 
-## 3. Căn phải và căn trái bằng chiều rộng tối thiểu
+## 3. Right and Left Alignment Using Minimum Width
 
-### 3.1. Căn phải mặc định
+### 3.1. Default Right Alignment
 
-Với `%10s`, phần hiển thị chiếm **ít nhất 10 vị trí ký tự**. Nếu `"Java"` có bốn ký tự, Java thêm sáu khoảng trắng ở **bên trái**:
+With `%10s`, the display takes **at least 10 character positions**. Since `"Java"` has four characters, Java adds six spaces on the **left**:
 
 ```java
 String right = String.format("%10s", "Java");
-// right = "      Java" (6 khoảng trắng rồi đến Java)
+// right = "      Java" (6 spaces followed by Java)
 ```
 
-Đối với `%d`, căn phải cũng là mặc định:
+For `%d`, right alignment is also the default:
 
 ```java
 String rightNumber = String.format("%8d", 42);
 // rightNumber = "      42"
 ```
 
-### 3.2. Cờ `-` để căn trái
+### 3.2. The `-` Flag for Left Alignment
 
-`%-10s` và `%-8d` thêm khoảng trắng ở **bên phải**:
+`%-10s` and `%-8d` add spaces on the **right**:
 
 ```java
 String left = String.format("%-10s", "Java");
@@ -86,43 +86,43 @@ String leftNumber = String.format("%-8d", 42);
 // leftNumber = "42      "
 ```
 
-Khi in ví dụ ra console, nên đặt ký tự `|` bao quanh từng giá trị để thấy rõ khoảng trắng:
+When printing examples to the console, it helps to surround each value with `|` characters to clearly see the spaces:
 
 ```java
 System.out.printf("|%10s|%-10s|%n", "Java", "Java");
 // |      Java|Java      |
 ```
 
-**Cần nhớ:** `width` là chiều rộng **tối thiểu**, không phải chiều rộng tối đa. `%10s` sẽ **không cắt ngắn** chuỗi dài hơn 10 ký tự. Ví dụ `String.format("%10s", "VeryLongText")` vẫn trả về `"VeryLongText"`. Nếu cần giới hạn độ dài hiển thị của chuỗi, xem `precision` trong mục 7.
+**Remember:** `width` is the **minimum** width, not the maximum width. `%10s` will **not truncate** strings longer than 10 characters. For example, `String.format("%10s", "VeryLongText")` still returns `"VeryLongText"`. If you need to limit the displayed length of a string, see `precision` in Section 7.
 
-## 4. Đệm số `0`: số nguyên có độ dài cố định
+## 4. Zero-Padding (`0`): Fixed-Length Integers
 
-Với số nguyên, cờ `0` bổ sung các số không ở **bên trái phần chữ số** để tổng chiều rộng đạt `width`:
+For integers, the `0` flag pads zeros on the **left of the digits** so the total width reaches `width`:
 
 ```java
 System.out.printf("|%08d|%n", 42);
 // |00000042|
 ```
 
-Phân biệt ba tình huống:
+Distinguish these cases:
 
-| Format | Giá trị | Kết quả trong `|...|` | Ghi chú |
+| Format | Value | Result inside `|...|` | Note |
 | --- | ---: | --- | --- |
-| `%8d` | `42` | `\|      42\|` | Mặc định đệm khoảng trắng bên trái. |
-| `%-8d` | `42` | `\|42      \|` | Căn trái, đệm khoảng trắng bên phải. |
-| `%08d` | `42` | `\|00000042\|` | Đệm số không ở bên trái số. |
-| `%+08d` | `42` | `\|+0000042\|` | Dấu `+` xuất hiện trước các số `0`. |
-| `%(08d` | `-42` | `\|(000042)\|` | Số âm trong ngoặc, các số `0` nằm trong ngoặc. |
+| `%8d` | `42` | `\|      42\|` | Default space padding on the left. |
+| `%-8d` | `42` | `\|42      \|` | Left-aligned, space padding on the right. |
+| `%08d` | `42` | `\|00000042\|` | Zero-padding on the left of the number. |
+| `%+08d` | `42` | `\|+0000042\|` | `+` sign appears before the `0`s. |
+| `%(08d` | `-42` | `\|(000042)\|` | Negative number in parentheses, `0`s are inside the parentheses. |
 
-Đặc điểm quan trọng: chiều rộng `8` **tính cả dấu cộng/trừ hoặc dấu ngoặc** do định dạng thêm vào. Vì thế `%+08d` của `42` là `+0000042`, có tổng cộng tám ký tự.
+Important characteristic: the width `8` **includes plus/minus signs or parentheses** added by formatting. Thus `%+08d` for `42` is `+0000042`, totaling eight characters.
 
-Cờ `0` cần một `width`; một format như `%0d` là không hợp lệ. Cờ `-` (căn trái) và `0` (đệm số không bên trái) không được kết hợp tùy tiện trong cùng chỉ thị, vì chúng xung đột về cách đệm.
+The `0` flag requires a `width`; a format like `%0d` is invalid. The `-` (left-align) and `0` (left zero-pad) flags cannot be arbitrarily combined in the same specifier, because they conflict on padding behavior.
 
-Đối với mã định danh kiểu `000042`, cách đệm `%06d` có ích nếu giá trị là số nguyên. Nếu phải giữ nguyên **chuỗi định danh** như `"00A42"` hoặc số có độ dài/leading zeros vốn là dữ liệu, hãy lưu nó dưới dạng `String`; chuyển sang kiểu số có thể làm mất các số `0` gốc.
+For identifiers like `000042`, `%06d` padding is useful if the value is an integer. If you must preserve an **identifier string** such as `"00A42"` or numbers where leading zeros/length are intrinsic data, store it as a `String`; converting to a numeric type can lose the original `0`s.
 
-## 5. Phân nhóm chữ số bằng cờ dấu phẩy `,`
+## 5. Grouping Digits with the Comma Flag `,`
 
-Cờ `,` trong `Formatter` yêu cầu định dạng **phân nhóm chữ số theo Locale**. Với `Locale.US`, một số nguyên lớn thường được nhóm thành từng cụm ba chữ số, ngăn bằng dấu phẩy:
+The `,` flag in `Formatter` requests **locale-aware digit grouping**. With `Locale.US`, a large integer is typically grouped into clusters of three digits separated by commas:
 
 ```java
 import java.util.Locale;
@@ -132,11 +132,11 @@ System.out.println(result);
 // 1,234,567
 ```
 
-Dấu phẩy `,` **trong format string** là một **cờ cú pháp**, không nhất thiết là ký tự sẽ xuất hiện trong kết quả. Dấu phân nhóm thực tế tùy `Locale`.
+The comma `,` **in the format string** is a **syntax flag**, not necessarily the character that will appear in the output. The actual grouping separator depends on `Locale`.
 
-### 5.1. Kết hợp phân nhóm và căn lề
+### 5.1. Combining Grouping and Alignment
 
-`%,12d` vừa bật phân nhóm vừa yêu cầu vùng rộng tối thiểu 12 ký tự:
+`%,12d` both enables grouping and requires a field at least 12 characters wide:
 
 ```java
 String result = String.format(Locale.US, "|%,12d|", 1_234_567);
@@ -144,7 +144,7 @@ System.out.println(result);
 // |   1,234,567|
 ```
 
-`1,234,567` có 9 ký tự, nên có 3 khoảng trắng bên trái. Với `%-,12d`, khoảng trắng được đưa sang bên phải:
+`1,234,567` has 9 characters, so there are 3 spaces on the left. With `%-,12d`, the spaces move to the right:
 
 ```java
 String result = String.format(Locale.US, "|%-,12d|", 1_234_567);
@@ -152,9 +152,9 @@ System.out.println(result);
 // |1,234,567   |
 ```
 
-### 5.2. Kết hợp phân nhóm và đệm số không
+### 5.2. Combining Grouping and Zero-Padding
 
-Có thể dùng cả `0` lẫn `,`. Ví dụ:
+Both `0` and `,` can be used together. For example:
 
 ```java
 String result = String.format(Locale.US, "|%0,12d|", 1_234_567);
@@ -162,17 +162,17 @@ System.out.println(result);
 // |0001,234,567|
 ```
 
-Số `0` được thêm vào vị trí đệm để đủ chiều rộng; kết quả không giống việc thêm các số `0` vào giá trị số ban đầu rồi tự động phân nhóm lại. Vì yêu cầu đầu ra thường khác nhau, cần chọn rõ:
+Zeros are added into the padding positions to reach the width; the result is not the same as adding `0`s to the original numeric value and then automatically regrouping. Because output requirements often differ, choose clearly:
 
-- **Trình bày số dễ đọc:** `%,d` hoặc `%,12d`.
-- **Tạo trường số có độ rộng cố định:** `%08d`.
-- **Vừa phân nhóm vừa đệm `0`:** `%0,12d` nếu thực sự muốn dạng hiển thị như trên.
+- **Readable number presentation:** `%,d` or `%,12d`.
+- **Fixed-width numeric field:** `%08d`.
+- **Both grouping and `0`-padding:** `%0,12d` if you genuinely want the display shown above.
 
-Khi dữ liệu vượt quá chiều rộng tối thiểu, `Formatter` vẫn in **toàn bộ** giá trị; nó không tự cắt chữ số.
+When data exceeds the minimum width, `Formatter` still prints the **entire** value; it does not truncate digits.
 
-## 6. Phân nhóm phần nguyên và làm tròn phần thập phân
+## 6. Grouping the Integer Part and Rounding the Fractional Part
 
-Với `%f`, `precision` là số chữ số **sau dấu thập phân** cần hiển thị. Kết hợp:
+For `%f`, `precision` is the number of digits **after the decimal point** to display. Combined:
 
 ```java
 String amount = String.format(
@@ -184,7 +184,7 @@ System.out.println(amount);
 // 1,234,567.50
 ```
 
-Có thể thêm chiều rộng:
+Width can be added:
 
 ```java
 String amount = String.format(
@@ -196,49 +196,49 @@ System.out.println(amount);
 // |   1,234,567.50|
 ```
 
-Giải thích `%,15.2f`:
+Explanation of `%,15.2f`:
 
-1. `,` bật phân nhóm chữ số phần nguyên.
-2. `15` yêu cầu tối thiểu 15 vị trí ký tự.
-3. `.2` quy định hiển thị hai chữ số sau dấu thập phân.
-4. `f` chọn dạng số thực thập phân cố định.
+1. `,` enables digit grouping on the integer part.
+2. `15` requires at least 15 character positions.
+3. `.2` specifies displaying two digits after the decimal point.
+4. `f` selects fixed-point decimal floating-point form.
 
-**Đừng nhầm `%.2f` với `%.2s`:** ở `%f`, precision nói về số chữ số sau dấu thập phân; ở `%s`, precision giới hạn độ dài chuỗi được hiển thị. Với `%d`, cú pháp `%.2d` không phải cách hợp lệ để đệm hai số không trong Java Formatter. Hãy dùng `%02d` khi muốn chiều rộng hai và đệm số không.
+**Do not confuse `%.2f` with `%.2s`:** in `%f`, precision refers to the number of digits after the decimal point; in `%s`, precision limits the displayed string length. For `%d`, the syntax `%.2d` is not a valid way to pad two zeros in Java Formatter. Use `%02d` when you want width two with zero-padding.
 
-Khi định dạng giá trị tiền tệ, cần xác định cả loại số và yêu cầu làm tròn. `String.format` tạo **biểu diễn văn bản**, không biến `double` thành kiểu số thập phân chính xác để tính toán tiền. Đối với phép tính tiền cần độ chính xác thập phân, dùng kiểu và quy tắc làm tròn phù hợp (thường là `BigDecimal`), sau đó mới định dạng để hiển thị.
+When formatting monetary values, specify both the numeric type and rounding requirements. `String.format` creates a **text representation**; it does not turn `double` into an exact decimal type for financial calculations. For monetary calculations requiring decimal accuracy, use the appropriate type and rounding rules (typically `BigDecimal`), and only then format for display.
 
-## 7. Locale quyết định dấu phân nhóm và dấu thập phân
+## 7. Locale Determines Grouping and Decimal Separators
 
-Sử dụng cùng format `%,12.2f` và cùng số `1234567.5`:
+Using the same format `%,12.2f` and the same number `1234567.5`:
 
 ```java
 System.out.printf(Locale.US, "|%,12.2f|%n", 1234567.5);
 System.out.printf(Locale.GERMANY, "|%,12.2f|%n", 1234567.5);
 ```
 
-Kết quả:
+Output:
 
 ```text
 |1,234,567.50|
 |1.234.567,50|
 ```
 
-Với `Locale.US`, dấu phẩy phân nhóm và dấu chấm ngăn phần thập phân. Với `Locale.GERMANY`, hai vai trò được đảo lại. Do đó, **không thể dựa vào ký tự `,` trong format để khẳng định kết quả luôn chứa dấu phẩy**.
+With `Locale.US`, a comma groups digits and a dot separates the fractional part. With `Locale.GERMANY`, the two roles are swapped. Therefore, **you cannot rely on the `,` character in the format to guarantee the output will always contain commas**.
 
-Khi không truyền `Locale`, nhiều API định dạng dùng locale mặc định của môi trường chạy. Điều này có thể khiến cùng mã hiển thị khác nhau trên máy lập trình viên, máy CI và máy người dùng. Khi cần output ổn định (ví dụ snapshot test hoặc dữ liệu xuất có quy ước rõ), truyền `Locale` cụ thể:
+When `Locale` is omitted, many formatting APIs use the runtime environment's default locale. This can cause the same code to display differently on a developer's machine, a CI runner, and a user's machine. When stable output is needed (e.g., snapshot tests or exported data with strict conventions), pass a specific `Locale`:
 
 ```java
 String stable = String.format(Locale.US, "%,.2f", 1234.5);
 // "1,234.50"
 ```
 
-Ngược lại, với giao diện dành cho người dùng cuối, lựa chọn `Locale` theo ngôn ngữ và khu vực của người dùng, thay vì cố định `Locale.US` cho mọi người.
+Conversely, for end-user interfaces, choose the `Locale` according to the user's language and region, rather than hardcoding `Locale.US` for everyone.
 
-Với các nhu cầu nâng cao như quy tắc tiền tệ, số chữ số nhóm khác nhau hay mẫu dấu âm riêng, có thể dùng `NumberFormat` hoặc `DecimalFormat`. Bài này tập trung vào cơ chế căn lề, đệm và phân nhóm bằng formatter string.
+For advanced needs such as currency rules, differing group sizes, or custom negative patterns, `NumberFormat` or `DecimalFormat` can be used. This lesson focuses on alignment, padding, and grouping using format strings.
 
-## 8. Ví dụ Java 17 chạy độc lập
+## 8. Standalone Runnable Java 17 Example
 
-Lưu toàn bộ nội dung dưới đây trong tệp `StringFormatLayoutDemo.java`:
+Save all content below in a file `StringFormatLayoutDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -267,14 +267,14 @@ public class StringFormatLayoutDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac StringFormatLayoutDemo.java
 java StringFormatLayoutDemo
 ```
 
-Đầu ra chính xác (giữ nguyên khoảng trắng giữa `|`):
+Exact output (preserving spaces between `|`):
 
 ```text
 string right: |      Java|
@@ -294,19 +294,19 @@ long string : |VeryLongText|
 progress    : 75%
 ```
 
-Ý nghĩa các dòng cần để ý:
+Notable lines:
 
-- `string right`, `string left` so sánh hai phía nhận khoảng trắng.
-- `zero padded`, `sign + zeros` và `negative` cho thấy cách dấu và dấu ngoặc tham gia tính chiều rộng.
-- `group width` và `group zeros` minh họa rõ rằng **phân nhóm** và **đệm** là hai thao tác khác nhau.
-- `decimal US` và `decimal DE` có cùng format nhưng khác `Locale`.
-- `precision` dùng `%-12.5s`: chuỗi `"Formatting"` được hiển thị thành `"Forma"` (5 ký tự), rồi đệm khoảng trắng bên phải đến 12 ký tự.
-- `long string` chứng minh `width` không cắt nội dung dài.
-- `%%` in một dấu phần trăm thực, còn `%n` dùng để xuống dòng.
+- `string right`, `string left` compare which side receives spaces.
+- `zero padded`, `sign + zeros`, and `negative` show how signs and parentheses count toward total width.
+- `group width` and `group zeros` clearly illustrate that **grouping** and **padding** are two separate operations.
+- `decimal US` and `decimal DE` share the same format but differ in `Locale`.
+- `precision` uses `%-12.5s`: the string `"Formatting"` is displayed as `"Forma"` (5 characters), then padded with spaces on the right to 12 characters.
+- `long string` demonstrates that `width` does not truncate long content.
+- `%%` prints a literal percent sign, and `%n` outputs a newline.
 
-## 9. Ví dụ áp dụng: định dạng bảng console
+## 9. Applied Example: Formatting a Console Table
 
-Khi dựng bảng văn bản, đặt từng cột vào vùng có width cố định và chọn kiểu căn thích hợp:
+When building a text table, place each column in a fixed-width field and pick the appropriate alignment:
 
 ```java
 import java.util.Locale;
@@ -315,7 +315,7 @@ public class SalesTable {
     public static void main(String[] args) {
         System.out.printf(Locale.US,
                 "| %-12s | %8s | %12s |%n",
-                "Sản phẩm", "Số lượng", "Doanh thu");
+                "Product", "Quantity", "Revenue");
         System.out.printf(Locale.US,
                 "| %-12s | %,8d | %,12d |%n",
                 "Java", 42, 1_234_567);
@@ -326,52 +326,52 @@ public class SalesTable {
 }
 ```
 
-Đây là một chương trình độc lập khác, lưu tên tệp `SalesTable.java` rồi chạy `javac SalesTable.java` và `java SalesTable`. Kết quả có cùng quy tắc căn lề: cột sản phẩm căn trái, cột số lượng/doanh thu căn phải và phân nhóm. Nếu tên sản phẩm hoặc số lớn vượt width, bảng có thể lệch vì Java không tự cắt nội dung.
+This is another standalone program; save it as `SalesTable.java` and run `javac SalesTable.java` and `java SalesTable`. The output follows the same alignment rules: product column left-aligned, quantity/revenue columns right-aligned and grouped. If a product name or large number exceeds the width, the table may shift because Java does not automatically truncate content.
 
-Đối với output có tiếng Việt, emoji hoặc ký tự Đông Á, các ô có số ký tự tương đương chưa chắc có **độ rộng hình ảnh trên terminal** tương đương. Formatter kiểm soát số ký tự trong trường định dạng, không phải hệ thống bố trí cột theo độ rộng hiển thị của mọi font/terminal. Nếu cần bảng thật sự thẳng hàng với mọi kiểu Unicode, dùng thư viện dựng bảng hoặc giao diện có xử lý độ rộng ký tự.
+For output containing Vietnamese, emoji, or East Asian characters, cells with the same character count do not necessarily have the same **visual width in a terminal**. Formatter controls the number of characters in a formatted field, not column layout by display width across every font/terminal. If you need tables that align cleanly across all Unicode types, use a table-building library or UI that handles character display width.
 
-## 10. Lỗi phổ biến
+## 10. Common Mistakes
 
-### 10.1. Dùng cờ không phù hợp với conversion
+### 10.1. Using Flags Incompatible with the Conversion
 
-Các định dạng sau không phải cách viết đúng cho mục đích thường gặp:
+The following formats are not valid ways to achieve common goals:
 
-- `%010s`: cờ `0` không dùng để đệm chuỗi. Đối với `%s`, mặc định chỉ có đệm khoảng trắng theo `width`.
-- `%,s`: dấu `,` là cờ grouping cho conversion số phù hợp, không thể yêu cầu formatter phân nhóm một chuỗi tùy ý.
-- `%.2d`: với số nguyên, hãy dùng `%02d` nếu cần đệm `0` đến width 2.
-- `%0d`: có cờ `0` nhưng không có width.
-- `%-08d`: trộn căn trái `-` với đệm số không `0`.
+- `%010s`: the `0` flag is not used to pad strings. For `%s`, only space padding by `width` applies.
+- `%,s`: `,` is a grouping flag for compatible numeric conversions; you cannot ask the formatter to group an arbitrary string.
+- `%.2d`: for integers, use `%02d` if you need `0`-padding to width 2.
+- `%0d`: has the `0` flag but no width.
+- `%-08d`: mixes left-alignment `-` with zero-padding `0`.
 
-Những format sai có thể gây một ngoại lệ thuộc họ `IllegalFormatException` khi chạy, ví dụ `FormatFlagsConversionMismatchException`, `MissingFormatWidthException` hoặc `IllegalFormatPrecisionException`. Nếu format string được ghép động, cần kiểm tra trước hoặc xử lý lỗi phù hợp.
+Invalid formats can throw an exception in the `IllegalFormatException` family at runtime, such as `FormatFlagsConversionMismatchException`, `MissingFormatWidthException`, or `IllegalFormatPrecisionException`. If format strings are assembled dynamically, validate them beforehand or handle errors appropriately.
 
-### 10.2. Nhầm chiều rộng với số chữ số
+### 10.2. Confusing Width with Number of Digits
 
-Với `%08d` và số `-42`, dấu trừ cũng chiếm chỗ trong tổng chiều rộng; kết quả sẽ có 8 ký tự, không phải 8 chữ số rồi thêm dấu trừ. Tương tự, dấu phẩy phân nhóm và dấu chấm thập phân **đều chiếm vị trí** trong vùng width.
+With `%08d` and `-42`, the minus sign also occupies a slot in the total width; the result has 8 characters, not 8 digits plus a minus sign. Likewise, grouping commas and decimal dots **all occupy positions** inside the width field.
 
-### 10.3. Dùng dấu phân nhóm như một định dạng dữ liệu máy
+### 10.3. Treating Grouping Separators as a Machine Data Format
 
-`1,234,567` và `1.234.567` phù hợp để **người đọc** theo từng locale, nhưng không phải định dạng số trung lập để truyền giữa các hệ thống. Nếu cần dữ liệu số để máy xử lý, lưu giá trị bằng kiểu số/định dạng trao đổi được quy định rõ, sau đó chỉ phân nhóm trong lớp trình bày.
+`1,234,567` and `1.234.567` are suited for **human readers** in each locale, not as a neutral numeric format for inter-system transfer. If numeric data is needed for machine processing, store values in numeric types or a well-defined exchange format, and only apply grouping in the presentation layer.
 
-### 10.4. Nhầm ngôn ngữ hiển thị với căn lề
+### 10.4. Confusing Display Language with Alignment
 
-`Locale` thay đổi cách dùng dấu phân nhóm và dấu thập phân, nhưng không tự chọn nên căn trái hay căn phải. Những điều này thuộc hai nhóm tham số khác nhau: **flags/width** quy định căn và đệm, **Locale** quy định cách hiển thị số.
+`Locale` changes how grouping and decimal separators are rendered, but does not choose left or right alignment. These belong to two separate parameter groups: **flags/width** control alignment and padding, while **Locale** controls number formatting conventions.
 
-### 10.5. Đưa chuỗi do người dùng nhập làm format string
+### 10.5. Passing User-Entered Strings as the Format String
 
-Nếu người dùng nhập ký tự `%`, hãy truyền dữ liệu đó làm **đối số**, không coi nó là format:
+If a user enters a `%` character, pass that data as an **argument**, not as the format string:
 
 ```java
 String userText = "Sale 50%";
 String safe = String.format("%s", userText);
 ```
 
-Nếu dùng `String.format(userText)`, các dấu `%` trong dữ liệu có thể bị hiểu thành ký hiệu điều khiển định dạng và gây lỗi hoặc kết quả không mong muốn. Quy tắc chung: format string do ứng dụng kiểm soát; dữ liệu từ bên ngoài đi vào danh sách đối số.
+If `String.format(userText)` is used, `%` signs in the data may be interpreted as formatting directives and cause errors or unintended output. General rule: the application controls the format string; external data goes into the argument list.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-Hãy dự đoán nội dung chính xác giữa hai ký tự `|`:
+Predict the exact content between the two `|` characters:
 
-| Biểu thức (với `Locale.US` nếu có số) | Kết quả |
+| Expression (with `Locale.US` when numbers appear) | Result |
 | --- | --- |
 | `String.format("\|%6s\|", "Hi")` | `\|    Hi\|` |
 | `String.format("\|%-6s\|", "Hi")` | `\|Hi    \|` |
@@ -381,16 +381,16 @@ Hãy dự đoán nội dung chính xác giữa hai ký tự `|`:
 | `String.format(Locale.US, "\|%,10d\|", 123456)` | `\|   123,456\|` |
 | `String.format(Locale.US, "\|%,10.2f\|", 1234.5)` | `\|  1,234.50\|` |
 
-Các dấu `\|` chỉ dùng để biểu diễn ranh giới trong bảng Markdown. Khi viết **mã Java thực tế**, dùng ký tự `|` trực tiếp trong chuỗi Java như `"|%6s|"`; dấu `\` trước `|` ở bảng chỉ để Markdown không tách nhầm cột.
+The `\|` markers are only used to show boundaries in the Markdown table. When writing **actual Java code**, use the `|` character directly inside Java strings like `"|%6s|"`; the `\` before `|` in the table just prevents Markdown from splitting columns accidentally.
 
-Thử sửa `width` từ 10 thành 4, thay số `123456` thành `123456789`, rồi chạy lại. Quan sát vì sao kết quả có thể vượt width mà không mất chữ số. Tiếp theo, thử đổi `Locale.US` thành `Locale.GERMANY` và kiểm tra dấu phân nhóm đã thay đổi ra sao.
+Try changing `width` from 10 to 4, replacing `123456` with `123456789`, and running again. Observe why the result can exceed width without losing digits. Next, try changing `Locale.US` to `Locale.GERMANY` and verify how the grouping separator changes.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-- `%10s`, `%8d`: **căn phải** trong trường có chiều rộng tối thiểu; mặc định đệm khoảng trắng bên trái.
-- `%-10s`, `%-8d`: **căn trái**; đệm khoảng trắng bên phải.
-- `%08d`: **đệm số không**, thường dùng cho giá trị số có biểu diễn độ rộng cố định.
-- `%,d`: **phân nhóm chữ số**; ký tự phân nhóm thực tế do `Locale` quyết định.
-- `%,12d`, `%0,12d`, `%,15.2f`: có thể kết hợp grouping với width, đệm hoặc precision nếu conversion hỗ trợ.
-- `width` là **độ rộng tối thiểu, không cắt nội dung**; `precision` có ý nghĩa khác nhau giữa `%s` và `%f`.
-- Truyền `Locale` tường minh khi đầu ra cần ổn định. Dùng `%n` để xuống dòng và `%%` để in dấu phần trăm literal.
+- `%10s`, `%8d`: **right-aligned** in a field with minimum width; defaults to left space padding.
+- `%-10s`, `%-8d`: **left-aligned**; right space padding.
+- `%08d`: **zero-padded**, commonly used for numeric values with fixed-width representation.
+- `%,d`: **digit grouping**; the actual grouping character is determined by `Locale`.
+- `%,12d`, `%0,12d`, `%,15.2f`: grouping can be combined with width, padding, or precision if supported by the conversion.
+- `width` is the **minimum width, not truncation**; `precision` has different meanings between `%s` and `%f`.
+- Pass `Locale` explicitly when output must be consistent. Use `%n` for newlines and `%%` to print a literal percent sign.

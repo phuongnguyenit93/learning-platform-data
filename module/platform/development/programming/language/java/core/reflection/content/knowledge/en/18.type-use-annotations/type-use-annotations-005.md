@@ -1,38 +1,38 @@
-# AnnotatedWildcardType và annotation trên bound trong Java Reflection
+# AnnotatedWildcardType and Bound Annotations in Java Reflection
 
-## 1. Bối cảnh: annotation có thể nằm ngay trên dấu `?` hoặc trên bound
+## 1. Context: annotations can appear directly on `?` or on its bound
 
-Trong Java, wildcard là đối số kiểu dùng trong generic, chẳng hạn `List<?>`, `List<? extends Number>` và `List<? super Integer>`. Từ Java 8, annotation có `@Target(ElementType.TYPE_USE)` có thể xuất hiện **tại những vị trí sử dụng kiểu** (type use), bao gồm wildcard và kiểu của bound.
+In Java, a wildcard is a type argument used in generics, such as `List<?>`, `List<? extends Number>`, and `List<? super Integer>`. Since Java 8, an annotation with `@Target(ElementType.TYPE_USE)` can appear **at type-use positions**, including the wildcard and the bound type.
 
-Hai vị trí khác nhau:
+Two distinct positions:
 
 ```java
 List<@Mark("wildcard") ? extends @Mark("bound") Number> values;
 ```
 
-- `@Mark("wildcard")` nằm **trên chính wildcard `?`**.
-- `@Mark("bound")` nằm **trên kiểu `Number`** sau từ khóa `extends`.
+- `@Mark("wildcard")` sits **on the wildcard `?` itself**.
+- `@Mark("bound")` sits **on the `Number` type** after the `extends` keyword.
 
-Hai annotation này không thay thế nhau, dù cùng xuất hiện trong một khai báo generic. Khi dùng Reflection:
+These two annotations do not replace each other, even though both appear in one generic declaration. When using Reflection:
 
-- `AnnotatedWildcardType.getAnnotation(Mark.class)` đọc annotation gắn với `?`.
-- `AnnotatedWildcardType.getAnnotatedUpperBounds()[0].getAnnotation(Mark.class)` đọc annotation gắn với upper bound `Number`.
+- `AnnotatedWildcardType.getAnnotation(Mark.class)` reads the annotation attached to `?`.
+- `AnnotatedWildcardType.getAnnotatedUpperBounds()[0].getAnnotation(Mark.class)` reads the annotation attached to the upper bound `Number`.
 
-Nếu chỉ lấy `WildcardType` qua `Field.getGenericType()` rồi gọi `getUpperBounds()`, bạn quan sát được **kiểu của bound**, nhưng **không đọc được annotation type-use của bound** bằng API `Type` thuần. Muốn giữ thông tin annotation theo vị trí, cần nhánh `AnnotatedType` và các interface con.
+If you only obtain `WildcardType` via `Field.getGenericType()` and call `getUpperBounds()`, you observe **the bound's type**, but **you cannot read the bound's type-use annotation** using the plain `Type` API. To preserve annotation metadata by position, you need the `AnnotatedType` branch and its subinterfaces.
 
-**Mục tiêu:** hiểu `AnnotatedWildcardType`, truy cập annotation ở wildcard/upper bound/lower bound, trường hợp bound ngầm định, duyệt generic lồng nhau và các giới hạn của metadata runtime trong Java 17+.
+**Goal:** understand `AnnotatedWildcardType`, accessing annotations on wildcards/upper bounds/lower bounds, implicit bound cases, traversing nested generics, and the limits of runtime metadata in Java 17+.
 
-## 2. Wildcard và bound theo ngôn ngữ Java
+## 2. Wildcards and bounds in the Java language
 
-Ba hình thức thường gặp:
+Three common forms:
 
-| Viết trong Java | Upper bound | Lower bound | Ý nghĩa kiểu |
+| Written in Java | Upper bound | Lower bound | Type meaning |
 | --- | --- | --- | --- |
-| `?` | `Object` ngầm định | Không có lower bound tường minh | Wildcard không giới hạn tường minh |
-| `? extends Number` | `Number` tường minh | Không có lower bound tường minh | Đối số kiểu chưa biết, bị chặn trên bởi `Number` |
-| `? super Integer` | `Object` ngầm định | `Integer` tường minh | Đối số kiểu chưa biết, bị chặn dưới bởi `Integer` |
+| `?` | Implicit `Object` | No explicit lower bound | Unbounded wildcard (explicitly) |
+| `? extends Number` | Explicit `Number` | No explicit lower bound | Unknown type argument, upper-bounded by `Number` |
+| `? super Integer` | Implicit `Object` | Explicit `Integer` | Unknown type argument, lower-bounded by `Integer` |
 
-Ví dụ về annotation tại từng vị trí:
+Examples of annotations at each position:
 
 ```java
 List<@Mark("any") ?> any;
@@ -41,33 +41,33 @@ List<@Mark("wild") ? super @Mark("lower") Integer> lower;
 List<? extends @Mark("onlyUpper") Number> onlyUpper;
 ```
 
-Các ví dụ là **khai báo field minh họa**; `Mark` cần được định nghĩa với `TYPE_USE` và `RUNTIME` như trong ví dụ đầy đủ ở mục 5.
+These examples are **illustrative field declarations**; `Mark` must be defined with `TYPE_USE` and `RUNTIME` as in the complete example in section 5.
 
-Hãy chú ý cú pháp:
+Pay attention to the syntax:
 
-- `@Mark("wild") ?`: annotation ở **wildcard node**.
-- `? extends @Mark("upper") Number`: annotation ở **upper-bound type node**.
-- `? super @Mark("lower") Integer`: annotation ở **lower-bound type node**.
-- `?` không có bound tường minh nhưng theo Reflection vẫn có upper bound là `Object` không được annotate.
+- `@Mark("wild") ?`: annotation on **the wildcard node**.
+- `? extends @Mark("upper") Number`: annotation on **the upper-bound type node**.
+- `? super @Mark("lower") Integer`: annotation on **the lower-bound type node**.
+- `?` has no explicit bound, yet per Reflection it still has an unannotated upper bound of `Object`.
 
-Với cú pháp wildcard Java hiện nay, một wildcard không vừa có `extends` vừa có `super`, và không viết được một intersection bound dạng `? extends A & B` trong Java source. Tuy nhiên, các phương thức Reflection trả về **mảng** các bound; mã xử lý nên duyệt mảng thay vì tự giả định mọi runtime chỉ có phần tử [0].
+Under current Java wildcard syntax, a wildcard cannot have both `extends` and `super`, and you cannot write an intersection bound like `? extends A & B` in Java source. However, the Reflection methods return **arrays** of bounds; processing code should iterate the array instead of assuming every runtime has only index `[0]`.
 
-## 3. `AnnotatedWildcardType` nằm ở đâu trong Reflection?
+## 3. Where does `AnnotatedWildcardType` sit in Reflection?
 
-`java.lang.reflect.AnnotatedWildcardType` là interface mở rộng `AnnotatedType` (từ Java 8), đại diện cho wildcard type argument có thể được annotate; các upper/lower bounds cũng có thể mang annotation.
+`java.lang.reflect.AnnotatedWildcardType` is an interface extending `AnnotatedType` (since Java 8), representing a wildcard type argument that may be annotated; upper/lower bounds may also carry annotations.
 
-Các API chính:
+Primary APIs:
 
-| API | Trả về | Điều cần nhớ |
+| API | Returns | What to remember |
 | --- | --- | --- |
-| `AnnotatedWildcardType.getType()` | `Type` (thường là `WildcardType`) | Cho hình dạng generic, không phải nơi đọc annotation trên bound |
-| `getAnnotations()` | `Annotation[]` | Annotation ở chính node wildcard |
-| `getAnnotation(Mark.class)` | `Mark` hoặc `null` | Trực tiếp hỏi marker tại wildcard |
-| `getAnnotatedUpperBounds()` | `AnnotatedType[]` | Bound phía trên **có thể có annotation riêng** |
-| `getAnnotatedLowerBounds()` | `AnnotatedType[]` | Bound phía dưới **có thể có annotation riêng** |
-| `getAnnotatedOwnerType()` | `null` với wildcard | Không phải API để truy cập upper/lower bound |
+| `AnnotatedWildcardType.getType()` | `Type` (usually `WildcardType`) | Gives the generic shape, not the place to read bound annotations |
+| `getAnnotations()` | `Annotation[]` | Annotations on the wildcard node itself |
+| `getAnnotation(Mark.class)` | `Mark` or `null` | Directly queries the marker on the wildcard |
+| `getAnnotatedUpperBounds()` | `AnnotatedType[]` | Upper bounds **which may have their own annotations** |
+| `getAnnotatedLowerBounds()` | `AnnotatedType[]` | Lower bounds **which may have their own annotations** |
+| `getAnnotatedOwnerType()` | `null` for wildcards | Not an API for accessing upper/lower bounds |
 
-`AnnotatedWildcardType` thuộc nhánh **annotated**. Nó khác `java.lang.reflect.WildcardType`:
+`AnnotatedWildcardType` belongs to the **annotated** branch. It differs from `java.lang.reflect.WildcardType`:
 
 ```java
 WildcardType wildcard = (WildcardType) annotatedWildcard.getType();
@@ -80,23 +80,23 @@ AnnotatedType[] annotatedLower =
         annotatedWildcard.getAnnotatedLowerBounds();
 ```
 
-Đây là **đoạn minh họa**: cần import `java.lang.reflect.*` và có biến `annotatedWildcard` đã được xác định.
+This is an **illustrative snippet**: it requires `import java.lang.reflect.*` and an already defined `annotatedWildcard` variable.
 
-- `WildcardType.getUpperBounds()` và `getLowerBounds()` trả kiểu generic thuần (`Type`), ví dụ `Number.class` hoặc `Integer.class`.
-- `AnnotatedWildcardType.getAnnotatedUpperBounds()` và `getAnnotatedLowerBounds()` trả `AnnotatedType`, vừa chứa kiểu, vừa cho phép đọc annotation tại vị trí type-use của bound.
-- `AnnotatedType.getType()` của bound cho kiểu liên quan; `AnnotatedType.getAnnotation(...)` cho annotation gắn **đúng bound đó**.
+- `WildcardType.getUpperBounds()` and `getLowerBounds()` return plain generic types (`Type`), such as `Number.class` or `Integer.class`.
+- `AnnotatedWildcardType.getAnnotatedUpperBounds()` and `getAnnotatedLowerBounds()` return `AnnotatedType`, which both hold the type and allow reading annotations at the bound's type-use position.
+- `AnnotatedType.getType()` on the bound gives the associated type; `AnnotatedType.getAnnotation(...)` gives the annotation attached **to that specific bound**.
 
-Nếu cần annotation ở wildcard **lẫn** annotation ở bound, không được chọn một trong hai loại metadata rồi bỏ loại kia.
+If you need **both** the annotation on the wildcard **and** the annotation on the bound, you must not pick one kind of metadata and ignore the other.
 
-## 4. Đi tới wildcard đúng cách từ Field, Method, Parameter
+## 4. Reaching a wildcard properly from Field, Method, Parameter
 
-Giả sử có field:
+Suppose there is a field:
 
 ```java
 List<@Mark("wildcard") ? extends @Mark("bound") Number> numbers;
 ```
 
-Đường đi từ field tới type annotation:
+Path from the field to the type annotations:
 
 ```text
 Field numbers
@@ -110,13 +110,13 @@ Field numbers
                  └── getAnnotatedLowerBounds()       -> empty
 ```
 
-Dưới đây là các bước Reflection đúng cấu trúc:
+Below are the properly structured Reflection steps:
 
 ```java
 Field field = Sample.class.getDeclaredField("numbers");
 
-// Không phải (AnnotatedWildcardType) field.getAnnotatedType():
-// field là List<...>, lớp ngoài cùng là parameterized type.
+// Not (AnnotatedWildcardType) field.getAnnotatedType():
+// field is List<...>, the outermost layer is a parameterized type.
 AnnotatedParameterizedType listType =
         (AnnotatedParameterizedType) field.getAnnotatedType();
 
@@ -128,23 +128,23 @@ AnnotatedType bound = wildcard.getAnnotatedUpperBounds()[0];
 Mark boundMark = bound.getAnnotation(Mark.class);
 ```
 
-Đoạn trên chỉ minh họa và cần khai báo `Sample.numbers`, định nghĩa `Mark`, các import `java.lang.reflect.*` và xử lý checked exceptions. Mã hoàn chỉnh chạy được nằm ở mục 5.
+The snippet above is illustrative only and requires declaring `Sample.numbers`, defining `Mark`, `import java.lang.reflect.*`, and handling checked exceptions. The complete runnable code is in section 5.
 
-**Vì sao phải qua `AnnotatedParameterizedType` trước?** Bởi vì kiểu ngoài cùng là `List<...>`. Một đối số kiểu của `List` mới là wildcard `?`. Ép trực tiếp `field.getAnnotatedType()` thành `AnnotatedWildcardType` sẽ gây `ClassCastException`.
+**Why must we go through `AnnotatedParameterizedType` first?** Because the outermost type is `List<...>`. It is a type argument of `List` that is the wildcard `?`. Casting `field.getAnnotatedType()` directly to `AnnotatedWildcardType` will cause a `ClassCastException`.
 
-Các điểm xuất phát khác, tùy wildcard xuất hiện ở đâu:
+Other starting points, depending on where the wildcard appears:
 
 - **Field:** `Field.getAnnotatedType()`.
-- **Tham số method/constructor:** `Parameter.getAnnotatedType()` hoặc `Executable.getAnnotatedParameterTypes()`.
-- **Kiểu trả về method:** `Method.getAnnotatedReturnType()`.
-- **Superclass/interface generic có annotation:** `Class.getAnnotatedSuperclass()` và `Class.getAnnotatedInterfaces()`.
-- **Ngoại lệ ở throws clause:** `Executable.getAnnotatedExceptionTypes()` khi cần.
+- **Method/constructor parameter:** `Parameter.getAnnotatedType()` or `Executable.getAnnotatedParameterTypes()`.
+- **Method return type:** `Method.getAnnotatedReturnType()`.
+- **Annotated generic superclass/interface:** `Class.getAnnotatedSuperclass()` and `Class.getAnnotatedInterfaces()`.
+- **Exceptions in a throws clause:** `Executable.getAnnotatedExceptionTypes()` when needed.
 
-Ở mỗi nhánh, tiếp tục dựa vào kiểu interface **thực** của `AnnotatedType`: `AnnotatedParameterizedType`, `AnnotatedWildcardType`, `AnnotatedArrayType` hoặc `AnnotatedTypeVariable`. Không giả định cấu trúc mọi khai báo giống nhau.
+On each branch, continue based on the **actual** interface type of `AnnotatedType`: `AnnotatedParameterizedType`, `AnnotatedWildcardType`, `AnnotatedArrayType`, or `AnnotatedTypeVariable`. Do not assume every declaration shares the same structure.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: wildcard, extends, super và generic lồng nhau
+## 5. Complete Java 17+ example: wildcards, extends, super, and nested generics
 
-Lưu tệp **`AnnotatedWildcardDemo.java`**:
+Save the file **`AnnotatedWildcardDemo.java`**:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -238,14 +238,14 @@ public class AnnotatedWildcardDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac AnnotatedWildcardDemo.java
 java AnnotatedWildcardDemo
 ```
 
-**Stdout mong đợi:**
+**Expected stdout:**
 
 ```text
 producers wildcard=question
@@ -265,19 +265,19 @@ nested wildcard=nestedW
 nested upper=java.lang.Number mark=nestedUpper
 ```
 
-### Giải thích kết quả
+### Explaining the results
 
-1. Với `producers`, annotation `question` nằm trên wildcard; `upper` nằm trên `Number`. `getAnnotatedUpperBounds()` có `Number`, không có lower bound tường minh.
-2. Với `consumers`, lower bound `Integer` mang `lower`. Upper bound mặc định là `Object` không annotate, mặc dù khai báo dùng `super`.
-3. Với `unknown`, wildcard vẫn có upper bound mặc định `Object`; `getAnnotatedLowerBounds()` trả mảng rỗng.
-4. Với `onlyBound`, wildcard không có annotation riêng, nên helper `mark(wildcard)` in `-`. Nhưng bound `Number` có annotation `onlyUpper`, chứng tỏ vị trí annotation phải được đọc độc lập.
-5. Với `nested`, kiểu ngoài cùng là `Map`. Đối số thứ hai là `List<...>`, và đối số đầu của `List` mới là wildcard. Cần **hai lần** qua `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` để tìm đến wildcard và bound cần đọc.
+1. For `producers`, the `question` annotation sits on the wildcard; `upper` sits on `Number`. `getAnnotatedUpperBounds()` contains `Number`, with no explicit lower bound.
+2. For `consumers`, the lower bound `Integer` carries `lower`. The default upper bound is unannotated `Object`, even though the declaration uses `super`.
+3. For `unknown`, the wildcard still has the default upper bound `Object`; `getAnnotatedLowerBounds()` returns an empty array.
+4. For `onlyBound`, the wildcard has no annotation of its own, so the helper `mark(wildcard)` prints `-`. Yet the bound `Number` carries `onlyUpper`, demonstrating that annotation positions must be read independently.
+5. For `nested`, the outermost type is `Map`. The second argument is `List<...>`, and the first argument of `List` is the wildcard. It takes **two steps** through `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` to reach the wildcard and the bound to inspect.
 
-Các field được khai báo để phục vụ phân tích kiểu; chúng không cần được khởi tạo thành `List` hay `Map` thực. Reflection ở đây đọc metadata của *declaration*, không đọc phần tử của một collection runtime.
+The fields are declared solely for type inspection; they do not need to be initialized to actual `List` or `Map` instances. Reflection here reads metadata of the *declaration*, not elements of a runtime collection.
 
-### Nếu chỉ có `WildcardType` thì sao?
+### What if you only have `WildcardType`?
 
-Một đoạn như:
+A snippet like:
 
 ```java
 Field f = AnnotatedWildcardDemo.class
@@ -293,24 +293,24 @@ java.lang.reflect.WildcardType w =
 System.out.println(w.getUpperBounds()[0].getTypeName());
 ```
 
-sẽ cho `java.lang.Number` nhưng **không giữ annotation `@Mark("upper")` ngay trên `Type` này**. Để đọc annotation ở upper bound, đi theo `Field.getAnnotatedType()` như ví dụ chạy được ở trên.
+will give `java.lang.Number`, but **does not preserve the `@Mark("upper")` annotation on this `Type`**. To read the annotation on the upper bound, follow `Field.getAnnotatedType()` as in the runnable example above.
 
-Đoạn mã này chỉ minh họa Reflection generic thuần, giả định tên class và field đã được định nghĩa theo ví dụ trước; cần chạy trong method có xử lý `NoSuchFieldException`.
+This snippet illustrates plain generic Reflection only, assuming the class name and field are defined as in the earlier example; it must run inside a method handling `NoSuchFieldException`.
 
-## 6. Quy tắc upper/lower bound ngầm định
+## 6. Implicit upper/lower bound rules
 
-### `?` không có giới hạn tường minh
+### Unbounded `?`
 
 ```java
 List<?> values;
 ```
 
-Đối với wildcard này:
+For this wildcard:
 
-- `getAnnotatedUpperBounds()` trả upper bound `Object` **không mang annotation**, do Java không viết upper bound tường minh.
-- `getAnnotatedLowerBounds()` trả mảng độ dài `0`.
+- `getAnnotatedUpperBounds()` returns an **unannotated** `Object` upper bound, since Java wrote no explicit upper bound.
+- `getAnnotatedLowerBounds()` returns an array of length `0`.
 
-Đừng hiểu mảng lower rỗng là “không tồn tại quan hệ kiểu”; nó chỉ nói **không có lower bound được khai báo tường minh**. Tương tự, sự xuất hiện của `Object` **không chứng minh mã nguồn đã viết `extends Object`**.
+Do not interpret an empty lower array as "no type relationship exists"; it only states **no lower bound was explicitly declared**. Likewise, the appearance of `Object` **does not prove the source code literally wrote `extends Object`**.
 
 ### `? extends Number`
 
@@ -318,9 +318,9 @@ List<?> values;
 List<? extends @Mark("limit") Number> values;
 ```
 
-- Upper bound là `Number`, với annotation `limit`.
-- Lower bounds rỗng.
-- Wildcard bản thân có thể không có annotation nào.
+- The upper bound is `Number`, with annotation `limit`.
+- Lower bounds are empty.
+- The wildcard itself may have no annotations.
 
 ### `? super Integer`
 
@@ -328,17 +328,17 @@ List<? extends @Mark("limit") Number> values;
 List<? super @Mark("floor") Integer> values;
 ```
 
-- Lower bound là `Integer`, với annotation `floor`.
-- Upper bound phản ánh mặc định là `Object` (không annotate).
-- `getAnnotatedUpperBounds().length` không nên bị hiểu là `0` chỉ vì khai báo sử dụng `super`.
+- The lower bound is `Integer`, with annotation `floor`.
+- The upper bound reflects the default `Object` (unannotated).
+- `getAnnotatedUpperBounds().length` should not be assumed to be `0` just because the declaration uses `super`.
 
-### Tránh khẳng định mọi array đều chỉ có một phần tử
+### Avoid assuming every array has only one element
 
-Theo tài liệu Java, hiện tại wildcard source có tối đa một upper bound hoặc một lower bound tường minh, nhưng API vẫn sử dụng `AnnotatedType[]` và lưu ý caller nên sẵn sàng tiếp nhận nhiều bound ở tương lai. Duyệt với vòng `for` sẽ rõ ràng và bền hơn so với ép luôn `[0]`. Chỉ dùng `[0]` khi bạn vừa kiểm tra độ dài hoặc chủ động làm ví dụ cho cú pháp Java cụ thể.
+According to Java documentation, wildcard source currently has at most one explicit upper bound or one explicit lower bound, yet the API still uses `AnnotatedType[]` and notes that callers should be prepared for multiple bounds in the future. Iterating with a `for` loop is cleaner and more resilient than always indexing `[0]`. Only use `[0]` right after checking the length or when deliberately illustrating specific Java syntax.
 
-## 7. Annotation trên wildcard không phải annotation trên field
+## 7. An annotation on a wildcard is not an annotation on the field
 
-Xét một trường hợp có hai `@Target`:
+Consider a case with two `@Target` values:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -360,49 +360,49 @@ class Record {
 }
 ```
 
-Đây là **mảnh mã minh họa**; để biên dịch độc lập cần các import từ `java.lang.annotation` và `java.util.List`.
+This is an **illustrative snippet**; compiling standalone requires imports from `java.lang.annotation` and `java.util.List`.
 
-Các vị trí đọc khác nhau:
+The different read locations:
 
-| Vị trí annotation | API chính |
+| Annotation location | Primary API |
 | --- | --- |
-| `@ColumnInfo` trên declaration của field `scores` | `Field.getAnnotation(ColumnInfo.class)` |
-| `@TypeInfo("wild")` trên dấu `?` | `AnnotatedWildcardType.getAnnotation(TypeInfo.class)` |
-| `@TypeInfo("bound")` trên `Number` | `getAnnotatedUpperBounds()[0].getAnnotation(TypeInfo.class)` |
+| `@ColumnInfo` on declaration of field `scores` | `Field.getAnnotation(ColumnInfo.class)` |
+| `@TypeInfo("wild")` on `?` | `AnnotatedWildcardType.getAnnotation(TypeInfo.class)` |
+| `@TypeInfo("bound")` on `Number` | `getAnnotatedUpperBounds()[0].getAnnotation(TypeInfo.class)` |
 
-Không dùng `field.getAnnotations()` rồi kỳ vọng nó trả annotation type-use ở wildcard hoặc bound. Những annotation đó thuộc **các vị trí con trong cây kiểu đã annotate**, không phải cùng node với declaration của field.
+Do not use `field.getAnnotations()` expecting it to return type-use annotations on wildcards or bounds. Those annotations belong to **child positions in the annotated type tree**, not the same node as the field declaration.
 
-Tương tự, `AnnotatedParameterizedType.getAnnotations()` trên node `List<...>` không tự “thu gom” mọi annotation nằm sâu ở `?` hay bound. Muốn lấy toàn bộ, phải duyệt cây kiểu.
+Similarly, `AnnotatedParameterizedType.getAnnotations()` on the `List<...>` node does not automatically "gather" annotations sitting deeper on `?` or bounds. To retrieve all of them, you must traverse the type tree.
 
-## 8. Bound là kiểu parameterized, array hoặc type variable
+## 8. When the bound is a parameterized type, array, or type variable
 
-`AnnotatedType` của bound không nhất thiết chỉ đại diện cho `Class<?>` đơn giản.
+The bound's `AnnotatedType` does not necessarily represent just a simple `Class<?>`.
 
-### Bound chứa generic lồng nhau
+### Bound containing nested generics
 
 ```java
 List<? extends @Mark("boundList")
         List<@Mark("element") String>> nestedBound;
 ```
 
-Đây là khai báo field minh họa có ý nghĩa type-use. Trong Reflection, upper bound của wildcard là một `AnnotatedParameterizedType` đại diện `List<String>`:
+This is an illustrative field declaration with type-use semantics. In Reflection, the wildcard's upper bound is an `AnnotatedParameterizedType` representing `List<String>`:
 
-1. `AnnotatedWildcardType.getAnnotatedUpperBounds()[0]` lấy node bound.
-2. `bound.getAnnotation(Mark.class)` có thể cho `boundList`.
-3. Ép bound thành `AnnotatedParameterizedType` rồi gọi `getAnnotatedActualTypeArguments()[0]` để lấy node `String`.
-4. `getAnnotation(Mark.class)` trên node `String` cho `element`.
+1. `AnnotatedWildcardType.getAnnotatedUpperBounds()[0]` gets the bound node.
+2. `bound.getAnnotation(Mark.class)` can yield `boundList`.
+3. Cast the bound to `AnnotatedParameterizedType` and call `getAnnotatedActualTypeArguments()[0]` to get the `String` node.
+4. `getAnnotation(Mark.class)` on the `String` node yields `element`.
 
-Chỉ hỏi `bound.getAnnotations()` mà bỏ qua các actual type arguments sẽ bỏ sót annotation sâu hơn.
+Querying only `bound.getAnnotations()` while skipping actual type arguments will miss deeper annotations.
 
-### Bound là kiểu mảng
+### Bound is an array type
 
 ```java
 List<? extends @Mark("element") Number[]> arrayBound;
 ```
 
-Đọc kiểu array cần xem đúng vị trí annotation trên component và dimension; `AnnotatedArrayType.getAnnotatedGenericComponentType()` giúp đi vào kiểu phần tử hoặc dimension bên trong theo cấu trúc Reflection. Ví dụ annotation trên `Number` và annotation trên dấu ngoặc mảng `Number @Mark("dimension") []` là **hai vị trí type-use khác nhau**. Không nên kết luận vị trí chỉ bằng `toString()` của `Type`.
+Reading array types requires inspecting the exact annotation positions on the component and dimension; `AnnotatedArrayType.getAnnotatedGenericComponentType()` steps into the inner element type or dimension according to Reflection's structure. For example, an annotation on `Number` and an annotation on the array brackets `Number @Mark("dimension") []` are **two different type-use positions**. Do not infer the position merely from `Type.toString()`.
 
-### Bound là type variable
+### Bound is a type variable
 
 ```java
 class Catalog<T extends Number> {
@@ -410,18 +410,18 @@ class Catalog<T extends Number> {
 }
 ```
 
-Upper bound của wildcard này là kiểu biến `T`. Nếu cần xem *ràng buộc khai báo của T* (ví dụ `T extends Number`), tiếp tục khảo sát `AnnotatedTypeVariable.getAnnotatedBounds()` khi có thông tin liên quan.
+The upper bound of this wildcard is the type variable `T`. If you need to inspect *the declared bounds of `T`* (such as `T extends Number`), continue inspecting `AnnotatedTypeVariable.getAnnotatedBounds()` when relevant metadata is present.
 
-Phân biệt:
+Distinction:
 
-- **Bound của wildcard:** `? extends T` — dùng `AnnotatedWildcardType.getAnnotatedUpperBounds()`.
-- **Bound khai báo của type variable:** `T extends Number` — dùng `TypeVariable.getAnnotatedBounds()` hoặc `AnnotatedTypeVariable.getAnnotatedBounds()` từ góc nhìn annotated type variable.
+- **Wildcard bound:** `? extends T` — use `AnnotatedWildcardType.getAnnotatedUpperBounds()`.
+- **Type variable's declared bound:** `T extends Number` — use `TypeVariable.getAnnotatedBounds()` or `AnnotatedTypeVariable.getAnnotatedBounds()` from the annotated type variable view.
 
-Hai cấp bound không phải cùng một node. Với loại recursive bounds (ví dụ `T extends Comparable<T>`), khi viết thuật toán duyệt đệ quy tổng quát phải tránh vòng lặp vô hạn bằng cách theo dõi node/type đã thăm.
+The two bound levels are not the same node. For recursive bounds (e.g., `T extends Comparable<T>`), when writing a general recursive traversal algorithm you must avoid infinite loops by tracking visited nodes/types.
 
-## 9. Ví dụ đọc wildcard tại method parameter và return type
+## 9. Example reading wildcards on method parameters and return types
 
-Các API không bị giới hạn ở field. Ví dụ:
+The APIs are not limited to fields. Example:
 
 ```java
 class Service {
@@ -436,9 +436,9 @@ class Service {
 }
 ```
 
-Đây là đoạn minh họa bổ sung, dùng annotation `Mark` ở mục 5.
+This is an additional illustrative snippet using the `Mark` annotation from section 5.
 
-Với method `find`:
+For method `find`:
 
 ```java
 Method method = Service.class.getDeclaredMethod("find");
@@ -450,7 +450,7 @@ AnnotatedWildcardType wildcard =
 AnnotatedType bound = wildcard.getAnnotatedUpperBounds()[0];
 ```
 
-Với method `accept`:
+For method `accept`:
 
 ```java
 Method method = Service.class
@@ -464,13 +464,13 @@ AnnotatedWildcardType wildcard =
 AnnotatedType bound = wildcard.getAnnotatedLowerBounds()[0];
 ```
 
-Cần `import java.lang.reflect.*;` và xử lý `NoSuchMethodException`. Ví dụ đầy đủ runnable ở mục 5 đã trình bày các bước tương tự trên field.
+Requires `import java.lang.reflect.*;` and handling `NoSuchMethodException`. The complete runnable example in section 5 demonstrates the same steps on fields.
 
-Điều này minh họa rằng `getAnnotatedReturnType()` và `Parameter.getAnnotatedType()` là **cổng vào cấu trúc annotated type**, còn `getAnnotatedUpperBounds()/getAnnotatedLowerBounds()` chỉ xuất hiện sau khi tìm được node wildcard.
+This illustrates that `getAnnotatedReturnType()` and `Parameter.getAnnotatedType()` are **entry points into the annotated type structure**, while `getAnnotatedUpperBounds()/getAnnotatedLowerBounds()` appear only after locating the wildcard node.
 
-## 10. Giới hạn metadata: không phải annotation nào cũng đọc được bằng Reflection
+## 10. Metadata limits: not every annotation is readable via Reflection
 
-Muốn type-use annotation có thể đọc ở runtime, khai báo thông thường cần:
+For a type-use annotation to be readable at runtime, a typical declaration needs:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -480,102 +480,102 @@ Muốn type-use annotation có thể đọc ở runtime, khai báo thông thư�
 }
 ```
 
-Nếu không khai báo `@Retention`, mặc định là `RetentionPolicy.CLASS`: annotation có thể được compiler lưu trong class file nhưng **không được API core Reflection trả về như annotation runtime**. Với `RetentionPolicy.SOURCE`, annotation thường bị loại bỏ trước khi tạo class file. Nếu một thư viện sửa hoặc làm mờ bytecode, thông tin có thể bị thay đổi.
+If `@Retention` is omitted, the default is `RetentionPolicy.CLASS`: the annotation may be stored by the compiler in the class file, yet **is not returned by core Reflection APIs as a runtime annotation**. With `RetentionPolicy.SOURCE`, the annotation is normally discarded before the class file is produced. If a library modifies or obfuscates bytecode, the metadata may also be altered.
 
-Không được hiểu việc `getAnnotation(Mark.class) == null` là chắc chắn trong source không từng có annotation: có thể do retention, metadata bị bỏ, vị trí tra cứu sai, loại `@Target` không phù hợp, hoặc annotation class không khả dụng.
+Never interpret `getAnnotation(Mark.class) == null` as proof that the source never had an annotation: it could be due to retention, stripped metadata, querying the wrong position, an incompatible `@Target`, or the annotation class being unavailable.
 
-### Type erasure và việc đọc generic annotations
+### Type erasure and reading generic annotations
 
-`List<? extends Number>` và `List<? super Integer>` khi chạy đều là đối tượng thuộc kiểu thô `List` ở JVM. Reflection đọc cấu trúc generic từ metadata khai báo như `Signature` và các type annotation attributes liên quan. Các annotation này mô tả **kiểu được khai báo**, không phải annotation runtime của từng phần tử thực tế bên trong một danh sách.
+`List<? extends Number>` and `List<? super Integer>` at runtime are both objects of the raw type `List` in the JVM. Reflection reads generic structure from declaration metadata such as `Signature` and related type annotation attributes. These annotations describe **the declared type**, not runtime annotations of individual actual elements inside a list.
 
-Ví dụ, `List<@Mark ? extends Number>` không có nghĩa mọi `Number` trong list là một đối tượng được gắn `@Mark`; annotation ở đây là thông tin trong **type use của đối số generic**.
+For instance, `List<@Mark ? extends Number>` does not mean every `Number` inside the list is an object annotated with `@Mark`; the annotation here is metadata on **the generic argument's type use**.
 
-Một `java.lang.reflect.Type` thuần có thể nêu đúng generic bound nhưng không thể giữ vị trí annotation; dùng `AnnotatedType` khi câu hỏi là annotation trên kiểu và bound.
+A plain `java.lang.reflect.Type` can report the generic bound accurately, but cannot preserve annotation positions; use `AnnotatedType` when the question concerns annotations on types and bounds.
 
-### Khi class file metadata không đủ
+### When class file metadata is insufficient
 
-Các tình huống có thể gặp:
+Possible situations:
 
-- Generic `Signature` bị loại bỏ hoặc hỏng, khiến việc phân tích type argument không còn đáng tin.
-- Type-use annotation có `CLASS` hoặc `SOURCE` retention, nên API runtime không thấy.
-- Obfuscation hoặc bytecode transformation làm thay đổi metadata.
-- Kiểu tham chiếu trong generic signature không còn tồn tại, có thể phát sinh `TypeNotPresentException` hay ngoại lệ phản ánh phù hợp.
-- Parser cố ép kiểu node sai, ví dụ ép một `AnnotatedArrayType` thành `AnnotatedWildcardType`.
+- The generic `Signature` was stripped or corrupted, making type-argument analysis unreliable.
+- The type-use annotation has `CLASS` or `SOURCE` retention, so runtime APIs do not see it.
+- Obfuscation or bytecode transformation altered the metadata.
+- A referenced type in the generic signature no longer exists, potentially throwing `TypeNotPresentException` or a corresponding reflection exception.
+- A parser attempts to cast to the wrong node kind, e.g., casting an `AnnotatedArrayType` to `AnnotatedWildcardType`.
 
-Trường hợp metadata không tồn tại thì hãy coi dữ liệu là **không xác định** thay vì tự suy ra annotation đã/không đã viết trong source. Cần thông tin trước runtime thì dùng công cụ biên dịch/source AST hoặc class-file reader với mục đích phù hợp.
+When metadata does not exist, treat the data as **unknown** instead of inferring whether an annotation was or was not written in source. If pre-runtime information is needed, use a compiler/source AST tool or class-file reader suited to the purpose.
 
-## 11. Kiểm tra class file bằng `javap`
+## 11. Inspecting the class file with `javap`
 
-Sau khi biên dịch chương trình `AnnotatedWildcardDemo.java` ở mục 5:
+After compiling `AnnotatedWildcardDemo.java` from section 5:
 
 ```bash
 javap -v -p AnnotatedWildcardDemo
 ```
 
-Tìm các phần liên quan:
+Look for the relevant sections:
 
-- `Signature` lưu biểu diễn generic, chẳng hạn wildcard upper/lower type arguments.
-- `RuntimeVisibleTypeAnnotations` lưu type-use annotations có runtime retention và thông tin **type path/target** để chỉ ra vị trí annotation: wildcard, bound, node generic sâu hơn.
-- Một số annotation không có runtime retention có thể được lưu trong `RuntimeInvisibleTypeAnnotations` tùy retention; core Reflection không hiển thị chúng theo cách giống runtime-visible annotations.
+- `Signature` stores generic representations, such as wildcard upper/lower type arguments.
+- `RuntimeVisibleTypeAnnotations` stores type-use annotations with runtime retention along with **type path/target** information indicating the annotation position: wildcard, bound, deeper generic node.
+- Some annotations without runtime retention may be stored in `RuntimeInvisibleTypeAnnotations` depending on retention; core Reflection does not expose them in the same way as runtime-visible annotations.
 
-`javap` hữu ích để đối chiếu vị trí với dữ liệu class file, nhưng không thay thế API `AnnotatedWildcardType` khi bạn viết logic Reflection ở runtime.
+`javap` is useful for cross-checking positions against class-file data, though it does not replace the `AnnotatedWildcardType` API when writing runtime Reflection logic.
 
-Nếu `getAnnotation(...)` không thấy annotation, hãy xác định thật rõ **đang hỏi node nào** trước khi kết luận annotation thiếu: field declaration, `List`, wildcard `?`, upper bound hay lower bound.
+If `getAnnotation(...)` does not find an annotation, identify **precisely which node you are querying** before concluding the annotation is missing: field declaration, `List`, wildcard `?`, upper bound, or lower bound.
 
-## 12. Các lỗi thường gặp
+## 12. Common mistakes
 
-| Sai lầm | Vì sao sai | Cách đúng |
+| Mistake | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| Cast `field.getAnnotatedType()` trực tiếp thành `AnnotatedWildcardType` | Field là `List<...>`, không phải wildcard | Đi qua `AnnotatedParameterizedType` và lấy type argument |
-| Dùng `Field.getGenericType()` để đọc annotation bound | `Type` thuần không mang annotation type-use theo node | Dùng `getAnnotatedType()` |
-| Gọi `wildcard.getAnnotation(Mark.class)` để tìm annotation trên `Number` | Annotation ở bound, không ở dấu `?` | Hỏi `getAnnotatedUpperBounds()[0].getAnnotation(...)` |
-| Với `? super Integer`, giả định upper bounds rỗng | Upper bound ngầm định là `Object` | Kiểm tra upper và lower độc lập |
-| Với `?`, giả định không có bound nào | Upper bound ngầm định vẫn là `Object` | Đọc `getAnnotatedUpperBounds()` |
-| Mọi wildcard đều là đối số số 0 | Map/nested generics có thể có nhiều type arguments | Duyệt đúng cây annotated types |
-| Chỉ duyệt bound một cấp | Bound có thể là `List<@Mark String>` hay array/type variable | Duyệt `AnnotatedParameterizedType`, `AnnotatedArrayType`, `AnnotatedTypeVariable` khi cần |
-| Mong `getAnnotations()` của `Field` chứa annotation trên `?` | Declaration annotation khác type-use annotation | Dùng annotated type APIs |
-| Thiếu `@Retention(RUNTIME)` nhưng đòi Reflection thấy marker | Retention mặc định `CLASS` | Dùng `RUNTIME` khi cần đọc runtime |
-| Coi annotation generic là annotation của object runtime | Thông tin thuộc type use khai báo | Tách metadata khai báo khỏi giá trị runtime |
-| Phụ thuộc `getAnnotatedUpperBounds()[0]` cho mọi hoàn cảnh | API trả mảng; kiểu thực tế có thể khác | Kiểm tra độ dài và duyệt vòng `for` |
-| Coi mọi `AnnotatedType` là `AnnotatedWildcardType` | Hệ phân loại Reflection có nhiều nhánh | Dùng `instanceof` / kiểm tra class trước khi cast |
+| Casting `field.getAnnotatedType()` directly to `AnnotatedWildcardType` | The field is `List<...>`, not a wildcard | Go through `AnnotatedParameterizedType` and get the type argument |
+| Using `Field.getGenericType()` to read bound annotations | Plain `Type` does not carry per-node type-use annotations | Use `getAnnotatedType()` |
+| Calling `wildcard.getAnnotation(Mark.class)` to find an annotation on `Number` | The annotation is on the bound, not on `?` | Query `getAnnotatedUpperBounds()[0].getAnnotation(...)` |
+| For `? super Integer`, assuming upper bounds are empty | The implicit upper bound is `Object` | Check upper and lower independently |
+| For `?`, assuming there are no bounds | The implicit upper bound is still `Object` | Read `getAnnotatedUpperBounds()` |
+| Assuming every wildcard is argument index 0 | Maps/nested generics can have multiple type arguments | Traverse the annotated type tree properly |
+| Traversing bounds only one level deep | A bound can be `List<@Mark String>` or an array/type variable | Traverse `AnnotatedParameterizedType`, `AnnotatedArrayType`, `AnnotatedTypeVariable` as needed |
+| Expecting `Field.getAnnotations()` to contain annotations on `?` | Declaration annotations differ from type-use annotations | Use the annotated type APIs |
+| Omitting `@Retention(RUNTIME)` yet expecting Reflection to see the marker | Default retention is `CLASS` | Use `RUNTIME` when runtime reading is needed |
+| Treating generic annotations as annotations of runtime objects | The metadata belongs to the declared type use | Separate declaration metadata from runtime values |
+| Relying on `getAnnotatedUpperBounds()[0]` in all situations | The API returns an array; actual shapes may vary | Check the length and iterate with a `for` loop |
+| Treating every `AnnotatedType` as `AnnotatedWildcardType` | Reflection's classification has multiple branches | Use `instanceof` / class checks before casting |
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-check exercises
 
-**Câu 1.** Trong `List<@Mark("A") ? extends @Mark("B") Number>`, nơi nào đọc được `A` và `B`?
+**Question 1.** In `List<@Mark("A") ? extends @Mark("B") Number>`, where are `A` and `B` read from?
 
-**Đáp án:** `A` ở `AnnotatedWildcardType.getAnnotation(Mark.class)`; `B` ở `getAnnotatedUpperBounds()[0].getAnnotation(Mark.class)`.
+**Answer:** `A` is at `AnnotatedWildcardType.getAnnotation(Mark.class)`; `B` is at `getAnnotatedUpperBounds()[0].getAnnotation(Mark.class)`.
 
-**Câu 2.** `List<? super @Mark("LOW") Integer>` có upper bound nào ở runtime?
+**Question 2.** What upper bound does `List<? super @Mark("LOW") Integer>` have at runtime?
 
-**Đáp án:** Có upper bound `Object` không annotate, và lower bound `Integer` mang `LOW`.
+**Answer:** It has an unannotated upper bound `Object`, and lower bound `Integer` carrying `LOW`.
 
-**Câu 3.** Tại sao `Field.getAnnotation(Mark.class)` không phải API phù hợp để đọc `@Mark` đặt ngay trên dấu `?`?
+**Question 3.** Why is `Field.getAnnotation(Mark.class)` not the right API to read `@Mark` placed directly on `?`?
 
-**Đáp án:** Vì đó là annotation **type-use** trên wildcard node trong generic signature; nó không trực tiếp annotate declaration của `Field`.
+**Answer:** Because that is a **type-use** annotation on the wildcard node in the generic signature; it does not directly annotate the `Field` declaration.
 
-**Câu 4.** `getAnnotatedLowerBounds().length == 0` cho biết điều gì?
+**Question 4.** What does `getAnnotatedLowerBounds().length == 0` indicate?
 
-**Đáp án:** Không có lower bound **tường minh** trong cách phản ánh wildcard đó. Đừng suy ra wildcard không có upper bound.
+**Answer:** There is no **explicit** lower bound in the reflection of that wildcard. Do not infer that the wildcard has no upper bound.
 
-**Câu 5.** Nếu field là `Map<String, List<? extends Number>>`, có thể cast ngay kết quả `field.getAnnotatedType()` thành `AnnotatedWildcardType` không?
+**Question 5.** If a field is `Map<String, List<? extends Number>>`, can you immediately cast `field.getAnnotatedType()` to `AnnotatedWildcardType`?
 
-**Đáp án:** Không. Đầu tiên là `AnnotatedParameterizedType` của `Map`; type argument thứ hai là `List` cũng là `AnnotatedParameterizedType`; wildcard nằm ở type argument của `List`.
+**Answer:** No. First is `AnnotatedParameterizedType` for `Map`; the second type argument is `List`, also an `AnnotatedParameterizedType`; the wildcard sits at `List`'s type argument.
 
-**Câu 6.** Với `@Retention(CLASS)`, core Reflection có bảo đảm trả annotation ở bound không?
+**Question 6.** With `@Retention(CLASS)`, does core Reflection guarantee returning annotations on bounds?
 
-**Đáp án:** Không. Class file có thể giữ metadata nhưng annotation không có runtime retention để Reflection hiển thị như runtime annotation.
+**Answer:** No. The class file may retain metadata, but the annotation lacks runtime retention for Reflection to expose it as a runtime annotation.
 
-**Câu 7.** Phải chọn `getAnnotatedUpperBounds()` hay `getAnnotatedLowerBounds()` cho `? extends @Mark Number` và `? super @Mark Integer`?
+**Question 7.** Should you choose `getAnnotatedUpperBounds()` or `getAnnotatedLowerBounds()` for `? extends @Mark Number` and `? super @Mark Integer`?
 
-**Đáp án:** `extends` → upper; `super` → lower.
+**Answer:** `extends` → upper; `super` → lower.
 
-## 14. Ghi nhớ
+## 14. Key takeaways
 
-**`AnnotatedWildcardType` mô tả wildcard `?` có thể được annotate, và mỗi bound là một `AnnotatedType` có thể được annotate độc lập.** Để đọc đầy đủ metadata, đi theo đường từ field/method/parameter tới `AnnotatedParameterizedType`, lấy node `AnnotatedWildcardType`, hỏi annotation trên wildcard, rồi duyệt upper/lower bounds. Wildcard không có bound tường minh vẫn có upper bound `Object`; `? super T` cũng có upper bound `Object` và lower bound `T`.
+**`AnnotatedWildcardType` describes a wildcard `?` that may be annotated, and each bound is an `AnnotatedType` that can be annotated independently.** To read complete metadata, follow the path from field/method/parameter to `AnnotatedParameterizedType`, retrieve the `AnnotatedWildcardType` node, query annotations on the wildcard, and then traverse upper/lower bounds. An unbounded wildcard still has an `Object` upper bound; `? super T` likewise has upper bound `Object` and lower bound `T`.
 
-Khi gặp generic lồng nhau, hãy duyệt cây `AnnotatedType` chứ không cố bóc mọi annotation bằng `Type` thuần hay ép kiểu mù quáng. Metadata chỉ đáng tin ở mức runtime nếu retention và class file thực sự giữ các thông tin cần thiết.
+When encountering nested generics, traverse the `AnnotatedType` tree rather than trying to strip annotations out of plain `Type` or casting blindly. Metadata is reliable at runtime only if retention and the class file actually preserve the required information.
 
-**Tài liệu tham khảo chuẩn:**
+**Standard references:**
 
 - [Java SE 17 — `AnnotatedWildcardType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedWildcardType.html)
 - [Java SE 17 — `AnnotatedParameterizedType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedParameterizedType.html)

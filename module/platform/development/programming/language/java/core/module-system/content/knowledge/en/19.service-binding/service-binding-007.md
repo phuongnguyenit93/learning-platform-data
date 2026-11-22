@@ -1,24 +1,24 @@
-# Phân biệt service binding với reflection scan
+# Distinguishing service binding from reflection scanning
 
-## 1. Hai cơ chế giải quyết hai bài toán khác nhau
+## 1. Two mechanisms solving two different problems
 
-Trong Java Module System, **service binding** và **reflection scan** đều có thể giúp ứng dụng tìm implementation ở runtime, nhưng chúng hoạt động theo những quy tắc khác nhau.
+In the Java Module System, **service binding** and **reflection scanning** can both help an application locate implementations at runtime, but they operate according to different rules.
 
-**Service binding** dựa trên hợp đồng service được khai báo rõ ràng. Module tiêu thụ khai báo **uses**, module cung cấp khai báo **provides ... with ...**, còn **ServiceLoader** tìm các provider phù hợp. Khi tạo runtime image, **jlink --bind-services** có thể đưa các module provider cần thiết và phụ thuộc của chúng vào image.
+**Service binding** is based on explicitly declared service contracts. The consuming module declares **uses**, the supplying module declares **provides ... with ...**, and **ServiceLoader** finds matching providers. When creating a runtime image, **jlink --bind-services** can include the required provider modules and their dependencies in the image.
 
-**Reflection scan** là cách một ứng dụng hoặc framework dò tìm class theo package, annotation, tên class hoặc metadata. Framework có thể đọc tài nguyên trong JAR/module, tải class, rồi dùng reflection để kiểm tra annotation, constructor, field hoặc method. Đây là cơ chế khám phá do framework triển khai; JPMS không tự hiểu rằng mọi class có annotation nào đó đều là provider cần đưa vào runtime image.
+**Reflection scanning** is how an application or framework searches for classes by package, annotation, class name, or metadata. A framework may read resources inside JARs/modules, load classes, and then use reflection to inspect annotations, constructors, fields, or methods. This is a discovery mechanism implemented by the framework; JPMS does not automatically know that every class with a certain annotation is a provider that needs to be included in a runtime image.
 
-Vì vậy, hai cơ chế không thay thế nhau:
+Therefore, the two mechanisms do not replace each other:
 
-- Service binding phù hợp khi ứng dụng có một service interface và muốn provider tuân theo hợp đồng được khai báo.
-- Reflection scan phù hợp khi framework cần tìm nhiều loại class theo quy ước, annotation hoặc cấu hình riêng.
-- Một ứng dụng có thể dùng cả hai: ServiceLoader để tìm plugin, reflection để kiểm tra metadata hoặc khởi tạo thành phần sau khi đã tìm thấy.
+- Service binding is suitable when the application has a service interface and wants providers to follow a declared contract.
+- Reflection scanning is suitable when a framework needs to discover many kinds of classes by convention, annotation, or custom configuration.
+- An application can use both: `ServiceLoader` to discover plugins, and reflection to inspect metadata or instantiate components after they are found.
 
-## 2. ServiceLoader và service binding trong JPMS
+## 2. ServiceLoader and service binding in JPMS
 
-Service là một hợp đồng Java, thường được biểu diễn bằng interface hoặc abstract class. Module tiêu thụ biết hợp đồng nhưng không cần phụ thuộc trực tiếp vào từng implementation.
+A service is a Java contract, typically represented by an interface or abstract class. The consuming module knows the contract without needing to depend directly on each implementation.
 
-Ví dụ, module API công khai interface:
+For example, the API module exposes an interface:
 
 ~~~java
 package com.example.spi;
@@ -29,7 +29,7 @@ public interface PaymentProvider {
 }
 ~~~
 
-Module chứa interface xuất package để module khác có thể sử dụng:
+The module containing the interface exports the package so other modules can use it:
 
 ~~~java
 module com.example.payment.api {
@@ -37,7 +37,7 @@ module com.example.payment.api {
 }
 ~~~
 
-Module ứng dụng tiêu thụ service khai báo **uses**:
+The application module consuming the service declares **uses**:
 
 ~~~java
 module com.example.payment.app {
@@ -47,7 +47,7 @@ module com.example.payment.app {
 }
 ~~~
 
-Module provider khai báo implementation bằng **provides ... with ...**:
+The provider module declares its implementation with **provides ... with ...**:
 
 ~~~java
 module com.example.payment.card {
@@ -58,7 +58,7 @@ module com.example.payment.card {
 }
 ~~~
 
-Class provider triển khai interface:
+The provider class implements the interface:
 
 ~~~java
 package com.example.payment.card;
@@ -78,7 +78,7 @@ public class CardPaymentProvider implements PaymentProvider {
 }
 ~~~
 
-Module tiêu thụ có thể tìm provider bằng ServiceLoader:
+The consuming module can locate providers using `ServiceLoader`:
 
 ~~~java
 package com.example.payment.app;
@@ -98,32 +98,32 @@ public class Main {
 }
 ~~~
 
-Trong named module, module gọi **ServiceLoader.load** cần khai báo **uses** cho service. Provider module cần khai báo **provides** cho đúng service type. Module provider cũng phải được tìm thấy và phân giải trong module layer đang sử dụng.
+In named modules, the module calling **ServiceLoader.load** must declare **uses** for the service. The provider module must declare **provides** for the exact service type. The provider module must also be found and resolved in the module layer being used.
 
-ServiceLoader không đi qua mọi package để tìm class có annotation. Nó đọc metadata service đã được khai báo theo quy ước của Java. Nhờ đó, quan hệ giữa service và provider có thể được xác định mà không cần quét toàn bộ classpath.
+`ServiceLoader` does not walk every package looking for classes with annotations. It reads service metadata declared according to Java conventions. As a result, the relationship between service and provider can be determined without scanning the entire classpath.
 
-### Provider trên classpath
+### Providers on the classpath
 
-Ứng dụng chưa modular vẫn có thể dùng ServiceLoader. Provider trên classpath được khai báo trong file:
+Non-modular applications can still use `ServiceLoader`. Providers on the classpath are declared in the file:
 
 ~~~text
 META-INF/services/com.example.spi.PaymentProvider
 ~~~
 
-Nội dung file liệt kê tên đầy đủ của class provider, mỗi provider trên một dòng:
+The file contents list the fully qualified names of provider classes, one provider per line:
 
 ~~~text
 com.example.payment.card.CardPaymentProvider
 com.example.payment.wallet.WalletPaymentProvider
 ~~~
 
-Đây cũng là metadata service có cấu trúc, không phải reflection scan tổng quát. Với named module, khai báo provider nên được đặt trong **module-info.java** bằng **provides**.
+This is also structured service metadata, not general reflection scanning. For named modules, provider declarations should be placed in **module-info.java** using **provides**.
 
-## 3. Service binding khi tạo runtime image
+## 3. Service binding when creating a runtime image
 
-**jlink** tạo runtime image từ các module có thể phân giải trên module path. Tùy chọn **--bind-services** yêu cầu jlink liên kết các module provider service phù hợp cùng các phụ thuộc của chúng.
+**jlink** creates a runtime image from resolvable modules on the module path. The **--bind-services** option instructs `jlink` to link matching service provider modules along with their dependencies.
 
-Ví dụ cấu trúc module:
+Example module structure:
 
 ~~~text
 mods/
@@ -133,7 +133,7 @@ mods/
   com.example.payment.wallet/
 ~~~
 
-Giả sử module ứng dụng khai báo **uses com.example.spi.PaymentProvider**, còn hai module card và wallet đều khai báo **provides** cho service đó. Có thể tạo image bằng:
+Suppose the application module declares **uses com.example.spi.PaymentProvider**, while both the card and wallet modules declare **provides** for that service. You can build the image with:
 
 ~~~bash
 jlink \
@@ -143,46 +143,46 @@ jlink \
   --output payment-runtime
 ~~~
 
-Ở đây:
+Here:
 
-- **--module-path** cung cấp module JDK và module ứng dụng.
-- **--add-modules** chọn module gốc của ứng dụng.
-- **--bind-services** tìm provider cho các service được sử dụng trong module graph và liên kết các module provider cùng phụ thuộc cần thiết.
-- **--output** xác định thư mục runtime image.
+- **--module-path** provides the JDK modules and application modules.
+- **--add-modules** selects the application's root module.
+- **--bind-services** finds providers for services used in the module graph and links the provider modules along with required dependencies.
+- **--output** specifies the runtime image directory.
 
-Service binding có thể làm image chứa thêm module provider mà ứng dụng không liệt kê trực tiếp trong **--add-modules**. Đây là lợi ích quan trọng của việc mô tả service bằng **uses** và **provides**: công cụ có thể suy ra provider từ module metadata.
+Service binding can cause the image to include additional provider modules that the application did not list directly in **--add-modules**. This is a key benefit of describing services with **uses** and **provides**: tools can infer providers from module metadata.
 
-Có thể kiểm tra module trong image:
+You can inspect the modules in the image:
 
 ~~~bash
 payment-runtime/bin/java --list-modules
 ~~~
 
-Và chạy ứng dụng bằng runtime image:
+And run the application using the runtime image:
 
 ~~~bash
 payment-runtime/bin/java -m com.example.payment.app/com.example.payment.app.Main
 ~~~
 
-Nếu tạo launcher riêng bằng tùy chọn **--launcher**, có thể chạy ứng dụng qua file launcher trong thư mục **bin** của image.
+If you create a custom launcher using the **--launcher** option, you can run the application via the launcher file in the image's **bin** directory.
 
-**--bind-services** chỉ xử lý service provider có thể được xác định qua module metadata và có mặt trên module path của quá trình link. Nó không quét annotation tùy ý, không tìm mọi class có cùng interface, không tải JAR từ mạng và không tự đưa các thư viện classpath tùy ý vào image.
+**--bind-services** only processes service providers that can be identified through module metadata and are present on the module path at link time. It does not scan arbitrary annotations, does not find every class sharing an interface, does not download JARs over the network, and does not automatically put arbitrary classpath libraries into the image.
 
-Nếu provider được chọn bằng tên class lấy từ cấu hình, reflection hoặc plugin registry riêng, jlink có thể không biết module đó cần thiết. Khi ấy, phải khai báo module gốc phù hợp qua **--add-modules** hoặc thiết kế lại cơ chế discovery bằng service metadata.
+If providers are selected by class name read from configuration, reflection, or a custom plugin registry, `jlink` may not know that module is needed. In that case, you must declare the appropriate root modules via **--add-modules** or redesign discovery using service metadata.
 
-## 4. Reflection scan hoạt động như thế nào?
+## 4. How does reflection scanning work?
 
-Reflection scan thường bắt đầu bằng một package hoặc quy ước, ví dụ:
+Reflection scanning typically starts from a package or convention, for example:
 
-- Tìm mọi class có annotation **@Plugin** trong package **com.example.plugins**.
-- Tìm class triển khai một interface cụ thể.
-- Đọc metadata của class để đăng ký component.
-- Tìm các class được cấu hình bằng tên trong file YAML hoặc properties.
-- Quét các thư mục và JAR để xây dựng registry của framework.
+- Finding every class annotated with **@Plugin** in package **com.example.plugins**.
+- Finding classes that implement a specific interface.
+- Reading class metadata to register components.
+- Finding classes configured by name in YAML or properties files.
+- Scanning directories and JARs to build a framework registry.
 
-Một framework có thể tìm tài nguyên package qua classloader, đọc danh sách entry trong JAR, sử dụng API của module hoặc đọc bytecode bằng thư viện phân tích class. Sau khi phát hiện class, framework có thể tải class bằng **Class.forName**, kiểm tra annotation bằng reflection và gọi constructor hoặc method.
+A framework can locate package resources through a classloader, read entry listings inside JARs, use module APIs, or read bytecode with a class-analysis library. After discovering a class, the framework can load it with **Class.forName**, inspect annotations via reflection, and invoke constructors or methods.
 
-Ví dụ minh họa cách một framework kiểm tra annotation sau khi đã có class:
+Illustrative example of how a framework checks an annotation once it has a class:
 
 ~~~java
 Class<?> type = Class.forName(
@@ -194,25 +194,25 @@ if (type.isAnnotationPresent(Plugin.class)) {
 }
 ~~~
 
-Đoạn code trên chỉ minh họa bước kiểm tra một class đã biết tên. Một thư viện scanning thực tế còn phải tìm tên class hoặc tài nguyên trước khi có thể gọi **Class.forName**.
+The snippet above only illustrates checking a class whose name is already known. A real scanning library must also discover class names or resources before it can call **Class.forName**.
 
-Reflection scan thường linh hoạt khi framework hỗ trợ nhiều kiểu extension khác nhau. Tuy nhiên, kết quả phụ thuộc vào phạm vi quét, cách framework liệt kê tài nguyên, classloader, module layer và quyền truy cập mà JPMS cho phép.
+Reflection scanning is often flexible when a framework supports many kinds of extensions. However, results depend on the scanning scope, how the framework enumerates resources, the classloader, the module layer, and the access permissions allowed by JPMS.
 
-## 5. JPMS ảnh hưởng đến reflection scan
+## 5. How JPMS affects reflection scanning
 
-Trên classpath truyền thống, nhiều framework giả định rằng có thể liệt kê package và truy cập class tương đối tự do. Khi chuyển sang named module, giả định này có thể không còn đúng.
+On the traditional classpath, many frameworks assumed they could enumerate packages and access classes fairly freely. When moving to named modules, this assumption may no longer hold.
 
-Cần tách biệt ba bước:
+Three steps must be separated:
 
-1. **Tìm class:** framework phải nhìn thấy tài nguyên hoặc module chứa class.
-2. **Nạp class:** classloader hoặc module layer phải có khả năng nạp class đó.
-3. **Truy cập bằng reflection:** framework phải được phép truy cập thành viên mà nó muốn kiểm tra hoặc gọi.
+1. **Finding the class:** the framework must see the resource or module containing the class.
+2. **Loading the class:** the classloader or module layer must be able to load that class.
+3. **Accessing via reflection:** the framework must be permitted to access the member it wants to inspect or invoke.
 
-Một class có thể được tìm thấy nhưng framework vẫn không được phép truy cập field hoặc constructor private. Đây là vấn đề đóng gói module, không phải lúc nào cũng là lỗi tìm class.
+A class may be found, yet the framework is still not allowed to access a private field or constructor. That is a module encapsulation issue, not always a class-lookup error.
 
-### exports và opens
+### exports and opens
 
-**exports** công khai package để module khác truy cập các kiểu public:
+**exports** exposes a package so other modules can access its public types:
 
 ~~~java
 module com.example.plugins {
@@ -220,7 +220,7 @@ module com.example.plugins {
 }
 ~~~
 
-**opens** cho phép reflection sâu vào package, bao gồm các thành viên không public theo quy tắc của JPMS:
+**opens** allows deep reflection into a package, including non-public members according to JPMS rules:
 
 ~~~java
 module com.example.plugins {
@@ -229,64 +229,64 @@ module com.example.plugins {
 }
 ~~~
 
-Nếu framework cần reflection sâu vào nhiều package, có thể dùng **open module**, nhưng cách này mở toàn bộ package của module cho deep reflection và làm giảm mức đóng gói. Nên ưu tiên mở đúng package và đúng module framework cần truy cập.
+If a framework needs deep reflection into many packages, **open module** can be used, but that opens every package of the module to deep reflection and reduces encapsulation. Prefer opening only the specific packages to the specific framework module that needs access.
 
-**exports** không thay thế **opens** cho deep reflection. Ngược lại, **opens** không làm package trở thành API Java public thông thường để module khác import các kiểu trong package đó.
+**exports** does not replace **opens** for deep reflection. Conversely, **opens** does not make a package a normal public Java API for other modules to import types from that package.
 
-Nếu framework dùng reflection scan để đọc annotation public hoặc metadata, yêu cầu mở package có thể khác với trường hợp framework gọi private field/method. Cần xem tài liệu của framework để biết chính xác package nào phải **exports** hoặc **opens**.
+If a framework uses reflection scanning to read public annotations or metadata, package-opening requirements may differ from when the framework accesses private fields/methods. Check the framework's documentation to know exactly which packages must be **exports** or **opens**.
 
-### Module layer và classloader
+### Module layers and classloaders
 
-Một ứng dụng có thể tạo module layer mới để nạp plugin động. Trong trường hợp này, framework cần tìm module trong đúng layer. API **ServiceLoader.load(layer, Service.class)** cho phép tìm service provider trong một module layer cụ thể.
+An application can create a new module layer to load plugins dynamically. In that case, the framework needs to look for modules in the right layer. The **ServiceLoader.load(layer, Service.class)** API allows locating service providers in a specific module layer.
 
-Reflection scanner cũng cần biết các module và classloader mà nó phải quét. Quét classpath của system classloader không đồng nghĩa đã quét mọi named module trong mọi module layer.
+A reflection scanner also needs to know which modules and classloaders it must scan. Scanning the system classloader's classpath does not mean scanning every named module in every module layer.
 
-Nếu framework chỉ hỗ trợ classpath scanning, việc đặt thư viện thành named module có thể khiến cơ chế quét không nhìn thấy package như trước. Hãy kiểm tra khả năng hỗ trợ JPMS của framework và cách nó phát hiện module trước khi chuyển đổi.
+If a framework only supports classpath scanning, turning libraries into named modules may prevent the scanner from seeing packages as before. Check the framework's JPMS support and how it discovers modules before migrating.
 
-## 6. So sánh service binding và reflection scan
+## 6. Comparing service binding and reflection scanning
 
-| Tiêu chí | Service binding / ServiceLoader | Reflection scan |
+| Criterion | Service binding / ServiceLoader | Reflection scan |
 |---|---|---|
-| Cơ sở khám phá | **uses**, **provides**, service metadata | Package, class, annotation, tên class hoặc quy ước |
-| Hợp đồng | Service interface hoặc abstract class | Có thể là interface, annotation hoặc quy tắc riêng |
-| Khai báo provider | **provides S with P** trong module descriptor; hoặc file META-INF/services trên classpath | Thường dựa vào class hiện diện trong vùng quét và metadata framework |
-| Phạm vi tìm kiếm | Provider được khai báo và nhìn thấy trong module layer/classpath tương ứng | Phụ thuộc scanner, classloader, module layer và cấu hình |
-| Hỗ trợ jlink | **--bind-services** có thể liên kết provider module | jlink không tự suy ra module chỉ từ annotation hoặc reflection |
-| Quyền truy cập | Tuân theo exports và quy tắc provider của ServiceLoader | Có thể cần exports hoặc opens tùy cách reflection |
-| Tính tường minh | Cao; provider và consumer khai báo hợp đồng | Linh hoạt hơn nhưng phụ thuộc quy ước framework |
-| Phù hợp | SPI, plugin theo hợp đồng, provider chuẩn | Framework scanning, component registry, annotation processing ở runtime |
+| Discovery basis | **uses**, **provides**, service metadata | Packages, classes, annotations, class names, or conventions |
+| Contract | Service interface or abstract class | Can be an interface, annotation, or custom rule |
+| Provider declaration | **provides S with P** in module descriptor; or `META-INF/services` file on classpath | Typically based on classes present in the scan scope and framework metadata |
+| Search scope | Providers declared and visible in the corresponding module layer/classpath | Depends on scanner, classloader, module layer, and configuration |
+| jlink support | **--bind-services** can link provider modules | `jlink` cannot automatically infer modules solely from annotations or reflection |
+| Access permissions | Follows `exports` and `ServiceLoader` provider rules | May require `exports` or `opens` depending on how reflection is used |
+| Explicitness | High; providers and consumers declare contracts | More flexible, but depends on framework conventions |
+| Best suited for | SPIs, contract-based plugins, standard providers | Framework scanning, component registries, runtime annotation processing |
 
-Điểm khác biệt quan trọng nhất là **service binding có metadata mà JPMS hiểu được**, còn reflection scan là logic do framework tự triển khai. Vì vậy, jlink có thể liên kết provider module theo service graph nhưng không thể suy ra mọi class mà một scanner có thể tìm thấy khi ứng dụng chạy.
+The most important difference is that **service binding has metadata that JPMS understands**, whereas reflection scanning is logic implemented by the framework itself. Because of this, `jlink` can link provider modules according to the service graph, but cannot infer every class that a scanner might find when the application runs.
 
-## 7. Khi nào nên dùng từng cơ chế?
+## 7. When should each mechanism be used?
 
-Dùng **ServiceLoader** khi:
+Use **ServiceLoader** when:
 
-- Ứng dụng định nghĩa một SPI rõ ràng và nhiều module có thể cung cấp implementation.
-- Muốn consumer phụ thuộc vào interface thay vì implementation cụ thể.
-- Cần để JPMS nhận diện provider và hỗ trợ liên kết provider khi tạo runtime image.
-- Muốn có thể thêm hoặc thay provider bằng module khác mà không sửa consumer.
+- The application defines a clear SPI and multiple modules can provide implementations.
+- You want the consumer to depend on an interface rather than concrete implementations.
+- You need JPMS to recognize providers and support linking them when building a runtime image.
+- You want to be able to add or swap providers with other modules without editing the consumer.
 
-Dùng **reflection scan** khi:
+Use **reflection scanning** when:
 
-- Framework cần tìm component theo annotation hoặc quy ước package.
-- Cần đọc metadata của class để đăng ký controller, entity, serializer hoặc extension.
-- Framework có cơ chế scanning đã được thiết kế và kiểm thử cho JPMS.
-- Tập class cần phát hiện thay đổi theo cấu hình hoặc plugin registry.
+- A framework needs to find components by annotations or package conventions.
+- Class metadata must be read to register controllers, entities, serializers, or extensions.
+- The framework has a scanning mechanism designed and tested for JPMS.
+- The set of classes to discover changes based on configuration or a plugin registry.
 
-Nếu chỉ cần tìm implementation của một SPI, ServiceLoader thường dễ mô tả và dễ tích hợp với module graph hơn. Nếu cần phát hiện nhiều loại component theo annotation, scanner có thể phù hợp hơn. Một framework cũng có thể dùng ServiceLoader để tìm extension root rồi dùng reflection để đọc cấu hình hoặc metadata của từng extension.
+If you only need to find implementations of an SPI, `ServiceLoader` is usually easier to describe and integrate with the module graph. If you need to discover many kinds of components by annotation, a scanner may fit better. A framework can also use `ServiceLoader` to locate extension roots and then use reflection to read configuration or metadata for each extension.
 
-## 8. Kết hợp ServiceLoader với reflection đúng cách
+## 8. Combining ServiceLoader and reflection properly
 
-Có thể kết hợp hai cơ chế theo luồng sau:
+The two mechanisms can be combined in the following flow:
 
-1. Consumer khai báo **uses** cho service interface.
-2. Provider module khai báo **provides** với implementation.
-3. ServiceLoader tìm các provider đã đăng ký.
-4. Framework nhận instance provider và đọc annotation hoặc metadata public nếu cần.
-5. Nếu framework phải truy cập thành viên không public, provider module mở package cụ thể cho module framework bằng **opens ... to**.
+1. The consumer declares **uses** for the service interface.
+2. The provider module declares **provides** with the implementation.
+3. `ServiceLoader` discovers the registered providers.
+4. The framework receives provider instances and reads public annotations or metadata if needed.
+5. If the framework must access non-public members, the provider module opens the specific package to the framework module using **opens ... to**.
 
-Ví dụ consumer:
+Consumer example:
 
 ~~~java
 module com.example.host {
@@ -306,7 +306,7 @@ module com.example.plugin.card {
 }
 ~~~
 
-API service có thể định nghĩa annotation để framework dùng trên implementation:
+The service API can define annotations for the framework to use on implementations:
 
 ~~~java
 package com.example.plugin.api;
@@ -316,7 +316,7 @@ public interface Plugin {
 }
 ~~~
 
-Khi cần truy cập sâu vào package implementation, provider có thể khai báo:
+When deep access into the implementation package is needed, the provider can declare:
 
 ~~~java
 module com.example.plugin.card {
@@ -330,47 +330,47 @@ module com.example.plugin.card {
 }
 ~~~
 
-Chỉ mở package khi framework thực sự cần deep reflection. Nếu framework chỉ gọi phương thức public của interface hoặc implementation, có thể không cần mở package implementation.
+Only open a package when the framework genuinely needs deep reflection. If the framework only calls public methods on the interface or implementation, opening the implementation package may not be necessary.
 
-## 9. Các lỗi thường gặp khi tạo image có service provider
+## 9. Common issues when creating an image with service providers
 
-**Provider không xuất hiện trong ServiceLoader**
+**Provider does not appear in ServiceLoader**
 
-Kiểm tra consumer có khai báo **uses**, provider module có khai báo **provides**, service type có cùng module/package và provider có mặt trong module layer đang được tìm kiếm hay không. Nếu dùng classpath, kiểm tra file **META-INF/services** và tên class provider.
+Check whether the consumer declares **uses**, whether the provider module declares **provides**, whether the service type belongs to the same module/package, and whether the provider is present in the module layer being searched. If using the classpath, check the **META-INF/services** file and provider class name.
 
-**Provider hoạt động trên JDK đầy đủ nhưng mất trong runtime image**
+**Provider works on a full JDK but is missing in the runtime image**
 
-Kiểm tra lệnh jlink có dùng **--bind-services** hay không và service provider có nằm trên module path lúc link hay không. Nếu module provider được chọn bằng cấu hình hoặc reflection thay vì service metadata, thêm module đó vào **--add-modules**.
+Check whether the `jlink` command uses **--bind-services** and whether the service provider is on the module path at link time. If the provider module is selected via configuration or reflection rather than service metadata, add that module to **--add-modules**.
 
-**Framework không quét được package sau khi modular hóa**
+**Framework cannot scan packages after modularization**
 
-Kiểm tra scanner có hỗ trợ named module, module layer và module path hay không. Cần xác định scanner đang liệt kê tài nguyên bằng classloader hay API module. Một scanner chỉ duyệt classpath có thể bỏ qua named module.
+Check whether the scanner supports named modules, module layers, and the module path. Determine whether the scanner enumerates resources via a classloader or module APIs. A scanner that only walks the classpath may miss named modules.
 
-**IllegalAccessException hoặc InaccessibleObjectException**
+**IllegalAccessException or InaccessibleObjectException**
 
-Kiểm tra module chứa class có xuất package hoặc mở package phù hợp cho module framework hay không. Dùng **exports** cho truy cập public và **opens** cho deep reflection. Nếu chỉ cần một package, hãy mở có mục tiêu thay vì mở toàn module.
+Check whether the module containing the class exports or opens the appropriate package to the framework module. Use **exports** for public access and **opens** for deep reflection. If only one package is needed, open it selectively rather than opening the entire module.
 
-**Class được tìm thấy nhưng không nạp được trong image**
+**Class is found but fails to load in the image**
 
-Có thể module chứa class chưa được đưa vào image, hoặc một phụ thuộc của class chưa được phân giải. Reflection không tự bảo đảm module được thêm vào runtime image. Xác định module sở hữu class và thêm module đó vào module graph khi cần.
+The module containing the class might not have been included in the image, or a dependency of the class might not be resolved. Reflection does not automatically guarantee a module is added to the runtime image. Identify the module owning the class and add it to the module graph when needed.
 
-## 10. Checklist lựa chọn và triển khai
+## 10. Selection and implementation checklist
 
-- Xác định nhu cầu là tìm provider theo một SPI hay quét component theo annotation.
-- Nếu dùng ServiceLoader trong named module, khai báo **uses** ở consumer.
-- Khai báo **provides ... with ...** trong provider module.
-- Đảm bảo service interface nằm trong package được xuất.
-- Nếu dùng **jlink --bind-services**, đặt provider module trên module path và kiểm tra service graph.
-- Nếu provider được nạp bằng cấu hình/reflection, thêm module cần thiết vào **--add-modules**.
-- Nếu dùng reflection sâu, mở đúng package cho đúng framework module.
-- Kiểm tra framework có hỗ trợ module path và module layer.
-- Chạy **java --list-modules** trên image để kiểm tra module đã được đóng gói.
-- Thử thực tế đường chạy discovery, khởi tạo và sử dụng provider trên runtime image.
+- Determine whether the requirement is to locate providers for an SPI or scan components by annotation.
+- If using `ServiceLoader` in a named module, declare **uses** in the consumer.
+- Declare **provides ... with ...** in the provider module.
+- Ensure the service interface resides in an exported package.
+- If using **jlink --bind-services**, place provider modules on the module path and inspect the service graph.
+- If providers are loaded via configuration/reflection, add the required modules to **--add-modules**.
+- If using deep reflection, open the exact package to the exact framework module.
+- Verify that the framework supports the module path and module layers.
+- Run **java --list-modules** on the image to verify packaged modules.
+- Test the actual discovery, instantiation, and provider usage paths on the runtime image itself.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-**Service binding** dựa trên metadata service mà JPMS hiểu được. Consumer khai báo **uses**, provider khai báo **provides**, và jlink có thể dùng **--bind-services** để liên kết provider module vào runtime image.
+**Service binding** relies on service metadata that JPMS understands. Consumers declare **uses**, providers declare **provides**, and `jlink` can use **--bind-services** to link provider modules into a runtime image.
 
-**Reflection scan** do ứng dụng hoặc framework tự thực hiện để tìm class theo package, annotation hoặc quy ước. JPMS có thể giới hạn khả năng nhìn thấy module và truy cập thành viên; framework cần hỗ trợ module path/module layer và có thể cần **exports** hoặc **opens**.
+**Reflection scanning** is performed by an application or framework itself to find classes by package, annotation, or convention. JPMS can restrict module visibility and member access; frameworks need to support the module path/module layers and may need **exports** or **opens**.
 
-Hãy chọn cơ chế dựa trên hợp đồng discovery của ứng dụng. ServiceLoader là lựa chọn tự nhiên cho SPI có provider khai báo rõ ràng; reflection scan phù hợp với framework cần khám phá component theo metadata. Khi tạo runtime image, luôn kiểm tra module provider và các đường chạy discovery bằng chính image sẽ được triển khai.
+Choose the mechanism based on the application's discovery contract. `ServiceLoader` is the natural choice for SPIs with explicitly declared providers; reflection scanning suits frameworks that need to discover components by metadata. When building a runtime image, always verify provider modules and discovery paths using the actual image that will be deployed.

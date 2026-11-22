@@ -1,12 +1,12 @@
-# Vì sao `new BigDecimal(double)` khác `new BigDecimal(String)` trong Java
+# Why `new BigDecimal(double)` Differs from `new BigDecimal(String)` in Java
 
-Khi viết `new BigDecimal(0.1)`, Java **không** nhận trực tiếp số thập phân “một phần mười” chính xác. Literal `0.1` được trình biên dịch xử lý thành một giá trị `double` nhị phân trước, và constructor nhận `double` sẽ chuyển **chính xác giá trị nhị phân đã lưu đó** sang biểu diễn thập phân của `BigDecimal`. Trong khi đó, `new BigDecimal("0.1")` đọc trực tiếp chuỗi thập phân, nên biểu diễn **chính xác 0.1 thập phân**.
+When you write `new BigDecimal(0.1)`, Java does **not** directly receive the exact decimal number "one-tenth." The literal `0.1` is first processed by the compiler into a binary `double` value, and the constructor taking `double` converts **that exact stored binary value** into `BigDecimal`'s decimal representation. By contrast, `new BigDecimal("0.1")` reads the decimal string directly, so it represents **exact decimal 0.1**.
 
-Đây không chỉ là khác biệt về cách in: hai đối tượng có thể **khác giá trị toán học**, khác `scale` và dẫn tới kết quả khác khi `equals`, `compareTo`, cộng, trừ hoặc làm tròn.
+This is not merely a printing difference: the two objects can **differ in mathematical value**, differ in `scale`, and lead to different results in `equals`, `compareTo`, addition, subtraction, or rounding.
 
-Bài này thuộc nhóm **Phân tích số thực** của Java Core. Ta sẽ tách rõ ba cách tạo `BigDecimal` — từ `double`, từ `String` và từ `BigDecimal.valueOf(double)` — rồi xem tác động khi parse dữ liệu, làm tròn, tính toán tiền tệ và xử lý đầu vào thực tế.
+This lesson belongs to the **Floating-Point Parsing** group of Java Core. We will separate the three ways to construct a `BigDecimal` — from `double`, from `String`, and from `BigDecimal.valueOf(double)` — and then examine their impact on data parsing, rounding, monetary calculations, and real-world input handling.
 
-## 1. Ví dụ mấu chốt: cùng thấy “0.1” nhưng số được lưu khác nhau
+## 1. Key example: both show “0.1” yet store different numbers
 
 ~~~java
 double d = 0.1;
@@ -23,49 +23,49 @@ System.out.println(fromValueOf);
 // 0.1
 ~~~
 
-Giải thích chính xác từng bước:
+Step-by-step exact explanation:
 
-1. Source literal `0.1` được chuyển thành một mẫu bit `double` IEEE 754 binary64. Phân số `1/10` không có biểu diễn hữu hạn trong cơ số 2; mẫu bit `double` chứa **số gần 0.1**, không phải 0.1 toán học chính xác.
-2. `new BigDecimal(d)` tạo một số thập phân **đúng bằng giá trị binary64 đã làm tròn** đang nằm trong `d`. Nó không đoán “ý định” ban đầu là 0.1.
-3. `new BigDecimal("0.1")` phân tích các chữ số thập phân trong chuỗi `"0.1"`; giá trị bằng chính xác `1/10`.
-4. `BigDecimal.valueOf(d)` dùng biểu diễn thập phân qua `Double.toString(d)` rồi tạo `BigDecimal` tương ứng. Với `d = 0.1`, chuỗi đó là `"0.1"`, nên kết quả giống constructor nhận chuỗi ở trường hợp này.
+1. The source literal `0.1` is converted into an IEEE 754 binary64 `double` bit pattern. The fraction `1/10` has no finite representation in base 2; the `double` bit pattern holds **a number close to 0.1**, not mathematically exact 0.1.
+2. `new BigDecimal(d)` creates a decimal number **equal to the rounded binary64 value** stored in `d`. It does not guess the original "intent" of 0.1.
+3. `new BigDecimal("0.1")` parses the decimal digits in the string `"0.1"`; its value is exact `1/10`.
+4. `BigDecimal.valueOf(d)` uses the decimal representation via `Double.toString(d)` and creates the corresponding `BigDecimal`. For `d = 0.1`, that string is `"0.1"`, so the result matches the string constructor in this case.
 
-Về số học: giá trị của `new BigDecimal(0.1)` **lớn hơn** `new BigDecimal("0.1")` một lượng xấp xỉ `5.55 × 10^-18`. Dạng `Double.toString(0.1)` chỉ nhằm cho phép đọc lại đúng giá trị `double` nhị phân; nó **không** khẳng định mẫu bit lưu tương ứng đúng chính xác 0.1 thập phân.
+Numerically: the value of `new BigDecimal(0.1)` is **greater than** `new BigDecimal("0.1")` by approximately `5.55 × 10^-18`. The `Double.toString(0.1)` form is only meant to allow reading back the exact binary `double` value; it **does not** claim the stored bit pattern corresponds to exact decimal 0.1.
 
-Một `double` là giá trị số; `String` là các chữ số do người dùng, file hoặc API truyền vào. Chúng chứa những mức thông tin khác nhau nên constructor có kết quả khác.
+A `double` is a numeric value; a `String` is characters passed by a user, file, or API. They carry different levels of information, so the constructors produce different results.
 
-## 2. Cơ sở: thập phân và nhị phân biểu diễn phân số khác nhau
+## 2. Background: decimal and binary represent fractions differently
 
-Một số thập phân như `0.5` = `1/2` được biểu diễn hữu hạn trong cả cơ số 10 lẫn cơ số 2. Nhưng `0.1` = `1/10` = `1/(2 × 5)` có mẫu số chứa thừa số 5, vì thế biểu diễn nhị phân của nó là một chuỗi vô hạn cần cắt/làm tròn ở binary64.
+A decimal number such as `0.5` = `1/2` has a finite representation in both base 10 and base 2. However, `0.1` = `1/10` = `1/(2 × 5)` has a factor of 5 in its denominator, so its binary representation is an infinite repeating sequence that must be truncated/rounded in binary64.
 
-Kiểu `double` thường giữ khoảng 15–17 chữ số thập phân có nghĩa, với **53 bit precision ở phần trị**. Điều đó đủ cho nhiều ứng dụng khoa học, đồ họa và tính toán, nhưng không làm mọi phân số thập phân trở nên chính xác.
+The `double` type typically preserves about 15–17 significant decimal digits, with **53 bits of significand precision**. That suffices for many scientific, graphics, and computational applications, yet does not make every decimal fraction exact.
 
-| Giá trị/biểu thức | Kết quả cần hiểu |
+| Value/expression | What to understand |
 | --- | --- |
-| `double d = 0.5` | Có thể lưu chính xác `1/2` trong binary64 |
-| `double d = 0.1` | Lưu số nhị phân gần 0.1 |
-| `System.out.println(0.1)` | In `0.1` — dạng decimal ngắn có khả năng round-trip, không in toàn bộ giá trị toán học của bit |
-| `new BigDecimal(0.1)` | Giữ nguyên giá trị của bit `double` và hiện ra chuỗi dài |
-| `new BigDecimal("0.1")` | Giữ đúng giá trị thập phân do chuỗi mô tả |
-| `BigDecimal.valueOf(0.1)` | Dựa trên `Double.toString(0.1)` nên tạo `BigDecimal` bằng 0.1 trong trường hợp này |
+| `double d = 0.5` | Can store exact `1/2` in binary64 |
+| `double d = 0.1` | Stores a binary number close to 0.1 |
+| `System.out.println(0.1)` | Prints `0.1` — a short round-trip decimal form, not the full mathematical value of the bits |
+| `new BigDecimal(0.1)` | Preserves the exact value of the `double` bits and prints a long string |
+| `new BigDecimal("0.1")` | Preserves the exact decimal value described by the string |
+| `BigDecimal.valueOf(0.1)` | Based on `Double.toString(0.1)`, so it creates `BigDecimal` equal to 0.1 in this case |
 
-Trong biểu diễn lưu trữ, `BigDecimal` gồm **unscaled integer** (số nguyên tùy ý độ dài) và **scale** (số chữ số thập phân theo lũy thừa mười): giá trị bằng `unscaledValue × 10^(-scale)`. Ví dụ `new BigDecimal("0.1")` có unscaled value bằng 1 và scale bằng 1.
+In its internal storage representation, `BigDecimal` consists of an **unscaled integer** (an arbitrary-length integer) and a **scale** (decimal digit position as a power of ten): the value equals `unscaledValue × 10^(-scale)`. For example, `new BigDecimal("0.1")` has unscaled value 1 and scale 1.
 
-`BigDecimal` **không bị giới hạn bởi 53 bit precision như `double`**, nhưng vẫn cần chính sách scale/precision/rounding khi phép toán tạo kết quả dài hoặc vô hạn, đặc biệt là phép chia.
+`BigDecimal` **is not limited to 53 bits of precision like `double`**, yet still requires scale/precision/rounding policies when operations produce long or non-terminating results, especially division.
 
-## 3. Ba cách tạo BigDecimal: hợp đồng không giống nhau
+## 3. Three ways to construct BigDecimal: different contracts
 
-### Cách A — constructor nhận `double`
+### Approach A — constructor taking `double`
 
 ~~~java
 BigDecimal exactStoredDouble = new BigDecimal(0.1);
 ~~~
 
-Hợp đồng: biểu diễn **chính xác số thực đã lưu trong đối số `double`** dưới dạng thập phân. Constructor này có ích khi bạn cố ý cần điều tra giá trị binary64, lưu lại chính xác nội dung số học đang có hoặc xử lý chuyển đổi bit/số thực theo yêu cầu cụ thể.
+Contract: represent **the exact floating-point value stored in the `double` argument** in decimal form. This constructor is useful when you deliberately need to inspect a binary64 value, store exact existing numeric content, or handle bit/floating-point conversions per specific requirements.
 
-Nó thường **không** phù hợp khi bạn muốn tạo giá tiền `0.10` từ literal `0.1`. Vấn đề không phải constructor hoạt động sai: nó làm đúng việc chuyển một số `double` hiện hữu sang `BigDecimal` **mà không làm tròn về ý định thập phân**.
+It is generally **not** suitable when you want to create a monetary price of `0.10` from the literal `0.1`. The issue is not that the constructor malfunctions: it faithfully converts an existing `double` to `BigDecimal` **without rounding back to decimal intent**.
 
-### Cách B — constructor nhận `String`
+### Approach B — constructor taking `String`
 
 ~~~java
 BigDecimal exactDecimal = new BigDecimal("0.1");
@@ -73,45 +73,45 @@ BigDecimal amount = new BigDecimal("19.99");
 BigDecimal measured = new BigDecimal("1.2300");
 ~~~
 
-Hợp đồng: parse văn bản hợp lệ thành **số thập phân chính xác** và ghi nhận scale theo biểu diễn chuỗi. Ví dụ `"1.2300"` có scale bằng 4, còn `"1.23"` có scale bằng 2, dù chúng bằng nhau về giá trị thập phân.
+Contract: parse valid text into an **exact decimal number** and record the scale from the string representation. For example, `"1.2300"` has scale 4, whereas `"1.23"` has scale 2, even though they are equal in decimal value.
 
-Nếu dữ liệu đã đến từ JSON/CSV/form người dùng dưới dạng chuỗi decimal đáng tin cậy, **tránh chuyển chuỗi sang `double` trước rồi mới tạo `BigDecimal`**:
+If data arrives from JSON/CSV/user forms as a reliable decimal string, **avoid converting the string to `double` first and only then creating `BigDecimal`**:
 
 ~~~java
 String input = "19.99";
 BigDecimal correct = new BigDecimal(input);
 
-// Không nên dùng nếu cần giữ đúng decimal từ input:
+// Avoid if you need to preserve the exact decimal from input:
 BigDecimal potentiallyDifferent =
         new BigDecimal(Double.parseDouble(input));
 ~~~
 
-Cách thứ hai đã đi qua một số binary64 xấp xỉ trước khi constructor nhận `double` được gọi. Lúc này `BigDecimal` chỉ có thể giữ chính xác **giá trị sau bước xấp xỉ**, không biết người dùng định nhập số thập phân nào.
+The second approach already passed through an approximated binary64 number before the `double` constructor was called. At that point `BigDecimal` can only preserve the **post-approximation value**, with no knowledge of which decimal number the user meant to enter.
 
-### Cách C — factory `BigDecimal.valueOf(double)`
+### Approach C — factory `BigDecimal.valueOf(double)`
 
 ~~~java
 double d = 0.1;
 BigDecimal commonConversion = BigDecimal.valueOf(d);
 ~~~
 
-Hợp đồng: dùng dạng chuỗi canonical của `Double.toString(d)` để tạo `BigDecimal`. Với `d = 0.1`, nó tạo số `0.1`; nhờ đó giảm nhiều chữ số “đuôi” không mong đợi khi đổi một giá trị `double` hiện hữu sang decimal.
+Contract: uses the canonical string form of `Double.toString(d)` to construct a `BigDecimal`. For `d = 0.1`, it creates the number `0.1`; this avoids many unexpected "trailing" digits when converting an existing `double` value to decimal.
 
-**Nhưng `valueOf` không tự sửa mọi sai số đã tích lũy:**
+**However, `valueOf` does not fix errors that have already accumulated:**
 
 ~~~java
 double sum = 0.1 + 0.2;             // 0.30000000000000004
 BigDecimal fromSum = BigDecimal.valueOf(sum);
-// fromSum là 0.30000000000000004, không phải 0.3
+// fromSum is 0.30000000000000004, not 0.3
 ~~~
 
-`Double.toString(sum)` chính là `"0.30000000000000004"`, vì đó là dạng cần thiết để round-trip mẫu bit của tổng. Factory không thể suy ra phép tính ban đầu “đáng lẽ bằng 0.3”.
+`Double.toString(sum)` is literally `"0.30000000000000004"`, because that is the form required to round-trip the sum's bit pattern. The factory cannot deduce that the original calculation was "supposed to be 0.3."
 
-**Khuyến nghị theo ý định:** Dữ liệu decimal chính xác mới nên bắt đầu bằng `String`/`char[]` phù hợp hoặc nguồn `BigDecimal`. Khi đã có `double` và cần chuyển sang `BigDecimal` bằng dạng decimal ngắn tương ứng, `BigDecimal.valueOf` thường thuận tiện hơn constructor nhận `double`. Khi cần chính xác giá trị binary64 hiện tại, constructor nhận `double` mới là lựa chọn chủ đích.
+**Intent-based recommendation:** New exact decimal data should start from an appropriate `String`/`char[]` or `BigDecimal` source. When you already have a `double` and need to convert it to `BigDecimal` via its corresponding short decimal form, `BigDecimal.valueOf` is usually more convenient than the `double` constructor. When you need the exact current binary64 value, the `double` constructor is the deliberate choice.
 
-## 4. Vì sao `equals` và `compareTo` có thể đưa ra kết quả khác?
+## 4. Why can `equals` and `compareTo` give different results?
 
-Với `0.1`:
+For `0.1`:
 
 ~~~java
 BigDecimal a = new BigDecimal(0.1);
@@ -121,27 +121,27 @@ boolean sameByEquals = a.equals(b);      // false
 int numericOrder = a.compareTo(b);       // > 0
 ~~~
 
-`a` thật sự **lớn hơn b về giá trị**, vì `double 0.1` được làm tròn hơi lớn hơn `1/10`. Do đó cả `equals` lẫn `compareTo == 0` đều không xem chúng bằng nhau.
+`a` is actually **numerically greater than b**, because `double 0.1` is rounded slightly above `1/10`. Hence neither `equals` nor `compareTo == 0` considers them equal.
 
-Một vấn đề **khác** là scale:
+A **separate** issue is scale:
 
 ~~~java
 BigDecimal x = new BigDecimal("1.0");
 BigDecimal y = new BigDecimal("1.00");
 
-boolean equalObjects = x.equals(y);    // false: scale 1 khác scale 2
-boolean equalValues = x.compareTo(y) == 0; // true: giá trị toán học bằng nhau
+boolean equalObjects = x.equals(y);    // false: scale 1 differs from scale 2
+boolean equalValues = x.compareTo(y) == 0; // true: mathematical values are equal
 ~~~
 
-- `BigDecimal.equals` xem hai số bằng nhau khi **giá trị và scale** thích hợp khớp nhau. Đây là object equality quan trọng với `HashMap`/`HashSet`.
-- `BigDecimal.compareTo` so sánh **giá trị số** và xem `1.0` và `1.00` bằng nhau.
-- `stripTrailingZeros` có thể chuẩn hóa một phần biểu diễn decimal (`new BigDecimal("1.00").stripTrailingZeros()` in `1`), nhưng việc thay đổi scale không sửa được sự khác nhau thực về giá trị giữa `new BigDecimal(0.1)` và `new BigDecimal("0.1")`.
+- `BigDecimal.equals` considers two numbers equal when both **value and scale** match appropriately. This is object equality, important for `HashMap`/`HashSet`.
+- `BigDecimal.compareTo` compares **numeric value** and considers `1.0` and `1.00` equal.
+- `stripTrailingZeros` can normalize part of the decimal representation (`new BigDecimal("1.00").stripTrailingZeros()` prints `1`), yet changing scale does not fix the real value difference between `new BigDecimal(0.1)` and `new BigDecimal("0.1")`.
 
-Nếu dùng `BigDecimal` làm khóa, hãy quyết định hợp đồng **scale có ý nghĩa hay không**. `HashSet<BigDecimal>` dựa trên `equals`, còn `TreeSet<BigDecimal>` dùng `compareTo` mặc định; hai tập có thể xử lý `1.0` và `1.00` khác nhau. Đây không phải lỗi của constructor mà là kết hợp giữa *giá trị* và *đại diện decimal*.
+If using `BigDecimal` as a key, decide in the contract **whether scale is significant**. `HashSet<BigDecimal>` relies on `equals`, while `TreeSet<BigDecimal>` uses `compareTo` by default; the two collections can treat `1.0` and `1.00` differently. This is not a bug in the constructor, but the combination of *value* and *decimal representation*.
 
-## 5. Làm tròn: sai khác khi khởi tạo có thể thành sai khác nghiệp vụ
+## 5. Rounding: a difference at construction can become a business difference
 
-Ví dụ kinh điển là `1.005` làm tròn đến hai chữ số thập phân theo `RoundingMode.HALF_UP`:
+A classic example is rounding `1.005` to two decimal places using `RoundingMode.HALF_UP`:
 
 ~~~java
 BigDecimal a = new BigDecimal(1.005);
@@ -153,17 +153,17 @@ System.out.println(b.setScale(2, RoundingMode.HALF_UP)); // 1.01
 System.out.println(c.setScale(2, RoundingMode.HALF_UP)); // 1.01
 ~~~
 
-Vì giá trị binary64 của literal `1.005` **hơi nhỏ hơn 1.005 thập phân**, constructor nhận `double` giữ đúng giá trị hơi nhỏ đó, nên làm tròn HALF_UP tới hai chữ số cho `1.00`. Với constructor nhận chuỗi, giá trị đúng ở điểm giữa `1.005` nên HALF_UP cho `1.01`.
+Because the binary64 value of the literal `1.005` is **slightly less than decimal 1.005**, the `double` constructor preserves that slightly smaller value, so HALF_UP rounding to two digits gives `1.00`. With the string constructor, the value is right at the midpoint `1.005`, so HALF_UP gives `1.01`.
 
-Đây là lý do cùng một UI hiển thị `1.005` nhưng thuật toán tính giá/thuế có thể cho ra kết quả khác khi đi qua `double`. **Số chữ số hiển thị không chứng minh được tính chính xác hoặc chính sách làm tròn.**
+This is why the same UI displaying `1.005` can produce different results in pricing/tax algorithms when passing through `double`. **Displayed digits do not prove exactness or the rounding policy.**
 
-Các phương thức `setScale` trả về **`BigDecimal` mới**, vì `BigDecimal` là immutable. Bạn phải dùng kết quả trả về, thay vì nghĩ rằng gọi phương thức sẽ thay đổi object cũ.
+The `setScale` methods return a **new `BigDecimal`**, because `BigDecimal` is immutable. You must use the returned value rather than assuming calling the method mutates the existing object.
 
-`RoundingMode.HALF_UP` chỉ là một chính sách. Các nghiệp vụ khác có thể yêu cầu `HALF_EVEN`, `DOWN`, `UP` hoặc cách xử lý đặc biệt; hãy định nghĩa rõ ở cấp nghiệp vụ.
+`RoundingMode.HALF_UP` is only one policy. Other domains may require `HALF_EVEN`, `DOWN`, `UP`, or special handling; define this clearly at the business level.
 
-## 6. Chương trình Java 17+ hoàn chỉnh để đối chiếu
+## 6. Complete Java 17+ program for side-by-side comparison
 
-Lưu tệp `BigDecimalConstructionDemo.java`:
+Save the file `BigDecimalConstructionDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -238,14 +238,14 @@ public class BigDecimalConstructionDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac BigDecimalConstructionDemo.java
 java BigDecimalConstructionDemo
 ~~~
 
-Stdout chính xác của chương trình:
+Exact stdout of the program:
 
 ~~~text
 double d = 0.1
@@ -273,18 +273,18 @@ Infinity valueOf = NumberFormatException
 0.1 / 3 exact = ArithmeticException
 ~~~
 
-Một số ý nghĩa nổi bật từ kết quả:
+Key takeaways from the output:
 
-- `fromDouble.scale() == 55` trong khi `fromString.scale() == 1`; đó là hai biểu diễn decimal khác hẳn nhau.
-- `BigDecimal.valueOf(0.1)` và `new BigDecimal("0.1")` bằng nhau trong ví dụ, **nhưng đừng mở rộng thành kết luận `valueOf(double)` luôn khôi phục decimal mong muốn của mọi phép tính**.
-- `0.1 + 0.2` trên `double` thành `0.30000000000000004` trước khi chuyển sang `BigDecimal`; không có constructor nào tự suy ngược ý định phép cộng decimal.
-- Hai phép làm tròn `1.005` trả kết quả khác nhau vì dữ liệu đầu vào đã khác nhau.
-- `BigDecimal` không hỗ trợ các giá trị NaN và infinity như `double`. Chuyển NaN hoặc vô cực qua `BigDecimal` không tạo một số hợp lệ, mà phát sinh `NumberFormatException` trong ví dụ.
-- `BigDecimal` biểu diễn số **không giữ dấu âm riêng cho giá trị 0**: `"-0.0"` khi parse cho ra giá trị 0 với scale 1, in `0.0`.
+- `fromDouble.scale() == 55` while `fromString.scale() == 1`; those are two completely different decimal representations.
+- `BigDecimal.valueOf(0.1)` and `new BigDecimal("0.1")` are equal in this example, **but do not generalize that `valueOf(double)` always recovers the intended decimal of every calculation**.
+- `0.1 + 0.2` in `double` becomes `0.30000000000000004` before converting to `BigDecimal`; no constructor infers the intent of decimal addition backward.
+- Two `1.005` rounding calls return different results because the input data differed beforehand.
+- `BigDecimal` does not support NaN and infinity like `double`. Passing NaN or infinity to `BigDecimal` does not create a valid number, instead raising `NumberFormatException` in the example.
+- `BigDecimal` number representation **does not keep a separate negative sign for the value 0**: `"-0.0"` when parsed yields value 0 with scale 1, printing `0.0`.
 
-## 7. `valueOf(double)` không phải “thuốc chữa” sai số số học
+## 7. `valueOf(double)` is not a “cure” for arithmetic error
 
-Xét hai quy trình:
+Consider two pipelines:
 
 ~~~java
 double computed = 0.1 + 0.2;
@@ -294,20 +294,20 @@ BigDecimal computedAsDecimal = new BigDecimal("0.1")
         .add(new BigDecimal("0.2"));
 ~~~
 
-Kết quả `convertedLater` là `0.30000000000000004`, còn `computedAsDecimal` là `0.3` chính xác. Không thể lấy kết quả của phép cộng đã làm tròn trong binary64 rồi giả định factory biết chính xác hai số thập phân ban đầu.
+The result `convertedLater` is `0.30000000000000004`, while `computedAsDecimal` is exact `0.3`. You cannot take the result of an addition already rounded in binary64 and assume the factory knows the two original decimal numbers exactly.
 
-Cách làm tốt cho dữ liệu decimal có hợp đồng tính toán chặt chẽ:
+Good practice for decimal data with strict calculation contracts:
 
-1. Nhận số thập phân dưới dạng chuỗi gốc hoặc `BigDecimal` ngay tại lớp input; nếu là chuỗi, xác thực định dạng trước khi tạo object.
-2. Tiến hành tính toán bằng các phép `add`, `subtract`, `multiply`, `divide` của `BigDecimal`, không chuyển qua `double` giữa chừng.
-3. Chỉ định precision/scale và `RoundingMode` ở đúng điểm nghiệp vụ cần lượng tử hóa.
-4. Xuất bằng `toPlainString`, `toString`, formatter hoặc serialize theo hợp đồng bên nhận; không phụ thuộc số chữ số ngẫu nhiên của `double`.
+1. Receive decimal numbers as original strings or `BigDecimal` right at the input layer; if strings, validate the format before constructing objects.
+2. Perform calculations with `BigDecimal`'s `add`, `subtract`, `multiply`, and `divide` operations, without passing through `double` mid-way.
+3. Specify precision/scale and `RoundingMode` at the exact business step where quantization is needed.
+4. Output using `toPlainString`, `toString`, a formatter, or serialization per the receiver's contract; do not rely on arbitrary `double` digits.
 
-Nếu nguồn **chỉ cung cấp `double`**, bạn không thể biết chắc giá trị decimal con người dự định từ bit đã lưu. `BigDecimal.valueOf(d)` thường là chuyển đổi hợp lý dựa trên chuỗi round-trip của `double`; `new BigDecimal(d)` là lựa chọn khi muốn giữ giá trị nhị phân hiện có chính xác tuyệt đối. Phải ghi rõ chính sách thay vì che giấu nguồn gốc dữ liệu.
+If the source **provides only a `double`**, you cannot be certain of the human-intended decimal value from the stored bits. `BigDecimal.valueOf(d)` is usually a reasonable conversion based on `double`'s round-trip string; `new BigDecimal(d)` is the choice when you want the exact existing binary value. Document the policy explicitly instead of hiding the data's origin.
 
-## 8. Những điều cần lưu ý khi parse String thành BigDecimal
+## 8. Things to watch out for when parsing a String to BigDecimal
 
-`new BigDecimal(String)` đòi chuỗi có cú pháp số thập phân hợp lệ, không phải bất kỳ chuỗi hiển thị số nào. Ví dụ:
+`new BigDecimal(String)` requires a string with valid decimal number syntax, not just any number display string. For example:
 
 ~~~java
 BigDecimal ok = new BigDecimal("-12.3400");
@@ -318,56 +318,56 @@ BigDecimal scientific = new BigDecimal("1.25E+3");
 // new BigDecimal("");      // NumberFormatException
 ~~~
 
-Trong mã Java, `1_000` là literal nguyên hợp lệ; trong văn bản runtime đưa vào constructor `BigDecimal(String)`, dấu gạch dưới **không** là ký tự số hợp lệ. Chuỗi chứa dấu phân cách hàng nghìn hoặc thập phân tùy ngôn ngữ cần được xử lý theo **hợp đồng locale** riêng trước khi gọi parser, không tự ý xóa mọi dấu phẩy.
+In Java code, `1_000` is a valid integer literal; in runtime text passed to `BigDecimal(String)`, underscores are **not** valid numeric characters. Strings containing thousands separators or language-specific decimal separators must be handled by a dedicated **locale contract** before invoking the parser, rather than arbitrarily deleting all commas.
 
-Khác với `double`, `BigDecimal` có thể biểu diễn thập phân rất lớn hoặc rất nhỏ với độ dài tùy ý (trong giới hạn tài nguyên và giới hạn scale/precision nội tại). Tuy vậy constructor vẫn có thể ném `NumberFormatException` khi dữ liệu sai cú pháp hoặc vượt giới hạn cấu trúc có thể xử lý.
+Unlike `double`, `BigDecimal` can represent very large or very small decimals of arbitrary length (within resource bounds and internal scale/precision limits). Still, the constructor can throw `NumberFormatException` when data is syntactically invalid or exceeds processable structural limits.
 
-Nên xác thực input, bắt ngoại lệ ở ranh giới giao tiếp và đưa ra thông báo nghiệp vụ phù hợp, thay vì nuốt lỗi rồi thay bằng 0. Với dữ liệu chứa thông tin nhạy cảm, không log nguyên văn toàn bộ chuỗi nếu không cần thiết.
+Validate input, catch exceptions at communication boundaries, and provide appropriate business error messages rather than swallowing errors and substituting 0. For sensitive data, do not log the entire raw string verbatim unless necessary.
 
-## 9. Tính toán BigDecimal vẫn phải thiết kế precision và rounding
+## 9. BigDecimal arithmetic still requires designing precision and rounding
 
-`BigDecimal` giúp phép cộng/trừ/nhân decimal hữu hạn diễn ra chính xác nếu không giới hạn precision một cách chủ đích; **nó không làm mọi phép chia có kết quả decimal hữu hạn**.
+`BigDecimal` lets finite decimal addition/subtraction/multiplication run accurately when precision is not intentionally bounded; **it does not make every division produce a finite decimal result**.
 
 ~~~java
 BigDecimal one = BigDecimal.ONE;
 BigDecimal three = new BigDecimal("3");
 
-// one.divide(three); // ArithmeticException: khai triển thập phân vô hạn
+// one.divide(three); // ArithmeticException: non-terminating decimal expansion
 BigDecimal approx = one.divide(three, 4, RoundingMode.HALF_UP);
-// approx là 0.3333
+// approx is 0.3333
 ~~~
 
-Nếu bạn dùng `MathContext`, phép toán có thể được làm tròn theo precision yêu cầu:
+If you use `MathContext`, operations can be rounded to the required precision:
 
 ~~~java
 java.math.MathContext context =
         new java.math.MathContext(4, RoundingMode.HALF_EVEN);
 BigDecimal roundedByPrecision =
         new BigDecimal("123.456").round(context);
-// 123.5 (4 chữ số có nghĩa)
+// 123.5 (4 significant digits)
 ~~~
 
-**Phân biệt:**
+**Distinction:**
 
-- `setScale(2, ...)` chủ yếu điều chỉnh số chữ số theo scale, thường liên quan chữ số sau dấu thập phân.
-- `MathContext(4, ...)` quy định **4 chữ số có nghĩa**, không phải bốn chữ số sau dấu thập phân.
-- `round`/`setScale` trả đối tượng mới; `BigDecimal` là immutable.
-- `RoundingMode.UNNECESSARY` yêu cầu không được làm tròn; nếu số liệu cần làm tròn thì có thể ném `ArithmeticException`. Đây là một cách phát hiện phép làm tròn ngoài dự kiến.
+- `setScale(2, ...)` primarily adjusts the number of digits by scale, usually referring to digits after the decimal point.
+- `MathContext(4, ...)` specifies **4 significant digits**, not four digits after the decimal point.
+- `round`/`setScale` return a new object; `BigDecimal` is immutable.
+- `RoundingMode.UNNECESSARY` demands that no rounding occur; if data requires rounding, it can throw `ArithmeticException`. This is a way to detect unexpected rounding.
 
-Đối với tiền tệ, ngoài cách tạo `BigDecimal` từ chuỗi, bạn còn phải định nghĩa thời điểm làm tròn (mỗi dòng hay sau tổng), scale, rounding mode, loại tiền và quy tắc đối soát. Constructor đúng là **điều kiện cần**, không phải bảo đảm toàn bộ hệ thống tính tiền chính xác.
+For currency, beyond creating `BigDecimal` from strings, you also must define when rounding occurs (per line item or on the total), scale, rounding mode, currency unit, and reconciliation rules. The right constructor is a **necessary condition**, not a guarantee that the whole billing system is accurate.
 
-## 10. Số nguyên và constructor không bị vấn đề thập phân này giống double
+## 10. Integers and constructors free from this double decimal issue
 
-Nếu nguồn thật sự là số nguyên chính xác trong `int` hoặc `long`, có thể tạo `BigDecimal` trực tiếp:
+If the source is genuinely an exact integer in `int` or `long`, you can construct `BigDecimal` directly:
 
 ~~~java
 BigDecimal units = BigDecimal.valueOf(42L);
 BigDecimal alsoUnits = new BigDecimal("42");
 ~~~
 
-Vì `long` biểu diễn mọi số nguyên trong miền của nó một cách chính xác, `BigDecimal.valueOf(long)` là lựa chọn thẳng và ít gây bất ngờ. `BigDecimal.valueOf(long)` và `BigDecimal.valueOf(double)` là **hai overload khác nhau**, không nên đánh đồng cơ chế của chúng.
+Because `long` represents every integer in its range exactly, `BigDecimal.valueOf(long)` is direct and unsurprising. `BigDecimal.valueOf(long)` and `BigDecimal.valueOf(double)` are **two different overloads**; do not equate their mechanisms.
 
-Với số nguyên lớn vượt `long`, `BigInteger` và constructor `BigDecimal(BigInteger)` giúp giữ giá trị chính xác:
+For large integers exceeding `long`, `BigInteger` and the `BigDecimal(BigInteger)` constructor preserve exact values:
 
 ~~~java
 java.math.BigInteger huge =
@@ -375,65 +375,65 @@ java.math.BigInteger huge =
 BigDecimal exactHuge = new BigDecimal(huge);
 ~~~
 
-Không nên ép `BigInteger` sang `double` rồi tạo `BigDecimal`, vì phép chuyển có thể mất bit độ chính xác hoặc tràn thành vô cực.
+Do not cast `BigInteger` to `double` and then construct `BigDecimal`, because that conversion can lose precision bits or overflow to infinity.
 
-## 11. Những sai lầm phổ biến
+## 11. Common misconceptions
 
-1. **“`new BigDecimal(0.1)` chính xác hơn `new BigDecimal("0.1")` nên luôn tốt hơn.”** Nó chính xác **đối với số `double` đã làm tròn**, không chính xác theo ý định decimal `1/10`.
-2. **“In `double` ra `0.1` nghĩa là bên trong lưu đúng 0.1.”** `Double.toString` tạo chuỗi ngắn có khả năng round-trip; nó không hiển thị tất cả chữ số decimal của giá trị bit đã lưu.
-3. **“`BigDecimal.valueOf` luôn xóa sai số tính toán.”** Nó chỉ dùng `Double.toString` của **giá trị đang có**; `0.1 + 0.2` vẫn là `0.30000000000000004`.
-4. **“Hai BigDecimal in gần giống nhau thì `equals` đúng.”** Phải xét cả giá trị lẫn scale; `1.0` và `1.00` không bằng nhau theo `equals` nhưng `compareTo == 0`.
-5. **“`setScale(2)` làm tròn âm thầm mà không cần policy.”** Nếu phải bỏ chữ số và không chỉ định rounding mode, phép tính có thể ném `ArithmeticException`. Dùng `setScale(2, mode)` với chính sách rõ.
-6. **“Đưa NaN/Infinity vào BigDecimal cũng được vì đều là số.”** `BigDecimal` không biểu diễn NaN hoặc vô cực; conversion phát sinh lỗi.
-7. **“Tạo BigDecimal từ `double` rồi xử lý tiền là đủ.”** Nếu input đã qua phép tính binary64, decimal gốc có thể không phục hồi được. Hãy giữ dữ liệu decimal ngay từ nguồn.
-8. **“Làm tròn ở bước hiển thị là đã làm tròn số tiền thực sự.”** Formatter chỉ xuất chuỗi. Cần lượng tử hóa giá trị nghiệp vụ và lưu kết quả theo chính sách.
-9. **“Cứ dùng epsilon để làm BigDecimal.equals gần đúng.”** `BigDecimal` được dùng để mô hình hóa số decimal và scale cụ thể; nếu nghiệp vụ cần so sánh gần đúng thì phải định nghĩa quy tắc riêng, không phá hợp đồng equality/hash.
-10. **“Chuỗi người dùng giống số là constructor luôn chấp nhận.”** Định dạng nhóm số, locale, ký tự không hợp lệ hoặc thiếu giá trị vẫn cần validation và xử lý `NumberFormatException`.
+1. **“`new BigDecimal(0.1)` is more exact than `new BigDecimal("0.1")`, so it's always better.”** It is exact **with respect to the rounded `double`**, not exact with respect to the decimal intent `1/10`.
+2. **“Printing `double` as `0.1` means 0.1 is stored exactly inside.”** `Double.toString` creates a short string capable of round-tripping; it does not display all decimal digits of the stored bit value.
+3. **“`BigDecimal.valueOf` always removes arithmetic errors.”** It only uses `Double.toString` of the **existing value**; `0.1 + 0.2` is still `0.30000000000000004`.
+4. **“Two BigDecimals that print almost identically must be `equals`.”** Both value and scale must be considered; `1.0` and `1.00` are not equal under `equals`, yet `compareTo == 0`.
+5. **“`setScale(2)` rounds silently without needing a policy.”** If digits must be dropped and no rounding mode is specified, the operation can throw `ArithmeticException`. Use `setScale(2, mode)` with an explicit policy.
+6. **“Passing NaN/Infinity into BigDecimal works because they are all numbers.”** `BigDecimal` does not represent NaN or infinity; conversion raises an error.
+7. **“Creating BigDecimal from `double` and then handling money is enough.”** If the input went through binary64 arithmetic, the original decimal may be unrecoverable. Keep decimal data from the source.
+8. **“Rounding at the display step means the actual monetary amount is rounded.”** A formatter only outputs a string. Business values must be quantized and stored per policy.
+9. **“Use an epsilon to make BigDecimal.equals approximate.”** `BigDecimal` models specific decimal values and scales; if business logic needs approximate comparison, define a separate rule without breaking the equality/hash contract.
+10. **“Any user string that looks like a number is always accepted by the constructor.”** Grouping formats, locales, invalid characters, or missing values still require validation and handling `NumberFormatException`.
 
-## 12. Hướng dẫn lựa chọn nhanh
+## 12. Quick selection guide
 
-| Nguồn dữ liệu / mục đích | Cách ưu tiên | Vì sao? |
+| Data source / purpose | Preferred approach | Why? |
 | --- | --- | --- |
-| Chuỗi decimal gốc `"0.10"` | `new BigDecimal("0.10")` | Giữ đúng giá trị và scale được nhập |
-| Literal decimal cho tính tiền trong source | `new BigDecimal("19.99")` | Không đi qua binary64 |
-| Đã có `double` và muốn decimal ngắn theo round-trip | `BigDecimal.valueOf(double)` | Dựa trên `Double.toString` |
-| Đã có `double` và cần chính xác decimal tương ứng mẫu bit | `new BigDecimal(double)` | Giữ chính xác giá trị binary64 |
-| Số nguyên `long` chính xác | `BigDecimal.valueOf(long)` | Không có sai số phân số của binary64 |
-| Số nguyên rất lớn `BigInteger` | `new BigDecimal(bigInteger)` | Giữ số nguyên ngoài miền long |
-| Thập phân cần làm tròn đến 2 chữ số | `setScale(2, RoundingMode.…)` | Quy định rõ phép lượng tử hóa |
-| So sánh hai BigDecimal theo giá trị số | `compareTo(...) == 0` | Không phụ thuộc scale |
-| So sánh BigDecimal theo object representation | `equals(...)` | Tính cả scale |
-| Đầu vào NaN/Infinity | Xử lý trước khi tạo BigDecimal | Kiểu decimal này không biểu diễn chúng |
+| Original decimal string `"0.10"` | `new BigDecimal("0.10")` | Preserves exact entered value and scale |
+| Decimal literal for money in source code | `new BigDecimal("19.99")` | Does not pass through binary64 |
+| Already have `double` and want short round-trip decimal | `BigDecimal.valueOf(double)` | Based on `Double.toString` |
+| Already have `double` and need exact decimal of bit pattern | `new BigDecimal(double)` | Preserves exact binary64 value |
+| Exact `long` integer | `BigDecimal.valueOf(long)` | No binary64 fractional error |
+| Very large integer `BigInteger` | `new BigDecimal(bigInteger)` | Preserves integers beyond long range |
+| Decimal needing rounding to 2 digits | `setScale(2, RoundingMode.…)` | Explicitly specifies quantization |
+| Compare two BigDecimals by numeric value | `compareTo(...) == 0` | Independent of scale |
+| Compare BigDecimals by object representation | `equals(...)` | Includes scale |
+| NaN/Infinity input | Handle before creating BigDecimal | This decimal type does not represent them |
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-check questions
 
-**Câu 1.** Vì sao `new BigDecimal(0.1)` in ra nhiều chữ số hơn `new BigDecimal("0.1")`?
+**Question 1.** Why does `new BigDecimal(0.1)` print more digits than `new BigDecimal("0.1")`?
 
-**Đáp án:** Literal `0.1` đã bị làm tròn thành giá trị `double` nhị phân; constructor nhận `double` biểu diễn chính xác giá trị xấp xỉ đó dưới dạng decimal. Constructor nhận `String` biểu diễn trực tiếp số decimal chính xác.
+**Answer:** The literal `0.1` was already rounded to a binary `double` value; the `double` constructor represents that approximated value exactly in decimal. The `String` constructor directly represents the exact decimal number.
 
-**Câu 2.** `BigDecimal.valueOf(0.1)` có bằng `new BigDecimal("0.1")` không? Có phải `BigDecimal.valueOf(0.1 + 0.2)` cũng bằng `new BigDecimal("0.3")` không?
+**Question 2.** Does `BigDecimal.valueOf(0.1)` equal `new BigDecimal("0.1")`? Does `BigDecimal.valueOf(0.1 + 0.2)` also equal `new BigDecimal("0.3")`?
 
-**Đáp án:** Ở trường hợp đầu có. Trường hợp sau không: phép cộng `double` cho `0.30000000000000004`, và factory giữ dạng chuỗi round-trip của kết quả ấy.
+**Answer:** In the first case, yes. In the second case, no: `double` addition produces `0.30000000000000004`, and the factory retains the round-trip string form of that result.
 
-**Câu 3.** Tại sao `new BigDecimal(1.005).setScale(2, HALF_UP)` khác kết quả constructor nhận chuỗi?
+**Question 3.** Why does `new BigDecimal(1.005).setScale(2, HALF_UP)` differ from the `String` constructor's result?
 
-**Đáp án:** Giá trị binary64 được lưu nhỏ hơn 1.005 thập phân, nên constructor nhận `double` làm tròn ra `1.00`; constructor nhận `"1.005"` giữ đúng điểm giữa thập phân và HALF_UP cho `1.01`.
+**Answer:** The stored binary64 value is less than decimal 1.005, so the `double` constructor rounds to `1.00`; the `"1.005"` constructor preserves the exact decimal midpoint and HALF_UP gives `1.01`.
 
-**Câu 4.** `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` trả gì? `compareTo` có trả 0 không?
+**Question 4.** What does `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` return? Does `compareTo` return 0?
 
-**Đáp án:** `equals` trả false vì scale khác; `compareTo` trả 0 vì giá trị decimal bằng nhau.
+**Answer:** `equals` returns false because the scales differ; `compareTo` returns 0 because the decimal values are equal.
 
-**Câu 5.** Vì sao chuyển JSON decimal `"19.99"` sang `double` trước khi tạo `BigDecimal` là rủi ro?
+**Question 5.** Why is converting JSON decimal `"19.99"` to `double` before constructing `BigDecimal` risky?
 
-**Đáp án:** Việc parse thành `double` có thể làm mất sự chính xác thập phân và thông tin scale gốc. Nếu cần decimal chính xác, parse trực tiếp dữ liệu chuỗi thành `BigDecimal`.
+**Answer:** Parsing into `double` can lose decimal accuracy and original scale information. If exact decimals are needed, parse string data directly into `BigDecimal`.
 
-**Câu 6.** Có nên dùng `new BigDecimal(Double.NaN)` hoặc kỳ vọng `BigDecimal.ONE.divide(new BigDecimal("3"))` trả số thập phân vô hạn không?
+**Question 6.** Should you use `new BigDecimal(Double.NaN)` or expect `BigDecimal.ONE.divide(new BigDecimal("3"))` to return an infinite decimal?
 
-**Đáp án:** Không. `BigDecimal` không hỗ trợ NaN nên constructor đó ném `NumberFormatException`; phép chia có kết quả thập phân vô hạn mà không có chính sách làm tròn ném `ArithmeticException`.
+**Answer:** No. `BigDecimal` does not support NaN so that constructor throws `NumberFormatException`; division yielding a non-terminating decimal without a rounding policy throws `ArithmeticException`.
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 21 — BigDecimal: constructor(double), constructor(String), valueOf, scale, rounding](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html).
-- [Java SE 21 — Double.toString và IEEE 754](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html).
-- [Java SE 21 — MathContext](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/MathContext.html) và [RoundingMode](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/RoundingMode.html).
+- [Java SE 21 — Double.toString and IEEE 754](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html).
+- [Java SE 21 — MathContext](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/MathContext.html) and [RoundingMode](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/RoundingMode.html).
 - [Java Language Specification `4.2.3 — Floating-Point Types, Formats, and Values](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.2.3).

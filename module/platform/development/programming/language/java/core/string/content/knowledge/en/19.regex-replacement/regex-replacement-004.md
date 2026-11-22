@@ -1,46 +1,46 @@
-# Matcher.quoteReplacement: giữ nguyên văn nội dung thay thế trong Java
+# Matcher.quoteReplacement: Preserving Literal Replacement Content in Java
 
-## Mục tiêu bài học
+## Lesson Objectives
 
-Khi dùng biểu thức chính quy để thay thế nội dung trong `String`, Java diễn giải **mẫu cần tìm** (*regex*) và **chuỗi dùng để thay thế** (*replacement*) theo hai bộ quy tắc khác nhau. Bài này giúp bạn:
+When using regular expressions to replace content in a `String`, Java interprets the **search pattern** (*regex*) and the **replacement string** (*replacement*) according to two different sets of rules. This lesson helps you:
 
-- Giải thích tại sao dấu `$` và dấu gạch chéo ngược `\` trong chuỗi thay thế có thể bị Java hiểu là cú pháp đặc biệt.
-- Dùng `Matcher.quoteReplacement(String s)` để đưa nội dung thay thế vào `String.replaceAll`, `String.replaceFirst` hoặc `Matcher.appendReplacement` **đúng nguyên văn**.
-- Phân biệt `Matcher.quoteReplacement` với `Pattern.quote`, với `String.replace` và với cú pháp tham chiếu nhóm như `$1` hoặc `${name}`.
-- Viết ví dụ Java 17+ có thể biên dịch, đồng thời nhận diện lỗi và giới hạn áp dụng.
+- Explain why `$` and `\` in a replacement string can be interpreted by Java as special syntax.
+- Use `Matcher.quoteReplacement(String s)` to pass replacement content into `String.replaceAll`, `String.replaceFirst`, or `Matcher.appendReplacement` **literally**.
+- Distinguish `Matcher.quoteReplacement` from `Pattern.quote`, from `String.replace`, and from group reference syntax like `$1` or `${name}`.
+- Write compilable Java 17+ examples while recognizing common errors and applicability limits.
 
-## 1. Vấn đề: replacement không phải văn bản thuần túy
+## 1. The Problem: Replacement Is Not Plain Text
 
-Xét lời gọi:
+Consider the call:
 
 ~~~java
 String result = input.replaceAll(regex, replacement);
 ~~~
 
-Đối số `regex` là mẫu để **tìm** các đoạn phù hợp trong `input`. Sau khi tìm được từng đoạn khớp, Java còn diễn giải đối số `replacement`:
+The `regex` argument is the pattern used to **find** matching segments in `input`. After finding each matching segment, Java also interprets the `replacement` argument:
 
-| Ký hiệu trong replacement | Ý nghĩa khi dùng trực tiếp |
+| Symbol in replacement | Meaning when used directly |
 | --- | --- |
-| `$0` | Toàn bộ đoạn vừa khớp |
-| `$1`, `$2`, ... | Nội dung nhóm bắt (*capturing group*) tương ứng |
-| `${name}` | Nội dung nhóm bắt có tên `name`, nếu mẫu khai báo nhóm đó |
-| `\` | Escape ký tự kế tiếp trong cú pháp replacement, ví dụ làm `$` trở thành ký tự thông thường |
+| `$0` | The entire matched segment |
+| `$1`, `$2`, ... | Content of the corresponding *capturing group* |
+| `${name}` | Content of the capturing group named `name`, if the pattern declares that group |
+| `\` | Escapes the next character in replacement syntax, e.g., turning `$` into an ordinary character |
 
-Do vậy, nếu muốn thay một đoạn bằng đúng văn bản `$1\docs`, truyền thẳng nội dung đó vào `replaceAll` sẽ không có nghĩa là “chép nguyên văn”: `$1` bị xem là tham chiếu nhóm bắt, còn `\` có thể làm mất dấu gạch chéo hoặc gây lỗi tùy vị trí. Khi nhóm `1` không tồn tại, `$1` có thể khiến thao tác thay thế ném ngoại lệ.
+Therefore, if you want to replace a segment with the exact text `$1\docs`, passing that content directly into `replaceAll` will not mean "copy literally": `$1` is treated as a capturing group reference, while `\` can strip the backslash or throw an error depending on its position. When group `1` does not exist, `$1` can cause the replacement operation to throw an exception.
 
-**`Matcher.quoteReplacement(s)` giải quyết đúng vấn đề này.** Phương thức tĩnh thuộc `java.util.regex.Matcher` trả về một chuỗi *replacement* tương ứng với **nội dung nguyên văn của `s`**. Khi dùng chuỗi trả về làm đối số thay thế của API regex, mọi `$` và `\` xuất phát từ `s` đều được coi là ký tự bình thường. Nó không đổi nội dung cần chèn và không điều khiển regex tìm kiếm.
+**`Matcher.quoteReplacement(s)` solves this exact problem.** This static method in `java.util.regex.Matcher` returns a *replacement* string corresponding to the **literal content of `s`**. When the returned string is used as the replacement argument of a regex API, every `$` and `\` originating from `s` is treated as an ordinary character. It does not change the content to be inserted and does not control the search regex.
 
-Chữ ký API:
+API signature:
 
 ~~~java
 public static String quoteReplacement(String s)
 ~~~
 
-Đây là phương thức `static`, nên gọi `Matcher.quoteReplacement(s)` mà không cần tạo một đối tượng `Matcher`. Giá trị `null` không phải chuỗi thay thế hợp lệ; truyền `null` sẽ gây `NullPointerException`.
+This is a `static` method, so call `Matcher.quoteReplacement(s)` without needing to create a `Matcher` object. A `null` value is not a valid replacement string; passing `null` throws a `NullPointerException`.
 
-## 2. Ví dụ Java 17+: thay thế bằng nội dung có dấu $ và \
+## 2. Java 17+ Example: Replacing with Content Containing $ and \
 
-Lưu toàn bộ chương trình sau vào tệp `QuoteReplacementDemo.java`:
+Save the entire following program to the file `QuoteReplacementDemo.java`:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -51,28 +51,28 @@ public class QuoteReplacementDemo {
         String source = "A1 B2";
         String literalReplacement = "$5\\bin";
 
-        // Thay mọi đoạn phù hợp bằng đúng nội dung "$5\bin".
+        // Replace every matching segment with the exact content "$5\bin".
         String all = source.replaceAll(
                 "[A-Z]\\d",
                 Matcher.quoteReplacement(literalReplacement));
         System.out.println(all);
 
-        // Thay duy nhất đoạn khớp đầu tiên.
+        // Replace only the first matching segment.
         String first = source.replaceFirst(
                 "[A-Z]\\d",
                 Matcher.quoteReplacement(literalReplacement));
         System.out.println(first);
 
-        // Khi muốn dùng nhóm bắt, KHÔNG quote cả template.
+        // When you want to use capturing groups, DO NOT quote the whole template.
         System.out.println(
                 source.replaceAll("([A-Z])(\\d)", "$2-$1"));
 
-        // Khi muốn chính các ký tự "$2-$1" xuất hiện, HÃY quote.
+        // When you want the exact characters "$2-$1" to appear, DO quote.
         System.out.println(
                 source.replaceAll("([A-Z])(\\d)",
                         Matcher.quoteReplacement("$2-$1")));
 
-        // Bảo vệ cả chuỗi tìm kiếm nguyên văn và chuỗi thay thế nguyên văn.
+        // Protect both the literal search string and the literal replacement string.
         String text = "a.b|a.b";
         String needle = "a.b";
         String replacement = "$1\\dst";
@@ -83,14 +83,14 @@ public class QuoteReplacementDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 QuoteReplacementDemo.java
 java QuoteReplacementDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 $5\bin $5\bin
@@ -100,64 +100,64 @@ $2-$1 $2-$1
 $1\dst|$1\dst
 ~~~
 
-Diễn giải:
+Interpretation:
 
-1. `"[A-Z]\\d"` khớp lần lượt `A1` và `B2`; `quoteReplacement` làm cho `$5\bin` được chèn y hệt, dù không có nhóm số 5.
-2. `replaceFirst` có cách diễn giải replacement giống `replaceAll` nhưng chỉ thay lần khớp đầu tiên, nên `B2` vẫn còn.
-3. Trong `"([A-Z])(\\d)"`, nhóm `1` là chữ cái và nhóm `2` là chữ số. Replacement `"$2-$1"` cố ý lấy nhóm và đổi `A1` thành `1-A`.
-4. Sau khi bọc `"$2-$1"` bằng `quoteReplacement`, chuỗi này được chèn đúng nguyên văn; nhóm bắt không còn được thay vào vị trí `$1` hoặc `$2`.
-5. `Pattern.quote("a.b")` làm dấu `.` trong **mẫu tìm kiếm** mất ý nghĩa đặc biệt; `Matcher.quoteReplacement("$1\\dst")` làm `$` và `\` trong **replacement** mất ý nghĩa đặc biệt.
+1. `"[A-Z]\\d"` matches `A1` and `B2` in turn; `quoteReplacement` causes `$5\bin` to be inserted identically, even though there is no group 5.
+2. `replaceFirst` interprets the replacement the same way as `replaceAll` but replaces only the first match, so `B2` remains.
+3. In `"([A-Z])(\\d)"`, group `1` is the letter and group `2` is the digit. The replacement `"$2-$1"` intentionally pulls groups and changes `A1` to `1-A`.
+4. After wrapping `"$2-$1"` with `quoteReplacement`, this string is inserted literally; capturing groups are no longer substituted into `$1` or `$2`.
+5. `Pattern.quote("a.b")` removes the special meaning of `.` in the **search pattern**; `Matcher.quoteReplacement("$1\\dst")` removes the special meaning of `$` and `\` in the **replacement**.
 
-**Hai tầng escape cần nhớ:** Mã Java `"$5\\bin"` tạo ra giá trị thực `$5\bin` vì hai ký tự `\\` trong source tạo một dấu `\` trong chuỗi runtime. `Matcher.quoteReplacement` sau đó xây dựng biểu diễn phù hợp cho bộ xử lý replacement, giúp dấu `\` runtime được giữ lại ở kết quả.
+**Two escaping layers to remember:** The Java code `"$5\\bin"` produces the actual value `$5\bin` because two `\\` characters in source code produce one `\` in the runtime string. `Matcher.quoteReplacement` then builds the appropriate representation for the replacement processor, ensuring the runtime `\` is preserved in the result.
 
-## 3. Phân biệt pattern, replacement và cách gọi API
+## 3. Distinguishing Pattern, Replacement, and API Calls
 
-Đừng nhầm vị trí của dữ liệu:
+Do not mix up the roles of the data:
 
-| Nhu cầu | Cách làm | Lý do |
+| Requirement | Approach | Reason |
 | --- | --- | --- |
-| Mẫu tìm là regex, nội dung thay là chuỗi thuần | `input.replaceAll(regex, Matcher.quoteReplacement(literal))` | Regex vẫn hoạt động; replacement được bảo toàn |
-| Mẫu tìm là đoạn văn bản thuần, nội dung thay là chuỗi thuần | `input.replace(literalTarget, literalReplacement)` | Không cần regex hoặc quote |
-| Bắt buộc dùng API regex nhưng cần tìm chuỗi nguyên văn | `input.replaceAll(Pattern.quote(target), Matcher.quoteReplacement(replacement))` | Quote **cả hai đối số**, mỗi cái theo ngữ pháp của nó |
-| Cần chèn giá trị các nhóm bắt | `input.replaceAll(regex, "$2-$1")` | Cho phép bộ máy replacement mở rộng nhóm bắt |
-| Cần dùng quy trình thay thế từng match | `matcher.appendReplacement(builder, Matcher.quoteReplacement(value))` rồi `matcher.appendTail(builder)` | Mỗi match có thể có replacement riêng, bảo toàn giá trị tạo ra |
+| Search pattern is regex, replacement content is plain string | `input.replaceAll(regex, Matcher.quoteReplacement(literal))` | Regex still works; replacement is preserved |
+| Search pattern is plain text, replacement content is plain string | `input.replace(literalTarget, literalReplacement)` | No regex or quoting needed |
+| Must use regex API but need to find literal string | `input.replaceAll(Pattern.quote(target), Matcher.quoteReplacement(replacement))` | Quote **both arguments**, each according to its own grammar |
+| Need to insert capturing group values | `input.replaceAll(regex, "$2-$1")` | Allows the replacement engine to expand capturing groups |
+| Need per-match replacement workflow | `matcher.appendReplacement(builder, Matcher.quoteReplacement(value))` then `matcher.appendTail(builder)` | Each match can have its own replacement, preserving generated values |
 
-**`Pattern.quote` và `Matcher.quoteReplacement` không hoán đổi được:**
+**`Pattern.quote` and `Matcher.quoteReplacement` are not interchangeable:**
 
-- `Pattern.quote(literalTarget)` tạo biểu thức chính quy khớp nguyên văn `literalTarget`. Nó giải quyết dấu regex đặc biệt, chẳng hạn `.`, `*`, `[`, `(`.
-- `Matcher.quoteReplacement(literalReplacement)` tạo cú pháp replacement đại diện cho nội dung nguyên văn `literalReplacement`. Nó giải quyết `$` và `\` trong **văn bản thay thế**.
-- `String.replace(target, replacement)` là thay thế chuỗi con nguyên văn, không dùng regex cho cả `target` lẫn `replacement`; đó thường là lựa chọn ngắn nhất khi không cần regex.
+- `Pattern.quote(literalTarget)` creates a regular expression that matches `literalTarget` literally. It handles special regex characters such as `.`, `*`, `[`, `(`.
+- `Matcher.quoteReplacement(literalReplacement)` creates replacement syntax representing the literal content `literalReplacement`. It handles `$` and `\` in **replacement text**.
+- `String.replace(target, replacement)` performs literal substring replacement without using regex for either `target` or `replacement`; it is usually the shortest choice when regex is unnecessary.
 
-Nếu **chỉ có** nội dung replacement cần bảo toàn, không bọc `regex` trong `Pattern.quote`: làm vậy sẽ biến các ký hiệu regex mong muốn thành văn bản literal và thay đổi logic tìm kiếm.
+If **only** the replacement content needs protection, do not wrap `regex` in `Pattern.quote`: doing so turns intended regex symbols into literal text and changes the search logic.
 
-## 4. So sánh mở rộng nhóm bắt với chèn đúng nguyên văn
+## 4. Comparing Capturing Group Expansion vs. Literal Insertion
 
-Giả sử một mẫu có hai nhóm:
+Suppose a pattern has two groups:
 
 ~~~java
 String source = "id=42";
 String regex = "([a-z]+)=(\\d+)";
 ~~~
 
-Ba cách thay thế dưới đây có ý nghĩa khác nhau:
+The three replacements below have different meanings:
 
-| Lệnh | Kết quả | Giải thích |
+| Call | Result | Explanation |
 | --- | --- | --- |
-| `source.replaceAll(regex, "$2:$1")` | `42:id` | `$2` và `$1` được mở rộng từ nhóm bắt |
-| `source.replaceAll(regex, Matcher.quoteReplacement("$2:$1"))` | `$2:$1` | Nội dung có `$` được chèn đúng nguyên văn |
-| `source.replaceAll(regex, Matcher.quoteReplacement("USD $5\\tmp"))` | `USD $5\tmp` | Giữ cả dấu `$` lẫn dấu `\` |
+| `source.replaceAll(regex, "$2:$1")` | `42:id` | `$2` and `$1` are expanded from capturing groups |
+| `source.replaceAll(regex, Matcher.quoteReplacement("$2:$1"))` | `$2:$1` | Content with `$` is inserted literally |
+| `source.replaceAll(regex, Matcher.quoteReplacement("USD $5\\tmp"))` | `USD $5\tmp` | Preserves both `$` and `\` |
 
-Vì thế **không bọc cả template nhóm bắt trong `quoteReplacement`** nếu chủ đích là dùng `$1`, `$2` hoặc `${name}` để tạo kết quả từ dữ liệu tìm được. Ngược lại, nếu một giá trị replacement đến từ ô nhập liệu, cấu hình hoặc nội dung sinh động mà người dùng muốn giữ đúng ký tự, `quoteReplacement` là cách bảo vệ hợp lý.
+Therefore **do not wrap the entire capturing-group template in `quoteReplacement`** if your intention is to use `$1`, `$2`, or `${name}` to build output from matched data. Conversely, if a replacement value comes from a text input field, configuration, or dynamic content where the user wants exact characters preserved, `quoteReplacement` is the proper safeguard.
 
-Có thể trộn dữ liệu nhóm bắt và văn bản literal bằng cách **tạo giá trị kết quả cuối cùng cho từng match**, rồi `quoteReplacement` giá trị cuối cùng đó trước khi đưa vào `appendReplacement`; ví dụ ở phần tiếp theo. Cách này còn tránh các mơ hồ như nối `"$1" + "2"` thành `"$12"`: bộ xử lý có thể diễn giải `$12` là nhóm 12 nếu nhóm đó tồn tại.
+You can mix capturing-group data and literal text by **building the final result value for each match**, then calling `quoteReplacement` on that final value before passing it to `appendReplacement`; an example appears in the next section. This approach also avoids ambiguities like concatenating `"$1" + "2"` into `"$12"`: the processor might interpret `$12` as group 12 if that group exists.
 
-## 5. Thay thế động theo từng match với Matcher.appendReplacement
+## 5. Per-Match Dynamic Replacement with Matcher.appendReplacement
 
-`String.replaceAll` nhận một replacement chung cho mọi match. Khi replacement cần dựa trên chính đoạn vừa khớp hoặc logic tùy biến, sử dụng `Matcher.find()` với `appendReplacement` và `appendTail`.
+`String.replaceAll` takes one common replacement for every match. When the replacement needs to depend on the matched segment itself or custom logic, use `Matcher.find()` with `appendReplacement` and `appendTail`.
 
-Ví dụ: với mỗi mã gồm hai chữ in hoa và hai chữ số, bao quanh nó bằng `[` và `]`, đồng thời thêm hậu tố literal có dấu `$` và `\`.
+Example: for each code consisting of two uppercase letters and two digits, wrap it in `[` and `]`, and add a literal suffix containing `$` and `\`.
 
-Lưu vào `DynamicReplacementDemo.java`:
+Save to `DynamicReplacementDemo.java`:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -182,84 +182,84 @@ public class DynamicReplacementDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 DynamicReplacementDemo.java
 java DynamicReplacementDemo
 ~~~
 
-Kết quả:
+Result:
 
 ~~~text
 [AB12 $5\log] and [CD34 $5\log]
 ~~~
 
-Trình tự hoạt động:
+Execution sequence:
 
-1. `find()` tìm `AB12`, sau đó `CD34`.
-2. `group()` trả về phần vừa khớp và giúp chương trình xây dựng replacement riêng cho mỗi lần.
-3. `quoteReplacement(text)` bảo đảm các ký tự `$` và `\` trong giá trị cuối cùng là dữ liệu literal.
-4. `appendReplacement` nối phần văn bản chưa được xử lý và replacement cho match hiện tại vào `StringBuilder`.
-5. `appendTail` nối nốt văn bản còn lại sau match cuối cùng. Nếu quên bước này, phần đuôi có thể bị mất; nếu không có match nào, bước này vẫn giữ lại toàn bộ văn bản gốc.
+1. `find()` locates `AB12`, then `CD34`.
+2. `group()` returns the matched segment and lets the program build a separate replacement each time.
+3. `quoteReplacement(text)` ensures that `$` and `\` in the final value are treated as literal data.
+4. `appendReplacement` appends the unprocessed text and the replacement for the current match to the `StringBuilder`.
+5. `appendTail` appends the remaining text after the final match. If you forget this step, the trailing text can be lost; if there are no matches, this step still preserves the entire original text.
 
-`appendReplacement(StringBuilder, String)` có mặt từ Java 9 nên dùng được trong Java 17+. Với mẫu dùng lặp lại nhiều lần, `Pattern.compile` một lần rồi tạo `Matcher` cho từng input giúp tránh biên dịch regex lặp lại không cần thiết. Đừng chia sẻ cùng một `Matcher` giữa nhiều luồng mà không đồng bộ vì đối tượng này có trạng thái thay đổi theo mỗi lần tìm khớp.
+`appendReplacement(StringBuilder, String)` has been available since Java 9, so it works in Java 17+. For a pattern reused many times, calling `Pattern.compile` once and creating a `Matcher` per input avoids unnecessary repeated regex compilation. Do not share the same `Matcher` across multiple threads without synchronization because it holds mutable state for each match search.
 
-## 6. Những lỗi phổ biến
+## 6. Common Mistakes
 
-### 6.1. Chèn replacement từ người dùng mà không quote
+### 6.1. Inserting user-provided replacement without quoting
 
-Ví dụ sai khi `userReplacement` là `"$10"` hoặc `"C:\\new"`:
+Incorrect example when `userReplacement` is `"$10"` or `"C:\\new"`:
 
 ~~~java
-// Sai nếu muốn thay bằng đúng chuỗi mà người dùng nhập:
+// Wrong if you want to replace with the exact string entered by the user:
 String result = input.replaceAll(regex, userReplacement);
 ~~~
 
-`$10` có thể được diễn giải là tham chiếu nhóm (quy tắc số nhóm phụ thuộc các nhóm hiện có); `\` có thể bị tiêu thụ để escape ký tự tiếp theo. Nếu dấu `$` đứng ở vị trí không hợp lệ hoặc tham chiếu nhóm không tồn tại, chương trình có thể ném `IllegalArgumentException` hay `IndexOutOfBoundsException` tùy trường hợp.
+`$10` may be interpreted as a group reference (group numbering rules depend on existing groups); `\` may be consumed to escape the following character. If `$` is in an invalid position or the referenced group does not exist, the program can throw `IllegalArgumentException` or `IndexOutOfBoundsException` depending on the case.
 
-Cách đúng để chèn nguyên văn:
+The right way to insert literally:
 
 ~~~java
 String result = input.replaceAll(
         regex, Matcher.quoteReplacement(userReplacement));
 ~~~
 
-### 6.2. Nhầm escape của Java với escape của replacement
+### 6.2. Confusing Java escapes with replacement escapes
 
-Hai tầng có vai trò khác nhau:
+The two layers have different roles:
 
-- **Tầng chuỗi Java:** `"\\":` biểu diễn **một** dấu `\` trong giá trị runtime. Trong ví dụ code, `"$1\\docs"` là giá trị có ký tự `$`, `1`, `\`, `d`, `o`, `c`, `s`.
-- **Tầng replacement của regex:** Bộ xử lý `replaceAll` gán ý nghĩa cho `$` và `\` trong giá trị runtime. `quoteReplacement` giúp chúng trở thành literal mà không cần tự viết các dấu escape thủ công.
+- **Java string layer:** `"\\"` represents **one** `\` in the runtime value. In the code example, `"$1\\docs"` is a value containing the characters `$`, `1`, `\`, `d`, `o`, `c`, `s`.
+- **Regex replacement layer:** The `replaceAll` processor assigns special meaning to `$` and `\` in the runtime value. `quoteReplacement` makes them literal without requiring manual escaping.
 
-Lưu ý: khi đọc regex từ biến hoặc tệp, escape của **source Java** đã được xử lý (hoặc không liên quan); không nên thêm ngẫu nhiên dấu `\` trước khi gọi `quoteReplacement`.
+Note: when reading a regex or string from a variable or file, **Java source** escapes have already been processed (or do not apply); you should not arbitrarily add `\` before calling `quoteReplacement`.
 
-### 6.3. Dùng quoteReplacement để sửa một regex sai
+### 6.3. Using quoteReplacement to fix an invalid regex
 
-`Matcher.quoteReplacement` chỉ bảo vệ chuỗi dùng để **thay thế**. Nó không sửa regex thiếu dấu `]`, không biến `.*` thành mẫu tìm literal, và không xử lý `PatternSyntaxException` phát sinh ở đối số tìm kiếm. Nếu muốn tìm chính xác văn bản đầu vào, dùng `Pattern.quote` cho đối số regex hoặc `String.replace` nếu không cần regex.
+`Matcher.quoteReplacement` only protects the **replacement** string. It does not fix a regex missing a `]`, does not turn `.*` into a literal search pattern, and does not handle `PatternSyntaxException` thrown by the search argument. If you want to match exact input text, use `Pattern.quote` for the regex argument or `String.replace` when regex is not needed.
 
-### 6.4. Quote quá nhiều khi chủ đích sử dụng nhóm bắt
+### 6.4. Over-quoting when intending to use capturing groups
 
 ~~~java
-// Muốn đảo hai nhóm: đúng
+// Want to swap two groups: right
 String ok = "A1".replaceAll("([A-Z])(\\d)", "$2$1");
 
-// Muốn "$2$1" xuất hiện nguyên văn: đúng
+// Want "$2$1" to appear literally: right
 String literal = "A1".replaceAll(
         "([A-Z])(\\d)", Matcher.quoteReplacement("$2$1"));
 ~~~
 
-Giá trị `ok` là `"1A"`, còn `literal` là `"$2$1"`. Khác biệt đến từ **ý định sử dụng replacement**, không phải do cú pháp nào “tốt hơn” trong mọi tình huống.
+The value of `ok` is `"1A"`, while `literal` is `"$2$1"`. The difference comes from the **intended use of the replacement**, not because one syntax is "better" in every situation.
 
-### 6.5. Quên xử lý null, đầu vào lớn hoặc độ phức tạp regex
+### 6.5. Forgetting to handle null, large inputs, or regex complexity
 
-- `Matcher.quoteReplacement(null)` gây `NullPointerException`; kiểm tra null hoặc xác định chính sách dữ liệu thiếu trước khi dùng.
-- Nếu regex không khớp đoạn nào, `replaceAll` trả lại toàn bộ nội dung gốc; `quoteReplacement` không ép phải có match.
-- `quoteReplacement` chỉ giải quyết ký tự đặc biệt trong replacement. Nó không bảo vệ khỏi regex quá tốn thời gian (chẳng hạn một số biểu thức lặp lồng nhau gây *catastrophic backtracking*), không xác thực định dạng và không tự giới hạn kích thước đầu vào.
+- `Matcher.quoteReplacement(null)` throws `NullPointerException`; check for null or define a missing-data policy before calling it.
+- If the regex matches nothing, `replaceAll` returns the entire original content; `quoteReplacement` does not force a match.
+- `quoteReplacement` only handles special characters in the replacement. It does not protect against overly expensive regexes (such as certain nested repetitions causing *catastrophic backtracking*), does not validate formats, and does not automatically limit input size.
 
-## 7. Bài tập thực hành
+## 7. Practice Exercise
 
-Dự đoán kết quả:
+Predict the output:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -279,7 +279,7 @@ public class ReplacementQuiz {
 }
 ~~~
 
-Lưu `ReplacementQuiz.java`, chạy `javac -encoding UTF-8 ReplacementQuiz.java` rồi `java ReplacementQuiz`. Đáp án:
+Save `ReplacementQuiz.java`, run `javac -encoding UTF-8 ReplacementQuiz.java` then `java ReplacementQuiz`. Answer:
 
 ~~~text
 $0$0
@@ -289,19 +289,19 @@ x$y
 \diraa
 ~~~
 
-Lý do: hai `a` được thay bằng chuỗi literal `$0`; `$2$1` không quote thì đảo nhóm; quote thì giữ nguyên ký tự; `Pattern.quote(".")` tìm đúng dấu chấm; và `replaceFirst` thay chỉ chữ `a` đầu tiên bằng `\dir`.
+Why: both `a` characters are replaced by the literal string `$0`; unquoted `$2$1` swaps the groups; quoted preserves the characters; `Pattern.quote(".")` finds the literal dot; and `replaceFirst` replaces only the first `a` with `\dir`.
 
-## Ghi nhớ và checklist áp dụng
+## Summary and Application Checklist
 
-- Hỏi rõ: **giá trị replacement cần giữ nguyên văn hay cần mở rộng các nhóm bắt?** Chỉ dùng `Matcher.quoteReplacement` cho phần cần giữ nguyên văn.
-- Với regex để tìm và nội dung tự do để thay: `replaceAll(regex, Matcher.quoteReplacement(text))`.
-- Với cả chuỗi tìm và chuỗi thay là literal: ưu tiên `String.replace(target, replacement)`; nếu cần matcher thì phối hợp `Pattern.quote(target)` và `Matcher.quoteReplacement(replacement)`.
-- Với nội dung thay khác nhau theo mỗi match: tính giá trị cần chèn dựa trên `group()` rồi đưa qua `quoteReplacement` trước `appendReplacement`, cuối cùng gọi `appendTail`.
-- Kiểm tra các tình huống có `$`, `\`, không có match, nhiều match, chuỗi rỗng, nhóm bắt và giá trị `null`.
+- Ask clearly: **should the replacement value be kept literal or expand capturing groups?** Only use `Matcher.quoteReplacement` for parts that must remain literal.
+- With a regex to search and arbitrary content to replace: `replaceAll(regex, Matcher.quoteReplacement(text))`.
+- When both search string and replacement string are literal: prefer `String.replace(target, replacement)`; if a matcher is needed, combine `Pattern.quote(target)` and `Matcher.quoteReplacement(replacement)`.
+- For replacement content that varies per match: compute the value to insert based on `group()`, pass it through `quoteReplacement` before `appendReplacement`, and finally call `appendTail`.
+- Test cases with `$`, `\`, no match, multiple matches, empty strings, capturing groups, and `null` values.
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 17 — Matcher.quoteReplacement(String)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Matcher.html#quoteReplacement(java.lang.String))
-- [Java SE 17 — Matcher.appendReplacement và appendTail](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Matcher.html)
+- [Java SE 17 — Matcher.appendReplacement and appendTail](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Matcher.html)
 - [Java SE 17 — Pattern.quote(String)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html#quote(java.lang.String))
 - [Java SE 17 — String.replaceAll, replaceFirst, replace](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)

@@ -1,79 +1,79 @@
-# Chi phí đối tượng, mảng lưu dữ liệu và chuỗi tạm trong Java String
+# Object Cost, Backing Arrays, and Temporary Strings in Java String
 
-## 1. Mục tiêu bài học
+## 1. Lesson objectives
 
-Khi nhìn thấy một biến `String`, ta thường nghĩ đến dãy ký tự mà nó hiển thị. Tuy nhiên, ở thời điểm chạy, một chuỗi còn có **đối tượng Java**, **vùng lưu nội dung**, metadata và những chi phí phát sinh trong quá trình nối, cắt, định dạng hoặc chuyển đổi. Nhiều chương trình chỉ gặp vấn đề khi các chuỗi được tạo với số lượng rất lớn hoặc khi thao tác trong vòng lặp nóng.
+When looking at a `String` variable, we usually think of the sequence of characters it displays. At runtime, however, a string also involves a **Java object**, a **backing content storage area**, metadata, and overhead incurred during concatenation, slicing, formatting, or conversion. Many programs only run into trouble when strings are created in huge numbers or manipulated inside hot loops.
 
-Bài này tập trung vào ba câu hỏi thực tế:
+This article focuses on three practical questions:
 
-1. Một `String` chiếm bộ nhớ vì **đối tượng** và **dữ liệu ký tự** như thế nào?
-2. Vì sao nhiều phiên bản JDK hiện đại có thể chứa cùng số ký tự mà tốn bộ nhớ khác nhau, và đâu là ranh giới giữa **API bảo đảm** với **chi tiết triển khai**?
-3. Những phép toán nào tạo **chuỗi tạm**, khi nào chúng ảnh hưởng đến GC, và làm sao đo lường rồi tối ưu một cách có kiểm chứng?
+1. How does a `String` occupy memory across its **object** and its **character data**?
+2. Why can different modern JDK versions hold the same number of characters while using different amounts of memory, and where is the boundary between **API guarantees** and **implementation details**?
+3. Which operations create **temporary strings**, when do they impact GC, and how do you measure and optimize them verifiably?
 
-Phạm vi minh họa là **Java 17+**, với những ghi chú rõ ràng khi nói về cách HotSpot/OpenJDK lưu trữ `String`. Không nên dùng một con số byte cố định làm “kích thước của mọi String” vì cấu hình JVM, kiến trúc, cách căn chỉnh và phiên bản JDK đều có thể thay đổi kết quả.
+The examples target **Java 17+**, with clear notes whenever discussing how HotSpot/OpenJDK stores `String`. Do not treat a fixed byte count as "the size of every String" because JVM flags, architecture, alignment, and JDK version can all change the result.
 
-## 2. Phân biệt biến tham chiếu, đối tượng String và dữ liệu bên trong
+## 2. Distinguishing the reference variable, the String object, and internal data
 
-Xét đoạn mã:
+Consider this code:
 
 ```java
 String name = "Java";
 ```
 
-Có ba khái niệm khác nhau:
+There are three distinct concepts:
 
-- **Biến `name`**: chứa một tham chiếu đến đối tượng, không chứa trực tiếp toàn bộ bốn ký tự như một mảng ký tự nằm ngay trong biến.
-- **Đối tượng `String`**: một đối tượng trên heap theo mô hình Java thông thường, có phần header và các trường nội bộ cần cho việc quản lý chuỗi.
-- **Nội dung chuỗi**: dữ liệu mã hóa các ký tự/code unit, có thể được giữ trong mảng nội bộ hoặc cấu trúc khác tùy bản triển khai.
+- **The variable `name`**: holds a reference to an object, rather than directly containing all four characters like an inline character array inside the variable.
+- **The `String` object**: a normal heap object in Java's object model, carrying an object header and the internal fields needed to manage the string.
+- **The string content**: the encoded character/code-unit data, which may be stored in an internal array or another structure depending on the implementation.
 
-Trong OpenJDK/HotSpot hiện đại, dữ liệu nội dung của `String` thường nằm trong một mảng `byte[]` riêng. Từ đó, tổng chi phí có thể gồm cả đối tượng `String` lẫn đối tượng mảng lưu dữ liệu; song **tài liệu API `String` không cam kết layout field hay số byte cụ thể**.
+In modern OpenJDK/HotSpot, a `String`'s content data usually lives in a separate `byte[]` array. Consequently, the total cost can include both the `String` object and its backing array object; however, **the `String` API specification does not guarantee a specific field layout or exact byte count**.
 
-Một số khác biệt cần giữ riêng:
-- `name.length()` trả **số UTF-16 code unit**, không trả byte bộ nhớ.
-- Số Unicode code point có thể khác `length()`, ví dụ emoji nằm ngoài BMP dùng hai UTF-16 code unit.
-- `name.getBytes(StandardCharsets.UTF_8).length` trả số byte **của biểu diễn UTF-8 mới tạo**, không phải kích thước bộ nhớ của `String`.
-- Các phép đo bộ nhớ heap còn tính overhead đối tượng, căn chỉnh và đôi khi những vùng/đối tượng liên quan có thể được chia sẻ.
+Several distinctions must be kept separate:
+- `name.length()` returns the **number of UTF-16 code units**, not memory bytes.
+- The number of Unicode code points can differ from `length()`; for example, an emoji outside the BMP uses two UTF-16 code units.
+- `name.getBytes(StandardCharsets.UTF_8).length` returns the byte count **of a newly created UTF-8 representation**, not the in-memory size of the `String`.
+- Heap memory measurements also include object overhead, alignment, and sometimes related buffers/objects that may be shared.
 
-Nếu chỉ gọi `length()`, bạn không thể suy ra một cách đáng tin rằng giá trị đó nhân với 2 chính là lượng byte cấp phát cho chuỗi.
+Calling `length()` alone does not let you reliably multiply that value by 2 to determine the bytes allocated for a string.
 
-## 3. Từ cấu trúc lưu trữ đến footprint của đối tượng
+## 3. From storage structure to object footprint
 
-Trong nhiều OpenJDK trước Java 9, `String` giữ nội dung bằng mảng `char[]`. Với **Compact Strings** (JEP 254) từ Java 9, các bản OpenJDK/HotSpot thông dụng có thể lưu `byte[]` cùng `coder`: phần dữ liệu cần khoảng `n` byte khi toàn bộ code unit thuộc Latin-1, hoặc khoảng `2n` byte khi cần dạng UTF16, với `n = text.length()`.
+In many OpenJDK builds prior to Java 9, `String` held its content in a `char[]` array. With **Compact Strings** (JEP 254) starting in Java 9, common OpenJDK/HotSpot builds can store a `byte[]` along with a `coder`: the data portion takes about `n` bytes when all code units belong to Latin-1, or about `2n` bytes when UTF16 form is needed, where `n = text.length()`.
 
-Điểm quan trọng khi phân tích heap là **mảng dữ liệu và đối tượng `String` có overhead riêng**. Trên một JVM cụ thể, footprint còn phụ thuộc object/array headers, references, alignment, chia sẻ bộ đệm và liệu nhiều đối tượng đang giữ cùng dữ liệu. Do đó, con số `n` hay `2n` chỉ mô tả *phần nội dung* theo một chiến lược cài đặt; **không phải total heap cost**.
+The key point when analyzing the heap is that **the backing array and the `String` object each have their own overhead**. On a specific JVM, the footprint also depends on object/array headers, references, alignment, buffer sharing, and whether multiple objects hold the same data. Thus, `n` or `2n` only describes the *content portion* under one implementation strategy; it is **not the total heap cost**.
 
 ```text
-String reference → String object → backing data (ví dụ byte[])
+String reference → String object → backing data (e.g., byte[])
                        |                     |
                   header/fields         array header + data
 ```
 
-Để học chính xác điều kiện chọn LATIN1/UTF16 và phân biệt với UTF-8 ngoài heap, xem bài **Compact Strings**. Bài này dùng cấu trúc đó làm nền cho `shallow size`, `retained size`, tốc độ cấp phát và áp lực GC, là những thước đo tác động trực tiếp đến vận hành.
+To study the exact rules for choosing LATIN1/UTF16 and how they differ from off-heap/wire UTF-8, see the **Compact Strings** article. This article builds on that structure to cover `shallow size`, `retained size`, allocation rate, and GC pressure—the metrics that directly affect operations.
 
-## 4. Shallow size, retained size và heap dump
+## 4. Shallow size, retained size, and heap dumps
 
-Ba khái niệm thường được dùng khi phân tích bộ nhớ Java:
+Three terms commonly used when analyzing Java memory:
 
-| Khái niệm | Ý nghĩa | Với String |
+| Term | Meaning | For String |
 | --- | --- | --- |
-| Shallow size | Kích thước bộ nhớ của **chính đối tượng** | Thường chỉ tính đối tượng `String` và field/header của nó, chưa tính mảng được tham chiếu |
-| Retained size | Phần bộ nhớ có thể được giải phóng nếu đối tượng không còn reachable, theo quan hệ giữ tham chiếu | Có thể gồm mảng dữ liệu do `String` giữ riêng, nhưng không nên cộng nhầm đối tượng đang được chia sẻ |
-| Allocation rate | Tốc độ JVM tạo đối tượng/byte mới theo thời gian | Cho thấy tác động của các chuỗi trung gian dù chúng sống rất ngắn |
+| Shallow size | Memory size of **the object itself** | Usually counts only the `String` object and its header/fields, excluding referenced arrays |
+| Retained size | Memory that would be freed if the object became unreachable, based on reference ownership | May include a backing array exclusively held by the `String`, but must not double-count shared objects |
+| Allocation rate | Rate at which the JVM creates new objects/bytes over time | Reveals the impact of intermediate strings even when they are very short-lived |
 
-Ví dụ, một `String` mới chỉ được dùng để tạo log rồi bị bỏ ngay có thể không làm **live heap** tăng lâu dài, nhưng vẫn làm **allocation rate** tăng. Ngược lại, một cache giữ hàng triệu chuỗi nhỏ lâu dài có thể tăng retained heap, kéo dài thời gian GC hoặc làm thiếu bộ nhớ.
+For instance, a new `String` created only to build a log line and immediately discarded may not increase **live heap** over the long term, yet still drives up **allocation rate**. Conversely, a cache holding millions of small strings long-term can increase retained heap, lengthen GC pauses, or exhaust memory.
 
-Các phép đo kích thước cũng phụ thuộc:
-- Kiểu JVM, bitness, nén ordinary object pointers (Compressed Oops) và compressed class pointers.
-- Alignment của đối tượng và header.
-- Hình thức lưu trữ nội bộ ở phiên bản JDK cụ thể.
-- Chuỗi có cùng tham chiếu, chuỗi khác đối tượng cùng nội dung, hay có phần dữ liệu được chia sẻ.
-- GC và những tối ưu của runtime.
+Size measurements also depend on:
+- JVM vendor, bitness, Compressed Oops (ordinary object pointers), and compressed class pointers.
+- Object and header alignment.
+- The internal storage format in a specific JDK version.
+- Whether strings share the same reference, are distinct objects with identical content, or share backing data.
+- The GC and runtime optimizations.
 
-**Không cộng shallow size của một `String` với toàn bộ mảng chung cho từng đường tham chiếu**, nếu nhiều đối tượng chia sẻ cùng một phần dữ liệu: cách này dẫn tới đếm trùng.
+**Do not add the shallow size of a `String` plus the entire shared array along every reference path** if multiple objects share the same backing data: that leads to double counting.
 
-## 5. Chuỗi bất biến: vì sao thao tác có thể tạo đối tượng mới?
+## 5. Immutable strings: why operations can create new objects
 
-`String` là immutable: sau khi tạo, nội dung của đối tượng không bị thay đổi bởi các phương thức `String` thông thường. Vì thế những thao tác **thay nội dung** thường trả một đối tượng `String` mới, ví dụ khi nội dung thực sự cần chỉnh.
+`String` is immutable: once created, an object's character sequence cannot be modified by ordinary `String` methods. Therefore, operations that **change the content** typically return a new `String` object, such as when the content genuinely needs alteration.
 
 ```java
 String value = "Java";
@@ -83,22 +83,22 @@ System.out.println(value);  // Java
 System.out.println(result); // Java 17
 ```
 
-Các phương thức như `replace`, `toUpperCase`, `substring`, `strip` hoặc `repeat` có thể tạo biểu diễn chuỗi mới khi kết quả khác nguồn. Tuy nhiên **không được khẳng định mọi lời gọi luôn cấp phát đối tượng mới**: một số trường hợp không cần thay đổi có thể trả về chính chuỗi cũ, và JIT có thể loại bỏ cấp phát trung gian nếu chứng minh được.
+Methods like `replace`, `toUpperCase`, `substring`, `strip`, or `repeat` can produce a new string representation when the result differs from the source. However, **never assert that every call always allocates a new object**: cases requiring no change can return the original string itself, and the JIT can eliminate intermediate allocations when provably safe.
 
-Ví dụ:
+For example:
 
 ```java
 String source = "abcdef";
 String cut = source.substring(1, 4); // "bcd"
 ```
 
-Trong OpenJDK hiện đại, `substring` thường cần biểu diễn nội dung mới cho phần được cắt. Lịch sử JDK đã từng có cơ chế chia sẻ mảng nền giữa substring và chuỗi gốc; không áp dụng nguyên mẫu kinh nghiệm đó cho Java 17. Với ứng dụng, điều nên dựa vào là **hợp đồng API về nội dung trả về**, không dựa vào field nội bộ hoặc kỳ vọng danh tính đối tượng.
+In modern OpenJDK, `substring` typically needs a new content representation for the sliced portion. Earlier JDK history included a mechanism that shared the backing array between a substring and its parent string; do not apply that old rule of thumb to Java 17. In application code, rely on the **API contract for the returned content**, not on internal fields or object identity expectations.
 
-Ngay cả khi một thao tác tạo chuỗi tạm, GC sẽ thu hồi nó khi không còn reachable; vấn đề hiệu năng phụ thuộc **tần suất tạo**, kích thước, thời gian sống và khả năng tối ưu của JVM.
+Even when an operation creates a temporary string, the GC reclaims it once it is no longer reachable; performance impact depends on **creation frequency**, size, lifetime, and JVM optimizations.
 
-## 6. Pool, bản sao chuỗi và số lượng đối tượng
+## 6. Pooling, string duplicates, and object counts
 
-Hai literal cùng nội dung có cùng tham chiếu canonical, còn `new String(existing)` tạo một đối tượng `String` riêng, dù dữ liệu ký tự có thể được chia sẻ theo cài đặt:
+Two literals with the same content share the canonical reference, whereas `new String(existing)` creates a separate `String` object, even if character data may be shared depending on the implementation:
 
 ```java
 String canonical = "Java";
@@ -110,32 +110,32 @@ System.out.println(canonical == fresh);       // false
 System.out.println(canonical.equals(fresh));  // true
 ```
 
-Về **footprint**, cần tách số **đối tượng `String`** khỏi số **mảng lưu nội dung**. `intern()` trả về đối tượng canonical; tối ưu *String deduplication* của một số GC có thể chia sẻ dữ liệu giữa những đối tượng vẫn khác tham chiếu. Hai cơ chế có chi phí, điều kiện áp dụng và ảnh hưởng đến vòng đời dữ liệu riêng; không nên intern tất cả ID ngẫu nhiên hay giả định dedup luôn bật.
+In terms of **footprint**, separate the count of **`String` objects** from the count of **backing content arrays**. `intern()` returns the canonical object; *String deduplication* in certain GCs can share backing data among objects that remain distinct references. Both mechanisms carry their own costs, eligibility rules, and effects on data lifetime; do not intern every random ID or assume deduplication is always enabled.
 
-Bài **Constant pool và Constable/ConstantDesc** giải thích hợp đồng interning; bài về **khác biệt giữa các JDK** trình bày lịch sử intern và dedup. Khi mục tiêu là tiết kiệm heap, hãy đo retained memory, số lượng bản sao thực và allocation rate thay vì đếm `new String` bằng mắt.
+The **Constant Pool and Constable/ConstantDesc** article explains the interning contract; the article on **JDK version differences** covers the history of interning and deduplication. When the goal is saving heap, measure retained memory, actual duplicate counts, and allocation rate instead of counting `new String` by eye.
 
-## 7. Những nguồn tạo chuỗi tạm phổ biến
+## 7. Common sources of temporary strings
 
-### 7.1. Nối chuỗi bằng toán tử +
+### 7.1. String concatenation with the + operator
 
 ```java
 String id = "42";
 String message = "order-" + id + "-ready";
 ```
 
-Về mặt ngôn ngữ, phép `+` tạo kết quả ghép chuỗi. Tuy nhiên **đừng giả định** ví dụ này tạo chính xác ba đối tượng `String` trung gian. Từ Java 9, trình biên dịch/runtime có thể sử dụng cơ chế nối dựa trên `invokedynamic` (JEP 280); JIT và constant folding còn có thể làm giảm cấp phát.
+At the language level, `+` produces the concatenated string result. However, **do not assume** this example creates exactly three intermediate `String` objects. Since Java 9, the compiler/runtime can use `invokedynamic`-based concatenation (JEP 280); JIT optimizations and constant folding can further reduce allocations.
 
-Một biểu thức chỉ chứa hằng số:
+An expression containing only constants:
 
 ```java
 String label = "Java" + " " + "17";
 ```
 
-có thể được **gộp thành hằng số lúc biên dịch**. Vì vậy, đo benchmark cho chuỗi literal hằng không đại diện cho vòng lặp nối dữ liệu động.
+can be **folded into a compile-time constant**. Therefore, benchmarking constant string literals does not represent loops concatenating dynamic data.
 
-### 7.2. Nối lặp từng bước
+### 7.2. Iterative accumulation
 
-Cần cẩn trọng với cách viết sau, khi `part` biến đổi theo lượt lặp:
+Be careful with the following pattern when `part` varies across iterations:
 
 ```java
 String output = "";
@@ -144,9 +144,9 @@ for (String part : parts) {
 }
 ```
 
-Mỗi lượt về mặt ngữ nghĩa phải tạo kết quả ghép mới vì `String` immutable. Runtime có thể tối ưu một phần, nhưng kiểu tích lũy này thường tăng công việc sao chép nội dung lặp đi lặp lại, nhất là với chuỗi kết quả tăng dần.
+Semantically, each iteration must produce a new concatenated result because `String` is immutable. The runtime may optimize part of this, yet this accumulation pattern often increases repeated content copying, especially as the resulting string grows.
 
-Giải pháp có mục đích rõ hơn:
+A more intentional approach:
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -156,11 +156,11 @@ for (String part : parts) {
 String output = builder.toString();
 ```
 
-`StringBuilder` lưu trạng thái có thể thay đổi trong một bộ đệm và phát triển vùng chứa khi cần; việc `append` không yêu cầu tạo một `String` bất biến trung gian cho mỗi lượt. Cần nhớ bản thân `StringBuilder` và buffer của nó **cũng là đối tượng có chi phí**, và `toString()` tạo kết quả bất biến.
+`StringBuilder` maintains mutable state in a buffer and grows its capacity as needed; `append` does not require creating an intermediate immutable `String` on every iteration. Keep in mind that `StringBuilder` itself and its buffer **are also objects with memory cost**, and `toString()` produces the immutable result.
 
-### 7.3. Chuyển kiểu và định dạng
+### 7.3. Conversion and formatting
 
-Các thao tác như:
+Operations such as:
 
 ```java
 String a = String.valueOf(12345);
@@ -168,13 +168,13 @@ String b = String.format(java.util.Locale.US, "%.2f", 12.5);
 String c = "prefix" + java.util.UUID.randomUUID();
 ```
 
-có thể dẫn tới cấp phát chuỗi, đối tượng hỗ trợ hoặc buffer nội bộ. `String.format` thường có xử lý định dạng phong phú hơn, phù hợp khi cần width/precision/locale; không nên thay bằng nối thô nếu làm mất yêu cầu định dạng chỉ vì muốn giảm cấp phát.
+can allocate strings, helper objects, or internal buffers. `String.format` generally involves richer formatting logic, appropriate when you need width/precision/locale control; do not replace it with raw concatenation if doing so breaks formatting requirements solely to reduce allocations.
 
-Với số lượng lời gọi lớn trong đường đi nóng, hãy đo sự khác biệt giữa `StringBuilder`, nối chuỗi `+` và formatter **trên dữ liệu và môi trường thực**, không suy luận thuần túy từ cú pháp.
+For high call volumes on a hot path, measure the difference between `StringBuilder`, `+` concatenation, and formatters **on real data and your target environment**, rather than guessing from syntax alone.
 
-### 7.4. split, replace, substring, strip và stream
+### 7.4. split, replace, substring, strip, and streams
 
-Các pipeline có thể tạo thêm đối tượng hoặc mảng trung gian:
+Pipelines can create additional intermediate objects or arrays:
 
 ```java
 String input = " red , blue , green ";
@@ -183,16 +183,16 @@ String first = tokens[0].strip();
 String upper = first.toUpperCase(java.util.Locale.ROOT);
 ```
 
-Có thể có mảng chứa phần tử, các `String` token, `String` sau chuẩn hóa và một số cấu trúc phục vụ thuật toán. Số lượng thực tế phụ thuộc đầu vào, phiên bản JDK và tối ưu. Không giả định `split` chỉ tạo một mảng mà không có chuỗi thành phần.
+There can be the token array, individual token `String` objects, normalized `String` instances, and helper structures used by the algorithm. Actual counts depend on input, JDK version, and optimizations. Never assume `split` allocates only an array without component strings.
 
-Nếu chỉ cần tìm một delimiter đơn và xử lý một phần nhỏ của văn bản, `indexOf`, `substring` hoặc một parser dựa trên chỉ số có thể tránh một số đối tượng. Nhưng parser tự viết cần kiểm thử các trường hợp biên và có thể làm mã khó duy trì. Chỉ tối ưu khi profiler chứng minh vị trí này đáng kể.
+If you only need to locate a single delimiter and inspect a small slice of text, `indexOf`, `substring`, or an index-based parser can avoid some objects. However, hand-written parsers require edge-case testing and can hurt maintainability. Optimize only when a profiler proves this spot is significant.
 
-## 8. StringBuilder: quản lý buffer và capacity
+## 8. StringBuilder: buffer and capacity management
 
-`StringBuilder` là lớp mutable để xây dựng chuỗi theo từng phần. Hai khái niệm khác nhau:
+`StringBuilder` is a mutable class for building strings incrementally. Two distinct concepts:
 
-- `length()`: số UTF-16 code unit **đang sử dụng**.
-- `capacity()`: số UTF-16 code unit bộ đệm **có thể chứa trước khi cần mở rộng** theo đặc tả API.
+- `length()`: number of UTF-16 code units **currently in use**.
+- `capacity()`: number of UTF-16 code units the buffer **can hold before needing expansion**, per the API specification.
 
 ```java
 StringBuilder builder = new StringBuilder(128);
@@ -202,18 +202,18 @@ System.out.println(builder.length()); // 5
 System.out.println(builder.capacity() >= 128); // true
 ```
 
-Khởi tạo capacity đủ lớn có thể giảm số lần mở rộng buffer cho một kết quả dự đoán được kích thước. Nhưng `capacity()` **không phải số byte heap**. Trong OpenJDK Java 17, vùng chứa của `StringBuilder` cũng có chi tiết triển khai tối ưu ký tự, nên lấy capacity nhân với 2 để suy ra byte sử dụng là cách tính không đáng tin.
+Pre-sizing capacity large enough can reduce buffer reallocations when the result size is predictable. However, `capacity()` is **not the number of heap bytes**. In OpenJDK Java 17, `StringBuilder`'s backing storage also uses character-representation optimizations, so multiplying capacity by 2 to infer bytes used is unreliable.
 
-Lạm dụng preallocation cũng có hại:
+Over-preallocating can also backfire:
 
 ```java
 StringBuilder huge = new StringBuilder(1_000_000);
 huge.append("OK");
 ```
 
-Đoạn trên yêu cầu bộ đệm ban đầu rất lớn dù dữ liệu chỉ có hai ký tự; nếu lặp lại nhiều lần, bộ nhớ và áp lực GC có thể tăng. Chỉ ước lượng capacity khi có cơ sở từ đặc điểm dữ liệu hoặc kết quả đo.
+The snippet above requests a huge initial buffer even though the data is only two characters; if repeated often, memory usage and GC pressure can increase. Estimate capacity only when backed by data characteristics or profiling results.
 
-Sau khi `toString()` trả chuỗi kết quả, `StringBuilder` vẫn có thể bị thay đổi nhưng **chuỗi đã nhận không đổi**:
+After `toString()` returns the resulting string, `StringBuilder` can still be modified, while **the returned string remains unchanged**:
 
 ```java
 StringBuilder builder = new StringBuilder("item=");
@@ -225,11 +225,11 @@ System.out.println(snapshot); // item=42
 System.out.println(builder);  // item=42!
 ```
 
-`StringBuffer` tương tự về mục đích xây dựng chuỗi nhưng có các thao tác đồng bộ hóa; không tự động chọn nó cho code một luồng chỉ vì nghĩ rằng vùng lưu bộ nhớ nhỏ hơn.
+`StringBuffer` serves a similar string-building purpose but has synchronized methods; do not choose it automatically for single-threaded code under the mistaken belief that its memory buffer is smaller.
 
-## 9. Ví dụ chạy được với Java 17+
+## 9. Runnable Java 17+ example
 
-Tạo tệp `StringMemoryDemo.java`, lưu UTF-8:
+Create `StringMemoryDemo.java` and save it as UTF-8:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -275,14 +275,14 @@ public class StringMemoryDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 StringMemoryDemo.java
 java StringMemoryDemo
 ```
 
-Stdout chuẩn:
+Expected stdout:
 
 ```text
 same literal reference: true
@@ -298,137 +298,137 @@ ASCII UTF-8 bytes: 3
 joined: A-B-C
 ```
 
-Ví dụ này **kiểm chứng ngữ nghĩa Java**, không đo trực tiếp số byte của mỗi `String`. Biểu thức `getBytes(UTF_8)` tạo một biểu diễn UTF-8 để đếm kích thước đầu ra; không dùng nó như công cụ đọc mảng nội bộ. Việc `new String("alpha")` cho tham chiếu khác là hành vi quan sát được theo API, nhưng không suy ra cần sao chép cùng một lượng byte dữ liệu ký tự bên dưới.
+This example **verifies Java semantics**, not direct byte counts of each `String`. The expression `getBytes(UTF_8)` creates a UTF-8 representation to count output size; do not use it as a way to inspect internal arrays. Observing that `new String("alpha")` yields a different reference is guaranteed by the API, but do not deduce from it that the same number of underlying character-data bytes had to be duplicated.
 
-## 10. Tối ưu số lượng chuỗi và đối tượng tạm
+## 10. Reducing string and temporary object counts
 
-### 10.1. Chọn đúng công cụ nối chuỗi
+### 10.1. Choosing the right concatenation tool
 
-| Tình huống | Cách làm thường phù hợp | Ghi chú |
+| Situation | Usually appropriate approach | Notes |
 | --- | --- | --- |
-| Ghép vài trường trong một biểu thức | `"id=" + id + ", status=" + status` | Cú pháp dễ đọc; JDK hiện đại tối ưu nối biểu thức |
-| Tích lũy nhiều phần trong vòng lặp | `StringBuilder` + `append` | Giữ một buffer phát triển, giảm nhu cầu tạo kết quả bất biến mỗi vòng |
-| Ghép collection với delimiter | `String.join(delimiter, values)` | Tránh tự xử lý delimiter đầu/cuối |
-| Ghép nhiều chuỗi trong Stream | `Collectors.joining(delimiter)` | Gọn khi đã có pipeline Stream |
-| Căn lề, số chữ số, locale | `String.format`, `Formatter` | Chọn vì đúng định dạng; đo nếu chạy với tần suất rất cao |
-| Duyệt/parse đoạn nhỏ | `indexOf` và xử lý chỉ số nếu phù hợp | Có thể giảm mảng/token tạm; đánh đổi độ phức tạp mã |
+| Combining a few fields in one expression | `"id=" + id + ", status=" + status` | Readable syntax; modern JDKs optimize expression concatenation |
+| Accumulating many parts in a loop | `StringBuilder` + `append` | Maintains a growing buffer, avoiding an immutable result every iteration |
+| Joining a collection with a delimiter | `String.join(delimiter, values)` | Avoids manual leading/trailing delimiter handling |
+| Joining strings in a Stream | `Collectors.joining(delimiter)` | Clean when you already have a Stream pipeline |
+| Alignment, decimal precision, locale | `String.format`, `Formatter` | Choose for formatting correctness; measure if called very frequently |
+| Scanning/parsing small slices | `indexOf` and index math if appropriate | Can reduce temporary arrays/tokens; trades off code complexity |
 
-Tối ưu phù hợp nhất thường là **tránh công việc thừa**: không lặp lại format một thông báo mà người dùng không xem, không gọi `split` khi chỉ cần kiểm tra một tiền tố, và không tạo cùng một chuỗi chuyển đổi trong từng lượt nếu giá trị thực sự không đổi.
+Often the best optimization is **avoiding unnecessary work**: do not repeatedly format a message nobody reads, do not call `split` when you only need a prefix check, and do not recreate the same converted string on every iteration if the value does not actually change.
 
-### 10.2. Không tạo output khi không sử dụng
+### 10.2. Avoid building output when unused
 
-Ví dụ một đoạn log có điều kiện:
+Example of conditional logging:
 
 ```java
-// Chỉ minh họa cấu trúc điều kiện; logEnabled/log là API của ứng dụng.
+// Illustrates the conditional structure only; logEnabled/log are application APIs.
 if (logEnabled) {
-    String message = "Tổng=" + total + ", mã=" + code;
+    String message = "Total=" + total + ", code=" + code;
     log(message);
 }
 ```
 
-Bằng cách kiểm tra điều kiện trước, ta tránh phải xây dựng thông báo trong nhánh không dùng tới. Với framework logging, hãy dùng các cơ chế placeholder/lazy logging mà framework cung cấp khi phù hợp; `String.format` trước khi gọi logger có thể vẫn làm công việc dù log bị vô hiệu hóa.
+By checking the condition first, we avoid constructing the message in the unused branch. With logging frameworks, use the placeholder/lazy logging features they provide where appropriate; calling `String.format` before passing to a logger can still do the formatting work even when logging is disabled.
 
-### 10.3. Tái sử dụng dữ liệu không đồng nghĩa intern tất cả
+### 10.3. Reusing data does not mean interning everything
 
-Nếu cùng một bộ từ khóa/nhãn cố định xuất hiện rất nhiều lần, tái sử dụng đối tượng có thể hữu ích. Nhưng `intern()` mọi ID, URL hoặc giá trị ngẫu nhiên không có tỷ lệ lặp cao có thể gây overhead. Khi cần cache, xác định rõ phạm vi sống và giới hạn kích thước; nếu không, tiết kiệm cấp phát ngắn hạn có thể biến thành tăng retained heap dài hạn.
+If the same fixed set of keywords/labels appears very frequently, reusing objects can help. However, calling `intern()` on every ID, URL, or random value with low repetition adds management overhead. When caching is needed, define a clear lifetime and size limit; otherwise, short-term allocation savings can turn into long-term retained heap growth.
 
-### 10.4. StringBuilder dùng lại có giới hạn
+### 10.4. Bounded StringBuilder reuse
 
-Có thể tái sử dụng `StringBuilder` trong một luồng xử lý có kiểm soát, gọi `setLength(0)` để làm trống. Nhưng **capacity lớn vẫn được giữ** sau khi reset, nên một request bất thường có thể khiến buffer chiếm chỗ quá lâu. Ngoài ra `StringBuilder` không thread-safe; không chia sẻ builder mutable giữa nhiều luồng nếu không có đồng bộ thích hợp. Tránh giữ builder khổng lồ trong `ThreadLocal` hoặc cache vô hạn.
+You can reuse a `StringBuilder` within a controlled processing flow by calling `setLength(0)` to clear it. However, **a large capacity stays allocated** after resetting, so one unusually large request can keep an oversized buffer pinned for too long. Moreover, `StringBuilder` is not thread-safe; never share a mutable builder across threads without proper synchronization. Avoid keeping gigantic builders in `ThreadLocal` or unbounded caches.
 
-## 11. Đo lường thay vì dự đoán số đối tượng
+## 11. Measure instead of guessing object counts
 
-### 11.1. Những câu hỏi cần profiler trả lời
+### 11.1. Questions a profiler should answer
 
-Khi nhận thấy GC hoạt động nhiều, độ trễ tăng hoặc heap cao, tìm:
-- Loại đối tượng nào được **cấp phát nhiều nhất**, đặc biệt `String`, `byte[]` và các mảng liên quan?
-- Call path nào tạo chúng? Có phải vòng lặp nối chuỗi, format, parse hay chuyển đổi không?
-- Đó là **allocation rate** cao của đối tượng sống ngắn, hay **retained heap** cao do cache và tham chiếu lâu dài?
-- Có nhiều chuỗi cùng nội dung được giữ lại không? Chúng có thật sự gây ảnh hưởng đáng kể đến ứng dụng?
-- Sau khi sửa, throughput, latency, số lượng cấp phát và GC có cải thiện trên dữ liệu điển hình hay không?
+When noticing heavy GC activity, latency spikes, or high heap usage, look for:
+- Which object types are **allocated most frequently**, especially `String`, `byte[]`, and related arrays?
+- Which call paths create them? Is it loop concatenation, formatting, parsing, or conversion?
+- Is it a high **allocation rate** of short-lived objects, or high **retained heap** from caches and long-lived references?
+- Are many strings with identical content being retained? Are they truly causing a measurable impact on the application?
+- After the change, do throughput, latency, allocation counts, and GC improve on representative data?
 
-Công cụ hữu ích có thể gồm **Java Flight Recorder (JFR)**, **Java Mission Control (JMC)**, **VisualVM**, **Eclipse Memory Analyzer (MAT)** và profiler phù hợp môi trường. JFR có các sự kiện/cách lấy mẫu allocation; heap dump cho phép xem retained heap và đường giữ tham chiếu. Kết quả phụ thuộc cấu hình ghi và công cụ, nên cần đọc đúng định nghĩa metric.
+Useful tools include **Java Flight Recorder (JFR)**, **Java Mission Control (JMC)**, **VisualVM**, **Eclipse Memory Analyzer (MAT)**, and other environment-appropriate profilers. JFR provides allocation events/sampling; heap dumps show retained heap and reference retention paths. Results depend on recording configuration and tooling, so read metric definitions carefully.
 
-### 11.2. Quan sát allocation với JFR
+### 11.2. Observing allocations with JFR
 
-Một ví dụ trên JDK có công cụ `jfr`:
+An example on a JDK that includes the `jfr` tooling:
 
 ```bash
 java -XX:StartFlightRecording=filename=string-profile.jfr,settings=profile \
      -jar application.jar
 ```
 
-Lệnh mang tính **minh họa** cho ứng dụng thực tế `application.jar`; phần xuống dòng ở ví dụ shell chỉ dùng được trong môi trường cho phép escape tương ứng, còn trên Windows PowerShell có thể viết lệnh cùng một dòng. Có thể xem file `.jfr` bằng JMC hoặc công cụ `jfr` phù hợp. Việc record có đúng sự kiện allocation mong muốn hay không phụ thuộc profile và cấu hình JFR.
+This command is **illustrative** for a real application `application.jar`; the shell line continuation only works in shells supporting that escape syntax, whereas on Windows PowerShell you can write the command on a single line. You can inspect the `.jfr` file with JMC or an appropriate `jfr` CLI tool. Whether the recording captures the exact allocation events desired depends on the JFR profile and settings.
 
-Nếu cần số liệu đáng tin cho một thao tác nhỏ, tránh tự so sánh `Runtime.totalMemory() - freeMemory()` trước/sau **một lời gọi**. GC, JIT, escape analysis, cấp phát của framework và các luồng khác khiến kết quả rất nhiễu.
+When you need reliable numbers for a small operation, avoid comparing `Runtime.totalMemory() - freeMemory()` before and after **a single call**. GC, JIT, escape analysis, framework allocations, and other threads make such measurements far too noisy.
 
-### 11.3. Benchmark có kiểm soát
+### 11.3. Controlled benchmarking
 
-Với phép nối/định dạng ở hot path, nên dùng **JMH** thay cho vòng lặp bấm giờ tự viết. Khi benchmark:
-1. Đặt rõ giả thuyết: giảm allocation/op, tăng throughput, hay giảm độ trễ?
-2. Dùng **đầu vào biến thiên có kiểm soát** để tránh hằng số hóa toàn bộ phép toán.
-3. Warm-up để JVM tối ưu trước khi đo, chạy nhiều vòng/fork phù hợp.
-4. Tiêu thụ kết quả để tránh dead-code elimination (JMH cung cấp cơ chế phù hợp).
-5. Đo cả số byte cấp phát trên operation nếu mục tiêu là bộ nhớ, và xem tác động GC ở mức ứng dụng.
+For concatenation/formatting on a hot path, use **JMH** rather than hand-rolled timing loops. When benchmarking:
+1. State a clear hypothesis: reduce allocations/op, increase throughput, or lower latency?
+2. Use **controlled varying inputs** to prevent constant folding of the entire operation.
+3. Warm up so the JVM optimizes before measurement, and run multiple iterations/forks appropriately.
+4. Consume results to prevent dead-code elimination (JMH provides dedicated mechanisms).
+5. Measure bytes allocated per operation if memory is the goal, and check application-level GC impact.
 
-Một benchmark micro có thể chứng minh một thao tác cụ thể nhanh hơn trong cấu hình đo, nhưng không đủ để khẳng định mọi chương trình nên thay `+` bằng `StringBuilder`.
+A microbenchmark can show that a specific operation is faster under a given setup, but that is not enough to claim every program should replace `+` with `StringBuilder`.
 
-## 12. Cấu hình JVM và tối ưu hóa liên quan
+## 12. JVM flags and related optimizations
 
 ### Compact Strings
 
-OpenJDK/HotSpot Java 17 thông thường bật Compact Strings theo mặc định. Một số JVM cho phép điều khiển qua cờ triển khai như `-XX:-CompactStrings`; đây là tùy chọn **phụ thuộc VM**, không phải cú pháp Java chuẩn hay khuyến nghị tối ưu mặc định. Thay đổi cờ có thể làm tăng footprint hoặc thay đổi hiệu năng; chỉ dùng cho nghiên cứu/benchmark có kiểm soát.
+OpenJDK/HotSpot Java 17 normally enables Compact Strings by default. Some JVMs allow controlling it via implementation flags such as `-XX:-CompactStrings`; this is a **VM-dependent option**, not standard Java syntax or a default tuning recommendation. Changing flags can increase footprint or alter performance; use them only for controlled research or benchmarks.
 
 ### String deduplication
 
-Một số garbage collector, điển hình các cấu hình G1, hỗ trợ **String deduplication** qua cơ chế/cờ JVM như `-XX:+UseStringDeduplication` trên những bản phát hành tương ứng. Ý tưởng là chia sẻ mảng lưu nội dung giữa các đối tượng `String` có nội dung giống nhau, trong khi **đối tượng String vẫn khác nhau**. Tối ưu này không giúp mọi chương trình và có overhead rà soát/hash; cần kiểm tra GC/JDK đang chạy và đo bằng công cụ trước khi bật.
+Some garbage collectors, notably G1 configurations, support **String deduplication** via JVM mechanisms/flags such as `-XX:+UseStringDeduplication` on supporting releases. The idea is to share the backing content array among `String` objects with identical contents while keeping **distinct `String` objects**. This optimization does not help every workload and adds scanning/hashing overhead; check your target GC/JDK and measure before enabling it.
 
-### JIT và escape analysis
+### JIT and escape analysis
 
-HotSpot có thể tối ưu một số phép nối chuỗi, nội tuyến phương thức và thậm chí loại bỏ những cấp phát không “thoát” khỏi phạm vi tính toán quan sát được. Vì vậy:
-- Nguồn Java có từ `new` hoặc phép tạo chuỗi không đồng nghĩa runtime chắc chắn cấp phát riêng đối tượng ở heap trong mọi lần chạy.
-- Benchmark quá đơn giản có thể cho kết quả bất thường vì JIT đã hằng số hóa hoặc loại bỏ phần công việc.
-- Không nên thay đổi code chỉ dựa trên số đối tượng **suy luận** từ đoạn mã; phải kết hợp profiler với hiểu biết về runtime.
+HotSpot can optimize certain string concatenations, inline methods, and even eliminate allocations that do not "escape" the observable scope of computation. Therefore:
+- Seeing `new` or string creation in Java source does not mean the runtime necessarily allocates a separate heap object on every execution.
+- Overly simple benchmarks can produce misleading numbers because the JIT constant-folded or eliminated the work.
+- Do not change code solely based on object counts **inferred** from reading source code; combine a profiler with an understanding of the runtime.
 
-Các cờ và chi tiết thuật toán JVM có thể khác theo JDK, GC và vendor; chú ý phiên bản trước khi sao chép hướng dẫn tuning.
+JVM flags and algorithmic details vary across JDKs, GCs, and vendors; check your exact version before copying tuning guides.
 
-## 13. Những hiểu lầm và lỗi thường gặp
+## 13. Common misconceptions and mistakes
 
-**1. “String dài N ký tự luôn chiếm 2N byte.”** Sai nếu dùng như phép tính tổng footprint. `N = length()` là code unit UTF-16; có overhead và Compact Strings. Dữ liệu trên heap không đồng nhất với byte UTF-8.
+**1. "A String of N characters always takes 2N bytes."** False if used as a total footprint formula. `N = length()` is UTF-16 code units; there is object overhead and Compact Strings. In-heap data is also not identical to UTF-8 bytes.
 
-**2. “Unicode/emoji luôn có length bằng 1.”** Không đúng với code point ngoài BMP: một emoji có thể chiếm hai UTF-16 code unit, nên `length()` có thể là 2. Nếu cần đếm code point, dùng `codePointCount(...)`, đồng thời nhớ code point chưa chắc tương ứng một *grapheme cluster* hiển thị.
+**2. "Unicode/emoji always has length 1."** False for non-BMP code points: an emoji can occupy two UTF-16 code units, so `length()` can be 2. When counting code points, use `codePointCount(...)`, and remember a code point still does not necessarily match a visible *grapheme cluster*.
 
-**3. “Mỗi dấu + luôn tạo thêm một String trung gian.”** Kết quả biểu thức là chuỗi, nhưng compiler/JIT có thể hằng số hóa, gộp công việc và giảm cấp phát. Vấn đề thực tế là nối tích lũy trong vòng lặp và tốc độ phân bổ đã đo.
+**3. "Every + operator always creates an extra intermediate String."** The expression evaluates to a string, but the compiler/JIT can constant-fold, fuse work, and reduce allocations. The real concern is cumulative loop concatenation and measured allocation rates.
 
-**4. “StringBuilder không tốn bộ nhớ.”** Sai. Nó là đối tượng có buffer; mở rộng buffer hoặc cấp trước quá lớn đều có chi phí. `toString()` tạo kết quả bất biến theo API.
+**4. "StringBuilder uses no memory."** False. It is an object with a buffer; growing the buffer or over-preallocating both have costs. `toString()` produces an immutable result per the API.
 
-**5. “Substring Java 17 luôn giữ nguyên cả mảng lớn gốc.”** Đây là kinh nghiệm từ một số JDK cũ có layout khác; đừng dùng nó để kết luận cho Java 17. Phải đo heap của JVM thực tế nếu cần biết khả năng chia sẻ dữ liệu.
+**5. "Java 17 substring always keeps the entire huge parent array alive."** That was an observation from some older JDKs with a different layout; do not apply it to Java 17. Profile the actual JVM heap if you need to know about backing data sharing.
 
-**6. “intern và String deduplication là một.”** `intern` canonical hóa tham chiếu String, còn deduplication (khi hỗ trợ) hướng tới chia sẻ bộ đệm của các String khác đối tượng.
+**6. "intern and String deduplication are the same thing."** `intern` canonicalizes the String reference, whereas deduplication (where supported) targets sharing the backing buffers of distinct String objects.
 
-**7. “Heap ít chuỗi đang sống nên không thể có vấn đề String.”** Một hệ thống có thể có live heap thấp nhưng allocation rate cao, dẫn đến GC nhiều và giảm throughput.
+**7. "The heap has few live strings, so there cannot be a String problem."** A system can have low live heap alongside a high allocation rate, causing frequent GC and lower throughput.
 
-**8. “getBytes(UTF_8).length là kích thước String trên heap.”** Đây là byte của biểu diễn mã hóa được xuất ra, không gồm overhead object và cũng không phản ánh chắc chắn cách JVM lưu bên trong.
+**8. "getBytes(UTF_8).length is the String's size on the heap."** That is the byte length of an exported encoded representation, excluding object overhead and not reliably reflecting internal JVM storage.
 
-**9. “Cứ thêm cache sẽ tiết kiệm bộ nhớ.”** Cache có thể tăng retained heap và kéo dài vòng đời đối tượng. Chỉ cache giá trị dùng lại đủ nhiều, có giới hạn phù hợp.
+**9. "Adding a cache always saves memory."** A cache can raise retained heap and extend object lifetimes. Cache only values reused often enough, with appropriate bounds.
 
-**10. “Benchmark nối chuỗi trên một hằng số đủ để chọn tối ưu.”** Constant folding và tối ưu JIT có thể làm kết quả mất tính đại diện; cần JMH và profile ứng dụng thực.
+**10. "Benchmarking concatenation on a constant is enough to pick an optimization."** Constant folding and JIT optimizations can make results unrepresentative; use JMH and profile the real application.
 
-## 14. Bài tập tự luyện
+## 14. Practice exercises
 
-### Bài 1. Phân biệt length và UTF-8
+### Exercise 1. Distinguishing length and UTF-8
 
 ```java
 String ascii = "ABC";
 String emoji = new String(Character.toChars(0x1F600));
 ```
 
-Hỏi: `ascii.length()`, `emoji.length()` và `emoji.codePointCount(0, emoji.length())` bằng bao nhiêu? Có thể lấy các số đó nhân 2 để suy ra heap bytes không?
+Question: What are `ascii.length()`, `emoji.length()`, and `emoji.codePointCount(0, emoji.length())`? Can you multiply those numbers by 2 to deduce heap bytes?
 
-**Đáp án:** Lần lượt là **3**, **2**, **1**. Không thể suy ra heap bytes vì chúng là các phép đếm nội dung; heap còn phụ thuộc storage representation, overhead và JVM.
+**Answer:** **3**, **2**, and **1**, respectively. You cannot deduce heap bytes because these are content counts; heap usage also depends on storage representation, overhead, and the JVM.
 
-### Bài 2. Về danh tính đối tượng
+### Exercise 2. Object identity
 
 ```java
 String x = "value";
@@ -436,13 +436,13 @@ String y = "value";
 String z = new String("value");
 ```
 
-Hỏi: `x == y`, `x == z`, `x.equals(z)`?
+Question: What are `x == y`, `x == z`, and `x.equals(z)`?
 
-**Đáp án:** `true`, `false`, `true`. Hai literal dùng cùng chuỗi canonical; `new String(...)` tạo đối tượng riêng nhưng nội dung bằng nhau.
+**Answer:** `true`, `false`, `true`. Both literals refer to the same canonical string; `new String(...)` creates a distinct object with equal content.
 
-### Bài 3. Thay vòng lặp nối nhiều phần
+### Exercise 3. Replacing a multi-part concatenation loop
 
-Từ danh sách `parts` có kiểu `List<String>`, chuyển đoạn:
+Given a list `parts` of type `List<String>`, rewrite:
 
 ```java
 String result = "";
@@ -451,7 +451,7 @@ for (String part : parts) {
 }
 ```
 
-thành cách xây chuỗi có một buffer mutable:
+into a string-building approach using a mutable buffer:
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -461,36 +461,36 @@ for (String part : parts) {
 String result = builder.toString();
 ```
 
-Giải thích: mã sau tránh nhu cầu tạo một kết quả `String` bất biến mới trên mỗi vòng xét theo cấu trúc thuật toán; chi phí thực tế vẫn cần profiler xác nhận.
+Explanation: the second version avoids requiring a new immutable `String` result on each iteration structurally; actual runtime cost should still be confirmed with a profiler.
 
-### Bài 4. Kiểm tra chi phí của một pipeline
+### Exercise 4. Checking the cost of a pipeline
 
 ```java
 String[] values = input.split(",");
 String joined = String.join("|", values);
 ```
 
-Hỏi: có thể chắc chắn chỉ cấp phát đúng hai đối tượng (một mảng và một chuỗi) không?
+Question: Can you be sure this allocates strictly two objects (one array and one string)?
 
-**Đáp án:** Không. Có thể có các token `String`, mảng và đối tượng nội bộ khác; số allocation thực tế còn chịu tối ưu JVM. Đo profiler nếu đây là hot path.
+**Answer:** No. There can be token `String` objects, arrays, and other internal objects; actual allocations are also subject to JVM optimizations. Profile if this is on a hot path.
 
-### Bài 5. Xác định phép đo đúng
+### Exercise 5. Choosing the right metric
 
-Một dịch vụ tạo hàng triệu chuỗi tạm mỗi giây nhưng retained heap không tăng rõ ràng. Nên xem **shallow size** của một `String` hay **allocation rate, GC activity và call path**?
+A service creates millions of temporary strings per second, yet retained heap does not visibly grow. Should you inspect the **shallow size** of one `String`, or **allocation rate, GC activity, and call paths**?
 
-**Đáp án:** Ưu tiên allocation rate, GC và call path để tìm nơi tạo đối tượng ngắn hạn. Shallow size của một đối tượng đơn lẻ không phản ánh áp lực cấp phát theo thời gian.
+**Answer:** Prioritize allocation rate, GC, and call paths to locate where short-lived objects are created. The shallow size of a single object does not reflect allocation pressure over time.
 
-## 15. Ghi nhớ
+## 15. Key takeaways
 
-- **`String` có nhiều tầng chi phí:** đối tượng, dữ liệu nội bộ, overhead mảng, căn chỉnh và vòng đời tham chiếu; `length()` không phải kích thước heap.
-- **Compact Strings** trong OpenJDK/HotSpot Java 9+ thường dùng `byte[]` với Latin-1 hoặc UTF-16 để giảm phần dữ liệu; đó là **chi tiết triển khai**.
-- **Chuỗi immutable:** thao tác tạo nội dung mới có thể dẫn tới cấp phát `String` và mảng mới; compiler/JIT có thể tối ưu một phần, không được đếm đối tượng chỉ từ cú pháp.
-- **Literal/intern** và **string deduplication** là hai kỹ thuật khác nhau, với tác động khác nhau lên tham chiếu và dữ liệu.
-- **Nối trong vòng lặp:** cân nhắc `StringBuilder`; nối vài giá trị một biểu thức bằng `+` thường phù hợp và dễ đọc.
-- **Tối ưu đúng mục tiêu:** phân biệt lượng heap còn sống với tốc độ cấp phát đối tượng tạm; đo bằng profiler, JFR, heap dump và JMH phù hợp.
-- **Không tối ưu mù:** cấu hình VM, GC, bộ nhớ và thời gian chạy phải được kiểm tra trên workload thực.
+- **`String` has multiple layers of cost:** the object, internal data, array overhead, alignment, and reference lifetime; `length()` is not heap size.
+- **Compact Strings** in OpenJDK/HotSpot Java 9+ typically uses `byte[]` with Latin-1 or UTF-16 to reduce the data portion; that is an **implementation detail**.
+- **Immutable strings:** operations creating new content can allocate new `String` objects and arrays; the compiler/JIT can optimize some of this away, so never count objects by syntax alone.
+- **Literals/intern** and **string deduplication** are two distinct techniques with different effects on references and backing data.
+- **Loop concatenation:** consider `StringBuilder`; joining a few values in one expression with `+` is usually clean and readable.
+- **Target the right bottleneck:** distinguish live heap size from temporary object allocation rate; measure with appropriate profilers, JFR, heap dumps, and JMH.
+- **Never optimize blindly:** VM flags, GC, memory, and runtime must be verified on real workloads.
 
-Tài liệu tham khảo:
+References:
 - [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
 - [Java SE 17 — StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html)
 - [OpenJDK JEP 254 — Compact Strings](https://openjdk.org/jeps/254)

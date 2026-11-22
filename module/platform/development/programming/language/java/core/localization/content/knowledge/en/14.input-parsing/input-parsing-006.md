@@ -1,53 +1,53 @@
-# Thông báo lỗi theo Locale nhưng giữ mã lỗi ổn định trong Java
+# Locale-Aware Error Messages with Stable Error Codes in Java
 
-## Mục tiêu
+## Objectives
 
-Khi người dùng nhập một số, ngày tháng, số lượng hoặc dữ liệu biểu mẫu không hợp lệ, ứng dụng cần giải quyết **hai bài toán khác nhau**:
+When a user enters an invalid number, date, quantity, or form field, an application must solve **two distinct problems**:
 
-1. **Xác định loại lỗi một cách ổn định** để chương trình, API client, giám sát và kiểm thử xử lý đúng. Ví dụ: `INPUT_NUMBER_INVALID`.
-2. **Giải thích lỗi bằng ngôn ngữ phù hợp** với người nhận, ví dụ: “Số lượng không phải số hợp lệ.” hoặc “Quantity must be a valid number.”
+1. **Identify the error type stably** so the application, API clients, monitoring, and tests handle it reliably—for example, `INPUT_NUMBER_INVALID`.
+2. **Explain the error in a language appropriate** for the recipient—for example, “Số lượng không phải số hợp lệ.” or “Quantity must be a valid number.”
 
-Nếu dùng câu dịch làm mã lỗi, cùng một lỗi sẽ có nhiều định danh khác nhau theo ngôn ngữ. Nếu dùng một chuỗi tiếng Anh cố định làm thông báo cho mọi người, giao diện khó dùng và bỏ qua nhu cầu localization. Thiết kế đúng là **giữ code độc lập với `Locale`, còn message được tra cứu/định dạng theo `Locale`**.
+If translated sentences are used as error codes, the same failure ends up with multiple identifiers across languages. If a hardcoded English string is returned to everyone, the UI becomes harder to use and ignores localization requirements. The right design **keeps codes independent of `Locale`, while looking up and formatting messages by `Locale`**.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **error code**, **message key**, **localized message**, **field identifier**, **HTTP status** và **technical detail**.
-- Thiết kế một danh sách mã lỗi ổn định cho việc phân tích đầu vào, không phụ thuộc tên người dùng hoặc ngôn ngữ.
-- Dùng `ResourceBundle` với `Locale` và `MessageFormat` để trả thông điệp đa ngôn ngữ từ một kết quả validation.
-- Xử lý lỗi parse theo lớp: dữ liệu thiếu, cú pháp sai, còn phần dư, ngoài phạm vi và vi phạm quy tắc nghiệp vụ.
-- Xây dựng hợp đồng API và kiểm thử trong đó **code giữ nguyên** nhưng **message thay đổi** theo locale.
-- Nhận diện các bẫy: dùng message để điều khiển logic, nhầm lỗi validation với lỗi server, fallback che thiếu bản dịch, làm lộ dữ liệu nhạy cảm qua log hoặc thông điệp.
+- Distinguish **error code**, **message key**, **localized message**, **field identifier**, **HTTP status**, and **technical detail**.
+- Design a stable list of error codes for input parsing that does not depend on user names or languages.
+- Use `ResourceBundle` with `Locale` and `MessageFormat` to produce multilingual messages from a single validation result.
+- Handle parse errors in layers: missing data, invalid syntax, trailing remainder, out-of-range values, and business rule violations.
+- Build API contracts and tests where the **code stays constant** while the **message changes** by locale.
+- Recognize common pitfalls: branching logic on message text, confusing validation errors with server errors, fallback hiding missing translations, and leaking sensitive data in logs or messages.
 
-Bài học thuộc phần **Phân tích đầu vào**: đầu tiên phát hiện và phân loại lỗi, sau đó mới tạo thông điệp được bản địa hóa. Không cần biến văn bản dịch thành một thành phần của thuật toán phân tích.
+This lesson belongs to **Input Parsing**: first detect and classify the error, and only then generate a localized message. Translated text should never become part of the parsing algorithm.
 
-## 1. Một lỗi có nhiều cách diễn đạt, nhưng chỉ một định danh
+## 1. One Error Can Have Many Phrasings, Only One Identifier
 
-Giả sử biểu mẫu yêu cầu số lượng trong khoảng từ 1 đến 100. Người dùng nhập `abc`.
+Suppose a form requires a quantity between 1 and 100. The user enters `abc`.
 
-Cùng một kết quả validation có thể được trình bày:
+The same validation result can be represented as:
 
-| Thành phần | Tiếng Việt | Tiếng Anh |
+| Component | Vietnamese | English |
 | --- | --- | --- |
-| Mã lỗi | `INPUT_NUMBER_INVALID` | `INPUT_NUMBER_INVALID` |
+| Error code | `INPUT_NUMBER_INVALID` | `INPUT_NUMBER_INVALID` |
 | Message key | `error.number.invalid` | `error.number.invalid` |
-| Thông báo | `Số lượng không phải số hợp lệ.` | `Quantity must be a valid number.` |
+| Message | `Số lượng không phải số hợp lệ.` | `Quantity must be a valid number.` |
 | Field identifier | `quantity` | `quantity` |
-| HTTP status minh họa | `400` | `400` |
+| Illustrative HTTP status | `400` | `400` |
 
-**Mã lỗi và field identifier là định danh để máy xử lý. Thông báo là nội dung dành cho người đọc.** Một người dùng đổi ngôn ngữ từ tiếng Việt sang tiếng Anh không làm tình trạng dữ liệu `abc` thay đổi, cũng không buộc API phát sinh một loại lỗi khác.
+**Error codes and field identifiers are machine-readable identifiers. Messages are human-readable text.** A user switching languages from Vietnamese to English does not change the validity of `abc`, nor should it force the API to emit a different error type.
 
-Sơ đồ xử lý:
+Processing flow:
 
 ```text
-Raw input + quy tắc/Locale đầu vào
+Raw input + input rules/Locale
                |
-       Parse + validate
+        Parse + validate
                |
-      Kết quả dạng cấu trúc
-      code=INPUT_NUMBER_INVALID
-      field=quantity
+       Structured result
+       code=INPUT_NUMBER_INVALID
+       field=quantity
                |
-        Tra message key
+        Look up message key
                |
       ResourceBundle + Locale
           /             \
@@ -55,63 +55,63 @@ Raw input + quy tắc/Locale đầu vào
     vi-VN message    en-US message
          \               /
           v             v
-    Response code không đổi
-    Message phù hợp người đọc
+    Response code unchanged
+    Reader-appropriate message
 ```
 
-Phần **phát hiện lỗi** không phụ thuộc vào cách dịch câu. Nếu người dịch sửa “không phải số hợp lệ” thành “vui lòng nhập số”, cùng `INPUT_NUMBER_INVALID` vẫn là cùng lỗi với cùng chính sách xử lý.
+**Error detection** does not depend on how a sentence is translated. If a translator edits “không phải số hợp lệ” to “vui lòng nhập số”, the same `INPUT_NUMBER_INVALID` still represents the same error with the same handling policy.
 
-## 2. Phân biệt các khái niệm liên quan
+## 2. Distinguishing Related Concepts
 
-| Khái niệm | Mục đích | Ví dụ | Có thay theo Locale? |
+| Concept | Purpose | Example | Varies by Locale? |
 | --- | --- | --- | --- |
-| **Error code** | Định danh công khai, ổn định cho loại lỗi | `INPUT_NUMBER_INVALID` | Không |
-| **Message key** | Định danh khóa trong tệp tài nguyên | `error.number.invalid` | Không |
-| **Localized message** | Giải thích cho người dùng | `Số lượng không phải số hợp lệ.` | Có |
-| **Field identifier** | Chỉ trường dữ liệu lỗi | `quantity` | Không |
-| **Localized field label** | Tên trường đọc được trên giao diện | `Số lượng` / `Quantity` | Có |
-| **HTTP status** | Phân loại kết quả ở cấp giao thức | `400 Bad Request` | Không |
-| **Context parameters** | Dữ liệu cần điền vào mẫu dịch | `min=1`, `max=100` | Giá trị ổn định; cách hiển thị có thể theo locale |
-| **Technical detail / diagnostic** | Phục vụ điều tra hệ thống | parse position, exception type | Không nên là thông điệp hiển thị công khai |
+| **Error code** | Public, stable identifier for an error category | `INPUT_NUMBER_INVALID` | No |
+| **Message key** | Resource bundle key identifier | `error.number.invalid` | No |
+| **Localized message** | Explanation for the user | `Số lượng không phải số hợp lệ.` | Yes |
+| **Field identifier** | Identifies the failing data field | `quantity` | No |
+| **Localized field label** | Human-readable field name in the UI | `Số lượng` / `Quantity` | Yes |
+| **HTTP status** | Protocol-level outcome classification | `400 Bad Request` | No |
+| **Context parameters** | Values interpolated into message templates | `min=1`, `max=100` | Values stable; display formatting may vary by locale |
+| **Technical detail / diagnostic** | For system troubleshooting | parse position, exception type | Should not be shown as public UI text |
 
-Mặc dù code và key trong ví dụ có nội dung gần nhau, chúng **không nhất thiết là cùng chuỗi**:
+Even though the code and key in the example look similar, they **do not have to be identical strings**:
 
-- `INPUT_NUMBER_INVALID` có thể là định danh trong hợp đồng API.
-- `error.number.invalid` có thể là tên key của `ResourceBundle`.
-- Một ánh xạ từ code sang key được duy trì trong code/configuration và có thể đổi cấu trúc tài nguyên mà **không làm hỏng contract của client**.
+- `INPUT_NUMBER_INVALID` can be the identifier in the API contract.
+- `error.number.invalid` can be the `ResourceBundle` key name.
+- A mapping from code to key is maintained in code/configuration, allowing resource structure changes **without breaking client contracts**.
 
-Tương tự, `HTTP 400` không thay thế code. Nhiều lỗi như trường thiếu, số không hợp lệ, ngày sai định dạng có thể đều dùng HTTP 400 nhưng cần các code khác nhau để client hiển thị lỗi ở trường tương ứng hoặc thực hiện xử lý khác.
+Likewise, `HTTP 400` does not replace error codes. Many failures—missing field, invalid number, malformed date—can all use HTTP 400 while requiring distinct codes so clients can highlight the right field or trigger specific handling.
 
-Đừng nhầm `Locale` với **múi giờ**, **đơn vị tiền**, hoặc **vùng thực tế của người dùng**. Locale dùng cho việc parse/format có thể khác locale mong muốn khi hiển thị thông báo, nếu ứng dụng có chính sách rõ ràng; không suy ra thông tin nhạy cảm từ Locale.
+Do not confuse `Locale` with **time zone**, **currency unit**, or the **user's physical region**. The locale used for parsing/formatting can differ from the preferred locale for displaying messages if the application defines such a policy; never infer sensitive information from a `Locale`.
 
-## 3. Bước đầu: phân loại lỗi trước khi dịch
+## 3. First Step: Classify Errors Before Translating
 
-Với một trường số, những trường hợp này không nên bị nhập chung nếu ứng dụng cần hành vi khác nhau:
+For a numeric field, these cases should not be collapsed together if the application needs distinct behaviors:
 
-| Điều kiện đầu vào | Error code minh họa | Ý nghĩa |
+| Input Condition | Illustrative Error Code | Meaning |
 | --- | --- | --- |
-| Không có giá trị hoặc chuỗi rỗng | `INPUT_NUMBER_REQUIRED` | Trường bắt buộc chưa được nhập |
-| Không thể bắt đầu parse thành số | `INPUT_NUMBER_INVALID` | Cú pháp số không hợp lệ |
-| Parser chỉ đọc được tiền tố `10` của `10abc` | `INPUT_NUMBER_INVALID` | Còn phần dư trái với hợp đồng trường chỉ nhận số |
-| Parse được số nhưng vượt giới hạn | `INPUT_NUMBER_OUT_OF_RANGE` | Đúng kiểu số, sai miền giá trị |
-| Số có nhiều chữ số thập phân hơn mức cho phép | `INPUT_NUMBER_SCALE_INVALID` | Không đáp ứng yêu cầu precision/scale nghiệp vụ |
+| Missing value or empty string | `INPUT_NUMBER_REQUIRED` | Required field was not entered |
+| Cannot start parsing as a number | `INPUT_NUMBER_INVALID` | Invalid numeric syntax |
+| Parser reads only prefix `10` of `10abc` | `INPUT_NUMBER_INVALID` | Remainder violates number-only field contract |
+| Parsed number exceeds bounds | `INPUT_NUMBER_OUT_OF_RANGE` | Valid numeric type, outside value domain |
+| Number has more decimal digits than allowed | `INPUT_NUMBER_SCALE_INVALID` | Violates business precision/scale requirement |
 
-Các code trên là **thiết kế mẫu cho ứng dụng**, không phải các hằng số mà JDK tự cung cấp. Ứng dụng có thể chọn tên khác, nhưng nên thống nhất về ý nghĩa và mức độ cụ thể.
+These codes are **sample application designs**, not constants provided by the JDK. Applications may choose different names, provided they remain consistent in meaning and granularity.
 
-Quy trình lý tưởng:
+Ideal workflow:
 
-1. Nhận giá trị và ngữ cảnh đầu vào, bao gồm locale của trường nếu người dùng nhập số/ngày theo định dạng địa phương.
-2. Phân biệt *thiếu trường* với *trường có nội dung sai* nếu nghiệp vụ cần hai phản hồi khác nhau.
-3. Parse theo đúng grammar/locale và kiểm tra **toàn bộ đầu vào được tiêu thụ** nếu đây là trường chỉ chứa một giá trị.
-4. Kiểm tra kiểu, miền giá trị và quy tắc nghiệp vụ; không dùng việc parse thành công như bằng chứng mọi điều kiện đều đúng.
-5. Trả một kết quả có cấu trúc chứa giá trị thành công **hoặc** code lỗi cố định; chưa cần dịch.
-6. Khi tạo phản hồi cho người dùng, chọn locale hiển thị, lấy mẫu thông báo, điền tham số và xuất kết quả.
+1. Receive the input value and context, including the field's locale if users enter numbers/dates in a regional format.
+2. Distinguish a *missing field* from a *field with invalid content* if business logic requires separate responses.
+3. Parse using the proper grammar/locale and verify **full input consumption** if the field accepts only a single value.
+4. Check type, value domain, and business rules; do not treat parse success as proof that all constraints are met.
+5. Return a structured result containing the valid value **or** a fixed error code—no translation yet.
+6. When building the user response, select the display locale, resolve the message template, format parameters, and output the result.
 
-Tách như vậy giúp cùng thuật toán validation được gọi từ giao diện web, ứng dụng di động, CLI và batch import. Từng kênh có thể chọn cách diễn đạt lỗi phù hợp mà không thay đổi logic cốt lõi.
+Separating these steps lets the exact same validation algorithm serve web UIs, mobile apps, CLIs, and batch imports. Each channel can choose an appropriate presentation without altering core logic.
 
-## 4. Vì sao không nên dùng thông điệp làm logic?
+## 4. Why Should Messages Never Drive Logic?
 
-Một cách làm dễ hỏng:
+A fragile approach:
 
 ```java
 if (errorMessage.equals("Số lượng không phải số hợp lệ.")) {
@@ -119,9 +119,9 @@ if (errorMessage.equals("Số lượng không phải số hợp lệ.")) {
 }
 ```
 
-Đây là **đoạn minh họa anti-pattern**, giả định biến `errorMessage` và phương thức `highlightQuantityField` đã tồn tại. Khi người dùng đổi ngôn ngữ, thông điệp thay thành tiếng Anh và điều kiện không còn đúng. Ngay cả ở tiếng Việt, một chỉnh sửa câu chữ hoặc dấu câu của người dịch cũng có thể phá vỡ logic.
+This is an **illustrative anti-pattern**, assuming `errorMessage` and `highlightQuantityField` exist. When the user switches to English, the message changes and the condition stops matching. Even within Vietnamese, a wording or punctuation tweak by a translator can break the logic.
 
-Nên dùng:
+Instead, use:
 
 ```java
 if (errorCode == ErrorCode.INPUT_NUMBER_INVALID) {
@@ -129,17 +129,17 @@ if (errorCode == ErrorCode.INPUT_NUMBER_INVALID) {
 }
 ```
 
-Đây là đoạn minh họa trong mã ứng dụng có `ErrorCode` và hàm xử lý UI tương ứng. `ErrorCode` là kiểu/định danh máy đọc, không là câu hiển thị.
+This illustrates application code using an `ErrorCode` enum and corresponding UI handler. `ErrorCode` is a machine-readable type/identifier, not a display sentence.
 
-Điều tương tự áp dụng với log và giám sát: nếu thống kê bằng message, một lỗi có thể bị chia thành nhiều nhóm theo ngôn ngữ, placeholder và phiên bản dịch. Thống kê bằng code sẽ ổn định hơn.
+The same applies to logging and monitoring: if alerts or metrics aggregate by message text, one error splits across languages, placeholders, and translation revisions. Aggregating by error code stays stable.
 
-**Không bao giờ parse chuỗi thông báo** để lấy ý nghĩa nghiệp vụ. Nội dung đã dịch không phải giao thức dữ liệu, và trật tự từ, dấu câu, định dạng số có thể thay đổi hợp lệ theo từng locale.
+**Never parse message strings** to recover business semantics. Translated text is not a data protocol, and word order, punctuation, and number formatting can legitimately vary across locales.
 
-## 5. Dùng ResourceBundle để ánh xạ code thành thông điệp
+## 5. Using `ResourceBundle` to Map Codes to Messages
 
-Java cung cấp `java.util.ResourceBundle` để tìm chuỗi tài nguyên theo tên và `Locale`. Với thông điệp có tham số, dùng `java.text.MessageFormat`.
+Java provides `java.util.ResourceBundle` to look up resource strings by base name and `Locale`. For parameterized messages, use `java.text.MessageFormat`.
 
-Ví dụ họ tài nguyên:
+Example resource family:
 
 ```text
 messages.properties
@@ -147,7 +147,7 @@ messages_en.properties
 messages_vi.properties
 ```
 
-Bản gốc:
+Root bundle:
 
 ```properties
 # messages.properties
@@ -157,7 +157,7 @@ error.number.invalid={0} must be a valid number.
 error.number.outOfRange={0} must be between {1} and {2}.
 ```
 
-Bản tiếng Việt:
+Vietnamese bundle:
 
 ```properties
 # messages_vi.properties
@@ -167,7 +167,7 @@ error.number.invalid={0} không phải số hợp lệ.
 error.number.outOfRange={0} phải nằm trong khoảng {1} đến {2}.
 ```
 
-Khi cần thông báo:
+When producing a message:
 
 ```java
 ResourceBundle bundle =
@@ -180,46 +180,46 @@ String message = new MessageFormat(pattern, locale)
         .format(new Object[] {fieldLabel});
 ```
 
-Đây là **đoạn minh họa bên trong phương thức**, cần import `ResourceBundle`, `MessageFormat` và có biến `locale` kiểu `Locale`. Với tiếng Việt, kết quả là `Số lượng không phải số hợp lệ.`; tiếng Anh sẽ có thông điệp tương ứng.
+This is an **illustrative snippet inside a method**, requiring imports for `ResourceBundle` and `MessageFormat`, plus a `locale` variable of type `Locale`. With Vietnamese, the result is `Số lượng không phải số hợp lệ.`; English yields the corresponding message.
 
-**Cần tách riêng key của lỗi và label của trường**:
+**Separate error keys from field labels**:
 
-- Code `INPUT_NUMBER_INVALID` không chứa văn bản “Số lượng”.
-- Key `field.quantity` xác định label dịch của trường.
-- Pattern `error.number.invalid` có placeholder `{0}` cho label.
-- Những field khác có thể dùng cùng loại lỗi nhưng với label khác, trong khi `field` kỹ thuật vẫn là định danh ổn định của trường đó.
+- The code `INPUT_NUMBER_INVALID` does not embed the text “Số lượng”.
+- The key `field.quantity` identifies the field's localized label.
+- The pattern `error.number.invalid` has a `{0}` placeholder for the label.
+- Other fields can reuse the same error type with different labels, while the technical `field` remains that field's stable identifier.
 
-Đừng nối câu dịch bằng `"Sai " + fieldLabel` hoặc `fieldLabel + " invalid"`: mỗi ngôn ngữ có trật tự từ và ngữ pháp khác nhau. Hãy đưa cả câu vào pattern để người dịch có quyền đảo vị trí placeholder.
+Do not build translated sentences by concatenating `"Sai " + fieldLabel` or `fieldLabel + " invalid"`: languages differ in word order and grammar. Put the entire sentence in the pattern so translators can reorder placeholders freely.
 
-### Placeholder cũng phải có hợp đồng
+### Placeholders Also Need a Contract
 
-Với pattern `"{0} must be between {1} and {2}."`:
+In the pattern `"{0} must be between {1} and {2}."`:
 
-- `{0}`: label đã dịch của trường.
-- `{1}`: giới hạn nhỏ nhất.
-- `{2}`: giới hạn lớn nhất.
+- `{0}`: localized field label.
+- `{1}`: minimum bound.
+- `{2}`: maximum bound.
 
-Người dịch được phép sắp xếp lại các tham số để đúng ngữ pháp, nhưng **không nên xóa, thêm sai index, hoặc đổi ý nghĩa của chúng**. Mỗi key nên có chú thích dành cho người dịch về vị trí sử dụng, giọng văn và ý nghĩa placeholder.
+Translators may reorder parameters to sound natural, but **must not delete them, use wrong indices, or change their meanings**. Every key should include translator comments describing where it is used, tone, and placeholder meanings.
 
-`MessageFormat` có cú pháp riêng cho dấu nháy đơn `'` và ngoặc nhọn. Một thông điệp có apostrophe hoặc pattern lồng phải được kiểm thử bằng chính `MessageFormat`; không thay thế tùy tiện bằng `String.replace("{0}", ...)`.
+`MessageFormat` has special escaping syntax for single quotes `'` and curly braces. Messages with apostrophes or nested patterns must be tested through `MessageFormat` itself; never substitute `String.replace("{0}", ...)`.
 
-Lưu ý `ResourceBundle` có cơ chế fallback: nếu bản địa phương thiếu một key, có thể lấy giá trị từ parent/root bundle. Như vậy chương trình vẫn chạy nhưng người dùng có thể thấy câu tiếng Anh giữa giao diện tiếng Việt. Hãy kiểm tra độ đầy đủ bản dịch ở pipeline thay vì xem fallback thành công là đã dịch đủ.
+Note that `ResourceBundle` uses a fallback mechanism: if a locale bundle lacks a key, Java may fall back to the parent/root bundle. Thus the program keeps running, but users may see an English sentence inside a Vietnamese UI. Verify translation completeness in your pipeline rather than treating fallback success as complete localization.
 
-## 6. Ví dụ hoàn chỉnh Java 17+: code cố định, câu dịch thay đổi
+## 6. Complete Java 17+ Example: Fixed Codes, Varying Translations
 
-Ta xây dựng một parser đơn giản cho trường số lượng, chấp nhận khoảng `1..100`. Ví dụ minh họa rõ:
+Let us build a simple parser for a quantity field accepting range `1..100`. The example clearly demonstrates:
 
-- Input thiếu: `INPUT_NUMBER_REQUIRED`.
-- Input không phải số hoặc còn ký tự sau tiền tố số: `INPUT_NUMBER_INVALID`.
-- Input đúng số nhưng ngoài khoảng: `INPUT_NUMBER_OUT_OF_RANGE`.
-- Input hợp lệ: trả giá trị số, không có lỗi.
-- Với cùng input sai, `Locale` tiếng Việt và tiếng Anh cho **cùng code** nhưng message khác nhau.
+- Missing input: `INPUT_NUMBER_REQUIRED`.
+- Non-numeric input or trailing characters after a numeric prefix: `INPUT_NUMBER_INVALID`.
+- Valid number out of bounds: `INPUT_NUMBER_OUT_OF_RANGE`.
+- Valid input: returns numeric value, no error.
+- For the same invalid input, Vietnamese and English `Locale`s yield the **same code** with different messages.
 
-Ví dụ dùng `DecimalFormat#setParseBigDecimal(true)` để lấy đối tượng decimal và `ParsePosition` để kiểm tra parser tiêu thụ hết chuỗi. Nó không tuyên bố kiểm tra nghiêm ngặt mọi quy tắc dấu phân nhóm của tất cả locale; đó là kiểm tra riêng nếu sản phẩm yêu cầu.
+The example uses `DecimalFormat#setParseBigDecimal(true)` to obtain a decimal object and `ParsePosition` to check full string consumption. It does not claim to strictly validate every grouping rule across all locales; add that separately if required by the product.
 
-Tạo **bốn tệp** trong cùng một thư mục, lưu `.properties` bằng UTF-8.
+Create **four files** in the same directory, saving `.properties` files in UTF-8.
 
-### Tệp 1: messages.properties
+### File 1: `messages.properties`
 
 ```properties
 # Root bundle: fallback when a locale-specific translation is absent.
@@ -231,9 +231,9 @@ error.number.invalid={0} must be a valid number.
 error.number.outOfRange={0} must be between {1} and {2}.
 ```
 
-### Tệp 2: messages_en.properties
+### File 2: `messages_en.properties`
 
-Bản tiếng Anh được khai báo tường minh để ví dụ không dựa vào sự lựa chọn default locale của JVM khi tìm bundle:
+An explicit English bundle is provided so the example does not rely on the JVM default locale when resolving bundles:
 
 ```properties
 field.quantity=Quantity
@@ -242,18 +242,18 @@ error.number.invalid={0} must be a valid number.
 error.number.outOfRange={0} must be between {1} and {2}.
 ```
 
-### Tệp 3: messages_vi.properties
+### File 3: `messages_vi.properties`
 
 ```properties
-# TRANSLATORS: {0} = nhãn trường đã được dịch.
+# TRANSLATORS: {0} = localized field label.
 field.quantity=Số lượng
 error.number.required=Vui lòng nhập {0}.
 error.number.invalid={0} không phải số hợp lệ.
-# TRANSLATORS: {0} = nhãn trường, {1} = nhỏ nhất, {2} = lớn nhất.
+# TRANSLATORS: {0} = field label, {1} = min, {2} = max.
 error.number.outOfRange={0} phải nằm trong khoảng {1} đến {2}.
 ```
 
-### Tệp 4: LocalizedInputErrorsDemo.java
+### File 4: `LocalizedInputErrorsDemo.java`
 
 ```java
 import java.math.BigDecimal;
@@ -363,7 +363,7 @@ public class LocalizedInputErrorsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên, từ thư mục chứa cả bốn tệp:
+Compile and run with JDK 17 or later from the directory containing all four files:
 
 ```bash
 javac -encoding UTF-8 LocalizedInputErrorsDemo.java
@@ -385,21 +385,21 @@ VI | OK | 10
 EN | OK | 10
 ```
 
-### Diễn giải kết quả
+### Interpreting the Results
 
-1. `""` là dữ liệu thiếu: code `INPUT_NUMBER_REQUIRED`. Với tiếng Việt, pattern yêu cầu nhập trường; với tiếng Anh, nhãn trường đứng trước câu `is required`.
-2. `"abc"` không thể parse thành số: code `INPUT_NUMBER_INVALID`, không phụ thuộc locale của phản hồi.
-3. `"150"` parse được thành `BigDecimal` nhưng vượt mức 100: code `INPUT_NUMBER_OUT_OF_RANGE`. `MessageFormat` điền hai giới hạn vào câu dịch; không hard-code câu tiếng Anh trong parser.
-4. `"10x"` bắt đầu bằng tiền tố `10`, nhưng `ParsePosition` cho biết parser chưa đọc hết input: dùng cùng code sai cú pháp.
-5. `"10"` là số hợp lệ, trả đối tượng decimal; chỉ khi hiển thị cho người dùng hoặc trao đổi theo schema khác mới chọn cách định dạng.
+1. `""` is missing data: code `INPUT_NUMBER_REQUIRED`. In Vietnamese, the pattern puts the action before the field; in English, the field label precedes `is required`.
+2. `"abc"` cannot parse as a number: code `INPUT_NUMBER_INVALID`, regardless of the response locale.
+3. `"150"` parses into `BigDecimal` but exceeds 100: code `INPUT_NUMBER_OUT_OF_RANGE`. `MessageFormat` fills the two bounds into the translated sentence; no English sentence is hardcoded inside the parser.
+4. `"10x"` starts with prefix `10`, but `ParsePosition` shows the parser did not read the whole input: returns the same syntax-error code.
+5. `"10"` is a valid number and returns a decimal object; formatting choices happen only when displaying to a user or serializing to another schema.
 
-**Trong ví dụ, input locale và display locale tình cờ giống nhau.** Ở một hệ thống thật, có thể giữ hai biến khác nhau nếu người dùng nhập dữ liệu theo quy ước đã chọn trước đó nhưng muốn nhận thông báo bằng một ngôn ngữ khác. Điều quan trọng là xác định rõ hai hợp đồng, không tự suy chúng luôn giống nhau.
+**In this example, the input locale and display locale happen to be the same.** In a real system, you can keep two separate variables if a user enters data in one chosen convention while preferring error messages in another language. The key is defining both contracts explicitly instead of assuming they are always identical.
 
-Lưu ý ví dụ dùng provider JDK thông thường mà `NumberFormat.getNumberInstance(...)` trả về `DecimalFormat`. Nếu xây thư viện yêu cầu hỗ trợ provider tùy biến, nên kiểm tra kiểu thực tế hoặc chọn một đường parse phù hợp khác thay vì cast không kiểm tra. Các chuỗi thử nghiệm ở đây không phụ thuộc dấu thập phân theo locale, nên output về code và các giá trị nguyên xác định.
+Note that the example relies on a standard JDK provider where `NumberFormat.getNumberInstance(...)` returns `DecimalFormat`. If building a library that must support custom providers, check the runtime type or select an alternative parsing path instead of casting unconditionally. The test inputs here do not depend on locale-specific decimal separators, so error codes and integer values remain deterministic.
 
-## 7. Mã lỗi ổn định trong API
+## 7. Stable Error Codes in APIs
 
-Nếu lỗi được trả qua HTTP/JSON, phản hồi nên tách rõ mã và văn bản hiển thị:
+When returning errors over HTTP/JSON, the payload should clearly separate the code from the display text:
 
 ```json
 {
@@ -409,7 +409,7 @@ Nếu lỗi được trả qua HTTP/JSON, phản hồi nên tách rõ mã và v�
 }
 ```
 
-Cùng lỗi với locale `en-US`:
+The same error for locale `en-US`:
 
 ```json
 {
@@ -419,9 +419,9 @@ Cùng lỗi với locale `en-US`:
 }
 ```
 
-Hai phản hồi có cùng `code` và `field`; chỉ `message` thay đổi. Đây là một **schema minh họa** của ứng dụng, không phải định dạng JSON bắt buộc do Java hoặc HTTP quy định.
+Both responses share the same `code` and `field`; only `message` changes. This is an **illustrative application schema**, not a mandatory JSON format defined by Java or HTTP.
 
-Khách hàng API nên kiểm tra:
+API clients should branch on the code:
 
 ```java
 switch (error.code()) {
@@ -432,17 +432,17 @@ switch (error.code()) {
 }
 ```
 
-Đây là đoạn minh họa trong một phương thức với `error` và các hàm UI đã được định nghĩa; không phải chương trình độc lập. Không so sánh `message` để phân nhánh vì bản dịch có thể thay đổi.
+This is an illustrative snippet inside a method where `error` and UI helper methods are already defined; not a standalone program. Never compare `message` to branch logic, because translations can change.
 
-### HTTP status không phải error code
+### HTTP Status Is Not an Error Code
 
-Có thể chọn HTTP `400 Bad Request` cho đầu vào sai hoặc `422 Unprocessable Content` cho một số loại dữ liệu hợp lệ về cú pháp nhưng sai quy tắc nghiệp vụ, tùy hợp đồng API. Không có quy tắc bắt buộc tất cả hệ thống phải dùng cùng một mã trạng thái cho mọi loại validation. Khi đã công bố contract, cần dùng nhất quán.
+You might choose HTTP `400 Bad Request` for malformed input or `422 Unprocessable Content` for syntactically valid data that violates business rules, depending on your API contract. No universal rule forces every system to use the same status code for all validation types. Once published, stick to your contract consistently.
 
-Một status như 400 có thể bao gồm nhiều code. Ngược lại, một code công khai có thể được ánh xạ sang status khác trong các giao thức khác nhau (HTTP, CLI, batch), nếu tài liệu hóa rõ. Tránh gắn `"400"` vào bản dịch như một phần để client phải đọc và suy luận.
+A single status like 400 can cover many error codes. Conversely, one public error code may map to different statuses across protocols (HTTP, CLI, batch) if documented clearly. Avoid embedding `"400"` inside translated text for clients to parse out.
 
-### Nhiều lỗi trong một request
+### Multiple Errors in a Single Request
 
-Nếu một form có nhiều trường sai, một phản hồi có thể chứa danh sách:
+If a form has multiple invalid fields, a response can contain a list:
 
 ```json
 {
@@ -461,26 +461,26 @@ Nếu một form có nhiều trường sai, một phản hồi có thể chứa 
 }
 ```
 
-`INPUT_DATE_INVALID` trong ví dụ này là mã lỗi ứng dụng tự định nghĩa, không phải API Java. Trường `field` nên giữ định danh ổn định như `deliveryDate`, không thay bằng nhãn “Ngày giao hàng”. Nhãn dịch có thể được cung cấp riêng nếu UI cần.
+`INPUT_DATE_INVALID` in this example is a custom application error code, not a Java API constant. The `field` property should remain a stable identifier like `deliveryDate`, not be replaced by the label “Ngày giao hàng”. A localized label can be provided separately if needed by the UI.
 
-Đừng suy rằng mọi lỗi đều có một field: lỗi liên trường (ví dụ ngày kết thúc trước ngày bắt đầu) có thể gắn với nhiều field hoặc với toàn form. Schema cần cho phép mô tả đúng trường hợp đó.
+Do not assume every error belongs to a single field: cross-field errors (such as an end date preceding a start date) can apply to multiple fields or the entire form. Your schema should support representing those cleanly.
 
-## 8. Chọn locale cho thông điệp lỗi
+## 8. Selecting the Locale for Error Messages
 
-Để trả đúng ngôn ngữ, cần có **chính sách xác định Locale**:
+To return the right language, define a **Locale resolution policy**:
 
-- Ứng dụng có cài đặt ngôn ngữ người dùng: ưu tiên thiết lập đã xác thực nếu đó là quy tắc sản phẩm.
-- Request HTTP có `Accept-Language`: có thể dùng làm tín hiệu thương lượng ngôn ngữ khi hợp đồng cho phép.
-- Không có ngôn ngữ hợp lệ/được hỗ trợ: dùng locale fallback được sản phẩm công bố.
-- API thuần máy-với-máy: có thể trả code ổn định và message ngôn ngữ mặc định, hoặc cho phép client tự hiển thị bản dịch; cần mô tả lựa chọn trong tài liệu.
+- Application has a saved user language preference: prioritize that verified setting if that is your product rule.
+- HTTP request includes `Accept-Language`: can be used as a language-negotiation signal when permitted by the contract.
+- No valid/supported language found: fall back to a documented product fallback locale.
+- Pure machine-to-machine API: may return stable codes and default-language messages, or let the client render translations; document the choice clearly.
 
-`Accept-Language` có thể là danh sách ngôn ngữ kèm độ ưu tiên `q`, ví dụ `vi-VN,vi;q=0.9,en;q=0.7`. Đây **không phải** một language tag đơn lẻ: không truyền nguyên header đó vào `new Locale.Builder().setLanguageTag(...)` hoặc kỳ vọng `Locale.forLanguageTag(...)` đọc đúng danh sách. Java có `Locale.LanguageRange.parse(...)` và các phương thức `Locale.lookup(...)`/`Locale.filter(...)` để hỗ trợ lựa chọn locale từ danh sách có sẵn.
+`Accept-Language` can contain a prioritized list of languages with `q` weights, such as `vi-VN,vi;q=0.9,en;q=0.7`. This is **not** a single language tag: do not pass the raw header directly to `new Locale.Builder().setLanguageTag(...)` or expect `Locale.forLanguageTag(...)` to parse the whole list. Java provides `Locale.LanguageRange.parse(...)` and `Locale.lookup(...)`/`Locale.filter(...)` to select a locale from a supported list.
 
-**Chỉ hỗ trợ những locale mà sản phẩm có tài nguyên phù hợp.** Một language tag đúng cú pháp không bảo đảm có bản dịch, và `ResourceBundle.getBundle(...)` có fallback riêng. Nên chọn `resolvedLocale` theo danh sách sản phẩm hỗ trợ trước, sau đó tra tài nguyên; nếu fallback xảy ra, có thể ghi nhận để giám sát độ đầy đủ bản dịch.
+**Support only locales for which your product has proper resources.** A syntactically valid language tag does not guarantee translations exist, and `ResourceBundle.getBundle(...)` has its own fallback chain. Choose `resolvedLocale` from the product's supported list first, then look up resources; if fallback occurs, log or monitor it to track translation coverage.
 
-### Dùng cùng locale cho MessageFormat
+### Use the Same Locale for `MessageFormat`
 
-Khi cần điền số hoặc ngày vào thông điệp:
+When inserting numbers or dates into a message:
 
 ```java
 String pattern = bundle.getString("error.amount.max");
@@ -488,54 +488,54 @@ String message = new MessageFormat(pattern, displayLocale)
         .format(new Object[] {limit});
 ```
 
-Đây là đoạn minh họa trong một phương thức, với `bundle`, `displayLocale` và `limit` được khai báo. Dùng `displayLocale` tường minh giúp các format element như `{0,number}` hoặc `{0,date}` được xử lý theo ngữ cảnh người đọc.
+This is an illustrative snippet inside a method with `bundle`, `displayLocale`, and `limit` declared. Passing `displayLocale` explicitly ensures format elements like `{0,number}` or `{0,date}` render in the reader's locale.
 
-Không dùng `String.format` với default locale cho một pattern `MessageFormat`: hai API có cú pháp placeholder khác nhau (`%s` so với `{0}`), và một số cách xử lý ngôn ngữ/định dạng khác nhau.
+Do not use `String.format` with the default locale on a `MessageFormat` pattern: the two APIs have different placeholder syntax (`%s` vs `{0}`), and handle language/formatting details differently.
 
-### Cần phân biệt locale input và locale output
+### Distinguish Input Locale from Output Locale
 
-Một hệ thống nhập liệu có thể nhận:
+An input system may deal with:
 
-- `inputLocale`: quy ước để parse chuỗi người dùng nhập, ví dụ số `1.234,50` theo tiếng Đức.
-- `displayLocale`: ngôn ngữ để hiển thị thông báo, ví dụ tiếng Việt.
-- `wireFormat`: schema dữ liệu gửi qua API, ví dụ decimal chuẩn `1234.50`.
+- `inputLocale`: convention used to parse user-entered strings, e.g., German number `1.234,50`.
+- `displayLocale`: language used to display messages, e.g., Vietnamese.
+- `wireFormat`: schema for API data exchange, e.g., canonical decimal `1234.50`.
 
-Không được dùng cách viết localized message để suy `inputLocale` hoặc cách ghi số trong database. Mỗi mục đích có hợp đồng riêng.
+Never infer `inputLocale` or database number serialization from how localized messages are written. Each purpose has its own contract.
 
-## 9. Không biến exception thành thông điệp công khai
+## 9. Do Not Turn Exceptions into Public Messages
 
-Một lỗi parser có thể phát sinh từ `NumberFormat.parse`, `LocalDate.parse`, `Integer.parseInt` hoặc validation nghiệp vụ. Những exception này có thể chứa thông tin kỹ thuật, chuỗi đầu vào hoặc chi tiết implementation không thích hợp để hiển thị.
+A parser failure can originate from `NumberFormat.parse`, `LocalDate.parse`, `Integer.parseInt`, or business validation. Those exceptions can contain technical details, raw input strings, or implementation internals unsuitable for display.
 
-Không nên làm:
+Do not do this:
 
 ```java
 catch (Exception ex) {
-    return ex.getMessage(); // Không phải thông điệp UX đã bản địa hóa.
+    return ex.getMessage(); // Not a localized UX message.
 }
 ```
 
-Đây là anti-pattern minh họa trong một phương thức có kiểu trả về phù hợp; không phải ứng dụng đầy đủ.
+This illustrates an anti-pattern inside a method returning a string; not a complete application.
 
-Thay vào đó, phân loại lỗi **dự kiến** thành code ổn định, ghi log kỹ thuật có kiểm soát, rồi dịch code thành thông điệp thân thiện. Ví dụ:
+Instead, classify **expected** failures into stable codes, log technical details in a controlled manner, and translate the code into a friendly message. For example:
 
 ```java
 try {
     int quantity = Integer.parseInt(raw);
-    // Áp dụng các kiểm tra miền giá trị tiếp theo.
+    // Apply subsequent range checks.
 } catch (NumberFormatException ex) {
-    // Gán code INPUT_NUMBER_INVALID cho kết quả validation.
+    // Assign code INPUT_NUMBER_INVALID to the validation result.
 }
 ```
 
-Đây là đoạn minh họa, giả định biến `raw` đã khai báo. Trong ứng dụng nhập số theo locale, `Integer.parseInt` chỉ phù hợp nếu grammar input được định nghĩa như vậy; không tự thay thế parser theo locale cho UI.
+This is an illustrative snippet assuming `raw` is declared. In locale-aware numeric input, `Integer.parseInt` is appropriate only if the input grammar is defined that way; never use it as a drop-in replacement for a UI locale parser.
 
-**Không bắt mọi `RuntimeException` rồi trả `INPUT_NUMBER_INVALID`.** Lỗi cấu hình, `NullPointerException` trong code, lỗi database và lỗi parse dữ liệu người dùng là những loại sự cố khác nhau. Nếu gom mọi lỗi nội bộ thành lỗi người dùng, việc vận hành mất tín hiệu và người dùng có thể bị yêu cầu “sửa đầu vào” dù hệ thống đang lỗi.
+**Never catch every `RuntimeException` and return `INPUT_NUMBER_INVALID`.** Configuration bugs, `NullPointerException`s in code, database failures, and user input parse errors are completely different incidents. Collapsing internal bugs into user validation errors blinds operations and tells users to “fix their input” when the system itself is broken.
 
-Đặc biệt, không gửi stack trace, tên lớp nội bộ, SQL statement hoặc thông tin nhạy cảm trong `message`. Dùng correlation ID/tracing khi cần để hỗ trợ tìm đúng log kỹ thuật.
+Specifically, never return stack traces, internal class names, SQL statements, or sensitive data inside `message`. Use correlation IDs/tracing when needed to locate technical logs.
 
-## 10. Không ghi dữ liệu nhạy cảm vào code hoặc message
+## 10. Never Embed Sensitive Data in Codes or Messages
 
-Một code nên ổn định và ít chiều thông tin:
+Codes should remain stable and low-cardinality:
 
 ```text
 INPUT_NUMBER_INVALID
@@ -543,7 +543,7 @@ ACCOUNT_LOGIN_FAILED
 DATE_OUT_OF_RANGE
 ```
 
-Không tạo code động:
+Do not generate dynamic codes:
 
 ```text
 INPUT_NUMBER_INVALID_USER_12345
@@ -551,132 +551,132 @@ INVALID_VALUE_4111111111111111
 USER_PASSWORD_WRONG_AT_2026_10_28
 ```
 
-Các ví dụ trên là **anti-pattern**, không phải mã lỗi được khuyến nghị. Gắn giá trị nhập hoặc danh tính người dùng vào code gây nổ số lượng code, tăng nguy cơ lộ dữ liệu cá nhân và làm khó thống kê.
+The examples above are **anti-patterns**, not recommended error codes. Embedding user inputs or identities into codes causes code explosion, risks exposing personal data, and breaks metrics aggregation.
 
-Tương tự, thông báo có thể dùng placeholder nhưng chỉ điền dữ liệu người dùng nếu thực sự cần và đã được kiểm soát. Với thông tin như mật khẩu, token, số thẻ hoặc dữ liệu nhạy cảm, tốt hơn là **không phản chiếu giá trị** trong phản hồi. Thay vì “Giá trị [dữ liệu nhạy cảm] không hợp lệ”, dùng thông báo chung: “Giá trị nhập không hợp lệ.”
+Similarly, messages may use placeholders, but should echo user input only when truly needed and properly sanitized. For passwords, tokens, card numbers, or sensitive fields, it is safer **not to echo the value** in responses. Instead of “Value [sensitive data] is invalid”, use a generic message: “Invalid input value.”
 
-Một số trường hợp cũng cần chống lộ tình trạng tài khoản: ví dụ xác thực đăng nhập có thể dùng code/message chung để không xác nhận địa chỉ email nào tồn tại. Lựa chọn này là yêu cầu bảo mật, không phải vấn đề dịch câu chữ.
+Some flows also require preventing account enumeration: for instance, login authentication may return a generic code/message to avoid confirming whether an email address exists. That choice is a security requirement, not a wording detail.
 
-## 11. Quản lý vòng đời của mã lỗi
+## 11. Managing the Lifecycle of Error Codes
 
-“Mã lỗi ổn định” không có nghĩa cả hệ thống mã lỗi không bao giờ được thêm hoặc thay đổi. Nó có nghĩa **mỗi code đã công bố có ý nghĩa rõ và không bị tái sử dụng tùy tiện**.
+“Stable error codes” does not mean you can never add or evolve codes. It means **each published code has a clear meaning and is never arbitrarily repurposed**.
 
-### Quy tắc thực tế
+### Practical Rules
 
-1. Chọn convention như `INPUT_*`, `AUTH_*`, `ORDER_*` hoặc cấu trúc `validation.number.invalid`; thống nhất một kiểu.
-2. Viết mô tả rõ khi nào code xuất hiện và client nên làm gì.
-3. Không đưa văn bản dịch, tên môi trường hoặc dữ liệu request vào code.
-4. Khi sửa câu hiển thị mà ý nghĩa lỗi không đổi, **giữ code** và có thể giữ message key.
-5. Khi ý nghĩa thay đổi đáng kể, cân nhắc **thêm code mới** và cập nhật client theo kế hoạch tương thích.
-6. Tránh đổi chính tả code công khai chỉ để phù hợp tên class Java mới; code là hợp đồng API, không phải tên biến nội bộ.
-7. Duy trì fallback cho client nhận code chưa biết (thường hiển thị thông báo lỗi chung và ghi log), không crash hoặc giả định enum phía client luôn có đủ mọi giá trị.
+1. Pick a naming convention such as `INPUT_*`, `AUTH_*`, `ORDER_*` or `validation.number.invalid` and use it consistently.
+2. Document clearly when each code appears and what clients should do.
+3. Never put translated text, environment names, or request data into codes.
+4. When revising display phrasing without changing the error's meaning, **keep the code** and usually keep the message key.
+5. When semantics change significantly, consider **adding a new code** and migrating clients under a compatibility plan.
+6. Avoid renaming a public code just to match a refactored Java class name; codes are part of the API contract, not internal variable names.
+7. Maintain a safe fallback for clients receiving an unrecognized code (typically showing a generic error and logging), rather than crashing or assuming client enums contain every possible value.
 
-Ví dụ:
+Examples:
 
-- `INPUT_NUMBER_INVALID` giữ nguyên khi người dịch đổi từ “không hợp lệ” sang “vui lòng nhập một số hợp lệ”.
-- Nếu sản phẩm tách lỗi `INPUT_NUMBER_INVALID` thành lỗi “chứa chữ” và “dấu nhóm sai”, có thể thêm những code chuyên biệt nhưng cần tính đến client cũ. Có thể vẫn dùng code chung nếu client không cần phân biệt; không tăng số lượng code mà không có nhu cầu.
-- Một code như `PAYMENT_REJECTED` không được dùng lại cho tình trạng hệ thống mất kết nối tới cổng thanh toán; hai tình huống cần cách xử lý khác nhau.
+- `INPUT_NUMBER_INVALID` stays unchanged when a translator changes “invalid” to “please enter a valid number”.
+- If a product splits `INPUT_NUMBER_INVALID` into “contains letters” and “invalid grouping,” specialized codes can be introduced while accounting for older clients. Keeping a single general code is fine if clients do not need the distinction; do not multiply codes unnecessarily.
+- A code like `PAYMENT_REJECTED` must not be reused when the system loses network connectivity to the payment gateway; those two conditions require different handling.
 
-Mối quan hệ giữa **mã lỗi** và **message key** thường là ánh xạ một-một cho một câu chính, nhưng không bị bắt buộc. Một code có thể được trình bày bằng pattern khác nhau theo kênh UI (toast, email, form), miễn là không đổi hợp đồng nghiệp vụ. Nên có lớp trình bày kiểm soát sự lựa chọn đó, không cho client suy mã lỗi từ câu.
+The relationship between **error code** and **message key** is often one-to-one for a primary sentence, though not strictly required. One code can be rendered with different patterns across UI channels (toast, email, form) without changing the business contract. Keep that choice inside the presentation layer rather than letting clients infer codes from text.
 
-## 12. Cơ chế fallback và quản lý bản dịch
+## 12. Fallback Behavior and Translation Management
 
-Tạo root bundle như `messages.properties` giúp `ResourceBundle` có nội dung để fallback. Tuy nhiên, root fallback là hành vi kỹ thuật, không phải bằng chứng một ngôn ngữ đã dịch đầy đủ.
+Creating a root bundle like `messages.properties` gives `ResourceBundle` fallback content. However, root fallback is a technical safeguard, not proof that a language is fully translated.
 
-Rủi ro thường gặp:
+Common risks:
 
-- `messages_vi.properties` thiếu key `error.number.outOfRange`; Java có thể lấy bản tiếng Anh từ `messages.properties`.
-- Bản dịch thêm hoặc thiếu placeholder; `MessageFormat` có thể hiển thị `{2}` nguyên dạng nếu không có đối số hoặc output thiếu thông tin.
-- Một bản dịch đổi ý nghĩa từ “không hợp lệ” thành “chưa nhập”, khiến người dùng được hướng dẫn sai loại thao tác cần sửa.
-- Một số locale dùng dấu nháy đơn với ý nghĩa khác trong câu thông thường; `MessageFormat` cần quy tắc escape riêng.
+- `messages_vi.properties` lacks key `error.number.outOfRange`; Java pulls the English string from `messages.properties`.
+- A translation adds or drops placeholders; `MessageFormat` can print literal `{2}` if an argument is missing, or omit information.
+- A translation shifts the meaning from “invalid” to “missing,” steering the user toward the wrong corrective action.
+- Some locales use apostrophes routinely in normal prose; `MessageFormat` requires specific escaping rules for single quotes.
 
-Kiểm tra chất lượng nên gồm:
+Quality checks should include:
 
-- So sánh key **được định nghĩa trong chính từng file** với tập key tham chiếu, không chỉ gọi `ResourceBundle.containsKey` vì fallback có thể che thiếu dịch.
-- Kiểm tra pattern của mỗi locale bằng `new MessageFormat(pattern, locale)`.
-- Kiểm tra số index và ý nghĩa placeholder theo hợp đồng, không bắt buộc thứ tự xuất hiện giống bản gốc.
-- Kiểm tra câu ở giao diện thật: dài quá gây cắt chữ, thiếu ngữ cảnh, sai giọng văn, tên trường chưa dịch.
-- Có policy khi bundle/khóa vắng mặt. Với lỗi cấu hình tài nguyên nội bộ, không giả vờ rằng người dùng đã nhập sai; nên dùng thông báo chung dự phòng có kiểm soát và theo dõi lỗi cấu hình.
+- Comparing keys **defined directly in each individual file** against a reference key set, rather than calling `ResourceBundle.containsKey` where fallback can hide missing translations.
+- Validating every locale's pattern via `new MessageFormat(pattern, locale)`.
+- Checking placeholder indices and meanings against the contract, without requiring identical ordering to the source language.
+- Reviewing strings in the real UI: excessive length causing truncation, missing context, mismatched tone, or untranslated field names.
+- Defining a policy for missing bundles or keys. For internal resource configuration bugs, never pretend the user entered invalid data; use a controlled fallback message and alert on the configuration error.
 
-Đối với Java 17+, tệp `.properties` do `PropertyResourceBundle` đọc qua byte stream có cơ chế ưu tiên UTF-8. Nên lưu các bản dịch UTF-8, kiểm thử dấu tiếng Việt và kiểm soát encoding trong pipeline build. Đừng trộn lẫn cách đọc `java.util.Properties.load(InputStream)` với hợp đồng encoding của `PropertyResourceBundle`.
+In Java 17+, `.properties` files read by `PropertyResourceBundle` via byte streams default to UTF-8. Save translations in UTF-8, test Vietnamese diacritics, and enforce encoding in the build pipeline. Do not confuse `java.util.Properties.load(InputStream)` behavior with `PropertyResourceBundle`'s encoding contract.
 
-## 13. Kiểm thử code ổn định và thông điệp đa ngôn ngữ
+## 13. Testing Stable Codes and Multilingual Messages
 
-Một bộ test cho parser/validation nên tách hai nhóm.
+A test suite for parsers/validators should separate two groups.
 
-### A. Kiểm tra phân loại lỗi (không phụ thuộc ngôn ngữ)
+### A. Error Classification Tests (Language-Independent)
 
-| Input | Kết quả mong đợi | Ý nghĩa |
+| Input | Expected Result | Meaning |
 | --- | --- | --- |
-| `null` hoặc `""` | `INPUT_NUMBER_REQUIRED` | Thiếu giá trị |
-| `"abc"` | `INPUT_NUMBER_INVALID` | Sai cú pháp số |
-| `"10x"` | `INPUT_NUMBER_INVALID` | Parser chỉ đọc được tiền tố |
-| `"150"` với max 100 | `INPUT_NUMBER_OUT_OF_RANGE` | Đúng kiểu, ngoài phạm vi |
-| `"10"` | Thành công, không có error code | Giá trị hợp lệ |
+| `null` or `""` | `INPUT_NUMBER_REQUIRED` | Missing value |
+| `"abc"` | `INPUT_NUMBER_INVALID` | Invalid numeric syntax |
+| `"10x"` | `INPUT_NUMBER_INVALID` | Parser read only a prefix |
+| `"150"` with max 100 | `INPUT_NUMBER_OUT_OF_RANGE` | Valid type, out of range |
+| `"10"` | Success, no error code | Valid value |
 
-Chạy lại bộ ca này với các locale đầu vào được hỗ trợ. Nếu cú pháp số giữa hai locale khác nhau, cung cấp input hợp lệ tương ứng; không yêu cầu cùng một chuỗi có dấu phân cách phải mang cùng giá trị trong mọi locale.
+Re-run this suite across supported input locales. When numeric syntax differs between two locales, supply corresponding valid inputs; do not demand that the same string with separators mean the same value in every locale.
 
-### B. Kiểm tra bản địa hóa thông điệp
+### B. Message Localization Tests
 
-Cùng kết quả `INPUT_NUMBER_INVALID`:
+For the same `INPUT_NUMBER_INVALID` outcome:
 
-- Với `vi-VN`, thông điệp hiển thị bằng tiếng Việt và label trường được dịch.
-- Với `en-US`, thông điệp hiển thị bằng tiếng Anh.
-- **Code vẫn chính xác là `INPUT_NUMBER_INVALID`**, field vẫn là `quantity`.
-- Nếu bản dịch đổi lời văn, những test xử lý nghiệp vụ không nên hỏng. Test i18n có thể kiểm tra pattern, key và placeholder độc lập hoặc kiểm tra nội dung trong test tích hợp theo chính sách sản phẩm.
+- With `vi-VN`, the rendered message is in Vietnamese with a localized field label.
+- With `en-US`, the rendered message is in English.
+- **The code remains strictly `INPUT_NUMBER_INVALID`**, and the field remains `quantity`.
+- If translation wording changes, business-logic tests should not break. I18n tests can verify patterns, keys, and placeholders independently or validate rendered text in integration tests per product policy.
 
-Đừng viết test nghiệp vụ dùng `assertEquals("Số lượng không phải số hợp lệ.", response.getMessage())` để quyết định đã phân loại đúng lỗi. Cách đó trộn validation với copywriting; sửa câu trong resource sẽ làm test nghiệp vụ thất bại dù code đúng. Có thể có test localization riêng để bảo đảm bản dịch mong muốn được hiển thị, nhưng test đó phải có mục tiêu rõ.
+Never write business-logic tests using `assertEquals("Số lượng không phải số hợp lệ.", response.getMessage())` to verify error classification. That couples validation to copywriting; editing resource text breaks business tests even when the code is right. Dedicated localization tests can verify expected translations, but they should have a clear scope.
 
-### C. Kiểm tra fallback và trường hợp code chưa biết
+### C. Testing Fallbacks and Unknown Codes
 
-Nếu dịch vụ trả code mới mà client cũ chưa nhận diện, client nên có xử lý mặc định an toàn. Nếu không tìm thấy message key ở một locale, chương trình không nên làm hỏng toàn bộ luồng validation. Đồng thời, sự thiếu dịch phải được ghi nhận để sửa ở pipeline.
+If a service returns a new code that an older client does not recognize, the client should degrade safely with a default fallback. If a message key is missing for a locale, the program should not crash the entire validation flow. At the same time, missing translations should be logged for pipeline remediation.
 
-### D. Kiểm tra dữ liệu nhạy cảm
+### D. Testing Sensitive Data Handling
 
-Thử input dài hoặc chứa ký tự đặc biệt, script-like text, token giả lập. Đảm bảo không phản chiếu trực tiếp vào message nếu không cần và không làm tăng cardinality của code/metric. Kiểm tra mọi giá trị đưa vào HTML được escape theo tầng render; bản dịch đúng chưa có nghĩa output an toàn với mọi hệ thống UI.
+Test long inputs, special characters, script-like text, and dummy tokens. Ensure sensitive values are not echoed directly in messages unnecessarily and never inflate code/metric cardinality. Verify that any values rendered into HTML are escaped by the rendering layer; a correct translation does not automatically make output safe for every UI framework.
 
-## 14. Lỗi phổ biến
+## 14. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Correct Approach |
 | --- | --- | --- |
-| Dùng câu tiếng Anh/tiếng Việt làm `errorCode` | Code đổi theo bản dịch và copywriting | Dùng định danh máy đọc ổn định |
-| Dùng `message.equals(...)` để điều khiển UI | Đổi ngôn ngữ làm hỏng nhánh logic | Kiểm tra code và field identifier |
-| Gắn giá trị người dùng vào tên code | Lộ dữ liệu, tăng số lượng mã không kiểm soát | Code từ tập định danh đã định nghĩa |
-| Gửi thẳng `exception.getMessage()` cho người dùng | Có thể lộ chi tiết nội bộ, không được bản địa hóa | Ánh xạ lỗi dự kiến sang code và resource message |
-| Gộp mọi exception thành `INPUT_INVALID` | Che mất bug, sự cố hệ thống và lỗi cấu hình | Phân biệt validation với lỗi nội bộ |
-| Định nghĩa key chỉ dựa vào câu dịch gốc | Văn bản đổi làm ID bị sai nghĩa | Key biểu thị ý nghĩa tương đối ổn định |
-| Không chú thích placeholder cho người dịch | Dịch sai tham số/giới hạn hoặc cú pháp | Ghi ý nghĩa `{0}`, `{1}` rõ ràng |
-| Dùng default JVM Locale cho mọi request | Người dùng khác ngôn ngữ nhận câu không mong muốn | Xác định và truyền display locale tường minh |
-| Parse nguyên `Accept-Language` như một tag | Header có danh sách và trọng số `q` | Thương lượng qua danh sách locale được hỗ trợ |
-| Chỉ kiểm tra `getString(key)` không lỗi | Fallback có thể che thiếu dịch | So sánh tập key của từng locale |
-| Dùng locale hiển thị để parse API số chuẩn | Cùng data có thể nhận giá trị khác nhau | Parse machine format theo schema, UI input theo input locale |
-| Dùng `NumberFormat.parse(String)` là strict validator | Có thể chỉ đọc tiền tố `10` của `10x` | Kiểm tra `ParsePosition` và grammar |
-| Cho phép client phân tích câu để biết giới hạn | Bản dịch và format số thay đổi | Trả dữ liệu cấu trúc nếu client cần min/max |
-| Chỉ trả HTTP 400 không có mã lỗi | Client khó phân biệt loại lỗi | Trả stable error code theo contract |
-| Coi message key chính là code vĩnh viễn | Tái tổ chức bundle có thể phá client | Ánh xạ code công khai sang key nội bộ |
-| Thay code vì chỉnh một dấu câu | Phá tương thích không cần thiết | Giữ code khi ý nghĩa không đổi |
+| Using an English/Vietnamese sentence as `errorCode` | Code changes with translations and copy edits | Use stable machine-readable identifiers |
+| Using `message.equals(...)` to drive UI behavior | Language switches break logic branches | Check code and field identifier |
+| Embedding user input in error code names | Data leaks and uncontrolled code cardinality | Choose codes from a fixed set of identifiers |
+| Sending raw `exception.getMessage()` to users | Can leak internals and is unlocalized | Map expected errors to codes and resource messages |
+| Collapsing every exception into `INPUT_INVALID` | Hides bugs, outages, and config errors | Distinguish validation failures from internal errors |
+| Naming keys solely after original source wording | Copy edits make IDs misleading | Name keys after relatively stable semantics |
+| Omitting placeholder comments for translators | Wrong parameters, bounds, or broken syntax | Document `{0}`, `{1}` meanings clearly |
+| Using JVM default `Locale` for all requests | Users receive messages in the wrong language | Determine and pass display locale explicitly |
+| Parsing raw `Accept-Language` as a single tag | Header holds a weighted list with `q` values | Negotiate against supported locales |
+| Checking only that `getString(key)` throws no error | Fallback can mask missing translations | Diff key sets across each locale file |
+| Using display locale to parse standard API numbers | Same payload can parse to different values | Parse machine formats by schema, UI input by input locale |
+| Treating `NumberFormat.parse(String)` as a strict validator | Can read only prefix `10` of `10x` | Check `ParsePosition` and grammar |
+| Letting clients parse messages to extract bounds | Translations and number formatting vary | Return structured metadata if clients need min/max |
+| Returning HTTP 400 with no error code | Clients struggle to tell error types apart | Return stable error codes per contract |
+| Treating message keys as permanent public codes | Reorganizing bundles breaks clients | Map public codes to internal keys |
+| Changing a code because of a punctuation edit | Unnecessary breaking change | Keep the code when meaning has not changed |
 
-## 15. Bài tập thực hành
+## 15. Hands-On Exercises
 
-**Bài 1 — thiết kế contract.** Một trường `deliveryDate` có các lỗi “trống”, “sai cú pháp ngày” và “ngày trước hôm nay”. Hãy đề xuất ba code ổn định, ba message key và ví dụ thông điệp `vi-VN`/`en-US` tương ứng. Giải thích tại sao code không nên chứa dấu tiếng Việt hoặc chính câu dịch.
+**Exercise 1 — contract design.** A `deliveryDate` field has three errors: “empty,” “invalid date syntax,” and “date before today.” Propose three stable codes, three message keys, and corresponding `vi-VN`/`en-US` sample messages. Explain why codes should not contain Vietnamese diacritics or full translated sentences.
 
-**Bài 2 — cùng lỗi, hai ngôn ngữ.** Với `INPUT_NUMBER_INVALID` và field `quantity`, viết hai file properties tạo câu tiếng Việt và tiếng Anh. Dùng `ResourceBundle`/`MessageFormat` để nhận message, nhưng giữ nguyên code trong phản hồi.
+**Exercise 2 — same error, two languages.** Using `INPUT_NUMBER_INVALID` and field `quantity`, create two properties files producing Vietnamese and English sentences. Use `ResourceBundle`/`MessageFormat` to obtain the message while keeping the code unchanged in the response.
 
-**Bài 3 — parser đọc tiền tố.** Người dùng nhập `"10kg"` trong ô chỉ chấp nhận số lượng. Vì sao `NumberFormat.parse("10kg")` có thể trả số? Hãy bổ sung `ParsePosition` để sinh code `INPUT_NUMBER_INVALID` khi còn phần dư.
+**Exercise 3 — prefix-reading parser.** A user enters `"10kg"` into a quantity-only field. Why can `NumberFormat.parse("10kg")` return a number? Add `ParsePosition` so trailing data produces `INPUT_NUMBER_INVALID`.
 
-**Bài 4 — fallback.** Tệp tiếng Việt thiếu `error.number.outOfRange` nhưng root bundle có key. Điều gì xảy ra khi gọi `getString`? Tại sao hoạt động của `ResourceBundle` không chứng minh bản dịch đã hoàn tất? Bạn sẽ kiểm tra thiếu dịch bằng cách nào?
+**Exercise 4 — fallback.** The Vietnamese bundle is missing `error.number.outOfRange`, while the root bundle defines it. What happens when calling `getString`? Why does `ResourceBundle` succeeding not prove translations are complete? How would you detect missing translations?
 
-**Bài 5 — API client.** Client nhận JSON có code `INPUT_NUMBER_OUT_OF_RANGE` và message tiếng Đức. Làm thế nào client vẫn xác định được field cần highlight và quy tắc xử lý mà không phân tích câu tiếng Đức?
+**Exercise 5 — API client.** A client receives JSON with code `INPUT_NUMBER_OUT_OF_RANGE` and a German message. How can the client still determine which field to highlight and how to respond without parsing the German sentence?
 
-**Bài 6 — bảo mật.** Một exception parse chứa nguyên chuỗi đầu vào có thông tin nhạy cảm. Hãy viết chính sách thông báo/lưu log thích hợp và giải thích vì sao không nên nhúng input vào error code hoặc message mặc định.
+**Exercise 6 — security.** A parse exception contains raw input holding sensitive data. Write an appropriate messaging/logging policy and explain why input should not be embedded in error codes or default messages.
 
-**Bài 7 — thay đổi theo phiên bản.** Nhóm dịch sửa một câu từ “không hợp lệ” thành “vui lòng nhập giá trị hợp lệ”. Bạn cần đổi code không? Nếu quy tắc nghiệp vụ mới phân biệt hai lỗi khác nhau và client cần xử lý riêng, bạn sẽ bổ sung code theo cách nào để không làm hỏng client cũ?
+**Exercise 7 — evolution across versions.** Translators revise a sentence from “invalid” to “please enter a valid value”. Should you change the error code? If a new business rule splits two distinct error conditions that clients need to handle separately, how would you add codes without breaking older clients?
 
-## 16. Ghi nhớ
+## 16. Key Takeaways
 
-**Thông báo lỗi là nội dung dành cho con người; mã lỗi là hợp đồng dành cho máy.** Hãy phân tích và xác thực đầu vào để tạo ra loại lỗi ổn định như `INPUT_NUMBER_INVALID`, rồi ánh xạ loại lỗi ấy sang message key và tạo câu hiển thị bằng `ResourceBundle` + `MessageFormat` theo `Locale` đã chọn.
+**Error messages are for humans; error codes are contracts for machines.** Parse and validate input to produce a stable error category like `INPUT_NUMBER_INVALID`, then map that category to a message key and render the display sentence using `ResourceBundle` + `MessageFormat` for the chosen `Locale`.
 
-Một cách tổ chức hiệu quả tách các lớp:
+An effective architecture separates the layers:
 
 ```text
 Parse/validate -> stable error code
@@ -686,11 +686,11 @@ Pattern        -> MessageFormat(displayLocale)
 Response       -> stable code + localized message + stable metadata
 ```
 
-Khi thay đổi ngôn ngữ, câu chữ có thể thay đổi còn code vẫn giữ nguyên. Khi thay đổi quy tắc nghiệp vụ, hãy đánh giá có cần code mới hay không thay vì tái sử dụng code cũ cho ý nghĩa khác. Và khi parse số/ngày theo locale, đừng bỏ qua kiểm tra phần dư, grammar, miền giá trị hoặc hệ thống fallback bản dịch.
+When the language changes, the wording changes while the code stays fixed. When business rules change, evaluate whether a new code is needed instead of repurposing an old code with a different meaning. And when parsing locale-sensitive numbers or dates, never skip checking remainders, grammar, value ranges, or translation fallbacks.
 
-**Quy tắc cốt lõi:** *Máy dựa vào code; người dùng đọc message. Cả hai phải phản ánh cùng một lỗi, nhưng không phụ thuộc vào nhau về ngôn ngữ.*
+**Core rule:** *Machines rely on codes; users read messages. Both must reflect the same error, without depending on each other linguistically.*
 
-### Tài liệu API tham khảo
+### API Reference
 
 - [`ResourceBundle` – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html)
 - [`MessageFormat` – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html)

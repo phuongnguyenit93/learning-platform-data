@@ -1,25 +1,25 @@
-# Nhận diện lambda và tham chiếu phương thức trong lời gọi API — Java 17+
+# Recognizing Lambdas and Method References in API Calls — Java 17+
 
-## 1. Nhìn cú pháp để biết API đang nhận một hành vi
+## 1. Spotting Syntax That Passes a Behavior to an API
 
-Khi đọc mã Java, hai dạng phổ biến là:
+When reading Java code, two common forms are:
 
 ~~~java
 words.forEach(word -> System.out.println(word));
 words.forEach(System.out::println);
 ~~~
 
-Cả hai truyền một **hành vi** cho API `forEach`: với mỗi phần tử, gọi `println`. Dạng đầu là **lambda expression** có ký hiệu `->`; dạng sau là **method reference** có ký hiệu `::`.
+Both pass a **behavior** to the `forEach` API: for each element, call `println`. The first form is a **lambda expression** with the `->` symbol; the second is a **method reference** with the `::` symbol.
 
-Không cần hiểu trước mọi kỹ thuật lập trình hàm để đọc chúng. Hãy đặt ba câu hỏi:
+You do not need to know every functional programming technique upfront to read them. Ask three questions:
 
-1. API đang gọi phương thức nào (`forEach`, `map`, `removeIf`, `sort`...)?
-2. API yêu cầu loại hành vi nào (nhận gì, trả gì)?
-3. Lambda hoặc method reference cung cấp hành vi đó theo cách nào?
+1. Which method is the API calling (`forEach`, `map`, `removeIf`, `sort`, ...)?
+2. What kind of behavior does the API require (what does it take, what does it return)?
+3. How does the lambda or method reference supply that behavior?
 
-**Điểm quan trọng:** một lambda hoặc method reference tạo ra giá trị có kiểu **functional interface** phù hợp; bản thân việc tạo nó thường **chưa thực thi thân hành vi**. API hay lời gọi phương thức trừu tượng tương ứng mới kích hoạt hành vi khi thích hợp.
+**Key point:** a lambda or method reference produces a value of an appropriate **functional interface** type; creating it usually **does not execute the behavior body yet**. The API or a call to the corresponding abstract method triggers the behavior when appropriate.
 
-## 2. Lambda: `thamSo -> bieuThuc` hoặc `thamSo -> { ... }`
+## 2. Lambda: `parameter -> expression` or `parameter -> { ... }`
 
 ~~~java
 x -> x * 2
@@ -31,11 +31,11 @@ name -> {
 }
 ~~~
 
-- Bên trái `->` là danh sách **tham số**. Một tham số có kiểu suy luận có thể bỏ dấu ngoặc: `x -> ...`; với nhiều tham số phải viết `(a, b) -> ...`.
-- Bên phải là **biểu thức** hoặc **khối lệnh**. Nếu cần trả giá trị từ khối lệnh, dùng `return expression;` khi kiểu đích yêu cầu kết quả.
-- Kiểu của các tham số thường được suy luận từ **ngữ cảnh kiểu đích** (*target typing*).
+- To the left of `->` is the **parameter** list. A single parameter with an inferred type can omit parentheses: `x -> ...`; multiple parameters must use `(a, b) -> ...`.
+- To the right is an **expression** or a **block**. If you need to return a value from a block, use `return expression;` when the target type expects a result.
+- Parameter types are usually inferred from the **target type context** (*target typing*).
 
-Ví dụ:
+Example:
 
 ~~~java
 java.util.function.IntUnaryOperator doubleIt = x -> x * 2;
@@ -48,34 +48,34 @@ System.out.println(doubleIt.applyAsInt(3));
 6
 ~~~
 
-`IntUnaryOperator` có một phương thức trừu tượng `applyAsInt(int)`: nhận một số nguyên và trả một số nguyên. Lambda trên chính là phần cài đặt cho hành vi đó.
+`IntUnaryOperator` has one abstract method `applyAsInt(int)`: it takes an integer and returns an integer. The lambda above is the implementation of that behavior.
 
-## 3. Functional interface là kiểu đích
+## 3. Functional Interfaces Are the Target Type
 
-Một **functional interface** có đúng **một phương thức trừu tượng cần triển khai** (*single abstract method / SAM*), không tính các phương thức của `Object`. Nó có thể còn có `default` hoặc `static` methods.
+A **functional interface** has exactly **one abstract method to implement** (*single abstract method / SAM*), excluding methods from `Object`. It may still have `default` or `static` methods.
 
-| Functional interface | Phương thức chính | Đọc như |
+| Functional interface | Primary method | Read as |
 |---|---|---|
-| `Consumer<T>` | `accept(T)` → `void` | Nhận giá trị để xử lý, không trả kết quả |
-| `Predicate<T>` | `test(T)` → `boolean` | Kiểm tra điều kiện đúng/sai |
-| `Function<T,R>` | `apply(T)` → `R` | Biến đổi một giá trị thành giá trị khác |
-| `Supplier<T>` | `get()` → `T` | Cung cấp giá trị không cần đối số |
-| `Comparator<T>` | `compare(T,T)` → `int` | Xác định thứ tự hai phần tử |
-| `Runnable` | `run()` → `void` | Hành động không đối số và không trả giá trị |
+| `Consumer<T>` | `accept(T)` → `void` | Accepts a value to process, returns no result |
+| `Predicate<T>` | `test(T)` → `boolean` | Checks a true/false condition |
+| `Function<T,R>` | `apply(T)` → `R` | Transforms one value into another |
+| `Supplier<T>` | `get()` → `T` | Supplies a value with no arguments |
+| `Comparator<T>` | `compare(T,T)` → `int` | Determines the ordering of two elements |
+| `Runnable` | `run()` → `void` | Action taking no arguments and returning no value |
 
-Khi thấy `items.removeIf(s -> s.isBlank())`, có thể suy luận `removeIf` nhận `Predicate` nên lambda cần cho ra `boolean`. Khi thấy `items.forEach(s -> System.out.println(s))`, API nhận `Consumer`, nên hành vi không cần trả giá trị.
+When you see `items.removeIf(s -> s.isBlank())`, you can infer `removeIf` expects a `Predicate`, so the lambda must yield a `boolean`. When you see `items.forEach(s -> System.out.println(s))`, the API expects a `Consumer`, so the behavior needs no return value.
 
-**Không phải mọi interface đều có thể làm kiểu đích cho lambda**: interface có nhiều phương thức trừu tượng độc lập không phải SAM. Annotation `@FunctionalInterface` giúp compiler kiểm tra ý định khai báo, nhưng lambda không yêu cầu interface bắt buộc có annotation ấy.
+**Not every interface can serve as a target type for a lambda**: an interface with multiple independent abstract methods is not a SAM. The `@FunctionalInterface` annotation helps the compiler verify declaration intent, though lambdas do not require the interface to carry that annotation.
 
-## 4. Method reference: `::` thay cho lambda chuyển tiếp
+## 4. Method Reference: `::` Instead of a Forwarding Lambda
 
-Method reference dùng một phương thức hoặc constructor **đã tồn tại** để thỏa hợp đồng functional interface.
+A method reference uses an **existing** method or constructor to satisfy a functional interface contract.
 
-| Dạng | Ví dụ | Lambda tương đương về ý nghĩa |
+| Form | Example | Semantically equivalent lambda |
 |---|---|---|
 | Static method | `Integer::parseInt` | `s -> Integer.parseInt(s)` |
-| Instance method của object có sẵn | `System.out::println` | `s -> System.out.println(s)` |
-| Instance method của object được truyền vào | `String::length` | `s -> s.length()` |
+| Instance method of an existing object | `System.out::println` | `s -> System.out.println(s)` |
+| Instance method of a passed-in object | `String::length` | `s -> s.length()` |
 | Constructor | `StringBuilder::new` | `() -> new StringBuilder()` |
 
 ~~~java
@@ -89,9 +89,9 @@ System.out.println(length.apply("Java"));
 4
 ~~~
 
-Ở `String::length`, **đối tượng nhận lời gọi** chính là đối số `"Java"`, nên API tương đương `s -> s.length()`.
+In `String::length`, the **receiving object** is the argument `"Java"`, so the API behaves like `s -> s.length()`.
 
-Với method reference của một object cụ thể:
+For a method reference bound to a specific object:
 
 ~~~java
 String prefix = "Hi ";
@@ -105,58 +105,58 @@ System.out.println(greet.apply("Java"));
 Hi Java
 ~~~
 
-`prefix::concat` đã gắn receiver `prefix` tại lúc tạo tham chiếu phương thức. Nó không tạo bản sao String hay gọi `concat` ngay. **Không viết `String::length()`**: method reference cần tên phương thức sau `::`, không có dấu ngoặc gọi.
+`prefix::concat` binds the receiver `prefix` when creating the method reference. It does not copy the `String` or call `concat` immediately. **Do not write `String::length()`**: a method reference takes only the method name after `::`, without call parentheses.
 
-## 5. Đọc `forEach`, `map`, `removeIf` và `sort`
+## 5. Reading `forEach`, `map`, `removeIf`, and `sort`
 
 ~~~java
 List<String> names = List.of("An", "Binh");
 names.forEach(System.out::println);
 ~~~
 
-`forEach` nhận `Consumer<String>` và thực hiện một hành động cho mỗi phần tử. Với danh sách này, stdout là:
+`forEach` takes a `Consumer<String>` and performs an action for each element. For this list, stdout is:
 
 ~~~text
 An
 Binh
 ~~~
 
-Các API thường gặp:
+Common APIs:
 
-| Lời gọi | Đọc hiểu |
+| Call | Reading |
 |---|---|
-| `names.forEach(System.out::println)` | Gọi `println` trên mỗi phần tử |
-| `names.stream().map(String::length)` | Tạo stream kết quả độ dài từng String |
-| `mutable.removeIf(String::isBlank)` | Xóa những phần tử thỏa predicate “chuỗi chỉ chứa khoảng trắng hoặc rỗng” |
-| `mutable.replaceAll(s -> s.toUpperCase())` | Thay từng phần tử bằng dạng chữ hoa |
-| `mutable.sort(Comparator.comparingInt(String::length))` | Sắp xếp theo độ dài tăng dần |
+| `names.forEach(System.out::println)` | Calls `println` on each element |
+| `names.stream().map(String::length)` | Creates a stream of each `String`'s length |
+| `mutable.removeIf(String::isBlank)` | Removes elements matching the predicate "empty or whitespace-only string" |
+| `mutable.replaceAll(s -> s.toUpperCase())` | Replaces each element with its uppercase form |
+| `mutable.sort(Comparator.comparingInt(String::length))` | Sorts by ascending length |
 
-**Phân biệt thời điểm chạy:** `Collection.forEach` thực hiện hành động khi được gọi. Với `Stream.map`, việc tạo pipeline thường **lazy**; hàm biến đổi được áp dụng khi có thao tác terminal, ví dụ `toList()` hoặc `forEach()`.
+**Distinguish execution timing:** `Collection.forEach` performs its action when called. With `Stream.map`, building the pipeline is normally **lazy**; the transformation function is applied when a terminal operation runs, such as `toList()` or `forEach()`.
 
-**Phân biệt tính thay đổi dữ liệu:** `List.of(...)` trả danh sách không thể sửa trực tiếp; gọi `removeIf`, `replaceAll` hay `sort` trên nó có thể ném `UnsupportedOperationException`. Nếu cần sửa danh sách, dùng `new ArrayList<>(List.of(...))`. Kết quả `Stream.toList()` từ Java 16 trở lên cũng không cho phép sửa cấu trúc danh sách kết quả.
+**Distinguish mutability:** `List.of(...)` returns an unmodifiable list; calling `removeIf`, `replaceAll`, or `sort` on it can throw `UnsupportedOperationException`. If you need to mutate the list, use `new ArrayList<>(List.of(...))`. The result of `Stream.toList()` in Java 16+ also disallows structural modification of the resulting list.
 
-## 6. Vì sao không phải lúc nào cũng thay lambda bằng method reference?
+## 6. Why Lambdas Are Not Always Replaced by Method References
 
-Hai cách viết thường tương đương khi lambda **chỉ chuyển tiếp đối số** đến một phương thức:
+Both forms are normally equivalent when the lambda **merely forwards its argument** to one method:
 
 ~~~java
 words.stream().map(word -> word.length()).toList();
 words.stream().map(String::length).toList();
 ~~~
 
-Nhưng lambda rất hữu ích khi cần tính toán thêm hoặc nhiều bước:
+However, lambdas are very useful when extra computation or multiple steps are needed:
 
 ~~~java
 words.stream().map(word -> word.trim().toUpperCase()).toList();
 ~~~
 
-Đoạn này không tương đương với một method reference duy nhất kiểu `String::trim` vì còn bước chữ hoa. Có thể đặt logic vào một phương thức có tên `normalize` và viết `ClassName::normalize` khi thao tác được tái sử dụng.
+This snippet is not equivalent to a single method reference like `String::trim` because of the uppercase step. You can extract the logic into a named method `normalize` and write `ClassName::normalize` when the operation is reused.
 
-**Cẩn thận với overload:** `System.out::println` có nhiều overload, Java chọn phiên bản tương ứng với kiểu đích, ví dụ `Consumer<String>`. Không thể xem method reference như một giá trị “không có kiểu” trong mọi ngữ cảnh; nó cần target functional interface thích hợp.
+**Watch out for overloads:** `System.out::println` has multiple overloads; Java picks the version matching the target type, such as `Consumer<String>`. You cannot treat a method reference as an "untyped" value in every context; it needs an appropriate target functional interface.
 
-## 7. Capture biến ngoài và những lỗi cơ bản
+## 7. Variable Capture and Basic Errors
 
-Lambda có thể sử dụng local bên ngoài nếu biến đó là `final` hoặc **effectively final** (không bị gán lại):
+A lambda can use an outer local variable if that variable is `final` or **effectively final** (never reassigned):
 
 ~~~java
 int threshold = 3;
@@ -171,15 +171,15 @@ System.out.println(longEnough.test("Java"));
 true
 ~~~
 
-Nếu sau đó viết `threshold = 5;` trong cùng phương thức, lambda capture `threshold` như trên sẽ **không biên dịch**, do biến không còn effectively final.
+If you later write `threshold = 5;` in the same method, the lambda capturing `threshold` above will **fail to compile**, because the variable is no longer effectively final.
 
-Phân biệt **gán lại tham chiếu** và **thay đổi nội dung object**: một tham chiếu local effectively final vẫn có thể trỏ tới một object mutable, nên callback có thể thấy thay đổi trạng thái object đó. Điều này có thể làm code khó hiểu, nhất là stream song song; ở mức nhập môn, ưu tiên các hàm không gây tác dụng phụ bất ngờ.
+Distinguish **reassigning a reference** from **mutating an object's contents**: an effectively final local reference can still point to a mutable object, so a callback might observe state changes on that object. This can make code harder to reason about, especially in parallel streams; at an introductory level, prefer functions without unexpected side effects.
 
-Lambda `x -> x + 1` không phải là phương thức có tên để gọi qua `x(...)`; nó được dùng thông qua functional interface, chẳng hạn `op.applyAsInt(5)`.
+A lambda `x -> x + 1` is not a named method to call via `x(...)`; it is invoked through its functional interface, such as `op.applyAsInt(5)`.
 
-## 8. Chương trình Java 17+ hoàn chỉnh
+## 8. Complete Java 17+ Program
 
-Tạo file đúng tên **`LambdaMethodReferenceDemo.java`**:
+Create file with exact name **`LambdaMethodReferenceDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -262,7 +262,7 @@ public final class LambdaMethodReferenceDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, không cần Maven, Gradle hoặc thư viện ngoài JDK, không dùng preview features.
+**Requirements:** JDK 17 or later, no Maven, Gradle, or libraries outside the JDK, and no preview features.
 
 **Bash (Linux/macOS):**
 
@@ -299,39 +299,39 @@ parsed=[2, 4]
 runnable=executed
 ~~~
 
-**Giải thích:** `map` biến đổi chuỗi và sau đó lấy độ dài bằng method reference; `forEach` dùng static method reference tới `printTagged`. `removeIf` sử dụng predicate `String::isBlank`, `replaceAll` dùng lambda, `sort` dùng comparator xây từ `String::length`. Các ví dụ `Supplier`, `Function` và `Runnable` minh họa hành vi được thực thi khi gọi phương thức SAM hoặc API tương ứng.
+**Explanation:** `map` transforms strings and then takes lengths via a method reference; `forEach` uses a static method reference to `printTagged`. `removeIf` uses the predicate `String::isBlank`, `replaceAll` uses a lambda, and `sort` uses a comparator built from `String::length`. The `Supplier`, `Function`, and `Runnable` examples illustrate behaviors executed when the SAM method or corresponding API runs.
 
-## 9. Bài tập, lỗi thường gặp và checklist
+## 9. Exercises, Common Mistakes, and Checklist
 
-| Sai lầm | Nguyên nhân | Cách hiểu đúng |
+| Mistake | Cause | Correct understanding |
 |---|---|---|
-| Nghĩ `x -> x * 2` là phép tính chạy ngay | Lambda tạo hành vi để thực thi sau | Cần lời gọi SAM/API thích hợp |
-| Nghĩ `String::length` là gọi `length()` tức thì | Đây là method reference | Dùng làm đối số cho API nhận functional interface |
-| Viết `String::length()` | Sai cú pháp method reference | `String::length` |
-| Dùng `map` mà không có terminal operation rồi chờ tác dụng | Pipeline stream thường lazy | Gọi `toList`, `forEach`, ... |
-| Dùng `removeIf` trên `List.of(...)` | Danh sách không hỗ trợ thay đổi | Dùng `ArrayList` khi cần sửa |
-| Dùng lambda mà không có kiểu đích hợp lệ | Lambda cần functional interface | Chọn `Predicate`, `Function`, `Consumer`... |
-| Capture một local rồi gán lại local đó | Không effectively final | Tránh gán lại hoặc thiết kế lại |
-| Nhầm `Consumer` với `Function` | Consumer không trả kết quả | Chọn functional interface đúng hợp đồng |
+| Thinking `x -> x * 2` is a computation that runs immediately | A lambda creates behavior to execute later | Requires an appropriate SAM/API call |
+| Thinking `String::length` calls `length()` immediately | It is a method reference | Pass as an argument to an API expecting a functional interface |
+| Writing `String::length()` | Invalid method reference syntax | `String::length` |
+| Using `map` without a terminal operation and expecting effects | Stream pipelines are normally lazy | Call `toList`, `forEach`, ... |
+| Calling `removeIf` on `List.of(...)` | The list does not support modification | Use `ArrayList` when mutation is needed |
+| Using a lambda without a valid target type | Lambdas require a functional interface | Choose `Predicate`, `Function`, `Consumer`, ... |
+| Capturing a local variable and then reassigning it | Not effectively final | Avoid reassigning or redesign |
+| Confusing `Consumer` with `Function` | `Consumer` returns no result | Pick the functional interface matching the contract |
 
-**Bài A:** `List.of("A","BB").stream().map(String::length).toList()` cho kết quả gì? **`[1, 2]`**.
+**Exercise A:** What does `List.of("A","BB").stream().map(String::length).toList()` return? **`[1, 2]`**.
 
-**Bài B:** `names.forEach(System.out::println)` tương đương lambda nào? **`names.forEach(s -> System.out.println(s))`** trong ngữ cảnh `Consumer<String>`.
+**Exercise B:** What lambda is `names.forEach(System.out::println)` equivalent to? **`names.forEach(s -> System.out.println(s))`** in a `Consumer<String>` context.
 
-**Bài C:** API `removeIf` yêu cầu callback kiểm tra kiểu gì? **`Predicate<E>`**, có phương thức `test(E)` trả `boolean`.
+**Exercise C:** What callback type does the `removeIf` API require? **`Predicate<E>`**, which has method `test(E)` returning `boolean`.
 
-**Bài D:** `StringBuilder::new` trong `Supplier<StringBuilder>` nghĩa là gì? **Một hành vi không tham số tạo `StringBuilder` mới khi `get()` được gọi**, không tạo object ngay lúc chỉ viết method reference.
+**Exercise D:** What does `StringBuilder::new` in `Supplier<StringBuilder>` mean? **A zero-argument behavior that creates a new `StringBuilder` when `get()` is called**, not creating an object just by writing the method reference.
 
 ### Checklist
 
-- [ ] Nhận ra `->` là lambda và `::` là method reference.
-- [ ] Biết functional interface là kiểu đích cho lambda/reference.
-- [ ] Phân biệt `Consumer`, `Predicate`, `Function`, `Supplier`, `Comparator`, `Runnable`.
-- [ ] Đọc được static, instance-bound, instance-unbound và constructor references.
-- [ ] Hiểu callback thực thi khi API/lời gọi SAM kích hoạt, không phải khi viết cú pháp.
-- [ ] Phân biệt stream trung gian `map` với terminal `toList`.
-- [ ] Nhận ra API nào sửa danh sách, API nào tạo kết quả mới.
-- [ ] Tránh capture local không effectively final.
-- [ ] Chạy `LambdaMethodReferenceDemo.java` bằng JDK 17+ và đối chiếu exact stdout.
+- [ ] Recognize `->` as a lambda and `::` as a method reference.
+- [ ] Know that a functional interface is the target type for a lambda/method reference.
+- [ ] Distinguish `Consumer`, `Predicate`, `Function`, `Supplier`, `Comparator`, `Runnable`.
+- [ ] Read static, bound-instance, unbound-instance, and constructor references.
+- [ ] Understand callbacks execute when the API/SAM call triggers them, not when written.
+- [ ] Distinguish intermediate stream `map` from terminal `toList`.
+- [ ] Recognize which APIs mutate a list vs. which create a new result.
+- [ ] Avoid capturing non-effectively-final local variables.
+- [ ] Run `LambdaMethodReferenceDemo.java` with JDK 17+ and verify exact stdout.
 
-**Kết luận:** Khi gặp `list.forEach(x -> ...)` hoặc `stream.map(Type::method)`, hãy đọc đó là **truyền một hành vi cho API**. Lambda viết trực tiếp hành vi; method reference tái sử dụng phương thức/constructor đã có. Kiểu functional interface của API quyết định hành vi nhận đối số và trả kết quả như thế nào.
+**Conclusion:** When encountering `list.forEach(x -> ...)` or `stream.map(Type::method)`, read it as **passing a behavior to an API**. A lambda writes the behavior inline; a method reference reuses an existing method or constructor. The API's functional interface type dictates how the behavior receives arguments and returns results.

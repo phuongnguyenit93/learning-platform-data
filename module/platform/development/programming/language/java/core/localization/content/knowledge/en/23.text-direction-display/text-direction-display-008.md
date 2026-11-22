@@ -1,10 +1,10 @@
-# Độ dài bản dịch, xuống dòng và trách nhiệm của lớp giao diện
+# Translation Length, Line Wrapping, and UI Layer Responsibilities
 
-## 1. Tại sao đây là vấn đề localization, không chỉ là CSS hay LayoutManager?
+## 1. Why is this a localization problem, not just CSS or LayoutManager?
 
-Trong ứng dụng đa ngôn ngữ, cùng một ý nghĩa có thể được biểu đạt bằng các đoạn văn có **độ dài rất khác nhau**. Một nhãn tiếng Anh ngắn có thể trở thành một cụm dài hơn khi dịch sang tiếng Đức, tiếng Pháp hoặc tiếng Việt; một ngôn ngữ khác có thể dùng ít ký tự hơn nhưng glyph rộng hơn, hoặc cần chiều cao dòng lớn hơn. Những thay đổi này không phải lỗi của bản dịch.
+In a multilingual application, the same meaning can be expressed by text segments of **widely varying lengths**. A short English label can become a much longer phrase when translated into German, French, or Vietnamese; another language may use fewer characters yet wider glyphs, or require a taller line height. These variations are not translation bugs.
 
-Ví dụ các nhãn có cùng mục đích:
+Example labels serving the same purpose:
 
 ```text
 en-US: Settings
@@ -12,46 +12,46 @@ vi-VN: Cài đặt
 de-DE: Einstellungen
 ```
 
-Nếu nhà phát triển thiết kế nút có chiều rộng cố định vừa đúng `Settings`, bản dịch `Einstellungen` có thể tràn hoặc bị cắt. Giảm cỡ chữ, bắt người dịch rút gọn bằng mọi giá hoặc chèn `\n` vào bản dịch để khớp đúng pixel hiện tại thường chỉ **che giấu một thiết kế giao diện thiếu linh hoạt**.
+If a developer designs a button with a fixed width tailored strictly to `Settings`, the translation `Einstellungen` can overflow or get clipped. Shrinking the font size, forcing translators to abbreviate at all costs, or inserting `\n` into translations to fit current pixel bounds usually just **hides an inflexible UI design**.
 
-**Nguyên tắc quan trọng:** người dịch chịu trách nhiệm về **nội dung, ngữ nghĩa, trật tự từ và cách diễn đạt tự nhiên**; lớp giao diện và bộ layout chịu trách nhiệm về **kích thước, reflow, ngắt dòng để vừa vùng hiển thị, hướng văn bản và khả năng truy cập**. Hai bên có thể phối hợp bằng các ràng buộc nội dung rõ ràng, nhưng không được biến việc "vá layout" thành nhiệm vụ mặc định của người dịch.
+**Key principle:** translators are responsible for **content, meaning, word order, and natural phrasing**; the UI layer and layout engine are responsible for **sizing, reflow, wrapping to fit the display area, text direction, and accessibility**. Both sides can coordinate via clear content constraints, but "patching the layout" must never become the translator's default job.
 
-Bài này tập trung vào ba chủ đề:
+This lesson focuses on three topics:
 
-1. **Độ dài bản dịch**: mở rộng/thu ngắn, khác biệt độ rộng glyph và chiều cao dòng.
-2. **Xuống dòng**: khác nhau giữa line break tự động và newline có ý nghĩa do nội dung yêu cầu.
-3. **Trách nhiệm lớp giao diện**: layout thích ứng, Unicode line breaking, RTL/BiDi, kiểm thử overflow, truncate và accessibility.
+1. **Translation length:** expansion/contraction, glyph-width differences, and line height.
+2. **Line wrapping:** the difference between automatic line breaks and semantically meaningful newlines required by content.
+3. **UI layer responsibilities:** adaptive layout, Unicode line breaking, RTL/BiDi, overflow testing, truncation, and accessibility.
 
-Ví dụ Java sử dụng **Java 17+**, nhất là Swing để minh họa trách nhiệm lớp UI; các nguyên tắc tương tự áp dụng cho web, mobile và các công nghệ giao diện khác, nhưng API cụ thể sẽ khác.
+The Java examples use **Java 17+**, particularly Swing to illustrate UI layer responsibilities; similar principles apply to web, mobile, and other UI technologies, though specific APIs will differ.
 
-## 2. Số ký tự không quyết định chiều rộng của bản dịch
+## 2. Character count does not determine translation width
 
-Không thể lấy `String.length()` nhân với một hằng số để tính số pixel cần hiển thị.
+You cannot multiply `String.length()` by a constant to calculate the pixels needed for display.
 
-Trong Java:
+In Java:
 
-- `String.length()` đếm **UTF-16 code units**, không phải Unicode code points hay glyph.
-- `String.codePointCount(0, s.length())` đếm code points, nhưng một grapheme cluster có thể gồm nhiều code points.
-- Font là dạng **proportional** hay **monospaced**, size, weight, kerning, ligature và text shaping đều ảnh hưởng bề rộng.
-- Một chữ thuộc CJK, một chữ Latin, dấu kết hợp hoặc emoji màu có thể chiếm diện tích khác nhau.
-- Một số hệ chữ cần line-height phù hợp với các dấu hoặc phần mở rộng của glyph.
-- Một đoạn văn RTL trộn số và Latin cần bộ bố cục biết Unicode Bidirectional Algorithm (BiDi).
+- `String.length()` counts **UTF-16 code units**, not Unicode code points or glyphs.
+- `String.codePointCount(0, s.length())` counts code points, yet one grapheme cluster can span multiple code points.
+- Whether a font is **proportional** or **monospaced**, plus size, weight, kerning, ligatures, and text shaping all affect width.
+- A CJK character, a Latin letter, combining marks, or a color emoji can each occupy different areas.
+- Some scripts require enough line-height for tall diacritics or glyph extensions.
+- An RTL paragraph mixing numbers and Latin needs a layout engine aware of the Unicode Bidirectional Algorithm (BiDi).
 
-Ví dụ, `"WWWW"` và `"iiii"` đều gồm bốn chữ cái Latin, nhưng trong nhiều font proportional, bề rộng rất khác. Một chuỗi `"A🌍B"` có `length()==4` và `codePointCount()==3`, song chiều rộng hiển thị còn do font/renderer quyết định.
+For example, `"WWWW"` and `"iiii"` both consist of four Latin letters, yet in many proportional fonts their widths differ dramatically. A string `"A🌍B"` has `length()==4` and `codePointCount()==3`, while rendered width is still determined by the font/renderer.
 
-### Ba thước đo thường bị nhầm
+### Three frequently confused metrics
 
-| Thước đo | Đo điều gì? | Có đủ để quyết định xuống dòng? |
+| Metric | What does it measure? | Enough to decide line breaks? |
 | --- | --- | --- |
-| `String.length()` | Số UTF-16 code units | **Không** |
-| Code point/grapheme count | Đơn vị ký tự Unicode/hiển thị gần người dùng | **Không**: chưa có font, width, shaping |
-| Kích thước sau layout | Glyph advance, wrapping, line-height, không gian component | **Có liên quan trực tiếp** nhưng phụ thuộc renderer và viewport |
+| `String.length()` | Number of UTF-16 code units | **No** |
+| Code point/grapheme count | Unicode/user-perceived character units | **No**: lacks font, width, shaping |
+| Post-layout dimensions | Glyph advance, wrapping, line-height, component space | **Directly relevant** yet depends on renderer and viewport |
 
-Nếu layout cần biết có vừa hay không, hãy dùng **công cụ đo text của chính UI framework**, sau khi font, hướng viết, tỷ lệ màn hình và vùng hiển thị được xác định. Trong Swing, `FontMetrics`/`TextLayout` có thể tham gia đo, nhưng layout manager vẫn chịu trách nhiệm phân phối không gian tổng thể. `FontMetrics.stringWidth` cho một dòng text không phải giải pháp tổng quát cho styled text, BiDi phức tạp hay nhiều dòng có break opportunities.
+If layout needs to know whether text fits, use **the UI framework's own text-measurement tools** once font, writing direction, screen scale, and display bounds are known. In Swing, `FontMetrics`/`TextLayout` can participate in measurement, while the layout manager remains responsible for allocating overall space. `FontMetrics.stringWidth` for a single line of text is not a universal solution for styled text, complex BiDi, or multi-line text with break opportunities.
 
-### Ví dụ Java 17+: phân biệt UTF-16 và code point
+### Java 17+ example: distinguishing UTF-16 and code points
 
-Tạo file `TextLengthDemo.java`:
+Create the file `TextLengthDemo.java`:
 
 ```java
 public class TextLengthDemo {
@@ -73,7 +73,7 @@ javac TextLengthDemo.java
 java TextLengthDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 utf16=4
@@ -81,104 +81,104 @@ codePoints=3
 longer label length=13
 ```
 
-Ví dụ chứng minh số `char` không mô tả trọn ý nghĩa "độ dài bản dịch". Nó **không** đo bề rộng pixel; muốn đo phải đưa chuỗi vào font và UI renderer cụ thể.
+The example proves `char` count does not fully capture "translation length." It **does not** measure pixel width; to measure width you must pass the string to a concrete font and UI renderer.
 
-## 3. Translation expansion/contraction: không có tỷ lệ cố định
+## 3. Translation expansion/contraction: no fixed ratio
 
-Một câu ngắn có thể dài hơn nhiều sau dịch. Câu dài đôi khi có tỷ lệ mở rộng nhỏ hơn vì các cấu trúc ngôn ngữ khác nhau. Không có quy tắc đáng tin rằng "mọi bản dịch dài hơn tiếng Anh 30%" hoặc "đoạn nào cũng chỉ cần cộng 10px".
+A short phrase can grow substantially after translation. A long sentence sometimes expands at a smaller ratio because grammatical structures differ. There is no reliable rule that "all translations are 30% longer than English" or "every field just needs +10px."
 
-Các yếu tố ảnh hưởng:
+Contributing factors:
 
-- **Hình thái từ:** một từ trong ngôn ngữ này có thể thành cụm nhiều từ trong ngôn ngữ khác.
-- **Mức độ lịch sự/ngữ cảnh:** nút hành động, thông báo lỗi, khẳng định/hỏi, các lựa chọn xưng hô.
-- **Danh từ loại, giới tính/cách/số nhiều:** cả câu thay đổi, không chỉ một hậu tố.
-- **Ký tự và font:** số glyph và bề rộng mỗi glyph không có quan hệ tuyến tính với chiều dài byte hoặc `char`.
-- **Hướng chữ:** layout LTR/RTL có thể thay đổi vị trí icon, back button, mũi tên và thứ tự thành phần.
-- **Locale của số/ngày giờ:** số `1,234.5` có thể thành `1.234,5`, hệ chữ số khác hoặc chuỗi ngày tháng dài hơn.
-- **Độ rộng màn hình và accessibility:** phóng to chữ, DPI, zoom, font fallback, thiết bị nhỏ hoặc cửa sổ được thu hẹp.
+- **Word morphology:** one word in one language can become a multi-word phrase in another.
+- **Politeness/register and context:** action buttons, error messages, assertions/questions, forms of address.
+- **Noun classifiers, gender/case/plurals:** the entire sentence shifts, not just one suffix.
+- **Characters and fonts:** glyph count and each glyph's width have no linear relationship to byte or `char` length.
+- **Text direction:** LTR/RTL layouts can change icon placement, back buttons, arrows, and component order.
+- **Number/date-time locales:** `1,234.5` can become `1.234,5`, another digit system, or a longer date string.
+- **Screen width and accessibility:** larger text, DPI, zoom, font fallback, small devices, or narrowed windows.
 
-**Thiết kế nên thử cả trường hợp mở rộng và thu ngắn**, không chỉ thử độ dài trung bình. Dùng pseudo-localization để cố tình kéo dài chuỗi và bổ sung ký tự có dấu giúp phát hiện sớm các component bị cắt trước khi có đủ bản dịch thật.
+**Designs should test both expansion and contraction cases**, not just average lengths. Using pseudo-localization to deliberately lengthen strings and add accented characters helps catch clipped components early before real translations arrive.
 
-### Một chính sách placeholder tốt
+### A good placeholder policy
 
-Thông điệp nên lưu **cả câu** với placeholder có ý nghĩa thay vì ghép các mảnh cố định:
+Messages should store **complete sentences** with meaningful placeholders rather than concatenating fixed fragments:
 
 ```properties
 files.count={0} files selected
 save.error=Could not save {0}
 ```
 
-Người dịch có quyền đổi trật tự placeholder theo ngữ pháp. Tránh:
+Translators have the freedom to reorder placeholders to fit grammar. Avoid:
 
 ```java
-// Không phù hợp nếu dịch phải đảo cấu trúc câu:
+// Unsuitable if translation must reorder sentence structure:
 String text = translate("prefix") + count
         + translate("suffix");
 ```
 
-Một thông điệp đầy đủ giúp bản dịch đúng, nhưng **không đảm bảo tự xuống dòng**: đó vẫn là trách nhiệm component/layout.
+A complete message enables accurate translation, yet **does not guarantee automatic line wrapping**: that remains the component/layout's responsibility.
 
-## 4. Xuống dòng: line break tự động khác newline mang ý nghĩa
+## 4. Line wrapping: automatic line breaks vs. meaningful newlines
 
-Hãy tách hai loại:
+Separate two kinds:
 
 ### 4.1. Soft wrap / automatic line break
 
-Khi một đoạn text vượt chiều rộng khả dụng, UI có thể tìm **break opportunity** và hiển thị phần tiếp theo trên dòng mới. Vị trí ngắt có thể thay đổi khi:
+When a piece of text exceeds available width, the UI can find a **break opportunity** and display the continuation on a new line. Break points can change when:
 
-- cửa sổ được kéo rộng/hẹp;
-- ngôn ngữ được đổi;
-- cỡ font/zoom thay đổi;
-- thiết bị đổi từ portrait sang landscape;
-- người dùng bật accessibility scaling;
-- font fallback hoặc ligature thay đổi.
+- the window is widened or narrowed;
+- the language changes;
+- font size/zoom changes;
+- a device rotates from portrait to landscape;
+- the user enables accessibility scaling;
+- font fallback or ligatures change.
 
-Soft wrap **không làm thay đổi nội dung chuỗi nguồn**. Nếu lấy text từ data model, không nhất thiết có ký tự `\n` tại vị trí hiển thị xuống dòng.
+Soft wrap **does not alter the source string's content**. Reading text from the data model does not necessarily show `\n` characters at visually wrapped positions.
 
-### 4.2. Hard break / newline có chủ đích
+### 4.2. Hard break / intentional newline
 
-Một ký tự `\n` thực sự nằm trong nội dung. Nó có thể có **ý nghĩa ngữ nghĩa**:
+An actual `\n` character present in the content. It can carry **semantic meaning**:
 
-- phân cách các đoạn văn;
-- danh sách địa chỉ nhiều dòng;
-- lời thơ, trích dẫn, caption được thiết kế có cấu trúc;
-- tách tiêu đề và mô tả khi content specification đòi hỏi.
+- separating paragraphs;
+- multi-line address blocks;
+- poetry, quotes, structured captions;
+- separating a title and description when required by content specification.
 
-Hard break cần được **quyết định từ content model** chứ không chỉ để một chuỗi vừa vào nút rộng 120px. Nếu người dịch tự chèn `\n` vào giữa từ/câu để chữa lỗi layout, trên màn hình rộng hơn nó vẫn bị ép xuống dòng và có thể trông kỳ cục.
+Hard breaks must be **decided by the content model**, not just to squeeze a string into a 120px-wide button. If a translator inserts `\n` mid-sentence to work around a layout bug, wider screens will still force an awkward line break.
 
-### 4.3. Bảng trách nhiệm
+### 4.3. Responsibility table
 
-| Tình huống | Nên để ai xử lý? |
+| Scenario | Who should handle it? |
 | --- | --- |
-| Đo chữ có vừa nút không | UI/layout |
-| Thay đổi chiều rộng và số dòng theo viewport | UI/layout |
-| Chọn vị trí ngắt dòng hợp quy tắc chữ viết | Text engine/line-break algorithm |
-| Chọn từ ngữ tự nhiên, trật tự câu, ngữ pháp | Người dịch/content |
-| Nội dung thực sự gồm hai đoạn văn | Content structure/resource |
-| Nút rất ngắn có nhãn riêng được phê duyệt | Product design + content; resource có biến thể ngắn |
-| Lỗi bị cắt hoặc icon che chữ | UI/layout, không yêu cầu người dịch bỏ thông tin thiết yếu |
-| Trường chữ quá dài từ input người dùng | UI có overflow/truncate policy và đường truy cập nội dung đầy đủ |
+| Measuring whether text fits a button | UI/layout |
+| Adapting width and line count to the viewport | UI/layout |
+| Choosing line-break points valid for writing-system rules | Text engine/line-break algorithm |
+| Choosing natural wording, sentence order, grammar | Translator/content |
+| Content genuinely consists of two paragraphs | Content structure/resources |
+| Very short button needing a dedicated approved label | Product design + content; resource has a short variant |
+| Clipped text or icon overlapping text | UI/layout, without asking translators to drop essential info |
+| Overly long text field from user input | UI with overflow/truncation policy and access to full content |
 
-Đôi khi một sản phẩm có cả **label đầy đủ** và **short label** được bản địa hóa, ví dụ dùng trong tab bar hẹp. Khi đó đây là **hai tài nguyên được thiết kế với mục đích rõ ràng**, không phải việc cắt tùy tiện một bản dịch.
+Sometimes a product has both a **full label** and a localized **short label**, such as for a narrow tab bar. In that case, they are **two intentionally designed resources**, not arbitrary chopping of one translation.
 
-## 5. Quy tắc ngắt dòng khác nhau giữa các hệ chữ
+## 5. Line-breaking rules differ across writing systems
 
-Không thể lấy `text.split(" ")` rồi coi mọi dấu cách là ranh giới từ hay ranh giới xuống dòng hợp lệ. W3C và Unicode mô tả nhiều cơ chế:
+You cannot call `text.split(" ")` and treat every space as a valid word boundary or line-break boundary. W3C and Unicode describe many mechanisms:
 
-- **Tiếng Anh và nhiều ngôn ngữ Latin/Cyrillic:** thường ngắt tại ranh giới từ và khoảng trắng, nhưng dấu câu và dấu ngoặc vẫn có quy tắc.
-- **Tiếng Việt:** khoảng trắng có thể phân cách **âm tiết**, không luôn tương ứng một từ; cách xuống dòng tự nhiên còn phụ thuộc biên tập và cấu trúc câu.
-- **Tiếng Thái, Khmer, Lào:** nhiều từ không phân cách bằng khoảng trắng; ngắt dòng có thể đòi hỏi dictionary-based segmentation.
-- **Tiếng Trung/Nhật:** có thể ngắt theo chữ/âm tiết, nhưng quy tắc như **kinsoku shori** hạn chế việc đặt một số dấu câu ở đầu/cuối dòng.
-- **Các hệ chữ có dấu kết hợp và cụm phức tạp:** không nên cắt giữa grapheme cluster hoặc orthographic syllable.
-- **Tiếng Ả Rập/Do Thái (RTL):** có quy tắc ngắt từ, đồng thời còn phải xử lý thứ tự hiển thị BiDi.
+- **English and many Latin/Cyrillic languages:** generally break at word boundaries and spaces, though punctuation and brackets still have rules.
+- **Vietnamese:** spaces can separate **syllables**, not always whole words; natural line wrapping also depends on editorial phrasing and sentence structure.
+- **Thai, Khmer, Lao:** many words are not separated by spaces; line breaking can require dictionary-based segmentation.
+- **Chinese/Japanese:** can break between characters/syllables, yet rules such as **kinsoku shori** restrict placing certain punctuation marks at the start/end of a line.
+- **Scripts with combining marks and complex clusters:** must not break inside a grapheme cluster or orthographic syllable.
+- **Arabic/Hebrew (RTL):** have word-breaking rules alongside BiDi visual ordering.
 
-Các ký tự không ngắt như **NO-BREAK SPACE** U+00A0, **NARROW NO-BREAK SPACE** U+202F và **WORD JOINER** U+2060 có thể ảnh hưởng break opportunity. Chúng thường có vai trò trong con số, tên riêng hoặc dấu câu; đừng thay toàn bộ bằng ASCII space trước khi layout.
+Non-breaking characters such as **NO-BREAK SPACE** `U+00A0`, **NARROW NO-BREAK SPACE** `U+202F`, and **WORD JOINER** `U+2060` can affect break opportunities. They often play roles in numbers, proper names, or punctuation; do not replace all of them with ASCII spaces before layout.
 
-**Chỉ dùng kỹ thuật đo text + wrapping của framework** khi đã xác nhận nó hỗ trợ các ngôn ngữ mục tiêu. Một thuật toán tự làm dựa trên số `char` hoặc dấu cách dễ phá dấu tổ hợp, emoji ZWJ, RTL và ngữ pháp văn bản.
+**Use the framework's text measurement + wrapping facilities** once verified to support target languages. Hand-rolled algorithms based on `char` counts or spaces easily break combining marks, ZWJ emojis, RTL, and prose grammar.
 
-## 6. `BreakIterator.getLineInstance`: tìm vị trí có thể ngắt, không quyết định số dòng cuối
+## 6. `BreakIterator.getLineInstance`: finding break opportunities without deciding final line counts
 
-Java SE có:
+Java SE provides:
 
 ```java
 BreakIterator iterator =
@@ -186,9 +186,9 @@ BreakIterator iterator =
 iterator.setText(text);
 ```
 
-Đây là đoạn code trong một phương thức, cần `import java.text.BreakIterator;` và biến `locale`, `text`. `BreakIterator` trả **các vị trí ranh giới** theo kiểu line break, nhưng **không biết chiều rộng pixel**, không có thông tin font và **không tự bố trí các dòng trên màn hình**.
+This is code inside a method, requiring `import java.text.BreakIterator;` and variables `locale`, `text`. `BreakIterator` returns **boundary positions** for line-break opportunities, yet **has no knowledge of pixel widths**, has no font metrics, and **does not lay out lines on screen itself**.
 
-Để lấy từng đoạn giữa các ranh giới:
+To extract each slice between boundaries:
 
 ```java
 int start = iterator.first();
@@ -199,11 +199,11 @@ for (int end = iterator.next();
 }
 ```
 
-Cả `start` và `end` đều là **UTF-16 offsets** trong `String` nguồn. `BreakIterator.DONE` có giá trị `-1`; kiểm tra trước khi gọi `substring`. Phần mềm giao diện mới là nơi kết hợp những break opportunities này với đo width, shaping và container bounds để chọn những điểm nào thực sự trở thành dòng mới.
+Both `start` and `end` are **UTF-16 offsets** in the source `String`. `BreakIterator.DONE` has value `-1`; check it before calling `substring`. The UI software combines these break opportunities with width measurement, shaping, and container bounds to decide which points actually become new lines.
 
-### Ví dụ Java 17+: chỉ liệt kê break opportunities
+### Java 17+ example: listing break opportunities only
 
-Tạo file `LineBreakOpportunitiesDemo.java`:
+Create the file `LineBreakOpportunitiesDemo.java`:
 
 ```java
 import java.text.BreakIterator;
@@ -232,7 +232,7 @@ javac LineBreakOpportunitiesDemo.java
 java LineBreakOpportunitiesDemo
 ```
 
-Stdout theo dữ liệu `Locale.US` đã đối chiếu:
+Stdout verified against `Locale.US` data:
 
 ```text
 [0,6)=Hello 
@@ -240,46 +240,46 @@ Stdout theo dữ liệu `Locale.US` đã đối chiếu:
 [12,17)=again
 ```
 
-Ở đây `[0,6)` có dấu cách sau `Hello`, và `[6,12)` có dấu cách sau `world`. Những đoạn này là **đơn vị từ phân tích line-break**, không phải ba dòng cuối cùng của UI. Trong một container rộng, toàn bộ chuỗi có thể nằm một dòng; trong container hẹp, nó có thể ngắt thành nhiều dòng.
+Here `[0,6)` includes the space after `Hello`, and `[6,12)` includes the space after `world`. These slices are **units from line-break analysis**, not three final UI lines. In a wide container, the whole string fits on one line; in a narrow container, it can wrap into multiple lines.
 
-**Không lưu các dấu xuống dòng được tính từ `BreakIterator` vào nội dung dịch** chỉ vì bố cục ở một viewport cụ thể; lần sau khi đổi font/cửa sổ, vị trí ngắt có thể khác.
+**Do not save newlines computed from `BreakIterator` back into translated content** just because of one viewport's layout; next time the font/window changes, break points can differ.
 
-## 7. UI framework chịu trách nhiệm gì?
+## 7. What is the UI framework responsible for?
 
-Để một bản dịch dài vẫn hiển thị đầy đủ, lớp giao diện cần quản lý các yếu tố sau:
+So that a long translation still displays completely, the UI layer must manage:
 
-1. **Layout co giãn:** ưu tiên kích thước do component yêu cầu, min/max hợp lý và layout managers; không hardcode cùng một width cho mọi locale.
-2. **Wrap thích hợp:** cho text nhiều dòng khi phù hợp với semantic và không gian.
-3. **Chiều cao thích ứng:** khi text thành hai/ba dòng, container tăng chiều cao thay vì bị che mất.
-4. **Khoảng cách:** padding, gap giữa icon và text, baseline alignment, line height; tính lại sau khi font/locale đổi.
-5. **Overflow/truncation policy:** nếu buộc giới hạn không gian, phân biệt nơi cho wrap, scroll, collapse, ellipsis và nơi không được cắt.
-6. **Text direction:** đặt LTR/RTL ở component/layout, không đảo chuỗi raw.
-7. **Accessibility:** tôn trọng tăng kích thước chữ; đảm bảo có đường đọc toàn bộ nội dung (screen reader, expanded view, accessible description thích hợp).
-8. **Reflow:** khi đổi locale, DPI, font hoặc kích thước cửa sổ, recompute layout; không cache width của bản dịch tiếng Anh.
-9. **Input text:** nội dung do người dùng nhập có thể rất dài, chứa emoji/combining/RTL; không giả định chỉ các resource string mới cần xử lý.
-10. **Kiểm thử trực quan:** test bản dịch ngắn, dài, những hệ chữ khác và nhiều viewport thực tế.
+1. **Flexible layout:** prefer component-requested sizes, sensible min/max bounds, and layout managers; never hardcode the same width for every locale.
+2. **Appropriate wrapping:** allow multi-line text where semantics and space permit.
+3. **Adaptive height:** when text wraps to two/three lines, let the container grow vertically instead of clipping it.
+4. **Spacing:** padding, icon-to-text gaps, baseline alignment, line height; recompute after font/locale changes.
+5. **Overflow/truncation policy:** when space is strictly constrained, distinguish where wrapping, scrolling, collapsing, or ellipsis is allowed and where clipping is forbidden.
+6. **Text direction:** configure LTR/RTL on components/layouts, never reverse raw strings.
+7. **Accessibility:** honor larger text sizes; ensure a path to read full content (screen readers, expanded views, appropriate accessible descriptions).
+8. **Reflow:** when locale, DPI, font, or window size changes, recompute layout; never cache the width of the English translation.
+9. **Input text:** user-entered content can be very long and contain emojis/combining marks/RTL; do not assume only resource strings need handling.
+10. **Visual testing:** test short translations, long translations, other scripts, and realistic viewports.
 
-Những nguyên tắc này thuộc **presentation layer**. Resource bundle chứa dữ liệu ngôn ngữ, không nên chứa các con số pixel, trạng thái scroll, thông số component hay logic quyết định layout.
+These principles belong to the **presentation layer**. Resource bundles store linguistic data and should not hold pixel numbers, scroll states, component dimensions, or layout-decision logic.
 
-## 8. Java Swing: `JLabel` không tương đương `JTextArea`
+## 8. Java Swing: `JLabel` is not equivalent to `JTextArea`
 
-Trong Swing, lựa chọn component có tác động trực tiếp đến wrapping.
+In Swing, component selection directly affects wrapping.
 
-| Component | Hành vi quan trọng | Khi nào cân nhắc |
+| Component | Key behavior | When to consider |
 | --- | --- | --- |
-| `JLabel` | Thông thường hiển thị **một dòng plain text**; không tự wrap dài theo width như text area | Nhãn ngắn, tiêu đề có đủ không gian |
-| `JTextArea` | Text nhiều dòng; `setLineWrap(true)` để wrap theo width; `setWrapStyleWord(true)` để ưu tiên boundary của từ | Đoạn mô tả/plain text nhiều dòng |
-| `JTextPane` / `JEditorPane` | Nội dung styled/rich text, khả năng layout linh hoạt hơn | Nội dung định dạng phức tạp |
-| `JScrollPane` | Cung cấp vùng cuộn khi nội dung vượt viewport | Nội dung dài mà vẫn phải đọc đủ |
-| `JButton` | Nút hành động, kích thước tùy Look & Feel/font | Nút có label ngắn được thiết kế và kiểm thử |
+| `JLabel` | Normally displays **a single line of plain text**; does not wrap long text by width like a text area | Short labels, headings with ample space |
+| `JTextArea` | Multi-line text; `setLineWrap(true)` wraps by width; `setWrapStyleWord(true)` prefers word boundaries | Multi-line descriptions / plain prose |
+| `JTextPane` / `JEditorPane` | Styled/rich text content, more flexible layout capabilities | Complex formatted content |
+| `JScrollPane` | Provides a scrollable viewport when content exceeds available bounds | Long content that must remain fully readable |
+| `JButton` | Action button, sized per Look & Feel/font | Buttons with short labels designed and tested |
 
-`JTextArea.setLineWrap(false)` là mặc định của `JTextArea`. Nếu cần text tự xuống dòng trong vùng có width giới hạn, phải bật wrapping và đảm bảo component thực sự có **kích thước layout hợp lý**.
+`JTextArea.setLineWrap(false)` is the default for `JTextArea`. If text must wrap automatically inside a width-constrained area, enable wrapping and ensure the component actually receives a **sensible layout size**.
 
-Lưu ý `setWrapStyleWord(true)` ưu tiên ranh giới từ khi có thể, nhưng **không phải cam kết đầy đủ** về mọi quy tắc line break của mọi hệ chữ/Unicode ở mọi Look & Feel. Với UI quốc tế phức tạp, cần kiểm thử hoặc dùng text layout engine thích hợp.
+Note that `setWrapStyleWord(true)` prefers word boundaries where possible, yet is **not a complete guarantee** of every line-breaking rule across all scripts/Unicode and all Look & Feels. For complex international UIs, test thoroughly or use an appropriate text layout engine.
 
-### Ví dụ Java 17+ có thể chạy kể cả môi trường không có màn hình
+### Java 17+ example runnable even in headless environments
 
-Tạo file `SwingWrapConfigurationDemo.java`:
+Create the file `SwingWrapConfigurationDemo.java`:
 
 ```java
 import java.awt.ComponentOrientation;
@@ -328,13 +328,13 @@ word wrap enabled: true
 arabic LTR: false
 ```
 
-Đây là ví dụ **kiểm chứng thuộc tính của component**, chưa hiển thị cửa sổ. Nó không chứng minh một số dòng cụ thể sẽ hiện ra, vì việc wrap phụ thuộc **allocated width**, font và layout manager.
+This example **verifies component properties** without displaying a window. It does not prove a specific number of lines will render, because wrapping depends on **allocated width**, fonts, and the layout manager.
 
-**Quan trọng:** `setEditable(false)` chỉ làm text không chỉnh sửa được; với text area dùng làm nhãn mô tả, có thể cần đặt thêm background, border, focus, accessible name và chính sách chọn text theo yêu cầu thiết kế. Không dùng nó như "nút chức năng" chỉ vì có cùng text.
+**Important:** `setEditable(false)` only makes the text non-editable; for a text area acting as a descriptive label, you may also need to configure background, border, focus, accessible name, and text-selection policy per design requirements. Do not treat it as an "action button" merely because it displays text.
 
-## 9. Ví dụ giao diện Swing: để text tự giãn theo layout
+## 9. Swing UI example: letting text adapt to layout
 
-Ví dụ hoàn chỉnh dùng `BorderLayout` và `JTextArea` có wrap, thay vì ghim chiều rộng của bản dịch vào resource. Tạo `LocalizedPanelDemo.java`:
+A complete example using `BorderLayout` and a wrapping `JTextArea` instead of pinning translation width in resources. Create `LocalizedPanelDemo.java`:
 
 ```java
 import java.awt.BorderLayout;
@@ -388,37 +388,37 @@ public class LocalizedPanelDemo {
 }
 ```
 
-Chạy trong môi trường **có giao diện đồ họa**:
+Run in an environment **with a graphical UI**:
 
 ```bash
 javac -encoding UTF-8 LocalizedPanelDemo.java
 java LocalizedPanelDemo
 ```
 
-Chương trình mở cửa sổ Swing; không có stdout cố định. Khi kéo hẹp cửa sổ, text area có thể wrap theo chiều rộng vùng trung tâm, và `JScrollPane` giúp đọc nội dung nếu nó vượt không gian cho phép. Code được viết trên **Swing Event Dispatch Thread (EDT)** qua `SwingUtilities.invokeLater`.
+The program opens a Swing window; there is no fixed stdout. When narrowing the window, the text area can wrap to the center region's width, and `JScrollPane` keeps content readable if it exceeds available space. The code runs on the **Swing Event Dispatch Thread (EDT)** via `SwingUtilities.invokeLater`.
 
-**Giới hạn quan trọng của ví dụ:** một UI thực cần thêm xử lý accessibility, keyboard navigation, font fallback, đổi locale khi đang chạy, resource bundle thay vì hardcode tiếng Việt, nút thực sự có action phù hợp, và kiểm thử trên Look & Feel mục tiêu. Không xem ví dụ minh họa một cửa sổ là bộ layout sản phẩm hoàn chỉnh.
+**Important limitations of the example:** a production UI needs additional accessibility handling, keyboard navigation, font fallback, runtime locale switching, a resource bundle instead of hardcoded Vietnamese, a button with an actual action, and testing on the target Look & Feel. Do not treat a single-window illustration as a complete production layout suite.
 
-**Không ấn định một chiều cao cố định cho tất cả nhãn** chỉ vì ví dụ có kích thước khởi tạo cửa sổ. Kích thước này là mặc định ban đầu, không phải chiều dài tối đa của câu dịch. Nếu sản phẩm cần layout không cuộn, phải chọn component/container có thể tăng chiều cao theo số dòng và kiểm thử lại.
+**Do not fix one height for all labels** just because the example sets an initial window size. That size is an initial default, not the maximum length of translated sentences. If a product needs a non-scrolling layout, pick components/containers that can grow vertically with line count and re-test.
 
-## 10. `JLabel`, HTML và những giới hạn thực tế
+## 10. `JLabel`, HTML, and practical limitations
 
-`JLabel` plain text thông thường là một dòng. Swing có khả năng render một **tập con HTML** trong một số component khi text bắt đầu bằng `<html>`, ví dụ:
+A plain-text `JLabel` is normally single-line. Swing can render a **subset of HTML** in certain components when text begins with `<html>`, for instance:
 
 ```java
 JLabel label = new JLabel(
-        "<html>Đây là đoạn mô tả<br>có xuống dòng.</html>");
+        "<html>This is a description<br>with a line break.</html>");
 ```
 
-Đây là **đoạn code minh họa trong phương thức**, cần `import javax.swing.JLabel;`. `<br>` ở đây là thẻ HTML dùng bởi Swing HTML renderer, không phải `\n` trong resource thuần.
+This is an **illustrative snippet inside a method**, requiring `import javax.swing.JLabel;`. Here `<br>` is an HTML tag interpreted by Swing's HTML renderer, not `\n` in a plain resource.
 
-Nhưng không nên lấy bản dịch do người dùng nhập hoặc từ nguồn không đáng tin rồi chèn trực tiếp vào HTML: phải xử lý escaping/validation theo mô hình render. Việc đẩy `<br>` và style vào chuỗi bản dịch còn có thể trộn **ngữ nghĩa nội dung** với **đặc tính giao diện**, làm tăng độ khó bảo trì.
+However, never take user-entered or untrusted translations and interpolate them directly into HTML: escaping/validation must match the rendering model. Pushing `<br>` and styling into translation strings also mixes **content semantics** with **presentation specifics**, raising maintenance costs.
 
-Nếu muốn tự wrap theo width và tăng chiều cao trong Swing, thường cân nhắc component nhiều dòng/layout thích hợp thay vì "bơm" vô số `<br>` vào `JLabel`. Khi dùng HTML, hãy kiểm thử subset tag được Swing hỗ trợ và cách layout cập nhật, vì nó không phải trình duyệt web hiện đại.
+If you need automatic width-based wrapping and vertical growth in Swing, usually prefer multi-line components/suitable layouts instead of injecting countless `<br>` tags into `JLabel`. When using HTML, test the tag subset supported by Swing and how layout updates, as it is not a modern web browser.
 
-## 11. Tách tài nguyên ngôn ngữ khỏi quyết định layout
+## 11. Separating language resources from layout decisions
 
-Resource bundle nên mô tả **văn bản và biến thể nội dung**, không lưu một bản sao bị chèn newline chỉ để phù hợp kích thước màn hình:
+Resource bundles should describe **prose and content variants**, not store newline-injected copies tailored to one screen size:
 
 ```properties
 dialog.close.title=Đóng cửa sổ
@@ -426,61 +426,61 @@ dialog.close.description=Vui lòng lưu các thay đổi trước khi đóng.
 dialog.close.action=Đóng
 ```
 
-Trong UI:
+In the UI:
 
-- `title` được gán vào tiêu đề hoặc label phù hợp.
-- `description` dùng component có thể wrap.
-- `action` là nhãn của nút có kích thước linh hoạt và sự kiện.
-- Placeholder số, ngày tháng, tên riêng được format theo locale trước khi đặt vào giao diện.
+- `title` goes into an appropriate heading or label.
+- `description` uses a component capable of wrapping.
+- `action` is a button label with flexible sizing and event handling.
+- Number, date/time, and proper-name placeholders are formatted by locale before entering the UI.
 
-Đây là ví dụ `.properties` tiếng Việt nhằm minh họa cấu trúc khóa; thực tế tên bundle và locale suffix do dự án quyết định.
+This is a Vietnamese `.properties` example illustrating key structure; in practice, bundle names and locale suffixes are decided by the project.
 
-### Khi nào bản dịch nên chứa `\n`?
+### When should a translation contain `\n`?
 
-Có trường hợp **nội dung cần xuống dòng cố định** và đó là một phần của nghĩa. Ví dụ bản dịch là lời chào nhiều đoạn, thông điệp có hai đoạn có chủ đích, hoặc địa chỉ được thiết kế thành nhiều dòng. Khi dùng `.properties`:
+There are cases where **content requires fixed line breaks** as part of its meaning. For example, a multi-paragraph greeting, a message intentionally structured into two paragraphs, or a multi-line postal address. In `.properties`:
 
 ```properties
 message.long=Đoạn thứ nhất.\nĐoạn thứ hai.
 ```
 
-Parser `.properties` chuyển escape `\n` thành newline trong chuỗi Java. Lớp UI phải sử dụng component hiển thị nhiều dòng; `JLabel` plain text không tự trở thành text area chỉ vì chuỗi chứa `\n`.
+The `.properties` parser turns `\n` escapes into newlines in the Java string. The UI layer must use a multi-line component; a plain-text `JLabel` does not become a text area just because the string contains `\n`.
 
-Không dùng escape `\n` giữa từng nhóm từ chỉ để cố định "mỗi dòng 20 ký tự", vì font, ngôn ngữ và viewport sẽ thay đổi.
+Do not insert `\n` escapes between word groups merely to enforce "20 characters per line," because fonts, languages, and viewports change.
 
-**Phân biệt semantic structure và visual lines:** nội dung nên có paragraph/list fields nếu cần cấu trúc, còn số dòng cuối cùng là kết quả layout. Với bản dịch có nhiều ngữ cảnh hiển thị, cân nhắc nhiều key/tài nguyên được định nghĩa rõ mục đích hơn là dùng chung một text rồi thay newline theo nơi gọi.
+**Distinguish semantic structure from visual lines:** content should use paragraph/list fields when structure is needed, while the final line count is a layout outcome. For text appearing in multiple UI contexts, consider distinct keys/resources with clear purposes rather than sharing one string and swapping newlines per call site.
 
-## 12. Kịch bản placeholder, số nhiều và độ dài tăng đột biến
+## 12. Placeholder scenarios, plurals, and sudden length spikes
 
-Không chỉ bản dịch tĩnh, các thông điệp có dữ liệu runtime còn có thể dài bất ngờ:
+Not only static translations—messages with runtime data can also grow unexpectedly long:
 
 ```text
-"Đã lưu tài liệu"
-"Đã lưu tài liệu Báo cáo tổng hợp kết quả kinh doanh quý IV..."
+"Document saved"
+"Document saved Quarterly Business Summary Report Q4..."
 ```
 
-Tên tệp, tên người, đường dẫn, địa chỉ email, mã đơn hàng hoặc lượng tiền có thể làm text dài vượt dự kiến. Hệ thống còn phải xét:
+Filenames, person names, paths, email addresses, order codes, or monetary amounts can stretch text beyond expectations. Systems must also account for:
 
-- tên file có ký tự CJK không có space;
-- số lượng danh sách và tên riêng rất dài;
-- ngày được format đầy đủ tên tháng;
-- mẫu câu plural/gender thay đổi theo biến số;
-- escape text hoặc markup làm thay đổi kích thước nếu render khác.
-  
-Ví dụ: `ResourceBundle` + `MessageFormat` có thể tạo văn bản đúng nghĩa; nó **không chịu trách nhiệm chọn chỗ ngắt và chiều rộng nút**. Message formatter nên tạo **chuỗi có ngữ nghĩa**, lớp layout mới phân tích và trình bày.
+- filenames with CJK characters and no spaces;
+- list counts and very long proper names;
+- dates formatted with full month names;
+- plural/gender sentence templates shifting with runtime arguments;
+- escaped text or markup altering size if rendered differently.
 
-Nên đặt **giới hạn dữ liệu theo domain** (ví dụ tên nhập tối đa N grapheme/bytes nếu có lý do) chứ không đặt giới hạn tùy tiện vào tài nguyên dịch. Nếu UI không thể hiển thị hết, quyết định overflow policy riêng cho loại nội dung.
+For instance, `ResourceBundle` + `MessageFormat` can produce semantically accurate text; it **is not responsible for choosing break points and button widths**. Message formatters should build **meaningful strings**, while the layout layer analyzes and renders them.
 
-## 13. RTL: không đảo chuỗi và không hardcode vị trí icon
+Set **domain-level data limits** (e.g., max N graphemes/bytes on an entered name if justified) rather than placing arbitrary limits on translation resources. If the UI cannot display everything, define an explicit overflow policy for that content type.
 
-Một UI đa ngôn ngữ có thể phục vụ tiếng Ả Rập hoặc tiếng Do Thái, viết theo hướng từ phải sang trái (RTL). Trách nhiệm của lớp giao diện ở đây không chỉ là xuống dòng.
+## 13. RTL: do not reverse strings and do not hardcode icon positions
 
-- Hướng paragraph và các đoạn trộn LTR/RTL tuân theo Unicode Bidirectional Algorithm.
-- Các thành phần như back navigation, biểu tượng chỉ hướng và thứ tự trường có thể cần được mirror theo design system.
-- Số, URL, mã sản phẩm và các từ Latin nằm trong đoạn RTL cần text shaping/BiDi engine.
-- Không áp dụng `new StringBuilder(text).reverse()` để "hỗ trợ RTL".
-- Không chèn các ký tự điều khiển BiDi vô tội vạ vào resource nếu framework đã có cơ chế xác định hướng; với trường hợp embedding dữ liệu chưa biết hướng, áp dụng cơ chế bidi isolation đúng nền tảng.
+A multilingual UI may serve Arabic or Hebrew, written right-to-left (RTL). The UI layer's responsibility here goes beyond line wrapping.
 
-Swing có `java.awt.ComponentOrientation`:
+- Paragraph direction and mixed LTR/RTL runs follow the Unicode Bidirectional Algorithm.
+- Elements such as back navigation, directional icons, and field ordering may need mirroring per the design system.
+- Numbers, URLs, product codes, and Latin words inside an RTL segment need a text shaping/BiDi engine.
+- Never apply `new StringBuilder(text).reverse()` to "support RTL."
+- Do not sprinkle BiDi control characters into resources indiscriminately when the framework already provides direction mechanisms; when embedding data of unknown direction, apply platform-appropriate bidi isolation.
+
+Swing provides `java.awt.ComponentOrientation`:
 
 ```java
 Locale locale = Locale.forLanguageTag("ar-EG");
@@ -489,13 +489,13 @@ ComponentOrientation orientation =
 component.applyComponentOrientation(orientation);
 ```
 
-Đây là đoạn mã minh họa trong một phương thức, cần `Locale` và `ComponentOrientation` cũng như `component` đã khai báo.
+This is an illustrative snippet inside a method, requiring `Locale` and `ComponentOrientation` along with a declared `component`.
 
-**Chú ý:** `ComponentOrientation` định hướng bố cục của component, nhưng không phải bảo đảm mọi chữ, icon, tooltip, popup và layout manager đều tự hoạt động đúng cho RTL. Cần test thực tế với thư viện giao diện và Look & Feel đang sử dụng.
+**Note:** `ComponentOrientation` configures component layout orientation, yet does not guarantee every text string, icon, tooltip, popup, and layout manager automatically works right for RTL. Test directly with your UI library and active Look & Feel.
 
-### Ví dụ Java 17+ về orientation
+### Java 17+ orientation example
 
-Tạo file `OrientationDemo.java`:
+Create the file `OrientationDemo.java`:
 
 ```java
 import java.awt.ComponentOrientation;
@@ -526,33 +526,33 @@ ar-EG: false
 he-IL: false
 ```
 
-Đây chỉ là thuộc tính hướng **của component đối với locale** theo Java, không thay thế việc render một paragraph BiDi trộn chữ.
+This reflects only **component orientation for a locale** in Java; it is not a substitute for rendering a mixed-script BiDi paragraph.
 
-## 14. Truncate / ellipsis: giải pháp dự phòng, không phải mặc định
+## 14. Truncation / ellipsis: a fallback, not the default
 
-Có màn hình thật sự có giới hạn diện tích: tab bar, biểu đồ, cột bảng rất hẹp, toast ngắn. Khi đó ứng dụng có thể cắt văn bản và thêm `…`, nhưng cần chính sách rõ ràng.
+Some screens genuinely have tight area limits: tab bars, charts, narrow table columns, short toasts. There, an app may truncate text and append `…`, provided a clear policy exists.
 
-### 14.1. Những rủi ro khi cắt theo `char`
+### 14.1. Risks of slicing by `char`
 
-`String.substring(0, maxLength)` cắt theo **UTF-16 code units**, có thể làm hỏng một emoji supplementary nếu cắt giữa surrogate pair. Ngay cả `offsetByCodePoints` chỉ tránh cắt surrogate, vẫn có thể chia một **grapheme** gồm chữ với combining mark, emoji ZWJ hoặc skin tone modifier.
+`String.substring(0, maxLength)` slices by **UTF-16 code units**, which can corrupt a supplementary emoji if cut mid-surrogate-pair. Even `offsetByCodePoints` only avoids splitting surrogates and can still split a **grapheme** consisting of a base letter with combining marks, a ZWJ emoji, or a skin-tone modifier.
 
-Nếu yêu cầu là cắt theo số "ký tự người dùng nhìn thấy", hãy chọn thuật toán grapheme segmentation. Java 17 hỗ trợ regex `\X` cho extended grapheme cluster; trong Java string literal viết `"\\X"`. Với ứng dụng có giới hạn **pixel**, còn phải đo chiều rộng sau shaping và wrapping, không chỉ đếm grapheme.
+If the requirement is slicing by "user-perceived characters," choose a grapheme segmentation algorithm. Java 17 supports the `\X` regex for extended grapheme clusters; written `"\\X"` in a Java string literal. For apps with **pixel** limits, you still must measure width after shaping and wrapping, not just count graphemes.
 
-### 14.2. Đo pixel và chọn chỗ cắt
+### 14.2. Measuring pixels and choosing cut points
 
-Quy trình khái niệm:
+Conceptual workflow:
 
-1. Đo kích thước text bằng đúng font, tỷ lệ DPI, hướng chữ, renderer và viewport.
-2. Nếu vừa, hiển thị nguyên văn.
-3. Nếu không vừa và component được phép nhiều dòng, ưu tiên wrap.
-4. Nếu không được wrap, cân nhắc scroll, expand hoặc ellipsis.
-5. Nếu dùng ellipsis, cắt theo ranh giới Unicode phù hợp và **đo lại** cả chuỗi `prefix + ellipsis`.
-6. Với RTL/BiDi, hướng ellipsis và vị trí dấu cắt cần framework/UX xử lý đúng.
-7. Giữ cách truy cập nội dung đầy đủ nếu thông tin quan trọng; tooltip là một kênh bổ sung chứ không phải cách duy nhất.
+1. Measure text dimensions using the exact font, DPI scale, text direction, renderer, and viewport.
+2. If it fits, display verbatim.
+3. If it does not fit and the component allows multiple lines, prefer wrapping.
+4. If wrapping is disallowed, consider scrolling, expanding, or ellipsis.
+5. If using ellipsis, cut at an appropriate Unicode boundary and **re-measure** the full `prefix + ellipsis` string.
+6. For RTL/BiDi, ellipsis direction and cut placement must be handled properly by the framework/UX.
+7. Keep full content accessible if the information is important; a tooltip is a supplementary channel, not the sole mechanism.
 
-**Không nên cắt những thông tin quyết định** như điều khoản pháp lý, lời cảnh báo an toàn, số tiền, lỗi cần người dùng xử lý hoặc nút hành động có thể hiểu nhầm. Với nhãn quan trọng không vừa, thiết kế lại layout/label thay vì ép tối đa 8 ký tự bằng code.
+**Never truncate critical information** such as legal terms, safety warnings, monetary amounts, actionable errors, or action buttons that could be misread. For essential labels that do not fit, redesign the layout/label instead of clamping them to 8 characters in code.
 
-### 14.3. Một đoạn mã an toàn ở mức grapheme
+### 14.3. A grapheme-safe snippet
 
 ```java
 static String truncateClusters(String s, int maxClusters) {
@@ -571,129 +571,129 @@ static String truncateClusters(String s, int maxClusters) {
 }
 ```
 
-Đây là **phương thức minh họa**, cần đặt trong một lớp Java. Nó trả prefix gồm tối đa N grapheme clusters theo dữ liệu Unicode của JDK, **không tự thêm ellipsis** và **không đo pixel**. Khi dùng `m.end()` để cắt `String`, offset trả về là UTF-16 và phù hợp với `substring`.
+This is an **illustrative method** to be placed inside a Java class. It returns a prefix of at most N grapheme clusters according to the JDK's Unicode data, **without adding an ellipsis** and **without measuring pixels**. Using `m.end()` to slice the `String` yields a UTF-16 offset compatible with `substring`.
 
-Chú ý: nếu `maxClusters==0` kết quả là chuỗi rỗng; nếu text ít cụm hơn giới hạn, trả toàn bộ text. Bộ quy tắc Unicode/grapheme có thể được cập nhật trong các phiên bản runtime, nên cần test khi giới hạn ký tự là một hợp đồng sản phẩm quan trọng.
+Note: if `maxClusters==0` the result is an empty string; if the text has fewer clusters than the limit, the whole text is returned. Unicode/grapheme rules can be updated across runtime releases, so test carefully when character limits are an important product contract.
 
-## 15. Unicode line breaking và khác biệt giữa "ký tự" và "đoạn từ"
+## 15. Unicode line breaking and the difference between "characters" and "segments"
 
-Để hiểu trách nhiệm của text engine, cần tách ba khái niệm:
+To understand the text engine's responsibilities, separate three concepts:
 
-| Khái niệm | Công dụng | Lỗi phổ biến |
+| Concept | Purpose | Common mistake |
 | --- | --- | --- |
-| Grapheme boundary | Không tách một cụm ký tự hiển thị | Cắt trước modifier/dấu kết hợp |
-| Word boundary | Xác định đoạn liên quan đến từ/từ tố theo locale | Coi mọi dấu cách đều là ranh giới từ duy nhất |
-| Line-break opportunity | Chỗ có thể xuống dòng hợp quy tắc chữ viết | Coi mọi opportunity là newline bắt buộc |
+| Grapheme boundary | Never split a single visible character cluster | Cutting before a modifier/combining mark |
+| Word boundary | Identify word/lexeme segments by locale | Treating every space as the only word boundary |
+| Line-break opportunity | Legal place to wrap a line under script rules | Treating every opportunity as a mandatory newline |
 
-Một cụm Unicode có thể không được tách giữa dòng dù có nhiều code points; ngược lại, một câu có thể chứa nhiều ranh giới dòng. Line-break engine còn phải cân nhắc dấu câu cấm đứng đầu/cuối dòng. Một số ngôn ngữ cần hỗ trợ hyphenation hoặc dictionary segmentation.
+A Unicode cluster cannot be split across lines even when made of multiple code points; conversely, a sentence can contain many line-break boundaries. A line-break engine must also respect punctuation forbidden at the start or end of a line. Some languages require hyphenation or dictionary segmentation.
 
-Trên Java, `BreakIterator.getLineInstance(locale)` cho danh sách ranh giới, nhưng nhiều UI framework có bộ layout khác, và chất lượng cuối cùng phụ thuộc engine/font/provider. **Không cố dùng một chuỗi nối bằng `\n` từ backend để "vẽ layout" hộ frontend**.
+In Java, `BreakIterator.getLineInstance(locale)` gives boundary positions, yet many UI frameworks have their own layout engines and final quality depends on engine/font/provider. **Do not try to pass `\n`-joined strings from the backend to "draw layout" for the frontend.**
 
-## 16. Kiểm thử pseudo-localization và nhiều kích thước UI
+## 16. Pseudo-localization testing and multiple UI sizes
 
-Chỉ test tiếng Anh trên màn hình rộng sẽ bỏ qua phần lớn lỗi. Một kế hoạch kiểm thử thực tế nên gồm:
+Testing only English on a wide screen misses most bugs. A practical test plan should include:
 
-| Nhóm kiểm thử | Dữ liệu | Điều cần quan sát |
+| Test category | Test data | What to observe |
 | --- | --- | --- |
-| Chuỗi ngắn/dài | Nhãn 4 ký tự và đoạn văn dài | Không overlap/truncate sai |
-| Pseudo-localization | Bản dịch nhân độ dài, thêm ký tự có dấu | Container reflow |
-| Font scaling | 100%, 150%, 200% | Không che nội dung/tác vụ |
-| Viewport | Cửa sổ rộng, hẹp, phóng to | Wrap/scroll/resizing |
-| CJK | Tiếng Trung/Nhật, text không có space | Line breaks, dấu câu |
-| Đông Nam Á | Tiếng Thái/Khmer, tiếng Việt | Segmentation |
-| RTL | Tiếng Ả Rập/Do Thái, trộn Latin/number | Bidi, alignment, icon mirroring |
-| Unicode | Combining marks, emoji ZWJ, flags | Grapheme-safe truncation |
-| Dynamic data | Tên file/tên người/đường dẫn rất dài | Không đẩy nút ra ngoài |
-| Plural/gender | Các nhánh khác nhau trong cùng resource | Chiều dài thay đổi theo runtime |
-| Accessibility | Screen reader, keyboard-only, large fonts | Nội dung vẫn tiếp cận được |
-| Printing/export | PDF/report/ảnh chụp từ UI | Xuống dòng và trang không cắt sai |
+| Short/long strings | 4-character labels and long prose | No overlap or improper truncation |
+| Pseudo-localization | Expanded translation lengths, added accented chars | Container reflow |
+| Font scaling | 100%, 150%, 200% | Content/actions are not obscured |
+| Viewports | Wide, narrow, zoomed windows | Wrapping/scrolling/resizing |
+| CJK | Chinese/Japanese, text without spaces | Line breaks, punctuation |
+| Southeast Asia | Thai/Khmer, Vietnamese | Segmentation |
+| RTL | Arabic/Hebrew, mixed Latin/numbers | Bidi, alignment, icon mirroring |
+| Unicode | Combining marks, ZWJ emojis, flags | Grapheme-safe truncation |
+| Dynamic data | Very long filenames/names/paths | Does not push buttons off-screen |
+| Plurals/gender | Different branches in the same resource | Length shifts at runtime |
+| Accessibility | Screen readers, keyboard-only, large fonts | Content remains reachable |
+| Printing/export | PDFs/reports/UI screenshots | Line and page breaks do not cut wrongly |
 
-**Pseudo-localization không thay thế review của người bản ngữ.** Nó tốt để tìm vấn đề cơ khí layout, còn bản dịch thật phải được đánh giá tự nhiên, ngữ pháp và khả năng đọc.
+**Pseudo-localization does not replace native-speaker review.** It is great for catching mechanical layout issues, while real translations must be reviewed for naturalness, grammar, and readability.
 
-### Không đánh giá chỉ bằng ảnh chụp một thiết bị
+### Do not evaluate from screenshots on a single device alone
 
-Khi text vừa ở một kích thước cụ thể, chưa có nghĩa layout đạt yêu cầu. Cần test nhiều độ rộng và font scaling; nếu test automated UI screenshot, lưu ý font fallback, anti-aliasing, DPI và hệ điều hành có thể làm khác biệt pixel. Dùng cả automated constraints và kiểm tra accessibility, thay vì chỉ pixel-perfect của một locale duy nhất.
+Fitting at one specific size does not mean layout passes. Test across multiple widths and font scales; if running automated UI screenshot tests, remember font fallback, anti-aliasing, DPI, and OS differences affect pixels. Combine automated layout constraints and accessibility checks rather than chasing pixel perfection for a single locale.
 
-## 17. Kiến trúc gợi ý: Domain → i18n → UI layout
+## 17. Suggested architecture: Domain → i18n → UI layout
 
 ```text
-Domain value (count, date, username...)
+Domain values (count, date, username...)
              |
              v
 i18n/message formatting:
-  - Chọn resource theo locale
-  - Chọn plural/select branch
-  - Format số/ngày giờ
-  - Trả về thông điệp đầy đủ
+  - Select resource by locale
+  - Select plural/select branch
+  - Format numbers/dates/times
+  - Return complete message
              |
              v
 UI text/layout engine:
   - Resolve font, direction, width, DPI
-  - Tính line-break opportunities
-  - Wrap, tăng height/scroll, baseline
-  - Xử lý overflow/ellipsis nếu cần
+  - Compute line-break opportunities
+  - Wrap, grow height/scroll, align baseline
+  - Handle overflow/ellipsis if needed
              |
              v
 Rendered UI + accessibility
 ```
 
-### Ranh giới trách nhiệm
+### Responsibility boundaries
 
-**Domain layer** giữ giá trị thực, không lưu text đã thêm newline theo pixel. **Localization layer** chuyển giá trị thành văn bản đúng nghĩa, phù hợp locale, có placeholders và cấu trúc nội dung. **Presentation layer** quyết định vị trí, kích thước và cách hiển thị. **Accessibility layer** cần đọc được văn bản và ngữ nghĩa ngay cả khi UI đang thu gọn/ellipsis.
+**The domain layer** holds real values and never stores text with pixel-driven newlines inserted. **The localization layer** turns values into meaningful, locale-appropriate text with placeholders and content structure. **The presentation layer** decides placement, sizing, and display. **The accessibility layer** must be able to read text and meaning even when the UI collapses or uses ellipsis.
 
-Ví dụ: khi đổi cửa sổ từ 460px xuống 280px, **resource bundle không cần thay đổi**; layout engine nên tính lại ranh giới và số dòng. Chỉ khi sản phẩm có **biến thể nội dung thực sự khác**, ví dụ nhãn ngắn trong tab, mới cần key riêng được biên tập và dịch độc lập.
+For example, when resizing a window from 460px down to 280px, **resource bundles need no changes**; the layout engine should recompute boundaries and line count. Only when the product has a **genuinely distinct content variant**, such as a short tab label, is a separate edited and translated key justified.
 
-## 18. Những sai lầm phổ biến
+## 18. Common pitfalls
 
-| Sai lầm | Hệ quả | Hướng khắc phục |
+| Pitfall | Consequence | Fix |
 | --- | --- | --- |
-| Kích thước nút vừa đúng nhãn tiếng Anh | Bản dịch dài bị cắt | Layout thích ứng, ưu tiên preferred sizes |
-| Bắt người dịch rút gọn tới số ký tự cố định | Dễ mất nghĩa, trái ngữ pháp | Thiết kế short variant có chủ đích nếu cần |
-| Dùng `text.length()` để suy chiều rộng | UTF-16 units khác glyph width | Đo bằng font/text layout engine |
-| Chèn `\n` để chữa lỗi ở viewport hiện tại | Cửa sổ khác vẫn bị ngắt gượng ép | UI soft wrapping |
-| Dịch và nối từng mảnh câu | Khó đổi trật tự từ, sai ngữ pháp | Một message hoàn chỉnh với placeholders |
-| Tách dòng chỉ theo space | Sai ở CJK/Thai/Khmer, một số dấu câu | Unicode line break/locale-aware engine |
-| Coi `BreakIterator` là renderer | Không biết pixel/width/font | Để UI quyết định soft wrap |
-| Giả định `JLabel` plain text tự wrap | Text dài tràn một dòng | Chọn JTextArea/multi-line component |
-| Quên bật `JTextArea.setLineWrap` | Dòng không tự xuống | Bật wrap và cấp viewport đúng |
-| Dùng chung string với CSS/HTML/markup tùy ý | Trộn content với presentation | Tách dữ liệu và render; escape an toàn |
-| Đảo text để hỗ trợ RTL | Sai logical order và BiDi | Component orientation, Unicode bidi |
-| Truncate theo `substring(0,n)` | Xé surrogate/grapheme, mất nghĩa | Grapheme boundaries + width measurement |
-| Dùng tooltip làm cách duy nhất xem text đầy đủ | Không đảm bảo accessibility | Có view/description tương thích assistive tech |
-| Chỉ test desktop tiếng Anh | Không thấy overflow ở locale khác | Pseudo-localization, CJK, RTL, font scaling |
-| Hardcode font size nhỏ để ép chữ | Khó đọc, vi phạm khả năng truy cập | Hỗ trợ text scaling và reflow |
-| Giới hạn label vì data động không dự kiến | Tên/đường dẫn dài làm hỏng UI | Overflow policy và domain validation |
+| Sizing buttons tightly to English labels | Long translations clip | Adaptive layout, prefer preferred sizes |
+| Forcing translators to shorten to a fixed char count | Loses meaning, unnatural grammar | Design intentional short variants if needed |
+| Using `text.length()` to estimate width | UTF-16 units differ from glyph widths | Measure via font/text layout engine |
+| Inserting `\n` to patch the current viewport | Other window sizes break awkwardly | UI soft wrapping |
+| Translating and concatenating sentence fragments | Hard to reorder words, broken grammar | One complete message with placeholders |
+| Breaking lines only on spaces | Wrong for CJK/Thai/Khmer and some punctuation | Unicode line-break / locale-aware engine |
+| Treating `BreakIterator` as a renderer | Knows nothing of pixels/widths/fonts | Let the UI decide soft wraps |
+| Assuming plain-text `JLabel` wraps automatically | Long text overflows on one line | Pick `JTextArea`/multi-line component |
+| Forgetting `JTextArea.setLineWrap` | Lines do not wrap | Enable wrapping and provide a proper viewport |
+| Mixing arbitrary CSS/HTML/markup into strings | Blends content with presentation | Separate data and rendering; escape safely |
+| Reversing text to support RTL | Corrupts logical order and BiDi | Component orientation, Unicode bidi |
+| Truncating with `substring(0,n)` | Splits surrogates/graphemes, loses meaning | Grapheme boundaries + width measurement |
+| Using tooltips as the sole way to view full text | Fails accessibility | Provide views/descriptions compatible with assistive tech |
+| Testing only English desktop | Misses overflow in other locales | Pseudo-localization, CJK, RTL, font scaling |
+| Hardcoding tiny font sizes to squeeze text | Hard to read, violates accessibility | Support text scaling and reflow |
+| Capping labels due to unexpected dynamic data | Long names/paths break the UI | Overflow policy and domain validation |
 
-## 19. Câu hỏi tự kiểm tra
+## 19. Self-check questions
 
-1. **Vì sao dịch từ `Settings` sang `Einstellungen` có thể làm hỏng nút?** Vì nút đặt width cố định cho một nhãn; đó chủ yếu là lỗi UI layout.
-2. **Có quy tắc mọi bản dịch luôn dài hơn tiếng Anh theo cùng tỷ lệ không?** Không; độ dài phụ thuộc nội dung, ngữ pháp, script, font.
-3. **`String.length()` có đủ để biết text vừa 120px không?** Không; nó đếm UTF-16 code units, không đo glyph width.
-4. **Soft wrap khác `\n` ra sao?** Soft wrap là quyết định render theo width; `\n` thực sự là ký tự trong nội dung.
-5. **Có khi nào `\n` trong resource là đúng không?** Có, khi ranh giới đoạn/dòng là một phần ngữ nghĩa được biên tập.
-6. **Ai chịu trách nhiệm cho chỗ xuống dòng khi người dùng thu hẹp cửa sổ?** Text renderer/UI layout, không phải người dịch cố định vị trí dấu xuống dòng.
-7. **Vì sao không dùng `split(" ")` để wrap mọi ngôn ngữ?** Nhiều hệ chữ không dùng space làm delimiter từ; dấu câu và combining marks có quy tắc riêng.
-8. **`BreakIterator.getLineInstance` biết chiều rộng màn hình không?** Không; nó trả break opportunities, không tính số dòng hiển thị.
-9. **`JTextArea` có tự wrap theo mặc định không?** Không; `setLineWrap(false)` là mặc định.
-10. **`setWrapStyleWord(true)` có thay thế engine line breaking đầy đủ cho mọi locale không?** Không, phải kiểm thử framework/provider.
-11. **Một chuỗi chứa emoji ZWJ cần truncate thế nào?** Cắt theo grapheme boundaries và đo lại width nếu giới hạn pixel.
-12. **Có nên đảo `String` để hiển thị tiếng Ả Rập từ phải qua trái không?** Không; để BiDi và layout engine xử lý logical vs visual order.
-13. **Muốn một nhãn ngắn trong tab bar thì có thể thêm key riêng không?** Có nếu product/content thiết kế short variant có mục đích, được dịch và kiểm thử.
-14. **Vì sao phải test font scaling 200%?** Text có thể wrap nhiều dòng và cần container tăng height để nội dung không bị che.
-15. **Nếu hiển thị một câu lỗi quan trọng bị ellipsis, tooltip có đủ không?** Thường không; cần đường truy cập nội dung đầy đủ và accessibility.
-16. **Nếu backend đã gửi một chuỗi có hard newline sau mỗi 20 ký tự, nên làm gì?** Xem lại hợp đồng content, bỏ ngắt dòng do pixel/đếm ký tự nếu không có nghĩa; để UI tự wrap.
-17. **Với chữ Pháp có U+202F, có nên thay mọi khoảng trắng bằng U+0020 trước khi wrap không?** Không; nonbreaking spacing có thể cần giữ.
-18. **Khi nào phép thử pseudo-localization hữu ích?** Phát hiện container cắt, thiếu reflow, text direction, trường hợp ký tự mở rộng trước khi dịch thực tế hoàn tất.
+1. **Why can translating `Settings` to `Einstellungen` break a button?** Because the button hardcoded a width for one label; that is primarily a UI layout bug.
+2. **Is there a rule that all translations are longer than English by the same percentage?** No; length depends on content, grammar, script, and font.
+3. **Is `String.length()` enough to know whether text fits in 120px?** No; it counts UTF-16 code units, not glyph width.
+4. **How does soft wrap differ from `\n`?** Soft wrap is a width-based rendering decision; `\n` is an actual character in content.
+5. **Can `\n` in a resource ever be right?** Yes, when paragraph/line boundaries are an edited part of the meaning.
+6. **Who is responsible for wrap points when the user narrows a window?** The text renderer/UI layout, not translators fixing newline positions.
+7. **Why not use `split(" ")` to wrap all languages?** Many scripts do not use spaces as word delimiters; punctuation and combining marks have their own rules.
+8. **Does `BreakIterator.getLineInstance` know screen width?** No; it returns break opportunities without computing display line counts.
+9. **Does `JTextArea` wrap automatically by default?** No; `setLineWrap(false)` is the default.
+10. **Does `setWrapStyleWord(true)` replace a full line-breaking engine for every locale?** No; you must test the framework/provider.
+11. **How should a string containing ZWJ emojis be truncated?** Cut at grapheme boundaries and re-measure width if pixel limits apply.
+12. **Should you reverse a `String` to display Arabic right-to-left?** No; let BiDi and the layout engine handle logical vs. visual order.
+13. **If a short label is needed in a tab bar, can a dedicated key be added?** Yes, if product/content intentionally designs a short variant that is translated and tested.
+14. **Why test at 200% font scaling?** Text can wrap onto multiple lines and requires containers to grow in height so content is not obscured.
+15. **If an important error message is ellipsized, is a tooltip enough?** Usually no; full-content access and accessibility support are needed.
+16. **If a backend already sends strings with hard newlines every 20 characters, what should be done?** Review the content contract, drop pixel/char-count line breaks if semantically meaningless, and let the UI wrap automatically.
+17. **With French text containing `U+202F`, should all spaces be replaced with `U+0020` before wrapping?** No; non-breaking spacing may need to be preserved.
+18. **When is pseudo-localization testing useful?** For catching clipped containers, missing reflow, text direction issues, and character expansion before real translations are finished.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — JTextArea](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/javax/swing/JTextArea.html): `setLineWrap`, `setWrapStyleWord` và text wrapping.
-- [Java SE 17 — JLabel](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/javax/swing/JLabel.html): label text mặc định một dòng.
-- [Java SE 17 — BreakIterator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/BreakIterator.html): line-break boundaries theo locale.
-- [Java SE 17 — ComponentOrientation](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/ComponentOrientation.html): hướng LTR/RTL cho UI.
-- [Java SE 17 — FontMetrics](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/FontMetrics.html): đo chữ theo font.
+- [Java SE 17 — JTextArea](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/javax/swing/JTextArea.html): `setLineWrap`, `setWrapStyleWord`, and text wrapping.
+- [Java SE 17 — JLabel](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/javax/swing/JLabel.html): single-line default label text.
+- [Java SE 17 — BreakIterator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/BreakIterator.html): locale-aware line-break boundaries.
+- [Java SE 17 — ComponentOrientation](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/ComponentOrientation.html): LTR/RTL orientation for UIs.
+- [Java SE 17 — FontMetrics](https://docs.oracle.com/en/java/javase/17/docs/api/java.desktop/java/awt/FontMetrics.html): measuring text by font.
 - [Java SE 17 — Pattern](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html): `\X` (extended grapheme clusters).
-- [W3C Internationalization — Approaches to Line Breaking](https://www.w3.org/International/articles/typography/linebreak.en.html): cách ngắt dòng theo hệ chữ, CJK, Thai, RTL, punctuation.
-- [Unicode UAX #14 — Unicode Line Breaking Algorithm](https://www.unicode.org/reports/tr14/): các cơ hội xuống dòng và quy tắc Unicode.
-- [Unicode UAX #29 — Unicode Text Segmentation](https://www.unicode.org/reports/tr29/): phân đoạn grapheme/word.
-- [W3C Internationalization — CSS3 and International Text](https://www.w3.org/International/articles/css3-text/index): nguyên tắc line breaking và wrapping đa hệ chữ.
+- [W3C Internationalization — Approaches to Line Breaking](https://www.w3.org/International/articles/typography/linebreak.en.html): line breaking across scripts, CJK, Thai, RTL, and punctuation.
+- [Unicode UAX #14 — Unicode Line Breaking Algorithm](https://www.unicode.org/reports/tr14/): line-break opportunities and Unicode rules.
+- [Unicode UAX #29 — Unicode Text Segmentation](https://www.unicode.org/reports/tr29/): grapheme/word segmentation.
+- [W3C Internationalization — CSS3 and International Text](https://www.w3.org/International/articles/css3-text/index): multi-script line breaking and wrapping principles.

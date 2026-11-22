@@ -1,35 +1,35 @@
-# Hidden class, `Class.isHidden()` và giới hạn khám phá bằng `Class.forName()`
+# Hidden Classes, `Class.isHidden()`, and Discovery Limits of `Class.forName()`
 
-## 1. Mục tiêu và vị trí trong chủ đề kiểu lồng, nest
+## 1. Goals and place within nested types and nests
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Phân biệt **hidden class** với lớp có tên thông thường, lớp lồng (nested class), lớp cục bộ (local class) và lớp vô danh (anonymous class).
-- Tạo hidden class từ bytecode bằng `MethodHandles.Lookup.defineHiddenClass(...)` và nhận lại đối tượng `Class<?>` của nó.
-- Dùng `Class.isHidden()` để nhận diện đúng hidden class; giải thích vì sao `Class.forName(hidden.getName())` không thể tìm ra lớp này.
-- Hiểu mối liên hệ giữa **nest**, **nestmate**, tùy chọn `NESTMATE` và giới hạn của `getNestMembers()` khi có hidden class.
-- Biết cách thiết kế mã reflection/framework khi lớp được tạo động không thể được tra cứu lại từ chuỗi tên.
+- Distinguish a **hidden class** from normal named classes, nested classes, local classes, and anonymous classes.
+- Define a hidden class from bytecode using `MethodHandles.Lookup.defineHiddenClass(...)` and obtain its `Class<?>` object.
+- Use `Class.isHidden()` to accurately identify a hidden class; explain why `Class.forName(hidden.getName())` cannot locate this class.
+- Understand the relationship between **nest**, **nestmate**, the `NESTMATE` option, and the limitation of `getNestMembers()` when hidden classes exist.
+- Know how to design reflection/framework code when dynamically created classes cannot be looked up again by name string.
 
-**Phạm vi:** Java 17 trở lên (các API hidden class xuất hiện từ Java 15). Bài này tập trung vào cơ chế nhận diện và khám phá lớp trong Reflection, không đi sâu vào tự sinh mã bytecode hay viết class loader.
+**Scope:** Java 17 or later (hidden class APIs were introduced in Java 15). This lesson focuses on class identification and discovery mechanisms in Reflection, without delving into manual bytecode generation or writing class loaders.
 
-## 2. Hidden class là gì?
+## 2. What is a hidden class?
 
-Một **hidden class** là lớp/interface được JVM định nghĩa tại thời điểm chạy từ một mảng bytecode thông qua API như `MethodHandles.Lookup.defineHiddenClass(...)`. Hidden class có đối tượng `Class<?>` thực sự, có thể có constructor, method, field, instance và có thể được thao tác bằng Reflection khi mã gọi có quyền truy cập phù hợp.
+A **hidden class** is a class/interface defined by the JVM at runtime from a bytecode array via an API such as `MethodHandles.Lookup.defineHiddenClass(...)`. A hidden class has a real `Class<?>` object, can have constructors, methods, fields, and instances, and can be manipulated via Reflection when the calling code has appropriate access rights.
 
-Điểm khác biệt quyết định: hidden class **không có binary name hợp lệ để các lớp khác tham chiếu tượng trưng**. Vì vậy, các thao tác tìm lớp theo tên thông thường, bao gồm `Class.forName(...)` và `ClassLoader.loadClass(...)`, không thể khám phá lại hidden class.
+The decisive difference: a hidden class **has no valid binary name for other classes to reference symbolically**. Therefore, standard name-based lookup operations, including `Class.forName(...)` and `ClassLoader.loadClass(...)`, cannot rediscover a hidden class.
 
-“Hidden” **không** có nghĩa là bí mật hay bất khả xâm phạm: ai đang giữ tham chiếu `Class<?>`, một `MethodHandles.Lookup` phù hợp hoặc instance có thể tương tác với lớp tùy theo quyền truy cập. Nó cũng không có nghĩa “khai báo `private`”, “lớp vô danh” hay “lớp lồng”. Các đặc điểm đó là những khái niệm độc lập.
+“Hidden” does **not** mean secret or impenetrable: anyone holding a `Class<?>` reference, an appropriate `MethodHandles.Lookup`, or an instance can interact with the class subject to access rules. It also does not mean “declared `private`”, “anonymous class”, or “nested class”. Those characteristics are independent concepts.
 
-| Kiểu | Có tên để `Class.forName` tra cứu? | `Class.isHidden()` | Ghi chú |
+| Type | Has a name for `Class.forName` lookup? | `Class.isHidden()` | Notes |
 | --- | --- | --- | --- |
-| Lớp top-level `Example` | Có, nếu class loader tìm được | `false` | Lớp thông thường |
-| Lớp lồng `Outer.Inner` | Có, bằng **binary name** như `Outer$Inner` | `false` | Dấu chấm trong tên nguồn Java không phải tên binary của member class |
-| Lớp local hoặc anonymous do `javac` tạo | Có thể có tên nhị phân do compiler phát sinh, không ổn định để làm API | `false` | Không tự động trở thành hidden class |
-| Lớp do `defineHiddenClass` tạo | **Không** | `true` | Phải giữ `Class<?>`/lookup/handle được trả về |
+| Top-level class `Example` | Yes, if found by class loader | `false` | Normal class |
+| Nested class `Outer.Inner` | Yes, by **binary name** such as `Outer$Inner` | `false` | The dot in the Java source name is not the binary name of a member class |
+| Local or anonymous class generated by `javac` | May have a compiler-generated binary name, unstable as an API | `false` | Does not automatically become a hidden class |
+| Class created by `defineHiddenClass` | **No** | `true` | Must retain the returned `Class<?>`/lookup/handle |
 
-Ví dụ, `Outer.Inner.class.getName()` thường là `"Outer$Inner"` (nếu cùng default package). Với hidden class, `getName()` thường có dạng `"Outer$Template/0x..."`: phần hậu tố do JVM sinh ra và **không làm chuỗi đó trở thành binary name có thể tra cứu**.
+For example, `Outer.Inner.class.getName()` is typically `"Outer$Inner"` (when in the default package). For a hidden class, `getName()` typically has a form like `"Outer$Template/0x..."`: the suffix is generated by the JVM and **does not make that string a searchable binary name**.
 
-## 3. Cơ chế tạo và các API cốt lõi
+## 3. Creation mechanism and core APIs
 
 ```java
 MethodHandles.Lookup callerLookup = MethodHandles.lookup();
@@ -44,27 +44,27 @@ Class<?> hiddenType = hiddenLookup.lookupClass();
 boolean hidden = hiddenType.isHidden();
 ```
 
-Đoạn trên minh họa lời gọi API; biến `classFileBytes` phải chứa **bytecode của một class file hợp lệ**, đã được biên dịch hoặc sinh ra trước đó.
+The snippet above illustrates the API call; the `classFileBytes` variable must contain **bytecode of a valid class file**, previously compiled or generated.
 
-- `defineHiddenClass(byte[] bytes, boolean initialize, ClassOption... options)` định nghĩa một lớp mới từ nội dung class file và trả về `Lookup` với **lookup class chính là hidden class** mới tạo. Nó không đưa lớp vào cơ chế tra cứu tên của class loader.
-- `initialize = true` yêu cầu JVM khởi tạo lớp vừa định nghĩa; `false` không yêu cầu khởi tạo ngay tại bước này. Khởi tạo sau đó vẫn có thể xảy ra theo quy tắc JVM bình thường.
-- Lookup gọi hàm phải có **full-privilege access**; lớp trong bytecode phải ở **cùng runtime package** với lookup class. Không thể lấy bytecode của một package bất kỳ rồi dùng lookup bất kỳ để định nghĩa.
-- `Class.isHidden()` trả về `true` khi và chỉ khi `Class<?>` biểu diễn hidden class; việc tên trông lạ, có `$`, hay khai báo `private` **không phải** tiêu chí thay thế.
-- `Class.getCanonicalName()` của hidden class trả về `null`. `getName()` vẫn trả về một chuỗi nhận diện ở runtime, nhưng không phải binary name dùng cho `forName`.
-- `Class.forName(String)` hoặc phiên bản có `ClassLoader` tìm lớp bằng binary name. Không có overload nào biến hidden class thành lớp có thể tìm lại bằng tên.
+- `defineHiddenClass(byte[] bytes, boolean initialize, ClassOption... options)` defines a new class from class-file bytes and returns a `Lookup` whose **lookup class is the newly created hidden class**. It does not register the class in the class loader's name lookup mechanism.
+- `initialize = true` instructs the JVM to initialize the newly defined class; `false` does not request immediate initialization at this step. Initialization can still occur later under normal JVM rules.
+- The calling lookup must have **full-privilege access**; the class in the bytecode must be in **the same runtime package** as the lookup class. You cannot take bytecode from an arbitrary package and use an arbitrary lookup to define it.
+- `Class.isHidden()` returns `true` if and only if the `Class<?>` represents a hidden class; having an unusual name, `$`, or a `private` declaration **is not** a substitute criterion.
+- `Class.getCanonicalName()` of a hidden class returns `null`. `getName()` still returns an identifying string at runtime, but it is not a binary name usable with `forName`.
+- `Class.forName(String)` or its `ClassLoader` overload looks up classes by binary name. No overload turns a hidden class into a class rediscoverable by name.
 
-Hai tùy chọn hữu ích của `Lookup.ClassOption`:
+Two useful options of `Lookup.ClassOption`:
 
-| Tùy chọn | Ý nghĩa |
+| Option | Meaning |
 | --- | --- |
-| `NESTMATE` | Đưa hidden class vào **cùng nest** với lookup class; cho phép quyền truy cập `private` giữa nestmates theo quy tắc JVM |
-| `STRONG` | Gắn vòng đời hidden class mạnh với defining class loader, tương tự lớp thông thường |
+| `NESTMATE` | Places the hidden class in **the same nest** as the lookup class; allows `private` access between nestmates per JVM rules |
+| `STRONG` | Binds the hidden class lifecycle strongly to the defining class loader, similar to a normal class |
 
-Mặc định nếu không có `NESTMATE`, hidden class tạo thành nest riêng có chính nó là nest host. Nếu không có `STRONG`, JVM *có thể* dỡ hidden class ngay cả khi defining loader còn sống, miễn không còn tham chiếu giữ lớp lại. Việc GC/unloading diễn ra lúc nào không được bảo đảm.
+By default without `NESTMATE`, a hidden class forms its own nest with itself as the nest host. Without `STRONG`, the JVM *may* unload the hidden class even while the defining loader remains alive, provided no references keep the class alive. Exact timing of GC/unloading is not guaranteed.
 
-## 4. Ví dụ hoàn chỉnh: cùng bytecode, một lớp có tên và một hidden class
+## 4. Complete example: same bytecode, one named class and one hidden class
 
-Tạo file **`HiddenClassDemo.java`** với nội dung:
+Create **`HiddenClassDemo.java`** with the content:
 
 ```java
 import java.io.InputStream;
@@ -128,14 +128,14 @@ public class HiddenClassDemo {
 }
 ```
 
-Trong thư mục chứa file, chạy bằng **JDK 17+**:
+In the directory containing the file, run with **JDK 17+**:
 
 ```bash
 javac --release 17 HiddenClassDemo.java
 java HiddenClassDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Template hidden: false
@@ -150,21 +150,21 @@ Method call: Hello from hidden class
 Private host access: nest-secret
 ```
 
-**Giải thích từng hiện tượng:**
+**Explaining each observation:**
 
-1. `javac` sinh `HiddenClassDemo.class` và `HiddenClassDemo$Template.class`. `Template` là một **static nested class thông thường**: `Template.class.isHidden() == false`; `Class.forName(Template.class.getName())` tìm đúng lớp có tên.
-2. `getResourceAsStream(...)` đọc **bytecode** của `Template`, không chỉ chuỗi tên. `defineHiddenClass` dùng bytecode đó để JVM định nghĩa **một `Class<?>` khác**, có danh tính khác với `Template.class`.
-3. `hidden.isHidden()` trả về `true` dù bytecode bắt nguồn từ class file vốn có tên. Danh tính của lớp được tạo mới do API định nghĩa hidden class quyết định.
-4. `NESTMATE` đưa hidden class vào nest của `HiddenClassDemo`. Do đó `hidden.isNestmateOf(HiddenClassDemo.class)` và phép so `hidden.getNestHost() == HiddenClassDemo.class` đều `true`.
-5. Hidden class **không xuất hiện** trong danh sách `HiddenClassDemo.class.getNestMembers()`. Hàm đó duyệt nest members ghi trong metadata `NestMembers` của class file; các hidden nestmate thêm ở runtime không nằm trong danh sách liệt kê này.
-6. `hidden.getCanonicalName() == null`. `Class.forName(hidden.getName())` thất bại với `ClassNotFoundException`; đây là kết quả **mong đợi**, không phải lỗi cấu hình classpath.
-7. Vẫn có thể tạo instance và gọi method qua `hidden.getDeclaredConstructor()`, `getDeclaredMethod(...)` vì chương trình **đang giữ trực tiếp** `Class<?> hidden`. Method `readHostSecret()` đọc thành viên `private` của host thành công nhờ quan hệ nestmate.
+1. `javac` generates `HiddenClassDemo.class` and `HiddenClassDemo$Template.class`. `Template` is a **regular static nested class**: `Template.class.isHidden() == false`; `Class.forName(Template.class.getName())` finds the named class accurately.
+2. `getResourceAsStream(...)` reads the **bytecode** of `Template`, not just a name string. `defineHiddenClass` uses that bytecode for the JVM to define **another `Class<?>`**, with a different identity from `Template.class`.
+3. `hidden.isHidden()` returns `true` even though the bytecode came from an originally named class file. The identity of the newly created class is determined by the hidden-class definition API.
+4. `NESTMATE` places the hidden class into `HiddenClassDemo`'s nest. Therefore both `hidden.isNestmateOf(HiddenClassDemo.class)` and `hidden.getNestHost() == HiddenClassDemo.class` are `true`.
+5. The hidden class **does not appear** in `HiddenClassDemo.class.getNestMembers()`. That method inspects nest members recorded in the class file's `NestMembers` metadata; hidden nestmates added at runtime are not included in this listing.
+6. `hidden.getCanonicalName() == null`. `Class.forName(hidden.getName())` fails with `ClassNotFoundException`; this is the **expected** outcome, not a classpath configuration error.
+7. You can still instantiate and invoke methods via `hidden.getDeclaredConstructor()` and `getDeclaredMethod(...)` because the program **directly holds** `Class<?> hidden`. The `readHostSecret()` method succeeds in reading a `private` member of the host thanks to the nestmate relationship.
 
-**Đã kiểm chứng:** mã trên biên dịch ở chế độ `--release 17` và chạy ra đúng các dòng kết quả trên bằng JDK 21. Chuỗi tên cụ thể từ `hidden.getName()` được cố ý không in ra vì hậu tố do JVM cấp có thể thay đổi mỗi lần chạy.
+**Verified:** the code above compiles under `--release 17` and produces the exact output lines above on JDK 21. The specific string from `hidden.getName()` is intentionally not printed because the JVM-assigned suffix can change on each run.
 
-## 5. Phân biệt “biết lớp tồn tại” và “tìm lớp theo tên”
+## 5. Distinguishing “knowing a class exists” and “finding a class by name”
 
-Với lớp thông thường:
+For a normal class:
 
 ```java
 String binaryName = HiddenClassDemo.Template.class.getName();
@@ -172,81 +172,81 @@ Class<?> named = Class.forName(binaryName);
 System.out.println(named == HiddenClassDemo.Template.class); // true
 ```
 
-Với hidden class:
+For a hidden class:
 
 ```java
-Class<?> hidden = hiddenLookup.lookupClass(); // hiddenLookup từ phần trước
+Class<?> hidden = hiddenLookup.lookupClass(); // hiddenLookup from earlier section
 String runtimeName = hidden.getName();
-Class<?> resolved = Class.forName(runtimeName); // ném ClassNotFoundException
+Class<?> resolved = Class.forName(runtimeName); // throws ClassNotFoundException
 ```
 
-Đoạn thứ hai **chỉ là minh họa sự thất bại**, không phải chương trình hoàn chỉnh để chạy độc lập. Không nên viết `Class.forName(...)` ngoài `try/catch` như một chiến lược khôi phục lớp hidden.
+The second snippet **only illustrates the failure**, and is not a complete standalone runnable program. Do not write `Class.forName(...)` outside a `try/catch` as a strategy to recover a hidden class.
 
-Quy tắc cần ghi nhớ:
+Rules to remember:
 
-- **Có tham chiếu `Class<?>`:** có thể dùng Reflection trên đối tượng đó, với kiểm tra quyền truy cập bình thường.
-- **Chỉ có chuỗi `getName()`:** không thể truy xuất lại hidden class qua `Class.forName`, kể cả khi dùng đúng class loader.
-- **Có `Lookup` trả về:** có thể thao tác với lớp vừa tạo qua `lookupClass()` và dùng method handle tương ứng, nếu quyền cho phép.
-- **Chỉ quét `getDeclaredClasses()` hoặc `getNestMembers()` của host:** không thể suy luận rằng đã tìm đủ hidden classes được định nghĩa động. `getDeclaredClasses()` nói về member classes ghi trong class metadata; `getNestMembers()` bỏ qua hidden nestmates được thêm khi chạy.
+- **Holding a `Class<?>` reference:** you can use Reflection on that object, subject to normal access checks.
+- **Holding only the `getName()` string:** you cannot retrieve the hidden class again via `Class.forName`, even when using the right class loader.
+- **Holding the returned `Lookup`:** you can interact with the newly created class via `lookupClass()` and use corresponding method handles, if permissions allow.
+- **Only scanning `getDeclaredClasses()` or `getNestMembers()` of the host:** you cannot infer that you have found all dynamically defined hidden classes. `getDeclaredClasses()` describes member classes recorded in class metadata; `getNestMembers()` omits hidden nestmates added at runtime.
 
-Một hệ thống plugin/serializer/reflection scanner chỉ lưu `class.getName()` rồi gọi `Class.forName(name)` về sau sẽ không tương thích với hidden class. Nếu thực sự cần hỗ trợ loại này, hãy giữ tham chiếu runtime thích hợp trong vòng đời sử dụng (ví dụ `Class<?>`, `Lookup`, factory hoặc `MethodHandle`), thay vì thiết kế hợp đồng chỉ dựa vào tên.
+A plugin system, serializer, or reflection scanner that stores only `class.getName()` and calls `Class.forName(name)` later will be incompatible with hidden classes. If you genuinely need to support this kind of class, retain an appropriate runtime reference for its usage lifetime (such as `Class<?>`, `Lookup`, a factory, or a `MethodHandle`), rather than designing a name-only contract.
 
-## 6. Hidden class và nestmate: quan hệ chính xác
+## 6. Hidden classes and nestmates: the exact relationship
 
-**Nest** là nhóm class/interface trong cùng runtime package có thể truy cập thành viên `private` của nhau. Với nested classes biên dịch thông thường, compiler ghi quan hệ qua thuộc tính `NestHost`/`NestMembers`. Với hidden class, `NESTMATE` thiết lập quan hệ động thông qua JVM mà **không sửa metadata `NestMembers` của host**.
+A **nest** is a group of classes/interfaces in the same runtime package that can access each other's `private` members. For normally compiled nested classes, the compiler records the relationship via `NestHost`/`NestMembers` attributes. For hidden classes, `NESTMATE` establishes the relationship dynamically through the JVM **without modifying the host's `NestMembers` metadata**.
 
-Ba câu hỏi sau có đáp án khác nhau:
+The following three questions have different answers:
 
-| Câu hỏi | API | Kết quả với hidden class dùng `NESTMATE` |
+| Question | API | Result for a hidden class using `NESTMATE` |
 | --- | --- | --- |
-| Đây có phải hidden class? | `hidden.isHidden()` | `true` |
-| Đây có phải nestmate của host? | `hidden.isNestmateOf(Host.class)` | `true` nếu cùng nest |
-| Host liệt kê được lớp này? | `Arrays.asList(Host.class.getNestMembers()).contains(hidden)` | `false` |
+| Is this a hidden class? | `hidden.isHidden()` | `true` |
+| Is this a nestmate of the host? | `hidden.isNestmateOf(Host.class)` | `true` if in the same nest |
+| Does the host list this class? | `Arrays.asList(Host.class.getNestMembers()).contains(hidden)` | `false` |
 
-Không nên nhầm **quan hệ thành viên thực tế** (câu 2) với **khả năng liệt kê** (câu 3). `getNestMembers()` trả về những thành viên nest có tên được ghi trong class file, **không bao gồm hidden classes được thêm bằng `defineHiddenClass`**.
+Do not confuse **actual membership relationship** (question 2) with **enumeration capability** (question 3). `getNestMembers()` returns the named nest members recorded in the class file, **excluding hidden classes added with `defineHiddenClass`**.
 
-Nếu bỏ `NESTMATE` khỏi ví dụ, hidden class mặc định ở nest riêng. Đoạn bytecode gọi `HiddenClassDemo.secret()` (method `private`) không còn được cấp quyền nestmate, nên thao tác gọi method đó có thể gặp lỗi liên kết/truy cập như `IllegalAccessError`. Lưu ý: đây là lỗi quyền truy cập bytecode khi thực thi, không phải `ClassNotFoundException` của `forName`.
+If you omit `NESTMATE` from the example, the hidden class defaults to its own nest. The bytecode calling `HiddenClassDemo.secret()` (a `private` method) is no longer granted nestmate access, so invoking that method can encounter a linkage/access error such as `IllegalAccessError`. Note: this is a bytecode access-control error at execution time, not `ClassNotFoundException` from `forName`.
 
-## 7. Ứng dụng thực tế và giới hạn
+## 7. Practical applications and limitations
 
-Hidden classes thích hợp cho hệ thống sinh mã lúc chạy, ví dụ lớp hỗ trợ triển khai lambda hoặc lớp nội bộ do framework sinh ra không cần được tham chiếu bằng tên nhị phân từ mã ứng dụng. Chúng giúp giảm nhu cầu giữ một namespace tên lớp có thể khám phá, đồng thời có thể hỗ trợ dỡ lớp linh hoạt hơn khi không dùng `STRONG`.
+Hidden classes suit runtime code-generation systems, such as lambda implementation support classes or framework-generated internal classes that do not need to be referenced by binary name from application code. They reduce the need to maintain a discoverable class-name namespace, and can support more flexible class unloading when `STRONG` is not used.
 
-Khi thiết kế thư viện dùng Reflection:
+When designing a library that uses Reflection:
 
-1. **Chọn cơ chế khám phá phù hợp.** Với lớp công khai do người dùng cấu hình theo tên, dùng lớp có binary name ổn định. Với lớp nội bộ sinh động, trả lại `Class<?>`/factory/handle ngay từ nơi tạo.
-2. **Không dùng tên hiển thị như khóa khôi phục.** `hidden.getName()` có thể hữu ích cho logging/chẩn đoán, nhưng không phải định danh để `Class.forName` tải lại.
-3. **Không coi hidden là biện pháp bảo mật.** Kiểm soát quyền bằng các cơ chế access/module/security thích hợp, không dựa trên việc lớp “khó tìm”.
-4. **Cân nhắc vòng đời.** Giữ `Class`, instance hay handle có thể giữ hidden class sống; `STRONG` liên kết mạnh với loader. Không xây tính đúng đắn dựa trên thời điểm GC tự động dỡ lớp.
-5. **Xác định giới hạn tooling.** Những công cụ bắt buộc có binary name hoặc trông chờ enumerate toàn bộ nest có thể không bao quát hidden classes; agent/JVMTI có các hạn chế riêng đối với biến đổi hidden class.
+1. **Choose the right discovery mechanism.** For public classes configured by users by name, use classes with stable binary names. For dynamically generated internal classes, return `Class<?>`/factory/handle directly from the creation site.
+2. **Do not use display names as recovery keys.** `hidden.getName()` can be useful for logging/diagnostics, but it is not an identifier for `Class.forName` to reload.
+3. **Do not treat hidden as a security measure.** Enforce permissions using proper access/module/security mechanisms, not by relying on a class being “hard to find”.
+4. **Consider lifecycles.** Holding a `Class`, instance, or handle can keep a hidden class alive; `STRONG` ties it strongly to the loader. Do not base correctness on when GC automatically unloads the class.
+5. **Identify tooling limits.** Tools that require binary names or expect to enumerate the entire nest may not cover hidden classes; agents/JVMTI have their own restrictions regarding transforming hidden classes.
 
-Một hidden class vẫn có thể kế thừa lớp thường hoặc triển khai interface phù hợp với bytecode; “hidden” không đồng nghĩa “không dùng được đa hình”. Tuy nhiên, việc mã khác viết một tham chiếu biểu tượng đến chính tên hidden class là điều không thể.
+A hidden class can still extend normal classes or implement interfaces consistent with its bytecode; “hidden” does not mean “unable to use polymorphism”. However, other code writing a symbolic reference to the hidden class's own name is impossible.
 
-## 8. Những nhầm lẫn và lỗi thường gặp
+## 8. Common confusions and errors
 
-| Nhầm lẫn / triệu chứng | Nguyên nhân | Cách xử lý |
+| Confusion / symptom | Cause | How to handle |
 | --- | --- | --- |
-| Thấy dấu `$` trong tên nên cho rằng lớp hidden | Lớp lồng thường có binary name chứa `$` | Kiểm tra `Class.isHidden()` |
-| `Class.forName(hidden.getName())` báo không tìm thấy | Hidden class không có binary name để class loader khám phá | Giữ `Class<?>`/`Lookup`/factory khi tạo |
-| `getNestMembers()` không có hidden class dù `isNestmateOf()` đúng | Hidden nestmates không được ghi trong `NestMembers` của host | Dùng `isNestmateOf()` để kiểm tra quan hệ; lưu danh sách lớp đã định nghĩa nếu cần duyệt |
-| `defineHiddenClass` ném `IllegalAccessException` | Lookup không có quyền full privilege phù hợp | Gọi từ ngữ cảnh có quyền thực sự; không giả định mọi lookup đều định nghĩa được |
-| `defineHiddenClass` thất bại vì package của bytecode | Bytecode phải cùng runtime package với lookup class | Tạo/đọc bytecode trong đúng package và dùng lookup hợp lệ |
-| `ClassFormatError` hoặc lỗi xác minh bytecode | Dữ liệu class file không hợp lệ/không phù hợp | Biên dịch hoặc sinh bytecode chuẩn; kiểm tra class file trước khi định nghĩa |
-| Gọi member `private` của host thất bại | Không có quan hệ nestmate/quyền cần thiết | Chỉ dùng `NESTMATE` nếu thực sự cần và đáp ứng điều kiện API |
-| Tưởng `initialize=false` nghĩa là không bao giờ khởi tạo | Nó chỉ không yêu cầu khởi tạo tại thời điểm định nghĩa | Hiểu quy tắc khởi tạo JVM khi dùng lớp về sau |
+| Seeing `$` in the name and assuming the class is hidden | Normal nested classes have binary names containing `$` | Check `Class.isHidden()` |
+| `Class.forName(hidden.getName())` reports not found | Hidden classes lack a binary name for class-loader discovery | Retain `Class<?>`/`Lookup`/factory at creation time |
+| `getNestMembers()` lacks the hidden class even though `isNestmateOf()` is true | Hidden nestmates are not recorded in the host's `NestMembers` | Use `isNestmateOf()` to check relationships; store defined classes yourself if traversal is needed |
+| `defineHiddenClass` throws `IllegalAccessException` | Lookup lacks appropriate full-privilege access | Call from a context with genuine privileges; do not assume every lookup can define classes |
+| `defineHiddenClass` fails due to bytecode package | Bytecode must be in the same runtime package as the lookup class | Generate/read bytecode in the matching package and use a valid lookup |
+| `ClassFormatError` or bytecode verification error | Invalid/incompatible class-file data | Compile or generate standard bytecode; validate the class file before defining |
+| Calling a host `private` member fails | Missing nestmate relationship/required permission | Use `NESTMATE` only when truly needed and API conditions are met |
+| Thinking `initialize=false` means never initialized | It only avoids requesting initialization at definition time | Understand JVM initialization rules when using the class later |
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-check exercises
 
-**Bài 1 — Nhận diện:** Với `Outer.Inner.class` (static member class thông thường), so sánh `isHidden()`, `getName()` và `getCanonicalName()` với hidden class ở ví dụ. Giải thích tại sao tên của cả hai có thể chứa `$` nhưng chỉ một lớp là hidden.
+**Exercise 1 — Identification:** With `Outer.Inner.class` (a regular static member class), compare `isHidden()`, `getName()`, and `getCanonicalName()` against the hidden class in the example. Explain why both names can contain `$` yet only one class is hidden.
 
-**Bài 2 — Danh tính:** Gọi `defineHiddenClass(bytecode, true, NESTMATE)` **hai lần** với cùng bytecode. So sánh `Class<?>` của hai lần bằng `==` và thử gọi `Class.forName` bằng tên của từng hidden class. Dự đoán: hai lần tạo ra hai đối tượng `Class<?>` khác nhau, cả hai đều `isHidden()==true` và không thể tìm lại bằng `forName`.
+**Exercise 2 — Identity:** Call `defineHiddenClass(bytecode, true, NESTMATE)` **twice** with the same bytecode. Compare the two `Class<?>` objects using `==` and try calling `Class.forName` with each hidden class's name. Prediction: the two calls create two distinct `Class<?>` objects, both have `isHidden()==true`, and neither can be found again via `forName`.
 
-**Bài 3 — Nest:** Bỏ `NESTMATE` khi định nghĩa lớp, quan sát `isNestmateOf(HiddenClassDemo.class)` và thử gọi `readHostSecret()`. Tự giải thích mối liên hệ giữa quyền truy cập `private` và quan hệ nest; phân biệt lỗi của bước này với lỗi tìm lớp bằng tên.
+**Exercise 3 — Nest:** Remove `NESTMATE` when defining the class, observe `isNestmateOf(HiddenClassDemo.class)`, and try calling `readHostSecret()`. Explain in your own words the relationship between `private` access and nest membership; distinguish this step's error from the name-lookup error.
 
-**Câu hỏi phỏng vấn:** “Nếu `Class.forName(hidden.getName())` không tìm được hidden class, tại sao `hidden.getDeclaredMethods()` vẫn hoạt động?” — Vì `forName` **tìm một `Class` từ binary name**, còn `getDeclaredMethods()` **truy vấn metadata của một đối tượng `Class` đã có sẵn**. Hai thao tác sử dụng đầu vào và cơ chế khác nhau.
+**Interview question:** “If `Class.forName(hidden.getName())` cannot find a hidden class, why does `hidden.getDeclaredMethods()` still work?” — Because `forName` **looks up a `Class` from a binary name**, whereas `getDeclaredMethods()` **queries metadata of an already-held `Class` object**. The two operations use different inputs and mechanisms.
 
-## 10. Tài liệu gốc
+## 10. Original references
 
-- [JEP 371 — Hidden Classes](https://openjdk.org/jeps/371): mục tiêu thiết kế, khả năng khám phá và vòng đời của hidden classes.
+- [JEP 371 — Hidden Classes](https://openjdk.org/jeps/371): design goals, discoverability, and lifecycle of hidden classes.
 - [Java 17 — `Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `isHidden()`, `getName()`, `getCanonicalName()`, `getNestHost()`, `isNestmateOf()`, `getNestMembers()`.
-- [Java 17 — `MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html): `defineHiddenClass(...)`, quyền lookup, quy tắc bytecode/runtime package.
-- [Java 17 — `Lookup.ClassOption`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.ClassOption.html): `NESTMATE` và `STRONG`.
+- [Java 17 — `MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html): `defineHiddenClass(...)`, lookup privileges, bytecode/runtime package rules.
+- [Java 17 — `Lookup.ClassOption`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.ClassOption.html): `NESTMATE` and `STRONG`.

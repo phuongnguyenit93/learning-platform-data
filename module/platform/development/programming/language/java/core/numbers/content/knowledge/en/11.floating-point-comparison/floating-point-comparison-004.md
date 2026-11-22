@@ -1,31 +1,31 @@
-# `+0.0` và `-0.0` với toán tử `==` trong Java
+# `+0.0` and `-0.0` with the `==` Operator in Java
 
-Trong Java, hai giá trị dấu phẩy động `+0.0` (zero dương) và `-0.0` (zero âm) **bằng nhau theo toán tử so sánh số học `==`**:
+In Java, the two floating-point values `+0.0` (positive zero) and `-0.0` (negative zero) are **equal under the arithmetic comparison operator `==`**:
 
 ```java
 System.out.println(+0.0 == -0.0);  // true
 System.out.println(0.0f == -0.0f);  // true
 ```
 
-Tuy nhiên, chúng **không có biểu diễn bit giống nhau** và **không thể thay thế nhau trong mọi phép toán**. Ví dụ:
+However, they **do not have the same bit representation** and **cannot be substituted for each other in every operation**. For example:
 
 ```java
 System.out.println(1.0 / +0.0); // Infinity
 System.out.println(1.0 / -0.0); // -Infinity
 ```
 
-Điểm quan trọng của bài học là phân biệt **bằng nhau theo số học**, **giống nhau về biểu diễn**, và **bằng nhau theo các API đối tượng** như `Double.equals` hoặc `Double.compare`. Ba khái niệm này cho kết quả khác nhau với signed zero.
+The key takeaway of this lesson is distinguishing **arithmetic equality**, **representation identity**, and **object API equality** such as `Double.equals` or `Double.compare`. These three concepts yield different results for signed zero.
 
-## 1. Tại sao số 0 lại có dấu?
+## 1. Why Does Zero Have a Sign?
 
-Java dùng dấu phẩy động nhị phân theo IEEE 754 cho `float` và `double`. Một giá trị dấu phẩy động có **bit dấu** riêng ngoài phần số mũ và phần trị. Do vậy `0.0` và `-0.0` là hai mẫu bit hợp lệ khác nhau:
+Java uses IEEE 754 binary floating-point for `float` and `double`. A floating-point value has a separate **sign bit** in addition to its exponent and significand. Thus, `0.0` and `-0.0` are two distinct valid bit patterns:
 
-| Kiểu | `+0.0` (hex bit pattern) | `-0.0` (hex bit pattern) |
+| Type | `+0.0` (hex bit pattern) | `-0.0` (hex bit pattern) |
 | --- | --- | --- |
-| `float` (32 bit) | `0x00000000` | `0x80000000` |
-| `double` (64 bit) | `0x0000000000000000` | `0x8000000000000000` |
+| `float` (32-bit) | `0x00000000` | `0x80000000` |
+| `double` (64-bit) | `0x0000000000000000` | `0x8000000000000000` |
 
-Ở cả hai kiểu, phần trị và phần số mũ đều bằng 0; chỉ bit dấu khác nhau. Thông thường `0.0` viết không có dấu là dương zero; biểu thức `-0.0` tạo âm zero.
+In both types, the significand and exponent are 0; only the sign bit differs. Normally, `0.0` written without a sign is positive zero; the expression `-0.0` produces negative zero.
 
 ```java
 double positiveZero = 0.0;
@@ -35,11 +35,11 @@ System.out.println(positiveZero); // 0.0
 System.out.println(negativeZero); // -0.0
 ```
 
-Việc Java có hai zero không có nghĩa nó có hai giá trị số nguyên 0. Các kiểu `byte`, `short`, `int`, `long` không có âm zero riêng: biểu thức nguyên `-0` có cùng biểu diễn và giá trị `0`. Signed zero là đặc điểm của `float`/`double`.
+Java having two zeros does not mean it has two integer values of 0. The types `byte`, `short`, `int`, and `long` have no separate negative zero: the integer expression `-0` has the exact same representation and value `0`. Signed zero is a property of `float`/`double`.
 
-### Dấu zero có thể xuất hiện từ phép tính
+### The Sign of Zero Can Arise from Calculations
 
-Âm zero không chỉ có thể viết bằng literal. Ví dụ một giá trị âm rất nhỏ có thể **underflow** về `-0.0` khi kết quả quá gần 0:
+Negative zero does not only come from writing a literal. For instance, a very small negative value can **underflow** to `-0.0` when the result is too close to 0:
 
 ```java
 double verySmallNegative = -Double.MIN_VALUE;
@@ -47,11 +47,11 @@ double roundedToNegativeZero = verySmallNegative / 2.0;
 // -0.0
 ```
 
-`Double.MIN_VALUE` là số `double` dương nhỏ nhất lớn hơn 0, không phải giá trị âm có độ lớn lớn nhất. Vì vậy `-Double.MIN_VALUE` là một giá trị âm rất nhỏ; chia thêm cho 2 làm tròn thành âm zero.
+`Double.MIN_VALUE` is the smallest positive `double` greater than 0, not the negative value with the largest magnitude. Therefore, `-Double.MIN_VALUE` is a very small negative value; dividing it further by 2 rounds to negative zero.
 
-## 2. `==` coi `+0.0` và `-0.0` bằng nhau
+## 2. `==` Treats `+0.0` and `-0.0` as Equal
 
-Với toán hạng primitive số thực, Java áp dụng quy tắc **floating-point equality**. Trong đó `+0.0` và `-0.0` được xem là **bằng nhau**, còn `NaN` không bằng bất kỳ giá trị nào, kể cả chính nó.
+For primitive floating-point operands, Java applies **floating-point equality** rules. Under these rules, `+0.0` and `-0.0` are considered **equal**, whereas `NaN` is not equal to any value, including itself.
 
 ```java
 double a = +0.0;
@@ -65,23 +65,23 @@ System.out.println(a <= b); // true
 System.out.println(a >= b); // true
 ```
 
-Ở ngữ cảnh so sánh số học, cả hai zero có cùng vị trí tại gốc trục số. `==` **không kiểm tra bit dấu**; nó trả lời rằng hai giá trị số có bằng nhau theo quy tắc toán tử Java hay không.
+In an arithmetic comparison context, both zeros sit at the same position at the origin of the number line. `==` **does not check the sign bit**; it answers whether two numeric values are equal under Java's operator rules.
 
-Bảng tóm tắt:
+Summary table:
 
-| Biểu thức | Kết quả | Ý nghĩa |
+| Expression | Result | Meaning |
 | --- | --- | --- |
-| `+0.0 == -0.0` | `true` | Bằng nhau theo số học |
-| `+0.0 != -0.0` | `false` | Không được xem là khác nhau |
-| `-0.0 < +0.0` | `false` | Không nhỏ hơn theo phép so sánh số |
-| `-0.0 <= +0.0` | `true` | Có bằng nhau |
-| `Double.NaN == Double.NaN` | `false` | Quy tắc riêng của NaN |
+| `+0.0 == -0.0` | `true` | Equal arithmetically |
+| `+0.0 != -0.0` | `false` | Not considered different |
+| `-0.0 < +0.0` | `false` | Not less under numeric comparison |
+| `-0.0 <= +0.0` | `true` | Equal |
+| `Double.NaN == Double.NaN` | `false` | Special NaN rule |
 
-Cần chú ý **kiểu toán hạng**. `0.0` là literal `double`, `0.0f` là literal `float`. Nếu so sánh `+0.0f == -0.0`, toán hạng `float` được mở rộng thành `double` rồi so sánh; kết quả vẫn `true`.
+Pay attention to **operand types**. `0.0` is a `double` literal, while `0.0f` is a `float` literal. If you compare `+0.0f == -0.0`, the `float` operand is widened to `double` and then compared; the result is still `true`.
 
-## 3. Bằng nhau về số học không có nghĩa giống bit
+## 3. Arithmetic Equality Does Not Mean Identical Bits
 
-Có thể đọc bit của `double` và `float` bằng các phương thức chuyên dụng:
+You can inspect the bits of `double` and `float` using dedicated methods:
 
 ```java
 long pos = Double.doubleToRawLongBits(+0.0);
@@ -92,7 +92,7 @@ System.out.println(Long.toHexString(neg)); // 8000000000000000
 System.out.println(pos == neg);            // false
 ```
 
-Với `float`:
+For `float`:
 
 ```java
 int pos = Float.floatToRawIntBits(+0.0f);
@@ -102,9 +102,9 @@ System.out.println(Integer.toHexString(pos)); // 0
 System.out.println(Integer.toHexString(neg)); // 80000000
 ```
 
-`Double.doubleToRawLongBits` và `Float.floatToRawIntBits` rất hữu ích khi debug biểu diễn bit, giao thức nhị phân hoặc lỗi số học. Với signed zero, phương thức có hoặc không có chữ `Raw` đều phân biệt dấu; khác biệt quan trọng của phiên bản `Raw` là cách giữ nguyên các mẫu bit NaN thay vì canonicalize NaN.
+`Double.doubleToRawLongBits` and `Float.floatToRawIntBits` are very useful when debugging bit representations, binary protocols, or numerical bugs. For signed zero, both the methods with and without `Raw` distinguish the sign; the key difference of the `Raw` version is that it preserves NaN bit patterns instead of canonicalizing NaN.
 
-**Không nhầm** hai loại phép so sánh:
+**Do not confuse** the two types of comparisons:
 
 ```java
 double x = +0.0;
@@ -115,13 +115,13 @@ boolean sameBitPattern =
         Double.doubleToRawLongBits(x) == Double.doubleToRawLongBits(y); // false
 ```
 
-Nếu nghiệp vụ chỉ cần so sánh giá trị số, thường dùng `==` là có ý nghĩa cho trường hợp zero. Nếu nghiệp vụ cần phân biệt dấu zero (chẳng hạn tính toán khoa học), phải chọn cách kiểm tra phù hợp.
+If business logic only needs to compare numeric values, using `==` is usually appropriate for zero. If business logic needs to distinguish the sign of zero (for example in scientific computing), you must choose an appropriate check.
 
-## 4. Vì sao `1.0 / +0.0` khác `1.0 / -0.0`?
+## 4. Why Does `1.0 / +0.0` Differ from `1.0 / -0.0`?
 
-Phép chia dấu phẩy động theo IEEE 754 **sử dụng dấu của zero**. Khi tử số hữu hạn và khác 0, còn mẫu là zero, kết quả là vô cực với dấu tương ứng.
+IEEE 754 floating-point division **uses the sign of zero**. When the numerator is finite and non-zero, and the denominator is zero, the result is infinity with the corresponding sign.
 
-| Phép chia | Kết quả |
+| Division | Result |
 | --- | --- |
 | `1.0 / +0.0` | `Infinity` |
 | `1.0 / -0.0` | `-Infinity` |
@@ -130,7 +130,7 @@ Phép chia dấu phẩy động theo IEEE 754 **sử dụng dấu của zero**. 
 | `+0.0 / +0.0` | `NaN` |
 | `-0.0 / +0.0` | `NaN` |
 
-Vì vậy:
+Therefore:
 
 ```java
 double x = +0.0;
@@ -141,22 +141,22 @@ System.out.println(1.0 / x); // Infinity
 System.out.println(1.0 / y); // -Infinity
 ```
 
-**Không mâu thuẫn:** `==` hỏi hai số có bằng nhau về giá trị không; phép chia có quy tắc sử dụng bit dấu để chọn dấu vô cực. Hai giá trị có thể bằng nhau theo một quan hệ so sánh nhưng ảnh hưởng khác nhau tới một phép toán khác.
+**No contradiction:** `==` asks whether two numbers have equal numeric values; division has a rule that uses the sign bit to select the sign of infinity. Two values can be equal under one comparison relation while affecting another operation differently.
 
-Đối với `int` hoặc `long`, chia cho 0 ném `ArithmeticException` khi thực thi. Chỉ vì biểu thức có biến đích `double` không làm phép chia nguyên tự trở thành chia số thực:
+For `int` or `long`, division by 0 throws `ArithmeticException` at runtime. Merely assigning an expression to a `double` target variable does not turn integer division into floating-point division:
 
 ```java
 int numerator = 1;
 int denominator = 0;
-// double invalid = numerator / denominator; // nếu chạy: ArithmeticException
+// double invalid = numerator / denominator; // at runtime: ArithmeticException
 double floating = (double) numerator / denominator; // Infinity
 ```
 
-Đây là đoạn **minh họa** chứ không phải chương trình độc lập. Chú ý chuyển một toán hạng sang `double` **trước** phép chia để chọn quy tắc floating-point.
+This is an **illustrative snippet**, not a standalone program. Be sure to cast one operand to `double` **before** dividing to select floating-point division rules.
 
-## 5. `Double.compare` và `Double.equals` lại phân biệt dấu zero
+## 5. `Double.compare` and `Double.equals` Distinguish the Sign of Zero
 
-Đây là điểm dễ gây ngạc nhiên nhất khi chuyển từ primitive sang wrapper `Double`:
+This is the most surprising detail when moving from primitives to the `Double` wrapper:
 
 ```java
 System.out.println(Double.compare(-0.0, +0.0)); // -1
@@ -166,21 +166,21 @@ System.out.println(Double.valueOf(-0.0)
         .equals(Double.valueOf(+0.0))); // false
 ```
 
-`Double.compare` tạo một thứ tự nhất quán để sắp xếp số thực theo quy tắc wrapper; nó xem **`-0.0` đứng trước `+0.0`**. `Double.equals` định nghĩa bằng nhau theo biểu diễn chuẩn hóa bit của wrapper, nên **không coi hai zero khác dấu là bằng nhau**.
+`Double.compare` establishes a consistent ordering for sorting floating-point numbers under wrapper rules; it treats **`-0.0` as coming before `+0.0`**. `Double.equals` defines equality based on the wrapper's canonicalized bit representation, so it **does not treat two zeros of opposite signs as equal**.
 
-| Cách kiểm tra | `-0.0` so với `+0.0` |
+| Check method | `-0.0` vs. `+0.0` |
 | --- | --- |
 | Primitive `a == b` | `true` |
 | Primitive `a != b` | `false` |
 | `Double.compare(a, b) == 0` | `false` |
 | `Double.valueOf(a).equals(Double.valueOf(b))` | `false` |
-| So sánh bit bằng `Double.doubleToLongBits` | Khác nhau |
+| Bit comparison with `Double.doubleToLongBits` | Different |
 
-`Double.compare` trả số âm, 0 hoặc số dương, tùy thứ tự; không nên xây dựng thuật toán đòi hỏi mọi kết quả khác nhau phải chính xác bằng `-1` hoặc `1` theo một quy tắc chung cho các comparator khác.
+`Double.compare` returns a negative number, 0, or a positive number depending on the ordering; do not build algorithms that assume all non-zero results from other comparators must strictly equal `-1` or `1` as a general rule.
 
-### Tại sao wrapper cần cách hiểu khác?
+### Why Do Wrappers Need a Different Interpretation?
 
-`Double.equals` và `Double.hashCode` có hợp đồng phù hợp cho các cấu trúc dữ liệu kiểu `HashMap` hoặc `HashSet`. Java wrapper muốn phân biệt signed zero như hai khóa riêng; đồng thời xử lý NaN nhất quán trong `equals` và `compare`.
+`Double.equals` and `Double.hashCode` have contracts suited for data structures like `HashMap` or `HashSet`. The Java wrapper chooses to distinguish signed zeros as two separate keys, while handling NaN consistently across `equals` and `compare`.
 
 ```java
 java.util.Set<Double> values = new java.util.HashSet<>();
@@ -189,26 +189,26 @@ values.add(-0.0);
 System.out.println(values.size()); // 2
 ```
 
-Nếu so sánh primitive `+0.0 == -0.0` ta được `true`, nhưng một `HashSet<Double>` có thể chứa cả hai phần tử và coi chúng là **hai key khác nhau**. Đây là hệ quả có thật khi lưu kết quả tính toán trong collection.
+Whereas primitive `+0.0 == -0.0` evaluates to `true`, a `HashSet<Double>` can hold both elements and treat them as **two distinct keys**. This is a real consequence when storing computed results in collections.
 
-### Không dùng `==` giữa hai object `Double` để hỏi giá trị
+### Do Not Use `==` Between Two `Double` Objects to Compare Values
 
-`==` trên **hai tham chiếu object** hỏi chúng có trỏ đến cùng object không, khác hoàn toàn với `==` trên primitive `double`:
+`==` on **two object references** asks whether they point to the same object, which is completely different from `==` on primitive `double`:
 
 ```java
 Double first = Double.valueOf(+0.0);
 Double second = Double.valueOf(-0.0);
 
-// first == second: so sánh identity tham chiếu, không phải numeric equality
+// first == second: compares reference identity, not numeric equality
 boolean primitiveEqual = first.doubleValue() == second.doubleValue(); // true
 boolean objectEqual = first.equals(second); // false
 ```
 
-Đừng diễn giải kết quả của `first == second` thành quy tắc signed zero: đó là câu hỏi về **identity của object**. Việc Java có tự boxing/unboxing trong một số ngữ cảnh không đồng nghĩa so sánh hai wrapper tham chiếu luôn unbox.
+Do not interpret the result of `first == second` as a signed-zero rule: that is a question about **object identity**. The fact that Java performs autoboxing/unboxing in some contexts does not mean comparing two wrapper references always unboxes them.
 
-## 6. `Float` có quy tắc tương tự `Double`
+## 6. `Float` Has Similar Rules to `Double`
 
-Đối với `float`:
+For `float`:
 
 ```java
 float a = +0.0f;
@@ -220,55 +220,55 @@ System.out.println(Float.valueOf(a).equals(
         Float.valueOf(b)));                   // false
 ```
 
-`Float.compare(-0.0f, +0.0f)` trả số âm; `Float.compare(+0.0f, -0.0f)` trả số dương. Vì vậy khi dùng `List<Float>` và sort, giá trị âm zero có thể xuất hiện trước dương zero dù phép `==` cho kết quả bằng nhau.
+`Float.compare(-0.0f, +0.0f)` returns a negative number; `Float.compare(+0.0f, -0.0f)` returns a positive number. Therefore, when using a `List<Float>` and sorting it, negative zero can appear before positive zero even though `==` considers them equal.
 
-Một lưu ý khác: `Double.NaN == Double.NaN` trả `false`, nhưng `Double.compare(Double.NaN, Double.NaN) == 0` và `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` đều trả `true`. Wrapper có quan hệ bằng nhau phục vụ collection và sắp xếp, không hoàn toàn giống toán tử số học `==`.
+Another note: `Double.NaN == Double.NaN` returns `false`, whereas `Double.compare(Double.NaN, Double.NaN) == 0` and `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` both return `true`. Wrappers define equality for collections and sorting, which does not completely match the arithmetic `==` operator.
 
-## 7. `Math.copySign`, `Math.abs`, `Math.min` và `Math.max`
+## 7. `Math.copySign`, `Math.abs`, `Math.min`, and `Math.max`
 
-Để phát hiện hoặc bảo toàn dấu zero khi cần, Java có các API hữu ích.
+To detect or preserve the sign of zero when needed, Java provides useful APIs.
 
-### `Math.copySign`: đọc dấu zero mà không so sánh bit
+### `Math.copySign`: Reading the Sign of Zero Without Bit Comparison
 
-`Math.copySign(magnitude, sign)` trả giá trị có **độ lớn lấy từ đối số đầu** và **dấu từ đối số thứ hai**.
+`Math.copySign(magnitude, sign)` returns a value with **magnitude from the first argument** and **sign from the second argument**.
 
 ```java
 System.out.println(Math.copySign(1.0, +0.0)); // 1.0
 System.out.println(Math.copySign(1.0, -0.0)); // -1.0
 ```
 
-Nếu chỉ cần xem một zero là dương hay âm, áp dụng `Math.copySign(1.0, zero)` có thể dễ đọc. Phương pháp này được dùng khi đã biết biến cần phân tích là zero; tránh suy luận mọi giá trị âm được gặp là âm zero.
+If you only need to check whether a zero is positive or negative, applying `Math.copySign(1.0, zero)` can be easy to read. This approach is used when you already know the analyzed variable is zero; avoid assuming every negative value encountered is negative zero.
 
-### `Math.abs` có thể bỏ dấu âm zero
+### `Math.abs` Can Strip the Negative Zero Sign
 
 ```java
 System.out.println(Math.abs(-0.0));  // 0.0
 ```
 
-Kết quả là dương zero. Nếu dấu zero có ý nghĩa trong thuật toán, phép lấy trị tuyệt đối đã làm mất thông tin đó.
+The result is positive zero. If the sign of zero is meaningful in an algorithm, taking the absolute value discards that information.
 
-### `Math.min` và `Math.max` xử lý signed zero riêng
+### `Math.min` and `Math.max` Handle Signed Zero Specifically
 
-Theo quy tắc Java:
+According to Java rules:
 
 ```java
 System.out.println(Math.min(+0.0, -0.0)); // -0.0
 System.out.println(Math.max(+0.0, -0.0)); // 0.0
 ```
 
-`Math.min` chọn `-0.0` khi gặp hai zero khác dấu; `Math.max` chọn `+0.0`. Như vậy không thể suy ra mọi API đều phải đối xử signed zero giống `==`.
+`Math.min` chooses `-0.0` when given two zeros of opposite signs; `Math.max` chooses `+0.0`. Thus, you cannot assume every API treats signed zero the same way `==` does.
 
-Lưu ý thêm: có NaN tham gia `Math.min`/`Math.max` có thể tạo NaN; khi chọn giá trị min/max từ dữ liệu ngoài, cần cân nhắc chính sách xử lý NaN.
+Additional note: when NaN is passed to `Math.min`/`Math.max`, the result can be NaN; when finding min/max from external data, consider your NaN-handling policy.
 
-## 8. Các trường hợp sinh âm zero và cần giữ nó
+## 8. Cases That Produce Negative Zero and When to Keep It
 
-Signed zero có giá trị trong một số bài toán số học:
+Signed zero has value in certain numerical problems:
 
-- **Underflow:** kết quả âm rất nhỏ có thể làm tròn thành `-0.0`, lưu thông tin dấu của giá trị rất nhỏ trước khi làm tròn.
-- **Phép nhân/chia:** dấu các toán hạng ảnh hưởng dấu zero hoặc vô cực trong kết quả.
-- **Hàm toán học:** một số phép toán và hàm thư viện có thể dùng signed zero để chọn dấu kết quả hoặc giữ thông tin giới hạn một phía.
+- **Underflow:** a very small negative result can round to `-0.0`, preserving the sign of the tiny value before rounding.
+- **Multiplication/division:** operand signs determine the sign of zero or infinity in the result.
+- **Mathematical functions:** some operations and library functions can use signed zero to select the sign of a result or preserve one-sided limit information.
 
-Ví dụ:
+Examples:
 
 ```java
 double underflow = -Double.MIN_VALUE / 2.0; // -0.0
@@ -276,24 +276,24 @@ double fromProduct = -2.0 * 0.0;            // -0.0
 double reciprocal = 1.0 / fromProduct;      // -Infinity
 ```
 
-Nếu hệ thống tự chuyển mọi `-0.0` thành `+0.0`, hai loại giá trị sẽ vẫn bằng nhau theo `==`, nhưng một số bước tính sau đó có thể đổi kết quả.
+If a system automatically converts every `-0.0` to `+0.0`, the two values remain equal under `==`, yet certain subsequent calculations can produce different results.
 
-Ở hệ thống thông thường chỉ cần coi zero là zero, việc phân biệt dấu có thể không cần thiết. **Phụ thuộc vào mục đích dữ liệu**: không phải mọi chương trình đều nên dùng so sánh bit thay thế `==`.
+In ordinary systems where zero simply means zero, distinguishing the sign may be unnecessary. **It depends on the data's purpose**: not every program should replace `==` with bit comparisons.
 
-## 9. Thiết kế so sánh, sắp xếp và khóa tập hợp
+## 9. Designing Comparisons, Sorting, and Collection Keys
 
-Khi làm việc với zero có dấu, cần chọn **một quy tắc nhất quán**.
+When working with signed zero, choose **one consistent rule**.
 
-| Mục tiêu | Cách làm điển hình | Hệ quả |
+| Goal | Typical approach | Consequence |
 | --- | --- | --- |
-| Chỉ hỏi hai giá trị primitive có bằng nhau về số học? | `a == b` | `+0.0` bằng `-0.0`; NaN không bằng chính nó |
-| Muốn phân biệt bit dấu zero | `Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b)` | Hai zero khác nhau |
-| Muốn thứ tự tương thích với wrapper `Double` | `Double.compare(a,b)` | `-0.0` đứng trước `+0.0` |
-| Muốn dùng `Double` làm khóa map/set | `Double.equals`/`hashCode` theo collection | Hai zero khác dấu được xem là hai khóa |
-| Muốn coi hai zero là một khóa | **Chuẩn hóa** `x == 0.0 ? 0.0 : x` trước khi làm khóa | Mất chủ đích phân biệt dấu |
-| Cần giữ dấu zero qua xử lý | Giữ primitive/raw bits hoặc cấu trúc dữ liệu phù hợp | Không làm mất dấu do normalize hay `abs` |
+| Only ask if two primitive values are arithmetically equal? | `a == b` | `+0.0` equals `-0.0`; NaN does not equal itself |
+| Need to distinguish zero's sign bit | `Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b)` | The two zeros differ |
+| Need ordering compatible with wrapper `Double` | `Double.compare(a,b)` | `-0.0` comes before `+0.0` |
+| Need to use `Double` as a map/set key | `Double.equals`/`hashCode` as used by collections | Two zeros of opposite signs are treated as two keys |
+| Need to treat both zeros as one key | **Normalize** `x == 0.0 ? 0.0 : x` before using as key | Intentionally loses sign distinction |
+| Need to preserve zero's sign across processing | Keep primitives/raw bits or suitable data structures | Avoid losing sign via normalization or `abs` |
 
-Ví dụ chuẩn hóa trước khi lưu `Double` vào set:
+Example of normalizing before storing a `Double` in a set:
 
 ```java
 static double normalizeZero(double x) {
@@ -301,13 +301,13 @@ static double normalizeZero(double x) {
 }
 ```
 
-Method này là **đoạn đặt trong class**, không phải chương trình độc lập. Nó chuyển cả `-0.0` và `+0.0` về `+0.0`, còn các số khác được giữ nguyên. Với `NaN`, điều kiện `x == 0.0` là `false`, nên giá trị NaN được trả về không đổi. Đây là **chính sách chủ động** để coi signed zero tương đương theo khóa, không phải hành vi sẵn có của `Double.equals`.
+This method is a **snippet to place inside a class**, not a standalone program. It converts both `-0.0` and `+0.0` to `+0.0`, while leaving all other numbers unchanged. For `NaN`, the condition `x == 0.0` is `false`, so the NaN value is returned unchanged. This is an **intentional policy** to treat signed zeros as equivalent keys, not built-in behavior of `Double.equals`.
 
-Nếu dùng `TreeSet<Double>`, thứ tự mặc định dựa vào so sánh wrapper cũng phân biệt hai zero; khi dùng comparator riêng cho tập có thứ tự, comparator cần nhất quán với định nghĩa “trùng nhau” mà ứng dụng mong muốn.
+If using a `TreeSet<Double>`, the default ordering based on wrapper comparison also distinguishes the two zeros; when using a custom comparator for an ordered set, the comparator must be consistent with the definition of "duplicate" desired by the application.
 
-## 10. Chương trình Java 17+ đầy đủ
+## 10. Complete Java 17+ Program
 
-Lưu thành tệp **`SignedZeroEqualityDemo.java`**:
+Save to **`SignedZeroEqualityDemo.java`**:
 
 ```java
 import java.util.HashSet;
@@ -368,14 +368,14 @@ public class SignedZeroEqualityDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac SignedZeroEqualityDemo.java
 java SignedZeroEqualityDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 primitiveEquals=true
@@ -406,29 +406,29 @@ nanPrimitiveEquals=false
 nanWrapperCompare=0
 ```
 
-Dòng `primitiveEquals=true` đặt cạnh `rawBitsEqual=false` cho thấy rõ sự khác biệt giữa **so sánh giá trị số học** và **so sánh biểu diễn bit**. Các dòng `compareNegativePositive=-1`, `wrapperEquals=false` và `setSize=2` chứng minh rằng API wrapper không có cùng quy tắc bằng nhau với primitive `==`.
+The line `primitiveEquals=true` next to `rawBitsEqual=false` clearly illustrates the difference between **arithmetic value comparison** and **bit representation comparison**. The lines `compareNegativePositive=-1`, `wrapperEquals=false`, and `setSize=2` demonstrate that wrapper APIs do not share the same equality rules as primitive `==`.
 
-## 11. Lỗi phổ biến và checklist
+## 11. Common Mistakes and Checklist
 
-| Hiểu nhầm | Giải thích đúng |
+| Misconception | Correct explanation |
 | --- | --- |
-| “`+0.0 == -0.0` là `false` vì bit dấu khác nhau.” | Sai: `==` so sánh số học và cho `true`. |
-| “`+0.0` và `-0.0` có cùng mọi hành vi.” | Sai: `1.0 / ±0.0` tạo vô cực khác dấu; các API khác cũng phân biệt. |
-| “`Double.compare(+0.0,-0.0) == 0` vì `==` trả `true`.” | Sai: `Double.compare` xếp `-0.0` trước `+0.0`. |
-| “`Double.valueOf(+0.0).equals(Double.valueOf(-0.0))` cho `true`.” | Sai: `Double.equals` phân biệt dấu zero. |
-| “`HashSet<Double>` chắc chắn chỉ có một phần tử nếu thêm cả hai zero.” | Sai: có thể giữ hai khóa phân biệt theo `equals`. |
-| “`Float` không có âm zero.” | Sai: `-0.0f` có bit dấu và các quy tắc tương ứng. |
-| “Nếu Java in `-0.0` thì giá trị nhỏ hơn 0 theo `<`.” | Sai: `-0.0 < +0.0` cho `false`. |
-| “`Math.abs(-0.0)` giữ âm zero.” | Sai: trả `+0.0`. |
-| “`Double.NaN == Double.NaN` giống `Double.compare(NaN,NaN) == 0`.” | Sai: toán tử `==` cho `false`, `Double.compare` có thể cho `0`. |
-| “So sánh hai `Double` object bằng `==` là so sánh giá trị.” | Sai: hai tham chiếu wrapper được `==` so sánh identity, trừ khi có ngữ cảnh unboxing khác. |
+| "`+0.0 == -0.0` is `false` because the sign bits differ." | False: `==` compares arithmetically and gives `true`. |
+| "`+0.0` and `-0.0` behave identically in every way." | False: `1.0 / ±0.0` produces infinities of opposite signs; other APIs also distinguish them. |
+| "`Double.compare(+0.0,-0.0) == 0` because `==` returns `true`." | False: `Double.compare` orders `-0.0` before `+0.0`. |
+| "`Double.valueOf(+0.0).equals(Double.valueOf(-0.0))` returns `true`." | False: `Double.equals` distinguishes the sign of zero. |
+| "`HashSet<Double>` definitely has only one element if both zeros are added." | False: it can hold two distinct keys according to `equals`. |
+| "`Float` does not have negative zero." | False: `-0.0f` has a sign bit and corresponding rules. |
+| "If Java prints `-0.0`, its value is less than 0 under `<`." | False: `-0.0 < +0.0` evaluates to `false`. |
+| "`Math.abs(-0.0)` preserves negative zero." | False: it returns `+0.0`. |
+| "`Double.NaN == Double.NaN` is the same as `Double.compare(NaN,NaN) == 0`." | False: the `==` operator gives `false`, whereas `Double.compare` gives `0`. |
+| "Comparing two `Double` objects with `==` compares numeric values." | False: two wrapper references compared with `==` check identity, unless an unboxing context applies. |
 
-Khi xử lý zero có dấu, hãy kiểm tra:
+When handling signed zero, check:
 
-1. **Đang so sánh primitive hay object?** `==` trên `double`/`float` coi hai zero bằng nhau; `==` trên hai wrapper tham chiếu lại xét identity.
-2. **Muốn so sánh giá trị số học hay bit lưu trữ?** Chọn `==` hoặc `doubleToRawLongBits`/`floatToRawIntBits` tương ứng.
-3. **Đang sắp xếp hoặc làm key của collection?** Hiểu `Double.compare`, `Double.equals` và `hashCode` phân biệt signed zero.
-4. **Dấu zero có ý nghĩa ở các phép tiếp theo?** Kiểm tra phép chia, `Math.copySign`, underflow và các hàm có quy tắc dấu.
-5. **Ứng dụng có muốn gộp hai zero không?** Chuẩn hóa rõ ràng trước khi lưu và so sánh bằng cấu trúc dữ liệu, thay vì giả định collection tự dùng primitive `==`.
+1. **Are you comparing primitives or objects?** `==` on `double`/`float` treats both zeros as equal; `==` on two wrapper references checks identity.
+2. **Do you want to compare arithmetic values or stored bits?** Choose `==` or `doubleToRawLongBits`/`floatToRawIntBits` accordingly.
+3. **Are you sorting or using collection keys?** Understand that `Double.compare`, `Double.equals`, and `hashCode` distinguish signed zero.
+4. **Does zero's sign matter in subsequent operations?** Check division, `Math.copySign`, underflow, and functions with sign rules.
+5. **Does the application want to merge the two zeros?** Normalize explicitly before storing and comparing in data structures, rather than assuming collections automatically use primitive `==`.
 
-**Ghi nhớ:** `+0.0 == -0.0` là **`true`** với primitive `float`/`double`. Tuy nhiên, **bit dấu khác nhau**, phép chia cho zero cho **vô cực khác dấu**, và `Double.compare`/`Double.equals` **phân biệt hai giá trị zero này**. Luôn chọn quy tắc so sánh phù hợp với mục tiêu của chương trình.
+**Remember:** `+0.0 == -0.0` is **`true`** for primitive `float`/`double`. However, their **sign bits differ**, division by zero yields **infinities of opposite signs**, and `Double.compare`/`Double.equals` **distinguish the two zero values**. Always choose the comparison rule that fits your program's goal.

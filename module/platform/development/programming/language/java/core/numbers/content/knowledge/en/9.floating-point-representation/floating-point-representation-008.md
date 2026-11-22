@@ -1,8 +1,8 @@
-# Số 0 dương, số 0 âm, vô cực và NaN trong Java
+# Positive Zero, Negative Zero, Infinity, and NaN in Java
 
-Trong Java, `float` và `double` không chỉ biểu diễn các số thực hữu hạn thông thường. Theo cơ chế dấu phẩy động nhị phân IEEE 754, chúng còn biểu diễn được **hai số 0 có dấu** (`+0.0`, `-0.0`), **vô cực dương/âm** (`+Infinity`, `-Infinity`) và **NaN** (*Not a Number*).
+In Java, `float` and `double` do not represent only ordinary finite real numbers. Under IEEE 754 binary floating-point mechanics, they also represent **two signed zeros** (`+0.0`, `-0.0`), **positive/negative infinity** (`+Infinity`, `-Infinity`), and **NaN** (*Not a Number*).
 
-Các giá trị này không phải ngoại lệ Java và cũng không nhất thiết báo lỗi khi xuất hiện. Ví dụ:
+These values are not Java exceptions, nor do they necessarily trigger an error when they appear. For example:
 
 ```java
 double positiveZero = 0.0;
@@ -14,32 +14,32 @@ System.out.println(1.0 / negativeZero); // -Infinity
 System.out.println(0.0 / 0.0);          // NaN
 ```
 
-Ba phép chia dấu phẩy động trên **không ném `ArithmeticException`**. Nếu chương trình xử lý số đo, mô phỏng, thống kê, sắp xếp, lưu dữ liệu hoặc gửi JSON mà không xét tới giá trị đặc biệt, kết quả có thể sai âm thầm.
+These three floating-point divisions **do not throw `ArithmeticException`**. If a program processes measurements, simulations, statistics, sorting, data persistence, or JSON payloads without accounting for special values, results can fail silently.
 
-Bài học thuộc phần **Biểu diễn dấu phẩy động** của **Java core – numbers**, giúp giải thích biểu diễn và phép toán của các giá trị này, phân biệt `==` với `Double.compare`/`Double.equals`, và đưa ra cách kiểm tra dữ liệu thực tế.
+This lesson belongs to the **Floating-Point Representation** section of **Java core – numbers**, explaining the representation and operations of these values, distinguishing `==` from `Double.compare`/`Double.equals`, and providing practical data validation patterns.
 
-## 1. Vì sao một kiểu số có nhiều “giá trị đặc biệt”?
+## 1. Why Does a Numeric Type Have Multiple “Special Values”?
 
-`float` (32 bit) và `double` (64 bit) sử dụng định dạng dấu phẩy động nhị phân. Với giá trị hữu hạn, cách biểu diễn có thành phần dấu, số mũ và phần trị. Một số tổ hợp bit được dành riêng cho **zero**, **infinity** và **NaN**.
+`float` (32-bit) and `double` (64-bit) use a binary floating-point format. For finite values, the representation has sign, exponent, and significand components. Certain bit combinations are reserved for **zero**, **infinity**, and **NaN**.
 
-| Đặc điểm | `float` | `double` |
+| Feature | `float` | `double` |
 | --- | --- | --- |
-| Tổng số bit | 32 | 64 |
-| Bit dấu | 1 | 1 |
-| Bit số mũ | 8 | 11 |
-| Bit phần trị lưu trữ | 23 | 52 |
-| Độ chính xác phần trị với bit ẩn | 24 bit | 53 bit |
-| Hai dạng số 0 | `+0.0f`, `-0.0f` | `+0.0d`, `-0.0d` |
-| Vô cực | `Float.POSITIVE_INFINITY`, `Float.NEGATIVE_INFINITY` | `Double.POSITIVE_INFINITY`, `Double.NEGATIVE_INFINITY` |
+| Total bits | 32 | 64 |
+| Sign bit | 1 | 1 |
+| Exponent bits | 8 | 11 |
+| Stored significand bits | 23 | 52 |
+| Significand precision with implicit bit | 24 bits | 53 bits |
+| Two zero forms | `+0.0f`, `-0.0f` | `+0.0d`, `-0.0d` |
+| Infinity | `Float.POSITIVE_INFINITY`, `Float.NEGATIVE_INFINITY` | `Double.POSITIVE_INFINITY`, `Double.NEGATIVE_INFINITY` |
 | NaN | `Float.NaN` | `Double.NaN` |
 
-Khi một số hữu hạn bị tràn về độ lớn của định dạng dấu phẩy động, kết quả theo phép toán thông thường có thể trở thành vô cực. Khi một phép toán không có kết quả số thực có nghĩa trong quy tắc IEEE 754, nó có thể tạo NaN. Khi kết quả quá nhỏ, nó có thể thành số rất nhỏ, **subnormal**, hoặc thành số 0 có dấu tùy độ lớn và cách làm tròn.
+When a finite number overflows the magnitude of the floating-point format, standard operations can produce infinity. When an operation has no meaningful real-number result under IEEE 754 rules, it can produce NaN. When a result is too small, it can become a very small number, a **subnormal**, or a signed zero depending on magnitude and rounding.
 
-Không nên nhầm với số nguyên Java: `int`/`long` **không có** `NaN`, `Infinity` hoặc hai số 0 khác dấu. Tràn số nguyên và chia nguyên cho 0 tuân theo quy tắc khác.
+Do not confuse this with Java integers: `int`/`long` **have no** `NaN`, `Infinity`, or two differently signed zeros. Integer overflow and integer division by 0 follow different rules.
 
-## 2. Số 0 dương (+0.0) và số 0 âm (-0.0)
+## 2. Positive Zero (+0.0) and Negative Zero (-0.0)
 
-Trong toán học thông thường, 0 không có hai giá trị khác nhau. Ở IEEE 754, `+0.0` và `-0.0` có **hai mã bit riêng**:
+In ordinary mathematics, 0 does not have two distinct values. In IEEE 754, `+0.0` and `-0.0` have **two distinct bit encodings**:
 
 ```text
 double +0.0 = 0x0000000000000000
@@ -49,7 +49,7 @@ float  +0.0 = 0x00000000
 float  -0.0 = 0x80000000
 ```
 
-Khác biệt nằm ở bit dấu. Vì phần trị và số mũ đều biểu diễn zero, hai giá trị cùng được xem là bằng 0 trong phép so sánh số học `==`, nhưng **dấu của zero vẫn có thể ảnh hưởng phép toán tiếp theo**.
+The difference lies in the sign bit. Because both the significand and exponent represent zero, the two values are considered equal to 0 under the numeric comparison `==`, yet **the sign of zero can still affect subsequent operations**.
 
 ```java
 double plusZero = 0.0;
@@ -60,42 +60,42 @@ System.out.println(plusZero < minusZero);  // false
 System.out.println(minusZero < plusZero);  // false
 ```
 
-Với toán tử so sánh số học, `+0.0` và `-0.0` có cùng vị trí trên trục số. Nhưng Java vẫn giữ được dấu, cho phép nhận biết qua phép chia hoặc bit biểu diễn.
+Under numeric comparison operators, `+0.0` and `-0.0` occupy the same position on the number line. Still, Java preserves the sign, allowing it to be observed via division or raw bit representation.
 
-### 2.1. Hai phép chia cho zero cho kết quả khác dấu
+### 2.1. Two Divisions by Zero Yield Opposite Signs
 
 ```java
 double plus = 1.0 / +0.0;  // Infinity
 double minus = 1.0 / -0.0; // -Infinity
 ```
 
-Dấu của kết quả tuân theo dấu toán hạng trong phép chia dấu phẩy động. Tương tự:
+The sign of the result follows operand signs in floating-point division. Similarly:
 
 ```java
 double negativeOverPositive = -1.0 / +0.0; // -Infinity
 double negativeOverNegative = -1.0 / -0.0; // Infinity
 ```
 
-Do vậy một kiểm tra `value == 0.0` **không phân biệt được dấu** nhưng cả hai zero có thể dẫn tới hành vi khác ở phép toán sau.
+Thus, a check like `value == 0.0` **cannot distinguish the sign**, even though both zeros can lead to different behavior in subsequent operations.
 
-### 2.2. Nhận biết zero âm
+### 2.2. Detecting Negative Zero
 
-Một cách minh họa là đọc bit bằng `Double.doubleToRawLongBits`:
+An illustrative approach is reading bits via `Double.doubleToRawLongBits`:
 
 ```java
 double z = -0.0;
 boolean negativeZero =
         z == 0.0 && Double.doubleToRawLongBits(z) < 0;
-// true vì bit dấu ở bit cao nhất.
+// true because the sign bit is in the highest bit position.
 ```
 
-Nếu cần kiểm tra cả `float`, có thể dùng `Float.floatToRawIntBits`. So sánh `1.0 / z` với `Double.NEGATIVE_INFINITY` cũng phân biệt được zero âm, nhưng dùng bit trực tiếp thường thể hiện ý định rõ hơn khi thật sự phải kiểm tra dấu zero.
+If you also need to check `float`, use `Float.floatToRawIntBits`. Comparing `1.0 / z` against `Double.NEGATIVE_INFINITY` also distinguishes negative zero, though checking bits directly usually expresses intent more clearly when zero's sign genuinely matters.
 
-Không lấy `-0.0 == 0.0` làm bằng chứng rằng mã bit giống nhau. Đừng cho rằng chuyển qua một định dạng văn bản hoặc xử lý dữ liệu trung gian luôn bảo toàn dấu zero: cần kiểm chứng hợp đồng thư viện và giao thức.
+Do not take `-0.0 == 0.0` as proof that the bit codes are identical. Do not assume converting through a text format or intermediate data pipeline always preserves zero's sign: verify library and protocol contracts.
 
 ### 2.3. Math.abs, signum, copySign, min/max
 
-Một số API phân biệt hoặc giữ dấu zero:
+Several APIs distinguish or preserve the sign of zero:
 
 ```java
 Math.abs(-0.0);            // +0.0
@@ -105,13 +105,13 @@ Math.min(+0.0, -0.0);      // -0.0
 Math.max(+0.0, -0.0);      // +0.0
 ```
 
-`Math.min` và `Math.max` có quy tắc riêng với signed zero: `-0.0` được coi là nhỏ hơn `+0.0` khi chọn kết quả. Đây là lý do những hàm này **không hoàn toàn tương đương** với một biểu thức điều kiện tự viết chỉ dùng `<` hoặc `>` nếu cần bảo toàn dấu zero.
+`Math.min` and `Math.max` have special rules for signed zero: `-0.0` is treated as smaller than `+0.0` when selecting the result. This is why these methods are **not strictly equivalent** to a hand-written conditional expression using only `<` or `>` when zero's sign must be preserved.
 
-**Lưu ý:** giá trị `Math.signum(-0.0)` in ra là `-0.0`, không phải `-1.0`; `signum` trả lại zero có dấu đối với đầu vào zero.
+**Note:** `Math.signum(-0.0)` prints `-0.0`, not `-1.0`; `signum` returns signed zero for zero inputs.
 
-## 3. Vô cực dương và vô cực âm
+## 3. Positive Infinity and Negative Infinity
 
-Java định nghĩa các hằng:
+Java defines the constants:
 
 ```java
 double positive = Double.POSITIVE_INFINITY;
@@ -120,7 +120,7 @@ float positiveFloat = Float.POSITIVE_INFINITY;
 float negativeFloat = Float.NEGATIVE_INFINITY;
 ```
 
-Vô cực có thể xuất hiện từ việc chia một số hữu hạn khác 0 cho zero hoặc từ phép tính thực có kết quả quá lớn để biểu diễn:
+Infinity can arise from dividing a nonzero finite number by zero or from an operation whose result is too large to represent:
 
 ```java
 double a = 1.0 / 0.0;               // Infinity
@@ -128,31 +128,31 @@ double b = -1.0 / 0.0;              // -Infinity
 double c = Double.MAX_VALUE * 2.0; // Infinity
 ```
 
-Các giá trị vô cực không phải là “số lớn nhất có thể biểu diễn”. `Double.MAX_VALUE` là **số hữu hạn dương lớn nhất**, còn `Double.POSITIVE_INFINITY` là một giá trị đặc biệt lớn hơn mọi giá trị hữu hạn trong các phép so sánh thông thường.
+Infinities are not “the largest representable number.” `Double.MAX_VALUE` is the **largest positive finite number**, whereas `Double.POSITIVE_INFINITY` is a special value greater than every finite value in ordinary comparisons.
 
 ```java
 Double.MAX_VALUE < Double.POSITIVE_INFINITY; // true
 Double.NEGATIVE_INFINITY < -Double.MAX_VALUE; // true
 ```
 
-Một số phép toán với vô cực:
+Selected operations with infinity:
 
-| Biểu thức | Kết quả | Ý nghĩa |
+| Expression | Result | Meaning |
 | --- | --- | --- |
-| `1.0 / 0.0` | `Infinity` | Số dương hữu hạn chia cho zero dương |
-| `-1.0 / 0.0` | `-Infinity` | Số âm hữu hạn chia cho zero dương |
-| `Double.MAX_VALUE * 2.0` | `Infinity` | Tràn miền giá trị hữu hạn |
-| `1.0 / Double.POSITIVE_INFINITY` | `+0.0` | Kết quả tiến về zero dương |
-| `-1.0 / Double.POSITIVE_INFINITY` | `-0.0` | Kết quả tiến về zero âm |
-| `Double.POSITIVE_INFINITY + 10.0` | `Infinity` | Vô cực cộng số hữu hạn |
-| `Double.POSITIVE_INFINITY + Double.NEGATIVE_INFINITY` | `NaN` | Hai vô cực khác dấu cộng nhau |
-| `Double.POSITIVE_INFINITY / Double.POSITIVE_INFINITY` | `NaN` | Dạng không xác định theo phép toán IEEE 754 |
+| `1.0 / 0.0` | `Infinity` | Positive finite number divided by positive zero |
+| `-1.0 / 0.0` | `-Infinity` | Negative finite number divided by positive zero |
+| `Double.MAX_VALUE * 2.0` | `Infinity` | Finite value range overflow |
+| `1.0 / Double.POSITIVE_INFINITY` | `+0.0` | Result approaches positive zero |
+| `-1.0 / Double.POSITIVE_INFINITY` | `-0.0` | Result approaches negative zero |
+| `Double.POSITIVE_INFINITY + 10.0` | `Infinity` | Infinity plus finite number |
+| `Double.POSITIVE_INFINITY + Double.NEGATIVE_INFINITY` | `NaN` | Adding two opposite-signed infinities |
+| `Double.POSITIVE_INFINITY / Double.POSITIVE_INFINITY` | `NaN` | Indeterminate form under IEEE 754 arithmetic |
 
-Các biểu thức đó không tự tạo `ArithmeticException` chỉ vì xuất hiện `Infinity` hoặc `NaN`.
+These expressions do not automatically throw `ArithmeticException` merely because `Infinity` or `NaN` appears.
 
-### 3.1. So sánh với vô cực
+### 3.1. Comparing with Infinity
 
-`Infinity` so sánh có thứ tự với các số hữu hạn:
+`Infinity` compares in order with finite numbers:
 
 ```java
 double x = Double.POSITIVE_INFINITY;
@@ -162,11 +162,11 @@ x == Double.POSITIVE_INFINITY;       // true
 Double.NEGATIVE_INFINITY < -1e300;   // true
 ```
 
-Tuy nhiên, đừng dùng vô cực như một giá trị mặc định “không có dữ liệu” trừ khi đặc tả API đã xác định rõ. Một phép tổng hợp, trung bình hoặc chuẩn hóa có thể vô tình truyền vô cực vào kết quả cuối.
+However, do not use infinity as a default “missing data” sentinel unless the API specification explicitly defines it. An aggregation, average, or normalization can inadvertently propagate infinity into final results.
 
-## 4. NaN: giá trị biểu thị phép toán không có kết quả số thực xác định
+## 4. NaN: Value Representing an Operation Without a Defined Real Result
 
-`NaN` viết tắt của *Not a Number*. Nó là giá trị dấu phẩy động đặc biệt, có thể sinh ra bởi những phép toán như:
+`NaN` stands for *Not a Number*. It is a special floating-point value that can be produced by operations such as:
 
 ```java
 double a = 0.0 / 0.0;           // NaN
@@ -176,18 +176,18 @@ double c = Double.POSITIVE_INFINITY
 double d = Double.NaN;
 ```
 
-Không nên hiểu `NaN` chỉ là “lỗi cú pháp” hoặc một exception. Một khi NaN tham gia phép toán dấu phẩy động, kết quả của nhiều phép số học khác tiếp tục là NaN:
+Do not think of `NaN` as merely a “syntax error” or an exception. Once NaN enters floating-point operations, the result of many subsequent arithmetic operations continues to be NaN:
 
 ```java
 double unknown = Double.NaN;
 double result = unknown + 100.0; // NaN
 ```
 
-Vì vậy, NaN có thể lan theo dòng xử lý dữ liệu. Nếu chương trình lưu nó như một phép đo hợp lệ, các phép thống kê hoặc mô hình dựa trên kết quả có thể trở nên khó kiểm soát.
+Thus, NaN can propagate through a data processing pipeline. If a program stores it as a valid measurement, statistics or models relying on the results can become uncontrollable.
 
-### 4.1. Tại sao NaN != NaN?
+### 4.1. Why Is NaN != NaN?
 
-Theo quy tắc so sánh số học của Java:
+Under Java's numeric comparison rules:
 
 ```java
 double x = Double.NaN;
@@ -200,13 +200,13 @@ System.out.println(x <= 1.0); // false
 System.out.println(x >= 1.0); // false
 ```
 
-Mọi phép so sánh thứ tự với NaN bằng `<`, `>`, `<=`, `>=` đều trả `false`. `==` với NaN cũng trả `false`, kể cả khi so một biến với chính nó; `!=` trả `true`.
+Every ordering comparison with NaN using `<`, `>`, `<=`, `>=` returns `false`. `==` with NaN also returns `false`, even when comparing a variable with itself; `!=` returns `true`.
 
-Bởi vậy, biểu thức `x != x` có thể phát hiện NaN về mặt kỹ thuật, nhưng **nên dùng `Double.isNaN(x)` hoặc `Float.isNaN(x)`** cho rõ ý định và tránh làm người đọc hiểu nhầm.
+Therefore, `x != x` technically detects NaN, yet **you should use `Double.isNaN(x)` or `Float.isNaN(x)`** to make intent clear and avoid confusing readers.
 
-### 4.2. NaN làm hỏng kiểm tra khoảng
+### 4.2. NaN Breaks Range Checks
 
-Giả sử hệ thống chấp nhận nhiệt độ trong khoảng từ -50 đến 150:
+Suppose a system accepts temperatures in the range -50 to 150:
 
 ```java
 static boolean badValidation(double temperature) {
@@ -214,9 +214,9 @@ static boolean badValidation(double temperature) {
 }
 ```
 
-Với `temperature = Double.NaN`, cả hai biểu thức `<` và `>` đều là `false`; phép phủ định khiến hàm **trả `true`** dù NaN không phải nhiệt độ hợp lệ.
+With `temperature = Double.NaN`, both `<` and `>` evaluate to `false`; the negation causes the method to **return `true`** even though NaN is not a valid temperature.
 
-Cách kiểm tra đúng khi chỉ chấp nhận giá trị hữu hạn:
+Correct check when only finite values are accepted:
 
 ```java
 static boolean validTemperature(double value) {
@@ -226,22 +226,22 @@ static boolean validTemperature(double value) {
 }
 ```
 
-Hàm kiểm tra này loại trừ cả `NaN`, `+Infinity` và `-Infinity`; sau đó mới kiểm tra khoảng. Nếu miền dữ liệu cho phép vô cực hoặc NaN có ý nghĩa riêng, phải thiết kế một nhánh xử lý tường minh, không vô tình coi chúng là số đo bình thường.
+This check excludes `NaN`, `+Infinity`, and `-Infinity`, and only then checks the range. If the data domain permits infinity or NaN with a specific meaning, design an explicit handling branch rather than accidentally treating them as normal measurements.
 
-## 5. Các API kiểm tra NaN, vô cực và tính hữu hạn
+## 5. APIs for Checking NaN, Infinity, and Finiteness
 
-Java có các phương thức kiểm tra tường minh:
+Java provides explicit predicate methods:
 
-| Phương thức | Trả `true` khi nào? |
+| Method | Returns `true` when? |
 | --- | --- |
-| `Double.isNaN(value)` | Giá trị là NaN |
-| `Double.isInfinite(value)` | Giá trị là vô cực dương hoặc âm |
-| `Double.isFinite(value)` | Giá trị không phải NaN và không phải vô cực |
-| `Float.isNaN(value)` | Giá trị `float` là NaN |
-| `Float.isInfinite(value)` | Giá trị `float` là vô cực |
-| `Float.isFinite(value)` | Giá trị `float` hữu hạn |
+| `Double.isNaN(value)` | Value is NaN |
+| `Double.isInfinite(value)` | Value is positive or negative infinity |
+| `Double.isFinite(value)` | Value is neither NaN nor infinity |
+| `Float.isNaN(value)` | `float` value is NaN |
+| `Float.isInfinite(value)` | `float` value is infinity |
+| `Float.isFinite(value)` | `float` value is finite |
 
-Ví dụ:
+Example:
 
 ```java
 Double.isFinite(0.0);                 // true
@@ -253,49 +253,49 @@ Double.isInfinite(-1.0 / 0.0);       // true
 Double.isNaN(0.0 / 0.0);             // true
 ```
 
-**Signed zero vẫn là giá trị hữu hạn.** Nếu ứng dụng có yêu cầu riêng “không được có zero âm”, chỉ kiểm tra `isFinite` là chưa đủ; phải phát hiện bit dấu zero hoặc chuẩn hóa có chủ đích.
+**Signed zeros are still finite values.** If an application has a specific requirement that “negative zero is disallowed,” checking `isFinite` alone is insufficient; you must detect zero's sign bit or normalize intentionally.
 
-Trong lớp nhận dữ liệu/API, quy tắc đơn giản và hữu ích là **kiểm tra `isFinite` trước khi tính toán** khi ngữ nghĩa đầu vào là một số đo hữu hạn.
+At data/API ingress layers, a simple and effective rule is to **check `isFinite` before computing** when input semantics represent a finite measurement.
 
-## 6. Toán tử ==, Double.compare và Double.equals không giống nhau
+## 6. Operator ==, Double.compare, and Double.equals Are Not the Same
 
-Đây là một trong những bẫy dễ gây lỗi nhất.
+This is one of the easiest traps to trigger bugs.
 
-### 6.1. Toán tử == trên double
+### 6.1. The == Operator on double
 
 ```java
 +0.0 == -0.0;             // true
 Double.NaN == Double.NaN; // false
 ```
 
-`==` áp dụng so sánh số học của dấu phẩy động, không so bit và không định nghĩa thứ tự tổng quát cho NaN.
+`==` applies floating-point numeric comparison, not bit equality, and does not define a total ordering for NaN.
 
-### 6.2. Double.compare cung cấp thứ tự dùng để sắp xếp
+### 6.2. Double.compare Provides Ordering for Sorting
 
-`Double.compare(a, b)` định nghĩa cách so sánh có thứ tự phù hợp cho các trường hợp đặc biệt. Trong đó:
+`Double.compare(a, b)` defines a total order handling special cases. Specifically:
 
-- `Double.compare(-0.0, +0.0) < 0`: zero âm được xếp trước zero dương.
-- `Double.compare(Double.NaN, Double.NaN) == 0`: hai giá trị NaN được xem là bằng nhau trong trật tự so sánh này.
-- NaN được xem là **lớn hơn** `Double.POSITIVE_INFINITY` theo thứ tự của `Double.compare`, không có nghĩa NaN là một đại lượng số học lớn hơn vô cực.
+- `Double.compare(-0.0, +0.0) < 0`: negative zero is ordered before positive zero.
+- `Double.compare(Double.NaN, Double.NaN) == 0`: two NaN values are considered equal in this ordering.
+- NaN is considered **greater than** `Double.POSITIVE_INFINITY` in `Double.compare`'s ordering, which does not mean NaN is a numeric quantity larger than infinity.
 
 ```java
-Double.compare(-0.0, +0.0); // Giá trị âm (cụ thể -1).
+Double.compare(-0.0, +0.0); // Negative value (specifically -1).
 Double.compare(Double.NaN, Double.NaN); // 0
-Double.compare(Double.NaN, Double.POSITIVE_INFINITY); // Dương.
+Double.compare(Double.NaN, Double.POSITIVE_INFINITY); // Positive.
 ```
 
-`Float.compare` có cách xử lý tương ứng cho `float`. Các API sắp xếp/hộp wrapper có thể sử dụng cách so sánh này để có trật tự xác định cho dữ liệu chứa NaN và signed zero.
+`Float.compare` handles `float` analogously. Sorting and boxed wrapper APIs rely on this comparison to provide deterministic ordering for data containing NaN and signed zeros.
 
-### 6.3. Double.equals so nội dung theo quy tắc wrapper
+### 6.3. Double.equals Compares Contents Under Wrapper Rules
 
 ```java
 Double.valueOf(-0.0).equals(Double.valueOf(+0.0)); // false
 Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN)); // true
 ```
 
-Điều này có thể gây ngạc nhiên:
+This can be surprising:
 
-| So sánh | Kết quả |
+| Comparison | Result |
 | --- | --- |
 | `+0.0 == -0.0` | `true` |
 | `Double.valueOf(+0.0).equals(Double.valueOf(-0.0))` | `false` |
@@ -304,49 +304,49 @@ Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN)); // true
 | `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` | `true` |
 | `Double.compare(Double.NaN, Double.NaN) == 0` | `true` |
 
-Wrapper `Double.equals` dùng quy tắc dựa trên `Double.doubleToLongBits`: **phân biệt zero có dấu và chuẩn hóa các NaN cho so sánh bằng nhau**. Vì `equals` và `hashCode` của wrapper phải nhất quán, một `HashSet<Double>` có thể coi `+0.0` và `-0.0` là hai phần tử khác nhau, trong khi `==` giữa hai primitive zero trả true.
+`Double.equals` uses rules based on `Double.doubleToLongBits`: **it distinguishes signed zeros and canonicalizes NaNs for equality comparison**. Because a wrapper's `equals` and `hashCode` must remain consistent, a `HashSet<Double>` can treat `+0.0` and `-0.0` as two distinct elements, whereas `==` between the two primitives returns true.
 
-**Cách chọn:** sử dụng `==` khi thật sự muốn so sánh số học; `isNaN` để phát hiện NaN; `Double.compare` khi muốn thứ tự sắp xếp xác định; `equals` khi làm việc theo hợp đồng đối tượng của wrapper. Không coi các phép so sánh này là thay thế cho **so gần đúng theo sai số nghiệp vụ**.
+**How to choose:** use `==` when you truly want numeric comparison; `isNaN` to detect NaN; `Double.compare` when you want deterministic sort ordering; `equals` when working under wrapper object contracts. Do not treat these comparisons as substitutes for **approximate comparison with domain error tolerances**.
 
-## 7. Các phép toán hay tạo giá trị đặc biệt
+## 7. Operations That Commonly Produce Special Values
 
-| Biểu thức `double` | Kết quả | Bẫy thường gặp |
+| `double` Expression | Result | Common Pitfall |
 | --- | --- | --- |
-| `1.0 / +0.0` | `Infinity` | Không có exception |
-| `1.0 / -0.0` | `-Infinity` | Dấu zero ảnh hưởng dấu vô cực |
-| `-1.0 / -0.0` | `Infinity` | Hai dấu âm triệt tiêu |
-| `0.0 / 0.0` | `NaN` | Không phải 0 |
-| `Double.POSITIVE_INFINITY - Double.POSITIVE_INFINITY` | `NaN` | Dạng không xác định |
-| `0.0 * Double.POSITIVE_INFINITY` | `NaN` | Không phải 0 |
-| `Double.MAX_VALUE * 2.0` | `Infinity` | Tràn dấu phẩy động |
-| `-1.0 / Double.POSITIVE_INFINITY` | `-0.0` | Underflow về zero có dấu |
-| `Math.sqrt(-1.0)` | `NaN` | Đầu vào ngoài miền thực |
-| `Double.NaN + 3.0` | `NaN` | NaN lan truyền |
+| `1.0 / +0.0` | `Infinity` | No exception |
+| `1.0 / -0.0` | `-Infinity` | Zero's sign affects infinity's sign |
+| `-1.0 / -0.0` | `Infinity` | Two negative signs cancel |
+| `0.0 / 0.0` | `NaN` | Not 0 |
+| `Double.POSITIVE_INFINITY - Double.POSITIVE_INFINITY` | `NaN` | Indeterminate form |
+| `0.0 * Double.POSITIVE_INFINITY` | `NaN` | Not 0 |
+| `Double.MAX_VALUE * 2.0` | `Infinity` | Floating-point overflow |
+| `-1.0 / Double.POSITIVE_INFINITY` | `-0.0` | Underflow to signed zero |
+| `Math.sqrt(-1.0)` | `NaN` | Input outside real domain |
+| `Double.NaN + 3.0` | `NaN` | NaN propagation |
 
-### 7.1. So sánh với chia nguyên cho zero
+### 7.1. Comparison with Integer Division by Zero
 
 ```java
 int denominator = 0;
-// int q = 1 / denominator; // Nếu chạy: ArithmeticException.
+// int q = 1 / denominator; // If run: ArithmeticException.
 
-double floating = 1.0 / denominator; // Infinity, không exception.
+double floating = 1.0 / denominator; // Infinity, no exception.
 ```
 
-Ở dòng `double floating`, vì có toán hạng `1.0` kiểu `double`, Java nâng `denominator` sang `double` rồi thực hiện phép chia dấu phẩy động. Vì thế **một thay đổi nhỏ về kiểu toán hạng có thể thay đổi cả cơ chế lỗi**.
+In `double floating`, because `1.0` has type `double`, Java promotes `denominator` to `double` and performs floating-point division. Hence **a small change in operand type can alter the entire error behavior**.
 
-### 7.2. Phần dư trên số thực
+### 7.2. Remainder on Floating-Point Numbers
 
-Java hỗ trợ toán tử `%` cho `float`/`double`, nhưng nó không trùng với toàn bộ quy tắc exception của `%` số nguyên:
+Java supports the `%` operator for `float`/`double`, yet it does not share the exception rules of integer `%`:
 
 ```java
 double r = 1.0 % 0.0; // NaN
 ```
 
-Trong khi `int r = 1 % 0;` nếu được đánh giá sẽ ném `ArithmeticException`, phép phần dư dấu phẩy động với số chia zero trả NaN. Không áp dụng máy móc suy luận từ phép `%` nguyên sang phép `%` thực.
+While `int r = 1 % 0;` throws `ArithmeticException` if evaluated, floating-point remainder with divisor zero returns NaN. Do not mechanically apply integer `%` reasoning to floating-point `%`.
 
-## 8. Dấu của zero khi làm tròn, in ra và chuyển kiểu
+## 8. Sign of Zero During Rounding, Printing, and Casting
 
-### 8.1. In ra và chuyển sang String
+### 8.1. Printing and Converting to String
 
 ```java
 System.out.println(+0.0); // 0.0
@@ -355,16 +355,16 @@ System.out.println(Double.POSITIVE_INFINITY); // Infinity
 System.out.println(Double.NaN); // NaN
 ```
 
-Cách in này là biểu diễn dạng chuỗi thông thường của Java. Nó giúp quan sát, nhưng **không chứng minh giao thức trao đổi khác** (ví dụ JSON hay database) sẽ giữ nguyên chuỗi hoặc giá trị.
+This output is Java's standard string representation. It helps inspection, yet **does not prove that external exchange protocols** (such as JSON or databases) will preserve the same string or value.
 
-### 8.2. Chuyển từ double sang int/long
+### 8.2. Converting from double to int/long
 
-Khi thu hẹp `double`/`float` sang số nguyên Java, phần thập phân bị bỏ theo quy tắc chuyển kiểu và các giá trị đặc biệt có xử lý riêng:
+When narrowing `double`/`float` to a Java integer, the fractional part is truncated according to conversion rules and special values receive special handling:
 
-- `(int) Double.NaN` là `0`.
-- `(int) Double.POSITIVE_INFINITY` là `Integer.MAX_VALUE`.
-- `(int) Double.NEGATIVE_INFINITY` là `Integer.MIN_VALUE`.
-- `(int) -0.0` là `0`, không còn bit dấu zero.
+- `(int) Double.NaN` is `0`.
+- `(int) Double.POSITIVE_INFINITY` is `Integer.MAX_VALUE`.
+- `(int) Double.NEGATIVE_INFINITY` is `Integer.MIN_VALUE`.
+- `(int) -0.0` is `0`, losing zero's sign bit.
 
 ```java
 int fromNaN = (int) Double.NaN; // 0
@@ -372,9 +372,9 @@ int fromInfinity = (int) Double.POSITIVE_INFINITY; // 2147483647
 int fromNegativeZero = (int) -0.0; // 0
 ```
 
-Những phép cast này **không tự báo lỗi**. Nếu đầu vào của ứng dụng không được phép là NaN/vô cực, kiểm tra `Double.isFinite` trước khi cast; sau đó kiểm tra miền `int`/`long` và yêu cầu làm tròn riêng. Đặc biệt, phép cast đưa NaN thành 0 có thể che mất dữ liệu lỗi và khiến hệ thống xem một giá trị không hợp lệ như giá trị hợp lệ.
+These casts **do not throw errors on their own**. If application inputs must not be NaN/infinity, check `Double.isFinite` before casting; then check `int`/`long` range and explicit rounding requirements. In particular, casting NaN to 0 can hide corrupt data and make the system treat an invalid value as a valid one.
 
-### 8.3. Negative zero có thể xuất hiện sau khi kết quả rất nhỏ
+### 8.3. Negative Zero Can Appear After Very Small Results
 
 ```java
 double x = -Double.MIN_VALUE;
@@ -382,15 +382,15 @@ double y = x / 2.0;
 System.out.println(y); // -0.0
 ```
 
-`Double.MIN_VALUE` là **số double dương nhỏ nhất khác 0**, không phải số âm thấp nhất như `Integer.MIN_VALUE`. Lấy âm của nó rồi chia đôi khiến độ lớn nhỏ hơn mức subnormal nhỏ nhất có thể biểu diễn; kết quả tròn về zero âm.
+`Double.MIN_VALUE` is the **smallest nonzero positive double**, not the lowest negative number like `Integer.MIN_VALUE`. Negating it and dividing by two drops the magnitude below the smallest representable subnormal; the result rounds to negative zero.
 
-Điều này thể hiện vì sao signed zero không chỉ do lập trình viên viết `-0.0` trực tiếp; nó có thể được tạo ra bởi phép toán số thực hợp lệ.
+This shows why signed zero is not merely something a programmer writes explicitly as `-0.0`; it can be produced by valid floating-point operations.
 
-## 9. Truyền dữ liệu và chuẩn hóa: không âm thầm chấp nhận NaN hoặc Infinity
+## 9. Data Transfer and Validation: Do Not Silently Accept NaN or Infinity
 
-### 9.1. Dữ liệu nhập có thể chứa chuỗi đặc biệt
+### 9.1. Input Data Can Contain Special Strings
 
-Một số hàm Java cho phép chuyển chuỗi đặc biệt thành giá trị `double`:
+Some Java methods parse special strings into `double` values:
 
 ```java
 Double.parseDouble("NaN");       // NaN
@@ -398,9 +398,9 @@ Double.parseDouble("Infinity");  // Infinity
 Double.parseDouble("-Infinity"); // -Infinity
 ```
 
-Nếu API đầu vào kỳ vọng “số hữu hạn”, chỉ gọi `Double.parseDouble` chưa đủ. Sau parse phải kiểm tra `Double.isFinite` và các ràng buộc miền.
+If an input API expects a “finite number,” calling `Double.parseDouble` alone is not enough. After parsing, verify `Double.isFinite` and domain constraints.
 
-Ví dụ:
+Example:
 
 ```java
 static double parseFinite(String text) {
@@ -412,36 +412,36 @@ static double parseFinite(String text) {
 }
 ```
 
-Hàm này vẫn có thể nhận `-0.0`, vì nó là giá trị hữu hạn. Nếu ứng dụng cần cấm hoặc chuẩn hóa zero âm, xử lý như một **chính sách bổ sung**. Ngoài ra, `parseDouble` có thể ném `NumberFormatException` khi chuỗi không theo cú pháp số mà nó chấp nhận.
+This method can still accept `-0.0`, because it is a finite value. If the application needs to forbid or normalize negative zero, handle that as an **additional policy**. Furthermore, `parseDouble` can throw `NumberFormatException` when the string does not match accepted numeric syntax.
 
-### 9.2. JSON tiêu chuẩn và API
+### 9.2. Standard JSON and APIs
 
-Trong JSON chuẩn, ký hiệu trần `NaN`, `Infinity` và `-Infinity` **không phải các literal number hợp lệ**. Phản ứng của từng thư viện Java khi serialize giá trị đặc biệt có thể khác nhau: từ chối, thay bằng `null`, mã hóa thành chuỗi, hoặc sử dụng một định dạng mở rộng ngoài JSON chuẩn. **Không giả định** chúng tự truyền đi như number hợp lệ.
+In standard JSON, bare tokens `NaN`, `Infinity`, and `-Infinity` **are not valid number literals**. How different Java libraries react when serializing special values can vary: rejecting, replacing with `null`, encoding as strings, or using a non-standard JSON extension. **Do not assume** they transmit safely as valid numbers.
 
-Nếu NaN/vô cực là trạng thái nghiệp vụ cần bảo toàn, nên thiết kế schema rõ ràng, ví dụ một trường `status` đi cùng giá trị tùy chọn, thay vì lén đưa các chuỗi đặc biệt vào một number field. Nếu chỉ chấp nhận số đo hữu hạn, validate trước khi serialize.
+If NaN/infinity is a domain state that must be preserved, design an explicit schema, such as a `status` field alongside an optional value, instead of sneaking special strings into a numeric field. If only finite measurements are accepted, validate before serializing.
 
-### 9.3. BigDecimal không hỗ trợ NaN và Infinity
+### 9.3. BigDecimal Does Not Support NaN and Infinity
 
-`BigDecimal` biểu diễn số thập phân hữu hạn; nó không có giá trị NaN/vô cực tương ứng:
+`BigDecimal` represents finite decimal numbers; it has no equivalent NaN/infinity values:
 
 ```java
-// BigDecimal.valueOf(Double.NaN) hoặc
+// BigDecimal.valueOf(Double.NaN) or
 // BigDecimal.valueOf(Double.POSITIVE_INFINITY)
-// ném NumberFormatException.
+// throws NumberFormatException.
 ```
 
-Không nên chuyển đổi dữ liệu `double` sang `BigDecimal` rồi kỳ vọng mọi giá trị đặc biệt được bảo toàn; kiểm tra hữu hạn trước. Nếu cần tiền hoặc số thập phân chính xác, ưu tiên tạo `BigDecimal` từ **chuỗi thập phân gốc** và áp dụng validation/rounding nghiệp vụ.
+Do not convert `double` data to `BigDecimal` expecting all special values to survive; validate finiteness first. When money or exact decimals are required, prefer creating `BigDecimal` from **original decimal strings** and applying business validation/rounding.
 
-## 10. Khi nào cần giữ hoặc loại bỏ dấu zero?
+## 10. When Should Zero's Sign Be Preserved or Stripped?
 
-Tùy ứng dụng:
+It depends on the application:
 
-- Với phép đo, mô phỏng và thuật toán IEEE 754, dấu zero có thể mang ý nghĩa của **hướng tiếp cận 0** hoặc dấu của kết quả rất nhỏ. Tự chuẩn hóa `-0.0` thành `+0.0` có thể thay đổi kết quả phép chia kế tiếp.
-- Với giao diện người dùng hoặc báo cáo, `-0.0` có thể gây khó hiểu khi nó chỉ là kết quả làm tròn một giá trị âm rất gần 0. Có thể chọn hiển thị `0.0`, nhưng cần tách **cách hiển thị** khỏi dữ liệu gốc.
-- Với khóa dữ liệu và so sánh đối tượng, `Double.equals` phân biệt `-0.0`/`+0.0`, nên một `Set<Double>` hoặc khóa hash có thể coi chúng khác nhau. Nếu nghiệp vụ muốn chúng cùng một khóa, hãy chuẩn hóa rõ ràng **trước khi tạo khóa**.
-- Với phép thống kê, nên quyết định chính sách với NaN: loại mẫu, đánh dấu dữ liệu thiếu hoặc dừng xử lý. Không cho rằng tổng/trung bình tự bỏ qua NaN.
+- For measurements, simulations, and IEEE 754 algorithms, zero's sign can convey the **direction of approach to 0** or the sign of a tiny result. Arbitrarily normalizing `-0.0` to `+0.0` can alter subsequent division results.
+- For user interfaces or reports, `-0.0` can confuse users when it is merely the rounded result of a negative value very close to 0. You can choose to display `0.0`, while separating **display formatting** from raw underlying data.
+- For data keys and object equality, `Double.equals` distinguishes `-0.0`/`+0.0`, so a `Set<Double>` or hash key can treat them as distinct. If the business logic intends them to share one key, normalize explicitly **before creating the key**.
+- For statistics, establish an explicit policy for NaN: drop samples, mark missing data, or abort processing. Do not assume sums/averages automatically ignore NaN.
 
-Ví dụ hàm chuẩn hóa zero khi và chỉ khi hợp đồng miền chấp nhận việc mất dấu:
+Example zero-normalization helper when and only when the domain contract permits losing the sign:
 
 ```java
 static double normalizeZero(double value) {
@@ -449,11 +449,11 @@ static double normalizeZero(double value) {
 }
 ```
 
-Hàm giữ NaN và vô cực nguyên trạng; nếu mục tiêu còn bao gồm loại bỏ chúng, phải kết hợp `Double.isFinite`. Nó cố ý biến `-0.0` thành `+0.0`. **Không áp dụng mặc định** cho một thuật toán số cần giữ hướng dấu.
+The method leaves NaN and infinity untouched; if the goal also includes excluding them, combine with `Double.isFinite`. It intentionally turns `-0.0` into `+0.0`. **Do not apply by default** to numerical algorithms that must preserve sign direction.
 
-## 11. Chương trình Java 17+ chạy độc lập
+## 11. Standalone Runnable Java 17+ Program
 
-Lưu file **`FloatingSpecialValuesDemo.java`**. Chương trình dùng `println` thay vì định dạng phụ thuộc locale, và tách rõ zero có dấu, vô cực, NaN, so sánh wrapper, kiểm tra dữ liệu, cast và underflow thành zero âm.
+Save the file as **`FloatingSpecialValuesDemo.java`**. The program uses `println` instead of locale-dependent formatting, and cleanly separates signed zero, infinity, NaN, wrapper comparison, validation, casting, and underflow to negative zero.
 
 ```java
 public class FloatingSpecialValuesDemo {
@@ -509,14 +509,14 @@ public class FloatingSpecialValuesDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac FloatingSpecialValuesDemo.java
 java FloatingSpecialValuesDemo
 ```
 
-Stdout dự kiến:
+Expected stdout:
 
 ```text
 zero-equal=true
@@ -544,59 +544,59 @@ cast-infinity=2147483647
 tiny-negative-half=-0.0
 ```
 
-Đọc kết quả theo từng nhóm:
+Reading the output by group:
 
-1. **Hai zero bằng nhau qua `==` nhưng khác bit.** Phép chia cho chúng cho hai vô cực khác dấu; `Math.min` và `Math.max` giữ quy tắc chọn zero có dấu.
-2. **Vô cực và NaN không phải exception.** Cộng hai vô cực trái dấu ra NaN; NaN không bằng chính nó qua `==`.
-3. **Đổi API so sánh đổi semantics.** `Double.compare(-0.0,+0.0)` âm; boxed `Double.equals` phân biệt hai zero nhưng xem hai NaN bằng nhau.
-4. **Kiểm tra dữ liệu phải tường minh.** `Double.isFinite` loại bỏ NaN/vô cực, trong khi cast NaN về `int` trả 0 và có thể che giấu dữ liệu không hợp lệ.
-5. **Số âm rất nhỏ có thể thành zero âm.** Dòng cuối không phải giá trị 0 âm được viết trực tiếp mà là kết quả underflow.
+1. **The two zeros compare equal via `==` yet have different bits.** Dividing by them yields opposite-signed infinities; `Math.min` and `Math.max` preserve signed-zero selection rules.
+2. **Infinity and NaN are not exceptions.** Adding opposite-signed infinities yields NaN; NaN does not equal itself under `==`.
+3. **Changing the comparison API changes semantics.** `Double.compare(-0.0,+0.0)` is negative; boxed `Double.equals` distinguishes the two zeros yet treats two NaNs as equal.
+4. **Data validation must be explicit.** `Double.isFinite` rejects NaN/infinity, whereas casting NaN to `int` returns 0 and can conceal invalid data.
+5. **Very small negative numbers can become negative zero.** The last line is not a literal negative zero written directly, but the result of underflow.
 
-## 12. Kiểm thử và lỗi thường gặp
+## 12. Testing and Common Pitfalls
 
-| Giả định sai | Vì sao nguy hiểm? | Cách kiểm tra/phòng tránh |
+| False Assumption | Why Is It Dangerous? | How to Check / Prevent |
 | --- | --- | --- |
-| “Zero chỉ có một biểu diễn.” | `+0.0` và `-0.0` khác bit và cho phép chia khác dấu | Dùng bit, `Double.compare` hoặc chính sách chuẩn hóa rõ ràng khi cần |
-| “`x == 0.0` nhận biết zero âm.” | Cả `+0.0` và `-0.0` đều bằng 0.0 | Dùng `Double.doubleToRawLongBits` nếu cần dấu zero |
-| “Chia số thực cho 0 sẽ ném ArithmeticException.” | Có thể nhận vô cực hoặc NaN | Validate đầu vào và kết quả hữu hạn |
-| “NaN có thể kiểm tra bằng `x == Double.NaN`.” | `NaN == NaN` luôn false | Dùng `Double.isNaN(x)` |
-| “Nếu `x` không nhỏ hơn hoặc lớn hơn giới hạn thì x hợp lệ.” | So sánh thứ tự với NaN đều false | Kiểm tra `Double.isFinite` và điều kiện miền |
-| “`Double.equals` giống `==`.” | `equals` phân biệt signed zero nhưng coi NaN bằng nhau | Chọn API theo nghĩa cần dùng |
-| “Vô cực chỉ là số hữu hạn rất lớn.” | Vô cực là giá trị đặc biệt | `Double.isInfinite` và `Double.isFinite` |
-| “`Double.MAX_VALUE` là infinity.” | Đây là số hữu hạn dương lớn nhất | Dùng `Double.POSITIVE_INFINITY` khi thực sự cần vô cực |
-| “Cast NaN sang int phải ném lỗi.” | Cast cho kết quả 0 | Kiểm tra tính hữu hạn và miền trước cast |
-| “JSON nào cũng lưu NaN/Infinity như number.” | JSON chuẩn không cho các literal đó | Thiết kế schema/serializer có xác thực |
-| “`Double.MIN_VALUE` là số âm nhỏ nhất.” | Nó là số dương khác 0 nhỏ nhất | Phân biệt với `-Double.MAX_VALUE` hoặc `Double.NEGATIVE_INFINITY` |
-| “Mọi zero có dấu có thể tự do gộp lại.” | Một số phép toán số học cần giữ dấu zero | Chuẩn hóa chỉ khi nghiệp vụ cho phép |
+| “Zero has only one representation.” | `+0.0` and `-0.0` have different bits and produce opposite-signed divisions | Use raw bits, `Double.compare`, or an explicit normalization policy when needed |
+| “`x == 0.0` detects negative zero.” | Both `+0.0` and `-0.0` equal 0.0 | Use `Double.doubleToRawLongBits` if zero's sign matters |
+| “Floating-point division by 0 throws ArithmeticException.” | It can produce infinity or NaN | Validate finite inputs and outputs |
+| “NaN can be checked with `x == Double.NaN`.” | `NaN == NaN` is always false | Use `Double.isNaN(x)` |
+| “If `x` is neither less than nor greater than bounds, x is valid.” | Ordering comparisons with NaN are all false | Check `Double.isFinite` and range conditions |
+| “`Double.equals` is like `==`.” | `equals` distinguishes signed zeros yet treats NaNs as equal | Choose the API matching your intended semantics |
+| “Infinity is just a very large finite number.” | Infinity is a special value | `Double.isInfinite` and `Double.isFinite` |
+| “`Double.MAX_VALUE` is infinity.” | It is the largest positive finite number | Use `Double.POSITIVE_INFINITY` when infinity is truly meant |
+| “Casting NaN to int must throw an error.” | The cast produces 0 | Check finiteness and range before casting |
+| “Any JSON supports NaN/Infinity as numbers.” | Standard JSON forbids those literals | Design schema/serializer with validation |
+| “`Double.MIN_VALUE` is the smallest negative number.” | It is the smallest nonzero positive number | Distinguish from `-Double.MAX_VALUE` or `Double.NEGATIVE_INFINITY` |
+| “All signed zeros can be merged freely.” | Some arithmetic operations rely on preserving zero's sign | Normalize only when the business domain permits |
 
-Các bộ test nên bao gồm `+0.0`, `-0.0`, `Double.MIN_VALUE`, `-Double.MIN_VALUE`, `Double.MAX_VALUE`, cả hai vô cực, NaN và các giá trị hữu hạn âm/dương. Khi thử API so sánh, hãy kiểm chứng cả `==`, `Double.compare` và `Double.equals` vì kết quả không giống nhau ở zero có dấu và NaN.
+Test suites should include `+0.0`, `-0.0`, `Double.MIN_VALUE`, `-Double.MIN_VALUE`, `Double.MAX_VALUE`, both infinities, NaN, and positive/negative finite values. When testing comparison APIs, verify all three of `==`, `Double.compare`, and `Double.equals`, as their results differ on signed zero and NaN.
 
-## 13. Bài tập vận dụng
+## 13. Applied Exercises
 
-**Bài 1 – Dự đoán kết quả.** Không chạy Java, tính `1.0 / +0.0`, `1.0 / -0.0`, `0.0 / 0.0`, `Double.POSITIVE_INFINITY - Double.POSITIVE_INFINITY`. Phép nào ném exception, phép nào trả giá trị đặc biệt?
+**Exercise 1 – Predict Results.** Without running Java, evaluate `1.0 / +0.0`, `1.0 / -0.0`, `0.0 / 0.0`, `Double.POSITIVE_INFINITY - Double.POSITIVE_INFINITY`. Which throws an exception, and which returns a special value?
 
-**Bài 2 – So sánh.** Cho `a = +0.0`, `b = -0.0`, `c = Double.NaN`. Lập bảng cho `a == b`, `Double.compare(a,b)`, `Double.valueOf(a).equals(Double.valueOf(b))`, `c == c`, `Double.isNaN(c)`. Giải thích mục đích của từng phép.
+**Exercise 2 – Comparisons.** Given `a = +0.0`, `b = -0.0`, `c = Double.NaN`, build a table for `a == b`, `Double.compare(a,b)`, `Double.valueOf(a).equals(Double.valueOf(b))`, `c == c`, `Double.isNaN(c)`. Explain the purpose of each.
 
-**Bài 3 – Validation.** Viết phương thức nhận chuỗi nhiệt độ và chỉ cho phép các giá trị hữu hạn trong `[-50,150]`. Thử `"25.5"`, `"NaN"`, `"Infinity"`, `"-Infinity"`, `"abc"`, `"-0.0"`. Chỉ rõ quy tắc ngoại lệ của parser và chính sách riêng với zero âm.
+**Exercise 3 – Validation.** Write a method accepting a temperature string and allowing only finite values in `[-50,150]`. Test `"25.5"`, `"NaN"`, `"Infinity"`, `"-Infinity"`, `"abc"`, `"-0.0"`. Specify the parser's exception rules and explicit policy for negative zero.
 
-**Bài 4 – Bucket và key.** Một ứng dụng dùng `HashSet<Double>` để loại trùng kết quả đo. Dự đoán có bao nhiêu phần tử khi thêm `+0.0`, `-0.0`, `Double.NaN` hai lần. Vì sao `HashSet` không áp dụng trực tiếp `==` của primitive?
+**Exercise 4 – Buckets and Keys.** An application uses `HashSet<Double>` to deduplicate measurement results. Predict how many elements exist after adding `+0.0`, `-0.0`, `Double.NaN` twice. Why does `HashSet` not apply primitive `==` directly?
 
-**Bài 5 – Dòng tính toán.** Phân tích đầu vào khiến một phép tính trả vô cực rồi dẫn tới NaN ở bước sau. Thiết kế cách quan sát và báo lỗi để người dùng không nhìn thấy NaN như một kết quả hợp lệ.
+**Exercise 5 – Computation Pipeline.** Analyze an input causing an operation to return infinity and subsequently produce NaN in the next step. Design detection and error reporting so users never see NaN presented as a valid result.
 
-**Bài 6 – Underflow.** Tính `-Double.MIN_VALUE / 2.0`. Vì sao kết quả in ra là `-0.0` chứ không phải một số âm khác 0? Phép `1.0 / result` sẽ có giá trị gì?
+**Exercise 6 – Underflow.** Compute `-Double.MIN_VALUE / 2.0`. Why does the printed result show `-0.0` rather than a nonzero negative number? What value will `1.0 / result` have?
 
-**Bài 7 – JSON.** Đề xuất cấu trúc phản hồi API cho phép có giá trị đo hữu hạn hoặc trạng thái không tính được mà vẫn hợp lệ JSON chuẩn. Vì sao mã hóa trực tiếp number `NaN` không phải một hợp đồng an toàn?
+**Exercise 7 – JSON.** Propose an API response structure allowing either a finite measurement or an uncomputable state while remaining valid standard JSON. Why is encoding bare number `NaN` not a safe contract?
 
-## 14. Checklist dùng số thực an toàn
+## 14. Checklist for Safe Floating-Point Usage
 
-- Hiểu `float`/`double` có **hai zero có dấu, hai vô cực và NaN**, khác với kiểu nguyên.
-- Nếu miền dữ liệu yêu cầu số hữu hạn, kiểm tra **`Float.isFinite`/`Double.isFinite`** trước phép tính quan trọng, trước khi cast và trước khi serialize.
-- Dùng **`isNaN`** để phát hiện NaN; không dùng `== Double.NaN`.
-- Phân biệt `==`, `Double.compare` và `Double.equals` đối với signed zero và NaN.
-- Không mặc định mọi phép chia cho 0 đều ném exception; phụ thuộc vào **kiểu toán hạng**.
-- Không lạm dụng cast `double → int/long` làm validation: NaN có thể thành 0, vô cực bị chặn về biên.
-- Nếu cần bảo toàn dấu zero, không tự chuẩn hóa; nếu cần gộp hai zero trong khóa dữ liệu, hãy chuẩn hóa có chủ ý.
-- Kiểm tra serializer/API vì **JSON chuẩn không cho NaN và Infinity dưới dạng number**.
-- Với tiền và số thập phân cần chính xác, chọn kiểu và chính sách làm tròn theo nghiệp vụ, không coi NaN/vô cực như những giá trị `BigDecimal` thông thường.
+- Understand that `float`/`double` have **two signed zeros, two infinities, and NaN**, unlike integer types.
+- If the data domain requires finite numbers, check **`Float.isFinite`/`Double.isFinite`** before critical calculations, before casting, and before serializing.
+- Use **`isNaN`** to detect NaN; never use `== Double.NaN`.
+- Distinguish `==`, `Double.compare`, and `Double.equals` regarding signed zero and NaN.
+- Do not assume every division by 0 throws an exception; it depends on **operand types**.
+- Do not abuse `double → int/long` casts as validation: NaN can turn into 0, and infinity clamps to boundaries.
+- If zero's sign must be preserved, do not normalize automatically; if both zeros must merge in data keys, normalize intentionally.
+- Check serializers/APIs because **standard JSON forbids NaN and Infinity as numbers**.
+- For money and exact decimals, choose business-appropriate types and rounding policies rather than treating NaN/infinity like ordinary `BigDecimal` values.
 
-**Kết luận:** `+0.0`, `-0.0`, vô cực và NaN là những **giá trị có hành vi được định nghĩa** trong dấu phẩy động Java, không phải tất cả đều là exception. Tính đúng đắn phụ thuộc vào việc hiểu quy tắc tính toán, lựa chọn phép so sánh phù hợp và xác thực rõ những giá trị được phép đi qua hệ thống.
+**Conclusion:** `+0.0`, `-0.0`, infinity, and NaN are **values with well-defined behavior** in Java floating-point arithmetic, not all exceptions. Correctness depends on understanding evaluation rules, choosing appropriate comparisons, and explicitly validating what values are allowed through the system.

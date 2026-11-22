@@ -1,15 +1,15 @@
-# ResourceBundle.getString, getObject, getStringArray và kiểu tài nguyên
+# ResourceBundle.getString, getObject, getStringArray, and Resource Types
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-Một ứng dụng đa ngôn ngữ không chỉ phải tìm đúng tài nguyên theo `Locale` mà còn phải **đọc dữ liệu đúng kiểu**. Ví dụ, một màn hình có thể cần:
+A multilingual application must not only find the right resource by `Locale`, it must also **read data with the right type**. For example, a screen might need:
 
-- Một câu thông báo: `"Xin chào"` — giá trị kiểu `String`.
-- Nhiều nhãn menu: `["Mở", "Lưu"]` — giá trị kiểu `String[]`.
-- Một tham số cấu hình của giao diện: `3` — giá trị kiểu `Integer`.
-- Một đối tượng khác do ứng dụng định nghĩa, nếu thực sự có lý do sử dụng nó như tài nguyên.
+- A greeting message: `"Xin chào"` — a `String` value.
+- Multiple menu labels: `["Mở", "Lưu"]` — a `String[]` value.
+- A UI configuration parameter: `3` — an `Integer` value.
+- Another application-defined object, if there is a genuine reason to treat it as a localized resource.
 
-Java cung cấp ba phương thức của `java.util.ResourceBundle`:
+Java provides three methods on `java.util.ResourceBundle`:
 
 ```java
 String getString(String key);
@@ -17,73 +17,73 @@ String[] getStringArray(String key);
 Object getObject(String key);
 ```
 
-Cả ba đều tìm theo **khóa `String`** trong bundle hiện tại và hệ thống **parent bundle**. Sự khác nhau quan trọng là kiểu kết quả và khả năng xảy ra lỗi ép kiểu.
+All three search by **`String` key** in the current bundle and the **parent bundle** hierarchy. The crucial difference lies in the return type and the possibility of cast errors.
 
-Bài học này giải thích các kiểu tài nguyên, cách lấy dữ liệu bằng từng phương thức, sự khác nhau giữa `PropertyResourceBundle` và `ListResourceBundle`, cơ chế fallback theo key, ngoại lệ, cũng như cách thiết kế ví dụ chạy được với Java 17+.
+This lesson explains resource types, how to retrieve data with each method, the differences between `PropertyResourceBundle` and `ListResourceBundle`, key fallback, exceptions, and how to design runnable examples with Java 17+.
 
-## 2. ResourceBundle lưu gì và được tìm như thế nào?
+## 2. What Does ResourceBundle Store and How Is It Looked Up?
 
-`ResourceBundle` là lớp trừu tượng đại diện cho tập cặp `key → value` được chọn theo một tên gốc (base name) và một `Locale`. Một gia đình bundle có thể có các thành viên như:
+`ResourceBundle` is an abstract class representing a set of `key → value` pairs selected by a base name and a `Locale`. A bundle family might have members such as:
 
 ```text
-Messages          ← bundle gốc
-Messages_vi       ← bản tiếng Việt
-Messages_en       ← bản tiếng Anh
-Messages_en_US    ← bản tiếng Anh ở Mỹ
+Messages          ← root bundle
+Messages_vi       ← Vietnamese
+Messages_en       ← English
+Messages_en_US    ← US English
 ```
 
-Một lệnh tải điển hình:
+A typical load call:
 
 ```java
 Locale locale = Locale.forLanguageTag("vi-VN");
 ResourceBundle bundle = ResourceBundle.getBundle("Messages", locale);
 ```
 
-Trong ví dụ này Java tìm bundle thích hợp theo candidate locales của `vi-VN`, có thể chọn `Messages_vi` khi không có `Messages_vi_VN`. Nếu một key thiếu trong bundle tiếng Việt, lời gọi đọc tài nguyên có thể tìm ở **parent** như `Messages`. Đây là một phần của cơ chế fallback để tránh phải lặp lại mọi key ở từng bản địa hóa.
+In this example Java searches for an appropriate bundle using candidate locales for `vi-VN`, potentially selecting `Messages_vi` when `Messages_vi_VN` does not exist. If a key is missing in the Vietnamese bundle, the resource lookup can search in **parents** such as `Messages`. This is part of the fallback mechanism to avoid repeating every key in every localization.
 
-Phân biệt hai việc:
+Distinguish two operations:
 
-1. **Chọn bundle** bằng `ResourceBundle.getBundle(baseName, locale)`: có chiến lược ứng viên, default locale và base bundle. Việc ứng viên nào được chọn phụ thuộc bundle hiện có, `Control`/provider và môi trường.
-2. **Tìm key** bằng `getString`, `getStringArray` hoặc `getObject` trên bundle đã chọn: thử bundle hiện tại, rồi parent cho đến khi tìm được giá trị.
+1. **Selecting a bundle** via `ResourceBundle.getBundle(baseName, locale)`: uses candidate strategy, default locale, and base bundle. Which candidate is selected depends on existing bundles, `Control`/providers, and the environment.
+2. **Looking up a key** via `getString`, `getStringArray`, or `getObject` on the selected bundle: checks the current bundle, then parents until a value is found.
 
-Không nên hiểu “thiếu bản dịch” là luôn trả về chuỗi rỗng, `null` hay tiếng Anh. Nếu **không có bundle** phù hợp, `getBundle` có thể ném `MissingResourceException`; nếu **không có key** trong chuỗi bundle/parent, các getter cũng ném `MissingResourceException`.
+Do not assume "missing translation" means returning an empty string, `null`, or English automatically. If **no suitable bundle** exists, `getBundle` can throw `MissingResourceException`; if **no key** exists in the bundle/parent chain, the getters also throw `MissingResourceException`.
 
-### Key và value khác nhau
+### Keys and Values Are Different
 
-- **Key** bắt buộc là `String` và phân biệt chữ hoa/thường: `"welcome"` khác `"Welcome"`.
-- **Value** trong một `ResourceBundle` nói chung có thể là một `Object`; **kiểu giá trị thực tế** phụ thuộc định dạng bundle và cách tạo bundle.
-- Ba getter là phương thức của `ResourceBundle`; chúng **không tự chuyển đổi** số thành chuỗi, chuỗi CSV thành mảng hay đối tượng thành bản dịch.
+- A **key** must be a `String` and is case-sensitive: `"welcome"` differs from `"Welcome"`.
+- A **value** in a `ResourceBundle` in general can be an `Object`; the **actual runtime value type** depends on the bundle format and how the bundle was created.
+- The three getters are methods on `ResourceBundle`; they **do not automatically convert** numbers to strings, CSV strings to arrays, or objects to translations.
 
-## 3. So sánh ba phương thức
+## 3. Comparing the Three Methods
 
-| Phương thức | Kiểu trả về | Thích hợp khi | Điều cần nhớ |
+| Method | Return Type | Appropriate When | What to Remember |
 | --- | --- | --- | --- |
-| `getString("key")` | `String` | Thông điệp, tiêu đề, nhãn, pattern cho formatter | Giá trị thực phải là `String` |
-| `getStringArray("key")` | `String[]` | Một tài nguyên thực sự là mảng chuỗi | Giá trị thực phải là **`String[]`**, không phải chuỗi có dấu phẩy |
-| `getObject("key")` | `Object` | Giá trị có kiểu khác `String`/`String[]` hoặc cần xử lý động | Người gọi phải kiểm tra/ép về kiểu thích hợp |
+| `getString("key")` | `String` | Messages, titles, labels, formatter patterns | Actual value must be a `String` |
+| `getStringArray("key")` | `String[]` | A resource is truly an array of strings | Actual value must be a **`String[]`**, not a comma-separated string |
+| `getObject("key")` | `Object` | Value has a type other than `String`/`String[]` or requires dynamic handling | Caller must check/cast to the right type |
 
-Về bản chất, hai phương thức chuyên biệt tương đương ý tưởng ép kiểu:
+Conceptually, the two specialized methods are equivalent to casting:
 
 ```java
 String text = (String) bundle.getObject("welcome");
 String[] menu = (String[]) bundle.getObject("menu");
 ```
 
-Do đó:
+Therefore:
 
-- `getString("welcome")` thành công nếu giá trị thực là `String`.
-- `getStringArray("menu")` thành công nếu giá trị thực là `String[]`.
-- `getObject("menu")` vẫn trả về một `Object` mà kiểu runtime là `String[]`.
-- `getString("maxAttempts")` không tự gọi `toString()` cho số nguyên; nó ném `ClassCastException`.
-- `getStringArray("menu")` không phân tích `"Home,Settings"` hoặc `"Mở|Lưu"`; chuỗi đó vẫn là `String` và phép cast sang `String[]` thất bại.
+- `getString("welcome")` succeeds if the actual value is a `String`.
+- `getStringArray("menu")` succeeds if the actual value is a `String[]`.
+- `getObject("menu")` still returns an `Object` whose runtime type is `String[]`.
+- `getString("maxAttempts")` does not call `toString()` on an integer; it throws `ClassCastException`.
+- `getStringArray("menu")` does not parse `"Home,Settings"` or `"Mở|Lưu"`; that string remains a `String` and casting to `String[]` fails.
 
-Hai phương thức `getString` và `getStringArray` đều là `final` trên `ResourceBundle`. Khi phát triển bundle tùy chỉnh, bạn triển khai cách truy xuất dữ liệu qua API chuyên dụng của lớp con (ví dụ `getContents` của `ListResourceBundle`), không ghi đè getter này.
+Both `getString` and `getStringArray` are `final` on `ResourceBundle`. When developing custom bundles, implement data retrieval through the subclass's dedicated API (such as `getContents` on `ListResourceBundle`), rather than overriding these getters.
 
-## 4. Kiểu tài nguyên phụ thuộc nguồn bundle
+## 4. Resource Type Depends on the Bundle Source
 
-### 4.1. PropertyResourceBundle: mỗi giá trị là String
+### 4.1. `PropertyResourceBundle`: Every Value Is a `String`
 
-Với bundle dạng file `.properties`, chẳng hạn **`messages_vi.properties`**:
+With a `.properties`-file bundle such as **`messages_vi.properties`**:
 
 ```properties
 welcome=Xin chào
@@ -93,16 +93,16 @@ menu=Mở,Lưu
 maxAttempts=3
 ```
 
-`PropertyResourceBundle` tải các giá trị này thành **`String`**:
+`PropertyResourceBundle` loads all of these values as **`String`**:
 
-| Key | Kiểu Java khi đọc | Giá trị |
+| Key | Java Type When Read | Value |
 | --- | --- | --- |
 | `welcome` | `String` | `"Xin chào"` |
 | `button.save` | `String` | `"Lưu"` |
-| `menu` | `String` | `"Mở,Lưu"`, vẫn là một chuỗi |
-| `maxAttempts` | `String` | `"3"`, không phải `Integer` |
+| `menu` | `String` | `"Mở,Lưu"`, still a single string |
+| `maxAttempts` | `String` | `"3"`, not `Integer` |
 
-Ví dụ:
+Example:
 
 ```java
 ResourceBundle b = ResourceBundle.getBundle(
@@ -114,15 +114,15 @@ String attempts = b.getString("maxAttempts");
 int number = Integer.parseInt(attempts);
 ```
 
-Đoạn trên là **snippet**; cần `import java.util.Locale;` và `import java.util.ResourceBundle;` cùng file properties đặt trên classpath. `Integer.parseInt` là **bước chuyển kiểu tường minh của ứng dụng** và có thể ném `NumberFormatException` nếu dữ liệu không phải số nguyên hợp lệ.
+This is a **snippet**; it requires `import java.util.Locale;` and `import java.util.ResourceBundle;` along with the properties file on the classpath. `Integer.parseInt` is an **explicit type-conversion step in application code** and can throw `NumberFormatException` if the data is not a valid integer.
 
-**Không gọi `b.getStringArray("menu")` trong trường hợp này**: vì `"Mở,Lưu"` là một `String`, lời gọi sẽ ném `ClassCastException`. Nếu muốn tập nhãn từ properties, thường nên lưu thành **nhiều key độc lập** (`menu.open`, `menu.save`) để mỗi chuỗi được dịch đúng ngữ cảnh. Dùng `split(",")` chỉ khi ứng dụng thực sự định nghĩa một định dạng dữ liệu phân tách với quy tắc escape, dấu phẩy trong nội dung và kiểm tra dữ liệu rõ ràng.
+**Do not call `b.getStringArray("menu")` here**: because `"Mở,Lưu"` is a `String`, the call will throw `ClassCastException`. If you need a set of labels from properties files, it is usually better to store them as **separate independent keys** (`menu.open`, `menu.save`) so each string is translated in proper context. Use `split(",")` only when the application explicitly defines a delimited data format with escaping rules, handling for commas inside text, and clear validation.
 
-Trong Java 9+, `ResourceBundle` có thể đọc properties với UTF-8 và cơ chế tương thích; cần bảo đảm encoding thống nhất giữa tệp và công cụ build. Đối với ví dụ Java 17+, hãy lưu file UTF-8.
+In Java 9+, `ResourceBundle` can read properties using UTF-8 with compatibility handling; ensure consistent encoding between files and build tools. For Java 17+ examples, save files as UTF-8.
 
-### 4.2. ListResourceBundle: value có thể là Object
+### 4.2. `ListResourceBundle`: Values Can Be `Object`
 
-`ListResourceBundle` là lớp con của `ResourceBundle`. Mỗi lớp bundle cung cấp các cặp `Object[][]` thông qua `protected Object[][] getContents()`. Key vẫn phải là `String`, còn value có thể là:
+`ListResourceBundle` is a subclass of `ResourceBundle`. Each bundle class provides `Object[][]` pairs via `protected Object[][] getContents()`. Keys must still be `String`, while values can be:
 
 ```java
 {"welcome", "Welcome"}               // String
@@ -130,24 +130,24 @@ Trong Java 9+, `ResourceBundle` có thể đọc properties với UTF-8 và cơ 
 {"maxAttempts", Integer.valueOf(3)}    // Integer
 ```
 
-Không phải mọi object đều hợp lý để bản địa hóa. Phần lớn thông điệp UI chỉ cần `String`; `String[]` có ích cho một tập lựa chọn thực sự thuộc cùng tài nguyên; object có cấu trúc chỉ phù hợp khi nhà phát triển kiểm soát cả định nghĩa, kiểu dữ liệu và vòng đời.
+Not every object makes sense to localize. Most UI messages only need `String`; `String[]` is useful for a set of options genuinely belonging to one resource; structured objects are appropriate only when developers control their definition, data type, and lifecycle.
 
-**Một số điểm thiết kế:**
+**Design considerations:**
 
-- Giá trị trong `ListResourceBundle` có thể là `String[]` thật, do đó `getStringArray` có cơ sở để hoạt động.
-- Chọn đúng getter theo **kiểu runtime**, không theo tên key. Key `"count"` không biến giá trị thành số.
-- Không nên trả object mutable rồi sửa nó từ nhiều luồng. `ResourceBundle` được dùng lại/cached; một mảng hoặc object nhận từ `getObject` có thể được chia sẻ. Nếu cần sửa mảng, hãy sao chép: `bundle.getStringArray("menu").clone()`.
-- Nếu một bản dịch dùng `String` còn một bản khác dùng `String[]` cho **cùng key**, code sẽ chỉ hoạt động với một số locale. Giữ một **hợp đồng kiểu thống nhất** xuyên suốt các bundle trong cùng gia đình.
+- Values in `ListResourceBundle` can be a true `String[]`, giving `getStringArray` a valid basis to work.
+- Choose the getter by **runtime type**, not by key name. A key named `"count"` does not turn its value into a number.
+- Do not return a mutable object and mutate it from multiple threads. `ResourceBundle` instances are reused/cached; an array or object obtained from `getObject` may be shared. If you need to modify an array, copy it: `bundle.getStringArray("menu").clone()`.
+- If one translation uses `String` and another uses `String[]` for the **same key**, code will work only for some locales. Maintain a **consistent type contract** across all bundles in the same family.
 
-### 4.3. Các nguồn tài nguyên mở rộng
+### 4.3. Extensible Resource Sources
 
-`ResourceBundle` còn có thể được cài đặt bằng subclass/provider tùy chỉnh. `getObject` vẫn có kiểu trả về `Object`; kết quả thực tế tùy implementation. Không giả định giá trị có thể tự chuyển đổi sang dạng mong muốn. `PropertyResourceBundle`, `ListResourceBundle` và các bộ nạp riêng nên được dùng theo một quy ước có tài liệu và kiểm thử.
+`ResourceBundle` can also be implemented via custom subclasses/providers. `getObject` still returns `Object`; actual types depend on the implementation. Never assume a value will automatically convert to the desired type. `PropertyResourceBundle`, `ListResourceBundle`, and custom loaders should follow a documented and tested contract.
 
-## 5. Ví dụ Java 17+ chạy được: String, String[] và Integer
+## 5. Runnable Java 17+ Example: `String`, `String[]`, and `Integer`
 
-Tạo ba file Java **cùng một thư mục**, trong **default package** (không có dòng `package`). Không cần file `.properties` trong ví dụ này.
+Create three Java files in the **same directory**, in the **default package** (no `package` declaration). No `.properties` files are needed in this example.
 
-**Tệp `Messages.java`** — tài nguyên mặc định:
+**File `Messages.java`** — default resource:
 
 ```java
 import java.util.ListResourceBundle;
@@ -164,7 +164,7 @@ public class Messages extends ListResourceBundle {
 }
 ```
 
-**Tệp `Messages_vi.java`** — bản tiếng Việt chỉ ghi đè hai key:
+**File `Messages_vi.java`** — Vietnamese translation overriding only two keys:
 
 ```java
 import java.util.ListResourceBundle;
@@ -180,7 +180,7 @@ public class Messages_vi extends ListResourceBundle {
 }
 ```
 
-**Tệp `BundleTypesDemo.java`** — đọc các kiểu tài nguyên và ngoại lệ:
+**File `BundleTypesDemo.java`** — reading resource types and handling exceptions:
 
 ```java
 import java.util.Arrays;
@@ -207,13 +207,13 @@ public class BundleTypesDemo {
         System.out.println("parent key exists: " + bundle.containsKey("maxAttempts"));
 
         try {
-            bundle.getString("maxAttempts"); // Integer, không phải String
+            bundle.getString("maxAttempts"); // Integer, not String
         } catch (ClassCastException e) {
             System.out.println("wrong getString: " + e.getClass().getSimpleName());
         }
 
         try {
-            bundle.getStringArray("welcome"); // String, không phải String[]
+            bundle.getStringArray("welcome"); // String, not String[]
         } catch (ClassCastException e) {
             System.out.println("wrong getStringArray: " + e.getClass().getSimpleName());
         }
@@ -227,14 +227,14 @@ public class BundleTypesDemo {
 }
 ```
 
-Biên dịch/chạy với JDK 17 trở lên:
+Compile/run with JDK 17 or higher:
 
 ```bash
 javac -encoding UTF-8 Messages.java Messages_vi.java BundleTypesDemo.java
 java BundleTypesDemo
 ```
 
-**Stdout kỳ vọng:**
+**Expected stdout:**
 
 ```text
 Bundle locale: vi
@@ -249,35 +249,35 @@ wrong getStringArray: ClassCastException
 missing key: MissingResourceException
 ```
 
-Giải thích:
+Explanation:
 
-1. `getBundle("Messages", vi-VN)` không có lớp `Messages_vi_VN`, nên lấy `Messages_vi`; `getLocale()` của bundle được chọn là `vi`.
-2. `getString("welcome")` đọc chuỗi tiếng Việt từ `Messages_vi`.
-3. `getStringArray("menu")` trả về mảng `String[]` mà lớp `Messages_vi` định nghĩa. `Arrays.toString` chỉ dùng để hiển thị mảng dễ đọc.
-4. `getObject("menu")` trả về object có kiểu runtime `String[]`; từ khóa `instanceof` cho kết quả `true`.
-5. `Messages_vi` không có key `maxAttempts`, nên lời gọi `getObject("maxAttempts")` tra cứu parent `Messages` và nhận `Integer(3)`. `containsKey` cũng xét cả cha.
-6. Hai lời gọi dùng **getter sai kiểu** ném `ClassCastException`, trong khi key không tìm thấy ném `MissingResourceException`. Các ngoại lệ được bắt chỉ để minh họa, không được lờ đi tất cả lỗi này trong ứng dụng thật.
+1. `getBundle("Messages", vi-VN)` finds no `Messages_vi_VN` class, so it loads `Messages_vi`; the selected bundle's `getLocale()` is `vi`.
+2. `getString("welcome")` reads the Vietnamese string from `Messages_vi`.
+3. `getStringArray("menu")` returns the `String[]` array defined by `Messages_vi`. `Arrays.toString` is only used to print the array readably.
+4. `getObject("menu")` returns an object whose runtime type is `String[]`; the `instanceof` check yields `true`.
+5. `Messages_vi` lacks key `maxAttempts`, so `getObject("maxAttempts")` checks parent `Messages` and receives `Integer(3)`. `containsKey` checks the parent as well.
+6. The two calls using the **wrong getter type** throw `ClassCastException`, while the missing key throws `MissingResourceException`. The exceptions are caught solely for demonstration; do not swallow all such errors in real applications.
 
-**Lưu ý khi chạy:** ba lớp công khai phải được lưu đúng tên tệp và cùng classpath. Tránh có sẵn `Messages.properties` hoặc `Messages_vi.properties` cùng tên trong thư mục vì chúng có thể làm khó việc giải thích bundle nào được chọn nếu môi trường không giống ví dụ. Các tệp đều dùng UTF-8 để chữ tiếng Việt hiển thị đúng; console phải dùng mã hóa phù hợp.
+**Run note:** the three public classes must be saved with matching filenames and on the same classpath. Avoid having `Messages.properties` or `Messages_vi.properties` with the same name in the directory, as they can complicate explaining which bundle gets selected if the environment differs from the example. All files use UTF-8 so Vietnamese characters display properly; the console must use a compatible encoding.
 
-## 6. Các ngoại lệ và cách xử lý đúng
+## 6. Exceptions and Proper Handling
 
-| Tình huống | Ngoại lệ/kết quả | Lý do |
+| Situation | Exception / Result | Reason |
 | --- | --- | --- |
-| `getString("unknown")`, không có key tại bundle hay parent | `MissingResourceException` | Không tìm thấy key |
-| `getObject("unknown")`, không có key tại bundle hay parent | `MissingResourceException` | `getObject` không trả `null` khi không tìm ra key |
-| `getStringArray("unknown")` | `MissingResourceException` | Thiếu key, trước khi kiểm tra kiểu |
-| `getString("maxAttempts")` khi value là `Integer` | `ClassCastException` | Không thể ép thành `String` |
-| `getStringArray("welcome")` khi value là `String` | `ClassCastException` | Không thể ép thành `String[]` |
-| `getStringArray("menu")` khi value là `Object[]` chứa các chuỗi | `ClassCastException` | Kiểu mảng runtime là `Object[]`, không phải `String[]` |
-| `getString(null)`, `getObject(null)` hoặc `getStringArray(null)` | `NullPointerException` | Key không được `null` |
-| `getBundle("missingFamily", locale)` mà không có bundle hợp lệ | `MissingResourceException` | Chưa có một bundle nào để đọc key |
+| `getString("unknown")`, key absent in bundle and parent | `MissingResourceException` | Key not found |
+| `getObject("unknown")`, key absent in bundle and parent | `MissingResourceException` | `getObject` does not return `null` when a key is missing |
+| `getStringArray("unknown")` | `MissingResourceException` | Missing key, checked before type check |
+| `getString("maxAttempts")` when value is `Integer` | `ClassCastException` | Cannot cast to `String` |
+| `getStringArray("welcome")` when value is `String` | `ClassCastException` | Cannot cast to `String[]` |
+| `getStringArray("menu")` when value is `Object[]` of strings | `ClassCastException` | Runtime array type is `Object[]`, not `String[]` |
+| `getString(null)`, `getObject(null)`, or `getStringArray(null)` | `NullPointerException` | Key cannot be `null` |
+| `getBundle("missingFamily", locale)` with no valid bundle | `MissingResourceException` | No bundle available from which to read keys |
 
-**Đừng bắt `ClassCastException` để trả một thông điệp rỗng rồi che đi lỗi tài nguyên.** Với bundle do ứng dụng sở hữu, đây thường là lỗi cấu hình hoặc hợp đồng kiểu bị phá vỡ, nên cần phát hiện sớm trong kiểm thử và ghi log có tên base bundle, key, locale và kiểu mong đợi.
+**Do not catch `ClassCastException` to return an empty message and hide resource bugs.** For application-owned bundles, this is usually a configuration bug or broken type contract, so it should be caught early in tests and logged with base bundle name, key, locale, and expected type.
 
-Với một key **tùy chọn thật sự**, có thể kiểm tra `containsKey` trước, sau đó xử lý default do ứng dụng định nghĩa. Nhưng `containsKey` không kiểm tra kiểu; cùng một key có thể tồn tại nhưng mang kiểu sai.
+For a **truly optional** key, you can check `containsKey` first and then apply an application-defined default. However, `containsKey` does not check types; a key may exist with the wrong type.
 
-Ví dụ khi chỉ dùng `getObject` và không kiểm soát kiểu value:
+Example when using only `getObject` without guaranteed value types:
 
 ```java
 Object item = bundle.getObject("menu");
@@ -291,142 +291,142 @@ if (item instanceof String[] items) {
 }
 ```
 
-Đoạn này là **snippet** dùng biến `bundle` đã tạo từ trước; `instanceof String[] items` là pattern matching có trong Java 17. Không ép kiểu từ `Object` mà chưa kiểm tra khi dữ liệu có thể được thay thế bởi provider khác.
+This is a **snippet** using an already-created `bundle` variable; `instanceof String[] items` is pattern matching available in Java 17. Do not cast directly from `Object` without checking when data could be supplied by another provider.
 
-## 7. Kiểu tài nguyên: lỗi thường xảy ra khi chuyển từ .properties sang Java
+## 7. Resource Types: Common Pitfalls When Migrating Between `.properties` and Java
 
-Hãy so sánh hai giá trị tưởng giống nhau:
+Compare two values that look similar:
 
-**Trong `labels.properties`:**
+**In `labels.properties`:**
 
 ```properties
 choices=Yes,No
 ```
 
-**Trong `ListResourceBundle`:**
+**In `ListResourceBundle`:**
 
 ```java
 {"choices", new String[] {"Yes", "No"}}
 ```
 
-Cả hai có thể được hiển thị như “Yes,No”, nhưng kiểu Java hoàn toàn khác nhau:
+Both might be rendered like "Yes,No", yet their Java types are completely different:
 
-| Nguồn | `getObject("choices")` | `getString("choices")` | `getStringArray("choices")` |
+| Source | `getObject("choices")` | `getString("choices")` | `getStringArray("choices")` |
 | --- | --- | --- | --- |
-| `PropertyResourceBundle` | `String` | Thành công | `ClassCastException` |
-| `ListResourceBundle` có `new String[]` | `String[]` | `ClassCastException` | Thành công |
-| `ListResourceBundle` có `new Object[] {"Yes", "No"}` | `Object[]` | `ClassCastException` | `ClassCastException` |
+| `PropertyResourceBundle` | `String` | Succeeds | `ClassCastException` |
+| `ListResourceBundle` with `new String[]` | `String[]` | `ClassCastException` | Succeeds |
+| `ListResourceBundle` with `new Object[] {"Yes", "No"}` | `Object[]` | `ClassCastException` | `ClassCastException` |
 
-Vì vậy, **đổi hình thức lưu tài nguyên** từ file properties sang Java class có thể vô tình đổi hợp đồng kiểu. Khi refactor, cần kiểm thử các key và getter mà các caller đang dùng. Không suy ra kiểu từ cách một giá trị được in ra màn hình.
+Therefore, **changing the storage format** from properties files to Java classes can accidentally break the type contract. When refactoring, test all keys and getters used by callers. Never infer a type from how a value prints on screen.
 
-Nếu chỉ cần hiển thị hai nhãn độc lập, thiết kế thường rõ ràng hơn là:
+If you just need to display two independent labels, a cleaner design is:
 
 ```properties
 choice.yes=Yes
 choice.no=No
 ```
 
-Sau đó gọi `getString("choice.yes")` và `getString("choice.no")`. Đối với danh sách dài có nội dung thay đổi giữa các locale, cân nhắc liệu thứ tự, số lượng mục và ID của lựa chọn có thuộc nghiệp vụ hay không; việc lấy các nhãn hiển thị từ bản dịch phải giữ nguyên **định danh nghiệp vụ** khi người dùng chọn một mục.
+Then call `getString("choice.yes")` and `getString("choice.no")`. For long lists whose contents vary across locales, consider whether order, item count, and option IDs are business data; retrieving display labels from translations should preserve **business identifiers** when a user selects an option.
 
-## 8. Fallback cho key không đồng nghĩa với fallback khi sai kiểu
+## 8. Key Fallback Does Not Mean Fallback on Type Mismatch
 
-Giả sử parent `Messages` chứa:
+Suppose parent `Messages` contains:
 
 ```java
 {"retryLabel", "Retry"}
 ```
 
-Còn bản `Messages_vi` chứa:
+While `Messages_vi` contains:
 
 ```java
 {"retryLabel", new String[] {"Thử lại"}}
 ```
 
-Lời gọi `bundle.getString("retryLabel")` trên bản tiếng Việt sẽ tìm thấy key ở bundle con, rồi **ép kiểu giá trị con** thành `String`. Vì key đã có giá trị, phương thức **không tự bỏ qua nó để dùng `"Retry"` của parent**. Kết quả là `ClassCastException`. Fallback theo key giải quyết **key vắng mặt**, không giải quyết **value sai kiểu**.
+Calling `bundle.getString("retryLabel")` on the Vietnamese bundle finds the key in the child bundle and then **casts the child's value** to `String`. Because the key already has a value there, the method **does not skip it to fall back to `"Retry"` in the parent**. The result is `ClassCastException`. Key fallback resolves **absent keys**, not **wrongly typed values**.
 
-Do đó, cách quản lý hợp đồng giữa các ngôn ngữ là:
+Thus, to manage contracts across languages:
 
-1. Với một key, xác định **kiểu giá trị thống nhất** cho toàn bộ locale.
-2. Dùng quy ước tên rõ nghĩa, ví dụ `message.login.success` (chuỗi) và `navigation.labels` (mảng nếu thực sự cần).
-3. Viết kiểm thử truy cập tất cả key thiết yếu trong từng locale hỗ trợ, thay vì chỉ kiểm tra bundle tải được.
-4. Nếu cho phép key thiếu, xác định rõ nó được kế thừa từ parent nào và kiểm tra tiếng nói/câu chữ sau fallback có còn phù hợp ngữ cảnh hay không.
-5. Khi cần một bộ tài nguyên mạnh về kiểu, cân nhắc wrapper với phương thức như `requireText(key)` và `requireTextArray(key)` để thông báo lỗi kèm tên key và locale.
+1. For any key, define a **consistent value type** across all locales.
+2. Use clear naming conventions, such as `message.login.success` (string) and `navigation.labels` (array if truly needed).
+3. Write tests accessing all essential keys in every supported locale, rather than only testing that the bundle loads.
+4. If missing keys are permitted, clearly identify which parent they inherit from and verify that the post-fallback wording still fits the context.
+5. When strong typing is needed for a resource set, consider a wrapper with methods like `requireText(key)` and `requireTextArray(key)` that include key name and locale in error messages.
 
-Lưu ý `getObject` là `final` trên `ResourceBundle` và thực hiện tra cứu qua `handleGetObject` của các lớp con, rồi parent nếu cần. Nó không tự sửa lỗi kiểu và không có cơ chế tự động ép từ `Integer` sang `String`.
+Note that `getObject` is `final` on `ResourceBundle` and performs lookup via `handleGetObject` on subclasses, then parents if needed. It does not auto-fix type errors and does not automatically coerce `Integer` to `String`.
 
-## 9. ResourceBundle và cách tách dữ liệu khỏi ứng dụng
+## 9. `ResourceBundle` and Separating Data from the Application
 
-Trong ứng dụng lớn, nên chọn loại tài nguyên theo mục đích:
+In large applications, choose resource types by purpose:
 
-- **Thông điệp giao diện:** dùng `String` và `getString`; nếu có biến động `{0}`, `{1}`, xử lý thêm bằng `MessageFormat` với locale tương ứng. Không ghép từng đoạn thông điệp theo thứ tự tiếng Anh.
-- **Nhóm nhãn cố định:** có thể dùng `String[]` và `getStringArray` trong `ListResourceBundle`, nhưng phải giữ thứ tự/kiểu trên mọi locale; thường nhiều key có tên rõ nghĩa dễ bảo trì hơn.
-- **Dữ liệu có cấu trúc hoặc cấu hình nghiệp vụ:** nên đặt ở hệ thống cấu hình/schema phù hợp nếu không thực sự là nội dung bản địa hóa. `getObject` có thể đọc object nhưng không tự kiểm tra schema và không thay thế cơ chế kiểm tra hợp lệ.
-- **Quy tắc quốc tế hóa tiêu chuẩn:** ngày, số, tiền tệ nên đi qua formatter chuyên dụng (`DateTimeFormatter`, `NumberFormat`), không hardcode các quy tắc format tùy vùng trong bundle.
+- **UI messages:** use `String` and `getString`; if dynamic arguments `{0}`, `{1}` are present, process them with `MessageFormat` using the appropriate locale. Do not concatenate message fragments in English word order.
+- **Fixed label groups:** `String[]` and `getStringArray` in `ListResourceBundle` can be used, provided order and type stay identical across all locales; multiple clearly named keys are often easier to maintain.
+- **Structured data or business configuration:** place in a proper configuration/schema system if it is not truly localized content. `getObject` can read objects, but it performs no schema validation and does not replace proper validation logic.
+- **Standard internationalization rules:** dates, numbers, and currencies should go through dedicated formatters (`DateTimeFormatter`, `NumberFormat`) rather than hardcoding region formatting rules inside bundles.
 
-Không đặt tham chiếu đến dữ liệu nhạy cảm, token hoặc secret trong tài nguyên dịch. Giá trị tài nguyên có thể được đóng gói, kiểm tra hoặc phục vụ tại nhiều nơi; quyền truy cập vào chuỗi dịch không phải biện pháp bảo vệ bí mật.
+Do not place references to sensitive data, tokens, or secrets in translation resources. Resource values may be packaged, inspected, or served in many places; access to translation strings is not a secret-protection mechanism.
 
-### Vấn đề hiệu năng và vòng đời
+### Performance and Lifecycle Considerations
 
-`ResourceBundle.getBundle` có cơ chế cache. Không cần tải lại theo từng key; lấy bundle theo locale rồi tái sử dụng trong phạm vi xử lý phù hợp. Với `ListResourceBundle`, object/mảng được lưu trong bundle có thể được chia sẻ. `getStringArray` không hứa tạo mảng mới cho mỗi lời gọi; không sửa nội dung mảng được trả về trừ khi đã sao chép. Nếu có cập nhật nóng tài nguyên trong thời gian chạy, đó là bài toán vòng đời/cache riêng, không thể giải quyết bằng việc đổi `getString` sang `getObject`.
+`ResourceBundle.getBundle` uses caching. There is no need to reload per key; obtain the bundle for a locale and reuse it within the appropriate processing scope. With `ListResourceBundle`, objects/arrays stored in the bundle may be shared. `getStringArray` does not promise a fresh array per call; do not mutate the returned array unless you have cloned it. Hot-updating resources at runtime is a separate lifecycle/caching problem and cannot be solved by switching from `getString` to `getObject`.
 
-Đừng gọi `Locale.setDefault(...)` theo từng request để lựa chọn bundle. Trong dịch vụ nhiều luồng, nên truyền `Locale` của request đến `getBundle` và formatter; thay đổi default JVM có thể ảnh hưởng xử lý đồng thời.
+Do not call `Locale.setDefault(...)` per request to pick a bundle. In multithreaded services, pass the request's `Locale` to `getBundle` and formatters; mutating the JVM default affects concurrent processing.
 
-## 10. Checklist kiểm thử
+## 10. Testing Checklist
 
-Kiểm thử theo nhiều locale và nhiều loại nguồn, đặc biệt khi di chuyển từ `.properties` sang `ListResourceBundle`:
+Test across multiple locales and source types, especially when migrating between `.properties` and `ListResourceBundle`:
 
-| Kiểm tra | Kết quả cần đúng |
+| Check | Expected Outcome |
 | --- | --- |
-| Key kiểu `String` trong locale cụ thể | `getString` trả đúng nội dung đã dịch |
-| Key kiểu `String[]` | `getStringArray` giữ đúng số phần tử và thứ tự |
-| Key kiểu `Integer` hoặc object khác | `getObject` trả kiểu runtime mong đợi; caller ép kiểu an toàn |
-| Key chỉ tồn tại ở bundle gốc | Có thể truy cập qua parent; kết quả vẫn đúng kiểu |
-| Key có ở bundle con nhưng sai kiểu | `ClassCastException`, không âm thầm fallback sang parent |
-| Key vắng mặt hoàn toàn | `MissingResourceException`, xử lý theo chính sách của sản phẩm |
-| Key là `null` | `NullPointerException` |
-| File `.properties` chứa `"a,b"` | Vẫn là `String`, không phải `String[]` |
-| Hai locale khai báo cùng key khác kiểu | Phát hiện bằng test hợp đồng tài nguyên |
-| Bundle chứa mảng/object mutable | Người dùng API không sửa trạng thái dùng chung |
-| Resource file dùng tiếng Việt | Dấu Unicode hiển thị chính xác, không bị lỗi encoding |
-| Bản dịch fallback từ parent | Câu chữ sau fallback vẫn phù hợp ngôn ngữ và ngữ cảnh |
+| `String` key in a specific locale | `getString` returns the exact translated text |
+| `String[]` key | `getStringArray` preserves element count and order |
+| `Integer` or other object key | `getObject` returns expected runtime type; caller casts safely |
+| Key present only in root bundle | Accessible via parent; value still has right type |
+| Key present in child bundle with wrong type | `ClassCastException`, no silent fallback to parent |
+| Key completely absent | `MissingResourceException`, handled per product policy |
+| `null` key | `NullPointerException` |
+| `.properties` file containing `"a,b"` | Remains a `String`, not `String[]` |
+| Two locales declare same key with different types | Caught by resource contract tests |
+| Bundle contains mutable array/object | API consumers do not mutate shared state |
+| Vietnamese resource files | Unicode diacritics render accurately without encoding corruption |
+| Translation inherited from parent | Wording after fallback remains contextually and linguistically appropriate |
 
-Cần phân biệt kiểm thử API với kiểm thử nội dung: một bundle có đủ key và đúng kiểu vẫn có thể chứa văn bản sai ngữ cảnh, sai số nhiều hoặc cách dịch khó hiểu. Các lỗi đó phải được kiểm tra bằng review ngôn ngữ và UI thực tế.
+Distinguish API testing from content testing: a bundle with complete keys and right types can still hold contextually wrong text, wrong plurals, or awkward phrasing. Those issues must be caught via linguistic review and actual UI inspection.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**Câu 1.** `getString("count")` có trả về `"3"` nếu value của key `count` trong `ListResourceBundle` là `Integer.valueOf(3)` không?
+**Question 1.** Does `getString("count")` return `"3"` if the value of key `count` in `ListResourceBundle` is `Integer.valueOf(3)`?
 
-**Đáp án:** Không. `getString` cần giá trị `String`; số nguyên sẽ gây `ClassCastException`. Muốn định dạng con số hãy lấy bằng `getObject`, kiểm tra kiểu và format theo yêu cầu.
+**Answer:** No. `getString` requires a `String` value; an integer triggers `ClassCastException`. To format a number, retrieve it with `getObject`, verify its type, and format as required.
 
-**Câu 2.** File `messages.properties` có dòng `colors=red,green,blue`. Gọi `getStringArray("colors")` sẽ trả ba phần tử?
+**Question 2.** A `messages.properties` file contains `colors=red,green,blue`. Will calling `getStringArray("colors")` return three elements?
 
-**Đáp án:** Không. `PropertyResourceBundle` đọc giá trị thành một `String`. `getStringArray` yêu cầu runtime type `String[]` nên ném `ClassCastException`.
+**Answer:** No. `PropertyResourceBundle` reads the value as a single `String`. `getStringArray` requires runtime type `String[]`, so it throws `ClassCastException`.
 
-**Câu 3.** Vì sao bản dịch tiếng Việt có thể đọc key `maxAttempts` chỉ khai báo ở bundle gốc?
+**Question 3.** Why can the Vietnamese translation read key `maxAttempts` declared only in the root bundle?
 
-**Đáp án:** Khi tìm key ở bundle con không thành công, `ResourceBundle.getObject` truy vấn parent. Cả `getString` và `getStringArray` cũng hưởng cơ chế đó vì chúng đọc dữ liệu thông qua `getObject`.
+**Answer:** When looking up a key in the child bundle does not find it, `ResourceBundle.getObject` queries the parent. Both `getString` and `getStringArray` benefit from this mechanism because they read through `getObject`.
 
-**Câu 4.** Parent có `String` cho một key, bundle con chứa cùng key nhưng lại khai báo `String[]`. `getString` có tự chuyển lên parent không?
+**Question 4.** The parent has a `String` for a key, while the child bundle declares the same key as `String[]`. Does `getString` automatically fall back to the parent?
 
-**Đáp án:** Không. Key đã tồn tại tại bundle con; phép ép kiểu thất bại với `ClassCastException`. Chỉ key vắng mặt mới dẫn đến tìm parent.
+**Answer:** No. The key already exists in the child bundle; the cast fails with `ClassCastException`. Only absent keys trigger parent lookup.
 
-**Câu 5.** Khi một key không tồn tại ở cả bundle và parent, `getObject` trả gì?
+**Question 5.** When a key does not exist in either the bundle or its parents, what does `getObject` return?
 
-**Đáp án:** Ném `MissingResourceException`, không trả `null`.
+**Answer:** It throws `MissingResourceException`, rather than returning `null`.
 
-**Câu 6.** Nếu cần chỉnh sửa danh sách nhãn lấy từ `getStringArray`, làm thế nào an toàn?
+**Question 6.** If you need to modify a list of labels obtained from `getStringArray`, how do you do so safely?
 
-**Đáp án:** Sao chép trước bằng `clone()` hoặc `Arrays.copyOf(...)`; tránh thay đổi trực tiếp mảng do bundle giữ vì nó có thể được cache và dùng chung.
+**Answer:** Copy it first using `clone()` or `Arrays.copyOf(...)`; avoid mutating the array held by the bundle directly because it may be cached and shared.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-- `getString` lấy **String**, `getStringArray` lấy **String[]**, `getObject` lấy **Object**. Chọn getter theo **kiểu value thực tế**.
-- `PropertyResourceBundle` thông thường lưu mọi value dưới dạng chuỗi; `ListResourceBundle` cho phép cung cấp mảng và các object Java.
-- **Thiếu key** gây `MissingResourceException`, **sai kiểu** gây `ClassCastException`, và **key null** gây `NullPointerException`.
-- Parent bundle hỗ trợ fallback khi **không có key**, không giải quyết key đã tồn tại với kiểu sai.
-- Hợp đồng kiểu phải nhất quán giữa các locale; kiểm thử fallback, kiểu dữ liệu, Unicode và trường hợp thiếu key trước khi phát hành.
+- `getString` retrieves **`String`**, `getStringArray` retrieves **`String[]`**, and `getObject` retrieves **`Object`**. Choose the getter matching the **actual value type**.
+- `PropertyResourceBundle` normally stores all values as strings; `ListResourceBundle` allows providing arrays and Java objects.
+- **Missing keys** cause `MissingResourceException`, **wrong types** cause `ClassCastException`, and **`null` keys** cause `NullPointerException`.
+- Parent bundles support fallback when a **key is absent**, not when an existing key has the wrong type.
+- The type contract must stay consistent across locales; test fallback, data types, Unicode, and missing-key behavior before release.
 
-Tài liệu tham khảo chính thức:
+Official documentation references:
 
 - [Java SE 21 — ResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ResourceBundle.html)
 - [Java SE 21 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/PropertyResourceBundle.html)

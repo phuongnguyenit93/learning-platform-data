@@ -1,127 +1,127 @@
-# Giá trị `null` với field tham chiếu và primitive trong Java Reflection
+# `null` values with reference and primitive fields in Java Reflection
 
-Khi thao tác với `java.lang.reflect.Field`, cần phân biệt **kiểu khai báo của field**, **giá trị thực tế**, và **đối tượng chứa field**. Một field có kiểu tham chiếu có thể chứa `null`; field có kiểu nguyên thủy (*primitive*) không thể chứa `null`. Tuy nhiên, cả hai đều được đọc qua `Field.get(Object)`, vốn có **kiểu trả về `Object`**. Chính điều đó dễ gây hiểu nhầm khi viết mapper, serializer hoặc framework Reflection.
+When working with `java.lang.reflect.Field`, you must distinguish **the field's declared type**, **its actual value**, and **the object containing the field**. A reference-type field can hold `null`; a primitive-type field cannot hold `null`. However, both are read via `Field.get(Object)`, which has **return type `Object`**. That very fact easily causes misunderstandings when writing mappers, serializers, or Reflection frameworks.
 
-Bài học giải thích vì sao `Field.get()` của primitive trả về wrapper thay vì `null`, vì sao `Field.set(..., null)` thất bại trên primitive, sự khác nhau giữa `Integer` và `int`, cách Reflection chuyển đổi kiểu số, và ý nghĩa hoàn toàn khác của tham số receiver `null`.
+This lesson explains why `Field.get()` on a primitive returns a wrapper instead of `null`, why `Field.set(..., null)` fails on a primitive, the difference between `Integer` and `int`, how Reflection converts numeric types, and the completely different meaning of a `null` receiver parameter.
 
-## 1. Trước tiên: `null` là giá trị của tham chiếu, không phải của primitive
+## 1. First: `null` is a reference value, not a primitive value
 
-Java có tám kiểu primitive: `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double`. Primitive lưu giá trị thuộc miền kiểu của nó; **không có trạng thái `null`**. Ngược lại, field kiểu tham chiếu như `String`, `Integer`, `List<String>` hoặc kiểu ứng dụng có thể chứa một object reference hoặc `null`.
+Java has eight primitive types: `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double`. A primitive stores a value within its type's range; **there is no `null` state**. Conversely, a reference-type field such as `String`, `Integer`, `List<String>`, or an application type can hold an object reference or `null`.
 
-| Field khai báo | Kiểu field thực tế | Giá trị mặc định trước khi gán tường minh | Có thể gán `null`? |
+| Declared field | Actual field type | Default value before explicit assignment | Can `null` be assigned? |
 |---|---|---|---|
-| `String name;` | Tham chiếu `String` | `null` | Có |
-| `Integer age;` | Tham chiếu wrapper `Integer` | `null` | Có |
-| `int age;` | Primitive `int` | `0` | Không |
-| `boolean enabled;` | Primitive `boolean` | `false` | Không |
-| `char letter;` | Primitive `char` | `'\\u0000'` | Không |
-| `double amount;` | Primitive `double` | `0.0` | Không |
+| `String name;` | `String` reference | `null` | Yes |
+| `Integer age;` | `Integer` wrapper reference | `null` | Yes |
+| `int age;` | Primitive `int` | `0` | No |
+| `boolean enabled;` | Primitive `boolean` | `false` | No |
+| `char letter;` | Primitive `char` | `'\\u0000'` | No |
+| `double amount;` | Primitive `double` | `0.0` | No |
 
-Trong ví dụ trên, giá trị mặc định áp dụng cho **instance field** của object đã được cấp phát hoặc **static field** khi chuẩn bị class theo quy tắc của JVM; **biến cục bộ** không được tự động gán giá trị mặc định để có thể sử dụng ngay.
+In the example above, default values apply to **instance fields** of an allocated object or **static fields** when preparing a class per JVM rules; **local variables** are not automatically assigned default values for immediate use.
 
-Đừng nhầm hai khai báo:
+Do not confuse these two declarations:
 
 ```java
-Integer quantity = null; // hợp lệ: Integer là kiểu tham chiếu
-int count = 0;           // hợp lệ: int là primitive
-// int missing = null;   // lỗi biên dịch: null không chuyển thành int
+Integer quantity = null; // valid: Integer is a reference type
+int count = 0;           // valid: int is primitive
+// int missing = null;   // compile error: null cannot convert to int
 ```
 
-`Integer` là một lớp wrapper của `int`, nhưng `Integer.class.isPrimitive()` trả `false`. Một wrapper `Integer` có thể `null`; một primitive `int` thì không.
+`Integer` is a wrapper class for `int`, yet `Integer.class.isPrimitive()` returns `false`. An `Integer` wrapper can be `null`; a primitive `int` cannot.
 
-## 2. Đọc bằng `Field.get`: primitive được boxing
+## 2. Reading with `Field.get`: primitives are boxed
 
-Chữ ký quan trọng:
+Important signature:
 
 ```java
 Object value = field.get(receiver);
 ```
 
-`Field.get(Object obj)` trả về `Object`. Nếu field là kiểu tham chiếu, kết quả chính là giá trị tham chiếu mà field đang giữ, **có thể `null`**. Nếu field là primitive, Reflection **boxing** giá trị thành wrapper tương ứng trước khi trả về.
+`Field.get(Object obj)` returns `Object`. If the field is a reference type, the result is the reference value the field currently holds, **which may be `null`**. If the field is primitive, Reflection **boxes** the value into the corresponding wrapper before returning.
 
-| Kiểu field được khai báo | Giá trị trong field | `Field.get(...)` trả về |
+| Declared field type | Value in field | `Field.get(...)` returns |
 |---|---|---|
 | `String` | `null` | `null` |
 | `Integer` | `null` | `null` |
-| `Integer` | `Integer.valueOf(5)` | Một `Integer` có giá trị `5` |
-| `int` | `5` | Một `Integer` có giá trị `5`; không phải `null` |
-| `boolean` | `false` | Một `Boolean` có giá trị `false` |
-| `char` | `'A'` | Một `Character` có giá trị `'A'` |
+| `Integer` | `Integer.valueOf(5)` | An `Integer` with value `5` |
+| `int` | `5` | An `Integer` with value `5`; not `null` |
+| `boolean` | `false` | A `Boolean` with value `false` |
+| `char` | `'A'` | A `Character` with value `'A'` |
 
-Vì vậy, cách kiểm tra `if (field.get(obj) == null)` có thể phát hiện một **tham chiếu null**, nhưng **không thể** phát hiện trạng thái “chưa gán” trên primitive. Nếu primitive mang giá trị `0`, `false` hoặc `'\\u0000'`, đó vẫn là **giá trị hợp lệ** của field.
+Therefore, checking `if (field.get(obj) == null)` can detect a **null reference**, but **cannot** detect an "unassigned" state on a primitive. If a primitive holds `0`, `false`, or `'\\u0000'`, that is still a **valid value** of the field.
 
-Đặc biệt, Java Reflection **không** tự coi `0` hay `false` là `null`. Nếu một hệ thống muốn thể hiện trạng thái “không có dữ liệu”, nó cần quy ước riêng, wrapper nullable, kiểu `Optional` phù hợp hoặc metadata khác; không thể dựa vào primitive để chứa `null`.
+In particular, Java Reflection **does not** treat `0` or `false` as `null`. If a system wants to represent a "no data" state, it needs its own convention, a nullable wrapper, an appropriate `Optional` type, or other metadata; it cannot rely on a primitive to hold `null`.
 
-### Đọc kiểu nguyên thủy với các getter chuyên biệt
+### Reading primitive types with specialized getters
 
-`Field` có các phương thức `getBoolean`, `getByte`, `getShort`, `getChar`, `getInt`, `getLong`, `getFloat`, `getDouble`. Những phương thức này trả về **primitive** tương ứng, không trả wrapper hay `null`.
+`Field` has methods `getBoolean`, `getByte`, `getShort`, `getChar`, `getInt`, `getLong`, `getFloat`, and `getDouble`. These methods return the corresponding **primitive**, not a wrapper or `null`.
 
 ```java
-Field score = Person.class.getField("score"); // giả sử public int score
+Field score = Person.class.getField("score"); // assuming public int score
 int result = score.getInt(person);
 ```
 
-Đây là đoạn minh họa, giả định `Person` và `person` đã được khai báo. `getInt` có thể đọc những primitive field chuyển được sang `int` bằng **widening primitive conversion** (ví dụ field `byte` hoặc `short`); nó **không** tự unbox một **field khai báo `Integer`**.
+This is an illustrative snippet, assuming `Person` and `person` have already been declared. `getInt` can read primitive fields convertible to `int` via **widening primitive conversion** (e.g., `byte` or `short` fields); it does **not** automatically unbox a **field declared as `Integer`**.
 
-Ví dụ, với field khai báo `Integer nullableScore`, `field.get(person)` trả `Integer` hoặc `null`; còn `field.getInt(person)` ném **`IllegalArgumentException`**, kể cả khi `nullableScore` thực tế khác `null`. Căn cứ là **kiểu khai báo của field**, không phải wrapper object tình cờ nằm trong đó.
+For example, with a field declared `Integer nullableScore`, `field.get(person)` returns `Integer` or `null`; meanwhile, `field.getInt(person)` throws **`IllegalArgumentException`**, even when `nullableScore` is actually non-`null`. The check is based on **the field's declared type**, not a wrapper object that happens to be inside it.
 
-## 3. Ghi bằng `Field.set`: xử lý `null` theo kiểu đích
+## 3. Writing with `Field.set`: handling `null` by target type
 
-Chữ ký:
+Signature:
 
 ```java
 field.set(receiver, value);
 ```
 
-`receiver` là object sở hữu **instance field** hoặc có thể là `null` đối với **static field**. `value` là giá trị **muốn ghi vào field**. Hai tham số này hoàn toàn khác vai trò.
+`receiver` is the object owning the **instance field**, or can be `null` for a **static field**. `value` is the value **to be written to the field**. These two parameters have completely different roles.
 
-### Field tham chiếu nhận `null`
-
-```java
-Field name = Person.class.getField("name"); // giả sử public String name
-name.set(person, null);                     // hợp lệ nếu có quyền ghi
-```
-
-Một tham chiếu có thể nhận `null`, kể cả wrapper như `Integer` hoặc `Boolean`. Ngoài `null`, giá trị ghi phải tương thích với kiểu khai báo của field theo quy tắc gán/Reflection. Một field `String` không thể nhận một `Integer` chỉ vì cả hai đều là `Object`.
-
-### Primitive field từ chối `null`
+### Reference fields accept `null`
 
 ```java
-Field age = Person.class.getField("age"); // giả sử public int age
-age.set(person, null);                    // ném IllegalArgumentException
+Field name = Person.class.getField("name"); // assuming public String name
+name.set(person, null);                     // valid if writable
 ```
 
-Vì `int` không có `null`, `Field.set` không thể biến `null` thành `0` hay một giá trị mặc định khác. Thao tác ném **`IllegalArgumentException`**. Đây là lỗi **chuyển đổi giá trị muốn ghi**, không phải do Reflection không tìm thấy field.
+A reference can accept `null`, including wrappers like `Integer` or `Boolean`. Aside from `null`, the written value must be compatible with the field's declared type under assignment/Reflection rules. A `String` field cannot accept an `Integer` simply because both are `Object`.
 
-Cần tránh suy luận “Java tự unboxing nên `null` được chuyển thành primitive mặc định”: unboxing một wrapper `null` trong biểu thức Java thông thường cũng không tạo ra giá trị hợp lệ.
-
-### Ghi primitive qua wrapper và widening
-
-Khi `value` là wrapper **khác null**, `Field.set` có thể unbox rồi thực hiện **widening primitive conversion** nếu kiểu đích cho phép:
+### Primitive fields reject `null`
 
 ```java
-Field count = Person.class.getField("count"); // giả sử public int count
-count.set(person, Integer.valueOf(11));       // thành công
-count.set(person, Short.valueOf((short) 12)); // thành công: short -> int
-count.set(person, Long.valueOf(13L));         // ném IllegalArgumentException
+Field age = Person.class.getField("age"); // assuming public int age
+age.set(person, null);                    // throws IllegalArgumentException
 ```
 
-Đây là ví dụ minh họa. `long -> int` là **narrowing**, nên không được tự chuyển trong `Field.set`. Không có chuyện Reflection tự động dùng `String.valueOf` hoặc parse chuỗi:
+Because `int` has no `null`, `Field.set` cannot turn `null` into `0` or another default value. The operation throws **`IllegalArgumentException`**. This is an error **converting the value to write**, not because Reflection failed to find the field.
+
+Avoid the inference "Java auto-unboxes, so `null` turns into the primitive default": unboxing a `null` wrapper in a regular Java expression also does not produce a valid value.
+
+### Writing primitives via wrappers and widening
+
+When `value` is a **non-null** wrapper, `Field.set` can unbox and then perform a **widening primitive conversion** if the target type allows:
 
 ```java
-// Giả sử count có kiểu int:
-count.set(person, "42"); // KHÔNG tự parse; ném IllegalArgumentException
+Field count = Person.class.getField("count"); // assuming public int count
+count.set(person, Integer.valueOf(11));       // succeeds
+count.set(person, Short.valueOf((short) 12)); // succeeds: short -> int
+count.set(person, Long.valueOf(13L));         // throws IllegalArgumentException
 ```
 
-Nếu dữ liệu bên ngoài là `String`, bước **parse và validate** phải làm trước khi ghi. Nếu input là `null` mà field đích là primitive, mapper phải đặt quy tắc rõ ràng: từ chối thiếu dữ liệu, bỏ qua assignment để giữ giá trị hiện tại, hoặc chọn một mặc định được đặc tả; không nên lặng lẽ đổi `null` thành `0`/ `false` mà không có hợp đồng dữ liệu.
+This is an illustrative example. `long -> int` is **narrowing**, so it is not automatically converted in `Field.set`. Reflection also never automatically calls `String.valueOf` or parses strings:
 
-### Setter chuyên biệt
+```java
+// Assuming count has type int:
+count.set(person, "42"); // does NOT auto-parse; throws IllegalArgumentException
+```
 
-`Field.setInt(receiver, 10)` hoặc `Field.setBoolean(receiver, true)` nhận **primitive** ngay ở tham số thứ hai, không có chỗ cho `null`. Việc chuyển đổi kiểu vẫn tuân theo quy tắc phù hợp của các specialized setters. `setInt` không dùng để gán một field **khai báo kiểu `Integer`**, vì field đó là kiểu tham chiếu.
+If external data is a `String`, the **parse and validate** step must occur before writing. If the input is `null` while the target field is primitive, the mapper must define an explicit rule: reject missing data, skip the assignment to keep the current value, or pick a specified default; do not silently convert `null` to `0`/`false` without a data contract.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh, đã kiểm tra biên dịch và stdout
+### Specialized setters
 
-Lưu thành tệp **`FieldNullDemo.java`**:
+`Field.setInt(receiver, 10)` or `Field.setBoolean(receiver, true)` accepts a **primitive** directly in its second parameter, leaving no room for `null`. Type conversion still follows the appropriate rules of specialized setters. `setInt` is not used to assign a field **declared as type `Integer`**, because that field is a reference type.
+
+## 4. Complete Java 17+ example, verified for compilation and stdout
+
+Save as file **`FieldNullDemo.java`**:
 
 ```java
 import java.lang.reflect.Field;
@@ -197,7 +197,7 @@ public class FieldNullDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp, sử dụng JDK 17 hoặc mới hơn:
+Compile and run in the directory containing the file, using JDK 17 or newer:
 
 ```bash
 javac FieldNullDemo.java
@@ -226,58 +226,58 @@ static primitive: 3
 instance receiver null: NullPointerException
 ```
 
-**Giải thích output:**
+**Output explanation:**
 
-1. `nickname` và `nullableCount` đều là **reference fields**, được mặc định bằng `null`. `enabled` là primitive boolean nên mặc định `false`.
-2. `count` khai báo `int` và chứa `7`; `Field.get` boxing thành `Integer`. Bởi vậy `countObject.getClass().getSimpleName()` in `Integer`, không có giá trị `null`.
-3. `Field.getType()` cho biết **kiểu khai báo**: `int` đối với `count`, `java.lang.Integer` đối với `nullableCount`. `isPrimitive()` phân biệt hai trường hợp ngay cả khi cả hai có thể đọc qua `Object`.
-4. Ghi `null` cho hai field tham chiếu thành công. Ghi `null` cho primitive `count` ném `IllegalArgumentException`.
-5. `Integer(11)` được unbox thành `int`; `Short(12)` được unbox rồi widening từ `short` sang `int`; `Long(13)` không thể narrowing sang `int` theo API này.
-6. `nullableCount.getInt(sample)` thất bại **vì declared type là `Integer`**, không phải vì giá trị field đang `null`. Ngay cả nếu field chứa `Integer.valueOf(5)`, specialized getter này vẫn không đọc được field tham chiếu.
-7. `appName.get(null)` và `appName.set(null, "demo")` thao tác với **static field**; `null` ở đây là **receiver**, không phải giá trị phải ghi. Ngược lại, `nickname.get(null)` là instance field có receiver `null`, nên ném `NullPointerException`.
+1. `nickname` and `nullableCount` are both **reference fields**, defaulting to `null`. `enabled` is a primitive boolean, so it defaults to `false`.
+2. `count` is declared `int` and holds `7`; `Field.get` boxes it into `Integer`. Thus `countObject.getClass().getSimpleName()` prints `Integer`, with no `null` value.
+3. `Field.getType()` gives **the declared type**: `int` for `count`, `java.lang.Integer` for `nullableCount`. `isPrimitive()` distinguishes the two cases even though both can be read via `Object`.
+4. Writing `null` to the two reference fields succeeds. Writing `null` to primitive `count` throws `IllegalArgumentException`.
+5. `Integer(11)` is unboxed to `int`; `Short(12)` is unboxed and widened from `short` to `int`; `Long(13)` cannot narrow to `int` under this API.
+6. `nullableCount.getInt(sample)` fails **because the declared type is `Integer`**, not because the field value happens to be `null`. Even if the field held `Integer.valueOf(5)`, this specialized getter still cannot read a reference field.
+7. `appName.get(null)` and `appName.set(null, "demo")` operate on a **static field**; `null` here is the **receiver**, not the value to write. Conversely, `nickname.get(null)` is an instance field with a `null` receiver, so it throws `NullPointerException`.
 
-## 5. Hai vị trí `null` trong `Field.get`/`Field.set` có ý nghĩa khác nhau
+## 5. Two `null` positions in `Field.get`/`Field.set` have different meanings
 
-Nhìn chữ ký:
+Look at the signatures:
 
 ```java
 Object read = field.get(receiver);
 field.set(receiver, value);
 ```
 
-Hãy phân biệt hai trường hợp hoàn toàn độc lập.
+Distinguish two completely independent cases.
 
-| Thao tác | `receiver` | `value` | Kết quả |
+| Operation | `receiver` | `value` | Result |
 |---|---|---|---|
-| Đọc instance field | Object instance hợp lệ | Không áp dụng | Thành công nếu có quyền đọc |
-| Đọc instance field | `null` | Không áp dụng | `NullPointerException` |
-| Đọc static field | `null` | Không áp dụng | Hợp lệ; receiver bị bỏ qua |
-| Ghi instance reference field | Object instance hợp lệ | `null` | Hợp lệ nếu field ghi được |
-| Ghi instance primitive field | Object instance hợp lệ | `null` | `IllegalArgumentException` |
-| Ghi static reference field | `null` | `null` | Hợp lệ nếu field ghi được |
-| Ghi static primitive field | `null` | `null` | `IllegalArgumentException` |
+| Reading instance field | Valid object instance | Not applicable | Succeeds if read permission exists |
+| Reading instance field | `null` | Not applicable | `NullPointerException` |
+| Reading static field | `null` | Not applicable | Valid; receiver is ignored |
+| Writing instance reference field | Valid object instance | `null` | Valid if field is writable |
+| Writing instance primitive field | Valid object instance | `null` | `IllegalArgumentException` |
+| Writing static reference field | `null` | `null` | Valid if field is writable |
+| Writing static primitive field | `null` | `null` | `IllegalArgumentException` |
 
-Với static field, tham số receiver của `Field.get`/`Field.set` **không được dùng để chỉ instance** và có thể truyền `null`. Khi truy cập static field, JVM có thể phải **khởi tạo lớp khai báo** nếu chưa được khởi tạo; lấy metadata `Field` trước đó không tự đồng nghĩa đã chạy static initializer.
+For a static field, the `receiver` parameter of `Field.get`/`Field.set` **is not used to specify an instance** and `null` can be passed. When accessing a static field, the JVM may need to **initialize the declaring class** if not yet initialized; retrieving `Field` metadata beforehand does not automatically mean the static initializer has already run.
 
-Với instance field, receiver phải là instance tương thích với lớp khai báo field. Nếu truyền **đối tượng không phù hợp**, Reflection có thể ném `IllegalArgumentException`. Nếu receiver là `null`, lỗi là `NullPointerException`. Đừng nhầm hai lỗi receiver này với `IllegalArgumentException` do **value không phù hợp kiểu primitive** trong `Field.set`.
+For an instance field, `receiver` must be an instance compatible with the field's declaring class. Passing **an incompatible object** may cause Reflection to throw `IllegalArgumentException`. If `receiver` is `null`, the error is `NullPointerException`. Do not confuse these two receiver errors with `IllegalArgumentException` caused by **a value incompatible with a primitive type** in `Field.set`.
 
-Ví dụ rất dễ bị đọc nhầm:
+An example very easy to misread:
 
 ```java
 Field global = Sample.class.getField("appName");
-global.set(null, null); // receiver null: hợp lệ cho static;
-                        // value null: hợp lệ vì appName là String
+global.set(null, null); // null receiver: valid for static;
+                        // null value: valid because appName is String
 ```
 
-Ở đây `global.set(null, null)` hoàn toàn có thể hợp lệ nếu field là **static, kiểu tham chiếu và có quyền ghi**.
+Here `global.set(null, null)` is completely valid if the field is **static, reference-typed, and writable**.
 
-## 6. Kiểm tra kiểu khai báo trước khi xử lý dữ liệu nullable
+## 6. Checking the declared type before handling nullable data
 
-Trong code generic mapper, type của field là nguồn thông tin đáng tin cậy hơn việc suy từ giá trị hiện tại:
+In generic mapper code, the field's type is a more reliable source of truth than inferring from the current value:
 
 ```java
-// Đoạn minh họa trong một mapper: field đã được tìm,
-// target là instance phù hợp; incoming đến từ bên ngoài.
+// Illustrative snippet in a mapper: field has been found,
+// target is a compatible instance; incoming comes from outside.
 Class<?> targetType = field.getType();
 
 if (incoming == null && targetType.isPrimitive()) {
@@ -288,79 +288,79 @@ if (incoming == null && targetType.isPrimitive()) {
 field.set(target, incoming);
 ```
 
-Đoạn này **không phải chương trình chạy độc lập**; các biến `field`, `target`, `incoming` là đầu vào của logic mapper. Nó chủ động từ chối input `null` trước khi gọi `Field.set` với primitive. Khi `incoming` khác `null`, vẫn cần bảo đảm object có kiểu tương thích với field (bao gồm unboxing/widening đúng luật); kiểm tra `null` **không thay thế toàn bộ validation**.
+This snippet **is not a standalone runnable program**; variables `field`, `target`, and `incoming` are inputs to the mapper logic. It proactively rejects `null` input before calling `Field.set` on a primitive. When `incoming` is non-`null`, you still need to ensure the object has a type compatible with the field (including valid unboxing/widening); a `null` check **does not replace full validation**.
 
-Nếu hệ thống cần phân biệt **“không cung cấp giá trị”** với **“cung cấp giá trị `0`”**, chỉ dùng primitive field là chưa đủ. Các phương án thường gặp:
+If the system needs to distinguish **"no value provided"** from **"value `0` provided"**, a primitive field alone is insufficient. Common approaches:
 
-- Dùng `Integer`, `Boolean`, `Double`... để thể hiện trạng thái nullable; quyết định khi nào phải từ chối `null`.
-- Theo dõi sự hiện diện của input bằng key presence, dữ liệu request hoặc một trường cờ riêng, thay vì coi `0` là “không tồn tại”.
-- Áp dụng mặc định **ở tầng business validation** một cách có chủ đích. Ví dụ, với một field `int retries`, thiếu dữ liệu có thể bị từ chối hoặc được gán `3` theo hợp đồng. Reflection tự nó không quyết định mặc định đó.
-- Với object bất biến hoặc record, ưu tiên constructor/factory để thiết lập state hợp lệ thay vì cố ghi sâu vào field `final`.
+- Use `Integer`, `Boolean`, `Double`, etc. to represent nullable state; decide when `null` must be rejected.
+- Track input presence via key presence, request data, or a separate flag field, instead of treating `0` as "absent".
+- Apply defaults **at the business validation layer** intentionally. For instance, for an `int retries` field, missing data can be rejected or assigned `3` by contract. Reflection itself does not decide that default.
+- For immutable objects or records, prefer constructors/factories to establish valid state rather than trying to deep-write `final` fields.
 
-Cẩn trọng khi dữ liệu từ JSON/database phân biệt `null` với giá trị thiếu: `null`, không có key và `0` là **ba trạng thái khác nhau** tùy schema. Reflection chỉ thực hiện đọc/ghi theo kiểu Java; không tự suy diễn ngữ nghĩa nghiệp vụ.
+Be careful when data from JSON/databases distinguishes `null` from a missing value: `null`, missing key, and `0` are **three different states** depending on the schema. Reflection only reads/writes according to Java types; it does not infer business semantics on its own.
 
-## 7. Access, `final` và lỗi không liên quan đến `null`
+## 7. Access, `final`, and errors unrelated to `null`
 
-Trước khi đọc/ghi thành công, Reflection còn kiểm tra visibility và module access:
+Before a read/write succeeds, Reflection also checks visibility and module access:
 
-- `getField("name")` tra cứu field **public**; `getDeclaredField("name")` tra cứu field khai báo trực tiếp, bao gồm `private`. Tìm được private field **không tự có quyền** đọc/ghi nó.
-- `Field.get`/`Field.set` có thể ném **`IllegalAccessException`** nếu caller không đủ quyền. Với named modules, `setAccessible(true)` có thể bị từ chối bằng **`InaccessibleObjectException`** nếu package chưa `opens` phù hợp.
-- `final` không thay đổi quy tắc `null` của field; nhưng việc **ghi** `final` bằng Reflection còn có giới hạn riêng. Đặc biệt không nên coi `setAccessible(true)` là cách bảo đảm thay đổi mọi trường final, record component hay internal state.
-- `getType()` lấy kiểu khai báo; nó không đọc giá trị và không cần receiver. `Field.get(null)` trên một static field có thể kích hoạt initialization của class đích.
-- Nếu lỗi xảy ra trong quá trình khởi tạo tĩnh, thao tác trên static field có thể thất bại vì initializer của lớp; đó không phải bằng chứng rằng static receiver `null` bị cấm.
+- `getField("name")` looks up a **public** field; `getDeclaredField("name")` looks up a directly declared field, including `private`. Finding a private field **does not automatically grant permission** to read/write it.
+- `Field.get`/`Field.set` may throw **`IllegalAccessException`** if the caller lacks sufficient permissions. With named modules, `setAccessible(true)` may be rejected with **`InaccessibleObjectException`** if the package is not appropriately `opens`-ed.
+- `final` does not change a field's `null` rules; however, **writing** `final` via Reflection has its own restrictions. In particular, do not treat `setAccessible(true)` as a guaranteed way to mutate every final field, record component, or internal state.
+- `getType()` retrieves the declared type; it does not read values and requires no receiver. `Field.get(null)` on a static field can trigger initialization of the target class.
+- If an error occurs during static initialization, operating on a static field can fail due to the class initializer; that is not proof that a `null` static receiver is forbidden.
 
-| Lỗi | Ngữ cảnh điển hình | Phân biệt với `null` value |
+| Error | Typical context | Distinguishing from a `null` value |
 |---|---|---|
-| `IllegalArgumentException` | Ghi `null` vào primitive, ghi wrapper không tương thích, narrowing bị cấm hoặc receiver sai kiểu | Cần xác định lỗi do **value** hay **receiver** |
-| `NullPointerException` | Gọi `Field.get(null)`/`Field.set(null, ...)` trên **instance field** | `null` ở **receiver**, không phải field value |
-| `IllegalAccessException` | Không được phép đọc/ghi member | Lỗi access, không phải primitive không có null |
-| `NoSuchFieldException` | Không tìm được field đúng tên/phạm vi tra cứu | Xảy ra tại bước lookup |
-| `InaccessibleObjectException` | Không thể bật deep access theo JPMS bằng `setAccessible(true)` | Lỗi encapsulation |
-| `ExceptionInInitializerError` | Static initializer ném exception trong quá trình khởi tạo class | Có thể xuất hiện khi thực sự sử dụng static field |
+| `IllegalArgumentException` | Writing `null` to a primitive, writing an incompatible wrapper, forbidden narrowing, or wrong receiver type | Need to identify whether the error is due to **value** or **receiver** |
+| `NullPointerException` | Calling `Field.get(null)`/`Field.set(null, ...)` on an **instance field** | `null` in **receiver**, not the field value |
+| `IllegalAccessException` | Not permitted to read/write the member | Access error, not primitives lacking null |
+| `NoSuchFieldException` | Field not found with that name/lookup scope | Occurs at the lookup step |
+| `InaccessibleObjectException` | Cannot enable deep access under JPMS via `setAccessible(true)` | Encapsulation error |
+| `ExceptionInInitializerError` | Static initializer throws an exception during class initialization | May appear when actually using a static field |
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common misconceptions
 
-1. **“`Field.get` trả `Object`, nên primitive field cũng có thể cho `null`.”** Sai: primitive được **boxing** thành wrapper không null.
-2. **“`Integer` là primitive.”** Sai: `Integer` là reference type và có thể chứa `null`.
-3. **“`Field.set(obj, null)` sẽ tự gán `0` cho `int`.”** Sai: thao tác ném `IllegalArgumentException`.
-4. **“`Field.getInt` đọc được field khai báo `Integer` nếu wrapper không null.”** Sai: getter chuyên biệt này yêu cầu kiểu **primitive** có conversion phù hợp.
-5. **“`Field.set` nhận mọi kiểu số và tự ép về primitive.”** Sai: chỉ unboxing/widening hợp lệ; **narrowing** không tự xảy ra.
-6. **“`Field.get(null)` trả null vì receiver null.”** Sai: với **static field**, receiver null là hợp lệ và kết quả phụ thuộc giá trị field. Với instance field, receiver null gây lỗi.
-7. **“`0` tương đương một field không có dữ liệu.”** Sai: `0` là giá trị primitive hợp lệ; missing/null cần biểu diễn ở mức model/schema khác nếu có ý nghĩa.
-8. **“Field public luôn ghi được.”** Chưa đủ: quyền module, `final`, kiểu value và khả năng tương thích của receiver đều có thể ảnh hưởng.
-9. **“`null` luôn dẫn đến `NullPointerException`.”** Sai: đối với `Field.set(receiver, null)` trên primitive thường là **`IllegalArgumentException`**; `NullPointerException` áp dụng trong trường hợp receiver instance bằng `null`.
-10. **“Gọi `getClass()` lên giá trị vừa đọc luôn an toàn.”** Sai: với **reference field đang null**, `field.get(receiver)` trả `null`; gọi `getClass()` trên kết quả đó gây `NullPointerException`. Dùng `field.getType()` nếu muốn biết **declared type**.
+1. **"`Field.get` returns `Object`, so primitive fields can also yield `null`."** False: primitives are **boxed** into non-null wrappers.
+2. **"`Integer` is a primitive."** False: `Integer` is a reference type and can hold `null`.
+3. **"`Field.set(obj, null)` automatically assigns `0` to `int`."** False: the operation throws `IllegalArgumentException`.
+4. **"`Field.getInt` can read a field declared as `Integer` if the wrapper is non-null."** False: this specialized getter requires a **primitive** type with a valid conversion.
+5. **"`Field.set` accepts any numeric type and automatically coerces it to the primitive."** False: only valid unboxing/widening is performed; **narrowing** does not happen automatically.
+6. **"`Field.get(null)` returns null because the receiver is null."** False: for **static fields**, a null receiver is valid and the result depends on the field's value. For instance fields, a null receiver causes an error.
+7. **"`0` is equivalent to a field with no data."** False: `0` is a valid primitive value; missing/null must be represented at another model/schema level if meaningful.
+8. **"Public fields are always writable."** Not enough: module permissions, `final`, value type, and receiver compatibility can all affect it.
+9. **"`null` always leads to `NullPointerException`."** False: for `Field.set(receiver, null)` on a primitive, it is normally **`IllegalArgumentException`**; `NullPointerException` applies when an instance receiver is `null`.
+10. **"Calling `getClass()` on a newly read value is always safe."** False: for a **reference field currently holding null**, `field.get(receiver)` returns `null`; calling `getClass()` on that result causes `NullPointerException`. Use `field.getType()` if you want the **declared type**.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-check questions
 
-**Câu 1.** Một class có `public int n;` (không gán tường minh). `Field.get(object)` trả giá trị nào?
+**Question 1.** A class has `public int n;` (not explicitly assigned). What value does `Field.get(object)` return?
 
-**Đáp án:** Một `Integer` có giá trị `0` do boxing primitive `int`. Không phải `null`.
+**Answer:** An `Integer` with value `0` due to boxing primitive `int`. Not `null`.
 
-**Câu 2.** Một class có `public Integer n;` (không gán tường minh). `Field.get(object)` và `Field.getInt(object)` có gì khác?
+**Question 2.** A class has `public Integer n;` (not explicitly assigned). How do `Field.get(object)` and `Field.getInt(object)` differ?
 
-**Đáp án:** `get` trả `null`. `getInt` ném `IllegalArgumentException` vì declared type là `Integer` (reference), dù sau này field được gán một wrapper không null.
+**Answer:** `get` returns `null`. `getInt` throws `IllegalArgumentException` because the declared type is `Integer` (reference), even if the field is later assigned a non-null wrapper.
 
-**Câu 3.** `Field.set(instance, null)` có luôn gây lỗi không?
+**Question 3.** Does `Field.set(instance, null)` always cause an error?
 
-**Đáp án:** Không. Với reference field có thể ghi, việc gán `null` hợp lệ. Với primitive field, `null` bị từ chối bằng `IllegalArgumentException`.
+**Answer:** No. For a writable reference field, assigning `null` is valid. For a primitive field, `null` is rejected with `IllegalArgumentException`.
 
-**Câu 4.** `field.get(null)` có luôn gây `NullPointerException` không?
+**Question 4.** Does `field.get(null)` always cause `NullPointerException`?
 
-**Đáp án:** Không. Với static field, `null` là receiver hợp lệ. Với instance field, receiver null dẫn đến `NullPointerException`.
+**Answer:** No. For static fields, `null` is a valid receiver. For instance fields, a null receiver leads to `NullPointerException`.
 
-**Câu 5.** Field `public int n;` có được nhận `Short.valueOf((short) 5)` qua `Field.set` không? Có được nhận `Long.valueOf(5L)` không?
+**Question 5.** Can field `public int n;` accept `Short.valueOf((short) 5)` via `Field.set`? Can it accept `Long.valueOf(5L)`?
 
-**Đáp án:** `Short` được unbox rồi widening `short -> int`, nên có thể gán. `Long` đòi hỏi narrowing `long -> int`, nên `Field.set` ném `IllegalArgumentException`.
+**Answer:** `Short` is unboxed and widened `short -> int`, so it can be assigned. `Long` requires narrowing `long -> int`, so `Field.set` throws `IllegalArgumentException`.
 
-**Câu 6.** Một serializer nhận JSON `{"age": null}` nhưng Java model khai báo `int age`. Reflection tự chọn xử lý ra sao?
+**Question 6.** A serializer receives JSON `{"age": null}` while the Java model declares `int age`. How does Reflection handle it on its own?
 
-**Đáp án:** `Field.set(target, null)` không thể đặt primitive `int` thành null và sẽ ném `IllegalArgumentException`. Serializer/application phải áp dụng schema: từ chối, đặt mặc định tường minh, hoặc đổi model sang `Integer` nếu nullable là trạng thái hợp lệ.
+**Answer:** `Field.set(target, null)` cannot set primitive `int` to null and will throw `IllegalArgumentException`. The serializer/application must apply the schema: reject, set an explicit default, or change the model to `Integer` if nullable is a valid state.
 
-## Tài liệu chuẩn
+## Standard documentation
 
-- Java SE API — `java.lang.reflect.Field`: `get(Object)`, `getInt(Object)`, `set(Object, Object)`, `setInt(Object, int)`, `getType()` và các exception.
+- Java SE API — `java.lang.reflect.Field`: `get(Object)`, `getInt(Object)`, `set(Object, Object)`, `setInt(Object, int)`, `getType()`, and exceptions.
 - Java SE API — `java.lang.Class`: `isPrimitive()`.
 - Java Language Specification — §4.2 Primitive Types and Values; §4.3 Reference Types and Values; §4.12.5 Initial Values of Variables; §5.1.2 Widening Primitive Conversion; §5.1.7 Boxing Conversion; §5.1.8 Unboxing Conversion.
 
-**Ghi nhớ:** `null` là trạng thái của **tham chiếu**; primitive không lưu được `null`. `Field.get` boxing primitive thành wrapper không null; `Field.set(receiver, null)` chỉ hợp lệ nếu **kiểu field** và quyền ghi cho phép. `receiver == null` lại là câu chuyện khác: dùng được với **static field**, nhưng không dùng được để đọc/ghi **instance field**.
+**Remember:** `null` is a state of a **reference**; primitives cannot store `null`. `Field.get` boxes primitives into non-null wrappers; `Field.set(receiver, null)` is only valid if **the field type** and write permissions allow it. `receiver == null` is a different matter: usable for **static fields**, but cannot be used to read/write **instance fields**.

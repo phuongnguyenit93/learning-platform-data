@@ -1,21 +1,21 @@
-# Chọn kiểu bộ chứa bằng `Collectors.toCollection`
+# Choosing the Container Type with `Collectors.toCollection`
 
-Trong **Java Stream API**, các phép toán trung gian như `filter`, `map`, `distinct` hoặc `sorted` mô tả pipeline xử lý dữ liệu theo cách khai báo và thường được thực thi *lazy*. Khi cần lưu các phần tử sau xử lý vào một collection, ta sử dụng terminal operation `collect`.
+In the **Java Stream API**, intermediate operations such as `filter`, `map`, `distinct`, or `sorted` describe a data processing pipeline declaratively and are typically executed *lazily*. When you need to store the processed elements into a collection, you use the terminal operation `collect`.
 
-Một lựa chọn quen thuộc là `Collectors.toList()` hoặc `Collectors.toSet()`. Nhưng nếu yêu cầu phải trả về đúng **`ArrayList`**, giữ thứ tự xuất hiện bằng **`LinkedHashSet`**, sắp theo bộ so sánh bằng **`TreeSet`**, hay xây **`ArrayDeque`**, hãy dùng `Collectors.toCollection(collectionFactory)`.
+Familiar options are `Collectors.toList()` or `Collectors.toSet()`. However, if you require returning a specific **`ArrayList`**, preserving appearance order with **`LinkedHashSet`**, sorting with a comparator via **`TreeSet`**, or building an **`ArrayDeque`**, use `Collectors.toCollection(collectionFactory)`.
 
-Bài học thuộc chương **Thu thập thành Collection**, tập trung vào cách chọn đúng bộ chứa và hiểu hợp đồng về kiểu dữ liệu, phần tử trùng, thứ tự, tính mutable và xử lý song song.
+This lesson belongs to the **Collecting into Collections** chapter, focusing on how to choose the right container and understand the contracts regarding data types, duplicate elements, ordering, mutability, and parallel processing.
 
-## 1. `toCollection` nhận một factory, trả về collector
+## 1. `toCollection` Takes a Factory and Returns a Collector
 
-Chữ ký khái quát của phương thức (Java 8+):
+General signature of the method (Java 8+):
 
 ```java
 public static <T, C extends Collection<T>> Collector<T, ?, C>
 toCollection(Supplier<C> collectionFactory);
 ```
 
-Đây là phương thức tĩnh của `java.util.stream.Collectors`. Nó nhận một `Supplier<C>`: hàm **không có đối số**, khi được gọi phải cung cấp collection để tích lũy phần tử. Collection được tạo ra có kiểu `C`, còn phần tử có kiểu `T`.
+This is a static method of `java.util.stream.Collectors`. It accepts a `Supplier<C>`: a **zero-argument** function that, when called, must provide a collection to accumulate elements into. The created collection has type `C`, and its elements have type `T`.
 
 ```java
 import java.util.ArrayList;
@@ -27,22 +27,22 @@ ArrayList<String> words = Stream.of("Java", "Stream", "API")
 
 System.out.println(words);            // [Java, Stream, API]
 System.out.println(words.getClass());  // class java.util.ArrayList
-words.add("Collector");                // Được phép vì ArrayList mutable
+words.add("Collector");                // Allowed because ArrayList is mutable
 ```
 
-`ArrayList::new` là *constructor reference* phù hợp với `Supplier<ArrayList<String>>`. `toCollection` tạo một collector và `stream.collect(...)` sử dụng collector ấy để kết thúc pipeline. Collection được xây xong là kết quả có thể truy cập sau khi stream đã bị tiêu thụ.
+`ArrayList::new` is a *constructor reference* matching `Supplier<ArrayList<String>>`. `toCollection` creates a collector and `stream.collect(...)` uses that collector to terminate the pipeline. The constructed collection is a result you can access after the stream has been consumed.
 
-### Vì sao truyền `ArrayList::new` thay vì `new ArrayList<>()`?
+### Why Pass `ArrayList::new` Instead of `new ArrayList<>()`?
 
 ```java
-// ĐÚNG: truyền factory, tạo container khi collect cần.
+// CORRECT: pass a factory that creates a container when collect needs one.
 Collectors.toCollection(ArrayList::new);
 
-// SAI KIỂU: toCollection cần Supplier, không nhận một instance.
+// WRONG TYPE: toCollection requires a Supplier, not an instance.
 // Collectors.toCollection(new ArrayList<String>());
 ```
 
-Đối với pipeline song song, collector có thể gọi supplier **nhiều lần** để tạo các container tích lũy độc lập, rồi gộp kết quả. Vì vậy factory phải tạo container mới phù hợp cho từng lần gọi. Không dùng:
+For a parallel pipeline, the collector may invoke the supplier **multiple times** to create independent accumulation containers, and then merge the results. Therefore, the factory must create a fresh container on each invocation. Do not use:
 
 ```java
 import java.util.ArrayList;
@@ -52,35 +52,35 @@ import java.util.stream.Stream;
 
 List<String> shared = new ArrayList<>();
 
-// VÍ DỤ SAI: mọi lần gọi supplier đều trả cùng một danh sách.
+// WRONG EXAMPLE: every call to the supplier returns the exact same list.
 List<String> broken = Stream.of("A", "B", "C").parallel()
     .collect(Collectors.toCollection(() -> shared));
 ```
 
-Cách làm sai có thể khiến các phần tích lũy cùng sửa một đối tượng và bị gộp lặp. Ngay cả khi chỉ chạy tuần tự, kết quả còn phụ thuộc vào nội dung có sẵn của `shared`. Hãy để factory trả **collection rỗng mới**, ví dụ `ArrayList::new`.
+That incorrect approach can cause parallel accumulators to mutate the same object and produce duplicated merges. Even when running sequentially, the result would depend on any pre-existing contents of `shared`. Always let the factory return a **new empty collection**, such as `ArrayList::new`.
 
-## 2. Bảng chọn collection theo yêu cầu
+## 2. Collection Selection Table by Requirement
 
-Không có một loại collection phù hợp với mọi bài toán. Hãy chọn theo đặc tính nghiệp vụ cần bảo đảm.
+No single collection type fits every problem. Choose according to the business properties that must be guaranteed.
 
-| Factory truyền vào `toCollection` | Kiểu kết quả | Trùng lặp | Thứ tự khi duyệt kết quả | Trường hợp sử dụng |
+| Factory passed to `toCollection` | Result type | Duplicates | Iteration order of result | Use case |
 | --- | --- | --- | --- | --- |
-| `ArrayList::new` | `ArrayList<T>` | Giữ lại | Theo thứ tự thêm | Danh sách có truy cập chỉ số, cần thay đổi sau khi thu thập. |
-| `LinkedList::new` | `LinkedList<T>` | Giữ lại | Theo thứ tự thêm | Cần API của `LinkedList`, ví dụ `Deque`; cân nhắc chi phí bộ nhớ. |
-| `HashSet::new` | `HashSet<T>` | Loại trùng theo `equals/hashCode` | Không bảo đảm | Tập phần tử không trùng, không cần thứ tự. |
-| `LinkedHashSet::new` | `LinkedHashSet<T>` | Loại trùng theo `equals/hashCode` | Theo thứ tự thêm | Loại trùng nhưng vẫn muốn duyệt theo thứ tự xuất hiện. |
-| `TreeSet::new` | `TreeSet<T>` | Loại phần tử tương đương theo phép so sánh | Theo thứ tự sắp xếp | Cần tập có thứ tự tự nhiên hoặc comparator. |
-| `ArrayDeque::new` | `ArrayDeque<T>` | Giữ lại | Theo thứ tự từ đầu đến cuối deque | Hàng đợi hai đầu; không chứa `null`. |
-| `() -> EnumSet.noneOf(MyEnum.class)` | `EnumSet<MyEnum>` | Loại trùng | Theo thứ tự khai báo enum | Tập hiệu quả cho một kiểu enum xác định. |
+| `ArrayList::new` | `ArrayList<T>` | Retained | Insertion order | List with indexed access that needs modification after collection. |
+| `LinkedList::new` | `LinkedList<T>` | Retained | Insertion order | Need `LinkedList` API, such as `Deque`; weigh memory cost. |
+| `HashSet::new` | `HashSet<T>` | Deduplicated via `equals/hashCode` | Not guaranteed | Set of unique elements where order is not needed. |
+| `LinkedHashSet::new` | `LinkedHashSet<T>` | Deduplicated via `equals/hashCode` | Insertion order | Deduplicate while still iterating in order of appearance. |
+| `TreeSet::new` | `TreeSet<T>` | Removes equivalent elements per comparison | Sorted order | Need a set with natural or comparator-based order. |
+| `ArrayDeque::new` | `ArrayDeque<T>` | Retained | Front-to-back deque order | Double-ended queue; does not allow `null`. |
+| `() -> EnumSet.noneOf(MyEnum.class)` | `EnumSet<MyEnum>` | Deduplicated | Enum declaration order | Efficient set for a specific enum type. |
 
-Hai điểm cần phân biệt:
+Two points to distinguish:
 
-1. **Encounter order** là thứ tự logic của phần tử đầu vào, chẳng hạn thứ tự phần tử của `List`. Theo hợp đồng `toCollection`, phần tử được tích lũy theo encounter order nếu stream có thứ tự.
-2. **Iteration order** là thứ tự quan sát khi duyệt collection **sau khi thu thập**. `TreeSet` duyệt theo comparator, `HashSet` không bảo đảm thứ tự, `EnumSet` duyệt theo thứ tự khai báo enum. Vì thế `toCollection` không có nghĩa mọi collection kết quả đều được duyệt theo thứ tự nguồn.
+1. **Encounter order** is the logical order of input elements, such as the element order of a `List`. Under the `toCollection` contract, elements are accumulated in encounter order if the stream is ordered.
+2. **Iteration order** is the order observed when iterating over the collection **after collection**. `TreeSet` iterates by comparator, `HashSet` guarantees no order, and `EnumSet` iterates by enum declaration order. Thus `toCollection` does not mean every resulting collection will be iterated in source order.
 
-## 3. `ArrayList`: danh sách mutable có thứ tự
+## 3. `ArrayList`: An Ordered Mutable List
 
-Nếu cần giữ mọi phần tử, kể cả phần tử trùng, và muốn thêm hoặc xóa sau khi thu thập, `ArrayList` là lựa chọn đơn giản:
+If you need to keep all elements, including duplicates, and want to add or remove items after collecting, `ArrayList` is a straightforward choice:
 
 ```java
 import java.util.ArrayList;
@@ -97,18 +97,18 @@ ArrayList<String> names = raw.stream()
 
 System.out.println(names); // [Java, Stream, Java, API]
 
-names.remove("Java");      // Xóa phần tử Java xuất hiện đầu tiên
+names.remove("Java");      // Removes the first occurrence of Java
 names.add("Collector");
 System.out.println(names); // [Stream, Java, API, Collector]
 ```
 
-`map` và `filter` là trung gian lazy; `collect` kích hoạt xử lý. Vì nguồn là `List` có thứ tự, kết quả `ArrayList` giữ thứ tự các phần tử vượt qua bộ lọc. `ArrayList` không tự loại trùng.
+`map` and `filter` are lazy intermediate operations; `collect` triggers execution. Because the source is an ordered `List`, the resulting `ArrayList` preserves the order of elements passing the filter. `ArrayList` does not automatically remove duplicates.
 
-**Lưu ý về shallow collection:** `toCollection` lưu **tham chiếu đến các phần tử** được phát ra. Nếu các phần tử là đối tượng mutable và bạn không tạo bản sao trong `map`, thay đổi một đối tượng sau đó có thể được nhìn thấy cả qua nguồn lẫn collection kết quả. Tạo collection mới không đồng nghĩa sao chép sâu từng phần tử.
+**Note on shallow collections:** `toCollection` stores **references to the emitted elements**. If elements are mutable objects and you do not create copies in `map`, mutating an object afterward can be observed through both the source and the collected collection. Creating a new collection does not mean deep-copying each element.
 
-## 4. `LinkedHashSet`: loại trùng nhưng giữ thứ tự xuất hiện
+## 4. `LinkedHashSet`: Deduplicate While Preserving Appearance Order
 
-Khi xử lý nhãn hoặc mã từ dữ liệu đầu vào, ta có thể cần loại trùng mà vẫn giữ thứ tự lần đầu xuất hiện:
+When processing tags or codes from input data, you may need to remove duplicates while keeping first-appearance order:
 
 ```java
 import java.util.Arrays;
@@ -128,11 +128,11 @@ LinkedHashSet<String> tags = rawTags.stream()
 System.out.println(tags); // [java, stream, api]
 ```
 
-`LinkedHashSet` dùng `equals` và `hashCode` để xác định phần tử trùng, và giữ thứ tự thêm phần tử. Nhờ chuẩn hóa chữ thường **trước khi** thu thập, `"Java"` và `"JAVA"` trở thành cùng một giá trị.
+`LinkedHashSet` uses `equals` and `hashCode` to identify duplicate elements and preserves insertion order. By normalizing to lowercase **before** collecting, `"Java"` and `"JAVA"` become the same value.
 
-Với một `HashSet`, kết quả vẫn là ba nhãn nhưng **thứ tự duyệt không được bảo đảm**. Nếu dùng `Collectors.toSet()`, cũng không nên dựa vào thứ tự, kiểu triển khai cụ thể hay khả năng thay đổi của tập kết quả.
+With a `HashSet`, the result would still contain three tags, but **iteration order is not guaranteed**. If using `Collectors.toSet()`, you also must not rely on order, concrete implementation class, or mutability of the resulting set.
 
-### Có cần gọi `distinct()` trước khi thu thập vào Set?
+### Is `distinct()` Needed Before Collecting into a Set?
 
 ```java
 LinkedHashSet<String> a = rawTags.stream()
@@ -145,13 +145,13 @@ LinkedHashSet<String> b = rawTags.stream()
     .collect(Collectors.toCollection(LinkedHashSet::new));
 ```
 
-Trong ví dụ này, hai kết quả có cùng các phần tử theo `equals`. Vì `LinkedHashSet` tự loại trùng, `distinct()` thường không cần nếu **mục đích duy nhất** là loại trùng trước khi bỏ vào Set. `distinct` là phép trung gian có trạng thái và có thể làm tăng công việc; chỉ thêm nếu nó cần cho ngữ nghĩa hoặc các bước xử lý phía sau.
+In this example, both results have the same elements under `equals`. Because `LinkedHashSet` deduplicates on its own, `distinct()` is usually unnecessary if the **sole goal** is deduplication before inserting into a Set. `distinct` is a stateful intermediate operation and can add extra work; only include it if required for semantics or subsequent pipeline steps.
 
-Tuy nhiên, nếu có `map` **sau** `distinct` làm nhiều giá trị khác nhau biến thành cùng một nhãn, Set cuối vẫn là nơi quyết định tính duy nhất của kết quả.
+However, if a `map` **after** `distinct` transforms multiple distinct values into the same label, the final Set still determines uniqueness of the result.
 
-## 5. `TreeSet`: thứ tự sắp xếp và quy tắc trùng lặp theo comparator
+## 5. `TreeSet`: Sorted Order and Comparator-Based Duplicate Rules
 
-Khi cần tập hợp không trùng và được duyệt theo thứ tự tăng dần, dùng `TreeSet`:
+When you need a unique collection iterated in ascending order, use `TreeSet`:
 
 ```java
 import java.util.Arrays;
@@ -166,9 +166,9 @@ System.out.println(numbers.first()); // 1
 System.out.println(numbers.last());  // 8
 ```
 
-`TreeSet` sử dụng **thứ tự tự nhiên** nếu không cung cấp comparator. Phần tử phải có khả năng so sánh phù hợp; nếu không, quá trình thêm phần tử có thể ném `ClassCastException`. Với comparator không hỗ trợ `null`, đưa phần tử `null` vào có thể gây `NullPointerException`.
+`TreeSet` uses **natural ordering** if no comparator is provided. Elements must be suitably comparable; otherwise, adding elements can throw `ClassCastException`. With comparators that do not support `null`, passing a `null` element can cause `NullPointerException`.
 
-### Truyền comparator qua lambda factory
+### Passing a Comparator via a Lambda Factory
 
 ```java
 import java.util.Comparator;
@@ -188,9 +188,9 @@ TreeSet<String> names = Stream.of("Bob", "Ana", "Al", "Ana", "Zoe")
 System.out.println(names); // [Al, Ana, Bob, Zoe]
 ```
 
-Vì `TreeSet` không có constructor không đối số cho **comparator cụ thể**, factory thích hợp là `() -> new TreeSet<>(byLengthThenText)`. Mỗi lần gọi factory phải tạo một `TreeSet` riêng nhưng dùng cùng quy tắc so sánh.
+Because `TreeSet` has no zero-argument constructor for a **specific comparator**, the appropriate factory is `() -> new TreeSet<>(byLengthThenText)`. Each factory invocation must create a separate `TreeSet` while using the same comparison rule.
 
-**Lưu ý quan trọng:** Với `TreeSet`, hai phần tử được coi là trùng nếu comparator trả về **0**, ngay cả khi `equals` của chúng trả `false`. Ví dụ:
+**Important note:** In a `TreeSet`, two elements are considered duplicates if the comparator returns **0**, even if their `equals` returns `false`. For example:
 
 ```java
 import java.util.TreeSet;
@@ -202,14 +202,14 @@ TreeSet<String> words = Stream.of("Java", "JAVA", "API")
         () -> new TreeSet<>(String.CASE_INSENSITIVE_ORDER)
     ));
 
-System.out.println(words.size()); // 2: Java và JAVA tương đương theo comparator
+System.out.println(words.size()); // 2: Java and JAVA are equivalent per the comparator
 ```
 
-Khi dùng `TreeSet` làm `Set`, comparator **nên nhất quán với `equals`** nếu muốn tuân thủ đầy đủ hợp đồng chung của Set. Nếu yêu cầu nghiệp vụ thực sự là gộp không phân biệt hoa thường, cần hiểu quy tắc tương đương đang sử dụng và giá trị đại diện nào còn lại.
+When using `TreeSet` as a `Set`, the comparator **should be consistent with `equals`** if you want to adhere fully to the general Set contract. If the business requirement truly is case-insensitive merging, understand the equivalence rule in use and which representative value remains.
 
-## 6. Những collection chuyên biệt: `ArrayDeque` và `EnumSet`
+## 6. Specialized Collections: `ArrayDeque` and `EnumSet`
 
-### Thu thập vào deque để xử lý hàng đợi
+### Collecting into a Deque for Queue Processing
 
 ```java
 import java.util.ArrayDeque;
@@ -221,13 +221,13 @@ Deque<String> jobs = Stream.of("parse", "validate", "save")
     .collect(Collectors.toCollection(ArrayDeque::new));
 
 System.out.println(jobs.peekFirst()); // parse
-System.out.println(jobs.pollFirst()); // parse, đồng thời lấy khỏi deque
+System.out.println(jobs.pollFirst()); // parse, and removes it from the deque
 System.out.println(jobs.peekFirst()); // validate
 ```
 
-`ArrayDeque` phù hợp với thao tác đầu/cuối hàng đợi. Nó giữ phần tử trùng, duyệt theo thứ tự từ đầu đến cuối, **không chấp nhận `null`** và không được thiết kế cho nhiều luồng sửa đồng thời cùng một instance. Khi cần luồng công việc đồng thời thực sự, phải chọn cấu trúc dữ liệu và cách phối hợp thích hợp thay vì chỉ thêm `parallel()` vào pipeline thu thập.
+`ArrayDeque` fits head/tail queue operations. It retains duplicates, iterates from front to back, **does not accept `null`**, and is not designed for multiple threads concurrently modifying the same instance. When genuine concurrent workflows are needed, choose an appropriate data structure and coordination mechanism rather than simply adding `parallel()` to a collection pipeline.
 
-### Thu thập các giá trị enum
+### Collecting Enum Values
 
 ```java
 import java.util.EnumSet;
@@ -249,22 +249,22 @@ public class PermissionExample {
 }
 ```
 
-`EnumSet.noneOf(Permission.class)` tạo tập rỗng chuyên dụng cho kiểu `Permission`; `Permission.class` là tham số cần thiết, nên không dùng trực tiếp `EnumSet::noneOf` làm `Supplier` không đối số. `EnumSet` duyệt theo thứ tự **khai báo enum**, không phải thứ tự các phần tử được stream đưa vào. Nó cũng không hỗ trợ phần tử `null`.
+`EnumSet.noneOf(Permission.class)` creates a specialized empty set for the `Permission` type; `Permission.class` is a required parameter, so `EnumSet::noneOf` cannot be used directly as a zero-argument `Supplier`. `EnumSet` iterates in **enum declaration order**, not the order elements are fed by the stream. It also does not support `null` elements.
 
-## 7. `toCollection` khác `toList`, `toSet` và `Stream.toList` thế nào?
+## 7. How Does `toCollection` Differ from `toList`, `toSet`, and `Stream.toList`?
 
-Các phương thức trông tương tự nhưng có hợp đồng khác nhau:
+Methods that look similar have different contracts:
 
-| API | Kiểu kết quả được hứa hẹn | Có thể sửa collection kết quả? | Thứ tự và phần tử trùng |
+| API | Promised result type | Can the resulting collection be modified? | Order and duplicate elements |
 | --- | --- | --- | --- |
-| `collect(Collectors.toCollection(ArrayList::new))` | Đúng `ArrayList<T>` | Có, theo hợp đồng `ArrayList` | Giữ trùng, duyệt theo encounter order của nguồn có thứ tự. |
-| `collect(Collectors.toCollection(LinkedHashSet::new))` | Đúng `LinkedHashSet<T>` | Có | Loại trùng, duyệt theo thứ tự thêm. |
-| `collect(Collectors.toList())` | `List<T>`, không hứa lớp cài đặt | **Không bảo đảm** mutable hoặc immutable | Giữ trùng và thứ tự nguồn khi có encounter order. |
-| `collect(Collectors.toSet())` | `Set<T>`, không hứa lớp cài đặt | **Không bảo đảm** mutable hoặc immutable | Loại trùng; collector không có ràng buộc về thứ tự. |
-| `stream.toList()` (Java 16+) | `List<T>` không thể sửa đổi | Không; `add`, `set`, `remove` ném `UnsupportedOperationException` | Giữ trùng, giữ encounter order nếu có. |
-| `collect(Collectors.toUnmodifiableList())` (Java 10+) | `List<T>` không thể sửa đổi | Không | Giữ trùng, giữ encounter order; từ chối phần tử `null`. |
+| `collect(Collectors.toCollection(ArrayList::new))` | Exact `ArrayList<T>` | Yes, per the `ArrayList` contract | Retains duplicates, iterates in encounter order of an ordered source. |
+| `collect(Collectors.toCollection(LinkedHashSet::new))` | Exact `LinkedHashSet<T>` | Yes | Deduplicates, iterates in insertion order. |
+| `collect(Collectors.toList())` | `List<T>`, implementation class not promised | **Not guaranteed** mutable or immutable | Retains duplicates and source order when encounter order exists. |
+| `collect(Collectors.toSet())` | `Set<T>`, implementation class not promised | **Not guaranteed** mutable or immutable | Deduplicates; collector imposes no ordering constraint. |
+| `stream.toList()` (Java 16+) | Unmodifiable `List<T>` | No; `add`, `set`, `remove` throw `UnsupportedOperationException` | Retains duplicates, preserves encounter order if present. |
+| `collect(Collectors.toUnmodifiableList())` (Java 10+) | Unmodifiable `List<T>` | No | Retains duplicates, preserves encounter order; rejects `null` elements. |
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.ArrayList;
@@ -274,22 +274,22 @@ import java.util.stream.Stream;
 
 ArrayList<Integer> editable = Stream.of(1, 2, 3)
     .collect(Collectors.toCollection(ArrayList::new));
-editable.add(4); // Hợp lệ
+editable.add(4); // Valid
 
 List<Integer> unspecified = Stream.of(1, 2, 3)
     .collect(Collectors.toList());
-// Không lập trình dựa trên giả định unspecified là ArrayList.
+// Do not write code assuming unspecified is an ArrayList.
 
 // Java 16+
 List<Integer> readOnly = Stream.of(1, 2, 3).toList();
 // readOnly.add(4); // UnsupportedOperationException
 ```
 
-Lựa chọn `toCollection` nên xuất phát từ **hợp đồng đầu ra cần thiết**, không phải giả định về lớp cài đặt hiện tại của JDK. Nếu chỉ cần `List<T>` để đọc, `toList()` hoặc `Collectors.toList()` thường đủ; nếu cần `ArrayList` cụ thể, `ArrayDeque` hay `TreeSet`, hãy truyền factory rõ ràng.
+Choosing `toCollection` should stem from the **required output contract**, not assumptions about a current JDK's implementation class. If you only need a `List<T>` for reading, `toList()` or `Collectors.toList()` is usually sufficient; if you specifically need an `ArrayList`, `ArrayDeque`, or `TreeSet`, pass an explicit factory.
 
-## 8. Encounter order, song song và container mutable
+## 8. Encounter Order, Parallelism, and Mutable Containers
 
-`toCollection` tạo một collector cho phép tích lũy vào collection mutable. Điều đó **không** có nghĩa các tác vụ song song phải cùng ghi vào một collection dùng chung.
+`toCollection` creates a collector that accumulates into a mutable collection. That does **not** mean parallel tasks should all write to one shared collection.
 
 ```java
 import java.util.ArrayList;
@@ -306,17 +306,17 @@ System.out.println(values.get(0));        // 0
 System.out.println(values.get(9_999));    // 9999
 ```
 
-`IntStream.range` có encounter order xác định. Collector `toCollection` tích lũy theo thứ tự gặp phần tử, nên danh sách sau cùng vẫn mang thứ tự `0, 1, ..., 9999` khi pipeline giữ thứ tự. Trong quá trình xử lý song song, các container trung gian có thể được tạo và kết hợp theo cách khác nhau; ta **không dựa vào thứ tự gọi lambda**, số lần gọi supplier hay lịch làm việc của thread.
+`IntStream.range` has a defined encounter order. The `toCollection` collector accumulates in encounter order, so the final list still carries the order `0, 1, ..., 9999` when the pipeline preserves order. During parallel execution, intermediate containers may be created and combined in various ways; **do not rely on lambda invocation order**, how many times the supplier is called, or thread scheduling.
 
-Những nguyên tắc cần giữ:
+Principles to follow:
 
-- Factory như `ArrayList::new` hoặc `LinkedHashSet::new` phải tạo **container độc lập**; không trả một danh sách chung từ biến ngoài.
-- Các bước `map`/`filter` nên **không can thiệp nguồn** và **không phụ thuộc trạng thái chia sẻ mutable**, nhất là khi song song.
-- `toCollection` không phải collector `CONCURRENT`: khả năng tích lũy an toàn đến từ cách framework tổ chức container riêng và kết hợp chúng, không phải từ việc mọi collection đều thread-safe.
-- Chọn `TreeSet` hay `LinkedHashSet` có chi phí bộ nhớ và tính toán khác `ArrayList`. Dùng `parallel()` không bảo đảm nhanh hơn; khi hiệu năng quan trọng, đo trên dữ liệu thực tế.
-- Nếu gọi `unordered()` hoặc nguồn vốn không có encounter order, không được suy ra kết quả `ArrayList` hay `LinkedHashSet` có thứ tự ổn định giữa các lần chạy.
+- A factory such as `ArrayList::new` or `LinkedHashSet::new` must create an **independent container**; never return a shared list from an outer variable.
+- `map`/`filter` steps should **not interfere with the source** and **not depend on shared mutable state**, especially when parallel.
+- `toCollection` is not a `CONCURRENT` collector: safe accumulation comes from how the framework organizes separate containers and merges them, not from every collection being thread-safe.
+- Choosing `TreeSet` or `LinkedHashSet` has different memory and computation costs than `ArrayList`. Using `parallel()` does not guarantee faster execution; when performance matters, measure on real data.
+- If `unordered()` is called or the source inherently lacks an encounter order, do not expect the resulting `ArrayList` or `LinkedHashSet` to have a stable order across runs.
 
-Ví dụ nguy hiểm là đưa hiệu ứng phụ vào mapper:
+A dangerous example is introducing side effects into a mapper:
 
 ```java
 import java.util.ArrayList;
@@ -326,7 +326,7 @@ import java.util.stream.Stream;
 
 List<String> shared = new ArrayList<>();
 
-// VÍ DỤ SAI: ghi thêm vào collection ngoài pipeline từ nhiều luồng.
+// WRONG EXAMPLE: appending to an external collection from multiple threads.
 List<String> result = Stream.of("A", "B", "C").parallel()
     .map(value -> {
         shared.add(value);
@@ -335,11 +335,11 @@ List<String> result = Stream.of("A", "B", "C").parallel()
     .collect(Collectors.toCollection(ArrayList::new));
 ```
 
-`shared.add` có thể chạy đồng thời và không phải cách đáng tin để thu thập mọi phần tử. Kết quả cần dùng chính là collection mà `collect` trả về; không cần bộ chứa ngoài pipeline.
+`shared.add` can run concurrently and is not a reliable way to collect all elements. The result you need is the collection returned by `collect`; no external container outside the pipeline is needed.
 
-## 9. Những giới hạn dễ bỏ sót
+## 9. Easily Overlooked Limitations
 
-### Stream chỉ được tiêu thụ một lần
+### A Stream Can Only Be Consumed Once
 
 ```java
 import java.util.ArrayList;
@@ -351,14 +351,14 @@ Stream<String> stream = Stream.of("A", "B", "A");
 ArrayList<String> list =
     stream.collect(Collectors.toCollection(ArrayList::new));
 
-// Không hợp lệ: cùng Stream đã bị tiêu thụ.
+// Invalid: the same Stream has already been consumed.
 // LinkedHashSet<String> set =
 //     stream.collect(Collectors.toCollection(LinkedHashSet::new));
 ```
 
-Nếu cần hai loại collection từ cùng một `List` có sẵn, tạo **hai stream mới từ List**. Nếu nguồn chỉ duyệt được một lần như `Files.lines`, hãy cân nhắc có thực sự cần lưu tạm dữ liệu hay có thể tổng hợp các kết quả bằng một collector thích hợp.
+If you need two collection types from the same existing `List`, create **two new streams from the List**. If the source can only be traversed once, such as `Files.lines`, consider whether you truly need to buffer the data or if results can be aggregated with an appropriate collector.
 
-### Nguồn vô hạn cần giới hạn
+### Infinite Sources Require a Limit
 
 ```java
 import java.util.ArrayList;
@@ -372,11 +372,11 @@ ArrayList<String> five = Stream.generate(() -> "sample")
 System.out.println(five.size()); // 5
 ```
 
-`collect(toCollection(...))` thường phải duyệt hết đầu vào. Nếu nguồn vô hạn mà không có điều kiện dừng hoặc giới hạn hữu hạn, phép thu thập **không thể hoàn thành**. Ngay cả nguồn hữu hạn cũng có thể gây áp lực bộ nhớ lớn vì toàn bộ phần tử phải được giữ lại.
+`collect(toCollection(...))` typically must traverse the entire input. If a source is infinite with no stopping condition or finite limit, collection **cannot complete**. Even a finite source can cause high memory pressure because all elements must be retained.
 
-### Collection có thể thay đổi nhưng không nhất thiết giữ được phần tử `null`
+### A Collection May Be Mutable Yet Unable to Hold `null` Elements
 
-`ArrayList` hỗ trợ `null`, còn `ArrayDeque` và `EnumSet` không cho phép; `TreeSet` với thứ tự tự nhiên cũng không chấp nhận `null`. Đặt `filter(Objects::nonNull)` trước `collect` khi đó là chính sách dữ liệu phù hợp:
+`ArrayList` supports `null`, whereas `ArrayDeque` and `EnumSet` do not allow it; `TreeSet` with natural ordering also rejects `null`. Place `filter(Objects::nonNull)` before `collect` when that matches your data policy:
 
 ```java
 import java.util.ArrayDeque;
@@ -391,31 +391,31 @@ ArrayDeque<String> queue = Arrays.asList("A", null, "B").stream()
 System.out.println(queue); // [A, B]
 ```
 
-Không âm thầm bỏ `null` nếu giá trị thiếu cần được báo lỗi hoặc lưu lại để xử lý riêng.
+Do not silently drop `null` if missing values must raise an error or be saved for separate handling.
 
-## 10. Sai lầm thường gặp
+## 10. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | How to fix |
 | --- | --- | --- |
-| Truyền một collection đã tạo vào `toCollection` | Sai chữ ký; API cần `Supplier`. | Dùng `ArrayList::new` hoặc `() -> new TreeSet<>(comparator)`. |
-| Factory trả về một collection mutable dùng chung | Sai hợp đồng tích lũy; dễ tranh chấp hoặc gộp lặp. | Mỗi lần gọi supplier tạo instance độc lập. |
-| Dùng `toList()` rồi giả định có thể `add` | `Stream.toList()` (Java 16+) trả list không thể sửa đổi. | Dùng `toCollection(ArrayList::new)`. |
-| Dùng `toSet()` rồi giả định duyệt theo thứ tự nguồn | `toSet()` không hứa thứ tự hoặc kiểu cài đặt. | Dùng `toCollection(LinkedHashSet::new)` trên nguồn có thứ tự. |
-| Dùng `TreeSet` nhưng comparator chỉ so sánh một trường không duy nhất | Phần tử khác nhau có thể bị coi là trùng. | Xác định quy tắc tương đương hoặc thêm tiêu chí phụ vào comparator. |
-| Thu phần tử `null` vào `ArrayDeque` | Ném `NullPointerException`. | Xử lý dữ liệu thiếu trước khi thu thập. |
-| Dùng `collect` để thu toàn bộ stream vô hạn | Không kết thúc hoặc cạn tài nguyên. | Giới hạn đầu vào hoặc chọn phép tổng hợp hữu hạn. |
-| Thêm phần tử vào collection ngoài trong `parallel().map(...)` | Hiệu ứng phụ có tranh chấp và không đáng tin. | Để `collect` quản lý tích lũy và trả kết quả. |
+| Passing an already-created collection to `toCollection` | Signature mismatch; API requires a `Supplier`. | Use `ArrayList::new` or `() -> new TreeSet<>(comparator)`. |
+| Factory returns a shared mutable collection | Violates accumulation contract; prone to races or duplicate merges. | Return an independent instance on every supplier call. |
+| Using `toList()` and assuming you can call `add` | `Stream.toList()` (Java 16+) returns an unmodifiable list. | Use `toCollection(ArrayList::new)`. |
+| Using `toSet()` and assuming source iteration order | `toSet()` promises neither order nor concrete class. | Use `toCollection(LinkedHashSet::new)` on an ordered source. |
+| Using `TreeSet` whose comparator only checks one non-unique field | Distinct elements may be treated as duplicates. | Define equivalence rules or add a tie-breaker to the comparator. |
+| Collecting `null` elements into `ArrayDeque` | Throws `NullPointerException`. | Handle missing data before collecting. |
+| Using `collect` to gather an entire infinite stream | Does not terminate or exhausts resources. | Limit input or choose a finite aggregation. |
+| Adding elements to an external collection inside `parallel().map(...)` | Side effects suffer contention and are unreliable. | Let `collect` manage accumulation and return the result. |
 
-## 11. Bài tập áp dụng
+## 11. Practice Exercises
 
-**Bài 1 — Danh sách có thể chỉnh sửa.** Tạo `Stream.of("a", "b", "a")`, thu bằng `toCollection(ArrayList::new)`, sau đó `add("c")`. Dự đoán kết quả `[a, b, a, c]` và giải thích vì sao không nên giả định `Stream.toList()` cũng cho phép thay đổi.
+**Exercise 1 — Modifiable List.** Create `Stream.of("a", "b", "a")`, collect with `toCollection(ArrayList::new)`, then call `add("c")`. Predict the result `[a, b, a, c]` and explain why you should not assume `Stream.toList()` also allows modification.
 
-**Bài 2 — Loại trùng có thứ tự.** Cho dữ liệu `["Java", "Stream", "Java", "API", "Stream"]`. Thu vào `LinkedHashSet` và `TreeSet`, so sánh thứ tự duyệt cũng như quy tắc loại trùng. Giải thích vì sao `HashSet` không phù hợp khi phải giữ thứ tự lần đầu xuất hiện.
+**Exercise 2 — Ordered Deduplication.** Given `["Java", "Stream", "Java", "API", "Stream"]`. Collect into `LinkedHashSet` and `TreeSet`, comparing iteration order as well as deduplication rules. Explain why `HashSet` is unsuitable when first-appearance order must be preserved.
 
-**Bài 3 — Comparator.** Thu `Stream.of("apple", "pear", "kiwi", "fig")` vào `TreeSet` bằng comparator chỉ xét độ dài chuỗi. Dự đoán vì sao `"pear"` và `"kiwi"` không thể cùng tồn tại trong tập đó. Sửa comparator để dùng chữ cái làm tiêu chí phụ.
+**Exercise 3 — Comparator.** Collect `Stream.of("apple", "pear", "kiwi", "fig")` into a `TreeSet` using a comparator that only checks string length. Predict why `"pear"` and `"kiwi"` cannot both coexist in that set. Fix the comparator to use alphabetical order as a tie-breaker.
 
-**Bài 4 — EnumSet.** Định nghĩa `enum Status { NEW, RUNNING, DONE }`. Từ stream `DONE, NEW, DONE`, tạo `EnumSet<Status>` qua `toCollection(() -> EnumSet.noneOf(Status.class))`; kiểm tra tập kết quả và thứ tự duyệt.
+**Exercise 4 — EnumSet.** Define `enum Status { NEW, RUNNING, DONE }`. From the stream `DONE, NEW, DONE`, create an `EnumSet<Status>` via `toCollection(() -> EnumSet.noneOf(Status.class))`; verify the resulting set and its iteration order.
 
-**Bài 5 — Song song.** Thu `IntStream.range(0, 10000).parallel().boxed()` vào `ArrayList` bằng factory. Kiểm tra số lượng và phần tử đầu/cuối. Thử dùng `unordered()` rồi giải thích vì sao không nên kiểm thử danh sách bằng một thứ tự mong đợi cố định.
+**Exercise 5 — Parallel.** Collect `IntStream.range(0, 10000).parallel().boxed()` into an `ArrayList` using a factory. Verify the count and the first/last elements. Try using `unordered()` and explain why you should not test the list against a fixed expected order.
 
-**Ghi nhớ:** `Collectors.toCollection` giúp **chỉ định chính xác collection cần tạo** bằng một `Supplier`. Hãy chọn loại bộ chứa theo yêu cầu về thứ tự, phần tử trùng, khả năng thay đổi, null, comparator và chi phí. Khi thu thập song song, dùng factory tạo container mới và để collector quản lý việc kết hợp; khi nguồn vô hạn, giới hạn số phần tử trước khi lưu toàn bộ vào bộ nhớ.
+**Key takeaway:** `Collectors.toCollection` lets you **specify the exact collection to create** using a `Supplier`. Choose the container type based on requirements for ordering, duplicates, mutability, null handling, comparator semantics, and cost. When collecting in parallel, use a factory that creates fresh containers and let the collector manage merging; when the source is infinite, limit the number of elements before storing everything in memory.

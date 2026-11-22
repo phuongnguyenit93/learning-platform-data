@@ -1,47 +1,47 @@
-# Ý nghĩa thực sự của isAccessible() và lý do API này lỗi thời
+# The true meaning of isAccessible() and why this API is obsolete
 
-Trong Java Reflection, `isAccessible()` là phương thức được kế thừa từ `java.lang.reflect.AccessibleObject`, lớp cơ sở cho đối tượng `Field`, `Method` và `Constructor`. Tên hàm khiến nhiều người tưởng rằng nó trả lời: “Thành viên này có truy cập được từ mã đang chạy hay không?”. **Đó không phải ý nghĩa của `isAccessible()`.**
+In Java Reflection, `isAccessible()` is a method inherited from `java.lang.reflect.AccessibleObject`, the base class for `Field`, `Method`, and `Constructor` objects. The method name leads many people to assume it answers: "Is this member accessible from the currently running code?". **That is not what `isAccessible()` means.**
 
-Hàm này chỉ đọc **accessible flag** của một *đối tượng Reflection*. Cờ cho biết chương trình đã yêu cầu **bỏ qua các kiểm tra quyền truy cập theo ngôn ngữ Java** (*suppress Java language access checks*) cho đối tượng đó hay chưa. Cờ không phản ánh đầy đủ việc người gọi hiện tại vốn đã có quyền truy cập thông thường hay không.
+This method only reads the **accessible flag** of a *Reflection object*. The flag indicates whether the program has requested to **suppress Java language access checks** for that object. The flag does not fully reflect whether the current caller already has normal access permission.
 
-Từ **Java 9**, `isAccessible()` được đánh dấu `@Deprecated(since = "9")` vì chính tên hàm gây hiểu lầm. Java cung cấp `canAccess(Object obj)` để hỏi xem mã gọi hiện tại có truy cập được thành viên không, và `trySetAccessible()` để thử bật cờ bỏ qua kiểm tra khi thật sự cần. Hiểu rõ ba câu hỏi này là trọng tâm của bài học.
+Since **Java 9**, `isAccessible()` has been marked `@Deprecated(since = "9")` precisely because the method name is misleading. Java provides `canAccess(Object obj)` to ask whether the current calling code can access the member, and `trySetAccessible()` to try enabling the check-suppression flag when genuinely needed. Understanding these three questions clearly is the core of this lesson.
 
-## 1. Accessible flag thực sự có nghĩa gì?
+## 1. What does the accessible flag actually mean?
 
-Reflection có thể **tìm thấy metadata** của một thành viên chưa chắc người gọi đã **được phép sử dụng** thành viên ấy.
+Being able to **find a member's metadata** via Reflection does not guarantee the caller is **allowed to use** that member.
 
-Ví dụ, `SomeClass.class.getDeclaredField("secret")` có thể trả về đối tượng `Field` đại diện cho trường `private`. Tuy nhiên, khi gọi `field.get(instance)`, Java vẫn kiểm tra quyền truy cập của mã đang thực hiện lời gọi, trừ khi đối tượng `Field` đã được bật cờ bỏ qua kiểm tra một cách hợp lệ.
+For example, `SomeClass.class.getDeclaredField("secret")` can return a `Field` object representing a `private` field. However, when calling `field.get(instance)`, Java still checks the calling code's access permission unless the `Field` object has validly enabled the check-suppression flag.
 
-Mặc định, đối tượng `Field`, `Method` hoặc `Constructor` mới lấy bằng Reflection có accessible flag là `false`. Điều này có nghĩa **kiểm tra quyền truy cập vẫn được áp dụng**, chứ không có nghĩa mọi truy cập đều bị từ chối.
+By default, a newly obtained Reflection object (`Field`, `Method`, or `Constructor`) has its accessible flag set to `false`. This means **access checks still apply**, not that all access is denied.
 
-Đặc biệt:
+Specifically:
 
-- Một thành viên `public` có thể truy cập hợp lệ dù `isAccessible() == false`.
-- Một thành viên `private` có thể truy cập hợp lệ từ chính lớp khai báo hoặc từ ngữ cảnh nestmate ngay cả khi cờ là `false`.
-- Nếu cờ đã được bật thành `true` hợp lệ, đối tượng Reflection được dùng để bỏ qua các kiểm tra truy cập mà cờ đó điều khiển.
-- Cờ là trạng thái của **đối tượng Reflection cụ thể**; nó không thay đổi modifier của lớp/thành viên, không làm thành viên trở thành `public`, cũng không tự cấp quyền cho mọi đối tượng Reflection khác.
+- A `public` member can be validly accessed even when `isAccessible() == false`.
+- A `private` member can be validly accessed from the declaring class itself or from a nestmate context even when the flag is `false`.
+- If the flag has been validly enabled to `true`, the Reflection object is used to bypass the access checks controlled by that flag.
+- The flag is state on **that specific Reflection object**; it does not change class/member modifiers, does not make the member `public`, and does not automatically grant permission to any other Reflection object.
 
-So sánh ngắn các API:
+Brief API comparison:
 
-| API | Ý nghĩa | Có thay đổi trạng thái không? |
+| API | Meaning | Does it mutate state? |
 | --- | --- | --- |
-| `isAccessible()` | Đọc cờ bỏ qua kiểm tra quyền truy cập | Không; deprecated từ Java 9 |
-| `canAccess(obj)` | Kiểm tra quyền truy cập của *caller hiện tại* với receiver hợp lệ | Không |
-| `setAccessible(true)` | Yêu cầu bật cờ bỏ qua kiểm tra quyền truy cập | Có, hoặc ném ngoại lệ nếu bị từ chối |
-| `trySetAccessible()` | Thử bật cờ bỏ qua kiểm tra, báo thành công/thất bại | Có thể bật; có thể trả `false` |
-| `setAccessible(false)` | Tắt cờ, dùng lại kiểm tra quyền truy cập thông thường | Có |
+| `isAccessible()` | Reads the access-check suppression flag | No; deprecated since Java 9 |
+| `canAccess(obj)` | Checks access permission of the *current caller* with a valid receiver | No |
+| `setAccessible(true)` | Requests enabling the access-check suppression flag | Yes, or throws an exception if denied |
+| `trySetAccessible()` | Attempts to enable the suppression flag, reports success/failure | Can enable; can return `false` |
+| `setAccessible(false)` | Disables the flag, restores normal access checks | Yes |
 
-Không nên hiểu “accessible flag” là “thành viên có thể truy cập từ bất cứ đâu”; tên lịch sử của cờ không tương đương thuật ngữ “accessible to caller”.
+Do not interpret "accessible flag" as "the member is accessible from anywhere"; the historical name of the flag is not equivalent to the term "accessible to caller".
 
-## 2. Ví dụ Java 17+: isAccessible false nhưng canAccess true
+## 2. Java 17+ example: isAccessible is false while canAccess is true
 
-Tạo tệp `AccessFlagDemo.java` với **hai lớp top-level riêng biệt** trong cùng package. Điều này có chủ ý: dùng lớp lồng của cùng một top-level class có thể tạo quan hệ *nestmates* với quyền truy cập `private` khác trường hợp đang minh họa.
+Create file `AccessFlagDemo.java` with **two separate top-level classes** in the same package. This is intentional: using a nested class inside the same top-level class can create a *nestmates* relationship with different `private` access permissions than the scenario being illustrated.
 
 ```java
 import java.lang.reflect.Field;
 
 public class AccessFlagDemo {
-    @SuppressWarnings("deprecation") // Chỉ dùng isAccessible để minh họa API cũ.
+    @SuppressWarnings("deprecation") // Only using isAccessible to demonstrate the legacy API.
     public static void main(String[] args) throws ReflectiveOperationException {
         DemoTarget target = new DemoTarget();
 
@@ -70,14 +70,14 @@ class DemoTarget {
 }
 ```
 
-Biên dịch/chạy với JDK 17 trở lên:
+Compile/run with JDK 17 or newer:
 
 ```bash
 javac AccessFlagDemo.java
 java AccessFlagDemo
 ```
 
-Đầu ra kỳ vọng khi hai lớp chạy trong cùng unnamed module trên classpath:
+Expected output when both classes run in the same unnamed module on the classpath:
 
 ```text
 visible.isAccessible = false
@@ -90,144 +90,144 @@ secret.canAccess.after = true
 secret.value = hidden
 ```
 
-Diễn giải:
+Interpretation:
 
-1. `visible.isAccessible() == false` vì chưa ai bật cờ suppress của đối tượng `Field visible`. Nhưng trường `visible` là `public`, lớp khai báo cùng package với người gọi nên `visible.canAccess(target) == true`.
-2. `secret.isAccessible() == false` lúc đầu, và `secret.canAccess(target) == false` vì `AccessFlagDemo` là lớp top-level **khác** `DemoTarget`, không có quyền truy cập trực tiếp trường `private secret`.
-3. `secret.trySetAccessible() == true` trong ví dụ này vì hai lớp ở cùng unnamed module; Java cho phép bật suppress trong phạm vi ấy.
-4. Sau đó `secret.isAccessible() == true` báo cờ đã bật; `secret.canAccess(target) == true` báo có thể truy cập qua `Field` này; `secret.get(target)` trả về `hidden`.
+1. `visible.isAccessible() == false` because nobody has enabled the suppress flag on the `Field visible` object. Yet the `visible` field is `public` and the declaring class is in the same package as the caller, so `visible.canAccess(target) == true`.
+2. `secret.isAccessible() == false` initially, and `secret.canAccess(target) == false` because `AccessFlagDemo` is a **different** top-level class from `DemoTarget`, lacking direct access to the `private secret` field.
+3. `secret.trySetAccessible() == true` in this example because both classes are in the same unnamed module; Java allows enabling suppress within that scope.
+4. Afterwards, `secret.isAccessible() == true` reports the flag is enabled; `secret.canAccess(target) == true` reports access is possible via this `Field`; `secret.get(target)` returns `hidden`.
 
-Annotation `@SuppressWarnings("deprecation")` chỉ ngăn cảnh báo biên dịch của lời gọi `isAccessible()` được dùng có chủ ý để dạy API cũ. Nó không thay đổi hành vi, không gỡ trạng thái deprecated, và **không phải** khuyến nghị dùng `isAccessible()` trong mã mới.
+The `@SuppressWarnings("deprecation")` annotation only suppresses the compiler warning for calling `isAccessible()`, which is intentionally used here to teach the legacy API. It does not change behavior, does not remove deprecation, and is **not** a recommendation to use `isAccessible()` in new code.
 
-Ví dụ không dựa vào thứ tự Reflection trả về thành viên và không nhầm lẫn quyền truy cập của một lớp lồng với một lớp top-level độc lập.
+The example does not rely on the order in which Reflection returns members and does not conflate access permissions of a nested class with an independent top-level class.
 
-## 3. Lý do cụ thể isAccessible() bị deprecated
+## 3. Specific reason isAccessible() was deprecated
 
-Theo tài liệu chính thức của `AccessibleObject`, `isAccessible()` deprecated vì tên gọi gợi ý rằng phương thức kiểm tra *reflected object có accessible đối với caller hay không*, trong khi thực tế chỉ cho biết **các phép kiểm tra quyền truy cập đã bị suppress hay chưa**.
+According to the official documentation of `AccessibleObject`, `isAccessible()` was deprecated because its name suggests the method checks *whether the reflected object is accessible to the caller*, whereas in reality it only reports **whether access checks have been suppressed**.
 
-Bảng tình huống (giả định receiver đúng loại):
+Scenario table (assuming a valid receiver type):
 
-| Tình huống | `isAccessible()` | `canAccess(receiver)` |
+| Scenario | `isAccessible()` | `canAccess(receiver)` |
 | --- | --- | --- |
-| Field `public` và caller có quyền thường, cờ chưa bật | `false` | `true` |
-| Field `private` ngoài phạm vi caller, cờ chưa bật | `false` | `false` |
-| Field `private` đã bật cờ suppress thành công | `true` | `true` |
-| Field `private` trong ngữ cảnh chính lớp khai báo hoặc nestmate, cờ chưa bật | `false` | Có thể `true` |
+| `public` field with normal caller access, flag not enabled | `false` | `true` |
+| `private` field outside caller scope, flag not enabled | `false` | `false` |
+| `private` field with suppress flag successfully enabled | `true` | `true` |
+| `private` field in context of declaring class itself or nestmate, flag not enabled | `false` | Can be `true` |
 
-Do đó đoạn kiểm tra sau có thể sai về nghiệp vụ:
+Consequently, the following check can be logically wrong:
 
 ```java
 if (field.isAccessible()) {
-    // SAI giả định: chỉ những field truy cập được mới được xử lý.
+    // WRONG assumption: only accessible fields are processed.
 }
 ```
 
-Đây là mảnh mã **minh họa sai lầm**, không phải chương trình độc lập. Nó có thể bỏ sót field `public` mà caller hoàn toàn có quyền truy cập.
+This is a **snippet illustrating a mistake**, not a standalone program. It can skip `public` fields that the caller has full permission to access.
 
-Đối chiếu đúng mục đích:
+Mapping to the right intent:
 
-- “**Caller hiện tại** có thể truy cập thành viên không?” → `canAccess(receiver)`.
-- “Có thể **thử bật** suppress cho thành viên bị giới hạn không?” → `trySetAccessible()`.
-- “Cờ suppress hiện bật chưa?” → trạng thái mà `isAccessible()` cũ trả về, hiếm khi cần hỏi trực tiếp trong mã ứng dụng mới.
+- "Can **the current caller** access the member?" → `canAccess(receiver)`.
+- "Can we **try enabling** suppress for a restricted member?" → `trySetAccessible()`.
+- "Is the suppress flag currently on?" → the state returned by legacy `isAccessible()`, rarely needed directly in new application code.
 
-**Deprecated không đồng nghĩa removed.** Trên Java 17/21, `isAccessible()` vẫn có mặt và có thể được biên dịch, dù không nên sử dụng như phép kiểm tra quyền truy cập. Cũng **không được suy diễn** rằng `setAccessible(boolean)` bị deprecated chỉ vì phương thức getter `isAccessible()` bị deprecated.
+**Deprecated does not mean removed.** On Java 17/21, `isAccessible()` is still present and compiles, even though it should not be used as an access-permission check. Also **do not infer** that `setAccessible(boolean)` is deprecated just because the getter `isAccessible()` is deprecated.
 
-## 4. canAccess(Object) yêu cầu receiver phù hợp
+## 4. canAccess(Object) requires an appropriate receiver
 
-`canAccess(Object obj)` xuất hiện từ Java 9. Nó xét quyền truy cập của **caller thực hiện `canAccess`**, thông qua đối tượng Reflection hiện tại và ngữ cảnh Java language access control. Nếu flag đã bật thành công, `canAccess` có thể trả về `true` nhờ việc suppress; nếu flag chưa bật, caller vẫn có thể được quyền theo các quy tắc truy cập thông thường.
+`canAccess(Object obj)` was introduced in Java 9. It evaluates access permission of **the caller invoking `canAccess`**, via the current Reflection object and Java language access control context. If the flag is already enabled successfully, `canAccess` can return `true` due to suppression; if the flag is not enabled, the caller can still have permission under normal access rules.
 
-Đối số `obj` không tùy ý:
+The `obj` argument is not arbitrary:
 
-| Loại thành viên | Đối số của `canAccess` |
+| Member kind | Argument to `canAccess` |
 | --- | --- |
-| Instance field | Instance thuộc declaring class hoặc subtype phù hợp |
-| Instance method | Instance thuộc declaring class hoặc subtype phù hợp |
+| Instance field | Instance of the declaring class or an appropriate subtype |
+| Instance method | Instance of the declaring class or an appropriate subtype |
 | Static field | `null` |
 | Static method | `null` |
 | Constructor | `null` |
 
-Ví dụ `field.canAccess(target)` dùng cho instance field, còn `staticField.canAccess(null)` dùng cho static field. Nếu truyền `null` cho instance member hoặc một instance không tương thích với declaring class, Java có thể ném `IllegalArgumentException`. Static member và constructor yêu cầu `null`; truyền object không phải `null` là không hợp lệ.
+For example, `field.canAccess(target)` is used for an instance field, while `staticField.canAccess(null)` is used for a static field. Passing `null` for an instance member or an instance incompatible with the declaring class can cause Java to throw `IllegalArgumentException`. Static members and constructors require `null`; passing a non-`null` object is invalid.
 
-`canAccess` là thao tác **chỉ kiểm tra**, không chạy method, không đọc giá trị field và không bật suppress flag. Kết quả gắn với caller cụ thể; đừng giả định một helper class kiểm tra `canAccess` được `true` thì mọi mã khác cũng sẽ được quyền như vậy.
+`canAccess` is a **check-only** operation; it does not invoke the method, does not read the field value, and does not turn on the suppress flag. The result is tied to the specific caller; do not assume that if a helper class checks `canAccess` and gets `true`, all other code will also have that permission.
 
-Ngoài ra, `canAccess() == true` **không bảo đảm** thao tác `Method.invoke` không ném ngoại lệ từ method, `Constructor.newInstance` không thất bại vì lý do khác hoặc mọi field đều ghi được. Khả năng truy cập theo Java chỉ là một phần điều kiện của thao tác thực tế.
+In addition, `canAccess() == true` **does not guarantee** that `Method.invoke` will not throw an exception from the method, that `Constructor.newInstance` will not fail for another reason, or that every field is writable. Accessibility under Java rules is only part of the conditions for the actual operation.
 
-## 5. trySetAccessible và setAccessible: khi muốn thay đổi cờ
+## 5. trySetAccessible and setAccessible: when wanting to change the flag
 
-`trySetAccessible()` và `setAccessible(true)` là các thao tác **đề nghị bỏ qua kiểm tra quyền truy cập**. Chúng không phải phép kiểm tra thuần túy như `canAccess`.
+`trySetAccessible()` and `setAccessible(true)` are operations that **request bypassing access checks**. They are not pure checks like `canAccess`.
 
-- `trySetAccessible()` cố gắng đặt cờ thành `true`. Nếu đã bật từ trước, trả `true`. Nếu không thể bật vì giới hạn truy cập/module, trả `false` thay vì ném `InaccessibleObjectException` tương ứng. Tuy nhiên API vẫn có thể ném `SecurityException` khi chính sách an ninh từ chối.
-- `setAccessible(true)` cũng yêu cầu đặt cờ thành `true`, nhưng khi Java không cho phép thì có thể ném `java.lang.reflect.InaccessibleObjectException`; các lỗi kiểm tra an ninh phù hợp cũng có thể phát sinh.
-- `setAccessible(false)` yêu cầu sử dụng lại việc kiểm tra quyền truy cập; nó **không đổi** modifier `private`/`public` trong bytecode.
+- `trySetAccessible()` tries to set the flag to `true`. If already enabled, it returns `true`. If it cannot be enabled due to access/module limits, it returns `false` instead of throwing the corresponding `InaccessibleObjectException`. However, the API can still throw `SecurityException` when a security policy denies it.
+- `setAccessible(true)` also requests setting the flag to `true`, but when Java disallows it, it can throw `java.lang.reflect.InaccessibleObjectException`; relevant security check errors can also occur.
+- `setAccessible(false)` requests using access checks again; it **does not change** `private`/`public` modifiers in bytecode.
 
-Mã minh họa trong ngữ cảnh đã có `field` và `receiver` hợp lệ, kèm xử lý ngoại lệ theo ứng dụng:
+Illustrative code in a context that already has valid `field` and `receiver`, with application-level exception handling:
 
 ```java
 if (field.canAccess(receiver)) {
-    // Đã có quyền: không cần thay đổi accessible flag.
+    // Already have permission: no need to change the accessible flag.
     Object value = field.get(receiver);
 } else if (field.trySetAccessible()) {
-    // Được phép bật suppress flag.
+    // Permitted to enable the suppress flag.
     Object value = field.get(receiver);
 } else {
-    // Không được phép bật: dùng public API hoặc xử lý hạn chế truy cập.
+    // Not permitted to enable: use public API or handle access restriction.
 }
 ```
 
-Đoạn trên **không phải file Java độc lập**: cần `field`, `receiver` và xử lý/khai báo `IllegalAccessException`. Nó minh họa phân biệt nhánh “đã có quyền thường” với nhánh “thử suppress khi có nhu cầu”.
+The snippet above **is not a standalone Java file**: it requires `field`, `receiver`, and handling/declaring `IllegalAccessException`. It illustrates distinguishing the "already has normal permission" branch from the "try suppress when needed" branch.
 
-### Giới hạn của Java Platform Module System (JPMS)
+### Limits of the Java Platform Module System (JPMS)
 
-Từ Java 9, việc một thư viện có thể bật suppress phụ thuộc thêm vào ranh giới module. Trong Java 21, API nêu các trường hợp được phép, gồm caller và declaring class ở cùng module, một số trường hợp thành viên `public`/`protected static` trong package `exports` phù hợp, hoặc declaring package `opens` cho module gọi. Unnamed/open modules áp dụng quy tắc mở package tương ứng.
+Since Java 9, whether a library can enable suppress also depends on module boundaries. In Java 21, the API specifies the allowed cases, including the caller and declaring class being in the same module, certain cases of `public`/`protected static` members in an appropriately `exports` package, or the declaring package being `opens` to the calling module. Unnamed/open modules apply their corresponding package-opening rules.
 
-Cần phân biệt:
+Distinguish clearly:
 
-- `exports`: cho phép truy cập public API của package bởi những module được cho phép.
-- `opens`: cho phép deep reflection vào package cho những module được cho phép, khi ứng dụng/framework thật sự cần xem thành viên không công khai.
+- `exports`: allows accessing a package's public API by permitted modules.
+- `opens`: allows deep reflection into a package for permitted modules, when an application/framework truly needs to inspect non-public members.
 
-Nếu `consumer.module` thử bật suppress cho `private` member trong `internal.pkg` của `library.module` mà package đó không được `opens` cho caller, `trySetAccessible()` có thể trả `false`. Đừng mặc định có thể bỏ qua giới hạn bằng `setAccessible(true)`.
+If `consumer.module` tries to enable suppress for a `private` member in `internal.pkg` of `library.module` and that package is not `opens` to the caller, `trySetAccessible()` can return `false`. Do not assume limits can be bypassed with `setAccessible(true)`.
 
-Ưu tiên public API và chỉ mở package theo phạm vi cần thiết nếu thiết kế thư viện/framework đòi hỏi deep reflection. Cờ JVM mở rộng quyền truy cập bừa bãi không phải giải pháp mặc định cho lỗi thiết kế.
+Prefer public APIs and only open packages to the required scope if library/framework design demands deep reflection. JVM flags that indiscriminately widen access permissions are not a default fix for design flaws.
 
-### Không phải mọi final field đều ghi được
+### Not every final field is writable
 
-Cờ suppress dù được bật thành công cũng **không** cho phép ghi vào mọi trường `final`. Tài liệu Java 21 liệt kê những **non-modifiable final fields** như `static final` fields, final fields của hidden class và final fields của record; bật cờ có thể cho phép **đọc** nhưng không cấp quyền **ghi** cho các trường ấy. Quyền Reflection và tính chất bất biến của thành viên là hai vấn đề khác nhau.
+Even when the suppress flag is successfully enabled, it **does not** allow writing to every `final` field. Java 21 documentation lists **non-modifiable final fields** such as `static final` fields, final fields of hidden classes, and final fields of records; enabling the flag may allow **reading** them, but does not grant **write** permission for those fields. Reflection access permission and a member's immutability are two different issues.
 
-## 6. Checklist ra quyết định và lỗi phổ biến
+## 6. Decision checklist and common mistakes
 
-Dùng quy trình sau nếu đang viết code cần Reflection:
+Use the following workflow when writing code that needs Reflection:
 
-1. Xác định muốn **tra cứu metadata**, **kiểm tra quyền** hay **yêu cầu bỏ qua kiểm tra**.
-2. Chọn `getDeclaredField`/`getDeclaredMethod` hoặc các API tương ứng đúng phạm vi; tìm thấy metadata không có nghĩa dùng được.
-3. Xác định receiver: instance cho thành viên instance, `null` cho static/constructor.
-4. Nếu chỉ muốn biết quyền hiện tại, gọi `canAccess(receiver)`.
-5. Chỉ khi thực sự cần deep reflection và đã cân nhắc module/security mới thử `trySetAccessible()`, sau đó xử lý nhánh `false`.
-6. Thao tác `get`/`set`/`invoke`/`newInstance` vẫn cần xử lý các lỗi riêng của nó. Không xem giá trị `true` là cam kết thành công vô điều kiện.
+1. Decide whether you want to **look up metadata**, **check access**, or **request bypassing checks**.
+2. Choose `getDeclaredField`/`getDeclaredMethod` or the corresponding APIs with the right scope; finding metadata does not mean being able to use it.
+3. Determine the receiver: an instance for instance members, `null` for static/constructors.
+4. If you only want to know current permission, call `canAccess(receiver)`.
+5. Only when deep reflection is genuinely needed and module/security constraints have been considered, try `trySetAccessible()`, then handle the `false` branch.
+6. The operations `get`/`set`/`invoke`/`newInstance` still need their own error handling. Do not treat `true` as an unconditional guarantee of success.
 
-Lỗi thường gặp:
+Common mistakes:
 
-- **Dùng `isAccessible()` như `canAccess()`:** bỏ sót những thành viên có thể truy cập dù suppress flag đang `false`.
-- **Cho rằng `isAccessible() == true` biến field thành `public`:** cờ chỉ áp dụng cho đối tượng Reflection, không sửa metadata class.
-- **Cho rằng `private` luôn khiến `canAccess() == false`:** quên quyền của chính declaring class hoặc nestmates.
-- **Nhầm `trySetAccessible()` với một phép kiểm tra không tác dụng phụ:** thực tế có thể thay đổi cờ.
-- **Giả định mọi package của JDK/module khác có thể mở bằng `setAccessible(true)`:** quên ranh giới `opens` và JPMS.
-- **Dùng receiver sai:** `canAccess(null)` trên instance method/field hoặc receiver không đúng kiểu có thể ném `IllegalArgumentException`.
-- **Tưởng suppress mở khóa mọi `final` field:** bỏ qua giới hạn của non-modifiable final fields.
+- **Using `isAccessible()` like `canAccess()`:** misses members that are accessible even when the suppress flag is `false`.
+- **Thinking `isAccessible() == true` turns a field into `public`:** the flag only applies to the Reflection object, not modifying class metadata.
+- **Thinking `private` always makes `canAccess() == false`:** forgets the declaring class's own permission or nestmates.
+- **Mistaking `trySetAccessible()` for a side-effect-free check:** in practice it can mutate the flag.
+- **Assuming any package of the JDK/another module can be opened with `setAccessible(true)`:** forgets `opens` boundaries and JPMS.
+- **Using the wrong receiver:** `canAccess(null)` on an instance method/field or a receiver of the wrong type can throw `IllegalArgumentException`.
+- **Thinking suppress unlocks every `final` field:** ignores the restrictions on non-modifiable final fields.
 
-### Tự kiểm tra
+### Self-check
 
-1. Một `public` field có thể `isAccessible() == false` và `canAccess(instance) == true` không? **Có.** Truy cập thường đã hợp lệ mà không cần suppress.
-2. Vì sao `isAccessible()` deprecated? **Tên hàm gây hiểu nhầm:** đọc flag, không trả lời đầy đủ quyền truy cập của caller.
-3. API nào kiểm tra quyền mà không đổi trạng thái? **`canAccess(obj)`.**
-4. API nào thử bật suppress và có thể trả `false` khi module ngăn chặn? **`trySetAccessible()`.**
-5. `setAccessible(true)` có đổi modifier của field thành `public` không? **Không.**
-6. `isAccessible()` đã bị xóa khỏi JDK 17/21 chưa? **Chưa.** Deprecated và removed là hai trạng thái khác nhau.
-7. Vì sao ví dụ dùng hai lớp top-level khác nhau? **Tránh đặc quyền nestmate với trường private**, giúp phân biệt hai tình huống rõ ràng.
+1. Can a `public` field have `isAccessible() == false` and `canAccess(instance) == true`? **Yes.** Normal access is already valid without suppress.
+2. Why was `isAccessible()` deprecated? **Misleading method name:** it reads the flag, without fully answering the caller's access permission.
+3. Which API checks permission without changing state? **`canAccess(obj)`.**
+4. Which API tries to enable suppress and can return `false` when blocked by modules? **`trySetAccessible()`.**
+5. Does `setAccessible(true)` change a field's modifier to `public`? **No.**
+6. Has `isAccessible()` been removed from JDK 17/21? **No.** Deprecated and removed are two different states.
+7. Why does the example use two different top-level classes? **To avoid nestmate privileges with private fields**, making the two cases clearly distinguishable.
 
-## 7. Tài liệu chính thức
+## 7. Official documentation
 
-- [Oracle Java SE 21 — `AccessibleObject`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html): tài liệu về `isAccessible`, `canAccess`, `trySetAccessible`, `setAccessible`, module và final fields.
-- [Oracle Java SE 21 — `Field`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html): `get`, `set` và các ngoại lệ khi truy cập trường.
-- [Java Language Specification 21 — §6.6 Access Control](https://docs.oracle.com/javase/specs/jls/se21/html/jls-6.html#jls-6.6): nền tảng quyền truy cập trong ngôn ngữ Java.
+- [Oracle Java SE 21 — `AccessibleObject`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html): documentation on `isAccessible`, `canAccess`, `trySetAccessible`, `setAccessible`, modules, and final fields.
+- [Oracle Java SE 21 — `Field`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html): `get`, `set`, and exceptions when accessing fields.
+- [Java Language Specification 21 — §6.6 Access Control](https://docs.oracle.com/javase/specs/jls/se21/html/jls-6.html#jls-6.6): foundation of access control in the Java language.
 
-**Ghi nhớ:** `isAccessible()` chỉ đọc **cờ suppress**, `canAccess(obj)` hỏi **caller hiện tại có quyền**, `trySetAccessible()` **thử thay đổi cờ**. Tách ba ý nghĩa này sẽ giúp sử dụng Reflection đúng và giải thích chính xác vì sao API cũ bị deprecated.
+**Remember:** `isAccessible()` only reads **the suppress flag**, `canAccess(obj)` asks **whether the current caller has permission**, and `trySetAccessible()` **attempts to change the flag**. Separating these three meanings helps you use Reflection correctly and explain accurately why the old API was deprecated.

@@ -1,12 +1,12 @@
-# Thay đổi độ dài sau biến đổi `String` và tác động đến chỉ số cũ
+# Length Changes After `String` Transformations and Their Impact on Old Indices
 
-## 1. Mục tiêu
+## 1. Objective
 
-Trong Java, `String` là **bất biến**: các thao tác như `replace()`, `toUpperCase()`, `strip()` hoặc Unicode normalization trả về giá trị chuỗi kết quả, thay vì chỉnh sửa trực tiếp nội dung đối tượng chuỗi cũ. **Chuỗi kết quả có thể dài hơn hoặc ngắn hơn chuỗi ban đầu**.
+In Java, `String` is **immutable**: operations such as `replace()`, `toUpperCase()`, `strip()`, or Unicode normalization return a resulting string value rather than editing the old string object's content in place. **The resulting string can be longer or shorter than the original string**.
 
-Nếu bạn ghi nhớ chỉ số của một ký tự, token hoặc vùng chọn từ chuỗi ban đầu rồi tiếp tục sử dụng nó trên chuỗi sau biến đổi, chỉ số đó có thể **trỏ sai ký tự, cắt sai vùng hoặc vượt giới hạn**.
+If you record the index of a character, token, or selection range from the original string and continue using it on the transformed string, that index may **point to the wrong character, slice the wrong range, or go out of bounds**.
 
-Ví dụ ngắn:
+Short example:
 
 ```java
 import java.util.Locale;
@@ -15,76 +15,76 @@ String original = "Stra\u00DFe|END";          // Straße|END
 int oldSeparator = original.indexOf('|'); // 6
 
 String changed = original.toUpperCase(Locale.ROOT);
-// "STRASSE|END": ß biến thành SS; có thêm 1 char.
+// "STRASSE|END": ß turns into SS; 1 extra char is added.
 
 System.out.println(oldSeparator);              // 6
 System.out.println(changed.indexOf('|'));       // 7
 System.out.println(changed.charAt(oldSeparator)); // E
 ```
 
-Chỉ số `6` vẫn hợp lệ về mặt giới hạn nhưng **không còn trỏ đến dấu `|`**. Đây là lỗi nguy hiểm hơn chỉ số vượt mảng, bởi chương trình có thể chạy bình thường nhưng trả kết quả sai.
+Index `6` is still valid within bounds, yet **no longer points to the `|` character**. This is more dangerous than an out-of-bounds index error, because the program can run without crashing while producing wrong results.
 
-Sau bài học, bạn có thể:
-- Phân biệt độ dài `String.length()`, số Unicode code point và số ký tự hiển thị.
-- Nhận biết các phép biến đổi có thể thay đổi số UTF-16 code unit.
-- Hiểu sự lệch chỉ số khi ký tự **trước** vị trí đã lưu được thêm, xóa hoặc mở rộng.
-- Viết code tìm lại ranh giới trên chuỗi đã biến đổi và biết khi nào cần mô hình ánh xạ vị trí có chủ đích.
-- Tránh nhầm việc chuyển đổi chỉ số theo code point với việc ánh xạ vị trí **qua hai phiên bản chuỗi khác nhau**.
+After this lesson, you will be able to:
+- Distinguish `String.length()`, Unicode code point count, and displayed character count.
+- Recognize transformations that can alter the number of UTF-16 code units.
+- Understand index shifts when characters **before** a saved position are inserted, deleted, or expanded.
+- Write code that re-locates boundaries on the transformed string and know when a deliberate position-mapping model is needed.
+- Avoid confusing code point index conversion with position mapping **across two different string versions**.
 
-## 2. Chỉ số trong `String` là chỉ số UTF-16
+## 2. Indices in `String` Are UTF-16 Indices
 
-`String.length()` trả về số **UTF-16 code unit** (đơn vị `char` 16 bit). Các API như `charAt(index)`, `substring(begin, end)`, `indexOf(...)` và vị trí trả về từ `Matcher.start()/end()` cũng sử dụng chỉ số UTF-16.
+`String.length()` returns the number of **UTF-16 code units** (16-bit `char` units). APIs such as `charAt(index)`, `substring(begin, end)`, `indexOf(...)`, and positions returned by `Matcher.start()/end()` also use UTF-16 indices.
 
-Một Unicode code point có thể chiếm **một hoặc hai `char`**; một ký tự người dùng nhìn thấy (*grapheme cluster*) có thể gồm nhiều code point.
+One Unicode code point can occupy **one or two `char`s**; one user-perceived character (*grapheme cluster*) can consist of multiple code points.
 
-| Chuỗi | `length()` (UTF-16 units) | Số code point | Vì sao? |
+| String | `length()` (UTF-16 units) | Code point count | Why? |
 | --- | ---: | ---: | --- |
-| `"ABC"` | 3 | 3 | Mỗi chữ ASCII cần một `char`. |
-| `"A🚀B"` | 4 | 3 | `🚀` là code point ngoài BMP, cần hai `char`. |
-| `"\u00E9"` (é) | 1 | 1 | Dạng dựng sẵn U+00E9. |
-| `"e\u0301"` (e + dấu sắc) | 2 | 2 | Một chữ nhìn thấy được có thể dùng hai code point. |
+| `"ABC"` | 3 | 3 | Each ASCII letter needs one `char`. |
+| `"A🚀B"` | 4 | 3 | `🚀` is a non-BMP code point, requiring two `char`s. |
+| `"\u00E9"` (é) | 1 | 1 | Precomposed form U+00E9. |
+| `"e\u0301"` (e + acute accent) | 2 | 2 | One visible letter can use two code points. |
 
-Vì vậy, **“độ dài thay đổi” phải được hiểu theo đơn vị đo**. Nếu một phép biến đổi đổi một code point thành hai code point (`ß` → `SS`), `length()` tăng một. Nếu một chuỗi ghép dấu được chuẩn hóa thành ký tự dựng sẵn (`e` + dấu sắc → `é`), `length()` giảm một. Nếu thay `"A"` bằng `"🚀"`, số code point vẫn là một nhưng `length()` tăng từ `1` lên `2`.
+Therefore, **"length change" must be understood by unit of measurement**. If a transformation turns one code point into two code points (`ß` → `SS`), `length()` increases by one. If a decomposed accented sequence is normalized into a precomposed character (`e` + acute accent → `é`), `length()` decreases by one. If `"A"` is replaced with `"🚀"`, the code point count remains one while `length()` increases from `1` to `2`.
 
-## 3. Những phép biến đổi có thể làm thay đổi độ dài
+## 3. Transformations That Can Change Length
 
-| Phép biến đổi | Ví dụ | Tác động có thể xảy ra |
+| Transformation | Example | Possible effect |
 | --- | --- | --- |
-| `replace(CharSequence, CharSequence)` | `"abc".replace("b", "XYZ")` → `"aXYZc"` | Một đoạn nguồn có thể thành đoạn dài/ngắn hơn. |
-| `replaceAll(regex, replacement)` | `"a  b".replaceAll(" +", " ")` → `"a b"` | Các lần khớp regex có thể làm độ dài thay đổi; cần chú ý cú pháp regex và replacement. |
-| `toUpperCase(Locale)` | `"Straße"` → `"STRASSE"` với `Locale.ROOT` | Một ký tự có thể ánh xạ thành nhiều ký tự. |
-| `toLowerCase(Locale)` | Một số biến thể Unicode hoặc quy tắc locale | Biến đổi toàn chuỗi có thể tạo số code point khác trước. |
-| `strip()`, `stripLeading()`, `stripTrailing()` | `"  Java  ".strip()` → `"Java"` | Xóa các code point phù hợp ở biên. |
-| `trim()` | `"  Java  ".trim()` → `"Java"` | Xóa các code unit có giá trị `<= U+0020` ở biên. |
-| `Normalizer.normalize(..., NFC)` | `"e\u0301"` → `"\u00E9"` | Ghép các biểu diễn tương đương, có thể rút ngắn. |
-| `Normalizer.normalize(..., NFD)` | `"\u00E9"` → `"e\u0301"` | Tách ký tự, có thể kéo dài. |
-| `substring(begin, end)` | `"ABCDE".substring(1, 3)` → `"BC"` | Tạo chuỗi của một vùng được chọn; chỉ số mới được tính từ `0`. |
-| `repeat(int)` | `"AB".repeat(3)` → `"ABABAB"` | Độ dài có thể tăng theo số lần lặp. |
+| `replace(CharSequence, CharSequence)` | `"abc".replace("b", "XYZ")` → `"aXYZc"` | A source segment can become a longer or shorter segment. |
+| `replaceAll(regex, replacement)` | `"a  b".replaceAll(" +", " ")` → `"a b"` | Regex matches can change length; watch regex and replacement syntax. |
+| `toUpperCase(Locale)` | `"Straße"` → `"STRASSE"` with `Locale.ROOT` | One character can map to multiple characters. |
+| `toLowerCase(Locale)` | Certain Unicode variants or locale rules | Full-string conversion can produce a different number of code points. |
+| `strip()`, `stripLeading()`, `stripTrailing()` | `"  Java  ".strip()` → `"Java"` | Removes matching code points at the edges. |
+| `trim()` | `"  Java  ".trim()` → `"Java"` | Removes code units with value `<= U+0020` at the edges. |
+| `Normalizer.normalize(..., NFC)` | `"e\u0301"` → `"\u00E9"` | Composes equivalent representations, potentially shortening. |
+| `Normalizer.normalize(..., NFD)` | `"\u00E9"` → `"e\u0301"` | Decomposes characters, potentially lengthening. |
+| `substring(begin, end)` | `"ABCDE".substring(1, 3)` → `"BC"` | Creates a string for a selected range; new indices start from `0`. |
+| `repeat(int)` | `"AB".repeat(3)` → `"ABABAB"` | Length can grow according to repetition count. |
 
-**Chú ý:** `String` nguồn vẫn giữ nguyên nội dung, do đó chỉ số cũ vẫn có cùng ý nghĩa **trên chính nguồn cũ**. Nó trở thành vấn đề khi áp dụng cho **chuỗi kết quả mới**.
+**Note:** The source `String` keeps its content unchanged, so old indices still have the same meaning **on the old source itself**. They become a problem when applied to the **new resulting string**.
 
-Một phép biến đổi cụ thể đôi khi không làm đổi độ dài. Ví dụ `"java".toUpperCase(Locale.ROOT)` vẫn dài 4. Không được vì một vài ví dụ đơn giản mà suy ra mọi phép chuyển hoa/thường đều bảo toàn độ dài.
+A specific transformation sometimes leaves length unchanged. For example, `"java".toUpperCase(Locale.ROOT)` still has length 4. Never infer from a few simple examples that all case conversions preserve length.
 
-## 4. Cơ chế lệch vị trí: thêm, xóa hoặc thay trước chỉ số
+## 4. Index Shift Mechanism: Inserting, Deleting, or Replacing Before an Index
 
-Giả sử trong chuỗi gốc, bạn lưu một vị trí `p`. Một phép biến đổi chỉ xảy ra **trước** vị trí đó, thay đoạn nguồn dài `oldSize` UTF-16 code unit bằng đoạn mới dài `newSize`. Nếu phép biến đổi là một lần thay thế đơn giản và không đụng đến chính ký tự mục tiêu, vị trí mới là:
+Suppose in the original string you save a position `p`. A transformation occurs solely **before** that position, replacing a source segment of length `oldSize` UTF-16 code units with a new segment of length `newSize`. If the transformation is a single simple replacement and does not touch the target character itself, the new position is:
 
 ```text
 newIndex = oldIndex + (newSize - oldSize)
 ```
 
-Ví dụ nguồn `"ABC|END"`, chỉ số của `|` là `3`:
-- Thay `"ABC"` bằng `"ABCDE"`: chèn thêm hai code unit trước dấu `|`, vị trí mới là `5`.
-- Thay `"ABC"` bằng `"X"`: giảm hai code unit, vị trí mới là `1`.
-- Sửa một vùng **nằm hoàn toàn sau** dấu `|`: vị trí của dấu `|` không đổi, nếu không xảy ra biến đổi khác trước nó.
+Example source `"ABC|END"`, where the index of `|` is `3`:
+- Replacing `"ABC"` with `"ABCDE"`: inserts two extra code units before `|`, so the new position is `5`.
+- Replacing `"ABC"` with `"X"`: reduces by two code units, so the new position is `1`.
+- Modifying a range **completely after** `|`: the position of `|` does not change, provided no other transformation occurs before it.
 
-**Công thức trên chỉ mô tả một thay đổi đơn giản với vùng thay thế được biết rõ.** Nếu có nhiều vùng được thay, quy tắc tổng quát là cộng các độ lệch của những lần thay **trước** vị trí mục tiêu; nếu phép biến đổi xóa, thay hoặc tái sắp xếp chính mục tiêu, không thể luôn xác định một chỉ số mới duy nhất bằng cách cộng độ lệch.
+**The formula above only describes a single simple change with a known replacement range.** If multiple regions are replaced, the general rule is to sum the deltas of replacements occurring **before** the target position; if the transformation deletes, replaces, or reorders the target itself, a single new index cannot always be determined simply by adding an offset.
 
-Với normalization Unicode, chuyển hoa/thường phụ thuộc ngữ cảnh, xử lý regex hay thay thế có nhiều điểm khớp, tự “cộng một độ lệch chung” thường không đủ. Cần xác định lại vị trí trên văn bản đầu ra hoặc giữ một bản đồ ánh xạ sinh ra cùng phép biến đổi.
+With Unicode normalization, context-dependent case mapping, regex processing, or multi-match replacements, simply "adding one global offset" is usually insufficient. You must re-locate positions on the output text or maintain a mapping table generated alongside the transformation.
 
-## 5. Trường hợp 1: đổi chữ hoa có thể mở rộng `ß` thành `SS`
+## 5. Case 1: Uppercasing Can Expand `ß` to `SS`
 
-Trên Java 17:
+On Java 17:
 
 ```java
 String original = "Stra\u00DFe|END";
@@ -99,27 +99,27 @@ System.out.println(upper.indexOf('|'));// 7
 System.out.println(upper.charAt(6));   // E
 ```
 
-Giải thích chỉ số:
+Index explanation:
 
-| Chuỗi | Nội dung | Chỉ số của `|` |
+| String | Content | Index of `|` |
 | --- | --- | ---: |
-| Gốc | `Straße|END` | 6 |
-| Sau biến đổi | `STRASSE|END` | 7 |
+| Original | `Straße|END` | 6 |
+| After transformation | `STRASSE|END` | 7 |
 
-Vùng `"Straße"` dài 6 code unit, còn `"STRASSE"` dài 7. Thêm một code unit trước `|` đã làm tất cả vị trí theo sau lệch thêm một đơn vị.
+The `"Straße"` portion is 6 code units long, while `"STRASSE"` is 7. Adding one code unit before `|` shifted every following position by one unit.
 
-Điểm cần lưu ý:
-- `toUpperCase(Locale.ROOT)` thực hiện chuyển chữ hoa theo quy tắc không phụ thuộc locale mặc định, nhưng **không bảo đảm giữ nguyên độ dài**.
-- `toLowerCase(Locale)` cũng có thể phụ thuộc locale, ngữ cảnh và biến đổi độ dài. Ví dụ một số phép biến đổi chữ `İ` (Latin capital I with dot) có thể tạo ra nhiều code point với locale thích hợp.
-- Việc chuyển hoa/thường không tạo một **bản đồ vị trí gốc → kết quả** cho người gọi; chỉ biết văn bản kết quả chưa đủ để khôi phục mọi quan hệ khi ký tự bị mở rộng hoặc gộp.
+Points to note:
+- `toUpperCase(Locale.ROOT)` performs uppercasing independent of the default locale, yet **does not guarantee preserving length**.
+- `toLowerCase(Locale)` can also be locale-dependent, context-sensitive, and length-changing. For example, some transformations of `İ` (Latin capital I with dot) can produce multiple code points under an appropriate locale.
+- Case conversion does not return a **source → result position map** to the caller; knowing only the resulting text is not enough to reconstruct every correspondence when characters expand or merge.
 
-## 6. Trường hợp 2: Unicode normalization có thể rút ngắn hoặc kéo dài
+## 6. Case 2: Unicode Normalization Can Shorten or Lengthen
 
-Unicode có nhiều cách mã hóa tương đương về mặt chuẩn tắc. Chữ `é` có thể là:
-- Một code point dựng sẵn `U+00E9`.
-- Hai code point `U+0065` (`e`) và `U+0301` (combining acute accent).
+Unicode has multiple canonically equivalent encodings. The letter `é` can be:
+- One precomposed code point `U+00E9`.
+- Two code points `U+0065` (`e`) and `U+0301` (combining acute accent).
 
-`Normalizer.Form.NFC` có thể ghép chúng thành một code point; `Normalizer.Form.NFD` có thể tách ra.
+`Normalizer.Form.NFC` can compose them into one code point; `Normalizer.Form.NFD` can decompose them.
 
 ```java
 import java.text.Normalizer;
@@ -137,13 +137,13 @@ System.out.println(normalized.indexOf('|'));  // 4
 System.out.println(normalized.charAt(5));     // O
 ```
 
-Dấu `|` ở chỉ số 5 trên chuỗi gốc chuyển về chỉ số 4 trên chuỗi NFC. Nếu lấy vùng phía sau dấu bằng `substring(separatorBefore + 1)` trên chuỗi đã chuẩn hóa, bạn sẽ bỏ mất ký tự đầu tiên của vùng cần lấy.
+The `|` character at index 5 in the original string moves to index 4 in the NFC string. If you extract the portion after the separator using `substring(separatorBefore + 1)` on the normalized string, you will drop the first character of the desired substring.
 
-**Normalization không đồng nghĩa xóa dấu**. NFC giữ ý nghĩa Unicode chuẩn tắc; nó chỉ đổi cách biểu diễn. `Normalizer.Form.NFKC/NFKD` còn có phép chuẩn hóa tương thích, có thể tác động đến những khác biệt ký tự khác. Hãy chọn dạng chuẩn hóa theo yêu cầu dữ liệu và chấp nhận rằng độ dài có thể thay đổi.
+**Normalization does not mean stripping diacritics**. NFC preserves canonical Unicode meaning; it only changes representation. `Normalizer.Form.NFKC/NFKD` additionally performs compatibility normalization, which can affect other character distinctions. Choose the normalization form based on data requirements and accept that length can change.
 
-## 7. Trường hợp 3: thay thế và thay đổi độ dài UTF-16 khi có emoji
+## 7. Case 3: Replacement and UTF-16 Length Change with Emojis
 
-`String` dùng UTF-16, vì vậy thay một ký tự BMP bằng một code point ngoài BMP có thể tăng `length()` dù số code point không đổi.
+`String` uses UTF-16, so replacing a BMP character with a non-BMP code point can increase `length()` even when the code point count stays unchanged.
 
 ```java
 String source = "A\uD83D\uDE80B"; // A🚀B
@@ -157,9 +157,9 @@ System.out.println(oldB);             // 3
 System.out.println(changed.indexOf("B")); // 4
 ```
 
-Chính ký tự `🚀` chiếm **hai** code unit, và phép thay thế thêm một `A` trước `B`, nên `B` dịch từ chỉ số 3 sang 4.
+The `🚀` character itself occupies **two** code units, and the replacement inserts an extra `A` before `B`, so `B` shifts from index 3 to 4.
 
-Một ví dụ khác, thay `"A"` bằng `"🚀"`:
+Another example, replacing `"A"` with `"🚀"`:
 
 ```java
 String source = "AB";
@@ -171,11 +171,11 @@ System.out.println(source.codePointCount(0, source.length()));   // 2
 System.out.println(changed.codePointCount(0, changed.length())); // 2
 ```
 
-Ở đây **số code point vẫn bằng 2**, còn độ dài UTF-16 tăng từ 2 lên 3. Vì vậy, chỉ nhìn số code point trước/sau chưa đủ để tính độ lệch của các API nhận chỉ số `char`.
+Here **the code point count remains 2**, while UTF-16 length grows from 2 to 3. Therefore, looking only at before/after code point counts is insufficient for computing offsets for `char`-indexed APIs.
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone Java 17+ Program
 
-Lưu nội dung sau thành file `StringIndexAfterTransformDemo.java`:
+Save the following content into `StringIndexAfterTransformDemo.java`:
 
 ```java
 import java.text.Normalizer;
@@ -220,14 +220,14 @@ public class StringIndexAfterTransformDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 StringIndexAfterTransformDemo.java
 java StringIndexAfterTransformDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 original = Straße|END
@@ -248,11 +248,11 @@ emoji old B index = 3
 emoji new B index = 4
 ```
 
-Bản `String` cũ không hề bị chỉnh sửa. Hai biến tham chiếu `original`/`upper`, `decomposed`/`nfc`, `emoji`/`inserted` lần lượt chứa các phiên bản khác nhau của nội dung. Mọi chỉ số phải được giải thích **trên đúng phiên bản chuỗi sinh ra nó**.
+The old `String` instance was never modified. The pairs `original`/`upper`, `decomposed`/`nfc`, and `emoji`/`inserted` hold distinct versions of the content. Every index must be interpreted **against the exact string version that produced it**.
 
-## 9. Sai lầm phổ biến: dùng lại `substring`, `Matcher` hoặc vị trí con trỏ cũ
+## 9. Common Mistake: Reusing `substring`, `Matcher`, or Old Cursor Positions
 
-Giả sử phân tích chuỗi thành hai phần qua dấu `|`:
+Suppose you split a string into two parts around `|`:
 
 ```java
 String input = "Stra\u00DFe|END";
@@ -260,30 +260,30 @@ int cut = input.indexOf('|');
 
 String upper = input.toUpperCase(java.util.Locale.ROOT);
 
-// SAI: cut được tính trên input, không phải upper.
+// WRONG: cut was computed on input, not upper.
 String wrong = upper.substring(cut + 1);
 
-// ĐÚNG: tìm lại ranh giới trên chuỗi kết quả.
+// RIGHT: find the boundary again on the resulting string.
 int newCut = upper.indexOf('|');
 String correct = upper.substring(newCut + 1);
 ```
 
-`wrong` ở ví dụ này trả `"|END"`, còn `correct` trả `"END"`, bởi sau khi mở rộng `ß`, vị trí của dấu phân cách đã tăng lên 1.
+In this example `wrong` returns `"|END"`, whereas `correct` returns `"END"`, because after expanding `ß`, the separator's position increased by 1.
 
-Các nơi khác cũng có thể mắc lỗi này:
-- Lưu `start`/`end` từ `Matcher.find()` trên chuỗi gốc, rồi dùng các chỉ số đó để cắt chuỗi sau khi `replaceAll` hoặc normalize.
-- Lưu vị trí dấu phân cách bằng `indexOf`, rồi gọi `stripLeading` khiến tiền tố bị xóa.
-- Lưu điểm bắt đầu vùng được bôi chọn (selection) trong một editor, rồi chuẩn hóa hoặc thay thế văn bản trước vùng đó.
-- Lưu ranh giới cắt theo `length()` gốc rồi chuyển chữ hoa/thường toàn chuỗi.
-- Ghi chỉ số UTF-16 trong một hệ thống nhưng truyền nó như chỉ số code point cho API khác.
+Other places where this bug can appear:
+- Saving `start`/`end` from `Matcher.find()` on the original string, then using those indices to slice after `replaceAll` or normalization.
+- Saving a delimiter position via `indexOf`, then calling `stripLeading` which deletes the prefix.
+- Saving a selection start position in an editor, then normalizing or replacing text before that selection.
+- Saving a cut boundary based on original `length()`, then changing case on the entire string.
+- Recording a UTF-16 index in one system and passing it as a code point index to another API.
 
-**Nguyên tắc:** Một chỉ số không tự tồn tại độc lập; nó luôn đi kèm **phiên bản văn bản + đơn vị chỉ số + ý nghĩa của vị trí**.
+**Rule:** An index does not exist in isolation; it always belongs to **a text version + an index unit + a positional meaning**.
 
-## 10. Các cách xử lý an toàn
+## 10. Safe Ways to Handle It
 
-### Cách A — Biến đổi trước, tìm chỉ số sau
+### Approach A — Transform First, Find Indices Afterward
 
-Khi có thể xác định ranh giới bằng dấu phân cách, mẫu hoặc token sau biến đổi, hãy xử lý chuỗi trước rồi tìm vị trí trong chính kết quả:
+When boundaries can be identified by a delimiter, pattern, or token after transformation, process the string first and locate positions on the result itself:
 
 ```java
 String normalized = java.text.Normalizer.normalize(
@@ -296,11 +296,11 @@ if (separator < 0) {
 String right = normalized.substring(separator + 1);
 ```
 
-Cách này đơn giản, nhưng cần kiểm tra nếu phép biến đổi có thể thay đổi hoặc loại bỏ dấu phân cách. Với dấu/từ khóa xuất hiện nhiều lần, `indexOf` không tự cho biết đâu là occurrence ban đầu cần theo dõi; hãy dùng cấu trúc dữ liệu ổn định hơn (ID, vị trí token trong cây cú pháp, hoặc offset map).
+This is simple, though you must check whether the transformation could alter or remove the delimiter. When a symbol or keyword appears multiple times, `indexOf` does not automatically tell which original occurrence you meant to track; use a more stable structure (an ID, syntax-tree token position, or offset map).
 
-### Cách B — Trích xuất vùng có ý nghĩa trước rồi biến đổi từng vùng
+### Approach B — Extract Meaningful Regions First, Then Transform Each Region
 
-Khi các phần văn bản được tách bằng một ranh giới rõ ràng, thường thuận tiện hơn nếu bạn **chia trước**:
+When text parts are separated by a clear boundary, it is often cleaner to **split first**:
 
 ```java
 import java.util.Locale;
@@ -317,49 +317,49 @@ String result = left + "|" + right;
 System.out.println(result); // STRASSE|END
 ```
 
-Lúc này, ranh giới được xác định trên chuỗi gốc đúng nơi nó có ý nghĩa; phép biến đổi sau đó diễn ra riêng trong mỗi thành phần. Tất nhiên, nếu bạn vẫn cần trỏ tới ký tự bên trong `left` hoặc `right` sau biến đổi, vị trí bên trong thành phần đó vẫn phải được tính lại.
+Here, the boundary is determined on the original string right where it is meaningful; subsequent transformations run independently inside each part. Of course, if you still need to point to characters inside `left` or `right` after transformation, positions inside that part must still be recomputed.
 
-### Cách C — Ánh xạ vị trí khi tự kiểm soát các phép chỉnh sửa
+### Approach C — Position Mapping When You Control the Edits
 
-Nếu bạn chủ động thực hiện **một lần** thay đoạn `[start, end)` của chuỗi gốc bằng `replacement`, có thể xác định độ lệch của các vị trí nằm **sau** đoạn thay:
+If you deliberately perform **one** replacement of range `[start, end)` in the original string with `replacement`, you can compute the offset for positions located **after** the replaced range:
 
 ```java
 int oldLength = end - start;
 int newLength = replacement.length();
 int delta = newLength - oldLength;
 
-// Áp dụng cho một vị trí p nằm SAU hoặc TẠI end,
-// và chỉ khi đây là phép sửa duy nhất ảnh hưởng trước p.
+// Applies to a position p located AFTER or AT end,
+// and only when this is the sole edit affecting before p.
 int newPosition = p + delta;
 ```
 
-Nếu `p < start`, vị trí không đổi (trong trường hợp không có sửa nào khác). Nếu `p` nằm **bên trong** vùng bị thay, không có quy tắc chung để biết “ký tự tương ứng” ở kết quả; phải định nghĩa chính sách con trỏ (ví dụ gắn về đầu hoặc cuối đoạn thay) tùy ứng dụng.
+If `p < start`, the position does not change (assuming no other edits). If `p` lies **inside** the replaced range, there is no universal rule for the "corresponding character" in the result; you must define a cursor policy (such as snapping to the start or end of the replaced segment) per application.
 
-Với nhiều thay đổi, hãy tạo mapping từ chuỗi sửa đổi đã thực hiện: lưu mỗi khoảng nguồn, khoảng đích và độ lệch lũy kế. Các phép biến đổi không bảo toàn một-một, như chuẩn hóa hoặc case mapping, cần quy tắc mapping riêng cho vị trí trong phần bị gộp/mở rộng. Không nên suy luận mapping bằng một tỷ lệ độ dài chung.
+For multiple edits, construct a mapping from the sequence of edits performed: record each source range, target range, and cumulative offset. Non-one-to-one transformations, such as normalization or case mapping, need dedicated mapping rules for positions inside merged/expanded segments. Do not infer mappings using a global length ratio.
 
-### Cách D — Nếu sửa nhiều vùng ở vị trí gốc, cân nhắc sửa từ phải sang trái
+### Approach D — When Editing Multiple Original Ranges, Consider Right-to-Left Order
 
-Khi có nhiều **vùng không giao nhau được xác định trước trên chuỗi gốc**, thực hiện các phép thay thế từ vị trí lớn xuống nhỏ có thể giữ cho các vị trí gốc **ở bên trái** chưa bị dịch.
+When you have multiple **non-overlapping ranges predetermined on the original string**, applying replacements from higher indices down to lower indices keeps the original positions **to the left** unshifted.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder text = new StringBuilder("abcd");
 
-// Vùng cuối trước, rồi mới vùng đầu; hai vùng không giao nhau.
+// Trailing range first, then leading range; the two ranges do not overlap.
 text.replace(2, 4, "XYZ"); // abXYZ
 text.replace(0, 2, "P");   // PXYZ
 
 System.out.println(text); // PXYZ
 ```
 
-Đây là một kỹ thuật hữu ích với nhiều lần sửa do ứng dụng tự xác định vị trí; nó **không tự ánh xạ** con trỏ hoặc token xuyên qua một phép chuẩn hóa Unicode toàn chuỗi, và không áp dụng bừa bãi khi các vùng chồng lấn nhau.
+This is a useful technique for multiple application-positioned edits; it **does not automatically map** cursors or tokens across a full-string Unicode normalization, and should not be applied indiscriminately when ranges overlap.
 
-## 11. `offsetByCodePoints` giúp đổi đơn vị, không giúp ánh xạ qua phép biến đổi
+## 11. `offsetByCodePoints` Converts Units, Not Across Transformations
 
-API `String.offsetByCodePoints(int index, int codePointOffset)` nhận **chỉ số UTF-16** trong **một chuỗi cụ thể**, di chuyển theo số code point và trả về chỉ số UTF-16 trong **cùng chuỗi đó**.
+The `String.offsetByCodePoints(int index, int codePointOffset)` API takes a **UTF-16 index** within **one specific string**, moves by a number of code points, and returns a UTF-16 index within **that same string**.
 
-Ví dụ:
+Example:
 
 ```java
 String text = "A\uD83D\uDE80B"; // A🚀B
@@ -371,46 +371,46 @@ System.out.println(afterRocket);  // 3
 System.out.println(text.substring(beforeRocket, afterRocket)); // 🚀
 ```
 
-Phương thức này rất hữu ích khi cắt chuỗi theo số code point. Nhưng nếu bạn đã chuyển đổi `text` thành một `String` khác có độ dài/nội dung thay đổi, không thể truyền các chỉ số cũ vào chuỗi mới và giả định chúng còn đúng.
+This method is very useful when slicing a string by code point count. However, if you have transformed `text` into another `String` whose length or content changed, you cannot pass old indices into the new string and assume they remain valid.
 
-Một số phép biến đổi có thể làm thay đổi **ngay cả số code point** (`ß` → `SS`, `e + ◌́` → `é`). Vì vậy đổi sang chỉ số code point **không loại bỏ nhu cầu ánh xạ giữa phiên bản gốc và phiên bản kết quả**.
+Some transformations can change **even the number of code points** (`ß` → `SS`, `e + ◌́` → `é`). Therefore, switching to code point indices **does not eliminate the need to map between the original version and the resulting version**.
 
-## 12. Kiểm thử khi một ứng dụng lưu vị trí văn bản
+## 12. Testing When an Application Stores Text Positions
 
-Đối với chức năng soạn thảo, highlight, chú thích, phân tích cú pháp hoặc trích xuất dữ liệu, nên kiểm thử tối thiểu các nhóm sau:
+For editing, highlighting, annotation, parsing, or data extraction features, you should test at least the following groups:
 
-| Dữ liệu kiểm thử | Điều cần kiểm chứng |
+| Test data | What to verify |
 | --- | --- |
-| ASCII đơn giản, không đổi độ dài | Các chỉ số vẫn đúng khi phép biến đổi thật sự bảo toàn đơn vị và thứ tự. |
-| Ký tự có case expansion như `ß` | Chỉ số sau vùng mở rộng tăng. |
-| Chuỗi gồm dấu kết hợp + NFC/NFD | Chỉ số có thể giảm/tăng, một vùng cũ có thể không còn tương ứng từng `char`. |
-| Ký tự ngoài BMP như `🚀` | Chỉ số UTF-16 khác số code point. |
-| Chuỗi có khoảng trắng ở đầu + `stripLeading` | Mọi vị trí phía sau phần bị xóa cần tính lại trên chuỗi mới. |
-| Thay regex nhiều lần, thay đổi độ dài ở nhiều điểm | Một độ lệch duy nhất thường không đủ; cần tái tính/mapping có hệ thống. |
-| Dấu phân cách hoặc token bị thay/xóa | Không thể chỉ tìm lại bằng chuỗi cũ; cần chiến lược nhận diện token. |
-| Chỉ số nằm trong vùng bị thay hoặc ngay tại ranh giới | Chính sách neo vị trí phải được định nghĩa rõ. |
+| Simple ASCII, no length change | Indices remain accurate when the transformation truly preserves units and order. |
+| Characters with case expansion like `ß` | Indices after the expanded region increase. |
+| Strings with combining marks + NFC/NFD | Indices can shrink/grow; an old range may no longer correspond `char`-for-`char`. |
+| Non-BMP characters like `🚀` | UTF-16 indices differ from code point counts. |
+| Strings with leading whitespace + `stripLeading` | All positions after the removed prefix must be recomputed on the new string. |
+| Multiple regex replacements changing length in many places | A single offset is usually insufficient; systematic recomputation/mapping is needed. |
+| Delimiters or tokens replaced/deleted | Cannot simply re-find by the old literal; a token identification strategy is needed. |
+| Indices inside a replaced range or right on a boundary | Anchor policy must be clearly defined. |
 
-Khi lưu chỉ số ở API hoặc database, hãy ghi rõ đơn vị (**UTF-16 code unit**, **code point** hoặc **grapheme cluster**) và phiên bản văn bản mà vị trí đó tham chiếu. Chỉ số có thể vẫn nằm trong phạm vi hợp lệ nhưng biểu thị một phần hoàn toàn khác của chuỗi sau biến đổi.
+When persisting indices in an API or database, document the unit (**UTF-16 code unit**, **code point**, or **grapheme cluster**) and the text version that the position references. An index may still fall within valid bounds while representing an entirely different part of the string after transformation.
 
-## 13. Các lỗi thường gặp
+## 13. Common Mistakes
 
-**Lỗi 1 — “`String` bất biến nên chỉ số không đổi.”** Đối tượng gốc bất biến; chuỗi sau phép biến đổi là một giá trị khác. Chỉ số cũ áp dụng cho đối tượng gốc.
+**Mistake 1 — "`String` is immutable so indices don't change."** The original object is immutable; the string after transformation is a different value. Old indices apply to the original object.
 
-**Lỗi 2 — “Chuyển hoa/thường luôn đổi một ký tự thành một ký tự.”** Một số ánh xạ Unicode như `ß` → `SS` thay đổi số code point và `char`. Không dùng giả định này cho văn bản quốc tế.
+**Mistake 2 — "Case conversion always maps one character to one character."** Some Unicode mappings such as `ß` → `SS` change the number of code points and `char`s. Do not rely on this assumption for international text.
 
-**Lỗi 3 — “Chuẩn hóa Unicode không thay đổi độ dài.”** NFC/NFD có thể ghép/tách code point, nên vị trí ranh giới thay đổi dù ý nghĩa văn bản tương đương.
+**Mistake 3 — "Unicode normalization does not change length."** NFC/NFD can compose/decompose code points, so boundary positions change even when text meaning is equivalent.
 
-**Lỗi 4 — “Số code point không đổi thì chỉ số UTF-16 không đổi.”** Thay `"A"` bằng `"🚀"` giữ một code point nhưng thêm một UTF-16 code unit.
+**Mistake 4 — "If code point count stays the same, UTF-16 indices stay the same."** Replacing `"A"` with `"🚀"` keeps one code point yet adds one UTF-16 code unit.
 
-**Lỗi 5 — “Nếu `index < newString.length()` thì dùng được.”** Kiểm tra giới hạn chỉ xác nhận một vị trí hợp lệ về mặt số học; không bảo đảm nó còn trỏ tới token/ký tự cũ.
+**Mistake 5 — "If `index < newString.length()`, it's safe to use."** Bounds checking only confirms an arithmetically valid position; it does not guarantee it still points to the old token/character.
 
-**Lỗi 6 — “Tìm lại bằng `indexOf` luôn ánh xạ chính xác vị trí gốc.”** Nếu token xuất hiện nhiều lần, bị thay đổi hoặc bị xóa trong phép biến đổi, cần nhận diện ổn định hoặc mapping được tạo cùng thao tác.
+**Mistake 6 — "Re-finding with `indexOf` always maps the original position accurately."** If a token appears multiple times, was altered, or was deleted during transformation, you need stable identifiers or a mapping built alongside the operation.
 
-**Lỗi 7 — “`offsetByCodePoints` chuyển chỉ số từ chuỗi cũ sang chuỗi mới.”** API này chỉ di chuyển theo code point **trong cùng chuỗi**.
+**Mistake 7 — "`offsetByCodePoints` converts an index from the old string to the new string."** This API only steps by code points **within the same string**.
 
-## 14. Bài tập tự kiểm tra
+## 14. Self-Check Exercises
 
-### Bài 1 — Vị trí dấu phân cách sau case mapping
+### Exercise 1 — Separator Position After Case Mapping
 
 ```java
 String a = "Stra\u00DFe|OK";
@@ -418,11 +418,11 @@ int p = a.indexOf('|');
 String b = a.toUpperCase(java.util.Locale.ROOT);
 ```
 
-Hỏi `p` và `b.indexOf('|')`?
+What are `p` and `b.indexOf('|')`?
 
-**Đáp án:** `p == 6`, `b.indexOf('|') == 7`. Chuỗi `"Straße"` đổi thành `"STRASSE"` dài hơn một UTF-16 code unit.
+**Answer:** `p == 6`, `b.indexOf('|') == 7`. `"Straße"` turns into `"STRASSE"`, which is one UTF-16 code unit longer.
 
-### Bài 2 — Vị trí dấu phân cách sau NFC
+### Exercise 2 — Separator Position After NFC
 
 ```java
 String a = "e\u0301|B";
@@ -430,41 +430,41 @@ String b = java.text.Normalizer.normalize(
         a, java.text.Normalizer.Form.NFC);
 ```
 
-Hỏi dấu `|` ở vị trí nào trước và sau?
+What position is `|` at before and after?
 
-**Đáp án:** Trước ở chỉ số `2` (hai code point `e` và dấu sắc), sau ở chỉ số `1` (chữ `é` dựng sẵn).
+**Answer:** Before at index `2` (two code points: `e` and acute accent), after at index `1` (precomposed letter `é`).
 
-### Bài 3 — Chỉ số code point và UTF-16
+### Exercise 3 — Code Point vs. UTF-16 Indices
 
 ```java
 String before = "AB";
 String after = before.replace("A", "\uD83D\uDE80");
 ```
 
-Hỏi `after.length()` và số code point?
+What are `after.length()` and the code point count?
 
-**Đáp án:** `after.length() == 3`, còn `after.codePointCount(0, after.length()) == 2`. `🚀` là một code point nhưng hai `char`.
+**Answer:** `after.length() == 3`, while `after.codePointCount(0, after.length()) == 2`. `🚀` is one code point but two `char`s.
 
-### Bài 4 — Sửa lỗi dùng offset cũ
+### Exercise 4 — Fixing Stale Offset Usage
 
 ```java
 String input = "Stra\u00DFe|END";
 int oldPos = input.indexOf('|');
 String upper = input.toUpperCase(java.util.Locale.ROOT);
 
-// Cần lấy "END", nhưng code sau lấy sai:
+// Need to extract "END", but the following code extracts wrongly:
 String result = upper.substring(oldPos + 1);
 ```
 
-**Cách sửa:** Tính `int newPos = upper.indexOf('|');` rồi `String result = upper.substring(newPos + 1);`. Nếu có nhiều dấu phân cách, hãy xác định rõ dấu cần dùng để tránh chỉ chọn nhầm occurrence.
+**Fix:** Compute `int newPos = upper.indexOf('|');` and then `String result = upper.substring(newPos + 1);`. If multiple delimiters exist, identify the exact one needed to avoid picking the wrong occurrence.
 
-### Bài 5 — Có thể cập nhật một offset bằng chênh lệch `length()` không?
+### Exercise 5 — Can an Offset Always Be Updated Using the `length()` Difference?
 
-**Đáp án:** Chỉ trong điều kiện cụ thể: bạn biết các vùng sửa và chúng nằm trước vị trí cần cập nhật, không thay/xóa chính vị trí đó. Với nhiều vùng sửa hoặc biến đổi Unicode toàn chuỗi, phải theo dõi mapping hoặc xác định lại vị trí trên kết quả; `newLength - oldLength` toàn chuỗi không đủ để ánh xạ tùy ý.
+**Answer:** Only under specific conditions: you know the edited ranges and they lie before the position to update without replacing or deleting that position itself. For multiple edited ranges or full-string Unicode transformations, you must track a mapping or re-locate positions on the result; global `newLength - oldLength` is not enough for arbitrary mapping.
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 17 — `String` API: `length`, `substring`, `replace`, `toUpperCase`, `offsetByCodePoints`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
 - [Java SE 17 — `Normalizer`: NFC, NFD, NFKC, NFKD](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html)
-- [Java SE 17 — `Character`: Unicode code point và surrogate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
+- [Java SE 17 — `Character`: Unicode code points and surrogates](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
 - [Unicode Standard Annex #15 — Unicode Normalization Forms](https://www.unicode.org/reports/tr15/)

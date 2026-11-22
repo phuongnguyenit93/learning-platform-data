@@ -1,46 +1,46 @@
-# Primitive return được boxing và `void` trả về `null` khi dùng `Method.invoke`
+# Primitive returns are boxed and `void` returns `null` when using `Method.invoke`
 
-Trong Java Reflection, `java.lang.reflect.Method.invoke(Object obj, Object... args)` có **kiểu trả về `Object`**, dù phương thức thực tế được khai báo trả về `int`, `boolean`, `String`, `Integer` hay `void`. Vì vậy, khi gọi phương thức bằng Reflection, cần phân biệt **kiểu trả về được khai báo** với **đối tượng mà `invoke` trả lại**.
+In Java Reflection, `java.lang.reflect.Method.invoke(Object obj, Object... args)` has **return type `Object`**, even if the underlying method is declared to return `int`, `boolean`, `String`, `Integer`, or `void`. Therefore, when calling a method via Reflection, distinguish the **declared return type** from the **object returned by `invoke`**.
 
-Hai quy tắc trọng tâm:
+Two core rules:
 
-1. Nếu phương thức được gọi **trả về một giá trị primitive** (`int`, `boolean`, `double`...), `Method.invoke` **boxing** giá trị ấy thành đối tượng wrapper tương ứng (`Integer`, `Boolean`, `Double`...) trước khi trả về.
-2. Nếu phương thức được khai báo **`void`**, `Method.invoke` **trả về `null` khi lời gọi kết thúc bình thường**. `null` ở đây là kết quả theo hợp đồng của Reflection, không phải giá trị do một phương thức `void` tự `return`.
+1. If the invoked method **returns a primitive value** (`int`, `boolean`, `double`, ...), `Method.invoke` **boxes** that value into its corresponding wrapper object (`Integer`, `Boolean`, `Double`, ...) before returning it.
+2. If the method is declared **`void`**, `Method.invoke` **returns `null` when the call completes normally**. Here `null` is a result defined by Reflection's contract, not a value explicitly `return`ed by a `void` method.
 
-Ngoài ra, một phương thức có **kiểu trả về tham chiếu** (`String`, `Integer`, một object bất kỳ) có thể thực sự trả về `null`. Bởi vậy, **chỉ nhìn `result == null` không thể biết phương thức gốc là `void` hay là một phương thức trả về tham chiếu đang có giá trị `null`**. Phải đọc metadata bằng `Method.getReturnType()`.
+In addition, a method with a **reference return type** (`String`, `Integer`, any object) can itself return `null`. Hence, **looking at `result == null` alone cannot tell whether the original method is `void` or a reference-returning method whose value happened to be `null`**. You must inspect metadata using `Method.getReturnType()`.
 
-## 1. `Method.invoke` làm gì với giá trị trả về?
+## 1. What does `Method.invoke` do with return values?
 
-Chữ ký rút gọn:
+Abbreviated signature:
 
 ```java
 Object result = method.invoke(receiver, arguments);
 ```
 
-- `method`: đối tượng `Method` mô tả một phương thức cụ thể đã được tìm bằng Reflection.
-- `receiver`: instance dùng để gọi instance method; với static method, có thể truyền `null` vì không cần instance.
-- `arguments`: các đối số đầu vào; phải phù hợp số lượng và kiểu tham số của phương thức.
-- `result`: kết quả của lời gọi dưới dạng `Object` hoặc `null`. Nếu code bên trong phương thức ném exception, việc gọi không tạo ra một giá trị trả về bình thường.
+- `method`: a `Method` object describing a specific method already obtained via Reflection.
+- `receiver`: instance used to invoke an instance method; for static methods, `null` can be passed since no instance is needed.
+- `arguments`: input arguments; must match the method's parameter count and types.
+- `result`: the outcome of the call as an `Object` or `null`. If code inside the method throws an exception, the invocation does not produce a normal return value.
 
-`Method.invoke` không thay đổi kiểu trả về **được khai báo** của phương thức. Nó chỉ cần biểu diễn một kết quả có thể thuộc nhiều kiểu Java khác nhau qua **một kiểu trả về duy nhất của API**: `Object`.
+`Method.invoke` does not alter the **declared** return type of the method. It simply needs to represent a result that can belong to many different Java types through **a single API return type**: `Object`.
 
-| Phương thức khai báo | Giá trị logic sau khi method chạy | Kết quả từ `Method.invoke` |
+| Declared method | Logical value after method runs | Result from `Method.invoke` |
 |---|---|---|
-| `int count()` | `7` | `Integer.valueOf(7)` dưới dạng `Object` |
-| `long total()` | `30L` | Một `Long` có giá trị `30` |
-| `boolean enabled()` | `false` | `Boolean.FALSE` dưới dạng `Object` |
-| `char letter()` | `'A'` | Một `Character` có giá trị `'A'` |
-| `double rate()` | `2.5` | Một `Double` có giá trị `2.5` |
-| `String name()` | `"Lan"` | Tham chiếu tới `String` chứa `"Lan"` |
+| `int count()` | `7` | `Integer.valueOf(7)` as `Object` |
+| `long total()` | `30L` | A `Long` with value `30` |
+| `boolean enabled()` | `false` | `Boolean.FALSE` as `Object` |
+| `char letter()` | `'A'` | A `Character` with value `'A'` |
+| `double rate()` | `2.5` | A `Double` with value `2.5` |
+| `String name()` | `"Lan"` | Reference to `String` containing `"Lan"` |
 | `String missing()` | `null` | `null` |
 | `Integer nullable()` | `null` | `null` |
-| `void update()` | Không có giá trị trả về | `null` |
+| `void update()` | No return value | `null` |
 
-Các ví dụ trên giả định phương thức hoàn tất **bình thường** và caller có quyền truy cập phương thức. Nếu method ném exception, `invoke` thường báo `InvocationTargetException`, không trả về `null` như kết quả thông thường.
+The examples above assume the method completes **normally** and the caller has access permission. If the method throws an exception, `invoke` typically reports `InvocationTargetException`, rather than returning `null` as a normal result.
 
-### Boxing áp dụng cho đủ tám primitive
+### Boxing applies to all eight primitives
 
-| Primitive return | Wrapper trong kết quả Reflection |
+| Primitive return | Wrapper in Reflection result |
 |---|---|
 | `boolean` | `java.lang.Boolean` |
 | `byte` | `java.lang.Byte` |
@@ -51,11 +51,11 @@ Các ví dụ trên giả định phương thức hoàn tất **bình thường*
 | `float` | `java.lang.Float` |
 | `double` | `java.lang.Double` |
 
-Giá trị primitive `0`, `false` hay `'\u0000'` **không** trở thành `null`. Reflection vẫn tạo hoặc trả về wrapper biểu diễn giá trị đó. Việc JVM dùng cache wrapper cho một số giá trị hay tạo object mới là chi tiết không nên dựa vào: kiểm tra **giá trị bằng `equals` hoặc bằng phép so sánh primitive**, không so sánh danh tính wrapper bằng `==`.
+Primitive values `0`, `false`, or `'\u0000'` do **not** become `null`. Reflection still creates or returns a wrapper representing that value. Whether the JVM uses a wrapper cache for certain values or allocates a new object is an implementation detail not to rely on: compare **values using `equals` or primitive comparisons**, not wrapper identity with `==`.
 
-## 2. `void` khác `Void` và khác phương thức trả về tham chiếu `null`
+## 2. `void` differs from `Void` and from methods returning a `null` reference
 
-Ba khai báo sau có ngữ nghĩa khác nhau:
+The following three declarations have different semantics:
 
 ```java
 public void log() {
@@ -71,15 +71,15 @@ public Void noResultObject() {
 }
 ```
 
-Đây là ba method minh họa, chưa phải chương trình có class và `main`. Khi gọi qua Reflection:
+These are three illustrative methods, not yet a program with a class and `main`. When invoked via Reflection:
 
-- `log()` chạy side effect là in ra `logged`; `Method.invoke` trả **`null`** vì kiểu trả về là `void`.
-- `findName()` trả tham chiếu **`null`** do chính method trả về.
-- `noResultObject()` khai báo **`java.lang.Void`** (một lớp tham chiếu) và trả `null`. `Void` thường được dùng trong API generic để biểu diễn không có giá trị kết quả; nó **khác** từ khóa `void`.
+- `log()` executes its side effect of printing `logged`; `Method.invoke` returns **`null`** because the return type is `void`.
+- `findName()` returns a **`null`** reference returned by the method itself.
+- `noResultObject()` declares **`java.lang.Void`** (a reference class) and returns `null`. `Void` is commonly used in generic APIs to represent the absence of a result value; it **differs** from the `void` keyword.
 
-Không có “wrapper object” được Reflection tạo ra cho kết quả `void`. Giá trị `null` của `invoke` trong trường hợp này **không phải** `new Void()` và cũng không phải một instance `Void`.
+No "wrapper object" is created by Reflection for a `void` result. The `null` returned by `invoke` in this case is **neither** `new Void()` **nor** an instance of `Void`.
 
-Mặc dù ba lời gọi trên đều có thể trả `null` từ `invoke`, metadata của chúng khác nhau:
+Even though all three calls above can return `null` from `invoke`, their metadata differs:
 
 ```java
 Method log = Example.class.getMethod("log");
@@ -91,13 +91,13 @@ System.out.println(findName.getReturnType() == String.class);        // true
 System.out.println(noResultObject.getReturnType() == Void.class);    // true
 ```
 
-Đây là **đoạn minh họa**; giả sử `Example` là class public chứa ba method public trên, và đoạn code nằm trong một phương thức có khai báo `throws ReflectiveOperationException` hoặc xử lý `NoSuchMethodException`.
+This is an **illustrative snippet**; assume `Example` is a public class containing the three public methods above, and the code resides in a method declaring `throws ReflectiveOperationException` or handling `NoSuchMethodException`.
 
-Vì vậy, để phân biệt **không có return value theo chữ ký** với **một return value đang là null**, luôn đọc kiểu khai báo bằng `getReturnType()`.
+Therefore, to distinguish **no return value per signature** from **a return value that happens to be null**, always check the declared type using `getReturnType()`.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh
+## 3. Complete Java 17+ example
 
-Lưu thành **`MethodReturnDemo.java`**:
+Save as **`MethodReturnDemo.java`**:
 
 ```java
 import java.lang.reflect.Method;
@@ -171,14 +171,14 @@ public class MethodReturnDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp (JDK 17 hoặc mới hơn):
+Compile and run in the file's directory (JDK 17 or newer):
 
 ```bash
 javac MethodReturnDemo.java
 java MethodReturnDemo
 ```
 
-**Stdout đã được đối chiếu bằng JDK 21:**
+**Stdout verified with JDK 21:**
 
 ```text
 count return type: int
@@ -200,24 +200,24 @@ nullable unboxing: NullPointerException
 method threw: IllegalStateException
 ```
 
-### Phân tích theo thứ tự thực thi
+### Step-by-step execution analysis
 
-1. `Service.count()` khai báo trả `int`; `Method.getReturnType().getName()` là `int`, nhưng object nhận từ `invoke` thuộc lớp runtime `Integer`. Hai thông tin cùng đúng vì **primitive được boxing ở ranh giới Reflection**.
-2. `active()` trả primitive `false` nên `invoke` đưa ra `Boolean(false)`; `initial()` trả primitive `'A'` nên có `Character`; `total()` trả `30L` nên có `Long`.
-3. `touch()` vẫn chạy nội dung và in `touch body`. Sau khi hoàn tất, kết quả `Method.invoke` là `null` bởi phương thức khai báo `void`. `getReturnType()` của method vẫn là `void.class`.
-4. `missing()` và `nullable()` khai báo kiểu **tham chiếu** nên có thể trả `null` từ logic của chính chúng. Kết quả của `invoke` cũng bằng `null`, nhưng **không đồng nghĩa** hai method này là `void`.
-5. `boxed()` trả kiểu khai báo `Integer` với giá trị `17`. `invoke` trả chính tham chiếu kết quả, không thực hiện một bước boxing `int` bổ sung do Reflection: phần `return 17` đã được Java boxing theo ngữ nghĩa của method.
-6. `rate()` là `static`, nên `invoke(null)` dùng receiver `null` hợp lệ. Nó trả primitive `double`, và Reflection biểu diễn bằng `Double`. **Receiver `null`** khác hẳn **return `null`**.
-7. `(Integer) count.invoke(service)` ép kiểu object về `Integer` rồi tự unbox khi gán cho `int`. Việc unbox một tham chiếu `null` của `nullable()` gây `NullPointerException`.
-8. `fail()` ném `IllegalStateException` bên trong phương thức thực. Reflection **không trả về `null`**; `invoke` ném `InvocationTargetException`, và `getCause()` chính là `IllegalStateException`.
+1. `Service.count()` declares returning `int`; `Method.getReturnType().getName()` is `int`, yet the object received from `invoke` has runtime class `Integer`. Both facts are true because **primitives are boxed at the Reflection boundary**.
+2. `active()` returns primitive `false` so `invoke` yields `Boolean(false)`; `initial()` returns primitive `'A'` yielding `Character`; `total()` returns `30L` yielding `Long`.
+3. `touch()` still runs its body and prints `touch body`. Upon completion, `Method.invoke` returns `null` because the method declares `void`. `getReturnType()` of the method remains `void.class`.
+4. `missing()` and `nullable()` declare **reference** types and can return `null` from their own logic. The result of `invoke` is also `null`, which **does not mean** these two methods are `void`.
+5. `boxed()` returns declared type `Integer` with value `17`. `invoke` returns the result reference itself without an extra Reflection boxing step for `int`: `return 17` was already boxed by Java per the method's semantics.
+6. `rate()` is `static`, so `invoke(null)` validly uses a `null` receiver. It returns primitive `double`, and Reflection represents it as `Double`. **A `null` receiver** is completely different from **returning `null`**.
+7. `(Integer) count.invoke(service)` casts the object to `Integer` and then auto-unboxes when assigning to `int`. Unboxing a `null` reference from `nullable()` causes `NullPointerException`.
+8. `fail()` throws `IllegalStateException` inside the actual method. Reflection **does not return `null`**; `invoke` throws `InvocationTargetException`, and `getCause()` is `IllegalStateException`.
 
-Chỉ có **một file public class** (`MethodReturnDemo.java`); nested class `Service` giúp chương trình chạy độc lập, không phụ thuộc thư viện bên ngoài.
+There is **only one public class file** (`MethodReturnDemo.java`); the nested `Service` class keeps the program standalone with no external library dependencies.
 
-## 4. Kiểm tra kiểu trả về bằng `getReturnType()`
+## 4. Checking the return type with `getReturnType()`
 
-`Method.getReturnType()` trả một đối tượng `Class<?>` biểu diễn **kiểu trả về khai báo**. Nó không gọi method, không đọc giá trị thực tế và không boxing loại khai báo thành wrapper.
+`Method.getReturnType()` returns a `Class<?>` object representing the **declared return type**. It does not call the method, does not read an actual value, and does not box the declared type into a wrapper.
 
-| Khai báo | `method.getReturnType()` | `getReturnType().getName()` |
+| Declaration | `method.getReturnType()` | `getReturnType().getName()` |
 |---|---|---|
 | `int read()` | `int.class` | `int` |
 | `boolean ok()` | `boolean.class` | `boolean` |
@@ -226,12 +226,12 @@ Chỉ có **một file public class** (`MethodReturnDemo.java`); nested class `S
 | `String name()` | `String.class` | `java.lang.String` |
 | `int[] values()` | `int[].class` | JVM binary name `[I` |
 
-Nếu một method trả **mảng primitive**, chẳng hạn `int[]`, bản thân mảng là **reference type**. `Method.invoke` trả tham chiếu tới **mảng**, không boxing từng phần tử `int` thành `Integer`. Bạn có thể dùng `getReturnType().isArray()` và `getReturnType().getComponentType()` để kiểm tra loại mảng.
+If a method returns a **primitive array**, such as `int[]`, the array itself is a **reference type**. `Method.invoke` returns a reference to the **array**, without boxing each `int` element into `Integer`. You can use `getReturnType().isArray()` and `getReturnType().getComponentType()` to inspect the array type.
 
-Một cách phân loại kết quả trong code generic:
+One way to classify results in generic code:
 
 ```java
-// Đây là đoạn minh họa nằm trong một hàm đã có biến:
+// This is an illustrative snippet inside a function that already has variables:
 // Method method, Object receiver, Object[] arguments.
 Class<?> declaredType = method.getReturnType();
 Object result = method.invoke(receiver, arguments);
@@ -247,65 +247,65 @@ if (declaredType == void.class) {
 }
 ```
 
-**Lý do kiểm tra `void.class` trước:** `void` có cách xử lý kết quả đặc biệt. Không được truy cập `result.getClass()` khi method trả `void` vì `result == null`. Đoạn code giả định invocation hoàn tất bình thường và các exception đã được xử lý ở tầng gọi thích hợp.
+**Why check `void.class` first:** `void` has special result handling. Do not access `result.getClass()` when the method returns `void` because `result == null`. The snippet assumes invocation completes normally and exceptions are handled at an appropriate caller layer.
 
-### `getGenericReturnType()` khác gì?
+### How is `getGenericReturnType()` different?
 
-`getReturnType()` trả kiểu runtime sau *type erasure*, dưới dạng `Class<?>`. `getGenericReturnType()` trả `java.lang.reflect.Type`, có thể giữ thông tin `List<String>`, `T` hoặc các kiểu generic khác trong chữ ký metadata.
+`getReturnType()` returns the runtime type after *type erasure*, as `Class<?>`. `getGenericReturnType()` returns `java.lang.reflect.Type`, which can preserve `List<String>`, `T`, or other generic types in signature metadata.
 
-Ví dụ `List<String> names()` có `getReturnType() == List.class`; `getGenericReturnType()` có thể mô tả `List<String>`. Dù vậy, **một `List<String>` là kiểu tham chiếu**, không nằm trong trường hợp boxing primitive. Với `void` và kiểu primitive thuần, logic của `Method.invoke` vẫn như đã giải thích.
+For example, `List<String> names()` has `getReturnType() == List.class`; `getGenericReturnType()` can describe `List<String>`. Even so, **a `List<String>` is a reference type**, outside primitive boxing rules. For `void` and pure primitive types, `Method.invoke`'s logic remains as explained.
 
-## 5. Unboxing kết quả Reflection đúng cách
+## 5. Unboxing Reflection results properly
 
-Vì `Method.invoke` trả `Object`, không thể gán trực tiếp nó cho biến `int` mà không chuyển đổi kiểu tương ứng:
+Because `Method.invoke` returns `Object`, you cannot assign it directly to an `int` variable without an appropriate type conversion:
 
 ```java
-// Giả sử m là Method cho public int count() và receiver hợp lệ.
+// Assume m is Method for public int count() and receiver is valid.
 Object raw = m.invoke(receiver);
 Integer boxed = (Integer) raw;
 int count = boxed;
 ```
 
-- `(Integer) raw` là ép kiểu tham chiếu từ `Object` về wrapper thực tế.
-- `int count = boxed` dùng **unboxing** do Java thực hiện.
-- Nếu `raw` là `null`, phép unboxing sẽ gây `NullPointerException`.
-- Nếu `raw` là wrapper không tương thích (ví dụ `Long` nhưng ép `Integer`), phép cast sẽ gây `ClassCastException`.
+- `(Integer) raw` is a reference cast from `Object` to the actual wrapper.
+- `int count = boxed` uses **unboxing** performed by Java.
+- If `raw` is `null`, unboxing will throw `NullPointerException`.
+- If `raw` is an incompatible wrapper (e.g., `Long` cast to `Integer`), the cast will throw `ClassCastException`.
 
-Khi method thực sự khai báo `int` và hoàn tất bình thường, kết quả `Method.invoke` là `Integer` **không null**. Tuy nhiên, code Reflection tổng quát thường không biết trước phương thức được truyền vào; do đó không nên ép tất cả kết quả sang `Integer`.
+When a method actually declares `int` and completes normally, the result of `Method.invoke` is a **non-null** `Integer`. However, general-purpose Reflection code often does not know the passed-in method beforehand; therefore, do not cast all results to `Integer`.
 
-Một `Number` có thể được dùng để xử lý nhiều wrapper số (`Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`), nhưng các phương thức `intValue()`, `longValue()`... có thể **mất độ chính xác** khi thu hẹp số hoặc chuyển số thực sang số nguyên. Không áp dụng `Number` cho `Boolean` và `Character`. Nếu hợp đồng method yêu cầu đúng kiểu, kiểm tra `getReturnType()` trước khi chuyển đổi, không âm thầm biến mọi số thành cùng một kiểu.
+`Number` can be used to handle multiple numeric wrappers (`Byte`, `Short`, `Integer`, `Long`, `Float`, `Double`), yet methods like `intValue()`, `longValue()`, etc. can **lose precision** when narrowing numbers or converting floating-point values to integers. Do not apply `Number` to `Boolean` and `Character`. If the method contract requires an exact type, check `getReturnType()` before converting rather than silently coercing all numbers to the same type.
 
-## 6. Phân biệt ba loại `null` thường gặp
+## 6. Distinguishing three common kinds of `null`
 
-Từ `null` có thể xuất hiện ở **receiver**, **đối số đầu vào** và **kết quả trả về**:
+The word `null` can appear in the **receiver**, **input arguments**, and **return result**:
 
-| Vị trí | Ví dụ | Ý nghĩa |
+| Position | Example | Meaning |
 |---|---|---|
-| Receiver trong `invoke` | `staticMethod.invoke(null)` | Hợp lệ: static method không cần một instance |
-| Receiver trong `invoke` | `instanceMethod.invoke(null)` | Sai: instance method cần object hợp lệ; có thể ném `NullPointerException` |
-| Argument trong `invoke` | `method.invoke(obj, (Object) null)` | Truyền **một đối số null** vào method có một tham số tham chiếu tương thích; không đồng nghĩa method trả null |
-| Giá trị kết quả | `Object result = voidMethod.invoke(obj)` | `null` là kết quả chuẩn khi phương thức gốc có kiểu `void` và thực thi bình thường |
-| Giá trị kết quả | `Object result = stringMethod.invoke(obj)` | Có thể `null` vì method kiểu tham chiếu thực sự trả `null` |
+| Receiver in `invoke` | `staticMethod.invoke(null)` | Valid: static method does not need an instance |
+| Receiver in `invoke` | `instanceMethod.invoke(null)` | Invalid: instance method needs a valid object; can throw `NullPointerException` |
+| Argument in `invoke` | `method.invoke(obj, (Object) null)` | Passes **one null argument** to a method with one compatible reference parameter; does not mean the method returns null |
+| Return value | `Object result = voidMethod.invoke(obj)` | `null` is the standard result when the original method has type `void` and executes normally |
+| Return value | `Object result = stringMethod.invoke(obj)` | Can be `null` because the reference-returning method actually returned `null` |
 
-Đặc biệt, `Method.invoke` là một **varargs method** có kiểu tham số `Object... args`. Nếu cần truyền **đúng một đối số `null`** cho phương thức có một tham số tham chiếu, cách viết rõ ràng là:
+Specifically, `Method.invoke` is a **varargs method** with parameter type `Object... args`. If you need to pass **exactly one `null` argument** to a method taking one reference parameter, the clear way to write it is:
 
 ```java
 method.invoke(receiver, (Object) null);
 ```
 
-Nếu method khai báo **không tham số**, gọi:
+If the method declares **no parameters**, call:
 
 ```java
 method.invoke(receiver);
 ```
 
-Đối với nhiều tham số, truyền các arguments theo thứ tự. Đừng tùy ý truyền `null` vào primitive parameter: lời gọi cần unboxing giá trị đầu vào nhưng `null` không có giá trị primitive tương ứng, nên Reflective invocation không thể hoàn tất như một lời gọi hợp lệ.
+For multiple parameters, pass arguments in order. Do not arbitrarily pass `null` to a primitive parameter: the call needs to unbox the input value, yet `null` has no corresponding primitive value, so reflective invocation cannot complete as a valid call.
 
-Ví dụ `method.invoke(receiver, (Object) null)` chỉ liên quan đến **input**. Kiểu trả về method vẫn quyết định việc kết quả `invoke` được boxing hay `null` khi hoàn tất bình thường.
+The example `method.invoke(receiver, (Object) null)` only pertains to **input**. The method's return type still governs whether `invoke`'s result is boxed or `null` upon normal completion.
 
-## 7. Khi phương thức ném exception thì có trả `null` không?
+## 7. When a method throws an exception, does it return `null`?
 
-**Không.** Nếu code thực thi trong method ném exception, lời gọi `Method.invoke` thường ném `InvocationTargetException` bọc exception gốc:
+**No.** If code executing inside the method throws an exception, the `Method.invoke` call typically throws `InvocationTargetException` wrapping the original exception:
 
 ```java
 try {
@@ -317,91 +317,91 @@ try {
 }
 ```
 
-Đây là **đoạn minh họa**, biến `method` và `receiver` có từ môi trường gọi. Khi method trả `void` **và chạy thành công**, biến `result` nhận `null`. Khi method `void` **ném exception**, lệnh gán `result` không hoàn tất bình thường; không có kết quả `null` để kiểm tra.
+This is an **illustrative snippet**, with variables `method` and `receiver` supplied from the calling environment. When a `void` method **runs successfully**, `result` receives `null`. When a `void` method **throws an exception**, the assignment to `result` does not complete normally; there is no `null` result to inspect.
 
-Cũng cần tách exception xảy ra **trước khi method được gọi**:
+Also separate exceptions occurring **before the method is invoked**:
 
-- `NoSuchMethodException`: không tìm thấy method tại `Class.getMethod`/`getDeclaredMethod`.
-- `IllegalAccessException`: Reflection không được phép gọi member theo access rules.
-- `IllegalArgumentException`: sai kiểu/số lượng đối số, receiver sai kiểu hoặc các điều kiện invocation không hợp lệ.
-- `NullPointerException`: receiver là `null` cho instance method hoặc tình huống lỗi null ở caller; với method bên trong tự ném `NullPointerException`, lỗi ấy thường là **cause của `InvocationTargetException`**.
-- `ExceptionInInitializerError` và các lỗi khởi tạo lớp có thể xuất hiện khi thực sự dùng một static method mà class chưa khởi tạo thành công.
+- `NoSuchMethodException`: method not found in `Class.getMethod`/`getDeclaredMethod`.
+- `IllegalAccessException`: Reflection is not permitted to invoke the member under access rules.
+- `IllegalArgumentException`: wrong argument types/count, wrong receiver type, or invalid invocation conditions.
+- `NullPointerException`: `null` receiver for an instance method or a null-related error at the caller; when the method itself internally throws `NullPointerException`, that error is typically the **cause of `InvocationTargetException`**.
+- `ExceptionInInitializerError` and class initialization errors can occur when actually invoking a static method whose class has not yet initialized cleanly.
 
-Không nên dùng `result == null` để kết luận lời gọi thất bại: đó có thể là kết quả **bình thường** của `void` hoặc của method tham chiếu.
+Do not use `result == null` to conclude that the call failed: that can be the **normal** result of `void` or of a reference-returning method.
 
-## 8. Ứng dụng trong công cụ gọi method động
+## 8. Application in dynamic method-invocation tools
 
-Một bộ gọi API/plugin hoặc framework có thể không biết trước return type của các method mà nó xử lý. Để biểu diễn chính xác, nên giữ **cả metadata và giá trị**:
+An API/plugin invoker or framework may not know the return types of the methods it handles in advance. To represent results accurately, preserve **both metadata and value**:
 
 ```java
-// Đoạn minh họa; method/receiver/arguments được cung cấp từ caller.
+// Illustrative snippet; method/receiver/arguments are provided by the caller.
 Class<?> returnType = method.getReturnType();
 Object value = method.invoke(receiver, arguments);
 
 if (returnType == void.class) {
-    // Thành công nhưng không có giá trị trả về theo chữ ký.
+    // Succeeded, with no return value per signature.
 } else if (value == null) {
-    // Phương thức kiểu tham chiếu đã trả về null.
+    // Reference-typed method returned null.
 } else {
-    // Có đối tượng kết quả: wrapper cho primitive,
-    // hoặc object tham chiếu trả về từ phương thức.
+    // Result object present: wrapper for primitive,
+    // or reference object returned from the method.
 }
 ```
 
-Trong một API kết quả tổng quát, có thể biểu diễn “không có giá trị trả về theo chữ ký” bằng một trạng thái riêng, và “có kiểu trả về tham chiếu nhưng giá trị null” bằng trạng thái khác. Không nên đưa cả hai trường hợp vào cùng nhãn `null` nếu người dùng API cần phân biệt.
+In a general result API, you can represent "no return value per signature" with one distinct state, and "has a reference return type with a null value" with another state. Avoid collapsing both cases into the same `null` label if API consumers need to tell them apart.
 
-Nếu hệ thống serialization nhận giá trị từ `invoke`:
+If a serialization system receives values from `invoke`:
 
-- Với primitive return, wrapper `Integer`/`Boolean`/... có thể được serializer xử lý như một giá trị bình thường.
-- Với `void`, không có payload theo chữ ký; ứng dụng có thể biểu diễn thành công bằng response không có body, status hoặc thông tin tác vụ riêng.
-- Với reference return `null`, một hợp đồng API có thể cho phép payload nullable, thiếu field hoặc thông điệp lỗi tùy ý nghĩa nghiệp vụ. Reflection **không** tự quyết định ngữ nghĩa này.
+- For primitive returns, `Integer`/`Boolean`/... wrappers can be handled by the serializer as ordinary values.
+- For `void`, there is no payload per signature; the application can represent success with a bodyless response, status, or separate task info.
+- For a reference returning `null`, an API contract might allow a nullable payload, omitted field, or error message depending on business semantics. Reflection **does not** decide these semantics for you.
 
-**Lưu ý hiệu năng:** boxing/unboxing và chi phí reflective dispatch có thể đáng quan tâm trong vòng lặp rất nóng. Trước hết hãy đo thực tế và thiết kế theo nhu cầu; đừng diễn giải việc thấy `Integer` ở kết quả `invoke` là bằng chứng luôn có object mới được cấp phát ở mỗi lời gọi.
+**Performance note:** boxing/unboxing and reflective dispatch overhead can matter in very hot loops. Measure first and design to requirements; do not interpret seeing `Integer` in `invoke`'s result as proof that a brand-new object is allocated on every single call.
 
-## 9. Lỗi tư duy phổ biến
+## 9. Common conceptual mistakes
 
-1. **“Phương thức trả `int` thì `invoke` cũng trả `int`.”** Sai: API `invoke` trả `Object`, primitive được boxing thành wrapper.
-2. **“`void` được boxing thành `Void`.”** Sai: `void` không có giá trị và `invoke` trả **`null`**, không tạo instance `Void`.
-3. **“Kết quả `invoke` là `null` thì method phải là `void`.”** Sai: một method có return type tham chiếu cũng có thể thực sự trả `null`.
-4. **“Method kiểu primitive có thể trả `null` khi giá trị bằng 0.”** Sai: `0`, `false` và các giá trị primitive khác vẫn được boxing bình thường.
-5. **“`getReturnType()` trả `Integer.class` nếu method khai báo `int`.”** Sai: `getReturnType()` là `int.class`, còn đối tượng kết quả `invoke` là `Integer`.
-6. **“`Void.class` và `void.class` giống nhau.”** Sai: `Void` là reference type; `void` là từ khóa biểu diễn không có return value.
-7. **“`touch()` là `void` nên không chạy code khi Reflection gọi nó.”** Sai: code vẫn chạy và có thể gây side effect; chỉ không có giá trị trả về.
-8. **“`null` từ method trả `Integer` unbox thành 0.”** Sai: unboxing một tham chiếu `null` ném `NullPointerException`.
-9. **“Method ném exception thì `invoke` trả `null`.”** Sai: invocation không hoàn tất bình thường; thường nhận `InvocationTargetException`.
-10. **“Receiver `null` nghĩa là method trả `null`.”** Sai: receiver `null` hợp lệ với static method và hoàn toàn độc lập với return value.
+1. **"If a method returns `int`, `invoke` also returns `int`."** False: the `invoke` API returns `Object`, and primitives are boxed into wrappers.
+2. **"`void` is boxed into `Void`."** False: `void` has no value and `invoke` returns **`null`**, without creating a `Void` instance.
+3. **"If `invoke` returns `null`, the method must be `void`."** False: a method with a reference return type can also genuinely return `null`.
+4. **"A primitive-typed method can return `null` when its value is 0."** False: `0`, `false`, and other primitive values are still boxed normally.
+5. **"`getReturnType()` returns `Integer.class` if the method declares `int`."** False: `getReturnType()` is `int.class`, while the `invoke` result object is `Integer`.
+6. **"`Void.class` and `void.class` are the same."** False: `Void` is a reference type; `void` is the keyword indicating no return value.
+7. **"`touch()` is `void`, so its code does not run when Reflection calls it."** False: the code still executes and can have side effects; it simply has no return value.
+8. **"`null` from a method returning `Integer` unboxes to 0."** False: unboxing a `null` reference throws `NullPointerException`.
+9. **"If a method throws an exception, `invoke` returns `null`."** False: the invocation does not complete normally; `InvocationTargetException` is typically thrown.
+10. **"A `null` receiver means the method returns `null`."** False: a `null` receiver is valid for static methods and is completely independent of the return value.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-check questions
 
-**Câu 1.** Method khai báo `public double price() { return 1.5; }`. `Method.invoke(obj)` trả object kiểu gì?
+**Question 1.** A method declares `public double price() { return 1.5; }`. What object type does `Method.invoke(obj)` return?
 
-**Đáp án:** `Double` chứa `1.5`, dưới dạng `Object`. `getReturnType()` vẫn là `double.class`.
+**Answer:** `Double` containing `1.5`, typed as `Object`. `getReturnType()` remains `double.class`.
 
-**Câu 2.** `public void save() { System.out.println("saved"); }` được gọi qua `invoke`. Có chạy lệnh in không, và `invoke` trả gì?
+**Question 2.** `public void save() { System.out.println("saved"); }` is called via `invoke`. Does the print statement run, and what does `invoke` return?
 
-**Đáp án:** Có, method thực sự chạy và in `saved`. Nếu hoàn tất bình thường, `invoke` trả `null`.
+**Answer:** Yes, the method actually runs and prints `saved`. Upon normal completion, `invoke` returns `null`.
 
-**Câu 3.** `public String lookup() { return null; }` và `public void clear() { }` đều khiến `invoke` trả `null`. Làm sao biết trường hợp nào không có return value theo chữ ký?
+**Question 3.** `public String lookup() { return null; }` and `public void clear() { }` both make `invoke` return `null`. How do you tell which case has no return value per signature?
 
-**Đáp án:** Dùng `method.getReturnType() == void.class`. Với `lookup`, return type là `String.class` và giá trị thực tế bằng `null`; với `clear`, return type là `void.class`.
+**Answer:** Use `method.getReturnType() == void.class`. For `lookup`, the return type is `String.class` and the actual value is `null`; for `clear`, the return type is `void.class`.
 
-**Câu 4.** `getReturnType()` của phương thức khai báo `Integer count()` là gì, và `invoke` có chắc khác `null` không?
+**Question 4.** What is `getReturnType()` for a method declared `Integer count()`, and is `invoke` guaranteed to be non-`null`?
 
-**Đáp án:** `Integer.class`. Không chắc: `Integer` là reference type nên method có thể trả `null`.
+**Answer:** `Integer.class`. Not guaranteed: `Integer` is a reference type so the method can return `null`.
 
-**Câu 5.** Khi gọi `public int compute() { throw new IllegalStateException(); }` bằng Reflection, kết quả có phải là một `Integer` chứa giá trị mặc định không?
+**Question 5.** When calling `public int compute() { throw new IllegalStateException(); }` via Reflection, is the result an `Integer` containing a default value?
 
-**Đáp án:** Không. Vì method ném exception, lời gọi thất bại; `Method.invoke` ném `InvocationTargetException` với cause là `IllegalStateException`. Không có giá trị trả về bình thường để boxing.
+**Answer:** No. Because the method throws an exception, the call fails; `Method.invoke` throws `InvocationTargetException` with `IllegalStateException` as its cause. There is no normal return value to box.
 
-**Câu 6.** Tại sao không gọi `result.getClass()` ngay sau mọi `invoke`?
+**Question 6.** Why shouldn't you call `result.getClass()` immediately after every `invoke`?
 
-**Đáp án:** Vì `result` có thể bằng `null` cho method `void` hoặc method trả kiểu tham chiếu với giá trị null. Khi đó `result.getClass()` gây `NullPointerException`; cần kiểm tra `result == null` và `getReturnType()` trước.
+**Answer:** Because `result` can be `null` for a `void` method or a reference-returning method yielding null. Calling `result.getClass()` then throws `NullPointerException`; check `result == null` and `getReturnType()` first.
 
-## Tài liệu Java chuẩn
+## Standard Java references
 
-- Java SE API — `java.lang.reflect.Method.invoke(Object, Object...)`: cách gọi method, boxing primitive return, kết quả `null` cho `void`, và `InvocationTargetException`.
-- Java SE API — `java.lang.reflect.Method.getReturnType()`, `getGenericReturnType()`: metadata của kiểu trả về.
+- Java SE API — `java.lang.reflect.Method.invoke(Object, Object...)`: how methods are invoked, boxing primitive returns, `null` result for `void`, and `InvocationTargetException`.
+- Java SE API — `java.lang.reflect.Method.getReturnType()`, `getGenericReturnType()`: return type metadata.
 - Java Language Specification — §5.1.7 *Boxing Conversion*, §5.1.8 *Unboxing Conversion*, §8.4.5 *Method Result*, §14.17 *The return Statement*.
-- Java SE API — `java.lang.Void`: lớp tham chiếu biểu diễn kiểu `void` trong một số API dùng `Class` hoặc generic.
+- Java SE API — `java.lang.Void`: reference class representing the `void` type in certain APIs using `Class` or generics.
 
-**Ghi nhớ:** `Method.invoke` luôn có kiểu trả về **`Object`**. Primitive return được **boxing thành wrapper**; method `void` chạy bình thường thì **`invoke` trả `null`**. Method trả tham chiếu cũng có thể trả `null`; hãy dùng **`getReturnType()`** để phân biệt hai trường hợp, và xử lý exception riêng với kết quả trả về.
+**Takeaway:** `Method.invoke` always has return type **`Object`**. Primitive returns are **boxed into wrappers**; a `void` method completing normally makes **`invoke` return `null`**. Reference-returning methods can also return `null`; use **`getReturnType()`** to distinguish the two cases, and handle exceptions separately from return results.

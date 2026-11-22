@@ -1,6 +1,6 @@
-# Lỗi lệch một đơn vị tại biên vòng lặp — Java 17+
+# Off-by-one errors at loop boundaries — Java 17+
 
-**Lỗi lệch một đơn vị** (*off-by-one error*) xảy ra khi vòng lặp chạy **thiếu một lượt** hoặc **thừa một lượt** so với yêu cầu. Lỗi thường nằm ở giá trị bắt đầu, điều kiện `<`/`<=`, bước cập nhật hoặc cách hiểu giới hạn cuối có được tính vào hay không.
+An **off-by-one error** (*off-by-one error*) occurs when a loop runs **one iteration too few** or **one iteration too many** compared to what is required. The bug usually lies in the starting value, the `<`/`<=` condition, the update step, or how the ending bound is understood to be included or excluded.
 
 ~~~java
 int[] numbers = {10, 20, 30};
@@ -10,32 +10,32 @@ for (int i = 0; i < numbers.length; i++) {
 }
 ~~~
 
-Trong Java, mảng dài `n` có chỉ số hợp lệ từ **`0` đến `n - 1`**. Giá trị `n` là **biên kết thúc không bao gồm**; không phải chỉ số phần tử cuối.
+In Java, an array of length `n` has valid indices from **`0` to `n - 1`**. The value `n` is an **exclusive ending bound**; it is not the index of the last element.
 
-## 1. Phân biệt biên đóng và biên mở
+## 1. Distinguishing closed and half-open bounds
 
-| Mục tiêu | Cách viết đúng | Số lượt khi miền hợp lệ |
+| Goal | Correct way to write | Iterations when range is valid |
 | --- | --- | --- |
-| Duyệt mảng độ dài `n` | `for (int i = 0; i < n; i++)` | `n` |
-| Duyệt từ `0` đến `n` **bao gồm `n`** | `for (int i = 0; i <= n; i++)` | `n + 1` |
-| Duyệt chỉ số `start` tới **trước `end`** | `for (int i = start; i < end; i++)` | `end - start` nếu `start <= end` |
-| Duyệt từ `start` tới `end` **bao gồm `end`** | `for (int i = start; i <= end; i++)` | `end - start + 1` nếu `start <= end` |
-| Duyệt mảng theo chiều ngược | `for (int i = a.length - 1; i >= 0; i--)` | `a.length` |
+| Traverse an array of length `n` | `for (int i = 0; i < n; i++)` | `n` |
+| Iterate from `0` to `n` **inclusive of `n`** | `for (int i = 0; i <= n; i++)` | `n + 1` |
+| Iterate indices from `start` up to **before `end`** | `for (int i = start; i < end; i++)` | `end - start` if `start <= end` |
+| Iterate from `start` to `end` **inclusive of `end`** | `for (int i = start; i <= end; i++)` | `end - start + 1` if `start <= end` |
+| Traverse an array in reverse | `for (int i = a.length - 1; i >= 0; i--)` | `a.length` |
 
-Ví dụ bắt đầu ở 1, kết thúc ở 3:
+Example starting at 1 and ending at 3:
 
 ~~~text
-[1, 3)  → 1, 2       (2 giá trị, không bao gồm 3)
-[1, 3]  → 1, 2, 3    (3 giá trị, bao gồm 3)
+[1, 3)  → 1, 2       (2 values, excluding 3)
+[1, 3]  → 1, 2, 3    (3 values, including 3)
 ~~~
 
-Ký hiệu `[start, end)` là **đoạn nửa mở**, rất hữu ích khi xử lý chỉ số mảng. `[start, end]` là đoạn đóng; hãy ghi rõ kiểu biên trong tên biến hoặc hợp đồng phương thức.
+The notation `[start, end)` is a **half-open interval**, very useful when working with array indices. `[start, end]` is a closed interval; clearly state the boundary convention in variable names or method contracts.
 
-**Cần chú ý:** các công thức số lượt trên giả định bước tăng là 1, thứ tự biên hợp lệ và không có `break`/`return`. Nếu có bước tăng khác, giảm dần hoặc kiểu số nguyên bị tràn, phải phân tích lại.
+**Note:** the iteration count formulas above assume a step size of 1, valid boundary ordering, and no `break`/`return`. If there is a different step size, decrementing, or integer overflow, re-analyze accordingly.
 
-## 2. Chương trình Java 17+ tự chứa và chạy được
+## 2. Self-contained runnable Java 17+ program
 
-Tạo tệp UTF-8 **`OffByOneDemo.java`**:
+Create a UTF-8 file **`OffByOneDemo.java`**:
 
 ~~~java
 public class OffByOneDemo {
@@ -121,7 +121,7 @@ public class OffByOneDemo {
 }
 ~~~
 
-Tại thư mục chứa file, dùng **JDK 17 trở lên** với PowerShell hoặc Bash:
+In the directory containing the file, use **JDK 17 or later** with PowerShell or Bash:
 
 ~~~bash
 java -version
@@ -130,7 +130,7 @@ javac -encoding UTF-8 OffByOneDemo.java
 java OffByOneDemo
 ~~~
 
-**Expected stdout chính xác** của riêng lệnh `java OffByOneDemo`:
+**Exact expected stdout** of the `java OffByOneDemo` command alone:
 
 ~~~text
 == array indices ==
@@ -164,60 +164,60 @@ slice=BCD
 done
 ~~~
 
-Kết quả của `java -version`/`javac -version` phụ thuộc JDK cài đặt, không nằm trong stdout cố định. Mã sử dụng API chuẩn, không yêu cầu thư viện bên ngoài.
+The output of `java -version`/`javac -version` depends on the installed JDK and is not part of the fixed stdout. The code uses standard APIs and requires no external libraries.
 
-## 3. Vì sao `i <= array.length` thường là sai?
+## 3. Why is `i <= array.length` usually wrong?
 
 ~~~java
 int[] values = {10, 20, 30};
 
-// SAI nếu truy cập values[i]:
+// WRONG if accessing values[i]:
 // for (int i = 0; i <= values.length; i++) {
 //     System.out.println(values[i]);
 // }
 ~~~
 
-Vòng `i <= values.length` chạy khi `i == 3`, nhưng với mảng dài 3, chỉ các chỉ số 0, 1 và 2 là hợp lệ. Truy cập `values[3]` ném `ArrayIndexOutOfBoundsException`.
+The loop `i <= values.length` runs when `i == 3`, but for an array of length 3, only indices 0, 1, and 2 are valid. Accessing `values[3]` throws `ArrayIndexOutOfBoundsException`.
 
-Nếu yêu cầu là **duyệt phần tử**, dùng `i < values.length`. Nếu yêu cầu là **duyệt các vị trí ngăn cách giữa phần tử**, có thể cần `i <= values.length`, bởi có `n + 1` vị trí biên, nhưng lúc ấy không được đọc `values[i]` ở vị trí `i == n`.
+If the requirement is **traversing elements**, use `i < values.length`. If the requirement is **traversing boundary positions between elements**, `i <= values.length` might be needed, since there are `n + 1` boundary positions, but in that case you must not read `values[i]` at position `i == n`.
 
-Nói cách khác, **`<=` không tự động sai**; nó chỉ sai khi không phù hợp với miền giá trị và thao tác trong thân.
+In other words, **`<=` is not automatically wrong**; it is only wrong when it does not match the value range and the operations in the body.
 
-## 4. Đếm số lượt khác với truy cập chỉ số
+## 4. Counting iterations differs from indexing
 
-Hai nhiệm vụ có thể dùng điều kiện khác nhau:
+Two tasks can use different conditions:
 
 ~~~java
-// Thực hiện hành động đúng 3 lần:
+// Perform an action exactly 3 times:
 for (int turn = 1; turn <= 3; turn++) {
     System.out.println("turn=" + turn);
 }
 
-// Duyệt ba phần tử mảng:
+// Traverse three array elements:
 for (int i = 0; i < 3; i++) {
     System.out.println(values[i]);
 }
 ~~~
 
-Cả hai đều chạy ba lượt, nhưng một biến là **số thứ tự lượt** 1..3, một biến là **chỉ số** 0..2. Trộn hai quy ước dễ gây lệch một.
+Both run three iterations, but one variable is an **iteration number** 1..3, and the other is an **index** 0..2. Mixing the two conventions easily causes an off-by-one error.
 
-Đối với `count` phần tử đầu của mảng, số phần tử cần xử lý chính là `count`; viết `i < count`. Với `count == 0`, thân phải chạy 0 lần. Nếu viết `i <= count`, ta sẽ xử lý **một phần tử** ngay cả khi yêu cầu là 0 phần tử.
+For the first `count` elements of an array, the number of elements to process is `count` itself; write `i < count`. When `count == 0`, the body must run 0 times. Writing `i <= count` would process **one element** even when 0 elements were requested.
 
-### Đoạn nửa mở giúp ghép các đoạn liền nhau
+### Half-open intervals help join adjacent segments
 
-Ví dụ muốn xử lý các chỉ số thuộc hai đoạn:
+For example, suppose you want to process indices belonging to two intervals:
 
 ~~~text
 [0, 2) = 0, 1
 [2, 5) = 2, 3, 4
-Ghép lại: [0, 5) = 0, 1, 2, 3, 4
+Joined: [0, 5) = 0, 1, 2, 3, 4
 ~~~
 
-Hai đoạn không chồng nhau và không có lỗ hổng. Với `start == end`, đoạn `[start, end)` **rỗng**, nên lặp 0 lượt là hành vi đúng. API Java `String.substring(beginIndex, endIndex)` cũng sử dụng **biên cuối loại trừ**.
+The two intervals do not overlap and leave no gap. When `start == end`, the interval `[start, end)` is **empty**, so running 0 iterations is the right behavior. Java's `String.substring(beginIndex, endIndex)` API also uses an **exclusive ending bound**.
 
-## 5. Duyệt ngược và mảng rỗng
+## 5. Reverse traversal and empty arrays
 
-Mảng `n` phần tử có chỉ số cuối hợp lệ là `n - 1`, nên:
+An array of `n` elements has last valid index `n - 1`, so:
 
 ~~~java
 for (int i = values.length - 1; i >= 0; i--) {
@@ -225,69 +225,69 @@ for (int i = values.length - 1; i >= 0; i--) {
 }
 ~~~
 
-Nếu `values.length == 0`, giá trị đầu `i == -1` và điều kiện `i >= 0` sai ngay; không đọc phần tử nào. Đây là lý do cách viết này xử lý mảng rỗng đúng.
+If `values.length == 0`, the initial value is `i == -1` and the condition `i >= 0` is immediately false; no element is read. This is why this pattern handles empty arrays properly.
 
-Tránh mở đầu ở `i = values.length` nếu trong thân sẽ đọc `values[i]`: chỉ số ấy **vượt biên phải một đơn vị**.
+Avoid starting at `i = values.length` if the body will read `values[i]`: that index is **one past the right bound**.
 
-Cần đặc biệt cẩn thận với điều kiện như `i > 0`: khi duyệt về 0, nó **bỏ sót phần tử chỉ số 0**. Dùng `i >= 0` nếu muốn bao gồm phần tử đầu.
+Be especially careful with a condition like `i > 0`: when counting down to 0, it **misses element index 0**. Use `i >= 0` if you want to include the first element.
 
-### Cẩn thận khi đếm kiểu không thích hợp
+### Be careful when counting with an unsuitable type
 
-Java dùng `int` cho chỉ số mảng. Không chuyển biến đếm sang kiểu không hỗ trợ giá trị âm rồi giả định `i >= 0` sẽ kết thúc giống cách dùng `int`. Trong Java, `char` là kiểu không dấu 16 bit; sau decrement và chuyển kiểu, nó có thể quay vòng, nên không phù hợp cho kiểu duyệt ngược dùng điều kiện `>= 0`.
+Java uses `int` for array indices. Do not switch the counter variable to a type that does not support negative values and assume `i >= 0` will terminate the same way `int` does. In Java, `char` is an unsigned 16-bit type; after decrementing and converting, it can wrap around, making it unsuitable for reverse traversal with a `>= 0` condition.
 
-## 6. Kiểm thử các điểm sát biên
+## 6. Testing boundary points
 
-Lỗi off-by-one thường lộ ra tại **giá trị sát biên**, không nhất thiết ở đầu vào thông thường.
+Off-by-one errors usually surface at **boundary values**, not necessarily on ordinary inputs.
 
-| Trường hợp kiểm thử | Điều mong đợi |
+| Test case | Expected behavior |
 | --- | --- |
-| Mảng rỗng (`length == 0`) | Không truy cập phần tử |
-| Mảng 1 phần tử | Đúng 1 lần duyệt; không vượt chỉ số 0 |
-| Mảng 3 phần tử | Các chỉ số `0, 1, 2`; không truy cập 3 |
-| `count = 0` | Xử lý 0 phần tử |
-| `count = length` | Xử lý toàn bộ phần tử, không thừa |
-| `count = length + 1` | Bị từ chối nếu tham số là số phần tử cần xử lý |
-| `start == endExclusive` | Đoạn rỗng, tổng ban đầu không đổi |
-| Duyệt ngược | Đến và bao gồm chỉ số 0 |
+| Empty array (`length == 0`) | No element access |
+| 1-element array | Exactly 1 traversal; does not exceed index 0 |
+| 3-element array | Indices `0, 1, 2`; does not access 3 |
+| `count = 0` | Processes 0 elements |
+| `count = length` | Processes all elements, none extra |
+| `count = length + 1` | Rejected if parameter is the number of elements to process |
+| `start == endExclusive` | Empty interval, initial sum unchanged |
+| Reverse traversal | Reaches and includes index 0 |
 
-Một cách kiểm thử hiệu quả là ghi trước **miền chỉ số hợp lệ**, rồi kiểm chứng ba giá trị: ngay trước biên, đúng tại biên và ngay sau biên. Khi viết vòng `for` hoặc `while`, luôn xác nhận cả **giá trị cuối của biến đếm** lẫn **giá trị cuối thực sự được xử lý trong thân**.
+An effective testing approach is to first write down the **valid index range**, and then verify three values: just before the bound, right at the bound, and just past the bound. When writing a `for` or `while` loop, always verify both the **final value of the counter variable** and the **last value actually processed in the body**.
 
-## 7. Lỗi thường gặp
+## 7. Common mistakes
 
-| Nhầm lẫn | Cách đúng |
+| Misconception | Correct way |
 | --- | --- |
-| “Mảng dài `n` có chỉ số cuối `n`.” | Chỉ số cuối là `n - 1` |
-| “`i <= array.length` dùng để duyệt mọi phần tử.” | Thường thừa một lượt; dùng `i < array.length` |
-| “`i < n` bắt đầu ở 0 thì chạy `n + 1` lần.” | Chạy `n` lần khi `n >= 0` và bước tăng 1 |
-| “`for(i=n-1; i>0; i--)` duyệt mọi phần tử.” | Bỏ chỉ số 0 |
-| “Đoạn `[start, end)` bao gồm `end`.” | `end` bị loại trừ |
-| “Nếu mảng rỗng thì phải truy cập ít nhất một phần tử.” | Duyệt đúng là 0 lần |
-| “Chỉ cần test mảng lớn là đủ.” | Các biên 0, 1 và đúng `length` rất quan trọng |
-| “Có ngoại lệ thì sửa bằng cách bỏ đi `break` cuối.” | Phải sửa **miền chỉ số và điều kiện** |
+| “An array of length `n` has last index `n`.” | Last index is `n - 1` |
+| “`i <= array.length` traverses all elements.” | Usually one iteration too many; use `i < array.length` |
+| “`i < n` starting at 0 runs `n + 1` times.” | Runs `n` times when `n >= 0` and step is 1 |
+| “`for(i=n-1; i>0; i--)` traverses all elements.” | Skips index 0 |
+| “Interval `[start, end)` includes `end`.” | `end` is excluded |
+| “If an array is empty, at least one element must be accessed.” | Correct traversal is 0 times |
+| “Testing large arrays is enough.” | Boundaries 0, 1, and exact `length` are critical |
+| “If there's an exception, fix it by adding an early `break` at the end.” | Must fix the **index range and condition** |
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-check exercises
 
-1. Với `int[] a = new int[4]`, chỉ số hợp lệ là gì?  
-   *Đáp án:* `0, 1, 2, 3`.
-2. `for (int i = 0; i <= 4; i++)` chạy bao nhiêu lượt?  
-   *Đáp án:* `5` lượt; nếu đọc `a[i]` ở lượt cuối là vượt biên.
-3. Đoạn `[2, 6)` chứa mấy số nguyên liên tiếp?  
-   *Đáp án:* 4 số (`2, 3, 4, 5`).
-4. Duyệt ngược `for (int i = 4; i > 0; i--)` có xử lý `i == 0` không?  
-   *Đáp án:* Không.
-5. `String "ABCDE".substring(1, 4)` cho gì?  
-   *Đáp án:* `"BCD"`.
-6. Nếu `count = 0`, vòng `for (int i = 0; i < count; i++)` chạy mấy lần?  
-   *Đáp án:* 0 lần.
+1. For `int[] a = new int[4]`, what are the valid indices?  
+   *Answer:* `0, 1, 2, 3`.
+2. How many iterations does `for (int i = 0; i <= 4; i++)` run?  
+   *Answer:* `5` iterations; reading `a[i]` on the last iteration goes out of bounds.
+3. How many consecutive integers does the interval `[2, 6)` contain?  
+   *Answer:* 4 numbers (`2, 3, 4, 5`).
+4. Does reverse traversal `for (int i = 4; i > 0; i--)` process `i == 0`?  
+   *Answer:* No.
+5. What does `String "ABCDE".substring(1, 4)` produce?  
+   *Answer:* `"BCD"`.
+6. If `count = 0`, how many times does `for (int i = 0; i < count; i++)` run?  
+   *Answer:* 0 times.
 
 ## Checklist
 
-- [ ] Phân biệt rõ **chỉ số phần tử** với **số lượt**.
-- [ ] Biết `n` phần tử có chỉ số `0..n-1`.
-- [ ] Dùng đúng biên cuối **loại trừ** với `<` và **bao gồm** với `<=`.
-- [ ] Kiểm thử mảng rỗng, 1 phần tử và giá trị đúng sát biên.
-- [ ] Duyệt ngược có xét đến chỉ số 0.
-- [ ] Ghi rõ quy ước `[start, end)` và kiểm tra `start <= end <= length`.
-- [ ] Đảm bảo các biến đếm tiến triển và tránh tràn số nếu biên rất lớn.
+- [ ] Clearly distinguish **element index** from **iteration count**.
+- [ ] Know that `n` elements have indices `0..n-1`.
+- [ ] Properly use an **exclusive** end bound with `<` and an **inclusive** end bound with `<=`.
+- [ ] Test empty arrays, 1-element arrays, and exact boundary values.
+- [ ] Ensure reverse traversal accounts for index 0.
+- [ ] State the `[start, end)` convention explicitly and check `start <= end <= length`.
+- [ ] Ensure counter variables progress and avoid overflow if bounds are very large.
 
-**Kết luận:** Off-by-one không chỉ là nhầm dấu `<` thành `<=`, mà là nhầm **ý nghĩa của biên**. Trước khi viết vòng lặp, xác định giá trị đầu được xử lý, giá trị cuối được xử lý, số lượt mong muốn và liệu biên kết thúc có được bao gồm hay không.
+**Conclusion:** Off-by-one is not just confusing `<` with `<=`, it is confusing **the meaning of the boundary**. Before writing a loop, determine the first value processed, the last value processed, the desired iteration count, and whether the ending bound is included or excluded.

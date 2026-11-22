@@ -1,30 +1,30 @@
-# Kiểm tra điều kiện bằng anyMatch, allMatch và noneMatch
+# Checking Conditions with anyMatch, allMatch, and noneMatch
 
-> **Chương:** Duyệt, tìm kiếm và đối sánh  
+> **Chapter:** Traversal, Search, and Matching  
 > **Module:** JAVA_STREAM_API  
-> **Trọng tâm:** Ba thao tác kết thúc trả về `boolean` của Java Stream API: `anyMatch`, `allMatch` và `noneMatch`. Chúng kiểm tra điều kiện trên các phần tử theo kiểu khai báo, tận dụng pipeline lazy và có thể dừng sớm (*short-circuit*).
+> **Focus:** Three `boolean`-returning terminal operations of the Java Stream API: `anyMatch`, `allMatch`, and `noneMatch`. They check conditions across elements declaratively, leverage lazy pipelines, and can stop early (*short-circuit*).
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-1. Giải thích chính xác ý nghĩa của `anyMatch`, `allMatch` và `noneMatch` thông qua lượng từ “tồn tại”, “mọi” và “không tồn tại”.
-2. Dự đoán kết quả trên Stream có phần tử và **Stream rỗng**, kể cả trường hợp đã lọc hết phần tử.
-3. Phân biệt kết quả `boolean` của ba thao tác với kết quả `Optional` của `findFirst`/`findAny`.
-4. Mô tả tính **terminal**, **short-circuit**, thứ tự đánh giá và hành vi trong Stream song song.
-5. Xây dựng predicate an toàn, không can thiệp nguồn, và diễn đạt những điều kiện kết hợp hoặc lồng nhau.
-6. Chọn đúng API cho bài toán kiểm tra hợp lệ, phát hiện lỗi, xác nhận dữ liệu và tìm kiếm.
-7. Nhận diện bẫy về trạng thái chia sẻ, nguồn vô hạn, Stream dùng một lần và tài nguyên I/O.
+1. Accurately explain the meaning of `anyMatch`, `allMatch`, and `noneMatch` through the quantifiers “exists”, “for all”, and “does not exist”.
+2. Predict results on non-empty Streams and **empty Streams**, including cases where all elements are filtered out.
+3. Distinguish the `boolean` result of these three operations from the `Optional` result of `findFirst`/`findAny`.
+4. Describe **terminal** behavior, **short-circuiting**, evaluation order, and behavior in parallel Streams.
+5. Build safe predicates that do not interfere with the source, and express combined or nested conditions.
+6. Choose the right API for validation, error detection, data confirmation, and searching.
+7. Recognize pitfalls involving shared state, infinite sources, single-use Streams, and I/O resources.
 
-Ví dụ dùng Java 17. Các thao tác `anyMatch`, `allMatch`, `noneMatch` và các phiên bản trên primitive Stream có từ Java 8; những ví dụ dùng `List.of` cần Java 9+ và `Stream.toList` (nếu xuất hiện) cần Java 16+. Các đoạn mã ngắn nằm trong ngữ cảnh phương thức, trừ khi ví dụ khai báo lớp hoàn chỉnh.
+Examples use Java 17. The `anyMatch`, `allMatch`, and `noneMatch` operations and their primitive Stream variants exist since Java 8; examples using `List.of` require Java 9+ and `Stream.toList` (where used) requires Java 16+. Short snippets sit in a method context unless a complete class is declared.
 
-## 1. Ba câu hỏi khác nhau trên cùng một Stream
+## 1. Three Different Questions on the Same Stream
 
-Giả sử danh sách điểm số là `[7, 8, 10, 5]`. Ta muốn hỏi:
+Suppose a list of scores is `[7, 8, 10, 5]`. We want to ask:
 
-- **Có ít nhất một điểm đạt 10 không?** Dùng `anyMatch`.
-- **Tất cả điểm có từ 0 đến 10 không?** Dùng `allMatch`.
-- **Có chắc không điểm nào âm không?** Dùng `noneMatch`.
+- **Is there at least one score of 10?** Use `anyMatch`.
+- **Are all scores between 0 and 10?** Use `allMatch`.
+- **Are we sure there are no negative scores?** Use `noneMatch`.
 
 ~~~java
 import java.util.List;
@@ -45,33 +45,33 @@ System.out.println(allInRange);       // true
 System.out.println(noNegativeScore);  // true
 ~~~
 
-Ba phương thức đều nhận một **predicate**: một hàm trả về `true` hoặc `false` cho mỗi phần tử. Chúng là **terminal operations** (thao tác kết thúc), trả về **một** giá trị `boolean` và tiêu thụ Stream.
+All three methods accept a **predicate**: a function returning `true` or `false` for each element. They are **terminal operations**, returning **a single** `boolean` value and consuming the Stream.
 
-| Phương thức | Câu hỏi với predicate `P` | Kết quả `true` khi nào? | Có thể dừng ngay khi… |
+| Method | Question with predicate `P` | When is the result `true`? | Can stop immediately when… |
 |---|---|---|---|
-| `anyMatch(P)` | Có **ít nhất một** phần tử thỏa `P`? | Tồn tại phần tử có `P(x) == true` | Gặp phần tử thỏa `P` |
-| `allMatch(P)` | **Mọi** phần tử đều thỏa `P`? | Không có phần tử nào vi phạm `P` | Gặp phần tử **không** thỏa `P` |
-| `noneMatch(P)` | **Không có** phần tử nào thỏa `P`? | Không tồn tại phần tử thỏa `P` | Gặp phần tử thỏa `P` |
+| `anyMatch(P)` | Does **at least one** element satisfy `P`? | An element with `P(x) == true` exists | An element satisfying `P` is found |
+| `allMatch(P)` | Do **all** elements satisfy `P`? | No element violates `P` | An element **not** satisfying `P` is found |
+| `noneMatch(P)` | Do **no** elements satisfy `P`? | No element satisfies `P` exists | An element satisfying `P` is found |
 
-Với một nguồn hữu hạn, nếu chưa gặp điều kiện để dừng sớm, thao tác phải xem xét đủ phần tử cần thiết để kết luận. Không có phương thức nào trả về danh sách phần tử khớp: kết quả của chúng luôn là `boolean`.
+With a finite source, if no early-stopping condition is encountered, the operation must examine enough elements to reach a conclusion. None of these methods return a list of matching elements: their result is always `boolean`.
 
-## 2. Ý nghĩa logic: tồn tại, mọi và không tồn tại
+## 2. Logical Meaning: Exists, For All, and None Exists
 
-Ký hiệu tập phần tử mà Stream sẽ cung cấp là `S`, và `P(x)` là điều kiện áp dụng lên phần tử `x`:
+Let `S` denote the set of elements the Stream will supply, and `P(x)` be the condition applied to element `x`:
 
-| Java | Biểu thức logic | Đọc bằng lời |
+| Java | Logical expression | Verbal reading |
 |---|---|---|
-| `stream.anyMatch(P)` | \(\exists x \in S: P(x)\) | Tồn tại ít nhất một `x` làm `P` đúng |
-| `stream.allMatch(P)` | \(\forall x \in S: P(x)\) | Với mọi `x` trong nguồn, `P` đều đúng |
-| `stream.noneMatch(P)` | \(\nexists x \in S: P(x)\) | Không tồn tại `x` nào làm `P` đúng |
+| `stream.anyMatch(P)` | \(\exists x \in S: P(x)\) | There exists at least one `x` making `P` true |
+| `stream.allMatch(P)` | \(\forall x \in S: P(x)\) | For every `x` in the source, `P` is true |
+| `stream.noneMatch(P)` | \(\nexists x \in S: P(x)\) | There exists no `x` making `P` true |
 
-Các lượng từ này giải thích ngay hành vi dừng sớm:
+These quantifiers immediately explain the short-circuiting behavior:
 
-- Để chứng minh **tồn tại**, chỉ cần một phần tử thỏa.
-- Để bác bỏ **mọi phần tử đều thỏa**, chỉ cần một phản ví dụ.
-- Để bác bỏ **không tồn tại**, chỉ cần tìm một phần tử thỏa.
+- To prove **existence**, only one matching element is needed.
+- To disprove **all elements match**, only one counterexample is needed.
+- To disprove **none exists**, finding one matching element suffices.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.List;
@@ -82,16 +82,16 @@ boolean anyOdd  = values.stream().anyMatch(n -> n % 2 != 0);
 boolean allEven = values.stream().allMatch(n -> n % 2 == 0);
 boolean noZero  = values.stream().noneMatch(n -> n == 0);
 
-System.out.println(anyOdd);  // true  — có 7
-System.out.println(allEven); // false — 7 là phản ví dụ
-System.out.println(noZero);  // true  — không có 0
+System.out.println(anyOdd);  // true  — 7 is present
+System.out.println(allEven); // false — 7 is a counterexample
+System.out.println(noZero);  // true  — no 0 present
 ~~~
 
-**Phân biệt ý nghĩa:** `noneMatch(P)` là “không có phần tử nào thỏa `P`”, còn `allMatch(P)` là “mọi phần tử thỏa `P`”. Chúng không phải hai cách viết cho cùng một câu hỏi.
+**Distinguish meanings:** `noneMatch(P)` means “no element satisfies `P`”, while `allMatch(P)` means “every element satisfies `P`”. They are not two ways of asking the same question.
 
-## 3. Trường hợp dễ sai nhất: Stream rỗng
+## 3. The Most Error-Prone Case: An Empty Stream
 
-Xét Stream **không chứa phần tử nào**:
+Consider a Stream **containing no elements**:
 
 ~~~java
 import java.util.stream.Stream;
@@ -106,20 +106,20 @@ System.out.println(Stream.<Integer>empty()
         .noneMatch(n -> n > 0));  // true
 ~~~
 
-Bảng kết quả:
+Result table:
 
-| Nguồn sau các thao tác trung gian | `anyMatch(P)` | `allMatch(P)` | `noneMatch(P)` |
+| Source after intermediate operations | `anyMatch(P)` | `allMatch(P)` | `noneMatch(P)` |
 |---|---|---|---|
-| Stream rỗng | **false** | **true** | **true** |
-| Có phần tử và tất cả đều thỏa `P` | true | true | false |
-| Có phần tử và không phần tử nào thỏa `P` | false | false | true |
-| Có phần tử và một số thỏa, một số không | true | false | false |
+| Empty stream | **false** | **true** | **true** |
+| Non-empty and all satisfy `P` | true | true | false |
+| Non-empty and none satisfy `P` | false | false | true |
+| Non-empty and some satisfy, some do not | true | false | false |
 
-**Vì sao `allMatch` trên Stream rỗng trả về `true`?** Không có phần tử nào phản bác phát biểu “mọi phần tử đều thỏa”. Trong logic, đó là **chân lý rỗng** (*vacuous truth*). Tương tự, không có phần tử nào thỏa predicate, nên `noneMatch` là `true` và `anyMatch` là `false`.
+**Why does `allMatch` on an empty Stream return `true`?** There is no element contradicting the statement “every element matches”. In logic, this is **vacuous truth**. Similarly, no element satisfies the predicate, so `noneMatch` is `true` and `anyMatch` is `false`.
 
-Không có yêu cầu gọi predicate trên một Stream rỗng; thực tế không có phần tử nào để truyền vào predicate.
+There is no need to invoke the predicate on an empty Stream; in fact, there are no elements to pass into the predicate.
 
-### 3.1. Lọc hết phần tử cũng tạo ra trường hợp rỗng
+### 3.1. Filtering Out Everything Also Produces an Empty Case
 
 ~~~java
 import java.util.List;
@@ -133,11 +133,11 @@ boolean result = values.stream()
 System.out.println(result); // true
 ~~~
 
-Kết quả `true` ở đây **không có nghĩa** là chương trình tìm được số chẵn trên 100. Pipeline `filter` đã loại hết phần tử; `allMatch` nhận một Stream rỗng và trả `true`.
+The result `true` here **does not mean** the program found an even number above 100. The `filter` pipeline excluded every element; `allMatch` received an empty Stream and returned `true`.
 
-### 3.2. Nếu nghiệp vụ đòi hỏi ít nhất một phần tử, hãy nói rõ
+### 3.2. If Business Logic Requires at Least One Element, State It Explicitly
 
-Ví dụ, “mọi mã sản phẩm phải hợp lệ **và danh sách phải có ít nhất một mã**”:
+For example, “every product code must be valid **and the list must have at least one code**”:
 
 ~~~java
 import java.util.List;
@@ -151,9 +151,9 @@ boolean validBatch = !productCodes.isEmpty()
 System.out.println(validBatch); // true
 ~~~
 
-Với `List.of()`, `validBatch` sẽ là `false`, vì đã kiểm tra điều kiện **không rỗng** riêng. Nếu nguồn chỉ là một Stream dùng một lần, không nên gọi `count()` rồi `allMatch()` trên **cùng đối tượng Stream**: thao tác kết thúc đầu tiên đã tiêu thụ nó. Khi cần cả thông tin “không rỗng” và “mọi phần tử hợp lệ” trên nguồn một lượt, cân nhắc thiết kế một phép tổng hợp phù hợp hoặc kiểm tra từ nguồn có thể duyệt lại.
+With `List.of()`, `validBatch` will be `false`, because the **non-empty** check is evaluated separately. If the source is only a single-use Stream, do not call `count()` and then `allMatch()` on the **same Stream object**: the first terminal operation already consumed it. When you need both “non-empty” and “all elements valid” on a single-pass source, consider designing an appropriate aggregation or checking from a reusable source.
 
-### 3.3. noneMatch trên rỗng cũng đúng
+### 3.3. `noneMatch` on Empty Is Also True
 
 ~~~java
 import java.util.List;
@@ -166,13 +166,13 @@ boolean noBlankNames = names.stream()
 System.out.println(noBlankNames); // true
 ~~~
 
-Điều này chỉ xác nhận **không phát hiện tên rỗng**; nó không xác nhận danh sách có tên. Cần tách yêu cầu “không được trống” khỏi yêu cầu “không có phần tử vi phạm”.
+This only confirms **no blank names were detected**; it does not confirm the list contains names. Separate the requirement “must not be empty” from “no violating elements”.
 
-## 4. Terminal operation và short-circuit vận hành ra sao?
+## 4. How Do Terminal Operations and Short-Circuiting Work?
 
-`anyMatch`, `allMatch`, `noneMatch` đều là **short-circuiting terminal operations**. Chúng **có thể** kết thúc trước khi duyệt hết phần tử, khi đã đủ thông tin để quyết định kết quả.
+`anyMatch`, `allMatch`, and `noneMatch` are all **short-circuiting terminal operations**. They **can** finish before traversing all elements once enough information is gathered to decide the outcome.
 
-Ví dụ quan sát trong **Stream tuần tự có thứ tự**:
+Observation example in an **ordered sequential Stream**:
 
 ~~~java
 import java.util.List;
@@ -181,25 +181,25 @@ List<Integer> numbers = List.of(2, 5, 8, 13);
 
 boolean found = numbers.stream()
         .anyMatch(n -> {
-            System.out.println("Kiểm tra: " + n);
+            System.out.println("Checking: " + n);
             return n > 6;
         });
 
-System.out.println("Kết quả: " + found);
+System.out.println("Result: " + found);
 ~~~
 
-Với pipeline tuần tự trên `List` này, kết quả minh họa:
+With this sequential pipeline on a `List`, illustrative output:
 
 ~~~text
-Kiểm tra: 2
-Kiểm tra: 5
-Kiểm tra: 8
-Kết quả: true
+Checking: 2
+Checking: 5
+Checking: 8
+Result: true
 ~~~
 
-Phần tử `13` không cần được kiểm tra: `8 > 6` đã chứng minh được “có ít nhất một phần tử thỏa”.
+Element `13` does not need to be checked: `8 > 6` already proves “at least one element matches”.
 
-Hai trường hợp tương tự:
+Two similar cases:
 
 ~~~java
 import java.util.List;
@@ -207,18 +207,18 @@ import java.util.List;
 List<Integer> numbers = List.of(2, 5, 8, 13);
 
 boolean allSmall = numbers.stream()
-        .allMatch(n -> n < 10); // false khi gặp 13
+        .allMatch(n -> n < 10); // false upon encountering 13
 
 boolean noneEqualFive = numbers.stream()
-        .noneMatch(n -> n == 5); // false khi gặp 5
+        .noneMatch(n -> n == 5); // false upon encountering 5
 
 System.out.println(allSmall);     // false
 System.out.println(noneEqualFive);// false
 ~~~
 
-**Phải hiểu “có thể dừng sớm” đúng phạm vi:** kết quả `boolean` được bảo đảm theo hợp đồng; số phần tử được đánh giá, thứ tự gọi predicate và thời điểm hủy việc đang chạy **không phải giao ước để logic nghiệp vụ dựa vào**, nhất là trong Stream song song. Đoạn `println` chỉ phục vụ quan sát trên pipeline tuần tự.
+**Understand “can stop early” within its proper bounds:** the `boolean` result is guaranteed by contract; how many elements get evaluated, the order of predicate calls, and when in-flight work is cancelled are **not contracts for business logic to depend on**, especially in parallel Streams. The `println` snippet is solely for observing a sequential pipeline.
 
-### 4.1. Thao tác trung gian lazy, thao tác matching kích hoạt pipeline
+### 4.1. Lazy Intermediate Operations, Matching Operations Trigger the Pipeline
 
 ~~~java
 import java.util.List;
@@ -235,20 +235,20 @@ boolean hasBinh = pipeline.anyMatch("BÌNH"::equals);
 System.out.println(hasBinh); // true
 ~~~
 
-`filter` và `map` thiết lập pipeline; `anyMatch` kích hoạt duyệt khi cần. Sau đó, biến `pipeline` đã bị tiêu thụ và **không thể dùng thêm** cho một terminal operation khác.
+`filter` and `map` set up the pipeline; `anyMatch` triggers traversal as needed. Afterward, the `pipeline` variable has been consumed and **cannot be reused** for another terminal operation.
 
-Muốn chạy kiểm tra khác, tạo Stream **mới** từ `names`:
+To run other checks, create a **new** Stream from `names`:
 
 ~~~java
 boolean allNonBlank = names.stream().allMatch(name -> !name.isBlank());
 boolean noVeryLong = names.stream().noneMatch(name -> name.length() > 20);
 ~~~
 
-## 5. anyMatch: tìm kiếm sự tồn tại
+## 5. `anyMatch`: Searching for Existence
 
-`anyMatch(P)` phù hợp với câu hỏi dạng “có phần tử nào…?” hoặc “có ít nhất một…?”.
+`anyMatch(P)` fits questions like “is there any element that…?” or “is there at least one…?”.
 
-### 5.1. Phát hiện đơn hàng vượt ngưỡng
+### 5.1. Detecting an Order Above a Threshold
 
 ~~~java
 import java.util.List;
@@ -267,9 +267,9 @@ boolean hasLargeOrder = orders.stream()
 System.out.println(hasLargeOrder); // true
 ~~~
 
-Đây là phép kiểm tra tồn tại; không cần xây danh sách đơn hàng lớn chỉ để biết nó có ít nhất một phần tử hay không. Khi cần **chính đơn hàng** vượt ngưỡng, dùng `filter(...).findFirst()` hoặc `filter(...).findAny()` để nhận `Optional<Order>`.
+This is an existence check; there is no need to build a list of large orders just to know whether it contains at least one element. When you need **the order itself** exceeding the threshold, use `filter(...).findFirst()` or `filter(...).findAny()` to receive `Optional<Order>`.
 
-### 5.2. Các phần tử phải thỏa nhiều điều kiện cùng lúc
+### 5.2. Elements Must Satisfy Multiple Conditions Simultaneously
 
 ~~~java
 boolean hasLargePriorityOrder = orders.stream()
@@ -279,9 +279,9 @@ boolean hasLargePriorityOrder = orders.stream()
 System.out.println(hasLargePriorityOrder); // true
 ~~~
 
-Đối với mỗi đơn hàng, predicate kết hợp hai điều kiện bằng `&&`. Nếu cần đọc rõ hơn, tách thành `Predicate<Order>` riêng. Toán tử `&&` của Java cũng dừng đánh giá biểu thức con bên phải nếu biểu thức bên trái `false`.
+For each order, the predicate combines two conditions using `&&`. If clearer readability is needed, extract a separate `Predicate<Order>`. Java's `&&` operator also short-circuits evaluating the right-hand subexpression if the left-hand side is `false`.
 
-### 5.3. Phân biệt với đếm tất cả phần tử khớp
+### 5.3. Distinguishing from Counting All Matching Elements
 
 ~~~java
 long expensiveCount = orders.stream()
@@ -289,13 +289,13 @@ long expensiveCount = orders.stream()
         .count(); // 1
 ~~~
 
-`count` trả về số lượng, còn `anyMatch` trả về `boolean`. Khi chỉ cần biết **có hay không**, `anyMatch` biểu đạt trực tiếp mục đích và có thể dừng sớm.
+`count` returns a quantity, while `anyMatch` returns a `boolean`. When you only need to know **whether any exists**, `anyMatch` directly expresses the intent and can stop early.
 
-## 6. allMatch: kiểm tra tính hợp lệ toàn bộ
+## 6. `allMatch`: Validating the Whole Set
 
-`allMatch(P)` phù hợp với yêu cầu “mọi phần tử phải…” hoặc “không phần tử nào vi phạm điều kiện chuẩn”.
+`allMatch(P)` fits requirements like “every element must…” or “no element violates the standard condition”.
 
-### 6.1. Kiểm tra dữ liệu nhập
+### 6.1. Validating Input Data
 
 ~~~java
 import java.util.List;
@@ -312,9 +312,9 @@ boolean allHaveAtSign = emails.stream()
 System.out.println(allHaveAtSign); // true
 ~~~
 
-Ví dụ chỉ minh họa predicate, **không phải thuật toán xác thực email đầy đủ**. Trong ứng dụng thực tế, dùng quy tắc kiểm tra phù hợp với miền nghiệp vụ.
+This example merely illustrates a predicate and is **not a complete email validation algorithm**. In real applications, use validation rules suited to the business domain.
 
-### 6.2. Phát hiện một phần tử không hợp lệ khiến cả đợt thất bại
+### 6.2. Detecting One Invalid Element That Fails the Whole Batch
 
 ~~~java
 import java.util.List;
@@ -327,11 +327,11 @@ boolean allPositive = quantities.stream()
 System.out.println(allPositive); // false
 ~~~
 
-`0` là phản ví dụ đầu tiên trong dãy. Với Stream tuần tự, sau phản ví dụ, việc kiểm tra thêm `2` không cần thiết để xác định kết quả. Với dữ liệu chưa biết số lượng, đây là phép kiểm tra gọn và không cần giữ một danh sách các lỗi.
+`0` is the first counterexample in the sequence. With a sequential Stream, after encountering the counterexample, checking `2` is unnecessary to determine the result. For datasets of unknown size, this is a concise check that avoids keeping a list of errors.
 
-### 6.3. Kết hợp “có phần tử” và “tất cả hợp lệ”
+### 6.3. Combining “Has Elements” and “All Valid”
 
-Nếu yêu cầu “có ít nhất một đơn hàng và **mọi** đơn hàng có tổng dương”, hãy viết hai điều kiện:
+If the requirement is “there is at least one order and **every** order has a positive total”, write both conditions:
 
 ~~~java
 import java.util.List;
@@ -347,11 +347,11 @@ boolean validOrderBatch = !orders.isEmpty()
 System.out.println(validOrderBatch); // true
 ~~~
 
-Ở đây giả sử `record Order(String id, long totalVnd) {}` đã được khai báo như ví dụ trước. Việc đặt yêu cầu **không rỗng** trước `allMatch` tránh bẫy chân lý rỗng.
+Here `record Order(String id, long totalVnd) {}` is assumed to be declared as in the previous example. Placing the **non-empty** requirement before `allMatch` avoids the vacuous-truth trap.
 
-## 7. noneMatch: xác nhận không có phần tử bị cấm
+## 7. `noneMatch`: Confirming No Forbidden Element Exists
 
-`noneMatch(P)` được dùng khi `P` mô tả **điều không được phép xuất hiện**.
+`noneMatch(P)` is used when `P` describes **what is not allowed to appear**.
 
 ~~~java
 import java.util.List;
@@ -366,9 +366,9 @@ boolean noExecutable = fileNames.stream()
 System.out.println(noExecutable); // true
 ~~~
 
-Đây chỉ là một kiểm tra đuôi tên, không phải giải pháp kiểm tra loại tệp đáng tin cậy về bảo mật.
+This is only a filename extension check, not a security-reliable file type verification solution.
 
-### 7.1. Cách đặt predicate tránh đọc ngược ý
+### 7.1. Writing Predicates to Avoid Double-Negative Reading
 
 ~~~java
 import java.util.List;
@@ -385,12 +385,12 @@ System.out.println(noneNegative);    // true
 System.out.println(allNonNegative);  // true
 ~~~
 
-Hai câu có nghĩa logic tương đương nếu `q < 0` và `q >= 0` là hai điều kiện phủ định của nhau trên miền dữ liệu. Cách nào dễ đọc hơn phụ thuộc ngôn ngữ nghiệp vụ:
+Both expressions are logically equivalent if `q < 0` and `q >= 0` are exact negations of each other over the data domain. Which reads better depends on domain phrasing:
 
-- “Không có số lượng âm” → `noneMatch(q -> q < 0)`.
-- “Mọi số lượng đều không âm” → `allMatch(q -> q >= 0)`.
+- “No negative quantities” → `noneMatch(q -> q < 0)`.
+- “All quantities are non-negative” → `allMatch(q -> q >= 0)`.
 
-### 7.2. Kiểm tra sự thiếu vắng của trạng thái lỗi
+### 7.2. Checking Absence of Error States
 
 ~~~java
 import java.util.List;
@@ -405,20 +405,20 @@ boolean hasNoBlocked = states.stream()
 System.out.println(hasNoBlocked); // true
 ~~~
 
-Nếu có một `State.BLOCKED`, `noneMatch` có thể kết luận `false` ngay tại phần tử đó.
+If a `State.BLOCKED` is present, `noneMatch` can immediately conclude `false` at that element.
 
-## 8. Quan hệ phủ định và định luật De Morgan
+## 8. Negation Relationships and De Morgan's Laws
 
-Đặt `P` là một predicate ổn định, không có tác dụng phụ; các biểu thức sau tương đương **về kết quả** khi áp dụng trên cùng một dãy phần tử:
+Let `P` be a stable, side-effect-free predicate; the following expressions are equivalent **in result** when applied to the same sequence of elements:
 
-| Biểu thức | Tương đương |
+| Expression | Equivalent |
 |---|---|
 | `noneMatch(P)` | `!anyMatch(P)` |
 | `noneMatch(P)` | `allMatch(not P)` |
 | `allMatch(P)` | `!anyMatch(not P)` |
 | `anyMatch(P)` | `!allMatch(not P)` |
 
-Ví dụ cụ thể, ba cách diễn đạt “không có số âm”:
+Concrete example, three ways of expressing “no negative numbers”:
 
 ~~~java
 import java.util.List;
@@ -438,13 +438,13 @@ System.out.println(byNoneMatch == byNegation); // true
 System.out.println(byNoneMatch == byAllMatch); // true
 ~~~
 
-**Chú ý:** mỗi biểu thức dùng `numbers.stream()` để tạo một Stream riêng. Không thể dùng cùng một đối tượng `Stream` cho nhiều terminal operation.
+**Note:** each expression calls `numbers.stream()` to create a separate Stream. You cannot reuse the same `Stream` object for multiple terminal operations.
 
-Các đẳng thức logic vẫn đúng với Stream **rỗng**: `noneMatch(P) == true`, `anyMatch(P) == false`, `allMatch(not P) == true`.
+These logical identities also hold on an **empty** Stream: `noneMatch(P) == true`, `anyMatch(P) == false`, `allMatch(not P) == true`.
 
-### 8.1. Dùng Predicate.not khi dễ hiểu hơn
+### 8.1. Using `Predicate.not` When Clearer
 
-`Predicate.not` có từ Java 11 và hữu ích khi phủ định method reference:
+`Predicate.not` was added in Java 11 and is useful when negating a method reference:
 
 ~~~java
 import java.util.List;
@@ -458,9 +458,9 @@ boolean allNonBlank = labels.stream()
 System.out.println(allNonBlank); // true
 ~~~
 
-`Predicate.not(String::isBlank)` tạo predicate phủ định của `String::isBlank`. Đây là một cách viết dễ đọc hơn việc tạo một lambda riêng chỉ để đặt dấu `!` trước lời gọi phương thức.
+`Predicate.not(String::isBlank)` creates the negated predicate of `String::isBlank`. This is cleaner than writing a separate lambda just to put `!` in front of a method call.
 
-### 8.2. Không nhầm anyMatch và allMatch là hai giá trị đối nghịch
+### 8.2. Do Not Confuse `anyMatch` and `allMatch` as Opposites
 
 ~~~java
 import java.util.List;
@@ -474,11 +474,11 @@ System.out.println(anyPositive); // true
 System.out.println(allPositive); // false
 ~~~
 
-Điều kiện “có số dương” và “mọi số đều dương” có thể cùng `true`, cùng `false` (trên Stream rỗng: `false` và `true`), hoặc khác nhau. Vì thế **không** có quy tắc chung rằng `allMatch(P) == !anyMatch(P)`.
+“At least one positive number” and “all numbers are positive” can both be `true`, both `false` (on an empty Stream: `false` and `true`), or differ. Therefore, there is **no** general rule that `allMatch(P) == !anyMatch(P)`.
 
-## 9. Ghép predicate và pipeline cho dễ đọc
+## 9. Composing Predicates and Pipelines for Readability
 
-`Predicate<T>` có các phép kết hợp `and`, `or`, `negate`. Chúng cho phép đặt tên điều kiện khi logic trở nên dài.
+`Predicate<T>` provides combinators `and`, `or`, and `negate`. They let you name conditions when logic grows long.
 
 ~~~java
 import java.util.List;
@@ -505,9 +505,9 @@ System.out.println(hasEligibleCandidate);          // true
 System.out.println(noneActiveWithoutExperience);    // true
 ~~~
 
-Ở đây, `Predicate.and` và `Predicate.or` sử dụng cách đánh giá ngắn mạch tương tự `&&` và `||` của Java. Với predicate thuần, việc tách tên giúp dễ đọc và kiểm thử hơn. Đừng dựa vào side effect xảy ra ở vế phải: vế đó có thể không được gọi nếu đã biết kết quả.
+Here, `Predicate.and` and `Predicate.or` use short-circuit evaluation just like Java's `&&` and `||`. With pure predicates, naming components improves readability and testability. Do not rely on side effects occurring on the right-hand side: that side might never be invoked if the outcome is already known.
 
-### 9.1. Kiểm tra “mọi phần tử được lọc đều hợp lệ”
+### 9.1. Checking “Every Filtered Element Is Valid”
 
 ~~~java
 import java.util.List;
@@ -527,9 +527,9 @@ boolean allActiveHaveStock = products.stream()
 System.out.println(allActiveHaveStock); // true
 ~~~
 
-Điều kiện ở đây có nghĩa: **mọi sản phẩm đang hoạt động đều có tồn kho không âm**. Nó **không** kiểm tra tồn kho của sản phẩm không hoạt động.
+The condition here means: **every active product has non-negative stock**. It **does not** check the stock of inactive products.
 
-Nếu không có sản phẩm nào đang hoạt động, `allMatch` trên dòng sau `filter` trả `true`. Nếu nghiệp vụ yêu cầu “phải có ít nhất một sản phẩm hoạt động và tất cả đều hợp lệ”, cần thêm kiểm tra tồn tại:
+If there are no active products, `allMatch` after `filter` returns `true`. If business logic requires “there must be at least one active product and all of them are valid”, add an existence check:
 
 ~~~java
 boolean hasActive = products.stream().anyMatch(Product::active);
@@ -539,13 +539,13 @@ boolean activeBatchValid = hasActive && products.stream()
         .allMatch(p -> p.stock() >= 0);
 ~~~
 
-Vì `products` là `List` nên có thể tạo hai Stream mới. Với nguồn chỉ duyệt một lần, cần một thiết kế tổng hợp phù hợp thay vì cố tái sử dụng cùng Stream.
+Because `products` is a `List`, two fresh Streams can be created. For a single-pass source, an appropriate single-pass aggregation design is required instead of attempting to reuse the same Stream.
 
-## 10. Kiểm tra cấu trúc lồng nhau bằng các lượng từ
+## 10. Checking Nested Structures with Quantifiers
 
-Các thao tác matching có thể lồng trong nhau, nhưng **thứ tự lượng từ làm thay đổi ý nghĩa bài toán**.
+Matching operations can be nested, but **the order of quantifiers changes the meaning of the problem**.
 
-Giả sử mỗi đơn hàng chứa nhiều dòng sản phẩm:
+Suppose each order contains multiple line items:
 
 ~~~java
 import java.util.List;
@@ -563,7 +563,7 @@ List<Order> orders = List.of(
 );
 ~~~
 
-### 10.1. Có ít nhất một đơn hàng có dòng không hợp lệ?
+### 10.1. Does At Least One Order Have an Invalid Line Item?
 
 ~~~java
 boolean hasOrderWithInvalidItem = orders.stream()
@@ -573,9 +573,9 @@ boolean hasOrderWithInvalidItem = orders.stream()
 System.out.println(hasOrderWithInvalidItem); // true (O-02)
 ~~~
 
-Ở đây là **tồn tại đơn hàng** mà trong đó **tồn tại dòng** có số lượng không dương. Đơn hàng `O-03` rỗng không có dòng nào để phát hiện lỗi theo biểu thức này.
+Here it checks **there exists an order** in which **there exists an item** with a non-positive quantity. Empty order `O-03` has no items to trigger an error under this expression.
 
-### 10.2. Mọi đơn hàng đều chứa ít nhất một dòng hợp lệ?
+### 10.2. Does Every Order Contain At Least One Valid Line Item?
 
 ~~~java
 boolean everyOrderHasPositiveItem = orders.stream()
@@ -585,9 +585,9 @@ boolean everyOrderHasPositiveItem = orders.stream()
 System.out.println(everyOrderHasPositiveItem); // false
 ~~~
 
-`O-02` chỉ có dòng số lượng `0`, `O-03` không có dòng; cả hai đều khiến predicate theo đơn hàng trả `false`.
+`O-02` only has an item with quantity `0`, and `O-03` has no items; both cause the order-level predicate to return `false`.
 
-### 10.3. Mọi đơn hàng có ít nhất một dòng và mọi dòng đều hợp lệ?
+### 10.3. Does Every Order Have At Least One Item and Are All Items Valid?
 
 ~~~java
 boolean fullyValid = !orders.isEmpty()
@@ -598,15 +598,15 @@ boolean fullyValid = !orders.isEmpty()
 System.out.println(fullyValid); // false
 ~~~
 
-Cần kiểm tra **hai cấp không rỗng** nếu bài toán yêu cầu:
+You must check **two levels of non-emptiness** if the problem requires:
 
-1. Phải có ít nhất một đơn hàng.
-2. Mỗi đơn hàng phải có ít nhất một dòng sản phẩm.
-3. Mọi dòng sản phẩm của mỗi đơn hàng có số lượng dương.
+1. There must be at least one order.
+2. Each order must have at least one line item.
+3. Every line item of every order has a positive quantity.
 
-Cách viết thuần `orders.stream().allMatch(order -> order.items().stream().allMatch(...))` sẽ cho `true` với một đơn hàng rỗng, vì `allMatch` lồng bên trong đúng trên Stream rỗng. Đây là lỗi nghiệp vụ rất dễ bỏ sót.
+Writing plain `orders.stream().allMatch(order -> order.items().stream().allMatch(...))` would yield `true` for an empty order, because the inner `allMatch` is true on an empty Stream. This is an easily overlooked business bug.
 
-### 10.4. “Không có đơn hàng nào chứa hàng cấm” có thể diễn đạt hai cách
+### 10.4. “No Order Contains Prohibited Goods” Can Be Expressed Two Ways
 
 ~~~java
 boolean noForbiddenSku = orders.stream()
@@ -618,21 +618,21 @@ boolean everyOrderClean = orders.stream()
                 .noneMatch(item -> "BANNED".equals(item.sku())));
 ~~~
 
-Cả hai tương đương về mặt logic trên cùng dữ liệu ổn định. Chọn cách đọc gần sát câu chữ nghiệp vụ để tránh đảo nhầm `anyMatch` và `noneMatch` ở các cấp.
+Both are logically equivalent on the same stable dataset. Choose the phrasing closest to the business specification to avoid accidentally swapping `anyMatch` and `noneMatch` across levels.
 
-## 11. Phân biệt matching với filter, findFirst, findAny và count
+## 11. Distinguishing Matching from `filter`, `findFirst`, `findAny`, and `count`
 
-Cùng một yêu cầu “có số lớn hơn 100”, nhưng mỗi API phục vụ kết quả khác nhau:
+For the same predicate “number greater than 100”, each API serves a different outcome:
 
-| Nhu cầu | API thích hợp | Kiểu kết quả |
+| Need | Appropriate API | Return Type |
 |---|---|---|
-| Chỉ cần biết có ít nhất một phần tử khớp | `anyMatch(P)` | `boolean` |
-| Xác nhận mọi phần tử hợp lệ | `allMatch(P)` | `boolean` |
-| Xác nhận không có phần tử bị cấm | `noneMatch(P)` | `boolean` |
-| Lấy phần tử phù hợp đầu tiên theo encounter order (nếu nguồn có thứ tự) | `filter(P).findFirst()` | `Optional<T>` |
-| Lấy một phần tử phù hợp bất kỳ | `filter(P).findAny()` | `Optional<T>` |
-| Đếm tất cả phần tử phù hợp | `filter(P).count()` | `long` |
-| Lấy danh sách phần tử phù hợp | `filter(P).toList()` | `List<T>` (Java 16+) |
+| Only need to know if at least one element matches | `anyMatch(P)` | `boolean` |
+| Confirm every element is valid | `allMatch(P)` | `boolean` |
+| Confirm no forbidden element exists | `noneMatch(P)` | `boolean` |
+| Get the first matching element in encounter order (if source is ordered) | `filter(P).findFirst()` | `Optional<T>` |
+| Get any matching element | `filter(P).findAny()` | `Optional<T>` |
+| Count all matching elements | `filter(P).count()` | `long` |
+| Get a list of matching elements | `filter(P).toList()` | `List<T>` (Java 16+) |
 
 ~~~java
 import java.util.List;
@@ -656,21 +656,21 @@ System.out.println(first.orElse(-1));  // 101
 System.out.println(count);             // 2
 ~~~
 
-`anyMatch` không cho biết phần tử nào khớp; `findFirst` và `findAny` không bảo đảm tìm “tất cả phần tử khớp”; `count` mới cung cấp số lượng. Chọn theo **loại thông tin** thực sự cần, thay vì luôn lọc và gom về List.
+`anyMatch` does not tell you which element matched; `findFirst` and `findAny` do not guarantee finding “all matching elements”; `count` provides the quantity. Choose based on the **kind of information** actually needed, rather than always filtering and collecting to a List.
 
-Nếu chỉ cần một `boolean`, `anyMatch(P)` thường rõ hơn `filter(P).findAny().isPresent()`; hai cách có cùng mục đích tìm sự tồn tại, nhưng `anyMatch` biểu đạt ý định trực tiếp.
+If you only need a `boolean`, `anyMatch(P)` is usually clearer than `filter(P).findAny().isPresent()`; both share the goal of checking existence, but `anyMatch` expresses intent directly.
 
-## 12. Primitive Stream: IntStream, LongStream và DoubleStream
+## 12. Primitive Streams: `IntStream`, `LongStream`, and `DoubleStream`
 
-Không phải lúc nào dữ liệu cũng là `Stream<Integer>` hay `Stream<Double>`. Với Stream chuyên biệt cho kiểu nguyên thủy, các phương thức matching tương ứng nhận predicate chuyên biệt:
+Data is not always a `Stream<Integer>` or `Stream<Double>`. For primitive-specialized Streams, the matching methods take specialized predicates:
 
-| Stream | Kiểu predicate | Ví dụ |
+| Stream | Predicate Type | Example |
 |---|---|---|
 | `IntStream` | `IntPredicate` | `anyMatch(n -> n < 0)` |
 | `LongStream` | `LongPredicate` | `allMatch(n -> n >= 0)` |
 | `DoubleStream` | `DoublePredicate` | `noneMatch(x -> Double.isNaN(x))` |
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -691,11 +691,11 @@ System.out.println(allPositive);        // true
 System.out.println(noNaN);              // true
 ~~~
 
-Primitive Stream giúp tránh chi phí boxing/unboxing khi xử lý giá trị số lượng lớn. Tuy nhiên, không thể kết luận nó luôn nhanh hơn mọi thiết kế khác nếu chưa xét chi phí pipeline, nguồn dữ liệu, phép toán và JDK thực tế.
+Primitive Streams avoid boxing/unboxing overhead when processing large volumes of numeric values. However, you cannot conclude they are always faster than every other design without considering pipeline cost, data source, operations, and actual JDK.
 
-### 12.1. Chú ý giá trị NaN
+### 12.1. Watch Out for `NaN` Values
 
-Với `double`, các phép so sánh thông thường có thể gây bất ngờ nếu gặp `NaN`:
+With `double`, ordinary comparisons can behave surprisingly when encountering `NaN`:
 
 ~~~java
 import java.util.stream.DoubleStream;
@@ -706,16 +706,16 @@ boolean allNonNegative = DoubleStream.of(1.0, Double.NaN)
 System.out.println(allNonNegative); // false
 ~~~
 
-`Double.NaN >= 0.0` là `false`. Khi kiểm tra dữ liệu số thực, hãy xác định nghiệp vụ có cho phép `NaN`, vô cực hoặc các giá trị đặc biệt khác không, rồi kết hợp predicate tương ứng.
+`Double.NaN >= 0.0` is `false`. When validating floating-point data, decide whether business rules allow `NaN`, infinities, or other special values, and compose the predicate accordingly.
 
-## 13. Predicate thuần, dữ liệu null và lỗi thực thi
+## 13. Pure Predicates, Null Data, and Execution Errors
 
-Các thao tác matching nhận một hành vi phải **non-interfering** và **stateless** theo hợp đồng Stream:
+Matching operations accept a behavioral parameter that must be **non-interfering** and **stateless** according to the Stream contract:
 
-- **Non-interfering:** không thay đổi nguồn dữ liệu theo cách không được nguồn hỗ trợ khi Stream đang duyệt.
-- **Stateless:** kết quả của predicate không phụ thuộc trạng thái có thể thay đổi trong quá trình pipeline chạy.
+- **Non-interfering:** do not modify the data source in a way unsupported by the source while the Stream is traversing it.
+- **Stateless:** the predicate's result must not depend on state that can change during pipeline execution.
 
-### 13.1. Tránh sửa nguồn bên trong predicate
+### 13.1. Avoid Modifying the Source Inside a Predicate
 
 ~~~java
 import java.util.ArrayList;
@@ -723,16 +723,16 @@ import java.util.List;
 
 List<Integer> numbers = new ArrayList<>(List.of(1, 2, 3));
 
-// Không nên:
+// Do not do this:
 // numbers.stream().anyMatch(n -> {
-//     numbers.add(n * 10); // Can thiệp vào chính nguồn đang duyệt
+//     numbers.add(n * 10); // Interferes with the source currently being traversed
 //     return n == 2;
 // });
 ~~~
 
-Làm như vậy có thể gây hành vi không ổn định, ngoại lệ hoặc kết quả không đúng với kỳ vọng. Một predicate nên diễn đạt phép kiểm tra; việc thêm, xóa hay sửa nguồn nên đặt ở bước xử lý phù hợp khác.
+Doing so can cause erratic behavior, exceptions, or unexpected results. A predicate should express a check; adding, removing, or modifying source elements belongs in another appropriate processing step.
 
-### 13.2. Side effect khiến bạn hiểu sai số lần chạy predicate
+### 13.2. Side Effects Cause Misunderstandings About Predicate Call Counts
 
 ~~~java
 import java.util.List;
@@ -742,19 +742,19 @@ List<Integer> numbers = List.of(2, 5, 8, 13);
 AtomicInteger calls = new AtomicInteger();
 
 boolean found = numbers.stream().anyMatch(n -> {
-    calls.incrementAndGet(); // Chỉ minh họa, không dùng cho nghiệp vụ
+    calls.incrementAndGet(); // For illustration only, do not use for business logic
     return n > 6;
 });
 
 System.out.println(found);       // true
-System.out.println(calls.get()); // 3 với pipeline tuần tự đã nêu
+System.out.println(calls.get()); // 3 with the sequential pipeline shown
 ~~~
 
-Khi chuyển sang Stream song song, thời điểm, thứ tự và tổng số lời gọi predicate có thể khác. `AtomicInteger` có thể làm bộ đếm cập nhật nguyên tử, nhưng **không** khiến một predicate có side effect trở thành stateless. Nếu cần ghi nhận mọi bản ghi, ba thao tác matching không phải nơi thích hợp vì chúng có thể dừng sớm.
+When switching to a parallel Stream, the timing, order, and total number of predicate calls can differ. `AtomicInteger` makes counter updates atomic, but **does not** turn a side-effecting predicate into a stateless one. If you need to record every element, the three matching operations are not the right tool because they can stop early.
 
-### 13.3. Null phải được quyết định rõ trong predicate
+### 13.3. `null` Must Be Decided Explicitly in the Predicate
 
-`List.of(...)` không cho phép phần tử `null`, nhưng một số collection khác có thể chứa `null`. Gọi phương thức trên phần tử `null` có thể gây `NullPointerException`:
+`List.of(...)` disallows `null` elements, but some other collections can contain `null`. Calling a method on a `null` element can throw `NullPointerException`:
 
 ~~~java
 import java.util.ArrayList;
@@ -765,11 +765,11 @@ List<String> names = new ArrayList<>(
         Arrays.asList("An", null, "Chi")
 );
 
-// Tránh nếu dữ liệu có thể chứa null:
+// Avoid if data may contain null:
 // names.stream().allMatch(String::isBlank);
 ~~~
 
-Cách kiểm tra “mọi tên phải khác null và không rỗng”:
+How to check “every name must be non-null and non-blank”:
 
 ~~~java
 boolean allValid = names.stream()
@@ -778,23 +778,23 @@ boolean allValid = names.stream()
 System.out.println(allValid); // false
 ~~~
 
-Cách `filter(Objects::nonNull).allMatch(...)` **bỏ qua** các phần tử null thay vì xác định chúng không hợp lệ. Hai cách có ý nghĩa nghiệp vụ khác nhau. Chú ý: nếu lọc bỏ toàn bộ phần tử, `allMatch` trả `true` vì nguồn sau lọc rỗng.
+Using `filter(Objects::nonNull).allMatch(...)` **skips** null elements instead of marking them invalid. The two approaches have different business meanings. Note: if all elements are filtered out, `allMatch` returns `true` because the post-filter source is empty.
 
-### 13.4. Ngoại lệ từ predicate
+### 13.4. Exceptions from Predicates
 
 ~~~java
 import java.util.List;
 
 List<String> tokens = List.of("12", "bad", "4");
 
-// Có thể ném NumberFormatException khi gặp "bad":
+// May throw NumberFormatException upon encountering "bad":
 // boolean hasLarge = tokens.stream()
 //         .anyMatch(token -> Integer.parseInt(token) > 10);
 ~~~
 
-Nếu dữ liệu không bảo đảm đúng định dạng, cần chính sách xử lý lỗi: kiểm tra trước, từ chối dữ liệu không hợp lệ, hoặc mô hình hóa lỗi thành giá trị rõ ràng. Không nên phụ thuộc vào việc short-circuit tình cờ bỏ qua phần tử gây lỗi, vì khi thay thứ tự, điều kiện hoặc chế độ chạy song song, việc đánh giá có thể khác.
+If data is not guaranteed to be well-formed, establish an error-handling policy: validate upfront, reject malformed data, or model errors as explicit values. Do not rely on short-circuiting happening to skip a bad element, because changing order, conditions, or parallel execution can alter evaluation.
 
-## 14. Matching trên Stream song song và nguồn không có thứ tự
+## 14. Matching on Parallel Streams and Unordered Sources
 
 ~~~java
 import java.util.List;
@@ -807,17 +807,17 @@ boolean found = values.parallelStream()
 System.out.println(found); // true
 ~~~
 
-Với predicate thuần, kết quả `true` là điều mong đợi vì có phần tử `13` và `21` thỏa. Tuy nhiên:
+With a pure predicate, `true` is expected because `13` and `21` satisfy the condition. However:
 
-1. Nhiều phần tử có thể được kiểm tra **đồng thời**.
-2. Một số phần tử có thể đã bắt đầu được xử lý trước khi một thread tìm thấy kết quả.
-3. Số lượt kiểm tra và thứ tự gọi predicate **không được đảm bảo** giống Stream tuần tự.
-4. `anyMatch` trả lời *có hay không*, nên không có khái niệm “phải tìm phần tử đầu tiên” như `findFirst`.
-5. `allMatch`, `noneMatch` cũng có thể dừng sớm ở mức kết quả, nhưng không nên dùng chúng để điều khiển một tác dụng phụ cần diễn ra đúng một lần trên mỗi phần tử.
+1. Multiple elements may be checked **concurrently**.
+2. Several elements may already begin processing before a thread finds a match.
+3. The number of checks and predicate invocation order are **not guaranteed** to match a sequential Stream.
+4. `anyMatch` answers *yes or no*, so there is no concept of “must find the first element” like `findFirst`.
+5. `allMatch` and `noneMatch` can also short-circuit at the result level, but should not be used to drive a side effect that must happen once per element.
 
-`unordered()` có thể cho framework thêm tự do bỏ encounter order khi điều đó hợp lệ. Với ba thao tác chỉ trả `boolean` và predicate stateless, việc đảo thứ tự các phần tử không làm đổi kết quả toán học trên nguồn hữu hạn, ổn định. Điều này **không đảm bảo** pipeline song song sẽ nhanh hơn; chi phí chia công việc, phối hợp thread và tính chất `Spliterator` của nguồn có thể làm chậm bài toán nhỏ.
+`unordered()` can give the framework extra freedom to ignore encounter order when valid. With these three operations returning only `boolean` and stateless predicates, reordering elements does not alter the mathematical result on a finite, stable source. This **does not guarantee** a parallel pipeline will run faster; work-splitting overhead, thread coordination, and the source's `Spliterator` characteristics can slow down small workloads.
 
-### 14.1. Không suy ra thứ tự xử lý từ kết quả
+### 14.1. Do Not Infer Processing Order from the Result
 
 ~~~java
 import java.util.List;
@@ -828,11 +828,11 @@ boolean exists = values.parallelStream()
         .anyMatch(s -> s.equals("b"));
 ~~~
 
-Kết quả là `true`, nhưng không có bảo đảm predicate được gọi trước tiên với `"a"`. Nếu cần truy xuất phần tử đầu tiên theo encounter order, dùng `filter(...).findFirst()` trên một nguồn có thứ tự; đó là bài toán khác với matching.
+The result is `true`, but there is no guarantee the predicate was called on `"a"` first. If you need to retrieve the first element in encounter order, use `filter(...).findFirst()` on an ordered source; that is a different problem from matching.
 
-## 15. Nguồn vô hạn, dừng sớm và khả năng hoàn tất
+## 15. Infinite Sources, Early Stopping, and Completion
 
-Vì các thao tác matching là **short-circuiting**, đôi khi chúng có thể xử lý được Stream vô hạn:
+Because matching operations are **short-circuiting**, they can sometimes process infinite Streams:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -843,25 +843,25 @@ boolean found = IntStream.iterate(0, n -> n + 1)
 System.out.println(found); // true
 ~~~
 
-Trong Stream tuần tự này, khi gặp `5`, `anyMatch` có thể kết thúc. Nhưng short-circuit **không đồng nghĩa chắc chắn kết thúc**. Nếu không bao giờ xuất hiện yếu tố quyết định, một nguồn vô hạn có thể khiến terminal operation chạy mãi:
+In this sequential Stream, upon seeing `5`, `anyMatch` can terminate. But short-circuiting **does not guarantee termination**. If the deciding element never appears, an infinite source can keep the terminal operation running forever:
 
 ~~~java
 import java.util.stream.Stream;
 
-// Tránh chạy: không có phản ví dụ nào để allMatch dừng.
+// Avoid running: no counterexample for allMatch to stop.
 // Stream.generate(() -> "ok")
 //         .allMatch("ok"::equals);
 
-// Tránh chạy: không có phần tử thỏa để noneMatch dừng.
+// Avoid running: no matching element for noneMatch to stop.
 // Stream.generate(() -> "ok")
 //         .noneMatch("bad"::equals);
 
-// Tránh chạy: không có phần tử thỏa để anyMatch dừng.
+// Avoid running: no matching element for anyMatch to stop.
 // Stream.generate(() -> "ok")
 //         .anyMatch("bad"::equals);
 ~~~
 
-Nếu nghiệp vụ chỉ muốn xét một số phần tử đầu, hãy áp dụng `limit` trước matching:
+If business logic only wants to inspect a fixed number of initial elements, apply `limit` before matching:
 
 ~~~java
 import java.util.stream.Stream;
@@ -873,11 +873,11 @@ boolean firstHundredOk = Stream.generate(() -> "ok")
 System.out.println(firstHundredOk); // true
 ~~~
 
-Lúc này câu hỏi thực sự là: “100 phần tử đầu có đều là `"ok"` không?”. Đừng nhầm với việc xác nhận **toàn bộ** một nguồn có thể vô hạn. Tương tự, `takeWhile` và các cơ chế cắt giới hạn khác chỉ giúp hoàn tất khi điều kiện dừng được đáp ứng theo nguồn và thứ tự phù hợp.
+Now the actual question is: “Are the first 100 elements all `"ok"`?”. Do not confuse this with verifying the **entirety** of a potentially infinite source. Similarly, `takeWhile` and other bounding mechanisms only ensure completion when the stopping condition is met according to the source and proper ordering.
 
-## 16. Matching với Stream đọc tệp: quản lý tài nguyên
+## 16. Matching with File-Reading Streams: Resource Management
 
-`Files.lines` tạo `Stream<String>` lấy dữ liệu từ tệp, có tài nguyên hệ thống cần đóng. Matching có thể dừng sớm, nhưng thao tác kết thúc **không tự thay thế việc đóng Stream I/O**.
+`Files.lines` creates a `Stream<String>` reading lines from a file, holding system resources that must be closed. Matching can stop early, but the terminal operation **does not replace closing the I/O Stream**.
 
 ~~~java
 import java.io.IOException;
@@ -891,40 +891,40 @@ Path logFile = Path.of("application.log");
 
 try (Stream<String> lines = Files.lines(logFile, StandardCharsets.UTF_8)) {
     boolean hasError = lines.anyMatch(line -> line.contains("ERROR"));
-    System.out.println("Có dòng lỗi: " + hasError);
+    System.out.println("Has error line: " + hasError);
 } catch (IOException | UncheckedIOException e) {
-    System.err.println("Không đọc được tệp: " + e.getMessage());
+    System.err.println("Cannot read file: " + e.getMessage());
 }
 ~~~
 
-Điều cần nhớ:
+Points to remember:
 
-- `Files.lines` tạo nguồn đọc dòng theo nhu cầu.
-- `anyMatch` dừng sớm khi đã phát hiện một dòng thỏa điều kiện; không bắt buộc tải toàn bộ tệp vào `List`.
-- `try-with-resources` bảo đảm gọi `close()` khi rời khối, kể cả lúc matching trả `true` sớm.
-- `IOException` có thể xảy ra khi mở nguồn; lỗi đọc trong khi tiêu thụ Stream có thể được bọc trong `UncheckedIOException`.
-- Nếu muốn tiếp tục xử lý các dòng khác sau khi tìm thấy kết quả, cần mở/tạo một Stream mới theo yêu cầu và vòng đời của nguồn.
+- `Files.lines` creates a source that reads lines on demand.
+- `anyMatch` stops early once a matching line is detected; it does not require loading the entire file into a `List`.
+- `try-with-resources` guarantees `close()` is called on exit from the block, even when matching returns `true` early.
+- `IOException` can occur when opening the source; read errors during Stream consumption may be wrapped in `UncheckedIOException`.
+- If you want to continue processing other lines after finding a result, you must open/create a new Stream according to the source's requirements and lifecycle.
 
-Các kiến thức này liên hệ với phần xử lý tài nguyên, `Spliterator`, Stream song song và hiệu năng trong module. Chọn terminal operation đúng chỉ là một nửa câu chuyện: nguồn có được đóng và phép kiểm tra có đủ độc lập để chạy theo pipeline hay không cũng cần được xét.
+These concepts connect to resource handling, `Spliterator`, parallel Streams, and performance in this module. Choosing the right terminal operation is only half the story: whether the source gets closed and whether the check is independent enough for pipelined execution must also be considered.
 
-## 17. Bảng quyết định nhanh
+## 17. Quick Decision Table
 
-| Yêu cầu nghiệp vụ | Biểu thức gợi ý | Điểm cần lưu ý |
+| Business requirement | Suggested expression | Points to watch |
 |---|---|---|
-| Có ít nhất một đơn vượt 1 triệu? | `anyMatch(order -> order.totalVnd() > 1_000_000)` | Chỉ trả `boolean` |
-| Mọi đơn đều có tổng dương? | `allMatch(order -> order.totalVnd() > 0)` | Trả `true` nếu Stream rỗng |
-| Không đơn nào có số lượng âm? | `noneMatch(order -> order.quantity() < 0)` | Predicate mô tả điều bị cấm |
-| Mọi phần tử hợp lệ **và danh sách không rỗng**? | `!list.isEmpty() && list.stream().allMatch(P)` | Kiểm tra không rỗng riêng |
-| Có lỗi nào trong dữ liệu? | `anyMatch(isInvalid)` | Có thể dừng ngay khi thấy lỗi |
-| Không có lỗi nào? | `noneMatch(isInvalid)` | Tương đương `allMatch(isValid)` nếu phủ định chính xác |
-| Tìm chính phần tử lỗi đầu tiên? | `filter(isInvalid).findFirst()` | Trả `Optional<T>` |
-| Đếm tổng số lỗi? | `filter(isInvalid).count()` | Phải xác định số lượng |
-| Kiểm tra các dòng của tệp? | `Files.lines(...).anyMatch(P)` | Dùng `try-with-resources` |
-| Kiểm tra phần tử trong nhiều lớp cấu trúc? | Matching lồng nhau | Cẩn thận lượng từ và rỗng ở từng lớp |
+| Is at least one order over 1 million? | `anyMatch(order -> order.totalVnd() > 1_000_000)` | Returns only `boolean` |
+| Does every order have a positive total? | `allMatch(order -> order.totalVnd() > 0)` | Returns `true` if Stream is empty |
+| Do no orders have negative quantity? | `noneMatch(order -> order.quantity() < 0)` | Predicate describes the forbidden condition |
+| Are all elements valid **and list non-empty**? | `!list.isEmpty() && list.stream().allMatch(P)` | Check non-emptiness separately |
+| Are there any errors in the data? | `anyMatch(isInvalid)` | Can stop immediately upon seeing an error |
+| Are there no errors? | `noneMatch(isInvalid)` | Equivalent to `allMatch(isValid)` if negated accurately |
+| Find the first invalid element itself? | `filter(isInvalid).findFirst()` | Returns `Optional<T>` |
+| Count total errors? | `filter(isInvalid).count()` | Must determine exact quantity |
+| Check lines of a file? | `Files.lines(...).anyMatch(P)` | Use `try-with-resources` |
+| Check elements across nested structures? | Nested matching | Watch quantifiers and emptiness at every level |
 
-## 18. Bài tập củng cố
+## 18. Practice Exercises
 
-### Bài 1. Dự đoán ba kết quả
+### Exercise 1. Predict Three Results
 
 ~~~java
 import java.util.List;
@@ -936,9 +936,9 @@ System.out.println(values.stream().allMatch(n -> n > 0));
 System.out.println(values.stream().noneMatch(n -> n > 10));
 ~~~
 
-**Đáp án:** `true`, `true`, `true`. Có một số chẵn (`6`); tất cả đều dương; không có số nào lớn hơn 10.
+**Answer:** `true`, `true`, `true`. There is one even number (`6`); all are positive; none are greater than 10.
 
-### Bài 2. Stream rỗng và chân lý rỗng
+### Exercise 2. Empty Stream and Vacuous Truth
 
 ~~~java
 import java.util.List;
@@ -950,38 +950,38 @@ System.out.println(empty.stream().allMatch(n -> n < 0));
 System.out.println(empty.stream().noneMatch(n -> n < 0));
 ~~~
 
-**Đáp án:** `false`, `true`, `true`. Không có phần tử nào làm predicate đúng, không có phản ví dụ cho `allMatch`, và không có phần tử nào vi phạm điều kiện “none”.
+**Answer:** `false`, `true`, `true`. No element makes the predicate true, there is no counterexample for `allMatch`, and no element violates the “none” condition.
 
-### Bài 3. Viết điều kiện “mọi tên không rỗng và có ít nhất một tên”
+### Exercise 3. Write the Condition “Every Name Is Non-Blank and There Is At Least One Name”
 
-**Đề:** Cho `List<String> names`, các phần tử có thể rỗng hoặc chứa toàn dấu cách. Kết quả phải là `false` nếu `names` rỗng.
+**Prompt:** Given `List<String> names`, elements may be empty or contain only whitespace. The result must be `false` if `names` is empty.
 
-**Đáp án tham khảo:**
+**Reference answer:**
 
 ~~~java
 boolean valid = !names.isEmpty()
         && names.stream().allMatch(name -> !name.isBlank());
 ~~~
 
-Nếu danh sách có thể chứa `null`, thêm `name != null &&` vào predicate.
+If the list can contain `null`, add `name != null &&` to the predicate.
 
-### Bài 4. Phủ định bằng De Morgan
+### Exercise 4. Negate Using De Morgan's Laws
 
-**Đề:** Viết lại `!values.stream().anyMatch(n -> n < 0)` bằng đúng một matching operation khác và không có toán tử phủ định bên ngoài.
+**Prompt:** Rewrite `!values.stream().anyMatch(n -> n < 0)` using exactly one other matching operation and no outer negation operator.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 boolean noNegative = values.stream().noneMatch(n -> n < 0);
 ~~~
 
-Có thể viết `values.stream().allMatch(n -> n >= 0)` nếu miền dữ liệu cho phép coi hai điều kiện là phủ định chính xác.
+You can write `values.stream().allMatch(n -> n >= 0)` if the data domain permits treating the two conditions as exact negations.
 
-### Bài 5. Lượng từ lồng nhau
+### Exercise 5. Nested Quantifiers
 
-**Đề:** Bạn có danh sách `orders` từ mục 10. Kiểm tra “có ít nhất một đơn hàng mà mọi dòng trong đơn đó đều có số lượng dương **và đơn đó không rỗng**”.
+**Prompt:** You have the `orders` list from section 10. Check “there is at least one order where every line item in that order has a positive quantity **and that order is not empty**”.
 
-**Đáp án tham khảo:**
+**Reference answer:**
 
 ~~~java
 boolean existsFullyPositiveOrder = orders.stream()
@@ -992,9 +992,9 @@ boolean existsFullyPositiveOrder = orders.stream()
 System.out.println(existsFullyPositiveOrder); // true (O-01)
 ~~~
 
-Điều kiện `!order.items().isEmpty()` loại trường hợp đơn hàng rỗng `O-03` có thể làm `allMatch` bên trong trả `true` một cách không phù hợp với yêu cầu nghiệp vụ.
+The `!order.items().isEmpty()` condition excludes empty order `O-03`, which would otherwise make the inner `allMatch` return `true` inappropriately for the business rule.
 
-### Bài 6. Vì sao dùng cùng Stream hai lần thất bại?
+### Exercise 6. Why Does Using the Same Stream Twice Fail?
 
 ~~~java
 import java.util.List;
@@ -1004,22 +1004,22 @@ Stream<Integer> source = List.of(1, 2, 3).stream();
 
 boolean hasTwo = source.anyMatch(n -> n == 2);
 // boolean allPositive = source.allMatch(n -> n > 0);
-// Dòng trên biên dịch nhưng sẽ ném IllegalStateException khi chạy.
+// The line above compiles but throws IllegalStateException at runtime.
 ~~~
 
-**Đáp án:** `anyMatch` là terminal operation đã tiêu thụ `source`. Phải tạo Stream mới từ `List` (hoặc thiết kế một lần duyệt duy nhất nếu nguồn chỉ đọc một lượt).
+**Answer:** `anyMatch` is a terminal operation that consumed `source`. You must create a new Stream from the `List` (or design a single-pass traversal if the source can only be read once).
 
-### Bài 7. Tác dụng phụ trong parallel stream
+### Exercise 7. Side Effects in a Parallel Stream
 
-**Đề:** Có nên dùng `AtomicInteger counter` tăng ở mỗi lời gọi predicate trong `parallelStream().anyMatch(...)` để đếm tất cả phần tử không?
+**Prompt:** Should you use an `AtomicInteger counter` incremented on every predicate call in `parallelStream().anyMatch(...)` to count all elements?
 
-**Đáp án:** Không. `anyMatch` được phép dừng khi đủ thông tin, nên predicate không buộc chạy trên tất cả phần tử; chế độ song song cũng không bảo đảm thứ tự và số lần gọi như một vòng lặp tuần tự. `AtomicInteger` chỉ hỗ trợ tính nguyên tử của cập nhật, không biến phép kiểm tra thành phép đếm toàn bộ. Nếu cần số lượng, dùng `count` phù hợp.
+**Answer:** No. `anyMatch` is allowed to stop once enough information is found, so the predicate is not forced to run on all elements; parallel mode also does not guarantee order or invocation counts like a sequential loop. `AtomicInteger` only makes updates atomic, not turn a check into a full count. If you need a count, use `count` appropriately.
 
-### Bài 8. Chọn API đúng
+### Exercise 8. Choosing the Right API
 
-**Đề:** Bạn muốn trả về **mã đơn hàng đầu tiên** có tổng tiền âm, nếu có. `anyMatch` có đủ không?
+**Prompt:** You want to return **the ID of the first order** with a negative total, if any. Is `anyMatch` enough?
 
-**Đáp án:** Không. `anyMatch` chỉ trả `boolean`. Dùng:
+**Answer:** No. `anyMatch` only returns `boolean`. Use:
 
 ~~~java
 import java.util.List;
@@ -1038,12 +1038,12 @@ Optional<String> firstInvalidId = orders.stream()
         .map(Order::id)
         .findFirst();
 
-System.out.println(firstInvalidId.orElse("Không có")); // DH-02
+System.out.println(firstInvalidId.orElse("None")); // DH-02
 ~~~
 
-Ví dụ này dùng `Order` có các accessor `id()` và `totalVnd()` như ở mục 5, tách biệt với cấu trúc đơn hàng có `items()` ở mục 10. Nếu không cần giữ thứ tự đầu tiên, cân nhắc `findAny()`.
+This example uses `Order` with `id()` and `totalVnd()` accessors as in section 5, separate from the order structure with `items()` in section 10. If keeping the first order is not required, consider `findAny()`.
 
 ---
 
-**Ghi nhớ:** `anyMatch` hỏi **có ít nhất một**, `allMatch` hỏi **tất cả**, còn `noneMatch` hỏi **không có phần tử nào** thỏa predicate. Cả ba là **short-circuiting terminal operations** trả về `boolean`. Trên Stream rỗng, kết quả lần lượt là **false – true – true**. Hãy viết predicate stateless/non-interfering, quản lý vòng đời Stream I/O, tạo Stream mới cho phép kiểm tra độc lập và thêm điều kiện “không rỗng” khi nghiệp vụ yêu cầu.
+**Key Takeaways:** `anyMatch` asks **is there at least one**, `allMatch` asks **do all**, and `noneMatch` asks **do none** satisfy the predicate. All three are **short-circuiting terminal operations** returning `boolean`. On an empty Stream, the results are **false – true – true** respectively. Write stateless/non-interfering predicates, manage I/O Stream lifecycles, create a fresh Stream for each independent check, and add a “non-empty” check when business rules require it.
 

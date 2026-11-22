@@ -1,46 +1,46 @@
-# `String.equals()` so sánh nội dung và không phụ thuộc danh tính
+# `String.equals()` compares content and does not depend on identity
 
-## 1. Phân biệt giá trị văn bản và danh tính tham chiếu
+## 1. Distinguishing text value from reference identity
 
-Trong Java, biến `String` chứa **tham chiếu** đến một đối tượng chuỗi. Vì thế, hai phép kiểm tra sau trả lời hai câu hỏi khác nhau:
+In Java, a `String` variable holds a **reference** to a string object. Therefore, the following two checks answer two different questions:
 
-- **`a == b`** với hai tham chiếu: hai biến có trỏ tới **cùng một đối tượng** không? Đây là kiểm tra danh tính tham chiếu (*reference identity*), không phải phép so sánh nội dung.
-- **`a.equals(b)`**: hai đối tượng có cùng **nội dung `String`** không, bất kể chúng nằm ở hai đối tượng riêng?
+- **`a == b`** with two references: do the two variables point to the **same object**? This is a *reference identity* check, not a content comparison.
+- **`a.equals(b)`**: do the two objects have the same **`String` content**, regardless of whether they reside in two separate objects?
 
-Hai `String` khác đối tượng vẫn có thể `a == b` là `false` và `a.equals(b)` là `true`. Ngược lại, nếu `a == b` và `a` không `null`, `a.equals(b)` tất nhiên đúng vì đó là cùng đối tượng.
+Two `String` instances that are different objects can still have `a == b` be `false` and `a.equals(b)` be `true`. Conversely, if `a == b` and `a` is not `null`, `a.equals(b)` is of course true because it is the same object.
 
-`String` là một lớp `final` với giá trị bất biến (*immutable*). Mã khác không thể kế thừa `String` để thay đổi cách `equals` hoạt động, và nội dung của một đối tượng `String` không thay đổi sau khi tạo. Đây là lý do nó thích hợp làm khóa của `HashMap` hoặc phần tử trong `HashSet`.
+`String` is a `final` class with an *immutable* value. Other code cannot subclass `String` to change how `equals` behaves, and the content of a `String` object does not change after creation. This is why it is suitable as a key in a `HashMap` or an element in a `HashSet`.
 
-**Phạm vi của `equals`:** hai đối tượng có cùng nội dung chuỗi không đồng nghĩa chúng biểu thị cùng người, cùng tài khoản, cùng bản ghi hay cùng đối tượng trong mô hình nghiệp vụ. `equals` chỉ xác nhận sự bằng nhau theo định nghĩa giá trị của lớp.
+**Scope of `equals`:** two objects having the same string content does not mean they represent the same person, the same account, the same record, or the same object in a business model. `equals` only confirms equality according to the class's value definition.
 
-## 2. Hợp đồng và cơ chế của `String.equals(Object)`
+## 2. Contract and mechanism of `String.equals(Object)`
 
-Phương thức `String` ghi đè phương thức từ `Object`:
+The `String` method overrides the method from `Object`:
 
 ```java
 public boolean equals(Object anObject)
 ```
 
-Đây là **chữ ký API**, không phải một chương trình chạy độc lập.
+This is an **API signature**, not a standalone runnable program.
 
-Về mặt ngữ nghĩa, `String.equals` trả `true` khi đối số là một `String` có **cùng dãy đơn vị mã UTF-16** theo đúng thứ tự. Điều này tương đương với cùng chiều dài `length()` và cùng giá trị `charAt(i)` tại mọi chỉ số hợp lệ. Với đối số `null` hoặc đối tượng không phải `String`, kết quả là `false`.
+Semantically, `String.equals` returns `true` when the argument is a `String` with the **same sequence of UTF-16 code units** in exact order. This is equivalent to having the same `length()` and the same `charAt(i)` value at every valid index. For a `null` argument or an object that is not a `String`, the result is `false`.
 
-JDK được phép tối ưu cách kiểm tra, ví dụ xử lý cùng tham chiếu, kiểm tra chiều dài, so sánh dữ liệu trong bộ nhớ hoặc dùng biểu diễn compact; **không nên giả định một thuật toán vòng lặp duy nhất** từ mô tả hợp đồng.
+The JDK is allowed to optimize how it checks this, such as handling same-reference cases, checking length, comparing data in memory, or using a compact representation; **do not assume a single loop algorithm** from the contract description.
 
-| Biểu thức | Kết quả | Giải thích |
+| Expression | Result | Explanation |
 | --- | --- | --- |
-| `"java".equals("java")` | `true` | Cùng nội dung |
-| `"java".equals("Java")` | `false` | Phân biệt chữ hoa/thường |
-| `"java".equals("java ")` | `false` | Có dấu cách ở cuối |
-| `"".equals("")` | `true` | Cùng chuỗi rỗng |
-| `"java".equals(null)` | `false` | `null` không phải `String` |
-| `"java".equals(new StringBuilder("java"))` | `false` | Khác kiểu đối tượng, dù ký tự hiển thị giống |
+| `"java".equals("java")` | `true` | Same content |
+| `"java".equals("Java")` | `false` | Case-sensitive |
+| `"java".equals("java ")` | `false` | Trailing space |
+| `"".equals("")` | `true` | Both are empty strings |
+| `"java".equals(null)` | `false` | `null` is not a `String` |
+| `"java".equals(new StringBuilder("java"))` | `false` | Different object type, even though displayed characters look the same |
 
-`String.equals` không tự động xóa khoảng trắng, bỏ phân biệt chữ hoa, áp dụng bộ quy tắc ngôn ngữ theo locale hoặc chuẩn hóa Unicode. Nếu cần cách so sánh khác, ứng dụng phải định nghĩa rõ quy tắc đó.
+`String.equals` does not automatically strip whitespace, ignore case, apply locale-specific language rules, or normalize Unicode. If a different comparison behavior is needed, the application must explicitly define those rules.
 
-## 3. String Pool và lý do `==` đôi lúc có vẻ hoạt động
+## 3. String Pool and why `==` sometimes appears to work
 
-Các literal chuỗi Java dùng cơ chế *interning*. Những literal cùng giá trị như `"hello"` thường trỏ đến đối tượng canonical từ String Pool. Vì vậy, kiểm tra `==` giữa hai literal giống nhau có thể trả `true` và gây hiểu lầm rằng `==` dùng để so nội dung.
+Java string literals use an *interning* mechanism. Literals with the same value such as `"hello"` usually point to the canonical object from the String Pool. Therefore, a `==` check between two identical literals can return `true` and mislead people into thinking `==` is for comparing content.
 
 ```java
 String a = "hello";
@@ -52,18 +52,18 @@ System.out.println(a == c);       // false
 System.out.println(a.equals(c));  // true
 ```
 
-Đây là **mảnh mã minh họa**. `a` và `b` nhận cùng đối tượng chuỗi được intern; `new String("hello")` tạo đối tượng mới có nội dung giống nhau, nên `a == c` sai còn `a.equals(c)` đúng.
+This is an **illustrative code snippet**. `a` and `b` receive the same interned string object; `new String("hello")` creates a new object with the same content, so `a == c` is false while `a.equals(c)` is true.
 
-Các tình huống quan trọng:
+Important scenarios:
 
-1. Hai literal hằng cùng nội dung được intern theo quy tắc chuỗi literal; `"he" + "llo"` cũng là biểu thức hằng có thể được trình biên dịch xử lý thành literal `"hello"`.
-2. Phép nối dữ liệu từ biến tại **runtime** có thể tạo đối tượng chuỗi khác. Không dùng kết quả `==` với literal để suy ra quy tắc cho dữ liệu từ file, mạng hay người dùng.
-3. `String.intern()` cung cấp tham chiếu canonical nhưng **không cần gọi nó để `equals` đúng**. Interning là cơ chế chia sẻ tham chiếu, không phải điều kiện bắt buộc cho equality nội dung.
-4. `==` vẫn có chỗ dùng: kiểm tra tham chiếu giống nhau hoặc kiểm tra với `null`. Khi câu hỏi là “hai chuỗi có cùng chữ không?”, chọn `equals`.
+1. Two constant literals with the same content are interned according to string literal rules; `"he" + "llo"` is also a constant expression that the compiler can resolve into the literal `"hello"`.
+2. Concatenating data from variables at **runtime** can create a different string object. Do not use `==` results with literals to infer rules for data coming from files, the network, or users.
+3. `String.intern()` provides a canonical reference, but **there is no need to call it for `equals` to be true**. Interning is a reference-sharing mechanism, not a prerequisite for content equality.
+4. `==` still has its place: checking whether references are identical or checking against `null`. When the question is "do two strings have the same text?", choose `equals`.
 
-## 4. Ví dụ Java 17+ chạy hoàn chỉnh
+## 4. Complete runnable Java 17+ example
 
-Tạo tệp `StringEqualityDemo.java`:
+Create the file `StringEqualityDemo.java`:
 
 ```java
 import java.text.Normalizer;
@@ -113,7 +113,7 @@ public class StringEqualityDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 StringEqualityDemo.java
@@ -139,30 +139,30 @@ same hash: true
 same content: false
 ```
 
-Giải thích:
+Explanation:
 
-- **Ba dòng đầu:** hai literal dùng chung đối tượng interned; `new String` tạo đối tượng riêng; `alias` chỉ là tham chiếu tới đối tượng cũ.
-- **`content equal`:** hai đối tượng `String` khác nhau vẫn bằng nhau về nội dung. `equals` phân biệt chữ hoa trong khi `equalsIgnoreCase` dùng quy tắc bỏ qua hoa/thường của Java.
-- **`set size` và `map lookup`:** `HashSet` loại trùng và `HashMap` tra cứu khóa dựa trên equality nội dung, không yêu cầu đầu vào có cùng tham chiếu.
-- **`builder equals` và `builder content`:** `StringBuilder` không phải `String`. `String.equals(builder)` trả `false`; `String.contentEquals(builder)` lại có thể so nội dung một `CharSequence`.
-- **Unicode:** `é` dạng tổ hợp sẵn và dạng `e` cộng dấu kết hợp có thể trông giống nhau nhưng chứa dãy UTF-16 khác nhau; chuẩn hóa NFC trước khi so sánh giúp chúng tương đương.
-- **Hash:** `"FB"` và `"Ea"` có cùng mã hash theo thuật toán `String.hashCode` nhưng `equals` vẫn `false`. Không suy diễn nội dung chỉ từ hash code.
+- **First three lines:** the two literals share an interned object; `new String` creates a separate object; `alias` is just a reference to the existing object.
+- **`content equal`:** two different `String` objects are still equal in content. `equals` is case-sensitive while `equalsIgnoreCase` uses Java's case-ignoring rules.
+- **`set size` and `map lookup`:** `HashSet` deduplicates and `HashMap` looks up keys based on content equality, without requiring the inputs to share the same reference.
+- **`builder equals` and `builder content`:** `StringBuilder` is not a `String`. `String.equals(builder)` returns `false`; `String.contentEquals(builder)` can compare the content of a `CharSequence`.
+- **Unicode:** precomposed `é` and `e` followed by a combining mark can look identical, yet contain different UTF-16 sequences; normalizing to NFC before comparing makes them equivalent.
+- **Hash:** `"FB"` and `"Ea"` have the same hash code under `String.hashCode`, yet `equals` is still `false`. Do not infer content equality from hash codes alone.
 
-## 5. `String.equals` và `hashCode` trong collection
+## 5. `String.equals` and `hashCode` in collections
 
-`String` cài cả `equals` và `hashCode`. Hợp đồng chung của Java yêu cầu: khi `a.equals(b)` trả `true` thì **`a.hashCode() == b.hashCode()`**. Vì đối tượng `String` bất biến, thông tin dùng tính hash không thay đổi. Đây là một nền tảng khiến chuỗi hoạt động ổn định như khóa hash.
+`String` implements both `equals` and `hashCode`. Java's general contract requires that when `a.equals(b)` returns `true`, **`a.hashCode() == b.hashCode()`**. Because `String` objects are immutable, the data used to compute the hash does not change. This is one of the foundations that makes strings work reliably as hash keys.
 
-Khi `HashMap` có khóa `new String("A-001")`, lệnh `get(new String("A-001"))` vẫn lấy được giá trị đã lưu vì hai khóa có cùng nội dung và cùng hash. `HashSet` cũng loại trùng theo quan hệ bằng nhau, dù hai giá trị được tạo qua hai lệnh `new` khác nhau.
+When a `HashMap` holds the key `new String("A-001")`, calling `get(new String("A-001"))` still retrieves the stored value because the two keys have the same content and the same hash. `HashSet` likewise deduplicates according to equality, even when two values are created through two separate `new` calls.
 
-Nhưng **cùng hash không chứng minh bằng nhau**. Va chạm là điều có thể xảy ra, như ví dụ `"FB"` và `"Ea"`. Hash giúp định vị vị trí tra cứu; equality giúp phân biệt những khóa cụ thể. Không thay `a.equals(b)` bằng phép so sánh `hashCode` vì kết quả có thể sai.
+However, **having the same hash does not prove equality**. Collisions can happen, as in the `"FB"` and `"Ea"` example. The hash helps locate the lookup bucket; equality distinguishes the specific keys. Never replace `a.equals(b)` with a `hashCode` comparison because the result can be wrong.
 
-Ngược lại, dùng `==` để tìm mã đơn hàng, khóa cache hoặc dữ liệu API có thể thất bại do một giá trị bằng nội dung nhưng đến từ đối tượng mới. Câu hỏi nghiệp vụ thường là **cùng mã**, không phải **cùng địa chỉ tham chiếu**.
+Conversely, using `==` to look up order IDs, cache keys, or API data can fail when a value has equal content but comes from a new object. The business question is usually **same code**, not **same reference address**.
 
-## 6. `null`, các phương thức liên quan và cách chọn
+## 6. `null`, related methods, and how to choose
 
-### Tránh `NullPointerException`
+### Avoiding `NullPointerException`
 
-Nếu `input` có thể bằng `null` thì `input.equals("ok")` sẽ ném `NullPointerException`, bởi phương thức không thể được gọi trên tham chiếu `null`. Hai cách thông dụng:
+If `input` can be `null`, then `input.equals("ok")` will throw a `NullPointerException` because a method cannot be invoked on a `null` reference. Two common approaches:
 
 ```java
 String input = null;
@@ -171,31 +171,31 @@ boolean b = java.util.Objects.equals(input, "ok"); // false
 boolean c = java.util.Objects.equals(null, null);  // true
 ```
 
-Đây là **mảnh mã minh họa**. `"ok".equals(input)` an toàn vì đối tượng gọi luôn tồn tại. `Objects.equals(a,b)` xử lý cả hai toán hạng có thể null và trả `true` nếu cả hai đều null. Vì vậy cần xem yêu cầu nghiệp vụ có coi “hai giá trị chưa biết” là bằng nhau không.
+This is an **illustrative code snippet**. `"ok".equals(input)` is safe because the target object always exists. `Objects.equals(a,b)` handles both operands potentially being null and returns `true` if both are null. Therefore, check whether business requirements consider "two unknown values" to be equal.
 
-### Các phép so sánh khác
+### Other comparison operations
 
-| API | Đặc điểm | Khi dùng |
+| API | Characteristics | When to use |
 | --- | --- | --- |
-| `a == b` | So cùng tham chiếu | Kiểm tra identity hoặc null |
-| `a.equals(b)` | So chính xác nội dung hai `String` | So giá trị chuỗi theo mặc định |
-| `Objects.equals(a,b)` | So bằng nhau an toàn với null; dùng `equals` khi có giá trị | Hai phía có thể null |
-| `a.equalsIgnoreCase(b)` | Bỏ qua khác biệt hoa/thường theo quy tắc của Java, không phụ thuộc locale | Khi yêu cầu chỉ cần so tương đương theo quy tắc đó |
-| `a.contentEquals(cs)` | So nội dung `String` với một `CharSequence` | So với `StringBuilder`, `StringBuffer`... khi phù hợp |
-| `a.compareTo(b)` | So thứ tự từ điển theo đơn vị mã UTF-16; trả 0 nếu chuỗi cùng nội dung | Sắp xếp thứ tự tự nhiên của `String` |
-| `Collator` | So sánh theo quy tắc của một locale và mức độ phân biệt | Sắp xếp văn bản theo ngôn ngữ |
+| `a == b` | Compares for same reference | Checking identity or null |
+| `a.equals(b)` | Compares exact content of two `String`s | Default string value comparison |
+| `Objects.equals(a,b)` | Null-safe equality check; uses `equals` when values are present | Either side may be null |
+| `a.equalsIgnoreCase(b)` | Ignores case differences per Java's rules, locale-independent | When requirements only need equivalence under those rules |
+| `a.contentEquals(cs)` | Compares `String` content against a `CharSequence` | Comparing with `StringBuilder`, `StringBuffer`, etc. when appropriate |
+| `a.compareTo(b)` | Lexicographical comparison by UTF-16 code units; returns 0 if strings have identical content | Natural ordering of `String` |
+| `Collator` | Compares according to a locale's rules and strength level | Language-sensitive text sorting |
 
-**`equalsIgnoreCase` không phải chuẩn hóa văn bản phổ quát.** Nó không tự cắt khoảng trắng, chuẩn hóa Unicode hoặc đảm bảo quy tắc so sánh của từng ngôn ngữ. Nếu muốn so tên người theo thứ tự/sự tương đương theo locale, nên cân nhắc `Collator` và các quy tắc dữ liệu riêng. Với mật khẩu, token hoặc chữ ký, không tự bỏ qua khác biệt ký tự khi giao thức không yêu cầu.
+**`equalsIgnoreCase` is not universal text normalization.** It does not automatically trim whitespace, normalize Unicode, or guarantee the collation rules of every language. If you want to compare person names for ordering/equivalence by locale, consider `Collator` and dedicated data rules. For passwords, tokens, or signatures, do not automatically ignore character differences unless the protocol requires it.
 
-Một điểm dễ nhầm: `StringBuilder` kế thừa `Object.equals` theo ngữ nghĩa danh tính, do vậy hai `StringBuilder` chứa cùng ký tự không mặc nhiên bằng nhau. Muốn so nội dung với `String`, dùng `contentEquals` hoặc chuyển builder thành `String` rồi dùng `equals`.
+A common point of confusion: `StringBuilder` inherits `Object.equals` with identity semantics, so two `StringBuilder`s containing the same characters are not equal by default. To compare content with a `String`, use `contentEquals` or convert the builder to a `String` and then use `equals`.
 
-## 7. Unicode: nhìn giống nhau không đảm bảo `equals`
+## 7. Unicode: looking alike does not guarantee `equals`
 
-Một văn bản có thể có nhiều cách biểu diễn Unicode. Chữ `é` chẳng hạn có thể là ký tự ghép sẵn U+00E9 hoặc chữ `e` U+0065 theo sau bởi dấu kết hợp U+0301. Hai cách có thể hiển thị gần như giống nhau, nhưng `String.equals` so từng **đơn vị mã UTF-16**, nên vẫn thấy khác biệt.
+Text can have multiple Unicode representations. For example, the character `é` can be the precomposed character U+00E9 or the letter `e` U+0065 followed by the combining mark U+0301. The two forms may render almost identically, but `String.equals` compares **UTF-16 code units**, so it still sees a difference.
 
-`String.length()` đếm đơn vị mã UTF-16, không nhất thiết đếm số ký tự mà người đọc nhìn thấy hay số Unicode code point. Ký tự ngoài BMP có thể gồm một cặp surrogate, còn chữ có dấu kết hợp có thể có nhiều code point. Do đó, so chính xác nội dung không đồng nghĩa so cách hiển thị.
+`String.length()` counts UTF-16 code units, not necessarily the number of characters perceived by a reader or the number of Unicode code points. Characters outside the BMP can consist of a surrogate pair, and accented letters with combining marks can span multiple code points. Therefore, exact content comparison is not the same as visual comparison.
 
-Khi nghiệp vụ muốn coi hai biểu diễn Unicode tương đương, có thể chuẩn hóa cùng một dạng, chẳng hạn NFC:
+When business logic wants two Unicode representations to be treated as equivalent, you can normalize them to the same form, such as NFC:
 
 ```java
 import java.text.Normalizer;
@@ -205,34 +205,34 @@ String normalizedB = Normalizer.normalize(inputB, Normalizer.Form.NFC);
 boolean same = normalizedA.equals(normalizedB);
 ```
 
-Đây là **mảnh mã minh họa**, giả định `inputA` và `inputB` đã có giá trị. Chuẩn hóa NFC xử lý tương đương chuẩn tắc Unicode; nó **không tự xử lý mọi khác biệt** về chữ hoa, khoảng trắng, ký tự giống hình từ các bảng chữ cái khác nhau, hay các yêu cầu so sánh theo tiếng Việt.
+This is an **illustrative code snippet**, assuming `inputA` and `inputB` already have values. NFC normalization handles Unicode canonical equivalence; it **does not automatically resolve all differences** in letter case, whitespace, lookalike characters from different alphabets, or Vietnamese-specific collation requirements.
 
-Đối với khóa dữ liệu và định danh, hãy xác định chính sách chuẩn hóa **trước khi ghi và truy vấn**, để mọi phía dùng cùng cách diễn giải. Đối với mật khẩu hoặc mã bảo mật, tuân thủ chính sách giao thức; không tự áp dụng chuẩn hóa hoặc bỏ phân biệt chữ hoa nếu điều đó làm thay đổi bí mật được kỳ vọng.
+For data keys and identifiers, establish the normalization policy **before writing and querying**, so every party uses the same interpretation. For passwords or security tokens, follow the protocol policy; do not apply normalization or ignore case on your own if doing so alters the expected secret.
 
-## 8. Những lỗi phổ biến trong thực tế
+## 8. Common mistakes in practice
 
-**Lỗi: dùng `==` cho văn bản nhận từ bên ngoài.** Hai tham chiếu khác nhau có thể có nội dung giống nhau; so bằng `equals` hoặc một quy tắc chuẩn hóa được định nghĩa rõ.
+**Mistake: using `==` for text received from outside.** Two different references can have the same content; compare using `equals` or a clearly defined normalization rule.
 
-**Lỗi: gọi `equals` trên biến có thể null.** Nếu cần so với chuỗi hằng, dùng `"constant".equals(value)`; nếu cả hai biến có thể null, dùng `Objects.equals` khi cách xử lý hai null phù hợp nghiệp vụ.
+**Mistake: calling `equals` on a potentially null variable.** If comparing against a constant string, use `"constant".equals(value)`; if both variables may be null, use `Objects.equals` when treating two nulls as equal fits the business logic.
 
-**Lỗi: nhầm kết quả String Pool với quy tắc chung.** Hai literal bằng nhau có thể cùng đối tượng, nhưng dữ liệu nối lúc chạy hoặc đọc từ API không nhất thiết như vậy. Kiểm thử nên bao gồm hai `new String("same")` để quan sát `== false` và `equals true`.
+**Mistake: mistaking String Pool behavior for a general rule.** Two equal literals may share the same object, but runtime-concatenated data or data read from an API does not necessarily behave that way. Tests should include two `new String("same")` instances to observe `== false` and `equals true`.
 
-**Lỗi: cho rằng `equals` không phân biệt hoa/thường hoặc khoảng trắng.** `"Java".equals("java")` và `"x".equals("x ")` đều `false`. Nếu cần bỏ khoảng trắng hoặc biến đổi chữ, áp dụng `strip()` hay biến đổi có kiểm soát theo `Locale.ROOT`/locale thích hợp; nhớ rằng quy tắc chữ hoa có thể phức tạp với Unicode.
+**Mistake: assuming `equals` ignores case or whitespace.** `"Java".equals("java")` and `"x".equals("x ")` are both `false`. If whitespace removal or case transformation is needed, apply `strip()` or controlled casing with `Locale.ROOT`/the appropriate locale; keep in mind that case rules can be complex with Unicode.
 
-**Lỗi: cho rằng cùng cách hiển thị thì cùng chuỗi.** Dấu kết hợp và các dạng chuẩn hóa khác nhau có thể khiến `equals` sai. Cần kiểm thử bằng ký tự Unicode thực tế của miền dữ liệu, nhất là tên, văn bản đa ngữ và chuỗi sao chép từ nhiều nguồn.
+**Mistake: assuming identical visual rendering means equal strings.** Combining marks and different normalization forms can cause `equals` to return false. Test with realistic Unicode characters from your data domain, especially names, multilingual text, and strings copied from multiple sources.
 
-**Lỗi: kiểm tra bằng hash thay vì equality.** Hai hash trùng không có nghĩa hai chuỗi có cùng nội dung. `HashMap`/`HashSet` xử lý va chạm bằng hợp đồng equals/hashCode; mã nghiệp vụ cũng cần kiểm tra giá trị đúng nghĩa.
+**Mistake: checking hashes instead of equality.** Two colliding hashes do not mean two strings have the same content. `HashMap`/`HashSet` handle collisions through the equals/hashCode contract; application logic also needs to check true value equality.
 
-## 9. Checklist để ghi nhớ và tự kiểm thử
+## 9. Checklist for retention and self-testing
 
-1. Xác định đang hỏi **cùng đối tượng** (`==`) hay **cùng nội dung `String`** (`equals`).
-2. Tạo hai chuỗi cùng nội dung bằng `new String` để chứng minh identity có thể khác.
-3. So chuỗi literal, chuỗi rỗng, chữ hoa/thường, dấu cách, giá trị `null` và văn bản Unicode.
-4. Kiểm tra `HashSet` gộp hai chuỗi bằng nhau; `HashMap` tra cứu được bằng khóa `String` khác tham chiếu.
-5. Ghi nhớ `String.equals` chỉ trả true với đối số kiểu `String` có cùng nội dung UTF-16.
-6. Với giá trị có thể null, chọn `"literal".equals(variable)` hoặc `Objects.equals` theo yêu cầu.
-7. Không dùng `StringBuilder.equals` hay so mã hash để thay thế kiểm tra nội dung.
-8. Nếu cần không phân biệt hoa, chuẩn hóa Unicode, bỏ khoảng trắng hoặc so theo locale, định nghĩa và áp dụng quy tắc tường minh.
-9. Xác nhận phép so sánh có phục vụ đúng khái niệm **danh tính nghiệp vụ**: hai chuỗi giống nhau không nhất thiết là cùng thực thể.
+1. Identify whether you are asking **same object** (`==`) or **same `String` content** (`equals`).
+2. Create two strings with the same content via `new String` to demonstrate that identity can differ.
+3. Compare literals, empty strings, uppercase/lowercase, spaces, `null` values, and Unicode text.
+4. Verify that `HashSet` merges two equal strings and that `HashMap` can look up entries using a `String` key with a different reference.
+5. Remember that `String.equals` only returns true for a `String` argument with identical UTF-16 content.
+6. For potentially null values, choose `"literal".equals(variable)` or `Objects.equals` according to requirements.
+7. Never use `StringBuilder.equals` or hash code comparisons as a substitute for content checks.
+8. If case-insensitivity, Unicode normalization, whitespace trimming, or locale-aware comparison is required, define and apply explicit rules.
+9. Confirm that the comparison serves the right **business identity** concept: two identical strings do not necessarily represent the same entity.
 
-**Điểm cốt lõi:** `String.equals(Object)` so sánh chính xác nội dung văn bản theo ngữ nghĩa của Java `String`, độc lập với việc hai biến có cùng tham chiếu hay không. `==` dùng để kiểm tra identity; String Pool chỉ giải thích vì sao `==` đôi lúc cũng trả `true` với hai literal giống nhau. Khi cần quy tắc tương đương rộng hơn, hãy xác định rõ việc chuẩn hóa và so sánh ngoài `String.equals`.
+**Key takeaway:** `String.equals(Object)` compares exact text content according to Java `String` semantics, independent of whether two variables share the same reference. `==` checks identity; the String Pool merely explains why `==` sometimes returns `true` for two identical literals. When broader equivalence rules are needed, explicitly define normalization and comparison outside `String.equals`.

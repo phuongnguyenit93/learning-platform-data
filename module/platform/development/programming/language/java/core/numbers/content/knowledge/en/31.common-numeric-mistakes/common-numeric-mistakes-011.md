@@ -1,40 +1,40 @@
-# Nhầm Integer.parseInt, Integer.decode và Integer.getInteger
+# Confusing Integer.parseInt, Integer.decode, and Integer.getInteger
 
-## 1. Ba phương thức, ba ý nghĩa hoàn toàn khác nhau
+## 1. Three Methods, Three Completely Different Meanings
 
-Trong Java, `java.lang.Integer` có những tên phương thức dễ khiến ta tưởng chúng đều nhận một chuỗi rồi chuyển thành số nguyên. Sự khác nhau nằm ở **chuỗi truyền vào là giá trị hay tên cấu hình** và **quy tắc cơ số**:
+In Java, `java.lang.Integer` has method names that can easily mislead you into thinking they all accept a string and convert it into an integer. The difference lies in **whether the passed string is a value or a configuration property name** and in **the radix rules**:
 
-- **`Integer.parseInt(String)`** phân tích **nội dung chuỗi giá trị** theo **hệ thập phân**, trả primitive `int`. Overload `parseInt(String, int radix)` dùng cơ số tường minh từ 2 đến 36.
-- **`Integer.decode(String)`** phân tích **nội dung chuỗi giá trị** và nhận các tiền tố để tự xác định cơ số: `0x`/`0X` hoặc `#` cho hex, số `0` dẫn đầu chuỗi nhiều chữ số cho octal, không prefix cho decimal. Kết quả là `Integer`.
-- **`Integer.getInteger(String)`** coi chuỗi đối số là **tên JVM system property**, đọc property rồi diễn giải **giá trị property** theo cách `decode`; nó không parse chính đối số truyền vào. Kết quả là `Integer` hoặc `null` nếu không có/không parse được và không chỉ định mặc định.
+- **`Integer.parseInt(String)`** parses **the contents of a value string** in **base 10 (decimal)**, returning primitive `int`. The overload `parseInt(String, int radix)` uses an explicit radix from 2 to 36.
+- **`Integer.decode(String)`** parses **the contents of a value string** and recognizes prefixes to infer the radix automatically: `0x`/`0X` or `#` for hex, a leading `0` on multi-digit strings for octal, and no prefix for decimal. The return type is `Integer`.
+- **`Integer.getInteger(String)`** treats the string argument as **a JVM system property name**, reads that property, and then interprets **the property's value** as `decode` does; it does not parse the passed argument itself. The result is `Integer`, or `null` if absent/unparseable when no default is given.
 
-Ví dụ:
+Example:
 
 ```java
 System.out.println(Integer.parseInt("010")); // 10
 System.out.println(Integer.decode("010"));   // 8
 ```
 
-`Integer.getInteger("010")` lại tìm **system property có tên `010`**; kết quả tùy thuộc cấu hình JVM, có thể là `null`. Nó không có nghĩa chuyển chuỗi `"010"` thành `10` hoặc `8`.
+Meanwhile, `Integer.getInteger("010")` looks up **a system property named `010`**; the result depends on JVM configuration and may be `null`. It does not mean converting the string `"010"` to `10` or `8`.
 
-### Bảng so sánh
+### Comparison Table
 
-| Tiêu chí | `parseInt` | `decode` | `getInteger` |
+| Criterion | `parseInt` | `decode` | `getInteger` |
 | --- | --- | --- | --- |
-| Tham số chuỗi | Giá trị cần parse | Giá trị cần decode | **Tên property** |
-| Nguồn thực của số | Đối số `s` | Đối số `nm` | `System.getProperty(name)` |
-| Mặc định radix | 10 | Suy ra từ prefix | Suy ra từ **giá trị property** |
-| Đầu vào `"010"` | 10 | 8 | Tìm property tên `010` |
-| Đầu vào `"0x10"` | Lỗi | 16 | Tìm property tên `0x10` |
-| Kiểu trả về | `int` | `Integer` | `Integer` |
-| Chuỗi số sai | Ném `NumberFormatException` | Ném `NumberFormatException` | `null` hoặc giá trị mặc định nếu property không parse được |
-| Dùng cho | Số nguyên với radix rõ | Số nguyên cho phép prefix | Cấu hình `-D` của JVM |
+| String parameter | Value to parse | Value to decode | **Property name** |
+| Actual source of number | Argument `s` | Argument `nm` | `System.getProperty(name)` |
+| Default radix | 10 | Inferred from prefix | Inferred from **property value** |
+| Input `"010"` | 10 | 8 | Looks up property named `010` |
+| Input `"0x10"` | Error | 16 | Looks up property named `0x10` |
+| Return type | `int` | `Integer` | `Integer` |
+| Invalid number string | Throws `NumberFormatException` | Throws `NumberFormatException` | `null` or default value if property cannot be parsed |
+| Intended for | Integers with explicit radix | Integers allowing prefixes | JVM `-D` configuration |
 
-Đây là bài học về **lựa chọn API theo hợp đồng dữ liệu**, không chỉ cách nhớ tên hàm. Sai lầm thường không xuất hiện khi test `"123"`, vì `parseInt` và `decode` đều trả 123; các ca có số 0 đầu và property JVM mới phơi bày khác biệt.
+This is a lesson in **choosing APIs by data contract**, not just memorizing method names. The mistake often stays hidden when testing `"123"`, since `parseInt` and `decode` both return 123; inputs with leading zeros and JVM properties expose the difference.
 
-## 2. parseInt: số nguyên decimal mặc định
+## 2. parseInt: Default Decimal Integers
 
-`Integer.parseInt(String s)` sử dụng radix 10:
+`Integer.parseInt(String s)` uses radix 10:
 
 ```java
 System.out.println(Integer.parseInt("42"));   // 42
@@ -44,10 +44,10 @@ System.out.println(Integer.parseInt("010"));  // 10
 System.out.println(Integer.parseInt("08"));   // 8
 ```
 
-Dấu `+` hoặc `-` có thể đứng **ở đầu** số. Dấu `0` dẫn đầu **không** biến chuỗi thành octal. Ngược lại, các chuỗi dưới đây **không hợp lệ** đối với overload decimal:
+A `+` or `-` sign may appear **at the start** of the number. A leading `0` does **not** turn the string into octal. Conversely, the following strings are **invalid** for the decimal overload:
 
 ```java
-// Mỗi dòng dưới đây ném NumberFormatException khi chạy:
+// Each line below throws NumberFormatException at runtime:
 Integer.parseInt("0x10");
 Integer.parseInt("12.5");
 Integer.parseInt("1_000");
@@ -56,11 +56,11 @@ Integer.parseInt("");
 Integer.parseInt("2147483648");
 ```
 
-`parseInt` không tự loại khoảng trắng, chấp nhận dấu phân nhóm hàng nghìn hoặc chấp nhận dấu gạch dưới `_` trong chuỗi. Java có literal số ở mã nguồn `1_000`, nhưng cú pháp literal Java **không giống** cú pháp chuỗi runtime của `parseInt`.
+`parseInt` does not strip whitespace, accept thousands separators, or accept underscores `_` in strings. Java source code supports numeric literals like `1_000`, yet Java literal syntax **is not the same as** the runtime string syntax of `parseInt`.
 
-### Radix tường minh
+### Explicit Radix
 
-`Integer.parseInt(String s, int radix)` cho phép radix từ `Character.MIN_RADIX` (2) đến `Character.MAX_RADIX` (36):
+`Integer.parseInt(String s, int radix)` supports radices from `Character.MIN_RADIX` (2) through `Character.MAX_RADIX` (36):
 
 ```java
 System.out.println(Integer.parseInt("1010", 2)); // 10
@@ -71,23 +71,23 @@ System.out.println(Integer.parseInt("-ff", 16)); // -255
 System.out.println(Integer.parseInt("Z", 36));   // 35
 ```
 
-Ngay cả khi truyền radix 16, **prefix `0x` không được chấp nhận**:
+Even when passing radix 16, **the `0x` prefix is not accepted**:
 
 ```java
-// Đều ném NumberFormatException:
+// Both throw NumberFormatException:
 Integer.parseInt("0x10", 16);
 Integer.parseInt("0b1010", 2);
 ```
 
-Muốn parse chuỗi `0x10` theo radix 16, có thể tách prefix sau khi validate rồi parse `"10"`, hoặc dùng `decode` nếu hợp đồng cú pháp cho phép nó. Nếu tự tách prefix, cần xử lý `+`/`-` trước prefix, chuỗi rỗng, và giới hạn `int`.
+To parse `"0x10"` in radix 16, strip the prefix after validation and parse `"10"`, or use `decode` if the syntax contract permits it. If stripping the prefix manually, handle `+`/`-` before the prefix, empty strings, and `int` bounds.
 
-**Kiểu trả về:** `parseInt` trả primitive `int`, còn `Integer.valueOf("42")` trả wrapper `Integer` sau khi parse decimal. Cả hai không tìm system property.
+**Return type:** `parseInt` returns primitive `int`, whereas `Integer.valueOf("42")` returns wrapper `Integer` after decimal parsing. Neither looks up a system property.
 
-## 3. decode: các prefix và bẫy octal
+## 3. decode: Prefixes and the Octal Trap
 
-`Integer.decode(String nm)` cho phép các biểu diễn sau:
+`Integer.decode(String nm)` accepts the following representations:
 
-| Input | Radix | Kết quả |
+| Input | Radix | Result |
 | --- | ---: | ---: |
 | `"42"` | 10 | 42 |
 | `"0x2A"` | 16 | 42 |
@@ -107,9 +107,9 @@ System.out.println(Integer.decode("-0x2A")); // -42
 System.out.println(Integer.decode("+052"));  // 42
 ```
 
-Đặt dấu trước prefix: `"-0x2A"` hợp lệ, `"0x-2A"` không hợp lệ. Hex cho phép chữ số `a-f` hoặc `A-F`.
+Place the sign before the prefix: `"-0x2A"` is valid, while `"0x-2A"` is invalid. Hexadecimal allows digits `a-f` or `A-F`.
 
-**Nguy cơ cao nhất: zero đầu có ý nghĩa octal.** Với các giá trị được thêm số 0 để hiển thị:
+**Biggest risk: leading zeros mean octal.** For values zero-padded for display:
 
 ```java
 System.out.println(Integer.parseInt("010")); // 10
@@ -118,30 +118,30 @@ System.out.println(Integer.parseInt("08"));  // 8
 // Integer.decode("08") -> NumberFormatException
 ```
 
-Vì `8` và `9` không phải chữ số octal, `decode("08")` hoặc `decode("09")` thất bại. Nếu người dùng nhập số lượng dạng decimal zero-padded, dùng `parseInt` sẽ phù hợp hơn.
+Because `8` and `9` are not octal digits, `decode("08")` or `decode("09")` fails. If users enter zero-padded decimal quantities, `parseInt` is far more appropriate.
 
-### decode không nhận mọi literal của Java
+### decode Does Not Accept All Java Literals
 
-Java source hỗ trợ `0b1010` là binary integer literal, nhưng `Integer.decode("0b1010")` **không** parse được. Hãy dùng `Integer.parseInt("1010", 2)` khi contract xác định radix 2.
+Java source supports `0b1010` as a binary integer literal, yet `Integer.decode("0b1010")` **cannot** parse it. Use `Integer.parseInt("1010", 2)` when the contract specifies radix 2.
 
 ```java
-System.out.println(0b1010);                    // 10: literal trong code
+System.out.println(0b1010);                    // 10: literal in code
 System.out.println(Integer.parseInt("1010", 2)); // 10
-// Integer.decode("0b1010") ném NumberFormatException
+// Integer.decode("0b1010") throws NumberFormatException
 ```
 
-`decode` cũng không parse phần thập phân như `"10.5"`. Nó trả signed `Integer`, nên input biểu diễn giá trị lớn hơn `Integer.MAX_VALUE` cũng không trở thành số dương hợp lệ chỉ vì viết ở dạng hex.
+`decode` also does not parse fractional numbers like `"10.5"`. It returns a signed `Integer`, so an input representing a value larger than `Integer.MAX_VALUE` does not become a valid positive number just because it was written in hex.
 
-## 4. getInteger: đọc JVM system property, không đọc giá trị trực tiếp
+## 4. getInteger: Reads a JVM System Property, Not a Direct Value
 
-`Integer.getInteger(String name)` tương đương về ý tưởng với việc tra chuỗi từ system property, sau đó decode **giá trị**:
+`Integer.getInteger(String name)` is conceptually equivalent to looking up a string from a system property and then decoding **its value**:
 
 ```java
 String raw = System.getProperty("app.maxWorkers");
 Integer parsed = raw == null ? null : Integer.decode(raw);
 ```
 
-Đây chỉ là minh họa **đường đi dữ liệu**; API thật có xử lý các trường hợp property sai cú pháp và giá trị mặc định. Cần nhớ:
+This only illustrates **the data flow**; the real API also handles malformed property syntax and default values. Keep in mind:
 
 ```java
 System.setProperty("app.maxWorkers", "0x10");
@@ -151,9 +151,9 @@ System.out.println(Integer.getInteger("app.maxWorkers")); // 16
 System.out.println(Integer.getInteger("app.maxWorkers", 4)); // 16
 ```
 
-`System.getProperty` trả chuỗi raw, còn `getInteger` trả `Integer` sau khi decode. Không tự tin rằng `getInteger("100")` sẽ nhận số 100; nó đang tra property tên `100`.
+`System.getProperty` returns the raw string, whereas `getInteger` returns an `Integer` after decoding. Never assume `getInteger("100")` yields 100; it looks up a property named `100`.
 
-### Ba overload
+### Three Overloads
 
 ```java
 Integer.getInteger(String name)
@@ -161,7 +161,7 @@ Integer.getInteger(String name, int defaultValue)
 Integer.getInteger(String name, Integer defaultValue)
 ```
 
-Đây là những **chữ ký minh họa**, không phải ba câu lệnh Java được đặt trong thân method. Overload không có default trả `null` nếu property không tồn tại **hoặc giá trị không decode được**. Overload có default trả giá trị mặc định cho cả hai trường hợp đó.
+These are **illustrative signatures**, not three Java statements placed inside a method body. The overload without a default returns `null` if the property does not exist **or its value cannot be decoded**. The overloads with a default return that default value in both cases.
 
 ```java
 System.setProperty("app.retryLimit", "08");
@@ -170,30 +170,30 @@ System.out.println(Integer.getInteger("app.retryLimit"));    // null
 System.out.println(Integer.getInteger("app.retryLimit", 3)); // 3
 ```
 
-Tại sao? `getInteger` dùng logic `decode` cho giá trị `"08"`, nên octal thất bại. Điều đáng lưu ý là ở `getInteger`, **lỗi cú pháp cấu hình có thể bị che bằng default**, trong khi `decode("08")` gọi trực tiếp ném `NumberFormatException`.
+Why? `getInteger` uses `decode` logic on `"08"`, so octal parsing fails. Notably, in `getInteger`, **a configuration syntax error can be masked by the default**, whereas calling `decode("08")` directly throws `NumberFormatException`.
 
-### JVM -D và environment variable khác nhau
+### JVM -D Properties and Environment Variables Are Different
 
-System property có thể được truyền khi khởi động chương trình:
+System properties can be passed at program startup:
 
 ```bash
 java -Dapp.maxWorkers=0x10 App
 ```
 
-Khi đó `Integer.getInteger("app.maxWorkers")` có thể trả 16. Trái lại, biến môi trường `APP_MAX_WORKERS` phải đọc bằng:
+In that case, `Integer.getInteger("app.maxWorkers")` can return 16. By contrast, an environment variable `APP_MAX_WORKERS` must be read using:
 
 ```java
 String raw = System.getenv("APP_MAX_WORKERS");
 int maxWorkers = raw == null ? 4 : Integer.parseInt(raw);
 ```
 
-Đoạn trên chỉ là minh họa; production cần báo lỗi về cú pháp và giới hạn giá trị. **`Integer.getInteger("APP_MAX_WORKERS")` không đọc environment variable** — trừ việc JVM có system property *riêng* trùng tên, hai không gian cấu hình là khác nhau.
+The snippet above is illustrative only; production code needs syntax error reporting and range checks. **`Integer.getInteger("APP_MAX_WORKERS")` does not read environment variables** — unless the JVM happens to have a *separate* system property with the same name, the two configuration namespaces are completely distinct.
 
-System properties thuộc phạm vi JVM và có thể được thay đổi bởi chương trình. Trong test, nên lưu giá trị cũ, set property tạm rồi khôi phục bằng `finally`. Quyền truy cập property cũng có thể bị hạn chế, và `SecurityException` là một vấn đề khác với “không có property”.
+System properties are JVM-wide and mutable at runtime. In tests, save the old value, set the temporary property, and restore it in `finally`. Property access can also be restricted, and a `SecurityException` is a different issue from a "missing property".
 
-## 5. Bảng các ca phân biệt ba API
+## 5. Table of Cases Distinguishing the Three APIs
 
-| Biểu thức | Kết quả / ý nghĩa |
+| Expression | Result / Meaning |
 | --- | --- |
 | `parseInt("10")` | 10 |
 | `parseInt("010")` | 10 |
@@ -209,16 +209,16 @@ System properties thuộc phạm vi JVM và có thể được thay đổi bởi
 | `parseInt("0x10", 16)` | `NumberFormatException` |
 | `parseInt("1010", 2)` | 10 |
 | `decode("0b1010")` | `NumberFormatException` |
-| `getInteger("app.limit")` | Giá trị đọc từ property `app.limit`; có thể `null` |
-| `getInteger("010")` | Tra **property tên 010**, không parse số 010 |
+| `getInteger("app.limit")` | Value read from property `app.limit`; may be `null` |
+| `getInteger("010")` | Looks up **property named 010**, does not parse number 010 |
 
-Chọn parser bằng **đặc tả input**, không phải bằng cảm giác phương thức nào tiện nhất. Với decimal người dùng nhập, việc âm thầm hỗ trợ octal thường là thay đổi nguy hiểm.
+Choose a parser based on **the input specification**, not whichever method feels most convenient. For user-entered decimals, silently supporting octal is usually a dangerous surprise.
 
-## 6. Chương trình Java 17+ hoàn chỉnh và stdout xác định
+## 6. Complete Java 17+ Program and Deterministic Stdout
 
-Chương trình tự đặt các system property có tên riêng, xoá một property giả định “missing” trong phạm vi ví dụ và khôi phục trạng thái ban đầu bằng `finally`. Nó kiểm tra các trường hợp sai bằng cách bắt `NumberFormatException` rồi in tên ngoại lệ, không dựa vào thông điệp lỗi có thể thay đổi giữa các JDK.
+This program sets uniquely named system properties itself, clears a property representing "missing" within the scope of the example, and restores the initial state via `finally`. It checks error cases by catching `NumberFormatException` and printing the exception name rather than relying on error message text that may vary across JDKs.
 
-Lưu thành **`IntegerMethodComparison.java`**:
+Save as **`IntegerMethodComparison.java`**:
 
 ```java
 public class IntegerMethodComparison {
@@ -289,14 +289,14 @@ public class IntegerMethodComparison {
 }
 ```
 
-Chạy bằng JDK 17 hoặc mới hơn, từ thư mục chứa file:
+Run with JDK 17 or newer, from the directory containing the file:
 
 ```bash
 javac IntegerMethodComparison.java
 java IntegerMethodComparison
 ```
 
-Đầu ra dự kiến:
+Expected output:
 
 ```text
 parseInt 010 = 10
@@ -316,11 +316,11 @@ getInteger absent = null
 getInteger absent default = 3
 ```
 
-Ví dụ kiểm tra đồng thời **khác biệt radix** và **khác biệt nguồn dữ liệu**. Nó không dựa vào system property bất kỳ đã có sẵn; các giá trị được ghi đè tạm thời và phục hồi. Việc dùng tên property riêng giúp hạn chế tác động tới ứng dụng khác trong cùng JVM, tuy nhiên phần test thực tế vẫn cần cẩn thận với luồng chạy song song sử dụng cùng global properties.
+The example tests both **radix differences** and **data-source differences** simultaneously. It does not rely on any pre-existing system property; values are temporarily overridden and restored. Using unique property names limits impact on other code in the same JVM, though real-world tests must still watch out for concurrent threads sharing global properties.
 
-## 7. Kiểm soát cú pháp input: parse decimal thật sự
+## 7. Controlling Input Syntax: Parsing True Decimal
 
-Đối với dữ liệu số đếm nhận từ form hoặc API, người dùng thường mong decimal, có thể có số 0 đầu. Một hàm strict có thể từ chối mọi ký tự ngoài digit ASCII, kiểm tra giới hạn rồi parse:
+For count data received from a form or API, users normally expect decimal, possibly with leading zeros. A strict function can reject anything other than ASCII digits, validate bounds, and then parse:
 
 ```java
 static int parseItemCount(String raw) {
@@ -341,33 +341,33 @@ static int parseItemCount(String raw) {
 }
 ```
 
-Đây là **phương thức minh họa phải nằm trong một lớp**, không phải chương trình hoàn chỉnh. Nó chấp nhận `"0008"` làm decimal 8 và từ chối `"-2"`, `"+2"`, khoảng trắng, `"0x10"`, dấu phẩy và các chữ số Unicode không thuộc ASCII. Nếu hợp đồng cho phép số âm, dấu cộng hoặc whitespace bên ngoài, hãy thay validation rõ ràng chứ không tự đổi `parseInt` thành `decode`.
+This is an **illustrative method that must live inside a class**, not a complete program. It accepts `"0008"` as decimal 8 and rejects `"-2"`, `"+2"`, whitespace, `"0x10"`, commas, and non-ASCII Unicode digits. If the contract permits negative numbers, plus signs, or outer whitespace, update validation explicitly instead of switching `parseInt` to `decode`.
 
-`parseInt` tự dùng `Character.digit` cho từng ký tự theo radix, nên có thể nhận một số chữ số Unicode. Nếu hệ thống yêu cầu **đúng dạng ASCII**, cần bước xác thực riêng như ví dụ trên.
+`parseInt` internally uses `Character.digit` for each character in the given radix, so it can accept certain Unicode digits. If the system requires **strict ASCII**, add a validation step as shown above.
 
-### Làm gì khi người dùng muốn nhập hex?
+### What If Users Want to Enter Hex?
 
-Nếu hợp đồng cho phép decimal `42` hoặc hex `0x2A` nhưng **không** octal từ zero đầu, `decode` không hoàn toàn phù hợp. Có thể phát hiện prefix hex và áp dụng `parseInt` với radix 16, còn các chuỗi khác parse decimal. Chú ý dấu `-` và `+` phải được xử lý trước prefix, và không được để chuỗi chỉ có `0x` lọt qua.
+If the contract permits decimal `42` or hex `0x2A` yet **not** leading-zero octal, `decode` is not quite right. You can detect the hex prefix and apply `parseInt` with radix 16, parsing everything else as decimal. Make sure `-` and `+` signs are handled before the prefix, and do not let bare `"0x"` slip through.
 
-Cần test `"08"`, `"010"`, `"0x2A"`, `"-0x2A"`, `"0x"` và giá trị vượt `int`. Cách triển khai parser nên được định nghĩa bởi giao thức cụ thể, không đơn thuần sao chép quy tắc của Java source literals.
+Test `"08"`, `"010"`, `"0x2A"`, `"-0x2A"`, `"0x"`, and values exceeding `int`. Parser behavior should be defined by the concrete protocol rather than blindly copying Java source literal rules.
 
-## 8. getInteger có default có thể che lỗi cấu hình
+## 8. getInteger with a Default Can Hide Configuration Errors
 
-Xét `-Dapp.poolSize=08`. Người vận hành mong tám luồng; nếu chương trình gọi:
+Consider `-Dapp.poolSize=08`. The operator expects eight threads; if the program calls:
 
 ```java
 int poolSize = Integer.getInteger("app.poolSize", 4);
 ```
 
-giá trị thực có thể trở thành **4**, vì `decode("08")` không hợp lệ trong octal và API trả default. Chương trình chạy nhưng không như cấu hình mong muốn. Điều này khác với `parseInt("08")` trả 8.
+the actual value becomes **4**, because `decode("08")` is invalid in octal and the API falls back to the default. The program runs, yet not with the intended configuration. This contrasts with `parseInt("08")`, which returns 8.
 
-Một cách đọc **decimal strict** hơn:
+A **stricter decimal** approach:
 
 ```java
 static int positiveDecimalProperty(String name, int defaultValue) {
     String raw = System.getProperty(name);
     if (raw == null) {
-        return defaultValue; // Chỉ thiếu mới sử dụng mặc định.
+        return defaultValue; // Only use default when missing.
     }
 
     final int value;
@@ -385,23 +385,23 @@ static int positiveDecimalProperty(String name, int defaultValue) {
 }
 ```
 
-Đây là phương thức minh họa, cần đặt trong một lớp; ví dụ giả định `defaultValue` hợp lệ theo miền dương, nên caller cũng cần kiểm tra giá trị mặc định. Nó phân biệt property **vắng mặt** với property **có mặt nhưng sai cú pháp**, đồng thời đảm bảo số lớn hơn 0.
+This is an illustrative method to place inside a class; the example assumes `defaultValue` is valid in the positive domain, so callers should also validate the default. It distinguishes a **missing** property from a **present yet malformed** property while ensuring the number is greater than 0.
 
-Nếu property là bắt buộc, không nên trả default khi thiếu; có thể ném `IllegalStateException` hoặc ngoại lệ cấu hình có thông báo cụ thể. Nếu cho phép `0x` nhưng không cho phép octal ngầm, parser phải có chính sách rõ, không dùng `getInteger` như một trình kiểm tra magic.
+If a property is required, do not return a default when missing; throw `IllegalStateException` or a configuration exception with a clear message. If `0x` is allowed while implicit octal is forbidden, give the parser an explicit policy instead of using `getInteger` as a magic validator.
 
-## 9. Overflow, kiểu wrapper, null và signedness
+## 9. Overflow, Wrapper Types, null, and Signedness
 
-`Integer.parseInt` và `Integer.decode` xử lý số nguyên có dấu 32 bit: miền `-2147483648` đến `2147483647`. Những chuỗi có giá trị ngoài miền tạo `NumberFormatException`:
+`Integer.parseInt` and `Integer.decode` handle 32-bit signed integers: range `-2147483648` to `2147483647`. Strings representing out-of-range values throw `NumberFormatException`:
 
 ```java
-// Các lời gọi này ném NumberFormatException:
+// These calls throw NumberFormatException:
 Integer.parseInt("2147483648");
 Integer.decode("0x80000000");
 ```
 
-Nếu mục tiêu là số nguyên lớn hơn `int`, cân nhắc `Long.parseLong`/`Long.decode` hoặc `java.math.BigInteger`. Với bit pattern unsigned 32-bit, `Integer.parseUnsignedInt` có hợp đồng khác: nó có thể trả một `int` mang bit pattern được diễn giải là âm theo signed; cần xử lý `Integer.toUnsignedString` hay kiểu rộng hơn khi trình bày. Đừng tự ép kiểu hay dùng `decode` rồi xem đó là unsigned parser.
+If values larger than `int` are needed, consider `Long.parseLong`/`Long.decode` or `java.math.BigInteger`. For 32-bit unsigned bit patterns, `Integer.parseUnsignedInt` has a different contract: it can return an `int` whose bit pattern is interpreted as negative when signed; use `Integer.toUnsignedString` or a wider type when presenting it. Never cast blindly or use `decode` as an unsigned parser.
 
-Vì `getInteger` trả nullable `Integer`, auto-unboxing có thể ném `NullPointerException`:
+Because `getInteger` returns a nullable `Integer`, auto-unboxing can throw `NullPointerException`:
 
 ```java
 Integer maybePort = Integer.getInteger("app.port");
@@ -411,104 +411,104 @@ if (maybePort != null) {
 }
 ```
 
-Không viết `int port = Integer.getInteger("app.port");` nếu không có bảo đảm property tồn tại và hợp lệ. Dùng overload có default khi fallback được quy định hoặc kiểm tra null rõ.
+Do not write `int port = Integer.getInteger("app.port");` unless the property is guaranteed to exist and be valid. Use an overload with a default when a fallback is defined, or check null explicitly.
 
-`Integer.valueOf("123")` trả wrapper `Integer`; `Integer.parseInt("123")` trả primitive `int`. So sánh hai wrapper bằng `==` có thể phụ thuộc cache object; dùng `equals` cho value (sau khi kiểm tra null), hoặc so sánh primitive.
+`Integer.valueOf("123")` returns wrapper `Integer`; `Integer.parseInt("123")` returns primitive `int`. Comparing two wrappers with `==` can depend on object caching; use `equals` for values (after checking null), or compare primitives.
 
-## 10. Bài kiểm tra hồi quy cho lỗi nhầm lẫn
+## 10. Regression Tests for Confusion Bugs
 
-Khi review việc dùng `parseInt`, `decode` và `getInteger`, tối thiểu hãy kiểm tra các nhóm đầu vào:
+When reviewing uses of `parseInt`, `decode`, and `getInteger`, test at least these input groups:
 
-| Nhóm | Dữ liệu | Điều cần xác nhận |
+| Group | Data | What to Verify |
 | --- | --- | --- |
-| Decimal thông thường | `"0"`, `"123"`, `"-9"` | Dấu và radix 10. |
-| Zero-padded | `"010"`, `"08"`, `"009"` | `decode` thay đổi nghĩa hoặc từ chối. |
-| Hex | `"0x2A"`, `"#2A"`, `"-0x2A"` | `decode` chấp nhận; `parseInt` decimal từ chối. |
-| Binary | `"1010"` radix 2, `"0b1010"` | Prefix binary không được `decode` hỗ trợ. |
-| Không sạch | `""`, `" 42 "`, `"1_000"`, `"12.0"` | Kiểm tra NFE/validation. |
-| Biên kiểu int | `"2147483647"`, `"2147483648"`, `"-2147483648"` | Tràn hoặc chính xác. |
-| Property thiếu | Khóa test chưa được đặt | `getInteger` trả null/default. |
-| Property sai | `"08"`, `"abc"` | Default có thể che lỗi; strict parser phải phát hiện. |
-| Property đúng | `"42"`, `"0x2A"` | Giá trị được parse theo `decode`. |
-| Phân biệt nguồn | `-Dapp.x` và environment variable riêng | `getInteger` chỉ đọc system property. |
+| Standard decimal | `"0"`, `"123"`, `"-9"` | Sign and radix 10. |
+| Zero-padded | `"010"`, `"08"`, `"009"` | `decode` changes meaning or rejects. |
+| Hex | `"0x2A"`, `"#2A"`, `"-0x2A"` | `decode` accepts; decimal `parseInt` rejects. |
+| Binary | `"1010"` radix 2, `"0b1010"` | Binary prefix is unsupported by `decode`. |
+| Unclean | `""`, `" 42 "`, `"1_000"`, `"12.0"` | Verify NFE/validation. |
+| int boundaries | `"2147483647"`, `"2147483648"`, `"-2147483648"` | Overflow or exact acceptance. |
+| Missing property | Unset test key | `getInteger` returns null/default. |
+| Invalid property | `"08"`, `"abc"` | Default can mask errors; strict parser must catch them. |
+| Valid property | `"42"`, `"0x2A"` | Value is parsed via `decode`. |
+| Source distinction | `-Dapp.x` vs separate environment variable | `getInteger` reads only system properties. |
 
-Trong unit test, đừng dùng property tên chung đã tồn tại như `java.version` để chứng minh một số nguyên cụ thể. Tạo khóa độc lập, lưu giá trị ban đầu, set/clear và restore trong `finally`. Nếu chạy test song song, system properties là **global state** và có thể gây race; ưu tiên đưa cấu hình vào hàm qua tham số hoặc lớp cấu hình thay vì dựa hoàn toàn vào trạng thái JVM.
+In unit tests, do not use common existing property names like `java.version` to demonstrate a specific integer. Create an isolated key, save its initial value, set/clear it, and restore it in `finally`. If running tests in parallel, system properties are **global state** and can cause races; prefer passing configuration into functions via parameters or config objects instead of relying solely on JVM state.
 
-### Checklist chẩn đoán khi giá trị cấu hình sai
+### Diagnostic Checklist When a Config Value Is Wrong
 
-1. Xem **đối số** của phương thức: là giá trị `"08"` hay key `"app.limit"`?
-2. Kiểm tra **giá trị raw** từ `System.getProperty` nếu dùng `getInteger`.
-3. Ghi rõ radix kỳ vọng: decimal, octal ngầm, hex hay binary.
-4. Kiểm tra dấu, prefix, whitespace và ký tự không hợp lệ.
-5. Kiểm tra phạm vi `int` và có cần `long`/`BigInteger` không.
-6. Xác định thiếu cấu hình có được default hay phải là lỗi.
-7. Ghi regression test cho `"010"`, `"08"` và `"0x10"`; ba ca này phân biệt parser nhanh hơn `"123"`.
+1. Inspect the method **argument**: is it a value `"08"` or a key `"app.limit"`?
+2. Inspect the **raw value** from `System.getProperty` if using `getInteger`.
+3. State the expected radix explicitly: decimal, implicit octal, hex, or binary.
+4. Check signs, prefixes, whitespace, and invalid characters.
+5. Check `int` bounds and whether `long`/`BigInteger` is needed.
+6. Decide whether missing configuration falls back to a default or must fail.
+7. Write regression tests for `"010"`, `"08"`, and `"0x10"`; these three cases distinguish parsers far faster than `"123"`.
 
-## 11. Những sai lầm thường gặp
+## 11. Common Mistakes
 
-1. **Gọi `getInteger("42")` để chuyển `"42"` thành số:** thực chất tra property tên `42`.
-2. **Cho rằng `getInteger` lấy biến môi trường:** nó đọc JVM system property, không phải `System.getenv`.
-3. **Dùng `decode` cho số thập phân zero-padded:** `"010"` thành 8 và `"08"` ném lỗi.
-4. **Truyền `0x` vào `parseInt(s,16)`:** cần chuỗi chữ số radix 16 không có prefix.
-5. **Dùng `decode` để parse `0b`:** nó không hỗ trợ binary prefix.
-6. **Cho rằng input chuỗi hỗ trợ underscore như Java literal:** `"1_000"` không hợp lệ với các parser nói trên.
-7. **Không phân biệt property missing và invalid:** `getInteger(name,default)` có thể dùng default cho cả hai.
-8. **Bỏ qua null từ `getInteger`:** auto-unboxing sẽ ném NPE khi property không có hoặc sai.
-9. **Không kiểm tra overflow `int`:** chuỗi quá lớn không thể parse thành signed 32-bit number.
-10. **Lạm dụng `decode` vì tiện:** giao thức cần decimal phải dùng decimal parser, không tự thay đổi nghĩa input.
-11. **Dùng wrapper `==` làm kiểm tra nội dung:** nguy cơ nhầm instance caching; kiểm tra value bằng `equals`/primitive.
-12. **Che mọi lỗi parsing bằng catch rồi trả 0:** cấu hình sai có thể trở thành lỗi nghiệp vụ âm thầm; nên phân loại và truyền thông báo có tên trường.
-13. **Dùng `Integer` cho decimal có phần lẻ:** nếu dữ liệu là tiền/đo lường cần decimal exact, dùng `BigDecimal` và chính sách rounding phù hợp.
-14. **Cho rằng `parseInt` là kiểm tra ASCII:** nó sử dụng `Character.digit`; validate format ASCII trước nếu giao thức yêu cầu.
-15. **Không thử property qua `-D` và `System.setProperty`:** test chỉ gọi trực tiếp `decode` không phát hiện lỗi nhầm key/property.
+1. **Calling `getInteger("42")` to convert `"42"` to a number:** actually looks up a property named `42`.
+2. **Assuming `getInteger` reads environment variables:** it reads JVM system properties, not `System.getenv`.
+3. **Using `decode` for zero-padded decimal numbers:** `"010"` becomes 8 and `"08"` throws an error.
+4. **Passing `0x` into `parseInt(s,16)`:** requires radix-16 digits without a prefix.
+5. **Using `decode` to parse `0b`:** binary prefixes are not supported.
+6. **Assuming string inputs support underscores like Java literals:** `"1_000"` is invalid for all of these parsers.
+7. **Failing to distinguish missing vs. invalid properties:** `getInteger(name,default)` uses the default for both.
+8. **Ignoring null from `getInteger`:** auto-unboxing throws NPE when the property is missing or malformed.
+9. **Not checking `int` overflow:** oversized strings cannot be parsed into a signed 32-bit number.
+10. **Abusing `decode` out of convenience:** protocols needing decimal must use a decimal parser rather than silently altering input semantics.
+11. **Using wrapper `==` as a content check:** risks instance caching confusion; check values via `equals`/primitives.
+12. **Hiding all parsing errors with catch-and-return-0:** bad config becomes a silent business bug; classify and report with field names.
+13. **Using `Integer` for decimals with fractional parts:** if monetary/measurement data needs exact decimals, use `BigDecimal` and an appropriate rounding policy.
+14. **Assuming `parseInt` validates ASCII:** it uses `Character.digit`; validate ASCII format upfront if the protocol requires it.
+15. **Not testing properties via `-D` and `System.setProperty`:** tests calling `decode` directly miss key/property confusion bugs.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**Câu 1.** `parseInt("075")` và `decode("075")` bằng bao nhiêu?
+**Question 1.** What are `parseInt("075")` and `decode("075")`?
 
-**Đáp án:** 75 và 61. `decode` coi `075` là octal, tức `7 × 8 + 5 = 61`.
+**Answer:** 75 and 61. `decode` treats `075` as octal, i.e., `7 × 8 + 5 = 61`.
 
-**Câu 2.** Vì sao `parseInt("08")` thành 8 nhưng `decode("08")` ném lỗi?
+**Question 2.** Why does `parseInt("08")` yield 8 while `decode("08")` throws an error?
 
-**Đáp án:** `parseInt` mặc định radix 10; `decode` với số 0 đầu dùng radix 8, mà octal không có chữ số 8.
+**Answer:** `parseInt` defaults to radix 10; `decode` with a leading 0 uses radix 8, and octal has no digit 8.
 
-**Câu 3.** Muốn parse chuỗi `"0x2A"` thì chọn phương thức nào?
+**Question 3.** Which method should you choose to parse `"0x2A"`?
 
-**Đáp án:** `Integer.decode("0x2A")` trả 42; nếu `parseInt` với radix 16 phải truyền phần chữ số `"2A"`.
+**Answer:** `Integer.decode("0x2A")` returns 42; if using `parseInt` with radix 16, pass only the digits `"2A"`.
 
-**Câu 4.** `getInteger("123")` trả 123 không?
+**Question 4.** Does `getInteger("123")` return 123?
 
-**Đáp án:** Không mặc định. Nó tìm JVM system property có tên `123`; chỉ khi property có giá trị phù hợp thì mới decode giá trị ấy.
+**Answer:** Not by default. It looks up a JVM system property named `123`; only if that property exists with a valid value does it decode that value.
 
-**Câu 5.** Vì sao `getInteger("app.workers", 4)` có thể không phù hợp cho cấu hình bắt buộc?
+**Question 5.** Why might `getInteger("app.workers", 4)` be unsuitable for required configuration?
 
-**Đáp án:** Property không tồn tại hoặc sai cú pháp đều có thể dẫn đến default 4, che lỗi người vận hành nhập sai.
+**Answer:** Both a missing property and a malformed one yield the default 4, masking operator typos.
 
-**Câu 6.** Chuỗi `"0b1010"` có được `decode` chấp nhận không?
+**Question 6.** Is `"0b1010"` accepted by `decode`?
 
-**Đáp án:** Không. Dùng `Integer.parseInt("1010", 2)` khi radix đã rõ.
+**Answer:** No. Use `Integer.parseInt("1010", 2)` when the radix is known.
 
-**Câu 7.** Với property `app.port` có giá trị `"0x1F90"`, `getInteger("app.port")` là bao nhiêu?
+**Question 7.** With property `app.port` set to `"0x1F90"`, what is `getInteger("app.port")`?
 
-**Đáp án:** 8080, vì `0x1F90` là hexadecimal.
+**Answer:** 8080, because `0x1F90` is hexadecimal.
 
-**Câu 8.** Khi nào cần validate `[0-9]+` trước `parseInt`?
+**Question 8.** When should you validate `[0-9]+` before `parseInt`?
 
-**Đáp án:** Khi giao thức đòi digit ASCII thuần và không chấp nhận Unicode digit, dấu cộng/trừ hoặc ký tự khác mà parser có thể xử lý.
+**Answer:** When the protocol requires pure ASCII digits and forbids Unicode digits, plus/minus signs, or other characters the parser might accept.
 
-**Câu 9.** Tại sao `int x = Integer.getInteger("missing.key")` nguy hiểm?
+**Question 9.** Why is `int x = Integer.getInteger("missing.key")` dangerous?
 
-**Đáp án:** Nếu property không có, `getInteger` trả `null`; auto-unboxing sang `int` gây `NullPointerException`.
+**Answer:** If the property is absent, `getInteger` returns `null`; auto-unboxing to `int` causes `NullPointerException`.
 
-**Câu 10.** Ba test có giá trị phát hiện nhầm parser nhất là gì?
+**Question 10.** What are the three best test values to catch parser confusion?
 
-**Đáp án:** `"010"`, `"08"`, `"0x10"` — chúng cho kết quả/lỗi khác nhau rõ rệt giữa `parseInt` và `decode`; với `getInteger` còn phải kiểm tra property có tên cụ thể.
+**Answer:** `"010"`, `"08"`, and `"0x10"` — they produce starkly different outputs/errors between `parseInt` and `decode`; for `getInteger`, also test with named properties.
 
-## 13. Tài liệu tham khảo
+## 13. References
 
-- [Java SE 17 — Integer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): `parseInt`, `valueOf`, `decode`, `getInteger`, signed/unsigned và overload.
-- [Java SE 17 — System](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html): `getProperty`, `setProperty`, `clearProperty` và `getenv`.
-- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): `Character.digit` và các chữ số theo radix.
-- [Java SE 17 — BigInteger](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): số nguyên vượt miền `int` khi ứng dụng cần.
+- [Java SE 17 — Integer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): `parseInt`, `valueOf`, `decode`, `getInteger`, signed/unsigned, and overloads.
+- [Java SE 17 — System](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html): `getProperty`, `setProperty`, `clearProperty`, and `getenv`.
+- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): `Character.digit` and digits by radix.
+- [Java SE 17 — BigInteger](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): integers beyond `int` range when needed by the application.
 
-**Ghi nhớ:** `parseInt` đọc **giá trị với radix được xác định**, `decode` đọc **giá trị có prefix hex/octal**, còn `getInteger` đọc **JVM system property theo tên** rồi decode nội dung property. Muốn code dễ hiểu, hãy gọi đúng API theo **nguồn dữ liệu, cú pháp và chính sách lỗi**; kiểm thử zero đầu và property invalid trước khi coi hai lời gọi tương đương.
+**Remember:** `parseInt` reads **a value with a specified radix**, `decode` reads **a value with hex/octal prefixes**, and `getInteger` reads **a JVM system property by name** and decodes the property's content. To keep code clear, call the right API for **the data source, syntax, and error policy**; test leading zeros and invalid properties before assuming two calls are equivalent.

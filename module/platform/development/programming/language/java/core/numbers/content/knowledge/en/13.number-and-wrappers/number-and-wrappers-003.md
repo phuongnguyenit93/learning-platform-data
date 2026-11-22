@@ -1,64 +1,64 @@
-# `Character` không kế thừa `Number` dù `char` là kiểu số
+# Why `Character` Does Not Extend `Number` Even Though `char` Is a Numeric Type
 
-## 1. Nghịch lý thường gặp: `char` là integral type, nhưng `Character` không phải `Number`
+## 1. A Common Paradox: `char` Is an Integral Type, Yet `Character` Is Not a `Number`
 
-Java phân chia các kiểu dữ liệu thành **kiểu nguyên thủy (*primitive types*)** và **kiểu tham chiếu (*reference types*)**. Trong nhóm nguyên thủy, `char` được Java Language Specification (JLS) xếp vào **kiểu số nguyên (*integral types*)**, bên cạnh `byte`, `short`, `int` và `long`.
+Java divides data types into **primitive types** and **reference types**. Within the primitive group, the Java Language Specification (JLS) classifies `char` as an **integral type**, alongside `byte`, `short`, `int`, and `long`.
 
-Tuy nhiên, lớp bao (*wrapper class*) của nó — `java.lang.Character` — **không kế thừa `java.lang.Number`**.
+However, its wrapper class — `java.lang.Character` — **does not extend `java.lang.Number`**.
 
-Hai mệnh đề sau đều đúng:
+Both of the following statements are true:
 
-1. **`char` là một primitive integral type**: có giá trị số nguyên không dấu từ 0 đến 65.535; tham gia nâng kiểu và phép toán số.
-2. **`Character` là một reference type độc lập với `Number`**: nó bọc một đơn vị mã UTF-16; đối tượng `Character` không thể dùng làm một đối tượng `Number`.
+1. **`char` is a primitive integral type**: it holds an unsigned integer value from 0 to 65,535 and participates in type widening and numeric operations.
+2. **`Character` is a reference type independent of `Number`**: it wraps a UTF-16 code unit; a `Character` object cannot be used as a `Number` object.
 
-Đây không phải mâu thuẫn. **Quan hệ của primitive không quyết định quan hệ kế thừa của wrapper**. `char` và `Character` là hai kiểu khác nhau; việc một lớp “đại diện” cho primitive không có nghĩa nó phải kế thừa cùng một lớp cha với các wrapper số khác.
+This is not a contradiction. **Primitive relationships do not dictate wrapper inheritance relationships**. `char` and `Character` are two distinct types; the fact that a class "represents" a primitive does not mean it must share the same superclass as other numeric wrappers.
 
-Ví dụ:
+Example:
 
 ~~~java
-char letter = 'A';          // primitive integral, giá trị code unit 65
+char letter = 'A';          // primitive integral, code unit value 65
 Character box = letter;     // autoboxing: char -> Character
 int code = letter;         // widening primitive: char -> int
 ~~~
 
-Ba dòng trên là đoạn minh họa, chưa phải class Java chạy độc lập.
+The three lines above are an illustrative snippet, not a standalone runnable Java class.
 
-Trong khi đó, `Number number = box;` **không biên dịch**: `Character` không là lớp con của `Number`. Việc tự động *unbox* hoặc *box* không cho phép Java tự biến `Character` thành `Integer` rồi gán cho `Number` trong một bước tùy tiện.
+Meanwhile, `Number number = box;` **does not compile**: `Character` is not a subclass of `Number`. Automatic *unboxing* or *boxing* does not allow Java to turn `Character` into `Integer` and assign it to `Number` in an arbitrary single step.
 
-## 2. Phân biệt loại kiểu nguyên thủy và hệ phân cấp lớp
+## 2. Distinguishing Primitive Categories and Class Hierarchy
 
-### 2.1. Phân loại primitive theo đặc tả Java
+### 2.1. Primitive classification per the Java specification
 
-Các primitive số của Java gồm:
+Java's numeric primitives consist of:
 
-| Nhóm | Primitive | Ý nghĩa |
+| Group | Primitive | Meaning |
 |---|---|---|
-| **Integral** | `byte` | Số nguyên có dấu 8 bit |
-| **Integral** | `short` | Số nguyên có dấu 16 bit |
-| **Integral** | `int` | Số nguyên có dấu 32 bit |
-| **Integral** | `long` | Số nguyên có dấu 64 bit |
-| **Integral** | `char` | Số nguyên **không dấu** 16 bit, biểu diễn một **đơn vị mã UTF-16** |
-| **Floating-point** | `float` | Số dấu phẩy động IEEE 754 binary32 |
-| **Floating-point** | `double` | Số dấu phẩy động IEEE 754 binary64 |
+| **Integral** | `byte` | 8-bit signed integer |
+| **Integral** | `short` | 16-bit signed integer |
+| **Integral** | `int` | 32-bit signed integer |
+| **Integral** | `long` | 64-bit signed integer |
+| **Integral** | `char` | 16-bit **unsigned** integer, representing one **UTF-16 code unit** |
+| **Floating-point** | `float` | IEEE 754 binary32 floating-point number |
+| **Floating-point** | `double` | IEEE 754 binary64 floating-point number |
 
-`boolean` cũng là một primitive nhưng **không thuộc nhóm kiểu số**.
+`boolean` is also a primitive, but **does not belong to the numeric types**.
 
-Sự hiện diện của `char` trong *integral types* có ý nghĩa về các quy tắc ngôn ngữ: `char` có thể được mở rộng thành `int`/`long`/`float`/`double` và tham gia nhiều phép toán số học sau khi được nâng kiểu.
+Including `char` among the *integral types* determines language rules: `char` can be widened to `int`/`long`/`float`/`double` and participate in many arithmetic operations after promotion.
 
-Ví dụ:
+Example:
 
 ~~~java
 char c = 'A';
 int codeUnit = c;            // 65
-int nextCodeUnit = c + 1;    // 66, biểu thức có kiểu int
+int nextCodeUnit = c + 1;    // 66, expression has type int
 boolean beforeB = c < 'B';   // true
 ~~~
 
-Đây là minh họa. Java so sánh **giá trị code unit**, không tự áp dụng thứ tự chữ cái theo một ngôn ngữ tự nhiên.
+This is an illustration. Java compares **code unit values**, without automatically applying natural-language alphabetical ordering.
 
-### 2.2. Hệ phân cấp *wrapper classes*
+### 2.2. Hierarchy of *wrapper classes*
 
-`Number` là **một abstract class** trong `java.lang`. Những lớp như `Byte`, `Short`, `Integer`, `Long`, `Float` và `Double` đều là lớp con của `Number`.
+`Number` is **an abstract class** in `java.lang`. Classes such as `Byte`, `Short`, `Integer`, `Long`, `Float`, and `Double` are all subclasses of `Number`.
 
 ~~~text
 java.lang.Object
@@ -73,26 +73,26 @@ java.lang.Object
 └── java.lang.Boolean
 ~~~
 
-Sơ đồ này **chỉ minh họa các lớp liên quan**, không liệt kê toàn bộ các lớp con khác của `Number` như `BigInteger`, `BigDecimal` hoặc các lớp đếm nguyên tử. `Character` và `Boolean` trực tiếp nằm ngoài nhánh `Number`.
+This diagram **illustrates only the relevant classes**, and does not list all other `Number` subclasses such as `BigInteger`, `BigDecimal`, or atomic counter classes. `Character` and `Boolean` sit directly outside the `Number` branch.
 
-| Primitive | Wrapper | Wrapper kế thừa `Number`? |
+| Primitive | Wrapper | Does wrapper extend `Number`? |
 |---|---|---|
-| `byte` | `Byte` | Có |
-| `short` | `Short` | Có |
-| `int` | `Integer` | Có |
-| `long` | `Long` | Có |
-| `float` | `Float` | Có |
-| `double` | `Double` | Có |
-| `char` | `Character` | **Không** |
-| `boolean` | `Boolean` | **Không** |
+| `byte` | `Byte` | Yes |
+| `short` | `Short` | Yes |
+| `int` | `Integer` | Yes |
+| `long` | `Long` | Yes |
+| `float` | `Float` | Yes |
+| `double` | `Double` | Yes |
+| `char` | `Character` | **No** |
+| `boolean` | `Boolean` | **No** |
 
-`Character` vẫn có thể được lưu trong một biến kiểu `Object`, và nó hiện thực `Comparable<Character>` cùng các giao diện liên quan, nhưng **nó không phải một `Number`**.
+`Character` can still be stored in a variable of type `Object`, and it implements `Comparable<Character>` and related interfaces, but **it is not a `Number`**.
 
-## 3. Mục đích của `Number` và `Character` khác nhau
+## 3. `Number` and `Character` Serve Different Purposes
 
-### 3.1. `Number` cung cấp giao diện chuyển đổi số
+### 3.1. `Number` provides a numeric conversion interface
 
-`Number` định nghĩa các phương thức như:
+`Number` defines methods such as:
 
 - `intValue()`
 - `longValue()`
@@ -101,49 +101,49 @@ Sơ đồ này **chỉ minh họa các lớp liên quan**, không liệt kê to�
 - `byteValue()`
 - `shortValue()`
 
-Chúng cho phép mã làm việc với một **đối tượng số** mà không cần biết lớp cụ thể khi chỉ muốn rút ra một giá trị primitive. Một số phép chuyển đổi có thể mất phần thập phân, tràn/thu hẹp hoặc mất chính xác tùy kiểu gốc và kiểu đích; **`Number` không cam kết mọi phương thức luôn giữ giá trị chính xác**.
+They allow code to work with a **numeric object** without knowing its concrete class when it only wants to extract a primitive value. Some conversions can lose fractional parts, overflow/narrow, or lose precision depending on source and target types; **`Number` does not guarantee that every method always preserves the exact value**.
 
-Ví dụ:
+Example:
 
 ~~~java
 Number integer = Integer.valueOf(65);
 Number decimal = Double.valueOf(12.5);
 
 int a = integer.intValue(); // 65
-int b = decimal.intValue(); // 12: cắt phần thập phân về 0
+int b = decimal.intValue(); // 12: truncates fractional part toward 0
 ~~~
 
-Đây là đoạn minh họa. `Number` không có phương thức `charValue()` chung bắt buộc cho mọi lớp con.
+This is an illustrative snippet. `Number` has no common `charValue()` method required of all subclasses.
 
-### 3.2. `Character` bọc một đơn vị mã UTF-16
+### 3.2. `Character` wraps a UTF-16 code unit
 
-`Character` cung cấp `charValue()` để lấy ra primitive `char` và các phương thức liên quan ký tự Unicode, chẳng hạn:
+`Character` provides `charValue()` to extract the primitive `char` as well as methods related to Unicode characters, such as:
 
-- `Character.isDigit(...)`: kiểm tra ký tự/chữ số Unicode theo đặc tả API.
-- `Character.isLetter(...)`: phân loại chữ cái Unicode.
-- `Character.getNumericValue(...)`: trả **giá trị số theo thuộc tính Unicode** khi có, không phải luôn là code unit.
-- `Character.digit(..., radix)`: diễn giải ký tự thành chữ số theo cơ số nếu hợp lệ.
-- `Character.isHighSurrogate(...)`, `isLowSurrogate(...)`, `toChars(...)`: hỗ trợ làm việc với UTF-16 và code points.
+- `Character.isDigit(...)`: checks whether a character/digit is a Unicode digit per the API specification.
+- `Character.isLetter(...)`: classifies Unicode letters.
+- `Character.getNumericValue(...)`: returns the **numeric value according to the Unicode property** when present, not always the code unit.
+- `Character.digit(..., radix)`: interprets a character as a digit in a given radix if valid.
+- `Character.isHighSurrogate(...)`, `isLowSurrogate(...)`, `toChars(...)`: utilities for working with UTF-16 and code points.
 
-Cách hiểu đúng là: **`Character` quản lý ý nghĩa văn bản và code unit**, còn `Number` là lớp cha của những kiểu đối tượng cung cấp chuyển đổi primitive số.
+The right mental model is: **`Character` manages textual semantics and code units**, whereas `Number` is the superclass of object types that provide numeric primitive conversions.
 
-Ví dụ, `'A'` mang **giá trị code unit là 65**, nhưng `Character.getNumericValue('A')` là **10**, do `A` có giá trị chữ số 10 trong các hệ cơ số từ 11 trở lên. Hai giá trị này giải quyết **hai câu hỏi khác nhau**.
+For instance, `'A'` has a **code unit value of 65**, yet `Character.getNumericValue('A')` is **10**, because `A` has digit value 10 in bases 11 and above. These two values answer **two different questions**.
 
-Không được coi `Character.getNumericValue(c)` là phép thay thế chung cho `(int) c`. Với chữ số `'7'`, `(int) '7'` bằng **55** (code unit), còn `Character.getNumericValue('7')` bằng **7** (giá trị số của chữ số).
+Do not treat `Character.getNumericValue(c)` as a general replacement for `(int) c`. For the digit `'7'`, `(int) '7'` equals **55** (the code unit), whereas `Character.getNumericValue('7')` equals **7** (the digit's numeric value).
 
-## 4. Boxing `char` tạo `Character`, không tạo `Number`
+## 4. Boxing `char` Produces `Character`, Not `Number`
 
-**Autoboxing** là chuyển đổi từ primitive sang lớp bao tương ứng khi ngữ cảnh cho phép:
+**Autoboxing** converts from a primitive to its corresponding wrapper class when context permits:
 
 ~~~java
 char primitive = 'A';
 Character wrapper = primitive; // boxing char -> Character
-Object asObject = primitive;   // boxing Character rồi widening reference Object
+Object asObject = primitive;   // boxing Character then reference widening to Object
 ~~~
 
-Trong cả hai trường hợp cần boxing, đối tượng thu được là **`Character`**. Java không box `char` trực tiếp thành `Integer`.
+In both cases requiring boxing, the resulting object is **`Character`**. Java does not box `char` directly into `Integer`.
 
-Đối chiếu:
+Contrast:
 
 ~~~java
 int primitiveInt = 65;
@@ -151,57 +151,57 @@ Integer integerWrapper = primitiveInt; // int -> Integer
 Number asNumber = primitiveInt;        // int -> Integer -> Number
 ~~~
 
-`Number asNumber = primitiveInt;` hợp lệ nhờ **boxing `int → Integer` rồi widening reference `Integer → Number`**.
+`Number asNumber = primitiveInt;` is valid via **boxing `int → Integer` followed by reference widening `Integer → Number`**.
 
-Nhưng đoạn sau **không hợp lệ** (các dòng đã comment để bài vẫn hợp lệ về cú pháp):
+However, the following lines are **invalid** (commented out so the snippet remains syntactically valid):
 
 ~~~java
 char c = 'A';
 Character wrapper = c;
 
-// Number invalid1 = wrapper; // lỗi: Character không phải Number
-// Number invalid2 = c;       // lỗi: char không tự box thành Number
-// Integer invalid3 = c;      // lỗi: không tự widen char thành int rồi box Integer
+// Number invalid1 = wrapper; // error: Character is not a Number
+// Number invalid2 = c;       // error: char does not auto-box to Number
+// Integer invalid3 = c;      // error: does not auto-widen char to int and then box to Integer
 ~~~
 
-Thứ tự chuyển đổi tự động của Java có giới hạn. Không nên suy từ `int number = c;` hợp lệ rằng `Integer integer = c;` cũng hợp lệ.
+Java's automatic conversion chains have limits. Do not infer from `int number = c;` being valid that `Integer integer = c;` is also valid.
 
-Nếu thật sự cần biểu diễn **giá trị số của code unit** dưới dạng `Number`, hãy chuyển `char` thành `int` trước:
+If you truly need to represent the **numeric value of a code unit** as a `Number`, convert `char` to `int` first:
 
 ~~~java
 char c = 'A';
 int numericCodeUnit = c;
-Number n = numericCodeUnit; // int -> Integer -> Number, giá trị 65
-// Hoặc: Number n = (int) c;
+Number n = numericCodeUnit; // int -> Integer -> Number, value 65
+// Or: Number n = (int) c;
 ~~~
 
-`n` ở đây là một đối tượng `Integer` có giá trị 65, **không phải** `Character`. Việc chuyển đổi này chỉ bảo tồn **giá trị số của một code unit**, chưa nói điều gì về “chữ số” hay toàn bộ Unicode code point.
+Here `n` is an `Integer` object with value 65, **not** a `Character`. This conversion only preserves the **numeric value of one code unit**, saying nothing about "digit value" or a full Unicode code point.
 
-## 5. Unboxing `Character` có thể kết hợp widening primitive
+## 5. Unboxing `Character` Can Combine with Primitive Widening
 
-Ở chiều ngược lại, `Character` có thể *unbox* về `char`, và sau đó primitive `char` có thể **widen** sang `int`, `long`, `float` hoặc `double` trong ngữ cảnh cho phép:
+In the reverse direction, `Character` can *unbox* to `char`, and then the primitive `char` can **widen** to `int`, `long`, `float`, or `double` where context allows:
 
 ~~~java
 Character wrapped = Character.valueOf('A');
 
 char codeUnit = wrapped;     // unbox -> char
-int asInt = wrapped;         // unbox char rồi widen -> int
-long asLong = wrapped;       // unbox char rồi widen -> long
-double asDouble = wrapped;   // unbox char rồi widen -> double
+int asInt = wrapped;         // unbox char then widen -> int
+long asLong = wrapped;       // unbox char then widen -> long
+double asDouble = wrapped;   // unbox char then widen -> double
 ~~~
 
-Đoạn minh họa này hợp lệ. Tuy nhiên, **`Character` không vì thế kế thừa `Number`**. Sự khác nhau là:
+This illustrative snippet is valid. However, **`Character` does not thereby extend `Number`**. The distinction is:
 
-- **Chuyển đổi primitive**: định nghĩa bởi hệ thống kiểu ngôn ngữ Java.
-- **Kế thừa lớp**: định nghĩa bởi quan hệ `extends`/`implements` của các reference type.
+- **Primitive conversions**: defined by Java's language type system.
+- **Class inheritance**: defined by `extends`/`implements` relationships among reference types.
 
-Nếu `wrapped` bằng `null`, biểu thức cần **unboxing** sẽ ném `NullPointerException`, kể cả khi sau đó muốn widen về `int`. Ví dụ `Character absent = null; int value = absent;` ném NPE khi chạy. Bọc trong `Object` cũng không giúp nó trở thành `Number`.
+If `wrapped` is `null`, an expression requiring **unboxing** throws `NullPointerException`, even when followed by widening to `int`. For example, `Character absent = null; int value = absent;` throws an NPE at runtime. Wrapping it in `Object` does not turn it into a `Number` either.
 
-Không nên ép `(Number) (Object) wrapped` để “né lỗi biên dịch”: nếu đối tượng runtime vẫn là `Character`, phép cast tới `Number` sẽ ném `ClassCastException`.
+Do not cast `(Number) (Object) wrapped` to "work around a compile error": if the runtime object is still `Character`, casting to `Number` throws `ClassCastException`.
 
-## 6. Ví dụ Java 17+: chứng minh hierarchy và boxing
+## 6. Java 17+ Example: Demonstrating Hierarchy and Boxing
 
-Tạo tệp `CharacterHierarchyDemo.java`:
+Create the file `CharacterHierarchyDemo.java`:
 
 ~~~java
 public class CharacterHierarchyDemo {
@@ -233,14 +233,14 @@ public class CharacterHierarchyDemo {
 }
 ~~~
 
-Dùng JDK 17 trở lên:
+Using JDK 17 or newer:
 
 ~~~bash
 javac CharacterHierarchyDemo.java
 java CharacterHierarchyDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 primitiveChar=65
@@ -255,15 +255,15 @@ charSuperclass=Object
 integerSuperclass=Number
 ~~~
 
-`object instanceof Number` trả `false` vì object runtime thật sự là `Character`. Sau khi chuyển `char` sang `int` rồi box vào `Number`, đối tượng runtime trở thành `Integer`; do đó `number.intValue()` trả 65.
+`object instanceof Number` returns `false` because the actual runtime object is `Character`. After converting `char` to `int` and boxing into `Number`, the runtime object becomes `Integer`; hence `number.intValue()` returns 65.
 
-`Character.class.getSuperclass()` trả `Object.class`, còn `Integer.class.getSuperclass()` trả `Number.class`. Đây là bằng chứng trực tiếp về **quan hệ lớp**, khác với quy tắc kiểu primitive.
+`Character.class.getSuperclass()` returns `Object.class`, whereas `Integer.class.getSuperclass()` returns `Number.class`. This is direct proof of **class hierarchy**, distinct from primitive type rules.
 
-## 7. `Number` trong API, generics và collection
+## 7. `Number` in APIs, Generics, and Collections
 
-Java generics chỉ nhận **reference types** làm tham số kiểu: `List<Character>` và `List<Number>` hợp lệ; `List<char>` hoặc `List<int>` **không hợp lệ**.
+Java generics only accept **reference types** as type arguments: `List<Character>` and `List<Number>` are valid; `List<char>` or `List<int>` are **invalid**.
 
-Một collection `List<Number>` nhận các đối tượng thuộc `Number`, nhưng **không nhận `Character`**:
+A `List<Number>` collection accepts objects belonging to `Number`, but **does not accept `Character`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -273,31 +273,31 @@ List<Number> numbers = new ArrayList<>();
 numbers.add(Integer.valueOf(65));
 numbers.add(Double.valueOf(1.25));
 
-// numbers.add(Character.valueOf('A')); // lỗi biên dịch
-// numbers.add('A');                     // không tự box char thành Number
+// numbers.add(Character.valueOf('A')); // compile-time error
+// numbers.add('A');                     // does not auto-box char into Number
 ~~~
 
-Đây là đoạn minh họa, chưa phải tệp chạy độc lập.
+This is an illustrative snippet, not a standalone runnable file.
 
-Nếu muốn giữ **ký tự**, hãy dùng `List<Character>`:
+If you want to store **characters**, use `List<Character>`:
 
 ~~~java
 List<Character> chars = List.of('A', '7');
 ~~~
 
-Nếu muốn giữ **giá trị số của code unit**, chuyển sang `int` và dùng `List<Integer>` hoặc `List<Number>`:
+If you want to store **numeric code unit values**, convert to `int` and use `List<Integer>` or `List<Number>`:
 
 ~~~java
 char c = 'A';
 List<Number> codeUnits = new ArrayList<>();
-codeUnits.add((int) c); // boxing Integer; giá trị 65
+codeUnits.add((int) c); // boxes to Integer; value 65
 ~~~
 
-**Cảnh báo về generics:** `List<Character>` không phải `List<Number>`, và `List<Integer>` cũng không phải `List<Number>` do tính bất biến (*invariance*) của generics, dù `Integer` là một `Number`. Nếu API chỉ **đọc** các số, có thể thiết kế `List<? extends Number>`, nhưng wildcard này cũng **không nhận `List<Character>`**.
+**Generics warning:** `List<Character>` is not a `List<Number>`, and `List<Integer>` is not a `List<Number>` either due to generics **invariance**, even though `Integer` is a `Number`. If an API only **reads** numbers, you can design it with `List<? extends Number>`, though that wildcard also **does not accept `List<Character>`**.
 
-### Ví dụ Java 17+ độc lập: collection đúng kiểu
+### Standalone Java 17+ example: properly typed collections
 
-Tạo tệp `CharacterCollectionsDemo.java`:
+Create the file `CharacterCollectionsDemo.java`:
 
 ~~~java
 import java.util.ArrayList;
@@ -336,7 +336,7 @@ javac CharacterCollectionsDemo.java
 java CharacterCollectionsDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 characters=[A, 7]
@@ -346,58 +346,58 @@ codeUnitSum=120
 numericValueSum=17
 ~~~
 
-Lớp `sumAsInt` minh họa API chấp nhận `List<? extends Number>`; ta phải đưa vào `List<Integer>` chứ không đưa `List<Character>`. Chương trình còn chứng minh rằng **mã số UTF-16** và **giá trị số của chữ số/ký tự Unicode** khác nhau.
+The `sumAsInt` method illustrates an API accepting `List<? extends Number>`; we must pass `List<Integer>` rather than `List<Character>`. The program also demonstrates that **UTF-16 code units** and **Unicode character/digit numeric values** are different.
 
-**Lưu ý:** `sumAsInt` cộng `int` thông thường, nên ví dụ chỉ dùng dữ liệu nhỏ; nếu xử lý giá trị lớn, cần chọn kiểu/kiểm tra tràn và chính sách chuyển `Number.intValue()` thích hợp. Mã này không phải hàm cộng chính xác cho mọi lớp con của `Number`, đặc biệt `BigDecimal` có phần lẻ hoặc `Long` quá lớn.
+**Note:** `sumAsInt` sums ordinary `int`s, so the example uses small data only; when processing large values, choose appropriate types/overflow checks and an appropriate `Number.intValue()` conversion policy. This code is not an exact addition function for all `Number` subclasses, especially `BigDecimal` with fractional parts or overly large `Long`s.
 
-## 8. Vì sao `Character` không cung cấp `intValue()` như `Number`?
+## 8. Why Doesn't `Character` Provide `intValue()` Like `Number`?
 
-`Character` có phương thức `charValue()` vì nhiệm vụ của nó là lưu và truy xuất **một UTF-16 code unit**. Nếu muốn lấy số nguyên, Java đã cung cấp **widening conversion `char → int`**:
+`Character` has a `charValue()` method because its job is to store and retrieve **one UTF-16 code unit**. If you want an integer, Java already provides the **widening conversion `char → int`**:
 
 ~~~java
 char letter = 'A';
 int codeUnit = letter; // 65
 ~~~
 
-Và nếu muốn một số có ý nghĩa về **chữ số**, dùng API khác:
+And if you want a number representing a **digit value**, use a different API:
 
 ~~~java
 int unitA = (int) 'A';                    // 65
 int numericA = Character.getNumericValue('A'); // 10
 int digitA16 = Character.digit('A', 16); // 10
-int digitA10 = Character.digit('A', 10); // -1, A không là chữ số cơ số 10
+int digitA10 = Character.digit('A', 10); // -1, A is not a base-10 digit
 
 int unit7 = (int) '7';                    // 55
 int numeric7 = Character.getNumericValue('7'); // 7
 ~~~
 
-Đây là minh họa.
+This is an illustration.
 
-Phương thức `Character.getNumericValue` có thể trả `-1` khi ký tự không có giá trị số, hoặc `-2` khi giá trị số không biểu diễn được bằng số nguyên không âm kiểu `int` theo quy ước API. `Character.digit(ch, radix)` dùng tập chữ số phù hợp cơ số đã chỉ định và trả `-1` khi không hợp lệ.
+`Character.getNumericValue` can return `-1` when a character has no numeric value, or `-2` when the numeric value cannot be represented as a nonnegative `int` integer per the API convention. `Character.digit(ch, radix)` uses the digit set appropriate for the specified radix and returns `-1` when invalid.
 
-Vì vậy, không thể có một phương thức chung `Number.intValue()` trên `Character` mà luôn diễn đạt đúng “giá trị số” trong mọi mục đích văn bản:
+Therefore, there cannot be a single `Number.intValue()` method on `Character` that always expresses the right "numeric value" for every textual purpose:
 
-- **Mã UTF-16 của `'A'`** là 65.
-- **Giá trị chữ số của `'A'` trong cơ số 16** là 10.
-- **Giá trị chữ số của `'A'` trong cơ số 10** là không hợp lệ.
-- **Ý nghĩa ngôn ngữ** của `'A'` là một ký tự chữ cái, không phải số lượng 65.
+- **The UTF-16 code of `'A'`** is 65.
+- **The digit value of `'A'` in base 16** is 10.
+- **The digit value of `'A'` in base 10** is invalid.
+- **The linguistic meaning** of `'A'` is an alphabetic letter, not the quantity 65.
 
-Việc giữ các API tách biệt giúp lập trình viên chọn ý nghĩa mà bài toán thật sự yêu cầu.
+Keeping these APIs separate helps programmers choose the exact meaning the problem requires.
 
-## 9. `char` là code unit UTF-16, không phải mọi Unicode code point
+## 9. `char` Is a UTF-16 Code Unit, Not Every Unicode Code Point
 
-Một lý do khác để không đối xử `Character` như một số tổng quát: primitive `char` luôn đúng **16 bit**, nhưng Unicode có các mã điểm lớn hơn `0xFFFF`. Mã điểm ngoài **Basic Multilingual Plane (BMP)** cần **hai đơn vị mã UTF-16** (*surrogate pair*), không thể lưu trọn trong một `char` hoặc một `Character`.
+Another reason not to treat `Character` like a general number: primitive `char` is always exactly **16 bits**, whereas Unicode has code points greater than `0xFFFF`. Code points outside the **Basic Multilingual Plane (BMP)** require **two UTF-16 code units** (*a surrogate pair*), and cannot fit in a single `char` or `Character`.
 
-Ví dụ emoji 😀 có mã điểm `U+1F600` và được lưu trong chuỗi UTF-16 bằng **hai** code unit:
+For example, the emoji 😀 has code point `U+1F600` and is stored in a UTF-16 string as **two** code units:
 
 - High surrogate: `0xD83D`.
 - Low surrogate: `0xDE00`.
 
-`String.length()` đếm code unit, không đếm mã điểm Unicode hoặc số ký tự hiển thị. Nếu muốn tính toán dựa trên mã điểm, hãy dùng `int` và API `codePointAt`/`codePoints`.
+`String.length()` counts code units, not Unicode code points or displayed characters. If you want to compute based on code points, use `int` and the `codePointAt`/`codePoints` APIs.
 
-### Ví dụ Java 17+ chạy độc lập: một code point có hai `Character`
+### Standalone Java 17+ example: one code point with two `Character`s
 
-Tạo tệp `CharacterUnicodeDemo.java`:
+Create the file `CharacterUnicodeDemo.java`:
 
 ~~~java
 public class CharacterUnicodeDemo {
@@ -428,7 +428,7 @@ javac CharacterUnicodeDemo.java
 java CharacterUnicodeDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 utf16Units=2
@@ -440,13 +440,13 @@ codePoint=U+1F600
 numericCodePoint=128512
 ~~~
 
-Lưu ý `numericCodePoint` trong ví dụ thuộc kiểu `Number` vì **mã điểm đã được biểu diễn bằng primitive `int` rồi box thành `Integer`**. Nó không phải một đối tượng `Character`. `Character.isSurrogatePair` được dùng để giải thích sự ghép cặp hai code unit, không phải phương thức của `Number`.
+Note that `numericCodePoint` in the example has type `Number` because **the code point was represented as primitive `int` and then boxed into `Integer`**. It is not a `Character` object. `Character.isSurrogatePair` is used to explain the pairing of the two code units, and is not a method on `Number`.
 
-**Một ký tự cảm nhận của người dùng (grapheme cluster)** đôi khi còn gồm nhiều mã điểm Unicode kết hợp, nên ngay cả `String.codePointCount` cũng không nhất thiết bằng số ký tự hiển thị.
+**A user-perceived character (grapheme cluster)** can sometimes consist of multiple combining Unicode code points as well, so even `String.codePointCount` does not necessarily equal the number of displayed characters.
 
-## 10. Lỗi ép kiểu và kiểm tra bằng `instanceof`
+## 10. Casting Errors and Checking with `instanceof`
 
-Nếu có một biến `Object` đến từ API tổng quát, bạn có thể kiểm tra kiểu runtime:
+If you have an `Object` variable coming from a generic API, you can check its runtime type:
 
 ~~~java
 Object value = Character.valueOf('A');
@@ -455,18 +455,18 @@ boolean character = value instanceof Character; // true
 boolean number = value instanceof Number;       // false
 ~~~
 
-Đây là minh họa. Điều kiện `value instanceof Number` không tự chuyển kiểu; nó chỉ kiểm tra đối tượng runtime có thuộc hệ phân cấp `Number` hay không.
+This is an illustration. The condition `value instanceof Number` does not convert types automatically; it only checks whether the runtime object belongs to the `Number` hierarchy.
 
-Thử ép kiểu theo đường vòng:
+Attempting an indirect cast:
 
 ~~~java
 Object value = Character.valueOf('A');
-// Number n = (Number) value; // biên dịch được, nhưng ném ClassCastException
+// Number n = (Number) value; // compiles, but throws ClassCastException
 ~~~
 
-`(Number) value` về mặt cú pháp hợp lệ vì biến nguồn là `Object`, nhưng đối tượng runtime là `Character`, không phải `Number`; khi thực thi cast sẽ ném `ClassCastException`. **Không nên** sử dụng cast để “biến Character thành Number”.
+`(Number) value` is syntactically valid because the source variable is `Object`, yet the runtime object is `Character`, not `Number`; at runtime the cast throws `ClassCastException`. **Do not** use casting to "turn Character into Number."
 
-Nếu API nhận nhiều loại đối tượng và bạn muốn chuyển `Character` thành code unit dạng số, hãy kiểm tra từng kiểu:
+If an API accepts multiple object types and you want to convert `Character` to a numeric code unit, check each type explicitly:
 
 ~~~java
 static int toCodeUnit(Object value) {
@@ -477,57 +477,57 @@ static int toCodeUnit(Object value) {
 }
 ~~~
 
-Đây là một **phương thức minh họa** có thể đặt trong class. Nó sử dụng pattern matching cho `instanceof` có sẵn từ Java 16, nên phù hợp Java 17+. Nó minh họa **chuyển giá trị**, không thay đổi phân cấp kế thừa của đối tượng đầu vào.
+This is an **illustrative method** that can be placed inside a class. It uses pattern matching for `instanceof` available since Java 16, making it suitable for Java 17+. It demonstrates **value conversion**, without changing the inheritance hierarchy of the input object.
 
-## 11. Các lỗi phổ biến
+## 11. Common Mistakes
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct understanding |
 |---|---|
-| “`char` là số nên `Character extends Number`.” | Không: primitive integral type và hierarchy reference type là hai cơ chế khác nhau. |
-| “`Number n = 'A';` hợp lệ vì `'A'` có giá trị 65.” | Không: autoboxing `char` tạo `Character`, không tạo `Integer`. |
-| “`Object obj = 'A';` tạo `Integer`.” | Không: đối tượng được box là `Character`. |
-| “`int code = characterWrapper;` không hợp lệ vì wrapper không phải Number.” | Vẫn hợp lệ: unbox `Character → char` rồi widen `char → int`. |
-| “`Integer number = characterWrapper;` sẽ tự widen và box.” | Không có chuyển đổi tự động kết hợp theo cách đó; hãy unbox/widen rõ ràng. |
-| “`Character` có `intValue()` như `Number`.” | Không: dùng `charValue()` để lấy code unit hoặc các API Unicode nếu cần giá trị chữ số. |
-| “`Character.getNumericValue('A')` bằng 65.” | Sai: nó trả 10; `(int) 'A'` mới bằng 65. |
-| “`List<Number>` nhận mọi wrapper primitive.” | Không: `Character` và `Boolean` không thuộc `Number`. |
-| “`List<Integer>` có thể gán vào `List<Number>`.” | Không: generics bất biến; có thể dùng `List<? extends Number>` cho API đọc phù hợp. |
-| “Một `Character` có thể chứa mọi Unicode code point.” | Không: `Character` bọc một UTF-16 code unit; mã điểm ngoài BMP cần hai code unit. |
-| “Cast `Object` chứa `Character` sang `Number` sẽ chuyển được mã.” | Không: ném `ClassCastException` khi chạy. |
+| "`char` is a number, so `Character extends Number`." | No: primitive integral types and reference-type hierarchies are two separate mechanisms. |
+| "`Number n = 'A';` is valid because `'A'` has value 65." | No: autoboxing `char` creates `Character`, not `Integer`. |
+| "`Object obj = 'A';` creates `Integer`." | No: the boxed object is `Character`. |
+| "`int code = characterWrapper;` is invalid because the wrapper is not a Number." | It is valid: unboxes `Character → char` and then widens `char → int`. |
+| "`Integer number = characterWrapper;` will auto-widen and box." | No combined automatic conversion works that way; unbox/widen explicitly. |
+| "`Character` has `intValue()` like `Number`." | No: use `charValue()` to get the code unit or Unicode APIs when digit values are needed. |
+| "`Character.getNumericValue('A')` equals 65." | Wrong: it returns 10; `(int) 'A'` equals 65. |
+| "`List<Number>` accepts all primitive wrappers." | No: `Character` and `Boolean` do not belong to `Number`. |
+| "`List<Integer>` can be assigned to `List<Number>`." | No: generics are invariant; `List<? extends Number>` can be used for read-only APIs where suitable. |
+| "One `Character` can hold any Unicode code point." | No: `Character` wraps one UTF-16 code unit; code points outside BMP need two code units. |
+| "Casting an `Object` holding `Character` to `Number` will convert it." | No: throws `ClassCastException` at runtime. |
 
-## 12. Khi nào dùng `Character`, `Integer` hoặc `Number`?
+## 12. When to Use `Character`, `Integer`, or `Number`?
 
-**Chọn `char`/`Character`** khi thao tác một code unit UTF-16, ví dụ so sánh dấu phân cách `':'`, lưu ký tự BMP đơn giản hoặc dùng API nhận `char`. `Character` phù hợp khi ngữ cảnh yêu cầu tham chiếu, generics hoặc cho phép `null`; `char` tránh boxing khi chỉ cần primitive.
+**Choose `char`/`Character`** when manipulating a single UTF-16 code unit, such as comparing a `':'` delimiter, storing a simple BMP character, or calling APIs taking `char`. `Character` fits when context requires a reference, generics, or nullable values; `char` avoids boxing when only a primitive is needed.
 
-**Chọn `int`/`Integer`** khi thao tác **giá trị số của code unit**, mã điểm Unicode hoặc một số nguyên thông thường vừa miền. Khi xử lý Unicode code point, API kiểu `int` rộng hơn `char` và có thể chứa `U+1F600`. Nhưng cần phân biệt code point với các đơn vị mã UTF-16 và grapheme cluster.
+**Choose `int`/`Integer`** when manipulating **the numeric value of a code unit**, a Unicode code point, or an ordinary integer within range. When processing Unicode code points, `int`-based APIs are wider than `char` and can hold `U+1F600`. Still, distinguish code points from UTF-16 code units and grapheme clusters.
 
-**Chọn `Number`** khi API thực sự cần đa hình giữa các **đối tượng số**, chẳng hạn nhận cả `Integer` và `Double` để đọc dưới dạng primitive theo hợp đồng rõ ràng. `Number` là abstraction rộng, không tự cung cấp số học chính xác phổ quát hoặc đảm bảo các phép chuyển đổi không mất dữ liệu.
+**Choose `Number`** when an API genuinely needs polymorphism across **numeric objects**, such as accepting both `Integer` and `Double` to read as primitives under a clear contract. `Number` is a broad abstraction and does not automatically provide universal exact arithmetic or guarantee lossless conversions.
 
-**Chọn `String`** cho văn bản hoàn chỉnh (tên, câu, từ, biểu tượng), thay vì cố ép mỗi đơn vị `char` thành một `Number`. Nếu cần chuyển dữ liệu Unicode sang byte, sử dụng charset như UTF-8; primitive cast không phải mã hóa ký tự.
+**Choose `String`** for complete text (names, sentences, words, symbols), instead of forcing every `char` unit into a `Number`. If you need to convert Unicode data into bytes, use a charset such as UTF-8; primitive casting is not character encoding.
 
-### Checklist trước khi chuyển giữa “ký tự” và “số”
+### Checklist before converting between "characters" and "numbers"
 
-1. Giá trị đang là **primitive `char`** hay **object `Character`**?
-2. Mục tiêu là **mã đơn vị UTF-16**, **mã điểm Unicode**, hay **giá trị chữ số**?
-3. Có đang dùng API/collection chỉ nhận `Number` không? Nếu có, hãy biểu diễn số bằng `int`/`Integer` theo ý nghĩa thích hợp.
-4. Có `null` ở wrapper không? Unboxing có thể ném `NullPointerException`.
-5. Có code point ngoài BMP không? Một `Character` sẽ không chứa trọn mã điểm ấy.
-6. Có nguy cơ mất dữ liệu khi cast sang `byte`/`short` hoặc đổi thành `float` không? Kiểm tra miền và yêu cầu chính xác.
-7. Kiểm tra ở cả **thời điểm biên dịch** (gán/overload/generics) và **thời điểm chạy** (`instanceof`/`ClassCastException`).
+1. Is the value currently a **primitive `char`** or an **object `Character`**?
+2. Is the goal a **UTF-16 code unit**, a **Unicode code point**, or a **digit numeric value**?
+3. Are you using an API/collection that only accepts `Number`? If so, represent the number with `int`/`Integer` according to the intended meaning.
+4. Can the wrapper be `null`? Unboxing can throw `NullPointerException`.
+5. Could there be code points outside the BMP? A single `Character` will not hold that entire code point.
+6. Is there a risk of data loss when casting to `byte`/`short` or converting to `float`? Check ranges and exactness requirements.
+7. Verify both at **compile time** (assignments/overloads/generics) and at **runtime** (`instanceof`/`ClassCastException`).
 
-## 13. Tự kiểm tra kiến thức
+## 13. Self-Check Knowledge Quiz
 
-1. `char` được xếp vào nhóm primitive nào trong Java? Miền giá trị của nó?
-2. `Character` kế thừa trực tiếp từ lớp nào? `Integer` kế thừa trực tiếp từ lớp nào?
-3. Tại sao `Number n = Character.valueOf('A');` không biên dịch?
-4. Tại sao `int code = Character.valueOf('A');` có thể biên dịch, dù `Character` không phải `Number`?
-5. `(int) '7'` khác `Character.getNumericValue('7')` ra sao?
-6. Muốn thêm mã code unit của `'A'` vào `List<Number>`, bạn phải làm gì?
-7. Vì sao emoji `U+1F600` không lưu trong một `Character` duy nhất?
-8. `Object o = Character.valueOf('A');` thì `o instanceof Number` là `true` hay `false`? Vì sao?
-9. `Character c = null; int n = c;` thất bại khi biên dịch hay khi chạy?
-10. Có thể dùng `Number.intValue()` để xử lý tất cả số thực mà không mất dữ liệu không?
+1. Which primitive category does `char` belong to in Java? What is its value range?
+2. What class does `Character` directly inherit from? What class does `Integer` directly inherit from?
+3. Why does `Number n = Character.valueOf('A');` not compile?
+4. Why does `int code = Character.valueOf('A');` compile, even though `Character` is not a `Number`?
+5. How does `(int) '7'` differ from `Character.getNumericValue('7')`?
+6. To add the code unit of `'A'` into a `List<Number>`, what must you do?
+7. Why cannot the emoji `U+1F600` be stored in a single `Character`?
+8. Given `Object o = Character.valueOf('A');`, is `o instanceof Number` `true` or `false`? Why?
+9. Does `Character c = null; int n = c;` fail at compile time or at runtime?
+10. Can `Number.intValue()` be used to process all floating-point numbers without data loss?
 
-**Đáp án gợi ý:** (1) Kiểu nguyên thủy integral, 0..65535. (2) `Object` và `Number`. (3) `Character` không nằm dưới `Number`. (4) Unboxing `Character → char` rồi widening `char → int`. (5) 55 (code unit) so với 7 (giá trị chữ số). (6) Chuyển `char` thành `int` trước rồi box `Integer`, ví dụ `numbers.add((int) 'A')`. (7) Nó cần hai code unit surrogate của UTF-16. (8) `false`. (9) Biên dịch được nhưng ném `NullPointerException` khi unbox. (10) Không; phép chuyển `Number.intValue()` có thể mất phần thập phân hoặc vượt miền đích.
+**Suggested answers:** (1) Integral primitive type, 0..65535. (2) `Object` and `Number`. (3) `Character` is not under `Number`. (4) Unboxing `Character → char` then widening `char → int`. (5) 55 (code unit) vs. 7 (digit value). (6) Convert `char` to `int` first and then box to `Integer`, e.g. `numbers.add((int) 'A')`. (7) It requires two UTF-16 surrogate code units. (8) `false`. (9) Compiles, but throws `NullPointerException` when unboxing. (10) No; `Number.intValue()` conversions can lose fractional parts or exceed the target range.
 
-**Ghi nhớ:** **`char` là một kiểu số nguyên nguyên thủy**, nhưng **`Character` không kế thừa `Number`**. Primitive numeric promotion, autoboxing/unboxing, kế thừa lớp và ý nghĩa Unicode là **những cơ chế độc lập**. Khi cần số, chuyển **giá trị `char`** sang `int`/`Integer` một cách có chủ ý; khi cần ký tự, giữ `Character` hoặc dùng `String`/API Unicode phù hợp.
+**Key takeaway:** **`char` is a primitive integral type**, yet **`Character` does not extend `Number`**. Primitive numeric promotion, autoboxing/unboxing, class inheritance, and Unicode semantics are **independent mechanisms**. When you need a number, intentionally convert the **`char` value** to `int`/`Integer`; when you need text/characters, keep `Character` or use `String`/appropriate Unicode APIs.

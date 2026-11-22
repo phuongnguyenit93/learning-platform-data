@@ -1,65 +1,65 @@
-# So sánh stream có bộ đệm, Files.copy và FileChannel khi xử lý tệp lớn
+# Comparing Buffered Streams, Files.copy, and FileChannel for Large Files
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-Sao chép một tệp có vẻ đơn giản: đọc byte từ nguồn rồi ghi byte vào đích. Tuy nhiên, với tệp hàng trăm MB, nhiều GB hoặc một luồng dữ liệu hoạt động liên tục, lựa chọn API ảnh hưởng đến **độ phức tạp code, lượng bộ nhớ Java cần cấp phát, số lần gọi I/O, khả năng tận dụng tối ưu hóa hệ điều hành, tính đúng đắn khi có lỗi và cách kiểm thử**.
+Copying a file seems simple: read bytes from a source and write bytes to a target. However, with files of hundreds of MB, multiple GB, or a continuous data stream, API choice affects **code complexity, Java memory allocation, number of I/O calls, ability to leverage OS optimizations, correctness under errors, and testing strategy**.
 
-Trong Java 17+, ba nhóm cách tiếp cận thường gặp:
+In Java 17+, three common approach groups exist:
 
-1. **Stream có bộ đệm:** `BufferedInputStream` + `BufferedOutputStream`, đọc/ghi theo khối bytes.
-2. **API cấp cao:** `Files.copy(...)`, yêu cầu Java/provider sao chép tệp hoặc stream theo chính sách options.
-3. **NIO channel:** `FileChannel`, với `read`/`write` qua `ByteBuffer`, hoặc `transferTo`/`transferFrom` để yêu cầu chuyển bytes trực tiếp giữa các channel.
+1. **Buffered streams:** `BufferedInputStream` + `BufferedOutputStream`, reading/writing in byte blocks.
+2. **High-level API:** `Files.copy(...)`, asking Java/the provider to copy a file or stream according to option policies.
+3. **NIO channel:** `FileChannel`, with `read`/`write` via `ByteBuffer`, or `transferTo`/`transferFrom` to request direct byte transfer between channels.
 
-Điểm quan trọng nhất:
+The most important point:
 
-> **Không có một API luôn nhanh nhất cho mọi môi trường.** `Files.copy` thường là lựa chọn đầu tiên cho copy file đơn giản; buffered stream phù hợp khi cần xử lý byte stream/biến đổi dữ liệu; `FileChannel` hữu ích khi cần offset, chuyển từng vùng, tối ưu I/O theo trường hợp và kiểm soát tiến độ. Hiệu năng thực tế cần được đo trên tệp, thiết bị, OS, provider và workload cụ thể.
+> **No single API is always the fastest in every environment.** `Files.copy` is usually the first choice for simple file copying; buffered streams fit when byte-stream processing or data transformation is needed; `FileChannel` is useful when offsets, range transfers, case-specific I/O tuning, and progress control are required. Actual performance must be measured on the specific files, device, OS, provider, and workload.
 
-Bài này tập trung vào **copy dữ liệu nhị phân đúng nguyên trạng**. Nếu mục tiêu là chuyển đổi charset hoặc xử lý từng dòng văn bản, dùng `Reader`/`Writer` và thiết kế encoding riêng; không biến binary bytes thành String để sao chép.
+This lesson focuses on **verbatim binary data copying**. If the goal is charset conversion or line-by-line text processing, use `Reader`/`Writer` and design encoding explicitly; do not turn binary bytes into `String` to copy them.
 
-### 1.1. Luồng dữ liệu tổng quát
+### 1.1. General Data Flow
 
 ```text
-Cách A — buffered streams:
-Disk/FileSystem → InputStream → [buffer byte] → mã ứng dụng
-                                → [buffer byte] → OutputStream → Disk/FileSystem
+Approach A — buffered streams:
+Disk/FileSystem → InputStream → [byte buffer] → application code
+                                → [byte buffer] → OutputStream → Disk/FileSystem
 
-Cách B — Files.copy:
-Path nguồn ───── Files.copy(source, target, options) ─────→ Path đích
-                   provider có quyền chọn cơ chế triển khai
+Approach B — Files.copy:
+Source Path ───── Files.copy(source, target, options) ─────→ Target Path
+                   provider decides the implementation mechanism
 
-Cách C — FileChannel:
-FileChannel nguồn → transferTo / transferFrom → Channel đích
-       hoặc
-FileChannel nguồn → ByteBuffer → FileChannel đích
+Approach C — FileChannel:
+Source FileChannel → transferTo / transferFrom → Target Channel
+       or
+Source FileChannel → ByteBuffer → Target FileChannel
 ```
 
-Các sơ đồ nói về **lớp API** chứ không cam kết bao nhiêu bản copy RAM, syscall hay DMA xảy ra dưới nền. Ngay cả cơ chế được gọi là “zero-copy” vẫn chịu điều kiện OS, filesystem, provider, thiết bị và loại channel đích.
+These diagrams describe **API layers**, not a promise about how many RAM copies, syscalls, or DMA transfers happen underneath. Even mechanisms called “zero-copy” are subject to OS, filesystem, provider, device, and target channel conditions.
 
-## 2. Bảng so sánh nhanh
+## 2. Quick Comparison Table
 
-| Tiêu chí | BufferedInputStream/BufferedOutputStream | `Files.copy` | `FileChannel` |
+| Criterion | BufferedInputStream/BufferedOutputStream | `Files.copy` | `FileChannel` |
 |---|---|---|---|
-| Mức trừu tượng | Đọc/ghi byte stream | Copy file/path hoặc một đầu stream ở mức cao | Truy cập channel byte với position, size, transfer |
-| Mức code cần viết | Vòng `read/write` và xử lý EOF | Thường chỉ một lời gọi | Vòng lặp transfer hoặc đọc/ghi ByteBuffer |
-| Bộ nhớ ứng dụng | Mảng tạm/buffer kích thước xác định | Implementation quyết định; không yêu cầu caller chứa cả file | Một `ByteBuffer` tái sử dụng, hoặc transfer với bộ đệm do provider/OS chọn |
-| Kiểm soát offset | Phải skip/position qua API nguồn thích hợp | Không có tham số offset cho `Files.copy(Path,Path)` | Rõ ràng qua `position` và positional `read/write`/`transferTo` |
-| Copy một file sang file | Được, nhưng nhiều code hơn | **Mặc định nên cân nhắc trước** | Được, hữu ích khi cần kiểm soát chi tiết |
-| Copy một đoạn file | Có thể nhưng phải tự giới hạn | Không phải mục tiêu của overload Path→Path | Thuận tiện dùng `transferTo(start,count,...)` |
-| Native transfer/zero-copy | Không có bảo đảm loại bỏ copy qua buffer user | Tùy provider/implementation | `transferTo` có thể dùng cơ chế tối ưu OS, **không bảo đảm** |
-| Thuộc tính tệp | Tự xử lý metadata | Có `COPY_ATTRIBUTES` khi hỗ trợ | Không tự copy metadata chỉ vì chuyển content |
-| File rất lớn | Xử lý theo khối, không cần giữ toàn file | Được thiết kế cho copy file thông thường | `size` và offset dùng `long`; vòng lặp xử lý partial transfer |
-| Xử lý lỗi/cleanup | Tự kiểm soát hoàn toàn | Ngắn gọn nhưng vẫn có partial target khi thất bại | Cần kiểm soát số byte chuyển và dừng khi không tiến độ |
-| Độ bền sau mất điện | Không tự bảo đảm | Không tự bảo đảm | Không tự bảo đảm; có `FileChannel.force` với phạm vi riêng |
+| Abstraction level | Byte stream read/write | High-level file/path or one-sided stream copy | Byte channel access with position, size, transfer |
+| Code required | `read/write` loop and EOF handling | Usually a single call | Transfer loop or `ByteBuffer` read/write |
+| Application memory | Temporary array/buffer of fixed size | Decided by implementation; does not require caller to hold entire file | A reusable `ByteBuffer`, or transfer with provider/OS-chosen buffering |
+| Offset control | Must skip/position through an appropriate source API | No offset parameter on `Files.copy(Path,Path)` | Explicit via `position` and positional `read/write`/`transferTo` |
+| Copy one file to another | Possible, but more code | **Default to consider first** | Possible, useful when fine-grained control is needed |
+| Copy a file slice | Possible, but must bound manually | Not the goal of the Path→Path overload | Convenient with `transferTo(start,count,...)` |
+| Native transfer/zero-copy | No guarantee of eliminating user-buffer copies | Depends on provider/implementation | `transferTo` may use OS-optimized mechanisms, **not guaranteed** |
+| File attributes | Handle metadata manually | Supports `COPY_ATTRIBUTES` when supported | Does not copy metadata just by transferring content |
+| Very large files | Block-based, no need to hold full file | Designed for regular file copying | `size` and offsets use `long`; loop handles partial transfers |
+| Error handling/cleanup | Full manual control | Concise, though a partial target may still remain on failure | Must track transferred bytes and stop on no progress |
+| Power-loss durability | Not guaranteed automatically | Not guaranteed automatically | Not guaranteed automatically; `FileChannel.force` has its own scope |
 
-**Chọn API theo yêu cầu trước, tối ưu sau.** Bài toán sao chép một ảnh 3 MB khác với gửi từng phần một log vài trăm GB tới socket, hoặc nhân bản hàng nghìn file nhỏ kèm metadata.
+**Choose the API by requirements first, optimize later.** Copying a 3 MB image differs from streaming slices of a multi-hundred-GB log to a socket, or cloning thousands of small files with metadata.
 
-## 3. Buffered stream: đọc và ghi theo khối
+## 3. Buffered Streams: Block Reading and Writing
 
-### 3.1. Cách hoạt động
+### 3.1. How They Work
 
-`InputStream.read()` từng byte có thể làm chương trình mất nhiều lượt chuyển giữa các tầng I/O. `BufferedInputStream` gom dữ liệu đọc vào buffer nội bộ; `BufferedOutputStream` gom những lần write nhỏ trước khi chuyển cho stream bên dưới.
+Byte-by-byte `InputStream.read()` can make a program pay many transitions across I/O layers. `BufferedInputStream` gathers reads into an internal buffer; `BufferedOutputStream` batches small writes before passing them to the underlying stream.
 
-Một copy theo khối không cần đọc toàn file:
+A block copy does not need to read the entire file:
 
 ```java
 try (InputStream in = new BufferedInputStream(Files.newInputStream(source));
@@ -78,53 +78,53 @@ try (InputStream in = new BufferedInputStream(Files.newInputStream(source));
 }
 ```
 
-Đây là **đoạn mã trong method có xử lý `IOException`**, giả định `source` và `target` là `Path` đã xác định, với import `java.io.*`, `java.nio.file.Files` và `StandardOpenOption`. Nó minh họa luồng control chính, còn ví dụ hoàn chỉnh ở phần 7.
+This is a **snippet inside a method handling `IOException`**, assuming `source` and `target` are resolved `Path`s, with imports for `java.io.*`, `java.nio.file.Files`, and `StandardOpenOption`. It illustrates the main control flow; the complete example is in Section 7.
 
-Ý nghĩa:
+Meaning:
 
-- `chunk` là buffer do caller cấp phát một lần, kích thước 64 KiB.
-- `read(chunk)` trả số byte **thực tế** đọc được, không nhất thiết bằng 64 KiB.
-- `-1` biểu thị EOF; khi đọc được `n` byte, chỉ có `chunk[0..n-1]` hợp lệ cho lượt đó.
-- `out.write(chunk,0,n)` ghi đúng số byte đã đọc; bỏ tham số `n` có thể làm dữ liệu cuối bị lặp từ lượt trước.
-- `try-with-resources` đóng các stream kể cả khi lỗi; đóng buffered output sẽ flush dữ liệu còn nằm trong bộ đệm Java trước khi đóng đầu ra bên dưới.
-- `CREATE_NEW` tránh tình cờ ghi đè đường dẫn đích đã tồn tại; nếu đích đã có, lời gọi mở sẽ báo lỗi theo contract.
+- `chunk` is a caller-allocated buffer created once, 64 KiB in size.
+- `read(chunk)` returns the **actual** number of bytes read, not necessarily 64 KiB.
+- `-1` marks EOF; when `n` bytes are read, only `chunk[0..n-1]` is valid for that pass.
+- `out.write(chunk,0,n)` writes the exact number of bytes read; omitting `n` can repeat stale bytes from the previous iteration at the end.
+- `try-with-resources` closes streams even on error; closing the buffered output flushes remaining bytes from the Java buffer before closing the underlying output.
+- `CREATE_NEW` prevents accidentally overwriting an existing target path; if the target exists, opening fails per contract.
 
-### 3.2. Buffered stream và mảng truyền vào có thể đều là buffer
+### 3.2. Both Buffered Streams and the Passed Array Can Act as Buffers
 
-Trong ví dụ có **ba mức** liên quan bộ nhớ:
+In this example there are **three levels** involving memory:
 
-1. Buffer nội bộ của `BufferedInputStream`.
-2. Mảng `byte[] chunk` 64 KiB ứng dụng tái sử dụng.
-3. Buffer nội bộ của `BufferedOutputStream`.
+1. Internal buffer of `BufferedInputStream`.
+2. Application-reused 64 KiB `byte[] chunk` array.
+3. Internal buffer of `BufferedOutputStream`.
 
-Vì ứng dụng đã đọc và ghi theo khối 64 KiB, việc bọc thêm hai `Buffered*Stream` đôi khi **không mang lại lợi ích rõ rệt** so với `Files.newInputStream`/`newOutputStream` với cùng mảng lớn. Buffered wrapper đặc biệt hữu ích nếu phần xử lý phía trên gọi `read/write` nhiều lần với khối nhỏ.
+Because the application already reads and writes in 64 KiB blocks, wrapping with two `Buffered*Stream`s sometimes **provides no clear benefit** over `Files.newInputStream`/`newOutputStream` with the same large array. Buffered wrappers are especially helpful when upper-level code calls `read/write` many times with small amounts.
 
-Không kết luận “càng nhiều lớp buffer càng nhanh”. Bộ nhớ dư, sao chép thêm qua các tầng và flush pattern có thể làm khác hiệu năng. **Benchmark cả phương án có/không có wrapper** nếu tối ưu throughput là mục tiêu.
+Do not conclude “more buffer layers means faster.” Extra memory, additional copies across layers, and flush patterns can alter performance. **Benchmark both with and without wrappers** if throughput optimization is the goal.
 
-### 3.3. Chọn kích thước buffer
+### 3.3. Choosing Buffer Size
 
-Những giá trị như 8 KiB, 32 KiB, 64 KiB, 256 KiB hoặc 1 MiB chỉ là **ứng viên benchmark**, không phải đáp án chung. Buffer quá nhỏ thường tăng số lời gọi I/O; buffer quá lớn có thể tăng footprint, pressure lên cache/bộ nhớ và số byte phải cấp phát mỗi worker.
+Values like 8 KiB, 32 KiB, 64 KiB, 256 KiB, or 1 MiB are only **benchmark candidates**, not universal answers. Too small a buffer tends to increase I/O calls; too large a buffer can increase footprint, cache/memory pressure, and bytes allocated per worker.
 
-Với vòng lặp copy, tài nguyên nhớ do ứng dụng giữ là **O(B)** với B là kích thước buffer, trong khi dung lượng file có thể lớn hơn RAM. Nếu 100 worker đồng thời mỗi worker giữ một mảng 1 MiB, riêng mảng tạm đã khoảng 100 MiB chưa kể buffers, queue và runtime overhead.
+With a copy loop, application-held memory is **O(B)** where B is buffer size, while file size can exceed RAM. If 100 concurrent workers each hold a 1 MiB array, the temporary arrays alone take about 100 MiB, excluding other buffers, queues, and runtime overhead.
 
-Lưu ý `InputStream.read(byte[])` trả dữ liệu từng phần theo trạng thái nguồn. Không được giả định một lần đọc tương ứng một file block, một bản ghi hay một TCP message.
+Note that `InputStream.read(byte[])` returns partial data depending on source state. Never assume one read corresponds to one file block, one record, or one TCP message.
 
-### 3.4. `flush()`, `close()` và độ bền
+### 3.4. `flush()`, `close()`, and Durability
 
-`out.flush()` yêu cầu đẩy các byte đang đệm xuống lớp output bên dưới. `close()` của buffered output sẽ xử lý flush rồi đóng stream bên dưới. Nhưng:
+`out.flush()` requests pushing buffered bytes down to the underlying output layer. `close()` on a buffered output handles flushing and then closes the underlying stream. However:
 
-- `flush()` **không đồng nghĩa** dữ liệu đã fsync tới thiết bị.
-- `close()` **không tự bảo đảm** file an toàn sau mất nguồn trên mọi filesystem.
-- Nếu cần durability mạnh, phải thiết kế thêm sync/force và thường cả cơ chế công bố file đích an toàn.
-- Nếu xảy ra `IOException` giữa chừng, file đích có thể đã có **một phần** nội dung, không được coi là bản copy hoàn chỉnh.
+- `flush()` **does not mean** the data has been fsynced to the device.
+- `close()` **does not by itself guarantee** file safety after power loss on every filesystem.
+- If strong durability is required, you must design explicit sync/force steps and usually a safe target-file publishing mechanism.
+- If an `IOException` occurs mid-way, the target file may already contain **partial** content and must not be treated as a complete copy.
 
-Dữ liệu có thể đã đọc đúng 100% nhưng ghi ra đích bị lỗi hoặc đĩa đầy; code vẫn phải để exception đi ra ngoài và xử lý trạng thái đích.
+Data may be 100% read successfully while writing to the target fails or the disk fills up; code must still let the exception propagate and handle target state.
 
-## 4. `Files.copy`: cách trực tiếp cho thao tác copy file
+## 4. `Files.copy`: The Direct Way for File Copy Operations
 
-### 4.1. Overload Path → Path
+### 4.1. Path → Path Overloads
 
-Ví dụ đơn giản:
+Simple example:
 
 ```java
 Path source = Path.of("data.bin");
@@ -133,13 +133,13 @@ Path target = Path.of("backup.bin");
 Files.copy(source, target);
 ```
 
-Đây là đoạn minh họa trong method xử lý `IOException` với `Path`/`Files` đã import. Theo contract, nếu `target` đã tồn tại thì mặc định có thể ném `FileAlreadyExistsException`. Nếu chủ động cho phép thay thế:
+This is an illustrative snippet inside a method handling `IOException` with `Path`/`Files` imported. By contract, if `target` already exists, it throws `FileAlreadyExistsException` by default. To explicitly allow replacement:
 
 ```java
 Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 ```
 
-`REPLACE_EXISTING` thay đổi chính sách khi target đã có; **không** biến toàn bộ copy thành thao tác atomic. Nếu cần giữ metadata khi được hỗ trợ:
+`REPLACE_EXISTING` changes the policy when the target already exists; it does **not** make the entire copy atomic. To preserve metadata when supported:
 
 ```java
 Files.copy(
@@ -149,45 +149,45 @@ Files.copy(
         StandardCopyOption.COPY_ATTRIBUTES);
 ```
 
-Các snippet nằm trong method có xử lý `IOException`, dùng các loại `java.nio.file.*`. `COPY_ATTRIBUTES` yêu cầu copy thuộc tính file, nhưng tập attributes được copy và độ chính xác của chúng phụ thuộc file system/provider. Đừng suy ra mọi ACL, owner, extended attributes và timestamp đều được bảo toàn tuyệt đối trên mọi OS.
+These snippets sit inside a method handling `IOException`, using `java.nio.file.*` types. `COPY_ATTRIBUTES` requests copying file attributes, though which attributes are copied and their precision depend on the filesystem/provider. Do not assume all ACLs, owners, extended attributes, and timestamps are preserved identically on every OS.
 
-**Ưu điểm lớn:** code ngắn, dễ đọc, ít cơ hội mắc lỗi vòng lặp/EOF và cho provider quyền tối ưu con đường sao chép. Nếu chỉ cần copy một file bình thường, đây thường là API nên thử đầu tiên.
+**Major advantage:** concise, readable code, fewer chances for loop/EOF bugs, and it lets the provider optimize the copy path. For a normal file copy, this is usually the API to try first.
 
-### 4.2. Không suy luận implementation của `Files.copy`
+### 4.2. Do Not Infer the Implementation of `Files.copy`
 
-Việc gọi `Files.copy(Path,Path)` **không cam kết** Java luôn dùng:
+Calling `Files.copy(Path,Path)` **does not promise** that Java always uses:
 
-- Một `BufferedInputStream` cụ thể;
-- Một buffer có size cố định;
-- Một syscall `sendfile` / `copy_file_range` cụ thể;
-- Zero-copy trong mọi trường hợp;
-- Một chiến lược tối ưu giống nhau giữa các OS/JDK/provider.
+- A specific `BufferedInputStream`;
+- A fixed-size buffer;
+- A specific `sendfile` / `copy_file_range` syscall;
+- Zero-copy in all cases;
+- The same optimization strategy across OSes/JDKs/providers.
 
-`Files.copy` xác định **hành vi cấp API**, còn cách thực hiện tùy implementation, kiểu file, quyền truy cập, hệ thống tệp và môi trường. Các nhận xét hiệu năng phải gắn phiên bản JDK và platform đã đo.
+`Files.copy` defines **API-level behavior**, while the execution mechanism depends on the implementation, file type, permissions, filesystem, and environment. Performance claims must be tied to the JDK version and platform measured.
 
-### 4.3. `Files.copy` không phải giao dịch nguyên tử
+### 4.3. `Files.copy` Is Not an Atomic Transaction
 
-Tài liệu Java không bảo đảm thao tác copy tổng thể diễn ra nguyên tử. Khi lỗi I/O xảy ra, file đích có thể tồn tại với dữ liệu không đầy đủ. Không dùng trực tiếp đường dẫn đích quan trọng rồi giả định người đọc không bao giờ thấy phiên bản đang được tạo.
+Java documentation does not guarantee the overall copy operation is atomic. When an I/O error occurs, the target file may exist with incomplete data. Do not write directly to a critical target path and assume readers will never observe a half-written version.
 
-Một cách tổ chức thường dùng khi cập nhật một file quan trọng:
+A common pattern when updating a critical file:
 
 ```text
 source
   │
-  └── Files.copy(...) → staging file trong cùng directory với target
+  └── Files.copy(...) → staging file in the same directory as target
                               │
-                              ├── kiểm tra length/checksum/điều kiện
-                              ├── sync file staging nếu yêu cầu durability
-                              └── publish qua rename nguyên tử nếu hỗ trợ
+                              ├── verify length/checksum/conditions
+                              ├── sync staging file if durability is required
+                              └── publish via atomic rename if supported
                                            │
-                                           └── sync directory theo platform nếu cần crash durability
+                                           └── sync directory per platform if crash durability is needed
 ```
 
-Cần phân biệt: `Files.copy` không tự thực hiện tất cả các bước này. `Files.move(..., ATOMIC_MOVE)` chỉ có contract riêng cho atomic move khi hỗ trợ; nó **không tự đồng nghĩa** directory entry đã bền sau mất điện. Việc thay target đã tồn tại với `ATOMIC_MOVE` còn phụ thuộc implementation và không nên giả định có behavior giống nhau mọi provider.
+Distinguish clearly: `Files.copy` does not automatically execute all these steps. `Files.move(..., ATOMIC_MOVE)` has its own contract for an atomic move when supported; it does **not automatically mean** the directory entry is durable across power loss. Replacing an existing target with `ATOMIC_MOVE` is also implementation-dependent and must not be assumed identical across all providers.
 
-### 4.4. Overload liên quan InputStream và OutputStream
+### 4.4. Overloads Involving InputStream and OutputStream
 
-`Files` còn có hai overload tiện lợi:
+`Files` also provides two convenient overloads:
 
 ```java
 long n1 = Files.copy(inputStream, target,
@@ -196,25 +196,25 @@ long n1 = Files.copy(inputStream, target,
 long n2 = Files.copy(source, outputStream);
 ```
 
-Đoạn trên là **minh họa** với `inputStream`/`outputStream` đã mở, `source`/`target` là các `Path` và caller xử lý `IOException`. Cả hai overload này trả `long` là số byte đã copy.
+The snippet above is **illustrative**, with open `inputStream`/`outputStream`, `Path` `source`/`target`, and caller handling `IOException`. Both overloads return a `long` representing the number of bytes copied.
 
-Điểm khác với Path→Path:
+Differences from Path→Path:
 
-- `Files.copy(InputStream, Path, ...)` lấy nguồn là stream và tạo/ghi target.
-- `Files.copy(Path, OutputStream)` đọc file rồi gửi byte tới output stream.
-- Hai overload **không tự đóng stream do caller truyền vào**; người sở hữu phải quản lý `close`/`flush`.
-- `Files.copy(Path,Path,...)` trả về **`Path` đích**, không phải byte count. Nếu cần số byte, dùng `Files.size` trước/sau hoặc copy qua API trả số byte theo contract.
-- Cùng tên `copy` nhưng options và semantics về attributes có khác theo overload; đọc chữ ký mình thực sự gọi.
+- `Files.copy(InputStream, Path, ...)` reads from a stream and creates/writes the target.
+- `Files.copy(Path, OutputStream)` reads the file and pushes bytes to the output stream.
+- Neither overload **automatically closes caller-passed streams**; the owner must manage `close`/`flush`.
+- `Files.copy(Path,Path,...)` returns the **target `Path`**, not a byte count. If you need the byte count, check `Files.size` before/after or copy via an API returning bytes per contract.
+- Despite sharing the name `copy`, options and attribute semantics differ by overload; read the signature you actually call.
 
-Không cố truyền `COPY_ATTRIBUTES` cho overload `InputStream→Path` như thể nó hỗ trợ sao chép metadata từ một stream vốn không có đường dẫn hay thuộc tính file tương đương.
+Do not pass `COPY_ATTRIBUTES` to the `InputStream→Path` overload as if it supported copying metadata from a stream that has no path or equivalent file attributes.
 
-## 5. `FileChannel`: xử lý bằng `ByteBuffer`
+## 5. `FileChannel`: Processing with `ByteBuffer`
 
-`FileChannel` thuộc Java NIO, cung cấp file position, size, random access và một số thao tác transfer. Nó thích hợp khi cần sao chép từng đoạn hoặc tích hợp với các pipeline channel.
+`FileChannel` belongs to Java NIO, providing file position, size, random access, and transfer operations. It fits when slice copying or integration with channel pipelines is needed.
 
-### 5.1. Copy thủ công bằng `read`/`write`
+### 5.1. Manual Copy with `read`/`write`
 
-Một vòng copy channel có thể trông như:
+A channel copy loop can look like:
 
 ```java
 try (FileChannel in = FileChannel.open(source, StandardOpenOption.READ);
@@ -234,27 +234,27 @@ try (FileChannel in = FileChannel.open(source, StandardOpenOption.READ);
 }
 ```
 
-Đây là **đoạn minh họa trong method xử lý `IOException`**, với `source`/`target` hợp lệ và imports `FileChannel`, `ByteBuffer`, `StandardOpenOption`. Để bảo vệ trước provider bất thường mà một lượt `read`/`write` báo không tiến độ kéo dài, production nên theo dõi số byte và chính sách retry/break thay vì vòng bận vô hạn.
+This is an **illustrative snippet inside a method handling `IOException`**, with valid `source`/`target` and imports `FileChannel`, `ByteBuffer`, `StandardOpenOption`. To guard against an unusual provider where `read`/`write` reports prolonged zero progress, production code should track byte counts and apply a retry/break policy rather than an infinite busy loop.
 
-**Quy tắc ByteBuffer bắt buộc:**
+**Mandatory ByteBuffer rules:**
 
-1. Ban đầu `position=0`, `limit=capacity`, sẵn sàng nhận byte.
-2. `in.read(buffer)` đưa bytes vào vùng từ position tới limit; position tăng theo lượng đọc.
-3. `buffer.flip()` đặt limit theo vị trí đã ghi và position về 0 để xuất byte.
-4. `out.write(buffer)` có thể ghi **ít hơn** số byte còn lại; dùng `while(buffer.hasRemaining())`.
-5. `buffer.clear()` chuẩn bị buffer nhận đợt mới; **không xóa byte vật lý** trong buffer, chỉ đặt lại cursor.
+1. Initially `position=0`, `limit=capacity`, ready to receive bytes.
+2. `in.read(buffer)` places bytes from `position` up to `limit`; `position` advances by the amount read.
+3. `buffer.flip()` sets `limit` to the written position and resets `position` to 0 for draining bytes.
+4. `out.write(buffer)` can write **fewer** than the remaining bytes; use `while(buffer.hasRemaining())`.
+5. `buffer.clear()` prepares the buffer for the next round; it **does not wipe physical bytes** in the buffer, only resets cursors.
 
-Nếu bỏ `flip()`, có thể ghi byte cũ hoặc không đúng vùng. Nếu quên `clear()`, buffer sẽ hết không gian ghi. Nếu chỉ gọi `out.write(buffer)` một lần và mặc định hết `remaining()`, file đích có thể mất một phần dữ liệu.
+Omitting `flip()` can write stale bytes or the wrong region. Forgetting `clear()` leaves the buffer with no space to read into. Calling `out.write(buffer)` once and assuming all `remaining()` bytes were written can truncate the target file.
 
-### 5.2. `allocateDirect` có luôn tốt hơn `allocate`?
+### 5.2. Is `allocateDirect` Always Better Than `allocate`?
 
-Không. `ByteBuffer.allocateDirect(n)` dùng một vùng direct memory, có thể thuận tiện cho native channel I/O; `ByteBuffer.allocate(n)` dùng heap buffer thông thường. Sự khác biệt hiệu năng phụ thuộc kích thước transfer, JDK, GC, CPU, OS và memory pressure.
+No. `ByteBuffer.allocateDirect(n)` uses a region of direct memory, which can be convenient for native channel I/O; `ByteBuffer.allocate(n)` uses a regular heap buffer. The performance difference depends on transfer size, JDK, GC, CPU, OS, and memory pressure.
 
-Direct buffers có chi phí cấp phát và lifecycle riêng, không phải “miễn phí RAM”. **Cấp phát một lần rồi tái sử dụng** trong vòng copy thay vì `allocateDirect` ở mỗi lượt. Với job rất nhỏ, heap buffer có thể đơn giản và đủ nhanh.
+Direct buffers have their own allocation cost and lifecycle, not “free RAM.” **Allocate once and reuse** in the copy loop instead of calling `allocateDirect` on every iteration. For very small jobs, a heap buffer may be simpler and fast enough.
 
-### 5.3. Vòng lặp phải xử lý partial writes
+### 5.3. The Loop Must Handle Partial Writes
 
-`FileChannel.write(ByteBuffer)` trả số byte thực tế đã ghi. Kể cả file channel đồng bộ, contract vẫn không hứa mọi `remaining()` sẽ hết trong một lời gọi. Vì vậy:
+`FileChannel.write(ByteBuffer)` returns the actual number of bytes written. Even on a synchronous file channel, the contract does not promise all `remaining()` bytes are written in a single call. Therefore:
 
 ```java
 while (buffer.hasRemaining()) {
@@ -265,32 +265,32 @@ while (buffer.hasRemaining()) {
 }
 ```
 
-Đoạn minh họa giả định `targetChannel` đang mở ghi và `buffer` chứa byte để gửi. Nếu môi trường thực yêu cầu chấp nhận `n=0` một cách tạm thời, thiết kế retry/backoff/timeout riêng; không spin vô hạn.
+This illustrative snippet assumes `targetChannel` is open for writing and `buffer` holds bytes to send. If a real environment legitimately requires tolerating temporary `n=0`, design explicit retry/backoff/timeout logic; do not spin indefinitely.
 
-## 6. `FileChannel.transferTo` và `transferFrom`
+## 6. `FileChannel.transferTo` and `transferFrom`
 
 ### 6.1. `transferTo(position,count,target)`
 
-Ví dụ:
+Example:
 
 ```java
 long copied = sourceChannel.transferTo(
         offset, requestedBytes, targetChannel);
 ```
 
-Đây là snippet với `sourceChannel` kiểu `FileChannel` đã mở đọc và `targetChannel` kiểu `WritableByteChannel` hợp lệ. Ý nghĩa:
+This is a snippet with `sourceChannel` of type `FileChannel` opened for reading and a valid `WritableByteChannel` `targetChannel`. Meaning:
 
-- `offset` là vị trí **byte trong file nguồn**, kiểu `long`.
-- `requestedBytes` là số byte **tối đa muốn chuyển** trong lời gọi, kiểu `long`.
-- Kết quả `copied` là số byte **thực tế đã chuyển** trong lần đó, có thể nhỏ hơn số yêu cầu.
-- File position của **source FileChannel** không bị thay đổi bởi `transferTo` vì offset được truyền tường minh.
-- Nếu target channel có position, bytes được ghi từ vị trí hiện tại của **target**, và target position tăng tương ứng.
+- `offset` is the **byte position in the source file**, of type `long`.
+- `requestedBytes` is the **maximum bytes desired to transfer** in this call, of type `long`.
+- Result `copied` is the **actual bytes transferred** in that call, which may be less than requested.
+- The **source `FileChannel`'s file position** is not modified by `transferTo` because the offset is passed explicitly.
+- If the target channel has a position, bytes are written starting at the **target's current position**, which advances accordingly.
 
-**Không được kết luận** một lần `transferTo(0, source.size(), target)` luôn chuyển toàn bộ file. Provider/OS có thể giới hạn kích thước một lượt, target có thể không nhận hết hoặc có điều kiện khiến phương thức trả 0.
+**Never assume** a single `transferTo(0, source.size(), target)` always transfers the entire file. The provider/OS may cap per-call size, the target may not accept everything, or conditions may cause the method to return 0.
 
-### 6.2. Loop cho file lớn
+### 6.2. Loop for Large Files
 
-Mẫu phổ biến:
+Common pattern:
 
 ```java
 long size = sourceChannel.size();
@@ -301,7 +301,7 @@ while (position < size) {
             position, size - position, targetChannel);
 
     if (n <= 0) {
-        // Không được quay lại vòng lặp y nguyên mãi mãi.
+        // Must not spin the exact same loop forever.
         throw new IOException(
                 "No progress at file offset " + position);
     }
@@ -310,62 +310,62 @@ while (position < size) {
 }
 ```
 
-Đoạn này là **minh họa trong method**; `sourceChannel` và `targetChannel` đã mở. Nó phát hiện và báo lỗi khi transfer không tiến được; tùy use case, có thể chuyển sang phương thức read/write dự phòng cho phần còn lại.
+This is an **illustrative snippet inside a method**; `sourceChannel` and `targetChannel` are already open. It detects and fails when transfer makes no progress; depending on the use case, you can fall back to `read`/`write` for the remainder.
 
-### 6.3. Vì sao có thể nhận 0 hoặc ít bytes?
+### 6.3. Why Might It Return 0 or Fewer Bytes?
 
-Một số tình huống:
+Several situations:
 
-- Requested region đến cuối file; nếu tính offset sai, không còn bytes để chuyển.
-- Target channel không thể nhận thêm byte ngay (đặc biệt non-blocking target).
-- Cơ chế native transfer bị giới hạn theo OS hoặc provider.
-- File nguồn bị thay đổi kích thước trong khi copy.
-- Bất kỳ giới hạn implementation nào khiến số bytes trong một lời gọi nhỏ hơn số yêu cầu.
+- The requested region reaches EOF; if offset math is wrong, no bytes remain to transfer.
+- The target channel cannot accept more bytes immediately (especially a non-blocking target).
+- The native transfer mechanism is capped by the OS or provider.
+- The source file was resized during the copy.
+- Any implementation limit causing bytes per call to be smaller than requested.
 
-Cách xử lý không thể chỉ `while(n==0) continue` mãi mãi. Có thể dùng fallback `FileChannel.read(ByteBuffer,offset)` rồi `target.write(ByteBuffer)` với kiểm soát tiến độ, hoặc fail rõ để caller xử lý.
+Handling it cannot simply be `while(n==0) continue` forever. You can fall back to `FileChannel.read(ByteBuffer,offset)` followed by `target.write(ByteBuffer)` with progress checks, or fail clearly for the caller to handle.
 
-### 6.4. `transferFrom` chuyển theo chiều ngược lại
+### 6.4. `transferFrom` Transfers in the Opposite Direction
 
 ```java
 long n = targetFileChannel.transferFrom(
         readableSourceChannel, fileOffset, maxBytes);
 ```
 
-Đoạn trên giả định `targetFileChannel` là FileChannel mở ghi và `readableSourceChannel` là `ReadableByteChannel`. `transferFrom` chuyển bytes từ **nguồn** vào FileChannel đích từ offset được chỉ định.
+This snippet assumes `targetFileChannel` is a `FileChannel` open for writing and `readableSourceChannel` is a `ReadableByteChannel`. `transferFrom` transfers bytes from the **source** into the target `FileChannel` starting at the specified offset.
 
-Lưu ý quan hệ position khác với `transferTo`:
+Note how position behavior differs from `transferTo`:
 
-- `transferFrom` truyền **position của file đích** tường minh; position hiện tại của FileChannel đích không thay đổi.
-- Nếu source channel có position, vị trí nguồn có thể tiến khi byte được đọc.
-- Kết quả thực tế cũng có thể nhỏ hơn `maxBytes`; vẫn phải lập kế hoạch loop và xử lý tiến độ.
-- Một nguồn socket/pipe khác file có semantics readiness và EOF riêng; không thể áp mọi giả định file-to-file sang non-blocking network.
+- `transferFrom` passes the **target file's position** explicitly; the target `FileChannel`'s current position does not change.
+- If the source channel has a position, the source position advances as bytes are read.
+- The actual return value may also be less than `maxBytes`; you still need a loop and progress handling.
+- A socket/pipe source differs from a file with its own readiness and EOF semantics; file-to-file assumptions cannot all be copied blindly to non-blocking networking.
 
-### 6.5. “Zero-copy” là khả năng, không phải cam kết API
+### 6.5. “Zero-Copy” Is a Possibility, Not an API Guarantee
 
-Trên những tổ hợp OS/file/channel cụ thể, `transferTo` có thể dùng đường truyền native giúp giảm số lần sao chép dữ liệu qua user space hoặc số lần syscall. Nhưng Java API **không cam kết rằng mỗi `transferTo` sẽ luôn là zero-copy**.
+On specific OS/file/channel combinations, `transferTo` can use a native path that reduces copies through user space or reduces syscalls. However, the Java API **does not promise that every `transferTo` will always be zero-copy**.
 
-Đừng suy diễn:
+Do not infer:
 
-- Chắc chắn không có dữ liệu nào được copy ở RAM/OS.
-- Chắc chắn không sử dụng page cache.
-- Chắc chắn không có CPU overhead hoặc context switches.
-- Chắc chắn nhanh hơn buffered streams với file nhỏ.
-- Chắc chắn có cùng semantics trên Windows, Linux, macOS và network filesystem.
+- That no data is copied in RAM/OS.
+- That the page cache is bypassed.
+- That there is zero CPU overhead or context switching.
+- That it is guaranteed faster than buffered streams for small files.
+- That it has identical semantics on Windows, Linux, macOS, and network filesystems.
 
-Việc `FileChannel` cho phép provider triển khai tối ưu là **lợi thế tiềm năng**. Để khẳng định hiệu quả thật, phải đo với tổ hợp triển khai thực.
+Allowing `FileChannel` providers to optimize is a **potential advantage**. To confirm real gains, measure on your actual deployment combination.
 
-## 7. Ví dụ Java 17+ chạy được: ba cách copy và kiểm tra byte
+## 7. Runnable Java 17+ Example: Three Copy Approaches and Byte Verification
 
-Ví dụ độc lập sau:
+The standalone example below:
 
-- Tạo một thư mục riêng và file nguồn có **131.075 byte** (cố ý không chia hết cho 64 KiB).
-- Copy bằng buffered streams.
-- Copy bằng `Files.copy(Path,Path)`.
-- Copy bằng `FileChannel.transferTo`, với fallback sang `read/write(ByteBuffer)` nếu transfer không tiến độ.
-- So sánh byte với `Files.mismatch` (Java 12+, nên có trong Java 17+).
-- Dọn file của chính ví dụ, không chạm file của người dùng.
+- Creates an isolated directory and a source file of **131,075 bytes** (intentionally not divisible by 64 KiB).
+- Copies via buffered streams.
+- Copies via `Files.copy(Path,Path)`.
+- Copies via `FileChannel.transferTo`, with fallback to `read/write(ByteBuffer)` if transfer makes no progress.
+- Compares bytes with `Files.mismatch` (Java 12+, thus available in Java 17+).
+- Cleans up only its own example files without touching user files.
 
-**Tệp:** `CopyStrategiesDemo.java`
+**File:** `CopyStrategiesDemo.java`
 
 ```java
 import java.io.BufferedInputStream;
@@ -430,8 +430,8 @@ public class CopyStrategiesDemo {
                     continue;
                 }
 
-                // Native transfer không tiến được:
-                // đọc đúng vùng còn lại bằng positional read.
+                // Native transfer made no progress:
+                // read the remaining region using positional read.
                 fallback.clear();
                 fallback.limit((int) Math.min(
                         (long) fallback.capacity(),
@@ -503,7 +503,7 @@ public class CopyStrategiesDemo {
             System.out.println("all equal: " + same);
 
         } finally {
-            // Chỉ dọn các file được tạo trong thư mục của demo.
+            // Only clean up files created inside the demo directory.
             try (Stream<Path> entries = Files.list(directory)) {
                 for (Path entry : entries.toList()) {
                     Files.deleteIfExists(entry);
@@ -515,14 +515,14 @@ public class CopyStrategiesDemo {
 }
 ```
 
-Biên dịch/chạy với JDK 17+:
+Compile/run on JDK 17+:
 
 ```bash
 javac CopyStrategiesDemo.java
 java CopyStrategiesDemo
 ```
 
-**Stdout dự kiến khi filesystem thông thường hoạt động đúng:**
+**Expected stdout when a normal filesystem operates properly:**
 
 ```text
 source bytes: 131075
@@ -532,43 +532,43 @@ channel bytes: 131075
 all equal: true
 ```
 
-### 7.1. Giải thích lựa chọn trong demo
+### 7.1. Explaining Choices in the Demo
 
-- Dùng dữ liệu byte **định trước** thay cho Random để stdout/so sánh tái lập được.
-- `131_075` không chia hết cho `65_536`; lượt đọc cuối chỉ có 3 byte sau hai khối đầy, giúp kiểm tra code không ghi dư byte.
-- `CREATE_NEW` yêu cầu file đích chưa tồn tại và ngăn ghi đè không chủ ý.
-- `Files.copy` được gọi không có option vì đích là đường dẫn mới.
-- `Files.mismatch(a,b)` trả `-1` khi toàn bộ bytes và chiều dài bằng nhau; có thể dùng để kiểm tra file copy **tại thời điểm đọc**, không phải hash hay chứng nhận dữ liệu sau mất điện.
-- Hàm channel khởi tạo `position=0`, chuyển tới khi đủ `size`. Nếu `transferTo` không tiến, nó dùng positional `read` vào một buffer direct tái sử dụng rồi ghi đủ bytes sang FileChannel đích.
-- Vì không có thread nào thay đổi source/target trong demo, cách đếm `position` và file size là ổn định. **Trong hệ thống có writer đồng thời**, cần cơ chế bảo đảm snapshot/độ ổn định riêng.
-- `finally` chỉ dọn file trong **thư mục tạm do demo tạo**. Nếu một bước trước đó lỗi, cleanup cũng có thể ném IOException; trong ứng dụng thật cần chính sách log/giữ file lỗi tùy nhu cầu khôi phục.
+- Uses **deterministic** byte data instead of `Random` so stdout and comparisons are reproducible.
+- `131_075` is not divisible by `65_536`; the final read has only 3 bytes after two full blocks, testing that the code does not write extra bytes.
+- `CREATE_NEW` requires the target file not to exist and prevents unintentional overwrites.
+- `Files.copy` is called without options because the target is a new path.
+- `Files.mismatch(a,b)` returns `-1` when all bytes and lengths match; it verifies the file copy **at the time of reading**, not as a hash or power-loss durability certificate.
+- The channel method initializes `position=0` and transfers until `size`. If `transferTo` makes no progress, it uses positional `read` into a reused direct buffer and writes all bytes to the target `FileChannel`.
+- Because no other thread modifies source/target in the demo, tracking `position` and file size is stable. **In systems with concurrent writers**, a dedicated snapshot or stability mechanism is required.
+- `finally` cleans up only files inside the **demo-created temporary directory**. If an earlier step fails, cleanup itself can throw `IOException`; in real applications, define a logging/retention policy for failed files depending on recovery needs.
 
-### 7.2. Tại sao không in số millisecond “benchmark”?
+### 7.2. Why Not Print “Benchmark” Milliseconds?
 
-Tốc độ copy bị ảnh hưởng bởi page cache, trạng thái filesystem và tải máy. In `System.nanoTime()` một lần rồi gắn nhãn “API X nhanh nhất” là kết luận không có ý nghĩa phổ quát. Ví dụ cố tình chỉ xác nhận **tính đúng đắn** bằng byte counts và `Files.mismatch`. Phần đo hiệu năng được giải thích riêng bên dưới.
+Copy speed is affected by page cache, filesystem state, and machine load. Printing `System.nanoTime()` once and declaring “API X is fastest” is not a universally meaningful conclusion. This example deliberately verifies only **correctness** via byte counts and `Files.mismatch`. Performance measurement is explained separately below.
 
-### 7.3. Vì sao fallback channel không gọi `read`/`write` đồng thời với một transfer đang chạy?
+### 7.3. Why Does the Channel Fallback Not Call `read`/`write` Concurrently with an In-Flight Transfer?
 
-`FileChannel.transferTo` đồng bộ đối với lời gọi này: nó đã trả về số byte chuyển được (hoặc 0) trước khi fallback bắt đầu. Trong demo không có transfer bất đồng bộ pending giữ buffer; fallback đọc lại đúng `position` còn lại rồi gửi tới output hiện tại.
+`FileChannel.transferTo` is synchronous with respect to this call: it has already returned the transferred byte count (or 0) before fallback begins. In the demo there is no pending async transfer holding the buffer; fallback reads from the remaining `position` and writes to the current output.
 
-**Điều kiện tiên quyết:** cả source và target không bị thread khác thay đổi, và output channel được mở mới với position 0. Nếu bạn chuyển `transferTo` đến socket non-blocking, phải thêm cơ chế readiness/backpressure riêng, không sao chép nguyên vòng lặp fallback file-to-file này.
+**Prerequisite:** neither source nor target is modified by another thread, and the output channel is newly opened at position 0. If you adapt `transferTo` to a non-blocking socket, you must add dedicated readiness/backpressure handling rather than copying this file-to-file fallback loop verbatim.
 
-## 8. Tệp lớn hơn 2 GiB: dùng `long`, xử lý từng phần
+## 8. Files Larger Than 2 GiB: Use `long`, Process in Parts
 
-Các file rất lớn không thể được biểu diễn bằng một `byte[]` có độ dài vượt giới hạn array JVM, và `ByteBuffer` có `capacity`/`position` kiểu `int`. Nhưng `FileChannel.size()`, positional offsets và các tham số `transferTo`/`transferFrom` dùng `long`.
+Very large files cannot be held in a single `byte[]` exceeding JVM array length limits, and `ByteBuffer` uses `int` for `capacity`/`position`. However, `FileChannel.size()`, positional offsets, and `transferTo`/`transferFrom` parameters use `long`.
 
-Vì vậy:
+Therefore:
 
-- Không chuyển `channel.size()` về `int` khi tệp có thể lớn hơn 2 GiB.
-- Không dùng `Files.readAllBytes` chỉ để copy một file hàng chục GB: có thể thất bại do giới hạn array hoặc cạn heap.
-- Dùng buffer kích thước hữu hạn và vòng lặp, để bộ nhớ không tăng theo kích thước file.
-- Tính offset bằng `long`, kiểm tra overflow khi cộng `position + n`.
-- Tránh cast `(int)(size - position)` nếu phần còn lại có thể lớn hơn `Integer.MAX_VALUE`. Chỉ cast sau khi giới hạn bằng `Math.min(remaining, (long) buffer.capacity())`.
-- Với `transferTo`, đừng đưa ra giả định “count kiểu long thì OS chuyển hàng TB trong một syscall”; vẫn phải lặp theo giá trị thực trả về.
+- Never cast `channel.size()` to `int` when a file may exceed 2 GiB.
+- Do not use `Files.readAllBytes` just to copy a tens-of-GB file: it can fail from array limits or heap exhaustion.
+- Use a bounded buffer and a loop so memory does not grow with file size.
+- Compute offsets using `long`, and watch for overflow when adding `position + n`.
+- Avoid `(int)(size - position)` when remaining bytes may exceed `Integer.MAX_VALUE`. Cast only after clamping with `Math.min(remaining, (long) buffer.capacity())`.
+- With `transferTo`, do not assume “`count` is `long` so the OS transfers terabytes in one syscall”; you must still loop by the actual returned value.
 
-### 8.1. Chia copy thành các đoạn có kích thước logic
+### 8.1. Splitting the Copy into Logically Sized Segments
 
-Ví dụ muốn giới hạn mỗi lần yêu cầu transfer ở 64 MiB:
+For example, to cap each transfer request at 64 MiB:
 
 ```java
 long offset = 0L;
@@ -588,11 +588,11 @@ while (offset < size) {
 }
 ```
 
-Đây là **snippet minh họa trong method**, với hai channel đã mở. 64 MiB là một kích thước tham khảo, không phải giới hạn bắt buộc của Java. Nếu source thay đổi concurrent, `size` có thể không còn phản ánh cuối file thật, nên cần quyết định copy **snapshot tại đầu** hay theo dõi thay đổi theo giao thức riêng.
+This is an **illustrative snippet inside a method**, with two open channels. 64 MiB is a reference size, not a mandatory Java limit. If the source changes concurrently, `size` may no longer reflect the true end of file, so decide whether to copy an **initial snapshot** or track changes via an explicit protocol.
 
-### 8.2. Copy một vùng của file
+### 8.2. Copying a Region of a File
 
-`FileChannel` tiện khi chỉ cần byte [start,start+length):
+`FileChannel` is convenient when only bytes `[start,start+length)` are needed:
 
 ```java
 long start = 1_048_576L;
@@ -613,75 +613,75 @@ while (copied < length) {
 }
 ```
 
-Đây là snippet trong method, giả định vùng byte yêu cầu tồn tại hoàn toàn trong source và target đang ở đúng position. Nếu file nhỏ hơn `start+length`, không coi copy thiếu byte là thành công; kiểm tra `size`/source integrity phù hợp và xử lý EOF.
+This is a snippet inside a method, assuming the requested byte range exists completely in the source and the target is at the right position. If the file is shorter than `start+length`, do not treat a short copy as success; check `size`/source integrity appropriately and handle EOF.
 
-### 8.3. Với copy nhiều file, metadata và directory tree cũng quan trọng
+### 8.3. With Multi-File Copying, Metadata and Directory Trees Also Matter
 
-`Files.copy` một Path đến một Path **không tự đệ quy copy toàn bộ cây thư mục có nội dung** nếu source là directory; khi copy directory, hành vi chỉ tạo/copy directory entry hoặc thuộc tính theo contract, còn entries bên trong cần được xử lý riêng. Copy một cây cần thuật toán duyệt, xử lý symlink/cycle, file permissions, metadata và lỗi từng tệp.
+`Files.copy` from one `Path` to another **does not recursively copy an entire directory tree with its contents** when `source` is a directory; when copying a directory, it only creates/copies the directory entry or attributes per contract, while inner entries must be handled separately. Copying a tree requires traversal, symlink/cycle handling, file permissions, metadata, and per-file error handling.
 
-Cũng đừng nhầm `Files.copy` một lần là giải pháp incremental backup: nó không tính diff, version, deduplication, checksum lịch sử hoặc transaction toàn cây.
+Also do not mistake a single `Files.copy` call for an incremental backup solution: it does not compute diffs, versions, deduplication, historical checksums, or tree-wide transactions.
 
-## 9. Hiệu năng: đọc số đo đúng cách
+## 9. Performance: Reading Measurements Properly
 
-### 9.1. Throughput và latency đo các khía cạnh khác nhau
+### 9.1. Throughput and Latency Measure Different Aspects
 
-- **Throughput:** số byte copy thành công trên mỗi giây, ví dụ MiB/s.
-- **Latency:** thời gian từ lúc bắt đầu copy tới lúc API hoàn tất cho một file.
-- **Tail latency:** p95/p99 khi có nhiều file/jobs, quan trọng với hệ thống phục vụ request.
-- **Memory footprint:** heap/direct memory/temporary buffers trên mỗi operation.
-- **CPU utilization:** CPU bị tiêu thụ khi copy.
-- **Syscall count/context switching:** đôi khi làm rõ ích lợi của buffered/transfer.
-- **Durability time:** nếu yêu cầu `force`/sync, phải đo cả phần đó, không chỉ thời gian bytes vào cache.
+- **Throughput:** bytes copied successfully per second, e.g. MiB/s.
+- **Latency:** time from starting a copy until the API completes for a file.
+- **Tail latency:** p95/p99 across many files/jobs, critical for request-serving systems.
+- **Memory footprint:** heap/direct memory/temporary buffers per operation.
+- **CPU utilization:** CPU consumed during copying.
+- **Syscall count/context switching:** sometimes clarifies the benefit of buffering/transfer.
+- **Durability time:** if `force`/sync is required, measure that part too, not just time for bytes to enter cache.
 
-Một API có throughput cao với một file 20 GB có thể lại kém đối với hàng triệu file 1 KiB do overhead mở/đóng, metadata lookup và scheduling. Cũng có thể Files.copy đã tận dụng tối ưu hóa của provider khiến vòng loop tự viết không nhanh hơn.
+An API with high throughput on one 20 GB file may perform poorly on millions of 1 KiB files due to open/close overhead, metadata lookups, and scheduling. Conversely, `Files.copy` may already exploit provider optimizations such that a hand-written loop is no faster.
 
-### 9.2. Bộ nhớ và tần suất gọi I/O
+### 9.2. Memory and I/O Call Frequency
 
-Một vòng `read(chunk)` với `chunk.length = B` cần khoảng `ceil(fileSize/B)` lần đọc trong trường hợp mỗi read đầy đủ, **nhưng thực tế có thể nhiều hơn** do partial reads. Số lần ghi cũng phụ thuộc việc ghi partial và buffering.
+A `read(chunk)` loop with `chunk.length = B` needs about `ceil(fileSize/B)` reads when each read is full, **but actual calls can be higher** due to partial reads. Write counts also depend on partial writes and buffering.
 
-Ví dụ tính toán minh họa: một file 1 GiB với khối 64 KiB tương ứng 16.384 khối nếu tất cả khối trừ cuối đều đầy. Đây chỉ là **ước lượng số chunk**, không phải số syscall chính xác của OS, vì lớp buffering, provider và native transfer có thể hoạt động khác.
+Illustrative calculation: a 1 GiB file with 64 KiB blocks corresponds to 16,384 blocks if all blocks except possibly the last are full. This is only a **chunk count estimate**, not the exact OS syscall count, because buffering layers, providers, and native transfers may behave differently.
 
-Điều quan trọng là **không gọi `read()`/`write()` từng byte** khi copy file lớn nếu không có yêu cầu đặc biệt; lập chiến lược buffer phù hợp và đo.
+The key point is **never calling byte-by-byte `read()`/`write()`** when copying large files unless specifically required; design an appropriate buffer strategy and measure.
 
-### 9.3. Page cache khiến benchmark dễ sai
+### 9.3. Page Cache Easily Skews Benchmarks
 
-Trong một hệ thống tệp điển hình, OS có page cache và read-ahead. Nếu chạy:
+On a typical filesystem, the OS has a page cache and read-ahead. If you run:
 
 ```text
-Lượt 1: buffered copy
-Lượt 2: Files.copy
-Lượt 3: FileChannel
+Pass 1: buffered copy
+Pass 2: Files.copy
+Pass 3: FileChannel
 ```
 
-thì lượt 2/3 có thể được hưởng dữ liệu nguồn đã nằm trong cache, dẫn đến kết luận thiên lệch rằng “lượt sau nhanh hơn”.
+then passes 2 and 3 may benefit from source data already residing in cache, leading to a biased conclusion that “the later approach is faster.”
 
-Các yếu tố gây nhiễu:
+Confounding factors:
 
-- Warm/cold cache của hệ điều hành và JVM.
+- Warm/cold OS and JVM caches.
 - Antivirus/indexing/background I/O.
-- SSD/HDD/NVMe, network mount, filesystem/compression/deduplication.
-- Khả năng copy nội bộ cùng filesystem hoặc giữa hai thiết bị.
-- Direct buffer allocation và GC.
-- Độ dài/lượng file, kích thước buffer, số worker đồng thời.
-- Sync/durability option và tốc độ thực của thiết bị.
-- File hệ thống thưa (sparse file), symlink và thuộc tính file.
+- SSD/HDD/NVMe, network mounts, filesystem compression/deduplication.
+- Intra-filesystem copy capability vs copying across two devices.
+- Direct buffer allocation and GC.
+- File size/count, buffer size, and concurrent worker count.
+- Sync/durability options and true device speed.
+- Sparse files, symlinks, and file attributes.
 
-### 9.4. Quy trình benchmark có ý nghĩa hơn
+### 9.4. A More Meaningful Benchmarking Process
 
-1. **Xác định workload:** file nhỏ, file 100 MB, 5 GB; một file hay nhiều file; copy cùng volume hay khác volume; sequential hay chunked.
-2. **Định nghĩa cùng semantics:** cả ba phương án đều copy bytes giống hệt, xử lý overwrite/attributes/flush giống nhau nếu những điều đó thuộc yêu cầu.
-3. **Warm-up:** chạy nhiều lượt cho JIT và hệ thống ổn định; đừng chọn lần đầu làm kết luận cuối.
-4. **Đổi thứ tự chạy:** luân phiên các chiến lược để giảm hiệu ứng cache.
-5. **Lặp nhiều mẫu:** lấy median và phân bố, ghi môi trường JDK/OS/filesystem/media.
-6. **Theo dõi correctness:** size, `Files.mismatch` hoặc checksum trong test thích hợp. Không dùng throughput của file copy bị thiếu byte.
-7. **Tách thời gian copy và verify:** việc đọc lại toàn file để `mismatch` có chi phí; báo hai thước đo riêng.
-8. **Đo memory/CPU khi cần:** dùng profiler, JFR hoặc các công cụ OS thích hợp, không chỉ thời gian nanoTime.
-9. **Kiểm tra failure scenarios:** disk full, permission errors, target tồn tại, source bị xóa/thay đổi, network filesystem bị ngắt.
-10. **Báo kết luận có phạm vi:** “trong máy thử và loại file này”, không nói API nào nhanh nhất cho mọi JVM.
+1. **Define the workload:** small files, 100 MB, 5 GB; single file or many files; same-volume or cross-volume copy; sequential or chunked.
+2. **Enforce identical semantics:** all three approaches copy identical bytes and handle overwrite/attributes/flushing identically if those are part of the requirements.
+3. **Warm-up:** run multiple iterations for JIT and system stabilization; do not treat the first run as the final verdict.
+4. **Vary execution order:** alternate strategies to reduce cache bias.
+5. **Repeat many samples:** take median and distribution, and record JDK/OS/filesystem/media details.
+6. **Verify correctness:** check size, `Files.mismatch`, or checksums in appropriate tests. Never report throughput of an incomplete copy.
+7. **Separate copy time from verify time:** re-reading the whole file for `mismatch` has a cost; report the two metrics separately.
+8. **Measure memory/CPU when needed:** use a profiler, JFR, or appropriate OS tools rather than `nanoTime` alone.
+9. **Test failure scenarios:** disk full, permission errors, existing target, deleted/modified source, disconnected network filesystem.
+10. **Scope conclusions explicitly:** “on this test machine and file type,” rather than claiming an API is fastest across all JVMs.
 
-`System.nanoTime()` phù hợp đo khoảng thời gian đơn lẻ trong một test tự kiểm soát; với microbenchmark cực ngắn, dùng framework như JMH và cẩn thận tác động của OS I/O vì JMH không loại bỏ mọi yếu tố cache/device.
+`System.nanoTime()` is suitable for measuring a single elapsed interval in a controlled test; for very short microbenchmarks, use a framework like JMH and watch out for OS I/O effects because JMH does not eliminate cache or device factors.
 
-### 9.5. Mẫu đo đơn giản, không tuyên bố benchmark chuẩn
+### 9.5. Simple Measurement Pattern, Not Claiming a Standard Benchmark
 
 ```java
 long startNanos = System.nanoTime();
@@ -697,75 +697,75 @@ double mibPerSecond = seconds > 0
         : Double.POSITIVE_INFINITY;
 ```
 
-Đây là **snippet minh họa** trong method xử lý `IOException`; `source`/`destination` là Path, destination chưa tồn tại. Nó không có stdout cố định, không bao gồm file verify và không phản ánh chắc chắn lưu bền. Không lấy một con số MiB/s từ đoạn này để áp cho môi trường khác.
+This is an **illustrative snippet** inside a method handling `IOException`; `source`/`destination` are `Path`s and `destination` does not exist yet. It has no fixed stdout, excludes file verification, and does not guarantee durable storage. Do not extrapolate one MiB/s figure from this snippet to other environments.
 
-## 10. Correctness: làm thế nào xác minh bản sao?
+## 10. Correctness: How to Verify a Copy?
 
-Một file copy “thành công” cần định nghĩa rõ điều gì được bảo toàn:
+A “successful” file copy must clearly define what is preserved:
 
-| Yêu cầu | Cách kiểm tra |
+| Requirement | How to verify |
 |---|---|
-| Nội dung bytes chính xác | `Files.mismatch(source,target)==-1` khi cả hai không bị thay trong lúc kiểm tra |
-| Kích thước bằng nhau | `Files.size(source)==Files.size(target)`, cần thiết nhưng không đủ |
-| Thời gian sửa đổi, quyền, owner | Đọc `BasicFileAttributes` hoặc view phù hợp; copy metadata riêng |
-| Không ghi đè dữ liệu có sẵn | `CREATE_NEW` hoặc default `Files.copy` khi target đã tồn tại |
-| Chấp nhận overwrite có chủ đích | `REPLACE_EXISTING` cho `Files.copy` hoặc open options tương ứng |
-| Crash durability | Thiết kế `force`/sync, staging và publish theo OS/filesystem |
-| Copy từ một phiên bản nhất quán | Snapshot, lock/protocol, version/checksum hoặc cơ chế lưu trữ tương đương |
-| Bảo mật đường dẫn | Validate/canonicalize theo trust boundary, xử lý symlink và quyền |
+| Exact byte contents | `Files.mismatch(source,target)==-1` when neither changes during the check |
+| Matching size | `Files.size(source)==Files.size(target)`, necessary but insufficient |
+| Modified time, permissions, owner | Read `BasicFileAttributes` or appropriate view; copy metadata separately |
+| Do not overwrite existing data | `CREATE_NEW` or default `Files.copy` when target already exists |
+| Allow intentional overwrite | `REPLACE_EXISTING` for `Files.copy` or corresponding open options |
+| Crash durability | Design `force`/sync, staging, and publish per OS/filesystem |
+| Copy from a consistent version | Snapshots, lock/protocol, version/checksum, or equivalent storage mechanism |
+| Path security | Validate/canonicalize across trust boundaries, handle symlinks and permissions |
 
-`Files.mismatch` trả **vị trí byte đầu tiên khác** hoặc `-1` nếu không có khác biệt; nếu file sizes khác nhau, trả vị trí đầu tiên mà file ngắn không còn byte. Nó không phải thuật toán hash bảo mật và không phát hiện/giải quyết mọi race khi nguồn/đích có thể bị sửa đồng thời.
+`Files.mismatch` returns the **first differing byte position** or `-1` if there is no difference; if file sizes differ, it returns the first position where the shorter file runs out of bytes. It is not a cryptographic hash algorithm and does not detect or resolve races when source/target can be modified concurrently.
 
-### 10.1. Vì sao kích thước bằng nhau chưa đủ?
+### 10.1. Why Is Matching Size Not Enough?
 
-Hai file đều 1 MB có thể khác toàn bộ bytes. Nếu chỉ kiểm tra `Files.size`, bug copy sai thứ tự, ghi dữ liệu cũ hoặc thay đổi offset sẽ bị bỏ qua. `mismatch` hoặc checksum phù hợp giúp xác minh nội dung trong bài test.
+Two 1 MB files can differ in every single byte. If you only check `Files.size`, bugs that copy out of order, write stale data, or shift offsets go unnoticed. `mismatch` or a suitable checksum helps verify content in tests.
 
-Ngược lại, nếu tệp có metadata quan trọng, bytes giống nhau vẫn chưa bảo đảm file đích có đúng quyền, attributes hay link semantics.
+Conversely, if metadata matters, identical bytes still do not guarantee the target file has the right permissions, attributes, or link semantics.
 
-## 11. Tệp đang bị thay đổi trong lúc copy
+## 11. Files Being Modified During a Copy
 
-Cả ba cách không tự tạo một **snapshot có tính giao dịch** của file nguồn đang được writer khác chỉnh sửa.
+None of the three approaches automatically creates a **transactional snapshot** of a source file being edited by another writer.
 
-Giả sử:
+Suppose:
 
 ```text
 T0: source.bin = version A
-T1: copy đọc nửa đầu version A
-T2: writer khác sửa nửa sau thành version B
-T3: copy đọc nửa sau version B
-T4: target có thể là hỗn hợp A/B
+T1: copy reads first half of version A
+T2: another writer modifies second half to version B
+T3: copy reads second half of version B
+T4: target may be a mix of A/B
 ```
 
-Ngay cả khi `Files.copy` thành công, dữ liệu đích chưa chắc tương ứng một thời điểm logic duy nhất. Khi tính nhất quán quan trọng:
+Even if `Files.copy` succeeds, target data may not correspond to any single logical point in time. When consistency matters:
 
-- Dừng writer hoặc dùng cơ chế lock/protocol giữa các bên **có hợp tác**.
-- Dùng snapshots của filesystem/storage nếu có và được xác nhận.
-- Thiết kế copy từ **file bất biến** theo phiên bản; ghi bản mới riêng và publish pointer sau.
-- Ghi checksum/version khi phát hành và validate sau khi copy; kiểm tra lại source nếu policy yêu cầu.
-- Đừng cho rằng `FileLock` mang lại transaction hoàn chỉnh giữa mọi process hoặc trên mọi filesystem; semantics tùy OS/provider.
+- Stop writers or use a lock/protocol across **cooperating** parties.
+- Use filesystem/storage snapshots if available and verified.
+- Design copies from versioned **immutable files**; write a new version separately and publish a pointer afterward.
+- Record a checksum/version on release and validate after copying; re-check the source if policy requires.
+- Do not assume `FileLock` provides complete transactions across all processes or filesystems; semantics depend on OS/provider.
 
-### 11.1. Một byte-stream copy không biết cấu trúc file nghiệp vụ
+### 11.1. A Byte-Stream Copy Knows Nothing About Application File Structure
 
-Với database file, WAL, log nhiều file hay cấu trúc được cập nhật nhiều bước, chỉ copy các bytes trong lúc dịch vụ đang chạy có thể tạo snapshot logic sai. Nên dùng API backup/snapshot chính thức của hệ thống lưu trữ đó hoặc quy trình application-consistent backup, thay vì tự copy file đang được thay đổi mà không hiểu cấu trúc.
+For database files, WALs, multi-file logs, or structures updated in multiple steps, simply copying bytes while the service is running can produce a logically corrupt snapshot. Use the storage system's official backup/snapshot API or an application-consistent backup procedure rather than copying live files without understanding their format.
 
-## 12. Overwrite, symlink và metadata
+## 12. Overwrite, Symlinks, and Metadata
 
-### 12.1. Copy file mới khác cập nhật file đang tồn tại
+### 12.1. Copying a New File Differs from Updating an Existing One
 
-`Files.copy(source,target)` mặc định không thay target hiện hữu. `Files.copy(source,target,REPLACE_EXISTING)` yêu cầu thay target nếu được phép. Nhưng thay đích **không phải atomic publish**; người đọc có thể nhìn thấy trạng thái không phù hợp khi copy đang diễn ra hoặc gặp lỗi.
+`Files.copy(source,target)` by default does not replace an existing target. `Files.copy(source,target,REPLACE_EXISTING)` requests replacing the target if allowed. However, replacing the target is **not an atomic publish**; readers can see an inconsistent state while copying is in progress or if it fails.
 
-Khi copy theo buffered stream/channel, các option:
+When copying via buffered streams/channels, open options mean:
 
-- `CREATE_NEW`: tạo mới và fail nếu file đã tồn tại.
-- `CREATE`: tạo nếu chưa tồn tại, không tự ngụ ý truncate nếu thiếu option liên quan.
-- `TRUNCATE_EXISTING`: cắt ngắn nếu mở ghi và file tồn tại theo contract.
-- `APPEND`: thêm vào cuối, **không phải copy ghi đè từ đầu**.
+- `CREATE_NEW`: create new and fail if the file already exists.
+- `CREATE`: create if absent; does not imply truncation without the corresponding option.
+- `TRUNCATE_EXISTING`: truncate if opened for writing and the file exists per contract.
+- `APPEND`: append to the end, **not an overwrite copy from the start**.
 
-Dùng chính sách thích hợp; không kết hợp `APPEND` với công việc copy nguyên trạng vào một file trống một cách vô ý.
+Use the appropriate policy; do not inadvertently combine `APPEND` with a verbatim copy into a fresh file.
 
-### 12.2. Symlink và đường dẫn
+### 12.2. Symlinks and Paths
 
-Với `Files.copy(Path,Path)`, nếu source là symbolic link, mặc định thường **theo link** và copy nội dung target được tham chiếu; `LinkOption.NOFOLLOW_LINKS` có thể dùng khi muốn copy chính link theo contract của provider.
+With `Files.copy(Path,Path)`, if `source` is a symbolic link, the default typically **follows the link** and copies the referenced target's contents; `LinkOption.NOFOLLOW_LINKS` can be used to copy the link itself per the provider's contract.
 
 ```java
 Files.copy(
@@ -774,101 +774,101 @@ Files.copy(
         LinkOption.NOFOLLOW_LINKS);
 ```
 
-Đây là snippet minh họa trong method xử lý `IOException`; hành vi tạo/copy symlink và quyền hỗ trợ phụ thuộc filesystem/provider. Nếu đường dẫn được người dùng cung cấp và chương trình có quyền cao, kiểm tra path traversal, symlink races và thư mục cho phép trước khi thao tác. Một check `Files.exists` rồi write riêng **không phải** rào chắn race tuyệt đối; dùng atomic create options và chính sách OS phù hợp khi cần.
+This is an illustrative snippet inside a method handling `IOException`; creating/copying symlinks and permission support depend on the filesystem/provider. If paths are user-supplied and the program runs with elevated privileges, check for path traversal, symlink races, and allowed directories before operating. A separate `Files.exists` check before writing is **not** an absolute race barrier; use atomic creation options and appropriate OS policies when needed.
 
-### 12.3. Copy attributes và permissions
+### 12.3. Copying Attributes and Permissions
 
-`StandardCopyOption.COPY_ATTRIBUTES` áp dụng trong overload `Files.copy(Path,Path)`; tập thuộc tính được bảo toàn tùy provider và filesystem. Trên một số nguồn/đích, quyền, owner, ACL, extended attributes, timestamp precision hoặc creation time có thể khác.
+`StandardCopyOption.COPY_ATTRIBUTES` applies to the `Files.copy(Path,Path)` overload; which attributes are preserved depends on the provider and filesystem. Between certain sources and targets, permissions, owner, ACLs, extended attributes, timestamp precision, or creation time may differ.
 
-Khi làm backup, metadata đôi khi quan trọng ngang nội dung; cần liệt kê attrs bắt buộc và kiểm tra sau copy. Đừng chấm hiệu năng của cách chỉ copy content rồi so với cách cũng sao chép permissions/metadata mà không ghi rõ sự khác biệt.
+When building backups, metadata is sometimes as important as content; inventory required attributes and verify after copying. Do not benchmark a content-only copy against one that also copies permissions/metadata without explicitly noting the difference.
 
-## 13. Độ bền file sau khi copy
+## 13. File Durability After Copying
 
-**“Method trả về thành công” không tự có nghĩa “file sống sót qua mất điện”.** File system và OS có thể buffer dữ liệu. Các API:
+**“The method returned successfully” does not automatically mean “the file survives power loss.”** Filesystems and OSes can buffer data. APIs:
 
-- `BufferedOutputStream.flush()`: đẩy bytes ở buffer Java xuống stream bên dưới; không mặc định fsync.
-- `Files.copy`: không phải lệnh sync durability có contract chung cho mọi thiết bị.
-- `FileChannel.force(false)`: yêu cầu flush thay đổi content theo phạm vi API.
-- `FileChannel.force(true)`: yêu cầu flush content và metadata theo phạm vi API; bảo đảm mạnh hơn trên thiết bị lưu trữ cục bộ theo điều kiện contract.
-- `Files.move(...,ATOMIC_MOVE)`: nếu hỗ trợ thì atomicity của thao tác move, **khác** durability sau crash.
-- Đồng bộ parent directory entry sau rename: phụ thuộc OS/provider và có thể cần API nền tảng ngoài Java SE portable.
+- `BufferedOutputStream.flush()`: pushes bytes from the Java buffer to the underlying stream; does not imply `fsync`.
+- `Files.copy`: not a durability sync command with a universal contract across all devices.
+- `FileChannel.force(false)`: requests flushing content changes within API scope.
+- `FileChannel.force(true)`: requests flushing both content and metadata within API scope; stronger guarantee on local storage under contract conditions.
+- `Files.move(...,ATOMIC_MOVE)`: when supported, covers atomicity of the move operation, **distinct from** crash durability.
+- Syncing the parent directory entry after rename: OS/provider-dependent and may require platform APIs outside portable Java SE.
 
-Nếu bản copy sẽ thay một file cấu hình quan trọng, thiết kế thường có:
+If a copy will replace a critical configuration file, a design often looks like:
 
 ```text
-tạo file tạm trong cùng thư mục
+create temporary file in the same directory
         │
         ▼
-copy toàn bộ bytes vào staging
+copy all bytes to staging
         │
         ▼
-kiểm tra bản sao (size/checksum/schema)
+verify copy (size/checksum/schema)
         │
         ▼
-force/sync staging khi yêu cầu durable
+force/sync staging when durability is required
         │
         ▼
-rename nguyên tử nếu provider hỗ trợ
+atomic rename if supported by provider
         │
         ▼
-sync directory theo contract nền tảng nếu cần crash consistency
+sync directory per platform contract if crash consistency is needed
         │
         ▼
-chỉ xác nhận commit ở mức đã thực sự bảo đảm
+confirm commit only at the level actually guaranteed
 ```
 
-Không tự suy diễn rằng `FileChannel.force(true)` trên staging trước rename cũng đồng bộ **directory entry sau rename**. Với dữ liệu quan trọng, cần chính sách backup/recovery và kiểm thử failure mode trên storage thực.
+Do not assume `FileChannel.force(true)` on staging before rename also syncs the **directory entry after rename**. For critical data, maintain a backup/recovery policy and test failure modes on real storage.
 
-## 14. Xử lý lỗi và cleanup khi copy thất bại
+## 14. Error Handling and Cleanup When Copying Fails
 
-Một số tình huống phải tính:
+Situations to account for:
 
-| Tình huống | Rủi ro | Hướng xử lý |
+| Situation | Risk | How to handle |
 |---|---|---|
-| Source không tồn tại | `NoSuchFileException` hoặc IOException | Không tạo bản sao trống giả thành công |
-| Target đã tồn tại | `FileAlreadyExistsException` theo chính sách mặc định/CREATE_NEW | Chọn rõ overwrite hay không |
-| Disk full/quota | Bản đích có thể đã được ghi một phần | Dọn staging/target theo policy, không publish |
-| Permission denied | Không mở/ghi được file | Kiểm tra quyền, trả lỗi rõ |
-| File nguồn đổi kích thước | Copy thiếu hoặc dữ liệu pha nhiều phiên bản | Lock/snapshot/phiên bản bất biến |
-| `transferTo` trả 0 khi còn bytes | Loop không tiến, nguy cơ spin | Fallback hoặc fail |
-| `write(ByteBuffer)` ghi một phần | Truncation dữ liệu | Lặp tới hết `remaining()` |
-| Source/target là cùng file | Có thể tự ghi đè/cắt ngắn nguồn | Validate identity; tránh copy lên chính nguồn |
-| I/O giữa các volumes/FS | Tốc độ và semantics khác | Benchmark/tính đúng trên cặp đích thực |
-| Process bị dừng đột ngột | File chưa copy hết | Copy staging, trạng thái phục hồi và cleanup |
+| Source missing | `NoSuchFileException` or `IOException` | Do not create a fake empty copy as success |
+| Target exists | `FileAlreadyExistsException` under default/`CREATE_NEW` | Choose explicitly whether to overwrite |
+| Disk full/quota | Target may be partially written | Clean up staging/target per policy; do not publish |
+| Permission denied | Cannot open/write file | Check permissions, return clear error |
+| Source file resized | Short copy or mixed versions | Lock/snapshot/immutable versions |
+| `transferTo` returns 0 with bytes left | Non-advancing loop, spin risk | Fall back or fail |
+| Partial `write(ByteBuffer)` | Data truncation | Loop until `remaining()` is exhausted |
+| Source/target are the same file | Can overwrite/truncate source | Validate identity; avoid copying onto source |
+| Cross-volume/FS I/O | Different speed and semantics | Benchmark and verify correctness on actual pair |
+| Process killed abruptly | Incomplete copy | Copy to staging, recovery state, and cleanup |
 
-Nếu sao chép tới file tạm mà thất bại, không đổi tên file tạm thành target. Cách cleanup tùy nghiệp vụ: có thể xóa staging ngay, hoặc giữ bản sao dở dang để resume có kiểm tra checksum/chunk map. Tuyệt đối không đánh dấu file đích “completed” chỉ vì tồn tại.
+If copying to a temporary file fails, do not rename the temp file to target. Cleanup depends on business rules: you can delete staging immediately, or retain a partial copy to resume with checksum/chunk-map verification. Never mark a target file as “completed” merely because it exists.
 
-### 14.1. Thời gian chờ và hủy copy
+### 14.1. Timeouts and Copy Cancellation
 
-Với file lớn hoặc copy qua network filesystem, một operation có thể mất nhiều thời gian. Vòng buffered stream/channel tự viết có thể kiểm tra cờ dừng giữa các chunk, nhưng cần hiểu những lệnh I/O đang block có thể chưa trả ngay khi cờ đổi.
+For large files or copies over a network filesystem, an operation can take a long time. A hand-written buffered stream/channel loop can check a stop flag between chunks, though blocking I/O calls may not return immediately when the flag changes.
 
-`Files.copy` cấp cao không cung cấp trực tiếp callback tiến độ cho mỗi block ở overload Path→Path. Nếu cần progress UI hoặc cancellation từng khối, việc tự quản lý chunk/byte count ở stream/channel có thể phù hợp hơn.
+High-level `Files.copy` does not directly provide a per-block progress callback on the Path→Path overload. If UI progress or per-block cancellation is required, managing chunks and byte counts directly via streams or channels can be more suitable.
 
-Không ghi progress “100%” trước khi flush/close/verify theo định nghĩa hoàn tất của sản phẩm. Với các yêu cầu durability, trạng thái “byte đã chuyển” và “commit đã bền” là hai mốc khác nhau.
+Never report “100%” progress before `flush`/`close`/verify per your product's completion definition. Under durability requirements, “bytes transferred” and “durable commit” are two different milestones.
 
-### 14.2. Log và metrics
+### 14.2. Logs and Metrics
 
-Đối với job copy lớn, nên ghi:
+For large copy jobs, record:
 
-- Kích thước nguồn đã xác minh, tên job hoặc ID an toàn.
-- Số byte đã chuyển, thời gian, throughput đo được với nhãn môi trường.
-- API/chiến lược thực tế được dùng và fallback đã xảy ra hay chưa.
-- Phân loại lỗi: permissions, disk full, source truncated, target stalled, checksum mismatch.
-- Trạng thái: STARTED / COPYING / VERIFYING / COMMITTED / FAILED.
+- Verified source size, job name, or safe ID.
+- Bytes transferred, duration, and measured throughput with environment labels.
+- Actual API/strategy used and whether fallback occurred.
+- Error classification: permissions, disk full, source truncated, target stalled, checksum mismatch.
+- Status: `STARTED` / `COPYING` / `VERIFYING` / `COMMITTED` / `FAILED`.
 
-Không log nguyên nội dung tệp nhạy cảm hoặc đường dẫn chứa token/secret nếu không cần. Tại thời điểm báo COMMITTED, các điều kiện “đã copy / đã verify / đã sync / đã publish” phải được ghi nhận chính xác.
+Do not log raw sensitive file contents or paths containing tokens/secrets unnecessarily. At the moment `COMMITTED` is logged, the conditions “copied / verified / synced / published” must be recorded accurately.
 
-## 15. Nên dùng API nào trong từng tình huống?
+## 15. Which API Should You Use in Each Scenario?
 
-### Trường hợp A: copy một file thông thường
+### Case A: Copy a regular file
 
 ```java
 Files.copy(source, target);
 ```
 
-Ưu tiên vì ngắn, rõ mục đích, dễ xử lý options. Chỉ chuyển sang tự viết loop khi cần behavior mà API cấp cao không cung cấp hoặc benchmark đáng tin chứng minh có ích.
+Prefer this for brevity, clarity of intent, and straightforward option handling. Switch to a manual loop only when behavior is needed that the high-level API does not offer or a credible benchmark proves a benefit.
 
-### Trường hợp B: chuyển InputStream nhận từ API khác thành file
+### Case B: Save an InputStream received from another API to a file
 
 ```java
 long bytes = Files.copy(
@@ -877,138 +877,138 @@ long bytes = Files.copy(
         StandardCopyOption.REPLACE_EXISTING);
 ```
 
-Khi stream thuộc caller, caller phải đóng nó theo ownership contract. Với nguồn không tin cậy, **giới hạn bytes khi nhận** bằng một wrapper/loop có hard cap; một lời gọi copy thẳng không tự đặt quota do ứng dụng mong muốn.
+When the stream belongs to the caller, the caller must close it per ownership contract. For untrusted sources, **cap received bytes** using a wrapper/loop with a hard limit; a direct copy call does not enforce an application-desired quota by itself.
 
-### Trường hợp C: cần xử lý từng chunk (checksum/progress/cancel)
+### Case C: Need per-chunk processing (checksum/progress/cancel)
 
-Dùng stream loop hoặc `FileChannel.read/write` để đo bytes, cập nhật checksum và kiểm tra cờ stop tại những điểm rõ ràng. Khi muốn thay đổi nội dung, buffered stream cho từng chunk có thể dễ hiểu hơn. `FileChannel` có lợi nếu cũng cần random access hoặc positional I/O.
+Use a stream loop or `FileChannel.read/write` to count bytes, update checksums, and check stop flags at clear points. When transforming content, buffered streams per chunk can be easier to follow. `FileChannel` helps if random access or positional I/O is also needed.
 
-### Trường hợp D: cần copy một đoạn của file rất lớn
+### Case D: Need to copy a slice of a very large file
 
-Dùng `FileChannel.transferTo(start,length,target)` với loop xử lý partial transfer; hoặc positional reads/writes qua ByteBuffer nếu native transfer không phù hợp. Đảm bảo offsets là `long` và không vượt file size theo dữ liệu đã kiểm chứng.
+Use `FileChannel.transferTo(start,length,target)` with a loop handling partial transfers; or positional reads/writes via `ByteBuffer` if native transfer is unsuitable. Ensure offsets are `long` and do not exceed verified file size.
 
-### Trường hợp E: tối ưu truyền bytes từ file tới socket
+### Case E: Optimize transferring bytes from a file to a socket
 
-`FileChannel.transferTo` có thể tận dụng đường tối ưu từ file tới một `WritableByteChannel` phù hợp, nhưng với socket non-blocking phải quản lý readiness/backpressure và kết quả transfer partial hoặc 0. Không áp đoạn loop file-to-file có giả định write luôn tiến lên socket theo cách thiếu kiểm soát.
+`FileChannel.transferTo` can exploit an optimized path from a file to a suitable `WritableByteChannel`, though for non-blocking sockets you must manage readiness/backpressure and partial or 0 transfers. Do not blindly apply a file-to-file loop that assumes writes always advance onto a socket.
 
-### Trường hợp F: backup với metadata và crash consistency
+### Case F: Backup with metadata and crash consistency
 
-Không có một lời gọi nào trong ba cách tự mang toàn bộ semantics backup. Cần kiểm kê metadata, snapshot logic, staging/verify, durability và atomic publish theo filesystem, cùng policy recovery.
+No single call among the three provides complete backup semantics on its own. You need metadata inventory, logical snapshots, staging/verification, durability, and filesystem-aware atomic publishing, plus a recovery policy.
 
-## 16. Lỗi phổ biến
+## 16. Common Mistakes
 
-1. **`Files.readAllBytes` toàn bộ file nhiều GB chỉ để copy.** Có thể vượt giới hạn mảng/heap.
-2. **Đọc/ghi từng byte bằng I/O không buffer** trong vòng lớn. Tăng overhead; nên dùng chunk.
-3. **Nghĩ `read(chunk)` luôn lấp đầy mảng.** Phải dùng `n` được trả về.
-4. **Ghi `out.write(chunk)` ở lượt cuối dù chỉ đọc ít byte.** Có thể ghi lại dữ liệu cũ.
-5. **Quên `close`/`try-with-resources`.** Rò rỉ file descriptor và bỏ sót flush.
-6. **Cho rằng `flush` tương đương fsync.** Không có bảo đảm durability như vậy.
-7. **Gọi `Files.copy` lên target đã tồn tại mà không đặt overwrite policy.** Có thể ném `FileAlreadyExistsException`.
-8. **Dùng `REPLACE_EXISTING` rồi nghĩ copy atomic.** Replace option không biến copy thành transaction.
-9. **Cho rằng `COPY_ATTRIBUTES` giữ mọi ACL/metadata trên mọi FS.** Provider có giới hạn.
-10. **Cho rằng `Files.copy` luôn zero-copy.** Implementation cụ thể quyết định.
-11. **Cho rằng `FileChannel.transferTo` luôn zero-copy.** Java API không cam kết.
-12. **Chỉ gọi `transferTo` một lần và nghĩ đã copy hết.** Có thể partial transfer.
-13. **Khi `transferTo` trả 0, cứ loop ngay vô hạn.** Cần xử lý progress/fallback/fail.
-14. **Nhầm offset file với `ByteBuffer.position`.** Hai vị trí khác nhau; transferTo có positional source offset.
-15. **Dùng `int` cho size/offset file nhiều GB.** Tràn số và copy sai vùng.
-16. **Cast kích thước còn lại sang `int` trước khi giới hạn.** Có thể thành số âm/sai.
-17. **Quên `flip()` sau channel read.** Buffer chưa sẵn sàng cho write.
-18. **Quên `clear()` sau đã consume bytes.** Vòng tiếp thiếu chỗ nhận.
-19. **Cho rằng một `FileChannel.write` ghi hết `remaining()`.** Có thể partial write.
-20. **Cấp phát direct ByteBuffer mới mỗi chunk.** Tăng chi phí/tài nguyên không cần thiết.
-21. **Benchmark một lần theo thứ tự cố định.** Dễ bị cache và tải nền bóp méo.
-22. **So cách copy bytes thuần với cách vừa copy attributes/force rồi kết luận nhanh-chậm.** Khác semantics nên so sánh không công bằng.
-23. **Đo bao gồm verify ở cách này nhưng không ở cách khác.** Kết quả throughput thiên lệch.
-24. **Nghĩ file size bằng nhau là bytes giống nhau.** Cần `Files.mismatch` hoặc kiểm tra nội dung thích hợp.
-25. **Nghĩ `Files.mismatch==-1` chứng minh durability.** Nó chỉ so sánh bytes ở thời điểm đọc.
-26. **Copy file đang bị sửa đồng thời và mặc định có snapshot nhất quán.** Có thể trộn phiên bản.
-27. **Copy trực tiếp vào file quan trọng rồi không xử lý trạng thái lỗi một phần.** Nên staging/verify/publish theo policy.
-28. **Quên xử lý symbolic links** trong tree copy hoặc input path không tin cậy.
-29. **Nghĩ `Files.copy` copy đệ quy cả cây directory.** Nó không tự sao chép mọi entry con.
-30. **Dùng `APPEND` trong lúc muốn file đích bằng đúng source.** Tạo nội dung sai.
-31. **Sao chép source lên chính source với TRUNCATE_EXISTING.** Nguy cơ mất dữ liệu.
-32. **Coi “method return” = “đã ghi bền trên đĩa”.** Cần force/sync riêng khi durability là yêu cầu.
-33. **Tin FileChannel luôn nhanh hơn buffered streams với file nhỏ.** Chi phí mở, transfer, caching có thể đảo chiều.
-34. **Không xác định ai sở hữu InputStream/OutputStream truyền cho API.** Dễ đóng sớm hoặc rò rỉ.
-35. **Không giới hạn byte từ nguồn InputStream do user kiểm soát.** Có thể fill disk/quota.
-36. **Cho rằng JVM/GC tự dọn file tạm khi job lỗi.** Cần cleanup/recovery rõ ràng.
+1. **`Files.readAllBytes` on a multi-GB file just to copy it.** Can exceed array/heap limits.
+2. **Byte-by-byte unbuffered `read`/`write`** in a large loop. Increases overhead; use chunks.
+3. **Assuming `read(chunk)` always fills the array.** Must use the returned `n`.
+4. **Calling `out.write(chunk)` on the final pass even when fewer bytes were read.** Can write stale data.
+5. **Forgetting `close`/`try-with-resources`.** Leaks file descriptors and skips flushing.
+6. **Assuming `flush` equals `fsync`.** There is no such durability guarantee.
+7. **Calling `Files.copy` onto an existing target without an overwrite policy.** Can throw `FileAlreadyExistsException`.
+8. **Using `REPLACE_EXISTING` and thinking the copy is atomic.** The replace option does not turn copy into a transaction.
+9. **Assuming `COPY_ATTRIBUTES` preserves all ACLs/metadata on all filesystems.** Providers have limits.
+10. **Assuming `Files.copy` is always zero-copy.** The specific implementation decides.
+11. **Assuming `FileChannel.transferTo` is always zero-copy.** The Java API makes no such promise.
+12. **Calling `transferTo` once and thinking the whole file was copied.** Partial transfers can happen.
+13. **Spinning indefinitely when `transferTo` returns 0.** Must handle progress/fallback/failure.
+14. **Confusing file offset with `ByteBuffer.position`.** They are distinct positions; `transferTo` takes a positional source offset.
+15. **Using `int` for multi-GB file sizes/offsets.** Overflows and copies wrong regions.
+16. **Casting remaining size to `int` before clamping.** Can become negative or wrong.
+17. **Forgetting `flip()` after channel read.** Buffer is not ready for writing.
+18. **Forgetting `clear()` after consuming bytes.** Next iteration lacks space to read.
+19. **Assuming a single `FileChannel.write` writes all `remaining()`.** Partial writes can occur.
+20. **Allocating a new direct `ByteBuffer` on every chunk.** Unnecessarily increases cost and resource pressure.
+21. **Benchmarking once in a fixed order.** Easily distorted by cache and background load.
+22. **Comparing a raw byte copy against one that also copies attributes/`force` and declaring one faster.** Different semantics make the comparison unfair.
+23. **Including verification in one method's timing but not the other's.** Biases throughput results.
+24. **Thinking equal file sizes mean equal bytes.** Need `Files.mismatch` or proper content verification.
+25. **Thinking `Files.mismatch==-1` proves durability.** It only compares bytes at read time.
+26. **Copying a concurrently modified file and assuming a consistent snapshot.** Can mix versions.
+27. **Copying directly into a critical file without handling partial failures.** Use staging/verify/publish per policy.
+28. **Forgetting symbolic links** during tree copies or with untrusted input paths.
+29. **Thinking `Files.copy` recursively copies an entire directory tree.** It does not copy all child entries automatically.
+30. **Using `APPEND` when intending the target to equal the source.** Produces wrong content.
+31. **Copying source onto itself with `TRUNCATE_EXISTING`.** Risk of data loss.
+32. **Treating “method returned” as “durably written to disk.”** Needs explicit `force`/sync when durability is required.
+33. **Believing `FileChannel` is always faster than buffered streams for small files.** Open, transfer, and caching costs can reverse expectations.
+34. **Failing to define ownership of `InputStream`/`OutputStream` passed to APIs.** Risks premature close or leaks.
+35. **Not bounding bytes from a user-controlled `InputStream`.** Can exhaust disk/quota.
+36. **Assuming JVM/GC cleans up temp files when a job fails.** Explicit cleanup/recovery is needed.
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-Check Questions
 
-**Câu 1.** Chỉ copy một file trên cùng máy, không cần offset/progress/biến đổi, nên cân nhắc API nào trước?  
-**Trả lời:** `Files.copy(source,target)` vì rõ nghĩa và ít code. Benchmark nếu hiệu năng có yêu cầu đặc biệt.
+**Question 1.** For simply copying one file on the same machine without needing offsets, progress, or transformations, which API should you consider first?  
+**Answer:** `Files.copy(source,target)` because it is clear and concise. Benchmark if performance has special requirements.
 
-**Câu 2.** Một lượt `in.read(chunk)` trả 123 byte, `chunk.length=65536`. Phải ghi bao nhiêu?  
-**Trả lời:** `out.write(chunk,0,123)`, không ghi toàn mảng.
+**Question 2.** One call to `in.read(chunk)` returns 123 bytes, with `chunk.length=65536`. How much should you write?  
+**Answer:** `out.write(chunk,0,123)`, not the entire array.
 
-**Câu 3.** `FileChannel.transferTo(0,size,target)` trả nhỏ hơn size có phải bug Java không?  
-**Không.** API cho phép partial transfer; phải lặp theo số byte thực chuyển.
+**Question 3.** Is `FileChannel.transferTo(0,size,target)` returning less than `size` a Java bug?  
+**No.** The API permits partial transfers; you must loop by the actual bytes transferred.
 
-**Câu 4.** Nếu `transferTo` trả 0 khi vẫn còn phần cần copy, nên làm gì?  
-**Trả lời:** Không spin vô hạn. Xem nguyên nhân, fallback qua ByteBuffer hoặc báo lỗi/đợi readiness tùy loại target.
+**Question 4.** If `transferTo` returns 0 while bytes remain to copy, what should you do?  
+**Answer:** Do not spin indefinitely. Check the cause, fall back via `ByteBuffer`, or fail/wait for readiness depending on the target type.
 
-**Câu 5.** Với file 5 GiB, có được cast `channel.size()` sang `int` không?  
-**Không.** Size và offset cần `long`; giới hạn buffer bằng int riêng.
+**Question 5.** For a 5 GiB file, can you cast `channel.size()` to `int`?  
+**No.** Size and offsets require `long`; bound the buffer separately using `int`.
 
-**Câu 6.** `Files.copy(Path,Path)` trả về `long` số bytes phải không?  
-**Không.** Nó trả `Path` đích. Các overload từ InputStream hoặc tới OutputStream trả byte count kiểu `long`.
+**Question 6.** Does `Files.copy(Path,Path)` return a `long` byte count?  
+**No.** It returns the target `Path`. The overloads from `InputStream` or to `OutputStream` return a `long` byte count.
 
-**Câu 7.** BufferedInputStream có luôn tăng tốc khi code đã tự đọc mảng 1 MiB không?  
-**Không bảo đảm.** Buffering bổ sung có thể dư; phải đo workload thực.
+**Question 7.** Does `BufferedInputStream` always speed things up when code already reads into a 1 MiB array?  
+**Not guaranteed.** Extra buffering may be redundant; measure the actual workload.
 
-**Câu 8.** `Files.copy(source,target,COPY_ATTRIBUTES)` có copy mọi extended attributes/ACL trên mọi OS không?  
-**Không.** Hỗ trợ và mức chính xác metadata phụ thuộc provider và filesystem.
+**Question 8.** Does `Files.copy(source,target,COPY_ATTRIBUTES)` copy all extended attributes/ACLs on every OS?  
+**No.** Support and metadata fidelity depend on the provider and filesystem.
 
-**Câu 9.** `Files.copy(source,target,REPLACE_EXISTING)` có atomic không?  
-**Không được bảo đảm.** Copy có thể là thao tác nhiều bước và để lại partial target khi lỗi.
+**Question 9.** Is `Files.copy(source,target,REPLACE_EXISTING)` atomic?  
+**Not guaranteed.** Copying can be a multi-step operation and leave a partial target on failure.
 
-**Câu 10.** `Files.mismatch(source,target)==-1` chứng minh điều gì?  
-**Trả lời:** Hai file có bytes giống nhau tại thời điểm được so sánh theo API; không chứng minh crash durability hay snapshot consistency nếu file bị đổi đồng thời.
+**Question 10.** What does `Files.mismatch(source,target)==-1` prove?  
+**Answer:** Both files had identical bytes at the time of comparison per the API; it does not prove crash durability or snapshot consistency if a file was modified concurrently.
 
-**Câu 11.** Vì sao benchmark copy thứ tự cố định có thể không công bằng?  
-**Vì** page cache, JIT, hoạt động nền và trạng thái lưu trữ thay đổi giữa lượt, khiến kết quả phụ thuộc thứ tự.
+**Question 11.** Why can fixed-order copy benchmarks be unfair?  
+**Because** page cache, JIT, background activity, and storage state change between runs, making results order-dependent.
 
-**Câu 12.** `FileChannel.transferTo` có bắt buộc tránh mọi copy trong OS không?  
-**Không.** Native/zero-copy là tối ưu khả dĩ, không phải cam kết portable của API.
+**Question 12.** Is `FileChannel.transferTo` guaranteed to avoid all OS copies?  
+**No.** Native/zero-copy is a potential optimization, not a portable API guarantee.
 
-**Câu 13.** Đã gọi `BufferedOutputStream.flush()`, sau mất điện file chắc chắn đủ bytes không?  
-**Không.** Flush tầng Java không đồng nghĩa độ bền storage; cần sync/force phù hợp.
+**Question 13.** After calling `BufferedOutputStream.flush()`, is the file guaranteed to have all bytes intact after a power loss?  
+**No.** Java-layer flushing does not mean storage durability; appropriate sync/force is required.
 
-**Câu 14.** Nếu source thay đổi trong lúc copy, Files.copy có cho một snapshot version duy nhất không?  
-**Không có bảo đảm chung.** Cần filesystem snapshot, immutable files hoặc giao thức điều phối.
+**Question 14.** If `source` changes during a copy, does `Files.copy` yield a single consistent snapshot version?  
+**No general guarantee.** You need filesystem snapshots, immutable files, or a coordination protocol.
 
-**Câu 15.** Khi cần copy nội dung một directory cùng các subdirectories thì gọi `Files.copy(dir,dest)` một lần đủ không?  
-**Không.** Cần duyệt cây và xử lý từng entry, symlink, attributes và lỗi.
+**Question 15.** When you need to copy the contents of a directory along with subdirectories, is a single `Files.copy(dir,dest)` call enough?  
+**No.** You must walk the tree and handle each entry, symlinks, attributes, and errors.
 
-**Câu 16.** FileChannel positional `transferTo` có thay đổi position của source FileChannel không?  
-**Không.** Offset nguồn được truyền vào, source position không đổi; target có position thì position được cập nhật theo bytes ghi.
+**Question 16.** Does positional `FileChannel.transferTo` alter the source `FileChannel`'s position?  
+**No.** The source offset is passed in, so source position stays unchanged; if the target has a position, it advances by the bytes written.
 
-## 18. Ghi nhớ và tài liệu chính thức
+## 18. Summary and Official Documentation
 
-**Tóm tắt quyết định:**
+**Decision summary:**
 
 ```text
-Cần copy nguyên một file?
-    ├── Có, không cần progress/chunk transformation
-    │       └── Ưu tiên thử Files.copy(Path,Path,options)
-    └── Cần pipeline riêng?
-            ├── Chỉ có InputStream/OutputStream hoặc xử lý từng chunk
-            │       └── Buffered streams với mảng byte tái sử dụng
-            └── Cần offset/random access/transfer giữa channels
-                    └── FileChannel + loop partial transfer
+Need to copy an entire file?
+    ├── Yes, no progress/chunk transformation needed
+    │       └── Try Files.copy(Path,Path,options) first
+    └── Need a custom pipeline?
+            ├── Only have InputStream/OutputStream or per-chunk processing
+            │       └── Buffered streams with a reusable byte array
+            └── Need offsets/random access/channel-to-channel transfer
+                    └── FileChannel + partial transfer loop
                               │
-                              └── Đo workload thật trước khi chọn tối ưu
+                              └── Measure real workload before choosing optimizations
 ```
 
-Dù chọn cách nào cũng nhớ: **không đọc hết file lớn vào heap chỉ để copy; kiểm tra giá trị số byte thực chuyển; bảo đảm đóng tài nguyên; nhận diện partial copy; phân biệt bytes đã copy, bytes đã kiểm tra và bytes đã ghi bền.**
+Regardless of approach, remember: **do not load huge files into the heap just to copy them; check the actual transferred byte count; ensure resources are closed; recognize partial copies; distinguish copied bytes, verified bytes, and durably written bytes.**
 
-Tài liệu Java SE 21 chính thức:
+Official Java SE 21 documentation:
 
-- `Files.copy` và các overload/semantics: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/Files.html
-- `StandardCopyOption` và `LinkOption`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/StandardCopyOption.html và https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/LinkOption.html
+- `Files.copy` and overloads/semantics: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/Files.html
+- `StandardCopyOption` and `LinkOption`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/StandardCopyOption.html and https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/LinkOption.html
 - `StandardOpenOption`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/StandardOpenOption.html
 - `FileChannel` — `read`, `write`, `transferTo`, `transferFrom`, `size`, `force`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html
-- `ByteBuffer` — `flip`, `clear`, `remaining` và direct buffers: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html
-- `BufferedInputStream` / `BufferedOutputStream`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/BufferedInputStream.html và https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/BufferedOutputStream.html
-- `Files.mismatch` — so sánh contents theo bytes: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/Files.html#mismatch(java.nio.file.Path,java.nio.file.Path)
+- `ByteBuffer` — `flip`, `clear`, `remaining`, and direct buffers: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html
+- `BufferedInputStream` / `BufferedOutputStream`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/BufferedInputStream.html and https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/BufferedOutputStream.html
+- `Files.mismatch` — byte-by-byte content comparison: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/Files.html#mismatch(java.nio.file.Path,java.nio.file.Path)

@@ -1,24 +1,24 @@
-# Tạo nguồn nguyên thủy từ mảng, khoảng số và bộ sinh
+# Creating Primitive Sources from Arrays, Ranges, and Generators
 
-Trong chương trình Java, chúng ta thường xử lý những dãy số như điểm kiểm tra, số lượng sản phẩm, chỉ số phần tử, mốc thời gian hoặc dữ liệu đo lường. Với **Java Stream API**, thay vì luôn chuyển chúng thành `List<Integer>` hay `List<Double>`, có thể tạo trực tiếp **Stream kiểu nguyên thủy** từ **mảng**, **khoảng số**, hoặc **bộ sinh giá trị** (*generator*).
+In Java programs, we frequently process sequences of numbers such as test scores, product quantities, element indices, timestamps, or measurement data. With the **Java Stream API**, instead of always converting them into `List<Integer>` or `List<Double>`, you can create **primitive streams** directly from **arrays**, **number ranges**, or **value generators**.
 
-Bài này thuộc chương **Stream kiểu nguyên thủy** của module **JAVA_STREAM_API**. Bạn sẽ học cách lựa chọn giữa `IntStream`, `LongStream` và `DoubleStream`, tạo nguồn hữu hạn hoặc không giới hạn, nối nguồn với pipeline `filter`, `map`, `reduce` và `collect`, đồng thời nhận diện những giới hạn về trạng thái, tài nguyên và hiệu năng. Đây là cơ sở để hiểu sâu hơn về `Spliterator`, xử lý song song và các cơ chế mở rộng pipeline như Stream Gatherers.
+This lesson belongs to the **Primitive Streams** chapter of the **JAVA_STREAM_API** module. You will learn how to choose between `IntStream`, `LongStream`, and `DoubleStream`, create finite or unbounded sources, connect sources with `filter`, `map`, `reduce`, and `collect` pipelines, and recognize limits regarding state, resources, and performance. This lays the groundwork for deeper understanding of `Spliterator`, parallel processing, and pipeline extension mechanisms such as Stream Gatherers.
 
-## 1. Ba kiểu Stream nguyên thủy trong Java
+## 1. Three primitive Stream types in Java
 
-`java.util.stream` cung cấp ba giao diện chuyên biệt cho kiểu số nguyên thủy:
+`java.util.stream` provides three specialized interfaces for primitive numeric types:
 
-| Kiểu Stream | Kiểu phần tử | Ví dụ nguồn | Một số phép toán hữu ích |
+| Stream Type | Element Type | Source Example | Useful Operations |
 |---|---|---|---|
 | `IntStream` | `int` | `IntStream.of(1, 2)` | `sum()`, `average()`, `min()`, `max()` |
 | `LongStream` | `long` | `LongStream.range(1L, 5L)` | `sum()`, `average()`, `min()`, `max()` |
 | `DoubleStream` | `double` | `DoubleStream.of(1.5, 2.5)` | `sum()`, `average()`, `min()`, `max()` |
 
-**Không có `FloatStream`, `ShortStream` hoặc `ByteStream` trong API chuẩn.** Những giá trị nhỏ hơn `int` có thể được xử lý bằng `IntStream`; giá trị `float` có thể được đưa vào `DoubleStream` khi phù hợp, với lưu ý về biểu diễn số thực.
+**There is no `FloatStream`, `ShortStream`, or `ByteStream` in the standard API.** Values smaller than `int` can be processed using `IntStream`; `float` values can be fed into `DoubleStream` when appropriate, keeping floating-point representation caveats in mind.
 
-So với `Stream<Integer>`, `Stream<Long>` và `Stream<Double>`, các Stream nguyên thủy cho phép nhiều phép toán số học làm việc trực tiếp trên giá trị `int`, `long` và `double`. Điều này thường tránh được chi phí **boxing/unboxing** khi biến số nguyên thủy thành đối tượng wrapper. Lợi ích hiệu năng cụ thể vẫn phụ thuộc vào pipeline và dữ liệu thực tế.
+Compared to `Stream<Integer>`, `Stream<Long>`, and `Stream<Double>`, primitive streams allow many arithmetic operations to work directly on `int`, `long`, and `double` values. This generally avoids the **boxing/unboxing** cost of wrapping primitive numbers into wrapper objects. Specific performance benefits still depend on the pipeline and actual data.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -30,22 +30,22 @@ int sum = IntStream.of(10, 20, 30)
 System.out.println(sum); // 50
 ~~~
 
-`IntStream.of(...)` là **nguồn**; `filter(...)` là thao tác **trung gian**; `sum()` là thao tác **kết thúc**. Các quy tắc pipeline lazy và vòng đời sử dụng một lần vẫn áp dụng như với `Stream<T>`.
+`IntStream.of(...)` is the **source**; `filter(...)` is an **intermediate** operation; `sum()` is a **terminal** operation. Lazy pipeline rules and the single-use lifecycle still apply just as with `Stream<T>`.
 
-## 2. Bản đồ các cách tạo nguồn
+## 2. Map of source creation methods
 
-Có ba nhóm chính trong phạm vi bài học:
+There are three main groups within the scope of this lesson:
 
 ~~~mermaid
 flowchart TD
-    A["Nguồn Stream nguyên thủy"] --> B["Từ mảng hoặc giá trị có sẵn"]
-    A --> C["Từ khoảng số nguyên liên tiếp"]
-    A --> D["Từ quy tắc sinh giá trị"]
+    A["Primitive Stream Sources"] --> B["From arrays or existing values"]
+    A --> C["From consecutive integer ranges"]
+    A --> D["From value generation rules"]
     B --> E["Arrays.stream / of"]
     C --> F["IntStream.range / rangeClosed"]
     C --> G["LongStream.range / rangeClosed"]
-    D --> H["iterate: phần tử kế tiếp từ phần tử trước"]
-    D --> I["generate: lấy giá trị từ Supplier"]
+    D --> H["iterate: next element from previous"]
+    D --> I["generate: pull value from Supplier"]
     E --> J["filter / map / sum / average / toArray"]
     F --> J
     G --> J
@@ -53,22 +53,22 @@ flowchart TD
     I --> J
 ~~~
 
-| Nhu cầu | API ưu tiên | Loại nguồn |
+| Need | Preferred API | Source Kind |
 |---|---|---|
-| Đã có mảng `int[]`, `long[]` hoặc `double[]` | `Arrays.stream(array)` | Hữu hạn |
-| Chỉ có vài số cố định | `IntStream.of(...)`, `LongStream.of(...)`, `DoubleStream.of(...)` | Hữu hạn |
-| Cần các chỉ số từ 0 đến `size - 1` | `IntStream.range(0, size)` | Hữu hạn |
-| Cần các số từ 1 đến `n`, gồm cả `n` | `IntStream.rangeClosed(1, n)` | Hữu hạn |
-| Mỗi phần tử kế tiếp phụ thuộc phần tử trước | `IntStream.iterate(seed, next)` | Có thể vô hạn |
-| Cần dãy lặp đến một điều kiện dừng | `IntStream.iterate(seed, hasNext, next)` (Java 9+) | Có điều kiện kết thúc |
-| Mỗi phần tử do một nguồn cung cấp độc lập | `DoubleStream.generate(supplier)` | Có thể vô hạn |
-| Cần số ngẫu nhiên với khoảng và kích thước xác định | `Random.ints(size, origin, bound)` hoặc họ tương ứng | Hữu hạn |
+| Already have an `int[]`, `long[]`, or `double[]` array | `Arrays.stream(array)` | Finite |
+| Only have a few fixed numbers | `IntStream.of(...)`, `LongStream.of(...)`, `DoubleStream.of(...)` | Finite |
+| Need indices from 0 to `size - 1` | `IntStream.range(0, size)` | Finite |
+| Need numbers from 1 to `n`, including `n` | `IntStream.rangeClosed(1, n)` | Finite |
+| Each next element depends on the previous one | `IntStream.iterate(seed, next)` | Potentially infinite |
+| Need a sequence iterating up to a stopping condition | `IntStream.iterate(seed, hasNext, next)` (Java 9+) | Has termination condition |
+| Each element comes from an independent provider | `DoubleStream.generate(supplier)` | Potentially infinite |
+| Need random numbers with a defined range and size | `Random.ints(size, origin, bound)` or corresponding family | Finite |
 
-**Lưu ý:** `range` và `rangeClosed` chỉ có trên **`IntStream` và `LongStream`**. Không tồn tại `DoubleStream.range()` trong Java Stream API chuẩn.
+**Note:** `range` and `rangeClosed` exist only on **`IntStream` and `LongStream`**. There is no `DoubleStream.range()` in the standard Java Stream API.
 
-## 3. Tạo Stream từ mảng nguyên thủy bằng Arrays.stream
+## 3. Creating a Stream from primitive arrays with Arrays.stream
 
-Cách phổ biến nhất khi dữ liệu đã được lưu trong mảng là dùng các overload của `java.util.Arrays.stream`:
+The most common way when data is already stored in an array is to use the overloads of `java.util.Arrays.stream`:
 
 ~~~java
 import java.util.Arrays;
@@ -89,11 +89,11 @@ System.out.println(timestampsStream.max().orElse(-1L)); // 3000
 System.out.println(temperaturesStream.average().orElse(Double.NaN)); // 21.3333...
 ~~~
 
-Mỗi dòng `Arrays.stream(array)` trả về Stream có kiểu phần tử tương ứng với loại mảng. Cùng một mảng có thể tạo **nhiều Stream độc lập**, nhưng mỗi đối tượng Stream chỉ nên được tiêu thụ **một lần**.
+Each `Arrays.stream(array)` call returns a Stream whose element type matches the array type. The same array can create **multiple independent Streams**, though each Stream object should be consumed **only once**.
 
-### 3.1. Chỉ đọc một đoạn của mảng
+### 3.1. Reading only a slice of an array
 
-`Arrays.stream` còn có các overload nhận `startInclusive` và `endExclusive`:
+`Arrays.stream` also has overloads accepting `startInclusive` and `endExclusive`:
 
 ~~~java
 import java.util.Arrays;
@@ -106,17 +106,17 @@ int sum = Arrays.stream(scores, 1, 4)
 System.out.println(sum); // 20 + 30 + 40 = 90
 ~~~
 
-Khoảng chỉ số `[1, 4)` gồm các vị trí **1, 2, 3**. Vị trí 4 không được lấy.
+The index range `[1, 4)` includes positions **1, 2, 3**. Position 4 is excluded.
 
-- `Arrays.stream(array, 0, array.length)` lấy toàn bộ mảng.
-- `Arrays.stream(array, 2, 2)` trả về Stream rỗng.
-- Giới hạn không hợp lệ (ví dụ `from > to` hoặc ngoài phạm vi mảng) gây lỗi kiểm tra chỉ số, chứ không tự co lại thành đoạn hợp lệ.
+- `Arrays.stream(array, 0, array.length)` reads the entire array.
+- `Arrays.stream(array, 2, 2)` returns an empty Stream.
+- Invalid bounds (e.g., `from > to` or out of array bounds) trigger an index check error rather than silently shrinking to a valid slice.
 
-Đây là quy tắc ranh giới **nửa mở** tương tự `IntStream.range(start, end)` và thường giúp giảm lỗi lệch chỉ số (*off-by-one*).
+This follows the same **half-open** boundary convention as `IntStream.range(start, end)` and generally helps reduce *off-by-one* errors.
 
-### 3.2. Tránh nhầm Stream<int[]> với IntStream
+### 3.2. Avoid confusing Stream<int[]> with IntStream
 
-`Stream.of(array)` có hành vi khác với `Arrays.stream(array)` khi `array` là mảng nguyên thủy:
+`Stream.of(array)` behaves differently from `Arrays.stream(array)` when `array` is a primitive array:
 
 ~~~java
 import java.util.Arrays;
@@ -127,17 +127,17 @@ int[] values = {1, 2, 3};
 long wrongCount = Stream.of(values).count(); // 1
 long rightCount = Arrays.stream(values).count(); // 3
 
-System.out.println(wrongCount); // 1: một phần tử kiểu int[]
-System.out.println(rightCount); // 3: ba phần tử kiểu int
+System.out.println(wrongCount); // 1: a single element of type int[]
+System.out.println(rightCount); // 3: three elements of type int
 ~~~
 
-`Stream.of(values)` ở đây tạo **`Stream<int[]>`** chứa cả mảng như **một phần tử**. Nếu muốn xử lý từng số `int`, hãy dùng `Arrays.stream(values)` hoặc `IntStream.of(values)`.
+Here `Stream.of(values)` creates a **`Stream<int[]>`** containing the entire array as **one element**. If you want to process individual `int` numbers, use `Arrays.stream(values)` or `IntStream.of(values)`.
 
-### 3.3. Mảng nguồn và thay đổi trạng thái
+### 3.3. Source arrays and state mutation
 
-`Arrays.stream(array)` tạo nguồn dựa trên mảng đã cung cấp; đừng giả định nó là bản sao dữ liệu bất biến. Sửa mảng trong lúc pipeline đang duyệt có thể vi phạm yêu cầu **non-interference** và gây kết quả khó đoán, đặc biệt với xử lý song song.
+`Arrays.stream(array)` creates a source backed by the supplied array; do not assume it is an immutable copy of the data. Modifying the array while the pipeline is traversing it can violate **non-interference** requirements and lead to unpredictable results, especially in parallel processing.
 
-Nếu cần dữ liệu chụp tại một thời điểm, sao chép trước rồi tạo nguồn từ bản sao:
+If you need a point-in-time snapshot of the data, copy it first and then create the source from the copy:
 
 ~~~java
 import java.util.Arrays;
@@ -148,11 +148,11 @@ int[] snapshot = Arrays.copyOf(measurements, measurements.length);
 int total = Arrays.stream(snapshot).sum(); // 21
 ~~~
 
-Việc sao chép có chi phí bộ nhớ tương ứng kích thước mảng. Chỉ dùng khi cần ổn định dữ liệu nguồn hoặc bảo vệ trước các thay đổi bên ngoài.
+Copying incurs memory overhead proportional to the array size. Use it only when you need to stabilize the source data or protect against external mutations.
 
-## 4. Tạo Stream từ các giá trị có sẵn: of và empty
+## 4. Creating a Stream from existing values: of and empty
 
-Khi chỉ cần vài giá trị trực tiếp, `of(...)` gọn hơn việc tạo mảng riêng:
+When you only need a few literal values directly, `of(...)` is more concise than allocating a separate array:
 
 ~~~java
 import java.util.stream.DoubleStream;
@@ -169,7 +169,7 @@ System.out.println(largestId);
 System.out.println(totalWeight);
 ~~~
 
-`of` có overload nhận một giá trị và overload nhận **varargs**. Bạn cũng có thể truyền mảng đúng kiểu:
+`of` has a single-value overload and a **varargs** overload. You can also pass an array of the matching type:
 
 ~~~java
 int[] values = {4, 5, 6};
@@ -178,7 +178,7 @@ int[] copyOfValuesAsResult = IntStream.of(values).toArray();
 System.out.println(java.util.Arrays.toString(copyOfValuesAsResult)); // [4, 5, 6]
 ~~~
 
-Để biểu diễn nguồn không có phần tử:
+To represent a source with no elements:
 
 ~~~java
 long count = IntStream.empty().count(); // 0
@@ -186,11 +186,11 @@ int sum = IntStream.empty().sum();      // 0
 boolean hasValue = IntStream.empty().findFirst().isPresent(); // false
 ~~~
 
-`IntStream.empty()`, `LongStream.empty()` và `DoubleStream.empty()` tránh phải tạo một mảng rỗng. Tuy nhiên, một phép tổng hợp trên Stream rỗng không phải lúc nào cũng trả số 0: `average()`, `min()` và `max()` trả các loại `Optional` không có giá trị.
+`IntStream.empty()`, `LongStream.empty()`, and `DoubleStream.empty()` avoid allocating an empty array. However, an aggregate operation on an empty Stream does not always return 0: `average()`, `min()`, and `max()` return empty `Optional` variants without a value.
 
-## 5. Tạo khoảng số bằng range và rangeClosed
+## 5. Creating numeric ranges with range and rangeClosed
 
-`IntStream` và `LongStream` có nguồn khoảng số liên tiếp với bước tăng **1**.
+`IntStream` and `LongStream` provide consecutive number range sources with a step increment of **1**.
 
 ~~~java
 IntStream.range(int startInclusive, int endExclusive)
@@ -200,51 +200,51 @@ LongStream.range(long startInclusive, long endExclusive)
 LongStream.rangeClosed(long startInclusive, long endInclusive)
 ~~~
 
-Trong ký hiệu toán học:
+In mathematical notation:
 
-- `range(a, b)` tạo các số từ `a` đến **trước `b`**, ứng với `[a, b)`.
-- `rangeClosed(a, b)` tạo các số từ `a` đến **cả `b`**, ứng với `[a, b]`.
+- `range(a, b)` generates numbers from `a` up to **before `b`**, corresponding to `[a, b)`.
+- `rangeClosed(a, b)` generates numbers from `a` up to **and including `b`**, corresponding to `[a, b]`.
 
-| Ví dụ | Giá trị | Số phần tử |
+| Example | Values | Element Count |
 |---|---|---|
 | `IntStream.range(1, 5)` | `1, 2, 3, 4` | 4 |
 | `IntStream.rangeClosed(1, 5)` | `1, 2, 3, 4, 5` | 5 |
-| `IntStream.range(5, 5)` | Rỗng | 0 |
+| `IntStream.range(5, 5)` | Empty | 0 |
 | `IntStream.rangeClosed(5, 5)` | `5` | 1 |
 | `LongStream.rangeClosed(-2L, 1L)` | `-2, -1, 0, 1` | 4 |
-| `IntStream.rangeClosed(6, 3)` | Rỗng | 0 |
+| `IntStream.rangeClosed(6, 3)` | Empty | 0 |
 
-Khi `start >= end`, `range` trả dãy rỗng; khi `start > end`, `rangeClosed` trả dãy rỗng. Cả hai **không tự tạo dãy giảm** khi điểm bắt đầu lớn hơn điểm kết thúc.
+When `start >= end`, `range` returns an empty sequence; when `start > end`, `rangeClosed` returns an empty sequence. Neither **automatically generates a descending sequence** when the start point is greater than the end point.
 
-### 5.1. Đánh số chỉ số trong danh sách
+### 5.1. Indexing elements in a list
 
-Vị trí hợp lệ của một `List` có `n` phần tử là `0` đến `n - 1`. Vì vậy, `range(0, n)` đặc biệt phù hợp cho xử lý theo chỉ số:
+Valid positions in a `List` of `n` elements are `0` to `n - 1`. Therefore, `range(0, n)` is particularly well suited for index-based processing:
 
 ~~~java
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
-List<String> names = Arrays.asList("An", "Bình", "Chi");
+List<String> names = Arrays.asList("An", "Binh", "Chi");
 
 IntStream.range(0, names.size())
     .mapToObj(index -> (index + 1) + ". " + names.get(index))
     .forEach(System.out::println);
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 1. An
-2. Bình
+2. Binh
 3. Chi
 ~~~
 
-Không dùng `rangeClosed(0, names.size())` cho chỉ số: nó phát thêm `names.size()` và sẽ gây `IndexOutOfBoundsException` khi truy cập phần tử cuối giả định đó.
+Do not use `rangeClosed(0, names.size())` for indices: it emits `names.size()` as well and will cause an `IndexOutOfBoundsException` when accessing that non-existent last index.
 
-Với `List` có truy cập chỉ số chậm như `LinkedList`, gọi `get(index)` nhiều lần có thể kém hiệu quả. Nếu không cần vị trí, `names.stream()` thường rõ ràng và phù hợp hơn.
+For a `List` with slow indexed access like `LinkedList`, calling `get(index)` repeatedly can be inefficient. If the position is not needed, `names.stream()` is usually clearer and more appropriate.
 
-### 5.2. Tạo các giá trị số thứ tự, kể cả giá trị cuối
+### 5.2. Generating sequential ordinal values, including the final value
 
 ~~~java
 int sum1To5 = IntStream.rangeClosed(1, 5).sum(); // 15
@@ -254,11 +254,11 @@ System.out.println(sum1To5);
 System.out.println(count);
 ~~~
 
-Dùng `rangeClosed` khi nghiệp vụ nói “từ 1 **đến hết** 5”, hoặc “các ngày từ 1 **đến ngày cuối tháng**”.
+Use `rangeClosed` when the business requirement states “from 1 **through** 5”, or “days from the 1st **to the last day of the month**”.
 
-### 5.3. Giới hạn kiểu số và tràn số
+### 5.3. Numeric type limits and overflow
 
-Không nên mô phỏng khoảng đóng bằng cách luôn viết `range(start, end + 1)`, vì `end + 1` có thể tràn tại `Integer.MAX_VALUE` hoặc `Long.MAX_VALUE`.
+Do not simulate a closed range by always writing `range(start, end + 1)`, because `end + 1` can overflow at `Integer.MAX_VALUE` or `Long.MAX_VALUE`.
 
 ~~~java
 import java.util.stream.IntStream;
@@ -272,9 +272,9 @@ System.out.println(java.util.Arrays.toString(tail));
 // [2147483645, 2147483646, 2147483647]
 ~~~
 
-Cần phân biệt **khả năng mô tả nguồn** với **khả năng thu thập hoặc tổng hợp toàn bộ nguồn**. Một khoảng cực lớn là hợp lệ, nhưng `toArray()` có thể không phù hợp do giới hạn bộ nhớ/kích thước mảng.
+Distinguish between **the ability to describe a source** and **the ability to collect or aggregate the entire source**. A massive range is valid as a source, yet `toArray()` may be unsuitable due to memory/array-size limits.
 
-Đặc biệt, `IntStream.sum()` trả `int` và `LongStream.sum()` trả `long`: cả hai đều có thể tràn khi tổng vượt miền biểu diễn. Ví dụ muốn cộng nhiều giá trị `int` với tổng lớn hơn `int`, hãy chuyển sang `long` **trước** khi tính:
+In particular, `IntStream.sum()` returns `int` and `LongStream.sum()` returns `long`: both can overflow when the sum exceeds the representable range. For example, to sum many `int` values whose total exceeds `int`, convert to `long` **before** summing:
 
 ~~~java
 long safeSum = IntStream.rangeClosed(1, 100_000)
@@ -284,13 +284,13 @@ long safeSum = IntStream.rangeClosed(1, 100_000)
 System.out.println(safeSum); // 5000050000
 ~~~
 
-`asLongStream()` mở rộng từng giá trị `int` thành `long`; nó không làm `long` trở thành số nguyên vô hạn độ chính xác. Nếu tổng vẫn có thể vượt `long`, cần phương pháp và kiểu số khác (ví dụ `BigInteger`).
+`asLongStream()` widens each `int` value to `long`; it does not turn `long` into an arbitrary-precision integer. If the sum can still exceed `long`, another approach and numeric type (such as `BigInteger`) is needed.
 
-## 6. iterate: sinh phần tử tiếp theo từ phần tử trước
+## 6. iterate: generating the next element from the previous one
 
-Khi muốn một **cấp số cộng có bước nhảy khác 1**, một **cấp số nhân** hoặc một chuỗi số mà phần tử tiếp theo phụ thuộc phần tử trước, dùng `iterate`.
+When you want an **arithmetic progression with a step other than 1**, a **geometric progression**, or a numeric sequence where the next element depends on the previous one, use `iterate`.
 
-Các overload hai tham số có từ **Java 8**:
+The two-argument overloads have existed since **Java 8**:
 
 ~~~java
 IntStream.iterate(int seed, IntUnaryOperator next)
@@ -298,9 +298,9 @@ LongStream.iterate(long seed, LongUnaryOperator next)
 DoubleStream.iterate(double seed, DoubleUnaryOperator next)
 ~~~
 
-`seed` là giá trị đầu tiên. Hàm `next` tính giá trị tiếp theo dựa trên giá trị trước đó. Dạng này mô tả **nguồn tuần tự, có thứ tự và có thể không giới hạn**: không có điều kiện dừng nội tại.
+`seed` is the initial value. The `next` function computes the next value from the preceding one. This form describes a **sequential, ordered, and potentially unbounded source**: it has no built-in stopping condition.
 
-### 6.1. Cấp số cộng
+### 6.1. Arithmetic progression
 
 ~~~java
 import java.util.Arrays;
@@ -313,7 +313,7 @@ int[] evens = IntStream.iterate(0, n -> n + 2)
 System.out.println(Arrays.toString(evens)); // [0, 2, 4, 6, 8, 10]
 ~~~
 
-Giá trị được sinh theo chuỗi:
+Values are generated in sequence:
 
 ~~~text
 seed = 0
@@ -321,12 +321,12 @@ next(0) = 2
 next(2) = 4
 next(4) = 6
 ...
-limit(6) -> chỉ lấy 6 giá trị
+limit(6) -> take only 6 values
 ~~~
 
-**`limit(6)` rất quan trọng**: nếu gọi `toArray()` trên một nguồn `iterate` không giới hạn mà không có phép giới hạn, pipeline sẽ không thể thu đủ dãy và có thể tiêu tốn tài nguyên cho đến khi gặp lỗi.
+**`limit(6)` is critical**: calling `toArray()` on an unbounded `iterate` source without a limiting operation prevents the pipeline from ever finishing collection and can exhaust resources until an error occurs.
 
-### 6.2. Cấp số nhân
+### 6.2. Geometric progression
 
 ~~~java
 long[] powersOfTwo = LongStream.iterate(1L, n -> n * 2)
@@ -337,11 +337,11 @@ System.out.println(java.util.Arrays.toString(powersOfTwo));
 // [1, 2, 4, 8, 16, 32]
 ~~~
 
-Ví dụ giới hạn sáu phần tử nên không xảy ra tràn số; nếu tiếp tục nhân mà không giới hạn, `long` cuối cùng có thể tràn.
+The example limits to six elements so no overflow occurs; if multiplication continues unbounded, `long` will eventually overflow.
 
-### 6.3. iterate có điều kiện dừng (Java 9+)
+### 6.3. iterate with a stopping condition (Java 9+)
 
-Java 9 bổ sung overload ba tham số:
+Java 9 added the three-argument overload:
 
 ~~~java
 IntStream.iterate(int seed, IntPredicate hasNext, IntUnaryOperator next)
@@ -349,13 +349,13 @@ LongStream.iterate(long seed, LongPredicate hasNext, LongUnaryOperator next)
 DoubleStream.iterate(double seed, DoublePredicate hasNext, DoubleUnaryOperator next)
 ~~~
 
-`hasNext` được kiểm tra đối với giá trị ứng viên để quyết định **có đưa giá trị đó vào Stream hay không**. Khi sai, Stream kết thúc, giá trị không được phát ra.
+`hasNext` is tested against each candidate value to decide **whether to emit that value into the Stream**. Once false, the Stream terminates and that value is not emitted.
 
 ~~~java
 int[] numbers = IntStream.iterate(
         3,               // seed
-        n -> n <= 15,    // chỉ phát giá trị <= 15
-        n -> n + 3       // phần tử kế tiếp
+        n -> n <= 15,    // emit only values <= 15
+        n -> n + 3       // next element
     )
     .toArray();
 
@@ -363,11 +363,11 @@ System.out.println(java.util.Arrays.toString(numbers));
 // [3, 6, 9, 12, 15]
 ~~~
 
-Khác biệt với `rangeClosed(3, 15)` là `iterate` trên có bước nhảy **3**, không phải bước nhảy 1. Nếu đã biết một khoảng số liên tục tăng từng đơn vị, `range` hoặc `rangeClosed` thường ngắn và rõ nghĩa hơn.
+The difference from `rangeClosed(3, 15)` is that `iterate` above has a step of **3**, not 1. When you already have a contiguous range increasing by 1, `range` or `rangeClosed` is usually shorter and clearer.
 
-**Cảnh giác với điều kiện dừng và overflow:** nếu hàm `next` tràn số trước khi `hasNext` có thể chặn, giá trị tiếp theo có thể trở nên bất ngờ. Với dữ liệu gần giới hạn số nguyên, hãy chọn biểu thức chuyển bước có thể kiểm tra được hoặc kiểm soát tổng số phần tử trước bằng một khoảng chỉ số an toàn.
+**Watch out for stopping conditions and overflow:** if the `next` function overflows before `hasNext` can stop it, the next value can become unexpected. For data near integer limits, choose a verifiable step expression or control the total element count beforehand with a safe index range.
 
-### 6.4. Vì sao không dùng DoubleStream.iterate để đếm bước chính xác?
+### 6.4. Why not use DoubleStream.iterate to count exact steps?
 
 ~~~java
 double[] fractions = DoubleStream.iterate(0.0, x -> x + 0.1)
@@ -375,7 +375,7 @@ double[] fractions = DoubleStream.iterate(0.0, x -> x + 0.1)
     .toArray();
 ~~~
 
-Dãy này biểu diễn các số `0.0, 0.1, 0.2, 0.3` theo logic, nhưng số thực nhị phân có thể tạo biểu diễn như `0.30000000000000004`. Nếu **số bước** phải xác định chính xác, nên tạo chỉ số nguyên trước, rồi ánh xạ:
+This sequence logically represents `0.0, 0.1, 0.2, 0.3`, yet binary floating-point numbers can produce representations such as `0.30000000000000004`. If the **number of steps** must be exact, generate integer indices first and then map them:
 
 ~~~java
 double[] values = IntStream.range(0, 4)
@@ -383,11 +383,11 @@ double[] values = IntStream.range(0, 4)
     .toArray();
 ~~~
 
-Cách sau có đúng bốn bước và không tích lũy sai số qua phép cộng lặp, nhưng bản thân `double` **vẫn không thể biểu diễn chính xác mọi số thập phân**. Với tiền hoặc phép tính yêu cầu thập phân chính xác, cần quy ước đơn vị số nguyên hoặc `BigDecimal`.
+The latter has exactly four steps and avoids accumulating error through repeated addition, though `double` itself **still cannot represent every decimal number exactly**. For money or calculations requiring exact decimal arithmetic, establish integer unit conventions or use `BigDecimal`.
 
-## 7. generate: lấy từng giá trị từ Supplier
+## 7. generate: pulling each value from a Supplier
 
-`generate` phù hợp khi giá trị được cung cấp bởi một **hàm nguồn** (*supplier*). Không có tham số phần tử trước như `iterate`:
+`generate` is suitable when values are supplied by a **generator function** (*supplier*). Unlike `iterate`, there is no previous-element parameter:
 
 ~~~java
 IntStream.generate(IntSupplier supplier)
@@ -395,9 +395,9 @@ LongStream.generate(LongSupplier supplier)
 DoubleStream.generate(DoubleSupplier supplier)
 ~~~
 
-Mỗi supplier trả về một giá trị nguyên thủy tương ứng thông qua `getAsInt()`, `getAsLong()` hoặc `getAsDouble()`.
+Each supplier returns a corresponding primitive value via `getAsInt()`, `getAsLong()`, or `getAsDouble()`.
 
-### 7.1. Sinh một giá trị cố định
+### 7.1. Generating a constant value
 
 ~~~java
 import java.util.Arrays;
@@ -410,11 +410,11 @@ int[] defaults = IntStream.generate(() -> -1)
 System.out.println(Arrays.toString(defaults)); // [-1, -1, -1, -1]
 ~~~
 
-`generate(() -> -1)` tạo nguồn **không giới hạn**, nhưng `limit(4)` khiến pipeline chỉ thu bốn giá trị cần thiết.
+`generate(() -> -1)` creates an **unbounded** source, yet `limit(4)` causes the pipeline to pull only the four needed values.
 
-Nguồn sinh bởi `generate` là **sequential, unordered** theo hợp đồng API. `unordered` ở đây không có nghĩa kết quả hiển thị luôn bị xáo ngẫu nhiên; nó có nghĩa API không hứa một *encounter order* để các phép toán về sau phải giữ.
+A source produced by `generate` is **sequential, unordered** by the API contract. `unordered` here does not mean the displayed output is always randomly shuffled; it means the API does not promise an *encounter order* that downstream operations must preserve.
 
-### 7.2. Dữ liệu mô phỏng từ bộ sinh ngẫu nhiên
+### 7.2. Simulated data from a random generator
 
 ~~~java
 import java.util.Random;
@@ -426,29 +426,29 @@ int[] diceRolls = IntStream.generate(() -> random.nextInt(6) + 1)
     .toArray();
 
 System.out.println(java.util.Arrays.toString(diceRolls));
-// Năm giá trị từ 1 đến 6 (có thể lặp).
+// Five values from 1 to 6 (duplicates possible).
 ~~~
 
-`Random(42L)` sử dụng seed xác định, hữu ích khi muốn ví dụ hoặc kiểm thử có thể tái lập. Với yêu cầu sinh **mẫu ngẫu nhiên cố định số phần tử và khoảng giá trị**, `Random.ints(...)` trong mục tiếp theo thường ngắn hơn.
+`Random(42L)` uses a deterministic seed, which is useful when you want reproducible examples or tests. For generating a **random sample with a fixed element count and value range**, `Random.ints(...)` in the next section is usually shorter.
 
-Vì `Random` chia sẻ trạng thái, **không nên tự động bật `parallel()` cho supplier dùng chung một đối tượng mutable** và kỳ vọng thứ tự/số lần gọi giống pipeline tuần tự. Với luồng song song, hãy chọn bộ sinh và kiến trúc an toàn cho nhiều luồng; đồng thời không sử dụng các bộ sinh ngẫu nhiên thông thường cho token bảo mật hoặc mật khẩu.
+Because `Random` shares mutable state, **do not blindly turn on `parallel()` for a supplier sharing a single mutable object** and expect the same call order or count as a sequential pipeline. For parallel streams, choose thread-safe generators and architectures; also never use ordinary random generators for security tokens or passwords.
 
-### 7.3. Phân biệt iterate và generate
+### 7.3. Distinguishing iterate and generate
 
-| Đặc điểm | `iterate` | `generate` |
+| Feature | `iterate` | `generate` |
 |---|---|---|
-| Bắt đầu bằng | `seed` | `Supplier` |
-| Giá trị kế tiếp | Hàm nhận giá trị trước đó | Supplier trả giá trị mới |
-| Encounter order | Có thứ tự | Unordered |
-| Nguồn mặc định | Có thể không giới hạn | Không giới hạn |
-| Cách giới hạn | `limit` hoặc overload có `hasNext` | `limit`, `takeWhile` hoặc phép toán dừng sớm phù hợp |
-| Thích hợp | Dãy toán học, quy tắc truy hồi | Giá trị mặc định, mô phỏng, nguồn cấp dữ liệu |
+| Starts with | `seed` | `Supplier` |
+| Next value | Function taking the previous value | Supplier returning a new value |
+| Encounter order | Ordered | Unordered |
+| Default source | Potentially unbounded | Unbounded |
+| How to bound | `limit` or overload with `hasNext` | `limit`, `takeWhile`, or suitable short-circuiting operation |
+| Best suited for | Mathematical sequences, recurrence rules | Default values, simulations, data feeds |
 
-`takeWhile` (Java 9+) có thể cắt nguồn theo điều kiện, nhưng với nguồn **unordered**, tính chất chọn phần tử của nó khác với nguồn ordered. Khi cần “đếm đúng N giá trị”, `limit(N)` là lựa chọn rõ ràng hơn.
+`takeWhile` (Java 9+) can truncate a source based on a condition, yet on an **unordered** source, its element selection behavior differs from an ordered source. When you need “exactly N values”, `limit(N)` is the clearer choice.
 
-## 8. Sinh số ngẫu nhiên bằng các API nguồn chuyên dụng
+## 8. Generating random numbers with dedicated source APIs
 
-`java.util.Random` cung cấp các phương thức tạo Stream nguyên thủy từ Java 8:
+`java.util.Random` has provided primitive Stream creation methods since Java 8:
 
 ~~~java
 Random.ints()
@@ -459,9 +459,9 @@ Random.longs(...)
 Random.doubles(...)
 ~~~
 
-Các overload tương ứng có thể sinh nguồn **không giới hạn** hoặc nguồn **hữu hạn theo `streamSize`**. Với overload nhận `origin` và `bound`, khoảng giá trị thường là **`[origin, bound)`**: lấy đầu dưới, loại đầu trên.
+The corresponding overloads can generate **unbounded** sources or **finite sources of length `streamSize`**. For overloads taking `origin` and `bound`, the value range is typically **`[origin, bound)`**: lower bound inclusive, upper bound exclusive.
 
-Ví dụ đầy đủ:
+Complete example:
 
 ~~~java
 import java.util.Arrays;
@@ -471,10 +471,10 @@ public class RandomPrimitiveSources {
     public static void main(String[] args) {
         Random random = new Random(123L);
 
-        // 6 lần gieo xúc xắc: mỗi số thuộc [1, 7), tức 1..6.
+        // 6 dice rolls: each number in [1, 7), i.e., 1..6.
         int[] rolls = random.ints(6, 1, 7).toArray();
 
-        // 3 giá trị double thuộc [0.0, 1.0).
+        // 3 double values in [0.0, 1.0).
         double[] samples = random.doubles(3, 0.0, 1.0).toArray();
 
         System.out.println(Arrays.toString(rolls));
@@ -483,13 +483,13 @@ public class RandomPrimitiveSources {
 }
 ~~~
 
-Lời gọi `ints(6, 1, 7)` trả `IntStream` **6 phần tử**, và `doubles(3, 0.0, 1.0)` trả `DoubleStream` **3 phần tử**. Giá trị cụ thể phụ thuộc seed và trình tự lấy số; các phần tử có thể trùng nhau. Đây là sinh mẫu ngẫu nhiên, không bảo đảm “sáu giá trị khác nhau”.
+The call `ints(6, 1, 7)` returns a **6-element** `IntStream`, and `doubles(3, 0.0, 1.0)` returns a **3-element** `DoubleStream`. Specific values depend on the seed and draw sequence; elements may repeat. This is random sampling and does not guarantee “six distinct values”.
 
-Ngoài `Random`, Java có `SplittableRandom` với các phương thức `ints`, `longs` và `doubles`, được thiết kế để có khả năng chia các bộ sinh khi xây dựng thuật toán song song. Việc chọn bộ sinh nên dựa vào yêu cầu thống kê, khả năng tái lập, an toàn luồng và mức độ bảo mật; **`Random` và `SplittableRandom` không phải bộ sinh mật mã**.
+Besides `Random`, Java provides `SplittableRandom` with `ints`, `longs`, and `doubles` methods, designed so generators can be split when building parallel algorithms. Choosing a generator should be based on statistical requirements, reproducibility, thread safety, and security level; **`Random` and `SplittableRandom` are not cryptographic generators**.
 
-## 9. Nguồn Stream và các phép biến đổi sang kiểu nguyên thủy
+## 9. Stream sources and transformations to primitive types
 
-Không phải lúc nào dữ liệu cũng có sẵn dưới dạng `int[]` hay `double[]`. Đôi khi nguồn là `Stream<T>` chứa các đối tượng nghiệp vụ:
+Data is not always available as `int[]` or `double[]`. Sometimes the source is a `Stream<T>` containing business objects:
 
 ~~~java
 import java.util.Arrays;
@@ -520,9 +520,9 @@ long total = orders.stream()
 System.out.println(total); // 250000
 ~~~
 
-`mapToLong` chuyển một Stream đối tượng thành `LongStream`; `mapToInt` và `mapToDouble` cũng có vai trò tương ứng. Đây là **nguồn tiếp nối từ pipeline có sẵn**, không phải mảng/khoảng/bộ sinh ban đầu, nhưng là cách kết nối quan trọng khi học xử lý dữ liệu khai báo.
+`mapToLong` converts an object Stream into a `LongStream`; `mapToInt` and `mapToDouble` play corresponding roles. This is a **continuation source from an existing pipeline**, not an initial array/range/generator, yet it is a vital bridge when learning declarative data processing.
 
-Nếu cần quay lại Stream đối tượng:
+If you need to return to an object Stream:
 
 ~~~java
 import java.util.List;
@@ -536,11 +536,11 @@ List<Integer> boxed = IntStream.rangeClosed(1, 3)
 System.out.println(boxed); // [1, 2, 3]
 ~~~
 
-`boxed()` chuyển `IntStream` thành `Stream<Integer>`; tương tự với `long` và `double`. Boxing có thể tốn thêm bộ nhớ và chi phí cấp phát; hãy giữ Stream nguyên thủy khi mục đích chỉ là tính toán số.
+`boxed()` converts `IntStream` to `Stream<Integer>`; the same applies to `long` and `double`. Boxing can incur extra memory and allocation costs; keep Streams primitive when the purpose is solely numeric calculation.
 
-## 10. Lazy evaluation, giới hạn và vòng đời nguồn
+## 10. Lazy evaluation, bounding, and source lifecycle
 
-Tạo nguồn **không có nghĩa mọi phần tử đã được tính**. Các thao tác trung gian thường *lazy*, và phép toán kết thúc mới yêu cầu dữ liệu cần thiết:
+Creating a source **does not mean all elements have already been computed**. Intermediate operations are typically *lazy*, and only the terminal operation requests the needed data:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -549,22 +549,22 @@ IntStream pipeline = IntStream.iterate(1, n -> n + 1)
     .filter(n -> n % 5 == 0)
     .limit(3);
 
-System.out.println("Đã khai báo pipeline");
+System.out.println("Pipeline declared");
 
 int[] result = pipeline.toArray();
 System.out.println(java.util.Arrays.toString(result));
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Đã khai báo pipeline
+Pipeline declared
 [5, 10, 15]
 ~~~
 
-Pipeline được mô tả trước; `toArray()` mới kích hoạt việc tính ra ba số chia hết cho 5.
+The pipeline is described first; `toArray()` triggers computing the first three numbers divisible by 5.
 
-### 10.1. Chọn điểm đặt limit cẩn thận
+### 10.1. Choose where to place limit carefully
 
 ~~~java
 int[] a = IntStream.iterate(1, n -> n + 1)
@@ -578,58 +578,58 @@ int[] b = IntStream.iterate(1, n -> n + 1)
     .toArray(); // [2]
 ~~~
 
-Cả hai đều kết thúc, nhưng **`filter → limit`** lấy ba kết quả thỏa điều kiện, còn **`limit → filter`** chỉ xét ba phần tử đầu nguồn rồi lọc.
+Both terminate, yet **`filter → limit`** takes three results matching the condition, whereas **`limit → filter`** inspects only the first three source elements and then filters them.
 
-### 10.2. Một số pipeline không thể hoàn thành
+### 10.2. Some pipelines cannot complete
 
-Những ví dụ dưới đây **không nên chạy** nếu không có cơ chế dừng hoặc giới hạn tài nguyên:
+The examples below **should not be run** without a stopping mechanism or resource bound:
 
 ~~~java
-// Nguồn vô hạn, terminal muốn đếm mọi phần tử:
+// Unbounded source, terminal operation wants to count every element:
 // IntStream.generate(() -> 1).count();
 
-// Sắp xếp toàn bộ nguồn vô hạn trước khi lấy vài phần tử:
+// Sorting an entire unbounded source before taking a few elements:
 // IntStream.iterate(0, n -> n + 1)
 //     .sorted()
 //     .limit(5)
 //     .toArray();
 ~~~
 
-`limit(5)` **đặt sau** `sorted()` không cứu được trường hợp nguồn vô hạn: `sorted` cần xét đủ nguồn trước khi có thể trả kết quả sắp xếp. Với nguồn không giới hạn, hãy xác định phép toán trung gian có trạng thái và vị trí cắt nguồn thật cẩn thận.
+`limit(5)` **placed after** `sorted()` does not save an unbounded source: `sorted` must inspect the entire source before it can return sorted results. With unbounded sources, check stateful intermediate operations and truncation points very carefully.
 
-### 10.3. Không tái sử dụng Stream đã tiêu thụ
+### 10.3. Do not reuse a consumed Stream
 
 ~~~java
 IntStream stream = IntStream.rangeClosed(1, 5);
 int sum = stream.sum(); // 15
 
-// Sai: dùng lại cùng đối tượng Stream đã kết thúc.
+// Wrong: reusing the same terminated Stream object.
 // long count = stream.count();
 
-// Đúng: tạo Stream mới từ nguồn có thể tạo lại.
+// Right: create a new Stream from a recreatable source.
 long count = IntStream.rangeClosed(1, 5).count(); // 5
 ~~~
 
-Một Stream chỉ dùng cho một pipeline kết thúc. Nếu muốn đọc nhiều lần từ mảng, hãy tạo nhiều Stream từ mảng; nếu nguồn do bộ sinh có trạng thái, mỗi lần tạo lại có thể sinh **dữ liệu khác**. Khi yêu cầu so sánh cùng dữ liệu, phải quản lý snapshot hoặc seed/chiến lược tạo dữ liệu phù hợp.
+A Stream serves only one terminal pipeline. If you want to read multiple times from an array, create multiple Streams from the array; if the source comes from a stateful generator, each recreation may produce **different data**. When comparing the same data is required, manage snapshots or appropriate seeds/generation strategies.
 
-## 11. Hiệu năng, trạng thái và xử lý song song
+## 11. Performance, state, and parallel processing
 
-Stream nguyên thủy thường giảm boxing, nhưng **không tự bảo đảm nhanh hơn vòng lặp**. Thời gian và bộ nhớ còn phụ thuộc cách tạo nguồn, số phần tử, phép toán, khả năng dừng sớm và thực tế triển khai JDK.
+Primitive streams generally reduce boxing, yet **do not automatically guarantee being faster than loops**. Execution time and memory also depend on source creation, element count, operations, short-circuiting capability, and actual JDK implementation.
 
-### 11.1. Nguồn hữu hạn và nguồn không giới hạn
+### 11.1. Finite and unbounded sources
 
-- `Arrays.stream(array)` duyệt mảng đã có; chi phí lưu dữ liệu chính đã tồn tại trong mảng.
-- `range` và `rangeClosed` biểu diễn dãy toán học, không cần tạo trước mảng chứa mọi số.
-- `iterate` sinh giá trị từ giá trị trước; khi cần tính theo phụ thuộc tuần tự, mức độ song song hóa có thể bị giới hạn.
-- `generate` lấy dữ liệu từ supplier; nếu supplier lưu trạng thái mutable hoặc dùng tài nguyên bên ngoài, phải kiểm soát tính đúng đắn và khả năng dừng.
+- `Arrays.stream(array)` traverses an existing array; the main data storage cost already exists in the array.
+- `range` and `rangeClosed` represent mathematical sequences without needing to pre-allocate an array holding every number.
+- `iterate` generates values from previous ones; when computation has sequential dependencies, parallelizability may be limited.
+- `generate` pulls data from a supplier; if the supplier holds mutable state or uses external resources, correctness and termination must be controlled.
 
-Không nên thu một nguồn rất lớn thành `toArray()` chỉ để đếm hoặc tính tổng: `count()` hay `sum()` thường rõ mục đích và không cần lưu toàn bộ kết quả. Dù vậy, `sum()` vẫn có giới hạn tràn số và phép tính dấu phẩy động có sai số.
+Do not collect a huge source into `toArray()` just to count or sum: `count()` or `sum()` is usually clearer in intent and avoids storing all elements. Even so, `sum()` still has overflow limits and floating-point operations have rounding error.
 
-### 11.2. Tác dụng phụ trong supplier và mapper
+### 11.2. Side effects in suppliers and mappers
 
-Với Stream, không nên dựa vào việc supplier hoặc lambda trung gian được gọi **chính xác bao nhiêu lần**, **theo thứ tự nào**, hay **trên luồng nào** nếu không có hợp đồng bảo đảm điều đó.
+With Streams, do not rely on a supplier or intermediate lambda being invoked **an exact number of times**, **in a specific order**, or **on a specific thread** unless there is a contract guaranteeing it.
 
-Ví dụ sau có rủi ro nếu dùng như bộ phát mã ID nghiệp vụ:
+The following example carries risk if used as a business ID generator:
 
 ~~~java
 java.util.concurrent.atomic.AtomicInteger counter =
@@ -641,19 +641,19 @@ int[] ids = IntStream.generate(counter::incrementAndGet)
     .toArray();
 ~~~
 
-Dù `AtomicInteger` giúp tăng biến an toàn theo nguyên tắc atomic, dùng bộ đếm chia sẻ trong nguồn unordered song song vẫn khiến nội dung và thứ tự kết quả khó dự đoán. Khi cần chính xác `1..10`, **`IntStream.rangeClosed(1, 10)`** biểu diễn yêu cầu trực tiếp và dễ kiểm tra hơn.
+Although `AtomicInteger` increments the variable atomically, using a shared counter in a parallel unordered source makes the contents and order of results unpredictable. When you need exact `1..10`, **`IntStream.rangeClosed(1, 10)`** expresses the requirement directly and is easier to verify.
 
-### 11.3. Khi nào cân nhắc parallel?
+### 11.3. When to consider parallel?
 
-`IntStream.range(...)` và `LongStream.range(...)` thường thuận lợi cho chia nhỏ nguồn vì biết ranh giới. Tuy nhiên, việc bật `parallel()` có chi phí lập lịch, phối hợp và kết hợp kết quả. Chỉ cân nhắc khi phép toán đủ lớn, ít tác dụng phụ, có thể phân chia độc lập và đã đo được lợi ích.
+`IntStream.range(...)` and `LongStream.range(...)` are typically favorable for splitting because their bounds are known. However, enabling `parallel()` incurs scheduling, coordination, and result-combining overhead. Consider it only when the workload is sufficiently large, has minimal side effects, can split independently, and shows measured benefit.
 
-Với một bộ sinh ngẫu nhiên hoặc nguồn I/O, không nên suy luận rằng bật parallel luôn tăng thông lượng. Nếu công việc phụ thuộc vào thứ tự hoặc trạng thái nguồn, cách xử lý có thể phải thay đổi về thiết kế trước khi có lợi ích hiệu năng.
+With a random generator or an I/O source, do not assume enabling parallel always increases throughput. If work depends on order or source state, the processing design may need to change before yielding performance gains.
 
-## 12. Ví dụ ứng dụng hoàn chỉnh: phân tích dữ liệu đo cảm biến
+## 12. Complete application example: sensor measurement analysis
 
-Giả sử ứng dụng nhận mảng nhiệt độ từ một cảm biến, cần tính trung bình, lọc các giá trị vượt ngưỡng và sinh một dãy chỉ số đọc mẫu. Ta sử dụng ba cách tạo nguồn: mảng, khoảng số, và bộ sinh mô phỏng.
+Suppose an application receives an array of temperatures from a sensor and needs to compute the average, filter values above a threshold, and generate a sequence of sample reading labels. We use three source creation approaches: array, range, and simulated generator.
 
-**Ví dụ Java 17+** (mã dùng các API Stream đã có từ Java 8):
+**Java 17+ example** (the code uses Stream APIs available since Java 8):
 
 ~~~java
 import java.util.Arrays;
@@ -665,50 +665,50 @@ public class PrimitiveStreamSourcesDemo {
     public static void main(String[] args) {
         double[] temperatures = {21.5, 23.0, 19.5, 25.0, 22.0};
 
-        // 1. Từ mảng: tính trung bình, có xử lý trường hợp rỗng.
+        // 1. From array: compute average, handling empty case.
         double average = Arrays.stream(temperatures)
             .average()
             .orElse(Double.NaN);
 
-        // 2. Từ mảng: lọc các số đo từ 23 độ C trở lên.
+        // 2. From array: filter readings of 23 degrees C or higher.
         double[] hotReadings = Arrays.stream(temperatures)
             .filter(t -> t >= 23.0)
             .toArray();
 
-        // 3. Từ khoảng số: mỗi phần tử tương ứng một chỉ số mảng.
+        // 3. From range: each element corresponds to an array index.
         String[] labels = IntStream.range(0, temperatures.length)
-            .mapToObj(i -> "Lần " + (i + 1) + ": " + temperatures[i])
+            .mapToObj(i -> "Reading " + (i + 1) + ": " + temperatures[i])
             .toArray(String[]::new);
 
-        // 4. Từ bộ sinh: tạo 3 giá trị mặc định phục vụ minh họa.
+        // 4. From generator: create 3 default values for demonstration.
         double[] defaults = DoubleStream.generate(() -> 20.0)
             .limit(3)
             .toArray();
 
-        System.out.printf(Locale.ROOT, "Trung bình: %.2f%n", average);
-        System.out.println("Vượt ngưỡng: " + Arrays.toString(hotReadings));
-        System.out.println("Nhãn: " + Arrays.toString(labels));
-        System.out.println("Mặc định: " + Arrays.toString(defaults));
+        System.out.printf(Locale.ROOT, "Average: %.2f%n", average);
+        System.out.println("Above threshold: " + Arrays.toString(hotReadings));
+        System.out.println("Labels: " + Arrays.toString(labels));
+        System.out.println("Defaults: " + Arrays.toString(defaults));
     }
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Trung bình: 22.20
-Vượt ngưỡng: [23.0, 25.0]
-Nhãn: [Lần 1: 21.5, Lần 2: 23.0, Lần 3: 19.5, Lần 4: 25.0, Lần 5: 22.0]
-Mặc định: [20.0, 20.0, 20.0]
+Average: 22.20
+Above threshold: [23.0, 25.0]
+Labels: [Reading 1: 21.5, Reading 2: 23.0, Reading 3: 19.5, Reading 4: 25.0, Reading 5: 22.0]
+Defaults: [20.0, 20.0, 20.0]
 ~~~
 
-Cùng một bộ dữ liệu được sử dụng qua **ba pipeline riêng** tạo từ `Arrays.stream(temperatures)` và `IntStream.range(...)`, còn `DoubleStream.generate(...)` là nguồn mô phỏng độc lập. Không tái sử dụng một Stream sau khi đã gọi terminal operation.
+The same dataset is used across **three separate pipelines** created from `Arrays.stream(temperatures)` and `IntStream.range(...)`, while `DoubleStream.generate(...)` is an independent simulated source. Never reuse a Stream after a terminal operation has been invoked on it.
 
-Trong xử lý cảm biến thật, phải xác định liệu các giá trị `NaN`, vô cực, dữ liệu thiếu hoặc ngoại lệ I/O có được chấp nhận không; không nên coi `Double.NaN` là giá trị nhiệt độ hợp lệ nếu nghiệp vụ yêu cầu dữ liệu sạch.
+In real sensor processing, you must determine whether `NaN`, infinity, missing data, or I/O exceptions are acceptable; do not treat `Double.NaN` as a valid temperature if business rules require clean data.
 
-## 13. Bài tập thực hành và lời giải
+## 13. Practice exercises and solutions
 
-**Bài 1 — Từ mảng:** Cho `int[] numbers = {3, 5, 7, 9, 11};`. Hãy lấy ba phần tử ở vị trí 1, 2, 3 và tính tổng.
+**Exercise 1 — From an array:** Given `int[] numbers = {3, 5, 7, 9, 11};`, take the three elements at positions 1, 2, 3 and compute their sum.
 
 ~~~java
 int[] numbers = {3, 5, 7, 9, 11};
@@ -719,7 +719,7 @@ int sum = java.util.Arrays.stream(numbers, 1, 4)
 System.out.println(sum); // 5 + 7 + 9 = 21
 ~~~
 
-**Bài 2 — Từ khoảng số:** Tạo các số chẵn từ 2 đến 12, kể cả 12. Có thể dùng `rangeClosed` kết hợp `filter`:
+**Exercise 2 — From a range:** Generate even numbers from 2 to 12, inclusive. You can use `rangeClosed` combined with `filter`:
 
 ~~~java
 int[] evens = IntStream.rangeClosed(2, 12)
@@ -730,7 +730,7 @@ System.out.println(java.util.Arrays.toString(evens));
 // [2, 4, 6, 8, 10, 12]
 ~~~
 
-**Bài 3 — Từ iterate:** Tạo năm lũy thừa của 3 bắt đầu bằng 1:
+**Exercise 3 — From iterate:** Generate five powers of 3 starting from 1:
 
 ~~~java
 int[] powers = IntStream.iterate(1, n -> n * 3)
@@ -741,7 +741,7 @@ System.out.println(java.util.Arrays.toString(powers));
 // [1, 3, 9, 27, 81]
 ~~~
 
-**Bài 4 — Từ generate:** Tạo bốn giá trị `2.5`:
+**Exercise 4 — From generate:** Generate four `2.5` values:
 
 ~~~java
 double[] values = DoubleStream.generate(() -> 2.5)
@@ -752,25 +752,25 @@ System.out.println(java.util.Arrays.toString(values));
 // [2.5, 2.5, 2.5, 2.5]
 ~~~
 
-**Câu hỏi tự kiểm tra:**
+**Self-check questions:**
 
-1. `Arrays.stream(new int[] {1, 2}).count()` trả bao nhiêu? — **2**.
-2. `Stream.of(new int[] {1, 2}).count()` trả bao nhiêu? — **1** vì phần tử là một `int[]`.
-3. `IntStream.range(2, 5)` và `rangeClosed(2, 5)` khác nhau ở đâu? — Trường hợp đầu **loại 5**, trường hợp sau **giữ 5**.
-4. Có `DoubleStream.range(0, 10)` không? — **Không** trong Java Stream API chuẩn.
-5. `IntStream.iterate(1, n -> n * 2)` có tự kết thúc không? — **Không**, dạng này cần giới hạn phù hợp.
-6. `IntStream.generate(() -> 3).limit(4)` sinh mấy số? — **4**, đều là số 3.
-7. `average()` trên Stream nguyên thủy rỗng trả gì? — Một **`OptionalDouble` rỗng**.
-8. `IntStream.rangeClosed(1, 100_000).sum()` có đáng tin cậy để tính tổng chính xác không? — **Không**, tổng vượt khả năng biểu diễn của `int`; hãy cân nhắc `asLongStream().sum()`.
+1. What does `Arrays.stream(new int[] {1, 2}).count()` return? — **2**.
+2. What does `Stream.of(new int[] {1, 2}).count()` return? — **1** because the element is a single `int[]`.
+3. How do `IntStream.range(2, 5)` and `rangeClosed(2, 5)` differ? — The former **excludes 5**, while the latter **includes 5**.
+4. Does `DoubleStream.range(0, 10)` exist? — **No**, not in the standard Java Stream API.
+5. Does `IntStream.iterate(1, n -> n * 2)` terminate on its own? — **No**, this form requires an appropriate limit.
+6. How many numbers does `IntStream.generate(() -> 3).limit(4)` emit? — **4**, all equal to 3.
+7. What does `average()` on an empty primitive Stream return? — An **empty `OptionalDouble`**.
+8. Is `IntStream.rangeClosed(1, 100_000).sum()` reliable for computing the exact sum? — **No**, the sum exceeds the representational capacity of `int`; consider `asLongStream().sum()`.
 
-## 14. Ghi nhớ và lựa chọn nguồn
+## 14. Takeaways and choosing a source
 
-Hãy chọn nguồn theo **bản chất của dữ liệu cần tạo**:
+Choose a source according to **the nature of the data to be produced**:
 
-- **Có sẵn dữ liệu trong mảng:** `Arrays.stream(int[]/long[]/double[])` hoặc `IntStream.of(array)`.
-- **Có một vài giá trị cố định:** `of(...)`; không có giá trị thì `empty()`.
-- **Có khoảng số nguyên liên tiếp:** `IntStream.range`, `rangeClosed` hoặc phiên bản `LongStream`.
-- **Có quy tắc từ phần tử trước:** `iterate(seed, next)`; nếu cần điều kiện dừng, dùng overload ba tham số từ Java 9.
-- **Có nguồn cung cấp từng giá trị độc lập:** `generate(supplier)`; với số ngẫu nhiên, cân nhắc `Random.ints/longs/doubles` và overload hữu hạn.
+- **Data already in an array:** `Arrays.stream(int[]/long[]/double[])` or `IntStream.of(array)`.
+- **A few fixed values:** `of(...)`; no values uses `empty()`.
+- **A consecutive integer range:** `IntStream.range`, `rangeClosed`, or the `LongStream` counterparts.
+- **A rule based on the previous element:** `iterate(seed, next)`; if a stopping condition is needed, use the three-argument overload from Java 9.
+- **A source providing independent values one by one:** `generate(supplier)`; for random numbers, consider `Random.ints/longs/doubles` and finite overloads.
 
-Dù nguồn nào, bạn vẫn cần quyết định **điều kiện kết thúc**, **kiểu số và nguy cơ tràn**, **trạng thái/tác dụng phụ của lambda**, và **chi phí của terminal operation**. Nắm được các yếu tố này sẽ giúp kết hợp đúng các phép toán `filter`, `map`, `reduce`, `collect`, rồi tiến đến grouping, collector tùy chỉnh, `Spliterator`, parallel Stream và Stream Gatherers một cách có kiểm soát.
+Regardless of the source, you still must decide on the **termination condition**, **numeric type and overflow risk**, **lambda state/side effects**, and **cost of the terminal operation**. Mastering these factors helps combine `filter`, `map`, `reduce`, and `collect` properly, and progress toward grouping, custom collectors, `Spliterator`, parallel Streams, and Stream Gatherers in a controlled manner.

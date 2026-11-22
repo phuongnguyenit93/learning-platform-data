@@ -1,20 +1,20 @@
-# `break` và `continue` có nhãn trong vòng lặp lồng — Java 17+
+# Labeled `break` and `continue` in Nested Loops — Java 17+
 
-## 1. Mục tiêu và quy tắc chính
+## 1. Goal and Main Rules
 
-Khi có nhiều vòng lặp lồng nhau, `break;` và `continue;` **không nhãn** mặc định tác động lên **vòng lặp gần nhất** bao quanh câu lệnh:
+When there are multiple nested loops, **unlabeled** `break;` and `continue;` by default act on the **nearest loop** enclosing the statement:
 
-- `break;`: kết thúc vòng lặp gần nhất, rồi tiếp tục sau vòng đó.
-- `continue;`: bỏ các câu lệnh còn lại trong **lượt hiện tại** của vòng lặp gần nhất, chuyển sang bước cập nhật/kiểm tra để đi tới lượt tiếp theo.
+- `break;`: terminates the nearest loop, then continues after that loop.
+- `continue;`: skips the remaining statements in the **current iteration** of the nearest loop, moving to the update/check step to proceed to the next iteration.
 
-Java cho phép đặt **nhãn** cho một vòng lặp, rồi chỉ định đích:
+Java allows placing a **label** on a loop, and then specifying the target:
 
 ~~~java
 outer:
 for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
         if (i == 1 && j == 1) {
-            break outer; // Kết thúc toàn bộ vòng for mang nhãn outer.
+            break outer; // Terminates the entire for loop labeled outer.
         }
         System.out.println(i + "," + j);
     }
@@ -32,9 +32,9 @@ System.out.println("done");
 done
 ~~~
 
-Nhãn `outer` là tên do lập trình viên đặt, **không phải** một biến, không phải `goto`, và không tạo một vòng lặp mới. Trong bài, ta sẽ phân biệt rõ `break outer;` với `continue outer;` và theo dõi trạng thái các biến đếm khi chuyển luồng.
+The label `outer` is a programmer-defined name, **not** a variable, not a `goto`, and does not create a new loop. In this lesson, we will clearly distinguish `break outer;` from `continue outer;` and trace the state of counter variables during control transfer.
 
-## 2. Cú pháp nhãn và hai lệnh chuyển luồng
+## 2. Label Syntax and the Two Control-Transfer Statements
 
 ~~~java
 myLoop:
@@ -43,17 +43,17 @@ for (int i = 0; i < 10; i++) {
 }
 ~~~
 
-Dạng đầy đủ:
+Full form:
 
-- `labelName:` đứng **ngay trước câu lệnh** được gắn nhãn.
-- `break labelName;` chuyển điều khiển ra **sau câu lệnh có nhãn**.
-- `continue labelName;` chuyển tới **lượt tiếp theo của vòng lặp có nhãn**, nếu nhãn đó chỉ một vòng lặp đang bao quanh vị trí `continue`.
+- `labelName:` appears **immediately before the statement** being labeled.
+- `break labelName;` transfers control to **after the labeled statement**.
+- `continue labelName;` transfers to **the next iteration of the labeled loop**, if that label refers to a loop enclosing the `continue` location.
 
-Tên nhãn phải là định danh Java hợp lệ (ví dụ `outer`, `search`, `nextRow`). Nhãn có phạm vi trong câu lệnh mà nó gắn vào; không thể nhảy sang một vòng lặp nằm trong phương thức khác.
+The label name must be a valid Java identifier (for example `outer`, `search`, `nextRow`). A label's scope is limited to the statement it is attached to; you cannot jump to a loop located in another method.
 
-**Điểm khác biệt của Java:** `break label;` có thể thoát một **câu lệnh có nhãn** phù hợp, kể cả block, nhưng `continue label;` **bắt buộc** nhãn phải thuộc một **vòng lặp** (`for`, `while`, `do-while`). Bài này sử dụng nhãn gắn với vòng lặp.
+**Key Java distinction:** `break label;` can exit an appropriate **labeled statement**, including a block, whereas `continue label;` **requires** the label to belong to a **loop** (`for`, `while`, `do-while`). This lesson uses labels attached to loops.
 
-## 3. Không nhãn: chỉ tác động vòng trong
+## 3. Unlabeled: Only Affects the Inner Loop
 
 ~~~java
 for (int i = 1; i <= 2; i++) {
@@ -74,9 +74,9 @@ pair 2,1
 after inner 2
 ~~~
 
-Khi `j == 2`, `break;` thoát **vòng `j`**. Vòng `i` vẫn chạy câu lệnh `after inner` và tiếp tục lượt `i` tiếp theo.
+When `j == 2`, `break;` exits **loop `j`**. Loop `i` still runs the `after inner` statement and continues to the next `i` iteration.
 
-Thử thay `break;` bằng `continue;`:
+Try replacing `break;` with `continue;`:
 
 ~~~java
 for (int i = 1; i <= 2; i++) {
@@ -96,9 +96,9 @@ keep 2,1
 keep 2,3
 ~~~
 
-`continue;` chỉ bỏ lượt `j == 2`, sau đó vòng `j` vẫn thực hiện **`j++`** rồi kiểm tra `j <= 3`. Vì vậy `j == 3` vẫn được duyệt ở cả hai lượt vòng ngoài.
+`continue;` only skips the `j == 2` iteration, after which loop `j` still executes **`j++`** and checks `j <= 3`. Therefore `j == 3` is still visited in both outer loop iterations.
 
-## 4. `break outer`: rời tất cả vòng bên trong đích
+## 4. `break outer`: Leaves All Loops Inside the Target
 
 ~~~java
 outer:
@@ -127,14 +127,14 @@ found 1,2
 after search
 ~~~
 
-- Chương trình gặp đích tại `i=1, j=2` thì thoát **vòng ngoài có nhãn `outer`**.
-- Các câu lệnh và lượt còn lại của hai vòng đều bị bỏ.
-- Phần **update `j++` và `i++` ở lượt bị ngắt không tự chạy**.
-- Thực thi tiếp tục sau toàn bộ vòng ngoài, tại `after search`.
+- When the program reaches the target at `i=1, j=2`, it exits the **outer loop labeled `outer`**.
+- The remaining statements and iterations of both loops are skipped.
+- The **update parts `j++` and `i++` on the interrupted iteration do not run automatically**.
+- Execution continues after the entire outer loop, at `after search`.
 
-Nhãn không cần trùng tên biến đếm; nên chọn tên diễn đạt ý nghĩa như `search` hoặc `outer`.
+A label does not need to match a counter variable name; choose expressive names such as `search` or `outer`.
 
-## 5. `continue outer`: bỏ phần còn lại của lượt vòng ngoài
+## 5. `continue outer`: Skips the Rest of the Outer Loop's Iteration
 
 ~~~java
 nextRow:
@@ -169,40 +169,40 @@ skip rest 2
 after rows
 ~~~
 
-`continue nextRow;` nghĩa là **bỏ phần còn lại của lượt `row` hiện tại**:
+`continue nextRow;` means **skip the rest of the current `row` iteration**:
 
-1. Không tiếp tục chạy những cột sau `col == 1`.
-2. Không chạy câu lệnh `row done` ở cuối body vòng ngoài trong lượt đó.
-3. **Vẫn thực hiện phần cập nhật của vòng `for (row)`: `row++`**, rồi xét điều kiện `row < 3`.
-4. Nếu điều kiện còn true, tạo **vòng trong mới** cho giá trị `row` kế tiếp.
+1. Do not continue running columns after `col == 1`.
+2. Do not run the `row done` statement at the end of the outer loop body in that iteration.
+3. **Still execute the update part of the `for (row)` loop: `row++`**, then evaluate the condition `row < 3`.
+4. If the condition is still true, start a **new inner loop** for the next `row` value.
 
-Do đó `continue outer` **không giống `break outer`**: nó không dừng toàn bộ vòng ngoài; nó chuyển sang lượt tiếp theo của vòng ngoài.
+Thus `continue outer` **is not the same as `break outer`**: it does not stop the entire outer loop; it moves to the next iteration of the outer loop.
 
-## 6. Bảng đối chiếu theo cấp độ chuyển luồng
+## 6. Comparison Table by Control-Transfer Level
 
-Giả sử đang ở trong vòng `j` nằm trong vòng `i` mang nhãn `outer`:
+Suppose we are inside loop `j` nested inside loop `i` labeled `outer`:
 
-| Câu lệnh | Đích | Cập nhật `j` hiện tại? | Cập nhật `i` hiện tại? | Tiếp tục ở đâu? |
+| Statement | Target | Update Current `j`? | Update Current `i`? | Where Does Execution Continue? |
 |---|---|---|---|---|
-| `break;` | Thoát vòng `j` | Không | Chưa; thân vòng `i` tiếp tục, cập nhật khi hết lượt | Sau vòng `j` |
-| `continue;` | Lượt kế vòng `j` | **Có** (basic for) | Không tại thời điểm đó | Phần update/điều kiện vòng `j` |
-| `break outer;` | Thoát vòng `i` | Không | **Không** | Sau vòng `i` |
-| `continue outer;` | Lượt kế vòng `i` | Không | **Có** (basic for) | Phần update/điều kiện vòng `i` |
+| `break;` | Exits loop `j` | No | Not yet; outer body of `i` continues, updates at end of iteration | After loop `j` |
+| `continue;` | Next iteration of `j` | **Yes** (basic for) | Not at that moment | Update/condition of loop `j` |
+| `break outer;` | Exits loop `i` | No | **No** | After loop `i` |
+| `continue outer;` | Next iteration of `i` | No | **Yes** (basic for) | Update/condition of loop `i` |
 
-Các mô tả cập nhật trong bảng áp dụng cho **basic `for`** có update riêng. Với `while` hoặc `do-while`, `continue` chuyển theo quy tắc xét điều kiện của loại vòng đó; không có biểu thức update tự động như basic `for`.
+The update descriptions in the table apply to **basic `for`** loops with their own update clause. With `while` or `do-while`, `continue` transfers according to the condition-evaluation rules of that loop type; there is no automatic update expression like in basic `for`.
 
 ~~~mermaid
 flowchart TD
-    A["Đang chạy body vòng trong j"] --> B{"Lệnh gặp phải"}
-    B -- "break" --> C["Ra khỏi vòng j, tiếp tục body ngoài"]
-    B -- "continue" --> D["Update và kiểm tra vòng j"]
-    B -- "break outer" --> E["Ra khỏi vòng i mang nhãn outer"]
-    B -- "continue outer" --> F["Update và kiểm tra vòng i"]
+    A["Running body of inner loop j"] --> B{"Statement encountered"}
+    B -- "break" --> C["Exit loop j, continue outer body"]
+    B -- "continue" --> D["Update and check loop j"]
+    B -- "break outer" --> E["Exit loop i labeled outer"]
+    B -- "continue outer" --> F["Update and check loop i"]
 ~~~
 
-## 7. Truy vết tác động của `continue outer` lên phần update
+## 7. Tracing the Effect of `continue outer` on the Update Clause
 
-Để nhìn rõ rằng update của vòng ngoài vẫn chạy:
+To see clearly that the outer loop's update still runs:
 
 ~~~java
 int updates = 0;
@@ -223,11 +223,11 @@ System.out.println("updates=" + updates);
 updates=3
 ~~~
 
-Ở mỗi lượt ngoài, vòng trong gặp `j == 0` và `continue outer;`. Dù bỏ phần còn lại của body, cả `i++` và `updates++` trong update vòng ngoài **vẫn được chạy**. Sau ba lượt ngoài, `updates == 3`.
+In each outer iteration, the inner loop encounters `j == 0` and executes `continue outer;`. Even though the rest of the body is skipped, both `i++` and `updates++` in the outer loop update **still run**. After three outer iterations, `updates == 3`.
 
-Trong một danh sách update có dấu phẩy, các biểu thức được thực thi từ trái sang phải. Khi chuyển luồng có thể xảy ra giữa chừng, đọc lại mã update để tránh hiểu nhầm biến nào được đổi.
+In a comma-separated update list, expressions are evaluated from left to right. When a mid-body control transfer can occur, reread the update code carefully to avoid misunderstanding which variables are modified.
 
-## 8. Ba cấp vòng lặp: nhãn có thể thoát nhiều cấp
+## 8. Three Loop Levels: Labels Can Exit Multiple Levels
 
 ~~~java
 stopAll:
@@ -257,11 +257,11 @@ stop 1,0,1
 after all
 ~~~
 
-`break stopAll` rời cả ba cấp vì vòng ngoài nhất `a` là câu lệnh có nhãn. Nhưng không phải lúc nào dùng nhãn cũng là giải pháp dễ bảo trì: nếu nhiều vòng lặp và nhiều trường hợp dừng phức tạp, hãy cân nhắc **tách thành phương thức** để dùng `return` rõ ràng.
+`break stopAll` leaves all three levels because the outermost loop `a` is the labeled statement. However, using labels is not always the most maintainable solution: when there are many loops and complex stopping conditions, consider **extracting a method** so you can use `return` clearly.
 
-## 9. Nhãn và `switch` lồng trong vòng lặp
+## 9. Labels and `switch` Nested Inside a Loop
 
-Khi trong vòng lặp có thêm một `switch`, `break;` không nhãn thoát **switch gần nhất**, còn `break outer;` có thể thoát vòng lặp mang nhãn ở bên ngoài. `continue outer;` có thể chuyển sang lượt vòng lặp kế tiếp từ bên trong switch:
+When a `switch` is also inside a loop, an unlabeled `break;` exits the **nearest switch**, whereas `break outer;` can exit the labeled enclosing loop. `continue outer;` can move to the next loop iteration from inside the switch:
 
 ~~~java
 outer:
@@ -290,13 +290,13 @@ switch:break
 switch:done
 ~~~
 
-Vì `i == 0` chuyển ngay sang cập nhật của vòng ngoài, `switch:post=0` không được in. Với `i == 1`, `break outer` dừng vòng ngoài; `switch:post=1` cũng không được in.
+Because `i == 0` transfers directly to the outer loop's update, `switch:post=0` is not printed. With `i == 1`, `break outer` stops the outer loop; `switch:post=1` is also not printed.
 
-**Không nhầm:** `continue;` không nhãn **không** nhắm vào switch độc lập; nó cần một vòng lặp đang bao quanh. Ngược lại, `break;` trong switch statement thường kết thúc switch.
+**Do not confuse:** an unlabeled `continue;` does **not** target a standalone switch; it requires an enclosing loop. Conversely, `break;` inside a switch statement normally ends the switch.
 
-## 10. Điều kiện hợp lệ, phạm vi nhãn và những lỗi biên dịch
+## 10. Validity Conditions, Label Scope, and Compilation Errors
 
-**Ví dụ đúng:** nhãn gắn trực tiếp với vòng lặp:
+**Valid example:** label attached directly to a loop:
 
 ~~~java
 retry:
@@ -305,15 +305,15 @@ while (true) {
 }
 ~~~
 
-**Ví dụ sai:** nhãn gắn với block không phải vòng lặp; `continue` không được nhắm tới nhãn đó:
+**Invalid example:** label attached to a non-loop block; `continue` cannot target that label:
 
 ~~~java
 // outer: {
-//     continue outer; // Lỗi biên dịch: nhãn không chỉ một vòng lặp.
+//     continue outer; // Compile error: label does not refer to a loop.
 // }
 ~~~
 
-**Ví dụ đúng với block:** `break` có nhãn có thể rời một block có nhãn:
+**Valid example with a block:** labeled `break` can exit a labeled block:
 
 ~~~java
 scope: {
@@ -330,33 +330,33 @@ before
 after
 ~~~
 
-Các lỗi khác cần tránh:
+Other errors to avoid:
 
-- Viết `break nonexistent;` hoặc `continue nonexistent;` khi không có nhãn bao quanh đúng tên → lỗi biên dịch.
-- Dùng nhãn ở vòng lặp **không bao quanh vị trí đang chuyển luồng** → không hợp lệ.
-- Dùng `continue` nhắm vào một `switch` hoặc một block → không hợp lệ; đích phải là vòng lặp.
-- Dùng lại một tên nhãn trong vùng lồng nhau gây trùng nhãn → lỗi biên dịch.
-- Nghĩ nhãn là biến hay object có thể gán hoặc truyền qua method → sai; tên nhãn chỉ có ý nghĩa cú pháp điều khiển luồng.
+- Writing `break nonexistent;` or `continue nonexistent;` when there is no enclosing label with that exact name → compile error.
+- Using a label on a loop that **does not enclose the control-transfer site** → invalid.
+- Using `continue` targeting a `switch` or a block → invalid; the target must be a loop.
+- Reusing a label name in a nested region causing a duplicate label → compile error.
+- Thinking a label is a variable or object that can be assigned or passed to a method → wrong; a label name only has syntactic control-flow meaning.
 
-`break`/`continue` có nhãn **không thể nhảy xuyên qua ranh giới một phương thức/lambda sang vòng lặp ở bên ngoài**. Nếu luồng phức tạp, truyền kết quả qua `return` thay vì cố “nhảy” giữa các phương thức.
+Labeled `break`/`continue` **cannot jump across a method/lambda boundary to an outside loop**. If the flow is complex, pass results back via `return` instead of trying to "jump" across methods.
 
-## 11. So sánh `break outer`, `continue outer` và `return`
+## 11. Comparing `break outer`, `continue outer`, and `return`
 
-| Lệnh | Kết thúc cái gì? | Chương trình còn tiếp tục sau vòng ngoài? |
+| Statement | What Does It End? | Does the Program Continue After the Outer Loop? |
 |---|---|---|
-| `break outer;` | Câu lệnh vòng lặp mang nhãn | Có, sau vòng ngoài |
-| `continue outer;` | **Lượt hiện tại** của vòng mang nhãn | Có thể sau các lượt tiếp theo khi vòng thật sự kết thúc |
-| `return;`/`return value;` | Toàn bộ phương thức hiện tại | Không, caller tiếp tục sau lời gọi |
-| `throw exception;` | Chuyển luồng bằng ngoại lệ | Phụ thuộc nơi bắt ngoại lệ |
+| `break outer;` | The labeled loop statement | Yes, after the outer loop |
+| `continue outer;` | **Current iteration** of the labeled loop | Possibly, after subsequent iterations when the loop actually finishes |
+| `return;`/`return value;` | The entire current method | No, the caller continues after the call |
+| `throw exception;` | Transfers flow via exception | Depends on where the exception is caught |
 
-Ví dụ cần tìm phần tử trong ma trận:
+Example searching for an element in a matrix:
 
 ~~~java
 static int[] find(int[][] matrix, int target) {
     for (int row = 0; row < matrix.length; row++) {
         for (int col = 0; col < matrix[row].length; col++) {
             if (matrix[row][col] == target) {
-                return new int[]{row, col}; // Rời phương thức.
+                return new int[]{row, col}; // Exits the method.
             }
         }
     }
@@ -364,13 +364,13 @@ static int[] find(int[][] matrix, int target) {
 }
 ~~~
 
-Đây là tình huống `return` thường **dễ đọc hơn `break label`** nếu mục đích tìm thấy là kết thúc toàn bộ phương thức tìm kiếm. `break outer` phù hợp khi cần rời các vòng nhưng vẫn có xử lý chung sau vòng.
+This is a situation where `return` is usually **easier to read than `break label`** if the goal upon finding the element is to terminate the entire search method. `break outer` is suitable when you need to exit the loops but still have shared post-loop processing.
 
-**Cẩn trọng với `finally`:** Nếu chuyển luồng ra khỏi khối `try` có `finally`, Java vẫn thực thi `finally` theo luật của ngôn ngữ trước khi hoàn tất chuyển luồng; đừng đặt side effect hoặc `return` bất ngờ trong `finally` làm khó suy luận.
+**Caution with `finally`:** If control transfers out of a `try` block with a `finally` clause, Java still executes `finally` according to language rules before completing the transfer; avoid putting unexpected side effects or `return` inside `finally` that make reasoning difficult.
 
-## 12. Chương trình Java 17 hoàn chỉnh, chạy độc lập
+## 12. Complete Standalone Java 17 Program
 
-Tạo file đúng tên **`LabeledLoopControlDemo.java`**:
+Create a file with the exact name **`LabeledLoopControlDemo.java`**:
 
 ~~~java
 public final class LabeledLoopControlDemo {
@@ -490,7 +490,7 @@ public final class LabeledLoopControlDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; mở terminal tại thư mục chứa file. Không dùng thư viện ngoài JDK, Maven/Gradle hoặc tính năng preview.
+**Requirements:** JDK 17 or higher; open a terminal in the directory containing the file. Do not use external libraries beyond the JDK, Maven/Gradle, or preview features.
 
 **Bash (Linux/macOS):**
 
@@ -555,11 +555,11 @@ switch:break
 switch:done
 ~~~
 
-**Đối chiếu:** `plainBreak` vẫn cho vòng ngoài chạy tiếp; `plainContinue` bỏ một `j`; `labeledBreak` dừng tìm kiếm sau `1,2`; `labeledContinue` bỏ phần còn lại của từng hàng; `updates=3` xác nhận update vòng ngoài vẫn chạy; `threeLevels` thoát đủ ba tầng; nhãn trong `insideSwitch` nhắm vào vòng ngoài.
+**Comparison:** `plainBreak` still lets the outer loop continue; `plainContinue` skips a single `j`; `labeledBreak` stops searching after `1,2`; `labeledContinue` skips the remainder of each row; `updates=3` confirms the outer loop update still runs; `threeLevels` exits all three levels; labels in `insideSwitch` target the outer loop.
 
-## 13. Bài tập có đáp án
+## 13. Exercises with Answers
 
-### A — `break` không nhãn dừng ở đâu?
+### A — Where does unlabeled `break` stop?
 
 ~~~java
 for (int i = 0; i < 2; i++) {
@@ -570,16 +570,16 @@ for (int i = 0; i < 2; i++) {
 }
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 0:0
 1:0
 ~~~
 
-Vòng `j` dừng tại `j==1` nhưng vòng `i` vẫn có lượt thứ hai.
+Loop `j` stops at `j==1`, yet loop `i` still gets its second iteration.
 
-### B — muốn thoát cả hai vòng
+### B — Exiting both loops
 
 ~~~java
 outer:
@@ -597,9 +597,9 @@ for (int i = 0; i < 2; i++) {
 0,0
 ~~~
 
-Dừng toàn bộ vòng `outer` khi tới cặp `0,1`.
+Stops the entire `outer` loop upon reaching the pair `0,1`.
 
-### C — muốn bỏ phần còn lại của một hàng
+### C — Skipping the rest of a row
 
 ~~~java
 nextRow:
@@ -618,9 +618,9 @@ for (int i = 0; i < 2; i++) {
 1,0
 ~~~
 
-`continue nextRow` bỏ các cột còn lại của hàng hiện tại, sau đó đi sang hàng sau.
+`continue nextRow` skips the remaining columns of the current row, then moves to the next row.
 
-### D — nhãn block có được dùng với `continue`?
+### D — Can a block label be used with `continue`?
 
 ~~~java
 // block: {
@@ -628,38 +628,38 @@ for (int i = 0; i < 2; i++) {
 // }
 ~~~
 
-**Đáp án:** không; `continue` có nhãn chỉ nhắm tới một vòng lặp. Với block có nhãn, có thể dùng `break block;` để rời block phù hợp.
+**Answer:** no; labeled `continue` can only target a loop. For a labeled block, `break block;` can be used to exit an appropriate block.
 
-### E — sau `continue outer`, `i++` có chạy không?
+### E — After `continue outer`, does `i++` run?
 
-Với `outer: for (int i=0; i<3; i++)`, gọi `continue outer;` từ vòng trong khi `i=1`.
+With `outer: for (int i=0; i<3; i++)`, `continue outer;` is called from the inner loop when `i=1`.
 
-**Đáp án:** có. Lệnh chuyển tới **bước update của vòng for có nhãn**, `i++` đổi 1 thành 2, rồi điều kiện `i<3` được kiểm tra.
+**Answer:** yes. Control transfers to **the update step of the labeled for loop**, `i++` changes 1 to 2, and then the condition `i<3` is checked.
 
-## 14. Lỗi thường gặp và kết luận
+## 14. Common Mistakes and Conclusion
 
-| Sai lầm | Hậu quả | Sửa |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| Dùng `break;` trong vòng trong để thoát cả hai | Vòng ngoài vẫn chạy | `break outer;` |
-| Dùng `continue;` trong vòng trong để bỏ cả hàng | Chỉ bỏ một lượt vòng trong | `continue outer;` |
-| Nhầm `continue outer` với kết thúc vòng ngoài | Vòng ngoài tiếp tục ở lượt kế | Dùng `break outer` nếu cần dừng hẳn |
-| Nghĩ `continue outer` bỏ update của for ngoài | Hiểu sai biến đếm | Basic `for` vẫn chạy update ngoài |
-| `continue someBlock;` | Không compile | Nhãn phải gắn với vòng lặp |
-| Nhãn không nằm trên cấu trúc bao quanh câu lệnh | Không compile | Đặt nhãn cho vòng ngoài đích |
-| Lạm dụng nhiều nhãn, nhiều cấp nhảy | Khó bảo trì | Tách thành method và dùng return khi rõ nghĩa |
-| Nhầm `break;` trong switch với `break outer;` | Thoát sai cấp | Xác định switch/vòng có nhãn cần rời |
+| Using `break;` in the inner loop to exit both | Outer loop keeps running | `break outer;` |
+| Using `continue;` in the inner loop to skip an entire row | Only skips one inner iteration | `continue outer;` |
+| Confusing `continue outer` with ending the outer loop | Outer loop continues to the next iteration | Use `break outer` if you need to stop completely |
+| Thinking `continue outer` skips the outer for's update | Misunderstands counter variables | Basic `for` still runs the outer update |
+| `continue someBlock;` | Does not compile | Labels must be attached to a loop |
+| Label is not on a construct enclosing the statement | Does not compile | Place the label on the target outer loop |
+| Overusing many labels and multi-level jumps | Hard to maintain | Extract into a method and use `return` when clear |
+| Confusing `break;` in a switch with `break outer;` | Exits at the wrong level | Identify the labeled switch/loop you want to leave |
 
 **Checklist:**
 
-- [ ] Biết `break;` và `continue;` không nhãn mặc định tác động vòng lặp gần nhất.
-- [ ] Biết cú pháp `label: for (...) { ... }`.
-- [ ] Biết `break label;` thoát hoàn toàn vòng có nhãn.
-- [ ] Biết `continue label;` bỏ phần còn lại của lượt hiện tại của vòng có nhãn.
-- [ ] Biết `continue outer;` trong basic `for` vẫn chạy update của vòng ngoài.
-- [ ] Hiểu `break outer;` không chạy update sau lượt bị ngắt.
-- [ ] Phân biệt nhãn block và nhãn vòng lặp; `continue` chỉ chấp nhận nhãn vòng lặp.
-- [ ] Nhận diện trường hợp switch lồng vòng lặp và chọn đúng nhãn.
-- [ ] Kiểm thử biến đếm, nhánh dừng và code chạy sau vòng lặp.
-- [ ] Chạy `LabeledLoopControlDemo.java` bằng JDK 17+ và đối chiếu exact stdout.
+- [ ] Know that unlabeled `break;` and `continue;` default to affecting the nearest loop.
+- [ ] Know the syntax `label: for (...) { ... }`.
+- [ ] Know that `break label;` completely exits the labeled loop.
+- [ ] Know that `continue label;` skips the remainder of the current iteration of the labeled loop.
+- [ ] Know that `continue outer;` in a basic `for` still runs the outer loop's update.
+- [ ] Understand that `break outer;` does not run updates after the interrupted iteration.
+- [ ] Distinguish block labels from loop labels; `continue` only accepts loop labels.
+- [ ] Recognize cases with a switch nested inside a loop and pick the right label.
+- [ ] Test counter variables, stopping branches, and code running after the loop.
+- [ ] Run `LabeledLoopControlDemo.java` with JDK 17+ and verify the exact stdout.
 
-**Kết luận:** Trong vòng lặp lồng, **`break outer` rời hẳn vòng ngoài**, còn **`continue outer` chỉ bỏ lượt ngoài đang chạy rồi chuyển tới bước cập nhật/kiểm tra của vòng đó**. Không có nhãn thì `break`/`continue` thông thường chỉ tác động vòng gần nhất. Dùng nhãn khi thật sự cần nhảy giữa các cấp lặp; nếu thuật toán nhiều điểm thoát quá phức tạp, hãy tách phương thức để dễ hiểu và kiểm thử.
+**Conclusion:** In nested loops, **`break outer` completely leaves the outer loop**, whereas **`continue outer` only skips the active outer iteration and moves to that loop's update/check step**. Without labels, standard `break`/`continue` only affect the nearest loop. Use labels when you genuinely need to jump across loop levels; if an algorithm has too many complex exit points, extract a method for easier comprehension and testing.

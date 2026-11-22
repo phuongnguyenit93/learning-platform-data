@@ -1,18 +1,18 @@
-# String.format, printf và Formatter trong Java
+# `String.format`, `printf`, and `Formatter` in Java
 
-Trong Java, biểu diễn số trong bộ nhớ và **trình bày số thành văn bản** là hai vấn đề khác nhau. Cùng một giá trị `12345.678` có thể được hiển thị dưới dạng `12,345.68`, `12.345,68` hoặc `1.235e+04` tùy **mẫu định dạng, Locale và mục đích sử dụng**.
+In Java, storing numbers in memory and **presenting numbers as text** are two separate concerns. The same value `12345.678` can be displayed as `12,345.68`, `12.345,68`, or `1.235e+04` depending on the **format pattern, Locale, and intended use**.
 
-Ba API liên quan chặt chẽ nhưng không đồng nhất:
+Three closely related yet distinct APIs:
 
-- **`String.format(...)`**: định dạng các đối số thành **một `String` mới**, không tự in ra console.
-- **`System.out.printf(...)`** (hoặc `PrintStream.printf`): **định dạng và ghi ngay** vào luồng đầu ra; trả lại `PrintStream` để có thể gọi nối tiếp.
-- **`java.util.Formatter`**: đối tượng định dạng có trạng thái, ghi vào một `Appendable` như `StringBuilder`, một luồng hoặc đích được hỗ trợ. Phù hợp khi muốn tái sử dụng bộ định dạng hoặc kiểm soát nơi nhận văn bản.
+- **`String.format(...)`**: formats arguments into **a new `String`**, without printing to the console.
+- **`System.out.printf(...)`** (or `PrintStream.printf`): **formats and writes immediately** to the output stream; returns the `PrintStream` so calls can be chained.
+- **`java.util.Formatter`**: a stateful formatting object that writes to an `Appendable` such as a `StringBuilder`, a stream, or another supported destination. Suitable when you want to reuse a formatter or control where text goes.
 
-Cả ba dựa trên **cú pháp format string của `Formatter`**, như `%d`, `%.2f`, `%,.2f`, `%e`. Việc định dạng **không làm thay đổi giá trị số nguồn**, nhưng chuỗi kết quả có thể đã làm tròn hoặc thay ký hiệu dấu thập phân theo Locale.
+All three rely on **`Formatter` format string syntax**, such as `%d`, `%.2f`, `%,.2f`, and `%e`. Formatting **does not modify the source numeric value**, though the resulting string may be rounded or use a different decimal symbol based on `Locale`.
 
-## 1. Ba API khác nhau ở hành động nào?
+## 1. How do the three APIs differ in action?
 
-### `String.format` tạo chuỗi
+### `String.format` creates a string
 
 ```java
 import java.util.Locale;
@@ -22,32 +22,32 @@ String text = String.format(Locale.US, "%,.2f", amount);
 System.out.println(text); // 1,234.57
 ```
 
-`text` chứa chuỗi `"1,234.57"`. Biến `amount` vẫn mang giá trị số cũ. `String.format` **không tự in**; việc in là câu lệnh `System.out.println` riêng.
+`text` holds `"1,234.57"`. The `amount` variable still retains its original numeric value. `String.format` **does not print by itself**; printing is a separate `System.out.println` statement.
 
-Có hai overload quen thuộc:
+There are two familiar overloads:
 
 ```java
-String a = String.format("%.2f", 1.5); // dùng Locale mặc định của môi trường
-String b = String.format(Locale.US, "%.2f", 1.5); // dùng Locale.US
+String a = String.format("%.2f", 1.5); // uses the environment's default Locale
+String b = String.format(Locale.US, "%.2f", 1.5); // uses Locale.US
 ```
 
-Nếu kết quả phải có dạng nhất quán trong log máy, xuất dữ liệu hoặc kiểm thử, **truyền Locale rõ ràng** thay vì dựa vào Locale mặc định thay đổi theo máy.
+If the output must have a consistent format in machine logs, data exports, or tests, **pass an explicit Locale** instead of relying on a default Locale that varies across machines.
 
-### `printf` định dạng và in ra luồng
+### `printf` formats and prints to a stream
 
 ```java
 System.out.printf(Locale.US, "Total: %.2f%n", 1234.5);
 ```
 
-Kết quả hiển thị:
+Displayed output:
 
 ```text
 Total: 1234.50
 ```
 
-`printf` không “tạo một String để bạn tự dùng” như `String.format`; nó ghi vào `System.out`. Trong `PrintStream`, `printf` trả lại chính luồng đó. Khi gọi nhiều lần, cần xác định xuống dòng bằng `%n`, `println` hoặc cấu trúc thông điệp thích hợp; `printf` không mặc định tự thêm newline.
+`printf` does not "create a String for you to use" like `String.format`; it writes to `System.out`. On `PrintStream`, `printf` returns that stream itself. When calling it multiple times, explicitly handle line breaks with `%n`, `println`, or an appropriate message structure; `printf` does not append a newline by default.
 
-### `Formatter` ghi vào một đích và có thể dùng nhiều lượt
+### `Formatter` writes to a destination and can be used across multiple calls
 
 ```java
 import java.util.Formatter;
@@ -61,91 +61,91 @@ try (Formatter formatter = new Formatter(buffer, Locale.US)) {
 System.out.println(buffer); // Price: 12.50 | Qty: 3
 ```
 
-`Formatter` thực hiện nhiều lệnh `format` trên cùng đích `StringBuilder`. Sau khi đóng formatter, `StringBuilder` còn chứa nội dung đã ghi và có thể đọc được. Nên đóng đối tượng do bạn tạo nếu nó sở hữu tài nguyên; với formatter ghi vào stream/file, cần chú ý cách đóng có thể ảnh hưởng đích. **Không chủ động đóng `System.out`** chỉ vì muốn ngừng định dạng.
+`Formatter` executes multiple `format` calls against the same `StringBuilder` destination. After closing the formatter, `StringBuilder` still holds the written content and can be read. You should close objects you create if they own resources; for a formatter writing to a stream/file, pay attention to how closing can affect the destination. **Do not intentionally close `System.out`** just to stop formatting.
 
-## 2. Cấu trúc một format specifier
+## 2. Structure of a format specifier
 
-Mẫu tổng quát cho một conversion dùng đối số:
+General template for an argument-consuming conversion:
 
 ```text
 %[argument_index$][flags][width][.precision]conversion
 ```
 
-Các phần là tùy chọn, nhưng `%` mở đầu và **conversion** xác định cách biểu diễn. Ví dụ:
+Parts are optional, except `%` at the start and the **conversion** determining the representation. Example:
 
 ```text
 %1$+08d
-││ │ │ └─ d: số nguyên thập phân
-││ │ └── 8: độ rộng tối thiểu
-││ └──── + và 0: luôn in dấu; đệm zero
-│└─────── 1$: dùng đối số thứ nhất
-└──────── %: bắt đầu specifier
+││ │ │ └─ d: decimal integer
+││ │ └── 8: minimum width
+││ └──── + and 0: always print sign; zero-pad
+│└─────── 1$: use the first argument
+└──────── %: start of specifier
 ```
 
-Trong `"%1$+08d"`, đối số thứ nhất là một số nguyên; với `42`, kết quả là `+0000042` (8 ký tự).
+In `"%1$+08d"`, the first argument is an integer; for `42`, the result is `+0000042` (8 characters).
 
-Các thành phần:
+Components:
 
-| Thành phần | Mục đích | Ví dụ |
+| Component | Purpose | Example |
 | --- | --- | --- |
-| `argument_index$` | Chọn đối số bắt đầu từ 1 thay vì theo thứ tự mặc định | `%2$s` |
-| `flags` | Quy định dấu, đệm, căn lề, grouping, dạng thay thế... | `+`, `0`, `-`, `,`, `(`, `#` |
-| `width` | Độ rộng **tối thiểu**; không tự cắt chuỗi dài hơn | `%8d` |
-| `.precision` | Ý nghĩa tùy conversion: số chữ số phần lẻ hoặc chữ số có nghĩa, giới hạn chuỗi... | `%.2f`, `%.4g` |
-| `conversion` | Kiểu hiển thị mong muốn | `d`, `f`, `e`, `g`, `x`, `s` |
+| `argument_index$` | Selects an argument starting from 1 instead of default order | `%2$s` |
+| `flags` | Specifies sign, padding, alignment, grouping, alternate form, etc. | `+`, `0`, `-`, `,`, `(`, `#` |
+| `width` | **Minimum** width; does not truncate longer strings | `%8d` |
+| `.precision` | Meaning depends on conversion: fractional digits or significant digits, string limit, etc. | `%.2f`, `%.4g` |
+| `conversion` | Desired display type | `d`, `f`, `e`, `g`, `x`, `s` |
 
-**Không phải mọi flag và precision đều hợp lệ với mọi conversion.** Ví dụ `%.2d` không phải cách hợp lệ để yêu cầu “hai chữ số phần lẻ của số nguyên” và có thể ném `IllegalFormatPrecisionException`.
+**Not every flag and precision is valid for every conversion.** For instance, `%.2d` is not a valid way to request "two fractional digits of an integer" and can throw `IllegalFormatPrecisionException`.
 
-## 3. Các conversion số nguyên thường dùng
+## 3. Common integer conversions
 
-| Conversion | Ý nghĩa | Ví dụ theo Locale.US |
+| Conversion | Meaning | Example in `Locale.US` |
 | --- | --- | --- |
-| `%d` | Số nguyên hệ 10 | `String.format("%d", 42)` → `"42"` |
-| `%x` | Số nguyên hệ 16, chữ thường | `String.format("%x", 255)` → `"ff"` |
-| `%X` | Số nguyên hệ 16, chữ hoa | `String.format("%X", 255)` → `"FF"` |
-| `%o` | Số nguyên hệ 8 | `String.format("%o", 8)` → `"10"` |
-| `%#x` | Dạng hệ 16 có tiền tố | `String.format("%#x", 255)` → `"0xff"` |
-| `%,d` | Hệ 10 có grouping theo Locale | `String.format(Locale.US, "%,d", 1234567)` → `"1,234,567"` |
-| `%+d` | Luôn in dấu `+` hoặc `-` | `42` → `"+42"` |
-| `%(d` | Số âm trong ngoặc | `-42` → `"(42)"` |
-| `%05d` | Độ rộng ít nhất 5, đệm số 0 | `-42` → `"-0042"` |
+| `%d` | Base-10 integer | `String.format("%d", 42)` → `"42"` |
+| `%x` | Base-16 integer, lowercase | `String.format("%x", 255)` → `"ff"` |
+| `%X` | Base-16 integer, uppercase | `String.format("%X", 255)` → `"FF"` |
+| `%o` | Base-8 integer | `String.format("%o", 8)` → `"10"` |
+| `%#x` | Base-16 form with prefix | `String.format("%#x", 255)` → `"0xff"` |
+| `%,d` | Base-10 with Locale grouping | `String.format(Locale.US, "%,d", 1234567)` → `"1,234,567"` |
+| `%+d` | Always print `+` or `-` sign | `42` → `"+42"` |
+| `%(d` | Negative numbers in parentheses | `-42` → `"(42)"` |
+| `%05d` | Minimum width 5, zero-padded | `-42` → `"-0042"` |
 
-`%d` phù hợp cho các kiểu nguyên, bao gồm wrapper tương ứng và `BigInteger`. Không thể truyền một `double` vào `%d` rồi hy vọng formatter tự cắt phần thập phân:
+`%d` works for integral types, including their corresponding wrappers and `BigInteger`. You cannot pass a `double` to `%d` and hope the formatter automatically truncates the fractional part:
 
 ```java
 // String.format("%d", 3.5); // IllegalFormatConversionException
 String correct = String.format(Locale.US, "%.0f", 3.5); // "4"
 ```
 
-Đây là **làm tròn khi hiển thị dưới dạng số thực**, không phải cast `double` thành `int`. Với đối số âm hoặc số rất lớn, quy tắc định dạng và ép kiểu có thể khác nhau rõ rệt.
+This is **rounding when displaying as a floating-point number**, not casting `double` to `int`. For negative arguments or very large numbers, formatting rules and type-casting rules can differ markedly.
 
-### Căn lề, width và zero-padding
+### Alignment, width, and zero-padding
 
 ```java
 String right = String.format(Locale.US, "|%6d|", 42);
-// "|    42|": căn phải trong ít nhất 6 ký tự
+// "|    42|": right-aligned in at least 6 characters
 
 String left = String.format(Locale.US, "|%-6d|", 42);
-// "|42    |": căn trái trong ít nhất 6 ký tự
+// "|42    |": left-aligned in at least 6 characters
 
 String zeroFilled = String.format(Locale.US, "%+08d", 42);
-// "+0000042": có dấu và đệm zero
+// "+0000042": signed and zero-padded
 ```
 
-`width` chỉ là **chiều rộng tối thiểu**, nên chuỗi đầu ra dài hơn width vẫn được in đầy đủ; formatter không tự cắt bớt phần số. Nếu format gây khó đọc hoặc dùng để truyền dữ liệu có độ dài cố định, phải kiểm tra độ dài sau định dạng riêng theo contract.
+`width` is only a **minimum width**, so output strings longer than `width` are still printed in full; the formatter does not automatically truncate digits. If formatting hurts readability or is used to transmit fixed-length data, check the post-format length separately according to your contract.
 
-## 4. Các conversion cho số thực `float`/`double` và `BigDecimal`
+## 4. Conversions for `float`/`double` and `BigDecimal`
 
-| Conversion | Ý nghĩa | Mẫu điển hình |
+| Conversion | Meaning | Typical pattern |
 | --- | --- | --- |
-| `%f` | Dạng dấu phẩy động thập phân thường | `%.2f` |
-| `%e` hoặc `%E` | Ký hiệu khoa học với số mũ | `%.3e` |
-| `%g` hoặc `%G` | Dạng tổng quát: dùng định dạng thường hoặc khoa học tùy giá trị/precision | `%.4g` |
-| `%a` hoặc `%A` | Dạng số thực **hexadecimal floating point** | `%a` với `double` |
-| `%,.2f` | Phân nhóm và hai chữ số thập phân theo Locale | `%,.2f` |
-| `%(,.2f` | Phân nhóm; số âm trong ngoặc | `%(,.2f` |
+| `%f` | Standard decimal floating-point form | `%.2f` |
+| `%e` or `%E` | Scientific notation with exponent | `%.3e` |
+| `%g` or `%G` | General form: uses standard or scientific format depending on value/precision | `%.4g` |
+| `%a` or `%A` | **Hexadecimal floating-point** format | `%a` with `double` |
+| `%,.2f` | Locale-based grouping and two decimal places | `%,.2f` |
+| `%(,.2f` | Grouping; negative numbers in parentheses | `%(,.2f` |
 
-Ví dụ cụ thể:
+Concrete examples:
 
 ```java
 String fixed = String.format(Locale.US, "%.2f", 12.345);
@@ -161,24 +161,24 @@ String hexadecimal = String.format(Locale.US, "%a", 3.5);
 // "0x1.cp1"
 ```
 
-**Precision không có cùng ý nghĩa giữa `%f` và `%g`**:
+**Precision does not mean the same thing for `%f` and `%g`**:
 
-- `%.2f` yêu cầu **2 chữ số sau dấu thập phân** của biểu diễn.
-- `%.4g` yêu cầu **4 chữ số có nghĩa** trong biểu diễn tổng quát; formatter chọn dạng thường/khoa học phù hợp.
-- `%.3e` yêu cầu **3 chữ số sau dấu thập phân của mantissa** trong dạng khoa học.
+- `%.2f` requests **2 digits after the decimal point** of the representation.
+- `%.4g` requests **4 significant digits** in the general representation; the formatter chooses standard or scientific form accordingly.
+- `%.3e` requests **3 digits after the decimal point of the mantissa** in scientific form.
 
-Các giá trị số thực đặc biệt như `Double.NaN` và `Double.POSITIVE_INFINITY` có thể được in dưới dạng `NaN` và `Infinity`, tùy hoa/thường theo conversion. `-0.0` cũng có thể giữ dấu khi in:
+Special floating-point values such as `Double.NaN` and `Double.POSITIVE_INFINITY` can be printed as `NaN` and `Infinity`, with case depending on the conversion. `-0.0` can also preserve its sign when printed:
 
 ```java
 System.out.println(String.format(Locale.US, "%.2f", -0.0));
 // -0.00
 ```
 
-`BigDecimal` dùng được với nhiều conversion thập phân (`%f`, `%e`, `%g`), nhưng `%a` dành cho biểu diễn hex của các kiểu dấu phẩy động nhị phân và **không hỗ trợ `BigDecimal` như một chuyển đổi tương đương**.
+`BigDecimal` works with many decimal conversions (`%f`, `%e`, `%g`), whereas `%a` is for the hex representation of binary floating-point types and **does not support `BigDecimal` as an equivalent conversion**.
 
-## 5. Rounding khi định dạng không đổi giá trị nguồn
+## 5. Rounding during formatting does not alter the source value
 
-`String.format` và `printf` có thể **làm tròn phần văn bản được hiển thị** khi precision yêu cầu ít chữ số hơn, nhưng không sửa giá trị lưu trong biến.
+`String.format` and `printf` can **round the displayed text** when precision requests fewer digits, without modifying the value stored in the variable.
 
 ```java
 double value = 12.3456;
@@ -188,7 +188,7 @@ System.out.println(display); // 12.35
 System.out.println(value);   // 12.3456
 ```
 
-Với số thập phân cần chính xác (ví dụ những khoản tiền đã chốt), có thể tạo `BigDecimal` từ chuỗi:
+For decimals requiring exactness (such as finalized monetary amounts), you can construct a `BigDecimal` from a string:
 
 ```java
 java.math.BigDecimal exact = new java.math.BigDecimal("2.345");
@@ -196,19 +196,19 @@ String display = String.format(Locale.US, "%.2f", exact);
 // "2.35"
 ```
 
-Không nên tự suy ra rằng dùng `%.2f` cho mọi phép tính tiền là đủ: formatter **chỉ tạo văn bản**; việc xác định thời điểm chốt khoản tiền, scale, rounding mode và số liệu được ghi nhận là trách nhiệm của **nghiệp vụ**.
+Do not infer that using `%.2f` for all monetary calculations is enough: a formatter **only produces text**; deciding when amounts are finalized, scale, rounding mode, and recorded figures is the responsibility of **business logic**.
 
-`Math.round`, `BigDecimal.setScale` và `String.format` không phải ba cách thay thế tùy ý cho một yêu cầu. Một bước định dạng có thể làm tròn chỉ **để in** mà không thay đổi giá trị tính toán tiếp theo. Nếu hợp đồng yêu cầu biến số đã được làm tròn chính thức, cần thao tác kiểu số thích hợp rồi lưu kết quả đã chốt.
+`Math.round`, `BigDecimal.setScale`, and `String.format` are not three arbitrary substitutes for one requirement. A formatting step may round solely **for printing** without altering subsequent computation values. If the contract requires the numeric variable itself to be formally rounded, operate on the appropriate numeric type and store the finalized result.
 
-### Chú ý sai số nhị phân
+### Beware binary error
 
-`double` không thể biểu diễn chính xác mọi số thập phân. `%.2f` có thể hiển thị một giá trị trông “đẹp”, nhưng đó không phải chứng cứ rằng số thập phân nguồn được biểu diễn và tính toán chính xác đến hai chữ số.
+`double` cannot accurately represent every decimal number. `%.2f` may display a value that looks "clean", but that is not proof that the source decimal was represented and computed accurately to two decimal places.
 
-Không nên dùng định dạng rồi `Double.parseDouble(...)` chuỗi đã in để “sửa sai số” trong mọi tình huống: việc ấy có thể tạo thêm một phép làm tròn không được yêu cầu, và nếu chuỗi định dạng phụ thuộc Locale thì việc parse bằng `Double.parseDouble` còn có thể thất bại.
+Do not format and then `Double.parseDouble(...)` the printed string to "fix errors" in every scenario: doing so can introduce an unintended extra rounding step, and if the formatted string depends on `Locale`, parsing with `Double.parseDouble` can even fail.
 
-## 6. `Locale` ảnh hưởng trực tiếp định dạng số
+## 6. `Locale` directly affects number formatting
 
-`Locale` quy định nhiều đặc điểm biểu diễn văn bản, trong đó có dấu thập phân và dấu phân nhóm chữ số. So sánh:
+`Locale` governs many text-presentation traits, including the decimal separator and digit grouping separator. Compare:
 
 ```java
 String us = String.format(Locale.US, "%,.2f", 12345.67);
@@ -218,89 +218,89 @@ String germany = String.format(Locale.GERMANY, "%,.2f", 12345.67);
 // germany: "12.345,67"
 ```
 
-Các chuỗi khác nhau dù **giá trị `double` như nhau**. `Locale` làm thay đổi **văn bản**, không thay đổi số học của biểu thức trước khi truyền cho formatter.
+The strings differ despite **the exact same `double` value**. `Locale` changes the **text**, not the arithmetic of the expression before it is passed to the formatter.
 
-Vì thế:
+Therefore:
 
-- **Giao diện người dùng:** chọn Locale phù hợp với người dùng hoặc quy tắc sản phẩm.
-- **Giao thức, CSV có schema, log máy và golden tests:** chọn Locale cố định, ví dụ `Locale.US` hoặc `Locale.ROOT` tùy contract.
-- **Đọc lại chuỗi:** không mặc định `Double.parseDouble` sẽ hiểu dấu phẩy thập phân và phân nhóm. `Double.parseDouble("12.345,67")` không phải cách parse phù hợp.
+- **User interface:** choose a Locale matching the user or product rules.
+- **Protocols, schema-bound CSV, machine logs, and golden tests:** choose a fixed Locale, such as `Locale.US` or `Locale.ROOT` depending on the contract.
+- **Reading strings back:** do not assume `Double.parseDouble` understands locale decimal commas and grouping separators. `Double.parseDouble("12.345,67")` is not a suitable way to parse.
 
-Không nên tự thay dấu phẩy thành dấu chấm một cách máy móc: một chuỗi như `"1,234"` có thể mang nghĩa **một nghìn hai trăm ba mươi bốn** hoặc **một phẩy hai ba bốn**, tùy Locale và hợp đồng. Khi cần parse chuỗi do người dùng nhập, dùng parser được cấu hình Locale và kiểm tra **toàn bộ đầu vào**.
+Do not mechanically replace commas with dots: a string like `"1,234"` can mean **one thousand two hundred thirty-four** or **one point two three four**, depending on the Locale and contract. When parsing user-entered strings, use a Locale-configured parser and validate **the entire input**.
 
-### Locale mặc định có thể thay đổi
+### The default Locale can change
 
-`String.format("%.2f", value)` và `System.out.printf("%.2f", value)` sử dụng Locale phù hợp với môi trường hoặc cấu hình hiện hành; đầu ra có thể khác theo nơi chạy. Tránh dựa vào kết quả mặc định trong test snapshot hoặc định dạng dữ liệu liên hệ thống.
+`String.format("%.2f", value)` and `System.out.printf("%.2f", value)` use a Locale matching the current environment or configuration; output can differ depending on where it runs. Avoid relying on default output in snapshot tests or inter-system data formats.
 
-## 7. Argument index, tái sử dụng và thứ tự đối số
+## 7. Argument index, reuse, and argument order
 
-Thông thường conversion lấy đối số theo thứ tự:
+Normally conversions consume arguments in order:
 
 ```java
 String text = String.format(Locale.US, "%s=%d", "count", 7);
 // "count=7"
 ```
 
-`%n$` cho phép chọn đối số thứ `n` (chỉ số bắt đầu từ **1**):
+`%n$` allows selecting the `n`-th argument (index starting at **1**):
 
 ```java
 String reversed = String.format(Locale.US, "%2$s=%1$04d", 7, "n");
 // "n=0007"
 ```
 
-Flag `<` **tái sử dụng đối số được dùng bởi format specifier trước đó**:
+The `<` flag **reuses the argument consumed by the preceding format specifier**:
 
 ```java
 String bothBases = String.format(Locale.US, "%1$d / %<x", 31);
 // "31 / 1f"
 ```
 
-Rất dễ nhầm giữa **đối số thứ hai** và **chỉ số bắt đầu từ 0**. `%2$s` là đối số thứ hai, không phải đối số ở vị trí 2 trong mảng Java.
+It is very easy to confuse **the second argument** with **0-based indexing**. `%2$s` is the second argument, not the argument at Java array index 2.
 
-Đừng dùng cú pháp chỉ số và flag `<` khi nó khiến mẫu trở nên khó kiểm toán. Với code quan trọng, tên biến rõ ràng và format đơn giản thường dễ bảo trì hơn so với một chuỗi ghép nhiều chỉ số thủ công.
+Avoid positional index syntax and the `<` flag when they make patterns hard to audit. In critical code, clear variable names and simple formats are usually easier to maintain than a string pieced together with many manual indices.
 
-## 8. `%s`, `%%`, `%n` và ký tự đặc biệt
+## 8. `%s`, `%%`, `%n`, and special characters
 
-Các conversion ngoài số vẫn rất cần thiết:
+Non-numeric conversions are also essential:
 
-| Conversion | Công dụng | Ví dụ |
+| Conversion | Purpose | Example |
 | --- | --- | --- |
-| `%s` | Biểu diễn đối tượng thành chuỗi | `String.format("%s", "cat")` → `"cat"` |
-| `%.3s` | Giới hạn chuỗi tối đa 3 ký tự | `"abcdef"` → `"abc"` |
-| `%b` | Biểu diễn boolean-like | `true` → `"true"`; tham chiếu `null` → `"false"` |
-| `%c` | Ký tự | `'A'` → `"A"` |
-| `%%` | In dấu phần trăm literal | `"Discount: 10%%"` → `"Discount: 10%"` |
-| `%n` | Ký tự xuống dòng theo nền tảng | Khác cách cố định viết `\n` trong chuỗi |
+| `%s` | Formats an object as a string | `String.format("%s", "cat")` → `"cat"` |
+| `%.3s` | Limits string to at most 3 characters | `"abcdef"` → `"abc"` |
+| `%b` | Boolean-like representation | `true` → `"true"`; `null` reference → `"false"` |
+| `%c` | Character | `'A'` → `"A"` |
+| `%%` | Prints a literal percent sign | `"Discount: 10%%"` → `"Discount: 10%"` |
+| `%n` | Platform-specific line separator | Differs from hardcoding `\n` in a string |
 
-Ví dụ:
+Examples:
 
 ```java
 String percent = String.format(Locale.US, "Discount: %d%%", 10);
 // "Discount: 10%"
 
 String row = String.format(Locale.US, "A%nB");
-// có một xuống dòng phụ thuộc nền tảng giữa A và B
+// has a platform-dependent newline between A and B
 ```
 
-**`%n` không dùng đối số.** Với nội dung văn bản nhiều dòng có yêu cầu byte-for-byte cố định qua mọi hệ điều hành, chọn quy ước xuống dòng rõ ràng thay vì mặc định `%n`.
+**`%n` does not consume an argument.** For multiline text requiring fixed byte-for-byte output across all operating systems, choose an explicit newline convention instead of defaulting to `%n`.
 
-Khi đưa dữ liệu có thể chứa ký tự xuống dòng hoặc định dạng không tin cậy vào log, cũng cần cân nhắc escape và policy logging để tránh log injection; formatter không tự làm sạch toàn bộ dữ liệu.
+When logging data that may contain newlines or untrusted formatting, also consider escaping and logging policies to prevent log injection; formatters do not sanitize all data automatically.
 
-## 9. Lỗi format string chỉ xuất hiện lúc chạy
+## 9. Format string errors only appear at runtime
 
-Java kiểm tra cú pháp kiểu của lời gọi `String.format`, nhưng không chứng minh tại thời điểm compile rằng chuỗi format và các đối số **luôn tương thích**.
+Java type-checks the syntax of `String.format` calls, but does not prove at compile time that the format string and arguments are **always compatible**.
 
-Một số exception của `java.util.IllegalFormatException`:
+Some exceptions under `java.util.IllegalFormatException`:
 
-| Sai sót | Ví dụ | Exception điển hình |
+| Mistake | Example | Typical exception |
 | --- | --- | --- |
-| Conversion sai với kiểu đối số | `String.format("%d", 1.25)` | `IllegalFormatConversionException` |
-| Thiếu đối số | `String.format("%d %d", 1)` | `MissingFormatArgumentException` |
-| Precision không hợp lệ | `String.format("%.2d", 7)` | `IllegalFormatPrecisionException` |
-| Conversion không được hỗ trợ | `String.format("%q", 7)` | `UnknownFormatConversionException` |
-| Flag không hợp lệ cho conversion | `String.format("%#s", "a")` trong trường hợp đối số không phải `Formattable` | `FormatFlagsConversionMismatchException` |
+| Wrong conversion for argument type | `String.format("%d", 1.25)` | `IllegalFormatConversionException` |
+| Missing argument | `String.format("%d %d", 1)` | `MissingFormatArgumentException` |
+| Invalid precision | `String.format("%.2d", 7)` | `IllegalFormatPrecisionException` |
+| Unsupported conversion | `String.format("%q", 7)` | `UnknownFormatConversionException` |
+| Invalid flag for conversion | `String.format("%#s", "a")` when argument is not `Formattable` | `FormatFlagsConversionMismatchException` |
 
-Các ví dụ trên là những trường hợp **cố tình gây lỗi** để giải thích. Không chạy chúng ngoài cơ chế kiểm thử/bắt lỗi.
+The examples above are **deliberately erroneous** cases for explanation. Do not run them outside testing/error-handling mechanisms.
 
 ```java
 try {
@@ -310,43 +310,43 @@ try {
 }
 ```
 
-Khi xây dựng API, có thể tránh tạo format string từ dữ liệu không đáng tin cậy. Tách rõ mẫu format do chương trình định nghĩa và **nội dung** người dùng cung cấp:
+When building APIs, avoid constructing format strings from untrusted data. Cleanly separate the format template defined by the program from the **content** provided by the user:
 
 ```java
 String userText = "%n%n";
 String safeAsArgument = String.format(Locale.US, "Input: %s", userText);
-// "Input: %n%n" — userText là dữ liệu %s, không trở thành format string
+// "Input: %n%n" — userText is data for %s, not a format string
 ```
 
-Điều này không thay thế escaping theo ngữ cảnh đầu ra (HTML/SQL/log). Nó chỉ giảm rủi ro khi dữ liệu đầu vào bị diễn giải thành chuỗi format.
+This does not replace context-specific output escaping (HTML/SQL/logs). It only reduces the risk of input data being interpreted as a format string.
 
-### Chú ý `null` và đối số có kiểu khác
+### Beware `null` and arguments of other types
 
-`String.format("%s", (Object) null)` có thể hiển thị `"null"`, nhưng `String.format("%d", (Object) null)` hiển thị `"null"` theo quy tắc Formatter của Java cho null, không phải bằng chứng có một số nguyên 0. Nếu nghiệp vụ cấm thiếu dữ liệu, kiểm tra đầu vào trước khi định dạng.
+`String.format("%s", (Object) null)` can display `"null"`, and `String.format("%d", (Object) null)` displays `"null"` per Java's Formatter rules for null, not evidence of an integer 0. If business rules forbid missing data, validate inputs before formatting.
 
-**Không** dùng `%f` để tự động chuyển mọi `Integer` sang số thực. Với `String.format("%.2f", 7)`, đối số là `Integer`, và formatter có thể ném `IllegalFormatConversionException`. Muốn định dạng số thực, truyền `7.0`, `Double.valueOf(7)` hoặc `BigDecimal` phù hợp.
+**Do not** use `%f` to automatically convert any `Integer` into a floating-point number. With `String.format("%.2f", 7)`, the argument is an `Integer`, and the formatter can throw `IllegalFormatConversionException`. To format a floating-point number, pass `7.0`, `Double.valueOf(7)`, or an appropriate `BigDecimal`.
 
-## 10. Thiết kế đầu ra ổn định và rõ nghĩa
+## 10. Designing stable and clear output
 
-Có thể phân loại theo mục tiêu:
+We can categorize by goal:
 
-| Mục tiêu | Gợi ý |
+| Goal | Recommendation |
 | --- | --- |
-| Chuỗi ngắn để hiển thị | `String.format(locale, pattern, args)` |
-| In trực tiếp console | `System.out.printf(locale, pattern, args)` |
-| Nhiều lần append vào một bộ đệm | `Formatter` với `StringBuilder` |
-| Phần trăm và căn cột | `%%`, `width`, flag `-` |
-| Báo cáo số có ngăn cách nhóm | `%,d`, `%,.2f` theo Locale |
-| Trao đổi dữ liệu máy-máy | Cố định Locale/cú pháp; tốt hơn dùng serializer đúng schema thay vì format tùy ý |
-| Giá trị tiền thập phân chính xác | Tính toán bằng kiểu/phương pháp phù hợp (thường `BigDecimal`), format chỉ tại bước hiển thị |
+| Short string for display | `String.format(locale, pattern, args)` |
+| Print directly to console | `System.out.printf(locale, pattern, args)` |
+| Multiple appends to a buffer | `Formatter` with `StringBuilder` |
+| Percentages and column alignment | `%%`, `width`, `-` flag |
+| Number reports with group separators | `%,d`, `%,.2f` per Locale |
+| Machine-to-machine data exchange | Fix Locale/syntax; better to use a schema-compliant serializer instead of ad-hoc formatting |
+| Exact decimal monetary values | Compute with appropriate type/method (often `BigDecimal`), format only at display time |
 
-Một formatter có thể làm tròn **chuỗi được in** nhưng không biến số đo chưa chính xác thành dữ liệu chính xác. Nếu ứng dụng cần lưu giá trị đã chốt theo hợp đồng, chốt bằng thuật toán số và chế độ làm tròn phù hợp, sau đó mới dùng formatter để trình bày.
+A formatter can round the **printed string**, but it does not turn imprecise measurements into exact data. If an application must store contractually finalized values, finalize them using numeric algorithms and the proper rounding mode, and only then use a formatter for presentation.
 
-Không tạo formatter mới nhiều lần trong vòng lặp nóng chỉ vì tiện cú pháp nếu hiệu năng quan trọng; đo lường và cân nhắc `StringBuilder` hay cách ghép chuỗi thích hợp. Dù vậy, ưu tiên đầu tiên vẫn là **đúng định dạng, đúng Locale và rõ hợp đồng**.
+Do not repeatedly allocate new formatters in a hot loop merely for syntactic convenience if performance matters; benchmark and consider `StringBuilder` or suitable string assembly. Even so, the first priority remains **correct format, correct Locale, and a clear contract**.
 
-## 11. Chương trình Java 17+ chạy độc lập
+## 11. Standalone runnable Java 17+ program
 
-Tạo file **`NumberFormattingDemo.java`**:
+Create the file **`NumberFormattingDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -423,14 +423,14 @@ public class NumberFormattingDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac NumberFormattingDemo.java
 java NumberFormattingDemo
 ```
 
-Output với `Locale` được chỉ định và đúng các đối số trên:
+Output with the specified `Locale` and exact arguments above:
 
 ```text
 formatted=12,345.68
@@ -459,33 +459,33 @@ invalidFormat=detected
 printfValue=2.50
 ```
 
-Để chương trình in thêm một dòng qua `printf`, nó dùng `%n` (xuống dòng của hệ điều hành). Phần văn bản nhìn thấy giống nhau trên các nền tảng phổ biến; **byte của ký tự xuống dòng** có thể khác theo môi trường.
+For the program to print an extra line via `printf`, it uses `%n` (the OS line separator). The visible text looks identical across common platforms; **the newline byte sequence** may differ by environment.
 
-## 12. Lỗi phổ biến và checklist
+## 12. Common mistakes and checklist
 
-| Nhận định | Thực tế |
+| Claim | Reality |
 | --- | --- |
-| “`String.format` tự in kết quả.” | Sai: nó trả `String`; `printf` ghi vào stream. |
-| “`printf` luôn tự xuống dòng.” | Sai: mẫu phải có `%n` hoặc phải in newline riêng. |
-| “`%.2f` giúp biến `double` chứa chính xác hai chữ số decimal.” | Sai: định dạng chỉ tạo văn bản; giá trị nguồn không đổi. |
-| “`%,.2f` luôn dùng dấu phẩy làm grouping và dấu chấm thập phân.” | Sai: Locale ảnh hưởng cách hiển thị. |
-| “`%.4g` có bốn chữ số sau dấu thập phân.” | Sai: `g` dùng precision chữ số có nghĩa. |
-| “`%8d` sẽ cắt mọi số dài hơn 8 ký tự.” | Sai: width là **tối thiểu**. |
-| “`%d` tự chuyển một `double` thành `int`.” | Sai: có thể ném `IllegalFormatConversionException`. |
-| “`%n` giống mọi nơi với ký tự `\n`.” | Sai: `%n` dùng newline nền tảng. |
-| “`%2$s` tham chiếu đối số index 2 theo Java zero-based.” | Sai: index bắt đầu từ 1. |
-| “`Formatter` chỉ là tên khác của `String.format`.” | Không: nó là đối tượng định dạng với đích và vòng đời sử dụng riêng. |
-| “Format string sai sẽ luôn bị compiler bắt.” | Không: nhiều lỗi chỉ ném `IllegalFormatException` lúc chạy. |
-| “In `NaN` hoặc `Infinity` nghĩa là parser đầu vào đã sai.” | Không: đây là những giá trị `float`/`double` hợp lệ về biểu diễn; xử lý theo policy. |
+| "`String.format` prints the result automatically." | False: it returns a `String`; `printf` writes to a stream. |
+| "`printf` always adds a newline." | False: the pattern must include `%n` or a newline must be printed separately. |
+| "`%.2f` makes `double` hold exact two decimal digits." | False: formatting only produces text; the source value is unchanged. |
+| "`%,.2f` always uses commas for grouping and a dot for the decimal point." | False: `Locale` affects how it is displayed. |
+| "`%.4g` has four digits after the decimal point." | False: `g` uses significant-digit precision. |
+| "`%8d` truncates any number longer than 8 characters." | False: `width` is a **minimum**. |
+| "`%d` automatically converts a `double` to `int`." | False: it can throw `IllegalFormatConversionException`. |
+| "`%n` is everywhere identical to `\n`." | False: `%n` uses the platform newline. |
+| "`%2$s` references argument index 2 in Java zero-based indexing." | False: indexing starts at 1. |
+| "`Formatter` is just another name for `String.format`." | No: it is a formatting object with its own destination and lifecycle. |
+| "An invalid format string is always caught by the compiler." | No: many errors only throw `IllegalFormatException` at runtime. |
+| "Printing `NaN` or `Infinity` means the input parser broke." | No: these are valid `float`/`double` representation values; handle them according to policy. |
 
-Trước khi format số, hãy tự kiểm tra:
+Before formatting numbers, check yourself:
 
-1. **Mục tiêu là trả chuỗi, in ra luồng hay ghi bộ đệm?** Chọn `String.format`, `printf` hoặc `Formatter`.
-2. **Đối số thực tế thuộc kiểu nào?** Chọn `%d` cho nguyên, `%f`/`%e`/`%g` cho số thực phù hợp, đừng đoán formatter tự ép mọi kiểu.
-3. **Độ chính xác có nghĩa gì?** `%.2f` là hai chữ số sau dấu thập phân; `%.4g` là bốn chữ số có nghĩa.
-4. **Đầu ra phụ thuộc Locale không?** Cố định Locale trong test, log máy hoặc trao đổi dữ liệu.
-5. **Format có thể lỗi lúc chạy không?** Kiểm tra specifier, flag, số đối số và chuyển đổi; test các mẫu quan trọng.
-6. **Định dạng có đang bị lẫn với nghiệp vụ làm tròn không?** Không dùng chuỗi đã format thay giá trị tính toán nếu hợp đồng không yêu cầu.
-7. **Dữ liệu đặc biệt và âm zero được xử lý thế nào?** Cân nhắc `NaN`, `Infinity`, `-0.0` và giao thức bên ngoài trước khi xuất.
+1. **Is the goal to return a string, print to a stream, or write to a buffer?** Choose `String.format`, `printf`, or `Formatter`.
+2. **What is the actual type of the argument?** Choose `%d` for integers, `%f`/`%e`/`%g` for appropriate floating-point numbers; do not assume the formatter coerces all types.
+3. **What does precision mean here?** `%.2f` is two digits after the decimal point; `%.4g` is four significant digits.
+4. **Is the output Locale-dependent?** Fix the Locale in tests, machine logs, or data exchange.
+5. **Can the format fail at runtime?** Check specifiers, flags, argument counts, and conversions; test critical patterns.
+6. **Is formatting being mixed up with business rounding?** Do not use formatted strings in place of computed values unless the contract calls for it.
+7. **How are special values and negative zero handled?** Consider `NaN`, `Infinity`, `-0.0`, and external protocols before outputting.
 
-**Ghi nhớ:** `String.format` **trả chuỗi**, `printf` **in ra stream**, còn `Formatter` **định dạng vào một đích cụ thể**. Chúng chia sẻ ngữ pháp `%...` nhưng bạn vẫn phải chọn đúng **conversion, precision, width, flags và Locale**; đồng thời tách việc **trình bày số** khỏi việc **tính toán và làm tròn theo nghiệp vụ**.
+**Takeaway:** `String.format` **returns a string**, `printf` **prints to a stream**, and `Formatter` **formats into a specific destination**. They share `%...` syntax, yet you must still pick the right **conversion, precision, width, flags, and Locale**, while keeping **number presentation** separate from **business calculation and rounding**.

@@ -1,35 +1,35 @@
-# BigDecimal.divide: chọn scale, RoundingMode hay MathContext trong Java
+# BigDecimal.divide: Choosing scale, RoundingMode, or MathContext in Java
 
-Phép chia số thập phân không phải lúc nào cũng có kết quả thập phân hữu hạn. Ví dụ \(1/8=0.125\) biểu diễn decimal chính xác, nhưng \(1/3=0.3333\ldots\) kéo dài vô hạn. Với `java.math.BigDecimal`, **cách gọi `divide` quyết định khi nào được làm tròn, scale của kết quả và mức chính xác được phép**.
+Decimal division does not always produce a terminating decimal result. For example, \(1/8=0.125\) has an exact decimal representation, whereas \(1/3=0.3333\ldots\) continues infinitely. With `java.math.BigDecimal`, **how you call `divide` determines when rounding is allowed, the scale of the result, and the allowed precision**.
 
-Java có nhiều overload của `divide`, nhưng bốn cách quan trọng nhất khi học:
+Java has several overloads of `divide`, with the four most important ones when learning being:
 
 ```java
 BigDecimal a = BigDecimal.ONE;
 BigDecimal b = BigDecimal.valueOf(3);
 
-// a.divide(b);                            // chính xác; 1/3 gây ArithmeticException
+// a.divide(b);                            // exact; 1/3 causes ArithmeticException
 BigDecimal x = a.divide(b, 2, RoundingMode.HALF_UP); // 0.33, scale 2
-BigDecimal y = a.divide(b, RoundingMode.HALF_UP);    // 0, scale của a bằng 0
+BigDecimal y = a.divide(b, RoundingMode.HALF_UP);    // 0, scale of a is 0
 BigDecimal z = a.divide(b, new MathContext(3, RoundingMode.HALF_UP)); // 0.333
 ```
 
-Những đoạn ngắn trong bài giả định đã `import java.math.BigDecimal;`, `MathContext` và `RoundingMode` và được đặt trong một method/JShell. Chương trình Java 17+ đầy đủ, chạy được, nằm ở phần 12.
+Short snippets in this lesson assume `import java.math.BigDecimal;`, `MathContext`, and `RoundingMode` and are placed inside a method/JShell. A complete, runnable Java 17+ program is in Section 12.
 
-**Quy tắc tổng quát:** Chọn overload theo **hợp đồng kết quả**: cần chính xác không làm tròn, cần số chữ số **sau dấu thập phân**, muốn giữ **scale của số bị chia**, hay cần số **chữ số có nghĩa**.
+**General rule:** Choose the overload according to the **result contract**: whether you need exactness without rounding, a number of digits **after the decimal point**, to preserve the **dividend's scale**, or a number of **significant digits**.
 
-## 1. Nền tảng: value, scale và precision của BigDecimal
+## 1. Foundations: value, scale, and precision of BigDecimal
 
-`BigDecimal` mô hình hóa một số decimal bằng:
+`BigDecimal` models a decimal number using:
 
 \[
 \text{value}=\text{unscaledValue}\times10^{-\text{scale}}
 \]
 
-Ví dụ `new BigDecimal("12.3400")` có unscaled value `123400`, scale 4 và precision 6. Hai đại lượng dễ nhầm:
+For example, `new BigDecimal("12.3400")` has unscaled value `123400`, scale 4, and precision 6. Two quantities are easily confused:
 
-- **Scale**: vị trí thập phân trong biểu diễn. Khi không âm, thường là số chữ số sau dấu chấm; **scale cũng có thể âm**.
-- **Precision**: tổng số chữ số có nghĩa trong dạng thập phân của giá trị không scale, không phải số chữ số sau dấu chấm.
+- **Scale**: the decimal position in the representation. When non-negative, it is usually the number of digits after the decimal point; **scale can also be negative**.
+- **Precision**: the total number of significant digits in the decimal form of the unscaled value, not the number of digits after the decimal point.
 
 ```java
 BigDecimal number = new BigDecimal("12.3400");
@@ -39,32 +39,32 @@ System.out.println(number.scale());         // 4
 System.out.println(number.precision());     // 6
 ```
 
-Trong phép chia, **scale và precision là hai loại giới hạn khác nhau**. Yêu cầu “giữ hai chữ số thập phân” thường cần `scale = 2`; còn yêu cầu “giữ ba chữ số có nghĩa” thường cần `MathContext(3, mode)`.
+In division, **scale and precision are two different kinds of constraints**. A requirement to “keep two decimal places” typically needs `scale = 2`; whereas a requirement to “keep three significant digits” typically needs `MathContext(3, mode)`.
 
-`BigDecimal` là **immutable**: `divide` trả về một giá trị mới, không thay đổi số bị chia hay số chia.
+`BigDecimal` is **immutable**: `divide` returns a new value without modifying the dividend or divisor.
 
-## 2. Tổng quan những overload quan trọng
+## 2. Overview of Important Overloads
 
-| Cách gọi | Quy tắc kết quả | Khi nào chọn |
+| Call form | Result rule | When to choose |
 | --- | --- | --- |
-| `a.divide(b)` | Thương **chính xác**, không chấp nhận khai triển decimal vô hạn | Khi toán học bảo đảm phép chia có dạng decimal hữu hạn |
-| `a.divide(b, scale, mode)` | Thương có **scale được chỉ định**, làm tròn theo mode nếu cần | Tiền, đơn vị đo, giá trị cần số chữ số sau dấu thập phân |
-| `a.divide(b, mode)` | Thương có **scale bằng `a.scale()`**, làm tròn nếu cần | Khi có chủ đích duy trì scale của số bị chia |
-| `a.divide(b, context)` | Làm tròn theo **precision** và `RoundingMode` của `MathContext` | Tính toán với ngân sách chữ số có nghĩa |
+| `a.divide(b)` | **Exact** quotient; non-terminating decimal expansions are rejected | When math guarantees the division has a terminating decimal form |
+| `a.divide(b, scale, mode)` | Quotient with **specified scale**, rounded with mode if needed | Money, measurement units, values needing a fixed number of decimal places |
+| `a.divide(b, mode)` | Quotient with **scale equal to `a.scale()`**, rounded if needed | When intentionally maintaining the dividend's scale |
+| `a.divide(b, context)` | Rounded according to **precision** and `RoundingMode` of `MathContext` | Calculations with a budget of significant digits |
 
-Còn có một overload cũ nhận `int roundingMode`/hằng số legacy; không nên sử dụng trong code mới. Các hằng trong `RoundingMode` tạo API rõ kiểu và tránh số magic.
+There are also legacy overloads taking `int roundingMode` / legacy constants; they should not be used in new code. The constants in `RoundingMode` provide a type-safe API and avoid magic numbers.
 
-**Điểm mấu chốt:** `divide(b, RoundingMode.HALF_UP)` **không ngầm chọn scale = 2**. Nó dùng **scale của `a`**. Nếu `a == BigDecimal.ONE` thì scale bằng 0, nên `1/3` có thể thành **`0`**. Đây là lỗi đặc biệt nguy hiểm khi lập trình viên tưởng mode chỉ quyết định cách chọn chữ số cuối mà không quan tâm scale.
+**Key takeaway:** `divide(b, RoundingMode.HALF_UP)` **does not implicitly choose scale = 2**. It uses **`a`'s scale**. If `a == BigDecimal.ONE`, its scale is 0, so `1/3` can become **`0`**. This is an especially dangerous bug when developers assume mode only decides the last digit without paying attention to scale.
 
-## 3. Khi nào dùng `divide(divisor)` thay vì overload làm tròn?
+## 3. When to Use `divide(divisor)` Instead of Rounding Overloads?
 
-Phép `divide(divisor)` yêu cầu **thương decimal chính xác**. Ví dụ `BigDecimal.ONE.divide(new BigDecimal("8"))` trả `0.125`, còn chia cho `3` ném `ArithmeticException` vì thương có vô hạn chữ số. Sau khi rút gọn phân số, thương hữu hạn chỉ khi mẫu gồm các thừa số nguyên tố 2 và 5; cơ chế và chứng minh thuộc bài học *divide chính xác và số thập phân vô hạn tuần hoàn*.
+`divide(divisor)` requires an **exact decimal quotient**. For example, `BigDecimal.ONE.divide(new BigDecimal("8"))` returns `0.125`, while dividing by `3` throws `ArithmeticException` because the quotient has infinitely many digits. After reducing the fraction, the quotient terminates only when the denominator consists of prime factors 2 and 5; the mechanism and proof belong to the lesson *Exact divide and non-terminating repeating decimals*.
 
-Ở đây, điều cần quyết định là **chính sách đầu ra**: nếu nghiệp vụ yêu cầu exact thì chấp nhận kết quả hoặc báo lỗi; nếu cho phép làm tròn, hãy chọn rõ scale hay precision trong overload tương ứng. Preferred scale của divide exact là `a.scale() - b.scale()`, nhưng scale thực tế có thể lớn hơn để biểu diễn hết thương.
+Here, what needs to be decided is the **output policy**: if business requirements demand exactness, accept the result or report an error; if rounding is allowed, explicitly specify scale or precision in the corresponding overload. The preferred scale of exact divide is `a.scale() - b.scale()`, though the actual scale may be larger to represent the entire quotient.
 
-## 4. divide(divisor, scale, RoundingMode): đặt scale chính xác
+## 4. divide(divisor, scale, RoundingMode): Setting an Exact Scale
 
-Đây là lựa chọn trực tiếp nếu kết quả cần **N chữ số sau dấu chấm decimal**:
+This is the direct choice if the result needs **N digits after the decimal point**:
 
 ```java
 BigDecimal one = BigDecimal.ONE;
@@ -79,13 +79,13 @@ System.out.println(rounded2); // 0.33
 System.out.println(rounded5); // 0.33333
 ```
 
-Từng tham số:
+Each parameter:
 
-- `divisor`: số chia, không được bằng zero.
-- `scale`: scale yêu cầu của **thương**, kiểu `int`; có thể bằng 0 hoặc âm.
-- `roundingMode`: cách chọn giá trị có scale đó nếu thương chính xác không vừa biểu diễn.
+- `divisor`: the divisor, must not be zero.
+- `scale`: requested scale of the **quotient**, of type `int`; can be 0 or negative.
+- `roundingMode`: how to choose a value with that scale if the exact quotient does not fit the representation.
 
-Ngay cả khi thương **đã hữu hạn**, ép scale nhỏ hơn có thể buộc phải làm tròn:
+Even when the quotient is **already terminating**, forcing a smaller scale can require rounding:
 
 ```java
 BigDecimal one = BigDecimal.ONE;
@@ -95,9 +95,9 @@ System.out.println(one.divide(eight, 2, RoundingMode.HALF_UP));   // 0.13
 System.out.println(one.divide(eight, 2, RoundingMode.HALF_EVEN)); // 0.12
 ```
 
-`1/8 = 0.125` là điểm giữa khi làm tròn đến hai chữ số sau dấu thập phân. `HALF_UP` chọn 0.13; `HALF_EVEN` chọn 0.12 vì chữ số cuối là 2 (chẵn).
+`1/8 = 0.125` is a midpoint when rounding to two digits after the decimal point. `HALF_UP` chooses 0.13; `HALF_EVEN` chooses 0.12 because the last digit is 2 (even).
 
-### Scale 0 và scale âm
+### Scale 0 and Negative Scale
 
 ```java
 System.out.println(
@@ -109,13 +109,13 @@ System.out.println(
                 -1, RoundingMode.HALF_UP)); // 1.2E+2
 ```
 
-Scale 0 tạo thương ở đơn vị nguyên; scale -1 tạo giá trị theo bội số của 10. `new BigDecimal("123") / 1` chính xác là 123, nhưng yêu cầu scale -1 khiến kết quả làm tròn thành 120 và có thể được in bằng dạng khoa học `1.2E+2`.
+Scale 0 produces a quotient in whole units; scale -1 produces a value in multiples of 10. `new BigDecimal("123") / 1` is exactly 123, but requesting scale -1 causes the result to be rounded to 120 and may be printed in scientific notation `1.2E+2`.
 
-**Không sử dụng `setScale` mà không nghĩ đến rounding:** nếu đang cần giảm scale và bị mất chữ số có nghĩa, `setScale(newScale)` không có mode có thể ném `ArithmeticException`. Overload divide có mode đặt rõ chính sách ngay từ đầu.
+**Do not use `setScale` without thinking about rounding:** if you need to reduce scale and significant digits are lost, `setScale(newScale)` without a mode can throw `ArithmeticException`. A divide overload with a mode establishes the policy explicitly from the start.
 
-## 5. divide(divisor, RoundingMode): lấy scale từ số bị chia
+## 5. divide(divisor, RoundingMode): Taking Scale from the Dividend
 
-Đây là overload dễ bị hiểu nhầm:
+This is an easily misunderstood overload:
 
 ```java
 BigDecimal a = new BigDecimal("1.00");
@@ -124,7 +124,7 @@ BigDecimal b = BigDecimal.valueOf(3);
 System.out.println(a.divide(b, RoundingMode.HALF_UP)); // 0.33
 ```
 
-`a.scale() == 2`, nên thương được làm tròn về scale 2. Nhưng khi `a` được tạo từ `BigDecimal.ONE`:
+`a.scale() == 2`, so the quotient is rounded to scale 2. But when `a` is created from `BigDecimal.ONE`:
 
 ```java
 BigDecimal a = BigDecimal.ONE; // scale = 0
@@ -133,25 +133,25 @@ BigDecimal b = BigDecimal.valueOf(3);
 System.out.println(a.divide(b, RoundingMode.HALF_UP)); // 0
 ```
 
-Hai lời gọi dùng **cùng phép chia toán học 1/3 và cùng rounding mode**, nhưng khác scale của số bị chia. Do đó khác kết quả.
+Both calls use **the same mathematical division 1/3 and the same rounding mode**, yet differ in the dividend's scale. Hence they produce different results.
 
-Tình huống nguy hiểm khác:
+Another dangerous scenario:
 
 ```java
 BigDecimal amount = new BigDecimal("100");   // scale 0
 BigDecimal factor = new BigDecimal("3");
 BigDecimal result = amount.divide(factor, RoundingMode.HALF_UP);
-// result == 33, không phải 33.33
+// result == 33, not 33.33
 ```
 
-Nếu hợp đồng yêu cầu 2 chữ số sau dấu chấm, hãy chỉ rõ **`divide(factor, 2, RoundingMode.HALF_UP)`**. Đừng dùng overload 2 tham số rồi dựa vào scale đầu vào tình cờ bằng 2.
+If the contract requires 2 digits after the decimal point, explicitly specify **`divide(factor, 2, RoundingMode.HALF_UP)`**. Do not use the 2-argument overload and rely on the input's scale happening to be 2.
 
-## 6. divide(divisor, MathContext): giới hạn chữ số có nghĩa
+## 6. divide(divisor, MathContext): Limiting Significant Digits
 
-`MathContext` chứa:
+`MathContext` holds:
 
-- `precision`: số chữ số có nghĩa cần giữ (`0` biểu thị không giới hạn).
-- `roundingMode`: quy tắc làm tròn khi precision không đủ.
+- `precision`: number of significant digits to keep (`0` denotes unlimited).
+- `roundingMode`: rounding rule when precision is insufficient.
 
 ```java
 MathContext mc = new MathContext(3, RoundingMode.HALF_UP);
@@ -163,7 +163,7 @@ BigDecimal result = one.divide(three, mc);
 System.out.println(result); // 0.333
 ```
 
-**Không được đồng nhất `precision = 3` với `scale = 3`**. Cùng context áp dụng cho một thương lớn:
+**Do not equate `precision = 3` with `scale = 3`**. Applying the same context to a large quotient:
 
 ```java
 BigDecimal big = new BigDecimal("12345");
@@ -173,9 +173,9 @@ MathContext mc = new MathContext(3, RoundingMode.HALF_UP);
 System.out.println(big.divide(seven, mc)); // 1.76E+3
 ```
 
-Thương toán học xấp xỉ 1763.571..., làm tròn **ba chữ số có nghĩa** thành 1760, được in `1.76E+3`. Scale của kết quả là **-1**, không phải 3.
+The mathematical quotient is approximately 1763.571..., rounded to **three significant digits** as 1760, printed `1.76E+3`. The result's scale is **-1**, not 3.
 
-Cùng bài toán khác với `scale = 2`:
+Comparing the same problem with `scale = 2`:
 
 ```java
 BigDecimal a = new BigDecimal("123.45");
@@ -188,12 +188,12 @@ System.out.println(
         a.divide(b, new MathContext(2, RoundingMode.HALF_UP))); // 62
 ```
 
-`123.45/2 = 61.725`, nên:
+`123.45/2 = 61.725`, so:
 
-- **Scale 2** → 61.73 (hai chữ số sau dấu thập phân).
-- **Precision 2** → 62 (hai chữ số có nghĩa).
+- **Scale 2** → 61.73 (two digits after the decimal point).
+- **Precision 2** → 62 (two significant digits).
 
-### MathContext.UNLIMITED và precision = 0
+### MathContext.UNLIMITED and precision = 0
 
 ```java
 BigDecimal one = BigDecimal.ONE;
@@ -203,31 +203,31 @@ System.out.println(
         one.divide(eight, MathContext.UNLIMITED)); // 0.125
 ```
 
-`MathContext.UNLIMITED` đặt precision bằng 0; đối với divide, nó yêu cầu thương **chính xác**, tương tự `divide(divisor)` trong trường hợp thông thường. Nó **không** có nghĩa tính tùy ý nhiều chữ số của `1/3` mà không giới hạn bộ nhớ.
+`MathContext.UNLIMITED` sets precision to 0; for divide, it requests an **exact** quotient, similar to `divide(divisor)` in normal cases. It does **not** mean computing arbitrarily many digits of `1/3` without memory limits.
 
 ```java
 // one.divide(BigDecimal.valueOf(3), MathContext.UNLIMITED);
-// -> ArithmeticException, vì 1/3 có decimal vô hạn
+// -> ArithmeticException, because 1/3 has a non-terminating decimal
 ```
 
-Nếu đặt precision hữu hạn nhưng `RoundingMode.UNNECESSARY` và thương cần làm tròn, Java cũng có thể ném `ArithmeticException`. Phải chọn mode chấp nhận làm tròn khi bài toán yêu cầu xấp xỉ.
+If you set a finite precision with `RoundingMode.UNNECESSARY` and the quotient requires rounding, Java may also throw `ArithmeticException`. You must choose a mode that permits rounding when the problem calls for an approximation.
 
-## 7. RoundingMode: phân biệt điểm giữa, dấu và hướng làm tròn
+## 7. RoundingMode: Distinguishing Midpoints, Signs, and Rounding Directions
 
-`RoundingMode` quyết định cách xử lý khi buộc phải bỏ chữ số, **không** tự quyết định nên làm tròn ở bước nào.
+`RoundingMode` decides how to handle digits when truncation is forced; it does **not** decide at which step rounding should occur.
 
-| Mode | Ý nghĩa | `+1/8` tại scale 2 | `-1/8` tại scale 2 |
+| Mode | Meaning | `+1/8` at scale 2 | `-1/8` at scale 2 |
 | --- | --- | --- | --- |
-| `UP` | Ra xa zero nếu có phần bị loại | `0.13` | `-0.13` |
-| `DOWN` | Về zero | `0.12` | `-0.12` |
-| `CEILING` | Về dương vô cực | `0.13` | `-0.12` |
-| `FLOOR` | Về âm vô cực | `0.12` | `-0.13` |
-| `HALF_UP` | Điểm giữa thì ra xa zero | `0.13` | `-0.13` |
-| `HALF_DOWN` | Điểm giữa thì về zero | `0.12` | `-0.12` |
-| `HALF_EVEN` | Điểm giữa thì chọn chữ số cuối chẵn | `0.12` | `-0.12` |
-| `UNNECESSARY` | Không cho phép làm tròn có mất thông tin | `ArithmeticException` | `ArithmeticException` |
+| `UP` | Away from zero if any part is discarded | `0.13` | `-0.13` |
+| `DOWN` | Toward zero | `0.12` | `-0.12` |
+| `CEILING` | Toward positive infinity | `0.13` | `-0.12` |
+| `FLOOR` | Toward negative infinity | `0.12` | `-0.13` |
+| `HALF_UP` | At midpoint, away from zero | `0.13` | `-0.13` |
+| `HALF_DOWN` | At midpoint, toward zero | `0.12` | `-0.12` |
+| `HALF_EVEN` | At midpoint, choose even last digit | `0.12` | `-0.12` |
+| `UNNECESSARY` | Lossy rounding disallowed | `ArithmeticException` | `ArithmeticException` |
 
-Ví dụ:
+Examples:
 
 ```java
 BigDecimal one = BigDecimal.ONE;
@@ -241,24 +241,24 @@ System.out.println(
         one.negate().divide(eight, 2, RoundingMode.HALF_UP)); // -0.13
 ```
 
-Không mặc định `HALF_UP` đúng cho mọi bài toán tiền tệ hoặc `HALF_EVEN` đúng cho mọi phép thống kê. Hãy tuân thủ hợp đồng của hệ thống/ngành/định dạng đầu ra.
+Do not assume `HALF_UP` is right for every currency problem or `HALF_EVEN` is right for every statistical calculation. Follow the contract of your system, industry, or output format.
 
-### Khi muốn ngăn làm tròn âm thầm
+### When You Want to Prevent Silent Rounding
 
 ```java
 try {
     BigDecimal exactTwoPlaces = BigDecimal.ONE.divide(
             BigDecimal.valueOf(3), 2, RoundingMode.UNNECESSARY);
 } catch (ArithmeticException ex) {
-    // 1/3 không thể lưu chính xác ở scale 2
+    // 1/3 cannot be stored exactly at scale 2
 }
 ```
 
-`UNNECESSARY` là công cụ để **phát hiện yêu cầu làm tròn**. Nó cũng có thể phù hợp khi hợp đồng yêu cầu từ chối giao dịch thay vì tự cắt dữ liệu.
+`UNNECESSARY` is a tool to **detect when rounding is required**. It can also be appropriate when the contract requires rejecting a transaction rather than truncating data.
 
-## 8. Chia cho 0: không giống phép chia double
+## 8. Dividing by 0: Unlike `double` Division
 
-Một `BigDecimal` không có giá trị đặc biệt `NaN` hoặc `Infinity`. Với `BigDecimal.divide`, số chia bằng 0 gây **`ArithmeticException`**:
+A `BigDecimal` has no special `NaN` or `Infinity` values. With `BigDecimal.divide`, a divisor equal to 0 causes **`ArithmeticException`**:
 
 ```java
 BigDecimal a = BigDecimal.ONE;
@@ -268,14 +268,14 @@ BigDecimal zero = BigDecimal.ZERO;
 // -> ArithmeticException: Division by zero
 ```
 
-Khác với primitive `double`:
+Unlike primitive `double`:
 
 ```java
 System.out.println(1.0 / 0.0); // Infinity
 System.out.println(0.0 / 0.0); // NaN
 ```
 
-Không viết code dùng `BigDecimal` rồi kỳ vọng `divide` có thể trả Infinity. Trong Java, phải có **hợp đồng xử lý chia cho 0**, ví dụ validate ngay đầu vào và cung cấp thông báo nghiệp vụ.
+Do not write code using `BigDecimal` expecting `divide` to return Infinity. In Java, there must be a **division-by-zero handling contract**, such as validating inputs upfront and providing a business error message.
 
 ```java
 static BigDecimal safeDivide(BigDecimal a, BigDecimal b,
@@ -287,13 +287,13 @@ static BigDecimal safeDivide(BigDecimal a, BigDecimal b,
 }
 ```
 
-Đây là helper minh họa cần đặt **trong một class**, không phải chương trình độc lập. `signum() == 0` kiểm tra zero theo giá trị, kể cả `0.00` có scale khác 0. Có thể validate null qua `Objects.requireNonNull` nếu đầu vào có thể null.
+This is an illustrative helper that needs to be placed **inside a class**, not a standalone program. `signum() == 0` checks for zero by value, including `0.00` with nonzero scale. You can validate null via `Objects.requireNonNull` if inputs may be null.
 
-**Đừng bắt tất cả `ArithmeticException` rồi coi là chia cho 0**. Với overload divide chính xác hoặc `UNNECESSARY`, exception còn có thể phát sinh vì thương không biểu diễn chính xác ở precision/scale yêu cầu.
+**Do not catch all `ArithmeticException` instances and treat them as division by 0**. With exact divide overloads or `UNNECESSARY`, the exception can also occur because the quotient cannot be represented exactly at the requested precision/scale.
 
-## 9. Chia chính xác không phải lúc nào cũng giữ scale mong muốn
+## 9. Exact Division Does Not Always Keep the Desired Scale
 
-Khi chia một giá trị có trailing zeros, kết quả của các overload có thể khác ở **scale** dù **giá trị toán học bằng nhau**:
+When dividing a value with trailing zeros, results from different overloads can differ in **scale** even though their **mathematical values are equal**:
 
 ```java
 BigDecimal a = new BigDecimal("2.000");
@@ -304,7 +304,7 @@ BigDecimal sameScale = a.divide(b, RoundingMode.HALF_UP); // 0.500
 BigDecimal scale2 = a.divide(b, 2, RoundingMode.HALF_UP); // 0.50
 ```
 
-Một vấn đề là `BigDecimal.equals` so sánh **giá trị và scale**, còn `compareTo` chỉ so sánh **giá trị số**:
+One issue is that `BigDecimal.equals` compares **value and scale**, whereas `compareTo` only compares **numeric value**:
 
 ```java
 System.out.println(new BigDecimal("0.50")
@@ -313,61 +313,61 @@ System.out.println(new BigDecimal("0.50")
         .compareTo(new BigDecimal("0.500"))); // 0
 ```
 
-Nếu dùng `HashSet<BigDecimal>` hoặc `HashMap<BigDecimal, ...>`, scale khác nhau có thể biến thành **hai khóa khác nhau**. Không nên bỏ qua scale sau khi chia, đặc biệt khi hệ thống dùng decimal biểu diễn đơn vị đo, tỷ lệ hoặc quy tắc làm tròn.
+If using `HashSet<BigDecimal>` or `HashMap<BigDecimal, ...>`, different scales can turn into **two distinct keys**. You should not ignore scale after division, especially when the system uses decimals to represent measurement units, ratios, or rounding rules.
 
-Một cách ổn định cho dữ liệu chốt ở scale 2 là **chỉ định scale 2 ngay trong phép chia**, chứ không chọn scale từ `a` tình cờ.
+A consistent approach for data settled at scale 2 is to **specify scale 2 directly in the divide call**, rather than relying on `a`'s incidental scale.
 
-## 10. Chọn precision làm việc và thời điểm chốt kết quả
+## 10. Choosing Working Precision and Result Settlement Timing
 
-Một thuật toán nhiều bước thường cần **precision làm việc** lớn hơn precision dữ liệu được ghi nhận. Ví dụ chia ba khoản, cộng dồn, nhân tỷ lệ hay phân bổ chi phí.
+A multi-step algorithm often requires a **working precision** higher than the recorded data precision. Examples include splitting into thirds, accumulating sums, multiplying rates, or allocating costs.
 
-Không tự động làm tròn về hai chữ số sau mỗi phép toán chỉ vì mục tiêu cuối là hai chữ số. Kết quả có thể phụ thuộc việc bạn làm tròn ở đâu.
+Do not automatically round to two decimal places after every operation simply because the final target has two digits. Results can depend on where you round.
 
-Giả sử hai thành phần chính xác đều là `0.015`:
+Suppose two exact components are both `0.015`:
 
 ```text
-Làm tròn từng thành phần theo HALF_UP ở scale 2:
+Round each component with HALF_UP at scale 2:
 0.015 -> 0.02
 0.015 -> 0.02
-Tổng = 0.04
+Total = 0.04
 
-Cộng rồi làm tròn tổng:
+Sum then round the total:
 0.015 + 0.015 = 0.030
 0.030 -> 0.03
-Tổng = 0.03
+Total = 0.03
 ```
 
-**Cả hai có thể đúng trong những hợp đồng khác nhau**:
+**Both can be correct under different contracts**:
 
-- Nếu từng thành phần là dòng giao dịch độc lập phải chốt ở hai chữ số, tổng đúng có thể là 0.04.
-- Nếu đầu vào là các thành phần trung gian của một khoản duy nhất cần chốt một lần, kết quả có thể là 0.03.
+- If each component is an independent transaction line that must be settled to two digits, the correct total may be 0.04.
+- If the inputs are intermediate components of a single amount to be settled once, the result may be 0.03.
 
-Trong một luồng BigDecimal, nên xác định trước: đầu vào dạng decimal chính xác hay gần đúng; làm tròn ở đơn giá, dòng hay tổng; scale cần giữ; rounding mode; cách xử lý phần dư và cách lưu giá trị đã chốt.
+In a BigDecimal pipeline, you should determine upfront: whether inputs are exact or approximate decimals; whether rounding happens at unit price, line item, or total; what scale to keep; rounding mode; how to handle remainders; and how to store settled values.
 
-### Precision của MathContext không thay thế hợp đồng về scale
+### MathContext Precision Does Not Replace a Scale Contract
 
 ```java
 MathContext working = new MathContext(12, RoundingMode.HALF_EVEN);
 BigDecimal approximateRatio =
         BigDecimal.ONE.divide(BigDecimal.valueOf(7), working);
-// Có 12 chữ số có nghĩa; kết quả không mang mặc định scale 2.
+// Has 12 significant digits; result does not default to scale 2.
 
 BigDecimal committed =
         approximateRatio.setScale(2, RoundingMode.HALF_UP);
-// Phải có quyết định rõ rằng đây chính là bước chốt ở scale 2.
+// Must be an explicit decision that this is the settlement step at scale 2.
 ```
 
-Đừng mặc định `MathContext` có thể “làm mọi phép chia chính xác”: đó là **xấp xỉ có giới hạn chữ số có nghĩa** khi thương decimal vô hạn. Khi phải bảo toàn chính xác phân số ban đầu, mô hình cặp tử số/mẫu số hoặc một kiểu phân số hữu tỉ riêng có thể phù hợp hơn việc ép mọi kết quả sang BigDecimal hữu hạn.
+Do not assume `MathContext` can “make every division exact”: it is an **approximation with limited significant digits** when the decimal quotient is non-terminating. When you must preserve the original fraction exactly, a numerator/denominator pair or a dedicated rational type may be more suitable than forcing every result into a finite BigDecimal.
 
-## 11. Những API liên quan cần biết nhưng không nhầm với divide có rounding
+## 11. Related APIs to Know Without Confusing Them with Rounded Divide
 
-`BigDecimal` còn có:
+`BigDecimal` also provides:
 
-- `divideToIntegralValue(divisor)`: lấy phần nguyên của thương theo hướng về 0, trình bày dưới dạng BigDecimal.
-- `remainder(divisor)`: lấy phần dư theo quy tắc BigDecimal; không phải phép `%` primitive dùng trên đối tượng.
-- `divideAndRemainder(divisor)`: nhận đồng thời thương nguyên và phần dư.
+- `divideToIntegralValue(divisor)`: returns the integer part of the quotient rounded toward 0, represented as a BigDecimal.
+- `remainder(divisor)`: returns the remainder according to BigDecimal rules; not the primitive `%` operator applied to objects.
+- `divideAndRemainder(divisor)`: obtains both the integral quotient and the remainder simultaneously.
 
-Ví dụ:
+For example:
 
 ```java
 BigDecimal ten = new BigDecimal("10");
@@ -377,13 +377,13 @@ System.out.println(ten.divideToIntegralValue(three)); // 3
 System.out.println(ten.remainder(three));             // 1
 ```
 
-**Không dùng `divideToIntegralValue` để thay cho `divide(..., 0, mode)` một cách bừa bãi**: phép thứ nhất lấy phần nguyên về 0, trong khi divide với scale 0 có thể làm tròn theo mode như `HALF_UP` hoặc `CEILING`.
+**Do not carelessly use `divideToIntegralValue` in place of `divide(..., 0, mode)`**: the former truncates toward 0, whereas divide with scale 0 can round according to a mode such as `HALF_UP` or `CEILING`.
 
-Nếu mục tiêu là hiển thị hai chữ số, việc dùng `String.format("%.2f", someDouble)` cũng **không tương đương** với chia BigDecimal chính xác rồi chốt theo `RoundingMode` của nghiệp vụ. Định dạng chuỗi chỉ là bước biểu diễn văn bản và có thể mang các hạn chế của kiểu đầu vào.
+If the goal is displaying two digits, using `String.format("%.2f", someDouble)` is also **not equivalent** to exact BigDecimal division followed by settlement under the business `RoundingMode`. String formatting is merely a text presentation step and may carry the limitations of the input type.
 
-## 12. Chương trình Java 17+ chạy độc lập
+## 12. Standalone Runnable Java 17+ Program
 
-Tạo file **`BigDecimalDivideDemo.java`**:
+Create file **`BigDecimalDivideDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -493,14 +493,14 @@ public class BigDecimalDivideDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac BigDecimalDivideDemo.java
 java BigDecimalDivideDemo
 ```
 
-**Stdout dự kiến:**
+**Expected stdout:**
 
 ```text
 exactOneOverEight=0.125
@@ -535,45 +535,45 @@ primitiveDoubleZero=Infinity
 oneUnchanged=1
 ```
 
-Đầu ra cho thấy:
+The output shows:
 
-- `exactOneOverEight` thành công nhưng `exactOneOverThree` ném exception.
-- `implicitScaleZero=0` và `implicitScaleTwo=0.33` xuất phát từ **scale khác nhau của số bị chia**, dù đều là 1/3.
-- `scaleVersusPrecisionScale=61.73` khác `scaleVersusPrecisionContext=62` vì một phía giới hạn **scale**, phía kia giới hạn **chữ số có nghĩa**.
-- `tieHalfUp=0.13` và `tieHalfEven=0.12` chứng minh chính sách làm tròn điểm giữa.
-- `exactPreferredScaleActual=3` chứng minh scale thương chính xác có thể **lớn hơn preferred scale**.
-- `roundedEachThenSum=0.04` khác `sumThenRound=0.03` do **thời điểm chốt** chứ không phải bug BigDecimal.
+- `exactOneOverEight` succeeds while `exactOneOverThree` throws an exception.
+- `implicitScaleZero=0` and `implicitScaleTwo=0.33` come from **different dividend scales**, even though both are 1/3.
+- `scaleVersusPrecisionScale=61.73` differs from `scaleVersusPrecisionContext=62` because one limits **scale** while the other limits **significant digits**.
+- `tieHalfUp=0.13` and `tieHalfEven=0.12` demonstrate midpoint rounding policies.
+- `exactPreferredScaleActual=3` proves exact quotient scale can be **larger than the preferred scale**.
+- `roundedEachThenSum=0.04` differs from `sumThenRound=0.03` due to **settlement timing** rather than a BigDecimal bug.
 
-## 13. Lỗi phổ biến và cách phòng tránh
+## 13. Common Mistakes and How to Avoid Them
 
-| Hiểu nhầm hoặc cách làm | Thực tế |
+| Misconception or practice | Reality |
 | --- | --- |
-| “`divide(b)` luôn tự chọn số chữ số hợp lý.” | Không: decimal vô hạn gây `ArithmeticException`. |
-| “`divide(b, HALF_UP)` mặc định làm tròn hai chữ số.” | Không: giữ scale của số bị chia. |
-| “`scale = 2` và `MathContext(2)` giống nhau.” | Không: một là hai chữ số sau dấu chấm, một là hai chữ số có nghĩa. |
-| “`MathContext.UNLIMITED` tự biểu diễn được 1/3 vô hạn.” | Không: phép chia không kết thúc vẫn ném exception. |
-| “`RoundingMode.UNNECESSARY` luôn an toàn với phép chia.” | Không: nếu phải làm tròn sẽ có `ArithmeticException`. |
-| “Tất cả `ArithmeticException` của divide đều nghĩa là chia cho 0.” | Không: còn có thương decimal không kết thúc hoặc không vừa precision/scale. |
-| “`BigDecimal.divide` cho Infinity như `double`.” | Không: BigDecimal không có NaN/Infinity. |
-| “RoundingMode.HALF_EVEN luôn khác HALF_UP.” | Chỉ khác ở một số điểm giữa tùy chữ số cuối; nhiều đầu vào cho cùng kết quả. |
-| “Chia chính xác đảm bảo kết quả có preferred scale.” | Preferred scale chỉ là ưu tiên; kết quả exact có thể cần scale lớn hơn. |
-| “Các kết quả so sánh `equals` khi cùng số học.” | `equals` còn so scale; `compareTo` mới so giá trị số. |
-| “Dùng BigDecimal tạo từ `new BigDecimal(0.1)` sẽ sửa sai số nguồn.” | Không: đó là biểu diễn chính xác của xấp xỉ nhị phân `double`. |
-| “Có thể tự làm tròn sau mọi bước để an toàn hơn.” | Có thể mất thông tin; hợp đồng mới quyết định thời điểm cần chốt. |
+| “`divide(b)` always picks a reasonable number of digits automatically.” | No: non-terminating decimals cause `ArithmeticException`. |
+| “`divide(b, HALF_UP)` defaults to rounding to two decimal places.” | No: it keeps the dividend's scale. |
+| “`scale = 2` and `MathContext(2)` are the same.” | No: one is two digits after the decimal point, the other is two significant digits. |
+| “`MathContext.UNLIMITED` automatically represents infinite 1/3.” | No: non-terminating division still throws an exception. |
+| “`RoundingMode.UNNECESSARY` is always safe for division.” | No: if rounding is required, `ArithmeticException` occurs. |
+| “Every `ArithmeticException` from divide means division by 0.” | No: it can also mean a non-terminating decimal quotient or not fitting precision/scale. |
+| “`BigDecimal.divide` returns Infinity like `double`.” | No: BigDecimal has no NaN/Infinity. |
+| “RoundingMode.HALF_EVEN always differs from HALF_UP.” | It only differs at certain midpoints depending on the last digit; many inputs give the same result. |
+| “Exact division guarantees the result has the preferred scale.” | Preferred scale is only a preference; an exact result may need a larger scale. |
+| “Results compare `equals` when numerically equal.” | `equals` also compares scale; `compareTo` compares numeric value only. |
+| “Using BigDecimal created from `new BigDecimal(0.1)` fixes source errors.” | No: that is the exact representation of the binary `double` approximation. |
+| “You can safely round after every step.” | Information can be lost; the contract dictates when settlement is needed. |
 
-Checklist trước mỗi `divide`:
+Checklist before each `divide`:
 
-1. **Số chia khác 0 chưa?** Kiểm tra `divisor.signum() != 0`, kể cả biểu diễn `0.00`.
-2. **Thương có thể có decimal vô hạn không?** Nếu có, phải chọn scale/precision và mode chấp nhận làm tròn hoặc từ chối phép tính.
-3. **Đích yêu cầu scale cố định hay chữ số có nghĩa?** Chọn `divide(b, scale, mode)` hoặc `divide(b, MathContext)` tương ứng.
-4. **Có thực sự muốn giữ scale của số bị chia?** Chỉ khi đúng như vậy mới chọn `divide(b, mode)`.
-5. **RoundingMode nào là hợp đồng?** Xác định ở điểm giữa, số âm, giao dịch độc lập và phép chia chính xác không vừa độ rộng.
-6. **Tính nội bộ và quyết toán có tách rời không?** Chỉ làm tròn tại ranh giới có ý nghĩa, không tự làm tròn mọi bước.
-7. **Đầu ra cần được lưu/so sánh thế nào?** Phân biệt `compareTo` và `equals` vì scale khác nhau.
-8. **Cách xử lý exception đã rõ chưa?** Phân loại chia cho zero, decimal vô hạn và `UNNECESSARY` trước khi báo lỗi phù hợp.
-9. **Kết quả có thể quá lớn hoặc tốn tài nguyên không?** Đặt giới hạn precision, scale, chiều dài đầu vào theo chính sách ứng dụng.
-10. **Đã kiểm thử số âm, zero, điểm giữa và scale âm chưa?** Những trường hợp này thường phát hiện bug sớm nhất.
+1. **Is the divisor nonzero?** Check `divisor.signum() != 0`, including representations like `0.00`.
+2. **Could the quotient have a non-terminating decimal?** If yes, choose scale/precision and a mode permitting rounding, or reject the operation.
+3. **Does the target require a fixed scale or significant digits?** Choose `divide(b, scale, mode)` or `divide(b, MathContext)` accordingly.
+4. **Do you truly want to keep the dividend's scale?** Only if that is the case, choose `divide(b, mode)`.
+5. **Which RoundingMode is specified by the contract?** Verify behavior at midpoints, negative numbers, independent transactions, and exact quotients that do not fit the width.
+6. **Are internal calculations and settlement separated?** Round only at meaningful boundaries, not arbitrarily at every step.
+7. **How must the output be stored/compared?** Distinguish `compareTo` and `equals` because scales can differ.
+8. **Is exception handling clear?** Separate division by zero, non-terminating decimals, and `UNNECESSARY` before reporting the appropriate error.
+9. **Could the result become too large or resource-intensive?** Set precision, scale, and input length limits per application policy.
+10. **Have negative numbers, zero, midpoints, and negative scales been tested?** These cases usually catch bugs earliest.
 
-**Kết luận:** `BigDecimal.divide` có nhiều overload vì không có một chính sách làm tròn đúng cho mọi tình huống. `divide(divisor)` yêu cầu **chính xác**; `divide(divisor, scale, mode)` chọn **scale cụ thể**; `divide(divisor, mode)` lấy **scale của số bị chia**; còn `divide(divisor, MathContext)` giới hạn **chữ số có nghĩa**. Chọn overload dựa trên yêu cầu dữ liệu và hợp đồng làm tròn, không dựa trên cảm giác rằng một mode hay một số chữ số “có vẻ đủ”.
+**Conclusion:** `BigDecimal.divide` has multiple overloads because no single rounding policy fits every situation. `divide(divisor)` demands **exactness**; `divide(divisor, scale, mode)` chooses a **specific scale**; `divide(divisor, mode)` takes the **dividend's scale**; and `divide(divisor, MathContext)` limits **significant digits**. Choose an overload based on data requirements and the rounding contract, not on a hunch that a mode or digit count “looks like enough”.
 
-Tài liệu API: [Oracle Java 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html), [RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html) và [MathContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html).
+API documentation: [Oracle Java 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html), [RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html), and [MathContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html).

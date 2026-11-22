@@ -1,16 +1,16 @@
-# `equals`, `hashCode` và `annotationType` của annotation trong Java
+# `equals`, `hashCode`, and `annotationType` of Annotations in Java
 
-## 1. Ba phương thức trả lời ba câu hỏi khác nhau
+## 1. Three methods answering three different questions
 
-Khi Reflection đọc một annotation ở runtime, kết quả không chỉ là vài trường metadata; nó là một **đối tượng thực thi giao diện annotation**. Mọi annotation interface đều ngầm mở rộng `java.lang.annotation.Annotation`, nên đối tượng thu được có ba phương thức trọng tâm:
+When Reflection reads an annotation at runtime, the result is not merely a few metadata fields; it is an **object implementing the annotation interface**. Every annotation interface implicitly extends `java.lang.annotation.Annotation`, so the obtained object has three core methods:
 
-| Phương thức | Câu hỏi cần trả lời | Ý nghĩa |
+| Method | Question to answer | Meaning |
 | --- | --- | --- |
-| `annotationType()` | “Annotation này được khai báo bởi **annotation interface** nào?” | Trả `Class<? extends Annotation>` của loại annotation, chẳng hạn `Info.class` |
-| `equals(Object other)` | “Hai annotation có **cùng loại và cùng giá trị các thành viên** không?” | So sánh theo **giá trị ngữ nghĩa**, không theo địa chỉ đối tượng |
-| `hashCode()` | “Giá trị băm tương thích với quy tắc `equals` của annotation là gì?” | Được đặc tả bằng công thức trên tất cả thành viên, kể cả thành viên dùng giá trị mặc định |
+| `annotationType()` | “Which **annotation interface** declared this annotation?” | Returns `Class<? extends Annotation>` of the annotation type, such as `Info.class` |
+| `equals(Object other)` | “Do two annotations have the **same type and the same member values**?” | Compares by **semantic value**, not object address |
+| `hashCode()` | “What is the hash value compatible with the annotation's `equals` rule?” | Specified by a formula over all members, including members using default values |
 
-Ví dụ:
+Example:
 
 ~~~java
 @Retention(RetentionPolicy.RUNTIME)
@@ -21,9 +21,9 @@ Ví dụ:
 }
 ~~~
 
-Đây là đoạn khai báo minh họa, cần import `java.lang.annotation.*`. Một annotation `@Info(name = "core")` sẽ có **hai thành viên** trong hợp đồng so sánh: `name = "core"` và `level = 1`. Việc không ghi rõ `level` trong mã nguồn **không xóa thành viên này** khỏi `equals` hoặc `hashCode`.
+This is an illustrative declaration requiring `import java.lang.annotation.*`. An `@Info(name = "core")` annotation has **two members** in its comparison contract: `name = "core"` and `level = 1`. Omitting `level` in source code **does not remove this member** from `equals` or `hashCode`.
 
-Tại runtime, thông thường lấy annotation qua các API của `AnnotatedElement`:
+At runtime, annotations are typically retrieved via `AnnotatedElement` APIs:
 
 ~~~java
 Info info = SomeClass.class.getAnnotation(Info.class);
@@ -32,18 +32,18 @@ if (info != null) {
 }
 ~~~
 
-Đoạn minh họa trên giả định có lớp `SomeClass` và annotation `@Info` giữ lại đến runtime. `getAnnotation` trả `null` nếu không tìm thấy annotation phù hợp; đừng gọi `equals`, `hashCode` hoặc `annotationType` trước khi xử lý trường hợp ấy.
+The illustrative snippet above assumes a class `SomeClass` and an `@Info` annotation retained until runtime. `getAnnotation` returns `null` if no matching annotation is found; do not call `equals`, `hashCode`, or `annotationType` before handling that case.
 
-## 2. `annotationType()` khác `getClass()` như thế nào?
+## 2. How does `annotationType()` differ from `getClass()`?
 
-Một annotation runtime thường được JDK hiện thực bằng **đối tượng của lớp implementation do runtime tạo**, chứ không phải instance có lớp triển khai trùng với annotation interface.
+A runtime annotation is typically implemented by the JDK as an **object of a runtime-generated implementation class**, rather than an instance whose concrete class matches the annotation interface.
 
-- `info.annotationType()` trả đúng **`Info.class`**.
-- `info.getClass()` trả **lớp implementation runtime**, có thể là lớp proxy/implementation phụ thuộc JDK. Không nên đặt kỳ vọng vào tên package, tên class hoặc định dạng implementation của nó.
-- `info.annotationType() == Info.class` là cách kiểm tra annotation interface đang được biểu diễn.
-- `info.getClass() == Info.class` không phải phép kiểm tra đúng loại annotation: `Info` là một interface, không phải implementation class của object.
+- `info.annotationType()` returns **`Info.class`** directly.
+- `info.getClass()` returns the **runtime implementation class**, which may be a JDK-dependent proxy/implementation class. You should not make assumptions about its package name, class name, or implementation format.
+- `info.annotationType() == Info.class` is the proper way to check which annotation interface is represented.
+- `info.getClass() == Info.class` is not a valid check for the annotation type: `Info` is an interface, not the object's implementation class.
 
-Sử dụng `Class<? extends Annotation>` cho kiểu annotation tổng quát:
+Use `Class<? extends Annotation>` for a general annotation type:
 
 ~~~java
 Annotation any = element.getAnnotation(Info.class);
@@ -53,20 +53,20 @@ if (any != null) {
 }
 ~~~
 
-Đây là đoạn minh họa bên trong phương thức có `AnnotatedElement element` và `Info` phù hợp. Không dùng `getClass()` làm khóa định danh loại annotation khi xây framework quét metadata.
+This is an illustrative snippet inside a method that has `AnnotatedElement element` and `Info` in scope. Do not use `getClass()` as a key identifying annotation types when building metadata-scanning frameworks.
 
-**Phân biệt thêm:** `annotationType()` **không** trả lớp nơi annotation được đặt. Nếu `@Info` nằm trên `Service`, `annotationType()` vẫn là `Info.class`, **không** phải `Service.class`. Muốn biết đối tượng được gắn annotation, bạn phải giữ riêng tham chiếu `AnnotatedElement` tương ứng.
+**Additional distinction:** `annotationType()` does **not** return the class where the annotation is placed. If `@Info` sits on `Service`, `annotationType()` is still `Info.class`, **not** `Service.class`. To know which target holds the annotation, keep the corresponding `AnnotatedElement` reference separately.
 
-## 3. Hợp đồng `equals`: bằng nhau khi nào?
+## 3. The `equals` contract: when are two annotations equal?
 
-Javadoc `java.lang.annotation.Annotation` quy định hai annotation bằng nhau nếu và chỉ nếu:
+The `java.lang.annotation.Annotation` Javadoc specifies that two annotations are equal if and only if:
 
-1. Đối tượng đem so sánh biểu diễn **cùng một annotation interface**.
-2. **Tất cả các thành viên tương ứng đều có giá trị bằng nhau** theo quy tắc dành cho từng kiểu.
+1. The compared object represents the **same annotation interface**.
+2. **All corresponding members have equal values** according to the rules for each type.
 
-Không yêu cầu hai annotation phải nằm trên cùng class, cùng field hoặc cùng method. Không yêu cầu hai giá trị được viết giống hệt nhau trong mã nguồn nếu chúng mang cùng giá trị sau khi áp dụng default.
+There is no requirement that both annotations sit on the same class, same field, or same method. There is no requirement that the two values be written identically in source code if they carry the same value after applying defaults.
 
-### 3.1. Giá trị mặc định cũng tham gia so sánh
+### 3.1. Default values also participate in comparison
 
 ~~~java
 @Info(name = "core")
@@ -76,66 +76,66 @@ class A { }
 class B { }
 ~~~
 
-Giả sử `Info.level()` có `default 1` như ở mục 1. Annotation của `A` và `B` **bằng nhau** theo `equals` vì giá trị tất cả thành viên giống nhau. Khi gọi `level()` từ annotation của `A`, API trả 1.
+Suppose `Info.level()` has `default 1` as in section 1. The annotations on `A` and `B` are **equal** under `equals` because all member values are identical. When calling `level()` on `A`'s annotation, the API returns 1.
 
-Điều này khác với việc so sánh nguyên văn source code: `@Info(name = "core")` và `@Info(name = "core", level = 1)` không giống hệt về cách viết, nhưng có **giá trị annotation tương đương**.
+This differs from comparing verbatim source code: `@Info(name = "core")` and `@Info(name = "core", level = 1)` are not identical textually, yet they have **equivalent annotation values**.
 
-### 3.2. So sánh từng kiểu thành viên
+### 3.2. Comparing each member type
 
-| Kiểu thành viên | Quy tắc `equals` của annotation |
+| Member type | Annotation `equals` rule |
 | --- | --- |
-| Primitive `boolean`, `byte`, `short`, `char`, `int`, `long` | So theo giá trị bằng toán tử `==` |
-| `float`, `double` | Theo `Float.valueOf(x).equals(Float.valueOf(y))` hoặc `Double.valueOf(x).equals(Double.valueOf(y))` |
-| `String`, `Class`, enum | Dùng `equals` của giá trị tương ứng |
-| Annotation lồng trong annotation | So sánh `equals` **đệ quy** |
-| Mảng một chiều của các kiểu được phép | Dùng overload thích hợp của `Arrays.equals` |
+| Primitive `boolean`, `byte`, `short`, `char`, `int`, `long` | Compared by value with `==` |
+| `float`, `double` | By `Float.valueOf(x).equals(Float.valueOf(y))` or `Double.valueOf(x).equals(Double.valueOf(y))` |
+| `String`, `Class`, enum | Uses `equals` of the corresponding value |
+| Nested annotation inside annotation | Compared **recursively** with `equals` |
+| One-dimensional array of permitted types | Uses the appropriate overload of `Arrays.equals` |
 
-Cần chú ý **điểm đặc biệt của số thực**: theo hợp đồng annotation, `NaN` được coi là bằng chính nó, còn `+0.0` và `-0.0` được phân biệt khi so sánh thành viên kiểu `float`/`double`. Quy tắc này khác với cách dùng toán tử số học `==` thông thường trong Java.
+Note the **floating-point special case**: under the annotation contract, `NaN` is considered equal to itself, while `+0.0` and `-0.0` are distinguished when comparing `float`/`double` members. This rule differs from ordinary Java arithmetic `==`.
 
-### 3.3. Array member so **nội dung**, không so identity
+### 3.3. Array members compare **contents**, not identity
 
-Nếu annotation có thành viên:
+If an annotation has a member:
 
 ~~~java
 int[] ids() default {1, 2};
 ~~~
 
-thì `ids = {1, 2}` bằng `ids = {1, 2}` dù các mảng được tạo ở những lần truy cập khác nhau. Nhưng `{1, 2}` **không bằng** `{2, 1}`, vì `Arrays.equals` so sánh **theo thứ tự phần tử**.
+then `ids = {1, 2}` equals `ids = {1, 2}` even if the arrays are created on separate accesses. However, `{1, 2}` **does not equal** `{2, 1}`, because `Arrays.equals` compares **element by element in order**.
 
-Không dùng `array1 == array2` hay `array1.equals(array2)` để tự mô phỏng hợp đồng annotation: cả hai cách ấy chỉ so tham chiếu mảng. Với `int[]`, nên dùng `Arrays.equals(int[], int[])`; với mảng reference hợp lệ, dùng overload `Arrays.equals(Object[], Object[])`. Hợp đồng annotation chọn overload tương ứng tự động.
+Do not use `array1 == array2` or `array1.equals(array2)` to simulate the annotation contract yourself: both compare array references only. For `int[]`, use `Arrays.equals(int[], int[])`; for valid reference arrays, use the `Arrays.equals(Object[], Object[])` overload. The annotation contract selects the appropriate overload automatically.
 
-Đặc biệt, annotation member **không thể là một array nhiều chiều**; tập kiểu hợp lệ được giới hạn trong primitive, `String`, `Class`, enum, annotation interface và mảng một chiều của các kiểu ấy. Giá trị member không thể là `null`.
+In particular, an annotation member **cannot be a multidimensional array**; the permitted types are restricted to primitives, `String`, `Class`, enums, annotation interfaces, and one-dimensional arrays of those types. A member value cannot be `null`.
 
-### 3.4. Cùng tên các thành viên chưa đủ
+### 3.4. Matching member names alone is not enough
 
-Hai annotation interfaces khác nhau:
+Two different annotation interfaces:
 
 ~~~java
 @interface Alpha { String value(); }
 @interface Beta  { String value(); }
 ~~~
 
-dù đều được sử dụng dưới dạng `@Alpha("x")` và `@Beta("x")`, **không bằng nhau**. `annotationType()` khác nhau, nên điều kiện thứ nhất của `equals` thất bại. Tên member hay nội dung giống hệt cũng không biến hai loại annotation khác nhau thành một.
+even when used as `@Alpha("x")` and `@Beta("x")`, are **not equal**. `annotationType()` differs, so the first condition of `equals` fails. Identical member names or contents do not turn two distinct annotation types into one.
 
-## 4. Hợp đồng `hashCode` của annotation
+## 4. The annotation `hashCode` contract
 
-`Annotation.hashCode()` **không phải** mã băm identity của đối tượng proxy. Nó được định nghĩa theo tổng giá trị băm của **mọi thành viên annotation**, bao gồm member dùng default.
+`Annotation.hashCode()` is **not** the identity hash code of the proxy object. It is defined as the sum of hash values of **all annotation members**, including members using defaults.
 
-Với thành viên tên `n` và giá trị `v`:
+For a member with name `n` and value `v`:
 
 ~~~text
 memberHash = (127 * n.hashCode()) XOR valueHash(v)
 
-annotationHash = tổng memberHash trên tất cả thành viên
+annotationHash = sum of memberHash over all members
 ~~~
 
-- `n.hashCode()` là `String.hashCode()` của **tên member**, ví dụ `"name"`, không phải tên annotation interface.
-- Với primitive, `valueHash(v)` là `hashCode()` của wrapper tương ứng: `Integer`, `Boolean`, `Float`, `Double`, ...
-- Với `String`, `Class`, enum, hoặc annotation lồng, dùng `v.hashCode()` (annotation lồng lại tính theo cùng hợp đồng).
-- Với array member, dùng overload tương ứng của `Arrays.hashCode`; **không dùng `Object.hashCode` của mảng**.
-- Tổng số học trong Java dùng số nguyên `int`; overflow được phép theo quy tắc số nguyên Java.
+- `n.hashCode()` is `String.hashCode()` of the **member name**, e.g. `"name"`, not the annotation interface name.
+- For primitives, `valueHash(v)` is `hashCode()` of the corresponding wrapper: `Integer`, `Boolean`, `Float`, `Double`, ...
+- For `String`, `Class`, enum, or nested annotation, use `v.hashCode()` (nested annotations follow the same contract).
+- For array members, use the corresponding overload of `Arrays.hashCode`; **do not use `Object.hashCode` on the array**.
+- Arithmetic addition in Java uses `int` integers; overflow is allowed under Java integer arithmetic rules.
 
-Ví dụ annotation:
+Annotation example:
 
 ~~~java
 @interface Info {
@@ -144,7 +144,7 @@ Ví dụ annotation:
 }
 ~~~
 
-Với `@Info(name = "core")`, công thức băm tương ứng là:
+For `@Info(name = "core")`, the corresponding hash formula is:
 
 ~~~java
 int expectedHash =
@@ -152,15 +152,15 @@ int expectedHash =
         (127 * "ids".hashCode() ^ Arrays.hashCode(new int[]{1, 2}));
 ~~~
 
-Đây là đoạn minh họa trong phương thức có import `java.util.Arrays`, không phải ứng dụng riêng. Toán tử XOR `^` áp dụng cho từng member, sau đó **cộng** hai memberHash. Giá trị `ids` mặc định `{1, 2}` **vẫn tham gia** vào `hashCode`.
+This is an illustrative snippet inside a method importing `java.util.Arrays`, not a standalone application. The XOR operator `^` applies per member, and then the two memberHashes are **added**. The default `ids` value `{1, 2}` **still participates** in `hashCode`.
 
-**Hệ quả bắt buộc:** nếu `a.equals(b)` là `true`, thì `a.hashCode() == b.hashCode()` phải là `true`. Chiều ngược lại **không được bảo đảm**, bởi hai giá trị khác nhau vẫn có thể trùng hash. Không dùng một hashCode đơn độc làm bằng chứng rằng hai annotation bằng nhau.
+**Mandatory consequence:** if `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()` must be `true`. The converse is **not guaranteed**, because two distinct values can still collide in hash code. Never use `hashCode` alone as proof that two annotations are equal.
 
-Không nên hardcode một mã băm số nguyên cụ thể khi xây logic nghiệp vụ; dùng `equals`, và nếu cần tự tính để học thì áp dụng đúng công thức của Javadoc.
+Do not hardcode a specific integer hash code when writing business logic; use `equals`, and if computing by hand for learning, follow the exact Javadoc formula.
 
-## 5. Ví dụ hoàn chỉnh Java 17+: equality, defaults, arrays và HashMap
+## 5. Complete Java 17+ example: equality, defaults, arrays, and HashMap
 
-Tạo file **`AnnotationIdentityDemo.java`**:
+Create the file **`AnnotationIdentityDemo.java`**:
 
 ~~~java
 import java.lang.annotation.Annotation;
@@ -235,14 +235,14 @@ public class AnnotationIdentityDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 AnnotationIdentityDemo.java
 java AnnotationIdentityDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 same annotation type: true
@@ -256,21 +256,21 @@ different annotation interface: false
 map lookup: found
 ~~~
 
-**Giải thích từng phép kiểm tra:**
+**Explaining each check:**
 
-1. `first.annotationType() == Info.class` là `true`. Ngược lại, `first.getClass() == Info.class` là `false` bởi `getClass()` chỉ lớp implementation của annotation object, không phải chính annotation interface.
-2. `@Info(name = "core")` và `@Info(name = "core", ids = {1, 2})` có cùng loại và cùng tất cả member values. `ids` mặc định được đưa vào hợp đồng, nên `equals` là `true`.
-3. Hai annotation tương đương có `hashCode` bằng nhau. Công thức `127 * memberName.hashCode() XOR memberValueHash`, cộng qua mọi member, trả đúng hash của `first`.
-4. `{2, 1}` và `{1, 2}` chứa cùng tập phần tử nhưng **khác thứ tự**, nên `equals` trả `false`.
-5. Thay `name` từ `"core"` sang `"other"` làm khác member value, vì thế `equals` trả `false`.
-6. `@OtherInfo(name = "core")` có cùng tên và default member values nhưng là **annotation interface khác**; `equals` vẫn `false`.
-7. `HashMap<Info, String>` lưu theo `first` và truy xuất bằng `equivalent` thành công nhờ hợp đồng `equals`/`hashCode`, **không cần cùng identity đối tượng**.
+1. `first.annotationType() == Info.class` is `true`. Conversely, `first.getClass() == Info.class` is `false` because `getClass()` points to the annotation object's implementation class, not the annotation interface itself.
+2. `@Info(name = "core")` and `@Info(name = "core", ids = {1, 2})` share the same type and all member values. The default `ids` is included in the contract, so `equals` is `true`.
+3. Two equivalent annotations have equal `hashCode`s. The formula `127 * memberName.hashCode() XOR memberValueHash`, summed across all members, produces `first`'s exact hash.
+4. `{2, 1}` and `{1, 2}` hold the same set of elements in **different order**, so `equals` returns `false`.
+5. Changing `name` from `"core"` to `"other"` changes a member value, so `equals` returns `false`.
+6. `@OtherInfo(name = "core")` has the same name and default member values yet is a **different annotation interface**; `equals` remains `false`.
+7. `HashMap<Info, String>` stores under `first` and retrieves via `equivalent` successfully thanks to the `equals`/`hashCode` contract, **without requiring the same object identity**.
 
-Ví dụ chủ động không in tên lớp proxy hoặc thứ tự `toString()`, bởi đó không phải thuộc tính nên dựa vào khi thiết kế ứng dụng.
+The example intentionally avoids printing the proxy class name or `toString()` order, because those are not properties to rely upon in application design.
 
-## 6. Khác biệt giữa annotation interface và giá trị annotation
+## 6. Difference between annotation interface and annotation value
 
-Một annotation interface là khai báo kiểu, ví dụ:
+An annotation interface is a type declaration, for example:
 
 ~~~java
 @interface Security {
@@ -279,41 +279,41 @@ Một annotation interface là khai báo kiểu, ví dụ:
 }
 ~~~
 
-Mỗi đối tượng annotation runtime chứa các **giá trị thành viên** theo khai báo ấy. `role()` và `enabled()` là các member method không có tham số, không phải Java fields thông thường có thể đặt giá trị tùy ý.
+Each runtime annotation object holds **member values** matching that declaration. `role()` and `enabled()` are zero-parameter member methods, not ordinary Java fields whose values can be mutated arbitrarily.
 
-- `Security.class`: token kiểu (annotation interface).
-- `someAnnotation.annotationType()`: token kiểu annotation mà object biểu diễn.
-- `someAnnotation.role()`: đọc member value từ annotation object.
-- `someAnnotation.equals(other)`: so sánh **cả loại và toàn bộ member values**.
-- `someAnnotation.hashCode()`: hash từ toàn bộ member values theo công thức chuẩn.
+- `Security.class`: type token (annotation interface).
+- `someAnnotation.annotationType()`: type token of the annotation the object represents.
+- `someAnnotation.role()`: reads a member value from the annotation object.
+- `someAnnotation.equals(other)`: compares **both the type and all member values**.
+- `someAnnotation.hashCode()`: hash from all member values per the standard formula.
 
-Trên annotation interface, các member method có thể khai báo giá trị `default`. Điều này không giống từ khóa `default` cho Java interface method có body. Annotation member không thực hiện logic nghiệp vụ động như method thông thường.
+On an annotation interface, member methods can declare a `default` value. This differs from the `default` keyword on Java interface methods with bodies. Annotation members do not execute dynamic business logic like regular methods.
 
-**Cần `@Retention(RetentionPolicy.RUNTIME)`** khi muốn lấy annotation từ Reflection runtime bằng các API như `Class.getAnnotation`, `Method.getDeclaredAnnotation`, `Field.getAnnotation`. Annotation có retention `SOURCE` hoặc `CLASS` không được hiển thị như annotation runtime bình thường qua các API này.
+**`@Retention(RetentionPolicy.RUNTIME)` is required** when retrieving annotations via runtime Reflection APIs such as `Class.getAnnotation`, `Method.getDeclaredAnnotation`, and `Field.getAnnotation`. Annotations with `SOURCE` or `CLASS` retention are not exposed as normal runtime annotations through these APIs.
 
-`@Target` xác định annotation có thể đặt ở đâu. Nó không thay đổi công thức `equals` và `hashCode` cho những annotation cùng loại đã được đọc.
+`@Target` defines where an annotation can be placed. It does not change the `equals` and `hashCode` formulas for annotations of the same type once read.
 
-## 7. Dùng `annotationType()`, `equals` và `hashCode` trong framework
+## 7. Using `annotationType()`, `equals`, and `hashCode` in frameworks
 
-### Phân nhóm annotation theo loại
+### Grouping annotations by type
 
-Một framework scan nhiều thành viên có thể dùng:
+A framework scanning multiple members may use:
 
 ~~~java
 Annotation annotation = element.getAnnotation(Security.class);
 if (annotation != null) {
     Class<? extends Annotation> type = annotation.annotationType();
-    // type là Security.class.
+    // type is Security.class.
 }
 ~~~
 
-Đây là đoạn minh họa trong phương thức đã có `AnnotatedElement element`, với `Security` được khai báo trong ví dụ trên và đã giữ tới runtime.
+This is an illustrative snippet inside a method that already has `AnnotatedElement element`, with `Security` declared as in the example above and retained until runtime.
 
-Nếu cần tạo tập các **annotation interfaces có mặt**, dùng `Set<Class<? extends Annotation>>` chứa `annotationType()`, thay vì `getClass()`. Cùng một annotation interface có thể xuất hiện dưới nhiều annotation object khác nhau; kiểu và giá trị là hai chiều dữ liệu riêng.
+If you need a set of **present annotation interfaces**, use `Set<Class<? extends Annotation>>` containing `annotationType()`, rather than `getClass()`. The same annotation interface can appear under many different annotation objects; type and value are two separate data dimensions.
 
-### Dùng annotation làm khóa
+### Using annotations as keys
 
-Nhờ hợp đồng so sánh theo giá trị, một annotation runtime có thể được dùng như khóa `Map` hoặc phần tử `Set`, trong phạm vi các dữ liệu annotation phù hợp:
+Thanks to the value-based comparison contract, a runtime annotation can be used as a `Map` key or `Set` element, within appropriate annotation data boundaries:
 
 ~~~java
 Map<Info, String> descriptions = new HashMap<>();
@@ -321,78 +321,78 @@ descriptions.put(infoA, "configuration");
 String found = descriptions.get(infoB);
 ~~~
 
-Đoạn này minh họa với `infoA` và `infoB` đã có kiểu `Info`. Nếu chúng `equals`, phép tra cứu có thể tìm cùng entry.
+This snippet illustrates with `infoA` and `infoB` already typed as `Info`. If they are `equals`, the lookup finds the same entry.
 
-Dù vậy, **không sử dụng `annotation.hashCode()` thay `equals` để quyết định tương đương**: hash có thể va chạm. Nếu tạo implementation tùy chỉnh của annotation interface, hãy tuân thủ đầy đủ hợp đồng `Annotation` (đặc biệt là so sánh mảng, default values, kiểu annotation và công thức hash). Triển khai thiếu chính xác có thể khiến `HashMap` hoặc `HashSet` hoạt động sai.
+Even so, **do not use `annotation.hashCode()` instead of `equals` to determine equivalence**: hashes can collide. If creating a custom implementation of an annotation interface, follow the full `Annotation` contract (especially array comparison, default values, annotation type, and hash formula). An inaccurate implementation can cause `HashMap` or `HashSet` to behave incorrectly.
 
-### Khi chỉ muốn lấy tất cả annotation?
+### When you just want all annotations?
 
-`element.getAnnotations()`, `getDeclaredAnnotations()`, `getAnnotationsByType(...)` phục vụ **tìm annotation** với các quy tắc riêng về khai báo trực tiếp, kế thừa hoặc repeatable annotation. Sau khi có một annotation object, hợp đồng `equals`, `hashCode`, `annotationType` của nó vẫn là hợp đồng trong `java.lang.annotation.Annotation`.
+`element.getAnnotations()`, `getDeclaredAnnotations()`, and `getAnnotationsByType(...)` handle **finding annotations** under distinct rules for direct declarations, inheritance, or repeatable annotations. Once you have an annotation object, its `equals`, `hashCode`, and `annotationType` contracts remain the contract in `java.lang.annotation.Annotation`.
 
-Không nhầm thao tác **lọc nơi đặt annotation** với thao tác **so sánh giá trị annotation**. Hai annotation giống nhau gắn lên các class khác nhau vẫn có thể `equals == true`.
+Do not confuse **filtering where an annotation is placed** with **comparing annotation values**. Two identical annotations placed on different classes can still have `equals == true`.
 
-## 8. Những sai lầm dễ gặp
+## 8. Common mistakes
 
-| Sai lầm | Vì sao sai | Cách đúng |
+| Mistake | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| Dùng `a == b` để xác nhận hai annotation có cùng nội dung | `==` so identity của object | Dùng `a.equals(b)` |
-| Dùng `a.getClass()` để xác định loại annotation | Trả implementation class | Dùng `a.annotationType()` |
-| Chỉ so member được ghi tường minh | Member dùng default cũng có giá trị | So mọi member theo hợp đồng |
-| Dùng `intArray.equals(otherIntArray)` | Mảng không override `Object.equals` để so nội dung | Dùng `Arrays.equals` |
-| Xem `ids={1,2}` bằng `ids={2,1}` | Thứ tự trong array member có ý nghĩa | So theo vị trí |
-| Dùng `hashCode` bằng nhau để khẳng định annotation bằng nhau | Có thể có hash collision | So bằng `equals` |
-| Nhầm `annotationType()` với class được gắn annotation | Một bên là loại annotation, bên kia là annotated element | Giữ riêng `AnnotatedElement` |
-| Lệ thuộc kết quả `annotation.toString()` hoặc tên proxy | Javadoc không yêu cầu chuỗi trình bày/implementation cố định | Đọc member values theo API |
-| Tự tính hash array bằng `array.hashCode()` | Hash identity không đúng hợp đồng | Dùng `Arrays.hashCode` thích hợp |
-| Không kiểm tra `getAnnotation` trả `null` | Khi không có annotation, gọi member sẽ ném NPE | Kiểm tra `null` trước |
+| Using `a == b` to verify two annotations have the same contents | `==` compares object identity | Use `a.equals(b)` |
+| Using `a.getClass()` to identify the annotation type | Returns implementation class | Use `a.annotationType()` |
+| Comparing only explicitly written members | Members using defaults also have values | Compare all members per contract |
+| Using `intArray.equals(otherIntArray)` | Arrays do not override `Object.equals` to compare contents | Use `Arrays.equals` |
+| Treating `ids={1,2}` as equal to `ids={2,1}` | Order in array members matters | Compare position by position |
+| Using equal `hashCode` to assert annotations are equal | Hash collisions can occur | Compare with `equals` |
+| Confusing `annotationType()` with the annotated class | One is the annotation type, the other is the annotated element | Track `AnnotatedElement` separately |
+| Depending on `annotation.toString()` or proxy class names | Javadoc requires no fixed display string/implementation | Read member values via API |
+| Computing array hash with `array.hashCode()` | Identity hash violates the contract | Use the appropriate `Arrays.hashCode` |
+| Not checking `getAnnotation` for `null` | When absent, calling a member throws NPE | Check for `null` first |
 
-### Lưu ý nâng cao: `float` và `double`
+### Advanced note: `float` and `double`
 
-Với annotation có member `double threshold()`, không được mô phỏng `equals` bằng cách dùng thuần toán tử `==`. Theo Javadoc của `Annotation.equals`:
+For an annotation with a `double threshold()` member, do not simulate `equals` using purely the `==` operator. Per the `Annotation.equals` Javadoc:
 
-- `Double.NaN` so với `Double.NaN` được xem là **bằng** ở member annotation.
-- `+0.0` và `-0.0` được xem là **không bằng** ở member annotation.
-- `hashCode` cho member số thực dùng `Float.hashCode` / `Double.hashCode` thông qua wrapper, phù hợp với quy tắc `equals`.
+- `Double.NaN` compared with `Double.NaN` is considered **equal** for annotation members.
+- `+0.0` and `-0.0` are considered **not equal** for annotation members.
+- `hashCode` for floating-point members uses `Float.hashCode` / `Double.hashCode` via the wrapper, consistent with the `equals` rule.
 
-Đây là lý do phải dùng hợp đồng `Annotation` thay vì tự viết một bộ so sánh “có vẻ tương đương”.
+This is why you should rely on the `Annotation` contract instead of writing a “looks equivalent” comparator yourself.
 
-## 9. Checklist khi làm việc với annotation runtime
+## 9. Checklist when working with runtime annotations
 
-1. Xác định annotation có `@Retention(RUNTIME)` và target phù hợp.
-2. Lấy annotation bằng đúng Reflection API: `getAnnotation`, `getDeclaredAnnotation` hay `getAnnotationsByType` tùy trường hợp.
-3. Kiểm tra kết quả khác `null`.
-4. Nếu cần **định danh annotation interface**, dùng `annotationType()`.
-5. Nếu cần **so sánh hai annotation**, dùng `equals()`, không dùng identity, không chỉ so `toString()`.
-6. Nếu cần làm khóa trong `HashMap`/`HashSet`, tin dùng cặp `equals`/`hashCode` tuân thủ đặc tả; đừng dùng một số hash làm định danh duy nhất.
-7. Khi kiểm thử, có ít nhất một trường hợp **giá trị mặc định**, một trường hợp **array member**, một trường hợp **khác annotation interface**.
-8. Không viết logic dựa vào class name hoặc cấu trúc implementation nội bộ của annotation proxy.
+1. Confirm the annotation has `@Retention(RUNTIME)` and an appropriate target.
+2. Retrieve the annotation using the right Reflection API: `getAnnotation`, `getDeclaredAnnotation`, or `getAnnotationsByType` as needed.
+3. Check that the result is non-`null`.
+4. If you need to **identify the annotation interface**, use `annotationType()`.
+5. If you need to **compare two annotations**, use `equals()`, not identity and not `toString()` comparison.
+6. If using as keys in `HashMap`/`HashSet`, rely on the spec-compliant `equals`/`hashCode` pair; never use a hash number as a unique identifier.
+7. When testing, include at least one **default value** case, one **array member** case, and one **different annotation interface** case.
+8. Do not write logic depending on the class name or internal implementation structure of annotation proxies.
 
-### Câu hỏi tự kiểm tra
+### Self-check questions
 
-**1.** `@Config(value="x")` với `int level() default 1` có bằng `@Config(value="x", level=1)` không?  
-**Có**, nếu là cùng annotation interface và tất cả member values khác cũng giống nhau.
+**1.** Is `@Config(value="x")` with `int level() default 1` equal to `@Config(value="x", level=1)`?  
+**Yes**, if they are the same annotation interface and all other member values also match.
 
-**2.** Hai annotation đặt trên hai class khác nhau có thể `equals` không?  
-**Có**, vì nơi đặt annotation không phải member value tham gia so sánh.
+**2.** Can two annotations placed on two different classes be `equals`?  
+**Yes**, because where an annotation is placed is not a member value participating in comparison.
 
-**3.** Một annotation có `int[] ids()` trả `{1,2}`, annotation khác trả `{2,1}`. Chúng có bằng nhau không?  
-**Không**, vì `Arrays.equals` xét thứ tự các phần tử.
+**3.** One annotation has `int[] ids()` returning `{1,2}`, another returns `{2,1}`. Are they equal?  
+**No**, because `Arrays.equals` considers element order.
 
-**4.** Khi `a.equals(b)` là `true`, `a.hashCode() == b.hashCode()` có bắt buộc không?  
-**Có**. Nhưng cùng hashCode **không** đủ suy ra `equals`.
+**4.** When `a.equals(b)` is `true`, must `a.hashCode() == b.hashCode()` be `true`?  
+**Yes**. However, matching hashCodes are **not** sufficient to imply `equals`.
 
-**5.** Muốn biết annotation được khai báo bằng `@interface Role` hay `@interface Policy`, nên dùng API nào?  
-**`annotationType()`**, không phải `getClass()`.
+**5.** To know whether an annotation was declared by `@interface Role` or `@interface Policy`, which API should be used?  
+**`annotationType()`**, not `getClass()`.
 
-**6.** Mã băm của một member mảng được tính qua `array.hashCode()` hay `Arrays.hashCode(array)`?  
-**`Arrays.hashCode(array)`**, dùng overload phù hợp với loại mảng.
+**6.** Is an array member's hash code computed via `array.hashCode()` or `Arrays.hashCode(array)`?  
+**`Arrays.hashCode(array)`**, using the overload matching the array type.
 
-**7.** Annotation không có `@Retention(RUNTIME)` thì Reflection chắc chắn nhìn thấy nó ở runtime?  
-**Không.** Cần cấu hình retention phù hợp để các API Reflection thông thường trả annotation.
+**7.** If an annotation lacks `@Retention(RUNTIME)`, will Reflection definitely see it at runtime?  
+**No.** Appropriate retention must be configured for standard Reflection APIs to return the annotation.
 
-**Ghi nhớ cuối:** `annotationType()` định danh **loại annotation**; `equals()` so **loại và toàn bộ member values** (kể cả default và nội dung mảng); `hashCode()` mã hóa đúng hợp đồng ấy. Cả ba thuộc `java.lang.annotation.Annotation`, không dựa vào identity hoặc tên lớp implementation runtime.
+**Final takeaway:** `annotationType()` identifies the **annotation type**; `equals()` compares **type and all member values** (including defaults and array contents); `hashCode()` encodes that exact contract. All three belong to `java.lang.annotation.Annotation`—do not rely on object identity or runtime implementation class names.
 
-### Tài liệu chính thức
+### Official references
 
 - [Java SE 17 — `java.lang.annotation.Annotation`: `equals`, `hashCode`, `annotationType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/Annotation.html)
 - [Java SE 17 — `AnnotatedElement`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedElement.html)

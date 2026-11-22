@@ -1,23 +1,23 @@
-# Định nghĩa phương thức khác với gọi phương thức — Java 17+
+# Method Definition vs. Method Call — Java 17+
 
-## 1. Hai thao tác không giống nhau
+## 1. Two Different Operations
 
-**Định nghĩa phương thức** (*method declaration/definition*) là viết tên, kiểu tham số, kiểu trả về và thân lệnh để chỉ rõ một công việc **sẽ thực hiện như thế nào**. **Gọi phương thức** (*method invocation*) là yêu cầu thực hiện công việc đó tại một vị trí cụ thể trong chương trình.
+**Method definition** (*method declaration/definition*) is writing the name, parameter types, return type, and body to specify **how** a task will be performed. **Method invocation** (calling a method) is requesting that task to be executed at a specific location in the program.
 
 ~~~java
-static void greet() {                    // ĐỊNH NGHĨA
+static void greet() {                    // DEFINITION
     System.out.println("Hello!");
 }
 
 public static void main(String[] args) {
     System.out.println("Start");
-    greet();                               // GỌI
-    greet();                               // GỌI lần nữa
+    greet();                               // CALL
+    greet();                               // CALL again
     System.out.println("End");
 }
 ~~~
 
-**Exact stdout khi chạy lớp chứa mã trên:**
+**Exact stdout when running the class containing the code above:**
 
 ~~~text
 Start
@@ -26,14 +26,14 @@ Hello!
 End
 ~~~
 
-- Phần `static void greet() { ... }` chỉ **mô tả** phương thức; bản thân việc khai báo không in `Hello!`.
-- Mỗi lời gọi `greet();` thực hiện thân phương thức **một lần**.
-- Khi thân `greet` kết thúc, luồng điều khiển trở lại **ngay sau vị trí gọi**.
-- `main` cũng là một phương thức được định nghĩa trong mã. Khi chạy ứng dụng theo cách thông thường, Java launcher/JVM gọi `main` làm điểm bắt đầu.
+- The `static void greet() { ... }` part only **describes** the method; the declaration itself does not print `Hello!`.
+- Each call `greet();` executes the method body **once**.
+- When the `greet` body finishes, control flow returns **immediately after the call site**.
+- `main` is also a method defined in code. When running an application normally, the Java launcher/JVM invokes `main` as the entry point.
 
-**Ghi nhớ:** *Định nghĩa = phương thức làm gì; lời gọi = thực hiện khi nào, với dữ liệu nào.*
+**Key Takeaway:** *Definition = what the method does; call = when to run it, and with what data.*
 
-## 2. Cấu trúc một định nghĩa phương thức
+## 2. Structure of a Method Definition
 
 ~~~java
 static int add(int a, int b) {
@@ -42,16 +42,16 @@ static int add(int a, int b) {
 }
 ~~~
 
-| Thành phần | Mã | Ý nghĩa |
+| Component | Code | Meaning |
 |---|---|---|
-| Modifier | `static` | Cho phép gọi theo lớp, không cần instance |
-| Kiểu trả về | `int` | Giá trị trả về là một số nguyên `int` |
-| Tên phương thức | `add` | Tên được dùng khi gọi |
-| Danh sách tham số | `int a, int b` | Hai **tham số hình thức** có tên và kiểu |
-| Thân phương thức | `{ ... }` | Các lệnh chạy khi phương thức được gọi |
-| Lệnh trả về | `return result;` | Trả kết quả và kết thúc lời gọi |
+| Modifier | `static` | Allows calling via the class, without needing an instance |
+| Return type | `int` | The return value is an `int` integer |
+| Method name | `add` | The name used when calling |
+| Parameter list | `int a, int b` | Two **formal parameters** with names and types |
+| Method body | `{ ... }` | Statements that run when the method is called |
+| Return statement | `return result;` | Returns the result and ends the call |
 
-**Lời gọi tương ứng:**
+**Corresponding call:**
 
 ~~~java
 int total = add(2, 5);
@@ -64,16 +64,16 @@ System.out.println(total);
 7
 ~~~
 
-Ở lời gọi, `2` và `5` là **đối số** (*arguments*), được dùng để khởi tạo các **tham số** `a` và `b` cho lần gọi đó. `add(2, 5)` là một biểu thức có giá trị `7`; `int total = ...` lưu kết quả vào biến.
+At the call site, `2` and `5` are **arguments**, used to initialize **parameters** `a` and `b` for that call. `add(2, 5)` is an expression whose value is `7`; `int total = ...` stores the result into a variable.
 
-Không dùng chữ `int` để khai báo kiểu của đối số tại vị trí gọi:
+Do not write the type keyword `int` to declare argument types at the call site:
 
 ~~~java
-// SAI: add(int 2, int 5);
-// ĐÚNG: add(2, 5);
+// WRONG: add(int 2, int 5);
+// RIGHT: add(2, 5);
 ~~~
 
-## 3. Chỉ định nghĩa không có nghĩa là tự chạy
+## 3. Defining Alone Does Not Mean Automatic Execution
 
 ~~~java
 public final class DefineOnlyDemo {
@@ -83,7 +83,7 @@ public final class DefineOnlyDemo {
 
     public static void main(String[] args) {
         System.out.println("MAIN");
-        // Không hề gọi announce().
+        // announce() is never called.
     }
 }
 ~~~
@@ -94,25 +94,25 @@ public final class DefineOnlyDemo {
 MAIN
 ~~~
 
-Biên dịch bằng `javac` kiểm tra chương trình và tạo class file, **không gọi** `announce()`. Chạy bằng `java` vào `main` cũng không tự gọi `announce()` khi không có câu lệnh invocation.
+Compiling with `javac` checks the program and produces the class file, **without calling** `announce()`. Running `java` into `main` also does not automatically call `announce()` when there is no invocation statement.
 
-Nếu thêm `announce();` bên trong `main`, lúc chạy mới xuất hiện dòng `ANNOUNCE`. Nguyên tắc này áp dụng cho cả phương thức `void` và phương thức trả giá trị.
+Only if you add `announce();` inside `main` will the line `ANNOUNCE` appear at runtime. This rule applies to both `void` methods and value-returning methods.
 
-Ngoại lệ về **cơ chế khởi động và khởi tạo lớp** không thay đổi quy tắc trên: khối khởi tạo tĩnh/constructor là cơ chế khác, không phải mọi phương thức bạn định nghĩa đều tự chạy.
+Exceptions related to **class initialization and startup mechanisms** do not change this rule: static initializers/constructors are different mechanisms, not every method you define running automatically.
 
-## 4. Luồng điều khiển khi gọi phương thức
+## 4. Control Flow During a Method Call
 
 ~~~mermaid
 flowchart TD
-    A["main: trước lời gọi"] --> B["Đánh giá các đối số"]
-    B --> C["Gọi phương thức và tạo ngữ cảnh lời gọi"]
-    C --> D["Chạy thân phương thức"]
-    D --> E["return giá trị hoặc kết thúc void"]
-    E --> F["Quay về vị trí gọi"]
-    F --> G["Tiếp tục câu lệnh tiếp theo"]
+    A["main: before the call"] --> B["Evaluate arguments"]
+    B --> C["Invoke method and create call context"]
+    C --> D["Execute method body"]
+    D --> E["return value or finish void"]
+    E --> F["Return to call site"]
+    F --> G["Continue with next statement"]
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 static int square(int x) {
@@ -137,13 +137,13 @@ result=9
 after
 ~~~
 
-Dòng `inside square` ở giữa `before` và `result` vì thân phương thức chạy **trong quá trình đánh giá lời gọi**. Sau `return`, phép gán `value = 9` hoàn thành và `main` thực thi các câu lệnh còn lại.
+The line `inside square` appears between `before` and `result` because the method body runs **during the evaluation of the call**. After `return`, the assignment `value = 9` completes and `main` executes the remaining statements.
 
-Một lần gọi thường có bộ tham số/biến cục bộ riêng. Nhiều lời gọi nối tiếp không chia sẻ biến cục bộ chỉ vì dùng cùng tên phương thức.
+Each call normally has its own set of parameters and local variables. Multiple consecutive calls do not share local variables just because they use the same method name.
 
-## 5. Đối số, tham số và thứ tự đánh giá
+## 5. Arguments, Parameters, and Evaluation Order
 
-Java đánh giá các đối số theo thứ tự **từ trái sang phải**, trước khi thân phương thức được gọi.
+Java evaluates arguments in **left-to-right** order before the method body is invoked.
 
 ~~~java
 static int trace(String tag, int value) {
@@ -156,7 +156,7 @@ static int sum(int left, int right) {
     return left + right;
 }
 
-// Ở trong main:
+// Inside main:
 int result = sum(trace("LEFT", 2), trace("RIGHT", 5));
 System.out.println("result=" + result);
 ~~~
@@ -170,18 +170,18 @@ inside sum
 result=7
 ~~~
 
-Luồng thực hiện:
+Execution flow:
 
-1. Đánh giá `trace("LEFT", 2)`, nhận `2`.
-2. Đánh giá `trace("RIGHT", 5)`, nhận `5`.
-3. Gọi `sum(2, 5)`, thực hiện thân `sum` và trả `7`.
-4. Gán `result = 7`, rồi in kết quả.
+1. Evaluate `trace("LEFT", 2)`, yielding `2`.
+2. Evaluate `trace("RIGHT", 5)`, yielding `5`.
+3. Call `sum(2, 5)`, execute the body of `sum`, and return `7`.
+4. Assign `result = 7`, then print the result.
 
-**Sai lầm phổ biến:** tưởng `sum` bắt đầu chạy trước khi các biểu thức đối số được đánh giá.
+**Common mistake:** thinking `sum` starts running before the argument expressions are evaluated.
 
-## 6. `return` và phương thức `void`
+## 6. `return` and `void` Methods
 
-Hai dạng thường gặp:
+Two common forms:
 
 ~~~java
 static int doubleValue(int value) {
@@ -193,7 +193,7 @@ static void printMessage(String text) {
 }
 ~~~
 
-Cách gọi:
+How to call:
 
 ~~~java
 int number = doubleValue(4);
@@ -206,29 +206,29 @@ printMessage("value=" + number);
 value=8
 ~~~
 
-- Phương thức kiểu `int` phải tạo ra giá trị trả về phù hợp trên mọi đường kết thúc bình thường theo luật Java; `return value;` đồng thời **kết thúc** phương thức.
-- Phương thức `void` không cung cấp giá trị để gán; nó có thể kết thúc khi chạy hết thân, hoặc dùng `return;` để rời sớm.
-- Có thể gọi một phương thức trả giá trị như một statement rồi bỏ qua giá trị: `doubleValue(4);` hợp lệ, nhưng thường cần xem vì sao không dùng kết quả.
-- `int x = printMessage("Hi");` **không biên dịch**, vì phương thức `void` không trả `int`.
+- A method of type `int` must produce an appropriate return value on every normally completing path according to Java rules; `return value;` also **ends** the method.
+- A `void` method provides no value to assign; it can end when execution reaches the end of the body, or use `return;` to exit early.
+- You can call a value-returning method as a statement and ignore its value: `doubleValue(4);` is valid, though you should usually check why the result is unused.
+- `int x = printMessage("Hi");` **does not compile**, because a `void` method does not return an `int`.
 
-`System.out.println` cũng là một **lời gọi phương thức**, không phải cú pháp tạo phương thức mới.
+`System.out.println` is also a **method call**, not syntax for creating a new method.
 
-## 7. `static` và phương thức instance
+## 7. `static` and Instance Methods
 
-**Phương thức `static`** thuộc lớp và có thể gọi qua tên lớp:
+A **`static` method** belongs to the class and can be called through the class name:
 
 ~~~java
 Math.max(3, 7);
 ~~~
 
-**Phương thức instance** được gọi trên một đối tượng:
+An **instance method** is called on an object:
 
 ~~~java
 String word = "Java";
 System.out.println(word.length());
 ~~~
 
-Ví dụ lớp có trạng thái:
+Example of a class with state:
 
 ~~~java
 static final class Counter {
@@ -240,7 +240,7 @@ static final class Counter {
     }
 }
 
-// Trong main:
+// Inside main:
 Counter counter = new Counter();
 System.out.println(counter.increase(2));
 System.out.println(counter.increase(3));
@@ -253,11 +253,11 @@ System.out.println(counter.increase(3));
 5
 ~~~
 
-`increase` chỉ là định nghĩa trong lớp `Counter`. `new Counter()` tạo đối tượng với `count = 0`; **lời gọi** `counter.increase(...)` mới làm tăng `count`.
+`increase` is only a definition inside class `Counter`. `new Counter()` creates an object with `count = 0`; only the **call** `counter.increase(...)` increments `count`.
 
-Gọi phương thức instance cần đối tượng phù hợp. Trong ngữ cảnh `static`, không thể viết `increase(2)` như thể đó là static method của lớp ngoài khi không có đối tượng `Counter`.
+Calling an instance method requires an appropriate object. In a `static` context, you cannot write `increase(2)` as if it were a static method of the outer class when there is no `Counter` object.
 
-## 8. Phương thức có thể gọi phương thức khác
+## 8. Methods Can Call Other Methods
 
 ~~~java
 static int twice(int value) {
@@ -270,15 +270,15 @@ static int fourfold(int value) {
 }
 ~~~
 
-Gọi `fourfold(3)` làm `twice(3)` trả 6, rồi `twice(6)` trả 12. Java thực thi lần lượt các lời gọi và quay lại phương thức gọi sau mỗi kết quả.
+Calling `fourfold(3)` causes `twice(3)` to return 6, then `twice(6)` returns 12. Java executes the calls sequentially and returns to the calling method after each result.
 
-**Lưu ý:** việc định nghĩa `twice` và `fourfold` không tự tạo các lần gọi đó. Chỉ khi thực sự gọi `fourfold(3)` thì các lời gọi bên trong mới diễn ra.
+**Note:** defining `twice` and `fourfold` does not automatically trigger those calls. Only when `fourfold(3)` is actually called do the inner calls take place.
 
-Nếu các phương thức gọi nhau lặp mãi mà thiếu điều kiện dừng (đệ quy vô hạn), chương trình có thể gây `StackOverflowError`. Đây là vấn đề khi **thực thi lời gọi**, không phải do chỉ có nhiều định nghĩa.
+If methods keep calling each other endlessly without a stopping condition (infinite recursion), the program can cause a `StackOverflowError`. This is an issue when **executing calls**, not merely from having multiple definitions.
 
-## 9. Tác dụng của một lời gọi khi truyền giá trị và tham chiếu
+## 9. Effect of a Call Under Pass-by-Value and References
 
-Lời gọi đánh giá biểu thức đối số rồi dùng kết quả để khởi tạo **tham số riêng**. Sửa tham số primitive không làm thay đổi biến caller:
+A call evaluates argument expressions and uses the results to initialize **separate parameters**. Modifying a primitive parameter does not change the caller's variable:
 
 ~~~java
 static void replaceLocal(int value) { value = 100; }
@@ -287,7 +287,7 @@ replaceLocal(original);
 System.out.println(original); // 5.
 ~~~
 
-Với tham số object, giá trị sao chép là **tham chiếu**: hai biến có thể cùng trỏ tới một đối tượng mutable.
+For object parameters, the copied value is a **reference**: two variables can point to the same mutable object.
 
 ~~~java
 static void addMark(StringBuilder text) { text.append("!"); }
@@ -296,10 +296,10 @@ addMark(message);
 System.out.println(message); // Hi!
 ~~~
 
-`append` làm thay đổi **object dùng chung**; trái lại, `text = new StringBuilder("Other")` chỉ gán lại biến tham số, không gán lại biến của caller. Điểm chính của bài này là **thân phương thức chỉ tạo tác dụng khi được gọi**. Bài tham số/đối số và bài truyền tham trị phân tích sâu hơn về phạm vi, alias, mảng và `final`.
+`append` modifies the **shared object**; by contrast, `text = new StringBuilder("Other")` only reassigns the parameter variable, not the caller's variable. The main point of this lesson is that **a method body only produces effects when it is called**. The parameters/arguments lesson and the pass-by-value lesson analyze scope, aliasing, arrays, and `final` in greater depth.
 
 
-## 10. Cùng một tên có thể dẫn tới những thân phương thức khác nhau
+## 10. The Same Name Can Lead to Different Method Bodies
 
 ~~~java
 static String describe(int value) { return "int:" + value; }
@@ -309,14 +309,14 @@ System.out.println(describe(7));    // int:7.
 System.out.println(describe("Hi")); // String:Hi.
 ~~~
 
-Hai **định nghĩa** có cùng tên nhưng khác kiểu tham số; mỗi **lời gọi** được compiler phân giải tới overload phù hợp theo kiểu biểu thức đối số. Chỉ thay kiểu trả về hoặc tên biến tham số không tạo overload mới.
+Two **definitions** have the same name but different parameter types; each **call** is resolved by the compiler to the matching overload based on the argument expression types. Changing only the return type or parameter variable names does not create a new overload.
 
-Bài hiện tại tập trung vào mối quan hệ *định nghĩa → lựa chọn lời gọi → thực thi thân*. Bài nạp chồng chuyên sâu sẽ giải thích chữ ký, mở rộng kiểu, boxing, varargs, `null` mơ hồ và generic erasure.
+This lesson focuses on the relationship *definition → call selection → body execution*. The deep-dive overloading lesson will explain signatures, type widening, boxing, varargs, ambiguous `null`, and generic erasure.
 
 
-## 11. Chương trình Java 17+ hoàn chỉnh
+## 11. Complete Java 17+ Program
 
-Tạo file đúng tên **`MethodDefinitionCallDemo.java`**:
+Create the file with the exact name **`MethodDefinitionCallDemo.java`**:
 
 ~~~java
 public final class MethodDefinitionCallDemo {
@@ -416,7 +416,7 @@ public final class MethodDefinitionCallDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; mở terminal trong thư mục chứa file. Không cần Maven, Gradle, thư viện ngoài JDK hay preview features.
+**Requirements:** JDK 17 or later; open a terminal in the directory containing the file. No Maven, Gradle, libraries outside the JDK, or preview features needed.
 
 **Bash (Linux/macOS):**
 
@@ -463,28 +463,28 @@ counter second=5
 main end
 ~~~
 
-**Cách quan sát:** dòng `body square 3` xuất hiện trước `square result=9`, chứng minh thân chạy ở **thời điểm gọi**. Hai dòng `arg left/right` xuất hiện trước `body add`. `fourfold` gọi `twice` hai lần; biến `original` vẫn là 5 sau khi truyền vào tham số `int`; đối tượng `StringBuilder` đổi nội dung qua phương thức. `Counter` giữ trạng thái vì hai lời gọi được thực hiện trên **cùng object**.
+**What to observe:** the line `body square 3` appears before `square result=9`, proving the body runs at **call time**. The two `arg left/right` lines appear before `body add`. `fourfold` calls `twice` twice; variable `original` remains 5 after being passed to an `int` parameter; the `StringBuilder` object changes its contents through the method. `Counter` keeps its state because the two calls are performed on the **same object**.
 
-## 12. Những lỗi thường gặp
+## 12. Common Mistakes
 
-| Sai lầm | Tại sao sai? | Cách sửa |
+| Mistake | Why is it wrong? | How to fix |
 |---|---|---|
-| Viết phương thức rồi chờ nó tự chạy | Định nghĩa không phải lời gọi | Gọi đúng tên với dấu `()` tại nơi cần |
-| Nhầm `add(int a, int b)` với `add(2, 3)` | Một bên khai báo tham số; bên kia cung cấp đối số | Phân biệt cú pháp định nghĩa và gọi |
-| Không có `()` khi muốn thực thi | Tên phương thức đơn lẻ không phải lời gọi Java thông thường | Viết `greet();` |
-| Gọi sai số đối số/kiểu | Lỗi biên dịch | Khớp chữ ký/overload phù hợp |
-| Gán kết quả từ phương thức `void` | `void` không tạo giá trị | Gọi riêng, không gán |
-| Nghĩ `return` chỉ in hoặc lưu giá trị | `return` kết thúc phương thức và trả về caller | Dùng kết quả ở biểu thức/lệnh gán |
-| Gọi instance method như static method | Thiếu đối tượng | Tạo instance rồi gọi `obj.method()` |
-| Nghĩ gán tham số `int` thay biến caller | Java truyền đối số theo giá trị | Trả giá trị mới hoặc thay dữ liệu theo API |
-| Nghĩ `StringBuilder` tự sao chép khi truyền | Giá trị tham chiếu trỏ cùng object mutable | Hiểu mutation khác gán lại tham số |
-| Chỉ khác kiểu trả về để overload | Không tạo chữ ký khác | Thay số lượng/kiểu/thứ tự tham số phù hợp |
-| Cho rằng `javac` thực thi toàn bộ method | Compiler kiểm tra và tạo class file | Dùng `java` và lời gọi thực tế để chạy |
-| Cho rằng hai định nghĩa cùng tên/cùng tham số được phép | Khai báo trùng chữ ký | Đổi tên hoặc tạo overload hợp lệ |
+| Writing a method and waiting for it to run automatically | A definition is not a call | Call the exact name with `()` where needed |
+| Confusing `add(int a, int b)` with `add(2, 3)` | One declares parameters; the other supplies arguments | Distinguish definition syntax and call syntax |
+| Omitting `()` when wanting to execute | A standalone method name is not a normal Java call | Write `greet();` |
+| Calling with wrong argument count/types | Compilation error | Match the appropriate signature/overload |
+| Assigning the result of a `void` method | `void` produces no value | Call standalone, do not assign |
+| Thinking `return` only prints or stores a value | `return` ends the method and returns to the caller | Use the result in an expression/assignment |
+| Calling an instance method like a static method | Missing an object | Create an instance then call `obj.method()` |
+| Thinking assigning to an `int` parameter changes the caller's variable | Java passes arguments by value | Return a new value or update data via API |
+| Thinking `StringBuilder` is copied automatically when passed | Reference value points to the same mutable object | Understand mutation vs. parameter reassignment |
+| Differing only by return type to overload | Does not create a different signature | Change parameter count/types/order appropriately |
+| Assuming `javac` executes all methods | The compiler checks and generates class files | Use `java` and actual calls to run |
+| Assuming two definitions with same name/parameters are allowed | Duplicate signature declaration | Rename or create a valid overload |
 
-## 13. Bài tập có đáp án
+## 13. Exercises with Answers
 
-### A — Định nghĩa và lời gọi
+### A — Definition and Call
 
 ~~~java
 static void ping() {
@@ -495,9 +495,9 @@ public static void main(String[] args) {
 }
 ~~~
 
-**Câu hỏi:** chạy lớp thì có in `PING` không? **Đáp án:** không; chỉ in `START`. Muốn in `PING`, thêm `ping();` vào `main`.
+**Question:** when running the class, does it print `PING`? **Answer:** no; it only prints `START`. To print `PING`, add `ping();` into `main`.
 
-### B — Đếm số lần gọi
+### B — Counting Calls
 
 ~~~java
 static void hi() { System.out.println("HI"); }
@@ -514,32 +514,32 @@ HI
 HI
 ~~~
 
-Định nghĩa một lần, nhưng thân thực thi **hai lần**.
+Defined once, but the body executes **twice**.
 
-### C — Tham số và đối số
+### C — Parameters and Arguments
 
 ~~~java
 static int subtract(int a, int b) {
     return a - b;
 }
-// Trong main:
+// Inside main:
 System.out.println(subtract(10, 3));
 ~~~
 
-**Đáp án:** `a` và `b` là tham số; `10` và `3` là đối số; stdout `7`.
+**Answer:** `a` and `b` are parameters; `10` and `3` are arguments; stdout `7`.
 
-### D — `void` hay `int`?
+### D — `void` or `int`?
 
 ~~~java
 static void announce() {
     System.out.println("READY");
 }
-// int n = announce(); // Có hợp lệ không?
+// int n = announce(); // Is this valid?
 ~~~
 
-**Đáp án:** không; `announce()` không trả giá trị. Dùng `announce();` như một câu lệnh riêng.
+**Answer:** no; `announce()` does not return a value. Use `announce();` as a standalone statement.
 
-### E — Đối tượng và trạng thái
+### E — Objects and State
 
 ~~~java
 Counter counter = new Counter();
@@ -547,20 +547,20 @@ System.out.println(counter.increase(1));
 System.out.println(counter.increase(2));
 ~~~
 
-**Đáp án:** phương thức instance `increase` cập nhật cùng trường `count`; với lớp Counter ở chương trình chính, stdout gồm `body increase count=1`, `1`, `body increase count=3`, `3` theo thứ tự.
+**Answer:** instance method `increase` updates the same `count` field; with the Counter class from the main program, stdout includes `body increase count=1`, `1`, `body increase count=3`, `3` in order.
 
-## 14. Checklist và kết luận
+## 14. Checklist and Conclusion
 
-- [ ] Phân biệt **định nghĩa** và **gọi** phương thức.
-- [ ] Biết khai báo modifier, kiểu trả về, tên và tham số.
-- [ ] Gọi với dấu `()` và danh sách đối số đúng.
-- [ ] Hiểu thân phương thức chỉ chạy khi lời gọi được thực thi.
-- [ ] Biết `return` trả kết quả và quay về caller; `void` không trả giá trị.
-- [ ] Hiểu thứ tự đánh giá đối số từ trái sang phải.
-- [ ] Phân biệt `static` và instance method.
-- [ ] Biết phương thức có thể gọi các phương thức khác.
-- [ ] Hiểu truyền theo giá trị, kể cả giá trị tham chiếu object.
-- [ ] Nhận diện overloading và lỗi chữ ký/phương thức không phù hợp.
-- [ ] Chạy `MethodDefinitionCallDemo.java` bằng Java 17+ và đối chiếu exact stdout.
+- [ ] Distinguish **defining** and **calling** a method.
+- [ ] Know how to declare modifier, return type, name, and parameters.
+- [ ] Call with `()` and the correct argument list.
+- [ ] Understand that a method body runs only when a call is executed.
+- [ ] Know `return` returns a result and transfers back to the caller; `void` returns no value.
+- [ ] Understand left-to-right argument evaluation order.
+- [ ] Distinguish `static` and instance methods.
+- [ ] Know that methods can call other methods.
+- [ ] Understand pass-by-value, including object reference values.
+- [ ] Recognize overloading and signature/method mismatch errors.
+- [ ] Run `MethodDefinitionCallDemo.java` with Java 17+ and verify exact stdout.
 
-**Kết luận:** Định nghĩa phương thức là **mô tả một hành vi có thể được dùng lại**; lời gọi phương thức mới **thực thi hành vi đó** với các đối số cụ thể, sau đó nhận kết quả hoặc tiếp tục sau phương thức `void`. Hiểu khác biệt này là nền tảng để đọc đúng luồng thực thi Java.
+**Conclusion:** A method definition is a **description of reusable behavior**; a method call **executes that behavior** with concrete arguments, then receives a result or continues after a `void` method. Understanding this difference is foundational for reading Java execution flow accurately.

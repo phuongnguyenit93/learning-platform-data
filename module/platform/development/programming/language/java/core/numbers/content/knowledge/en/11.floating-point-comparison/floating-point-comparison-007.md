@@ -1,6 +1,6 @@
-# So sánh bằng sai số tuyệt đối trong Java
+# Comparing with Absolute Tolerance in Java
 
-Khi làm việc với `float` và `double`, không phải lúc nào hai giá trị đại diện cho cùng kết quả toán học cũng có cùng **mẫu bit**. Chẳng hạn phép cộng `0.1 + 0.2` trên `double` thường cho giá trị được in là `0.30000000000000004`, khác literal `0.3`. Nếu bài toán đo lường cho phép chênh lệch nhỏ, ta có thể so sánh bằng **sai số tuyệt đối** (*absolute tolerance*) thay vì bắt buộc dùng `==`.
+When working with `float` and `double`, two values representing the same mathematical result do not always share the same **bit pattern**. For instance, adding `0.1 + 0.2` in `double` usually produces a value printed as `0.30000000000000004`, which differs from the literal `0.3`. When a measurement problem permits a small discrepancy, we can compare using **absolute tolerance** instead of requiring `==`.
 
 ```java
 double actual = 0.1 + 0.2;
@@ -11,11 +11,11 @@ boolean exact = actual == expected; // false
 boolean close = Math.abs(actual - expected) <= epsilon; // true
 ```
 
-Tuy nhiên, biểu thức thứ hai **không phải cách thay thế `==` cho mọi tình huống**. Nó chỉ có ý nghĩa khi `epsilon` được chọn từ yêu cầu thực tế, đơn vị của dữ liệu, và có chính sách xử lý NaN, vô cực, số rất lớn, số gần 0. Bài này trình bày phép so sánh tuyệt đối, ý nghĩa kỹ thuật, cài đặt Java 17+, cách kiểm thử và những ranh giới không nên lạm dụng.
+However, the second expression **is not a universal replacement for `==`**. It is meaningful only when `epsilon` is chosen from actual requirements, data units, and with an explicit policy for NaN, infinity, very large numbers, and numbers near 0. This lesson presents absolute tolerance comparison, its engineering meaning, a Java 17+ implementation, testing strategies, and boundaries where it should not be misused.
 
-## 1. Tại sao so sánh `double` bằng `==` dễ gây bất ngờ?
+## 1. Why Does Comparing `double` with `==` Often Surprise Developers?
 
-`double` lưu số theo định dạng nhị phân IEEE 754 binary64 với 53 bit significand. Phân số như `0.1` và `0.2` không có biểu diễn nhị phân hữu hạn, nên Java lưu các giá trị **gần nhất có thể biểu diễn**. Phép cộng lại áp dụng quy tắc làm tròn chấm động.
+`double` stores numbers in IEEE 754 binary64 format with a 53-bit significand. Fractions such as `0.1` and `0.2` have no finite binary representation, so Java stores the **closest representable** values. Addition then applies floating-point rounding rules.
 
 ```java
 double sum = 0.1 + 0.2;
@@ -23,41 +23,41 @@ System.out.println(sum);        // 0.30000000000000004
 System.out.println(sum == 0.3); // false
 ```
 
-Ở đây không có lỗi “Java cộng sai”. Vấn đề là phép toán chạy trên các giá trị nhị phân xấp xỉ; kết quả gần 0.3 nhưng không có cùng giá trị binary64 với literal `0.3`.
+There is no bug where "Java adds incorrectly" here. The issue is that the operation runs on approximate binary values; the result is close to 0.3 but does not have the exact same binary64 value as the literal `0.3`.
 
-**Phân biệt hai loại yêu cầu:**
+**Distinguish two types of requirements:**
 
-- **Bằng nhau chính xác:** Hai giá trị số cần thật sự bằng nhau theo ngữ nghĩa Java; `==` có thể là lựa chọn đúng, ví dụ kiểm tra bộ đếm nguyên, mã định danh, hoặc một trạng thái số phải chính xác.
-- **Gần nhau trong dung sai:** Hai kết quả đo hoặc tính toán có thể khác nhẹ nhưng vẫn được coi như đạt yêu cầu ứng dụng. Khi đó, một ngưỡng sai số cụ thể có thể phù hợp hơn.
+- **Exact equality:** Two numeric values truly need to be equal under Java semantics; `==` can be the right choice, such as checking integer counters, identifiers, or a numeric state that must match exactly.
+- **Closeness within a tolerance:** Two measurements or calculation results can differ slightly and still satisfy application requirements. In that case, a specific error threshold may be more suitable.
 
-Đừng chuyển toàn bộ phép so sánh số thực sang gần đúng theo thói quen. Sự gần đúng là **chính sách nghiệp vụ**, không phải thuộc tính mặc định của mọi số `double`.
+Do not turn every floating-point comparison into an approximate one out of habit. Approximation is a **business policy**, not a default property of every `double`.
 
-## 2. Định nghĩa sai số tuyệt đối
+## 2. Definition of Absolute Error
 
-Với hai giá trị hữu hạn `a` và `b`, **sai số tuyệt đối** là:
+For two finite values `a` and `b`, the **absolute error** is:
 
 \[
 E_{\mathrm{abs}} = |a-b|
 \]
 
-Ta nói hai giá trị **gần nhau theo ngưỡng tuyệt đối** `ε` khi:
+We say two values are **close within an absolute tolerance** `ε` when:
 
 \[
 |a-b| \leq \varepsilon
 \qquad (\varepsilon \geq 0)
 \]
 
-Trong Java, cách viết tương ứng cho phép kiểm tra đơn giản:
+In Java, the corresponding expression allows a simple check:
 
 ```java
 boolean close = Math.abs(a - b) <= epsilon;
 ```
 
-Ở đây `Math.abs(double)` trả độ lớn không âm của hiệu (trừ các trường hợp đặc biệt như NaN), còn dấu `<=` chọn quy ước **cho phép bằng ngưỡng**. Nếu bài toán yêu cầu nhỏ hơn **nghiêm ngặt**, dùng `<`, nhưng phải viết rõ hợp đồng kiểm thử.
+Here `Math.abs(double)` returns the non-negative magnitude of the difference (except in special cases like NaN), and `<=` adopts the convention of **allowing equality at the threshold**. If the problem requires strictly less than (`<`), use `<`, while clearly documenting the test contract.
 
-### Ví dụ bằng số
+### Numerical Example
 
-Cho `a = 12.34`, `b = 12.35` và sai số cho phép `epsilon = 0.02`:
+Given `a = 12.34`, `b = 12.35`, and allowed tolerance `epsilon = 0.02`:
 
 ```text
 absolute error = |12.34 - 12.35|
@@ -66,44 +66,44 @@ tolerance      = 0.02
 0.01 <= 0.02   => true
 ```
 
-Các số thập phân nhập dưới dạng `double` có thể bị làm tròn; dấu `≈` nhắc rằng phép trừ thực tế cũng dùng số nhị phân. Ví dụ chỉ minh họa **đại lượng chênh lệch**; kết luận nên được kiểm tra bằng chính dữ liệu và kiểu số thực tế.
+Decimal literals entered as `double` may be rounded; the `≈` symbol reminds us that the actual subtraction also uses binary numbers. This example only illustrates the **magnitude of the difference**; conclusions should be verified with the actual data and numeric types.
 
-Với giá trị **biểu diễn chính xác trong nhị phân**, ranh giới rất rõ:
+With values **exactly representable in binary**, the boundary is crisp:
 
 ```java
 System.out.println(Math.abs(1.0 - 1.125) <= 0.125); // true
 System.out.println(Math.abs(1.0 - 1.25) <= 0.125);  // false
 ```
 
-`1.125`, `1.25` và `0.125` là các phân số có mẫu là lũy thừa 2, nên ở đây không bị nhập nhằng do việc lưu literal.
+`1.125`, `1.25`, and `0.125` are fractions whose denominators are powers of 2, so there is no ambiguity from literal storage here.
 
-## 3. `epsilon` là ngưỡng có **đơn vị**, không phải hằng số thần kỳ
+## 3. `epsilon` Is a Threshold with **Units**, Not a Magic Constant
 
-`epsilon` phải diễn tả **mức chênh lệch lớn nhất mà bài toán chấp nhận**.
+`epsilon` must express the **largest difference acceptable to the problem**.
 
-| Dữ liệu | Ví dụ mức dung sai tuyệt đối | Đơn vị và ý nghĩa |
+| Data | Example absolute tolerance | Units and meaning |
 | --- | --- | --- |
-| Nhiệt độ cảm biến | `0.2` | 0,2 °C nếu dữ liệu biểu diễn °C |
-| Tọa độ theo mét | `0.005` | 5 mm |
-| Thời gian theo giây | `0.001` | 1 ms |
-| Hiệu điện thế | `0.01` | 0,01 V |
-| Thuật toán chỉ kiểm tra sai số làm tròn quanh 0.3 | `1e-12`, chỉ khi có căn cứ | Là lựa chọn của bài toán thử nghiệm, **không phải ngưỡng chuẩn** cho mọi `double` |
+| Temperature sensor | `0.2` | 0.2 °C if data represents °C |
+| Coordinates in meters | `0.005` | 5 mm |
+| Time in seconds | `0.001` | 1 ms |
+| Voltage | `0.01` | 0.01 V |
+| Algorithm checking rounding error around 0.3 | `1e-12`, only when justified | A choice for a test problem, **not a standard threshold** for all `double`s |
 
-Các con số minh họa không phải khuyến cáo đo lường cho một thiết bị cụ thể; tiêu chuẩn chất lượng thiết bị và hợp đồng ứng dụng quyết định ngưỡng thật.
+These illustrative numbers are not measurement recommendations for a specific device; device specifications and application contracts determine the real threshold.
 
-Nếu `a` và `b` có đơn vị **mét**, `epsilon` cũng phải tính bằng **mét**. Nếu một bên dùng mét còn bên kia dùng millimét, phép so sánh có thể trả lời rất “hợp cú pháp” nhưng **sai ngữ nghĩa**.
+If `a` and `b` are in **meters**, `epsilon` must also be in **meters**. If one side uses meters and the other uses millimeters, the comparison can look "syntactically valid" while being **semantically wrong**.
 
-**Không dùng một giá trị `1e-6` ở mọi dự án** chỉ vì nó nhỏ. Trong một hệ thống đo kích thước nano, `1e-6` có thể quá lớn; khi đo quãng đường tính bằng triệu km, nó có thể quá nhỏ.
+**Do not reuse a single `1e-6` across every project** just because it looks small. In a system measuring nanometers, `1e-6` can be way too large; when measuring distances in millions of kilometers, it can be way too small.
 
-### Tại sao `Double.MIN_VALUE` không phải epsilon mặc định?
+### Why Is `Double.MIN_VALUE` Not a Default Epsilon?
 
-`Double.MIN_VALUE` là số dương **khác 0 nhỏ nhất** mà binary64 có thể biểu diễn, xấp xỉ `4.9e-324`. Nó không biểu thị sai số làm tròn điển hình. `Math.ulp(1.0)` khoảng `2.220446049250313e-16` gần 1.0; khoảng cách giữa các giá trị biểu diễn thay đổi theo độ lớn. Dùng `Double.MIN_VALUE` để kiểm tra “gần nhau” thường tương đương yêu cầu gần như bằng nhau chính xác.
+`Double.MIN_VALUE` is the **smallest positive non-zero** number representable in binary64, approximately `4.9e-324`. It does not represent typical rounding error. `Math.ulp(1.0)` is about `2.220446049250313e-16` near 1.0; the spacing between representable values changes with magnitude. Using `Double.MIN_VALUE` to check "closeness" is usually equivalent to requiring nearly exact equality.
 
-Ngay cả một bội số cố định của `Math.ulp(1.0)` cũng không có nghĩa phù hợp với mọi giá trị: bước lượng tử chấm động phụ thuộc độ lớn của số, trong khi ngưỡng tuyệt đối là một độ chênh **theo đơn vị nghiệp vụ**.
+Even a fixed multiple of `Math.ulp(1.0)` does not make sense for every value: floating-point quantization step depends on the number's magnitude, whereas an absolute tolerance is a difference **in business units**.
 
-## 4. Hàm so sánh Java 17+ có kiểm tra điều kiện đầu vào
+## 4. Java 17+ Comparison Function with Input Validation
 
-Biểu thức `Math.abs(a-b) <= epsilon` ngắn gọn nhưng **không nêu rõ chính sách NaN, vô cực hoặc ngưỡng sai**. Với dữ liệu đo lường yêu cầu các số phải **hữu hạn**, có thể viết:
+The expression `Math.abs(a-b) <= epsilon` is concise, but **does not state a policy for NaN, infinity, or invalid thresholds**. For measurement data requiring **finite** numbers, you can write:
 
 ```java
 static boolean closeAbs(double a, double b, double epsilon) {
@@ -121,34 +121,34 @@ static boolean closeAbs(double a, double b, double epsilon) {
 }
 ```
 
-Đây là **phương thức minh họa**, cần đặt trong một lớp. Phiên bản đầy đủ chạy được có ở phần 10.
+This is an **illustrative method**, which must be placed inside a class. A complete runnable version is in Section 10.
 
-**Hợp đồng của hàm:**
+**Function contract:**
 
-1. `epsilon` phải **hữu hạn** và **không âm**. NaN, ±Infinity và epsilon âm bị từ chối bằng `IllegalArgumentException`.
-2. Nếu `a` hoặc `b` là NaN/vô cực, trả `false`. Điều này phù hợp bài toán chỉ chấp nhận **giá trị đo hữu hạn**.
-3. Hai số hữu hạn đã bằng nhau theo `==` được coi là gần nhau, kể cả epsilon bằng 0.
-4. Với các số hữu hạn còn lại, trả giá trị của `Math.abs(a-b) <= epsilon`.
+1. `epsilon` must be **finite** and **non-negative**. NaN, ±Infinity, and negative epsilon are rejected with `IllegalArgumentException`.
+2. If `a` or `b` is NaN/infinity, return `false`. This fits problems that accept only **finite measured values**.
+3. Two finite numbers that are already equal under `==` are considered close, even when epsilon is 0.
+4. For remaining finite numbers, return the result of `Math.abs(a-b) <= epsilon`.
 
-Không nên gọi chính sách trên là **quy tắc duy nhất**. Một ứng dụng có thể coi `+Infinity` với `+Infinity` là cùng trạng thái đặc biệt, hoặc yêu cầu zero phải phân biệt dấu. Nếu vậy cần **định nghĩa chính sách khác**, thay vì đổi mã mà không giải thích.
+Do not treat this policy as the **only valid rule**. An application might regard `+Infinity` and `+Infinity` as the same special state, or require zero to distinguish signs. If so, **define a different policy explicitly**, rather than changing code without explanation.
 
-### Vì sao phải kiểm tra `epsilon` trước?
+### Why Validate `epsilon` First?
 
-Nếu `epsilon = Double.NaN`, phép so sánh `<=` với NaN luôn sai; nếu `epsilon = Double.POSITIVE_INFINITY`, nhiều cặp số cực kỳ khác nhau sẽ được coi là gần, làm mất ý nghĩa kiểm tra. Nếu `epsilon < 0`, ngay cả hai số hữu hạn giống nhau cũng không thỏa công thức ngưỡng thông thường.
+If `epsilon = Double.NaN`, comparing `<=` with NaN is always false; if `epsilon = Double.POSITIVE_INFINITY`, wildly different pairs of numbers would be considered close, rendering the check meaningless. If `epsilon < 0`, even two identical finite numbers fail the ordinary threshold formula.
 
-Việc ném `IllegalArgumentException` làm lộ lỗi cấu hình hoặc lỗi chọn ngưỡng ngay tại ranh giới gọi hàm.
+Throwing `IllegalArgumentException` exposes configuration mistakes or bad threshold choices right at the call boundary.
 
-### Có cần nhánh `a == b`?
+### Is the `a == b` Branch Necessary?
 
-Trong hàm này, với các số hữu hạn, nhánh đó giúp thể hiện rõ rằng **bằng nhau chính xác phải được chấp nhận ngay cả khi epsilon bằng 0**. Công thức trừ và lấy trị tuyệt đối cũng cho kết quả đúng trong trường hợp ấy; nhánh chỉ làm hợp đồng dễ đọc và tránh tính hiệu không cần thiết.
+In this function, for finite numbers, that branch makes clear that **exact equality must be accepted even when epsilon is 0**. The subtraction and absolute-value formula also produces the right result in that case; the branch merely makes the contract easier to read and avoids unnecessary subtraction.
 
-**Không** đặt `a == b` trước kiểm tra hữu hạn nếu chính sách yêu cầu từ chối Infinity: `Double.POSITIVE_INFINITY == Double.POSITIVE_INFINITY` là `true`, nhưng ứng dụng không muốn coi hai giá trị đo vô hạn là hợp lệ.
+Do **not** place `a == b` before the finiteness check if your policy requires rejecting Infinity: `Double.POSITIVE_INFINITY == Double.POSITIVE_INFINITY` is `true`, yet the application may not want to treat two infinite measurements as valid.
 
-## 5. Những trường hợp ranh giới phải xử lý rõ
+## 5. Edge Cases That Must Be Handled Explicitly
 
 ### 5.1. NaN
 
-`Double.NaN` thường đại diện cho kết quả không xác định trong phép toán chấm động. Các toán tử so sánh với NaN có hành vi đặc biệt:
+`Double.NaN` typically represents an undefined result in floating-point arithmetic. Comparison operators behave specially with NaN:
 
 ```java
 double x = Double.NaN;
@@ -156,27 +156,27 @@ System.out.println(x == x); // false
 System.out.println(Math.abs(x - 1.0) <= 1.0); // false
 ```
 
-Hàm `closeAbs` phía trên trả `false` cho NaN trước khi trừ. Nếu muốn coi hai giá trị NaN là cùng **trạng thái dữ liệu thiếu**, cần logic riêng; đừng lẫn việc “cùng trạng thái” với **sai số số học**.
+The `closeAbs` function above returns `false` for NaN before subtracting. If you want two NaN values to count as the same **missing-data state**, use separate logic; do not conflate "same state" with **numerical error**.
 
-### 5.2. Vô cực
+### 5.2. Infinity
 
-`Math.abs(Double.POSITIVE_INFINITY - Double.POSITIVE_INFINITY)` là NaN, do đó phép kiểm tra ngưỡng thuần túy trả `false`. Nhưng `Double.POSITIVE_INFINITY == Double.POSITIVE_INFINITY` là `true`. Hai cách so sánh đơn giản có chính sách khác nhau.
+`Math.abs(Double.POSITIVE_INFINITY - Double.POSITIVE_INFINITY)` is NaN, so a pure threshold check returns `false`. Yet `Double.POSITIVE_INFINITY == Double.POSITIVE_INFINITY` is `true`. Two simple checks have different policies.
 
-Vì vậy, cách làm rõ ràng là **quyết định trước** có cho phép giá trị không hữu hạn hay không. Với dữ liệu đo cần hữu hạn, `Double.isFinite` giúp loại vô cực và NaN một cách tường minh.
+Therefore, the clear approach is to **decide upfront** whether non-finite values are permitted. For measurements that must be finite, `Double.isFinite` explicitly excludes infinity and NaN.
 
-### 5.3. Zero có dấu
+### 5.3. Signed Zero
 
-`+0.0` và `-0.0` được coi là bằng nhau theo `==`:
+`+0.0` and `-0.0` are considered equal under `==`:
 
 ```java
 System.out.println(+0.0 == -0.0); // true
 ```
 
-Hàm so sánh sai số tuyệt đối trên trả `true` cho cặp này, kể cả `epsilon = 0`. Nếu cần so sánh **mẫu bit IEEE 754** (chẳng hạn serialization hoặc giao thức số học đặc biệt), `+0.0` và `-0.0` khác nhau; khi ấy so sánh độ gần số học **không phải bài toán đúng**. Cân nhắc `Double.doubleToRawLongBits` với chính sách NaN rõ ràng.
+The absolute-tolerance comparison function above returns `true` for this pair, even with `epsilon = 0`. If you need to compare **IEEE 754 bit patterns** (such as serialization or special numerical protocols), `+0.0` and `-0.0` differ; in that case, arithmetic proximity **is not the right problem**. Consider `Double.doubleToRawLongBits` with an explicit NaN policy.
 
-### 5.4. Hiệu tràn khi trừ hai số hữu hạn rất lớn
+### 5.4. Difference Overflow When Subtracting Two Very Large Finite Numbers
 
-Hai `double` đều hữu hạn nhưng hiệu của chúng có thể vượt miền `double`:
+Two `double`s can both be finite while their difference exceeds the `double` range:
 
 ```java
 double a = Double.MAX_VALUE;
@@ -184,55 +184,55 @@ double b = -Double.MAX_VALUE;
 double difference = a - b; // +Infinity
 ```
 
-Nếu `epsilon` cũng là một số hữu hạn, hiệu toán học của cặp trên lớn hơn mọi epsilon hữu hạn có thể biểu diễn. Vì vậy trả `false` là hợp lý. Trường hợp này cho thấy **phép trừ cũng có miền biểu diễn**, và không nên mù quáng đưa các phép biến đổi đại số tương đương vào mã số học chấm động.
+If `epsilon` is also a finite number, the mathematical difference of the pair above exceeds every representable finite epsilon. Thus returning `false` makes sense. This case shows that **subtraction also has a representation range**, and you should not blindly apply algebraically equivalent transformations in floating-point code.
 
-### 5.5. Giá trị rất gần 0
+### 5.5. Values Very Close to 0
 
-Giả sử `a = 1e-12`, `b = 0` và `epsilon = 1e-9`. Hai giá trị được coi là gần vì `1e-12 <= 1e-9`, nhưng `a` vẫn là **một giá trị khác 0**.
+Suppose `a = 1e-12`, `b = 0`, and `epsilon = 1e-9`. The two values are considered close because `1e-12 <= 1e-9`, yet `a` is still **a non-zero value**.
 
-Một ngưỡng tuyệt đối giúp xác định “đủ gần zero” theo đơn vị, nhưng **không biến giá trị đó thành zero toán học**. Nếu `a` là dòng rò điện cần phát hiện, hoặc tín hiệu vật lý cực nhỏ quan trọng, việc coi gần zero thành zero có thể che giấu sự kiện thật.
+An absolute threshold determines "close enough to zero" in the chosen units, but **does not turn that value into mathematical zero**. If `a` is a leakage current that must be detected, or an important tiny physical signal, treating near-zero as zero can hide a real event.
 
-## 6. Sai số tuyệt đối tốt khi nào, yếu khi nào?
+## 6. When Is Absolute Error Strong, and When Is It Weak?
 
-### Tốt: đại lượng có miền và ngưỡng chênh cố định
+### Strong: Quantities with a Fixed Domain and Difference Threshold
 
-Ví dụ kiểm tra nhiệt độ đo so với nhiệt độ mục tiêu, sai số cho phép ±0,2 °C, một ngưỡng tuyệt đối có ý nghĩa rõ ràng. Với tọa độ đo bằng mét, kiểm tra chênh không quá 1 mm cũng là một quyết định theo **đơn vị**.
+For example, checking a measured temperature against a target temperature with an allowed error of ±0.2 °C gives an absolute threshold a clear meaning. With coordinates measured in meters, checking that the difference is at most 1 mm is also a decision grounded in **units**.
 
-Sai số tuyệt đối đặc biệt dễ hiểu gần zero: “giá trị này cách zero bao nhiêu đơn vị?”.
+Absolute error is especially intuitive near zero: "how many units away from zero is this value?"
 
-### Yếu: dữ liệu trải qua nhiều bậc độ lớn
+### Weak: Data Spanning Many Orders of Magnitude
 
-Xét hai trường hợp dùng cùng `epsilon = 1e-6`:
+Consider two cases using the same `epsilon = 1e-6`:
 
-- So sánh các giá trị quanh `1e-12`: ngưỡng lớn gấp nhiều lần giá trị, dễ coi những giá trị khác nhau về tỷ lệ là tương đương.
-- So sánh các giá trị quanh `1e12`: ngưỡng nhỏ hơn khoảng cách giữa một số cặp `double` liền kề ở vùng này, có thể quá khắt khe.
+- Comparing values around `1e-12`: the threshold is many times larger than the values, easily treating proportionally very different numbers as equivalent.
+- Comparing values around `1e12`: the threshold is smaller than the spacing between some adjacent `double` pairs in this range, which can be overly strict.
 
-Do đó, nếu lỗi chấp nhận được **phụ thuộc tỷ lệ hoặc độ lớn**, một ngưỡng **tương đối** hoặc kết hợp tương đối/tuyệt đối có thể phù hợp hơn. Nhưng đó là một chính sách khác; chỉ nên chọn sau khi xác định đầu ra và mức lỗi nghiệp vụ.
+Therefore, if acceptable error **depends on ratio or magnitude**, a **relative** tolerance or a combined relative/absolute tolerance may be more appropriate. However, that is a different policy; choose it only after specifying outputs and business error bounds.
 
-Một công thức kết hợp thường gặp là:
+A commonly used combined formula is:
 
 \[
 |a-b| \leq \max(\varepsilon_{\mathrm{abs}},\ \varepsilon_{\mathrm{rel}}\max(|a|,|b|)).
 \]
 
-Không dùng công thức đó mà quên kiểm tra NaN, Infinity, ngưỡng âm hoặc overflow khi tính các đại lượng trung gian. Ở đây trọng tâm là **absolute tolerance**; công thức kết hợp chỉ để định vị giới hạn của phương pháp.
+Do not use that formula while forgetting to check for NaN, Infinity, negative thresholds, or overflow when computing intermediate quantities. Here the focus is **absolute tolerance**; the combined formula only situates the method's limits.
 
-### Bảng lựa chọn
+### Selection Table
 
-| Trường hợp | Sai số tuyệt đối có phù hợp? | Lưu ý |
+| Scenario | Is absolute tolerance suitable? | Notes |
 | --- | --- | --- |
-| Giá trị gần 0, đơn vị và ngưỡng rõ | Thường phù hợp | Ví dụ khoảng cách tuyệt đối tới 0 |
-| Độ lệch cảm biến cho phép tối đa 0,2 đơn vị | Phù hợp nếu hợp đồng đã quy định | Ngưỡng phải cùng đơn vị |
-| So sánh giá trị từ `1e-12` đến `1e12` | Một ngưỡng duy nhất thường không đủ | Cân nhắc tương đối/kết hợp |
-| Kiểm tra số nguyên, ID hoặc hash | Không nên dùng | Dùng bằng nhau chính xác và kiểu nguyên |
-| Tiền tệ cần tính đúng theo cent | Không phù hợp như cách chữa sai số | `BigDecimal` hoặc số nguyên đơn vị nhỏ nhất |
-| So sánh mẫu bit và signed zero | Không phù hợp | Dùng API kiểm tra bit |
-| NaN, Infinity trong mô hình trạng thái | Chỉ khi có chính sách riêng | Không gọi chúng là số đo “gần nhau” |
-| Dùng ngưỡng để che sai thuật toán | Không phù hợp | Điều tra nguyên nhân sai số |
+| Values near 0 with clear units and threshold | Usually suitable | E.g., absolute distance to 0 |
+| Sensor deviation allowed up to 0.2 units | Suitable if specified by contract | Threshold must have the same unit |
+| Comparing values from `1e-12` to `1e12` | A single threshold is usually insufficient | Consider relative/combined tolerance |
+| Checking integers, IDs, or hashes | Do not use | Use exact equality and integer types |
+| Currency needing exactness to the cent | Unsuitable as a workaround for error | `BigDecimal` or smallest-unit integers |
+| Comparing bit patterns and signed zero | Unsuitable | Use bit-inspection APIs |
+| NaN, Infinity in state models | Only with an explicit policy | Do not call them "close" measurements |
+| Using a threshold to mask an algorithmic bug | Unsuitable | Investigate the root cause of error |
 
-## 7. `float`, `double` và tác động của kiểu dữ liệu
+## 7. `float`, `double`, and Data Type Effects
 
-`float` có khoảng 24 bit significand, còn `double` có 53 bit significand. Vì vậy, cùng một giá trị toán học có thể chịu sai số lưu trữ khác nhau theo kiểu.
+`float` has roughly 24 bits of significand precision, while `double` has 53 bits. Thus, the same mathematical value can incur different storage errors depending on the type.
 
 ```java
 float x = 0.1f;
@@ -242,25 +242,25 @@ System.out.println((double) x); // 0.10000000149011612
 System.out.println(y);          // 0.1
 ```
 
-Khi so sánh một `float` với một `double`, giá trị `float` được **mở rộng sang `double` nhưng không khôi phục thông tin đã mất**. Nếu dùng hàm nhận `double`, phép chuyển mở rộng là hợp lệ; tuy nhiên ngưỡng phải được chọn theo độ phân giải thực tế của đầu vào binary32, không giả định hai toán hạng có cùng độ chính xác.
+When comparing a `float` with a `double`, the `float` value is **widened to `double` without restoring lost information**. If you use a method taking `double`, widening is valid; however, the threshold must be chosen based on the actual resolution of the binary32 input, without assuming both operands have the same precision.
 
-### Vì sao không dùng một epsilon bất biến cho mọi `float`?
+### Why Not Use One Invariant Epsilon for Every `float`?
 
-Giống `double`, khoảng cách giữa hai số `float` biểu diễn được **tăng theo độ lớn**. Ở gần 1.0, `Math.ulp(1.0f)` khoảng `1.1920929e-7`; ở gần 1.0 với `double`, `Math.ulp(1.0d)` khoảng `2.220446049250313e-16`.
+Like `double`, the spacing between two representable `float` values **grows with magnitude**. Near 1.0, `Math.ulp(1.0f)` is about `1.1920929e-7`; near 1.0 for `double`, `Math.ulp(1.0d)` is about `2.220446049250313e-16`.
 
-`Math.ulp` đo bước biểu diễn ở một vùng giá trị, **không phải ngưỡng sai số nghiệp vụ tự sinh**. Nó hữu ích khi đánh giá việc một ngưỡng tuyệt đối có nhỏ hơn độ phân giải của dữ liệu hay không.
+`Math.ulp` measures representation step size in a value region, **not an auto-generated business error threshold**. It is helpful when assessing whether an absolute threshold is smaller than the data's resolution.
 
-Nếu dữ liệu đến từ cảm biến chính xác tới 0,01 đơn vị, ngưỡng `1e-12` có thể hoàn toàn không thực tế, dù kiểu lưu trữ là `double`.
+If data comes from a sensor accurate to 0.01 units, a threshold of `1e-12` may be completely unrealistic, even if the storage type is `double`.
 
-## 8. So sánh “gần bằng” không phải quan hệ bằng nhau toán học
+## 8. "Nearly Equal" Comparison Is Not Mathematical Equality
 
-Với `epsilon > 0`, một phép so sánh gần đúng có thể:
+With `epsilon > 0`, an approximate comparison can be:
 
-- **Đối xứng:** `closeAbs(a,b,epsilon)` và `closeAbs(b,a,epsilon)` cho cùng kết quả trên số hữu hạn theo tiêu chí sai số tuyệt đối.
-- **Tự gần chính mình:** mọi giá trị **hữu hạn** đều gần chính nó nếu epsilon hợp lệ và không âm.
-- **Không có tính bắc cầu:** `a` gần `b` và `b` gần `c` **không bảo đảm** `a` gần `c`.
+- **Symmetric:** `closeAbs(a,b,epsilon)` and `closeAbs(b,a,epsilon)` give the same result on finite numbers under the absolute tolerance criterion.
+- **Reflexive on finite values:** every **finite** value is close to itself if epsilon is valid and non-negative.
+- **Not transitive:** `a` close to `b` and `b` close to `c` **does not guarantee** `a` is close to `c`.
 
-Ví dụ chọn các số biểu diễn được chính xác:
+Example choosing exactly representable numbers:
 
 ```java
 double epsilon = 0.25;
@@ -273,21 +273,21 @@ double c = 0.5;
 // closeAbs(a,c,epsilon) == false.
 ```
 
-Vì thế **không** nên dùng so sánh epsilon thay cho `equals`/`hashCode` của khóa trong `HashMap`/`HashSet` hoặc kỳ vọng nó là quan hệ tương đương của nhóm đối tượng. Các thuật toán sắp xếp và cấu trúc dữ liệu đòi hỏi hợp đồng nhất quán; comparator dùng epsilon thiếu bắc cầu có thể vi phạm hợp đồng so sánh.
+Therefore, do **not** use epsilon comparison in place of `equals`/`hashCode` for keys in `HashMap`/`HashSet`, or expect it to behave as an equivalence relation for grouping objects. Sorting algorithms and data structures require consistent contracts; an epsilon comparator lacking transitivity can violate the comparison contract.
 
-### Một hậu quả khác: “gần bằng” có thể làm mờ ngưỡng
+### Another Consequence: "Nearly Equal" Can Blur Bounds
 
-Nếu dùng `closeAbs(x, limit, epsilon)` để quyết định “`x` không được vượt `limit`”, đó không phải kiểm tra bất đẳng thức phù hợp: số nằm **dưới** giới hạn rất xa là hợp lệ nhưng không “gần” giới hạn. Bài toán **kiểm tra giới hạn** nên dùng bất đẳng thức có chính sách biên rõ:
+If you use `closeAbs(x, limit, epsilon)` to decide "`x` must not exceed `limit`," that is not a proper inequality check: a number **far below** the limit is valid yet not "close" to the limit. **Bound-checking** problems should use an inequality with an explicit boundary policy:
 
 ```java
 boolean withinUpperBound = x <= upperBound;
 ```
 
-Nếu cho phép vượt nhẹ ngưỡng, phải quy định cụ thể “`x <= upperBound + tolerance`” cùng chính sách chống overflow và xử lý không hữu hạn, thay vì gọi “gần bằng” một cách mơ hồ. So sánh gần đúng chỉ trả lời **độ chênh giữa hai số**, không thay thế logic thứ tự.
+If slight overshoot is permitted, explicitly specify "`x <= upperBound + tolerance`" along with overflow protection and non-finite handling, rather than vaguely calling it "nearly equal." Approximate comparison only answers **the difference between two numbers**, not ordering logic.
 
-## 9. Lưu ý khi viết test tự động
+## 9. Notes on Writing Automated Tests
 
-Trong unit test, thường có ba đầu vào quan trọng: **actual**, **expected**, và **tolerance**.
+In unit tests, there are usually three key inputs: **actual**, **expected**, and **tolerance**.
 
 ```java
 double actual = 0.1 + 0.2;
@@ -299,7 +299,7 @@ if (Math.abs(actual - expected) > tolerance) {
 }
 ```
 
-Đoạn này minh họa ý tưởng nhưng chưa đầy đủ chính sách NaN/Infinity: với NaN, phép `>` cũng trả `false`, khiến nhánh throw **không chạy**. Vì vậy, khi viết helper kiểm thử tin cậy, nên dùng kết quả của một hàm đã kiểm tra finite và ngưỡng:
+This snippet illustrates the idea, though it lacks a full NaN/Infinity policy: for NaN, `>` also returns `false`, causing the throw branch **not to execute**. Therefore, when writing a reliable test helper, rely on the result of a function that already checks finiteness and the threshold:
 
 ```java
 if (!closeAbs(actual, expected, tolerance)) {
@@ -307,29 +307,29 @@ if (!closeAbs(actual, expected, tolerance)) {
 }
 ```
 
-Với thư viện kiểm thử như JUnit, dùng overload assertion cho số chấm động có `delta` nếu phiên bản/framework cung cấp, và đọc hợp đồng của API đó (nhất là NaN và Infinity). Không tự giả định mọi thư viện xử lý giá trị đặc biệt giống hệt helper tự viết.
+With a testing library like JUnit, use the floating-point assertion overload with `delta` if your version/framework provides it, and read that API's contract (especially for NaN and Infinity). Do not assume every library handles special values identically to a custom helper.
 
-### Các bài test nên có
+### Test Cases to Include
 
-| Trường hợp | Ví dụ | Kỳ vọng theo helper `closeAbs` |
+| Case | Example | Expected per `closeAbs` helper |
 | --- | --- | --- |
-| Chênh nhỏ trong ngưỡng | `0.1+0.2`, `0.3`, `1e-12` | `true` |
-| Chênh vượt ngưỡng | Cặp trên với `1e-17` | `false` |
-| Chính xác tại biên | `1.0`, `1.125`, `0.125` | `true` |
-| Vượt biên | `1.0`, `1.25`, `0.125` | `false` |
-| Giá trị hữu hạn bằng nhau | `2.0`, `2.0`, `0` | `true` |
-| Zero khác dấu | `+0.0`, `-0.0`, `0` | `true` |
-| Có NaN | `NaN`, `NaN`, `1` | `false` |
-| Vô cực | `+Infinity`, `+Infinity`, `1` | `false` |
-| Epsilon âm | `1`, `1`, `-1` | `IllegalArgumentException` |
-| Epsilon NaN/vô cực | `1`, `1`, `NaN` | `IllegalArgumentException` |
-| Hai số hữu hạn có hiệu tràn | `MAX_VALUE`, `-MAX_VALUE`, `MAX_VALUE` | `false` |
+| Small difference within threshold | `0.1+0.2`, `0.3`, `1e-12` | `true` |
+| Difference exceeding threshold | Same pair with `1e-17` | `false` |
+| Exact boundary | `1.0`, `1.125`, `0.125` | `true` |
+| Outside boundary | `1.0`, `1.25`, `0.125` | `false` |
+| Equal finite values | `2.0`, `2.0`, `0` | `true` |
+| Opposite-signed zeros | `+0.0`, `-0.0`, `0` | `true` |
+| With NaN | `NaN`, `NaN`, `1` | `false` |
+| Infinity | `+Infinity`, `+Infinity`, `1` | `false` |
+| Negative epsilon | `1`, `1`, `-1` | `IllegalArgumentException` |
+| NaN/infinite epsilon | `1`, `1`, `NaN` | `IllegalArgumentException` |
+| Two finite numbers whose difference overflows | `MAX_VALUE`, `-MAX_VALUE`, `MAX_VALUE` | `false` |
 
-Cần test cả **thay đổi đơn vị** và **cận trên/cận dưới của phép đo**, vì một ngưỡng hợp lý ở dữ liệu nhỏ có thể quá lỏng hoặc quá chặt ở miền lớn.
+Also test **unit changes** and **upper/lower measurement bounds**, because a threshold that makes sense for small data may be too loose or too tight in a large domain.
 
-## 10. Chương trình Java 17+ chạy độc lập
+## 10. Standalone Runnable Java 17+ Program
 
-Tạo tệp `AbsoluteToleranceDemo.java`:
+Create the file `AbsoluteToleranceDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -387,14 +387,14 @@ public class AbsoluteToleranceDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac --release 17 AbsoluteToleranceDemo.java
 java AbsoluteToleranceDemo
 ```
 
-Stdout (đã kiểm chứng):
+Stdout (verified):
 
 ```text
 0.1 + 0.2 = 0.30000000000000004
@@ -412,48 +412,48 @@ Gap overflow accepted: false
 Invalid tolerance: rejected
 ```
 
-Điều quan trọng nhất ở ví dụ là **cùng một cặp giá trị** có thể gần nhau với epsilon này nhưng không gần với epsilon nhỏ hơn. Đó không phải sự mâu thuẫn: epsilon là **đầu vào quyết định hợp đồng**, không phải một hằng nội tại của `double`.
+The most important takeaway from the example is that **the same pair of values** can be close under one epsilon and not close under a smaller epsilon. That is not a contradiction: epsilon is an **input defining the contract**, not an intrinsic constant of `double`.
 
-Dòng `Tiny signal considered close: true` cũng là lời cảnh báo: một ngưỡng tuyệt đối quá rộng có thể che khuất tín hiệu nhỏ. Dòng `Infinity accepted: false` phản ánh **chính sách chỉ nhận số hữu hạn** của helper, chứ không phải toán tử `==` của Java.
+The line `Tiny signal considered close: true` is also a warning: an overly wide absolute threshold can mask small signals. The line `Infinity accepted: false` reflects the helper's **finite-numbers-only policy**, not Java's `==` operator.
 
-## 11. Những lỗi thường gặp và cách sửa
+## 11. Common Mistakes and How to Fix Them
 
-| Sai lầm | Vì sao sai | Cách đúng |
+| Mistake | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| `a == b` cho mọi kết quả tính toán chấm động | Các bước làm tròn có thể khiến khác bit | Chỉ dùng absolute tolerance khi nghiệp vụ cho phép |
-| Dùng epsilon cố định `1e-6` cho mọi đơn vị và miền | Ngưỡng quá lớn hoặc quá nhỏ tùy ngữ cảnh | Chọn epsilon theo đơn vị, miền, độ phân giải, yêu cầu |
-| Dùng `Double.MIN_VALUE` như “sai số mặc định” | Đây là số dương subnormal nhỏ nhất | Chọn ngưỡng theo bài toán, hiểu `Math.ulp` |
-| Dùng epsilon âm hoặc NaN | Công thức gần bằng mất ý nghĩa hoặc cho kết quả bất ngờ | Validate epsilon hữu hạn và không âm |
-| Chỉ kiểm tra `if (abs(actual-expected) > eps) fail` | Với NaN, phép `>` trả false, có thể bỏ lọt lỗi | Dùng `if (!closeAbs(...)) fail` và chính sách NaN |
-| Coi Infinity bằng Infinity là “gần nhau” dù dữ liệu đo phải hữu hạn | `==` và so sánh sai số có hợp đồng khác | Kiểm tra `Double.isFinite` |
-| Coi `+0.0` và `-0.0` phải khác nhau trong đo lường | Dấu 0 thường không có ý nghĩa khoảng cách | So sánh theo độ gần; dùng raw bits khi cần phân biệt dấu |
-| Dùng tolerance để so sánh index/ID | Chấp nhận nhầm hai giá trị khác nhau | Dùng kiểu nguyên và `==`/`equals` thích hợp |
-| Dùng `closeAbs` làm `equals`/Comparator | Gần bằng không bắc cầu | Tách kiểm tra gần bằng khỏi hợp đồng collection |
-| Quên thay đổi đơn vị | Ngưỡng 0,01 m không bằng 0,01 mm | Chuẩn hóa đơn vị trước khi so sánh |
-| Chỉ nghĩ đến sai số lúc lưu literal | Mỗi phép toán trung gian có thể làm tròn | Xem toàn bộ pipeline tính toán |
-| Dùng `float` rồi lấy epsilon của `double` mà không đánh giá | `float` có độ phân giải thấp hơn | Xem `Math.ulp` và mức sai số của dữ liệu nguồn |
-| Dùng “gần bằng giới hạn” để thay kiểm tra `<=` | Gần bằng không diễn đạt miền cho phép | Viết điều kiện giới hạn và chính sách biên riêng |
+| `a == b` for all floating-point calculation results | Rounding steps can cause bit differences | Use absolute tolerance only when business logic permits |
+| Using a fixed `1e-6` epsilon for all units and domains | Threshold is too large or too small depending on context | Choose epsilon by unit, domain, resolution, and requirements |
+| Using `Double.MIN_VALUE` as a "default error" | It is the smallest positive subnormal number | Choose threshold per problem, understand `Math.ulp` |
+| Using negative or NaN epsilon | Approximate formula loses meaning or gives unexpected results | Validate epsilon is finite and non-negative |
+| Checking only `if (abs(actual-expected) > eps) fail` | With NaN, `>` returns false and can miss errors | Use `if (!closeAbs(...)) fail` with a NaN policy |
+| Treating Infinity == Infinity as "close" when measurements must be finite | `==` and error comparison have different contracts | Check `Double.isFinite` |
+| Requiring `+0.0` and `-0.0` to differ in measurements | The sign of 0 usually has no distance meaning | Compare by proximity; use raw bits when sign distinction is needed |
+| Using tolerance to compare indices/IDs | Mistakenly accepts two distinct values | Use integer types and appropriate `==`/`equals` |
+| Using `closeAbs` as `equals`/Comparator | Closeness is not transitive | Separate approximate checks from collection contracts |
+| Forgetting unit conversions | A 0.01 m threshold is not 0.01 mm | Normalize units before comparing |
+| Thinking only about literal-storage error | Every intermediate operation can round | Examine the entire computation pipeline |
+| Using `float` and picking a `double` epsilon without evaluation | `float` has lower resolution | Check `Math.ulp` and source data error level |
+| Using "close to limit" instead of checking `<=` | Closeness does not express the allowed domain | Write explicit bound conditions and boundary policies |
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-1. Vì sao `0.1 + 0.2 == 0.3` là `false` trong Java? Đổi sang so sánh tuyệt đối có ý nghĩa khi nào?
-2. Với `a = 1.0`, `b = 1.125`, `epsilon = 0.125`, điều kiện `Math.abs(a-b) <= epsilon` cho kết quả gì? Nếu dùng `<` thay vì `<=` thì sao?
-3. Vì sao epsilon cần có **cùng đơn vị** với dữ liệu? Chuyện gì xảy ra nếu một giá trị tính bằng mét và một giá trị tính bằng mm?
-4. Nếu một cảm biến đo gần zero nhưng tín hiệu `1e-12` là quan trọng, vì sao epsilon `1e-9` có thể nguy hiểm?
-5. Vì sao `Double.MIN_VALUE` không phải ngưỡng thích hợp để kiểm tra các phép toán gần 1.0?
-6. `Math.abs(Double.NaN - expected) <= epsilon` cho kết quả gì? Dùng biểu thức `Math.abs(...) > epsilon` để fail unit test có thể gây vấn đề nào?
-7. Hàm `closeAbs` trong bài xử lý Infinity như thế nào? Nếu ứng dụng muốn coi Infinity cùng dấu là cùng trạng thái, bạn sẽ thay đổi hợp đồng ra sao?
-8. `closeAbs(+0.0,-0.0,0.0)` trả gì? Khi nào cần kiểm tra bit thay vì độ gần số học?
-9. Vì sao quan hệ “gần bằng” không có tính bắc cầu? Đưa ví dụ ba số gần nhau từng cặp kế tiếp nhưng hai đầu không gần nhau.
-10. Khi dữ liệu trải trên miền từ `1e-12` tới `1e12`, tại sao một epsilon tuyệt đối cố định có thể không phù hợp?
-11. Nếu lưu cảm biến dưới dạng `float` rồi so sánh với dữ liệu `double`, bước widening có phục hồi các bit đã mất không?
-12. Vì sao khi cần kiểm tra giá trị không vượt ngưỡng, `closeAbs(x,upperBound,eps)` không thay thế trực tiếp cho `x <= upperBound`?
+1. Why is `0.1 + 0.2 == 0.3` `false` in Java? When does switching to absolute comparison make sense?
+2. Given `a = 1.0`, `b = 1.125`, and `epsilon = 0.125`, what does `Math.abs(a-b) <= epsilon` return? What if `<` is used instead of `<=`?
+3. Why must epsilon have the **same unit** as the data? What happens if one value is in meters and another is in millimeters?
+4. If a sensor measures near zero but a `1e-12` signal is significant, why can an epsilon of `1e-9` be dangerous?
+5. Why is `Double.MIN_VALUE` not an appropriate threshold for checking operations near 1.0?
+6. What does `Math.abs(Double.NaN - expected) <= epsilon` return? What issue can arise when using `Math.abs(...) > epsilon` to fail a unit test?
+7. How does `closeAbs` in this lesson handle Infinity? If an application wants to treat same-sign Infinity as the same state, how would you change the contract?
+8. What does `closeAbs(+0.0,-0.0,0.0)` return? When should you inspect bits instead of arithmetic proximity?
+9. Why is the "nearly equal" relation not transitive? Give an example of three numbers where adjacent pairs are close but the two ends are not.
+10. When data spans from `1e-12` to `1e12`, why might a single fixed absolute epsilon be unsuitable?
+11. If sensor data is stored as `float` and then compared with `double` data, does widening restore the lost bits?
+12. Why does `closeAbs(x,upperBound,eps)` not directly replace `x <= upperBound` when checking that a value does not exceed a threshold?
 
-## 13. Tham khảo
+## 13. References
 
-- [Java SE 17 — `Double`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): các giá trị NaN/Infinity, `isFinite`, `isNaN` và các quy tắc liên quan tới binary64.
-- [Java SE 17 — `Math`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `abs(double)`, `ulp(double)` và các phép toán số học.
-- [Java Language Specification, `4.2.3 — Floating-Point Types, Formats, and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): định dạng số dấu phẩy động và các giá trị đặc biệt.
-- [Java Language Specification, `15.21.1 — Numerical Equality Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.21.1): `==`/`!=` và hành vi với NaN/signed zero.
+- [Java SE 17 — `Double`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): NaN/Infinity values, `isFinite`, `isNaN`, and rules related to binary64.
+- [Java SE 17 — `Math`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `abs(double)`, `ulp(double)`, and arithmetic operations.
+- [Java Language Specification, `4.2.3 — Floating-Point Types, Formats, and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): floating-point formats and special values.
+- [Java Language Specification, `15.21.1 — Numerical Equality Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.21.1): `==`/`!=` and behavior with NaN/signed zero.
 
-**Ghi nhớ:** So sánh bằng sai số tuyệt đối là quy tắc **`|a-b| <= epsilon`**, trong đó `epsilon` phải được chọn theo **đơn vị, miền và yêu cầu chính xác của bài toán**. Đây là cách đánh giá chênh lệch có chủ đích, **không phải phép thay thế `==` phổ quát**. Để triển khai đáng tin cậy trên Java, cần xác định chính sách NaN/Infinity/±0, validate epsilon, kiểm thử biên, và biết khi nào một ngưỡng tương đối hoặc mô hình số khác phù hợp hơn.
+**Remember:** Comparing with absolute tolerance is the rule **`|a-b| <= epsilon`**, where `epsilon` must be chosen according to **units, domain, and the accuracy requirements of the problem**. It is a deliberate way to evaluate discrepancy, **not a universal replacement for `==`**. To implement it reliably in Java, define policies for NaN/Infinity/±0, validate epsilon, write boundary tests, and know when a relative tolerance or a different numeric model is more appropriate.

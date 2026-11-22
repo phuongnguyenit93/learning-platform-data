@@ -1,40 +1,40 @@
-# Module version và main class metadata
+# Module Version and Main Class Metadata
 
-> Phạm vi: modular JAR trong Java Platform Module System (JPMS). Khi đóng gói một modular JAR, công cụ **jar** có thể ghi phiên bản module và main class vào module descriptor bên trong JAR. Đây là metadata của module, khác với các thuộc tính implementation trong manifest và khác với metadata của một JAR chạy theo cơ chế class path.
+> Scope: modular JARs in the Java Platform Module System (JPMS). When packaging a modular JAR, the **jar** tool can record a module version and main class into the module descriptor inside the JAR. This is module metadata, distinct from implementation attributes in the manifest and distinct from metadata of a JAR run via the class path mechanism.
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Ghi phiên bản module bằng tùy chọn **--module-version**.
-- Ghi main class của modular JAR bằng **--main-class**.
-- Phân biệt metadata trong module descriptor với metadata trong **META-INF/MANIFEST.MF**.
-- Kiểm tra module version và main class bằng **jar --describe-module**.
-- Đọc metadata tại runtime bằng **ModuleDescriptor**.
-- Chạy module mà không cần chỉ rõ main class trong lệnh.
-- Hiểu giới hạn của module version trong module resolution.
+- Record a module version using the **--module-version** option.
+- Record a modular JAR's main class using **--main-class**.
+- Distinguish metadata in the module descriptor from metadata in **META-INF/MANIFEST.MF**.
+- Inspect the module version and main class with **jar --describe-module**.
+- Read metadata at runtime using **ModuleDescriptor**.
+- Run a module without specifying the main class in the command.
+- Understand the limitations of module versions in module resolution.
 
-## 1. Module version và main class metadata là gì?
+## 1. What Are Module Version and Main Class Metadata?
 
-Một modular JAR có file **module-info.class** ở thư mục gốc. File này chứa module descriptor: tên module, các directive như **requires**, **exports**, **opens**, **uses**, **provides**, cùng một số metadata khác.
+A modular JAR has a **module-info.class** file at its root directory. This file contains the module descriptor: the module name, directives such as **requires**, **exports**, **opens**, **uses**, **provides**, along with certain other metadata.
 
-Hai metadata thường dùng khi phát hành modular JAR là:
+Two commonly used metadata items when releasing a modular JAR are:
 
-- **Module version**: phiên bản được gắn với module descriptor.
-- **Main class**: lớp khởi chạy mặc định của module.
+- **Module version**: the version attached to the module descriptor.
+- **Main class**: the default launch class of the module.
 
-Khi tạo JAR bằng công cụ **jar**, có thể đặt hai giá trị này bằng:
+When creating a JAR with the **jar** tool, you can set these two values using:
 
-- **--module-version**: ghi phiên bản module.
-- **--main-class**: ghi main class cho module.
+- **--module-version**: records the module version.
+- **--main-class**: records the main class for the module.
 
-Ví dụ, modular JAR có tên module **com.acme.app**, phiên bản **2.4.1**, và main class **com.acme.app.Main**. Metadata này giúp công cụ kiểm tra và launcher biết thông tin phiên bản và lớp khởi chạy mặc định.
+For example, a modular JAR has module name **com.acme.app**, version **2.4.1**, and main class **com.acme.app.Main**. This metadata lets inspection tools and the launcher know the version information and default entry-point class.
 
-Lưu ý: tên file JAR như **acme-app-2.4.1.jar** không tự động làm module có version 2.4.1. Module version là metadata riêng được ghi vào module descriptor.
+Note: a JAR file name like **acme-app-2.4.1.jar** does not automatically give the module version 2.4.1. Module version is separate metadata recorded inside the module descriptor.
 
-## 2. Tạo modular JAR có module version và main class
+## 2. Creating a Modular JAR with Module Version and Main Class
 
-Giả sử source đã được biên dịch thành exploded module:
+Suppose the sources have been compiled into an exploded module:
 
 ~~~text
 project/
@@ -68,7 +68,7 @@ public final class Main {
 }
 ~~~
 
-Tạo modular JAR:
+Create the modular JAR:
 
 ~~~bash
 jar --create \
@@ -78,29 +78,29 @@ jar --create \
     -C mods/com.acme.app .
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- **--create** tạo JAR mới.
-- **--file** chỉ định file JAR đầu ra.
-- **--module-version 2.4.1** ghi version vào module descriptor.
-- **--main-class com.acme.app.Main** ghi main class mặc định của module.
-- **-C mods/com.acme.app .** chuyển vào thư mục module đã biên dịch và đưa nội dung của thư mục đó vào JAR.
+- **--create** creates a new JAR.
+- **--file** specifies the output JAR file.
+- **--module-version 2.4.1** records the version into the module descriptor.
+- **--main-class com.acme.app.Main** records the module's default main class.
+- **-C mods/com.acme.app .** switches into the compiled module directory and includes its contents in the JAR.
 
-Kết quả là **mlib/com.acme.app.jar** có module descriptor chứa tên module, version và main class. Hai tùy chọn trên không thay thế module descriptor; JAR vẫn phải là modular JAR hợp lệ.
+The result is **mlib/com.acme.app.jar** with a module descriptor containing the module name, version, and main class. These two options do not replace the module descriptor; the JAR must still be a valid modular JAR.
 
-Có thể dùng tên phiên bản theo quy ước dự án, ví dụ **1.0**, **2.4.1** hoặc **3.0.0-RC1**, miễn giá trị được công cụ chấp nhận như một module version hợp lệ. Nên thống nhất quy tắc version trong toàn bộ quá trình build và phát hành.
+You can use version strings following project conventions, such as **1.0**, **2.4.1**, or **3.0.0-RC1**, as long as the value is accepted by the tool as a valid module version. Keep the versioning convention consistent across the build and release process.
 
-## 3. Module version được lưu ở đâu?
+## 3. Where Is the Module Version Stored?
 
-Module version được lưu trong metadata của module descriptor trong **module-info.class**, không phải chỉ dựa trên tên file JAR.
+The module version is stored in the module descriptor metadata inside **module-info.class**, rather than merely relying on the JAR file name.
 
-Có thể kiểm tra bằng:
+You can inspect it with:
 
 ~~~bash
 jar --describe-module --file mlib/com.acme.app.jar
 ~~~
 
-Kết quả minh họa:
+Illustrative output:
 
 ~~~text
 com.acme.app@2.4.1 jar:file:///.../com.acme.app.jar!/module-info.class
@@ -109,17 +109,17 @@ requires java.base mandated
 main-class com.acme.app.Main
 ~~~
 
-Dòng đầu thể hiện tên module và version. Dòng **main-class** thể hiện lớp khởi chạy mặc định được ghi trong descriptor.
+The first line shows the module name and version. The **main-class** line shows the default launch class recorded in the descriptor.
 
-Tên file có thể là **com.acme.app.jar**, **acme-app-2.4.1.jar** hoặc tên khác; module name và module version được lấy từ descriptor. Đừng suy ra module version chỉ từ filename.
+The file name could be **com.acme.app.jar**, **acme-app-2.4.1.jar**, or something else; the module name and module version come from the descriptor. Do not infer the module version solely from the filename.
 
-Nếu JAR chưa có module descriptor tường minh và được dùng như automatic module, nó không có cùng metadata module version/main class được ghi bằng các tùy chọn trên. **Automatic-Module-Name** trong manifest chỉ cung cấp tên automatic module, không biến JAR thành explicit modular JAR.
+If a JAR lacks an explicit module descriptor and is used as an automatic module, it does not have the same module version/main class metadata recorded via these options. **Automatic-Module-Name** in the manifest only supplies an automatic module name; it does not turn the JAR into an explicit modular JAR.
 
-## 4. Main class metadata và ModuleMainClass
+## 4. Main Class Metadata and ModuleMainClass
 
-Với modular JAR, **--main-class** của công cụ jar ghi main class vào thuộc tính **ModuleMainClass** trong module descriptor.
+For a modular JAR, the `jar` tool's **--main-class** writes the main class into the **ModuleMainClass** attribute in the module descriptor.
 
-Ví dụ:
+For example:
 
 ~~~bash
 jar --create \
@@ -129,54 +129,54 @@ jar --create \
     -C mods/com.acme.app .
 ~~~
 
-Khi module descriptor có main class, có thể chạy module mà không cần chỉ rõ tên lớp:
+When the module descriptor has a main class, you can run the module without specifying the class name:
 
 ~~~bash
 java --module-path mlib --module com.acme.app
 ~~~
 
-Launcher tìm main class đã được ghi trong module descriptor và gọi phương thức **public static void main(String[] args)**.
+The launcher looks up the main class recorded in the module descriptor and invokes **public static void main(String[] args)**.
 
-Cũng có thể chỉ rõ main class trong lệnh:
+You can also specify the main class explicitly in the command:
 
 ~~~bash
 java --module-path mlib \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Cú pháp **-m module/main-class** chỉ định rõ lớp cần chạy. Cách này hữu ích khi module có nhiều entry point hoặc khi muốn chọn một lớp khác với main class mặc định đã ghi trong descriptor.
+The **-m module/main-class** syntax explicitly specifies which class to run. This is useful when a module has multiple entry points or when you want to select a class other than the default main class recorded in the descriptor.
 
-Nếu bỏ phần **/main-class** nhưng descriptor không có main class, launcher không biết lớp nào cần chạy và sẽ báo lỗi. Vì vậy, nếu muốn dùng cú pháp **java -m com.acme.app**, hãy chắc chắn modular JAR đã được đóng gói với **--main-class**.
+If you omit the **/main-class** part when the descriptor has no main class, the launcher does not know which class to run and reports an error. Therefore, if you want to use **java -m com.acme.app**, make sure the modular JAR was packaged with **--main-class**.
 
-## 5. Phân biệt ModuleMainClass với Main-Class trong manifest
+## 5. Distinguishing ModuleMainClass from Main-Class in the Manifest
 
-Không nhầm hai metadata sau:
+Do not confuse these two pieces of metadata:
 
-| Metadata | Nơi lưu | Mục đích |
+| Metadata | Where Stored | Purpose |
 |---|---|---|
-| **ModuleMainClass** | Module descriptor trong **module-info.class** | Main class mặc định khi chạy named module bằng **java -m module** |
-| **Main-Class** | Main section của **META-INF/MANIFEST.MF** | Main class của executable JAR chạy theo cơ chế **java -jar** |
+| **ModuleMainClass** | Module descriptor in **module-info.class** | Default main class when launching a named module via **java -m module** |
+| **Main-Class** | Main section of **META-INF/MANIFEST.MF** | Main class of an executable JAR launched via **java -jar** |
 
-Với modular JAR, dùng **--main-class** khi tạo JAR để ghi main class vào module descriptor. Khi chạy như named module, dùng **--module-path** và **--module**.
+For a modular JAR, use **--main-class** when creating the JAR to record the main class in the module descriptor. When running as a named module, use **--module-path** and **--module**.
 
-Với executable JAR truyền thống không có module descriptor, manifest thường chứa:
+For a traditional executable JAR without a module descriptor, the manifest typically contains:
 
 ~~~text
 Manifest-Version: 1.0
 Main-Class: com.acme.app.Main
 ~~~
 
-và chạy bằng:
+and is launched with:
 
 ~~~bash
 java -jar app.jar
 ~~~
 
-**java -jar** và **java --module-path ... --module ...** là hai cách khởi chạy khác nhau. Nếu mục tiêu là khởi chạy ứng dụng như một named module, hãy dùng module path và module name.
+**java -jar** and **java --module-path ... --module ...** are two different launch mechanisms. If the goal is to launch the application as a named module, use the module path and module name.
 
-## 6. Manifest implementation metadata khác module version
+## 6. Manifest Implementation Metadata Differs from Module Version
 
-Manifest vẫn có thể chứa metadata mô tả artifact hoặc package, ví dụ:
+The manifest can still contain metadata describing the artifact or package, for example:
 
 ~~~text
 Manifest-Version: 1.0
@@ -188,9 +188,9 @@ Specification-Version: 2.0
 Specification-Vendor: Acme Corporation
 ~~~
 
-Các thuộc tính này mô tả implementation hoặc specification của JAR/package. Chúng không tự động trở thành module version trong module descriptor.
+These attributes describe the implementation or specification of the JAR/package. They do not automatically become the module version in the module descriptor.
 
-Có thể thêm manifest tùy chỉnh khi tạo modular JAR:
+You can add a custom manifest when creating a modular JAR:
 
 ~~~bash
 jar --create \
@@ -201,33 +201,33 @@ jar --create \
     -C mods/com.acme.app .
 ~~~
 
-Ở đây:
+Here:
 
-- **--module-version** ghi version vào module descriptor.
-- **--main-class** ghi main class vào module descriptor.
-- **--manifest** đưa các main attributes từ file manifest vào JAR.
+- **--module-version** writes the version into the module descriptor.
+- **--main-class** writes the main class into the module descriptor.
+- **--manifest** includes the main attributes from the manifest file into the JAR.
 
-Không nên chỉ đặt **Implementation-Version** trong manifest rồi kỳ vọng **jar --describe-module** hiển thị đó là module version. Nếu cần module version, hãy dùng **--module-version**.
+Do not simply put **Implementation-Version** in the manifest and expect **jar --describe-module** to display it as the module version. If you need a module version, use **--module-version**.
 
-Đối với package được nạp từ JAR, API **Package** có thể cung cấp implementation/specification metadata thông qua các phương thức như **getImplementationVersion()** và **getSpecificationVersion()**, nếu manifest cung cấp các thuộc tính tương ứng. Đây là metadata package, không thay thế **ModuleDescriptor.version()**.
+For packages loaded from a JAR, the **Package** API can provide implementation/specification metadata through methods such as **getImplementationVersion()** and **getSpecificationVersion()**, if the manifest provides the corresponding attributes. That is package metadata and does not replace **ModuleDescriptor.version()**.
 
-## 7. Đọc module version và main class tại runtime
+## 7. Reading Module Version and Main Class at Runtime
 
-Từ một class nằm trong named module, có thể lấy module hiện tại:
+From a class inside a named module, you can obtain the current module:
 
 ~~~java
 Module module = Main.class.getModule();
 ModuleDescriptor descriptor = module.getDescriptor();
 ~~~
 
-Đọc tên module:
+Read the module name:
 
 ~~~java
 String moduleName = descriptor.name();
 System.out.println("Module: " + moduleName);
 ~~~
 
-Đọc version:
+Read the version:
 
 ~~~java
 descriptor.version().ifPresent(version ->
@@ -235,7 +235,7 @@ descriptor.version().ifPresent(version ->
 );
 ~~~
 
-Đọc main class:
+Read the main class:
 
 ~~~java
 descriptor.mainClass().ifPresent(mainClass ->
@@ -243,7 +243,7 @@ descriptor.mainClass().ifPresent(mainClass ->
 );
 ~~~
 
-Ví dụ hoàn chỉnh:
+Complete example:
 
 ~~~java
 package com.acme.app;
@@ -268,7 +268,7 @@ public final class Main {
 }
 ~~~
 
-Với modular JAR được đóng gói ở ví dụ trước, output có thể là:
+With the modular JAR packaged in the previous example, the output might be:
 
 ~~~text
 Module: com.acme.app
@@ -276,45 +276,45 @@ Version: 2.4.1
 Main class: com.acme.app.Main
 ~~~
 
-**ModuleDescriptor.version()** và **ModuleDescriptor.mainClass()** trả về **Optional**, vì module version và main class không bắt buộc phải được khai báo.
+**ModuleDescriptor.version()** and **ModuleDescriptor.mainClass()** return **Optional**, because the module version and main class are not required to be declared.
 
-Một lưu ý: **Module.getDescriptor()** có thể trả về **null** với unnamed module. Ví dụ trên giả định class đang chạy trong một named module có descriptor.
+One note: **Module.getDescriptor()** can return **null** for an unnamed module. The example above assumes the class is running inside a named module that has a descriptor.
 
-## 8. Kiểm tra metadata bằng jar và javap
+## 8. Inspecting Metadata with jar and javap
 
-Có thể kiểm tra thông tin module mà không cần chạy ứng dụng:
+You can inspect module information without running the application:
 
 ~~~bash
 jar --describe-module --file mlib/com.acme.app.jar
 ~~~
 
-Để xem nội dung JAR:
+To view JAR contents:
 
 ~~~bash
 jar --list --file mlib/com.acme.app.jar
 ~~~
 
-Kiểm tra **module-info.class** bằng javap:
+Inspect **module-info.class** with javap:
 
 ~~~bash
 javap -v --module-path mlib --module com.acme.app module-info
 ~~~
 
-Output verbose cho biết các attribute trong class file, gồm module descriptor và metadata như **Module**, **ModuleMainClass** hoặc **ModuleTarget** nếu có.
+The verbose output shows the attributes in the class file, including the module descriptor and metadata such as **Module**, **ModuleMainClass**, or **ModuleTarget** if present.
 
-Có thể dùng ba mức kiểm tra:
+You can use three inspection levels:
 
-1. **jar --list** xác nhận JAR có **module-info.class** và main class.
-2. **jar --describe-module** hiển thị module name, version, directives và main class.
-3. **javap -v** hỗ trợ điều tra sâu nội dung attribute của module descriptor.
+1. **jar --list** confirms the JAR contains **module-info.class** and the main class.
+2. **jar --describe-module** displays the module name, version, directives, and main class.
+3. **javap -v** helps deeply investigate the attribute contents of the module descriptor.
 
-Khi kiểm tra artifact phát hành, hãy chạy lệnh trên đúng JAR được publish, không chỉ trên thư mục class đầu ra của compiler.
+When checking a release artifact, run commands on the exact JAR being published, not merely on the compiler's class output directory.
 
-## 9. Module version có ảnh hưởng đến module resolution không?
+## 9. Does Module Version Affect Module Resolution?
 
-Module version là metadata hữu ích cho quản lý phát hành và kiểm tra artifact, nhưng JPMS không dùng nó như một dependency constraint giống hệ thống quản lý package.
+Module version is useful metadata for release management and artifact inspection, but JPMS does not use it as a dependency constraint like a package manager does.
 
-Ví dụ directive:
+Example directive:
 
 ~~~java
 module com.acme.app {
@@ -322,54 +322,54 @@ module com.acme.app {
 }
 ~~~
 
-Directive **requires** tham chiếu module bằng tên **com.acme.lib**. Cú pháp này không chỉ định một version range như **requires com.acme.lib [2.0, 3.0)**.
+The **requires** directive references a module by its name **com.acme.lib**. This syntax does not specify a version range such as **requires com.acme.lib [2.0, 3.0)**.
 
-Module resolver chủ yếu giải quyết module theo tên và module graph. Nó không tự chọn phiên bản cao nhất hoặc thỏa mãn một version range dựa trên **ModuleDescriptor.version()**.
+The module resolver primarily resolves modules by name and the module graph. It does not automatically pick the highest version or satisfy a version range based on **ModuleDescriptor.version()**.
 
-Do đó:
+Therefore:
 
-- Module version giúp nhận diện và kiểm tra phiên bản module.
-- Build tool hoặc dependency manager chịu trách nhiệm chọn phiên bản artifact trước khi chạy.
-- Deployment phải bảo đảm module path chứa đúng bộ JAR mong muốn.
-- Không nên đặt nhiều artifact cùng module name trong module path rồi kỳ vọng JPMS tự chọn version theo quy tắc semver.
+- Module version helps identify and inspect the version of a module.
+- Build tools or dependency managers are responsible for selecting artifact versions before runtime.
+- Deployment must ensure the module path contains the exact intended set of JARs.
+- Do not place multiple artifacts with the same module name on the module path expecting JPMS to select a version by semver rules.
 
-Hãy quản lý dependency version bằng Maven, Gradle hoặc hệ thống phát hành của dự án; dùng module descriptor version như metadata bổ sung để quan sát và xác minh.
+Manage dependency versions with Maven, Gradle, or your project's release system; use the module descriptor version as supplementary metadata for observability and verification.
 
-## 10. Lỗi thường gặp và cách xử lý
+## 10. Common Errors and How to Fix Them
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common Cause | How to Fix |
 |---|---|---|
-| **jar --describe-module** không hiển thị version | Chưa tạo modular JAR với **--module-version** hoặc đang kiểm tra JAR khác | Kiểm tra đúng artifact và tạo lại bằng **--module-version** |
-| Chạy **java -m module** báo không có main class | Module descriptor chưa có **ModuleMainClass** | Đóng gói với **--main-class** hoặc chỉ rõ **module/main-class** trong lệnh |
-| **Main-Class** có trong manifest nhưng **java -m module** vẫn báo thiếu main class | Manifest Main-Class không thay thế ModuleMainClass của modular JAR | Dùng **jar --main-class** để ghi main class vào module descriptor |
-| Filename có version nhưng descriptor không có version | Version chỉ nằm trong tên artifact | Dùng **--module-version** khi đóng gói |
-| Manifest có **Implementation-Version** nhưng module version vẫn trống | Implementation metadata khác module descriptor version | Thêm **--module-version** |
-| Runtime đọc được module name nhưng version rỗng | Version là metadata tùy chọn | Kiểm tra **descriptor.version()** và artifact đã publish |
-| Không chạy được khi bỏ main class khỏi lệnh | Descriptor không khai báo main class | Dùng **--main-class** khi đóng gói hoặc chỉ rõ main class khi chạy |
-| JAR không được nhận diện là explicit module | Thiếu **module-info.class** hoặc đang dùng automatic/class-path JAR | Kiểm tra JAR bằng **jar --describe-module** và cấu trúc nội dung |
+| **jar --describe-module** does not show version | Modular JAR was not created with **--module-version** or inspecting a different JAR | Check the exact artifact and recreate it with **--module-version** |
+| Running **java -m module** reports no main class | Module descriptor has no **ModuleMainClass** | Package with **--main-class** or specify **module/main-class** in the command |
+| **Main-Class** is in manifest but **java -m module** still reports missing main class | Manifest `Main-Class` does not replace `ModuleMainClass` of a modular JAR | Use **jar --main-class** to record the main class into the module descriptor |
+| Filename has a version but descriptor has no version | Version only exists in the artifact name | Use **--module-version** when packaging |
+| Manifest has **Implementation-Version** but module version is still empty | Implementation metadata is separate from module descriptor version | Add **--module-version** |
+| Runtime reads module name but version is empty | Version is optional metadata | Check **descriptor.version()** and the published artifact |
+| Cannot run when omitting main class from the command | Descriptor does not declare a main class | Use **--main-class** when packaging or specify the main class when running |
+| JAR is not recognized as an explicit module | Missing **module-info.class** or using an automatic/class-path JAR | Inspect the JAR with **jar --describe-module** and check its content structure |
 
-Quy trình kiểm tra:
+Verification workflow:
 
-1. Dùng **jar --describe-module --file** để xác nhận JAR là module nào.
-2. Kiểm tra version có hiển thị sau tên module hay không.
-3. Kiểm tra dòng **main-class** có đúng tên lớp không.
-4. Dùng **jar --list** để xác nhận main class và **module-info.class** có trong JAR.
-5. Chạy bằng **java --module-path ... --module module-name**.
-6. Thử cả cú pháp không chỉ rõ main class và cú pháp chỉ rõ **module/main-class**.
-7. Nếu metadata runtime không như mong đợi, in **Module.getDescriptor()** của class đang chạy để xác định đúng module.
+1. Use **jar --describe-module --file** to confirm which module the JAR represents.
+2. Check whether the version appears after the module name.
+3. Check whether the **main-class** line has the right class name.
+4. Use **jar --list** to confirm the main class and **module-info.class** are inside the JAR.
+5. Run with **java --module-path ... --module module-name**.
+6. Try both the syntax without specifying the main class and the syntax specifying **module/main-class**.
+7. If runtime metadata is not as expected, print **Module.getDescriptor()** of the running class to identify the exact module.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- **--module-version** ghi version vào module descriptor của modular JAR.
-- **--main-class** ghi main class mặc định vào module descriptor dưới dạng **ModuleMainClass**.
-- **jar --describe-module** là cách nhanh để kiểm tra tên module, version và main class.
-- **ModuleDescriptor.version()** và **mainClass()** cho phép đọc metadata tại runtime.
-- **Implementation-Version** và **Specification-Version** trong manifest là package/implementation metadata; chúng không thay thế module version.
-- **Main-Class** trong manifest phục vụ executable JAR truyền thống; **ModuleMainClass** phục vụ named module.
-- **java -m module** dùng main class trong module descriptor; **java -m module/main-class** chỉ định rõ lớp chạy.
-- JPMS không dùng module version để tự giải quyết version range; build/deployment tooling vẫn quản lý phiên bản dependency.
+- **--module-version** records the version into the module descriptor of a modular JAR.
+- **--main-class** records the default main class into the module descriptor as **ModuleMainClass**.
+- **jar --describe-module** is a quick way to inspect module name, version, and main class.
+- **ModuleDescriptor.version()** and **mainClass()** allow reading metadata at runtime.
+- **Implementation-Version** and **Specification-Version** in the manifest are package/implementation metadata; they do not replace the module version.
+- **Main-Class** in the manifest serves traditional executable JARs; **ModuleMainClass** serves named modules.
+- **java -m module** uses the main class in the module descriptor; **java -m module/main-class** explicitly specifies the class to run.
+- JPMS does not use module version to automatically resolve version ranges; build/deployment tooling still manages dependency versions.
 
-## Tài liệu tham khảo
+## References
 
 - [The jar Command — Java SE 21 Tool Specification](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jar.html)
 - [The java Command — Java SE 21 Tool Specification](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)

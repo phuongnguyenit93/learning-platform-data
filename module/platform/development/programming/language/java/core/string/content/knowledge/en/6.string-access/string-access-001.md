@@ -1,87 +1,87 @@
-# `String.length()` và `String.isEmpty()` trong Java
+# `String.length()` and `String.isEmpty()` in Java
 
-Một chương trình xử lý văn bản thường phải trả lời hai câu hỏi: **chuỗi dài bao nhiêu?** và **chuỗi có rỗng hay không?** Java cung cấp trực tiếp hai phương thức của lớp `java.lang.String`:
+A text-processing program often has to answer two questions: **how long is the string?** and **is the string empty?** Java provides two methods directly on the `java.lang.String` class:
 
-- `int length()`: trả về **số đơn vị mã UTF-16 (UTF-16 code units)** có trong chuỗi.
-- `boolean isEmpty()`: trả về `true` khi và chỉ khi `length() == 0`.
+- `int length()`: returns the **number of UTF-16 code units** in the string.
+- `boolean isEmpty()`: returns `true` if and only if `length() == 0`.
 
-Hai phương thức không sửa nội dung `String`, không nhận tham số và rất phù hợp cho các điều kiện kiểm tra thông thường. Điều quan trọng nhất là hiểu chính xác từ **“độ dài”** và **“rỗng”** ở đây, đặc biệt khi chuỗi chứa dấu cách, emoji hoặc dữ liệu có thể là `null`.
+Both methods do not modify the `String` content, take no parameters, and are well suited for common conditional checks. The most important thing is to understand the exact meaning of **“length”** and **“empty”** here, especially when the string contains spaces, emoji, or data that might be `null`.
 
-## 1. `length()` trả về gì?
+## 1. What does `length()` return?
 
-Cú pháp:
+Syntax:
 
 ```java
 int count = text.length();
 ```
 
-`length()` trả về một số nguyên không âm. Với chuỗi ASCII đơn giản, kết quả thường trùng với số ký tự người đọc nhìn thấy:
+`length()` returns a non-negative integer. For simple ASCII strings, the result usually matches the number of characters the reader sees:
 
 ```java
 "".length()       // 0
 "A".length()      // 1
 "Java".length()   // 4
-"Java 17".length() // 7: dấu cách ở giữa cũng được tính
-"  ".length()     // 2: hai dấu cách
-"\n".length()     // 1: một ký tự xuống dòng
-"\r\n".length()   // 2: hai đơn vị mã (CR và LF)
+"Java 17".length() // 7: the space in the middle is also counted
+"  ".length()     // 2: two spaces
+"\n".length()     // 1: one newline character
+"\r\n".length()   // 2: two code units (CR and LF)
 ```
 
-Đây là các biểu thức minh họa, không phải tệp Java độc lập. Kết quả `length()` bao gồm **mọi** đơn vị mã UTF-16 trong chuỗi, kể cả khoảng trắng và ký tự điều khiển; phương thức không tự loại bỏ, cắt tỉa hay bỏ qua ký tự nào.
+These are illustrative expressions, not a standalone Java file. The result of `length()` includes **all** UTF-16 code units in the string, including whitespace and control characters; the method does not automatically strip, trim, or skip any character.
 
-### Vì sao không gọi đơn giản là “số ký tự”?
+### Why not simply call it “number of characters”?
 
-Java `String` sử dụng mô hình chỉ số UTF-16 cho `length()`, `charAt()` và `substring()`. Một ký tự Unicode có thể được biểu diễn bằng **một** hoặc **hai** đơn vị mã UTF-16:
+Java `String` uses a UTF-16 indexing model for `length()`, `charAt()`, and `substring()`. A Unicode character can be represented by **one** or **two** UTF-16 code units:
 
-- Phần lớn ký tự thường gặp trong BMP (Basic Multilingual Plane), ví dụ `A`, `á` hoặc chữ Hán phổ biến: **1** đơn vị mã UTF-16.
-- Một ký tự Unicode ngoài BMP, ví dụ nhiều emoji: **2** đơn vị mã UTF-16, dưới dạng một *surrogate pair*.
+- Most common characters in the BMP (Basic Multilingual Plane), for example `A`, `á`, or common Chinese characters: **1** UTF-16 code unit.
+- A Unicode character outside the BMP, for example many emoji: **2** UTF-16 code units, in the form of a *surrogate pair*.
 
-Vì vậy, `length()` **không phải** phép đếm số Unicode code points, không phải số chữ/grapheme mà người dùng nhìn thấy, và cũng không phải số byte khi lưu UTF-8.
+Therefore, `length()` is **not** a count of Unicode code points, not the number of letters/graphemes the user sees, and also not the number of bytes when stored in UTF-8.
 
-Có ba khái niệm khác nhau:
+There are three distinct concepts:
 
-| Thước đo | Ý nghĩa | Cách kiểm tra |
+| Metric | Meaning | How to check |
 | --- | --- | --- |
-| UTF-16 code units | Đơn vị dùng làm chỉ số trong `String` | `s.length()` |
-| Unicode code points | Các giá trị Unicode logic trong một dãy UTF-16 | `s.codePointCount(0, s.length())` |
-| Bytes theo một encoding | Kích thước khi mã hóa chuỗi thành byte | `s.getBytes(StandardCharsets.UTF_8).length` cho UTF-8 |
+| UTF-16 code units | Units used as indices in `String` | `s.length()` |
+| Unicode code points | Logical Unicode values in a UTF-16 sequence | `s.codePointCount(0, s.length())` |
+| Bytes in an encoding | Size when encoding the string into bytes | `s.getBytes(StandardCharsets.UTF_8).length` for UTF-8 |
 
-Một **grapheme cluster** (ví dụ chữ cái kết hợp dấu hoặc emoji có nhiều thành phần) có thể gồm nhiều Unicode code points; do đó ngay cả `codePointCount()` cũng không bảo đảm đếm đúng số ký tự người dùng cảm nhận. Khi phải giới hạn “số ký tự hiển thị”, cần tiêu chuẩn phân đoạn grapheme phù hợp, thay vì chỉ dựa vào `length()`.
+A **grapheme cluster** (for example a letter combined with an accent or a multi-component emoji) can consist of multiple Unicode code points; therefore even `codePointCount()` does not guarantee an accurate count of characters as perceived by the user. When limiting the “number of visible characters”, an appropriate grapheme segmentation standard is needed, rather than relying solely on `length()`.
 
-## 2. `isEmpty()` kiểm tra gì?
+## 2. What does `isEmpty()` check?
 
-Cú pháp:
+Syntax:
 
 ```java
 boolean empty = text.isEmpty();
 ```
 
-Với một đối tượng `String` khác `null`, hai điều kiện dưới đây **tương đương về kết quả**:
+For a non-`null` `String` object, the two conditions below are **equivalent in result**:
 
 ```java
 text.isEmpty()
 text.length() == 0
 ```
 
-Có thể coi `isEmpty()` là cách diễn đạt trực tiếp ý định: **“Chuỗi có độ dài bằng 0 không?”**.
+You can think of `isEmpty()` as a direct expression of intent: **“Does the string have length 0?”**.
 
-Ví dụ:
+Examples:
 
-| Giá trị chuỗi | `length()` | `isEmpty()` | Giải thích |
+| String value | `length()` | `isEmpty()` | Explanation |
 | --- | ---: | --- | --- |
-| `""` | 0 | `true` | Không có đơn vị mã nào. |
-| `"Java"` | 4 | `false` | Bốn chữ cái ASCII. |
-| `" "` | 1 | `false` | Có một dấu cách. |
-| `"  "` | 2 | `false` | Có hai dấu cách. |
-| `"\t"` | 1 | `false` | Có một tab. |
-| `"\n"` | 1 | `false` | Có một ký tự xuống dòng. |
-| `" \t\n"` | 3 | `false` | Chỉ có whitespace nhưng vẫn có nội dung theo nghĩa mã UTF-16. |
+| `""` | 0 | `true` | No code units at all. |
+| `"Java"` | 4 | `false` | Four ASCII letters. |
+| `" "` | 1 | `false` | Contains one space. |
+| `"  "` | 2 | `false` | Contains two spaces. |
+| `"\t"` | 1 | `false` | Contains one tab. |
+| `"\n"` | 1 | `false` | Contains one newline character. |
+| `" \t\n"` | 3 | `false` | Whitespace only, but still has content in terms of UTF-16 code units. |
 
-`isEmpty()` **không** tự động loại bỏ khoảng trắng, và **không** trả về `true` chỉ vì chuỗi “nhìn như không có chữ”. Nếu yêu cầu nghiệp vụ là “người dùng chỉ nhập dấu cách cũng bị xem như chưa nhập gì”, hãy xem `isBlank()` ở phần sau.
+`isEmpty()` does **not** automatically strip whitespace, and does **not** return `true` just because the string “looks like it has no letters”. If the business requirement is “a user entering only spaces is also considered as having entered nothing”, see `isBlank()` in the next section.
 
-## 3. Chương trình Java 17+ đầu tiên: độ dài, rỗng và khoảng trắng
+## 3. First Java 17+ program: length, emptiness, and whitespace
 
-Tạo tệp `LengthAndEmptyDemo.java`:
+Create the file `LengthAndEmptyDemo.java`:
 
 ```java
 public class LengthAndEmptyDemo {
@@ -111,14 +111,14 @@ public class LengthAndEmptyDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac LengthAndEmptyDemo.java
 java LengthAndEmptyDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 empty.length = 0
@@ -132,26 +132,26 @@ null-or-empty = true
 has-text = true
 ```
 
-Điểm cần quan sát:
+Points to observe:
 
-1. `""` không có đơn vị mã nào nên `length() == 0` và `isEmpty() == true`.
-2. `" \t"` có hai đơn vị mã, vì vậy `isEmpty() == false` dù không có chữ cái nào. Nó là *blank* theo `isBlank()`.
-3. Biểu thức `maybeNull == null || maybeNull.isEmpty()` an toàn nhờ **short-circuit evaluation**: nếu vế đầu `true`, Java không đánh giá vế sau, tránh gọi phương thức trên `null`.
-4. `text != null && !text.isEmpty()` chỉ trả về `true` khi tham chiếu tồn tại và chuỗi có độ dài lớn hơn 0.
+1. `""` has no code units, so `length() == 0` and `isEmpty() == true`.
+2. `" \t"` has two code units, so `isEmpty() == false` even though it has no letters. It is *blank* according to `isBlank()`.
+3. The expression `maybeNull == null || maybeNull.isEmpty()` is safe thanks to **short-circuit evaluation**: if the first side is `true`, Java does not evaluate the second side, avoiding calling a method on `null`.
+4. `text != null && !text.isEmpty()` returns `true` only when the reference exists and the string has a length greater than 0.
 
-## 4. Phân biệt chuỗi rỗng, chuỗi trắng và `null`
+## 4. Distinguishing empty string, blank string, and `null`
 
-Ba trường hợp thường gặp khi xử lý dữ liệu nhập:
+Three common cases when processing input data:
 
-**Chuỗi rỗng — empty:** `String s = "";`. Đây là một đối tượng `String` hợp lệ có độ dài 0; `s.isEmpty()` là `true`.
+**Empty string:** `String s = "";`. This is a valid `String` object with length 0; `s.isEmpty()` is `true`.
 
-**Chuỗi chỉ gồm khoảng trắng — blank:** `String s = "  \t";`. Chuỗi có độ dài lớn hơn 0 nên `isEmpty()` là `false`; `isBlank()` là `true`.
+**Whitespace-only string — blank:** `String s = "  \t";`. The string has a length greater than 0, so `isEmpty()` is `false`; `isBlank()` is `true`.
 
-**Tham chiếu `null`:** `String s = null;`. Không có đối tượng `String` được tham chiếu; gọi `s.length()` hoặc `s.isEmpty()` đều gây `NullPointerException`. Không thể nói “`null` có độ dài 0”: `null` không phải một chuỗi rỗng.
+**`null` reference:** `String s = null;`. There is no `String` object being referenced; calling `s.length()` or `s.isEmpty()` throws `NullPointerException`. You cannot say “`null` has length 0”: `null` is not an empty string.
 
-### `isEmpty()` và `isBlank()`
+### `isEmpty()` and `isBlank()`
 
-`String.isBlank()` có từ Java 11. Nó trả về `true` nếu chuỗi rỗng **hoặc** chỉ chứa các Unicode code points được `Character.isWhitespace(int)` coi là whitespace.
+`String.isBlank()` has been available since Java 11. It returns `true` if the string is empty **or** contains only Unicode code points considered whitespace by `Character.isWhitespace(int)`.
 
 ```java
 String a = "";
@@ -168,34 +168,34 @@ System.out.println(c.isEmpty()); // false
 System.out.println(c.isBlank()); // false
 ```
 
-Đoạn này là ví dụ đặt trong phương thức, và các chú thích chỉ rõ kết quả in tương ứng.
+This snippet is an example placed inside a method, and the comments indicate the corresponding printed output.
 
-Chọn phương thức theo yêu cầu thực tế:
+Choose the method based on the actual requirement:
 
-- Chỉ muốn biết **chuỗi có độ dài bằng 0**: dùng `isEmpty()`.
-- Muốn coi **chuỗi toàn whitespace như không có nội dung**: dùng `isBlank()` khi phù hợp với quy tắc whitespace của Java.
-- Muốn loại bỏ whitespace ở hai đầu trước khi kiểm tra: cân nhắc `strip().isEmpty()` (Java 11+) hoặc `trim().isEmpty()` tùy chuẩn mong muốn. `strip()` và `trim()` có cách nhận diện ký tự ở đầu/cuối khác nhau; đừng giả định chúng hoàn toàn đồng nghĩa với nhau hoặc với `isBlank()` trong mọi trường hợp Unicode.
+- Only want to know whether **the string has length 0**: use `isEmpty()`.
+- Want to treat **a whitespace-only string as having no content**: use `isBlank()` when it fits Java's whitespace rules.
+- Want to strip leading and trailing whitespace before checking: consider `strip().isEmpty()` (Java 11+) or `trim().isEmpty()` depending on the desired standard. `strip()` and `trim()` identify leading/trailing characters differently; do not assume they are completely synonymous with each other or with `isBlank()` in all Unicode cases.
 
-Lưu ý: định nghĩa whitespace ở `Character.isWhitespace` **không bao gồm mọi dấu cách Unicode có thể nhìn giống khoảng trắng** (ví dụ một số non-breaking spaces). Nếu quy tắc nghiệp vụ cần xử lý các ký tự đó, hãy định nghĩa và kiểm thử quy tắc riêng.
+Note: the definition of whitespace in `Character.isWhitespace` **does not include every Unicode space character that may look like whitespace** (for example some non-breaking spaces). If a business rule needs to handle those characters, define and test a separate rule.
 
-### Mẫu kiểm tra `null` an toàn
+### Safe `null`-checking patterns
 
 ```java
-// true nếu biến không tham chiếu String nào hoặc trỏ tới String rỗng:
+// true if the variable references no String or points to an empty String:
 boolean missing = s == null || s.isEmpty();
 
-// true nếu biến có String không rỗng:
+// true if the variable has a non-empty String:
 boolean nonEmpty = s != null && !s.isEmpty();
 
-// true nếu không null và có ít nhất một code point không phải whitespace:
+// true if non-null and has at least one non-whitespace code point:
 boolean hasNonBlankText = s != null && !s.isBlank();
 ```
 
-Đây là fragment trong một phương thức có biến `String s` đã được khai báo. Dùng thứ tự như trên để tránh `NullPointerException`. Nếu quy tắc cần phân biệt `null` (chưa có dữ liệu) và `""` (dữ liệu rỗng), hãy giữ chúng thành **hai trạng thái riêng**, đừng mặc định gộp lại.
+This is a fragment inside a method where the variable `String s` has already been declared. Use the order above to avoid `NullPointerException`. If a rule needs to distinguish between `null` (no data provided) and `""` (empty data), keep them as **two separate states**; do not merge them by default.
 
-## 5. UTF-16: `length()` có thể khác số Unicode code points
+## 5. UTF-16: `length()` can differ from the number of Unicode code points
 
-Tạo tệp `UnicodeLengthDemo.java`:
+Create the file `UnicodeLengthDemo.java`:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -203,9 +203,9 @@ import java.nio.charset.StandardCharsets;
 public class UnicodeLengthDemo {
     public static void main(String[] args) {
         String ascii = "Java";
-        String accented = "\u00E9";           // é, một code point trong BMP.
+        String accented = "\u00E9";           // é, a code point in the BMP.
         String emoji = "\uD83D\uDE00";       // 😀, surrogate pair.
-        String combining = "e\u0301";         // e + dấu sắc kết hợp.
+        String combining = "e\u0301";         // e + combining acute accent.
 
         printLengths("ascii", ascii);
         printLengths("accented", accented);
@@ -238,14 +238,14 @@ public class UnicodeLengthDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac UnicodeLengthDemo.java
 java UnicodeLengthDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 ascii: units=4, codePoints=4, utf8Bytes=4
@@ -258,18 +258,18 @@ highSurrogateAt1 = true
 emojiSubstringEquals = true
 ```
 
-Giải thích:
+Explanation:
 
-- `"\u00E9"` biểu diễn ký tự `é` có một code point, một UTF-16 code unit, nhưng **hai byte** khi mã hóa UTF-8.
-- `"\uD83D\uDE00"` biểu diễn emoji 😀 bằng một cặp surrogate gồm hai code units; nó là **một code point**, **bốn byte UTF-8**.
-- `"e\u0301"` chứa chữ `e` và dấu sắc kết hợp. Nó thường **hiển thị tương tự** `é` nhưng có **hai code points**, **hai UTF-16 code units**, **ba byte UTF-8**. Vì vậy, các giá trị `length()` khác nhau không nhất thiết có nghĩa số “chữ” người dùng nhìn thấy khác nhau.
-- `mixed` là `"A" + emoji + "B"`. Chỉ số UTF-16 tương ứng: `A` ở 0; hai nửa surrogate ở 1 và 2; `B` ở 3. Do đó `length() == 4` và `codePointCount(...) == 3`. `substring(1, 3)` lấy cả hai đơn vị mã của emoji nên tạo ra nội dung bằng `emoji`.
+- `"\u00E9"` represents the character `é` which has one code point, one UTF-16 code unit, but **two bytes** when encoded in UTF-8.
+- `"\uD83D\uDE00"` represents the emoji 😀 using a surrogate pair of two code units; it is **one code point**, **four UTF-8 bytes**.
+- `"e\u0301"` contains the letter `e` and a combining acute accent. It usually **renders similarly** to `é` but has **two code points**, **two UTF-16 code units**, and **three UTF-8 bytes**. Thus, different `length()` values do not necessarily mean a different number of “characters” seen by the user.
+- `mixed` is `"A" + emoji + "B"`. The corresponding UTF-16 indices: `A` at 0; the two surrogate halves at 1 and 2; `B` at 3. Hence `length() == 4` and `codePointCount(...) == 3`. `substring(1, 3)` takes both code units of the emoji, producing content equal to `emoji`.
 
-**Không cắt ở giữa surrogate pair:** `mixed.substring(1, 2)` chỉ lấy một surrogate, không phải emoji nguyên vẹn. Khi xử lý dữ liệu theo Unicode code point, cân nhắc `codePointAt()`, `codePoints()` và cách chuyển từ chỉ số code point sang chỉ số UTF-16 như `offsetByCodePoints()`. Với chuỗi người dùng nhập chứa emoji ghép, còn cần thêm phân đoạn grapheme nếu thao tác được mô tả bằng “ký tự hiển thị”.
+**Do not split in the middle of a surrogate pair:** `mixed.substring(1, 2)` takes only one surrogate, not the intact emoji. When processing data by Unicode code point, consider `codePointAt()`, `codePoints()`, and ways to convert from a code point index to a UTF-16 index such as `offsetByCodePoints()`. For user-input strings containing combined emoji, grapheme segmentation is also needed if the operation is described in terms of “visible characters”.
 
-## 6. Dùng `length()` làm cận khi truy cập chuỗi
+## 6. Using `length()` as a bound when accessing strings
 
-`charAt(index)` nhận chỉ số **UTF-16 code unit**, bắt đầu từ 0. Một chỉ số chỉ hợp lệ khi `0 <= index < s.length()`; giá trị `length()` chính là ranh giới **sau** đơn vị cuối cùng.
+`charAt(index)` takes a **UTF-16 code unit** index, starting from 0. An index is valid only when `0 <= index < s.length()`; the value `length()` is the boundary **after** the last unit.
 
 ```java
 String s = "Java";
@@ -278,12 +278,12 @@ if (!s.isEmpty()) {
 }
 ```
 
-Với chuỗi rỗng, `length() - 1 == -1`, nên không thể đọc `charAt(-1)`. Nếu `s` có thể là `null`, hãy kiểm tra `s != null && !s.isEmpty()` trước khi gọi. Phần kiểm tra chỉ số âm, vòng lặp và xử lý lỗi được luyện kỹ ở bài **charAt và điều kiện chỉ số hợp lệ**; ở đây cần nhớ rằng `length()` đo *code unit*, nên `charAt(length() - 1)` có thể lấy **low surrogate** thay vì toàn bộ code point khi emoji nằm cuối chuỗi.
-## 7. Các tình huống ứng dụng
+For an empty string, `length() - 1 == -1`, so `charAt(-1)` cannot be read. If `s` might be `null`, check `s != null && !s.isEmpty()` before calling. Checking negative indices, loops, and error handling are practiced thoroughly in the lesson **charAt and valid index conditions**; here, remember that `length()` measures *code units*, so `charAt(length() - 1)` may read a **low surrogate** instead of the entire code point when an emoji is at the end of the string.
+## 7. Practical use cases
 
-### Kiểm tra tham số tùy chọn
+### Checking optional parameters
 
-Nếu chuỗi trống nghĩa là người dùng không cung cấp giá trị, có thể dùng:
+If an empty string means the user did not provide a value, you can use:
 
 ```java
 static boolean isProvided(String value) {
@@ -291,9 +291,9 @@ static boolean isProvided(String value) {
 }
 ```
 
-Nếu dấu cách đơn thuần không được chấp nhận, hãy dùng `!value.isBlank()` thay vì `!value.isEmpty()`. Cần đặt quy tắc theo yêu cầu của dữ liệu: có trường hợp một dấu cách thực sự là dữ liệu hợp lệ.
+If plain spaces should not be accepted, use `!value.isBlank()` instead of `!value.isEmpty()`. Set the rule according to data requirements: there are cases where a single space is actually valid data.
 
-### Giới hạn độ dài dữ liệu nhập
+### Limiting input data length
 
 ```java
 static boolean fitsUtf16Limit(String input, int maxUnits) {
@@ -303,9 +303,9 @@ static boolean fitsUtf16Limit(String input, int maxUnits) {
 }
 ```
 
-Hàm này áp dụng **giới hạn số UTF-16 code units**. Nó phù hợp nếu hợp đồng dữ liệu quy định chính xác thước đo đó. Nếu hệ thống yêu cầu tối đa một số Unicode code points, nên đếm với `input.codePointCount(0, input.length())`; nếu giới hạn payload là byte UTF-8, nên kiểm tra độ dài byte sau khi mã hóa. Không được dùng `length()` để khẳng định kích thước byte của dữ liệu.
+This method enforces a **UTF-16 code unit limit**. It is suitable if the data contract specifies that exact metric. If the system requires at most a certain number of Unicode code points, count with `input.codePointCount(0, input.length())`; if the payload limit is in UTF-8 bytes, check the byte length after encoding. Do not use `length()` to assert the byte size of data.
 
-### Duyệt nội dung chuỗi
+### Iterating over string content
 
 ```java
 String s = "ABC";
@@ -315,30 +315,30 @@ for (int index = 0; index < s.length(); index++) {
 System.out.println(); // ABC
 ```
 
-Đây là một cách duyệt **UTF-16 code units**. Nó phù hợp khi thao tác theo chỉ số `char`, nhưng cần cách khác nếu mỗi bước phải xử lý trọn vẹn Unicode code point hoặc grapheme. `String` là immutable nên các thao tác `length()`, `isEmpty()` và `charAt()` không biến đổi chính đối tượng chuỗi.
+This is a way to iterate over **UTF-16 code units**. It works well when operating by `char` index, but a different approach is needed if each step must handle a full Unicode code point or grapheme. Because `String` is immutable, `length()`, `isEmpty()`, and `charAt()` do not mutate the string object itself.
 
-### Hiệu năng
+### Performance
 
-Trong các JDK Java hiện đại, `length()` và `isEmpty()` kiểm tra thông tin độ dài đã có và không cần duyệt toàn bộ nội dung chuỗi. Hãy ưu tiên **cú pháp diễn đạt đúng mục đích**: `isEmpty()` khi hỏi có rỗng không; `length()` khi thật sự cần số đơn vị mã hoặc làm việc với chỉ số. Ngược lại, `codePointCount()` phải xét các code units trong phạm vi để xác định surrogate pairs; kiểm tra độ dài byte theo một encoding cần thực hiện mã hóa.
+In modern Java JDKs, `length()` and `isEmpty()` check the already-known length information without scanning the entire string content. Prefer **syntax that directly expresses your intent**: `isEmpty()` when asking if it is empty; `length()` when you actually need the number of code units or are working with indices. Conversely, `codePointCount()` must examine the code units in the range to detect surrogate pairs; checking byte length in an encoding requires performing the encoding.
 
-Không cần thay thế `isEmpty()` bằng `length() == 0` chỉ để “tối ưu” nếu không có số liệu chứng minh, vì hai cách có ý nghĩa giống nhau và thường không tạo khác biệt đáng kể.
+There is no need to replace `isEmpty()` with `length() == 0` just to “optimize” without benchmark evidence, as both have the same meaning and usually make no meaningful difference.
 
-## 8. Sai lầm thường gặp
+## 8. Common mistakes
 
-| Sai lầm | Vì sao sai? | Cách đúng |
+| Mistake | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| “`" ".isEmpty()` là `true`.” | Dấu cách vẫn là một code unit. | Dùng `isBlank()` nếu muốn coi whitespace là rỗng về mặt nghiệp vụ. |
-| “`null.isEmpty()` trả về `true`.” | Không có đối tượng để gọi phương thức; ném NPE. | Kiểm tra `s == null` trước khi gọi. |
-| “`length()` là số byte UTF-8.” | `length()` đếm UTF-16 code units. | Dùng `getBytes(StandardCharsets.UTF_8).length` nếu cần byte UTF-8. |
-| “`length()` luôn bằng số Unicode code points.” | Ký tự ngoài BMP cần hai code units. | Dùng `codePointCount(0, s.length())` cho code points. |
-| “Số code points luôn là số ký tự hiển thị.” | Dấu ghép và emoji nhiều thành phần có thể gồm nhiều code points. | Dùng thuật toán phân đoạn grapheme khi cần. |
-| “`s.charAt(s.length() - 1)` luôn an toàn.” | Chuỗi rỗng tạo chỉ số `-1`, chuỗi `null` ném NPE. | Kiểm tra `s != null && !s.isEmpty()` trước. |
-| “`isEmpty()` loại bỏ khoảng trắng trước khi kiểm tra.” | Nó chỉ tương đương `length() == 0`. | Áp dụng rõ ràng chính sách whitespace mong muốn. |
-| “`isBlank()` tồn tại trong mọi bản Java.” | `String.isBlank()` được bổ sung trong Java 11. | Với Java 17+ dùng được; khi dùng JDK cũ cần phương án khác. |
+| “`" ".isEmpty()` is `true`.” | A space is still a code unit. | Use `isBlank()` if you want to treat whitespace as empty for business logic. |
+| “`null.isEmpty()` returns `true`.” | There is no object to call the method on; throws NPE. | Check `s == null` before calling. |
+| “`length()` is the number of UTF-8 bytes.” | `length()` counts UTF-16 code units. | Use `getBytes(StandardCharsets.UTF_8).length` if you need UTF-8 bytes. |
+| “`length()` always equals the number of Unicode code points.” | Characters outside the BMP require two code units. | Use `codePointCount(0, s.length())` for code points. |
+| “The number of code points is always the number of visible characters.” | Combining accents and multi-component emoji can contain multiple code points. | Use a grapheme segmentation algorithm when needed. |
+| “`s.charAt(s.length() - 1)` is always safe.” | An empty string produces index `-1`, and a `null` string throws NPE. | Check `s != null && !s.isEmpty()` first. |
+| “`isEmpty()` strips whitespace before checking.” | It is strictly equivalent to `length() == 0`. | Explicitly apply the desired whitespace policy. |
+| “`isBlank()` exists in every Java version.” | `String.isBlank()` was added in Java 11. | Available on Java 17+; use another approach on older JDKs. |
 
-## 9. Tự kiểm tra
+## 9. Self-check
 
-**Bài 1.** Cho:
+**Exercise 1.** Given:
 
 ```java
 String s = "  ";
@@ -347,7 +347,7 @@ System.out.println(s.isEmpty());
 System.out.println(s.isBlank());
 ```
 
-Kết quả:
+Output:
 
 ```text
 2
@@ -355,9 +355,9 @@ false
 true
 ```
 
-Giải thích: hai dấu cách là hai UTF-16 code units; chuỗi không rỗng nhưng chỉ gồm whitespace.
+Explanation: two spaces are two UTF-16 code units; the string is not empty but consists only of whitespace.
 
-**Bài 2.** Cho:
+**Exercise 2.** Given:
 
 ```java
 String s = "";
@@ -365,26 +365,26 @@ boolean result = s == null || s.isEmpty();
 System.out.println(result);
 ```
 
-Kết quả: `true`. Nếu đổi `s` thành `null`, kết quả vẫn là `true` nhờ toán tử `||` đánh giá ngắn mạch.
+Output: `true`. If `s` is changed to `null`, the result is still `true` thanks to the short-circuiting `||` operator.
 
-**Bài 3.** Cho `String s = "\uD83D\uDE00";`. `s.length()` là bao nhiêu, và `s.codePointCount(0, s.length())` là bao nhiêu?
+**Exercise 3.** Given `String s = "\uD83D\uDE00";`. What is `s.length()`, and what is `s.codePointCount(0, s.length())`?
 
-Đáp án lần lượt là **2** và **1**: một Unicode code point ngoài BMP được biểu diễn bằng hai UTF-16 code units.
+The answers are **2** and **1**, respectively: one Unicode code point outside the BMP is represented by two UTF-16 code units.
 
-**Bài 4.** Một biểu mẫu quy định mật khẩu dài tối đa 20 **byte UTF-8**. Dùng `password.length() <= 20` đã đúng chưa?
+**Exercise 4.** A form specifies a maximum password length of 20 **UTF-8 bytes**. Is `password.length() <= 20` correct?
 
-Chưa. `length()` đo UTF-16 code units, không đo UTF-8 bytes. Phải mã hóa theo UTF-8 rồi kiểm tra số byte, hoặc để tầng xử lý nhận dữ liệu kiểm tra đúng chuẩn đã quy định.
+Not yet. `length()` measures UTF-16 code units, not UTF-8 bytes. You must encode as UTF-8 and check the byte count, or let the data-receiving layer validate against the specified standard.
 
-## Tổng kết
+## Summary
 
-- `length()` cho biết **số UTF-16 code units** trong `String`.
-- `isEmpty()` chỉ kiểm tra **`length() == 0`**.
-- Chuỗi chỉ chứa khoảng trắng không rỗng theo `isEmpty()`; `isBlank()` giải quyết nhu cầu khác.
-- `null` không phải chuỗi rỗng; cần kiểm tra tham chiếu trước khi gọi phương thức.
-- Khi yêu cầu dùng “độ dài”, phải xác định rõ đang tính **UTF-16 units**, **Unicode code points**, **grapheme clusters**, hay **bytes theo encoding**.
+- `length()` gives the **number of UTF-16 code units** in a `String`.
+- `isEmpty()` only checks **`length() == 0`**.
+- A whitespace-only string is not empty according to `isEmpty()`; `isBlank()` addresses a different need.
+- `null` is not an empty string; check the reference before calling methods.
+- When a requirement uses “length”, clarify whether it is counting **UTF-16 units**, **Unicode code points**, **grapheme clusters**, or **encoded bytes**.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 API — `java.lang.String`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): hợp đồng `length()`, `isEmpty()`, `isBlank()`, `codePointCount()`, `charAt()` và `substring()`.
-- [Java SE 21 API — `java.lang.Character`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Character.html): định nghĩa code point, surrogate pair và whitespace.
-- [Java Language Specification §3.10.5 — String Literals](https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html#jls-3.10.5): cú pháp chuỗi và escape sequences.
+- [Java SE 21 API — `java.lang.String`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): contracts of `length()`, `isEmpty()`, `isBlank()`, `codePointCount()`, `charAt()`, and `substring()`.
+- [Java SE 21 API — `java.lang.Character`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Character.html): definitions of code points, surrogate pairs, and whitespace.
+- [Java Language Specification §3.10.5 — String Literals](https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html#jls-3.10.5): string syntax and escape sequences.

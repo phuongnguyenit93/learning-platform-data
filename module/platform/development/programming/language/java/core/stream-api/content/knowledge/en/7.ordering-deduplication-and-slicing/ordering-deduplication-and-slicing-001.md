@@ -1,14 +1,14 @@
-# Loại phần tử trùng bằng distinct với equals và hashCode
+# Removing Duplicate Elements with `distinct`, `equals`, and `hashCode`
 
-Trong nhiều ứng dụng, dữ liệu nhận từ API, tệp nhập liệu hoặc cơ sở dữ liệu có thể lặp lại: cùng một mã sản phẩm xuất hiện nhiều lần, cùng một người dùng được ghi ở nhiều dòng, hoặc một danh sách từ khóa chứa các giá trị trùng nhau. Với **Java Stream API**, ta có thể dùng `distinct()` để giữ lại những phần tử **khác nhau theo quy tắc bình đẳng của Java**.
+In many applications, data received from APIs, input files, or databases may contain duplicates: the same product code appears multiple times, the same user is recorded across multiple lines, or a list of keywords contains repeated values. With the **Java Stream API**, you can use `distinct()` to retain elements that are **different according to Java's equality rules**.
 
-Điểm cần hiểu ngay từ đầu: `distinct()` **không tự biết** hai sản phẩm có cùng mã hay không. Với Stream đối tượng, nó dựa trên `equals()` để xác định bằng nhau và `hashCode()` để hỗ trợ tìm phần tử trùng. Vì vậy, kết quả của `distinct()` phụ thuộc vào **cách lớp dữ liệu định nghĩa sự bằng nhau**.
+A key point to understand right away: `distinct()` **does not automatically know** whether two products have the same code. For an object Stream, it relies on `equals()` to determine equality and `hashCode()` to help look up duplicate elements. Therefore, the result of `distinct()` depends on **how the data class defines equality**.
 
-Bài thuộc chương **Thứ tự, loại trùng và cắt lát** của module **JAVA_STREAM_API**. Sau bài này, bạn sẽ sử dụng được `distinct()` trong pipeline lazy, giải thích mối quan hệ giữa `equals` và `hashCode`, hiểu phần tử nào được giữ khi nguồn có thứ tự, nhận biết chi phí bộ nhớ và tránh lỗi với đối tượng mutable, Stream song song và dữ liệu vô hạn.
+This lesson belongs to the **Ordering, Deduplication, and Slicing** chapter of the **JAVA_STREAM_API** module. After this lesson, you will be able to use `distinct()` in a lazy pipeline, explain the relationship between `equals` and `hashCode`, understand which element is kept when the source is ordered, recognize memory costs, and avoid bugs with mutable objects, parallel Streams, and infinite data.
 
-## 1. Bài toán đầu tiên: loại mã trùng
+## 1. The First Problem: Removing Duplicate Codes
 
-Giả sử hệ thống nhận danh sách các mã sản phẩm:
+Suppose the system receives a list of product codes:
 
 ~~~java
 List<String> codes = List.of(
@@ -16,7 +16,7 @@ List<String> codes = List.of(
 );
 ~~~
 
-Yêu cầu là thu được `SP01`, `SP02` và `SP03`, mỗi mã một lần.
+The requirement is to obtain `SP01`, `SP02`, and `SP03`, each once.
 
 ~~~java
 import java.util.List;
@@ -33,90 +33,90 @@ public class DistinctStringDemo {
             .collect(Collectors.toList());
 
         System.out.println(uniqueCodes); // [SP01, SP02, SP03]
-        System.out.println(codes.size());  // 5, nguồn vẫn giữ nguyên
+        System.out.println(codes.size());  // 5, source remains unchanged
     }
 }
 ~~~
 
-Ví dụ dùng `List.of` (Java 9+); `distinct()` có từ Java 8. Với Java 16+, có thể dùng `stream().distinct().toList()` để nhận danh sách không cho phép sửa.
+This example uses `List.of` (Java 9+); `distinct()` has been available since Java 8. With Java 16+, you can use `stream().distinct().toList()` to obtain an unmodifiable list.
 
-Ta đọc pipeline như sau:
+We read the pipeline as follows:
 
-1. `codes.stream()` tạo Stream từ danh sách, giữ **encounter order** của `List`.
-2. `distinct()` tạo một Stream trung gian chỉ phát ra các giá trị khác nhau.
-3. `collect(Collectors.toList())` là phép toán kết thúc, tạo danh sách kết quả.
+1. `codes.stream()` creates a Stream from the list, preserving the **encounter order** of the `List`.
+2. `distinct()` creates an intermediate Stream that emits only distinct values.
+3. `collect(Collectors.toList())` is a terminal operation that produces the resulting list.
 
-Trong nguồn có thứ tự, `distinct()` là **stable**: nếu nhiều phần tử bằng nhau, phần tử **xuất hiện đầu tiên** theo encounter order được giữ. Do đó, `SP01` ở vị trí đầu được giữ, bản sao `SP01` ở vị trí thứ ba bị loại.
+On an ordered source, `distinct()` is **stable**: if multiple elements are equal, the element that **appears first** in encounter order is kept. Therefore, the `SP01` at the first position is kept, and the duplicate `SP01` at the third position is removed.
 
-`distinct()` không sửa danh sách `codes` và không trả về `Set`; kết quả vẫn là một **Stream** để tiếp tục `filter`, `map`, `sorted` hoặc các phép toán khác.
+`distinct()` does not modify the `codes` list and does not return a `Set`; the result is still a **Stream** so you can continue with `filter`, `map`, `sorted`, or other operations.
 
-## 2. Hợp đồng của distinct trong Stream API
+## 2. The Contract of `distinct` in the Stream API
 
-Chữ ký thường dùng là:
+The commonly used signature is:
 
 ~~~java
 Stream<T> distinct()
 ~~~
 
-`distinct()` là **intermediate operation** có trạng thái (*stateful*): muốn biết giá trị mới có trùng hay không, quá trình xử lý phải theo dõi những giá trị tương đương đã gặp.
+`distinct()` is a **stateful intermediate operation**: to know whether a new value is a duplicate, processing must track the equivalent values already encountered.
 
 ~~~mermaid
 flowchart LR
-    A["Nguồn: A, B, A, C, B"] --> B["distinct()"]
+    A["Source: A, B, A, C, B"] --> B["distinct()"]
     B --> C["Stream: A, B, C"]
     C --> D["collect(toList())"]
     D --> E["List: A, B, C"]
 ~~~
 
-Đặc tính quan trọng:
+Important characteristics:
 
-| Câu hỏi | Câu trả lời |
+| Question | Answer |
 |---|---|
-| `distinct()` có làm thay đổi kiểu phần tử không? | **Không**. `Stream<T>` vẫn là `Stream<T>`. |
-| Nó có cần phép toán kết thúc không? | **Có** để thực hiện việc xử lý khi cần; nó là thao tác trung gian lazy. |
-| Nó có sửa collection gốc không? | **Không**, bản thân thao tác loại trùng không sửa nguồn. |
-| Nó giữ đại diện nào khi nguồn có thứ tự? | Phần tử **đầu tiên** trong nhóm các phần tử bằng nhau. |
-| Nó có luôn đảm bảo thứ tự của kết quả không? | **Không** nếu Stream không có encounter order hoặc đã được đánh dấu `unordered()`. |
-| Có phải mọi phần tử đều luôn được duyệt không? | **Không nhất thiết**; phép toán kết thúc dừng sớm có thể chỉ cần một phần nguồn. |
-| Có cần nhớ giá trị đã gặp không? | Thường **có**, nên có thể tốn bộ nhớ khi số giá trị duy nhất lớn. |
+| Does `distinct()` change the element type? | **No**. `Stream<T>` remains `Stream<T>`. |
+| Does it require a terminal operation? | **Yes**, to execute processing when needed; it is a lazy intermediate operation. |
+| Does it modify the original collection? | **No**, the deduplication operation itself does not mutate the source. |
+| Which representative does it keep when the source is ordered? | The **first** element among equal elements. |
+| Does it always guarantee result ordering? | **No**, if the Stream has no encounter order or has been marked `unordered()`. |
+| Must every element always be traversed? | **Not necessarily**; a short-circuiting terminal operation may only need part of the source. |
+| Does it need to remember seen values? | Usually **yes**, so memory usage can be high when the number of unique values is large. |
 
-Lưu ý sự khác nhau giữa **thứ tự** và **bình đẳng**: `distinct()` quyết định phần tử nào trùng theo `equals()`, không theo comparator của `sorted()`, không theo `toString()`, và không theo một trường dữ liệu bất kỳ trừ khi lớp định nghĩa equality dựa trên trường đó.
+Note the difference between **ordering** and **equality**: `distinct()` decides which elements are duplicates using `equals()`, not the comparator of `sorted()`, not `toString()`, and not any arbitrary field unless the class defines equality based on that field.
 
-## 3. equals và hashCode quyết định thế nào là “trùng”?
+## 3. How Do `equals` and `hashCode` Decide What Is "Duplicate"?
 
-Trong Java, mọi lớp kế thừa `equals(Object)` và `hashCode()` từ `Object`. Hai phương thức có vai trò riêng:
+In Java, every class inherits `equals(Object)` and `hashCode()` from `Object`. The two methods have distinct roles:
 
-- `equals(Object)` trả lời câu hỏi: **hai đối tượng có được xem là bằng nhau không?**
-- `hashCode()` trả về một số nguyên dùng trong các cấu trúc dựa trên băm (*hash-based*), nhằm hỗ trợ tìm các đối tượng có khả năng bằng nhau.
+- `equals(Object)` answers the question: **are two objects considered equal?**
+- `hashCode()` returns an integer used in hash-based structures to help locate objects that are potentially equal.
 
-Một cách hình dung:
+One way to visualize this:
 
 ~~~text
-Phần tử mới
+New element
     |
     v
-Tính hashCode()  ---> tìm nhóm ứng viên tương ứng
+Compute hashCode() ---> find matching candidate bucket
     |
     v
-So sánh equals() với ứng viên
+Compare with candidates using equals()
     |
-    +-- Đã có phần tử bằng nhau: bỏ phần tử mới
+    +-- Equal element already present: discard new element
     |
-    +-- Chưa có phần tử bằng nhau: giữ phần tử mới
+    +-- No equal element present: keep new element
 ~~~
 
-Sơ đồ trên mô tả **nguyên lý thường gặp của cấu trúc băm**, không cam kết thuật toán nội bộ của mọi phiên bản JDK. Hợp đồng của `Stream.distinct` là sự khác nhau theo `Object.equals`; một triển khai tối ưu hóa có thể lựa chọn cách thực hiện khác nhau.
+The diagram above illustrates the **general principle of hash-based structures**, without committing to the internal algorithm of every JDK version. The contract of `Stream.distinct` is distinctness according to `Object.equals`; an optimizing implementation may choose different ways to realize it.
 
-### 3.1. String đã có equality theo nội dung
+### 3.1. `String` Already Has Content-Based Equality
 
-Hai đối tượng `String` khác tham chiếu nhưng cùng ký tự vẫn bằng nhau:
+Two `String` objects with different references but the same characters are still equal:
 
 ~~~java
 String first = new String("JAVA");
 String second = new String("JAVA");
 
-System.out.println(first == second);      // false: khác tham chiếu
-System.out.println(first.equals(second)); // true: cùng nội dung
+System.out.println(first == second);      // false: different references
+System.out.println(first.equals(second)); // true: same content
 System.out.println(first.hashCode() == second.hashCode()); // true
 
 long uniqueCount = java.util.stream.Stream.of(first, second)
@@ -126,9 +126,9 @@ long uniqueCount = java.util.stream.Stream.of(first, second)
 System.out.println(uniqueCount); // 1
 ~~~
 
-Vì `String` định nghĩa `equals` và `hashCode` theo nội dung, `distinct()` hoạt động như mong đợi khi loại chuỗi trùng chính xác.
+Because `String` defines `equals` and `hashCode` based on content, `distinct()` works as expected when removing exact string duplicates.
 
-Nhưng `String.equals` **phân biệt chữ hoa/chữ thường** và phân biệt khoảng trắng:
+However, `String.equals` is **case-sensitive** and whitespace-sensitive:
 
 ~~~java
 List<String> raw = List.of("Java", "java", " Java ", "JAVA");
@@ -136,7 +136,7 @@ List<String> raw = List.of("Java", "java", " Java ", "JAVA");
 System.out.println(raw.stream().distinct().count()); // 4
 ~~~
 
-Nếu nghiệp vụ xem những chuỗi trên là cùng một mã, cần **chuẩn hóa trước khi loại trùng**:
+If business logic treats those strings as the same code, you must **normalize before deduplicating**:
 
 ~~~java
 import java.util.Locale;
@@ -150,11 +150,11 @@ List<String> normalized = raw.stream()
 System.out.println(normalized); // [JAVA]
 ~~~
 
-`Locale.ROOT` phù hợp với quy tắc chuẩn hóa mã kỹ thuật không phụ thuộc locale người dùng; với tên người hoặc ngôn ngữ tự nhiên, chính sách so sánh và Unicode có thể phức tạp hơn.
+`Locale.ROOT` is suitable for locale-independent technical code normalization rules; for personal names or natural language, comparison policies and Unicode handling can be more complex.
 
-### 3.2. Hai đối tượng có cùng dữ liệu vẫn có thể được xem là khác nhau
+### 3.2. Two Objects with the Same Data Can Still Be Considered Different
 
-Nếu lớp không ghi đè `equals`, hành vi mặc định từ `Object` thường dựa trên **định danh đối tượng**. Hai thực thể được tạo bởi `new` khác nhau dù trường giống nhau:
+If a class does not override `equals`, the default behavior from `Object` is typically based on **object identity**. Two entities created with different `new` calls are distinct even if their fields match:
 
 ~~~java
 class Product {
@@ -168,17 +168,17 @@ class Product {
 Product a = new Product("SP01");
 Product b = new Product("SP01");
 
-System.out.println(a.equals(b)); // false: chưa ghi đè equals
+System.out.println(a.equals(b)); // false: equals not overridden
 System.out.println(java.util.stream.Stream.of(a, b).distinct().count()); // 2
 ~~~
 
-Ví dụ này hợp lệ về mặt ngôn ngữ nhưng **không đáp ứng yêu cầu loại sản phẩm trùng theo mã**. Để làm việc đó, cần xác định quy tắc equality cho lớp, hoặc ánh xạ sang mã trước khi gọi `distinct()`.
+This example is valid at the language level, but it **does not satisfy the requirement to deduplicate products by code**. To do that, you need to define equality rules for the class, or map to the code before calling `distinct()`.
 
-## 4. Viết equals và hashCode nhất quán cho đối tượng nghiệp vụ
+## 4. Writing Consistent `equals` and `hashCode` for Business Objects
 
-Giả sử với ứng dụng hiện tại, **mã sản phẩm `sku`** là định danh duy nhất. Hai bản ghi cùng `sku` được coi là cùng sản phẩm, ngay cả khi mô tả tên khác nhau do dữ liệu cập nhật.
+Suppose in the current application, the **product code `sku`** is the unique identifier. Two records with the same `sku` are considered the same product, even if the name description differs due to updated data.
 
-Ví dụ đầy đủ chạy trên Java 8+:
+Complete example running on Java 8+:
 
 ~~~java
 import java.util.Arrays;
@@ -225,10 +225,10 @@ public class ProductDistinctDemo {
 
     public static void main(String[] args) {
         List<Product> products = Arrays.asList(
-            new Product("SP01", "Bút xanh"),
-            new Product("SP02", "Sổ tay"),
-            new Product("SP01", "Bút xanh (dữ liệu nhập lại)"),
-            new Product("SP03", "Thước")
+            new Product("SP01", "Blue pen"),
+            new Product("SP02", "Notebook"),
+            new Product("SP01", "Blue pen (re-imported data)"),
+            new Product("SP03", "Ruler")
         );
 
         List<Product> uniqueProducts = products.stream()
@@ -240,41 +240,41 @@ public class ProductDistinctDemo {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-SP01 - Bút xanh
-SP02 - Sổ tay
-SP03 - Thước
+SP01 - Blue pen
+SP02 - Notebook
+SP03 - Ruler
 ~~~
 
-Ở đây:
+Here:
 
-1. `equals` so sánh **`sku`**, là quy tắc nghiệp vụ đã chọn.
-2. `hashCode` cũng tính từ **`sku`**, nên hai sản phẩm được xem là bằng nhau có cùng mã băm.
-3. Vì nguồn là `List` có thứ tự, `distinct()` giữ sản phẩm `SP01` xuất hiện đầu, tức tên `Bút xanh`. Bản ghi `SP01` thứ hai không còn trong kết quả.
+1. `equals` compares **`sku`**, which is the chosen business rule.
+2. `hashCode` is also computed from **`sku`**, so two products considered equal have the same hash code.
+3. Because the source is an ordered `List`, `distinct()` keeps the first `SP01` product that appears, namely with the name `Blue pen`. The second `SP01` record is excluded from the result.
 
-**Không có một quy tắc equals đúng cho mọi bài toán.** Nếu với hệ thống của bạn, hai sản phẩm cùng SKU nhưng khác phiên bản phải được xem là khác nhau, thì `sku` đơn lẻ chưa đủ. Cần xác định đầy đủ bộ khóa nghiệp vụ (ví dụ `sku` + `version`) rồi dùng chính bộ khóa đó trong **cả `equals` và `hashCode`**.
+**There is no single `equals` rule that fits every problem.** If in your system two products with the same SKU but different versions must be treated as different, then `sku` alone is not enough. You must identify the complete business key (for example `sku` + `version`) and use that exact key in **both `equals` and `hashCode`**.
 
-### 4.1. Hợp đồng bắt buộc của equals và hashCode
+### 4.1. Mandatory Contract of `equals` and `hashCode`
 
-Theo hợp đồng của Java, `equals` phải tuân theo:
+According to Java's contract, `equals` must satisfy:
 
-- **Reflexive:** với đối tượng không null, `x.equals(x)` là `true`.
-- **Symmetric:** nếu `x.equals(y)` là `true` thì `y.equals(x)` cũng là `true`.
-- **Transitive:** nếu `x.equals(y)` và `y.equals(z)` đều `true` thì `x.equals(z)` phải `true`.
-- **Consistent:** khi thông tin dùng để so sánh không đổi, việc gọi nhiều lần phải cho kết quả nhất quán.
-- **Không bằng null:** `x.equals(null)` là `false` với `x` không null.
+- **Reflexive:** for any non-null object, `x.equals(x)` is `true`.
+- **Symmetric:** if `x.equals(y)` is `true`, then `y.equals(x)` is also `true`.
+- **Transitive:** if `x.equals(y)` and `y.equals(z)` are both `true`, then `x.equals(z)` must be `true`.
+- **Consistent:** as long as the information used in comparisons does not change, repeated invocations must return consistent results.
+- **Non-null:** `x.equals(null)` is `false` for any non-null `x`.
 
-Với `hashCode`:
+For `hashCode`:
 
-- Nếu `x.equals(y)` là `true`, **bắt buộc** `x.hashCode() == y.hashCode()`.
-- Nếu hai đối tượng có cùng mã băm, **không bắt buộc** chúng phải bằng nhau. Đây là **hash collision**, không tự nó là lỗi.
-- Mã băm phải nhất quán trong lúc các thông tin ảnh hưởng đến equality chưa đổi.
+- If `x.equals(y)` is `true`, it is **mandatory** that `x.hashCode() == y.hashCode()`.
+- If two objects have the same hash code, they are **not required** to be equal. This is a **hash collision**, not an error by itself.
+- The hash code must remain consistent as long as the information affecting equality has not changed.
 
-Sai lầm phổ biến là **chỉ ghi đè `equals` nhưng quên `hashCode`**. Khi đó hai đối tượng được xem là bằng nhau có thể nhận mã băm khác nhau, dẫn đến hành vi sai trong `HashSet`, `HashMap` và các thao tác loại trùng dựa trên cấu trúc băm.
+A common mistake is **overriding `equals` while forgetting `hashCode`**. Then two objects considered equal may receive different hash codes, leading to incorrect behavior in `HashSet`, `HashMap`, and hash-based deduplication operations.
 
-Cách viết điển hình:
+Typical idiom:
 
 ~~~java
 @Override
@@ -291,62 +291,62 @@ public int hashCode() {
 }
 ~~~
 
-Đây là một **phương án thay thế** cho cách viết trong ví dụ hoàn chỉnh phía trên, khi muốn sử dụng các tiện ích `Objects`. Không được chèn thêm hai phương thức này bên cạnh phương thức đã có trong cùng lớp. Với một khóa `String` không null, `sku.hashCode()` trực tiếp là đủ.
+This is an **alternative** to the implementation in the complete example above when you want to use the `Objects` utilities. Do not insert these two methods alongside existing ones in the same class. For a single non-null `String` key, `sku.hashCode()` directly is sufficient.
 
-### 4.2. Vì sao trường tham gia equality nên bất biến?
+### 4.2. Why Should Fields Participating in Equality Be Immutable?
 
-Nếu sửa `sku` trong lúc Stream đang loại trùng, giá trị `hashCode` và quan hệ `equals` có thể thay đổi giữa quá trình đánh giá. Dữ liệu đang được ghi nhận theo mã băm cũ có thể không còn tìm được đúng như dự định.
+If `sku` is modified while the Stream is deduplicating, the `hashCode` value and `equals` relationship can change mid-evaluation. Data recorded under the old hash code may no longer be found as intended.
 
-Vì vậy, ví dụ dùng `private final String sku` và `Product` là lớp `final`. Với các trường khóa quan trọng hơn, có thể dùng object bất biến hoặc record, và **không thay đổi dữ liệu nguồn khi pipeline đang duyệt**.
+Therefore, the example uses `private final String sku` and makes `Product` a `final` class. For more critical key fields, you can use immutable objects or records, and **avoid mutating source data while the pipeline is traversing it**.
 
-Nếu bắt buộc cập nhật khóa nghiệp vụ, thường nên thực hiện cập nhật dữ liệu **trước** khi bắt đầu pipeline, hoặc xây dựng các đối tượng kết quả mới rồi loại trùng theo khóa mới.
+If updating the business key is unavoidable, you should normally update the data **before** starting the pipeline, or construct new result objects and then deduplicate by the new key.
 
-## 5. Record, Lombok và các lớp sinh equals tự động
+## 5. Records, Lombok, and Auto-Generated `equals` Classes
 
-Từ **Java 16**, `record` là một cách ngắn gọn để biểu diễn dữ liệu:
+Since **Java 16**, `record` provides a concise way to represent data:
 
 ~~~java
 record Product(String sku, String name) {}
 
 List<Product> products = List.of(
-    new Product("SP01", "Bút xanh"),
-    new Product("SP01", "Bút xanh (mới)")
+    new Product("SP01", "Blue pen"),
+    new Product("SP01", "Blue pen (new)")
 );
 
 System.out.println(products.stream().distinct().count()); // 2
 ~~~
 
-Record mặc định tạo `equals` và `hashCode` từ **tất cả các thành phần**: `sku` **và** `name`. Vì tên khác nhau nên hai record trên **không bằng nhau**, dù mã giống nhau.
+By default, a record generates `equals` and `hashCode` from **all its components**: `sku` **and** `name`. Because the names differ, the two records above are **not equal**, even though their codes match.
 
-Đây là chỗ cần phân biệt:
+This distinction is important:
 
-| Thiết kế | Quy tắc equality mặc định/đã định nghĩa | Kết quả với cùng SKU, khác tên |
+| Design | Default / defined equality rule | Result with same SKU, different name |
 |---|---|---|
-| Lớp thông thường, không ghi đè `equals` | Định danh đối tượng | Hai đối tượng riêng biệt |
-| Lớp `Product` ở mục 4 | Chỉ theo `sku` | Một phần tử khi `distinct` |
-| `record Product(String sku, String name)` | Theo cả `sku` và `name` | Hai phần tử |
+| Regular class, not overriding `equals` | Object identity | Two separate objects |
+| `Product` class in section 4 | By `sku` only | One element after `distinct` |
+| `record Product(String sku, String name)` | By both `sku` and `name` | Two elements |
 
-Các công cụ như Lombok có thể sinh `equals` và `hashCode` dựa trên tập trường được cấu hình. **Đọc quy tắc equality thực tế** trước khi giả định `distinct` sẽ loại trùng theo ID.
+Tools like Lombok can generate `equals` and `hashCode` based on a configured set of fields. **Inspect the actual equality rule** before assuming `distinct` will deduplicate by ID.
 
-Nếu chỉ cần loại trùng **mã sản phẩm**, không nhất thiết phải thay đổi equality của cả lớp. `products.stream().map(Product::sku).distinct()` sẽ cho các **mã duy nhất**, nhưng kết quả khi đó là `Stream<String>`, không còn là `Stream<Product>`.
+If you only need to deduplicate **product codes**, you do not necessarily have to change equality for the entire class. `products.stream().map(Product::sku).distinct()` will yield **unique codes**, though the result is then `Stream<String>`, no longer `Stream<Product>`.
 
-## 6. Thứ tự nào được giữ sau distinct?
+## 6. Which Order Is Preserved After `distinct`?
 
-Một Stream có thể có *encounter order*: thứ tự phần tử do nguồn và các thao tác trước đó xác định. `List.stream()` thường có encounter order của List.
+A Stream may have an *encounter order*: the element order determined by the source and preceding operations. `List.stream()` typically has the encounter order of the `List`.
 
 ~~~java
-List<String> names = List.of("An", "Bình", "An", "Chi", "Bình");
+List<String> names = List.of("An", "Binh", "An", "Chi", "Binh");
 
 List<String> result = names.stream()
     .distinct()
     .collect(java.util.stream.Collectors.toList());
 
-System.out.println(result); // [An, Bình, Chi]
+System.out.println(result); // [An, Binh, Chi]
 ~~~
 
-Với Stream có encounter order, `distinct` **giữ phần tử đầu tiên trong mỗi nhóm tương đương**. Điều này quan trọng nếu hai đối tượng bằng nhau theo ID nhưng các thuộc tính hiển thị không giống nhau: bản ghi đầu tiên có thể là bản cũ.
+For a Stream with an encounter order, `distinct` **keeps the first element in each equivalence group**. This matters if two objects are equal by ID but have different display attributes: the first record might be the older one.
 
-Với nguồn **không có encounter order**, chẳng hạn một số nguồn `Set`, hoặc sau khi gọi `unordered()`, không nên kỳ vọng phần tử đại diện hay thứ tự kết quả xác định.
+For sources **without an encounter order**, such as some `Set` sources, or after calling `unordered()`, you should not expect a deterministic representative element or result order.
 
 ~~~java
 List<String> unorderedResult = names.stream()
@@ -354,12 +354,12 @@ List<String> unorderedResult = names.stream()
     .distinct()
     .collect(java.util.stream.Collectors.toList());
 
-// Có cùng tập giá trị {An, Bình, Chi}, nhưng không dựa vào thứ tự này.
+// Has the same value set {An, Binh, Chi}, but do not rely on this order.
 ~~~
 
-`unordered()` không phải phép toán xáo trộn, và kết quả đôi khi **trông vẫn cùng thứ tự**. Ý nghĩa của nó là bỏ ràng buộc về encounter order, cho phép triển khai có nhiều tự do hơn. Không viết kiểm thử phụ thuộc thứ tự trong trường hợp đó.
+`unordered()` is not a shuffle operation, and the result may sometimes **still appear in the same order**. Its meaning is to drop the encounter order constraint, giving implementations more freedom. Do not write tests that depend on ordering in that case.
 
-### 6.1. distinct và sorted giải quyết hai vấn đề khác nhau
+### 6.1. `distinct` and `sorted` Solve Two Different Problems
 
 ~~~java
 List<String> input = List.of("C", "A", "C", "B");
@@ -372,9 +372,9 @@ List<String> uniqueSorted = input.stream()
 System.out.println(uniqueSorted); // [A, B, C]
 ~~~
 
-`distinct` xác định phần tử **có trùng không**, còn `sorted` xác định **thứ tự**. `sorted(Comparator)` không mặc nhiên gộp hai phần tử có `comparator.compare(a, b) == 0` nếu `a.equals(b)` là `false`.
+`distinct` determines whether elements **are duplicates**, while `sorted` determines **order**. `sorted(Comparator)` does not automatically merge two elements where `comparator.compare(a, b) == 0` if `a.equals(b)` is `false`.
 
-Một ví dụ dễ nhầm là `BigDecimal`:
+An easy-to-confuse example is `BigDecimal`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -390,13 +390,13 @@ System.out.println(values.get(0).equals(values.get(1)));    // false
 System.out.println(values.stream().distinct().count());     // 2
 ~~~
 
-`BigDecimal.compareTo` so sánh giá trị số, trong khi `BigDecimal.equals` còn phân biệt **scale**. Muốn coi `1.0` và `1.00` là một giá trị, hãy quyết định quy tắc chuẩn hóa hoặc dùng khóa tương đương phù hợp trước khi loại trùng; ví dụ `map(BigDecimal::stripTrailingZeros).distinct()` trong bài toán chấp nhận phép chuẩn hóa đó.
+`BigDecimal.compareTo` compares numeric value, whereas `BigDecimal.equals` also distinguishes **scale**. If you want to treat `1.0` and `1.00` as one value, decide on a normalization rule or use an appropriate equivalence key before deduplicating; for instance, `map(BigDecimal::stripTrailingZeros).distinct()` in problems where that normalization is acceptable.
 
-## 7. Thứ tự của các bước trong pipeline thay đổi kết quả
+## 7. Pipeline Step Ordering Changes the Result
 
-Cùng một nhóm phép toán, việc đặt `distinct` ở vị trí nào có thể làm kết quả khác nhau.
+With the same set of operations, where you place `distinct` can change the outcome.
 
-### 7.1. Chuẩn hóa trước hay sau distinct?
+### 7.1. Normalize Before or After `distinct`?
 
 ~~~java
 List<String> source = List.of(" Java ", "JAVA", "Go");
@@ -409,7 +409,7 @@ List<String> correct = source.stream()
 // [JAVA, GO]
 ~~~
 
-Nếu dùng `distinct()` trước khi chuẩn hóa, ba chuỗi nguồn ban đầu vẫn khác nhau theo `String.equals` nên chúng đi qua bước loại trùng. Sau đó chúng có thể được biến đổi thành các chuỗi giống nhau mà **không được loại lần nữa**:
+If you call `distinct()` before normalizing, the three original source strings still differ under `String.equals`, so they pass through the deduplication step. Afterward they can be transformed into identical strings without **being deduplicated again**:
 
 ~~~java
 List<String> stillDuplicated = source.stream()
@@ -420,11 +420,11 @@ List<String> stillDuplicated = source.stream()
 // [JAVA, JAVA, GO]
 ~~~
 
-Mẫu thường gặp khi cần khử trùng theo **giá trị sau biến đổi** là:
+The common pattern when deduplicating by **transformed values** is:
 
-`nguồn → chuẩn hóa/map → filter nếu cần → distinct → thu kết quả`.
+`source → normalize/map → filter if needed → distinct → collect`.
 
-### 7.2. distinct trước hay sau limit?
+### 7.2. `distinct` Before or After `limit`?
 
 ~~~java
 List<Integer> source = List.of(1, 1, 2, 3, 4);
@@ -442,14 +442,14 @@ List<Integer> limitThenDistinct = source.stream()
 // [1, 2]
 ~~~
 
-- `distinct().limit(3)`: tìm tối đa **ba giá trị khác nhau** trong thứ tự nguồn.
-- `limit(3).distinct()`: lấy **ba phần tử đầu vào**, rồi loại phần tử trùng trong lát cắt đó.
+- `distinct().limit(3)`: finds up to **three distinct values** in source order.
+- `limit(3).distinct()`: takes the **first three input elements**, then removes duplicates within that slice.
 
-Với dữ liệu rất lớn, `limit` trước `distinct` có thể tiết kiệm công việc nhưng làm thay đổi nghĩa nghiệp vụ. Hãy ưu tiên đúng yêu cầu đầu ra.
+With very large datasets, `limit` before `distinct` may save work, but it changes the business meaning. Prioritize the required output semantics.
 
-### 7.3. filter trước distinct?
+### 7.3. `filter` Before `distinct`?
 
-Nếu có thể lọc bớt phần tử mà không làm thay đổi định nghĩa nhóm trùng, `filter` trước `distinct` thường giảm số phần tử phải xét:
+If you can filter out elements without altering the definition of duplicate groups, placing `filter` before `distinct` usually reduces the number of elements inspected:
 
 ~~~java
 List<Integer> result = List.of(-1, 2, 2, 3, -1, 4).stream()
@@ -459,15 +459,15 @@ List<Integer> result = List.of(-1, 2, 2, 3, -1, 4).stream()
 // [2, 3, 4]
 ~~~
 
-Tuy nhiên, với đối tượng cùng khóa nhưng khác thuộc tính, **lọc trước hay sau khi chọn đại diện đầu tiên** có thể cho kết quả khác. Ví dụ nếu hai bản ghi cùng ID mà một bản không hợp lệ, hãy xác định nghiệp vụ muốn “giữ bản hợp lệ đầu tiên” hay “loại ID trùng theo bản ghi đầu tiên” trước khi sắp xếp các bước.
+However, for objects with the same key but different attributes, **filtering before versus after choosing the first representative** can produce different results. For example, if two records share an ID and one is invalid, decide whether business logic wants to "keep the first valid record" or "deduplicate IDs by the first record" before arranging the steps.
 
-## 8. Loại trùng theo một khóa mà vẫn giữ cả đối tượng
+## 8. Deduplicating by a Key While Keeping the Whole Object
 
-Một yêu cầu phổ biến: “Giữ **toàn bộ sản phẩm**, nhưng chỉ một sản phẩm cho mỗi `sku`”. Nếu lớp hiện tại định nghĩa `equals` theo nhiều trường và không thể thay đổi, gọi `distinct()` trực tiếp sẽ **không đủ**.
+A common requirement: "Keep **the entire product**, but only one product per `sku`." If the existing class defines `equals` over multiple fields and cannot be changed, calling `distinct()` directly will **not suffice**.
 
-Có ít nhất hai lựa chọn rõ ràng:
+There are at least two clear options:
 
-**Cách A — Chỉ cần danh sách khóa:** dùng `map` sang khóa rồi `distinct`.
+**Option A — Only the list of keys is needed:** use `map` to the key, then `distinct`.
 
 ~~~java
 List<String> uniqueSkus = products.stream()
@@ -476,9 +476,9 @@ List<String> uniqueSkus = products.stream()
     .collect(java.util.stream.Collectors.toList());
 ~~~
 
-Đoạn này giả định `Product` là record có accessor `sku()` như mục 5. Kết quả là `List<String>`; các thông tin khác của sản phẩm không còn được giữ.
+This snippet assumes `Product` is a record with accessor `sku()` as in section 5. The result is `List<String>`; other product fields are no longer retained.
 
-**Cách B — Cần giữ cả đối tượng và chọn bản ghi đầu tiên theo khóa:** thu vào `LinkedHashMap` với merge function giữ giá trị cũ.
+**Option B — Need to keep the whole object and pick the first record per key:** collect into a `LinkedHashMap` with a merge function that retains the older value.
 
 ~~~java
 import java.util.ArrayList;
@@ -488,7 +488,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// products là List<Product> từ ví dụ record ở mục 5.
+// products is List<Product> from the record example in section 5.
 Map<String, Product> firstBySku = products.stream()
     .collect(Collectors.toMap(
         Product::sku,
@@ -500,22 +500,22 @@ Map<String, Product> firstBySku = products.stream()
 List<Product> uniqueProducts = new ArrayList<>(firstBySku.values());
 ~~~
 
-Ý nghĩa của bộ collector:
+Meaning of the collector arguments:
 
-- `Product::sku`: lấy **khóa nhóm**.
-- `Function.identity()`: giữ **đối tượng Product** làm giá trị.
-- `(first, later) -> first`: khi khóa trùng, **giữ bản ghi đã gặp trước**.
-- `LinkedHashMap::new`: bảo toàn thứ tự chèn khóa trong kết quả ở trường hợp thu thập tuần tự từ List có thứ tự.
+- `Product::sku`: extracts the **grouping key**.
+- `Function.identity()`: keeps the **Product object** as the value.
+- `(first, later) -> first`: when keys collide, **keep the previously encountered record**.
+- `LinkedHashMap::new`: preserves key insertion order in the result when collecting sequentially from an ordered List.
 
-Nếu bản ghi **mới nhất** mới là bản đúng, cần xác định trường thời gian hoặc phiên bản và chính sách chọn dữ liệu. Không nên mặc định “bản đầu tiên” là đúng về nghiệp vụ.
+If the **latest** record is the right one, you need to identify a timestamp or version field and a data-selection policy. Do not assume "the first record" is always right for business logic.
 
-Tránh mẹo dùng `filter` với một `HashSet` mutable đặt ngoài như `filter(item -> seen.add(item.getId()))`. Đó là predicate có trạng thái, khó lý giải khi chạy song song và đi ngược hướng dẫn sử dụng hàm hành vi không phụ thuộc trạng thái thay đổi bên ngoài. Khi cần loại theo khóa, collector hoặc thuật toán có khóa được định nghĩa rõ ràng sẽ dễ bảo trì hơn.
+Avoid the trick of using `filter` with an external mutable `HashSet` such as `filter(item -> seen.add(item.getId()))`. That is a stateful predicate, hard to reason about in parallel execution, and goes against the guideline of using behavioral functions independent of external mutable state. When deduplicating by key, a collector or an algorithm with a clearly defined key is easier to maintain.
 
-## 9. Các trường hợp đặc biệt: null, kiểu nguyên thủy, dữ liệu không giới hạn
+## 9. Special Cases: `null`, Primitive Types, Unbounded Data
 
-### 9.1. distinct có thể giữ một null
+### 9.1. `distinct` Can Keep One `null`
 
-Không phải nguồn Stream nào cũng cấm null. Với một Stream đối tượng chứa nhiều `null`, `distinct()` chỉ giữ **tối đa một** giá trị `null`:
+Not every Stream source forbids `null`. For an object Stream containing multiple `null` values, `distinct()` keeps **at most one** `null` value:
 
 ~~~java
 import java.util.Arrays;
@@ -531,11 +531,11 @@ List<String> unique = values.stream()
 System.out.println(unique); // [null, A, B]
 ~~~
 
-Ngược lại, `List.of(...)` từ Java 9 **không cho phép null**, nên không dùng `List.of(null, ...)` để tạo nguồn kiểm thử này. Nếu nghiệp vụ muốn bỏ null, đặt `filter(Objects::nonNull)` trước `distinct`.
+Conversely, `List.of(...)` from Java 9 **does not allow `null`**, so do not use `List.of(null, ...)` to build this test source. If business logic requires discarding `null`, place `filter(Objects::nonNull)` before `distinct`.
 
-### 9.2. IntStream và LongStream cũng có distinct
+### 9.2. `IntStream` and `LongStream` Also Have `distinct`
 
-Với Stream giá trị nguyên thủy, không cần tự viết `equals` hoặc `hashCode`:
+For primitive Streams, you do not need to write `equals` or `hashCode`:
 
 ~~~java
 import java.util.Arrays;
@@ -547,9 +547,9 @@ int[] unique = Arrays.stream(new int[] {3, 1, 3, 2, 1})
 System.out.println(Arrays.toString(unique)); // [3, 1, 2]
 ~~~
 
-`IntStream.distinct()`, `LongStream.distinct()` và `DoubleStream.distinct()` được cung cấp bởi các primitive stream tương ứng. Với `DoubleStream`, cần lưu ý các quy tắc về `NaN` và `+0.0`/`-0.0` theo ngữ nghĩa của API khi xử lý số thực; đừng suy luận đơn giản rằng mọi phép so sánh bằng toán tử `==` đều tương ứng với khử trùng.
+`IntStream.distinct()`, `LongStream.distinct()`, and `DoubleStream.distinct()` are provided by their respective primitive streams. With `DoubleStream`, note the rules for `NaN` and `+0.0`/`-0.0` according to API semantics when processing floating-point numbers; do not simply assume every `==` comparison matches deduplication.
 
-### 9.3. Dãy vô hạn có thể làm distinct chờ mãi
+### 9.3. Infinite Sequences Can Make `distinct` Wait Forever
 
 ~~~java
 import java.util.stream.Stream;
@@ -561,33 +561,33 @@ List<Integer> three = Stream.iterate(0, n -> (n + 1) % 3)
 // [0, 1, 2]
 ~~~
 
-Nguồn `0, 1, 2, 0, 1, 2, ...` là vô hạn nhưng có **ba** giá trị khác nhau, nên `limit(3)` phía sau `distinct` có thể nhận đủ kết quả và kết thúc.
+The source `0, 1, 2, 0, 1, 2, ...` is infinite, but it has **three** distinct values, so `limit(3)` after `distinct` can receive enough results and terminate.
 
-Ngược lại, pipeline:
+Conversely, the pipeline:
 
 ~~~java
-// Không kết thúc theo cách thông thường: chỉ có 3 giá trị khác nhau.
+// Does not terminate normally: there are only 3 distinct values.
 // Stream.iterate(0, n -> (n + 1) % 3)
 //     .distinct()
 //     .limit(4)
 //     .toList();
 ~~~
 
-sẽ tiếp tục chờ **giá trị duy nhất thứ tư**, vốn không tồn tại. Với nguồn không giới hạn, cần chứng minh được phép toán kết thúc thực sự có điều kiện dừng, và tính đến bộ nhớ khi số giá trị duy nhất tăng mãi.
+will keep waiting for a **fourth unique value**, which does not exist. With unbounded sources, ensure the terminal operation truly has a reachable stopping condition, and account for memory when the number of unique values grows indefinitely.
 
-## 10. Hiệu năng và Stream song song
+## 10. Performance and Parallel Streams
 
-Vì `distinct()` là **stateful intermediate operation**, nó thường phải duy trì thông tin về các giá trị đã gặp. Với dữ liệu rất nhiều giá trị khác nhau, bộ nhớ theo dõi trùng lặp có thể tăng đáng kể.
+Because `distinct()` is a **stateful intermediate operation**, it typically must maintain information about seen values. When data has many distinct values, the memory needed to track duplicates can grow significantly.
 
-Một mô hình phân tích thường gặp với cấu trúc băm tốt:
+A common analytical model assuming a good hash structure:
 
-- Thời gian xử lý trung bình có thể gần **O(n)** cho `n` phần tử, nếu `hashCode` phân bố tốt và chi phí tính `equals/hashCode` hợp lý.
-- Bộ nhớ để ghi nhận giá trị duy nhất thường tăng theo số phần tử **khác nhau**.
-- Khi có va chạm băm nhiều, xử lý equality đắt, hoặc khi triển khai cần giữ encounter order, chi phí có thể tăng.
+- Average processing time can be close to **O(n)** for `n` elements if `hashCode` distributes well and the cost of `equals/hashCode` is reasonable.
+- Memory for recording unique values typically grows with the number of **distinct** elements.
+- When there are many hash collisions, expensive equality checks, or when the implementation must preserve encounter order, cost can increase.
 
-Đây là **ước lượng định hướng**, không phải cam kết độ phức tạp cố định từ hợp đồng API. Cách triển khai, kích thước đầu vào, thứ tự và phép toán tiếp theo đều ảnh hưởng tới chi phí thực tế.
+This is a **directional estimate**, not a fixed complexity guarantee from the API contract. Implementation details, input size, ordering, and downstream operations all affect actual cost.
 
-### 10.1. distinct trên parallel Stream
+### 10.1. `distinct` on a Parallel Stream
 
 ~~~java
 List<String> unique = names.parallelStream()
@@ -595,9 +595,9 @@ List<String> unique = names.parallelStream()
     .collect(java.util.stream.Collectors.toList());
 ~~~
 
-Với **Stream có encounter order**, `distinct` trong luồng song song vẫn phải giữ **đại diện xuất hiện đầu**. Để bảo đảm tính stable, triển khai có thể phải phối hợp nhiều nhánh và dựng hàng rào đồng bộ đáng kể, làm giảm lợi ích xử lý song song.
+For a **Stream with an encounter order**, `distinct` in a parallel stream must still keep the **first-appearing representative**. To ensure stability, the implementation may have to coordinate multiple branches and erect significant synchronization barriers, reducing the benefit of parallel execution.
 
-Nếu **thứ tự và đại diện đầu tiên không quan trọng**:
+If **ordering and keeping the first representative do not matter**:
 
 ~~~java
 List<String> uniqueUnordered = names.parallelStream()
@@ -606,25 +606,25 @@ List<String> uniqueUnordered = names.parallelStream()
     .collect(java.util.stream.Collectors.toList());
 ~~~
 
-`unordered()` có thể cho phép triển khai tối ưu tốt hơn. Tuy nhiên, không nên áp dụng nếu kết quả cần thứ tự hiển thị hay cần chọn bản ghi đầu tiên trong nhóm. Cũng không nên mặc định rằng `parallelStream()` nhanh hơn: hãy đo bằng benchmark phù hợp với dữ liệu và môi trường của ứng dụng.
+`unordered()` may allow a better-optimized implementation. However, do not apply it if the result requires display ordering or selecting the first record in a group. Also do not assume `parallelStream()` is faster: measure with benchmarks appropriate for your application's data and environment.
 
-### 10.2. Đừng biến distinct thành chỗ phát sinh tác dụng phụ
+### 10.2. Do Not Turn `distinct` into a Source of Side Effects
 
 ~~~java
 long count = List.of("A", "A", "B").stream()
     .map(value -> {
-        System.out.println("Đã thấy: " + value);
+        System.out.println("Seen: " + value);
         return value;
     })
     .distinct()
     .count();
 ~~~
 
-Số lần `map` được gọi không nên là điều kiện đúng sai của nghiệp vụ. Stream có quyền tối ưu hóa pipeline khi kết quả cuối không cần đánh giá đầy đủ mọi thao tác trung gian trong một số tình huống. Với `distinct`, phải xác định nhóm tương đương để trả số lượng, nhưng số lần và thứ tự chạy các callback vẫn không phải giao diện để đảm bảo logging hay cập nhật trạng thái. Hãy dùng các phép biến đổi không có tác dụng phụ, còn việc ghi log hoặc I/O nghiệp vụ nên được thiết kế ở ranh giới có thể kiểm soát.
+The number of times `map` is invoked must not be a business correctness condition. Streams are allowed to optimize pipelines when the final result does not require fully evaluating every intermediate operation in certain cases. With `distinct`, equivalence groups must be determined to return a count, yet invocation counts and callback execution order are still not an interface for guaranteeing logging or state updates. Use transformations without side effects, and design logging or business I/O at controllable boundaries.
 
-## 11. Bài tập thực hành: danh sách email đăng ký trùng
+## 11. Practice Exercise: Deduplicating a Registration Email List
 
-Hệ thống nhận danh sách email:
+The system receives a list of emails:
 
 ~~~java
 List<String> emails = List.of(
@@ -636,9 +636,9 @@ List<String> emails = List.of(
 );
 ~~~
 
-**Yêu cầu:** Cắt khoảng trắng hai đầu, chuẩn hóa chữ thường theo `Locale.ROOT`, loại trùng và giữ thứ tự xuất hiện của mỗi email sau chuẩn hóa. Sau đó đếm tổng số email hợp lệ theo quy tắc đơn giản là không rỗng. Lưu ý bài tập này chỉ chuẩn hóa kỹ thuật, **không khẳng định** mọi hệ thống email đều coi phần trước dấu `@` là không phân biệt hoa/thường.
+**Requirement:** Trim leading and trailing whitespace, normalize to lowercase using `Locale.ROOT`, remove duplicates while preserving the order of appearance of each normalized email. Then count the total number of valid emails using the simple rule that they are non-empty. Note that this exercise only performs technical normalization and **does not claim** every email system treats the part before `@` as case-insensitive.
 
-**Lời giải (Java 9+):**
+**Solution (Java 9+):**
 
 ~~~java
 import java.util.List;
@@ -663,31 +663,31 @@ public class UniqueEmailDemo {
             .collect(Collectors.toList());
 
         System.out.println(uniqueEmails);
-        System.out.println("Số email khác nhau: " + uniqueEmails.size());
+        System.out.println("Distinct email count: " + uniqueEmails.size());
     }
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 [an@example.com, binh@example.com, chi@example.com]
-Số email khác nhau: 3
+Distinct email count: 3
 ~~~
 
-**Tự kiểm tra:**
+**Self-check:**
 
-1. Nếu đưa `distinct()` **trước** hai bước chuẩn hóa, kết quả có còn ba email duy nhất không? — **Không**; sự khác nhau về khoảng trắng/chữ hoa tồn tại ở thời điểm so sánh.
-2. `distinct()` so sánh hai chuỗi với `==` hay `equals`? — **`equals`**.
-3. Hai sản phẩm có cùng `sku` nhưng khác `name` trong `record Product(String sku, String name)` có bị gộp không? — **Không**, record mặc định so sánh cả hai trường.
-4. Nếu chỉ ghi đè `equals` mà không bảo đảm `hashCode` nhất quán thì điều gì có thể xảy ra? — Cấu trúc dựa trên băm và thao tác khử trùng có thể xử lý sai.
-5. `unordered().distinct()` có bắt buộc chọn bản ghi xuất hiện đầu tiên không? — **Không**.
-6. Vì sao `distinct().limit(4)` trên nguồn vô hạn chỉ có ba giá trị duy nhất có thể chạy không kết thúc? — Vì **không bao giờ có giá trị duy nhất thứ tư**.
+1. If you put `distinct()` **before** the two normalization steps, would the result still be three unique emails? — **No**; differences in whitespace and casing exist at comparison time.
+2. Does `distinct()` compare two strings with `==` or `equals`? — **`equals`**.
+3. Would two products with the same `sku` but different `name` in `record Product(String sku, String name)` be merged? — **No**, a record compares both fields by default.
+4. If you only override `equals` without ensuring a consistent `hashCode`, what can happen? — Hash-based structures and deduplication operations may behave incorrectly.
+5. Is `unordered().distinct()` required to pick the first-appearing record? — **No**.
+6. Why can `distinct().limit(4)` on an infinite source with only three unique values run without terminating? — Because **a fourth unique value never exists**.
 
-## 12. Ghi nhớ và hướng áp dụng
+## 12. Key Takeaways and Application Guidelines
 
-`distinct()` là phép toán **loại phần tử trùng** trên Stream, xác định tính trùng của đối tượng theo `equals` và yêu cầu hợp đồng `hashCode` nhất quán. Với Stream có encounter order, nó giữ **đại diện đầu tiên**; với Stream unordered, không dựa vào thứ tự hay đại diện được chọn. Đây là phép toán trung gian **lazy và có trạng thái**, nên cần lưu ý hiệu năng, bộ nhớ và khả năng dừng của pipeline.
+`distinct()` is the Stream operation for **removing duplicate elements**, determining object duplication via `equals` and requiring a consistent `hashCode` contract. For Streams with an encounter order, it keeps the **first representative**; for unordered Streams, do not rely on ordering or which representative is chosen. It is a **lazy, stateful** intermediate operation, so pay attention to performance, memory, and pipeline termination.
 
-Trước khi áp dụng, hãy trả lời bốn câu hỏi: **“Trùng” theo trường nào?**; **lớp có định nghĩa equals/hashCode theo trường đó chưa?**; **cần giữ bản ghi đầu tiên hay bản ghi được chọn theo quy tắc khác?**; và **sau khi loại trùng, cần thứ tự/kích thước kết quả thế nào?**
+Before applying it, answer four questions: **"Duplicate" by which fields?**; **does the class define `equals`/`hashCode` by those fields yet?**; **do you need to keep the first record or a record chosen by another rule?**; and **after deduplicating, what result ordering and size are needed?**
 
-Khi hiểu rõ những điều này, bạn có thể phối hợp `filter`, `map`, `distinct`, `sorted`, `limit` và `collect` một cách chính xác; với bài toán deduplicate theo khóa phức tạp, grouping hoặc collector tùy chỉnh có thể phù hợp hơn. Các quy tắc về trạng thái, thứ tự và tính ổn định cũng là nền tảng quan trọng khi học `Spliterator`, parallel Stream và Stream Gatherers trong những phần tiếp theo.
+Once you understand these points, you can combine `filter`, `map`, `distinct`, `sorted`, `limit`, and `collect` accurately; for complex key-based deduplication, grouping or a custom collector may be more appropriate. The rules on state, ordering, and stability also serve as an important foundation when learning `Spliterator`, parallel Streams, and Stream Gatherers in subsequent sections.

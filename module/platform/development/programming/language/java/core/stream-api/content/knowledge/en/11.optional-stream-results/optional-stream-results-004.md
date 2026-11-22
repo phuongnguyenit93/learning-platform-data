@@ -1,18 +1,18 @@
-# Ánh xạ và kiểm tra kết quả bằng map, flatMap và filter
+# Mapping and Filtering Results with map, flatMap, and filter
 
-> **Chương:** Optional trong kết quả Stream  
+> **Chapter:** Optional in Stream Results  
 > **Module:** JAVA_STREAM_API  
-> **Mục tiêu:** Biết xử lý kết quả có thể vắng mặt từ các phép toán Stream bằng `Optional.map`, `Optional.flatMap` và `Optional.filter`; xây dựng chuỗi xử lý an toàn, phân biệt Optional với Stream, kiểm soát `null`, lỗi và giá trị mặc định.
+> **Goal:** Learn how to handle potentially absent results from Stream operations using `Optional.map`, `Optional.flatMap`, and `Optional.filter`; build safe processing chains, distinguish Optional from Stream, and control `null`, errors, and default values.
 
-Java Stream API hỗ trợ xử lý dữ liệu khai báo qua các pipeline lazy với `filter`, `map`, `reduce`, `collect` và nhiều phép toán khác. Một số phép kết thúc, chẳng hạn `findFirst()`, `findAny()`, `min()`, `max()` và `reduce(BinaryOperator)`, không bảo đảm có một giá trị trả về: Stream có thể rỗng hoặc không có phần tử thỏa điều kiện. Java dùng **`Optional<T>`** để mô tả kết quả có thể có hoặc không có giá trị mà không phải lấy `null` làm tín hiệu chính.
+The Java Stream API supports declarative data processing through lazy pipelines with `filter`, `map`, `reduce`, `collect`, and many other operations. Certain terminal operations, such as `findFirst()`, `findAny()`, `min()`, `max()`, and `reduce(BinaryOperator)`, do not guarantee a return value: the Stream may be empty or no element may satisfy the condition. Java uses **`Optional<T>`** to describe a result that may or may not have a value without relying on `null` as the primary signal.
 
-Sau khi có một `Optional<T>`, ta có thể **ánh xạ giá trị bên trong** bằng `map`, **nối thêm một phép tra cứu có thể vắng mặt** bằng `flatMap` và **chỉ giữ kết quả thỏa điều kiện** bằng `filter`. Đây là ba phép toán chủ đạo của bài này.
+Once you have an `Optional<T>`, you can **map the inner value** with `map`, **chain another lookup that may be absent** with `flatMap`, and **keep the result only if it satisfies a condition** with `filter`. These are the three main operations of this lesson.
 
-Kiến thức này còn giúp sử dụng đúng `Optional` trong các bài toán grouping, collector tùy chỉnh và xử lý song song của module **JAVA_STREAM_API**. Khi nguồn được cấp bởi `Spliterator` hoặc bởi các phép biến đổi Stream nâng cao như Stream Gatherers, kết quả cuối vẫn có thể là một giá trị tùy chọn; cách xử lý trạng thái rỗng và tài nguyên không thay đổi.
+This knowledge also helps you use `Optional` properly in grouping, custom collectors, and parallel processing problems in the **JAVA_STREAM_API** module. When the source is supplied by a `Spliterator` or by advanced Stream transformations such as Stream Gatherers, the final result may still be an optional value; handling empty states and resources remains the same.
 
-## 1. Optional xuất hiện ở đâu trong một pipeline Stream?
+## 1. Where Does Optional Appear in a Stream Pipeline?
 
-Ví dụ tìm đơn hàng đầu tiên có số tiền tối thiểu 100.000:
+Example finding the first order with an amount of at least 100,000:
 
 ```java
 import java.util.List;
@@ -30,22 +30,22 @@ Optional<Order> found = orders.stream()
     .filter(order -> order.amount() >= 100_000)
     .findFirst();
 
-// found chứa Order("O-02", 180000).
+// found contains Order("O-02", 180000).
 ```
 
-Pipeline đầu tiên gồm nguồn `orders.stream()`, một phép trung gian `Stream.filter(...)` và phép kết thúc `Stream.findFirst()`. **`findFirst()` kết thúc Stream và trả `Optional<Order>`**, không phải `Stream<Order>`.
+The first pipeline consists of the source `orders.stream()`, an intermediate operation `Stream.filter(...)`, and the terminal operation `Stream.findFirst()`. **`findFirst()` terminates the Stream and returns `Optional<Order>`**, not `Stream<Order>`.
 
-Sau đó ta tiếp tục xử lý kết quả:
+Then we continue processing the result:
 
 ```java
 Optional<String> orderId = found
     .map(Order::id)
     .filter(id -> id.startsWith("O-"));
 
-System.out.println(orderId.orElse("Không tìm thấy")); // O-02
+System.out.println(orderId.orElse("Not found")); // O-02
 ```
 
-Đoạn này gọi **`Optional.map` và `Optional.filter`** trên kết quả đã nhận, không quay lại tiêu thụ Stream cũ.
+This snippet calls **`Optional.map` and `Optional.filter`** on the obtained result, without going back to consume the old Stream.
 
 ```text
 orders.stream()
@@ -65,31 +65,31 @@ Stream<Order> ── filter(...) ── findFirst() ──► Optional<Order>
                                      ┌────────────┴────────────┐
                                      ▼                         ▼
                              Optional<String>           Optional.empty()
-                               có giá trị
+                                has value
 ```
 
-Nếu không có đơn hợp lệ, `found` là `Optional.empty()` và các hàm ánh xạ, kiểm tra phía sau không được gọi.
+If there is no valid order, `found` is `Optional.empty()` and the subsequent mapping and predicate functions are not invoked.
 
-## 2. Optional là gì và khác Stream như thế nào?
+## 2. What Is Optional and How Does It Differ From Stream?
 
-`Optional<T>` là một đối tượng chứa **tối đa một giá trị khác `null`**. Nó có hai trạng thái:
+`Optional<T>` is an object holding **at most one non-`null` value**. It has two states:
 
-- **Có giá trị (present):** `Optional.of(value)` với `value != null`.
-- **Không có giá trị (empty):** `Optional.empty()`.
+- **Present:** `Optional.of(value)` with `value != null`.
+- **Empty:** `Optional.empty()`.
 
-Không giống `Stream<T>`, `Optional<T>` không biểu diễn một nguồn nhiều phần tử và **không phải pipeline duyệt một lần**. Các phép `map`, `flatMap`, `filter` của Optional trả về Optional mới và chỉ làm việc trên tối đa một giá trị.
+Unlike `Stream<T>`, `Optional<T>` does not represent a multi-element source and **is not a single-use traversal pipeline**. Optional's `map`, `flatMap`, and `filter` methods return a new Optional and operate on at most one value.
 
-| Tiêu chí | `Stream<T>` | `Optional<T>` |
+| Criterion | `Stream<T>` | `Optional<T>` |
 | --- | --- | --- |
-| Số phần tử có thể biểu diễn | 0, 1 hoặc nhiều | 0 hoặc 1 |
-| Mục đích chính | Xử lý một dãy phần tử | Biểu diễn một kết quả có thể vắng mặt |
-| `map` | Ánh xạ từng phần tử của Stream | Ánh xạ một giá trị nếu hiện diện |
-| `flatMap` | Ánh xạ phần tử thành Stream và làm phẳng | Ánh xạ giá trị thành Optional và tránh Optional lồng nhau |
-| `filter` | Loại các phần tử không thỏa điều kiện | Giữ Optional đang có giá trị hoặc trả Optional rỗng |
-| Tính lazy | Phép trung gian thường lazy, cần terminal | Lambda của `map`/`flatMap`/`filter` trên Optional có giá trị được thực thi khi gọi các phương thức đó |
-| Tiêu thụ một lần | Có, một đối tượng Stream chỉ tiêu thụ một lần | Không, có thể gọi các phương thức của một Optional nhiều lần |
+| Number of elements representable | 0, 1, or many | 0 or 1 |
+| Primary purpose | Processing a sequence of elements | Representing a potentially absent result |
+| `map` | Maps each element of the Stream | Maps a single value if present |
+| `flatMap` | Maps each element to a Stream and flattens | Maps a value to an Optional and avoids nested Optionals |
+| `filter` | Discards elements failing the condition | Keeps the present Optional or returns an empty Optional |
+| Laziness | Intermediate operations are usually lazy, requiring a terminal operation | Lambdas of `map`/`flatMap`/`filter` on a present Optional execute when those methods are called |
+| Consumed once | Yes, a Stream object can only be consumed once | No, methods on an Optional can be called multiple times |
 
-Ví dụ:
+Example:
 
 ```java
 Optional<String> name = Optional.of("An");
@@ -99,42 +99,42 @@ Optional<Integer> length = name.map(String::length);
 
 // upper = Optional[AN]
 // length = Optional[2]
-// name vẫn chứa "An".
+// name still holds "An".
 ```
 
-Dù `name` có thể được dùng nhiều lần, nếu giá trị bên trong là một đối tượng mutable thì Optional **không tự biến đối tượng đó thành bất biến**. Cũng không nên dùng việc có thể tái sử dụng Optional để suy luận rằng Stream tạo ra nó có thể được tái sử dụng.
+Even though `name` can be used multiple times, if the inner value is a mutable object, Optional **does not automatically make that object immutable**. Nor should you infer from Optional's reusability that the Stream that produced it can be reused.
 
-### 2.1. Những phép kết thúc Stream thường trả Optional
+### 2.1. Stream Terminal Operations That Typically Return Optional
 
-| Phép kết thúc | Kiểu kết quả | Vì sao có thể rỗng? |
+| Terminal operation | Result type | Why can it be empty? |
 | --- | --- | --- |
-| `findFirst()` | `Optional<T>` | Nguồn không có phần tử hoặc đã lọc hết |
-| `findAny()` | `Optional<T>` | Không có phần tử nào để chọn |
-| `min(comparator)` | `Optional<T>` | Không có phần tử nào để so sánh |
-| `max(comparator)` | `Optional<T>` | Không có phần tử nào để so sánh |
-| `reduce(BinaryOperator<T>)` | `Optional<T>` | Không có phần tử và không cung cấp giá trị đồng nhất |
-| `IntStream.min()/max()/findFirst()` | `OptionalInt` | Không có giá trị `int` |
-| `LongStream.min()/max()/findFirst()` | `OptionalLong` | Không có giá trị `long` |
-| `DoubleStream.average()` | `OptionalDouble` | Không thể tính trung bình từ nguồn rỗng |
+| `findFirst()` | `Optional<T>` | Source has no elements or all were filtered out |
+| `findAny()` | `Optional<T>` | No element to select |
+| `min(comparator)` | `Optional<T>` | No elements to compare |
+| `max(comparator)` | `Optional<T>` | No elements to compare |
+| `reduce(BinaryOperator<T>)` | `Optional<T>` | No elements and no identity value provided |
+| `IntStream.min()/max()/findFirst()` | `OptionalInt` | No `int` value |
+| `LongStream.min()/max()/findFirst()` | `OptionalLong` | No `long` value |
+| `DoubleStream.average()` | `OptionalDouble` | Cannot compute average from an empty source |
 
-Ngược lại, `count()` trả `long` (có thể bằng 0), `IntStream.sum()` trả `int` và `collect(...)` trả kết quả theo hợp đồng collector. Các phép này không tự động trả `Optional<T>` chỉ vì Stream đầu vào rỗng.
+Conversely, `count()` returns `long` (which can be 0), `IntStream.sum()` returns `int`, and `collect(...)` returns a result according to the collector's contract. These operations do not automatically return `Optional<T>` merely because the input Stream is empty.
 
-## 3. Optional.map: biến đổi giá trị nếu hiện diện
+## 3. Optional.map: Transforming a Value If Present
 
-Chữ ký rút gọn của `Optional.map`:
+Abbreviated signature of `Optional.map`:
 
 ```java
 <U> Optional<U> map(Function<? super T, ? extends U> mapper);
 ```
 
-Ý nghĩa:
+Semantics:
 
-1. Nếu Optional đang **có giá trị**, áp dụng `mapper` lên giá trị đó.
-2. Nếu `mapper` trả về giá trị khác `null`, kết quả là `Optional<U>` chứa giá trị mới.
-3. Nếu `mapper` trả về `null`, kết quả là `Optional.empty()`.
-4. Nếu Optional ban đầu rỗng, không gọi `mapper` và trả kết quả rỗng.
+1. If the Optional **has a value**, apply `mapper` to that value.
+2. If `mapper` returns a non-`null` value, the result is an `Optional<U>` containing the new value.
+3. If `mapper` returns `null`, the result is `Optional.empty()`.
+4. If the initial Optional is empty, do not call `mapper` and return an empty result.
 
-### 3.1. Ánh xạ từ một kiểu sang kiểu khác
+### 3.1. Mapping From One Type to Another
 
 ```java
 Optional<Order> first = orders.stream()
@@ -150,9 +150,9 @@ Optional<String> label = first.map(order ->
 // label = Optional[O-02 - 180000]
 ```
 
-Ở đây `Order::amount` là method reference tương đương `order -> order.amount()`. Java dùng kiểu `Function<Order, Long>` làm kiểu đích cho `Optional.map`; giá trị `long` từ record được boxing thành `Long`.
+Here `Order::amount` is a method reference equivalent to `order -> order.amount()`. Java uses `Function<Order, Long>` as the target type for `Optional.map`; the `long` value from the record is boxed into `Long`.
 
-Có thể ghép nhiều bước:
+Multiple steps can be chained:
 
 ```java
 Optional<String> normalizedId = first
@@ -163,9 +163,9 @@ Optional<String> normalizedId = first
 // Optional[O-02]
 ```
 
-Mỗi bước xử lý giá trị của Optional trước đó. Nếu bất kỳ bước nào tạo Optional rỗng, các bước sau sẽ bỏ qua mapper của mình.
+Each step processes the value of the preceding Optional. If any step produces an empty Optional, subsequent steps skip their mappers.
 
-### 3.2. Optional rỗng giúp tránh điều kiện kiểm tra lặp lại
+### 3.2. Empty Optional Helps Avoid Repetitive Conditional Checks
 
 ```java
 Optional<String> missing = Optional.<Order>empty()
@@ -175,11 +175,11 @@ Optional<String> missing = Optional.<Order>empty()
 System.out.println(missing.isEmpty()); // true
 ```
 
-Không xảy ra `NullPointerException` do cố gọi `id()` trên đơn hàng không tồn tại. Nhưng điều này **không có nghĩa mọi ngoại lệ đều được Optional hấp thụ**: nếu mapper ném ngoại lệ, ngoại lệ vẫn lan truyền.
+No `NullPointerException` occurs from attempting to call `id()` on a nonexistent order. However, this **does not mean all exceptions are absorbed by Optional**: if the mapper throws an exception, the exception still propagates.
 
-### 3.3. Mapper trả null thì sao?
+### 3.3. What If the Mapper Returns null?
 
-`Optional.map` sử dụng ngữ nghĩa tương đương bọc kết quả mapper qua `Optional.ofNullable`:
+`Optional.map` uses semantics equivalent to wrapping the mapper's result with `Optional.ofNullable`:
 
 ```java
 Optional<String> source = Optional.of("An");
@@ -189,11 +189,11 @@ Optional<Integer> result = source.map(name -> null);
 System.out.println(result.isEmpty()); // true
 ```
 
-Điều này hữu ích khi tích hợp API cũ có thể trả `null`. Tuy nhiên, tốt hơn nên xác định rõ tại ranh giới dữ liệu rằng `null` mang ý nghĩa “không có kết quả”. Nếu một phương thức phải luôn trả giá trị mà lại trả `null` do lỗi lập trình, ánh xạ thành Optional rỗng có thể che lấp nguyên nhân thực sự.
+This is useful when integrating legacy APIs that may return `null`. However, it is better to explicitly define at data boundaries that `null` means "no result". If a method is supposed to always return a value yet returns `null` due to a programming bug, mapping it to an empty Optional can mask the real cause.
 
-### 3.4. Lazy của Stream và việc gọi mapper của Optional
+### 3.4. Stream Laziness vs. Optional Mapper Invocation
 
-So sánh:
+Compare:
 
 ```java
 Stream<String> stream = Stream.of("an")
@@ -202,25 +202,25 @@ Stream<String> stream = Stream.of("an")
         return value.toUpperCase();
     });
 
-System.out.println("Đã tạo Stream");
-// Lambda Stream.map chưa nhất thiết chạy.
+System.out.println("Stream created");
+// Stream.map lambda has not necessarily executed yet.
 
 Optional<String> optional = Optional.of("an")
     .map(value -> {
         System.out.println("Optional map: " + value);
         return value.toUpperCase();
     });
-// Lambda Optional.map đã chạy trong lời gọi map vì Optional có giá trị.
+// Optional.map lambda has already run during the map call because Optional has a value.
 
 List<String> values = stream.toList();
-// Lúc này Stream được tiêu thụ, mapper được đánh giá khi cần.
+// Now the Stream is consumed, and the mapper is evaluated as needed.
 ```
 
-Phân biệt thời điểm thực thi để không nhầm hai API cùng tên.
+Distinguish the execution timing so you do not confuse the two identically named APIs.
 
-## 4. Optional.flatMap: nối thao tác cũng trả Optional
+## 4. Optional.flatMap: Chaining an Operation That Also Returns Optional
 
-Chữ ký rút gọn:
+Abbreviated signature:
 
 ```java
 <U> Optional<U> flatMap(
@@ -228,11 +228,11 @@ Chữ ký rút gọn:
 );
 ```
 
-`Optional.flatMap` dùng khi **hàm nhận giá trị bên trong rồi trả về một Optional khác**. Kết quả được trải phẳng thành một lớp Optional duy nhất.
+`Optional.flatMap` is used when **the function receives the inner value and returns another Optional**. The result is flattened into a single Optional layer.
 
-### 4.1. Vấn đề Optional lồng nhau
+### 4.1. The Nested Optional Problem
 
-Giả sử đối tượng khách hàng có phương thức trả email tùy chọn:
+Suppose a customer object has a method returning an optional email:
 
 ```java
 record Customer(String id, Optional<String> email) {}
@@ -243,7 +243,7 @@ Customer customer = new Customer(
 );
 ```
 
-Nếu dùng `map`:
+If using `map`:
 
 ```java
 Optional<Customer> found = Optional.of(customer);
@@ -252,9 +252,9 @@ Optional<Optional<String>> nested =
     found.map(Customer::email);
 ```
 
-`Customer::email` đã trả về `Optional<String>`. Khi `map` bọc nó, kiểu trở thành `Optional<Optional<String>>`. Mỗi lần lấy dữ liệu lại phải xử lý hai lớp có/không có, thường không cần thiết.
+`Customer::email` already returns `Optional<String>`. When `map` wraps it, the type becomes `Optional<Optional<String>>`. Every time you retrieve data, you have to handle two layers of presence/absence, which is usually unnecessary.
 
-Dùng `flatMap`:
+Using `flatMap`:
 
 ```java
 Optional<String> flat =
@@ -263,11 +263,11 @@ Optional<String> flat =
 // flat = Optional[an@example.com]
 ```
 
-Có thể đọc trực tiếp: “Nếu tìm thấy khách hàng, tiếp tục lấy email nếu có”.
+This reads directly as: "If the customer is found, proceed to get the email if present".
 
-### 4.2. Ví dụ tra cứu phụ thuộc hai bước
+### 4.2. Example of a Two-Step Dependent Lookup
 
-Giả sử một phương thức tìm khách hàng:
+Suppose a method finds a customer:
 
 ```java
 static Optional<Customer> findCustomer(
@@ -280,7 +280,7 @@ static Optional<Customer> findCustomer(
 }
 ```
 
-Từ đơn hàng có `customerId`:
+From an order containing `customerId`:
 
 ```java
 record Order(String id, String customerId, long amount) {}
@@ -292,11 +292,11 @@ Optional<String> email = orders.stream()
     .flatMap(Customer::email);
 ```
 
-Các biến `orders` và `customers` ở ví dụ này là các danh sách nghiệp vụ tương ứng, sẽ được khai báo đầy đủ trong ví dụ tổng hợp ở mục 10. Chuỗi có thể rỗng ở từng bước: không tìm thấy đơn hàng, không tìm thấy khách hàng hoặc khách hàng chưa có email.
+The variables `orders` and `customers` in this example are the corresponding business lists, which will be declared in full in the comprehensive example in section 10. The chain can become empty at each step: order not found, customer not found, or customer has no email yet.
 
-### 4.3. Không dùng flatMap cho hàm trả giá trị thường
+### 4.3. Do Not Use flatMap for Functions Returning Regular Values
 
-Nếu muốn lấy tên khách hàng:
+If you want to get the customer's name:
 
 ```java
 record Customer(String id, String name, Optional<String> email) {}
@@ -309,33 +309,33 @@ Optional<String> name = found.map(Customer::name);
 Optional<String> email = found.flatMap(Customer::email);
 ```
 
-- `Customer::name` trả `String` → dùng `map`.
-- `Customer::email` trả `Optional<String>` → dùng `flatMap`.
+- `Customer::name` returns `String` → use `map`.
+- `Customer::email` returns `Optional<String>` → use `flatMap`.
 
-**Quy tắc lựa chọn theo chữ ký:**
+**Selection rule by signature:**
 
-| Hàm cần gọi | Chọn | Kiểu kết quả |
+| Function to call | Choose | Result type |
 | --- | --- | --- |
 | `T -> U` | `optional.map(...)` | `Optional<U>` |
 | `T -> Optional<U>` | `optional.flatMap(...)` | `Optional<U>` |
 | `T -> boolean` | `optional.filter(...)` | `Optional<T>` |
 
-### 4.4. flatMap không chấp nhận null từ mapper
+### 4.4. flatMap Does Not Accept null From the Mapper
 
-Khác với `map`, `flatMap` **yêu cầu mapper trả về một đối tượng Optional khác null**. Nếu mapper trả `null`, Java ném `NullPointerException`:
+Unlike `map`, `flatMap` **requires the mapper to return a non-null Optional object**. If the mapper returns `null`, Java throws `NullPointerException`:
 
 ```java
 Optional<String> value = Optional.of("x");
 
-// Ném NullPointerException:
+// Throws NullPointerException:
 // Optional<String> result = value.flatMap(x -> null);
 ```
 
-Nếu một API cũ trả `String` hoặc `null`, hãy bọc bằng `Optional.ofNullable`:
+If a legacy API returns `String` or `null`, wrap it with `Optional.ofNullable`:
 
 ```java
 static String legacyLookup(String key) {
-    return key.equals("ok") ? "Đã tìm thấy" : null;
+    return key.equals("ok") ? "Found" : null;
 }
 
 Optional<String> found = Optional.of("missing")
@@ -344,9 +344,9 @@ Optional<String> found = Optional.of("missing")
 System.out.println(found.isEmpty()); // true
 ```
 
-Phương thức `legacyLookup` ở ví dụ là phương thức độc lập có thể đặt trong một lớp Java. Không sử dụng `Optional.of(legacyLookup(...))` nếu kết quả có thể `null`, vì `Optional.of(null)` ném `NullPointerException`.
+The `legacyLookup` method in the example is a standalone method that can be placed in a Java class. Do not use `Optional.of(legacyLookup(...))` if the result can be `null`, because `Optional.of(null)` throws `NullPointerException`.
 
-### 4.5. Hành vi khi Optional nguồn rỗng
+### 4.5. Behavior When the Source Optional Is Empty
 
 ```java
 Optional<String> absent = Optional.<Customer>empty()
@@ -355,24 +355,24 @@ Optional<String> absent = Optional.<Customer>empty()
 System.out.println(absent); // Optional.empty
 ```
 
-Lời gọi `Customer::email` không diễn ra. Vì thế chuỗi xử lý phụ thuộc nhiều phép tra cứu có thể diễn đạt mà không cần mỗi bước kiểm tra `isPresent()` thủ công.
+The call to `Customer::email` does not occur. Therefore, processing chains depending on multiple lookups can be expressed without manual `isPresent()` checks at every step.
 
-## 5. Optional.filter: chỉ giữ kết quả thỏa điều kiện
+## 5. Optional.filter: Keeping Only Results Matching a Condition
 
-Chữ ký:
+Signature:
 
 ```java
 Optional<T> filter(Predicate<? super T> predicate);
 ```
 
-`Optional.filter` không thay đổi kiểu dữ liệu:
+`Optional.filter` does not change the data type:
 
-- Nếu Optional rỗng, trả Optional rỗng và **không gọi predicate**.
-- Nếu có giá trị và predicate trả `true`, giữ nguyên giá trị.
-- Nếu có giá trị và predicate trả `false`, trả Optional rỗng.
-- Nếu predicate ném ngoại lệ, ngoại lệ được truyền ra ngoài.
+- If the Optional is empty, return an empty Optional and **do not call the predicate**.
+- If a value is present and the predicate returns `true`, keep the value as is.
+- If a value is present and the predicate returns `false`, return an empty Optional.
+- If the predicate throws an exception, the exception is propagated outward.
 
-### 5.1. Kiểm tra kết quả tìm kiếm
+### 5.1. Checking a Search Result
 
 ```java
 Optional<Order> candidate = orders.stream()
@@ -383,11 +383,11 @@ Optional<Order> approved = candidate
     .filter(order -> order.amount() >= 100_000);
 ```
 
-Có ba khả năng: không có đơn phù hợp mã; có đơn nhưng số tiền chưa đạt; hoặc có đơn đạt điều kiện. Hai trường hợp đầu đều tạo `Optional.empty()`. Nếu nghiệp vụ cần **phân biệt “không tồn tại” với “tồn tại nhưng không đủ điều kiện”**, không nên dùng Optional rỗng làm trạng thái duy nhất; cần một kiểu kết quả mô tả lý do, ví dụ enum hoặc sealed result.
+There are three possibilities: no order matches the ID; the order exists but its amount does not meet the threshold; or the order meets the condition. The first two cases both produce `Optional.empty()`. If business logic needs to **distinguish "does not exist" from "exists but does not qualify"**, do not use an empty Optional as the sole state; use a result type that describes the reason, such as an enum or sealed result.
 
-### 5.2. Lọc sau map hay trước map?
+### 5.2. Filter After map or Before map?
 
-Giả sử cần tìm khách hàng có email không rỗng:
+Suppose we need to find a customer who has a non-empty email:
 
 ```java
 Optional<String> email = foundCustomer
@@ -396,7 +396,7 @@ Optional<String> email = foundCustomer
     .filter(text -> !text.isEmpty());
 ```
 
-Ở đây `filter` nhận `String` vì `flatMap` và `map` đã tạo `Optional<String>`. Nếu kiểm tra cả đối tượng khách hàng trước:
+Here `filter` receives `String` because `flatMap` and `map` produced `Optional<String>`. If checking the customer object first:
 
 ```java
 Optional<String> email = foundCustomer
@@ -404,22 +404,22 @@ Optional<String> email = foundCustomer
     .flatMap(Customer::email);
 ```
 
-Thì `filter` nhận `Customer`. Đoạn ví dụ giả định kiểu `Customer` có phương thức `active()`; xem phần minh họa đầy đủ ở mục 10.
+Then `filter` receives `Customer`. The snippet assumes the `Customer` type has an `active()` method; see the full illustration in section 10.
 
-**Thứ tự thao tác thể hiện quy tắc nghiệp vụ.** Việc lọc theo trạng thái khách hàng trước khi lấy email khác với việc chỉ kiểm tra nội dung email.
+**The order of operations expresses business rules.** Filtering by customer status before retrieving the email differs from checking only the email content.
 
-### 5.3. Không biến filter thành xử lý ngoại lệ
+### 5.3. Do Not Turn filter Into Exception Handling
 
-`filter` chỉ nên kiểm tra một điều kiện. Ví dụ:
+`filter` should only check a condition. Example:
 
 ```java
 Optional<String> valid = Optional.of("42")
     .filter(text -> text.chars().allMatch(Character::isDigit));
 ```
 
-Nếu cần chuyển chuỗi thành số, `map(Integer::parseInt)` có thể ném `NumberFormatException` khi dữ liệu không hợp lệ. Optional không tự chuyển ngoại lệ ấy thành empty; phải xác định chiến lược kiểm tra đầu vào hoặc xử lý lỗi riêng.
+If converting a string to a number, `map(Integer::parseInt)` can throw `NumberFormatException` when the data is invalid. Optional does not automatically turn that exception into empty; you must define an input validation strategy or separate error handling.
 
-### 5.4. So sánh Stream.filter và Optional.filter
+### 5.4. Comparing Stream.filter and Optional.filter
 
 ```java
 List<Integer> results = Stream.of(1, 2, 3, 4)
@@ -430,11 +430,11 @@ Optional<Integer> result = Optional.of(3)
     .filter(n -> n % 2 == 0); // Optional.empty
 ```
 
-`Stream.filter` có thể giữ nhiều phần tử; `Optional.filter` chỉ giữ hoặc loại một giá trị đã có. Hai phương thức có cùng dạng điều kiện `Predicate<T>`, nhưng khác số lượng phần tử và vòng đời thực thi.
+`Stream.filter` can keep multiple elements; `Optional.filter` only keeps or discards a single present value. Both methods share the same `Predicate<T>` condition shape, but differ in element count and execution lifecycle.
 
-## 6. Kết hợp map, flatMap và filter trong một chuỗi
+## 6. Combining map, flatMap, and filter in a Single Chain
 
-Giả sử nhận mã đơn hàng, cần tên miền email của khách hàng đang hoạt động có email hợp lệ tối thiểu:
+Suppose given an order ID, we need the email domain of an active customer with a minimally valid email:
 
 ```java
 Optional<String> domain = findOrder(orderId)
@@ -448,9 +448,9 @@ Optional<String> domain = findOrder(orderId)
     .filter(text -> !text.isBlank());
 ```
 
-Ở đây `findOrder` và `findCustomer` là các phương thức nghiệp vụ có kết quả `Optional`; `Order` có `paid()`, `Customer` có `active()` và `email()` trả `Optional<String>`. Đoạn mã minh họa hình dạng pipeline; cách định nghĩa đầy đủ các kiểu được trình bày ở mục 10.
+Here `findOrder` and `findCustomer` are business methods returning `Optional`; `Order` has `paid()`, `Customer` has `active()`, and `email()` returns `Optional<String>`. The snippet illustrates the shape of the pipeline; full definitions of the types are presented in section 10.
 
-Luồng dữ liệu về mặt kiểu:
+Type flow:
 
 ```text
 Optional<Order>
@@ -480,61 +480,61 @@ Optional<String>
 Optional<String>
 ```
 
-Không bước nào gọi `get()`. Khi thiếu một mắt xích, các bước sau tự bỏ qua xử lý giá trị.
+No step calls `get()`. When a link is missing, subsequent steps automatically skip value processing.
 
-**Chú ý:** kiểm tra `contains("@")` chỉ là minh họa đơn giản, **không phải bộ xác thực địa chỉ email hoàn chỉnh**. Với nghiệp vụ thực tế, chính sách kiểm tra và chuẩn hóa phải phù hợp yêu cầu hệ thống.
+**Note:** checking `contains("@")` is only a simple illustration, **not a complete email address validator**. In real business logic, validation and normalization policies must match system requirements.
 
-## 7. Cách xử lý kết quả cuối của Optional
+## 7. How to Handle the Final Optional Result
 
-Ba phép `map`, `flatMap`, `filter` vẫn trả Optional. Khi cần trả dữ liệu cho người gọi hoặc hiển thị kết quả, hãy chọn chính sách cho trạng thái rỗng.
+The three operations `map`, `flatMap`, and `filter` still return an Optional. When you need to return data to the caller or display the result, choose a policy for the empty state.
 
-### 7.1. orElse: giá trị thay thế được đánh giá trước
+### 7.1. orElse: Eagerly Evaluated Replacement Value
 
 ```java
 String label = Optional.of("An")
     .map(String::toUpperCase)
-    .orElse("Không có tên"); // AN
+    .orElse("No name"); // AN
 ```
 
-`orElse(other)` luôn nhận **một giá trị đã được tính**. Nếu biểu thức tạo giá trị mặc định tốn kém, nó vẫn được đánh giá trước khi phương thức `orElse` được gọi:
+`orElse(other)` always takes **an already-evaluated value**. If the expression creating the default value is expensive, it is still evaluated before `orElse` is called:
 
 ```java
 static String expensiveFallback() {
-    System.out.println("Tạo fallback");
-    return "Mặc định";
+    System.out.println("Creating fallback");
+    return "Default";
 }
 
 String name = Optional.of("An")
     .orElse(expensiveFallback());
 
-// In "Tạo fallback" dù Optional đã có "An".
+// Prints "Creating fallback" even though Optional already has "An".
 ```
 
-### 7.2. orElseGet: chỉ gọi supplier khi rỗng
+### 7.2. orElseGet: Calls Supplier Only When Empty
 
 ```java
 String name = Optional.of("An")
     .orElseGet(() -> expensiveFallback());
 
-// Không gọi expensiveFallback() vì Optional có giá trị.
+// Does not call expensiveFallback() because Optional has a value.
 ```
 
-Cùng giá trị kết quả, nhưng `orElseGet` phù hợp khi tạo giá trị thay thế tốn chi phí hoặc có tác động phụ. Khi giá trị mặc định chỉ là hằng số như `"N/A"`, `orElse` thường đơn giản hơn.
+Same resulting value, but `orElseGet` is appropriate when creating the replacement value is costly or has side effects. When the default value is just a constant like `"N/A"`, `orElse` is usually simpler.
 
-### 7.3. orElseThrow: trạng thái rỗng là lỗi
+### 7.3. orElseThrow: Empty State Is an Error
 
 ```java
 Order required = orders.stream()
     .filter(order -> order.id().equals("O-02"))
     .findFirst()
     .orElseThrow(() ->
-        new IllegalArgumentException("Không tìm thấy đơn hàng")
+        new IllegalArgumentException("Order not found")
     );
 ```
 
-Dùng `orElseThrow` khi **hợp đồng nghiệp vụ thực sự yêu cầu phải có dữ liệu**. Không nên tùy tiện biến kết quả không tồn tại hợp lệ thành lỗi.
+Use `orElseThrow` when **the business contract truly requires data to be present**. Do not arbitrarily turn a valid nonexistent result into an error.
 
-### 7.4. ifPresent và ifPresentOrElse: hành động ở rìa hệ thống
+### 7.4. ifPresent and ifPresentOrElse: Actions at the System Boundary
 
 ```java
 Optional<String> name = Optional.of("An");
@@ -543,45 +543,45 @@ name.ifPresent(System.out::println);
 
 name.ifPresentOrElse(
     System.out::println,
-    () -> System.out.println("Không có tên")
+    () -> System.out.println("No name")
 ); // Java 9+
 ```
 
-`ifPresent` và `ifPresentOrElse` trả `void`. Chúng phù hợp cho hành động cuối cùng như hiển thị hoặc cập nhật một thành phần bên ngoài khi yêu cầu có tác động. Nếu cần tiếp tục **biến đổi và truyền kết quả**, giữ Optional qua `map`, `flatMap`, `filter` sẽ rõ ràng hơn.
+`ifPresent` and `ifPresentOrElse` return `void`. They are suitable for final actions like displaying or updating an external component when an effect is desired. If you need to continue **transforming and passing the result**, keeping the Optional through `map`, `flatMap`, and `filter` is clearer.
 
-### 7.5. Vì sao không lạm dụng get?
+### 7.5. Why Not Overuse get?
 
-`Optional.get()` ném `NoSuchElementException` nếu rỗng. Mẫu này dễ tạo mã dài và bỏ sót xử lý:
+`Optional.get()` throws `NoSuchElementException` if empty. This pattern tends to produce verbose code and missed handling:
 
 ```java
-// Dài và dễ bị thay đổi sai trong quá trình bảo trì:
+// Verbose and error-prone during maintenance:
 if (maybeName.isPresent()) {
     String upper = maybeName.get().toUpperCase();
 }
 ```
 
-Khi mục tiêu là biến đổi giá trị, dùng:
+When the goal is transforming the value, use:
 
 ```java
 Optional<String> upper = maybeName.map(String::toUpperCase);
 ```
 
-Nếu kết quả phải có, dùng `orElseThrow` với thông báo và loại ngoại lệ phù hợp. Mục tiêu của Optional là buộc người viết mã suy nghĩ về trường hợp vắng mặt, thay vì chỉ dời nguy cơ lỗi sang một lời gọi `get()` khác.
+If the result must exist, use `orElseThrow` with an appropriate message and exception type. The goal of Optional is to force code authors to think about the absent case, rather than merely shifting the risk of failure to another `get()` call.
 
-## 8. Optional.stream: đưa kết quả có/không có trở lại pipeline Stream
+## 8. Optional.stream: Bringing Present/Absent Results Back Into a Stream Pipeline
 
-Từ Java 9, `Optional<T>` có phương thức:
+Since Java 9, `Optional<T>` has the method:
 
 ```java
 Stream<T> stream();
 ```
 
-Phương thức này trả:
+This method returns:
 
-- Stream **một phần tử** nếu Optional có giá trị.
-- Stream **rỗng** nếu Optional không có giá trị.
+- A **one-element** Stream if the Optional has a value.
+- An **empty** Stream if the Optional has no value.
 
-Ví dụ:
+Example:
 
 ```java
 List<String> present = Optional.of("Java")
@@ -593,9 +593,9 @@ List<String> missing = Optional.<String>empty()
     .toList(); // []
 ```
 
-### 8.1. Biến một Stream<Optional<T>> thành Stream<T>
+### 8.1. Turning a Stream<Optional<T>> Into a Stream<T>
 
-Một bài toán thực tế là nhiều phép tra cứu độc lập, mỗi phép trả Optional:
+A practical scenario is multiple independent lookups, each returning an Optional:
 
 ```java
 List<Optional<String>> emailLookups = List.of(
@@ -611,9 +611,9 @@ List<String> emails = emailLookups.stream()
 // [an@example.com, chi@example.com]
 ```
 
-Nếu chỉ dùng `map(optional -> optional.orElse(null))`, danh sách có thể chứa `null`, khiến các bước sau dễ phát sinh lỗi và mất ý nghĩa có/không có. `flatMap(Optional::stream)` giữ đúng các giá trị hiện diện.
+If you only use `map(optional -> optional.orElse(null))`, the list can contain `null`, making subsequent steps prone to errors and losing the present/absent semantics. `flatMap(Optional::stream)` keeps exactly the present values.
 
-### 8.2. Kết hợp một danh sách đầu vào với hàm trả Optional
+### 8.2. Combining an Input List With a Function Returning Optional
 
 ```java
 static Optional<Integer> parsePositiveInt(String raw) {
@@ -633,9 +633,9 @@ List<Integer> values = Stream.of("12", "x", "-3", "7")
 // [12, 7]
 ```
 
-`OptionalLesson` là tên lớp minh họa chứa phương thức `parsePositiveInt`. Ví dụ này cố ý chọn chính sách “chuỗi không hợp lệ thì bỏ qua”; nếu ứng dụng cần thông báo chính xác dòng lỗi, nên dùng kiểu kết quả riêng chứa thông tin thành công/thất bại thay vì chuyển mọi lỗi thành Optional rỗng.
+`OptionalLesson` is an illustrative class name containing `parsePositiveInt`. This example intentionally chooses the policy "skip invalid strings"; if the application needs to report the exact invalid line, use a dedicated result type containing success/failure details instead of turning all errors into an empty Optional.
 
-Có thể viết gọn:
+This can be written concisely:
 
 ```java
 List<Integer> values = Stream.of("12", "x", "-3", "7")
@@ -643,9 +643,9 @@ List<Integer> values = Stream.of("12", "x", "-3", "7")
     .toList();
 ```
 
-Lưu ý **`Stream.flatMap` nhận một hàm trả Stream**, còn **`Optional.flatMap` nhận một hàm trả Optional**. `Optional.stream()` chính là cầu nối để hai hệ thống phối hợp.
+Note that **`Stream.flatMap` accepts a function returning a Stream**, whereas **`Optional.flatMap` accepts a function returning an Optional**. `Optional.stream()` is the bridge that lets the two systems work together.
 
-### 8.3. Đưa nhiều kết quả tìm kiếm độc lập vào xử lý tiếp
+### 8.3. Feeding Multiple Independent Search Results Into Further Processing
 
 ```java
 Stream<Optional<Order>> searchResults = Stream.of(
@@ -655,29 +655,29 @@ Stream<Optional<Order>> searchResults = Stream.of(
 
 long foundCount = searchResults
     .flatMap(Optional::stream)
-    .count(); // 1, nếu chỉ có O-01.
+    .count(); // 1, if only O-01 exists.
 ```
 
-Mỗi `findFirst()` ở đây tiêu thụ **một Stream riêng** được tạo từ `orders`. `Optional` đã có kết quả, còn `searchResults` là Stream đang chứa hai Optional đó.
+Each `findFirst()` here consumes **a separate Stream** created from `orders`. Each `Optional` already holds a result, while `searchResults` is a Stream containing those two Optionals.
 
-## 9. Optional<T> và các Optional cho số nguyên thủy
+## 9. Optional<T> and Optionals for Primitive Numbers
 
-Các phép kết thúc của primitive stream có thể trả:
+Terminal operations of primitive streams may return:
 
-- `OptionalInt` cho `IntStream.findFirst()`, `min()`, `max()` hoặc `reduce(...)` không identity.
-- `OptionalLong` cho các phép tương ứng của `LongStream`.
-- `OptionalDouble` cho các phép tương ứng của `DoubleStream`, cũng như `average()` của cả ba primitive stream.
+- `OptionalInt` for `IntStream.findFirst()`, `min()`, `max()`, or `reduce(...)` without identity.
+- `OptionalLong` for the corresponding operations on `LongStream`.
+- `OptionalDouble` for the corresponding operations on `DoubleStream`, as well as `average()` of all three primitive streams.
 
-`OptionalInt`, `OptionalLong` và `OptionalDouble` **không cung cấp cùng đầy đủ `map`, `flatMap`, `filter` như `Optional<T>`**. Vì vậy mã sau không hợp lệ:
+`OptionalInt`, `OptionalLong`, and `OptionalDouble` **do not provide the same full set of `map`, `flatMap`, and `filter` methods as `Optional<T>`**. Thus the following code is invalid:
 
 ```java
 OptionalInt score = IntStream.of(7, 9).max();
 
-// Không có API OptionalInt.map(...) như Optional<T>:
+// No OptionalInt.map(...) API like Optional<T>:
 // score.map(n -> n * 2);
 ```
 
-### 9.1. Xử lý trực tiếp kết quả số nếu chỉ cần giá trị
+### 9.1. Handle the Numeric Result Directly If Only the Value Is Needed
 
 ```java
 OptionalInt max = IntStream.of(7, 9, 6).max();
@@ -686,27 +686,27 @@ int value = max.orElse(0); // 9
 System.out.println(value);
 ```
 
-Nếu không có dữ liệu, `orElse(0)` dùng chính sách mặc định 0 do ứng dụng chọn. Không nên đồng nhất “không có điểm” với “điểm bằng 0” nếu hệ thống cần phân biệt hai trường hợp.
+If there is no data, `orElse(0)` uses the application-chosen default policy of 0. Do not equate "no score" with "score equals 0" if the system needs to distinguish the two cases.
 
-### 9.2. Chuyển sang object stream khi cần map rồi trả Optional<T>
+### 9.2. Switch to an Object Stream When You Need map and Want Optional<T>
 
-Các Optional nguyên thủy có `stream()` từ Java 9. Có thể chuyển kết quả sang object stream và `findFirst()`:
+Primitive Optionals have `stream()` from Java 9. You can convert the result to an object stream and call `findFirst()`:
 
 ```java
 Optional<String> label = IntStream.of(7, 9, 6)
     .max()               // OptionalInt
-    .stream()            // IntStream có 0 hoặc 1 giá trị
-    .mapToObj(n -> "Điểm cao nhất: " + n)
+    .stream()            // IntStream with 0 or 1 value
+    .mapToObj(n -> "Highest score: " + n)
     .findFirst();        // Optional<String>
 
-// Optional[Điểm cao nhất: 9]
+// Optional[Highest score: 9]
 ```
 
-`mapToObj` ở đây chạy trên `IntStream` được tạo từ `OptionalInt.stream()`, không phải là phương thức của `OptionalInt`. Đây là một đường chuyển đổi có chủ đích khi cần kết quả là `Optional<String>`.
+`mapToObj` here runs on the `IntStream` created by `OptionalInt.stream()`, not as a method of `OptionalInt`. This is an intentional conversion path when the required result is `Optional<String>`.
 
-### 9.3. Kiểu dữ liệu số không tự có quy tắc null
+### 9.3. Numeric Types Do Not Automatically Have null Rules
 
-Với `IntStream`, phần tử là `int` và không thể `null`. Khi kết quả bị thiếu, trạng thái đó nằm ở `OptionalInt.empty()`. Nếu cần giao diện giao tiếp chung có `Optional<Integer>`, có thể chuyển có kiểm soát:
+With `IntStream`, elements are `int` and cannot be `null`. When a result is missing, that state lives in `OptionalInt.empty()`. If a common interface requiring `Optional<Integer>` is needed, you can convert in a controlled manner:
 
 ```java
 OptionalInt primitive = IntStream.of(4, 8).max();
@@ -718,13 +718,13 @@ Optional<Integer> boxed = primitive.isPresent()
 // boxed = Optional[8]
 ```
 
-Đây là trường hợp có thể chấp nhận `getAsInt()` vì đã kiểm tra `isPresent()` ngay trong cùng biểu thức. Khi làm việc chủ yếu với số, tiếp tục dùng `OptionalInt` và các API chuyên biệt sẽ tránh boxing không cần thiết.
+This is a case where `getAsInt()` is acceptable because `isPresent()` was checked within the same expression. When working primarily with numbers, continuing to use `OptionalInt` and the specialized APIs avoids unnecessary boxing.
 
-## 10. Ví dụ Java hoàn chỉnh: truy email liên hệ cho đơn hàng
+## 10. Complete Java Example: Resolving Contact Email for an Order
 
-Bài toán: hệ thống có danh sách đơn hàng và khách hàng. Chỉ trả email khi thỏa tất cả điều kiện: đơn hàng tồn tại, đã thanh toán, đạt số tiền tối thiểu, khách hàng tồn tại và đang hoạt động, có email không trắng. Kết quả chuẩn hóa email bằng `strip()` và chuyển chữ thường theo `Locale.ROOT`.
+Problem: a system has lists of orders and customers. Return an email only when all conditions hold: the order exists, is paid, meets the minimum amount, the customer exists and is active, and has a non-blank email. Normalize the resulting email using `strip()` and lowercase it with `Locale.ROOT`.
 
-Ví dụ độc lập chạy với Java 17+, lưu vào `OptionalPipelineDemo.java`:
+Standalone example running on Java 17+, saved to `OptionalPipelineDemo.java`:
 
 ```java
 import java.util.List;
@@ -801,18 +801,18 @@ public class OptionalPipelineDemo {
 
         System.out.println(emailForOrder(
             orders, customers, "O-01"
-        ).orElse("Không có email hợp lệ"));
+        ).orElse("No valid email"));
         // an@example.com
 
         System.out.println(emailForOrder(
             orders, customers, "O-02"
-        ).orElse("Không có email hợp lệ"));
-        // Không có email hợp lệ
+        ).orElse("No valid email"));
+        // No valid email
 
         System.out.println(emailForOrder(
             orders, customers, "O-99"
-        ).orElse("Không có email hợp lệ"));
-        // Không có email hợp lệ
+        ).orElse("No valid email"));
+        // No valid email
 
         List<String> contactEmails = orders.stream()
             .filter(Order::paid)
@@ -830,39 +830,39 @@ public class OptionalPipelineDemo {
 }
 ```
 
-### 10.1. Phân tích theo kiểu trả về
+### 10.1. Analysis by Return Type
 
-| Mã trong ví dụ | Kiểu kết quả | Vai trò |
+| Code in example | Result type | Role |
 | --- | --- | --- |
-| `orders.stream().filter(...).findFirst()` | `Optional<Order>` | Đơn hàng có thể không tồn tại |
-| `.filter(Order::paid)` | `Optional<Order>` | Bỏ đơn chưa thanh toán |
-| `.filter(order -> order.total() >= 100_000)` | `Optional<Order>` | Bỏ đơn dưới ngưỡng |
-| `.flatMap(order -> findCustomer(...))` | `Optional<Customer>` | Tra khách hàng; tránh `Optional<Optional<Customer>>` |
-| `.filter(Customer::active)` | `Optional<Customer>` | Chỉ giữ khách hàng hoạt động |
-| `.flatMap(OptionalPipelineDemo::normalizeEmail)` | `Optional<String>` | Lấy email có thể vắng mặt |
-| `.map(String::strip)` | `Optional<String>` | Chuẩn hóa email nếu hiện diện |
-| `.filter(email -> !email.isBlank())` | `Optional<String>` | Loại email trắng |
-| `.flatMap(Optional::stream)` trên `Stream<Optional<String>>` | `Stream<String>` | Bỏ các Optional rỗng trong danh sách tra cứu |
+| `orders.stream().filter(...).findFirst()` | `Optional<Order>` | Order may not exist |
+| `.filter(Order::paid)` | `Optional<Order>` | Discard unpaid orders |
+| `.filter(order -> order.total() >= 100_000)` | `Optional<Order>` | Discard orders below threshold |
+| `.flatMap(order -> findCustomer(...))` | `Optional<Customer>` | Look up customer; avoid `Optional<Optional<Customer>>` |
+| `.filter(Customer::active)` | `Optional<Customer>` | Keep only active customers |
+| `.flatMap(OptionalPipelineDemo::normalizeEmail)` | `Optional<String>` | Get potentially absent email |
+| `.map(String::strip)` | `Optional<String>` | Normalize email if present |
+| `.filter(email -> !email.isBlank())` | `Optional<String>` | Discard blank emails |
+| `.flatMap(Optional::stream)` on `Stream<Optional<String>>` | `Stream<String>` | Discard empty Optionals in lookup list |
 
-`O-01` có email hợp lệ. `O-02` không có email, `O-03` có khách hàng ngừng hoạt động, `O-04` dưới ngưỡng, `O-05` chưa thanh toán, `O-06` chứa email trắng và `O-07` trỏ tới khách hàng không tồn tại. Tất cả những trường hợp không đạt sẽ được biểu diễn bằng `Optional.empty()`.
+`O-01` has a valid email. `O-02` has no email, `O-03` has an inactive customer, `O-04` is below the threshold, `O-05` is unpaid, `O-06` contains a blank email, and `O-07` points to a nonexistent customer. All non-qualifying cases are represented by `Optional.empty()`.
 
-### 10.2. Những giới hạn có chủ đích của ví dụ
+### 10.2. Intentional Limitations of the Example
 
-- Hàm `normalizeEmail` chỉ loại khoảng trắng đầu/cuối, từ chối chuỗi trắng và chuyển chữ thường. Nó **không xác thực cú pháp email đầy đủ**. Trong hệ thống thực, việc chuyển chữ thường toàn bộ email có thể không phù hợp với mọi chính sách địa chỉ; cần lựa chọn quy tắc chuẩn hóa theo yêu cầu hệ thống.
-- `findCustomer` duyệt danh sách mỗi lần được gọi; trên dữ liệu lớn, nhiều đơn hàng và khách hàng nên cân nhắc lập chỉ mục khách hàng bằng `Map<String, Customer>` để tránh tra cứu tuyến tính lặp lại.
-- Trả `Optional.empty()` cho nhiều lý do khác nhau giúp đơn giản hóa ví dụ. Nếu cần biết lý do thất bại để báo người dùng hoặc audit, hãy thiết kế kiểu kết quả chứa trạng thái/lỗi riêng.
+- The `normalizeEmail` function only trims leading/trailing whitespace, rejects blank strings, and converts to lowercase. It **does not validate full email syntax**. In real systems, lowercasing the entire email may not suit every address policy; choose normalization rules according to system requirements.
+- `findCustomer` traverses the list on every call; on large datasets with many orders and customers, consider indexing customers by `Map<String, Customer>` to avoid repeated linear scans.
+- Returning `Optional.empty()` for multiple different reasons simplifies the example. If you need to know the failure reason for user reporting or auditing, design a result type holding an explicit status/error.
 
-## 11. Kết hợp Optional với grouping và các collector
+## 11. Combining Optional With Grouping and Collectors
 
-Với bài toán thống kê, có thể tìm phần tử lớn nhất trong từng nhóm:
+For statistical tasks, you can find the largest element within each group:
 
 ```java
 record Product(String category, String name, long price) {}
 
 List<Product> products = List.of(
-    new Product("Sách", "Java", 200),
-    new Product("Sách", "SQL", 150),
-    new Product("Thiết bị", "Chuột", 300)
+    new Product("Books", "Java", 200),
+    new Product("Books", "SQL", 150),
+    new Product("Equipment", "Mouse", 300)
 );
 
 Map<String, Optional<Product>> mostExpensive = products.stream()
@@ -874,21 +874,21 @@ Map<String, Optional<Product>> mostExpensive = products.stream()
     ));
 ```
 
-Ví dụ cần import `java.util.Map`, `java.util.Comparator` và `java.util.stream.Collectors`.
+The example requires importing `java.util.Map`, `java.util.Comparator`, and `java.util.stream.Collectors`.
 
-`Collectors.maxBy(...)` là collector trả `Optional<Product>` cho từng nhóm theo hợp đồng collector. Với một nhóm rỗng nhân tạo trong quá trình tổng hợp hoặc khi nhận dữ liệu từ API có thể thiếu, Optional giúp biểu đạt khả năng không có phần tử thích hợp; các nhóm sinh ra bởi `groupingBy` từ phần tử đầu vào thông thường có ít nhất một phần tử.
+`Collectors.maxBy(...)` is a collector returning `Optional<Product>` for each group according to the collector contract. For a synthetically empty group during aggregation or when receiving data from an API that may lack entries, Optional expresses the possibility of having no suitable element; groups created by `groupingBy` from ordinary input elements have at least one element.
 
-Sau khi lấy `Optional<Product>` của nhóm “Sách”, có thể ánh xạ:
+After retrieving the `Optional<Product>` for the "Books" group, you can map it:
 
 ```java
 Optional<String> name = mostExpensive
-    .getOrDefault("Sách", Optional.empty())
+    .getOrDefault("Books", Optional.empty())
     .map(Product::name);
 
-System.out.println(name.orElse("Không có sản phẩm")); // Java
+System.out.println(name.orElse("No product")); // Java
 ```
 
-Nếu cần gom tên của các sản phẩm đắt nhất ở tất cả nhóm:
+If you need to collect the names of the most expensive products across all groups:
 
 ```java
 List<String> names = mostExpensive.values().stream()
@@ -897,29 +897,29 @@ List<String> names = mostExpensive.values().stream()
     .sorted()
     .toList();
 
-// [Java, Chuột] theo thứ tự chuỗi tự nhiên của Java.
+// [Java, Mouse] in Java's natural string order.
 ```
 
-Lưu ý: `Map.getOrDefault` khác `Optional.orElse`; phương thức thứ nhất xử lý khóa thiếu trong Map, còn phương thức thứ hai xử lý trạng thái rỗng của Optional.
+Note: `Map.getOrDefault` differs from `Optional.orElse`; the first handles missing keys in the Map, while the second handles the empty state of an Optional.
 
-### 11.1. Optional và collect không thay thế nhau
+### 11.1. Optional and collect Do Not Replace Each Other
 
-Một lỗi hiểu nhầm phổ biến là dùng Optional để tích lũy nhiều phần tử. Optional chỉ mang 0 hoặc 1 giá trị. Nếu cần thu nhiều đơn hàng, dùng `collect` hoặc `toList` trên Stream. Khi kết quả sau phép kết thúc có thể vắng mặt, dùng Optional để tiếp tục ánh xạ/kiểm tra.
+A common misunderstanding is using Optional to accumulate multiple elements. Optional only holds 0 or 1 value. If you need to collect multiple orders, use `collect` or `toList` on the Stream. When the result after a terminal operation may be absent, use Optional to continue mapping/filtering.
 
-Ví dụ tổng tiền từ nhiều đơn hàng:
+Example total amount from multiple orders:
 
 ```java
 long total = orders.stream()
     .filter(Order::paid)
     .mapToLong(Order::total)
-    .sum(); // long, không phải Optional<Long>
+    .sum(); // long, not Optional<Long>
 ```
 
-Nếu nghiệp vụ muốn phân biệt “không có đơn phù hợp” với “tổng bằng 0”, có thể dùng `reduce(Long::sum)` trên `LongStream` để nhận `OptionalLong`, hoặc một kiểu tổng hợp có số lượng và tổng tiền.
+If business logic wants to distinguish "no matching orders" from "total equals 0", you can use `reduce(Long::sum)` on `LongStream` to get `OptionalLong`, or an aggregate type containing both count and total amount.
 
-## 12. Null, ngoại lệ và tác động phụ
+## 12. Null, Exceptions, and Side Effects
 
-### 12.1. Tạo Optional đúng cách từ nguồn có thể null
+### 12.1. Creating Optional Properly From a Potentially null Source
 
 ```java
 String legacyEmail = null;
@@ -927,33 +927,33 @@ String legacyEmail = null;
 Optional<String> safe = Optional.ofNullable(legacyEmail);
 Optional<String> empty = Optional.empty();
 
-// Ném NullPointerException:
+// Throws NullPointerException:
 // Optional<String> broken = Optional.of(legacyEmail);
 ```
 
-- `Optional.of(value)` dành cho giá trị **được bảo đảm khác null**.
-- `Optional.ofNullable(value)` cho phép chuyển `null` thành `Optional.empty()`.
-- `Optional.empty()` biểu diễn trạng thái không có giá trị.
+- `Optional.of(value)` is for values **guaranteed to be non-null**.
+- `Optional.ofNullable(value)` converts `null` into `Optional.empty()`.
+- `Optional.empty()` represents the absent-value state.
 
-Không nên lưu `null` vào một biến khai báo `Optional<String>`, vì như vậy đối tượng Optional bản thân đã thiếu, và các lời gọi `map`/`flatMap` sẽ lỗi:
+Do not store `null` in a variable declared as `Optional<String>`, because the Optional object itself is then missing, and calls to `map`/`flatMap` will fail:
 
 ```java
-Optional<String> maybe = null; // Tránh thiết kế này.
+Optional<String> maybe = null; // Avoid this design.
 // maybe.map(String::trim);    // NullPointerException
 ```
 
-Một hàm đã công bố trả về `Optional<T>` nên trả về một Optional thực sự, dù là empty.
+A function declared to return `Optional<T>` should return a real Optional, even if empty.
 
-### 12.2. Optional không thay thế cơ chế quản lý lỗi
+### 12.2. Optional Does Not Replace Error Management
 
 ```java
 Optional<Integer> number = Optional.of("abc")
     .map(Integer::parseInt); // NumberFormatException
 ```
 
-Nếu dữ liệu sai định dạng, `map` không bắt và không tự chuyển ngoại lệ thành empty.
+If the data is malformed, `map` does not catch exceptions or automatically turn them into empty.
 
-Dùng cách xử lý rõ ràng nếu muốn lỗi phân tích có thể được xem là “không có giá trị hợp lệ”:
+Use explicit handling if parsing failures are allowed to mean "no valid value":
 
 ```java
 static Optional<Integer> tryParseInt(String text) {
@@ -968,11 +968,11 @@ Optional<Integer> value = Optional.of("abc")
     .flatMap(OptionalLesson::tryParseInt);
 ```
 
-`OptionalLesson` là tên lớp giả định chứa phương thức `tryParseInt`. Nếu cần hiển thị chính xác nguyên nhân lỗi, Optional rỗng thường không đủ: nên dùng một kiểu kết quả có thông tin lỗi hoặc cơ chế ngoại lệ phù hợp.
+`OptionalLesson` is a hypothetical class name containing `tryParseInt`. If you need to display the exact cause of an error, an empty Optional is usually insufficient: use a result type carrying error information or an appropriate exception mechanism.
 
-### 12.3. Không biến map và filter thành nơi chứa tác động phụ
+### 12.3. Do Not Turn map and filter Into Side-Effect Containers
 
-Không nên dựa vào `map` hay `filter` để ghi trạng thái ngoài như một phần yêu cầu nghiệp vụ:
+Do not rely on `map` or `filter` to write external state as part of a business requirement:
 
 ```java
 List<String> audited = new ArrayList<>();
@@ -980,18 +980,18 @@ List<String> audited = new ArrayList<>();
 Optional<String> email = foundCustomer
     .flatMap(Customer::email)
     .map(value -> {
-        audited.add(value); // Tác động phụ nên được tách rõ.
+        audited.add(value); // Side effect should be separated clearly.
         return value;
     });
 ```
 
-Đoạn mã dùng danh sách `audited` giả định có thể thay đổi; `ArrayList` nằm trong `java.util`. Trong ví dụ nhỏ, thao tác có thể chạy; nhưng luồng xử lý dễ bị gắn với trạng thái ngoài, và việc kết hợp với Stream song song hoặc thay đổi yêu cầu về thời điểm thực thi gây khó bảo trì.
+The snippet uses a hypothetical mutable `audited` list; `ArrayList` is in `java.util`. In small examples, the operation may run; yet the flow becomes coupled to external state, and combining it with parallel Streams or changing execution timing requirements makes maintenance difficult.
 
-Nếu chỉ cần quan sát kết quả sau cùng, dùng `ifPresent`. Nếu cần audit bắt buộc, thiết kế một bước nghiệp vụ rõ ràng và xác định chính sách khi thiếu dữ liệu. Đặc biệt, các hàm bên trong `Stream.map`/`filter` có thể bị bỏ qua do lazy evaluation, dừng sớm hoặc tối ưu của Stream; không nên đặt cập nhật bắt buộc ở đó.
+If you only need to observe the final result, use `ifPresent`. If mandatory auditing is required, design an explicit business step and define the policy for missing data. In particular, functions inside `Stream.map`/`filter` may be skipped due to lazy evaluation, short-circuiting, or Stream optimizations; do not place mandatory updates there.
 
-## 13. Hiệu năng và vòng đời nguồn dữ liệu
+## 13. Performance and Data Source Lifecycle
 
-`Optional.map`, `flatMap` và `filter` xử lý tối đa một giá trị, thường có chi phí nhỏ. Trong đa số trường hợp, chi phí lớn nằm ở **cách tìm giá trị ban đầu**:
+`Optional.map`, `flatMap`, and `filter` process at most one value and usually have minimal cost. In most cases, the major cost lies in **how the initial value is found**:
 
 ```java
 Optional<Customer> customer = customers.stream()
@@ -999,11 +999,11 @@ Optional<Customer> customer = customers.stream()
     .findFirst();
 ```
 
-Lời gọi `findFirst` có thể duyệt một phần danh sách hoặc toàn bộ danh sách nếu không có khách hàng. Khi áp dụng trong vòng lặp nhiều đơn hàng, duyệt lại cùng danh sách nhiều lần có thể gây chi phí đáng kể. Với tra cứu lặp đi lặp lại, cân nhắc `Map` theo ID, cơ sở dữ liệu có chỉ mục hoặc thiết kế nguồn dữ liệu phù hợp.
+Calling `findFirst` may traverse part of the list or the entire list if no customer matches. When applied inside a loop over many orders, scanning the same list repeatedly can incur significant cost. For repeated lookups, consider a `Map` keyed by ID, an indexed database, or an appropriate data source design.
 
-### 13.1. Dừng sớm ở Stream khác với Optional đã có kết quả
+### 13.1. Early Termination in Stream Differs From an Already-Resolved Optional
 
-`Stream.findFirst` và `Stream.findAny` có thể dừng sớm khi tìm được một phần tử. Khi đó:
+`Stream.findFirst` and `Stream.findAny` can stop early once an element is found. Thus:
 
 ```java
 Optional<String> firstName = customers.stream()
@@ -1012,13 +1012,13 @@ Optional<String> firstName = customers.stream()
     .map(Customer::name);
 ```
 
-Stream có thể chỉ xử lý đến khách hàng hoạt động đầu tiên. Sau đó `Optional.map` áp dụng trên tối đa một kết quả tìm được; nó không phát lệnh duyệt tiếp nguồn.
+The Stream may only process up to the first active customer. Afterward, `Optional.map` applies to at most one found result; it does not trigger further source traversal.
 
-Trong Stream song song, `findAny` có thể chọn một phần tử bất kỳ và kết quả giữa các lần chạy có thể khác nhau; `findFirst` tôn trọng *encounter order* nếu nguồn có thứ tự. Nếu quy tắc nghiệp vụ cần “khách hàng đầu tiên theo thời gian”, phải bảo đảm thứ tự nguồn hoặc sắp xếp rõ ràng trước phép tìm.
+In a parallel Stream, `findAny` may select any element and results between runs may differ; `findFirst` respects *encounter order* if the source is ordered. If the business rule needs "the first customer chronologically", ensure source ordering or sort explicitly before searching.
 
-### 13.2. Optional không tự đóng tài nguyên của Stream
+### 13.2. Optional Does Not Automatically Close Stream Resources
 
-Nếu tìm kiếm trong tệp hay một Stream I/O, hãy đóng nguồn đúng cách:
+When searching in a file or an I/O Stream, close the source properly:
 
 ```java
 import java.io.IOException;
@@ -1041,59 +1041,59 @@ class FindFirstNonBlankLine {
 
         String upper = firstNonBlank
             .map(String::toUpperCase)
-            .orElse("KHÔNG CÓ DÒNG");
+            .orElse("NO LINE");
 
         System.out.println(upper);
     }
 }
 ```
 
-Ví dụ giả định `notes.txt` tồn tại. `Files.lines` gắn với tài nguyên phải đóng; `findFirst()` không tự đóng Stream. Sau khối `try-with-resources`, Optional chứa một `String` đã được lấy, có thể xử lý tiếp mà không cần tệp mở.
+The example assumes `notes.txt` exists. `Files.lines` holds an underlying resource that must be closed; `findFirst()` does not close the Stream automatically. After the `try-with-resources` block, the Optional holds an already-extracted `String`, which can be processed further without keeping the file open.
 
-Nếu giá trị chứa trong Optional lại là một đối tượng giữ tài nguyên, việc xử lý vòng đời của đối tượng đó vẫn là trách nhiệm của ứng dụng.
+If the value stored inside the Optional is itself an object holding resources, managing that object's lifecycle remains the application's responsibility.
 
-### 13.3. Không tạo Optional chỉ để tránh mọi nhánh điều khiển
+### 13.3. Do Not Create Optional Just to Avoid Every Control Branch
 
-Optional hữu ích khi một kết quả thực sự có thể vắng mặt. Nếu phương thức luôn có giá trị thì trả đúng kiểu `T` có thể rõ hơn. Với hành động nhiều nhánh hoặc cần phân biệt nhiều nguyên nhân thất bại, một cấu trúc điều khiển rõ ràng hay một kiểu result riêng có thể phù hợp hơn chuỗi Optional quá dài.
+Optional is useful when a result can genuinely be absent. If a method always has a value, returning type `T` directly is clearer. For multi-branch actions or when needing to distinguish multiple failure causes, an explicit control structure or a dedicated result type may fit better than an overly long Optional chain.
 
-## 14. Các lỗi thường gặp
+## 14. Common Mistakes
 
-| Sai lầm | Hệ quả | Cách giải quyết |
+| Mistake | Consequence | Resolution |
 | --- | --- | --- |
-| `optional.map(x -> findSomething(x))` khi `findSomething` trả `Optional<U>` | Tạo `Optional<Optional<U>>`. | Dùng `flatMap`. |
-| `optional.flatMap(x -> x.getName())` khi `getName` trả `String` | Sai kiểu: `flatMap` chờ `Optional`. | Dùng `map`. |
-| `optional.flatMap(x -> null)` | `NullPointerException`. | Trả `Optional.empty()` hoặc `Optional.ofNullable(...)`. |
-| Gọi `Optional.of(null)` | `NullPointerException` ngay khi tạo. | Dùng `ofNullable` khi null hợp lệ. |
-| Nghĩ `Optional.map` luôn trì hoãn lambda đến terminal | Optional không có terminal pipeline như Stream. | Hiểu rằng mapper chạy ngay nếu Optional có giá trị. |
-| Viết `optional.get()` mà không xử lý empty | `NoSuchElementException`. | `map`, `flatMap`, `filter`, `orElseGet` hoặc `orElseThrow`. |
-| Dùng `orElse(expensiveFallback())` để tránh tính fallback khi có giá trị | Fallback vẫn được tính trước lời gọi. | `orElseGet(() -> expensiveFallback())`. |
-| Nghĩ `Optional.filter` trả boolean | Trả `Optional<T>`. | Dùng `isPresent()` để hỏi trạng thái cuối nếu cần boolean. |
-| Mong `map(Integer::parseInt)` tự nuốt lỗi | `NumberFormatException` vẫn lan truyền. | Kiểm tra đầu vào hoặc chuyển lỗi theo chính sách rõ ràng. |
-| Gọi `OptionalInt.map` tương tự `Optional<T>.map` | Primitive Optional không cung cấp API đó. | Dùng `stream().mapToObj(...).findFirst()` hoặc xử lý số trực tiếp. |
-| Dùng `Stream.flatMap` với mapper trả Optional | Sai kiểu; Stream cần mapper trả Stream. | `flatMap(x -> maybeValue(x).stream())`. |
-| Giả định Optional.empty giải thích lý do lỗi | Mất phân biệt nhiều trường hợp không đạt. | Dùng kiểu kết quả giàu thông tin khi nghiệp vụ cần. |
-| Sửa trạng thái ngoài trong lambda của pipeline và dựa vào thứ tự gọi | Lazy/parallel/short-circuit có thể thay đổi hành vi. | Tách tác động phụ thành bước nghiệp vụ rõ ràng. |
-| Nghĩ `findFirst` tự đóng tệp | Rò rỉ tài nguyên nguồn. | `try-with-resources`. |
+| `optional.map(x -> findSomething(x))` when `findSomething` returns `Optional<U>` | Creates `Optional<Optional<U>>`. | Use `flatMap`. |
+| `optional.flatMap(x -> x.getName())` when `getName` returns `String` | Type mismatch: `flatMap` expects `Optional`. | Use `map`. |
+| `optional.flatMap(x -> null)` | `NullPointerException`. | Return `Optional.empty()` or `Optional.ofNullable(...)`. |
+| Calling `Optional.of(null)` | `NullPointerException` upon creation. | Use `ofNullable` when null is valid. |
+| Thinking `Optional.map` always defers lambdas until a terminal operation | Optional has no terminal pipeline like Stream. | Understand that the mapper runs immediately if the Optional has a value. |
+| Writing `optional.get()` without handling empty | `NoSuchElementException`. | `map`, `flatMap`, `filter`, `orElseGet`, or `orElseThrow`. |
+| Using `orElse(expensiveFallback())` expecting to skip fallback when present | Fallback is still evaluated before the call. | `orElseGet(() -> expensiveFallback())`. |
+| Thinking `Optional.filter` returns a boolean | Returns `Optional<T>`. | Use `isPresent()` to query the final state if a boolean is needed. |
+| Expecting `map(Integer::parseInt)` to swallow errors | `NumberFormatException` still propagates. | Validate input or convert errors under a clear policy. |
+| Calling `OptionalInt.map` like `Optional<T>.map` | Primitive Optional does not provide that API. | Use `stream().mapToObj(...).findFirst()` or handle the number directly. |
+| Using `Stream.flatMap` with a mapper returning Optional | Type mismatch; Stream requires a mapper returning Stream. | `flatMap(x -> maybeValue(x).stream())`. |
+| Assuming Optional.empty explains the failure reason | Loses distinction among multiple failure cases. | Use an informative result type when business logic needs it. |
+| Mutating external state in pipeline lambdas and relying on call order | Lazy/parallel/short-circuit execution can change behavior. | Separate side effects into explicit business steps. |
+| Thinking `findFirst` automatically closes a file | Source resource leak. | `try-with-resources`. |
 
-## 15. Bài tập tự thực hành
+## 15. Self-Practice Exercises
 
-**Bài 1 — Lấy mã bản ghi.** Cho `Stream<Product>` và điều kiện `price > 100_000`. Dùng `findFirst` nhận `Optional<Product>`, rồi `map(Product::id)` để có `Optional<String>`. Thử nguồn rỗng.
+**Exercise 1 — Getting a record ID.** Given `Stream<Product>` and the condition `price > 100_000`. Use `findFirst` to get `Optional<Product>`, then `map(Product::id)` to get `Optional<String>`. Test with an empty source.
 
-**Bài 2 — Hai lần tra cứu.** Cho `Optional<Order>` có `customerId`, và hàm `findCustomer(String)` trả `Optional<Customer>`. So sánh kiểu trả về khi dùng `map` và `flatMap`. Chuyển thành một chuỗi kết quả `Optional<String>` chứa tên.
+**Exercise 2 — Two lookups.** Given `Optional<Order>` with `customerId`, and a `findCustomer(String)` function returning `Optional<Customer>`. Compare return types when using `map` versus `flatMap`. Turn it into a chain resulting in `Optional<String>` containing the name.
 
-**Bài 3 — Điều kiện sau ánh xạ.** Cho `Optional<String>` với giá trị `"  Java  "`. Dùng `map(String::trim)` rồi `filter(text -> text.length() >= 4)`, sau đó `orElse("Không đạt")`. Thử chuỗi trống hoặc Optional.empty.
+**Exercise 3 — Condition after mapping.** Given `Optional<String>` with value `"  Java  "`. Use `map(String::trim)` then `filter(text -> text.length() >= 4)`, followed by `orElse("Not qualified")`. Test with a blank string or `Optional.empty`.
 
-**Bài 4 — Danh sách Optional.** Cho `List<Optional<Integer>>` chứa ba Optional có giá trị và hai Optional rỗng. Dùng `stream().flatMap(Optional::stream)` để thu `List<Integer>` chỉ gồm các số hiện diện.
+**Exercise 4 — List of Optionals.** Given `List<Optional<Integer>>` containing three present Optionals and two empty Optionals. Use `stream().flatMap(Optional::stream)` to collect a `List<Integer>` containing only the present numbers.
 
-**Bài 5 — Giá trị mặc định tốn chi phí.** Viết hàm tạo mặc định có log. So sánh số lần gọi hàm khi dùng `orElse(expensive())` và `orElseGet(() -> expensive())` trên Optional đã có giá trị.
+**Exercise 5 — Expensive default value.** Write a default-creation function with logging. Compare the number of invocations when using `orElse(expensive())` and `orElseGet(() -> expensive())` on an Optional that already has a value.
 
-**Bài 6 — Kết quả từ primitive stream.** Dùng `IntStream.of(4, 7, 2).max()`. Chuyển `OptionalInt` thành `Optional<String>` mô tả giá trị lớn nhất bằng `stream().mapToObj(...).findFirst()`. Kiểm tra với `IntStream.empty()`.
+**Exercise 6 — Result from a primitive stream.** Use `IntStream.of(4, 7, 2).max()`. Convert `OptionalInt` to `Optional<String>` describing the largest value via `stream().mapToObj(...).findFirst()`. Test with `IntStream.empty()`.
 
-**Bài 7 — Lý do không hợp lệ.** Một đơn hàng có thể không tồn tại, chưa thanh toán hoặc chưa đạt ngưỡng. Thử viết `Optional<Order>` với `filter`. Sau đó đề xuất kiểu kết quả phân biệt được cả ba trạng thái và giải thích khi nào cần dùng thay Optional.
+**Exercise 7 — Invalid reason.** An order may not exist, be unpaid, or fail to meet a threshold. Try writing `Optional<Order>` with `filter`. Then propose a result type that distinguishes all three states and explain when to use it instead of Optional.
 
-**Bài 8 — Nguồn cần đóng.** Đọc các dòng trong tệp bằng `Files.lines`, lấy dòng đầu tiên không rỗng với `findFirst` và chuẩn hóa bằng `Optional.map` sau khi đã đóng tệp. Xác định vị trí đặt `try-with-resources`.
+**Exercise 8 — Source requiring closing.** Read lines from a file with `Files.lines`, get the first non-empty line with `findFirst`, and normalize it with `Optional.map` after closing the file. Determine where to place `try-with-resources`.
 
-Gợi ý Bài 4:
+Hint for Exercise 4:
 
 ```java
 List<Integer> present = optionals.stream()
@@ -1101,17 +1101,17 @@ List<Integer> present = optionals.stream()
     .toList();
 ```
 
-Trong đoạn này, `optionals` được giả định là `List<Optional<Integer>>` đã khai báo. Nếu danh sách chứa chính tham chiếu `null` thay vì `Optional.empty()`, cần làm sạch dữ liệu đầu vào vì `Optional::stream` không thể gọi trên `null`.
+In this snippet, `optionals` is assumed to be a declared `List<Optional<Integer>>`. If the list contains `null` references themselves instead of `Optional.empty()`, sanitize the input data because `Optional::stream` cannot be invoked on `null`.
 
-## 16. Ghi nhớ cốt lõi
+## 16. Core Takeaways
 
-- **`Optional<T>`** biểu diễn một kết quả có thể vắng mặt, thường nhận từ `findFirst`, `findAny`, `min`, `max` hoặc `reduce` không identity; nó không phải Stream nhiều phần tử.
-- **`Optional.map`** dùng cho hàm `T -> U`; nếu giá trị hiện diện, nó áp dụng mapper và bọc kết quả bằng Optional. Mapper trả `null` làm kết quả rỗng.
-- **`Optional.flatMap`** dùng cho hàm `T -> Optional<U>`; tránh tạo `Optional<Optional<U>>`. Mapper của `flatMap` phải trả đối tượng Optional khác `null`.
-- **`Optional.filter`** kiểm tra `Predicate<T>` nếu có giá trị; điều kiện sai sẽ cho `Optional.empty()`, còn kiểu giá trị bên trong không đổi.
-- **`map`, `flatMap`, `filter` trên Optional không lazy theo kiểu Stream pipeline.** Chúng xử lý tối đa một giá trị khi được gọi; nếu Optional rỗng, hàm hành vi không được gọi.
-- **`Optional.stream()` (Java 9+)** là cầu nối thuận tiện để làm phẳng `Stream<Optional<T>>` bằng `flatMap(Optional::stream)`.
-- **`orElse`, `orElseGet`, `orElseThrow` và `ifPresent`** biểu diễn chính sách cho kết quả cuối; phân biệt việc đánh giá sớm của `orElse` và đánh giá theo nhu cầu của `orElseGet`.
-- **`OptionalInt`, `OptionalLong` và `OptionalDouble`** là các kiểu chuyên biệt với API khác `Optional<T>`; có thể dùng `stream()` và `mapToObj` khi cần chuyển sang kiểu đối tượng.
-- **Optional không tự bắt ngoại lệ, không tự quản lý tài nguyên và không giải thích nhiều lý do thất bại.** Cần chọn kiểu kết quả, quy tắc xử lý lỗi, chiến lược tra cứu và vòng đời nguồn cho đúng bài toán.
-- Khi kết hợp với pipeline lazy, grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers trong **JAVA_STREAM_API**, hãy giữ rõ ranh giới giữa **luồng nhiều phần tử** và **một kết quả tùy chọn**.
+- **`Optional<T>`** represents a potentially absent result, typically obtained from `findFirst`, `findAny`, `min`, `max`, or `reduce` without identity; it is not a multi-element Stream.
+- **`Optional.map`** is for `T -> U` functions; if a value is present, it applies the mapper and wraps the result in an Optional. A mapper returning `null` yields an empty result.
+- **`Optional.flatMap`** is for `T -> Optional<U>` functions; it avoids producing `Optional<Optional<U>>`. The mapper of `flatMap` must return a non-null Optional object.
+- **`Optional.filter`** tests a `Predicate<T>` if a value is present; if the condition is false, it returns `Optional.empty()`, while the inner value's type stays unchanged.
+- **`map`, `flatMap`, and `filter` on Optional are not lazy like a Stream pipeline.** They process at most one value when called; if the Optional is empty, the behavior function is not invoked.
+- **`Optional.stream()` (Java 9+)** is a convenient bridge to flatten `Stream<Optional<T>>` via `flatMap(Optional::stream)`.
+- **`orElse`, `orElseGet`, `orElseThrow`, and `ifPresent`** express the policy for the final result; distinguish the eager evaluation of `orElse` from the on-demand evaluation of `orElseGet`.
+- **`OptionalInt`, `OptionalLong`, and `OptionalDouble`** are specialized types with APIs different from `Optional<T>`; you can use `stream()` and `mapToObj` when needing to convert to object types.
+- **Optional does not catch exceptions automatically, does not manage resources automatically, and does not explain multiple failure reasons.** Choose the right result type, error-handling rules, lookup strategy, and source lifecycle for the problem.
+- When combining with lazy pipelines, grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers in **JAVA_STREAM_API**, maintain a clear boundary between a **multi-element stream** and a **single optional result**.

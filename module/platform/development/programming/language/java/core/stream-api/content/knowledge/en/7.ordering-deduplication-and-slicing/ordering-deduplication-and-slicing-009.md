@@ -1,46 +1,46 @@
-# Tác động của thứ tự phép toán đến kết quả và chi phí
+# Impact of Operation Order on Results and Cost
 
-Trong Java Stream API, việc thay đổi vị trí của `filter`, `map`, `distinct`, `sorted`, `skip` hoặc `limit` không chỉ làm mã trông khác đi. Có những phép hoán đổi **giữ nguyên kết quả nhưng thay đổi chi phí**, và có những phép hoán đổi **làm thay đổi chính dữ liệu được chọn**. Điều này đặc biệt quan trọng khi cần chọn top N, phân trang, loại bản ghi trùng, xử lý nguồn rất lớn hoặc chuyển sang parallel stream.
+In the Java Stream API, changing the position of `filter`, `map`, `distinct`, `sorted`, `skip`, or `limit` does not merely make code look different. Some swaps **preserve the result while changing the cost**, while other swaps **change the actual data selected**. This matters greatly when selecting top N items, paginating, removing duplicate records, processing very large sources, or switching to parallel streams.
 
-Bài học thuộc chương **Thứ tự, loại trùng và cắt lát** của module `JAVA_STREAM_API`. Ta sẽ xét sự tương tác giữa pipeline lazy, `filter`, `map`, `reduce`, `collect`, thứ tự gặp phần tử (*encounter order*), các thao tác giữ trạng thái, phép ngắn mạch và chi phí CPU/bộ nhớ. Mục tiêu là biết **khi nào được đổi vị trí hai thao tác, vì sao và cách kiểm chứng**.
+This lesson belongs to the **Ordering, Deduplication, and Slicing** chapter of the `JAVA_STREAM_API` module. We examine the interaction among lazy pipelines, `filter`, `map`, `reduce`, `collect`, *encounter order*, stateful operations, short-circuiting operations, and CPU/memory cost. The goal is to know **when two operations can be reordered, why, and how to verify it**.
 
-Các ví dụ dùng `List.of(...)` (Java 9+); với Java 8 có thể thay bằng `Arrays.asList(...)`. Các thao tác cốt lõi như `filter`, `map`, `sorted`, `distinct`, `skip` và `limit` đã có từ Java 8; những ví dụ dùng `takeWhile`/`dropWhile` yêu cầu Java 9+.
+Examples use `List.of(...)` (Java 9+); on Java 8 you can substitute `Arrays.asList(...)`. Core operations such as `filter`, `map`, `sorted`, `distinct`, `skip`, and `limit` have existed since Java 8; examples using `takeWhile`/`dropWhile` require Java 9+.
 
-## 1. Phân biệt thứ tự gặp phần tử với thứ tự thao tác
+## 1. Distinguishing Encounter Order from Operation Order
 
-Pipeline mô tả một chuỗi biến đổi:
+A pipeline describes a sequence of transformations:
 
 ```text
 source → filter(...) → distinct() → sorted(...) → skip(...) → limit(...) → collect(...)
            │               │             │          │           │
-       lọc phần tử      loại trùng    sắp xếp    bỏ phần đầu  lấy tối đa N
+     filter elements   deduplicate     sort     skip head   take up to N
 ```
 
-Có hai khái niệm dễ nhầm:
+Two concepts are easy to confuse:
 
-- **Thứ tự thao tác** là vị trí của `filter`, `distinct`, `sorted`, `limit`... trong pipeline. Đổi thứ tự thao tác có thể đổi ý nghĩa của phép tính.
-- **Thứ tự gặp phần tử** (*encounter order*) là thứ tự logic mà nguồn và các thao tác cam kết duy trì. `List.stream()` thường có thứ tự theo danh sách; `HashSet.stream()` không cam kết thứ tự đó. `sorted()` tạo thứ tự theo comparator, còn `unordered()` loại bỏ ràng buộc thứ tự gặp phần tử ở các bước tiếp theo.
+- **Operation order** is the placement of `filter`, `distinct`, `sorted`, `limit`, etc., within the pipeline. Changing operation order can change the meaning of the computation.
+- **Encounter order** is the logical order the source and operations commit to maintaining. `List.stream()` normally follows list order; `HashSet.stream()` makes no such guarantee. `sorted()` creates order by comparator, whereas `unordered()` drops the encounter-order constraint for subsequent steps.
 
-Đừng đánh đồng encounter order với **thứ tự thực thi từng lambda**. Trong pipeline song song, các phần tử có thể được xử lý trên nhiều luồng và theo thứ tự khác thứ tự kết quả. Ngay cả pipeline tuần tự cũng có các thao tác như `sorted` phải thu thập nhiều phần tử rồi mới phát ra kết quả.
+Do not equate encounter order with the **execution order of individual lambdas**. In a parallel pipeline, elements may be processed across multiple threads in a different order from the output order. Even sequential pipelines include operations like `sorted` that must collect many elements before emitting results.
 
-Một bảng định hướng:
+An orientation table:
 
-| Thao tác | Tác động chính | Đặc điểm cần chú ý |
+| Operation | Primary effect | Key characteristics to watch |
 | --- | --- | --- |
-| `filter` | Giữ hoặc bỏ từng phần tử | Stateless, lazy; có thể phải duyệt nhiều đầu vào để tìm đủ phần tử |
-| `map` | Biến đổi giá trị từng phần tử | Stateless, lazy; có thể làm nhiều phần tử trở nên bằng nhau |
-| `distinct` | Loại phần tử trùng theo `equals` | Stateful; với Stream có thứ tự, giữ lần xuất hiện đầu |
-| `sorted` | Sắp xếp theo thứ tự tự nhiên/comparator | Stateful; thường cần xem toàn bộ nguồn hữu hạn |
-| `skip(n)` | Bỏ `n` phần tử đầu theo encounter order | Stateful; phụ thuộc những thao tác đứng trước |
-| `limit(n)` | Giữ tối đa `n` phần tử đầu | Stateful, short-circuiting; có thể dừng sớm tùy pipeline |
-| `takeWhile` / `dropWhile` | Lấy/bỏ **tiền tố liên tiếp** thỏa điều kiện | Có từ Java 9; phụ thuộc mạnh vào encounter order |
-| `unordered` | Bỏ ràng buộc encounter order | Không có nghĩa là xáo trộn phần tử; ảnh hưởng phép chọn và tối ưu |
+| `filter` | Retains or discards each element | Stateless, lazy; may need to scan many inputs to find enough matches |
+| `map` | Transforms each element's value | Stateless, lazy; may collapse distinct elements into equal ones |
+| `distinct` | Removes duplicate elements by `equals` | Stateful; on ordered Streams, retains the first occurrence |
+| `sorted` | Sorts by natural order or comparator | Stateful; generally needs to inspect the entire finite source |
+| `skip(n)` | Discards the first `n` elements in encounter order | Stateful; depends on preceding operations |
+| `limit(n)` | Keeps at most the first `n` elements | Stateful, short-circuiting; may stop early depending on pipeline |
+| `takeWhile` / `dropWhile` | Takes/drops a **contiguous prefix** matching a condition | Java 9+; strongly dependent on encounter order |
+| `unordered` | Drops the encounter-order constraint | Does not shuffle elements; affects selection and optimizations |
 
-Các terminal operation như `collect`, `count`, `findFirst` hoặc `anyMatch` kích hoạt pipeline. Bản thân việc lắp ghép thao tác trung gian thường chưa thực hiện duyệt; nhưng sự tồn tại của `sorted` hoặc `distinct` có thể khiến một terminal operation không tận dụng được khả năng dừng sớm.
+Terminal operations such as `collect`, `count`, `findFirst`, or `anyMatch` trigger the pipeline. Chaining intermediate operations alone does not start traversal; however, the presence of `sorted` or `distinct` can prevent a terminal operation from taking advantage of early stopping.
 
-## 2. filter và limit: chọn đủ N kết quả hay chỉ xét N đầu vào?
+## 2. `filter` and `limit`: Picking N Qualifying Results vs Inspecting Only N Inputs?
 
-Cho một danh sách có thứ tự:
+Given an ordered list:
 
 ```java
 import java.util.List;
@@ -62,14 +62,14 @@ System.out.println(a); // [2, 4]
 System.out.println(b); // [2]
 ```
 
-- **`filter(...).limit(2)`** nghĩa là tìm **tối đa hai phần tử thỏa điều kiện** trong toàn nguồn. Pipeline có thể phải đi qua các phần tử bị loại trước khi lấy đủ hai phần tử.
-- **`limit(2).filter(...)`** nghĩa là chỉ xem **hai phần tử đầu nguồn**, rồi lọc chúng. Số phần tử kết quả có thể ít hơn hai dù phía sau còn phần tử hợp lệ.
+- **`filter(...).limit(2)`** means finding **at most two elements satisfying the condition** across the entire source. The pipeline may have to inspect rejected elements before collecting two matches.
+- **`limit(2).filter(...)`** means inspecting only the **first two source elements**, then filtering them. The result may have fewer than two elements even if valid items exist later.
 
-Không thể đẩy `limit` lên trước `filter` chỉ vì muốn xử lý ít dữ liệu hơn: như vậy thường thay đổi yêu cầu nghiệp vụ.
+You cannot push `limit` before `filter` just to process less data: doing so usually changes the business requirement.
 
-Khi dùng `findFirst`, đặt `filter` trước `findFirst` là cách tìm **phần tử đầu tiên thỏa điều kiện**; còn nếu muốn chỉ kiểm tra phần tử đầu tiên của nguồn, phải diễn đạt giới hạn một cách tường minh.
+When using `findFirst`, placing `filter` before `findFirst` finds the **first element matching the condition**; if you want to inspect only the very first element of the source, express that limit explicitly.
 
-## 3. sorted và limit: top N toàn cục khác với sắp xếp N đầu vào
+## 3. `sorted` and `limit`: Global Top N vs Sorting the First N Inputs
 
 ```java
 List<Integer> scores = List.of(9, 2, 8, 1, 7);
@@ -88,11 +88,11 @@ System.out.println(smallestGlobal); // [1, 2, 7]
 System.out.println(sortedPrefix);   // [2, 8, 9]
 ```
 
-`sorted().limit(3)` tìm **ba giá trị nhỏ nhất của toàn bộ dữ liệu**. Với nguồn không biết trước thứ tự, `sorted` thường phải xem tất cả `N` phần tử, dùng bộ nhớ đáng kể và có chi phí sắp xếp điển hình `O(N log N)` trước khi có thể cho kết quả.
+`sorted().limit(3)` finds the **three smallest values across the entire dataset**. On a source without pre-established order, `sorted` must typically examine all `N` elements, use significant memory, and pay a typical `O(N log N)` sorting cost before emitting results.
 
-`limit(3).sorted()` chỉ giữ **ba phần tử đầu**, rồi sắp xếp chúng. Chi phí sắp xếp nhỏ hơn nhưng ý nghĩa là một truy vấn khác.
+`limit(3).sorted()` keeps only the **first three elements**, then sorts them. Sorting cost is smaller, but it answers a different query.
 
-Tương tự, để tìm top ba lớn nhất:
+Similarly, to find the top three largest:
 
 ```java
 import java.util.Comparator;
@@ -105,9 +105,9 @@ List<Integer> top3 = scores.stream()
 System.out.println(top3); // [9, 8, 7]
 ```
 
-Đối với tập dữ liệu rất lớn và chỉ cần vài phần tử đứng đầu, có thể cần thuật toán **top K bằng heap giới hạn K phần tử**, hoặc đẩy sắp xếp/giới hạn xuống nguồn dữ liệu có chỉ mục, thay vì luôn `sorted().limit(k)`. Không nên tự ý đổi thành `limit(k).sorted()` để tiết kiệm CPU vì kết quả sẽ khác.
+For very large datasets where only a handful of top items are needed, you may want a **bounded size-K heap top-K algorithm**, or push sorting/limiting down to an indexed data source instead of always calling `sorted().limit(k)`. Never arbitrarily switch to `limit(k).sorted()` to save CPU, because the result will differ.
 
-## 4. distinct và limit: đủ N phần tử khác nhau hay loại trùng trong N đầu?
+## 4. `distinct` and `limit`: N Distinct Elements vs Deduplicating the First N?
 
 ```java
 List<Integer> ids = List.of(1, 1, 2, 3, 4);
@@ -126,15 +126,15 @@ System.out.println(uniqueFirst);  // [1, 2, 3]
 System.out.println(limitedFirst); // [1, 2]
 ```
 
-Trong Stream **có encounter order**, `distinct` giữ **phần tử đầu tiên** trong mỗi nhóm bằng nhau. Sau khi loại trùng, `limit(3)` tìm đủ ba giá trị khác nhau nếu nguồn có ít nhất ba giá trị khác nhau. Đổi vị trí sẽ giới hạn số bản ghi thô trước khi loại trùng, nên có thể không thu được đủ ba giá trị.
+On a Stream **with encounter order**, `distinct` keeps the **first element** in each equal group. After deduplicating, `limit(3)` gathers three distinct values if the source has at least three distinct values. Swapping them caps raw records before deduplicating, so you might not get three values.
 
-`distinct()` thường cần một cấu trúc theo dõi các giá trị đã gặp. Kích thước bộ nhớ phụ thuộc số giá trị khác nhau đã xem (`U`); chi phí hash trung bình thường tăng theo lượng dữ liệu cần xét. Với ordered parallel stream, yêu cầu giữ phần tử gặp đầu tiên khiến `distinct` có thể tốn nhiều phối hợp và bộ đệm hơn.
+`distinct()` normally requires a structure tracking seen values. Memory footprint depends on the number of distinct values seen (`U`); average hashing cost generally scales with the amount of data inspected. On an ordered parallel stream, preserving the first-seen element can make `distinct` require more coordination and buffering.
 
-**Nguy cơ với nguồn vô hạn:** `Stream.generate(() -> 1).distinct().limit(2)` không thể tìm thấy hai giá trị khác nhau; đừng chạy ví dụ này vì terminal operation có thể không kết thúc. `limit` đặt cuối pipeline không bảo đảm toàn bộ pipeline luôn hoàn tất.
+**Infinite source hazard:** `Stream.generate(() -> 1).distinct().limit(2)` can never find two distinct values; do not run this example because the terminal operation may never finish. Placing `limit` at the end of a pipeline does not guarantee the entire pipeline terminates.
 
-## 5. map và distinct: kiểu giá trị sau biến đổi quyết định trùng lặp
+## 5. `map` and `distinct`: Post-Transformation Values Determine Duplication
 
-`map` có thể biến hai giá trị ban đầu khác nhau thành cùng một giá trị. Vì vậy đổi `map` và `distinct` rất dễ gây sai:
+`map` can turn two initially distinct values into the same value. Thus swapping `map` and `distinct` easily introduces bugs:
 
 ```java
 import java.util.Locale;
@@ -155,15 +155,15 @@ System.out.println(normalizeThenUnique); // [an, binh]
 System.out.println(uniqueThenNormalize); // [an, an, binh]
 ```
 
-Với `map(...).distinct()`, trùng lặp được quyết định **sau chuẩn hóa**. Với `distinct().map(...)`, trùng lặp được quyết định **trước chuẩn hóa**, nên hai phần tử khác nhau ban đầu có thể thành hai bản sao giống nhau ở đầu ra.
+With `map(...).distinct()`, duplicates are decided **after normalization**. With `distinct().map(...)`, duplicates are decided **before normalization**, so two initially different elements can turn into two identical copies in the output.
 
-Điều kiện để đổi vị trí mà vẫn giữ kết quả không chỉ là hàm `map` thuần (*pure*) và stateless: còn phải xem hàm có **bảo toàn quan hệ bằng nhau** hay không. Nếu phép ánh xạ làm hai giá trị khác nhau trở thành bằng nhau, hoán đổi không an toàn. Với dữ liệu object, `distinct()` dựa vào `equals`/`hashCode` của **kiểu đang có ở thời điểm đó**, không tự biết “trùng ID nghiệp vụ”.
+The condition for safely reordering them is not just that the `map` function is pure and stateless: you must also check whether the function **preserves equality relationships**. If mapping collapses distinct values into equal ones, swapping is unsafe. For objects, `distinct()` relies on `equals`/`hashCode` of the **type present at that stage**, and does not automatically know "business ID duplication".
 
-Nếu muốn loại trùng theo khóa, hãy thể hiện rõ quy tắc bằng cấu trúc phù hợp, chẳng hạn map từ ID sang bản ghi với merge function xác định; việc dùng `distinct` trên toàn object có thể không đúng nghiệp vụ.
+If you want to deduplicate by key, express the rule explicitly with a suitable structure, such as mapping IDs to records with a deterministic merge function; calling `distinct` on the whole object may violate business requirements.
 
-## 6. filter và distinct: trường hợp kết quả thường như nhau nhưng chi phí khác
+## 6. `filter` and `distinct`: Usually Same Result, Different Cost
 
-Khi `filter` dùng một predicate cố định, không tác dụng phụ, kết quả không phụ thuộc vào những phần tử khác, và sự bằng nhau được xét nhất quán, ta thường có thể lọc trước hay sau loại trùng mà vẫn nhận cùng dãy giá trị:
+When `filter` uses a fixed, side-effect-free predicate whose outcome does not depend on other elements, and equality is checked consistently, filtering before or after deduplicating usually yields the exact same sequence of values:
 
 ```java
 List<Integer> values = List.of(2, 2, 3, 3, 4, 4, 5);
@@ -182,20 +182,20 @@ System.out.println(filterThenDistinct); // [2, 4]
 System.out.println(distinctThenFilter); // [2, 4]
 ```
 
-Đưa `filter` lên trước có thể giảm số phần tử phải đưa vào cấu trúc loại trùng. Nếu predicate rẻ và loại bỏ phần lớn dữ liệu, đây thường là cách tốt. Nhưng không phải lúc nào cũng tiết kiệm: nếu predicate tốn kém và nguồn có rất nhiều bản sao, loại trùng trước có thể giảm số lần đánh giá predicate.
+Moving `filter` earlier can reduce the number of elements fed into the deduplication structure. If the predicate is cheap and drops most elements, this is usually beneficial. Yet it does not always save work: if the predicate is expensive and the source contains heavy duplication, deduplicating first can reduce predicate evaluations.
 
-Ví dụ: với một triệu bản ghi nhưng chỉ có mười ID khác nhau, một phép kiểm tra mạng cho mỗi ID (dù nhìn chung không nên thực hiện I/O trong predicate) có chi phí khác hẳn với một phép toán `n % 2`. Cách giải thực tế có thể là gom ID rồi xử lý theo lô, thay vì tối ưu vị trí `filter` một cách máy móc.
+For instance: with one million records containing only ten distinct IDs, a network check per ID (though I/O generally should not be performed in a predicate) behaves very differently from `n % 2`. A practical solution might collect the IDs first and batch-process them, rather than mechanically optimizing `filter` placement.
 
-**Điều kiện quan trọng:** nếu predicate phụ thuộc trạng thái thay đổi, thời gian hoặc tác dụng phụ, việc di chuyển nó có thể thay đổi kết quả. Với Stream API, các hàm hành vi nên stateless và không can thiệp vào nguồn; chỉ bàn chuyện hoán đổi khi hợp đồng này được giữ.
+**Crucial precondition:** if the predicate depends on mutable state, time, or side effects, moving it can alter results. In the Stream API, behavioral functions should be stateless and non-interfering; consider reordering only when that contract holds.
 
-## 7. filter, map và chi phí của phép biến đổi
+## 7. `filter`, `map`, and Transformation Cost
 
-Một phép biến đổi đắt đỏ nên được áp dụng cho **ít phần tử nhất có thể**, miễn yêu cầu lọc vẫn đúng.
+An expensive transformation should be applied to **as few elements as possible**, provided filtering remains accurate.
 
 ```java
 List<Integer> raw = List.of(-2, 0, 1, 5, 8);
 
-// "Chuẩn bị" ở đây chỉ là ví dụ cho phép tính có chi phí.
+// "Preparation" here is just an example of a computation with cost.
 List<String> result = raw.stream()
         .filter(n -> n > 0)
         .map(n -> "item-" + n)
@@ -204,12 +204,12 @@ List<String> result = raw.stream()
 System.out.println(result); // [item-1, item-5, item-8]
 ```
 
-Đặt `filter(n -> n > 0)` trước `map` tránh tạo chuỗi cho số không hợp lệ. Nhưng nếu điều kiện lọc được định nghĩa trên **kết quả đã biến đổi**, không thể tùy ý chuyển nó lên trước:
+Placing `filter(n -> n > 0)` before `map` avoids building strings for invalid numbers. However, if the filter condition is defined on the **transformed result**, you cannot arbitrarily move it earlier:
 
 ```java
 List<String> codes = List.of(" A ", " ", "B", "  C ");
 
-// Lọc sau khi chuẩn hóa, vì điều kiện dựa vào chuỗi đã trim.
+// Filter after normalizing, because the condition checks the trimmed string.
 List<String> cleaned = codes.stream()
         .map(String::trim)
         .filter(s -> !s.isEmpty())
@@ -218,11 +218,11 @@ List<String> cleaned = codes.stream()
 System.out.println(cleaned); // [A, B, C]
 ```
 
-Cần phân biệt phép biến đổi **đổi kiểu dữ liệu**, **đổi ý nghĩa dữ liệu** hoặc **tăng/giảm cardinality**. Chỉ khi predicate có thể diễn đạt tương đương trên đầu vào ban đầu và hàm ánh xạ an toàn, stateless thì việc chuyển `filter` lên trước mới đáng cân nhắc.
+Distinguish transformations that **change data type**, **change data meaning**, or **increase/decrease cardinality**. Moving `filter` earlier is only worth considering when an equivalent predicate can be expressed on the original input and the mapping function is safe and stateless.
 
-## 8. skip, limit và phân trang: thứ tự quyết định trang nào
+## 8. `skip`, `limit`, and Pagination: Order Determines Which Page
 
-Dùng `skip(offset).limit(pageSize)` để cắt một cửa sổ trong dãy đã xác định thứ tự:
+Use `skip(offset).limit(pageSize)` to slice a window from a sequence with an established order:
 
 ```java
 List<String> rows = List.of("A", "B", "C", "D", "E", "F");
@@ -235,9 +235,9 @@ List<String> page = rows.stream()
 System.out.println(page); // [C, D, E]
 ```
 
-Đảo thành `limit(3).skip(2)` chỉ giữ ba phần tử đầu rồi bỏ hai phần tử trong số đó: kết quả `[C]`. Hai pipeline không tương đương.
+Reversing to `limit(3).skip(2)` retains only the first three elements and discards two of them: result `[C]`. The two pipelines are not equivalent.
 
-Vị trí `skip` so với `filter` cũng rất quan trọng:
+The placement of `skip` relative to `filter` also matters greatly:
 
 ```java
 List<Integer> data = List.of(1, 2, 3, 4, 5, 6);
@@ -256,19 +256,19 @@ System.out.println(filteredPage); // [4, 6]
 System.out.println(rawPage);      // [2, 4, 6]
 ```
 
-Nếu nghiệp vụ là “phân trang **các bản ghi thỏa điều kiện**”, thứ tự thông dụng là:
+If the requirement is "paginate **records matching the condition**", the standard order is:
 
 ```text
-source → filter(điều kiện) → sorted(thứ tự ổn định) → skip(offset) → limit(pageSize)
+source → filter(condition) → sorted(stable order) → skip(offset) → limit(pageSize)
 ```
 
-Khi `skip`/`limit` đứng trước `sorted`, bạn chỉ đang sắp xếp một đoạn của dữ liệu nguồn, không tạo “trang thứ N theo thứ tự toàn cục”.
+When `skip`/`limit` comes before `sorted`, you are only sorting one slice of the source data, not producing "page N in global order".
 
-**Phân trang tin cậy cần thứ tự nhất quán.** Nếu comparator cho phép hai bản ghi bằng nhau theo khóa sắp xếp, thứ tự của các bản ghi đó có thể chưa xác định đủ để chia trang ổn định giữa các lượt đọc, đặc biệt khi nguồn hoặc dữ liệu thay đổi. Nên bổ sung khóa phụ duy nhất (ví dụ ID) và cân nhắc cách phân trang theo khóa (*keyset pagination*) cho dữ liệu lớn, thay vì tăng `skip` liên tục.
+**Reliable pagination requires consistent ordering.** If the comparator lets two records tie on the sort key, their order may not be deterministic enough for stable paging across reads, especially if the source or data changes. Add a unique secondary key (such as an ID) and consider *keyset pagination* for large datasets instead of continually increasing `skip`.
 
-## 9. takeWhile và dropWhile không giống filter
+## 9. `takeWhile` and `dropWhile` Are Not Like `filter`
 
-Từ Java 9, `takeWhile` và `dropWhile` xử lý **tiền tố liên tiếp** của Stream **có encounter order**.
+Since Java 9, `takeWhile` and `dropWhile` operate on a **contiguous prefix** of a Stream **with encounter order**.
 
 ```java
 List<Integer> measures = List.of(1, 2, 5, 4, 3);
@@ -292,11 +292,11 @@ System.out.println(
 ); // [5, 4, 3]
 ```
 
-- `filter(predicate)` xét từng phần tử độc lập và giữ **tất cả** phần tử thỏa điều kiện.
-- `takeWhile(predicate)` nhận **tiền tố dài nhất** liên tục thỏa điều kiện rồi dừng nhận.
-- `dropWhile(predicate)` bỏ **tiền tố dài nhất** liên tục thỏa điều kiện, sau đó giữ toàn bộ phần còn lại (kể cả phần tử lại thỏa điều kiện).
+- `filter(predicate)` tests each element independently and keeps **all** matching elements.
+- `takeWhile(predicate)` takes the **longest prefix** continuously satisfying the condition and then stops taking.
+- `dropWhile(predicate)` discards the **longest prefix** continuously satisfying the condition, then keeps the entire remainder (even elements that match again).
 
-Vị trí của `sorted` trước `takeWhile` hoặc `dropWhile` có thể đổi tiền tố được chọn:
+Putting `sorted` before `takeWhile` or `dropWhile` changes which prefix is selected:
 
 ```java
 List<Integer> unsorted = List.of(1, 2, 5, 4, 3);
@@ -309,16 +309,16 @@ List<Integer> afterSorting = unsorted.stream()
 System.out.println(afterSorting); // [1, 2, 3, 4]
 ```
 
-Với Stream unordered, `takeWhile`/`dropWhile` không giữ nghĩa tiền tố theo thứ tự danh sách gốc; theo hợp đồng, tập phần tử được chọn/bỏ có thể không như bạn dự đoán. Nếu yêu cầu “mọi giá trị nhỏ hơn 5”, hãy dùng `filter`.
+On an unordered Stream, `takeWhile`/`dropWhile` do not preserve prefix semantics in original list order; by contract, the subset kept or dropped may not match your expectation. If the requirement is "all values less than 5", use `filter`.
 
-## 10. Encounter order, unordered và parallel stream
+## 10. Encounter Order, `unordered`, and Parallel Streams
 
-`unordered()` không phải phép xáo trộn như `shuffle`. Nó thông báo các bước downstream rằng thứ tự gặp phần tử **không cần được tôn trọng**. Tùy nguồn và terminal operation, điều này có thể giúp một số phép toán chạy song song hiệu quả hơn nhưng làm mất cam kết về “đầu tiên”.
+`unordered()` is not a randomizer like `shuffle`. It notifies downstream stages that encounter order **does not need to be respected**. Depending on the source and terminal operation, this can let some operations run more efficiently in parallel while dropping guarantees about "first".
 
 ```java
 List<Integer> numbers = List.of(4, 1, 4, 3, 2, 3, 5);
 
-// Giữ thứ tự encounter order của List và lần xuất hiện đầu.
+// Preserves the List's encounter order and first occurrences.
 List<Integer> ordered = numbers.parallelStream()
         .distinct()
         .limit(3)
@@ -327,7 +327,7 @@ List<Integer> ordered = numbers.parallelStream()
 System.out.println(ordered); // [4, 1, 3]
 ```
 
-Nếu thêm `unordered()`, không thể khẳng định ba phần tử khác nhau nào sẽ được giữ:
+If you add `unordered()`, you cannot assert which three distinct elements will be retained:
 
 ```java
 List<Integer> someThree = numbers.parallelStream()
@@ -336,31 +336,31 @@ List<Integer> someThree = numbers.parallelStream()
         .limit(3)
         .collect(Collectors.toList());
 
-// Có tối đa ba giá trị khác nhau; thành viên và thứ tự
-// không được bảo đảm trùng với [4, 1, 3].
+// Contains at most three distinct values; membership and order
+// are not guaranteed to match [4, 1, 3].
 ```
 
-Đối với pipeline trên, có ít nhất ba giá trị khác nhau, nên giới hạn cho ra ba phần tử nếu thực thi hoàn tất bình thường. Nhưng không được kỳ vọng đó là **ba giá trị đầu**, hay **ba giá trị nhỏ nhất**. Đặt `sorted()` **sau** `limit(3)` không sửa được sai nghĩa “top ba toàn cục”, vì các phần tử đã bị cắt trước khi sắp xếp.
+For the pipeline above, there are at least three distinct values, so `limit` yields three elements if execution completes normally. Do not expect them to be the **first three values** or the **three smallest values**. Placing `sorted()` **after** `limit(3)` does not fix the wrong "global top three" semantics, because elements were already sliced before sorting.
 
-Trong pipeline song song có encounter order, `skip`, `limit` và `distinct` thường tốn chi phí phối hợp để duy trì ràng buộc “phần tử đầu tiên”. Chỉ dùng `unordered()` khi nghiệp vụ thực sự **không quan tâm phần tử nào được chọn**. `sorted()` trước `limit()` có ý nghĩa khác, nên không thể thay bằng `unordered()` để lấy top N.
+In an ordered parallel pipeline, `skip`, `limit`, and `distinct` often pay coordination overhead to preserve the "first element" constraint. Use `unordered()` only when business logic genuinely **does not care which elements are selected**. `sorted()` before `limit()` has a different meaning, so `unordered()` cannot replace it for top-N queries.
 
-### forEach và forEachOrdered
+### `forEach` and `forEachOrdered`
 
 ```java
 List.of(10, 20, 30).parallelStream()
-        .forEach(System.out::println); // Thứ tự in không được bảo đảm.
+        .forEach(System.out::println); // Print order is not guaranteed.
 
 List.of(10, 20, 30).parallelStream()
         .forEachOrdered(System.out::println); // 10, 20, 30
 ```
 
-`forEachOrdered` bảo đảm quan hệ encounter order của việc thực hiện hành động đối với các phần tử khi Stream có thứ tự. Không nên xem thứ tự in của `peek` hoặc trạng thái biến dùng chung trong `map` là căn cứ kiểm chứng thứ tự kết quả.
+`forEachOrdered` preserves encounter-order execution of actions when the Stream is ordered. Do not treat `peek` print order or shared-variable mutation in `map` as proof of result ordering.
 
-## 11. Lazy, short-circuit và hai loại chi phí
+## 11. Laziness, Short-Circuiting, and Two Kinds of Cost
 
-Thứ tự thao tác quyết định **bao nhiêu phần tử phải đi qua một bước**, nhưng không thể suy đoán số lần chạy lambda bằng một công thức cứng cho mọi nguồn và mọi terminal operation.
+Operation order determines **how many elements must flow through a stage**, yet you cannot predict lambda invocation counts using a rigid formula for every source and terminal operation.
 
-Với pipeline tuần tự:
+In a sequential pipeline:
 
 ```java
 import java.util.stream.IntStream;
@@ -373,9 +373,9 @@ long found = IntStream.rangeClosed(1, 1_000_000)
 System.out.println(found); // 2
 ```
 
-Để tìm hai số chia hết cho 1.000 đầu tiên, pipeline có thể cần xét tới số 2.000, nhưng không cần duyệt cả một triệu số. Vậy `limit(2)` **giới hạn số đầu ra**, không giới hạn đầu vào phải kiểm tra đến đúng hai phần tử.
+To find the first two numbers divisible by 1,000, the pipeline may inspect up to 2,000, without traversing all one million numbers. Thus `limit(2)` **bounds the output count**, not the input count checked to just two elements.
 
-Ngược lại:
+Conversely:
 
 ```java
 long top = IntStream.rangeClosed(1, 1_000_000)
@@ -387,9 +387,9 @@ long top = IntStream.rangeClosed(1, 1_000_000)
 System.out.println(top); // 2
 ```
 
-Việc đặt `sorted` trước `limit` có thể buộc pipeline phải xem toàn bộ đầu vào để biết phần tử lớn nhất, dù chỉ trả về hai phần tử. Tuy nhiên, không được suy luận **đã thực sự có một triệu lời gọi comparator** chỉ từ mã nguồn này: Stream API cho phép một số terminal operation (đặc biệt `count` trên pipeline biết kích thước) tối ưu hóa bỏ qua việc duyệt khi kết quả đếm không thay đổi. Muốn thấy giá trị top hai, hãy dùng `collect` thay vì `count`.
+Putting `sorted` before `limit` can force the pipeline to inspect the entire input to find the largest elements, even though only two elements are returned. However, do not infer that **one million comparator calls actually happened** from this snippet alone: the Stream API lets certain terminal operations (especially `count` on sized pipelines) optimize away traversal when the count is unaffected. To inspect the top two values, use `collect` instead of `count`.
 
-### Stream vô hạn và thứ tự đặt limit
+### Infinite Streams and `limit` Placement
 
 ```java
 import java.util.stream.Stream;
@@ -402,50 +402,50 @@ List<Long> firstFiveSorted = Stream.iterate(0L, n -> n + 1)
 System.out.println(firstFiveSorted); // [0, 1, 2, 3, 4]
 ```
 
-Ở đây `limit(5)` biến nguồn vô hạn thành đoạn hữu hạn rồi `sorted` xử lý được. Đảo thành `Stream.iterate(...).sorted().limit(5)` có thể khiến pipeline **không bao giờ tạo phần tử đầu**, vì `sorted` cần xác định thứ tự trước khi phát kết quả từ nguồn không kết thúc. Đây là ví dụ về thay đổi thứ tự vừa sai về khả năng hoàn tất, vừa nguy hiểm cho bộ nhớ.
+Here `limit(5)` turns an infinite source into a finite slice so `sorted` can complete. Flipping it to `Stream.iterate(...).sorted().limit(5)` can cause the pipeline **never to emit a first element**, because `sorted` needs to establish order before emitting from a non-terminating source. This is an example of a reordering that breaks both termination and memory safety.
 
-### Các phép trung gian có trạng thái
+### Stateful Intermediate Operations
 
-| Thao tác | Chi phí điển hình (nguồn hữu hạn) | Khả năng dừng sớm |
+| Operation | Typical cost (finite source) | Early-stopping capability |
 | --- | --- | --- |
-| `map` / `filter` | Theo số phần tử thực sự được xét, thường không cần bộ đệm toàn cục | Có thể kết hợp với `limit`, `findFirst` hoặc `anyMatch` |
-| `distinct` | Theo số phần tử xem và số khóa khác nhau đã gặp; có thể giữ tập khóa | `distinct().limit(k)` có thể dừng khi đủ k giá trị, nhưng không luôn đạt đủ |
-| `sorted` | Thường `O(N log N)` thời gian và `O(N)` bộ nhớ | Thường không phát kết quả trước khi xác định thứ tự cần thiết |
-| `skip(n)` | Cần bỏ qua n phần tử theo encounter order | Với nguồn có kích thước/khả năng tách phù hợp có thể tối ưu |
-| `limit(n)` | Chỉ phát tối đa n phần tử downstream | Có khả năng dừng sớm, trừ khi upstream giữ trạng thái cản trở |
+| `map` / `filter` | Proportional to elements actually inspected; usually no global buffer | Can short-circuit with `limit`, `findFirst`, or `anyMatch` |
+| `distinct` | Proportional to elements seen and distinct keys encountered; may buffer key set | `distinct().limit(k)` can stop once k distinct values arrive, if enough exist |
+| `sorted` | Typically `O(N log N)` time and `O(N)` memory | Usually cannot emit elements until required order is established |
+| `skip(n)` | Must discard n elements in encounter order | Can optimize on sized/splittable sources |
+| `limit(n)` | Emits at most n elements downstream | Short-circuiting, unless an upstream stateful step blocks it |
 
-Đây là nhận định để **định hướng thiết kế**, không phải cam kết về thuật toán nội bộ mọi JDK. Thao tác có thể được tối ưu hoặc thực thi khác tùy nguồn, đặc tính `Spliterator`, terminal operation và parallelism.
+These are **design heuristics**, not rigid internal-algorithm guarantees across every JDK. Operations may be optimized or executed differently depending on the source, `Spliterator` characteristics, terminal operation, and parallelism.
 
-## 12. Checklist để quyết định có được đổi thứ tự hay không
+## 12. Checklist for Deciding Whether Reordering Is Safe
 
-Trước khi chuyển một thao tác lên sớm hơn để “nhanh hơn”, hãy lần lượt hỏi:
+Before moving an operation earlier to make it "faster", ask in sequence:
 
-1. **Yêu cầu chọn phần tử nào?** `limit`, `skip`, `takeWhile`, `findFirst` có phụ thuộc encounter order không?
-2. **Phần tử có đổi ý nghĩa sau `map` không?** Nếu `map` chuẩn hóa, làm tròn hoặc lấy khóa, `distinct` trước và sau có thể loại các nhóm khác nhau.
-3. **Predicate có độc lập với dữ liệu khác không?** Chỉ hoán đổi những hàm thuần, stateless, không có tác dụng phụ và giữ nguyên ý nghĩa.
-4. **Có cần sắp xếp toàn cục không?** `sorted().limit(k)` và `limit(k).sorted()` giải hai bài toán khác nhau.
-5. **Nguồn hữu hạn hay vô hạn?** `sorted` và một số `distinct` có thể không hoàn tất khi đặt trước short-circuit.
-6. **Nguồn có encounter order không?** Nếu không, “đầu tiên” có thể không xác định; thêm `unordered` có thể mở quyền chọn phần tử khác.
-7. **Chi phí nằm ở đâu?** Lọc sớm giảm lượng dữ liệu đi qua bước tốn bộ nhớ, nhưng có thể tăng số lần gọi predicate đắt tiền nếu nó đứng trước `distinct`.
-8. **Đã đo trên nguồn thực chưa?** Đo cả CPU, bộ nhớ, số bản ghi trả về, thời gian đọc nguồn và sự ổn định của kết quả.
+1. **Which elements are required?** Do `limit`, `skip`, `takeWhile`, or `findFirst` depend on encounter order?
+2. **Do elements change identity/value after `map`?** If `map` normalizes, rounds, or extracts a key, `distinct` before and after may deduplicate different groups.
+3. **Is the predicate independent of other data?** Only swap pure, stateless, side-effect-free functions that preserve meaning.
+4. **Is global sorting required?** `sorted().limit(k)` and `limit(k).sorted()` solve two different problems.
+5. **Is the source finite or infinite?** `sorted` and some uses of `distinct` may never finish when placed before a short-circuit.
+6. **Does the source have an encounter order?** If not, "first" may be unspecified; adding `unordered` permits picking different elements.
+7. **Where is the bottleneck?** Filtering early shrinks data flowing into expensive stages, yet may increase calls to an expensive predicate if placed before `distinct`.
+8. **Have you measured on real data?** Measure CPU, memory, returned record count, source read time, and result stability.
 
-Một bảng ví dụ ngắn:
+A quick example table:
 
-| Hoán đổi | Kết quả có thường giống nhau không? | Lý do |
+| Swap | Usually same result? | Reason |
 | --- | --- | --- |
-| `filter` ↔ `limit` | **Không** | Lọc đủ N giá trị khác với xét N đầu vào |
-| `sorted` ↔ `limit` | **Không** | Top N toàn cục khác sắp xếp N phần tử đầu |
-| `distinct` ↔ `limit` | **Không** | Số giá trị khác nhau sau cắt có thể ít hơn N |
-| `skip` ↔ `limit` | **Không** | Thay cửa sổ cắt |
-| `filter` ↔ `skip` | **Không** | Bỏ phần tử trước hay sau lọc |
-| `map` ↔ `distinct` | **Không, nếu map làm thay đổi quan hệ bằng nhau** | Trùng lặp được xét trên hai kiểu/giá trị khác nhau |
-| `filter` ↔ `distinct` | **Thường có**, khi predicate thuần và nhất quán với equality | Chi phí lọc/hash có thể khác |
-| `filter` ↔ `sorted` | **Thường có**, nếu predicate thuần, comparator phù hợp và chỉ cần kết quả đã lọc có thứ tự | Lọc trước thường giảm khối lượng sắp xếp |
-| `takeWhile` ↔ `sorted` | **Không** | Điều kiện tiền tố được áp dụng trên thứ tự khác |
+| `filter` ↔ `limit` | **No** | Filtering N matches differs from inspecting N inputs |
+| `sorted` ↔ `limit` | **No** | Global top N differs from sorting the first N elements |
+| `distinct` ↔ `limit` | **No** | Distinct count after slicing may be less than N |
+| `skip` ↔ `limit` | **No** | Changes the sliced window |
+| `filter` ↔ `skip` | **No** | Skips elements before vs after filtering |
+| `map` ↔ `distinct` | **No, if map alters equality** | Duplication is tested on two different types/values |
+| `filter` ↔ `distinct` | **Usually yes**, when predicate is pure and consistent with equality | Filtering/hashing cost may differ |
+| `filter` ↔ `sorted` | **Usually yes**, if predicate is pure, comparator fits, and only sorted filtered output is needed | Filtering first usually reduces sorting volume |
+| `takeWhile` ↔ `sorted` | **No** | Prefix condition is applied to a different order |
 
-## 13. Ví dụ tổng hợp: chọn top ba điểm sản phẩm theo quy tắc nghiệp vụ
+## 13. Comprehensive Example: Selecting Top Three Product Scores by Business Rules
 
-Giả sử danh sách điểm sản phẩm có thể chứa bản ghi trùng, điểm dưới ngưỡng và xuất hiện không theo thứ tự. Nhiệm vụ là **lấy ba điểm cao nhất khác nhau, sau khi loại điểm dưới 8**.
+Suppose a list of product scores may contain duplicates, scores below a threshold, and unsorted entries. The task is to **get the three highest distinct scores after removing scores below 8**.
 
 ```java
 import java.util.Comparator;
@@ -464,14 +464,14 @@ List<Integer> topDistinct = scores.stream()
 System.out.println(topDistinct); // [12, 10, 9]
 ```
 
-Thứ tự ở đây có ý nghĩa rõ ràng:
+The order here has clear meaning:
 
-1. `filter(score >= 8)` loại dữ liệu không đạt yêu cầu ngay từ đầu.
-2. `distinct()` giữ một lần xuất hiện cho mỗi điểm; ở bài này, việc trùng lặp tính theo **giá trị điểm**.
-3. `sorted(reverseOrder())` sắp xếp tất cả điểm hợp lệ khác nhau từ cao xuống thấp.
-4. `limit(3)` chọn đúng ba giá trị cao nhất khác nhau, nếu đủ giá trị.
+1. `filter(score >= 8)` drops unqualified data right at the start.
+2. `distinct()` keeps one occurrence per score; in this problem, duplication is based on **score value**.
+3. `sorted(reverseOrder())` orders all distinct valid scores from highest to lowest.
+4. `limit(3)` picks the top three distinct values, if enough exist.
 
-Một phiên bản tưởng như “tiết kiệm” nhưng đổi ý nghĩa:
+A seemingly "cheaper" version that changes meaning:
 
 ```java
 List<Integer> wrong = scores.stream()
@@ -484,19 +484,19 @@ List<Integer> wrong = scores.stream()
 System.out.println(wrong); // [10, 8]
 ```
 
-Phiên bản này chỉ xét ba điểm hợp lệ đầu `[10, 10, 8]`, nên bỏ lỡ `12` và `9` nằm phía sau. Đây là lỗi nghiệp vụ, không đơn thuần là khác biệt về hiệu năng.
+This version examines only the first three valid scores `[10, 10, 8]`, missing `12` and `9` later in the list. That is a business logic bug, not just a performance difference.
 
-Nếu muốn một trang gồm bản ghi sản phẩm thay vì điểm, nên có comparator mang khóa phân biệt ổn định, xác định rõ tiêu chí “trùng” (ID sản phẩm, biến thể hay điểm) và cân nhắc đưa truy vấn sắp xếp/phân trang xuống nguồn dữ liệu để tránh tải toàn bộ vào bộ nhớ.
+If you want a page of product records rather than scores, use a comparator with a stable tie-breaker key, clarify what "duplicate" means (product ID, variant, or score), and consider pushing sorting/pagination down to the data source to avoid loading everything into memory.
 
-## 14. Câu hỏi tự kiểm tra
+## 14. Self-Check Questions
 
-1. Với `[7, 2, 9, 4, 6]`, vì sao `filter(chẵn).limit(2)` khác `limit(2).filter(chẵn)`? **Vì** một bên chọn hai giá trị hợp lệ, bên kia chỉ lọc trong hai giá trị đầu.
-2. `sorted().limit(3)` và `limit(3).sorted()` có cùng nhiệm vụ không? **Không**: một bên tìm ba giá trị đầu theo sắp xếp toàn cục, bên kia sắp xếp ba giá trị đầu nguồn.
-3. Trên `["An", "AN"]`, tại sao `map(lowercase).distinct()` cho một phần tử còn `distinct().map(lowercase)` cho hai? **Vì** phép chuẩn hóa thay đổi quan hệ bằng nhau.
-4. `Stream.generate(() -> 1).distinct().limit(2)` có hoàn tất không? **Không**, vì không thể tìm hai giá trị khác nhau.
-5. `unordered()` có đảo ngẫu nhiên một `List` không? **Không**; nó bỏ cam kết encounter order, nên downstream được phép chọn/thực thi khác.
-6. Khi phân trang các bản ghi đã lọc và sắp xếp, `skip`/`limit` nên đặt ở đâu? **Sau** bước lọc và sắp xếp theo yêu cầu nghiệp vụ.
-7. Vì sao `takeWhile(x < 5)` không tương đương `filter(x < 5)` trên một dãy chưa sắp xếp? **Vì** `takeWhile` chỉ lấy tiền tố liên tiếp thỏa điều kiện.
-8. Muốn đánh giá chi phí của `sorted` trên nguồn lớn, vì sao không nên dùng mỗi `count()` để suy ra số phần tử thực sự đã được sắp xếp? **Vì** JDK có thể tối ưu `count` khi biết kích thước mà không cần duyệt pipeline.
+1. Given `[7, 2, 9, 4, 6]`, why does `filter(even).limit(2)` differ from `limit(2).filter(even)`? **Because** one selects two valid values while the other filters only among the first two inputs.
+2. Do `sorted().limit(3)` and `limit(3).sorted()` perform the same job? **No**: one finds the first three values in global sorted order, while the other sorts the first three source values.
+3. On `["An", "AN"]`, why does `map(lowercase).distinct()` produce one element while `distinct().map(lowercase)` produces two? **Because** normalization changes the equality relation.
+4. Does `Stream.generate(() -> 1).distinct().limit(2)` terminate? **No**, because two distinct values can never be found.
+5. Does `unordered()` randomly shuffle a `List`? **No**; it drops the encounter-order commitment, allowing downstream stages to select or execute differently.
+6. When paginating filtered and sorted records, where should `skip`/`limit` go? **After** the filtering and sorting required by business logic.
+7. Why is `takeWhile(x < 5)` not equivalent to `filter(x < 5)` on an unsorted sequence? **Because** `takeWhile` only takes the contiguous matching prefix.
+8. To evaluate the cost of `sorted` on a large source, why should you not rely solely on `count()` to infer how many elements were actually sorted? **Because** the JDK can optimize `count` when size is known without traversing the pipeline.
 
-**Nguyên tắc áp dụng:** Trước tiên mô tả đúng **tập phần tử cần giữ** và **thứ tự cần cam kết**, rồi mới tối ưu. Đẩy các phép lọc đơn giản lên trước thao tác tốn kém khi an toàn, giữ `sorted` trước `limit` nếu cần top N toàn cục, và không di chuyển `distinct` hay `skip` qua `map`/`filter` khi điều đó đổi ý nghĩa. Đo chi phí trên dữ liệu và JDK thực tế, đặc biệt với pipeline parallel hoặc có nguồn vô hạn.
+**Application rule:** First specify accurately **which elements to retain** and **which order must be guaranteed**, then optimize. Push simple filters before expensive operations when safe, keep `sorted` before `limit` when global top N is required, and never move `distinct` or `skip` across `map`/`filter` when doing so changes meaning. Measure cost on real data and your target JDK, especially for parallel pipelines or infinite sources.

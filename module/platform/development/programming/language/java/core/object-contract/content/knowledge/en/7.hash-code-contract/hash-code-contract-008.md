@@ -1,16 +1,16 @@
-# Hash code hằng có thể đúng hợp đồng nhưng phân bố kém
+# A Constant Hash Code Can Satisfy the Contract but Has Poor Distribution
 
-## 1. Ý nghĩa của một hash code
+## 1. The Meaning of a Hash Code
 
-Trong Java, phương thức `hashCode()` trả về một số nguyên `int` đại diện cho kết quả băm của đối tượng. Các cấu trúc dựa trên băm như `HashMap` và `HashSet` sử dụng kết quả này để định hướng việc tìm kiếm, chèn và xóa phần tử. **Hash code không phải mã định danh duy nhất** và không tự quyết định hai đối tượng có bằng nhau hay không: `equals(Object)` mới là phép kiểm tra bình đẳng cuối cùng khi các đối tượng có hash liên quan trùng nhau.
+In Java, the `hashCode()` method returns an `int` integer representing an object's hash result. Hash-based structures such as `HashMap` and `HashSet` use this result to guide element lookup, insertion, and deletion. **A hash code is not a unique identifier** and does not by itself decide whether two objects are equal: `equals(Object)` is the final equality check when objects have matching relevant hashes.
 
-Hợp đồng của `Object.hashCode()` có các điểm quan trọng:
+The `Object.hashCode()` contract has key points:
 
-1. Nếu gọi `hashCode()` nhiều lần trên cùng một đối tượng trong một lần thực thi ứng dụng, khi dữ liệu dùng bởi `equals` không thay đổi thì kết quả phải nhất quán.
-2. **Nếu `a.equals(b)` là `true`, `a.hashCode() == b.hashCode()` bắt buộc cũng phải là `true`.** Đây là ràng buộc quan trọng nhất khi ghi đè cả hai phương thức.
-3. Nếu `a.equals(b)` là `false`, hai hash code **được phép bằng nhau**. Trả về hash khác nhau cho các đối tượng không bằng nhau là mục tiêu hiệu năng, không phải điều kiện bắt buộc để đúng hợp đồng.
+1. If `hashCode()` is called multiple times on the same object during a single application execution, when the data used by `equals` does not change, the result must be consistent.
+2. **If `a.equals(b)` is `true`, `a.hashCode() == b.hashCode()` must also be `true`.** This is the most important constraint when overriding both methods.
+3. If `a.equals(b)` is `false`, the two hash codes **are allowed to be equal**. Returning different hashes for unequal objects is a performance goal, not a mandatory condition for contract correctness.
 
-Do đó, một lớp có thể định nghĩa:
+Therefore, a class can define:
 
 ~~~java
 @Override
@@ -19,31 +19,31 @@ public int hashCode() {
 }
 ~~~
 
-Đây là **đoạn phương thức minh họa**, không phải một chương trình độc lập. Với mọi cặp đối tượng bằng nhau, hai giá trị hash đều là `1`, nên điều kiện bắt buộc được thỏa mãn. Nếu lớp có `equals` hợp lệ, một hash code hằng và ổn định có thể **đúng về ngữ nghĩa hợp đồng**, dù lựa chọn đó thường rất kém khi dùng trong bảng băm.
+This is an **illustrative method snippet**, not a standalone program. For every pair of equal objects, both hash values are `1`, so the mandatory condition is satisfied. If the class has a valid `equals`, a constant and stable hash code can be **contractually valid**, even though that choice is usually very poor when used in a hash table.
 
-Điều cần phân biệt là **đúng hợp đồng** và **phân bố tốt**: hai yêu cầu này liên quan nhưng không đồng nhất.
+What must be distinguished is **contract compliance** versus **good distribution**: these two requirements are related, not identical.
 
-## 2. Hash code hằng làm phân bố kém như thế nào?
+## 2. How Does a Constant Hash Code Cause Poor Distribution?
 
-Một bảng băm tổ chức các mục vào những vị trí gọi là *bucket* (nhóm lưu trữ). `HashMap` áp dụng thao tác trộn bit lên hash code rồi dùng kết quả cùng kích thước bảng để xác định bucket. Các hash code khác nhau có thể vẫn rơi vào cùng bucket, nhưng **mọi khóa có cùng hash code sẽ đi vào cùng bucket** tại một trạng thái bảng nhất định.
+A hash table organizes entries into slots called *buckets* (storage groups). `HashMap` applies a bit-mixing operation to the hash code and uses the result along with the table size to determine the bucket. Different hash codes can still land in the same bucket, but **every key with the same hash code goes into the same bucket** at a given table state.
 
-Nếu mọi khóa trả về `1`:
+If every key returns `1`:
 
-- `new Key(101)`, `new Key(102)` và `new Key(103)` có thể đều khác nhau theo `equals`.
-- Chúng vẫn có cùng hash code, vì `hashCode()` luôn trả `1`.
-- Khi lưu trong `HashMap` hoặc `HashSet`, các mục liên tục tranh cùng một bucket. Cấu trúc phải phân biệt chúng bằng kiểm tra khóa (bao gồm `equals`) thay vì nhanh chóng thu hẹp sang nhiều bucket khác nhau.
+- `new Key(101)`, `new Key(102)`, and `new Key(103)` may all differ according to `equals`.
+- They still share the same hash code, because `hashCode()` always returns `1`.
+- When stored in a `HashMap` or `HashSet`, entries constantly contend for the same bucket. The structure must distinguish them via key checks (including `equals`) instead of quickly narrowing down across many different buckets.
 
-Trong bảng được phân bố tốt, nhiều thao tác `put`, `get`, `containsKey` hay `contains` có chi phí trung bình gần `O(1)` trong điều kiện thông thường. Khi một bucket có rất nhiều phần tử, thao tác có thể phải xem xét nhiều ứng viên hơn; với cách xử lý va chạm bằng danh sách, quét một bucket có `n` phần tử có thể tốn `O(n)`. Những phiên bản Java hiện đại có cơ chế chuyển một số bucket lớn của `HashMap` thành cấu trúc cây để giảm tác động trong các điều kiện phù hợp, nhưng điều đó **không khiến chiến lược hash code hằng trở nên tốt**. Hành vi chi tiết phụ thuộc số phần tử, năng lực của bảng và hình dạng các khóa.
+In a well-distributed table, many `put`, `get`, `containsKey`, or `contains` operations have an average cost close to `O(1)` under typical conditions. When a bucket holds very many elements, operations may have to inspect many more candidates; with list-based collision handling, scanning a bucket with `n` elements can cost `O(n)`. Modern Java versions have a mechanism to convert some large `HashMap` buckets into tree structures to mitigate impact under suitable conditions, yet that **does not make a constant hash code strategy good**. Exact behavior depends on element count, table capacity, and the shape of the keys.
 
-`HashSet` được triển khai dựa trên `HashMap`, nên cũng chịu tác động tương tự của việc nhiều phần tử có chung hash code.
+`HashSet` is implemented on top of `HashMap`, so it suffers the same impact when many elements share a hash code.
 
-**Va chạm hash (collision) không làm mất phần tử.** Một bộ sưu tập băm triển khai đúng vẫn lưu được hai khóa khác nhau cùng hash; khi cần xác định khóa chính xác, nó kiểm tra bình đẳng. Vấn đề chủ yếu là số ứng viên phải xét tăng lên và hiệu năng dự kiến có thể suy giảm.
+**Hash collisions do not lose elements.** A properly implemented hash collection still stores two unequal keys with the same hash; when it needs to identify the exact key, it checks equality. The main problem is that the number of candidates to inspect grows and expected performance can degrade.
 
-## 3. Ví dụ Java 17: đúng kết quả nhưng cách băm khác nhau
+## 3. Java 17 Example: Correct Results with Different Hashing Strategies
 
-Ví dụ sử dụng hai loại khóa có cùng quy tắc bình đẳng: hai đối tượng **trong cùng loại khóa** được xem là bằng nhau nếu có cùng `id`. Loại `ConstantKey` trả về `7` cho mọi đối tượng; loại `IdKey` sử dụng `Integer.hashCode(id)` nên phản ánh giá trị `id`.
+The example uses two key types with the same equality rule: two objects **of the same key type** are considered equal if they have the same `id`. The `ConstantKey` type returns `7` for every object; the `IdKey` type uses `Integer.hashCode(id)` and thus reflects the `id` value.
 
-Lưu chương trình trong tệp **ConstantHashDemo.java**:
+Save the program in **ConstantHashDemo.java**:
 
 ~~~java
 import java.util.HashMap;
@@ -142,14 +142,14 @@ public class ConstantHashDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac ConstantHashDemo.java
 java ConstantHashDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 equal keys: true
@@ -164,41 +164,41 @@ id set size: 2
 id set contains id=2: true
 ~~~
 
-Những điều rút ra từ kết quả:
+Takeaways from the output:
 
-1. `one` và `sameOne` bằng nhau theo `equals` và cùng hash `7`. Hợp đồng được giữ đúng.
-2. `one` và `two` không bằng nhau nhưng vẫn cùng hash `7`. Đây là **va chạm hợp lệ**, không phải một vi phạm hợp đồng.
-3. `HashSet` chứa hai phần tử khác nhau, thay vì gộp tất cả đối tượng cùng hash thành một. Thêm `sameOne` không tăng kích thước vì nó bằng `one`.
-4. `HashMap.get(new ConstantKey(2))` vẫn lấy được giá trị `"two"`, chứng tỏ tra cứu vẫn **đúng** khi có va chạm.
-5. `IdKey` tạo hash `1` và `2` cho hai `id` tương ứng; đây là tín hiệu phân biệt tốt hơn với tập khóa này. Tuy nhiên, **hai hash khác nhau chưa bảo đảm sẽ thuộc hai bucket khác nhau**, vì bucket còn phụ thuộc cách tổ chức bảng.
+1. `one` and `sameOne` are equal according to `equals` and both have hash `7`. The contract is upheld.
+2. `one` and `two` are not equal yet share hash `7`. This is a **valid collision**, not a contract violation.
+3. `HashSet` holds two distinct elements, rather than merging all objects sharing a hash into one. Adding `sameOne` does not increase the size because it equals `one`.
+4. `HashMap.get(new ConstantKey(2))` still retrieves the value `"two"`, showing that lookups remain **correct** under collisions.
+5. `IdKey` produces hashes `1` and `2` for the respective `id`s; this is a better distinguishing signal for this key set. However, **two different hashes do not guarantee two different buckets**, because buckets also depend on how the table is organized.
 
-Ví dụ trên minh họa **tính đúng đắn**, không phải bài đo tốc độ. Không thể kết luận chênh lệch thời gian từ output: một phép đo đáng tin cần số lượng khóa phù hợp, warm-up JVM, lặp lại nhiều lần và tránh nhiễu từ GC, JIT cùng môi trường chạy. Khi phân tích hiệu năng Java nghiêm túc, có thể dùng công cụ benchmark chuyên dụng như JMH thay vì suy luận từ một lần chạy `System.nanoTime()`.
+The example above demonstrates **correctness**, not a speed benchmark. You cannot conclude timing differences from the output: a reliable measurement requires an appropriate number of keys, JVM warm-up, multiple iterations, and avoiding noise from GC, JIT, and the runtime environment. For serious Java performance analysis, use a dedicated benchmarking tool like JMH instead of inferring from a single `System.nanoTime()` run.
 
-## 4. Phân biệt phép bằng và mã băm trong mọi trường hợp
+## 4. Distinguishing Equality and Hash Code in All Cases
 
-| Trạng thái hai đối tượng | Điều kiện về hashCode | Có thể xem bằng nhau không? |
+| State of Two Objects | Condition on `hashCode` | Can They Be Considered Equal? |
 | --- | --- | --- |
-| `a.equals(b)` là `true` | **Phải** có `a.hashCode() == b.hashCode()` | Có |
-| `a.equals(b)` là `false`, hash khác nhau | Hoàn toàn hợp lệ | Không |
-| `a.equals(b)` là `false`, hash giống nhau | Hoàn toàn hợp lệ: va chạm | Không |
-| Hash giống nhau nhưng chưa gọi `equals` | Không đủ thông tin để xác định bình đẳng | Phải dùng `equals` theo hợp đồng |
+| `a.equals(b)` is `true` | **Must** have `a.hashCode() == b.hashCode()` | Yes |
+| `a.equals(b)` is `false`, hashes differ | Completely valid | No |
+| `a.equals(b)` is `false`, hashes match | Completely valid: collision | No |
+| Hashes match, `equals` not yet called | Insufficient information to determine equality | Must use `equals` per contract |
 
-Không được thay `equals` bằng phép so sánh hash code:
+Never replace `equals` with a hash code comparison:
 
 ~~~java
-// Sai: cùng hash code không chứng minh hai đối tượng bằng nhau.
+// Wrong: equal hash codes do not prove two objects are equal.
 return this.hashCode() == other.hashCode();
 ~~~
 
-Đây là **biểu thức minh họa lỗi trong phương thức equals**, không phải chương trình độc lập. Nó còn thiếu bước kiểm tra `other` khác `null`, đúng kiểu và có thể dẫn đến sai nghĩa bình đẳng. Với lớp trả về hash code hằng, cách triển khai này khiến mọi đối tượng khác nhau của lớp bị coi là bằng nhau, phá hỏng ý nghĩa của `equals`.
+This is an **expression illustrating a bug inside an `equals` method**, not a standalone program. It also omits checking that `other` is non-`null` and of the right type, and can lead to wrong equality semantics. For a class returning a constant hash code, this implementation makes every distinct object of the class be considered equal, destroying the meaning of `equals`.
 
-Cũng không nên viết kiểm thử kiểu `assertNotEquals(a.hashCode(), b.hashCode())` cho mọi `a` và `b` khác nhau. Hợp đồng không đòi hỏi hash code khác nhau cho mọi đối tượng không bằng nhau. Thay vào đó, kiểm thử tính đúng đắn của `equals`, tính nhất quán `hashCode` khi bằng nhau, và những thuộc tính phân bố đủ tốt đối với tập dữ liệu thực tế khi hiệu năng là yêu cầu.
+Likewise, do not write tests like `assertNotEquals(a.hashCode(), b.hashCode())` for every unequal `a` and `b`. The contract does not require different hash codes for every pair of unequal objects. Instead, test correctness of `equals`, `hashCode` consistency under equality, and sufficiently good distribution properties on realistic data sets when performance is a requirement.
 
-## 5. Chọn hashCode tốt hơn mà vẫn giữ hợp đồng
+## 5. Choosing a Better `hashCode` While Preserving the Contract
 
-### 5.1. Dùng đúng các trường quyết định bình đẳng
+### 5.1. Use the Exact Fields That Determine Equality
 
-Nếu `equals` dựa trên `id` kiểu `int`, có thể dùng:
+If `equals` is based on an `int` field `id`, you can use:
 
 ~~~java
 @Override
@@ -207,9 +207,9 @@ public int hashCode() {
 }
 ~~~
 
-Đây là **phương thức có thể đặt trong IdKey**, không phải một chương trình độc lập. Với `int`, `Integer.hashCode(id)` chính là giá trị `id`. Cùng `id` thì vừa bằng nhau vừa cho cùng hash; nhiều `id` khác nhau tạo ra hash khác nhau, giảm va chạm trong tập khóa thông dụng so với trả về hằng số.
+This is a **method that can be placed in `IdKey`**, not a standalone program. For `int`, `Integer.hashCode(id)` is simply the value `id`. Same `id` gives both equality and the same hash; different `id`s produce different hashes, reducing collisions in typical key sets compared to returning a constant.
 
-Nếu `equals` dựa trên hai trường `code` và `version`, một cách diễn đạt đơn giản là:
+If `equals` is based on two fields `code` and `version`, a simple way to express it is:
 
 ~~~java
 @Override
@@ -218,9 +218,9 @@ public int hashCode() {
 }
 ~~~
 
-Đây là **đoạn phương thức minh họa trong lớp có hai trường tương ứng**. `Objects.hash` hỗ trợ các trường có thể là `null` và kết hợp hash theo thứ tự đối số. Nó tiện đọc, nhưng có thể phát sinh chi phí do varargs/boxing trong những đường xử lý rất nóng; nếu cần tối ưu thật sự, đo lường trước rồi cân nhắc cách kết hợp hash thủ công.
+This is an **illustrative method snippet in a class with the two corresponding fields**. `Objects.hash` handles nullable fields and combines hashes in argument order. It is readable, though it can incur varargs/boxing overhead on very hot paths; if true optimization is needed, measure first before considering manual hash combination.
 
-Một mẫu kết hợp cho hai trường tham chiếu là:
+A combination pattern for two reference fields is:
 
 ~~~java
 @Override
@@ -231,35 +231,35 @@ public int hashCode() {
 }
 ~~~
 
-Đoạn này cũng cần đặt trong lớp có `code` và `version`. `Objects.hashCode(field)` trả `0` khi trường `null`, tránh `NullPointerException`. Giá trị `31` là một hệ số phổ biến, không phải quy định bắt buộc của hợp đồng. Phép nhân và cộng `int` có thể tràn số theo ngữ nghĩa Java mà vẫn tạo hash code hợp lệ. Dù dùng cách nào, **tập trường quyết định `hashCode` phải phù hợp với tiêu chí bình đẳng của `equals`**.
+This snippet also belongs in a class with `code` and `version`. `Objects.hashCode(field)` returns `0` when the field is `null`, avoiding `NullPointerException`. The value `31` is a common multiplier, not a mandatory rule of the contract. `int` multiplication and addition can overflow under Java semantics and still yield a valid hash code. Regardless of which approach you use, **the set of fields determining `hashCode` must align with `equals`'s equality criteria**.
 
-### 5.2. Tránh các chiến lược băm không đáng tin cậy
+### 5.2. Avoid Unreliable Hashing Strategies
 
-- **Hằng số:** đúng hợp đồng nếu ổn định và `equals` đúng, nhưng tạo va chạm có hệ thống giữa mọi khóa.
-- **Số ngẫu nhiên mỗi lần gọi:** vi phạm tính nhất quán ngay cả khi đối tượng không đổi; tra cứu sau khi đưa vào bảng băm có thể thất bại.
-- **Thời gian hiện tại hoặc bộ đếm toàn cục thay đổi:** gây biến thiên giữa các lần gọi và không phản ánh các trường quyết định bình đẳng.
-- **`System.identityHashCode(this)` cho đối tượng bình đẳng theo giá trị:** hai đối tượng khác tham chiếu nhưng bằng nhau theo `equals` có thể có identity hash khác nhau, dẫn đến vi phạm hợp đồng.
-- **Trường có thể sửa đổi trong lúc là khóa `HashMap`/phần tử `HashSet`:** hash có thể thay đổi sau khi đối tượng đã nằm trong bucket cũ, làm `get`, `contains` hoặc `remove` không còn tìm thấy đối tượng đó theo cách mong đợi.
+- **Constant:** contract-compliant if stable and `equals` is right, but creates systematic collisions across all keys.
+- **Random number per call:** violates consistency even when the object does not change; lookups after insertion into a hash table can fail.
+- **Current time or changing global counter:** varies across calls and does not reflect the fields determining equality.
+- **`System.identityHashCode(this)` for value-equal objects:** two objects with different references that are equal according to `equals` may have different identity hashes, leading to a contract violation.
+- **Mutable fields while acting as a `HashMap` key / `HashSet` element:** the hash can change after the object is already in an old bucket, causing `get`, `contains`, or `remove` to fail to find that object as expected.
 
-Ưu tiên dùng các thuộc tính mang tính định danh hoặc giá trị **ổn định, phù hợp với `equals`**. Đối tượng khóa bất biến có trường `final` thường giúp bảo đảm tính nhất quán dễ dàng hơn. Nếu trường tham gia `equals` được phép thay đổi, phải quản lý việc dùng đối tượng làm khóa thật cẩn thận.
+Prefer attributes that serve as **stable identifiers or values aligned with `equals`**. Immutable key objects with `final` fields usually make consistency much easier to guarantee. If fields participating in `equals` are allowed to change, usage of the object as a key must be managed very carefully.
 
-## 6. Vì sao không tối ưu hashCode bằng mọi giá?
+## 6. Why Not Optimize `hashCode` at All Costs?
 
-Một hash code có chất lượng phân bố tốt là hash code giúp các khóa thực tế được trải tương đối đều trên các bucket, hạn chế các bucket quá đông. Tuy vậy, không tồn tại hàm băm `int` duy nhất cho mọi đối tượng: không gian khóa có thể lớn hơn số lượng giá trị `int`, nên về nguyên tắc **va chạm là không tránh khỏi**. Mục tiêu là giảm số va chạm có thể tránh được và tránh phân bố xấu trên dữ liệu sẽ dùng, chứ không đòi hỏi mọi khóa một mã duy nhất.
+A hash code with good distribution quality is one that spreads real-world keys relatively evenly across buckets, limiting overly crowded buckets. However, no unique `int` hash function exists for all objects: the key space can exceed the number of `int` values, so in principle **collisions are inevitable**. The goal is to reduce avoidable collisions and avoid poor distribution on the data being used, not to demand a unique code for every key.
 
-Chất lượng băm phải được cân bằng với chi phí tính toán. Một phép băm cực kỳ phức tạp cho vài khóa có thể tốn thời gian hơn lợi ích giảm va chạm. Với các lớp thông thường, sử dụng `Integer.hashCode`, `String.hashCode`, `Objects.hash` hoặc các phương thức băm thích hợp khác của kiểu dữ liệu thường là điểm khởi đầu hợp lý. Không nên tự xây dựng hàm băm tùy biến khi chưa có nhu cầu và bằng chứng.
+Hash quality must be balanced against computation cost. An extremely complex hash calculation for a few keys can spend more time than the benefit gained from reducing collisions. For ordinary classes, using `Integer.hashCode`, `String.hashCode`, `Objects.hash`, or other appropriate type hash methods is usually a sensible starting point. Do not build a custom hash function without need and evidence.
 
-Ngoài ra, các kiểu dữ liệu có biểu diễn băm riêng có thể xuất hiện va chạm khác nhau, ví dụ `String.hashCode()` không cam kết không trùng nhau. Sự tồn tại của va chạm đơn lẻ không làm hàm băm đó sai. Chỉ khi phân bố thường xuyên dẫn đến nhiều mục cùng bucket thì hiệu năng mới bị ảnh hưởng đáng kể.
+In addition, data types with their own hash representations can exhibit different collisions; for example, `String.hashCode()` does not promise zero duplicates. The existence of isolated collisions does not make that hash function wrong. Only when the distribution frequently puts many entries into the same bucket is performance noticeably impacted.
 
-## 7. Checklist kiểm tra một triển khai hashCode
+## 7. Checklist for Reviewing a `hashCode` Implementation
 
-Trước khi sử dụng một lớp làm phần tử của `HashSet` hoặc khóa của `HashMap`, hãy kiểm tra:
+Before using a class as a `HashSet` element or `HashMap` key, check:
 
-1. Mọi cặp đối tượng **bằng nhau theo `equals`** có **cùng hash code** không?
-2. Những lần gọi `hashCode()` trên đối tượng không đổi có cùng kết quả trong lần thực thi không?
-3. Hàm băm có dựa trên các trường xác định bình đẳng và không phụ thuộc số ngẫu nhiên, thời gian hay thông tin biến thiên ngoài ý muốn không?
-4. Các trường nullable có được xử lý an toàn không?
-5. Đối tượng có bị sửa những trường liên quan đến `equals`/`hashCode` trong thời gian nằm trong collection không?
-6. Với nhiều khóa thực tế không bằng nhau, liệu số lượng mã băm trùng nhau có đang cao bất thường không? Nếu có, cần xem lại cách phối hợp trường và đo hiệu năng thay vì kết luận dựa vào một ví dụ nhỏ.
+1. Does every pair of objects **equal according to `equals`** have the **same hash code**?
+2. Do repeated calls to `hashCode()` on an unchanged object return the same result within an execution?
+3. Does the hash function rely on the fields determining equality, without depending on random numbers, time, or unintended varying information?
+4. Are nullable fields handled safely?
+5. Are fields related to `equals`/`hashCode` mutated while the object is inside a collection?
+6. For many realistic unequal keys, is the number of colliding hash codes abnormally high? If so, review how fields are combined and measure performance instead of concluding from a tiny example.
 
-**Kết luận cần nhớ:** Hàm `hashCode()` luôn trả về cùng một số có thể **đúng hợp đồng** vì các đối tượng bằng nhau chắc chắn có cùng hash. Nhưng mọi khóa cũng trở thành trường hợp va chạm, làm mất lợi thế phân bố của cấu trúc băm. Hãy phân biệt **đúng kết quả** với **hiệu năng tốt**, và thiết kế `hashCode` nhất quán với `equals` từ những dữ liệu ổn định của đối tượng.
+**Takeaway to remember:** A `hashCode()` that always returns the same number can be **contract-compliant** because equal objects are guaranteed to share the same hash. Yet every key also becomes a collision case, losing the distribution advantage of hash structures. Distinguish **correct results** from **good performance**, and design `hashCode` consistently with `equals` from stable data of the object.

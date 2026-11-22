@@ -1,21 +1,21 @@
-# DateTimeFormatter.withLocale so với localizedBy trong Java
+# DateTimeFormatter.withLocale vs. localizedBy in Java
 
-## 1. Bài toán: đổi ngôn ngữ hiển thị có đồng nghĩa đổi lịch, chữ số và múi giờ?
+## 1. The Problem: Does Changing the Display Language Mean Changing Calendar, Digits, and Time Zone?
 
-Trong Java localization, `java.time.format.DateTimeFormatter` hỗ trợ cả hai phương thức:
+In Java localization, `java.time.format.DateTimeFormatter` supports both methods:
 
-- `withLocale(Locale)`: trả về formatter mới với **locale dùng để chọn văn bản và mẫu định dạng bản địa**.
-- `localizedBy(Locale)`: trả về formatter mới có thể áp dụng thêm **lịch (chronology), hệ chữ số (decimal style), khu vực (region) và múi giờ (zone)** theo thông tin trong locale, đặc biệt là Unicode locale extensions.
+- `withLocale(Locale)`: returns a new formatter with the **locale used to select localized text and format patterns**.
+- `localizedBy(Locale)`: returns a new formatter that can additionally apply **calendar (chronology), numbering system (decimal style), region, and time zone (zone)** from information in the locale, especially Unicode locale extensions.
 
-Hai phương thức không đồng nghĩa, dù đôi khi cùng cho ra chuỗi giống nhau khi chỉ dùng locale đơn giản như `en-US` hoặc `vi-VN` và formatter không chứa tính năng cần ghi đè.
+The two methods are not synonymous, even though they sometimes produce identical strings when using a simple locale like `en-US` or `vi-VN` and the formatter has no overrides to replace.
 
-**Khác biệt thực dụng:** `withLocale` phù hợp khi chủ đích là *giữ thời điểm/lịch/múi giờ đã chọn và thay ngôn ngữ hoặc mẫu định dạng*. `localizedBy` phù hợp khi muốn *áp dụng các sở thích bản địa hóa mở rộng đã được chấp nhận*, bao gồm calendar, numbering system, region override hoặc timezone. Khi đối tượng chứa `ca`, `nu`, `rg`, `tz` trong language tag, kết quả có thể khác rõ rệt.
+**Practical difference:** `withLocale` is appropriate when the goal is *to keep the chosen instant/calendar/time zone and change only the language or format pattern*. `localizedBy` is appropriate when you want *to apply accepted extended localization preferences*, including calendar, numbering system, region override, or time zone. When the `Locale` carries `ca`, `nu`, `rg`, or `tz` in its language tag, the results can differ noticeably.
 
-Không nên coi locale là dữ liệu thời điểm nghiệp vụ. `Instant` lưu một thời điểm trên trục thời gian; `ZoneId` xác định cách quy chiếu giờ địa phương; `Chronology` xác định hệ lịch; `Locale` xác định các quy ước bản địa hóa. Chúng liên quan nhưng **không thể dùng thay nhau**.
+Do not treat a locale as domain time data. `Instant` stores a point on the timeline; `ZoneId` determines how local time is derived; `Chronology` determines the calendar system; `Locale` determines localization conventions. They are related, yet **cannot be used interchangeably**.
 
-## 2. Hai phương thức làm việc trên formatter bất biến
+## 2. Both Methods Operate on an Immutable Formatter
 
-`DateTimeFormatter` là kiểu **immutable** và an toàn khi dùng giữa các thread. Cả hai lời gọi đều trả về formatter mới (hoặc có thể tái sử dụng instance khi không cần đổi), **không sửa** formatter ban đầu:
+`DateTimeFormatter` is **immutable** and thread-safe across threads. Both calls return a new formatter (or may reuse an instance when nothing changes), **without mutating** the original formatter:
 
 ~~~java
 DateTimeFormatter base = DateTimeFormatter.ofPattern("d MMM uuuu", Locale.US);
@@ -27,32 +27,32 @@ DateTimeFormatter extended =
         base.localizedBy(Locale.forLanguageTag("vi-VN"));
 ~~~
 
-Đây là **đoạn minh họa trong một phương thức**, cần import `java.time.format.DateTimeFormatter` và `java.util.Locale`. Chương trình hoàn chỉnh và kết quả kiểm chứng nằm ở mục 7.
+This is an **illustrative snippet inside a method**, requiring imports for `java.time.format.DateTimeFormatter` and `java.util.Locale`. A complete program and verified output are in section 7.
 
-| Khía cạnh | `withLocale(locale)` | `localizedBy(locale)` |
+| Aspect | `withLocale(locale)` | `localizedBy(locale)` |
 | --- | --- | --- |
-| Trả về formatter mới, không sửa `base` | Có | Có |
-| Thay `getLocale()` | Có | Có |
-| Ảnh hưởng tên tháng/ngày và localized pattern | Có | Có |
-| Thay `getChronology()` theo Unicode `ca` | **Không** tự động | Có thể |
-| Thay `getDecimalStyle()` theo Unicode `nu` | **Không** tự động | Có thể |
-| Thay `getZone()` theo Unicode `tz` | **Không** tự động | Có thể |
-| Xem xét region override `rg` khi chọn dữ liệu bản địa | Locale được lưu và có thể được dùng khi lookup | Có thể áp dụng sâu hơn vào lịch/chữ số/zone theo locale |
-| Thứ tự với `withZone`, `withChronology`, `withDecimalStyle` | Chỉ đổi trường locale, giữ override còn lại | **Có thể ghi đè** các giá trị override tùy thứ tự gọi |
+| Returns a new formatter without mutating `base` | Yes | Yes |
+| Changes `getLocale()` | Yes | Yes |
+| Affects month/day names and localized patterns | Yes | Yes |
+| Changes `getChronology()` per Unicode `ca` | **Not** automatically | Potentially |
+| Changes `getDecimalStyle()` per Unicode `nu` | **Not** automatically | Potentially |
+| Changes `getZone()` per Unicode `tz` | **Not** automatically | Potentially |
+| Considers region override `rg` when picking local data | Locale is stored and may be used on lookup | Can apply deeper into calendar/digits/zone per locale |
+| Order relative to `withZone`, `withChronology`, `withDecimalStyle` | Updates only the locale field, preserving other overrides | **Can overwrite** previous overrides depending on call order |
 
-Dấu “có thể” rất quan trọng: `localizedBy` dựa trên **các dữ liệu mà locale cung cấp** và những gì nhà cung cấp locale của runtime hỗ trợ. Không phải locale nào cũng yêu cầu thay lịch hoặc múi giờ.
+The word "potentially" matters: `localizedBy` depends on **what data the locale provides** and what the runtime's locale provider supports. Not every locale specifies a calendar or time-zone override.
 
-## 3. withLocale: đổi nguồn bản địa hóa văn bản và pattern
+## 3. withLocale: Changing the Source of Localized Text and Patterns
 
-Chữ ký Java SE 17:
+Java SE 17 signature:
 
 ~~~java
 DateTimeFormatter withLocale(Locale locale)
 ~~~
 
-Theo hợp đồng API, locale được lưu theo đúng giá trị truyền vào; formatter dùng nó để tra cứu phần cần bản địa hóa, như tên tháng, tên thứ và pattern ngày giờ theo locale. Những override đang có như chronology, zone và decimal style **được giữ lại**.
+By the API contract, the locale is stored exactly as passed; the formatter uses it to look up localized elements such as month names, weekday names, and locale-specific date-time patterns. Existing overrides such as chronology, zone, and decimal style **are preserved**.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~java
 LocalDate date = LocalDate.of(2024, 3, 1);
@@ -64,11 +64,11 @@ String viText = english.withLocale(
         Locale.forLanguageTag("vi-VN")).format(date);
 ~~~
 
-Đoạn trên cần `import java.time.LocalDate;` cùng các import formatter/locale. Tên tháng có thể xuất hiện bằng từ viết tắt theo dữ liệu CLDR của JDK; không cần hardcode đầu ra nếu chưa kiểm soát môi trường. Hai chuỗi đều đang biểu diễn **cùng ngày 2024-03-01**, nhưng ngôn ngữ tháng có thể khác.
+The snippet above needs `import java.time.LocalDate;` along with the formatter/locale imports. Month names may appear as abbreviations per the JDK's CLDR data; avoid hardcoding output unless you control the environment. Both strings represent **the same date 2024-03-01**, while the month language can differ.
 
-### 3.1. Localized style cũng chịu ảnh hưởng của withLocale
+### 3.1. Localized styles are also affected by withLocale
 
-Các factory sau tạo formatter theo **style**, không cố định pattern văn bản ngay tại thời điểm tạo:
+The following factories create formatters by **style**, without fixing a literal text pattern at creation time:
 
 ~~~java
 DateTimeFormatter dateStyle =
@@ -79,50 +79,50 @@ DateTimeFormatter vietnam = dateStyle.withLocale(
         Locale.forLanguageTag("vi-VN"));
 ~~~
 
-Đây là các câu lệnh minh họa; cần import `java.time.format.FormatStyle`. Formatter được `ofLocalizedDate` tạo ra dùng pattern bản địa phù hợp với locale khi format/parse, và pattern có thể được tìm **một cách trì hoãn (lazily)**. Do vậy **không đúng** nếu nói `withLocale` chỉ dịch tên tháng mà không đổi thứ tự ngày/tháng/năm: với localized style, pattern cũng thay đổi.
+These are illustrative statements requiring `import java.time.format.FormatStyle;`. A formatter created by `ofLocalizedDate` uses the localized pattern matching the locale at format/parse time, and the pattern may be resolved **lazily**. Thus it is **incorrect** to say `withLocale` only translates month names without changing day/month/year order: with localized styles, the pattern itself also changes.
 
-Một formatter được tạo với `DateTimeFormatter.ofPattern("uuuu-MM-dd")` lại có **cấu trúc pattern cố định**; `withLocale` không tự biến nó thành thứ tự tháng/ngày/năm theo locale Mỹ. Muốn dùng mẫu ngày giờ truyền thống theo vùng, dùng factory `ofLocalizedDate`/`ofLocalizedDateTime` hoặc pattern được thiết kế cụ thể.
+By contrast, a formatter created with `DateTimeFormatter.ofPattern("uuuu-MM-dd")` has a **fixed pattern structure**; `withLocale` does not convert it into US month/day/year order. To use regional date-time conventions, use `ofLocalizedDate`/`ofLocalizedDateTime` or a specifically designed pattern.
 
-### 3.2. withLocale không tự giải quyết Unicode extensions thành override
+### 3.2. withLocale does not resolve Unicode extensions into overrides
 
-Khi locale là `en-US-u-ca-japanese-nu-thai-tz-jptyo`, `withLocale` **lưu nguyên locale kèm extension**. Điều đó không đồng nghĩa formatter đã tự chuyển:
+When the locale is `en-US-u-ca-japanese-nu-thai-tz-jptyo`, `withLocale` **stores the locale including its extensions**. That does not mean the formatter automatically switched:
 
-- `getChronology()` sang lịch Nhật;
-- `getDecimalStyle()` sang chữ số Thái;
-- `getZone()` sang `Asia/Tokyo`.
+- `getChronology()` to Japanese calendar;
+- `getDecimalStyle()` to Thai digits;
+- `getZone()` to `Asia/Tokyo`.
 
-Các phần cần bản địa hóa **vẫn có thể nhìn thấy locale extensions trong quá trình tra cứu văn bản/pattern**. Tuy nhiên, để yêu cầu thiết lập chronology, zone và decimal style từ extensions ngay trên formatter, phải xem xét `localizedBy`.
+Localized parts **can still inspect the locale extensions when looking up text or patterns**. However, to have chronology, zone, and decimal style configured on the formatter from those extensions, look at `localizedBy`.
 
-Nếu cần thay rõ ràng chỉ một giá trị, `withChronology(Chronology)`, `withZone(ZoneId)`, `withDecimalStyle(DecimalStyle)` là các API có mục đích rõ ràng hơn việc đưa cấu hình nghiệp vụ vào locale string.
+When you want to change only one specific setting explicitly, `withChronology(Chronology)`, `withZone(ZoneId)`, and `withDecimalStyle(DecimalStyle)` express intent much more clearly than embedding business configuration inside a locale string.
 
-## 4. localizedBy: áp dụng calendar, numbering system, region và timezone
+## 4. localizedBy: Applying Calendar, Numbering System, Region, and Timezone
 
-Chữ ký Java SE 17:
+Java SE 17 signature:
 
 ~~~java
 DateTimeFormatter localizedBy(Locale locale)
 ~~~
 
-Phương thức này có từ **Java 10**. Nó trả về formatter mới với các giá trị bản địa hóa của locale, calendar, region, decimal style và/hoặc timezone có thể **ghi đè** những giá trị formatter đang giữ.
+This method was added in **Java 10**. It returns a new formatter with localized values for locale, calendar, region, decimal style, and/or time zone that can **override** those currently held by the formatter.
 
-Các khóa Unicode locale extension cần nhớ:
+Unicode locale extension keys to remember:
 
-| Khóa | Chức năng | Ví dụ trong language tag |
+| Key | Function | Example in a language tag |
 | --- | --- | --- |
-| `ca` | Calendar/chronology được yêu cầu | `en-US-u-ca-japanese` |
-| `nu` | Hệ chữ số (numbering system) | `en-US-u-nu-thai` |
-| `tz` | Timezone được yêu cầu, bằng mã Unicode timezone | `en-US-u-tz-jptyo` |
+| `ca` | Requested calendar/chronology | `en-US-u-ca-japanese` |
+| `nu` | Numbering system | `en-US-u-nu-thai` |
+| `tz` | Requested time zone, via Unicode timezone code | `en-US-u-tz-jptyo` |
 | `rg` | Region override | `en-US-u-rg-gbzzzz` |
 
-Trong `en-US-u-ca-japanese-nu-thai-tz-jptyo`:
+In `en-US-u-ca-japanese-nu-thai-tz-jptyo`:
 
-- `en-US` là language và country thông thường.
-- `u` mở đầu Unicode extension.
-- `ca-japanese` yêu cầu lịch Nhật.
-- `nu-thai` yêu cầu hệ chữ số Thái.
-- `tz-jptyo` chỉ timezone được đăng ký cho Tokyo. **Không** viết tùy tiện `tz-Asia/Tokyo` trong BCP 47: Unicode timezone type có mã theo registry riêng, khác chuỗi IANA ZoneId.
+- `en-US` is the standard language and country.
+- `u` introduces Unicode extensions.
+- `ca-japanese` requests the Japanese calendar.
+- `nu-thai` requests the Thai numbering system.
+- `tz-jptyo` identifies the registered timezone code for Tokyo. Do **not** arbitrarily write `tz-Asia/Tokyo` in BCP 47: Unicode timezone types use their own registry codes, distinct from IANA ZoneId strings.
 
-Locale có thể được tạo qua:
+The locale can be constructed via:
 
 ~~~java
 Locale preference = Locale.forLanguageTag(
@@ -130,31 +130,31 @@ Locale preference = Locale.forLanguageTag(
 DateTimeFormatter enriched = base.localizedBy(preference);
 ~~~
 
-Đây là đoạn minh họa với biến `base` là formatter đã tồn tại. Với formatter có đủ khả năng biểu diễn, kết quả `enriched` có thể mang:
+This is an illustrative snippet assuming `base` is an existing formatter. With a formatter capable of representing these fields, `enriched` can carry:
 
 - `getChronology().getId()`: `Japanese`;
 - `getZone().getId()`: `Asia/Tokyo`;
-- `getDecimalStyle().getZeroDigit()`: chữ số không `๐` của Thái (Unicode `U+0E50`).
+- `getDecimalStyle().getZeroDigit()`: Thai zero digit `๐` (Unicode `U+0E50`).
 
-**Ưu tiên giữa các extensions:** nếu đồng thời có `ca` và `rg`, chronology xác định bởi `ca` ưu tiên chronology ngầm suy ra từ `rg`; quy tắc tương tự áp dụng với `nu` khi chọn numbering system. Không nên nghĩ chỉ country gốc `US` quyết định toàn bộ cách format khi có region override.
+**Precedence among extensions:** if both `ca` and `rg` are present, the chronology specified by `ca` takes precedence over any chronology implied by `rg`; the same rule applies to `nu` when selecting the numbering system. Do not assume the base country `US` governs all formatting when a region override is present.
 
-### 4.1. localizedBy cũng không “đổi thời gian” của một Instant
+### 4.1. localizedBy does not "change the instant" of an Instant
 
-Nếu dùng một `Instant` đầu vào, timezone trong formatter ảnh hưởng **cách biểu diễn giờ theo vùng**. Một `Instant` ở `2024-03-01T03:04:00Z` sẽ tương ứng `03:04` tại UTC nhưng `12:04` ở Tokyo (UTC+9 tại thời điểm đó). **Instant vẫn là cùng một thời điểm.**
+When given an `Instant` input, the time zone in the formatter affects **how the time is expressed for a region**. An `Instant` at `2024-03-01T03:04:00Z` corresponds to `03:04` in UTC yet `12:04` in Tokyo (UTC+9 at that time). **The Instant remains the exact same point in time.**
 
-Nếu dữ liệu nguồn là `LocalDateTime` không có zone/offset, không thể xem việc định dạng với một zone override là phép quy đổi thời điểm có nghĩa khi chưa gắn zone cho dữ liệu nguồn. Đối với các hệ thống lịch/sự kiện, hãy mô hình hóa `Instant` hoặc `ZonedDateTime`/zone nghiệp vụ đúng trước khi format.
+If the source data is a `LocalDateTime` without a zone or offset, formatting with a zone override cannot be treated as a meaningful time conversion without first associating the source data with a zone. For calendar/event systems, model `Instant` or `ZonedDateTime`/domain zone properly before formatting.
 
-### 4.2. Chronology là cách diễn giải hệ lịch, không phải dịch chữ
+### 4.2. Chronology is calendar interpretation, not text translation
 
-Một chronology khác, ví dụ `JapaneseChronology`, có cách xác định niên hiệu/era, năm trong kỷ nguyên và quy tắc lịch. Khi format đối tượng ngày theo lịch khác, formatter có thể chuyển sang chronology override trước khi phát sinh chuỗi. Vì vậy khi chọn `localizedBy` có `ca`, phải cân nhắc cả ý nghĩa ngày, chữ số và era, không coi đây là “đổi ngôn ngữ” thuần túy.
+A different chronology, such as `JapaneseChronology`, has its own era names, year-of-era numbering, and calendar rules. When formatting a date object under another calendar, the formatter can convert to the overridden chronology before generating text. Thus, when using `localizedBy` with `ca`, consider date semantics, digits, and eras rather than treating it as pure "language switching".
 
-Những formatter dùng pattern `uuuu` có thể vẫn in năm proleptic tương ứng `2024` ngay khi `getChronology()` là `Japanese`; để nhìn rõ niên hiệu trong output cần pattern thích hợp như `G y`. Đừng dựa vào một chuỗi năm đơn lẻ để suy luận rằng chronology không thay đổi: kiểm tra `getChronology()` và các trường era/năm nếu nhiệm vụ cần.
+Formatters using the `uuuu` pattern may still print the proleptic year `2024` even when `getChronology()` is `Japanese`; to see the era in the output, use an appropriate pattern such as `G y`. Do not rely on a single year string to conclude the chronology did not change: inspect `getChronology()` and era/year fields when the task requires it.
 
-## 5. Thứ tự gọi phương thức quan trọng với localizedBy
+## 5. Method Call Order Matters with localizedBy
 
-Các formatter là immutable và phương thức `withXXX` trả về bản sao. Với `withLocale`, không tự ghi đè chronology/zone/decimal style, nên thường có thể cấu hình các override độc lập.
+Formatters are immutable and `withXXX` methods return copies. Since `withLocale` does not overwrite chronology/zone/decimal style, those overrides can generally be configured independently.
 
-**Với `localizedBy`, thứ tự có thể làm thay đổi kết quả** vì `localizedBy` có thể đặt lại các thuộc tính đã được gán trước:
+**With `localizedBy`, call order can change the result** because `localizedBy` can replace attributes that were already set earlier:
 
 ~~~java
 Locale pref = Locale.forLanguageTag("en-US-u-tz-jptyo");
@@ -168,38 +168,38 @@ DateTimeFormatter b = base
         .localizedBy(pref);
 ~~~
 
-Đây là đoạn minh họa; `base` là formatter đã có, cần import `Locale` và `ZoneId`.
+This is an illustrative snippet; `base` is an existing formatter, requiring imports for `Locale` and `ZoneId`.
 
-- Ở **a**, `localizedBy` lấy timezone Tokyo từ `tz`, rồi `withZone(UTC)` **ghi đè cuối cùng**: `a.getZone()` là `UTC`.
-- Ở **b**, `withZone(UTC)` được áp dụng trước nhưng `localizedBy` sau đó nhận extension `tz-jptyo`: `b.getZone()` là `Asia/Tokyo` trên JDK có mapping đó.
+- In **a**, `localizedBy` picks up the Tokyo timezone from `tz`, and then `withZone(UTC)` **overrides it last**: `a.getZone()` is `UTC`.
+- In **b**, `withZone(UTC)` is applied first, then `localizedBy` processes the `tz-jptyo` extension: `b.getZone()` is `Asia/Tokyo` on JDKs with that mapping.
 
-Điều tương tự có thể xảy ra khi `withChronology` hoặc `withDecimalStyle` đứng trước/sau `localizedBy`. Để tránh cấu hình ngầm:
+The same thing can happen when `withChronology` or `withDecimalStyle` appears before or after `localizedBy`. To prevent implicit configuration surprises:
 
-1. Dùng `localizedBy(pref)` trước nếu muốn nhận mặc định bản địa được cho phép.
-2. Sau đó gọi `withZone(businessZone)`, `withChronology(businessChronology)`, `withDecimalStyle(requiredStyle)` **cuối cùng** nếu chính sách ứng dụng bắt buộc giữ chúng.
-3. Không chấp nhận các Unicode extensions do client tự khai như một lệnh đổi timezone hoặc chronology của nghiệp vụ mà chưa kiểm tra quyền, danh sách hỗ trợ và ranh giới dữ liệu.
-4. Viết kiểm thử `getLocale()`, `getChronology()`, `getZone()`, `getDecimalStyle()` cho các cấu hình dễ nhầm.
+1. Call `localizedBy(pref)` first if you want to accept permitted localized defaults.
+2. Then call `withZone(businessZone)`, `withChronology(businessChronology)`, and `withDecimalStyle(requiredStyle)` **last** if application policy requires keeping them fixed.
+3. Never accept client-supplied Unicode extensions as commands to alter business time zones or calendars without checking permissions, allowlists, and data boundaries.
+4. Write tests asserting `getLocale()`, `getChronology()`, `getZone()`, and `getDecimalStyle()` for configurations prone to confusion.
 
-## 6. Đừng lẫn DecimalStyle với toàn bộ localization
+## 6. Do Not Confuse DecimalStyle with Full Localization
 
-`DateTimeFormatter` có `DecimalStyle` để kiểm soát chữ số, dấu cộng/trừ và dấu thập phân dùng cho quá trình format/parse. Nó **không** phải `java.text.DecimalFormat` dành cho format số nói chung.
+`DateTimeFormatter` has `DecimalStyle` to control digits, plus/minus signs, and decimal separators used during formatting/parsing. It is **not** `java.text.DecimalFormat` for general number formatting.
 
-Ví dụ:
+Example:
 
 ~~~java
 DecimalStyle style = DecimalStyle.STANDARD;
 char zeroDigit = style.getZeroDigit(); // '0' (U+0030)
 ~~~
 
-Đây là đoạn minh họa, cần import `java.time.format.DecimalStyle`.
+This is an illustrative snippet requiring `import java.time.format.DecimalStyle;`.
 
-`withLocale(Locale.forLanguageTag("th-TH"))` có thể đổi văn bản/pattern theo locale nhưng **không tự đổi** `DecimalStyle.STANDARD` đã cấu hình. Ngược lại, `localizedBy(Locale.forLanguageTag("th-TH-u-nu-thai"))` có thể chọn chữ số Thái theo extension `nu`.
+`withLocale(Locale.forLanguageTag("th-TH"))` can change localized text/patterns according to the locale, yet **does not automatically alter** an already configured `DecimalStyle.STANDARD`. Conversely, `localizedBy(Locale.forLanguageTag("th-TH-u-nu-thai"))` can select Thai digits per the `nu` extension.
 
-Cũng không được đồng nhất locale với `ZoneId`: không phải mọi ngôn ngữ/khu vực quy về một múi giờ duy nhất. Một country có thể trải qua nhiều zone hoặc phụ thuộc thời điểm. `tz` extension là một **yêu cầu timezone được mã hóa trong locale**, không phải sự thật về vị trí thực của người dùng.
+Nor should locale be equated with `ZoneId`: not every language/region maps to a single time zone. One country can span multiple zones or vary over time. A `tz` extension is a **timezone preference encoded in a locale**, not a fact about the user's physical location.
 
-## 7. Ví dụ Java 17 chạy độc lập, kiểm chứng cả metadata và output
+## 7. Standalone Java 17 Example Verifying Both Metadata and Output
 
-Đặt mã trong file **`LocaleMethodDemo.java`**:
+Place the code in **`LocaleMethodDemo.java`**:
 
 ~~~java
 import java.time.*;
@@ -254,14 +254,14 @@ public class LocaleMethodDemo {
 }
 ~~~
 
-Biên dịch và chạy với **Java 17 trở lên**:
+Compile and run with **Java 17 or later**:
 
 ~~~bash
 javac -encoding UTF-8 LocaleMethodDemo.java
 java LocaleMethodDemo
 ~~~
 
-**Stdout đã đối chiếu** trên JDK có dữ liệu calendar, numbering system và timezone tương ứng:
+**Verified stdout** on a JDK with the corresponding calendar, numbering system, and time-zone data:
 
 ~~~text
 base: locale=en-US, chronology=ISO, zone=UTC, zeroDigitU+0030
@@ -274,40 +274,40 @@ withLocale text=2024-03-01 03:04
 localizedBy text=๒๐๒๔-๐๓-๐๑ ๑๒:๐๔
 ~~~
 
-Đọc kết quả:
+Reading the output:
 
-1. **base** chứa `ISO`, `UTC` và chữ số `0` ASCII (`U+0030`).
-2. **withLocale** thay ngôn ngữ/locale được lưu sang tag có extension nhưng vẫn giữ cả ba override của base.
-3. **localizedBy** thay sang lịch Nhật, timezone Tokyo và chữ số Thái (`U+0E50`) theo `ca`, `tz`, `nu`.
-4. **zoneAfter** cho `UTC` vì `withZone(UTC)` được gọi cuối.
-5. **localeAfter** cho `Asia/Tokyo` vì `localizedBy` được gọi cuối và diễn giải `tz`.
-6. **unchanged=true** chứng minh formatter base ban đầu không bị thay đổi.
-7. **withLocale text** dùng thời gian UTC và chữ số ASCII: `2024-03-01 03:04`.
-8. **localizedBy text** dùng giờ Tokyo (UTC+9) và chữ số Thái: `๒๐๒๔-๐๓-๐๑ ๑๒:๐๔`.
+1. **base** holds `ISO`, `UTC`, and ASCII digit `0` (`U+0030`).
+2. **withLocale** updates the stored locale to the tag with extensions while keeping all three overrides from `base`.
+3. **localizedBy** switches to the Japanese calendar, Tokyo timezone, and Thai digits (`U+0E50`) per `ca`, `tz`, and `nu`.
+4. **zoneAfter** yields `UTC` because `withZone(UTC)` was called last.
+5. **localeAfter** yields `Asia/Tokyo` because `localizedBy` was called last and interpreted `tz`.
+6. **unchanged=true** proves the original `base` formatter was not mutated.
+7. **withLocale text** uses UTC time and ASCII digits: `2024-03-01 03:04`.
+8. **localizedBy text** uses Tokyo time (UTC+9) and Thai digits: `๒๐๒๔-๐๓-๐๑ ๑๒:๐๔`.
 
-Dòng cuối **không có nghĩa một `Instant` mới được tạo**. Cả hai chuỗi đều định dạng cùng `Instant.parse("2024-03-01T03:04:00Z")`; khác biệt đến từ zone và numbering system trong formatter.
+The last line **does not mean a new `Instant` was created**. Both strings format the same `Instant.parse("2024-03-01T03:04:00Z")`; the difference comes from the formatter's zone and numbering system.
 
-Nếu JDK không hỗ trợ một loại calendar, mã vùng hoặc numbering system được yêu cầu, kết quả cụ thể có thể khác. Khi triển khai, hãy kiểm tra theo runtime/locale provider đã chọn và tránh snapshot Unicode text vượt mọi phiên bản mà không ghim dữ liệu. Trong ví dụ, in `zeroDigitU+` là cách kiểm tra metadata rõ ràng hơn việc trông vào kiểu chữ của console.
+If the JDK does not support a requested calendar, region code, or numbering system, the exact output may vary. In deployment, test against the chosen runtime/locale provider and avoid cross-version Unicode text snapshots without pinning data. In the example, printing `zeroDigitU+` is a clearer way to verify metadata than relying on console font rendering.
 
-## 8. withLocale hay localizedBy: chọn theo tình huống
+## 8. withLocale vs. localizedBy: Choosing by Scenario
 
-| Nhu cầu | Phương án thường phù hợp | Lý do |
+| Need | Usually suitable choice | Reason |
 | --- | --- | --- |
-| Dịch tên tháng, thứ và đổi mẫu ngày theo locale | `withLocale(locale)` trên formatter phù hợp | Đổi nguồn văn bản và localized pattern |
-| Dùng `ofLocalizedDate(FormatStyle.LONG)` theo user locale | `withLocale(locale)` | Localized style đã tìm pattern theo locale |
-| Giữ lịch ISO và một zone của nghiệp vụ | `withLocale(locale)` cùng `withChronology`/`withZone` rõ ràng | Hạn chế tác dụng của locale extension lên override |
-| Cho phép user chọn lịch Nhật qua `ca-japanese` | `localizedBy(locale)` nếu policy cho phép | Áp dụng chronology từ locale extension |
-| Cho phép hệ chữ số Thái qua `nu-thai` | `localizedBy(locale)` hoặc `withDecimalStyle` rõ ràng | Áp dụng numbering system |
-| Cho phép timezone từ `tz` | `localizedBy(locale)` sau kiểm tra chính sách | Có thể chọn zone theo extension |
-| Timezone của lịch họp phải là `Asia/Ho_Chi_Minh` bất kể client locale | `localizedBy(locale).withZone(businessZone)` hoặc `withLocale(locale).withZone(businessZone)` | Ghi đè zone sau khi bản địa hóa |
-| Sinh chuỗi chuẩn để lưu DB/API | Formatter ISO/chuẩn cố định theo contract | Không phụ thuộc presentation locale |
-| Một server phục vụ nhiều request | Truyền locale theo request, dùng formatter immutable | Tránh `Locale.setDefault` toàn JVM |
+| Translate month/day names and switch date style by locale | `withLocale(locale)` on an appropriate formatter | Changes text source and localized pattern |
+| Use `ofLocalizedDate(FormatStyle.LONG)` per user locale | `withLocale(locale)` | Localized style already looks up the pattern by locale |
+| Keep ISO calendar and a domain zone | `withLocale(locale)` with explicit `withChronology`/`withZone` | Prevents locale extensions from replacing overrides |
+| Allow users to choose Japanese calendar via `ca-japanese` | `localizedBy(locale)` if policy permits | Applies chronology from locale extension |
+| Allow Thai numbering system via `nu-thai` | `localizedBy(locale)` or explicit `withDecimalStyle` | Applies numbering system |
+| Allow time zone from `tz` | `localizedBy(locale)` after policy validation | Can pick up zone from extension |
+| Meeting time zone must stay `Asia/Ho_Chi_Minh` regardless of client locale | `localizedBy(locale).withZone(businessZone)` or `withLocale(locale).withZone(businessZone)` | Overrides zone after localization |
+| Produce canonical strings for DB/API storage | Standard/fixed ISO formatter per contract | Independent of presentation locale |
+| One server handling many requests | Pass locale per request, use immutable formatters | Avoids JVM-wide `Locale.setDefault` |
 
-**Không thể chỉ chọn một phương thức làm “đúng cho mọi trường hợp”.** Quyết định phải dựa trên ý nghĩa của hệ lịch, vùng thời gian và hệ chữ số trong sản phẩm.
+**No single method can be declared "right for every case".** The choice must reflect the role of calendar systems, time zones, and numbering systems in your product.
 
-## 9. Các lỗi thường gặp
+## 9. Common Mistakes
 
-### Lỗi 1: tưởng withLocale tự đổi timezone
+### Mistake 1: Assuming withLocale changes the timezone
 
 ~~~java
 DateTimeFormatter f = DateTimeFormatter.ofPattern("HH:mm")
@@ -315,74 +315,74 @@ DateTimeFormatter f = DateTimeFormatter.ofPattern("HH:mm")
         .withLocale(Locale.forLanguageTag("ja-JP"));
 ~~~
 
-Đây là đoạn minh họa, cần import các lớp tương ứng. Kết quả `getZone()` vẫn là `UTC`. Locale tiếng Nhật không tự chuyển mốc thời gian thành giờ Tokyo.
+This is an illustrative snippet requiring the corresponding imports. `getZone()` is still `UTC`. A Japanese locale does not automatically convert timestamps to Tokyo time.
 
-**Cách đúng:** nếu cần giờ Tokyo, dùng `withZone(ZoneId.of("Asia/Tokyo"))` rõ ràng, hoặc chọn `localizedBy` khi người dùng thực sự có `tz` extension hợp lệ và sản phẩm cho phép nó.
+**Proper approach:** if you need Tokyo time, call `withZone(ZoneId.of("Asia/Tokyo"))` explicitly, or use `localizedBy` when the user actually has a valid `tz` extension and the product permits it.
 
-### Lỗi 2: tưởng localizedBy chỉ thay tên tháng
+### Mistake 2: Assuming localizedBy only changes month names
 
-Nếu locale chứa `ca`, `nu`, `tz`, phương thức này có thể ghi đè lịch, chữ số và zone đã cấu hình. **Không** gọi `localizedBy` cuối pipeline nếu nghiệp vụ bắt buộc một `ZoneId` cố định mà không hiểu rủi ro.
+If the locale contains `ca`, `nu`, or `tz`, this method can overwrite the configured calendar, digits, and zone. Do **not** call `localizedBy` at the end of a pipeline if business rules mandate a fixed `ZoneId` without understanding this risk.
 
-### Lỗi 3: không lưu formatter trả về
+### Mistake 3: Discarding the returned formatter
 
 ~~~java
 DateTimeFormatter formatter =
         DateTimeFormatter.ofPattern("d MMM uuuu", Locale.US);
-formatter.withLocale(Locale.FRANCE); // Bỏ qua đối tượng trả về!
+formatter.withLocale(Locale.FRANCE); // Returned object ignored!
 ~~~
 
-Formatter bất biến, nên biến `formatter` vẫn giữ locale `en-US`. Hãy dùng `formatter = formatter.withLocale(Locale.FRANCE);` hoặc đặt vào biến mới.
+Formatters are immutable, so `formatter` still holds `en-US`. Use `formatter = formatter.withLocale(Locale.FRANCE);` or assign to a new variable.
 
-### Lỗi 4: dùng locale để thay dữ liệu thời gian
+### Mistake 4: Using locale as a substitute for temporal data
 
-Đổi UI sang `vi-VN` không tự xác định một `LocalDateTime` phải thuộc timezone nào. Nếu ứng dụng nhận thời điểm từ backend, lưu/truyền `Instant` hoặc `OffsetDateTime`/`ZonedDateTime` với semantics rõ ràng; áp dụng locale ở bước trình bày. Đừng tự coi ngày giờ không gắn zone là một instant rồi cộng/trừ giờ theo country.
+Switching the UI to `vi-VN` does not determine which time zone a `LocalDateTime` belongs to. If the application receives instants from a backend, store/transmit `Instant` or `OffsetDateTime`/`ZonedDateTime` with clear semantics; apply locale at the presentation step. Do not treat a zone-less date-time as an instant and add/subtract hours by country.
 
-### Lỗi 5: ép formatter theo locale cho dữ liệu máy đọc
+### Mistake 5: Forcing locale-based formatters for machine-readable data
 
-Chuỗi `2024-03-01` theo ISO format thường ổn định hơn để truyền qua API so với localized date text mà thứ tự ngày/tháng và chữ số có thể thay đổi. Các serializer nên theo contract rõ ràng, không lấy formatter của màn hình làm chuẩn lưu trữ.
+An ISO-formatted string `2024-03-01` is far more stable over APIs than localized date text whose day/month order and digits can vary. Serializers should follow an explicit contract rather than borrowing UI display formatters as a storage format.
 
-### Lỗi 6: cho client quyết định chronology/zone bằng extension không được kiểm tra
+### Mistake 6: Letting clients dictate chronology/zone via unvalidated extensions
 
-Một header locale do client gửi có thể chứa `u-ca-...`, `u-nu-...`, `u-tz-...`. Đừng dùng trực tiếp để đổi lịch tính hạn, giờ hẹn hoặc xử lý lịch sử nếu hệ thống cần zone/chronology từ nguồn đáng tin cậy. Parse và allowlist locale, rồi áp dụng quy tắc nghiệp vụ riêng.
+A client-supplied locale header can contain `u-ca-...`, `u-nu-...`, or `u-tz-...`. Never use it directly to change calendars for due-date calculations, appointments, or historical processing when the system needs zones/chronologies from a trusted source. Parse and allowlist locales, then apply separate domain rules.
 
-## 10. Kiểm thử cần viết
+## 10. Tests You Should Write
 
-Để kiểm tra chính xác lựa chọn API, tạo test bao phủ:
+To verify your API choice accurately, write tests covering:
 
-1. **Immutability:** formatter gốc không đổi sau cả hai phương thức.
-2. **Locale text/style:** tên tháng, tên thứ hoặc localized pattern thay theo `withLocale` đối với formatter có phần bản địa hóa.
-3. **No hidden override:** `withLocale` với `ca/nu/tz` vẫn giữ explicit chronology/zone/decimal style của base.
-4. **Extended localization:** `localizedBy` với các extension hợp lệ cập nhật metadata mong đợi.
-5. **Chaining order:** `localizedBy(tz).withZone(UTC)` khác `withZone(UTC).localizedBy(tz)`.
-6. **Same Instant:** định dạng cùng `Instant` ở UTC và Tokyo, kiểm tra chênh lệch giờ chính xác nhưng giá trị `Instant` không đổi.
-7. **Input edge cases:** `null` ném `NullPointerException`; locale không có extension và locale có extension không hỗ trợ phải được xử lý theo hợp đồng của JDK và chính sách ứng dụng.
-8. **Parser:** nếu dùng `localizedBy` có chronology khác ISO, xác nhận thời gian parse ra có meaning đúng; không tự suy diễn LocalDate khi hệ lịch khác.
-9. **Provider/CLDR differences:** snapshot tên tháng, era và chữ số theo phiên bản Java/locale data mà sản phẩm đã cam kết.
-10. **Multi-thread:** formatter immutable có thể chia sẻ an toàn; context locale của mỗi request phải được quản lý riêng thay vì thay default JVM.
+1. **Immutability:** the original formatter is unchanged after both methods.
+2. **Locale text/style:** month names, weekday names, or localized patterns change with `withLocale` on formatters that have localized parts.
+3. **No hidden overrides:** `withLocale` with `ca/nu/tz` preserves the base formatter's explicit chronology/zone/decimal style.
+4. **Extended localization:** `localizedBy` with valid extensions updates the expected metadata.
+5. **Chaining order:** `localizedBy(tz).withZone(UTC)` differs from `withZone(UTC).localizedBy(tz)`.
+6. **Same Instant:** formatting the same `Instant` in UTC and Tokyo checks the exact hour offset while leaving the `Instant` unchanged.
+7. **Input edge cases:** `null` throws `NullPointerException`; locales without extensions and locales with unsupported extensions must follow the JDK contract and application policy.
+8. **Parsing:** if using `localizedBy` with a non-ISO chronology, verify the parsed date has the right meaning; do not infer `LocalDate` blindly under a different calendar system.
+9. **Provider/CLDR differences:** snapshot month names, eras, and digits under the committed Java/locale-data version.
+10. **Multi-threading:** immutable formatters can be safely shared; per-request locale context must be managed separately instead of changing the JVM default.
 
-Đối với parser và format cần ổn định trên giao thức, hãy dùng formatter chuẩn cố định và kiểm thử round-trip độc lập với language preference.
+For parsers and formats that must remain stable across a protocol, use fixed standard formatters and test round-trips independently of language preferences.
 
-## 11. Bài tập thực hành
+## 11. Practice Exercises
 
-- Thay `Locale.US` của `base` bằng `Locale.forLanguageTag("vi-VN")`, rồi dùng `DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)` để quan sát pattern theo locale.
-- Bỏ `tz-jptyo` khỏi `target`; so `getZone()` của formatter base, `withLocale` và `localizedBy` trên runtime đang dùng.
-- Bỏ `ca-japanese`; so `getChronology()`.
-- Bỏ `nu-thai`; so `getDecimalStyle().getZeroDigit()`.
-- Thay pattern thành `"G y-MM-dd HH:mm"`; quan sát cách chronology Nhật định dạng era/năm của era, nhưng lưu ý tên era phụ thuộc locale/provider.
-- Đảo thứ tự `withChronology(IsoChronology.INSTANCE)` và `localizedBy(target)`; giải thích giá trị cuối cùng của formatter.
-- Truyền cùng `Instant` qua các formatter nhưng đặt zone business ở cuối bằng `withZone(ZoneId.of("Asia/Ho_Chi_Minh"))`; xác nhận chênh lệch múi giờ so với UTC ở ngày đã chọn.
-- Viết một factory `formatterFor(Locale locale, ZoneId requiredZone)` nhận locale từ request và zone từ domain, rồi chứng minh không cần `Locale.setDefault`.
+- Replace `Locale.US` on `base` with `Locale.forLanguageTag("vi-VN")`, then use `DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)` to observe the locale pattern.
+- Remove `tz-jptyo` from `target`; compare `getZone()` on `base`, `withLocale`, and `localizedBy` on your runtime.
+- Remove `ca-japanese`; compare `getChronology()`.
+- Remove `nu-thai`; compare `getDecimalStyle().getZeroDigit()`.
+- Change the pattern to `"G y-MM-dd HH:mm"`; observe how the Japanese chronology formats era and year-of-era, noting that era names depend on locale/provider.
+- Reverse the order of `withChronology(IsoChronology.INSTANCE)` and `localizedBy(target)`; explain the final value on the formatter.
+- Pass the same `Instant` through the formatters while setting the business zone last with `withZone(ZoneId.of("Asia/Ho_Chi_Minh"))`; verify the time-zone offset relative to UTC on the chosen date.
+- Write a factory `formatterFor(Locale locale, ZoneId requiredZone)` taking locale from the request and zone from the domain, and demonstrate that `Locale.setDefault` is unnecessary.
 
-## 12. Tóm tắt
+## 12. Summary
 
-**`withLocale` thay nguồn bản địa hóa văn bản và pattern; `localizedBy` có thể áp dụng cả chronology, numbering system, region và timezone từ locale.** Cả hai đều trả về formatter bất biến mới. Sự khác biệt thường rõ nhất khi locale có Unicode extensions `ca`, `nu`, `rg`, `tz`, hoặc formatter đã có `withZone`, `withChronology`, `withDecimalStyle`.
+**`withLocale` changes the source of localized text and patterns; `localizedBy` can also apply chronology, numbering system, region, and time zone from the locale.** Both return a new immutable formatter. The difference is clearest when the locale carries Unicode extensions `ca`, `nu`, `rg`, `tz`, or when the formatter already has `withZone`, `withChronology`, or `withDecimalStyle`.
 
-Khi hệ thống chỉ cần đổi ngôn ngữ hoặc cách trình bày ngày giờ mà vẫn giữ zone/lịch nghiệp vụ, `withLocale` thường là lựa chọn dễ kiểm soát. Khi ứng dụng **chủ đích** hỗ trợ sở thích lịch/chữ số/zone được mã hóa trong locale, cân nhắc `localizedBy`, kiểm tra dữ liệu đầu vào và đặt các override bắt buộc **sau** thao tác bản địa hóa. Đừng nhầm định dạng hiển thị với cách lưu hoặc tính toán thời điểm.
+When a system only needs to change the language or date-time layout while preserving the business zone and calendar, `withLocale` is usually easier to control. When an application **intentionally** supports calendar/digit/zone preferences encoded in a locale, consider `localizedBy`, validate inputs, and apply mandatory overrides **after** localization. Never confuse display formatting with how instants are stored or computed.
 
-**Tài liệu tham khảo:**
+**References:**
 
-- Java SE 17, `DateTimeFormatter` (withLocale, localizedBy): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html
+- Java SE 17, `DateTimeFormatter` (`withLocale`, `localizedBy`): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html
 - Java SE 17, `DecimalStyle`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DecimalStyle.html
-- Java SE 17, `Locale` và Unicode extensions: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html
+- Java SE 17, `Locale` and Unicode extensions: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html
 - Java SE 17, `Chronology`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/chrono/Chronology.html
 - Java SE 17, `ZoneId`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZoneId.html

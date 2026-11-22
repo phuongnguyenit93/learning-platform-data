@@ -1,10 +1,10 @@
-# Khi nào cần giới hạn theo ULP khi so sánh số thực trong Java?
+# When Should You Bound by ULP When Comparing Floating-Point Numbers in Java?
 
-## 1. Vì sao một sai số tuyệt đối cố định không luôn đủ?
+## 1. Why Is a Fixed Absolute Error Not Always Enough?
 
-Phép toán **float** và **double** sử dụng số dấu phẩy động nhị phân hữu hạn độ chính xác. Kết quả trung gian và kết quả cuối có thể phải làm tròn. Vì vậy, hai phép tính về mặt toán học có cùng đáp số vẫn có thể trả về hai mẫu bit khác nhau.
+Operations on **float** and **double** use binary floating-point numbers of finite precision. Intermediate and final results may need to be rounded. Therefore, two calculations with the same mathematical answer can still yield two different bit patterns.
 
-Ví dụ:
+Example:
 
 ~~~java
 double computed = 0.1 + 0.2;
@@ -13,41 +13,41 @@ double expected = 0.3;
 System.out.println(computed == expected); // false
 ~~~
 
-Số **0.1**, **0.2** và **0.3** không có biểu diễn nhị phân hữu hạn chính xác trong kiểu double. Ở đây hai kết quả nằm ở **hai giá trị double liên tiếp**. Điều đó gợi ý một cách đo sai khác theo bước của chính định dạng số: **ULP**.
+The numbers **0.1**, **0.2**, and **0.3** have no exact finite binary representation in `double`. Here the two results sit at **two consecutive `double` values**. That suggests a way to measure discrepancy in steps of the number format itself: **ULP**.
 
-Tuy nhiên, việc hai giá trị cách nhau ít ULP **không tự chứng minh** kết quả đủ chính xác cho nghiệp vụ. Một ULP phụ thuộc vào độ lớn của giá trị: tại số rất lớn, khoảng cách một ULP có thể rất lớn theo đơn vị vật lý; gần zero, một ULP có thể tương ứng với tỷ lệ sai khác rất lớn.
+However, two values being only a few ULPs apart **does not by itself prove** the result is accurate enough for business logic. One ULP depends on the magnitude of the value: for very large numbers, a single ULP distance can be huge in physical units; near zero, a single ULP can correspond to a huge proportional difference.
 
-Mục tiêu của bài là xác định **khi nào giới hạn sai số theo ULP hợp lý**, khi nào nên dùng sai số tuyệt đối/tương đối, và cách viết kiểm tra Java tránh kết luận sai.
+The goal of this lesson is to determine **when bounding error by ULP makes sense**, when to use absolute/relative error instead, and how to write Java checks that avoid false conclusions.
 
-## 2. ULP là gì?
+## 2. What Is a ULP?
 
-**ULP** viết tắt của *unit in the last place*. Với một giá trị floating-point hữu hạn x, **Math.ulp(x)** trong Java trả về kích thước một ULP tại x: khoảng cách dương đến giá trị biểu diễn được kế tiếp theo hướng **tăng độ lớn**. Điều này phụ thuộc vào độ rộng kiểu (**float** hay **double**) và vị trí của x trên trục số.
+**ULP** stands for *unit in the last place*. For a finite floating-point value x, **Math.ulp(x)** in Java returns the size of one ULP at x: the positive distance to the next representable value in the direction of **increasing magnitude**. This depends on the type width (**float** or **double**) and the position of x on the number line.
 
-Các phương thức liên quan:
+Related methods:
 
-- **Math.ulp(double)** trả về double; **Math.ulp(float)** trả về float.
-- **Math.nextUp(x)** tìm số floating-point sát bên theo hướng dương vô cùng.
-- **Math.nextDown(x)** tìm số sát bên theo hướng âm vô cùng.
-- **Math.nextAfter(start, direction)** tìm số sát bên theo hướng chỉ định.
-- **Double.toHexString(x)** và **Float.toHexString(x)** hiển thị significand và số mũ nhị phân để quan sát ranh giới.
+- **Math.ulp(double)** returns double; **Math.ulp(float)** returns float.
+- **Math.nextUp(x)** finds the adjacent floating-point number toward positive infinity.
+- **Math.nextDown(x)** finds the adjacent number toward negative infinity.
+- **Math.nextAfter(start, direction)** finds the adjacent number in the specified direction.
+- **Double.toHexString(x)** and **Float.toHexString(x)** display the significand and binary exponent to inspect boundaries.
 
-Một số mốc quan trọng:
+Some important landmarks:
 
-| Giá trị | ULP trong Java | Ý nghĩa |
+| Value | ULP in Java | Meaning |
 | --- | --- | --- |
-| **Math.ulp(1.0)** | **2^−52** | Bước phía trên 1 của double |
-| **Math.ulp(1.0f)** | **2^−23** | Bước phía trên 1 của float |
-| **Math.ulp(0.0)** | **Double.MIN_VALUE = 2^−1074** | Bước subnormal nhỏ nhất của double |
-| **Math.ulp(0.0f)** | **Float.MIN_VALUE = 2^−149** | Bước subnormal nhỏ nhất của float |
-| **Math.ulp(Double.MAX_VALUE)** | **2^971** | Kích thước ULP tại double hữu hạn lớn nhất |
-| **Math.ulp(Double.POSITIVE_INFINITY)** | **Infinity** | Trường hợp đặc biệt; không dùng làm mức dung sai hữu hạn |
-| **Math.ulp(Double.NaN)** | **NaN** | Không có khoảng cách số để so sánh |
+| **Math.ulp(1.0)** | **2^−52** | Step above 1 for double |
+| **Math.ulp(1.0f)** | **2^−23** | Step above 1 for float |
+| **Math.ulp(0.0)** | **Double.MIN_VALUE = 2^−1074** | Smallest subnormal step for double |
+| **Math.ulp(0.0f)** | **Float.MIN_VALUE = 2^−149** | Smallest subnormal step for float |
+| **Math.ulp(Double.MAX_VALUE)** | **2^971** | ULP size at the largest finite double |
+| **Math.ulp(Double.POSITIVE_INFINITY)** | **Infinity** | Special case; do not use as a finite tolerance |
+| **Math.ulp(Double.NaN)** | **NaN** | No numeric distance to compare |
 
-Trong cùng một đoạn giá trị mà số mũ nhị phân không đổi (*binade*), các giá trị biểu diễn được cách nhau đều; khi chuyển sang đoạn số mũ kế tiếp, bước lưới thay đổi. Các **subnormal** gần zero có khoảng cách tuyệt đối cố định bằng **MIN_VALUE**.
+Within an interval of values where the binary exponent stays constant (*binade*), representable values are evenly spaced; when crossing into the next exponent interval, the grid step changes. **Subnormal** numbers near zero have a constant absolute spacing equal to **MIN_VALUE**.
 
-### Bẫy ở đúng lũy thừa của hai
+### Trap Right at Powers of Two
 
-Tại **1.0 = 2^0** của double:
+At **1.0 = 2^0** in double:
 
 ~~~text
 Math.nextDown(1.0) = 1.0 - 2^-53
@@ -57,67 +57,67 @@ Math.nextUp(1.0)   = 1.0 + 2^-52
 Math.ulp(1.0)      = 2^-52
 ~~~
 
-Khoảng cách tới giá trị phía dưới **chỉ bằng một nửa** khoảng cách tới giá trị phía trên. Vì vậy, biểu thức **Math.abs(a - b) / Math.ulp(a)** không phải phép đếm số giá trị floating-point nằm giữa a và b trong mọi trường hợp.
+The distance to the value below **is only half** the distance to the value above. Consequently, the expression **Math.abs(a - b) / Math.ulp(a)** does not count the number of floating-point values between a and b in every case.
 
-Phân biệt hai ý nghĩa thường bị gọi chung là “sai số N ULP”:
+Distinguish two meanings commonly grouped under "N ULP error":
 
-1. **Ngưỡng khoảng cách số học:** chấp nhận khi |a − b| không vượt **N × Math.ulp(reference)** hoặc một ULP tại thang đo được chọn. Đây là ngưỡng độ lớn có đơn vị của a/b.
-2. **Số bước biểu diễn (representable-value distance):** chấp nhận khi từ một giá trị đến giá trị kia đi qua không quá N lần **nextUp/nextDown** hợp lệ. Đây là số bước nguyên, không luôn bằng tỷ số ở mục 1.
+1. **Arithmetic distance threshold:** accept when |a − b| does not exceed **N × Math.ulp(reference)** or one ULP at a chosen scale. This is a magnitude threshold in the units of a/b.
+2. **Representable-value distance:** accept when going from one value to the other takes at most N valid **nextUp/nextDown** steps. This is an integer step count, which does not always equal the ratio in item 1.
 
-Cần xác định hợp đồng kiểm thử muốn sử dụng nghĩa nào **trước khi chọn thuật toán**.
+Determine which meaning your test contract intends **before choosing an algorithm**.
 
-## 3. Khi nào nên đặt giới hạn ULP?
+## 3. When Should You Set a ULP Bound?
 
-### Trường hợp phù hợp
+### Suitable Cases
 
-Một ngưỡng theo ULP hữu ích khi:
+A ULP-based threshold is useful when:
 
-- **Kiểm thử thuật toán số mức thấp:** bạn có giá trị tham chiếu và muốn đo xem kết quả double/float của một triển khai lệch bao nhiêu bước làm tròn so với tham chiếu, đặc biệt khi tiêu chí kiểm thử hoặc tài liệu API mô tả sai số bằng ULP.
-- **So sánh kết quả của hai cách tính số học nhị phân:** cả hai tính cùng đại lượng, có cùng đơn vị, cùng độ rộng float/double và dự kiến chỉ sai nhau ít bước biểu diễn.
-- **Khảo sát tính chính xác tại một vùng giá trị có độ lớn tương đương:** bạn muốn dung sai co giãn cùng độ phân giải biểu diễn, thay vì gắn cố định một **epsilon = 1e−9** trên mọi thang đo.
-- **Đánh giá chất lượng phép làm tròn:** xác định kết quả có cách giá trị tham chiếu đúng hoặc có độ chính xác cao chỉ 0, 1, 2... bước biểu diễn. Phép đếm này có ý nghĩa đặc biệt khi giá trị tham chiếu đã được làm tròn về đúng kiểu đích theo một quy tắc đã biết.
+- **Testing low-level numerical algorithms:** you have a reference value and want to measure how many rounding steps an implementation's double/float result deviates from the reference, especially when test criteria or API docs state error in ULPs.
+- **Comparing results of two binary arithmetic approaches:** both compute the same quantity with the same units and the same float/double width, and are expected to differ by only a few representable steps.
+- **Examining accuracy within a region of comparable magnitude:** you want a tolerance that scales with representation resolution instead of hardcoding a fixed **epsilon = 1e−9** across all scales.
+- **Evaluating rounding quality:** verifying that a result is within 0, 1, 2... representable steps of an exact or high-precision reference. This count is especially meaningful when the reference has been rounded to the target type under a known rule.
 
-**Điều kiện quan trọng:** trước hết phải biết giới hạn sai số của thuật toán hoặc hợp đồng kiểm thử. Không có giá trị N mặc định đúng cho mọi hàm. “Cho phép 4 ULP” chỉ là một quyết định có cơ sở nếu được chứng minh bởi phân tích sai số, đặc tả API, dữ liệu thực nghiệm hoặc mục tiêu kiểm thử rõ ràng.
+**Important condition:** you must first know the algorithm's error bound or test contract. There is no default N that fits every function. "Allow 4 ULPs" is a justified decision only if backed by error analysis, API specification, empirical data, or explicit test goals.
 
-### Trường hợp không nên chỉ dựa vào ULP
+### Cases Where You Should Not Rely Solely on ULP
 
-- **Nghiệp vụ có đơn vị và ngưỡng chấp nhận cụ thể:** ví dụ sai khác nhiệt độ không quá 0.01 °C, vị trí không quá 1 mm, thời gian không quá 1 µs. Ngưỡng tuyệt đối theo đơn vị thực là quan trọng hơn.
-- **Sai số tương đối có ý nghĩa:** đo tỷ lệ thay đổi của đại lượng trên nhiều bậc độ lớn. Giới hạn tương đối thường biểu đạt rõ yêu cầu hơn.
-- **Miền gần zero:** 0 và **Double.MIN_VALUE** cách đúng một bước biểu diễn nhưng tỷ lệ sai khác so với giá trị khác 0 là 100%. Một ngưỡng “1 ULP” có thể quá dễ dãi nếu nghiệp vụ yêu cầu giá trị phải thực sự khác 0.
-- **Thuật toán mất ổn định số hoặc triệt tiêu chữ số (cancellation):** đầu ra có thể cách kết quả chính xác nhiều ULP dù sai số tuyệt đối nhỏ, hoặc ngược lại. ULP không thay cho phân tích độ điều kiện (*conditioning*) của bài toán.
-- **So sánh giá trị tiền tệ/định danh/giới hạn pháp lý phải chính xác theo thập phân:** dùng mô hình tiền và quy tắc làm tròn rõ ràng (chẳng hạn BigDecimal đúng cách) thay vì mặc định so sánh double gần nhau.
-- **Dùng số thực làm khóa phân vùng, khóa Map, hoặc điều kiện đồng nhất bắt buộc bắc cầu:** quan hệ “gần nhau trong N ULP” không bắc cầu. Nó không nên được nhét tùy tiện vào **equals/hashCode**.
+- **Business logic with concrete units and acceptance bounds:** e.g., temperature difference at most 0.01 °C, position at most 1 mm, time at most 1 µs. Absolute thresholds in real units matter more.
+- **Relative error is meaningful:** measuring proportional change of a quantity across many orders of magnitude. Relative limits usually express the requirement more clearly.
+- **Near-zero domain:** 0 and **Double.MIN_VALUE** are exactly one representable step apart, yet the proportional difference relative to the non-zero value is 100%. A "1 ULP" threshold can be far too lenient if business logic requires the value to truly be non-zero.
+- **Numerically unstable algorithms or cancellation:** output can be many ULPs away from the exact result even when absolute error is small, or vice versa. ULP does not replace analyzing the *conditioning* of the problem.
+- **Comparing monetary values / identifiers / legal limits that must be exact in decimal:** use a monetary model and explicit rounding rules (e.g., BigDecimal used properly) rather than defaulting to approximate double comparison.
+- **Using floating-point numbers as partitioning keys, Map keys, or equality conditions requiring transitivity:** the "close within N ULPs" relation is not transitive. It must not be stuffed arbitrarily into **equals/hashCode**.
 
-Ví dụ: nếu x và y cách một ULP, y và z cũng cách một ULP, thì x và z có thể cách **hai ULP**. Khi ấy **close(x,y)** và **close(y,z)** có thể cùng true nhưng **close(x,z)** false.
+For example, if x and y are one ULP apart, and y and z are also one ULP apart, then x and z can be **two ULPs** apart. Then **close(x,y)** and **close(y,z)** can both be true while **close(x,z)** is false.
 
-## 4. So sánh tuyệt đối, tương đối và ULP
+## 4. Comparing Absolute, Relative, and ULP Tolerances
 
-Ba dạng kiểm tra phục vụ ba kiểu yêu cầu:
+Three check types serve three types of requirements:
 
-| Cách so sánh | Quy tắc thường gặp | Phù hợp với |
+| Comparison method | Common rule | Suitable for |
 | --- | --- | --- |
-| **Sai số tuyệt đối** | **abs(a−b) ≤ absTol** | Có ngưỡng thực tế theo đơn vị, nhất là gần zero |
-| **Sai số tương đối** | **abs(a−b) ≤ relTol × max(abs(a), abs(b))** | Độ lớn khác nhau, quan tâm tỉ lệ sai số |
-| **Kết hợp tuyệt đối/tương đối** | **abs(a−b) ≤ max(absTol, relTol × scale)** | Nhiều bài kiểm thử ứng dụng trên cả giá trị nhỏ và lớn |
-| **Ngưỡng ULP theo thang** | **abs(a−b) ≤ N × Math.ulp(scale)** | Dung sai cùng độ phân giải biểu diễn ở vùng scale |
-| **Đếm chính xác bước ULP** | **distanceInRepresentableValues(a,b) ≤ N** | Hợp đồng cho phép tối đa N bước float/double |
+| **Absolute error** | **abs(a−b) ≤ absTol** | Practical threshold in units, especially near zero |
+| **Relative error** | **abs(a−b) ≤ relTol × max(abs(a), abs(b))** | Varying magnitudes where error ratio matters |
+| **Combined absolute/relative** | **abs(a−b) ≤ max(absTol, relTol × scale)** | Many application tests covering both small and large values |
+| **Scale-based ULP threshold** | **abs(a−b) ≤ N × Math.ulp(scale)** | Tolerance matching representation resolution near scale |
+| **Exact ULP step count** | **distanceInRepresentableValues(a,b) ≤ N** | Contract permitting at most N float/double steps |
 
-Dùng **max** thay vì chỉ relative tolerance giúp tránh vấn đề so sánh gần 0 với dung sai tương đối bằng 0. Nhưng **absTol** và **relTol** vẫn phải được chọn theo yêu cầu bài toán; công thức không tự tạo ra hai ngưỡng đúng.
+Using **max** instead of relative tolerance alone avoids issues near 0 with a zero relative allowance. Still, **absTol** and **relTol** must be chosen from problem requirements; the formula does not generate valid thresholds by itself.
 
-**Lưu ý:** viết phép trừ **a−b** trực tiếp có thể tràn thành **Infinity** với hai số double hữu hạn rất lớn và trái dấu. Với sai số ULP theo số bước, ta có thể tránh phép trừ double bằng cách đếm khoảng cách mẫu bit có thứ tự. Cũng không dùng **Math.ulp(Infinity)** làm dung sai cho các phép so sánh hữu hạn.
+**Note:** writing the subtraction **a−b** directly can overflow to **Infinity** for two huge finite doubles of opposite signs. With step-based ULP error, you can avoid double subtraction by counting ordered bit-pattern distance. Also never use **Math.ulp(Infinity)** as a tolerance for finite comparisons.
 
-### Một epsilon cố định không phải ULP
+### A Fixed Epsilon Is Not a ULP
 
-Trong Java, **Math.ulp(1.0)** bằng **2^−52** (khoảng 2.22 × 10^−16), còn **Math.ulp(1.0f)** bằng **2^−23**. Không có **Double.EPSILON** được định nghĩa như một hằng chuẩn trong **java.lang.Double**. Nếu tự viết **EPSILON = 1e−9**, đó chỉ là dung sai tuyệt đối được lập trình viên lựa chọn.
+In Java, **Math.ulp(1.0)** equals **2^−52** (about 2.22 × 10^−16), and **Math.ulp(1.0f)** equals **2^−23**. There is no **Double.EPSILON** defined as a standard constant in **java.lang.Double**. If you write **EPSILON = 1e−9**, that is merely a programmer-chosen absolute tolerance.
 
-Ngay cả khi tự đặt **EPSILON = Math.ulp(1.0)**, nó cũng chỉ mô tả độ phân giải gần 1.0, không phải ngưỡng thích hợp cho mọi độ lớn.
+Even if you set **EPSILON = Math.ulp(1.0)**, it only describes resolution near 1.0, not a suitable threshold for all magnitudes.
 
-## 5. Cách dùng Math.ulp: ngưỡng theo thang đo, có giới hạn
+## 5. How to Use Math.ulp: Scale-Based Threshold with Limits
 
-Khi hai số a, b cùng kiểu double, hữu hạn và gần cùng một thang đo, một phép so sánh mức ULP xấp xỉ có thể là:
+When two finite `double` numbers a and b are near the same scale, an approximate ULP-level comparison can look like:
 
 ~~~java
-// Hàm minh họa, nằm trong class chứa ứng dụng:
+// Illustrative function, placed inside an application class:
 static boolean withinLocalUlps(double a, double b, int maxUlps) {
     if (maxUlps < 0) {
         throw new IllegalArgumentException("maxUlps must be >= 0");
@@ -126,7 +126,7 @@ static boolean withinLocalUlps(double a, double b, int maxUlps) {
         return false;
     }
     if (a == b) {
-        return true; // cũng coi +0.0 và -0.0 bằng nhau
+        return true; // also treats +0.0 and -0.0 as equal
     }
     if (!Double.isFinite(a) || !Double.isFinite(b)) {
         return false;
@@ -138,35 +138,35 @@ static boolean withinLocalUlps(double a, double b, int maxUlps) {
 }
 ~~~
 
-**Đây là ngưỡng tuyệt đối có kích thước được lấy từ ULP tại scale**, không phải phép đếm chính xác maxUlps bước biểu diễn. Nó thích hợp khi tiêu chí của bạn thực sự là ngưỡng khoảng cách số học đó.
+**This is an absolute threshold sized from the ULP at scale**, not an exact count of maxUlps representable steps. It fits when your criterion truly is that arithmetic distance threshold.
 
-Những điểm phải kiểm soát:
+Points to control:
 
-1. **maxUlps** không được âm. Nếu bạn cho phép N quá lớn, **N × Math.ulp(scale)** có thể tràn thành Infinity; nên dùng ngưỡng nhỏ, hợp lý và có kiểm chứng.
-2. Cần quyết định cách xử lý **NaN** và **Infinity**: hàm trên từ chối NaN; hai infinity cùng dấu bằng nhau theo **==**, còn một infinity với số hữu hạn không được coi là gần.
-3. **+0.0** và **−0.0** được coi là bằng nhau nếu không phân biệt dấu zero. Trong ứng dụng cần phân biệt biểu diễn bit, dùng quy tắc riêng.
-4. Tại ranh giới lũy thừa của 2, hai bước biểu diễn ở phía số nhỏ hơn có thể có khoảng cách bằng một **Math.ulp** ở điểm ranh giới. Không gọi hàm này là “đếm đúng N ULP”.
-5. Nếu a và b trái dấu, cách nhau rất xa hoặc có kiểu float nhưng đã chuyển lên double, thang đo ULP này có thể không diễn đạt đúng hợp đồng kiểm thử.
+1. **maxUlps** must not be negative. If you allow N to be too large, **N × Math.ulp(scale)** can overflow to Infinity; use small, reasonable, verified thresholds.
+2. Decide how to handle **NaN** and **Infinity**: the function above rejects NaN; two infinities of the same sign are equal via **==**, whereas an infinity vs. a finite number is not considered close.
+3. **+0.0** and **−0.0** are considered equal if you do not distinguish zero's sign. In applications that must distinguish bit representations, use a dedicated rule.
+4. At power-of-two boundaries, two representable steps on the smaller-number side can span a distance equal to one **Math.ulp** at the boundary point. Do not call this function "exact N-ULP counting."
+5. If a and b have opposite signs, are very far apart, or were `float` values widened to `double`, this ULP scale may not properly express the test contract.
 
-Với **float**, sử dụng overload **Math.ulp(float)** và thao tác trên float khi bạn muốn đo độ phân giải binary32. Chuyển float sang double rồi đếm ULP double sẽ tạo ra thang đo khác hẳn.
+For **float**, use the **Math.ulp(float)** overload and operate on `float` when you want to measure binary32 resolution. Converting `float` to `double` and counting `double` ULPs yields an entirely different scale.
 
-## 6. Đếm chính xác số bước biểu diễn được
+## 6. Counting Representable Steps Accurately
 
-Trong một chuỗi các **double hữu hạn**, ta có thể chuyển mẫu bit thành một số nguyên có thứ tự tăng theo giá trị số. Từ đó lấy hiệu thứ tự hai giá trị; **BigInteger** cho phép hiệu không tràn khi khoảng cách vượt quá miền long có dấu.
+Across a sequence of **finite doubles**, we can map bit patterns to integers ordered monotonically with numeric value, then take the difference of their ordered positions; **BigInteger** keeps the difference from overflowing when the distance exceeds signed `long` range.
 
-Ý tưởng đối với bit dấu:
+Idea for the sign bit:
 
-- Mẫu **double** dương dùng thứ tự bit nguyên không dấu đồng biến với giá trị.
-- Mẫu double âm có thứ tự bit đảo chiều; cần ánh xạ chúng về một chuỗi tăng.
-- Cả **−0.0** và **+0.0** được ánh xạ cùng vị trí 0 để phản ánh phép so sánh giá trị; chúng khác nhau về bit nhưng không được coi là một bước khác biệt giá trị.
-- Loại **NaN** và không đếm bước đến Infinity trong helper này. Infinity được xử lý theo **==** ở lớp so sánh ngoài.
+- Positive **double** bit patterns use unsigned integer ordering monotonic with value.
+- Negative double patterns have reversed bit order; they must be mapped into an increasing sequence.
+- Both **−0.0** and **+0.0** map to the same position 0 to reflect value comparison; they differ in bits but do not count as a value-difference step.
+- Exclude **NaN** and do not count steps to Infinity in this helper. Infinity is handled via **==** in the outer comparison layer.
 
-Hàm minh họa chính xác về **số bước giá trị double hữu hạn**, với quy tắc nêu trên:
+Accurate illustrative functions for **finite double value steps**, with the rules above:
 
 ~~~java
 import java.math.BigInteger;
 
-// Các phương thức sau đặt bên trong cùng một class Java.
+// The following methods are placed inside the same Java class.
 static long orderedBits(double x) {
     long bits = Double.doubleToRawLongBits(x);
     return bits < 0 ? Long.MIN_VALUE - bits : bits;
@@ -199,13 +199,13 @@ static boolean withinSteps(double a, double b, long maxSteps) {
 }
 ~~~
 
-Phép trừ trong **orderedBits** chạy trên **long** theo quy tắc tràn bù hai của Java. Biến đổi này dùng thứ tự số nguyên có dấu sau ánh xạ; hiệu cuối được tính bằng **BigInteger** nên không làm mất trường hợp khoảng cách cực lớn. Với float, cần một phiên bản riêng dựa trên **Float.floatToRawIntBits** và độ rộng 32 bit, không nên ép nguyên xi quy tắc double.
+The subtraction in **orderedBits** runs on **long** under Java's two's-complement wraparound rules. This transformation uses signed integer ordering after mapping; the final difference is computed with **BigInteger** so extreme distances are not lost. For `float`, write a separate version based on **Float.floatToRawIntBits** and 32-bit width—do not blindly copy the `double` formula as-is.
 
-Đây là một cách cài đặt dùng để **kiểm thử kỹ thuật**. Khi dùng trong thư viện production, nên kèm kiểm thử biên với số âm, dương, zero, subnormal, MIN_NORMAL, MAX_VALUE, NaN và vô cực; lựa chọn đếm 0 bước cho cặp zero trái dấu phải phù hợp hợp đồng của bạn.
+This is an implementation meant for **engineering tests**. When used in a production library, include boundary tests for negative, positive, zero, subnormal, MIN_NORMAL, MAX_VALUE, NaN, and infinity; the choice to count 0 steps between opposite-signed zeros must match your contract.
 
-## 7. Ví dụ Java 17+ có thể biên dịch và chạy độc lập
+## 7. Standalone Compilable and Runnable Java 17+ Example
 
-Tạo tệp **UlpComparisonDemo.java**:
+Create the file **UlpComparisonDemo.java**:
 
 ~~~java
 import java.math.BigInteger;
@@ -294,14 +294,14 @@ public class UlpComparisonDemo {
 }
 ~~~
 
-Lệnh chạy bằng JDK 17 trở lên:
+Run command with JDK 17 or later:
 
 ~~~bash
 javac --release 17 UlpComparisonDemo.java
 java UlpComparisonDemo
 ~~~
 
-Kết quả stdout:
+Stdout output:
 
 ~~~text
 ULP(1): 0x1.0p-52
@@ -321,140 +321,140 @@ Infinity vs max close: false
 float ULP(1): 0x1.0p-23
 ~~~
 
-Điểm đáng chú ý:
+Notable points:
 
-- Hai bước từ **1.0** sang **down2** có tổng khoảng cách **2^−52**, bằng **Math.ulp(1.0)**. Phép so sánh ngưỡng theo thang trả **true** nhưng phép đếm **một bước** trả **false**.
-- **0.0** và **Double.MIN_VALUE** cách nhau một bước; khoảng cách gần zero quá bé về trị tuyệt đối nhưng có thể rất lớn về tỷ lệ.
-- **−Double.MIN_VALUE** và **+Double.MIN_VALUE** cách nhau hai bước khi coi **±0.0** là cùng một giá trị.
-- **0.1 + 0.2** khác **0.3** đúng một bước double ở môi trường Java 17+; đó là minh họa về biểu diễn, chưa phải giấy phép tự động chấp nhận mọi sai số một ULP.
-- **Infinity** không được biến thành giá trị hữu hạn thông qua phép so sánh gần đúng. Hai infinity bằng nhau vẫn trả **true** theo quy tắc của helper; nếu nghiệp vụ cấm mọi infinity, hãy loại chúng trước.
+- Two steps from **1.0** to **down2** have a total distance of **2^−52**, equal to **Math.ulp(1.0)**. The scale-based threshold comparison returns **true**, while the **one-step** count returns **false**.
+- **0.0** and **Double.MIN_VALUE** are one step apart; the distance near zero is tiny in absolute value yet can be huge proportionally.
+- **−Double.MIN_VALUE** and **+Double.MIN_VALUE** are two steps apart when treating **±0.0** as the same value.
+- **0.1 + 0.2** differs from **0.3** by exactly one double step in Java 17+; that is a representation illustration, not an automatic license to accept every one-ULP error.
+- **Infinity** must not be turned into a finite value via approximate comparison. Two equal infinities still return **true** under the helper's rules; if business logic forbids all infinities, exclude them upfront.
 
-## 8. Chọn ngưỡng bao nhiêu ULP?
+## 8. How Many ULPs Should You Allow?
 
-Không có con số cố định cho mọi thuật toán. Một quy trình thực tế:
+There is no fixed number for every algorithm. A practical workflow:
 
-1. **Xác định giá trị tham chiếu:** có thể là kết quả tính bằng độ chính xác cao, công thức chính xác rồi làm tròn theo kiểu đích, bộ dữ liệu kiểm thử được thẩm định, hoặc hợp đồng của hàm thư viện.
-2. **Xác định dạng sai số được cam kết:** “không quá N bước representable” khác “không quá N × Math.ulp(reference)”. Viết rõ định nghĩa vào kiểm thử.
-3. **Chọn độ rộng đo:** nếu dữ liệu được tính và lưu dưới dạng float, đo theo ULP float; nếu là double, đo theo ULP double. Không để **binary numeric promotion** âm thầm thay đổi thang đo.
-4. **Dùng N từ phân tích sai số hoặc hợp đồng:** một phép tính được làm tròn đúng có thể yêu cầu 0 ULP so với kết quả đã làm tròn tham chiếu; một hàm xấp xỉ có thể cần N khác. Số lượng thao tác và độ điều kiện ảnh hưởng tới sai số tích lũy, nên “1 ULP cho mọi phép tính” không phải quy luật.
-5. **Kiểm tra ranh giới:** zero, subnormal, lũy thừa của 2, đầu mút miền normal, giá trị âm, NaN, infinity, số gần cực đại, các trường hợp cancellation.
-6. **Đặt ngưỡng nghiệp vụ bổ sung nếu cần:** giới hạn ULP và giới hạn tuyệt đối/tương đối có thể **đồng thời** được yêu cầu. Không cho phép một phép đo thay thế yêu cầu còn lại.
+1. **Identify the reference value:** this could be a result computed in higher precision, an exact formula rounded to the target type, a validated test dataset, or a library function's contract.
+2. **Identify the committed error form:** "at most N representable steps" differs from "at most N × Math.ulp(reference)." State the definition explicitly in tests.
+3. **Choose the measurement width:** if data is computed and stored as `float`, measure in `float` ULPs; if `double`, measure in `double` ULPs. Do not let **binary numeric promotion** silently change the scale.
+4. **Derive N from error analysis or contract:** a correctly rounded operation may require 0 ULPs relative to a rounded reference; an approximation function may need a different N. Operation count and conditioning affect accumulated error, so "1 ULP for every calculation" is not a rule.
+5. **Test boundaries:** zero, subnormals, powers of 2, normal range endpoints, negative values, NaN, infinity, near-max numbers, and cancellation cases.
+6. **Add business thresholds if needed:** a ULP limit and an absolute/relative limit may be required **simultaneously**. Do not let one measure replace the other.
 
-Ví dụ, với một thuật toán tính đại lượng đo bằng mét, yêu cầu có thể là: sai lệch **không quá 2 bước double** **và** sai số tuyệt đối **không quá 10^−6 m**. Khi đó cả hai điều kiện phải được kiểm tra; một kết quả vượt ngưỡng mét sẽ bị từ chối dù khoảng cách ULP rất nhỏ.
+For example, for an algorithm computing a distance in meters, the requirement might be: deviation **at most 2 double steps** **and** absolute error **at most 10^−6 m**. Then both conditions must be checked; a result exceeding the meter threshold is rejected even if the ULP distance is tiny.
 
-## 9. Các tình huống thường gặp
+## 9. Common Scenarios
 
-### Tình huống A — Kiểm thử hai triển khai hàm số
+### Scenario A — Testing Two Implementations of a Math Function
 
-Một thuật toán được đặc tả sai khác không quá **2 ULP** so với kết quả chuẩn đã làm tròn theo double. Trong trường hợp đó, **đếm bước ULP** là cách diễn đạt trực tiếp của hợp đồng. Các test cần mẫu số âm, dương, giá trị gần 0 và các ranh giới số mũ.
+An algorithm is specified to differ by at most **2 ULPs** from the standard double-rounded result. In that case, **counting ULP steps** directly expresses the contract. Tests need negative samples, positive samples, values near 0, and exponent boundaries.
 
-Lưu ý: nếu tài liệu định nghĩa ULP theo **đơn vị khoảng cách tại kết quả chính xác** thay vì số bước biểu diễn, phải triển khai đúng định nghĩa được ghi trong hợp đồng; đừng tự thay bằng phép đếm nguyên.
+Note: if the documentation defines ULP in terms of **unit spacing at the exact result** rather than representable step count, implement the exact definition stated in the contract; do not substitute integer step counting on your own.
 
-### Tình huống B — Kiểm thử kết quả có sai số tương đối
+### Scenario B — Testing Results with Relative Error
 
-Một phép đo dương có độ lớn từ **10^−8** đến **10^8**, yêu cầu sai lệch tối đa **0.01%**. Điều kiện **relative tolerance** diễn đạt đúng yêu cầu hơn một N ULP bất kỳ. Có thể thêm absTol nếu miền gần zero cần ngưỡng vật lý phù hợp.
+A positive measurement spans from **10^−8** to **10^8**, requiring a maximum deviation of **0.01%**. A **relative tolerance** condition expresses the requirement better than an arbitrary N ULPs. You can add `absTol` if the near-zero domain needs a suitable physical threshold.
 
-### Tình huống C — Kiểm tra hội tụ vòng lặp
+### Scenario C — Checking Loop Convergence
 
-Điều kiện kiểu **Math.abs(next - current) <= N * Math.ulp(current)** chỉ phát hiện các bước thay đổi nhỏ so với độ phân giải tại current. Nó **không đảm bảo** kết quả đã gần nghiệm đúng: thuật toán có thể đình trệ do làm tròn, đạo hàm nhỏ, vùng bằng phẳng hoặc lỗi số học. Nên kết hợp tiêu chí dựa vào **residual** và giới hạn số vòng lặp khi thích hợp.
+A condition like **Math.abs(next - current) <= N * Math.ulp(current)** only detects changes small relative to the resolution at `current`. It **does not guarantee** the result is near the true solution: the algorithm may have stalled due to rounding, small derivatives, flat regions, or numerical bugs. Combine it with **residual**-based criteria and iteration limits where appropriate.
 
-### Tình huống D — Tiền và quy tắc làm tròn thập phân
+### Scenario D — Money and Decimal Rounding Rules
 
-So sánh hai khoản tiền với ngưỡng **0.01** đơn vị tiền tệ là bài toán theo đơn vị và quy tắc thập phân. **BigDecimal** khởi tạo từ chuỗi thập phân rõ ràng, kết hợp **setScale** và **RoundingMode** theo nghiệp vụ, thường biểu đạt chính xác hơn. Đừng dùng ULP double làm quy tắc kế toán.
+Comparing two monetary amounts with a threshold of **0.01** currency units is a problem of units and decimal rules. **BigDecimal** constructed from explicit decimal strings, combined with **setScale** and **RoundingMode** per business rules, usually expresses this accurately. Do not use double ULPs as an accounting rule.
 
-### Tình huống E — Hai biểu thức tính ra hai số sát nhau
+### Scenario E — Two Expressions Producing Adjacent Numbers
 
-**0.1 + 0.2** và **0.3** cách nhau một double step. Nếu đây là kiểm thử đơn thuần xác nhận một triển khai số cho kết quả trong sai số làm tròn đã dự kiến, giới hạn một bước có thể được biện minh. Nếu giá trị này là điều kiện giao dịch hoặc dữ liệu cần khớp tuyệt đối ở cơ số 10, hãy dùng biểu diễn và hợp đồng phù hợp thay vì mặc nhiên chấp nhận.
+**0.1 + 0.2** and **0.3** are one double step apart. If this is simply a test confirming that a numerical implementation produces results within expected rounding error, a one-step bound can be justified. If this value governs a transaction condition or data needing exact base-10 matching, use an appropriate representation and contract instead of accepting it by default.
 
-## 10. NaN, Infinity, signed zero: phải quyết định trước
+## 10. NaN, Infinity, Signed Zero: Decide Upfront
 
-Các giá trị đặc biệt không tuân theo mọi quy tắc so sánh hữu hạn.
+Special values do not obey all finite comparison rules.
 
-| Trường hợp | Hành vi ngôn ngữ Java | Chính sách thường dùng trong helper kiểm thử |
+| Case | Java language behavior | Typical policy in test helpers |
 | --- | --- | --- |
-| **NaN** | **Double.NaN == Double.NaN** là **false** | Trả **false**; nếu test yêu cầu NaN, kiểm tra **Double.isNaN** riêng |
-| **+Infinity** so với **+Infinity** | **== true** | Có thể cho **true** nếu kết quả vô cực là hợp lệ |
-| **+Infinity** so với số hữu hạn | **== false** | Không tính khoảng cách N ULP đến infinity |
-| **+0.0** so với **−0.0** | **== true** | Thường cùng giá trị, song có thể cần kiểm tra bit dấu |
-| **0.0** so với **Double.MIN_VALUE** | Giá trị khác nhau | Chỉ cách **một bước**; vẫn phải xem xét yêu cầu near-zero |
+| **NaN** | **Double.NaN == Double.NaN** is **false** | Return **false**; if test expects NaN, check **Double.isNaN** separately |
+| **+Infinity** vs. **+Infinity** | **== true** | Can return **true** if an infinite result is valid |
+| **+Infinity** vs. finite number | **== false** | Do not compute N-ULP distance to infinity |
+| **+0.0** vs. **−0.0** | **== true** | Usually the same value, though sign-bit checks may be needed |
+| **0.0** vs. **Double.MIN_VALUE** | Different values | Only **one step** apart; still examine near-zero requirements |
 
-Nếu dấu của zero quan trọng, ví dụ **1.0 / +0.0** cho **+Infinity** và **1.0 / −0.0** cho **−Infinity**, hãy dùng:
+If the sign of zero matters, for example **1.0 / +0.0** giving **+Infinity** and **1.0 / −0.0** giving **−Infinity**, use:
 
 ~~~java
 boolean sameBits = Double.doubleToRawLongBits(a)
         == Double.doubleToRawLongBits(b);
 ~~~
 
-Đoạn trên minh họa đặt trong một method đã định nghĩa biến **a** và **b**; nó **không phải** chương trình Java độc lập. Phép so sánh bit chính xác còn phân biệt payload NaN; khi yêu cầu chỉ cần nhận diện NaN, dùng **Double.isNaN** phù hợp hơn.
+This snippet illustrates code placed inside a method where **a** and **b** are already defined; it is **not** a standalone Java program. Exact bit comparison also distinguishes NaN payloads; when you only need to detect NaN, **Double.isNaN** is more appropriate.
 
-Đối với **Double.compare(a,b)**, Java sắp xếp **−0.0** và **+0.0** khác nhau, trong khi toán tử **==** coi chúng bằng nhau. Chọn đúng phép so sánh cho mục đích của bạn.
+With **Double.compare(a,b)**, Java orders **−0.0** and **+0.0** differently, whereas the **==** operator treats them as equal. Choose the right comparison for your purpose.
 
-## 11. Tại sao ULP vẫn không đủ để đánh giá độ đúng?
+## 11. Why ULP Alone Is Still Not Enough to Judge Correctness
 
-ULP đo độ khác biệt **theo độ phân giải định dạng đích**. Nó không nói bản thân thuật toán có tính **ổn định số**, cũng không phản ánh toàn bộ ràng buộc của bài toán.
+ULP measures differences **in target-format resolution**. It does not say whether the algorithm itself is **numerically stable**, nor does it reflect all constraints of the problem.
 
-### Gần zero và cancellation
+### Near Zero and Cancellation
 
-Giả sử hai số gần bằng nhau bị trừ đi. Kết quả có thể rất nhỏ về trị tuyệt đối, nhưng sai lệch tương đối lớn nếu các toán hạng đã mang lỗi làm tròn từ trước. Nếu dùng ULP của **kết quả nhỏ** làm chuẩn, chỉ một sai lệch tuyệt đối nhỏ cũng có thể tương ứng với rất nhiều ULP. Nếu dùng ULP của **toán hạng lớn**, bạn có thể cho phép sai số quá rộng. Cần biết **đầu ra nào** có ý nghĩa và thang nào được phép đo.
+Suppose two nearly equal numbers are subtracted. The result may be tiny in absolute value, yet have huge relative error if the operands already carried prior rounding error. If you use the ULP of the **small result** as the benchmark, even a small absolute deviation can correspond to many ULPs. If you use the ULP of the **large operands**, you may allow far too wide an error. You must know **which output** is meaningful and which scale is valid to measure.
 
-### Ở độ lớn rất lớn
+### At Very Large Magnitudes
 
-Ở gần **Double.MAX_VALUE**, một ULP bằng **2^971** — con số khổng lồ theo đơn vị tuyệt đối. Hai kết quả sát nhau trên lưới double vẫn có thể sai khác quá lớn đối với ứng dụng có giới hạn chặt bằng mét, giây hoặc tiền tệ.
+Near **Double.MAX_VALUE**, one ULP equals **2^971** — an enormous number in absolute units. Two results adjacent on the `double` grid can still differ far too much for an application with tight bounds in meters, seconds, or currency.
 
-### Sai số thuật toán tích lũy
+### Accumulated Algorithmic Error
 
-Phép cộng lặp đi lặp lại, các phép biến đổi kém điều kiện và thay đổi thứ tự phép tính có thể tích lũy sai số. Số ULP của một phép tính đơn không tự trở thành giới hạn ULP cho cả thuật toán dài. Nếu thuật toán chứa các phép toán transcendental, hãy đọc tiêu chuẩn độ chính xác của **API được gọi** thay vì đoán.
+Repeated additions, poorly conditioned transformations, and changing operation order can accumulate error. The ULP count of a single operation does not automatically become the ULP bound for an entire long algorithm. If an algorithm contains transcendental operations, read the accuracy specification of the **called API** rather than guessing.
 
-**Nguyên tắc:** dùng ULP khi đó là đơn vị sai số được định nghĩa, có thể giải thích và kiểm chứng; dùng đơn vị nghiệp vụ khi điều kiện nghiệm thu nằm ở thế giới thực.
+**Principle:** use ULP when it is the defined, explainable, and verifiable unit of error; use business units when acceptance conditions live in the real world.
 
-## 12. Các lỗi phổ biến cần tránh
+## 12. Common Mistakes to Avoid
 
-| Sai lầm | Hệ quả | Cách sửa |
+| Mistake | Consequence | How to fix |
 | --- | --- | --- |
-| Dùng **1e−9** cho mọi số | Dung sai quá rộng gần zero hoặc quá chặt ở độ lớn khác | Chọn absTol/relTol theo bài toán, hoặc thang ULP có lý do |
-| Coi **N × Math.ulp(x)** là đúng N bước trong mọi trường hợp | Sai ở ranh giới lũy thừa của 2 | Phân biệt ngưỡng số học và đếm bước |
-| Dùng ULP double cho kết quả thực chất là float | Ngưỡng so sánh thay đổi theo kiểu | Kiểm tra độ rộng phép tính/lưu trữ |
-| Chọn N = 4, 8 hoặc 16 theo thói quen | Che giấu lỗi mà không có căn cứ | Xuất phát từ hợp đồng/phân tích lỗi |
-| Dùng **Math.ulp(Infinity)** như epsilon | Infinity không phải dung sai hữu hạn | Phân loại NaN/Infinity trước |
-| Thực hiện trừ double cực đại trái dấu rồi coi kết quả là khoảng cách số học hữu hạn | Phép trừ có thể tràn Infinity | Dùng hàm đếm bước chính xác hoặc xử lý miền riêng |
-| Cho rằng **0.0** và **MIN_VALUE** gần nhau nên luôn chấp nhận | Sai khác tương đối có thể rất lớn | Thêm ngưỡng near-zero hoặc kiểm tra kết quả phải khác 0 |
-| Đổi điều kiện hội tụ thành “khác tối đa 1 ULP” | Có thể chỉ xác nhận thuật toán đình trệ | Kiểm tra residual, mục tiêu nghiệm và ngưỡng nghiệp vụ |
-| Dùng so sánh gần đúng làm **equals/hashCode** | Quan hệ gần đúng không bắc cầu | Dùng biểu diễn/khóa chính xác hoặc lượng tử hóa theo hợp đồng |
-| Bỏ qua **−0.0**, **NaN**, **Infinity** | Kết quả kiểm thử khó hiểu hoặc sai | Định nghĩa chính sách từng trường hợp |
+| Using **1e−9** for all numbers | Tolerance too loose near zero or too tight at other magnitudes | Choose absTol/relTol per problem, or a justified ULP scale |
+| Treating **N × Math.ulp(x)** as exactly N steps in every case | Wrong at power-of-two boundaries | Distinguish arithmetic thresholds from step counting |
+| Using double ULPs for results that are actually float | Comparison threshold changes with type | Check calculation/storage width |
+| Picking N = 4, 8, or 16 out of habit | Masks bugs without justification | Derive from contract/error analysis |
+| Using **Math.ulp(Infinity)** as epsilon | Infinity is not a finite tolerance | Classify NaN/Infinity first |
+| Subtracting huge opposite-sign doubles and treating the result as finite arithmetic distance | Subtraction can overflow to Infinity | Use exact step counting or separate domain handling |
+| Assuming **0.0** and **MIN_VALUE** are close and always accepting | Relative discrepancy can be huge | Add near-zero threshold or verify non-zero result |
+| Changing convergence condition to "differ by at most 1 ULP" | May only confirm the algorithm stalled | Check residual, target accuracy, and business thresholds |
+| Using approximate comparison as **equals/hashCode** | Approximate relation is not transitive | Use exact representation/keys or contract-based quantization |
+| Ignoring **−0.0**, **NaN**, **Infinity** | Confusing or wrong test results | Define policy for each special case |
 
-## 13. Bài tập kiểm tra
+## 13. Practice Exercises
 
-**Bài 1.** Tại **1.0**, vì sao **Math.nextUp(1.0) − 1.0** khác **1.0 − Math.nextDown(1.0)**?
+**Exercise 1.** At **1.0**, why does **Math.nextUp(1.0) − 1.0** differ from **1.0 − Math.nextDown(1.0)**?
 
-*Đáp án:* 1.0 nằm đúng ranh giới hai đoạn số mũ nhị phân; bước phía trên là **2^−52**, phía dưới là **2^−53**. **Math.ulp(1.0)** bằng bước theo hướng tăng độ lớn, tức **2^−52**.
+*Answer:* 1.0 sits right on the boundary between two binary exponent intervals; the step above is **2^−52**, while the step below is **2^−53**. **Math.ulp(1.0)** equals the step in the direction of increasing magnitude, which is **2^−52**.
 
-**Bài 2.** Nếu giới hạn cho phép **1 ULP** hiểu là “không quá 1 bước double”, **1.0** và **Math.nextDown(Math.nextDown(1.0))** có gần nhau không?
+**Exercise 2.** If an allowed bound of **1 ULP** means "at most 1 double step," are **1.0** and **Math.nextDown(Math.nextDown(1.0))** close?
 
-*Đáp án:* **Không**. Hai số cách nhau **hai** giá trị kế tiếp, dù sai khác tuyệt đối của chúng bằng **Math.ulp(1.0)**.
+*Answer:* **No**. The two numbers are **two** consecutive values apart, even though their absolute difference equals **Math.ulp(1.0)**.
 
-**Bài 3.** **0.0** và **Double.MIN_VALUE** cách bao nhiêu bước double hữu hạn? Có nên chấp nhận chúng là bằng nhau về nghiệp vụ?
+**Exercise 3.** How many finite double steps apart are **0.0** and **Double.MIN_VALUE**? Should they be accepted as equal in business logic?
 
-*Đáp án:* **Một bước**. Việc có chấp nhận hay không phải dựa vào yêu cầu gần zero; một bước ULP không chứng minh tỷ lệ sai khác nhỏ.
+*Answer:* **One step**. Whether to accept them must depend on near-zero requirements; one ULP step does not prove the proportional difference is small.
 
-**Bài 4.** Vì sao không dùng **Math.ulp(1.0)** làm epsilon chung cho mọi kết quả double?
+**Exercise 4.** Why should **Math.ulp(1.0)** not be used as a universal epsilon for all double results?
 
-*Đáp án:* Kích thước ULP thay đổi cùng độ lớn số. ULP tại 1.0 không đại diện cho độ phân giải ở 1e−100 hay 1e100.
+*Answer:* ULP size changes with number magnitude. The ULP at 1.0 does not represent resolution at 1e−100 or 1e100.
 
-**Bài 5.** Một thuật toán xử lý khoảng cách địa lý được yêu cầu sai khác tối đa **0.5 m**. Nên lấy tiêu chí nào làm điều kiện nghiệm thu chính?
+**Exercise 5.** An algorithm processing geographic distances requires a maximum error of **0.5 m**. Which criterion should be the primary acceptance condition?
 
-*Đáp án:* Dùng sai số tuyệt đối theo mét. ULP có thể là công cụ kiểm thử chi tiết thêm khi có căn cứ, nhưng không thay thế yêu cầu 0.5 m.
+*Answer:* Use absolute error in meters. ULP can be an additional detailed test tool when justified, but does not replace the 0.5 m requirement.
 
-**Bài 6.** **NaN** xuất hiện trong cả expected và actual. **withinSteps(NaN, NaN, 0)** theo ví dụ trả gì, và làm sao kiểm thử kết quả phải là NaN?
+**Exercise 6.** **NaN** appears in both expected and actual. What does **withinSteps(NaN, NaN, 0)** in the example return, and how should you test when the result must be NaN?
 
-*Đáp án:* **false**. Kiểm tra **Double.isNaN(actual)** riêng khi NaN là kết quả mong đợi.
+*Answer:* **false**. Check **Double.isNaN(actual)** separately when NaN is the expected result.
 
-## 14. Ghi nhớ để lựa chọn đúng
+## 14. Takeaways for Choosing Right
 
-Khi thiết kế phép so sánh số thực, hãy trả lời theo trình tự: **(1) Đại lượng nào đang được so sánh? (2) Có giới hạn bằng đơn vị vật lý/kinh doanh không? (3) Có tiêu chí sai số tương đối không? (4) Nếu muốn giới hạn ULP, đó là ngưỡng khoảng cách số học hay số bước giá trị biểu diễn được? (5) Tham chiếu và N lấy từ đâu? (6) Các giá trị biên sẽ được xử lý thế nào?**
+When designing a floating-point comparison, answer in order: **(1) What quantity is being compared? (2) Is there a bound in physical/business units? (3) Is there a relative error criterion? (4) If a ULP bound is desired, is it an arithmetic distance threshold or a representable-value step count? (5) Where do the reference and N come from? (6) How will edge values be handled?**
 
-Giới hạn theo ULP phát huy giá trị nhất ở **kiểm thử độ chính xác của phép toán/thuật toán dấu phẩy động cùng kiểu** khi sai số được định nghĩa bằng đơn vị lưới biểu diễn. Nó cần được dùng cùng hiểu biết về rounding, đặc tính thuật toán và các ngưỡng nghiệp vụ.
+Bounding by ULP is most valuable in **testing the accuracy of floating-point operations/algorithms of the same type** when error is defined in representation-grid units. It must be paired with an understanding of rounding, algorithmic properties, and business thresholds.
 
-## 15. Tài liệu tham khảo
+## 15. References
 
 - [Java SE 17 Math API — ulp, nextUp, nextDown, nextAfter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html).
 - [Java SE 17 Double API — doubleToRawLongBits, compare, isFinite](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html).

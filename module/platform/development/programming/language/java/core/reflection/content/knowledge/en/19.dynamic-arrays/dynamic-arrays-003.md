@@ -1,20 +1,20 @@
-# Array.getLength và kiểm tra isArray trong Java Reflection
+# Array.getLength and the isArray Check in Java Reflection
 
-## 1. Vì sao cần kiểm tra mảng khi dữ liệu chỉ có kiểu Object?
+## 1. Why Do We Need an Array Check When Data Only Has Type Object?
 
-Trong Java thông thường, nếu biến có kiểu mảng tại thời điểm biên dịch, ta lấy độ dài bằng thuộc tính `length`:
+In ordinary Java, if a variable has an array type at compile time, we obtain its length via the `length` property:
 
 ```java
 int[] numbers = {4, 5, 6};
 int count = numbers.length; // 3
 ```
 
-Tuy nhiên, khi dữ liệu được nhận qua `Object`, từ một `Field.get(...)`, `Method.invoke(...)`, thư viện ánh xạ dữ liệu hoặc khi tạo mảng động, mã nguồn không biết chắc đối tượng có phải mảng hay không. Reflection cung cấp hai thao tác quan trọng:
+However, when data is received via `Object`, from a `Field.get(...)`, `Method.invoke(...)`, a data-mapping library, or when creating dynamic arrays, the code does not know for certain whether the object is an array. Reflection provides two key operations:
 
-- `value.getClass().isArray()` xác định **lớp runtime của đối tượng có phải kiểu mảng**. Cần kiểm tra `value != null` trước khi gọi `getClass()`.
-- `java.lang.reflect.Array.getLength(value)` đọc **số phần tử của đối tượng mảng**, bất kể đó là mảng primitive (`int[]`, `double[]`) hay mảng tham chiếu (`String[]`, `Object[]`).
+- `value.getClass().isArray()` determines **whether the object's runtime class is an array type**. You must check `value != null` before calling `getClass()`.
+- `java.lang.reflect.Array.getLength(value)` reads **the number of elements of the array object**, regardless of whether it is a primitive array (`int[]`, `double[]`) or a reference array (`String[]`, `Object[]`).
 
-Ví dụ:
+Example:
 
 ```java
 Object value = new int[] {4, 5, 6};
@@ -25,33 +25,33 @@ if (value != null && value.getClass().isArray()) {
 }
 ```
 
-Đoạn code trên là **mảnh mã đặt trong phương thức**. Nếu sử dụng `((Object[]) value).length` thay vì `Array.getLength(value)`, mảng `int[]` sẽ gây `ClassCastException`, bởi `int[]` không phải `Object[]`.
+The code snippet above is a **code fragment placed inside a method**. If you used `((Object[]) value).length` instead of `Array.getLength(value)`, an `int[]` array would cause a `ClassCastException`, because `int[]` is not an `Object[]`.
 
-## 2. Hai API phục vụ hai câu hỏi khác nhau
+## 2. Two APIs Serving Two Different Questions
 
-| API / biểu thức | Hỏi điều gì? | Giá trị trả về | Điều kiện |
+| API / Expression | What Does It Ask? | Return Value | Condition |
 | --- | --- | --- | --- |
-| `someArray.length` | Mảng này có bao nhiêu phần tử? | `int` | Trình biên dịch đã biết biến là kiểu mảng |
-| `type.isArray()` | Đối tượng `Class` này biểu diễn kiểu mảng không? | `boolean` | Đã có `Class<?>` |
-| `obj.getClass().isArray()` | Kiểu thực của đối tượng có phải mảng không? | `boolean` | `obj != null` |
-| `Array.getLength(obj)` | Đối tượng mảng này có bao nhiêu phần tử? | `int` | `obj` phải là **một đối tượng mảng**, khác `null` |
-| `type.getComponentType()` | Thành phần của kiểu mảng là loại gì? | `Class<?>` hoặc `null` | `type.isArray() == true` để có component |
-| `Array.get(array, index)` | Phần tử tại chỉ số này là gì? | `Object` | Đối tượng mảng hợp lệ; chỉ số hợp lệ |
+| `someArray.length` | How many elements does this array have? | `int` | The compiler already knows the variable has an array type |
+| `type.isArray()` | Does this `Class` object represent an array type? | `boolean` | A `Class<?>` is already available |
+| `obj.getClass().isArray()` | Is the object's actual type an array? | `boolean` | `obj != null` |
+| `Array.getLength(obj)` | How many elements does this array object have? | `int` | `obj` must be **an array object**, non-`null` |
+| `type.getComponentType()` | What is the component type of the array type? | `Class<?>` or `null` | `type.isArray() == true` to have a component |
+| `Array.get(array, index)` | What is the element at this index? | `Object` | Valid array object; valid index |
 
-`Class.isArray()` kiểm tra **kiểu**, không kiểm tra độ dài. `Array.getLength()` làm việc với **đối tượng mảng thật**, không nhận `Class` làm đại diện cho mảng:
+`Class.isArray()` checks the **type**, not the length. `Array.getLength()` works with an **actual array object**, and does not accept a `Class` as a stand-in for an array:
 
 ```java
 int[].class.isArray();                  // true
 java.lang.reflect.Array.getLength(
         new int[] {1, 2});             // 2
 
-// Sai: int[].class là đối tượng Class, không phải một mảng.
+// Wrong: int[].class is a Class object, not an array.
 // Array.getLength(int[].class);        // IllegalArgumentException
 ```
 
-Đừng nhầm `Array.getLength()` với `java.lang.reflect.Array.newInstance(...)`: cái đầu **đo kích thước mảng hiện có**; cái sau **tạo một đối tượng mảng mới**.
+Do not confuse `Array.getLength()` with `java.lang.reflect.Array.newInstance(...)`: the former **measures the size of an existing array**; the latter **creates a new array object**.
 
-## 3. isArray áp dụng cho cả mảng primitive và mảng tham chiếu
+## 3. isArray Applies to Both Primitive Arrays and Reference Arrays
 
 ```java
 int[].class.isArray();          // true
@@ -63,44 +63,44 @@ int.class.isArray();            // false
 Object.class.isArray();         // false
 ```
 
-**Các kiểu mảng trong Java đều là kiểu tham chiếu**, kể cả `int[]`. Vì thế:
+**Array types in Java are all reference types**, including `int[]`. Therefore:
 
-- `int[].class.isArray()` là `true`.
-- `int[].class.isPrimitive()` là `false`.
-- `int[].class.getComponentType().isPrimitive()` là `true`, vì component của `int[]` là `int`.
-- `Integer[].class.getComponentType().isPrimitive()` là `false`.
-- `int[]` có thể gán vào biến `Object` và tuân thủ các interface mảng như `Cloneable`, `Serializable`, nhưng **không thể gán cho `Object[]`**.
-- `String[]` là mảng tham chiếu, nên có thể gán vào `Object[]`.
+- `int[].class.isArray()` is `true`.
+- `int[].class.isPrimitive()` is `false`.
+- `int[].class.getComponentType().isPrimitive()` is `true`, because the component of `int[]` is `int`.
+- `Integer[].class.getComponentType().isPrimitive()` is `false`.
+- `int[]` can be assigned to an `Object` variable and implements array interfaces such as `Cloneable` and `Serializable`, yet **cannot be assigned to `Object[]`**.
+- `String[]` is a reference array, so it can be assigned to `Object[]`.
 
-`Class.getComponentType()` giúp phát hiện kiểu phần tử. Với mảng nhiều chiều `int[][]`, lần gọi đầu tiên trả `int[].class`, tiếp theo trả `int.class`. `getComponentType()` trên một kiểu không phải mảng trả `null`.
+`Class.getComponentType()` helps discover the element type. For a multidimensional array `int[][]`, the first call returns `int[].class`, and the next returns `int.class`. `getComponentType()` on a non-array type returns `null`.
 
-Mảng primitive và wrapper như `int[]` và `Integer[]` đều có `isArray() == true`, nhưng vẫn là **hai kiểu runtime khác nhau**. Boxing/unboxing phần tử `int` không tự động chuyển nguyên mảng `int[]` thành `Integer[]`.
+Primitive and wrapper arrays such as `int[]` and `Integer[]` both have `isArray() == true`, yet they remain **two different runtime types**. Boxing/unboxing `int` elements does not automatically convert an entire `int[]` array into `Integer[]`.
 
-## 4. Array.getLength nhận gì và gây ngoại lệ nào?
+## 4. What Does Array.getLength Accept and Which Exceptions Does It Throw?
 
-Chữ ký của API:
+API signature:
 
 ```java
 public static int getLength(Object array)
 ```
 
-`Array.getLength` không yêu cầu mảng phần tử đối tượng (`Object[]`); đối số `Object` có thể giữ bất cứ mảng nào, bao gồm `boolean[]`, `char[]`, `double[]`, `String[]` hoặc mảng nhiều chiều.
+`Array.getLength` does not require an array of object elements (`Object[]`); the `Object` argument can hold any array, including `boolean[]`, `char[]`, `double[]`, `String[]`, or multidimensional arrays.
 
-| Truyền vào | Kết quả |
+| Passed In | Result |
 | --- | --- |
 | `new int[] {1, 2, 3}` | `3` |
 | `new String[0]` | `0` |
-| `new int[2][3]` | `2` (chiều ngoài) |
+| `new int[2][3]` | `2` (outer dimension) |
 | `"hello"` | `IllegalArgumentException` |
 | `Integer.valueOf(3)` | `IllegalArgumentException` |
-| `new java.util.ArrayList<>()` | `IllegalArgumentException`; `List` không phải Java array |
-| `int[].class` | `IllegalArgumentException`; đây là đối tượng `Class` |
+| `new java.util.ArrayList<>()` | `IllegalArgumentException`; `List` is not a Java array |
+| `int[].class` | `IllegalArgumentException`; this is a `Class` object |
 | `null` | `NullPointerException` |
 
-Đây là **ngoại lệ khi gọi trực tiếp `Array.getLength`**: không phải `NoSuchMethodException`, vì không hề tra cứu một phương thức theo tên. Để tránh lỗi trên dữ liệu không chắc chắn, kiểm tra:
+These are **exceptions thrown when calling `Array.getLength` directly**: not `NoSuchMethodException`, because no method lookup by name is performed at all. To avoid errors on uncertain data, check:
 
 ```java
-// Mảnh mã minh họa trong phương thức đã có biến Object value.
+// Illustrative snippet inside a method that already has an Object value variable.
 if (value == null) {
     System.out.println("No object");
 } else if (!value.getClass().isArray()) {
@@ -110,13 +110,13 @@ if (value == null) {
 }
 ```
 
-Cần `import java.lang.reflect.Array;` nếu không dùng tên lớp đầy đủ.
+Requires `import java.lang.reflect.Array;` if not using the fully qualified class name.
 
-**Không dùng `instanceof Object[]` để nhận diện tất cả mảng**: `new int[] {1, 2}` trả `false` cho phép thử này dù thật sự là mảng; `getClass().isArray()` nhận diện được.
+**Do not use `instanceof Object[]` to detect all arrays**: `new int[] {1, 2}` returns `false` for this check even though it truly is an array; `getClass().isArray()` detects it.
 
-## 5. Mảng hai chiều: getLength không tự đo tất cả chiều
+## 5. Two-Dimensional Arrays: getLength Does Not Automatically Measure All Dimensions
 
-Ví dụ:
+Example:
 
 ```java
 int[][] ragged = {
@@ -127,18 +127,18 @@ int[][] ragged = {
 };
 ```
 
-- `Array.getLength(ragged)` trả **4** vì mảng ngoài có bốn phần tử, mỗi phần tử là một tham chiếu tới `int[]` (có thể `null`).
-- `Array.getLength(ragged[0])` trả **3**.
-- `Array.getLength(ragged[1])` trả **1**.
-- `Array.getLength(ragged[2])` trả **0**.
-- `Array.getLength(ragged[3])` ném `NullPointerException`, vì hàng đó là `null`.
+- `Array.getLength(ragged)` returns **4** because the outer array has four elements, each of which is a reference to an `int[]` (possibly `null`).
+- `Array.getLength(ragged[0])` returns **3**.
+- `Array.getLength(ragged[1])` returns **1**.
+- `Array.getLength(ragged[2])` returns **0**.
+- `Array.getLength(ragged[3])` throws `NullPointerException`, because that row is `null`.
 
-Đây là **mảng jagged/ragged**, mỗi hàng có độ dài độc lập. Không thể suy ra mọi hàng dài 3 chỉ từ `ragged[0].length`, cũng không nên nhân `ragged.length * ragged[0].length` như thể đó luôn là số phần tử của một ma trận hình chữ nhật.
+This is a **jagged/ragged array**, where each row has an independent length. You cannot infer that every row has length 3 solely from `ragged[0].length`, nor should you multiply `ragged.length * ragged[0].length` as if it were always the element count of a rectangular matrix.
 
-Dùng `Array.get` để duyệt từng phần tử mảng ngoài khi loại thành phần chỉ được biết ở runtime:
+Use `Array.get` to iterate over each outer-array element when the component type is only known at runtime:
 
 ```java
-// Mảnh mã minh họa trong phương thức; object phải là một đối tượng mảng.
+// Illustrative snippet inside a method; object must be an array object.
 int outerLength = Array.getLength(object);
 
 for (int i = 0; i < outerLength; i++) {
@@ -150,19 +150,19 @@ for (int i = 0; i < outerLength; i++) {
 }
 ```
 
-Ở đây `Array.get` trả `Object`; nếu phần tử là mảng con, ta có thể dùng tiếp `getClass().isArray()` và `Array.getLength`. Nếu phần tử là một primitive value, `Array.get` sẽ boxing giá trị đó thành wrapper trước khi trả về `Object`; wrapper không phải mảng.
+Here `Array.get` returns `Object`; if the element is a subarray, we can continue using `getClass().isArray()` and `Array.getLength`. If the element is a primitive value, `Array.get` boxes that value into a wrapper before returning `Object`; a wrapper is not an array.
 
-### Khi dùng Array.newInstance tạo mảng nhiều chiều
+### When Using Array.newInstance to Create Multidimensional Arrays
 
 ```java
 Object matrix = Array.newInstance(int.class, 2, 3);
 ```
 
-Đối tượng có runtime type `int[][]`, chiều ngoài dài 2 và mỗi hàng là `int[3]`. Nếu chỉ muốn một mảng ngoài gồm các hàng tùy biến, có thể tạo `int[][]` thông thường và gán từng hàng riêng. `Array.getLength(matrix)` vẫn chỉ đọc kích thước chiều ngoài, không có cơ chế tự trả tổng số ô của mọi chiều.
+The object has runtime type `int[][]`, an outer dimension of length 2, and each row is `int[3]`. If you only want an outer array of customizable rows, you can create a regular `int[][]` and assign each row separately. `Array.getLength(matrix)` still only reads the outer dimension size, with no mechanism to automatically return the total number of slots across all dimensions.
 
-## 6. Chương trình Java 17+ đầy đủ và kiểm chứng được
+## 6. Complete and Verifiable Java 17+ Program
 
-Lưu mã sau thành tệp **`ArrayLengthLesson.java`**:
+Save the following code as **`ArrayLengthLesson.java`**:
 
 ```java
 import java.lang.reflect.Array;
@@ -233,7 +233,7 @@ public class ArrayLengthLesson {
 }
 ```
 
-Biên dịch/chạy từ thư mục chứa tệp bằng JDK 17+:
+Compile/run from the directory containing the file using JDK 17+:
 
 ```bash
 javac ArrayLengthLesson.java
@@ -264,50 +264,50 @@ nested length=2
 nested first length=3
 ```
 
-**Phân tích kết quả:**
+**Output analysis:**
 
-1. `printInfo` xử lý `null` trước, tránh `NullPointerException` từ `getClass()`. Đối tượng không-null được phân loại bằng runtime class.
-2. `int[]` và `String[]` đều được `isArray()` xác nhận; `Array.getLength` đọc đúng 3 và 2.
-3. `ragged` có 4 phần tử ở chiều ngoài; từng hàng có kích thước 3, 1, 0, hoặc `null`.
-4. `rectangle` được tạo động với chiều dài `2 × 3`; tuy nhiên `getLength(rectangle)` chỉ trả 2.
-5. `int[].class.isArray()` là `true`, còn `int.class.isArray()` là `false`; kiểu `int` là primitive nhưng `int[]` là array object.
-6. `Object[].class.isInstance(ints)` là `false`; `ints instanceof Object` là `true`. Không nên dùng phép cast `Object[]` cho mảng primitive.
-7. `Array.getLength("abc")` ném `IllegalArgumentException`; `Array.getLength(null)` ném `NullPointerException`.
-8. `nested` là `Object[]` chứa hai đối tượng mảng ở cấp phần tử. Mảng ngoài dài 2, mảng đầu (một `int[]`) dài 3.
+1. `printInfo` handles `null` first, avoiding `NullPointerException` from `getClass()`. Non-null objects are classified using their runtime class.
+2. `int[]` and `String[]` are both confirmed by `isArray()`; `Array.getLength` accurately reads 3 and 2.
+3. `ragged` has 4 elements in the outer dimension; individual rows have sizes 3, 1, 0, or `null`.
+4. `rectangle` is dynamically created with dimensions `2 × 3`; however, `getLength(rectangle)` only returns 2.
+5. `int[].class.isArray()` is `true`, whereas `int.class.isArray()` is `false`; the `int` type is primitive, whereas `int[]` is an array object.
+6. `Object[].class.isInstance(ints)` is `false`; `ints instanceof Object` is `true`. You should not use an `Object[]` cast for primitive arrays.
+7. `Array.getLength("abc")` throws `IllegalArgumentException`; `Array.getLength(null)` throws `NullPointerException`.
+8. `nested` is an `Object[]` containing two array objects at the element level. The outer array has length 2, and the first array (an `int[]`) has length 3.
 
-Chương trình chủ động **không dùng một thứ tự duyệt Reflection không được đảm bảo**; stdout chỉ phụ thuộc giá trị mảng cố định và kiểu runtime.
+The program intentionally **does not rely on an unspecified Reflection iteration order**; stdout depends only on fixed array values and runtime types.
 
-## 7. Khi Class đã có từ Reflection: kiểm tra trước khi lấy độ dài
+## 7. When Class Is Obtained from Reflection: Check Before Getting Length
 
-Ví dụ dữ liệu được đọc từ một field:
+Example where data is read from a field:
 
 ```java
-// Mảnh code đặt trong phương thức có Class<?> type và Object receiver.
+// Snippet placed inside a method with Class<?> type and Object receiver.
 java.lang.reflect.Field field = type.getDeclaredField("data");
-Object value = field.get(receiver); // Cần quyền truy cập hợp lệ.
+Object value = field.get(receiver); // Requires valid access permission.
 
 if (value != null && value.getClass().isArray()) {
     int count = Array.getLength(value);
-    // Xử lý số phần tử.
+    // Process the number of elements.
 }
 ```
 
-`field.getType().isArray()` cũng có ích nếu muốn hỏi **kiểu khai báo của field**, trước khi đọc giá trị. Tuy nhiên cần phân biệt:
+`field.getType().isArray()` is also useful if you want to ask about **the declared type of the field**, before reading the value. However, you must distinguish:
 
-- **Kiểu khai báo:** `Object data;` → `field.getType().isArray()` là `false`, ngay cả khi hiện đang giữ `new int[3]`.
-- **Kiểu runtime của giá trị:** `value.getClass().isArray()` là `true` nếu `value` thực sự là `int[]`.
-- **Giá trị `null`:** kiểu field có thể là `int[]` nhưng `field.get(...)` trả `null`; không có đối tượng mảng để đo độ dài.
+- **Declared type:** `Object data;` → `field.getType().isArray()` is `false`, even when currently holding `new int[3]`.
+- **Runtime type of the value:** `value.getClass().isArray()` is `true` if `value` is actually an `int[]`.
+- **`null` value:** the field type might be `int[]` while `field.get(...)` returns `null`; there is no array object to measure the length of.
 
-Lựa chọn tùy mục đích: kiểm tra **schema** thì dùng kiểu khai báo; xử lý **dữ liệu đang nhận** thì dùng lớp runtime sau khi kiểm tra null.
+Choose according to your purpose: to check the **schema**, use the declared type; to process **incoming data**, use the runtime class after checking for null.
 
-Điều tương tự áp dụng cho `Method.getReturnType().isArray()` (kiểu trả về khai báo) và giá trị thực tế sau `Method.invoke`; những method khai báo trả `Object` vẫn có thể trả mảng.
+The same applies to `Method.getReturnType().isArray()` (declared return type) and the actual value after `Method.invoke`; methods declared to return `Object` can still return an array.
 
-## 8. Thiết kế hàm lấy độ dài an toàn
+## 8. Designing a Safe Length-Retrieval Function
 
-Đối với ứng dụng chỉ muốn xử lý mảng, có thể viết hàm dùng chung:
+For an application that only wants to process arrays, you can write a shared helper function:
 
 ```java
-// Đặt trong một lớp Java, dùng import java.lang.reflect.Array.
+// Placed inside a Java class, using import java.lang.reflect.Array.
 static int requireArrayLength(Object value) {
     if (value == null) {
         throw new IllegalArgumentException("Array value must not be null");
@@ -320,54 +320,54 @@ static int requireArrayLength(Object value) {
 }
 ```
 
-Đây là **hàm minh họa**, không phải chương trình độc lập. Nó chủ ý gộp trường hợp `null` và không-phải-mảng thành `IllegalArgumentException` theo hợp đồng ứng dụng, **khác** với ngoại lệ gốc `NullPointerException` của `Array.getLength(null)`. Không khẳng định rằng bản thân API Reflection tự sinh thông báo lỗi trên.
+This is an **illustrative function**, not a standalone program. It intentionally combines `null` and non-array cases into `IllegalArgumentException` per the application contract, **differing** from the native `NullPointerException` of `Array.getLength(null)`. Do not claim that the Reflection API itself generates the error message above.
 
-Khi đối tượng không phải mảng là một tình huống bình thường (chẳng hạn input đa kiểu), có thể trả một `OptionalInt` hoặc một kết quả có trạng thái thay vì bắt/nuốt ngoại lệ. Đừng quy ước `0` là “không phải mảng”, vì **mảng rỗng hợp lệ cũng có độ dài 0**.
+When a non-array object is a normal case (such as multi-type input), you can return an `OptionalInt` or a result with status instead of catching/swallowing exceptions. Do not adopt `0` as a convention for "not an array", because **a valid empty array also has length 0**.
 
-## 9. Lưu ý về Array.get, Array.set và mảng động
+## 9. Notes on Array.get, Array.set, and Dynamic Arrays
 
-Ngoài `getLength`, lớp `java.lang.reflect.Array` còn cung cấp:
+Besides `getLength`, the `java.lang.reflect.Array` class also provides:
 
-- `Array.get(array, index)`: đọc một phần tử tại runtime, kết quả kiểu `Object`; nếu phần tử primitive, API boxing thành wrapper.
-- `Array.set(array, index, value)`: ghi phần tử khi kiểu/chuyển đổi hợp lệ; không có nghĩa mọi wrapper có thể gán cho mọi mảng primitive.
-- `Array.newInstance(componentType, length)`: tạo mảng động dựa trên `Class` của thành phần.
-- `Array.newInstance(componentType, dimensions...)`: tạo mảng nhiều chiều với các kích thước được chỉ định.
+- `Array.get(array, index)`: reads an element at runtime, returning type `Object`; if the element is primitive, the API boxes it into a wrapper.
+- `Array.set(array, index, value)`: writes an element when the type/conversion is valid; this does not mean every wrapper can be assigned to every primitive array.
+- `Array.newInstance(componentType, length)`: creates a dynamic array based on the component `Class`.
+- `Array.newInstance(componentType, dimensions...)`: creates a multidimensional array with the specified sizes.
 
-Nếu `Array.getLength(array) == n`, các chỉ số hợp lệ cho mảng này là `0` đến `n - 1`. Truy cập `n` hoặc chỉ số âm sẽ ném `ArrayIndexOutOfBoundsException`. Đọc độ dài không tự cấp quyền vượt giới hạn chỉ số.
+If `Array.getLength(array) == n`, the valid indices for this array are `0` to `n - 1`. Accessing `n` or a negative index throws `ArrayIndexOutOfBoundsException`. Reading the length does not grant permission to exceed index bounds.
 
-**Không nhầm loại API:**
+**Do not confuse API types:**
 
-- `java.lang.reflect.Array` dành cho các mảng Java, bao gồm primitive arrays.
-- `java.util.Arrays` cung cấp nhiều hàm tiện ích như `toString`, `deepToString`, `copyOf`, `stream`.
-- `java.util.List.size()` là kích thước của một collection, không phải `Array.getLength(list)`.
-- `String.length()` là độ dài chuỗi theo đơn vị UTF-16 code unit, không phải `Array.getLength(string)`.
+- `java.lang.reflect.Array` is for Java arrays, including primitive arrays.
+- `java.util.Arrays` provides utility functions such as `toString`, `deepToString`, `copyOf`, `stream`.
+- `java.util.List.size()` is the size of a collection, not `Array.getLength(list)`.
+- `String.length()` is the string length in UTF-16 code units, not `Array.getLength(string)`.
 
-## 10. Những lỗi phổ biến
+## 10. Common Errors
 
-| Sai lầm | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Correct Approach |
 | --- | --- | --- |
-| `Array.getLength(null)` | `NullPointerException` | Kiểm tra `value != null` |
-| `Array.getLength("abc")` | `IllegalArgumentException` | Xác minh `value.getClass().isArray()` |
-| `value.getClass().isArray()` khi `value == null` | `NullPointerException` trước cả kiểm tra `isArray` | Kiểm tra `null` trước |
-| `value instanceof Object[]` để kiểm mọi mảng | Bỏ sót `int[]`, `boolean[]`, ... | Dùng `getClass().isArray()` |
-| `((Object[]) intArray).length` | `ClassCastException` | Dùng `Array.getLength(intArray)` |
-| Cho rằng `Array.getLength(matrix)` trả tổng phần tử 2D | Chỉ trả độ dài **chiều ngoài** | Duyệt từng hàng, kiểm tra `null` |
-| Dùng `getComponentType()` trên class không phải mảng mà không kiểm tra | Trả `null`; dễ gây NPE khi dùng tiếp | Kiểm tra `Class.isArray()` |
-| Dùng `Array.getLength(int[].class)` | `IllegalArgumentException`; đối số là `Class`, không phải array instance | Truyền một đối tượng `int[]` |
-| Đánh đồng `field.getType().isArray()` với kiểu runtime của giá trị | Field kiểu `Object` có thể giữ mảng và field kiểu mảng có thể đang `null` | Phân biệt kiểu khai báo và kiểu runtime |
-| Coi `List` hoặc `String` là mảng | `Array.getLength` không dùng cho hai loại này | `list.size()` hoặc `string.length()` |
-| Trả `0` khi đầu vào không phải mảng | Không phân biệt được với mảng rỗng | Dùng trạng thái tường minh hoặc ngoại lệ |
+| `Array.getLength(null)` | `NullPointerException` | Check `value != null` |
+| `Array.getLength("abc")` | `IllegalArgumentException` | Verify `value.getClass().isArray()` |
+| `value.getClass().isArray()` when `value == null` | `NullPointerException` before the `isArray` check even runs | Check `null` first |
+| `value instanceof Object[]` to check all arrays | Misses `int[]`, `boolean[]`, ... | Use `getClass().isArray()` |
+| `((Object[]) intArray).length` | `ClassCastException` | Use `Array.getLength(intArray)` |
+| Assuming `Array.getLength(matrix)` returns total 2D elements | Only returns the **outer dimension** length | Iterate row by row, check `null` |
+| Using `getComponentType()` on a non-array class without checking | Returns `null`; prone to NPE when used later | Check `Class.isArray()` |
+| Using `Array.getLength(int[].class)` | `IllegalArgumentException`; argument is `Class`, not an array instance | Pass an `int[]` object |
+| Equating `field.getType().isArray()` with the value's runtime type | An `Object`-typed field can hold an array and an array-typed field can currently be `null` | Distinguish declared type and runtime type |
+| Treating `List` or `String` as an array | `Array.getLength` does not apply to these two types | `list.size()` or `string.length()` |
+| Returning `0` when input is not an array | Indistinguishable from an empty array | Use explicit status or an exception |
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-1. **`new int[0]` có `isArray() == true` không?** Có. `Array.getLength` trả `0`; rỗng không có nghĩa “không phải mảng”.
-2. **`int[].class.isArray()` và `int.class.isArray()` khác nhau thế nào?** Kết quả lần lượt là `true` và `false`.
-3. **`Array.getLength(new int[2][3])` trả bao nhiêu?** `2`, chiều ngoài. Mỗi hàng có độ dài `3`.
-4. **Một `Object data = new int[]{1,2}` có thể dùng `((Object[]) data).length` không?** Không; cast gây `ClassCastException`. Dùng `Array.getLength(data)`.
-5. **Nếu `Object data = "hi"`, `data.getClass().isArray()` trả gì?** `false`; gọi `Array.getLength(data)` sẽ ném `IllegalArgumentException`.
-6. **Làm sao xem mảng có kiểu phần tử primitive?** Trước hết xác nhận `type.isArray()`, sau đó dùng `type.getComponentType().isPrimitive()`. Với mảng nhiều chiều `int[][]`, component trực tiếp là `int[]` (không primitive); phải đi sâu thêm để đến `int`.
-7. **`Array.getLength(null)` và `Array.getLength(new Object[0])` khác nhau thế nào?** Cái đầu ném `NullPointerException`, cái sau trả `0`.
+1. **Does `new int[0]` have `isArray() == true`?** Yes. `Array.getLength` returns `0`; empty does not mean "not an array".
+2. **How do `int[].class.isArray()` and `int.class.isArray()` differ?** The results are `true` and `false` respectively.
+3. **What does `Array.getLength(new int[2][3])` return?** `2`, the outer dimension. Each row has length `3`.
+4. **Can `Object data = new int[]{1,2}` use `((Object[]) data).length`?** No; the cast causes `ClassCastException`. Use `Array.getLength(data)`.
+5. **If `Object data = "hi"`, what does `data.getClass().isArray()` return?** `false`; calling `Array.getLength(data)` throws `IllegalArgumentException`.
+6. **How do you check whether an array has a primitive element type?** First confirm `type.isArray()`, then use `type.getComponentType().isPrimitive()`. For a multidimensional array `int[][]`, the direct component is `int[]` (non-primitive); you must go deeper to reach `int`.
+7. **How do `Array.getLength(null)` and `Array.getLength(new Object[0])` differ?** The former throws `NullPointerException`, while the latter returns `0`.
 
-**Ghi nhớ:** `Class.isArray()` là câu trả lời cho **“đây có phải một kiểu mảng?”**; `Array.getLength(value)` là câu trả lời cho **“đối tượng mảng này có bao nhiêu phần tử ở chiều hiện tại?”**. Trước khi đo độ dài dữ liệu động, kiểm tra `null` và kiểu runtime, nhất là với mảng primitive và mảng nhiều chiều.
+**Key takeaway:** `Class.isArray()` is the answer to **"is this an array type?"**; `Array.getLength(value)` is the answer to **"how many elements does this array object have in the current dimension?"**. Before measuring the length of dynamic data, check `null` and the runtime type, especially with primitive arrays and multidimensional arrays.
 
-Tài liệu chính thức: [`java.lang.reflect.Array` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html), [`java.lang.Class.isArray` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#isArray()), [JLS §10.7 Array Members](https://docs.oracle.com/javase/specs/jls/se17/html/jls-10.html#jls-10.7).
+Official documentation: [`java.lang.reflect.Array` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html), [`java.lang.Class.isArray` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#isArray()), [JLS §10.7 Array Members](https://docs.oracle.com/javase/specs/jls/se17/html/jls-10.html#jls-10.7).

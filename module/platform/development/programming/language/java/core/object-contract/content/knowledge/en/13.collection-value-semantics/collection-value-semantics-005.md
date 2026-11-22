@@ -1,8 +1,8 @@
-# Quan hệ bằng nhau có thể áp dụng giữa các lớp triển khai cùng hợp đồng
+# Equality Can Apply Across Implementation Classes Sharing the Same Contract
 
-## 1. Cùng một giao diện, khác lớp triển khai: có thể `equals()` trả về `true`?
+## 1. Same Interface, Different Implementation Classes: Can `equals()` Return `true`?
 
-Trong Java, `ArrayList` và `LinkedList` là hai lớp khác nhau nhưng đều triển khai giao diện `List`. Khi hai danh sách chứa **các phần tử bằng nhau ở cùng vị trí**, chúng được coi là bằng nhau theo hợp đồng của `List.equals(Object)`, cho dù kiểu triển khai và cấu trúc dữ liệu nội bộ khác nhau.
+In Java, `ArrayList` and `LinkedList` are two different classes, yet both implement the `List` interface. When two lists contain **equal elements at the same positions**, they are considered equal under the `List.equals(Object)` contract, even though their implementation types and internal data structures differ.
 
 ```java
 List<String> a = new ArrayList<>(List.of("java", "core"));
@@ -12,31 +12,31 @@ System.out.println(a.equals(b)); // true
 System.out.println(b.equals(a)); // true
 ```
 
-Đây là fragment minh họa; cần import `java.util.List`, `ArrayList` và `LinkedList`. Ví dụ chạy hoàn chỉnh xuất hiện ở phần sau.
+This is an illustrative fragment; it requires importing `java.util.List`, `ArrayList`, and `LinkedList`. A complete runnable example appears in a later section.
 
-**Điểm cốt lõi:** bình đẳng của các collection tiêu chuẩn thường được định nghĩa bằng **hợp đồng của giao diện trừu tượng** (`List`, `Set`, `Map`) thay vì bắt buộc `a.getClass() == b.getClass()`. Ta có thể so sánh hai lớp triển khai khác nhau khi chúng cùng tuân thủ một quan hệ bằng nhau có ngữ nghĩa thống nhất.
+**Key point:** equality of standard collections is typically defined by the **contract of the abstract interface** (`List`, `Set`, `Map`) rather than requiring `a.getClass() == b.getClass()`. We can compare two different implementation classes when they adhere to an equality relation with unified semantics.
 
-Nhưng không được mở rộng phát biểu này thành “mọi `Collection` đều so sánh theo nội dung”: **`Collection` không áp đặt một thuật toán `equals()` chung cho mọi loại collection**. Sự tương thích xuyên lớp phụ thuộc hợp đồng cụ thể của kiểu đang so sánh và việc triển khai đúng hợp đồng đó.
+However, do not generalize this statement into "every `Collection` compares by contents": **`Collection` does not impose a universal `equals()` algorithm on all collection types**. Cross-class compatibility depends on the specific contract of the type being compared and proper implementation of that contract.
 
-## 2. Vì sao các lớp khác nhau vẫn có thể bằng nhau?
+## 2. Why Can Different Classes Still Be Equal?
 
-`Object.equals(Object)` chỉ quy định các tính chất của quan hệ bằng nhau (phản xạ, đối xứng, bắc cầu, nhất quán và không bằng `null`). Lớp tự quyết định tiêu chí bản sắc logic miễn tuân thủ các tính chất này.
+`Object.equals(Object)` only specifies the properties of an equivalence relation (reflexive, symmetric, transitive, consistent, and non-equal to `null`). A class decides its own criteria for logical identity as long as it obeys these properties.
 
-Với các collection, nhiều tiêu chí được chuẩn hóa ở cấp giao diện:
+For collections, many criteria are standardized at the interface level:
 
-| Loại | Điều kiện bằng nhau theo hợp đồng | Ví dụ khác triển khai có thể bằng nhau |
+| Type | Contract Equality Condition | Cross-Implementation Examples That Can Be Equal |
 | --- | --- | --- |
-| `List` | Đối tượng còn lại là `List`, cùng kích thước, từng vị trí tương ứng có phần tử bằng nhau | `ArrayList` và `LinkedList` |
-| `Set` | Đối tượng còn lại là `Set`, cùng kích thước, chứa các phần tử tương đương theo ngữ nghĩa phần tử | `HashSet` và `LinkedHashSet` hoặc `TreeSet` với thứ tự phù hợp |
-| `Map` | Đối tượng còn lại là `Map`, cùng tập ánh xạ khóa → giá trị; không phụ thuộc thứ tự duyệt | `HashMap`, `LinkedHashMap` và `TreeMap` với so sánh khóa phù hợp |
+| `List` | Other object is a `List`, same size, each corresponding position has equal elements | `ArrayList` and `LinkedList` |
+| `Set` | Other object is a `Set`, same size, contains equivalent elements under element semantics | `HashSet` and `LinkedHashSet` or `TreeSet` with matching ordering |
+| `Map` | Other object is a `Map`, same set of key → value mappings; independent of iteration order | `HashMap`, `LinkedHashMap`, and `TreeMap` with compatible key comparison |
 
-Khi các lớp của một loại cùng tuân thủ tiêu chí này, thuật toán nội bộ, thứ tự lưu trữ, độ phức tạp và khả năng đồng bộ có thể khác nhau mà kết quả `equals()` vẫn đúng.
+When classes of the same type obey these criteria, internal algorithms, storage ordering, complexity, and synchronization capabilities can differ while `equals()` still returns the right result.
 
-Ví dụ, `ArrayList` lưu phần tử trong mảng động còn `LinkedList` là danh sách liên kết. Những khác biệt đó không xuất hiện trong định nghĩa `List.equals`; thứ được so sánh là **chuỗi giá trị theo vị trí**.
+For example, `ArrayList` stores elements in a dynamic array while `LinkedList` is a linked list. Those differences do not appear in the definition of `List.equals`; what is compared is the **positional sequence of values**.
 
-## 3. So sánh hai List khác implementation
+## 3. Comparing Two `List` Instances of Different Implementations
 
-Với hai `List`, điều kiện bằng nhau là **cùng kích thước và các phần tử ở từng vị trí tương ứng bằng nhau**. Vì vậy, `ArrayList` và `LinkedList` có thể bằng nhau theo cả hai chiều:
+For two `List` instances, the equality condition is **same size and equal elements at each corresponding position**. Thus, `ArrayList` and `LinkedList` can be equal in both directions:
 
 ```java
 List<String> array = new ArrayList<>(List.of("A", "B"));
@@ -45,11 +45,11 @@ System.out.println(array.equals(linked)); // true
 System.out.println(linked.equals(array)); // true
 ```
 
-Đây là đoạn minh họa cần import các kiểu từ `java.util`. Đảo hai vị trí trong `linked` sẽ làm danh sách khác giá trị; thay lớp triển khai mà giữ nội dung theo thứ tự thì không. Hai list bằng nhau phải có hash giống nhau theo công thức của `List`, dù chi tiết lưu trữ nội bộ khác. Bài chuyên đề `List.equals()` phân tích các vị trí lặp, `null` và phần tử có `equals` riêng.
+This is an illustrative snippet requiring imports from `java.util`. Swapping the two positions in `linked` makes the list differ in value; changing the implementation class while keeping ordered contents does not. Two equal lists must have the same hash under the `List` formula, regardless of internal storage details. The dedicated `List.equals()` lesson analyzes duplicate positions, `null`, and elements with custom `equals`.
 
-## 4. So sánh hai Set khác implementation
+## 4. Comparing Two `Set` Instances of Different Implementations
 
-`HashSet` và `LinkedHashSet` có thể bằng nhau dù thứ tự chèn khác; `Set.equals()` yêu cầu hai bên là `Set`, có cùng kích thước và cùng các phần tử theo quan hệ thành viên tương thích:
+`HashSet` and `LinkedHashSet` can be equal despite different insertion orders; `Set.equals()` requires both sides to be a `Set`, have the same size, and contain the same elements under a compatible membership relation:
 
 ```java
 Set<String> hash = new HashSet<>(List.of("A", "B"));
@@ -58,11 +58,11 @@ System.out.println(hash.equals(linked)); // true
 System.out.println(linked.equals(hash)); // true
 ```
 
-Ví dụ cần các import `java.util`. Cả hai có cùng hash theo hợp đồng tổng mã băm phần tử. `TreeSet` cũng có thể tham gia so sánh xuyên implementation khi `Comparator`/thứ tự tự nhiên nhận diện trùng phù hợp với `equals`; nếu comparator coi hai chuỗi khác nhau theo `equals` là một, tính đối xứng có thể bị phá (xem mục 7). Bài `Set.equals()` đã triển khai kỹ nguyên tắc thành viên và thứ tự duyệt.
+This example requires `java.util` imports. Both have the same hash under the sum-of-element-hashes contract. `TreeSet` can also participate in cross-implementation comparisons when its `Comparator`/natural ordering detects duplicates consistently with `equals`; if the comparator treats two strings that differ under `equals` as the same, symmetry can break (see Section 7). The `Set.equals()` lesson covered membership principles and iteration order in detail.
 
-## 5. So sánh hai Map khác implementation
+## 5. Comparing Two `Map` Instances of Different Implementations
 
-`HashMap` và `LinkedHashMap` bằng nhau khi cùng các ánh xạ **khóa → giá trị**, cho dù thứ tự chèn hoặc duyệt không giống nhau:
+`HashMap` and `LinkedHashMap` are equal when they share the same **key → value** mappings, even if insertion or iteration orders differ:
 
 ```java
 Map<String, Integer> hash = new HashMap<>();
@@ -74,11 +74,11 @@ linked.put("A", 1);
 System.out.println(hash.equals(linked)); // true
 ```
 
-Đây là fragment với các import `java.util` phù hợp. Khác giá trị của cùng một khóa, hoặc giá trị khác kiểu mà `equals` từ chối (ví dụ `Integer(1)` và `Long(1)`), thì hai map khác nhau. Map bằng nhau phải có hash giống nhau, do cùng tổng hash của các entry. `TreeMap` chỉ tương thích xuyên implementation khi comparator của khóa không làm lệch quan hệ bình đẳng; mục 7 và bài `Map.equals()` trình bày các ranh giới cụ thể.
+This is a fragment with appropriate `java.util` imports. If the value for the same key differs, or if a value has a different type rejected by `equals` (e.g., `Integer(1)` and `Long(1)`), the two maps differ. Equal maps must have the same hash, due to having the same sum of entry hashes. `TreeMap` is only cross-implementation compatible when the key comparator does not skew equality semantics; Section 7 and the `Map.equals()` lesson present the exact boundaries.
 
-## 6. Chương trình Java 17 chứng minh các tình huống
+## 6. Java 17 Program Demonstrating These Cases
 
-Lưu mã sau dưới tên `CollectionContractEqualityDemo.java`. Chương trình có các case `List`, `Set`, `Map`, một `Collection` không sử dụng so sánh nội dung chung, và ví dụ comparator `TreeSet` cố ý không nhất quán với `equals()`.
+Save the following code as `CollectionContractEqualityDemo.java`. The program includes `List`, `Set`, and `Map` cases, a `Collection` that does not use general content comparison, and a `TreeSet` comparator example that is intentionally inconsistent with `equals()`.
 
 ```java
 import java.util.ArrayDeque;
@@ -149,7 +149,7 @@ public class CollectionContractEqualityDemo {
         System.out.println("Objects.equals(list, linked): "
                 + Objects.equals(array, linked));
 
-        // CỐ Ý SAI VỀ TÍNH TƯƠNG THÍCH CỦA COMPARATOR VỚI equals().
+        // INTENTIONALLY WRONG REGARDING COMPARATOR COMPATIBILITY WITH equals().
         Set<String> insensitive = new TreeSet<>(
                 String.CASE_INSENSITIVE_ORDER);
         insensitive.add("java");
@@ -164,14 +164,14 @@ public class CollectionContractEqualityDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac CollectionContractEqualityDemo.java
 java CollectionContractEqualityDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 list cross implementation: true
@@ -193,77 +193,77 @@ bad comparator tree to hash: true
 bad comparator hash to tree: false
 ```
 
-### Đọc những điểm quan trọng trong kết quả
+### Reading the Key Points in the Output
 
-- `ArrayList` và `LinkedList` cùng hai chuỗi theo đúng thứ tự → bằng nhau **theo cả hai chiều**, hash giống nhau. Đảo thứ tự trong list → không bằng nhau.
-- `HashSet`, `LinkedHashSet` và `TreeSet` dùng natural ordering của `String` cùng biểu diễn đúng tập chuỗi → bằng nhau bất chấp cách lưu trữ và thứ tự duyệt.
-- `HashMap`, `LinkedHashMap` và `TreeMap` có cùng hai ánh xạ chuỗi → số nguyên → bằng nhau, hash giống nhau, dù thứ tự chèn/duyệt khác.
-- `ArrayDeque` thuộc `Collection`, nhưng không triển khai `List.equals`; đối với hai đối tượng khác nhau trong ví dụ, `deque.equals(array)` vẫn là so sánh danh tính và trả `false`. `array.equals(deque)` cũng `false` vì `deque` không phải `List`.
-- `Objects.equals(array, linked)` gọi `array.equals(linked)` nên vẫn `true`; nó chỉ cung cấp lớp bảo vệ null, không thay đổi hợp đồng nội dung.
+- `ArrayList` and `LinkedList` with the same two strings in exact order → equal **in both directions**, same hash. Reversing order in the list → not equal.
+- `HashSet`, `LinkedHashSet`, and `TreeSet` using the natural ordering of `String` represent the exact same set of strings → equal regardless of storage and iteration order.
+- `HashMap`, `LinkedHashMap`, and `TreeMap` have the same two string → integer mappings → equal, same hash, despite different insertion/iteration orders.
+- `ArrayDeque` is a `Collection`, but does not implement `List.equals`; for two distinct objects in the example, `deque.equals(array)` remains identity comparison and returns `false`. `array.equals(deque)` is also `false` because `deque` is not a `List`.
+- `Objects.equals(array, linked)` calls `array.equals(linked)`, so it is still `true`; it only provides null protection and does not change the content contract.
 
-Hai dòng “bad comparator” cố ý cho kết quả trái chiều để phơi bày một trường hợp không bảo đảm hợp đồng; **đừng dùng comparator không nhất quán với `equals()` trong set/map mà chương trình cần so sánh với các implementation khác**.
+The two "bad comparator" lines intentionally produce opposite results to expose a case that breaks the contract; **do not use a comparator inconsistent with `equals()` in a set or map that the program needs to compare with other implementations**.
 
-## 7. Khi nào cùng giao diện mà bình đẳng xuyên lớp có thể gặp vấn đề?
+## 7. When Can Cross-Class Equality Within the Same Interface Run Into Problems?
 
-### a. Comparator không nhất quán với `equals()`
+### a. Comparator Inconsistent with `equals()`
 
-`TreeSet` có thể dùng `String.CASE_INSENSITIVE_ORDER` để coi `"java"` và `"JAVA"` là tương đương trong cấu trúc cây. Trong khi đó `HashSet` dựa trên `String.equals()`, phân biệt chữ hoa/chữ thường.
+`TreeSet` can use `String.CASE_INSENSITIVE_ORDER` to treat `"java"` and `"JAVA"` as equivalent in the tree structure. Meanwhile, `HashSet` relies on `String.equals()`, which is case-sensitive.
 
-Trong chương trình:
+In the program:
 
-- `insensitive` chỉ chứa `"java"`, và có thể tìm `"JAVA"` bằng comparator không phân biệt hoa/thường.
-- `sensitive` chỉ chứa `"JAVA"`, và không coi `"java"` là cùng chuỗi theo `String.equals`.
-- `insensitive.equals(sensitive)` có thể trả `true` do việc kiểm tra `containsAll` dựa trên comparator của `TreeSet`.
-- `sensitive.equals(insensitive)` trả `false` do `HashSet.contains("java")` không tìm được chuỗi giống chính xác.
+- `insensitive` contains only `"java"`, and can match `"JAVA"` using the case-insensitive comparator.
+- `sensitive` contains only `"JAVA"`, and does not treat `"java"` as the same string under `String.equals`.
+- `insensitive.equals(sensitive)` can return `true` because `containsAll` checking relies on the `TreeSet` comparator.
+- `sensitive.equals(insensitive)` returns `false` because `HashSet.contains("java")` cannot find the exact matching string.
 
-Đây là **sự không nhất quán của tiêu chí nhận diện phần tử**, dẫn đến vi phạm kỳ vọng đối xứng khi so sánh giữa các set. Không phải lỗi của `String.equals()`. Theo hợp đồng `SortedSet`, thứ tự nên **nhất quán với equals** nếu sorted set phải triển khai đúng hợp đồng `Set`; trường hợp khác là một cấu trúc theo comparator có ngữ nghĩa tập phần tử khác, và cần hiểu rõ giới hạn.
+This is an **inconsistency in element identity criteria**, leading to a violation of expected symmetry when comparing between sets. It is not a bug in `String.equals()`. Under the `SortedSet` contract, the ordering should be **consistent with equals** if the sorted set is to properly implement the `Set` contract; otherwise it is a comparator-based structure with different set-membership semantics, and its limits must be understood.
 
-`TreeMap` có vấn đề tương tự về việc comparator có thể coi hai khóa bằng nhau (`compare(k1,k2) == 0`) dù `k1.equals(k2)` là `false`. Vì vậy sự tương thích `Map.equals` giữa `TreeMap` và `HashMap` cũng phụ thuộc chính sách bằng nhau của khóa. Ví dụ chuẩn của phần 6 sử dụng natural ordering của `String`, vốn nhất quán với `String.equals`.
+`TreeMap` has the analogous issue where a comparator can treat two keys as equal (`compare(k1,k2) == 0`) even though `k1.equals(k2)` is `false`. Therefore, `Map.equals` compatibility between `TreeMap` and `HashMap` also depends on the key equality policy. The standard example in Section 6 uses `String` natural ordering, which is consistent with `String.equals`.
 
-### b. Một custom implementation không tuân theo hợp đồng
+### b. A Custom Implementation Fails to Follow the Contract
 
-Giao diện không tự động cưỡng chế mọi implementation viết đúng `equals()` và `hashCode()`. Nếu tự xây một lớp `List` mà `equals()` chỉ so sánh `getClass()`, lớp đó có thể không đáp ứng hợp đồng `List.equals()` và làm hỏng tính đối xứng với `ArrayList` hoặc `LinkedList`.
+An interface does not automatically force every implementation to write `equals()` and `hashCode()` properly. If you build a custom `List` class whose `equals()` only checks `getClass()`, that class may fail the `List.equals()` contract and break symmetry with `ArrayList` or `LinkedList`.
 
-Vì thế, khi viết collection tùy biến, đọc hợp đồng giao diện và kiểm thử cả **hai hướng** khi so sánh với các implementation chuẩn, thay vì chỉ dựa trên kết quả một lần gọi. Cần bảo đảm giá trị hash nhất quán với quan hệ bằng nhau.
+Therefore, when writing a custom collection, read the interface contract and test **both directions** when comparing against standard implementations, rather than relying on a single call's result. Ensure hash values are consistent with the equality relation.
 
-### c. Phần tử bên trong có `equals()` bất thường
+### c. Inner Elements Have Abnormal `equals()`
 
-List, set và map dựa vào quan hệ bằng nhau của **phần tử, khóa và giá trị**. Nếu một class phần tử dùng epsilon không bắc cầu, phụ thuộc trạng thái thay đổi, so sánh lớp cha/con không đối xứng hoặc tạo hash trái hợp đồng, các collection sử dụng đối tượng đó cũng có thể thể hiện hành vi bất ngờ.
+Lists, sets, and maps rely on the equality relation of **elements, keys, and values**. If an element class uses a non-transitive epsilon, depends on mutable state, compares superclasses/subclasses asymmetrically, or produces hashes violating the contract, collections using that object can also exhibit unexpected behavior.
 
-Ví dụ, `HashSet` không thể “sửa” một cặp phần tử có `equals()` sai. Trước khi so sánh collection, bảo đảm từng kiểu giá trị liên quan có quan hệ bằng nhau hợp lệ và hash tương ứng.
+For example, `HashSet` cannot "fix" a pair of elements with a broken `equals()`. Before comparing collections, ensure each involved value type has a valid equality relation and corresponding hash.
 
-### d. Hai kiểu collection có bản chất khác nhau
+### d. Two Collection Types Are Fundamentally Different
 
-Một `List` có thứ tự và có thể chứa phần tử lặp; một `Set` không cho phép hai phần tử trùng theo quan hệ bằng nhau. Dù chúng cùng xuất hiện dưới tham chiếu `Collection` hoặc cùng chứa những chuỗi giống nhau, **không có hợp đồng bắt buộc `List.equals(Set)` phải trả `true`**. Thực tế các lớp chuẩn không định nghĩa chúng là bằng nhau.
+A `List` is ordered and can contain duplicate elements; a `Set` does not allow duplicate elements under its equality relation. Even if they appear under `Collection` references or contain the same strings, **no contract requires `List.equals(Set)` to return `true`**. In fact, standard classes define them as unequal.
 
-`Queue` hoặc `Deque` cũng không mặc nhiên thực hiện so sánh nội dung như `List`. Chẳng hạn `ArrayDeque` thừa hưởng `equals()` theo danh tính đối tượng. Thấy hai collection in ra các phần tử giống nhau hoặc có cùng thứ tự duyệt chưa đủ để kết luận bằng nhau.
+`Queue` or `Deque` likewise do not inherently perform content comparison like `List`. For instance, `ArrayDeque` inherits object-identity `equals()`. Seeing two collections print the same elements or share the same iteration order is not enough to conclude they are equal.
 
-## 8. Giá trị, sự thay đổi và cách sử dụng trong collection khác
+## 8. Value, Mutation, and Use Inside Other Collections
 
-### Vì sao quan hệ bằng nhau cần ổn định?
+### Why Must the Equality Relation Be Stable?
 
-Một `List` chứa phần tử có trạng thái thay đổi có thể đổi kết quả `equals()` và `hashCode()` khi phần tử được sửa. Một `Set` hoặc `Map` chứa khóa có trường tham gia hash thay đổi sau khi chèn có thể không còn tìm được khóa bằng chính giá trị hiện tại theo cách mong đợi.
+A `List` containing elements with mutable state can change its `equals()` and `hashCode()` results when an element is modified. A `Set` or `Map` containing a key whose hash-participating field changes after insertion may no longer locate the key by its current value as expected.
 
-Với các đối tượng được dùng làm **phần tử của `HashSet` hoặc khóa của `HashMap`**, ưu tiên các lớp bất biến hoặc khóa bất biến. Ngay cả khi tập/map giữ đối tượng đó bằng tham chiếu, thay đổi giá trị liên quan `equals()`/`hashCode()` sau khi lưu có thể phá vỡ các phép `contains`/`get`/`remove`.
+For objects used as **`HashSet` elements or `HashMap` keys**, prefer immutable classes or immutable keys. Even though the set/map holds the object by reference, modifying values involved in `equals()`/`hashCode()` after storage can break `contains`/`get`/`remove`.
 
-### Cẩn thận khi dùng collection làm key của map hoặc phần tử của set khác
+### Caution When Using a Collection as a Map Key or Element of Another Set
 
-Nếu một `List` được dùng làm khóa `HashMap`, việc thêm/xóa/sắp xếp phần tử trong list sẽ thay đổi `List.hashCode()`. Map có thể không tìm lại được khóa ở bucket cũ. Một list bất biến bằng `List.copyOf` hoặc `List.of` có thể phù hợp khi phần tử cũng ổn định, nhưng chỉ sự bất biến cấu trúc list **không đảm bảo bất biến sâu** của các đối tượng chứa trong list.
+If a `List` is used as a `HashMap` key, adding, removing, or sorting elements in the list changes `List.hashCode()`. The map may fail to find the key in the old bucket. An unmodifiable list via `List.copyOf` or `List.of` may work when the elements are also stable, yet structural list unmodifiability alone **does not guarantee deep immutability** of the objects inside the list.
 
-`Set.hashCode()` cũng phụ thuộc mã băm phần tử; `Map.hashCode()` phụ thuộc mã băm entry. Khi dùng tập/map làm khóa hoặc phần tử của một cấu trúc hash khác, cần bảo đảm nội dung tạo nên bản sắc không bị thay đổi trong vòng đời lưu trữ.
+`Set.hashCode()` also depends on element hash codes; `Map.hashCode()` depends on entry hash codes. When using a set or map as a key or element of another hash structure, ensure that the contents defining its identity are not mutated during its storage lifetime.
 
-## 9. Kiểm thử hợp đồng khi so sánh xuyên implementation
+## 9. Contract Testing When Comparing Across Implementations
 
-Một bộ kiểm thử nhỏ nên bao gồm:
+A minimal test suite should include:
 
-1. **Giữa cùng loại:** `ArrayList` ↔ `LinkedList` cùng phần tử/thứ tự, `HashSet` ↔ `TreeSet` với comparator hợp lệ, `HashMap` ↔ `LinkedHashMap` cùng ánh xạ.
-2. **Hai chiều:** kiểm tra cả `a.equals(b)` lẫn `b.equals(a)` để phát hiện lỗi đối xứng.
-3. **Bắc cầu:** nếu `a`, `b`, `c` dùng ba implementation nhưng cùng biểu diễn giá trị theo hợp đồng, `a.equals(b) && b.equals(c)` phải kéo theo `a.equals(c)`.
-4. **Hash:** khi hai đối tượng bằng nhau, hash phải giống nhau, dù không yêu cầu hai đối tượng khác nhau có hash khác nhau.
-5. **Phản ví dụ cố ý:** list đảo thứ tự; set thiếu một phần tử; map cùng khóa nhưng khác value; comparator không nhất quán với equals; phần tử thay đổi trạng thái.
-6. **Null và implementation đặc biệt:** `HashMap` và `HashSet` thường cho phép `null`; `Map.of`/`Set.of` cấm `null`. Khi tạo dữ liệu test, chọn cách khởi tạo tương thích với chính collection.
+1. **Within the same type:** `ArrayList` ↔ `LinkedList` with the same elements/order, `HashSet` ↔ `TreeSet` with a valid comparator, `HashMap` ↔ `LinkedHashMap` with the same mappings.
+2. **Both directions:** test both `a.equals(b)` and `b.equals(a)` to catch symmetry bugs.
+3. **Transitivity:** if `a`, `b`, `c` use three implementations yet represent the same value under the contract, `a.equals(b) && b.equals(c)` must imply `a.equals(c)`.
+4. **Hash:** when two objects are equal, their hashes must match, even though unequal objects are not required to have distinct hashes.
+5. **Intentional counterexamples:** list with swapped order; set missing one element; map with same key but different value; comparator inconsistent with equals; element mutating state.
+6. **Null and special implementations:** `HashMap` and `HashSet` normally allow `null`; `Map.of`/`Set.of` forbid `null`. When creating test data, choose initialization compatible with the collection itself.
 
-Ví dụ mẫu (fragment giả sử đã có hai đối tượng không null `a`, `b` của cùng một hợp đồng bằng nhau):
+Sample snippet (fragment assuming two non-null objects `a`, `b` sharing the same equality contract):
 
 ```java
 if (a.equals(b) != b.equals(a)) {
@@ -274,25 +274,25 @@ if (a.equals(b) && a.hashCode() != b.hashCode()) {
 }
 ```
 
-Hai điều kiện trên kiểm tra đối xứng và kết hợp hash trên **một cặp** đã chọn. Chúng không chứng minh mọi giá trị đều đúng; phải kết hợp kiểm thử biên, bộ ba và phân tích định nghĩa bằng nhau.
+The two checks above test symmetry and hash alignment on **one chosen pair**. They do not prove every value is correct; they must be combined with boundary tests, triples, and analysis of the equality definition.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Câu 1.** `new ArrayList<>(List.of("A", "B")).equals(new LinkedList<>(List.of("A", "B")))` trả gì?  
-**Đáp án:** `true`, do cả hai cùng tuân thủ hợp đồng `List.equals` theo thứ tự phần tử, không yêu cầu cùng lớp triển khai.
+**Q1.** What does `new ArrayList<>(List.of("A", "B")).equals(new LinkedList<>(List.of("A", "B")))` return?  
+**Answer:** `true`, because both obey the `List.equals` contract by element order without requiring the same implementation class.
 
-**Câu 2.** `new HashSet<>(List.of("A", "B")).equals(new LinkedHashSet<>(List.of("B", "A")))` trả gì?  
-**Đáp án:** `true`; set không xét thứ tự chèn hay thứ tự duyệt.
+**Q2.** What does `new HashSet<>(List.of("A", "B")).equals(new LinkedHashSet<>(List.of("B", "A")))` return?  
+**Answer:** `true`; sets ignore insertion order and iteration order.
 
-**Câu 3.** `HashMap` và `LinkedHashMap` có cùng entry nhưng thứ tự chèn ngược nhau có bằng nhau không?  
-**Đáp án:** Có, nếu khóa và giá trị tuân thủ ngữ nghĩa `equals()` đúng; `Map.equals` dựa trên ánh xạ, không xét thứ tự entry.
+**Q3.** Are a `HashMap` and a `LinkedHashMap` with the same entries inserted in reverse order equal?  
+**Answer:** Yes, if keys and values follow proper `equals()` semantics; `Map.equals` is based on mappings, ignoring entry order.
 
-**Câu 4.** Vì sao `ArrayDeque` và `ArrayList` cùng chứa `"A", "B"` thường không bằng nhau?  
-**Đáp án:** `ArrayDeque` không cam kết `List.equals`; bản thân `Collection` không áp đặt so sánh nội dung chung cho mọi implementation.
+**Q4.** Why are an `ArrayDeque` and an `ArrayList` both containing `"A", "B"` usually not equal?  
+**Answer:** `ArrayDeque` does not promise `List.equals`; `Collection` itself does not impose universal content comparison across all implementations.
 
-**Câu 5.** Có thể luôn coi `TreeSet` và `HashSet` chứa “cùng chữ cái” là bằng nhau không?  
-**Đáp án:** Không. Nếu comparator của `TreeSet` xác định tương đương khác với `equals()` của phần tử, thậm chí có thể mất tính đối xứng trong so sánh xuyên implementation.
+**Q5.** Can a `TreeSet` and a `HashSet` containing "the same letters" always be considered equal?  
+**Answer:** No. If the `TreeSet` comparator defines equivalence differently from the element's `equals()`, symmetry in cross-implementation comparisons can even be lost.
 
-## Ghi nhớ
+## Takeaway
 
-**Quan hệ bằng nhau theo giá trị có thể vượt qua ranh giới lớp triển khai khi các lớp cùng tuân thủ một hợp đồng ngữ nghĩa.** `ArrayList` và `LinkedList` so theo vị trí phần tử; các `Set` chuẩn so theo tập phần tử; các `Map` chuẩn so theo tập ánh xạ. Điều kiện thiết yếu là thuật toán và chính sách nhận diện phần tử/khóa phải thống nhất. `Collection` nói chung không có một quy tắc `equals()` nội dung áp dụng cho mọi kiểu, còn comparator hoặc phần tử không tuân thủ hợp đồng có thể làm hỏng tính đối xứng, tính bắc cầu và hành vi collection.
+**Value-based equality can cross implementation class boundaries when classes follow the same semantic contract.** `ArrayList` and `LinkedList` compare by element position; standard `Set` implementations compare by element set; standard `Map` implementations compare by mapping set. The essential requirement is that the algorithm and the element/key identity policy align. `Collection` in general has no single content-based `equals()` rule across all types, and non-compliant comparators or elements can break symmetry, transitivity, and collection behavior.

@@ -1,18 +1,18 @@
-# `BigInteger`: `add`, `subtract`, `multiply`, `divide` và `remainder`
+# `BigInteger`: `add`, `subtract`, `multiply`, `divide`, and `remainder`
 
-`java.math.BigInteger` biểu diễn số nguyên **có độ chính xác tùy ý**. Khi phép cộng, trừ, nhân vượt giới hạn `int` hoặc `long`, `BigInteger` vẫn giữ được kết quả nguyên chính xác, miễn còn đủ bộ nhớ và tài nguyên tính toán. Đây là kiểu số **nguyên**, khác với `BigDecimal` (thập phân) và `double` (dấu phẩy động gần đúng).
+`java.math.BigInteger` represents integers with **arbitrary precision**. When addition, subtraction, or multiplication exceeds the limits of `int` or `long`, `BigInteger` still keeps the exact integer result, provided enough memory and computation resources remain. It is an **integer** type, distinct from `BigDecimal` (decimal) and `double` (approximate floating-point).
 
-| Phương thức | Phép toán | Kết quả |
+| Method | Operation | Result |
 |---|---|---|
-| `a.add(b)` | `a + b` | Tổng nguyên chính xác |
-| `a.subtract(b)` | `a - b` | Hiệu nguyên chính xác |
-| `a.multiply(b)` | `a × b` | Tích nguyên chính xác |
-| `a.divide(b)` | Chia nguyên, làm tròn thương về 0 | Thương `BigInteger` |
-| `a.remainder(b)` | Phần dư ứng với thương nguyên | Dư `BigInteger` |
+| `a.add(b)` | `a + b` | Exact integer sum |
+| `a.subtract(b)` | `a - b` | Exact integer difference |
+| `a.multiply(b)` | `a × b` | Exact integer product |
+| `a.divide(b)` | Integer division, quotient truncated toward 0 | `BigInteger` quotient |
+| `a.remainder(b)` | Remainder corresponding to integer quotient | `BigInteger` remainder |
 
-Cả năm phương thức nhận đối số kiểu `BigInteger` và trả về `BigInteger`. `divide` và `remainder` không chấp nhận số chia bằng 0. Phần quan trọng nhất khi học hai phép cuối là **`a = q × b + r`**, trong đó `q = a.divide(b)`, `r = a.remainder(b)` và `b != 0`.
+All five methods accept a `BigInteger` argument and return a `BigInteger`. `divide` and `remainder` reject a zero divisor. The most important identity when learning the last two operations is **`a = q × b + r`**, where `q = a.divide(b)`, `r = a.remainder(b)`, and `b != 0`.
 
-## 1. Tạo giá trị và hiểu tính bất biến
+## 1. Creating Values and Understanding Immutability
 
 ```java
 import java.math.BigInteger;
@@ -24,27 +24,27 @@ BigInteger zero = BigInteger.ZERO;
 BigInteger one = BigInteger.ONE;
 ```
 
-Đây là các câu lệnh minh họa dùng bên trong phương thức hoặc JShell, chưa phải tệp Java chạy độc lập.
+These are illustrative statements meant for use inside a method or JShell, not a standalone Java file yet.
 
-- `new BigInteger("...")` phân tích chuỗi số nguyên, phù hợp cả khi số vượt phạm vi `long`.
-- `BigInteger.valueOf(long)` dùng khi đầu vào đã nằm trong miền số `long`. Viết literal lớn hơn miền `long` rồi truyền vào `valueOf` sẽ không biên dịch.
-- `BigInteger.ZERO`, `ONE`, `TWO`, `TEN` là các hằng tiện dụng.
-- Chuỗi `"12.34"` không phải số nguyên hợp lệ cho `new BigInteger(...)` và gây `NumberFormatException`.
-- `BigInteger` bất biến: kết quả phép toán không thay đổi số ban đầu. Không nên suy luận rằng kết quả luôn là instance mới vì thư viện có thể tái sử dụng đối tượng trong một số trường hợp.
+- `new BigInteger("...")` parses an integer string, suitable even when the number exceeds the `long` range.
+- `BigInteger.valueOf(long)` is used when the input already fits within the `long` range. Writing a literal larger than `long` and passing it to `valueOf` will not compile.
+- `BigInteger.ZERO`, `ONE`, `TWO`, `TEN` are convenient constants.
+- The string `"12.34"` is not a valid integer for `new BigInteger(...)` and throws `NumberFormatException`.
+- `BigInteger` is immutable: operation results do not mutate the original number. Do not infer that the result is always a new instance, as the library may reuse objects in some cases.
 
 ```java
 BigInteger x = BigInteger.valueOf(100);
 BigInteger y = BigInteger.valueOf(5);
 
-x.add(y);                 // Tính 105 nhưng bỏ kết quả.
+x.add(y);                 // Computes 105 but discards the result.
 System.out.println(x);    // 100
 x = x.add(y);
 System.out.println(x);    // 105
 ```
 
-Java không hỗ trợ `x + y`, `x - y`, `x * y`, `x / y` hoặc `x % y` khi hai biến là `BigInteger`: phải gọi phương thức. Hai đối tượng `BigInteger` so sánh giá trị bằng `equals` hoặc thứ tự bằng `compareTo`; `==` chỉ so sánh tham chiếu.
+Java does not support `x + y`, `x - y`, `x * y`, `x / y`, or `x % y` when both variables are `BigInteger`: methods must be called. Two `BigInteger` objects compare values with `equals` or order with `compareTo`; `==` compares only references.
 
-## 2. `add`: cộng số nguyên
+## 2. `add`: Integer Addition
 
 ```java
 BigInteger large = new BigInteger("999999999999999999999");
@@ -52,21 +52,21 @@ BigInteger sum = large.add(BigInteger.ONE);
 // sum = 1000000000000000000000
 ```
 
-`add` cộng chính xác theo quy tắc dấu: `5 + (-8) = -3`, `(-5) + (-8) = -13` và cộng 0 giữ nguyên giá trị số. Nó không bị tràn như `int`/`long` chỉ vì vượt giới hạn độ rộng cố định.
+`add` adds accurately according to sign rules: `5 + (-8) = -3`, `(-5) + (-8) = -13`, and adding 0 preserves the numeric value. It does not overflow like `int`/`long` simply from exceeding a fixed-width limit.
 
-Tích lũy phải tái gán vì đối tượng bất biến:
+Accumulation must reassign because the object is immutable:
 
 ```java
 BigInteger total = BigInteger.ZERO;
 for (int i = 1; i <= 100; i++) {
     total = total.add(BigInteger.valueOf(i));
 }
-// total có giá trị 5050
+// total has value 5050
 ```
 
-Nếu chỉ gọi `total.add(...)`, giá trị `total` không đổi. Để kiểm tra trong Java, dùng `total.equals(BigInteger.valueOf(5050))`.
+If you only call `total.add(...)`, the value of `total` stays unchanged. To verify in Java, use `total.equals(BigInteger.valueOf(5050))`.
 
-## 3. `subtract`: trừ có dấu
+## 3. `subtract`: Signed Subtraction
 
 ```java
 BigInteger a = BigInteger.valueOf(25);
@@ -75,16 +75,16 @@ BigInteger b = BigInteger.valueOf(40);
 BigInteger difference = a.subtract(b); // -15
 ```
 
-Phép trừ trả đúng giá trị `a - b`, kể cả khi âm. Nếu muốn **khoảng cách không âm**, có thể dùng `a.subtract(b).abs()`; nếu cần **chênh lệch có dấu**, giữ nguyên kết quả. Các tính chất:
+Subtraction returns the exact value `a - b`, even when negative. If you want **non-negative distance**, you can use `a.subtract(b).abs()`; if you need the **signed difference**, keep the result as is. Properties:
 
-- `a.subtract(b)` bằng `a.add(b.negate())` theo giá trị.
-- `a.subtract(BigInteger.ZERO)` bằng `a`.
-- `a.subtract(a)` bằng 0.
-- `a.subtract(b).add(b)` trở lại `a`.
+- `a.subtract(b)` equals `a.add(b.negate())` by value.
+- `a.subtract(BigInteger.ZERO)` equals `a`.
+- `a.subtract(a)` equals 0.
+- `a.subtract(b).add(b)` returns `a`.
 
-`BigInteger` không tự quy định số dư tài khoản, tồn kho hoặc điểm số có được âm hay không. Các ràng buộc như thế thuộc logic nghiệp vụ.
+`BigInteger` does not enforce whether account balances, inventory, or scores can be negative. Such constraints belong to business logic.
 
-## 4. `multiply`: nhân số nguyên lớn
+## 4. `multiply`: Large Integer Multiplication
 
 ```java
 BigInteger factor = new BigInteger("100000000000000000000");
@@ -92,7 +92,7 @@ BigInteger product = factor.multiply(BigInteger.valueOf(12));
 // product = 1200000000000000000000
 ```
 
-Nhân hai số cùng dấu cho kết quả dương; khác dấu cho kết quả âm; nếu có thừa số 0 thì tích bằng 0. Với số nguyên đầu vào hợp lệ, kết quả toán học được tính chính xác và không làm tròn.
+Multiplying two numbers with the same sign gives a positive result; opposite signs give a negative result; if either factor is 0, the product is 0. Given valid integer inputs, the mathematical result is exact with no rounding.
 
 ```java
 BigInteger factorial = BigInteger.ONE;
@@ -102,55 +102,55 @@ for (int i = 2; i <= 6; i++) {
 // factorial = 720
 ```
 
-Lỗi dễ gặp là tạo `BigInteger.valueOf(x * y)` khi `x` và `y` là `long`: phép `x*y` đã tính theo kiểu `long` **trước khi** chuyển sang `BigInteger` và có thể tràn. Hãy dùng `BigInteger.valueOf(x).multiply(BigInteger.valueOf(y))`.
+A common mistake is writing `BigInteger.valueOf(x * y)` when `x` and `y` are `long`: the multiplication `x*y` is already computed in `long` **before** converting to `BigInteger` and can overflow. Use `BigInteger.valueOf(x).multiply(BigInteger.valueOf(y))`.
 
-Dù không bị giới hạn 64 bit, phép nhân số cực lớn vẫn có chi phí CPU/RAM. Với đầu vào từ hệ thống bên ngoài, giới hạn độ dài số theo yêu cầu ứng dụng.
+Even without a 64-bit limit, multiplying huge numbers still carries CPU/RAM cost. For inputs from external systems, bound number lengths according to application requirements.
 
-## 5. `divide`: lấy thương nguyên, cắt về 0
+## 5. `divide`: Integer Quotient, Truncated Toward 0
 
-`a.divide(b)` không trả phân số hoặc thập phân. Nó trả thương nguyên bằng cách **cắt phần phân số theo hướng về 0**, còn gọi là *truncation toward zero*.
+`a.divide(b)` does not return a fraction or decimal. It returns the integer quotient by **truncating the fractional part toward 0**, also called *truncation toward zero*.
 
-| `a` | `b` | `a.divide(b)` | Diễn giải |
+| `a` | `b` | `a.divide(b)` | Explanation |
 |---:|---:|---:|---|
-| 17 | 5 | 3 | 17 / 5 = 3,4 |
-| -17 | 5 | -3 | -17 / 5 = -3,4; cắt về 0 |
-| 17 | -5 | -3 | 17 / -5 = -3,4 |
-| -17 | -5 | 3 | Hai dấu âm triệt tiêu |
-| 15 | 5 | 3 | Chia hết |
-| 0 | 5 | 0 | Tử số bằng 0 |
+| 17 | 5 | 3 | 17 / 5 = 3.4 |
+| -17 | 5 | -3 | -17 / 5 = -3.4; truncated toward 0 |
+| 17 | -5 | -3 | 17 / -5 = -3.4 |
+| -17 | -5 | 3 | Two negative signs cancel |
+| 15 | 5 | 3 | Exact division |
+| 0 | 5 | 0 | Dividend is 0 |
 
-**Không nhầm chia về 0 với chia sàn.** `BigInteger.valueOf(-17).divide(BigInteger.valueOf(5))` cho `-3`, chứ không phải `-4`. Với số dương, hai cách đôi khi cùng kết quả nên kiểm thử chỉ với số dương sẽ bỏ sót lỗi.
+**Do not confuse truncation toward 0 with floor division.** `BigInteger.valueOf(-17).divide(BigInteger.valueOf(5))` yields `-3`, not `-4`. For positive numbers, the two approaches sometimes give the same result, so testing only with positive numbers misses bugs.
 
 ```java
 BigInteger numerator = BigInteger.valueOf(7);
 BigInteger denominator = BigInteger.valueOf(2);
 BigInteger quotient = numerator.divide(denominator);
-// quotient = 3, không phải 3.5
+// quotient = 3, not 3.5
 ```
 
-Nếu muốn tính tỷ lệ thập phân, dùng `BigDecimal` với độ chính xác, scale và quy tắc làm tròn rõ ràng, hoặc biểu diễn phân số bằng cặp tử số/mẫu số. Chia `BigInteger` không tự động biến sang `BigDecimal`.
+If you want a decimal ratio, use `BigDecimal` with explicit precision, scale, and rounding rules, or represent a fraction using a numerator/denominator pair. `BigInteger` division does not automatically switch to `BigDecimal`.
 
-### Chia cho 0
+### Division by 0
 
-`a.divide(BigInteger.ZERO)` ném `ArithmeticException`. Nếu số chia đến từ người dùng, kiểm tra `b.signum() == 0` hay `b.equals(BigInteger.ZERO)` và báo lỗi thích hợp. Phép chia nguyên này không tự tạo `Infinity` hoặc `NaN` như một số phép chia dấu phẩy động.
+`a.divide(BigInteger.ZERO)` throws `ArithmeticException`. If the divisor comes from a user, check `b.signum() == 0` or `b.equals(BigInteger.ZERO)` and report an appropriate error. This integer division does not produce `Infinity` or `NaN` like some floating-point divisions.
 
-## 6. `remainder`: phần dư theo phép chia nguyên
+## 6. `remainder`: Remainder of Integer Division
 
-Đặt:
+Let:
 
 \[
 q = a.divide(b),\qquad r = a.remainder(b),\qquad b \ne 0.
 \]
 
-Thì:
+Then:
 
 \[
 a = q \times b + r,\qquad |r| < |b|.
 \]
 
-Ngoài ra, `r == 0` hoặc phần dư `r` có **cùng dấu với số bị chia `a`**. Dấu của số chia không quyết định dấu phần dư.
+In addition, `r == 0` or the remainder `r` has the **same sign as the dividend `a`**. The sign of the divisor does not determine the sign of the remainder.
 
-| `a` | `b` | `divide` | `remainder` | Đẳng thức |
+| `a` | `b` | `divide` | `remainder` | Identity |
 |---:|---:|---:|---:|---|
 | 17 | 5 | 3 | 2 | `17 = 3*5+2` |
 | -17 | 5 | -3 | -2 | `-17 = (-3)*5+(-2)` |
@@ -167,11 +167,11 @@ BigInteger r = a.remainder(b);  // -2
 boolean valid = q.multiply(b).add(r).equals(a); // true
 ```
 
-Vì vậy, **`remainder` có thể trả kết quả âm** nếu số bị chia âm; đây không phải lúc nào cũng là kết quả không âm như phần dư trong số học mô-đun. `remainder(BigInteger.ZERO)` ném `ArithmeticException`.
+Therefore, **`remainder` can return a negative result** if the dividend is negative; it is not always non-negative like the remainder in modular arithmetic. `remainder(BigInteger.ZERO)` throws `ArithmeticException`.
 
-### `remainder` khác `mod`
+### `remainder` Differs from `mod`
 
-`BigInteger.mod(m)` dành cho mô-đun **dương** và luôn trả phần dư không âm trong `[0, m)`. Trong khi đó `remainder(m)` cho phép `m` âm miễn khác 0, và dấu phần dư theo số bị chia:
+`BigInteger.mod(m)` is for a **positive** modulus and always returns a non-negative remainder in `[0, m)`. Meanwhile, `remainder(m)` allows a negative `m` as long as it is nonzero, and the remainder's sign follows the dividend:
 
 ```java
 BigInteger a = BigInteger.valueOf(-17);
@@ -181,13 +181,13 @@ a.remainder(m); // -2
 a.mod(m);       // 3
 ```
 
-Gọi `a.mod(BigInteger.valueOf(-5))` hoặc `a.mod(BigInteger.ZERO)` sẽ ném `ArithmeticException` vì mô-đun không dương. Phải phân biệt hai kết quả khi tính chỉ số chu kỳ, lịch quay vòng hoặc phép đồng dư.
+Calling `a.mod(BigInteger.valueOf(-5))` or `a.mod(BigInteger.ZERO)` throws `ArithmeticException` because the modulus is non-positive. You must distinguish the two results when computing cyclic indices, wrap-around schedules, or congruences.
 
-Quan trọng: `a.divide(b) * b + a.remainder(b) = a` theo giá trị, nhưng không thể thay `remainder` bằng `mod` và giữ nguyên thương trong mọi trường hợp. Với `a=-17`, `b=5`, cặp thương/dư theo `divide` và `remainder` là `(-3, -2)`; để dùng phần dư mô-đun `3`, thương tương ứng phải là `-4`: `-17 = (-4)*5+3`.
+Important: `a.divide(b) * b + a.remainder(b) = a` holds by value, but you cannot replace `remainder` with `mod` and keep the same quotient in all cases. With `a=-17`, `b=5`, the quotient/remainder pair from `divide` and `remainder` is `(-3, -2)`; to use the modular remainder `3`, the corresponding quotient must be `-4`: `-17 = (-4)*5+3`.
 
-## 7. `divideAndRemainder`: lấy thương và dư đồng thời
+## 7. `divideAndRemainder`: Getting Quotient and Remainder Simultaneously
 
-Nếu cần cả hai giá trị cho cùng một phép chia, dùng:
+If both values are needed for the same division, use:
 
 ```java
 BigInteger a = new BigInteger("12345678901234567890");
@@ -199,21 +199,21 @@ BigInteger remainder = qr[1];
 boolean valid = quotient.multiply(b).add(remainder).equals(a);
 ```
 
-Mảng luôn chứa **hai phần tử**: `qr[0]` là thương bằng `divide(b)`, `qr[1]` là dư bằng `remainder(b)`. Khi cần cả hai, cách gọi này thường hiệu quả hơn thực hiện hai phép chia riêng rẽ. Nếu `b` bằng 0 thì cũng ném `ArithmeticException`.
+The array always contains **two elements**: `qr[0]` is the quotient equal to `divide(b)`, and `qr[1]` is the remainder equal to `remainder(b)`. When both are needed, this call is usually more efficient than performing two separate divisions. If `b` is 0, it also throws `ArithmeticException`.
 
-Ví dụ chia thời lượng **không âm** thành phút và giây:
+Example splitting a **non-negative** duration into minutes and seconds:
 
 ```java
 BigInteger seconds = BigInteger.valueOf(125);
 BigInteger[] qr = seconds.divideAndRemainder(BigInteger.valueOf(60));
-// qr[0] = 2 phút; qr[1] = 5 giây
+// qr[0] = 2 minutes; qr[1] = 5 seconds
 ```
 
-Với thời lượng âm, phải thiết kế quy tắc biểu diễn cụ thể vì phần dư có thể âm.
+For negative durations, you must design specific representation rules because the remainder can be negative.
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone Runnable Java 17+ Program
 
-Lưu vào tệp **`BigIntegerArithmeticDemo.java`**:
+Save into file **`BigIntegerArithmeticDemo.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -260,14 +260,14 @@ public class BigIntegerArithmeticDemo {
 }
 ```
 
-Lệnh biên dịch/chạy với JDK 17+:
+Compile/run commands with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 BigIntegerArithmeticDemo.java
 java BigIntegerArithmeticDemo
 ```
 
-Kết quả stdout đã xác minh bằng cách biên dịch và chạy Java:
+Stdout verified by compiling and running Java:
 
 ```text
 add: 12345678901234567987
@@ -288,11 +288,11 @@ division by zero: ArithmeticException
 nonpositive modulus: ArithmeticException
 ```
 
-Dòng `q*r + remainder == a: true` kiểm chứng phương trình phép chia nguyên. Dòng `a unchanged` thể hiện `BigInteger` bất biến. Bốn tổ hợp dấu cho thấy thương lấy về 0 và phần dư theo dấu **số bị chia**. Hai khối `try/catch` trình bày lỗi chia cho 0 và mô-đun không dương mà không khiến chương trình dừng.
+The line `q*r + remainder == a: true` verifies the integer division equation. The line `a unchanged` demonstrates `BigInteger` immutability. The four sign combinations show truncation toward 0 for quotients and remainders matching the sign of the **dividend**. The two `try/catch` blocks demonstrate division by 0 and non-positive modulus errors without halting the program.
 
-## 9. Kiểm thử bằng tính chất đại số
+## 9. Testing Using Algebraic Properties
 
-Với những biến `BigInteger a`, `b`, ta có thể kiểm tra:
+For `BigInteger` variables `a`, `b`, we can check:
 
 ```java
 a.add(b).subtract(b).equals(a);               // true
@@ -301,7 +301,7 @@ a.multiply(BigInteger.ONE).equals(a);         // true
 a.multiply(BigInteger.ZERO).equals(BigInteger.ZERO); // true
 ```
 
-Nếu `b.signum() != 0`, gọi `BigInteger[] qr = a.divideAndRemainder(b);` rồi kiểm tra:
+If `b.signum() != 0`, call `BigInteger[] qr = a.divideAndRemainder(b);` and verify:
 
 ```java
 qr[0].multiply(b).add(qr[1]).equals(a);
@@ -309,24 +309,24 @@ qr[1].abs().compareTo(b.abs()) < 0;
 qr[1].signum() == 0 || qr[1].signum() == a.signum();
 ```
 
-Đây là các biểu thức kiểm thử minh họa, giả định các biến đã tồn tại. Dùng `compareTo` để so sánh những số lớn mà không cần ép xuống `long`. Nên kiểm thử chia hết, không chia hết, số âm ở cả hai vị trí, số 0, số rất lớn và chia cho 0.
+These are illustrative test expressions assuming the variables already exist. Use `compareTo` to compare large numbers without casting down to `long`. You should test exact division, non-exact division, negative numbers in both positions, 0, very large numbers, and division by 0.
 
-## 10. Lỗi phổ biến
+## 10. Common Mistakes
 
-1. **Sử dụng toán tử nguyên thủy:** `a + b` và `a % b` không hợp lệ khi `a`, `b` là `BigInteger`. Dùng `add`, `remainder`.
-2. **Không nhận kết quả:** `a.add(b)` không chỉnh sửa `a`; dùng `a = a.add(b)` hoặc biến mới.
-3. **Tràn trước khi chuyển kiểu:** `BigInteger.valueOf(x * y)` có thể nhận giá trị đã tràn kiểu `long`. Hãy chuyển từng toán hạng trước rồi `multiply`.
-4. **Hiểu nhầm `divide`:** `7/2` là `3` dưới dạng `BigInteger`, không phải `3.5`.
-5. **Nhầm hướng làm tròn:** `-17 / 5` cho `-3`, không phải `-4`.
-6. **Cho rằng phần dư luôn không âm:** `remainder` của `-17` với `5` là `-2`; `mod(5)` mới cho `3`.
-7. **Bỏ qua số chia 0:** cả `divide`, `remainder` và `divideAndRemainder` đều ném `ArithmeticException`.
-8. **Dùng `==` để so giá trị:** dùng `equals`; `==` kiểm tra cùng tham chiếu.
-9. **Ép về số nhỏ:** `longValue()` có thể làm mất các bit bậc cao khi số lớn; dùng `longValueExact()` để yêu cầu chuyển chính xác (ném `ArithmeticException` nếu không thể).
-10. **Không giới hạn kích thước đầu vào:** số nguyên tùy ý độ dài vẫn có chi phí CPU/RAM; ứng dụng cần chính sách xử lý phù hợp.
+1. **Using primitive operators:** `a + b` and `a % b` are invalid when `a`, `b` are `BigInteger`. Use `add`, `remainder`.
+2. **Discarding the result:** `a.add(b)` does not modify `a`; use `a = a.add(b)` or a new variable.
+3. **Overflowing before type conversion:** `BigInteger.valueOf(x * y)` can receive an already-overflowed `long` value. Convert each operand first, then call `multiply`.
+4. **Misunderstanding `divide`:** `7/2` is `3` as a `BigInteger`, not `3.5`.
+5. **Confusing rounding direction:** `-17 / 5` yields `-3`, not `-4`.
+6. **Assuming remainder is always non-negative:** the `remainder` of `-17` by `5` is `-2`; `mod(5)` yields `3`.
+7. **Ignoring zero divisor:** `divide`, `remainder`, and `divideAndRemainder` all throw `ArithmeticException`.
+8. **Using `==` for value equality:** use `equals`; `==` checks reference identity.
+9. **Narrowing to smaller types:** `longValue()` can drop high-order bits on large numbers; use `longValueExact()` to require exact conversion (throws `ArithmeticException` if impossible).
+10. **Leaving input sizes unbounded:** arbitrary-length integers still carry CPU/RAM cost; applications need an appropriate size policy.
 
-## 11. Bài tập có lời giải
+## 11. Exercises with Solutions
 
-| Biểu thức Java | Kết quả |
+| Java expression | Result |
 |---|---|
 | `BigInteger.valueOf(8).add(BigInteger.valueOf(-3))` | `5` |
 | `BigInteger.valueOf(8).subtract(BigInteger.valueOf(13))` | `-5` |
@@ -337,8 +337,8 @@ qr[1].signum() == 0 || qr[1].signum() == a.signum();
 | `BigInteger.ZERO.remainder(BigInteger.valueOf(17))` | `0` |
 | `BigInteger.ONE.divide(BigInteger.ZERO)` | `ArithmeticException` |
 
-Giải thích trường hợp `-23`: `-23 = (-3)*7 + (-2)` với thương chia về 0. Nếu chọn phần dư mô-đun không âm là `5`, thương tương ứng phải là `-4` để có `-23 = (-4)*7 + 5`.
+Explanation of `-23`: `-23 = (-3)*7 + (-2)` with the quotient truncated toward 0. If choosing the non-negative modular remainder `5`, the corresponding quotient must be `-4` to give `-23 = (-4)*7 + 5`.
 
-## Ghi nhớ
+## Key Takeaway
 
-`BigInteger` lưu số nguyên tùy ý độ dài, các giá trị **bất biến**. `add`, `subtract` và `multiply` cho kết quả nguyên chính xác. `divide` trả thương nguyên cắt về 0, `remainder` có thể âm theo dấu số bị chia, và cặp thương–phần dư thỏa `a = q*b + r` khi `b != 0`. Dùng `mod(m)` nếu muốn phần dư không âm với `m > 0`. Nếu cần cả thương lẫn dư, `divideAndRemainder` trả `[quotient, remainder]`. Luôn kiểm tra số chia 0 và dùng `equals` để so sánh giá trị.
+`BigInteger` stores arbitrary-length integers whose values are **immutable**. `add`, `subtract`, and `multiply` yield exact integer results. `divide` returns an integer quotient truncated toward 0, `remainder` can be negative matching the dividend's sign, and the quotient–remainder pair satisfies `a = q*b + r` when `b != 0`. Use `mod(m)` when you want a non-negative remainder with `m > 0`. When needing both quotient and remainder, `divideAndRemainder` returns `[quotient, remainder]`. Always check for zero divisors and use `equals` to compare values.

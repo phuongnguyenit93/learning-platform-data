@@ -1,12 +1,12 @@
-# Khai báo `package` và cấu trúc thư mục tương ứng trong Java
+# Declaring `package` and Matching Directory Structure in Java
 
-> **Java core — language-basics / Package và import**  
-> **Yêu cầu:** JDK 17+, không dùng thư viện ngoài.  
-> **Mục tiêu:** Khai báo `package` đúng vị trí trong file Java; tổ chức các tệp `.java` theo thư mục tương ứng; biên dịch bằng `javac -d`, chạy bằng tên lớp đầy đủ và classpath; phân biệt package với thư mục, import và quyền truy cập.
+> **Java core — language-basics / Packages and imports**  
+> **Requirements:** JDK 17+, no external libraries.  
+> **Goals:** Declare `package` in the right place in a Java file; organize `.java` files into matching directories; compile with `javac -d`, run using the fully qualified class name and classpath; distinguish packages from directories, imports, and access rights.
 
-## 1. `package` xác định không gian tên của lớp
+## 1. `package` defines a class's namespace
 
-Một *package* nhóm các kiểu Java có liên quan và tạo không gian tên, giúp tránh trùng tên giữa các lớp của ứng dụng. Ví dụ:
+A *package* groups related Java types and creates a namespace, helping prevent name collisions between classes in an application. For example:
 
 ~~~java
 package vn.learn.demo;
@@ -18,18 +18,18 @@ public final class Main {
 }
 ~~~
 
-Ở đây tên lớp đầy đủ (*fully qualified name*, FQN) là `vn.learn.demo.Main` chứ không chỉ `Main`. Khai báo `package vn.learn.demo;` có dấu chấm giữa các thành phần và **kết thúc bằng dấu chấm phẩy**.
+Here the fully qualified class name (*fully qualified name*, FQN) is `vn.learn.demo.Main`, not just `Main`. The declaration `package vn.learn.demo;` separates parts with dots and **ends with a semicolon**.
 
-Mỗi tệp `.java` có tối đa **một** khai báo `package`. Nếu không có khai báo này, các top-level type trong tệp nằm trong *unnamed package* (thường gọi là *default package*). Điều này tiện cho thử nghiệm rất nhỏ nhưng không được khuyến khích cho chương trình nhiều tệp hoặc cần tái sử dụng từ các package có tên.
+Each `.java` file can have at most **one** `package` declaration. Without this declaration, top-level types in the file belong to the *unnamed package* (often called the *default package*). This is convenient for very small experiments, but is discouraged for multi-file programs or code that needs to be reused from named packages.
 
-**Tên package phân biệt chữ hoa/chữ thường.** Theo thông lệ đặt tên bằng chữ thường, ví dụ `vn.learn.demo` hoặc theo tên miền đảo ngược `com.example.app`. Không được sử dụng từ khóa Java làm một thành phần tên package.
+**Package names are case-sensitive.** By convention, package names are lowercase, such as `vn.learn.demo` or reversed domain names like `com.example.app`. Java keywords cannot be used as any part of a package name.
 
-## 2. Thứ tự `package`, `import` và khai báo kiểu
+## 2. Order of `package`, `import`, and type declarations
 
-Trong tệp Java có package, bố cục phổ biến như sau:
+In a Java file with a package, the typical layout is as follows:
 
 ~~~java
-// Có thể viết comment và khoảng trắng ở đây.
+// Comments and whitespace can be written here.
 package vn.learn.demo;
 
 import java.util.Arrays;
@@ -42,31 +42,31 @@ public final class Main {
 }
 ~~~
 
-Quy tắc cần nhớ:
+Rules to remember:
 
-1. `package ...;` là khai báo package của compilation unit, đặt **trước mọi khai báo `import` và top-level type**; comment/khoảng trắng có thể xuất hiện trước.
-2. Nếu cần `import`, chúng đặt **sau `package`** và **trước các khai báo lớp/interface/enum/record**.
-3. Một tệp có thể chứa các top-level type phù hợp, nhưng khi có `public class Main` trong cách tổ chức thông thường, lưu tệp thành `Main.java`.
-4. `import` không đổi package chứa `Main`; nó chỉ giúp dùng tên ngắn của kiểu hoặc thành viên static được nhập.
-5. `java.lang` được nhập tự động cho các kiểu quen thuộc như `String` và `System`.
+1. `package ...;` is the compilation unit's package declaration, placed **before all `import` declarations and top-level types**; comments/whitespace may appear before it.
+2. If `import` statements are needed, they go **after `package`** and **before class/interface/enum/record declarations**.
+3. A file may contain matching top-level types, but when there is a `public class Main` in standard organization, save the file as `Main.java`.
+4. `import` does not change the package containing `Main`; it only lets you use the short name of an imported type or static member.
+5. `java.lang` is imported automatically for familiar types such as `String` and `System`.
 
-**Sai thứ tự:**
+**Incorrect order:**
 
 ~~~java
-// SAI — không thể đặt import trước khai báo package:
+// WRONG — cannot place import before package declaration:
 // import java.util.List;
 // package vn.learn.demo;
 ~~~
 
-Tên trong `package` không phải chuỗi ký tự có dấu ngoặc kép. Viết `package "vn.learn.demo";` sẽ không biên dịch.
+The name in `package` is not a quoted string literal. Writing `package "vn.learn.demo";` will not compile.
 
-## 3. Cấu trúc thư mục nguồn tương ứng
+## 3. Matching source directory structure
 
-Thói quen chuẩn là đổi các dấu chấm của tên package thành dấu phân cách thư mục. Với `vn.learn.demo`, tệp `Main.java` nên nằm ở:
+The standard convention is to replace dots in the package name with directory separators. For `vn.learn.demo`, `Main.java` should be placed at:
 
 `src/vn/learn/demo/Main.java`
 
-Ví dụ cấu trúc nguồn và đầu ra biên dịch:
+Example source structure and compilation output:
 
 ~~~text
 project/
@@ -78,29 +78,29 @@ project/
 │               ├── Greeter.java
 │               └── tools/
 │                   └── Counter.java
-└── out/                      (thư mục chứa .class sau biên dịch)
+└── out/                      (directory containing .class files after compilation)
 ~~~
 
-| Khai báo trong tệp | Đường dẫn nguồn được khuyến nghị |
+| Declaration in file | Recommended source path |
 | --- | --- |
 | `package vn.learn.demo;` | `src/vn/learn/demo/Main.java` |
 | `package vn.learn.demo;` | `src/vn/learn/demo/Greeter.java` |
 | `package vn.learn.demo.tools;` | `src/vn/learn/demo/tools/Counter.java` |
 
-`src` là **thư mục gốc mã nguồn** trong ví dụ, không phải thành phần của tên package. `Main.java` khai báo `vn.learn.demo` chứ không phải `src.vn.learn.demo`.
+`src` is the **source root directory** in the example, not part of the package name. `Main.java` declares `vn.learn.demo`, not `src.vn.learn.demo`.
 
-**Đây là quy ước tổ chức quan trọng của công cụ**, không phải quy tắc cú pháp bắt buộc khiến mọi tệp Java ở sai thư mục đều không thể được `javac` biên dịch khi chỉ rõ đường dẫn tệp. Tuy vậy, tuân theo cấu trúc này giúp trình biên dịch, IDE và build tool tìm đúng mã nguồn, tránh nhầm lẫn khi dự án lớn.
+**This is an important tooling organization convention**, not a strict syntax rule that makes `javac` unable to compile any Java file in the wrong directory when the file path is explicitly passed. However, following this structure helps the compiler, IDE, and build tools locate source files accurately and avoid confusion in larger projects.
 
-## 4. Ví dụ Java 17+ với ba tệp thuộc hai package
+## 4. Java 17+ example with three files across two packages
 
-Tạo đúng ba tệp sau dưới thư mục `project`. Đây là **một ví dụ runnable thống nhất**, không cần bất kỳ thư viện ngoài nào.
+Create the exact three files below under the `project` directory. This is **one unified runnable example** requiring no external libraries.
 
-**Tệp 1 — `src/vn/learn/demo/Greeter.java`**
+**File 1 — `src/vn/learn/demo/Greeter.java`**
 
 ~~~java
 package vn.learn.demo;
 
-// Không ghi public: lớp top-level chỉ truy cập trực tiếp trong package.
+// Without public: top-level class is directly accessible only within the package.
 final class Greeter {
     private Greeter() {
     }
@@ -111,7 +111,7 @@ final class Greeter {
 }
 ~~~
 
-**Tệp 2 — `src/vn/learn/demo/tools/Counter.java`**
+**File 2 — `src/vn/learn/demo/tools/Counter.java`**
 
 ~~~java
 package vn.learn.demo.tools;
@@ -133,7 +133,7 @@ public final class Counter {
 }
 ~~~
 
-**Tệp 3 — `src/vn/learn/demo/Main.java`**
+**File 3 — `src/vn/learn/demo/Main.java`**
 
 ~~~java
 package vn.learn.demo;
@@ -156,18 +156,18 @@ public final class Main {
 }
 ~~~
 
-Tại sao ví dụ hoạt động?
+Why does the example work?
 
-- `Main` và `Greeter` khai báo **cùng** `package vn.learn.demo;` nên `Main` dùng được lớp package-private `Greeter` mà không cần import.
-- `Counter` ở package **khác** là `vn.learn.demo.tools`, nên `Main` phải sử dụng tên đầy đủ hoặc `import` hợp lệ. `Counter` và constructor/method dùng từ ngoài package đều được khai báo `public`.
-- `getPackageName()` cho thấy tên package tại runtime; `Counter.class.getName()` cho tên lớp đầy đủ.
-- `private int value` của `Counter` không được truy cập trực tiếp từ `Main`; `value()` và `add(...)` cung cấp API.
+- `Main` and `Greeter` declare the **same** `package vn.learn.demo;`, so `Main` can use the package-private class `Greeter` without an import.
+- `Counter` is in a **different** package, `vn.learn.demo.tools`, so `Main` must use its fully qualified name or a valid `import`. `Counter` and its constructor/methods used from outside the package are declared `public`.
+- `getPackageName()` shows the package name at runtime; `Counter.class.getName()` gives the fully qualified class name.
+- `Counter`'s `private int value` cannot be accessed directly from `Main`; `value()` and `add(...)` provide the API.
 
-## 5. Biên dịch đúng thư mục đầu ra và chạy bằng classpath
+## 5. Compiling to the output directory and running with classpath
 
-Chạy lệnh từ thư mục **`project`** chứa `src`. Trước hết tạo thư mục đầu ra `out` nếu chưa tồn tại.
+Run commands from the **`project`** directory containing `src`. First create the output directory `out` if it does not already exist.
 
-Với **Bash/Linux/macOS**:
+With **Bash/Linux/macOS**:
 
 ~~~bash
 mkdir -p out
@@ -175,7 +175,7 @@ javac -encoding UTF-8 -d out src/vn/learn/demo/Greeter.java src/vn/learn/demo/to
 java -cp out vn.learn.demo.Main
 ~~~
 
-Với **Windows PowerShell**:
+With **Windows PowerShell**:
 
 ~~~powershell
 New-Item -ItemType Directory -Force out | Out-Null
@@ -183,7 +183,7 @@ javac -encoding UTF-8 -d out src/vn/learn/demo/Greeter.java src/vn/learn/demo/to
 java -cp out vn.learn.demo.Main
 ~~~
 
-**Expected stdout của lệnh `java -cp out vn.learn.demo.Main` (chính xác):**
+**Expected stdout of `java -cp out vn.learn.demo.Main` (exact):**
 
 ~~~text
 mainPackage=vn.learn.demo
@@ -194,7 +194,7 @@ toolsPackage=vn.learn.demo.tools
 counterClass=vn.learn.demo.tools.Counter
 ~~~
 
-Lệnh `javac` biên dịch thành các tệp `.class` dưới `out`:
+The `javac` command compiles into `.class` files under `out`:
 
 ~~~text
 out/
@@ -207,24 +207,24 @@ out/
                 └── Counter.class
 ~~~
 
-**Ý nghĩa lệnh:**
+**Command breakdown:**
 
-| Thành phần | Công dụng |
+| Part | Purpose |
 | --- | --- |
-| `javac` | Biên dịch nguồn Java thành bytecode `.class` |
-| `-encoding UTF-8` | Đọc nguồn có tiếng Việt đúng bộ mã |
-| `-d out` | Chọn **gốc thư mục đầu ra**, nơi `javac` tạo nhánh package tương ứng |
-| `java -cp out` | Đưa gốc thư mục lớp biên dịch vào classpath |
-| `vn.learn.demo.Main` | Tên lớp đầy đủ chứa `main`, không phải đường dẫn tệp |
+| `javac` | Compiles Java source into `.class` bytecode |
+| `-encoding UTF-8` | Reads source containing Vietnamese text with the correct encoding |
+| `-d out` | Sets the **output root directory**, where `javac` creates the matching package tree |
+| `java -cp out` | Puts the compiled classes' root directory on the classpath |
+| `vn.learn.demo.Main` | Fully qualified name of the class containing `main`, not a file path |
 
-Với `javac -d out`, thư mục `out` cần tồn tại; trình biên dịch tạo các **thư mục package bên trong** khi cần. Khi chạy, classpath phải trỏ đến **gốc phía trên `vn`** (`out`), không trỏ trực tiếp đến `out/vn/learn/demo`. Khi dùng `java -cp out ...`, không truyền đuôi `.class`.
+With `javac -d out`, the `out` directory must exist; the compiler creates the **nested package directories inside** as needed. When running, the classpath must point to the **root above `vn`** (`out`), not directly to `out/vn/learn/demo`. When using `java -cp out ...`, do not pass the `.class` extension.
 
-## 6. Package con không tự thuộc cùng package về quyền truy cập
+## 6. Subpackages do not automatically belong to the same package for access
 
-Tên `vn.learn.demo.tools` có vẻ nằm “dưới” `vn.learn.demo`, nhưng xét quyền truy cập, Java xem chúng là **hai package khác nhau**.
+The name `vn.learn.demo.tools` looks like it sits "under" `vn.learn.demo`, but for access control, Java treats them as **two different packages**.
 
 ~~~java
-// Giả sử đặt trong package vn.learn.demo:
+// Assume this is placed in package vn.learn.demo:
 class InternalHelper {
     static String code() {
         return "internal";
@@ -232,59 +232,59 @@ class InternalHelper {
 }
 ~~~
 
-Lớp ở `vn.learn.demo.tools` **không được tự động** gọi `InternalHelper.code()` vì `InternalHelper` là lớp top-level package-private của một package khác.
+A class in `vn.learn.demo.tools` **cannot automatically** call `InternalHelper.code()` because `InternalHelper` is a package-private top-level class of another package.
 
-| Trường hợp | Kết quả |
+| Case | Result |
 | --- | --- |
-| Hai lớp khai báo `package vn.learn.demo;` | Cùng package, có thể truy cập thành viên package-private phù hợp |
-| Một lớp `vn.learn.demo`, một lớp `vn.learn.demo.tools` | Khác package, không tự có quyền package-private |
-| `import vn.learn.demo.tools.Counter;` | Cho phép dùng tên ngắn `Counter` nếu kiểu và thành viên được truy cập hợp lệ |
-| `import vn.learn.demo.*;` | Không tự nhập các kiểu trong `vn.learn.demo.tools` |
-| Field `private` của `Counter` | Không thể truy cập trực tiếp từ lớp ngoài không có quyền |
+| Two classes declaring `package vn.learn.demo;` | Same package; can access applicable package-private members |
+| One class in `vn.learn.demo`, one in `vn.learn.demo.tools` | Different packages; do not automatically have package-private access |
+| `import vn.learn.demo.tools.Counter;` | Allows using short name `Counter` if the type and members are validly accessible |
+| `import vn.learn.demo.*;` | Does not automatically import types in `vn.learn.demo.tools` |
+| `private` field of `Counter` | Cannot be accessed directly from an external class without permission |
 
-**Import không cấp thêm quyền truy cập.** Ví dụ `import vn.learn.demo.tools.Counter;` không cho phép `Main` đọc `counter.value` vì field vẫn `private`.
+**Import does not grant extra access permissions.** For example, `import vn.learn.demo.tools.Counter;` does not allow `Main` to read `counter.value` because the field is still `private`.
 
-Một lớp `public` và constructor `public` có thể được dùng xuyên package khi môi trường/module cho phép. Với các chương trình nhập môn không có `module-info.java` như ví dụ trên, classpath là cơ chế đơn giản nhất.
+A `public` class and `public` constructor can be used across packages when the environment/module allows it. For introductory programs without `module-info.java` like the example above, the classpath is the simplest mechanism.
 
-## 7. Lỗi phổ biến về package, đường dẫn và lệnh chạy
+## 7. Common errors with packages, paths, and run commands
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách kiểm tra |
+| Symptom | Common cause | How to check |
 | --- | --- | --- |
-| `Could not find or load main class Main` | `Main` thuộc package có tên, không phải unnamed package | Dùng `java -cp out vn.learn.demo.Main` |
-| `ClassNotFoundException: vn.learn.demo.Main` | Classpath sai gốc hoặc chưa biên dịch lớp | Kiểm tra `out/vn/learn/demo/Main.class`, dùng `-cp out` |
-| `package ... does not exist` khi biên dịch | Chưa đưa mã nguồn/dependency hoặc classpath phù hợp vào `javac` | Biên dịch đủ các tệp, kiểm tra tên package |
-| `cannot find symbol` cho `Counter` | Thiếu import hoặc dùng sai tên kiểu | `import vn.learn.demo.tools.Counter;` hoặc tên đầy đủ |
-| `... is not public; cannot be accessed from outside package` | Lớp hoặc thành viên package-private được gọi khác package | Thiết kế API public hợp lệ hoặc đặt mã nội bộ cùng package |
-| `class Main is public, should be declared in a file named Main.java` | Tên file không khớp public top-level class | Đặt đúng `Main.java` |
-| Chạy `java -cp out/vn/learn/demo Main` | Chọn nhầm **nhánh package** làm classpath root | Chọn gốc `out` và tên lớp đầy đủ |
-| `mkdir out` chưa chạy, `javac -d out` lỗi | Thư mục đầu ra chưa tồn tại | Tạo `out` trước khi biên dịch |
-| Chuyển `Main.java` sang package khác nhưng giữ `java ...vn.learn.demo.Main` | Tên package trong nguồn, thư mục output và FQN không thống nhất | Cập nhật khai báo, vị trí nguồn và lệnh chạy |
+| `Could not find or load main class Main` | `Main` belongs to a named package, not the unnamed package | Use `java -cp out vn.learn.demo.Main` |
+| `ClassNotFoundException: vn.learn.demo.Main` | Wrong classpath root or class not compiled yet | Check `out/vn/learn/demo/Main.class`, use `-cp out` |
+| `package ... does not exist` during compilation | Missing source files/dependencies or wrong classpath passed to `javac` | Compile all required files, check package names |
+| `cannot find symbol` for `Counter` | Missing import or wrong type name used | `import vn.learn.demo.tools.Counter;` or fully qualified name |
+| `... is not public; cannot be accessed from outside package` | Package-private class or member called from another package | Design a valid public API or place internal code in the same package |
+| `class Main is public, should be declared in a file named Main.java` | File name does not match the public top-level class | Name it `Main.java` |
+| Running `java -cp out/vn/learn/demo Main` | Mistakenly chose a **package subdirectory** as the classpath root | Choose the root `out` and the fully qualified class name |
+| `mkdir out` not run yet, `javac -d out` fails | Output directory does not exist yet | Create `out` before compiling |
+| Moving `Main.java` to another package while keeping `java ...vn.learn.demo.Main` | Package name in source, output directory, and FQN are out of sync | Update the declaration, source location, and run command |
 
-Java phân biệt chữ hoa/chữ thường trong định danh tên package và class. Đặc biệt trên hệ điều hành có filesystem phân biệt hoa/thường, `Demo` và `demo` là tên khác nhau.
+Java is case-sensitive in package and class identifiers. Especially on operating systems with case-sensitive filesystems, `Demo` and `demo` are different names.
 
-**Đừng sửa bằng cách xóa bừa khai báo `package`.** Khi lỗi nằm ở classpath hoặc cây thư mục, việc bỏ `package` thay đổi tên đầy đủ và cấu trúc của cả chương trình.
+**Do not fix errors by blindly deleting the `package` declaration.** When the error is in the classpath or directory tree, removing `package` changes the fully qualified name and structure of the entire program.
 
-## 8. Checklist thực hành và bài tập
+## 8. Practice checklist and exercises
 
-**Checklist chạy chương trình nhiều package:**
+**Checklist for running a multi-package program:**
 
-1. Mỗi tệp khai báo đúng `package ...;` trước `import` và lớp.
-2. Cây `src` phản ánh tên package theo từng phần, ví dụ `vn/learn/demo`.
-3. File `Main.java` chứa `public class Main` và phương thức `main` hợp lệ.
-4. Các kiểu dùng xuyên package có quyền truy cập phù hợp; `import` không thay thế `public`.
-5. Tạo thư mục `out`, dùng `javac -d out` biên dịch đầy đủ mã nguồn.
-6. Chạy `java -cp out vn.learn.demo.Main` từ gốc project và kiểm tra đúng stdout.
+1. Every file declares the right `package ...;` before `import` statements and classes.
+2. The `src` tree reflects the package name segment by segment, e.g., `vn/learn/demo`.
+3. `Main.java` contains `public class Main` and a valid `main` method.
+4. Types used across packages have appropriate access modifiers; `import` does not replace `public`.
+5. Create the `out` directory and use `javac -d out` to compile all source files.
+6. Run `java -cp out vn.learn.demo.Main` from the project root and verify the exact stdout.
 
-**Bài 1.** Tạo `src/com/example/hello/Main.java` có `package com.example.hello;`. Biên dịch bằng `javac -d out` và chạy bằng FQN tương ứng.
+**Exercise 1.** Create `src/com/example/hello/Main.java` with `package com.example.hello;`. Compile using `javac -d out` and run with the corresponding FQN.
 
-**Bài 2.** Tạo thêm `src/com/example/hello/Message.java` cùng package; cho lớp `Message` không ghi `public` và gọi phương thức package-private từ `Main`.
+**Exercise 2.** Create an additional `src/com/example/hello/Message.java` in the same package; omit `public` on `Message` and call a package-private method from `Main`.
 
-**Bài 3.** Chuyển `Message` sang `com.example.hello.util`. Giải thích vì sao giờ `Main` cần kiểu có thể truy cập từ package khác và có thể cần `import`.
+**Exercise 3.** Move `Message` to `com.example.hello.util`. Explain why `Main` now needs a type accessible from another package and may need an `import`.
 
-**Bài 4.** Cố chạy `java -cp out Main` sau khi có khai báo package. Đọc lỗi, rồi sửa thành tên lớp đầy đủ.
+**Exercise 4.** Try running `java -cp out Main` after adding a package declaration. Read the error, then fix it to use the fully qualified class name.
 
-**Bài 5.** Đổi `package vn.learn.demo.tools;` trong `Counter.java` thành một package khác. Cập nhật đường dẫn nguồn, `import` và lệnh chạy tương ứng; dự đoán cây output `.class`.
+**Exercise 5.** Change `package vn.learn.demo.tools;` in `Counter.java` to another package. Update the source path, `import`, and run command accordingly; predict the `.class` output tree.
 
-### Ghi nhớ
+### Key takeaway
 
-**`package` xác định tên đầy đủ của kiểu; cấu trúc nguồn `src/a/b/C.java` nên khớp `package a.b;`.** Dùng `javac -d out` để tổ chức các `.class` theo package, rồi chạy bằng `java -cp out a.b.C`. `import` chỉ giúp dùng tên ngắn, không thay đổi package hoặc quyền truy cập; package con vẫn là một package khác.
+**`package` determines a type's fully qualified name; the source structure `src/a/b/C.java` should match `package a.b;`.** Use `javac -d out` to organize `.class` files by package, then run with `java -cp out a.b.C`. `import` only lets you use short names without changing packages or access rights; a subpackage is still a separate package.

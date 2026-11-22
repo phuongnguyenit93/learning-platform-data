@@ -1,29 +1,29 @@
-# Vì sao `String` là lớp `final` và có tính bất biến trong Java?
+# Why Is `String` a `final` Class and Immutable in Java?
 
-`String` là kiểu tham chiếu dùng để biểu diễn chuỗi ký tự trong Java. Khai báo của lớp trong Java 17+ có dạng `public final class String ...`. Tài liệu Java xác định rõ: **giá trị của một đối tượng `String` không thể thay đổi sau khi đối tượng được tạo** (*immutable*). Hai đặc điểm `final` và *immutable* bổ trợ nhau để chuỗi có thể được chia sẻ an toàn, có hành vi ổn định và được tối ưu hiệu quả.
+`String` is a reference type used to represent character strings in Java. The class declaration in Java 17+ has the form `public final class String ...`. The Java documentation states clearly: **the value of a `String` object cannot be changed after the object is created** (*immutable*). Both `final` and *immutable* complement each other so that strings can be safely shared, behave predictably, and be optimized effectively.
 
-Sau bài này, bạn cần phân biệt được `final` của lớp, `final` của biến tham chiếu và tính bất biến của đối tượng; giải thích tại sao các thao tác trên chuỗi không sửa chuỗi gốc; và vận dụng điều đó khi so sánh chuỗi, sử dụng String Pool, làm khóa `HashMap` hoặc xử lý chuỗi trong chương trình đa luồng.
+After this lesson, you should be able to distinguish `final` on a class, `final` on a reference variable, and object immutability; explain why string operations do not modify the original string; and apply that understanding when comparing strings, using the String Pool, using strings as `HashMap` keys, or handling strings in multi-threaded programs.
 
-## 1. `final` và immutable là hai khái niệm khác nhau
+## 1. `final` and immutable are two different concepts
 
-| Khái niệm | Điều được đảm bảo | Điều **không** tự động được đảm bảo |
+| Concept | What is guaranteed | What is **not** automatically guaranteed |
 | --- | --- | --- |
-| `final class` | Không thể khai báo lớp con kế thừa lớp đó. | Đối tượng của lớp không nhất thiết bất biến. |
-| `final` trên biến tham chiếu | Không thể gán lại biến để trỏ đến đối tượng khác sau khi khởi tạo. | Đối tượng mà biến trỏ tới vẫn có thể thay đổi nếu loại của nó cho phép. |
-| Đối tượng immutable | Trạng thái có thể quan sát của đối tượng không đổi sau khi tạo. | Bản thân lớp không bắt buộc phải khai báo `final` trong mọi thiết kế. |
+| `final class` | Cannot declare a subclass inheriting from that class. | Objects of the class are not necessarily immutable. |
+| `final` on a reference variable | Cannot reassign the variable to point to another object after initialization. | The object the variable points to can still change if its type allows it. |
+| Immutable object | The observable state of the object does not change after creation. | The class itself does not have to be declared `final` in every design. |
 
-**`String` là `final`** nghĩa là đoạn `class MyString extends String` không hợp lệ: trình biên dịch báo lỗi vì không thể kế thừa lớp final. Đây là một ràng buộc ở cấp **kiểu dữ liệu**.
+**`String` is `final`** means `class MyString extends String` is invalid: the compiler reports an error because a final class cannot be subclassed. This is a **data-type-level** constraint.
 
-**`String` là immutable** nghĩa là sau khi tạo `String s = "Java";`, nội dung của đối tượng `"Java"` không thể bị thay thành `"Kava"` qua API thông thường. Đây là một cam kết về **trạng thái đối tượng**.
+**`String` is immutable** means that after creating `String s = "Java";`, the content of the `"Java"` object cannot be changed into `"Kava"` through the regular API. This is a guarantee about **object state**.
 
-Ví dụ sau minh họa rằng `final class` một mình không khiến đối tượng bất biến (đoạn định nghĩa lớp, không có hàm `main`):
+The following example illustrates that `final class` alone does not make an object immutable (class definition snippet, without a `main` method):
 
 ```java
 final class Counter {
     private int value;
 
     void increment() {
-        value++; // Trạng thái của Counter vẫn thay đổi.
+        value++; // The state of Counter still changes.
     }
 
     int value() {
@@ -32,33 +32,33 @@ final class Counter {
 }
 ```
 
-Ngược lại, dù không viết `final String s`, đối tượng `String` vẫn bất biến:
+Conversely, even without writing `final String s`, a `String` object is still immutable:
 
 ```java
 String s = "Java";
-s = "Kotlin"; // Hợp lệ: biến s được gán sang một đối tượng String khác.
+s = "Kotlin"; // Valid: variable s is reassigned to another String object.
 ```
 
-Nếu khai báo `final String s = "Java";` thì `s = "Kotlin";` là lỗi biên dịch do **gán lại tham chiếu**. Nó không làm đối tượng `"Java"` “bất biến hơn” vì đối tượng đó vốn đã bất biến. Tương tự, `final StringBuilder builder = new StringBuilder("A");` vẫn cho phép `builder.append("B")`, bởi `StringBuilder` có trạng thái thay đổi được.
+If you declare `final String s = "Java";`, then `s = "Kotlin";` is a compile error due to **reference reassignment**. It does not make the `"Java"` object “more immutable” because that object is already immutable. Similarly, `final StringBuilder builder = new StringBuilder("A");` still allows `builder.append("B")`, because `StringBuilder` has mutable state.
 
-## 2. `String` giữ tính bất biến bằng cách nào?
+## 2. How does `String` preserve immutability?
 
-Một lớp muốn cung cấp tính bất biến cần bảo vệ trạng thái nội tại và không cung cấp đường sửa trạng thái đó từ bên ngoài. `String` thực hiện điều này thông qua hợp đồng API và cách cài đặt của thư viện Java:
+A class that provides immutability must protect its internal state and provide no path to modify that state from the outside. `String` achieves this through its API contract and Java library implementation:
 
-1. **Không cung cấp phương thức sửa nội dung tại chỗ.** Không có `setCharAt`, `append` hay `delete` trên `String`. Các phương thức `concat`, `replace`, `substring`, `toUpperCase`, `toLowerCase`… trả về kết quả dạng `String`; chúng không đổi nội dung của đối tượng nhận lời gọi.
-2. **Không để mã gọi can thiệp vào bộ nhớ chứa nội dung chuỗi.** Chẳng hạn, hàm tạo `String(char[])` sao chép nội dung mảng truyền vào. `toCharArray()` trả về một mảng mới; sửa mảng đầu vào hay đầu ra đó không sửa được chuỗi.
-3. **Chặn kế thừa bằng `final`.** Không có lớp con nào có thể thêm trạng thái biến đổi hoặc ghi đè hành vi để phá vỡ hợp đồng của `String` khi đối tượng được dùng qua kiểu `String`.
-4. **Giữ trạng thái nội tại dưới quyền kiểm soát của thư viện/JVM.** Ở các JDK hiện đại, biểu diễn nội bộ có thể được tối ưu mà không làm thay đổi ý nghĩa của API công khai.
+1. **Provides no in-place modification methods.** There is no `setCharAt`, `append`, or `delete` on `String`. Methods such as `concat`, `replace`, `substring`, `toUpperCase`, `toLowerCase`, etc. return a `String` result; they do not alter the content of the receiving object.
+2. **Does not let caller code tamper with the memory holding string content.** For instance, the `String(char[])` constructor copies the passed-in array's contents. `toCharArray()` returns a new array; modifying that input or output array cannot modify the string.
+3. **Prevents inheritance with `final`.** No subclass can add mutable state or override behavior to break `String`'s contract when an object is used through the `String` type.
+4. **Keeps internal state under the library/JVM's control.** In modern JDKs, the internal representation can be optimized without changing the semantics of the public API.
 
-`final` **không tự tạo ra tính bất biến**; thiết kế không có đường sửa giá trị mới là nền tảng. Tuy vậy, `final` giúp Java đảm bảo mọi đối tượng có kiểu `String` đều tuân theo đúng hợp đồng của lớp, tránh việc mã phía ngoài tạo một lớp con có hành vi bất ngờ.
+`final` **does not create immutability by itself**; designing without a path to mutate values is the foundation. However, `final` helps Java guarantee that every object of type `String` adheres to the class's exact contract, preventing external code from creating a subclass with unexpected behavior.
 
-### Biểu diễn nội bộ không phải hợp đồng công khai
+### Internal representation is not a public contract
 
-Nhiều tài liệu Java 8 mô tả `String` chứa mảng `char[]`. Kể từ Java 9, OpenJDK áp dụng **Compact Strings** (JEP 254): nội dung có thể lưu bằng `byte[]` cùng thông tin mã hóa Latin-1 hoặc UTF-16 để giảm bộ nhớ khi thích hợp. Đây là chi tiết cài đặt; **không nên suy luận tính bất biến chỉ từ việc tồn tại `final byte[]`**. Một biến `final` trỏ đến mảng vẫn có thể trỏ tới mảng có các phần tử bị sửa nếu quyền truy cập không được bảo vệ. Tính bất biến của `String` đến từ toàn bộ thiết kế và hợp đồng của nó.
+Many Java 8 resources describe `String` as holding a `char[]` array. Since Java 9, OpenJDK uses **Compact Strings** (JEP 254): content can be stored in a `byte[]` together with Latin-1 or UTF-16 encoding information to reduce memory when appropriate. This is an implementation detail; **do not infer immutability merely from the existence of `final byte[]`**. A `final` variable pointing to an array can still point to an array whose elements are modified if access is not protected. `String`'s immutability comes from its overall design and contract.
 
-## 3. Thực nghiệm: thao tác tạo kết quả mới, chuỗi gốc giữ nguyên
+## 3. Experiment: operations produce new results while the original string stays intact
 
-Tạo tệp `StringImmutabilityDemo.java`:
+Create the file `StringImmutabilityDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -88,14 +88,14 @@ public class StringImmutabilityDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac StringImmutabilityDemo.java
 java StringImmutabilityDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 source = Java
@@ -107,21 +107,21 @@ copied after input changed = Java
 copied after output changed = Java
 ```
 
-Diễn giải:
+Explanation:
 
-- `source.concat(" 17")` trả về chuỗi có nội dung khác. `source` vẫn là `"Java"`, còn `extended` chứa `"Java 17"`; vì khác nội dung, chúng chắc chắn không phải cùng một đối tượng.
-- `toLowerCase(Locale.ROOT)` trả về kết quả chữ thường mà không sửa `source`. Với các phương thức có kết quả **không đổi** (ví dụ nối chuỗi rỗng), cài đặt **có thể trả lại chính đối tượng hiện tại**. Vì thế không được khẳng định “mỗi lệnh trên `String` luôn cấp phát một đối tượng mới”.
-- Thay đổi `input` sau hàm tạo, hay thay đổi mảng do `toCharArray()` trả về, đều không ảnh hưởng đến `copied`. Đây là ví dụ trực tiếp về việc không để lộ trạng thái nội bộ có thể sửa.
+- `source.concat(" 17")` returns a string with different content. `source` remains `"Java"`, while `extended` contains `"Java 17"`; since their contents differ, they are definitely not the same object.
+- `toLowerCase(Locale.ROOT)` returns the lowercase result without modifying `source`. For methods whose result is **unchanged** (e.g., concatenating an empty string), the implementation **may return the current object itself**. Therefore, you must not claim “every call on `String` always allocates a new object.”
+- Changing `input` after the constructor, or changing the array returned by `toCharArray()`, does not affect `copied`. This is a direct example of not exposing mutable internal state.
 
-Câu lệnh `s += "!"` cũng cần được hiểu đúng: nó tương đương về kết quả với `s = s + "!"`, nghĩa là biểu thức tạo giá trị chuỗi đã nối rồi **gán lại biến `s`**; đối tượng chuỗi cũ không bị thay đổi. Nếu nhiều biến cùng tham chiếu chuỗi cũ, chúng vẫn thấy nội dung cũ.
+The statement `s += "!"` must also be understood correctly: its result is equivalent to `s = s + "!"`, meaning the expression produces the concatenated string value and then **reassigns the variable `s`**; the old string object is not altered. If multiple variables reference the old string, they continue to see the old content.
 
-## 4. Vì sao Java thiết kế `String` vừa `final` vừa immutable?
+## 4. Why did Java design `String` to be both `final` and immutable?
 
-### 4.1. Chia sẻ chuỗi và String Pool an toàn
+### 4.1. Safe string sharing and the String Pool
 
-Java sử dụng **String Pool** để tái sử dụng các đối tượng biểu diễn cùng hằng chuỗi, đặc biệt là các literal như `"java"`. Nếu một bên có thể sửa nội dung của một đối tượng đã được chia sẻ, những nơi khác dùng chung đối tượng đó sẽ bị ảnh hưởng ngoài ý muốn. Tính bất biến khiến việc chia sẻ trở nên an toàn.
+Java uses the **String Pool** to reuse objects representing the same string constants, especially literals like `"java"`. If one party could modify the content of a shared object, other places sharing that object would be affected unintentionally. Immutability makes sharing safe.
 
-Ví dụ hoàn chỉnh, lưu dưới tên `StringPoolDemo.java`:
+Complete example, saved as `StringPoolDemo.java`:
 
 ```java
 public class StringPoolDemo {
@@ -139,14 +139,14 @@ public class StringPoolDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac StringPoolDemo.java
 java StringPoolDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 a == b: true
@@ -155,55 +155,55 @@ a.equals(c): true
 a == canonical: true
 ```
 
-- Hai literal `"java"` trong ví dụ cùng trỏ đến đối tượng chuỗi đã được intern.
-- `new String("java")` tạo một đối tượng `String` khác có **cùng nội dung**.
-- `intern()` trả về tham chiếu chuẩn của chuỗi tương ứng trong pool.
-- Dùng `equals()` để kiểm tra **nội dung**; `==` so sánh **tham chiếu**. Đừng dùng `==` để so sánh nội dung chuỗi lấy từ dữ liệu người dùng, file hay API.
+- Both `"java"` literals in the example point to the same interned string object.
+- `new String("java")` creates a different `String` object with the **same content**.
+- `intern()` returns the canonical reference for the corresponding string in the pool.
+- Use `equals()` to check **content**; `==` compares **references**. Do not use `==` to compare string content coming from user input, files, or APIs.
 
-Lưu ý: biểu thức nối **hằng chuỗi lúc biên dịch** có thể trở thành một literal; nối từ dữ liệu ở thời điểm chạy có cơ chế tạo kết quả khác. Không suy đoán kết quả `==` chỉ dựa vào cách viết biểu thức nối.
+Note: a concatenation expression of **compile-time string constants** can become a single literal; concatenating runtime data creates results via a different mechanism. Do not guess the result of `==` solely from how a concatenation expression is written.
 
-### 4.2. Khóa `HashMap` và `HashSet` có ý nghĩa ổn định
+### 4.2. Stable `HashMap` and `HashSet` keys
 
-Cấu trúc băm dùng `hashCode()` và `equals()` để tổ chức và tra cứu phần tử. Khi một `String` được dùng làm khóa, nội dung không đổi nên giá trị băm và kết quả so sánh theo nội dung của khóa cũng ổn định. Nhờ đó, một khóa không “đổi chỗ” về mặt logic sau khi đưa vào bảng băm.
+Hash-based structures use `hashCode()` and `equals()` to organize and look up elements. When a `String` is used as a key, its content never changes, so the key's hash value and content-comparison result remain stable. As a result, a key does not logically “move” after being placed into a hash table.
 
-Ví dụ nhỏ trong một phương thức Java:
+Small snippet inside a Java method:
 
 ```java
 Map<String, Integer> counts = new HashMap<>();
 String key = "user:42";
 counts.put(key, 1);
 
-key = key.concat(":active"); // Gán biến key sang chuỗi khác.
+key = key.concat(":active"); // Reassigns the key variable to another string.
 System.out.println(counts.get("user:42"));    // 1
 System.out.println(counts.get(key));          // null
 ```
 
-Đoạn này cần `import java.util.Map;` và `import java.util.HashMap;` nếu đặt trong một lớp độc lập. Bản thân khóa `"user:42"` trong `counts` vẫn nguyên vẹn. Việc lưu mã băm để tái sử dụng trong một số cài đặt `String` cũng khả thi vì nội dung không đổi; cách cache cụ thể là chi tiết triển khai.
+This snippet requires `import java.util.Map;` and `import java.util.HashMap;` if placed in a standalone class. The `"user:42"` key inside `counts` remains intact. Caching the hash code for reuse in certain `String` implementations is also feasible because the content never changes; the exact caching strategy is an implementation detail.
 
-Với **một đối tượng khóa có trường dùng trong `equals()/hashCode()` bị sửa sau khi đưa vào `HashMap`**, phép tra cứu có thể thất bại. `String` tránh hẳn nhóm lỗi này ở mức nội dung chuỗi.
+With **a key object whose fields used in `equals()/hashCode()` are mutated after insertion into a `HashMap`**, lookups can fail. `String` completely avoids this category of bugs at the string-content level.
 
-### 4.3. Dễ chia sẻ giữa các luồng
+### 4.3. Easy sharing across threads
 
-Nhiều luồng có thể đồng thời **đọc và dùng chung cùng một đối tượng `String`** mà không cần khóa để bảo vệ việc sửa nội dung: không luồng nào có thể đổi nội dung đối tượng đó qua API bình thường. Điều này giúp giảm số tình huống race condition liên quan đến trạng thái của đối tượng.
+Multiple threads can simultaneously **read and share the same `String` object** without locks to guard against content modification: no thread can change that object's content through the normal API. This reduces race conditions related to object state.
 
-Nhưng **immutable không đồng nghĩa toàn bộ chương trình tự động thread-safe**. Ví dụ, nếu hai luồng cùng gán lại một trường `String currentName`, việc công bố giá trị mới, tính nhìn thấy giữa luồng và các thao tác nhiều bước vẫn có thể cần `volatile`, `synchronized` hoặc cơ chế đồng bộ thích hợp. Tính bất biến chỉ đảm bảo nội dung của **từng đối tượng `String`** không bị sửa.
+However, **immutable does not mean the entire program is automatically thread-safe**. For example, if two threads both reassign a `String currentName` field, publishing the new value, cross-thread visibility, and multi-step operations may still require `volatile`, `synchronized`, or an appropriate synchronization mechanism. Immutability only guarantees that the content of **each individual `String` object** is not mutated.
 
-### 4.4. Duy trì hợp đồng API và hạn chế thay đổi dữ liệu ngoài ý muốn
+### 4.4. Preserving API contracts and preventing unintended data changes
 
-`String` thường biểu diễn tên tệp, đường dẫn, khóa cấu hình, URL, định danh hoặc tham số đã được kiểm tra. Một hàm nhận `String` có thể tin rằng **nội dung chính đối tượng ấy** không bị caller lặng lẽ sửa sau khi truyền vào. Nếu cho phép lớp con thay đổi cách hành xử hoặc cho phép sửa trạng thái, các giả định của API, mã băm và nơi chia sẻ tham chiếu đều có thể bị phá vỡ.
+`String` often represents filenames, paths, configuration keys, URLs, identifiers, or validated parameters. A method accepting a `String` can trust that **the content of that exact object** will not be silently altered by the caller after being passed in. If subclasses could alter behavior or state could be mutated, API assumptions, hash codes, and shared-reference sites could all break.
 
-Lợi ích này không thay thế việc kiểm tra đầu vào, phân quyền hoặc đồng bộ khi có dữ liệu mới được gán vào biến. Tính bất biến cũng không tự làm cho giá trị người dùng nhập trở nên an toàn.
+This benefit does not replace input validation, authorization, or synchronization when new data is assigned to a variable. Nor does immutability automatically make user-supplied values safe.
 
-## 5. Khi làm việc với `String`, nên chọn API nào?
+## 5. Which API should you choose when working with `String`?
 
-| Nhu cầu | Phù hợp | Lý do |
+| Need | Suitable choice | Reason |
 | --- | --- | --- |
-| Giá trị văn bản ổn định, truyền giữa các hàm, key của map | `String` | Dễ chia sẻ, không có phép sửa nội dung tại chỗ. |
-| Tạo một vài biểu thức nối đơn giản | Toán tử `+` với `String` | Rõ ràng, trình biên dịch/JVM có thể tối ưu; không cần tự tối ưu sớm. |
-| Ghép nhiều phần trong vòng lặp hoặc dựng văn bản từng bước | `StringBuilder` | Có `append`, `insert`, `delete` thay đổi vùng đệm; thường tránh tạo nhiều giá trị trung gian. |
-| Bộ đệm văn bản mutable dùng chung giữa các luồng và cần phương thức đồng bộ | `StringBuffer` trong ngữ cảnh thích hợp | Các phương thức chính có đồng bộ; thao tác ghép nhiều bước vẫn cần xét tính nguyên tử. |
+| Stable text values, passing between methods, map keys | `String` | Easy to share, no in-place content mutation. |
+| Building a few simple concatenation expressions | `+` operator with `String` | Clear, compiler/JVM can optimize; no need for premature optimization. |
+| Joining many parts in a loop or building text step by step | `StringBuilder` | Provides `append`, `insert`, `delete` mutating a buffer; typically avoids creating many intermediate values. |
+| Mutable text buffer shared across threads needing synchronized methods | `StringBuffer` in appropriate contexts | Main methods are synchronized; multi-step operations still require considering atomicity. |
 
-Ví dụ dựng chuỗi qua vòng lặp bằng `StringBuilder`:
+Example of building a string in a loop using `StringBuilder`:
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -216,23 +216,23 @@ for (int i = 1; i <= 3; i++) {
 String result = builder.toString(); // "1, 2, 3"
 ```
 
-`StringBuilder` thay đổi trạng thái trong lúc dựng kết quả. `toString()` trả về `String` bất biến để dùng hoặc chia sẻ tiếp. `StringBuilder` không tự bảo đảm an toàn khi nhiều luồng cùng sửa một instance.
+`StringBuilder` mutates its state while assembling the result. `toString()` returns an immutable `String` for further use or sharing. `StringBuilder` does not automatically guarantee safety when multiple threads concurrently modify one instance.
 
-## 6. Các ngộ nhận và lỗi phổ biến
+## 6. Common misconceptions and mistakes
 
-1. **“`final` là đủ để một đối tượng bất biến.”** Sai: ví dụ `Counter` ở trên là lớp `final` nhưng có trường `value` được tăng.
-2. **“`final String s` có nghĩa là nội dung mới bất biến.”** Sai: mọi `String` đều bất biến; `final` trên `s` chỉ cấm gán lại tham chiếu.
-3. **“`replace()` hoặc `toUpperCase()` sẽ sửa biến gốc.”** Sai: phải nhận kết quả nếu muốn sử dụng, ví dụ `s = s.replace("a", "b");`. Gọi mà bỏ giá trị trả về không thay chuỗi đang giữ.
-4. **“Mọi phương thức xử lý `String` đều tạo instance mới.”** Sai: phương thức có thể trả về chính instance nếu kết quả không khác (và literal được pool chia sẻ).
-5. **“Hai chuỗi bằng nội dung thì `==` luôn `true`.”** Sai: `==` hỏi có cùng tham chiếu không; `equals()` mới so sánh nội dung theo API của `String`.
-6. **“String Pool là nguyên nhân khiến `String` bất biến.”** Quan hệ thực tế đi theo hướng ngược lại: tính bất biến **cho phép** pool chia sẻ đối tượng mà không sợ bên dùng này sửa dữ liệu bên dùng kia.
-7. **“Có `String` thì không cần quan tâm đồng bộ.”** Sai với những biến hoặc cấu trúc dữ liệu tham chiếu đến `String` bị nhiều luồng cập nhật.
-8. **“Độ dài `String` luôn bằng số ký tự người dùng nhìn thấy.”** `length()` đếm **UTF-16 code units**; một ký tự Unicode ngoài BMP có thể chiếm hai đơn vị. Dùng `codePointCount(0, s.length())` khi cần đếm code point; ký tự hiển thị với dấu ghép vẫn là vấn đề riêng.
-9. **“Mật khẩu luôn nên lưu trong `String`.”** Vì nội dung `String` không thể xóa tại chỗ, ứng dụng xử lý bí mật nhạy cảm có thể ưu tiên `char[]` hoặc `byte[]` khi giao thức/thư viện cho phép xóa vùng đệm sau sử dụng. Việc đó vẫn phải đi kèm quản lý vòng đời dữ liệu và cơ chế bảo mật phù hợp.
+1. **“`final` is enough to make an object immutable.”** False: the `Counter` example above is a `final` class yet has a `value` field that gets incremented.
+2. **“`final String s` means the content is now immutable.”** False: every `String` is immutable; `final` on `s` only forbids reassigning the reference.
+3. **“`replace()` or `toUpperCase()` modifies the original variable.”** False: you must capture the result if you want to use it, e.g., `s = s.replace("a", "b");`. Calling it and discarding the return value does not change the held string.
+4. **“Every `String` processing method creates a new instance.”** False: a method may return the same instance if the result is unchanged (and literals are shared by the pool).
+5. **“If two strings have equal content, `==` is always `true`.”** False: `==` asks whether they share the same reference; `equals()` compares content per `String`'s API.
+6. **“The String Pool is the reason `String` is immutable.”** The relationship actually goes the other way: immutability **enables** the pool to share objects without worrying that one consumer will mutate another consumer's data.
+7. **“Using `String` means you never need to worry about synchronization.”** False for variables or data structures referencing `String` that are updated by multiple threads.
+8. **“The length of a `String` always equals the number of visible characters.”** `length()` counts **UTF-16 code units**; a Unicode character outside the BMP can occupy two units. Use `codePointCount(0, s.length())` when counting code points; visible characters with combining marks remain a separate concern.
+9. **“Passwords should always be stored in `String`.”** Because `String` content cannot be erased in place, applications handling sensitive secrets may prefer `char[]` or `byte[]` when protocols/libraries allow zeroing the buffer after use. That must still be paired with proper data lifecycle management and security practices.
 
-## 7. Cách tự kiểm tra mức độ hiểu
+## 7. How to test your understanding
 
-Xét đoạn mã:
+Consider the snippet:
 
 ```java
 String x = "Hi";
@@ -244,7 +244,7 @@ System.out.println(y);
 System.out.println(x == y);
 ```
 
-Kết quả là:
+The output is:
 
 ```text
 Hi Java
@@ -252,11 +252,11 @@ Hi
 false
 ```
 
-Giải thích: lúc đầu `x` và `y` cùng tham chiếu `"Hi"`. Phép nối tạo giá trị `"Hi Java"`; chỉ biến `x` được gán tham chiếu kết quả. `y` tiếp tục giữ chuỗi `"Hi"` và đối tượng cũ không thay đổi.
+Explanation: initially `x` and `y` both reference `"Hi"`. Concatenation creates the value `"Hi Java"`; only variable `x` is assigned the resulting reference. `y` continues holding `"Hi"` and the old object does not change.
 
-**Ghi nhớ ba tầng:** `final class String` chặn kế thừa; tính bất biến bảo vệ nội dung từng đối tượng; còn `final String variable` chỉ bảo vệ việc gán lại một biến tham chiếu. Thiết kế kết hợp này giúp `String` chia sẻ an toàn trong pool và giữa các luồng, giữ khóa băm ổn định và khiến luồng dữ liệu văn bản dễ suy luận hơn.
+**Remember the three layers:** `final class String` blocks inheritance; immutability protects each object's content; and `final String variable` only prevents reassigning a reference variable. This combined design lets `String` be shared safely in the pool and across threads, keeps hash keys stable, and makes text data flow easier to reason about.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 API — `java.lang.String`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): khai báo `final`, đặc tính bất biến, hàm tạo, `equals`, `intern` và các API chuỗi.
-- [OpenJDK JEP 254 — Compact Strings](https://openjdk.org/jeps/254): thay đổi biểu diễn nội bộ từ Java 9; không thay đổi giao diện hoặc hợp đồng bất biến.
+- [Java SE 21 API — `java.lang.String`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): `final` declaration, immutability, constructors, `equals`, `intern`, and string APIs.
+- [OpenJDK JEP 254 — Compact Strings](https://openjdk.org/jeps/254): internal representation change since Java 9; does not change the public interface or immutability contract.

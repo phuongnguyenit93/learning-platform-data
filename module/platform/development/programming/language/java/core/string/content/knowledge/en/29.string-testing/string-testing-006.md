@@ -1,40 +1,40 @@
-# Kiểm thử regex với dấu chấm, gạch chéo, đô la và nhóm trong Java
+# Testing Regex with Dots, Slashes, Dollar Signs, and Groups in Java
 
-Khi viết regex trong Java, dấu **chấm `.`**, **gạch chéo `/`**, **dấu đô la `$`** và **ngoặc nhóm `(...)`** có ý nghĩa khác nhau tùy chúng đang nằm trong **mẫu regex**, **chuỗi Java** hay **chuỗi thay thế (replacement)**. Một biểu thức có vẻ đúng đôi khi khớp cả dữ liệu sai, trích xuất nhầm nhóm hoặc tạo kết quả thay thế ngoài ý muốn.
+When writing regex in Java, the **dot `.`**, **slash `/`**, **dollar sign `$`**, and **grouping parentheses `(...)`** carry different meanings depending on whether they appear in a **regex pattern**, a **Java string**, or a **replacement string**. An expression that looks right can sometimes match invalid data, extract the wrong group, or produce unintended replacement output.
 
-Bài này tập trung vào cách **kiểm thử các ký hiệu đó** bằng `java.util.regex.Pattern` và `Matcher` trên Java 17+, với test âm/dương, các đoạn mã chạy được và cách đọc kết quả. Hai nguyên tắc xuyên suốt: phân biệt **cú pháp regex** với **escape trong Java String literal**; phân biệt **mẫu tìm kiếm** với **cú pháp chuỗi thay thế**.
+This lesson focuses on how to **test those symbols** with `java.util.regex.Pattern` and `Matcher` on Java 17+, including positive/negative tests, runnable snippets, and how to interpret results. Two guiding principles apply throughout: separate **regex syntax** from **Java String literal escaping**; separate **search patterns** from **replacement string syntax**.
 
-## 1. Bản đồ ý nghĩa của bốn nhóm ký hiệu
+## 1. Meaning Map of the Four Symbol Groups
 
-| Ký hiệu trong **regex** | Ý nghĩa khi đứng ở vị trí thông thường | Muốn khớp ký tự thật |
+| Symbol in **regex** | Meaning in a normal position | To match the literal character |
 | --- | --- | --- |
-| `.` | Khớp một ký tự bất kỳ, ngoại trừ line terminator nếu không bật `DOTALL` | `\.` |
-| `/` (forward slash) | Dấu gạch chéo xuôi thông thường; Java `Pattern` không dùng `/` để bao regex | Cứ viết `/` |
-| `\` (backslash) | Dấu escape hoặc mở đầu lớp viết tắt như `\d`; hữu ích khi kiểm thử đường dẫn Windows | Regex `\\` |
-| `$` | Neo vị trí cuối đầu vào/vùng, có quy tắc đặc biệt quanh kết thúc dòng | `\$` |
-| `(...)` | Tạo nhóm bắt; dùng để gom và truy xuất nội dung | `\(` và `\)` nếu muốn khớp ngoặc thật |
-| `(?:...)` | Nhóm **không bắt**, chỉ gom các phần | Không tạo chỉ số nhóm |
-| `(?<name>...)` | Nhóm bắt có tên | Truy xuất bằng `group("name")` |
+| `.` | Matches any single character, excluding line terminators unless `DOTALL` is enabled | `\.` |
+| `/` (forward slash) | Ordinary forward slash; Java `Pattern` does not use `/` to delimit regexes | Simply write `/` |
+| `\` (backslash) | Escape character or start of shorthand classes like `\d`; useful when testing Windows paths | Regex `\\` |
+| `$` | End-of-input/region anchor, with special rules around line endings | `\$` |
+| `(...)` | Capturing group; groups subpatterns and captures content | `\(` and `\)` to match literal parentheses |
+| `(?:...)` | **Non-capturing** group, only groups subpatterns | Does not create a group number |
+| `(?<name>...)` | Named capturing group | Retrieve via `group("name")` |
 
-**Quan trọng:** Bảng trên nói về **mẫu regex**, không phải cách viết chuỗi Java. Trong mã nguồn Java, dấu `\` của regex phải viết thành `\\`. Ví dụ regex `\.` phải truyền vào Java bằng `"\\."`. Còn regex `/` chỉ cần Java string `"/"`.
+**Important:** The table above describes **regex patterns**, not how Java strings are written. In Java source code, each `\` in a regex must be written as `\\`. For example, regex `\.` must be passed to Java as `"\\."`. Meanwhile, regex `/` only needs the Java string `"/"`.
 
-Trong tài liệu Java, `Pattern.compile(regex)` biên dịch mẫu, `Matcher` thực hiện khớp, và `String.matches(regex)` cũng kiểm tra **toàn bộ** chuỗi. Để tránh khó hiểu khi soạn test, nên lưu rõ regex và input, rồi xác định mong muốn **toàn chuỗi** hay **đoạn con** trước khi chạy.
+In Java documentation, `Pattern.compile(regex)` compiles a pattern, `Matcher` performs matching, and `String.matches(regex)` checks the **entire** string. To avoid confusion when authoring tests, record both the regex and input clearly, and decide upfront whether you want a **full-string** match or a **substring** match before running.
 
-## 2. Dấu chấm: wildcard `.` khác dấu chấm thật `\.`
+## 2. The Dot: Wildcard `.` vs. Literal Dot `\.`
 
-Trong regex, `.` là một **metacharacter**. Mẫu `report.txt` có nghĩa là các chữ `report`, **một ký tự bất kỳ** rồi `txt`. Vì thế nó có thể khớp cả `reportXtxt`, `report-txt` hoặc `report/txt` khi dùng `matches()`.
+In regex, `.` is a **metacharacter**. The pattern `report.txt` means the letters `report`, **any single character**, then `txt`. Therefore it matches `reportXtxt`, `report-txt`, or `report/txt` when calling `matches()`.
 
-Để chỉ chấp nhận dấu chấm thật, escape thành `\.` trong regex và viết `"\\."` trong Java:
+To accept only a literal dot, escape it as `\.` in regex and write `"\\."` in Java:
 
 ~~~java
-Pattern.matches("report.txt",  "reportXtxt"); // true: dấu . là wildcard
-Pattern.matches("report\\.txt", "report.txt"); // true: dấu chấm thật
+Pattern.matches("report.txt",  "reportXtxt"); // true: . is a wildcard
+Pattern.matches("report\\.txt", "report.txt"); // true: literal dot
 Pattern.matches("report\\.txt", "reportXtxt"); // false
 ~~~
 
-Ba dòng trên **chỉ là lời gọi minh họa** (cần import `java.util.regex.Pattern` và đặt trong phương thức Java).
+The three lines above are **illustrative calls only** (requiring `import java.util.regex.Pattern` inside a Java method).
 
-Dấu `.` mặc định **không khớp line terminator** như `\n`. Cờ `Pattern.DOTALL` (hoặc `(?s)` trong regex) cho phép `.` khớp cả line terminator:
+By default, `.` **does not match line terminators** such as `\n`. The `Pattern.DOTALL` flag (or `(?s)` in the regex) allows `.` to match line terminators too:
 
 ~~~java
 Pattern.matches("a.b", "a\nb"); // false
@@ -42,76 +42,76 @@ Pattern.compile("a.b", Pattern.DOTALL)
        .matcher("a\nb").matches(); // true
 ~~~
 
-Đừng nhầm `DOTALL` với `MULTILINE`: `DOTALL` thay đổi cách `.` khớp xuống dòng; `MULTILINE` thay đổi cách neo `^` và `$` áp dụng với các dòng.
+Do not confuse `DOTALL` with `MULTILINE`: `DOTALL` changes how `.` matches line breaks; `MULTILINE` changes how the `^` and `$` anchors apply to lines.
 
-Một biến thể viết dấu chấm thật là lớp ký tự `[.]`. Cả regex `\.` và `[.]` đều khớp một ký tự `.` theo cách đang xét. Khi muốn tách file name theo dấu chấm, cũng phải nhớ `String.split(...)` nhận **regex**:
+Another way to write a literal dot is the character class `[.]`. Both regex `\.` and `[.]` match a single `.` character in this context. When splitting a filename on dots, also remember that `String.split(...)` takes a **regex**:
 
 ~~~java
 String[] parts = "a.b".split("\\."); // ["a", "b"]
 ~~~
 
-Đây là đoạn minh họa. Viết `"a.b".split(".")` khiến regex `.` khớp các ký tự thay vì đóng vai trò dấu phân cách `.`; kết quả không phải mảng mong muốn.
+This is an illustrative snippet. Writing `"a.b".split(".")` causes regex `.` to match every character instead of acting as the `.` separator; the result is not the intended array.
 
-### Test tối thiểu cho dấu chấm
+### Minimal Tests for the Dot
 
-| Regex viết trong Java | Input | `matches()` | Vì sao |
+| Regex written in Java | Input | `matches()` | Why |
 | --- | --- | --- | --- |
-| `"file.txt"` | `fileXtxt` | `true` | `.` nhận `X` |
-| `"file\\.txt"` | `file.txt` | `true` | `\.` chỉ nhận dấu chấm |
-| `"file\\.txt"` | `file-txt` | `false` | Thiếu dấu chấm thật |
-| `"a.b"` | `a` + newline + `b` | `false` | `.` mặc định không nhận xuống dòng |
-| `"(?s)a.b"` | `a` + newline + `b` | `true` | Bật DOTALL |
+| `"file.txt"` | `fileXtxt` | `true` | `.` accepts `X` |
+| `"file\\.txt"` | `file.txt` | `true` | `\.` accepts only a dot |
+| `"file\\.txt"` | `file-txt` | `false` | Missing literal dot |
+| `"a.b"` | `a` + newline + `b` | `false` | `.` skips newlines by default |
+| `"(?s)a.b"` | `a` + newline + `b` | `true` | DOTALL enabled |
 
-Nếu đầu vào chứa **ký tự người dùng cung cấp** như tên file `report.2026`, đừng tự thay mọi dấu chấm bằng các chuỗi escape thủ công trong một regex phức tạp; `Pattern.quote(userText)` phù hợp hơn để trích dẫn nguyên văn toàn bộ giá trị (phần 8).
+If the input contains **user-supplied characters** like a filename `report.2026`, do not manually replace every dot inside a complex regex; `Pattern.quote(userText)` is safer for quoting the whole literal value (section 8).
 
-## 3. Dấu gạch chéo: `/` không phải delimiter trong Java regex
+## 3. Slashes: `/` Is Not a Delimiter in Java Regex
 
-Một số ngôn ngữ hoặc công cụ viết mẫu theo dạng `/pattern/flags` (ví dụ JavaScript regex literal), khiến người học tưởng mọi regex đều cần hai dấu `/` bao ngoài. Trong Java, `Pattern.compile("api/v1/users")` dùng **trực tiếp** nội dung chuỗi như mẫu, vì vậy dấu `/` đơn lẻ khớp đúng dấu slash trong đường dẫn.
+Some languages or tools write patterns in `/pattern/flags` form (such as JavaScript regex literals), leading learners to think every regex needs enclosing `/` characters. In Java, `Pattern.compile("api/v1/users")` uses the string's contents **directly** as the pattern, so a single `/` matches a literal forward slash in a path.
 
 ~~~java
 Pattern.matches("api/v\\d+/users", "api/v2/users"); // true
 Pattern.matches("api/v\\d+/users", "api\\v2\\users"); // false
 ~~~
 
-Hai dòng này là lời gọi minh họa. Regex `api/v\d+/users` có dấu slash thường, `\d+` mới là phần regex đặc biệt. Viết thêm hai dấu `/` bao ngoài, chẳng hạn `Pattern.compile("/api/v1/")`, sẽ khiến Java tìm **cả các dấu slash đó như nội dung của mẫu**; nó không tự hiểu đây là cặp delimiter.
+These two lines are illustrative calls. The regex `api/v\d+/users` has ordinary forward slashes, while `\d+` is the special regex construct. Wrapping it in extra slashes, like `Pattern.compile("/api/v1/")`, makes Java search for **those slashes as part of the pattern itself**; it does not treat them as delimiters.
 
-Cần phân biệt **hai loại gạch chéo**:
+Distinguish **both kinds of slashes**:
 
-- `/` (*forward slash*): thường không cần escape trong Java regex, rất phổ biến trong URL/path kiểu Unix.
-- `\` (*backslash*): là dấu escape của regex **và** của chuỗi Java. Để khớp **một** ký tự backslash thật, regex cần `\\`; Java string literal truyền cho `Pattern` phải viết `"\\\\"`.
+- `/` (*forward slash*): normally needs no escaping in Java regex, very common in URLs and Unix-style paths.
+- `\` (*backslash*): is the escape character of regex **and** of Java strings. To match **one** literal backslash, the regex needs `\\`; the Java string literal passed to `Pattern` must be written `"\\\\"`.
 
-Ví dụ minh họa đường dẫn Windows trong Java:
+Illustrative Windows path example in Java:
 
 ~~~java
-String path = "C:\\temp\\x.txt";              // dữ liệu: C:\temp\x.txt
-String regex = "C:\\\\temp\\\\x\\.txt";        // regex tìm dấu \ thật và dấu . thật
+String path = "C:\\temp\\x.txt";              // data: C:\temp\x.txt
+String regex = "C:\\\\temp\\\\x\\.txt";        // regex matching literal \ and literal .
 boolean correct = Pattern.matches(regex, path); // true
 ~~~
 
-Đoạn trên dùng `Pattern` sau khi import. Nếu viết `"C:\temp\x.txt"` trong Java source, chuỗi có thể chứa escape ngoài ý định (như `\t`) hoặc không biên dịch vì escape không hợp lệ. Khi xử lý **tên đường dẫn dạng văn bản**, cân nhắc `Path`/`Files` thay vì regex nếu mục tiêu là thao tác file; dấu phân cách phụ thuộc ngữ cảnh hệ điều hành và nguồn dữ liệu.
+This snippet uses `Pattern` once imported. Writing `"C:\temp\x.txt"` in Java source can introduce unintended escapes (like `\t`) or fail to compile due to invalid escapes. When handling **textual file paths**, consider `Path`/`Files` instead of regex if the goal is file operations; path separators depend on OS context and data source.
 
-## 4. Dấu đô la: neo kết thúc `$` hay ký tự tiền tệ `\$`?
+## 4. The Dollar Sign: End Anchor `$` or Currency Symbol `\$`?
 
-Trong **mẫu regex**, `$` là **neo vị trí**, không tiêu thụ ký tự. Ví dụ:
+In a **regex pattern**, `$` is a **position anchor**, consuming no characters. For example:
 
 ~~~java
 Pattern.matches("^AB\\d{2}$", "AB12");  // true
 Pattern.matches("^AB\\d{2}$", "xAB12"); // false
 ~~~
 
-`^` neo đầu và `$` neo cuối theo quy tắc Java regex. Lệnh `matches()` vốn đã yêu cầu **toàn chuỗi** khớp; trong tình huống này neo giúp người đọc dễ thấy ý định nhưng không phải điều kiện bắt buộc. Ngược lại, khi dùng `find()`, dấu `^`/`$` thay đổi những vị trí đoạn con có thể khớp.
+`^` anchors the start and `$` anchors the end per Java regex rules. `matches()` already requires the **entire string** to match; in this case, the anchors clarify intent for readers though they are not strictly required. By contrast, when using `find()`, `^`/`$` change which substring positions can match.
 
-Nếu muốn kiểm tra **dấu `$` thật** của tiền tệ, viết regex `\$` và Java literal `"\\$"`:
+To match a **literal `$`** currency symbol, write regex `\$` and Java literal `"\\$"`:
 
 ~~~java
 Pattern.matches("total=\\$\\d+", "total=$25"); // true
 ~~~
 
-Regex ở ví dụ là `total=\$\d+`: tìm `total=`, dấu `$` thật, rồi một hoặc nhiều chữ số. Nếu bỏ backslash trước `$`, mẫu không còn nghĩa tương tự.
+The regex here is `total=\$\d+`: match `total=`, a literal `$`, then one or more digits. Omitting the backslash before `$` completely changes the meaning.
 
-**Cẩn thận với xuống dòng cuối:** `$` có thể nhận vị trí trước một line terminator kết thúc chuỗi; với `Pattern.MULTILINE`, nó còn phù hợp ở cuối từng dòng. `\z` biểu diễn **cuối đầu vào tuyệt đối** khi cần kiểm soát vị trí thật chặt trong regex; dấu `\z` cần viết thành `"\\z"` trong Java. `Pattern.matches(...)` và `Matcher.matches()` vẫn là cách rõ ràng để kiểm tra **toàn bộ** input.
+**Watch out for trailing newlines:** `$` can match just before a trailing line terminator; with `Pattern.MULTILINE`, it also matches at the end of each line. `\z` denotes the **absolute end of input** when strict positioning is needed in a regex; `\z` must be written `"\\z"` in Java. `Pattern.matches(...)` and `Matcher.matches()` remain the clearest way to validate the **whole** input.
 
-### Kiểm thử `MULTILINE`
+### Testing `MULTILINE`
 
 ~~~java
 Pattern p = Pattern.compile("^cat$", Pattern.MULTILINE);
@@ -119,18 +119,18 @@ boolean foundLine = p.matcher("cat\nbird").find();    // true
 boolean wholeText = p.matcher("cat\nbird").matches(); // false
 ~~~
 
-`find()` tìm riêng dòng `cat` vì `^`/`$` được diễn giải theo từng dòng. `matches()` không cho phép bỏ phần `\nbird` còn lại.
+`find()` matches the `cat` line alone because `^`/`$` are evaluated per line. `matches()` refuses to ignore the remaining `\nbird`.
 
-## 5. Nhóm bắt và nhóm không bắt: `(...)`, `(?:...)` và `(?<name>...)`
+## 5. Capturing and Non-Capturing Groups: `(...)`, `(?:...)`, and `(?<name>...)`
 
-Ngoặc tròn có hai vai trò chính:
+Parentheses serve two main roles:
 
-1. **Gom phần mẫu** để lượng từ hay phép chọn `|` tác động lên cả nhóm, ví dụ `(ab)+` khác `ab+`.
-2. **Bắt (capture) đoạn khớp** để lấy lại bằng `Matcher.group(...)` hoặc tham chiếu trong chuỗi thay thế.
+1. **Grouping subpatterns** so quantifiers or alternation `|` apply to the whole group, e.g., `(ab)+` vs. `ab+`.
+2. **Capturing the matched slice** to retrieve it via `Matcher.group(...)` or reference it in a replacement string.
 
-Nhóm bắt mặc định được đánh số **1, 2, ...** theo thứ tự dấu `(` mở của nhóm bắt, tính từ trái sang phải. Nhóm `0` là **toàn bộ lần khớp**. `(?:...)` chỉ gom, **không tăng số thứ tự nhóm**. Nhóm đặt tên `(?<ext>txt|csv)` vừa là nhóm bắt vừa có thể truy xuất theo `"ext"`.
+By default, capturing groups are numbered **1, 2, ...** in left-to-right order of their opening `(`. Group `0` is the **entire match**. `(?:...)` only groups, **without incrementing the group counter**. A named group `(?<ext>txt|csv)` both captures and can be retrieved by `"ext"`.
 
-Ví dụ file đơn giản:
+Simple file example:
 
 ~~~java
 Pattern pattern = Pattern.compile(
@@ -144,33 +144,33 @@ if (m.matches()) {
 }
 ~~~
 
-Đây là đoạn minh họa (cần import `Pattern`/`Matcher`). Lưu ý `m.group("base")` là lời gọi API với **tên nhóm đã khai báo trong regex**. Mẫu `(?<base>[a-z]+)` dùng dấu ngoặc để bắt `notes`, còn `\\.` trong Java dùng để khớp dấu chấm trước phần mở rộng.
+This is an illustrative snippet (requiring `Pattern`/`Matcher` imports). Note that `m.group("base")` is an API call using the **group name declared in the regex**. `(?<base>[a-z]+)` uses parentheses to capture `notes`, while `\\.` in Java matches the dot before the extension.
 
-**Chỉ gọi `group()`, `start()`, `end()` sau khi `find()` hoặc `matches()` thành công.** Nếu không có match hiện hành, `Matcher` ném `IllegalStateException`. Với nhóm tùy chọn không tham gia, `group(n)` có thể là `null`, `start(n)`/`end(n)` là `-1`. Các chỉ số `start/end` là **chỉ số UTF-16**, và `end` là vị trí exclusive.
+**Only call `group()`, `start()`, or `end()` after `find()` or `matches()` succeeds.** Without a current match, `Matcher` throws `IllegalStateException`. For an optional group that did not participate, `group(n)` can be `null` and `start(n)`/`end(n)` are `-1`. `start/end` indices are **UTF-16 indices**, and `end` is exclusive.
 
-Khi chỉ cần gom mà không trích xuất, dùng nhóm không bắt, chẳng hạn `(?:txt|csv)`. Việc này giúp giảm nguy cơ vô tình thay đổi vị trí `group(1)` khi sửa regex:
+When you only need grouping without extraction, use a non-capturing group such as `(?:txt|csv)`. This reduces the risk of accidentally shifting `group(1)` numbering when editing the regex:
 
 ~~~java
 Pattern noCapture = Pattern.compile("^[a-z]+\\.(?:txt|csv)$");
 boolean okay = noCapture.matcher("notes.txt").matches(); // true
 ~~~
 
-## 6. Tên nhóm và dấu đô la trong replacement: quy tắc khác regex
+## 6. Group Names and Dollar Signs in Replacements: Different Rules from Regex
 
-Một trong những bẫy phổ biến nhất: trong **mẫu regex**, `$` nghĩa là **neo**; trong **chuỗi thay thế** của `Matcher.replaceAll`, `$1` hay `${name}` nghĩa là **chèn nội dung nhóm bắt**.
+One of the most common traps: inside a **regex pattern**, `$` is an **anchor**; inside a **replacement string** of `Matcher.replaceAll`, `$1` or `${name}` means **insert the captured group's text**.
 
-| Bối cảnh | Cú pháp | Nghĩa |
+| Context | Syntax | Meaning |
 | --- | --- | --- |
-| Regex | `$` | Neo cuối |
-| Regex | `\$` | Dấu đô la thật |
-| Regex | `(abc)` | Bắt nội dung vào nhóm 1 |
-| Regex | `(?<name>abc)` | Bắt nhóm tên `name` |
-| Replacement của `Matcher`/`String.replaceAll` | `$1` | Đưa nội dung nhóm 1 vào kết quả |
-| Replacement | `${name}` | Đưa nội dung nhóm có tên vào kết quả |
-| Replacement | `\$` | Escape một dấu `$` trong **chuỗi replacement**, không có nghĩa là neo |
-| Replacement | `Matcher.quoteReplacement(text)` | Dùng `text` theo nghĩa nguyên văn, kể cả `$` và `\` |
+| Regex | `$` | End anchor |
+| Regex | `\$` | Literal dollar sign |
+| Regex | `(abc)` | Capture content into group 1 |
+| Regex | `(?<name>abc)` | Capture named group `name` |
+| Replacement in `Matcher`/`String.replaceAll` | `$1` | Insert group 1's content into output |
+| Replacement | `${name}` | Insert named group's content into output |
+| Replacement | `\$` | Escape a literal `$` in a **replacement string**, not an anchor |
+| Replacement | `Matcher.quoteReplacement(text)` | Treat `text` literally, including `$` and `\` |
 
-Ví dụ:
+Example:
 
 ~~~java
 String result = Pattern.compile("id=(\\d+)")
@@ -179,9 +179,9 @@ String result = Pattern.compile("id=(\\d+)")
 // item[42]; item[7]
 ~~~
 
-Mẫu `(\\d+)` (trong Java literal) bắt một dãy chữ số thành nhóm 1. Replacement `"item[$1]"` lấy lại nội dung nhóm đó. **`$1` chỉ có tác dụng đặc biệt trong replacement**, không phải cách viết tham chiếu ngược bên trong mẫu regex. Nếu cần tham chiếu lại nội dung nhóm trong regex, dùng `\1` (Java literal `"\\1"`) hoặc `\k<name>` (Java literal `"\\k<name>"`).
+The pattern `(\\d+)` (in a Java literal) captures a digit sequence as group 1. The replacement `"item[$1]"` inserts that group's content. **`$1` has special meaning only in replacements**, not as a backreference inside a regex pattern. To backreference a group inside a regex pattern, use `\1` (Java literal `"\\1"`) or `\k<name>` (Java literal `"\\k<name>"`).
 
-Với nhóm có tên:
+With named groups:
 
 ~~~java
 String reordered = Pattern.compile("(?<word>[a-z]+)-(?<num>\\d+)")
@@ -190,7 +190,7 @@ String reordered = Pattern.compile("(?<word>[a-z]+)-(?<num>\\d+)")
 // 12:abc
 ~~~
 
-**Nếu dữ liệu replacement do người dùng cung cấp**, đưa thẳng `"$9\\temp"` vào `replaceAll` có thể khiến regex engine cố tham chiếu nhóm không tồn tại hoặc xem `\` là escape. Dùng `Matcher.quoteReplacement(...)`:
+**If replacement data comes from users**, passing `"$9\\temp"` straight into `replaceAll` can cause the regex engine to reference a nonexistent group or treat `\` as an escape. Use `Matcher.quoteReplacement(...)`:
 
 ~~~java
 String rawReplacement = "$9\\temp";
@@ -200,11 +200,11 @@ String safe = Pattern.compile("TOKEN")
 // path=$9\temp
 ~~~
 
-Trong Java, `String.replace(old, new)` thay các chuỗi **nguyên văn**; `String.replaceAll(regex, replacement)` dùng **regex** và cú pháp replacement. Nếu chỉ muốn thay dấu chấm bằng dấu gạch ngang, `text.replace(".", "-")` đơn giản hơn `text.replaceAll("\\.", "-")`.
+In Java, `String.replace(old, new)` replaces **literal** substrings; `String.replaceAll(regex, replacement)` uses **regex** and replacement syntax. If you only want to replace dots with dashes, `text.replace(".", "-")` is simpler than `text.replaceAll("\\.", "-")`.
 
-## 7. Chương trình Java 17: kiểm thử dấu chấm, slash và đô la
+## 7. Java 17 Program: Testing Dots, Slashes, and Dollar Signs
 
-Chương trình sau cố tình gồm cả trường hợp **đáng chấp nhận** và **đáng bác bỏ**, tránh chỉ kiểm thử đầu vào đẹp:
+The following program intentionally includes both **cases to accept** and **cases to reject**, avoiding testing only happy-path inputs:
 
 ~~~java
 // RegexSymbolsDemo.java
@@ -240,7 +240,7 @@ public class RegexSymbolsDemo {
 }
 ~~~
 
-Lưu thành `RegexSymbolsDemo.java`, sau đó chạy:
+Save as `RegexSymbolsDemo.java`, then run:
 
 ~~~bash
 javac --release 17 RegexSymbolsDemo.java
@@ -264,9 +264,9 @@ multiline find = true
 multiline matches = false
 ~~~
 
-**Cách đọc test:** `"wildcard dot = true"` là kết quả chạy **đúng theo ngữ nghĩa regex** nhưng lại là **hành vi sai nếu yêu cầu nghiệp vụ chỉ nhận dấu chấm thật**. Đây là lý do test regex phải có **negative cases** ngoài positive cases. `"multiline find"` và `"multiline matches"` không mâu thuẫn: chúng hỏi hai câu khác nhau về phạm vi khớp.
+**How to read the test:** `"wildcard dot = true"` is **correct according to regex semantics**, yet it represents **wrong behavior if business rules require a literal dot**. That is why regex tests need **negative cases** alongside positive ones. `"multiline find"` and `"multiline matches"` do not contradict each other: they ask two different questions about match scope.
 
-## 8. Chương trình Java 17: nhóm, replacement và dữ liệu cần escape
+## 8. Java 17 Program: Groups, Replacements, and Data Needing Escaping
 
 ~~~java
 // RegexGroupsAndReplacementDemo.java
@@ -306,7 +306,7 @@ public class RegexGroupsAndReplacementDemo {
 }
 ~~~
 
-Lệnh chạy:
+Run command:
 
 ~~~bash
 javac --release 17 RegexGroupsAndReplacementDemo.java
@@ -326,17 +326,17 @@ by name = 12:abc
 safe replacement = path=$9\temp
 ~~~
 
-Ở chương trình này, `group(0)` trả về toàn bộ `notes.txt`, nhóm `base` trả về `notes`, còn `ext` trả về `txt`. Kết quả `base range = 0..5` là khoảng **bắt đầu gồm, kết thúc không gồm**. Test cho replacement cho thấy muốn đưa ký tự `$`/backslash nguyên văn vào kết quả thì `Matcher.quoteReplacement` tránh các quy tắc thay thế nhóm.
+In this program, `group(0)` returns the entire `notes.txt`, group `base` returns `notes`, and `ext` returns `txt`. `base range = 0..5` is a **start-inclusive, end-exclusive** range. The replacement test shows that to place `$`/backslash characters literally into output, `Matcher.quoteReplacement` bypasses group substitution rules.
 
-## 9. Chương trình Java 17: kiểm thử chuỗi literal động và backslash
+## 9. Java 17 Program: Testing Dynamic Literal Strings and Backslashes
 
-Nếu một giá trị do người dùng nhập vào chỉ cần tìm **nguyên văn** trong dữ liệu, hãy dùng `Pattern.quote(...)`. Việc viết:
+If a user-provided value only needs to be matched **literally** in data, use `Pattern.quote(...)`. Writing:
 
 ~~~java
 Pattern.matches("v1.2/$", "v1.2/$");
 ~~~
 
-không đảm bảo đúng theo nghĩa nguyên văn, vì dấu `.` đang là wildcard và `$` là neo (không nhận một ký tự đô la thật). Dùng `Pattern.quote` khi cả chuỗi cần coi như literal:
+does not guarantee literal matching, because `.` is a wildcard and `$` is an anchor (it does not match a literal dollar sign). Use `Pattern.quote` when the whole string must be treated as literal:
 
 ~~~java
 // RegexLiteralInputDemo.java
@@ -368,7 +368,7 @@ public class RegexLiteralInputDemo {
 }
 ~~~
 
-Lệnh chạy:
+Run command:
 
 ~~~bash
 javac --release 17 RegexLiteralInputDemo.java
@@ -384,37 +384,37 @@ changed = Cost: USD 25
 kept = Cost: $25
 ~~~
 
-`Pattern.quote` biến `v1.2/$` thành mẫu tìm kiếm literal hoàn chỉnh cho phần dữ liệu được quote; cặp `^...$` bên ngoài thể hiện ý định ràng buộc toàn chuỗi (dù `matches()` đã thực hiện việc đó). Ví dụ đường dẫn Windows kiểm tra cách escape đúng qua **hai tầng**. Hai dòng cuối cùng cố tình dùng `\\$` trong mẫu để tìm dấu đô la thật, rồi thực hiện **hai chính sách replacement khác nhau**.
+`Pattern.quote` turns `v1.2/$` into a full literal search pattern for the quoted segment; the outer `^...$` expresses whole-string matching intent (even though `matches()` already enforces it). The Windows path example verifies escaping across **two layers**. The last two lines intentionally use `\\$` in the pattern to find a literal dollar sign, then apply **two different replacement policies**.
 
-## 10. Thiết kế test regex có ý nghĩa
+## 10. Designing Meaningful Regex Tests
 
-Trước khi chấp nhận một regex, nên phân loại test theo các câu hỏi:
+Before accepting a regex, categorize tests by these questions:
 
-| Loại test | Input mẫu | Điều cần xác minh |
+| Test Type | Sample Input | What to Verify |
 | --- | --- | --- |
-| **Đúng định dạng** | `report.txt`, `api/v2/users` | Mẫu nhận văn bản hợp lệ |
-| **Ký tự đặc biệt khác nghĩa** | `reportXtxt`, `api\v2\users` | Dấu chấm/slash không bị đọc sai |
-| **Đô la thật so với neo** | `total=$25`, `total=25` | `\$` nhận tiền tệ, `$` giới hạn vị trí |
-| **Tiền/hậu tố** | `xAB12`, `AB12x` | Kiểm tra toàn chuỗi hay đoạn con |
-| **Xuống dòng** | `a\nb`, `cat\nbird` | Hiệu ứng DOTALL/MULTILINE đúng yêu cầu |
-| **Nhóm bắt** | `notes.txt`, `notes.exe` | `matches()` và `group(...)` trả đúng nội dung |
-| **Nhóm tùy chọn** | Có và không có phần tùy chọn | Xử lý `null`, không dùng group sai |
-| **Replacement không tin cậy** | Chuỗi chứa `$` và `\` | Không thay thế nhóm ngoài ý định hoặc phát sinh lỗi |
-| **Unicode, input rỗng/dài** | Tên có dấu, chuỗi rỗng, chuỗi rất dài | Nhận đúng theo đặc tả, không giả định ASCII hoặc chạy quá chậm |
+| **Valid format** | `report.txt`, `api/v2/users` | Pattern accepts valid text |
+| **Special characters with different meaning** | `reportXtxt`, `api\v2\users` | Dots/slashes are not misread |
+| **Literal dollar vs. anchor** | `total=$25`, `total=25` | `\$` matches currency, `$` constrains position |
+| **Prefixes/suffixes** | `xAB12`, `AB12x` | Whole-string vs. substring check |
+| **Line breaks** | `a\nb`, `cat\nbird` | DOTALL/MULTILINE behavior matches requirements |
+| **Capturing groups** | `notes.txt`, `notes.exe` | `matches()` and `group(...)` return exact content |
+| **Optional groups** | With and without optional part | Handle `null`, avoid using wrong group |
+| **Untrusted replacement** | Strings containing `$` and `\` | No unintended group substitution or exceptions |
+| **Unicode, empty/long input** | Accented names, empty string, very long string | Matches per spec without assuming ASCII or running too slowly |
 
-Một vài quy tắc thực tế:
+A few practical guidelines:
 
-1. **Viết rõ mong đợi:** test tên `shouldRejectWrongExtensionSeparator` tốt hơn test mơ hồ `testRegex`.
-2. **Dùng `matches()` cho định dạng toàn chuỗi, `find()` cho trích xuất**; nếu kiểm thử cả hai, đặt tên kết quả rõ ràng.
-3. **Tránh khẳng định chuỗi “khớp” chỉ vì `find()` trả true** nếu nghiệp vụ đòi mọi ký tự hợp lệ.
-4. **Kiểm tra cặp dấu đóng/mở của nhóm** và thứ tự nhóm; khi thay đổi `(...)` thành `(?:...)`, số nhóm có thể đổi.
-5. **Kiểm tra cả regex lẫn replacement**: khớp đúng vẫn có thể tạo ra đầu ra sai nếu `$1`, `${name}` hoặc backslash trong replacement bị hiểu ngoài dự kiến.
-6. **Không nối trực tiếp input chưa tin cậy vào regex** nếu chỉ muốn tìm nguyên văn. Dùng `Pattern.quote`, kiểm soát giới hạn độ dài/độ phức tạp và chú ý khả năng backtracking rất chậm của mẫu không chặt chẽ.
-7. **Dùng dữ liệu thực và test hồi quy** sau khi thay đổi mẫu: regex ngắn không có nghĩa là dễ đoán trong mọi trường hợp.
+1. **State expectations clearly:** a test named `shouldRejectWrongExtensionSeparator` beats a vague `testRegex`.
+2. **Use `matches()` for full-string formats and `find()` for extraction**; if testing both, name the outcomes clearly.
+3. **Avoid claiming a string “matches” just because `find()` returns true** when business rules require every character to be valid.
+4. **Verify group opening/closing pairs** and numbering; changing `(...)` to `(?:...)` can shift group numbers.
+5. **Test both regex and replacement:** a valid match can still emit wrong output if `$1`, `${name}`, or backslashes in the replacement are interpreted unexpectedly.
+6. **Never concatenate untrusted input directly into a regex** if you only want a literal search. Use `Pattern.quote`, enforce length/complexity limits, and watch for catastrophic backtracking on loose patterns.
+7. **Use real data and regression tests** after modifying patterns: a short regex does not mean it is predictable in every edge case.
 
-### Minh họa kiểm thử bằng JUnit 5
+### JUnit 5 Testing Illustration
 
-Nếu dự án đã có JUnit 5, các assertion có thể được viết gọn như sau. **Đây là phương thức test nằm trong lớp test của dự án**, không phải chương trình Java độc lập; cần dependency JUnit 5 và các import phù hợp.
+If a project already uses JUnit 5, assertions can be written concisely as follows. **These are test methods inside a project test class**, not a standalone Java program; JUnit 5 dependencies and imports are required.
 
 ~~~java
 import static org.junit.jupiter.api.Assertions.*;
@@ -448,54 +448,54 @@ class RegexSymbolsTest {
 }
 ~~~
 
-Test đọc dễ hơn khi **mỗi assertion kiểm tra đúng một đặc điểm**. Tránh test chỉ chứa những ví dụ hợp lệ vì dấu `.` wildcard rất dễ “lọt” những chuỗi gần đúng.
+Tests are easier to read when **each assertion checks one specific trait**. Avoid suites containing only valid examples, as the wildcard `.` easily lets near-matches slip through.
 
-## 11. Lỗi phổ biến cần tránh
+## 11. Common Mistakes to Avoid
 
-- **Viết `"\\. "` thay vì `"\\."`** (thừa dấu cách) hoặc `"."` (chấm wildcard) trong lúc muốn tìm dấu chấm thật. Chuỗi Java phải tạo ra đúng regex dự kiến.
-- **Nhầm cách viết `/regex/` trong JavaScript với Java `Pattern`:** ở Java, hai slash đó được tính vào nội dung mẫu; không phải delimiter.
-- **Nhầm dấu gạch xuôi và gạch ngược:** `/` thường là literal; `\` bắt đầu escape trong regex, và phải được escape tiếp trong Java string.
-- **Dùng `$` để biểu diễn đô la tiền tệ:** trong pattern `$` là anchor, muốn dấu thật dùng `\$`; trong Java literal là `"\\$"`.
-- **Dùng `"$1"` trong pattern với kỳ vọng tham chiếu nhóm:** `$1` là cú pháp của **replacement**, không phải backreference regex. Trong pattern, tham chiếu nhóm theo số dùng `\1` (Java `"\\1"`).
-- **Dùng dữ liệu replacement có `$`/`\` trực tiếp:** `replaceAll` xử lý cú pháp nhóm/escape; cần `Matcher.quoteReplacement` cho literal.
-- **Lấy `group(1)` trước khi có match:** dẫn tới `IllegalStateException`; kiểm tra thành công của `matches()` hoặc `find()` trước.
-- **Vô tình thêm nhóm bắt:** số nhóm thay đổi làm `$1`/`group(1)` mang ý nghĩa khác. Dùng `(?:...)` nếu chỉ gom.
-- **Quên thử xuống dòng:** DOTALL và MULTILINE là hai tùy chọn khác nhau; đừng suy ra từ một đầu vào chỉ có một dòng.
-- **Đoán đúng đắn từ một kết quả true:** test phải có cả chuỗi sai sát biên, chuỗi có dấu đặc biệt, dòng mới, nhóm tùy chọn và dữ liệu replacement.
-- **Phân tích cấu trúc phức tạp chỉ bằng regex:** đường dẫn/URL/JSON/HTML có quy tắc cú pháp riêng; khi bài toán cần hiểu cấu trúc hoàn chỉnh, chọn parser hoặc API chuyên dụng.
+- **Writing `"\\. "` instead of `"\\."`** (extra space) or `"."` (wildcard dot) when trying to match a literal dot. The Java string must produce the exact intended regex.
+- **Confusing JavaScript's `/regex/` syntax with Java `Pattern`:** in Java, those two slashes become part of the pattern content; they are not delimiters.
+- **Confusing forward slash and backslash:** `/` is normally literal; `\` starts a regex escape and must itself be escaped in Java strings.
+- **Using `$` to represent currency dollars:** inside a pattern, `$` is an anchor; for a literal sign use `\$`, written `"\\$"` in a Java literal.
+- **Using `"$1"` inside a pattern expecting a group backreference:** `$1` is **replacement** syntax, not a regex backreference. Inside a pattern, numbered backreferences use `\1` (Java `"\\1"`).
+- **Passing replacement data with `$`/`\` directly:** `replaceAll` interprets group/escape syntax; use `Matcher.quoteReplacement` for literals.
+- **Calling `group(1)` before a match exists:** throws `IllegalStateException`; check `matches()` or `find()` first.
+- **Accidentally adding capturing groups:** shifting group numbers changes what `$1`/`group(1)` refers to. Use `(?:...)` for grouping only.
+- **Forgetting to test line breaks:** DOTALL and MULTILINE are separate flags; do not extrapolate from single-line inputs.
+- **Assuming correctness from a single `true` result:** tests need near-miss invalid strings, punctuation strings, newlines, optional groups, and replacement data.
+- **Parsing complex grammars with regex alone:** paths, URLs, JSON, and HTML have dedicated syntax rules; when full structural parsing is needed, choose a dedicated parser or API.
 
-## 12. Bài luyện tập
+## 12. Practice Exercises
 
-**Bài 1.** Tại sao regex `a.b` nhận `a/b` khi dùng `matches()`? Viết Java regex chỉ nhận đúng `a.b`.
+**Exercise 1.** Why does regex `a.b` accept `a/b` under `matches()`? Write a Java regex that accepts only `a.b`.
 
-**Đáp án:** `.` là wildcard, nhận cả slash. Cần `Pattern.matches("a\\.b", "a.b")`.
+**Answer:** `.` is a wildcard, matching even a slash. Use `Pattern.matches("a\\.b", "a.b")`.
 
-**Bài 2.** Viết regex Java kiểm tra toàn chuỗi dạng `/user/123` (chính xác hai slash xuôi, chữ `user`, và ba chữ số).
+**Exercise 2.** Write a Java regex validating a full string of the form `/user/123` (exact two forward slashes, the letters `user`, and three digits).
 
-**Đáp án:** `Pattern.matches("/user/\\d{3}", "/user/123")`. Slash xuôi không phải ký hiệu escape đặc biệt.
+**Answer:** `Pattern.matches("/user/\\d{3}", "/user/123")`. Forward slashes are not special escape characters.
 
-**Bài 3.** Với regex Java `"^\\$\\d+$"`, `"$15"` có khớp không? `"15$"` có khớp không?
+**Exercise 3.** Given the Java regex `"^\\$\\d+$"`, does `"$15"` match? Does `"15$"` match?
 
-**Đáp án:** `"$15"` khớp, `"15$"` không khớp. Regex yêu cầu dấu đô la **đầu** chuỗi, rồi một hoặc nhiều chữ số đến hết.
+**Answer:** `"$15"` matches; `"15$"` does not. The regex requires a dollar sign at the **start** of the string, followed by one or more digits to the end.
 
-**Bài 4.** Với mẫu `(?<first>[a-z]+)-(?<second>\d+)` trong regex (Java literal cần `\\d`), muốn output `"42:abc"` từ `"abc-42"` thì nên dùng replacement nào?
+**Exercise 4.** Given the regex pattern `(?<first>[a-z]+)-(?<second>\d+)` (Java literal needs `\\d`), what replacement turns `"abc-42"` into `"42:abc"`?
 
-**Đáp án:** `"${second}:${first}"`. Tên nhóm trong replacement nằm sau dấu `$`, được bao bằng cặp `{...}`.
+**Answer:** `"${second}:${first}"`. Named group references in replacements follow `$` enclosed in `{...}`.
 
-**Bài 5.** Chuỗi replacement đến từ người dùng là `"$2\folder"`. Vì sao không truyền thẳng vào `Matcher.replaceAll(...)`?
+**Exercise 5.** A user-supplied replacement string is `"$2\folder"`. Why should you not pass it straight to `Matcher.replaceAll(...)`?
 
-**Đáp án:** `$2` có thể bị hiểu là tham chiếu nhóm 2 và `\` có ý nghĩa escape trong replacement. Dùng `Matcher.quoteReplacement(userReplacement)` để chèn nguyên văn.
+**Answer:** `$2` can be interpreted as a reference to group 2 and `\` has escape semantics in replacements. Use `Matcher.quoteReplacement(userReplacement)` to insert it literally.
 
-**Bài 6.** Vì sao mẫu `"report\\.txt"` qua `find()` vẫn có thể trả true đối với `"backup_report.txt.old"`?
+**Exercise 6.** Why can the pattern `"report\\.txt"` still return true via `find()` on `"backup_report.txt.old"`?
 
-**Đáp án:** `find()` tìm được một **đoạn con** `report.txt` trong chuỗi dài hơn. Nếu kiểm tra **đúng toàn bộ tên file**, dùng `matches()` hoặc ràng buộc phù hợp trong mẫu.
+**Answer:** `find()` locates a **substring** `report.txt` inside the longer string. When validating an **entire filename**, use `matches()` or appropriate anchors in the pattern.
 
-## Ghi nhớ
+## Takeaway
 
-- **`.` trong regex**: wildcard; **`\.`**: dấu chấm thật; Java literal của mẫu sau là `"\\."`.
-- **`/` trong Java regex**: ký tự thường, không phải dấu bao mẫu. **`\`**: ký tự escape trong cả regex và Java source.
-- **`$` trong regex**: neo cuối; **`\$`**: dấu đô la thật. **`$1` hoặc `${name}` trong replacement**: nội dung nhóm bắt.
-- **`(...)`**: nhóm bắt; **`(?:...)`**: nhóm không bắt; **`(?<name>...)`**: nhóm có tên.
-- **Kiểm thử thực tế**: kết hợp đầu vào đúng/sai, `matches()`/`find()`, xuống dòng, replacement đặc biệt và những chuỗi chứa dấu câu.
+- **`.` in regex**: wildcard; **`\.`**: literal dot; Java literal for the latter is `"\\."`.
+- **`/` in Java regex**: ordinary character, not a pattern delimiter. **`\`**: escape character in both regex and Java source.
+- **`$` in regex**: end anchor; **`\$`**: literal dollar sign. **`$1` or `${name}` in replacement**: captured group content.
+- **`(...)`**: capturing group; **`(?:...)`**: non-capturing group; **`(?<name>...)`**: named group.
+- **Practical testing**: combine valid/invalid inputs, `matches()`/`find()`, line breaks, special replacements, and punctuation-heavy strings.
 
-Có thể đối chiếu chi tiết tại [Java 17 Pattern API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html) và [Java 17 Matcher API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Matcher.html).
+For full reference, see the [Java 17 Pattern API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html) and [Java 17 Matcher API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Matcher.html).

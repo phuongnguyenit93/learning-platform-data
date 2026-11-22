@@ -1,8 +1,8 @@
-# `BigDecimal.intValue()`, `longValue()` và phần dữ liệu có thể mất
+# `BigDecimal.intValue()`, `longValue()`, and Potential Data Loss
 
-## 1. Vì sao cần hiểu kỹ chuyển đổi từ BigDecimal sang số nguyên?
+## 1. Why Should You Thoroughly Understand Converting BigDecimal to Integers?
 
-`BigDecimal` biểu diễn các số thập phân với độ chính xác tùy ý, trong khi `int` chỉ chứa được số nguyên có dấu 32 bit và `long` chỉ chứa được số nguyên có dấu 64 bit. Khi viết:
+`BigDecimal` represents decimal numbers with arbitrary precision, whereas `int` holds only 32-bit signed integers and `long` holds only 64-bit signed integers. When you write:
 
 ~~~java
 BigDecimal value = new BigDecimal("123.99");
@@ -11,98 +11,98 @@ int a = value.intValue();   // 123
 long b = value.longValue(); // 123
 ~~~
 
-Java **không báo lỗi** dù phần `.99` đã biến mất. Hai phương thức này thực hiện **chuyển đổi thu hẹp có thể mất dữ liệu**, không phải phép làm tròn theo một quy tắc tài chính.
+Java **does not report an error** even though the `.99` part has vanished. These two methods perform a **lossy narrowing conversion**, not rounding according to a financial rule.
 
-Thậm chí phần nguyên cũng có thể mất nếu nằm ngoài phạm vi kiểu đích:
+Even the integer part can be lost if it lies outside the target type's range:
 
 ~~~java
 new BigDecimal("2147483648").intValue()  // -2147483648
 new BigDecimal("4294967296").intValue()  // 0
 ~~~
 
-Điều cần ghi nhớ:
+Key points to remember:
 
-- `intValue()` và `longValue()` **loại bỏ phần thập phân theo hướng về 0**; sau đó giới hạn vào số bit của kiểu đích. Chúng **không kiểm tra mất mát dữ liệu**.
-- `intValueExact()` và `longValueExact()` **chỉ trả kết quả nếu giá trị là số nguyên chính xác và nằm trong phạm vi kiểu đích**; nếu không, chúng ném `ArithmeticException`.
-- Nếu nghiệp vụ cho phép làm tròn, hãy **chọn rõ `RoundingMode` và làm tròn trước**, rồi dùng phương thức `...ValueExact()` để kiểm tra giới hạn.
-- Việc chương trình biên dịch hoặc trả được `int`/`long` không chứng minh phép chuyển đổi đã giữ đúng giá trị ban đầu.
+- `intValue()` and `longValue()` **discard the fractional part toward zero**, and then narrow to the target type's bit width. They **do not check for data loss**.
+- `intValueExact()` and `longValueExact()` **only return a result if the value is an exact integer and fits within the target type's range**; otherwise, they throw `ArithmeticException`.
+- If business logic permits rounding, **explicitly choose a `RoundingMode` and round first**, then use the `...ValueExact()` methods to verify bounds.
+- The fact that a program compiles or returns an `int`/`long` does not prove the conversion preserved the original value.
 
-## 2. Hai nguồn mất dữ liệu độc lập
+## 2. Two Independent Sources of Data Loss
 
-### 2.1. Mất phần thập phân: cắt về 0, không làm tròn
+### 2.1. Losing the Fractional Part: Truncating Toward Zero, Not Rounding
 
-`intValue()` và `longValue()` bỏ phần không nguyên. Chúng chỉ giữ phần nguyên gần 0 nhất:
+`intValue()` and `longValue()` drop the non-integer part. They keep only the integer part closest to zero:
 
-| BigDecimal đầu vào | `intValue()` | `longValue()` | Điều bị mất |
+| Input BigDecimal | `intValue()` | `longValue()` | What Is Lost |
 | --- | ---: | ---: | --- |
 | `123.999` | `123` | `123` | `0.999` |
 | `-123.999` | `-123` | `-123` | `-0.999` |
-| `0.999` | `0` | `0` | Toàn bộ giá trị khác 0 |
-| `-0.999` | `0` | `0` | Toàn bộ giá trị khác 0 |
-| `1.000` | `1` | `1` | Không mất **giá trị số**; chỉ không giữ lại scale 3 |
+| `0.999` | `0` | `0` | Entire non-zero value |
+| `-0.999` | `0` | `0` | Entire non-zero value |
+| `1.000` | `1` | `1` | No **numeric value** lost; only scale 3 is not retained |
 
-Ví dụ, `new BigDecimal("-2.9").intValue()` là `-2`. Đây **không** phải `Math.floor(-2.9)` (kết quả `-3.0`), cũng **không** phải làm tròn đến số nguyên gần nhất. Chữ “truncate” là **loại bỏ phần thập phân về 0**.
+For example, `new BigDecimal("-2.9").intValue()` is `-2`. This is **not** `Math.floor(-2.9)` (which gives `-3.0`), nor is it rounding to the nearest integer. The term "truncate" means **discarding the fractional part toward zero**.
 
-`intValue()` và `longValue()` không nhận `RoundingMode`. Các mode như `HALF_UP`, `HALF_EVEN`, `DOWN`, `FLOOR` chỉ có tác dụng nếu bạn chủ động dùng API làm tròn như `setScale`.
+`intValue()` and `longValue()` do not accept a `RoundingMode`. Modes like `HALF_UP`, `HALF_EVEN`, `DOWN`, and `FLOOR` only take effect if you actively use a rounding API such as `setScale`.
 
-### 2.2. Mất bit ở phần nguyên: số có thể đổi dấu hoặc thành 0
+### 2.2. Losing Bits in the Integer Part: Numbers Can Flip Sign or Become 0
 
-Phạm vi Java của hai kiểu:
+Java ranges for the two types:
 
-| Kiểu | Số bit | Giá trị nhỏ nhất | Giá trị lớn nhất |
+| Type | Bit Width | Minimum Value | Maximum Value |
 | --- | ---: | ---: | ---: |
 | `int` | 32 | `-2147483648` | `2147483647` |
 | `long` | 64 | `-9223372036854775808` | `9223372036854775807` |
 
-Sau khi loại bỏ phần thập phân, nếu phần nguyên quá lớn hoặc quá nhỏ:
+After discarding the fractional part, if the integer part is too large or too small:
 
-- `intValue()` giữ **32 bit thấp** của phần nguyên theo biểu diễn hai bù, rồi diễn giải kết quả thành `int` có dấu.
-- `longValue()` giữ **64 bit thấp** và diễn giải thành `long` có dấu.
-- Không có ngoại lệ chỉ vì vượt phạm vi; giá trị nhận được có thể hoàn toàn khác số ban đầu.
+- `intValue()` keeps the **low 32 bits** of the integer part in two's complement representation, and interprets the result as a signed `int`.
+- `longValue()` keeps the **low 64 bits** and interprets them as a signed `long`.
+- No exception is thrown merely for exceeding the range; the resulting value can be completely different from the original number.
 
-Ví dụ:
+Examples:
 
-| Giá trị BigDecimal | `intValue()` | `longValue()` | Giải thích |
+| BigDecimal Value | `intValue()` | `longValue()` | Explanation |
 | --- | ---: | ---: | --- |
-| `2147483647` | `2147483647` | `2147483647` | Trong phạm vi cả hai |
-| `2147483648` | `-2147483648` | `2147483648` | Vượt `int`, nhưng vừa `long` |
-| `4294967296` (= 2^32) | `0` | `4294967296` | 32 bit thấp đều bằng 0 |
-| `9223372036854775807` | `-1` | `9223372036854775807` | Vừa `long`; 32 bit thấp bằng tất cả bit 1 |
-| `9223372036854775808` (= 2^63) | `0` | `-9223372036854775808` | Vượt `long`, bit dấu bị diễn giải thành âm |
-| `18446744073709551616` (= 2^64) | `0` | `0` | 64 bit thấp đều bằng 0 |
+| `2147483647` | `2147483647` | `2147483647` | Within range of both |
+| `2147483648` | `-2147483648` | `2147483648` | Exceeds `int`, but fits `long` |
+| `4294967296` (= 2^32) | `0` | `4294967296` | Low 32 bits are all 0 |
+| `9223372036854775807` | `-1` | `9223372036854775807` | Fits `long`; low 32 bits are all 1s |
+| `9223372036854775808` (= 2^63) | `0` | `-9223372036854775808` | Exceeds `long`, sign bit interpreted as negative |
+| `18446744073709551616` (= 2^64) | `0` | `0` | Low 64 bits are all 0 |
 
-Ở đây nói “giữ bit thấp” là mô tả **kết quả theo đặc tả chuyển đổi**; không nên dựa vào một giả định về cấu trúc bộ nhớ bên trong `BigDecimal`.
+Saying "keeps the low bits" here describes **the result according to the conversion specification**; you should not rely on assumptions about `BigDecimal`'s internal memory layout.
 
-Ví dụ `4294967296` thành `0` vì `4294967296 = 2^32`: khi chỉ giữ phần dư theo `2^32`, kết quả là 0. Số âm cũng có thể biến thành số dương: `new BigDecimal("-2147483649").intValue()` cho `2147483647`.
+For example, `4294967296` becomes `0` because `4294967296 = 2^32`: keeping only the remainder modulo `2^32` yields 0. Negative numbers can also turn into positive ones: `new BigDecimal("-2147483649").intValue()` produces `2147483647`.
 
-**Cắt phần thập phân và mất bit có thể xảy ra cùng lúc.** Một số như `4294967296.75` có thể mất `.75` trước, rồi chuyển phần nguyên `4294967296` thành `0` nếu dùng `intValue()`.
+**Fractional truncation and bit loss can happen at the same time.** A number like `4294967296.75` loses `.75` first, and then turns the integer part `4294967296` into `0` when using `intValue()`.
 
-## 3. Hai phương thức an toàn hơn: intValueExact và longValueExact
+## 3. Two Safer Methods: intValueExact and longValueExact
 
-API `BigDecimal` cung cấp:
+The `BigDecimal` API provides:
 
 ~~~java
 int exactInt = value.intValueExact();
 long exactLong = value.longValueExact();
 ~~~
 
-Chúng đòi hỏi **đồng thời cả hai điều kiện**:
+They require **both conditions simultaneously**:
 
-1. **Giá trị toán học phải là số nguyên chính xác**: không được bỏ một phần thập phân khác 0.
-2. **Giá trị nguyên phải nằm trong phạm vi** của `int` hoặc `long`.
+1. **The mathematical value must be an exact integer**: no non-zero fractional part may be discarded.
+2. **The integer value must fit within the range** of `int` or `long`.
 
-Nếu bất kỳ điều kiện nào không đạt, `ArithmeticException` được ném. Không phải phép toán nào cũng thất bại chỉ vì `scale() > 0`:
+If either condition fails, `ArithmeticException` is thrown. Not every operation fails just because `scale() > 0`:
 
 ~~~java
-new BigDecimal("1.000").intValueExact(); // 1: phần lẻ có giá trị 0
+new BigDecimal("1.000").intValueExact(); // 1: fractional part has value 0
 new BigDecimal("1.001").intValueExact(); // ArithmeticException
 ~~~
 
-`1.000` có scale 3, nhưng giá trị toán học là số nguyên 1. Vì vậy **đừng chỉ nhìn số chữ số sau dấu thập phân** để quyết định có thể chuyển chính xác hay không.
+`1.000` has scale 3, but its mathematical value is the integer 1. Therefore, **do not look only at the number of digits after the decimal point** to decide whether an exact conversion is possible.
 
-Bảng lựa chọn:
+Selection table:
 
-| Dữ liệu đầu vào | `intValueExact()` | `longValueExact()` |
+| Input Data | `intValueExact()` | `longValueExact()` |
 | --- | --- | --- |
 | `123` | `123` | `123` |
 | `1.000` | `1` | `1` |
@@ -111,7 +111,7 @@ Bảng lựa chọn:
 | `9223372036854775807` | `ArithmeticException` | `9223372036854775807` |
 | `9223372036854775808` | `ArithmeticException` | `ArithmeticException` |
 
-Nếu cần xử lý lỗi rõ ràng trong ứng dụng:
+If explicit error handling is needed in the application:
 
 ~~~java
 BigDecimal input = new BigDecimal("123.99");
@@ -120,15 +120,15 @@ try {
     long converted = input.longValueExact();
     System.out.println(converted);
 } catch (ArithmeticException ex) {
-    System.out.println("Giá trị có phần lẻ hoặc vượt phạm vi long");
+    System.out.println("Value has a fractional part or exceeds the long range");
 }
 ~~~
 
-Đoạn mã này nằm trong một phương thức hoặc block thích hợp có import `java.math.BigDecimal`; đầu ra sẽ là dòng thông báo trong `catch`. Thông điệp exception cụ thể của JDK không nên dùng làm điều kiện nghiệp vụ, vì có thể khác nhau theo tình huống hoặc phiên bản.
+This snippet sits inside an appropriate method or block with `import java.math.BigDecimal;`; the output will be the message line in the `catch` block. Specific JDK exception messages should not be used for business conditions, as they can vary by situation or version.
 
-## 4. Chương trình Java 17+ minh họa đầy đủ
+## 4. Complete Illustrative Java 17+ Program
 
-Tạo file **`BigDecimalIntegerConversionDemo.java`**:
+Create a file named **`BigDecimalIntegerConversionDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -187,14 +187,14 @@ public class BigDecimalIntegerConversionDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac BigDecimalIntegerConversionDemo.java
 java BigDecimalIntegerConversionDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 123.999 | int=123 | long=123 | intExact=ArithmeticException | longExact=ArithmeticException
@@ -211,15 +211,15 @@ negative HALF_UP: -13
 BigInteger trunc: 1
 ~~~
 
-**Cách đọc kết quả:** Cột `int` và `long` luôn hiển thị một giá trị nguyên, kể cả khi sai lệch nghiêm trọng. Hai cột `intExact` và `longExact` giúp nhìn rõ trường hợp nào không thể chuyển chính xác. `2147483648` là phép thử đặc biệt hữu ích: `intValue()` đổi thành số âm, `intValueExact()` báo lỗi, còn `longValueExact()` thành công vì vẫn vừa phạm vi 64 bit.
+**How to read the output:** The `int` and `long` columns always display an integer value, even when severely inaccurate. The `intExact` and `longExact` columns make it clear which cases cannot be converted accurately. `2147483648` is a particularly useful test: `intValue()` flips to a negative number, `intValueExact()` reports an error, while `longValueExact()` succeeds because it still fits within 64 bits.
 
-Đoạn chương trình bắt riêng `ArithmeticException` trong phương thức trợ giúp để minh họa toàn bộ các trường hợp trên một lần chạy. Trong mã nghiệp vụ, thường nên **để lỗi lan lên tầng kiểm tra dữ liệu** hoặc biến thành lỗi xác thực có thông tin đầu vào phù hợp, thay vì âm thầm trả giá trị mặc định.
+The program explicitly catches `ArithmeticException` in helper methods to demonstrate all cases in a single run. In production business code, it is usually better to **let the error propagate to the validation layer** or turn it into a validation error with appropriate input context, rather than silently returning a default value.
 
-## 5. Nếu nghiệp vụ thật sự cần làm tròn hoặc cắt bỏ phần lẻ
+## 5. When Business Logic Genuinely Requires Rounding or Truncating Fractions
 
-Chọn chính sách theo yêu cầu, sau đó tách rõ **bước xử lý phần thập phân** và **bước kiểm tra phạm vi số nguyên**.
+Choose the policy according to requirements, then clearly separate the **fractional-part handling step** from the **integer-range verification step**.
 
-### 5.1. Làm tròn theo quy tắc đã định
+### 5.1. Rounding According to a Defined Rule
 
 ~~~java
 BigDecimal amount = new BigDecimal("12.75");
@@ -229,17 +229,17 @@ int halfUp = amount
         .intValueExact(); // 13
 ~~~
 
-`setScale(0, HALF_UP)` là một lựa chọn nghiệp vụ: làm tròn đến số nguyên gần nhất và khi đúng nửa thì đi xa số 0. Khi đã tạo giá trị nguyên bằng phép làm tròn chủ động, `intValueExact()` tiếp tục bảo đảm nó nằm trong phạm vi `int`.
+`setScale(0, HALF_UP)` is a business choice: round to the nearest integer, and when exactly halfway, round away from zero. Once the integer value has been produced via intentional rounding, `intValueExact()` further guarantees it lies within the `int` range.
 
-Không nên làm như sau nếu mục tiêu là tính số nguyên sau khi làm tròn:
+Do not do the following if the goal is to compute the rounded integer:
 
 ~~~java
-int wrongForRounding = new BigDecimal("12.75").intValue(); // 12, không phải 13
+int wrongForRounding = new BigDecimal("12.75").intValue(); // 12, not 13
 ~~~
 
-Ví dụ các mode cho `-12.75` khi scale 0:
+Example modes for `-12.75` at scale 0:
 
-| Mode | Kết quả |
+| Mode | Result |
 | --- | ---: |
 | `DOWN` | `-12` |
 | `UP` | `-13` |
@@ -248,9 +248,9 @@ Ví dụ các mode cho `-12.75` khi scale 0:
 | `CEILING` | `-12` |
 | `FLOOR` | `-13` |
 
-Ở giá trị `-12.75`, nhiều mode tình cờ trả cùng số. Để phân biệt các mode tại điểm đúng nửa, thử cả `2.5` và `-2.5`. Ví dụ `HALF_EVEN` làm tròn `2.5` thành `2`, còn `HALF_UP` thành `3`.
+For `-12.75`, several modes happen to return the same number. To distinguish modes at exact halfway points, test both `2.5` and `-2.5`. For instance, `HALF_EVEN` rounds `2.5` to `2`, while `HALF_UP` rounds it to `3`.
 
-### 5.2. Nếu cắt về 0 là quyết định có chủ ý, vẫn kiểm tra tràn
+### 5.2. If Truncating Toward Zero Is Intentional, Still Check for Overflow
 
 ~~~java
 BigDecimal quantity = new BigDecimal("-12.75");
@@ -260,34 +260,34 @@ long truncatedChecked = quantity
         .longValueExact(); // -12
 ~~~
 
-`RoundingMode.DOWN` có nghĩa là đi **về 0**, không phải luôn giảm giá trị. Kết quả làm tròn tới scale 0 được biểu diễn thành số nguyên, rồi `longValueExact()` kiểm tra phạm vi.
+`RoundingMode.DOWN` means moving **toward zero**, not always decreasing the value. The result rounded to scale 0 is represented as an integer, and then `longValueExact()` verifies the range.
 
-Cách này thích hợp khi bạn muốn giữ đúng chính sách bỏ phần thập phân **nhưng không chấp nhận chuyển sai vì tràn 64 bit**. Nếu muốn **cấm mọi phần lẻ khác 0**, không dùng `DOWN`: hãy gọi trực tiếp `longValueExact()`.
+This approach is suitable when you want to maintain the policy of dropping the fractional part **while refusing to misconvert due to 64-bit overflow**. If you want to **forbid any non-zero fractional part**, do not use `DOWN`: call `longValueExact()` directly.
 
-### 5.3. Với số nguyên lớn hơn long: dùng BigInteger
+### 5.3. For Integers Larger Than long: Use BigInteger
 
-Nếu bài toán thật sự cần một số nguyên có thể lớn hơn `Long.MAX_VALUE`, đừng ép về `long`:
+If the problem genuinely needs an integer that may exceed `Long.MAX_VALUE`, do not force it into `long`:
 
 ~~~java
 BigDecimal huge = new BigDecimal("9223372036854775808");
 
 java.math.BigInteger whole = huge.toBigIntegerExact();
-// 9223372036854775808, không mất dữ liệu.
+// 9223372036854775808, no data loss.
 ~~~
 
-Phân biệt:
+Distinguish:
 
-- `toBigInteger()`: bỏ phần lẻ (nếu có), không áp giới hạn 32/64 bit.
-- `toBigIntegerExact()`: **từ chối** phần lẻ khác 0 bằng `ArithmeticException`, vẫn không giới hạn 32/64 bit như hai kiểu nguyên primitive.
-- `toBigInteger().intValue()`: sau cùng vẫn **có thể mất các bit cao**. Đổi sang `BigInteger` không tự làm cho mọi phép ép về `int`/`long` trở nên an toàn.
+- `toBigInteger()`: discards the fractional part (if any), with no 32/64-bit limit.
+- `toBigIntegerExact()`: **rejects** any non-zero fractional part with `ArithmeticException`, still without the 32/64-bit limits of the two primitive integer types.
+- `toBigInteger().intValue()`: ultimately **can still lose high bits**. Converting to `BigInteger` does not automatically make any subsequent cast to `int`/`long` safe.
 
-Với dữ liệu đếm, kích thước, hoặc ID vốn phải là số nguyên, một lựa chọn khác là xử lý chuỗi đầu vào bằng `Integer.parseInt`, `Long.parseLong` hoặc `new BigInteger(text)`, theo đúng phạm vi và định dạng đầu vào. Không nhất thiết phải đi vòng qua `BigDecimal` nếu nghiệp vụ không chấp nhận số thập phân ngay từ đầu.
+For counts, sizes, or IDs that must strictly be integers, another option is to process the input string with `Integer.parseInt`, `Long.parseLong`, or `new BigInteger(text)`, according to the valid range and input format. There is no need to route through `BigDecimal` if business rules reject decimal numbers from the outset.
 
-## 6. Giá trị hiển thị, precision, scale và chuyển đổi sang kiểu nguyên
+## 6. Display Value, Precision, Scale, and Conversion to Integer Types
 
-Một `BigDecimal` có **precision** (số chữ số có nghĩa) và **scale** (số chữ số thập phân theo biểu diễn). `intValue()` và `longValue()` không chuyển hai thuộc tính đó thành kiểu nguyên; kết quả chỉ còn một số nguyên primitive.
+A `BigDecimal` has **precision** (number of significant digits) and **scale** (number of decimal digits in its representation). `intValue()` and `longValue()` do not carry those two attributes into the integer type; the result is merely a primitive integer.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal input = new BigDecimal("00123.4500");
@@ -297,64 +297,64 @@ System.out.println(input.scale());  // 4
 System.out.println(input.intValue()); // 123
 ~~~
 
-Dù nhập `00123.4500`, đối tượng `BigDecimal` không còn giữ các số 0 đứng trước trong cách `toString()` chuẩn. Sau khi gọi `intValue()`, chữ số lẻ `.4500` cũng mất. Không thể đảo ngược từ `123` để biết giá trị gốc từng là `123.45`, `123.99` hay `123.000`.
+Even though `00123.4500` was entered, the `BigDecimal` object no longer retains leading zeros in its canonical `toString()`. After calling `intValue()`, the fractional digits `.4500` are also lost. It is impossible to reverse-engineer `123` to tell whether the original value was `123.45`, `123.99`, or `123.000`.
 
-Đặc biệt:
+Specifically:
 
 ~~~java
-new BigDecimal("1.000").intValueExact(); // thành công: 1
-new BigDecimal("1.001").intValueExact(); // lỗi: còn phần lẻ khác 0
+new BigDecimal("1.000").intValueExact(); // succeeds: 1
+new BigDecimal("1.001").intValueExact(); // fails: has non-zero fractional part
 ~~~
 
-Làm tròn khi tạo `BigDecimal` bằng `MathContext` cũng có thể **mất dữ liệu trước** khi gọi `intValueExact()`. Ví dụ nếu đầu vào `1.001` bị làm tròn thành `1.0` ở bước trước thì phương thức Exact ở bước sau chỉ biết kiểm tra giá trị **đang có**, không thể phát hiện phần lẻ đã bị loại. Do đó hãy kiểm tra tính hợp lệ trước bước làm tròn ngoài ý muốn.
+Rounding when creating `BigDecimal` with a `MathContext` can also **lose data before** `intValueExact()` is called. For instance, if an input `1.001` was rounded to `1.0` in an earlier step, the Exact method in the later step can only inspect the **current** value and cannot detect the already-discarded fractional part. Therefore, validate input before any unintended rounding step.
 
-## 7. Các lỗi phổ biến trong ứng dụng
+## 7. Common Application Mistakes
 
-**Sai lầm 1 — Đổi giá tiền sang `int` bằng `intValue()` rồi tưởng đã làm tròn.** Với `12.75`, kết quả là `12`, có thể gây sai lệch khi thống kê hoặc hạch toán. Định nghĩa rõ đơn vị (đồng, cent, hay đơn vị nhỏ nhất), chính sách làm tròn và thời điểm làm tròn. Nếu cần biểu diễn tiền theo đơn vị nhỏ nhất bằng số nguyên, hãy nhân theo đúng hệ số, làm tròn theo hợp đồng rồi dùng `longValueExact()` để kiểm tra.
+**Mistake 1 — Converting currency amounts to `int` with `intValue()` and assuming it rounded.** With `12.75`, the result is `12`, causing discrepancies in reporting or accounting. Clearly define the unit (dong, cents, or smallest unit), rounding policy, and timing of rounding. If money must be represented in its smallest unit as an integer, multiply by the exact factor, round per contract, and then use `longValueExact()` to verify.
 
-**Sai lầm 2 — Kiểm tra `BigDecimal` không âm rồi tin phép chuyển sang `int` cũng không âm.** `2147483648` là số dương nhưng `intValue()` thành số âm do tràn phạm vi. Đối với dữ liệu không thể mất như ID hoặc giới hạn tài nguyên, dùng chuyển đổi Exact và kiểm tra miền hợp lệ của nghiệp vụ.
+**Mistake 2 — Checking that a `BigDecimal` is non-negative and assuming converting to `int` will also be non-negative.** `2147483648` is positive, but `intValue()` turns negative due to range overflow. For non-lossy data like IDs or resource limits, use Exact conversions and check business domain bounds.
 
-**Sai lầm 3 — Chỉ kiểm tra giá trị ≤ `Integer.MAX_VALUE`.** Ngoài giới hạn trên còn có giới hạn dưới và phần thập phân. Kiểm tra tay cũng dễ bỏ sót lỗi; `intValueExact()` giải quyết cả hai điều kiện cốt lõi.
+**Mistake 3 — Only checking value ≤ `Integer.MAX_VALUE`.** Besides the upper bound, there is a lower bound and the fractional part. Manual checks easily miss edge cases; `intValueExact()` solves both core conditions.
 
-**Sai lầm 4 — Tưởng `longValue()` an toàn vì `long` rất rộng.** Một `BigDecimal` vẫn có thể vượt 64 bit; `9223372036854775808` chuyển sang `long` thành `Long.MIN_VALUE`.
+**Mistake 4 — Assuming `longValue()` is safe because `long` is very wide.** A `BigDecimal` can still exceed 64 bits; `9223372036854775808` converts to `long` as `Long.MIN_VALUE`.
 
-**Sai lầm 5 — Bắt mọi `ArithmeticException` rồi trả `0`.** `0` có thể là giá trị hợp lệ và che giấu trường hợp dữ liệu bị lỗi. Hãy phân biệt dữ liệu không nguyên hoặc ngoài miền theo yêu cầu nghiệp vụ và giữ thông tin lỗi hữu ích.
+**Mistake 5 — Catching every `ArithmeticException` and returning `0`.** `0` might be a valid value and mask corrupted data. Distinguish non-integer or out-of-range data per business requirements and preserve helpful error information.
 
-**Sai lầm 6 — Dùng `setScale(0, DOWN)` khi yêu cầu là không cho phép phần lẻ.** `DOWN` cố tình cắt phần lẻ; dùng `intValueExact()` hoặc `longValueExact()` trực tiếp nếu phần lẻ phải bị từ chối.
+**Mistake 6 — Using `setScale(0, DOWN)` when fractional parts are forbidden.** `DOWN` deliberately truncates the fractional part; call `intValueExact()` or `longValueExact()` directly if fractions must be rejected.
 
-**Sai lầm 7 — Cho rằng chuyển từ `double` sang `BigDecimal` khôi phục giá trị gốc.** `new BigDecimal(double)` phản ánh chính xác giá trị nhị phân của `double`, có thể khác con số thập phân người dùng dự định. Khi đầu vào là văn bản decimal, ưu tiên parse từ chuỗi chính xác; đừng bỏ qua nguồn dữ liệu trước khi chọn phương thức chuyển kiểu.
+**Mistake 7 — Assuming converting from `double` to `BigDecimal` recovers the original value.** `new BigDecimal(double)` reflects the exact binary value of `double`, which may differ from the decimal number the user intended. When input is decimal text, prefer parsing from the exact string; do not ignore the data source before choosing a conversion method.
 
-**Sai lầm 8 — Dùng `longValue()` để kiểm tra số có vừa long không.** Phương thức này **luôn trả về một `long`** với giá trị có thể sai do cắt/tràn. Chính `longValueExact()` mới là phép kiểm tra chuyển đổi đầy đủ.
+**Mistake 8 — Using `longValue()` to check whether a number fits in a long.** This method **always returns a `long`** with a value that may be wrong due to truncation/overflow. `longValueExact()` is the complete conversion check.
 
-## 8. Checklist lựa chọn API
+## 8. API Selection Checklist
 
-| Nhu cầu | Phương án | Có kiểm tra phần lẻ? | Có kiểm tra phạm vi int/long? |
+| Need | Approach | Checks Fractional Part? | Checks int/long Range? |
 | --- | --- | --- | --- |
-| Chấp nhận cắt phần lẻ và nguy cơ mất bit | `intValue()` / `longValue()` | Không | Không |
-| Chỉ nhận số nguyên vừa `int` | `intValueExact()` | Có | Có, 32 bit |
-| Chỉ nhận số nguyên vừa `long` | `longValueExact()` | Có | Có, 64 bit |
-| Làm tròn có chủ đích, rồi chuyển an toàn | `setScale(0, mode).intValueExact()` hoặc `...longValueExact()` | Làm tròn theo mode đã chọn | Có |
-| Cắt phần lẻ nhưng không cho phép tràn | `setScale(0, DOWN).longValueExact()` | Chủ động cắt phần lẻ | Có |
-| Giữ số nguyên chính xác, kể cả rất lớn | `toBigIntegerExact()` | Có | Không giới hạn vào 32/64 bit |
-| Chấp nhận cắt phần lẻ thành BigInteger | `toBigInteger()` | Không | Không giới hạn vào 32/64 bit |
+| Accept fractional truncation and potential bit loss | `intValue()` / `longValue()` | No | No |
+| Accept only integers fitting in `int` | `intValueExact()` | Yes | Yes, 32-bit |
+| Accept only integers fitting in `long` | `longValueExact()` | Yes | Yes, 64-bit |
+| Intentional rounding, then safe conversion | `setScale(0, mode).intValueExact()` or `...longValueExact()` | Rounds per selected mode | Yes |
+| Truncate fractional part, disallow overflow | `setScale(0, DOWN).longValueExact()` | Intentionally truncates fraction | Yes |
+| Preserve exact integer, even very large | `toBigIntegerExact()` | Yes | Not limited to 32/64 bits |
+| Accept fractional truncation into BigInteger | `toBigInteger()` | No | Not limited to 32/64 bits |
 
-Trong code review, hãy tự hỏi: **phần thập phân có được phép bỏ đi không? Có quy tắc làm tròn nào bắt buộc không? Giá trị sau cùng có cần nằm đúng trong 32 hoặc 64 bit không?** Nếu một phép chuyển đổi sai cần được phát hiện, các phương thức `...ValueExact()` là lựa chọn mặc định phù hợp.
+During code review, ask yourself: **is discarding the fractional part allowed? Is a specific rounding rule required? Must the final value fit strictly within 32 or 64 bits?** If an invalid conversion must be caught, the `...ValueExact()` methods are the right default choice.
 
-## 9. Câu hỏi luyện tập
+## 9. Practice Questions
 
-**Câu 1.** `new BigDecimal("-7.99").intValue()` là bao nhiêu? Có phải làm tròn xuống không?
+**Question 1.** What is `new BigDecimal("-7.99").intValue()`? Is that rounding down (floor)?
 
-**Đáp án:** `-7`. Đây là cắt về 0; làm tròn theo `FLOOR` tới số nguyên sẽ là `-8`.
+**Answer:** `-7`. This is truncation toward zero; `FLOOR` rounding to an integer would be `-8`.
 
-**Câu 2.** Vì sao `new BigDecimal("4294967296").intValue()` là `0` nhưng `longValue()` vẫn cho `4294967296`?
+**Question 2.** Why is `new BigDecimal("4294967296").intValue()` equal to `0` while `longValue()` still gives `4294967296`?
 
-**Đáp án:** `4294967296 = 2^32` vượt phạm vi `int`; 32 bit thấp đều là 0. Giá trị đó vẫn nằm trong phạm vi `long`.
+**Answer:** `4294967296 = 2^32` exceeds the `int` range; all 32 low bits are 0. That value still fits within the `long` range.
 
-**Câu 3.** `new BigDecimal("4.000").intValueExact()` có ném lỗi không?
+**Question 3.** Does `new BigDecimal("4.000").intValueExact()` throw an error?
 
-**Đáp án:** Không, kết quả là `4` vì giá trị toán học là số nguyên. Scale 3 không phải điều kiện thất bại; phần lẻ khác 0 mới là vấn đề.
+**Answer:** No, the result is `4` because the mathematical value is an integer. Scale 3 is not a failure condition; a non-zero fractional part is the issue.
 
-**Câu 4.** Muốn biến `9.6` thành số nguyên `10` nhưng vẫn phát hiện tràn `int`, viết gì?
+**Question 4.** To turn `9.6` into the integer `10` while still detecting `int` overflow, what should you write?
 
 ~~~java
 int result = new BigDecimal("9.6")
@@ -362,14 +362,14 @@ int result = new BigDecimal("9.6")
         .intValueExact();
 ~~~
 
-**Câu 5.** `new BigDecimal("9223372036854775808").longValue()` có ném `ArithmeticException` không? `longValueExact()` thì sao?
+**Question 5.** Does `new BigDecimal("9223372036854775808").longValue()` throw `ArithmeticException`? What about `longValueExact()`?
 
-**Đáp án:** `longValue()` không ném và trả `-9223372036854775808`. `longValueExact()` ném `ArithmeticException` vì giá trị dương đầu vào vượt `Long.MAX_VALUE`.
+**Answer:** `longValue()` does not throw and returns `-9223372036854775808`. `longValueExact()` throws `ArithmeticException` because the positive input exceeds `Long.MAX_VALUE`.
 
-## 10. Tài liệu tham khảo
+## 10. References
 
-- [BigDecimal — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): mô tả `intValue()`, `longValue()`, `intValueExact()`, `longValueExact()`, `toBigInteger()` và `toBigIntegerExact()`.
-- [RoundingMode — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): quy tắc làm tròn, đặc biệt `DOWN`, `HALF_UP`, `HALF_EVEN` và `UNNECESSARY`.
-- [Integer và Long — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): hằng giới hạn kiểu số nguyên Java; với 64 bit tham khảo [Long](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html).
+- [BigDecimal — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): describes `intValue()`, `longValue()`, `intValueExact()`, `longValueExact()`, `toBigInteger()`, and `toBigIntegerExact()`.
+- [RoundingMode — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): rounding rules, especially `DOWN`, `HALF_UP`, `HALF_EVEN`, and `UNNECESSARY`.
+- [Integer and Long — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): Java integer type limit constants; for 64-bit refer to [Long](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html).
 
-**Ghi nhớ:** `intValue()`/`longValue()` thuận tiện nhưng **có thể âm thầm mất phần lẻ và bit cao**. `intValueExact()`/`longValueExact()` giúp giữ nguyên hợp đồng dữ liệu bằng cách báo lỗi nếu số không nguyên hoặc không vừa kiểu đích. Làm tròn có chủ đích là **bước riêng biệt**, cần quy tắc nghiệp vụ rõ ràng.
+**Takeaway:** `intValue()`/`longValue()` are convenient, but **can silently lose fractional parts and high bits**. `intValueExact()`/`longValueExact()` help uphold the data contract by failing if the number is not an integer or does not fit the target type. Intentional rounding is a **separate step** requiring explicit business rules.

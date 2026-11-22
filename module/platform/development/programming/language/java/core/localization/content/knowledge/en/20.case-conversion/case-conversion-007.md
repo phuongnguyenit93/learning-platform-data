@@ -1,37 +1,37 @@
-# Không áp dụng cùng một chính sách chữ hoa và chữ thường cho mọi trường dữ liệu
+# Do Not Apply the Same Case Policy to Every Data Field
 
-Trong ứng dụng đa ngôn ngữ, các chuỗi `"Lan"`, `"LAN"`, `"lan"` có thể biểu thị **cùng một username** nếu sản phẩm quy định username không phân biệt hoa/thường. Nhưng với **mật khẩu, mã truy cập, chuỗi chữ ký, định danh phân biệt hoa/thường** hoặc tên được người dùng nhập, ba chuỗi đó có thể mang **ý nghĩa khác nhau**. Do đó, thao tác `toLowerCase()` hoặc `equalsIgnoreCase()` áp dụng đồng loạt cho mọi cột là một lỗi thiết kế dữ liệu, không phải cách làm ứng dụng “hỗ trợ localization”.
+In multilingual applications, the strings `"Lan"`, `"LAN"`, and `"lan"` may represent **the same username** if the product defines usernames as case-insensitive. However, for **passwords, access codes, signature strings, case-sensitive identifiers**, or user-entered names, those three strings can carry **different meanings**. Therefore, applying `toLowerCase()` or `equalsIgnoreCase()` uniformly to every column is a data design flaw, not a way to make an application "localization-friendly".
 
-Bài Knowledge này thuộc chủ đề **Chữ hoa và thường** của Java Core Localization. Trọng tâm là **chọn và thực thi chính sách case mapping / so sánh / lưu trữ theo ý nghĩa từng trường**, thay vì đưa toàn bộ dữ liệu qua một hàm chuẩn hóa chung. Bài dùng **Java 17+**, mã chạy được và các trường hợp Turkish `I`/`ı`, German `ß`, Unicode NFC, khóa định danh, nội dung hiển thị, email và dữ liệu cần bảo toàn chính xác.
+This Knowledge lesson belongs to the **Uppercase and Lowercase** topic of Java Core Localization. The focus is on **choosing and enforcing case mapping / comparison / storage policies according to each field's semantics**, rather than routing all data through a single generic normalization function. The lesson uses **Java 17+**, runnable code, and scenarios covering Turkish `I`/`ı`, German `ß`, Unicode NFC, identifier keys, display content, emails, and data requiring exact preservation.
 
-**Nguyên tắc nền:** Trước khi đổi hoa/thường, phải xác định **dữ liệu này là gì, ai định nghĩa quy tắc tương đương, có cần bảo toàn cách viết gốc không, dùng để hiển thị hay làm khóa so sánh, và quy tắc ấy có ổn định giữa các hệ thống không**.
+**Foundational principle:** Before changing case, determine **what this data is, who defines equivalence rules, whether the original spelling must be preserved, whether it is used for display or as a lookup key, and whether that rule is consistent across systems**.
 
-## 1. Ba thao tác thường bị gộp làm một
+## 1. Three operations often lumped into one
 
-Có ba nhu cầu khác nhau:
+There are three distinct needs:
 
-1. **Biến đổi cách viết để hiển thị** (*case conversion*): ví dụ dựng một tiêu đề bằng chữ hoa theo ngôn ngữ người xem.
-2. **So sánh không phân biệt kiểu chữ** (*case-insensitive comparison*): ví dụ tìm hai username được quy định tương đương.
-3. **Tạo khóa dữ liệu ổn định** (*canonical key/identity policy*): ví dụ mọi phiên bản hợp lệ của cùng một mã người dùng phải tra cứu trúng một bản ghi.
+1. **Transforming spelling for display** (*case conversion*): e.g., rendering a heading in uppercase according to the viewer's language.
+2. **Case-insensitive comparison** (*case-insensitive comparison*): e.g., matching two usernames defined as equivalent.
+3. **Generating stable data keys** (*canonical key/identity policy*): e.g., ensuring every valid variant of the same user code looks up the same record.
 
-Không phải thao tác nào cũng được giải quyết đúng bằng một `String.toLowerCase(...)`. Đối với tên người, tiêu đề và câu văn, đổi chữ có thể ảnh hưởng quy tắc của ngôn ngữ; với khóa giao thức, lại cần quy ước độc lập locale và có thể chỉ chấp nhận **ASCII**; với mật khẩu hoặc token, việc thay đổi bất kỳ code point nào có thể làm giá trị khác hoàn toàn.
+Not every operation is properly solved by a `String.toLowerCase(...)`. For personal names, titles, and prose, changing case can affect linguistic rules; for protocol keys, locale-independent conventions are needed and only **ASCII** may be allowed; for passwords or tokens, changing any single code point can alter the value completely.
 
-| Dữ liệu | Câu hỏi cần trả lời trước | Hành vi minh họa |
+| Data | Question to answer first | Illustrative behavior |
 | --- | --- | --- |
-| Tên hiển thị | Có phải giữ cách viết người dùng không? | Giữ `Nguyễn Thị Lan` nguyên bản; search có chỉ mục riêng |
-| Username | Quy định có phân biệt hoa/thường không? | Nếu sản phẩm chọn không phân biệt, `Lan_01` và `LAN_01` cùng khóa |
-| Password/passphrase | Giao thức xác thực có cho phép đổi ký tự không? | Không tự đổi hoa/thường |
-| Access token, API key | Có phải chuỗi phân biệt byte/ký tự tuyệt đối không? | Bảo toàn đúng dữ liệu, so sánh theo giao thức |
-| Mã giao thức ASCII | Chuẩn định nghĩa quy ước chữ hoa hay không? | Mã tiền tệ ISO dạng `USD`; kiểm tra tập mã hợp lệ |
-| Email | Phần địa phương và domain có cùng quy tắc không? | Không tự lower-case toàn bộ địa chỉ |
-| Tên file, đường dẫn | Hệ điều hành/file system có phân biệt hoa/thường không? | Không áp đặt một chính sách trên mọi nền tảng |
-| Văn bản tìm kiếm | Có muốn bỏ qua case, dấu, biến thể Unicode không? | Chính sách search riêng, không nhất thiết đổi nội dung gốc |
+| Display name | Must user spelling be preserved? | Keep `Nguyễn Thị Lan` verbatim; search uses a separate index |
+| Username | Does the rule distinguish case? | If the product chooses case-insensitive, `Lan_01` and `LAN_01` share a key |
+| Password/passphrase | Does the auth protocol allow changing characters? | Do not auto-change case |
+| Access token, API key | Is it an exact byte/character-sensitive string? | Preserve exact data, compare per protocol |
+| ASCII protocol code | Does the standard define uppercase conventions? | ISO currency codes like `USD`; validate against valid code set |
+| Email | Do local part and domain share the same rule? | Do not auto-lowercase the entire address |
+| Filename, path | Does the OS/filesystem distinguish case? | Do not impose one policy across all platforms |
+| Search text | Should case, diacritics, Unicode variants be ignored? | Dedicated search policy, without necessarily altering original content |
 
-Kết luận quan trọng: **“không phân biệt hoa/thường” phải là một phần của hợp đồng của trường dữ liệu**, không phải “tính năng tiện lợi” được áp dụng sau khi dữ liệu đã dùng làm khóa.
+Important conclusion: **"case-insensitive" must be part of a data field's contract**, not a "convenience feature" bolted on after data has already been used as keys.
 
-## 2. Java có những API nào và giới hạn ra sao?
+## 2. Which APIs does Java have and what are their limits?
 
-Các thao tác thường gặp:
+Common operations:
 
 ```java
 String a = "TITLE";
@@ -40,28 +40,28 @@ String upper = a.toUpperCase(Locale.ROOT);
 boolean equal = a.equalsIgnoreCase("title");
 ```
 
-Đây là **fragment** trong phương thức đã import `java.util.Locale`.
+This is a **fragment** inside a method where `java.util.Locale` is imported.
 
-| API | Ý nghĩa | Điều không được ngầm suy ra |
+| API | Meaning | What must not be implicitly assumed |
 | --- | --- | --- |
-| `String.toLowerCase()` | Chuyển chữ thường theo **default locale của JVM** | Kết quả không ổn định nếu môi trường có locale khác |
-| `String.toUpperCase()` | Chuyển chữ hoa theo **default locale của JVM** | Không thích hợp làm chuẩn cho khóa máy đọc độc lập môi trường |
-| `toLowerCase(Locale)` | Case mapping theo locale được chỉ định | Không phải luôn phép ánh xạ một-một |
-| `toUpperCase(Locale)` | Case mapping theo locale được chỉ định | Chuỗi có thể dài hơn chuỗi ban đầu |
-| `equalsIgnoreCase(String)` | So sánh case-insensitive theo thuật toán `String`, **không nhận Locale** | Không phải so sánh ngôn ngữ học đầy đủ hay Unicode full case folding |
-| `compareToIgnoreCase(String)` | So sánh thứ tự không phân biệt case bằng quy tắc Java `String` | Không thay thế sort văn bản theo locale |
-| `java.text.Collator` | So sánh văn bản theo locale, hỗ trợ mức nhạy case/accent tùy cấu hình | Không phải quy tắc định danh chung cho token/API key |
-| `java.text.Normalizer` | Canonical/compatibility Unicode normalization | Không tự thực hiện case conversion hoặc full case folding |
+| `String.toLowerCase()` | Lowercase using the **JVM's default locale** | Unstable output if environments have different locales |
+| `String.toUpperCase()` | Uppercase using the **JVM's default locale** | Unsuitable as a standard for environment-independent machine keys |
+| `toLowerCase(Locale)` | Case mapping for the specified locale | Not always a one-to-one mapping |
+| `toUpperCase(Locale)` | Case mapping for the specified locale | Resulting string can be longer than the original |
+| `equalsIgnoreCase(String)` | Case-insensitive comparison per `String` algorithm, **accepts no Locale** | Not full linguistic comparison or Unicode full case folding |
+| `compareToIgnoreCase(String)` | Case-insensitive ordering using Java `String` rules | Does not replace locale-aware text sorting |
+| `java.text.Collator` | Locale-based text comparison supporting configurable case/accent sensitivity | Not a general identifier rule for tokens/API keys |
+| `java.text.Normalizer` | Canonical/compatibility Unicode normalization | Does not perform case conversion or full case folding |
 
-**Lưu ý phiên bản:** bài này chỉ dựa trên API có ở **Java 17**. Khi muốn Unicode case folding toàn diện hơn hoặc một profile bảo mật định danh, cần xem thư viện/chuẩn có triển khai tương ứng, ví dụ ICU4J hoặc Unicode identifier/security profile; không tự xem `equalsIgnoreCase` tương đương toàn bộ hệ thống đó.
+**Version note:** this lesson relies only on APIs available in **Java 17**. When more comprehensive Unicode case folding or an identifier security profile is desired, examine libraries/standards implementing them, such as ICU4J or Unicode identifier/security profiles; do not assume `equalsIgnoreCase` equals that entire system.
 
-## 3. Locale mặc định có thể làm hỏng khóa nội bộ
+## 3. The default locale can corrupt internal keys
 
-Java documentation nêu rõ `toLowerCase()` tương đương `toLowerCase(Locale.getDefault())`. Điều này nguy hiểm với protocol identifiers, từ khóa, tên trường cấu hình hoặc username nếu hợp đồng khóa không theo ngôn ngữ máy chủ.
+Java documentation states clearly that `toLowerCase()` is equivalent to `toLowerCase(Locale.getDefault())`. This is dangerous for protocol identifiers, keywords, config field names, or usernames if the key contract does not follow the server's language.
 
-Ví dụ tiếng Thổ Nhĩ Kỳ có **`I`** và **`ı`** (dotless i); khi lower-case trong locale `tr-TR`, chữ `I` ASCII không trở thành chữ `i` ASCII quen thuộc.
+For example, Turkish has **`I`** and **`ı`** (dotless i); when lowercased in the `tr-TR` locale, ASCII `I` does not become the familiar ASCII `i`.
 
-**Chương trình độc lập — `DefaultLocaleTrapDemo.java`:**
+**Standalone program — `DefaultLocaleTrapDemo.java`:**
 
 ```java
 import java.util.Locale;
@@ -99,15 +99,15 @@ Turkish contains dotless i: true
 Same key: false
 ```
 
-Đây là ví dụ **truyền locale tường minh**, không thay đổi locale toàn JVM, nên chạy ở hệ thống có default locale khác vẫn thể hiện cùng phép so sánh.
+This example **passes an explicit locale**, without mutating the JVM-wide locale, so running on systems with different default locales still demonstrates the exact same comparison.
 
-**Nên chọn như thế nào?** Với **mã máy do sản phẩm tự định nghĩa và chỉ cho phép ASCII**, `Locale.ROOT` là lựa chọn ổn định hơn default locale khi cần case conversion. Tuy nhiên, `Locale.ROOT` **không** là định nghĩa thay thế cho mọi quy tắc Unicode case folding; với username hỗ trợ Unicode, phải định nghĩa chính sách đầy đủ hơn, gồm tập ký tự, normalization, case equivalence, collision và kiểm thử các ngôn ngữ mục tiêu.
+**How should you choose?** For **product-defined machine codes permitting ASCII only**, `Locale.ROOT` is a more stable choice than the default locale when case conversion is needed. However, `Locale.ROOT` is **not** a substitute definition for all Unicode case-folding rules; for usernames supporting Unicode, define a fuller policy covering character sets, normalization, case equivalence, collisions, and testing target languages.
 
-Không gọi `Locale.setDefault(...)` để đổi ngôn ngữ mỗi HTTP request. Default locale là trạng thái chung của JVM; nếu nhiều người dùng thực hiện đồng thời, thay đổi này có thể ảnh hưởng những request khác. Hãy **truyền Locale của request vào nơi thực sự cần nó**.
+Do not call `Locale.setDefault(...)` to switch language per HTTP request. The default locale is shared JVM state; when multiple users act concurrently, changing it can affect other requests. **Pass the request's `Locale` into where it is actually needed.**
 
-## 4. Chữ hoa/chữ thường không luôn có độ dài bằng nhau
+## 4. Uppercase/lowercase do not always have equal lengths
 
-Case mapping trong Unicode không bắt buộc là phép thay từng ký tự bằng đúng một ký tự. Ví dụ tiếng Đức, chữ **`ß`** có thể thành **`SS`** khi gọi `String.toUpperCase(Locale.ROOT)`. Chữ Latin capital I with dot `İ` có thể lower-case theo `Locale.ROOT` thành **`i` + dấu chấm kết hợp**, tăng số code point.
+Case mapping in Unicode is not required to replace each character with exactly one character. For example, in German, **`ß`** can become **`SS`** when calling `String.toUpperCase(Locale.ROOT)`. Latin capital I with dot `İ` can lowercase under `Locale.ROOT` to **`i` + combining dot**, increasing the code point count.
 
 **File `CaseExpansionDemo.java`:**
 
@@ -151,48 +151,48 @@ Dotted I ROOT length: 2
 Dotted I Turkish equals i: true
 ```
 
-**Hệ quả:** Không tạo một chuỗi chữ thường/hoa rồi giả định `length()` và số byte UTF-8 không đổi. Nếu database index giới hạn độ dài khóa hoặc protocol cấm một số ký tự, phải **kiểm tra lại độ dài/tập ký tự sau biến đổi**. Nếu case mapping tạo collision, hai đầu vào khác nhau có thể trở thành một khóa.
+**Consequence:** Do not produce a lowercased/uppercased string and assume `length()` and UTF-8 byte count stay unchanged. If a database index limits key length or a protocol forbids certain characters, **recheck length and character set after transformation**. If case mapping creates collisions, two distinct inputs can collapse into a single key.
 
-Về mặt kỹ thuật, `String.length()` là số đơn vị mã UTF-16, không hẳn là số code point hay số ký tự người dùng nhìn thấy (*grapheme cluster*). Đối với văn bản đa ngôn ngữ, xác định rõ đơn vị khi áp đặt độ dài.
+Technically, `String.length()` is the number of UTF-16 code units, not necessarily the number of code points or user-perceived characters (*grapheme clusters*). For multilingual text, specify the exact unit when enforcing length limits.
 
-## 5. Trường tên người và nội dung hiển thị: bảo toàn cách viết gốc
+## 5. Personal name fields and display content: preserve original spelling
 
-Một tên như `Đặng`, `McDonald`, `van Gogh` hoặc một thương hiệu có chữ hoa đặc thù không nên bị ép thành uppercase/lowercase chỉ vì “chuẩn hóa dữ liệu”. Ngoài ra, cách chuyển case có thể phụ thuộc ngôn ngữ người dùng nhập, không nhất thiết trùng ngôn ngữ đang xem UI.
+A name like `Đặng`, `McDonald`, `van Gogh`, or a brand with specific capitalization should not be forced to uppercase/lowercase merely for "data normalization". Moreover, case conversion can depend on the language the user entered, not necessarily matching the language currently viewing the UI.
 
-Chính sách hợp lý tùy sản phẩm:
+Reasonable policies depend on the product:
 
-- **Lưu bản gốc:** giữ tên/câu chữ theo cách người dùng nhập nếu có nghĩa trong ngữ cảnh pháp lý, văn hóa hoặc biểu diễn cá nhân.
-- **Có thể chuẩn hóa Unicode NFC khi hợp đồng cho phép:** NFC chuẩn hóa *canonical equivalence* như hai cách viết cùng một chữ có dấu, **không** tự đổi chữ hoa thành chữ thường.
-- **Tạo trường tìm kiếm riêng:** nếu cần case-insensitive/diacritic-insensitive search, xây khóa hoặc index riêng và có thể giữ nội dung gốc để hiển thị.
-- **Case cho đầu ra** chỉ khi thiết kế UI đòi hỏi, bằng quy tắc locale/biên tập phù hợp. “Title case” theo từng từ bằng `split(" ")` rồi `toUpperCase` không đúng với mọi ngôn ngữ và mọi tên riêng.
+- **Store the original:** keep names/text as entered by the user when meaningful in legal, cultural, or personal-expression contexts.
+- **Optionally normalize Unicode NFC when the contract permits:** NFC normalizes *canonical equivalence* such as two ways of encoding the same accented letter; it **does not** automatically convert uppercase to lowercase.
+- **Create a separate search field:** if case-insensitive/diacritic-insensitive search is needed, build a separate key or index while keeping the original content for display.
+- **Output casing** only when required by UI design, using appropriate locale/editorial rules. Word-by-word "title case" via `split(" ")` then `toUpperCase` is incorrect across many languages and proper names.
 
-Không thể suy luận ngôn ngữ cần dùng cho tên chỉ từ `Locale` của máy chủ hoặc quốc gia cư trú. Người dùng có thể đặt ngôn ngữ giao diện khác ngôn ngữ trong tên.
+You cannot infer the language required for a name solely from the server's `Locale` or country of residence. Users may set an interface language different from the language of their name.
 
-**Fragment minh họa việc lưu tên và khóa so canonical riêng:**
+**Fragment illustrating storing a name and a separate canonical matching key:**
 
 ```java
 String originalName = "Đặng";
 String canonicalForMatching = java.text.Normalizer.normalize(
         originalName,
         java.text.Normalizer.Form.NFC);
-// Lưu/display originalName theo policy, không tự uppercase/lowercase.
+// Store/display originalName per policy; do not auto-uppercase/lowercase.
 ```
 
-Chuẩn hóa NFC có thể giúp so các chuỗi cùng chữ Unicode nhưng cách mã hóa khác nhau. Tuy nhiên, nếu muốn tìm kiếm không phân biệt case, NFC **chưa đủ** và cần chính sách khác được thiết kế rõ.
+NFC normalization helps match strings with the same Unicode letters encoded differently. However, if case-insensitive search is wanted, NFC is **not enough** and a separate explicitly designed policy is needed.
 
-## 6. Username: chọn chính sách danh tính trước khi đăng ký tài khoản
+## 6. Usernames: choose an identity policy before registering accounts
 
-Username là **định danh**, không chỉ là chuỗi để hiển thị. Có hai thiết kế hợp lệ khác nhau, tùy yêu cầu:
+A username is an **identifier**, not just a display string. There are two different valid designs, depending on requirements:
 
-**A. Case-sensitive username.** `Lan_01` và `LAN_01` là hai giá trị khác nhau. Hệ thống phải thống nhất cách đăng nhập, URL profile, cache key, database UNIQUE constraint và API theo quy tắc đó.
+**A. Case-sensitive username.** `Lan_01` and `LAN_01` are two distinct values. The system must align login, profile URLs, cache keys, database `UNIQUE` constraints, and APIs with that rule.
 
-**B. Case-insensitive username.** Hai giá trị trên cùng một danh tính. Lúc này hệ thống phải định nghĩa **cách tạo canonical key**, dùng cùng chính sách ở đăng ký, đăng nhập, tra cứu, cập nhật và migration; đồng thời quyết định giữ `displayHandle` nguyên bản hay hiển thị chính canonical key.
+**B. Case-insensitive username.** Those two values represent one identity. In that case, the system must define **how to build the canonical key**, apply the same policy across registration, login, lookup, updates, and migration, and decide whether to keep an original `displayHandle` or display the canonical key itself.
 
-Một cấu hình **đơn giản và dễ kiểm soát** cho username nội bộ là **giới hạn ASCII** rồi dùng lowercase `Locale.ROOT`. Đây là *quy tắc của ứng dụng*, không phải chuẩn chung cho mọi username trên thế giới.
+A **simple and controllable** configuration for internal usernames is **restricting to ASCII** and then lowercasing with `Locale.ROOT`. This is an *application rule*, not a universal standard for all usernames worldwide.
 
-### Ví dụ runnable: username ASCII có quy tắc rõ
+### Runnable example: ASCII username with explicit rules
 
-Lưu **`UsernamePolicyDemo.java`**:
+Save **`UsernamePolicyDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -240,13 +240,13 @@ Same identity: true
 Non-ASCII rejected by this policy
 ```
 
-**Đọc đúng giới hạn ví dụ:** Đây là sản phẩm **cố ý** không hỗ trợ Unicode trong username, nhưng có thể hỗ trợ Unicode ở `displayName`. Không nói rằng tên người dùng Unicode là sai nói chung; những sản phẩm cho phép Unicode phải thiết kế identifier profile riêng, bao gồm normalization, case folding, xử lý confusables và uniqueness.
+**Reading the example's boundaries accurately:** This product **intentionally** does not support Unicode in usernames, while it may support Unicode in `displayName`. Do not claim Unicode usernames are wrong in general; products allowing Unicode must design a dedicated identifier profile covering normalization, case folding, confusables handling, and uniqueness.
 
-Regex giới hạn từ 3 đến 16 ký tự ASCII, ký tự đầu là chữ cái ASCII. Quy tắc nghiệp vụ còn có thể cấm tên đã được hệ thống giữ riêng, từ nhạy cảm, trùng tên cũ, và yêu cầu lưu bản hiển thị gốc. Đừng chỉ dùng regex làm toàn bộ chính sách tài khoản.
+The regex limits to 3–16 ASCII characters, starting with an ASCII letter. Business rules may also ban system-reserved names, sensitive words, recycled old names, and require storing the original display form. Do not rely on regex alone as the entire account policy.
 
-## 7. Collision: thay đổi case policy có thể nhập nhằng danh tính
+## 7. Collisions: changing case policy can create identity ambiguity
 
-Nếu hai người dùng hiện đã tồn tại với `Lan_01` và `LAN_01` trong database case-sensitive, việc chuyển sang case-insensitive mà không kiểm tra dữ liệu sẽ đưa cả hai về `lan_01`. Một unique index trên key mới sẽ gặp xung đột; tệ hơn, code đăng nhập có thể chọn nhầm tài khoản nếu xử lý collision tùy tiện.
+If two users already exist with `Lan_01` and `LAN_01` in a case-sensitive database, switching to case-insensitive without checking existing data maps both to `lan_01`. A unique index on the new key will hit conflicts; worse, login code could select the wrong account if collisions are handled carelessly.
 
 **File `CaseCollisionDemo.java`:**
 
@@ -289,67 +289,67 @@ LAN_01: conflict with Lan_01
 Minh_2: accepted
 ```
 
-Chương trình này **chỉ phát hiện** collision, không tự xử lý tranh chấp danh tính. Một migration thật cần quyết định rõ người sở hữu khóa, cách liên lạc chủ tài khoản, cập nhật foreign keys/URLs, lịch sử đăng nhập, cache, khóa phiên bản chính sách và rollback nếu cần.
+This program **only detects** collisions; it does not resolve identity disputes by itself. A real migration must clearly decide key ownership, how to contact account owners, updating foreign keys/URLs, login history, caches, policy versioning, and rollback if needed.
 
-**Chính sách nhất quán** quan trọng hơn việc chọn lower hay upper: nếu đăng ký dùng `Locale.ROOT` nhưng đăng nhập dùng `Locale.getDefault()` hoặc backend và database dùng collation khác nhau, hệ thống có thể chấp nhận những tài khoản không tìm lại được hoặc nhầm tài khoản.
+A **consistent policy** matters more than choosing lower or upper: if registration uses `Locale.ROOT` while login uses `Locale.getDefault()`, or backend and database use different collations, the system may accept accounts that cannot be found later or mix up accounts.
 
-## 8. Mật khẩu, passphrase, token: không tự sửa ký tự
+## 8. Passwords, passphrases, tokens: do not alter characters automatically
 
-Các trường liên quan xác thực thường có hợp đồng **giữ chính xác giá trị người dùng hoặc giao thức gửi tới**. Vì thế:
+Authentication-related fields typically carry a contract to **preserve the exact value sent by the user or protocol**. Therefore:
 
-- Không tự `trim()`, `toLowerCase()`, `toUpperCase()` hoặc normalize Unicode cho **password** nếu chính sách xác thực của hệ thống/giao thức không định nghĩa phép biến đổi đó.
-- Không hiển thị lại password hoặc ghi vào log để “so sánh case”.
-- Không dùng `equalsIgnoreCase` khi xác minh **access token, API secret, cryptographic signature**, trừ khi một chuẩn riêng thực sự định nghĩa so sánh không phân biệt case (không được giả định).
-- Password nên được xử lý bằng **password hashing/KDF có salt và tham số bảo mật thích hợp**, chứ không lưu plain text. Việc chọn Unicode normalization/encoding ở password phải tuân thủ chuẩn và lịch sử tương thích của chính hệ xác thực.
-- Token dạng chuỗi cần tuân thủ **định dạng cụ thể**: ví dụ Base64/Base64URL là case-sensitive. Nếu server hạ chữ hoa/thường một token như `aB0`, nó sẽ không còn cùng chuỗi đầu vào.
+- Do not automatically `trim()`, `toLowerCase()`, `toUpperCase()`, or Unicode-normalize **passwords** unless the system/protocol authentication policy defines that transformation.
+- Do not redisplay passwords or log them to "compare case".
+- Do not use `equalsIgnoreCase` when verifying **access tokens, API secrets, or cryptographic signatures**, unless a specific standard genuinely defines case-insensitive comparison (do not assume).
+- Passwords should be processed using **salted password hashing/KDF with appropriate security parameters**, never stored in plaintext. Any choice of Unicode normalization/encoding for passwords must adhere to the authentication system's standard and compatibility history.
+- String tokens must follow **specific formats**: for instance, Base64/Base64URL is case-sensitive. If a server changes the case of a token like `aB0`, it is no longer the same input string.
 
-**Không đồng nhất “được gõ trên bàn phím” với “được phép tự đổi theo locale”.** Hệ thống có thể yêu cầu người dùng nhập lại để xác nhận nhưng không nên bí mật thay đổi dữ liệu cần xác thực.
+**Do not equate "typed on a keyboard" with "safe to auto-convert by locale".** Systems may ask users to re-enter for confirmation, but should never secretly alter authentication inputs.
 
-Đối với dữ liệu nhạy cảm, cần xem xét giới hạn thời gian lưu trong bộ nhớ, log, truyền tải qua TLS, bảo vệ khóa/secret và cơ chế so sánh an toàn theo thư viện bảo mật. `String.equalsIgnoreCase` hoàn toàn không phải một password verifier.
+For sensitive data, also consider memory retention time, logging, TLS transport, key/secret protection, and secure comparison mechanisms from security libraries. `String.equalsIgnoreCase` is definitely not a password verifier.
 
-## 9. Email: miền và local part không nhất thiết có cùng quy tắc
+## 9. Email: domain and local part do not necessarily share the same rule
 
-Một địa chỉ email nhìn như một trường đơn lẻ `user@domain.example`, nhưng thực tế có hai phần khác nhau:
+An email address looks like a single field `user@domain.example`, yet actually has two distinct parts:
 
-1. **Domain:** DNS domain names không phân biệt chữ hoa/thường ở khâu tra cứu DNS. Có thể canonicalize theo quy tắc tên miền và IDNA đã được chọn, ví dụ vùng ASCII `Example.COM` và `example.com` thường chỉ cùng một tên DNS.
-2. **Local part:** theo mô hình giao thức SMTP, phần trước `@` *về nguyên tắc có thể phân biệt chữ hoa/thường*; các provider thực tế có chính sách khác nhau. Không mặc định rằng `Sales@example.com` và `sales@example.com` luôn cùng một mailbox trên mọi máy chủ.
+1. **Domain:** DNS domain names are case-insensitive during DNS lookup. They can be canonicalized per chosen domain and IDNA rules; for example, ASCII `Example.COM` and `example.com` typically refer to the same DNS name.
+2. **Local part:** under the SMTP protocol model, the part before `@` *can in principle be case-sensitive*; real-world providers have varying policies. Do not assume `Sales@example.com` and `sales@example.com` always reach the same mailbox on every server.
 
-Vì vậy **đừng lower-case toàn bộ địa chỉ email** rồi coi đó là identity canonical an toàn. Một số ứng dụng xử lý địa chỉ của provider họ kiểm soát có thể có quy tắc riêng, nhưng phải do provider và sản phẩm định nghĩa, không dựa vào cảm tính.
+Therefore **do not lowercase the entire email address** and treat it as a safe canonical identity. Applications handling addresses from a provider they control may apply provider-specific rules, but those must be defined by the provider and product, not by intuition.
 
-Các biến thể như dấu chấm trong local part, dấu `+` để gắn tag hay Unicode trong EAI/IDN còn phụ thuộc chuẩn và nhà cung cấp. Càng không nên xóa dấu chấm, bỏ phần sau `+` hoặc chuyển toàn email sang lower-case bằng một hàm chung khi xây hệ thống đăng ký đa nhà cung cấp.
+Variants like dots in the local part, `+` subaddressing tags, or Unicode in EAI/IDN also depend on standards and providers. Even more reason not to strip dots, drop everything after `+`, or lowercase entire emails with one shared helper when building a multi-provider signup system.
 
-### Cách tổ chức dữ liệu gợi ý
+### Recommended data organization
 
-- Lưu **địa chỉ người dùng cung cấp** theo policy để có thể gửi mail lại đúng nơi.
-- Xác thực định dạng bằng parser/validator phù hợp, không tự `split("@")` đơn giản để xử lý mọi trường hợp cú pháp email hợp lệ.
-- Có thể quản lý một **lookup key** theo hợp đồng sản phẩm, nhưng không tuyên bố nó nhận diện chính xác mọi mailbox trên Internet.
-- Dùng cơ chế **xác minh quyền sở hữu email** và chính sách chống trùng tài khoản; không coi việc lower-case hay bỏ dấu chấm là chứng cứ hai địa chỉ thuộc cùng một người.
-- Khi áp dụng IDN, phân biệt Unicode domain với ASCII label (IDNA/Punycode) và sử dụng thư viện/quy tắc tương ứng. Case conversion đơn giản **không thay thế** IDNA.
+- Store the **user-supplied address** per policy so mail can be delivered back to the right place.
+- Validate format with an appropriate parser/validator; do not simply `split("@")` to handle all valid email syntax cases.
+- You may maintain a **lookup key** per product contract, without claiming it uniquely identifies every mailbox on the Internet.
+- Use **email ownership verification** and anti-duplicate account policies; do not treat lowercasing or dot removal as proof that two addresses belong to the same person.
+- When applying IDN, distinguish Unicode domains from ASCII labels (IDNA/Punycode) and use corresponding libraries/rules. Simple case conversion **does not replace** IDNA.
 
-## 10. Mã giao thức, enum, khóa JSON và tên cấu hình
+## 10. Protocol codes, enums, JSON keys, and configuration names
 
-Với dữ liệu được một **protocol hoặc schema** định nghĩa, tuân thủ đúng hợp đồng:
+For data defined by a **protocol or schema**, follow the exact contract:
 
-| Trường | Chính sách đúng là gì? | Ví dụ |
+| Field | What is the right policy? | Example |
 | --- | --- | --- |
-| Mã tiền tệ ISO 4217 | Sử dụng mã đăng ký có quy ước ASCII; kiểm tra thuộc tập mã hợp lệ | `USD`, `VND` |
-| Mã ngôn ngữ/locale | BCP 47 cùng quy tắc viết language/script/region | `vi-VN`, `zh-Hant-TW` |
-| Enum của API | Theo schema: có thể case-sensitive hoặc có alias được công bố | `"PAID"` khác `"paid"` nếu schema nói vậy |
-| JSON object key | Là string, mặc định phải xử lý chính xác theo schema | `"userId"` không tự đồng nghĩa `"userid"` |
-| HTTP field name | Theo chuẩn HTTP, tên header không phân biệt chữ hoa/thường | `Content-Type` và `content-type` |
-| ResourceBundle key | Theo tên key khai báo trong bundle, không tự lower-case khi lookup | `message.title` |
-| UUID dạng text | Theo parser/serialization của UUID và hợp đồng API | Không dùng lower-case chung cho mọi loại ID |
+| ISO 4217 currency code | Use registered codes with ASCII conventions; validate against valid code set | `USD`, `VND` |
+| Language/locale code | BCP 47 with language/script/region casing conventions | `vi-VN`, `zh-Hant-TW` |
+| API enum | Per schema: may be case-sensitive or have documented aliases | `"PAID"` differs from `"paid"` if schema says so |
+| JSON object key | A string; by default must match schema exactly | `"userId"` is not automatically synonymous with `"userid"` |
+| HTTP field name | Per HTTP standard, header names are case-insensitive | `Content-Type` and `content-type` |
+| ResourceBundle key | Match key name declared in bundle; do not auto-lowercase on lookup | `message.title` |
+| Textual UUID | Follow UUID parser/serialization and API contract | Do not apply generic lowercasing to every ID type |
 
-Không suy ra “chuẩn Internet thì mọi thứ case-insensitive”. **HTTP header names** không phân biệt case, nhưng **header values** có thể có quy tắc riêng. JSON keys thường được so khớp đúng tên schema; hệ thống không được tự gộp `userID` và `userId` nếu hợp đồng không cho phép.
+Do not infer that "Internet standards mean everything is case-insensitive". **HTTP header names** are case-insensitive, yet **header values** can have their own rules. JSON keys are usually matched by exact schema name; systems must not merge `userID` and `userId` unless the contract allows it.
 
-### Chọn cách chuẩn hóa mã ASCII có kiểm soát
+### Choosing controlled ASCII code normalization
 
-Nếu một field nhận **mã tiền tệ ba chữ cái ASCII** và sản phẩm muốn chấp nhận nhập lowercase, một pipeline có thể:
+If a field accepts a **three-letter ASCII currency code** and the product wants to accept lowercase input, a pipeline can:
 
-1. Kiểm tra cú pháp `[A-Za-z]{3}` (không cho phép khoảng trắng, dấu hoặc số).
-2. Chuyển upper bằng `Locale.ROOT`.
-3. Kiểm tra mã đó **thực sự tồn tại/hợp lệ** theo nghiệp vụ và danh sách tiền tệ được hỗ trợ.
-4. Lưu mã chuẩn, không coi mọi chuỗi ba chữ cái là tiền tệ.
+1. Validate syntax `[A-Za-z]{3}` (disallowing spaces, diacritics, or digits).
+2. Uppercase using `Locale.ROOT`.
+3. Verify the code **actually exists/is valid** per business rules and supported currencies.
+4. Store the standard code, rather than treating every three-letter string as a currency.
 
 **File `ProtocolCodeDemo.java`:**
 
@@ -394,31 +394,31 @@ Language tag: en-US
 Invalid syntax rejected
 ```
 
-Đối với `Locale`, API `toLanguageTag()` xử lý thẻ BCP 47 đúng dạng hơn `String.toLowerCase(Locale.ROOT)`; các phần như region được quy ước viết hoa. Với API cần reject thẻ BCP 47 sai cú pháp, dùng `Locale.Builder.setLanguageTag(...)` cùng kiểm tra locale được hỗ trợ, vì `Locale.forLanguageTag(...)` có xử lý đầu vào tương đối khoan dung.
+For `Locale`, the `toLanguageTag()` API handles BCP 47 tag formatting better than `String.toLowerCase(Locale.ROOT)`; parts like region follow uppercase conventions. For APIs that must reject malformed BCP 47 tags, use `Locale.Builder.setLanguageTag(...)` along with supported-locale checks, since `Locale.forLanguageTag(...)` handles inputs relatively leniently.
 
-## 11. Tên file và đường dẫn: phụ thuộc hệ thống, không phải một quy tắc Java duy nhất
+## 11. Filenames and paths: system-dependent, not a single Java rule
 
-Các hệ thống file và nền tảng có thể khác nhau về việc `Report.csv` và `report.csv` có cùng đường dẫn hay không. Ngay cả trong cùng hệ điều hành, loại filesystem hoặc cấu hình volume cũng có thể quyết định cách so tên. Vì vậy:
+Filesystems and platforms can differ on whether `Report.csv` and `report.csv` refer to the same path. Even within the same OS, filesystem type or volume configuration can dictate how names are compared. Therefore:
 
-- Không dùng `path.toString().toLowerCase()` làm “đường dẫn chuẩn trên mọi máy”.
-- Khi kiểm tra đuôi file như `.CSV`, có thể chọn **quy tắc cho riêng phần đuôi** nếu sản phẩm cho phép. Không tự đổi toàn bộ directory/file name vì có thể làm hỏng đường dẫn thật.
-- Khi dùng đường dẫn từ user input, cần phòng chống path traversal và kiểm tra quyền; đổi case không giúp giải quyết các rủi ro này.
-- Nếu file path được đưa lên API hoặc giữ trong database, quyết định lưu **ID của file** tách khỏi tên hiển thị và quy tắc tìm kiếm khi có thể.
-- Đừng kết luận một đường dẫn an toàn chỉ vì hai cách viết được `equalsIgnoreCase` coi như bằng nhau.
+- Do not use `path.toString().toLowerCase()` as a "canonical path across all machines".
+- When checking extensions like `.CSV`, you can pick a **rule specifically for the extension** if the product permits. Do not auto-alter the entire directory/file name because that can break real paths.
+- When using paths from user input, guard against path traversal and enforce permission checks; changing case does not mitigate these risks.
+- If file paths are exposed in APIs or stored in a database, consider storing a **file ID** separated from display name and search rules whenever possible.
+- Do not conclude a path is safe simply because two spellings are treated as equal by `equalsIgnoreCase`.
 
-Tương tự, một URL có nhiều thành phần khác nhau: phần **host** có quy tắc tên miền, nhưng **path/query** do dịch vụ đích xác định. Dùng URI/parser và quy tắc giao thức của thành phần tương ứng, không lower-case cả URL rồi coi đó là cùng resource.
+Similarly, a URL has multiple distinct components: the **host** follows domain name rules, while **path/query** are defined by the target service. Use a URI parser and each component's protocol rules rather than lowercasing the entire URL and treating it as the same resource.
 
-## 12. equalsIgnoreCase, Locale.ROOT và Unicode case folding không đồng nghĩa
+## 12. equalsIgnoreCase, Locale.ROOT, and Unicode case folding are not synonymous
 
-Ba chiến lược có mức độ và mục đích khác nhau:
+Three strategies have different scopes and purposes:
 
-- `equalsIgnoreCase`: so không phân biệt case theo thuật toán của `String`. **Không nhận locale** và không bảo đảm tương đương với so sánh ngôn ngữ học.
-- `toLowerCase(Locale.ROOT)` rồi `equals`: tạo hai khóa lower-case độc lập locale, nhưng **không phải một định nghĩa Unicode full case folding hoàn chỉnh**.
-- **Unicode full case folding**: được Unicode định nghĩa cho matching không phân biệt case theo quy tắc rộng hơn, có thể có ánh xạ nhiều code point và cần cơ chế triển khai thích hợp.
+- `equalsIgnoreCase`: compares case-insensitively per `String`'s algorithm. **Takes no locale** and does not guarantee equivalence with linguistic comparison.
+- `toLowerCase(Locale.ROOT)` then `equals`: produces two locale-independent lowercased keys, yet **is not a complete Unicode full case folding definition**.
+- **Unicode full case folding**: defined by Unicode for case-insensitive matching under broader rules, potentially involving multi-code-point mappings and requiring appropriate implementation mechanisms.
 
-Ví dụ tiếng Đức cho thấy khác biệt: `"Straße"` chứa `ß`, còn `"STRASSE"` dùng hai chữ `SS`. `equalsIgnoreCase` không nên được xem như thao tác tạo một khóa tương đương đầy đủ trong các trường hợp mở rộng như vậy.
+The German example shows the difference: `"Straße"` contains `ß`, whereas `"STRASSE"` uses two `S` letters. `equalsIgnoreCase` should not be treated as producing a complete equivalence key in such expansion cases.
 
-**Chương trình `ComparisonStrategiesDemo.java`:**
+**Program `ComparisonStrategiesDemo.java`:**
 
 ```java
 import java.text.Normalizer;
@@ -464,13 +464,13 @@ Raw ignore case composed: false
 NFC exact equal: true
 ```
 
-**Không dùng dòng “Upper strings equal: true” làm lý do chuẩn hóa mọi định danh bằng uppercase.** Nó chứng minh **một cặp ví dụ cụ thể** có thể so bằng uppercase, không chứng minh uppercase là full case folding hoặc identity policy phù hợp với mọi hệ chữ.
+**Do not use the line "Upper strings equal: true" as an excuse to normalize every identifier via uppercasing.** It proves **one specific example pair** can match via uppercasing, not that uppercasing is full case folding or an identity policy suitable for all scripts.
 
-`Normalizer` xử lý canonical/compatibility Unicode equivalence nhưng **không tự đổi case**. Với identifier Unicode dùng ở nhiều dịch vụ và ngôn ngữ, cần thiết kế profile cụ thể (ví dụ được chuẩn Unicode/UTS #39 hoặc thư viện cung cấp), kiểm soát Unicode version, xử lý collision và tích hợp với database collation.
+`Normalizer` handles canonical/compatibility Unicode equivalence yet **does not change case**. For Unicode identifiers used across multiple services and languages, design a specific profile (such as one defined by Unicode/UTS #39 or provided by a library), control the Unicode version, handle collisions, and integrate with database collation.
 
-## 13. Collator cho so sánh ngôn ngữ, không thay thế identity rule
+## 13. Collator is for linguistic comparison, not a substitute for identity rules
 
-`java.text.Collator` cung cấp so sánh văn bản theo **Locale**. Tùy strength, kết quả có thể nhạy hoặc không nhạy với dấu và chữ hoa/thường:
+`java.text.Collator` provides text comparison by **Locale**. Depending on strength, results can be sensitive or insensitive to diacritics and case:
 
 ```java
 import java.text.Collator;
@@ -482,43 +482,43 @@ collator.setStrength(Collator.PRIMARY);
 int comparison = collator.compare(left, right);
 ```
 
-Đây là **fragment**, cần biến `left` và `right` được khai báo. `Collator.PRIMARY` thường ưu tiên chữ cơ sở hơn phân biệt dấu/case, nhưng hành vi cụ thể còn phụ thuộc quy tắc locale/provider. Đừng khẳng định mọi chữ có dấu đều bằng chữ không dấu trên mọi locale.
+This is a **fragment**, requiring declared variables `left` and `right`. `Collator.PRIMARY` typically prioritizes base letters over accent/case distinctions, though exact behavior depends on locale/provider rules. Do not claim all accented letters equal unaccented letters across all locales.
 
-**Dùng Collator khi nào?** Khi **sắp xếp danh sách hoặc tìm kiếm văn bản** theo quy ước ngôn ngữ của người dùng. Ví dụ thứ tự tên người hay tên sản phẩm cần thuận mắt người đọc. Với khóa định danh dùng cho cache, database UNIQUE hay API, việc dùng so sánh Collator theo default locale có thể gây thay đổi hành vi giữa môi trường, Unicode/CLDR versions hoặc việc nâng cấp JDK.
+**When to use Collator?** When **sorting lists or searching text** according to the user's linguistic conventions. For instance, ordering personal names or product names naturally for readers. For identifier keys used in caches, database `UNIQUE` constraints, or APIs, using Collator comparison with the default locale can cause behavior shifts across environments, Unicode/CLDR versions, or JDK upgrades.
 
-Nếu cần so sánh văn bản theo locale, hãy dùng **Locale được chọn cho thao tác đó**, không dùng locale ngẫu nhiên của server. Một người có thể sắp xếp tên tiếng Việt theo quy tắc khác tiếng Anh, nhưng mã đơn hàng vẫn phải giữ policy máy đọc độc lập ngôn ngữ.
+When linguistic text comparison is needed, use the **Locale chosen for that operation**, not an arbitrary server locale. Someone may sort Vietnamese names differently from English rules, yet order codes must maintain a language-independent machine-readable policy.
 
-## 14. Thiết kế hợp đồng trường dữ liệu trước khi viết utility
+## 14. Design data field contracts before writing utilities
 
-Một bảng policy ở cấp thiết kế có thể gồm:
+A design-level policy table might include:
 
-| Field | Lưu bản gốc? | Quy tắc so/tra cứu | Locale dùng | Rủi ro cần kiểm tra |
+| Field | Store original? | Comparison/lookup rule | Locale used | Risks to check |
 | --- | --- | --- | --- | --- |
-| `displayName` | Có | Chỉ mục tìm kiếm riêng nếu cần | Locale cho UI/search | Mất cách viết tên, nhầm dấu |
-| `username` ASCII | Có thể giữ display | Key lowercase ASCII sau validation | `Locale.ROOT` | Collision khi đăng ký/migration |
-| `password` | Không lưu plaintext | Xác minh theo giao thức password hashing | Không tùy tiện dùng locale | Mất chính xác input |
-| `accessToken` | Theo giao thức/secure storage | Exact matching | Không | Từ chối hợp lệ hoặc nhận nhầm token |
-| `currencyCode` | Lưu canonical | ASCII uppercase + mã hợp lệ | `Locale.ROOT` cho chuyển chữ | Mã không đăng ký, nhầm currency |
-| `localeTag` | Lưu BCP 47 | Parse/serialize bằng `Locale` | API BCP 47 | Tag cú pháp sai, locale không hỗ trợ |
-| `email` | Nên giữ input đã xác minh | Xác minh mailbox/provider policy | Không lower-case toàn bộ | Nhầm mailbox |
-| `orderId` | Theo schema | Exact hoặc alias do hệ thống quy định | Thường không | Trùng ID, phá chữ ký/URL |
-| `searchQuery` | Có thể giữ query | Collation/index/search policy | Locale tìm kiếm | Kết quả không phù hợp ngôn ngữ |
-| `filePath` | Theo filesystem | OS/filesystem-specific | Không suy diễn từ locale | Không tìm thấy file |
-| `resourceKey` | Đúng chính tả | Match chính xác theo hệ resource | Không tự đổi | Missing key |
+| `displayName` | Yes | Separate search index if needed | Locale for UI/search | Losing name spelling, mixing up diacritics |
+| ASCII `username` | Can keep display | Lowercase ASCII key after validation | `Locale.ROOT` | Collisions during registration/migration |
+| `password` | Never store plaintext | Verify per password-hashing protocol | Do not arbitrarily use locale | Loss of input exactness |
+| `accessToken` | Per protocol/secure storage | Exact matching | None | Rejecting valid tokens or accepting wrong ones |
+| `currencyCode` | Store canonical | ASCII uppercase + valid code | `Locale.ROOT` for casing | Unregistered codes, currency mix-up |
+| `localeTag` | Store BCP 47 | Parse/serialize via `Locale` | BCP 47 APIs | Malformed tags, unsupported locales |
+| `email` | Should keep verified input | Verify mailbox/provider policy | Do not lowercase whole address | Mailbox confusion |
+| `orderId` | Per schema | Exact or system-defined alias | Usually none | ID collisions, breaking signatures/URLs |
+| `searchQuery` | Can keep query | Collation/index/search policy | Search locale | Linguistically inappropriate results |
+| `filePath` | Per filesystem | OS/filesystem-specific | Do not infer from locale | File not found |
+| `resourceKey` | Exact spelling | Exact match per resource system | Do not alter automatically | Missing key |
 
-Hợp đồng cần trả lời thêm: **null/empty/whitespace được xử lý thế nào, ký tự nào được phép, normalization có dùng NFC/NFKC không, so sánh bằng chuỗi hay collation DB, Unicode version nào, phiên bản API nào, khi xung đột phải trả lỗi nào**.
+The contract must also answer: **how null/empty/whitespace are handled, which characters are permitted, whether NFC/NFKC normalization is used, whether comparison uses string matching or DB collation, which Unicode version, which API version, and which error to return on conflicts**.
 
-Không nhất thiết mọi trường đều cần một bảng policy riêng trong code. Nhưng những nhóm có semantics khác nhau **không nên ép vào một “normalize(String)” chung** chỉ làm `trim().toLowerCase()`.
+Not every field needs its own separate policy table in code. However, groups with different semantics **must not be forced into a single generic `normalize(String)`** that just runs `trim().toLowerCase()`.
 
-## 15. Ví dụ service nhỏ: mỗi field có policy riêng
+## 15. Small service example: each field has its own policy
 
-Thay vì tạo hàm `normalizeAllFields`, ta định nghĩa các thao tác theo mục đích. Ví dụ sau có chính sách rõ ràng:
+Instead of creating a `normalizeAllFields` function, define operations by purpose. The example below has explicit policies:
 
-- `displayName`: giữ nguyên kiểu chữ; chỉ áp dụng NFC ở đầu vào khi hợp đồng ứng dụng đã cho phép.
-- `username`: chỉ ASCII và canonical lowercase `Locale.ROOT`.
-- `currencyCode`: ASCII, uppercase, và kiểm tra mã tiền tệ thực.
-- `orderId`: giữ nguyên nếu schema định nghĩa case-sensitive.
-- `secret`: **không biến đổi**, và không in nội dung nhạy cảm.
+- `displayName`: preserve casing; apply NFC at input only when the application contract permits.
+- `username`: ASCII-only and canonical lowercase `Locale.ROOT`.
+- `currencyCode`: ASCII, uppercase, and validated against real currency codes.
+- `orderId`: preserve verbatim if schema defines it as case-sensitive.
+- `secret`: **unmodified**, and never print sensitive contents.
 
 **File `FieldSpecificPolicyDemo.java`:**
 
@@ -578,7 +578,7 @@ javac -encoding UTF-8 FieldSpecificPolicyDemo.java
 java FieldSpecificPolicyDemo
 ```
 
-Stdout trên Java 17+ với console UTF-8:
+Stdout on Java 17+ with a UTF-8 console:
 
 ```text
 Display: Đặng
@@ -588,118 +588,118 @@ Order ID: Ab-07
 Secret unchanged: true
 ```
 
-Đây là **mô hình dạy chính sách**, không phải service xác thực đầy đủ. Với dữ liệu bí mật trong sản phẩm thực, không lưu/ghi log plaintext, áp dụng password hashing hoặc secret management đúng ngữ cảnh. Tương tự, `Normalizer.normalize` với đầu vào null sẽ lỗi; các phương thức trên có hợp đồng đầu vào **non-null**, cần validation khi tích hợp API.
+This is a **policy-teaching model**, not a complete authentication service. For secret data in real products, never store/log plaintext; apply password hashing or secret management in the right context. Similarly, `Normalizer.normalize` throws on null input; the methods above have a **non-null** input contract requiring validation at API boundaries.
 
-**Vì sao không gọi `displayName(...).toLowerCase(ROOT)`?** Vì cách viết gốc có ý nghĩa hiển thị. **Vì sao không hạ `orderId`?** Vì ví dụ này giả định mã đơn hàng case-sensitive; chỉ đổi nếu schema của mã đó định nghĩa khác. **Vì sao không hạ `secret`?** Vì nó là dữ liệu cần giữ nguyên theo giao thức. Cùng một `String` ở Java nhưng vai trò nghiệp vụ khác dẫn đến policy khác.
+**Why not call `displayName(...).toLowerCase(ROOT)`?** Because original capitalization carries display meaning. **Why not lowercase `orderId`?** Because this example assumes order IDs are case-sensitive; change only if that code's schema specifies otherwise. **Why not lowercase `secret`?** Because it is data that must be preserved verbatim per protocol. The same Java `String` type with different business roles leads to different policies.
 
-## 16. Database, index và các hệ thống không cùng một quy tắc
+## 16. Databases, indices, and systems do not share one single rule
 
-Chính sách ở Java không tự đảm bảo cơ sở dữ liệu, cache hay hệ thống khác so chuỗi giống nhau. Một database dùng **case-insensitive collation** có thể coi hai chuỗi bằng nhau, trong khi `String.equals` không. Một database khác có thể phân biệt dấu hoặc dùng phiên bản Unicode khác. Bởi vậy:
+Policies in Java do not automatically guarantee that databases, caches, or external systems compare strings identically. A database using a **case-insensitive collation** may consider two strings equal, while `String.equals` does not. Another database may distinguish accents or use a different Unicode version. Therefore:
 
-1. Xác định **quy tắc canonical key** cho trường danh tính.
-2. Tạo **cột khóa tra cứu** với policy được thực thi ở ranh giới ghi, nếu cần.
-3. Đặt **unique constraint** theo cách nhất quán với policy; review collation và độ dài index.
-4. Kiểm tra collision khi chuyển policy hoặc nâng cấp Unicode/library/DB.
-5. Dùng cùng key ở register/login/find/update/cache, không lặp normalization bằng nhiều hàm khác nhau.
-6. Giữ **bản gốc hiển thị** khi có yêu cầu; không biến key canonical thành nội dung thay cho tên người.
+1. Define the **canonical key rule** for identity fields.
+2. Create a **lookup key column** with the policy enforced at write boundaries, if needed.
+3. Place a **unique constraint** consistently with the policy; review collation and index length.
+4. Check for collisions when changing policies or upgrading Unicode/libraries/DBs.
+5. Use the same key across register/login/find/update/cache, rather than duplicating normalization via different functions.
+6. Preserve the **display original** when required; do not turn canonical keys into user-facing name text.
 
-Ví dụ dữ liệu cũ `Lan_01` và `LAN_01` đang là hai tài khoản khác nhau không thể tự gộp sau khi chuyển thành `lan_01`. Cần migration có kiểm tra, quyết định xử lý va chạm và audit, thay vì chạy một câu SQL `LOWER(username)` rồi coi xong.
+For example, legacy records `Lan_01` and `LAN_01` representing two distinct accounts cannot simply be merged after converting to `lan_01`. A verified migration, collision-resolution decisions, and auditing are required, rather than running an SQL `LOWER(username)` and calling it done.
 
-**Giới hạn của case mapping:** `toLowerCase(Locale.ROOT)` ở JDK 17 và hàm `LOWER(...)` ở database không nhất thiết dựa vào cùng phiên bản Unicode hoặc cùng quy tắc collation. Nếu identity policy phải ổn định lâu dài, định nghĩa profile rõ và lưu version khi cần; kiểm thử trên các runtime/DB mà sản phẩm hỗ trợ.
+**Limits of case mapping:** `toLowerCase(Locale.ROOT)` in JDK 17 and `LOWER(...)` in a database do not necessarily rely on the same Unicode version or collation rules. If an identity policy must remain stable long-term, define an explicit profile and store its version when needed; test across all runtimes/DBs the product supports.
 
-## 17. API, JSON và versioning: đừng âm thầm thay nghĩa trường
+## 17. APIs, JSON, and versioning: do not silently change field semantics
 
-Giả sử API công bố `"username"` không phân biệt case nhưng `"orderId"` có phân biệt case. Nếu một bản nâng cấp backend đổi cả hai thành lower-case mà không cập nhật contract, client có thể gặp lỗi:
+Suppose an API documents `"username"` as case-insensitive while `"orderId"` is case-sensitive. If a backend upgrade lowercases both without updating the contract, clients can hit failures:
 
-- Các liên kết hoặc cache keys cũ không tra cứu được mã đơn hàng.
-- Hai giá trị trước đây khác nhau trở thành trùng nhau.
-- Chữ ký số của payload không còn khớp do byte đã thay đổi.
-- Người dùng thấy tên hiển thị mất kiểu chữ đã nhập.
-- Các bộ lọc tìm kiếm hoạt động khác giữa app mobile và web.
+- Old links or cache keys fail to look up order IDs.
+- Two previously distinct values collide into duplicates.
+- Payload digital signatures fail verification because bytes changed.
+- Users see display names lose their entered capitalization.
+- Search filters behave differently between mobile apps and web.
 
-Vì vậy, cần **hợp đồng** xác định case policy của từng field; việc thay đổi policy có thể là **thay đổi tương thích ngược** chứ không phải chỉnh sửa trình bày đơn giản.
+Therefore, a **contract** must define each field's case policy; changing the policy can be a **breaking change** rather than a minor formatting tweak.
 
-Đặc biệt với JSON:
+Specifically for JSON:
 
-- **Tên thuộc tính** như `userId`, `userID` có ý nghĩa theo schema và parser; không tự lowercase tất cả keys.
-- **Giá trị string** có semantics do chính field định nghĩa; JSON không tự quyết định cách case-insensitive.
-- Đối với trường có chữ ký/hashing/canonical JSON, mọi phép đổi case phải tuân theo profile ký và xảy ra đúng thứ tự.
-- Dùng serializer/parser chuẩn của framework; không tự nối JSON hoặc viết regex `replaceAll` để ép lowercase trên payload thô.
+- **Property names** like `userId` and `userID` are meaningful to schemas and parsers; do not blindly lowercase all keys.
+- **String values** carry semantics defined by the field itself; JSON does not impose case-insensitivity on its own.
+- For signed/hashed/canonical JSON fields, any case conversion must follow the signing profile and happen in the exact specified order.
+- Use the framework's standard serializer/parser; do not manually concatenate JSON or run `replaceAll` regexes to force lowercase on raw payloads.
 
-**Locale tag** là ví dụ ngược lại: dữ liệu có syntax quốc tế và API chuẩn. Dùng `Locale.forLanguageTag(...)` hoặc `Locale.Builder` để parse, `toLanguageTag()` để serialize. Không tự hạ toàn bộ `en-US` thành `en-us` rồi coi đó là cách viết canonical muốn lưu (language và region có quy ước chữ riêng).
+**Locale tags** are the opposite example: data with an international syntax and standard API. Use `Locale.forLanguageTag(...)` or `Locale.Builder` to parse, and `toLanguageTag()` to serialize. Do not blindly lowercase `en-US` into `en-us` and treat that as the canonical stored representation (language and region have their own casing conventions).
 
-## 18. QA: kiểm thử theo loại dữ liệu, không chỉ thử ASCII
+## 18. QA: test by data category, not only ASCII
 
-Một bộ test cần có những nhóm sau:
+A test suite should cover the following groups:
 
-| Trường | Các input nên thử | Điều cần xác minh |
+| Field | Inputs to test | What to verify |
 | --- | --- | --- |
-| Username ASCII | `Lan_01`, `LAN_01` | Hai input cùng key nếu sản phẩm case-insensitive |
-| Username Unicode | `Lăn_01` | Từ chối **theo policy ASCII đã công bố**, không mặc định tất cả username đều phải ASCII |
-| Case theo locale | `TITLE` ở ROOT và tr-TR | Không để default server đổi key |
-| Case expansion | `ß`, `İ` | Chuỗi sau case mapping có thể thay độ dài |
-| Tên hiển thị | `Đặng`, `McDonald` | Bảo toàn kiểu chữ |
-| Tên có Unicode decomposition | `é` và `e` + U+0301 | NFC canonical equivalence nếu hợp đồng cho phép |
-| Email | `Sales@example.com`, `sales@example.com` | Không gộp mặc định local part |
-| Token/secret | Các chuỗi khác nhau chỉ bởi case | Không đổi hoặc so ignore-case ngoài giao thức |
-| Mã tiền tệ | `usd`, `USD`, `u$d` | Quy tắc ASCII uppercase + mã tồn tại |
-| Locale tag | `EN-us`, `zh-hant-tw` | Parse/serialize bằng BCP 47 API |
-| File path | `Report.csv`, `report.csv` | Không giả định mọi filesystem giống nhau |
-| JSON property | `userId`, `userid` | Parser/schema xử lý đúng tên trường |
-| DB collision | Hai key khác case đang tồn tại | Migration phát hiện trùng khi đổi policy |
-| Cache/index | Cùng identity với biến thể case | Sử dụng một key đã thỏa policy |
-| Unicode confusable | Chữ Latin/Cyrillic trông giống | Không coi case conversion đủ bảo mật |
+| ASCII Username | `Lan_01`, `LAN_01` | Both inputs share a key if the product is case-insensitive |
+| Unicode Username | `Lăn_01` | Rejected **per published ASCII policy**, not assuming all usernames must be ASCII |
+| Locale-sensitive casing | `TITLE` in ROOT and tr-TR | Server default does not alter keys |
+| Case expansion | `ß`, `İ` | String after case mapping can change length |
+| Display name | `Đặng`, `McDonald` | Capitalization preserved |
+| Names with Unicode decomposition | `é` and `e` + U+0301 | NFC canonical equivalence if contract permits |
+| Email | `Sales@example.com`, `sales@example.com` | Local part not merged by default |
+| Token/secret | Strings differing only by case | Unchanged and not compared ignore-case outside protocol |
+| Currency code | `usd`, `USD`, `u$d` | ASCII uppercase rule + existing code validation |
+| Locale tag | `EN-us`, `zh-hant-tw` | Parsed/serialized via BCP 47 APIs |
+| File path | `Report.csv`, `report.csv` | Do not assume all filesystems behave identically |
+| JSON property | `userId`, `userid` | Parser/schema handles exact field names |
+| DB collision | Two existing differently cased keys | Migration detects duplicates when changing policy |
+| Cache/index | Same identity with case variants | Uses a single policy-compliant key |
+| Unicode confusable | Visually similar Latin/Cyrillic letters | Do not treat case conversion as sufficient security |
 
-**Kiểm thử đổi default locale:** nên chạy những test kỹ thuật quan trọng trong JVM khởi động với locale khác nhau, ví dụ English và Turkish, để chứng minh canonical keys không phụ thuộc `Locale.getDefault()`. Không thay default JVM liên tục giữa test đang chạy đồng thời.
+**Testing default locale changes:** run critical technical tests in JVMs started with different locales, e.g. English and Turkish, to prove canonical keys do not depend on `Locale.getDefault()`. Do not continuously flip the JVM default across concurrently running tests.
 
-**Kiểm thử sau khi nâng cấp:** nếu chuyển JDK, database collation hoặc thư viện Unicode, hãy chạy lại các test equivalence, uniqueness và đăng nhập. Một policy định danh được dùng lâu dài cần tính ổn định cao hơn tiện ích UI thông thường.
+**Post-upgrade testing:** if upgrading the JDK, database collation, or Unicode libraries, rerun equivalence, uniqueness, and login tests. A long-lived identity policy requires higher stability than ordinary UI utilities.
 
-## 19. Những lỗi phổ biến cần tránh
+## 19. Common mistakes to avoid
 
-| Sai lầm | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Right approach |
 | --- | --- | --- |
-| Hạ chữ thường mọi `String` khi lưu | Mất cách viết tên, làm hỏng token/case-sensitive IDs | Định nghĩa theo từng field |
-| Dùng `toLowerCase()` không tham số cho khóa | Phụ thuộc default locale, lỗi Turkish I | Dùng policy độc lập môi trường cho khóa |
-| Nghĩ `Locale.ROOT` là full Unicode case folding | Không bao trùm mọi equivalence Unicode | Chọn profile case-fold/normalization nếu cần |
-| Dùng `equalsIgnoreCase` cho password hoặc access token | Có thể chấp nhận chuỗi không đúng | Exact semantics theo giao thức |
-| Cho rằng mọi email đều case-insensitive | Có thể gộp nhầm mailbox | Xác minh provider và quy tắc local part |
-| Lower-case cả URL | Làm thay đổi path/query có ý nghĩa | Parse URI, xử lý theo từng thành phần |
-| Lower-case mọi filename/path | Không tìm được file trên filesystem case-sensitive | Theo quy tắc nền tảng, giữ nguyên tên |
-| Lower-case JSON field names | Làm sai schema | Dùng tên key đúng hợp đồng |
-| Chuyển mọi display name thành Title Case | Sai tên riêng và quy tắc đa ngôn ngữ | Giữ tên gốc hoặc format theo yêu cầu rõ |
-| Dùng một cột sau lower-case làm unique mà không scan dữ liệu cũ | Collision và nhầm danh tính | Pre-migration collision audit |
-| Tin DB collation giống Java `String` | Có thể so khác và làm mất uniqueness | Kiểm thử/JDBC integration, schema đúng |
-| Áp NFC rồi tin đã bỏ qua case | Normalizer không phải case folding | Tách canonical Unicode và case policy |
-| Hạ tên mã tiền nhưng bỏ validation | Có thể nhận mã không tồn tại | Dùng `Currency`/supported-code validation |
-| Tự viết regex thay toàn bộ payload JSON | Phá dữ liệu hoặc ký tự escape | Parse JSON theo schema/typed DTO |
-| Đổi policy giữa register và login | Đăng ký được nhưng tìm không thấy tài khoản | Dùng chung một canonicalizer được version |
-| Cắt chuỗi sau case conversion mà không kiểm tra | Có thể cắt giữa code point hoặc vi phạm key length | Validate cả trước và sau, rõ đơn vị độ dài |
+| Lowercasing every `String` on save | Loses name spelling, breaks tokens/case-sensitive IDs | Define per field |
+| Using parameterless `toLowerCase()` for keys | Depends on default locale, Turkish I bug | Use environment-independent policy for keys |
+| Thinking `Locale.ROOT` is full Unicode case folding | Does not cover all Unicode equivalences | Choose case-fold/normalization profile if needed |
+| Using `equalsIgnoreCase` for passwords or access tokens | May accept invalid strings | Exact semantics per protocol |
+| Assuming all emails are case-insensitive | Can merge wrong mailboxes | Verify provider and local-part rules |
+| Lowercasing entire URLs | Alters meaningful paths/queries | Parse URI, handle each component individually |
+| Lowercasing all filenames/paths | Fails to find files on case-sensitive filesystems | Follow platform rules, keep original names |
+| Lowercasing JSON field names | Breaks schema | Use exact contract key names |
+| Converting all display names to Title Case | Breaks proper names and multilingual rules | Keep original name or format per explicit requirement |
+| Making a lowercased column unique without scanning legacy data | Collisions and identity mix-ups | Pre-migration collision audit |
+| Trusting DB collation matches Java `String` | May compare differently and lose uniqueness | Integration/JDBC tests, proper schema |
+| Applying NFC and thinking case is ignored | Normalizer is not case folding | Separate canonical Unicode and case policies |
+| Lowercasing/uppercasing currency codes without validation | May accept nonexistent codes | Use `Currency`/supported-code validation |
+| Writing regex over raw JSON payloads | Corrupts data or escape sequences | Parse JSON via schema/typed DTOs |
+| Changing policy between register and login | Registration succeeds yet account cannot be found | Share a single versioned canonicalizer |
+| Truncating strings after case conversion without checking | Can split code points or violate key length | Validate before and after, clear length units |
 
-## 20. Bài tập ứng dụng
+## 20. Applied exercises
 
-**Bài 1 — Phân loại field.** Với đối tượng gồm `displayName`, `username`, `password`, `email`, `currencyCode`, `orderId` và `localeTag`, viết policy cho mỗi trường: có giữ input gốc không, so sánh theo case nào, chọn locale nào, có dùng Unicode normalization không, và collision xử lý ra sao.
+**Exercise 1 — Field classification.** Given an object with `displayName`, `username`, `password`, `email`, `currencyCode`, `orderId`, and `localeTag`, write a policy for each field: whether to keep original input, what case comparison to use, which locale to pick, whether to use Unicode normalization, and how collisions are handled.
 
-**Bài 2 — Thử Turkish I.** Dùng `"TITLE".toLowerCase(Locale.ROOT)` và `"TITLE".toLowerCase(Locale.forLanguageTag("tr-TR"))`. So code point/`String.equals`. Giải thích lý do dùng default locale ở backend có thể phá khóa kỹ thuật.
+**Exercise 2 — Testing Turkish I.** Use `"TITLE".toLowerCase(Locale.ROOT)` and `"TITLE".toLowerCase(Locale.forLanguageTag("tr-TR"))`. Compare code points/`String.equals`. Explain why using the default locale on the backend can break technical keys.
 
-**Bài 3 — Thay đổi độ dài.** Dùng `"\u00DF"` và `"\u0130"`. Thử `toUpperCase(Locale.ROOT)`/`toLowerCase(Locale.ROOT)` và kiểm tra độ dài UTF-16 trước/sau. Nếu key có giới hạn 16 ký tự, kiểm tra độ dài ở bước nào?
+**Exercise 3 — Length changes.** Use `"\u00DF"` and `"\u0130"`. Test `toUpperCase(Locale.ROOT)`/`toLowerCase(Locale.ROOT)` and check UTF-16 lengths before/after. If a key has a 16-character limit, at which step should length be checked?
 
-**Bài 4 — Collision.** Cho bảng có `Lan_01` và `LAN_01` đã tồn tại. Chuyển sang username lowercase ASCII: xác định collision và thiết kế phương án migration mà không chiếm nhầm tài khoản.
+**Exercise 4 — Collisions.** Given a table where `Lan_01` and `LAN_01` already exist. Switch to lowercase ASCII usernames: identify collisions and design a migration plan without hijacking accounts.
 
-**Bài 5 — Phân biệt matching strategies.** So sánh `"Straße"` với `"STRASSE"` bằng `equalsIgnoreCase` rồi uppercase ROOT. Tiếp tục so `"\u00E9"` với `"e\u0301"` và NFC. Từ đó lý giải tại sao một hàm so sánh duy nhất không phục vụ cả search, token và identity.
+**Exercise 5 — Distinguishing matching strategies.** Compare `"Straße"` with `"STRASSE"` using `equalsIgnoreCase` then ROOT uppercase. Next compare `"\u00E9"` with `"e\u0301"` and NFC. From there explain why a single comparison function cannot serve search, tokens, and identity.
 
-**Bài 6 — Contract của API.** Thiết kế JSON schema cho `username` (case-insensitive ASCII), `orderId` (case-sensitive) và `localeTag` (BCP 47). Viết test với payload đổi case trên từng field, ghi rõ trường nào được xem là cùng giá trị.
+**Exercise 6 — API contract.** Design a JSON schema for `username` (case-insensitive ASCII), `orderId` (case-sensitive), and `localeTag` (BCP 47). Write tests with payloads changing case on each field, documenting which fields are treated as the same value.
 
-## 21. Tài liệu chính thức
+## 21. Official documentation
 
-- [Java SE 21 — String](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): `toLowerCase(Locale)`, `toLowerCase()`, `toUpperCase(Locale)`, `equalsIgnoreCase`; cảnh báo default locale/Turkish I.
-- [Java SE 21 — Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html): `Locale.ROOT`, `forLanguageTag`, `toLanguageTag` và quy tắc language/script/region.
-- [Java SE 21 — Collator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/Collator.html): so sánh văn bản theo locale và strength.
-- [Java SE 21 — Normalizer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/Normalizer.html): NFC/NFD/NFKC/NFKD cho Unicode normalization, không đồng nhất với case folding.
-- [Unicode Standard — Default Case Algorithms](https://www.unicode.org/versions/latest/core-spec/chapter-3/#G33992): Unicode case mappings/case folding và những khác biệt về context.
-- [Unicode Technical Standard #39](https://www.unicode.org/reports/tr39/): unicode security profiles và confusable identifiers.
+- [Java SE 21 — String](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): `toLowerCase(Locale)`, `toLowerCase()`, `toUpperCase(Locale)`, `equalsIgnoreCase`; warnings on default locale/Turkish I.
+- [Java SE 21 — Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html): `Locale.ROOT`, `forLanguageTag`, `toLanguageTag`, and language/script/region rules.
+- [Java SE 21 — Collator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/Collator.html): locale-based text comparison and strength.
+- [Java SE 21 — Normalizer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/Normalizer.html): NFC/NFD/NFKC/NFKD for Unicode normalization, not identical to case folding.
+- [Unicode Standard — Default Case Algorithms](https://www.unicode.org/versions/latest/core-spec/chapter-3/#G33992): Unicode case mappings/case folding and contextual differences.
+- [Unicode Technical Standard #39](https://www.unicode.org/reports/tr39/): Unicode security profiles and confusable identifiers.
 
-## 22. Ghi nhớ
+## 22. Takeaways
 
-**Không có một chính sách chữ hoa/chữ thường đúng cho mọi `String`.** Tên hiển thị có thể phải giữ cách viết gốc; username chỉ không phân biệt case khi sản phẩm quy định rõ canonical key; password, token, mã định danh và chữ ký thường cần giữ nguyên chính xác; email cần tách local part khỏi domain; mã tiền tệ và BCP 47 có chuẩn riêng; tìm kiếm và sắp xếp cần chính sách locale khác với khóa định danh.
+**There is no single case policy valid for every `String`.** Display names may need to retain original spelling; usernames are case-insensitive only when the product explicitly specifies a canonical key; passwords, tokens, identifiers, and signatures usually must remain exact; emails must separate the local part from the domain; currency codes and BCP 47 have their own standards; search and sorting need different locale policies from identifier keys.
 
-Với **mã ASCII máy đọc** do chính ứng dụng định nghĩa, `Locale.ROOT` giúp tránh phụ thuộc default JVM khi chuyển case. Với **văn bản đa ngôn ngữ**, cần hiểu case expansion, canonical Unicode normalization, case folding, collation và ngữ nghĩa miền dữ liệu. Hãy thiết kế policy theo từng field, lưu bản gốc khi cần, kiểm tra collision, nhất quán giữa Java/database/API/cache và kiểm thử những trường hợp không chỉ gồm ASCII.
+For **machine-readable ASCII codes** defined by the application itself, `Locale.ROOT` avoids JVM default dependence during case conversion. For **multilingual text**, you must understand case expansion, canonical Unicode normalization, case folding, collation, and data-domain semantics. Design per-field policies, preserve originals when needed, check for collisions, stay consistent across Java/database/API/cache, and test cases beyond ASCII alone.

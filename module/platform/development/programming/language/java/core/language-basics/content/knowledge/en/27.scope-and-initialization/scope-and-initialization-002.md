@@ -1,39 +1,39 @@
-# Thời gian tồn tại của biến khác phạm vi sử dụng tên trong Java
+# Variable Lifetime Differs from Name Scope in Java
 
-## 1. Hai khái niệm không đồng nhất
+## 1. Two distinct concepts
 
-Khi nói về biến Java, cần phân biệt **scope** (*phạm vi sử dụng tên*) với **lifetime** (*thời gian tồn tại khi chạy chương trình*).
+When discussing Java variables, we must distinguish **scope** (*the region where a name can be used*) from **lifetime** (*how long an entity exists at runtime*).
 
-- **Phạm vi sử dụng tên (scope)** là phần văn bản mã nguồn mà trình biên dịch cho phép dùng **tên định danh** để tham chiếu tới một khai báo. Đây chủ yếu là quy tắc tĩnh, được kiểm tra khi biên dịch.
-- **Thời gian tồn tại của biến (variable lifetime)** liên quan tới thời điểm một lần thực thi tạo và ngừng sử dụng thực thể biến đó. Nó phụ thuộc loại biến: biến cục bộ/tham số, trường của đối tượng, hay trường `static`.
-- **Thời gian tồn tại của đối tượng** lại là chuyện riêng. Đối tượng được tạo bằng `new` có thể vẫn được tham chiếu sau khi biến cục bộ ban đầu ra khỏi scope. JVM quản lý khả năng thu gom đối tượng bằng tính *reachability* (còn có thể tới được từ các gốc tham chiếu); không có bảo đảm thu gom ngay khi kết thúc một khối lệnh.
+- **Name scope (scope)** is the portion of source code text where the compiler allows using an **identifier** to refer to a declaration. This is primarily a static rule checked at compile time.
+- **Variable lifetime** relates to when an execution creates and stops using that variable instance. It depends on the kind of variable: local variable/parameter, instance field, or `static` field.
+- **Object lifetime** is a separate matter. An object created with `new` can still be referenced after the initial local variable goes out of scope. The JVM manages object eligibility for collection via *reachability* (whether it is still reachable from reference roots); there is no guarantee of immediate collection when a statement block ends.
 
-**Quy tắc quan trọng:** Hết phạm vi gọi tên biến **không đồng nghĩa** với đối tượng từng được biến ấy trỏ tới đã bị hủy; và còn trong phạm vi cú pháp **không đồng nghĩa** giá trị của đối tượng bắt buộc phải tồn tại đến cuối scope theo một bố trí bộ nhớ cố định.
+**Important rule:** Going out of a variable's name scope **does not mean** the object it pointed to has been destroyed; and remaining within syntactic scope **does not mean** the object's state must persist until the end of the scope in a fixed memory layout.
 
-Ví dụ đoạn mã minh họa đặt bên trong một phương thức:
+Example snippet placed inside a method:
 
 ```java
 {
     int count = 5;
-    System.out.println(count); // Được phép: count đang trong scope
+    System.out.println(count); // Allowed: count is in scope
 }
-// System.out.println(count); // LỖI BIÊN DỊCH: không thấy tên count
+// System.out.println(count); // COMPILE ERROR: name count is not visible
 ```
 
-Bên ngoài khối lệnh `{}`, tên `count` không còn thuộc scope; trình biên dịch từ chối dùng tên đó. Không cần quan sát việc JVM cấp phát/giải phóng bộ nhớ để kết luận lỗi trên.
+Outside the `{}` block, the name `count` is no longer in scope; the compiler rejects using that name. There is no need to observe how the JVM allocates or frees memory to conclude that error.
 
-## 2. Các loại biến và ý nghĩa của scope/lifetime
+## 2. Variable kinds and the meaning of scope/lifetime
 
-| Loại biến | Nơi khai báo và phạm vi sử dụng tên | Thời gian tồn tại của thực thể biến |
+| Variable kind | Where declared and name scope | Lifetime of the variable entity |
 | --- | --- | --- |
-| **Biến cục bộ (local)** | Trong khối lệnh, thân phương thức, vòng lặp, hoặc khối tương ứng theo quy tắc ngôn ngữ | Gắn với lần thực thi đoạn mã và các phạm vi thực thi tương ứng; mỗi lần gọi phương thức có các biến cục bộ riêng |
-| **Tham số phương thức/constructor** | Trong thân phương thức/constructor được khai báo, với quy tắc scope tương ứng | Biến tham số riêng cho mỗi lần gọi |
-| **Trường instance** (không `static`) | Thành viên của lớp, truy cập qua `this`/tham chiếu đối tượng theo quyền truy cập | Là một phần trạng thái của từng đối tượng; có từ khi đối tượng được tạo đến lúc đối tượng không còn tồn tại |
-| **Trường `static`** | Thành viên của lớp, truy cập theo quy tắc thành viên và quyền truy cập | Có một bản cho mỗi lần định nghĩa lớp trong một runtime class loader; gắn với vòng đời lớp được nạp/khởi tạo, không gắn từng instance |
+| **Local variable (local)** | Inside a statement block, method body, loop, or corresponding block per language rules | Tied to the execution of the code segment and its corresponding execution scopes; each method invocation has its own local variables |
+| **Method/constructor parameter** | Inside the body of the declared method/constructor, with corresponding scope rules | Separate parameter variable for each invocation |
+| **Instance field** (non-`static`) | Member of the class, accessed via `this`/object reference per access rules | Part of each object's state; exists from when the object is created until the object no longer exists |
+| **`static` field** | Member of the class, accessed per member and access rules | One copy per class definition in a runtime class loader; tied to the loaded/initialized class lifecycle, not to individual instances |
 
-Bảng này mô tả mô hình ngôn ngữ ở mức lập trình, **không** khẳng định mọi biến local bắt buộc luôn nằm vật lý trên stack hay mọi đối tượng luôn nằm ở một vùng bộ nhớ cụ thể. JVM/JIT có thể tối ưu hóa bố trí và lưu trữ mà vẫn giữ đúng hành vi Java.
+This table describes the programming-language model; it does **not** assert that every local variable must physically reside on the stack or that every object must reside in a specific memory region. The JVM/JIT may optimize layout and storage while preserving Java semantics.
 
-**Ví dụ phân biệt instance với `static`:**
+**Example distinguishing instance from `static`:**
 
 ```java
 class Counter {
@@ -47,9 +47,9 @@ class Counter {
 }
 ```
 
-Hai đối tượng `Counter` có hai trường `value` độc lập, còn `Counter.totalCreated` được chia sẻ trong cùng một lớp runtime. Scope của tên `value` trong lớp và thời gian tồn tại của trạng thái `value` trong từng đối tượng là hai vấn đề khác nhau.
+Two `Counter` objects have two independent `value` fields, whereas `Counter.totalCreated` is shared within the same runtime class. The scope of the name `value` in the class and the lifetime of the `value` state in each object are two different issues.
 
-### Khi một phương thức chạy nhiều lần
+### When a method runs multiple times
 
 ```java
 static int square(int n) {
@@ -58,27 +58,27 @@ static int square(int n) {
 }
 ```
 
-Mỗi lần gọi `square` tạo ngữ cảnh thực thi riêng cho tham số `n` và biến cục bộ `result`. Các lần gọi lồng nhau/đệ quy không dùng chung một biến local, dù trong mã nguồn chúng cùng có tên `result`. Sau `return`, nơi gọi nhận **giá trị trả về**, chứ không tiếp tục truy cập biến `result` theo tên.
+Each call to `square` creates a separate execution context for parameter `n` and local variable `result`. Nested/recursive calls do not share a single local variable, even though in source code they share the name `result`. After `return`, the caller receives the **return value**, rather than continuing to access the variable `result` by name.
 
-## 3. Scope của tên biến trong khối và vòng lặp
+## 3. Variable name scope in blocks and loops
 
-Quy tắc cơ bản là tên local có thể được tham chiếu từ nơi khai báo đến hết khối thích hợp; biến khai báo trong phần khởi tạo `for` chỉ có phạm vi trong câu lệnh `for`:
+The basic rule is that a local name can be referenced from its declaration to the end of the appropriate block; a variable declared in a `for` initializer has scope only within the `for` statement:
 
 ~~~java
 for (int i = 0; i < 2; i++) {
     int square = i * i;
-    System.out.println(square); // 0, rồi 1
+    System.out.println(square); // 0, then 1
 }
-// i và square không còn trong scope ở đây.
+// i and square are no longer in scope here.
 ~~~
 
-Đây là quy tắc **mã nguồn**, không chỉ ra thời điểm GC hay cách JVM bố trí vật lý các biến. Trong vòng lặp, `i` tồn tại qua các lượt cập nhật chỉ số, còn biểu thức khởi tạo `square` được thực hiện lại mỗi khi đi vào thân vòng. Một lần gọi phương thức khác tạo ngữ cảnh local khác, dù chúng có cùng tên trong source.
+This is a **source code** rule; it does not indicate GC timing or how the JVM physically lays out variables. In the loop, `i` persists across index updates, while the initializer expression for `square` is executed anew each time the loop body is entered. Another method call creates a different local context, even if they share the same name in source.
 
-Hai khối anh em có thể dùng cùng tên local vì phạm vi không chồng nhau; khối lồng không được khai báo lại tên local/parameter đang trong scope của khối ngoài. Muốn hiểu chính xác các lỗi khai báo trùng, xem bài về *biến cục bộ trùng tên*. Ở đây cần tập trung vào câu hỏi khác: **khi không còn gọi được tên, giá trị tham chiếu và đối tượng có tiếp tục tồn tại không?**
+Two sibling blocks can use the same local name because their scopes do not overlap; a nested block cannot redeclare a local/parameter name already in scope from an enclosing block. To understand exact duplicate-declaration errors, see the lesson on *duplicate local variable names*. Here we focus on a different question: **when the name can no longer be referenced, do the reference value and the object continue to exist?**
 
-## 4. Biến tham chiếu hết scope nhưng đối tượng vẫn còn
+## 4. Reference variable leaves scope, but the object still exists
 
-Xét một phương thức tạo mảng rồi trả về:
+Consider a method that creates an array and returns it:
 
 ```java
 static int[] createValues() {
@@ -90,22 +90,22 @@ int[] received = createValues();
 System.out.println(received[1]); // 6
 ```
 
-Ở cuối `createValues()`, tên local `numbers` không còn dùng được ở nơi gọi; lần thực thi phương thức cũng kết thúc. **Nhưng đối tượng mảng `int[]` vẫn có thể truy cập qua biến `received`**, vì phương thức trả về giá trị tham chiếu trỏ tới chính mảng ấy.
+At the end of `createValues()`, the local name `numbers` can no longer be used at the call site; the method execution also ends. **However, the `int[]` array object can still be accessed via the `received` variable**, because the method returned the reference value pointing to that same array.
 
-Tương tự, đối tượng có thể tiếp tục tồn tại khi tham chiếu tới nó được lưu ở field, phần tử mảng khác, hoặc cấu trúc dữ liệu còn sống. Thời gian tồn tại của **đối tượng** không bị ràng buộc bởi scope của **một biến local ban đầu**.
+Similarly, an object can continue to exist when a reference to it is stored in a field, another array element, or a live data structure. The lifetime of an **object** is not bound by the scope of **an initial local variable**.
 
-Ở chiều ngược lại, khi một biến tham chiếu vẫn ở trong scope, không nên suy ra đối tượng cũ vẫn cần thiết sau một phép gán lại:
+Conversely, while a reference variable is still in scope, you should not infer that the old object is still needed after a reassignment:
 
 ```java
 StringBuilder builder = new StringBuilder("old");
 builder = new StringBuilder("new");
 ```
 
-Biến `builder` vẫn đang dùng được, nhưng nó không còn trỏ tới đối tượng `StringBuilder("old")`. Nếu không có tham chiếu sống nào khác tới đối tượng cũ, đối tượng đó **có thể trở thành ứng viên thu gom rác**. Thời điểm JVM thật sự thu gom không được quy định và không nên dùng `System.gc()` để suy ra một thời gian sống chính xác.
+The variable `builder` is still usable, but it no longer points to the `StringBuilder("old")` object. If no other live references point to the old object, that object **may become eligible for garbage collection**. When the JVM actually collects it is unspecified, and `System.gc()` should not be used to infer a precise lifetime.
 
-## 5. Lambda và việc bắt giá trị local (*capture*)
+## 5. Lambdas and capturing local values (*capture*)
 
-Một lambda có thể sử dụng biến cục bộ của phạm vi bao ngoài khi biến đó là `final` hoặc **effectively final** (được gán tối đa một lần và không bị gán lại). Điều này không biến Java thành ngôn ngữ truyền tham số theo tham chiếu: lambda nắm giữ giá trị cần thiết để thực hiện hành vi sau đó.
+A lambda can use a local variable from an enclosing scope when that variable is `final` or **effectively final** (assigned at most once and never reassigned). This does not turn Java into a pass-by-reference language: the lambda holds the value needed to execute the behavior later.
 
 ```java
 static Runnable makePrinter() {
@@ -117,17 +117,17 @@ Runnable printer = makePrinter();
 printer.run(); // Xin chao
 ```
 
-Lệnh `printer.run()` vẫn thực thi được **sau khi** `makePrinter()` đã trả về và tên `message` không còn tồn tại trong ngữ cảnh thực thi trước đó. Lambda giữ dữ liệu cần thiết để sử dụng `message`; với một giá trị tham chiếu, đối tượng được tham chiếu có thể vẫn tồn tại.
+The statement `printer.run()` still executes **after** `makePrinter()` has returned and the name `message` no longer exists in the earlier execution context. The lambda retains the data needed to use `message`; for a reference value, the referenced object can still exist.
 
-Không được gán lại biến local đã được lambda bắt:
+You cannot reassign a local variable that has been captured by a lambda:
 
 ```java
 int count = 2;
 Runnable show = () -> System.out.println(count);
-// count++; // LỖI BIÊN DỊCH: count không còn effectively final
+// count++; // COMPILE ERROR: count is no longer effectively final
 ```
 
-Nếu biến local tham chiếu tới **đối tượng mutable**, lambda vẫn có thể sửa trạng thái đối tượng ấy, miễn là không gán lại chính biến local đã bắt:
+If a local variable references a **mutable object**, a lambda can still modify that object's state, provided the captured local variable itself is not reassigned:
 
 ```java
 int[] counter = {0};
@@ -136,11 +136,11 @@ increase.run();
 // counter[0] == 1
 ```
 
-Scope của tên `counter`, việc lambda giữ giá trị tham chiếu, và thời gian tồn tại của mảng là **ba yếu tố riêng biệt**. Không nên dùng mảng một phần tử chỉ để “lách” ràng buộc effectively final trong thiết kế chương trình; hãy chọn cấu trúc trạng thái có ý nghĩa rõ ràng khi thật sự cần.
+The scope of the name `counter`, the lambda holding the reference value, and the lifetime of the array are **three separate factors**. You should not use a single-element array just to "work around" the effectively final constraint in program design; choose a clearly meaningful state structure when truly needed.
 
-## 6. Chương trình Java 17+ độc lập
+## 6. Standalone Java 17+ program
 
-Tạo tệp **`ScopeLifetimeDemo.java`**:
+Create the file **`ScopeLifetimeDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -162,7 +162,7 @@ public class ScopeLifetimeDemo {
             System.out.println("Khoi mot: " + temp);
         }
         {
-            int temp = input + 10; // Ten temp duoc su dung lai
+            int temp = input + 10; // Name temp is reused
             System.out.println("Khoi hai: " + temp);
         }
         return result;
@@ -170,7 +170,7 @@ public class ScopeLifetimeDemo {
 
     static int[] makeArray() {
         int[] localArray = {3, 6, 9};
-        return localArray; // Tham chieu thoat ra khoi phuong thuc
+        return localArray; // Reference escapes the method
     }
 
     static Runnable makePrinter() {
@@ -206,14 +206,14 @@ public class ScopeLifetimeDemo {
 }
 ```
 
-Trong thư mục chứa tệp, sử dụng JDK 17 trở lên trên Windows PowerShell/CMD hoặc Linux/macOS:
+In the directory containing the file, using JDK 17 or later on Windows PowerShell/CMD or Linux/macOS:
 
 ```bash
 javac -encoding UTF-8 ScopeLifetimeDemo.java
 java ScopeLifetimeDemo
 ```
 
-Kết quả stdout **chính xác** (biên dịch thành công không in dòng nào):
+**Exact** stdout output (successful compilation prints no lines):
 
 ```text
 Trong khoi: 10
@@ -229,41 +229,41 @@ Lap: 0
 Lap: 1
 ```
 
-Giải thích kết quả:
+Output explanation:
 
-1. `inside` chỉ được gọi tên bên trong khối, nhưng `outer` vẫn dùng được sau khối đó.
-2. Hai biến `temp` ở hai khối anh em hợp lệ, dù cùng tên. `result` được khai báo bên ngoài hai khối, nên có thể nhận kết quả bên trong khối rồi được trả về.
-3. `object.value` là trường của đối tượng `ScopeLifetimeDemo`, còn `created` là trường `static` của lớp.
-4. Mảng tạo trong `makeArray()` vẫn được dùng sau khi phương thức kết thúc, vì giá trị tham chiếu được trả về.
-5. Lambda trả về từ `makePrinter()` vẫn in `Hello`; điều này **không có nghĩa** local `message` vẫn đang truy cập được bằng tên từ `main`.
-6. Biến đếm `i` của `for` có thể sử dụng trong vòng lặp, nhưng không thể gọi tên bên ngoài vòng lặp.
+1. `inside` can only be referenced by name inside the block, while `outer` remains usable after that block.
+2. The two `temp` variables in the two sibling blocks are valid despite having the same name. `result` is declared outside both blocks, so it can receive the value inside a block and then be returned.
+3. `object.value` is an instance field of the `ScopeLifetimeDemo` object, whereas `created` is a `static` field of the class.
+4. The array created in `makeArray()` is still usable after the method finishes because the reference value is returned.
+5. The lambda returned from `makePrinter()` still prints `Hello`; this **does not mean** the local `message` is still accessible by name from `main`.
+6. The `for` counter variable `i` can be used inside the loop, but cannot be referenced by name outside the loop.
 
-## 7. Thời gian tồn tại của field và các lưu ý thực tế
+## 7. Field lifetimes and practical notes
 
-### Field instance
+### Instance fields
 
-Khi tạo một đối tượng, trạng thái instance được khởi tạo theo các quy tắc Java. Mỗi đối tượng có các field instance riêng; field được giữ như một phần trạng thái của đối tượng khi đối tượng còn tồn tại. Một phương thức có thể kết thúc trong khi đối tượng vẫn được truy cập qua field của đối tượng khác, biến trả về, hay tham chiếu khác.
+When creating an object, instance state is initialized according to Java rules. Each object has its own instance fields; fields are kept as part of the object's state while the object exists. A method can finish while the object continues to be accessed via another object's field, a returned variable, or another reference.
 
-### Field `static`
+### `static` fields
 
-Trường `static` thuộc về lớp tại runtime, không thuộc về từng đối tượng. Việc khởi tạo trường `static` xảy ra theo cơ chế khởi tạo lớp; các lần gọi phương thức hoặc tạo thêm instance không tạo một bản static mới cho mỗi instance. Không nên đơn giản hóa thành “trường static sống cho đến khi máy tính tắt”: vòng đời lớp và class loader có thể kết thúc khi điều kiện runtime cho phép.
+A `static` field belongs to the class at runtime, not to individual objects. Initialization of `static` fields happens according to the class initialization mechanism; method calls or creating additional instances do not create a new static copy per instance. Do not oversimplify this as "static fields live until the computer shuts down": class and class loader lifetimes can end when runtime conditions allow.
 
-### GC và `null`
+### GC and `null`
 
-- `reference = null` chỉ **thay giá trị của một biến tham chiếu**; nó không trực tiếp xóa đối tượng.
-- Đối tượng có thể còn được tham chiếu từ nơi khác; ngay cả khi không còn truy cập được, thời điểm GC thu gom là không xác định.
-- Biến local hết scope không phải một **hàm hủy** và không làm JVM buộc phải gọi cleanup.
-- Đối với tài nguyên như file, socket, database connection, phải chủ động đóng đúng cách; ưu tiên `try-with-resources` cho đối tượng `AutoCloseable`, không đợi GC.
+- `reference = null` only **changes the value of a reference variable**; it does not directly delete the object.
+- The object may still be referenced from elsewhere; even when it is no longer reachable, the exact time GC collects it is indeterminate.
+- A local variable going out of scope is not a **destructor** and does not force the JVM to invoke cleanup.
+- For resources such as files, sockets, and database connections, you must actively close them properly; prefer `try-with-resources` for `AutoCloseable` objects rather than waiting for GC.
 
-## 8. Các nhầm lẫn cần tránh
+## 8. Common misconceptions to avoid
 
-| Nhận định | Đánh giá | Vì sao? |
+| Statement | Assessment | Why? |
 | --- | --- | --- |
-| “Không gọi được tên biến sau dấu `}` nghĩa là đối tượng nó giữ đã bị hủy.” | Sai | Scope của tên và reachability của đối tượng độc lập. |
-| “Biến cục bộ trong phương thức được chia sẻ giữa các lần gọi.” | Sai | Mỗi lần thực thi có biến cục bộ và tham số riêng, kể cả đệ quy. |
-| “Mảng được trả về sẽ mất vì biến local ban đầu kết thúc.” | Sai | Giá trị tham chiếu trả về giữ khả năng truy cập mảng. |
-| “`static` tạo một bản giá trị cho mỗi đối tượng.” | Sai | Field `static` gắn với lớp tại runtime. |
-| “Dùng `System.gc()` bảo đảm đối tượng bị thu gom ngay.” | Sai | Không có bảo đảm thu gom tức thời. |
-| “Lambda có thể giữ giá trị local để chạy sau khi phương thức tạo lambda kết thúc.” | Đúng | Quy tắc capture với biến final/effectively final cho phép hành vi này. |
+| "Not being able to reference a variable name after `}` means the object it held has been destroyed." | False | Name scope and object reachability are independent. |
+| "Local variables in a method are shared across invocations." | False | Each execution has its own local variables and parameters, even in recursion. |
+| "A returned array is lost because the original local variable ends." | False | The returned reference value keeps the array accessible. |
+| "`static` creates one copy of a value per object." | False | A `static` field is tied to the class at runtime. |
+| "Calling `System.gc()` guarantees immediate collection of an object." | False | There is no guarantee of immediate collection. |
+| "A lambda can retain a local value to run after the enclosing method finishes." | True | Capture rules for final/effectively final variables allow this behavior. |
 
-**Ghi nhớ:** *Scope trả lời “ở đâu trong mã được viết tên biến?”; lifetime trả lời “một thực thể biến/đối tượng còn tồn tại trong lúc chạy đến khi nào?”*. Để hiểu đúng Java, hãy tiếp tục phân biệt **biến chứa giá trị tham chiếu** với **đối tượng mà giá trị ấy trỏ tới**.
+**Key Takeaway:** *Scope answers "where in code can this variable name be written?"; lifetime answers "until when does a variable/object entity exist at runtime?"*. To understand Java accurately, keep distinguishing **the variable holding a reference value** from **the object that value points to**.

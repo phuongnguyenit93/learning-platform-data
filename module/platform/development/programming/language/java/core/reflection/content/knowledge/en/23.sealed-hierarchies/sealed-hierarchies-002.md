@@ -1,47 +1,47 @@
-# Các lớp hoặc interface con trực tiếp được phép trong phân cấp sealed
+# Permitted Direct Subclasses or Subinterfaces in a Sealed Hierarchy
 
-## 1. “Trực tiếp” là một quan hệ, không phải mọi kiểu con
+## 1. "Direct" Is a Relationship, Not All Subtypes
 
-Một kiểu sealed kiểm soát những lớp hoặc interface được phép nằm **ngay dưới nó** trong quan hệ kế thừa. Các kiểu ở sâu hơn chịu ràng buộc của nhánh trung gian tương ứng.
+A sealed type controls which classes or interfaces are allowed to sit **immediately beneath it** in the inheritance relationship. Deeper types are governed by the constraints of their respective intermediate branch.
 
-Ví dụ, nếu `MobileWallet` triển khai `Wallet`, còn `Wallet` mở rộng `PaymentMethod`, thì `MobileWallet` là một loại `PaymentMethod` nhưng không phải kiểu con trực tiếp của `PaymentMethod`.
+For example, if `MobileWallet` implements `Wallet` and `Wallet` extends `PaymentMethod`, then `MobileWallet` is a kind of `PaymentMethod`, but it is not a direct subtype of `PaymentMethod`.
 
-Phân biệt này rất quan trọng khi đọc:
+This distinction is critical when reading:
 
 ~~~java
 Class<?>[] children = parent.getPermittedSubclasses();
 ~~~
 
-Đây là đoạn minh họa trong một phương thức có biến `Class<?> parent`. Kết quả, khi parent là sealed, mô tả các kiểu con **trực tiếp được phép** có thể thu được ở môi trường chạy. Nó không tự làm phẳng toàn bộ phân cấp thành một danh sách.
+This is an illustrative snippet inside a method with a `Class<?> parent` variable. The result, when `parent` is sealed, describes the **directly permitted** subtypes obtainable in the runtime environment. It does not automatically flatten the entire hierarchy into one list.
 
-Một công cụ hiển thị mô hình, kiểm tra kiến trúc hoặc chọn các nhánh xử lý cần giữ đúng quan hệ này. Nếu coi mọi kiểu con gián tiếp là một mục trực tiếp, công cụ đã thay đổi ý nghĩa của mô hình.
+A tool that displays models, checks architecture, or selects processing branches must preserve this exact relationship. If it treats every indirect subtype as a direct entry, the tool changes the meaning of the model.
 
-## 2. permits và extends/implements đảm nhiệm hai phần khác nhau
+## 2. permits and extends/implements Handle Two Different Parts
 
-`permits` chỉ ra ai được phép là kiểu con trực tiếp. `extends` hoặc `implements` khai báo quan hệ kiểu thực tế từ phía kiểu con.
+`permits` specifies who is allowed to be a direct subtype. `extends` or `implements` declares the actual type relationship from the subtype's side.
 
-| Kiểu cha sealed | Kiểu con trực tiếp hợp lệ | Cách kiểu con khai báo quan hệ |
+| Sealed parent type | Valid direct subtype | How the subtype declares the relationship |
 | --- | --- | --- |
-| Một class | Một class | `extends Parent` |
-| Một interface | Một class | `implements Parent` |
-| Một interface | Một interface | `extends Parent` |
+| A class | A class | `extends Parent` |
+| An interface | A class | `implements Parent` |
+| An interface | An interface | `extends Parent` |
 
-Một interface không thể kế thừa một class, nên danh sách permitted của một sealed class không trở thành danh sách interface triển khai nó.
+An interface cannot extend a class, so the permitted list of a sealed class never becomes a list of interfaces implementing it.
 
-Chỉ liệt kê một tên trong `permits` không tự làm lớp ấy kế thừa hoặc triển khai kiểu cha. Ngược lại, một kiểu không được cho phép không thể tự bổ sung quan hệ trực tiếp với một kiểu sealed bằng cách chỉ viết `extends` hoặc `implements`.
+Merely listing a name in `permits` does not automatically make that class extend or implement the parent type. Conversely, a type that is not permitted cannot add itself as a direct relationship to a sealed type simply by writing `extends` or `implements`.
 
-Kiểu con trực tiếp cũng cần xác định khả năng mở rộng tiếp:
+A direct subtype must also specify its own further extensibility:
 
-- Class `final`: dừng kế thừa ở class ấy.
-- Class hoặc interface `sealed`: tiếp tục kiểm soát các kiểu con trực tiếp của chính nó.
-- Class hoặc interface `non-sealed`: mở lại việc mở rộng ở nhánh ấy.
-- Một số dạng khai báo có tính chất ngầm định phù hợp, chẳng hạn record là final.
+- `final` class: stops inheritance at that class.
+- `sealed` class or interface: continues controlling its own direct subtypes.
+- `non-sealed` class or interface: reopens extensibility on that branch.
+- Certain declaration forms have appropriate implicit properties, such as records being `final`.
 
-Interface không dùng `final`. Nếu là interface con trực tiếp của sealed interface, nó tiếp tục theo hướng sealed hoặc non-sealed.
+Interfaces do not use `final`. If an interface is a direct subinterface of a sealed interface, it continues as `sealed` or `non-sealed`.
 
-## 3. Ví dụ chạy được: danh sách có cả class và interface
+## 3. Runnable Example: A List Containing Both Classes and Interfaces
 
-Lưu thành `DirectPermittedTypesDemo.java`:
+Save as `DirectPermittedTypesDemo.java`:
 
 ~~~java
 import java.util.Arrays;
@@ -114,14 +114,14 @@ public class DirectPermittedTypesDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 DirectPermittedTypesDemo.java
 java DirectPermittedTypesDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 PaymentMethod.children=Card,ExternalPayment,Wallet
@@ -135,39 +135,39 @@ VendorPayment.directToRoot=false
 VendorPayment.assignableToRoot=true
 ~~~
 
-Ba điểm quan trọng:
+Three key points:
 
-1. `getPermittedSubclasses()` trên một interface có thể trả một interface con như `Wallet`, dù tên API chứa chữ “Subclasses”.
-2. `MobileWallet` thuộc nhánh `Wallet`, còn `VendorPayment` thuộc nhánh `ExternalPayment`. Cả hai không có trong danh sách trực tiếp của root.
-3. `isAssignableFrom` chấp nhận quan hệ gián tiếp, nên hai kiểu ấy vẫn gán được về `PaymentMethod`.
+1. `getPermittedSubclasses()` on an interface can return a subinterface such as `Wallet`, even though the API name contains the word "Subclasses".
+2. `MobileWallet` belongs to the `Wallet` branch, and `VendorPayment` belongs to the `ExternalPayment` branch. Neither appears in the root's direct list.
+3. `isAssignableFrom` accepts indirect relationships, so both of those types are still assignable to `PaymentMethod`.
 
-Hàm `childNames` trong ví dụ chỉ được gọi với các kiểu đã biết là sealed. Nếu dùng cho một Class bất kỳ, phải xử lý trường hợp `getPermittedSubclasses()` trả `null`.
+The `childNames` helper in the example is only called with types already known to be sealed. If used on an arbitrary `Class`, you must handle the case where `getPermittedSubclasses()` returns `null`.
 
-Việc sắp xếp được thực hiện để bản in ổn định. Không lấy thứ tự mảng Reflection trả về làm thứ tự bắt buộc của danh sách trong mã nguồn.
+Sorting is performed so the output is stable. Do not treat the array order returned by Reflection as a required ordering of the list in source code.
 
-## 4. Kiểm chứng một cạnh trực tiếp bằng Reflection
+## 4. Verifying a Direct Edge via Reflection
 
-Có thể quan sát quan hệ từ phía kiểu con:
+The relationship can be observed from the subtype's side:
 
-- Với cha là class, `candidate.getSuperclass() == parent` kiểm tra lớp cha trực tiếp.
-- Với cha là interface, `candidate.getInterfaces()` cho các interface trực tiếp mà candidate triển khai hoặc mở rộng.
-- `parent.isAssignableFrom(candidate)` trả lời quan hệ kiểu rộng hơn, bao gồm gián tiếp.
+- When the parent is a class, `candidate.getSuperclass() == parent` checks the direct superclass.
+- When the parent is an interface, `candidate.getInterfaces()` returns the direct interfaces that `candidate` implements or extends.
+- `parent.isAssignableFrom(candidate)` answers the broader type relationship, including indirect ones.
 
-Ví dụ `VendorPayment` kế thừa `ExternalPayment`. Nó nhận quan hệ với `PaymentMethod` qua lớp cha, nhưng không có `PaymentMethod` trong danh sách interface trực tiếp của chính nó.
+For example, `VendorPayment` extends `ExternalPayment`. It receives its relationship to `PaymentMethod` through its superclass, and does not have `PaymentMethod` in its own direct interface list.
 
-Một lớp có thể trực tiếp triển khai nhiều interface. Nếu nhiều interface ấy đều sealed, quan hệ trực tiếp phải hợp lệ đối với từng interface tương ứng. Vì vậy, phân cấp interface có thể là một đồ thị, không luôn là một cây có đúng một cha.
+A class can directly implement multiple interfaces. If several of those interfaces are sealed, the direct relationship must be valid for each corresponding interface. Therefore, an interface hierarchy can be a graph, not always a tree with a single parent.
 
-Hàm `hasDirectRelation` ở trên minh họa cách đọc các cạnh. Nó không phải cách cấp phép mới hoặc cách vượt qua quy tắc sealed. Với kết quả hợp lệ trả từ `getPermittedSubclasses()`, API đã dùng khái niệm kiểu con trực tiếp; công cụ có thể đọc cạnh ngược để giải thích và kiểm tra dữ liệu của mình.
+The `hasDirectRelation` helper above illustrates how to read edges. It is not a way to grant new permissions or bypass sealed rules. For valid results returned from `getPermittedSubclasses()`, the API already uses the direct-subtype concept; a tool can read the reverse edge to explain and validate its own data.
 
-Nếu cần duyệt sâu hơn, hãy giữ riêng từng cạnh cha–con và gọi tiếp trên nhánh sealed. Không đưa mọi hậu duệ vào cùng danh sách con trực tiếp của root chỉ để làm giao diện đơn giản hơn.
+If you need to traverse deeper, keep each parent–child edge separate and continue querying on sealed branches. Do not dump all descendants into the root's direct children list just to simplify a UI.
 
-## 5. Danh sách có thể được suy ra mà không viết permits
+## 5. The List Can Be Inferred Without Writing permits
 
-Một khai báo sealed có thể không viết mệnh đề `permits` nếu trình biên dịch suy ra được các kiểu con trực tiếp theo quy tắc trong cùng đơn vị biên dịch. Với class sealed thông thường, các class có tên chuẩn phù hợp, được khai báo trong cùng đơn vị biên dịch và trực tiếp `extends` class ấy được dùng để suy ra danh sách.
+A sealed declaration may omit the `permits` clause if the compiler can infer the direct subtypes according to the rules within the same compilation unit. For an ordinary sealed class, classes with suitable canonical names, declared in the same compilation unit, and directly using `extends` on that class are used to infer the list.
 
-Reflection vẫn đọc được danh sách permitted đã được ghi trong kết quả biên dịch. Nó không yêu cầu ứng dụng phân tích lại văn bản nguồn để tìm từ khóa `permits`.
+Reflection can still read the permitted list recorded in the compiled output. It does not require the application to re-parse the source text to look for the `permits` keyword.
 
-Lưu thành `InferredDirectChildrenDemo.java`:
+Save as `InferredDirectChildrenDemo.java`:
 
 ~~~java
 import java.util.Arrays;
@@ -211,14 +211,14 @@ public class InferredDirectChildrenDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 InferredDirectChildrenDemo.java
 java InferredDirectChildrenDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Document.children=Invoice,Report
@@ -229,85 +229,85 @@ Document.assignableFromSummaryReport=true
 Invoice.superclass=Document
 ~~~
 
-`Document` không viết `permits`, nhưng hai lớp `Invoice` và `Report` trực tiếp kế thừa nó trong cùng tệp. Danh sách của `Document` không chứa `SummaryReport`, vì lớp ấy có cha trực tiếp là `Report`.
+`Document` does not write `permits`, yet both `Invoice` and `Report` directly extend it in the same file. `Document`'s list does not include `SummaryReport`, because that class's direct parent is `Report`.
 
-Các lớp đều được lồng trong lớp ngoài `InferredDirectChildrenDemo` để ví dụ nằm gọn trong một tệp. Chúng là các thành viên của lớp ngoài; không phải các lớp thành viên được khai báo bên trong `Document`.
+All classes are nested inside the outer class `InferredDirectChildrenDemo` so the example fits cleanly in a single file. They are members of the outer class; they are not member classes declared inside `Document`.
 
-Vì thế, `Document.class.getDeclaredClasses()` trả mảng rỗng trong ví dụ. **Lớp thành viên** và **lớp con kế thừa** là hai loại quan hệ khác nhau. `getDeclaredClasses()` không phải API thay thế cho danh sách permitted.
+Therefore, `Document.class.getDeclaredClasses()` returns an empty array in the example. **Member classes** and **inherited subclasses** are two different kinds of relationships. `getDeclaredClasses()` is not a replacement API for the permitted list.
 
-## 6. Ranh giới khai báo của các kiểu trực tiếp
+## 6. Declaration Boundaries of Direct Types
 
-Việc đặt các kiểu trong ví dụ không chỉ nhằm thuận tiện cho việc đọc. Java áp dụng ràng buộc về nơi khai báo các kiểu con trực tiếp được phép:
+Placing the types in the example is not only for reading convenience. Java enforces constraints on where permitted direct subtypes are declared:
 
-- Với kiểu sealed trong một named module, các kiểu trực tiếp được phép phải thuộc cùng module.
-- Với kiểu sealed trong unnamed module, chúng phải thuộc cùng package.
+- For a sealed type in a named module, the permitted direct subtypes must belong to the same module.
+- For a sealed type in an unnamed module, they must belong to the same package.
 
-Trong named module, cùng module không nhất thiết đồng nghĩa cùng package; những quy tắc truy cập và tham chiếu kiểu liên quan vẫn cần được thỏa mãn.
+In a named module, being in the same module does not necessarily mean being in the same package; the relevant access and type-reference rules must still be satisfied.
 
-Mục đích là giữ ranh giới mở rộng trực tiếp trong phạm vi quản lý của mô hình. Một lớp ở ngoài không thể tự trở thành nhánh trực tiếp mới chỉ bằng việc xuất hiện trên classpath.
+The goal is to keep the direct extension boundary within the model's scope of management. An external class cannot become a new direct branch simply by appearing on the classpath.
 
-Đối với nhánh `non-sealed`, các kiểu ở sâu hơn không phải được thêm từng tên vào permitted của root. Trong ví dụ đầu, `VendorPayment` mở rộng `ExternalPayment`; nó không cần và không nên được coi là một phần tử trực tiếp của `PaymentMethod`.
+For a `non-sealed` branch, deeper types do not have to be added by name to the root's `permits` list. In the first example, `VendorPayment` extends `ExternalPayment`; it does not need to be, and should not be, treated as a direct element of `PaymentMethod`.
 
-Nếu muốn thay đổi ai là kiểu con trực tiếp, đó là thay đổi khai báo kiểu và kết quả biên dịch tương ứng. Sửa một mảng `Class<?>[]` đã nhận từ Reflection không cập nhật quyền kế thừa của JVM.
+If you want to change who is a direct subtype, that requires changing the type declaration and the corresponding compiled output. Mutating a `Class<?>[]` array received from Reflection does not update the JVM's inheritance permissions.
 
-## 7. Điều kết quả permitted có và không có
+## 7. What a Permitted Result Does and Does Not Include
 
-Một phần tử trong danh sách cho biết quan hệ kiểu trực tiếp được phép; nó chưa trả lời toàn bộ các câu hỏi khác:
+An element in the list indicates a permitted direct type relationship; it does not answer all other questions:
 
-| Câu hỏi | Có được suy ra chỉ từ việc có trong danh sách không? |
+| Question | Can it be inferred solely from being in the list? |
 | --- | --- |
-| Đây là nhánh trực tiếp của kiểu sealed đang xét? | Có, đối với phần tử hợp lệ được API trả về |
-| Đây chắc chắn là class? | Không; với cha là interface, có thể là interface |
-| Đây chắc chắn là kiểu cụ thể có thể tạo instance? | Không; có thể là abstract hoặc interface |
-| Có constructor public không tham số? | Không |
-| Có đối tượng của kiểu ấy đang sống? | Không |
-| Kiểu ấy đã được đăng ký làm bean/plugin trong ứng dụng? | Không |
-| Mọi kiểu con sâu hơn đều nằm trong mảng này? | Không |
+| Is this a direct branch of the sealed type under inspection? | Yes, for valid elements returned by the API |
+| Is this guaranteed to be a class? | No; when the parent is an interface, it may be an interface |
+| Is this guaranteed to be a concrete instantiable type? | No; it may be abstract or an interface |
+| Does it have a public no-arg constructor? | No |
+| Are any instances of that type currently alive? | No |
+| Is that type registered as a bean/plugin in the application? | No |
+| Are all deeper subtypes in this array? | No |
 
-API cố gắng lấy các đối tượng `Class` cho những kiểu permitted bằng bộ nạp định nghĩa của kiểu cha. Mục không lấy được Class có thể bị bỏ qua theo hợp đồng API. Vì vậy, khi cần một báo cáo kiểm toán đầy đủ mọi tên trong metadata nhị phân, phải xét thêm class file và môi trường nạp, không chỉ nhìn mảng kết quả.
+The API attempts to obtain `Class` objects for permitted types using the parent type's defining class loader. Entries whose `Class` cannot be obtained may be omitted per the API contract. Therefore, when an auditing report covering every name in binary metadata is needed, you must also inspect the class files and loading environment, not just the returned array.
 
-Với kiểu không sealed, phương thức trả `null`. Với kiểu sealed, nó trả một mảng khác null nhưng có thể rỗng theo hợp đồng. Giữ nguyên sự phân biệt này nếu công cụ cần biết kiểu đang mở hay sealed nhưng chưa thu được phần tử.
+For an unsealed type, the method returns `null`. For a sealed type, it returns a non-null array that may be empty per the contract. Preserve this distinction if the tool needs to know whether a type is open or sealed without obtained elements.
 
-Việc lấy danh sách không phải bước tạo đối tượng. Một công cụ xem quan hệ kiểu có thể làm việc với tên, loại kiểu và cạnh trực tiếp mà không gọi constructor của các kiểu trong mảng.
+Retrieving the list is not an object creation step. A tool inspecting type relationships can work with names, type kinds, and direct edges without calling constructors on the types in the array.
 
-## 8. Cách trình bày và kiểm tra mô hình cho đúng
+## 8. How to Present and Verify the Model Properly
 
-Khi xây công cụ dùng danh sách permitted, một quy trình rõ ràng là:
+When building a tool that uses the permitted list, a clear workflow is:
 
-1. Xác nhận kiểu cha và tình trạng sealed.
-2. Lấy các phần tử trực tiếp.
-3. Phân loại mỗi phần tử là class hay interface.
-4. Giữ quan hệ trực tiếp và đối tượng `Class` làm danh tính kiểu trong JVM.
-5. Nếu cần, mở rộng riêng các nút sealed, đánh dấu rõ nhánh non-sealed hoặc điểm chưa đủ thông tin.
-6. Sắp xếp cách trình bày theo quy tắc tường minh.
+1. Confirm the parent type and its sealed status.
+2. Retrieve the direct elements.
+3. Classify each element as a class or an interface.
+4. Keep the direct relationship and the `Class` object as the type's identity in the JVM.
+5. If needed, expand sealed nodes separately, clearly marking `non-sealed` branches or points with incomplete information.
+6. Sort the presentation according to explicit rules.
 
-Tên đơn giản phù hợp cho các ví dụ ngắn, nhưng không phải khóa duy nhất của mọi kiểu trong một ứng dụng. Các package hoặc bộ nạp lớp khác nhau có thể tạo những kiểu có tên hiển thị giống nhau. Không ghép nhầm hai nút chỉ vì `getSimpleName()` trùng nhau.
+Simple names are fine for short examples, but are not unique keys for all types in an application. Different packages or class loaders can produce types with the same display name. Do not mistakenly merge two nodes just because `getSimpleName()` matches.
 
-Nếu kiểm tra mô hình trong một bài kiểm thử, nên so sánh tập kiểu trực tiếp mong đợi, hoặc các quan hệ cần thiết. Không đóng cứng thứ tự mảng do API trả về. Nếu ứng dụng cần bảo đảm các lớp được đóng gói đầy đủ, hãy xác minh môi trường cung cấp chúng thay vì tự coi một mục bị thiếu là bằng chứng rằng mã nguồn không từng cho phép mục ấy.
+If verifying the model in a test, compare the expected set of direct types, or the required relationships. Do not hardcode the array order returned by the API. If the application must ensure classes are completely packaged, verify that the environment provides them instead of assuming a missing entry proves the source code never permitted it.
 
-Cũng không tự khởi tạo từng class chỉ để “xác nhận nó được phép”. Việc nằm trong phân cấp và việc tạo đối tượng hợp lệ là các bước có hợp đồng khác nhau.
+Also do not instantiate each class just to "verify it is permitted". Being in the hierarchy and creating a valid object are steps with different contracts.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-1. `MobileWallet` là một loại `PaymentMethod`; vì sao nó không ở danh sách trực tiếp của `PaymentMethod`?
-2. Tên API chứa “Subclasses” có loại trừ interface con không?
-3. Một class được liệt kê trong `permits` có thể bỏ `extends`/`implements` rồi tự nhận quan hệ nhờ danh sách ấy không?
-4. `getDeclaredClasses()` có thể dùng để tìm mọi kiểu con permitted không?
-5. Không thấy mệnh đề `permits` trong nguồn có đủ để kết luận Reflection không thể trả danh sách không?
-6. Một lớp con của nhánh non-sealed có phải được đưa vào permitted trực tiếp của root không?
+1. `MobileWallet` is a kind of `PaymentMethod`; why is it not in `PaymentMethod`'s direct list?
+2. Does the word "Subclasses" in the API name exclude subinterfaces?
+3. Can a class listed in `permits` omit `extends`/`implements` and still receive the relationship automatically from that list?
+4. Can `getDeclaredClasses()` be used to find all permitted subtypes?
+5. Is the absence of a `permits` clause in source code enough to conclude that Reflection cannot return a list?
+6. Must a subclass of a `non-sealed` branch be added to the root's direct permitted list?
 
-Đáp án:
+Answers:
 
-1. Nó triển khai trực tiếp `Wallet`; quan hệ với `PaymentMethod` đi qua nhánh ấy.
-2. Không. Sealed interface có thể cho phép cả class triển khai trực tiếp và interface mở rộng trực tiếp.
-3. Không. Danh sách cấp phép và khai báo quan hệ phải phù hợp với nhau.
-4. Không. Đó là API về kiểu thành viên được khai báo bên trong một kiểu.
-5. Không. Trình biên dịch có thể suy ra danh sách theo các quy tắc tương ứng.
-6. Không. Nó nằm sâu hơn trong nhánh; không tự trở thành cạnh trực tiếp của root.
+1. It directly implements `Wallet`; its relationship to `PaymentMethod` goes through that branch.
+2. No. A sealed interface can permit both directly implementing classes and directly extending interfaces.
+3. No. The permitted list and the relationship declaration must match each other.
+4. No. That API is for member types declared inside a type.
+5. No. The compiler can infer the list according to the corresponding rules.
+6. No. It sits deeper in the branch; it does not become a direct edge of the root.
 
-## Tài liệu đối chiếu
+## References
 
 - [Java 17 — Class.getPermittedSubclasses](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getPermittedSubclasses()).
 - [Java 17 — Class.getInterfaces](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getInterfaces()).
-- [JLS 17 — Các lớp con trực tiếp được phép](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.1.6).
-- [JLS 17 — Class và interface con trực tiếp của sealed interface](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.1.4).
+- [JLS 17 — Permitted Direct Subclasses](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.1.6).
+- [JLS 17 — Permitted Direct Subclasses and Subinterfaces of a Sealed Interface](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.1.4).

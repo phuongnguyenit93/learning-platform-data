@@ -1,26 +1,26 @@
-# StringBuilder: ensureCapacity(), trimToSize() và chi phí cấp phát bộ nhớ trong Java
+# StringBuilder: ensureCapacity(), trimToSize(), and Memory Allocation Costs in Java
 
-`StringBuilder` là bộ đệm ký tự **có thể thay đổi** (*mutable*) để xây dựng văn bản bằng các thao tác `append`, `insert`, `delete`, `replace` và `setLength`. Khác với `String` bất biến, `StringBuilder` có thể tận dụng **dung lượng đã cấp phát** cho nhiều thao tác nối mà không phải tạo ra một đối tượng `String` trung gian sau từng lần thay đổi.
+`StringBuilder` is a **mutable** character buffer for building text via `append`, `insert`, `delete`, `replace`, and `setLength`. Unlike immutable `String`, `StringBuilder` can reuse **already-allocated capacity** across many concatenation operations without creating an intermediate `String` object on every edit.
 
-Hai API đặc biệt quan trọng khi muốn quản lý bộ nhớ và hiệu năng là:
+Two APIs that are especially important for managing memory and performance are:
 
-- **`ensureCapacity(int minimumCapacity)`:** yêu cầu builder chuẩn bị dung lượng tối thiểu dự kiến sẽ cần, nhằm hạn chế số lần mở rộng bộ đệm trong các lần thêm nội dung tiếp theo.
-- **`trimToSize()`:** yêu cầu **thử** thu hẹp bộ đệm dư sau khi đã xây dựng xong hoặc thay đổi nội dung; đây là thao tác *best-effort*, không có cam kết tuyệt đối sẽ đưa `capacity()` bằng `length()`.
+- **`ensureCapacity(int minimumCapacity)`:** asks the builder to prepare at least the expected minimum capacity, reducing the number of buffer expansions during subsequent content additions.
+- **`trimToSize()`:** asks to **attempt** shrinking excess buffer space after building or editing content finishes; this is a *best-effort* operation with no strict guarantee that `capacity()` will equal `length()`.
 
-Hiểu rõ `length`, `capacity` và chi phí của việc **mở rộng/sao chép bộ đệm** sẽ giúp chọn phương pháp phù hợp thay vì gọi hai API này ở mọi nơi một cách máy móc.
+Understanding `length`, `capacity`, and the cost of **buffer expansion/copying** helps you choose the right approach instead of calling these two APIs mechanically everywhere.
 
-## 1. length và capacity: hai đại lượng khác nhau
+## 1. length and capacity: Two Different Quantities
 
-Một `StringBuilder` có hai khái niệm:
+A `StringBuilder` has two concepts:
 
-| Khái niệm | API | Ý nghĩa |
+| Concept | API | Meaning |
 |---|---|---|
-| **Độ dài đang sử dụng** | `length()` | Số đơn vị mã UTF-16 (**`char`**) hiện có trong nội dung builder |
-| **Dung lượng bộ đệm** | `capacity()` | Số đơn vị mã UTF-16 mà builder có thể chứa trước khi cần mở rộng theo mô hình API |
+| **Used length** | `length()` | Number of UTF-16 code units (**`char`**) currently in the builder's content |
+| **Buffer capacity** | `capacity()` | Number of UTF-16 code units the builder can hold before needing to grow under the API model |
 
-Luôn có bất biến `capacity() >= length()`. Phần `capacity() - length()` là **dung lượng dự phòng chưa chứa nội dung**. Dung lượng không phải số ký tự nhìn thấy và **không** phải số byte trên heap.
+The invariant `capacity() >= length()` always holds. The difference `capacity() - length()` is **unused reserve capacity**. Capacity is neither the number of visible characters nor the number of bytes on the heap.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder sb = new StringBuilder(10);
@@ -30,11 +30,11 @@ System.out.println(sb.length());   // 4
 System.out.println(sb.capacity()); // 10
 ```
 
-`new StringBuilder(10)` chỉ cấp **dung lượng ban đầu**; nó **không** tạo sẵn mười ký tự, không tự đệm chuỗi bằng dấu cách và không làm `length()` bằng 10. Sau khi thêm `"Java"`, độ dài bằng 4, dung lượng vẫn là 10.
+`new StringBuilder(10)` only sets the **initial capacity**; it **does not** pre-create ten characters, does not pad the string with spaces, and does not make `length()` equal 10. After appending `"Java"`, length is 4 and capacity remains 10.
 
-### Đơn vị UTF-16, không phải Unicode code point
+### UTF-16 Units, Not Unicode Code Points
 
-`length()` và `capacity()` tính theo **UTF-16 code units**. Với một emoji ngoài BMP:
+`length()` and `capacity()` are counted in **UTF-16 code units**. With a non-BMP emoji:
 
 ```java
 StringBuilder emoji = new StringBuilder(2);
@@ -43,20 +43,20 @@ System.out.println(emoji.length()); // 2
 System.out.println(emoji.codePointCount(0, emoji.length())); // 1
 ```
 
-Emoji được biểu diễn bằng **hai** code units (high surrogate + low surrogate), nhưng chỉ là **một** code point. Nếu dự toán dung lượng theo số “ký tự người dùng thấy”, hãy cộng dự toán số UTF-16 units thực tế, không tự giả định mỗi emoji chỉ cần một đơn vị mã.
+The emoji is represented by **two** code units (high surrogate + low surrogate), yet is only **one** code point. If estimating capacity from "user-perceived characters", sum the actual estimated UTF-16 units rather than assuming each emoji needs only one code unit.
 
-## 2. Dung lượng ban đầu của StringBuilder
+## 2. Initial Capacity of StringBuilder
 
-Trong Java 17, các constructor phổ biến có ý nghĩa:
+In Java 17, the common constructors have these meanings:
 
-| Constructor | Ý nghĩa |
+| Constructor | Meaning |
 |---|---|
-| `new StringBuilder()` | Builder rỗng, capacity ban đầu **16** |
-| `new StringBuilder(int capacity)` | Builder rỗng, capacity ban đầu theo số nguyên chỉ định |
-| `new StringBuilder(String str)` | Ban đầu chứa toàn bộ `str`, capacity ban đầu bằng `str.length() + 16` |
-| `new StringBuilder(CharSequence seq)` | Ban đầu chứa `seq`, có capacity bằng độ dài sequence cộng 16 theo hợp đồng constructor |
+| `new StringBuilder()` | Empty builder, initial capacity **16** |
+| `new StringBuilder(int capacity)` | Empty builder, initial capacity set to the specified integer |
+| `new StringBuilder(String str)` | Initially contains all of `str`, initial capacity equals `str.length() + 16` |
+| `new StringBuilder(CharSequence seq)` | Initially contains `seq`, with capacity equal to sequence length plus 16 per constructor contract |
 
-Minh họa:
+Illustration:
 
 ```java
 StringBuilder a = new StringBuilder();
@@ -71,31 +71,31 @@ System.out.println(c.length());    // 4
 System.out.println(c.capacity());  // 20
 ```
 
-Lưu ý:
+Notes:
 
-- `new StringBuilder(0)` hợp lệ: ban đầu không có dung lượng dự phòng; lần thêm đầu tiên có thể phải mở rộng.
-- `new StringBuilder(-1)` ném `NegativeArraySizeException`, vì constructor không thể tạo dung lượng âm.
-- Constructor nhận `String`/`CharSequence` đã chứa sẵn văn bản và có dự phòng; constructor nhận `int` **không** tạo nội dung.
-- Dung lượng dự phòng được quản lý nội bộ, không cần tự điền ký tự giả để “giữ chỗ”.
+- `new StringBuilder(0)` is valid: initially no spare capacity; the first append may have to expand.
+- `new StringBuilder(-1)` throws `NegativeArraySizeException`, because the constructor cannot create a negative capacity.
+- The `String`/`CharSequence` constructors already contain text and spare capacity; the `int` constructor **creates no content**.
+- Spare capacity is managed internally; there is no need to fill dummy characters to "hold space".
 
-**Không nhầm `capacity()` với số byte RAM.** Các JDK hiện đại có thể sử dụng biểu diễn bộ nhớ khác nhau cho chuỗi/builder (ví dụ tối ưu *compact strings* trong HotSpot). Overhead đối tượng, mảng nội bộ, encoding, alignment và GC khiến dung lượng tính theo code unit **không chuyển thẳng thành một công thức byte chính xác cho mọi JVM**.
+**Do not confuse `capacity()` with RAM bytes.** Modern JDKs can use different memory representations for strings/builders (for example *compact strings* optimizations in HotSpot). Object overhead, internal arrays, encoding, alignment, and GC mean capacity in code units **does not translate directly into one exact byte formula across all JVMs**.
 
-## 3. ensureCapacity(minimumCapacity) làm gì?
+## 3. What Does ensureCapacity(minimumCapacity) Do?
 
-Cú pháp:
+Syntax:
 
 ```java
 sb.ensureCapacity(minimumCapacity);
 ```
 
-Với một builder có capacity hiện tại là `oldCapacity`:
+For a builder with current capacity `oldCapacity`:
 
-1. Nếu `minimumCapacity <= oldCapacity` thì yêu cầu đã được đáp ứng, nên không cần mở rộng vì lời gọi này.
-2. Nếu `minimumCapacity > oldCapacity`, builder chuẩn bị dung lượng **ít nhất bằng** `minimumCapacity`.
-3. Dung lượng thực tế có thể **lớn hơn** giá trị yêu cầu do chính sách tăng trưởng nội bộ.
-4. Nội dung, `length()` và thứ tự ký tự hiện có **không thay đổi** chỉ vì gọi `ensureCapacity`.
+1. If `minimumCapacity <= oldCapacity`, the requirement is already met, so no expansion is needed for this call.
+2. If `minimumCapacity > oldCapacity`, the builder prepares capacity **at least equal to** `minimumCapacity`.
+3. Actual capacity may be **larger than** the requested value due to internal growth policy.
+4. Existing content, `length()`, and character order **do not change** merely from calling `ensureCapacity`.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder sb = new StringBuilder(4);
@@ -107,17 +107,17 @@ System.out.println(sb.capacity() >= 20);  // true
 System.out.println(sb.toString());        // ab
 ```
 
-Không nên khẳng định `sb.capacity() == 20` cho mọi trường hợp và mọi phiên bản JVM. Hợp đồng ứng dụng nên dựa vào điều kiện **`>= minimumCapacity`**, không dựa vào một con số chính xác sau khi mở rộng.
+Do not assert `sb.capacity() == 20` across all cases and JVM versions. Application contracts should rely on **`>= minimumCapacity`**, not on an exact post-growth number.
 
-### Chính sách tăng trưởng thường gặp
+### Common Growth Policy
 
-Trong các bản triển khai OpenJDK/HotSpot, dung lượng mới thường được tính theo một chiến lược **tăng theo cấp số nhân**, có dạng gần như `oldCapacity * 2 + 2`, rồi đảm bảo không nhỏ hơn dung lượng tối thiểu cần thiết (kèm giới hạn/kiểm tra với mảng quá lớn). Ví dụ với dung lượng 16, một lần mở rộng điển hình có thể tạo khoảng 34 đơn vị mã thay vì đúng 17.
+In OpenJDK/HotSpot implementations, the new capacity is typically computed using an **exponential growth** strategy roughly like `oldCapacity * 2 + 2`, then ensuring it is not less than the minimum needed (with bounds/checks for huge arrays). For example, starting at capacity 16, a typical expansion might yield about 34 code units rather than exactly 17.
 
-Đây là **chi tiết triển khai**, không phải công thức để viết logic nghiệp vụ. Các JVM/phiên bản khác có thể dùng chiến lược khác; bạn không nên kiểm thử chương trình bằng điều kiện `capacity() == 34` chỉ vì một JDK trả ra giá trị đó. Khi cần hợp đồng ổn định, chỉ sử dụng `capacity >= nhu cầu`.
+This is an **implementation detail**, not a formula for business logic. Other JVMs/versions may use different strategies; do not write tests checking `capacity() == 34` just because one JDK returns that value. When a stable contract is needed, rely only on `capacity >= demand`.
 
-### minimumCapacity bằng 0 hoặc âm
+### Zero or Negative minimumCapacity
 
-`ensureCapacity(0)` hoặc yêu cầu âm không tạo thêm dung lượng; không có ý nghĩa “thu hẹp buffer”. Đây là điểm khác `new StringBuilder(-1)` — constructor với dung lượng âm là bất hợp lệ.
+`ensureCapacity(0)` or a negative request allocates no extra capacity; it does not mean "shrink buffer". This differs from `new StringBuilder(-1)` — constructing with a negative capacity is invalid.
 
 ```java
 StringBuilder sb = new StringBuilder(8);
@@ -126,13 +126,13 @@ sb.ensureCapacity(-5);
 System.out.println(sb.capacity()); // 8
 ```
 
-Không dùng `ensureCapacity` để giảm bộ nhớ. Nó chỉ phục vụ **dự phòng dung lượng**, không phải API cắt bớt nội dung hoặc loại bỏ phần dự trữ.
+Do not use `ensureCapacity` to reduce memory. It serves only to **reserve capacity**, not to trim content or discard spare storage.
 
-## 4. Khi nào nên gọi ensureCapacity?
+## 4. When Should You Call ensureCapacity?
 
-Khi bạn biết hoặc ước lượng khá tốt độ dài UTF-16 sẽ xây dựng, dự phòng dung lượng trước thường giảm số lần mở rộng mảng bên trong.
+When you know or can reasonably estimate the UTF-16 length to be built, pre-reserving capacity often reduces the number of internal array expansions.
 
-Ví dụ ghép một danh sách từ có dấu phân cách:
+Example joining a list of words with a delimiter:
 
 ```java
 import java.util.List;
@@ -143,7 +143,7 @@ int estimated = 0;
 for (String word : words) {
     estimated += word.length();
 }
-estimated += Math.max(0, words.size() - 1); // Dấu cách giữa các từ
+estimated += Math.max(0, words.size() - 1); // Spaces between words
 
 StringBuilder out = new StringBuilder();
 out.ensureCapacity(estimated);
@@ -158,38 +158,38 @@ for (int i = 0; i < words.size(); i++) {
 System.out.println(out.toString()); // Java Core StringBuilder
 ```
 
-Ví dụ được trình bày như một **đoạn mã dùng trong phương thức** có import `java.util.List`, không phải chương trình độc lập. Nếu danh sách có phần tử `null` hoặc tổng độ dài có thể vượt `Integer.MAX_VALUE`, phải xác định chính sách và kiểm tra overflow trước khi cấp phát.
+This example is presented as a **code snippet used inside a method** with `java.util.List` imported, not a standalone program. If the list could contain `null` elements or the total length could exceed `Integer.MAX_VALUE`, define a policy and check for overflow before allocating.
 
-Với dữ liệu lớn/không đáng tin cậy, nên tính nhu cầu bằng kiểu `long` và giới hạn hợp lý theo yêu cầu ứng dụng; một ước lượng sai do tràn số nguyên có thể dẫn đến capacity âm, thiếu hoặc vượt ngân sách bộ nhớ.
+For large or untrusted inputs, compute requirements using `long` and impose a reasonable limit per application needs; a bad estimate caused by integer overflow can lead to negative capacity, under-allocation, or exceeding memory budgets.
 
-### Có thể dùng constructor để dự phòng ngay
+### You Can Use the Constructor to Reserve Upfront
 
-Nếu biết nhu cầu từ trước lúc khởi tạo, có thể viết:
+If the demand is known at creation time, you can write:
 
 ```java
 StringBuilder out = new StringBuilder(estimated);
 ```
 
-thay vì:
+instead of:
 
 ```java
 StringBuilder out = new StringBuilder();
 out.ensureCapacity(estimated);
 ```
 
-Cả hai đều cho phép chuẩn bị dung lượng. Constructor với kích thước dự kiến thường súc tích hơn nếu ta **chưa tạo builder**, và có thể tránh một lần tạo bộ đệm ban đầu quá nhỏ rồi mở rộng. `ensureCapacity` phù hợp khi builder **đã tồn tại** và nhu cầu tương lai tăng thêm, hoặc khi chỉ có thể ước lượng sau khi đọc thêm thông tin.
+Both prepare capacity. Passing the expected size to the constructor is usually more concise if you **have not created the builder yet**, and can avoid creating an initial buffer that is too small and immediately expanding it. `ensureCapacity` fits when the builder **already exists** and future demand grows, or when the estimate can only be made after reading more information.
 
-**Đừng lạm dụng:** nếu một builder chỉ nhận vài ký tự và bản thân dung lượng mặc định 16 đã đủ, `ensureCapacity` không mang lại lợi ích đo được; nó chỉ làm mã dài hơn.
+**Do not overuse it:** if a builder only receives a few characters and the default capacity of 16 is already enough, `ensureCapacity` brings no measurable benefit; it only makes the code longer.
 
-## 5. Chi phí cấp phát khi StringBuilder lớn dần
+## 5. Allocation Cost as StringBuilder Grows
 
-Hãy phân biệt hai tình huống:
+Distinguish two situations:
 
-### Thêm nội dung nhưng vẫn còn chỗ
+### Adding Content While Space Remains
 
-Khi `length() + appendedUnits <= capacity()`, builder có thể sử dụng phần dự trữ hiện có. Về mặt bộ đệm, không cần tạo một vùng chứa lớn hơn **chỉ vì đã vượt length cũ**.
+When `length() + appendedUnits <= capacity()`, the builder can use its existing reserve. At the buffer level, there is no need to allocate a larger container **just because the old length was exceeded**.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder sb = new StringBuilder(8);
@@ -197,57 +197,57 @@ sb.append("abc"); // length 3, capacity 8
 sb.append("de");  // length 5, capacity 8
 ```
 
-Thao tác nối vẫn tốn CPU để xử lý dữ liệu, và một số API có thể có cấp phát phụ trợ; nhưng nó không cần **mở rộng bộ đệm chính** khi capacity đủ.
+The append still spends CPU to process data, and some APIs may perform auxiliary allocations; however, it does not need to **expand the main buffer** when capacity is sufficient.
 
-### Thêm nội dung vượt capacity
+### Adding Content Beyond Capacity
 
-Khi nội dung mới không còn vừa trong capacity hiện tại, builder phải có vùng lưu trữ nội bộ đủ lớn. Trong một triển khai phổ biến, thao tác này có thể gồm:
+When new content no longer fits in the current capacity, the builder must obtain a sufficiently large internal storage region. In a typical implementation, this operation may involve:
 
-1. Xác định dung lượng mới.
-2. Cấp phát một vùng chứa ký tự/byte nội bộ lớn hơn.
-3. Sao chép nội dung cũ sang vùng mới.
-4. Thêm dữ liệu mới vào phần còn trống.
-5. Để vùng chứa cũ đủ điều kiện được bộ thu gom rác thu hồi khi không còn tham chiếu tới nó.
+1. Determining the new capacity.
+2. Allocating a larger internal character/byte array.
+3. Copying the old content to the new array.
+4. Appending the new data into the remaining space.
+5. Leaving the old array eligible for garbage collection once unreferenced.
 
-Vì vậy, một lần mở rộng có thể tốn **O(n)** theo lượng nội dung phải sao chép lúc đó, kèm chi phí cấp phát/GC. Việc mở rộng theo cấp số nhân tạo ra vùng dự phòng nhằm **giảm tần suất** lặp lại thao tác tốn kém ấy.
+Thus, a single expansion can cost **O(n)** in the amount of content copied at that moment, plus allocation/GC overhead. Exponential growth creates spare room specifically to **reduce the frequency** of repeating that expensive step.
 
-### Vì sao append thường có chi phí khấu hao tốt?
+### Why Does append Typically Have Good Amortized Cost?
 
-Nếu dung lượng tăng theo hệ số lớn hơn 1, các lần mở rộng hiếm dần khi dữ liệu lớn lên. Tổng số đơn vị mã đã phải sao chép trong nhiều lần tăng trưởng sẽ cùng bậc với tổng kích thước cuối trong mô hình tăng trưởng hình học. Vì vậy, khi nối một số lượng lớn nội dung với builder, tổng chi phí quản lý vùng nhớ có thể **khấu hao O(n)** theo kích thước đầu ra (không tính các phép xử lý nội dung đặc biệt), thay vì sao chép toàn bộ tiền tố ở **mọi lần** thêm.
+If capacity grows by a factor greater than 1, expansions become progressively rarer as data grows. The total number of code units copied across multiple growth steps stays on the same order as the final total size under a geometric growth model. Consequently, when appending large amounts of content to a builder, total memory-management cost can be **amortized O(n)** in the output size (excluding special content processing), rather than copying the entire prefix on **every** append.
 
-Tuy nhiên:
+However:
 
-- **Một lần append đơn lẻ không được bảo đảm O(1)**, vì có thể phải mở rộng và sao chép hoặc thêm một chuỗi có độ dài lớn.
-- **O(n)** là phân tích chi phí khấu hao trong mô hình nhất định, không phải thời gian thực thi chính xác trên mọi JVM.
-- Dự phòng bằng `ensureCapacity` có thể giảm các lần mở rộng, nhưng **không biến việc ghi n ký tự thành O(1)**; dữ liệu vẫn phải được sao chép vào kết quả ở mức nào đó.
-- Việc tăng capacity quá lớn gây lãng phí bộ nhớ, tăng áp lực cấp phát và có thể làm `OutOfMemoryError` xuất hiện sớm hơn.
+- **A single append call is not guaranteed to be O(1)**, because it may trigger expansion and copying or append a very long string.
+- **O(n)** is an amortized cost analysis under a specific model, not an exact execution time on every JVM.
+- Reserving with `ensureCapacity` can reduce expansions, yet **does not make writing n characters O(1)**; data still must be copied into the result at some level.
+- Over-allocating capacity wastes memory, increases allocation pressure, and can trigger `OutOfMemoryError` sooner.
 
-### So với nối String bằng + trong vòng lặp
+### Compared to String Concatenation with + in a Loop
 
-`String` bất biến. Mã tạo chuỗi mới bằng phép nối lặp nhiều lần **có thể** tạo và sao chép các tiền tố trung gian, khiến tổng công việc tốn kém, trong khi `StringBuilder` có thể tái sử dụng bộ đệm. Vì thế, với vòng lặp có nhiều thao tác thêm từng phần, `StringBuilder` thường là lựa chọn rõ ràng.
+`String` is immutable. Code creating new strings by repeated concatenation **can** allocate and copy intermediate prefixes, making total work expensive, whereas `StringBuilder` can reuse its buffer. Therefore, for loops with many incremental appends, `StringBuilder` is usually the clear choice.
 
-Dẫu vậy, đừng mặc định mọi biểu thức `"a" + x + y` đều phải tạo nhiều đối tượng `String`: compiler/JVM hiện đại có thể tối ưu phép nối bằng `invokedynamic` hoặc cách khác. Chọn theo cấu trúc công việc, sau đó đo bằng công cụ benchmark (ví dụ JMH) nếu hiệu năng thực sự quan trọng.
+Still, do not assume every `"a" + x + y` expression creates many `String` objects: modern compilers/JVMs can optimize concatenation using `invokedynamic` or other strategies. Choose based on the structure of the work, then measure with a benchmarking tool (such as JMH) if performance truly matters.
 
-## 6. trimToSize(): chỉ **thử** thu hẹp vùng dự trữ
+## 6. trimToSize(): Only **Attempts** to Shrink Reserve Storage
 
-Cú pháp:
+Syntax:
 
 ```java
 sb.trimToSize();
 ```
 
-Theo tài liệu `AbstractStringBuilder`/`StringBuilder`, `trimToSize()` **attempts to reduce storage used**: nếu vùng chứa nội bộ đang rộng hơn lượng ký tự thực tế, triển khai **có thể** thu nhỏ dung lượng. Nhưng API **không cam kết** sau khi gọi luôn có `capacity() == length()`.
+According to the `AbstractStringBuilder`/`StringBuilder` documentation, `trimToSize()` **attempts to reduce storage used**: if the internal backing array is larger than the actual character count, the implementation **may** shrink capacity. However, the API **does not guarantee** `capacity() == length()` after the call.
 
-Một số điểm cần nhớ:
+Points to remember:
 
-- `trimToSize()` **không xóa hay đổi nội dung**. `length()` được giữ nguyên.
-- Thao tác này **không nối thêm** ký tự.
-- Nếu còn nhiều chỗ trống, triển khai có thể cấp phát vùng chứa nhỏ hơn và sao chép dữ liệu sang đó.
-- Nếu JVM không thay đổi dung lượng, điều đó vẫn có thể tuân thủ hợp đồng *best-effort*.
-- Không có cam kết việc gọi `trimToSize` làm bộ nhớ heap trả lại OS ngay. Vòng đời của mảng cũ, GC và cấp phát bộ nhớ thực tế phụ thuộc JVM.
-- Sau khi thu hẹp, **lần append tiếp theo có thể phải mở rộng lại**, dẫn đến thêm cấp phát và sao chép.
+- `trimToSize()` **does not delete or modify content**. `length()` stays unchanged.
+- This operation **does not append** characters.
+- If much unused space remains, the implementation may allocate a smaller container and copy the data there.
+- If the JVM does not change capacity, that can still comply with the *best-effort* contract.
+- There is no guarantee that calling `trimToSize` immediately returns heap memory to the OS. The lifecycle of the old array, GC, and actual memory allocation depend on the JVM.
+- After shrinking, **the next append may have to expand again**, causing extra allocation and copying.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder sb = new StringBuilder(128);
@@ -261,45 +261,45 @@ System.out.println(sb.length());          // 4
 System.out.println(sb.capacity() >= 4);   // true
 ```
 
-Không nên bắt đầu một bài kiểm thử có tính tương thích JVM bằng việc đòi `sb.capacity() == 4` sau `trimToSize`. Mục tiêu chính của API là **đề nghị giảm bộ nhớ dự phòng**, không cam kết một con số cố định.
+Do not write a JVM-portable test demanding `sb.capacity() == 4` after `trimToSize`. The API's primary purpose is **suggesting a reduction in spare memory**, not guaranteeing an exact number.
 
-### Khi nào trimToSize có ích?
+### When Is trimToSize Useful?
 
-Một tình huống phù hợp: bạn đã xây dựng xong một `StringBuilder` có khả năng giữ lại **rất lâu** trong một đối tượng ứng dụng; nội dung thực tế nhỏ hơn nhiều so với capacity từng dự phòng; bạn muốn **thử** giảm footprint trước khi giữ đối tượng lâu dài.
+A fitting scenario: you have finished building a `StringBuilder` that will likely be retained for a **very long time** inside an application object; actual content is much smaller than the previously reserved capacity; and you want to **attempt** reducing its footprint before keeping the object long-term.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder cacheValue = new StringBuilder(10_000);
 cacheValue.append("small result");
-cacheValue.trimToSize(); // Yêu cầu thử giảm phần dự phòng
+cacheValue.trimToSize(); // Request attempting to reduce spare space
 ```
 
-Nếu bạn chỉ cần **chuỗi bất biến cuối cùng**, việc gọi `toString()` rồi bỏ tham chiếu đến `StringBuilder` thường hợp lý hơn là giữ builder lại chỉ để gọi `trimToSize`. `toString()` cho một `String` đại diện nội dung tại thời điểm gọi; bộ đệm builder và chuỗi kết quả là các khái niệm khác nhau.
+If you only need the **final immutable string**, calling `toString()` and dropping the reference to `StringBuilder` usually makes more sense than keeping the builder just to call `trimToSize`. `toString()` yields a `String` representing the content at the moment of the call; the builder buffer and the resulting string are different concepts.
 
-### Vì sao không nên gọi trimToSize sau mỗi append?
+### Why Shouldn't You Call trimToSize After Every Append?
 
-Giả sử một builder liên tục:
+Suppose a builder repeatedly does:
 
 ```text
 append -> trimToSize -> append -> trimToSize -> append -> ...
 ```
 
-Nếu mỗi `trimToSize` thực sự thu nhỏ vùng chứa về gần độ dài hiện tại, phần dự trữ biến mất sau mỗi bước. Mỗi lần append sau có thể phải cấp phát/sao chép lại, gây hiệu năng kém và tăng GC. **Tránh một chu kỳ thu hẹp–mở rộng liên tục** nếu bạn còn định thêm dữ liệu.
+If each `trimToSize` actually shrinks the container close to the current length, the reserve disappears after every step. Each subsequent append may have to reallocate and re-copy, causing poor performance and extra GC. **Avoid a continuous shrink–expand cycle** if you still plan to add data.
 
-Nguyên tắc: **dự phòng trước giai đoạn tăng trưởng**, chỉ cân nhắc thu hẹp **sau giai đoạn tăng trưởng và khi thật sự có lợi về bộ nhớ**.
+Rule of thumb: **reserve before a growth phase**, and consider shrinking **only after growth ends and when memory savings genuinely matter**.
 
-## 7. trimToSize khác setLength, delete, clear ra sao?
+## 7. How trimToSize Differs from setLength, delete, and Clear
 
-| API | Thay đổi length? | Thay đổi nội dung? | Tác dụng chính tới capacity |
+| API | Changes length? | Changes content? | Primary Effect on Capacity |
 |---|---|---|---|
-| `ensureCapacity(n)` | Không | Không | Đảm bảo tối thiểu n khi cần |
-| `trimToSize()` | Không | Không | Thử giảm dung lượng thừa; không cam kết giảm |
-| `setLength(n)` | Có | Có thể cắt bớt hoặc bổ sung `\u0000` khi tăng | Không phải API “trả lại bộ nhớ”; có thể mở rộng nếu n lớn |
-| `delete(start, end)` | Có | Xóa nội dung theo đoạn | Không bắt buộc giảm capacity |
-| `setLength(0)` | Có, còn 0 | Xóa nội dung logic | Thường **giữ capacity** để tái sử dụng |
+| `ensureCapacity(n)` | No | No | Ensures at least n when needed |
+| `trimToSize()` | No | No | Attempts to reduce excess capacity; shrinking not guaranteed |
+| `setLength(n)` | Yes | May truncate or pad with `\u0000` when growing | Not a "return memory" API; may expand if n is large |
+| `delete(start, end)` | Yes | Deletes content in range | Not required to shrink capacity |
+| `setLength(0)` | Yes, becomes 0 | Clears logical content | Usually **keeps capacity** for reuse |
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder sb = new StringBuilder(64);
@@ -314,13 +314,13 @@ System.out.println(sb.length());   // 0
 System.out.println(sb.capacity()); // 64
 ```
 
-`setLength(0)` hữu ích để **tái sử dụng builder** trong nhiều lần xây dựng chuỗi. Nếu sau đó tiếp tục append với kích thước tương tự, giữ capacity có thể là ưu điểm. Đừng gọi `trimToSize` để “clear nội dung”: đó **không** phải ý nghĩa của phương thức này.
+`setLength(0)` is useful for **reusing a builder** across multiple string constructions. If you subsequently append similar sizes, keeping capacity can be an advantage. Never call `trimToSize` to "clear content": that is **not** what this method means.
 
-Nếu `setLength(n)` tăng độ dài, các vị trí mới được điền ký tự `\u0000` (NUL) chứ không phải dấu cách thông thường. Không dùng cách tăng length để “reserve” dung lượng thay cho `ensureCapacity`, vì khi đó đã thực sự thay đổi văn bản logic.
+If `setLength(n)` increases length, the new positions are filled with `\u0000` (NUL) rather than ordinary spaces. Do not use increasing length to "reserve" capacity instead of `ensureCapacity`, because doing so actually alters the logical text.
 
-## 8. Chương trình Java 17+ hoàn chỉnh: quan sát bất biến
+## 8. Complete Java 17+ Program: Observing Invariants
 
-Ví dụ cố tình chỉ in **những giá trị được bảo đảm bởi hợp đồng API**, tránh giả định dung lượng cụ thể sau khi mở rộng hay thu hẹp. Lưu vào **`StringBuilderCapacityDemo.java`**:
+The example intentionally prints only **values guaranteed by the API contract**, avoiding assumptions about exact capacity after growth or shrinking. Save to **`StringBuilderCapacityDemo.java`**:
 
 ```java
 public class StringBuilderCapacityDemo {
@@ -356,7 +356,7 @@ public class StringBuilderCapacityDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 StringBuilderCapacityDemo.java
@@ -377,35 +377,35 @@ emoji units: 2
 emoji codePoints: 1
 ```
 
-**Giải thích kết quả:**
+**Output explanation:**
 
-1. Constructor `(4)` tạo builder rỗng có capacity bằng 4.
-2. `append("ab")` dùng hai ô mã UTF-16 trong capacity 4, nên capacity vẫn 4.
-3. `ensureCapacity(20)` bảo đảm dung lượng **ít nhất 20**; phép kiểm tra boolean luôn `true` theo hợp đồng.
-4. `append("cd")` đưa nội dung thành `"abcd"`, không cần biết capacity chính xác.
-5. `trimToSize()` có thể giảm dung lượng nhưng **không được phá hỏng nội dung**. `capacity() >= length()` luôn đúng.
-6. `setLength(2)` thay đổi **nội dung logic** thành `"ab"`.
-7. `appendCodePoint(0x1F600)` thêm một code point được biểu diễn bằng hai đơn vị UTF-16, nên `length() == 2` và `codePointCount(...) == 1`.
+1. Constructor `(4)` creates an empty builder with capacity 4.
+2. `append("ab")` uses two UTF-16 code units within capacity 4, so capacity remains 4.
+3. `ensureCapacity(20)` guarantees capacity **at least 20**; the boolean check is always `true` by contract.
+4. `append("cd")` brings content to `"abcd"`, without needing to know the exact capacity.
+5. `trimToSize()` may reduce capacity, yet **must not corrupt content**. `capacity() >= length()` always holds.
+6. `setLength(2)` changes the **logical content** to `"ab"`.
+7. `appendCodePoint(0x1F600)` adds a code point represented by two UTF-16 units, so `length() == 2` and `codePointCount(...) == 1`.
 
-Ví dụ nhấn mạnh cách viết test bền vững: kiểm tra **invariant do API bảo đảm**, thay vì đóng đinh chi tiết tối ưu của một phiên bản JVM.
+The example highlights writing resilient tests: checking **invariants guaranteed by the API**, rather than hardcoding optimization details of one JVM version.
 
-## 9. Đo và ước lượng chi phí bộ nhớ đúng cách
+## 9. Measuring and Estimating Memory Costs Properly
 
-Giả sử bạn định nối n chuỗi `parts[i]` với tổng số UTF-16 units:
+Suppose you plan to join n strings `parts[i]` with total UTF-16 units:
 
 \[
 L = \sum_{i=0}^{n-1} \mathrm{parts}[i].\mathrm{length}()
 \]
 
-Nếu thêm `n - 1` dấu phân cách đơn vị mã đơn, dung lượng dự kiến:
+If adding `n - 1` single-code-unit delimiters, the expected capacity is:
 
 \[
 C = L + \max(0, n-1)
 \]
 
-Đây là dự toán **số UTF-16 units**, không phải số byte trên heap. Với dấu phân cách là chuỗi dài hơn, phải cộng `delimiter.length() * (n-1)`. Nếu có bất kỳ bước biến đổi nào làm tăng/giảm độ dài, dự toán phải điều chỉnh.
+This is an estimate of **UTF-16 unit count**, not heap bytes. For multi-character delimiters, add `delimiter.length() * (n-1)`. If any transformation step increases or decreases length, adjust the estimate accordingly.
 
-Trong code xử lý input lớn, tránh tràn `int` khi cộng và đặt giới hạn để từ chối input vượt ngân sách:
+In code handling large inputs, avoid `int` overflow when summing and set a limit to reject over-budget inputs:
 
 ```java
 long needed = 0;
@@ -419,54 +419,54 @@ if (needed > 1_000_000L) {
 StringBuilder sb = new StringBuilder((int) needed);
 ```
 
-Đây là **đoạn minh họa**; giả sử `parts` là tập các chuỗi không null và chưa tính delimiters. Trong ứng dụng thật, cần bổ sung chi phí dấu phân cách và giới hạn dựa trên quy tắc nghiệp vụ. Với các biến `long`, phải tránh overflow nếu dữ liệu có thể cực lớn, dù giới hạn ứng dụng thường loại trừ trường hợp đó sớm hơn.
+This is an **illustrative snippet**; it assumes `parts` is a non-null collection of strings and excludes delimiters. In a real application, add delimiter costs and limits based on business rules. With `long` variables, avoid overflow if data could be huge, though application limits usually rule out that case earlier.
 
-### Các yếu tố thực tế cần đo
+### Practical Factors to Measure
 
-- **Số lần mở rộng**: nhiều lần tăng capacity gây thêm allocations và copy.
-- **Dung lượng dự phòng so với dữ liệu thực**: quá nhiều vùng trống kéo dài có thể lãng phí heap nếu builder sống lâu.
-- **Chu kỳ sống của builder**: tạo và bỏ nhanh khác với lưu builder trong cache hoặc object lâu dài.
-- **Số lần gọi `toString()`**: tạo bản `String` để sử dụng độc lập có chi phí; lặp gọi nhiều lần không thay đổi nội dung có thể làm tăng allocations tùy tối ưu JVM.
-- **Kiểu dữ liệu ký tự**: text Latin-1 so với Unicode có thể có cách lưu byte khác nhau trên JVM có compact strings.
-- **Bộ thu gom rác và cấu hình heap**: ảnh hưởng latency, throughput và footprint quan sát được.
+- **Expansion count**: repeated capacity increases cause extra allocations and copies.
+- **Spare capacity vs. actual data**: large lingering empty space can waste heap if the builder is long-lived.
+- **Builder lifecycle**: short-lived allocate-and-discard differs from keeping builders in caches or long-lived objects.
+- **Number of `toString()` calls**: creating an independent `String` copy has a cost; calling repeatedly without modifying content can increase allocations depending on JVM optimizations.
+- **Character data type**: Latin-1 vs. Unicode text may have different byte representations on JVMs with compact strings.
+- **Garbage collector and heap settings**: affect observed latency, throughput, and footprint.
 
-Nếu tối ưu hiệu năng là yêu cầu thực tế, hãy đo bằng profiler và microbenchmark phù hợp (thường dùng JMH). Không kết luận hiệu quả dựa vào vài lần `System.nanoTime()` khi JVM chưa warm-up.
+If performance optimization is a real requirement, measure with a profiler and proper microbenchmark (commonly JMH). Do not draw conclusions from a few `System.nanoTime()` calls before the JVM warms up.
 
-## 10. Những lựa chọn theo tình huống
+## 10. Situational Choices
 
-| Bối cảnh | Cách thường phù hợp | Lý do |
+| Context | Usually Appropriate Approach | Reason |
 |---|---|---|
-| Chuỗi ngắn chỉ nối vài giá trị | Phép `+` rõ ràng | Compiler/JVM có thể tối ưu tốt; mã dễ đọc |
-| Vòng lặp nối nhiều phần | `StringBuilder` | Tái sử dụng buffer thay vì nối tạo nhiều chuỗi trung gian |
-| Biết trước tổng độ dài tương đối chính xác | `new StringBuilder(estimated)` | Dự phòng ngay từ đầu |
-| Đã có builder và sắp thêm nhiều dữ liệu | `ensureCapacity(neededTotal)` | Giảm nguy cơ phải mở rộng nhiều lần |
-| Builder đã hoàn tất nhưng phải giữ lâu, capacity dư quá nhiều | Cân nhắc `trimToSize()` | Thử giảm footprint |
-| Builder chỉ là công cụ tạm để ra `String` kết quả | `toString()` rồi bỏ builder | Không cần duy trì buffer dự phòng |
-| Tái dùng builder cho từng lượt độc lập | `setLength(0)` | Xóa nội dung logic, thường giữ capacity để tái sử dụng |
-| Đa luồng cần cùng một bộ đệm | Thiết kế đồng bộ/ownership rõ ràng; cân nhắc `StringBuffer` nếu phù hợp | `StringBuilder` **không** đồng bộ các thao tác |
+| Short string joining just a few values | Clear `+` operator | Compiler/JVM can optimize well; readable code |
+| Loop appending many parts | `StringBuilder` | Reuses buffer instead of creating many intermediate strings |
+| Total length known fairly accurately upfront | `new StringBuilder(estimated)` | Reserves upfront from the start |
+| Existing builder about to receive lots of data | `ensureCapacity(neededTotal)` | Reduces risk of repeated expansions |
+| Finished builder kept long-term with huge excess capacity | Consider `trimToSize()` | Attempts to reduce footprint |
+| Builder only a temporary tool to produce a `String` | `toString()` then discard builder | No need to maintain spare buffer |
+| Reusing a builder across independent rounds | `setLength(0)` | Clears logical content, usually keeps capacity for reuse |
+| Multiple threads needing the same buffer | Clear synchronization/ownership design; consider `StringBuffer` if appropriate | `StringBuilder` **does not** synchronize operations |
 
-Không nên coi bảng là quy tắc tuyệt đối. Nếu đầu vào có độ dài rất biến động, preallocation theo giá trị cực đại của một trường hợp hiếm có thể làm nhiều builder dư thừa bộ nhớ. Ước lượng tốt theo phân bố dữ liệu thực thường hiệu quả hơn đặt capacity cực lớn “cho chắc”.
+Do not treat the table as an absolute rule. If inputs vary widely in length, preallocating for a rare maximum case can leave many builders wasting memory. Good estimation based on actual data distribution usually works better than setting a huge capacity "just to be safe".
 
-## 11. Các lỗi thường gặp
+## 11. Common Mistakes
 
-| Hiểu nhầm/lỗi | Hậu quả | Cách làm đúng |
+| Misconception / Mistake | Consequence | Correct Practice |
 |---|---|---|
-| “`new StringBuilder(100)` có length 100” | Nhầm dung lượng với nội dung | Builder mới rỗng, `length() == 0` |
-| “`ensureCapacity(100)` làm length thành 100” | Không có ký tự mới nào được thêm | Dùng `append` để bổ sung nội dung |
-| “`ensureCapacity` luôn đặt capacity đúng số yêu cầu” | Chính sách tăng trưởng có thể cấp nhiều hơn | Chỉ dựa vào `capacity() >= minimumCapacity` |
-| “`ensureCapacity` làm giảm capacity khi truyền số nhỏ” | Không đạt mục đích giảm bộ nhớ | `ensureCapacity` chỉ dự phòng; cân nhắc `trimToSize` |
-| “`trimToSize` luôn khiến capacity == length” | Phụ thuộc triển khai | API là *best-effort* |
-| “`trimToSize` xóa phần nội dung cuối” | Thực tế không thay đổi ký tự hay length | Dùng `setLength`/`delete` để xóa nội dung |
-| “`setLength(0)` chắc chắn trả lại RAM” | Thường vẫn giữ buffer đã cấp | Chỉ có length trở về 0 |
-| Gọi `trimToSize` sau **mỗi** lần append | Có thể tạo chu kỳ co–giãn, tăng cấp phát/copy | Chỉ cân nhắc sau khi đã xây xong và builder sống lâu |
-| Dự toán bằng số emoji thay vì UTF-16 units | Dung lượng thiếu so với nhu cầu thực | Dùng `String.length()` hoặc `Character.charCount(cp)` |
-| “Capacity 100 nghĩa là 200 byte RAM” | Bỏ qua compact strings, overhead, alignment, JVM | Đo thực tế, không áp công thức byte cứng |
-| Dự toán `int` bị overflow | Capacity sai hoặc lỗi khi cấp phát | Tính với `long`, giới hạn đầu vào rồi mới ép kiểu |
-| Cho rằng mọi thao tác `append` luôn O(1) | Có thể sao chép buffer hoặc append dữ liệu lớn | Hiểu chi phí khấu hao và độ dài phần được thêm |
+| "`new StringBuilder(100)` has length 100" | Confuses capacity with content | New builder is empty, `length() == 0` |
+| "`ensureCapacity(100)` makes length 100" | No new characters are added | Use `append` to add content |
+| "`ensureCapacity` always sets capacity to the exact requested number" | Growth policy may allocate more | Rely only on `capacity() >= minimumCapacity` |
+| "`ensureCapacity` reduces capacity when passed a small number" | Fails to reduce memory | `ensureCapacity` only reserves; consider `trimToSize` |
+| "`trimToSize` always makes capacity == length" | Implementation-dependent | The API is *best-effort* |
+| "`trimToSize` deletes trailing content" | Actually changes neither characters nor length | Use `setLength`/`delete` to remove content |
+| "`setLength(0)` definitely returns RAM" | Usually keeps the allocated buffer | Only length resets to 0 |
+| Calling `trimToSize` after **every** append | Can cause shrink–expand churn, increasing allocations/copies | Consider only after building finishes and if builder lives long |
+| Estimating by emoji count instead of UTF-16 units | Capacity falls short of actual need | Use `String.length()` or `Character.charCount(cp)` |
+| "Capacity 100 means 200 bytes of RAM" | Ignores compact strings, overhead, alignment, JVM | Measure in practice; do not apply a rigid byte formula |
+| `int` estimate overflows | Wrong capacity or allocation error | Sum in `long`, bound input, then cast |
+| Assuming every `append` is always O(1) | May copy buffer or append large data | Understand amortized cost and appended data length |
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-### Bài 1 — Length và capacity
+### Exercise 1 — Length and Capacity
 
 ```java
 StringBuilder b = new StringBuilder(8);
@@ -474,11 +474,11 @@ b.append("abc");
 b.ensureCapacity(20);
 ```
 
-Hỏi: `b.length()` và điều kiện chắc chắn về `b.capacity()` là gì?
+Question: What are `b.length()` and the guaranteed condition on `b.capacity()`?
 
-**Đáp án:** `length() == 3`; `capacity() >= 20`. Không được kết luận capacity bằng đúng 20 trong mọi triển khai.
+**Answer:** `length() == 3`; `capacity() >= 20`. You cannot conclude capacity equals exactly 20 across all implementations.
 
-### Bài 2 — Trimming
+### Exercise 2 — Trimming
 
 ```java
 StringBuilder b = new StringBuilder(100);
@@ -486,11 +486,11 @@ b.append("xyz");
 b.trimToSize();
 ```
 
-Hỏi: điều gì chắc chắn không đổi và điều gì có thể thay đổi?
+Question: What is guaranteed unchanged and what may change?
 
-**Đáp án:** nội dung `"xyz"` và `length() == 3` không đổi. `capacity` có thể giảm nếu triển khai thực hiện thu hẹp, nhưng API không bắt buộc nó phải bằng 3.
+**Answer:** content `"xyz"` and `length() == 3` remain unchanged. `capacity` may decrease if the implementation shrinks it, but the API does not require it to equal 3.
 
-### Bài 3 — Tái sử dụng buffer
+### Exercise 3 — Buffer Reuse
 
 ```java
 StringBuilder b = new StringBuilder(32);
@@ -499,25 +499,25 @@ b.setLength(0);
 b.append("Next");
 ```
 
-**Đáp án:** nội dung cuối là `"Next"`, độ dài bằng 4; `setLength(0)` không xóa capacity dự trữ. Tái sử dụng thường có lợi nếu chuỗi được xây lại nhiều lần.
+**Answer:** final content is `"Next"`, length is 4; `setLength(0)` does not discard reserved capacity. Reuse is often beneficial when strings are rebuilt repeatedly.
 
-### Bài 4 — Unicode
+### Exercise 4 — Unicode
 
-Một chuỗi có 10 emoji ngoài BMP, mỗi emoji biểu diễn bằng một surrogate pair. Hỏi riêng phần emoji cần bao nhiêu UTF-16 code units?
+A string has 10 non-BMP emojis, each represented by a surrogate pair. How many UTF-16 code units do the emojis alone require?
 
-**Đáp án:** 20 code units (mỗi emoji có 2). Tổng capacity còn phải tính các ký tự và dấu phân cách khác.
+**Answer:** 20 code units (2 per emoji). Total capacity must also account for other characters and delimiters.
 
-### Bài 5 — Chi phí
+### Exercise 5 — Cost
 
-Bạn đang tạo nhiều chuỗi, mỗi chuỗi có vài chục ngàn ký tự. Sau **mọi** lần `append`, code gọi `trimToSize`. Vì sao có thể chậm dù bạn muốn tiết kiệm bộ nhớ?
+You are building several strings, each tens of thousands of characters long. After **every** `append`, the code calls `trimToSize`. Why might this be slow even though you wanted to save memory?
 
-**Đáp án:** sau khi giảm buffer dự phòng, lần append sau có thể buộc cấp phát vùng lớn hơn và sao chép lại dữ liệu. Nếu liên tục co–giãn, tổng chi phí cấp phát/GC và copy tăng cao. Hợp lý hơn là dự phòng theo nhu cầu, build xong mới cân nhắc thu hẹp **nếu giữ builder lâu**.
+**Answer:** after shrinking the reserve buffer, the next append can force allocating a larger array and copying the data again. Repeatedly shrinking and expanding increases total allocation/GC and copy overhead. It is better to reserve according to need and only consider shrinking after building finishes **if the builder is kept long-term**.
 
-## 13. Tài liệu chính thức
+## 13. Official References
 
-- [Java SE 17 — StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): các constructor, `capacity`, `length`, `ensureCapacity`, `trimToSize`, `setLength` và `appendCodePoint`.
-- [Java SE 17 — StringBuilder.ensureCapacity(int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html#ensureCapacity(int)): điều kiện đảm bảo dung lượng tối thiểu và cơ chế tăng trưởng.
-- [Java SE 17 — StringBuilder.trimToSize()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html#trimToSize()): hợp đồng *attempts to reduce storage*.
-- [Java SE 17 — Character.charCount(int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html#charCount(int)): số UTF-16 units dùng cho một Unicode code point.
+- [Java SE 17 — StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): constructors, `capacity`, `length`, `ensureCapacity`, `trimToSize`, `setLength`, and `appendCodePoint`.
+- [Java SE 17 — StringBuilder.ensureCapacity(int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html#ensureCapacity(int)): minimum capacity guarantee and growth mechanism.
+- [Java SE 17 — StringBuilder.trimToSize()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html#trimToSize()): the *attempts to reduce storage* contract.
+- [Java SE 17 — Character.charCount(int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html#charCount(int)): number of UTF-16 units used for a Unicode code point.
 
-**Ghi nhớ:** `length()` là số UTF-16 code units **đang có**, còn `capacity()` là dung lượng có thể chứa **trước khi mở rộng**. `ensureCapacity(n)` chuẩn bị tối thiểu `n` đơn vị mã và không đổi nội dung; `trimToSize()` chỉ **thử** bỏ vùng dự phòng sau khi xây dựng. Dự phòng hợp lý giúp giảm reallocations, nhưng dự phòng quá mức hoặc liên tục co–giãn gây tốn bộ nhớ và CPU.
+**Key takeaway:** `length()` is the number of UTF-16 code units **currently present**, while `capacity()` is how many can be held **before expanding**. `ensureCapacity(n)` prepares at least `n` code units without altering content; `trimToSize()` only **attempts** to discard excess reserve after building. Reasonable pre-allocation reduces reallocations, whereas excessive pre-allocation or repeated shrink–expand cycles waste memory and CPU.

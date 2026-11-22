@@ -1,10 +1,10 @@
-# Xử lý kết quả vắng mặt bằng ifPresent và orElseThrow
+# Handling Absent Results with ifPresent and orElseThrow
 
-## 1. Vì sao kết quả Stream có thể vắng mặt?
+## 1. Why Can a Stream Result Be Absent?
 
-Trong **Java Stream API**, pipeline mô tả việc đọc dữ liệu từ nguồn, lọc bằng `filter`, biến đổi bằng `map` rồi kết thúc bằng các thao tác như `findFirst`, `findAny`, `min`, `max` hoặc `reduce`. Một số thao tác kết thúc không thể bảo đảm luôn tìm được giá trị: nguồn có thể rỗng, hoặc mọi phần tử đã bị lọc bỏ.
+In the **Java Stream API**, a pipeline describes reading data from a source, filtering with `filter`, transforming with `map`, and ending with operations such as `findFirst`, `findAny`, `min`, `max`, or `reduce`. Some terminal operations cannot guarantee always finding a value: the source may be empty, or every element may have been filtered out.
 
-Ví dụ, tìm đơn hàng đầu tiên đã thanh toán:
+For example, finding the first paid order:
 
 ```java
 import java.util.List;
@@ -24,35 +24,35 @@ Optional<Order> found = orders.stream()
 System.out.println(found); // Optional[Order[id=O-02, paid=true]]
 ```
 
-Nếu không có đơn nào thỏa `Order::paid`, `findFirst()` trả về **`Optional.empty()`**. Nó không trả về một đối tượng `Order` hợp lệ và cũng không yêu cầu tự tạo giá trị `null` để thể hiện sự vắng mặt.
+If no order satisfies `Order::paid`, `findFirst()` returns **`Optional.empty()`**. It does not return a valid `Order` object and does not require manually creating a `null` value to represent absence.
 
-`Optional<T>` là kiểu bao chứa **có thể có một giá trị `T` hoặc không có giá trị**. Trong chương **Optional trong kết quả Stream**, hai thao tác trung tâm của bài này là:
+`Optional<T>` is a container type that **may hold a single `T` value or no value**. In the **Optional in Stream Results** chapter, the two central operations of this lesson are:
 
-- `ifPresent(Consumer)`: **có giá trị thì thực hiện một hành động**, vắng mặt thì không thực hiện hành động đó.
-- `orElseThrow(...)`: **có giá trị thì lấy giá trị**, vắng mặt thì ném ngoại lệ theo chính sách đã chọn.
+- `ifPresent(Consumer)`: **perform an action if a value is present**; do nothing if absent.
+- `orElseThrow(...)`: **retrieve the value if present**; throw an exception according to the chosen policy if absent.
 
-Đây là hai cách xử lý kết quả mang ý nghĩa nghiệp vụ khác nhau: một hành động có thể bỏ qua khi không có dữ liệu, hoặc một yêu cầu bắt buộc phải có dữ liệu để tiếp tục.
+These are two ways of handling results with different business meanings: an action that can be skipped when there is no data, or a requirement that data must be present to continue.
 
-**Mục tiêu bài học:** nhận diện kết quả Stream nào là Optional, sử dụng đúng `ifPresent`, `ifPresentOrElse` và `orElseThrow`, phân biệt chúng với `orElse`/`orElseGet`, xử lý `OptionalInt`/`OptionalLong`/`OptionalDouble`, và tránh lỗi `null`, tác dụng phụ hay giả định sai khi pipeline chạy song song.
+**Lesson goals:** identify which Stream results are Optionals, use `ifPresent`, `ifPresentOrElse`, and `orElseThrow` properly, distinguish them from `orElse`/`orElseGet`, handle `OptionalInt`/`OptionalLong`/`OptionalDouble`, and avoid `null` errors, side effects, or incorrect assumptions when pipelines run in parallel.
 
-Các ví dụ hoàn chỉnh sử dụng **Java 17+**. `Optional.ifPresent` và `Optional.orElseThrow(Supplier)` đã có từ Java 8; `ifPresentOrElse` có từ Java 9; `Optional.orElseThrow()` không tham số có từ Java 10. `Stream.toList()` có từ Java 16.
+The complete examples use **Java 17+**. `Optional.ifPresent` and `Optional.orElseThrow(Supplier)` have existed since Java 8; `ifPresentOrElse` since Java 9; no-argument `Optional.orElseThrow()` since Java 10. `Stream.toList()` has existed since Java 16.
 
-## 2. Những terminal operation trả về Optional
+## 2. Terminal Operations That Return Optional
 
-`Optional` xuất hiện khi kết quả có thể không tồn tại một cách hợp lệ:
+`Optional` appears when a result may legitimately not exist:
 
-| Terminal operation | Kiểu trả về | Khi nào rỗng? |
+| Terminal operation | Return type | When is it empty? |
 | --- | --- | --- |
-| `findFirst()` | `Optional<T>` | Stream không còn phần tử nào. |
-| `findAny()` | `Optional<T>` | Stream không còn phần tử nào. |
-| `min(comparator)` | `Optional<T>` | Stream rỗng. |
-| `max(comparator)` | `Optional<T>` | Stream rỗng. |
-| `reduce(BinaryOperator<T>)` | `Optional<T>` | Stream rỗng, không có identity. |
-| `IntStream.min()` / `max()` | `OptionalInt` | Primitive stream rỗng. |
-| `LongStream.min()` / `max()` | `OptionalLong` | Primitive stream rỗng. |
-| `DoubleStream.average()` | `OptionalDouble` | Không có phần tử nào để tính trung bình. |
+| `findFirst()` | `Optional<T>` | Stream has no elements left. |
+| `findAny()` | `Optional<T>` | Stream has no elements left. |
+| `min(comparator)` | `Optional<T>` | Stream is empty. |
+| `max(comparator)` | `Optional<T>` | Stream is empty. |
+| `reduce(BinaryOperator<T>)` | `Optional<T>` | Stream is empty, with no identity. |
+| `IntStream.min()` / `max()` | `OptionalInt` | Primitive stream is empty. |
+| `LongStream.min()` / `max()` | `OptionalLong` | Primitive stream is empty. |
+| `DoubleStream.average()` | `OptionalDouble` | No elements to compute the average. |
 
-Ngược lại, không phải mọi terminal operation đều trả về Optional. Ví dụ `count()` luôn trả về `long` (bằng `0` nếu rỗng); `collect(Collectors.toList())` tạo danh sách, có thể là danh sách rỗng; `reduce(identity, accumulator)` trả về một giá trị với `identity` làm điểm khởi đầu.
+Conversely, not every terminal operation returns an Optional. For example, `count()` always returns `long` (`0` if empty); `collect(Collectors.toList())` produces a list, which may be empty; `reduce(identity, accumulator)` returns a value using `identity` as the starting point.
 
 ```java
 List<Integer> values = List.of();
@@ -68,17 +68,17 @@ System.out.println(count);           // 0
 System.out.println(sumWithIdentity); // 0
 ```
 
-Mỗi lần gọi `values.stream()` tạo một Stream mới. **Một Stream đã chạy terminal operation không thể sử dụng lại**; chính đối tượng `Optional` được tạo ra sau terminal operation thì có thể được kiểm tra hoặc xử lý nhiều lần khi cần.
+Each call to `values.stream()` creates a new Stream. **A Stream that has already run a terminal operation cannot be reused**; the `Optional` object itself produced after the terminal operation can be inspected or processed multiple times as needed.
 
-## 3. ifPresent: có kết quả mới thực hiện hành động
+## 3. ifPresent: Executing an Action Only When a Result Exists
 
-Chữ ký:
+Signature:
 
 ```java
 void ifPresent(Consumer<? super T> action)
 ```
 
-`ifPresent` nhận một `Consumer`, tức hàm **nhận giá trị nhưng không trả về kết quả**. Nếu Optional có giá trị, consumer được gọi với giá trị đó; nếu rỗng, consumer không được gọi.
+`ifPresent` takes a `Consumer`, i.e., a function that **accepts a value without returning a result**. If the Optional has a value, the consumer is invoked with that value; if empty, the consumer is not invoked.
 
 ```java
 List<String> codes = List.of("A-01", "B-02", "A-03");
@@ -86,16 +86,16 @@ List<String> codes = List.of("A-01", "B-02", "A-03");
 codes.stream()
         .filter(code -> code.startsWith("B-"))
         .findFirst()
-        .ifPresent(code -> System.out.println("Đã tìm thấy: " + code));
+        .ifPresent(code -> System.out.println("Found: " + code));
 
-// Đã tìm thấy: B-02
+// Found: B-02
 ```
 
-Nếu thay điều kiện bằng `code.startsWith("X-")`, không có dòng nào được in ra và **không có ngoại lệ** chỉ vì kết quả rỗng.
+If you change the condition to `code.startsWith("X-")`, nothing is printed and **no exception is thrown** merely because the result is empty.
 
-### Lưu Optional trong biến để đọc ý định
+### Storing the Optional in a Variable to Clarify Intent
 
-Với logic không quá ngắn, tách việc tìm kiếm và việc xử lý thường dễ bảo trì:
+For logic that is not overly short, separating the search from the handling is often easier to maintain:
 
 ```java
 Optional<String> firstMatching = codes.stream()
@@ -103,33 +103,33 @@ Optional<String> firstMatching = codes.stream()
         .findFirst();
 
 firstMatching.ifPresent(code -> {
-    System.out.println("Mã phù hợp: " + code);
-    // Có thể ghi nhận một sự kiện hoặc thông báo nếu nghiệp vụ cho phép.
+    System.out.println("Matching code: " + code);
+    // An event or notification may be recorded if business rules allow.
 });
 ```
 
-`ifPresent` phù hợp khi **không tìm thấy cũng là trạng thái chấp nhận được**, ví dụ chỉ gửi thông báo nếu có kết quả, chỉ cập nhật giao diện nếu có một lựa chọn hoặc chỉ ghi log khi tìm được bản ghi.
+`ifPresent` is suitable when **not finding anything is also an acceptable state**, such as sending a notification only if a result exists, updating the UI only if a selection exists, or logging only when a record is found.
 
-### Không thể dùng ifPresent để trả về giá trị
+### Cannot Use ifPresent to Return a Value
 
-Vì kiểu trả về là `void`, đoạn mã sau **không biên dịch**:
+Because the return type is `void`, the following code **does not compile**:
 
 ```java
-// SAI: ifPresent trả về void.
+// WRONG: ifPresent returns void.
 // String id = firstMatching.ifPresent(System.out::println);
 ```
 
-Nếu cần lấy một giá trị để trả về từ phương thức, hãy dùng `orElseThrow`, `orElse`, `orElseGet` hoặc giữ Optional trong kiểu trả về để lớp gọi quyết định. Nếu muốn **biến đổi** giá trị đang có, dùng `Optional.map` thay vì cố gắng gán biến bên ngoài từ consumer.
+If you need to extract a value to return from a method, use `orElseThrow`, `orElse`, `orElseGet`, or keep Optional in the return type so the calling layer can decide. If you want to **transform** a present value, use `Optional.map` instead of trying to assign an outer variable from inside a consumer.
 
-## 4. ifPresentOrElse: xử lý cả hai nhánh
+## 4. ifPresentOrElse: Handling Both Branches
 
-`ifPresent` không có hành động khi rỗng. Nếu phải phản hồi cho cả hai trường hợp, từ **Java 9** có thể dùng:
+`ifPresent` has no action when empty. If you must respond to both cases, from **Java 9** you can use:
 
 ```java
 void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction)
 ```
 
-Ví dụ:
+Example:
 
 ```java
 Optional<String> code = codes.stream()
@@ -137,27 +137,27 @@ Optional<String> code = codes.stream()
         .findFirst();
 
 code.ifPresentOrElse(
-        value -> System.out.println("Tìm thấy " + value),
-        () -> System.out.println("Không tìm thấy mã yêu cầu")
+        value -> System.out.println("Found " + value),
+        () -> System.out.println("Requested code not found")
 );
 
-// Không tìm thấy mã yêu cầu
+// Requested code not found
 ```
 
-Nhánh đầu là `Consumer<String>`, nhận giá trị tìm được. Nhánh sau là `Runnable`, không nhận giá trị; nó chỉ chạy khi Optional rỗng.
+The first branch is a `Consumer<String>`, receiving the found value. The second branch is a `Runnable`, taking no value; it runs only when the Optional is empty.
 
-| Phương thức | Khi có giá trị | Khi không có giá trị | Có trả về giá trị không? |
+| Method | When a value is present | When no value is present | Returns a value? |
 | --- | --- | --- | --- |
-| `ifPresent(action)` | Gọi `action(value)` | Không làm gì | Không, `void` |
-| `ifPresentOrElse(action, emptyAction)` | Gọi `action(value)` | Gọi `emptyAction.run()` | Không, `void` |
-| `orElseThrow()` | Trả về `value` | Ném `NoSuchElementException` | Có, `T` |
-| `orElseThrow(exceptionSupplier)` | Trả về `value` | Ném ngoại lệ do supplier tạo | Có, `T` |
+| `ifPresent(action)` | Calls `action(value)` | Does nothing | No, `void` |
+| `ifPresentOrElse(action, emptyAction)` | Calls `action(value)` | Calls `emptyAction.run()` | No, `void` |
+| `orElseThrow()` | Returns `value` | Throws `NoSuchElementException` | Yes, `T` |
+| `orElseThrow(exceptionSupplier)` | Returns `value` | Throws exception created by supplier | Yes, `T` |
 
-Nếu nhánh vắng mặt phải **dừng luồng xử lý vì dữ liệu bắt buộc thiếu**, `orElseThrow` diễn đạt mục đích rõ hơn một consumer có tác dụng phụ.
+If the absent branch must **halt execution because mandatory data is missing**, `orElseThrow` expresses the intent more clearly than a consumer with side effects.
 
-## 5. orElseThrow: yêu cầu bắt buộc phải có dữ liệu
+## 5. orElseThrow: Requiring Data to Be Present
 
-Có hai dạng thường gặp trên `Optional<T>`:
+There are two common forms on `Optional<T>`:
 
 ```java
 T orElseThrow() // Java 10+
@@ -166,9 +166,9 @@ T orElseThrow() // Java 10+
         Supplier<? extends X> exceptionSupplier) throws X
 ```
 
-### 5.1. orElseThrow() không tham số
+### 5.1. No-Argument orElseThrow()
 
-`orElseThrow()` trả về `T` nếu có giá trị; nếu rỗng, nó ném `NoSuchElementException`:
+`orElseThrow()` returns `T` if a value is present; if empty, it throws `NoSuchElementException`:
 
 ```java
 List<String> names = List.of("An", "Bình", "Chi");
@@ -181,9 +181,9 @@ String firstLongName = names.stream()
 System.out.println(firstLongName); // Bình
 ```
 
-Nếu thay điều kiện thành `name.length() > 20`, không có tên phù hợp và terminal operation `findFirst` trả về Optional rỗng; khi xử lý Optional, `orElseThrow()` sẽ ném `NoSuchElementException`.
+If you change the condition to `name.length() > 20`, no name matches and the terminal operation `findFirst` returns an empty Optional; when handling the Optional, `orElseThrow()` throws `NoSuchElementException`.
 
-Với dự án cần hỗ trợ Java 8 hoặc Java 9, có thể dùng dạng có supplier:
+For projects needing to support Java 8 or Java 9, you can use the form with a supplier:
 
 ```java
 String required = names.stream()
@@ -192,11 +192,11 @@ String required = names.stream()
         .orElseThrow(NoSuchElementException::new);
 ```
 
-Đoạn trên cần `import java.util.NoSuchElementException;`.
+The snippet above requires `import java.util.NoSuchElementException;`.
 
-### 5.2. orElseThrow(Supplier) với ngoại lệ mang ý nghĩa nghiệp vụ
+### 5.2. orElseThrow(Supplier) With a Business-Meaningful Exception
 
-Khi cần thông báo rõ dữ liệu nào bị thiếu, hãy cung cấp hàm tạo ngoại lệ:
+When you need to clearly report which data is missing, provide an exception-creating function:
 
 ```java
 String requestedCode = "X-01";
@@ -205,17 +205,17 @@ String foundCode = codes.stream()
         .filter(code -> code.equals(requestedCode))
         .findFirst()
         .orElseThrow(() -> new NoSuchElementException(
-                "Không tìm thấy mã: " + requestedCode
+                "Code not found: " + requestedCode
         ));
 ```
 
-Đoạn trên sẽ ném `NoSuchElementException` với thông điệp `"Không tìm thấy mã: X-01"`. Nếu hệ thống có ngoại lệ chuyên biệt như `OrderNotFoundException` hoặc `CustomerNotFoundException`, có thể tạo loại ngoại lệ đó để tầng gọi xử lý thích hợp.
+The snippet above throws `NoSuchElementException` with the message `"Code not found: X-01"`. If the system has specialized exceptions such as `OrderNotFoundException` or `CustomerNotFoundException`, you can instantiate that exception type so the calling layer handles it appropriately.
 
-**Supplier chỉ được gọi khi Optional rỗng.** Trường hợp có giá trị, phương thức trả về giá trị mà không tạo đối tượng ngoại lệ. Vì vậy, ta có thể đặt thông tin ngữ cảnh trong thông điệp lỗi mà không phải trả chi phí xây dựng lỗi ở nhánh thành công.
+**The supplier is only called when the Optional is empty.** When a value is present, the method returns the value without constructing an exception object. Therefore, you can include contextual information in the error message without paying the cost of building the exception on the success branch.
 
-### Ngoại lệ checked và unchecked
+### Checked and Unchecked Exceptions
 
-Chữ ký generic của `orElseThrow(Supplier)` cho phép ném cả ngoại lệ **checked** và **unchecked**. Nếu supplier tạo ngoại lệ checked, phương thức gọi phải khai báo hoặc bắt ngoại lệ đó theo quy tắc Java:
+The generic signature of `orElseThrow(Supplier)` allows throwing both **checked** and **unchecked** exceptions. If the supplier creates a checked exception, the calling method must declare or catch that exception per Java rules:
 
 ```java
 import java.io.FileNotFoundException;
@@ -224,50 +224,50 @@ import java.util.Optional;
 static String requirePath(Optional<String> path)
         throws FileNotFoundException {
     return path.orElseThrow(
-            () -> new FileNotFoundException("Thiếu đường dẫn đầu vào")
+            () -> new FileNotFoundException("Missing input path")
     );
 }
 ```
 
-Chỉ nên dùng ngoại lệ checked khi API nghiệp vụ muốn yêu cầu bên gọi xử lý rõ ràng. Với một bản ghi không tồn tại trong ứng dụng, nhiều hệ thống chọn ngoại lệ unchecked riêng để tầng dịch vụ hoặc HTTP quyết định phản hồi.
+Use checked exceptions only when the business API wants to require the caller to handle them explicitly. For a missing record in an application, many systems choose a custom unchecked exception so the service or HTTP layer can decide the response.
 
-## 6. Chọn ifPresent hay orElseThrow theo ý nghĩa nghiệp vụ
+## 6. Choosing ifPresent or orElseThrow by Business Meaning
 
-Không có một phương thức luôn đúng cho mọi Optional. Hãy quyết định **vắng mặt có phải lỗi hay không**:
+No single method is always right for every Optional. Decide **whether absence is an error or not**:
 
-| Tình huống | Cách xử lý gợi ý | Lý do |
+| Situation | Suggested handling | Reason |
 | --- | --- | --- |
-| Tìm mã khuyến mãi tùy chọn để in thông báo | `ifPresent` | Không có khuyến mãi thì có thể tiếp tục. |
-| Hiển thị trạng thái tìm kiếm, kể cả không có kết quả | `ifPresentOrElse` | Hai nhánh đều có hành động hiển thị. |
-| Đọc cấu hình bắt buộc trước khi khởi chạy | `orElseThrow` | Thiếu cấu hình phải làm luồng xử lý thất bại. |
-| Tìm đơn hàng theo ID để thực hiện giao dịch | `orElseThrow(() -> ...)` | Thiếu đơn hàng cần lỗi có thông điệp/loại rõ ràng. |
-| Tính trung bình số liệu có thể rỗng | Xử lý `OptionalDouble` rõ ràng | Vắng mẫu là trường hợp dữ liệu hợp lệ cần định nghĩa. |
-| API dịch vụ cho phép không có bản ghi | Trả về `Optional<T>` | Bên gọi có đủ ngữ cảnh để chọn hành vi. |
+| Look up an optional promotion code to print a notice | `ifPresent` | Without a promotion, processing can continue. |
+| Display search status, even when there is no result | `ifPresentOrElse` | Both branches have display actions. |
+| Read mandatory configuration before startup | `orElseThrow` | Missing configuration must fail the flow. |
+| Look up an order by ID to execute a transaction | `orElseThrow(() -> ...)` | Missing order needs an exception with a clear message/type. |
+| Compute average of potentially empty metrics | Handle `OptionalDouble` explicitly | Absence of samples is a valid data case to define. |
+| Service API permits no record | Return `Optional<T>` | Caller has full context to choose behavior. |
 
-Ví dụ cùng một nguồn nhưng khác nghiệp vụ:
+Example with the same source but different business rules:
 
 ```java
 Optional<String> maybeCoupon = List.of("WELCOME", "VIP").stream()
         .filter(code -> code.equals("VIP"))
         .findFirst();
 
-// Mã tùy chọn: có thì áp dụng.
+// Optional code: apply if present.
 maybeCoupon.ifPresent(code ->
-        System.out.println("Áp dụng khuyến mãi: " + code));
+        System.out.println("Applying promotion: " + code));
 
-// Mã bắt buộc: thiếu thì dừng.
+// Mandatory code: stop if missing.
 String requiredCoupon = maybeCoupon.orElseThrow(
-        () -> new IllegalStateException("Thiếu mã khuyến mãi bắt buộc")
+        () -> new IllegalStateException("Missing required promotion code")
 );
 ```
 
-Ở đây cả hai cách đều hoạt động vì Optional có giá trị. Nhưng sự khác biệt sẽ thể hiện ngay khi mã `VIP` không tồn tại.
+Here both approaches work because the Optional has a value. However, the difference becomes immediately apparent when the `VIP` code does not exist.
 
-## 7. orElseThrow khác gì với get, orElse và orElseGet?
+## 7. How Does orElseThrow Differ From get, orElse, and orElseGet?
 
-`Optional.get()` cũng lấy giá trị hoặc ném `NoSuchElementException` nếu rỗng. Tuy nhiên, `orElseThrow()` truyền đạt rõ hơn rằng vắng mặt là một trạng thái đã được cân nhắc, còn `orElseThrow(Supplier)` cho phép mô tả lỗi chính xác.
+`Optional.get()` also retrieves the value or throws `NoSuchElementException` if empty. However, `orElseThrow()` communicates more clearly that absence is a considered state, while `orElseThrow(Supplier)` allows describing the error precisely.
 
-Ba phương thức được dùng khi cần giá trị:
+Three methods are used when a value is needed:
 
 ```java
 Optional<String> optional = Optional.of("primary");
@@ -277,44 +277,44 @@ String fallback = optional.orElse("default");      // "primary"
 String computed = optional.orElseGet(() -> "fallback"); // "primary"
 ```
 
-Khác biệt chính là **chiến lược khi Optional rỗng**:
+The primary difference is the **strategy when the Optional is empty**:
 
-| Cách dùng | Có giá trị | Rỗng |
+| Usage | Present | Empty |
 | --- | --- | --- |
-| `orElseThrow()` | Trả về giá trị | Ném `NoSuchElementException` |
-| `orElseThrow(() -> new X(...))` | Trả về giá trị | Tạo và ném ngoại lệ `X` |
-| `orElse(fallback)` | Trả về giá trị | Trả về `fallback` |
-| `orElseGet(supplier)` | Trả về giá trị | Gọi supplier để tạo giá trị dự phòng |
+| `orElseThrow()` | Returns value | Throws `NoSuchElementException` |
+| `orElseThrow(() -> new X(...))` | Returns value | Creates and throws exception `X` |
+| `orElse(fallback)` | Returns value | Returns `fallback` |
+| `orElseGet(supplier)` | Returns value | Calls supplier to create fallback value |
 
-### Khác biệt về thời điểm tạo giá trị dự phòng
+### Difference in When the Fallback Value Is Created
 
-Đối số của `orElse(...)` là biểu thức Java thông thường, nên **được đánh giá ngay khi gọi phương thức**, ngay cả khi Optional đã có giá trị:
+The argument to `orElse(...)` is a normal Java expression, so it **is evaluated immediately when the method is called**, even if the Optional already has a value:
 
 ```java
 static String slowFallback() {
-    System.out.println("Tạo giá trị dự phòng");
+    System.out.println("Creating fallback value");
     return "fallback";
 }
 
-// Ví dụ bên trong cùng lớp:
+// Example within the same class:
 Optional<String> present = Optional.of("ready");
 
 String a = present.orElse(slowFallback());
-// In ra "Tạo giá trị dự phòng" dù a vẫn là "ready".
+// Prints "Creating fallback value" even though a is still "ready".
 
 String b = present.orElseGet(() -> slowFallback());
-// Không gọi slowFallback() khi Optional có giá trị.
+// Does not call slowFallback() when Optional has a value.
 
 String c = present.orElseThrow(
-        () -> new IllegalStateException("Không có dữ liệu"));
-// Không tạo ngoại lệ trong nhánh có giá trị.
+        () -> new IllegalStateException("No data"));
+// Does not create an exception on the present branch.
 ```
 
-Vì `orElseGet` và `orElseThrow(Supplier)` dùng supplier, phần xử lý dự phòng hoặc tạo ngoại lệ chạy **theo nhu cầu**. Đừng chọn `orElseThrow` khi nghiệp vụ cho phép dùng giá trị mặc định; ngược lại, đừng gán giá trị mặc định để che giấu việc thiếu dữ liệu bắt buộc.
+Because `orElseGet` and `orElseThrow(Supplier)` use a supplier, the fallback computation or exception creation runs **on demand**. Do not choose `orElseThrow` when business rules allow a default value; conversely, do not assign a default value to mask missing mandatory data.
 
-## 8. Kết hợp filter, map và Optional trước khi xử lý kết quả
+## 8. Combining filter, map, and Optional Before Handling the Result
 
-`Optional` có `filter` và `map` riêng để tiếp tục kiểm tra hoặc biến đổi **một giá trị có thể vắng mặt**, không phải để khởi động lại Stream:
+`Optional` has its own `filter` and `map` to continue checking or transforming **a single potentially absent value**, not to restart the Stream:
 
 ```java
 record Customer(String id, String email, boolean active) {}
@@ -332,23 +332,23 @@ String email = customers.stream()
         .map(String::strip)
         .filter(value -> !value.isEmpty())
         .orElseThrow(() -> new IllegalStateException(
-                "Không có email hợp lệ của khách đang hoạt động"
+                "No valid email for an active customer"
         ));
 
 System.out.println(email); // binh@example.com
 ```
 
-Diễn giải từng bước:
+Step-by-step explanation:
 
-1. `filter(Customer::active)` lọc Stream khách hàng.
-2. `findFirst()` là terminal operation và trả về `Optional<Customer>`.
-3. `Optional.map(Customer::email)` chỉ chạy nếu có khách; nó tạo `Optional<String>`.
-4. `Optional.map(String::strip)` chuẩn hóa email; `Optional.filter` loại chuỗi rỗng.
-5. `orElseThrow` chỉ ném lỗi nếu bất kỳ giai đoạn nào dẫn đến Optional rỗng.
+1. `filter(Customer::active)` filters the customer Stream.
+2. `findFirst()` is a terminal operation and returns `Optional<Customer>`.
+3. `Optional.map(Customer::email)` runs only if a customer is found; it produces `Optional<String>`.
+4. `Optional.map(String::strip)` normalizes the email; `Optional.filter` removes empty strings.
+5. `orElseThrow` throws an error only if any stage leads to an empty Optional.
 
-Một điểm cần hiểu: khi mapper của **`Optional.map`** trả về `null`, kết quả là `Optional.empty()`. Ngược lại, **`Stream.map`** có thể sinh phần tử `null`; các terminal operation `findFirst` hoặc `findAny` có thể ném `NullPointerException` nếu phần tử được chọn là `null`.
+One point to understand: when the mapper of **`Optional.map`** returns `null`, the result is `Optional.empty()`. Conversely, **`Stream.map`** can produce `null` elements; terminal operations `findFirst` or `findAny` can throw `NullPointerException` if the selected element is `null`.
 
-Nếu dữ liệu nguồn Stream có thể chứa `null`, hãy quy định cách xử lý trước khi tìm kiếm:
+If the Stream source data can contain `null`, specify how to handle it before searching:
 
 ```java
 import java.util.Arrays;
@@ -365,11 +365,11 @@ Optional<String> firstValid = rawNames.stream()
 firstValid.ifPresent(System.out::println); // An
 ```
 
-`Optional.of(null)` ném `NullPointerException`. `Optional.ofNullable(null)` tạo `Optional.empty()`, nhưng **không cần bọc lại bằng `ofNullable` một kết quả đã có kiểu `Optional<T>`**.
+`Optional.of(null)` throws `NullPointerException`. `Optional.ofNullable(null)` creates `Optional.empty()`, but **do not re-wrap a result that already has type `Optional<T>` with `ofNullable`**.
 
-## 9. OptionalInt, OptionalLong và OptionalDouble
+## 9. OptionalInt, OptionalLong, and OptionalDouble
 
-Các primitive stream dùng dạng Optional chuyên biệt để không phải boxing những số nguyên thủy thành `Integer`, `Long` hoặc `Double`:
+Primitive streams use specialized Optional forms so primitive numbers do not have to be boxed into `Integer`, `Long`, or `Double`:
 
 ```java
 import java.util.OptionalInt;
@@ -383,20 +383,20 @@ OptionalInt smallest = IntStream.of(7, 3, 9).min();
 OptionalLong largest = LongStream.of(2L, 8L, 5L).max();
 OptionalDouble average = DoubleStream.of(2.0, 4.0, 6.0).average();
 
-smallest.ifPresent(value -> System.out.println("Nhỏ nhất: " + value));
-largest.ifPresent(value -> System.out.println("Lớn nhất: " + value));
-average.ifPresent(value -> System.out.println("Trung bình: " + value));
+smallest.ifPresent(value -> System.out.println("Smallest: " + value));
+largest.ifPresent(value -> System.out.println("Largest: " + value));
+average.ifPresent(value -> System.out.println("Average: " + value));
 
 int minRequired = smallest.orElseThrow();        // 3
 long maxRequired = largest.orElseThrow();        // 8
 double averageRequired = average.orElseThrow();  // 4.0
 ```
 
-Với `OptionalInt`, `OptionalLong` và `OptionalDouble`, `ifPresent` lần lượt nhận `IntConsumer`, `LongConsumer`, `DoubleConsumer`. Các dạng `orElseThrow()` **không tham số** có từ Java 10 và ném `NoSuchElementException` khi rỗng.
+For `OptionalInt`, `OptionalLong`, and `OptionalDouble`, `ifPresent` accepts `IntConsumer`, `LongConsumer`, and `DoubleConsumer`, respectively. The **no-argument** `orElseThrow()` forms exist since Java 10 and throw `NoSuchElementException` when empty.
 
-Chúng **không có overload `orElseThrow(exceptionSupplier)`** như `Optional<T>`. Nếu cần lỗi chuyên biệt từ một kết quả primitive, có thể chuyển sang đối tượng Optional hoặc xử lý trạng thái rỗng trong API có ý nghĩa nghiệp vụ.
+They **do not have the `orElseThrow(exceptionSupplier)` overload** like `Optional<T>`. If you need a specialized exception from a primitive result, you can convert to an object Optional or handle the empty state in a business-meaningful API.
 
-Ví dụ muốn ném lỗi theo ngữ cảnh:
+Example when wanting to throw a contextual error:
 
 ```java
 OptionalInt quantity = IntStream.empty().max();
@@ -405,30 +405,30 @@ int requiredQuantity = quantity.stream()
         .boxed()
         .findFirst()
         .orElseThrow(() -> new IllegalStateException(
-                "Không có số lượng để chọn"
+                "No quantity to select"
         ));
 ```
 
-Đoạn minh họa chuyển qua `OptionalInt.stream()` (Java 9), `boxed()` rồi `Optional<Integer>` để sử dụng overload có supplier; cách làm này có chi phí boxing nhỏ. Khi không cần loại ngoại lệ đặc biệt, dùng thẳng `quantity.orElseThrow()` đơn giản hơn.
+The illustration converts via `OptionalInt.stream()` (Java 9), `boxed()`, and then `Optional<Integer>` to use the overload with a supplier; this approach incurs a small boxing cost. When a special exception type is not needed, calling `quantity.orElseThrow()` directly is simpler.
 
-### Trường hợp không có số nào
+### Case With No Numbers
 
 ```java
 OptionalDouble noAverage = IntStream.empty().average();
 
 noAverage.ifPresentOrElse(
-        value -> System.out.println("Trung bình: " + value),
-        () -> System.out.println("Chưa có mẫu để tính trung bình")
+        value -> System.out.println("Average: " + value),
+        () -> System.out.println("No samples to compute average")
 );
 
-// Chưa có mẫu để tính trung bình
+// No samples to compute average
 ```
 
-`OptionalInt`, `OptionalLong` và `OptionalDouble` cũng có `ifPresentOrElse` từ Java 9. Chọn phản hồi phù hợp với nghiệp vụ: trung bình không tồn tại khác với trung bình bằng `0`.
+`OptionalInt`, `OptionalLong`, and `OptionalDouble` also have `ifPresentOrElse` from Java 9. Choose a response matching business logic: a nonexistent average differs from an average equal to `0`.
 
-## 10. findFirst, findAny, thứ tự và xử lý song song
+## 10. findFirst, findAny, Order, and Parallel Processing
 
-Kết quả có hay không có giá trị là một khía cạnh; **giá trị nào được chọn** là khía cạnh khác.
+Whether a value is present or absent is one aspect; **which value is selected** is another aspect.
 
 ```java
 List<Integer> numbers = List.of(2, 4, 6, 8);
@@ -439,12 +439,12 @@ Optional<Integer> first = numbers.stream()
 
 Optional<Integer> any = numbers.parallelStream()
         .filter(n -> n > 3)
-        .findAny();  // Có thể là 4, 6 hoặc 8.
+        .findAny();  // Could be 4, 6, or 8.
 ```
 
-Với Stream có encounter order như `List.stream()`, `findFirst` tìm phần tử đầu tiên trong thứ tự đó. `findAny` được phép chọn một phần tử bất kỳ; đặc biệt khi chạy song song, **không được dựa vào một phần tử cố định**.
+With a Stream that has an encounter order such as `List.stream()`, `findFirst` finds the first element in that order. `findAny` is allowed to pick any element; especially when running in parallel, **never rely on a fixed element**.
 
-`orElseThrow` chỉ quyết định điều gì xảy ra **khi Optional rỗng**, không thay đổi quy tắc chọn giá trị của `findAny`. Nếu nghiệp vụ yêu cầu ưu tiên theo ngày, giá trị lớn nhất hay mã nhỏ nhất, cần định nghĩa thứ tự hoặc comparator thích hợp trước:
+`orElseThrow` only decides what happens **when the Optional is empty**; it does not change the selection rule of `findAny`. If business logic requires prioritizing by date, largest value, or smallest ID, define the appropriate order or comparator first:
 
 ```java
 int smallestGreaterThanThree = numbers.stream()
@@ -453,16 +453,16 @@ int smallestGreaterThanThree = numbers.stream()
         .orElseThrow(); // 4
 ```
 
-`ifPresent` được gọi **sau khi terminal operation trả về Optional**; bản thân consumer trên Optional không phải là thao tác xử lý song song từng phần tử Stream. Đừng đặt cập nhật nguồn hoặc logic dựa trên thứ tự gọi lambda ngay trong `filter`/`map` của pipeline song song.
+`ifPresent` is invoked **after the terminal operation returns an Optional**; the consumer on Optional itself is not a per-element parallel Stream operation. Do not place source mutations or logic relying on lambda invocation order directly inside `filter`/`map` of a parallel pipeline.
 
-## 11. Ví dụ hoàn chỉnh: tìm giao dịch và phản hồi theo nghiệp vụ
+## 11. Complete Example: Finding Payments and Responding Per Business Logic
 
-Một dịch vụ quản lý giao dịch có hai nhu cầu:
+A payment management service has two needs:
 
-- **Tùy chọn:** nếu có giao dịch đã hoàn tất của khách, in thông báo về giao dịch mới tìm được.
-- **Bắt buộc:** khi xử lý một yêu cầu tra cứu giao dịch cụ thể, phải có giao dịch phù hợp; nếu thiếu, ném lỗi mang ngữ cảnh.
+- **Optional:** if a customer has a completed payment, print a notification about a found payment.
+- **Mandatory:** when processing a specific payment lookup request, a matching payment must exist; if missing, throw a contextual error.
 
-Ví dụ Java 17+:
+Java 17+ example:
 
 ```java
 import java.util.List;
@@ -488,7 +488,7 @@ public class OptionalStreamResultDemo {
                 .filter(Payment::successful)
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException(
-                        "Không tìm thấy giao dịch thành công: " + paymentId
+                        "Successful payment not found: " + paymentId
                 ));
     }
 
@@ -499,67 +499,67 @@ public class OptionalStreamResultDemo {
                 new Payment("P03", "C01", 50_000L, true)
         );
 
-        // Tùy chọn: không có kết quả thì bỏ qua thông báo.
+        // Optional: if no result, skip the notification.
         findAnySuccessfulForCustomer(payments, "C01")
                 .ifPresent(payment -> System.out.println(
-                        "Có giao dịch: " + payment.id()
+                        "Payment found: " + payment.id()
                 ));
-        // Có giao dịch: P01
+        // Payment found: P01
 
-        // Hai nhánh hiển thị khi cần biết cả trường hợp không tồn tại.
+        // Two-branch display when needing to handle absence as well.
         findAnySuccessfulForCustomer(payments, "C03")
                 .ifPresentOrElse(
                         payment -> System.out.println(payment.id()),
-                        () -> System.out.println("Khách C03 chưa có giao dịch")
+                        () -> System.out.println("Customer C03 has no payments yet")
                 );
-        // Khách C03 chưa có giao dịch
+        // Customer C03 has no payments yet
 
-        // Bắt buộc: trả về Payment hoặc ném NoSuchElementException.
+        // Mandatory: returns Payment or throws NoSuchElementException.
         Payment required = requireSuccessfulPayment(payments, "P03");
-        System.out.println("Số tiền: " + required.cents()); // 50000
+        System.out.println("Amount: " + required.cents()); // 50000
 
-        // Một kết quả khác có thể rỗng: giao dịch thành công có số tiền lớn nhất.
+        // Another potentially empty result: successful payment with the largest amount.
         payments.stream()
                 .filter(Payment::successful)
                 .max(Comparator.comparingLong(Payment::cents))
                 .ifPresent(payment -> System.out.println(
-                        "Giao dịch cao nhất: " + payment.id()
+                        "Highest payment: " + payment.id()
                 ));
-        // Giao dịch cao nhất: P01
+        // Highest payment: P01
     }
 }
 ```
 
-Ở đây, `findAnySuccessfulForCustomer` là tên phương thức nghiệp vụ minh họa sự tồn tại của giao dịch: **bên trong dùng `findFirst`**, nên nếu muốn tên phản ánh chính xác thuật toán, có thể đổi thành `findFirstSuccessfulForCustomer`. Điều quan trọng là hợp đồng trả về `Optional<Payment>` để bên gọi quyết định việc vắng mặt có chấp nhận được không.
+Here, `findAnySuccessfulForCustomer` is a business method name illustrating payment existence: **internally it uses `findFirst`**, so if you want the name to reflect the exact algorithm, you can rename it to `findFirstSuccessfulForCustomer`. The important part is the contract returning `Optional<Payment>` so the caller decides whether absence is acceptable.
 
-Nhận xét:
+Observations:
 
-1. `findFirst` trên danh sách có thứ tự sẽ chọn giao dịch phù hợp đầu tiên, nhưng không mặc nhiên là **mới nhất** nếu danh sách không được sắp theo thời gian.
-2. `ifPresent` chỉ phục vụ hành động phụ khi có kết quả; khi khách `C03` chưa có giao dịch thì hành động hiển thị riêng được đặt vào `ifPresentOrElse`.
-3. `requireSuccessfulPayment` dùng `orElseThrow` và thông điệp chứa mã giao dịch, nên nơi gọi có thể xử lý ngoại lệ chính xác hơn.
-4. `max` trả về Optional vì sau `filter` có thể không còn giao dịch thành công nào.
-5. Các pipeline chỉ đọc `payments`, không thêm/xóa phần tử trong khi duyệt. Nếu dữ liệu được cập nhật đồng thời, cần cơ chế đồng bộ hoặc snapshot phù hợp với nghiệp vụ.
+1. `findFirst` on an ordered list picks the first matching payment, though it is not automatically **the newest** unless the list is sorted by time.
+2. `ifPresent` only serves side actions when a result exists; when customer `C03` has no payments yet, the separate display action is placed in `ifPresentOrElse`.
+3. `requireSuccessfulPayment` uses `orElseThrow` and a message containing the payment ID, so the caller can handle the exception more accurately.
+4. `max` returns an Optional because after `filter` there may be no successful payments left.
+5. The pipelines only read `payments`, without adding/removing elements while traversing. If the data is updated concurrently, an appropriate synchronization or snapshot mechanism is needed per business rules.
 
-Trong ứng dụng thật, không nên xem việc tìm theo `id` là đã đảm bảo quyền truy cập; tầng dịch vụ vẫn cần thực hiện các điều kiện phân quyền và trạng thái giao dịch theo thiết kế hệ thống.
+In a real application, do not treat looking up by `id` as guaranteeing access authorization; the service layer still must enforce permission checks and payment status rules according to system design.
 
-## 12. Lỗi thường gặp và cách sửa
+## 12. Common Errors and How to Fix Them
 
-| Lỗi hoặc biểu hiện | Nguyên nhân | Hướng xử lý |
+| Error or symptom | Cause | How to handle it |
 | --- | --- | --- |
-| Gọi `get()` rồi gặp `NoSuchElementException` | Không kiểm tra Optional có giá trị. | Dùng `ifPresent` khi tùy chọn, `orElseThrow` khi bắt buộc. |
-| Muốn gán biến từ `ifPresent` nhưng không biên dịch | `ifPresent` trả về `void`. | Dùng `map`, `orElseThrow` hoặc trả về Optional. |
-| Không thấy thông báo khi dữ liệu vắng mặt | `ifPresent` chỉ xử lý nhánh có giá trị. | Dùng `ifPresentOrElse` nếu cần hai nhánh. |
-| Nhánh ngoại lệ bị thực thi ngay cả khi có dữ liệu | Tạo lỗi trước và gây tác dụng phụ trong biểu thức khác. | Đặt tạo lỗi bên trong supplier của `orElseThrow`. |
-| `orElse(expensiveMethod())` gọi hàm dù có giá trị | Đối số được đánh giá trước khi gọi `orElse`. | Dùng `orElseGet` cho giá trị dự phòng tính chậm. |
-| `findFirst` hoặc `findAny` ném `NullPointerException` | Stream có phần tử `null` được chọn. | Xử lý `null` trước terminal operation, chẳng hạn `filter(Objects::nonNull)`. |
-| `findAny` trả về phần tử khác nhau | Không cam kết chọn phần tử cố định, nhất là song song. | Dùng `findFirst` hoặc `min`/`max` theo quy tắc nghiệp vụ. |
-| Gọi `orElseThrow(Supplier)` trên `OptionalInt` không biên dịch | Primitive Optional không có overload có supplier. | Dùng `orElseThrow()` hoặc xử lý lỗi chuyên biệt qua Optional đối tượng. |
-| Bị hiểu nhầm trung bình vắng mặt là `0` | `average()` có thể trả về `OptionalDouble.empty()`. | Phân biệt chưa có mẫu với kết quả thực bằng 0. |
-| Dùng lại Stream sau `findFirst` | Stream đã kết thúc và bị tiêu thụ. | Tạo Stream mới từ nguồn hoặc xử lý kết quả Optional đã có. |
+| Calling `get()` and getting `NoSuchElementException` | Did not check whether Optional has a value. | Use `ifPresent` when optional, `orElseThrow` when mandatory. |
+| Trying to assign a variable from `ifPresent` and failing to compile | `ifPresent` returns `void`. | Use `map`, `orElseThrow`, or return Optional. |
+| No message printed when data is absent | `ifPresent` only handles the present branch. | Use `ifPresentOrElse` if both branches are needed. |
+| Exception branch executes even when data is present | Constructed the exception beforehand causing side effects in another expression. | Put exception creation inside the supplier of `orElseThrow`. |
+| `orElse(expensiveMethod())` calls the method despite having a value | Argument is evaluated before calling `orElse`. | Use `orElseGet` for lazily computed fallback values. |
+| `findFirst` or `findAny` throws `NullPointerException` | Stream has a `null` element that gets selected. | Handle `null` before the terminal operation, such as `filter(Objects::nonNull)`. |
+| `findAny` returns different elements | Does not guarantee choosing a fixed element, especially in parallel. | Use `findFirst` or `min`/`max` per business rules. |
+| Calling `orElseThrow(Supplier)` on `OptionalInt` does not compile | Primitive Optionals do not have an overload taking a supplier. | Use `orElseThrow()` or handle specialized errors via an object Optional. |
+| Misinterpreting an absent average as `0` | `average()` can return `OptionalDouble.empty()`. | Distinguish no samples yet from an actual result equal to 0. |
+| Reusing a Stream after `findFirst` | The Stream has terminated and been consumed. | Create a new Stream from the source or process the obtained Optional result. |
 
-## 13. Bài tập thực hành
+## 13. Practice Exercise
 
-Cho danh sách điểm của học viên:
+Given a list of student scores:
 
 ```java
 record Student(String code, int score, boolean active) {}
@@ -571,15 +571,15 @@ List<Student> students = List.of(
 );
 ```
 
-Yêu cầu:
+Requirements:
 
-1. Tìm học viên đầu tiên đang hoạt động, dùng `ifPresent` in mã học viên nếu tìm được.
-2. Tìm học viên có mã `"SV99"`, dùng `ifPresentOrElse` để in một trong hai thông báo.
-3. Viết hàm `requireStudent` nhận danh sách và mã học viên, trả về học viên hoặc ném `NoSuchElementException` có thông điệp chứa mã.
-4. Tìm điểm cao nhất của học viên đang hoạt động bằng primitive stream; dùng `ifPresent` để in kết quả và `orElseThrow()` khi bài toán bắt buộc phải có điểm.
-5. Thử thay `students` bằng danh sách rỗng và giải thích hành vi của từng trường hợp.
+1. Find the first active student, and use `ifPresent` to print the student's code if found.
+2. Find the student with code `"SV99"`, and use `ifPresentOrElse` to print one of two messages.
+3. Write a method `requireStudent` taking the list and student code, returning the student or throwing `NoSuchElementException` with a message containing the code.
+4. Find the highest score of active students using a primitive stream; use `ifPresent` to print the result and `orElseThrow()` when the problem requires a score.
+5. Try replacing `students` with an empty list and explain the behavior in each case.
 
-**Lời giải tham khảo:**
+**Reference solution:**
 
 ```java
 students.stream()
@@ -592,17 +592,17 @@ students.stream()
         .filter(student -> student.code().equals("SV99"))
         .findFirst()
         .ifPresentOrElse(
-                student -> System.out.println("Có: " + student.code()),
-                () -> System.out.println("Không thấy SV99")
+                student -> System.out.println("Found: " + student.code()),
+                () -> System.out.println("SV99 not found")
         );
-// Không thấy SV99
+// SV99 not found
 
 static Student requireStudent(List<Student> source, String code) {
     return source.stream()
             .filter(student -> student.code().equals(code))
             .findFirst()
             .orElseThrow(() -> new NoSuchElementException(
-                    "Không tìm thấy học viên " + code
+                    "Student not found: " + code
             ));
 }
 
@@ -611,14 +611,14 @@ OptionalInt maxScore = students.stream()
         .mapToInt(Student::score)
         .max();
 
-maxScore.ifPresent(score -> System.out.println("Điểm cao nhất: " + score));
+maxScore.ifPresent(score -> System.out.println("Highest score: " + score));
 int requiredMax = maxScore.orElseThrow(); // 9
 ```
 
-Đoạn lời giải cần các `import` tương ứng từ `java.util` và `java.util.stream`; hàm `requireStudent` đặt ở cấp lớp, không khai báo bên trong phương thức `main`. Với danh sách rỗng, hai đoạn `ifPresent` không có hành động, `ifPresentOrElse` chạy nhánh vắng mặt, còn cả hai dạng `orElseThrow` sẽ ném ngoại lệ nếu được gọi.
+The solution requires the corresponding `import` statements from `java.util` and `java.util.stream`; the `requireStudent` method is placed at class level, not declared inside `main`. With an empty list, the two `ifPresent` snippets take no action, `ifPresentOrElse` runs the absent branch, and both forms of `orElseThrow` throw an exception if invoked.
 
-**Tự mở rộng:** Nếu API có cả "không thấy học viên" và "học viên đã bị vô hiệu hóa", có nên lọc trạng thái trước `findFirst` hay tìm theo mã trước rồi kiểm tra trạng thái? Hai cách tạo thông báo lỗi khác nhau; hãy chọn dựa trên hợp đồng nghiệp vụ, không chỉ dựa vào sự ngắn gọn của pipeline.
+**Self-extension:** If the API distinguishes both "student not found" and "student has been deactivated", should you filter by status before `findFirst` or search by code first and then check status? The two approaches produce different error messages; choose based on the business contract, not merely on pipeline brevity.
 
-## Ghi nhớ
+## Takeaways
 
-Khi một terminal operation của Stream có thể không tìm được phần tử, kết quả thường là `Optional<T>` hoặc các dạng `OptionalInt`, `OptionalLong`, `OptionalDouble`. `ifPresent` phù hợp cho **hành động tùy chọn khi có giá trị**; `ifPresentOrElse` phù hợp khi cần phản hồi cả lúc vắng mặt; `orElseThrow` phù hợp khi **bắt buộc phải có giá trị để tiếp tục**. Supplier của `orElseThrow` chỉ tạo ngoại lệ trong nhánh rỗng. Hãy giữ sự khác biệt giữa "không có dữ liệu" và "có giá trị bằng 0", cẩn thận với `null` và encounter order, đồng thời thiết kế ngoại lệ theo ý nghĩa nghiệp vụ thay vì mặc định coi mọi kết quả rỗng là lỗi.
+When a Stream terminal operation may fail to find an element, the result is typically `Optional<T>` or one of `OptionalInt`, `OptionalLong`, `OptionalDouble`. `ifPresent` fits **an optional action when a value exists**; `ifPresentOrElse` fits when you must respond on absence as well; `orElseThrow` fits when **a value is mandatory to proceed**. The supplier of `orElseThrow` constructs the exception only on the empty branch. Maintain the distinction between "no data" and "a value equal to 0", be careful with `null` and encounter order, and design exceptions according to business meaning rather than treating every empty result as an error by default.

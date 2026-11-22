@@ -1,12 +1,12 @@
-# Khai báo phương thức: tên, tham số, kiểu trả về và thân trong Java
+# Method Declaration: Name, Parameters, Return Type, and Body in Java
 
-> **Java core — language-basics / Phương thức**  
-> **Môi trường:** JDK 17+, ví dụ một file độc lập, không dùng thư viện ngoài.  
-> **Mục tiêu:** Tự khai báo và gọi phương thức, xác định rõ **tên**, **danh sách tham số**, **kiểu trả về** và **thân**; hiểu `void`, `return`, phạm vi biến, `static` và phương thức đối tượng.
+> **Java core — language-basics / Methods**  
+> **Environment:** JDK 17+, single standalone file, no external libraries.  
+> **Objective:** Declare and call methods yourself, clearly defining **name**, **parameter list**, **return type**, and **body**; understand `void`, `return`, variable scope, `static`, and instance methods.
 
-## 1. Cấu trúc của một khai báo phương thức
+## 1. Structure of a Method Declaration
 
-Phương thức là một khối hành vi có tên được định nghĩa trong một lớp, interface hoặc kiểu cho phép khai báo phương thức của Java.
+A method is a named block of behavior defined inside a class, interface, or type that permits Java method declarations.
 
 ~~~java
 public static int add(int left, int right) {
@@ -15,20 +15,20 @@ public static int add(int left, int right) {
 }
 ~~~
 
-Các phần trong khai báo:
+Parts in the declaration:
 
-| Thành phần | Trong ví dụ | Ý nghĩa |
+| Component | In the example | Meaning |
 | --- | --- | --- |
-| Bộ điều chỉnh | `public static` | Quyền truy cập và thuộc về lớp hay đối tượng |
-| Kiểu trả về | `int` | Kết quả mà nơi gọi nhận được |
-| Tên phương thức | `add` | Định danh để gọi phương thức |
-| Tham số hình thức | `int left, int right` | Hai biến nhận đối số khi gọi |
-| Thân phương thức | `{ ... }` | Những câu lệnh chạy khi phương thức được gọi |
-| Lệnh kết thúc có giá trị | `return result;` | Trả giá trị và kết thúc lần gọi |
+| Modifiers | `public static` | Access level and whether it belongs to the class or an object |
+| Return type | `int` | The result received by the caller |
+| Method name | `add` | The identifier used to call the method |
+| Formal parameters | `int left, int right` | Two variables that receive arguments on a call |
+| Method body | `{ ... }` | The statements executed when the method is called |
+| Value-returning termination statement | `return result;` | Returns the value and ends the call |
 
-Khi gọi `add(3, 4)`, đối số `3` gán vào tham số `left` và `4` gán vào `right`, nên phương thức trả `7`. Chỉ **khai báo** không làm thân chạy; thân được thực hiện khi có lời gọi phù hợp.
+When calling `add(3, 4)`, the argument `3` is assigned to parameter `left` and `4` is assigned to `right`, so the method returns `7`. Merely **declaring** it does not run the body; the body is executed when there is a matching call.
 
-Dạng khái quát:
+General form:
 
 ~~~java
 [modifiers] ReturnType methodName(Type1 parameter1, Type2 parameter2) {
@@ -36,11 +36,11 @@ Dạng khái quát:
 }
 ~~~
 
-Dấu ngoặc vuông trong dòng minh họa là **ký hiệu mô tả tùy chọn**, không phải ký tự phải nhập vào Java. Một khai báo có thể **không có tham số**: `static String version() { return "17+"; }`. Các loại phương thức không trừu tượng thông thường có thân trong dấu `{ }`; khai báo phương thức `abstract` hoặc trong interface có thể dùng dấu `;` thay cho thân theo quy tắc riêng.
+The square brackets in the illustrative line are **optional-notation markers**, not characters to type into Java. A declaration may have **no parameters**: `static String version() { return "17+"; }`. Normal non-abstract method kinds have a body inside `{ }`; `abstract` method declarations or declarations in interfaces may use a `;` instead of a body according to their own rules.
 
-## 2. Đặt tên và chọn kiểu trả về
+## 2. Naming and Choosing a Return Type
 
-Tên phương thức tuân theo quy tắc định danh của Java; thông lệ là **lowerCamelCase** với một động từ hoặc cụm mô tả hành động như `calculateTotal`, `findFirst`, `printReport`:
+Method names follow Java identifier rules; the convention is **lowerCamelCase** with a verb or action-describing phrase such as `calculateTotal`, `findFirst`, `printReport`:
 
 ~~~java
 static int square(int number) {
@@ -56,41 +56,41 @@ static String title() {
 }
 ~~~
 
-Kiểu trả về có thể là primitive (`int`, `boolean`, `double`...), lớp (`String`), mảng (`int[]`), một interface hoặc `void`.
+The return type can be a primitive (`int`, `boolean`, `double`...), a class (`String`), an array (`int[]`), an interface, or `void`.
 
-- Với kiểu khác `void`, `return expression;` phải trả giá trị **gán được** cho kiểu khai báo; các đường điều khiển hoàn tất bình thường không được thiếu kết quả.
-- Với `void`, phương thức không cung cấp giá trị trả về; có thể kết thúc bằng `return;` hoặc đi đến cuối thân.
-- `return` kết thúc **lần gọi phương thức hiện tại**, không tự động kết thúc `main`, vòng lặp của phương thức gọi hay toàn bộ JVM.
+- For a type other than `void`, `return expression;` must return a value **assignable** to the declared type; control-flow paths that complete normally must not be missing a result.
+- For `void`, the method does not provide a return value; it can end with `return;` or reach the end of the body.
+- `return` ends the **current method invocation**, and does not automatically end `main`, the caller's loop, or the entire JVM.
 
 ~~~java
 static void announce(String text) {
     if (text == null) {
-        return; // Kết thúc phương thức void sớm.
+        return; // Ends the void method early.
     }
     System.out.println(text);
 }
 ~~~
 
-Một phương thức `void` không thể dùng `return 5;`; một phương thức khai báo trả `int` không thể dùng `return "five";`.
+A `void` method cannot use `return 5;`; a method declared to return `int` cannot use `return "five";`.
 
-## 3. Tham số hình thức khác đối số thực tế
+## 3. Formal Parameters vs. Actual Arguments
 
 ~~~java
 static double average(int a, int b) {
     return ((double) a + b) / 2;
 }
 
-// Trong phương thức main:
+// Inside main:
 // double result = average(5, 2); // 3.5
 ~~~
 
-`a` và `b` là **tham số hình thức** (*parameters*) trong khai báo; `5` và `2` là **đối số** (*arguments*) tại lời gọi.
+`a` and `b` are **formal parameters** (*parameters*) in the declaration; `5` and `2` are **arguments** at the call site.
 
-- Đối số tương ứng với tham số theo **thứ tự vị trí**, cần tương thích kiểu; `average(2, 5)` cho cùng kết quả ở đây nhưng không phải mọi phương thức đều đối xứng.
-- Trong khai báo, **mỗi tham số cần ghi kiểu**: `int a, int b`, không phải `int a, b` nếu đang viết danh sách tham số phương thức.
-- Không thể dùng cùng một tên cho hai tham số trong cùng khai báo.
-- Tham số chỉ có phạm vi trong phần thân/phạm vi cho phép của phương thức, không phải biến toàn cục.
-- Java **truyền đối số theo giá trị**: với primitive, tham số nhận bản sao giá trị; với đối tượng, tham số nhận bản sao **tham chiếu**.
+- Arguments correspond to parameters by **positional order** and must be type-compatible; `average(2, 5)` produces the same result here, but not every method is symmetric.
+- In the declaration, **each parameter must state its type**: `int a, int b`, not `int a, b` when writing a method parameter list.
+- You cannot use the same name for two parameters in the same declaration.
+- Parameters are only in scope within the method body/allowed scope, not global variables.
+- Java **passes arguments by value**: for primitives, the parameter receives a copy of the value; for objects, the parameter receives a copy of the **reference**.
 
 ~~~java
 static void incrementLocal(int value) {
@@ -99,14 +99,14 @@ static void incrementLocal(int value) {
 
 // int count = 10;
 // incrementLocal(count);
-// count vẫn bằng 10.
+// count is still 10.
 ~~~
 
-Gán lại một tham số tham chiếu không đổi biến của caller; nhưng gọi phương thức làm thay đổi **đối tượng mutable được tham chiếu chung** có thể làm caller thấy trạng thái mới. Đây vẫn là truyền theo giá trị của tham chiếu, không phải truyền biến theo tham chiếu.
+Reassigning a reference parameter does not change the caller's variable; however, calling a method that mutates a **shared mutable object** can cause the caller to observe the new state. This is still pass-by-value of the reference, not pass-by-reference of the variable.
 
-## 4. Thân phương thức, biến cục bộ và luồng điều khiển
+## 4. Method Body, Local Variables, and Control Flow
 
-Phần thân là một khối lệnh `{ ... }`. Nó có thể khai báo biến cục bộ, kiểm tra điều kiện, lặp, gọi phương thức khác và trả kết quả:
+The body is a block of statements `{ ... }`. It can declare local variables, check conditions, loop, call other methods, and return a result:
 
 ~~~java
 static int clamp(int value, int min, int max) {
@@ -123,38 +123,38 @@ static int clamp(int value, int min, int max) {
 }
 ~~~
 
-Hàm này trả số đã giới hạn vào đoạn `[min, max]`. Các `return` nằm ở nhánh khác nhau; khi đi tới một `return`, phần còn lại của thân không chạy.
+This method returns the number clamped to the range `[min, max]`. The `return` statements are in different branches; when execution reaches a `return`, the rest of the body does not run.
 
-**Phạm vi và khởi tạo:**
+**Scope and initialization:**
 
 ~~~java
 static int example(int input) {
-    int doubled = input * 2; // Biến cục bộ.
+    int doubled = input * 2; // Local variable.
     return doubled;
 }
-// doubled và input không dùng trực tiếp bên ngoài phương thức.
+// doubled and input cannot be used directly outside the method.
 ~~~
 
-Biến cục bộ phải được **gán chắc chắn trước khi đọc**. Một khai báo như `int result; return result;` không biên dịch nếu chưa có đường gán hợp lệ. Không thể khai báo trực tiếp **một phương thức bên trong thân một phương thức khác**; hãy đặt nó là thành viên của lớp hoặc một kiểu phù hợp.
+A local variable must be **definitely assigned before it is read**. A declaration such as `int result; return result;` will not compile without a valid assignment path. You cannot declare **a method directly inside the body of another method**; place it as a member of a class or an appropriate type.
 
-**Lỗi biên dịch điển hình:**
+**Typical compile-time errors:**
 
 ~~~java
-// SAI: thiếu return cho trường hợp number <= 0.
+// WRONG: missing return for the case number <= 0.
 // static int missingResult(int number) {
 //     if (number > 0) return number;
 // }
 
-// SAI: kiểu return không tương thích.
+// WRONG: incompatible return type.
 // static int wrongType() { return "Java"; }
 
-// SAI: khai báo phương thức lồng trực tiếp trong phương thức.
+// WRONG: declaring a nested method directly inside a method.
 // static void outer() { int inner() { return 1; } }
 ~~~
 
-## 5. `static` khác phương thức của đối tượng
+## 5. `static` vs. Instance Methods
 
-Phương thức `static` thuộc về **lớp** và có thể gọi bằng tên lớp. Phương thức **instance** gắn với một đối tượng, nên thường gọi qua tham chiếu đối tượng:
+A `static` method belongs to the **class** and can be called using the class name. An **instance** method is associated with an object, so it is usually called through an object reference:
 
 ~~~java
 public final class Counter {
@@ -164,21 +164,21 @@ public final class Counter {
         count = initial;
     }
 
-    public void increase() { // Phương thức instance.
+    public void increase() { // Instance method.
         count++;
     }
 
-    public int current() { // Phương thức instance.
+    public int current() { // Instance method.
         return count;
     }
 
-    public static int add(int a, int b) { // Phương thức static.
+    public static int add(int a, int b) { // Static method.
         return a + b;
     }
 }
 ~~~
 
-Cách gọi (nếu đặt lớp ví dụ vào file hợp lệ):
+How to call them (if the example class is placed in a valid file):
 
 ~~~java
 Counter counter = new Counter(2);
@@ -187,13 +187,13 @@ System.out.println(counter.current()); // 3
 System.out.println(Counter.add(3, 4)); // 7
 ~~~
 
-**Đặc biệt:** `Counter(int initial)` là **constructor**, vì tên trùng với lớp và **không có kiểu trả về**; nó không phải phương thức `void`. Ngược lại, `void Counter()` sẽ là một phương thức có tên `Counter`, không phải constructor.
+**Note:** `Counter(int initial)` is a **constructor**, because its name matches the class and it **has no return type**; it is not a `void` method. Conversely, `void Counter()` would be a method named `Counter`, not a constructor.
 
-`static` không được dùng trực tiếp biến instance qua `this` khi không có đối tượng. Trong ví dụ chạy ở cuối bài, `main` là `static`; nó gọi các phương thức static trực tiếp và tạo đối tượng trước khi gọi phương thức instance.
+`static` cannot directly use instance fields via `this` when there is no object. In the runnable example at the end of the lesson, `main` is `static`; it calls static methods directly and creates an object before calling an instance method.
 
-## 6. Chữ ký phương thức, nạp chồng và tham số thay đổi
+## 6. Method Signature, Overloading, and Varargs
 
-Với các phương thức thông thường trong một lớp, **chữ ký** chủ yếu được phân biệt bằng **tên và kiểu các tham số theo thứ tự**. Tên biến tham số và kiểu trả về **không đủ** để tạo một overload khác:
+For ordinary methods in a class, the **signature** is primarily distinguished by the **name and parameter types in order**. Parameter variable names and the return type are **not enough** to create another overload:
 
 ~~~java
 static String describe(int number) {
@@ -205,15 +205,15 @@ static String describe(String text) {
 }
 ~~~
 
-Hai phương thức cùng tên `describe` được **nạp chồng** (*overloading*) vì một cái nhận `int`, cái kia nhận `String`. Lời gọi `describe(12)` chọn phiên bản `int`; `describe("12")` chọn phiên bản `String`. Trình biên dịch dùng kiểu tại nơi gọi để phân giải overload.
+The two methods sharing the name `describe` are **overloaded** because one takes an `int` and the other takes a `String`. The call `describe(12)` selects the `int` version; `describe("12")` selects the `String` version. The compiler uses the types at the call site to resolve overloads.
 
 ~~~java
-// SAI nếu đã có static int add(int a, int b):
+// WRONG if static int add(int a, int b) already exists:
 // static long add(int x, int y) { return x + y; }
-// Chỉ đổi tên tham số và kiểu trả về không tạo overload hợp lệ.
+// Changing only parameter names and return type does not create a valid overload.
 ~~~
 
-Nếu cần số đối số `int` thay đổi, có thể dùng **varargs**, phải đặt sau cùng trong danh sách tham số:
+If you need a variable number of `int` arguments, you can use **varargs**, which must be placed last in the parameter list:
 
 ~~~java
 static int sumAll(int... values) {
@@ -227,22 +227,22 @@ static int sumAll(int... values) {
 // sumAll(2, 3, 4) == 9; sumAll() == 0.
 ~~~
 
-`int... values` hoạt động như một mảng `int[]` trong thân. Không cần dùng varargs cho mọi bài: số lượng tham số cố định thường làm hợp đồng đơn giản hơn.
+`int... values` works like an `int[]` array inside the body. You do not need to use varargs for every problem: a fixed number of parameters often keeps the contract simpler.
 
-## 7. Cú pháp CLI và chương trình Java 17+ runnable
+## 7. CLI Syntax and Runnable Java 17+ Program
 
-Tạo file **MethodDeclarationDemo.java**:
+Create the file **MethodDeclarationDemo.java**:
 
 ~~~java
 public final class MethodDeclarationDemo {
     private final String prefix;
 
-    // Constructor: không có kiểu trả về.
+    // Constructor: no return type.
     public MethodDeclarationDemo(String prefix) {
         this.prefix = prefix;
     }
 
-    // Phương thức instance: cần đối tượng để gọi.
+    // Instance method: requires an object to call.
     public String greet(String name) {
         if (name == null || name.isBlank()) {
             return prefix + "bạn";
@@ -280,7 +280,7 @@ public final class MethodDeclarationDemo {
     }
 
     private static void incrementLocal(int value) {
-        value++; // Không đổi biến bên ngoài phương thức.
+        value++; // Does not change the variable outside the method.
     }
 
     private static String describe(int number) {
@@ -328,14 +328,14 @@ public final class MethodDeclarationDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file, trong Bash, PowerShell hoặc Command Prompt:
+Compile and run in the directory containing the file, in Bash, PowerShell, or Command Prompt:
 
 ~~~bash
 javac -encoding UTF-8 MethodDeclarationDemo.java
 java MethodDeclarationDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 add=7
@@ -355,33 +355,33 @@ sumAll=9
 sumNone=0
 ~~~
 
-`add`/`average` minh họa nhận tham số và trả giá trị; `announce` là `void`. Ba nhánh `clamp` cho thấy nhiều đường `return`; `greet` là phương thức instance có tham chiếu `this` gián tiếp qua trường `prefix`. `afterCall=10` chứng minh tham số `int` không sửa biến caller. Hai `describe` minh họa overload, còn `sumAll()` cho thấy varargs có thể nhận 0 đối số.
+`add`/`average` demonstrate accepting parameters and returning a value; `announce` is `void`. The three branches of `clamp` show multiple `return` paths; `greet` is an instance method with an implicit `this` reference via the `prefix` field. `afterCall=10` proves an `int` parameter does not modify the caller's variable. The two `describe` methods illustrate overloading, while `sumAll()` shows varargs can accept 0 arguments.
 
-## 8. Lỗi thường gặp và bài tập
+## 8. Common Mistakes and Exercises
 
-| Lỗi / hiểu lầm | Cách sửa |
+| Mistake / misconception | How to fix |
 | --- | --- |
-| Quên kiểu trả về trong khai báo phương thức | Ghi `T` hoặc `void`; chỉ constructor mới không có kiểu trả về |
-| Nhầm tham số và đối số | Tham số đặt trong khai báo; đối số truyền ở nơi gọi |
-| Viết `static int add(int a, b)` | Ghi đủ kiểu: `int a, int b` |
-| Thiếu `return` trên một đường đi của hàm trả kết quả | Bảo đảm mọi đường hoàn tất bình thường đều trả giá trị |
-| `return value;` trong hàm `void` | Dùng `return;` hoặc bỏ return |
-| Gọi method instance từ `main` mà không có đối tượng | Tạo đối tượng, rồi gọi qua tham chiếu |
-| Muốn overload chỉ bằng đổi kiểu trả về/tên tham số | Đổi danh sách kiểu tham số một cách hợp lệ |
-| Mong sửa biến `int` của caller bằng cách sửa tham số | Giá trị tham số là bản sao; trả kết quả rồi gán ở caller |
+| Forgetting the return type in a method declaration | Write `T` or `void`; only constructors omit a return type |
+| Confusing parameters and arguments | Parameters go in the declaration; arguments are passed at the call site |
+| Writing `static int add(int a, b)` | Specify every type: `int a, int b` |
+| Missing `return` on a path of a value-returning method | Ensure every normally completing path returns a value |
+| `return value;` in a `void` method | Use `return;` or omit return |
+| Calling an instance method from `main` without an object | Create an object, then call via its reference |
+| Trying to overload by changing only return type/parameter names | Change the parameter type list validly |
+| Expecting to modify a caller's `int` variable by modifying a parameter | The parameter value is a copy; return the result and assign it in the caller |
 
-**Bài 1.** Viết `static int multiply(int a, int b)` và gọi trong `main` với `3, 5`; ghi chính xác giá trị trả về.
+**Exercise 1.** Write `static int multiply(int a, int b)` and call it in `main` with `3, 5`; record the exact return value.
 
-**Bài 2.** Viết `static String category(int n)` trả `"NEG"`, `"ZERO"` hoặc `"POS"`, không bỏ sót đường `return`.
+**Exercise 2.** Write `static String category(int n)` returning `"NEG"`, `"ZERO"`, or `"POS"`, without missing any `return` path.
 
-**Bài 3.** Viết `static void printIfNonBlank(String text)`, xử lý `null` và chuỗi blank bằng `return;` rồi in khi hợp lệ.
+**Exercise 3.** Write `static void printIfNonBlank(String text)`, handling `null` and blank strings with `return;` and printing when valid.
 
-**Bài 4.** Tạo một lớp có trường instance, constructor và phương thức instance trả giá trị; so sánh cách gọi với một phương thức `static`.
+**Exercise 4.** Create a class with an instance field, a constructor, and an instance method returning a value; compare how it is called with a `static` method.
 
-**Bài 5.** Viết hai overload `format(int value)` và `format(double value)`. Giải thích vì sao chỉ viết hai hàm cùng tham số nhưng kiểu trả về khác nhau là sai.
+**Exercise 5.** Write two overloads `format(int value)` and `format(double value)`. Explain why writing two methods with the same parameters but different return types is invalid.
 
-**Bài 6.** Dùng `int... values` để viết hàm đếm số phần tử dương; thử không đối số, một đối số và nhiều đối số.
+**Exercise 6.** Use `int... values` to write a method that counts positive elements; test with zero arguments, one argument, and multiple arguments.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Một phương thức được định nghĩa bởi tên, tham số, kiểu trả về và thân lệnh.** Khi gọi, đối số được truyền theo giá trị vào tham số. `return value;` cung cấp kết quả cho phương thức có kiểu trả về, còn `void` không trả giá trị. Dùng `static` khi hành vi thuộc lớp, dùng phương thức instance khi cần trạng thái đối tượng, và phân biệt rõ method với constructor.
+**A method is defined by its name, parameters, return type, and body.** When called, arguments are passed by value into parameters. `return value;` provides a result for value-returning methods, whereas `void` returns no value. Use `static` when behavior belongs to the class, use instance methods when object state is needed, and clearly distinguish methods from constructors.

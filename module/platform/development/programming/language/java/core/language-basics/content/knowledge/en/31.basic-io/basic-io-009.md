@@ -1,47 +1,47 @@
-# Locale, dấu phân cách thập phân và trách nhiệm đóng nguồn nhập trong Java
+# Locale, Decimal Separators, and Input Source Closing Responsibility in Java
 
-## 1. Vì sao nhập số có thể khác nhau giữa các máy?
+## 1. Why can number input vary across machines?
 
-Khi người dùng nhập một số thực, cách viết dấu phân cách thập phân và dấu phân nhóm hàng nghìn tùy thuộc **quy ước vùng miền** (*locale*). Ví dụ:
+When a user enters a floating-point number, how the decimal separator and thousands grouping separator are written depends on **regional conventions** (*locale*). For example:
 
-| Locale | Số một nghìn hai trăm ba mươi tư phẩy năm | Ý nghĩa |
+| Locale | The number one thousand two hundred thirty-four point five | Meaning |
 | --- | --- | --- |
-| `Locale.US` | `1,234.50` | Dấu phẩy nhóm hàng nghìn, dấu chấm thập phân |
-| `Locale.GERMANY` | `1.234,50` | Dấu chấm nhóm hàng nghìn, dấu phẩy thập phân |
+| `Locale.US` | `1,234.50` | Comma groups thousands, dot separates decimal part |
+| `Locale.GERMANY` | `1.234,50` | Dot groups thousands, comma separates decimal part |
 
-Cả hai cách viết biểu diễn **cùng giá trị số**, nhưng văn bản đầu vào khác nhau. Nếu dùng `java.util.Scanner` để đọc một số, trình phân tích token của `Scanner` có thể chịu ảnh hưởng của locale. Nếu dùng `System.out.printf` hoặc `String.format` để hiển thị số, ký tự thập phân và phân nhóm cũng có thể thay đổi theo locale.
+Both notations represent the **same numeric value**, yet the input text differs. If you use `java.util.Scanner` to read a number, `Scanner`'s token parser can be affected by locale. If you use `System.out.printf` or `String.format` to display a number, the decimal and grouping characters can also change by locale.
 
-**Hai việc cần tách bạch:**
+**Two tasks to keep separate:**
 
-1. **Đọc/parsing:** chuyển văn bản như `"1.234,50"` thành giá trị `double`.
-2. **Hiển thị/formatting:** chuyển giá trị `1234.5` thành văn bản theo quy ước cần dùng.
+1. **Reading/parsing:** converting text such as `"1.234,50"` into a `double` value.
+2. **Displaying/formatting:** converting the value `1234.5` into text according to the required convention.
 
-Không nên coi dấu phẩy và dấu chấm là những ký tự có ý nghĩa giống nhau trong mọi locale. Đồng thời không nên mặc định thiết lập locale trên máy học của mình sẽ giống hệ thống chấm bài hay máy người dùng.
+Do not treat commas and dots as having identical meaning in every locale. Nor should you assume the locale settings on your study machine match those of a grading environment or end-user machine.
 
-## 2. `Scanner` đọc số theo locale
+## 2. `Scanner` reads numbers by locale
 
-`Scanner` là lớp trong package `java.util`. Nó đọc đầu vào theo token và có các phương thức như `nextInt()`, `nextDouble()`, `next()` và `nextLine()`.
+`Scanner` is a class in the `java.util` package. It reads input by token and provides methods such as `nextInt()`, `nextDouble()`, `next()`, and `nextLine()`.
 
 ```java
 import java.util.Locale;
 import java.util.Scanner;
 
-// Mã trong phương thức:
+// Code inside a method:
 try (Scanner scanner = new Scanner("12.75")) {
     scanner.useLocale(Locale.US);
     double value = scanner.nextDouble(); // 12.75
 }
 ```
 
-- `scanner.useLocale(Locale.US)` đặt locale dùng khi `Scanner` phân tích số.
-- `nextDouble()` lấy token kế tiếp và phân tích thành giá trị `double` theo locale đã chọn.
-- `nextInt()` cũng dùng các quy tắc số nguyên liên quan đến locale và radix hiện tại.
-- `next()` chỉ đọc một token dạng `String`, không tự chuyển thành số.
-- `nextLine()` đọc phần còn lại của dòng thành `String`, không tự phân tích nội dung dòng thành số.
+- `scanner.useLocale(Locale.US)` sets the locale used when `Scanner` parses numbers.
+- `nextDouble()` takes the next token and parses it into a `double` value using the selected locale.
+- `nextInt()` also uses integer rules related to the current locale and radix.
+- `next()` only reads one token as a `String` without converting it to a number.
+- `nextLine()` reads the remainder of the line as a `String` without parsing the line's content into a number.
 
-Nếu không gọi `useLocale`, `Scanner` dùng locale mặc định phù hợp của môi trường khi khởi tạo. Không nên viết test phụ thuộc vào điều đó. Trong ví dụ có kết quả dự kiến chính xác, hãy **chỉ rõ locale**.
+If `useLocale` is not called, `Scanner` uses the environment's default locale at creation time. Do not write tests that depend on that. In examples with exact expected output, **specify the locale explicitly**.
 
-### Cùng giá trị, hai cách nhập
+### Same value, two input notations
 
 ```java
 try (Scanner us = new Scanner("1,234.50");
@@ -54,24 +54,24 @@ try (Scanner us = new Scanner("1,234.50");
 }
 ```
 
-Các chuỗi được dùng ở đây có định dạng nhóm nghìn/thập phân đúng theo hai locale đã chọn. Kết quả trong biến `a` và `b` là **giá trị số**, không còn mang theo cách viết dấu phẩy hay dấu chấm ở nguồn ban đầu.
+The strings used here have thousands-grouping and decimal formats valid for the two chosen locales. The results in variables `a` and `b` are **numeric values** and no longer carry the comma or dot notation from the original source.
 
-Nếu token không hợp lệ theo locale hoặc nằm ngoài các dạng mà `Scanner` chấp nhận, `nextDouble()` có thể ném `InputMismatchException`. Nếu nguồn đã hết, có thể gặp `NoSuchElementException`; nếu `Scanner` đã đóng, thao tác đọc có thể ném `IllegalStateException`.
+If a token is invalid for the locale or outside the forms `Scanner` accepts, `nextDouble()` may throw `InputMismatchException`. If the source is exhausted, `NoSuchElementException` may occur; if the `Scanner` is closed, read operations may throw `IllegalStateException`.
 
-## 3. Kiểm tra với `hasNextDouble()` và xử lý dữ liệu sai
+## 3. Checking with `hasNextDouble()` and handling invalid data
 
-`hasNextDouble()` kiểm tra token kế tiếp có thể được `Scanner` phân tích thành `double` theo các quy tắc hiện tại hay không. Nó **không tiêu thụ** token.
+`hasNextDouble()` checks whether the next token can be parsed by `Scanner` as a `double` under the current rules. It **does not consume** the token.
 
 ```java
 import java.util.Locale;
 import java.util.Scanner;
 
-// Đặt trong phương thức:
+// Place inside a method:
 try (Scanner scanner = new Scanner("abc 12.5")) {
     scanner.useLocale(Locale.US);
 
     if (!scanner.hasNextDouble() && scanner.hasNext()) {
-        String invalid = scanner.next(); // Tiêu thụ "abc"
+        String invalid = scanner.next(); // Consume "abc"
         System.out.println("Invalid: " + invalid);
     }
 
@@ -82,38 +82,38 @@ try (Scanner scanner = new Scanner("abc 12.5")) {
 }
 ```
 
-Điểm quan trọng: nếu `hasNextDouble()` trả `false` mà vòng lặp cứ kiểm tra cùng token, chương trình có thể lặp mãi. Cần **loại bỏ token không hợp lệ**, yêu cầu nhập lại hoặc dừng theo chính sách lỗi đã chọn.
+Crucial point: if `hasNextDouble()` returns `false` and a loop keeps checking the same token, the program can loop forever. You must **discard the invalid token**, re-prompt, or stop according to the chosen error policy.
 
-`hasNextDouble()` kiểm tra **cú pháp đọc được thành số thực**, không kiểm tra điều kiện nghiệp vụ như “giá trị phải lớn hơn 0” hoặc “phải là số hữu hạn”. Nếu dữ liệu số cần hữu hạn, kiểm tra thêm `Double.isFinite(value)`. Không phải mọi giá trị kiểu `double` đều phù hợp với miền dữ liệu ứng dụng.
+`hasNextDouble()` checks **syntax parseable as a floating-point number**, not business conditions such as "value must be greater than 0" or "must be finite." If numeric data must be finite, additionally check `Double.isFinite(value)`. Not every `double` value fits the application's data domain.
 
-Đừng dùng `catch (Exception e) { }` rỗng để che dữ liệu nhập sai. Với chương trình console, thông báo lỗi rõ ràng và vòng lặp nhập lại thường có ích hơn.
+Do not use an empty `catch (Exception e) { }` block to hide invalid input. For console programs, clear error messages and a retry loop are far more helpful.
 
-## 4. `Double.parseDouble()` không phân tích theo locale
+## 4. `Double.parseDouble()` does not parse by locale
 
-`Double.parseDouble(String)` xử lý các biểu diễn số thực theo cú pháp được Java quy định, **không dùng locale mặc định của người dùng** để diễn giải dấu phân cách thập phân. Ví dụ:
+`Double.parseDouble(String)` processes floating-point representations according to Java's defined syntax, **without using the user's default locale** to interpret decimal separators. For example:
 
 ```java
 double a = Double.parseDouble("12.5"); // 12.5
 
 // Double.parseDouble("12,5");
-// Ném NumberFormatException: dấu phẩy không được hiểu là dấu thập phân.
+// Throws NumberFormatException: comma is not treated as a decimal separator.
 ```
 
-Nếu muốn đọc số thực từ một **dòng văn bản cố định** với cú pháp dấu chấm thập phân, có thể dùng `Scanner.nextLine()`, sau đó `Double.parseDouble(text.trim())`. Cách này tránh vấn đề trộn `nextDouble()` với `nextLine()` và giúp cú pháp nhập rõ ràng.
+If you want to read a floating-point number from a **fixed text line** using dot-decimal syntax, you can use `Scanner.nextLine()` followed by `Double.parseDouble(text.trim())`. This avoids mixing `nextDouble()` with `nextLine()` and keeps the input syntax clear.
 
-Ngược lại, nếu muốn chấp nhận văn bản theo định dạng địa phương như `"1.234,50"`, dùng `Scanner` với `Locale.GERMANY` hoặc một parser phù hợp như `NumberFormat` với locale và quy tắc kiểm tra dữ liệu mong muốn. Không nên thay mọi dấu phẩy bằng dấu chấm một cách máy móc: trong một số locale, dấu phẩy là dấu thập phân, trong locale khác lại là dấu nhóm nghìn. Việc thay thế không đúng có thể làm **đổi giá trị** của số.
+Conversely, if you want to accept localized text such as `"1.234,50"`, use `Scanner` with `Locale.GERMANY` or an appropriate parser such as `NumberFormat` with the desired locale and validation rules. Do not blindly replace every comma with a dot: in some locales a comma is a decimal separator, while in others it is a thousands-grouping separator. Incorrect replacement can **alter the numeric value**.
 
-| API | Có áp dụng locale khi đọc số không? | Ví dụ |
+| API | Applies locale when reading numbers? | Example |
 | --- | --- | --- |
-| `Scanner.useLocale(...)` + `nextDouble()` | Có | `"1.234,50"` với `Locale.GERMANY` |
-| `Scanner.useLocale(...)` + `nextInt()` | Có, theo quy tắc số nguyên/radix | `"123"` với `Locale.US` |
-| `Double.parseDouble("12.5")` | Không | Nhận dấu chấm theo cú pháp Java |
-| `Integer.parseInt("123")` | Không | Nhận cú pháp số nguyên Java, không phải parser nhóm nghìn theo locale |
-| `Scanner.nextLine()` | Không tự phân tích số | Đọc dòng văn bản, sau đó tự chọn quy tắc parse |
+| `Scanner.useLocale(...)` + `nextDouble()` | Yes | `"1.234,50"` with `Locale.GERMANY` |
+| `Scanner.useLocale(...)` + `nextInt()` | Yes, per integer/radix rules | `"123"` with `Locale.US` |
+| `Double.parseDouble("12.5")` | No | Accepts dot according to Java syntax |
+| `Integer.parseInt("123")` | No | Accepts Java integer syntax, not locale thousands grouping |
+| `Scanner.nextLine()` | Does not parse numbers automatically | Reads a text line, leaving parsing rules up to you |
 
-## 5. Locale cũng ảnh hưởng đến `printf()`
+## 5. Locale also affects `printf()`
 
-Khi in số thực, `System.out.printf` có overload nhận `Locale`:
+When printing floating-point numbers, `System.out.printf` has an overload accepting a `Locale`:
 
 ```java
 double price = 1234.5;
@@ -122,33 +122,33 @@ System.out.printf(Locale.US, "US: %,.2f%n", price);
 System.out.printf(Locale.GERMANY, "DE: %,.2f%n", price);
 ```
 
-Đoạn này cần `import java.util.Locale;` và đặt trong phương thức. Stdout tương ứng:
+This snippet requires `import java.util.Locale;` and placement inside a method. Corresponding stdout:
 
 ```text
 US: 1,234.50
 DE: 1.234,50
 ```
 
-Trong `%,.2f`:
+In `%,.2f`:
 
-- `%f` định dạng số thực ở dạng thập phân.
-- `.2` chọn hai chữ số sau dấu phân cách thập phân.
-- Dấu `,` ngay trong **mẫu định dạng** bật tính năng nhóm chữ số; dấu nhóm thực tế trong kết quả phụ thuộc locale.
-- `%n` tạo ký tự kết thúc dòng theo nền tảng.
+- `%f` formats a floating-point number in decimal form.
+- `.2` selects two digits after the decimal separator.
+- The `,` inside the **format template** enables digit grouping; the actual grouping character in the output depends on the locale.
+- `%n` produces the platform-specific line terminator.
 
-Nếu bỏ đối số `Locale`, cách hiển thị có thể thay đổi theo locale mặc định của môi trường. `String.format(Locale.US, ...)` cũng tạo một chuỗi định dạng theo quy tắc tương ứng nhưng **không tự in** ra console.
+If the `Locale` argument is omitted, the displayed format may change depending on the environment's default locale. `String.format(Locale.US, ...)` also produces a formatted string under the corresponding rules without **automatically printing** to the console.
 
-**Phân biệt hai loại dấu phẩy:** dấu `,` trong chuỗi format `"%,.2f"` là ký hiệu **bật grouping**, không phải cam kết luôn in dấu phẩy ra kết quả. Với `Locale.GERMANY`, dấu grouping hiển thị là dấu chấm, còn dấu thập phân là dấu phẩy.
+**Distinguishing two kinds of commas:** the `,` in the format string `"%,.2f"` is a flag that **enables grouping**, not a promise to always print a comma in the output. With `Locale.GERMANY`, the displayed grouping separator is a dot, while the decimal separator is a comma.
 
-## 6. `Scanner.close()` đóng cái gì?
+## 6. What does `Scanner.close()` close?
 
-`Scanner` triển khai `java.io.Closeable` và cung cấp phương thức `close()`. Khi đóng, nó đánh dấu scanner đã đóng; nếu nguồn đầu vào bên dưới triển khai `Closeable`, scanner **cũng gọi `close()` trên nguồn đó**.
+`Scanner` implements `java.io.Closeable` and provides a `close()` method. When closed, it marks the scanner as closed; if the underlying input source implements `Closeable`, the scanner **also calls `close()` on that source**.
 
-Vì thế, phải hỏi một câu quan trọng: **mã này có sở hữu nguồn nhập hay không?**
+Therefore, ask an important question: **does this code own the input source?**
 
-### Nguồn do chương trình tự mở: nên đóng
+### Sources opened by the program itself: should be closed
 
-Ví dụ dùng `Scanner` để đọc một tệp do chính phương thức mở:
+Example using `Scanner` to read a file opened by the method itself:
 
 ```java
 import java.io.IOException;
@@ -163,16 +163,16 @@ class FileReaderExample {
             if (scanner.hasNext()) {
                 System.out.println(scanner.next());
             }
-        } // Scanner được tự đóng tại đây.
+        } // Scanner is automatically closed here.
     }
 }
 ```
 
-Đây là **lớp minh họa** không có `main`. Với constructor `Scanner(Path, Charset)` trên Java 17, ta có thể chỉ rõ charset cho tệp. `try-with-resources` tự gọi `close()` khi rời khối, kể cả khi có `return` hoặc ngoại lệ phát sinh trong thân khối.
+This is an **illustrative class** without `main`. With the `Scanner(Path, Charset)` constructor on Java 17, you can specify the file's charset explicitly. `try-with-resources` calls `close()` automatically upon exiting the block, even if a `return` or exception occurs inside the block.
 
-Đóng đúng lúc đặc biệt quan trọng với những nguồn như file hoặc stream do chương trình sở hữu. Không nên trông chờ Garbage Collector tự giải phóng mọi tài nguyên bên ngoài.
+Promptly closing resources is especially important for files or streams owned by the program. Do not rely on the Garbage Collector to release all external resources on its own.
 
-### `Scanner(String)`: phù hợp cho ví dụ/test, có thể đóng tại cuối phạm vi
+### `Scanner(String)`: suited for examples/tests, safe to close at end of scope
 
 ```java
 try (Scanner scanner = new Scanner("Java 17")) {
@@ -180,25 +180,25 @@ try (Scanner scanner = new Scanner("Java 17")) {
 }
 ```
 
-Nguồn này là một chuỗi đã có trong bộ nhớ; ví dụ không mở một tệp hay đóng `System.in`. Đóng scanner vẫn đúng với nguyên tắc không dùng lại một đối tượng đọc sau khi kết thúc phạm vi.
+This source is an in-memory string; the example neither opens a file nor closes `System.in`. Closing the scanner still aligns with the principle of not reusing a reader object after its scope ends.
 
-### `Scanner(System.in)`: chú ý nguồn chung
+### `Scanner(System.in)`: mind the shared source
 
-`System.in` là **luồng nhập chuẩn dùng chung của tiến trình Java**. Khi viết:
+`System.in` is the **shared standard input stream of the Java process**. When you write:
 
 ```java
 Scanner console = new Scanner(System.in);
 ```
 
-scanner sử dụng `System.in` làm nguồn. Nếu gọi `console.close()`, `Scanner` cũng có thể đóng `System.in` bên dưới. Điều đó ảnh hưởng những phần khác của chương trình muốn tiếp tục đọc từ `System.in`. **Không nên đóng tùy tiện một scanner bọc `System.in` khi nguồn nhập còn được các thành phần khác dùng.**
+the scanner uses `System.in` as its source. If you call `console.close()`, `Scanner` can also close the underlying `System.in`. That affects other parts of the program that want to continue reading from `System.in`. **Do not arbitrarily close a scanner wrapping `System.in` when other components still need the input source.**
 
-Trong ứng dụng console đơn giản, có thể tạo **một scanner dùng chung** và giữ nó tới khi toàn bộ quá trình nhập kết thúc, thay vì tạo và đóng nhiều scanner trên `System.in`. Ở ranh giới kết thúc ứng dụng, chiến lược đóng tài nguyên phụ thuộc **ai được giao quyền sở hữu** luồng. Nếu phương thức chỉ **mượn** scanner do nơi khác cung cấp, phương thức ấy thường không nên tự đóng nó.
+In a simple console application, you can create **one shared scanner** and keep it until all input reading is complete, rather than creating and closing multiple scanners on `System.in`. At the application shutdown boundary, the resource-closing strategy depends on **who owns** the stream. If a method only **borrows** a scanner supplied elsewhere, that method usually should not close it.
 
-Không nên hiểu sai rằng `Scanner` không bao giờ phải đóng: quy tắc chính là **người sở hữu nguồn quyết định vòng đời**, chứ không phải “luôn đóng” hoặc “không bao giờ đóng” mọi scanner.
+Do not mistakenly assume a `Scanner` must never be closed: the core rule is that **the owner of the source controls its lifecycle**, not "always close" or "never close" every scanner.
 
-## 7. Chương trình Java 17+ chạy độc lập, không phụ thuộc locale máy
+## 7. Standalone runnable Java 17+ program, independent of machine locale
 
-Tạo tệp **`LocaleInputDemo.java`**:
+Create the file **`LocaleInputDemo.java`**:
 
 ```java
 import java.io.StringReader;
@@ -271,14 +271,14 @@ public class LocaleInputDemo {
 }
 ```
 
-Chạy tại thư mục có tệp với **JDK 17 trở lên**. Các lệnh hoạt động trên PowerShell/CMD (Windows) và bash/zsh (Linux/macOS):
+Run in the directory containing the file with **JDK 17 or later**. These commands work on PowerShell/CMD (Windows) and bash/zsh (Linux/macOS):
 
 ```bash
 javac -encoding UTF-8 LocaleInputDemo.java
 java LocaleInputDemo
 ```
 
-**Stdout chính xác** (lệnh biên dịch thành công không in gì):
+**Exact stdout** (a successful compilation command prints nothing):
 
 ```text
 US input: 1234.50
@@ -293,19 +293,19 @@ owned input: hello
 source closed: true
 ```
 
-### Giải thích ví dụ
+### Example explanation
 
-1. Hai hàm `read` sử dụng `Scanner.useLocale` riêng cho từng chuỗi, nên `"1,234.50"` và `"1.234,50"` cùng được đọc thành giá trị `1234.5`.
-2. Khi định dạng bằng `Locale.US`, giá trị hiển thị là `1,234.50`; khi dùng `Locale.GERMANY`, là `1.234,50`. Giá trị số **không thay đổi**, chỉ cách hiển thị khác.
-3. `Double.parseDouble("12.5")` hợp lệ, còn `Double.parseDouble("12,5")` ném `NumberFormatException`, vì API đó không tự dùng dấu phẩy theo locale.
-4. `hasNextDouble()` phát hiện token đầu `abc` không hợp lệ, `next()` loại bỏ nó rồi `nextDouble()` đọc `7.5`.
-5. `TrackedReader` là một `StringReader` tự định nghĩa để theo dõi trạng thái đóng nguồn. Khi rời `try (Scanner ...)`, scanner đóng nguồn `source` và cờ `closed` thành `true`.
+1. Both `read` calls use `Scanner.useLocale` tailored to each string, so `"1,234.50"` and `"1.234,50"` are both read as the value `1234.5`.
+2. When formatted with `Locale.US`, the value displays as `1,234.50`; with `Locale.GERMANY`, as `1.234,50`. The numeric value **does not change**, only the display representation differs.
+3. `Double.parseDouble("12.5")` succeeds, whereas `Double.parseDouble("12,5")` throws `NumberFormatException` because that API does not adopt locale commas automatically.
+4. `hasNextDouble()` detects that the first token `abc` is invalid, `next()` discards it, and then `nextDouble()` reads `7.5`.
+5. `TrackedReader` is a custom `StringReader` tracking whether the source was closed. Upon exiting `try (Scanner ...)`, the scanner closes `source` and the `closed` flag becomes `true`.
 
-Bằng cách dùng các chuỗi đầu vào và chỉ định `Locale`, chương trình **không cần người dùng nhập tay** và không phụ thuộc locale mặc định của máy đang chạy.
+By using fixed input strings and explicit `Locale` arguments, the program **requires no manual typing** and does not depend on the host machine's default locale.
 
-## 8. Mẫu đọc bàn phím: quyết định nơi đóng `Scanner`
+## 8. Keyboard-reading pattern: deciding where to close `Scanner`
 
-Ví dụ nhập một dòng số thực bằng dấu chấm thập phân, đồng thời có thông báo lỗi:
+Example of reading a line containing a floating-point number with a dot decimal separator, along with error messages:
 
 ```java
 import java.util.Scanner;
@@ -331,43 +331,43 @@ public class KeyboardNumber {
             System.err.println("No input.");
         }
 
-        // Không đóng input ở đây: ví dụ xem System.in là nguồn dùng chung.
+        // Do not close input here: the example treats System.in as a shared source.
     }
 }
 ```
 
-Tệp tên **`KeyboardNumber.java`**, chạy:
+File named **`KeyboardNumber.java`**, run:
 
 ```bash
 javac -encoding UTF-8 KeyboardNumber.java
 java KeyboardNumber
 ```
 
-Đây là **chương trình có tương tác**: người dùng nhập dữ liệu rồi nhấn Enter; kết quả phụ thuộc chuỗi được nhập. Ví dụ nếu nhập `12.5`, stdout sau prompt chứa `Value: 12.5`. Vì `Double.parseDouble()` dùng cú pháp độc lập locale, ví dụ **chủ động quy định** nhập dấu chấm. Nếu yêu cầu của ứng dụng là nhập số theo locale người dùng, thay đổi cơ chế parse cho phù hợp thay vì ghi lời hướng dẫn mâu thuẫn.
+This is an **interactive program**: the user enters data and presses Enter; output depends on the string entered. For example, if `12.5` is entered, stdout after the prompt contains `Value: 12.5`. Because `Double.parseDouble()` uses locale-independent syntax, the example **intentionally requires** entering a dot. If the application requires localized number entry, change the parsing mechanism to match rather than writing contradictory instructions.
 
-Lưu ý về trình kiểm tra resource leak: với mã mượn `System.in`, một số công cụ phân tích tĩnh có thể nhắc scanner chưa được đóng. Không nên giải quyết bằng cách **đóng luôn nguồn chuẩn dùng chung** nếu yêu cầu chương trình là tiếp tục dùng nguồn đó ở nơi khác; thay vào đó, xác định ranh giới sở hữu và vòng đời rõ ràng.
+Note on resource-leak checkers: for code borrowing `System.in`, some static analysis tools may warn that the scanner is not closed. Do not fix that warning by **closing the shared standard stream** if the program requires using that stream elsewhere; instead, define clear ownership and lifecycle boundaries.
 
-## 9. Những lỗi thường gặp
+## 9. Common mistakes
 
-| Lỗi hoặc giả định | Giải thích/cách sửa |
+| Mistake or assumption | Explanation / fix |
 | --- | --- |
-| `Scanner.nextDouble()` đọc sai ở máy có locale khác | Chỉ định `useLocale(Locale.US)` hoặc locale phù hợp định dạng dữ liệu |
-| Nghĩ `Double.parseDouble("1,5")` đọc được số thực theo locale dùng dấu phẩy | Không; `parseDouble` không dùng locale; dùng parser phù hợp hoặc thay đổi cú pháp đầu vào có kiểm soát |
-| Chỉ đổi dấu phẩy thành dấu chấm trên mọi chuỗi số | Có thể thay đổi ý nghĩa dấu nhóm/thập phân, nhất là với giá trị như `1,234` |
-| Quên locale khi viết `printf("%.2f", value)` trong bài có stdout cần chính xác | Chỉ định `printf(Locale.US, ...)` khi cần kết quả theo dấu chấm |
-| Tưởng `hasNextDouble()` đã đọc mất token | Chưa; nó chỉ kiểm tra, phải gọi `nextDouble()` hoặc tiêu thụ token theo logic |
-| Bắt ngoại lệ rồi tiếp tục thử lại trên cùng token sai mà không loại bỏ | Vòng lặp có thể gặp lại lỗi; dùng `next()` hoặc đọc lại dòng với quy tắc cụ thể |
-| Luôn đóng mọi `Scanner(System.in)` ngay sau một phương thức | Có thể đóng luôn `System.in` mà phần khác còn cần |
-| Không bao giờ đóng `Scanner` đọc từ file | Làm tài nguyên file có thể còn mở; dùng `try-with-resources` với nguồn mình sở hữu |
-| Tạo nhiều scanner độc lập trên cùng `System.in` | Dễ dẫn đến khó kiểm soát buffer và vòng đời; dùng một scanner có phạm vi dùng chung hợp lý |
-| Nhầm đóng scanner với việc dọn bộ nhớ của GC | `close()` xử lý vòng đời tài nguyên, không chỉ việc thu gom đối tượng Java |
+| `Scanner.nextDouble()` parses incorrectly on a machine with another locale | Specify `useLocale(Locale.US)` or the locale matching the data format |
+| Thinking `Double.parseDouble("1,5")` reads comma-decimal numbers by locale | No; `parseDouble` ignores locale; use an appropriate parser or controlled input syntax |
+| Blindly replacing every comma with a dot on all numeric strings | Can alter the meaning of grouping vs. decimal separators, especially for values like `1,234` |
+| Forgetting locale in `printf("%.2f", value)` when exact stdout is required | Specify `printf(Locale.US, ...)` when dot-formatted output is needed |
+| Thinking `hasNextDouble()` already consumed the token | No; it only checks—you must call `nextDouble()` or discard the token logically |
+| Catching an exception and retrying on the same bad token without removing it | The loop will hit the same error again; call `next()` or re-read the line with explicit rules |
+| Always closing `Scanner(System.in)` right after one method | Can close `System.in` while other parts still need it |
+| Never closing a `Scanner` reading from a file | Leaves file resources open; use `try-with-resources` for sources you own |
+| Creating multiple independent scanners on the same `System.in` | Leads to hard-to-control buffering and lifecycle issues; use one scanner with an appropriate shared scope |
+| Confusing closing a scanner with GC memory cleanup | `close()` manages resource lifecycles, not just Java object garbage collection |
 
-## 10. Checklist trước khi xây dựng luồng nhập
+## 10. Pre-build checklist for an input flow
 
-1. **Định dạng dữ liệu đến từ đâu?** Nếu là giao thức/file quy định dấu chấm thì parser phải theo cú pháp đó; nếu là nhập liệu người dùng theo locale, chọn parser theo locale.
-2. **Đọc token hay đọc dòng?** Khi dùng `nextDouble()` rồi `nextLine()`, nhớ xử lý ký tự kết thúc dòng còn lại. Nếu dữ liệu phân tách theo dòng, cân nhắc dùng `nextLine()` nhất quán rồi parse.
-3. **Cần số hợp lệ tới mức nào?** Sau khi parse, kiểm tra phạm vi, điều kiện dương/không âm, `Double.isFinite` theo miền nghiệp vụ.
-4. **Ai sở hữu nguồn?** Tệp/stream tự mở thì đóng đúng lúc, ưu tiên `try-with-resources`; nguồn chuẩn `System.in` dùng chung thì không tự đóng giữa chừng.
-5. **Output có cần tái lập giống nhau?** Dùng `printf(Locale.US, ...)` hoặc locale được chỉ định thay vì phụ thuộc thiết lập máy.
+1. **Where does the data format come from?** If it is a protocol or file specifying a dot, parse according to that syntax; if it is localized user input, pick a locale-aware parser.
+2. **Reading tokens or reading lines?** When calling `nextDouble()` then `nextLine()`, remember to handle the leftover line terminator. If data is line-delimited, consider using `nextLine()` consistently and parsing afterward.
+3. **How strict does number validity need to be?** After parsing, check range, positivity/non-negativity, and `Double.isFinite` per business domain rules.
+4. **Who owns the source?** Close self-opened files/streams promptly, preferring `try-with-resources`; do not close shared `System.in` mid-program.
+5. **Does output need to be identically reproducible?** Pass `printf(Locale.US, ...)` or an explicit target locale instead of relying on machine defaults.
 
-**Ghi nhớ:** `Locale` quyết định cách nhiều API như `Scanner.nextDouble()` nhận diện dấu phân cách thập phân và cách `printf()` trình bày số. `Double.parseDouble()` lại dùng cú pháp không phụ thuộc locale. Với `Scanner.close()`, hãy quản lý theo **quyền sở hữu nguồn nhập**: đóng các nguồn mình tạo và không vô tình đóng `System.in` khi chương trình còn cần nó.
+**Key takeaway:** `Locale` governs how many APIs such as `Scanner.nextDouble()` recognize decimal separators and how `printf()` formats numbers. `Double.parseDouble()`, by contrast, uses locale-independent syntax. With `Scanner.close()`, manage closing by **input source ownership**: close sources you open yourself, and avoid accidentally closing `System.in` while the program still needs it.

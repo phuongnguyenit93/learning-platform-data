@@ -1,19 +1,19 @@
-# Cách đọc --show-module-resolution và jdeps output
+# How to Read --show-module-resolution and jdeps Output
 
-## 1. Hai công cụ trả lời hai câu hỏi khác nhau
+## 1. Two tools answer two different questions
 
-Khi debug ứng dụng Java modular, cần biết module nào được đưa vào module graph lúc khởi chạy và các class trong artifact có tham chiếu tới những module nào.
+When debugging a modular Java application, you need to know which modules are brought into the module graph at launch and which modules the classes inside an artifact reference.
 
-Hai công cụ thường dùng là:
+Two commonly used tools are:
 
-- **`java --show-module-resolution`** in thông tin module resolution của lần khởi chạy thực tế. Nó giúp xem root module, các quan hệ `requires` được resolve và service provider được bind.
-- **`jdeps`** phân tích dependency tĩnh từ class files, JAR hoặc module. Nó giúp phát hiện module/package/class mà bytecode tham chiếu, dependency còn thiếu và descriptor có thể cần điều chỉnh.
+- **`java --show-module-resolution`** prints module resolution details for the actual launch. It helps inspect root modules, resolved `requires` relationships, and bound service providers.
+- **`jdeps`** analyzes static dependencies from class files, JARs, or modules. It helps uncover which modules/packages/classes bytecode references, missing dependencies, and descriptors that may need adjustment.
 
-Đây là hai góc nhìn bổ trợ nhau. `--show-module-resolution` cho biết module system đã resolve gì trong lần chạy đó; `jdeps` cho biết bytecode có những tham chiếu tĩnh nào. Không công cụ nào tự chứng minh mọi đường chạy động của ứng dụng đều đúng.
+These are complementary perspectives. `--show-module-resolution` tells you what the module system resolved in that run; `jdeps` tells you which static references bytecode contains. Neither tool by itself proves that every dynamic execution path of the application is sound.
 
-## 2. Bật --show-module-resolution
+## 2. Enabling --show-module-resolution
 
-Chạy ứng dụng modular với tùy chọn này:
+Run the modular application with this option:
 
 ```bash
 java --show-module-resolution \
@@ -21,17 +21,17 @@ java --show-module-resolution \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Trong đó:
+Where:
 
-- `--show-module-resolution` yêu cầu launcher in thông tin resolution.
-- `--module-path mods` chỉ ra thư mục chứa các module ứng dụng và dependency.
-- `-m com.acme.app/com.acme.app.Main` chọn module main và main class.
+- `--show-module-resolution` asks the launcher to print resolution details.
+- `--module-path mods` points to the directory containing application modules and dependencies.
+- `-m com.acme.app/com.acme.app.Main` selects the main module and main class.
 
-Có thể kết hợp với các tùy chọn khác đang dùng trong môi trường thật, ví dụ `--add-modules`, `--limit-modules`, `--upgrade-module-path` hoặc các module path bổ sung. Khi debug, nên giữ lệnh chạy giống môi trường gặp lỗi để quan sát đúng module graph.
+It can be combined with other options used in the real environment, such as `--add-modules`, `--limit-modules`, `--upgrade-module-path`, or additional module paths. When debugging, keep the launch command matching the failing environment so you observe the exact module graph.
 
-## 3. Đọc các dòng root, requires và binds
+## 3. Reading root, requires, and binds lines
 
-Đầu ra thường có các dòng thể hiện vai trò của module trong quá trình resolution. Ví dụ minh họa:
+Output typically includes lines showing each module's role during resolution. Illustrative example:
 
 ```text
 root com.acme.app file:///opt/app/mods/com.acme.app.jar
@@ -40,46 +40,46 @@ com.acme.api requires java.logging jrt:/java.logging
 com.acme.app binds com.acme.provider.json file:///opt/app/mods/com.acme.provider.json.jar
 ```
 
-Ý nghĩa:
+Meaning:
 
-- **`root`**: module được chọn làm root cho lần khởi chạy, thường thông qua `-m` hoặc `--add-modules`.
-- **`requires`**: module cần một module khác theo dependency trong module descriptor; resolver tìm và đưa dependency đó vào graph.
-- **`binds`**: module được đưa vào graph thông qua service binding, thường vì một module đã resolve khai báo `uses` cho service type mà provider cung cấp bằng `provides`.
+- **`root`**: module selected as a root for this launch, typically via `-m` or `--add-modules`.
+- **`requires`**: module needing another module according to a dependency in its module descriptor; the resolver locates and includes that dependency in the graph.
+- **`binds`**: module brought into the graph through service binding, typically because an already-resolved module declares `uses` for a service type supplied by a provider via `provides`.
 
-Tên module và đường dẫn hiển thị phụ thuộc vào JDK, module finder và nguồn module. Ví dụ trên chỉ minh họa cách đọc vai trò của từng dòng, không phải output cố định của mọi ứng dụng.
+Displayed module names and paths depend on the JDK, module finder, and module sources. The example above illustrates how to read the role of each line, not a fixed output for every application.
 
-Một module xuất hiện trong output không có nghĩa main code đã gọi mọi class của module đó. Resolution diễn ra ở cấp module trước khi ứng dụng thực thi các đường code cụ thể.
+A module appearing in the output does not mean main code has invoked every class in that module. Resolution takes place at the module level before the application executes specific code paths.
 
-## 4. Dùng output để lần theo dependency
+## 4. Using the output to trace dependencies
 
-Giả sử ứng dụng báo thiếu module `com.acme.api`. Hãy tìm dòng `requires` dẫn tới module này:
+Suppose the application reports a missing `com.acme.api` module. Look for the `requires` line leading to that module:
 
 ```text
 root com.acme.app ...
 com.acme.app requires com.acme.api ...
 ```
 
-Sau đó kiểm tra:
+Then check:
 
-1. Module `com.acme.api` có thực sự nằm trong module path không?
-2. Tên trong `requires` có khớp với module name trong JAR không?
-3. Module path của lệnh chạy có giống cấu hình build/test không?
-4. Có dùng `--limit-modules` khiến module hoặc dependency bị loại khỏi universe không?
-5. Module có phải provider được tìm qua service binding và bị thiếu khỏi nguồn module có thể quan sát không?
+1. Is module `com.acme.api` actually present on the module path?
+2. Does the name in `requires` match the module name in the JAR?
+3. Does the launch command's module path match the build/test configuration?
+4. Is `--limit-modules` used in a way that excludes the module or dependency from the universe?
+5. Is the module a provider discovered via service binding that is missing from observable module sources?
 
-Nếu output có dòng `binds`, đó là dấu hiệu service binding đã bổ sung provider vào graph. Nếu provider không xuất hiện, kiểm tra consumer có khai báo `uses`, provider có khai báo `provides`, và provider có nằm trong các module finder/parent configuration mà resolver quan sát được không.
+If the output contains a `binds` line, that signals service binding added a provider to the graph. If a provider does not appear, check that the consumer declares `uses`, the provider declares `provides`, and the provider resides in the module finders/parent configuration observed by the resolver.
 
-Không nên suy luận rằng mọi module không xuất hiện trong output đều bị thiếu. Có thể module đó không phải root hoặc dependency cần thiết cho lần chạy hiện tại.
+Do not assume every module absent from the output is missing by mistake. That module may simply not be a root or a required dependency for the current run.
 
-## 5. Dùng jdeps để xem dependency tổng quan
+## 5. Using jdeps for an overview of dependencies
 
-`jdeps` là công cụ phân tích dependency tĩnh của class files và JAR. Để xem dependency ở mức module/package tổng quan, dùng:
+`jdeps` is a static dependency analyzer for class files and JARs. To view a module/package-level dependency summary, run:
 
 ```bash
 jdeps --summary app.jar
 ```
 
-Ví dụ output:
+Example output:
 
 ```text
 app.jar -> java.base
@@ -87,33 +87,33 @@ app.jar -> java.logging
 app.jar -> com.acme.api
 ```
 
-Cách đọc:
+How to read it:
 
-- Cột bên trái là artifact đang được phân tích.
-- Cột bên phải là module mà artifact có dependency tĩnh tới.
-- `java.base` là dependency nền tảng thường xuất hiện trong hầu hết Java code.
-- `java.logging` cho biết bytecode tham chiếu API thuộc module đó.
-- `com.acme.api` là dependency ứng dụng cần được cung cấp trong module path hoặc môi trường phân tích phù hợp.
+- The left column is the artifact being analyzed.
+- The right column is the module that the artifact statically depends on.
+- `java.base` is the foundational dependency appearing in nearly all Java code.
+- `java.logging` shows that bytecode references APIs belonging to that module.
+- `com.acme.api` is an application dependency that must be provided on the module path or appropriate analysis environment.
 
-Output thực tế có thể hiển thị tên JAR, tên module hoặc tên package tùy tùy chọn và loại artifact.
+Actual output may display JAR names, module names, or package names depending on flags and artifact type.
 
-Nếu phân tích một modular JAR cùng dependency trên module path:
+When analyzing a modular JAR alongside dependencies on the module path:
 
 ```bash
 jdeps --module-path mods --summary mods/com.acme.app.jar
 ```
 
-`--module-path` giúp jdeps tìm các module phụ thuộc để ánh xạ tham chiếu. Nếu dependency không có trong module path, báo cáo có thể chỉ ra package hoặc module không được phân giải.
+`--module-path` helps jdeps locate dependent modules to map references. If a dependency is absent from the module path, the report may flag an unresolved package or module.
 
-## 6. Liệt kê dependency ở mức module
+## 6. Listing module-level dependencies
 
-Để xem các module dependency:
+To view module dependencies:
 
 ```bash
 jdeps --module-path mods --list-deps mods/com.acme.app.jar
 ```
 
-Output minh họa:
+Illustrative output:
 
 ```text
    java.base
@@ -121,30 +121,30 @@ Output minh họa:
    com.acme.api
 ```
 
-Dùng `--print-module-deps` khi cần danh sách tên module phân tách bằng dấu phẩy, thường hữu ích khi tạo runtime image với `jlink`:
+Use `--print-module-deps` when you need a comma-separated list of module names, often useful when building a runtime image with `jlink`:
 
 ```bash
 jdeps --module-path mods \
   --print-module-deps mods/com.acme.app.jar
 ```
 
-Ví dụ:
+Example:
 
 ```text
 java.base,java.logging,com.acme.api
 ```
 
-Danh sách này được suy ra từ dependency tĩnh mà jdeps phát hiện. Nếu ứng dụng nạp module qua reflection, tên class được đọc từ cấu hình, ServiceLoader hoặc cơ chế plugin động, cần kiểm tra thêm vì các dependency đó có thể không xuất hiện đầy đủ trong phân tích bytecode.
+This list is derived from static dependencies detected by jdeps. If the application loads modules via reflection, class names read from configuration files, ServiceLoader, or dynamic plugin mechanisms, inspect further because those dependencies may not appear completely in bytecode analysis.
 
-## 7. Xem dependency ở mức class
+## 7. Viewing class-level dependencies
 
-Khi cần tìm class nào tạo ra dependency, dùng chế độ verbose:
+When you need to find which class creates a dependency, use verbose mode:
 
 ```bash
 jdeps -verbose:class --module-path mods mods/com.acme.app.jar
 ```
 
-Output minh họa:
+Illustrative output:
 
 ```text
 com.acme.app.Main -> com.acme.api.Customer com.acme.api
@@ -152,64 +152,64 @@ com.acme.app.Main -> java.lang.Object java.base
 com.acme.app.Main -> java.util.logging.Logger java.logging
 ```
 
-Mỗi dòng cho biết class nguồn tham chiếu tới class đích và module/package liên quan theo định dạng của phiên bản JDK.
+Each line indicates the source class referencing the target class and the associated module/package according to the JDK version's format.
 
-Cách đọc:
+How to read it:
 
-- Xác định class bên trái để biết phần code nào tạo ra dependency.
-- Xác định class bên phải để tìm API được tham chiếu.
-- Kiểm tra module sở hữu class đích có nằm trong module path và có được consumer đọc hay không.
+- Check the left-hand class to see which piece of code creates the dependency.
+- Check the right-hand class to find the referenced API.
+- Verify that the module owning the target class is on the module path and read by the consumer.
 
-Có thể dùng `-verbose:package` để xem dependency ở mức package, hoặc `-verbose:module` để xem ở mức module. Các chế độ verbose làm output dài hơn; chỉ dùng khi cần truy ra nguồn dependency.
+You can use `-verbose:package` to inspect dependencies at the package level, or `-verbose:module` at the module level. Verbose modes produce longer output; use them when tracing the origin of a dependency.
 
-## 8. Tìm dependency bị thiếu
+## 8. Finding missing dependencies
 
-Khi nghi ngờ JAR tham chiếu tới package không có trong các module được cung cấp, dùng:
+When suspecting a JAR references packages absent from the supplied modules, run:
 
 ```bash
 jdeps --missing-deps --module-path mods mods/com.acme.app.jar
 ```
 
-Tùy artifact và JDK, output có thể chỉ ra class nguồn và class đích không tìm được. Ví dụ minh họa:
+Depending on the artifact and JDK, the output may indicate the source class and unfound target class. Illustrative example:
 
 ```text
 com.acme.app.Main -> com.acme.legacy.LegacyClient not found
 ```
 
-Điều này cho biết bytecode có tham chiếu tĩnh tới class mà jdeps không thể phân giải trong phạm vi phân tích hiện tại.
+This indicates bytecode has a static reference to a class that jdeps cannot resolve within the current analysis scope.
 
-Cần phân biệt:
+Distinguish among:
 
-- **Module không tìm thấy lúc resolution:** module graph không thể resolve dependency được khai báo.
-- **Class/package không tìm thấy trong jdeps:** công cụ không tìm được class đích từ artifact và module path đang phân tích.
-- **ClassNotFoundException/NoClassDefFoundError lúc runtime:** class không được tìm thấy hoặc không thể định nghĩa/nạp trong class loader ở đường chạy thực tế.
+- **Module not found at resolution:** the module graph cannot resolve a declared dependency.
+- **Class/package not found in jdeps:** the tool cannot locate the target class from the analyzed artifact and module path.
+- **ClassNotFoundException/NoClassDefFoundError at runtime:** the class cannot be found or defined/loaded in the class loader on the actual execution path.
 
-Ba trường hợp có liên quan nhưng không đồng nghĩa. Hãy dùng thông báo lỗi, module path, classpath và class loader thực tế để xác định nguyên nhân.
+These three situations are related yet not synonymous. Use the actual error message, module path, classpath, and class loader to determine the cause.
 
-## 9. Kiểm tra module descriptor với jdeps --check
+## 9. Checking module descriptors with jdeps --check
 
-Với named module, có thể kiểm tra descriptor và dependency:
+For a named module, you can check descriptors and dependencies:
 
 ```bash
 jdeps --module-path mods --check com.acme.app
 ```
 
-Tùy phiên bản JDK và cấu hình module, báo cáo có thể cho biết:
+Depending on the JDK version and module setup, the report can show:
 
-- Module descriptor hiện tại.
-- Dependency mà jdeps suy ra từ bytecode.
-- Những dependency cần được xem xét thêm hoặc có thể được loại bỏ.
-- Các khác biệt giữa descriptor và dependency tĩnh.
+- The current module descriptor.
+- Dependencies inferred by jdeps from bytecode.
+- Dependencies that need further review or could be removed.
+- Differences between the descriptor and static dependencies.
 
-Không nên tự động thay toàn bộ `module-info.java` bằng đề xuất của công cụ. Descriptor còn thể hiện API chủ ý của module, chẳng hạn `requires transitive`, `requires static`, `uses` và `provides`; một số quan hệ dịch vụ hoặc phụ thuộc động không thể suy ra chỉ từ bytecode.
+Do not blindly replace all of `module-info.java` with the tool's suggestions. Descriptors also express intentional module API contracts such as `requires transitive`, `requires static`, `uses`, and `provides`; some service relationships or dynamic dependencies cannot be inferred from bytecode alone.
 
-Đặc biệt, jdeps phân tích tham chiếu tĩnh và không quyết định thay nhà phát triển module nào phải được export cho consumer. Khi thấy package không visible, vẫn cần kiểm tra `requires` và `exports` trong module descriptor.
+In particular, jdeps analyzes static references and does not decide for the developer which modules must be exported to consumers. When seeing a package-not-visible error, you still need to inspect `requires` and `exports` in module descriptors.
 
-## 10. Kết hợp hai công cụ để chẩn đoán
+## 10. Combining both tools to diagnose
 
-Ví dụ ứng dụng khởi chạy nhưng thiếu provider hoặc báo không tìm thấy dependency:
+Suppose an application launches yet lacks a provider or reports a missing dependency:
 
-**Bước 1: xem module graph thực tế**
+**Step 1: inspect the actual module graph**
 
 ```bash
 java --show-module-resolution \
@@ -217,74 +217,74 @@ java --show-module-resolution \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Ghi lại root, các dependency `requires` và các provider được `binds`.
+Record the roots, `requires` dependencies, and providers added via `binds`.
 
-**Bước 2: phân tích dependency tĩnh**
+**Step 2: analyze static dependencies**
 
 ```bash
 jdeps --module-path mods \
   --summary mods/com.acme.app.jar
 ```
 
-So sánh module được bytecode tham chiếu với module thực sự có trong graph.
+Compare the modules referenced by bytecode against the modules actually in the graph.
 
-**Bước 3: tìm class tạo dependency**
+**Step 3: locate the class creating the dependency**
 
 ```bash
 jdeps -verbose:class --module-path mods mods/com.acme.app.jar
 ```
 
-Dùng output để xác định class nguồn và class đích.
+Use the output to identify the source and target classes.
 
-**Bước 4: kiểm tra dependency bị thiếu**
+**Step 4: check for missing dependencies**
 
 ```bash
 jdeps --missing-deps --module-path mods mods/com.acme.app.jar
 ```
 
-**Bước 5: kiểm tra descriptor**
+**Step 5: inspect descriptors**
 
 ```bash
 jdeps --module-path mods --check com.acme.app
 jar --describe-module --file mods/com.acme.api.jar
 ```
 
-Đối chiếu các dependency với `requires`, các package consumer cần với `exports`, và service type với `uses`/`provides`.
+Match dependencies against `requires`, packages needed by consumers against `exports`, and service types against `uses`/`provides`.
 
-## 11. Những gì jdeps không thể kết luận
+## 11. What jdeps cannot conclude
 
-`jdeps` là phân tích tĩnh. Nó không thực thi ứng dụng và không thể luôn phát hiện:
+`jdeps` is static analysis. It does not execute the application and cannot always detect:
 
-- Class được nạp bằng `Class.forName` với tên lấy từ file cấu hình hoặc database.
-- Plugin được tìm động trong thư mục bên ngoài module path ban đầu.
-- Service provider được tìm bằng `ServiceLoader` khi quan hệ service không thể suy ra từ bytecode.
-- Dependency chỉ xuất hiện trong một đường chạy chưa được phân tích hoặc trong dữ liệu runtime.
-- Hành vi của class loader tùy chỉnh, instrumentation hoặc framework.
+- Classes loaded via `Class.forName` with names read from config files or databases.
+- Plugins discovered dynamically in directories outside the initial module path.
+- Service providers discovered via `ServiceLoader` when the service relationship cannot be inferred from bytecode.
+- Dependencies appearing only in an unanalyzed execution path or runtime data.
+- Behavior of custom class loaders, instrumentation, or frameworks.
 
-Tương tự, `--show-module-resolution` chỉ mô tả module resolution của lần khởi chạy cụ thể. Nó không liệt kê mọi class đã được tải, mọi method đã chạy hoặc mọi dependency tiềm ẩn của tất cả cấu hình khác.
+Similarly, `--show-module-resolution` describes module resolution only for a specific launch. It does not list every loaded class, every executed method, or every latent dependency of all other configurations.
 
-Vì vậy, kết quả của hai công cụ cần được kết hợp với module descriptor, cấu hình runtime, test tích hợp và log lỗi thực tế.
+Therefore, results from both tools should be combined with module descriptors, runtime configurations, integration tests, and actual error logs.
 
-## 12. Bảng tra cứu nhanh
+## 12. Quick reference table
 
-| Mục tiêu | Lệnh |
+| Goal | Command |
 |---|---|
-| Xem module graph khi chạy | `java --show-module-resolution ...` |
-| Xem dependency tổng quan | `jdeps --summary app.jar` |
-| Liệt kê module dependency | `jdeps --list-deps app.jar` |
-| In danh sách module dependency | `jdeps --print-module-deps app.jar` |
-| Xem dependency theo class | `jdeps -verbose:class app.jar` |
-| Xem dependency bị thiếu | `jdeps --missing-deps app.jar` |
-| Kiểm tra module descriptor | `jdeps --check module.name` |
-| Xem descriptor và package của JAR | `jar --describe-module --file app.jar` |
+| View module graph at launch | `java --show-module-resolution ...` |
+| View dependency overview | `jdeps --summary app.jar` |
+| List module dependencies | `jdeps --list-deps app.jar` |
+| Print comma-separated module dependencies | `jdeps --print-module-deps app.jar` |
+| View dependencies by class | `jdeps -verbose:class app.jar` |
+| View missing dependencies | `jdeps --missing-deps app.jar` |
+| Check module descriptor | `jdeps --check module.name` |
+| Inspect JAR descriptor and packages | `jar --describe-module --file app.jar` |
 
-Khi dùng các lệnh cần resolve dependency, thêm `--module-path mods` với thư mục chứa các module liên quan.
+When running commands that need to resolve dependencies, add `--module-path mods` pointing to the directory containing the relevant modules.
 
-## Ghi nhớ
+## Key takeaways
 
-- `--show-module-resolution` cho biết root, dependency và service binding của lần khởi chạy.
-- Dòng `requires` thể hiện dependency module; dòng `binds` thể hiện provider được thêm nhờ service binding.
-- `jdeps` phân tích dependency tĩnh từ class files/JAR; `--summary`, `--list-deps`, `--print-module-deps` và `-verbose:class` cung cấp các mức chi tiết khác nhau.
-- `--missing-deps` hỗ trợ tìm tham chiếu class không được phân giải trong phạm vi phân tích.
-- `jdeps --check` giúp đối chiếu descriptor với dependency tĩnh, nhưng không thay thế quyết định thiết kế module.
-- Hai công cụ bổ trợ nhau; cần kiểm tra thêm reflection, ServiceLoader, plugin động và test runtime.
+- `--show-module-resolution` shows the roots, dependencies, and service bindings of a launch.
+- `requires` lines represent module dependencies; `binds` lines represent providers added via service binding.
+- `jdeps` analyzes static dependencies from class files/JARs; `--summary`, `--list-deps`, `--print-module-deps`, and `-verbose:class` provide varying levels of detail.
+- `--missing-deps` helps find unresolved class references within the analysis scope.
+- `jdeps --check` helps compare descriptors against static dependencies, yet does not replace module design decisions.
+- Both tools complement each other; also check reflection, ServiceLoader, dynamic plugins, and runtime tests.

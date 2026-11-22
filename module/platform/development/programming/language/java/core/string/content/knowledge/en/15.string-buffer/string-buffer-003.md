@@ -1,41 +1,41 @@
-# Đồng bộ từng phương thức không bảo đảm nguyên tử cho cả chuỗi thao tác với `StringBuffer`
+# Per-Method Synchronization Does Not Guarantee Atomicity for a Sequence of Operations with `StringBuffer`
 
-`StringBuffer` là lớp dựng chuỗi **mutable** của Java, có các phương thức chính như `append()`, `insert()`, `delete()`, `length()` và `toString()` được đồng bộ hóa để hỗ trợ truy cập từ nhiều luồng. Tuy nhiên, một lỗi thiết kế rất thường gặp là cho rằng: **“Vì các lời gọi `StringBuffer` được đồng bộ, toàn bộ các lệnh liên tiếp của mình cũng tự động là một thao tác nguyên tử.”**
+`StringBuffer` is Java's **mutable** string-building class, whose primary methods such as `append()`, `insert()`, `delete()`, `length()`, and `toString()` are synchronized to support multi-threaded access. However, a very common design mistake is assuming: **"Because `StringBuffer` calls are synchronized, all of my consecutive statements are automatically an atomic operation as well."**
 
-Điều đó **không đúng**.
+That is **not true**.
 
-Một lời gọi `append("A")` có thể được bảo vệ bởi khóa của `StringBuffer` trong thời gian phương thức thực hiện; nhưng sau khi lời gọi kết thúc, luồng khác có thể vào và sửa buffer **trước khi lời gọi tiếp theo của bạn bắt đầu**. Vì vậy, các thao tác kiểu **kiểm tra rồi sửa**, **đọc rồi xóa**, **ghép nhiều đoạn cần liền nhau** hoặc **kiểm tra nhiều điều kiện của cùng một trạng thái** cần được đồng bộ hóa như một **đơn vị logic**.
+An `append("A")` call may be protected by the `StringBuffer`'s lock while the method executes; however, after that call completes, another thread can enter and modify the buffer **before your next call begins**. Therefore, operations such as **check-then-act**, **read-then-delete**, **appending multiple segments that must stay contiguous**, or **checking multiple conditions on the same state** must be synchronized as a single **logical unit**.
 
-**Thông điệp cốt lõi:** *thread-safe ở cấp phương thức không tự động bảo đảm atomicity ở cấp quy trình nhiều phương thức.*
+**Core takeaway:** *thread-safety at the method level does not automatically guarantee atomicity at the multi-method workflow level.*
 
-## 1. Ba khái niệm cần phân biệt
+## 1. Three Concepts to Distinguish
 
-### Thread-safe ở cấp lời gọi
+### Thread-Safety at the Call Level
 
-Một lời gọi đơn lẻ được thiết kế để nhiều luồng có thể sử dụng mà không làm hỏng trạng thái bên trong đối tượng. Ví dụ, hai luồng cùng `append()` vào một `StringBuffer` sẽ không có kiểu truy cập bộ đệm không được đồng bộ như khi cùng sửa một `StringBuilder`.
+A single method call is designed so that multiple threads can use it without corrupting the object's internal state. For example, two threads concurrently calling `append()` on a `StringBuffer` will not suffer the unsynchronized buffer access that occurs when concurrently modifying a `StringBuilder`.
 
-Điều này **không bảo đảm** thứ tự toàn cục mà lập trình viên mong muốn. Nếu hai luồng cùng thêm `"A"` và `"B"`, thứ tự phụ thuộc lịch chạy; kết quả có thể là `"AB"` hoặc `"BA"` nếu cả hai lần thêm đều thành công.
+This **does not guarantee** a global order desired by the programmer. If two threads concurrently add `"A"` and `"B"`, the order depends on scheduling; the result can be `"AB"` or `"BA"` if both additions succeed.
 
-### Atomicity ở cấp một thao tác logic
+### Atomicity at the Logical Operation Level
 
-Một thao tác *nguyên tử* là thao tác được quan sát như một đơn vị không bị xen ngang bởi các thao tác cạnh tranh vào cùng trạng thái. Nếu yêu cầu nghiệp vụ là “**chỉ thêm X nếu buffer đang rỗng**”, hai bước:
+An *atomic* operation is an operation observed as a single unit without interference from competing operations on the same state. If the business rule is "**only add X if the buffer is currently empty**", the two steps:
 
-1. Đọc `buffer.length() == 0`.
-2. Gọi `buffer.append("X")`.
+1. Read `buffer.length() == 0`.
+2. Call `buffer.append("X")`.
 
-phải được thực hiện trong **cùng một vùng tới hạn** (*critical section*). Hai bước tách rời, dù mỗi bước tự đồng bộ, **không** tạo thành một thao tác nguyên tử.
+must be executed inside **the same critical section**. Two separate steps, even if each is individually synchronized, do **not** form an atomic operation.
 
-### Invariant — điều kiện luôn phải đúng
+### Invariant — A Condition That Must Always Hold True
 
-*Invariant* là điều kiện trên trạng thái mà chương trình phải duy trì, chẳng hạn “chỉ tồn tại một tiêu đề”, “mỗi bản ghi gồm prefix và suffix không xen lẫn”, “nếu buffer còn dữ liệu mới được xóa ký tự cuối”.
+An *invariant* is a condition on state that the program must maintain, such as "only one header exists", "each record consists of a prefix and suffix without interleaving", or "delete the last character only if the buffer still has data".
 
-Khóa chỉ có ý nghĩa khi nó bảo vệ **đủ toàn bộ thao tác để invariant vẫn đúng**. Nếu chỉ khóa từng lời gọi nhỏ mà để luồng khác sửa trạng thái giữa các bước, invariant có thể bị phá vỡ.
+A lock is meaningful only when it protects **enough of the operation for the invariant to remain true**. If you only lock each small call and allow another thread to modify state between steps, the invariant can be broken.
 
-## 2. Vì sao `StringBuffer` được coi là thread-safe?
+## 2. Why Is `StringBuffer` Considered Thread-Safe?
 
-`StringBuffer` có thiết kế đồng bộ các phương thức chính để các thao tác trên một instance không làm xung đột việc truy cập bộ đệm khi nhiều luồng cùng sử dụng. Nhiều thao tác sử dụng khóa màn hình nội tại (*intrinsic monitor*) của chính đối tượng `StringBuffer`, tương đương về mặt sử dụng khóa với `synchronized (buffer)` của phía gọi.
+`StringBuffer` is designed with synchronization on its key methods so that operations on an instance do not conflict when accessing the internal buffer across multiple threads. Many operations use the *intrinsic monitor* lock of the `StringBuffer` object itself, equivalent in lock usage to `synchronized (buffer)` on the caller side.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuffer buffer = new StringBuffer();
@@ -44,53 +44,53 @@ buffer.append("A");
 buffer.append("B");
 ```
 
-Mỗi lời gọi `append()` có thể thực hiện an toàn riêng lẻ. Nhưng giữa lúc lời gọi đầu kết thúc và lời gọi thứ hai bắt đầu, luồng khác vẫn có thể gọi `append()` hoặc thay đổi buffer.
+Each `append()` call can execute safely on its own. Yet between the moment the first call ends and the second call begins, another thread can still call `append()` or modify the buffer.
 
-Không có hợp đồng nào nói rằng hai lệnh Java liên tiếp ở cùng một luồng luôn giữ khóa xuyên suốt cả hai lời gọi.
+There is no contract saying that two consecutive Java statements in the same thread retain the lock across both calls.
 
-Một cách mô tả lịch xen kẽ hợp lệ:
+One valid interleaving schedule:
 
 ```text
-Luồng 1                    Luồng 2
--------                    -------
-append("A")  [xong]
-                           append("X")  [xong]
-append("B")  [xong]
+Thread 1                   Thread 2
+--------                   --------
+append("A")  [done]
+                           append("X")  [done]
+append("B")  [done]
 
-Nội dung cuối: "AXB"
+Final content: "AXB"
 ```
 
-Không có lời gọi `append()` đơn lẻ nào bị thực hiện “nửa chừng”; nhưng **kết quả tổng thể không phải `"ABX"`** như người viết Luồng 1 có thể kỳ vọng.
+No individual `append()` call was executed "halfway"; however, **the overall result is not `"ABX"`** as the author of Thread 1 might expect.
 
-Các thao tác synchronized giúp bảo vệ lần vào/ra phương thức, **không tự biến toàn bộ khối lệnh bên ngoài thành một transaction**.
+Synchronized operations protect method entry/exit; they **do not automatically turn an entire external block of statements into a transaction**.
 
-## 3. Lỗi thứ nhất: *check-then-act* (kiểm tra rồi mới thực hiện)
+## 3. First Bug: *check-then-act*
 
-Xét một quy tắc tưởng chừng đơn giản: **chỉ thêm ký hiệu `"X"` nếu buffer đang rỗng**.
+Consider a seemingly simple rule: **only add the symbol `"X"` if the buffer is currently empty**.
 
 ```java
-// Fragment minh họa cách làm SAI khi nhiều luồng cạnh tranh:
+// Fragment illustrating an INCORRECT approach when multiple threads compete:
 if (buffer.length() == 0) {
     buffer.append("X");
 }
 ```
 
-`length()` và `append()` riêng lẻ được bảo vệ, nhưng có thể xảy ra lịch:
+`length()` and `append()` are individually protected, but the following schedule can occur:
 
 ```text
-Ban đầu: buffer = ""
+Initially: buffer = ""
 
-Luồng A: length() == 0   → true
-Luồng B: length() == 0   → true
-Luồng A: append("X")     → buffer = "X"
-Luồng B: append("X")     → buffer = "XX"
+Thread A: length() == 0   → true
+Thread B: length() == 0   → true
+Thread A: append("X")     → buffer = "X"
+Thread B: append("X")     → buffer = "XX"
 
-Kết quả: "XX", vi phạm yêu cầu "chỉ thêm một lần".
+Result: "XX", violating the "add only once" requirement.
 ```
 
-Mỗi luồng đều đưa ra quyết định từ một **ảnh chụp trạng thái đã có thể lỗi thời** khi đến lúc thực hiện hành động. Đây là lỗi *time-of-check to time-of-use* (TOCTOU) ở mức trạng thái chia sẻ.
+Each thread makes its decision from a **snapshot of state that may already be stale** by the time the action runs. This is a *time-of-check to time-of-use* (TOCTOU) bug at the shared-state level.
 
-### Sửa bằng một vùng `synchronized` bao quanh cả kiểm tra lẫn thay đổi
+### Fix Using a `synchronized` Block Wrapping Both Check and Modification
 
 ```java
 synchronized (buffer) {
@@ -100,17 +100,17 @@ synchronized (buffer) {
 }
 ```
 
-Ở đây, luồng nắm giữ monitor của `buffer` **trong suốt** việc kiểm tra và `append`. Một luồng khác muốn chạy các phương thức `StringBuffer` sử dụng cùng monitor phải đợi vùng tới hạn kết thúc.
+Here, the thread holds the monitor of `buffer` **throughout** the check and `append`. Another thread wanting to run `StringBuffer` methods using the same monitor must wait for the critical section to finish.
 
-Sự đồng bộ hóa là **tái nhập (*reentrant*)**: khi đã giữ khóa của `buffer` ở khối `synchronized(buffer)`, luồng hiện tại vẫn có thể gọi các phương thức `synchronized` của chính `buffer`. Khóa không tự gây deadlock chỉ vì luồng giữ nó rồi gọi phương thức đồng bộ trên cùng đối tượng.
+Synchronization is **reentrant**: while already holding `buffer`'s lock in `synchronized(buffer)`, the current thread can still invoke `synchronized` methods on `buffer` itself. The lock does not self-deadlock simply because the thread holds it and then calls a synchronized method on the same object.
 
-**Điều kiện bảo đảm:** mọi đường thay đổi trạng thái liên quan phải tôn trọng cùng quy tắc đồng bộ; nếu có dữ liệu liên quan nằm ở đối tượng khác hoặc thư viện tự ý sửa theo cách không tham gia khóa, phải mở rộng thiết kế bảo vệ phù hợp.
+**Guarantee condition:** every path modifying the related state must obey the same synchronization rule; if related data resides in another object or a library modifies it without participating in the lock, the protection design must be extended accordingly.
 
-## 4. Ví dụ Java 17+ chạy độc lập, kết quả đa luồng được điều phối rõ ràng
+## 4. Standalone Java 17+ Example with Clearly Coordinated Multi-Threaded Output
 
-Để tránh một ví dụ race condition “lúc chạy ra, lúc không”, chương trình dưới đây sử dụng `CountDownLatch` để **buộc cả hai luồng cùng kiểm tra trạng thái rỗng trước khi bất kỳ luồng nào được phép append**. Vì vậy đầu ra của trường hợp sai có thể dự đoán được.
+To avoid a race-condition example that "sometimes shows up, sometimes doesn't," the program below uses `CountDownLatch` to **force both threads to check the empty state before either thread is allowed to append**. Therefore, the output of the buggy case is predictable.
 
-Tạo tệp `StringBufferAtomicityDemo.java`:
+Create the file `StringBufferAtomicityDemo.java`:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -143,8 +143,8 @@ public class StringBufferAtomicityDemo {
         first.start();
         second.start();
 
-        bothChecked.await(); // Hai luồng đã thấy buffer rỗng.
-        proceed.countDown(); // Cho phép cả hai cùng append.
+        bothChecked.await(); // Both threads have seen the buffer empty.
+        proceed.countDown(); // Allow both to append.
         first.join();
         second.join();
 
@@ -182,66 +182,66 @@ public class StringBufferAtomicityDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac StringBufferAtomicityDemo.java
 java StringBufferAtomicityDemo
 ```
 
-Kết quả khi không có ngắt luồng ngoài ý muốn:
+Output when there are no unintended thread interrupts:
 
 ```text
 nonAtomic = XX
 atomic = X
 ```
 
-**Tại sao kết quả xác định?**
+**Why is the result deterministic?**
 
-- Trong `unsafeCheckThenAppend()`, mỗi luồng lưu `wasEmpty = true` từ trạng thái ban đầu. `bothChecked` chỉ mở cho luồng chính khi **cả hai** đã hoàn tất kiểm tra; `proceed` chặn việc append cho đến thời điểm đó. Vì thế cả hai đều `append("X")` và kết quả chắc chắn là `"XX"`, không phụ thuộc thứ tự ai append trước.
-- Trong `atomicCheckThenAppend()`, luồng đầu vào vùng `synchronized(buffer)` kiểm tra chuỗi rỗng rồi append. Luồng còn lại chỉ có thể vào sau khi luồng đầu nhả monitor; lúc đó `length() != 0`, nên không append thêm. Kết quả là `"X"`.
-- `Thread.join()` giúp luồng chính đợi hai luồng hoàn thành trước khi in nội dung buffer. Chỉ gọi `toString()` khi chưa đợi các luồng xong sẽ không bảo đảm đó là trạng thái cuối cùng.
+- In `unsafeCheckThenAppend()`, each thread stores `wasEmpty = true` from the initial state. `bothChecked` only unblocks the main thread when **both** have finished checking; `proceed` blocks appending until that point. Hence both call `append("X")` and the result is guaranteed to be `"XX"`, regardless of which thread appends first.
+- In `atomicCheckThenAppend()`, the first thread to enter `synchronized(buffer)` checks for empty and appends. The other thread can only enter after the first releases the monitor; at that point `length() != 0`, so it does not append again. The result is `"X"`.
+- `Thread.join()` makes the main thread wait for both threads to finish before printing the buffer content. Calling `toString()` without waiting for the threads to finish does not guarantee it reflects the final state.
 
-**Lưu ý:** chương trình dùng `CountDownLatch` để minh họa lỗi có kiểm soát. Trong ứng dụng thực tế, cùng một race có thể xuất hiện ngẫu nhiên khi lịch chạy tình cờ khiến hai lần kiểm tra xảy ra trước cả hai lần ghi.
+**Note:** the program uses `CountDownLatch` to demonstrate the bug in a controlled way. In real applications, the same race can happen randomly whenever scheduling happens to place two checks before both writes.
 
-## 5. Lỗi thứ hai: nhiều `append()` tạo một bản ghi nhưng bị xen kẽ
+## 5. Second Bug: Multiple `append()` Calls Forming One Record Get Interleaved
 
-Giả sử muốn tạo hai bản ghi độc lập `"[A]"` và `"[B]"` trong một buffer dùng chung.
+Suppose we want to produce two independent records `"[A]"` and `"[B]"` in a shared buffer.
 
 ```java
-// Fragment minh họa: mỗi luồng có thể chạy đoạn này với id khác nhau.
+// Illustrative fragment: each thread may run this snippet with a different id.
 buffer.append("[");
 buffer.append(id);
 buffer.append("]");
 ```
 
-Mỗi `append()` riêng lẻ có thể an toàn, nhưng ba lời gọi **không được bảo đảm liền nhau**. Một lịch có thể tạo ra:
+Each individual `append()` is safe, yet the three calls are **not guaranteed to stay adjacent**. A schedule can produce:
 
 ```text
-Luồng A: append("[")   → "["
-Luồng B: append("[")   → "[["
-Luồng B: append("B")   → "[[B"
-Luồng A: append("A")   → "[[BA"
-Luồng A: append("]")   → "[[BA]"
-Luồng B: append("]")   → "[[BA]]"
+Thread A: append("[")   → "["
+Thread B: append("[")   → "[["
+Thread B: append("B")   → "[[B"
+Thread A: append("A")   → "[[BA"
+Thread A: append("]")   → "[[BA]"
+Thread B: append("]")   → "[[BA]]"
 ```
 
-Kết quả `"[[BA]]"` không chứa hai bản ghi nguyên vẹn theo định dạng đã định, dù không phương thức `append()` nào thực hiện sai.
+The result `"[[BA]]"` does not contain two intact records in the intended format, even though no `append()` method executed incorrectly.
 
-### Giải pháp 1: dùng một lời gọi `append()` cho bản ghi đã hoàn chỉnh
+### Solution 1: Use One `append()` Call for a Completed Record
 
-Nếu dễ tạo bản ghi ngắn độc lập, có thể dựng riêng trước:
+If a short record is easy to construct independently, build it separately first:
 
 ```java
 String record = "[" + id + "]";
 buffer.append(record);
 ```
 
-Lúc này việc thêm *một chuỗi kết quả đã hoàn chỉnh* vào buffer diễn ra qua một lời gọi `append(String)`. Các bản ghi khác có thể nằm trước hoặc sau bản ghi này, nhưng không chen giữa các phần nội dung của **một lời gọi append** trên cùng `StringBuffer`.
+Now adding *a completed result string* to the buffer happens via one `append(String)` call. Other records may appear before or after this record, but cannot interleave between parts of **a single append call** on the same `StringBuffer`.
 
-Cách này thường rõ ràng khi mỗi bản ghi nhỏ; nó có chi phí tạo `String` bản ghi riêng.
+This approach is usually clear when each record is small; it has the cost of creating a separate record `String`.
 
-### Giải pháp 2: khóa cả quy trình thêm nhiều phần
+### Solution 2: Lock the Entire Multi-Part Addition Workflow
 
 ```java
 synchronized (buffer) {
@@ -251,28 +251,28 @@ synchronized (buffer) {
 }
 ```
 
-Khối ngoài giữ monitor của `buffer` xuyên suốt cả ba lời gọi. Nếu các luồng cùng dùng buffer và cùng tuân theo monitor đó, nội dung bản ghi không bị xen lẫn bởi lời gọi cạnh tranh trên cùng buffer.
+The outer block holds `buffer`'s monitor across all three calls. If threads share the buffer and all obey that monitor, record contents will not be interleaved by competing calls on the same buffer.
 
-**Chú ý:** chuỗi gọi phương thức kiểu `buffer.append("[").append(id).append("]")` trông như một câu lệnh Java, nhưng nó vẫn gồm **nhiều lời gọi `append()` riêng biệt**. Một câu lệnh Java hay một chain fluent không đồng nghĩa một thao tác nguyên tử.
+**Attention:** a method-call chain like `buffer.append("[").append(id).append("]")` looks like one Java statement, yet it still consists of **multiple separate `append()` calls**. One Java statement or a fluent chain does not equal one atomic operation.
 
-## 6. Đọc nhiều lần cũng có thể bị lỗi: *read-modify-write* và chỉ số thay đổi
+## 6. Multiple Reads Can Also Fail: *read-modify-write* and Changing Indices
 
-Khi một luồng đọc trạng thái rồi quyết định sửa dựa theo kết quả, mọi giá trị đã đọc có thể trở nên lỗi thời nếu buffer thay đổi giữa các lời gọi.
+When a thread reads state and then decides how to modify based on the result, any value already read can become stale if the buffer changes between calls.
 
-Ví dụ: “xóa ký tự cuối nếu chuỗi không rỗng”.
+Example: "delete the last character if the string is not empty."
 
 ```java
-// Fragment SAI khi có luồng khác sửa cùng buffer:
+// INCORRECT fragment when another thread modifies the same buffer:
 if (buffer.length() > 0) {
     buffer.deleteCharAt(buffer.length() - 1);
 }
 ```
 
-Luồng A thấy chiều dài dương. Trước khi nó tính chỉ số hoặc xóa, luồng B có thể xóa hết nội dung. Khi A gọi `deleteCharAt()`, vị trí có thể không còn hợp lệ và Java có thể ném `StringIndexOutOfBoundsException`.
+Thread A sees a positive length. Before it computes the index or deletes, Thread B may clear the entire content. When A calls `deleteCharAt()`, the index may no longer be valid and Java can throw `StringIndexOutOfBoundsException`.
 
-Ngay cả khi không ném ngoại lệ, A có thể xóa **ký tự khác** với ý định ban đầu vì nội dung đã bị thay đổi. Việc mỗi lời gọi có khóa không làm một giá trị đọc trước đó được cập nhật tự động.
+Even if no exception is thrown, A may delete **a different character** than intended because the content has changed. Having each call locked does not automatically refresh a previously read value.
 
-Sửa bằng một vùng tới hạn:
+Fix with a critical section:
 
 ```java
 synchronized (buffer) {
@@ -283,30 +283,30 @@ synchronized (buffer) {
 }
 ```
 
-Bây giờ việc đọc chiều dài, tính chỉ số và xóa đều nằm trong **một giao dịch logic được khóa**. Điều kiện `length > 0` còn đúng trong suốt phần cần bảo vệ đối với các tác nhân cùng tuân theo khóa buffer.
+Now reading the length, calculating the index, and deleting all lie inside **one locked logical transaction**. The condition `length > 0` remains true throughout the protected region for all actors obeying the buffer lock.
 
-### Trường hợp đọc một snapshot nhất quán
+### Reading a Consistent Snapshot
 
-Với nhu cầu lấy **một snapshot văn bản** ở thời điểm cụ thể, lời gọi `buffer.toString()` trả về một `String` độc lập, bất biến. Nhưng các lời gọi tách biệt vẫn có thể cho các thời điểm khác nhau:
+When you need **a text snapshot** at a specific moment, `buffer.toString()` returns an independent, immutable `String`. However, separate calls can still observe different points in time:
 
 ```java
 int before = buffer.length();
-// Luồng khác có thể append/delete ở đây.
+// Another thread can append/delete here.
 String snapshot = buffer.toString();
 ```
 
-`before` không nhất thiết bằng `snapshot.length()`. Nếu yêu cầu hai giá trị phải cùng phản ánh **một trạng thái**, hãy lấy chúng trong cùng vùng `synchronized(buffer)` hoặc chỉ dựa trên snapshot:
+`before` does not necessarily equal `snapshot.length()`. If two values must reflect **the same state**, retrieve them inside the same `synchronized(buffer)` block or derive everything from the snapshot alone:
 
 ```java
 String snapshot = buffer.toString();
 int snapshotLength = snapshot.length();
 ```
 
-Ở ví dụ sau, `snapshotLength` chắc chắn là độ dài của chính chuỗi snapshot vì `String` bất biến. Chúng không nhất thiết đại diện cho trạng thái buffer ở **thời điểm sau đó**.
+In the latter example, `snapshotLength` is guaranteed to be the length of the snapshot string itself because `String` is immutable. They do not necessarily represent the buffer's state at **a later point in time**.
 
-## 7. Dùng đúng monitor: mọi thành phần phải cùng quy tắc khóa
+## 7. Using the Right Monitor: All Components Must Share the Same Locking Rule
 
-Cách đơn giản khi quản lý độc quyền một buffer chia sẻ:
+A simple approach when exclusively managing a shared buffer:
 
 ```java
 private final StringBuffer shared = new StringBuffer();
@@ -318,9 +318,9 @@ public void appendEntry(String entry) {
 }
 ```
 
-Đây là **fragment đặt trong một lớp**, không phải chương trình chạy độc lập. `shared` được khởi tạo một lần rồi dùng như monitor thống nhất. Các phương thức khác thực hiện những quy trình phụ thuộc trạng thái của cùng buffer cũng phải chọn một quy ước đồng bộ tương thích.
+This is a **fragment placed inside a class**, not a standalone runnable program. `shared` is initialized once and then used as a unified monitor. Other methods performing state-dependent workflows on the same buffer must also adopt a compatible synchronization convention.
 
-Một lựa chọn thiết kế khác là dùng **khóa riêng**, nhất là khi muốn bảo vệ thêm trạng thái khác ngoài buffer:
+Another design option is using a **private lock**, especially when protecting additional state alongside the buffer:
 
 ```java
 private final Object lock = new Object();
@@ -335,47 +335,47 @@ public void appendEntry(String entry) {
 }
 ```
 
-Trong thiết kế này, **mọi đường đọc/sửa cặp `buffer` và `entryCount` phải đi qua `lock`** nếu invariant của chúng cần tính nguyên tử. Khóa `lock` là khóa **khác** monitor nội tại của `buffer`, nên không được tưởng rằng các lời gọi trực tiếp `buffer.append()` ở nơi khác sẽ tự động tôn trọng khóa riêng đó. Giữ hai trường `private` và chỉ truy cập qua những phương thức của lớp sẽ giúp quản lý quy tắc khóa.
+In this design, **every read/write path for the pair `buffer` and `entryCount` must go through `lock`** if their invariant requires atomicity. The `lock` object is a **different** lock from `buffer`'s intrinsic monitor, so do not assume direct `buffer.append()` calls elsewhere will automatically respect that private lock. Keeping both fields `private` and accessing them only through the class's methods helps enforce the locking rule.
 
-Tránh lẫn lộn:
+Avoid confusion:
 
-- `synchronized(buffer)` và `synchronized(lock)` không bảo vệ cùng một vùng tới hạn nếu `lock != buffer`.
-- `synchronized(this)` có thể phù hợp khi đối tượng bao bọc dùng `this` làm khóa nhất quán, nhưng không tự khóa monitor của một buffer khác.
-- Khai báo biến tham chiếu `final StringBuffer buffer` chỉ cấm gán lại biến; **không** biến các chuỗi thao tác nhiều bước thành nguyên tử.
-- Khai báo trường tham chiếu `volatile StringBuffer buffer` chủ yếu liên quan đến khả năng nhìn thấy thay đổi **tham chiếu**; nó không thay thế khóa để bảo vệ một quy trình đọc-rồi-sửa nội dung buffer.
+- `synchronized(buffer)` and `synchronized(lock)` do not protect the same critical section if `lock != buffer`.
+- `synchronized(this)` may fit when a wrapper object uses `this` consistently as its lock, but it does not automatically lock another buffer's monitor.
+- Declaring a reference variable `final StringBuffer buffer` only forbids reassigning the variable; it does **not** make multi-step operation sequences atomic.
+- Declaring a reference field `volatile StringBuffer buffer` mainly concerns visibility of changes to the **reference**; it does not replace locking to protect a read-then-modify workflow on buffer content.
 
-## 8. Thế nào là “bảo vệ đủ phạm vi”?
+## 8. What Does "Protecting Enough Scope" Mean?
 
-Hãy xác định thao tác logic ở mức nghiệp vụ, rồi bảo vệ toàn bộ phần phụ thuộc trạng thái chung.
+Identify the logical operation at the business level, then protect the entire portion that depends on shared state.
 
-| Yêu cầu logic | Các lời gọi có thể cần gộp dưới cùng khóa | Rủi ro nếu tách khóa |
+| Logical requirement | Calls that may need grouping under the same lock | Risk if locks are split |
 | --- | --- | --- |
-| Chỉ thêm tiêu đề một lần | Kiểm tra `length() == 0` rồi `append(header)` | Hai luồng cùng thấy rỗng, thêm trùng. |
-| Một bản ghi luôn liền mạch | `append(prefix)`, `append(body)`, `append(suffix)` | Nội dung hai bản ghi bị xen kẽ. |
-| Xóa ký tự cuối nếu tồn tại | `length()`, kiểm tra điều kiện, `deleteCharAt()` | Chỉ số lỗi thời, xóa sai hoặc exception. |
-| Đọc nhiều thuộc tính của cùng snapshot | `length()`, `charAt()` hoặc lấy một `toString()` rồi phân tích snapshot | Các phép đọc có thể từ nhiều thời điểm. |
-| Cập nhật buffer đồng thời bộ đếm | `append()` và `entryCount++` | Buffer và counter không còn nhất quán. |
-| Kiểm tra không có dữ liệu rồi ghi marker | `indexOf()` hoặc `toString()` để kiểm tra, sau đó `append()` | Hai luồng cùng quyết định dựa trên cùng trạng thái cũ. |
+| Add header only once | Check `length() == 0` then `append(header)` | Two threads both see empty and add duplicates. |
+| Keep a record contiguous | `append(prefix)`, `append(body)`, `append(suffix)` | Contents of two records interleave. |
+| Delete last character if present | `length()`, condition check, `deleteCharAt()` | Stale index, wrong deletion, or exception. |
+| Read multiple properties of the same snapshot | `length()`, `charAt()`, or take one `toString()` and inspect the snapshot | Reads may come from different moments in time. |
+| Update buffer alongside a counter | `append()` and `entryCount++` | Buffer and counter become inconsistent. |
+| Check absence of data then write a marker | `indexOf()` or `toString()` to check, then `append()` | Two threads decide based on the same stale state. |
 
-**Đừng giữ khóa rộng hơn cần thiết.** Ví dụ gọi network, đọc file chậm, chờ thao tác người dùng hoặc xử lý nặng bên trong `synchronized(buffer)` có thể khiến các luồng khác phải chờ lâu.
+**Do not hold a lock wider than necessary.** For example, network calls, slow file reads, waiting on user input, or heavy processing inside `synchronized(buffer)` can force other threads to wait needlessly long.
 
-Một mẫu tốt là **chuẩn bị dữ liệu bất biến ngoài khóa**, sau đó giữ khóa chỉ đủ lâu để kiểm tra điều kiện chung và áp dụng cập nhật:
+A good pattern is to **prepare immutable data outside the lock**, then hold the lock only long enough to check shared conditions and apply the update:
 
 ```java
-String record = "[" + value + "]"; // Chuẩn bị trước.
+String record = "[" + value + "]"; // Prepare beforehand.
 synchronized (buffer) {
-    // Kiểm tra thêm invariant, nếu có.
+    // Check any additional invariants, if applicable.
     buffer.append(record);
 }
 ```
 
-Khi chỉ cần thêm một bản ghi hoàn chỉnh và không có điều kiện khác, `buffer.append(record)` đơn lẻ đã có khóa ở cấp phương thức; không nhất thiết cần thêm vùng `synchronized` ngoài. Khóa ngoài cần thiết khi **quy trình có nhiều bước liên quan phải được thực hiện cùng nhau**.
+When you only need to add a single completed record with no other conditions, a single `buffer.append(record)` already has method-level locking; an outer `synchronized` block is not necessarily required. An external lock is needed when **a workflow has multiple related steps that must execute together**.
 
-## 9. Ví dụ Java 17+ thứ hai: xen kẽ nhiều `append()` có kiểm soát
+## 9. Second Java 17+ Example: Controlled Interleaving of Multiple `append()` Calls
 
-Chương trình sau buộc Luồng B chen một bản ghi hoàn chỉnh vào giữa hai lần thêm của Luồng A. Không có dữ liệu bị hỏng ở cấp bộ đệm, nhưng định dạng tổng thể không còn như mong muốn.
+The following program forces Thread B to insert a complete record between Thread A's two appends. No data is corrupted at the internal buffer level, yet the overall formatting is no longer as intended.
 
-Tạo tệp `StringBufferInterleavingDemo.java`:
+Create the file `StringBufferInterleavingDemo.java`:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -422,22 +422,22 @@ public class StringBufferInterleavingDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac StringBufferInterleavingDemo.java
 java StringBufferInterleavingDemo
 ```
 
-Kết quả khi không bị ngắt ngoài ý muốn:
+Output when uninterrupted:
 
 ```text
 interleaved = [A[B]]
 ```
 
-Lịch thực hiện được điều phối: Luồng A thêm `"[A"` trước, rồi đợi; Luồng B thêm `"[B]"` vào giữa; sau đó A mới thêm `"]"`. Cả ba `append()` đều hợp lệ, nhưng chuỗi cuối không chứa hai record `"[A]"` và `"[B]"` liền mạch.
+Coordinated execution schedule: Thread A adds `"[A"` first, then waits; Thread B inserts `"[B]"` in between; only then does A add `"]"`. All three `append()` calls are valid, yet the final string does not contain two intact records `"[A]"` and `"[B]"`.
 
-Để sửa cho ứng dụng thật, thay đổi **thiết kế quy trình**: hoặc xây bản ghi `"[A]"` rồi gọi một lần `append(record)`, hoặc dùng vùng tới hạn giữ khóa xuyên suốt các phần tạo một bản ghi. Ví dụ có chủ đích dùng một lock chung:
+To fix this in a real application, change the **workflow design**: either build the record `"[A]"` and call `append(record)` once, or use a critical section holding the lock across all parts creating one record. Example intentionally using a shared lock:
 
 ```java
 private static void appendRecord(StringBuffer buffer, String label) {
@@ -449,77 +449,77 @@ private static void appendRecord(StringBuffer buffer, String label) {
 }
 ```
 
-Đây là **fragment** của một phương thức static đặt trong lớp Java. Nếu cả hai luồng đều gọi phương thức này trên cùng buffer, thứ tự `"[A][B]"` hay `"[B][A]"` còn phụ thuộc lịch chạy, nhưng mỗi bản ghi riêng lẻ vẫn liền mạch. **Atomicity bảo vệ tính liền mạch; không tự quy định luồng nào đi trước.**
+This is a **fragment** of a static method placed inside a Java class. If both threads call this method on the same buffer, whether the order is `"[A][B]"` or `"[B][A]"` still depends on scheduling, but each individual record stays contiguous. **Atomicity protects contiguity; it does not by itself dictate which thread goes first.**
 
-## 10. Nhìn rộng hơn: atomicity, visibility, ordering
+## 10. Broader View: Atomicity, Visibility, Ordering
 
-Các chương trình đa luồng thường cần xem xét ít nhất ba khía cạnh:
+Multi-threaded programs generally need to consider at least three aspects:
 
-1. **Atomicity**: các bước phải xuất hiện như một đơn vị logic, không bị các bước cạnh tranh chen giữa.
-2. **Visibility**: khi một luồng ghi, luồng khác có thể quan sát giá trị đó theo quy tắc bộ nhớ Java hay không.
-3. **Ordering**: những bước cần được quan sát theo một thứ tự nào; ví dụ `CountDownLatch`, `join()` và monitor tạo quan hệ phối hợp phù hợp.
+1. **Atomicity**: steps must appear as one logical unit, without competing steps interleaving in between.
+2. **Visibility**: when one thread writes, whether another thread can observe that value under the Java Memory Model rules.
+3. **Ordering**: which steps must be observed in a particular order; for instance, `CountDownLatch`, `join()`, and monitors establish appropriate coordination relationships.
 
-Các phương thức đồng bộ của `StringBuffer` cung cấp những bảo đảm quan trọng ở cấp thao tác. Tuy nhiên, chúng **không thay thế** việc xác định một trình tự logic xuyên suốt nhiều lời gọi.
+`StringBuffer`'s synchronized methods provide important guarantees at the individual operation level. However, they **do not replace** defining a logical sequence across multiple calls.
 
-Ví dụ, nếu chương trình dựa vào việc một thread phải hoàn thành một bản ghi trước khi thread khác đọc toàn bộ bản ghi, có thể cần **quy trình phối hợp** ngoài một lần gọi `toString()`: monitor cho cả lần tạo record, hàng đợi thông điệp, latch hoặc thiết kế trao đổi dữ liệu thích hợp.
+For example, if a program relies on one thread finishing a record before another thread reads the whole record, a **coordination mechanism** beyond a single `toString()` call may be needed: a monitor covering the entire record creation, a message queue, a latch, or an appropriate data-exchange design.
 
-`toString()` lấy một giá trị `String` bất biến của nội dung tại thời điểm lời gọi; nó không “đợi” ứng dụng hoàn thành một transaction chưa được biểu diễn bằng đồng bộ hóa phù hợp.
+`toString()` captures an immutable `String` value of the content at the time of the call; it does not "wait" for the application to finish a transaction that has not been expressed with proper synchronization.
 
-## 11. So sánh `StringBuffer`, `StringBuilder` và `String`
+## 11. Comparing `StringBuffer`, `StringBuilder`, and `String`
 
-| Loại | Mutable? | Đồng bộ hóa tích hợp | Phù hợp |
+| Type | Mutable? | Built-in synchronization | Best fit |
 | --- | --- | --- | --- |
-| `String` | Không | Không cần khóa chỉ để giữ nguyên nội dung | Giá trị văn bản đã xây xong, chia sẻ chuỗi đọc chung. |
-| `StringBuilder` | Có | Không bảo đảm thread-safe khi nhiều luồng cùng sửa | Xây chuỗi ở một luồng hoặc builder cục bộ không chia sẻ. |
-| `StringBuffer` | Có | Các thao tác chính đồng bộ hóa theo đối tượng | Khi thật sự cần một buffer mutable được các luồng cùng sử dụng và muốn các lời gọi được đồng bộ ở cấp phương thức. |
+| `String` | No | No lock needed just to preserve content | Finished text values, sharing read-only strings. |
+| `StringBuilder` | Yes | Not thread-safe when multiple threads modify concurrently | Building strings in a single thread or unshared local builders. |
+| `StringBuffer` | Yes | Primary operations synchronized per object | When a mutable buffer truly needs to be shared by threads and per-method synchronization is desired. |
 
-**Không nên kết luận “chọn `StringBuffer` là mọi thứ đã an toàn”.** Nó không giải quyết một điều kiện gồm nhiều bước, invariant trải trên nhiều đối tượng, hoặc thứ tự nghiệp vụ giữa các luồng.
+**Do not conclude "choosing `StringBuffer` makes everything safe."** It does not solve multi-step conditions, invariants spanning multiple objects, or business ordering between threads.
 
-Nếu builder/buffer **không bị chia sẻ** giữa các luồng, `StringBuilder` thường đơn giản và không phải trả chi phí đồng bộ của `StringBuffer`. Nếu cần nhiều luồng cùng sản xuất bản ghi, đôi khi giải pháp tốt hơn là để mỗi luồng xây chuỗi riêng rồi đưa vào một hàng đợi thread-safe, sau đó **một luồng chuyên trách** tổng hợp kết quả. Cách này có thể dễ kiểm soát thứ tự và định dạng hơn là khóa một buffer toàn cục.
+If a builder/buffer is **not shared** across threads, `StringBuilder` is usually simpler and avoids `StringBuffer`'s synchronization overhead. When multiple threads must produce records concurrently, it is sometimes better to let each thread build its own string and place it into a thread-safe queue, then have **one dedicated thread** assemble the result. That approach can make ordering and formatting easier to control than locking a global buffer.
 
-Không nên tuyên bố chênh lệch hiệu năng chính xác nếu chưa đo trên phiên bản JVM và tải thực tế.
+Do not claim exact performance differences without measuring on the target JVM version and real workload.
 
-## 12. Đồng bộ trên buffer có thể gây vấn đề gì?
+## 12. What Problems Can Synchronizing on the Buffer Cause?
 
-### Giữ khóa quá lâu
+### Holding the Lock Too Long
 
 ```java
 synchronized (buffer) {
     buffer.append("begin");
-    // Không nên chờ tác vụ I/O rất lâu tại đây nếu không cần.
+    // Should not wait for very slow I/O tasks here unnecessarily.
     buffer.append("end");
 }
 ```
 
-Trong lúc giữ khóa, những luồng muốn vào phương thức đồng bộ của cùng buffer có thể phải đợi. Hãy rút ngắn vùng tới hạn, chuẩn bị dữ liệu trước khi khóa và chỉ giữ khóa trong phần bảo vệ invariant.
+While the lock is held, threads wanting to enter synchronized methods of the same buffer may have to wait. Shorten the critical section, prepare data before locking, and hold the lock only for the portion protecting the invariant.
 
-### Thứ tự lấy nhiều khóa
+### Lock Acquisition Ordering
 
-Nếu quy trình giữ khóa `bufferA` rồi lấy `bufferB`, trong khi luồng khác làm ngược lại, có thể xảy ra **deadlock**. Khi phải giữ nhiều khóa, xác định một thứ tự khóa nhất quán giữa các luồng hoặc thay đổi thiết kế để giảm việc giữ nhiều monitor.
+If a workflow holds `bufferA`'s lock and then acquires `bufferB`, while another thread does the reverse, **deadlock** can occur. When multiple locks must be held, define a consistent lock ordering across threads or change the design to reduce holding multiple monitors.
 
-### Dùng buffer công khai làm monitor
+### Using a Public Buffer as a Monitor
 
-Nếu đưa `StringBuffer` cho mã không kiểm soát, thành phần ngoài có thể dùng `synchronized(buffer)` và giữ khóa lâu, gây chặn các thành phần khác. Trong hệ thống lớn, thường tốt hơn là **đóng gói trạng thái chia sẻ**, tránh lộ buffer mutable, sử dụng khóa nội bộ và API nghiệp vụ nguyên tử.
+If you expose a `StringBuffer` to uncontrolled code, external components can use `synchronized(buffer)` and hold the lock for a long time, blocking other components. In larger systems, it is usually better to **encapsulate shared state**, avoid exposing mutable buffers, and use an internal lock with atomic business APIs.
 
-Nếu khóa nội bộ là đối tượng khác buffer, **đừng quên** mọi đường thao tác cùng invariant phải đi qua khóa đó. Khóa riêng không tự đồng bộ hóa với monitor của `StringBuffer` nếu ai đó truy cập buffer trực tiếp.
+If the internal lock is a different object from the buffer, **do not forget** that every access path for the same invariant must go through that lock. A private lock does not automatically synchronize with `StringBuffer`'s monitor if someone accesses the buffer directly.
 
-## 13. Lỗi phổ biến
+## 13. Common Mistakes
 
-| Ngộ nhận | Thực tế | Cách sửa |
+| Misconception | Reality | Fix |
 | --- | --- | --- |
-| “`StringBuffer` thread-safe nên hai lời gọi liền nhau là atomic.” | Mỗi lời gọi có thể nhả khóa trước lời gọi tiếp theo. | Khóa toàn bộ vùng tới hạn hoặc gộp công việc thành một lời gọi phù hợp. |
-| “`if (length()==0) append()` luôn chỉ thêm một lần.” | Hai luồng có thể cùng thấy rỗng trước khi một luồng append. | Bao toàn bộ check-then-act trong cùng monitor. |
-| “Viết `append(a).append(b)` là một thao tác.” | Đây vẫn là hai lời gọi phương thức riêng. | Bao chuỗi gọi trong `synchronized(buffer)` nếu cần atomicity. |
-| “Mỗi `append()` riêng biệt an toàn nghĩa là một record nhiều phần không xen lẫn.” | Luồng khác có thể append giữa các phần. | Xây record hoàn chỉnh trước hoặc khóa toàn bộ record. |
-| “`length()` vừa trả giá trị nên chắc chắn vẫn đúng tới lúc `deleteCharAt()`.” | Trạng thái có thể thay đổi sau khi `length()` trả về. | Đọc, kiểm tra và xóa trong một vùng tới hạn. |
-| “`volatile StringBuffer` khiến compound operation an toàn.” | `volatile` không gom nhiều lời gọi thành một hành động nguyên tử. | Dùng monitor/lock hoặc thiết kế đồng bộ ở cấp giao dịch. |
-| “Khóa đối tượng khác cũng tự khóa buffer.” | Hai monitor khác nhau là hai cơ chế khóa độc lập. | Thống nhất khóa và đóng gói mọi đường truy cập. |
-| “Có synchronized thì thứ tự các thread sẽ đúng theo ý muốn.” | Loại trừ xen kẽ không xác định thứ tự ai vào trước. | Dùng cơ chế phối hợp thích hợp nếu thứ tự có ý nghĩa. |
-| “`toString()` tạo view trực tiếp nên có thể đọc dở một record.” | Kết quả `String` là giá trị bất biến; nhưng bản ghi có thể đang ở trạng thái **logic chưa hoàn chỉnh** do quy trình không atomic. | Đồng bộ hóa toàn bộ quá trình tạo record hoặc xuất bản snapshot khi hoàn tất. |
+| "`StringBuffer` is thread-safe so two consecutive calls are atomic." | Each call can release the lock before the next call. | Lock the whole critical section or combine the work into one appropriate call. |
+| "`if (length()==0) append()` will always add only once." | Two threads can both observe empty before either appends. | Wrap the entire check-then-act in the same monitor. |
+| "Writing `append(a).append(b)` is one operation." | These are still two separate method calls. | Wrap the call chain in `synchronized(buffer)` if atomicity is needed. |
+| "Each individual `append()` being safe means a multi-part record won't interleave." | Another thread can append between parts. | Build the complete record first or lock the entire record. |
+| "`length()` just returned a value so it's definitely still valid at `deleteCharAt()`." | State can change after `length()` returns. | Read, check, and delete inside one critical section. |
+| "`volatile StringBuffer` makes compound operations safe." | `volatile` does not merge multiple calls into one atomic action. | Use a monitor/lock or transaction-level synchronization design. |
+| "Locking another object automatically locks the buffer too." | Two different monitors are two independent locking mechanisms. | Unify the lock and encapsulate all access paths. |
+| "Using synchronized makes thread order match what we want." | Excluding interleaving does not determine which thread enters first. | Use an appropriate coordination mechanism if ordering matters. |
+| "`toString()` creates a live view so you might read a half-written record." | The resulting `String` is an immutable value; however, a record may be in a **logically incomplete** state due to a non-atomic workflow. | Synchronize the entire record creation or publish a snapshot when complete. |
 
-## 14. Câu hỏi tự kiểm tra
+## 14. Self-Check Questions
 
-**Câu 1.** Hai thread cùng chạy đoạn sau trên một `StringBuffer`. Điều gì có thể xảy ra?
+**Question 1.** Two threads concurrently run the following snippet on the same `StringBuffer`. What can happen?
 
 ```java
 if (buffer.length() == 0) {
@@ -527,36 +527,36 @@ if (buffer.length() == 0) {
 }
 ```
 
-**Đáp án:** cả hai có thể thấy `length() == 0` và cùng thêm `"A"`, cho kết quả `"AA"`. Không có vi phạm tính an toàn riêng lẻ của `length()` hay `append()`; lỗi nằm ở việc **hai bước không nguyên tử**.
+**Answer:** both may see `length() == 0` and both append `"A"`, giving `"AA"`. There is no violation of the individual safety of `length()` or `append()`; the bug lies in **the two steps not being atomic**.
 
-**Câu 2.** Đổi thành `buffer.append("[A").append("]")` đã đủ bảo đảm `"[A]"` không bị xen ký tự từ luồng khác chưa?
+**Question 2.** Is changing to `buffer.append("[A").append("]")` enough to guarantee `"[A]"` won't have characters interleaved from another thread?
 
-**Chưa.** Chained calls vẫn là hai lời gọi. Muốn bảo vệ record nguyên vẹn, dùng `synchronized(buffer)` bao trùm cả hai hoặc xây `"[A]"` độc lập rồi append **một lần**.
+**Not yet.** Chained calls are still two calls. To protect an intact record, use `synchronized(buffer)` around both or build `"[A]"` independently and append **once**.
 
-**Câu 3.** Nếu hai thread đều viết bản ghi hoàn chỉnh qua một vùng `synchronized(buffer)`, ta có chắc thứ tự `"[A][B]"` không?
+**Question 3.** If both threads write complete records inside a `synchronized(buffer)` block, are we guaranteed the order `"[A][B]"`?
 
-**Không.** Có thể là `"[A][B]"` hoặc `"[B][A]"` tùy lịch chạy. Điều được bảo đảm là các phần của mỗi record không bị xen ngang bởi lời gọi cạnh tranh dùng cùng monitor.
+**No.** It may be `"[A][B]"` or `"[B][A]"` depending on scheduling. What is guaranteed is that the parts of each record are not interleaved by competing calls using the same monitor.
 
-**Câu 4.** Tại sao `synchronized(lock)` không bảo đảm atomicity với mã khác trực tiếp gọi `buffer.append()` nếu `lock` khác `buffer`?
+**Question 4.** Why doesn't `synchronized(lock)` guarantee atomicity against other code directly calling `buffer.append()` if `lock` differs from `buffer`?
 
-Vì `buffer.append()` dùng cơ chế khóa của buffer, còn `synchronized(lock)` dùng một monitor **khác**. Hai bên không chờ nhau theo cùng một khóa. Cần đóng gói buffer và tuân thủ **một quy ước khóa thống nhất**.
+Because `buffer.append()` uses the buffer's lock mechanism, while `synchronized(lock)` uses a **different** monitor. The two sides do not wait on each other using the same lock. You must encapsulate the buffer and follow **one consistent locking convention**.
 
-**Câu 5.** Nếu chỉ có một luồng xây văn bản, có bắt buộc dùng `StringBuffer` không?
+**Question 5.** If only a single thread builds text, is `StringBuffer` mandatory?
 
-**Không.** Một `StringBuilder` cục bộ thường phù hợp. Đồng bộ hóa ở `StringBuffer` chỉ hữu ích khi giải quyết nhu cầu chia sẻ đa luồng tương ứng, và nó không miễn trách nhiệm thiết kế tính nguyên tử cho nhiều bước.
+**No.** A local `StringBuilder` is usually appropriate. Synchronization in `StringBuffer` is only useful when addressing matching multi-threaded sharing needs, and it does not absolve you from designing atomicity for multi-step operations.
 
-## Kết luận
+## Conclusion
 
-- Các lời gọi chính của `StringBuffer` được đồng bộ hóa để hỗ trợ nhiều luồng truy cập một đối tượng mutable.
-- **Mỗi phương thức an toàn riêng không đồng nghĩa toàn bộ chuỗi lời gọi nguyên tử.** Luồng khác vẫn có thể chen giữa các lời gọi.
-- Đặc biệt chú ý **check-then-act**, **read-modify-write**, **nhiều `append()` cho một record** và **nhiều lần đọc phải nhất quán**.
-- Khi cần một giao dịch logic, gộp các bước dưới **cùng một monitor/lock** và bảo đảm tất cả bên liên quan tôn trọng quy tắc đó.
-- Chọn API theo yêu cầu thật: `StringBuilder` cho xây chuỗi cục bộ, `StringBuffer` cho đồng bộ thao tác trên buffer chia sẻ, hoặc thiết kế hàng đợi/đóng gói khi invariant đa luồng phức tạp.
-- **Atomicity, visibility và ordering là những thuộc tính khác nhau**. Một API thread-safe không tự giải quyết mọi quy tắc phối hợp của chương trình.
+- `StringBuffer`'s key calls are synchronized to support multiple threads accessing a mutable object.
+- **Each method being safe individually does not mean an entire call sequence is atomic.** Another thread can still interleave between calls.
+- Pay special attention to **check-then-act**, **read-modify-write**, **multiple `append()` calls for one record**, and **multiple reads that must be consistent**.
+- When a logical transaction is needed, group the steps under **the same monitor/lock** and ensure all involved parties obey that rule.
+- Choose the API based on real requirements: `StringBuilder` for local string building, `StringBuffer` for synchronized operations on a shared buffer, or queues/encapsulation when multi-threaded invariants are complex.
+- **Atomicity, visibility, and ordering are distinct properties**. A thread-safe API does not automatically solve every coordination rule of a program.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 API — `java.lang.StringBuffer`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StringBuffer.html): hợp đồng đồng bộ hóa các thao tác, `append()`, `length()`, `toString()`.
-- [Java SE 21 API — `java.lang.StringBuilder`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StringBuilder.html): đối chiếu với builder mutable không đồng bộ hóa.
-- [Java Language Specification §17 — Threads and Locks](https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html): monitor, happens-before và mô hình bộ nhớ.
-- [Java SE 21 API — `java.util.concurrent.CountDownLatch`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/CountDownLatch.html): phối hợp tiến trình các luồng trong ví dụ tái hiện race.
+- [Java SE 21 API — `java.lang.StringBuffer`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StringBuffer.html): synchronization contract for operations, `append()`, `length()`, `toString()`.
+- [Java SE 21 API — `java.lang.StringBuilder`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StringBuilder.html): comparison with an unsynchronized mutable builder.
+- [Java Language Specification §17 — Threads and Locks](https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html): monitors, happens-before, and the memory model.
+- [Java SE 21 API — `java.util.concurrent.CountDownLatch`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/CountDownLatch.html): coordinating thread progress in race-reproduction examples.

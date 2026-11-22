@@ -1,12 +1,12 @@
-# Text block: cú pháp mở, đóng và xử lý thụt lề trong Java
+# Text Blocks: Opening, Closing Syntax, and Indentation Handling in Java
 
 > **Java core — language-basics / Literal**  
-> **Yêu cầu:** JDK 17+; text block là tính năng ổn định từ Java 15, không cần bật preview.  
-> **Mục tiêu:** Viết đúng dấu mở/đóng `"""`; xác định khi nào chuỗi chứa newline cuối; giải thích xử lý *incidental indentation*; biết dùng escape `\s` và nối dòng; tự biên dịch và kiểm tra giá trị chuỗi.
+> **Requirements:** JDK 17+; text blocks are a standard feature since Java 15, requiring no preview flags.  
+> **Objective:** Write the opening/closing `"""` delimiters correctly; determine when a string contains a trailing newline; explain *incidental indentation* handling; know how to use the `\s` escape and line continuation; compile and inspect string values yourself.
 
-## 1. Text block vẫn là `String`
+## 1. A text block is still a `String`
 
-**Text block** là cú pháp literal nhiều dòng, thích hợp cho JSON, HTML hoặc câu truy vấn dài. Nó tạo ra một `String` thông thường, không phải một kiểu dữ liệu riêng.
+A **text block** is a multi-line literal syntax, well suited for JSON, HTML, or long queries. It produces an ordinary `String`, not a separate data type.
 
 ~~~java
 String ordinary = "Hello\nJava\n";
@@ -17,11 +17,11 @@ String block = """
 System.out.println(ordinary.equals(block)); // true
 ~~~
 
-Text block thường giúp mã dễ đọc hơn cách ghép nhiều chuỗi với `+ "\n"`, nhưng **không đảm bảo bảo toàn mọi dấu cách nguyên xi từ mã nguồn**. Java có quy tắc chuẩn hóa dấu xuống dòng và loại bỏ thụt lề phụ.
+Text blocks usually make code easier to read than concatenating multiple strings with `+ "\n"`, yet **they do not guarantee preserving every space verbatim from source code**. Java applies rules to normalize line terminators and strip incidental indentation.
 
-## 2. Cú pháp của delimiter mở và đóng
+## 2. Syntax of the opening and closing delimiters
 
-Cấu trúc điển hình:
+Typical structure:
 
 ~~~java
 String message = """
@@ -30,22 +30,22 @@ String message = """
         """;
 ~~~
 
-- **Dấu mở** gồm ba dấu nháy kép `"""`, sau đó có thể có khoảng trắng và **bắt buộc phải có line terminator**. Nội dung bắt đầu ở dòng **tiếp theo**; dấu xuống dòng bắt buộc ngay sau delimiter mở không trở thành ký tự đầu tiên của giá trị.
-- **Dấu đóng** cũng gồm `"""`, nhưng có thể nằm trên **dòng riêng** hoặc **cùng dòng với phần nội dung cuối**.
-- Dấu `;` kết thúc câu lệnh khai báo biến; nó không phải thành phần của giá trị String.
-- Không cần escape dấu nháy kép `"` đơn lẻ bên trong text block như trong chuỗi thường, miễn không vô tình tạo một delimiter kết thúc.
+- **The opening delimiter** consists of three double quotes `"""`, optionally followed by whitespace, and **must be followed by a line terminator**. Content starts on the **next** line; the mandatory line break right after the opening delimiter does not become the first character of the value.
+- **The closing delimiter** also consists of `"""`, and can sit on its **own line** or on the **same line as the final content**.
+- The `;` terminates the variable declaration statement; it is not part of the String value.
+- You do not need to escape isolated double quotes `"` inside a text block as in ordinary strings, as long as they do not accidentally form a closing delimiter.
 
-**Cú pháp cố ý sai** (để trong comment, không chạy):
+**Intentionally invalid syntax** (kept in a comment, not runnable):
 
 ~~~java
-// String bad = """Hello""";  // Thiếu line terminator sau delimiter mở.
+// String bad = """Hello""";  // Missing line terminator after opening delimiter.
 ~~~
 
-Text block không phải string template: tên biến đặt trong nội dung không tự được thay bằng giá trị biến. Nếu muốn chèn dữ liệu động, dùng phép ghép, `String.format` hoặc API khác thích hợp.
+A text block is not a string template: variable names placed inside the content are not automatically replaced with variable values. If you want to insert dynamic data, use concatenation, `String.format`, or another appropriate API.
 
-## 3. Dấu đóng quyết định có newline ở cuối hay không
+## 3. The closing delimiter decides whether there is a trailing newline
 
-So sánh:
+Compare:
 
 ~~~java
 String withNewline = """
@@ -58,18 +58,18 @@ String noNewline = """
         B""";
 ~~~
 
-| Cách đặt delimiter đóng | Giá trị Java tương đương | Điểm cần nhớ |
+| Closing delimiter placement | Equivalent Java value | Key point to remember |
 | --- | --- | --- |
-| Dòng riêng sau B | `"A\nB\n"` | Newline sau B **thuộc chuỗi** |
-| Sát B trên cùng dòng | `"A\nB"` | Không có newline cuối |
+| Own line after B | `"A\nB\n"` | The newline after B **belongs to the string** |
+| Right against B on the same line | `"A\nB"` | No trailing newline |
 
-Đây là khác biệt **dữ liệu thực**, không chỉ khác biệt hình thức mã nguồn. Nếu phần mềm xuất JSON hay tạo văn bản kiểm thử mà không muốn newline cuối, nên chủ động chọn vị trí delimiter đóng hoặc định dạng lại chuỗi theo đúng yêu cầu.
+This is a **real data** difference, not merely a source formatting difference. If software outputs JSON or generates test text that must not have a trailing newline, deliberately choose the closing delimiter position or reformat the string to match the exact requirement.
 
-**Không dùng `strip()` bừa bãi** để “sửa” newline thừa vì phương thức này còn bỏ khoảng trắng đầu/cuối vốn có thể mang ý nghĩa.
+**Do not use `strip()` indiscriminately** to "fix" an unwanted newline because that method also removes leading/trailing whitespace that may be meaningful.
 
-## 4. Quy tắc xử lý thụt lề phụ (*incidental indentation*)
+## 4. Incidental indentation handling rules
 
-Khi code được đặt trong method hay class, các dòng text block thường phải thụt theo định dạng Java. Java **loại phần thụt lề chung mang tính trình bày**, còn mức thụt sâu hơn được giữ.
+When code is placed inside a method or class, text block lines usually must be indented to match Java formatting. Java **removes common indentation used purely for code layout**, while deeper indentation is preserved.
 
 ~~~java
 String list = """
@@ -78,37 +78,37 @@ String list = """
         """;
 ~~~
 
-Chuỗi `list` có giá trị tương đương:
+The string `list` has the equivalent value:
 
 ~~~text
 root
   child
 ~~~
 
-Ngoài ra, nó có **newline ở cuối** do delimiter đóng nằm trên dòng riêng.
+In addition, it has a **trailing newline** because the closing delimiter sits on its own line.
 
-Quy tắc thực hành:
+Practical rules:
 
-1. Để dấu đóng cùng mức với dòng nội dung có mức thụt lề cơ sở nếu bạn muốn loại bỏ phần thụt do code.
-2. Dòng nào được thụt sâu hơn mức chung thì vẫn giữ **phần chênh lệch**. Ở ví dụ, `child` giữ hai dấu cách.
-3. **Đặt dấu đóng lùi sang trái** có thể khiến Java loại bỏ ít thụt lề hơn và giữ thêm khoảng trắng ở đầu tất cả dòng.
-4. Nên dùng space nhất quán thay vì trộn tab và space vì nhìn giống nhau trong editor không có nghĩa dấu thụt thực giống nhau.
-5. Dòng trống và dấu cách cuối dòng cũng chịu quy tắc xử lý riêng; đừng mặc định mọi ký tự trắng gõ trong source đều được giữ.
+1. Align the closing delimiter with the content line that has the base indentation level if you want to strip code-layout indentation.
+2. Any line indented deeper than the common level keeps **the extra difference**. In the example, `child` keeps two spaces.
+3. **Shifting the closing delimiter to the left** can cause Java to strip less indentation and keep extra leading spaces on all lines.
+4. Use spaces consistently rather than mixing tabs and spaces, because looking identical in an editor does not mean the actual indentation characters are equal.
+5. Blank lines and trailing spaces on lines are also governed by specific rules; do not assume every whitespace character typed in source code is preserved.
 
-Nói chính xác hơn, Java sử dụng các dòng không trống và vị trí dấu đóng để xác định mức *incidental indentation*. Đây không phải thao tác tùy ý “xóa mọi khoảng trắng đầu dòng”.
+More precisely, Java uses non-blank lines and the position of the closing delimiter to determine the level of *incidental indentation*. This is not an arbitrary "strip all leading whitespace" operation.
 
-## 5. Thứ tự xử lý newline và escape
+## 5. Order of newline and escape processing
 
-Java chuẩn hóa các line terminator trong nội dung text block về **LF** (`\n`), kể cả source lưu theo kiểu CRLF. Tiếp đó, nó loại bỏ thụt lề phụ và khoảng trắng cuối dòng thích hợp; **sau cùng** mới diễn giải escape.
+Java normalizes line terminators inside text block content to **LF** (`\n`), even if the source file is saved with CRLF. Next, it strips incidental indentation and trailing whitespace on lines as specified; **lastly**, it interprets escapes.
 
-| Cú pháp nội dung | Ý nghĩa |
+| Content syntax | Meaning |
 | --- | --- |
-| `\n` | Ký tự xuống dòng theo escape |
-| `\t` | Ký tự tab theo escape |
-| `\s` | Một dấu cách; đặc biệt hữu ích để **giữ khoảng trắng cuối dòng** |
-| `\` ngay trước line terminator | **Line continuation**: bỏ dấu kết thúc dòng đó, ghép hai phần nội dung |
+| `\n` | Escaped newline character |
+| `\t` | Escaped tab character |
+| `\s` | A single space; especially useful for **preserving trailing spaces on a line** |
+| `\` right before a line terminator | **Line continuation**: drops that line terminator, joining two parts of content |
 
-Ví dụ:
+Example:
 
 ~~~java
 String spaces = """
@@ -121,13 +121,13 @@ String joined = """
         """;
 ~~~
 
-Giá trị của `spaces` là `"end  \n"` (hai dấu cách trước newline). Giá trị của `joined` là `"prefix\n"`: dấu `\` nối `pre` và `fix`, nhưng newline sau `fix` vẫn còn.
+The value of `spaces` is `"end  \n"` (two spaces before the newline). The value of `joined` is `"prefix\n"`: the `\` joins `pre` and `fix`, while the newline after `fix` remains.
 
-**Khác nhau:** `\n` trong source tạo một ký tự LF trong giá trị; còn khi in bản thân hai ký tự dấu gạch chéo ngược và chữ `n`, bạn phải escape phù hợp, ví dụ chuỗi thường `"\\n"`.
+**Difference:** `\n` in source code produces one LF character in the value; whereas to print the two characters backslash and letter `n` themselves, you must escape accordingly, such as the ordinary string `"\\n"`.
 
-## 6. Một chương trình Java 17+ kiểm chứng chính xác
+## 6. A Java 17+ program for exact verification
 
-Tạo file **TextBlockDemo.java**:
+Create the file **TextBlockDemo.java**:
 
 ~~~java
 public class TextBlockDemo {
@@ -163,7 +163,7 @@ public class TextBlockDemo {
 }
 ~~~
 
-Chạy từ thư mục có file trên Bash, PowerShell hoặc Command Prompt:
+Run from the directory containing the file in Bash, PowerShell, or Command Prompt:
 
 ~~~bash
 javac -encoding UTF-8 TextBlockDemo.java
@@ -180,42 +180,42 @@ joined=prefix|
 sameType=String
 ~~~
 
-Hàm `visible` chỉ chuyển dấu cách thành `_` và newline thành `|` để thấy chúng rõ ràng trên console; nó **không sửa chuỗi gốc**.
+The `visible` method simply turns spaces into `_` and newlines into `|` so they can be seen clearly on the console; it **does not modify the original string**.
 
-Giải thích từng dòng:
+Line-by-line explanation:
 
-- `indented` giữ hai dấu cách trước `second` và một newline cuối.
-- `noFinalNewline` không có newline sau `two` vì dấu đóng đứng sát phần nội dung cuối.
-- `keptSpaces` có hai dấu cách thật nhờ hai `\s`, ngay trước newline cuối.
-- `joined` nối `pre` với `fix`, không còn newline ở giữa; newline cuối vẫn còn.
-- `sameType` khẳng định đối tượng được tạo là `String`.
+- `indented` keeps the two spaces before `second` and a trailing newline.
+- `noFinalNewline` has no newline after `two` because the closing delimiter sits right against the final content.
+- `keptSpaces` has two real spaces thanks to the two `\s` escapes, right before the trailing newline.
+- `joined` joins `pre` with `fix`, with no newline in between; the trailing newline remains.
+- `sameType` confirms that the created object is a `String`.
 
-## 7. Lỗi thường gặp
+## 7. Common mistakes
 
-| Triệu chứng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | How to handle |
 | --- | --- | --- |
-| Compiler báo delimiter mở không hợp lệ | Viết nội dung ngay sau `"""` mở | Đặt line terminator sau dấu mở |
-| Dữ liệu có `\n` cuối ngoài ý muốn | Dấu đóng ở dòng riêng | Đặt dấu đóng ngay sau nội dung cuối nếu muốn bỏ newline đó |
-| Dấu cách cuối dòng bị mất | Khoảng trắng cuối dòng được loại bỏ khi chuẩn hóa text block | Dùng `\s` để giữ khoảng trắng có chủ đích |
-| Dữ liệu giữ nhiều khoảng trắng đầu dòng | Dấu đóng lùi trái làm giảm mức incidental indentation được loại bỏ | Căn lại các dòng và dấu đóng |
-| Chuỗi từ Windows khác newline của tệp gốc | Java chuẩn hóa CRLF thành LF bên trong text block | Kiểm tra dữ liệu đầu ra thay vì dựa trên dòng mã nguồn |
-| Text block tự nhiên không chèn biến | Text block là String literal, không phải template | Dùng định dạng/ghép chuỗi có chủ đích |
-| Có ba dấu nháy kép liên tiếp trong nội dung | Có thể kết thúc text block sớm | Escape hoặc cấu trúc lại đoạn chứa dấu nháy |
+| Compiler reports invalid opening delimiter | Writing content immediately after opening `"""` | Put a line terminator after the opening delimiter |
+| Data has an unintended trailing `\n` | Closing delimiter is on its own line | Place the closing delimiter right after the final content if you want to omit that newline |
+| Trailing spaces on a line disappear | Trailing whitespace is stripped during text block normalization | Use `\s` to preserve intentional spaces |
+| Data keeps excessive leading whitespace | Shifting the closing delimiter left reduces the incidental indentation stripped | Realign lines and the closing delimiter |
+| String on Windows differs from source file's newlines | Java normalizes CRLF to LF inside text blocks | Inspect the output data rather than relying on source file line endings |
+| Text block does not interpolate variables automatically | A text block is a String literal, not a template | Use intentional formatting/string concatenation |
+| Three consecutive double quotes appear inside content | May prematurely terminate the text block | Escape or restructure the quoted section |
 
-Nếu yêu cầu bảo toàn **từng byte** của tài liệu bên ngoài, text block không phải lựa chọn mặc định: hãy cân nhắc đọc resource/file và kiểm soát encoding/line endings.
+If **byte-for-byte** preservation of an external document is required, a text block is not the default choice: consider reading a resource/file and controlling encoding and line endings explicitly.
 
-## 8. Bài tập ngắn
+## 8. Short exercises
 
-**Bài 1 — Newline cuối:** Viết hai text block chứa `Hello`: một đóng ở dòng riêng, một đóng sát `Hello`. So sánh `length()` và đầu ra qua `visible`.
+**Exercise 1 — Trailing newline:** Write two text blocks containing `Hello`: one closed on its own line, one closed right against `Hello`. Compare `length()` and output via `visible`.
 
-**Bài 2 — Thụt lề:** Viết hai dòng `root` và `  child`, thay đổi vị trí dấu đóng sang trái rồi quan sát số dấu cách còn lại bằng `visible`.
+**Exercise 2 — Indentation:** Write two lines `root` and `  child`, shift the closing delimiter position to the left, and observe how many spaces remain using `visible`.
 
-**Bài 3 — Dấu cách cuối:** So sánh hai dấu cách thật ở cuối dòng source với hai escape `\s\s`. Chúng được giữ giống nhau không?
+**Exercise 3 — Trailing spaces:** Compare two literal spaces at the end of a source line with two `\s\s` escapes. Are they preserved the same way?
 
-**Bài 4 — Nối dòng:** Sửa `pre` và `fix` thành `foo` và `bar`, thử có/không có dấu `\` trước line terminator. Đoán giá trị có newline nào.
+**Exercise 4 — Line continuation:** Change `pre` and `fix` to `foo` and `bar`, and test with/without `\` before the line terminator. Predict which newlines the value contains.
 
-**Bài 5 — JSON:** Viết JSON nhiều dòng trong text block và in ra. Kiểm tra mức thụt lề của nội dung, dấu nháy kép, newline cuối trước khi dùng làm dữ liệu thực.
+**Exercise 5 — JSON:** Write multi-line JSON in a text block and print it out. Check content indentation, double quotes, and the trailing newline before using it as real data.
 
-### Ghi nhớ
+### Key takeaway
 
-**Text block là `String`**, dùng ba dấu nháy kép; dấu mở bắt buộc theo sau bởi xuống dòng. **Vị trí dấu đóng quyết định newline cuối.** Java chuẩn hóa newline, loại bỏ thụt lề phụ rồi mới diễn giải escape như `\s` và dấu `\` nối dòng. Khi cần chính xác từng dấu cách hoặc newline, hãy hiển thị chúng bằng một hàm như `visible`.
+**A text block is a `String`**, using triple double quotes; the opening delimiter must be followed by a newline. **The position of the closing delimiter determines the trailing newline.** Java normalizes newlines, strips incidental indentation, and only then interprets escapes such as `\s` and `\` line continuation. When exact spaces or newlines matter, visualize them with a helper like `visible`.

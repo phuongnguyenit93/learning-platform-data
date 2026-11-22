@@ -1,57 +1,57 @@
-# Kiểm thử image trên môi trường triển khai
+# Testing Images in the Deployment Environment
 
-## 1. Vì sao phải kiểm thử runtime image ở môi trường triển khai?
+## 1. Why Must Runtime Images Be Tested in the Deployment Environment?
 
-Khi đóng gói ứng dụng modular bằng \`jlink\`, dự án tạo ra một runtime image chứa JVM và tập hợp các module cần thiết. Khi triển khai bằng container hoặc máy chủ, ứng dụng thường chạy từ image này thay vì dùng JDK đầy đủ của máy phát triển.
+When packaging a modular application with `jlink`, the project produces a runtime image containing the JVM and the required set of modules. When deploying via containers or servers, the application usually runs from this image rather than using a full JDK on a development machine.
 
-Build thành công chưa chứng minh image có thể chạy trong production. Môi trường triển khai có thể khác máy build về hệ điều hành, kiến trúc CPU, thư viện native, user chạy process, quyền truy cập filesystem, biến môi trường, chứng thư TLS, DNS, timezone và cấu hình mạng.
+A successful build does not prove the image can run in production. The deployment environment may differ from the build machine in operating system, CPU architecture, native libraries, process-running user, filesystem permissions, environment variables, TLS certificates, DNS, timezone, and network configuration.
 
-Một image có thể khởi động trên máy developer nhưng thất bại trong container vì:
+An image can start on a developer machine yet fail inside a container because:
 
-- Runtime image được tạo cho hệ điều hành hoặc kiến trúc CPU khác.
-- Thiếu JDK module do cấu hình \`jlink\` chưa bao gồm dependency cần thiết.
-- Provider service không được liên kết vào image.
-- Ứng dụng vẫn tham chiếu file hoặc executable chỉ tồn tại trên máy build.
-- User production không có quyền đọc file cấu hình, ghi thư mục tạm hoặc mở cổng.
-- Base image thiếu thư viện native hoặc chứng thư CA mà ứng dụng cần.
-- Runtime flags, environment variables hoặc working directory khác với môi trường đã thử nghiệm.
+- The runtime image was created for a different operating system or CPU architecture.
+- A JDK module is missing because the `jlink` configuration did not include a required dependency.
+- A service provider was not linked into the image.
+- The application still references a file or executable that only exists on the build machine.
+- The production user lacks permission to read configuration files, write to temporary directories, or open ports.
+- The base image lacks native libraries or CA certificates needed by the application.
+- Runtime flags, environment variables, or the working directory differ from the tested environment.
 
-Vì vậy, cần kiểm thử chính artifact sẽ được phát hành, trong môi trường gần với production nhất có thể. Không chỉ chạy test bằng JDK của máy build rồi suy luận rằng runtime image cũng hoạt động.
+Therefore, you must test the exact artifact to be released, in an environment as close to production as possible. Do not simply run tests with the build machine's JDK and assume the runtime image will also work.
 
-## 2. Phân biệt các loại artifact cần kiểm thử
+## 2. Distinguishing Artifact Types to Test
 
-Trong quy trình packaging modular, thường có ba loại artifact:
+In a modular packaging workflow, there are usually three types of artifacts:
 
-| Artifact | Nội dung | Điều cần xác nhận |
+| Artifact | Contents | What to Verify |
 | --- | --- | --- |
-| Modular JAR | Bytecode ứng dụng và \`module-info.class\` | Module descriptor, dependency và service declarations đúng. |
-| Runtime image | JVM cùng các module được liên kết bởi \`jlink\` | Image có đủ module, chạy được trên nền tảng mục tiêu và không phụ thuộc JDK bên ngoài. |
-| Container image | Runtime image hoặc JRE cùng ứng dụng, cấu hình và filesystem của container | Process chạy được với base image, user, network, mount và giới hạn tài nguyên thực tế. |
+| Modular JAR | Application bytecode and `module-info.class` | Module descriptor, dependencies, and service declarations are correct. |
+| Runtime image | JVM along with modules linked by `jlink` | The image has all needed modules, runs on the target platform, and does not depend on an external JDK. |
+| Container image | Runtime image or JRE along with the application, config, and container filesystem | The process runs with the actual base image, user, network, mounts, and resource limits. |
 
-Nếu dùng \`jpackage\`, native application package còn có launcher, metadata và cấu trúc cài đặt theo hệ điều hành. Cần kiểm thử package được cài đặt và chạy như người dùng production, không chỉ chạy file JAR bên trong.
+If using `jpackage`, the native application package also includes a launcher, metadata, and OS-specific installation layout. The installed package should be tested and run as a production user, not just by running the JAR file inside.
 
-Một kiểm thử có giá trị phải sử dụng đúng artifact cuối. Ví dụ, nếu production chạy container được build từ runtime image thì nên kiểm thử container đó. Nếu chỉ chạy thư mục \`build/runtime-image\` trên máy developer, các khác biệt của container vẫn chưa được kiểm tra.
+A meaningful test must use the exact final artifact. For example, if production runs a container built from the runtime image, test that container. If you only run the `build/runtime-image` directory on a developer machine, container differences remain untested.
 
-## 3. Xác định nền tảng mục tiêu trước khi tạo image
+## 3. Identifying the Target Platform Before Building the Image
 
-Runtime image do \`jlink\` tạo ra phụ thuộc vào nền tảng JDK dùng để tạo nó. Không nên coi image là một gói Java có thể sao chép tùy ý giữa Linux, Windows, macOS hoặc giữa các kiến trúc CPU khác nhau.
+The runtime image created by `jlink` depends on the platform of the JDK used to build it. Do not treat the image as a portable Java package that can be copied arbitrarily across Linux, Windows, macOS, or across different CPU architectures.
 
-Trước khi build, ghi nhận:
+Before building, record:
 
-- Hệ điều hành và phiên bản hoặc base distribution.
-- Kiến trúc CPU, ví dụ x86_64 hoặc AArch64.
-- Phiên bản JDK và vendor dùng để compile, link.
-- Base container image và phiên bản/digest nếu triển khai bằng Docker.
-- Các thư viện native hoặc executable bên ngoài mà ứng dụng cần.
-- User/group, working directory và filesystem mount trong production.
+- Operating system and version or base distribution.
+- CPU architecture, such as x86_64 or AArch64.
+- JDK version and vendor used to compile and link.
+- Container base image and version/digest if deploying with Docker.
+- External native libraries or executables needed by the application.
+- User/group, working directory, and filesystem mounts in production.
 
-Nếu production chạy Linux container trên một distribution cụ thể, hãy build và test image trong môi trường Linux tương thích. Một image được tạo trên Windows không thể mang nguyên trạng sang Linux chỉ vì cả hai đều dùng Java 21.
+If production runs Linux containers on a specific distribution, build and test the image in a compatible Linux environment. An image built on Windows cannot be transferred as-is to Linux simply because both use Java 21.
 
-Đối với Linux, khác biệt giữa các bản phân phối còn có thể liên quan tới glibc, OpenSSL, font, timezone data và các thư viện native khác. Đối với ứng dụng có JNI/JNA, driver native hoặc thư viện tính toán native, kiểm tra cả kiến trúc và ABI của thư viện.
+For Linux, differences between distributions can also involve glibc, OpenSSL, fonts, timezone data, and other native libraries. For applications with JNI/JNA, native drivers, or native math libraries, verify both architecture and library ABI.
 
-## 4. Tạo runtime image có thể kiểm thử
+## 4. Creating a Testable Runtime Image
 
-Ví dụ ứng dụng modular có main module là \`com.acme.app\`, các module phụ thuộc nằm trong thư mục \`mods\`. Dùng JDK 21 để tạo image:
+For example, a modular application has main module `com.acme.app`, with dependent modules in the `mods` directory. Use JDK 21 to create the image:
 
 ~~~bash
 jlink \
@@ -62,61 +62,61 @@ jlink \
   --output build/runtime-image
 ~~~
 
-Giải thích:
+Explanation:
 
-- \`--module-path\` cung cấp các module JDK và module ứng dụng cho linker.
-- \`--add-modules\` chọn module gốc để resolve dependency graph.
-- \`--bind-services\` yêu cầu linker xem xét các service provider có thể được liên kết từ các module quan sát được.
-- \`--launcher\` tạo launcher có tên \`app\` trỏ đến main class của module.
-- \`--output\` là thư mục runtime image được tạo.
+- `--module-path` supplies JDK modules and application modules to the linker.
+- `--add-modules` selects the root module to resolve the dependency graph.
+- `--bind-services` instructs the linker to consider service providers that can be linked from observable modules.
+- `--launcher` creates a launcher named `app` pointing to the module's main class.
+- `--output` is the generated runtime image directory.
 
-Nếu ứng dụng dùng service provider qua JPMS, cần xác nhận consumer có khai báo \`uses\` và provider có \`provides\` trong descriptor. \`--bind-services\` không thể tự sửa một descriptor sai hoặc thêm provider JAR không nằm trong module path.
+If the application uses service providers through JPMS, confirm the consumer declares `uses` and the provider declares `provides` in their descriptors. `--bind-services` cannot fix an incorrect descriptor or add a provider JAR not on the module path.
 
-Có thể dùng các tùy chọn như \`--strip-debug\`, \`--no-header-files\`, \`--no-man-pages\` hoặc \`--compress\` để giảm kích thước image. Chỉ áp dụng sau khi đã xác định cấu hình cần thiết và có kiểm thử chứng minh ứng dụng vẫn hoạt động. Tối ưu kích thước không nên làm mất dữ liệu hoặc thành phần runtime mà ứng dụng cần.
+You can use options such as `--strip-debug`, `--no-header-files`, `--no-man-pages`, or `--compress` to reduce image size. Apply them only after determining the required configuration and having tests prove the application still works. Size optimization should not remove data or runtime components that the application needs.
 
-## 5. Kiểm tra nội dung runtime image
+## 5. Inspecting Runtime Image Contents
 
-Sau khi link thành công, kiểm tra image trước khi chạy ứng dụng.
+After linking succeeds, inspect the image before running the application.
 
-### 5.1. Kiểm tra Java executable và phiên bản
+### 5.1. Checking the Java Executable and Version
 
-Trên Linux/macOS:
+On Linux/macOS:
 
 ~~~bash
 build/runtime-image/bin/java -version
 build/runtime-image/bin/java --list-modules
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 build/runtime-image/bin/java.exe -version
 build/runtime-image/bin/java.exe --list-modules
 ~~~
 
-Luôn gọi executable bằng đường dẫn trong image. Nếu chỉ gõ \`java -version\`, shell có thể gọi JDK trên máy build hoặc một Java khác trong PATH, khiến kết quả kiểm thử không phản ánh image.
+Always invoke the executable using its path inside the image. If you only type `java -version`, the shell may invoke the JDK on the build machine or another Java in PATH, causing test results not to reflect the image.
 
-Kiểm tra:
+Verify:
 
-- Runtime có phiên bản Java dự kiến.
-- Các module ứng dụng được liên kết nếu chọn đóng gói application modules vào image.
-- Các module JDK cần thiết có mặt.
-- Module service provider cần thiết được liên kết khi sử dụng service binding.
-- Image không vô tình dựa vào một JDK đầy đủ được cài sẵn trên máy kiểm thử.
+- The runtime has the expected Java version.
+- Application modules are linked if you chose to package application modules into the image.
+- Required JDK modules are present.
+- Required service provider modules are linked when using service binding.
+- The image does not accidentally rely on a full JDK pre-installed on the test machine.
 
-### 5.2. Kiểm tra module graph và service binding
+### 5.2. Checking the Module Graph and Service Binding
 
-Có thể dùng:
+You can use:
 
 ~~~bash
 build/runtime-image/bin/java --list-modules
 ~~~
 
-để xem các module trong runtime image.
+to view the modules inside the runtime image.
 
-Khi cần chẩn đoán service provider, đối chiếu module consumer có \`uses\` và provider có \`provides\`. Nếu image cần provider nhưng module đó không có trong runtime image, xem lại module path và \`--bind-services\` hoặc tập module được chỉ định bằng \`--add-modules\`.
+When diagnosing service providers, cross-check consumer modules with `uses` and provider modules with `provides`. If the image needs a provider that is missing from the runtime image, review the module path and `--bind-services` or the module set specified with `--add-modules`.
 
-Nếu ứng dụng được phát hành dưới dạng JAR riêng thay vì được link vào image, kiểm tra module resolution bằng chính runtime image:
+If the application is released as separate JARs rather than linked into the image, test module resolution using the runtime image itself:
 
 ~~~bash
 build/runtime-image/bin/java \
@@ -125,42 +125,42 @@ build/runtime-image/bin/java \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Không sử dụng JDK bên ngoài để chạy lệnh kiểm tra này. Mục tiêu là xác nhận runtime đã link có thể resolve và chạy đúng module graph của ứng dụng.
+Do not use an external JDK to run this check. The goal is to confirm the linked runtime can resolve and run the application's module graph properly.
 
-### 5.3. Kiểm tra module descriptor của ứng dụng
+### 5.3. Checking the Application's Module Descriptor
 
-Dùng JDK tooling phù hợp để xem descriptor của modular JAR:
+Use appropriate JDK tooling to inspect the descriptor of a modular JAR:
 
 ~~~bash
 jar --describe-module --file app/mods/com.acme.app.jar
 ~~~
 
-Nếu cần kiểm tra dependency tới JDK modules, có thể dùng:
+If you need to check dependencies on JDK modules, you can use:
 
 ~~~bash
 jdeps --print-module-deps --module-path app/mods app/mods/com.acme.app.jar
 ~~~
 
-Kết quả giúp đối chiếu tập module cần thiết với runtime image. Công cụ phân tích static có thể không phát hiện đầy đủ dependency được sử dụng qua reflection, JNI, resource hoặc tên class được cấu hình động. Những đường đi này phải được kiểm tra bằng integration test trong môi trường thực tế.
+The output helps compare the required module set with the runtime image. Static analysis tools may not fully detect dependencies used through reflection, JNI, resources, or dynamically configured class names. Those paths must be verified by integration tests in a realistic environment.
 
-## 6. Smoke test bằng chính runtime image
+## 6. Smoke Testing with the Runtime Image Itself
 
-Smoke test nên xác nhận image có thể khởi động ứng dụng và thực hiện một luồng chức năng tối thiểu. Không chỉ kiểm tra process có exit code 0; một server có thể khởi động rồi dừng ngay do lỗi cấu hình, hoặc chạy nhưng không phục vụ được request.
+A smoke test should confirm that the image can start the application and execute a minimal functional flow. Do not just check whether the process returns exit code 0; a server can start and immediately stop due to configuration errors, or keep running while failing to serve requests.
 
-Ví dụ chạy launcher đã tạo bởi \`jlink\`:
+Example running the launcher created by `jlink`:
 
 ~~~bash
 build/runtime-image/bin/app
 ~~~
 
-Hoặc chạy module trực tiếp:
+Or running the module directly:
 
 ~~~bash
 build/runtime-image/bin/java \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu application module không được link vào image mà được phân phối riêng:
+If application modules are not linked into the image but distributed separately:
 
 ~~~bash
 build/runtime-image/bin/java \
@@ -168,24 +168,24 @@ build/runtime-image/bin/java \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Smoke test nên kiểm tra ít nhất:
+A smoke test should check at least:
 
-1. Process khởi động bằng đúng Java executable trong image.
-2. Module graph resolve thành công.
-3. Application đọc được cấu hình bắt buộc.
-4. Các service provider cần thiết được phát hiện và khởi tạo.
-5. Ứng dụng có thể thực hiện một thao tác nghiệp vụ tối thiểu.
-6. Server có thể bind vào địa chỉ/cổng dự kiến nếu ứng dụng là service.
-7. Health endpoint hoặc readiness signal trả về trạng thái sẵn sàng.
-8. Process dừng đúng cách khi nhận tín hiệu shutdown.
+1. The process starts using the exact Java executable inside the image.
+2. The module graph resolves successfully.
+3. The application reads mandatory configuration.
+4. Required service providers are discovered and initialized.
+5. The application can perform a minimal business operation.
+6. The server can bind to the expected address/port if the application is a service.
+7. The health endpoint or readiness signal returns a ready status.
+8. The process shuts down cleanly when receiving a shutdown signal.
 
-Nếu ứng dụng chạy nền, hãy kiểm tra readiness thay vì chỉ chờ process tồn tại. Đối với HTTP service, gửi request thực tế đến endpoint health hoặc một endpoint nghiệp vụ nhỏ sau khi server đã bind.
+If the application runs in the background, check readiness rather than just waiting for the process to exist. For HTTP services, send an actual request to the health endpoint or a small business endpoint after the server has bound.
 
-## 7. Kiểm thử container giống production
+## 7. Production-Like Container Testing
 
-Nếu runtime image được đưa vào Docker, hãy build và chạy container từ đúng Dockerfile và base image dự kiến phát hành.
+If the runtime image is placed into Docker, build and run the container from the exact Dockerfile and base image planned for release.
 
-Ví dụ Dockerfile tối giản:
+Minimal Dockerfile example:
 
 ~~~dockerfile
 FROM eclipse-temurin:21-jre
@@ -201,33 +201,33 @@ USER 10001:10001
 ENTRYPOINT ["/opt/app/bin/app"]
 ~~~
 
-Đây chỉ là ví dụ cho Linux image có công cụ \`useradd\`. Một số base image tối giản hoặc distroless không có shell và user management command; khi đó tạo user ở bước build khác hoặc dùng user đã được cung cấp bởi base image.
+This is only an example for a Linux image that has the `useradd` utility. Some minimal or distroless base images do not include a shell or user management commands; in that case, create the user in another build stage or use the user already provided by the base image.
 
-Build và chạy:
+Build and run:
 
 ~~~bash
 docker build -t acme-app:test .
 docker run --rm --name acme-app-test -p 8080:8080 acme-app:test
 ~~~
 
-Trong môi trường test, xác nhận:
+In the test environment, verify:
 
-- Container dùng đúng base image và runtime artifact.
-- Process chạy bằng user không đặc quyền giống production.
-- Working directory đúng.
-- Port được publish hoặc expose theo cấu hình.
-- Environment variables và mounted configuration có đủ.
-- Process có quyền đọc application files và ghi đúng thư mục được phép.
-- Container không dựa vào JDK của host.
-- Health check và shutdown hoạt động.
+- The container uses the right base image and runtime artifact.
+- The process runs under an unprivileged user like in production.
+- The working directory is correct.
+- Ports are published or exposed as configured.
+- Environment variables and mounted configurations are complete.
+- The process has permission to read application files and write to permitted directories.
+- The container does not rely on a host JDK.
+- Health checks and shutdown work properly.
 
-Không chạy container bằng root chỉ để làm mất lỗi permission. Nếu production dùng non-root user, test cũng cần dùng non-root user để phát hiện sớm các file hoặc thư mục bị sở hữu sai.
+Do not run the container as root just to make permission errors disappear. If production uses a non-root user, testing must also use a non-root user to catch misowned files or directories early.
 
-### 7.1. Read-only filesystem và thư mục tạm
+### 7.1. Read-Only Filesystem and Temporary Directories
 
-Nhiều môi trường triển khai mount filesystem read-only để giảm khả năng thay đổi runtime artifact. Nếu ứng dụng cần ghi file, phải xác định rõ thư mục nào được phép ghi, ví dụ thư mục tạm hoặc volume dữ liệu.
+Many deployment environments mount the filesystem read-only to reduce the chance of mutating runtime artifacts. If the application needs to write files, explicitly identify which directories are allowed for writing, such as a temporary directory or data volume.
 
-Có thể chạy thử với filesystem read-only:
+You can test with a read-only filesystem:
 
 ~~~bash
 docker run --rm \
@@ -237,15 +237,15 @@ docker run --rm \
   acme-app:test
 ~~~
 
-Điều chỉnh mount theo ứng dụng. Không phải mọi ứng dụng đều có thể chạy với filesystem read-only ngay lập tức; mục tiêu là phát hiện chính xác đường dẫn ghi file và cấp quyền tối thiểu cần thiết.
+Adjust mounts according to the application. Not every application can run with a read-only filesystem out of the box; the goal is to pinpoint file write paths and grant minimal necessary permissions.
 
-Kiểm tra log, upload, cache, PID file, temporary file và thư mục chứa dữ liệu. Nếu ứng dụng cần ghi dữ liệu bền vững, dùng volume được quản lý thay vì ghi vào thư mục cài đặt runtime.
+Check logs, uploads, caches, PID files, temporary files, and data directories. If the application needs to persist durable data, use a managed volume instead of writing into the runtime installation directory.
 
-### 7.2. Giới hạn tài nguyên và tín hiệu dừng
+### 7.2. Resource Limits and Shutdown Signals
 
-Container production có thể có giới hạn CPU, memory và PID. Kiểm thử trong giới hạn tương tự giúp phát hiện lỗi cấp phát bộ nhớ, timeout, pool thread hoặc thời gian khởi động.
+Production containers may have CPU, memory, and PID limits. Testing under similar limits helps uncover memory allocation errors, timeouts, thread pool issues, or startup delays.
 
-Ví dụ:
+Example:
 
 ~~~bash
 docker run --rm \
@@ -255,106 +255,106 @@ docker run --rm \
   acme-app:test
 ~~~
 
-Nếu dùng JVM trong container, kiểm tra heap sizing và memory headroom trong giới hạn container. Heap không phải toàn bộ memory usage: metaspace, code cache, direct buffers, thread stacks và native libraries cũng tiêu thụ bộ nhớ.
+When running the JVM inside a container, verify heap sizing and memory headroom within container limits. Heap is not total memory usage: metaspace, code cache, direct buffers, thread stacks, and native libraries also consume memory.
 
-Gửi tín hiệu dừng theo cách môi trường production sử dụng và xác nhận ứng dụng đóng connection, flush dữ liệu cần thiết và thoát trong thời hạn grace period.
+Send the shutdown signal in the same way the production environment does and confirm the application closes connections, flushes needed data, and exits within the grace period.
 
-## 8. Kiểm thử cấu hình hệ điều hành và dịch vụ bên ngoài
+## 8. Testing OS Configuration and External Services
 
-Runtime image chỉ cung cấp Java runtime và các module được liên kết. Nó không tự đóng gói mọi thành phần hệ điều hành mà ứng dụng cần.
+A runtime image only provides the Java runtime and linked modules. It does not automatically package every operating system component that the application needs.
 
-Các hạng mục nên kiểm thử trong container hoặc máy triển khai:
+Items that should be tested in the container or deployment host:
 
-| Hạng mục | Điều cần xác nhận |
+| Item | What to Verify |
 | --- | --- |
-| DNS và network | Có thể phân giải hostname và kết nối tới dịch vụ cần thiết. |
-| TLS/CA certificates | HTTPS và kết nối TLS tin cậy chứng thư của môi trường. |
-| Timezone | Thời gian hiển thị, lịch chạy và timestamp phù hợp cấu hình production. |
-| Locale | Định dạng số, ngày tháng, encoding và thông báo phù hợp. |
-| Native libraries | JNI/JNA và thư viện hệ thống được nạp đúng phiên bản/kiến trúc. |
-| Font | Chức năng tạo PDF, ảnh hoặc render văn bản có font cần thiết. |
-| Proxy | JVM và ứng dụng nhận đúng cấu hình proxy nếu môi trường yêu cầu. |
-| File permissions | User runtime đọc được secret/config và ghi được các thư mục đã cấp quyền. |
+| DNS and network | Can resolve hostnames and connect to required services. |
+| TLS/CA certificates | HTTPS and TLS connections trust the environment's certificates. |
+| Timezone | Displayed times, schedules, and timestamps match production configuration. |
+| Locale | Number formats, date formats, encodings, and messages match expectations. |
+| Native libraries | JNI/JNA and system libraries load with the right version/architecture. |
+| Fonts | PDF generation, image creation, or text rendering has required fonts. |
+| Proxy | The JVM and application receive proper proxy configuration if required by the environment. |
+| File permissions | The runtime user can read secrets/configs and write to granted directories. |
 
-Nếu ứng dụng dùng \`java.time\`, \`Locale\` hoặc TLS, đừng chỉ kiểm tra JVM khởi động. Hãy thực hiện một request hoặc test thực sự đi qua các chức năng đó.
+If the application uses `java.time`, `Locale`, or TLS, do not only check that the JVM starts. Execute an actual request or test that exercises those capabilities.
 
-Đối với ứng dụng dùng JDBC, kiểm tra driver có mặt, kết nối tới database, xác thực và thực hiện một truy vấn nhỏ. Đối với messaging hoặc object storage, kiểm tra kết nối và một thao tác tối thiểu có thể quan sát được.
+For applications using JDBC, verify the driver is present, connect to the database, authenticate, and run a small query. For messaging or object storage, verify the connection and a minimal observable operation.
 
-## 9. Kiểm thử service provider và reflection trong image
+## 9. Testing Service Providers and Reflection in the Image
 
-Việc chạy trên JDK đầy đủ có thể vô tình che giấu lỗi do thiếu provider module hoặc cấu hình mở package. Runtime image tối giản giúp bộc lộ các vấn đề này.
+Running on a full JDK can accidentally mask bugs caused by missing provider modules or package opening configurations. A minimal runtime image helps expose these issues.
 
-Nếu dùng \`ServiceLoader\`, hãy thực hiện luồng thực tế để xác nhận provider được phát hiện. Nếu provider được khai báo bằng JPMS, kiểm tra \`uses\`, \`provides\` và việc liên kết module bằng \`jlink --bind-services\`. Nếu ứng dụng chạy plugin trong \`ModuleLayer\` riêng, hãy kiểm thử đúng layer và đúng overload \`ServiceLoader.load(layer, service)\`.
+If using `ServiceLoader`, exercise the real flow to confirm providers are discovered. If providers are declared via JPMS, check `uses`, `provides`, and module linking with `jlink --bind-services`. If the application runs plugins in a separate `ModuleLayer`, test the exact layer and the exact `ServiceLoader.load(layer, service)` overload.
 
-Nếu framework cần deep reflection, xác nhận các package được mở bằng descriptor \`opens\` hoặc JVM option \`--add-opens\` trong đúng lệnh khởi chạy. Một flag chỉ được cấu hình cho test JVM không tự động áp dụng cho container production.
+If a framework needs deep reflection, confirm packages are opened via descriptor `opens` or JVM option `--add-opens` in the actual launch command. A flag configured only for the test JVM does not automatically apply to the production container.
 
-Nếu module cần truy cập public type trong package chưa export, kiểm tra \`exports\` hoặc \`--add-exports\`. Đừng dùng \`opens\` để thay thế public API access, và đừng thêm flag rộng chỉ để làm image chạy được mà không xác định module/package thực sự cần quyền.
+If a module needs to access public types in an unexported package, check `exports` or `--add-exports`. Do not use `opens` to replace public API access, and do not add broad flags just to make the image run without identifying which module/package actually needs access.
 
-## 10. Kiểm thử đúng artifact sau mỗi lần thay đổi
+## 10. Testing the Exact Artifact After Every Change
 
-Một thay đổi trong module descriptor, dependency graph, service provider, JDK version hoặc Docker base image có thể làm thay đổi runtime image. Vì vậy, test cần chạy trên artifact được tạo bởi đúng build đang chuẩn bị phát hành.
+A change in the module descriptor, dependency graph, service provider, JDK version, or Docker base image can alter the runtime image. Therefore, tests must run against the artifact produced by the exact build being prepared for release.
 
-Quy trình đề xuất:
+Recommended workflow:
 
-1. Build modular JAR và kiểm tra module descriptor.
-2. Tạo runtime image bằng đúng JDK/toolchain và module path của build.
-3. Kiểm tra danh sách module bằng \`bin/java --list-modules\` trong image.
-4. Chạy smoke test bằng Java executable hoặc launcher bên trong image.
-5. Build container từ đúng runtime image.
-6. Chạy container bằng user, environment, volume và resource limits giống production.
-7. Gửi request health và một vài request nghiệp vụ đại diện.
-8. Kiểm tra log, exit code, readiness, provider discovery và shutdown.
-9. Lưu lại image digest, JDK version, base image digest và kết quả kiểm thử gắn với artifact đã test.
+1. Build the modular JARs and inspect module descriptors.
+2. Create the runtime image using the build's exact JDK/toolchain and module path.
+3. Check the module list using `bin/java --list-modules` inside the image.
+4. Run smoke tests using the Java executable or launcher inside the image.
+5. Build the container from that exact runtime image.
+6. Run the container with production-like user, environment, volumes, and resource limits.
+7. Send health requests and a few representative business requests.
+8. Check logs, exit code, readiness, provider discovery, and shutdown.
+9. Record the image digest, JDK version, base image digest, and test results tied to the tested artifact.
 
-Không dùng một thư mục runtime image cũ để test sau khi source hoặc dependency đã thay đổi. Hãy bảo đảm build output được tạo lại theo quy trình CI của commit đang phát hành.
+Do not reuse an old runtime image directory for testing after source code or dependencies have changed. Ensure the build output is regenerated by the CI workflow for the commit being released.
 
-## 11. Kiểm thử trên nền tảng đích
+## 11. Testing on Target Platforms
 
-Nếu production triển khai trên nhiều nền tảng hoặc kiến trúc, cần tạo và kiểm thử runtime image tương ứng cho từng target. Một image Linux x86_64 không đại diện cho Linux ARM64, Windows hoặc macOS.
+If production deploys across multiple platforms or architectures, build and test the corresponding runtime image for each target. A Linux x86_64 image does not represent Linux ARM64, Windows, or macOS.
 
-Có thể tổ chức matrix CI theo:
+You can organize a CI matrix by:
 
-- OS và phiên bản base image.
+- OS and base image version.
 - CPU architecture.
 - JDK vendor/version.
-- Loại package (runtime image, container hoặc native installer).
-- Profile cấu hình production.
+- Package type (runtime image, container, or native installer).
+- Production configuration profile.
 
-Với mỗi target, thực hiện ít nhất smoke test và kiểm tra các native dependency quan trọng. Nếu không có runner thật cho kiến trúc đích, emulator hoặc cross-build chỉ là bằng chứng một phần; cần có kiểm thử trên môi trường target trước khi phát hành chính thức.
+For each target, run at least a smoke test and check critical native dependencies. If no real runner exists for the target architecture, emulators or cross-builds provide only partial evidence; testing on the target environment is required before official release.
 
-Đặc biệt, không kiểm thử container chỉ trên host Linux rồi giả định mọi runtime environment tương đương. Distribution, libc, certificate store và user policy có thể khác nhau.
+In particular, do not test containers only on a Linux host and assume every runtime environment is equivalent. Distributions, libc, certificate stores, and user policies may differ.
 
-## 12. Chẩn đoán lỗi thường gặp
+## 12. Diagnosing Common Errors
 
-| Dấu hiệu | Nguyên nhân có thể | Hướng kiểm tra |
+| Symptom | Possible Cause | What to Check |
 | --- | --- | --- |
-| Image không có executable java | Runtime image chưa được tạo đúng hoặc copy thiếu thư mục | Kiểm tra cấu trúc output và Docker COPY path. |
-| \`UnsupportedClassVersionError\` | Bytecode được compile bằng phiên bản mới hơn runtime | Đối chiếu \`javac --release\`, JDK compile và runtime version. |
-| \`FindException\` hoặc module not found | Thiếu module trong module path hoặc image | Kiểm tra descriptor, \`--list-modules\`, \`--module-path\` và \`jlink --add-modules\`. |
-| \`ServiceConfigurationError\` hoặc không có provider | Service descriptor/provider không được resolve hoặc liên kết | Kiểm tra \`uses\`, \`provides\`, \`--bind-services\` và module layer. |
-| \`InaccessibleObjectException\` | Package chưa mở cho deep reflection | Kiểm tra \`opens\` hoặc \`--add-opens\` trong JVM thực tế. |
-| \`UnsatisfiedLinkError\` | Thiếu native library, sai kiến trúc hoặc sai ABI | Kiểm tra thư viện native trong base image và target architecture. |
-| TLS handshake hoặc certificate error | CA store hoặc cấu hình TLS thiếu | Kiểm tra trust store, certificate mount và cấu hình JVM. |
-| Không ghi được file | User hoặc filesystem không có quyền ghi | Kiểm tra UID/GID, ownership, mount và thư mục tạm. |
-| Container khởi động rồi thoát | Main process kết thúc hoặc startup failure | Đọc log, exit code và cấu hình ENTRYPOINT/CMD. |
-| Health check thất bại dù process còn chạy | App chưa sẵn sàng, sai port hoặc health endpoint | Kiểm tra readiness, bind address và container health command. |
-| Chạy trên máy dev nhưng lỗi production | Môi trường, biến cấu hình hoặc dependency hệ điều hành khác | Chạy đúng container/base image và user production. |
+| Image lacks java executable | Runtime image was not created properly or directory copy was incomplete | Check output structure and Docker COPY path. |
+| `UnsupportedClassVersionError` | Bytecode was compiled with a newer version than the runtime | Compare `javac --release`, compile JDK, and runtime version. |
+| `FindException` or module not found | Missing module in module path or image | Check descriptors, `--list-modules`, `--module-path`, and `jlink --add-modules`. |
+| `ServiceConfigurationError` or missing provider | Service descriptor/provider was not resolved or linked | Check `uses`, `provides`, `--bind-services`, and module layer. |
+| `InaccessibleObjectException` | Package is not open for deep reflection | Check `opens` or `--add-opens` in the actual JVM. |
+| `UnsatisfiedLinkError` | Missing native library, wrong architecture, or wrong ABI | Check native libraries in the base image and target architecture. |
+| TLS handshake or certificate error | Missing CA store or TLS configuration | Check trust store, certificate mounts, and JVM configuration. |
+| Cannot write files | User or filesystem lacks write permission | Check UID/GID, ownership, mounts, and temporary directories. |
+| Container starts and exits | Main process terminated or startup failure | Read logs, exit code, and ENTRYPOINT/CMD configuration. |
+| Health check fails though process is running | App not ready, wrong port, or health endpoint | Check readiness, bind address, and container health command. |
+| Runs on dev machine but fails in production | Different environment, config variables, or OS dependencies | Run the exact container/base image and production user. |
 
-Khi có lỗi, giữ lại log đầy đủ và lệnh khởi chạy thực tế. Tránh sửa bằng cách thêm module hoặc mở package hàng loạt trước khi biết lỗi thuộc dependency, module access, filesystem hay OS runtime.
+When an error occurs, keep full logs and the actual launch command. Avoid fixing by adding modules or opening packages wholesale before knowing whether the error belongs to dependencies, module access, the filesystem, or the OS runtime.
 
-## 13. Checklist trước khi phát hành runtime image
+## 13. Pre-Release Checklist for Runtime Images
 
-- [ ] Đã xác định OS, architecture, JDK và base image mục tiêu.
-- [ ] Runtime image được tạo từ đúng module graph và toolchain.
-- [ ] Đã kiểm tra \`bin/java --version\` và \`--list-modules\` của image.
-- [ ] Các service provider cần thiết được resolve và khởi tạo.
-- [ ] Ứng dụng khởi động bằng executable bên trong image.
-- [ ] Smoke test và health/readiness test thành công.
-- [ ] Container chạy bằng user không đặc quyền.
-- [ ] Quyền đọc config/secret và quyền ghi thư mục tạm đã được kiểm tra.
-- [ ] DNS, network, TLS, timezone và native dependencies cần thiết đã được thử.
-- [ ] Shutdown và giới hạn tài nguyên đã được thử.
-- [ ] Đã test trên nền tảng đích hoặc có bằng chứng rõ về giới hạn của môi trường kiểm thử.
-- [ ] Image digest và kết quả kiểm thử được gắn với artifact chuẩn bị phát hành.
+- [ ] Target OS, architecture, JDK, and base image are identified.
+- [ ] Runtime image is built from the exact module graph and toolchain.
+- [ ] `bin/java --version` and `--list-modules` of the image have been checked.
+- [ ] Required service providers are resolved and initialized.
+- [ ] Application starts using the executable inside the image.
+- [ ] Smoke tests and health/readiness tests pass.
+- [ ] Container runs as an unprivileged user.
+- [ ] Config/secret read permissions and temp directory write permissions are verified.
+- [ ] DNS, network, TLS, timezone, and required native dependencies are tested.
+- [ ] Shutdown and resource limits are tested.
+- [ ] Tested on the target platform or documented clearly where test environment limitations exist.
+- [ ] Image digest and test results are attached to the release candidate artifact.
 
-Kiểm thử runtime image phải chứng minh rằng chính artifact được phát hành có thể chạy trong điều kiện triển khai dự kiến. Kết hợp kiểm tra module graph, smoke test, container integration test và nền tảng đích sẽ giúp phát hiện sớm lỗi packaging mà unit test trên JDK đầy đủ thường không nhìn thấy.
+Runtime image testing must prove that the exact artifact being released can run under expected deployment conditions. Combining module graph checks, smoke tests, container integration tests, and target-platform verification catches packaging bugs early that unit tests on a full JDK often miss.

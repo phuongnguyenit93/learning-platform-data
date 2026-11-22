@@ -1,30 +1,30 @@
-# String là gì và vai trò biểu diễn văn bản trong Java
+# What is String and Its Role in Representing Text in Java
 
-## 1. String là gì?
+## 1. What is String?
 
-**String** là lớp **java.lang.String** dùng để lưu trữ và thao tác với văn bản trong Java. Một giá trị String là một đối tượng biểu diễn **chuỗi các đơn vị mã UTF-16** (UTF-16 code units), ví dụ tên người dùng, thông báo, đường dẫn, dữ liệu văn bản nhận từ API hoặc nội dung cần ghi vào tệp.
+**String** is the **java.lang.String** class used to store and manipulate text in Java. A String value is an object representing a **sequence of UTF-16 code units**, such as a username, a message, a file path, text data received from an API, or content to be written to a file.
 
 ~~~java
-String greeting = "Xin chào";
+String greeting = "Hello";
 String language = "Java";
 String sentence = greeting + ", " + language + "!";
 ~~~
 
-Đây là **đoạn mã minh họa** có thể đặt bên trong một phương thức; biến **sentence** chứa văn bản “Xin chào, Java!”. Lớp String nằm trong gói **java.lang** nên không cần import.
+This is an **illustrative code snippet** that can be placed inside a method; the **sentence** variable holds the text “Hello, Java!”. The String class resides in the **java.lang** package, so it does not require an import.
 
-Các đặc điểm nền tảng:
+Fundamental characteristics:
 
-- **Kiểu tham chiếu:** String là một lớp, không phải kiểu nguyên thủy như **int**, **boolean** hay **char**. Biến String có thể tham chiếu đến đối tượng String hoặc có giá trị **null**.
-- **Bất biến (immutable):** sau khi một đối tượng String được tạo ra, nội dung của nó không đổi. Các thao tác như **replace**, **concat**, **toUpperCase** hay **strip** trả về giá trị String kết quả; chúng không sửa đối tượng ban đầu.
-- **Lớp final:** không thể kế thừa String để thay đổi hành vi của nó.
-- **Biểu diễn UTF-16 ở mức API:** nhiều phương thức như **length()**, **charAt()** và **substring()** làm việc theo vị trí đơn vị mã UTF-16. Một ký tự người dùng nhìn thấy trên màn hình không nhất thiết tương ứng đúng một vị trí.
-- **Có giá trị rỗng:** chuỗi **""** là một String hợp lệ có độ dài bằng 0. Nó khác **null**, tức không có đối tượng String được tham chiếu.
+- **Reference type:** String is a class, not a primitive type like **int**, **boolean**, or **char**. A String variable can refer to a String object or have the value **null**.
+- **Immutable:** after a String object is created, its content does not change. Operations like **replace**, **concat**, **toUpperCase**, or **strip** return the resulting String value; they do not modify the original object.
+- **Final class:** String cannot be subclassed to alter its behavior.
+- **UTF-16 representation at the API level:** many methods such as **length()**, **charAt()**, and **substring()** operate by UTF-16 code unit position. A character a user sees on screen does not necessarily correspond to exactly one position.
+- **Has an empty value:** the string **""** is a valid String with a length of 0. It is different from **null**, which means no String object is being referenced.
 
-Vai trò của String là **mô hình dữ liệu văn bản** trong chương trình: nhận và hiển thị dữ liệu nhập, truyền thông điệp giữa các lớp, xử lý định dạng, kết hợp với thư viện I/O, cơ sở dữ liệu, HTTP, JSON và các API xử lý ngôn ngữ. String chỉ là kiểu dữ liệu biểu diễn văn bản; nó không tự xác định bộ mã của tệp hay làm sạch đầu vào.
+The role of String is the **text data model** in a program: receiving and displaying input, passing messages between classes, handling formatting, and integrating with I/O libraries, databases, HTTP, JSON, and language-processing APIs. String is solely a data type for representing text; it does not automatically determine a file's character encoding or sanitize input.
 
-## 2. Khởi tạo String, literal và string pool
+## 2. Creating Strings, literals, and the string pool
 
-Cách thông dụng nhất là dùng **string literal** trong dấu ngoặc kép:
+The most common way is to use a **string literal** in double quotes:
 
 ~~~java
 String first = "Java";
@@ -32,49 +32,49 @@ String second = "Java";
 String third = new String("Java");
 ~~~
 
-Literal có thể được tái sử dụng qua **string pool** của JVM. Trong ví dụ này, **first** và **second** cùng tham chiếu một đối tượng literal đã intern; **new String("Java")** tạo một đối tượng mới có cùng nội dung. Tuy nhiên, khi kiểm tra **nội dung**, luôn dùng **equals()** thay vì dựa vào địa chỉ đối tượng.
+Literals can be reused via the JVM's **string pool**. In this example, **first** and **second** reference the same interned literal object; **new String("Java")** creates a new object with the same content. However, when checking **content**, always use **equals()** instead of relying on object addresses.
 
-Một số cách hình thành chuỗi khác:
+Other ways to form a string:
 
-- **Ghép:** **"Xin " + "chào"**, hoặc ghép với biến bằng toán tử **+**.
-- **Từ mảng ký tự:** **new String(charArray)** tạo String từ các phần tử của mảng; thay đổi mảng sau đó không sửa String đã tạo.
-- **Từ byte:** **new String(bytes, StandardCharsets.UTF_8)** dùng bộ giải mã UTF-8 cụ thể; không xem mỗi byte là một ký tự.
-- **Từ giá trị khác:** **String.valueOf(42)** cho ra “42”; **String.valueOf((Object) null)** cho ra chữ “null”, khác với tham chiếu null.
-- **Text block (Java 15+):** cú pháp ba dấu ngoặc kép cho văn bản nhiều dòng, phù hợp với JSON, SQL mẫu hoặc thông điệp dài. Các quy tắc xuống dòng và thụt lề của text block cần được tính đến khi so sánh kết quả.
+- **Concatenation:** **"Hel" + "lo"**, or concatenating with variables using the **+** operator.
+- **From a character array:** **new String(charArray)** creates a String from the array's elements; modifying the array afterward does not modify the created String.
+- **From bytes:** **new String(bytes, StandardCharsets.UTF_8)** uses an explicit UTF-8 decoder; do not treat each byte as a character.
+- **From other values:** **String.valueOf(42)** produces “42”; **String.valueOf((Object) null)** produces the text “null”, which is different from a null reference.
+- **Text block (Java 15+):** triple-double-quote syntax for multi-line text, suitable for JSON, sample SQL, or long messages. Text block newline and indentation rules must be accounted for when comparing results.
 
 ~~~java
 String message = """
-        Xin chào,
+        Hello,
         Java!
         """;
 ~~~
 
-Đoạn mã text block trên là ví dụ khai báo, không phải chương trình hoàn chỉnh. Nội dung nhận được có dấu xuống dòng ở cuối dòng “Java!” do cách viết literal.
+The text block snippet above is a declaration example, not a complete program. The resulting content has a trailing newline at the end of the “Java!” line due to how the literal is written.
 
-**String.intern()** trả về tham chiếu chuẩn trong pool cho cùng nội dung; đây là cơ chế tối ưu/canonicalize có chủ đích, không phải cách so sánh chuỗi thông thường. Không sử dụng **==** với kỳ vọng mọi chuỗi có cùng văn bản luôn chia sẻ một tham chiếu.
+**String.intern()** returns the canonical reference in the pool for the same content; this is an intentional optimization/canonicalization mechanism, not a standard way to compare strings. Do not use **==** expecting all strings with the same text to always share a single reference.
 
-## 3. Bản đồ khái niệm: học đúng trọng tâm
+## 3. Concept map: focus on what matters
 
-Bài mở đầu này giúp nhìn thấy vai trò của String trong chương trình và thử một ví dụ tổng hợp. Mỗi vấn đề dưới đây có bài riêng để đào sâu, nên ở đây chỉ xác định sự khác nhau cốt yếu:
+This introductory lesson helps you see the role of String in a program and try a combined example. Each topic below has its own dedicated lesson for deeper study, so here we only identify the core differences:
 
-| Câu hỏi thực tế | Định hướng đầu tiên | Nội dung học sâu |
+| Practical question | Initial orientation | Deep-dive topic |
 | --- | --- | --- |
-| Một giá trị văn bản khác mảng ký tự ra sao? | `String` bất biến; `char[]` có thể sửa; `CharSequence` là giao diện đọc. | Quan hệ String, char[], CharSequence và đối tượng |
-| Hai biến cùng ghi `"Java"` có nhất thiết cùng đối tượng? | Phân biệt tham chiếu với nội dung; dùng `equals()` để so nội dung. | Nội dung chuỗi và biến tham chiếu |
-| `null`, `""`, dấu cách và chữ `"null"` có giống nhau không? | Đó là những trạng thái dữ liệu khác nhau; `isEmpty()` không đồng nghĩa `isBlank()`. | Chuỗi rỗng, chuỗi trắng, null |
-| Vì sao một lời gọi `replace()` không đổi chuỗi gốc? | Đối tượng String bất biến; phép biến đổi trả về một giá trị String. | Lớp final và tính bất biến |
-| Tìm, cắt, so sánh, thay thế hoặc chuyển byte thế nào? | Chọn API theo mục đích và theo đơn vị ký tự/charset. | Các nhóm thao tác String |
-| Khi nào dùng StringBuilder/StringBuffer? | Khi cần dựng văn bản theo nhiều bước; xem thêm vấn đề chia sẻ giữa các luồng. | Chọn String, StringBuilder hoặc StringBuffer |
+| How does a text value differ from a char array? | `String` is immutable; `char[]` is mutable; `CharSequence` is a read interface. | Relationships between String, char[], CharSequence, and Object |
+| Do two variables both written as `"Java"` necessarily refer to the same object? | Distinguish reference from content; use `equals()` to compare content. | String content vs. reference variables |
+| Are `null`, `""`, spaces, and the text `"null"` the same? | They are distinct data states; `isEmpty()` is not synonymous with `isBlank()`. | Empty strings, blank strings, and null |
+| Why doesn't calling `replace()` change the original string? | A String object is immutable; transformations return a String value. | Final class and immutability |
+| How to search, slice, compare, replace, or convert bytes? | Choose APIs by purpose and by character unit/charset. | String operation categories |
+| When to use StringBuilder/StringBuffer? | When building text across multiple steps; also consider thread sharing. | Choosing String, StringBuilder, or StringBuffer |
 
-**Ba ranh giới quan trọng:** (1) biến tham chiếu có thể gán lại dù đối tượng String bất biến; (2) `length()` đếm đơn vị mã UTF-16, không luôn bằng số ký tự hiển thị; (3) `String` biểu diễn văn bản, còn tệp/HTTP truyền byte phải có charset phù hợp, thường là UTF-8.
+**Three key boundaries:** (1) a reference variable can be reassigned even though the String object is immutable; (2) `length()` counts UTF-16 code units, which does not always equal the number of visible characters; (3) `String` represents text, while files/HTTP transmit bytes that require an appropriate charset, typically UTF-8.
 
-Chẳng hạn `"Java".equals(candidate)` so nội dung và xử lý được `candidate == null`; `"a.b".replace(".", "-")` thay dấu chấm literal, còn `replaceAll` nhận regex. Các lựa chọn ấy sẽ được thực hành có hệ thống ở bài thao tác String.
+For example, `"Java".equals(candidate)` compares content and handles `candidate == null`; `"a.b".replace(".", "-")` replaces a literal dot, whereas `replaceAll` takes a regex. Those choices will be practiced systematically in the String operations lesson.
 
-**Khi ra khỏi bộ nhớ:** đọc/ghi file, JSON, SQL và HTML cần API đúng ngữ cảnh. Charset, serialize, query parameter và escaping không phải chức năng tự động của String. Dữ liệu nhạy cảm trong String cũng không thể chủ động xóa nội dung đối tượng tại chỗ.
+**When leaving memory:** reading/writing files, JSON, SQL, and HTML require context-appropriate APIs. Charsets, serialization, query parameters, and escaping are not automatic features of String. Sensitive data inside a String also cannot be actively erased from the object in place.
 
-## 4. Ví dụ Java 17+ chạy được
+## 4. Runnable Java 17+ example
 
-Lưu mã sau vào tệp **StringOverviewDemo.java**, bảo đảm tên tệp trùng tên lớp **public**.
+Save the following code into **StringOverviewDemo.java**, ensuring the filename matches the **public** class name.
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -106,14 +106,14 @@ public class StringOverviewDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 StringOverviewDemo.java
 java StringOverviewDemo
 ~~~
 
-Kết quả stdout (mỗi kết quả một dòng):
+Stdout output (one result per line):
 
 ~~~text
 Xin chào Java
@@ -128,15 +128,15 @@ a-b
 Việt
 ~~~
 
-Giải thích: **strip()** bỏ hai dấu cách hai đầu; độ dài phần còn lại là 13 code unit. Hai chuỗi khác chữ hoa/thường không bằng nhau qua **equals()**. **new String(...)** tạo một đối tượng khác literal dù nội dung bằng nhau. Emoji dùng hai code unit nhưng là một code point. **replace** và **replaceAll** đều thay đúng dấu chấm khi regex được escape. Byte UTF-8 mã hóa rồi giải mã trở về văn bản gốc.
+Explanation: **strip()** removes the leading and trailing spaces; the remaining length is 13 code units. Two strings differing in letter case are not equal via **equals()**. **new String(...)** creates a different object from the literal even with equal content. The emoji uses two code units but is one code point. Both **replace** and **replaceAll** replace the dot properly when the regex is escaped. UTF-8 bytes encode and then decode back to the original text.
 
-## 5. Tự kiểm tra kiến thức
+## 5. Knowledge self-check
 
-1. **Vì sao String bất biến nhưng vẫn có thể viết s = s + "!"?** Vì phép gán đổi tham chiếu sang kết quả mới; không sửa đối tượng ban đầu.
-2. **Khi nào dùng equals thay cho ==?** Khi cần so nội dung văn bản, bất kể đối tượng được tạo như thế nào.
-3. **"".isEmpty() và " ".isBlank() trả về gì?** Cả hai đều **true**, nhưng áp dụng cho hai tình huống khác nhau; **" ".isEmpty()** là **false**.
-4. **Vì sao "😊".length() trả về 2?** Emoji này được biểu diễn bằng hai code unit UTF-16, dù chỉ gồm một Unicode code point.
-5. **Dùng gì để ghép nhiều nhãn qua vòng lặp?** Thường dùng **StringBuilder**; khi đã có tập các phần tử, **String.join** cũng rất thuận tiện.
-6. **Vì sao nên chỉ định StandardCharsets.UTF_8 khi đọc/ghi?** Để encoding nhất quán và không phụ thuộc charset mặc định của hệ thống.
+1. **Why is String immutable yet we can still write s = s + "!"?** Because the assignment changes the reference to the new result; it does not modify the original object.
+2. **When should you use equals instead of ==?** When you need to compare text content, regardless of how the objects were created.
+3. **What do "".isEmpty() and " ".isBlank() return?** Both return **true**, but they apply to two different situations; **" ".isEmpty()** is **false**.
+4. **Why does "😊".length() return 2?** This emoji is represented by two UTF-16 code units, even though it consists of only one Unicode code point.
+5. **What should you use to join many labels in a loop?** Usually **StringBuilder**; when you already have a collection of elements, **String.join** is also very convenient.
+6. **Why should you specify StandardCharsets.UTF_8 when reading/writing?** To keep the encoding consistent and independent of the system's default charset.
 
-**Ghi nhớ:** String là kiểu dữ liệu trung tâm cho văn bản trong Java, có tính bất biến và API được thiết kế chủ yếu quanh UTF-16. Hiểu đúng sự khác nhau giữa **nội dung và tham chiếu**, **code unit và ký tự hiển thị**, **String và byte đã mã hóa** sẽ giúp tránh phần lớn lỗi xử lý văn bản.
+**Takeaway:** String is the central data type for text in Java, characterized by immutability and an API designed primarily around UTF-16. Properly understanding the differences between **content and reference**, **code units and visible characters**, and **String and encoded bytes** will help prevent most text-processing bugs.

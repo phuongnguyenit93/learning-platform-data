@@ -1,39 +1,39 @@
-# Split package khi có nhiều ModuleLayer trong Java
+# Split Packages with Multiple ModuleLayers in Java
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Khi một ứng dụng Java dùng JPMS (Java Platform Module System) để nạp nhiều plugin, phiên bản thư viện hoặc tập module theo từng `ModuleLayer`, hai module có thể chứa các lớp thuộc cùng một package, ví dụ `com.example.plugin.internal`. Hiện tượng này gọi là **split package**.
+When a Java application uses JPMS (Java Platform Module System) to load multiple plugins, library versions, or sets of modules per `ModuleLayer`, two modules may contain classes belonging to the same package, such as `com.example.plugin.internal`. This phenomenon is called a **split package**.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt tên package, module, class loader và layer khi phân tích xung đột.
-- Biết trường hợp split package gây lỗi lúc resolve module hoặc lúc tạo layer.
-- Tạo hai layer độc lập có cùng tên package mà các lớp vẫn được cô lập.
-- Chọn cách sửa phù hợp cho ứng dụng modular hoặc hệ thống plugin.
+- Distinguish package names, modules, class loaders, and layers when analyzing conflicts.
+- Know when a split package causes an error during module resolution or during layer creation.
+- Create two independent layers with the same package name while keeping their classes isolated.
+- Choose an appropriate fix for a modular application or plugin system.
 
-**Ý chính:** package không nhất thiết phải có tên duy nhất trong toàn bộ JVM. Điều quan trọng là các module nào cùng được đọc, và mỗi module được ánh xạ vào class loader nào. `ModuleLayer` tạo phạm vi cấu hình module; `ClassLoader` thực sự định nghĩa lớp.
+**Core idea:** a package does not necessarily need to have a globally unique name across the entire JVM. What matters is which modules are read together, and which class loader each module is mapped to. `ModuleLayer` establishes the module configuration scope; `ClassLoader` actually defines the classes.
 
-## 2. Các khái niệm cần nắm
+## 2. Key Concepts to Understand
 
-| Khái niệm | Vai trò |
+| Concept | Role |
 | --- | --- |
-| Package | Nhóm lớp có tên chung, như `com.example.shared`. |
-| Named module | Đơn vị JPMS khai báo bởi `module-info.java`; chứa tập package, quan hệ `requires`, `exports`, `opens` và dịch vụ. |
-| `Configuration` | Đồ thị module sau khi giải quyết phụ thuộc và quan hệ đọc. |
-| `ModuleLayer` | Tập module đã được định nghĩa từ một `Configuration`, có thể liên kết với các layer cha. |
-| Class loader | Định nghĩa lớp từ bytecode. Hai lớp cùng tên đầy đủ nhưng do hai loader khác nhau định nghĩa là hai kiểu khác nhau. |
-| Split package | Cùng một tên package xuất hiện ở hai hay nhiều module hoặc nguồn lớp khác nhau. |
+| Package | A group of classes sharing a common name, such as `com.example.shared`. |
+| Named module | A JPMS unit declared by `module-info.java`; contains a set of packages, `requires`, `exports`, `opens`, and services. |
+| `Configuration` | The module graph after resolving dependencies and readability relationships. |
+| `ModuleLayer` | A collection of modules defined from a `Configuration`, which can be linked to parent layers. |
+| Class loader | Defines classes from bytecode. Two classes with the same fully qualified name defined by two different loaders are two different types. |
+| Split package | The same package name appearing in two or more different modules or class sources. |
 
-Hai câu hỏi phải được tách riêng:
+Two questions must be kept separate:
 
-1. **Phần giải quyết module:** Một module có thể đọc hai module cùng xuất một package hay không? Nếu có xung đột khả năng đọc, quá trình resolution có thể thất bại.
-2. **Phần ánh xạ class loader:** Nhiều named module chứa cùng package có bị gán vào một class loader hay không? Nếu có, Java không thể định nghĩa chúng như các module riêng biệt trong cùng loader.
+1. **Module resolution:** Can a module read two modules that both export the same package? If there is a readability conflict, resolution may fail.
+2. **Class loader mapping:** Are multiple named modules containing the same package assigned to a single class loader? If so, Java cannot define them as separate modules in the same loader.
 
-Không nên suy luận “hai layer có package trùng tên thì luôn lỗi”. Cũng không nên suy luận “dùng layer khác nhau thì chắc chắn không lỗi”: cấu hình phụ thuộc, quan hệ đọc và cách chọn loader vẫn quan trọng.
+Do not assume "two layers having overlapping package names will always fail." Nor should you assume "using different layers guarantees no errors": dependency configuration, readability relationships, and loader selection still matter.
 
-## 3. Split package xuất hiện ở đâu?
+## 3. Where Do Split Packages Appear?
 
-Xét hai module có cấu trúc:
+Consider two modules with the structure:
 
 ```text
 module demo.plugin.alpha
@@ -43,23 +43,23 @@ module demo.plugin.beta
   └── demo.plugin.impl.Greeter
 ```
 
-Cả hai chứa package `demo.plugin.impl`. Kết quả tùy cấu hình:
+Both contain package `demo.plugin.impl`. The outcome depends on the configuration:
 
-| Tình huống | Kết quả cần chú ý |
+| Scenario | Outcome to note |
 | --- | --- |
-| Hai module cùng được gán **một class loader** | Không thể cùng sở hữu package đó trong loader; tạo layer có thể ném `LayerInstantiationException`. |
-| Hai module ở cùng layer nhưng được gán **hai loader riêng** | Có thể định nghĩa nếu cấu hình module hợp lệ và không phát sinh xung đột readability/export. |
-| Mỗi module ở **một layer anh em**, mỗi layer tạo loader riêng | Có thể cùng chứa tên package, thậm chí cùng tên lớp, nhưng hai lớp có định danh kiểu khác nhau. |
-| Một module đọc hai module đều `exports` cùng package cho nó | Resolver có thể ném `ResolutionException`, dù dự định dùng nhiều loader. |
-| Hai lớp có cùng tên nhưng được nạp từ loader khác nhau | `Class<?>` khác nhau; không thể cast qua lại chỉ vì cùng tên lớp. |
+| Both modules are assigned to **one class loader** | Cannot both own that package in the loader; layer creation may throw `LayerInstantiationException`. |
+| Both modules are in the same layer but assigned to **two separate loaders** | Can be defined if the module configuration is valid and no readability/export conflict arises. |
+| Each module is in a **sibling layer**, each layer creating its own loader | Can share the same package name and even the same class name, while the two classes have different type identities. |
+| One module reads two modules that both `exports` the same package to it | The resolver may throw `ResolutionException`, even if multiple loaders were intended. |
+| Two classes have the same name but are loaded from different loaders | Different `Class<?>` objects; cannot be cast to each other merely because of the same class name. |
 
-Đặc biệt, `defineModulesWithOneLoader(...)` **tạo một class loader mới** để định nghĩa các module trong cấu hình layer đó. Tham số `parentLoader` chỉ là loader cha cho việc ủy quyền. Hai lần gọi độc lập thường tạo hai loader định nghĩa khác nhau, ngay cả khi truyền cùng một `parentLoader`.
+In particular, `defineModulesWithOneLoader(...)` **creates a new class loader** to define the modules in that layer configuration. The `parentLoader` parameter is only the parent loader for delegation. Two independent calls typically create two different defining loaders, even when passing the same `parentLoader`.
 
-## 4. Ví dụ chạy được: hai layer anh em có cùng package
+## 4. Runnable Example: Two Sibling Layers with the Same Package
 
-Ta tạo hai named module khác tên, cùng package và cùng tên lớp. Chúng được nạp vào hai `ModuleLayer` độc lập, có cùng layer cha là boot layer.
+We create two named modules with different names, the same package, and the same class name. They are loaded into two independent `ModuleLayer` instances sharing the boot layer as their parent layer.
 
-### 4.1. Cấu trúc thư mục
+### 4.1. Directory Structure
 
 ```text
 project/
@@ -72,7 +72,7 @@ project/
 │   │   └── demo/plugin/impl/Greeter.java
 │   └── host/
 │       └── LayerDemo.java
-└── mods/                         # sản phẩm biên dịch
+└── mods/                         # compiled output
 ```
 
 File `src/alpha/module-info.java`:
@@ -90,7 +90,7 @@ package demo.plugin.impl;
 
 public final class Greeter {
     public String message() {
-        return "Xin chào từ alpha";
+        return "Hello from alpha";
     }
 }
 ```
@@ -110,14 +110,14 @@ package demo.plugin.impl;
 
 public final class Greeter {
     public String message() {
-        return "Xin chào từ beta";
+        return "Hello from beta";
     }
 }
 ```
 
-Ở đây việc hai module khai báo cùng `exports demo.plugin.impl` là có chủ đích: ta muốn quan sát cùng tên package trong hai phạm vi layer tách biệt. Trong thiết kế thực tế, nên giữ package triển khai ở trạng thái không export nếu host không cần truy cập trực tiếp.
+Here, having both modules declare `exports demo.plugin.impl` is intentional: we want to observe the same package name in two isolated layer scopes. In real-world design, keep implementation packages unexported if the host does not need direct access.
 
-### 4.2. Host nạp từng module vào một layer
+### 4.2. Host Loading Each Module into a Layer
 
 File `src/host/LayerDemo.java`:
 
@@ -138,7 +138,7 @@ public final class LayerDemo {
                 Set.of(moduleName)
         );
 
-        // Mỗi lần gọi tạo loader mới cho layer vừa định nghĩa.
+        // Each call creates a new loader for the newly defined layer.
         return parent.defineModulesWithOneLoader(
                 config, ClassLoader.getSystemClassLoader()
         );
@@ -169,11 +169,11 @@ public final class LayerDemo {
 }
 ```
 
-`ModuleFinder.of(modulePath)` trỏ tới thư mục module đã biên dịch, gồm `module-info.class`. Mỗi `resolve(...)` chỉ chọn một plugin làm root; `defineModulesWithOneLoader(...)` của mỗi lần nạp tạo loader cho layer tương ứng.
+`ModuleFinder.of(modulePath)` points to the compiled module directory containing `module-info.class`. Each `resolve(...)` selects only one plugin as the root; `defineModulesWithOneLoader(...)` on each load creates a loader for its respective layer.
 
-### 4.3. Biên dịch và chạy
+### 4.3. Compiling and Running
 
-Ví dụ lệnh cho Bash (Java 11 trở lên; Java 17 hoặc 21 LTS đều phù hợp):
+Example commands for Bash (Java 11 and later; Java 17 or 21 LTS are both suitable):
 
 ```bash
 mkdir -p mods/demo.plugin.alpha mods/demo.plugin.beta out/host
@@ -188,7 +188,7 @@ javac -d out/host src/host/LayerDemo.java
 java -cp out/host LayerDemo
 ```
 
-Đầu ra kỳ vọng:
+Expected output:
 
 ```text
 true
@@ -198,18 +198,18 @@ demo.plugin.alpha
 demo.plugin.beta
 ```
 
-Giải thích:
+Explanation:
 
-- `true`: hai lớp có cùng tên nhị phân `demo.plugin.impl.Greeter`.
-- `false` thứ nhất: chúng là hai đối tượng `Class` khác nhau.
-- `false` thứ hai: chúng do hai loader khác nhau định nghĩa.
-- Tên module cho thấy chúng thực sự thuộc hai named module khác nhau.
+- `true`: both classes have the same binary name `demo.plugin.impl.Greeter`.
+- First `false`: they are two different `Class` objects.
+- Second `false`: they were defined by two different loaders.
+- Module names show that they genuinely belong to two different named modules.
 
-Đây là cách cô lập hai triển khai có tên package trùng nhau mà không phải đổi package trong ví dụ. Tuy vậy, một đối tượng `Greeter` do layer alpha tạo ra không thể được ép kiểu sang `Greeter` của layer beta.
+This is a way to isolate two implementations with overlapping package names without renaming packages in the example. However, a `Greeter` object created by the alpha layer cannot be cast to `Greeter` from the beta layer.
 
-## 5. Khi gộp hai module vào cùng layer sẽ ra sao?
+## 5. What Happens If Both Modules Are Combined into the Same Layer?
 
-Nếu đặt cả hai module vào cùng một `Configuration` rồi cố gán **một** loader:
+If you put both modules into the same `Configuration` and try to assign **one** loader:
 
 ```java
 ModuleLayer parent = ModuleLayer.boot();
@@ -223,15 +223,15 @@ Configuration config = parent.configuration().resolve(
         Set.of("demo.plugin.alpha", "demo.plugin.beta")
 );
 
-// Hai module đều chứa demo.plugin.impl:
+// Both modules contain demo.plugin.impl:
 ModuleLayer layer = parent.defineModulesWithOneLoader(
         config, ClassLoader.getSystemClassLoader()
 );
 ```
 
-Với cấu hình không bị từ chối trước đó ở bước resolution, thao tác định nghĩa một loader cho cả hai module sẽ thất bại với `LayerInstantiationException` do package trùng. Chuỗi thông báo chính xác tùy phiên bản JDK.
+With a configuration not rejected earlier at the resolution step, attempting to define one loader for both modules will fail with `LayerInstantiationException` due to the duplicate package. The exact message string depends on the JDK version.
 
-Có thể đổi thành:
+You can switch to:
 
 ```java
 ModuleLayer layer = parent.defineModulesWithManyLoaders(
@@ -239,13 +239,13 @@ ModuleLayer layer = parent.defineModulesWithManyLoaders(
 );
 ```
 
-Phương thức này tạo loader riêng cho từng module trong cấu hình, vì vậy giải quyết ràng buộc **cùng package trong cùng loader**. Nhưng nó **không** loại bỏ xung đột đồ thị module: nếu một module đọc hai module cùng export một package cho nó, `Configuration.resolve(...)` vẫn có thể thất bại trước khi tạo layer.
+This method creates a separate loader for each module in the configuration, thereby resolving the **same package in the same loader** constraint. However, it does **not** eliminate module graph conflicts: if a module reads two modules that both export the same package to it, `Configuration.resolve(...)` can still fail before creating the layer.
 
-Lựa chọn nhiều loader cũng có chi phí: nhiều class loader, phiên bản lớp tách biệt, khó chia sẻ kiểu triển khai hoặc trạng thái tĩnh. Đừng dùng nó chỉ để che một thiết kế package trùng không cần thiết.
+The many-loaders option also carries costs: more class loaders, separated class versions, and difficulty sharing implementation types or static state. Do not use it merely to mask an unnecessary overlapping package design.
 
-## 6. Vì sao resolution có thể lỗi dù loader khác nhau?
+## 6. Why Can Resolution Fail Even with Different Loaders?
 
-Giả sử `demo.consumer` có:
+Suppose `demo.consumer` has:
 
 ```java
 module demo.consumer {
@@ -254,24 +254,24 @@ module demo.consumer {
 }
 ```
 
-Nếu cả hai plugin đều `exports demo.plugin.impl` cho `demo.consumer`, consumer nhìn thấy hai module cung cấp cùng package. JPMS không cho phép đồ thị đọc dẫn tới việc một module thấy hai package được export có cùng tên. Resolver có thể báo `java.lang.module.ResolutionException` với thông tin về các module và package xung đột.
+If both plugins `exports demo.plugin.impl` to `demo.consumer`, the consumer sees two modules providing the same package. JPMS does not allow a readability graph that results in one module seeing two exported packages with the same name. The resolver may report `java.lang.module.ResolutionException` with details about the conflicting modules and package.
 
-Như vậy cần phân biệt:
+Thus, you must distinguish:
 
-- **Xung đột ở resolution**: sai quan hệ `requires`/`exports`, không tạo được `Configuration` hợp lệ.
-- **Xung đột ở layer instantiation**: cấu hình có thể hợp lệ, nhưng ánh xạ các module có package trùng vào chung loader không hợp lệ.
-- **Xung đột lúc sử dụng lớp**: dù hai layer nạp thành công, lớp từ hai loader không cùng một kiểu; thao tác cast, reflection hoặc truyền đối tượng sai kiểu có thể thất bại.
+- **Conflict at resolution:** invalid `requires`/`exports` relationships; a valid `Configuration` cannot be created.
+- **Conflict at layer instantiation:** the configuration may be valid, yet mapping modules with duplicate packages to a shared loader is invalid.
+- **Conflict when using classes:** even if both layers load successfully, classes from two loaders are not the same type; casts, reflection, or passing objects of the wrong type can fail.
 
-Tách layer phù hợp khi mỗi plugin được giải quyết và nạp riêng; host chỉ tương tác với một API chung ổn định, không trực tiếp `requires` toàn bộ các module plugin chứa package trùng nhau.
+Splitting layers is suitable when each plugin is resolved and loaded independently; the host only interacts with a stable shared API rather than directly `requires`-ing all plugin modules that contain overlapping packages.
 
-## 7. Thiết kế plugin đúng hướng
+## 7. Designing Plugins in the Right Direction
 
-Một kiến trúc thường dễ bảo trì hơn:
+A generally easier-to-maintain architecture:
 
 ```text
 Boot/parent layer
   └── demo.plugin.api
-       └── demo.plugin.api.Plugin  (giao diện chung)
+       └── demo.plugin.api.Plugin  (shared interface)
           ↑                    ↑
           │                    │
 Child layer A             Child layer B
@@ -280,7 +280,7 @@ Child layer A             Child layer B
   demo.plugin.impl          demo.plugin.impl
 ```
 
-Đặt interface `Plugin` trong module API do layer cha cung cấp; mỗi plugin có thể dùng package triển khai riêng, hoặc trong trường hợp cô lập thực sự cần thiết mới giữ tên package trùng nhau. Mỗi plugin khai báo phụ thuộc API và cung cấp triển khai:
+Place the `Plugin` interface in an API module supplied by the parent layer; each plugin can use its own implementation package, or keep overlapping package names only in cases where isolation is truly needed. Each plugin declares its API dependency and provides an implementation:
 
 ```java
 module demo.plugin.alpha {
@@ -290,7 +290,7 @@ module demo.plugin.alpha {
 }
 ```
 
-Ở plugin còn lại có thể dùng:
+In the other plugin, you can use:
 
 ```java
 module demo.plugin.beta {
@@ -300,27 +300,27 @@ module demo.plugin.beta {
 }
 ```
 
-Host có thể tìm provider ở từng layer thông qua `ServiceLoader.load(layer, Plugin.class)`, với `Plugin.class` được nạp từ module API chung. Vì interface thuộc cùng module API/loader cha, host trao đổi qua kiểu `Plugin` ổn định mà không cần cast giữa các lớp triển khai trùng tên.
+The host can locate providers in each layer via `ServiceLoader.load(layer, Plugin.class)`, with `Plugin.class` loaded from the shared API module. Because the interface belongs to the same parent API module/loader, the host communicates through the stable `Plugin` type without casting between identically named implementation classes.
 
-Một số nguyên tắc:
+Some principles:
 
-1. Đặt API, DTO và hợp đồng dịch vụ dùng chung ở module/layer cha. Những kiểu truyền qua ranh giới layer phải có định danh lớp thống nhất.
-2. Chỉ giữ các package trùng tên ở vùng triển khai thực sự được cô lập. Nếu có quyền sửa mã nguồn, đặt tên package duy nhất cho từng module thường đơn giản hơn.
-3. Dùng `ModuleLayer.findLoader(moduleName)` để nạp lớp của đúng module; tránh mặc định rằng `ClassLoader.getSystemClassLoader()` tìm được mọi plugin.
-4. Giải phóng các tham chiếu đến `Class`, instance, thread, cache, `ServiceLoader` và loader khi muốn dỡ plugin. Layer không có lệnh `unload()`; việc thu hồi phụ thuộc garbage collector và các tham chiếu còn sống.
-5. Không coi `--add-reads`, `--add-exports` hoặc `--add-opens` là biện pháp sửa split package. Chúng điều chỉnh truy cập, không biến hai module có package trùng thành một package hợp lệ trong một loader.
+1. Place shared APIs, DTOs, and service contracts in the parent module/layer. Types passed across layer boundaries must have a unified class identity.
+2. Keep overlapping package names only in implementation regions that are genuinely isolated. If you have access to edit the source code, giving each module unique package names is usually simpler.
+3. Use `ModuleLayer.findLoader(moduleName)` to load classes of the right module; avoid assuming `ClassLoader.getSystemClassLoader()` can find every plugin.
+4. Release references to `Class`, instances, threads, caches, `ServiceLoader`, and loaders when you want to unload a plugin. A layer has no `unload()` command; reclamation depends on the garbage collector and live references.
+5. Do not treat `--add-reads`, `--add-exports`, or `--add-opens` as a fix for split packages. They adjust access, not turn two modules with duplicate packages into a single valid package in one loader.
 
-## 8. Chẩn đoán lỗi theo từng giai đoạn
+## 8. Diagnosing Errors by Stage
 
-| Dấu hiệu | Kiểm tra đầu tiên | Hướng xử lý |
+| Symptom | Check first | How to address |
 | --- | --- | --- |
-| `ResolutionException` khi `resolve` | Module nào `requires` hoặc đọc đồng thời hai nguồn export cùng package? | Sửa đồ thị module, tách các plugin theo layer, hoặc di chuyển package về một module chung. |
-| `LayerInstantiationException` khi `defineModulesWithOneLoader` | Hai module trong cấu hình có cùng package không? | Dùng loader riêng nếu kiến trúc cho phép, hoặc loại bỏ split package. |
-| `ClassNotFoundException` khi tìm plugin | Có đang gọi loader của đúng module/layer và đường dẫn module có đúng không? | Lấy loader qua `layer.findLoader(moduleName)`, kiểm tra tên module và artefact biên dịch. |
-| `ClassCastException` dù tên lớp giống nhau | Hai kiểu có cùng defining class loader không? | Chia sẻ interface/DTO từ layer cha; không ép kiểu qua hai bản sao lớp triển khai. |
-| `IllegalAccessException` hoặc `InaccessibleObjectException` | Package có `exports`/`opens` phù hợp không? | Điều chỉnh quyền truy cập theo đúng nhu cầu; không nhầm với xung đột split package. |
+| `ResolutionException` during `resolve` | Which module `requires` or simultaneously reads two sources exporting the same package? | Fix the module graph, split plugins across layers, or consolidate the package into one shared module. |
+| `LayerInstantiationException` during `defineModulesWithOneLoader` | Do two modules in the configuration share the same package? | Use separate loaders if the architecture permits, or eliminate the split package. |
+| `ClassNotFoundException` when loading a plugin | Are you invoking the loader of the right module/layer and is the module path correct? | Obtain the loader via `layer.findLoader(moduleName)`, verify the module name and compiled artifacts. |
+| `ClassCastException` despite identical class names | Do both types have the same defining class loader? | Share interfaces/DTOs from the parent layer; do not cast across two copies of implementation classes. |
+| `IllegalAccessException` or `InaccessibleObjectException` | Does the package have appropriate `exports`/`opens`? | Adjust access permissions according to actual need; do not confuse with split-package conflicts. |
 
-Để quan sát nhanh nguồn gốc lớp ở runtime:
+To quickly inspect a class's origin at runtime:
 
 ```java
 System.out.println(type.getName());
@@ -329,25 +329,25 @@ System.out.println(type.getClassLoader());
 System.out.println(type.getModule().getLayer());
 ```
 
-Khi debug, đối chiếu cả **tên lớp + module + loader + layer**. Chỉ nhìn tên package hoặc tên lớp thường không đủ để giải thích tại sao hai đối tượng không tương thích.
+When debugging, cross-check **(class name + module + loader + layer)**. Looking at only the package name or class name is usually not enough to explain why two objects are incompatible.
 
-## 9. Khi nào nên dùng giải pháp nào?
+## 9. When Should You Use Which Solution?
 
-- **Thư viện và ứng dụng modular thông thường:** tránh split package; gom package vào một named module, hoặc đổi tên package theo module. Đây là phương án dễ bảo trì nhất.
-- **Nhiều plugin hoặc nhiều phiên bản phụ thuộc cần tồn tại song song:** cân nhắc các layer anh em với loader riêng, giữ API chung trong layer cha và giao tiếp qua service/interface.
-- **Nhiều module ở một layer nhưng package bị trùng:** `defineModulesWithManyLoaders` có thể hỗ trợ ở bước định nghĩa lớp, với điều kiện cấu hình resolution không có xung đột readability; đánh giá rõ chi phí cách ly kiểu.
-- **Có package trên classpath và module path:** kiểm tra thêm hành vi của unnamed module và cơ chế delegation. Đừng mặc định có thể chuyển các JAR từ classpath sang module path mà giữ nguyên các package trùng.
+- **Ordinary modular libraries and applications:** avoid split packages; consolidate the package into one named module, or rename packages by module. This is the easiest option to maintain.
+- **Multiple plugins or multiple dependency versions needing to coexist:** consider sibling layers with separate loaders, keeping shared APIs in a parent layer and communicating via services/interfaces.
+- **Multiple modules in one layer with overlapping packages:** `defineModulesWithManyLoaders` can help at the class-definition step, provided the resolution configuration has no readability conflicts; carefully weigh the cost of type isolation.
+- **Packages present on both classpath and module path:** also check unnamed module behavior and delegation mechanisms. Do not assume you can move JARs from the classpath to the module path while keeping duplicate packages intact.
 
-Không có một cờ JVM nào tự động giải quyết mọi trường hợp split package. Cần xác định lỗi nằm ở **đồ thị đọc module** hay **cách định nghĩa lớp vào class loader** trước khi chọn cách sửa.
+There is no single JVM flag that automatically resolves every split-package case. Determine whether the error lies in the **module readability graph** or **how classes are defined into class loaders** before choosing a fix.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-1. Hai module ở hai layer khác nhau cùng chứa `com.example.util`: có nhất thiết lỗi không? **Không**; xét thêm cấu hình và loader.
-2. Hai module chứa cùng package và được gán một loader: có hợp lệ không? **Không**, với named modules việc định nghĩa layer sẽ gặp xung đột.
-3. `defineModulesWithManyLoaders` có sửa lỗi consumer đọc hai module cùng export một package không? **Không**; lỗi resolution vẫn có thể xảy ra.
-4. Hai class có tên `demo.plugin.impl.Greeter` nhưng loader khác nhau có phải cùng kiểu không? **Không**.
-5. Muốn truyền dữ liệu an toàn giữa hai plugin layer nên làm gì? **Dùng interface/DTO từ module API chung ở layer cha**, hoặc chuyển dữ liệu qua dạng trung gian như JSON nếu muốn cô lập hoàn toàn.
+1. Two modules in two different layers both contain `com.example.util`: must this fail? **No**; examine the configuration and loaders as well.
+2. Two modules contain the same package and are assigned to one loader: is this valid? **No**, for named modules defining the layer will hit a conflict.
+3. Does `defineModulesWithManyLoaders` fix an error where a consumer reads two modules exporting the same package? **No**; a resolution error can still occur.
+4. Are two classes named `demo.plugin.impl.Greeter` with different loaders the same type? **No**.
+5. To pass data safely between two plugin layers, what should you do? **Use interfaces/DTOs from a shared API module in a parent layer**, or transfer data via an intermediate format such as JSON if full isolation is desired.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-Trong JPMS, một split package có thể là lỗi ở **resolution**, ở **ánh xạ loader khi tạo layer**, hoặc là nguồn gây nhầm lẫn **định danh kiểu khi chạy**. Tách plugin thành các `ModuleLayer` với loader riêng có thể cho phép trùng tên package, nhưng không làm hai lớp cùng tên trở thành cùng một lớp. Thiết kế ổn định nhất là giữ API dùng chung ở layer cha và cô lập phần triển khai ở các layer con.
+In JPMS, a split package can be an error at **resolution**, at **loader mapping when creating a layer**, or a source of confusion in **runtime type identity**. Splitting plugins into separate `ModuleLayer` instances with separate loaders can allow overlapping package names, yet it does not make two identically named classes the same class. The most stable design is to keep shared APIs in a parent layer and isolate implementations in child layers.

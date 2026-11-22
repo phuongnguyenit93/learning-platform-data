@@ -1,34 +1,34 @@
-# `AnnotatedType` và kiểu nền bên dưới trong Java Reflection
+# `AnnotatedType` and the Underlying Type in Java Reflection
 
-## 1. `AnnotatedType` dùng để làm gì?
+## 1. What is `AnnotatedType` for?
 
-Từ Java 8, annotation có thể xuất hiện ngay tại **vị trí sử dụng một kiểu** (*type use*): trên kiểu phần tử generic, kiểu của trường, kiểu trả về, phần tử mảng, wildcard, giới hạn type variable, v.v. Reflection cung cấp giao diện `java.lang.reflect.AnnotatedType` để giữ cả hai phần thông tin:
+Since Java 8, annotations can appear directly at **a type-use position**: on generic element types, field types, return types, array elements, wildcards, type variable bounds, etc. Reflection provides the `java.lang.reflect.AnnotatedType` interface to hold both pieces of information:
 
-1. **Kiểu nền** (*underlying type*): trả qua `getType()`, là một `java.lang.reflect.Type`.
-2. **Annotation gắn tại chính vị trí sử dụng kiểu đó**: truy cập bằng `getAnnotation(...)`, `getAnnotations()`, `getDeclaredAnnotations()` trên nút `AnnotatedType`.
+1. **The underlying type**: returned via `getType()`, which is a `java.lang.reflect.Type`.
+2. **Annotations attached at that exact type-use position**: accessed using `getAnnotation(...)`, `getAnnotations()`, `getDeclaredAnnotations()` on the `AnnotatedType` node.
 
-Ví dụ:
+Example:
 
 ~~~java
 List<@NonNull String> names;
 ~~~
 
-Nếu `@NonNull` là annotation áp dụng cho `TYPE_USE` và có `RetentionPolicy.RUNTIME`, Reflection có thể đọc annotation ở **kiểu đối số `String`**, không phải mặc nhiên ở `List`, tên biến `names` hay mọi đối tượng `String` khác.
+If `@NonNull` is an annotation applicable to `TYPE_USE` with `RetentionPolicy.RUNTIME`, Reflection can read the annotation at **the `String` argument type**, not implicitly on `List`, the variable name `names`, or every other `String` object.
 
-Điểm quan trọng nhất: **`AnnotatedType` không phải là một `Type` mới đã được thay đổi**. Nó là lớp biểu diễn vị trí kiểu *kèm annotation*. Gọi `getType()` để lấy `Type` tương ứng; gọi các API `Annotated...` để đi vào cấu trúc con mà vẫn giữ annotation tại từng nút.
+The most important point: **`AnnotatedType` is not a new modified `Type`**. It is the layer representing a type position *together with its annotations*. Call `getType()` to obtain the corresponding `Type`; call the `Annotated...` APIs to descend into child structures while preserving annotations at each node.
 
-## 2. So sánh `Type`, `AnnotatedType` và annotation khai báo
+## 2. Comparing `Type`, `AnnotatedType`, and declaration annotations
 
-| Thành phần | Câu hỏi nó trả lời | Ví dụ |
+| Component | Question it answers | Example |
 | --- | --- | --- |
-| `Class<?>` | Kiểu runtime hoặc lớp của trường khi xem dưới dạng raw type | `List.class`, `String[].class` |
-| `Type` | Biểu diễn một kiểu Java có thể chứa generic | `List<String>`, `? extends Number`, `T` |
-| `AnnotatedType` | Kiểu được **sử dụng tại một vị trí**, cùng annotation ở vị trí ấy | `@Mark List<@Mark String>` |
-| `AnnotatedElement` của `Field`/`Method` | Annotation khai báo trên **phần tử** trường/phương thức | `@Deprecated` trên phương thức |
+| `Class<?>` | Runtime type or class of a field when viewed as a raw type | `List.class`, `String[].class` |
+| `Type` | Represents a Java type that may contain generics | `List<String>`, `? extends Number`, `T` |
+| `AnnotatedType` | Type **used at a specific position**, along with annotations at that position | `@Mark List<@Mark String>` |
+| `AnnotatedElement` of `Field`/`Method` | Annotations declared on the **field/method element** | `@Deprecated` on a method |
 
-Một `AnnotatedType` chính nó thực hiện `AnnotatedElement`, nên có `getAnnotation()`, `getAnnotations()`. Nhưng điều đó **không khiến nó đồng nhất với `Field` hay `Method`**.
+An `AnnotatedType` itself implements `AnnotatedElement`, so it has `getAnnotation()` and `getAnnotations()`. However, that **does not make it identical to `Field` or `Method`**.
 
-Ví dụ:
+Example:
 
 ~~~java
 @Target(ElementType.TYPE_USE)
@@ -40,31 +40,31 @@ class Example {
 }
 ~~~
 
-Đoạn mã trên cần import `java.lang.annotation.*` và `java.util.List`; đây là minh họa, chưa phải chương trình độc lập.
+The snippet above requires importing `java.lang.annotation.*` and `java.util.List`; it is illustrative and not a standalone program.
 
-- `Example.class.getDeclaredField("values").getDeclaredAnnotations()` kiểm tra annotation khai báo trực tiếp **trên trường**; trong ví dụ không có annotation declaration tại đó.
-- `field.getAnnotatedType()` biểu diễn việc sử dụng `List<...>`. Nếu `List` không có annotation trực tiếp, `getAnnotation(Mark.class)` trên nút gốc là `null`.
-- `((AnnotatedParameterizedType) field.getAnnotatedType()).getAnnotatedActualTypeArguments()[0]` biểu diễn `String`, và chính nút này có `@Mark`.
+- `Example.class.getDeclaredField("values").getDeclaredAnnotations()` checks annotations declared directly **on the field**; in the example there is no declaration annotation there.
+- `field.getAnnotatedType()` represents the use of `List<...>`. Since `List` has no direct annotation, `getAnnotation(Mark.class)` on the root node is `null`.
+- `((AnnotatedParameterizedType) field.getAnnotatedType()).getAnnotatedActualTypeArguments()[0]` represents `String`, and this node has `@Mark`.
 
-**`field.getAnnotatedType().getType()` chỉ lấy cấu trúc `Type`; không được dùng kết quả đó để hỏi annotation của từng vị trí generic.**
+**`field.getAnnotatedType().getType()` only retrieves the `Type` structure; do not use that result to query annotations of individual generic positions.**
 
-## 3. Lấy `AnnotatedType` từ đâu?
+## 3. Where do you get `AnnotatedType` from?
 
-| Nguồn Reflection | API | Vị trí type-use được mô tả |
+| Reflection source | API | Type-use position described |
 | --- | --- | --- |
-| Field | `Field.getAnnotatedType()` | Kiểu của trường |
-| Method | `Method.getAnnotatedReturnType()` | Kiểu trả về |
-| Method | `Method.getAnnotatedParameterTypes()` | Mỗi kiểu tham số theo thứ tự |
-| Method/Constructor | `getAnnotatedExceptionTypes()` | Các kiểu exception khai báo trong `throws` |
-| Constructor/Method | `getAnnotatedReceiverType()` | Kiểu receiver, nếu áp dụng |
-| Class | `Class.getAnnotatedSuperclass()` | Kiểu `extends` |
-| Class | `Class.getAnnotatedInterfaces()` | Các kiểu `implements` hoặc `extends` interface |
-| Type variable | `TypeVariable.getAnnotatedBounds()` | Các kiểu bound của type variable |
-| Record component (Java 16+) | `RecordComponent.getAnnotatedType()` | Kiểu thành phần record |
+| Field | `Field.getAnnotatedType()` | Type of the field |
+| Method | `Method.getAnnotatedReturnType()` | Return type |
+| Method | `Method.getAnnotatedParameterTypes()` | Each parameter type in order |
+| Method/Constructor | `getAnnotatedExceptionTypes()` | Exception types declared in `throws` |
+| Constructor/Method | `getAnnotatedReceiverType()` | Receiver type, if applicable |
+| Class | `Class.getAnnotatedSuperclass()` | `extends` type |
+| Class | `Class.getAnnotatedInterfaces()` | `implements` or interface `extends` types |
+| Type variable | `TypeVariable.getAnnotatedBounds()` | Bound types of the type variable |
+| Record component (Java 16+) | `RecordComponent.getAnnotatedType()` | Type of the record component |
 
-Không phải API nào cũng đảm bảo trả về một đối tượng không `null`: chẳng hạn `getAnnotatedSuperclass()` có thể trả `null` khi không có superclass tương ứng. Các API trả mảng có thể trả mảng rỗng. Kiểm tra giá trị và cấu trúc thực tế trước khi ép kiểu.
+Not every API guarantees returning a non-`null` object: for instance, `getAnnotatedSuperclass()` can return `null` when there is no corresponding superclass. Array-returning APIs can return empty arrays. Check the actual values and structure before casting.
 
-Với một field generic:
+For a generic field:
 
 ~~~java
 Field field = Box.class.getDeclaredField("labels");
@@ -72,61 +72,61 @@ Field field = Box.class.getDeclaredField("labels");
 Class<?> raw = field.getType();          // List.class
 Type generic = field.getGenericType();  // List<String>
 AnnotatedType annotated = field.getAnnotatedType();
-Type base = annotated.getType();         // Type biểu diễn List<String>
+Type base = annotated.getType();         // Type representing List<String>
 ~~~
 
-Đây là đoạn minh họa, phải có `Box`, import `java.lang.reflect.*` và xử lý `NoSuchFieldException`.
+This is an illustrative snippet; it requires `Box`, `import java.lang.reflect.*`, and handling `NoSuchFieldException`.
 
-- `getType()` của **Field** trả `Class<?>`, nên trường `List<String>` thường được thấy dưới dạng raw `List.class`.
-- `getGenericType()` của **Field** trả `Type` và giữ cấu trúc generic đã khai báo.
-- `getType()` của **AnnotatedType** cũng trả `Type` mô tả kiểu nền tại nút đó. Đối với `List<String>`, nó là một `ParameterizedType`, không bắt buộc là `Class`.
-- Đừng ép `(Class<?>) annotated.getType()` một cách mù quáng; nếu kiểu là `List<String>`, phép ép kiểu có thể gây `ClassCastException`.
+- **Field's** `getType()` returns `Class<?>`, so a `List<String>` field is normally seen as raw `List.class`.
+- **Field's** `getGenericType()` returns `Type` and preserves the declared generic structure.
+- **AnnotatedType's** `getType()` also returns a `Type` describing the underlying type at that node. For `List<String>`, it is a `ParameterizedType`, not necessarily a `Class`.
+- Do not blindly cast `(Class<?>) annotated.getType()`; if the type is `List<String>`, the cast can cause a `ClassCastException`.
 
-## 4. Phân cấp `AnnotatedType`: đi theo đúng hình dạng kiểu nền
+## 4. `AnnotatedType` hierarchy: following the shape of the underlying type
 
-Các giao diện con chuyên biệt cho phép duyệt từng loại kiểu:
+Specialized subinterfaces allow traversing each kind of type:
 
-| Giao diện | Kiểu nền thường gặp | API lấy nút con chứa annotation |
+| Interface | Common underlying type | API to get child nodes with annotations |
 | --- | --- | --- |
-| `AnnotatedParameterizedType` | `ParameterizedType`, ví dụ `List<String>` | `getAnnotatedActualTypeArguments()` |
-| `AnnotatedArrayType` | `Class` của mảng hoặc `GenericArrayType` | `getAnnotatedGenericComponentType()` |
-| `AnnotatedWildcardType` | `WildcardType`, ví dụ `? extends Number` | `getAnnotatedUpperBounds()`, `getAnnotatedLowerBounds()` |
-| `AnnotatedTypeVariable` | `TypeVariable`, ví dụ `T` | `getAnnotatedBounds()` |
+| `AnnotatedParameterizedType` | `ParameterizedType`, e.g., `List<String>` | `getAnnotatedActualTypeArguments()` |
+| `AnnotatedArrayType` | Array `Class` or `GenericArrayType` | `getAnnotatedGenericComponentType()` |
+| `AnnotatedWildcardType` | `WildcardType`, e.g., `? extends Number` | `getAnnotatedUpperBounds()`, `getAnnotatedLowerBounds()` |
+| `AnnotatedTypeVariable` | `TypeVariable`, e.g., `T` | `getAnnotatedBounds()` |
 
-Đây là một **cây vị trí kiểu**, không phải một mảng annotation phẳng. Ví dụ:
+This is a **tree of type positions**, not a flat array of annotations. Example:
 
 ~~~java
 List<@A ? extends @B Number>
 ~~~
 
-Có thể quan sát các nút (nếu `@A`, `@B` là type-use annotations giữ tới runtime):
+These nodes can be observed (if `@A`, `@B` are type-use annotations retained to runtime):
 
-1. Gốc `List<...>`: `AnnotatedParameterizedType`.
-2. Đối số generic `? extends Number`: `AnnotatedWildcardType`, nhận `@A` trên wildcard.
-3. Upper bound `Number`: một `AnnotatedType` riêng, nhận `@B`.
+1. Root `List<...>`: `AnnotatedParameterizedType`.
+2. Generic argument `? extends Number`: `AnnotatedWildcardType`, carrying `@A` on the wildcard.
+3. Upper bound `Number`: a separate `AnnotatedType`, carrying `@B`.
 
-Nếu chỉ hỏi `getAnnotations()` ở gốc `List`, bạn **không tự động nhận** annotation trên wildcard hoặc bound. Phải đi vào những nút con tương ứng.
+If you only ask `getAnnotations()` at the `List` root, you **do not automatically receive** annotations on the wildcard or bound. You must step into the corresponding child nodes.
 
-### Type variable và kiểu được thay vào runtime
+### Type variables and substituted runtime types
 
-Với khai báo:
+With the declaration:
 
 ~~~java
 class Repository<T extends @A Number> { }
 ~~~
 
-Annotation `@A` gắn trên **bound `Number`** của type parameter `T`, không phải lúc nào cũng nằm trên chính `T`. Đọc bằng:
+The annotation `@A` is attached to the **bound `Number`** of type parameter `T`, not always on `T` itself. Read it using:
 
 ~~~java
 TypeVariable<?> t = Repository.class.getTypeParameters()[0];
 AnnotatedType bound = t.getAnnotatedBounds()[0];
 ~~~
 
-Vì **Java generic dùng type erasure**, `AnnotatedType` không nói cho bạn kiểu đối tượng thực tế của mọi phần tử được lưu trong `List<T>` tại runtime. Nó cho biết **khai báo kiểu và type-use annotations có thể giữ được bằng metadata**. Không nhầm thông tin khai báo với kiểm tra giá trị động hoặc khả năng ép kiểu.
+Because **Java generics use type erasure**, `AnnotatedType` does not tell you the actual object type of every element stored in a `List<T>` at runtime. It tells you **the type declaration and the type-use annotations that can be preserved via metadata**. Do not confuse declaration information with dynamic value checking or castability.
 
-## 5. Ví dụ hoàn chỉnh Java 17+: kiểu nền và annotation ở từng nút
+## 5. Complete Java 17+ example: underlying types and annotations at each node
 
-Lưu file **`AnnotatedTypeLesson.java`**:
+Save the file **`AnnotatedTypeLesson.java`**:
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -206,14 +206,14 @@ public class AnnotatedTypeLesson {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 AnnotatedTypeLesson.java
 java AnnotatedTypeLesson
 ~~~
 
-Kết quả stdout từ chương trình trên:
+Stdout output from the program above:
 
 ~~~text
 root Type=java.util.List<java.lang.String>
@@ -233,42 +233,42 @@ param Mark=param
 declared field annotations=0
 ~~~
 
-### Diễn giải kết quả
+### Interpreting the results
 
-- `labels` có kiểu nền `List<String>`: `root.getType()` hiển thị cấu trúc generic, đồng thời `mark(root)` lấy `@Mark("list")` ở vị trí kiểu `List`.
-- Nút con của `AnnotatedParameterizedType` có kiểu nền `String` với `@Mark("element")`, không phải annotation của chính field.
-- `String @Mark("dimension") []` có `AnnotatedArrayType` ở gốc cho **chiều mảng**, còn `@Mark("component") String` gắn ở kiểu **phần tử**. Hai vị trí annotation là khác nhau.
-- Ở `List<@Mark("wildcard") ? extends @Mark("upper") Number>`, wildcard mang `"wildcard"`; upper bound `Number` mang `"upper"`.
-- Bound của `T extends Number` mang `@Mark("bound")`; annotation trên return type và parameter type lần lượt là `"return"` và `"param"`.
-- `labels.getDeclaredAnnotations().length == 0` vì annotation trong ví dụ nằm ở **type-use**, không phải annotation khai báo trực tiếp của field. Kết quả này minh họa vì sao chỉ đọc annotation từ `Field` chưa đủ.
+- `labels` has underlying type `List<String>`: `root.getType()` displays the generic structure, while `mark(root)` retrieves `@Mark("list")` at the `List` type position.
+- The child node of `AnnotatedParameterizedType` has underlying type `String` with `@Mark("element")`, not an annotation on the field itself.
+- `String @Mark("dimension") []` has `AnnotatedArrayType` at the root for the **array dimension**, while `@Mark("component") String` attaches to the **element** type. The two annotation positions are different.
+- In `List<@Mark("wildcard") ? extends @Mark("upper") Number>`, the wildcard carries `"wildcard"`; the upper bound `Number` carries `"upper"`.
+- The bound of `T extends Number` carries `@Mark("bound")`; annotations on the return type and parameter type are `"return"` and `"param"` respectively.
+- `labels.getDeclaredAnnotations().length == 0` because the annotations in the example are at **type-use** positions, not annotations declared directly on the field. This result illustrates why reading annotations only from `Field` is insufficient.
 
-Chương trình trên không dùng logic suy đoán theo tên lớp của các implementation nội bộ `Type`. `getTypeName()` giúp in hình dạng kiểu một cách dễ hiểu; API gốc vẫn là `Type`.
+The program above does not rely on guessing logic based on class names of internal `Type` implementations. `getTypeName()` helps print the type shape readably; the underlying API remains `Type`.
 
-## 6. Mảng nhiều chiều: annotation nằm trên từng chiều
+## 6. Multidimensional arrays: annotations sit on each dimension
 
-Java hỗ trợ gắn type-use annotation lên cả kiểu phần tử và từng chiều mảng:
+Java supports attaching type-use annotations to both the element type and each array dimension:
 
 ~~~java
 @Mark("element") String @Mark("outer") [] @Mark("inner") [] matrix;
 ~~~
 
-Đoạn khai báo trên chỉ minh họa trong lớp có annotation `@Mark` như ví dụ hoàn chỉnh. Khi Reflection mô tả `matrix`:
+The declaration snippet above is purely illustrative inside a class that has the `@Mark` annotation as in the complete example. When Reflection describes `matrix`:
 
-1. `field.getAnnotatedType()` biểu diễn **kiểu mảng ngoài cùng** (`AnnotatedArrayType`) và giữ `@Mark("outer")`.
-2. `getAnnotatedGenericComponentType()` đi xuống một chiều; với mảng 2 chiều, nút này vẫn là `AnnotatedArrayType`, có `@Mark("inner")`.
-3. Đi xuống thêm một lần thì tới kiểu phần tử `String` với `@Mark("element")`.
+1. `field.getAnnotatedType()` represents **the outermost array type** (`AnnotatedArrayType`) and holds `@Mark("outer")`.
+2. `getAnnotatedGenericComponentType()` steps down one dimension; for a 2D array, this node is still an `AnnotatedArrayType`, carrying `@Mark("inner")`.
+3. Stepping down one more time reaches the element type `String` with `@Mark("element")`.
 
-Cách ghi `String @Mark("x") []` khác về **vị trí annotation** so với `@Mark("x") String[]`. Nếu cần diễn giải field mảng chính xác, phải đi theo các `AnnotatedArrayType` thay vì chỉ xem `String[][].class`. Trên các kiểu mảng generic, underlying type có thể là `GenericArrayType`; không nên giả định luôn là `Class<?>[]`.
+Writing `String @Mark("x") []` differs in **annotation position** from `@Mark("x") String[]`. If you need to interpret an array field accurately, you must follow the `AnnotatedArrayType` chain rather than inspecting only `String[][].class`. On generic array types, the underlying type can be `GenericArrayType`; do not assume it is always `Class<?>[]`.
 
-## 7. Khi nào nên lấy `getType()`, khi nào phải duyệt `AnnotatedType`?
+## 7. When should you take `getType()`, and when must you traverse `AnnotatedType`?
 
-### Chỉ cần cấu trúc kiểu?
+### Only need the type structure?
 
-Nếu một thư viện chỉ cần biết field là `List<String>` để ánh xạ dữ liệu, `Field.getGenericType()` hoặc `AnnotatedType.getType()` cung cấp cấu trúc `Type` thích hợp. Khi muốn biết phần tử generic, kiểm tra `instanceof ParameterizedType` rồi gọi `getActualTypeArguments()`. Kết quả là **`Type`**, không chứa trực tiếp type-use annotation của từng nhánh.
+If a library only needs to know a field is `List<String>` to map data, `Field.getGenericType()` or `AnnotatedType.getType()` provides the appropriate `Type` structure. When you want to know the generic argument, check `instanceof ParameterizedType` and call `getActualTypeArguments()`. The result is **`Type`**, which does not directly carry type-use annotations of each branch.
 
-### Cần quy tắc được đánh dấu bởi annotation?
+### Need rules marked by annotations?
 
-Nếu framework dùng `@NonNull`, `@Sensitive`, `@Validated` hoặc một annotation tùy chỉnh để điều khiển kiểm tra schema, nó cần duyệt **các nút AnnotatedType** và đọc annotation đúng vị trí. Dạng mô tả an toàn:
+If a framework uses `@NonNull`, `@Sensitive`, `@Validated`, or a custom annotation to drive schema checks, it needs to traverse **the `AnnotatedType` nodes** and read annotations at the exact positions. Safe pattern:
 
 ~~~java
 AnnotatedType type = field.getAnnotatedType();
@@ -276,22 +276,22 @@ AnnotatedType type = field.getAnnotatedType();
 if (type instanceof AnnotatedParameterizedType parameterized) {
     for (AnnotatedType argument :
             parameterized.getAnnotatedActualTypeArguments()) {
-        // Kiểm tra annotation tại MỖI đối số kiểu, rồi tiếp tục đệ quy.
+        // Check annotations on EACH type argument, then continue recursing.
     }
 }
 ~~~
 
-Đây là đoạn minh họa bên trong phương thức có `Field field`. Đừng ép mọi `AnnotatedType` sang `AnnotatedParameterizedType`; kiểu nền có thể là `Class`, `TypeVariable`, `GenericArrayType`, `WildcardType`, hoặc dạng khác. Khi cần xử lý sâu hơn, phân nhánh theo từng giao diện `Annotated...` tương ứng.
+This is an illustrative snippet inside a method that has `Field field`. Do not cast every `AnnotatedType` to `AnnotatedParameterizedType`; the underlying type could be `Class`, `TypeVariable`, `GenericArrayType`, `WildcardType`, or another form. When deeper processing is required, branch on each corresponding `Annotated...` interface.
 
-### Type-use metadata không đồng nghĩa validation tự động
+### Type-use metadata does not mean automatic validation
 
-Một annotation `@NonNull` trên type argument **không khiến JVM tự động cấm null**, và `AnnotatedType.getAnnotation` chỉ đọc metadata. Muốn kiểm tra dữ liệu thật cần cơ chế thực thi do thư viện hoặc ứng dụng triển khai. Ngay cả khi annotation hiện diện, `Type` không thay thế được việc kiểm tra phần tử runtime.
+A `@NonNull` annotation on a type argument **does not cause the JVM to automatically forbid null**, and `AnnotatedType.getAnnotation` only reads metadata. Real data checking requires an enforcement mechanism implemented by a library or application. Even when the annotation is present, `Type` cannot replace runtime element checks.
 
-Tương tự, annotation tại vị trí `List<@NonNull String>` không biến generic của Java thành *reified generics*. Do erasure, JVM không có thông tin runtime để chứng minh toàn bộ các phần tử của một `List` bất kỳ thực sự là `String`.
+Similarly, an annotation at `List<@NonNull String>` does not turn Java generics into *reified generics*. Due to erasure, the JVM lacks runtime information to prove that every element of an arbitrary `List` is genuinely a `String`.
 
-## 8. Điều kiện để Reflection đọc được annotation
+## 8. Conditions for Reflection to read annotations
 
-Định nghĩa thường dùng:
+Common definition:
 
 ~~~java
 @Target(ElementType.TYPE_USE)
@@ -299,62 +299,62 @@ Tương tự, annotation tại vị trí `List<@NonNull String>` không biến g
 @interface NonNull { }
 ~~~
 
-Cần chú ý:
+Points to note:
 
-- `TYPE_USE` cho phép annotation xuất hiện trên các **vị trí sử dụng kiểu**. `TYPE_PARAMETER` là target riêng cho việc khai báo biến kiểu, ví dụ ngay trên chữ `T` của `class Box<@A T>`; nếu cần cả hai, khai báo `@Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})`.
-- `RetentionPolicy.RUNTIME` cần thiết nếu muốn đọc annotation từ Reflection lúc chạy. `SOURCE` không tồn tại trong class file; `CLASS` được ghi vào class file nhưng không hiện diện trong Reflection runtime thông thường.
-- Compiler có thể đưa type-use annotations vào thuộc tính metadata trong class file; thông tin hiển thị phụ thuộc việc khai báo đúng target/retention và phần tử Java thật sự được biên dịch.
-- `getAnnotation(MyAnnotation.class)` trả `null` khi annotation không có ở vị trí đó. Nếu annotation nằm trên **nút con**, chỉ hỏi tại nút gốc không đủ.
-- Các annotation áp dụng lên phương thức/lớp **khác** với annotation áp dụng lên kiểu. Một annotation có thể cho phép nhiều target, và cần chọn API theo câu hỏi thực tế.
+- `TYPE_USE` allows an annotation to appear on **type-use positions**. `TYPE_PARAMETER` is a separate target for type variable declarations, e.g., right on the `T` of `class Box<@A T>`; if both are needed, declare `@Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})`.
+- `RetentionPolicy.RUNTIME` is required if you want to read the annotation via Reflection at runtime. `SOURCE` does not exist in the class file; `CLASS` is written to the class file but is not present in normal runtime Reflection.
+- The compiler can emit type-use annotations into metadata attributes in the class file; what becomes visible depends on declaring the proper target/retention and the Java element actually being compiled.
+- `getAnnotation(MyAnnotation.class)` returns `null` when the annotation is not at that exact position. If the annotation is on a **child node**, querying only the root node is insufficient.
+- Annotations applied to methods/classes are **distinct** from annotations applied to types. An annotation may allow multiple targets, and you must pick the API according to the actual question.
 
-**Không xem `getType()` là công cụ để lấy annotation:** `Type` là thông tin kiểu nền. Muốn đi qua metadata type-use, phải giữ và duyệt `AnnotatedType`.
+**Do not treat `getType()` as a tool for retrieving annotations:** `Type` is underlying type information. To walk type-use metadata, you must keep and traverse `AnnotatedType`.
 
-## 9. Lỗi phổ biến
+## 9. Common mistakes
 
-| Sai lầm | Cách hiểu đúng |
+| Mistake | Correct understanding |
 | --- | --- |
-| “`AnnotatedType` luôn có `Class<?> getType()`.” | `getType()` trả `Type`; generic thường là `ParameterizedType`, wildcard là `WildcardType`, v.v. |
-| “Annotation trên `List<@A String>` nằm ở `List`.” | `@A` nằm trên **đối số `String`**; đi qua `getAnnotatedActualTypeArguments()`. |
-| “Đọc `field.getAnnotations()` là đủ cho mọi annotation liên quan.” | API này hỏi annotation **trên phần tử field**; type-use annotation phải hỏi qua `getAnnotatedType()`. |
-| “`@A String[]` và `String @A []` giống nhau.” | Annotation có thể gắn vào **thành phần kiểu khác nhau**: phần tử hoặc chiều mảng. |
-| “Mọi `AnnotatedType` đều là `AnnotatedParameterizedType`.” | Phải kiểm tra `instanceof` trước khi ép kiểu. |
-| “Không thấy annotation nghĩa là class file không có annotation.” | Có thể đang hỏi sai nút, target không thích hợp hoặc retention không phải `RUNTIME`. |
-| “`getType()` của `AnnotatedType` cho biết generic type argument của object hiện tại.” | Nó mô tả **kiểu khai báo tại vị trí Reflection**; Java generics không reify mọi đối số kiểu runtime. |
-| “`isAnnotationPresent` trên root tự kiểm tra cả cây.” | Không: kiểm tra **nút hiện tại**; muốn kiểm tra con phải duyệt rõ ràng. |
+| "`AnnotatedType` always has `Class<?> getType()`." | `getType()` returns `Type`; generics are usually `ParameterizedType`, wildcards are `WildcardType`, etc. |
+| "An annotation on `List<@A String>` is on `List`." | `@A` is on **the `String` argument**; go through `getAnnotatedActualTypeArguments()`. |
+| "Reading `field.getAnnotations()` is enough for all related annotations." | That API queries annotations **on the field element**; type-use annotations must be queried via `getAnnotatedType()`. |
+| "`@A String[]` and `String @A []` are the same." | The annotation can attach to **different type components**: the element or the array dimension. |
+| "Every `AnnotatedType` is an `AnnotatedParameterizedType`." | You must check `instanceof` before casting. |
+| "Not seeing an annotation means the class file has no annotation." | You may be querying the wrong node, the target is inappropriate, or retention is not `RUNTIME`. |
+| "`AnnotatedType.getType()` tells you the generic type argument of the current object." | It describes **the declared type at the Reflection position**; Java generics do not reify all runtime type arguments. |
+| "`isAnnotationPresent` on the root automatically checks the whole tree." | No: it checks **the current node**; to check children you must traverse explicitly. |
 
-## 10. Checklist thực hành
+## 10. Practice checklist
 
-1. **Xác định vị trí khai báo** cần soi: field, method parameter, return type, superclass, interface, type-variable bound, array hoặc record component.
-2. **Lấy `AnnotatedType` đúng API**. Không thay bằng `getAnnotations()` trên phần tử khi cần type-use.
-3. **Đọc `getType()`** để hiểu kiểu nền đang được mô tả; dùng `instanceof` cho `Class`, `ParameterizedType`, `TypeVariable`, `WildcardType`, `GenericArrayType` khi cần.
-4. **Đọc annotation trên đúng nút** bằng `getAnnotation`/`getAnnotations`.
-5. **Duyệt các nút con** qua các interface `AnnotatedParameterizedType`, `AnnotatedArrayType`, `AnnotatedWildcardType`, `AnnotatedTypeVariable`; với inner class có thể xem `getAnnotatedOwnerType()`.
-6. **Xác nhận `@Target(TYPE_USE)` và `@Retention(RUNTIME)`** của annotation muốn đọc.
-7. **Không suy ra logic validation hoặc khả năng ép kiểu runtime chỉ từ metadata**; các quy tắc đó do ứng dụng triển khai.
+1. **Identify the declaration location** to inspect: field, method parameter, return type, superclass, interface, type-variable bound, array, or record component.
+2. **Obtain `AnnotatedType` with the right API**. Do not substitute `getAnnotations()` on the element when type-use annotations are needed.
+3. **Read `getType()`** to understand the underlying type being described; use `instanceof` for `Class`, `ParameterizedType`, `TypeVariable`, `WildcardType`, `GenericArrayType` when needed.
+4. **Read annotations on the right node** with `getAnnotation`/`getAnnotations`.
+5. **Traverse child nodes** via the `AnnotatedParameterizedType`, `AnnotatedArrayType`, `AnnotatedWildcardType`, `AnnotatedTypeVariable` interfaces; for inner classes, also check `getAnnotatedOwnerType()`.
+6. **Verify `@Target(TYPE_USE)` and `@Retention(RUNTIME)`** of the annotation you want to read.
+7. **Do not infer validation logic or runtime castability from metadata alone**; those rules are implemented by the application.
 
-### Câu hỏi tự kiểm tra
+### Self-check questions
 
-**1.** Với `List<@Mark String>`, hỏi annotation ở `field.getAnnotatedType()` có chắc tìm được `@Mark` không?  
-**Không.** Annotation nằm ở nút generic argument `String`; cần duyệt `getAnnotatedActualTypeArguments()[0]`.
+**1.** For `List<@Mark String>`, is querying annotations on `field.getAnnotatedType()` guaranteed to find `@Mark`?  
+**No.** The annotation is on the `String` generic argument node; you must traverse `getAnnotatedActualTypeArguments()[0]`.
 
-**2.** `AnnotatedType.getType()` trả về `Class<?>` cho `List<String>`?  
-**Không mặc định.** Nó trả `Type`, trong trường hợp này thường là `ParameterizedType` mang `List<String>`.
+**2.** Does `AnnotatedType.getType()` return `Class<?>` for `List<String>`?  
+**Not by default.** It returns `Type`, which in this case is typically a `ParameterizedType` representing `List<String>`.
 
-**3.** `String @Mark []` thì `@Mark` gắn vào đâu?  
-**Chiều mảng**, do đó kiểm tra nút `AnnotatedArrayType`. `@Mark String[]` có vị trí annotation khác.
+**3.** In `String @Mark []`, where is `@Mark` attached?  
+**The array dimension**, so inspect the `AnnotatedArrayType` node. `@Mark String[]` has a different annotation position.
 
-**4.** Cách tìm annotation trên `? extends @Mark Number` là gì?  
-Vào `AnnotatedWildcardType.getAnnotatedUpperBounds()[0]`, rồi hỏi `getAnnotation(Mark.class)`.
+**4.** How do you find the annotation on `? extends @Mark Number`?  
+Go to `AnnotatedWildcardType.getAnnotatedUpperBounds()[0]`, then call `getAnnotation(Mark.class)`.
 
-**5.** Annotation có `@Retention(CLASS)` có thể đọc từ `AnnotatedType` bằng Reflection runtime không?  
-**Không theo Reflection thông thường.** Muốn đọc tại runtime, cần `RUNTIME`.
+**5.** Can an annotation with `@Retention(CLASS)` be read from `AnnotatedType` using runtime Reflection?  
+**Not via standard Reflection.** To read it at runtime, `RUNTIME` is required.
 
-**6.** `Field.getType()` và `Field.getAnnotatedType().getType()` luôn giống nhau về mức thông tin generic?  
-**Không.** API đầu trả raw `Class<?>`; API sau trả `Type` nền của vị trí kiểu, có thể giữ cấu trúc generic.
+**6.** Do `Field.getType()` and `Field.getAnnotatedType().getType()` always match in their level of generic information?  
+**No.** The first API returns raw `Class<?>`; the second returns the underlying `Type` of the type position, which can preserve generic structure.
 
-**Kết luận:** `AnnotatedType` là **một nút dùng kiểu đã được gắn annotation**. `getType()` trả **kiểu nền ở nút đó**, còn `getAnnotation()` và các interface `Annotated...` giúp đọc các annotation xuất hiện **đúng từng vị trí** trong cây generic, mảng, wildcard và type-variable bounds.
+**Conclusion:** `AnnotatedType` is **a type-use node carrying annotations**. `getType()` returns **the underlying type at that node**, while `getAnnotation()` and the `Annotated...` interfaces allow reading annotations appearing **at each exact position** in trees of generics, arrays, wildcards, and type-variable bounds.
 
-### Tài liệu tham khảo chính thức
+### Official references
 
 - [JDK 17 — `AnnotatedType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedType.html)
 - [JDK 17 — `AnnotatedParameterizedType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedParameterizedType.html)

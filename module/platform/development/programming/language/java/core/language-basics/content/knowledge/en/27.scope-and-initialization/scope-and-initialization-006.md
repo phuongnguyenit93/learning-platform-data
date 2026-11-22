@@ -1,74 +1,74 @@
-# Kiểm tra biến đã được gán trên mọi nhánh trước khi sử dụng — Java 17+
+# Checking That Variables Are Assigned on All Branches Before Use — Java 17+
 
-## 1. Quy tắc definite assignment
+## 1. The definite assignment rule
 
-Trong Java, **biến cục bộ phải chắc chắn đã được gán giá trị trước khi đọc** (*definite assignment*). Trình biên dịch phân tích các đường điều khiển có thể đi tới phép đọc, thay vì chỉ xét một lần chạy thử.
+In Java, **a local variable must be definitely assigned a value before it is read** (*definite assignment*). The compiler analyzes all control-flow paths that can reach a read, rather than testing just a single sample run.
 
 ~~~java
 static int choose(boolean flag) {
-    int result;                 // Hợp lệ: chỉ khai báo.
+    int result;                 // Valid: declaration only.
     if (flag) {
         result = 10;
     } else {
         result = 20;
     }
-    return result;              // Hợp lệ: cả hai nhánh đều gán.
+    return result;              // Valid: both branches assign it.
 }
 ~~~
 
-Với `choose(true)`, kết quả là 10; với `choose(false)`, kết quả là 20. Ngược lại:
+With `choose(true)`, the result is 10; with `choose(false)`, the result is 20. Conversely:
 
 ~~~java
-// Không biên dịch nếu bỏ comment:
+// Does not compile if uncommented:
 static int wrong(boolean flag) {
     int result;
     if (flag) {
         result = 10;
     }
     // return result; // variable result might not have been initialized
-    return -1; // Dòng này chỉ để ví dụ vẫn biên dịch khi dòng sai bị comment.
+    return -1; // This line is only so the example still compiles while the erroneous line is commented out.
 }
 ~~~
 
-**Điểm cốt lõi:** được phép **khai báo trước, gán sau**; nhưng ở mọi đường đi tới chỗ **đọc**, biến phải được gán chắc chắn.
+**Core point:** it is permitted to **declare first, assign later**; however, on every path reaching the **read**, the variable must be definitely assigned.
 
-## 2. Biến cục bộ không có giá trị mặc định
+## 2. Local variables have no default value
 
 ~~~java
-int[] values = new int[2]; // Hai phần tử mặc định là 0.
-int local;                 // Không tự động có giá trị 0.
-// System.out.println(local); // Lỗi biên dịch: chưa gán.
+int[] values = new int[2]; // Both elements default to 0.
+int local;                 // Does not automatically get the value 0.
+// System.out.println(local); // Compile error: not yet assigned.
 local = 5;
 System.out.println(local); // 5.
 ~~~
 
-Phân biệt:
+Distinction:
 
-| Nơi lưu dữ liệu | Có giá trị mặc định? |
+| Storage location | Has a default value? |
 |---|---|
-| Biến cục bộ `int x;` | **Không**; phải gán trước khi đọc |
-| Tham số phương thức | Có giá trị do caller truyền vào khi lời gọi bắt đầu |
-| Trường instance `int count;` | **Có**: mặc định 0 |
-| Trường static `boolean ready;` | **Có**: mặc định false |
-| Phần tử `new int[3]` | **Có**: các phần tử mặc định 0 |
-| Biến cục bộ kiểu tham chiếu `String s;` | **Không**; không tự nhận null |
-| Trường tham chiếu `String s;` | **Có**: mặc định null |
+| Local variable `int x;` | **No**; must be assigned before reading |
+| Method parameter | Has the value passed by the caller when the invocation starts |
+| Instance field `int count;` | **Yes**: defaults to 0 |
+| Static field `boolean ready;` | **Yes**: defaults to false |
+| Elements of `new int[3]` | **Yes**: elements default to 0 |
+| Reference-type local variable `String s;` | **No**; does not automatically receive null |
+| Reference-type field `String s;` | **Yes**: defaults to null |
 
-**Scope** (biến đang trong phạm vi) không đồng nghĩa với **definite assignment** (biến đã được gán chắc chắn).
+**Scope** (the variable is within scope) does not mean **definite assignment** (the variable has been definitely assigned).
 
-## 3. `if/else`: phải xét mọi nhánh đi tới phép đọc
+## 3. `if/else`: every branch reaching a read must be considered
 
-**Sai:**
+**Wrong:**
 
 ~~~java
 // static int bad(boolean active) {
 //     int score;
 //     if (active) score = 90;
-//     return score; // Lỗi: active == false chưa gán.
+//     return score; // Error: active == false leaves it unassigned.
 // }
 ~~~
 
-**Đúng — cả hai nhánh cùng gán:**
+**Right — both branches assign:**
 
 ~~~java
 static int score(boolean active) {
@@ -79,7 +79,7 @@ static int score(boolean active) {
 }
 ~~~
 
-**Đúng — khởi tạo trước rồi cập nhật có điều kiện:**
+**Right — initialize beforehand, then conditionally update:**
 
 ~~~java
 int value = 0;
@@ -89,9 +89,9 @@ if (active) {
 System.out.println(value);
 ~~~
 
-Trong đoạn sau, `value = 0` cung cấp giá trị cho mọi đường đi; `if` chỉ **ghi đè** khi điều kiện đúng. Hãy chọn cách biểu đạt đúng ý nghĩa dữ liệu, không gán số 0 chỉ để làm compiler hết báo lỗi nếu nghiệp vụ không cho phép số 0.
+In the latter snippet, `value = 0` provides a value for all paths; `if` only **overwrites** it when the condition is true. Choose a way that expresses the data's true meaning—do not assign 0 just to silence the compiler if domain logic does not permit 0.
 
-**Đúng — nhánh không gán thì kết thúc phương thức:**
+**Right — the unassigned branch terminates the method:**
 
 ~~~java
 static int doublePositive(int input) {
@@ -102,11 +102,11 @@ static int doublePositive(int input) {
 }
 ~~~
 
-Khi `input < 0`, không có đường đi tới `return result`. Vì vậy nhánh đó không cần gán `result`.
+When `input < 0`, there is no path reaching `return result`. Therefore, that branch does not need to assign `result`.
 
-## 4. Nhiều nhánh và phép gán bằng biểu thức
+## 4. Multiple branches and expression-based assignment
 
-Nếu có chuỗi `if / else if`, đừng quên tình huống **không nhánh nào đúng**.
+If you have an `if / else if` chain, do not forget the case where **none of the branches match**.
 
 ~~~java
 static String band(int n) {
@@ -118,23 +118,23 @@ static String band(int n) {
     } else {
         result = "POSITIVE";
     }
-    return result; // Mọi đường tới đây đã gán.
+    return result; // All paths to here have assigned it.
 }
 ~~~
 
-Nếu bỏ nhánh `else`, compiler không thể khẳng định `n > 0` cũng đã được gán.
+If you omit the `else` branch, the compiler cannot confirm that `n > 0` is also assigned.
 
-Cũng có thể tạo giá trị trực tiếp bằng toán tử ba ngôi:
+You can also produce a value directly with the ternary operator:
 
 ~~~java
 int result = active ? 90 : 0;
 ~~~
 
-Cả hai toán hạng kết quả cung cấp giá trị cho biểu thức; không cần tạo local chưa khởi tạo rồi tự chứng minh từng nhánh.
+Both result operands provide a value for the expression; there is no need to create an uninitialized local and prove each branch manually.
 
-## 5. `switch`: dùng `default` hoặc switch expression hợp lệ
+## 5. `switch`: use `default` or a valid switch expression
 
-Với `switch statement`, các `case` có thể không bao phủ mọi giá trị:
+With a `switch` statement, the `case` labels may not cover every possible value:
 
 ~~~java
 // static int badSwitch(int code) {
@@ -143,11 +143,11 @@ Với `switch statement`, các `case` có thể không bao phủ mọi giá tr�
 //         case 1 -> result = 100;
 //         case 2 -> result = 200;
 //     }
-//     return result; // Không chắc đã gán khi code khác 1,2.
+//     return result; // Not guaranteed assigned when code is not 1 or 2.
 // }
 ~~~
 
-**Sửa bằng `default`:**
+**Fix with `default`:**
 
 ~~~java
 static int statusCode(int code) {
@@ -161,7 +161,7 @@ static int statusCode(int code) {
 }
 ~~~
 
-Hoặc dùng **switch expression** được Java 17 hỗ trợ:
+Or use a **switch expression** supported in Java 17:
 
 ~~~java
 static int statusCodeExpression(int code) {
@@ -173,9 +173,9 @@ static int statusCodeExpression(int code) {
 }
 ~~~
 
-Switch expression bắt buộc cung cấp giá trị theo quy tắc exhaustiveness; với selector `int`, dùng `default` trong ví dụ giúp bao phủ các giá trị còn lại. Đừng lẫn **switch statement** với **switch expression**.
+A switch expression is required to provide a value according to exhaustiveness rules; with an `int` selector, using `default` in the example covers the remaining values. Do not confuse a **switch statement** with a **switch expression**.
 
-## 6. Vòng lặp: không mặc định body chắc chắn chạy
+## 6. Loops: do not assume the body is guaranteed to execute
 
 ~~~java
 // static int brokenLoop(boolean run) {
@@ -184,13 +184,13 @@ Switch expression bắt buộc cung cấp giá trị theo quy tắc exhaustivene
 //         result = 7;
 //         break;
 //     }
-//     return result; // Lỗi: while có thể có 0 lượt.
+//     return result; // Error: while can execute 0 iterations.
 // }
 ~~~
 
-Nếu điều kiện vòng lặp false ngay, phần thân không chạy và `result` chưa được gán.
+If the loop condition is false right away, the body does not execute and `result` remains unassigned.
 
-**Cách rõ ràng nhất khi cần giá trị mặc định:**
+**Clearer approach when a default value is needed:**
 
 ~~~java
 static int loopWithDefault(boolean run) {
@@ -203,7 +203,7 @@ static int loopWithDefault(boolean run) {
 }
 ~~~
 
-Một vòng `while (true)` mà **mọi đường thoát qua `break` đều đã gán** cũng có thể chứng minh được definite assignment:
+A `while (true)` loop where **every exit path through `break` has already assigned the variable** can also satisfy definite assignment:
 
 ~~~java
 static int fromLoop() {
@@ -216,9 +216,9 @@ static int fromLoop() {
 }
 ~~~
 
-Trong ví dụ này, đường hoàn thành bình thường của vòng đi qua `result = 7` rồi mới `break`. Không suy rộng sang mọi vòng `while(true)`, nhất là khi có nhiều nhánh `break` hoặc ngoại lệ.
+In this example, the normal completion path of the loop passes through `result = 7` before hitting `break`. Do not generalize this to every `while(true)` loop, especially when there are multiple `break` branches or exceptions.
 
-## 7. `try/catch`: mỗi đường tới sau khối đều cần gán
+## 7. `try/catch`: every path continuing after the block must assign
 
 ~~~java
 static int parseOrDefault(boolean fail) {
@@ -235,13 +235,13 @@ static int parseOrDefault(boolean fail) {
 }
 ~~~
 
-Nếu `fail == false`, nhánh `try` gán 40; nếu `fail == true`, ngoại lệ được bắt và `catch` gán -40. Cả hai đường hoàn thành bình thường tới `return` đều đã gán.
+If `fail == false`, the `try` branch assigns 40; if `fail == true`, the exception is caught and `catch` assigns -40. Both normal completion paths to `return` have assigned the variable.
 
-**Lưu ý:** một `catch` không chắc luôn chạy; không nên cho rằng lệnh gán **chỉ trong catch** là đủ cho mọi đường đi. `finally` có quy tắc điều khiển luồng riêng; khi code phức tạp, nên giảm số nhánh hoặc khởi tạo kết quả ở nơi rõ ràng.
+**Note:** a `catch` block is not guaranteed to run; you should not assume an assignment **only inside catch** suffices for all paths. `finally` has its own control-flow rules; when code gets complex, reduce branches or initialize the result in a clear place.
 
-## 8. Biến `final`: gán đúng một lần trên từng đường thực thi
+## 8. `final` variables: assign exactly once on each execution path
 
-Biến cục bộ `final` chưa gán có thể được gán sau khi khai báo, nhưng không được **gán lại** sau khi đã gán:
+An unassigned `final` local variable can be assigned after declaration, but cannot be **reassigned** once assigned:
 
 ~~~java
 static int finalResult(boolean flag) {
@@ -255,22 +255,22 @@ static int finalResult(boolean flag) {
 }
 ~~~
 
-Các nhánh loại trừ nhau nên mỗi lần thực thi chỉ có một phép gán. Ngược lại, đoạn dưới không biên dịch:
+The branches are mutually exclusive, so each execution performs only one assignment. Conversely, the snippet below does not compile:
 
 ~~~java
 // final int x = 1;
-// x = 2; // Lỗi: không thể gán lại final.
+// x = 2; // Error: cannot reassign final.
 ~~~
 
-Kiểm tra *definite assignment* bảo đảm local đã được gán trước khi đọc; kiểm tra *definite unassignment* đối với `final` giúp tránh gán lại sai quy tắc. Hai vấn đề liên quan nhưng không giống nhau.
+The *definite assignment* check ensures a local has been assigned before being read; the *definite unassignment* check for `final` prevents invalid reassignment. The two checks are related but not identical.
 
-## 9. Chương trình Java 17+ chạy độc lập
+## 9. Standalone Java 17+ program
 
-Tạo đúng file **`DefiniteAssignmentDemo.java`**:
+Create the exact file **`DefiniteAssignmentDemo.java`**:
 
 ~~~java
 public final class DefiniteAssignmentDemo {
-    private static int field; // Giá trị mặc định là 0.
+    private static int field; // Default value is 0.
 
     private DefiniteAssignmentDemo() {}
 
@@ -354,7 +354,7 @@ public final class DefiniteAssignmentDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; không cần thư viện ngoài hay preview feature.
+**Requirements:** JDK 17 or later; no external libraries or preview features needed.
 
 **Bash (Linux/macOS):**
 
@@ -389,40 +389,40 @@ final true=1
 final false=2
 ~~~
 
-Kết quả cho thấy biến local có thể khai báo rồi gán ở các nhánh, nhánh `return`/`throw` không cần gán cho code phía sau mà nó không thể tới, và field mặc định bằng 0 không đồng nghĩa local cũng bằng 0.
+The output shows that a local variable can be declared and then assigned in branches, a `return`/`throw` branch does not need to assign for subsequent code it cannot reach, and a field defaulting to 0 does not mean a local also equals 0.
 
-## 10. Lỗi thường gặp và bài tập
+## 10. Common errors and exercises
 
-| Sai lầm | Vì sao lỗi? | Cách sửa |
+| Mistake | Why is it an error? | Fix |
 |---|---|---|
-| `int x; println(x);` | Local chưa được gán | Gán trước phép đọc |
-| Chỉ gán `x` khi `if(flag)` | Nhánh false chưa gán | Thêm `else` hoặc mặc định |
-| `if/else if` không bao phủ mọi nhánh | Có đường bỏ qua mọi phép gán | Thêm `else` hoặc đổi cấu trúc |
-| `switch statement` thiếu nhánh bao phủ | Có selector không khớp `case` | Thêm `default` khi phù hợp |
-| Chỉ gán trong `while` | Vòng có thể chạy 0 lượt | Gán mặc định hoặc chứng minh đường thoát |
-| Chỉ gán trong `catch` | `catch` có thể không chạy | Xử lý cả đường `try` bình thường |
-| Nghĩ local tự nhận 0/null như field | Local không có giá trị mặc định | Gán rõ ràng |
-| Gán hai lần vào biến `final` | Vi phạm quy tắc final | Đảm bảo một lần trên từng đường |
+| `int x; println(x);` | Local has not been assigned | Assign before reading |
+| Assigning `x` only in `if(flag)` | The false branch is unassigned | Add `else` or a default |
+| `if/else if` not covering all branches | A path skips all assignments | Add `else` or change structure |
+| `switch statement` missing a covering branch | Some selector value matches no `case` | Add `default` when appropriate |
+| Assigning only inside `while` | The loop may execute 0 times | Assign a default or prove the exit path |
+| Assigning only inside `catch` | `catch` may not run | Handle the normal `try` path as well |
+| Thinking a local automatically gets 0/null like a field | Locals have no default value | Assign explicitly |
+| Assigning twice to a `final` variable | Violates the final rule | Ensure once per path |
 
-**Bài A:** `int n; if (flag) n=1; else n=2; System.out.println(n);` hợp lệ không? **Có**, vì hai nhánh đã bao phủ mọi đường.
+**Exercise A:** Is `int n; if (flag) n=1; else n=2; System.out.println(n);` valid? **Yes**, because the two branches cover all paths.
 
-**Bài B:** `int n; if (flag) n=1; System.out.println(n);` hợp lệ không? **Không**, vì flag có thể false.
+**Exercise B:** Is `int n; if (flag) n=1; System.out.println(n);` valid? **No**, because flag can be false.
 
-**Bài C:** `int n; if (flag) return; n=3; System.out.println(n);` trong phương thức `void` có hợp lệ không? **Có**, vì mọi đường tới `println` đều đã gán `n=3`.
+**Exercise C:** Is `int n; if (flag) return; n=3; System.out.println(n);` inside a `void` method valid? **Yes**, because every path reaching `println` has assigned `n=3`.
 
-**Bài D:** Có thể đọc `private int count;` của object trước khi gán tường minh không? **Có**, giá trị mặc định của field `int` là 0.
+**Exercise D:** Can an object's `private int count;` be read before explicit assignment? **Yes**, the default value of an `int` field is 0.
 
-**Bài E:** Nếu `final int result;` được gán trong cả hai nhánh loại trừ nhau, có được không? **Có**, miễn biến chắc chắn được gán trước khi đọc và không bị gán lại trên cùng đường thực thi.
+**Exercise E:** If `final int result;` is assigned in both mutually exclusive branches, is that allowed? **Yes**, provided the variable is definitely assigned before reading and not reassigned on the same execution path.
 
-## 11. Checklist và kết luận
+## 11. Checklist and conclusion
 
-- [ ] Phân biệt **phạm vi tên biến** với **đã gán chắc chắn**.
-- [ ] Biết local không có giá trị mặc định, khác field và phần tử mảng.
-- [ ] Kiểm tra tất cả đường `if/else` có thể đi tới phép đọc.
-- [ ] Biết `return` hoặc `throw` có thể chấm dứt một nhánh chưa gán.
-- [ ] Hiểu `switch statement` và `switch expression` khác nhau.
-- [ ] Không mặc định thân vòng lặp hoặc `catch` luôn được thực thi.
-- [ ] Với `final`, kiểm soát cả gán trước khi đọc và không gán lại.
-- [ ] Chạy `DefiniteAssignmentDemo.java` với JDK 17+, đối chiếu exact stdout.
+- [ ] Distinguish **variable name scope** from **definite assignment**.
+- [ ] Know that locals have no default value, unlike fields and array elements.
+- [ ] Check all `if/else` paths that can reach a read.
+- [ ] Know that `return` or `throw` can terminate an unassigned branch.
+- [ ] Understand how `switch statement` and `switch expression` differ.
+- [ ] Do not assume a loop body or `catch` block always executes.
+- [ ] With `final`, ensure both assignment before reading and no reassignment.
+- [ ] Run `DefiniteAssignmentDemo.java` with JDK 17+, comparing against exact stdout.
 
-**Kết luận:** Java 17 yêu cầu một biến cục bộ phải được **gán chắc chắn trên mọi đường thực thi có thể dẫn đến phép đọc**. Để code rõ và an toàn, hãy bao phủ các nhánh, dùng guard clause khi hợp lý, và phân biệt *definite assignment* với phạm vi biến cũng như giá trị mặc định của field.
+**Conclusion:** Java 17 requires a local variable to be **definitely assigned on every execution path that can lead to a read**. To keep code clear and safe, cover all branches, use guard clauses where appropriate, and distinguish *definite assignment* from variable scope as well as field default values.

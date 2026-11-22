@@ -1,121 +1,121 @@
-# Phông chữ, glyph và vì sao mã hóa đúng chưa bảo đảm hiển thị đúng
+# Fonts, Glyphs, and Why Correct Encoding Does Not Guarantee Correct Display
 
-## 1. Vấn đề: Unicode đúng nhưng màn hình vẫn hiển thị ô vuông
+## 1. The problem: Unicode is right, yet the screen still shows boxes
 
-Một ứng dụng Java có thể đọc tệp UTF-8 chính xác, giữ nguyên chuỗi `String`, không làm hỏng dấu tiếng Việt và vẫn hiển thị các ký hiệu như `□`, `�`, những ô vuông thường được gọi là *tofu*, dấu bị lệch, ký tự Ả Rập không nối đúng hoặc emoji bị tách thành nhiều biểu tượng.
+A Java application can read a UTF-8 file accurately, preserve the `String`, keep Vietnamese diacritics intact, and still display symbols like `□`, `�`, empty boxes commonly called *tofu*, misaligned diacritics, disconnected Arabic letters, or emojis split into multiple icons.
 
-Có hai câu hỏi khác nhau:
+These are two different questions:
 
-1. **Dữ liệu đã được giải mã thành đúng các ký tự Unicode chưa?** Đây là vấn đề encoding/decoding, code point và việc truyền/lưu chuỗi.
-2. **Hệ thống hiển thị có thể biến các ký tự ấy thành hình vẽ đúng không?** Đây là vấn đề phông chữ, glyph, ánh xạ glyph, định hình chữ (*text shaping*), thứ tự hai chiều (*bidirectional layout*), rasterization và môi trường render.
+1. **Has the data been decoded into the right Unicode characters?** This is a matter of encoding/decoding, code points, and transmitting/storing strings.
+2. **Can the display system turn those characters into the right shapes?** This is a matter of fonts, glyphs, glyph mapping, *text shaping*, *bidirectional layout*, rasterization, and the rendering environment.
 
-Đọc đúng byte UTF-8 **chỉ hoàn thành phần đầu của pipeline**. Không có gì trong `StandardCharsets.UTF_8` bảo đảm rằng máy người dùng có font chứa glyph cho từng chữ, font có khả năng ghép chữ Ả Rập, hoặc bộ render hỗ trợ emoji nhiều code point.
+Reading UTF-8 bytes properly **only completes the beginning of the pipeline**. Nothing in `StandardCharsets.UTF_8` guarantees that the user's machine has a font containing glyphs for every character, that the font can join Arabic letters, or that the renderer supports multi-code-point emojis.
 
-Một pipeline khái quát:
+A high-level pipeline:
 
 ```text
-Byte trong tệp/network
-      │ decode bằng charset đúng
+Bytes in file/network
+      │ decode with the right charset
       ▼
-Java String (các đơn vị mã UTF-16)
-      │ hiểu code point, normalization, ký tự kết hợp
+Java String (UTF-16 code units)
+      │ understand code points, normalization, combining characters
       ▼
-Phân đoạn văn bản + hướng chữ + script/language runs
-      │ chọn font, font fallback, shaping
+Text segmentation + text direction + script/language runs
+      │ select font, font fallback, shaping
       ▼
-Glyph ID + vị trí glyph + advance/metrics
-      │ rasterize / vẽ theo DPI, màu, anti-alias
+Glyph IDs + glyph positions + advance/metrics
+      │ rasterize / draw by DPI, color, anti-aliasing
       ▼
-Ký tự người dùng nhìn thấy trên màn hình/PDF/ảnh
+Characters seen by the user on screen/PDF/image
 ```
 
-Từng tầng có thể sinh lỗi khác nhau. Nếu dữ liệu Unicode đã đúng mà font thiếu glyph, **đổi UTF-8 sang một encoding khác không phải cách sửa phù hợp**. Nếu font có đủ ký tự nhưng không xử lý shaping/hướng văn bản, việc chọn một charset khác cũng không giúp chữ hiển thị đúng.
+Each layer can produce different errors. If Unicode data is already right and a font lacks a glyph, **switching UTF-8 to another encoding is not the right fix**. If the font has all the characters yet fails to handle shaping/text direction, picking a different charset will not make the text display properly either.
 
-## 2. Phân biệt code point, UTF-16, grapheme cluster và glyph
+## 2. Distinguishing code points, UTF-16, grapheme clusters, and glyphs
 
-Bốn khái niệm này dễ bị nhầm khi xử lý localization trong Java:
+These four concepts are easily confused when handling localization in Java:
 
-| Khái niệm | Ý nghĩa | Ví dụ |
+| Concept | Meaning | Example |
 | --- | --- | --- |
-| **Unicode code point** | Đơn vị mã Unicode, ký hiệu thường viết `U+XXXX` | `U+1F600` là 😀 |
-| **UTF-16 code unit** | Đơn vị `char` 16 bit trong Java `String` | 😀 chiếm **hai** code unit (surrogate pair) |
-| **Grapheme cluster** | Đơn vị ký tự người dùng thường nhận thức; có thể gồm nhiều code point | `e` + dấu sắc kết hợp thường được nhìn như một chữ `é` |
-| **Glyph** | Hình dạng ký tự thực tế được font/render engine chọn để vẽ | Một ligature có thể là một glyph cho nhiều code point; một code point có thể có các hình glyph tùy ngữ cảnh |
+| **Unicode code point** | A Unicode code unit value, commonly written `U+XXXX` | `U+1F600` is 😀 |
+| **UTF-16 code unit** | A 16-bit `char` unit in a Java `String` | 😀 occupies **two** code units (a surrogate pair) |
+| **Grapheme cluster** | A user-perceived character unit; can consist of multiple code points | `e` + combining acute accent usually looks like one `é` |
+| **Glyph** | The actual visual shape chosen by the font/rendering engine to draw | A ligature can be one glyph for multiple code points; one code point can have contextual glyph forms |
 
-**Một code point không nhất thiết bằng một glyph**; cũng không phải một grapheme luôn là một code point. Một số ví dụ quan trọng:
+**One code point does not necessarily equal one glyph**; nor is one grapheme always one code point. Several important examples:
 
-- Chữ `é` có thể là `U+00E9` (dựng sẵn), hoặc `U+0065 U+0301` (chữ `e` và dấu sắc kết hợp). Hai chuỗi có thể hiển thị gần như giống nhau, nhưng khác độ dài UTF-16 và khác `String.equals` trước khi chuẩn hóa.
-- Emoji 😀 là một code point ngoài BMP, nhưng `String.length()` trả **2** trong Java.
-- Emoji gia đình, lá cờ và emoji có biến thể có thể bao gồm nhiều code point, dấu chọn biến thể `U+FE0F`, ký tự nối zero-width `U+200D` hoặc cặp regional indicator. Việc hiện thành một biểu tượng duy nhất phụ thuộc font/renderer.
-- Trong chữ Ả Rập, hình vẽ của một chữ có thể đổi theo vị trí và các chữ lân cận; các chuỗi ký tự có thể được nối/định hình thành những glyph khác nhau.
-- Với các hệ chữ có dấu kết hợp, vị trí dấu được tính từ glyph metrics và shaping; không đủ chỉ kiểm tra font có thể “hiện từng code point”.
+- The letter `é` can be `U+00E9` (precomposed) or `U+0065 U+0301` (`e` plus a combining acute accent). Both strings can look nearly identical, yet differ in UTF-16 length and `String.equals` before normalization.
+- The emoji 😀 is one non-BMP code point, yet `String.length()` returns **2** in Java.
+- Family emojis, flags, and variant emojis can consist of multiple code points, variation selector `U+FE0F`, zero-width joiner `U+200D`, or regional indicator pairs. Whether they appear as a single symbol depends on the font/renderer.
+- In Arabic script, a letter's shape can change based on position and neighboring letters; character sequences can be joined/shaped into different glyphs.
+- For scripts with combining marks, mark placement is calculated from glyph metrics and shaping; merely checking whether a font can "display each code point individually" is not enough.
 
-**Không dùng `String.length()` để kết luận số chữ người dùng nhìn thấy.** Java cung cấp `String.codePointCount(...)` để đếm code point, nhưng ngay cả phép đếm này vẫn không tương đương số grapheme cluster hoặc số glyph được render.
+**Do not use `String.length()` to conclude how many characters the user sees.** Java provides `String.codePointCount(...)` to count code points, yet even that count is still not equivalent to the number of grapheme clusters or rendered glyphs.
 
-## 3. Encoding và font giải quyết hai vấn đề khác nhau
+## 3. Encoding and fonts solve two separate problems
 
-### 3.1. UTF-8/UTF-16 là cách mã hóa dữ liệu
+### 3.1. UTF-8/UTF-16 are data encodings
 
-UTF-8 mô tả cách biểu diễn Unicode thành bytes; Java `String` sử dụng chuỗi các code unit UTF-16. Khi đọc tài nguyên từ tệp hoặc network, cần biết **charset thực sự của nguồn**:
+UTF-8 describes how Unicode is represented as bytes; Java `String` uses a sequence of UTF-16 code units. When reading resources from files or the network, you must know the **actual charset of the source**:
 
 ```java
 String text = Files.readString(path, StandardCharsets.UTF_8);
 ```
 
-Đoạn trên cần import `java.nio.file.Files`, `java.nio.file.Path` và `java.nio.charset.StandardCharsets`, với biến `path` được cung cấp; không phải chương trình hoàn chỉnh.
+This snippet requires importing `java.nio.file.Files`, `java.nio.file.Path`, and `java.nio.charset.StandardCharsets`, with variable `path` supplied; it is not a complete program.
 
-Nếu decode sai, dữ liệu trong `String` đã hỏng và có thể thấy dạng “mojibake” như `Tiáº¿ng Viá»‡t`. Khi đó phải kiểm tra bytes và charset của luồng vào, không vội thay font.
+If decoded wrongly, data in `String` is already corrupted and can show "mojibake" like `Tiáº¿ng Viá»‡t`. In that case, inspect the input stream's bytes and charset rather than rushing to change fonts.
 
-Nếu decode đúng, ta có thể kiểm tra code point, thực hiện `String.equals`, `Normalizer` và các thao tác khác trong Java. Nhưng Unicode **không gắn sẵn hình vẽ cuối cùng** của mọi ký tự với một font cụ thể.
+If decoded properly, you can inspect code points, perform `String.equals`, `Normalizer`, and other Java operations. Yet Unicode **does not bind a final visual shape** for every character to a specific font.
 
-### 3.2. Font cung cấp các glyph và chỉ dẫn hiển thị
+### 3.2. Fonts supply glyphs and display instructions
 
-Một font có thể chứa:
+A font can contain:
 
-- Bảng ánh xạ mã ký tự sang glyph (thường thông qua cơ chế kiểu `cmap` của OpenType/TrueType).
-- Hình dạng glyph dưới dạng outline hoặc dữ liệu bitmap/màu.
-- Số đo (*metrics*) như ascent, descent, advance, kerning.
-- Bảng tính năng shaping/định vị (ví dụ các cơ chế OpenType như GSUB/GPOS), có thể cần cho ligature, dấu kết hợp và chữ phức tạp.
+- A mapping table from character codes to glyphs (typically via an OpenType/TrueType `cmap` mechanism).
+- Glyph shapes as outlines or bitmap/color data.
+- Measurements (*metrics*) such as ascent, descent, advance, and kerning.
+- Shaping/positioning feature tables (such as OpenType GSUB/GPOS), which can be required for ligatures, combining marks, and complex scripts.
 
-Nếu font không có glyph thích hợp, hệ thống có thể:
+If a font lacks an appropriate glyph, the system can:
 
-1. Thử một font thay thế (*font fallback*) có hỗ trợ ký tự.
-2. Dùng glyph thay thế `missing glyph` — thường trông như ô vuông.
-3. Bỏ qua ký tự, hiển thị sai hoặc dùng glyph từ font khác có metrics không khớp.
+1. Try an alternate font (*font fallback*) that supports the character.
+2. Render a `missing glyph` placeholder — often looking like a box.
+3. Skip the character, render improperly, or pull a glyph from another font with mismatched metrics.
 
-**Thiếu glyph không đồng nghĩa bytes UTF-8 bị lỗi.** Hãy dùng công cụ chẩn đoán code point và font coverage để biết lỗi nằm ở tầng nào.
+**A missing glyph does not mean UTF-8 bytes are corrupted.** Use code point and font coverage diagnostics to locate which layer failed.
 
-### 3.3. Glyph ID không phải Unicode code point
+### 3.3. A glyph ID is not a Unicode code point
 
-Một renderer thường tạo ra các **glyph ID** nội bộ của font sau bước ánh xạ/shaping. Glyph ID chỉ có ý nghĩa trong phạm vi font và bộ định hình tương ứng; không được lưu nó thay cho văn bản Unicode hoặc gửi như định danh ký tự qua giao thức.
+A renderer typically generates internal font **glyph IDs** after mapping/shaping. A glyph ID is meaningful only within the scope of that font and shaper; you must never store it in place of Unicode text or send it over a protocol as a character identifier.
 
-Ví dụ tính năng ligature có thể biến chuỗi ba ký tự `f`, `f`, `i` thành glyph `ﬃ` khi render. Chuỗi gốc vẫn là `ffi` nếu nguồn nhập như vậy. Ngược lại, một ký tự Unicode có thể dùng nhiều hình glyph ngữ cảnh trong các hệ chữ nối. Vì vậy **số glyph không cố định bằng số code point**.
+For instance, a ligature feature can turn the three-character sequence `f`, `f`, `i` into the `ﬃ` glyph when rendered. The source string remains `ffi` if entered that way. Conversely, one Unicode character can use multiple contextual glyph shapes in cursive scripts. Thus **glyph count is not fixed equal to code point count**.
 
-## 4. Vì sao font fallback vẫn có thể chưa đủ?
+## 4. Why might font fallback still fall short?
 
-Một ứng dụng có thể chọn phông `SansSerif` hoặc `Dialog`, hoặc font vật lý như `Arial`, `Noto Sans`, `Serif`. Cần phân biệt:
+An application may choose `SansSerif` or `Dialog`, or physical fonts like `Arial`, `Noto Sans`, `Serif`. Distinguish:
 
-- **Font vật lý:** font cụ thể được cài đặt/đưa theo ứng dụng. Khả năng chứa glyph phụ thuộc phiên bản và file font.
-- **Font logic Java:** tên logic như `Dialog`, `DialogInput`, `SansSerif`, `Serif`, `Monospaced`; Java có thể ánh xạ chúng tới một hay nhiều font vật lý theo hệ thống.
-- **Font fallback:** cơ chế chọn font khác khi font ưu tiên không hỗ trợ ký tự hoặc cụm ký tự cần render. Thứ tự và chất lượng fallback phụ thuộc OS, runtime, ứng dụng, font đã cài, hệ thống render và script.
+- **Physical font:** a concrete font installed/bundled with the app. Glyph coverage depends on the font file and version.
+- **Java logical font:** logical names such as `Dialog`, `DialogInput`, `SansSerif`, `Serif`, `Monospaced`; Java maps them to one or more physical fonts depending on the system.
+- **Font fallback:** the mechanism that picks another font when the preferred font does not support the character or cluster being rendered. Fallback order and quality depend on OS, runtime, app, installed fonts, rendering engine, and script.
 
-Nếu một cụm chữ gồm ký tự cơ sở và dấu kết hợp lấy từ **hai font khác nhau**, dấu có thể lệch vị trí. Nếu emoji nhiều thành phần bị chia giữa các font hoặc engine không xử lý chuỗi ZWJ, kết quả có thể là nhiều hình riêng thay vì một emoji. Font fallback giúp tăng độ phủ, nhưng **không bảo đảm shaping, layout và kiểu emoji đúng**.
+If a character cluster combines a base letter and a combining mark from **two different fonts**, the mark can drift out of alignment. If a multi-part emoji splits across fonts or the engine does not handle ZWJ sequences, the result can be separate icons instead of one emoji. Font fallback widens coverage, yet **does not guarantee proper shaping, layout, and emoji styling**.
 
-Thêm một font có đủ glyph cũng chưa đủ để bảo đảm:
+Adding a font with enough glyphs is still not enough to guarantee:
 
-- Hỗ trợ đúng các tính năng OpenType của script.
-- Ghép dấu kết hợp có vị trí hợp lý.
-- Chạy đúng thuật toán hai chiều khi trộn RTL và LTR.
-- Chọn dạng emoji màu hoặc đơn sắc theo ý đồ.
-- Có cùng độ cao dòng và chiều rộng trên desktop, mobile, máy chủ hay khi export PDF.
+- Proper support for the script's OpenType features.
+- Accurate placement of combining marks.
+- Proper bidirectional algorithm execution when mixing RTL and LTR.
+- Intended color vs. monochrome emoji presentation.
+- Identical line height and width across desktop, mobile, servers, or PDF export.
 
-Vì thế, kiểm thử giao diện bằng **mắt người** và ảnh chụp thực tế theo locale vẫn rất quan trọng.
+Therefore, **human visual testing** and real locale screenshots remain essential.
 
-## 5. Chương trình Java 17+: kiểm tra đúng dữ liệu Unicode trước khi đổ lỗi cho font
+## 5. Java 17+ program: verify Unicode data before blaming the font
 
-Ví dụ này dùng `String`, `Normalizer` và `codePointCount` để xác nhận các đặc tính có thể kiểm chứng **không phụ thuộc font cài trên máy**.
+This example uses `String`, `Normalizer`, and `codePointCount` to verify properties **independent of installed machine fonts**.
 
-Tạo tệp **`UnicodeTextInspectionDemo.java`**:
+Create the file **`UnicodeTextInspectionDemo.java`**:
 
 ```java
 import java.text.Normalizer;
@@ -152,14 +152,14 @@ public class UnicodeTextInspectionDemo {
 }
 ```
 
-Chạy bằng JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 UnicodeTextInspectionDemo.java
 java -cp . UnicodeTextInspectionDemo
 ```
 
-Đầu ra **xác định**, không phụ thuộc font và GUI:
+**Deterministic** output, independent of fonts and GUI:
 
 ```text
 precomposedLength=1
@@ -171,25 +171,25 @@ emojiCodePoints=1
 emojiFirstCodePoint=U+1F600
 ```
 
-**Diễn giải:** hai cách biểu diễn chữ `é` khác nhau theo chuỗi mã Java nhưng giống nhau sau NFC; emoji có một Unicode code point mà chiếm hai đơn vị UTF-16. Không có dòng nào trong ví dụ xác nhận **emoji có hiển thị được trên màn hình** hay không — đó là một kiểm tra khác.
+**Interpretation:** two representations of `é` differ as Java code sequences yet match after NFC; an emoji has one Unicode code point while occupying two UTF-16 units. Nothing in this example confirms whether **the emoji can actually render on screen** — that is a separate check.
 
-Khi log để debug, in code point bằng `String.codePoints()` có thể tốt hơn chỉ nhìn nội dung render trong terminal. Trên console, một font thiếu glyph vẫn có thể không hiển thị chữ, dù code point trong Java là đúng.
+When logging for debugging, printing code points via `String.codePoints()` can be better than looking only at rendered text in a terminal. On a console, a font missing glyphs can still fail to display characters even when Java code points are right.
 
-## 6. `Font.canDisplay` và `canDisplayUpTo`: kiểm tra phạm vi glyph
+## 6. `Font.canDisplay` and `canDisplayUpTo`: checking glyph coverage
 
-Java2D/AWT cung cấp `java.awt.Font` để làm việc với font. Các phương thức liên quan:
+Java2D/AWT provides `java.awt.Font` for working with fonts. Relevant methods:
 
 ```java
 boolean Font.canDisplay(int codePoint)
 int Font.canDisplayUpTo(String text)
 ```
 
-- `canDisplay(codePoint)` hỏi font có thể cung cấp glyph cho **code point** đó hay không.
-- `canDisplayUpTo(text)` trả **`-1`** nếu font báo có thể hiển thị mọi ký tự trong chuỗi theo phép kiểm tra này; nếu không, trả **chỉ số UTF-16** của ký tự đầu tiên không hiển thị được.
-- Kết quả phụ thuộc font được chọn và môi trường runtime.
-- **Phép kiểm tra coverage không chứng minh text shaping/mark placement/ZWJ sequence/bi-directional ordering sẽ đúng.**
+- `canDisplay(codePoint)` asks whether the font can provide a glyph for that **code point**.
+- `canDisplayUpTo(text)` returns **`-1`** if the font reports it can display every character in the string under this check; otherwise, it returns the **UTF-16 index** of the first undisplayable character.
+- Results depend on the chosen font and runtime environment.
+- **A coverage check does not prove text shaping/mark placement/ZWJ sequences/bidirectional ordering will be right.**
 
-Tạo tệp **`FontCoverageDemo.java`**:
+Create the file **`FontCoverageDemo.java`**:
 
 ```java
 import java.awt.Font;
@@ -221,80 +221,80 @@ public class FontCoverageDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 FontCoverageDemo.java
 java -cp . FontCoverageDemo
 ```
 
-**Đầu ra không được cố định trước:** máy A có thể báo `all code points supported` ở một dòng, trong khi máy B có thể báo `first missing at UTF-16 index ...`. Sự khác biệt là **kết quả đúng theo môi trường font**, không phải lỗi của ví dụ.
+**Output is not fixed ahead of time:** machine A might report `all code points supported` on one line while machine B reports `first missing at UTF-16 index ...`. That difference is **expected behavior reflecting the font environment**, not a bug in the example.
 
-Lưu ý quan trọng:
+Important notes:
 
-1. `Dialog` là tên **font logic**, không nhất thiết là một tệp font vật lý duy nhất.
-2. `Font.canDisplayUpTo` trả **vị trí UTF-16**, không phải vị trí byte của UTF-8.
-3. Một font báo hỗ trợ toàn bộ code point vẫn có thể hiển thị sai **cụm glyph** nếu renderer không có shaping/positioning phù hợp.
-4. Với emoji màu, `canDisplay` chưa bảo đảm màu sắc, kiểu trình bày hoặc tổ hợp ZWJ sẽ trông như thiết kế.
-5. Nếu ứng dụng gửi output sang PDF, trình duyệt hoặc dịch vụ ảnh, font và renderer thực sự của kênh xuất có thể khác với môi trường chạy chương trình kiểm tra.
+1. `Dialog` is a **logical font** name, not necessarily a single physical font file.
+2. `Font.canDisplayUpTo` returns a **UTF-16 position**, not a UTF-8 byte offset.
+3. A font reporting support for all code points can still render **glyph clusters** incorrectly if the renderer lacks proper shaping/positioning.
+4. For color emojis, `canDisplay` does not guarantee color, presentation style, or ZWJ combinations will look as designed.
+5. If an app sends output to PDF, a browser, or an image service, the actual font and renderer of that output channel can differ from the environment running the check program.
 
-### Font có tồn tại thật không?
+### Does the font actually exist?
 
-Khởi tạo `new Font("TênFont", Font.PLAIN, 20)` không phải một phép kiểm tra chặt chẽ rằng tệp font vật lý có đúng tên đã được cài. Java có thể chọn font mặc định/fallback. Nếu cần kiểm tra môi trường, dùng `GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()` hoặc công cụ quản lý font của hệ điều hành, rồi test trực tiếp trên runtime thực tế.
+Constructing `new Font("FontName", Font.PLAIN, 20)` is not a strict check that a physical font file with that exact name is installed. Java may silently choose a default/fallback font. If you need to inspect the environment, use `GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()` or the OS font manager, then test directly on the real runtime.
 
-**Không tự tin chỉ nhờ tên font trong cấu hình.** Font có thể được thay thế âm thầm, đặc biệt trên server/container Linux tối giản.
+**Do not rely blindly on a font name in configuration.** Fonts can be silently substituted, especially on minimal Linux servers/containers.
 
-## 7. Text shaping: có glyph nhưng chưa chắc sắp glyph đúng
+## 7. Text shaping: having glyphs does not guarantee proper glyph layout
 
-**Shaping** là bước chuyển một chuỗi Unicode thành **chuỗi glyph và vị trí glyph** phù hợp quy tắc chữ viết. Bước này có thể quyết định:
+**Shaping** is the step that transforms a Unicode string into a **sequence of glyphs and glyph positions** matching writing-system rules. This step can determine:
 
-- Glyph dạng đầu/giữa/cuối khi các chữ nối nhau.
-- Ligature tạo từ nhiều code point.
-- Thứ tự và vị trí dấu kết hợp.
-- Kerning và điều chỉnh khoảng cách.
-- Các tính năng font/ngôn ngữ cụ thể.
+- Initial/medial/final glyph forms when letters connect.
+- Ligatures formed from multiple code points.
+- Order and positioning of combining marks.
+- Kerning and spacing adjustments.
+- Script- or language-specific font features.
 
-Ví dụ tiếng Ả Rập thường cần các glyph dạng nối, còn một số hệ chữ Nam Á có các tổ hợp phụ âm và dấu nguyên âm đặc thù. Một renderer vẽ **mỗi `char` như một hình độc lập** có thể làm vỡ các quy tắc ấy.
+For example, Arabic usually needs joined glyph forms, while certain South Asian scripts have specialized consonant clusters and vowel-mark combinations. A renderer drawing **each `char` as an independent shape** can break those rules.
 
-Các cách tiếp cận cần tránh:
+Approaches to avoid:
 
 ```java
-// PHẢN DIỆN — không dùng để tự vẽ câu đa ngôn ngữ:
+// ANTI-PATTERN — do not use to draw multilingual sentences yourself:
 for (int i = 0; i < text.length(); i++) {
     drawOneChar(text.charAt(i));
 }
 ```
 
-Đây chỉ là **mã giả minh họa**; `drawOneChar` không phải API Java chuẩn. Vòng lặp theo `char` còn có thể chia đôi surrogate pair của emoji. Quan trọng hơn, vẽ từng ký tự riêng thường làm mất cơ hội shaping và xử lý cả cụm.
+This is only **illustrative pseudocode**; `drawOneChar` is not a standard Java API. Iterating by `char` can also split an emoji's surrogate pair in half. More importantly, drawing one character at a time usually loses shaping and whole-cluster handling.
 
-Với Java desktop, nên ưu tiên **text component/layout engine** phù hợp; khi cần kiểm soát vị trí trên Java2D, có thể dùng `java.awt.font.TextLayout` và `Graphics2D`. `Graphics2D.drawString` cũng có xử lý văn bản của Java2D, nhưng khi xây renderer tùy chỉnh hãy tránh thuật toán dựa trên việc xếp từng ký tự một cách thủ công. Đặc biệt nên thử các chuỗi RTL và phức tạp trên chính JDK/OS được triển khai.
+For Java desktop, prefer appropriate **text components/layout engines**; when precise positioning in Java2D is needed, you can use `java.awt.font.TextLayout` and `Graphics2D`. `Graphics2D.drawString` also uses Java2D text handling, yet when building a custom renderer avoid algorithms that place characters manually one by one. In particular, test RTL and complex strings on the exact JDK/OS where the app runs.
 
-### Không thể suy ra số glyph từ số code point
+### You cannot deduce glyph count from code point count
 
-Một ligature có thể cần ít glyph hơn code point; dấu kết hợp có thể dùng glyph riêng được định vị trên chữ nền; một emoji nhiều code point có thể thành một glyph hoặc nhiều glyph. Vì thế việc so `GlyphVector.getNumGlyphs()` với `text.length()` chỉ là **chẩn đoán**, không phải điều kiện “render đúng nếu bằng nhau”.
+A ligature may require fewer glyphs than code points; a combining mark may use a separate glyph positioned over a base letter; a multi-code-point emoji can become one glyph or multiple glyphs. Hence comparing `GlyphVector.getNumGlyphs()` with `text.length()` is solely **diagnostic**, never a condition meaning "renders right if equal."
 
-## 8. Bản địa hóa và chữ hai chiều (BiDi)
+## 8. Localization and bidirectional text (BiDi)
 
-Tiếng Việt/Anh chủ yếu đọc từ trái sang phải (*left-to-right*, LTR). Tiếng Ả Rập và Hebrew có chiều viết chính từ phải sang trái (*right-to-left*, RTL). Một chuỗi có thể trộn:
+Vietnamese/English are read primarily left-to-right (*left-to-right*, LTR). Arabic and Hebrew have a primary writing direction of right-to-left (*right-to-left*, RTL). A single string can mix:
 
 ```text
-Nội dung RTL + mã sản phẩm ABC-123 + số 2026 + dấu câu
+RTL content + product code ABC-123 + number 2026 + punctuation
 ```
 
-Thứ tự ký tự trong `String` (*logical order*) và thứ tự hiển thị trên màn hình (*visual order*) không phải lúc nào cũng giống nhau. Unicode Bidirectional Algorithm (BiDi) xử lý cách sắp các đoạn RTL/LTR.
+Character order in a `String` (*logical order*) and display order on screen (*visual order*) do not always match. The Unicode Bidirectional Algorithm (BiDi) handles how RTL/LTR segments are arranged.
 
-Các sai lầm phổ biến:
+Common mistakes:
 
-- **Đảo ngược toàn chuỗi** bằng `new StringBuilder(text).reverse()` để “hỗ trợ RTL”. Điều đó có thể phá số, emoji, dấu kết hợp, surrogate pair và thứ tự logic.
-- Thấy chuỗi Arabic có đầy đủ code point rồi khẳng định đã hỗ trợ RTL. Bộ layout còn phải quyết định hướng đoạn, số, dấu câu và thứ tự trình bày.
-- Chỉ đổi alignment sang RIGHT nhưng không quan tâm hướng văn bản, caret, vị trí icon, cấu trúc form, thao tác focus hay bố cục.
-- Gắn các đoạn dữ liệu LTR như URL, mã ID, số điện thoại trong câu RTL mà không kiểm thử dấu câu và ranh giới hướng.
+- **Reversing the entire string** via `new StringBuilder(text).reverse()` to "support RTL." That can break numbers, emojis, combining marks, surrogate pairs, and logical order.
+- Seeing an Arabic string with all code points intact and claiming RTL is supported. The layout engine still must resolve paragraph direction, digits, punctuation, and display order.
+- Changing alignment to RIGHT without considering text direction, caret, icon placement, form structure, focus flow, or layout.
+- Placing LTR data snippets such as URLs, IDs, or phone numbers inside an RTL sentence without testing punctuation and directional boundaries.
 
-Trong Java, `java.text.Bidi` hỗ trợ phân tích hướng văn bản. Một số thành phần Swing có khả năng áp dụng `ComponentOrientation.RIGHT_TO_LEFT`, nhưng **không phải cứ đặt orientation là đủ để bản địa hóa toàn bộ UI**; vẫn cần kiểm tra các component, renderer và văn bản trộn script.
+In Java, `java.text.Bidi` supports text-direction analysis. Some Swing components can apply `ComponentOrientation.RIGHT_TO_LEFT`, yet **setting orientation alone is not enough to localize an entire UI**; individual components, renderers, and mixed-script text still need testing.
 
-## 9. Chương trình Java 17+: kiểm tra hướng chữ mà không phụ thuộc font
+## 9. Java 17+ program: checking text direction independently of fonts
 
-Tạo **`BidiInspectionDemo.java`**:
+Create **`BidiInspectionDemo.java`**:
 
 ```java
 import java.text.Bidi;
@@ -315,14 +315,14 @@ public class BidiInspectionDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 BidiInspectionDemo.java
 java -cp . BidiInspectionDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 arabicIsRightToLeft=true
@@ -330,15 +330,15 @@ arabicRunCount=1
 sourceUtf16Length=5
 ```
 
-Với chuỗi toàn chữ Ả Rập trong ví dụ, thuật toán nhận ra một run RTL. **Điều này không chứng minh có glyph đẹp hoặc chính xác trong font** — `Bidi` giúp phân tích chiều chữ, không phải công cụ kiểm tra font coverage.
+For the all-Arabic string in the example, the algorithm identifies one RTL run. **This does not prove attractive or accurate glyphs exist in a font** — `Bidi` assists with direction analysis, not font coverage checking.
 
-Khi trộn văn bản có hướng khác nhau, số run có thể tăng và hướng nền có thể ảnh hưởng kết quả. Để kiểm tra bố cục thực tế, phải đưa các chuỗi có mã số, dấu câu, URL và Unicode isolate/embedding theo chính sách UI vào môi trường render cuối.
+When mixing text of different directions, run count can grow and base direction can affect results. To verify real-world layout, feed strings containing numeric codes, punctuation, URLs, and Unicode isolates/embeddings per UI policy into the final rendering environment.
 
-## 10. Ví dụ Java2D: tạo ảnh kiểm thử văn bản đa ngôn ngữ
+## 10. Java2D example: generating a multilingual text test image
 
-Nếu cần kiểm tra một renderer, có thể tạo ảnh PNG bằng Java2D rồi **mở bằng trình xem ảnh**. Ví dụ không dựa vào giao diện Swing đang hiển thị và không yêu cầu cửa sổ GUI; nó dùng `BufferedImage`, `Graphics2D` và `TextLayout`.
+If you need to inspect a renderer, you can generate a PNG image with Java2D and **open it in an image viewer**. This example does not rely on a visible Swing UI and requires no GUI window; it uses `BufferedImage`, `Graphics2D`, and `TextLayout`.
 
-Tạo tệp **`MultilingualPreviewDemo.java`**:
+Create the file **`MultilingualPreviewDemo.java`**:
 
 ```java
 import java.awt.Color;
@@ -400,42 +400,42 @@ public class MultilingualPreviewDemo {
 }
 ```
 
-Lệnh biên dịch/chạy:
+Compile/run commands:
 
 ```bash
 javac -encoding UTF-8 MultilingualPreviewDemo.java
 java -cp . MultilingualPreviewDemo
 ```
 
-Khi runtime có Java2D và bộ ghi PNG hoạt động, đầu ra console:
+When the runtime has Java2D and a working PNG writer, console output:
 
 ```text
 Created font-preview.png
 ```
 
-Chương trình tạo `font-preview.png` trong thư mục làm việc hiện tại. **Hình ảnh không có một đầu ra pixel cố định**: phụ thuộc font vật lý/fallback, JDK, OS, engine layout, anti-aliasing và dữ liệu glyph. Cần mở ảnh và quan sát từng dòng; nếu thấy ô vuông, glyph tách rời hoặc dấu lệch, phải chẩn đoán môi trường.
+The program creates `font-preview.png` in the current working directory. **The image has no single fixed pixel output**: it depends on physical/fallback fonts, JDK, OS, layout engine, anti-aliasing, and glyph data. Open the image and inspect each line; if you see boxes, disconnected glyphs, or shifted marks, diagnose the environment.
 
-Ví dụ dùng `TextLayout` để đưa **toàn chuỗi** cho bộ định hình thay vì vẽ từng `char`. Nó vẫn **không bảo đảm** mọi emoji ZWJ, màu sắc, script hay font fallback đều render đúng ở mọi máy. Đặc biệt nếu triển khai server/container không cài font, cần kiểm tra môi trường và giấy phép font trước khi đóng gói.
+The example uses `TextLayout` to pass the **entire string** to the shaper instead of drawing one `char` at a time. It still **does not guarantee** all ZWJ emojis, colors, scripts, or font fallbacks render cleanly on every machine. Especially when deploying to servers/containers with no fonts installed, check the environment and font licenses before packaging.
 
-### Chú ý khoảng cách và cắt chữ
+### Watch spacing and clipping
 
-Kể cả khi glyph đúng, văn bản có thể bị **clipping** nếu khung chứa quá hẹp, baseline/line height không đủ, hoặc UI cố định chiều cao bằng giá trị chỉ phù hợp với một font. Đây là lỗi layout, không phải lỗi encoding. Kiểm tra với chữ có dấu cao/thấp, font size lớn, zoom/accessibility settings và độ dài bản dịch khác nhau.
+Even when glyphs are right, text can suffer **clipping** if containers are too narrow, baseline/line height is insufficient, or the UI hardcodes a height suited to only one font. That is a layout bug, not an encoding bug. Test with tall/deep diacritics, large font sizes, zoom/accessibility settings, and varying translation lengths.
 
-## 11. Hiển thị qua Swing, JavaFX, trình duyệt và PDF không hoàn toàn giống nhau
+## 11. Display across Swing, JavaFX, browsers, and PDF is not identical
 
-Một ứng dụng Java có thể đưa chuỗi qua nhiều hệ thống hiển thị:
+A Java application may send strings through multiple display systems:
 
-| Kênh | Cần kiểm tra |
+| Channel | What to check |
 | --- | --- |
-| **Swing/AWT** | Font logic/physical, font fallback, `ComponentOrientation`, `TextLayout`, rendering hints, bố cục và kích thước component |
-| **JavaFX** | Font, khả năng render của text controls, shaping, biến thể font, hướng bố cục và phiên bản runtime |
-| **Trình duyệt (web do Java server trả HTML)** | CSS `font-family`, font tải từ web, font fallback của browser/OS, `dir`, Unicode BiDi, line breaks |
-| **Ảnh được render ở server** | Font cài trên server/container, DPI, anti-alias, version Java2D, glyph coverage |
-| **PDF do thư viện Java sinh** | Font được nhúng/subset hay không, encoding ánh xạ ký tự, text extraction, shaping/RTL support của thư viện PDF |
+| **Swing/AWT** | Logical/physical fonts, font fallback, `ComponentOrientation`, `TextLayout`, rendering hints, component layout and sizing |
+| **JavaFX** | Fonts, text control rendering capability, shaping, font variants, layout direction, and runtime version |
+| **Browser (web HTML returned by Java server)** | CSS `font-family`, web-loaded fonts, browser/OS font fallback, `dir`, Unicode BiDi, line breaks |
+| **Server-rendered images** | Fonts installed on server/container, DPI, anti-aliasing, Java2D version, glyph coverage |
+| **PDF generated by Java libraries** | Whether fonts are embedded/subsetted, character-mapping encoding, text extraction, PDF library's shaping/RTL support |
 
-Không nên giả định vì **`JLabel` trên Windows hiển thị đúng** nên PDF từ máy chủ Linux cũng đúng. Từng kênh có font/render engine khác nhau. Java server trả JSON có Unicode đúng không thể ép trình duyệt client dùng một font chứa đầy đủ glyph.
+Do not assume that because **`JLabel` renders cleanly on Windows**, a PDF from a Linux server will also be right. Each channel uses different fonts and rendering engines. A Java server returning valid Unicode JSON cannot force a client browser to use a font with full glyph coverage.
 
-Với UI web, ví dụ khái niệm CSS:
+For web UIs, a conceptual CSS example:
 
 ```css
 .message {
@@ -443,88 +443,88 @@ Với UI web, ví dụ khái niệm CSS:
 }
 ```
 
-Đây là **ví dụ danh sách ưu tiên**, không có nghĩa các font đó đã được cài hoặc cấp phép trên mọi máy; trình duyệt sẽ chọn fallback có sẵn. Trong production, cần xác định font được phép dùng và hỗ trợ những script sản phẩm cần, thay vì viết tên font rồi coi yêu cầu đã hoàn thành.
+This is an **illustrative priority list**; it does not mean those fonts are installed or licensed on every machine; the browser will pick an available fallback. In production, identify fonts you are licensed to use that support the scripts your product requires, rather than writing font names and treating the requirement as done.
 
-Nếu dùng web font, cần quan tâm hiệu năng tải, cache, CORS, file subsets, các dải `unicode-range` (nếu có), quyền sử dụng font, và trạng thái font chưa tải xong. Đừng coi một danh sách `font-family` là test coverage.
+When using web fonts, also consider load performance, caching, CORS, subset files, `unicode-range` ranges (if any), font licensing, and unstyled-text state before fonts finish loading. Do not treat a `font-family` list as test coverage.
 
-## 12. Font coverage, glyph shaping và direction phải được kiểm tra tách biệt
+## 12. Font coverage, glyph shaping, and direction must be tested separately
 
-Một quy trình chẩn đoán hữu ích khi có báo lỗi “chữ bị ô vuông”:
+A useful diagnostic workflow when someone reports "text turned into boxes":
 
-1. **Kiểm tra nguồn dữ liệu:** bytes đến từ đâu, charset khi decode/encode là gì? Với UTF-8, kiểm tra có ký tự thay thế `U+FFFD` hoặc chuỗi mojibake hay không.
-2. **In code point thực tế:** dùng `String.codePoints()` và mã `U+...`; đừng chỉ nhìn chữ trong log/console vì font log cũng có thể thiếu glyph.
-3. **Kiểm tra biểu diễn Unicode:** chữ dựng sẵn hay combining marks; có ZWJ/variation selectors không? Normalization có được áp dụng đúng chính sách không?
-4. **Xác định kênh render:** AWT, Swing, JavaFX, browser, server-side image, PDF hay terminal; không lấy kết quả kênh này thay cho kênh khác.
-5. **Kiểm tra font được sử dụng thật:** font ưu tiên, font fallback, version, tệp font có sẵn và quyền truy cập. Đừng chỉ kiểm tra tên font trong CSS/Java.
-6. **Kiểm tra hỗ trợ code point:** thử `Font.canDisplay`/`canDisplayUpTo` khi dùng Java2D; nếu thiếu glyph, chọn font phù hợp.
-7. **Kiểm tra shaping:** với Arabic, Indic scripts, dấu kết hợp, ligature; thử cả từ/câu thay vì từng ký tự.
-8. **Kiểm tra BiDi/layout:** với nội dung RTL và trộn mã LTR, thử dấu câu, số, liên kết, alignment và navigation.
-9. **Kiểm tra line metrics và clipping:** khung chứa, line height, ascent/descent, font fallback đổi chiều cao chữ; kiểm thử bản dịch dài.
-10. **So sánh môi trường:** JDK, OS, installed fonts, browser, headless/container, thiết bị di động; chụp ảnh môi trường gặp lỗi.
-11. **Kiểm tra output sau xuất:** PDF/ảnh thực tế, không chỉ preview trong IDE hoặc desktop.
-12. **Tự động hóa hồi quy:** dùng bộ chuỗi đại diện cho mỗi script/locale và kiểm tra visual/screenshot khi giá trị cao, nhưng không thay thế đánh giá của người biết ngôn ngữ.
+1. **Inspect the data source:** where do bytes come from, and what charset is used for decoding/encoding? For UTF-8, check for replacement character `U+FFFD` or mojibake strings.
+2. **Print actual code points:** use `String.codePoints()` and `U+...` codes; do not rely only on looking at text in logs/consoles because log fonts can also lack glyphs.
+3. **Check Unicode representation:** precomposed letters vs. combining marks; are ZWJ/variation selectors present? Is normalization applied per policy?
+4. **Identify the rendering channel:** AWT, Swing, JavaFX, browser, server-side image, PDF, or terminal; do not treat one channel's result as valid for another.
+5. **Check the actual font used:** preferred font, fallback font, version, available font files, and permissions. Do not just check a font name in CSS/Java.
+6. **Check code point support:** try `Font.canDisplay`/`canDisplayUpTo` when using Java2D; if glyphs are missing, pick a suitable font.
+7. **Check shaping:** for Arabic, Indic scripts, combining marks, ligatures; test whole words/sentences instead of single characters.
+8. **Check BiDi/layout:** for RTL content and mixed LTR codes, test punctuation, numbers, links, alignment, and navigation.
+9. **Check line metrics and clipping:** containers, line height, ascent/descent, fallback fonts changing text height; test long translations.
+10. **Compare environments:** JDK, OS, installed fonts, browser, headless/container, mobile devices; capture screenshots of failing environments.
+11. **Inspect exported output:** actual PDF/images, not just IDE or desktop previews.
+12. **Automate regression:** use representative string sets per script/locale and visual/screenshot checks where high-value, without replacing review by fluent speakers.
 
-Nếu code point trong Java đúng và cùng văn bản hiển thị đúng ở máy A nhưng lỗi ở máy B, đây là bằng chứng mạnh cho hướng điều tra **font/renderer/environment** hơn là thay đổi lại encoding toàn bộ hệ thống. Tuy nhiên, vẫn cần đối chiếu dữ liệu đầu vào ở cả hai môi trường trước khi kết luận.
+If code points in Java are right and the same text displays properly on machine A yet fails on machine B, that is strong evidence to investigate **fonts/renderer/environment** rather than changing encodings across the system. Still, compare input data in both environments before concluding.
 
-## 13. Các lỗi đặc biệt khi hiển thị tiếng Việt
+## 13. Special bugs when displaying Vietnamese
 
-Dấu tiếng Việt là ví dụ tốt để thấy **encoding đúng không đồng nghĩa vị trí dấu đúng**:
+Vietnamese diacritics are a good illustration that **correct encoding does not equal correct mark placement**:
 
-- Một chữ có thể có nhiều dấu kết hợp và cần font hoặc renderer đặt dấu theo quy tắc tiếng Việt.
-- Một số font có glyph cơ sở nhưng khả năng neo dấu (*mark positioning*) kém; hậu quả là dấu chồng sai vị trí hoặc đè vào chữ kế bên.
-- Font fallback giữa ký tự cơ sở và dấu có thể làm độ cao, advance hoặc vị trí dấu không đồng nhất.
-- Chữ `Đ/đ` là các code point riêng; không tự trở thành `D/d` khi normalize NFC/NFD.
-- Dữ liệu từ IME hoặc copy-paste có thể ở dạng NFC/NFD khác nhau nhưng vẫn hợp lệ về ngôn ngữ. Chuẩn hóa canonical có thể làm so sánh thuận tiện hơn, nhưng không tự sửa lỗi mark positioning.
-- Độ dài một chuỗi hiển thị bằng `String.length()` có thể khác số “chữ”; đừng cắt giao diện ngay tại một `char` khi văn bản có dấu kết hợp hoặc surrogate pair.
+- A single letter can carry multiple combining marks and needs a font or renderer that positions marks according to Vietnamese rules.
+- Some fonts have base glyphs yet poor *mark positioning*; as a result, marks stack unevenly or collide with adjacent letters.
+- Font fallback splitting between a base character and a diacritic can produce mismatched height, advance, or mark placement.
+- `Đ/đ` are separate code points; they do not turn into `D/d` under NFC/NFD normalization.
+- Data from IMEs or copy/paste may arrive in NFC or NFD forms while remaining linguistically valid. Canonical normalization makes comparison more convenient, yet does not fix mark positioning bugs by itself.
+- Displayed string length via `String.length()` can differ from "letter count"; do not truncate UI text at an arbitrary `char` when text contains combining marks or surrogate pairs.
 
-Khi chọn font cho sản phẩm tiếng Việt, đừng chỉ kiểm thử ký tự ASCII và một từ ngắn. Hãy thử các nhóm: `ă`, `â`, `ê`, `ô`, `ơ`, `ư`, `đ`, cùng các dấu thanh và cả văn bản viết hoa. Kiểm tra trên font size nhỏ/lớn, bold/italic và những chỗ có line height cố định.
+When choosing a font for a Vietnamese product, do not test only ASCII letters and one short word. Test groups like `ă`, `â`, `ê`, `ô`, `ơ`, `ư`, `đ`, along with all tone marks and uppercase forms. Check small/large font sizes, bold/italic, and places with fixed line height.
 
-**Không nên tự “bỏ dấu” để tránh lỗi font.** Việc chuyển `Tiếng Việt` thành `Tieng Viet` làm mất thông tin ngôn ngữ và thường không phải giải pháp localization chấp nhận được. Phải sửa font/renderer hoặc cách chọn font đúng cách.
+**Do not strip diacritics to avoid font bugs.** Turning `Tiếng Việt` into `Tieng Viet` loses linguistic information and is generally unacceptable as a localization workaround. Fix the font/renderer or font selection properly.
 
-## 14. Emoji, variation selector và chuỗi ZWJ
+## 14. Emojis, variation selectors, and ZWJ sequences
 
-Một vấn đề rất dễ gặp ở giao diện đa nền tảng là emoji hiển thị khác nhau:
+A common cross-platform UI issue is emojis rendering inconsistently:
 
-- Một số code point có dạng chữ (*text presentation*) và dạng emoji; **variation selector** có thể gợi ý kiểu hiển thị.
-- Một emoji dạng người hoặc gia đình có thể gồm nhiều code point và `U+200D` (zero-width joiner).
-- Cặp regional indicator có thể tạo emoji quốc kỳ nếu môi trường hỗ trợ.
-- Một máy có font màu/renderer hỗ trợ glyph tổ hợp; máy khác có thể hiện hình đơn sắc, các thành phần rời hoặc ô vuông.
+- Some code points have both a *text presentation* and an emoji presentation; a **variation selector** can suggest the display style.
+- A person or family emoji can consist of multiple code points and `U+200D` (zero-width joiner).
+- Regional indicator pairs can form a national flag emoji if the environment supports them.
+- One machine has color fonts/renderers supporting composite glyphs; another may show monochrome shapes, split parts, or boxes.
 
-`Font.canDisplayUpTo` trả `-1` **không đủ** để xác nhận cả chuỗi ZWJ biến thành một emoji như mong muốn. Cần thử trực tiếp trên các nền tảng mục tiêu.
+`Font.canDisplayUpTo` returning `-1` is **not enough** to confirm an entire ZWJ sequence turns into one intended emoji. Test directly on target platforms.
 
-Với Java, cần đi qua code point đúng cách nếu xử lý emoji:
+In Java, step through code points properly when handling emojis:
 
 ```java
 String emoji = "\uD83D\uDE00";
 int count = emoji.codePointCount(0, emoji.length());
 ```
 
-Trích đoạn trên cho `count == 1`. Dùng `emoji.charAt(0)` rồi hiển thị độc lập sẽ lấy **một nửa surrogate pair**, không phải emoji hoàn chỉnh.
+This snippet yields `count == 1`. Calling `emoji.charAt(0)` and displaying it alone grabs **half of a surrogate pair**, not a complete emoji.
 
-Không nên quyết định cắt text, di chuyển caret hoặc xóa ký tự bằng phép trừ một đơn vị UTF-16 tùy ý. Với chức năng chỉnh sửa, cần quan tâm **ranh giới grapheme cluster**, đặc biệt với emoji, dấu kết hợp và script phức tạp.
+Do not slice text, move a caret, or delete characters by subtracting an arbitrary single UTF-16 unit. For editing features, pay attention to **grapheme cluster boundaries**, especially with emojis, combining marks, and complex scripts.
 
-## 15. BiDi trong giao diện: không chỉ đảo chiều căn lề
+## 15. BiDi in the UI: not just flipping alignment
 
-Khi hỗ trợ Arabic/Hebrew, cần tách:
+When supporting Arabic/Hebrew, separate:
 
-- **Direction của đoạn văn:** thành phần bao ngoài có chủ đích RTL hay LTR?
-- **Direction của các đoạn chữ bên trong:** chữ Arabic, Latin, số, dấu câu có thể có hướng khác nhau.
-- **Thứ tự logic:** `String` lưu dữ liệu theo thứ tự văn bản, không nên tự đảo phần tử để tạo hiệu ứng nhìn.
-- **Layout của giao diện:** icon trước/sau nhãn, menu, breadcrumb, thanh điều hướng, caret, phím mũi tên và focus order.
-- **Ngữ cảnh chèn nội dung không tin cậy:** dữ liệu tên người/đơn hàng/URL có thể cần *isolation* để không ảnh hưởng hướng của câu bao quanh.
+- **Paragraph direction:** is the outer component intentionally RTL or LTR?
+- **Inner segment direction:** Arabic, Latin, numbers, and punctuation can each have different directions.
+- **Logical order:** `String` stores data in textual order; do not reverse elements yourself for visual effect.
+- **UI layout:** icons before/after labels, menus, breadcrumbs, navigation bars, carets, arrow keys, and focus order.
+- **Untrusted content insertion context:** names/order IDs/URLs may need *isolation* so they do not disturb the direction of surrounding sentences.
 
-Ví dụ, nếu một câu Arabic chứa `ABC-123`, phần mã thường nên giữ thứ tự nội tại LTR. Thao tác `reverse()` cả chuỗi có thể làm hỏng mã và dấu câu. Dùng **Unicode BiDi-capable layout** và khi thích hợp các cơ chế isolation của nền tảng hiển thị.
+For example, if an Arabic sentence contains `ABC-123`, the code segment should generally keep its internal LTR order. Calling `reverse()` on the whole string can corrupt the code and punctuation. Use **Unicode BiDi-capable layout** and platform isolation mechanisms where appropriate.
 
-Trong Swing, `ComponentOrientation.RIGHT_TO_LEFT` giúp một số component/layout thích nghi, nhưng không thay thế kiểm tra rendering từng thành phần. Một số đồ họa tùy chỉnh hoặc biểu tượng có hướng vẫn phải được xử lý riêng; không phải icon nào cũng cần mirror (logo, biểu tượng play, đồng hồ... phụ thuộc ngữ nghĩa thiết kế).
+In Swing, `ComponentOrientation.RIGHT_TO_LEFT` helps some components/layouts adapt, yet does not replace testing rendering on every component. Custom graphics or directional icons still require individual handling; not every icon should be mirrored (logos, play icons, clocks... depend on design semantics).
 
-## 16. Khi cần đóng gói font theo ứng dụng
+## 16. When you need to bundle fonts with the application
 
-Đôi khi nền tảng mục tiêu không bảo đảm có font thích hợp. Một ứng dụng desktop/server có thể đóng gói font hoặc dùng cơ chế phân phối font do sản phẩm quản lý.
+Sometimes the target platform does not guarantee suitable fonts. A desktop/server application can bundle fonts or use a product-managed font distribution mechanism.
 
-Trong Java2D, `Font.createFont` có thể tải một font từ file/stream theo những định dạng hỗ trợ. Ví dụ khái niệm:
+In Java2D, `Font.createFont` can load a font from a file/stream in supported formats. Conceptual example:
 
 ```java
-// Trích đoạn: phải có tài nguyên font thực và quyền sử dụng.
+// Snippet: requires a real font resource and license/permission to use.
 try (InputStream stream =
         MyClass.class.getResourceAsStream("/fonts/app-font.ttf")) {
     if (stream == null) {
@@ -536,121 +536,121 @@ try (InputStream stream =
 }
 ```
 
-Đoạn trên cần import `java.awt.Font`, `java.io.InputStream` và một class `MyClass` trong dự án; không phải chương trình độc lập vì tài nguyên font được giả định tồn tại. Không đưa font vào repository hay phân phối lại nếu giấy phép không cho phép.
+This snippet requires importing `java.awt.Font`, `java.io.InputStream`, and a `MyClass` class in the project; it is not a standalone program because the font resource is assumed to exist. Do not commit fonts into a repository or redistribute them unless the license permits it.
 
-Trước khi chọn phương án đóng gói font:
+Before choosing to bundle fonts:
 
-1. Kiểm tra font có chứa các script, glyph, biến thể và tính năng shaping sản phẩm cần.
-2. Kiểm tra bộ renderer và hệ điều hành thật sự sử dụng font mong muốn; thêm font vào classpath không tự bảo đảm mọi text component/PDF/browser sẽ dùng nó.
-3. Xem xét license về phân phối/nhúng, kể cả PDF subset và ứng dụng thương mại.
-4. Kiểm tra chiều cao dòng, kiểu bold/italic, Unicode variation selectors và khả năng fallback.
-5. Nếu có nhiều bộ font cho từng script, xác định chiến lược fallback nhất quán để tránh nhảy kích thước và độ dày giữa các phần của cùng một từ.
+1. Verify the font includes the scripts, glyphs, variants, and shaping features the product needs.
+2. Verify the renderer and OS actually use the intended font; adding a font to the classpath does not guarantee every text component/PDF/browser will pick it up.
+3. Review licensing for distribution/embedding, including PDF subsetting and commercial apps.
+4. Test line height, bold/italic styles, Unicode variation selectors, and fallback behavior.
+5. If using multiple font families per script, define a consistent fallback strategy to avoid size and weight jumps within a single word.
 
-Ở ứng dụng web, nhúng/tải web font thông qua CSS là một pipeline khác với `Font.createFont` trong Java server. Không vì Java server có font mà browser tự được cung cấp font đó.
+In web applications, embedding/loading web fonts via CSS is a separate pipeline from `Font.createFont` on a Java server. Having a font on the Java server does not automatically supply it to the browser.
 
-## 17. Không nhầm lỗi mã hóa với lỗi hiển thị
+## 17. Do not mistake encoding errors for display errors
 
-| Triệu chứng | Nguyên nhân thường cần kiểm tra | Hướng sửa phù hợp |
+| Symptom | Common causes to check | Appropriate fix |
 | --- | --- | --- |
-| Chuỗi thành `Tiáº¿ng Viá»‡t` | Sai charset khi decode/encode ở một tầng | Kiểm tra bytes, UTF-8 và cấu hình pipeline |
-| Chuỗi có `U+FFFD` xuất hiện từ lúc decode | Bytes đầu vào sai hoặc decoder thay thế dữ liệu không giải mã được | Kiểm tra nguồn bytes, cách xử lý lỗi decode |
-| Code point đúng nhưng ô vuông/tofu | Font thiếu glyph hoặc fallback không hoạt động | Chọn/cài font đúng, kiểm tra `canDisplay`, test render |
-| Dấu tiếng Việt hiện lệch/chồng | Font metrics, shaping, mark positioning, fallback | Dùng font và renderer hỗ trợ tiếng Việt |
-| Chữ Arabic không nối đúng | Shaping script hoặc cách render từng ký tự riêng | Dùng text layout engine phù hợp |
-| Văn bản Hebrew/Arabic với mã Latin bị đảo dấu câu | BiDi direction/isolation/layout | Sửa hướng đoạn và xử lý BiDi, không đảo `String` |
-| Emoji thành nhiều biểu tượng rời | Renderer/font chưa xử lý chuỗi ZWJ/variation | Kiểm tra font emoji, engine và thiết bị mục tiêu |
-| Chỉ lỗi khi xuất PDF | Font embedding/subsetting hoặc engine PDF | Kiểm tra font và shaping của thư viện PDF |
-| Chữ bị cắt khi đổi locale | Bản dịch dài, font metrics, kích thước container | Thiết kế layout co giãn, thử accessibility font size |
-| Chỉ lỗi trên máy chủ container | Thiếu bộ font/khác JDK/OS | Kiểm tra image/deployment và font đã cài |
-| `String.equals` trả khác nhưng hình chữ như nhau | Biểu diễn Unicode dựng sẵn/phân rã, hoặc homoglyph | Chọn chính sách normalization/identity phù hợp |
-| Dữ liệu hiển thị được nhưng không thể tra cứu | Normalization, collation, search index khác nhau | Đồng nhất hợp đồng so sánh, không tự đổi encoding |
+| String becomes `Tiáº¿ng Viá»‡t` | Wrong charset during decode/encode at some layer | Check bytes, UTF-8, and pipeline configuration |
+| String has `U+FFFD` starting from decode | Bad input bytes or decoder replaced undecodable data | Inspect byte source and decode error handling |
+| Right code points yet boxes/tofu | Font lacks glyphs or fallback failed | Choose/install proper font, check `canDisplay`, test render |
+| Vietnamese diacritics shifted/overlapping | Font metrics, shaping, mark positioning, fallback | Use a font and renderer supporting Vietnamese |
+| Arabic letters fail to join properly | Script shaping or rendering one character at a time | Use a proper text layout engine |
+| Hebrew/Arabic text with Latin codes has flipped punctuation | BiDi direction/isolation/layout | Fix paragraph direction and BiDi handling; do not reverse `String` |
+| Emojis split into separate icons | Renderer/font does not handle ZWJ/variation sequences | Check emoji font, engine, and target device |
+| Fails only on PDF export | Font embedding/subsetting or PDF engine | Check PDF library fonts and shaping support |
+| Text clipped when switching locales | Long translations, font metrics, container size | Design flexible layouts, test accessibility font sizes |
+| Fails only on container server | Missing font packages / different JDK/OS | Inspect image/deployment and installed fonts |
+| `String.equals` differs despite identical look | Precomposed vs. decomposed Unicode, or homoglyphs | Choose an appropriate normalization/identity policy |
+| Data displays fine yet fails to search | Different normalization, collation, or search index | Align comparison contracts; do not change encodings ad hoc |
 
-Các mục “nguyên nhân” trong bảng là **hướng chẩn đoán**, không phải kết luận duy nhất từ một triệu chứng. Ví dụ dấu hiện lệch còn có thể do lỗi layout hoặc CSS; phải kiểm tra môi trường cụ thể.
+The "causes" column lists **diagnostic leads**, not the sole conclusion for a symptom. For example, shifted marks can also come from CSS or layout bugs; inspect the specific environment.
 
-## 18. Kiểm thử hiển thị theo locale và môi trường
+## 18. Testing display across locales and environments
 
-Một bộ kiểm thử localization nên có nhiều tầng:
+A localization test suite should cover multiple layers:
 
-### 18.1. Kiểm thử dữ liệu
+### 18.1. Data tests
 
-- Decode/encode UTF-8 đúng với các chuỗi mẫu.
-- Kiểm tra code point trong `String` bằng giá trị `U+...`.
-- Đảm bảo không tự cắt giữa surrogate pair hoặc grapheme cluster.
-- Kiểm tra normalization policy nếu ứng dụng cần so khớp canonical; không chuẩn hóa bừa những dữ liệu có ý nghĩa chính xác.
+- Decode/encode UTF-8 accurately on sample strings.
+- Inspect code points in `String` by `U+...` values.
+- Ensure no accidental slicing inside surrogate pairs or grapheme clusters.
+- Verify normalization policy if the app needs canonical matching; do not blindly normalize data where exact form is meaningful.
 
-### 18.2. Kiểm thử font và shaping
+### 18.2. Font and shaping tests
 
-- Font coverage cho từng script được hỗ trợ: tiếng Việt, Arabic, Hebrew, Hindi, Thai, Hàn/Nhật/Trung nếu sản phẩm có triển khai.
-- Dấu kết hợp, ligatures, chữ nối, biến thể chữ, emoji ZWJ, ký tự ngoài BMP.
-- Font size nhỏ/lớn, bold/italic, zoom, high-DPI, thay font fallback.
-- Những từ và câu thực, không chỉ bảng từng ký tự riêng biệt.
+- Font coverage for every supported script: Vietnamese, Arabic, Hebrew, Hindi, Thai, CJK if shipped by the product.
+- Combining marks, ligatures, joined letters, glyph variants, ZWJ emojis, non-BMP characters.
+- Small/large font sizes, bold/italic, zoom, high-DPI, fallback font changes.
+- Realistic words and sentences, not only isolated character charts.
 
-### 18.3. Kiểm thử chiều chữ và bố cục
+### 18.3. Direction and layout tests
 
-- Đoạn LTR, RTL và chuỗi trộn.
-- Số, URL, mã đơn, dấu câu trong câu RTL.
+- LTR, RTL, and mixed paragraphs.
+- Numbers, URLs, order codes, punctuation inside RTL sentences.
 - Alignment, input caret, selection, copy/paste, keyboard navigation.
-- Label, button, tooltip, dialog, thông báo lỗi, nội dung dài.
-- Độ dài bản dịch khác nhau, khả năng co giãn/dòng mới.
+- Labels, buttons, tooltips, dialogs, error messages, long text.
+- Varying translation lengths, stretchability/line wrapping.
 
-### 18.4. Kiểm thử kênh xuất và deployment
+### 18.4. Export channel and deployment tests
 
-- Desktop OS chính: Windows/macOS/Linux nếu hỗ trợ.
-- Headless server/container, danh sách font thực tế khi dựng ảnh.
-- Browser và thiết bị di động mục tiêu nếu Java trả nội dung web.
-- PDF/ảnh/print output nếu tính năng có xuất file.
-- Java runtime/JDK updates, các phiên bản font và shaping engine.
+- Major desktop OSes: Windows/macOS/Linux if supported.
+- Headless servers/containers, actual font inventory when rendering images.
+- Target browsers and mobile devices if Java returns web content.
+- PDF/image/print output if the feature exports files.
+- Java runtime/JDK updates, font versions, and shaping engines.
 
-### 18.5. Kiểm thử tính dễ đọc và hỗ trợ tiếp cận
+### 18.5. Readability and accessibility tests
 
-- Bật tăng cỡ chữ, scale UI, chế độ tương phản cao.
-- Kiểm tra vị trí dấu và độ rõ ở kích thước nhỏ.
-- Đừng dùng một glyph/icon để truyền nghĩa độc nhất nếu hệ thống đọc màn hình không thể diễn giải.
-- Với nội dung trộn script, thử screen reader và đọc theo thứ tự logic.
-- Tham khảo phản hồi người dùng bản địa khi kiểm tra glyph, hướng chữ và dấu câu.
+- Enable larger text sizes, UI scaling, high-contrast modes.
+- Inspect mark placement and legibility at small sizes.
+- Do not rely on a glyph/icon alone to convey meaning if screen readers cannot interpret it.
+- For mixed-script content, test screen readers and reading in logical order.
+- Consult native-speaker feedback when reviewing glyphs, text direction, and punctuation.
 
-**Không có một assertion Java duy nhất xác nhận “hiển thị đẹp cho mọi locale”.** Kiểm thử tự động xác nhận encoding/code point; phép `canDisplay` gợi ý coverage; screenshot test và review thực tế giúp đánh giá kết quả người dùng nhìn thấy.
+**No single Java assertion proves "looks great for every locale."** Automated tests verify encoding/code points; `canDisplay` hints at coverage; screenshot tests and real reviews evaluate what users actually see.
 
-## 19. Câu hỏi thường gặp
+## 19. Frequently asked questions
 
-**File đã lưu UTF-8, vậy tại sao vẫn có ô vuông?**
+**The file is saved as UTF-8, so why are there still boxes?**
 
-UTF-8 giải quyết mã hóa bytes. Nếu `String` đã chứa code point đúng, ô vuông thường liên quan đến font, fallback hoặc renderer. Cần phân tích từng tầng thay vì đổi charset ngẫu nhiên.
+UTF-8 solves byte encoding. If the `String` already contains the right code points, boxes usually point to fonts, fallback, or the renderer. Analyze each layer instead of changing charsets at random.
 
-**`Font.canDisplayUpTo(text) == -1` có chứng minh mọi ký tự sẽ hiện đẹp?**
+**Does `Font.canDisplayUpTo(text) == -1` prove every character will look good?**
 
-Không. Kết quả cho biết font báo hỗ trợ những code point tương ứng theo phép kiểm tra; không bảo đảm shaping, vị trí dấu, ligature, emoji màu, hướng chữ, độ rộng layout hay bộ render PDF.
+No. The result indicates the font reports support for those code points under that check; it does not guarantee shaping, mark placement, ligatures, color emojis, text direction, layout width, or PDF rendering.
 
-**Dùng `Dialog` có phải font luôn có mọi chữ không?**
+**Does using `Dialog` mean the font always has every character?**
 
-Không. Đây là font logic có thể ánh xạ tới các font vật lý khác nhau theo runtime/OS. Khả năng hiển thị thực tế phụ thuộc font đã cài và cơ chế fallback.
+No. It is a logical font that maps to different physical fonts depending on the runtime/OS. Actual display depends on installed fonts and fallback behavior.
 
-**`Normalizer.normalize(text, NFC)` có sửa được font thiếu glyph không?**
+**Does `Normalizer.normalize(text, NFC)` fix a font missing glyphs?**
 
-Không. NFC đưa các biểu diễn canonical-equivalent về một dạng nhất quán. Nó có thể thay code point composition nhưng không tự cài font hoặc cung cấp glyph còn thiếu.
+No. NFC converts canonically equivalent representations into a consistent form. It may alter composition code points, yet does not install fonts or supply missing glyphs.
 
-**Vì sao chữ Arabic vẫn không đọc đúng khi code point đúng?**
+**Why does Arabic still fail to read properly when code points are right?**
 
-Cần text shaping và BiDi layout. Vẽ từng code point độc lập hoặc đảo chuỗi thủ công có thể phá cách nối chữ/hướng đoạn.
+Text shaping and BiDi layout are needed. Drawing individual code points independently or reversing strings manually can break letter joining and paragraph direction.
 
-**Một emoji có phải một ký tự Java `char` không?**
+**Is an emoji a single Java `char`?**
 
-Không nhất thiết. Emoji 😀 là một code point nhưng chiếm hai code unit UTF-16; các emoji tổ hợp có thể gồm nhiều code point và nhiều code unit.
+Not necessarily. The emoji 😀 is one code point yet occupies two UTF-16 code units; composite emojis can span multiple code points and multiple code units.
 
-**Có cần gộp mọi font thành một font chứa tất cả Unicode không?**
+**Do we need to merge all fonts into one giant font covering all of Unicode?**
 
-Thường không thực tế. Hệ thống dùng fallback/chia font theo script; quan trọng là chọn font, shaping engine và chiến lược thay thế hoạt động nhất quán, kiểm tra được trên nền tảng mục tiêu.
+Usually impractical. Systems use fallback/per-script font stacks; what matters is picking fonts, shaping engines, and fallback strategies that behave consistently and are verified on target platforms.
 
-**Có nên xóa ký tự lạ hoặc tự chuyển chúng sang ASCII?**
+**Should we strip unfamiliar characters or convert them to ASCII?**
 
-Không tự động. Việc đó có thể làm mất dữ liệu/ngữ nghĩa, nhất là tên riêng và chữ không Latin. Nếu trường nghiệp vụ chỉ cho phép một tập ký tự, cần quy định validation rõ ràng và thông báo phù hợp; không lấy lỗi render làm lý do thay đổi nội dung người dùng.
+Not automatically. That can lose data/meaning, especially personal names and non-Latin scripts. If a business field only allows a restricted character set, define clear validation rules and error messages; never use rendering bugs as an excuse to alter user content.
 
-## 20. Ghi nhớ
+## 20. Takeaways
 
-- **Mã hóa đúng chưa bảo đảm hiển thị đúng.** UTF-8/UTF-16 giải quyết biểu diễn Unicode; font và renderer giải quyết glyph, shaping, metrics, BiDi và rasterization.
-- **Code point, UTF-16 code unit, grapheme cluster và glyph không phải một.** Tránh xử lý từng `char` như từng “ký tự người dùng”.
-- **Font coverage là cần nhưng chưa đủ.** `Font.canDisplay` và `canDisplayUpTo` hỗ trợ chẩn đoán thiếu glyph; vẫn cần kiểm thử shaping và kết quả render.
-- **Font fallback không phải hợp đồng hiển thị thống nhất** giữa Windows, Linux, macOS, Java2D, browser, server và PDF. Chọn font và cấu hình theo kênh xuất thực tế.
-- **Văn bản RTL không thể xử lý bằng đảo chuỗi thủ công.** Hãy dùng engine/layout hỗ trợ Unicode BiDi và kiểm thử nội dung trộn Latin, số và dấu câu.
-- **Không dùng normalization để chữa mọi lỗi font** và không loại bỏ dấu/ký tự Unicode của người dùng chỉ để tránh ô vuông.
-- **Kiểm thử nhiều tầng:** code point → font coverage → shaping → hướng chữ → ảnh/screenshot/PDF trên môi trường triển khai; kết hợp kiểm thử tự động với đánh giá từ người hiểu ngôn ngữ.
+- **Correct encoding does not guarantee correct display.** UTF-8/UTF-16 address Unicode representation; fonts and renderers handle glyphs, shaping, metrics, BiDi, and rasterization.
+- **Code points, UTF-16 code units, grapheme clusters, and glyphs are not identical.** Avoid treating each `char` as one "user character."
+- **Font coverage is necessary but insufficient.** `Font.canDisplay` and `canDisplayUpTo` help diagnose missing glyphs; shaping and rendered output still require testing.
+- **Font fallback is not a uniform display contract** across Windows, Linux, macOS, Java2D, browsers, servers, and PDFs. Select fonts and configurations for each real output channel.
+- **RTL text cannot be handled by manual string reversal.** Use a Unicode BiDi-aware engine/layout and test strings mixing Latin, numbers, and punctuation.
+- **Do not use normalization to cure font bugs** and never strip user diacritics/Unicode characters just to avoid boxes.
+- **Test across layers:** code points → font coverage → shaping → text direction → rendered image/screenshot/PDF on the deployment environment; combine automated checks with review by fluent readers.

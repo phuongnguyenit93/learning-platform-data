@@ -1,17 +1,17 @@
-# Biên dịch, chạy và phân phối ứng dụng modular
+# Compiling, running, and distributing modular applications
 
-Một ứng dụng Java sử dụng Java Platform Module System (JPMS) cần đi qua ba chặng có liên hệ với nhau: biên dịch source thành các module, chạy các module trên module path và đóng gói những artifact cần thiết để người dùng có thể triển khai ứng dụng. Ở mỗi chặng, Java compiler, JVM và công cụ đóng gói đều dựa vào module descriptor để hiểu tên module, dependency và ranh giới truy cập.
+A Java application using the Java Platform Module System (JPMS) goes through three interrelated stages: compiling source code into modules, running the modules on the module path, and packaging the necessary artifacts so users can deploy the application. At each stage, the Java compiler, JVM, and packaging tools rely on the module descriptor to understand module names, dependencies, and access boundaries.
 
-Bài này sử dụng JDK 21 và một ví dụ có hai module:
+This article uses JDK 21 and an example with two modules:
 
-- `com.example.greeter`: thư viện cung cấp API chào hỏi.
-- `com.example.app`: ứng dụng chính phụ thuộc vào thư viện.
+- `com.example.greeter`: a library providing a greeting API.
+- `com.example.app`: the main application depending on the library.
 
-Mục tiêu là hiểu luồng làm việc từ source đến chương trình chạy được, sau đó lựa chọn cách phân phối phù hợp.
+The goal is to understand the workflow from source code to a runnable program, and then choose an appropriate distribution method.
 
-## 1. Chuẩn bị cấu trúc source cho nhiều module
+## 1. Preparing a multi-module source structure
 
-Với một ứng dụng nhỏ, có thể đặt source của từng module trong thư mục riêng. Ví dụ:
+For a small application, the source code of each module can be placed in its own directory. Example:
 
 ~~~text
 modular-demo/
@@ -24,7 +24,7 @@ modular-demo/
         └── com/example/app/Main.java
 ~~~
 
-Descriptor của thư viện:
+The library descriptor:
 
 ~~~java
 // src/com.example.greeter/module-info.java
@@ -33,7 +33,7 @@ module com.example.greeter {
 }
 ~~~
 
-Lớp API:
+The API class:
 
 ~~~java
 // src/com.example.greeter/com/example/greeter/api/Greeter.java
@@ -46,7 +46,7 @@ public class Greeter {
 }
 ~~~
 
-Descriptor của ứng dụng:
+The application descriptor:
 
 ~~~java
 // src/com.example.app/module-info.java
@@ -55,7 +55,7 @@ module com.example.app {
 }
 ~~~
 
-Lớp main:
+The main class:
 
 ~~~java
 // src/com.example.app/com/example/app/Main.java
@@ -71,35 +71,35 @@ public class Main {
 }
 ~~~
 
-Ví dụ thể hiện hai ranh giới khác nhau:
+The example illustrates two different boundaries:
 
-- Gradle/Maven hoặc cách tổ chức thư mục có thể xem đây là hai project/module source riêng.
-- JPMS xem chúng là hai named module vì mỗi module có `module-info.java`.
-- `com.example.app` khai báo `requires com.example.greeter`, còn module thư viện export package chứa API.
+- Gradle/Maven or directory layout may treat these as two separate source projects/modules.
+- JPMS treats them as two named modules because each module has `module-info.java`.
+- `com.example.app` declares `requires com.example.greeter`, while the library module exports the package containing the API.
 
-Tên thư mục source module ở ví dụ trùng với tên module để dễ đọc. Đây là quy ước bố trí source; tên module thực tế được xác định bởi khai báo trong `module-info.java`.
+The module source directory names in the example match the module names for readability. This is a source layout convention; the actual module name is determined by the declaration in `module-info.java`.
 
-## 2. Biên dịch nhiều module bằng javac
+## 2. Compiling multiple modules with javac
 
-Java compiler hỗ trợ biên dịch một hoặc nhiều module trong cùng một lần gọi. Tùy chọn `--module-source-path` chỉ ra nơi chứa source của các module; `-d` chỉ định thư mục output; `-m` hoặc `--module` chỉ các module cần biên dịch.
+The Java compiler supports compiling one or more modules in a single invocation. The `--module-source-path` option specifies where module source code is located; `-d` specifies the output directory; `-m` or `--module` specifies the modules to compile.
 
-Đứng tại thư mục gốc `modular-demo`, chạy:
+From the `modular-demo` root directory, run:
 
 ~~~bash
 javac --module-source-path src -d out -m com.example.greeter,com.example.app
 ~~~
 
-Ý nghĩa từng phần:
+Meaning of each part:
 
-| Tùy chọn | Vai trò |
+| Option | Role |
 |---|---|
-| `--module-source-path src` | Tìm source của các module dưới thư mục `src` |
-| `-d out` | Ghi bytecode vào thư mục `out` |
-| `-m com.example.greeter,com.example.app` | Biên dịch hai module được chỉ định |
+| `--module-source-path src` | Locate module sources under the `src` directory |
+| `-d out` | Write bytecode into the `out` directory |
+| `-m com.example.greeter,com.example.app` | Compile the two specified modules |
 
-Compiler đọc descriptor của cả hai module, kiểm tra dependency và quy tắc truy cập. Nếu ứng dụng import một kiểu từ package không được module thư viện export, hoặc module ứng dụng chưa khai báo dependency cần thiết, compiler sẽ báo lỗi.
+The compiler reads both modules' descriptors and checks dependencies and access rules. If the application imports a type from a package not exported by the library module, or if the application module has not declared a required dependency, the compiler reports an error.
 
-Sau khi biên dịch thành công, output có dạng:
+After successful compilation, the output looks like:
 
 ~~~text
 out/
@@ -111,87 +111,87 @@ out/
     └── com/example/app/Main.class
 ~~~
 
-Mỗi thư mục con trực tiếp của `out` là một module đã biên dịch. `module-info.class` là module descriptor dạng bytecode mà công cụ Java dùng để nhận diện module.
+Each direct subdirectory of `out` is a compiled module. `module-info.class` is the bytecode form of the module descriptor that Java tools use to identify the module.
 
-### Biên dịch khi dependency nằm trong module path
+### Compiling when dependencies are on the module path
 
-Nếu module phụ thuộc vào một module đã được biên dịch hoặc một modular JAR bên ngoài, đưa vị trí chứa dependency vào `--module-path`.
+If a module depends on an already compiled module or an external modular JAR, place the location containing the dependency on `--module-path`.
 
-Ví dụ thư mục `mods` đã có module thư viện:
+For example, if the `mods` directory already contains the library module:
 
 ~~~bash
 javac --module-path mods --module-source-path src -d out -m com.example.app
 ~~~
 
-Compiler sẽ tìm module `com.example.greeter` trong `mods` để biên dịch `com.example.app`. Dependency cần có trên module path và tên module thực tế phải khớp với tên trong directive `requires`.
+The compiler will look for the `com.example.greeter` module in `mods` to compile `com.example.app`. The dependency must be present on the module path and the actual module name must match the name in the `requires` directive.
 
-Nếu dùng classpath thay cho module path, compiler có thể biên dịch theo mô hình truyền thống, nhưng khi đó các thư viện trên classpath không được xử lý như các named module tường minh. Hãy chọn đúng cơ chế dựa trên việc ứng dụng có sử dụng JPMS hay không.
+If the classpath is used instead of the module path, the compiler can compile in the traditional manner, but libraries on the classpath are then not treated as explicit named modules. Choose the right mechanism based on whether the application uses JPMS.
 
-## 3. Chạy ứng dụng trên module path
+## 3. Running the application on the module path
 
-Sau khi biên dịch, có thể chạy trực tiếp từ các thư mục module trong `out`:
+After compilation, you can run directly from the module directories in `out`:
 
 ~~~bash
 java --module-path out -m com.example.app/com.example.app.Main
 ~~~
 
-Hoặc truyền tham số cho chương trình:
+Or pass arguments to the program:
 
 ~~~bash
 java --module-path out -m com.example.app/com.example.app.Main Phuong
 ~~~
 
-Các phần của lệnh:
+Parts of the command:
 
-- `--module-path out` chỉ vị trí chứa các module đã biên dịch.
-- `-m` hoặc `--module` chọn module cần khởi chạy.
-- `com.example.app/com.example.app.Main` chỉ module `com.example.app` và lớp main đầy đủ tên package.
+- `--module-path out` points to the location containing the compiled modules.
+- `-m` or `--module` selects the module to launch.
+- `com.example.app/com.example.app.Main` specifies the `com.example.app` module and the package-qualified main class.
 
-Khi khởi chạy, JVM phân giải module chính cùng các dependency cần thiết. Module `com.example.app` cần đọc `com.example.greeter`; descriptor của thư viện cho phép truy cập package `com.example.greeter.api`. Nếu dependency không có trong module path, tên module không khớp hoặc package chưa được export, chương trình có thể không khởi chạy được hoặc gặp lỗi truy cập lớp.
+At startup, the JVM resolves the main module along with its required dependencies. The `com.example.app` module needs to read `com.example.greeter`; the library's descriptor permits access to the `com.example.greeter.api` package. If a dependency is missing from the module path, the module name does not match, or the package is not exported, the program may fail to start or encounter class access errors.
 
-### Phân biệt module path và classpath khi chạy
+### Distinguishing module path and classpath at runtime
 
-Classpath là cơ chế tìm class truyền thống. Module path là cơ chế tìm module của JPMS.
+The classpath is the traditional class-lookup mechanism. The module path is JPMS's module-lookup mechanism.
 
 ~~~bash
-# Mô hình classpath
+# Classpath model
 java -cp libs/greeter.jar:app.jar com.example.app.Main
 
-# Mô hình JPMS
+# JPMS model
 java --module-path mods -m com.example.app/com.example.app.Main
 ~~~
 
-Dấu phân cách đường dẫn trong classpath/module path phụ thuộc hệ điều hành: Windows dùng dấu chấm phẩy (`;`), Linux và macOS dùng dấu hai chấm (`:`). Hai lệnh trên chỉ minh họa cách viết trên Linux/macOS; khi chạy trên Windows cần thay dấu phân cách phù hợp.
+The path separator in the classpath/module path depends on the operating system: Windows uses a semicolon (`;`), while Linux and macOS use a colon (`:`). The two commands above only illustrate Linux/macOS syntax; when running on Windows, substitute the appropriate separator.
 
-Không nên trộn hai mô hình một cách tùy tiện. Một ứng dụng modular cần đảm bảo các named module nằm trên module path để JVM có thể áp dụng descriptor. Thư viện cũ không có module descriptor vẫn có thể tham gia module path dưới dạng automatic module; nếu để trên classpath, chúng thuộc unnamed module.
+Do not mix the two models arbitrarily. A modular application must ensure named modules are on the module path so the JVM can enforce descriptors. Legacy libraries without a module descriptor can still participate on the module path as automatic modules; if placed on the classpath, they belong to the unnamed module.
 
-## 4. Đóng gói từng module thành modular JAR
+## 4. Packaging each module into a modular JAR
 
-Thư mục output sau biên dịch có thể chạy trực tiếp, nhưng để phân phối thư viện hoặc ứng dụng, thông thường ta đóng gói module thành JAR.
+The post-compilation output directory can be run directly, but to distribute a library or application, we usually package modules into JARs.
 
-Tạo thư mục chứa artifact:
+Create a directory for artifacts:
 
 ~~~bash
 mkdir -p mods
 ~~~
 
-Đóng gói module thư viện:
+Package the library module:
 
 ~~~bash
 jar --create --file mods/com.example.greeter.jar -C out/com.example.greeter .
 ~~~
 
-Đóng gói module ứng dụng:
+Package the application module:
 
 ~~~bash
 jar --create --file mods/com.example.app.jar --main-class com.example.app.Main -C out/com.example.app .
 ~~~
 
-Tùy chọn `-C` yêu cầu công cụ jar chuyển vào thư mục output của module trước khi lấy các file để đưa vào archive. Vì output có `module-info.class`, JAR tạo ra giữ được module descriptor và trở thành modular JAR.
+The `-C` option instructs the jar tool to change into the module's output directory before collecting files into the archive. Because the output contains `module-info.class`, the resulting JAR preserves the module descriptor and becomes a modular JAR.
 
-Tùy chọn `--main-class` ghi nhận lớp main cho artifact. Khi cần cách khởi chạy rõ ràng, vẫn có thể chỉ định đầy đủ module và lớp main bằng `-m module/class`.
+The `--main-class` option records the main class for the artifact. When an explicit launch specification is needed, you can still specify both the module and main class using `-m module/class`.
 
-Sau khi đóng gói:
+After packaging:
 
 ~~~text
 mods/
@@ -199,75 +199,75 @@ mods/
 └── com.example.app.jar
 ~~~
 
-Chạy các modular JAR:
+Run the modular JARs:
 
 ~~~bash
 java --module-path mods -m com.example.app/com.example.app.Main
 ~~~
 
-JVM tìm cả hai module trong `mods`, đọc descriptor của chúng và phân giải dependency. Thư mục chứa nhiều modular JAR có thể được dùng làm module path; không cần giải nén từng JAR.
+The JVM finds both modules in `mods`, reads their descriptors, and resolves dependencies. A directory containing multiple modular JARs can be used as a module path; there is no need to extract each JAR.
 
-## 5. Kiểm tra nội dung và descriptor của JAR
+## 5. Inspecting JAR contents and descriptors
 
-Trước khi phân phối, nên xác nhận JAR chứa đúng module descriptor và các package/class cần thiết.
+Before distribution, verify that the JAR contains the correct module descriptor and required packages/classes.
 
-Xem nội dung archive:
+List archive contents:
 
 ~~~bash
 jar --list --file mods/com.example.greeter.jar
 ~~~
 
-Xem module descriptor mà JAR công bố:
+View the module descriptor advertised by the JAR:
 
 ~~~bash
 jar --describe-module --file mods/com.example.greeter.jar
 ~~~
 
-Kết quả mô tả module thường thể hiện tên module, các package, dependency `requires` và package `exports`. Đây là cách nhanh để kiểm tra tên module mà công cụ Java nhận diện từ artifact.
+The module description output typically shows the module name, packages, `requires` dependencies, and `exports` packages. This is a quick way to check the module name that Java tools recognize from the artifact.
 
-Có thể xem dependency ở cấp module bằng:
+Module-level dependencies can be inspected with:
 
 ~~~bash
 jdeps --module-path mods --check com.example.app
 ~~~
 
-Lệnh `jdeps` hỗ trợ phân tích dependency và một số vấn đề về module. Kết quả phụ thuộc vào cấu trúc và phiên bản JDK; nếu module có dependency ngoài, hãy đưa chúng vào module path khi phân tích.
+The `jdeps` command helps analyze dependencies and certain module issues. Results depend on structure and JDK version; if the module has external dependencies, include them on the module path during analysis.
 
-Có thể yêu cầu Java kiểm tra tính hợp lệ của các module trên module path:
+Java can be asked to validate modules on the module path:
 
 ~~~bash
 java --validate-modules --module-path mods
 ~~~
 
-Các bước này giúp phát hiện sớm lỗi đóng gói, thiếu module hoặc cấu hình dependency không hợp lệ. Chúng không thay thế kiểm thử chức năng của ứng dụng.
+These steps help catch packaging errors, missing modules, or invalid dependency configurations early. They do not replace functional testing of the application.
 
-## 6. Chạy modular JAR với main class
+## 6. Running a modular JAR with a main class
 
-Có hai cách phổ biến để chỉ định điểm vào khi chạy module.
+There are two common ways to specify the entry point when running a module.
 
-Cách tường minh, luôn nêu cả module và lớp main:
+The explicit way, always naming both the module and the main class:
 
 ~~~bash
 java --module-path mods -m com.example.app/com.example.app.Main
 ~~~
 
-Cách chỉ nêu tên module:
+The way that only names the module:
 
 ~~~bash
 java --module-path mods -m com.example.app
 ~~~
 
-Cách thứ hai cần runtime xác định được main class mặc định của module. Có thể thiết lập thông tin main class khi đóng gói bằng `jar --main-class` như ví dụ ở trên; với các quy trình đóng gói khác, hãy kiểm tra metadata thực tế của artifact. Nếu chưa khai báo main class hoặc muốn tránh phụ thuộc metadata đó, dùng cách tường minh `module/class`.
+The second way requires the runtime to determine the module's default main class. The main class information can be set during packaging with `jar --main-class` as in the example above; with other packaging workflows, check the artifact's actual metadata. If no main class is declared or you want to avoid relying on that metadata, use the explicit `module/class` form.
 
-Một modular JAR là artifact của module. Nó không nhất thiết là một ứng dụng độc lập có thể chạy mà không cần các module phụ thuộc. Nếu ứng dụng yêu cầu `com.example.greeter`, JAR tương ứng vẫn phải có mặt trên module path khi khởi chạy.
+A modular JAR is a module artifact. It is not necessarily a standalone application that can run without its dependency modules. If the application requires `com.example.greeter`, the corresponding JAR must still be present on the module path at startup.
 
-## 7. Phân phối ứng dụng modular
+## 7. Distributing modular applications
 
-Có nhiều mức độ phân phối, từ cung cấp JAR cho môi trường Java có sẵn đến tạo runtime riêng hoặc bộ cài đặt theo hệ điều hành.
+There are multiple levels of distribution, from providing JARs for an existing Java environment to creating a custom runtime or an OS-specific installer.
 
-### 7.1. Phân phối các modular JAR
+### 7.1. Distributing modular JARs
 
-Đây là cách đơn giản nhất:
+This is the simplest approach:
 
 ~~~text
 distribution/
@@ -278,33 +278,33 @@ distribution/
 └── README.txt
 ~~~
 
-Người nhận cần cài đặt một JDK/JRE tương thích và chạy lệnh được tài liệu hóa:
+Recipients need a compatible JDK/JRE installed and run the documented command:
 
 ~~~bash
 java --module-path mods -m com.example.app/com.example.app.Main
 ~~~
 
-Ưu điểm:
+Advantages:
 
-- Artifact nhỏ và dễ cập nhật từng module.
-- Dependency được tách thành các JAR riêng.
-- Phù hợp với ứng dụng nội bộ, thư viện hoặc môi trường đã quản lý sẵn Java runtime.
+- Small artifacts and easy to update individual modules.
+- Dependencies are separated into distinct JARs.
+- Suitable for internal applications, libraries, or environments where a Java runtime is already managed.
 
-Điểm cần chuẩn bị:
+Items to prepare:
 
-- Ghi rõ phiên bản Java tối thiểu và cách cài runtime.
-- Cung cấp đầy đủ module phụ thuộc, bao gồm dependency bên thứ ba.
-- Ghi lại lệnh khởi chạy, tham số và cấu hình cần thiết.
-- Đảm bảo module name ổn định và khớp với các directive `requires`.
-- Kiểm tra quyền đọc file, cấu hình và tài nguyên mà ứng dụng cần tại môi trường triển khai.
+- Specify the minimum Java version and how to install the runtime.
+- Supply all required dependency modules, including third-party dependencies.
+- Document the launch command, arguments, and required configuration.
+- Ensure module names are stable and match `requires` directives.
+- Verify read permissions for files, configurations, and resources needed by the application in the deployment environment.
 
-Không nên giả định người dùng có cùng thư mục làm việc, cùng biến môi trường hoặc cùng cấu hình Java như máy phát triển.
+Do not assume users have the same working directory, environment variables, or Java configuration as the development machine.
 
-### 7.2. Tạo custom runtime bằng jlink
+### 7.2. Creating a custom runtime with jlink
 
-Nếu muốn phân phối ứng dụng cùng một runtime Java đã được rút gọn theo các module cần thiết, có thể dùng `jlink`. Công cụ này tạo runtime image từ các module đã phân giải, bao gồm các module nền tảng cần thiết.
+If you want to distribute an application together with a Java runtime trimmed down to the required modules, `jlink` can be used. This tool builds a runtime image from resolved modules, including the necessary platform modules.
 
-Ví dụ trên Linux/macOS:
+Example on Linux/macOS:
 
 ~~~bash
 jlink \
@@ -313,47 +313,47 @@ jlink \
   --output runtime-image
 ~~~
 
-Trên Windows PowerShell, dấu phân cách module path là dấu chấm phẩy:
+On Windows PowerShell, the module path separator is a semicolon:
 
 ~~~powershell
 jlink --module-path "$env:JAVA_HOME\jmods;mods" --add-modules com.example.app --output runtime-image
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `--module-path` cung cấp module nền tảng của JDK và các module ứng dụng.
-- `--add-modules com.example.app` chọn module gốc cho runtime image.
-- `--output runtime-image` chỉ định thư mục chứa runtime được tạo.
+- `--module-path` supplies the JDK's platform modules and the application modules.
+- `--add-modules com.example.app` selects the root module for the runtime image.
+- `--output runtime-image` specifies the directory to hold the generated runtime.
 
-`jlink` lần theo dependency graph để đưa các module cần thiết vào runtime image. Nếu ứng dụng cần một module không được tìm thấy, quá trình liên kết sẽ thất bại. Các thư viện không modular hoặc thành phần cần xử lý đặc biệt phải được đánh giá riêng; `jlink` không thể đóng gói tùy ý mọi JAR trên classpath như thể chúng là named module.
+`jlink` traverses the dependency graph to include the necessary modules in the runtime image. If the application requires a module that cannot be found, linking fails. Non-modular libraries or components needing special handling must be evaluated separately; `jlink` cannot arbitrarily package every classpath JAR as though it were a named module.
 
-Có thể dùng runtime image vừa tạo để chạy ứng dụng:
+The newly created runtime image can be used to run the application:
 
 ~~~bash
 runtime-image/bin/java --module-path mods -m com.example.app/com.example.app.Main
 ~~~
 
-Trên Windows, executable nằm tại `runtime-image/bin/java.exe`.
+On Windows, the executable is located at `runtime-image/bin/java.exe`.
 
-Nếu muốn đóng gói cả ứng dụng vào một cấu trúc triển khai, hãy tổ chức runtime image và thư mục `mods` theo một layout cố định, sau đó kiểm tra lệnh khởi chạy bằng chính runtime được phân phối. Không nên kiểm thử chỉ bằng JDK trên máy phát triển rồi mặc định runtime rút gọn sẽ hoạt động giống hệt.
+If you want to package the entire application into a deployment layout, organize the runtime image and the `mods` directory in a fixed layout, then test the launch command using the distributed runtime itself. Do not test only with the JDK on a development machine and assume the trimmed runtime will behave identically.
 
-Ưu điểm của `jlink`:
+Advantages of `jlink`:
 
-- Người dùng không phải cài một JDK đầy đủ riêng.
-- Runtime chỉ chứa các module nền tảng cần thiết cho ứng dụng.
-- Có thể kiểm soát tốt hơn môi trường Java đi kèm ứng dụng.
+- Users do not have to install a separate full JDK.
+- The runtime contains only the platform modules required by the application.
+- Better control over the Java environment bundled with the application.
 
-Giới hạn:
+Limitations:
 
-- Runtime image gắn với nền tảng và kiến trúc hệ điều hành mục tiêu; cần build riêng cho từng nền tảng cần hỗ trợ.
-- Các dependency phải phân giải được dưới dạng module phù hợp.
-- Cần kiểm thử runtime image sau khi tạo, đặc biệt với reflection, service loading, locale, charset và các tính năng runtime mà ứng dụng sử dụng.
+- The runtime image is tied to the target OS platform and architecture; separate builds are needed for each supported platform.
+- Dependencies must be resolvable as appropriate modules.
+- The runtime image must be tested after creation, especially for reflection, service loading, locales, charsets, and runtime features used by the application.
 
-### 7.3. Tạo bộ cài đặt bằng jpackage
+### 7.3. Creating an installer with jpackage
 
-`jpackage` hỗ trợ đóng gói ứng dụng Java thành application image hoặc định dạng cài đặt phụ thuộc nền tảng, ví dụ MSI/EXE trên Windows, DMG/PKG trên macOS và DEB/RPM trên Linux (tùy hệ điều hành, công cụ hệ thống và cấu hình JDK).
+`jpackage` supports packaging a Java application into an application image or platform-dependent installer format, such as MSI/EXE on Windows, DMG/PKG on macOS, and DEB/RPM on Linux (depending on the OS, system tools, and JDK configuration).
 
-Ví dụ tạo application image từ module:
+Example creating an application image from modules:
 
 ~~~bash
 jpackage \
@@ -363,7 +363,7 @@ jpackage \
   --type app-image
 ~~~
 
-Nếu đã tạo runtime image bằng `jlink`, có thể yêu cầu `jpackage` sử dụng runtime đó:
+If a runtime image has already been created with `jlink`, `jpackage` can be instructed to use that runtime:
 
 ~~~bash
 jpackage \
@@ -374,39 +374,39 @@ jpackage \
   --type app-image
 ~~~
 
-Để tạo installer, thay `app-image` bằng loại package được nền tảng hỗ trợ, ví dụ `msi`, `exe`, `dmg`, `deb` hoặc `rpm`. Không phải loại package nào cũng có thể tạo trên mọi hệ điều hành; cần build và kiểm thử trên nền tảng mục tiêu.
+To create an installer, replace `app-image` with a package type supported by the platform, such as `msi`, `exe`, `dmg`, `deb`, or `rpm`. Not every package type can be built on every OS; build and test on the target platform.
 
-`jpackage` giúp người dùng cài đặt và mở ứng dụng theo cách gần với ứng dụng desktop thông thường. Nó không tự sửa lỗi dependency hoặc bảo đảm ứng dụng tương thích với mọi hệ điều hành. Hãy kiểm tra icon, tên sản phẩm, phiên bản, thư mục cài đặt, quyền truy cập, runtime và quy trình nâng cấp/gỡ cài đặt theo yêu cầu sản phẩm.
+`jpackage` helps users install and launch the application in a way similar to a normal desktop application. It does not automatically fix dependency errors or guarantee compatibility across every operating system. Verify the icon, product name, version, installation directory, permissions, runtime, and upgrade/uninstall workflows against product requirements.
 
-## 8. Dependency bên thứ ba và thư viện không modular
+## 8. Third-party dependencies and non-modular libraries
 
-Ứng dụng thực tế thường dùng thư viện bên ngoài. Khi phân phối, cần xác định từng dependency là explicit module, automatic module hay thư viện chỉ được sử dụng theo classpath.
+Real-world applications commonly use external libraries. When distributing, determine whether each dependency is an explicit module, an automatic module, or a library used solely via the classpath.
 
-Một số cách kiểm tra:
+Ways to inspect:
 
 ~~~bash
 jar --describe-module --file libs/example-library.jar
 ~~~
 
-Nếu JAR không có module descriptor, công cụ có thể hiển thị tên automatic module được suy ra. Tên module suy ra từ tên file có thể thay đổi nếu tên JAR thay đổi; thư viện có thể cung cấp thuộc tính manifest `Automatic-Module-Name` để giữ tên ổn định.
+If the JAR lacks a module descriptor, the tool can display the derived automatic module name. A module name derived from the file name can change if the JAR name changes; libraries can provide the `Automatic-Module-Name` manifest attribute to keep the name stable.
 
-Khi dependency nằm trên module path, descriptor của ứng dụng cần `requires` đúng tên module. Khi dependency chỉ được dùng trên classpath, nó thuộc unnamed module và không có descriptor tường minh để kiểm soát package như explicit module.
+When a dependency sits on the module path, the application's descriptor must `requires` the exact module name. When a dependency is only used on the classpath, it belongs to the unnamed module and lacks an explicit descriptor to control packages like an explicit module.
 
-Khi lập gói phân phối, cần:
+When assembling a distribution package, you need to:
 
-- Đưa đủ JAR dependency vào vị trí runtime có thể tìm thấy.
-- Tránh để hai phiên bản khác nhau của cùng thư viện gây xung đột.
-- Kiểm tra tên automatic module và module name thực tế bằng công cụ JDK.
-- Xác nhận dependency nào cần có ở runtime, dependency nào chỉ dùng khi compile hoặc test.
-- Đảm bảo giấy phép và điều kiện phân phối của thư viện bên thứ ba được đáp ứng.
+- Place all dependency JARs where the runtime can find them.
+- Avoid having two different versions of the same library causing conflicts.
+- Verify automatic module names and actual module names with JDK tools.
+- Confirm which dependencies are needed at runtime and which are only for compile or test.
+- Ensure licenses and redistribution terms of third-party libraries are satisfied.
 
-Module descriptor không quản lý phiên bản thư viện theo kiểu dependency manager. JPMS giải quyết module name và quan hệ module; Gradle/Maven vẫn là nơi phù hợp để quản lý phiên bản artifact, repository và dependency resolution.
+The module descriptor does not manage library versions like a dependency manager. JPMS resolves module names and module relationships; Gradle/Maven remains the appropriate place to manage artifact versions, repositories, and dependency resolution.
 
-## 9. Service loading và runtime image
+## 9. Service loading and runtime images
 
-Nếu ứng dụng sử dụng `ServiceLoader`, module tiêu thụ cần khai báo `uses` và module cung cấp cần khai báo `provides ... with ...`. Các provider module phải có mặt trong môi trường module resolution để service có thể được khám phá.
+If an application uses `ServiceLoader`, the consuming module must declare `uses` and the providing module must declare `provides ... with ...`. Provider modules must be present in the module resolution environment for services to be discovered.
 
-Khi tạo runtime image, hãy kiểm tra các provider có thực sự được đưa vào image hay không. Có thể chỉ định thêm module gốc khi cần:
+When creating a runtime image, check whether providers are actually included in the image. Additional root modules can be specified when needed:
 
 ~~~bash
 jlink \
@@ -415,57 +415,57 @@ jlink \
   --output runtime-image
 ~~~
 
-Ví dụ trên giả sử `com.example.payment.card` là module provider có trong module path. Tập module gốc cần chọn phụ thuộc thiết kế ứng dụng và cơ chế service binding; không nên thêm module theo phỏng đoán. Kiểm tra bằng cách chạy chức năng sử dụng service trên runtime image đã tạo.
+The example above assumes `com.example.payment.card` is a provider module on the module path. The set of root modules to select depends on application design and service binding mechanisms; do not add modules by guesswork. Verify by running the features that use services on the created runtime image.
 
-Reflection và resource cũng cần được kiểm thử trong runtime rút gọn. Một số framework dựa vào quét classpath, reflection hoặc metadata động; các hành vi này có thể cần cấu hình module, resource hoặc runtime image bổ sung. Nếu ứng dụng dùng `opens`, hãy xác nhận descriptor đã được đóng gói đúng và module framework có mặt khi chạy.
+Reflection and resources also need to be tested in a trimmed runtime. Some frameworks rely on classpath scanning, reflection, or dynamic metadata; these behaviors may require additional module, resource, or runtime image configuration. If the application uses `opens`, confirm the descriptor was packaged properly and the framework module is present at runtime.
 
-## 10. Lỗi thường gặp khi biên dịch, chạy và đóng gói
+## 10. Common errors during compiling, running, and packaging
 
-**Không tìm thấy module được yêu cầu.** Kiểm tra module path, tên module hiển thị từ `jar --describe-module` và directive `requires`. Đảm bảo dependency được cung cấp ở cả môi trường compile và runtime phù hợp.
+**Required module not found.** Check the module path, the module name shown by `jar --describe-module`, and the `requires` directive. Ensure the dependency is provided in both compile and runtime environments as appropriate.
 
-**Package không được export.** Nếu ứng dụng truy cập API từ module khác, kiểm tra package đó có được export trong descriptor của module cung cấp hay không. Một class public trong package không export vẫn không phải API có thể truy cập tự do từ named module khác.
+**Package not exported.** If the application accesses an API from another module, check whether that package is exported in the providing module's descriptor. A public class in an unexported package is still not an API freely accessible from another named module.
 
-**Chạy bằng classpath rồi mong JPMS áp dụng đầy đủ.** Nếu muốn kiểm tra readability và encapsulation của named module, hãy chạy với module path và module descriptor thực tế.
+**Running with classpath and expecting full JPMS enforcement.** If you want to verify readability and encapsulation of named modules, run with the module path and actual module descriptors.
 
-**Đóng gói JAR nhưng quên module-info.class.** Kiểm tra danh sách file trong JAR và dùng `jar --describe-module`. Nếu descriptor không có trong artifact, xem lại output compile và lệnh đóng gói.
+**Packaging a JAR but forgetting module-info.class.** Check the list of files in the JAR and run `jar --describe-module`. If the descriptor is missing from the artifact, review the compile output and packaging command.
 
-**JAR chạy được trên máy phát triển nhưng thiếu dependency khi phân phối.** Máy phát triển có thể có thư viện trong cache hoặc cấu hình môi trường riêng. Hãy dựng thư mục distribution từ các artifact đã xác định, rồi chạy bằng đúng lệnh mà người dùng sẽ sử dụng.
+**JAR runs on the development machine but misses dependencies when distributed.** The development machine may have libraries in caches or custom environment settings. Assemble a distribution directory from identified artifacts, then run with the exact command users will execute.
 
-**Không tìm thấy main class.** Kiểm tra tên lớp đầy đủ, module chứa lớp main, khai báo `--main-class` khi đóng gói nếu muốn chạy chỉ bằng tên module, hoặc chỉ định `module/class` tường minh.
+**Main class not found.** Check the fully qualified class name, the module containing the main class, the `--main-class` declaration during packaging if launching by module name alone, or specify `module/class` explicitly.
 
-**jlink báo không tìm thấy module.** Kiểm tra `--module-path` có chứa JDK `jmods` và các modular JAR ứng dụng hay không. Kiểm tra dependency graph và đảm bảo module gốc được chỉ định đúng.
+**jlink reports module not found.** Check whether `--module-path` includes the JDK `jmods` and the application modular JARs. Inspect the dependency graph and ensure root modules are specified properly.
 
-**Ứng dụng chạy khác trên runtime image.** Kiểm tra service provider, resource, locale, charset, reflection, native library và các module nền tảng cần thiết. Runtime image rút gọn phải được kiểm thử như một sản phẩm triển khai riêng.
+**Application behaves differently on the runtime image.** Check service providers, resources, locales, charsets, reflection, native libraries, and required platform modules. A trimmed runtime image must be tested as a separate deployment product.
 
-**Installer chỉ tạo được trên một số máy.** `jpackage` phụ thuộc nền tảng và công cụ đóng gói của hệ điều hành. Tạo installer trên nền tảng mục tiêu và kiểm tra cài đặt, khởi chạy, nâng cấp, gỡ cài đặt.
+**Installer only builds on certain machines.** `jpackage` depends on the target platform and OS packaging tools. Build the installer on the target platform and test installation, launch, upgrade, and uninstallation.
 
-## 11. Quy trình triển khai đề xuất
+## 11. Recommended deployment workflow
 
-Một quy trình có thể lặp lại cho ứng dụng modular:
+A repeatable workflow for modular applications:
 
-1. **Thiết kế module:** đặt tên module, tách package API/internal và khai báo `requires`, `exports`, `opens`, `uses`, `provides` theo nhu cầu.
-2. **Biên dịch:** dùng `javac --module-source-path` hoặc cấu hình build tool để compiler xử lý đúng module path.
-3. **Chạy từ output:** khởi chạy bằng `java --module-path ... -m module/class` để xác nhận module resolution.
-4. **Đóng gói:** tạo modular JAR cho từng module cần phân phối.
-5. **Kiểm tra artifact:** dùng `jar --list`, `jar --describe-module`, `jdeps` và `java --validate-modules` khi phù hợp.
-6. **Chọn hình thức phân phối:** JAR cho môi trường Java đã quản lý; `jlink` khi cần runtime image riêng; `jpackage` khi cần application image hoặc installer.
-7. **Kiểm thử môi trường sạch:** chạy từ thư mục distribution mới tạo, không dựa vào classpath, cache hay biến môi trường chỉ tồn tại trên máy phát triển.
-8. **Tài liệu hóa:** ghi phiên bản Java, nền tảng hỗ trợ, cách cài đặt, lệnh chạy, tham số, cấu hình và cách cập nhật.
+1. **Design modules:** name modules, separate API/internal packages, and declare `requires`, `exports`, `opens`, `uses`, and `provides` as needed.
+2. **Compile:** use `javac --module-source-path` or build tool configuration so the compiler handles the module path properly.
+3. **Run from output:** launch with `java --module-path ... -m module/class` to verify module resolution.
+4. **Package:** create a modular JAR for each module to be distributed.
+5. **Inspect artifacts:** use `jar --list`, `jar --describe-module`, `jdeps`, and `java --validate-modules` where appropriate.
+6. **Choose distribution format:** JARs for managed Java environments; `jlink` when a custom runtime image is needed; `jpackage` when an application image or installer is needed.
+7. **Test in a clean environment:** run from a freshly assembled distribution directory, without relying on classpath, caches, or environment variables that only exist on the development machine.
+8. **Document:** record Java version, supported platforms, installation steps, launch command, arguments, configuration, and update procedures.
 
-Hình thức phân phối nên được chọn theo người sử dụng và môi trường triển khai. Thư viện dùng trong hệ thống đã quản lý Java có thể chỉ cần modular JAR. Ứng dụng nội bộ cần runtime nhất quán có thể dùng `jlink`. Ứng dụng desktop dành cho người dùng cuối có thể cần `jpackage` để cung cấp installer phù hợp hệ điều hành.
+The distribution format should be chosen according to the users and deployment environment. A library used in a Java-managed system may only need a modular JAR. An internal application needing a consistent runtime can use `jlink`. A desktop application for end users may need `jpackage` to provide an OS-appropriate installer.
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-Trước khi coi một bản phát hành modular đã sẵn sàng, hãy trả lời:
+Before considering a modular release ready, answer:
 
-1. Mỗi module source đã có descriptor đúng vị trí chưa?
-2. Compiler đã biên dịch tất cả module cần thiết và kiểm tra dependency chưa?
-3. Các module đã chạy được bằng module path trên môi trường sạch chưa?
-4. Modular JAR có chứa `module-info.class` và đúng package/class chưa?
-5. Tên module trong `requires` có khớp với tên thực tế của dependency không?
-6. Các thư viện bên thứ ba đã được phân loại đúng là explicit module, automatic module hay classpath dependency chưa?
-7. Nếu dùng `jlink`, runtime image có đủ module nền tảng, service provider và tài nguyên cần thiết không?
-8. Nếu dùng `jpackage`, installer đã được tạo và kiểm thử trên hệ điều hành mục tiêu chưa?
-9. Tài liệu phân phối đã nêu phiên bản Java, lệnh chạy, cấu hình và các dependency cần thiết chưa?
+1. Does every source module have its descriptor in the right place?
+2. Has the compiler compiled all required modules and checked dependencies?
+3. Do the modules run via the module path in a clean environment?
+4. Does the modular JAR contain `module-info.class` and the right packages/classes?
+5. Do module names in `requires` match the actual names of dependencies?
+6. Have third-party libraries been properly classified as explicit modules, automatic modules, or classpath dependencies?
+7. If using `jlink`, does the runtime image include all needed platform modules, service providers, and resources?
+8. If using `jpackage`, has the installer been built and tested on the target operating system?
+9. Does distribution documentation state the Java version, run command, configuration, and required dependencies?
 
-Biên dịch, chạy và phân phối là ba bước liên tục của một ứng dụng modular. Compiler kiểm tra source và quan hệ module; JVM phân giải module khi khởi chạy; các công cụ `jar`, `jlink` và `jpackage` biến kết quả thành artifact phù hợp để triển khai. Khi giữ module descriptor, module path và dependency của build nhất quán xuyên suốt các bước này, ứng dụng sẽ có ranh giới rõ ràng và dễ đóng gói, vận hành hơn.
+Compiling, running, and distributing are three continuous stages of a modular application. The compiler checks source code and module relationships; the JVM resolves modules at launch; tools like `jar`, `jlink`, and `jpackage` turn the result into artifacts suited for deployment. Keeping the module descriptor, module path, and build dependencies consistent across these steps gives the application clear boundaries and makes it easier to package and operate.

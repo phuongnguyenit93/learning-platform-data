@@ -1,24 +1,24 @@
-# Phân biệt thành viên `static` với thành viên đối tượng — Java 17+
+# Distinguishing `static` Members from Instance Members — Java 17+
 
-## 1. `static` thuộc lớp, instance thuộc từng đối tượng
+## 1. `static` Belongs to the Class, Instance Belongs to Each Object
 
-Trong một lớp Java, **thành viên** thường là trường (*field*) hoặc phương thức (*method*). Từ khóa `static` quyết định thành viên được gắn với **lớp** thay vì gắn với từng **đối tượng (instance)**.
+In a Java class, a **member** is typically a field or a method. The `static` keyword determines whether the member is bound to the **class** instead of being bound to each individual **object (instance)**.
 
 ~~~java
 class Counter {
-    static int createdCount; // Static field: gắn với lớp Counter.
-    int value;               // Instance field: thuộc từng Counter.
+    static int createdCount; // Static field: belongs to the Counter class.
+    int value;               // Instance field: belongs to each Counter.
 
     Counter(int value) {
         this.value = value;
         createdCount++;
     }
 
-    void increase() {        // Instance method: làm việc với đối tượng hiện tại.
+    void increase() {        // Instance method: works with the current object.
         value++;
     }
 
-    static int count() {     // Static method: làm việc không cần receiver instance.
+    static int count() {     // Static method: works without an instance receiver.
         return createdCount;
     }
 }
@@ -33,7 +33,7 @@ System.out.println(b.value);
 System.out.println(Counter.count());
 ~~~
 
-**Exact stdout**, khi các dòng gọi được đặt trong `main` thích hợp của một lần chạy mới:
+**Exact stdout**, when the calls are placed in an appropriate `main` of a fresh run:
 
 ~~~text
 3
@@ -41,27 +41,27 @@ System.out.println(Counter.count());
 2
 ~~~
 
-Hai lần `new Counter(...)` tạo **hai đối tượng** có `value` riêng. Ngược lại, `createdCount` là **một trường static của lớp `Counter`** và tăng ở cả hai lần gọi constructor.
+Two `new Counter(...)` calls create **two objects** with separate `value` fields. In contrast, `createdCount` is **one static field of the `Counter` class** and increments in both constructor calls.
 
-**Quy tắc nhớ:** `static` gắn với **kiểu/lớp**; **instance** gắn với **đối tượng cụ thể**. Không nên hiểu static là “một bản riêng cho mỗi đối tượng”, cũng không hiểu instance là “biến chung của mọi đối tượng”.
+**Rule to remember:** `static` belongs to the **type/class**; **instance** belongs to a **specific object**. Do not think of `static` as "a separate copy per object", nor think of instance as "a shared variable across all objects".
 
-## 2. Bảng phân biệt nhanh
+## 2. Quick Comparison Table
 
-| Tiêu chí | Thành viên `static` | Thành viên instance |
+| Criterion | `static` member | Instance member |
 |---|---|---|
-| Có từ khóa `static`? | **Có** | **Không** |
-| Gắn với | Lớp khai báo | Mỗi đối tượng của lớp |
-| Field lưu gì? | Trạng thái chung ở cấp lớp | Trạng thái riêng của object |
-| Cách đọc/gọi khuyến nghị | `Counter.count()` | `a.increase()` |
-| Cần `new Counter(...)` trước khi gọi? | Không, nếu có quyền truy cập phù hợp | Cần một đối tượng/receiver |
-| Có `this` trong phương thức? | Không | Có, trỏ đến receiver hiện tại |
-| Có truy cập trực tiếp instance field? | Không, nếu không có receiver cụ thể | Có |
-| Có truy cập static field? | Có | Có, nhưng thường dùng tên lớp cho rõ |
-| Ví dụ | `static int createdCount` | `int value` |
+| Has the `static` keyword? | **Yes** | **No** |
+| Bound to | Declaring class | Each object of the class |
+| What does the field store? | Shared class-level state | Per-object individual state |
+| Recommended read/call syntax | `Counter.count()` | `a.increase()` |
+| Need `new Counter(...)` before calling? | No, if access permits | Requires an object/receiver |
+| Is `this` available in the method? | No | Yes, pointing to the current receiver |
+| Can it directly access an instance field? | No, unless given a specific receiver | Yes |
+| Can it access a static field? | Yes | Yes, though using the class name is clearer |
+| Example | `static int createdCount` | `int value` |
 
-Chữ `static` không đồng nghĩa với **hằng số**. Một `static int` vẫn có thể thay đổi. Chỉ khi thêm `final` mới có ràng buộc không thể gán lại **biến field** sau khi được khởi tạo theo quy tắc Java.
+The word `static` is not synonymous with **constant**. A `static int` can still change. Only adding `final` enforces the constraint that the **field variable** cannot be reassigned after initialization according to Java rules.
 
-## 3. Instance fields: trạng thái riêng của từng object
+## 3. Instance Fields: Separate State per Object
 
 ~~~java
 class Box {
@@ -96,11 +96,11 @@ System.out.println(large.getSize());
 10
 ~~~
 
-`size` là **instance field**. Hai đối tượng cùng kiểu `Box` có các giá trị `size` **độc lập**. Gọi `small.grow(3)` cập nhật đối tượng mà `small` trỏ tới, không cập nhật `large`.
+`size` is an **instance field**. Two objects of the same `Box` type have **independent** `size` values. Calling `small.grow(3)` updates the object `small` points to, without updating `large`.
 
-Một biến tham chiếu được gán `Box alias = small;` **không tạo Box mới**: `alias` và `small` trỏ cùng object. Khi đó, `alias.grow(1)` làm `small.getSize()` thay đổi. Đây là **chia sẻ đối tượng qua hai tham chiếu**, không phải do field trở thành static.
+A reference variable assigned via `Box alias = small;` **does not create a new Box**: `alias` and `small` point to the same object. In that case, `alias.grow(1)` causes `small.getSize()` to change. This is **sharing an object across two references**, not a field becoming static.
 
-## 4. Static fields: dữ liệu chung ở cấp lớp
+## 4. Static Fields: Class-Level Shared Data
 
 ~~~java
 class Ticket {
@@ -129,7 +129,7 @@ System.out.println(b.getNumber());
 System.out.println(Ticket.nextAvailableNumber());
 ~~~
 
-**Exact stdout**, với một lần chạy mới:
+**Exact stdout**, in a fresh run:
 
 ~~~text
 1
@@ -137,13 +137,13 @@ System.out.println(Ticket.nextAvailableNumber());
 3
 ~~~
 
-- `nextNumber` là **static field**, giúp các constructor chia sẻ bộ đếm tiếp theo.
-- `number` là **instance field** của từng vé; vé `a` nhận `1`, vé `b` nhận `2`.
-- `Ticket.nextAvailableNumber()` là **static method** nên gọi bằng tên lớp, không cần tạo thêm `Ticket`.
+- `nextNumber` is a **static field**, allowing constructors to share the next counter value.
+- `number` is an **instance field** of each ticket; ticket `a` receives `1`, ticket `b` receives `2`.
+- `Ticket.nextAvailableNumber()` is a **static method** and should be called via the class name, without needing to create another `Ticket`.
 
-Một static field bình thường được Java cấp phát và khởi tạo khi lớp được khởi tạo theo quy tắc của JVM; đây không phải “một field nằm trong từng đối tượng”. Trong môi trường có nhiều class loader, cần phân biệt phạm vi định danh lớp; không nên coi mọi static field là **một biến toàn cục duy nhất trong mọi JVM**.
+A normal static field is allocated and initialized by Java when the class is initialized according to JVM rules; it is not "a field residing inside each object". In environments with multiple class loaders, distinguish class identity scopes; do not treat every static field as **one single global variable across all JVMs**.
 
-## 5. Gọi phương thức static và instance
+## 5. Calling `static` vs. Instance Methods
 
 ~~~java
 class MathBox {
@@ -176,13 +176,13 @@ System.out.println(MathBox.square(5));   // Static method.
 25
 ~~~
 
-**Phương thức instance** có receiver, tức một object cụ thể. Trong `box.doubleValue()`, `this` chính là object mà `box` đang tham chiếu.
+An **instance method** has a receiver, i.e., a specific object. In `box.doubleValue()`, `this` is the object `box` references.
 
-**Phương thức static** không có receiver instance ngầm định. `MathBox.square(5)` hoạt động với đối số `5` và không cần tham chiếu tới object `MathBox` nào.
+A **static method** has no implicit instance receiver. `MathBox.square(5)` works on the argument `5` and needs no reference to any `MathBox` object.
 
-Java cho phép một số cú pháp gọi static method qua biến instance, ví dụ `box.square(5)`; nhưng cách này dễ tạo ấn tượng sai về receiver. **Nên gọi bằng tên lớp: `MathBox.square(5)`.** Nếu biết tên lớp và phương thức static được phép truy cập, không cần `new` object để gọi.
+Java allows syntax that calls a static method via an instance variable, such as `box.square(5)`; however, this easily gives a misleading impression about the receiver. **Call using the class name: `MathBox.square(5)`.** If you know the class name and the static method is accessible, no `new` object is required to call it.
 
-## 6. `this` không dùng trong static context
+## 6. `this` Cannot Be Used in a `static` Context
 
 ~~~java
 class User {
@@ -190,34 +190,34 @@ class User {
     private static int count;
 
     String describe() {
-        return this.name;    // Hợp lệ: đang ở instance method.
+        return this.name;    // Valid: inside an instance method.
     }
 
     static int getCount() {
-        return count;        // Hợp lệ: đọc static field.
+        return count;        // Valid: reading a static field.
     }
 
     // static String wrong() {
-    //     return this.name; // LỖI: static context không có this.
+    //     return this.name; // ERROR: static context has no this.
     // }
 }
 ~~~
 
-Một static method **không thể trực tiếp** đọc instance field `name` mà không có object cụ thể. Muốn đọc, nhận object làm đối số hoặc tạo một object hợp lệ:
+A static method **cannot directly** read an instance field `name` without a concrete object. To read it, accept an object as an argument or create a valid object:
 
 ~~~java
 static String describeUser(User user) {
-    return user.name;  // Truy cập thông qua tham chiếu user.
+    return user.name;  // Accessed through the user reference.
 }
 ~~~
 
-Trong ví dụ này, `describeUser` thuộc **cùng lớp `User`**, nên có thể truy cập field `private name` của một đối tượng `User`. Nếu đặt trong lớp khác, cần quyền truy cập thích hợp (ví dụ gọi getter).
+In this example, `describeUser` belongs to the **same `User` class**, so it can access the `private name` field of a `User` object. If placed in another class, appropriate access permissions are needed (e.g., calling a getter).
 
-Ngược lại, một instance method có thể dùng static field/method cùng lớp; dù viết được `count` không kèm tên lớp, cách `User.count` thường làm rõ đây là dữ liệu chung.
+Conversely, an instance method can use static fields/methods of the same class; although you can write `count` without the class name, `User.count` usually makes it clear that this is shared data.
 
-**Lưu ý:** `main(String[] args)` cũng là static method, nên không có `this`. Để gọi một instance method từ `main`, hãy tạo hoặc nhận một object trước.
+**Note:** `main(String[] args)` is also a static method, so it has no `this`. To call an instance method from `main`, create or obtain an object first.
 
-## 7. Static initializer và thời điểm khởi tạo
+## 7. Static Initializers and Initialization Timing
 
 ~~~java
 class Settings {
@@ -233,13 +233,13 @@ class Settings {
 }
 ~~~
 
-Khi lớp `Settings` được khởi tạo, các static fields và static initializer blocks được xử lý theo thứ tự văn bản khai báo. Trong ví dụ trên, sau khi khởi tạo, `Settings.getLimit()` trả **`15`**.
+When the `Settings` class is initialized, static fields and static initializer blocks are processed in textual declaration order. In the example above, after initialization, `Settings.getLimit()` returns **`15`**.
 
-Instance initializer/constructor là cơ chế khác, xảy ra khi tạo từng đối tượng. **Việc import một lớp** không phải lệnh “chạy constructor” hoặc khởi tạo tất cả object của lớp đó.
+Instance initializers/constructors are a separate mechanism that runs when each object is created. **Importing a class** is not a command to "run constructors" or initialize all objects of that class.
 
-Static initialization được JVM quản lý (thông thường trước lần sử dụng chủ động cần khởi tạo lớp). Không nên tự suy đoán mọi lớp được khởi tạo chính xác tại thời điểm biên dịch hoặc ngay khi file nguồn được import.
+Static initialization is managed by the JVM (typically before the first active use requiring class initialization). Do not assume every class is initialized at compile time or immediately when a source file is imported.
 
-## 8. `static final`: hằng cấp lớp và giới hạn bất biến
+## 8. `static final`: Class-Level Constants and Immutability Limits
 
 ~~~java
 class Limits {
@@ -248,9 +248,9 @@ class Limits {
 }
 ~~~
 
-Có thể đọc bằng `Limits.MAX_ITEMS` và `Limits.UNIT` mà không cần tạo đối tượng. Những field kiểu primitive/String dùng `static final` thường thích hợp cho các hằng không đổi như giới hạn, nhãn hoặc đơn vị.
+You can read `Limits.MAX_ITEMS` and `Limits.UNIT` without creating an object. Fields of primitive/`String` types using `static final` are typically suitable for unchanging constants such as limits, labels, or units.
 
-Tuy nhiên, `final` chỉ ngăn **gán lại field**, không tự “đóng băng” nội dung object mà field tham chiếu:
+However, `final` only prevents **reassigning the field**; it does not automatically "freeze" the contents of the object the field references:
 
 ~~~java
 class Holder {
@@ -258,44 +258,44 @@ class Holder {
 }
 ~~~
 
-`Holder.VALUES = new int[]{3};` không hợp lệ, nhưng `Holder.VALUES[0] = 9;` **vẫn hợp lệ** nếu mảng còn có thể truy cập và không có kiểm soát khác. Vì thế, tránh công khai trực tiếp những static arrays/collections mutable khi cần bảo vệ dữ liệu.
+`Holder.VALUES = new int[]{3};` is invalid, yet `Holder.VALUES[0] = 9;` is **still valid** if the array remains accessible and there are no other controls. Therefore, avoid exposing mutable static arrays/collections directly when data protection is needed.
 
-**Thành viên interface** còn có một số quy tắc riêng: field khai báo trong interface là `public static final` theo ngầm định; bài này tập trung vào so sánh static/instance trong lớp thông thường.
+**Interface members** also have specific rules: fields declared in an interface are implicitly `public static final`; this lesson focuses on comparing static/instance in regular classes.
 
-## 9. Static mutable state: dùng đúng phạm vi
+## 9. Static Mutable State: Use the Right Scope
 
-Static field có thể hữu ích để giữ:
+Static fields can be useful to hold:
 
-- Hằng cấu hình không đổi: `static final`.
-- Bộ đếm số object được tạo hoặc số lần một thao tác diễn ra.
-- Hàm tiện ích không cần trạng thái instance, ví dụ `Math.max(...)`.
-- Dữ liệu chung có chủ đích, có quy tắc cập nhật rõ ràng.
+- Unchanging configuration constants: `static final`.
+- Counters of objects created or how many times an operation occurred.
+- Utility functions needing no instance state, e.g., `Math.max(...)`.
+- Intentionally shared data with clear update rules.
 
-Không phải dữ liệu nào cũng nên để static. Nếu đặt `balance` của tài khoản ngân hàng thành static thì **mọi object tài khoản cùng dùng một số dư**, sai yêu cầu “mỗi tài khoản một số dư riêng”.
+Not all data should be static. If you make a bank account's `balance` static, **every account object shares one balance**, violating the requirement that "each account has its own balance".
 
-Một static field mutable cũng làm các phần khác của chương trình **chia sẻ trạng thái**. Trong chương trình nhiều luồng, `counter++` không phải phép tăng nguyên tử; có thể cần đồng bộ hoặc các công cụ như `AtomicInteger`, tùy bài toán. Trong test, static mutable state còn có thể tồn tại xuyên các test nếu không được reset. Những vấn đề này không phát sinh chỉ vì từ khóa `static` “xấu”; chúng là hệ quả của **trạng thái chung và cách quản lý vòng đời**.
+A mutable static field also causes different parts of a program to **share state**. In multithreaded programs, `counter++` is not an atomic increment; synchronization or tools like `AtomicInteger` may be needed, depending on the problem. In tests, static mutable state can also persist across tests if not reset. These issues do not arise simply because the `static` keyword is "bad"; they are consequences of **shared state and lifecycle management**.
 
-Với ví dụ giáo dục bên dưới, bộ đếm và tổng số dư dùng static để biểu diễn thống kê chung. Đây là bản minh họa **một luồng**, không phải cài đặt giao dịch tài chính an toàn cho production.
+In the educational example below, the counter and total balance use `static` to represent shared statistics. This is a **single-threaded** illustration, not a production-safe financial transaction implementation.
 
-## 10. Chương trình Java 17+ độc lập
+## 10. Standalone Java 17+ Program
 
-Lưu đúng tên file **`StaticInstanceMembersDemo.java`**:
+Save with the exact filename **`StaticInstanceMembersDemo.java`**:
 
 ~~~java
 public final class StaticInstanceMembersDemo {
     private StaticInstanceMembersDemo() {}
 
-    // Lớp lồng static để ví dụ chạy từ một file.
+    // Static nested class so the example runs from one file.
     static final class Account {
-        static final String CURRENCY = "VND";   // Hằng cấp lớp.
+        static final String CURRENCY = "VND";   // Class-level constant.
 
-        private static int createdCount;        // Field chung.
-        private static int nextId = 1;          // Field chung.
-        private static int totalBalance;        // Tổng số dư chung.
+        private static int createdCount;        // Shared field.
+        private static int nextId = 1;          // Shared field.
+        private static int totalBalance;        // Shared total balance.
 
-        private final int id;                   // Field instance.
-        private final String owner;             // Field instance.
-        private int balance;                    // Field instance.
+        private final int id;                   // Instance field.
+        private final String owner;             // Instance field.
+        private int balance;                    // Instance field.
 
         Account(String owner, int openingBalance) {
             if (owner == null || owner.isBlank()) {
@@ -382,7 +382,7 @@ public final class StaticInstanceMembersDemo {
 }
 ~~~
 
-Yêu cầu **JDK 17 trở lên**; không cần Maven, Gradle, thư viện ngoài JDK hoặc preview features. File có một public top-level class khớp tên file. `Account` là **static nested class** nhằm gom ví dụ vào một file; từ khóa `static` ở kiểu lồng nghĩa là không cần một instance của lớp bao ngoài để tạo `Account`, khác với các static fields bên trong `Account`.
+Requires **JDK 17 or later**; no Maven, Gradle, libraries outside the JDK, or preview features needed. The file has one public top-level class matching the filename. `Account` is a **static nested class** in order to keep the example in one file; the `static` keyword on the nested type means an instance of the enclosing class is not needed to create an `Account`, which differs from the static fields inside `Account`.
 
 **Bash (Linux/macOS):**
 
@@ -422,32 +422,32 @@ created final=2
 shared total final=165
 ~~~
 
-**Phân tích:**
+**Analysis:**
 
-1. `Account.CURRENCY` là static final constant. `createdCount` và `totalBalance` là static fields, khởi đầu với giá trị mặc định `0`; `nextId` bắt đầu bằng `1`.
-2. Hai constructor thành công tạo `an` và `binh`: số tài khoản là `2`, tổng ban đầu `100 + 50 = 150`. Mỗi object có `id`, `owner`, `balance` riêng.
-3. `an.deposit(20)` làm số dư An thành `120`. `binh.withdraw(10)` làm số dư Binh thành `40`. Rút `100` bị từ chối nên không đổi dữ liệu. Tổng static lúc này là `120+40=160`.
-4. `Account alias = an;` **không tạo tài khoản mới**, mà chia sẻ một object. Nạp `5` qua alias làm An thành `125`, tổng chung thành `165`, nhưng số account được tạo vẫn là `2`.
-5. Constructor với `" "` ném ngoại lệ **trước** các dòng cập nhật static, vì thế đếm/tổng không đổi.
+1. `Account.CURRENCY` is a static final constant. `createdCount` and `totalBalance` are static fields, starting with the default value `0`; `nextId` starts at `1`.
+2. Two successful constructor calls create `an` and `binh`: account count is `2`, initial total is `100 + 50 = 150`. Each object has its own `id`, `owner`, `balance`.
+3. `an.deposit(20)` brings An's balance to `120`. `binh.withdraw(10)` brings Binh's balance to `40`. Withdrawing `100` is rejected, so data does not change. The static total at this point is `120+40=160`.
+4. `Account alias = an;` **does not create a new account**, but shares one object. Depositing `5` via `alias` brings An to `125` and the shared total to `165`, while the number of created accounts remains `2`.
+5. The constructor with `" "` throws an exception **before** the static update lines, so the count/total remain unchanged.
 
-## 11. Những lỗi thường gặp
+## 11. Common Mistakes
 
-| Sai lầm | Vì sao sai? | Cách sửa |
+| Mistake | Why is it wrong? | How to fix |
 |---|---|---|
-| Nghĩ `static int count` có một bản trong mỗi object | Static field gắn với lớp | Chỉ dùng static cho dữ liệu chung thực sự |
-| Nghĩ `int balance` trong lớp tự là static | Thiếu `static` nên là instance field | Phân biệt từng khai báo |
-| Gọi `Account.summary()` như static | `summary()` là instance method | Dùng `an.summary()` |
-| Gọi `this.balance` trong static method | Static context không có `this` | Truy cập qua object cụ thể |
-| Viết `new Account(...)` chỉ để gọi static method | Tạo object không cần thiết | Dùng `Account.getCreatedCount()` |
-| Gọi `an.getCreatedCount()` khiến tưởng count thuộc An | Static member được gọi qua class mới rõ | `Account.getCreatedCount()` |
-| Nghĩ `static final int[]` là mảng bất biến | `final` chỉ cố định tham chiếu field | Tránh lộ array mutable hoặc trả bản sao |
-| Dùng static cho mọi field để tiện truy cập | Trộn trạng thái các object, khó test | Dùng instance field khi dữ liệu thuộc từng object |
-| Tin `counter++` static luôn an toàn giữa các luồng | Read-modify-write không nguyên tử | Cần cơ chế thread safety nếu chia sẻ đa luồng |
-| Nhầm gán `alias = an` với sao chép account | Đây là sao chép tham chiếu | Tạo object mới nếu cần trạng thái độc lập |
+| Thinking `static int count` has one copy per object | A static field belongs to the class | Use `static` only for genuinely shared data |
+| Thinking `int balance` in a class is automatically static | Without `static`, it is an instance field | Distinguish each declaration |
+| Calling `Account.summary()` as static | `summary()` is an instance method | Use `an.summary()` |
+| Using `this.balance` in a static method | A static context has no `this` | Access through a specific object |
+| Writing `new Account(...)` just to call a static method | Creates an unnecessary object | Use `Account.getCreatedCount()` |
+| Calling `an.getCreatedCount()` making it look like `count` belongs to An | Static members are clearer when called via the class | `Account.getCreatedCount()` |
+| Thinking `static final int[]` is an immutable array | `final` only fixes the field reference | Avoid exposing mutable arrays or return a copy |
+| Making every field `static` for convenient access | Mixes object states, hard to test | Use instance fields when data belongs to each object |
+| Believing static `counter++` is always thread-safe | Read-modify-write is not atomic | Needs thread-safety mechanisms if shared across threads |
+| Confusing `alias = an` with copying an account | It is a reference copy | Create a new object if independent state is needed |
 
-## 12. Bài tập và đáp án
+## 12. Exercises and Answers
 
-**A — Phân loại thành viên:**
+**A — Classify the members:**
 
 ~~~java
 class Sensor {
@@ -458,9 +458,9 @@ class Sensor {
 }
 ~~~
 
-**Đáp án:** `sensorCount` và `getSensorCount()` là **static**; `temperature` và `read()` là **instance**.
+**Answer:** `sensorCount` and `getSensorCount()` are **static**; `temperature` and `read()` are **instance**.
 
-**B — Hai object chia sẻ gì?**
+**B — What do two objects share?**
 
 ~~~java
 class Marker {
@@ -474,32 +474,32 @@ class Marker {
 }
 ~~~
 
-Sau `new Marker(1)` và `new Marker(2)`, có **hai giá trị instance `color` riêng**, còn `Marker.created == 2` là trạng thái static chung.
+After `new Marker(1)` and `new Marker(2)`, there are **two separate instance `color` values**, whereas `Marker.created == 2` is shared static state.
 
-**C — Static method có được đọc instance field?**  
-**Đáp án:** không thể đọc **trực tiếp** khi không có receiver. Có thể nhận object làm đối số rồi đọc qua tham chiếu đó nếu có quyền truy cập.
+**C — Can a static method read an instance field?**  
+**Answer:** it cannot read **directly** without a receiver. It can accept an object as an argument and read through that reference if access permissions allow.
 
-**D — Hai biến cùng object có giống static không?**  
-**Đáp án:** không. `Account b = a;` khiến hai biến trỏ cùng **một** object; đó là aliasing. Một instance field vẫn thuộc đúng object ấy chứ không trở thành static.
+**D — Are two variables pointing to the same object the same as `static`?**  
+**Answer:** no. `Account b = a;` makes two variables point to **one** object; that is aliasing. An instance field still belongs to that specific object rather than becoming static.
 
-**E — `static final int[] VALUES` có cấm `VALUES[0] = 5` không?**  
-**Đáp án:** không; `final` cấm gán lại field `VALUES`, nhưng không tự khiến phần tử mảng bất biến.
+**E — Does `static final int[] VALUES` forbid `VALUES[0] = 5`?**  
+**Answer:** no; `final` forbids reassigning the `VALUES` field, but does not automatically make array elements immutable.
 
-**F — Tại sao `createdCount` không nên là instance field nếu mục đích là đếm mọi account được tạo?**  
-**Đáp án:** mỗi object sẽ có bản đếm riêng. Static field biểu diễn một bộ đếm dùng chung; cần cập nhật nhất quán và lưu ý vấn đề đa luồng nếu có.
+**F — Why shouldn't `createdCount` be an instance field if the goal is to count all created accounts?**  
+**Answer:** each object would have its own counter. A static field represents a single shared counter; it must be updated consistently, with attention to multithreading if applicable.
 
-## 13. Checklist và kết luận
+## 13. Checklist and Conclusion
 
-- [ ] Nhận diện trường/phương thức nào có từ khóa `static`.
-- [ ] Phân biệt field **chung ở cấp lớp** và field **riêng của object**.
-- [ ] Biết gọi static method bằng tên lớp, instance method qua receiver.
-- [ ] Không dùng `this` trong static context.
-- [ ] Hiểu instance method có thể truy cập cả instance lẫn static member.
-- [ ] Hiểu constructor tạo object riêng nhưng có thể cập nhật static counter chung.
-- [ ] Phân biệt `static` với `final`; biết `static final` không làm object mutable thành bất biến.
-- [ ] Biết static initializer liên quan đến khởi tạo lớp, không phải tạo từng object.
-- [ ] Hiểu aliasing là chia sẻ object, không phải thành viên static.
-- [ ] Biết rủi ro static mutable state trong test/đa luồng.
-- [ ] Biên dịch và chạy `StaticInstanceMembersDemo.java` với Java 17+, đối chiếu exact stdout.
+- [ ] Identify which fields/methods carry the `static` keyword.
+- [ ] Distinguish **class-level shared** fields from **per-object** fields.
+- [ ] Know to call static methods via class name, and instance methods via a receiver.
+- [ ] Do not use `this` in a static context.
+- [ ] Understand that instance methods can access both instance and static members.
+- [ ] Understand that constructors create individual objects while optionally updating a shared static counter.
+- [ ] Distinguish `static` from `final`; know that `static final` does not make mutable objects immutable.
+- [ ] Know that static initializers relate to class initialization, not creating individual objects.
+- [ ] Understand that aliasing shares an object, not static members.
+- [ ] Know the risks of static mutable state in tests/multithreading.
+- [ ] Compile and run `StaticInstanceMembersDemo.java` with Java 17+, and verify exact stdout.
 
-**Kết luận:** **Thành viên static thuộc về lớp**, dùng cho dữ liệu và hành vi chung không gắn với một instance cụ thể. **Thành viên đối tượng thuộc về từng instance**, dùng để biểu diễn trạng thái và hành vi riêng. Chọn đúng phạm vi thành viên giúp tránh trộn dữ liệu các object, làm rõ nơi được phép dùng `this` và kiểm soát những trạng thái chia sẻ.
+**Conclusion:** **Static members belong to the class**, used for shared data and behavior not tied to a specific instance. **Instance members belong to each instance**, used to represent individual state and behavior. Choosing the right member scope avoids mixing object data, clarifies where `this` is permitted, and keeps shared state under control.

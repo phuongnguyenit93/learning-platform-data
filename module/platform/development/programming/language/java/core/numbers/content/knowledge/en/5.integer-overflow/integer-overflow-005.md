@@ -1,88 +1,88 @@
-# `Math.addExact`, `subtractExact` và `multiplyExact`: phát hiện tràn số nguyên trong Java
+# `Math.addExact`, `subtractExact`, and `multiplyExact`: Detecting Integer Overflow in Java
 
-Trong Java, phép cộng `+`, trừ `-` và nhân `*` trên `int`/`long` **không tự báo lỗi khi kết quả vượt phạm vi**. Kết quả sẽ bị tràn theo biểu diễn số nguyên có độ rộng cố định. Điều này nguy hiểm khi tính tổng tiền theo đơn vị nhỏ nhất, số lượng tồn kho, kích thước bộ nhớ, bộ đếm, số điểm hoặc giới hạn giao dịch.
+In Java, addition `+`, subtraction `-`, and multiplication `*` on `int`/`long` **do not automatically report an error when the result exceeds the range**. The result overflows according to fixed-width integer representation. This is dangerous when calculating monetary totals in smallest units, inventory counts, memory sizes, counters, scores, or transaction limits.
 
-`java.lang.Math` cung cấp ba phương thức **kiểm tra tràn** (*exact arithmetic*):
+`java.lang.Math` provides three **overflow-checking** (*exact arithmetic*) methods:
 
-- `Math.addExact(a, b)`: tính `a + b` và báo lỗi nếu kết quả không biểu diễn được bằng kiểu trả về.
-- `Math.subtractExact(a, b)`: tính `a - b`, có kiểm tra tràn.
-- `Math.multiplyExact(a, b)`: tính `a * b`, có kiểm tra tràn.
+- `Math.addExact(a, b)`: computes `a + b` and reports an error if the result cannot be represented in the return type.
+- `Math.subtractExact(a, b)`: computes `a - b`, with overflow checking.
+- `Math.multiplyExact(a, b)`: computes `a * b`, with overflow checking.
 
-Khi tràn, cả ba đều **ném `ArithmeticException`**, thay vì trả giá trị đã quay vòng. Chúng không tự mở rộng kiểu của phép toán và không tạo số nguyên có độ dài vô hạn.
+On overflow, all three **throw `ArithmeticException`** instead of returning a wrapped-around value. They do not automatically widen the operation's type and do not create arbitrary-length integers.
 
-## 1. Tại sao cần phép toán có kiểm tra tràn?
+## 1. Why Are Overflow-Checking Operations Needed?
 
-`int` có 32 bit có dấu, biểu diễn từ `-2_147_483_648` đến `2_147_483_647`. `long` có 64 bit có dấu, từ `-9_223_372_036_854_775_808L` đến `9_223_372_036_854_775_807L`.
+`int` has 32 signed bits, representing from `-2_147_483_648` to `2_147_483_647`. `long` has 64 signed bits, from `-9_223_372_036_854_775_808L` to `9_223_372_036_854_775_807L`.
 
-Ví dụ phép toán thường:
-
-```java
-int a = Integer.MAX_VALUE;
-int unchecked = a + 1; // -2147483648: đã tràn int
-```
-
-`Integer.MAX_VALUE` là 2.147.483.647, nên cộng 1 về mặt toán học phải ra 2.147.483.648, không chứa vừa `int`. `+` không báo lỗi; kết quả `int` thành giá trị âm nhỏ nhất.
-
-Dùng phép toán có kiểm tra:
+Example of an ordinary operation:
 
 ```java
 int a = Integer.MAX_VALUE;
-int checked = Math.addExact(a, 1); // ArithmeticException lúc chạy
+int unchecked = a + 1; // -2147483648: overflowed int
 ```
 
-Nếu kết quả nằm trong miền của kiểu trả về, `addExact` trả **chính kết quả số học**. Nếu nằm ngoài miền, method ném exception; không có giá trị trả về thành công.
+`Integer.MAX_VALUE` is 2,147,483,647, so adding 1 mathematically produces 2,147,483,648, which does not fit in `int`. `+` does not report an error; the `int` result becomes the smallest negative value.
 
-| Phép tính | Toán tử thông thường trên `int` | `Math.*Exact` trên `int` |
+Using a checked operation:
+
+```java
+int a = Integer.MAX_VALUE;
+int checked = Math.addExact(a, 1); // ArithmeticException at runtime
+```
+
+If the result is within the return type's range, `addExact` returns **the exact arithmetic result**. If it is out of range, the method throws an exception; there is no normal return value.
+
+| Operation | Ordinary Operator on `int` | `Math.*Exact` on `int` |
 | --- | --- | --- |
 | `40 + 2` | 42 | 42 |
-| `Integer.MAX_VALUE + 1` | -2147483648 (tràn) | `ArithmeticException` |
-| `Integer.MIN_VALUE - 1` | 2147483647 (tràn) | `ArithmeticException` |
-| `100_000 * 100_000` | 1410065408 (tràn) | `ArithmeticException` |
+| `Integer.MAX_VALUE + 1` | -2147483648 (overflow) | `ArithmeticException` |
+| `Integer.MIN_VALUE - 1` | 2147483647 (overflow) | `ArithmeticException` |
+| `100_000 * 100_000` | 1410065408 (overflow) | `ArithmeticException` |
 
-**Giới hạn của việc kiểm tra:** các method phát hiện tràn **ở phép toán do chính method thực hiện**, không có khả năng suy ngược lỗi đã xảy ra trước khi chúng được gọi.
+**Limitation of checking:** these methods detect overflow **in the operation performed by the method itself**; they cannot retroactively infer errors that occurred before they were called.
 
-## 2. Cú pháp, overload và kiểu kết quả
+## 2. Syntax, Overloads, and Return Types
 
-Ba method là `static` trong `java.lang.Math`, nên có thể gọi bằng `Math.addExact(...)` mà không cần `import`.
+All three methods are `static` in `java.lang.Math`, so they can be called as `Math.addExact(...)` without an `import`.
 
-| Phép toán | Chữ ký thường dùng | Kiểu trả về |
+| Operation | Commonly Used Signature | Return Type |
 | --- | --- | --- |
-| Cộng chính xác | `Math.addExact(int x, int y)` | `int` |
-| Cộng chính xác | `Math.addExact(long x, long y)` | `long` |
-| Trừ chính xác | `Math.subtractExact(int x, int y)` | `int` |
-| Trừ chính xác | `Math.subtractExact(long x, long y)` | `long` |
-| Nhân chính xác | `Math.multiplyExact(int x, int y)` | `int` |
-| Nhân chính xác | `Math.multiplyExact(long x, long y)` | `long` |
-| Nhân chính xác | `Math.multiplyExact(long x, int y)` | `long` |
+| Exact addition | `Math.addExact(int x, int y)` | `int` |
+| Exact addition | `Math.addExact(long x, long y)` | `long` |
+| Exact subtraction | `Math.subtractExact(int x, int y)` | `int` |
+| Exact subtraction | `Math.subtractExact(long x, long y)` | `long` |
+| Exact multiplication | `Math.multiplyExact(int x, int y)` | `int` |
+| Exact multiplication | `Math.multiplyExact(long x, long y)` | `long` |
+| Exact multiplication | `Math.multiplyExact(long x, int y)` | `long` |
 
-Overload `multiplyExact(long, int)` có trong Java hiện đại (bao gồm Java 17). Khi `int` được truyền cho tham số `long`, Java có thể tự mở rộng kiểu như lời gọi method thông thường.
+The `multiplyExact(long, int)` overload exists in modern Java (including Java 17). When an `int` is passed to a `long` parameter, Java widens the type as in a normal method call.
 
-Ví dụ:
+Examples:
 
 ```java
-int sum = Math.addExact(15, 27);        // 42, overload int
-long sumLong = Math.addExact(15L, 27);  // 42L, overload long
+int sum = Math.addExact(15, 27);        // 42, int overload
+long sumLong = Math.addExact(15L, 27);  // 42L, long overload
 int product = Math.multiplyExact(6, 7); // 42
 long big = Math.multiplyExact(100_000L, 100_000); // 10000000000L
 ```
 
-Lưu ý quan trọng: **kiểu của biến nhận kết quả không quyết định overload được chọn**.
+Important note: **the receiving variable's type does not determine which overload is chosen**.
 
 ```java
-// Vẫn gọi multiplyExact(int, int), nên phép nhân tràn sẽ ném exception:
+// Still calls multiplyExact(int, int), so overflowing multiplication throws an exception:
 long wrong = Math.multiplyExact(100_000, 100_000);
 
-// Chọn phép nhân có kết quả long ngay tại lời gọi:
+// Selects the long-returning multiplication right at the call site:
 long correct = Math.multiplyExact(100_000L, 100_000);
 ```
 
-Đây là đoạn minh họa: dòng `wrong` biên dịch được nhưng ném exception lúc chạy nếu được thực thi. Chữ `L` hoặc ép kiểu phải xuất hiện **ở đối số trước khi gọi**; gán kết quả vào `long` sau lời gọi không cứu được phép tính `int`.
+This is an illustrative snippet: the `wrong` line compiles but throws an exception at runtime if executed. The `L` suffix or cast must appear **on an argument before the call**; assigning the result to `long` after the call cannot save an `int` calculation.
 
-## 3. `Math.addExact`: cộng và phát hiện vượt biên
+## 3. `Math.addExact`: Adding and Detecting Boundary Crossings
 
-`addExact(x, y)` trả `x + y` khi kết quả nằm trong miền `int`/`long` được chọn; nếu không thì ném `ArithmeticException`.
+`addExact(x, y)` returns `x + y` when the result fits in the chosen `int`/`long` range; otherwise it throws `ArithmeticException`.
 
-### Ví dụ bình thường và sát biên
+### Normal and boundary-adjacent examples
 
 ```java
 int score = Math.addExact(80, 20); // 100
@@ -90,142 +90,142 @@ int max = Math.addExact(Integer.MAX_VALUE - 1, 1); // Integer.MAX_VALUE
 int min = Math.addExact(Integer.MIN_VALUE, 0); // Integer.MIN_VALUE
 ```
 
-Ở đây chạm chính xác giá trị lớn nhất/nhỏ nhất là **hợp lệ**. Method chỉ báo lỗi khi phép tính vượt phạm vi.
+Here, hitting the exact maximum or minimum value is **valid**. The method reports an error only when the calculation exceeds the range.
 
-### Vượt biên dương và âm
+### Exceeding positive and negative boundaries
 
 ```java
-// ArithmeticException: 2147483647 + 1 nằm ngoài int
+// ArithmeticException: 2147483647 + 1 is outside int
 Math.addExact(Integer.MAX_VALUE, 1);
 
-// ArithmeticException: -2147483648 + (-1) nằm ngoài int
+// ArithmeticException: -2147483648 + (-1) is outside int
 Math.addExact(Integer.MIN_VALUE, -1);
 ```
 
-Hai câu lệnh là đoạn **minh họa ném exception**, không phải ví dụ để chạy mà không có xử lý lỗi.
+These two statements are **exception-throwing illustrations**, not examples meant to run without error handling.
 
-Nếu yêu cầu là **tính được kết quả lớn hơn miền int**, hãy chọn overload `long` ngay từ đầu:
+If the requirement is to **compute a result larger than the `int` range**, choose the `long` overload from the start:
 
 ```java
 long expanded = Math.addExact((long) Integer.MAX_VALUE, 1);
 // 2147483648L
 ```
 
-Nhưng `long` vẫn có giới hạn. `Math.addExact(Long.MAX_VALUE, 1L)` cũng ném `ArithmeticException`.
+However, `long` still has limits. `Math.addExact(Long.MAX_VALUE, 1L)` also throws `ArithmeticException`.
 
-## 4. `Math.subtractExact`: trừ hai số và trường hợp biên
+## 4. `Math.subtractExact`: Subtracting Two Numbers and Boundary Cases
 
-`subtractExact(x, y)` kiểm tra kết quả toán học của `x - y`. Phép trừ có thể tràn ở cả hai chiều:
+`subtractExact(x, y)` checks the mathematical result of `x - y`. Subtraction can overflow in both directions:
 
 ```java
 int remaining = Math.subtractExact(100, 35); // 65
 int min = Math.subtractExact(Integer.MIN_VALUE + 1, 1); // MIN_VALUE
 ```
 
-Các trường hợp này ném `ArithmeticException`:
+These cases throw `ArithmeticException`:
 
 ```java
-// Tràn âm: MIN_VALUE - 1 < MIN_VALUE
+// Negative overflow: MIN_VALUE - 1 < MIN_VALUE
 Math.subtractExact(Integer.MIN_VALUE, 1);
 
-// Tràn dương: MAX_VALUE - (-1) > MAX_VALUE
+// Positive overflow: MAX_VALUE - (-1) > MAX_VALUE
 Math.subtractExact(Integer.MAX_VALUE, -1);
 ```
 
-Dấu của toán hạng thứ hai dễ làm người học nhầm: **trừ số âm tương đương cộng số dương về mặt toán học**, nên `MAX_VALUE - (-1)` vượt trần `int`.
+The sign of the second operand easily trips learners up: **subtracting a negative number is mathematically equivalent to adding a positive number**, so `MAX_VALUE - (-1)` exceeds the `int` ceiling.
 
-Với `long`:
+With `long`:
 
 ```java
 long safe = Math.subtractExact((long) Integer.MIN_VALUE, 1L);
-// -2147483649L, hợp lệ vì vẫn nằm trong long
+// -2147483649L, valid because it still fits in long
 ```
 
-`Math.subtractExact(Long.MIN_VALUE, 1L)` ném `ArithmeticException`. Kiểm tra biên luôn tương ứng kiểu đã chọn, không phải phạm vi `int` một cách cố định.
+`Math.subtractExact(Long.MIN_VALUE, 1L)` throws `ArithmeticException`. Boundary checking always corresponds to the chosen type, not a fixed `int` range.
 
-## 5. `Math.multiplyExact`: nhân và phát hiện tràn
+## 5. `Math.multiplyExact`: Multiplying and Detecting Overflow
 
-Phép nhân có thể vượt phạm vi ngay cả khi từng toán hạng riêng lẻ nhỏ hơn giới hạn. Ví dụ `100_000` vẫn là `int` hợp lệ, nhưng tích `100_000 * 100_000 = 10_000_000_000` vượt `int`.
+Multiplication can exceed the range even when each individual operand is smaller than the limit. For example, `100_000` is a valid `int`, yet the product `100_000 * 100_000 = 10_000_000_000` exceeds `int`.
 
 ```java
 int normal = Math.multiplyExact(6, 7); // 42
 int square = Math.multiplyExact(46_340, 46_340); // 2147395600
 
-// Ném ArithmeticException:
+// Throws ArithmeticException:
 Math.multiplyExact(100_000, 100_000);
 ```
 
-`46_340 * 46_340 = 2_147_395_600` vẫn nằm trong miền `int`, vì vậy method trả kết quả bình thường. `46_341 * 46_341 = 2_147_488_281` vượt `Integer.MAX_VALUE` nên `Math.multiplyExact(46_341, 46_341)` ném exception.
+`46_340 * 46_340 = 2_147_395_600` still fits in `int`, so the method returns normally. `46_341 * 46_341 = 2_147_488_281` exceeds `Integer.MAX_VALUE`, so `Math.multiplyExact(46_341, 46_341)` throws an exception.
 
-### Tích âm và cặp giá trị đặc biệt
+### Negative products and special value pairs
 
-Với `int`, `Integer.MIN_VALUE * (-1)` không chứa vừa kiểu `int`: kết quả toán học là `2_147_483_648`.
+For `int`, `Integer.MIN_VALUE * (-1)` does not fit in `int`: the mathematical result is `2_147_483_648`.
 
 ```java
-// Ném ArithmeticException:
+// Throws ArithmeticException:
 Math.multiplyExact(Integer.MIN_VALUE, -1);
 ```
 
-Tương tự, `Math.multiplyExact(Long.MIN_VALUE, -1L)` ném exception vì kết quả dương vượt `Long.MAX_VALUE`.
+Similarly, `Math.multiplyExact(Long.MIN_VALUE, -1L)` throws an exception because the positive result exceeds `Long.MAX_VALUE`.
 
-Các trường hợp có `0` luôn cho tích `0` và không tràn, bất kể toán hạng còn lại nằm đâu trong miền kiểu tương ứng:
+Cases involving `0` always yield product `0` and never overflow, regardless of where the other operand lies in the corresponding type's range:
 
 ```java
 int zero = Math.multiplyExact(Integer.MAX_VALUE, 0); // 0
 ```
 
-### Chọn `long` và hiểu đúng mục tiêu
+### Choosing `long` and understanding the goal
 
 ```java
 long largeProduct = Math.multiplyExact(100_000L, 100_000);
 // 10000000000
 ```
 
-Chỉ nâng lên `long` khi miền giá trị dự kiến thực sự phù hợp với `long`. Nếu tích có thể vượt 64 bit, cân nhắc `BigInteger`; không có overload `Math.multiplyExact(BigInteger, BigInteger)`.
+Promote to `long` only when the expected value range truly fits in `long`. If the product can exceed 64 bits, consider `BigInteger`; there is no `Math.multiplyExact(BigInteger, BigInteger)` overload.
 
-## 6. Lỗi tinh vi: phép toán đã tràn trước khi đến `Exact`
+## 6. Subtle Bug: An Operation Already Overflowed Before Reaching `Exact`
 
-Giả sử viết:
+Suppose you write:
 
 ```java
 int alreadyOverflowed = Integer.MAX_VALUE + 1; // -2147483648
 int undetected = Math.addExact(alreadyOverflowed, 0);
-// -2147483648: không có overflow mới trong phép addExact này
+// -2147483648: no new overflow in this addExact call
 ```
 
-`Math.addExact` nhận đầu vào thực tế là `-2147483648` và `0`; bản thân phép cộng đó hợp lệ. Method không biết giá trị âm là kết quả của một phép tính bị tràn trước đó.
+`Math.addExact` receives actual inputs `-2147483648` and `0`; that addition itself is valid. The method does not know the negative value came from an earlier overflowed calculation.
 
-Một trường hợp sai khác:
+Another wrong case:
 
 ```java
 long wrong = Math.addExact(Integer.MAX_VALUE + 1, 0L);
-// (-2147483648) + 0L -> -2147483648L: không báo lỗi
+// (-2147483648) + 0L -> -2147483648L: does not report an error
 ```
 
-Phép `Integer.MAX_VALUE + 1` được đánh giá bằng `int` **trước** khi chuyển thành đối số `long`, nên đã tràn. Cách đúng:
+The expression `Integer.MAX_VALUE + 1` is evaluated in `int` **before** converting to a `long` argument, so it already overflowed. Correct approach:
 
 ```java
 long correct = Math.addExact((long) Integer.MAX_VALUE + 1, 0L);
 // 2147483648L
 ```
 
-Hoặc ngắn hơn `Math.addExact((long) Integer.MAX_VALUE, 1L)`.
+Or more concisely `Math.addExact((long) Integer.MAX_VALUE, 1L)`.
 
-Tương tự, **không bọc một biểu thức đã cộng/nhân thông thường vào phương thức `Exact` rồi kỳ vọng nó kiểm tra toàn bộ chuỗi tính toán**:
+Similarly, **do not wrap an already-added/multiplied expression inside an `Exact` method and expect it to check the whole calculation chain**:
 
 ```java
 int a = 2_000_000_000;
 int b = 2_000_000_000;
-int result = Math.addExact(a + b, 0); // a + b đã tràn!
+int result = Math.addExact(a + b, 0); // a + b already overflowed!
 ```
 
-Nếu cần kiểm tra ngay phép cộng của `a` và `b`, phải viết `Math.addExact(a, b)`. Nếu cần nhiều bước đều được kiểm tra, dùng method tương ứng **ở từng bước**.
+If you need to check the addition of `a` and `b`, you must write `Math.addExact(a, b)`. If multiple steps need checking, use the corresponding method **at each step**.
 
-## 7. Xử lý `ArithmeticException` và thiết kế nghiệp vụ
+## 7. Handling `ArithmeticException` and Business Design
 
-### Bắt lỗi tại ranh giới phù hợp
+### Catching errors at an appropriate boundary
 
-`ArithmeticException` là *unchecked exception* (thuộc `RuntimeException`); Java không bắt buộc khai báo `throws` hay `catch`. Tuy nhiên với phép tính quan trọng, ứng dụng nên xác định cách xử lý:
+`ArithmeticException` is an *unchecked exception* (a subclass of `RuntimeException`); Java does not require declaring `throws` or `catch`. However, for critical calculations, an application should define how to handle it:
 
 ```java
 try {
@@ -236,50 +236,50 @@ try {
 }
 ```
 
-Kết quả là một dòng `overflow detected`. Không nên dựa vào **chuỗi thông báo chi tiết của exception** để quyết định nghiệp vụ; chỉ nên dựa vào kiểu lỗi và bối cảnh.
+The output is a single line `overflow detected`. Do not rely on the **detailed exception message string** to make business decisions; rely only on the exception type and context.
 
-Nếu lỗi tràn là dữ liệu đầu vào không hợp lệ, tầng nghiệp vụ có thể chuyển nó thành thông báo phù hợp hoặc từ chối yêu cầu. Nếu lỗi biểu thị vi phạm bất biến nội bộ, có thể để lỗi lan tới cơ chế xử lý tập trung và ghi log đúng mức độ.
+If overflow stems from invalid input data, the business layer can translate it into an appropriate message or reject the request. If the error indicates an internal invariant violation, you can let it propagate to a centralized error handler and log it at an appropriate level.
 
-### Đừng biến lỗi tràn thành giá trị hợp lệ giả
+### Do not turn an overflow error into a fake valid value
 
-Những cách xử lý như `catch (ArithmeticException ex) { return 0; }` rất nguy hiểm nếu `0` cũng là kết quả hợp lệ: ta sẽ không còn phân biệt “không có gì” với “tính toán vượt miền”.
+Handling like `catch (ArithmeticException ex) { return 0; }` is very dangerous if `0` is also a valid result: you can no longer distinguish "nothing" from "out-of-range calculation."
 
-Chọn rõ chính sách khi tràn:
+Choose an explicit overflow policy:
 
-| Chính sách | Cách thực hiện | Khi nào phù hợp |
+| Policy | How to Implement | When Appropriate |
 | --- | --- | --- |
-| Từ chối phép tính | Gọi method `Exact`, chuyển lỗi tại biên nhập dữ liệu | Miền dữ liệu có giới hạn nghiêm ngặt |
-| Tăng miền biểu diễn | Chọn phép toán `long` ngay trước khi tính | Đầu vào `int` nhưng kết quả có thể vượt `int` |
-| Dùng số nguyên không giới hạn độ rộng cố định | `BigInteger` và các method `add`, `subtract`, `multiply` | Độ lớn có thể vượt cả `long` |
-| Bão hòa ở giá trị biên (*saturating*) | Tự xây dựng chính sách với xử lý rõ ràng | Chỉ khi đặc tả nghiệp vụ yêu cầu clamp ở min/max |
-| Cho phép quay vòng (*wraparound*) | Toán tử số nguyên thường | Chỉ khi mục đích là số học modulo/bit pattern |
+| Reject the operation | Call an `Exact` method, translate the error at the input boundary | Data domain has strict limits |
+| Widen the representation range | Choose `long` arithmetic right before computing | Inputs are `int` but results can exceed `int` |
+| Use integers without fixed-width limits | `BigInteger` and its `add`, `subtract`, `multiply` methods | Magnitudes can exceed even `long` |
+| Saturate at boundary values (*saturating*) | Build an explicit policy with clear handling | Only when business specs require clamping at min/max |
+| Allow wraparound | Ordinary integer operators | Only when modulo/bit-pattern arithmetic is intended |
 
-Ba method `Exact` không tự thực hiện *clamping*, không trả `Optional`, và không hỗ trợ phép toán trên số thực `float`/`double` theo cùng bộ API.
+The three `Exact` methods do not perform *clamping*, do not return `Optional`, and do not support `float`/`double` operations under the same API family.
 
-## 8. So sánh `Exact` với `long` và `BigInteger`
+## 8. Comparing `Exact` with `long` and `BigInteger`
 
-Ba chiến lược giải quyết **ba nhu cầu khác nhau**:
+The three strategies address **three different needs**:
 
-- **`Math.*Exact`:** giữ kiểu `int`/`long`, nhưng phát hiện khi kết quả vượt giới hạn của chính kiểu đó.
-- **`long`:** cho miền biểu diễn lớn hơn `int`; vẫn có thể tràn và vẫn cần `Math.*Exact` nếu muốn phát hiện tràn `long`.
-- **`BigInteger`:** biểu diễn số nguyên độ lớn tùy ý trong giới hạn bộ nhớ; method cộng, trừ, nhân không bị giới hạn 32/64 bit. `BigInteger` bất biến, nên phép toán trả object mới.
+- **`Math.*Exact`:** keeps `int`/`long` types, while detecting when the result exceeds that type's own limit.
+- **`long`:** gives a larger representation range than `int`; it can still overflow and still needs `Math.*Exact` if you want to detect `long` overflow.
+- **`BigInteger`:** represents arbitrary-magnitude integers within memory limits; `add`, `subtract`, and `multiply` methods are not bounded by 32/64 bits. `BigInteger` is immutable, so operations return a new object.
 
-Ví dụ:
+Example:
 
 ```java
 long product = Math.multiplyExact(100_000L, 100_000); // 10000000000L
 
 java.math.BigInteger huge = java.math.BigInteger.valueOf(Long.MAX_VALUE)
-        .multiply(java.math.BigInteger.TWO); // hơn miền long
+        .multiply(java.math.BigInteger.TWO); // exceeds long range
 ```
 
-`BigInteger.TWO` có trong Java hiện đại, gồm Java 17. Trong một hệ thống thanh toán thực tế, cần chọn cả **đơn vị đo, kiểu số và chính sách làm tròn**; `Math.*Exact` bảo vệ khỏi một loại lỗi tràn số nguyên nhưng không xác minh mọi quy tắc nghiệp vụ.
+`BigInteger.TWO` is available in modern Java, including Java 17. In a real payment system, you must choose **units, numeric types, and rounding policies** together; `Math.*Exact` protects against one class of integer overflow bugs but does not verify all business rules.
 
-Cần phân biệt `Math.toIntExact(long)`: method này kiểm tra **chuyển một giá trị `long` về `int`**, không thực hiện phép cộng/trừ/nhân. Nó hữu ích sau khi chọn tính bằng `long` và muốn từ chối kết quả không vừa `int`.
+Distinguish `Math.toIntExact(long)`: this method checks **converting a `long` value to `int`**; it does not perform addition, subtraction, or multiplication. It is useful after choosing to compute in `long` when you want to reject results that do not fit in `int`.
 
-## 9. Chương trình Java 17+ chạy được: kiểm chứng từng phép toán
+## 9. Runnable Java 17+ Program: Verifying Each Operation
 
-Tạo file **`ExactArithmeticDemo.java`**:
+Create the file **`ExactArithmeticDemo.java`**:
 
 ```java
 public class ExactArithmeticDemo {
@@ -333,14 +333,14 @@ public class ExactArithmeticDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac ExactArithmeticDemo.java
 java ExactArithmeticDemo
 ```
 
-**Kết quả chuẩn** (chương trình chủ động bắt exception nên vẫn chạy đến hết):
+**Expected output** (the program deliberately catches exceptions so it runs to completion):
 
 ```text
 add=42
@@ -360,63 +360,63 @@ priorOverflow=-2147483648
 longOverflow=detected
 ```
 
-Các dòng `checked*=detected` là kết quả từ khối `catch`, không phải thông báo tùy tiện của JVM. Dòng `priorOverflow` xác nhận sự khác biệt quan trọng: nếu đã tràn trước khi gọi `addExact` thì lần gọi kiểm tra sau đó không thể phát hiện lỗi cũ.
+The `checked*=detected` lines come from the `catch` blocks, not arbitrary JVM messages. The `priorOverflow` line confirms an important distinction: if overflow already occurred before calling `addExact`, the subsequent checked call cannot detect the old error.
 
-## 10. Tình huống áp dụng thực tế
+## 10. Practical Application Scenarios
 
-### Cập nhật số lượng có kiểm soát
+### Controlled quantity updates
 
-Nếu một kho đang có `stock` đơn vị và nhập thêm `received`, sử dụng:
+If a warehouse currently holds `stock` units and receives `received`, use:
 
 ```java
 int newStock = Math.addExact(stock, received);
 ```
 
-Đoạn này nằm trong ngữ cảnh đã khai báo biến `stock`, `received`; chưa phải chương trình độc lập. Khi tràn `int`, method ném `ArithmeticException`. Nếu logic nghiệp vụ không cho số lượng âm, cần **kiểm tra thêm ràng buộc `newStock >= 0`**; `addExact` không tự kiểm tra ràng buộc này.
+This snippet assumes variables `stock` and `received` are already declared; it is not a standalone program. On `int` overflow, the method throws `ArithmeticException`. If business logic forbids negative quantities, you must **additionally check the constraint `newStock >= 0`**; `addExact` does not enforce this constraint automatically.
 
-### Tính tổng giá theo đơn vị nguyên
+### Calculating total price in integer units
 
-Nếu `unitPrice` và `quantity` có kiểu `int`, nhưng tích dự kiến có thể vượt `int`:
+If `unitPrice` and `quantity` have type `int`, yet the expected product can exceed `int`:
 
 ```java
 long total = Math.multiplyExact((long) unitPrice, quantity);
 ```
 
-Đây là phép nhân kiểm tra tràn **long**, vì một đối số đã được mở rộng trước khi gọi. Nếu miền kết quả còn lớn hơn `long`, hãy chọn mô hình số phù hợp (ví dụ `BigInteger`) từ đầu.
+This is a **`long` overflow-checked** multiplication, because one argument was widened before the call. If the result range can exceed even `long`, choose an appropriate numeric model (such as `BigInteger`) from the beginning.
 
-### Chuỗi phép tính nhiều bước
+### Multi-step calculation chains
 
-Ví dụ tính `(price * quantity) - discount` trong miền `long`:
+For example, computing `(price * quantity) - discount` within the `long` range:
 
 ```java
 long subtotal = Math.multiplyExact(price, quantity);
 long total = Math.subtractExact(subtotal, discount);
 ```
 
-Ở đây giả định cả ba tham số `price`, `quantity`, `discount` đã được khai báo với kiểu `long`; đoạn code minh họa nằm trong method hiện có. Từng phép tính phải được kiểm tra riêng. Nếu `subtotal` vượt miền, exception xuất hiện ngay ở bước nhân.
+This assumes all three parameters `price`, `quantity`, and `discount` are already declared with type `long`; the illustrative snippet resides in an existing method. Each operation must be checked individually. If `subtotal` exceeds the range, the exception occurs right at the multiplication step.
 
-**Kiểm tra tràn không thay thế kiểm tra miền nghiệp vụ**: số lượng không âm, giới hạn đơn hàng, phân quyền, tính nhất quán của dữ liệu hoặc quy tắc tiền tệ vẫn cần kiểm tra độc lập.
+**Overflow checking does not replace business-domain validation**: non-negative quantities, order limits, authorization, data consistency, or currency rules still require independent checks.
 
-## 11. Những lỗi phổ biến và checklist
+## 11. Common Mistakes and Checklist
 
-| Hiểu nhầm | Thực tế |
+| Misconception | Reality |
 | --- | --- |
-| “`long result = Math.addExact(intA, intB);` sẽ cộng theo `long`.” | Nếu hai đối số là `int`, overload `int` được chọn; có thể ném exception trước khi gán vào `long`. |
-| “Bọc phép toán đã tính bên trong `addExact` sẽ phát hiện tràn trước đó.” | Không; hãy gọi phép kiểm tra đúng tại bước cần tính. |
-| “`multiplyExact` luôn trả `long`.” | `int, int` trả `int`; overload `long` trả `long`. |
-| “Có exception nghĩa là JVM dừng tức thì.” | Exception có thể được bắt/được xử lý; nếu không được xử lý, chương trình sẽ thoát theo quy tắc exception. |
-| “Tràn chỉ xảy ra lúc cộng số dương.” | Tràn có thể ở cộng, trừ, nhân; với số dương lẫn số âm và ở biên âm/dương. |
-| “`Math.addExact` kiểm tra số âm có hợp lệ nghiệp vụ không.” | Không; nó chỉ kiểm tra kết quả toán học có nằm trong phạm vi kiểu hay không. |
-| “Chuyển sang `long` là không thể tràn.” | `long` vẫn giới hạn ở 64 bit; có overload `Exact` cho `long`. |
-| “`Math.multiplyExact` xử lý `double` và `float`.” | Bộ overload ở đây dành cho số nguyên `int`/`long`, không phải số thực. |
-| “Có thể dùng `Math.multiplyExact` trực tiếp với `BigInteger`.” | Không; dùng method `multiply` của `BigInteger`. |
+| "`long result = Math.addExact(intA, intB);` adds in `long`." | If both arguments are `int`, the `int` overload is chosen; it can throw before assigning to `long`. |
+| "Wrapping an already-computed operation inside `addExact` detects prior overflow." | No; call the checked method right at the step that needs computing. |
+| "`multiplyExact` always returns `long`." | `(int, int)` returns `int`; `long` overloads return `long`. |
+| "Throwing an exception means the JVM crashes immediately." | Exceptions can be caught/handled; if unhandled, the thread/program terminates per exception rules. |
+| "Overflow only happens when adding positive numbers." | Overflow can happen in addition, subtraction, and multiplication; with positive and negative numbers and at both boundaries. |
+| "`Math.addExact` checks whether negative numbers are business-valid." | No; it only checks whether the mathematical result lies within the type's range. |
+| "Switching to `long` makes overflow impossible." | `long` is still limited to 64 bits; `Exact` overloads exist for `long`. |
+| "`Math.multiplyExact` handles `double` and `float`." | This overload family is for `int`/`long` integers, not floating-point numbers. |
+| "You can pass `BigInteger` directly to `Math.multiplyExact`." | No; use `BigInteger`'s `multiply` method. |
 
-Khi kiểm tra code, hãy trả lời theo trình tự:
+When reviewing code, answer in order:
 
-1. **Kiểu toán hạng là gì?** Nhìn đối số thực tế, không chỉ biến đích. Nếu cần phép tính `long`, bảo đảm một hoặc các đối số phù hợp đã mang kiểu `long` trước khi tính.
-2. **Phép tính nào cần được bảo vệ?** Thay `a + b` bằng `Math.addExact(a, b)` tại đúng bước; tương tự với trừ/nhân.
-3. **Kết quả nào nằm ở biên?** Chạm `MAX_VALUE` hoặc `MIN_VALUE` vẫn hợp lệ; vượt biên thì ném `ArithmeticException`.
-4. **Nếu exception xảy ra, ai xử lý?** Chọn chính sách nghiệp vụ rõ ràng; không âm thầm dùng giá trị giả có thể bị nhầm là hợp lệ.
-5. **Nếu miền biểu diễn không đủ?** Dùng `long` hoặc `BigInteger` tùy nhu cầu, đồng thời tiếp tục kiểm tra quy tắc nghiệp vụ.
+1. **What are the operand types?** Look at the actual arguments, not just the target variable. If `long` arithmetic is needed, ensure one or more appropriate arguments already have type `long` before computing.
+2. **Which operations need protection?** Replace `a + b` with `Math.addExact(a, b)` at the exact step; likewise for subtraction/multiplication.
+3. **Which results sit at the boundary?** Hitting `MAX_VALUE` or `MIN_VALUE` is still valid; crossing the boundary throws `ArithmeticException`.
+4. **If an exception occurs, who handles it?** Choose an explicit business policy; do not silently substitute a fake value that could be mistaken for valid.
+5. **What if the representation range is insufficient?** Use `long` or `BigInteger` as needed, while continuing to enforce business rules.
 
-**Ghi nhớ:** `Math.addExact`, `Math.subtractExact` và `Math.multiplyExact` cho phép tính số nguyên **có kiểm tra tràn tại chính phép toán đó**. Chúng giúp phát hiện lỗi vốn dễ bị che giấu bởi kết quả quay vòng, nhưng muốn an toàn phải chọn đúng overload, bảo vệ mọi bước trung gian và xử lý `ArithmeticException` theo mục đích của chương trình.
+**Remember:** `Math.addExact`, `Math.subtractExact`, and `Math.multiplyExact` enable integer arithmetic **with overflow checking at that exact operation**. They help catch bugs easily hidden by wrap-around results, but staying safe requires picking the right overload, protecting every intermediate step, and handling `ArithmeticException` according to the program's purpose.

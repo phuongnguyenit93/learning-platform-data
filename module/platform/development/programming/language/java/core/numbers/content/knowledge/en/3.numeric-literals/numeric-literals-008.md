@@ -1,45 +1,45 @@
-# Dấu âm là toán tử chứ không phải một phần của literal
+# The Minus Sign Is an Operator, Not Part of a Literal
 
-## 1. Phân biệt literal với dấu âm trong mã nguồn Java
+## 1. Distinguishing Literals from the Minus Sign in Java Source Code
 
-Khi viết `-42`, người đọc thường gọi cả cụm là “literal số âm”. Đây là cách nói thuận tiện trong đời thường, nhưng **không chính xác ở cấp độ cú pháp Java**:
+When writing `-42`, readers often call the whole thing a "negative literal." That is convenient everyday phrasing, yet **inaccurate at the Java syntax level**:
 
-- `42` là một **integer literal** (literal số nguyên) có giá trị 42.
-- `-` là **toán tử âm một ngôi** (*unary minus operator*).
-- `-42` là **biểu thức** áp dụng toán tử `-` lên literal `42`; kết quả của biểu thức bằng −42.
+- `42` is an **integer literal** with value 42.
+- `-` is the **unary minus operator**.
+- `-42` is an **expression** applying the `-` operator to the literal `42`; the expression's result equals −42.
 
-Điểm quan trọng là **dấu trừ nằm ngoài token literal**. Khi Java phân tích mã nguồn, phần chữ số của số và toán tử `-` được nhận diện riêng; sau đó quy tắc biểu thức quyết định toán tử áp dụng vào toán hạng nào.
+The key point is that **the minus sign sits outside the literal token**. When Java parses source code, the numeric digits and the `-` operator are recognized separately; expression rules then determine which operand the operator applies to.
 
-Ví dụ:
+Example:
 
 ~~~java
-int positive = 42;    // 42 là decimal integer literal
-int negative = -42;   // toán tử - áp dụng lên literal 42
-int difference = 10 - 3; // phép trừ hai ngôi, kết quả 7
-int another = 10 - -3;   // trừ một số âm, kết quả 13
+int positive = 42;    // 42 is a decimal integer literal
+int negative = -42;   // - operator applied to literal 42
+int difference = 10 - 3; // binary subtraction, result 7
+int another = 10 - -3;   // subtracting a negative number, result 13
 ~~~
 
-Đây là **đoạn minh họa**; muốn chạy độc lập phải đặt trong class và method thích hợp. Cùng một ký hiệu `-` có thể đảm nhiệm **hai vai trò**:
+This is an **illustrative snippet**; to run standalone, it must be placed inside an appropriate class and method. The same `-` symbol can play **two roles**:
 
-| Dạng | Vai trò `-` | Diễn giải |
+| Form | Role of `-` | Interpretation |
 |---|---|---|
-| `-42` | Toán tử âm **một ngôi** | Lấy giá trị đối của 42 |
-| `-value` | Toán tử âm **một ngôi** | Lấy giá trị đối của biến/biểu thức `value` |
-| `left - right` | Phép trừ **hai ngôi** | Lấy `left` trừ `right` |
-| `10 - -3` | Một phép trừ hai ngôi và một phép âm một ngôi | `10 - (-3) = 13` |
-| `-(a + b)` | Phép âm một ngôi áp dụng lên biểu thức trong ngoặc | Lấy số đối của tổng |
+| `-42` | **Unary** minus operator | Negates 42 |
+| `-value` | **Unary** minus operator | Negates variable/expression `value` |
+| `left - right` | **Binary** subtraction | Subtracts `right` from `left` |
+| `10 - -3` | One binary subtraction and one unary minus | `10 - (-3) = 13` |
+| `-(a + b)` | Unary minus applied to parenthesized expression | Negates the sum |
 
-Không cần nói “literal âm” để giải thích đúng chương trình: **literal có chữ số, còn dấu âm là toán tử trong biểu thức**.
+You do not need to say "negative literal" to explain a program accurately: **the literal holds the digits, while the minus sign is an operator in the expression**.
 
-## 2. Java tách token và tạo biểu thức như thế nào?
+## 2. How Java Tokenizes and Builds Expressions
 
-Quá trình hiểu `int x = -123;` có thể hình dung như sau:
+Understanding `int x = -123;` can be pictured as:
 
-1. **Phân tích từ vựng (lexical analysis):** nhận ra `int`, `x`, `=`, toán tử `-`, literal `123` và dấu `;`.
-2. **Phân tích cú pháp (parsing):** xác định `-123` là một *unary expression*, khác với `x - 123` là một *binary expression*.
-3. **Kiểm tra kiểu/đánh giá:** tìm kiểu toán hạng, thực hiện phép âm và gán kết quả hợp lệ vào biến `int`.
+1. **Lexical analysis:** recognizes `int`, `x`, `=`, operator `-`, literal `123`, and `;`.
+2. **Parsing:** identifies `-123` as a *unary expression*, unlike `x - 123` which is a *binary expression*.
+3. **Type checking / evaluation:** determines operand type, performs negation, and assigns the valid result to the `int` variable.
 
-Literal số nguyên trong Java có nhiều cách viết: thập phân như `123`, nhị phân như `0b1111011`, bát phân như `0173`, hoặc thập lục phân như `0x7B`. **Dấu `-` đứng trước biểu thức, không thuộc cách ghi cơ số**:
+Integer literals in Java have multiple notations: decimal like `123`, binary like `0b1111011`, octal like `0173`, or hexadecimal like `0x7B`. **The `-` sign precedes the expression and does not belong to the base notation**:
 
 ~~~java
 int decimal = -123;
@@ -48,38 +48,38 @@ int octal = -0173;
 int hexadecimal = -0x7B;
 ~~~
 
-Bốn biến trên đều có giá trị số nguyên **−123**, dù bốn literal không dấu dùng các cơ số khác nhau.
+All four variables above have the integer value **−123**, even though the four unsigned literals use different bases.
 
-### Có thể dùng dấu cộng một ngôi
+### Unary Plus Can Also Be Used
 
-Java còn hỗ trợ toán tử `+` một ngôi. Ví dụ `+42` áp dụng *unary plus* lên literal `42` và vẫn cho giá trị 42; dấu `+` cũng **không thuộc literal**. Toán tử `+` một ngôi vẫn thực hiện *unary numeric promotion*, giống như toán tử âm một ngôi; vì thế không nên giả định nó giữ nguyên kiểu `byte`, `short` hay `char` trong mọi biểu thức.
+Java also supports the unary `+` operator. For instance, `+42` applies *unary plus* to the literal `42` and still gives value 42; the `+` sign also **does not belong to the literal**. Unary `+` still performs *unary numeric promotion*, just like unary minus; therefore, you should not assume it preserves `byte`, `short`, or `char` types in every expression.
 
-### Toán tử âm và dấu trừ có thứ tự ưu tiên khác nhau
+### Unary Minus and Subtraction Have Different Precedence
 
-`-number` là toán tử một ngôi; `left - right` là phép trừ hai ngôi. Toán tử một ngôi liên kết chặt hơn các phép cộng/trừ hai ngôi trong biểu thức thông thường:
+`-number` is a unary operator; `left - right` is binary subtraction. Unary operators bind tighter than standard binary addition/subtraction in expressions:
 
 ~~~java
 int a = 2;
 int b = 3;
-int first = -a * b;      // (-a) * b, kết quả -6
-int second = a - -b;     // a - (-b), kết quả 5
-int third = -(a + b);    // -(2 + 3), kết quả -5
+int first = -a * b;      // (-a) * b, result -6
+int second = a - -b;     // a - (-b), result 5
+int third = -(a + b);    // -(2 + 3), result -5
 ~~~
 
-Đây là **đoạn minh họa**, không phải class độc lập. Ngoặc giúp tránh hiểu lầm, đặc biệt ở những biểu thức nhiều toán tử. Java **không có toán tử lũy thừa `^`**: ký hiệu `^` là XOR bit, nên `-2 ^ 2` không có nghĩa “âm hai bình phương”.
+This is an **illustrative snippet**, not a standalone class. Parentheses help avoid confusion, especially in expressions with multiple operators. Java has **no exponentiation operator `^`**: the `^` symbol is bitwise XOR, so `-2 ^ 2` does not mean "negative two squared."
 
-## 3. Bài toán ranh giới: `Integer.MIN_VALUE`
+## 3. The Boundary Case: `Integer.MIN_VALUE`
 
-Một câu hỏi thú vị: `int` nhận giá trị từ **−2.147.483.648** đến **2.147.483.647**, vậy mã `-2147483648` được biên dịch thế nào nếu literal thập phân không có dấu `2147483648` vượt giá trị dương tối đa?
+An interesting question: `int` holds values from **−2,147,483,648** to **2,147,483,647**, so how does `-2147483648` compile if the unsigned decimal literal `2147483648` exceeds the maximum positive value?
 
-Java có **quy tắc đặc biệt trong cú pháp literal số nguyên thập phân**:
+Java has a **special rule in decimal integer literal syntax**:
 
-- Literal thập phân `2147483648` được **cho phép đúng trong ngữ cảnh làm toán hạng của toán tử âm một ngôi**.
-- Do đó, biểu thức `-2147483648` hợp lệ và có giá trị `Integer.MIN_VALUE`.
-- Literal `2147483648` **đứng riêng** là lỗi biên dịch; không thể gán nó vào `long` rồi kỳ vọng Java tự xử lý vì literal không có hậu tố `L`.
-- Nếu cần số dương 2.147.483.648, viết `2147483648L` để đó là literal `long`.
+- The decimal literal `2147483648` is **permitted specifically in the context of being the operand of the unary minus operator**.
+- Therefore, the expression `-2147483648` is valid and has the value `Integer.MIN_VALUE`.
+- The literal `2147483648` **standing alone** is a compile error; you cannot assign it to `long` expecting Java to handle it automatically because the literal lacks the `L` suffix.
+- If you need positive 2,147,483,648, write `2147483648L` so that it is a `long` literal.
 
-Ví dụ hợp lệ:
+Valid example:
 
 ~~~java
 int min = -2147483648;
@@ -87,26 +87,26 @@ long aboveIntMax = 2147483648L;
 int viaConstant = Integer.MIN_VALUE;
 ~~~
 
-Ví dụ sau **cố ý không biên dịch**; chỉ minh họa lỗi và **không** nên đặt vào chương trình chạy:
+The following example **intentionally does not compile**; it only illustrates the error and should **not** be put in a runnable program:
 
 ~~~java
-int invalid = 2147483648; // literal decimal int ngoài phạm vi ở ngữ cảnh này
-long alsoInvalid = 2147483648; // thiếu hậu tố L cho literal
+int invalid = 2147483648; // decimal int literal out of range in this context
+long alsoInvalid = 2147483648; // missing L suffix for literal
 ~~~
 
-Quy tắc tương tự áp dụng cho `long` ở biên âm:
+The same rule applies to `long` at its negative boundary:
 
-- `long min = -9223372036854775808L;` **hợp lệ**, bằng `Long.MIN_VALUE`.
-- Literal thập phân `9223372036854775808L` chỉ được dùng trong ngữ cảnh toán hạng của toán tử âm một ngôi; đứng riêng là lỗi.
-- `long beyond = 9223372036854775808L;` **không hợp lệ**. Nếu cần số nguyên dương lớn hơn `Long.MAX_VALUE`, dùng `BigInteger`.
+- `long min = -9223372036854775808L;` is **valid**, equal to `Long.MIN_VALUE`.
+- The decimal literal `9223372036854775808L` may only be used as the operand of the unary minus operator; standing alone is an error.
+- `long beyond = 9223372036854775808L;` is **invalid**. If you need a positive integer larger than `Long.MAX_VALUE`, use `BigInteger`.
 
-Một chi tiết cần nhớ: phép **âm một ngôi không tự tạo ra kiểu rộng hơn**. `int value = -2147483648;` hợp lệ theo quy tắc ranh giới trên; nhưng phủ định `Integer.MIN_VALUE` **khi đang chạy** là một phép toán `int` thông thường và có thể tràn số. Hai tình huống cần phân biệt rõ.
+One detail to remember: **unary minus does not automatically produce a wider type**. `int value = -2147483648;` is valid under the boundary rule above; however, negating `Integer.MIN_VALUE` **at runtime** is a normal `int` operation and can overflow. Distinguish these two situations clearly.
 
-## 4. Literal ở các cơ số khác có quy tắc bit riêng
+## 4. Literals in Other Bases Have Their Own Bit Rules
 
-Các literal nguyên **nhị phân, bát phân và thập lục phân** có thể mô tả mẫu bit có bit cao nhất bằng 1. Khi được dùng với kiểu `int` hoặc `long`, mẫu bit đó được hiểu theo cách biểu diễn bù hai (*two's complement*) của Java; do vậy một literal viết **không có dấu âm ở trước** vẫn có thể mang giá trị số nguyên âm.
+**Binary, octal, and hexadecimal** integer literals can describe bit patterns whose highest bit is 1. When used with `int` or `long`, that bit pattern is interpreted according to Java's *two's complement* representation; thus, a literal written **with no leading minus sign** can still hold a negative integer value.
 
-Ví dụ:
+Example:
 
 ~~~java
 int hexMin = 0x8000_0000;    // Integer.MIN_VALUE
@@ -114,15 +114,15 @@ int allBits = 0xFFFF_FFFF;   // -1
 long longMin = 0x8000_0000_0000_0000L; // Long.MIN_VALUE
 ~~~
 
-Đây là **đoạn minh họa**. Không nên kết luận từ việc nhìn thấy chữ số `8` hoặc `F` rằng literal phải là “số dương”, hay từ việc không có `-` rằng giá trị runtime chắc chắn không âm.
+This is an **illustrative snippet**. Do not conclude from seeing the digit `8` or `F` that a literal must be a "positive number," or from the absence of `-` that the runtime value is guaranteed to be non-negative.
 
-Đặc biệt, `-0x80000000` vẫn cho `Integer.MIN_VALUE` do phép âm trên giá trị `int` nhỏ nhất tràn theo quy tắc số nguyên cố định, **không** tạo thành số dương 2.147.483.648. Nếu cần giá trị dương đó, viết `0x8000_0000L` hoặc `2147483648L`.
+In particular, `-0x80000000` still gives `Integer.MIN_VALUE` because negating the smallest `int` value overflows according to fixed-width integer arithmetic, and does **not** produce positive 2,147,483,648. If you need that positive value, write `0x8000_0000L` or `2147483648L`.
 
-Tóm lại, phải tách **hình thức viết literal**, **kiểu của literal**, **mẫu bit**, và **toán tử áp dụng lên nó**. Cách biểu diễn bit không làm `-` trở thành một phần của token literal.
+In short, separate **how the literal is written**, **the literal's type**, **the bit pattern**, and **the operator applied to it**. Bit representation does not make `-` part of the literal token.
 
-## 5. Ví dụ Java 17+ chạy độc lập: literal và toán tử dấu âm
+## 5. Standalone Runnable Java 17+ Example: Literals and the Minus Operator
 
-Tạo tệp `MinusLiteralDemo.java`:
+Create the file `MinusLiteralDemo.java`:
 
 ~~~java
 public class MinusLiteralDemo {
@@ -151,14 +151,14 @@ public class MinusLiteralDemo {
 }
 ~~~
 
-Biên dịch/chạy với JDK 17 hoặc mới hơn:
+Compile/run with JDK 17 or newer:
 
 ~~~bash
 javac MinusLiteralDemo.java
 java MinusLiteralDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 positive=42
@@ -171,30 +171,30 @@ hexBits=-2147483648
 parseText=-42
 ~~~
 
-Hai loại “dấu trừ” cũng xuất hiện ở các **ngữ cảnh khác nhau**: trong mã `-42` là toán tử một ngôi; trong chuỗi ký tự `"-42"`, dấu `-` chỉ là ký tự dữ liệu cho đến khi `Integer.parseInt` đọc chuỗi và diễn giải nó theo cú pháp số có dấu. Quy tắc tách token Java không áp dụng trực tiếp cho các ký tự bên trong chuỗi.
+Two kinds of "minus signs" also appear in **different contexts**: in code, `-42` is a unary operator; in the string `"-42"`, `-` is merely character data until `Integer.parseInt` reads the string and interprets it according to signed-number syntax. Java's tokenization rules do not apply directly to characters inside a string.
 
-## 6. Âm một ngôi có thể làm thay đổi kiểu biểu thức
+## 6. Unary Minus Can Change an Expression's Type
 
-Trong Java, toán tử âm một ngôi thực hiện **unary numeric promotion**:
+In Java, the unary minus operator performs **unary numeric promotion**:
 
-- Với `byte`, `short` và `char`, toán hạng được nâng lên `int`; kết quả của `-operand` có kiểu `int`.
-- Với `int`, kết quả vẫn có kiểu `int`.
-- Với `long`, `float`, `double`, kết quả có cùng kiểu tương ứng sau quy tắc promotion.
+- For `byte`, `short`, and `char`, the operand is promoted to `int`; the result of `-operand` has type `int`.
+- For `int`, the result remains type `int`.
+- For `long`, `float`, and `double`, the result retains the respective type after promotion rules.
 
-Vì vậy, ví dụ sau **không biên dịch** do gán một kết quả `int` về biến `byte` khi dùng biến thông thường:
+Therefore, the following example **does not compile** because it assigns an `int` result to a `byte` variable when using an ordinary variable:
 
 ~~~java
 byte count = 7;
-byte invalid = -count; // lỗi: biểu thức -count có kiểu int
+byte invalid = -count; // error: expression -count has type int
 ~~~
 
-Nếu `count` là biến mutable trong ví dụ, dù giá trị là 7 vẫn phải ép kiểu rõ ràng: `byte negated = (byte) -count;`. Còn `byte literalValue = -7;` **hợp lệ** vì `-7` là *constant expression* kiểu `int` có giá trị nằm trong phạm vi `byte`, được cho phép bởi quy tắc thu hẹp hằng số tại phép gán. Đây là khác biệt giữa **giá trị hằng khi biên dịch** và **phép toán trên biến khi chạy**.
+If `count` is a mutable variable in the example, even when its value is 7 you still must cast explicitly: `byte negated = (byte) -count;`. Meanwhile, `byte literalValue = -7;` **is valid** because `-7` is a *constant expression* of type `int` whose value fits in `byte`, permitted by constant narrowing conversion upon assignment. This is the difference between a **compile-time constant value** and a **runtime operation on a variable**.
 
-`char` không dấu 16 bit nhưng `-letter` không biến thành “`char` âm”: nó có kiểu `int` và có thể nhận giá trị âm nếu mã của `letter` dương. Điều này phản ánh quy tắc promotion, không đổi bản chất của kiểu `char`.
+`char` is 16-bit unsigned, yet `-letter` does not become a "negative `char`": it has type `int` and can take a negative value if `letter`'s code is positive. This reflects promotion rules, without changing the nature of `char`.
 
-### Ví dụ Java 17+ chạy độc lập: promotion và phép trừ
+### Standalone Runnable Java 17+ Example: Promotion and Subtraction
 
-Tạo tệp `UnaryMinusPromotionDemo.java`:
+Create the file `UnaryMinusPromotionDemo.java`:
 
 ~~~java
 public class UnaryMinusPromotionDemo {
@@ -221,7 +221,7 @@ javac UnaryMinusPromotionDemo.java
 java UnaryMinusPromotionDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 negativeByte=-7
@@ -232,30 +232,30 @@ negativeGroup=-5
 signedResult=-12
 ~~~
 
-Trong câu lệnh có `10 - -3`, dấu trừ thứ nhất là toán tử hai ngôi, dấu trừ thứ hai là toán tử một ngôi. Dấu cách/ngoặc làm ý định sáng rõ: tránh ghép các dấu `-` mơ hồ thành toán tử tăng/giảm như `--` trong các trường hợp khác.
+In the statement with `10 - -3`, the first minus sign is the binary operator, and the second minus sign is the unary operator. Spaces/parentheses make the intent clear: avoid merging adjacent `-` signs ambiguously into increment/decrement operators like `--` in other situations.
 
-## 7. Phủ định giá trị nhỏ nhất: tràn số là rủi ro thật
+## 7. Negating the Minimum Value: Overflow Is a Real Risk
 
-Kiểu `int` không đối xứng quanh 0: phía âm có **thêm một giá trị** (`Integer.MIN_VALUE = -2147483648`). Giá trị dương `2147483648` **không nằm trong miền `int`**. Bởi vậy:
+`int` is asymmetric around 0: the negative side has **one extra value** (`Integer.MIN_VALUE = -2147483648`). The positive value `2147483648` **is not within the `int` range**. Hence:
 
 ~~~java
 int min = Integer.MIN_VALUE;
-int stillMin = -min; // tràn int: kết quả vẫn là Integer.MIN_VALUE
+int stillMin = -min; // int overflow: result is still Integer.MIN_VALUE
 ~~~
 
-Ví dụ là đoạn minh họa. Phép âm số nguyên primitive **không tự ném exception** khi overflow. Kết quả `-Integer.MIN_VALUE` vẫn là `Integer.MIN_VALUE` do số học bù hai với độ rộng cố định. Tương tự, `-Long.MIN_VALUE` vẫn là `Long.MIN_VALUE`.
+This example is an illustrative snippet. Primitive integer negation **does not automatically throw an exception** on overflow. `-Integer.MIN_VALUE` still equals `Integer.MIN_VALUE` due to fixed-width two's complement arithmetic. Similarly, `-Long.MIN_VALUE` still equals `Long.MIN_VALUE`.
 
-Có ba cách xử lý tùy bài toán:
+There are three ways to handle this depending on the problem:
 
-1. **Cần phát hiện tràn:** gọi `Math.negateExact(int)` hoặc `Math.negateExact(long)`; sẽ ném `ArithmeticException` với giá trị nhỏ nhất.
-2. **Cần giá trị đối chính xác rộng hơn `int`:** chuyển sang `long` **trước** khi đổi dấu, ví dụ `-(long) Integer.MIN_VALUE` có giá trị `2147483648L`.
-3. **Cần giá trị đối chính xác rộng hơn `long`:** dùng `BigInteger.valueOf(Long.MIN_VALUE).negate()`, kết quả vượt miền `long`.
+1. **Need to detect overflow:** call `Math.negateExact(int)` or `Math.negateExact(long)`; it throws `ArithmeticException` on the minimum value.
+2. **Need an exact negated value wider than `int`:** convert to `long` **before** negating, e.g., `-(long) Integer.MIN_VALUE` has value `2147483648L`.
+3. **Need an exact negated value wider than `long`:** use `BigInteger.valueOf(Long.MIN_VALUE).negate()`, whose result exceeds the `long` range.
 
-Dù viết `long after = -Integer.MIN_VALUE;`, phép âm vẫn có kiểu `int` và **đã tràn trước khi gán sang long**. Phải viết `long before = -(long) Integer.MIN_VALUE;`. Cũng cần cẩn thận với `Math.abs(Integer.MIN_VALUE)`: kết quả vẫn âm theo hợp đồng API; không coi `abs` là cách luôn chuyển thành số dương được.
+Even if you write `long after = -Integer.MIN_VALUE;`, the negation is still computed in `int` and **overflows before widening to long**. You must write `long before = -(long) Integer.MIN_VALUE;`. Also be careful with `Math.abs(Integer.MIN_VALUE)`: the result remains negative per the API contract; do not treat `abs` as a method that always produces a positive number.
 
-### Ví dụ Java 17+ chạy độc lập: xử lý tràn
+### Standalone Runnable Java 17+ Example: Handling Overflow
 
-Tạo tệp `NegationOverflowDemo.java`:
+Create the file `NegationOverflowDemo.java`:
 
 ~~~java
 import java.math.BigInteger;
@@ -286,7 +286,7 @@ javac NegationOverflowDemo.java
 java NegationOverflowDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 wrapped=-2147483648
@@ -297,19 +297,19 @@ negateExact=overflow
 bigInteger=9223372036854775808
 ~~~
 
-Mấu chốt nằm ở **kiểu của toán hạng tại thời điểm thực hiện toán tử âm**. Mở rộng kiểu sau khi kết quả đã tràn không sửa được phép toán trước đó.
+The crux lies in **the operand's type at the moment the negation operator executes**. Widening the type after the result has already overflowed cannot fix the earlier operation.
 
-## 8. Dấu âm với số thực và số 0 âm
+## 8. Minus Sign with Floating-Point Numbers and Negative Zero
 
-Với `float` và `double`, phép âm một ngôi hoạt động theo ngữ nghĩa dấu phẩy động IEEE 754 mà Java hỗ trợ. Ví dụ `-1.25` là toán tử âm áp dụng lên literal `double` `1.25`; `-1.25f` áp dụng lên literal `float` `1.25f`. `-1.25e2` cho `-125.0`.
+For `float` and `double`, unary minus works according to the IEEE 754 floating-point semantics supported by Java. For instance, `-1.25` is unary minus applied to the `double` literal `1.25`; `-1.25f` applies to the `float` literal `1.25f`. `-1.25e2` yields `-125.0`.
 
-Một điều dễ bỏ qua: **floating-point có cả `+0.0` và `-0.0`**, trong khi kiểu số nguyên `int`/`long` chỉ có một giá trị 0. Vì vậy:
+One easily missed detail: **floating-point has both `+0.0` and `-0.0`**, whereas integer types `int`/`long` have only one zero value. Therefore:
 
-- `0.0 == -0.0` là `true` theo phép so sánh số học.
-- `1.0 / 0.0` cho `Infinity`, nhưng `1.0 / -0.0` cho `-Infinity`.
-- `-Double.NaN` vẫn là `NaN`; không xem NaN là số có thể so sánh bằng phép `==` thông thường.
+- `0.0 == -0.0` is `true` under numeric comparison.
+- `1.0 / 0.0` yields `Infinity`, while `1.0 / -0.0` yields `-Infinity`.
+- `-Double.NaN` is still `NaN`; do not treat NaN as a number comparable with ordinary `==`.
 
-Ví dụ Java 17+ độc lập, tạo tệp `FloatingMinusDemo.java`:
+Standalone Java 17+ example; create the file `FloatingMinusDemo.java`:
 
 ~~~java
 public class FloatingMinusDemo {
@@ -331,7 +331,7 @@ javac FloatingMinusDemo.java
 java FloatingMinusDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 negativeValue=-125.0
@@ -342,11 +342,11 @@ negatedNaN=true
 integerZero=0
 ~~~
 
-Đây là ví dụ cho thấy một dấu `-` đứng trước literal có thể ảnh hưởng tới biểu diễn giá trị và phép toán phía sau. Đừng suy luận rằng “phủ định số 0 luôn không để lại khác biệt” trong tính toán floating-point.
+This example shows that a `-` sign before a literal can affect the stored representation and subsequent operations. Do not assume "negating zero always makes no difference" in floating-point math.
 
-## 9. Khi dùng `BigInteger` và `BigDecimal`
+## 9. When Using `BigInteger` and `BigDecimal`
 
-Toán tử `-` một ngôi **không áp dụng trực tiếp cho đối tượng** `BigInteger` hoặc `BigDecimal`. Các lớp này cung cấp phương thức `negate()` và `abs()`.
+The unary `-` operator **does not apply directly to** `BigInteger` or `BigDecimal` objects. These classes provide `negate()` and `abs()` methods.
 
 ~~~java
 import java.math.BigDecimal;
@@ -368,38 +368,38 @@ javac BigNumberNegationDemo.java
 java BigNumberNegationDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 count=-9223372036854775808
 money=-19.90
 ~~~
 
-Dấu `-` trong chuỗi đầu vào (ví dụ `new BigDecimal("-19.90")`) là **nội dung văn bản được parser của lớp số giải thích**, khác với toán tử `-` của ngôn ngữ Java đứng ngoài biểu thức. `BigInteger.negate()` cho số đối chính xác trong giới hạn tài nguyên; `BigDecimal.negate()` giữ ngữ nghĩa số thập phân, gồm cả scale thích hợp của giá trị gốc.
+The `-` sign inside an input string (e.g., `new BigDecimal("-19.90")`) is **text content interpreted by the numeric class's parser**, unlike Java's `-` operator outside an expression. `BigInteger.negate()` produces the exact negated value within resource limits; `BigDecimal.negate()` preserves decimal semantics, including the original value's appropriate scale.
 
-## 10. Các lỗi nhầm thường gặp
+## 10. Common Misconceptions
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 |---|---|
-| “`-42` là một token literal duy nhất.” | `-` là unary operator; `42` là decimal integer literal. |
-| “Không có `-` thì literal luôn là số dương.” | Literal nhị phân/bát phân/hex có mẫu bit cao bằng 1 có thể biểu diễn giá trị âm, ví dụ `0xFFFF_FFFF` là `-1` với `int`. |
-| “`2147483648` không bao giờ xuất hiện trong source Java hợp lệ.” | Nó được dùng **đặc biệt** làm toán hạng cho unary minus trong `-2147483648`. |
-| “Gán `-Integer.MIN_VALUE` vào `long` là an toàn.” | Phép âm tính ở `int` trước rồi mới mở rộng; cần cast `(long)` trước phép âm. |
-| “`-byteValue` vẫn là `byte`.” | Unary numeric promotion tạo ra `int` với `byte`, `short`, `char`. |
-| “`-0` và `-0.0` luôn như nhau.” | Số nguyên có một số 0; floating-point có hai giá trị 0 mang dấu khác nhau. |
-| “Có thể dùng `-bigInteger`.” | Dùng `bigInteger.negate()`; toán tử một ngôi chỉ áp dụng trực tiếp cho kiểu số nguyên thủy. |
-| “Mã text `"-42"` chứa toán tử unary minus.” | Trong chuỗi chỉ có ký tự; phép parse số là bước riêng. |
+| "`-42` is a single literal token." | `-` is the unary operator; `42` is the decimal integer literal. |
+| "Without `-`, a literal is always a positive number." | Binary/octal/hex literals with the high bit set to 1 can represent negative values, e.g., `0xFFFF_FFFF` is `-1` as `int`. |
+| "`2147483648` can never appear in valid Java source." | It is allowed **specifically** as the operand of unary minus in `-2147483648`. |
+| "Assigning `-Integer.MIN_VALUE` to `long` is safe." | Negation runs in `int` first and then widens; you must cast `(long)` before negating. |
+| "`-byteValue` is still a `byte`." | Unary numeric promotion produces `int` for `byte`, `short`, and `char`. |
+| "`-0` and `-0.0` are always the same." | Integers have one zero; floating-point has two zero values with opposite signs. |
+| "You can use `-bigInteger`." | Use `bigInteger.negate()`; unary operators apply directly only to primitive numeric types. |
+| "The text `"-42"` contains a unary minus operator." | Inside a string it is only a character; number parsing is a separate step. |
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-1. Trong `int a = -15;`, token literal là `-15` hay `15`? Ký hiệu `-` đóng vai trò gì?
-2. Vì sao `int min = -2147483648;` hợp lệ, nhưng `int invalid = 2147483648;` không hợp lệ?
-3. `0xFFFF_FFFF` là literal không có ký hiệu `-`; tại sao giá trị `int` của nó lại là `-1`?
-4. Kiểu của `-small` là gì khi `small` được khai báo `byte`?
-5. Vì sao `long x = -Integer.MIN_VALUE;` vẫn cho số âm, trong khi `long y = -(long) Integer.MIN_VALUE;` cho số dương?
-6. Tại sao `0.0 == -0.0` là `true` mà phép chia `1.0 / 0.0` khác `1.0 / -0.0`?
-7. Khi cần phủ định một số vượt miền `long`, nên chọn phương thức nào của `BigInteger`?
+1. In `int a = -15;`, is the literal token `-15` or `15`? What role does the `-` symbol play?
+2. Why is `int min = -2147483648;` valid, whereas `int invalid = 2147483648;` is invalid?
+3. `0xFFFF_FFFF` is a literal without a `-` symbol; why is its `int` value `-1`?
+4. What is the type of `-small` when `small` is declared as `byte`?
+5. Why does `long x = -Integer.MIN_VALUE;` still yield a negative number, while `long y = -(long) Integer.MIN_VALUE;` yields a positive number?
+6. Why is `0.0 == -0.0` `true` while `1.0 / 0.0` differs from `1.0 / -0.0`?
+7. When you need to negate a number beyond the `long` range, which `BigInteger` method should you choose?
 
-**Gợi ý đáp án:** (1) `15` là literal; `-` là unary minus. (2) Java có ngoại lệ cú pháp cho literal thập phân 2.147.483.648 làm toán hạng của unary minus. (3) Mẫu bit 32 bit toàn 1 tương ứng −1 trong biểu diễn số nguyên bù hai. (4) `int`. (5) Phép âm `int` tràn trước khi mở rộng; phải chuyển sang `long` trước. (6) `double` giữ dấu của zero, ảnh hưởng tới chia cho zero. (7) `BigInteger.negate()`.
+**Answer hints:** (1) `15` is the literal; `-` is unary minus. (2) Java has a syntax exception for the decimal literal 2,147,483,648 as the operand of unary minus. (3) A 32-bit all-ones pattern corresponds to −1 in two's complement integer representation. (4) `int`. (5) `int` negation overflows before widening; must convert to `long` first. (6) `double` preserves the sign of zero, affecting division by zero. (7) `BigInteger.negate()`.
 
-**Ghi nhớ:** Trong mã Java, **dấu âm là toán tử của biểu thức, không phải một phần của literal số**. Nắm rõ điều này giúp hiểu thứ tự đánh giá biểu thức, ngữ nghĩa kiểu số, quy tắc ranh giới `Integer.MIN_VALUE`/`Long.MIN_VALUE` và tràn số khi phủ định.
+**Remember:** In Java code, **the minus sign is an expression operator, not part of a numeric literal**. Understanding this clarifies expression evaluation order, numeric type semantics, `Integer.MIN_VALUE`/`Long.MIN_VALUE` boundary rules, and overflow during negation.

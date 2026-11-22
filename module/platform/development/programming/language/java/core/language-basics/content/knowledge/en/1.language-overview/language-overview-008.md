@@ -1,70 +1,70 @@
-# Lộ trình học Java core và chương trình ví dụ xuyên suốt
+# Core Java Learning Roadmap and an End-to-End Example Program
 
-Học Java dễ bị rời rạc nếu hôm nay viết một phép cộng, ngày mai học `if`, hôm sau học vòng lặp mà không thấy chúng phối hợp giải quyết vấn đề như thế nào. Một lộ trình hiệu quả nên có **đích đến cụ thể**: sau mỗi phần kiến thức, bạn bổ sung được một khả năng vào **cùng một chương trình**, tự chạy và đối chiếu kết quả.
+Learning Java easily feels fragmented if today you write an addition, tomorrow you learn `if`, and the next day you learn loops without seeing how they work together to solve a problem. An effective roadmap should have a **concrete destination**: after each topic, you add a capability to the **same program**, run it yourself, and verify the output.
 
-Bài này đề xuất các chặng học nền tảng của Java core và một ví dụ xuyên suốt: **theo dõi số phút tự học mỗi ngày**. Chương trình nhận mục tiêu phút/ngày cùng thời lượng thực tế của nhiều ngày, tính tổng, trung bình và số ngày đạt mục tiêu. Đây là bài thực hành dòng lệnh, không cần framework, cơ sở dữ liệu hay kiến thức lập trình hướng đối tượng nâng cao.
+This lesson proposes foundational milestones for learning core Java alongside a running example: **tracking daily self-study minutes**. The program takes a daily minute goal together with actual durations for multiple days, then calculates the total, the average, and the number of days meeting the goal. This is a command-line practice project requiring no frameworks, databases, or advanced object-oriented programming knowledge.
 
-## 1. Học theo khả năng làm được, không chỉ theo số bài đã đọc
+## 1. Learn by Capabilities, Not Just by Lessons Read
 
-| Chặng | Kiến thức cần nắm | Khả năng kiểm chứng | Phần bổ sung vào ví dụ |
+| Milestone | Knowledge to master | Verifiable capability | Addition to the example |
 | --- | --- | --- | --- |
-| 1. Chạy một chương trình | JDK, tệp `.java`, `main`, `javac`, `java`, `println` | Biên dịch và in được thông điệp | In tiêu đề “Theo dõi tự học” |
-| 2. Biểu diễn dữ liệu | `int`, `long`, `double`, `boolean`, `String`, biến và toán tử | Giải thích đúng kiểu và đơn vị của mỗi biến | Lưu mục tiêu, số phút, tính tổng và trung bình |
-| 3. Ra quyết định | So sánh, `if`, `else`, `&&`, `||` | Dự đoán nhánh chạy ở giá trị biên | Quyết định ngày nào đạt mục tiêu |
-| 4. Xử lý nhiều giá trị | `for`, mảng, chỉ số, `args` | Duyệt đúng từng phần tử, không lệch chỉ số | Tổng hợp nhiều ngày thay vì một ngày |
-| 5. Tổ chức mã | Phương thức, tham số, kiểu trả về, phạm vi biến | Tách được xử lý khỏi phần nhập/xuất | Viết phương thức kiểm tra số phút hợp lệ |
-| 6. Xử lý đầu vào và kiểm tra | `parseInt`, ngoại lệ, test thường và test biên | Phân biệt lỗi biên dịch, lỗi dữ liệu và lỗi logic | Từ chối số âm, chuỗi không phải số, thiếu ngày |
+| 1. Run a program | JDK, `.java` file, `main`, `javac`, `java`, `println` | Compile and print a message | Print the heading “Study Tracker” |
+| 2. Represent data | `int`, `long`, `double`, `boolean`, `String`, variables and operators | Explain the right type and unit for each variable | Store goal, minutes, compute total and average |
+| 3. Make decisions | Comparisons, `if`, `else`, `&&`, `||` | Predict which branch runs at boundary values | Decide which day met the goal |
+| 4. Process multiple values | `for`, arrays, indices, `args` | Iterate accurately over each element with no off-by-one error | Aggregate multiple days instead of one day |
+| 5. Organize code | Methods, parameters, return types, variable scope | Separate processing from input/output | Write a method to validate minutes |
+| 6. Handle input and testing | `parseInt`, exceptions, normal and boundary tests | Distinguish compile errors, data errors, and logic errors | Reject negative numbers, non-numeric strings, missing days |
 
-Đây là **trình tự gợi ý**, không phải số ngày bắt buộc phải hoàn thành. Chỉ chuyển sang chặng kế khi bạn có thể tự giải thích vì sao chương trình cho kết quả hiện tại và tự sửa một lỗi nhỏ mà không phải chép lại toàn bộ lời giải.
+This is a **suggested sequence**, not a mandatory number of days to finish. Move on to the next milestone only when you can explain why the program produces its current output and fix a small bug yourself without copying the entire solution.
 
-Không cần học generics, luồng, mạng hay framework để chạy được ví dụ đầu tiên. Những chủ đề đó có thể học khi bài toán xuất hiện nhu cầu thực sự.
+You do not need to learn generics, streams, networking, or frameworks to run your first example. Those topics can be learned when a problem creates a genuine need for them.
 
-## 2. Xác định yêu cầu trước khi lập trình
+## 2. Define Requirements Before Programming
 
-Giả sử bạn muốn xem mình có học đủ **60 phút mỗi ngày** trong bốn ngày gần đây không.
+Suppose you want to see whether you studied at least **60 minutes per day** over the last four days.
 
-Đầu vào mẫu:
+Sample input:
 
-- Mục tiêu: `60` phút/ngày.
-- Thời gian thực tế lần lượt: `45`, `60`, `20`, `80` phút.
+- Goal: `60` minutes/day.
+- Actual durations in order: `45`, `60`, `20`, `80` minutes.
 
-Yêu cầu đầu ra:
+Output requirements:
 
-| Giá trị | Kết quả tính tay |
+| Value | Hand-calculated result |
 | --- | ---: |
-| Số ngày | 4 |
-| Tổng phút | 45 + 60 + 20 + 80 = 205 |
-| Số ngày đạt mục tiêu | 2 (ngày 2 và ngày 4) |
-| Trung bình mỗi ngày | 205 / 4 = 51,25 phút |
+| Number of days | 4 |
+| Total minutes | 45 + 60 + 20 + 80 = 205 |
+| Days meeting goal | 2 (day 2 and day 4) |
+| Daily average | 205 / 4 = 51.25 minutes |
 
-**Quy ước của chương trình:**
+**Program conventions:**
 
-- Mục tiêu phải là số nguyên **lớn hơn 0**.
-- Số phút của từng ngày là số nguyên **không âm**; ngày 0 phút vẫn được tính là một ngày.
-- Phải có ít nhất một ngày để tránh chia cho 0.
-- Ngày có thời gian **bằng** mục tiêu được tính là đạt (`>=`).
-- Mỗi đối số dòng lệnh phải biểu diễn một số nguyên trong miền `int`; giá trị `10.5` không hợp lệ ở phiên bản này.
-- Trung bình có thể có phần thập phân. Chương trình in tới hai chữ số sau dấu thập phân, **không làm tròn số phút đầu vào**.
+- The goal must be an integer **greater than 0**.
+- Each day's minutes must be a **non-negative** integer; a 0-minute day still counts as one day.
+- There must be at least one day to avoid division by 0.
+- A day whose duration **equals** the goal counts as meeting it (`>=`).
+- Each command-line argument must represent an integer in the `int` range; a value like `10.5` is invalid in this version.
+- The average may have a fractional part. The program prints up to two digits after the decimal point, **without rounding the input minutes**.
 
-Việc nêu các quy ước trước khi code quan trọng hơn việc chọn ngay vòng lặp nào: chương trình phải đúng yêu cầu đã xác định.
+Stating conventions before coding matters more than immediately picking which loop to use: the program must match the defined requirements.
 
-## 3. Chuyển yêu cầu thành các bước xử lý
+## 3. Turning Requirements into Processing Steps
 
-Viết thuật toán bằng lời:
+Write the algorithm in words:
 
-1. Đọc đối số đầu tiên làm mục tiêu; những đối số tiếp theo là số phút của từng ngày.
-2. Nếu thiếu mục tiêu hoặc thiếu toàn bộ dữ liệu ngày, in hướng dẫn sử dụng.
-3. Chuyển văn bản thành số nguyên và từ chối dữ liệu không hợp lệ.
-4. Đặt `total` (tổng phút) và `daysMet` (số ngày đạt) bằng 0.
-5. Duyệt từng ngày: cộng phút vào tổng; nếu phút `>=` mục tiêu thì tăng `daysMet`.
-6. Lấy tổng chia số ngày theo phép chia chấm động để tính trung bình.
-7. In mục tiêu, số ngày, tổng, số ngày đạt và trung bình.
+1. Read the first argument as the goal; subsequent arguments are the minutes for each day.
+2. If the goal is missing or all day data is missing, print usage instructions.
+3. Convert text into integers and reject invalid data.
+4. Set `total` (total minutes) and `daysMet` (days meeting goal) to 0.
+5. Loop through each day: add minutes to total; if minutes `>=` goal, increment `daysMet`.
+6. Divide total by the number of days using floating-point division to compute the average.
+7. Print the goal, number of days, total, days meeting the goal, and average.
 
-Điểm dễ nhầm là **mục tiêu không phải một ngày**. Khi xử lý mảng đối số, phần tử `args[0]` là mục tiêu, còn các ngày bắt đầu từ `args[1]`. Nếu vô tình tính cả `args[0]` như một ngày, toàn bộ thống kê sẽ sai dù chương trình vẫn biên dịch được.
+An easy mistake to make is forgetting that **the goal is not a day**. When processing the arguments array, element `args[0]` is the goal, while the days start at `args[1]`. If you accidentally count `args[0]` as a day as well, all statistics will be wrong even though the program still compiles.
 
-## 4. Chương trình Java hoàn chỉnh
+## 4. Complete Java Program
 
-Tạo một tệp tên **`StudyTracker.java`** với nội dung sau (phù hợp JDK 17 trở lên):
+Create a file named **`StudyTracker.java`** with the following content (compatible with JDK 17 and later):
 
 ~~~java
 import java.util.Locale;
@@ -129,39 +129,39 @@ public class StudyTracker {
 }
 ~~~
 
-### Giải thích theo từng chặng
+### Explanation Milestone by Milestone
 
-**Biến và kiểu:** `goal`, `minutes`, `daysMet` là `int`; `total` là `long` để tổng nhiều ngày có miền giá trị rộng hơn mỗi số phút riêng lẻ; `average` là `double` vì trung bình có thể không nguyên. Những tên này biểu thị ý nghĩa dữ liệu thay vì chỉ là `a`, `b`, `c`.
+**Variables and types:** `goal`, `minutes`, and `daysMet` are `int`; `total` is `long` so summing many days has a wider range than an individual day's minutes; `average` is `double` because the average may not be a whole number. These names indicate the meaning of the data rather than just `a`, `b`, `c`.
 
-**Điều kiện:** `if (minutes >= goal)` kiểm tra từng ngày. Ký hiệu `>=` gồm cả trường hợp bằng nhau, nên 60 phút đạt mục tiêu 60 phút.
+**Conditions:** `if (minutes >= goal)` checks each day. The `>=` operator includes equality, so 60 minutes meets a 60-minute goal.
 
-**Vòng lặp và mảng:** `args` là `String[]`. Vòng `for` bắt đầu ở chỉ số 1, chạy khi `i < args.length`, và tăng `i` sau mỗi lượt. Java đánh chỉ số mảng từ 0.
+**Loops and arrays:** `args` is a `String[]`. The `for` loop starts at index 1, runs while `i < args.length`, and increments `i` after each iteration. Java indexes arrays starting from 0.
 
-**Phương thức:** `parseMinutes(String raw)` nhận chuỗi đầu vào, chuyển thành `int` và từ chối số âm. Việc đặt tên phương thức làm quy tắc kiểm tra có thể dùng lại cho mục tiêu và cho từng ngày.
+**Methods:** `parseMinutes(String raw)` takes an input string, parses it to `int`, and rejects negative numbers. Giving the validation rule a method name lets it be reused for both the goal and each day.
 
-**Ngoại lệ:** `Integer.parseInt` có thể ném `NumberFormatException` nếu chuỗi không đúng định dạng hoặc ngoài miền `int`. Đây là một lớp con của `IllegalArgumentException`, nên chương trình bắt `NumberFormatException` trước để có thông báo cụ thể.
+**Exceptions:** `Integer.parseInt` can throw `NumberFormatException` if the string is malformed or outside the `int` range. This is a subclass of `IllegalArgumentException`, so the program catches `NumberFormatException` first to give a specific message.
 
-**Phép chia:** `(double) total / days` yêu cầu phép chia chấm động. Nếu viết `total / days`, phép chia số nguyên sẽ bỏ phần lẻ **trước khi** gán vào biến `double`.
+**Division:** `(double) total / days` forces floating-point division. If you wrote `total / days`, integer division would discard the fractional part **before** assigning to the `double` variable.
 
-**Giới hạn:** Đây là ứng dụng nhỏ cho một lần chạy. Nó không lưu lịch sử vào tệp, không đọc thời gian hệ thống và không xác định xem người dùng đã thực sự học hay chưa; các số phút do người dùng cung cấp.
+**Limitations:** This is a small single-run application. It does not save history to a file, read the system clock, or verify whether the user actually studied; the minutes are provided by the user.
 
-## 5. Biên dịch, chạy và đối chiếu kết quả
+## 5. Compile, Run, and Verify the Results
 
-Mở terminal tại thư mục chứa `StudyTracker.java`. Trước hết kiểm tra công cụ:
+Open a terminal in the directory containing `StudyTracker.java`. First check the tools:
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 StudyTracker.java
 java StudyTracker 60 45 60 20 80
 ~~~
 
-Kết quả dự kiến:
+Expected output:
 
 ~~~text
 Muc tieu: 60 phut/ngay
@@ -171,51 +171,51 @@ Ngay dat muc tieu: 2
 Trung binh: 51.25 phut/ngay
 ~~~
 
-Thử truy vết bằng tay:
+Try tracing by hand:
 
-- `total` đi qua các giá trị 0 → 45 → 105 → 125 → 205.
-- `daysMet` chỉ tăng ở số phút 60 và 80, nên kết quả là 2.
+- `total` progresses through the values 0 → 45 → 105 → 125 → 205.
+- `daysMet` increments only on minutes 60 and 80, so the result is 2.
 - `days = args.length - 1 = 5 - 1 = 4`.
 - `average = 205.0 / 4 = 51.25`.
 
-Chương trình này là một ví dụ **đủ nhỏ để truy vết toàn bộ** nhưng có đủ dữ liệu, điều kiện, lặp, phương thức và xử lý lỗi để thực hành nhiều chặng học.
+This program is an example **small enough to trace completely**, yet contains data, conditions, loops, methods, and error handling to practice across multiple learning milestones.
 
-## 6. Test các trường hợp biên
+## 6. Testing Boundary Cases
 
-Không nên chỉ chạy dữ liệu mẫu. Hãy thử các trường hợp sau:
+Do not run only the sample data. Try the following cases:
 
-| Lệnh chạy | Kết quả cần kiểm tra | Kiến thức liên quan |
+| Run command | Result to check | Related concept |
 | --- | --- | --- |
-| `java StudyTracker 60 60` | Một ngày, một ngày đạt, trung bình 60.00 | Ngưỡng bằng nhau |
-| `java StudyTracker 60 0 120` | Hai ngày, một ngày đạt, trung bình 60.00 | Giá trị 0 vẫn hợp lệ |
-| `java StudyTracker 60 59` | Không ngày nào đạt | Giá trị sát dưới ngưỡng |
-| `java StudyTracker 60` | In hướng dẫn sử dụng | Thiếu dữ liệu ngày |
-| `java StudyTracker 0 20` | Báo mục tiêu phải > 0 | Kiểm tra hợp lệ |
-| `java StudyTracker -1 20` | Báo số phút không được âm | Kiểm tra đầu vào |
-| `java StudyTracker 60 20 -5` | Báo lỗi số âm | Giá trị sai ở giữa dãy |
-| `java StudyTracker 60 abc` | Báo chuỗi không phải số nguyên | Parse và ngoại lệ |
-| `java StudyTracker 60 2.5` | Báo chuỗi không phải số nguyên | Quy ước chỉ nhận số nguyên |
-| `java StudyTracker 60 2147483648` | Báo số ngoài miền `int` | Giới hạn kiểu dữ liệu |
+| `java StudyTracker 60 60` | One day, one day met, average 60.00 | Equality threshold |
+| `java StudyTracker 60 0 120` | Two days, one day met, average 60.00 | Zero value is still valid |
+| `java StudyTracker 60 59` | Zero days met | Value just below threshold |
+| `java StudyTracker 60` | Prints usage instructions | Missing day data |
+| `java StudyTracker 0 20` | Reports goal must be > 0 | Validity check |
+| `java StudyTracker -1 20` | Reports minutes cannot be negative | Input check |
+| `java StudyTracker 60 20 -5` | Reports negative-number error | Invalid value in middle of list |
+| `java StudyTracker 60 abc` | Reports string is not an integer | Parsing and exceptions |
+| `java StudyTracker 60 2.5` | Reports string is not an integer | Convention accepts integers only |
+| `java StudyTracker 60 2147483648` | Reports number outside `int` range | Data type limits |
 
-Với dữ liệu hợp lệ, số ngày đạt luôn nằm trong khoảng từ 0 tới số ngày. Tổng phút phải không âm. Đây là các **bất biến đơn giản để tự kiểm tra kết quả**.
+With valid data, the number of days met always lies between 0 and the number of days. Total minutes must be non-negative. These are simple **invariants for self-checking results**.
 
-Lưu ý: `total` là `long` nhưng về nguyên tắc vẫn có giới hạn. Với số lượng đối số khả thi của chương trình dòng lệnh thông thường, tràn `long` khó xảy ra; nếu phát triển thành công cụ xử lý dữ liệu cực lớn, cần thêm kiểm tra tràn (ví dụ `Math.addExact`) và quy tắc lưu trữ phù hợp.
+Note: `total` is a `long`, though in principle it still has a limit. With the plausible number of arguments for an ordinary command-line program, `long` overflow is unlikely; if expanded into a tool processing massive datasets, add overflow checks (such as `Math.addExact`) and suitable storage rules.
 
-## 7. Mỗi chặng học thêm một bài tập vào cùng chương trình
+## 7. Adding One Exercise per Milestone to the Same Program
 
-Không cần viết lại một ứng dụng hoàn toàn khác sau mỗi bài học. Bạn có thể dùng cùng `StudyTracker` và nâng cấp từng bước:
+You do not need to write a completely different application after each lesson. You can keep using `StudyTracker` and upgrade it step by step:
 
-| Chặng nâng cấp | Bài tập cụ thể | Dấu hiệu làm đúng |
+| Upgrade milestone | Concrete exercise | Sign of doing it right |
 | --- | --- | --- |
-| Biến và biểu thức | In số phút còn thiếu để đạt mục tiêu của từng ngày | Không báo thiếu âm cho ngày đã đạt |
-| Điều kiện | Phân loại mỗi ngày: 0 phút, dưới mục tiêu, đạt mục tiêu | Đúng các ca 0, goal−1, goal, goal+1 |
-| Vòng lặp | In số thứ tự ngày cùng số phút của ngày đó | Không đưa mục tiêu vào danh sách ngày |
-| Phương thức | Tạo `static boolean metGoal(int minutes, int goal)` | Từng kết quả giống với điều kiện cũ |
-| Mảng | Chuyển các số phút hợp lệ vào `int[]` trước khi tổng hợp | Số phần tử bằng số ngày nhập |
-| Kiểm thử | Viết một bảng input/expected output riêng | Kiểm tra cả ca thường, biên và sai |
-| Nâng cao sau nền tảng | Lưu dữ liệu bằng `List` hoặc tệp, bổ sung test tự động | Không thay đổi nghĩa thống kê gốc |
+| Variables and expressions | Print how many minutes short each day was from the goal | Does not report negative shortfall for days that met the goal |
+| Conditions | Classify each day: 0 minutes, below goal, met goal | Accurate on 0, goal−1, goal, goal+1 |
+| Loops | Print each day's index number alongside its minutes | Does not include the goal in the day list |
+| Methods | Create `static boolean metGoal(int minutes, int goal)` | Every result matches the old condition |
+| Arrays | Copy valid minutes into an `int[]` before aggregating | Element count equals number of days entered |
+| Testing | Write a separate input/expected output table | Tests normal, boundary, and invalid cases |
+| Beyond fundamentals | Store data with a `List` or file, add automated tests | Preserves original statistical meaning |
 
-Một nâng cấp nhỏ minh họa:
+One small illustrative upgrade:
 
 ~~~java
 static boolean metGoal(int minutes, int goal) {
@@ -223,56 +223,56 @@ static boolean metGoal(int minutes, int goal) {
 }
 ~~~
 
-Nếu thêm phương thức này **vào trong lớp `StudyTracker`**, bạn có thể thay điều kiện `if (minutes >= goal)` trong `main` bằng `if (metGoal(minutes, goal))`. Kết quả phải giữ nguyên. Nếu thay đổi kết quả, đó là dấu hiệu refactor đã làm lệch hành vi.
+If you add this method **inside the `StudyTracker` class**, you can replace the `if (minutes >= goal)` condition in `main` with `if (metGoal(minutes, goal))`. The results must remain identical. If the output changes, that is a sign the refactor altered behavior.
 
-Đừng làm tất cả bài tập trong một lần. Mỗi bước chỉ cần một thay đổi, biên dịch, chạy lại các trường hợp mẫu và so sánh kết quả kỳ vọng.
+Do not do all exercises at once. At each step, make just one change, compile, re-run the sample cases, and compare against expected results.
 
-## 8. Cách tự học và tự kiểm tra tiến độ
+## 8. How to Study and Self-Check Progress
 
-Dùng một vòng học nhỏ lặp lại ở mỗi chặng:
+Use a small repeating study loop at each milestone:
 
-1. **Đọc có mục đích:** nắm từ khóa, ý nghĩa và ví dụ tối thiểu.
-2. **Dự đoán trước:** viết ra đầu ra kỳ vọng trước khi chạy.
-3. **Tự gõ và chạy:** dùng `javac` và `java`, sửa lỗi dựa trên thông báo thật.
-4. **Đổi một điều kiện:** thử giá trị biên để nhìn thấy vì sao cú pháp hay kiểu dữ liệu quan trọng.
-5. **Giải thích lại:** trả lời bằng lời “vì sao dòng này ở đây?”.
-6. **Ghi lại một lỗi đã gặp:** lỗi compile, lỗi runtime hay lỗi logic và cách tìm nguyên nhân.
+1. **Read with purpose:** grasp keywords, meanings, and the minimal example.
+2. **Predict first:** write down expected output before running.
+3. **Type and run yourself:** use `javac` and `java`, fixing errors based on real messages.
+4. **Change one condition:** test boundary values to see why syntax and data types matter.
+5. **Explain it back:** answer in your own words “why is this line here?”.
+6. **Record one error you hit:** compile error, runtime error, or logic bug, and how you found the cause.
 
-Bạn có thể xem một chặng là đạt khi tự làm được **ba việc**: giải thích code, dự đoán đầu ra với đầu vào mới, và sửa một thay đổi nhỏ mà không làm mất hành vi đúng trước đó.
+You can consider a milestone achieved when you can do **three things** yourself: explain the code, predict output for new input, and make a small change without breaking previously working behavior.
 
-### Những bẫy học tập nên tránh
+### Learning Pitfalls to Avoid
 
-- **Chép mã nhưng không hiểu:** chạy ra đúng một lần không chứng minh bạn nắm các bước xử lý.
-- **Học cú pháp tách khỏi bài toán:** đọc vòng lặp xong cần lập tức dùng nó với dữ liệu cụ thể.
-- **Nâng cấp quá sớm:** không cần tạo nhiều class, database hay giao diện đồ họa để đếm phút.
-- **Bỏ qua trường hợp biên:** dấu `>=` và `>` có thể chỉ khác nhau ở một giá trị nhưng thay đổi kết quả.
-- **Nhầm “biên dịch được” với “đúng”:** `javac` kiểm tra cú pháp và kiểu, không tự hiểu thế nào là ngày “đạt mục tiêu”.
-- **Đọc thông báo lỗi như thất bại:** lỗi là bằng chứng giúp khoanh vùng điều kiện chưa đúng.
+- **Copying code without understanding:** getting the right output once does not prove you grasp the processing steps.
+- **Learning syntax detached from problems:** after reading about loops, immediately apply them to concrete data.
+- **Upgrading too early:** there is no need to create multiple classes, databases, or GUIs just to count minutes.
+- **Skipping boundary cases:** `>=` and `>` may differ by only one character yet change results.
+- **Confusing “compiles” with “correct”:** `javac` checks syntax and types; it does not automatically know what “meeting the goal” means.
+- **Treating error messages as failure:** errors are evidence that helps isolate an incorrect condition.
 
-## 9. Tự đánh giá cuối bài
+## 9. End-of-Lesson Self-Assessment
 
-Hãy trả lời mà chưa chạy lại chương trình:
+Answer before re-running the program:
 
-**1.** Với `java StudyTracker 30 10 30 40`, tổng phút, số ngày đạt và trung bình là bao nhiêu?
+**1.** With `java StudyTracker 30 10 30 40`, what are the total minutes, days met, and average?
 
-*Đáp án:* Tổng 80 phút, 2 ngày đạt, trung bình `80 / 3 ≈ 26.67` phút/ngày.
+*Answer:* Total 80 minutes, 2 days met, average `80 / 3 ≈ 26.67` minutes/day.
 
-**2.** Nếu vòng lặp bắt đầu từ `i = 0` thay vì `i = 1`, vấn đề gì xảy ra?
+**2.** If the loop started at `i = 0` instead of `i = 1`, what problem occurs?
 
-*Đáp án:* Mục tiêu bị tính nhầm thành dữ liệu của một ngày; tổng, số ngày đạt và số ngày thống kê không còn cùng ý nghĩa.
+*Answer:* The goal is mistakenly counted as data for a day; total, days met, and day count no longer keep their intended meaning.
 
-**3.** Vì sao `days` phải được tính là `args.length - 1`?
+**3.** Why must `days` be calculated as `args.length - 1`?
 
-*Đáp án:* Có một đối số dùng để mô tả mục tiêu; các đối số còn lại mới là từng ngày.
+*Answer:* One argument is used to specify the goal; the remaining arguments are the individual days.
 
-**4.** Vì sao một chuỗi `"20"` có thể chuyển thành phút, còn `"hai mươi"` không được chấp nhận trong phiên bản hiện tại?
+**4.** Why can a string `"20"` be converted to minutes, whereas `"hai mươi"` is not accepted in the current version?
 
-*Đáp án:* `Integer.parseInt` chỉ đọc chuỗi ở định dạng số nguyên hợp lệ theo quy tắc API, không hiểu số viết bằng chữ tiếng Việt.
+*Answer:* `Integer.parseInt` only parses strings formatted as valid integers per API rules; it does not understand numbers written in Vietnamese words.
 
-**5.** Nếu muốn cho phép số phút lẻ như `45.5`, cần xem lại những gì?
+**5.** If you wanted to allow fractional minutes like `45.5`, what would need to be reconsidered?
 
-*Gợi ý:* Phải thay đổi yêu cầu đầu vào, kiểu dữ liệu và cách parse, quy tắc kiểm tra, phép so sánh, hiển thị và các test. Đừng chỉ đổi `int` sang `double` mà bỏ qua cách xử lý dữ liệu đặc biệt và ý nghĩa số phút.
+*Hint:* You must revise input requirements, data types and parsing, validation rules, comparisons, formatting/display, and tests. Do not merely swap `int` to `double` while ignoring special values and the meaning of minutes.
 
-## Ghi nhớ
+## Key Takeaways
 
-**Lộ trình học Java hiệu quả là chuỗi năng lực được kiểm chứng bằng một chương trình ngày càng hoàn thiện.** Học biến để biểu diễn dữ liệu, điều kiện để thể hiện quy tắc, vòng lặp để xử lý nhiều giá trị, phương thức để tổ chức công việc và kiểm thử để xác nhận chương trình làm đúng yêu cầu. Với `StudyTracker`, mỗi kiến thức mới đều có nơi để áp dụng và kết quả có thể tự kiểm tra — đó là cầu nối từ hiểu cú pháp đến tự giải quyết bài toán bằng Java.
+**An effective Java learning roadmap is a chain of capabilities verified through an increasingly complete program.** Learn variables to represent data, conditions to express rules, loops to process multiple values, methods to organize work, and testing to confirm the program meets requirements. With `StudyTracker`, every new concept has a place to be applied and outputs you can verify yourself—that is the bridge from understanding syntax to solving problems independently with Java.

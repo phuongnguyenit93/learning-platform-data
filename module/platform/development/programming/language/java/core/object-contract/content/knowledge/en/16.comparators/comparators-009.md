@@ -1,41 +1,41 @@
-# Trạng thái thay đổi trong Comparator làm kết quả sắp xếp không ổn định
+# Mutable State in a Comparator Causes Unstable Sorting Results
 
-## 1. Vấn đề cần hiểu
+## 1. The Problem to Understand
 
-`Comparator<T>` biểu diễn quy tắc xác định thứ tự giữa hai đối tượng cùng kiểu `T`. Các API như `List.sort`, `Collections.sort`, `Stream.sorted`, `TreeSet`, `TreeMap` và `PriorityQueue` có thể gọi `compare(a, b)` nhiều lần để đưa ra quyết định.
+`Comparator<T>` expresses a rule determining the order between two objects of type `T`. APIs such as `List.sort`, `Collections.sort`, `Stream.sorted`, `TreeSet`, `TreeMap`, and `PriorityQueue` can call `compare(a, b)` multiple times to make decisions.
 
-Nếu một comparator **đọc trạng thái có thể thay đổi** (cờ đảo chiều, thời gian hiện tại, cấu hình toàn cục, số lần so sánh, dữ liệu từ dịch vụ bên ngoài hoặc thuộc tính mutable của phần tử), quan hệ thứ tự mà nó trả về có thể đổi giữa các lần gọi.
+If a comparator **reads mutable state** (a reversal flag, current time, global configuration, call count, data from an external service, or a mutable property of an element), the ordering relation it returns can change between calls.
 
-Ví dụ cùng hai đối tượng `a` và `b`:
+For example, on the exact same two objects `a` and `b`:
 
 ```text
-Lần 1: compare(a, b) = -1  -> a đứng trước b
-Lần 2: compare(a, b) = +1  -> a đứng sau b
+Call 1: compare(a, b) = -1  -> a comes before b
+Call 2: compare(a, b) = +1  -> a comes after b
 ```
 
-Nếu dữ liệu của hai đối tượng và tiêu chí so sánh về mặt nghiệp vụ lẽ ra không đổi, hai kết quả trái chiều cho thấy thuật toán đang nhận các quyết định mâu thuẫn. Sắp xếp có thể cho thứ tự không như mong đợi, hoặc một triển khai có thể phát hiện việc vi phạm hợp đồng và ném ngoại lệ. Không được mặc định thuật toán sẽ luôn phát hiện lỗi.
+If the two objects' data and business comparison criteria should not have changed, two conflicting results mean the algorithm is receiving contradictory decisions. Sorting may produce an unexpected order, or an implementation may detect the contract violation and throw an exception. You must never assume the algorithm will always detect the bug.
 
-Điểm mấu chốt: **đối với một thao tác sắp xếp, bộ tiêu chí so sánh cần tạo ra một quan hệ thứ tự nhất quán từ đầu tới cuối**. Với collection có thứ tự luôn được duy trì như `TreeSet`/`TreeMap`, tiêu chí phải tiếp tục nhất quán trong thời gian các phần tử/khóa còn nằm trong cấu trúc.
+The key point: **for a single sort operation, the comparison criteria must produce a consistent ordering relation from start to finish**. For continuously maintained ordered collections such as `TreeSet`/`TreeMap`, the criteria must remain consistent for as long as elements/keys stay inside the structure.
 
-## 2. Hợp đồng `Comparator.compare()` yêu cầu gì?
+## 2. What Does the `Comparator.compare()` Contract Require?
 
-Với `Comparator<T> comparator`, `compare(x, y)` trả số nguyên âm, `0` hoặc dương để diễn tả `x` đứng trước, tương đương theo comparator, hoặc đứng sau `y`. **Giá trị số cụ thể** như `-1` hoặc `1` không có nghĩa đặc biệt; điều cần xét là dấu.
+For a `Comparator<T> comparator`, `compare(x, y)` returns a negative integer, `0`, or a positive integer to express that `x` comes before, is comparator-equivalent to, or comes after `y`. **Specific numeric values** like `-1` or `1` have no special meaning; only the sign matters.
 
-Javadoc `Comparator` quy định các tính chất logic của quan hệ thứ tự:
+The `Comparator` Javadoc specifies the logical properties of an ordering relation:
 
-1. **Đổi hai đối số phải đảo dấu:** `signum(compare(x, y)) == -signum(compare(y, x))`. Một comparator không được đồng thời khẳng định `x < y` và `y < x`.
-2. **Tính bắc cầu:** nếu `compare(x, y) > 0` và `compare(y, z) > 0` thì `compare(x, z) > 0`.
-3. **Tính tương đương nhất quán:** nếu `compare(x, y) == 0` thì với mọi `z` hợp lệ, `compare(x, z)` và `compare(y, z)` phải cùng dấu.
+1. **Swapping arguments must flip the sign:** `signum(compare(x, y)) == -signum(compare(y, x))`. A comparator must never simultaneously assert `x < y` and `y < x`.
+2. **Transitivity:** if `compare(x, y) > 0` and `compare(y, z) > 0`, then `compare(x, z) > 0`.
+3. **Consistent equivalence:** if `compare(x, y) == 0`, then for every valid `z`, `compare(x, z)` and `compare(y, z)` must have the same sign.
 
-Những tính chất trên mô tả **một quan hệ thứ tự nhất quán**. Nếu comparator thay đổi cách đánh giá trong khi thuật toán đang dựa vào nó, quan hệ tổng thể có thể không còn thỏa những giả định đó.
+These properties describe **a consistent ordering relation**. If a comparator changes how it evaluates while an algorithm relies on it, the overall relation may no longer satisfy those assumptions.
 
-Lưu ý quan trọng: tài liệu nói `Comparator` có thứ tự **consistent with equals** khi `compare(a, b) == 0` tương đương với `a.equals(b)`. Đây là đặc tính rất nên có khi dùng `TreeSet`/`TreeMap` để đáp ứng hợp đồng `Set`/`Map`, nhưng một comparator không nhất quán với `equals` **không tự động** có nghĩa là nó thay đổi theo thời gian. Đó là **hai vấn đề riêng**.
+Important note: the documentation says a `Comparator` has an ordering **consistent with equals** when `compare(a, b) == 0` is equivalent to `a.equals(b)`. This property is strongly desirable when using `TreeSet`/`TreeMap` to fulfill the `Set`/`Map` contracts, yet a comparator inconsistent with `equals` does **not automatically** mean it mutates over time. Those are **two separate issues**.
 
-## 3. Ba nguồn trạng thái khiến comparator đổi kết quả
+## 3. Three Sources of State Causing a Comparator to Change Results
 
-### 3.1. Biến điều khiển bên ngoài
+### 3.1. External control variables
 
-Ví dụ comparator dùng cờ `descending`:
+Example of a comparator using a `descending` flag:
 
 ```java
 Comparator<Integer> comparator =
@@ -44,15 +44,15 @@ Comparator<Integer> comparator =
                 : Integer.compare(a, b);
 ```
 
-Đoạn trên là **mảnh mã minh họa** giả sử đã có biến trạng thái `descending`. Khi cờ đổi từ `false` sang `true`, cùng cặp `1` và `2` chuyển từ “1 trước 2” sang “1 sau 2”.
+The above is an **illustrative snippet** assuming a state variable `descending` already exists. When the flag flips from `false` to `true`, the same pair `1` and `2` changes from "1 before 2" to "1 after 2."
 
-**Đảo chiều giữa hai lần sắp xếp độc lập có thể là yêu cầu nghiệp vụ hoàn toàn hợp lệ.** Rủi ro xuất hiện khi comparator đọc cờ **trong cùng một lần sắp xếp đang diễn ra**, hoặc khi một collection đã lập cấu trúc theo thứ tự cũ nhưng vẫn dùng chính comparator nay đã đổi hướng.
+**Reversing direction between two independent sort operations can be a completely valid business requirement.** Risk arises when the comparator reads the flag **during an ongoing sort**, or when a collection was already structured under the old order yet still uses the same comparator whose direction has now flipped.
 
-### 3.2. Biến đếm, random và đồng hồ
+### 3.2. Counters, randomness, and clocks
 
-Những giá trị như `System.currentTimeMillis()`, `Instant.now()`, `Random.nextBoolean()` hoặc biến đếm tăng mỗi lần gọi đều có thể thay đổi trong khi hai đối tượng không đổi.
+Values such as `System.currentTimeMillis()`, `Instant.now()`, `Random.nextBoolean()`, or a counter incremented on every call can all change even while the two objects remain unchanged.
 
-Ví dụ lỗi khái niệm:
+Conceptual bug example:
 
 ```java
 int[] calls = {0};
@@ -63,33 +63,33 @@ Comparator<Integer> bad = (a, b) -> {
 };
 ```
 
-Ở đây, cùng lời gọi `bad.compare(1, 2)` có thể trả `-1` rồi `+1` chỉ vì số lần gọi khác nhau. Đây là **phương thức không đáng dùng để sắp xếp**. Việc mã trên có thể biên dịch không làm nó thỏa hợp đồng thứ tự.
+Here, the exact same call `bad.compare(1, 2)` can return `-1` then `+1` merely because the call count changed. This is a **method unfit for sorting**. The fact that the code above compiles does not make it satisfy the ordering contract.
 
-Không nên biến “ai được so sánh trước”, “đã so bao nhiêu lần”, “đang là phút chẵn hay lẻ” thành tiêu chí thứ tự của những giá trị vốn phải xếp ổn định.
+Do not turn "who was compared first," "how many comparisons occurred," or "whether the current minute is even or odd" into ordering criteria for values meant to be stably sorted.
 
-### 3.3. Thuộc tính mutable của chính phần tử
+### 3.3. Mutable properties of the element itself
 
-Không cần comparator có biến riêng thì kết quả vẫn có thể thay đổi. Ví dụ:
+Even without the comparator owning its own variable, results can still change. For example:
 
 ```java
 Comparator<Employee> bySalary =
         Comparator.comparingInt(Employee::getSalary);
 ```
 
-Đây là **đoạn mã minh họa**, giả sử có lớp `Employee` và phương thức `getSalary()`.
+This is an **illustrative snippet**, assuming class `Employee` and method `getSalary()` exist.
 
-Nếu một thread hoặc tác vụ khác sửa lương của nhân viên trong lúc danh sách đang được sắp xếp, những lần gọi comparator có thể đọc trạng thái trước và sau cập nhật. Ngay cả khi comparator tự nó không ghi gì, dữ liệu đầu vào mutable cũng khiến thứ tự thiếu ổn định.
+If another thread or task modifies an employee's salary while the list is being sorted, comparator invocations can observe both pre-update and post-update state. Even when the comparator itself writes nothing, mutable input data makes the ordering unstable.
 
-Với `TreeSet<Employee>` hoặc `TreeMap<Employee, ...>` sắp theo lương, việc sửa lương của phần tử/khóa đang lưu cũng làm cấu trúc đã sắp xếp không còn khớp tiêu chí mới. Bảng/cây không tự tái sắp xếp mỗi khi một field trong đối tượng bị sửa.
+With `TreeSet<Employee>` or `TreeMap<Employee, ...>` ordered by salary, modifying the salary of a stored element/key also causes the already-sorted structure no longer to match the new criteria. The table/tree does not automatically re-sort itself whenever a field inside an object is modified.
 
-## 4. Ví dụ đầy đủ chạy được bằng Java 17
+## 4. Complete Runnable Java 17 Example
 
-Ví dụ tách rõ hai tình huống:
+The example clearly separates two scenarios:
 
-- **An toàn:** chọn comparator tăng dần hoặc giảm dần cố định cho từng thao tác sắp xếp riêng biệt.
-- **Không an toàn nếu dùng trong cùng thao tác:** comparator đọc cờ đang thay đổi, hoặc đảo kết quả theo số lần gọi. Chương trình chỉ gọi trực tiếp `compare` để chứng minh lỗi; **không gọi `sort` với comparator sai** vì kết quả và ngoại lệ có thể phụ thuộc thuật toán, kích thước dữ liệu và thứ tự gọi.
+- **Safe:** choosing a fixed ascending or descending comparator for each separate sort operation.
+- **Unsafe if used within the same operation:** a comparator reading a mutating flag, or flipping results by call count. The program only calls `compare` directly to demonstrate the bug; **do not call `sort` with a broken comparator**, because outcomes and exceptions can depend on the algorithm, data size, and call order.
 
-Tạo tệp **`ComparatorStateDemo.java`**:
+Create the file **`ComparatorStateDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -147,14 +147,14 @@ public class ComparatorStateDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 ComparatorStateDemo.java
 java ComparatorStateDemo
 ```
 
-**Stdout đã kiểm chứng bằng biên dịch và chạy Java:**
+**Stdout verified by compiling and running Java:**
 
 ```text
 ascending: db, web, api
@@ -165,46 +165,46 @@ unstable first: -1
 unstable second: 1
 ```
 
-Giải thích:
+Explanation:
 
-1. `stable` so sánh `priority` rồi dùng `name` làm tiêu chí phụ khi bằng ưu tiên. Vì hai trường của record `Task` ở đây là `int` và `String`, và các instance này không bị sửa, thứ tự so sánh cố định.
-2. `stable.reversed()` tạo comparator đảo ngược thứ tự *một cách cố định*. Hai lần sort độc lập có thể tạo ra kết quả tăng dần và giảm dần đúng yêu cầu.
-3. `mutable.compare(b, c)` ban đầu trả `-1`, nhưng sau khi đổi `reverseFlag` lại trả `1`. Kết quả của cùng một phép so sánh đã phụ thuộc trạng thái bên ngoài.
-4. `changingEachCall` trả `-1` rồi `1` cho đúng một cặp số, dù hai số không hề đổi. Nếu thuật toán sort dựa vào comparator này, các quyết định phân loại sẽ tự mâu thuẫn.
-5. `AtomicBoolean` bảo đảm việc đọc/ghi flag có ngữ nghĩa bộ nhớ phù hợp giữa các thread; nó **không** làm một comparator có tiêu chí đổi chiều trở nên ổn định. **Thread-safe trong việc đọc biến không đồng nghĩa với nhất quán của quan hệ thứ tự.**
+1. `stable` compares `priority` and uses `name` as the secondary criterion on priority ties. Because both fields of record `Task` here are `int` and `String`, and these instances are not modified, the comparison order is fixed.
+2. `stable.reversed()` produces a comparator that reverses the order *in a fixed way*. Two independent sort passes can generate ascending and descending outputs as required.
+3. `mutable.compare(b, c)` initially returns `-1`, but after changing `reverseFlag` returns `1`. The result of the exact same comparison has become dependent on external state.
+4. `changingEachCall` returns `-1` then `1` for the exact same pair of numbers, even though neither number changed. If a sorting algorithm relied on this comparator, partitioning decisions would contradict themselves.
+5. `AtomicBoolean` guarantees flag reads/writes have proper cross-thread memory semantics; it does **not** make a comparator with flipping criteria stable. **Thread-safety in reading a variable is not synonymous with consistency of an ordering relation.**
 
-Phần an toàn của ví dụ dùng comparator khác nhau cho từng lần sort. Phần cố ý sai chỉ minh họa việc lặp lại so sánh; không coi output từ một lần sort sử dụng comparator thay đổi là quy tắc Java phải bảo đảm.
+The safe portion of the example uses a separate comparator per sort pass. The intentionally broken portion only illustrates repeated comparison calls; do not treat output from a sort pass using a mutating comparator as behavior guaranteed by Java.
 
-## 5. Điều gì có thể xảy ra trong các API sắp xếp?
+## 5. What Can Happen in Sorting APIs?
 
-### 5.1. `List.sort` và `Collections.sort`
+### 5.1. `List.sort` and `Collections.sort`
 
-Hai API sắp xếp dựa trên kết quả của nhiều phép so sánh. Khi comparator đổi tiêu chí giữa chừng, thuật toán có thể nhận thông tin “a trước b” ở một lần, “a sau b” ở lần khác.
+Both sorting APIs rely on the results of multiple comparisons. When a comparator shifts criteria mid-way, the algorithm can be told "a before b" on one call and "a after b" on another.
 
-Hậu quả có thể gồm:
+Possible consequences include:
 
-- Danh sách sau khi sắp xếp **không còn tuân theo comparator ở thời điểm kết thúc**.
-- Thứ tự phụ thuộc vào số lượng và trình tự so sánh mà thuật toán tình cờ thực hiện.
-- Một số triển khai có thể ném `IllegalArgumentException` với thông báo dạng “Comparison method violates its general contract!”. Đây là hành vi **có thể xảy ra**, không phải ngoại lệ được bảo đảm cho mọi comparator sai.
-- Nếu phần tử bị một thread khác thay đổi đồng thời, còn có các vấn đề an toàn truy cập collection và dữ liệu. Không được chỉ sửa comparator rồi mặc định mọi cuộc đua đã được loại bỏ.
+- The sorted list **no longer obeys the comparator at the end**.
+- The order depends on the accidental count and sequence of comparisons the algorithm happened to make.
+- Some implementations may throw `IllegalArgumentException` with a message like "Comparison method violates its general contract!". This is **possible** behavior, not an exception guaranteed for every broken comparator.
+- If elements are mutated concurrently by another thread, collection and data access safety issues also arise. You cannot fix the comparator alone and assume all data races are eliminated.
 
-Đừng viết kiểm thử kiểu “comparator sai phải luôn ném ngoại lệ”. Một mảng nhỏ có thể sắp xếp xong mà không phát hiện lỗi; điều đó **không chứng minh** comparator đúng hợp đồng.
+Do not write tests like "a broken comparator must always throw an exception." A small array might finish sorting without detecting the violation; that **does not prove** the comparator obeys the contract.
 
 ### 5.2. `Stream.sorted(comparator)`
 
-`Stream.sorted` cũng cần một quan hệ so sánh nhất quán khi thực thi terminal operation. Đặt comparator phụ thuộc vào đồng hồ, random hoặc cấu hình có thể bị sửa trong pipeline là sai về mặt thiết kế, ngay cả khi cú pháp stream trông bất biến.
+`Stream.sorted` also requires a consistent comparison relation when executing the terminal operation. Supplying a comparator that depends on a clock, randomness, or configuration mutable during the pipeline is a design bug, even if stream syntax looks immutable.
 
-Với stream song song, comparator có trạng thái mutable không đồng bộ còn có thể gây *data race*; kể cả trạng thái được đồng bộ, các thread đọc **những giá trị hợp lệ nhưng khác nhau** vẫn khiến thứ tự thiếu nhất quán. Đồng bộ chỉ là một phần của giải pháp.
+With parallel streams, a comparator with unsynchronized mutable state can also cause *data races*; even if state is synchronized, threads reading **different valid values** still make the ordering inconsistent. Synchronization is only part of the solution.
 
-### 5.3. `TreeSet` và `TreeMap`
+### 5.3. `TreeSet` and `TreeMap`
 
-Các collection này dùng **thứ tự do comparator cung cấp** (hoặc natural ordering) để tổ chức và tra cứu phần tử/khóa. Điểm khác biệt quan trọng với một lần sort: chúng cần tiêu chí thứ tự ổn định **trong suốt thời gian các mục đang được lưu**.
+These collections use the **ordering provided by the comparator** (or natural ordering) to organize and look up elements/keys. A critical difference from a one-off sort: they require stable ordering criteria **for the entire duration items remain stored**.
 
-Ví dụ, một `TreeSet` được tạo với comparator tăng dần rồi thêm các phần tử. Nếu sau đó cờ bên ngoài làm chính comparator chuyển sang giảm dần, cấu trúc tìm kiếm đã được xây dựng theo quan hệ trước đó. Những thao tác `contains`, `add`, `remove` hoặc duyệt có thể cho kết quả bất ngờ; collection không tự xây dựng lại toàn bộ cây khi cờ đổi.
+For example, a `TreeSet` is created with an ascending comparator and elements are added. If an external flag later switches that same comparator to descending, the search structure was already built under the previous relation. `contains`, `add`, `remove`, or iteration operations can produce surprising results; the collection does not rebuild the entire tree when the flag changes.
 
-Ngoài ra, với `TreeSet`/`TreeMap`, **`compare(a,b) == 0`** quyết định hai phần tử/khóa tương đương theo thứ tự. Nếu comparator sử dụng field mutable, hai khóa từng khác nhau có thể trở nên “bằng nhau” theo tiêu chí mới, hoặc ngược lại. Điều đó ảnh hưởng tính duy nhất và tìm kiếm trong collection.
+Moreover, with `TreeSet`/`TreeMap`, **`compare(a,b) == 0`** determines whether two elements/keys are order-equivalent. If the comparator uses a mutable field, two previously distinct keys can become "equal" under the new criteria, or vice versa. That impacts uniqueness and lookups in the collection.
 
-Ví dụ **mảnh mã minh họa** (không phải chương trình độc lập):
+**Illustrative code snippet** (not a standalone program):
 
 ```java
 TreeSet<Employee> employees =
@@ -213,38 +213,38 @@ TreeSet<Employee> employees =
 Employee employee = new Employee("An", 100);
 employees.add(employee);
 
-// Nếu setter thay đổi chính tiêu chí mà cây dùng để định vị:
+// If a setter changes the very criterion the tree uses for positioning:
 employee.setSalary(1000);
 
-// Cây không tự tái cấu trúc chỉ vì một thuộc tính của
-// đối tượng đã lưu bị sửa; thao tác tra cứu có thể sai kỳ vọng.
+// The tree does not automatically restructure itself just because an
+// attribute of a stored object was modified; lookups may behave unexpectedly.
 ```
 
-Cần các import và khai báo lớp `Employee` nếu muốn chạy độc lập. Cách an toàn là tránh sửa thuộc tính khóa/sắp xếp trong khi phần tử nằm trong cây; nếu bắt buộc, **remove trước khi thay đổi**, sau đó sửa và **add lại**, hoặc tạo cấu trúc mới từ snapshot dữ liệu đã cố định. Không dựa vào việc `remove` bằng đối tượng đã sửa còn tìm thấy entry cũ.
+Necessary imports and the `Employee` class declaration are needed to run standalone. The safe approach is to avoid mutating key/sort attributes while the element resides in the tree; if unavoidable, **remove before mutating**, then modify and **re-add**, or build a new structure from a fixed data snapshot. Do not rely on `remove` with the already-mutated object still finding the old entry.
 
 ### 5.4. `PriorityQueue`
 
-`PriorityQueue` dùng comparator để quyết định phần tử có độ ưu tiên cao nhất theo quy ước của hàng đợi. Nếu comparator thay đổi tiêu chí sau khi các phần tử đã được thêm, cấu trúc heap hiện có không tự sửa vị trí mọi phần tử theo thứ tự mới. Một phép `peek` hoặc `poll` sau đó có thể không phản ánh ưu tiên vừa thay đổi.
+`PriorityQueue` uses a comparator to determine the highest-priority element according to the queue's convention. If the comparator changes criteria after elements have been added, the existing heap structure does not automatically reposition all elements into the new order. A subsequent `peek` or `poll` may fail to reflect the changed priority.
 
-Khi cần đổi toàn bộ chính sách ưu tiên, tạo một priority queue mới sử dụng comparator cố định mới và đưa các phần tử từ snapshot hiện tại vào, thay vì đổi trạng thái bên trong comparator cũ rồi tiếp tục dùng hàng đợi.
+When changing the entire priority policy is needed, create a new priority queue using a new fixed comparator and insert elements from a current snapshot, rather than mutating state inside the old comparator and continuing to use the queue.
 
-## 6. Ba loại “ổn định” dễ bị nhầm lẫn
+## 6. Three Easily Confused Kinds of "Stability"
 
-### 6.1. Comparator nhất quán
+### 6.1. Consistent comparator
 
-Cùng dữ liệu, cùng tiêu chí, các lần so sánh phải biểu diễn cùng quan hệ thứ tự. Đây là trọng tâm của bài. Để comparator ổn định, đầu vào dùng cho phép so sánh và cấu hình của nó phải giữ giá trị phù hợp trong khoảng sử dụng.
+Same data, same criteria: repeated comparisons must express the same ordering relation. This is the focus of this lesson. For a comparator to be stable, the inputs used for comparison and its configuration must keep appropriate values throughout the usage window.
 
-### 6.2. Thuật toán sắp xếp ổn định (stable sort)
+### 6.2. Stable sorting algorithm (stable sort)
 
-Một thuật toán sort được gọi là **stable** nếu hai phần tử được comparator xem là bằng nhau (`compare(a,b) == 0`) vẫn giữ **thứ tự tương đối ban đầu** trong kết quả. Theo tài liệu Java, `List.sort` là phép sắp xếp ổn định.
+A sorting algorithm is **stable** if two elements considered equal by the comparator (`compare(a,b) == 0`) preserve their **original relative order** in the result. Per Java documentation, `List.sort` is a stable sort.
 
-Điều đó **không cứu** một comparator thay đổi. Stable sort chỉ có ý nghĩa khi comparator đã cho một quan hệ thứ tự hợp lệ. Nếu `compare` thay kết quả giữa chừng, câu hỏi “hai phần tử bằng nhau theo comparator” không còn một câu trả lời nhất quán.
+That **cannot rescue** a mutating comparator. Stable sort is meaningful only when the comparator already provides a valid ordering relation. If `compare` flips results mid-way, the question "which two elements are equal under the comparator" no longer has a consistent answer.
 
-### 6.3. Kết quả ổn định qua nhiều lần chạy
+### 6.3. Reproducible results across multiple runs
 
-Ngay cả comparator hoàn toàn đúng, nhiều phần tử có cùng khóa so sánh có thể tạo ra những kết quả khác khi **thứ tự đầu vào khác**. Một stable sort bảo toàn thứ tự của những phần tử được xem là tương đương, nên sự khác biệt ở thứ tự đầu vào vẫn có thể được giữ lại.
+Even with a completely valid comparator, multiple elements sharing the same sort key can yield different outputs when the **input order differs**. A stable sort preserves the order of elements deemed equivalent, so differences in input order can still carry over.
 
-Nếu cần thứ tự kết quả hoàn toàn xác định, bổ sung **tie-breaker** phù hợp, chẳng hạn sắp theo `priority` rồi theo `id`:
+If a fully deterministic output order is needed, add an appropriate **tie-breaker**, such as sorting by `priority` then `id`:
 
 ```java
 Comparator<Task> byPriorityAndId = Comparator
@@ -252,13 +252,13 @@ Comparator<Task> byPriorityAndId = Comparator
         .thenComparing(Task::id);
 ```
 
-Đây là **mảnh mã minh họa** giả sử `Task` có accessor `priority()` và `id()`. Comparator này chỉ tạo thứ tự xác định khi giá trị các accessor ổn định và tiêu chí phụ đủ để phân biệt những phần tử cần phân biệt. Nếu hai đối tượng khác nhau vẫn có cùng cả hai tiêu chí, chúng tiếp tục được comparator coi là bằng nhau.
+This is an **illustrative snippet** assuming `Task` has `priority()` and `id()` accessors. This comparator yields a deterministic order only when accessor values are stable and the secondary criterion is sufficient to distinguish the elements that need distinguishing. If two distinct objects still share both criteria, the comparator continues to treat them as equal.
 
-## 7. Thiết kế comparator không phụ thuộc trạng thái thay đổi
+## 7. Designing Comparators Independent of Mutable State
 
-### 7.1. Cố định cấu hình tại thời điểm tạo comparator
+### 7.1. Freeze configuration when creating the comparator
 
-Thay vì đọc biến cấu hình đang có thể thay đổi ở **mỗi** lần `compare`, hãy chụp giá trị cấu hình trước khi bắt đầu:
+Instead of reading a mutable configuration variable on **every** `compare` call, capture the configuration value before starting:
 
 ```java
 boolean descendingSnapshot = currentDescendingSetting;
@@ -270,13 +270,13 @@ Comparator<Item> chosen = descendingSnapshot
         : base;
 ```
 
-Đây là **đoạn mã minh họa**, giả sử `currentDescendingSetting`, `Item` và `getRank()` được định nghĩa phù hợp. Biến `descendingSnapshot` cố định hướng sắp xếp cho comparator được chọn. Nếu cần đổi chính sách, tạo comparator mới và sort lại.
+This is an **illustrative snippet**, assuming `currentDescendingSetting`, `Item`, and `getRank()` are suitably defined. The variable `descendingSnapshot` fixes the sort direction for the chosen comparator. To switch policy, build a new comparator and re-sort.
 
-Không nên đổi biến global giữa các lần so sánh rồi trông cậy thuật toán sẽ chỉ đọc nó một lần.
+Do not mutate a global variable between comparisons while hoping the algorithm only reads it once.
 
-### 7.2. Chụp dữ liệu thuộc tính trước khi sắp xếp
+### 7.2. Snapshot property data before sorting
 
-Khi tiêu chí phụ thuộc dữ liệu có thể đổi (giá thị trường, điểm động, số lượt xem, trạng thái nghiệp vụ), có thể tạo **snapshot bất biến**:
+When criteria depend on changing data (market prices, live scores, view counts, business status), you can create an **immutable snapshot**:
 
 ```java
 record RankedItem(String id, int scoreSnapshot) {}
@@ -286,97 +286,97 @@ Comparator<RankedItem> byScore =
                   .thenComparing(RankedItem::id);
 ```
 
-Đây là **đoạn mã minh họa**. Quy trình phù hợp là đọc điểm số tại một thời điểm xác định, xây dựng các `RankedItem`, rồi sắp xếp snapshot. Khi nguồn dữ liệu thay đổi, tạo snapshot mới thay vì âm thầm đổi quan hệ so sánh của những phần tử đang nằm trong cấu trúc.
+This is an **illustrative snippet**. The proper workflow is reading scores at a defined point in time, constructing `RankedItem` instances, and then sorting the snapshot. When the data source changes, build a new snapshot rather than silently altering the comparison relation of elements already in a structure.
 
-Record chỉ làm các trường thành `final`; nếu một record chứa tham chiếu đến một đối tượng mutable, **nội dung bên trong tham chiếu đó vẫn có thể thay đổi**. Chọn component bất biến hoặc sao chép phòng vệ khi cần.
+A record only makes its fields `final`; if a record holds a reference to a mutable object, **the contents inside that reference can still change**. Choose immutable components or defensive copies when needed.
 
-### 7.3. Tách so sánh khỏi side effect
+### 7.3. Separate comparison from side effects
 
-`compare` nên chỉ **đọc dữ liệu liên quan** và trả kết quả. Tránh:
+`compare` should only **read relevant data** and return a result. Avoid:
 
-- Tăng biến đếm **ảnh hưởng tiêu chí xếp hạng** mỗi lần so sánh.
-- Gọi setter, cập nhật database hoặc ghi vào object ngay trong comparator.
-- Gọi API bên ngoài để lấy giá trị mới cho cùng đối tượng ở các lần so sánh.
-- Sinh số ngẫu nhiên để giải quyết trường hợp hòa.
-- Đọc thời gian hiện tại để đảo thứ tự liên tục.
+- Incrementing a counter that **affects ranking criteria** on every comparison.
+- Calling setters, updating a database, or writing to objects inside the comparator.
+- Calling external APIs to fetch fresh values for the same object across comparison calls.
+- Generating random numbers to break ties.
+- Reading current time to continuously shift ordering.
 
-Nếu nghiệp vụ cần tie-break ngẫu nhiên, **sinh seed hoặc thứ tự phụ trước khi sort** và giữ giá trị đó cố định trong suốt phép sắp xếp. Nếu nghiệp vụ cần so thời điểm, hãy so các timestamp đã được lưu/chụp, thay vì hỏi “bây giờ là mấy giờ?” bên trong comparator mỗi lần.
+If business logic needs random tie-breaking, **generate a seed or secondary order before sorting** and keep that value fixed throughout the sort pass. If business logic needs time comparisons, compare already-stored/snapshotted timestamps rather than asking "what time is it right now?" inside the comparator each time.
 
-### 7.4. Tránh tràn số và sai logic
+### 7.4. Avoid numeric overflow and logic bugs
 
-Ngay cả comparator không có mutable state cũng có thể sai. Ví dụ:
+Even a comparator with no mutable state can be wrong. For example:
 
 ```java
 Comparator<Integer> wrong = (a, b) -> a - b;
 ```
 
-Phép trừ có thể tràn `int` và gây đảo dấu không hợp lý với các giá trị biên. Dùng:
+Subtraction can overflow `int` and cause unreasonable sign flips on boundary values. Use:
 
 ```java
 Comparator<Integer> right = Integer::compare;
 ```
 
-Khi sắp theo thuộc tính, ưu tiên `Comparator.comparingInt`, `comparingLong`, `comparing`, `thenComparing`; chúng giúp biểu đạt rõ tiêu chí và tránh nhiều lỗi so sánh thủ công.
+When sorting by properties, prefer `Comparator.comparingInt`, `comparingLong`, `comparing`, `thenComparing`; they express criteria clearly and avoid many manual comparison bugs.
 
-Đây là vấn đề độc lập nhưng liên quan: một comparator “cố định trạng thái” mà vi phạm tính bắc cầu hay đổi dấu cũng không được xem là hợp lệ.
+This is an independent yet related issue: a "state-frozen" comparator that violates transitivity or sign symmetry is still not valid.
 
-## 8. Comparator, đồng thời và quyền sửa dữ liệu
+## 8. Comparators, Concurrency, and Data Mutation Rights
 
-Trong hệ thống đa luồng, việc dùng `AtomicBoolean` hoặc `volatile` để đọc cờ có thể giúp thread này **thấy được** cập nhật từ thread khác. Nhưng nếu giá trị được nhìn thấy thay đổi giữa hai lời gọi, quan hệ thứ tự vẫn bị đảo. Cách giải quyết tốt hơn:
+In multithreaded systems, using `AtomicBoolean` or `volatile` to read a flag lets one thread **observe** updates from another thread. Yet if the observed value changes between two calls, the ordering relation still flips. Better solutions:
 
-1. Chốt cấu hình trước khi bắt đầu thao tác sort.
-2. Tạo snapshot nhất quán của các thuộc tính cần so sánh.
-3. Không cho thread khác sửa dữ liệu/snapshot đang dùng trong sort.
-4. Nếu cần công bố kết quả sau khi tính xong, công bố danh sách hoặc collection mới bằng chiến lược đồng bộ an toàn thích hợp.
-5. Với collection luôn được tổ chức theo thứ tự như `TreeMap`, `TreeSet`, `PriorityQueue`, xây lại cấu trúc khi quan hệ xếp hạng thực sự thay đổi.
+1. Lock in configuration before starting the sort operation.
+2. Create a consistent snapshot of the attributes to be compared.
+3. Prevent other threads from mutating data/snapshots used during sorting.
+4. If results must be published after completion, publish the new list or collection using an appropriate thread-safe publication strategy.
+5. For continuously ordered collections like `TreeMap`, `TreeSet`, and `PriorityQueue`, rebuild the structure whenever the ranking relation genuinely changes.
 
-Đừng coi `Collections.synchronizedList`, `volatile` trên một field hoặc thread-safe flag là giải pháp tự động cho **một phép so sánh phụ thuộc nhiều dữ liệu**. Bất biến hoặc snapshot nhất quán mới giải quyết tính ổn định của tiêu chí.
+Do not treat `Collections.synchronizedList`, `volatile` on a single field, or a thread-safe flag as an automatic fix for **a comparison depending on multiple pieces of data**. Immutability or a consistent snapshot is what guarantees criterion stability.
 
-## 9. Kiểm tra và review comparator
+## 9. Checking and Reviewing a Comparator
 
-Có thể đánh giá một comparator bằng các câu hỏi sau:
+You can evaluate a comparator using the following questions:
 
-- Khi gọi `compare(a,b)` nhiều lần với dữ liệu không đổi, kết quả **cùng dấu** không?
-- `compare(a,b)` và `compare(b,a)` có dấu đối nhau không?
-- Các quan hệ `a > b`, `b > c` có kéo theo `a > c` không?
-- Khi `compare(a,b)==0`, dấu so sánh của `a` và `b` với một `c` có giống nhau không?
-- Comparator có đọc `now()`, random, môi trường, config mutable, cơ sở dữ liệu, hoặc field mutable của phần tử không?
-- Những giá trị đó có được **cố định trong khoảng sử dụng** không?
-- Nếu dùng `TreeSet/TreeMap`, thứ tự có nhất quán với `equals` khi ứng dụng cần tuân thủ đầy đủ hợp đồng `Set/Map` không?
-- Sau khi phần tử được đưa vào cấu trúc có thứ tự, có code nào sửa tiêu chí định vị của nó không?
+- When calling `compare(a,b)` multiple times on unchanged data, do results have the **same sign**?
+- Do `compare(a,b)` and `compare(b,a)` have opposite signs?
+- Do `a > b` and `b > c` imply `a > c`?
+- When `compare(a,b)==0`, are the comparison signs of `a` and `b` against any `c` identical?
+- Does the comparator read `now()`, randomness, environment state, mutable config, a database, or a mutable field of the element?
+- Are those values **fixed over the usage window**?
+- If used with `TreeSet/TreeMap`, is the order consistent with `equals` when the application needs full `Set/Map` contract compliance?
+- After an element is inserted into an ordered structure, does any code mutate its positioning criterion?
 
-Một phép thử lặp ngắn (đặt **bên trong phương thức** của một lớp kiểm thử có comparator và dữ liệu hợp lệ):
+A short repeatability test (placed **inside a method** of a test class with a valid comparator and data):
 
 ```java
 int first = Integer.signum(comparator.compare(a, b));
 int second = Integer.signum(comparator.compare(a, b));
 if (first != second) {
-    throw new AssertionError("Comparator khong on dinh");
+    throw new AssertionError("Unstable comparator");
 }
 ```
 
-Đây là **mảnh kiểm thử minh họa**, không phải một chương trình độc lập. Nó bắt được một số lỗi biến trạng thái, nhưng không chứng minh mọi đầu vào hoặc mọi lịch thực thi đa luồng. Cần kết hợp với kiểm thử các bộ ba phần tử, dữ liệu biên, và review đường đọc dữ liệu của comparator.
+This is an **illustrative test fragment**, not a standalone program. It catches some mutable-state bugs, but does not prove every input or every multithreaded schedule. Combine it with testing triples of elements, boundary data, and reviewing the comparator's data-reading paths.
 
-Nếu một lần chạy sort có kết quả bất thường hoặc ném `IllegalArgumentException` liên quan hợp đồng so sánh, hãy ưu tiên kiểm tra **logic, dữ liệu và trạng thái comparator** trước khi điều tra thuật toán sort. Tuy vậy, ngoại lệ đó không phải phương pháp chẩn đoán duy nhất và không xuất hiện ở mọi trường hợp.
+If a sort run produces abnormal results or throws an `IllegalArgumentException` regarding the comparison contract, prioritize inspecting **the comparator's logic, data, and state** before investigating the sorting algorithm. Still, that exception is not the only diagnostic method and does not trigger in every case.
 
-## 10. Tình huống thực tế
+## 10. Real-World Scenarios
 
-**Bảng xếp hạng:** điểm số cập nhật liên tục trong database. Không gọi API lấy điểm mới ngay trong `compare`; thay bằng chụp điểm tại thời điểm công bố, rồi sắp xếp các snapshot.
+**Leaderboard:** scores update continuously in the database. Do not call an API to fetch new scores inside `compare`; instead, snapshot scores at publication time and sort the snapshots.
 
-**UI có nút đảo chiều:** mỗi lần nhấn nút tạo danh sách sắp xếp mới với `comparator.reversed()`. Đây là hành vi hợp lệ; đảm bảo nút nhấn giữa một thao tác sort không làm comparator đang chạy đổi hướng.
+**UI with a reverse-order button:** each button click produces a new sorted list with `comparator.reversed()`. That is valid behavior; ensure clicking the button mid-sort does not flip the comparator currently in flight.
 
-**Hàng đợi ưu tiên công việc:** khi chính sách ưu tiên thay đổi, tạo `PriorityQueue` mới với comparator mới và nạp lại các công việc cần giữ. Đừng đổi biến ưu tiên mà heap cũ đang tham chiếu.
+**Task priority queue:** when the priority policy changes, create a new `PriorityQueue` with the new comparator and reload the tasks to keep. Do not mutate a priority variable referenced by the old heap.
 
-**Tập nhân viên có thứ tự theo lương:** nếu lương thay đổi, đừng sửa trực tiếp trường xếp hạng khi đối tượng vẫn nằm trong `TreeSet`, rồi chờ cây tự di chuyển phần tử. Thiết kế theo khóa bất biến hoặc quản lý thao tác gỡ/thêm bằng giá trị cũ và mới.
+**Employee set ordered by salary:** if salary changes, do not mutate the sort field directly while the object remains in a `TreeSet`, expecting the tree to move the element automatically. Design around immutable keys, or manage remove/re-add operations using old and new values.
 
-**Sắp xếp theo tên ngôn ngữ:** có thể dùng `Collator` để so chuỗi theo locale, nhưng không thay đổi cấu hình hay dùng chung một đối tượng cấu hình có thể sửa trong lúc sort. Khởi tạo bộ so sánh có cấu hình cố định cho thao tác cần làm.
+**Sorting by linguistic names:** you can use `Collator` to compare strings by locale, but do not alter configuration or share a mutable configuration object during sorting. Instantiate a comparator with fixed configuration for the task at hand.
 
-## 11. Tổng kết kiến thức cần nhớ
+## 11. Summary of Key Takeaways
 
-- Comparator phải cung cấp **quan hệ thứ tự nhất quán** cho dữ liệu mà thuật toán đang xử lý; cùng cặp không nên đổi dấu chỉ vì một biến ngoài đổi hoặc số lần gọi tăng.
-- Tránh đọc thời gian hiện tại, random, config mutable, số đếm hay thuộc tính đang bị sửa trong `compare`.
-- **Thay comparator giữa hai lần sort độc lập là hợp lệ** nếu mỗi lần sort sử dụng một tiêu chí nhất quán; **đổi tiêu chí trong lúc sort** mới gây rủi ro trực tiếp.
-- `TreeSet`, `TreeMap` và `PriorityQueue` lưu cấu trúc tổ chức theo comparator; khi quan hệ thứ tự đổi, thường phải xây lại cấu trúc.
-- Stable sorting algorithm, thread-safe flag và “comparator nhất quán” là các khái niệm khác nhau; một cái không tự bảo đảm cái còn lại.
-- Dùng comparator cố định, snapshot dữ liệu, tie-breaker rõ ràng và các helper như `Comparator.comparingInt`/`thenComparing` để có kết quả dễ kiểm chứng.
-- Java có thể phát hiện vi phạm ở một số tình huống và ném ngoại lệ, nhưng **không bảo đảm luôn phát hiện**; trách nhiệm bảo toàn hợp đồng thuộc về cách thiết kế comparator.
+- A comparator must provide a **consistent ordering relation** for the data the algorithm processes; the same pair must not flip signs merely because an external variable changed or the call count increased.
+- Avoid reading current time, randomness, mutable config, counters, or fields being mutated inside `compare`.
+- **Swapping comparators between two independent sorts is valid** if each sort uses a consistent criterion; **changing criteria during a sort** is what causes direct risk.
+- `TreeSet`, `TreeMap`, and `PriorityQueue` maintain structural organization according to the comparator; when the ordering relation changes, the structure generally must be rebuilt.
+- A stable sorting algorithm, a thread-safe flag, and a "consistent comparator" are distinct concepts; one does not automatically guarantee the others.
+- Use fixed comparators, data snapshots, explicit tie-breakers, and helpers like `Comparator.comparingInt`/`thenComparing` for easily verifiable results.
+- Java may detect violations in some situations and throw an exception, yet **does not guarantee always detecting them**; responsibility for preserving the contract lies in comparator design.

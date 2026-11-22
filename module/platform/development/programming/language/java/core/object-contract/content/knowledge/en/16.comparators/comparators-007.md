@@ -1,53 +1,53 @@
-# Chọn quy tắc so sánh chuỗi theo yêu cầu nghiệp vụ với Comparator trong Java
+# Choosing String Comparison Rules Based on Business Requirements with Comparator in Java
 
-## 1. Vì sao một chuỗi có nhiều cách sắp xếp đúng?
+## 1. Why Does a String Have Multiple Correct Ways to Sort?
 
-Một ứng dụng có thể cần sắp xếp tên người theo tiếng Việt, mã sản phẩm theo số thứ tự, nhãn theo chữ cái không phân biệt hoa/thường, hoặc khóa kỹ thuật theo thứ tự byte/Unicode ổn định. Những quy tắc ấy **khác nhau**. Không thể có một `Comparator<String>` đúng cho mọi trường hợp.
+An application may need to sort personal names in Vietnamese, product codes by numeric sequence, labels alphabetically ignoring case, or technical keys in a stable byte/Unicode order. Those rules are **different**. No single `Comparator<String>` can be right for every case.
 
-Chẳng hạn với bốn chuỗi `"A"`, `"a"`, `"B"`, `"b"`:
-- `String.compareTo` theo thứ tự từ điển của các đơn vị mã UTF-16: `A, B, a, b`.
-- `String.CASE_INSENSITIVE_ORDER` xem `"A"` với `"a"` bằng nhau về thứ tự; khi sort một `List` ổn định, thứ tự tương đối của hai phần tử này được giữ lại.
-- Quy tắc *không phân biệt hoa/thường trước, rồi dùng thứ tự tự nhiên để phân xử* cho `A, a, B, b`, tức có thứ tự xác định ngay cả giữa những biến thể hoa/thường.
+For example, with the four strings `"A"`, `"a"`, `"B"`, `"b"`:
+- `String.compareTo` follows the lexicographical order of UTF-16 code units: `A, B, a, b`.
+- `String.CASE_INSENSITIVE_ORDER` treats `"A"` and `"a"` as equal in order; when sorting a `List` stably, the relative order of these two elements is preserved.
+- A rule that is *case-insensitive first, then uses natural order as a tie-breaker* produces `A, a, B, b`, giving a deterministic order even among case variants.
 
-Với `"item2"` và `"item10"`, thứ tự từ điển thông thường xếp `"item10"` trước `"item2"`, vì so ký tự `'1'` với `'2'`. Nếu nghiệp vụ muốn mã có hậu tố số tăng dần, ta phải định nghĩa quy tắc khác.
+With `"item2"` and `"item10"`, standard lexicographical order places `"item10"` before `"item2"`, because it compares the character `'1'` against `'2'`. If business requirements want codes with numeric suffixes in ascending numeric order, a different rule must be defined.
 
-Trong bối cảnh **Java core – Object Contract / Comparator**, bài này hướng dẫn chọn quy tắc dựa vào ý nghĩa nghiệp vụ, xây dựng comparator đúng hợp đồng, kiểm tra hệ quả với `TreeSet`/`TreeMap`, và phân biệt so sánh kỹ thuật với so sánh ngôn ngữ.
+In the context of **Java core – Object Contract / Comparator**, this lesson guides you in choosing rules based on business semantics, building contract-compliant comparators, checking consequences with `TreeSet`/`TreeMap`, and distinguishing technical comparison from linguistic comparison.
 
-## 2. Trước khi viết mã: đặc tả dữ liệu và quy tắc
+## 2. Before Writing Code: Specifying Data and Rules
 
-Hãy làm rõ sáu câu hỏi:
+Clarify six questions:
 
-1. **Đang sắp xếp gì?** Mã kỹ thuật, tên người, nhãn giao diện, mã hàng có chữ và số, hay chuỗi đầu vào tự do?
-2. **Có locale không?** Danh sách tên tiếng Việt thường cần quy tắc ngôn ngữ tiếng Việt; khóa kỹ thuật lại cần kết quả ổn định không lệ thuộc ngôn ngữ.
-3. **Hoa/thường và dấu có ý nghĩa không?** `"A"` so với `"a"`, `"ma"` so với `"má"` có được coi cùng mức ưu tiên không?
-4. **Khoảng trắng, dấu câu, định dạng Unicode có ý nghĩa không?** Có chuẩn hóa trước khi so không; phải phân biệt chuẩn hóa hiển thị với thay đổi định danh thật.
-5. **Có phần số không?** `"SKU-2"` và `"SKU-10"` cần so như số; `"SKU-02"` và `"SKU-2"` được coi cùng nhóm hay hai mã khác nhau?
-6. **`compare(a,b)==0` có nghĩa gì?** Chỉ là cùng thứ hạng để sắp xếp danh sách, hay phải coi là trùng khóa trong `TreeSet`/`TreeMap`?
+1. **What is being sorted?** Technical codes, personal names, UI labels, alphanumeric item codes, or free-form input strings?
+2. **Is there a locale?** Vietnamese name lists typically need Vietnamese linguistic rules; technical keys instead need locale-independent stable results.
+3. **Do case and accents matter?** Should `"A"` vs `"a"` or `"ma"` vs `"má"` be treated at the same priority level?
+4. **Do whitespace, punctuation, and Unicode representation matter?** Should normalization occur before comparing; you must distinguish display normalization from changing true identity.
+5. **Is there a numeric part?** Should `"SKU-2"` and `"SKU-10"` be compared numerically; are `"SKU-02"` and `"SKU-2"` treated as the same group or two different codes?
+6. **What does `compare(a,b)==0` mean?** Merely sharing a rank for sorting a list, or must they be treated as duplicate keys in `TreeSet`/`TreeMap`?
 
-Ví dụ ma trận quyết định:
+Example decision matrix:
 
-| Nhu cầu | Quy tắc khởi đầu | Điểm cần quyết định |
+| Need | Starting rule | Point to decide |
 |---|---|---|
-| Khóa máy, mã phân biệt hoa/thường | `Comparator.naturalOrder()` | Thứ tự là UTF-16; không phải thứ tự đọc của con người |
-| Lọc/xếp nhóm bỏ qua hoa/thường | `String.CASE_INSENSITIVE_ORDER` | So bằng 0 cho một số chuỗi khác nhau theo `String.equals` |
-| Xếp chữ không phân biệt hoa/thường nhưng giữ mọi biến thể | Case-insensitive rồi tie-break bằng natural order | Giữ phân biệt `"A"` và `"a"` trong sorted set |
-| Tên/nhãn hiển thị tiếng Việt | `Collator` với `Locale.forLanguageTag("vi-VN")` | Phải chọn strength, phân biệt dấu và tie-break |
-| Mã có hậu tố là số | Tách, kiểm tra rồi so số; sau đó tie-break | Số 2 và 02 có tương đương không? |
-| Giá trị có `null` | `nullsFirst` hoặc `nullsLast` | Thống nhất `null` là dữ liệu hợp lệ hay lỗi |
-| Xếp theo nhiều tiêu chí | `comparing`, `thenComparing` | Thứ tự ưu tiên và xử lý trùng là gì? |
+| Machine keys, case-sensitive codes | `Comparator.naturalOrder()` | Order is UTF-16; not human reading order |
+| Grouping/sorting ignoring case | `String.CASE_INSENSITIVE_ORDER` | Compares as 0 for some strings that differ by `String.equals` |
+| Alphabetizing case-insensitively while keeping all variants | Case-insensitive then tie-break with natural order | Preserves distinction between `"A"` and `"a"` in a sorted set |
+| Vietnamese display names/labels | `Collator` with `Locale.forLanguageTag("vi-VN")` | Must choose strength, accent sensitivity, and tie-break |
+| Codes with a numeric suffix | Split, validate, then compare numerically; then tie-break | Are numbers 2 and 02 equivalent? |
+| Values containing `null` | `nullsFirst` or `nullsLast` | Agree on whether `null` is valid data or an error |
+| Multi-criteria sorting | `comparing`, `thenComparing` | What is the priority order and duplicate handling? |
 
-Một yêu cầu cụ thể tốt là: “Danh sách tên sản phẩm hiển thị cho người dùng vi-VN; dùng thứ tự ngôn ngữ Việt, giữ dấu phân biệt, không loại mất sản phẩm chỉ vì tên gần giống; trường hợp collator xem bằng nhau thì so chuỗi gốc để kết quả lặp lại nhất quán”.
+A good concrete requirement is: "List of product names displayed to vi-VN users; use Vietnamese linguistic order, preserve accent distinctions, do not drop products just because names are similar; when the collator treats them as equal, compare the original strings so results repeat consistently."
 
-## 3. Hợp đồng `Comparator<T>` cần giữ
+## 3. Preserving the `Comparator<T>` Contract
 
-Chính sách so chuỗi không chỉ quyết định ai đứng trước; nó còn quyết định hai chuỗi nào thuộc cùng nhóm khi `compare(a,b)==0`. Với bất kỳ quy tắc nào (natural, bỏ qua hoa/thường, `Collator`, hay so phần số), vẫn phải có đối dấu, bắc cầu và dấu so sánh nhất quán giữa những phần tử được xem ngang hàng.
+The string comparison policy does not only determine which comes first; it also determines which two strings belong to the same group when `compare(a,b)==0`. Under any rule (natural, case-insensitive, `Collator`, or numeric-part comparison), sign symmetry, transitivity, and consistent comparison signs for tied elements must still hold.
 
-Ví dụ `String.CASE_INSENSITIVE_ORDER.compare("A","a")==0` nhưng `"A".equals("a")` là `false`. Đây là một comparator hợp lệ để hiển thị, song `TreeSet` có thể gộp hai khóa ấy. Thêm `thenComparing(Comparator.naturalOrder())` nếu cần giữ từng biến thể String khác nhau; **đừng thêm tie-breaker** nếu nghiệp vụ thật sự muốn định danh không phân biệt hoa/thường.
+For example, `String.CASE_INSENSITIVE_ORDER.compare("A","a")==0` while `"A".equals("a")` is `false`. This is a valid comparator for display, yet `TreeSet` may merge those two keys. Add `thenComparing(Comparator.naturalOrder())` if you need to keep every distinct String variant; **do not add a tie-breaker** if business logic truly wants case-insensitive identity.
 
-Đối với chuỗi có dấu hoặc mã số, cần xác định normalization, locale, case policy, leading zero và khóa định danh trước khi chọn cách phá hòa. Comparator không nên phụ thuộc random, thời gian, cấu hình `Collator` đang bị sửa hoặc nguồn ngoài thay đổi trong lúc sort. Với các tiêu chí số, dùng factory chuẩn (`comparingInt/Long`) thay cho phép trừ có nguy cơ tràn. Khi so trong `TreeSet/TreeMap`, kiểm tra cả hai chiều của quan hệ `compare==0` và `equals` với dữ liệu đại diện.
-## 4. Lựa chọn một: thứ tự kỹ thuật của `String`
+For accented strings or numeric codes, determine normalization, locale, case policy, leading zeros, and identity keys before choosing a tie-breaking strategy. A comparator must not depend on randomness, time, a `Collator` configuration being mutated, or external sources changing during sorting. For numeric criteria, use standard factories (`comparingInt/Long`) instead of overflow-prone subtraction. When comparing in `TreeSet/TreeMap`, check both directions of the `compare==0` and `equals` relationship with representative data.
+## 4. Option One: Technical Order of `String`
 
-`String.compareTo` so các đơn vị mã UTF-16 theo thứ tự từ trái sang phải, khác với việc dùng quy tắc bảng chữ cái tự nhiên của bất kỳ locale cụ thể nào. Với các chuỗi có dấu hoặc surrogate pair, không suy luận rằng so UTF-16 đồng nghĩa với so “ký tự người dùng nhìn thấy” theo ngôn ngữ.
+`String.compareTo` compares UTF-16 code units from left to right, which differs from using the natural alphabetical rules of any specific locale. For accented strings or surrogate pairs, do not infer that UTF-16 comparison equals linguistic "user-perceived character" comparison.
 
 ```java
 Comparator<String> technical = Comparator.naturalOrder();
@@ -56,11 +56,11 @@ labels.sort(technical);
 System.out.println(labels); // [A, B, a, b]
 ```
 
-Đây là đoạn minh họa trong phương thức có import `java.util.*` hoặc các import tương đương. Thứ tự này thích hợp với mã kỹ thuật có schema cố định nếu yêu cầu đúng là thứ tự so sánh String. Nó **không** phải cách chuẩn để hiển thị tên tiếng Việt cho con người.
+This is an illustrative snippet inside a method with `import java.util.*` or equivalent imports. This order suits technical codes with a fixed schema if the requirement specifically calls for String comparison order. It is **not** the standard way to display Vietnamese names to humans.
 
-### Unicode normalization và biểu diễn cùng ký tự
+### Unicode normalization and representing the same character
 
-Hai chuỗi trông giống nhau có thể dùng các dãy Unicode khác nhau: một ký tự có dấu dựng sẵn, hoặc ký tự cơ sở cộng dấu kết hợp. `String.equals` và `compareTo` nhìn vào dãy mã nên có thể cho kết quả khác nhau. Nếu miền nghiệp vụ coi các biểu diễn tương đương chuẩn Unicode là cùng dữ liệu, có thể chuẩn hóa về NFC khi nhận dữ liệu:
+Two visually identical strings can use different Unicode sequences: a precomposed accented character, or a base character plus a combining diacritic mark. `String.equals` and `compareTo` inspect code unit sequences and thus may give different results. If the business domain treats canonically equivalent Unicode representations as the same data, normalize to NFC upon ingesting data:
 
 ```java
 import java.text.Normalizer;
@@ -68,11 +68,11 @@ import java.text.Normalizer;
 String normalized = Normalizer.normalize(raw, Normalizer.Form.NFC);
 ```
 
-Đoạn trích này cần biến `raw` đã khai báo. Không mặc định chuẩn hóa tất cả trường như mật khẩu, token, mã ký hoặc ID bên ngoài: chuẩn hóa có thể làm thay đổi dữ liệu mang ý nghĩa định danh. Hãy thống nhất cả lúc nhập, lưu, tìm kiếm và so sánh.
+This excerpt assumes an already declared `raw` variable. Do not blindly normalize all fields such as passwords, tokens, signature codes, or external IDs: normalization can alter identity-bearing data. Be consistent across input, storage, lookup, and comparison.
 
-## 5. Lựa chọn hai: so sánh bỏ qua hoa/thường
+## 5. Option Two: Case-Insensitive Comparison
 
-`String.CASE_INSENSITIVE_ORDER` và `String.compareToIgnoreCase` thực hiện so sánh không phân biệt hoa/thường theo cơ chế dựa trên ánh xạ chữ hoa/chữ thường của Java, **không phải bộ sắp xếp ngôn ngữ có locale**. Chúng không đồng nghĩa với `Collator`, và không tự xử lý mọi biến thể Unicode, dấu hay cách ghép chữ theo từng ngôn ngữ.
+`String.CASE_INSENSITIVE_ORDER` and `String.compareToIgnoreCase` perform case-insensitive comparison based on Java's character case mappings, **not a locale-aware linguistic collator**. They are not synonymous with `Collator`, and do not automatically handle all Unicode variants, accents, or language-specific ligatures.
 
 ```java
 Comparator<String> ignoreCase = String.CASE_INSENSITIVE_ORDER;
@@ -80,26 +80,26 @@ Comparator<String> ignoreCaseThenNatural =
         ignoreCase.thenComparing(Comparator.naturalOrder());
 ```
 
-Với `List.of("b", "A", "a", "B")`:
-- Sắp xếp `ignoreCase` bằng `List.sort` (stable) cho `[A, a, b, B]`. Hai giá trị không phân biệt được bằng comparator giữ tương đối thứ tự xuất hiện trong list đầu vào.
-- Sắp xếp `ignoreCaseThenNatural` cho `[A, a, B, b]`. Tiêu chí phụ dùng `String.compareTo` tách `A/a` và `B/b`.
-- Thêm cả bốn chuỗi vào `TreeSet<>(ignoreCase)` chỉ có **hai phần tử**, vì `compare==0` được coi là trùng.
+With `List.of("b", "A", "a", "B")`:
+- Sorting with `ignoreCase` via `List.sort` (stable) yields `[A, a, b, B]`. Two values indistinguishable by the comparator retain their relative input order in the list.
+- Sorting with `ignoreCaseThenNatural` yields `[A, a, B, b]`. The secondary criterion uses `String.compareTo` to separate `A/a` and `B/b`.
+- Adding all four strings to `TreeSet<>(ignoreCase)` yields only **two elements**, because `compare==0` is treated as duplicate.
 
-**Câu hỏi nghiệp vụ trọng yếu:** muốn nhóm `"A"` và `"a"` như cùng tên, hay chỉ muốn chúng nằm gần nhau nhưng vẫn là hai khóa riêng? Câu trả lời quyết định có dùng tie-breaker hay không.
+**Crucial business question:** do you want to group `"A"` and `"a"` as the same name, or only place them next to each other while remaining two separate keys? The answer determines whether to use a tie-breaker.
 
-### Không lạm dụng `toLowerCase()`
+### Do not misuse `toLowerCase()`
 
-Có thể thấy code dạng `Comparator.comparing(s -> s.toLowerCase())`. Cách này:
-- Phụ thuộc default locale nếu không truyền `Locale`.
-- Có thể tạo chuỗi mới nhiều lần trong khi sort.
-- Có thể có hành vi khác với `compareToIgnoreCase` vì Unicode case conversion phụ thuộc locale và có thể thay đổi chiều dài.
-- Không giải quyết luôn quy tắc dấu, biến thể chuẩn Unicode hoặc tính nhất quán với khóa database.
+You may see code like `Comparator.comparing(s -> s.toLowerCase())`. This approach:
+- Depends on the default locale if no `Locale` is passed.
+- May allocate new strings repeatedly during sorting.
+- Can behave differently from `compareToIgnoreCase` because Unicode case conversion is locale-dependent and can change string length.
+- Does not by itself solve accent rules, Unicode canonical forms, or consistency with database keys.
 
-Nếu thật sự cần một khóa canonical không phụ thuộc locale, hãy chọn và ghi rõ một chính sách như `toLowerCase(Locale.ROOT)`, cân nhắc Unicode normalization, kiểm tra các ngôn ngữ liên quan và xử lý tie-break. `Locale.ROOT` không có nghĩa là “đúng theo mọi ngôn ngữ”; nó phù hợp hơn cho một số biến đổi kỹ thuật không hướng đến quy tắc hiển thị của một quốc gia.
+If a locale-independent canonical key is genuinely needed, pick and document a policy such as `toLowerCase(Locale.ROOT)`, consider Unicode normalization, test relevant languages, and handle tie-breaking. `Locale.ROOT` does not mean "correct for every language"; it is better suited for certain technical transformations not aimed at one country's display rules.
 
-## 6. Lựa chọn ba: so sánh ngôn ngữ bằng `Collator`
+## 6. Option Three: Linguistic Comparison with `Collator`
 
-Với tên người, tên địa danh hoặc nhãn hiển thị, thường cần **collation** theo locale. Java có `java.text.Collator`:
+For personal names, place names, or display labels, locale-based **collation** is often required. Java provides `java.text.Collator`:
 
 ```java
 import java.text.Collator;
@@ -115,40 +115,40 @@ Comparator<String> vietnameseWithTieBreaker =
         vietnameseOrder.thenComparing(Comparator.naturalOrder());
 ```
 
-Ở đây:
-- Chọn locale **tường minh** (`vi-VN`) thay vì mặc định phụ thuộc máy chạy.
-- `Collator` đưa ra thứ tự ngôn ngữ cho locale đã chọn, phù hợp hơn `String.compareTo` khi sort tên tiếng Việt.
-- `setStrength` quy định mức khác biệt được xét: `PRIMARY` chủ yếu phân biệt chữ cơ sở; `SECONDARY` thêm mức khác biệt phụ như nhiều loại dấu; `TERTIARY` thêm khác biệt ở mức sâu hơn như một số khác biệt về hoa/thường. Cách sắp chính xác phụ thuộc quy tắc và dữ liệu locale do JDK cung cấp.
-- `thenComparing(Comparator.naturalOrder())` phá hòa khi collator cho kết quả `0`, nhờ đó các chuỗi khác nhau theo `String.equals` không bị nhập làm một trong `TreeSet`.
-- Không khẳng định dấu thanh tiếng Việt luôn thuộc đúng một mức strength trong mọi provider và bản dữ liệu; cần kiểm thử các trường hợp thực tế bằng JDK, locale data và chính sách sản phẩm đang triển khai.
+Here:
+- Choose the locale **explicitly** (`vi-VN`) instead of relying on the host machine's default.
+- `Collator` provides linguistic ordering for the chosen locale, which is more suitable than `String.compareTo` when sorting Vietnamese names.
+- `setStrength` specifies the level of differences considered: `PRIMARY` mainly distinguishes base letters; `SECONDARY` adds secondary differences such as many accent marks; `TERTIARY` adds finer differences such as some case distinctions. Exact sorting depends on the rules and locale data provided by the JDK.
+- `thenComparing(Comparator.naturalOrder())` breaks ties when the collator returns `0`, ensuring strings that differ under `String.equals` are not collapsed into one in a `TreeSet`.
+- Do not assert that Vietnamese tone marks always belong to a single fixed strength across every provider and data version; test real cases against the deployed JDK, locale data, and product policy.
 
-### Chọn mức strength theo yêu cầu
+### Choosing strength according to requirements
 
-| Strength | Phù hợp khi | Điều cần kiểm tra |
+| Strength | Suitable when | What to check |
 |---|---|---|
-| `Collator.PRIMARY` | Muốn nhóm nhiều biến thể nhỏ lại theo chữ cơ sở | Có thể xem những tên khác nhau là đồng hạng |
-| `Collator.SECONDARY` | Cần phân biệt thêm mức dấu/biến thể phụ theo collation | Quy tắc phân biệt cụ thể của locale |
-| `Collator.TERTIARY` | Muốn phân biệt sâu hơn, có thể gồm hoa/thường | Không mặc nhiên đồng nhất với `String.equals` |
-| `Collator.IDENTICAL` | Cần mức phân biệt cao nhất theo collator | Vẫn phải xác định yêu cầu về các dạng chuẩn Unicode, provider và tie-break |
+| `Collator.PRIMARY` | Wanting to group minor variants by base letter | May treat different names as tied |
+| `Collator.SECONDARY` | Needing to distinguish accent/secondary variants per collation | Locale-specific distinction rules |
+| `Collator.TERTIARY` | Wanting finer distinctions, potentially including case | Not automatically identical to `String.equals` |
+| `Collator.IDENTICAL` | Needing the highest distinction level supported by the collator | Still must define rules for Unicode forms, provider, and tie-breaking |
 
-`Collator.setDecomposition(Collator.CANONICAL_DECOMPOSITION)` có thể cần khi muốn xử lý nhất quán những chuỗi khác nhau ở dạng ký tự dựng sẵn và ký tự cơ sở + dấu kết hợp. Chi phí xử lý và kết quả cần được kiểm thử theo yêu cầu thực tế. Đừng thay thế việc xác định chính sách normalization dữ liệu bằng một cờ collator mà không đánh giá.
+`Collator.setDecomposition(Collator.CANONICAL_DECOMPOSITION)` may be needed to consistently handle strings differing between precomposed characters and base character + combining marks. Processing cost and output must be tested against real requirements. Do not substitute a collator flag for defining a proper data normalization policy without evaluation.
 
-**Không dùng giả định rằng thứ tự `"Hà"`, `"Hoa"`, `"Hòa"` sẽ giống nhau trên mọi phiên bản JDK và mọi cấu hình collation provider.** Dữ liệu locale có thể khác giữa các bản JDK/CLDR. Nếu cần thứ tự tuyệt đối ổn định giữa hệ thống hoặc lưu vào DB/index, cần định nghĩa phiên bản quy tắc collation được quản lý.
+**Do not assume that the order of `"Hà"`, `"Hoa"`, `"Hòa"` will be identical across every JDK version and every collation provider configuration.** Locale data can vary between JDK/CLDR releases. If an order must be strictly stable across systems or persisted into a DB/index, define a managed versioned collation rule.
 
-### `Collator` là object có trạng thái cấu hình
+### `Collator` is a stateful configurable object
 
-Các lời gọi như `setStrength`, `setDecomposition` làm thay đổi cách so sánh. Tránh chia sẻ rồi thay đổi cùng một `Collator` trong nhiều luồng hoặc khi collection đã dùng comparator đó. Nếu cần xử lý đồng thời, dùng instance riêng hoặc bản clone theo worker/thread phù hợp; đừng thay chính sách comparator trong lúc `TreeSet`/`TreeMap` đang có dữ liệu.
+Calls like `setStrength` and `setDecomposition` mutate how comparisons behave. Avoid sharing and mutating the same `Collator` across threads or while a collection is already using that comparator. If concurrent processing is needed, use separate instances or clones per worker/thread as appropriate; never alter comparator policy while a `TreeSet`/`TreeMap` already holds data.
 
-## 7. Lựa chọn bốn: mã chứa phần số
+## 7. Option Four: Codes Containing Numeric Parts
 
-Với `item1`, `item2`, `item10`, sort theo thứ tự `String.compareTo` trả `item1, item10, item2` vì so ký tự. Nếu code hợp lệ luôn có tiền tố `item` và một dãy chữ số ASCII, so **giá trị số phần hậu tố** sẽ cho `item1, item2, item10`.
+For `item1`, `item2`, `item10`, sorting by `String.compareTo` produces `item1, item10, item2` due to character-by-character comparison. If valid codes always have the prefix `item` and a sequence of ASCII digits, comparing the **numeric value of the suffix** produces `item1, item2, item10`.
 
-Quy tắc rõ ràng:
-1. Xác thực cú pháp mã trước hoặc trong hàm trích số: `item[0-9]+`.
-2. Parse phần sau `item` bằng `BigInteger` nếu không muốn giới hạn chiều dài hoặc overflow của `int`/`long`.
-3. So giá trị số trước.
-4. Quyết định `item02` với `item2`: hai mã có cùng giá trị số nhưng khác biểu diễn; nếu muốn giữ cả hai như hai khóa khác nhau, bổ sung natural-order tie-breaker.
-5. Với mã có nhiều đoạn số/chữ không đồng nhất, phải xây dựng parser/tokenizer rõ ràng; không cắt cố định ở ký tự thứ năm cho mọi domain.
+Clear rules:
+1. Validate the code syntax before or inside the number extraction function: `item[0-9]+`.
+2. Parse the part after `item` with `BigInteger` if you do not want length limits or `int`/`long` overflow.
+3. Compare numeric value first.
+4. Decide on `item02` vs `item2`: two codes with the same numeric value but different representations; if you want to keep both as distinct keys, add a natural-order tie-breaker.
+5. For codes with multiple heterogeneous numeric/alphabetic segments, build a dedicated parser/tokenizer; do not hardcode slicing at the fifth character for every domain.
 
 ```java
 static BigInteger itemNumber(String code) {
@@ -163,15 +163,15 @@ Comparator<String> byNumber = Comparator.comparing(
         .thenComparing(Comparator.naturalOrder());
 ```
 
-Đoạn trích này thuộc lớp `StringComparatorDemo` của ví dụ hoàn chỉnh phía sau. Với `item02` và `item2`, số đều là 2 nhưng tiêu chí phụ phân biệt chuỗi gốc. **Không** xử lý số bằng `return Integer.parseInt(aSuffix) - Integer.parseInt(bSuffix)` vì phép trừ có thể overflow và các số dài có thể vượt miền.
+This excerpt belongs to the `StringComparatorDemo` class in the complete example below. For `item02` and `item2`, both numbers are 2, yet the secondary criterion distinguishes the original strings. Do **not** handle numbers via `return Integer.parseInt(aSuffix) - Integer.parseInt(bSuffix)` because subtraction can overflow and long numbers can exceed range limits.
 
-Một chính sách khác có thể muốn các mã số `02` và `2` là **cùng định danh**. Nếu vậy cần chuẩn hóa khóa ngay khi ghi hoặc so `0` một cách có chủ đích; cần cân nhắc tác động lên `TreeSet`/`TreeMap` và uniqueness của dữ liệu.
+An alternative policy might want numeric codes `02` and `2` to be **the same identifier**. In that case, normalize the key upon writing or deliberately return `0`; weigh the impact on `TreeSet`/`TreeMap` and data uniqueness.
 
-## 8. Lựa chọn năm: null, khoảng trắng, nhiều tiêu chí
+## 8. Option Five: Null, Whitespace, Multiple Criteria
 
 ### Null
 
-`Comparator.naturalOrder()` và nhiều comparator khác không nhận `null`; nếu dữ liệu cho phép `null`, định nghĩa thứ tự:
+`Comparator.naturalOrder()` and many other comparators do not accept `null`; if data permits `null`, define its placement:
 
 ```java
 Comparator<String> nullLast =
@@ -179,11 +179,11 @@ Comparator<String> nullLast =
                 .thenComparing(Comparator.naturalOrder()));
 ```
 
-Nếu `null` phải đứng đầu dùng `Comparator.nullsFirst(...)`. Với danh sách có `null`, tránh `List.of(...)` vì factory này không chấp nhận null; dùng `Arrays.asList(...)` hoặc list mutable theo nhu cầu. Nếu null là dữ liệu không hợp lệ, fail fast ở biên input còn tốt hơn âm thầm xếp null cuối.
+If `null` must come first, use `Comparator.nullsFirst(...)`. For lists containing `null`, avoid `List.of(...)` since that factory rejects null; use `Arrays.asList(...)` or a mutable list as needed. If null is invalid data, failing fast at the input boundary is better than silently sorting nulls to the end.
 
-### Khoảng trắng và tiêu chí phụ
+### Whitespace and secondary criteria
 
-Nếu yêu cầu là “bỏ khoảng trắng đầu/cuối khi xếp nhưng vẫn phân biệt chuỗi gốc”, có thể:
+If the requirement is "ignore leading/trailing whitespace when sorting while still distinguishing original strings," you can write:
 
 ```java
 Comparator<String> trimThenNatural =
@@ -191,13 +191,13 @@ Comparator<String> trimThenNatural =
                 .thenComparing(Comparator.naturalOrder());
 ```
 
-`String.strip` dựa trên Unicode whitespace theo `Character.isWhitespace` và khác `String.trim`. Một số ký tự không bị xử lý theo cách người dùng mong đợi, nên cần kiểm thử dữ liệu thực. Comparator trên **không sửa chính chuỗi gốc**; chỉ sử dụng bản transform để so, rồi so chuỗi gốc khi bằng nhau.
+`String.strip` is based on Unicode whitespace per `Character.isWhitespace` and differs from `String.trim`. Some characters may not be handled as users expect, so test with real data. The comparator above **does not modify the original strings themselves**; it only uses the transformed value for comparison, then compares the original strings on ties.
 
-Nếu cần chính sách “không phân biệt hoa/thường; độ dài tăng; cuối cùng chữ gốc”, viết thứ tự tiêu chí tường minh. Hãy kiểm tra trường hợp hai comparator khác nhau về tính tương đương để tránh gộp khóa ngoài ý muốn.
+If a policy like "case-insensitive; ascending length; finally original text" is needed, write the precedence order explicitly. Check cases where two comparators differ in equivalence semantics to avoid unintended key collapsing.
 
-## 9. Ví dụ Java 17 hoàn chỉnh, output có thể kiểm chứng
+## 9. Complete Java 17 Example with Verifiable Output
 
-Tệp **`StringComparatorDemo.java`** sau đây chạy độc lập bằng JDK 17+. Nó minh họa kết quả xác định cho natural order, case-insensitive, tie-breaker, hậu tố số và null. Phần `Collator` không in danh sách đã sắp vì thứ tự chữ tiếng Việt có thể phụ thuộc phiên bản dữ liệu locale; chương trình vẫn thiết lập và chạy comparator thực tế.
+The following **`StringComparatorDemo.java`** file runs standalone with JDK 17+. It demonstrates deterministic results for natural order, case-insensitive, tie-breaker, numeric suffix, and null. The `Collator` section does not print the sorted list because Vietnamese letter order can depend on locale data version; the program still configures and runs the actual comparator.
 
 ```java
 import java.math.BigInteger;
@@ -267,14 +267,14 @@ public class StringComparatorDemo {
 }
 ```
 
-Chạy tại thư mục lưu tệp:
+Run in the directory where the file is saved:
 
 ```bash
 javac --release 17 StringComparatorDemo.java
 java StringComparatorDemo
 ```
 
-Output chính xác của các dòng in dưới đây:
+Exact output for the printed lines below:
 
 ```text
 natural: [A, B, a, b]
@@ -288,20 +288,20 @@ vi collator configured: true
 vi names count: 4
 ```
 
-Ví dụ này đã được kiểm tra biên dịch/chạy với `javac --release 17`. Giải thích chi tiết:
+This example has been verified to compile and run with `javac --release 17`. Detailed explanation:
 
-- `natural`: ký tự đầu `A`/`B` đứng trước `a`/`b` theo quy tắc UTF-16.
-- `ignore case`: `List.sort` ổn định, nên trong các nhóm so bằng nhau (`A/a` và `b/B`) nó giữ thứ tự tương đối lúc đầu.
-- `tie breaker`: tiêu chí phụ natural order phân biệt hoa/thường, khiến các giá trị khác nhau có thứ tự rõ.
-- `TreeSet` bỏ bớt các phần tử khi comparator trả `0` cho những chuỗi khác nhau về `String.equals`.
-- `IDs natural`: so chuỗi thuần, nên `item02` đứng trước `item1` và `item10` đứng trước `item2`.
-- `IDs numeric`: parse hậu tố số, rồi natural order phá hòa `item02`/`item2`.
-- `null last`: comparator xác định vị trí `null`.
-- `vi collator`: kiểm tra một instance `Collator` cho locale Việt đã được cấu hình và đã dùng sort 4 tên. Chương trình cố tình chỉ in **số phần tử** để không phụ thuộc thứ tự ngôn ngữ được cung cấp ở từng JDK.
+- `natural`: uppercase `A`/`B` come before `a`/`b` under UTF-16 rules.
+- `ignore case`: `List.sort` is stable, so within equal-comparison groups (`A/a` and `b/B`) it preserves initial relative order.
+- `tie breaker`: the natural-order secondary criterion distinguishes uppercase/lowercase, giving distinct values a deterministic order.
+- `TreeSet` drops elements when the comparator returns `0` for strings differing under `String.equals`.
+- `IDs natural`: pure string comparison puts `item02` before `item1` and `item10` before `item2`.
+- `IDs numeric`: parses the numeric suffix, then natural order breaks the `item02`/`item2` tie.
+- `null last`: the comparator specifies the placement of `null`.
+- `vi collator`: checks that a `Collator` instance for the Vietnamese locale is configured and used to sort 4 names. The program deliberately prints only the **element count** so it does not depend on the linguistic order supplied by each JDK.
 
-## 10. Tie-breaker khi sắp xếp đối tượng có tên
+## 10. Tie-Breakers When Sorting Objects with Names
 
-Khi có dữ liệu đối tượng, hãy so theo trường đã chọn và thêm một khóa bất biến để phân biệt các bản ghi nếu business yêu cầu thứ tự tổng:
+When working with object data, compare by the chosen field and append an immutable key to distinguish records if business logic requires a total order:
 
 ```java
 record Customer(long id, String displayName) {}
@@ -313,112 +313,112 @@ Comparator<Customer> byDisplayNameThenId =
         .thenComparingLong(Customer::id);
 ```
 
-Đoạn trên là ví dụ minh họa, không nằm trong file chạy ở mục 9. Nếu hai khách hàng khác nhau có tên giống nhau khi bỏ qua hoa/thường, ID dùng làm tiêu chí phụ. Điều kiện là ID có ý nghĩa định danh duy nhất và ổn định. Nếu cùng ID vẫn có thể xuất hiện nhiều bản ghi khác nhau trong list, cần kiểm tra lại mô hình.
+The above is an illustrative example, not included in the runnable file in section 9. If two different customers share the same case-insensitive name, ID serves as the secondary criterion. The condition is that ID represents a unique and stable identifier. If multiple distinct records can still share the same ID in the list, re-examine the model.
 
-Trường hợp hiển thị tiếng Việt, có thể thay `String.CASE_INSENSITIVE_ORDER` bằng một comparator dựa trên `Collator` được cấu hình. Nhưng phải xác định việc khác dấu/hòa khi collation trả `0` sẽ được phân xử bởi ID hay chuỗi gốc để đáp ứng nghiệp vụ.
+For Vietnamese display, you can replace `String.CASE_INSENSITIVE_ORDER` with a comparator based on a configured `Collator`. However, you must decide whether accent differences or ties where collation returns `0` should be broken by ID or by the original string to match business rules.
 
-### Khi tie-breaker là sai chủ ý
+### When a tie-breaker is unintended
 
-Nếu hệ thống xem hai tên tài khoản `"ADMIN"` và `"admin"` là cùng một định danh không phân biệt hoa/thường, comparator cho kết quả `0` có thể đúng với *quan hệ duy nhất* đó. Thêm `thenComparing(naturalOrder())` sẽ khiến chúng trở thành hai khóa khác nhau trong `TreeMap`. Vì vậy **tie-breaker là một quyết định nghiệp vụ**, không phải quy tắc máy móc.
+If the system treats two account names `"ADMIN"` and `"admin"` as the same case-insensitive identifier, a comparator returning `0` may be right for that *uniqueness relation*. Adding `thenComparing(naturalOrder())` would turn them into two separate keys in a `TreeMap`. Thus **a tie-breaker is a business decision**, not a mechanical rule.
 
-Đặc biệt cần kiểm tra consistency giữa application và database: nếu database dùng collation khác hoặc unique index bỏ qua hoa/thường/dấu khác Java comparator, ứng dụng có thể cho phép khóa mà cơ sở dữ liệu từ chối, hoặc ngược lại.
+In particular, check consistency between the application and the database: if the database uses a different collation or unique index ignoring case/accents differently from the Java comparator, the application may allow a key that the database rejects, or vice versa.
 
-## 11. Hiệu năng và tính ổn định trong hệ thống
+## 11. Performance and Stability in Systems
 
-Một comparator được gọi nhiều lần khi sort, có thể khoảng `O(n log n)` lần đối với thuật toán sort so sánh thường dùng. Vì vậy:
+A comparator is invoked many times during a sort, roughly `O(n log n)` times for typical comparison-based sorting algorithms. Therefore:
 
-- Không gọi HTTP/database trong `compare`.
-- Không parse một mã phức tạp hoặc normalize chuỗi hàng nghìn lần nếu có thể chuẩn bị khóa sort một lần cho từng phần tử. Với dataset lớn, mô hình dữ liệu nên lưu sẵn khóa chuẩn hóa hoặc sử dụng sort key thích hợp và kiểm soát version.
-- Không thay đổi `Collator` đang được dùng bởi `TreeSet`/`TreeMap` sau khi collection đã có phần tử.
-- Không dùng comparator dựa trên thời gian, random hoặc trạng thái volatile thay đổi trong lúc sort.
-- Với nhiều luồng, mỗi luồng nên có cấu hình `Collator` riêng hoặc cơ chế clone/quản lý instance phù hợp; tránh sửa một instance dùng chung.
-- Kiểm tra kết quả sort khi nâng JDK, thay đổi locale provider/CLDR, hoặc di chuyển sang database có collation khác. Nếu thứ tự là hợp đồng dữ liệu hoặc ảnh hưởng pagination, phải quản trị rõ phiên bản và tie-breaker ổn định.
-- Sắp xếp trong DB cần `ORDER BY` tương ứng và tie-breaker duy nhất để pagination ổn định; một comparator Java chỉ sắp được dữ liệu đã được nạp vào bộ nhớ, không đảm bảo thứ tự trang phía DB.
+- Do not make HTTP/database calls inside `compare`.
+- Do not parse complex codes or normalize strings thousands of times if sort keys can be prepared once per element. For large datasets, the data model should pre-store normalized keys or use an appropriate sort key with version control.
+- Do not mutate a `Collator` currently used by a `TreeSet`/`TreeMap` after the collection already contains elements.
+- Do not use a comparator relying on time, randomness, or volatile state changing mid-sort.
+- With multiple threads, each thread should have its own configured `Collator` or proper cloning/instance management; avoid mutating a shared instance.
+- Verify sort results when upgrading the JDK, changing locale providers/CLDR, or migrating to a database with a different collation. If ordering is a data contract or affects pagination, explicitly manage versions and stable tie-breakers.
+- Sorting in the DB requires matching `ORDER BY` and a unique tie-breaker for stable pagination; a Java comparator only sorts data already loaded into memory and cannot guarantee DB-side page ordering.
 
-Nếu mục tiêu chỉ là hiển thị tên, có thể chấp nhận phụ thuộc dữ liệu collation của JDK. Nếu mục tiêu là định danh, chống trùng hoặc chữ ký/canonicalization, hãy dùng quy tắc riêng **cố định và kiểm thử được**.
+If the goal is solely displaying names, depending on JDK collation data may be acceptable. If the goal is identity, deduplication, or signatures/canonicalization, use a custom rule that is **fixed and testable**.
 
-## 12. Kiểm thử comparator theo nghiệp vụ
+## 12. Testing Comparators Against Business Rules
 
-Đừng chỉ kiểm thử một danh sách happy path. Hãy tạo tập test gồm:
+Do not test only a single happy-path list. Build a test suite covering:
 
-| Loại trường hợp | Ví dụ | Cần xác minh |
+| Case category | Example | What to verify |
 |---|---|---|
-| Hoa/thường | `A`, `a`, `B`, `b` | Có gộp hay phân biệt, tie-break ra sao |
-| Dấu tiếng Việt | `ma`, `má`, `mà`, `MÁ` | Thứ tự phù hợp rule, locale và strength |
-| Khác dạng Unicode | Ký tự dựng sẵn và ký tự gốc + dấu | Chính sách NFC/NFD và collation nhất quán |
-| Số trong mã | `item2`, `item10`, `item02` | Parse số, leading zero, tie-break |
-| Khoảng trắng | `" An"`, `"An"`, `"An "` | Có strip/trim hay giữ nguyên |
-| Null | `null`, `""`, `"a"` | Xếp đầu/cuối hoặc từ chối dữ liệu |
-| Chuỗi rỗng | `""` | Chấp nhận hay validation fail |
-| Kiểu hỗn hợp | Chữ, số, emoji, ký tự ngoài BMP | Không giả định UTF-16 tương đương collation |
-| Nhiều object cùng tên | Hai khách ID khác nhau | Có mất phần tử trong `TreeSet` không |
+| Case | `A`, `a`, `B`, `b` | Whether merged or distinguished, how tie-breaking works |
+| Vietnamese accents | `ma`, `má`, `mà`, `MÁ` | Order matches rule, locale, and strength |
+| Unicode forms | Precomposed char vs base char + mark | Consistent NFC/NFD policy and collation |
+| Numbers in codes | `item2`, `item10`, `item02` | Numeric parsing, leading zeros, tie-breaking |
+| Whitespace | `" An"`, `"An"`, `"An "` | Whether stripped/trimmed or preserved |
+| Null | `null`, `""`, `"a"` | Placed first/last or rejected as invalid data |
+| Empty string | `""` | Accepted or fails validation |
+| Mixed characters | Letters, digits, emoji, non-BMP chars | Never assume UTF-16 matches collation |
+| Multiple objects with same name | Two customers with different IDs | Whether elements are dropped in `TreeSet` |
 
-Ngoài thứ tự kỳ vọng, kiểm thử **hợp đồng toán học** của comparator:
-1. Với mỗi `a,b`: dấu của `compare(a,b)` đối nghịch dấu của `compare(b,a)`.
-2. Với `a,b,c`: nếu `a<=b` và `b<=c` thì `a<=c`.
-3. Khi `compare(a,b)==0`, so `a` và `b` với từng `c` khác phải cho dấu tương đương.
-4. Khi comparator làm khóa `TreeSet`/`TreeMap`, kiểm tra các cặp khác nhau theo `equals` có bị gộp ngoài mong muốn không.
-5. Kiểm tra sắp xếp lặp lại ra cùng kết quả dưới cùng bộ dữ liệu, cùng quy tắc và cấu hình locale.
+Beyond expected ordering, test the **mathematical contract** of the comparator:
+1. For every `a,b`: the sign of `compare(a,b)` is the opposite of the sign of `compare(b,a)`.
+2. For `a,b,c`: if `a<=b` and `b<=c`, then `a<=c`.
+3. When `compare(a,b)==0`, comparing `a` and `b` against every other `c` must yield equivalent signs.
+4. When the comparator serves as `TreeSet`/`TreeMap` keys, check whether pairs differing by `equals` get unexpectedly merged.
+5. Check that repeated sorting yields the exact same output under the same dataset, rules, and locale configuration.
 
-Có thể tạo một unit test có comparator chuẩn, dùng `Collections.sort` hoặc `List.sort`, rồi assert danh sách chính xác. Với `Collator`, test trên JDK/provider/locale data của môi trường hỗ trợ, đồng thời ghi rõ phiên bản nếu thứ tự phải tái lập.
+You can write a unit test with the target comparator, run `Collections.sort` or `List.sort`, and assert the exact resulting list. With `Collator`, test on the JDK/provider/locale data of the supported environment, and record the version if ordering must be reproducible.
 
-## 13. Những sai lầm thường gặp
+## 13. Common Mistakes
 
-**1. Dùng `String.compareTo` cho mọi ngôn ngữ.** Đây là thứ tự kỹ thuật UTF-16, không giải quyết đầy đủ collation theo tiếng Việt.
+**1. Using `String.compareTo` for every language.** This is technical UTF-16 order and does not fully handle Vietnamese collation.
 
-**2. Dùng `compareToIgnoreCase` rồi giả định mọi cách viết đều tương đương.** Nó không phải full Unicode case folding hoặc collation, và không tự bỏ dấu.
+**2. Using `compareToIgnoreCase` and assuming all spellings are equivalent.** It is neither full Unicode case folding nor collation, and does not strip accents.
 
-**3. Dùng `Collator.getInstance()` không truyền locale.** Kết quả có thể phụ thuộc môi trường JVM; cần chọn locale theo chức năng.
+**3. Calling `Collator.getInstance()` without passing a locale.** Results can depend on the JVM environment; choose the locale based on the feature.
 
-**4. Cho comparator trả `0` với mọi tên “gần giống” rồi đưa vào `TreeSet`.** Nhiều phần tử khác nhau có thể bị xem như một. Nếu mục tiêu chỉ là sort, cần tie-breaker.
+**4. Having the comparator return `0` for all "similar" names and putting them into a `TreeSet`.** Multiple distinct elements can be treated as one. If the goal is only sorting, a tie-breaker is needed.
 
-**5. Thêm tie-breaker vào quy tắc unique không phân biệt hoa/thường.** Có thể vô tình cho phép hai khóa mà nghiệp vụ muốn coi là trùng.
+**5. Adding a tie-breaker to a case-insensitive uniqueness rule.** This can accidentally allow two keys that business logic considers duplicates.
 
-**6. So số bằng cách so string hoặc phép trừ.** `item10` đứng trước `item2` theo từ điển; phép trừ số có thể overflow.
+**6. Comparing numbers via string comparison or subtraction.** `item10` precedes `item2` lexicographically; numeric subtraction can overflow.
 
-**7. Chuẩn hóa dữ liệu không kiểm soát.** `strip`/`toLowerCase`/NFC có thể hợp lý cho một nhóm trường nhưng làm biến đổi token hoặc khóa bên ngoài.
+**7. Uncontrolled data normalization.** `strip`/`toLowerCase`/NFC may make sense for one group of fields while corrupting tokens or external keys.
 
-**8. Comparator phụ thuộc trạng thái mutable.** Thay đổi thông tin của khóa đang trong `TreeMap`/`TreeSet` có thể phá tính tổ chức của cây, tương tự vấn đề hash collection khi key đổi hash.
+**8. A comparator depending on mutable state.** Changing key information while inside a `TreeMap`/`TreeSet` can break tree structure, similar to hash collection issues when a key changes its hash.
 
-**9. Test một bản JDK rồi khẳng định thứ tự locale bất biến.** Với tên hiển thị, nên xác nhận cả dữ liệu locale và môi trường triển khai.
+**9. Testing on one JDK release and claiming locale order is immutable.** For display names, verify both locale data and the deployment environment.
 
-## 14. Bài tập thực hành có tiêu chí rõ ràng
+## 14. Practice Exercises with Clear Criteria
 
-### Bài 1 — Sắp tên giao diện theo tiếng Việt
+### Exercise 1 — Sorting UI names in Vietnamese
 
-Tạo list `["Hoa", "Hòa", "Hà", "Anh"]`. So bằng `String.compareTo` và một `Collator` locale `vi-VN` ở các mức strength. Ghi nhận kết quả trên môi trường thực tế; giải thích vì sao so sánh UTF-16 khác ngôn ngữ. Đánh giá xem cần giữ hoa/thường, dấu và tie-break chuỗi gốc hay không.
+Create the list `["Hoa", "Hòa", "Hà", "Anh"]`. Compare using `String.compareTo` and a `vi-VN` locale `Collator` at different strength levels. Record actual results in your environment; explain why UTF-16 comparison differs from linguistic comparison. Evaluate whether case, accents, and an original-string tie-breaker need to be preserved.
 
-### Bài 2 — Từ danh sách sang tập hợp
+### Exercise 2 — From list to set
 
-Dùng `["Admin", "admin", "ADMIN"]` trong `ArrayList` và `TreeSet` với `String.CASE_INSENSITIVE_ORDER`. So số lượng phần tử và giải thích tại sao. Thử `thenComparing(Comparator.naturalOrder())`. Quyết định cách đúng cho danh sách hiển thị và cho khóa tài khoản không phân biệt hoa/thường.
+Use `["Admin", "admin", "ADMIN"]` in an `ArrayList` and a `TreeSet` with `String.CASE_INSENSITIVE_ORDER`. Compare element counts and explain why. Try `thenComparing(Comparator.naturalOrder())`. Decide the right approach for a display list versus case-insensitive account keys.
 
-### Bài 3 — Sắp mã sản phẩm có số
+### Exercise 3 — Sorting product codes with numbers
 
-Nhập `item1`, `item02`, `item2`, `item10`. Viết comparator so BigInteger hậu tố rồi tie-break theo biểu diễn gốc. Bổ sung validation từ chối `item-2` và `itemX`. Thử số dài hơn giới hạn `long`.
+Input `item1`, `item02`, `item2`, `item10`. Write a comparator comparing the BigInteger suffix then tie-breaking by the original representation. Add validation rejecting `item-2` and `itemX`. Test numbers longer than `long` limits.
 
-### Bài 4 — Tên có khoảng trắng
+### Exercise 4 — Names with whitespace
 
-Thiết kế comparator sắp `" An"`, `"An"` và `"An "` theo chuỗi sau `strip`, sau đó theo chuỗi gốc. Nêu lý do có hoặc không chuẩn hóa dữ liệu ngay lúc nhập.
+Design a comparator sorting `" An"`, `"An"`, and `"An "` by their `strip`ped strings, then by original strings. State reasons for or against normalizing data upon input.
 
-### Bài 5 — Ba tiêu chí cho đối tượng
+### Exercise 5 — Three criteria for objects
 
-Với record `Customer(id, displayName, priority)`, viết comparator: priority tăng dần, tên theo quy tắc đã chọn, ID tăng dần để phá hòa. Kiểm tra không mất bản ghi khi đưa vào `TreeSet` nếu ID là duy nhất và không đổi.
+Given record `Customer(id, displayName, priority)`, write a comparator: priority ascending, name by a chosen rule, ID ascending to break ties. Verify no records are lost when inserted into a `TreeSet` if ID is unique and immutable.
 
-### Bài 6 — Test hợp đồng
+### Exercise 6 — Contract test
 
-Sinh một tập chuỗi gồm ASCII, chữ có dấu, emoji, chuỗi rỗng; kiểm tra tính đối dấu và bắc cầu trên mọi bộ ba trong tập hữu hạn. Khi phát hiện tình huống kết quả `compare==0` cho hai chuỗi khác `equals`, quyết định đó là quy tắc grouping có chủ đích hay lỗi cần sửa.
+Generate a set of strings containing ASCII, accented letters, emoji, and empty strings; check sign symmetry and transitivity across every triple in the finite set. When encountering a case where `compare==0` for two strings differing under `equals`, decide whether that is an intentional grouping rule or a bug to fix.
 
-## 15. Checklist ra quyết định cuối bài
+## 15. End-of-Lesson Decision Checklist
 
-- Đã biết rõ dữ liệu là mã kỹ thuật, tên/ngôn ngữ hay mã có phần số.
-- Đã chọn chính sách locale, hoa/thường, dấu, Unicode normalization và khoảng trắng.
-- Đã giải thích đúng ý nghĩa `compare(a,b)==0` trong nghiệp vụ.
-- Đã phân biệt yêu cầu **sort** với yêu cầu **uniqueness** của `TreeSet`/`TreeMap`.
-- Đã có tie-breaker ổn định khi muốn giữ mọi bản ghi khác nhau.
-- Đã xử lý hợp lệ `null`, dữ liệu sai cấu trúc và số có leading zero.
-- Comparator giữ tính đối dấu, bắc cầu, và kết quả nhất quán trên dữ liệu không đổi.
-- Đã kiểm tra locale/provider/JDK khi cần thứ tự ngôn ngữ ổn định.
-- Đã kiểm tra sự tương thích với collation ở database nếu so sánh diễn ra cả hai nơi.
-- Chạy được `StringComparatorDemo.java`, giải thích được các dòng stdout và đánh đổi từng comparator.
+- Clarified whether data consists of technical codes, names/natural language, or alphanumeric codes.
+- Chosen policies for locale, case, accents, Unicode normalization, and whitespace.
+- Correctly explained the business meaning of `compare(a,b)==0`.
+- Distinguished **sorting** requirements from **uniqueness** requirements in `TreeSet`/`TreeMap`.
+- Included a stable tie-breaker when wanting to preserve all distinct records.
+- Properly handled `null`, malformed input, and numbers with leading zeros.
+- Comparator preserves sign symmetry, transitivity, and consistent results on unchanged data.
+- Verified locale/provider/JDK when stable linguistic ordering is needed.
+- Checked compatibility with database collation if comparison happens in both places.
+- Successfully ran `StringComparatorDemo.java`, able to explain each stdout line and the trade-offs of each comparator.
 
-**Kết luận:** Chọn `Comparator<String>` bắt đầu từ **ý nghĩa nghiệp vụ của thứ tự và tính tương đương**, rồi mới chọn API. `String.compareTo` thích hợp cho thứ tự kỹ thuật, `CASE_INSENSITIVE_ORDER` cho nhóm bỏ qua hoa/thường, `Collator` cho quy tắc ngôn ngữ, và comparator tách số cho mã có phần số. Sử dụng tie-breaker có chủ đích để tránh làm mất khóa trong sorted collections; luôn kiểm thử các trường hợp Unicode, locale và ID thực tế.
+**Conclusion:** Choosing a `Comparator<String>` starts from the **business meaning of ordering and equivalence**, and only then picking the API. `String.compareTo` suits technical ordering, `CASE_INSENSITIVE_ORDER` suits case-insensitive grouping, `Collator` suits linguistic rules, and number-splitting comparators suit alphanumeric codes. Use tie-breakers deliberately to avoid losing keys in sorted collections; always test Unicode, locale, and real ID cases.

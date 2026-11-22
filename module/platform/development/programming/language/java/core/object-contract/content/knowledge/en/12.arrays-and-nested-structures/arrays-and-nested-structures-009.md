@@ -1,34 +1,34 @@
-# Kiểm tra `null`, mảng rỗng và phần tử mảng `null` trong Java
+# Checking `null`, Empty Arrays, and `null` Array Elements in Java
 
-Khi thiết kế `equals()`/`hashCode()` cho đối tượng chứa mảng hoặc cấu trúc lồng nhau, ba trạng thái dễ bị nhầm lẫn là **mảng `null`**, **mảng rỗng**, và **mảng có phần tử `null`**. Chúng có ý nghĩa khác nhau và thường dẫn tới kết quả bằng nhau, mã băm hoặc ngoại lệ khác nhau. Việc chọn `Arrays.equals()`, `Arrays.deepEquals()` và hàm hash tương ứng cần bám sát cấu trúc thực tế của dữ liệu.
+When designing `equals()`/`hashCode()` for objects containing arrays or nested structures, three states that are easily confused are a **`null` array**, an **empty array**, and an **array with `null` elements**. They carry different meanings and often lead to different equality results, hash codes, or exceptions. Choosing `Arrays.equals()`, `Arrays.deepEquals()`, and the corresponding hash functions must closely match the actual structure of the data.
 
-Ví dụ:
+Example:
 
 ```java
-String[] missing = null;           // Không có đối tượng mảng.
-String[] empty = {};               // Có mảng, độ dài 0.
-String[] oneNull = { null };       // Có mảng, độ dài 1; phần tử 0 là null.
-String[] oneEmpty = { "" };        // Có mảng, độ dài 1; phần tử 0 là chuỗi rỗng.
+String[] missing = null;           // No array object.
+String[] empty = {};               // Array exists, length 0.
+String[] oneNull = { null };       // Array exists, length 1; element 0 is null.
+String[] oneEmpty = { "" };        // Array exists, length 1; element 0 is the empty string.
 ```
 
-Bốn trạng thái này **không đồng nghĩa**. Đặc biệt, `null` của cả biến mảng khác với `null` ở một vị trí **bên trong mảng**.
+These four states are **not synonymous**. In particular, `null` for the whole array variable differs from `null` at a position **inside the array**.
 
-## 1. Phân biệt bằng thuộc tính và ý nghĩa nghiệp vụ
+## 1. Distinguishing by properties and business meaning
 
-| Trạng thái | Ví dụ | `array == null` | `array.length` | Diễn giải phổ biến |
+| State | Example | `array == null` | `array.length` | Common interpretation |
 | --- | --- | --- | --- | --- |
-| Mảng `null` | `String[] a = null;` | `true` | Ném `NullPointerException` nếu truy cập | Chưa có dữ liệu, không được cung cấp hoặc vắng mặt |
-| Mảng rỗng | `String[] a = {};` | `false` | `0` | Dữ liệu được cung cấp, nhưng không có phần tử |
-| Mảng chứa `null` | `String[] a = {null};` | `false` | `1` | Có một vị trí chưa có giá trị |
-| Mảng chứa chuỗi rỗng | `String[] a = {""};` | `false` | `1` | Có một giá trị `String` thật, dài 0 |
+| `null` array | `String[] a = null;` | `true` | Throws `NullPointerException` if accessed | No data yet, not provided, or absent |
+| Empty array | `String[] a = {};` | `false` | `0` | Data provided, but with zero elements |
+| Array containing `null` | `String[] a = {null};` | `false` | `1` | There is a slot with no value yet |
+| Array containing empty string | `String[] a = {""};` | `false` | `1` | There is a real `String` value of length 0 |
 
-Trong API nhận danh sách các lựa chọn, `null` có thể nghĩa là “không chỉ định”; `[]` có thể nghĩa là “đã chỉ định nhưng không chọn gì”; `[null]` có thể bị xem là dữ liệu không hợp lệ hoặc có thể là một vị trí trống hợp lệ. **Ý nghĩa chính xác do hợp đồng API quyết định**, không tự suy luận mọi trạng thái về cùng một giá trị.
+In an API accepting a list of selections, `null` may mean “unspecified”; `[]` may mean “specified, nothing selected”; `[null]` may be considered invalid data or a valid blank slot. **The exact meaning is determined by the API contract**, not by collapsing all states into the same value.
 
-Mảng nguyên thủy như `int[]` **không thể chứa phần tử `null`**. Ví dụ `int[] a = {null};` không biên dịch. Tuy nhiên, `int[] a` vẫn có thể là `null`, và mảng nhiều chiều `int[][]` có thể chứa **hàng `int[]` bằng `null`**, vì các hàng đó là tham chiếu.
+Primitive arrays such as `int[]` **cannot contain `null` elements**. For example, `int[] a = {null};` does not compile. However, `int[] a` itself can still be `null`, and a multidimensional array `int[][]` can contain a **`null` `int[]` row**, because those rows are references.
 
-## 2. Kiểm tra an toàn trước khi truy cập
+## 2. Checking safely before access
 
-Truy cập `array.length`, `array[0]` hoặc duyệt bằng vòng `for` sẽ ném `NullPointerException` nếu chính mảng là `null`. Với mảng không `null` nhưng rỗng, `array[0]` lại ném `ArrayIndexOutOfBoundsException`.
+Accessing `array.length`, `array[0]`, or iterating with a `for` loop will throw `NullPointerException` if the array itself is `null`. For a non-`null` but empty array, `array[0]` throws `ArrayIndexOutOfBoundsException`.
 
 ```java
 static boolean hasFirstNonNull(String[] values) {
@@ -38,9 +38,9 @@ static boolean hasFirstNonNull(String[] values) {
 }
 ```
 
-Đây là **mảnh phương thức minh họa**, không phải chương trình độc lập. Nhờ toán tử `&&` tính ngắn mạch, điều kiện bên phải không được tính nếu điều kiện bên trái sai; vì vậy có thể kiểm tra mảng, độ dài rồi phần tử theo đúng thứ tự.
+This is an **illustrative method fragment**, not a standalone program. Thanks to the short-circuiting `&&` operator, the right-hand condition is not evaluated if the left-hand condition is false; thus you can check the array, its length, and then the element in the proper order.
 
-Nếu yêu cầu là không được xuất hiện phần tử `null` trong toàn bộ mảng, kiểm tra từng phần tử, sau khi xử lý mảng `null` theo chính sách đã định:
+If the requirement is that no `null` elements appear anywhere in the array, check each element after handling a `null` array according to the defined policy:
 
 ```java
 static boolean hasNoNullElement(String[] values) {
@@ -56,26 +56,26 @@ static boolean hasNoNullElement(String[] values) {
 }
 ```
 
-Đoạn này chấp nhận mảng rỗng vì không có phần tử nào vi phạm; nếu nghiệp vụ bắt buộc **ít nhất một phần tử**, hãy kiểm tra thêm `values.length > 0`.
+This snippet accepts an empty array because no element violates the rule; if business logic requires **at least one element**, also check `values.length > 0`.
 
-`Objects.requireNonNull(values, "values")` phù hợp khi API cấm mảng `null`; nó ném ngoại lệ ngay tại ranh giới nhận dữ liệu, giúp phát hiện sai sót sớm. Nếu cả mảng và phần tử đều bắt buộc không null, phải kiểm tra **cả hai cấp**: `requireNonNull` trên biến mảng không tự kiểm tra phần tử.
+`Objects.requireNonNull(values, "values")` fits when an API forbids `null` arrays; it throws an exception right at the input boundary, helping catch errors early. If both the array and its elements must be non-null, you must check **both levels**: `requireNonNull` on the array variable does not automatically check elements.
 
-## 3. `Arrays.equals()` phân biệt ba trạng thái thế nào?
+## 3. How does `Arrays.equals()` distinguish the three states?
 
-Dùng `java.util.Arrays.equals(...)` để so sánh **nội dung của mảng một chiều** thay vì toán tử `==` hay `array.equals(other)`.
+Use `java.util.Arrays.equals(...)` to compare **contents of one-dimensional arrays** instead of the `==` operator or `array.equals(other)`.
 
-Các quy tắc chính:
+Main rules:
 
-1. Hai biến mảng đều `null` được `Arrays.equals()` xem là bằng nhau.
-2. Một mảng `null` và một mảng rỗng là **khác nhau**.
-3. Hai mảng rỗng cùng kiểu tương ứng bằng nhau về nội dung dù khác tham chiếu.
-4. Hai mảng cùng độ dài được so sánh theo **từng vị trí**.
-5. Với mảng tham chiếu như `String[]`, hai phần tử cùng `null` ở cùng vị trí là bằng nhau; một `null` và một `String` không null là khác nhau; hai phần tử không null được so sánh bằng `equals()` tương ứng.
-6. Với mảng nguyên thủy như `int[]`, mỗi giá trị nguyên thủy được so sánh theo quy tắc của overload tương ứng, không có phần tử null.
+1. Two array variables that are both `null` are treated as equal by `Arrays.equals()`.
+2. A `null` array and an empty array are **different**.
+3. Two empty arrays of the corresponding matching type are equal by content even with different references.
+4. Two arrays of the same length are compared **position by position**.
+5. For reference arrays such as `String[]`, two `null` elements at the same position are equal; a `null` and a non-null `String` are different; two non-null elements are compared using the corresponding `equals()`.
+6. For primitive arrays such as `int[]`, each primitive value is compared per the corresponding overload's rules, with no null elements.
 
-### 3.1. Ví dụ Java 17+ chạy được
+### 3.1. Runnable Java 17+ example
 
-Lưu thành **`NullArrayDemo.java`**:
+Save as **`NullArrayDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -116,7 +116,7 @@ public class NullArrayDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac NullArrayDemo.java
@@ -140,40 +140,40 @@ hash empty array: 1
 hash [null]: 31
 ```
 
-`Arrays.hashCode((Object[]) null)` trả `0`; mảng rỗng có mã băm `1`; mảng đối tượng một phần tử `null` có mã băm `31` vì quy tắc tích lũy bắt đầu từ `1`, sau đó lấy `31 * 1 + 0`. Các giá trị trên xác định bởi `Arrays.hashCode()` với mảng tham chiếu đang minh họa; chúng **không phải mã định danh duy nhất**.
+`Arrays.hashCode((Object[]) null)` returns `0`; an empty array has hash code `1`; a one-element object array `{null}` has hash code `31` because accumulation starts at `1`, then computes `31 * 1 + 0`. These values are determined by `Arrays.hashCode()` for the illustrated reference array; they are **not unique identifiers**.
 
-Khi muốn gọi trực tiếp với hằng `null`, phải tránh gọi `Arrays.equals(null, null)` hoặc `Arrays.hashCode(null)` không có kiểu đích: lớp `Arrays` có nhiều overload cho các loại mảng, nên lời gọi có thể **mơ hồ khi biên dịch**. Sử dụng biến có kiểu rõ ràng hoặc ép kiểu phù hợp như `(String[]) null`.
+When calling directly with a `null` literal, avoid calling `Arrays.equals(null, null)` or `Arrays.hashCode(null)` without a target type: the `Arrays` class has many overloads for different array types, so the call can be **ambiguous at compile time**. Use a typed variable or an appropriate cast such as `(String[]) null`.
 
-## 4. `==`, `Objects.equals()` và `Arrays.equals()` không thay thế nhau
+## 4. `==`, `Objects.equals()`, and `Arrays.equals()` do not replace each other
 
-Với hai mảng riêng biệt có cùng phần tử:
+For two separate arrays with the same elements:
 
 ```java
 String[] a = {"Java", null};
 String[] b = {"Java", null};
 ```
 
-- `a == b` là `false` vì chúng là **hai tham chiếu khác nhau**.
-- `a.equals(b)` là `false` vì các lớp mảng không ghi đè `Object.equals()` để so nội dung.
-- `Objects.equals(a, b)` cũng là `false`: hàm này xử lý null nhưng với mảng không null, nó vẫn gọi `a.equals(b)`.
-- `Arrays.equals(a, b)` là `true`: so sánh độ dài và từng phần tử ở cùng vị trí.
-- `Objects.deepEquals(a, b)` cũng là `true` vì cả hai là mảng; nhưng với mảng một chiều, `Arrays.equals()` thường làm rõ ý định hơn.
+- `a == b` is `false` because they are **two different references**.
+- `a.equals(b)` is `false` because array classes do not override `Object.equals()` to compare contents.
+- `Objects.equals(a, b)` is also `false`: this function handles null, yet for non-null arrays it still calls `a.equals(b)`.
+- `Arrays.equals(a, b)` is `true`: compares length and each element at the same position.
+- `Objects.deepEquals(a, b)` is also `true` because both are arrays; however, for one-dimensional arrays, `Arrays.equals()` usually makes the intent clearer.
 
-Hàm `Objects.equals()` hữu ích khi thuộc tính là một đối tượng giá trị có `equals()` đúng; nó **không tự biến một trường mảng thành phép so sánh phần tử**. Trong `equals()` của lớp chứa mảng, sử dụng đúng overload `Arrays.equals()` hoặc `Arrays.deepEquals()` theo cấu trúc.
+`Objects.equals()` is useful when a property is a value object with a proper `equals()`; it **does not automatically turn an array field into an element-by-element comparison**. Inside `equals()` of a class containing arrays, use the right `Arrays.equals()` or `Arrays.deepEquals()` overload according to structure.
 
-Nguyên tắc song hành: nếu trường mảng tham gia `equals()` bằng `Arrays.equals()`, phần tương ứng của `hashCode()` nên dùng `Arrays.hashCode()`; nếu dùng `Arrays.deepEquals()`, dùng `Arrays.deepHashCode()` cho phần cấu trúc lồng tương ứng. Tránh dùng `Objects.hashCode(array)` hoặc bản thân `array.hashCode()` rồi kỳ vọng cùng kết quả theo nội dung: chúng dùng mã băm của **đối tượng mảng**, không thay thế `Arrays.hashCode()`.
+Parallel rule: if an array field participates in `equals()` via `Arrays.equals()`, the corresponding part of `hashCode()` should use `Arrays.hashCode()`; if `Arrays.deepEquals()` is used, use `Arrays.deepHashCode()` for the corresponding nested structure. Avoid using `Objects.hashCode(array)` or `array.hashCode()` itself and expecting content-based results: they use the hash code of the **array object**, not replacing `Arrays.hashCode()`.
 
-## 5. Mảng lồng nhau: vì sao cần `deepEquals()` và `deepHashCode()`?
+## 5. Nested arrays: why are `deepEquals()` and `deepHashCode()` needed?
 
-Mảng hai chiều trong Java là **mảng chứa các mảng**. Với `String[][]`, mỗi phần tử hàng có thể là một `String[]` hoặc `null`. Hàng không null lại có thể rỗng, hoặc chứa phần tử `String` bằng `null`. Các cấp này cần được phân biệt.
+Two-dimensional arrays in Java are **arrays containing arrays**. For `String[][]`, each row element can be a `String[]` or `null`. A non-null row can in turn be empty, or contain `String` elements equal to `null`. These levels must be distinguished.
 
-`Arrays.equals(String[][], String[][])` thực chất chọn overload `equals(Object[], Object[])`: nó so sánh **các phần tử hàng** bằng `equals()`. Vì mỗi hàng là một đối tượng mảng, hai hàng riêng biệt có nội dung giống nhau **không bằng nhau** theo `Object.equals()`. Đó là so sánh *nông* tại lớp lồng.
+`Arrays.equals(String[][], String[][])` actually selects the `equals(Object[], Object[])` overload: it compares **row elements** using `equals()`. Because each row is an array object, two separate rows with identical contents are **not equal** under `Object.equals`. That is *shallow* comparison at the nesting layer.
 
-`Arrays.deepEquals(Object[], Object[])` so sánh đệ quy phần tử là mảng; xử lý cả mảng nguyên thủy bên trong bằng overload so sánh nội dung tương ứng. `Arrays.deepHashCode(Object[])` tính hash tương thích với quan hệ `deepEquals()`.
+`Arrays.deepEquals(Object[], Object[])` recursively compares array-typed elements; it also handles inner primitive arrays using the corresponding content-comparison overload. `Arrays.deepHashCode(Object[])` computes a hash compatible with the `deepEquals()` relation.
 
-### 5.1. Ví dụ phân biệt hàng `null`, hàng rỗng, phần tử `null`
+### 5.1. Example distinguishing `null` rows, empty rows, and `null` elements
 
-Tạo file **`NestedArrayDemo.java`**:
+Create file **`NestedArrayDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -220,7 +220,7 @@ public class NestedArrayDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac NestedArrayDemo.java
@@ -239,39 +239,39 @@ nested data: [null, [], [null, ok]]
 primitive nested equal: true
 ```
 
-**Phân tích từng cấp:**
+**Level-by-level analysis:**
 
-- `left` và `same` là hai mảng ngoài riêng biệt; các hàng rỗng và hàng chứa `null` cũng được tạo thành đối tượng mảng riêng. Vì vậy so sánh nông `Arrays.equals(left, same)` là `false`.
-- `Arrays.deepEquals(left, same)` cho `true`: hàng thứ nhất đều `null`; hàng thứ hai đều rỗng; hàng thứ ba cùng chuỗi `"ok"` và cùng phần tử `null` ở vị trí đầu.
-- `nullRow` khác `emptyRow`, vì **hàng không tồn tại** khác **hàng tồn tại với 0 phần tử**.
-- `changed` chứa `""` thay cho `null` ở vị trí đầu của hàng thứ ba, nên so sánh sâu khác nhau.
-- `Arrays.deepHashCode(left)` bằng `Arrays.deepHashCode(same)` vì dữ liệu so sánh sâu bằng nhau.
-- `int[][]` cũng là `Object[]` ở **cấp ngoài** (mỗi phần tử là một `int[]`), nên gọi `Arrays.deepEquals(numbers, copy)` hợp lệ. Bên trong, các phần tử của `int[]` là số nguyên thủy, không thể là `null`; nhưng cả hàng `int[]` có thể bằng `null`.
+- `left` and `same` are two separate outer arrays; the empty rows and rows containing `null` are also created as separate array objects. Therefore shallow comparison `Arrays.equals(left, same)` is `false`.
+- `Arrays.deepEquals(left, same)` returns `true`: the first rows are both `null`; the second rows are both empty; the third rows share the string `"ok"` and the `null` element at the first position.
+- `nullRow` differs from `emptyRow`, because **a nonexistent row** differs from **an existing row with 0 elements**.
+- `changed` contains `""` instead of `null` at the first position of the third row, so deep comparison differs.
+- `Arrays.deepHashCode(left)` equals `Arrays.deepHashCode(same)` because the deeply compared data is equal.
+- `int[][]` is also an `Object[]` at the **outer level** (each element is an `int[]`), so calling `Arrays.deepEquals(numbers, copy)` is valid. Inside, elements of `int[]` are primitive integers and cannot be `null`; however, an entire `int[]` row can be `null`.
 
-Cần nhớ: `Arrays.deepEquals()` và `Arrays.deepHashCode()` nhận `Object[]`, nên dùng cho mảng tham chiếu và các cấu trúc lồng. Với **mảng nguyên thủy một chiều** (`int[]`, `byte[]`, `long[]`, ...), dùng đúng overload `Arrays.equals(int[], int[])` / `Arrays.hashCode(int[])`. Không thể đưa trực tiếp một `int[]` vào tham số `Object[]` của `Arrays.deepEquals()`.
+Remember: `Arrays.deepEquals()` and `Arrays.deepHashCode()` accept `Object[]`, so use them for reference arrays and nested structures. For **one-dimensional primitive arrays** (`int[]`, `byte[]`, `long[]`, ...), use the matching `Arrays.equals(int[], int[])` / `Arrays.hashCode(int[])` overload. You cannot pass an `int[]` directly into the `Object[]` parameter of `Arrays.deepEquals()`.
 
-Đối với mảng có cấu trúc **tự tham chiếu/vòng lặp** (mảng chứa chính nó trực tiếp hoặc gián tiếp), không nên áp dụng máy móc các phép deep recursion: hợp đồng của các phương thức deep comparison/hash không bảo đảm kết quả xác định cho mảng vòng. Hãy tránh chu trình hoặc thiết kế thuật toán xử lý identity/chu trình riêng.
+For arrays with **self-referential/cyclic** structures (an array containing itself directly or indirectly), do not mechanically apply deep recursion operations: the contract of deep comparison/hashing methods does not guarantee deterministic results for cyclic arrays. Avoid cycles or design a custom identity/cycle-handling algorithm.
 
-## 6. Lồng trong một lớp: `equals()` và `hashCode()` phải đối xứng về độ sâu
+## 6. Nesting inside a class: `equals()` and `hashCode()` must match in depth
 
-Giả sử một giá trị biểu diễn ma trận `int[][]`. Nếu `equals()` dùng `Arrays.deepEquals(rows, other.rows)` nhưng `hashCode()` lại dùng `Arrays.hashCode(rows)`, hai ma trận có các hàng **khác tham chiếu nhưng cùng nội dung** có thể được đánh giá bằng nhau, trong khi mã băm dựa trên identity của các hàng và khác nhau. Đó là **nguy cơ vi phạm hợp đồng**.
+Suppose a value class represents an `int[][]` matrix. If `equals()` uses `Arrays.deepEquals(rows, other.rows)` while `hashCode()` uses `Arrays.hashCode(rows)`, two matrices whose rows have **different references yet identical contents** can be evaluated as equal while their hash codes rely on row identities and differ. That is a **risk of violating the contract**.
 
-Cặp đúng là:
+The right pair is:
 
 ```java
 boolean same = Arrays.deepEquals(rows, other.rows);
 int hash = Arrays.deepHashCode(rows);
 ```
 
-Đây là **mảnh code minh họa**, giả định `rows` và `other.rows` đều thuộc loại `int[][]`. Với mảng phẳng `byte[]`, cặp tương ứng là `Arrays.equals(bytes, other.bytes)` và `Arrays.hashCode(bytes)`.
+This is an **illustrative code fragment**, assuming `rows` and `other.rows` are both of type `int[][]`. For a flat `byte[]` array, the corresponding pair is `Arrays.equals(bytes, other.bytes)` and `Arrays.hashCode(bytes)`.
 
-Không được suy luận rằng `Objects.hash(rows)` là lựa chọn tương đương với `Arrays.deepHashCode(rows)`. `Objects.hash(...)` dùng varargs, dễ gây nhầm lẫn về cách mảng được trải thành các phần tử; với mảng lồng, nó không tự có ngữ nghĩa deep hash đúng như yêu cầu.
+Do not infer that `Objects.hash(rows)` is an equivalent alternative to `Arrays.deepHashCode(rows)`. `Objects.hash(...)` uses varargs, easily causing confusion about how arrays are expanded into elements; for nested arrays, it does not automatically have the required deep hash semantics.
 
-## 7. Ví dụ lớp giá trị bất biến, chấp nhận hàng `null`
+## 7. Example of an immutable value class accepting `null` rows
 
-Một đối tượng dùng làm khóa `HashMap` hoặc phần tử `HashSet` nên giữ các trường tham gia equality/hash **ổn định**. Với mảng, `final int[][] rows` chỉ làm **tham chiếu bên ngoài** không đổi; mã gọi vẫn có thể sửa `rows[0][0]` qua alias nếu không sao chép. Đối với ma trận `int[][]`, cần sao chép cả **mảng ngoài lẫn từng hàng không null** khi nhận đầu vào, và không trả trực tiếp mảng bên trong ra ngoài.
+An object used as a `HashMap` key or `HashSet` element should keep the fields participating in equality/hash **stable**. With arrays, `final int[][] rows` only makes the **outer reference** unchangeable; calling code can still mutate `rows[0][0]` through an alias if not copied. For an `int[][]` matrix, both the **outer array and each non-null row** must be copied on input, and the internal array must not be returned directly externally.
 
-Tạo file **`MatrixKeyDemo.java`**:
+Create file **`MatrixKeyDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -349,7 +349,7 @@ public class MatrixKeyDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac MatrixKeyDemo.java
@@ -367,65 +367,65 @@ after source mutation: true
 after copy mutation: true
 ```
 
-**Vì sao ví dụ này quan trọng?**
+**Why is this example important?**
 
-1. Ma trận có hàng `null`, hàng rỗng và hàng có dữ liệu; sự khác nhau ấy được giữ nguyên bằng `deepCopy`.
-2. `Arrays.deepEquals()` và `Arrays.deepHashCode()` xét các hàng theo nội dung một cách tương ứng.
-3. Lớp `final` giữ `rows` là `private final`, sao chép từng hàng khi nhận và trả dữ liệu, nên thay đổi bên ngoài không phá trạng thái khóa.
-4. Hai khóa có cùng nội dung logic được `HashSet` coi là một; khóa có hàng `null` khác khóa có hàng rỗng.
-5. Ví dụ dành riêng cho `int[][]`; nếu phần tử lồng là **đối tượng mutable** (ví dụ `List<MutableItem>[]`) thì `clone()` từng hàng chỉ sao chép tham chiếu phần tử, **chưa đủ để tạo bất biến sâu**. Cần sao chép/đóng băng phù hợp với mô hình dữ liệu.
+1. The matrix has a `null` row, an empty row, and a populated row; that distinction is preserved by `deepCopy`.
+2. `Arrays.deepEquals()` and `Arrays.deepHashCode()` inspect rows by content correspondingly.
+3. The `final` class keeps `rows` as `private final`, copying each row on input and output, so external mutations do not corrupt key state.
+4. Two keys with the same logical content are treated as one by `HashSet`; a key with a `null` row differs from a key with an empty row.
+5. The example is specific to `int[][]`; if nested elements are **mutable objects** (e.g., `List<MutableItem>[]`), cloning each row only copies element references and **is not enough to achieve deep immutability**. Copying/freezing appropriate to the data model is needed.
 
-Tùy API, bạn có thể lựa chọn **cấm hoàn toàn hàng `null`**, thay vì giữ nó. Nhưng phải kiểm tra trong constructor và thể hiện rõ với người gọi, không lén chuẩn hóa nếu `null` mang ý nghĩa nghiệp vụ.
+Depending on the API, you may choose to **forbid `null` rows altogether** instead of preserving them. However, you must validate in the constructor and make it explicit to callers, not silently normalize if `null` carries business meaning.
 
-## 8. Khi nào nên chuẩn hóa `null` thành mảng rỗng?
+## 8. When should `null` be normalized to an empty array?
 
-Có hai lựa chọn đều hợp lệ, miễn là thống nhất giữa đọc dữ liệu, `equals()` và `hashCode()`:
+Both choices are valid, as long as reading data, `equals()`, and `hashCode()` stay consistent:
 
-### Lựa chọn A: bảo toàn khác biệt
+### Option A: preserve the distinction
 
-Nếu `null` nghĩa là “chưa biết”, còn rỗng nghĩa là “biết chắc không có”, hãy giữ nguyên. Dùng `Arrays.equals()` và `Arrays.hashCode()` cho mảng phẳng; `Arrays.deepEquals()` và `Arrays.deepHashCode()` cho mảng lồng. Hai trạng thái sẽ khác nhau theo phép so sánh nội dung chuẩn.
+If `null` means “unknown” while empty means “known to have none”, preserve both. Use `Arrays.equals()` and `Arrays.hashCode()` for flat arrays; `Arrays.deepEquals()` and `Arrays.deepHashCode()` for nested arrays. The two states will differ under standard content comparison.
 
-### Lựa chọn B: coi `null` như rỗng ngay ở ranh giới
+### Option B: treat `null` as empty right at the boundary
 
-Nếu nghiệp vụ coi **không cung cấp** và **danh sách rỗng** là cùng một giá trị, có thể chuẩn hóa trong constructor:
+If business logic treats **not provided** and **empty list** as the same value, you can normalize in the constructor:
 
 ```java
 this.tags = tags == null ? new String[0] : tags.clone();
 ```
 
-Đây là **mảnh code minh họa** cho trường `String[] tags`. Sau chuẩn hóa, không còn sự phân biệt giữa đầu vào `null` và đầu vào rỗng. Dùng `Arrays.equals(this.tags, other.tags)` và `Arrays.hashCode(this.tags)` sẽ nhất quán, với điều kiện không để sửa mảng nội bộ qua getter. Nếu còn cần phân biệt “không được cung cấp”, phải lưu riêng thông tin hiện diện, hoặc giữ `null`.
+This is an **illustrative code fragment** for a `String[] tags` field. After normalization, there is no longer a distinction between `null` input and empty input. Using `Arrays.equals(this.tags, other.tags)` and `Arrays.hashCode(this.tags)` will be consistent, provided the internal array cannot be mutated via a getter. If you still need to distinguish “not provided”, store presence information separately or keep `null`.
 
-**Không chuẩn hóa chỉ trong một phương thức.** Nếu `equals()` coi `null` và `[]` bằng nhau nhưng `hashCode()` vẫn trả 0 cho `null` và 1 cho `[]`, bạn đã vi phạm hợp đồng. Tốt nhất chuẩn hóa dữ liệu **một lần tại ranh giới**, rồi dùng cùng trạng thái chuẩn hóa để so sánh và tính hash.
+**Do not normalize in only one method.** If `equals()` treats `null` and `[]` as equal while `hashCode()` still returns `0` for `null` and `1` for `[]`, you have broken the contract. It is best to normalize data **once at the boundary**, then use the same normalized state for both comparison and hashing.
 
-Cũng không nên tự động bỏ các phần tử `null` hoặc đổi `null` thành `""`: `[null]`, `[]` và `[""]` mang những thông tin khác nhau, và hành vi làm sạch dữ liệu phải là **quyết định nghiệp vụ tường minh**.
+Also do not automatically strip `null` elements or convert `null` into `""`: `[null]`, `[]`, and `[""]` carry different information, and data-sanitizing behavior must be an **explicit business decision**.
 
-## 9. Các lỗi rất dễ gặp
+## 9. Very common errors
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Error | Consequence | Resolution |
 | --- | --- | --- |
-| Truy cập `array.length` khi array là `null` | `NullPointerException` | Kiểm tra biến mảng trước |
-| Truy cập `array[0]` khi mảng rỗng | `ArrayIndexOutOfBoundsException` | Kiểm tra `length > 0` |
-| Chỉ kiểm tra mảng ngoài mà quên phần tử/hàng null | `NullPointerException` khi dùng phần tử/hàng | Kiểm tra từng cấp phù hợp |
-| Dùng `==`, `array.equals()` hoặc `Objects.equals()` để so nội dung mảng | So tham chiếu, khác với nội dung | Dùng `Arrays.equals()` hoặc `Arrays.deepEquals()` |
-| Dùng `Arrays.equals()` cho hai mảng lồng, rồi kỳ vọng so mọi cấp | Mảng con khác tham chiếu bị coi là khác | Dùng `Arrays.deepEquals()` nếu muốn so sâu |
-| Dùng `Arrays.deepEquals()` nhưng `hashCode()` tính theo tham chiếu của mảng con | Nguy cơ hai đối tượng bằng nhau khác hash | Dùng `Arrays.deepHashCode()` tương ứng |
-| Coi `null`, `[]` và `[null]` như nhau vô điều kiện | Mất ý nghĩa dữ liệu | Thống nhất quy tắc đầu vào |
-| Dùng `Arrays.equals(null, null)` mà không chỉ kiểu | Lời gọi overload có thể mơ hồ | Dùng biến đã khai báo kiểu hoặc ép kiểu |
-| Đưa mảng mutable trực tiếp vào khóa hash | Thay đổi dữ liệu làm mất tra cứu | Tạo wrapper bất biến và sao chép phòng vệ |
-| Chỉ `clone()` mảng ngoài của cấu trúc lồng | Mảng/hàng con còn bị sửa từ ngoài | Sao chép đủ mức lồng của dữ liệu |
+| Accessing `array.length` when array is `null` | `NullPointerException` | Check the array variable first |
+| Accessing `array[0]` when array is empty | `ArrayIndexOutOfBoundsException` | Check `length > 0` |
+| Checking only outer array and forgetting `null` elements/rows | `NullPointerException` when using element/row | Check each level appropriately |
+| Using `==`, `array.equals()`, or `Objects.equals()` to compare array content | Compares references, differing from content | Use `Arrays.equals()` or `Arrays.deepEquals()` |
+| Using `Arrays.equals()` for two nested arrays, expecting all levels to be compared | Sub-arrays with different references are treated as unequal | Use `Arrays.deepEquals()` when deep comparison is desired |
+| Using `Arrays.deepEquals()` while `hashCode()` computes by sub-array references | Risk of two equal objects having different hashes | Use matching `Arrays.deepHashCode()` |
+| Unconditionally treating `null`, `[]`, and `[null]` as the same | Loss of data meaning | Unify input rules |
+| Using `Arrays.equals(null, null)` without specifying type | Overload call can be ambiguous | Use typed variables or cast |
+| Putting a mutable array directly as a hash key | Mutating data breaks lookups | Create an immutable wrapper and copy defensively |
+| Calling `clone()` only on the outer array of a nested structure | Inner arrays/rows can still be mutated externally | Copy to the full nesting depth of the data |
 
-**Lưu ý về `Arrays.toString()` / `Arrays.deepToString()`:** Chúng giúp kiểm tra dữ liệu, nhưng chuỗi hiển thị không phải định nghĩa equality/hash. Ví dụ `Arrays.toString(new String[]{null})` hiển thị `[null]`, còn `Arrays.toString(new String[]{"null"})` cũng hiển thị `[null]`. Đừng so sánh kết quả `toString()` để xác định hai mảng có bằng nhau hay không. Với mảng lồng, dùng `deepToString()` để quan sát các cấp nội dung khi debug.
+**Note on `Arrays.toString()` / `Arrays.deepToString()`:** They help inspect data, yet the display string is not an equality/hash definition. For example, `Arrays.toString(new String[]{null})` displays `[null]`, and `Arrays.toString(new String[]{"null"})` also displays `[null]`. Do not compare `toString()` outputs to decide whether two arrays are equal. For nested arrays, use `deepToString()` to observe content levels while debugging.
 
-## 10. Checklist thực hành
+## 10. Practical checklist
 
-- [ ] Xác định rõ `null` của **cả mảng**, mảng `length == 0`, và phần tử `null` có phải ba trạng thái khác nhau theo nghiệp vụ không.
-- [ ] Nếu chỉ cho phép đầu vào không null, kiểm tra sớm bằng `Objects.requireNonNull()`; nếu cần cấm phần tử null, kiểm tra từng phần tử/hàng.
-- [ ] Khi truy cập `length` hoặc `[0]`, đã kiểm tra mảng không null và đủ số phần tử.
-- [ ] Mảng phẳng dùng cặp `Arrays.equals()` / `Arrays.hashCode()` đúng overload.
-- [ ] Mảng lồng dùng cặp `Arrays.deepEquals()` / `Arrays.deepHashCode()` khi ý định là so nội dung các cấp.
-- [ ] Không nhầm `Objects.equals()` với phép so nội dung mảng; không nhầm `String` rỗng với phần tử null.
-- [ ] Không tự chuẩn hóa `null` thành rỗng hay bỏ phần tử null nếu hợp đồng không quy định.
-- [ ] Nếu mảng tham gia equality/hash của khóa trong `HashMap`/`HashSet`, trạng thái của nó được bảo vệ khỏi thay đổi ngoài ý muốn.
-- [ ] Kiểm thử cả hai mảng null, một null một rỗng, hai rỗng, `[null]`, `[""]`, các hàng null/rỗng trong mảng lồng, và mảng nguyên thủy.
+- [ ] Clearly determine whether `null` for **the whole array**, an array with `length == 0`, and a `null` element are three distinct states under business rules.
+- [ ] If only non-null inputs are allowed, validate early with `Objects.requireNonNull()`; if null elements must be forbidden, check every element/row.
+- [ ] When accessing `length` or `[0]`, ensure the array has been checked for non-null and sufficient element count.
+- [ ] Flat arrays use the `Arrays.equals()` / `Arrays.hashCode()` pair with the matching overload.
+- [ ] Nested arrays use the `Arrays.deepEquals()` / `Arrays.deepHashCode()` pair when the intent is comparing contents across levels.
+- [ ] Do not confuse `Objects.equals()` with array content comparison; do not confuse an empty `String` with a `null` element.
+- [ ] Do not automatically normalize `null` to empty or drop `null` elements unless the contract specifies it.
+- [ ] If an array participates in key equality/hash inside `HashMap`/`HashSet`, its state is protected from unintended mutation.
+- [ ] Test both arrays null, one null and one empty, both empty, `[null]`, `[""]`, null/empty rows in nested arrays, and primitive arrays.
 
-**Nguyên tắc ghi nhớ:** `null` không có nghĩa là “mảng độ dài 0”, và phần tử `null` cũng không có nghĩa là “không có phần tử”. Hãy xác định trước ý nghĩa của dữ liệu, rồi chọn phép kiểm tra, phép so sánh và mã băm tương ứng. Khi cấu trúc lồng nhau, bảo đảm **độ sâu so sánh và độ sâu tính hash nhất quán**.
+**Principle to remember:** `null` does not mean “array of length 0”, and a `null` element does not mean “no element”. Define the meaning of the data first, then choose the corresponding checks, comparisons, and hash codes. When structures are nested, ensure **comparison depth and hashing depth are consistent**.

@@ -1,40 +1,40 @@
-# Literal số thực, ký hiệu số mũ và hậu tố F hoặc D trong Java 17+
+# Floating-Point Literals, Exponent Notation, and F or D Suffixes in Java 17+
 
-**Floating-point literal** là giá trị số thực viết trực tiếp trong mã Java, chẳng hạn `3.14`, `2e3` hoặc `0.5F`. Nó khác literal số nguyên `2` về **kiểu**, cách biểu diễn và phép tính.
+A **floating-point literal** is a real number value written directly in Java code, such as `3.14`, `2e3`, or `0.5F`. It differs from an integer literal `2` in **type**, representation, and arithmetic behavior.
 
-Trong Java 17, literal số thực **không có hậu tố** mặc định là `double`. Muốn ghi rõ một literal thuộc kiểu `float`, thêm hậu tố `F` hoặc `f`; hậu tố `D` hoặc `d` xác nhận kiểu `double` nhưng **không bắt buộc**.
+In Java 17, a floating-point literal **without a suffix** defaults to `double`. To explicitly mark a literal as `float`, add the suffix `F` or `f`; the suffix `D` or `d` confirms `double` type, though it is **optional**.
 
-## 1. Nhận diện cú pháp
+## 1. Recognizing the syntax
 
-| Literal | Kiểu | Giá trị toán học | Ghi chú |
+| Literal | Type | Mathematical value | Notes |
 | --- | --- | --- | --- |
-| `3.14` | `double` | 3,14 | Không có hậu tố |
-| `3.14D` | `double` | 3,14 | `D` viết tường minh |
-| `3.14f` | `float` | 3,14 | `f`/`F` chỉ định kiểu float |
-| `2e3` | `double` | 2 × 10³ = 2000 | `e`/`E` là ký hiệu số mũ thập phân |
-| `6.02E-3` | `double` | 6,02 × 10⁻³ | Số mũ âm |
-| `1.25e+2F` | `float` | 125 | Số mũ có dấu `+`, hậu tố `F` |
-| `.5` | `double` | 0,5 | Được phép bỏ chữ số trước dấu chấm |
-| `5.` | `double` | 5,0 | Được phép bỏ chữ số sau dấu chấm |
-| `1_000.5` | `double` | 1000,5 | `_` giúp nhóm chữ số tại vị trí hợp lệ |
-| `5` | `int` | 5 | Literal **số nguyên**, không phải số thực |
+| `3.14` | `double` | 3.14 | No suffix |
+| `3.14D` | `double` | 3.14 | `D` explicitly written |
+| `3.14f` | `float` | 3.14 | `f`/`F` specifies float type |
+| `2e3` | `double` | 2 × 10³ = 2000 | `e`/`E` is decimal exponent notation |
+| `6.02E-3` | `double` | 6.02 × 10⁻³ | Negative exponent |
+| `1.25e+2F` | `float` | 125 | Exponent with `+` sign, `F` suffix |
+| `.5` | `double` | 0.5 | Digits before the dot may be omitted |
+| `5.` | `double` | 5.0 | Digits after the dot may be omitted |
+| `1_000.5` | `double` | 1000.5 | `_` groups digits in valid positions |
+| `5` | `int` | 5 | **Integer** literal, not floating-point |
 
-Ký hiệu `e`/**`E`** ở đây có nghĩa “nhân với `10` lũy thừa số nguyên”, **không phải hằng số Euler**.
+The symbol `e`/**`E`** here means "multiplied by `10` to an integer power," **not Euler's number**.
 
-Cấu trúc điển hình:
+Typical structure:
 
 ~~~text
-phần định trị [e hoặc E] [dấu + hoặc -] số mũ [F/f/D/d]
-      1.25        e          -             3        F
+significand [e or E] [+ or - sign] exponent [F/f/D/d]
+   1.25        e          -           3        F
 ~~~
 
-Ví dụ `1.25e-3F` là literal kiểu `float` có giá trị toán học `0.00125`, được làm tròn tới độ chính xác của `float`. Nếu dùng ký hiệu `e/E` thì phần số mũ phải có chữ số; `1e` và `1e+` **không hợp lệ**.
+For example, `1.25e-3F` is a `float` literal with mathematical value `0.00125`, rounded to `float` precision. If you use `e/E` notation, the exponent part must contain digits; `1e` and `1e+` are **invalid**.
 
-Java cũng có literal số thực hệ 16 như `0x1.8p1` (bằng `3.0`, kiểu `double`): `p/P` biểu diễn số mũ **cơ số 2**, không phải `e/E`. Đây là cú pháp riêng, không cần dùng để hiểu ví dụ thập phân bên dưới.
+Java also has hexadecimal floating-point literals such as `0x1.8p1` (equal to `3.0`, type `double`): `p/P` represents a **base-2** exponent, not `e/E`. This is a separate syntax and is not required to understand the decimal examples below.
 
-## 2. Ví dụ Java 17 chạy được
+## 2. Runnable Java 17 example
 
-Tạo tệp **`FloatingLiteralDemo.java`** (tên tệp khớp với `public class`):
+Create the file **`FloatingLiteralDemo.java`** (filename matching `public class`):
 
 ~~~java
 public class FloatingLiteralDemo {
@@ -66,7 +66,7 @@ public class FloatingLiteralDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc terminal Bash (Linux) tại thư mục chứa tệp, rồi dùng **cùng các lệnh**:
+Open PowerShell (Windows) or a Bash terminal (Linux) in the directory containing the file, then run the **same commands**:
 
 ~~~bash
 java -version
@@ -75,7 +75,7 @@ javac -encoding UTF-8 FloatingLiteralDemo.java
 java FloatingLiteralDemo
 ~~~
 
-**Kết quả dự kiến:**
+**Expected output:**
 
 ~~~text
 regular=12.5
@@ -91,63 +91,63 @@ floatingDivision=2.5
 exactEquality=false
 ~~~
 
-**Tại sao?** `1.25e3` bằng `1250.0` dù lệnh in không nhất thiết giữ nguyên dạng số mũ. `5 / 2` dùng phép chia hai `int`, kết quả nguyên `2` rồi mới đổi thành `double` `2.0`; ngược lại, `5 / 2.0` thực hiện chia số thực, cho `2.5`. Phép so sánh cuối là `false` vì một số phân số thập phân (như `0.1`) **không được biểu diễn chính xác** bằng số thực nhị phân IEEE 754.
+**Why?** `1.25e3` equals `1250.0` even though printing does not necessarily preserve exponent form. `5 / 2` performs integer division between two `int`s, producing the integer `2` before converting to `double` `2.0`; conversely, `5 / 2.0` performs floating-point division, yielding `2.5`. The final comparison is `false` because certain decimal fractions (such as `0.1`) **cannot be represented exactly** in IEEE 754 binary floating-point.
 
-## 3. `float` so với `double`: hậu tố quyết định kiểu literal
+## 3. `float` vs. `double`: suffix determines literal type
 
 ~~~java
-double a = 1.5;  // Đúng: literal mặc định là double.
-double b = 1.5D; // Đúng: thêm D tường minh.
-float c = 1.5F;  // Đúng: literal kiểu float.
-double d = 1.5F; // Đúng: float được mở rộng thành double.
+double a = 1.5;  // Valid: default literal is double.
+double b = 1.5D; // Valid: explicit D added.
+float c = 1.5F;  // Valid: float literal.
+double d = 1.5F; // Valid: float is widened to double.
 
-// float e = 1.5; // Sai biên dịch: double không tự thu hẹp thành float.
+// float e = 1.5; // Compile error: double does not automatically narrow to float.
 ~~~
 
-| Tiêu chí | `float` | `double` |
+| Criterion | `float` | `double` |
 | --- | --- | --- |
-| Kích thước | 32 bit | 64 bit |
-| Độ chính xác xấp xỉ | 6–7 chữ số thập phân có nghĩa | 15–16 chữ số thập phân có nghĩa |
-| Hậu tố literal | `f` hoặc `F` | `d`/`D`, hoặc bỏ hậu tố |
-| Ví dụ | `0.1F` | `0.1`, `0.1D` |
+| Size | 32 bits | 64 bits |
+| Approximate precision | 6–7 significant decimal digits | 15–16 significant decimal digits |
+| Literal suffix | `f` or `F` | `d`/`D`, or omit suffix |
+| Examples | `0.1F` | `0.1`, `0.1D` |
 
-Chuyển một literal `double` sang `float` bằng cast, ví dụ `(float) 1.5`, có thể hợp lệ nhưng **có nguy cơ mất độ chính xác hoặc vượt miền**. Khi chủ ý ghi literal `float`, dùng `F` thường rõ nghĩa hơn.
+Converting a `double` literal to `float` with a cast, such as `(float) 1.5`, can be valid, but **carries a risk of precision loss or range overflow**. When intentionally writing a `float` literal, using `F` is usually clearer.
 
-Một literal âm như `-2.5F` được phân tích theo toán tử **đổi dấu** `-` áp dụng lên literal `2.5F`; dấu trừ không phải phần độc lập của token literal. Điều này giúp hiểu vì sao biểu thức và literal có thể có quy tắc riêng.
+A negative literal like `-2.5F` is parsed as the **negation** operator `-` applied to the literal `2.5F`; the minus sign is not an independent part of the literal token. This helps explain why expressions and literals can have separate rules.
 
-## 4. Giới hạn, quy tắc gạch dưới và sai lầm thường gặp
+## 4. Limits, underscore rules, and common mistakes
 
-| Mã hoặc tình huống | Đúng/sai | Giải thích |
+| Code or situation | Valid/invalid | Explanation |
 | --- | --- | --- |
-| `double rate = 1e-3;` | Đúng | `0.001`, kiểu double |
-| `float rate = 1e-3F;` | Đúng | Hậu tố `F`, kiểu float |
-| `float rate = 1e-3;` | **Lỗi biên dịch** | Vế phải là double; không tự thu hẹp |
-| `double n = 1e;` | **Lỗi biên dịch** | Thiếu số mũ |
-| `double n = 1_.0;` | **Lỗi biên dịch** | Gạch dưới sát dấu chấm không hợp lệ |
-| `double n = 1_000.0;` | Đúng | Nhóm chữ số hợp lệ |
-| `double n = 1e400;` | **Lỗi biên dịch** | Literal double hữu hạn vượt miền biểu diễn |
-| `float n = 1e40F;` | **Lỗi biên dịch** | Literal float hữu hạn vượt miền biểu diễn |
-| `double n = 5 / 2;` | Đúng cú pháp, có thể sai ý định | Kết quả `2.0`, không phải `2.5` |
+| `double rate = 1e-3;` | Valid | `0.001`, double type |
+| `float rate = 1e-3F;` | Valid | `F` suffix, float type |
+| `float rate = 1e-3;` | **Compile error** | Right-hand side is double; does not automatically narrow |
+| `double n = 1e;` | **Compile error** | Missing exponent |
+| `double n = 1_.0;` | **Compile error** | Underscore next to dot is invalid |
+| `double n = 1_000.0;` | Valid | Valid digit grouping |
+| `double n = 1e400;` | **Compile error** | Finite double literal exceeds representable range |
+| `float n = 1e40F;` | **Compile error** | Finite float literal exceeds representable range |
+| `double n = 5 / 2;` | Valid syntax, likely unintended | Result `2.0`, not `2.5` |
 
-Một literal số thực **khác 0** mà nhỏ tới mức làm tròn thành 0 trong kiểu đã chọn cũng không hợp lệ khi viết trực tiếp; ví dụ `1e-400` vượt phía dưới độ lớn biểu diễn được của `double`. Nhưng các **phép tính lúc chạy** vẫn có thể tạo `Infinity`, `NaN`, số *subnormal* hoặc giá trị 0 do underflow; đó là vấn đề khác với kiểm tra literal lúc biên dịch.
+A **non-zero** floating-point literal so small that it rounds to 0 in the chosen type is also invalid when written directly; for example, `1e-400` underflows below the representable magnitude of `double`. However, **runtime operations** can still produce `Infinity`, `NaN`, *subnormal* numbers, or 0 due to underflow; that is a separate matter from compile-time literal checks.
 
-### Khi nào không nên dùng `float`/`double`?
+### When should you avoid `float`/`double`?
 
-Các kiểu này biểu diễn số thực **xấp xỉ**, phù hợp tính toán khoa học, đồ họa, thống kê khi chấp nhận sai số số học. Với **tiền và phép tính yêu cầu thập phân chính xác**, nên cân nhắc `BigDecimal` (khởi tạo từ **chuỗi** khi cần giữ chính xác giá trị thập phân), hoặc đơn vị tiền nguyên theo yêu cầu bài toán.
+These types represent **approximate** real numbers, suitable for scientific computing, graphics, and statistics where arithmetic rounding error is acceptable. For **money and calculations requiring exact decimal precision**, consider `BigDecimal` (initialized from a **string** when exact decimal values must be preserved), or integer currency units depending on the problem's requirements.
 
-Ví dụ `new java.math.BigDecimal("0.1")` giữ chính xác giá trị thập phân `0.1` theo mô hình `BigDecimal`, khác với `new BigDecimal(0.1)` vốn nhận giá trị `double` đã xấp xỉ.
+For example, `new java.math.BigDecimal("0.1")` preserves the exact decimal value `0.1` in the `BigDecimal` model, unlike `new BigDecimal(0.1)`, which receives an already approximated `double` value.
 
-## 5. Bài tập tự kiểm tra
+## 5. Self-check exercises
 
-1. **Xác định kiểu:** `7.5`, `7.5f`, `2e2`, `2e2D`.  
-   *Đáp án:* Lần lượt `double`, `float`, `double`, `double`.
-2. **Đổi sang thập phân thông thường:** `3.2e2` và `6.5E-2F`.  
-   *Đáp án:* Giá trị toán học lần lượt `320` và `0.065`; literal thứ hai có kiểu `float`.
-3. **Sửa lỗi:** `float x = 0.25;`.  
-   *Đáp án:* `float x = 0.25F;`, hoặc chọn `double x = 0.25;`.
-4. **Dự đoán:** `double x = 7 / 2;` và `double y = 7 / 2.0;`.  
-   *Đáp án:* `x == 3.0`, `y == 3.5`.
-5. **Thử độ chính xác:** chạy `System.out.println(0.1 + 0.2 == 0.3);`.  
-   *Đáp án:* `false`; không dùng so sánh `==` một cách máy móc cho các kết quả tính toán số thực xấp xỉ.
+1. **Identify the type:** `7.5`, `7.5f`, `2e2`, `2e2D`.  
+   *Answer:* `double`, `float`, `double`, `double`, respectively.
+2. **Convert to standard decimal:** `3.2e2` and `6.5E-2F`.  
+   *Answer:* Mathematical values `320` and `0.065`, respectively; the second literal has type `float`.
+3. **Fix the error:** `float x = 0.25;`.  
+   *Answer:* `float x = 0.25F;`, or choose `double x = 0.25;`.
+4. **Predict:** `double x = 7 / 2;` and `double y = 7 / 2.0;`.  
+   *Answer:* `x == 3.0`, `y == 3.5`.
+5. **Test precision:** run `System.out.println(0.1 + 0.2 == 0.3);`.  
+   *Answer:* `false`; do not mechanically use `==` to compare approximate floating-point calculation results.
 
-**Ghi nhớ:** Trong Java 17, literal số thực mặc định thuộc `double`, hậu tố `F/f` đổi thành `float`, `D/d` chỉ ghi rõ `double`. Ký hiệu `e/E` nhân với lũy thừa của 10; kiểu của **toán hạng ngay tại phép tính** quyết định cách chia và độ chính xác, chứ không chỉ kiểu biến ở vế trái.
+**Key takeaway:** In Java 17, floating-point literals default to `double`; the `F/f` suffix changes the type to `float`, while `D/d` merely makes `double` explicit. The `e/E` notation multiplies by a power of 10; the type of the **operands right at the operation** determines division behavior and precision, not just the variable type on the left-hand side.

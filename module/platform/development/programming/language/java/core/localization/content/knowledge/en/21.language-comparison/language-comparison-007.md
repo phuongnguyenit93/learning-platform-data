@@ -1,40 +1,40 @@
-# RuleBasedCollator và quy tắc sắp xếp tùy chỉnh trong Java
+# RuleBasedCollator and Custom Sorting Rules in Java
 
-## 1. Vì sao so sánh ngôn ngữ không thể chỉ dùng String.compareTo?
+## 1. Why Can't Linguistic Comparison Just Use String.compareTo?
 
-Khi xây dựng ứng dụng Java có dữ liệu đa ngôn ngữ, người dùng thường mong danh sách tên, mục từ hoặc tiêu đề được sắp xếp theo **quy ước ngôn ngữ** chứ không đơn thuần theo giá trị UTF-16 của từng ký tự.
+When building Java applications with multilingual data, users typically expect lists of names, entries, or titles to be sorted by **linguistic convention** rather than merely by each character's UTF-16 value.
 
-Ví dụ, thứ tự chữ hoa/chữ thường, dấu thanh, ký tự ghép, hai chữ cái được xem như một đơn vị xếp thứ tự hoặc ký hiệu đặc biệt có thể khác nhau giữa các ngôn ngữ. `String.compareTo` so sánh theo thứ tự từ điển của **đơn vị mã UTF-16**, không hiểu ý nghĩa ngôn ngữ học của các chuỗi.
+For example, letter casing, tone marks, accented characters, two letters treated as a single sorting unit, or special symbols can differ between languages. `String.compareTo` compares lexicographically by **UTF-16 code units**, without understanding the linguistic meaning of strings.
 
-Java cung cấp `java.text.Collator` để thực hiện **collation**: so sánh hai chuỗi theo quy tắc văn hóa/ngôn ngữ. Với quy tắc sắp xếp đặc thù, `java.text.RuleBasedCollator` là một lớp con cụ thể của `Collator`, cho phép tạo bảng collation bằng một **chuỗi quy tắc**.
+Java provides `java.text.Collator` to perform **collation**: comparing two strings according to cultural/linguistic rules. For specialized sorting rules, `java.text.RuleBasedCollator` is a concrete subclass of `Collator` that lets you construct a collation table from a **rule string**.
 
-Chẳng hạn, một danh mục lịch sử có thể yêu cầu chữ ghép `ch` được xử lý như một đơn vị sắp xếp đứng **sau c nhưng trước d**. Hoặc hệ thống cần xếp một ký hiệu/viết tắt theo thứ tự nội bộ đã được chủ sản phẩm xác nhận. `RuleBasedCollator` hỗ trợ biểu diễn những quan hệ đó.
+For instance, a historical catalog might require the digraph `ch` to be treated as one sorting unit coming **after c but before d**. Or a system might need to sort symbols/abbreviations in an internal order confirmed by the product owner. `RuleBasedCollator` supports expressing such relationships.
 
-**Mục tiêu của bài:** hiểu cấu trúc chuỗi rule, dấu quan hệ `<`, `;`, `,`, `=`, phép reset `&`, mức độ khác biệt `strength`, contraction/expansion, chuẩn hóa Unicode, cách kiểm tra lỗi và thiết kế comparator an toàn.
+**Lesson goal:** understand rule string syntax, relation operators `<`, `;`, `,`, `=`, reset `&`, distinction `strength`, contractions/expansions, Unicode normalization, error checking, and safe comparator design.
 
-## 2. Chọn Collator thông thường hay RuleBasedCollator?
+## 2. Standard Collator or RuleBasedCollator?
 
-Trong phần lớn trường hợp, hãy **bắt đầu với Collator được cung cấp cho locale**:
+In most cases, **start with the Collator provided for a locale**:
 
 ~~~java
 Collator vietnamese = Collator.getInstance(
         Locale.forLanguageTag("vi-VN"));
 ~~~
 
-Đây là câu lệnh minh họa trong một phương thức Java, cần import `java.text.Collator` và `java.util.Locale`.
+This is an illustrative statement inside a Java method requiring imports of `java.text.Collator` and `java.util.Locale`.
 
-`Collator.getInstance(locale)` chọn bộ so sánh do runtime và locale provider hỗ trợ. Bạn không cần tự định nghĩa bảng chữ cái, dấu hoặc hàng trăm quan hệ Unicode. Nếu chỉ cần sắp xếp danh sách theo ngôn ngữ người dùng, đây thường là điểm khởi đầu phù hợp.
+`Collator.getInstance(locale)` selects the comparator supported by the runtime and locale provider. You do not need to manually define the alphabet, diacritics, or hundreds of Unicode relationships. If you only need to sort lists in the user's language, this is usually the right starting point.
 
-Dùng `RuleBasedCollator` khi bạn **có yêu cầu sắp xếp khác quy tắc locale mặc định**, ví dụ:
+Use `RuleBasedCollator` when you **have sorting requirements that differ from default locale rules**, such as:
 
-- Một danh mục tra cứu có thứ tự chữ cái đặc thù theo tài liệu nghiệp vụ.
-- Một hệ thống từ điển cũ xem `ch` như một contraction.
-- Cần kiểm thử một tập quan hệ primary/secondary/tertiary xác định.
-- Muốn thay đổi một phần thứ tự của một `RuleBasedCollator` có sẵn, với sự kiểm soát đối với toàn bộ rule kết quả.
+- A reference catalog with a custom alphabetical order defined by business documentation.
+- A legacy dictionary system treating `ch` as a contraction.
+- Testing a specific set of primary/secondary/tertiary relationships.
+- Adjusting part of an existing `RuleBasedCollator`'s order with control over the entire resulting rule set.
 
-Đừng tự thay thế bộ collation đầy đủ của một ngôn ngữ bằng một danh sách ngắn `a < b < c` trong môi trường production: lớp này đặt **những ký tự không được đề cập ở cuối thứ tự collation**, dễ khiến từ Unicode ngoài bảng bị xếp sai. Tài liệu JDK cũng ghi nhận thiết kế bảng rule-based có giới hạn; các bài toán collation phức tạp hơn có thể cần cơ chế/chuyên thư viện phù hợp.
+Never replace a full language collation table with a short `a < b < c` list in production: this class places **unmentioned characters at the end of the collation order**, easily mis-sorting Unicode words outside the table. JDK documentation also notes limitations of rule-based table design; more complex collation tasks may require an appropriate mechanism or dedicated library.
 
-## 3. Cú pháp nền tảng của RuleBasedCollator
+## 3. Core Syntax of RuleBasedCollator
 
 Constructor:
 
@@ -43,156 +43,156 @@ RuleBasedCollator custom = new RuleBasedCollator(
         "< a < b < c < d");
 ~~~
 
-Đây là đoạn minh họa trong một phương thức Java. Constructor nhận **rule string**, biên dịch thành bảng collation và có thể ném `java.text.ParseException` nếu cú pháp hoặc vị trí reset không hợp lệ.
+This is an illustrative snippet inside a Java method. The constructor accepts a **rule string**, compiles it into a collation table, and can throw `java.text.ParseException` if syntax or a reset position is invalid.
 
-Một chuỗi rule có thể gồm:
+A rule string can contain:
 
-1. **Quan hệ** đặt một text argument so với mục đã nêu trước đó.
-2. **Reset** `&` để quay lại một vị trí có sẵn rồi thêm hoặc thay đổi quan hệ.
-3. **Modifier** tác động tới cách sắp xếp trong toàn bảng theo mô tả của JDK.
+1. **Relations** positioning a text argument relative to a previously stated item.
+2. **Reset** `&` to jump back to an existing position and add or alter relations.
+3. **Modifiers** affecting ordering across the entire table per JDK specification.
 
-### 3.1. Dấu quan hệ và cấp độ khác biệt
+### 3.1. Relation Symbols and Distinction Levels
 
-| Ký hiệu | Quan hệ trong rules | Ý nghĩa thường dùng |
+| Symbol | Relation in rules | Common meaning |
 | --- | --- | --- |
-| `<` | Primary difference | Khác biệt cơ bản như thứ tự chữ cái |
-| `;` | Secondary difference | Khác biệt mức dấu/biến thể phụ |
-| `,` | Tertiary difference | Khác biệt mức chữ hoa–thường/biến thể nhỏ |
-| `=` | Equal | Hai mục tương đương theo bảng rule |
-| `&` | Reset | Quay về vị trí mục đã có để chèn quan hệ tiếp theo |
+| `<` | Primary difference | Fundamental differences such as letter order |
+| `;` | Secondary difference | Accent / secondary variant differences |
+| `,` | Tertiary difference | Case / minor variant differences |
+| `=` | Equal | Two items are equivalent per the rule table |
+| `&` | Reset | Return to an existing item's position to insert subsequent relations |
 
-Ví dụ:
+Example:
 
 ~~~text
 < a , A ; á < b < c < ch < d
 ~~~
 
-Ý nghĩa theo rule này:
+Meaning under this rule:
 
-- `a` và `A` có cùng trọng số primary và secondary; tại **tertiary** thì phân biệt.
-- `á` khác `a` ở cấp **secondary**, nên `PRIMARY` có thể xem chúng bằng nhau trong quan hệ của bảng này.
-- `b`, `c`, `ch`, `d` khác nhau ở cấp primary.
-- Chuỗi `ch` được mô tả thành một **đơn vị so sánh** (contraction) trong bảng này; nó vẫn gồm hai code point `c` và `h` trong `String`.
+- `a` and `A` share the same primary and secondary weights; at **tertiary** they are distinguished.
+- `á` differs from `a` at the **secondary** level, so `PRIMARY` can treat them as equal under this table's relations.
+- `b`, `c`, `ch`, and `d` differ at the primary level.
+- The sequence `ch` is described as a single **comparison unit** (contraction) in this table; it still consists of two code points `c` and `h` in `String`.
 
-Các quan hệ này **không phải luật cho toàn bộ tiếng Việt, tiếng Tây Ban Nha hoặc mọi ngôn ngữ**. Chúng chỉ thể hiện quy tắc ví dụ đã được chủ động khai báo.
+These relations **are not the rules for all of Vietnamese, Spanish, or every language**. They merely express an explicitly declared example rule set.
 
-### 3.2. Dấu cách, dấu câu và quoting
+### 3.2. Spaces, Punctuation, and Quoting
 
-Rule string có cú pháp riêng. Nhiều khoảng trắng ngoài phần argument bị bỏ qua; với text argument, một số ký tự dấu câu thuộc **ký tự đặc biệt của cú pháp**. Nếu muốn sắp xếp một chuỗi thật sự chứa dấu câu đặc biệt, bạn cần **đặt text argument trong dấu nháy đơn** theo cú pháp RuleBasedCollator.
+Rule strings have their own syntax. Whitespace outside arguments is largely ignored; within text arguments, certain punctuation characters are **special syntax characters**. If you want to sort a string literally containing special punctuation, **enclose the text argument in single quotes** per RuleBasedCollator syntax.
 
-Ví dụ:
+Example:
 
 ~~~java
 String rules = "< a < b < 'x-y' < c";
 RuleBasedCollator c = new RuleBasedCollator(rules);
 ~~~
 
-Đây là đoạn minh họa (không phải file Java độc lập). Dấu gạch ngang trong `x-y` được quote để không bị parser hiểu sai. Tương tự, `'&'` có thể diễn đạt ký tự `&` như dữ liệu thay vì phép reset.
+This is an illustrative snippet (not a standalone Java file). The hyphen in `x-y` is quoted so the parser does not misinterpret it. Similarly, `'&'` can express a literal `&` character rather than a reset.
 
-Cần đặc biệt nhớ:
+Keep especially in mind:
 
-- Viết `< a < b` thay vì giả định `a < b` là một chuỗi rule đầy đủ; `<` đầu tiên khởi tạo quan hệ của mục đầu.
-- Unquoted whitespace có thể bị parser bỏ qua; nếu cần **khoảng trắng thực** như một mục trong rule, dùng quote theo quy định.
-- `< a < b-c < d` có dấu `-` chưa quote và có thể gây `ParseException`.
-- Không tự dùng cú pháp `[before 1]`, `[reorder ...]` hoặc cú pháp riêng của ICU cho `java.text.RuleBasedCollator`: hai bộ rule language **không đồng nhất**.
+- Write `< a < b` instead of assuming `a < b` is a complete rule string; the leading `<` establishes the relation for the first item.
+- Unquoted whitespace may be ignored by the parser; if a **literal space** is needed as an item in rules, quote it per the specification.
+- `< a < b-c < d` has an unquoted `-` and can throw `ParseException`.
+- Do not use `[before 1]`, `[reorder ...]`, or ICU-specific syntax in `java.text.RuleBasedCollator`: the two rule languages **are not identical**.
 
-## 4. Reset với &: thêm thứ tự tương đối
+## 4. Resetting with &: Adding Relative Order
 
-`&` không có nghĩa nối chuỗi hoặc toán tử bitwise trong rule; nó đặt lại điểm chèn trong bảng collation.
+`&` does not mean string concatenation or a bitwise operator in rules; it resets the insertion point in the collation table.
 
-Ví dụ:
+Example:
 
 ~~~text
 < a < b < c < d & b < bb
 ~~~
 
-Trước phần reset: `a`, `b`, `c`, `d` đã được xác lập thứ tự. Phần `& b < bb` thêm `bb` vào vị trí **ngay sau b** ở cấp primary; vì vậy `bb` nằm **trước c**.
+Before the reset: `a`, `b`, `c`, `d` have an established order. The `& b < bb` part inserts `bb` **immediately after b** at the primary level; hence `bb` comes **before c**.
 
-Một ví dụ khác:
+Another example:
 
 ~~~text
 < a < c & a < b
 ~~~
 
-Nghĩa là `b` được chèn sau `a` và trước `c`. Đặt các reset khác nhau có thể làm thay đổi thứ tự cuối: quy tắc có tính **thứ tự**, không phải tập hợp các ký hiệu có thể hoán đổi.
+This means `b` is inserted after `a` and before `c`. Placing different resets can alter the final order: rules are **order-dependent**, not an unordered set of interchangeable symbols.
 
-**Điều kiện reset:** text argument của `&` hoặc tiền tố thích hợp của nó phải đã có trong chuỗi rule trước đó. Nếu chưa tồn tại vị trí cần reset, constructor báo `ParseException`. Ví dụ không hợp lệ:
+**Reset condition:** the text argument of `&` or an appropriate prefix of it must already appear earlier in the rule string. If the target reset position does not yet exist, the constructor throws `ParseException`. Invalid example:
 
 ~~~java
 new RuleBasedCollator("< a < b & z < zz");
 ~~~
 
-`z` chưa xuất hiện trong bảng đã khai báo, nên việc yêu cầu chèn `zz` sau `z` không có điểm đặt xác định. Chương trình ở mục 8 kiểm tra đúng lỗi này.
+`z` has not appeared in the declared table, so requesting `zz` after `z` has no defined anchor point. The program in section 8 tests this exact error.
 
-### 4.1. Contraction và expansion là hai ý khác nhau
+### 4.1. Contraction and Expansion Are Two Different Concepts
 
-- **Contraction:** một chuỗi **nhiều ký tự** được xét như một đơn vị trọng số trong collation. Ví dụ `< c < ch < d` dùng `ch` như một mục riêng đứng giữa `c` và `d`.
-- **Expansion:** một mục có thể được xem như chuỗi trọng số của nhiều mục đã tồn tại; dạng reset đặc biệt có thể mô tả điều đó. Tài liệu Oracle đưa ví dụ `< a < b & ae < e`, trong đó `ae` là cách chỉ vị trí dựa trên `a`, làm phần mở rộng có ý nghĩa so sánh.
+- **Contraction:** a **multi-character** sequence treated as a single weight unit in collation. For example, `< c < ch < d` uses `ch` as a distinct entry between `c` and `d`.
+- **Expansion:** an entry can be treated as a sequence of weights of multiple existing entries; a special reset form can express this. Oracle documentation gives `< a < b & ae < e`, where `ae` anchors relative to `a`, giving the expansion comparison semantics.
 
-Những quy tắc này là **quy ước sắp xếp**, không có nghĩa `String.length()` thay đổi, `ch` trở thành một Unicode code point, hoặc chuỗi được chỉnh sửa khi so sánh.
+These rules are **sorting conventions**, and do not mean `String.length()` changes, `ch` becomes a single Unicode code point, or strings are mutated during comparison.
 
-## 5. Strength: khi nào xem hai chuỗi giống hay khác?
+## 5. Strength: When Are Two Strings Considered Same or Different?
 
-`RuleBasedCollator` kế thừa các mức strength từ `Collator`:
+`RuleBasedCollator` inherits strength levels from `Collator`:
 
-| Strength | Đặc điểm |
+| Strength | Characteristics |
 | --- | --- |
-| `Collator.PRIMARY` | Chỉ xét khác biệt chính; bỏ qua khác biệt secondary/tertiary |
-| `Collator.SECONDARY` | Xét primary và secondary; có thể phân biệt dấu |
-| `Collator.TERTIARY` | Xét cả primary, secondary và tertiary; có thể phân biệt case |
-| `Collator.IDENTICAL` | Mức so sánh nghiêm ngặt hơn sau ba cấp trên; không đồng nghĩa mọi chuỗi Unicode thô khác nhau đều phải xếp khác, vì normalization cũng có thể liên quan |
+| `Collator.PRIMARY` | Considers only primary differences; ignores secondary/tertiary differences |
+| `Collator.SECONDARY` | Considers primary and secondary; can distinguish accents |
+| `Collator.TERTIARY` | Considers primary, secondary, and tertiary; can distinguish case |
+| `Collator.IDENTICAL` | Stricter comparison level beyond the three levels above; does not mean all raw differing Unicode strings must sort differently, since normalization can also apply |
 
-`Collator` mặc định có mức strength theo cấu hình instance và locale provider. Với quy tắc tùy chỉnh, nên **đặt tường minh** khi nghiệp vụ có tiêu chí kiểm tra cụ thể:
+A default `Collator` gets its strength from the instance and locale provider configuration. With custom rules, **set it explicitly** when business logic has specific validation criteria:
 
 ~~~java
 custom.setStrength(Collator.PRIMARY);
 int result = custom.compare("a", "\u00E1");
 ~~~
 
-Đây là đoạn minh họa, cần `custom` là collator đã tạo. Trong bảng rule `< a , A ; á < b`, so sánh ở PRIMARY trả **0** vì khác biệt giữa `a` và `á` chỉ là secondary.
+This is an illustrative snippet requiring an already created `custom` collator. Under the rule table `< a , A ; á < b`, comparing at PRIMARY returns **0** because the difference between `a` and `á` is only secondary.
 
-Khi đổi sang `SECONDARY`, so sánh `a` với `á` cho giá trị **âm** (a đứng trước á). Khi đổi sang `TERTIARY`, `a` và `A` cũng khác thứ tự như đã được khai báo.
+Switching to `SECONDARY`, comparing `a` with `á` returns a **negative** value (`a` before `á`). Switching to `TERTIARY`, `a` and `A` also differ in order as declared.
 
-**Lưu ý:** `Collator.compare` trả giá trị âm/0/dương; **không đảm bảo luôn trả đúng -1 hoặc +1**. Nếu cần in định tính, dùng `Integer.signum(compare(...))` như ví dụ ở mục 8.
+**Note:** `Collator.compare` returns negative/0/positive; **it is not guaranteed to return exactly -1 or +1**. If printing qualitative signs, use `Integer.signum(compare(...))` as in section 8.
 
-### 5.1. Equal trong collation không phải equals của String
+### 5.1. Equal in Collation Is Not String.equals
 
-Một rule có `=`:
+A rule with `=`:
 
 ~~~text
 < a = á < b
 ~~~
 
-cho phép collator trong ví dụ xem `a` và `á` có cùng trọng số collation. Nhưng:
+allows the example collator to treat `a` and `á` as having the same collation weight. However:
 
 ~~~java
 "a".equals("\u00E1")  // false
 ~~~
 
-So sánh `String.equals` vẫn dựa trên nội dung Java `String` và không bị rule thay đổi.
+`String.equals` comparison still depends on Java `String` content and is unaffected by rules.
 
-Điều này ảnh hưởng trực tiếp đến collection:
+This directly impacts collections:
 
-- `TreeSet<String>` khi nhận comparator `Collator` có thể coi hai chuỗi `compare(a, b) == 0` là cùng một phần tử theo quan hệ thứ tự.
-- `HashSet<String>` dựa vào `String.equals` và `hashCode`, vì vậy có thể giữ **cả hai**.
-- Dùng collation để **sắp xếp** không mặc nhiên thích hợp để xác định khóa định danh duy nhất của người dùng.
+- `TreeSet<String>` given a `Collator` comparator may treat two strings with `compare(a, b) == 0` as the same element under the ordering relation.
+- `HashSet<String>` relies on `String.equals` and `hashCode`, so it can keep **both**.
+- Using collation for **sorting** does not automatically make it suitable for determining unique user identifiers.
 
-Nếu cần lưu danh sách có thứ tự mà vẫn giữ nguyên mọi giá trị, có thể dùng `List.sort(collator)` và một tie-breaker riêng theo hợp đồng. Nhưng cần quyết định rõ yêu cầu: tie-breaker `String.compareTo` sẽ phá việc coi hai chuỗi tương đương khi dùng làm tiêu chí trùng khóa.
+If you need to store a sorted list while keeping every value intact, use `List.sort(collator)` with an explicit tie-breaker per contract. Decide requirements carefully: a `String.compareTo` tie-breaker breaks treating two strings as equivalent when used as a duplicate-key criterion.
 
-## 6. Tạo rule độc lập hay tùy biến từ một locale?
+## 6. Standalone Rules or Tailoring from a Locale?
 
-### 6.1. Rule độc lập: hữu ích để học và cho alphabet khép kín
+### 6.1. Standalone Rules: Useful for Learning and Closed Alphabets
 
 ~~~java
 RuleBasedCollator simple =
         new RuleBasedCollator("< a < b < c < ch < d");
 ~~~
 
-Đoạn trên là ví dụ độc lập cho tập mục được liệt kê. **Các ký tự không nhắc tới có thể được xếp ở cuối**, nên rule rất ngắn này không phù hợp để sắp toàn bộ tiếng Việt, chữ có dấu, emoji, ký tự Hy Lạp, Nhật hoặc dữ liệu nhập tự do.
+The snippet above is a standalone example for the listed items. **Unmentioned characters may be sorted at the end**, so this very short rule is unsuitable for sorting full Vietnamese, accented letters, emoji, Greek, Japanese, or free-form user input.
 
-### 6.2. Lấy rule của locale rồi mở rộng có kiểm soát
+### 6.2. Extracting Locale Rules and Extending Under Control
 
-Nếu runtime trả về `RuleBasedCollator`, bạn có thể đọc `getRules()` và xây một đối tượng mới từ chuỗi rule ấy cộng phần điều chỉnh:
+If the runtime returns a `RuleBasedCollator`, you can inspect `getRules()` and build a new instance from that rule string plus adjustments:
 
 ~~~java
 Collator base = Collator.getInstance(Locale.US);
@@ -200,58 +200,58 @@ if (base instanceof RuleBasedCollator rb) {
     String tailored = rb.getRules() + " & c < ch";
     RuleBasedCollator custom = new RuleBasedCollator(tailored);
     custom.setStrength(Collator.TERTIARY);
-    // Dùng custom để thử quy tắc trên tập dữ liệu thực tế.
+    // Use custom to test the rules on a realistic dataset.
 }
 ~~~
 
-Đây là **snippet minh họa** cần các import `java.text.*` và `java.util.Locale`, đặt trong phương thức xử lý `ParseException`. Phải xác minh tại runtime rằng base là `RuleBasedCollator`; `Collator.getInstance(locale)` không hứa mọi provider đều trả chính lớp này.
+This is an **illustrative snippet** needing `java.text.*` and `java.util.Locale` imports inside a method handling `ParseException`. Verify at runtime that base is a `RuleBasedCollator`; `Collator.getInstance(locale)` does not guarantee every provider returns this exact class.
 
-**Không nối rule mới một cách mù quáng**:
+**Do not blindly append new rules**:
 
-1. `rb.getRules()` có thể rất dài và chứa nhiều quan hệ, contraction/expansion, modifier.
-2. Phần nối `& c < ch` chỉ có ý nghĩa nếu điểm reset có thể nhận diện và không phá quy tắc đã có.
-3. Kiểm tra xem `ch` đã được định nghĩa như contraction hay có thứ tự đặc biệt chưa.
-4. Biên dịch rule mới có thể ném `ParseException`; mọi thay đổi đều cần regression test với từ có dấu, chữ hoa, dữ liệu trộn script.
-5. Phiên bản JDK/CLDR/locale provider có thể thay đổi quy tắc nền, nên chuỗi rule nối thành một bảng mới có thể sinh khác biệt giữa môi trường.
+1. `rb.getRules()` can be very long and contain many relations, contractions/expansions, and modifiers.
+2. Appending `& c < ch` only works if the reset target is recognized and does not break existing rules.
+3. Check whether `ch` is already defined as a contraction or has special ordering.
+4. Compiling new rules can throw `ParseException`; any change needs regression tests with accented words, uppercase letters, and mixed-script data.
+5. JDK/CLDR/locale provider versions can alter base rules, so concatenating rule strings into a new table can create cross-environment differences.
 
-Với sản phẩm đa ngôn ngữ quy mô lớn, ưu tiên khả năng **collation tailoring** được thư viện và dữ liệu locale hỗ trợ, thay vì tái tạo toàn bộ ngôn ngữ chỉ bằng các rule thủ công.
+For large-scale multilingual products, prefer **collation tailoring** supported by libraries and locale data rather than rebuilding an entire language solely with manual rules.
 
-## 7. Unicode decomposition, dấu và các modifier đặc biệt
+## 7. Unicode Decomposition, Accents, and Special Modifiers
 
-### 7.1. Decomposition khi so sánh chuỗi có dấu
+### 7.1. Decomposition When Comparing Accented Strings
 
-Một chữ có dấu có thể được lưu ở dạng **precomposed** (ví dụ `á`, U+00E1) hoặc **decomposed** (`a` + U+0301). Người dùng thường nhìn thấy cùng một chữ, nhưng chuỗi UTF-16 khác nhau.
+An accented letter can be stored in **precomposed** form (e.g., `á`, U+00E1) or **decomposed** form (`a` + U+0301). Users usually see the same letter, yet the UTF-16 strings differ.
 
-`RuleBasedCollator` tự xử lý một số tương đương chuẩn tắc khi tạo bảng rule, nhưng không phải mọi dữ liệu có dấu tổ hợp đều tự động cho kết quả mong muốn khi người dùng nhập các chuỗi dấu theo thứ tự lạ. Có thể cấu hình:
+`RuleBasedCollator` handles some canonical equivalences automatically when building the rule table, though not all combining-mark data yields expected results automatically when users enter mark sequences in unusual orders. You can configure:
 
 ~~~java
 custom.setDecomposition(Collator.CANONICAL_DECOMPOSITION);
 ~~~
 
-Điều đó yêu cầu xử lý decomposition chuẩn tắc trong so sánh. Với các dạng **compatibility decomposition**, như full-width/half-width trong một số hệ chữ, có thể phải cân nhắc `Collator.FULL_DECOMPOSITION`, với chi phí và semantics khác.
+This requests canonical decomposition handling during comparison. For **compatibility decomposition** forms, such as full-width/half-width in some scripts, `Collator.FULL_DECOMPOSITION` may need to be considered, with different cost and semantics.
 
-Các lựa chọn của `Collator`:
+`Collator` options:
 
-- `NO_DECOMPOSITION`: không phân rã dữ liệu đầu vào theo chế độ này trước so sánh.
-- `CANONICAL_DECOMPOSITION`: dùng chuẩn hóa tương đương chuẩn tắc, phù hợp nhiều trường hợp dấu tổ hợp.
-- `FULL_DECOMPOSITION`: xét cả tương đương compatibility theo cơ chế của collator.
+- `NO_DECOMPOSITION`: does not decompose inputs per this mode before comparison.
+- `CANONICAL_DECOMPOSITION`: uses canonical equivalence handling, appropriate for many combining-mark cases.
+- `FULL_DECOMPOSITION`: additionally considers compatibility equivalence per the collator mechanism.
 
-**Không suy ra** rằng bật `CANONICAL_DECOMPOSITION` sẽ làm hai chuỗi trở thành bằng nhau theo `String.equals`, hoặc thay đổi nội dung nguồn. Đó chỉ là cách collator xử lý khi so sánh.
+**Do not infer** that enabling `CANONICAL_DECOMPOSITION` makes two strings equal under `String.equals` or alters source contents. It only controls how the collator processes inputs during comparison.
 
-### 7.2. Hai modifier đặc biệt
+### 7.2. Two Special Modifiers
 
-JDK 17 mô tả thêm:
+JDK 17 further describes:
 
-- `@`: bật cách xét **trọng số dấu (secondary) ngược hướng** trong bảng, phục vụ kiểu sắp xếp dấu theo truyền thống Pháp.
-- `!`: bật **đảo thứ tự nguyên âm–phụ âm** cho những trường hợp tương ứng trong tiếng Thái và Lào.
+- `@`: enables **reverse secondary (accent) weight** ordering in the table, supporting traditional French accent sorting.
+- `!`: enables **Thai/Lao vowel–consonant reordering** for applicable cases in Thai and Lao.
 
-Chúng không tương ứng với một cấp khác biệt riêng như `<` hay `;`, và có thể tác động tới **toàn collator**. Không thêm `@` hoặc `!` vào rule chỉ vì muốn “sắp xếp Unicode tốt hơn”; chỉ dùng khi nghiệp vụ/ngôn ngữ cụ thể cần và đã kiểm thử từ điển thực tế.
+These do not correspond to a distinct difference level like `<` or `;`, and can affect **the entire collator**. Do not add `@` or `!` to rules merely hoping for "better Unicode sorting"; use them only when a specific language/domain requires them and real dictionary tests verify them.
 
-## 8. Chương trình Java 17 hoàn chỉnh: contraction, reset, strength và lỗi rule
+## 8. Complete Java 17 Program: Contraction, Reset, Strength, and Rule Errors
 
-Ví dụ dưới đây cố ý dùng một bảng chữ cái **nhỏ** để quan sát hành vi. Kết quả được in theo **nhãn ASCII** thay vì phụ thuộc console font/encoding khi hiển thị chữ `á`.
+The example below intentionally uses a **small** alphabet to observe behavior. Results are printed using **ASCII labels** rather than depending on console font/encoding to display `á`.
 
-**Tệp `CustomCollationDemo.java`:**
+**File `CustomCollationDemo.java`:**
 
 ~~~java
 import java.text.CollationKey;
@@ -316,14 +316,14 @@ public class CustomCollationDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 CustomCollationDemo.java
 java CustomCollationDemo
 ~~~
 
-**Stdout đã kiểm tra trên JDK:**
+**Stdout verified on JDK:**
 
 ~~~text
 PRIMARY a/A=0
@@ -340,23 +340,23 @@ equal-rule a/acute=0
 invalid reset=REJECTED
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-1. Ở **PRIMARY**, `a`/`A` và `a`/`á` giống nhau theo trọng số chính.
-2. Ở **SECONDARY**, dấu sắc làm `a` đứng trước `á`, còn `a`/`A` vẫn bằng nhau vì khác biệt case nằm ở tertiary.
-3. Ở **TERTIARY**, `a` đứng trước `A` **theo rule mẫu**. Đây không phải tuyên bố rằng trong mọi locale chữ thường đều trước chữ hoa.
-4. Quan hệ `c < ch < d` được giữ; `ch` là contraction trong bảng so sánh.
-5. `& b < bb` đặt `bb` sau `b` và trước `c`.
-6. `List.sort(c)` dùng comparator đã thiết lập, tạo thứ tự ổn định của đầu vào mẫu.
-7. `CollationKey.compareTo` được sinh từ **cùng collator/cấu hình** phù hợp với chiều so sánh `ch` và `d`.
-8. Với rule `=`, `a` và `á` được coi là tương đương theo collation.
-9. Reset đến `z` chưa tồn tại bị parser từ chối bằng `ParseException`.
+1. At **PRIMARY**, `a`/`A` and `a`/`á` match on primary weight.
+2. At **SECONDARY**, the acute accent puts `a` before `á`, while `a`/`A` remain equal because case difference is tertiary.
+3. At **TERTIARY**, `a` comes before `A` **per the sample rule**. This is not a claim that lowercase precedes uppercase in every locale.
+4. The relation `c < ch < d` holds; `ch` is a contraction in the comparison table.
+5. `& b < bb` places `bb` after `b` and before `c`.
+6. `List.sort(c)` uses the configured comparator, producing a stable ordering of the sample input.
+7. `CollationKey.compareTo` generated from **the same collator/configuration** agrees with the comparison direction of `ch` and `d`.
+8. With rule `=`, `a` and `á` are treated as collation-equivalent.
+9. Resetting to nonexistent `z` is rejected by the parser with `ParseException`.
 
-**Giới hạn quan trọng:** bảng rule ngắn không mô tả toàn bộ ký tự của ngôn ngữ; các dữ liệu không được liệt kê có thể xếp ở cuối. Không đưa nguyên rule demo vào hệ thống sắp xếp địa chỉ, tên người hoặc văn bản quốc tế lớn mà không mở rộng và kiểm tra.
+**Important limitation:** a short rule table does not describe all characters of a language; unlisted data may sort at the end. Do not drop a demo rule directly into a production system sorting addresses, personal names, or large international text without expanding and testing it.
 
-## 9. CollationKey: cách tối ưu khi so sánh lặp lại
+## 9. CollationKey: Optimizing Repeated Comparisons
 
-Nếu cùng một tập chuỗi cần được so sánh nhiều lần (chẳng hạn trong một phép sort lớn), `CollationKey` cho phép tính trước trọng số so sánh của từng chuỗi:
+If the same set of strings must be compared many times (such as during a large sort), `CollationKey` lets you precompute comparison weights for each string:
 
 ~~~java
 CollationKey a = custom.getCollationKey("ch");
@@ -364,22 +364,22 @@ CollationKey b = custom.getCollationKey("d");
 int relation = a.compareTo(b);
 ~~~
 
-Đây là snippet minh họa; `custom` là `RuleBasedCollator` đã tạo. Trong ví dụ, `relation` âm vì `ch` đứng trước `d`.
+This is an illustrative snippet; `custom` is an already constructed `RuleBasedCollator`. In the example, `relation` is negative because `ch` precedes `d`.
 
-Không dùng key từ **hai collator/cấu hình khác nhau** như thể chúng có cùng chuẩn:
+Never treat keys from **two different collators/configurations** as sharing the same standard:
 
-- Mức `strength` có thể khác.
-- Chế độ `decomposition` có thể khác.
-- Rule table hoặc locale provider khác nhau.
-- Phiên bản JDK có thể mang dữ liệu collation khác nhau.
+- `strength` levels may differ.
+- `decomposition` modes may differ.
+- Rule tables or locale providers differ.
+- JDK versions may carry differing collation data.
 
-Vì vậy không nên lưu `CollationKey` dài hạn rồi so với key mới được sinh sau khi đổi rule hoặc nâng phiên bản runtime. Nếu cần persistence, hãy xác định cơ chế versioning/rebuild key và kiểm chứng tính tương thích.
+Therefore, do not store `CollationKey` long-term and compare against new keys generated after changing rules or upgrading runtime versions. If persistence is needed, define a key versioning/rebuild mechanism and test compatibility.
 
-`CollationKey` có thể tăng chi phí bộ nhớ; với danh sách nhỏ hoặc số phép so sánh ít, gọi `collator.compare` trực tiếp thường đơn giản hơn. Nếu hiệu năng là lý do chính, hãy **benchmark** với dữ liệu thực, không giả định key luôn nhanh hơn trong mọi tình huống.
+`CollationKey` can increase memory usage; for small lists or few comparisons, calling `collator.compare` directly is usually simpler. If performance is the primary reason, **benchmark** with real data rather than assuming keys are always faster in every situation.
 
-## 10. Thread safety, tính ổn định và cơ sở dữ liệu
+## 10. Thread Safety, Stability, and Databases
 
-`Collator` có các setter như `setStrength`, `setDecomposition`; `RuleBasedCollator` còn giữ bảng quy tắc. **Không dùng chung một instance có trạng thái biến đổi giữa nhiều thread** mà không có quản lý đồng bộ phù hợp. Một mẫu thường dùng là tạo/cấu hình comparator trước khi sort, giữ nó riêng cho thao tác, hoặc clone từ một mẫu đã cấu hình:
+`Collator` has setters like `setStrength` and `setDecomposition`; `RuleBasedCollator` also holds a rule table. **Never share a single mutable instance across threads** without appropriate synchronization management. A common pattern is creating/configuring the comparator before sorting, keeping it scoped to the operation, or cloning from a configured template:
 
 ~~~java
 RuleBasedCollator configured =
@@ -390,74 +390,74 @@ RuleBasedCollator forThisTask =
         (RuleBasedCollator) configured.clone();
 ~~~
 
-Đây là đoạn minh họa trong phương thức ném hoặc bắt `ParseException`; bản clone có thể được dùng cho một thao tác riêng, không đổi strength của đối tượng đang được dùng ở thao tác khác.
+This is an illustrative snippet inside a method throwing or catching `ParseException`; the clone can be used by a separate operation without altering strength on an object used elsewhere.
 
-**Đừng nhầm Java collation và database collation**: việc danh sách đã được sort bởi `RuleBasedCollator` trên JVM không đảm bảo `ORDER BY` trong cơ sở dữ liệu dùng cùng quy tắc. Nếu phân trang ở DB rồi sắp lại từng trang ở Java, thứ tự toàn cục có thể sai. Cần thống nhất hợp đồng sort/pagination/search trên một tầng hoặc định nghĩa dữ liệu collation tương thích trên cả hai.
+**Do not confuse Java collation with database collation**: sorting a list with `RuleBasedCollator` on the JVM does not ensure `ORDER BY` in the database uses the same rules. If pagination happens in the DB and Java re-sorts each page, global ordering can be wrong. Unify the sort/pagination/search contract at one layer or define compatible collation data on both sides.
 
-Khi nâng JDK/locale provider hoặc sửa rule, mọi thay đổi thứ tự đều có thể ảnh hưởng cache, index, số trang, danh mục đã xuất và kiểm thử snapshot. Với ứng dụng cần thứ tự ổn định lâu dài, nên có **version rule** và bộ dữ liệu hồi quy kiểm tra thứ tự.
+When upgrading the JDK/locale provider or modifying rules, any ordering change can affect caches, indexes, page boundaries, exported catalogs, and snapshot tests. For applications needing long-term stable ordering, maintain **rule versioning** and a regression dataset testing order.
 
-## 11. Các lỗi thường gặp
+## 11. Common Mistakes
 
-| Lỗi | Tại sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Right approach |
 | --- | --- | --- |
-| Dùng `String.compareTo` cho tên người đa ngôn ngữ | So UTF-16, không hiểu quy ước bản địa | Dùng `Collator` theo locale |
-| Dùng rule demo ngắn cho toàn bộ Unicode | Ký tự chưa khai báo xếp cuối | Bắt đầu từ rules locale hoặc bộ tailoring đầy đủ |
-| Viết `a < b` thay vì một rule hoàn chỉnh | Thiếu quan hệ khởi tạo | Viết `< a < b` |
-| Bỏ quote cho dấu câu trong text argument | Parser hiểu nhầm cú pháp/ParseException | Quote ký tự đặc biệt |
-| Reset `& z` khi chưa khai báo `z` | Không có vị trí chèn | Dùng reset có điểm đã tồn tại |
-| Nhầm `;` và `,` | Sai mức trọng số | Ghi rõ secondary/tertiary, kiểm thử strength |
-| Nghĩ `ch` contraction thay đổi `String.length()` | Collation chỉ thay trọng số so sánh | Tách xử lý Unicode với sort |
-| Đặt `PRIMARY` rồi dùng compare==0 làm ID duy nhất | Bỏ qua dấu/case theo policy | Dùng tiêu chí duy nhất độc lập, rõ ràng |
-| Dùng `TreeSet` với collator mà không xét trùng | Có thể bỏ các chuỗi compare==0 | Quyết định tie-breaker/semantics |
-| Ghép `CollationKey` từ hai rule/version khác nhau | Không cùng tiêu chuẩn so sánh | Tạo key từ cùng collator/cấu hình |
-| Dùng chung instance và đổi strength giữa nhiều thread | Kết quả không ổn định | Quản lý instance/clone/synchronization |
-| Tin rule Java = rule của ICU | Cú pháp/tính năng không hoàn toàn trùng | Dùng đúng API/tài liệu implementation |
-| Tin JVM sort tự quyết định thứ tự DB | DB dùng collation khác | Thống nhất sort contract trên toàn hệ thống |
-| Không kiểm tra Unicode decomposition | Chuỗi dấu tổ hợp có thể xử lý khác ý muốn | Kiểm thử và đặt decomposition phù hợp |
+| Using `String.compareTo` for multilingual person names | Compares UTF-16, ignores local conventions | Use `Collator` by locale |
+| Using a short demo rule for all of Unicode | Undeclared characters sort at the end | Start from locale rules or full tailoring |
+| Writing `a < b` instead of a complete rule | Missing initial relation | Write `< a < b` |
+| Omitting quotes around punctuation in text arguments | Parser misreads syntax / `ParseException` | Quote special characters |
+| Resetting `& z` before declaring `z` | No insertion anchor | Reset only to an existing point |
+| Confusing `;` and `,` | Wrong weight level | Specify secondary/tertiary explicitly, test strength |
+| Thinking a `ch` contraction changes `String.length()` | Collation only alters comparison weights | Keep Unicode processing separate from sorting |
+| Setting `PRIMARY` and treating `compare==0` as unique ID | Ignores accents/case per policy | Use an independent, explicit uniqueness criterion |
+| Using `TreeSet` with a collator without checking duplicates | Can drop strings with `compare==0` | Decide tie-breaker/semantics |
+| Mixing `CollationKey`s from two rules/versions | No shared comparison standard | Build keys from the same collator/configuration |
+| Sharing an instance and changing strength across threads | Non-deterministic results | Manage instances/clones/synchronization |
+| Assuming Java rules equal ICU rules | Syntax/features do not fully match | Follow the exact API/implementation docs |
+| Assuming JVM sort determines DB order | DB uses a different collation | Align sort contract across the whole system |
+| Skipping Unicode decomposition checks | Combining-mark strings may behave unexpectedly | Test and configure appropriate decomposition |
 
-## 12. Kiểm thử nên viết trước khi triển khai
+## 12. Tests to Write Before Deployment
 
-Hãy tạo tập dữ liệu có tối thiểu:
+Build a dataset containing at minimum:
 
-1. Chữ cơ sở `a`, `A`, `b`, `c`, `d`.
-2. Chữ có dấu, ví dụ `á` và dạng `a` + U+0301.
-3. Contraction `ch` và các từ có `ch` ở đầu, giữa hoặc cuối.
-4. Vị trí reset `bb` và các chuỗi gần `b`/`c`.
-5. Dấu câu, khoảng trắng, ký hiệu chưa được khai báo trong rules.
-6. Chữ số, chữ hoa/thường, các ngôn ngữ khác nếu có trong dữ liệu thực.
-7. Rule thiếu quote, thiếu argument hoặc reset đến ký tự chưa có.
-8. Trường hợp `compare(a, b) == 0` nhưng `!a.equals(b)`.
-9. Chênh lệch khi chuyển `PRIMARY`, `SECONDARY`, `TERTIARY`, `IDENTICAL`.
-10. Ảnh hưởng của `CANONICAL_DECOMPOSITION` và `FULL_DECOMPOSITION` nếu ứng dụng cần.
-11. `CollationKey` so với `compare` trên cùng cấu hình.
-12. Tính ổn định của thứ tự sau khi cập nhật JDK, rule và DB.
+1. Base letters `a`, `A`, `b`, `c`, `d`.
+2. Accented letters, e.g., `á` and `a` + U+0301.
+3. Contraction `ch` and words with `ch` at the start, middle, or end.
+4. Reset position `bb` and strings near `b`/`c`.
+5. Punctuation, whitespace, and symbols not declared in the rules.
+6. Digits, case variants, and other languages if present in real data.
+7. Rules missing quotes, missing arguments, or resetting to nonexistent characters.
+8. Cases where `compare(a, b) == 0` while `!a.equals(b)`.
+9. Differences when switching `PRIMARY`, `SECONDARY`, `TERTIARY`, `IDENTICAL`.
+10. Effects of `CANONICAL_DECOMPOSITION` and `FULL_DECOMPOSITION` if needed by the app.
+11. `CollationKey` vs. `compare` under the same configuration.
+12. Order stability after upgrading JDK, rules, and DB.
 
-Các bất biến comparator nên giữ: phản đối xứng về dấu (`sign(compare(a,b)) = -sign(compare(b,a))`), tính bắc cầu và tính nhất quán của equivalence. Đặc biệt khi thêm **tie-breaker**, hãy thử trên tập dữ liệu thật để không tạo thứ tự mâu thuẫn.
+Comparator invariants to preserve: sign antisymmetry (`sign(compare(a,b)) = -sign(compare(b,a))`), transitivity, and equivalence consistency. Especially when adding a **tie-breaker**, test on real data so no contradictory order arises.
 
-Nếu nghiệp vụ cần sắp xếp **tiếng Việt chuẩn**, không tự viết một vài relation rồi coi là tiêu chuẩn. Hãy dùng nguồn collation được quản lý theo locale và tham chiếu quy ước sản phẩm, sau đó chỉ chỉnh rule khi có yêu cầu ngoại lệ cụ thể.
+If business logic requires **standard Vietnamese** sorting, never hand-write a handful of relations and call it standard. Use locale-managed collation sources and reference product conventions, adjusting rules only when an explicit exception is required.
 
-## 13. Bài tập thực hành
+## 13. Practice Exercises
 
-1. Đổi `< c < ch < d` thành `< c < d < ch`; so thứ tự danh sách để thấy vai trò của contraction.
-2. Đổi `& b < bb` thành `& c < bb` trong rule có c; dự đoán và kiểm thử vị trí mới của `bb`.
-3. Bỏ `;` trước `á` và dùng `<`; so kết quả ở `PRIMARY` và `SECONDARY`.
-4. Thay `< a , A` bằng `< a < A`; chỉ ra vì sao từ nay `PRIMARY` có thể phân biệt case.
-5. Tạo bảng có `< a = á < b`; thử `TreeSet` so với `HashSet` khi thêm hai chuỗi.
-6. Thử rules `< a < b < 'x-y' < c` và so `x-y` với `b`, `c`. Tiếp đó bỏ quote để kiểm tra lỗi parser.
-7. Tạo danh sách từ có `á` ở dạng NFC và NFD; thử `NO_DECOMPOSITION`, `CANONICAL_DECOMPOSITION`.
-8. Đọc `Collator.getInstance(Locale.forLanguageTag("vi-VN"))`, quan sát class trả về, chỉ đọc `getRules()` nếu thực sự là `RuleBasedCollator`.
-9. Clone một collator rồi đặt `PRIMARY` cho bản sao, `TERTIARY` cho bản gốc; chứng minh không thay đổi strength của nhau.
-10. Viết test lưu thứ tự danh sách mẫu; chạy lại sau khi nâng JDK hoặc thay đổi rule.
-11. Thử so sánh `ch` với `c`, `d` bằng `CollationKey` và so dấu với `compare`.
-12. Đề xuất chính sách sắp xếp cho danh sách khách hàng chứa tên Việt, tên Latin và ID kỹ thuật; chỉ rõ phần nào dùng `Collator`, phần nào dùng thứ tự kỹ thuật.
+1. Change `< c < ch < d` to `< c < d < ch`; compare list ordering to see the role of contraction.
+2. Change `& b < bb` to `& c < bb` in a rule containing c; predict and verify the new position of `bb`.
+3. Replace `;` before `á` with `<`; compare outcomes at `PRIMARY` and `SECONDARY`.
+4. Replace `< a , A` with `< a < A`; explain why `PRIMARY` can now distinguish case.
+5. Create a table with `< a = á < b`; test `TreeSet` vs. `HashSet` when inserting both strings.
+6. Test rules `< a < b < 'x-y' < c` and compare `x-y` against `b`, `c`. Then remove quotes to observe the parser error.
+7. Build a word list containing `á` in NFC and NFD forms; test `NO_DECOMPOSITION` and `CANONICAL_DECOMPOSITION`.
+8. Inspect `Collator.getInstance(Locale.forLanguageTag("vi-VN"))`, observe the returned class, and only call `getRules()` if it is actually a `RuleBasedCollator`.
+9. Clone a collator, set `PRIMARY` on the copy and `TERTIARY` on the original; verify neither alters the other's strength.
+10. Write a test saving sample list order; re-run after upgrading JDK or modifying rules.
+11. Compare `ch` with `c` and `d` via `CollationKey` and compare signs against `compare`.
+12. Propose a sorting policy for a customer list containing Vietnamese names, Latin names, and technical IDs; specify which parts use `Collator` and which use technical ordering.
 
-## 14. Tóm tắt
+## 14. Summary
 
-`RuleBasedCollator` cho phép xây bộ so sánh chuỗi theo một **bảng quy tắc văn bản** thay vì dựa trên thứ tự UTF-16. Dấu `<`, `;`, `,` xác định primary/secondary/tertiary, `=` biểu diễn tương đương collation, và `&` reset để chèn quy tắc tại vị trí đã có. Contraction và expansion thay đổi **cách so sánh**, không thay đổi nội dung chuỗi.
+`RuleBasedCollator` lets you build a string comparator from a **textual rule table** rather than relying on UTF-16 order. Symbols `<`, `;`, `,` define primary/secondary/tertiary levels, `=` expresses collation equivalence, and `&` resets to insert rules at an existing position. Contractions and expansions alter **how comparisons work**, without altering string contents.
 
-Trong ứng dụng bản địa hóa, ưu tiên `Collator.getInstance(locale)` cho ngôn ngữ thông thường; dùng custom rules khi có yêu cầu rõ, đã kiểm tra cú pháp, Unicode/decomposition, strength, các trường hợp tie và regression test. Nhớ rằng rule ngắn sẽ không bao phủ toàn bộ ký tự và có thể sắp xếp không đúng mong đợi; thứ tự của Java còn phải nhất quán với cơ sở dữ liệu và quy tắc nghiệp vụ.
+In localized applications, prefer `Collator.getInstance(locale)` for general languages; use custom rules when requirements are clear and syntax, Unicode/decomposition, strength, tie cases, and regression tests have been verified. Remember that short rules do not cover all characters and can sort unexpectedly; Java's order must also align with the database and business rules.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `RuleBasedCollator`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/RuleBasedCollator.html
 - Java SE 17, `Collator`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html

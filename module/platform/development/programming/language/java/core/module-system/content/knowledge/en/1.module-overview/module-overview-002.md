@@ -1,100 +1,100 @@
-# Vì sao classpath cần một mô hình module rõ ràng hơn
+# Why the classpath needs a clearer module model
 
-Trong những chương trình Java nhỏ, classpath thường đủ để đưa các thư mục và JAR cần thiết vào lúc biên dịch và chạy ứng dụng. Khi dự án lớn dần, nhiều thư viện và nhóm phát triển cùng tham gia, classpath bộc lộ một hạn chế quan trọng: nó cho JVM biết **tìm lớp ở đâu**, nhưng không mô tả rõ **thành phần nào phụ thuộc vào thành phần nào** và **phần nào được phép sử dụng**.
+In small Java programs, the classpath is usually sufficient to include the necessary directories and JARs at compile time and runtime. As a project grows and multiple libraries and development teams become involved, the classpath reveals an important limitation: it tells the JVM **where to find classes**, but it does not clearly describe **which component depends on which component** and **which parts are allowed to be used**.
 
-Java Platform Module System (JPMS), được đưa vào từ Java 9, bổ sung một mô hình để khai báo ranh giới và quan hệ phụ thuộc giữa các module. Mô hình này giúp cấu trúc ứng dụng dễ đọc, dễ kiểm soát và dễ bảo trì hơn.
+The Java Platform Module System (JPMS), introduced in Java 9, adds a model for declaring boundaries and dependency relationships between modules. This model makes application structure easier to read, control, and maintain.
 
-## 1. Classpath giải quyết việc gì?
+## 1. What problem does the classpath solve?
 
-Classpath là danh sách các thư mục và tệp JAR mà trình nạp lớp có thể tìm kiếm khi ứng dụng cần một lớp hoặc tài nguyên. Khi chạy chương trình, ta thường truyền classpath bằng tùy chọn `-cp` hoặc `-classpath`.
+The classpath is a list of directories and JAR files that the class loader can search when an application needs a class or resource. When running a program, we typically pass the classpath using the `-cp` or `-classpath` option.
 
-Ví dụ:
+Example:
 
 ```shell
 java -cp "app.jar;lib/*" com.example.Main
 ```
 
-Trên Windows, dấu phân cách các mục classpath thường là dấu chấm phẩy; trên Linux và macOS là dấu hai chấm. Ví dụ trên minh họa ý tưởng: ứng dụng và các thư viện được đặt vào cùng một danh sách tìm kiếm.
+On Windows, the separator between classpath entries is typically a semicolon; on Linux and macOS, it is a colon. The example above illustrates the idea: the application and its libraries are placed into a single search list.
 
-Classpath rất thực dụng. Ta có thể thêm JAR, thay một thư viện hoặc chạy ứng dụng mà không cần khai báo một cấu trúc module mới. Các công cụ như Maven và Gradle cũng có thể giải quyết dependency rồi tạo classpath phù hợp cho tác vụ biên dịch hoặc chạy.
+The classpath is practical. You can add a JAR, swap a library, or run an application without declaring a new module structure. Tools like Maven and Gradle can also resolve dependencies and construct the appropriate classpath for compile or run tasks.
 
-Vấn đề xuất hiện khi danh sách này trở thành cách duy nhất để mô tả cấu trúc của một hệ thống lớn. Ở thời điểm chạy, classpath chủ yếu là một danh sách đã được làm phẳng. JVM không nhận được một bản mô tả đầy đủ về ý định kiến trúc của từng thư viện.
+The problem arises when this list becomes the only way to describe the structure of a large system. At runtime, the classpath is essentially a flattened list. The JVM does not receive a complete description of each library's architectural intent.
 
-## 2. Những giới hạn của một classpath phẳng
+## 2. Limitations of a flat classpath
 
-### 2.1. Quan hệ phụ thuộc không được khai báo tại ranh giới thành phần
+### 2.1. Dependency relationships are not declared at component boundaries
 
-Giả sử ứng dụng có ba phần:
+Suppose an application has three parts:
 
-- `catalog` quản lý danh mục sản phẩm.
-- `orders` tạo và xử lý đơn hàng.
-- `reports` tổng hợp dữ liệu để lập báo cáo.
+- `catalog` manages the product catalog.
+- `orders` creates and processes orders.
+- `reports` aggregates data to generate reports.
 
-Về mặt kiến trúc, `orders` có thể cần dùng API của `catalog`, còn `reports` có thể cần đọc dữ liệu từ cả hai. Nhưng khi tất cả JAR nằm trên cùng classpath, các lớp có thể nhìn thấy nhau rộng hơn mức kiến trúc mong muốn.
+Architecturally, `orders` may need to use the API of `catalog`, and `reports` may need to read data from both. However, when all JARs sit on the same classpath, classes can see one another much more broadly than the architecture intends.
 
-Nếu `orders` vô tình gọi một lớp triển khai nội bộ của `catalog`, classpath không có quy tắc module để ngăn việc đó. Lời gọi có thể biên dịch và chạy được, dù nó tạo ra một phụ thuộc không nên tồn tại.
+If `orders` accidentally calls an internal implementation class of `catalog`, the classpath has no module rules to prevent it. The call may compile and run, even though it creates an unintended dependency.
 
-Điều này khiến ranh giới kiến trúc phụ thuộc nhiều vào quy ước của nhóm và cách tổ chức mã nguồn. Khi người khác thay đổi cấu trúc bên trong một thư viện, những nơi đã sử dụng lớp nội bộ có thể bị ảnh hưởng.
+This makes architectural boundaries heavily reliant on team conventions and source code organization. When someone changes the internal structure of a library, places that used internal classes can be broken.
 
-### 2.2. Khó phân biệt API công khai với phần triển khai nội bộ
+### 2.2. Difficulty distinguishing public API from internal implementation
 
-Java đã có phạm vi truy cập `public`, `protected`, package-private và `private`. Tuy nhiên, các mức này chưa tạo ra một ranh giới ở cấp module.
+Java already has access modifiers `public`, `protected`, package-private, and `private`. However, these levels do not establish a module-level boundary.
 
-Một lớp `public` trong JAR thường có thể được mã nguồn khác trên classpath sử dụng nếu lớp đó được tìm thấy và các điều kiện truy cập thông thường được đáp ứng. Vì vậy, thư viện khó diễn đạt rằng:
+A `public` class in a JAR can generally be used by other code on the classpath if the class is found and standard access conditions are met. Consequently, it is hard for a library to express:
 
-- Những package nào là API được hỗ trợ.
-- Những package nào chỉ phục vụ triển khai nội bộ.
-- Thành phần nào được phép truy cập sâu bằng reflection.
+- Which packages are supported API.
+- Which packages serve only internal implementation.
+- Which components are permitted deep access via reflection.
 
-Trong hệ thống lớn, sự khác biệt này rất quan trọng. Nếu người dùng thư viện phụ thuộc vào lớp nội bộ, nhóm phát triển thư viện sẽ khó thay đổi cách triển khai mà không gây ảnh hưởng ngược.
+In large systems, this distinction matters greatly. If library consumers depend on internal classes, the library team will struggle to change implementation details without causing breaking changes.
 
-### 2.3. Lớp trùng tên và thứ tự tìm kiếm có thể gây bất ngờ
+### 2.3. Duplicate class names and lookup order can cause surprises
 
-Classpath có thứ tự. Nếu nhiều mục chứa cùng một tên lớp đầy đủ, trình nạp lớp có thể tìm thấy một bản trước các bản còn lại theo thứ tự tìm kiếm của nó. Ứng dụng khi đó có thể chạy với phiên bản lớp khác với điều mà người phát triển dự kiến.
+The classpath is ordered. If multiple entries contain the same fully qualified class name, the class loader may find one copy before the others according to its search order. The application may then run with a different version of the class than the developer expected.
 
-Tình huống này thường xuất hiện khi:
+This situation often occurs when:
 
-- Hai thư viện đóng gói các lớp có cùng tên đầy đủ.
-- Một JAR cũ vẫn còn trong classpath sau khi đã nâng cấp thư viện.
-- Một ứng dụng có nhiều bản phụ thuộc gián tiếp.
-- Các package bị chia sẻ giữa nhiều JAR mà không có quy ước sở hữu rõ ràng.
+- Two libraries package classes with the same fully qualified name.
+- An old JAR remains on the classpath after upgrading a library.
+- An application has multiple versions of transitive dependencies.
+- Packages are split across multiple JARs without clear ownership conventions.
 
-Vấn đề không chỉ nằm ở tên lớp. Việc tìm tài nguyên cũng có thể chịu ảnh hưởng của thứ tự classpath. Kết quả là một lỗi cấu hình đôi khi trông giống lỗi logic trong chương trình.
+The issue is not limited to class names. Resource lookup can also be affected by classpath ordering. As a result, a configuration error can sometimes look like a logic bug in the program.
 
-### 2.4. Classpath không thể hiện dependency graph ở thời điểm chạy
+### 2.4. The classpath does not represent the dependency graph at runtime
 
-Maven hoặc Gradle có thể biết dependency trực tiếp, dependency bắc cầu và phiên bản được chọn. Nhưng sau khi công cụ build tạo classpath, thông tin đó phần lớn đã trở thành một danh sách đường dẫn.
+Maven or Gradle may know direct dependencies, transitive dependencies, and selected versions. However, once the build tool constructs the classpath, most of that information has been reduced to a list of paths.
 
-Từ danh sách này, JVM không thể dễ dàng biết:
+From this list, the JVM cannot easily tell:
 
-- JAR nào là dependency trực tiếp của thành phần nào.
-- Thành phần nào thực sự cần một thư viện.
-- Package nào nên được cung cấp cho module khác.
-- Một dependency đang bị sử dụng ngoài ý định kiến trúc hay không.
+- Which JAR is a direct dependency of which component.
+- Which component actually needs a given library.
+- Which packages should be exposed to other modules.
+- Whether a dependency is being used outside architectural intent.
 
-Nói cách khác, công cụ build có thể hiểu đồ thị dependency, trong khi classpath runtime chỉ thể hiện tập hợp các vị trí tìm kiếm. Hai khái niệm này có liên quan nhưng không giống nhau.
+In other words, the build tool may understand the dependency graph, whereas the runtime classpath only represents a set of search locations. The two concepts are related, but not the same.
 
-### 2.5. Khó kiểm soát sự thay đổi trong hệ thống lớn
+### 2.5. Difficulty controlling change in large systems
 
-Khi ranh giới thành phần không được thực thi, một thay đổi nhỏ có thể lan sang nhiều phần khác. Một lớp nội bộ trở thành điểm phụ thuộc không chính thức; một dependency cũ vẫn tồn tại vì không ai chắc nơi nào đang sử dụng nó; hoặc hai nhóm vô tình tạo ra các package có tên giống nhau.
+When component boundaries are not enforced, a small change can ripple across many other parts. An internal class becomes an informal dependency point; an old dependency lingers because no one is sure where it is still used; or two teams accidentally create packages with the same name.
 
-Những vấn đề này làm tăng chi phí đọc hiểu, refactor và nâng cấp. Chúng cũng khiến việc xác định trách nhiệm của từng thư viện khó khăn hơn.
+These issues increase the cost of reading, refactoring, and upgrading code. They also make it harder to pinpoint the responsibility of each library.
 
-## 3. Mô hình module bổ sung điều gì?
+## 3. What does the module model add?
 
-JPMS đưa khái niệm **module có tên** vào nền tảng Java. Một module là một nhóm package và tài nguyên có danh tính riêng, kèm theo mô tả về dependency và những package được công khai.
+JPMS introduces the concept of a **named module** to the Java platform. A module is a group of packages and resources with its own identity, accompanied by a description of its dependencies and exposed packages.
 
-Mô tả này thường được viết trong tệp `module-info.java` ở gốc source set của module. Khi biên dịch, tệp này trở thành `module-info.class` trong artifact.
+This description is usually written in a `module-info.java` file at the root of the module's source set. When compiled, this file becomes `module-info.class` in the artifact.
 
-Một module có thể khai báo:
+A module can declare:
 
-- `requires`: module mà nó cần đọc và sử dụng.
-- `exports`: package được công khai cho module khác.
-- `opens`: package được mở cho reflection sâu trong các trường hợp cần thiết.
-- `uses` và `provides`: quan hệ sử dụng và cung cấp dịch vụ theo cơ chế ServiceLoader.
-- `requires transitive`: dependency mà các module phụ thuộc vào module hiện tại cũng cần có khả năng đọc.
+- `requires`: modules that it needs to read and use.
+- `exports`: packages exposed to other modules.
+- `opens`: packages opened for deep reflection where necessary.
+- `uses` and `provides`: service consumption and provision relationships via the ServiceLoader mechanism.
+- `requires transitive`: dependencies that modules depending on the current module also need to be able to read.
 
-Ví dụ, module danh mục có thể công khai API và giữ phần triển khai bên trong:
+For example, the catalog module can expose its API and keep its implementation internal:
 
 ```java
 module com.example.catalog {
@@ -102,7 +102,7 @@ module com.example.catalog {
 }
 ```
 
-Module đơn hàng khai báo rõ dependency của mình:
+The orders module explicitly declares its dependencies:
 
 ```java
 module com.example.orders {
@@ -113,52 +113,52 @@ module com.example.orders {
 }
 ```
 
-Từ mô tả này, người đọc biết rằng `orders` phụ thuộc vào `catalog` và `java.sql`. Module khác có thể sử dụng các kiểu public thuộc package `com.example.orders.api`, nhưng không tự động được truy cập package triển khai chưa được export.
+From this description, a reader knows that `orders` depends on `catalog` and `java.sql`. Other modules can use public types in the `com.example.orders.api` package, but cannot automatically access unexported implementation packages.
 
-### 3.1. Readability: module nào được phép đọc module nào?
+### 3.1. Readability: which module is allowed to read which module?
 
-Một module không tự động nhìn thấy mọi module khác trên module path. Nó phải khai báo dependency bằng `requires`.
+A module does not automatically see every other module on the module path. It must declare dependencies using `requires`.
 
-Khai báo này tạo nên đồ thị module. Khi khởi động, hệ thống phân giải đồ thị để xác định các module cần thiết và quan hệ đọc giữa chúng. Nếu một dependency bắt buộc không thể được phân giải, ứng dụng có thể thất bại ngay ở bước khởi động thay vì chỉ phát hiện lỗi khi một nhánh chức năng được gọi.
+These declarations form the module graph. At startup, the system resolves the graph to determine the required modules and the readability relationships among them. If a required dependency cannot be resolved, the application can fail right at startup instead of only surfacing an error when a specific code branch is invoked.
 
-`requires transitive` hữu ích khi API của module A để lộ kiểu dữ liệu thuộc module B. Nếu module C phụ thuộc vào A, khai báo bắc cầu giúp C đọc được B thông qua quan hệ đã được A công bố.
+`requires transitive` is useful when module A's API exposes data types belonging to module B. If module C depends on A, the transitive declaration allows C to read B through the relationship published by A.
 
-### 3.2. Exports: module nào được phép sử dụng package nào?
+### 3.2. Exports: which module is allowed to use which package?
 
-`exports` công khai một package cho các module khác. Đây là ranh giới API ở cấp module.
+`exports` exposes a package to other modules. This is the module-level API boundary.
 
-Ví dụ, `com.example.catalog.api` có thể chứa các kiểu mà người dùng thư viện cần, còn `com.example.catalog.internal` giữ thuật toán, adapter hoặc chi tiết lưu trữ. Khi package nội bộ không được export, module khác không thể sử dụng các kiểu public trong package đó như một API thông thường.
+For example, `com.example.catalog.api` can hold types needed by library consumers, while `com.example.catalog.internal` holds algorithms, adapters, or storage details. When an internal package is not exported, other modules cannot use public types in that package as ordinary API.
 
-Cách tổ chức này tạo ra một hợp đồng rõ hơn: người dùng module dựa vào phần được công khai, còn nhóm phát triển có không gian thay đổi phần nội bộ.
+This organization establishes a clearer contract: module consumers rely on the exposed parts, while the development team has room to evolve the internal parts.
 
-### 3.3. Opens: hỗ trợ reflection mà vẫn giữ ranh giới
+### 3.3. Opens: supporting reflection while preserving boundaries
 
-Một số framework cần reflection sâu để đọc hoặc thay đổi thành viên không public, chẳng hạn khi ánh xạ object, inject dependency hoặc tuần tự hóa dữ liệu.
+Some frameworks require deep reflection to read or modify non-public members, such as when mapping objects, injecting dependencies, or serializing data.
 
-`opens` cho phép mở package cho mục đích reflection sâu. Phạm vi mở có thể rộng hoặc giới hạn cho một module cụ thể. Điều này khác với `exports`: export công khai API Java thông thường, còn open cho phép reflection sâu trong phạm vi được khai báo.
+`opens` allows opening a package for deep reflection. The opening scope can be broad or restricted to a specific module. This differs from `exports`: export exposes ordinary Java API, whereas open permits deep reflection within the declared scope.
 
-Vì vậy, khi chuyển một ứng dụng sang JPMS, các framework cần reflection có thể cần cấu hình `opens` phù hợp. Không nên mở toàn bộ module một cách tùy tiện vì như vậy sẽ làm giảm lợi ích của ranh giới module.
+Therefore, when migrating an application to JPMS, frameworks requiring reflection may need appropriate `opens` configuration. You should not open an entire module indiscriminately, as doing so diminishes the benefits of module boundaries.
 
-## 4. Classpath và module path khác nhau như thế nào?
+## 4. How do the classpath and module path differ?
 
-Classpath và module path đều đưa thư viện vào quá trình chạy, nhưng chúng thể hiện hai mô hình khác nhau.
+Both the classpath and the module path supply libraries to the execution process, but they represent two different models.
 
-| Khía cạnh | Classpath | Module path |
+| Aspect | Classpath | Module path |
 |---|---|---|
-| Mô hình | Danh sách thư mục/JAR để tìm lớp | Tập hợp module có danh tính và quan hệ rõ ràng |
-| Mô tả dependency | Không có trong classpath runtime đã làm phẳng | Khai báo bằng `requires` |
-| Phạm vi package | Không có danh sách export ở cấp module | Khai báo bằng `exports` |
-| Encapsulation | Chủ yếu dựa vào quy tắc truy cập Java và classloader | Có thêm ranh giới module, export và open |
-| Dependency cũ | JAR đặt trên classpath hoạt động theo mô hình classpath | JAR không có descriptor có thể trở thành automatic module khi đặt trên module path |
-| Kiểm tra cấu trúc | Nhiều vấn đề chỉ xuất hiện khi lớp được nạp hoặc chức năng được gọi | Module graph được phân giải khi khởi động |
+| Model | List of directories/JARs for class lookup | Set of modules with explicit identities and relationships |
+| Dependency description | Not present in the flattened runtime classpath | Declared with `requires` |
+| Package scope | No module-level export list | Declared with `exports` |
+| Encapsulation | Primarily relies on Java access rules and classloaders | Adds module, export, and open boundaries |
+| Legacy dependencies | JARs on the classpath operate under the classpath model | JARs without a descriptor can become automatic modules when placed on the module path |
+| Structural checks | Many issues only surface when a class is loaded or a feature is called | The module graph is resolved at startup |
 
-Các lớp được nạp từ classpath thuộc unnamed module gắn với classloader tương ứng. Unnamed module có khả năng đọc các module khác, nhưng module có tên không thể khai báo `requires` trực tiếp tới unnamed module. Vì vậy, khi thiết kế module có tên, dependency của nó cần được cung cấp dưới dạng module có thể phân giải.
+Classes loaded from the classpath belong to the unnamed module associated with the corresponding classloader. The unnamed module can read other modules, but named modules cannot declare `requires` directly on the unnamed module. Thus, when designing named modules, their dependencies must be provided as resolvable modules.
 
-Một JAR chưa có `module-info.class` vẫn có thể được đặt trên module path dưới dạng **automatic module**. Tên module có thể lấy từ thuộc tính `Automatic-Module-Name` trong manifest; nếu không có, tên được suy ra từ tên tệp JAR. Automatic module giúp thư viện cũ tham gia quá trình chuyển đổi, nhưng không cung cấp ranh giới package chi tiết như một module có descriptor được thiết kế rõ ràng.
+A JAR without `module-info.class` can still be placed on the module path as an **automatic module**. The module name can come from the `Automatic-Module-Name` attribute in the manifest; if absent, the name is derived from the JAR file name. Automatic modules help legacy libraries participate in migration, but do not provide fine-grained package boundaries like a module with an explicitly designed descriptor.
 
-## 5. Ví dụ về ranh giới API trong một ứng dụng
+## 5. Example of API boundaries in an application
 
-Giả sử một ứng dụng bán hàng có cấu trúc như sau:
+Suppose a sales application has the following structure:
 
 ```text
 catalog/
@@ -180,7 +180,7 @@ orders/
             └── OrderServiceImpl.java
 ```
 
-Module `catalog` chỉ export package API:
+The `catalog` module exports only its API package:
 
 ```java
 module com.example.catalog {
@@ -188,7 +188,7 @@ module com.example.catalog {
 }
 ```
 
-Module `orders` yêu cầu `catalog`:
+The `orders` module requires `catalog`:
 
 ```java
 module com.example.orders {
@@ -197,59 +197,59 @@ module com.example.orders {
 }
 ```
 
-Khi đó, `orders` có thể sử dụng `Product` từ API của `catalog`. Nó không thể dựa vào `ProductRepositoryImpl` trong package nội bộ của `catalog` như một API thông thường.
+Then `orders` can use `Product` from the `catalog` API. It cannot rely on `ProductRepositoryImpl` in `catalog`'s internal package as an ordinary API.
 
-Nếu sau này nhóm phát triển thay đổi cách lưu sản phẩm, họ có thể thay thế `ProductRepositoryImpl` mà không cần giữ tương thích với những module đã tuân thủ ranh giới công khai. Module system giúp biến quy ước kiến trúc thành quy tắc mà công cụ biên dịch và runtime có thể thực thi.
+If the development team later changes how products are stored, they can replace `ProductRepositoryImpl` without needing to maintain compatibility with modules that respected the public boundary. The module system turns architectural conventions into rules that compiler and runtime tools can enforce.
 
-## 6. JPMS có thay thế Maven hoặc Gradle không?
+## 6. Does JPMS replace Maven or Gradle?
 
-Không. Cần phân biệt **module của hệ thống build** với **module của JPMS**.
+No. You must distinguish **build system modules** from **JPMS modules**.
 
-Maven và Gradle quản lý project, dependency artifact, phiên bản thư viện, plugin, tác vụ build và đóng gói. JPMS mô tả module ở cấp nền tảng Java: module nào tồn tại, module nào đọc module nào và package nào được công khai.
+Maven and Gradle manage projects, dependency artifacts, library versions, plugins, build tasks, and packaging. JPMS describes modules at the Java platform level: which modules exist, which module reads which module, and which packages are exposed.
 
-Một dự án Gradle có thể có nhiều subproject nhưng không phải subproject nào cũng cần một JPMS module riêng. Ngược lại, một project build có thể đóng gói hoặc biên dịch các module JPMS theo cấu trúc mà dự án lựa chọn.
+A Gradle project can have multiple subprojects without every subproject needing its own JPMS module. Conversely, a build project can package or compile JPMS modules according to the structure the project chooses.
 
-JPMS cũng không thay thế bộ quản lý dependency. Nó không giải quyết đầy đủ việc chọn phiên bản thư viện, tải artifact từ repository hay quản lý dependency bắc cầu. Những việc đó vẫn thuộc công cụ build. Module system bổ sung cấu trúc và quy tắc truy cập cho các module đã được cung cấp.
+JPMS also does not replace a dependency manager. It does not fully handle selecting library versions, downloading artifacts from repositories, or managing transitive dependency mediation. Those tasks still belong to build tools. The module system adds structure and access rules for the modules that have been supplied.
 
-## 7. Mô hình module không giải quyết mọi vấn đề
+## 7. The module model does not solve every problem
 
-JPMS làm rõ ranh giới và dependency ở cấp module, nhưng không phải một cơ chế sandbox bảo mật cho mã Java. Các module vẫn chạy trong cùng tiến trình và chia sẻ quyền của tiến trình đó. Nếu ứng dụng cần cô lập mã không tin cậy, cần một kiến trúc cách ly phù hợp khác.
+JPMS clarifies module-level boundaries and dependencies, but it is not a security sandbox mechanism for Java code. Modules still run within the same process and share that process's permissions. If an application needs to isolate untrusted code, another appropriate isolation architecture is required.
 
-Module system cũng không tự động sửa thiết kế package, loại bỏ dependency vòng hoặc chọn phiên bản thư viện tương thích. Nếu module được thiết kế quá lớn, export quá rộng hoặc mở mọi package cho reflection, lợi ích về encapsulation sẽ giảm đáng kể.
+The module system also does not automatically fix package design, eliminate circular dependencies, or select compatible library versions. If modules are designed too large, export too broadly, or open every package for reflection, encapsulation benefits decrease significantly.
 
-Do đó, JPMS nên được xem là một công cụ để biểu đạt và thực thi ranh giới kiến trúc. Nó phát huy hiệu quả khi nhóm xác định được API công khai, dependency hợp lệ và phần triển khai cần giữ kín.
+Therefore, JPMS should be viewed as a tool for expressing and enforcing architectural boundaries. It is effective when a team identifies its public APIs, valid dependencies, and implementation parts that need to remain hidden.
 
-## 8. Chuyển đổi từ classpath sang module path
+## 8. Migrating from the classpath to the module path
 
-Không nhất thiết phải chuyển toàn bộ ứng dụng trong một lần. Một lộ trình từng bước thường dễ kiểm soát hơn:
+It is not necessary to migrate an entire application at once. A step-by-step roadmap is usually easier to control:
 
-1. **Kiểm kê dependency:** xác định JAR trực tiếp, dependency bắc cầu, các package trùng và những API nội bộ của JDK đang được sử dụng.
-2. **Ổn định tên module:** với thư viện chưa có descriptor, có thể khai báo `Automatic-Module-Name` trong manifest để tên module không phụ thuộc vào cách đặt tên tệp JAR.
-3. **Làm rõ package:** xử lý package bị chia sẻ giữa nhiều thư viện và xác định package nào là API, package nào là triển khai nội bộ.
-4. **Thêm descriptor:** tạo `module-info.java`, khai báo các dependency thật sự cần thiết bằng `requires`, chỉ export package cần công khai.
-5. **Cấu hình framework:** mở đúng package bằng `opens` khi framework cần reflection sâu.
-6. **Kiểm tra dependency JDK:** có thể dùng `jdeps --jdk-internals` để tìm việc sử dụng API nội bộ của JDK và lên kế hoạch thay thế.
-7. **Dùng tùy chọn chuyển tiếp khi cần:** `--add-reads`, `--add-exports` và `--add-opens` có thể giúp ứng dụng chuyển đổi dần, nhưng nên được xem là biện pháp chuyển tiếp có phạm vi rõ ràng.
+1. **Inventory dependencies:** identify direct JARs, transitive dependencies, duplicate packages, and internal JDK APIs currently in use.
+2. **Stabilize module names:** for libraries without a descriptor, `Automatic-Module-Name` can be declared in the manifest so the module name does not depend on how the JAR file is named.
+3. **Clarify packages:** resolve packages shared across multiple libraries and decide which packages are API and which are internal implementation.
+4. **Add descriptors:** create `module-info.java`, declare truly required dependencies with `requires`, and export only packages that need to be public.
+5. **Configure frameworks:** open the right packages with `opens` when frameworks need deep reflection.
+6. **Check JDK dependencies:** `jdeps --jdk-internals` can be used to find usage of internal JDK APIs and plan replacements.
+7. **Use transitional options when needed:** `--add-reads`, `--add-exports`, and `--add-opens` can help an application migrate gradually, but should be treated as scoped transitional measures.
 
-Classpath vẫn được Java hỗ trợ. Một ứng dụng nhỏ, công cụ nội bộ hoặc hệ thống cũ có thể tiếp tục dùng classpath nếu mô hình hiện tại phù hợp. Giá trị của JPMS rõ hơn khi dự án cần ranh giới API ổn định, nhiều thành phần phối hợp và khả năng kiểm soát dependency ở cấp module.
+The classpath is still supported by Java. A small application, internal tool, or legacy system can continue using the classpath if the current model fits. The value of JPMS is clearer when a project needs stable API boundaries, coordination across many components, and module-level dependency control.
 
-## 9. Khi nào nên quan tâm đến mô hình module?
+## 9. When should you care about the module model?
 
-Mô hình module đặc biệt hữu ích khi:
+The module model is especially useful when:
 
-- Ứng dụng có nhiều thư viện hoặc nhiều nhóm cùng phát triển.
-- Các package nội bộ thường bị sử dụng từ bên ngoài.
-- Dependency giữa các thành phần khó theo dõi.
-- Việc nâng cấp một thư viện thường gây lỗi ở những thành phần không liên quan.
-- Nhóm muốn công khai một API ổn định và giữ quyền thay đổi phần triển khai.
-- Ứng dụng cần kiểm soát rõ những package được mở cho reflection.
+- An application has many libraries or multiple teams developing together.
+- Internal packages are frequently accessed from the outside.
+- Dependencies between components are hard to track.
+- Upgrading a library frequently breaks unrelated components.
+- The team wants to publish a stable API while retaining the freedom to change the implementation.
+- The application needs explicit control over which packages are opened for reflection.
 
-Với một chương trình nhỏ chỉ có vài JAR và ít ranh giới kiến trúc, classpath có thể vẫn là lựa chọn đơn giản, hợp lý. Không cần thêm module descriptor chỉ vì dự án sử dụng Java hiện đại. Nên chọn JPMS khi các ranh giới đó mang lại giá trị thực tế cho cách tổ chức và bảo trì hệ thống.
+For a small program with only a few JARs and few architectural boundaries, the classpath may remain a simple, reasonable choice. There is no need to add a module descriptor just because a project uses modern Java. Choose JPMS when those boundaries bring real value to how the system is organized and maintained.
 
-## Kết luận
+## Conclusion
 
-Classpath giúp Java tìm lớp từ các thư mục và JAR, nhưng không thể hiện đầy đủ cấu trúc dependency và quyền truy cập giữa các thành phần. Khi hệ thống lớn lên, danh sách classpath phẳng khiến API công khai, phần triển khai nội bộ và quan hệ phụ thuộc dễ bị lẫn lộn.
+The classpath helps Java locate classes from directories and JARs, but it does not fully express dependency structure and access permissions between components. As a system grows, a flat classpath list makes public APIs, internal implementation, and dependency relationships easy to blur.
 
-JPMS bổ sung module có tên, dependency tường minh, export package và cơ chế mở package cho reflection. Nhờ đó, kiến trúc được mô tả ngay trong mã nguồn và có thể được kiểm tra trong quá trình biên dịch, phân giải module và chạy ứng dụng.
+JPMS adds named modules, explicit dependencies, package exports, and mechanisms to open packages for reflection. As a result, architecture is described directly in the source code and can be checked during compilation, module resolution, and application execution.
 
-Điểm cốt lõi là: classpath trả lời câu hỏi “JVM tìm lớp ở đâu?”, còn mô hình module còn trả lời “thành phần nào cần thành phần nào, và phần nào được phép sử dụng?”.
+The key point is: the classpath answers the question "where does the JVM find classes?", while the module model also answers "which component needs which component, and which parts are allowed to be used?".

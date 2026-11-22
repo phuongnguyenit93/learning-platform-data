@@ -1,10 +1,10 @@
-# Chi phí boxing trong vòng lặp và cấu trúc dữ liệu Java
+# Cost of Boxing in Java Loops and Data Structures
 
-## 1. Boxing và unboxing là gì?
+## 1. What are boxing and unboxing?
 
-Trong Java, `int`, `long`, `double` và những kiểu primitive khác giữ giá trị theo các kiểu dữ liệu cơ bản của ngôn ngữ. Những lớp như `Integer`, `Long` và `Double` là **wrapper**: đối tượng tham chiếu biểu diễn giá trị primitive tương ứng.
+In Java, `int`, `long`, `double`, and other primitive types hold values in the language's basic data types. Classes like `Integer`, `Long`, and `Double` are **wrappers**: reference objects representing the corresponding primitive values.
 
-**Boxing** là chuyển từ primitive sang wrapper. **Unboxing** là lấy giá trị primitive từ wrapper. Java có thể thực hiện chúng tự động khi kiểu/ngữ cảnh cho phép:
+**Boxing** converts from primitive to wrapper. **Unboxing** extracts the primitive value from a wrapper. Java can perform them automatically when types/contexts permit:
 
 ~~~java
 int primitive = 42;
@@ -12,53 +12,53 @@ Integer boxed = primitive;  // autoboxing: int -> Integer
 int again = boxed;          // unboxing: Integer -> int
 ~~~
 
-Đây là đoạn minh họa, chưa phải chương trình độc lập. Về mặt ngữ nghĩa, có thể hình dung:
+This is an illustrative snippet, not a standalone program. Semantically, you can picture:
 
 ~~~java
 Integer boxed = Integer.valueOf(primitive);
 int again = boxed.intValue();
 ~~~
 
-Điểm chính: **box/unbox là các chuyển đổi kiểu được trình biên dịch diễn giải**, không phải “miễn phí”. Chúng có thể kèm gọi phương thức, tham chiếu đối tượng, xử lý `null` và trong một số điều kiện **có cấp phát đối tượng**.
+Key point: **boxing/unboxing are type conversions interpreted by the compiler**, not “free”. They can involve method calls, object references, `null` handling, and under certain conditions **object allocation**.
 
-Khi xuất hiện một hai lần trong mã bình thường, chi phí thường không đáng kể. Nhưng trong **vòng lặp chạy hàng triệu lần**, **collection chứa hàng triệu phần tử** hoặc **đường xử lý hiệu năng nhạy cảm**, số lượng chuyển đổi và đối tượng có thể tác động lên:
+When appearing once or twice in ordinary code, the cost is usually negligible. However, in **loops running millions of times**, **collections holding millions of elements**, or **performance-sensitive code paths**, the number of conversions and objects can impact:
 
-- Bộ nhớ dùng để lưu dữ liệu và metadata đối tượng.
-- Số lần cấp phát, thu gom rác (*garbage collection* – GC) và áp lực lên heap.
-- Tính cục bộ bộ nhớ (*cache locality*), số lần theo tham chiếu và tốc độ truy cập.
-- CPU của những phép kiểm tra `null`, chuyển kiểu và mã tạo wrapper nếu chúng không được tối ưu.
-- Độ trễ đuôi (*tail latency*) khi GC hoặc cache miss xuất hiện.
+- Memory used to store data and object metadata.
+- Allocation counts, *garbage collection* (GC), and heap pressure.
+- Memory *cache locality*, pointer-chasing hops, and access speed.
+- CPU spent on `null` checks, type conversions, and wrapper creation code if unoptimized.
+- *Tail latency* when GC or cache misses occur.
 
-Bài này chỉ rõ **nơi boxing ẩn xảy ra**, phân biệt **chi phí có thể phát sinh** với **chi phí chắc chắn xảy ra**, và hướng chọn cấu trúc dữ liệu theo yêu cầu.
+This lesson pinpoints **where hidden boxing happens**, distinguishes **costs that may occur** from **costs that definitely occur**, and guides choosing data structures based on requirements.
 
-## 2. Primitive và wrapper: giống giá trị, khác cách lưu trữ
+## 2. Primitives and wrappers: same values, different storage
 
-| Primitive | Wrapper | Ví dụ autoboxing | Có thể chứa `null`? |
+| Primitive | Wrapper | Autoboxing example | Can hold `null`? |
 |---|---|---|---|
-| `byte` | `Byte` | `Byte b = (byte) 5;` | Có |
-| `short` | `Short` | `Short s = (short) 5;` | Có |
-| `int` | `Integer` | `Integer i = 5;` | Có |
-| `long` | `Long` | `Long l = 5L;` | Có |
-| `float` | `Float` | `Float f = 1.5f;` | Có |
-| `double` | `Double` | `Double d = 1.5;` | Có |
-| `char` | `Character` | `Character c = 'A';` | Có |
-| `boolean` | `Boolean` | `Boolean flag = true;` | Có |
+| `byte` | `Byte` | `Byte b = (byte) 5;` | Yes |
+| `short` | `Short` | `Short s = (short) 5;` | Yes |
+| `int` | `Integer` | `Integer i = 5;` | Yes |
+| `long` | `Long` | `Long l = 5L;` | Yes |
+| `float` | `Float` | `Float f = 1.5f;` | Yes |
+| `double` | `Double` | `Double d = 1.5;` | Yes |
+| `char` | `Character` | `Character c = 'A';` | Yes |
+| `boolean` | `Boolean` | `Boolean flag = true;` | Yes |
 
-Primitive không mang giá trị `null`. Wrapper là reference type, nên biến wrapper có thể là `null`; **unboxing `null` ném `NullPointerException`**.
+Primitives cannot hold `null`. Wrappers are reference types, so a wrapper variable can be `null`; **unboxing `null` throws `NullPointerException`**.
 
-Các wrapper không hoán đổi vai trò với nhau tùy ý. Ví dụ `Integer` là wrapper của `int`, không phải primitive `int`. Dù `Integer` là một `Number`, việc cần đối tượng và việc thực hiện số học là hai cơ chế khác nhau.
+Wrappers are not arbitrarily interchangeable with one another. For instance, `Integer` is the wrapper for `int`, not primitive `int`. Although `Integer` is a `Number`, needing an object and performing arithmetic are two different mechanisms.
 
-### Boxing không đồng nghĩa tạo đối tượng mới ở mọi lần
+### Boxing does not mean creating a new object every time
 
-`Integer.valueOf(int)` sử dụng **caching** đối với ít nhất miền `-128` đến `127`. Cùng giá trị trong miền này có thể được biểu diễn bằng cùng đối tượng wrapper. Cấu hình/triển khai có thể cache thêm giá trị ngoài miền bắt buộc.
+`Integer.valueOf(int)` uses **caching** for at least the range `-128` to `127`. The same value within this range can be represented by the same wrapper object. Configurations/implementations may cache additional values outside the required range.
 
-Hơn nữa, JVM/JIT có thể tối ưu những đối tượng tạm **không thoát** khỏi phạm vi phân tích (*escape analysis*, scalar replacement) và loại bỏ một số cấp phát vật lý. Vì vậy, phát biểu **“mỗi lần autoboxing chắc chắn cấp phát một đối tượng” là sai**.
+Moreover, the JVM/JIT can optimize temporary objects that **do not escape** analysis scope (*escape analysis*, scalar replacement) and eliminate some physical allocations. Therefore, the claim **“every autoboxing definitely allocates an object” is false**.
 
-Tuy nhiên, cũng không thể kết luận **“JIT sẽ xóa hết mọi boxing”**: khi cần giữ đối tượng `Integer` trong collection hoặc truyền nó đến nơi không thể loại bỏ tham chiếu, có thể phải lưu/cấp phát đối tượng thật. Tối ưu phụ thuộc mã, JVM, dữ liệu và quá trình warm-up.
+However, you also cannot conclude **“the JIT will erase all boxing”**: when `Integer` objects must be retained in a collection or passed where references cannot be eliminated, real objects may have to be stored/allocated. Optimization depends on code, JVM, data, and warm-up.
 
-## 3. Boxing ẩn trong vòng lặp
+## 3. Hidden boxing in loops
 
-### 3.1. Biến tích lũy dạng primitive
+### 3.1. Primitive accumulator variable
 
 ~~~java
 int sum = 0;
@@ -67,9 +67,9 @@ for (int i = 0; i < 5; i++) {
 }
 ~~~
 
-`sum` và `i` đều có kiểu `int`. Vòng lặp thao tác trên primitive; không có boxing do kiểu của các biến này.
+Both `sum` and `i` have type `int`. The loop operates on primitives; there is no boxing given these variable types.
 
-### 3.2. Biến tích lũy dạng wrapper
+### 3.2. Wrapper accumulator variable
 
 ~~~java
 Integer sum = 0;
@@ -78,25 +78,25 @@ for (int i = 0; i < 5; i++) {
 }
 ~~~
 
-Hai đoạn là **mã minh họa**, không phải class độc lập. Về ngữ nghĩa, `sum += i` cần:
+Both snippets are **illustrative code**, not standalone classes. Semantically, `sum += i` requires:
 
-1. Lấy giá trị primitive từ `sum` (*unbox*).
-2. Cộng với `i` kiểu `int`.
-3. Chuyển kết quả `int` trở lại `Integer` (*box*) để gán cho biến `sum`.
+1. Extracting the primitive value from `sum` (*unbox*).
+2. Adding `i` of type `int`.
+3. Converting the `int` result back to `Integer` (*box*) to assign to `sum`.
 
-Có thể hình dung gần tương đương:
+You can picture it roughly equivalently as:
 
 ~~~java
 sum = Integer.valueOf(sum.intValue() + i);
 ~~~
 
-**Cảnh báo:** đoạn diễn giải này không nhằm mô tả chính xác mọi bước CPU của mã máy do JIT sinh ra. Nó mô tả **nghĩa ngôn ngữ** và nơi việc box/unbox xuất hiện. JVM có thể tối ưu phần nào, nhưng viết tích lũy bằng `Integer` không đem lại lợi ích tự động so với `int` khi không cần đối tượng.
+**Warning:** this paraphrasing is not meant to describe every exact CPU instruction in machine code generated by the JIT. It describes **language semantics** and where boxing/unboxing appears. The JVM may optimize parts of it, yet writing an accumulator with `Integer` gives no automatic advantage over `int` when no object is needed.
 
-Nếu `sum == null` ở đầu phép cộng, chương trình sẽ ném `NullPointerException` tại bước unbox.
+If `sum == null` at the start of the addition, the program will throw `NullPointerException` at the unboxing step.
 
-### Ví dụ Java 17+ chạy độc lập
+### Standalone runnable Java 17+ example
 
-Tạo tệp `BoxingLoopDemo.java`:
+Create file `BoxingLoopDemo.java`:
 
 ~~~java
 public class BoxingLoopDemo {
@@ -111,9 +111,9 @@ public class BoxingLoopDemo {
     static int boxedSum(int limit) {
         Integer sum = 0;
         for (int i = 0; i < limit; i++) {
-            sum += i; // unboxing, phép cộng int, autoboxing
+            sum += i; // unboxing, int addition, autoboxing
         }
-        return sum; // unboxing khi trả về int
+        return sum; // unboxing when returning int
     }
 
     public static void main(String[] args) {
@@ -136,14 +136,14 @@ public class BoxingLoopDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ~~~bash
 javac BoxingLoopDemo.java
 java BoxingLoopDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 primitiveSum=10
@@ -152,34 +152,34 @@ recovered=42
 nullUnboxing=NPE
 ~~~
 
-Hai vòng lặp tạo cùng **giá trị số**. Khác nhau nằm ở các chuyển đổi kiểu và khả năng tạo đối tượng mà chương trình yêu cầu; **đầu ra không phải thước đo hiệu năng**. Không nên đưa ra số mili-giây cụ thể nếu chưa đo trên môi trường thật.
+The two loops produce the same **numeric value**. The difference lies in the type conversions and potential object creations required by the program; **this output is not a performance benchmark**. You should not state specific millisecond numbers without measuring on a real environment.
 
-## 4. `int[]` và `List<Integer>` khác nhau ở đâu?
+## 4. Where do `int[]` and `List<Integer>` differ?
 
-Java có hai lựa chọn phổ biến để lưu nhiều số nguyên:
+Java has two common choices for storing many integers:
 
-- **`int[]`**: một mảng primitive chứa các giá trị `int` trực tiếp.
-- **`List<Integer>`**: một collection chứa các **tham chiếu `Integer`**; với `ArrayList<Integer>`, cấu trúc thường dùng một mảng tham chiếu bên trong và những đối tượng wrapper được tham chiếu.
+- **`int[]`**: a primitive array storing `int` values directly.
+- **`List<Integer>`**: a collection storing **`Integer` references**; with `ArrayList<Integer>`, the structure typically uses an internal reference array plus the referenced wrapper objects.
 
-So sánh:
+Comparison:
 
-| Khía cạnh | `int[]` | `ArrayList<Integer>` |
+| Aspect | `int[]` | `ArrayList<Integer>` |
 |---|---|---|
-| Phần tử | Giá trị `int` | Tham chiếu tới `Integer` |
-| Có boxing khi thêm số primitive? | Không | Có thể có, ví dụ `add(42)` |
-| Truy cập trả về | `int` | `Integer`; dùng số học thường phải unbox |
-| Hỗ trợ `null` như phần tử? | Không | Có |
-| Kích thước | Cố định sau khi tạo | Tăng/giảm động |
-| Tích hợp API `List`/generics | Không trực tiếp | Có |
-| Chi phí bộ nhớ mỗi phần tử | Giá trị primitive liên tiếp, ít gián tiếp | Tham chiếu và có thể thêm đối tượng wrapper/overhead |
-| Truy cập ngẫu nhiên | `O(1)` | `O(1)` đối với `ArrayList` |
-| Tính cục bộ bộ nhớ | Thường tốt với duyệt tuần tự | Thêm bước theo tham chiếu tới wrapper |
+| Elements | `int` values | References to `Integer` |
+| Boxing when adding primitives? | No | Possibly, e.g., `add(42)` |
+| Access returns | `int` | `Integer`; arithmetic usually requires unboxing |
+| Supports `null` as an element? | No | Yes |
+| Size | Fixed after creation | Grows/shrinks dynamically |
+| Integration with `List`/generics APIs | Not directly | Yes |
+| Memory cost per element | Contiguous primitive values, minimal indirection | References plus possible wrapper objects/overhead |
+| Random access | `O(1)` | `O(1)` for `ArrayList` |
+| Memory locality | Usually good for sequential traversal | Extra pointer-chasing step to wrappers |
 
-**Đừng suy ra một con số byte tuyệt đối cho mọi JVM:** kích thước header đối tượng, alignment, *compressed ordinary object pointers*, heap và JDK ảnh hưởng footprint. Ví dụ, `int` có giá trị 32 bit, nhưng một `Integer` object trong heap không chỉ có 4 byte vì còn metadata/header và căn chỉnh; `ArrayList` cũng có vùng tham chiếu, capacity dư, và đối tượng danh sách.
+**Do not extrapolate an absolute byte count for every JVM:** object header sizes, alignment, *compressed ordinary object pointers*, heap, and JDK affect footprint. For example, an `int` is a 32-bit value, yet an `Integer` object on the heap does not take only 4 bytes because of metadata/header and alignment; `ArrayList` also has its reference array, excess capacity, and list object itself.
 
-Đối với một triệu số `int`, mảng primitive thường tiết kiệm bộ nhớ hơn đáng kể so với một triệu `Integer` không được cache nằm trong `ArrayList`. Nhưng **đo lường thực tế** vẫn cần thiết nếu phải công bố phần trăm tiết kiệm hoặc thời gian chạy.
+For one million `int`s, a primitive array typically saves significantly more memory than one million uncached `Integer`s inside an `ArrayList`. Still, **actual measurement** is necessary if you need to report exact percentage savings or runtime numbers.
 
-### Chi phí boxing khi thêm và unboxing khi đọc
+### Boxing cost on insertion and unboxing cost on reading
 
 ~~~java
 List<Integer> values = new ArrayList<>();
@@ -188,18 +188,18 @@ for (int i = 0; i < 1000; i++) {
 }
 
 long sum = 0;
-for (int value : values) { // mỗi Integer được unbox thành int
+for (int value : values) { // each Integer is unboxed to int
     sum += value;
 }
 ~~~
 
-Đây là đoạn minh họa; cần `import java.util.List;` và `import java.util.ArrayList;` khi đặt trong chương trình độc lập.
+This is an illustrative snippet; `import java.util.List;` and `import java.util.ArrayList;` are needed when placing it in a standalone program.
 
-Vòng `for-each` viết `int value` giúp mã ngắn, nhưng không có nghĩa collection đã chứa primitive. Khi duyệt `List<Integer>`, từng phần tử phải được chuyển từ `Integer` sang `int`; phần tử `null` sẽ ném NPE ở thời điểm đó.
+Writing `int value` in the `for-each` loop keeps code short, yet does not mean the collection stores primitives. When iterating over `List<Integer>`, each element must be converted from `Integer` to `int`; a `null` element will throw an NPE at that point.
 
-## 5. Chương trình Java 17+: so sánh cấu trúc dữ liệu bằng kết quả xác định
+## 5. Java 17+ program: comparing data structures with deterministic output
 
-Tạo tệp `PrimitiveVsBoxedCollectionsDemo.java`:
+Create file `PrimitiveVsBoxedCollectionsDemo.java`:
 
 ~~~java
 import java.util.ArrayList;
@@ -212,7 +212,7 @@ public class PrimitiveVsBoxedCollectionsDemo {
         List<Integer> list = new ArrayList<>();
 
         for (int value : array) {
-            list.add(value); // boxing từng phần tử
+            list.add(value); // boxing each element
         }
 
         int arraySum = 0;
@@ -246,7 +246,7 @@ javac PrimitiveVsBoxedCollectionsDemo.java
 java PrimitiveVsBoxedCollectionsDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 arraySum=60
@@ -258,25 +258,25 @@ arrayStreamSum=60
 listStreamSum=65
 ~~~
 
-Khi chỉnh `list.set(0, 15)`, phần tử đầu mảng vẫn là 10 vì **mảng primitive và danh sách wrapper là hai cấu trúc riêng**. Dòng `arrayStreamSum` đọc trực tiếp `int[]`, còn `listStreamSum` dùng `Integer::intValue` để biến `Stream<Integer>` thành `IntStream`.
+When editing `list.set(0, 15)`, the first element of the array remains 10 because **the primitive array and wrapper list are two separate structures**. The `arrayStreamSum` line reads `int[]` directly, while `listStreamSum` uses `Integer::intValue` to turn `Stream<Integer>` into `IntStream`.
 
-Ví dụ này so sánh **ngữ nghĩa và vị trí chuyển đổi kiểu**, **không phải benchmark**.
+This example compares **semantics and type-conversion sites**, **not performance benchmarks**.
 
-## 6. Mảng primitive, collection chuẩn và collection primitive-specialized
+## 6. Primitive arrays, standard collections, and primitive-specialized collections
 
-Khi cần lưu trữ khối lượng lớn dữ liệu số, có thể cân nhắc:
+When storing large volumes of numeric data, consider:
 
-1. **`int[]`, `long[]`, `double[]`**: phù hợp với kích thước xác định hoặc có thể quản lý việc mở rộng mảng. Không boxing từng phần tử và có locality tốt khi duyệt tuần tự.
-2. **`ArrayList<Integer>`, `HashMap<Integer, Long>`**: phù hợp khi cần API collection chuẩn, generic, kích thước linh hoạt, tích hợp thư viện, hoặc có thể cần `null`. Đổi lại, có khả năng overhead tham chiếu và wrapper.
-3. **`IntStream`, `LongStream`, `DoubleStream`**: đường xử lý stream chuyên biệt cho primitive; giúp tránh một số boxing trong pipeline.
-4. **Cấu trúc dữ liệu chuyên biệt cho primitive từ thư viện ngoài**: ví dụ danh sách/map có khóa và giá trị primitive. Có thể giảm overhead trong một số workload, nhưng thêm dependency, API và yêu cầu kiểm tra benchmark/độ ổn định.
-5. **Thiết kế theo miền dữ liệu**: `BitSet` phù hợp với tập bit/boolean dày đặc; mảng đa chiều hoặc buffer cũng có thể phù hợp với xử lý số lớn. Chọn theo cách truy cập, không chỉ theo mong muốn “tránh boxing”.
+1. **`int[]`, `long[]`, `double[]`**: suited for known sizes or manageable array growth. No per-element boxing and good locality during sequential scans.
+2. **`ArrayList<Integer>`, `HashMap<Integer, Long>`**: suited when standard collection APIs, generics, flexible sizing, library integration, or `null` support are needed. In return, reference and wrapper overhead may occur.
+3. **`IntStream`, `LongStream`, `DoubleStream`**: specialized stream pipelines for primitives; help avoid some boxing in pipelines.
+4. **Primitive-specialized data structures from third-party libraries**: e.g., lists/maps with primitive keys and values. Can reduce overhead in some workloads, though they add dependencies, APIs, and benchmark/stability verification needs.
+5. **Domain-driven design**: `BitSet` suits dense bit/boolean sets; multidimensional arrays or buffers can also fit heavy numeric processing. Choose by access pattern, not solely out of a desire to “avoid boxing”.
 
-Không nên tự động thay mọi `List<Integer>` thành `int[]`. API dạng `List` có lợi thế về thao tác thêm/xóa, cộng tác giữa nhiều thư viện, cấu trúc trừu tượng và mã dễ bảo trì. **Tối ưu dựa trên profile** hiệu quả hơn tối ưu dựa trên một giả định rằng wrapper luôn quá chậm.
+You should not automatically replace every `List<Integer>` with `int[]`. `List` APIs offer advantages in add/remove operations, cross-library interoperability, abstraction, and maintainable code. **Profile-guided optimization** is more effective than optimizing based on an assumption that wrappers are always too slow.
 
-### `HashMap<Integer, Integer>` trong vòng lặp nóng
+### `HashMap<Integer, Integer>` in hot loops
 
-Ví dụ:
+Example:
 
 ~~~java
 Map<Integer, Integer> frequencies = new HashMap<>();
@@ -285,22 +285,22 @@ for (int number : input) {
 }
 ~~~
 
-Đây là **đoạn minh họa**, giả sử đã khai báo `int[] input` và import `Map`, `HashMap`. Mã sử dụng `Integer` làm khóa và giá trị; primitive `number` được boxing khi làm key, giá trị đếm là wrapper, và callback `Integer::sum` xử lý các giá trị sau khi unbox thích hợp. Với dữ liệu nhiều khóa và cập nhật liên tục, chi phí hash table và đối tượng có thể đáng kể.
+This is an **illustrative snippet**, assuming `int[] input` is declared and `Map`, `HashMap` are imported. The code uses `Integer` for keys and values; primitive `number` is boxed as a key, counts are wrappers, and the `Integer::sum` callback handles values after appropriate unboxing. With high key counts and frequent updates, hash table and object costs can be substantial.
 
-Nhưng thay thành primitive map chỉ có ích nếu workload thực sự bị ảnh hưởng bởi **GC/bộ nhớ/CPU** từ cấu trúc hiện tại và thư viện mới đáp ứng đúng quy tắc khóa, concurrency và hành vi của ứng dụng.
+Yet switching to a primitive map only pays off if the workload is genuinely impacted by **GC/memory/CPU** from the current structure and the new library meets key, concurrency, and behavioral rules of the application.
 
-## 7. Stream: primitive stream và `Stream<Integer>`
+## 7. Streams: primitive streams and `Stream<Integer>`
 
-Java Stream API có các specialization:
+The Java Stream API provides specializations:
 
-| Dạng | Phần tử logic | Phép toán thường dùng |
+| Type | Logical element | Common operations |
 |---|---|---|
 | `Stream<Integer>` | `Integer` (wrapper) | `map`, `filter`, `collect` |
 | `IntStream` | `int` | `map`, `filter`, `sum`, `average` |
 | `LongStream` | `long` | `map`, `sum`, `summaryStatistics` |
 | `DoubleStream` | `double` | `map`, `sum`, `average` |
 
-Ví dụ:
+Example:
 
 ~~~java
 int sumPrimitive = java.util.stream.IntStream.rangeClosed(1, 5).sum();
@@ -309,19 +309,19 @@ int sumBoxed = java.util.stream.Stream.of(1, 2, 3, 4, 5)
         .sum();
 ~~~
 
-Đây là đoạn minh họa. `Stream.of(1, 2, 3, 4, 5)` tạo một stream các đối tượng `Integer` vì generic type của `Stream` là reference type; còn `IntStream.rangeClosed` làm việc trực tiếp với `int`.
+This is an illustrative snippet. `Stream.of(1, 2, 3, 4, 5)` creates a stream of `Integer` objects because `Stream`'s generic type must be a reference type; whereas `IntStream.rangeClosed` works directly with `int`.
 
-### Những điểm boxing thường lộ ra trong pipeline
+### Places where boxing often surfaces in pipelines
 
-- `IntStream.boxed()` biến mỗi phần tử `int` thành `Integer` để trả `Stream<Integer>`.
-- `Stream<Integer>.mapToInt(Integer::intValue)` unbox các phần tử thành `int`.
-- `Stream<Integer>.reduce(0, Integer::sum)` có thể cần xử lý các giá trị box/unbox ở mỗi bước giảm; không mặc nhiên nhanh bằng `IntStream.sum()`.
-- `IntStream.sum()` trả `int`; nếu tổng toán học vượt miền `int` thì **vẫn có thể tràn số**. Tránh boxing **không đồng nghĩa tránh overflow**.
-- Nếu cần tổng `long` từ các số `int`, hãy chuyển sang `LongStream` trước khi cộng: `intStream.asLongStream().sum()`.
+- `IntStream.boxed()` converts each `int` element into `Integer` to return `Stream<Integer>`.
+- `Stream<Integer>.mapToInt(Integer::intValue)` unboxes elements into `int`.
+- `Stream<Integer>.reduce(0, Integer::sum)` may need to box/unbox values at each reduction step; not inherently as fast as `IntStream.sum()`.
+- `IntStream.sum()` returns `int`; if the mathematical sum exceeds `int` range, it **can still overflow**. Avoiding boxing **does not mean avoiding overflow**.
+- If you need a `long` sum from `int` numbers, convert to `LongStream` before summing: `intStream.asLongStream().sum()`.
 
-### Ví dụ Java 17+ chạy độc lập về stream
+### Standalone runnable Java 17+ example on streams
 
-Tạo tệp `PrimitiveStreamsDemo.java`:
+Create file `PrimitiveStreamsDemo.java`:
 
 ~~~java
 import java.util.List;
@@ -358,7 +358,7 @@ javac PrimitiveStreamsDemo.java
 java PrimitiveStreamsDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 primitiveSum=15
@@ -368,11 +368,11 @@ intOverflow=-2147483648
 longSum=2147483648
 ~~~
 
-`Stream.toList()` (Java 16+) trả danh sách không thể sửa bằng các thao tác cập nhật thông thường. Trong ví dụ này, nó lưu `Integer` do trước đó đã gọi `boxed()`. Dòng `intOverflow` là lời nhắc rằng **chọn primitive stream chỉ giải quyết vấn đề boxing**, còn giới hạn miền số vẫn phải tự kiểm soát.
+`Stream.toList()` (Java 16+) returns a list that cannot be modified by ordinary update operations. In this example, it stores `Integer` because `boxed()` was called beforehand. The `intOverflow` line is a reminder that **choosing a primitive stream only solves the boxing issue**, while numeric range limits still need to be managed.
 
-## 8. Autoboxing ở ranh giới phương thức và API generic
+## 8. Autoboxing at method boundaries and generic APIs
 
-Một API nhận `Integer` hoặc `Number` có thể gây boxing ở nơi gọi, mặc dù biến của người gọi là `int`:
+An API accepting `Integer` or `Number` can trigger boxing at the call site, even when the caller's variable is `int`:
 
 ~~~java
 static void accept(Number value) {
@@ -383,9 +383,9 @@ int count = 10;
 accept(count); // int -> Integer -> Number
 ~~~
 
-Đây là các đoạn minh họa cần đặt trong class. Từ góc độ kiểu tĩnh, `accept(count)` cần boxing một `int` thành `Integer` rồi chuyển tham chiếu tới `Number`.
+These are illustrative snippets that must be placed inside a class. From a static-typing viewpoint, `accept(count)` requires boxing an `int` into an `Integer` and widening the reference to `Number`.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 static int twice(int value) {
@@ -396,38 +396,38 @@ Integer number = Integer.valueOf(10);
 int doubled = twice(number); // unbox Integer -> int
 ~~~
 
-Một codebase có hàng nghìn dòng có thể chứa nhiều lần box/unbox ở **ranh giới method, generics và collection**, ngay cả khi không có từ khóa `new` hay lời gọi `Integer.valueOf` xuất hiện trực tiếp.
+A codebase with thousands of lines can contain numerous box/unbox conversions at **method boundaries, generics, and collections**, even when neither `new` nor `Integer.valueOf` appears explicitly.
 
-### Overload và unboxing
+### Overloads and unboxing
 
-Nếu có các overload khác nhau:
+If different overloads exist:
 
 ~~~java
 static void use(int value) { /* ... */ }
 static void use(Integer value) { /* ... */ }
 ~~~
 
-thì lựa chọn overload phụ thuộc vào kiểu biểu thức và các pha xác định overload của Java. Không nên dùng boxing như một “thao tác vô hình” để giả định mọi lời gọi đều chọn overload có cùng chi phí. Khi hiệu năng thật sự quan trọng, chọn API primitive rõ ràng có thể giúp tránh nhu cầu chuyển qua wrapper.
+then overload selection depends on expression types and Java's overload resolution phases. Do not treat boxing as an “invisible operation” and assume every call selects an overload with identical cost. When performance truly matters, choosing an explicit primitive API can eliminate the need to go through wrappers.
 
-## 9. Cạm bẫy `null`, đồng nhất tham chiếu và kiểm tra bằng `==`
+## 9. Pitfalls with `null`, reference identity, and `==` checks
 
-### `null` và unboxing
+### `null` and unboxing
 
 ~~~java
 Integer count = null;
-// int value = count;     // Ném NullPointerException khi chạy
-// int next = count + 1;  // Cũng ném NPE do cần unbox
+// int value = count;     // Throws NullPointerException at runtime
+// int next = count + 1;  // Also throws NPE because unboxing is required
 ~~~
 
-Đây là mã minh họa, các dòng nguy hiểm đã được comment. Một `List<Integer>` có thể chứa `null`; phép `for (int x : list)` sẽ NPE khi gặp phần tử đó. Primitive array không có trạng thái `null` cho từng phần tử; mọi vị trí `int[]` có giá trị nguyên (mặc định 0 nếu chưa gán).
+This is illustrative code with dangerous lines commented out. A `List<Integer>` can contain `null`; `for (int x : list)` will NPE upon encountering that element. Primitive arrays have no `null` state for individual elements; every `int[]` slot holds an integer value (defaulting to 0 if unassigned).
 
-Nếu `null` có ý nghĩa như “chưa biết”, hãy quyết định chính sách xử lý rõ ràng, thay vì tự động đổi `null` thành 0 mà không kiểm tra yêu cầu.
+If `null` means “unknown”, define an explicit handling policy rather than automatically converting `null` to 0 without checking requirements.
 
-### `==` với wrapper không có nghĩa so sánh giá trị tổng quát
+### `==` on wrappers does not mean general value comparison
 
-Khi cả hai toán hạng đều là wrapper `Integer`, `a == b` so sánh **tham chiếu**, không phải luôn so sánh giá trị số. Một số đối tượng `Integer` được cache (ít nhất `-128..127`) nên `==` đôi khi cho `true`, gây nhầm lẫn; ngoài miền đó không nên dựa vào kết quả đồng nhất tham chiếu.
+When both operands are `Integer` wrappers, `a == b` compares **references**, not always numeric values. Some `Integer` objects are cached (at least `-128..127`), so `==` sometimes yields `true`, causing confusion; outside that range, you must not rely on reference identity results.
 
-Ví dụ:
+Example:
 
 ~~~java
 Integer left = 1000;
@@ -435,16 +435,16 @@ Integer right = 1000;
 
 boolean sameValue = left.equals(right);    // true
 boolean samePrimitive = left.intValue() == right.intValue(); // true
-// left == right so sánh tham chiếu, không dùng làm phép so sánh số.
+// left == right compares references; do not use as numeric comparison.
 ~~~
 
-Nếu một toán hạng kiểu `int` còn toán hạng kia kiểu `Integer`, phép `==` số học có thể thực hiện unboxing để so sánh primitive — và có thể NPE nếu wrapper `null`. Vì vậy, **kết quả `==` còn phụ thuộc kiểu tĩnh của cả hai toán hạng**.
+If one operand has type `int` and the other has type `Integer`, the numeric `==` operator can perform unboxing for primitive comparison — and can NPE if the wrapper is `null`. Hence **the outcome of `==` also depends on the static types of both operands**.
 
-Dùng `Objects.equals(a, b)` khi cần so sánh nội dung wrapper có thể `null`, hoặc unbox sau khi kiểm tra `null` nếu thật sự cần so sánh primitive.
+Use `Objects.equals(a, b)` when comparing contents of potentially `null` wrappers, or unbox after a `null` check if primitive comparison is genuinely required.
 
-### Ví dụ Java 17+ chạy độc lập
+### Standalone runnable Java 17+ example
 
-Tạo tệp `WrapperPitfallsDemo.java`:
+Create file `WrapperPitfallsDemo.java`:
 
 ~~~java
 import java.util.HashMap;
@@ -484,7 +484,7 @@ javac WrapperPitfallsDemo.java
 java WrapperPitfallsDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 equals=true
@@ -495,117 +495,117 @@ nullUnboxing=NPE
 fallback=0
 ~~~
 
-`HashMap` dùng `equals` và `hashCode` của key, không dùng phép `==` thuần túy như một so sánh nội dung số học. Bởi vậy, hai `Integer` có cùng giá trị có thể tra cứu cùng khóa mặc dù không cần là cùng đối tượng.
+`HashMap` uses the key's `equals` and `hashCode`, not pure `==` as a numeric content comparison. Therefore, two `Integer`s with the same value can look up the same key even without being the same object.
 
-Ở biểu thức `missing == null ? 0 : missing`, khi `missing` bằng `null` thì nhánh `0` được chọn, nên nhánh cần unbox `missing` không chạy. Đây là một cách tạo giá trị mặc định rõ ràng, nhưng chỉ hợp lý nếu chính sách nghiệp vụ cho phép coi “thiếu” là 0.
+In `missing == null ? 0 : missing`, when `missing` is `null`, the `0` branch is chosen, so the branch requiring unboxing `missing` does not run. This is an explicit way to produce a default value, though only sensible if business policy permits treating “missing” as 0.
 
-## 10. Chi phí CPU, allocation và GC không giống nhau
+## 10. CPU, allocation, and GC costs are not all the same
 
-Đừng gom mọi ảnh hưởng của boxing thành một “thời gian boxing” duy nhất:
+Do not lump every effect of boxing into a single “boxing time”:
 
-1. **Chuyển kiểu theo nghĩa ngôn ngữ:** compiler phát sinh cách chuyển `int ↔ Integer`. Có thể gồm phương thức wrapper hoặc primitive extraction.
-2. **Cấp phát vật lý:** một boxing cần đối tượng mới **khi không được cache hoặc loại bỏ nhờ tối ưu hóa**. Không có đảm bảo mỗi boxing tương ứng một allocation.
-3. **Giữ đối tượng sống:** nếu collection giữ tham chiếu đến wrapper, các đối tượng ấy có thể tồn tại lâu và làm tăng lượng live objects phải xử lý.
-4. **Chi phí bộ nhớ/CPU khi truy cập:** array primitive đọc giá trị trực tiếp; collection wrapper có thể phải đọc tham chiếu rồi đọc object, ảnh hưởng locality/cache.
-5. **GC:** nhiều object cấp phát và sống lâu có thể tăng GC work. Ảnh hưởng cụ thể tùy collector, heap, tốc độ cấp phát và profile ứng dụng.
+1. **Language-level type conversion:** the compiler emits conversions `int ↔ Integer`. This may involve wrapper methods or primitive extraction.
+2. **Physical allocation:** boxing requires a new object **when not cached or eliminated by optimizations**. There is no guarantee every boxing corresponds to an allocation.
+3. **Keeping objects alive:** if a collection holds references to wrappers, those objects can live long and increase the volume of live objects to process.
+4. **Memory/CPU cost on access:** primitive arrays read values directly; wrapper collections may have to follow a reference and then read the object, affecting locality/cache.
+5. **GC:** many allocated and long-lived objects can increase GC work. Specific impact depends on the collector, heap, allocation rate, and application profile.
 
-**Ví dụ vòng lặp accumulator `Integer`:** JIT đôi khi có thể tối ưu mạnh, nên benchmark đơn giản có thể cho kết quả gần primitive. **Ví dụ `ArrayList<Integer>` chứa hàng triệu giá trị khác nhau ngoài cache:** dữ liệu cần tồn tại dưới dạng object và tham chiếu, khó đạt footprint như `int[]`. Vì vậy, bài toán **lưu trữ dữ liệu** và bài toán **tính toán tạm thời** cần đánh giá riêng.
+**Example of an `Integer` accumulator loop:** the JIT can sometimes optimize aggressively, so a simple benchmark may show results close to primitives. **Example of an `ArrayList<Integer>` holding millions of distinct uncached values:** data must reside as objects and references, making it hard to match `int[]`'s footprint. Therefore, **data storage** problems and **temporary computation** problems must be evaluated separately.
 
-Chi phí phát sinh cũng phụ thuộc boxing của **`Long`/`Double`**, thường ảnh hưởng hơn khi dữ liệu lớn hoặc đường xử lý chứa nhiều bản sao.
+Incurred costs also depend on **`Long`/`Double`** boxing, which often has greater impact when datasets are large or paths hold many copies.
 
-## 11. Benchmark đúng: dùng workload thực và JMH khi cần microbenchmark
+## 11. Proper benchmarking: use real workloads and JMH for microbenchmarks
 
-Không nên kết luận hiệu năng từ một đoạn ngắn như:
+Do not draw performance conclusions from a short snippet like:
 
 ~~~java
 long start = System.nanoTime();
-// một vài phép cộng rất nhanh
+// a few very fast additions
 long elapsed = System.nanoTime() - start;
 ~~~
 
-Đây là đoạn minh họa **không phải phép benchmark đáng tin**. JVM có thể chưa warm-up, JIT có thể loại bỏ phép tính không dùng tới, GC ngẫu nhiên, và chi phí đo thời gian có thể lớn so với đoạn mã cần đo.
+This illustrative snippet is **not a reliable benchmark**. The JVM might not be warmed up, the JIT might eliminate unused computations, GC might happen randomly, and timing overhead can dwarf the measured code.
 
-Với microbenchmark Java, có thể dùng **Java Microbenchmark Harness (JMH)** và thiết kế bài đo có:
+For Java microbenchmarks, you can use **Java Microbenchmark Harness (JMH)** and design tests with:
 
-- **Warm-up** đủ để JVM biên dịch/ổn định mã nóng.
-- Nhiều **measurement iterations** và nhiều **forks** nhằm giảm ảnh hưởng trạng thái tiến trình.
-- Input và kích thước dữ liệu phản ánh trường hợp thật: ít giá trị cache, nhiều giá trị ngoài cache, kích thước list/mảng, cách duyệt ngẫu nhiên hay tuần tự.
-- Kết quả được **sử dụng thật hoặc truyền cho cơ chế tiêu thụ của JMH** để không bị dead-code elimination.
-- Môi trường có kiểm soát tương đối về CPU, GC, heap và tải nền.
-- Cả **throughput/latency** lẫn **allocation rate, GC, memory footprint** khi mục tiêu là giảm boxing.
+- Sufficient **warm-up** for the JVM to compile/stabilize hot code.
+- Multiple **measurement iterations** and multiple **forks** to reduce process-state bias.
+- Inputs and data sizes reflecting real cases: few cached values, many uncached values, list/array sizes, random vs. sequential access.
+- Results that are **genuinely used or passed to JMH's consumption mechanism** to avoid dead-code elimination.
+- A relatively controlled environment for CPU, GC, heap, and background load.
+- Both **throughput/latency** and **allocation rate, GC, memory footprint** when the goal is reducing boxing.
 
-JMH là thư viện/tool ngoài JDK chuẩn, nên muốn dùng phải bổ sung dependency và thiết lập dự án phù hợp; **không** thể giả định có sẵn chỉ vì đang dùng Java 17.
+JMH is a library/tool outside the standard JDK, so using it requires adding dependencies and proper project setup; you **cannot** assume it is pre-installed just because you are on Java 17.
 
-### Chọn baseline thực tế
+### Choosing realistic baselines
 
-Ví dụ cần đo tổng một triệu số:
+For example, when measuring the sum of one million numbers:
 
-1. Tổng theo `int[]`, vòng `for` primitive.
-2. Tổng theo `ArrayList<Integer>`, vòng `for-each` unbox.
-3. Tổng theo `Arrays.stream(intArray).asLongStream().sum()` khi cần miền kết quả rộng hơn.
-4. Tổng theo `list.stream().mapToLong(Integer::longValue).sum()`.
-5. Thao tác **tạo và lấp đầy dữ liệu** đo riêng với **thao tác duyệt**, bởi allocation thường tập trung ở giai đoạn thêm phần tử.
+1. Sum over `int[]`, primitive `for` loop.
+2. Sum over `ArrayList<Integer>`, unboxing `for-each` loop.
+3. Sum via `Arrays.stream(intArray).asLongStream().sum()` when a wider result range is needed.
+4. Sum via `list.stream().mapToLong(Integer::longValue).sum()`.
+5. Measure **creating and populating data** separately from **iterating**, because allocations typically concentrate during element insertion.
 
-Nếu nghiệp vụ thực tế còn lọc/tra cứu/phân nhóm, hãy đo cả tác vụ đó thay vì chỉ so sánh phép cộng trần. Không thể suy từ **benchmark micro** rằng một ứng dụng backend nhất định sẽ nhanh hơn theo đúng cùng tỷ lệ.
+If real business logic also filters/looks up/groups, measure those tasks too rather than comparing bare additions alone. You cannot extrapolate from a **microbenchmark** that a given backend application will speed up by the exact same ratio.
 
-## 12. Cách chọn cấu trúc dữ liệu theo trường hợp
+## 12. Choosing data structures by use case
 
-| Bài toán | Lựa chọn khởi đầu | Khi nào cân nhắc thay đổi |
+| Problem | Initial choice | When to consider changing |
 |---|---|---|
-| Cộng, nhân, đếm trong vòng lặp tính toán | `int`/`long`/`double` primitive | Chỉ cần wrapper khi API bắt buộc |
-| Dãy triệu số nguyên, đọc tuần tự, kích thước biết trước | `int[]` | Cần resize/generic API hoặc nhiều chức năng `List` |
-| Danh sách số linh hoạt cho API ứng dụng | `ArrayList<Integer>` | Profile chứng minh bộ nhớ/GC/CPU từ boxing đáng kể |
-| Tính toán stream từ `int[]` | `IntStream`/`LongStream` | Chuyển thành `Stream<Integer>` khi API/collector cần object |
-| `Map` có khóa nguyên và cập nhật mật độ cao | `HashMap<Integer, ...>` trước cho đơn giản | Nếu bottleneck, cân nhắc thư viện primitive-specialized |
-| Dữ liệu số có thể thiếu | Wrapper hoặc kiểu biểu diễn missing rõ ràng | Primitive cần sentinel/bitmap đi kèm, phải tránh nhập nhằng |
-| Dữ liệu cần dùng cùng API generic | Wrapper, `List<Integer>` | Đánh giá copy/boxing ở ranh giới hot path |
-| Bộ đếm chia sẻ đa luồng | `AtomicInteger` hoặc `LongAdder` tùy yêu cầu | Tránh biến mutable `int` không đồng bộ; boxing không giải quyết concurrency |
+| Adding, multiplying, counting in computation loops | `int`/`long`/`double` primitives | Only need wrappers when required by an API |
+| Sequence of millions of integers, sequential reads, known size | `int[]` | Need resizing/generic APIs or rich `List` features |
+| Flexible list of numbers for application APIs | `ArrayList<Integer>` | Profiling proves boxing memory/GC/CPU is significant |
+| Stream computations from `int[]` | `IntStream`/`LongStream` | Convert to `Stream<Integer>` when APIs/collectors need objects |
+| `Map` with integer keys and high update density | `HashMap<Integer, ...>` first for simplicity | If a bottleneck, consider primitive-specialized libraries |
+| Numeric data that may be missing | Wrappers or explicit missing representation | Primitives need sentinels/bitmaps, must avoid ambiguity |
+| Data needed with generic APIs | Wrappers, `List<Integer>` | Evaluate copying/boxing at hot-path boundaries |
+| Multi-threaded shared counter | `AtomicInteger` or `LongAdder` depending on requirements | Avoid unsynchronized mutable `int`; boxing does not solve concurrency |
 
-Không nên chọn `LongAdder` thay cho `long` trong mọi nơi: nó phục vụ bài toán cập nhật đồng thời và có ngữ nghĩa/chi phí riêng. **Tính an toàn luồng không suy ra từ việc dùng wrapper.** Các wrapper số phổ biến là immutable, nhưng collection chứa chúng vẫn có thể cần đồng bộ khi truy cập/chỉnh sửa từ nhiều luồng.
+Do not pick `LongAdder` over `long` everywhere: it serves concurrent updates and has its own semantics/overhead. **Thread safety does not follow from using wrappers.** Common numeric wrappers are immutable, yet collections holding them can still need synchronization when accessed/mutated from multiple threads.
 
-## 13. Những hiểu lầm phổ biến
+## 13. Common misconceptions
 
-| Nhận định | Cách hiểu đúng |
+| Claim | Accurate understanding |
 |---|---|
-| “Mỗi `Integer` trong vòng lặp đều cấp phát mới.” | Có cache cho miền nhất định và tối ưu JIT; không được khẳng định luôn cấp phát. |
-| “Vì JVM tối ưu, boxing hoàn toàn miễn phí.” | Không có bảo đảm; object sống trong collection, heap/GC và truy cập tham chiếu vẫn có thể tốn chi phí. |
-| “`List<Integer>` lưu `int` trực tiếp như `int[]`.” | `List<Integer>` làm việc với reference `Integer`. |
-| “`for (int value : list)` không boxing/unboxing vì biến là `int`.” | Nếu list chứa `Integer`, phải unbox từng phần tử khi đọc. |
-| “`IntStream.boxed()` giúp tránh boxing.” | Ngược lại, nó biến primitive `int` thành wrapper `Integer`. |
-| “`Stream<Integer>.sum()` luôn là primitive sum.” | `Stream<Integer>` không có `sum()` trực tiếp; cần `mapToInt` hoặc reducer. |
-| “Dùng `IntStream` thì tổng không thể overflow.” | `IntStream.sum()` vẫn trả `int` và có thể overflow. |
-| “`Integer a == Integer b` luôn so sánh giá trị.” | Với hai reference, `==` so sánh đồng nhất tham chiếu; dùng `equals` hoặc primitive có kiểm tra `null`. |
-| “Unboxing `null` trả 0.” | Ném `NullPointerException`. |
-| “`Integer.valueOf` luôn trả đối tượng mới.” | Có cache cho ít nhất `-128..127` và triển khai có thể cache thêm. |
-| “`ArrayList<Integer>` luôn chậm hơn mọi `int[]` với mọi workload.” | Không thể kết luận nếu không xét thuật toán, locality, API, tối ưu JVM và benchmark thực tế. |
-| “Boxing là vấn đề duy nhất cần tối ưu.” | Thuật toán, số lần tìm kiếm, object lifetime, IO, GC và cấu trúc dữ liệu có thể chi phối hơn nhiều. |
+| “Every `Integer` in a loop allocates a new object.” | Caching exists for certain ranges and JIT can optimize; you cannot assert allocation always happens. |
+| “Because the JVM optimizes, boxing is completely free.” | No guarantee; live objects in collections, heap/GC, and reference indirection can still incur costs. |
+| “`List<Integer>` stores `int` directly like `int[]`.” | `List<Integer>` works with `Integer` references. |
+| “`for (int value : list)` does not box/unbox because the variable is `int`.” | If the list holds `Integer`, each element must be unboxed when read. |
+| “`IntStream.boxed()` avoids boxing.” | On the contrary, it turns primitive `int`s into `Integer` wrappers. |
+| “`Stream<Integer>.sum()` is always a primitive sum.” | `Stream<Integer>` has no direct `sum()` method; requires `mapToInt` or a reducer. |
+| “Using `IntStream` prevents sum overflow.” | `IntStream.sum()` still returns `int` and can overflow. |
+| “`Integer a == Integer b` always compares values.” | With two references, `==` compares reference identity; use `equals` or null-checked primitives. |
+| “Unboxing `null` returns 0.” | Throws `NullPointerException`. |
+| “`Integer.valueOf` always returns a new object.” | Caches at least `-128..127` and implementations may cache more. |
+| “`ArrayList<Integer>` is always slower than `int[]` for every workload.” | Cannot conclude without considering algorithms, locality, APIs, JVM optimizations, and real benchmarks. |
+| “Boxing is the only issue worth optimizing.” | Algorithms, lookup counts, object lifetimes, IO, GC, and data structures can dominate much more. |
 
-## 14. Checklist thực hành
+## 14. Practical checklist
 
-1. **Đánh dấu hot path:** vòng lặp nào chạy nhiều, phương thức nào được gọi thường xuyên, collection nào chiếm nhiều heap?
-2. **Kiểm tra kiểu của biến tích lũy:** có dùng `Integer`/`Long` thay cho `int`/`long` chỉ để cộng hoặc đếm không?
-3. **Tìm boxing ẩn:** `list.add(i)`, `map.put(intKey, intValue)`, `return primitive` qua API wrapper, `Stream<Integer>` và vòng `for-each` trên collection wrapper.
-4. **Chọn đúng cấu trúc lưu trữ:** `int[]` khi dữ liệu primitive dày đặc; `List<Integer>` khi cần collection chung; primitive-specialized map nếu workload chứng minh có lợi.
-5. **Đừng bỏ qua `null`:** wrapper có thể biểu diễn thiếu dữ liệu nhưng cũng gây NPE khi unbox.
-6. **Dùng primitive streams đúng cách:** `IntStream`/`LongStream`/`DoubleStream`; hiểu `boxed()` tạo luồng wrapper.
-7. **Đo với dữ liệu thực:** quy mô, miền giá trị, kiểu truy cập, warm-up, bộ nhớ, allocation rate và GC.
-8. **Kiểm tra số học riêng:** tràn số khi cộng/tổng không được giải quyết chỉ nhờ loại boxing.
-9. **Giữ code dễ hiểu:** khi lợi ích nhỏ hoặc đường đi không nóng, abstraction chuẩn có thể quan trọng hơn tối ưu vi mô.
-10. **Kiểm chứng sau thay đổi:** chạy test về giá trị, `null`, thứ tự, tính đồng thời và đo lại trên cùng workload.
+1. **Identify hot paths:** which loops run heavily, which methods are called frequently, which collections occupy significant heap?
+2. **Check accumulator variable types:** are `Integer`/`Long` used instead of `int`/`long` just for adding or counting?
+3. **Spot hidden boxing:** `list.add(i)`, `map.put(intKey, intValue)`, `return primitive` through wrapper APIs, `Stream<Integer>`, and `for-each` loops over wrapper collections.
+4. **Pick the right storage structure:** `int[]` for dense primitive data; `List<Integer>` when general collections are needed; primitive-specialized maps if workloads prove a benefit.
+5. **Do not ignore `null`:** wrappers can represent missing data, yet cause NPEs when unboxed.
+6. **Use primitive streams properly:** `IntStream`/`LongStream`/`DoubleStream`; understand `boxed()` creates a wrapper stream.
+7. **Measure with realistic data:** scale, value ranges, access patterns, warm-up, memory, allocation rate, and GC.
+8. **Check arithmetic separately:** overflow during addition/summing is not solved merely by removing boxing.
+9. **Keep code readable:** when gains are tiny or paths are cold, standard abstractions can matter more than micro-optimizations.
+10. **Verify after changes:** run tests for values, `null`, ordering, concurrency, and re-measure on the same workload.
 
-## 15. Tự kiểm tra
+## 15. Self-check
 
-1. `Integer sum = 0; sum += i;` thường đòi những chuyển đổi kiểu nào ở cấp ngữ nghĩa?
-2. Vì sao không thể khẳng định mọi autoboxing đều cấp phát một object mới?
-3. Một `ArrayList<Integer>` thường lưu trực tiếp bit của `int` hay tham chiếu tới các `Integer`?
-4. Vòng `for (int n : listOfInteger)` có phát sinh unboxing không? Nếu phần tử là `null` sẽ ra sao?
-5. `IntStream.boxed()` làm gì? `Stream<Integer>.mapToInt(Integer::intValue)` làm gì?
-6. `IntStream.of(Integer.MAX_VALUE, 1).sum()` cho ra gì? Dùng gì khi cần tổng `long` chính xác ở ví dụ này?
-7. Vì sao hai `Integer` có cùng giá trị không nên so sánh bằng `==` nếu mục tiêu là so sánh số?
-8. So sánh dùng `System.nanoTime()` chỉ một lần đủ để kết luận `int[]` nhanh hơn `List<Integer>` không?
-9. Khi nào nên cân nhắc primitive-specialized collection thay cho `HashMap<Integer, Integer>`?
-10. Tại sao bỏ boxing không tự giải quyết bài toán thread safety?
+1. What type conversions does `Integer sum = 0; sum += i;` typically require at the semantic level?
+2. Why can you not claim every autoboxing allocates a new object?
+3. Does an `ArrayList<Integer>` typically store `int` bits directly or references to `Integer` objects?
+4. Does the loop `for (int n : listOfInteger)` involve unboxing? What happens if an element is `null`?
+5. What does `IntStream.boxed()` do? What does `Stream<Integer>.mapToInt(Integer::intValue)` do?
+6. What does `IntStream.of(Integer.MAX_VALUE, 1).sum()` produce? What should you use to get an exact `long` sum in this example?
+7. Why should two `Integer`s with the same value not be compared with `==` when the goal is numeric comparison?
+8. Is comparing with `System.nanoTime()` just once enough to conclude `int[]` is faster than `List<Integer>`?
+9. When should you consider primitive-specialized collections instead of `HashMap<Integer, Integer>`?
+10. Why does eliminating boxing not automatically solve thread safety?
 
-**Gợi ý đáp án:** (1) Unbox `Integer → int`, cộng primitive rồi box lại `int → Integer`. (2) Wrapper có cache và JIT có thể khử đối tượng tạm. (3) Tham chiếu tới `Integer`. (4) Có; `null` gây NPE. (5) Box primitive thành wrapper và unbox wrapper thành primitive. (6) `-2147483648`; dùng `asLongStream().sum()` trước khi cộng để nhận `2147483648L`. (7) Hai wrapper dùng `==` so sánh tham chiếu; dùng `equals` hoặc unbox nếu an toàn. (8) Không; phải warm-up, lặp nhiều, tránh tối ưu loại bỏ mã và đo workload thực. (9) Khi profile chỉ ra overhead boxing/bộ nhớ/hash map là bottleneck và thư viện khác đáp ứng yêu cầu. (10) Tính đúng giữa các luồng là vấn đề đồng bộ/atomic, độc lập với chi phí boxing.
+**Suggested answers:** (1) Unbox `Integer → int`, primitive addition, then re-box `int → Integer`. (2) Wrappers have caching and the JIT can eliminate temporary objects. (3) References to `Integer`. (4) Yes; `null` causes an NPE. (5) Boxes primitives into wrappers and unboxes wrappers into primitives. (6) `-2147483648`; use `asLongStream().sum()` before summing to receive `2147483648L`. (7) Two wrappers with `==` compare references; use `equals` or unbox if safe. (8) No; you need warm-up, many iterations, dead-code-elimination safeguards, and real workload measurements. (9) When profiling shows boxing/memory/hash-map overhead is a bottleneck and another library meets requirements. (10) Correctness across threads is a synchronization/atomicity concern, independent of boxing cost.
 
-**Ghi nhớ:** Boxing là cầu nối giữa **primitive** và **wrapper**, cần thiết cho nhiều API generic nhưng có thể làm tăng **allocation, overhead bộ nhớ và chi phí truy cập** trong vòng lặp hoặc collection lớn. Ưu tiên primitive ở đường tính toán dày đặc, chọn cấu trúc dữ liệu theo yêu cầu, hiểu cache và JIT, xử lý `null` đúng, rồi **đo đạc** trước khi tối ưu.
+**Key takeaway:** Boxing is the bridge between **primitives** and **wrappers**, necessary for many generic APIs yet capable of increasing **allocations, memory overhead, and access costs** in large loops or collections. Prefer primitives on dense computation paths, choose data structures based on requirements, understand caching and JIT, handle `null` properly, and **measure** before optimizing.

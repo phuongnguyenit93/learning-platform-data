@@ -1,14 +1,14 @@
-# Service binding khi resolveAndBind
+# Service Binding with resolveAndBind
 
-Trong JPMS, việc resolve module thường bắt đầu từ một tập root module rồi lần theo các directive **requires** để tìm dependency cần thiết. Tuy nhiên, một module có thể khai báo **uses** một service mà không khai báo **requires** trực tiếp tới module cung cấp implementation. Nếu chỉ resolve theo dependency thông thường, module provider có thể chưa được đưa vào cấu hình runtime.
+In JPMS, module resolution usually starts from a set of root modules and follows **requires** directives to locate required dependencies. However, a module may declare **uses** for a service without declaring a direct **requires** on the module providing the implementation. If resolution only follows ordinary dependencies, the provider module may not be included in the runtime configuration.
 
-**Service binding** giải quyết trường hợp này. Khi dùng **Configuration.resolveAndBind(...)**, module system resolve root modules và dependency của chúng, sau đó tìm các module provider cho service mà những module đã resolve khai báo sử dụng. Provider và dependency của provider được bổ sung vào configuration; quá trình tìm provider tiếp tục nếu provider mới lại sử dụng service khác.
+**Service binding** solves this case. When using **Configuration.resolveAndBind(...)**, the module system resolves the root modules and their dependencies, then locates provider modules for services declared as used by the resolved modules. Providers and the providers' dependencies are added to the configuration; the provider search continues if newly added providers in turn use other services.
 
-Cần phân biệt ba việc: descriptor khai báo service contract, **resolveAndBind** đưa provider module vào cấu hình, và **ServiceLoader** tìm cũng như tạo instance provider khi ứng dụng cần dùng service.
+It is important to distinguish three things: the descriptor declares the service contract, **resolveAndBind** includes provider modules in the configuration, and **ServiceLoader** discovers as well as instantiates providers when the application needs to use the service.
 
-## 1. Vì sao cần service binding?
+## 1. Why Is Service Binding Needed?
 
-Giả sử một ứng dụng báo cáo chỉ biết interface **ReportExporter**. Ứng dụng khai báo module cần service:
+Suppose a reporting application knows only the **ReportExporter** interface. The application module declares that it needs the service:
 
 ~~~java
 module com.acme.application {
@@ -17,7 +17,7 @@ module com.acme.application {
 }
 ~~~
 
-Một module khác cung cấp implementation:
+Another module supplies an implementation:
 
 ~~~java
 module com.acme.csv.exporter {
@@ -28,17 +28,17 @@ module com.acme.csv.exporter {
 }
 ~~~
 
-Ứng dụng phụ thuộc vào module API **com.acme.report.spi**. Nó không khai báo **requires com.acme.csv.exporter**, bởi mục tiêu là có thể thay thế hoặc bổ sung provider mà không làm module ứng dụng phụ thuộc vào từng implementation.
+The application depends on the API module **com.acme.report.spi**. It does not declare **requires com.acme.csv.exporter**, because the goal is to allow replacing or adding providers without making the application module depend on each implementation.
 
-Nếu configuration chỉ resolve root **com.acme.application** và các dependency bắt buộc của nó, module provider có thể không được đưa vào configuration. Khi đó, service contract đã có và ứng dụng đã khai báo **uses**, nhưng provider module chưa nằm trong layer được tìm kiếm.
+If the configuration only resolves the root **com.acme.application** and its required dependencies, the provider module may not be included in the configuration. In that situation, the service contract exists and the application has declared **uses**, yet the provider module is not in the layer being searched.
 
-Service binding giúp module system tìm các provider module có thể quan sát được cho service mà graph đã resolve cần dùng. Cơ chế này hữu ích với plugin, driver, serializer, exporter và các extension point khác.
+Service binding allows the module system to locate observable provider modules for services needed by the resolved graph. This mechanism is useful for plugins, drivers, serializers, exporters, and other extension points.
 
-## 2. Ba directive và API cần hiểu
+## 2. Three Directives and APIs to Understand
 
 ### 2.1. uses
 
-Directive **uses** được khai báo trong module cần tìm implementation của service:
+The **uses** directive is declared in the module that needs to find service implementations:
 
 ~~~java
 module com.acme.application {
@@ -47,13 +47,13 @@ module com.acme.application {
 }
 ~~~
 
-Nó cho module system biết service type nào được module tiêu thụ. Service type thường là interface hoặc abstract class nằm trong một module API ổn định.
+It tells the module system which service type the module consumes. A service type is usually an interface or abstract class located in a stable API module.
 
-Một named module gọi **ServiceLoader.load(...)** cho một service cần khai báo **uses** service đó trong descriptor. Nếu thiếu khai báo, việc sử dụng ServiceLoader từ module đó có thể thất bại với **ServiceConfigurationError**.
+A named module calling **ServiceLoader.load(...)** for a service must declare **uses** for that service in its descriptor. If that declaration is missing, using ServiceLoader from that module may fail with **ServiceConfigurationError**.
 
 ### 2.2. provides ... with ...
 
-Module provider khai báo implementation:
+The provider module declares its implementation:
 
 ~~~java
 module com.acme.csv.exporter {
@@ -64,13 +64,13 @@ module com.acme.csv.exporter {
 }
 ~~~
 
-Directive này đăng ký provider cho service type. Module provider cần đọc module chứa service API để implementation có thể tham chiếu contract.
+This directive registers a provider for the service type. The provider module must read the module containing the service API so the implementation can reference the contract.
 
-Package chứa provider không nhất thiết phải export cho module ứng dụng. Ứng dụng làm việc với interface service; module system và ServiceLoader xử lý provider theo metadata trong descriptor.
+The package containing the provider does not necessarily have to be exported to the application module. The application works against the service interface; the module system and ServiceLoader handle the provider using the metadata in the descriptor.
 
 ### 2.3. ServiceLoader
 
-Sau khi provider module có mặt trong layer phù hợp, ứng dụng tìm provider bằng **ServiceLoader**:
+Once the provider module is present in the appropriate layer, the application locates providers using **ServiceLoader**:
 
 ~~~java
 ServiceLoader<ReportExporter> exporters =
@@ -81,60 +81,60 @@ for (ReportExporter exporter : exporters) {
 }
 ~~~
 
-Trong một ứng dụng dùng custom ModuleLayer, nên chỉ rõ layer muốn tìm provider:
+In an application using a custom ModuleLayer, specify the layer in which to search for providers:
 
 ~~~java
 ServiceLoader<ReportExporter> exporters =
     ServiceLoader.load(pluginLayer, ReportExporter.class);
 ~~~
 
-ServiceLoader cung cấp cơ chế duyệt và tạo provider instance theo cách provider được khai báo. Việc tạo instance xảy ra khi ứng dụng duyệt kết quả hoặc yêu cầu provider; **resolveAndBind** không khởi tạo provider và không gọi nghiệp vụ của nó.
+ServiceLoader provides the mechanism to iterate over and instantiate providers according to how the provider is declared. Instantiation occurs when the application iterates the results or requests a provider; **resolveAndBind** does not instantiate providers and does not invoke their business logic.
 
-## 3. resolve và resolveAndBind khác nhau thế nào?
+## 3. How Do resolve and resolveAndBind Differ?
 
-**Configuration.resolve(...)** giải quyết các root module và dependency theo quan hệ module đã khai báo. Các module chỉ được thêm vì chúng là root hoặc dependency cần thiết trong đồ thị.
+**Configuration.resolve(...)** resolves the root modules and dependencies according to declared module relationships. Modules are added only because they are roots or required dependencies in the graph.
 
-**Configuration.resolveAndBind(...)** thực hiện resolution cùng với service binding. Sau khi resolve graph ban đầu, module system tìm provider cho các service được sử dụng bởi những module trong graph. Provider module được bổ sung cùng dependency của nó. Nếu provider mới lại khai báo **uses** một service khác, service binding có thể tiếp tục tìm provider cho service đó.
+**Configuration.resolveAndBind(...)** performs resolution together with service binding. After resolving the initial graph, the module system locates providers for services used by modules in the graph. Provider modules are added along with their dependencies. If a newly added provider in turn declares **uses** for another service, service binding can continue locating providers for that service.
 
-| Tiêu chí | resolve(...) | resolveAndBind(...) |
+| Criterion | resolve(...) | resolveAndBind(...) |
 |---|---|---|
-| Resolve root modules | Có | Có |
-| Resolve dependency qua requires | Có | Có |
-| Tự bổ sung provider cho service được sử dụng | Không thực hiện bước service binding | Có |
-| Bổ sung dependency của provider | Không có provider được bổ sung từ bước binding | Có, khi provider được đưa vào configuration |
-| Khởi tạo provider object | Không | Không |
-| Tạo ModuleLayer | Không | Không |
+| Resolves root modules | Yes | Yes |
+| Resolves dependencies via requires | Yes | Yes |
+| Automatically adds providers for used services | Does not perform the service binding step | Yes |
+| Adds dependencies of providers | No providers are added from a binding step | Yes, when a provider is brought into the configuration |
+| Instantiates provider objects | No | No |
+| Creates a ModuleLayer | No | No |
 
-Service binding chỉ xét provider module có thể quan sát được từ các nguồn module finder dùng trong quá trình resolve. Một provider nằm ngoài các nguồn module được cung cấp sẽ không tự xuất hiện. Việc một JAR chỉ nằm ở classpath cũng không khiến nó trở thành provider module trong configuration named module.
+Service binding only considers provider modules observable from the module finder sources used during resolution. A provider outside the supplied module sources will not appear automatically. Merely having a JAR on the classpath does not turn it into a provider module in a named module configuration.
 
-Điều này giúp giữ rõ ranh giới giữa tìm module ở thời điểm resolution và nạp provider instance ở thời điểm ứng dụng sử dụng service.
+This keeps a clear boundary between locating modules at resolution time and loading provider instances when the application uses the service.
 
-## 4. Vòng lặp service binding diễn ra như thế nào?
+## 4. How Does the Service Binding Loop Work?
 
-Giả sử graph ban đầu có module ứng dụng A:
+Suppose the initial graph has application module A:
 
-- A khai báo **uses ServiceX**.
-- Provider module PX khai báo **provides ServiceX with ProviderX**.
-- PX lại khai báo **uses ServiceY**.
-- Provider module PY khai báo **provides ServiceY with ProviderY**.
+- A declares **uses ServiceX**.
+- Provider module PX declares **provides ServiceX with ProviderX**.
+- PX in turn declares **uses ServiceY**.
+- Provider module PY declares **provides ServiceY with ProviderY**.
 
-Khi resolveAndBind chạy:
+When resolveAndBind runs:
 
-1. Resolve root A và dependency bắt buộc của A.
-2. Đọc các service mà module trong graph đã resolve khai báo sử dụng.
-3. Tìm provider module có thể quan sát được cho các service đó.
-4. Bổ sung PX và resolve dependency của PX.
-5. Vì PX sử dụng ServiceY, tiếp tục tìm provider cho ServiceY.
-6. Bổ sung PY và dependency của PY.
-7. Tiếp tục cho đến khi không tìm thấy provider mới cần bổ sung.
+1. Resolve root A and A's required dependencies.
+2. Read the services declared as used by modules in the resolved graph.
+3. Locate observable provider modules for those services.
+4. Add PX and resolve PX's dependencies.
+5. Because PX uses ServiceY, continue locating providers for ServiceY.
+6. Add PY and PY's dependencies.
+7. Continue until no new providers need to be added.
 
-Quá trình này giúp configuration chứa cả provider gián tiếp cần thiết qua chuỗi service. Provider không được đưa vào chỉ vì nó tồn tại trên module path; nó phải cung cấp một service được module trong graph sử dụng.
+This process ensures the configuration contains indirect providers needed through chains of services. A provider is not included merely because it exists on the module path; it must provide a service used by a module in the graph.
 
-Một provider có thể cung cấp nhiều service. Khi nhiều module cần cùng một service, một provider module được resolve vào configuration sẽ được dùng chung trong layer đó theo module identity của layer.
+One provider can provide multiple services. When multiple modules need the same service, a provider module resolved into the configuration is shared within that layer according to the layer's module identity.
 
-## 5. Dùng Configuration.resolveAndBind trong Java
+## 5. Using Configuration.resolveAndBind in Java
 
-API có thể được gọi từ configuration cha, thường là boot configuration:
+The API can be invoked on a parent configuration, usually the boot configuration:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -158,16 +158,16 @@ Configuration configuration =
     );
 ~~~
 
-Ý nghĩa các tham số:
+Meaning of the parameters:
 
-- **parent** là configuration đã có, ở ví dụ này là configuration của boot layer.
-- **applicationFinder** là nguồn module được tìm trước các configuration cha trong quá trình resolve.
-- **providerFinder** là nguồn module được tìm sau các configuration cha.
-- **Set.of("com.acme.application")** chỉ định root module cần khởi chạy.
+- **parent** is the existing configuration, in this example the boot layer's configuration.
+- **applicationFinder** is the module source searched before the parent configurations during resolution.
+- **providerFinder** is the module source searched after the parent configurations.
+- **Set.of("com.acme.application")** specifies the root module to launch.
 
-Hai ModuleFinder cần trỏ tới đúng các module có thể quan sát trong môi trường triển khai. Tên root phải khớp với module name trong descriptor. Nếu dependency hoặc provider không tìm thấy, hoặc graph có lỗi như dependency không hợp lệ, resolution sẽ thất bại với lỗi tương ứng.
+Both ModuleFinders must point to the actual observable modules in the deployment environment. Root names must match module names in the descriptors. If a dependency or provider cannot be found, or the graph has an error such as an invalid dependency, resolution will fail with the corresponding error.
 
-Với overload nhận danh sách parent configurations, có thể viết:
+With the overload taking a list of parent configurations, you can write:
 
 ~~~java
 Configuration configuration =
@@ -179,11 +179,11 @@ Configuration configuration =
     );
 ~~~
 
-Overload này hữu ích khi cấu hình module có nhiều parent configuration. Với trường hợp thông thường chỉ có một parent, gọi **parent.resolveAndBind(...)** dễ đọc hơn.
+This overload is useful when the module configuration has multiple parent configurations. In the common case with a single parent, calling **parent.resolveAndBind(...)** is easier to read.
 
-## 6. Tạo ModuleLayer từ configuration đã bind
+## 6. Creating a ModuleLayer from a Bound Configuration
 
-**resolveAndBind** chỉ trả về **Configuration**. Muốn các module được định nghĩa tại runtime và có thể dùng ServiceLoader theo layer, ứng dụng cần tạo ModuleLayer:
+**resolveAndBind** only returns a **Configuration**. To have the modules defined at runtime and be able to use ServiceLoader per layer, the application needs to create a ModuleLayer:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -225,21 +225,21 @@ for (ReportExporter exporter : exporters) {
 }
 ~~~
 
-Đọc luồng này theo thứ tự:
+Read this flow in order:
 
-1. Lấy boot layer làm layer cha.
-2. Tạo finder cho module ứng dụng và finder cho module provider/plugin.
-3. Resolve root module cùng dependency và service provider bằng **resolveAndBind**.
-4. Định nghĩa configuration thành layer mới bằng **defineModulesWithOneLoader**.
-5. Lấy layer từ controller.
-6. Dùng **ServiceLoader.load(layer, serviceType)** để tìm provider trong layer đó và các layer cha liên quan.
-7. Duyệt provider để tạo instance và gọi chức năng.
+1. Obtain the boot layer as the parent layer.
+2. Create finders for the application modules and the provider/plugin modules.
+3. Resolve the root module along with dependencies and service providers using **resolveAndBind**.
+4. Define the configuration as a new layer using **defineModulesWithOneLoader**.
+5. Obtain the layer from the controller.
+6. Use **ServiceLoader.load(layer, serviceType)** to locate providers in that layer and relevant parent layers.
+7. Iterate providers to instantiate them and invoke functionality.
 
-Trong ví dụ, service interface **ReportExporter** phải là cùng một kiểu API mà module ứng dụng và module provider cùng đọc. Thông thường module chứa service API nằm ở boot layer hoặc được chia sẻ qua layer cha. Nếu host và plugin vô tình nạp hai bản khác nhau của service API bằng các class loader khác nhau, chúng có thể có hai class identity khác nhau và không giao tiếp qua cùng một service type được.
+In this example, the service interface **ReportExporter** must be the exact same API type read by both the application module and the provider module. Typically, the module containing the service API resides in the boot layer or is shared via a parent layer. If the host and plugin accidentally load two separate copies of the service API through different class loaders, they may have two different class identities and fail to communicate via the same service type.
 
-## 7. Quan sát module đã được bind
+## 7. Observing Bound Modules
 
-Sau khi resolution hoàn tất, có thể xem các module trong configuration:
+After resolution completes, you can inspect the modules in the configuration:
 
 ~~~java
 configuration.modules().stream()
@@ -248,7 +248,7 @@ configuration.modules().stream()
     .forEach(System.out::println);
 ~~~
 
-Nếu module provider có mặt trong configuration, tên của nó sẽ xuất hiện trong tập module đã resolve. Có thể xem descriptor của từng module để kiểm tra service provider:
+If a provider module is present in the configuration, its name will appear in the resolved module set. You can inspect each module's descriptor to check service providers:
 
 ~~~java
 configuration.modules().forEach(resolvedModule -> {
@@ -258,78 +258,78 @@ configuration.modules().forEach(resolvedModule -> {
 });
 ~~~
 
-Cũng có thể quan sát quá trình resolve của launcher bằng tùy chọn **--show-module-resolution**. Khi muốn launcher thực hiện service binding cho module path, tùy chọn **--bind-services** có thể được dùng cùng cấu hình module phù hợp:
+You can also observe the launcher's resolution process using the **--show-module-resolution** option. When you want the launcher to perform service binding for the module path, the **--bind-services** option can be used with an appropriate module configuration:
 
 ~~~bash
 java --show-module-resolution --bind-services --module-path "app-mods;plugins" -m com.acme.application/com.acme.application.Main
 ~~~
 
-Dấu phân cách đường dẫn trong ví dụ trên là dấu chấm phẩy của Windows. Trên Linux/macOS, module path thường dùng dấu hai chấm. Khi chạy qua Gradle hoặc Maven, hãy bảo đảm cấu hình launcher thực tế truyền đúng module path và root module.
+The path separator in the example above is Windows's semicolon. On Linux/macOS, the module path normally uses a colon. When running via Gradle or Maven, ensure the actual launcher configuration passes the right module path and root module.
 
-## 8. Những điều kiện cần để service binding hoạt động
+## 8. Conditions Required for Service Binding to Work
 
-**resolveAndBind** không tự tìm mọi class có tên giống service. Các thành phần cần có một cấu hình nhất quán:
+**resolveAndBind** does not automatically find arbitrary classes whose names resemble a service. The components need a consistent configuration:
 
-- Module sử dụng service khai báo **uses** đúng service type.
-- Provider module khai báo **provides ServiceType with ProviderType**.
-- Module provider có thể được tìm thấy bởi ModuleFinder được truyền vào quá trình resolution.
-- Provider module có dependency hợp lệ, bao gồm module chứa service API.
-- Service type mà consumer và provider tham chiếu phải cùng module/type identity trong cấu hình runtime.
-- Root module được chọn phải dẫn tới module sử dụng service; nếu không module nào trong graph sử dụng service đó, provider không được bổ sung chỉ vì nó đang nằm trong thư mục plugin.
-- Khi gọi ServiceLoader với một layer cụ thể, provider phải nằm trong layer đó hoặc một layer cha mà cơ chế tìm kiếm xét tới.
+- The module using the service declares **uses** for the exact service type.
+- The provider module declares **provides ServiceType with ProviderType**.
+- The provider module can be located by a ModuleFinder passed into the resolution process.
+- The provider module has valid dependencies, including the module containing the service API.
+- The service type referenced by the consumer and the provider must share the same module/type identity in the runtime configuration.
+- The selected root modules must lead to the module using the service; if no module in the graph uses that service, the provider is not added simply because it sits in the plugin directory.
+- When calling ServiceLoader with a specific layer, the provider must reside in that layer or a parent layer searched by the lookup mechanism.
 
-Nếu provider không xuất hiện, hãy kiểm tra descriptor bằng **jar --describe-module**, kiểm tra finder có trỏ đúng thư mục, rồi kiểm tra **uses** và **provides**. Nếu provider đã nằm trong configuration nhưng ServiceLoader vẫn báo lỗi, hãy kiểm tra service type, provider constructor/provider method và class loader/layer.
+If a provider does not appear, inspect the descriptor with **jar --describe-module**, verify that the finder points to the right directory, and then check **uses** and **provides**. If the provider is already in the configuration yet ServiceLoader still reports an error, check the service type, provider constructor/provider method, and class loader/layer.
 
-## 9. Lỗi thường gặp
+## 9. Common Errors
 
-| Triệu chứng | Nguyên nhân cần kiểm tra | Hướng xử lý |
+| Symptom | Cause to Check | How to Fix |
 |---|---|---|
-| resolveAndBind không thêm provider | Không có module trong finder cung cấp service mà graph sử dụng | Kiểm tra **uses**, **provides** và module path của provider |
-| Module provider không tìm thấy | Finder trỏ sai thư mục, sai module name hoặc thiếu artifact | Kiểm tra ModuleFinder và **jar --describe-module** |
-| ServiceLoader báo module không khai báo uses | Module gọi service chưa khai báo **uses** | Thêm service type vào module-info.java của consumer |
-| ServiceLoader không tạo được provider | Provider class hoặc provider method không tuân thủ quy tắc, hoặc dependency thiếu | Kiểm tra descriptor, constructor/provider method và dependency |
-| Provider có mặt trong cấu hình nhưng không được ứng dụng nhìn thấy | Đang dùng nhầm layer hoặc service API có class identity khác | Dùng **ServiceLoader.load(layer, ServiceType.class)** và chia sẻ API từ layer cha |
-| Resolution thất bại sau khi bổ sung provider | Dependency của provider bị thiếu, trùng module name, split package hoặc graph không hợp lệ | Xử lý dependency graph của provider trước khi tạo layer |
-| Provider không được khởi tạo ngay sau resolveAndBind | Resolution chỉ thêm module vào configuration | Duyệt ServiceLoader để yêu cầu provider instance |
+| resolveAndBind does not add provider | No module in the finder provides a service used by the graph | Check **uses**, **provides**, and the provider's module path |
+| Provider module not found | Finder points to wrong directory, wrong module name, or missing artifact | Check ModuleFinder and **jar --describe-module** |
+| ServiceLoader reports module does not declare uses | The module invoking the service has not declared **uses** | Add the service type to the consumer's module-info.java |
+| ServiceLoader cannot instantiate provider | Provider class or provider method does not follow rules, or dependencies are missing | Check the descriptor, constructor/provider method, and dependencies |
+| Provider is in configuration yet not visible to the application | Wrong layer is being used or the service API has a different class identity | Use **ServiceLoader.load(layer, ServiceType.class)** and share the API from a parent layer |
+| Resolution fails after adding provider | Provider dependency missing, duplicate module name, split package, or invalid graph | Fix the provider's dependency graph before creating the layer |
+| Provider is not instantiated right after resolveAndBind | Resolution only adds modules to the configuration | Iterate ServiceLoader to request provider instances |
 
-Không nên giải quyết lỗi bằng cách thêm toàn bộ plugin vào root set mà chưa xác định service contract. Cách đó làm module graph phụ thuộc trực tiếp vào implementation và giảm lợi ích của service binding.
+Do not work around errors by adding all plugins to the root set without defining the service contract. That makes the module graph directly coupled to implementations and undermines the benefits of service binding.
 
-## 10. Khi nào nên dùng resolveAndBind?
+## 10. When Should You Use resolveAndBind?
 
-Dùng **resolveAndBind** khi ứng dụng muốn xác định module provider dựa trên service contract ở thời điểm tạo configuration, đặc biệt khi provider được phân phối riêng hoặc nằm trong thư mục plugin.
+Use **resolveAndBind** when the application wants to determine provider modules based on a service contract at configuration creation time, especially when providers are distributed separately or reside in a plugin directory.
 
-Các trường hợp phù hợp:
+Suitable cases:
 
-- Ứng dụng có nhiều implementation cho một service và muốn phát hiện provider trên module path.
-- Plugin có thể sử dụng service khác, tạo thành chuỗi provider cần được resolve đầy đủ.
-- Ứng dụng muốn tạo một ModuleLayer chứa root modules và provider modules đã được bind.
-- Công cụ đóng gói hoặc runtime cần xác định tập module provider cần thiết từ các service mà graph sử dụng.
+- An application has multiple implementations for a service and wants to discover providers on the module path.
+- Plugins can use other services, forming a chain of providers that must be fully resolved.
+- An application wants to create a ModuleLayer containing root modules and bound provider modules.
+- A packaging or runtime tool needs to determine the required set of provider modules from services used by the graph.
 
-Dùng **resolve** khi muốn kiểm soát rõ tập module thông qua root và dependency khai báo, đồng thời không muốn service binding tự bổ sung provider module. Dù chọn cách nào, việc tạo layer và khởi tạo service vẫn là các bước riêng.
+Use **resolve** when you want explicit control over the module set through roots and declared dependencies, without service binding automatically adding provider modules. Whichever you choose, layer creation and service instantiation remain separate steps.
 
-## 11. Bài tập thực hành
+## 11. Practice Exercises
 
-1. Tạo module API **com.acme.report.spi** với interface **ReportExporter** và export package chứa interface.
-2. Tạo module ứng dụng khai báo **requires com.acme.report.spi** và **uses com.acme.report.spi.ReportExporter**.
-3. Tạo hai provider module CSV và JSON; mỗi module khai báo **provides** cho cùng service type.
-4. Đặt provider JAR trong thư mục plugin riêng và tạo ModuleFinder cho thư mục đó.
-5. Resolve ứng dụng bằng **resolve(...)** rồi xem configuration có những module nào.
-6. Thay bằng **resolveAndBind(...)** và so sánh module provider được thêm vào configuration.
-7. Tạo ModuleLayer từ configuration đã bind, sau đó tìm provider bằng **ServiceLoader.load(layer, ReportExporter.class)**.
-8. Cho một provider sử dụng service thứ hai; tạo provider cho service thứ hai và quan sát việc binding bổ sung module theo chuỗi.
-9. Thử bỏ **uses** khỏi module ứng dụng hoặc bỏ **provides** khỏi module provider để quan sát lỗi và giải thích nguyên nhân.
-10. Dùng **--show-module-resolution** và in **configuration.modules()** để xác nhận module nào thực sự được resolve.
+1. Create an API module **com.acme.report.spi** with the **ReportExporter** interface and export the package containing the interface.
+2. Create an application module declaring **requires com.acme.report.spi** and **uses com.acme.report.spi.ReportExporter**.
+3. Create two provider modules, CSV and JSON; each module declares **provides** for the same service type.
+4. Place the provider JARs in a separate plugin directory and create a ModuleFinder for that directory.
+5. Resolve the application using **resolve(...)** and inspect which modules are in the configuration.
+6. Replace it with **resolveAndBind(...)** and compare the provider modules added to the configuration.
+7. Create a ModuleLayer from the bound configuration, then locate providers using **ServiceLoader.load(layer, ReportExporter.class)**.
+8. Have one provider use a second service; create a provider for the second service and observe binding adding modules in a chain.
+9. Try removing **uses** from the application module or removing **provides** from a provider module to observe the error and explain the cause.
+10. Use **--show-module-resolution** and print **configuration.modules()** to confirm which modules are actually resolved.
 
-## 12. Những điểm cần ghi nhớ
+## 12. Key Points to Remember
 
-- **uses** khai báo service mà module cần.
-- **provides ... with ...** đăng ký implementation trong module provider.
-- **resolve(...)** giải quyết root modules và dependency qua requires.
-- **resolveAndBind(...)** thực hiện resolution cùng service binding, bổ sung provider module cho service được sử dụng trong graph.
-- Service binding có thể tiếp tục qua provider sử dụng service khác cho đến khi không còn provider mới cần thêm.
-- **resolveAndBind** trả về Configuration; nó không tự tạo ModuleLayer và không khởi tạo provider instance.
-- **ServiceLoader** tìm và tạo provider khi ứng dụng yêu cầu, thường dùng overload nhận ModuleLayer trong kiến trúc nhiều layer.
-- Provider phải nằm trong các module có thể quan sát qua finder và có dependency/service descriptor hợp lệ.
-- Service API cần có cùng class identity giữa host và provider.
+- **uses** declares a service that a module needs.
+- **provides ... with ...** registers an implementation in a provider module.
+- **resolve(...)** resolves root modules and dependencies via requires.
+- **resolveAndBind(...)** performs resolution together with service binding, adding provider modules for services used in the graph.
+- Service binding can continue through providers that use other services until no more new providers need to be added.
+- **resolveAndBind** returns a Configuration; it does not create a ModuleLayer and does not instantiate provider instances.
+- **ServiceLoader** locates and creates providers when requested by the application, typically using the overload taking a ModuleLayer in multi-layer architectures.
+- Providers must be among the modules observable via finders and have valid dependencies/service descriptors.
+- The service API must have the same class identity between host and provider.
 
-Khi nắm được sự khác nhau giữa module resolution, service binding, layer definition và provider instantiation, bạn có thể thiết kế cơ chế plugin theo service contract mà vẫn giữ module ứng dụng độc lập với từng implementation.
+Once you understand the differences between module resolution, service binding, layer definition, and provider instantiation, you can design plugin mechanisms around service contracts while keeping the application module independent of individual implementations.

@@ -1,42 +1,42 @@
-# `Arrays.toString()`, `Arrays.deepToString()` và biểu diễn thành phần lồng
+# `Arrays.toString()`, `Arrays.deepToString()`, and Representing Nested Components
 
-Khi ghi log hoặc hiển thị một đối tượng có trường mảng, nhiều người thử `System.out.println(array)` hoặc nối mảng với chuỗi và nhận kết quả dạng `[I@4e25154f` thay vì `[1, 2, 3]`. Đó là vì mảng trong Java là **đối tượng** và bản thân lớp mảng không ghi đè `Object.toString()` để trình bày từng phần tử. API `java.util.Arrays` giải quyết hai nhu cầu khác nhau: **`Arrays.toString(...)`** biểu diễn một cấp mảng, còn **`Arrays.deepToString(Object[])`** đi sâu qua các mảng con để biểu diễn dữ liệu lồng nhau.
+When logging or displaying an object with an array field, many developers try `System.out.println(array)` or concatenate the array with a string and get output like `[I@4e25154f` instead of `[1, 2, 3]`. That is because arrays in Java are **objects** and array classes themselves do not override `Object.toString()` to present individual elements. The `java.util.Arrays` API addresses two distinct needs: **`Arrays.toString(...)`** represents one array level, while **`Arrays.deepToString(Object[])`** descends through nested sub-arrays to represent nested data.
 
-Mục tiêu là chọn đúng API cho mảng một chiều, mảng nhiều chiều và mảng chứa các thành phần khác kiểu, đồng thời hiểu giới hạn của chuỗi hiển thị khi viết `toString()` cho lớp tự tạo.
+The goal is to choose the right API for one-dimensional arrays, multi-dimensional arrays, and arrays containing components of mixed types, while understanding the limits of display strings when writing `toString()` for custom classes.
 
-## 1. Vì sao in trực tiếp mảng lại thấy `[I@...`?
+## 1. Why Does Printing an Array Directly Show `[I@...`?
 
-Đối với một object không có `toString()` riêng, dạng biểu diễn mặc định của `Object.toString()` bao gồm tên lớp, ký tự `@` và giá trị `hashCode()` dưới dạng hex. Mảng Java cũng có `toString()` mặc định kiểu này, nên:
+For an object without its own `toString()`, the default representation from `Object.toString()` consists of the class name, the `@` character, and the `hashCode()` value in hex form. Java arrays also have this default `toString()`, so:
 
 ```java
-// Đoạn minh họa bên trong một method, không phải chương trình độc lập:
+// Illustrative snippet inside a method, not a standalone program:
 int[] values = {1, 2, 3};
-System.out.println(values);            // Có thể thấy dạng [I@<hex>
-System.out.println("" + values);       // Cũng là biểu diễn object mặc định
+System.out.println(values);            // May show a form like [I@<hex>
+System.out.println("" + values);       // Also the default object representation
 System.out.println(Arrays.toString(values)); // [1, 2, 3]
 ```
 
-Một số tên lớp nội bộ thường gặp:
+Some common internal class names:
 
-| Kiểu mảng | Tên lớp mảng dạng JVM | Phần đầu thường thấy khi in trực tiếp |
+| Array Type | JVM Array Class Name | Common Prefix Seen When Printed Directly |
 | --- | --- | --- |
 | `int[]` | `[I` | `[I@...` |
 | `byte[]` | `[B` | `[B@...` |
 | `String[]` | `[Ljava.lang.String;` | `[Ljava.lang.String;@...` |
 | `int[][]` | `[[I` | `[[I@...` |
 
-Phần hex sau dấu `@` **không phải địa chỉ bộ nhớ** và không có bảo đảm duy nhất giữa mọi object. Nó đến từ mã băm mặc định để hiển thị và có thể thay đổi giữa những lần chạy. Không nên lưu chuỗi dạng này làm ID hay dùng để kiểm tra mảng có cùng nội dung không.
+The hex part after `@` **is not a memory address** and has no uniqueness guarantee across all objects. It comes from the default hash code for display and can vary between runs. You should not store such strings as IDs or use them to check whether two arrays have the same contents.
 
-Đối với mảng một chiều chứa các giá trị có ý nghĩa, gọi `Arrays.toString(array)` tạo biểu diễn dễ đọc hơn rất nhiều. Cần `import java.util.Arrays;`.
+For a one-dimensional array holding meaningful values, calling `Arrays.toString(array)` produces a much more readable representation. `import java.util.Arrays;` is required.
 
-## 2. `Arrays.toString()`: biểu diễn một cấp mảng
+## 2. `Arrays.toString()`: Representing One Array Level
 
-Lớp `Arrays` có các overload `toString` dành cho từng kiểu mảng nguyên thủy (`int[]`, `long[]`, `boolean[]`, `char[]`, `float[]`, `double[]`, `byte[]`, `short[]`) và mảng tham chiếu `Object[]`.
+The `Arrays` class has `toString` overloads for each primitive array type (`int[]`, `long[]`, `boolean[]`, `char[]`, `float[]`, `double[]`, `byte[]`, `short[]`) and for reference arrays `Object[]`.
 
-Ví dụ:
+Examples:
 
 ```java
-// Đoạn minh họa trong method:
+// Illustrative snippet inside a method:
 Arrays.toString(new int[]{1, 2, 3});          // "[1, 2, 3]"
 Arrays.toString(new boolean[]{true, false});  // "[true, false]"
 Arrays.toString(new String[]{"A", "B"});      // "[A, B]"
@@ -44,25 +44,25 @@ Arrays.toString(new int[0]);                 // "[]"
 Arrays.toString((int[]) null);               // "null"
 ```
 
-Cú pháp hiển thị thường dùng dấu ngoặc vuông, ngăn phần tử bằng dấu phẩy và khoảng trắng. Nếu mảng tham chiếu có phần tử `null`, nó hiển thị thành chữ `null`. Với các phần tử là object thông thường, `Arrays.toString(Object[])` lấy chuỗi biểu diễn của **từng phần tử** (theo `String.valueOf`/`toString` phù hợp), nên một lớp tự định nghĩa `toString()` sẽ ảnh hưởng trực tiếp tới kết quả.
+The display syntax normally uses square brackets, separating elements with a comma and a space. If a reference array has a `null` element, it displays as the word `null`. For elements that are ordinary objects, `Arrays.toString(Object[])` obtains the string representation of **each element** (via the appropriate `String.valueOf`/`toString`), so a custom `toString()` on a class directly affects the output.
 
-**Nhưng `Arrays.toString` không tự đi sâu qua các mảng con.** Ví dụ `int[][] matrix = {{1, 2}, {3, 4}}` thực chất là mảng ngoài chứa hai phần tử kiểu `int[]`. Khi truyền `matrix` vào `Arrays.toString`, overload `Object[]` được chọn, rồi mỗi hàng `int[]` được trình bày bằng `toString()` mặc định:
+**However, `Arrays.toString` does not automatically descend into sub-arrays.** For example, `int[][] matrix = {{1, 2}, {3, 4}}` is actually an outer array containing two elements of type `int[]`. When `matrix` is passed to `Arrays.toString`, the `Object[]` overload is selected, and each `int[]` row is presented using the default `toString()`:
 
 ```java
-// Đoạn minh họa, phần hash hex thay đổi theo lần chạy:
+// Illustrative snippet; hex hash parts vary across runs:
 int[][] matrix = {{1, 2}, {3, 4}};
 System.out.println(Arrays.toString(matrix));
-// Ví dụ dạng hiển thị: [[I@<hash-1>, [I@<hash-2>]
+// Example display form: [[I@<hash-1>, [I@<hash-2>]
 ```
 
-Đây là lý do ta có thể nhìn thấy nhiều `[I@...` bên trong cặp ngoặc vuông. `Arrays.toString(matrix)` chỉ xử lý **mảng ngoài**, không diễn giải nội dung của các mảng hàng.
+This is why you may see multiple `[I@...` inside square brackets. `Arrays.toString(matrix)` only processes the **outer array**, without interpreting the contents of the row arrays.
 
-## 3. `Arrays.deepToString(Object[])`: đi sâu qua mảng lồng nhau
+## 3. `Arrays.deepToString(Object[])`: Descending Through Nested Arrays
 
-Với mảng mà **lớp ngoài cùng là mảng tham chiếu** (`Object[]`, `String[][]`, `int[][]`, v.v.), có thể dùng `Arrays.deepToString`. Phương thức này kiểm tra mỗi phần tử: nếu phần tử là mảng, nó hiển thị nội dung mảng con bằng quy tắc thích hợp; nếu là đối tượng thông thường, nó dùng biểu diễn `toString` của đối tượng đó.
+For arrays whose **outermost level is a reference array** (`Object[]`, `String[][]`, `int[][]`, etc.), `Arrays.deepToString` can be used. This method inspects each element: if an element is an array, it renders the sub-array's contents using the appropriate rule; if it is an ordinary object, it uses that object's `toString` representation.
 
 ```java
-// Các biểu thức minh họa đặt trong method:
+// Illustrative expressions placed inside a method:
 int[][] matrix = {{1, 2}, {3, 4}};
 String[][] groups = {{"A", "B"}, {"C"}};
 
@@ -75,23 +75,23 @@ Arrays.deepToString(mixed);
 // "[row, [7, 8], [[true, false], end]]"
 ```
 
-`int[][]` hợp lệ vì mảng ngoài có các phần tử kiểu `int[]` (tham chiếu), nên bản thân `int[][]` có thể truyền cho tham số `Object[]`. Ngược lại, `int[]` đơn lẻ **không phải `Object[]`**, nên `Arrays.deepToString(new int[]{1, 2})` không biên dịch. Với mảng nguyên thủy một chiều, dùng `Arrays.toString`.
+`int[][]` is valid because the outer array has elements of type `int[]` (a reference type), so `int[][]` itself can be passed to an `Object[]` parameter. Conversely, a single `int[]` **is not an `Object[]`**, so `Arrays.deepToString(new int[]{1, 2})` does not compile. For one-dimensional primitive arrays, use `Arrays.toString`.
 
-Bảng chọn nhanh:
+Quick selection table:
 
-| Dữ liệu đang có | Cách hiển thị nội dung | Điều cần tránh |
+| Data at Hand | How to Display Contents | What to Avoid |
 | --- | --- | --- |
-| `int[]`, `byte[]`, `double[]` | `Arrays.toString(array)` | `array.toString()` hoặc `Arrays.deepToString(array)` |
-| `String[]` | `Arrays.toString(array)` | In trực tiếp mảng nếu muốn thấy các chuỗi |
-| `int[][]`, `double[][]` | `Arrays.deepToString(array)` | `Arrays.toString(array)` nếu muốn đọc các phần tử mảng hàng |
-| `String[][]`, `Object[][]` | `Arrays.deepToString(array)` | Cho rằng hiển thị một cấp đã đầy đủ |
-| `Object[]` chứa lẫn chuỗi, object và mảng | `Arrays.deepToString(array)` khi cần đi sâu qua các phần tử là mảng | Cho rằng nó tự hiểu mọi kiểu container bất kỳ |
+| `int[]`, `byte[]`, `double[]` | `Arrays.toString(array)` | `array.toString()` or `Arrays.deepToString(array)` |
+| `String[]` | `Arrays.toString(array)` | Printing the array directly if you want to see the strings |
+| `int[][]`, `double[][]` | `Arrays.deepToString(array)` | `Arrays.toString(array)` if you want to read the row array elements |
+| `String[][]`, `Object[][]` | `Arrays.deepToString(array)` | Assuming one-level display is sufficient |
+| `Object[]` mixing strings, objects, and arrays | `Arrays.deepToString(array)` when needing to descend through array elements | Assuming it automatically understands every arbitrary container type |
 
-Với dữ liệu `null`, cả `Arrays.toString((Object[]) null)` và `Arrays.deepToString((Object[]) null)` đều trả chuỗi `"null"`. Nếu phần tử của mảng là `null`, phần tử đó cũng được hiển thị `null`. Đây là chuỗi biểu diễn, **không phải một tham chiếu Java `null` được trả về**.
+For `null` data, both `Arrays.toString((Object[]) null)` and `Arrays.deepToString((Object[]) null)` return the string `"null"`. If an array element is `null`, that element is also displayed as `null`. This is a representation string, **not a Java `null` reference being returned**.
 
-## 4. Ví dụ Java 17+ đầy đủ và đầu ra xác định
+## 4. Complete Java 17+ Example and Deterministic Output
 
-Tạo tệp **`ArrayRenderingDemo.java`**:
+Create the file **`ArrayRenderingDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -140,14 +140,14 @@ public class ArrayRenderingDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp bằng JDK 17 trở lên:
+Compile and run from the directory containing the file using JDK 17 or later:
 
 ```bash
 javac ArrayRenderingDemo.java
 java ArrayRenderingDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 scores: [8, 9, 10]
@@ -162,37 +162,37 @@ record and array: [Part[name=bolt, quantity=2], [5, 6]]
 cycle has marker: true
 ```
 
-Ý nghĩa:
+Meaning:
 
-1. `scores` và `tags` là mảng một chiều nên `Arrays.toString` đã đủ; phần tử `null` được hiển thị an toàn.
-2. `matrix` là mảng hai chiều. `deepToString` hiển thị tất cả phần tử của từng hàng; `toString` một cấp vẫn để lộ dạng định danh mặc định của các hàng `int[]`. Chương trình chỉ in kết quả kiểm tra `contains("[I@")` để **không phụ thuộc những chữ số hash không ổn định**.
-3. `nested` chứa nhiều loại phần tử, kể cả mảng nguyên thủy nằm trong một `Object[]` khác. `deepToString` diễn giải đúng cấu trúc các mảng lồng nhau.
-4. `Part` là record, nên `toString` được Java sinh theo tên record và các component. Khi một phần tử không phải mảng, `deepToString` sử dụng cách phần tử đó tự biểu diễn; nó không tự phản chiếu từng trường của mọi lớp.
-5. `selfReference` là mảng chứa tham chiếu về chính nó. `deepToString` nhận diện chu trình mảng và dùng dấu rút gọn (có `...`) thay vì đệ quy không ngừng. Đây là cơ chế dành cho cấu trúc mảng tham chiếu lồng nhau.
+1. `scores` and `tags` are one-dimensional arrays so `Arrays.toString` is sufficient; `null` elements are displayed safely.
+2. `matrix` is a two-dimensional array. `deepToString` displays every element of each row; one-level `toString` still exposes the default identifier form of the `int[]` rows. The program only prints the result of checking `contains("[I@")` so as **not to depend on unstable hash digits**.
+3. `nested` contains mixed element types, including primitive arrays inside another `Object[]`. `deepToString` correctly interprets the nested array structure.
+4. `Part` is a record, so `toString` is generated by Java from the record name and components. When an element is not an array, `deepToString` uses how that element represents itself; it does not automatically reflect fields of arbitrary classes.
+5. `selfReference` is an array holding a reference to itself. `deepToString` detects the array cycle and uses a truncation marker (containing `...`) instead of recursing endlessly. This mechanism is for nested reference array structures.
 
-Đừng dùng chính chuỗi in ra làm bằng chứng về tính bằng nhau của hai đối tượng: hai đối tượng khác nhau có thể được `toString` biểu diễn giống nhau, và kết quả `toString` cũng có thể thay đổi khi trạng thái thay đổi.
+Do not use the printed string itself as proof of equality between two objects: two different objects can be represented identically by `toString`, and `toString` output can also change when state changes.
 
-## 5. Giới hạn khi thành phần lồng không phải mảng
+## 5. Limitations When Nested Components Are Not Arrays
 
-`Arrays.deepToString` duyệt sâu **các cấp mảng**, chứ không phải mọi loại cấu trúc dữ liệu trong Java. Nếu một phần tử của `Object[]` là `List<int[]>`, `Map<String,int[]>` hoặc một POJO chứa mảng, `deepToString` sẽ gọi `toString` của `List`, `Map` hoặc POJO đó; nó **không tự duyệt xuyên các lớp này để đến mảng con**.
+`Arrays.deepToString` traverses **array levels** deeply, not every kind of data structure in Java. If an element of `Object[]` is a `List<int[]>`, `Map<String,int[]>`, or a POJO containing an array, `deepToString` calls the `toString` of that `List`, `Map`, or POJO; it **does not automatically traverse through those classes to reach inner arrays**.
 
-Ví dụ ý tưởng (không phải chương trình độc lập):
+Conceptual example (not a standalone program):
 
 ```java
 Object[] data = {
         java.util.List.of(new int[]{1, 2})
 };
 String rendered = Arrays.deepToString(data);
-// List.toString() được dùng ở cấp phần tử List;
-// không thể mặc định kỳ vọng nội dung mảng bên trong List là "[1, 2]".
+// List.toString() is used at the List element level;
+// you cannot assume the array contents inside List will be "[1, 2]".
 ```
 
-Vì vậy, khi xây dựng biểu diễn `toString` cho đối tượng nhiều cấp, hãy quyết định rõ **lớp nào sở hữu trách nhiệm trình bày**. Lớp chứa mảng có thể tự dùng `Arrays.toString`/`deepToString` trong `toString` của mình. Cấu trúc `Map` hay `List` có thể cần ánh xạ thành phần thành chuỗi rõ ràng trước khi hiển thị.
+Therefore, when building a `toString` representation for multi-level objects, clearly decide **which class owns the presentation responsibility**. A class holding an array can itself use `Arrays.toString`/`deepToString` in its own `toString`. `Map` or `List` structures may need to map components to clear strings before displaying.
 
-Với đối tượng nghiệp vụ:
+For business objects:
 
 ```java
-// Chỉ minh họa phần thân của phương thức toString trong một lớp có các field:
+// Illustrates only the body of toString inside a class with fields:
 @Override
 public String toString() {
     return "Report[scores=" + Arrays.toString(scores)
@@ -200,47 +200,47 @@ public String toString() {
 }
 ```
 
-Phần minh họa giả định trường `scores` có kiểu `int[]` và `matrix` có kiểu `int[][]`, không phải chương trình độc lập. Cách này tạo chuỗi dễ đọc hơn so với nối trực tiếp `scores` hoặc `matrix`.
+The illustration assumes field `scores` has type `int[]` and `matrix` has type `int[][]`, not a standalone program. This approach produces a more readable string than concatenating `scores` or `matrix` directly.
 
-Một lưu ý khác: một object thường có thể có `toString` tự triển khai, bao gồm hiệu ứng phụ, chi phí truy xuất lớn hoặc lỗi nếu trạng thái không hợp lệ. `deepToString` **không kiểm soát hành vi của các `toString` thành phần**. Log biểu diễn toàn bộ cấu trúc chỉ nên được dùng khi dữ liệu thực sự an toàn và chi phí có thể chấp nhận.
+Another note: an ordinary object may have a custom `toString` implementation that includes side effects, heavy access cost, or errors if state is invalid. `deepToString` **does not control the behavior of component `toString` methods**. Logging the representation of an entire structure should only be used when the data is genuinely safe and the cost is acceptable.
 
-## 6. `deepToString` và mảng tự tham chiếu
+## 6. `deepToString` and Self-Referential Arrays
 
-Mảng tham chiếu `Object[]` có thể chứa chính nó hoặc tạo một chuỗi tham chiếu vòng:
+A reference array `Object[]` can contain itself or form a circular reference chain:
 
 ```java
-// Đoạn minh họa:
+// Illustrative snippet:
 Object[] a = new Object[1];
 a[0] = a;
 String text = Arrays.deepToString(a);
 ```
 
-Nếu một thuật toán đi sâu qua mảng mà không theo dõi mảng đã gặp trên nhánh duyệt, nó sẽ gọi lại chính mình mãi và gây `StackOverflowError`. `Arrays.deepToString` có cơ chế phát hiện chu trình trong các mảng đối tượng, dùng ký hiệu `[[...]]` cho mảng bị gặp lại trong chu trình, nhờ vậy tránh đệ quy vô hạn **đối với vòng được tạo qua các mảng**.
+If an algorithm descended through arrays without tracking already-seen arrays on the traversal branch, it would call itself forever and cause `StackOverflowError`. `Arrays.deepToString` has a cycle-detection mechanism across object arrays, using the `[[...]]` notation for an array encountered again in a cycle, thereby avoiding infinite recursion **for cycles formed through arrays**.
 
-Tuy nhiên:
+However:
 
-- Cơ chế này không có nghĩa `Arrays.deepToString` là một công cụ tuần tự hóa *object graph* tổng quát, bao gồm mọi loại chu trình qua POJO, collection và map.
-- Chuỗi hiển thị có thể lặp lại nội dung của một mảng con được tham chiếu từ nhiều nơi nhưng **không tạo vòng đệ quy hiện tại**. Do đó, không thể đọc chuỗi như một sơ đồ bảo toàn danh tính tham chiếu.
-- Với dữ liệu lồng sâu hoặc kích thước lớn, dựng cả chuỗi có thể tốn bộ nhớ và CPU; cần cân nhắc giới hạn độ sâu hoặc kích thước của log ở tầng ứng dụng.
+- This mechanism does not mean `Arrays.deepToString` is a general *object graph* serialization tool covering every kind of cycle through POJOs, collections, and maps.
+- The display string can repeat the contents of a sub-array referenced from multiple places that **do not form an active recursion cycle**. Thus, you cannot read the string as a diagram preserving reference identity.
+- With deeply nested or large data, building the entire string can consume memory and CPU; consider bounding depth or log size at the application layer.
 
-Cơ chế xử lý vòng chủ yếu nhằm giúp biểu diễn mảng để chẩn đoán; nó không thay thế thiết kế dữ liệu và không phải định dạng trao đổi dữ liệu ổn định.
+The cycle-handling mechanism is primarily meant to aid array representation for diagnostics; it does not replace data design and is not a stable data interchange format.
 
-## 7. Chuỗi trình bày khác với so sánh nội dung và mã băm
+## 7. Display Strings Differ from Content Comparison and Hash Codes
 
-`Arrays.toString`/`deepToString` chỉ tạo **chuỗi văn bản**. Chúng không quyết định đối tượng bằng nhau hay không và không cấp ID duy nhất:
+`Arrays.toString`/`deepToString` only produce **text strings**. They do not decide whether objects are equal and do not issue unique IDs:
 
-| Mục đích | Mảng một chiều | Mảng lồng nhau |
+| Purpose | One-Dimensional Array | Nested Array |
 | --- | --- | --- |
-| **Biểu diễn để đọc** | `Arrays.toString(a)` | `Arrays.deepToString(a)` |
-| **So sánh nội dung** | `Arrays.equals(a,b)` | `Arrays.deepEquals(a,b)` |
-| **Băm theo nội dung** | `Arrays.hashCode(a)` | `Arrays.deepHashCode(a)` |
+| **Readable representation** | `Arrays.toString(a)` | `Arrays.deepToString(a)` |
+| **Content comparison** | `Arrays.equals(a,b)` | `Arrays.deepEquals(a,b)` |
+| **Content-based hashing** | `Arrays.hashCode(a)` | `Arrays.deepHashCode(a)` |
 
-Ba dòng này thường đi cùng nhau trong một value object có trường mảng, nhưng có chức năng riêng biệt. Nếu lớp tự viết cài đặt `equals` theo nội dung mảng và `hashCode` tương ứng, `toString` có thể hiển thị bằng API cùng mức sâu để giúp debug. Dù vậy, chuỗi hiển thị giống nhau **không tạo ra bảo đảm hợp đồng `equals`**: `toString` của một lớp có thể cố ý bỏ thông tin hoặc rút gọn.
+These three rows often appear together in a value object with array fields, yet serve separate functions. If a custom class implements `equals` by array content and a matching `hashCode`, `toString` can display using the API of the same depth level to help debugging. Even so, identical display strings **do not create an `equals` contract guarantee**: a class's `toString` may intentionally omit information or abbreviate.
 
-Ví dụ hai mảng sau có thể hiển thị giống nhau trong một ngữ cảnh nhưng không đại diện cùng cấu trúc có kiểu chính xác:
+For example, the following two arrays can render identically in one context without representing the exact same typed structure:
 
 ```java
-// Ví dụ minh họa:
+// Illustrative example:
 String[] withComma = {"a, b", "c"};
 String[] separate = {"a", "b", "c"};
 // Arrays.toString(withComma) -> "[a, b, c]"
@@ -248,40 +248,40 @@ String[] separate = {"a", "b", "c"};
 // Arrays.equals(withComma, separate) -> false
 ```
 
-Đặc biệt, `Arrays.toString` không tự escape hoặc quote đầy đủ nội dung chuỗi, nên **không phải một serialization format để parse ngược đáng tin cậy**. Dấu phân cách xuất hiện bên trong giá trị có thể khiến bản hiển thị mơ hồ.
+In particular, `Arrays.toString` does not fully escape or quote string contents, so it is **not a reliable serialization format to parse back**. Delimiters appearing inside values can make the rendered output ambiguous.
 
-## 8. Khi nào cần JSON hoặc cấu trúc có schema?
+## 8. When Is JSON or a Schema-Backed Structure Needed?
 
-Nếu cần gửi dữ liệu qua API, ghi tệp cấu hình, lưu cơ sở dữ liệu hay cần một định dạng mà máy khác parse ngược chính xác, hãy dùng một thư viện serialization được duy trì (ví dụ Jackson JSON trong ứng dụng phù hợp) cùng cấu trúc/schema rõ ràng. Không dùng `Arrays.deepToString` thay thế JSON hay giao thức truyền thông:
+If you need to send data over an API, write configuration files, store in a database, or need a format that another machine can parse back accurately, use a maintained serialization library (such as Jackson JSON in an appropriate application) with an explicit structure/schema. Do not use `Arrays.deepToString` in place of JSON or a communication protocol:
 
-- Không có hệ thống escaping/quoting như JSON để bảo toàn mọi chuỗi.
-- Không mang đủ thông tin kiểu Java, nullability và danh tính đối tượng cho mọi trường hợp.
-- Không có hợp đồng định dạng ổn định cho các lớp tự viết `toString`.
-- Không thiết kế để đại diện chu trình, chia sẻ tham chiếu hoặc các collection lồng nhau dưới dạng có thể giải mã ngược.
-- Có thể lộ các trường nhạy cảm nếu cứ in cả object để ghi log.
+- There is no escaping/quoting system like JSON to preserve arbitrary strings.
+- It does not carry enough Java type, nullability, and object identity information for all cases.
+- There is no stable format contract for classes with custom `toString`.
+- It is not designed to represent cycles, shared references, or nested collections in a decodable form.
+- It can expose sensitive fields if entire objects are printed for logging.
 
-Nếu mục tiêu chỉ là nhìn nhanh một mảng ở console hoặc trong log debug an toàn, `Arrays.toString` và `deepToString` là lựa chọn hợp lý vì gọn và sẵn có trong JDK. Nếu mục tiêu là **dữ liệu có cấu trúc, tái sử dụng được**, hãy thiết kế serialization riêng.
+If the goal is just a quick look at an array on the console or in safe debug logs, `Arrays.toString` and `deepToString` are sensible choices because they are concise and built into the JDK. If the goal is **structured, reusable data**, design dedicated serialization.
 
-## 9. Những lỗi phổ biến và cách tự kiểm tra
+## 9. Common Mistakes and How to Self-Check
 
-1. **`System.out.println(intArray)` rồi tưởng thấy nội dung:** thực tế thường thấy `[I@...`; dùng `Arrays.toString(intArray)`.
-2. **`Arrays.toString(intMatrix)` rồi tưởng in hết hàng:** mảng con `int[]` vẫn in mặc định; dùng `Arrays.deepToString(intMatrix)`.
-3. **Dùng `Arrays.deepToString(intArray)` cho `int[]` một chiều:** sai kiểu, không biên dịch vì phương thức nhận `Object[]`; dùng `Arrays.toString`.
-4. **Nghĩ `deepToString` đi sâu qua mọi `List`, `Map`, POJO:** nó chỉ đi sâu qua mảng. Cần xử lý biểu diễn các container khác bằng API/thiết kế tương ứng.
-5. **Nghĩ biểu diễn `[I@<hex>` là địa chỉ RAM hoặc ID bất biến:** đó là biểu diễn `Object.toString` dựa trên hash, không bảo đảm như vậy.
-6. **Dùng chuỗi `Arrays.toString` như dữ liệu máy có thể parse lại:** ký tự phân cách và kiểu phần tử có thể mơ hồ; dùng định dạng có schema như JSON nếu cần trao đổi hoặc lưu trữ.
-7. **Ghi log mảng mật khẩu, token hoặc dữ liệu cá nhân:** nội dung của mảng có thể xuất hiện trọn vẹn; chọn lọc/che thông tin nhạy cảm trước khi ghi.
-8. **Để `toString` đệ quy thủ công không kiểm soát trên object graph có vòng:** `Arrays.deepToString` có xử lý vòng qua mảng, nhưng không bảo vệ mọi chu trình do code `toString` tùy biến tạo ra.
-9. **Gán ý nghĩa “bằng nhau” từ `toString`:** hai đối tượng in giống nhau vẫn có thể khác theo `equals`; dùng phép so sánh thích hợp.
-10. **Dựng chuỗi cho một mảng rất lớn mỗi lần xử lý:** trong code hiệu năng cao, chỉ tạo biểu diễn khi cần chẩn đoán; cân nhắc giới hạn phần tử và tránh log ở mức quá chi tiết.
+1. **`System.out.println(intArray)` expecting to see contents:** in reality you usually see `[I@...`; use `Arrays.toString(intArray)`.
+2. **`Arrays.toString(intMatrix)` expecting all rows printed:** inner `int[]` arrays still print with the default form; use `Arrays.deepToString(intMatrix)`.
+3. **Using `Arrays.deepToString(intArray)` for a one-dimensional `int[]`:** type mismatch, does not compile because the method takes `Object[]`; use `Arrays.toString`.
+4. **Assuming `deepToString` descends into every `List`, `Map`, and POJO:** it only descends through arrays. Handle representations of other containers with appropriate APIs/designs.
+5. **Thinking `[I@<hex>` is a RAM address or immutable ID:** it is an `Object.toString` representation based on a hash, with no such guarantee.
+6. **Using `Arrays.toString` strings as machine-parseable data:** delimiters and element types can be ambiguous; use a schema-backed format like JSON when interchange or storage is needed.
+7. **Logging arrays of passwords, tokens, or personal data:** the array's contents may appear in full; filter/mask sensitive information before logging.
+8. **Letting custom `toString` recurse unchecked on cyclic object graphs:** `Arrays.deepToString` handles array cycles, yet does not protect against all cycles created by custom `toString` code.
+9. **Assigning "equality" meaning from `toString`:** two objects that print identically can still differ by `equals`; use the appropriate comparison.
+10. **Building a string for a huge array on every operation:** in high-performance code, generate representations only when needed for diagnosis; consider bounding element counts and avoiding overly verbose logging.
 
 ### Checklist
 
-- Đối tượng cần in là **mảng nguyên thủy một chiều**, mảng tham chiếu một chiều hay mảng nhiều chiều?
-- Đã chọn đúng overload `Arrays.toString` hoặc `Arrays.deepToString` chưa?
-- Trong mảng có chứa các mảng con, `List`, `Map` hoặc POJO cần biểu diễn riêng không?
-- Có khả năng vòng tham chiếu, dữ liệu quá sâu/quá lớn hoặc `toString` của phần tử có tác dụng phụ không?
-- Chuỗi dùng để **debug cho người đọc** hay để **truyền/lưu dữ liệu có thể parse**?
-- Nội dung có chứa bí mật hoặc dữ liệu nhạy cảm cần che trước khi ghi log không?
+- Is the object to print a **one-dimensional primitive array**, one-dimensional reference array, or multi-dimensional array?
+- Have you chosen the right overload of `Arrays.toString` or `Arrays.deepToString`?
+- Does the array contain nested sub-arrays, `List`, `Map`, or POJOs needing separate representation?
+- Are there potential reference cycles, overly deep/large data, or element `toString` methods with side effects?
+- Is the string meant for **human-readable debugging** or for **transmitting/storing parseable data**?
+- Does the content contain secrets or sensitive data that must be masked before logging?
 
-**Ghi nhớ:** dùng **`Arrays.toString` cho mảng một chiều**, dùng **`Arrays.deepToString` khi có các cấp mảng lồng nhau với mảng ngoài là mảng tham chiếu**. Hai API này giúp in dữ liệu dễ hiểu, nhưng không biến chuỗi hiển thị thành danh tính đối tượng, phép so sánh `equals` hay định dạng serialization đáng tin cậy.
+**Key takeaway:** use **`Arrays.toString` for one-dimensional arrays**, and use **`Arrays.deepToString` when there are nested array levels whose outer array is a reference array**. These two APIs make data easy to read when printed, yet do not turn display strings into object identity, `equals` comparison, or a reliable serialization format.

@@ -1,26 +1,26 @@
-# WeekFields: ngày đầu tuần và số ngày tối thiểu của tuần đầu
+# WeekFields: First Day of Week and Minimal Days in First Week
 
-Trong Java, `java.time.temporal.WeekFields` mô tả **quy tắc đánh số tuần dựa trên tập quán lịch của một locale**. Hai tham số nền tảng là:
+In Java, `java.time.temporal.WeekFields` describes **week-numbering rules based on the calendar conventions of a locale**. Its two foundational parameters are:
 
-1. **Ngày đầu tuần** (`firstDayOfWeek`): một tuần được tính bắt đầu vào **Thứ hai**, **Chủ nhật**, hoặc một ngày khác?
-2. **Số ngày tối thiểu của tuần đầu** (`minimalDaysInFirstWeek`): tuần đầu tiên được tính thuộc tháng/năm mới phải chứa ít nhất **bao nhiêu ngày của tháng/năm đó**?
+1. **First day of the week** (`firstDayOfWeek`): does a week start on **Monday**, **Sunday**, or another day?
+2. **Minimal days in the first week** (`minimalDaysInFirstWeek`): how many days of the new month/year must the first week contain to count as week 1 of that month/year?
 
-Hai lựa chọn này ảnh hưởng trực tiếp tới **tuần thứ mấy trong tháng**, **tuần thứ mấy trong năm**, và đặc biệt là **năm-tuần** (*week-based year*) tại ranh giới năm. Một ngày trong tháng 12 có thể thuộc **tuần 1 của năm-tuần kế tiếp**; một ngày đầu tháng 1 có thể thuộc **tuần cuối của năm-tuần trước**.
+These two choices directly affect **week-of-month**, **week-of-year**, and especially **week-based year** at year boundaries. A day in December can belong to **week 1 of the next week-based year**; an early January day can belong to **the final week of the previous week-based year**.
 
-Ví dụ, với ngày **2021-01-01 (Thứ sáu)**:
+For example, for **2021-01-01 (Friday)**:
 
-- Quy tắc kiểu Mỹ phổ biến: bắt đầu tuần **Chủ nhật**, yêu cầu **ít nhất 1 ngày** của năm mới để tạo tuần đầu. Kết quả: **tuần 1, năm-tuần 2021**.
-- Quy tắc ISO 8601: bắt đầu tuần **Thứ hai**, yêu cầu **ít nhất 4 ngày** của năm mới. Kết quả: **tuần 53, năm-tuần 2020**.
+- Common US rule: weeks start on **Sunday**, requiring **at least 1 day** in the new year to form week 1. Result: **week 1, week-based year 2021**.
+- ISO 8601 rule: weeks start on **Monday**, requiring **at least 4 days** in the new year. Result: **week 53, week-based year 2020**.
 
-Đây không phải lỗi JDK. Đó là **hai định nghĩa tuần khác nhau** áp dụng lên **cùng một ngày**. Trong ứng dụng quốc tế, phải thống nhất định nghĩa trước khi nhóm dữ liệu theo tuần, in báo cáo hoặc tạo khóa tuần.
+This is not a JDK bug. It is **two different week definitions** applied to **the same date**. In international applications, you must agree on the definition before grouping data by week, printing reports, or generating week keys.
 
-Bài học sử dụng Java 17+ để làm rõ hai tham số, các trường tuần của `WeekFields`, cách chọn theo `Locale`, khác biệt ISO/US, quan hệ với `DateTimeFormatter` và các lỗi phổ biến.
+This lesson uses Java 17+ to clarify both parameters, the week fields of `WeekFields`, selecting by `Locale`, ISO vs. US differences, the relationship with `DateTimeFormatter`, and common pitfalls.
 
-## 1. `WeekFields` là gì, không phải là gì?
+## 1. What `WeekFields` Is and Is Not
 
-`WeekFields` nằm trong gói `java.time.temporal` và đại diện cho một **bộ quy tắc lịch tuần**. Nó **không** phải lớp chứa một ngày, không thay đổi đồng hồ hệ thống, và không tự chuyển đổi thời điểm hay múi giờ.
+`WeekFields` resides in the `java.time.temporal` package and represents a **set of week calendar rules**. It is **not** a class holding a date, does not alter the system clock, and does not convert instants or time zones.
 
-Các cách tạo thông dụng:
+Common ways to obtain one:
 
 ~~~java
 WeekFields iso = WeekFields.ISO;
@@ -30,7 +30,7 @@ WeekFields germany = WeekFields.of(Locale.GERMANY);
 WeekFields custom = WeekFields.of(DayOfWeek.MONDAY, 1);
 ~~~
 
-Đây là **snippet trong phương thức**, cần import:
+This is an **in-method snippet**, requiring imports:
 
 ~~~java
 import java.time.DayOfWeek;
@@ -38,20 +38,20 @@ import java.time.temporal.WeekFields;
 import java.util.Locale;
 ~~~
 
-Ý nghĩa:
+Meanings:
 
-- `WeekFields.ISO` định nghĩa **Thứ hai** là ngày đầu tuần, và yêu cầu **4 ngày** trong tuần đầu.
-- `WeekFields.SUNDAY_START` định nghĩa **Chủ nhật** là ngày đầu tuần, và yêu cầu **1 ngày** trong tuần đầu.
-- `WeekFields.of(locale)` hỏi bộ dữ liệu locale/provider của JDK để lấy tập quán tuần phù hợp.
-- `WeekFields.of(DayOfWeek, int)` cho phép đặt chính sách độc lập với locale.
+- `WeekFields.ISO` defines **Monday** as the first day of the week and requires **4 days** in the first week.
+- `WeekFields.SUNDAY_START` defines **Sunday** as the first day of the week and requires **1 day** in the first week.
+- `WeekFields.of(locale)` queries the JDK's locale data/provider for the appropriate week convention.
+- `WeekFields.of(DayOfWeek, int)` lets you define a locale-independent policy.
 
-Đối tượng `WeekFields` là **immutable** và thread-safe; có thể sử dụng lại theo cấu hình. Quan trọng hơn, các `TemporalField` lấy từ nó cũng biểu diễn những quy tắc tuần đã chọn.
+`WeekFields` instances are **immutable** and thread-safe; they can be reused across configurations. More importantly, the `TemporalField` instances obtained from them also embody the chosen week rules.
 
-## 2. Ngày đầu tuần: `firstDayOfWeek`
+## 2. First Day of the Week: `firstDayOfWeek`
 
-Tham số này quyết định **ranh giới giữa hai tuần liên tiếp**. Nếu tuần bắt đầu **Thứ hai**, một tuần chạy từ Thứ hai đến Chủ nhật. Nếu bắt đầu **Chủ nhật**, tuần chạy từ Chủ nhật đến Thứ bảy.
+This parameter determines the **boundary between two consecutive weeks**. If a week starts on **Monday**, a week runs from Monday through Sunday. If it starts on **Sunday**, a week runs from Sunday through Saturday.
 
-Tạo `WeekStartDemo.java`:
+Create `WeekStartDemo.java`:
 
 ~~~java
 import java.time.temporal.WeekFields;
@@ -78,7 +78,7 @@ javac WeekStartDemo.java
 java WeekStartDemo
 ~~~
 
-Trong môi trường JDK 17+ có dữ liệu tuần thông dụng:
+In a JDK 17+ environment with standard week data:
 
 ~~~text
 US: SUNDAY, 1
@@ -86,83 +86,83 @@ DE: MONDAY, 4
 ISO: MONDAY, 4
 ~~~
 
-Hai chuỗi `SUNDAY` và `MONDAY` là tên hằng của enum `DayOfWeek`, không phải tên ngày được dịch sang locale. Đối với các locale khác, hãy đọc trực tiếp dữ liệu trên runtime mà ứng dụng dùng; không đoán từ mã ngôn ngữ.
+The strings `SUNDAY` and `MONDAY` are `DayOfWeek` enum constant names, not day names translated into a locale. For other locales, inspect the data directly on the runtime your application uses; do not guess from the language code.
 
-**Điểm phân biệt:** Một người chọn ngôn ngữ tiếng Anh không đồng nghĩa với việc họ muốn tuần bắt đầu Chủ nhật. Quy tắc tuần thường gắn với **vùng/quốc gia, cấu hình sản phẩm hoặc yêu cầu nghiệp vụ**, không chỉ tên ngôn ngữ.
+**Key distinction:** Choosing the English language does not mean a user wants weeks starting on Sunday. Week rules are usually tied to **region/country, product settings, or business requirements**, not just the language name.
 
-## 3. Số ngày tối thiểu của tuần đầu là gì?
+## 3. What Is Minimal Days in the First Week?
 
-Giả sử năm mới bắt đầu vào **Thứ sáu** như ngày 2021-01-01.
+Suppose the new year begins on **Friday**, as on 2021-01-01.
 
-Với tuần bắt đầu **Thứ hai**, tuần chứa ngày đó là:
+With weeks starting on **Monday**, the week containing that date is:
 
 ~~~text
-Thứ hai  2020-12-28
-Thứ ba   2020-12-29
-Thứ tư   2020-12-30
-Thứ năm  2020-12-31
-Thứ sáu  2021-01-01
-Thứ bảy  2021-01-02
-Chủ nhật 2021-01-03
+Monday    2020-12-28
+Tuesday   2020-12-29
+Wednesday 2020-12-30
+Thursday  2020-12-31
+Friday    2021-01-01
+Saturday  2021-01-02
+Sunday    2021-01-03
 ~~~
 
-Tuần này chứa đúng **3 ngày của năm mới**: 01, 02 và 03 tháng 1.
+This week contains exactly **3 days of the new year**: January 1, 2, and 3.
 
-- Nếu `minimalDaysInFirstWeek = 4`, **3 không đủ 4**, nên đây **chưa phải tuần 1 của năm-tuần 2021**. Tuần 1 bắt đầu **Thứ hai 2021-01-04**; 2021-01-01 vẫn nằm trong tuần cuối của **năm-tuần 2020**.
-- Nếu `minimalDaysInFirstWeek = 1`, **3 đủ 1**, nên tuần bắt đầu 2020-12-28 đã được tính là tuần 1 của **năm-tuần 2021** (nếu dùng **Thứ hai** làm ngày đầu tuần).
+- If `minimalDaysInFirstWeek = 4`, **3 is fewer than 4**, so this is **not yet week 1 of week-based year 2021**. Week 1 begins on **Monday 2021-01-04**; 2021-01-01 remains in the last week of **week-based year 2020**.
+- If `minimalDaysInFirstWeek = 1`, **3 meets 1**, so the week starting 2020-12-28 already counts as week 1 of **week-based year 2021** (if using **Monday** as the first day of the week).
 
-Vì vậy **không chỉ ngày đầu tuần**, mà **cả số ngày tối thiểu** quyết định năm-tuần.
+Therefore, **not only the first day of the week**, but **also the minimal days count** determines the week-based year.
 
-### Điều kiện hợp lệ
+### Validity constraints
 
-`WeekFields.of(DayOfWeek firstDay, int minimalDays)` nhận `minimalDays` trong khoảng **1–7**. Nếu giá trị ngoài phạm vi, phương thức ném `IllegalArgumentException`; ngày đầu tuần phải hợp lệ và không được null.
+`WeekFields.of(DayOfWeek firstDay, int minimalDays)` accepts `minimalDays` in the range **1–7**. If the value is outside this range, the method throws `IllegalArgumentException`; the first day of the week must be valid and non-null.
 
-Ví dụ:
+Example:
 
 ~~~java
 WeekFields custom = WeekFields.of(DayOfWeek.MONDAY, 1);
 ~~~
 
-Đây là cấu hình khác với `WeekFields.ISO` mặc dù **cùng bắt đầu Thứ hai**: ISO yêu cầu 4 ngày, còn cấu hình tùy chỉnh chỉ yêu cầu 1 ngày.
+This configuration differs from `WeekFields.ISO` even though **both start on Monday**: ISO requires 4 days, whereas the custom configuration requires only 1 day.
 
-## 4. Hai tham số hoạt động cùng nhau
+## 4. How the Two Parameters Work Together
 
-Để tạo tuần 1 của tháng hoặc năm, Java xem **tuần chứa ngày đầu kỳ** có bao nhiêu ngày thuộc kỳ đó:
+To determine week 1 of a month or year, Java checks how many days of that period fall inside **the week containing the first day of the period**:
 
-1. Xác định ngày đầu tuần theo `firstDayOfWeek`.
-2. Tìm tuần có chứa ngày 1 của tháng/năm.
-3. Đếm số ngày của tháng/năm mới nằm trong tuần.
-4. Nếu số ngày **ít nhất bằng** `minimalDaysInFirstWeek`, tuần đó là **tuần 1**.
-5. Nếu chưa đủ, tuần kế tiếp trở thành **tuần 1**.
+1. Determine the week boundaries using `firstDayOfWeek`.
+2. Find the week containing day 1 of the month/year.
+3. Count how many days of the new month/year lie in that week.
+4. If the count is **at least** `minimalDaysInFirstWeek`, that week is **week 1**.
+5. If it falls short, the following week becomes **week 1**.
 
-Quy tắc này được áp dụng ở ranh giới tháng cho `weekOfMonth()` và ranh giới năm cho `weekOfYear()`; riêng cách gán **week-based-year** có thêm khả năng phần cuối tháng 12 chuyển sang **năm-tuần kế tiếp**.
+This rule applies at month boundaries for `weekOfMonth()` and year boundaries for `weekOfYear()`; **week-based-year** assignment additionally allows late December days to move into the **next week-based year**.
 
-**Ví dụ với ngày 2021-05-01 (Thứ bảy)**:
+**Example with 2021-05-01 (Saturday)**:
 
-- Theo ISO (Thứ hai, 4 ngày), tuần 2021-04-26 tới 2021-05-02 chỉ có **2 ngày** trong tháng 5. Do đó **chưa phải tuần 1 của tháng 5**, và `weekOfMonth()` có thể trả **0**.
-- Theo US (Chủ nhật, 1 ngày), tuần 2021-04-25 tới 2021-05-01 có **1 ngày** trong tháng 5. Vì đủ 1 ngày, `weekOfMonth()` trả **1**.
+- Under ISO (Monday, 4 days), the week 2021-04-26 to 2021-05-02 has only **2 days** in May. Thus it is **not yet week 1 of May**, and `weekOfMonth()` returns **0**.
+- Under US (Sunday, 1 day), the week 2021-04-25 to 2021-05-01 has **1 day** in May. Since 1 day suffices, `weekOfMonth()` returns **1**.
 
-Cùng ngày 2021-05-01 nhưng kết quả khác nhau là hoàn toàn có lý do.
+Having different results for the same date 2021-05-01 is completely logical.
 
-## 5. Những `TemporalField` mà `WeekFields` cung cấp
+## 5. The `TemporalField` Objects Provided by `WeekFields`
 
-`WeekFields` không trực tiếp có phương thức `weekNumber(LocalDate)`. Thay vào đó, nó cho ta các đối tượng `TemporalField` để hỏi `LocalDate.get(field)` hoặc dùng với `DateTimeFormatterBuilder`.
+`WeekFields` does not directly expose a `weekNumber(LocalDate)` method. Instead, it provides `TemporalField` instances to query `LocalDate.get(field)` or use with `DateTimeFormatterBuilder`.
 
-| Phương thức | Ý nghĩa | Ghi chú |
+| Method | Meaning | Notes |
 | --- | --- | --- |
-| `dayOfWeek()` | Thứ tự ngày **trong tuần cục bộ** | Ngày đầu tuần có giá trị 1 |
-| `weekOfMonth()` | Tuần thứ mấy của **tháng lịch** | Có thể bằng **0** gần đầu tháng |
-| `weekOfYear()` | Tuần thứ mấy của **năm lịch** | Có thể bằng **0** gần đầu năm |
-| `weekOfWeekBasedYear()` | Tuần thứ mấy của **năm-tuần** | Thường 1 đến 52/53 |
-| `weekBasedYear()` | **Năm-tuần** tương ứng | Có thể khác năm lịch |
+| `dayOfWeek()` | Day number **within the localized week** | First day of week has value 1 |
+| `weekOfMonth()` | Week number of the **calendar month** | Can be **0** near the start of the month |
+| `weekOfYear()` | Week number of the **calendar year** | Can be **0** near the start of the year |
+| `weekOfWeekBasedYear()` | Week number of the **week-based year** | Usually 1 to 52/53 |
+| `weekBasedYear()` | Corresponding **week-based year** | Can differ from calendar year |
 
-Cần phân biệt đặc biệt:
+Make sure to distinguish:
 
-- `weekOfYear()` gắn với **năm lịch** của ngày đó; ở ranh giới năm, nó có thể bằng 0 hoặc có giá trị cuối năm.
-- `weekOfWeekBasedYear()` gắn với **năm-tuần**; phải đi **cùng** `weekBasedYear()` để tạo một định danh tuần hợp lệ.
-- `dayOfWeek()` của `WeekFields` là **thứ tự theo ngày bắt đầu tuần đã chọn**; nó không thay đổi giá trị của enum `DayOfWeek`.
+- `weekOfYear()` is tied to the **calendar year** of that date; at the year boundary, it can be 0 or a late-year value.
+- `weekOfWeekBasedYear()` is tied to the **week-based year**; it must be paired **with** `weekBasedYear()` to form a valid week identifier.
+- `dayOfWeek()` of `WeekFields` is the **ordinal position starting from the chosen first day of week**; it does not alter the `DayOfWeek` enum's values.
 
-Ví dụ để lấy tuần ISO:
+Example for retrieving ISO week fields:
 
 ~~~java
 LocalDate date = LocalDate.of(2021, 1, 1);
@@ -173,29 +173,29 @@ int week = date.get(rule.weekOfWeekBasedYear());     // 53
 int localDay = date.get(rule.dayOfWeek());           // 5
 ~~~
 
-Đoạn trên là **snippet trong method**, cần import `java.time.LocalDate` và `java.time.temporal.WeekFields`.
+The above is an **in-method snippet**, requiring imports `java.time.LocalDate` and `java.time.temporal.WeekFields`.
 
-## 6. `dayOfWeek()`: thứ tự cục bộ khác `DayOfWeek.getValue()`
+## 6. `dayOfWeek()`: Localized Ordering Differs from `DayOfWeek.getValue()`
 
-Enum `DayOfWeek` trong Java tuân theo thứ tự ISO:
+Java's `DayOfWeek` enum follows ISO ordering:
 
 ~~~text
 MONDAY=1, TUESDAY=2, ..., SUNDAY=7
 ~~~
 
-Nhưng với `WeekFields.of(Locale.US)`, **Chủ nhật** là ngày đầu tuần, nên:
+However, with `WeekFields.of(Locale.US)`, **Sunday** is the first day of the week, so:
 
 ~~~text
 SUNDAY=1, MONDAY=2, ..., SATURDAY=7
 ~~~
 
-Cùng một ngày **Chủ nhật 2021-01-03**:
+For the same date **Sunday 2021-01-03**:
 
-- `date.getDayOfWeek().getValue()` trả **7** theo enum/ISO.
-- `date.get(WeekFields.ISO.dayOfWeek())` trả **7**.
-- `date.get(WeekFields.of(Locale.US).dayOfWeek())` trả **1**.
+- `date.getDayOfWeek().getValue()` returns **7** per enum/ISO.
+- `date.get(WeekFields.ISO.dayOfWeek())` returns **7**.
+- `date.get(WeekFields.of(Locale.US).dayOfWeek())` returns **1**.
 
-Tạo chương trình độc lập **`LocalizedDayNumberDemo.java`**:
+Create standalone program **`LocalizedDayNumberDemo.java`**:
 
 ~~~java
 import java.time.LocalDate;
@@ -221,7 +221,7 @@ javac LocalizedDayNumberDemo.java
 java LocalizedDayNumberDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 SUNDAY
@@ -230,15 +230,15 @@ SUNDAY
 7
 ~~~
 
-**Không** tự sử dụng `getDayOfWeek().getValue()` để xây một lịch có cột **Chủ nhật đứng đầu**, nếu thuật toán thực sự muốn đánh số cột từ 1 theo locale. Hãy dùng `WeekFields.dayOfWeek()` hoặc chuyển đổi rõ ràng.
+**Do not** use `getDayOfWeek().getValue()` directly to lay out a calendar whose first column is **Sunday**, if the algorithm expects column numbers starting at 1 according to the locale. Use `WeekFields.dayOfWeek()` or convert explicitly.
 
-Ngược lại, nếu giao thức của ứng dụng công bố ngày trong tuần theo ISO 1–7, hãy giữ `DayOfWeek.getValue()`, không thay đổi ý nghĩa chỉ vì locale của người dùng.
+Conversely, if an application protocol defines days of the week as ISO 1–7, keep `DayOfWeek.getValue()` and do not change its semantics just because of the user's locale.
 
-## 7. `weekOfMonth()`: tại sao có tuần 0?
+## 7. `weekOfMonth()`: Why Week 0 Exists
 
-Theo `WeekFields.ISO`, tháng 5 năm 2021 bắt đầu vào **Thứ bảy**. Hai ngày 1 và 2 tháng 5 thuộc một tuần bắt đầu từ **Thứ hai 26/4** và chỉ có **2 ngày của tháng mới**. Vì vậy tuần đó không đủ 4 ngày để trở thành tuần 1 của tháng 5.
+Under `WeekFields.ISO`, May 2021 begins on **Saturday**. May 1 and May 2 belong to a week starting **Monday, April 26**, which contains only **2 days of the new month**. Thus that week does not reach 4 days to become week 1 of May.
 
-Ví dụ **`WeekOfMonthDemo.java`**:
+Example **`WeekOfMonthDemo.java`**:
 
 ~~~java
 import java.time.LocalDate;
@@ -266,7 +266,7 @@ javac WeekOfMonthDemo.java
 java WeekOfMonthDemo
 ~~~
 
-Kết quả với quy tắc Mỹ thông dụng:
+Output with common US rules:
 
 ~~~text
 2021-05-01 US=1 ISO=0
@@ -274,39 +274,39 @@ Kết quả với quy tắc Mỹ thông dụng:
 2021-05-03 US=2 ISO=1
 ~~~
 
-**Tuần 0 không phải lỗi dữ liệu.** Nó biểu diễn phần đầu tháng chưa thỏa tiêu chí của tuần đầu tiên. Khi hiển thị “tuần thứ mấy trong tháng”, ứng dụng phải quyết định muốn:
-- giữ đúng giá trị `WeekFields.weekOfMonth()`, kể cả tuần 0;
-- hay đánh số **các hàng trên lịch** từ 1 (một quy ước UI khác);
-- hay hiển thị các **khoảng ngày** thay vì chỉ con số tuần.
+**Week 0 is not corrupt data.** It represents the initial days of the month that do not yet meet the criterion for the first week. When displaying "week of month", the application must decide whether to:
+- preserve the exact `WeekFields.weekOfMonth()` value, including week 0;
+- number the **calendar grid rows** starting from 1 (a different UI convention);
+- or display **date ranges** instead of just a week number.
 
-Tránh cộng 1 vào kết quả một cách máy móc: làm vậy chỉ che giấu khác biệt quy tắc và có thể gây trùng số tuần.
+Avoid mechanically adding 1 to the result: doing so masks rule differences and can produce duplicate week numbers.
 
-## 8. `weekOfYear()` không đồng nghĩa `weekOfWeekBasedYear()`
+## 8. `weekOfYear()` Is Not Equivalent to `weekOfWeekBasedYear()`
 
-Đây là lỗi quan trọng nhất khi tổng hợp báo cáo theo tuần.
+This is the most critical error when aggregating weekly reports.
 
-Với ngày **2021-01-01** theo ISO:
+For **2021-01-01** under ISO:
 
-- Năm lịch: **2021**.
-- `weekOfYear()`: **0**, vì tuần chứa ngày 1/1 chưa đủ 4 ngày thuộc năm 2021.
+- Calendar year: **2021**.
+- `weekOfYear()`: **0**, because the week containing Jan 1 lacks 4 days in 2021.
 - `weekBasedYear()`: **2020**.
 - `weekOfWeekBasedYear()`: **53**.
 
-Với quy tắc Mỹ thông dụng cho đúng ngày ấy:
+Under common US rules for that exact same date:
 
-- Năm lịch: **2021**.
+- Calendar year: **2021**.
 - `weekOfYear()`: **1**.
 - `weekBasedYear()`: **2021**.
 - `weekOfWeekBasedYear()`: **1**.
 
-Trong logic báo cáo:
-- Nếu cần **một nhãn tuần nhất quán có thể chạy xuyên qua tháng 12/tháng 1**, dùng **cặp `weekBasedYear + weekOfWeekBasedYear`**.
-- Nếu thực sự đang hỏi “tuần thứ mấy **trong năm lịch này**”, `weekOfYear` có ngữ nghĩa riêng, bao gồm khả năng tuần 0.
-- Không lấy `date.getYear()` ghép với `weekOfWeekBasedYear()` rồi coi là định danh tuần chuẩn.
+In reporting logic:
+- If you need **a consistent week label that spans seamlessly across December/January**, use **the `weekBasedYear + weekOfWeekBasedYear` pair**.
+- If you are genuinely asking "which week **within this calendar year**", `weekOfYear` has its own semantics, including the possibility of week 0.
+- Never pair `date.getYear()` with `weekOfWeekBasedYear()` and treat it as a standard week identifier.
 
-### Ví dụ có thể chạy
+### Runnable example
 
-Tạo **`WeekFieldsBoundaryDemo.java`**:
+Create **`WeekFieldsBoundaryDemo.java`**:
 
 ~~~java
 import java.time.LocalDate;
@@ -341,7 +341,7 @@ javac WeekFieldsBoundaryDemo.java
 java WeekFieldsBoundaryDemo
 ~~~
 
-Kết quả trên JDK với quy tắc US phổ biến:
+Output on a JDK with common US rules:
 
 ~~~text
 2020-12-31 US=2021-W1 / y53 ISO=2020-W53 / y53
@@ -349,29 +349,29 @@ Kết quả trên JDK với quy tắc US phổ biến:
 2021-01-04 US=2021-W2 / y2 ISO=2021-W1 / y1
 ~~~
 
-Dòng đầu rất đáng chú ý: **2020-12-31 thuộc năm lịch 2020**, nhưng theo US nó đã nằm trong **năm-tuần 2021**. Vì thế nếu nhóm bằng `calendarYear=2020, week=1` bạn có thể tạo một nhóm báo cáo sai hoặc trùng.
+The first line is especially noteworthy: **2020-12-31 belongs to calendar year 2020**, yet under US rules it already lies in **week-based year 2021**. Thus grouping by `calendarYear=2020, week=1` can produce an incorrect or colliding report group.
 
-## 9. Tuần đầu năm ISO: quy tắc “ít nhất 4 ngày”
+## 9. ISO First Week of the Year: The "At Least 4 Days" Rule
 
-Quy tắc ISO 8601 thường được mô tả bằng ba cách tương đương:
+The ISO 8601 rule is commonly stated in three equivalent ways:
 
-- Tuần bắt đầu **Thứ hai**, và tuần 1 là tuần có **ít nhất bốn ngày của năm mới**.
-- Tuần 1 là tuần có **ngày 4 tháng 1**.
-- Tuần 1 là tuần có **ngày Thứ năm đầu tiên của năm**.
+- Weeks start on **Monday**, and week 1 is the week with **at least four days in the new year**.
+- Week 1 is the week containing **January 4**.
+- Week 1 is the week containing the **first Thursday of the year**.
 
-Ví dụ năm 2021:
-- 2021-01-01 là Thứ sáu.
-- Tuần 2020-12-28 đến 2021-01-03 chỉ có ba ngày thuộc 2021.
-- Tuần 1 năm-tuần 2021 bắt đầu vào **2021-01-04**.
-- Ngày 2021-01-01 thuộc **2020-W53**.
+Example for 2021:
+- 2021-01-01 is a Friday.
+- The week 2020-12-28 through 2021-01-03 has only three days in 2021.
+- Week 1 of week-based year 2021 begins on **2021-01-04**.
+- Date 2021-01-01 belongs to **2020-W53**.
 
-Một năm-tuần có thể có **52 hoặc 53 tuần**. Đó là lý do mã “2021-W53” không thể tự động coi là một tuần hợp lệ trong mọi định nghĩa. Kiểm tra số tuần tồn tại theo năm-tuần và quy tắc thật sự được dùng.
+A week-based year can have **52 or 53 weeks**. That is why a code like "2021-W53" cannot automatically be assumed valid under every definition. Validate whether the week number exists under the actual week-based year and rules in use.
 
-`WeekFields.ISO` là lựa chọn rõ ràng khi **hợp đồng dữ liệu yêu cầu ISO tuần**, bất kể người dùng đang ở quốc gia nào. `WeekFields.of(locale)` là lựa chọn khi **giao diện lịch nên theo tập quán của người dùng**.
+`WeekFields.ISO` is the clear choice when **data contracts require ISO weeks**, regardless of which country the user is in. `WeekFields.of(locale)` is the choice when **calendar UIs should follow the user's local convention**.
 
-## 10. `WeekFields.of(Locale)` và độ ổn định của locale
+## 10. `WeekFields.of(Locale)` and Locale Stability
 
-Một số locale có thể dùng quy tắc đầu tuần và số ngày tối thiểu khác nhau. Java lấy chúng từ dịch vụ locale trên runtime:
+Different locales can use different week-start days and minimal-days rules. Java obtains these from the runtime's locale service:
 
 ~~~java
 WeekFields fields = WeekFields.of(locale);
@@ -379,32 +379,32 @@ DayOfWeek first = fields.getFirstDayOfWeek();
 int minimal = fields.getMinimalDaysInFirstWeek();
 ~~~
 
-Đây là snippet; `locale` phải được cung cấp tại nơi dùng. Các locale như `en-US`, `de-DE` thường cho những quy tắc đã minh họa, nhưng dữ liệu của JDK/provider có thể thay đổi giữa phiên bản hoặc cấu hình runtime.
+This is a snippet; `locale` must be supplied at the call site. Locales such as `en-US` and `de-DE` typically yield the rules illustrated above, but JDK/provider data can vary across versions or runtime configurations.
 
-**Không nên coi ngôn ngữ và quốc gia là một.** Locale `en-US` và `en-GB` có thể có quy tắc tuần khác nhau; locale không xác định region có thể dùng dữ liệu fallback. Nếu hệ thống cần một quy tắc tuần bất biến do nghiệp vụ quyết định, hãy cấu hình **ngày đầu tuần + minimal days** một cách tường minh, hoặc dùng `WeekFields.ISO`.
+**Do not equate language with country.** Locales `en-US` and `en-GB` can have different week rules; a locale without a region can use fallback data. If the system requires an invariant business-defined week rule, configure **first day of week + minimal days** explicitly, or use `WeekFields.ISO`.
 
-Đối với ứng dụng:
-1. **UI lịch cá nhân**: có thể dựa trên `WeekFields.of(userLocale)`.
-2. **Báo cáo chuẩn doanh nghiệp**: nên dùng quy tắc được mô tả trong hợp đồng, có thể là ISO dù locale người dùng khác.
-3. **Đồng bộ nhiều hệ thống**: trao đổi cả loại quy tắc hoặc cố định ISO để tránh khác nhau khi giải mã con số tuần.
+For applications:
+1. **Personal calendar UI**: can rely on `WeekFields.of(userLocale)`.
+2. **Enterprise standard reports**: should use the rule documented in the contract, such as ISO even if the user's locale differs.
+3. **Cross-system synchronization**: exchange the rule identifier as well, or standardize on ISO to avoid mismatches when decoding week numbers.
 
-Không được lấy “ngày đầu tuần của thiết bị” làm tiêu chuẩn cho tất cả báo cáo nghiệp vụ nếu hệ thống đã có quy định cố định.
+Never use "the device's first day of week" as the standard for all business reports if the system already has a fixed specification.
 
-## 11. Tùy chỉnh ngày đầu tuần và minimal days
+## 11. Customizing First Day of Week and Minimal Days
 
-Có thể tạo chính sách riêng:
+You can define a custom policy:
 
 ~~~java
 WeekFields mondayOneDay = WeekFields.of(DayOfWeek.MONDAY, 1);
 WeekFields mondayFourDays = WeekFields.of(DayOfWeek.MONDAY, 4);
 ~~~
 
-Cả hai đều bắt đầu **Thứ hai** nhưng cách chọn tuần 1 khác nhau. Đối với ngày đầu năm 2021:
+Both start on **Monday**, yet their selection of week 1 differs. For New Year's Day 2021:
 
-- `mondayOneDay`: tuần bắt đầu 2020-12-28 có ba ngày trong năm 2021, đủ **1** ⇒ thuộc tuần 1 của **năm-tuần 2021**.
-- `mondayFourDays`: ba ngày không đủ **4** ⇒ thuộc tuần 53 của **năm-tuần 2020**.
+- `mondayOneDay`: the week starting 2020-12-28 has three days in 2021, which meets **1** ⇒ belongs to week 1 of **week-based year 2021**.
+- `mondayFourDays`: three days do not meet **4** ⇒ belongs to week 53 of **week-based year 2020**.
 
-Tạo **`CustomWeekRuleDemo.java`**:
+Create **`CustomWeekRuleDemo.java`**:
 
 ~~~java
 import java.time.DayOfWeek;
@@ -433,7 +433,7 @@ javac CustomWeekRuleDemo.java
 java CustomWeekRuleDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 MONDAY
@@ -442,21 +442,21 @@ MONDAY
 2020-W53
 ~~~
 
-Thử nghiệm này chứng minh **không thể chỉ biết ngày bắt đầu tuần mà suy ra số tuần**. Cần biết cả tham số thứ hai.
+This experiment proves **you cannot deduce week numbers from the week start day alone**. You need the second parameter as well.
 
-Nếu dự án xây “lịch tài chính” hay “tuần bán hàng”, kiểm tra chính sách đó có thực sự đồng nhất với một cấu hình `WeekFields` không. Một số lịch tài chính dùng kỳ 4-4-5 hoặc quy tắc riêng, cần mô hình nghiệp vụ chuyên biệt, không tự động quy về `WeekFields`.
+If a project builds a "fiscal calendar" or "retail week", check whether that policy actually matches a `WeekFields` configuration. Some fiscal calendars use 4-4-5 periods or custom rules that require a dedicated domain model rather than forcing them into `WeekFields`.
 
-## 12. Đặt tên tuần đúng khi lưu báo cáo hoặc làm khóa
+## 12. Naming Weeks Properly When Storing Reports or Building Keys
 
-Giả sử hệ thống lưu dữ liệu nhóm theo tuần. Một thiết kế dễ sai:
+Suppose a system stores weekly aggregated data. An error-prone design:
 
 ~~~text
 key = calendarYear + "-" + weekOfWeekBasedYear
 ~~~
 
-Ở `2021-01-01` theo ISO, nó sẽ tạo `2021-53`. Nhưng ngày này thuộc **năm-tuần 2020**, không phải 2021.
+On `2021-01-01` under ISO, this produces `2021-53`. Yet this date belongs to **week-based year 2020**, not 2021.
 
-Thiết kế đúng hơn với quy tắc ISO:
+A better design under ISO rules:
 
 ~~~java
 WeekFields fields = WeekFields.ISO;
@@ -467,37 +467,37 @@ int week = date.get(fields.weekOfWeekBasedYear());
 String key = "%04d-W%02d".formatted(year, week);
 ~~~
 
-Đây là **snippet** trong phương thức, cần import `WeekFields`; biến `date` là `LocalDate` đã xác thực. Với ngày 2021-01-01, `key` là:
+This is an in-method **snippet**, requiring `WeekFields` imported; `date` is a validated `LocalDate`. For 2021-01-01, `key` is:
 
 ~~~text
 2020-W53
 ~~~
 
-Nếu sản phẩm dùng quy tắc US, cặp `weekBasedYear` và `weekOfWeekBasedYear` phải được lấy từ **cùng một** `WeekFields.of(Locale.US)`. Không lấy năm-tuần ISO rồi ghép với tuần US, hoặc lấy năm lịch theo ngữ cảnh khác.
+If the product uses US rules, both `weekBasedYear` and `weekOfWeekBasedYear` must come from **the same** `WeekFields.of(Locale.US)`. Never take the ISO week-based year and combine it with a US week number, or mix in a calendar year from another context.
 
-Ngoài ra, nếu cùng hệ thống cho phép **nhiều quy tắc tuần** thì cùng một nhãn như `2021-W01` có thể biểu diễn **những khoảng ngày khác nhau**. Khóa dữ liệu cần bao gồm tên quy tắc hoặc tốt hơn là **ngày bắt đầu và kết thúc của tuần**, được tính theo một chính sách được lưu rõ.
+Moreover, if the same system allows **multiple week rules**, then the same label such as `2021-W01` can represent **different date ranges**. Data keys should include the rule name, or better yet **the week's start and end dates**, computed under an explicitly recorded policy.
 
-## 13. `DateTimeFormatter` và các ký tự `Y`, `w`, `e`
+## 13. `DateTimeFormatter` and the Pattern Letters `Y`, `w`, `e`
 
-Java có thể dùng quy tắc tuần theo locale ngay trong pattern ngày giờ:
+Java can apply locale week rules directly inside date-time patterns:
 
-| Ký hiệu pattern | Ý nghĩa trong `DateTimeFormatter` |
+| Pattern Symbol | Meaning in `DateTimeFormatter` |
 | --- | --- |
-| `u` | Năm theo lịch ISO proleptic year |
-| `y` | Năm trong kỷ nguyên (*year-of-era*) |
-| `Y` | **Năm-tuần được bản địa hóa** (*localized week-based-year*) |
-| `w` | **Tuần của năm-tuần** được bản địa hóa |
-| `W` | **Tuần của tháng** được bản địa hóa |
-| `e` / `c` | Ngày trong tuần theo quy tắc địa phương |
-| `E` | Tên thứ trong tuần (ví dụ Mon, Monday) |
+| `u` | ISO proleptic year |
+| `y` | Year within an era (*year-of-era*) |
+| `Y` | **Localized week-based year** |
+| `w` | **Localized week of week-based year** |
+| `W` | **Localized week of month** |
+| `e` / `c` | Localized day of week |
+| `E` | Day-of-week name (e.g. Mon, Monday) |
 
-Cú pháp `Y` **không đồng nghĩa** với `y` hoặc `u`. Một chuỗi như `YYYY-MM-dd` dùng **năm-tuần** nhưng lại dùng **tháng và ngày lịch**, tức là trộn hai hệ khái niệm.
+The `Y` syntax is **not synonymous** with `y` or `u`. A pattern like `YYYY-MM-dd` uses **week-based year** together with **calendar month and day**, mixing two conceptual models.
 
-Ở cuối tháng 12, `YYYY` có thể thành **năm sau**. Đây là lỗi định dạng thường xuất hiện trong nhãn file log hoặc biểu mẫu do nhầm `YYYY` với `yyyy`/`uuuu`.
+In late December, `YYYY` can roll over to **the next year**. This is a formatting bug frequently seen in log filenames or form exports due to confusing `YYYY` with `yyyy`/`uuuu`.
 
-### Ví dụ runnable
+### Runnable example
 
-Tạo **`LocalizedWeekPatternDemo.java`**:
+Create **`LocalizedWeekPatternDemo.java`**:
 
 ~~~java
 import java.time.LocalDate;
@@ -532,7 +532,7 @@ javac LocalizedWeekPatternDemo.java
 java LocalizedWeekPatternDemo
 ~~~
 
-Kết quả với quy tắc US/DE phổ biến:
+Output with common US/DE rules:
 
 ~~~text
 2021-W01-5
@@ -540,31 +540,31 @@ Kết quả với quy tắc US/DE phổ biến:
 2021-12-31
 ~~~
 
-Dòng cuối là **ví dụ cảnh báo**: ngày thực tế là **2020-12-31**, nhưng pattern `YYYY-MM-dd` tạo chuỗi `2021-12-31` do phần năm `YYYY` là năm-tuần theo US.
+The final line is a **cautionary example**: the actual date is **2020-12-31**, yet `YYYY-MM-dd` produces `2021-12-31` because `YYYY` is the US week-based year.
 
-Khi chỉ cần ngày lịch ổn định, có thể dùng:
+When you only need a stable calendar date, you can use:
 
 ~~~java
 DateTimeFormatter dateFormat =
         DateTimeFormatter.ofPattern("uuuu-MM-dd");
 ~~~
 
-Hoặc với `LocalDate`, ưu tiên `LocalDate.toString()` hay `DateTimeFormatter.ISO_LOCAL_DATE` cho chuỗi ISO. Khi cần nhãn **tuần**, hãy dùng `Y`/`w`/`e` nhất quán hoặc các trường của một `WeekFields` tường minh.
+Or for `LocalDate`, prefer `LocalDate.toString()` or `DateTimeFormatter.ISO_LOCAL_DATE` for ISO strings. When you need **week** labels, use `Y`/`w`/`e` consistently or the fields from an explicit `WeekFields`.
 
-## 14. So sánh `WeekFields.ISO` với `IsoFields` và `ChronoField`
+## 14. Comparing `WeekFields.ISO` with `IsoFields` and `ChronoField`
 
-Trong Java, có nhiều cách truy xuất “tuần”; tên gần giống nhưng ý nghĩa khác nhau.
+Java offers several ways to access "week"; their names look similar, yet their meanings differ.
 
-| API | Định nghĩa |
+| API | Definition |
 | --- | --- |
-| `WeekFields.ISO` | Quy tắc tuần ISO: Thứ hai, tối thiểu 4 ngày |
-| `WeekFields.of(locale)` | Quy tắc tuần theo dữ liệu locale |
-| `IsoFields.WEEK_OF_WEEK_BASED_YEAR` | Tuần theo hệ ISO, tương đương mục đích tuần của năm-tuần ISO |
-| `IsoFields.WEEK_BASED_YEAR` | Năm-tuần ISO |
-| `ChronoField.ALIGNED_WEEK_OF_YEAR` | Chia các ngày trong năm thành nhóm liên tục từ ngày 1/1, **không dựa trên ngày đầu tuần của locale** |
-| `ChronoField.ALIGNED_WEEK_OF_MONTH` | Nhóm 7 ngày liên tiếp tính từ đầu tháng, **khác `WeekFields.weekOfMonth()`** |
+| `WeekFields.ISO` | ISO week rules: Monday, minimum 4 days |
+| `WeekFields.of(locale)` | Week rules from locale data |
+| `IsoFields.WEEK_OF_WEEK_BASED_YEAR` | ISO week number, equivalent in purpose to ISO week of week-based year |
+| `IsoFields.WEEK_BASED_YEAR` | ISO week-based year |
+| `ChronoField.ALIGNED_WEEK_OF_YEAR` | Splits days of the year into consecutive 7-day blocks from Jan 1, **not based on locale week start** |
+| `ChronoField.ALIGNED_WEEK_OF_MONTH` | Consecutive 7-day blocks from the start of the month, **different from `WeekFields.weekOfMonth()`** |
 
-Ví dụ ngày **2021-01-01**:
+Example for **2021-01-01**:
 
 ~~~text
 ISO weekOfYear:                 0
@@ -573,9 +573,9 @@ ISO weekBasedYear:           2020
 ALIGNED_WEEK_OF_YEAR:          1
 ~~~
 
-`ALIGNED_WEEK_OF_YEAR` đếm ngày 1–7 là nhóm 1, ngày 8–14 là nhóm 2, v.v.; đây **không** phải định nghĩa “tuần từ Thứ hai đến Chủ nhật”. Do đó không dùng `ALIGNED_WEEK_OF_YEAR` để thay `WeekFields.weekOfWeekBasedYear()` khi sản phẩm yêu cầu tuần lịch.
+`ALIGNED_WEEK_OF_YEAR` counts days 1–7 as group 1, days 8–14 as group 2, and so on; this is **not** a "Monday-to-Sunday week" definition. Therefore do not use `ALIGNED_WEEK_OF_YEAR` in place of `WeekFields.weekOfWeekBasedYear()` when the product requires calendar weeks.
 
-### Cách xác nhận bằng code
+### Confirming with code
 
 ~~~java
 LocalDate date = LocalDate.of(2021, 1, 1);
@@ -586,7 +586,7 @@ System.out.println(date.get(WeekFields.ISO.weekOfYear()));
 System.out.println(date.get(WeekFields.ISO.weekOfWeekBasedYear()));
 ~~~
 
-Đây là **snippet**, cần import `LocalDate` và `WeekFields`. Kết quả:
+This is a **snippet**, requiring `LocalDate` and `WeekFields` imported. Output:
 
 ~~~text
 1
@@ -594,30 +594,30 @@ System.out.println(date.get(WeekFields.ISO.weekOfWeekBasedYear()));
 53
 ~~~
 
-`WeekFields.ISO` là cấu hình theo quy tắc; `IsoFields` là nhóm các trường ISO chuyên biệt; `ChronoField.ALIGNED_*` là phân nhóm theo ngày đầu kỳ. Chọn đúng loại cho bài toán.
+`WeekFields.ISO` is a rule configuration; `IsoFields` is a set of dedicated ISO fields; `ChronoField.ALIGNED_*` groups days from the start of the period. Choose the right tool for the problem.
 
-## 15. Tạo và parse nhãn tuần có ngữ nghĩa rõ ràng
+## 15. Formatting and Parsing Unambiguous Week Labels
 
-Một nhãn tuần thường gồm:
-- **Năm-tuần**, không nhất thiết là năm lịch;
-- **Số tuần** trong năm-tuần đó;
-- Nếu cần chỉ định một ngày duy nhất, thêm **ngày trong tuần**.
+A week label typically includes:
+- **Week-based year**, not necessarily the calendar year;
+- **Week number** within that week-based year;
+- If identifying a single day is required, the **day of the week**.
 
-Java có formatter ISO chuẩn:
+Java provides a standard ISO formatter:
 
 ~~~java
 DateTimeFormatter.ISO_WEEK_DATE
 ~~~
 
-Nó dùng định nghĩa tuần ISO và biểu diễn dạng:
+It uses ISO week rules and formats dates like:
 
 ~~~text
 2020-W53-5
 ~~~
 
-Nghĩa là năm-tuần ISO 2020, tuần 53, ngày thứ 5 trong tuần ISO, tương ứng **2021-01-01**.
+This means ISO week-based year 2020, week 53, ISO day 5 of the week, corresponding to **2021-01-01**.
 
-Tạo **`IsoWeekParseDemo.java`**:
+Create **`IsoWeekParseDemo.java`**:
 
 ~~~java
 import java.time.LocalDate;
@@ -640,18 +640,18 @@ javac IsoWeekParseDemo.java
 java IsoWeekParseDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 2021-01-01
 2020-W53-5
 ~~~
 
-**Lưu ý:** Nhãn chỉ có `2020-W53` mô tả **cả một tuần**, không phải một ngày duy nhất. Nếu muốn biến thành `LocalDate`, phải chọn rõ ngày nào trong tuần (ví dụ Thứ hai bắt đầu tuần) và bộ quy tắc tuần phù hợp. Không tự đoán ngày.
+**Note:** A label with only `2020-W53` describes **an entire week**, not a single day. To convert it to a `LocalDate`, you must explicitly pick which day of the week (such as Monday starting the week) and the appropriate week rule set. Never guess the day.
 
-### Pattern theo locale có thể parse lại bằng cùng locale
+### Locale-based patterns can be parsed back with the same locale
 
-Ví dụ:
+Example:
 
 ~~~java
 DateTimeFormatter us =
@@ -666,20 +666,20 @@ System.out.println(LocalDate.parse("2021-W01-6", us));
 System.out.println(LocalDate.parse("2020-W53-5", de));
 ~~~
 
-Đây là **snippet trong một method**, cần import `LocalDate`, `DateTimeFormatter` và `Locale`. Với quy tắc US/DE phổ biến, kết quả là:
+This is an **in-method snippet**, requiring `LocalDate`, `DateTimeFormatter`, and `Locale` imported. Under common US/DE rules, the output is:
 
 ~~~text
 2021-01-01
 2021-01-01
 ~~~
 
-Mỗi đầu vào dùng **hệ đánh số ngày trong tuần và năm-tuần của locale tương ứng**. Không lấy `2021-W01-6` theo US rồi parse bằng formatter ISO, vì số 6 có ý nghĩa ngày trong tuần khác nhau giữa hai hệ.
+Each input uses **its respective locale's day-of-week numbering and week-based year**. Do not take US `2021-W01-6` and parse it with an ISO formatter, because `6` means different days of the week in the two systems.
 
-## 16. Tính ngày bắt đầu tuần để dựng lịch
+## 16. Computing the Start Date of a Week to Build a Calendar
 
-Nhiều giao diện muốn biết **ngày đầu tuần** hơn là con số tuần. Có thể dùng `TemporalAdjusters.previousOrSame(fields.getFirstDayOfWeek())`.
+Many UIs care more about **the first day of the week** than the week number. You can use `TemporalAdjusters.previousOrSame(fields.getFirstDayOfWeek())`.
 
-Tạo **`WeekStartDateDemo.java`**:
+Create **`WeekStartDateDemo.java`**:
 
 ~~~java
 import java.time.LocalDate;
@@ -712,49 +712,49 @@ javac WeekStartDateDemo.java
 java WeekStartDateDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 2020-12-27
 2020-12-28
 ~~~
 
-Đây là khoảng cách một ngày giữa tuần US và tuần ISO có chứa 2021-01-01.
+This is the one-day offset between the US week and the ISO week containing 2021-01-01.
 
-**Phân biệt rõ:** `getFirstDayOfWeek()` **chỉ** cho biết ranh giới tuần; nó **không** cần `minimalDaysInFirstWeek` để tính ngày bắt đầu của **tuần đang chứa date**. Tham số minimal days vẫn cần để xác định **nhãn số tuần/năm-tuần** cho tuần đó.
+**Clear distinction:** `getFirstDayOfWeek()` **alone** defines week boundaries; it does **not** need `minimalDaysInFirstWeek` to compute the start date of **the week containing `date`**. The minimal days parameter is still required to determine the **week number and week-based year label** for that week.
 
-Nếu cần lấy ngày cuối tuần, có thể cộng thêm sáu ngày vào ngày bắt đầu vừa tìm:
+To get the end date of the week, add six days to the start date just found:
 
 ~~~java
 LocalDate end = start.plusDays(6);
 ~~~
 
-Đây là snippet; `start` là `LocalDate` đã tính. Giao diện nên trình bày khoảng ngày qua locale, còn hệ thống lưu định danh chuẩn hoặc ngày ISO.
+This is a snippet; `start` is the computed `LocalDate`. The UI should format the date range per locale, while the system stores canonical identifiers or ISO dates.
 
-## 17. Dùng cùng một quy tắc ở UI, API và báo cáo
+## 17. Applying the Same Rules Across UI, API, and Reports
 
-Một dự án thường có nhiều nơi dùng tuần:
+A project typically uses weeks in many places:
 
-- **Date picker**: vị trí Thứ hai/Chủ nhật ở cột đầu tiên;
-- **Lịch công việc**: khoảng ngày đầu và cuối tuần;
-- **Báo cáo doanh số**: nhãn tuần và phép tổng hợp;
-- **Xuất dữ liệu CSV/JSON**: mã định danh tuần;
-- **Query database**: grouping theo tuần;
-- **Đồng bộ bên ngoài**: so khớp ISO week hoặc quy ước đối tác.
+- **Date picker**: whether Monday or Sunday is the first column;
+- **Work schedule**: start and end dates of a week;
+- **Sales reports**: week labels and aggregations;
+- **CSV/JSON exports**: week identifiers;
+- **Database queries**: grouping by week;
+- **External synchronization**: matching ISO weeks or partner conventions.
 
-Nếu UI dùng `WeekFields.of(userLocale)`, nhưng backend mặc định ISO và database dùng hàm tuần với quy tắc mặc định khác, **nhãn và khoảng ngày có thể lệch**. Ví dụ một giao dịch 2020-12-31 có thể thuộc `2021-W01` trên UI US nhưng `2020-W53` ở báo cáo ISO.
+If the UI uses `WeekFields.of(userLocale)`, while the backend defaults to ISO and the database uses a week function with another default rule, **labels and date ranges can diverge**. For instance, a transaction on 2020-12-31 might fall in `2021-W01` on a US UI but `2020-W53` in an ISO report.
 
-Hướng thiết kế bền vững:
+Sustainable design guidelines:
 
-1. Quy định **nghiệp vụ nào dùng tuần ISO**, nghiệp vụ nào cho phép lịch theo locale.
-2. Lưu/chuyển **quy tắc tuần** khi nhãn tuần có ý nghĩa nghiệp vụ lâu dài.
-3. Với dữ liệu trao đổi, cân nhắc lưu **ngày đầu tuần** hoặc khoảng [start, end) dưới dạng ngày ISO, kèm timezone nếu dữ liệu bắt đầu từ timestamp.
-4. Dùng `weekBasedYear + weekOfWeekBasedYear` lấy từ **cùng một WeekFields** để tạo nhãn.
-5. Kiểm thử ngày biên năm và biên tháng, không chỉ ngày giữa năm.
+1. Specify **which features use ISO weeks** and which allow localized calendars.
+2. Store/transmit **the week rule** whenever week labels carry long-term business meaning.
+3. For data exchange, consider storing the **week start date** or `[start, end)` interval as ISO dates, along with the time zone if data originates from timestamps.
+4. Take `weekBasedYear + weekOfWeekBasedYear` from **the same `WeekFields`** when building labels.
+5. Test year-boundary and month-boundary dates, not just mid-year dates.
 
-### Tách tuần của date và zone của timestamp
+### Separating a date's week from a timestamp's time zone
 
-`WeekFields` xử lý quy tắc trên **ngày lịch**, trong khi `Instant` là thời điểm tuyệt đối. Nếu đầu vào là timestamp, trước hết xác định `ZoneId` rồi chuyển:
+`WeekFields` operates on **calendar dates**, whereas `Instant` is an absolute point in time. If the input is a timestamp, determine the `ZoneId` first and then convert:
 
 ~~~java
 LocalDate localDate = instant.atZone(zone).toLocalDate();
@@ -762,52 +762,52 @@ int weekYear = localDate.get(fields.weekBasedYear());
 int week = localDate.get(fields.weekOfWeekBasedYear());
 ~~~
 
-Đây là snippet; `instant`, `zone` và `fields` phải được cung cấp rõ ràng. Cùng một `Instant` có thể rơi vào **hai ngày khác nhau ở hai zone**, nên cũng có thể rơi vào **hai tuần khác nhau**. `WeekFields` không tự chọn zone; đừng truyền timezone ngầm qua locale.
+This is a snippet; `instant`, `zone`, and `fields` must be provided explicitly. The same `Instant` can fall on **two different dates in two zones**, and therefore into **two different weeks**. `WeekFields` does not choose a zone automatically; never pass a time zone implicitly via locale.
 
-## 18. Hiệu năng, immutable và cache
+## 18. Performance, Immutability, and Caching
 
-`WeekFields` là immutable. Tạo `WeekFields.ISO` hoặc `WeekFields.of(locale)` không phải thao tác cần đặt trong vòng lặp tối ưu hóa bằng mọi giá; có thể lưu cấu hình trong một biến và dùng lại:
+`WeekFields` is immutable. Calling `WeekFields.ISO` or `WeekFields.of(locale)` is not something to optimize inside loops at all costs; you can store the configuration in a variable and reuse it:
 
 ~~~java
 private static final WeekFields BUSINESS_WEEK =
         WeekFields.ISO;
 ~~~
 
-Đây là snippet đặt trong một class.
+This is a snippet placed inside a class.
 
-Nếu ứng dụng cache kết quả tổng hợp tuần, cần xem **quy tắc tuần** là một chiều của key:
-- Ngày hoặc khoảng ngày nguồn;
+If the application caches weekly aggregation results, treat the **week rule** as a key dimension:
+- Source date or date range;
 - `firstDayOfWeek`;
 - `minimalDaysInFirstWeek`;
-- Zone áp dụng khi nguồn là timestamp;
-- Phiên bản chính sách nếu doanh nghiệp thay quy tắc.
+- Time zone applied when the source is a timestamp;
+- Policy version if the business changes rules.
 
-Chỉ cache theo `weekNumber` mà không có `weekBasedYear` là sai; tuần 1 xảy ra trong nhiều năm. Chỉ cache theo `year + week` mà không biết dùng ISO hay US cũng có thể sai vì **khác khoảng ngày**.
+Caching only by `weekNumber` without `weekBasedYear` is wrong; week 1 occurs in many years. Caching only by `year + week` without knowing whether ISO or US rules apply can also be wrong because **date ranges differ**.
 
-Formatter số tuần dựa trên `DateTimeFormatter` cũng nên có locale rõ ràng. `DateTimeFormatter` immutable nên có thể chia sẻ nếu cấu hình đã đúng; không lạm dụng `Locale.setDefault(...)` để đổi quy tắc cho từng request.
+Week formatters built on `DateTimeFormatter` should also specify an explicit locale. `DateTimeFormatter` is immutable and can be shared once configured; never abuse `Locale.setDefault(...)` to switch rules per request.
 
-## 19. Kiểm thử: tập trường hợp tối thiểu
+## 19. Testing: Minimum Test Cases
 
-| Trường hợp | Ý cần xác minh |
+| Case | What to Verify |
 | --- | --- |
 | `WeekFields.ISO` | `MONDAY`, minimal days = 4 |
 | `WeekFields.SUNDAY_START` | `SUNDAY`, minimal days = 1 |
-| `WeekFields.of(Locale.US)` | Dữ liệu runtime thường là Chủ nhật / 1 |
-| `WeekFields.of(Locale.GERMANY)` | Dữ liệu runtime thường là Thứ hai / 4 |
-| 2021-01-01 theo ISO | `2020-W53`, `weekOfYear() == 0` |
-| 2021-01-01 theo US | `2021-W1` |
-| 2020-12-31 theo US | Năm lịch 2020 nhưng năm-tuần 2021 |
-| 2021-05-01 theo ISO | `weekOfMonth() == 0` |
-| Ngày Chủ nhật theo US | `fields.dayOfWeek() == 1` |
-| `ALIGNED_WEEK_OF_YEAR` vs `weekOfYear` | Không nhầm hai định nghĩa |
-| `YYYY` ở cuối năm | Có thể đổi sang năm-tuần kế tiếp |
-| Parse tuần | Dùng cùng quy tắc locale và kiểm tra tuần có hợp lệ |
-| Từ timestamp sang tuần | Zone rõ ràng trước khi lấy `LocalDate` |
-| Thay JDK/provider | Kiểm tra dữ liệu tuần theo locale nếu dùng quy tắc địa phương |
+| `WeekFields.of(Locale.US)` | Runtime data is typically Sunday / 1 |
+| `WeekFields.of(Locale.GERMANY)` | Runtime data is typically Monday / 4 |
+| 2021-01-01 under ISO | `2020-W53`, `weekOfYear() == 0` |
+| 2021-01-01 under US | `2021-W1` |
+| 2020-12-31 under US | Calendar year 2020, week-based year 2021 |
+| 2021-05-01 under ISO | `weekOfMonth() == 0` |
+| Sunday under US | `fields.dayOfWeek() == 1` |
+| `ALIGNED_WEEK_OF_YEAR` vs `weekOfYear` | Do not confuse the two definitions |
+| `YYYY` at year end | Can shift into the next week-based year |
+| Parsing weeks | Uses matching locale rules and validates week existence |
+| Timestamp to week | Explicit zone before obtaining `LocalDate` |
+| JDK/provider change | Re-verify locale week data if using localized rules |
 
-### Kiểm thử Java đơn giản không cần thư viện ngoài
+### Simple Java test with no external libraries
 
-Tạo **`WeekFieldsAssertions.java`**:
+Create **`WeekFieldsAssertions.java`**:
 
 ~~~java
 import java.time.LocalDate;
@@ -845,85 +845,85 @@ javac WeekFieldsAssertions.java
 java WeekFieldsAssertions
 ~~~
 
-Kết quả trên runtime dùng quy tắc tuần US được nêu:
+Output on a runtime using the stated US week rules:
 
 ~~~text
 PASS
 ~~~
 
-Nếu muốn tránh phụ thuộc vào dữ liệu locale của JDK khi kiểm thử thuật toán cố định, dùng `WeekFields.SUNDAY_START` thay cho `WeekFields.of(Locale.US)` ở những test cần quy tắc **Chủ nhật / 1 ngày**, và dành test riêng để xác nhận dữ liệu locale đang dùng.
+To avoid depending on JDK locale data when testing fixed algorithms, use `WeekFields.SUNDAY_START` instead of `WeekFields.of(Locale.US)` in tests that require the **Sunday / 1 day** rule, and keep a separate test to verify the active locale data.
 
-## 20. Sai lầm thường gặp
+## 20. Common Pitfalls
 
-1. **“Mọi nơi đều bắt đầu tuần vào Thứ hai.”** Sai. Quy tắc ngày đầu tuần khác nhau giữa các vùng hoặc chính sách sản phẩm.
-2. **“Chỉ cần ngày đầu tuần là tính được mọi số tuần.”** Sai. `minimalDaysInFirstWeek` còn quyết định tuần 1.
-3. **“Tuần đầu năm luôn chứa ngày 1/1.”** Không theo nghĩa `weekOfWeekBasedYear() == 1` cho ngày 1/1. Với ISO, 2021-01-01 thuộc `2020-W53`.
-4. **“Năm-tuần luôn giống năm lịch.”** Sai ở ranh giới; 2020-12-31 theo US có thể thuộc năm-tuần 2021.
-5. **“`weekOfYear()` và `weekOfWeekBasedYear()` là một.”** Sai; chúng có cách xử lý biên năm khác nhau.
-6. **“Tuần 0 là dữ liệu không hợp lệ.”** Sai; `weekOfMonth` hoặc `weekOfYear` có thể trả 0 hợp lệ theo quy tắc tối thiểu ngày.
-7. **“`DayOfWeek.getValue()` luôn là thứ tự cột lịch của locale.”** Sai; enum dùng ISO từ Thứ hai = 1, còn `WeekFields.dayOfWeek()` là cục bộ.
-8. **“`ChronoField.ALIGNED_WEEK_OF_YEAR` dùng tuần theo ISO.”** Sai; trường aligned chia năm thành các nhóm 7 ngày từ 1/1.
-9. **“`YYYY-MM-dd` là định dạng ngày lịch chuẩn.”** Sai; `YYYY` là **năm-tuần** và có thể cho năm sai so với ngày lịch.
-10. **“Locale và zone là một.”** Sai; locale quyết định tập quán tuần/hiển thị, zone chuyển timestamp thành ngày địa phương.
-11. **“Chỉ lưu số tuần là đủ cho báo cáo.”** Sai; cần năm-tuần và quy tắc tuần.
-12. **“Tuần ISO và tuần US có thể đổi nhãn bằng cách cộng/trừ 1.”** Sai; điểm bắt đầu tuần và biên năm khác nhau.
-13. **“Mọi tháng đều bắt đầu ở tuần 1.”** `weekOfMonth()` có thể bằng 0 khi phần đầu tháng chưa đủ minimal days.
-14. **“Có `Locale.US` thì hệ thống nghiệp vụ bắt buộc dùng tuần Mỹ.”** Không; dữ liệu nghiệp vụ có thể quy định tuần ISO cố định.
+1. **"Everywhere starts the week on Monday."** False. The first day of the week varies by region or product policy.
+2. **"Knowing the first day of the week is enough to calculate all week numbers."** False. `minimalDaysInFirstWeek` also determines week 1.
+3. **"The first week of the year always contains January 1."** Not in the sense of `weekOfWeekBasedYear() == 1` for Jan 1. Under ISO, 2021-01-01 is in `2020-W53`.
+4. **"Week-based year always matches calendar year."** False at boundaries; under US rules, 2020-12-31 can be in week-based year 2021.
+5. **"`weekOfYear()` and `weekOfWeekBasedYear()` are the same."** False; they handle year boundaries differently.
+6. **"Week 0 is invalid data."** False; `weekOfMonth` or `weekOfYear` can legitimately return 0 under minimal-days rules.
+7. **"`DayOfWeek.getValue()` is always the locale's calendar column index."** False; the enum uses ISO with Monday = 1, whereas `WeekFields.dayOfWeek()` is localized.
+8. **"`ChronoField.ALIGNED_WEEK_OF_YEAR` uses ISO weeks."** False; aligned fields split the year into 7-day blocks starting from Jan 1.
+9. **"`YYYY-MM-dd` is the standard calendar date format."** False; `YYYY` is **week-based year** and can print the wrong year for a calendar date.
+10. **"Locale and zone are the same."** False; locale governs week/display conventions, while zone converts timestamps into local dates.
+11. **"Storing only the week number is enough for reports."** False; you also need the week-based year and the week rule.
+12. **"ISO weeks and US weeks can be converted by adding/subtracting 1."** False; week start days and year boundaries differ.
+13. **"Every month starts in week 1."** `weekOfMonth()` can be 0 when the start of the month lacks enough minimal days.
+14. **"If `Locale.US` is present, the business system must use US weeks."** No; business data may mandate fixed ISO weeks.
 
-## 21. Bài tập tự kiểm tra
+## 21. Self-Check Exercises
 
-**Câu 1.** `WeekFields.ISO` có ngày đầu tuần nào và cần tối thiểu bao nhiêu ngày để có tuần đầu?
+**Q1.** What first day of week and minimal days in the first week does `WeekFields.ISO` use?
 
-**Đáp án:** `MONDAY` và `4`.
+**Answer:** `MONDAY` and `4`.
 
-**Câu 2.** Vì sao `2021-01-01` là `2020-W53` theo ISO dù năm lịch là 2021?
+**Q2.** Why is `2021-01-01` in `2020-W53` under ISO even though its calendar year is 2021?
 
-**Đáp án:** Tuần 2020-12-28 tới 2021-01-03 chỉ có ba ngày thuộc năm 2021, chưa đủ bốn, nên nằm trong năm-tuần 2020.
+**Answer:** The week 2020-12-28 to 2021-01-03 has only three days in 2021, fewer than four, so it belongs to week-based year 2020.
 
-**Câu 3.** Với ngày Chủ nhật, tại sao `DayOfWeek.getValue()` trả 7 nhưng `WeekFields.SUNDAY_START.dayOfWeek()` trả 1?
+**Q3.** For a Sunday, why does `DayOfWeek.getValue()` return 7 while `WeekFields.SUNDAY_START.dayOfWeek()` returns 1?
 
-**Đáp án:** Enum `DayOfWeek` dùng thứ tự ISO, còn trường `WeekFields.dayOfWeek()` đánh số theo ngày đầu tuần được chọn.
+**Answer:** The `DayOfWeek` enum uses ISO ordering, while `WeekFields.dayOfWeek()` numbers days starting from the chosen first day of the week.
 
-**Câu 4.** Vì sao `weekOfMonth()` theo ISO có thể trả 0 cho `2021-05-01`?
+**Q4.** Why can `weekOfMonth()` under ISO return 0 for `2021-05-01`?
 
-**Đáp án:** Tuần đầu chứa 1/5 chỉ có hai ngày thuộc tháng 5, chưa đủ yêu cầu bốn ngày.
+**Answer:** The week containing May 1 has only two days in May, failing the four-day requirement.
 
-**Câu 5.** Để lưu mã tuần ISO của `2021-01-01`, dùng `year` nào và `week` nào?
+**Q5.** To store the ISO week code for `2021-01-01`, which `year` and `week` should you use?
 
-**Đáp án:** `weekBasedYear=2020` và `weekOfWeekBasedYear=53`, tạo nhãn `2020-W53`.
+**Answer:** `weekBasedYear=2020` and `weekOfWeekBasedYear=53`, producing the label `2020-W53`.
 
-**Câu 6.** Muốn chỉ biết ngày đầu tuần của `2021-01-01` theo quy tắc US, dùng gì?
+**Q6.** If you only want the start date of the week containing `2021-01-01` under US rules, what should you use?
 
-**Đáp án:** `date.with(TemporalAdjusters.previousOrSame(fields.getFirstDayOfWeek()))`, nhận `2020-12-27` với cấu hình Chủ nhật.
+**Answer:** `date.with(TemporalAdjusters.previousOrSame(fields.getFirstDayOfWeek()))`, returning `2020-12-27` for a Sunday-start configuration.
 
-**Câu 7.** Khi nào nên dùng `WeekFields.of(locale)` và khi nào nên dùng `WeekFields.ISO`?
+**Q7.** When should you use `WeekFields.of(locale)` and when should you use `WeekFields.ISO`?
 
-**Đáp án:** Dùng theo locale cho lịch giao diện mang tính địa phương; dùng ISO khi hợp đồng báo cáo hoặc trao đổi yêu cầu tuần ISO ổn định.
+**Answer:** Use the locale-based one for user-facing local calendar UIs; use ISO when reporting or exchange contracts require stable ISO weeks.
 
-**Câu 8.** Một hệ thống xử lý `Instant`, vì sao không gọi thẳng quy tắc tuần mà cần `ZoneId`?
+**Q8.** When a system processes an `Instant`, why can't it apply week rules directly without a `ZoneId`?
 
-**Đáp án:** `Instant` là thời điểm tuyệt đối; ngày lịch có thể khác theo zone. Phải chuyển thành `LocalDate` trong zone nghiệp vụ rồi mới xác định tuần.
+**Answer:** `Instant` is an absolute point in time; the calendar date can vary by zone. You must convert it to a `LocalDate` in the business zone before computing weeks.
 
-**Câu 9.** Mẫu `YYYY-MM-dd` sai ở đâu nếu mục tiêu là ngày lịch?
+**Q9.** What is wrong with the pattern `YYYY-MM-dd` if the goal is a calendar date?
 
-**Đáp án:** Chữ `Y` hoa là năm-tuần theo locale; phần `MM-dd` là tháng và ngày lịch, có thể tạo chuỗi mang năm không khớp ngày thực tế.
+**Answer:** Uppercase `Y` is the localized week-based year; `MM-dd` are calendar month and day, which can produce a string whose year does not match the actual date.
 
-**Câu 10.** Minimal days = 1 và 4 có tạo cùng kết quả khi ngày đầu tuần đều là Thứ hai không?
+**Q10.** Do minimal days = 1 and 4 produce the same result when both start the week on Monday?
 
-**Đáp án:** Không nhất thiết. Ngày 2021-01-01 là một ví dụ: với 1 ngày, nó thuộc năm-tuần 2021; với 4 ngày, nó thuộc năm-tuần 2020.
+**Answer:** Not necessarily. `2021-01-01` is an example: with 1 day it belongs to week-based year 2021; with 4 days it belongs to week-based year 2020.
 
-## 22. Quy trình sử dụng đúng trong dự án
+## 22. Proper Project Workflow
 
-1. **Định nghĩa “tuần” của từng chức năng**: tuần UI, tuần báo cáo, tuần giao tiếp đối tác hay tuần tài chính.
-2. **Quyết định hai tham số cốt lõi**: ngày đầu tuần và số ngày tối thiểu của tuần đầu; dùng `WeekFields.ISO` hoặc một cấu hình tường minh khi cần ổn định.
-3. **Nếu dùng locale**, lấy `WeekFields.of(userLocale)`, đồng thời kiểm thử các locale mục tiêu và phiên bản runtime.
-4. **Khi tạo nhãn tuần**, lấy `weekBasedYear()` và `weekOfWeekBasedYear()` từ **cùng một** `WeekFields`.
-5. **Khi dựng lịch**, lấy ngày đầu tuần bằng `getFirstDayOfWeek()` và `TemporalAdjusters`, không suy luận từ số thứ tự enum ISO nếu lịch bắt đầu Chủ nhật.
-6. **Khi nguồn là timestamp**, chuyển thành ngày theo `ZoneId` đúng trước khi áp dụng quy tắc tuần.
-7. **Khi xuất dữ liệu**, dùng định danh ISO khi đối tác yêu cầu ISO; ghi rõ quy tắc tuần nếu không phải ISO, và tránh pattern `YYYY-MM-dd` cho ngày lịch.
-8. **Kiểm thử những ngày biên**, ví dụ cuối tháng 12/đầu tháng 1, đầu tháng rơi vào Thứ bảy/Chủ nhật, và các năm có tuần 53.
-9. **Giữ quy tắc nhất quán** giữa backend, UI và các hàm nhóm dữ liệu trong database.
+1. **Define what "week" means per feature**: UI calendar week, reporting week, partner exchange week, or fiscal week.
+2. **Decide the two core parameters**: first day of week and minimal days in first week; use `WeekFields.ISO` or an explicit configuration when stability is required.
+3. **If using locale**, obtain `WeekFields.of(userLocale)`, and test across target locales and runtime versions.
+4. **When constructing week labels**, read `weekBasedYear()` and `weekOfWeekBasedYear()` from **the same** `WeekFields`.
+5. **When rendering calendars**, get the week start day via `getFirstDayOfWeek()` and `TemporalAdjusters` rather than deriving column order from ISO enum ordinals if the calendar starts on Sunday.
+6. **When the source is a timestamp**, convert to a date in the proper `ZoneId` before applying week rules.
+7. **When exporting data**, use ISO identifiers when partners expect ISO; document the week rule explicitly if non-ISO, and avoid `YYYY-MM-dd` for calendar dates.
+8. **Test boundary dates**, such as late December / early January, month starts falling on Saturday/Sunday, and years containing week 53.
+9. **Keep rules consistent** across backend, UI, and database grouping functions.
 
-**Ghi nhớ:** `WeekFields` được xác định bởi **hai tham số** — **ngày đầu tuần** và **số ngày tối thiểu của tuần đầu**. `weekOfYear` là tuần trong **năm lịch**; `weekBasedYear` đi cùng `weekOfWeekBasedYear` để xác định **năm-tuần** có thể khác năm lịch. Những khác biệt này quyết định tính đúng của lịch, báo cáo và dữ liệu nhóm theo tuần.
+**Takeaway:** `WeekFields` is defined by **two parameters** — **first day of the week** and **minimal days in the first week**. `weekOfYear` is the week within the **calendar year**; `weekBasedYear` pairs with `weekOfWeekBasedYear` to identify a **week-based year** that may differ from the calendar year. These distinctions determine the correctness of calendars, reports, and weekly aggregated data.
 
-**Tài liệu Java SE 17:** [WeekFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/WeekFields.html), [IsoFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/IsoFields.html), [DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html).
+**Java SE 17 Documentation:** [WeekFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/WeekFields.html), [IsoFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/IsoFields.html), [DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html).

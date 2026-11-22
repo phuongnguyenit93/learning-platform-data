@@ -1,219 +1,219 @@
-# Chiến lược loại bỏ automatic module trong dự án lâu dài
+# Strategy for Eliminating Automatic Modules in Long-Term Projects
 
-Automatic module là cầu nối giúp thư viện Java cũ tham gia module path mà chưa cần có module descriptor tường minh. Cơ chế này hỗ trợ chuyển đổi từng bước, nhưng nó không tạo ra ranh giới API và dependency rõ ràng như explicit named module. Nếu dự án muốn tận dụng JPMS lâu dài, mục tiêu nên là mọi dependency được resolve trong runtime module graph đều có module descriptor tường minh, hoặc được thay thế bằng dependency đã có descriptor.
+Automatic modules act as a bridge helping legacy Java libraries participate on the module path without needing an explicit module descriptor yet. This mechanism supports step-by-step migration, but it does not establish clear API and dependency boundaries like an explicit named module. If a project wants to leverage JPMS long-term, the goal should be for every dependency resolved in the runtime module graph to have an explicit module descriptor, or be replaced by a dependency that already has one.
 
-Việc chuyển đổi cần thực hiện theo đồ thị dependency thực tế, bao gồm cả dependency bắc cầu. Chỉ nâng cấp một vài thư viện trực tiếp hoặc thêm thuộc tính Automatic-Module-Name chưa đủ để loại bỏ automatic module.
+Migration must follow the actual dependency graph, including transitive dependencies. Upgrading only a few direct libraries or adding the Automatic-Module-Name attribute is not enough to eliminate automatic modules.
 
-## 1. Xác định trạng thái đích
+## 1. Defining the Target State
 
-Trước khi thay đổi dependency, hãy thống nhất tiêu chí hoàn thành:
+Before changing dependencies, agree on completion criteria:
 
-- Mỗi module ứng dụng do dự án sở hữu có explicit module descriptor.
-- Các thư viện nằm trong resolved runtime module graph đều là explicit named module hoặc system module của JDK.
-- Không còn automatic module trong cấu hình chạy production.
-- Các dependency legacy đã được nâng cấp, thay thế hoặc chuyển thành explicit modular artifact có descriptor được quản lý và kiểm tra.
-- Package API, reflection access và service provider được khai báo có chủ đích.
-- Build và CI phát hiện lại automatic module khi một dependency mới được thêm vào.
+- Every application module owned by the project has an explicit module descriptor.
+- Libraries in the resolved runtime module graph are all explicit named modules or JDK system modules.
+- No automatic modules remain in the production runtime configuration.
+- Legacy dependencies have been upgraded, replaced, or converted into explicit modular artifacts with managed and verified descriptors.
+- API packages, reflection access, and service providers are declared intentionally.
+- Builds and CI detect automatic modules again whenever a new dependency is added.
 
-Không nên đánh đồng mục tiêu này với việc chỉ loại bỏ một dòng cảnh báo. Automatic module có thể vẫn xuất hiện ở dependency bắc cầu dù file build của ứng dụng không khai báo trực tiếp thư viện đó.
+Do not equate this goal with simply silencing a warning line. Automatic modules can still appear in transitive dependencies even if the application's build file does not declare that library directly.
 
-Cũng cần phân biệt ba trạng thái:
+You also need to distinguish three states:
 
-| Trạng thái | Ý nghĩa | Có đạt mục tiêu loại bỏ automatic module? |
+| State | Meaning | Meets Goal of Eliminating Automatic Modules? |
 |---|---|---|
-| Explicit named module | JAR có module descriptor tường minh, thường là module-info.class | Có |
-| Automatic module | JAR không có descriptor nhưng được đặt trên module path; descriptor được suy ra tự động | Không |
-| Unnamed module | Code/JAR nằm trên classpath và thuộc unnamed module của class loader | Không phải automatic module, nhưng cũng chưa được modular hóa tường minh |
+| Explicit named module | JAR has an explicit module descriptor, typically module-info.class | Yes |
+| Automatic module | JAR lacks a descriptor but is placed on the module path; descriptor is derived automatically | No |
+| Unnamed module | Code/JAR resides on the classpath and belongs to the class loader's unnamed module | Not an automatic module, yet still not explicitly modularized |
 
-Đưa một JAR từ module path về classpath chỉ đổi cách nó được nạp sang unnamed module. Đó không phải chuyển đổi thành explicit module và không phải đích cuối của một ứng dụng JPMS hoàn chỉnh.
+Moving a JAR from the module path back to the classpath only changes how it is loaded to the unnamed module. That is not a conversion into an explicit module and is not the end goal of a complete JPMS application.
 
-## 2. Kiểm kê toàn bộ dependency graph
+## 2. Inventorying the Entire Dependency Graph
 
-Bắt đầu bằng việc lập danh sách dependency trực tiếp và bắc cầu cho từng module ứng dụng. Phân tích cả compile classpath và runtime classpath vì một thư viện có thể chỉ xuất hiện khi chạy.
+Start by listing direct and transitive dependencies for each application module. Analyze both the compile classpath and runtime classpath because a library may appear only at runtime.
 
-Với Gradle, có thể xem dependency tree của cấu hình runtime:
+With Gradle, you can view the dependency tree of the runtime configuration:
 
 ~~~bash
 ./gradlew :app:dependencies --configuration runtimeClasspath
 ~~~
 
-Để hiểu vì sao một artifact cụ thể được kéo vào:
+To understand why a specific artifact is pulled in:
 
 ~~~bash
 ./gradlew :app:dependencyInsight --dependency legacy-codec --configuration runtimeClasspath
 ~~~
 
-Với Maven:
+With Maven:
 
 ~~~bash
 mvn dependency:tree
 ~~~
 
-Sau khi có danh sách artifact, phân loại từng JAR bằng:
+Once you have the artifact list, classify each JAR with:
 
 ~~~bash
 jar --describe-module --file path/to/library.jar
 ~~~
 
-Kết quả giúp nhận biết JAR có descriptor explicit, automatic module hay chưa phải module trên module path. Với JAR automatic, output của công cụ thường cho biết tên module được suy ra và trạng thái automatic.
+The output helps identify whether the JAR has an explicit descriptor, is an automatic module, or is not yet a module on the module path. For automatic JARs, the tool output typically shows the derived module name and automatic status.
 
-Có thể dùng jdeps để phân tích dependency của bytecode và xác định các module cần thiết:
+You can use jdeps to analyze bytecode dependencies and identify required modules:
 
 ~~~bash
 jdeps --print-module-deps --module-path libs path/to/application.jar
 ~~~
 
-Khi phân tích một ứng dụng multi-release JAR hoặc target JDK cụ thể, cần dùng tùy chọn multi-release tương ứng để kết quả phản ánh đúng bytecode được chạy. Kết quả của jdeps là dữ liệu hỗ trợ điều tra; nó không thay thế việc đọc API, service descriptor và cấu hình reflection của thư viện.
+When analyzing a multi-release JAR or a specific target JDK, use the appropriate multi-release option so the results reflect the bytecode actually executed. Results from jdeps serve as investigative data; they do not replace reading the library's API, service descriptors, and reflection configuration.
 
-Tạo bảng kiểm kê với các thông tin tối thiểu:
+Create an inventory table with at least the following information:
 
-| Trường | Nội dung cần ghi |
+| Field | What to Record |
 |---|---|
-| Artifact | group/artifact/version hoặc tọa độ tương ứng |
-| Dependency path | Module nào kéo artifact vào, trực tiếp hay bắc cầu |
-| Runtime scope | Có xuất hiện trong runtimeClasspath hay không |
-| Module status | Explicit, automatic, unnamed/classpath hoặc system module |
-| Module name | Tên lấy từ module descriptor hoặc automatic module name |
-| Upstream status | Phiên bản mới đã có module-info.class chưa |
-| Migration action | Upgrade, replace, contribute descriptor, repackage hoặc giữ ngoại lệ có thời hạn |
-| Owner | Người hoặc nhóm chịu trách nhiệm cập nhật và duy trì |
+| Artifact | group/artifact/version or corresponding coordinates |
+| Dependency path | Which module pulls in the artifact, directly or transitively |
+| Runtime scope | Whether it appears in runtimeClasspath |
+| Module status | Explicit, automatic, unnamed/classpath, or system module |
+| Module name | Name taken from the module descriptor or automatic module name |
+| Upstream status | Whether a newer version already has module-info.class |
+| Migration action | Upgrade, replace, contribute descriptor, repackage, or keep as time-boxed exception |
+| Owner | Person or team responsible for updating and maintaining |
 
-Đừng chỉ ghi tên automatic module. Cần biết dependency nào kéo nó vào để xử lý đúng nguồn trong build graph.
+Do not record only the automatic module name. You need to know which dependency pulls it in so you can address the right source in the build graph.
 
-## 3. Ưu tiên nâng cấp lên phiên bản explicit module từ upstream
+## 3. Prioritizing Upgrades to Explicit Module Versions from Upstream
 
-Đây thường là phương án có chi phí duy trì thấp nhất.
+This is usually the option with the lowest maintenance cost.
 
-Với mỗi automatic module, kiểm tra release notes và nội dung JAR của các phiên bản mới hơn. Một thư viện có thể đã cung cấp module descriptor trong phiên bản mới, hoặc có một bản phát hành riêng cho Java 9 trở lên.
+For each automatic module, check release notes and JAR contents of newer versions. A library may already provide a module descriptor in a newer release, or offer a separate release for Java 9 and later.
 
-Quy trình:
+Workflow:
 
-1. Xác định dependency trực tiếp hoặc bắc cầu tạo ra automatic module.
-2. Tìm phiên bản tương thích đã có module-info.class.
-3. Đọc descriptor của phiên bản mới bằng jar --describe-module.
-4. Kiểm tra tên module, requires, exports, opens, uses và provides.
-5. Nâng cấp dependency trong build file hoặc constraint/version catalog.
-6. Chạy compile, unit test, integration test và kiểm tra khởi chạy trên module path.
-7. Xác nhận dependency graph runtime không còn automatic module tương ứng.
+1. Identify the direct or transitive dependency producing the automatic module.
+2. Find a compatible version that already has module-info.class.
+3. Read the new version's descriptor using jar --describe-module.
+4. Check the module name, requires, exports, opens, uses, and provides.
+5. Upgrade the dependency in the build file or constraint/version catalog.
+6. Run compile, unit tests, integration tests, and test launching on the module path.
+7. Confirm the runtime dependency graph no longer contains that automatic module.
 
-Không nên giả định tên module của phiên bản mới sẽ giống tên automatic module cũ. Nếu upstream thay đổi module name, các module phụ thuộc phải cập nhật directive requires và có thể cần điều chỉnh cấu hình launcher.
+Do not assume the new version's module name will match the old automatic module name. If upstream changed the module name, dependent modules must update their requires directives and may need launcher configuration adjustments.
 
-Ưu tiên module name ổn định được upstream công bố. Không tự suy ra tên mới từ tên JAR nếu upstream đã khai báo descriptor chính thức.
+Prefer the stable module name published by upstream. Do not derive a name yourself from the JAR name if upstream has declared an official descriptor.
 
-## 4. Nếu upstream chưa cung cấp module descriptor
+## 4. When Upstream Does Not Yet Provide a Module Descriptor
 
-Có ba hướng chính khi thư viện chưa có explicit module.
+There are three main approaches when a library does not yet have an explicit module.
 
-### 4.1. Đóng góp module descriptor cho upstream
+### 4.1. Contributing a Module Descriptor Upstream
 
-Nếu dự án có thể làm việc với nhà cung cấp hoặc cộng đồng thư viện, hãy đề xuất upstream thêm module-info.java và phát hành phiên bản mới.
+If the project can work with the vendor or library community, propose adding module-info.java upstream and releasing a new version.
 
-Descriptor cần được thiết kế dựa trên API thật:
+The descriptor should be designed based on the real API:
 
-- Khai báo các dependency trực tiếp bằng requires.
-- Chỉ export package mà consumer cần dùng.
-- Dùng qualified exports cho SPI nội bộ có consumer xác định.
-- Chỉ khai báo opens cho package framework cần deep reflection.
-- Khai báo uses và provides cho service nếu thư viện tiêu thụ hoặc cung cấp service.
-- Tránh requires transitive nếu dependency không thực sự là một phần API mà consumer cần đọc.
+- Declare direct dependencies with requires.
+- Export only packages consumers need to use.
+- Use qualified exports for internal SPIs with known consumers.
+- Declare opens only for packages where frameworks need deep reflection.
+- Declare uses and provides for services if the library consumes or provides services.
+- Avoid requires transitive unless the dependency is genuinely part of the API consumers must read.
 
-Một descriptor tốt là hợp đồng module của thư viện. Việc thêm descriptor không nên chỉ nhằm làm cho công cụ báo hết automatic module trong khi vẫn export mọi package và khai báo dependency thiếu chính xác.
+A good descriptor is the library's module contract. Adding a descriptor should not aim merely to stop tools from reporting automatic modules while still exporting every package and declaring inaccurate dependencies.
 
-### 4.2. Tạo explicit modular artifact được dự án quản lý
+### 4.2. Creating a Project-Managed Explicit Modular Artifact
 
-Nếu source có sẵn hoặc giấy phép cho phép chỉnh sửa/đóng gói lại, dự án có thể tạo một bản modular hóa có kiểm soát:
+If source is available or the license allows modification/repackaging, the project can create a controlled modularized build:
 
-1. Lấy đúng source hoặc binary artifact và cố định checksum/version nguồn.
-2. Dùng jdeps để phân tích dependency và có thể tạo một module-info.java gợi ý.
-3. Review thủ công tên module, requires, exports, opens, uses và provides.
-4. Biên dịch descriptor với module path/dependency phù hợp.
-5. Đóng gói descriptor cùng nội dung thư viện thành một modular JAR mới.
-6. Lưu quy trình, source, checksum, patch và kiểm thử trong repository hoặc artifact repository nội bộ.
-7. Công bố artifact nội bộ với tọa độ và version riêng, không giả mạo nguồn phát hành upstream.
-8. Chạy kiểm thử tương thích và kiểm tra module resolution.
+1. Obtain the exact source or binary artifact and pin its source checksum/version.
+2. Use jdeps to analyze dependencies and optionally generate a suggested module-info.java.
+3. Manually review the module name, requires, exports, opens, uses, and provides.
+4. Compile the descriptor with the appropriate module path/dependencies.
+5. Package the descriptor together with the library contents into a new modular JAR.
+6. Store the build procedure, source, checksums, patches, and tests in your repository or internal artifact repository.
+7. Publish the internal artifact under your own coordinates and version, without spoofing the upstream release source.
+8. Run compatibility tests and verify module resolution.
 
-Có thể khởi đầu phân tích bằng:
+You can start the analysis with:
 
 ~~~bash
 jdeps --generate-module-info generated-module-info path/to/legacy.jar
 ~~~
 
-Module descriptor được jdeps sinh ra chỉ là bản gợi ý. Công cụ phân tích bytecode không thể tự quyết định package nào là API được hỗ trợ, package nào cần mở cho reflection, hoặc dependency nào là hợp đồng công khai. Người duy trì phải review descriptor trước khi phát hành.
+A module descriptor generated by jdeps is only a suggested draft. Bytecode analysis tools cannot decide on their own which packages are supported API, which packages need to be opened for reflection, or which dependencies are part of the public contract. Maintainers must review the descriptor before release.
 
-Không nên sửa trực tiếp JAR vendor đang được build cache hoặc tải từ repository. Hãy tạo artifact đầu ra mới, tái lập được từ một nguồn đầu vào đã cố định. Nếu JAR có chữ ký số, việc thay đổi nội dung làm chữ ký cũ không còn hợp lệ; quy trình phát hành artifact mới phải xử lý chữ ký và provenance theo chính sách của dự án.
+Do not modify vendor JARs sitting in the build cache or downloaded from repositories directly. Produce a new output artifact reproducible from a pinned input source. If the JAR is digitally signed, modifying its contents invalidates the old signature; the release process for the new artifact must handle signing and provenance per project policy.
 
-### 4.3. Thay thế thư viện khi chi phí modular hóa quá cao
+### 4.3. Replacing the Library When Modularization Cost Is Too High
 
-Nếu thư viện không còn được duy trì, có package split, dependency cycle khó xử lý hoặc yêu cầu reflection quá rộng, hãy đánh giá thư viện thay thế có explicit module tốt hơn.
+If the library is unmaintained, has split packages, hard-to-resolve dependency cycles, or overly broad reflection requirements, evaluate a replacement library with a better explicit module.
 
-So sánh trên các tiêu chí:
+Compare on these criteria:
 
-- Tính năng và API cần thiết.
-- Tương thích phiên bản Java và dependency khác.
-- Hiệu năng và hành vi runtime.
-- Service provider và cơ chế reflection.
-- Mức độ hoạt động của upstream.
-- Khả năng bảo trì lâu dài và giấy phép.
-- Khả năng chuyển đổi dữ liệu hoặc API ở lớp adapter.
+- Required features and APIs.
+- Compatibility with Java version and other dependencies.
+- Performance and runtime behavior.
+- Service providers and reflection mechanisms.
+- Upstream activity level.
+- Long-term maintainability and licensing.
+- Ease of adapting data or APIs in an adapter layer.
 
-Đôi khi viết một adapter nhỏ quanh API thay thế có chi phí thấp hơn việc duy trì một fork modular hóa lâu dài.
+Sometimes writing a small adapter around an alternative API costs less than maintaining a modularized fork long-term.
 
-## 5. Dùng Automatic-Module-Name đúng vai trò trong giai đoạn chuyển tiếp
+## 5. Using Automatic-Module-Name in Its Proper Transitional Role
 
-Thuộc tính manifest **Automatic-Module-Name** cho phép thư viện công bố tên automatic module ổn định khi JAR được đặt trên module path:
+The **Automatic-Module-Name** manifest attribute lets a library publish a stable automatic module name when the JAR is placed on the module path:
 
 ~~~text
 Automatic-Module-Name: com.acme.legacy.codec
 ~~~
 
-Điều này giúp consumer không bị phụ thuộc vào tên module suy ra từ tên file JAR. Khi file được đổi tên hoặc version suffix thay đổi, module name vẫn ổn định.
+This prevents consumers from depending on a module name derived from the JAR file name. When the file is renamed or its version suffix changes, the module name remains stable.
 
-Tuy nhiên, thuộc tính này **không tạo explicit module descriptor**. JAR vẫn là automatic module: package được export rộng, descriptor không thể hiện đầy đủ ranh giới API và dependency theo ý định của tác giả.
+However, this attribute **does not create an explicit module descriptor**. The JAR is still an automatic module: packages are broadly exported, and the descriptor does not fully reflect the author's intended API boundaries and dependencies.
 
-Vì vậy:
+Therefore:
 
-- Dùng Automatic-Module-Name như biện pháp ổn định tên trong giai đoạn chuyển tiếp.
-- Ghi rõ dependency đó vẫn là automatic module trong danh sách migration.
-- Không đánh dấu hoàn thành chỉ vì module name đã ổn định.
-- Đặt owner và thời hạn xem xét để nâng cấp, đóng góp descriptor hoặc thay thế.
+- Use Automatic-Module-Name as a name-stabilizing measure during the transition period.
+- Clearly record that the dependency is still an automatic module in the migration list.
+- Do not mark migration complete just because the module name is stable.
+- Assign an owner and review deadline to upgrade, contribute a descriptor, or replace it.
 
-Nếu dự án sở hữu thư viện, có thể phát hành bản tương thích với Automatic-Module-Name trước, sau đó phát hành bản explicit module có cùng tên khi đã thiết kế descriptor. Hãy kiểm tra quy tắc versioning và khả năng tương thích của upstream trước khi chuyển đổi.
+If the project owns the library, you can release a compatible version with Automatic-Module-Name first, then release an explicit module version with the same name once the descriptor is designed. Check upstream versioning rules and compatibility before transitioning.
 
-## 6. Xử lý package, dependency cycle và service khi chuyển sang explicit module
+## 6. Handling Packages, Dependency Cycles, and Services When Moving to Explicit Modules
 
-Khi thêm descriptor, một số vấn đề trước đây bị classpath che khuất sẽ xuất hiện rõ hơn.
+When adding a descriptor, several issues previously hidden by the classpath become visible.
 
-### 6.1. Split package
+### 6.1. Split Packages
 
-Hai module cùng chứa class thuộc một package có thể gây lỗi khi resolve module graph hoặc làm thiết kế package không rõ quyền sở hữu. Kiểm tra các package bị trùng giữa các JAR trước khi modular hóa.
+Two modules containing classes in the same package can cause module graph resolution failures or leave package ownership unclear. Check for overlapping packages across JARs before modularizing.
 
-Cách xử lý thường là:
+Common solutions are:
 
-- Chọn một module sở hữu package.
-- Nâng cấp thư viện để package được tổ chức lại.
-- Thay thế hoặc tách dependency.
-- Di chuyển code nội bộ sang package riêng nếu dự án kiểm soát source.
+- Designate a single module as the package owner.
+- Upgrade the library so packages are reorganized.
+- Replace or separate dependencies.
+- Move internal code into its own package if the project controls the source.
 
-Không cố xử lý split package bằng cách export thêm package hoặc đưa các JAR vào cùng một module path mà chưa hiểu xung đột.
+Do not try to work around split packages by exporting extra packages or dumping JARs onto the same module path without understanding the conflict.
 
-### 6.2. Dependency cycle
+### 6.2. Dependency Cycles
 
-Named module không được tạo chu trình requires. Nếu A requires B và B requires A, cần xem lại ranh giới module.
+Named modules cannot form requires cycles. If A requires B and B requires A, re-examine module boundaries.
 
-Các hướng xử lý:
+Approaches to resolve:
 
-- Tách interface/SPI dùng chung sang module thứ ba.
-- Đảo chiều dependency qua abstraction.
-- Chuyển phần code dùng chung vào module API độc lập.
-- Gộp các phần thực sự không thể tách nếu chúng có cùng vòng đời và trách nhiệm.
+- Extract shared interfaces/SPIs into a third module.
+- Invert the dependency via an abstraction.
+- Move shared code into an independent API module.
+- Merge parts that truly cannot be separated if they share the same lifecycle and responsibility.
 
-Không dùng requires transitive để che giấu một chu trình dependency.
+Do not use requires transitive to hide a dependency cycle.
 
-### 6.3. Reflection và framework
+### 6.3. Reflection and Frameworks
 
-Một thư viện có thể hoạt động trên classpath vì classpath không áp dụng strong encapsulation giống named module. Sau khi chuyển sang explicit module, framework có thể cần quyền deep reflection.
+A library may work on the classpath because the classpath does not enforce strong encapsulation like named modules. After migrating to an explicit module, frameworks may need deep reflection access.
 
-Hãy xác định chính xác package và module framework cần truy cập, rồi dùng opens có giới hạn:
+Identify the exact package and framework module needing access, then use restricted opens:
 
 ~~~java
 module com.acme.domain {
@@ -221,11 +221,11 @@ module com.acme.domain {
 }
 ~~~
 
-Các tùy chọn --add-opens có thể hữu ích để chẩn đoán hoặc duy trì tương thích tạm thời. Không để các tùy chọn launcher rộng trở thành thiết kế cuối cùng nếu có thể khai báo quyền cụ thể trong descriptor.
+Options like --add-opens can help with diagnostics or temporary compatibility. Do not let broad launcher flags become the final design when specific permissions can be declared in the descriptor.
 
 ### 6.4. ServiceLoader
 
-Kiểm tra cả file cấu hình service cũ trong META-INF/services và descriptor mới. Explicit named module nên khai báo service tiêu thụ bằng uses và provider bằng provides ... with ....
+Inspect both legacy service configuration files in META-INF/services and the new descriptor. Explicit named modules should declare consumed services with uses and providers with provides ... with ....
 
 ~~~java
 module com.acme.application {
@@ -242,116 +242,116 @@ module com.acme.csv.exporter {
 }
 ~~~
 
-Đảm bảo provider module được resolve vào layer mà ứng dụng tìm kiếm. Khi đổi từ automatic sang explicit module, hãy kiểm tra hành vi provider bằng integration test thay vì giả định file META-INF/services cũ sẽ được xử lý giống hệt mọi cấu hình trước đó.
+Ensure the provider module is resolved into the layer where the application looks for it. When switching from an automatic to an explicit module, verify provider behavior with integration tests rather than assuming legacy META-INF/services files will be handled identically across all configurations.
 
-## 7. Tránh dùng classpath để che automatic module
+## 7. Avoid Using the Classpath to Hide Automatic Modules
 
-Đưa một JAR từ module path sang classpath làm cho nó thuộc unnamed module. Điều này có thể hữu ích trong một giai đoạn chuyển tiếp khi phần code legacy vẫn chạy trên classpath, nhưng không biến JAR thành explicit named module.
+Moving a JAR from the module path to the classpath puts it in the unnamed module. That can be useful during a transitional phase when legacy code still runs on the classpath, but it does not turn the JAR into an explicit named module.
 
-Điểm quan trọng là named module không thể khai báo requires tới unnamed module. Vì thế, nếu một module ứng dụng đã chuyển sang explicit named module cần gọi trực tiếp API của thư viện legacy, việc chuyển thư viện đó về classpath sẽ không giải quyết dependency theo cách thông thường.
+The critical point is that a named module cannot declare requires on the unnamed module. Therefore, if an application module that has moved to an explicit named module needs to call a legacy library's API directly, moving that library back to the classpath will not satisfy the dependency in the standard way.
 
-Nếu buộc phải giữ thư viện trên classpath trong thời gian ngắn:
+If you are forced to keep a library on the classpath in the short term:
 
-- Giữ phần tích hợp legacy ở một ranh giới classpath/unnamed module có kiểm soát.
-- Để code ở ranh giới đó gọi các API của named module nếu cần.
-- Không để named module phụ thuộc ngược vào classpath code.
-- Ghi nhận đây là ngoại lệ migration, có owner và tiêu chí loại bỏ.
-- Không tính trạng thái này là hoàn tất modularization của dependency.
+- Keep the legacy integration at a controlled classpath/unnamed-module boundary.
+- Let code at that boundary call named module APIs as needed.
+- Do not let named modules depend back on classpath code.
+- Record this as a migration exception, with an owner and removal criteria.
+- Do not count this state as completing the modularization of the dependency.
 
-Với một ứng dụng muốn có module graph đầy đủ, phương án bền vững vẫn là nâng cấp, thay thế hoặc tạo explicit modular artifact được quản lý.
+For an application aiming for a complete module graph, the sustainable approach remains upgrading, replacing, or creating a managed explicit modular artifact.
 
-## 8. Lộ trình migration theo giai đoạn
+## 8. Phased Migration Roadmap
 
-Có thể chia công việc thành các giai đoạn nhỏ để giữ build chạy được sau mỗi thay đổi.
+You can break the work into small phases to keep the build green after each change.
 
-| Giai đoạn | Việc thực hiện | Điều kiện chuyển bước |
+| Phase | Actions | Exit Criteria |
 |---|---|---|
-| 1. Baseline | Ghi nhận JDK, build tool, module path, classpath và dependency graph hiện tại | Có danh sách dependency runtime trực tiếp và bắc cầu |
-| 2. Inventory | Phân loại explicit, automatic, unnamed và system modules; xác định owner | Mọi automatic module có nguồn dependency và phương án xử lý |
-| 3. Upstream first | Nâng cấp các dependency đã có explicit module descriptor | Compile/test pass, module name và API được xác nhận |
-| 4. Internal modules | Thêm descriptor cho module do dự án sở hữu, thiết kế exports/opens/services | Các module nội bộ resolve được và không có cycle/split package |
-| 5. Legacy conversion | Đóng góp descriptor, tạo modular artifact nội bộ hoặc thay thế thư viện còn lại | Mỗi artifact có provenance, version và test |
-| 6. Runtime verification | Kiểm tra module resolution trên đúng runtime image/cấu hình production | Không còn automatic module trong resolved runtime graph |
-| 7. CI enforcement | Thêm kiểm tra tự động và báo lỗi khi automatic module mới xuất hiện | Dependency mới không thể âm thầm đưa automatic module vào production |
+| 1. Baseline | Record current JDK, build tool, module path, classpath, and dependency graph | Direct and transitive runtime dependency list established |
+| 2. Inventory | Classify explicit, automatic, unnamed, and system modules; assign owners | Every automatic module has a dependency source and handling plan |
+| 3. Upstream first | Upgrade dependencies that already have explicit module descriptors | Compile/tests pass; module names and APIs verified |
+| 4. Internal modules | Add descriptors for project-owned modules; design exports/opens/services | Internal modules resolve cleanly with no cycles/split packages |
+| 5. Legacy conversion | Contribute descriptors, create internal modular artifacts, or replace remaining libraries | Each artifact has provenance, version, and tests |
+| 6. Runtime verification | Check module resolution on the exact production runtime image/configuration | No automatic modules remain in the resolved runtime graph |
+| 7. CI enforcement | Add automated checks and fail when a new automatic module appears | New dependencies cannot silently introduce automatic modules into production |
 
-Nên xử lý các thư viện được nhiều module cùng dùng trước, vì một lần nâng cấp hoặc modular hóa có thể loại bỏ automatic module khỏi nhiều dependency path. Với thư viện chỉ xuất hiện trong một nhánh ít dùng, có thể xử lý sau nhưng vẫn cần owner và mốc thời gian.
+Address libraries shared by many modules first, because a single upgrade or modularization can eliminate an automatic module from multiple dependency paths. Libraries appearing only on a rarely used branch can be handled later, though they still need an owner and target date.
 
-Sau mỗi thay đổi dependency, chạy test ở đúng JDK mục tiêu. Một thư viện có thể biên dịch thành công nhưng gặp lỗi reflection, service discovery hoặc class loading khi chạy.
+After each dependency change, run tests on the exact target JDK. A library may compile cleanly yet fail at runtime due to reflection, service discovery, or class loading.
 
-## 9. Thiết lập cổng kiểm tra trong CI
+## 9. Setting Up a Verification Gate in CI
 
-Sau khi migration đạt trạng thái ổn định, CI cần ngăn automatic module quay trở lại.
+Once migration reaches a steady state, CI must prevent automatic modules from creeping back in.
 
-Một quy trình kiểm tra phù hợp:
+An appropriate verification workflow:
 
-1. Resolve runtime dependency graph bằng build tool.
-2. Thu thập tất cả JAR/module thực sự có mặt trên module path.
-3. Dùng jar --describe-module hoặc API ModuleFinder để xác định descriptor từng artifact.
-4. Phân loại automatic module và explicit module.
-5. So sánh với allowlist ngoại lệ migration có owner, lý do và ngày hết hạn.
-6. Làm build thất bại nếu automatic module mới xuất hiện hoặc ngoại lệ đã hết hạn.
-7. Chạy ứng dụng với --show-module-resolution trong integration test để xác nhận cấu hình runtime.
+1. Resolve the runtime dependency graph using the build tool.
+2. Collect all JARs/modules actually present on the module path.
+3. Use jar --describe-module or the ModuleFinder API to inspect each artifact's descriptor.
+4. Classify automatic modules and explicit modules.
+5. Compare against a migration exception allowlist with owner, reason, and expiration date.
+6. Fail the build if a new automatic module appears or an exception has expired.
+7. Run the application with --show-module-resolution in integration tests to verify runtime configuration.
 
-Ví dụ lệnh quan sát cấu hình khởi chạy:
+Example command to observe launch configuration:
 
 ~~~bash
 java --show-module-resolution --module-path mods -m com.acme.application/com.acme.application.Main
 ~~~
 
-Không nên chỉ scan file JAR trong thư mục libs nếu build tool resolve dependency từ nhiều nơi hoặc tạo module path động. Cổng CI phải kiểm tra đúng tập artifact của cấu hình runtime thực tế.
+Do not merely scan JAR files in a libs directory if the build tool resolves dependencies from multiple locations or constructs the module path dynamically. The CI gate must inspect the exact artifact set of the actual runtime configuration.
 
-Có thể lưu báo cáo migration dạng machine-readable gồm artifact, module name, trạng thái descriptor, dependency path và ngoại lệ được duyệt. Báo cáo phải được sinh lại từ dependency graph của build, không duy trì bằng cách sửa tay sau mỗi lần nâng cấp.
+You can save a machine-readable migration report containing artifact, module name, descriptor status, dependency path, and approved exceptions. The report should be regenerated from the build's dependency graph, not maintained by hand after every upgrade.
 
-## 10. Tiêu chí nghiệm thu cho từng dependency
+## 10. Acceptance Criteria for Each Dependency
 
-Một dependency chỉ được đánh dấu đã loại bỏ automatic module khi:
+A dependency is marked as having eliminated its automatic module only when:
 
-- Artifact đầu ra có explicit module-info.class.
-- Tên module ổn định và được ghi nhận.
-- Descriptor có requires đúng với dependency thực tế.
-- Exports chỉ công bố package API cần thiết.
-- Opens chỉ cấp deep reflection cho package/consumer cần thiết.
-- uses/provides được khai báo và service discovery hoạt động nếu thư viện có service.
-- Không phát sinh split package hoặc requires cycle trong module graph.
-- Compile, unit test, integration test và runtime verification đều đạt.
-- Artifact nguồn, checksum, version và quy trình build có thể tái lập.
-- Dependency runtime graph không còn automatic module tương ứng.
+- The output artifact has an explicit module-info.class.
+- The module name is stable and recorded.
+- The descriptor has requires matching actual dependencies.
+- Exports expose only necessary API packages.
+- Opens grant deep reflection only to needed packages/consumers.
+- uses/provides are declared and service discovery works if the library uses services.
+- No split packages or requires cycles are introduced in the module graph.
+- Compile, unit tests, integration tests, and runtime verification all pass.
+- Source artifact, checksum, version, and build process are reproducible.
+- The runtime dependency graph no longer contains that automatic module.
 
-Nếu một dependency chưa đạt, giữ nó trong danh sách migration với trạng thái và lý do rõ ràng. Không đổi nhãn sang explicit module chỉ vì đã có Automatic-Module-Name.
+If a dependency does not meet these criteria, keep it in the migration list with a clear status and reason. Do not relabel it as an explicit module solely because it has Automatic-Module-Name.
 
-## 11. Ví dụ về báo cáo migration
+## 11. Example Migration Report
 
-Giả sử runtime graph ban đầu có ba automatic module:
+Suppose the initial runtime graph has three automatic modules:
 
-| Dependency | Trạng thái ban đầu | Hướng xử lý | Trạng thái đích |
+| Dependency | Initial State | Handling Approach | Target State |
 |---|---|---|---|
-| legacy-json | Automatic | Nâng cấp lên bản upstream có module-info.class | Explicit |
-| old-logging-adapter | Automatic, dependency bắc cầu | Thay bằng adapter đang được duy trì | Explicit |
-| vendor-codec | Automatic, chưa có bản modular | Tạo artifact nội bộ có descriptor đã review hoặc thay thế | Explicit |
+| legacy-json | Automatic | Upgrade to upstream version with module-info.class | Explicit |
+| old-logging-adapter | Automatic, transitive dependency | Replace with a maintained adapter | Explicit |
+| vendor-codec | Automatic, no modular release yet | Create internal artifact with reviewed descriptor or replace | Explicit |
 
-Sau khi thay đổi, cần chạy lại dependencyInsight/dependency:tree để xác nhận artifact cũ không còn được kéo vào bởi nhánh khác. Tiếp đó, xác nhận module name và descriptor của artifact mới, rồi kiểm tra runtime resolution.
+After making changes, re-run dependencyInsight/dependency:tree to confirm the old artifact is no longer pulled in via another branch. Next, verify the new artifact's module name and descriptor, then check runtime resolution.
 
-Ví dụ báo cáo cuối của migration có thể ghi:
+An example final migration report can record:
 
-- Tổng số automatic module trong runtime graph trước migration.
-- Số module đã nâng cấp từ upstream.
-- Số module đã thay thế.
-- Số modular artifact nội bộ đã tạo.
-- Số ngoại lệ còn lại, owner và hạn xử lý.
-- Kết quả CI gate và integration test trên JDK mục tiêu.
+- Total number of automatic modules in the runtime graph before migration.
+- Number of modules upgraded from upstream.
+- Number of modules replaced.
+- Number of internal modular artifacts created.
+- Number of remaining exceptions, owners, and due dates.
+- Results of the CI gate and integration tests on the target JDK.
 
-Báo cáo này giúp nhóm biết còn bao nhiêu dependency thực sự cần xử lý, thay vì dựa vào cảm giác rằng ứng dụng đã chuyển sang JPMS vì các module chính đã có module-info.java.
+This report lets the team know how many dependencies genuinely remain to be addressed, instead of relying on the impression that the application has moved to JPMS because the main modules have module-info.java.
 
-## 12. Nguyên tắc duy trì lâu dài
+## 12. Principles for Long-Term Maintenance
 
-- Xem Automatic-Module-Name là biện pháp ổn định tên trong migration, không phải explicit module descriptor.
-- Theo dõi dependency bắc cầu, không chỉ dependency trực tiếp.
-- Ưu tiên descriptor do upstream duy trì; chỉ tạo artifact modular nội bộ khi có quy trình tái lập và owner rõ ràng.
-- Không dùng classpath để che một automatic module rồi tuyên bố đã hoàn thành modularization.
-- Không export tất cả package hoặc mở toàn module chỉ để làm framework chạy; xác định API và reflection access cần thiết.
-- Không dùng requires transitive tùy tiện; chỉ công bố dependency khi consumer thực sự cần đọc nó qua API.
-- Kiểm tra service provider, split package, dependency cycle và reflection sau mỗi lần chuyển đổi.
-- Đưa kiểm tra automatic module vào CI để dependency mới không làm lùi trạng thái.
-- Định kỳ xem xét ngoại lệ và xóa chúng khi upstream hoặc phương án thay thế đã sẵn sàng.
+- Treat Automatic-Module-Name as a name-stabilization measure during migration, not as an explicit module descriptor.
+- Track transitive dependencies, not only direct dependencies.
+- Prefer upstream-maintained descriptors; create internal modular artifacts only when there is a reproducible process and clear owner.
+- Do not use the classpath to hide an automatic module and claim modularization is complete.
+- Do not export all packages or open an entire module just to make a framework run; identify the needed APIs and reflection access.
+- Do not use requires transitive casually; expose a dependency only when consumers genuinely need to read it through the API.
+- Check service providers, split packages, dependency cycles, and reflection after every conversion.
+- Put automatic module checks into CI so new dependencies do not regress the state.
+- Periodically review exceptions and remove them once upstream or an alternative is ready.
 
-Chiến lược bền vững là quản lý module descriptor như một phần hợp đồng của từng thư viện, đồng thời quản lý dependency graph như một phần của build. Khi mọi dependency runtime đều có descriptor explicit, package API được giới hạn rõ ràng và CI bảo vệ trạng thái đó, dự án có thể tận dụng JPMS mà không phụ thuộc lâu dài vào quy tắc rộng của automatic module.
+The sustainable strategy is to manage each library's module descriptor as part of its contract, while managing the dependency graph as part of the build. When every runtime dependency has an explicit descriptor, API packages are clearly bounded, and CI protects that state, the project can leverage JPMS without relying long-term on the broad rules of automatic modules.

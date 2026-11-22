@@ -1,54 +1,54 @@
-# Mảng generic, erasure và giới hạn tạo `T[]` trong Java
+# Generic Arrays, Erasure, and the Limitation of Creating `T[]` in Java
 
-## 1. Bài toán: tại sao mảng động generic không thể dùng `new T[n]`?
+## 1. The Problem: Why Can't a Generic Dynamic Array Use `new T[n]`?
 
-Khi xây dựng một mảng động (dynamic array), ta cần vùng lưu trữ có thể tăng dung lượng khi số phần tử vượt quá sức chứa ban đầu. Với kiểu cố định, việc cấp phát mảng rất trực tiếp:
+When building a dynamic array, we need storage that can grow in capacity when the number of elements exceeds the initial capacity. With a fixed type, allocating an array is very straightforward:
 
 ```java
 String[] values = new String[10];
 ```
 
-Nhưng trong lớp generic, cách viết tưởng như tương đương lại không hợp lệ:
+However, inside a generic class, what looks like the equivalent syntax is invalid:
 
 ```java
 class DynamicArray<T> {
-    // Không biên dịch: generic array creation
+    // Does not compile: generic array creation
     // private T[] values = new T[10];
 
-    private T[] values; // Khai báo T[] thì hợp lệ.
+    private T[] values; // Declaring T[] is valid.
 }
 ```
 
-Giới hạn này không xuất phát từ việc JVM không có mảng. Nguyên nhân là sự kết hợp giữa **mảng kiểm tra kiểu phần tử tại runtime** và **generic sử dụng type erasure**. Nắm rõ hai cơ chế này giúp chọn cấu trúc lưu trữ đúng, tránh ép kiểu thiếu an toàn và thiết kế API trả mảng chuẩn kiểu.
+This limitation does not stem from the JVM lacking arrays. The reason is the combination of **arrays checking element types at runtime** and **generics using type erasure**. Understanding both mechanisms helps choose the right storage structure, avoid unsafe casts, and design type-safe array-returning APIs.
 
-## 2. Mảng (array) và generic có hai cơ chế kiểm tra kiểu khác nhau
+## 2. Arrays and Generics Have Two Different Type-Checking Mechanisms
 
-| Đặc điểm | Mảng `String[]` | Generic `List<String>` |
+| Characteristic | Array `String[]` | Generic `List<String>` |
 | --- | --- | --- |
-| Kiểu thành phần tại runtime | Có: đối tượng mảng biết component type là `String` | Tham số `String` thường bị xóa bởi erasure |
-| Quan hệ kiểu | Mảng kiểu tham chiếu có tính **covariant**: `String[]` gán được cho `Object[]` | Generic mặc định **invariant**: `List<String>` không gán được cho `List<Object>` |
-| Kiểm tra thao tác lưu | JVM kiểm tra phần tử khi gán vào mảng; sai kiểu gây `ArrayStoreException` | Trình biên dịch kiểm tra tham số generic chủ yếu tại compile time |
-| Ví dụ runtime | `new String[2].getClass()` biểu diễn lớp mảng `String[]` | `new ArrayList<String>().getClass()` không giữ đối số kiểu `String` như một `Class<List<String>>` riêng |
+| Element type at runtime | Yes: the array object knows its component type is `String` | The `String` type argument is usually erased by erasure |
+| Type relationship | Reference-type arrays are **covariant**: `String[]` is assignable to `Object[]` | Generics are **invariant** by default: `List<String>` is not assignable to `List<Object>` |
+| Store operation check | The JVM checks the element when assigning into the array; wrong type causes `ArrayStoreException` | The compiler checks generic type arguments mainly at compile time |
+| Runtime example | `new String[2].getClass()` represents the `String[]` array class | `new ArrayList<String>().getClass()` does not retain the `String` type argument as a separate `Class<List<String>>` |
 
-Ví dụ mảng covariance và kiểm tra tại runtime:
+Example of array covariance and runtime checking:
 
 ```java
-Object[] array = new String[1]; // Hợp lệ: String[] là subtype của Object[].
-array[0] = "OK";                // Hợp lệ.
-array[0] = 123;                 // Ném ArrayStoreException tại runtime.
+Object[] array = new String[1]; // Valid: String[] is a subtype of Object[].
+array[0] = "OK";                // Valid.
+array[0] = 123;                 // Throws ArrayStoreException at runtime.
 ```
 
-Biến `array` có kiểu tĩnh `Object[]`, nhưng đối tượng thực tế vẫn là `String[]`. JVM kiểm tra kiểu thực tế khi ghi, nên phần tử `Integer` bị từ chối.
+The `array` variable has static type `Object[]`, yet the actual object is still `String[]`. The JVM checks the actual type when writing, so the `Integer` element is rejected.
 
-Ngược lại, hai biến `List<String>` và `List<Integer>` về cơ bản đều dựa trên đối tượng có lớp runtime như `ArrayList`. JVM không có một component type runtime riêng là `List<String>` để kiểm tra phép ghi vào mảng.
+Conversely, two variables `List<String>` and `List<Integer>` are fundamentally both backed by objects whose runtime class is something like `ArrayList`. The JVM does not have a separate runtime component type `List<String>` to check writes into an array.
 
-### Erasure hoạt động thế nào?
+### How Does Erasure Work?
 
-**Type erasure** là quá trình Java compiler chuyển kiểu generic sang dạng không giữ đầy đủ đối số kiểu trong mã thực thi: `List<String>` và `List<Integer>` đều có erasure là `List`; biến kiểu không bị chặn `T` có erasure là `Object`; với `T extends Number`, erasure của `T` là bound bên trái `Number`.
+**Type erasure** is the process by which the Java compiler transforms generic types into a form that does not retain full type arguments in executable code: `List<String>` and `List<Integer>` both have erasure `List`; an unbounded type variable `T` has erasure `Object`; for `T extends Number`, the erasure of `T` is its leftmost bound `Number`.
 
 ```java
 class Holder<T> {
-    T value; // Về cơ bản dùng Object sau erasure nếu T không có bound.
+    T value; // Essentially uses Object after erasure if T has no bound.
 
     T get() {
         return value;
@@ -56,55 +56,55 @@ class Holder<T> {
 }
 ```
 
-Compiler có thể chèn phép ép kiểu ở nơi sử dụng để bảo toàn kỳ vọng kiểu tĩnh. Do vậy, generic tạo được kiểm tra kiểu mạnh ở compile time nhưng không biến `T` thành một lớp runtime có thể dùng trực tiếp để khởi tạo mảng.
+The compiler can insert casts at use sites to preserve static type expectations. Consequently, generics provide strong compile-time type checking, yet do not turn `T` into a runtime class that can be used directly to instantiate an array.
 
-## 3. Reifiable type và các phép tạo mảng được phép
+## 3. Reifiable Types and Permitted Array Creations
 
-Một kiểu được gọi là **reifiable** khi có đủ thông tin kiểu cần thiết tại runtime. Các ví dụ gồm kiểu nguyên thủy, lớp không generic, raw type, kiểu parameterized chỉ chứa wildcard không giới hạn như `List<?>`, và mảng có component type reifiable.
+A type is called **reifiable** when it has sufficient type information available at runtime. Examples include primitive types, non-generic classes, raw types, parameterized types containing only unbounded wildcards such as `List<?>`, and arrays whose component type is reifiable.
 
-| Biểu thức | Hợp lệ? | Giải thích |
+| Expression | Valid? | Explanation |
 | --- | --- | --- |
-| `new String[4]` | Có | `String` là reifiable. |
-| `new int[4]` | Có | `int` là kiểu nguyên thủy. |
-| `new List<?>[4]` | Có | `List<?>` là reifiable. |
-| `new List[4]` | Có nhưng dùng raw type | Mất kiểm tra kiểu generic khi dùng raw. |
-| `new List<String>[4]` | Không | `List<String>` không reifiable. |
-| `new List<? extends Number>[4]` | Không | Wildcard có bound này không phải dạng reifiable `List<?>`. |
-| `new T[4]` trong lớp/phương thức generic | Không | Type variable `T` không reifiable để làm component type của biểu thức tạo mảng. |
-| `List<String>[] items;` | Có | Khai báo biến mảng khác với cấp phát mảng. |
-| `T[] items;` | Có | Khai báo tham chiếu `T[]` vẫn hợp lệ. |
+| `new String[4]` | Yes | `String` is reifiable. |
+| `new int[4]` | Yes | `int` is a primitive type. |
+| `new List<?>[4]` | Yes | `List<?>` is reifiable. |
+| `new List[4]` | Yes, though using a raw type | Loses generic type checking when using raw types. |
+| `new List<String>[4]` | No | `List<String>` is not reifiable. |
+| `new List<? extends Number>[4]` | No | This bounded wildcard is not the reifiable `List<?>` form. |
+| `new T[4]` in a generic class/method | No | Type variable `T` is not reifiable to serve as the component type of an array creation expression. |
+| `List<String>[] items;` | Yes | Declaring an array variable differs from allocating an array. |
+| `T[] items;` | Yes | Declaring a `T[]` reference remains valid. |
 
-Nếu Java cho phép `new List<String>[1]`, một tham chiếu `Object[]` có thể đưa `List<Integer>` vào đó. Runtime chỉ nhận ra đối tượng `List` mà không đủ thông tin để từ chối `Integer` nằm bên trong; tính an toàn kiểu generic sẽ bị phá vỡ.
+If Java allowed `new List<String>[1]`, an `Object[]` reference could insert a `List<Integer>` into it. At runtime, only a `List` object is seen, with insufficient information to reject the `Integer` inside; generic type safety would be broken.
 
-**Phân biệt quan trọng:** cấm *biểu thức tạo mảng* với element type không reifiable; không cấm dùng `T[]` làm kiểu biến, tham số, kết quả trả về, hoặc nhận mảng thực do bên gọi cấp phát.
+**Important distinction:** *array creation expressions* with non-reifiable element types are forbidden; using `T[]` as a variable type, parameter, return value, or receiving an actual array allocated by the caller is not forbidden.
 
-## 4. Heap pollution và hai kiểu lỗi runtime khác nhau
+## 4. Heap Pollution and Two Different Kinds of Runtime Errors
 
-**Heap pollution** xảy ra khi một biến khai báo bằng kiểu parameterized trỏ đến dữ liệu không phù hợp với kiểu tham số mà nó hứa hẹn. Mảng của kiểu generic kết hợp unchecked cast là một cách tạo ra tình huống này:
+**Heap pollution** occurs when a variable declared with a parameterized type points to data that does not conform to the type argument it promises. Arrays of generic types combined with unchecked casts are one way to produce this situation:
 
 ```java
 @SuppressWarnings("unchecked")
 static void demonstrateHeapPollution() {
     List<String>[] words = (List<String>[]) new List<?>[1]; // Unchecked cast.
-    Object[] alias = words;  // Runtime component type chỉ là List.
+    Object[] alias = words;  // Runtime component type is only List.
 
-    alias[0] = List.of(42);  // Qua kiểm tra mảng: đối tượng là List.
+    alias[0] = List.of(42);  // Passes array check: the object is a List.
     String value = words[0].get(0); // ClassCastException.
 }
 ```
 
-Điểm cần chú ý:
+Points to note:
 
-1. `new List<?>[1]` hợp lệ, vì component type ở runtime là `List`.
-2. Cast sang `List<String>[]` không thể được chứng minh hoàn toàn tại runtime; compiler phải cảnh báo `unchecked`.
-3. `alias[0] = List.of(42)` vượt qua kiểm tra lưu phần tử, vì đó vẫn là một `List`.
-4. Khi lấy phần tử ra theo kỳ vọng `String`, phép cast do compiler chèn vào có thể ném `ClassCastException`.
+1. `new List<?>[1]` is valid, because the component type at runtime is `List`.
+2. Casting to `List<String>[]` cannot be fully proven at runtime; the compiler must emit an `unchecked` warning.
+3. `alias[0] = List.of(42)` passes the array store check, because it is still a `List`.
+4. When retrieving the element expecting `String`, the cast inserted by the compiler can throw `ClassCastException`.
 
-So sánh: `ArrayStoreException` xảy ra **ngay khi ghi** giá trị sai loại vào mảng có component type runtime không tương thích; `ClassCastException` thường lộ ra **khi đọc/ép kiểu** sau khi thông tin kiểu generic bị phá vỡ. Cả hai lỗi có thể xuất hiện ở những tình huống khác, nhưng phân biệt này đặc biệt hữu ích khi chẩn đoán mảng generic.
+Comparison: `ArrayStoreException` occurs **immediately when writing** a value of the wrong kind into an array with an incompatible runtime component type; `ClassCastException` typically surfaces **when reading/casting** after generic type information has been compromised. Both errors can appear in other situations as well, but this distinction is especially helpful when diagnosing generic arrays.
 
-## 5. Cách 1 — Lưu bằng `Object[]`, tự kiểm soát biên generic
+## 5. Approach 1 — Store Using `Object[]`, Control the Generic Boundary Yourself
 
-Đây là cách thường phù hợp để cài đặt **mảng động tổng quát** nếu API chính là `add(T)`, `get(int)` và các thao tác trên từng phần tử, không cần trả về trực tiếp `T[]`. Vùng nhớ có thể chứa tham chiếu đối tượng, còn lớp generic giới hạn đường ghi dữ liệu.
+This is usually the appropriate approach to implement a **general dynamic array** if the main API is `add(T)`, `get(int)`, and per-element operations, without needing to return `T[]` directly. The backing storage can hold object references, while the generic class restricts the data-writing paths.
 
 ```java
 import java.util.Arrays;
@@ -133,36 +133,36 @@ final class DynamicBuffer<T> {
 }
 ```
 
-Vì sao có thể dùng unchecked cast trong `get()`? Trường `elements` là `private`, chỉ phương thức `add(T)` ghi dữ liệu vào đó; lớp không để bên ngoài sửa mảng qua một tham chiếu alias. Khi ràng buộc được giữ vững, mỗi phần tử đọc trong các vị trí hợp lệ đều được thêm như một `T`. Annotation được đặt **cục bộ** ở phương thức thực sự cần cast; nó tắt cảnh báo compiler nhưng không tự chứng minh an toàn, nên bất biến của lớp phải được kiểm tra khi sửa code.
+Why can an unchecked cast be used in `get()`? The `elements` field is `private`, and only the `add(T)` method writes data into it; the class does not let external code modify the array through an alias reference. As long as the invariant holds, every element read at valid indices was added as a `T`. The annotation is placed **locally** on the method that actually needs the cast; it suppresses the compiler warning but does not prove safety on its own, so the class invariant must be verified whenever editing the code.
 
-Khi hết chỗ, `Arrays.copyOf` tạo mảng `Object[]` lớn hơn và sao chép dữ liệu. Một lần mở rộng có chi phí O(n), nhưng nếu tăng dung lượng theo hệ số (ví dụ gấp đôi) thì chi phí thêm một phần tử được phân bổ trung bình là **O(1) amortized**. Phép đọc theo chỉ số là O(1).
+When out of space, `Arrays.copyOf` creates a larger `Object[]` array and copies the data. A single expansion costs O(n), yet when growing capacity by a constant factor (e.g., doubling), the average cost of adding one element is **O(1) amortized**. Indexed reads are O(1).
 
-Đừng vô tình làm lộ mảng nội bộ:
+Do not accidentally expose the internal array:
 
 ```java
-// Không nên: người gọi có thể ghi thẳng Object sai kiểu.
+// Avoid: the caller can directly write an Object of the wrong type.
 public Object[] unsafeBackingArray() {
     return elements;
 }
 ```
 
-Cũng **không nên** hứa trả về `T[]` bằng cách ép trực tiếp `Object[]`:
+Also **do not** promise to return `T[]` by directly casting `Object[]`:
 
 ```java
 @SuppressWarnings("unchecked")
 T[] brokenToArray() {
-    return (T[]) new Object[size]; // Có thể thành công bên trong do erasure.
+    return (T[]) new Object[size]; // Can succeed internally due to erasure.
 }
 
-// Với Buffer<String>, phép gán kết quả sang String[] có thể
-// ném ClassCastException: Object[] thực tế không phải String[].
+// With Buffer<String>, assigning the result to String[] can
+// throw ClassCastException: an actual Object[] is not a String[].
 ```
 
-Một kết quả trả về an toàn hơn cho API mảng động là `List<T>`, hoặc tạo mảng đầu ra bằng factory/class token do bên gọi cung cấp.
+A safer return result for a dynamic array API is `List<T>`, or creating the output array using a factory/class token provided by the caller.
 
-## 6. Cách 2 — Tạo `T[]` bằng `Array.newInstance` và `Class<T>`
+## 6. Approach 2 — Create `T[]` Using `Array.newInstance` and `Class<T>`
 
-Khi cần **mảng thật sự có component type runtime cụ thể** (như `String[]`), nhận `Class<T>` từ bên gọi, dùng Java Reflection để cấp phát, rồi cast cục bộ:
+When you need a **real array with a concrete runtime component type** (like `String[]`), accept `Class<T>` from the caller, use Java Reflection to allocate it, and cast locally:
 
 ```java
 import java.lang.reflect.Array;
@@ -173,14 +173,14 @@ static <T> T[] newTypedArray(Class<T> componentType, int length) {
     return result;
 }
 
-// Sử dụng:
+// Usage:
 String[] names = newTypedArray(String.class, 3);
 Integer[] scores = newTypedArray(Integer.class, 2);
 ```
 
-Ở đây `Array.newInstance(String.class, 3)` thật sự tạo đối tượng `String[]`. JVM biết kiểu thành phần và tiếp tục bảo vệ phép ghi bằng kiểm tra runtime. Cast sang `T[]` vẫn là unchecked ở cấp generic; tính đúng đắn dựa trên việc ta dùng chính `componentType` do bên gọi cung cấp để tạo mảng.
+Here `Array.newInstance(String.class, 3)` actually creates a `String[]` object. The JVM knows the component type and continues protecting writes with runtime checks. Casting to `T[]` is still unchecked at the generic level; correctness relies on using the exact `componentType` supplied by the caller to create the array.
 
-Cách này hữu ích cho buffer cần trả về typed array:
+This approach is useful for buffers that need to return a typed array:
 
 ```java
 import java.lang.reflect.Array;
@@ -213,13 +213,13 @@ final class TypedBuffer<T> {
 }
 ```
 
-`snapshot()` trả về một mảng mới có runtime component type phù hợp với mảng nguồn, tránh cho người gọi sửa bộ nhớ đang được `TypedBuffer` sử dụng. Một giới hạn: `String.class` là token cụ thể, còn **không có** `List<String>.class`. `List.class` chỉ mô tả `List` sau erasure nên không thể dùng cách này để kiểm tra phần tử `String` bên trong mỗi `List` tại runtime.
+`snapshot()` returns a new array with a runtime component type matching the source array, preventing the caller from modifying memory currently used by `TypedBuffer`. One limitation: `String.class` is a concrete token, whereas there is **no** `List<String>.class`. `List.class` only describes `List` after erasure, so this approach cannot be used to check the `String` elements inside each `List` at runtime.
 
-Trong ví dụ trên, `add(null)` hợp lệ với component type tham chiếu; các thao tác sau đó cần tự quy định cách xử lý `null`. Với tham số lớp token, API cũng cần tránh để người gọi sử dụng raw type/unchecked cast làm sai lời hứa kiểu.
+In the example above, `add(null)` is valid for a reference component type; subsequent operations must define how `null` is handled. With a class-token parameter, the API also needs to prevent callers from using raw types/unchecked casts to violate the type promise.
 
-## 7. Cách 3 — Nhận `IntFunction<T[]>` (array factory)
+## 7. Approach 3 — Accept `IntFunction<T[]>` (Array Factory)
 
-Factory giúp bên gọi quyết định chính xác loại mảng, còn lớp generic không phải biết `T.class`:
+A factory lets the caller decide the exact array kind, while the generic class does not need to know `T.class`:
 
 ```java
 import java.util.function.IntFunction;
@@ -228,21 +228,21 @@ static <T> T[] createArray(IntFunction<T[]> factory, int length) {
     return factory.apply(length);
 }
 
-// Method reference tạo mảng:
+// Method reference creating an array:
 String[] labels = createArray(String[]::new, 4);
 Integer[] ids = createArray(Integer[]::new, 4);
 
-// Có thể dùng lambda:
+// A lambda can also be used:
 String[] other = createArray(n -> new String[n], 4);
 ```
 
-Áp dụng vào mảng động: constructor có thể nhận `IntFunction<T[]> arrayFactory` và gọi nó mỗi khi cần cấp phát. Nhớ lưu factory, giữ phần tử, sao chép dữ liệu khi tăng sức chứa và tránh trả trực tiếp mảng backing. Đây cũng là hướng mà nhiều API thư viện sử dụng khi cần mảng đúng loại từ generic.
+Applied to dynamic arrays: the constructor can accept `IntFunction<T[]> arrayFactory` and invoke it whenever allocation is needed. Remember to store the factory, keep elements, copy data when growing capacity, and avoid returning the backing array directly. This is also the pattern many library APIs use when needing a properly typed array from generics.
 
-So với `Class<T>`, factory linh hoạt hơn khi muốn tách thao tác cấp phát khỏi logic lưu trữ. Tuy vậy, nó **không thay đổi quy tắc erasure**: factory chỉ tạo được mảng theo component type reifiable mà biểu thức khởi tạo cụ thể cho phép.
+Compared to `Class<T>`, a factory is more flexible when you want to decouple allocation from storage logic. Nevertheless, it **does not change erasure rules**: a factory can only create arrays with a reifiable component type permitted by the concrete creation expression.
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone Java 17+ Program
 
-Lưu tệp sau thành `GenericArrayDemo.java`. Chương trình có cả mảng động qua `Object[]`, mảng typed tạo bằng Reflection, factory, và một tình huống heap pollution được bắt ngoại lệ để người học thấy dấu hiệu runtime.
+Save the following file as `GenericArrayDemo.java`. The program includes a dynamic array via `Object[]`, a typed array created via Reflection, a factory, and a heap pollution scenario whose exception is caught so learners can observe the runtime symptom.
 
 ```java
 import java.lang.reflect.Array;
@@ -317,14 +317,14 @@ public class GenericArrayDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac --release 17 -Xlint:unchecked GenericArrayDemo.java
 java GenericArrayDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 3: Arrays
@@ -333,11 +333,11 @@ String: [reflection, null]
 ClassCastException
 ```
 
-Code đã được kiểm tra biên dịch với `--release 17`. Cảnh báo unchecked trong đoạn minh họa heap pollution được khoanh vùng bằng `@SuppressWarnings("unchecked")` để người học chủ động biết vị trí mất đảm bảo kiểu; **không** nên coi annotation này là một cơ chế bảo đảm type safety.
+The code has been verified to compile with `--release 17`. The unchecked warning in the heap pollution demonstration is isolated with `@SuppressWarnings("unchecked")` so learners intentionally know where type guarantees are lost; this annotation should **not** be treated as a mechanism that guarantees type safety.
 
-## 9. Liên hệ với `ArrayList<T>` và API thư viện
+## 9. Connection to `ArrayList<T>` and Library APIs
 
-Trong phần lớn ứng dụng, nên dùng `ArrayList<T>` thay vì tự xây mảng động nếu không có yêu cầu đặc thù về layout, quản lý cấp phát hoặc bài tập cấu trúc dữ liệu:
+In most applications, prefer using `ArrayList<T>` instead of building a custom dynamic array unless there is a specific requirement regarding layout, allocation management, or a data-structures exercise:
 
 ```java
 List<String> names = new java.util.ArrayList<>();
@@ -346,31 +346,31 @@ names.add("Grace");
 String second = names.get(1);
 ```
 
-`ArrayList` tự quản lý dung lượng và che giấu cách lưu trữ bên trong. API `List<T>` duy trì kiểm tra kiểu ở compile time cho `add`/`get`; việc sử dụng một cấu trúc lưu trữ kiểu `Object[]` ở tầng cài đặt không làm API trở thành `Object[]`.
+`ArrayList` manages capacity automatically and hides its internal storage. The `List<T>` API maintains compile-time type checking for `add`/`get`; using an `Object[]` storage structure at the implementation layer does not turn the API into `Object[]`.
 
-Khi cần typed array từ collection, các overload thông dụng gồm:
+When needing a typed array from a collection, common overloads include:
 
 ```java
 List<String> names = List.of("Ada", "Grace");
 
 String[] a = names.toArray(String[]::new);     // Java 11+.
-String[] b = names.toArray(new String[0]);      // Mẫu lâu đời.
-Object[] c = names.toArray();                   // Chỉ Object[].
+String[] b = names.toArray(new String[0]);      // Long-standing pattern.
+Object[] c = names.toArray();                   // Object[] only.
 ```
 
-`toArray()` không tham số trả `Object[]`; không được ép mảng đó thành `String[]` bằng unchecked cast rồi kỳ vọng JVM chấp nhận. Dùng typed overload khi cần đúng component type.
+The no-arg `toArray()` returns `Object[]`; do not cast that array to `String[]` with an unchecked cast expecting the JVM to accept it. Use a typed overload when the exact component type is needed.
 
-## 10. Generic varargs: một trường hợp liên quan
+## 10. Generic Varargs: A Related Case
 
-Varargs `T...` về mặt biểu diễn là một tham số mảng `T[]`. Với kiểu phần tử không reifiable, compiler có thể cảnh báo nguy cơ heap pollution tại nơi khai báo và/hoặc gọi:
+Varargs `T...` is representationally a `T[]` array parameter. With non-reifiable element types, the compiler may warn about heap pollution risks at the declaration and/or call site:
 
 ```java
 static <T> void accept(T... values) {
-    // values là T[]; tránh ghi sai kiểu hoặc phát tán alias.
+    // values is T[]; avoid writing wrong types or leaking aliases.
 }
 ```
 
-Có thể dùng `@SafeVarargs` khi **đã chứng minh thân phương thức an toàn**: không ghi phần tử không đúng kiểu, không chuyển mảng cho mã không tin cậy, không trả/lưu alias để bị sửa ngoài ý muốn. Ví dụ sao chép dữ liệu ngay vào collection bất biến:
+`@SafeVarargs` can be used when **the method body has been proven safe**: it does not write elements of the wrong type, does not pass the array to untrusted code, and does not return/store an alias where it could be modified unexpectedly. For example, copying data immediately into an immutable collection:
 
 ```java
 import java.util.Arrays;
@@ -382,41 +382,41 @@ static <T> List<T> immutableCopy(T... values) {
 }
 ```
 
-`List.copyOf` không chấp nhận phần tử `null`. `@SafeVarargs` là một cam kết của tác giả API, không làm cho kiểu `T` trở thành reifiable; sử dụng sai vẫn có thể gây heap pollution. Với Java 17+, annotation áp dụng được cho constructor, phương thức static/final và private instance method theo quy tắc ngôn ngữ.
+`List.copyOf` does not accept `null` elements. `@SafeVarargs` is a commitment by the API author and does not make type `T` reifiable; misuse can still cause heap pollution. In Java 17+, the annotation can be applied to constructors, static/final methods, and private instance methods according to language rules.
 
-## 11. Lỗi thường gặp và cách chọn giải pháp
+## 11. Common Mistakes and How to Choose a Solution
 
-| Tình huống | Vấn đề | Hướng giải quyết |
+| Situation | Problem | Solution Direction |
 | --- | --- | --- |
-| `new T[n]` | Compile error vì tạo mảng generic | Dùng `Object[]` nội bộ, `Array.newInstance` hoặc array factory. |
-| `new List<String>[n]` | Component type không reifiable | Dùng `List<List<String>>` hoặc chỉ `List<?>[]` khi thực sự phù hợp. |
-| `(T[]) new Object[n]` rồi trả về `String[]` | Runtime có thể ném `ClassCastException` | Nhận `String[]::new` hoặc `String.class` để tạo đúng kiểu mảng. |
-| Lạm dụng `(List<String>[]) new List<?>[n]` | Unchecked cast, có thể heap pollution | Tránh cast; nếu phải dùng, bao kín alias và chứng minh bất biến. |
-| Trả backing array cho caller | Phá encapsulation, bên gọi chỉnh dữ liệu trực tiếp | Trả bản sao/collection view thích hợp. |
-| Dùng `@SuppressWarnings` toàn bộ lớp | Che giấu vị trí mất bảo đảm kiểu | Thu hẹp annotation vào đúng phép cast và ghi giải thích. |
-| Nghĩ `Class<List<String>>` tồn tại như `String.class` | Erasure làm mất đối số kiểu generic | Dùng `List.class` chỉ cho lớp thô; kiểm tra phần tử bằng quy tắc riêng. |
-| Nhầm `ArrayStoreException` với `ClassCastException` | Chẩn đoán sai điểm lỗi | Kiểm tra runtime component type, đường ghi mảng, unchecked cast và đường đọc. |
+| `new T[n]` | Compile error due to generic array creation | Use internal `Object[]`, `Array.newInstance`, or an array factory. |
+| `new List<String>[n]` | Non-reifiable component type | Use `List<List<String>>` or `List<?>[]` only when truly appropriate. |
+| `(T[]) new Object[n]` then returning `String[]` | Runtime may throw `ClassCastException` | Accept `String[]::new` or `String.class` to create the right array type. |
+| Abusing `(List<String>[]) new List<?>[n]` | Unchecked cast, possible heap pollution | Avoid casting; if necessary, encapsulate aliases and prove invariants. |
+| Returning the backing array to the caller | Breaks encapsulation; caller modifies data directly | Return a copy or appropriate collection view. |
+| Putting `@SuppressWarnings` on the entire class | Hides where type guarantees are lost | Narrow the annotation to the exact cast and document the reason. |
+| Thinking `Class<List<String>>` exists like `String.class` | Erasure strips generic type arguments | Use `List.class` only for the raw class; validate elements with separate rules. |
+| Confusing `ArrayStoreException` with `ClassCastException` | Misdiagnoses the failure point | Check the runtime component type, array write path, unchecked cast, and read path. |
 
-Quy tắc chọn nhanh:
+Quick selection rules:
 
-- **Chỉ cần danh sách co giãn:** ưu tiên `ArrayList<T>`.
-- **Tự cài đặt mảng động generic với `add/get`:** giữ `Object[]` ở nội bộ, bất biến kiểu rõ ràng, cast cục bộ khi đọc.
-- **Cần trả typed array như `String[]`:** nhận `Class<T>` hoặc `IntFunction<T[]>`; tạo mảng có runtime component type chính xác.
-- **Phần tử vốn là kiểu generic sâu như `List<String>`:** ưu tiên collection lồng nhau; không kỳ vọng runtime array kiểm tra được đối số kiểu bên trong.
+- **Only need a resizable list:** prefer `ArrayList<T>`.
+- **Implementing a generic dynamic array yourself with `add/get`:** keep `Object[]` internally, maintain clear type invariants, cast locally when reading.
+- **Need to return a typed array like `String[]`:** accept `Class<T>` or `IntFunction<T[]>`; create an array with the exact runtime component type.
+- **Elements themselves are deep generic types like `List<String>`:** prefer nested collections; do not expect runtime arrays to check inner type arguments.
 
-## 12. Tự kiểm tra hiểu bài
+## 12. Self-Check of Understanding
 
-1. Tại sao `List<String>[] a;` hợp lệ nhưng `new List<String>[5]` không hợp lệ? Hãy giải thích bằng reifiability và kiểm tra ghi của mảng.
-2. Khi `Object[] alias = new String[2]; alias[0] = 5;`, lỗi nào xảy ra và ở thao tác nào? Khi alias là `List<String>[]` bị unchecked cast từ `List<?>[]`, lỗi có thể bộc lộ khác thế nào?
-3. Trong `class Box<T>`, vì sao `(T[]) new Object[3]` có thể lọt qua phép cast nội bộ nhưng trả về `String[]` lại lỗi?
-4. Hãy bổ sung `remove(int)` cho `DynamicBuffer<T>`: dồn phần tử, giảm `size` và gán `null` vào ô cuối để giải phóng tham chiếu không còn dùng.
-5. Viết overload `toArray(IntFunction<T[]> factory)` cho buffer, sao chép đúng `size` phần tử và trả mảng độc lập. Kiểm tra với `String[]::new`.
+1. Why is `List<String>[] a;` valid whereas `new List<String>[5]` is invalid? Explain using reifiability and array write checks.
+2. When `Object[] alias = new String[2]; alias[0] = 5;`, which error occurs and at which operation? When an alias is `List<String>[]` obtained via an unchecked cast from `List<?>[]`, how can the error manifest differently?
+3. In `class Box<T>`, why can `(T[]) new Object[3]` slip past the internal cast yet fail when returned as `String[]`?
+4. Add `remove(int)` to `DynamicBuffer<T>`: shift elements, decrement `size`, and assign `null` to the last slot to release the unused reference.
+5. Write a `toArray(IntFunction<T[]> factory)` overload for the buffer, copying exactly `size` elements and returning an independent array. Test with `String[]::new`.
 
-**Ghi nhớ:** Java generic bảo vệ kiểu chủ yếu lúc biên dịch và dùng erasure; Java array lưu component type thật để kiểm tra lúc chạy. Thiết kế mảng động generic an toàn là quản lý ranh giới giữa hai cơ chế đó.
+**Key takeaway:** Java generics primarily protect types at compile time and use erasure; Java arrays store an actual component type for runtime checking. Designing a safe generic dynamic array means managing the boundary between those two mechanisms.
 
-### Tài liệu chuẩn để tra cứu
+### Standard References
 
-- Java Language Specification, §4.6 (*Type Erasure*) và §4.7 (*Reifiable Types*): https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html
-- Java Language Specification, §10 (*Arrays*) và §10.5 (*Array Store Exception*): https://docs.oracle.com/javase/specs/jls/se17/html/jls-10.html
+- Java Language Specification, §4.6 (*Type Erasure*) and §4.7 (*Reifiable Types*): https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html
+- Java Language Specification, §10 (*Arrays*) and §10.5 (*Array Store Exception*): https://docs.oracle.com/javase/specs/jls/se17/html/jls-10.html
 - Java Tutorials, *Non-Reifiable Types / Heap Pollution / Varargs*: https://docs.oracle.com/javase/tutorial/java/generics/nonReifiableVarargsType.html
 - Java API, `java.lang.reflect.Array`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html

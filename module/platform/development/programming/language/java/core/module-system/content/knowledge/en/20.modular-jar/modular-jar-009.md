@@ -1,10 +1,10 @@
-# Đảm bảo JAR phát hành không chứa split package
+# Ensuring Release JARs Contain No Split Packages
 
-## 1. Split package là gì?
+## 1. What Is a Split Package?
 
-Trong Java, **package** là không gian tên chứa các class và interface. Một **split package** xảy ra khi cùng một package name xuất hiện trong nhiều module/JAR độc lập.
+In Java, a **package** is a namespace containing classes and interfaces. A **split package** occurs when the same package name appears in multiple independent modules/JARs.
 
-Ví dụ hai JAR:
+Example of two JARs:
 
 ```text
 dist/
@@ -12,7 +12,7 @@ dist/
 └── acme-plugin.jar
 ```
 
-Cả hai đều chứa class trong package `com.acme.util`:
+Both contain classes in the `com.acme.util` package:
 
 ```text
 acme-core.jar
@@ -22,17 +22,17 @@ acme-plugin.jar
 └── com/acme/util/DateHelper.class
 ```
 
-Khi hai JAR trở thành hai named module trên module path, package `com.acme.util` bị chia giữa hai module. Đây là cấu trúc cần tránh khi phát hành ứng dụng theo JPMS.
+When the two JARs become two named modules on the module path, the `com.acme.util` package is split between two modules. This is a structure to avoid when releasing applications under JPMS.
 
-Quy tắc thiết kế an toàn là **mỗi package thuộc về đúng một named module** trong tập module được phát hành và chạy cùng nhau. Package ownership rõ ràng giúp module graph nhất quán, tránh xung đột khi resolve và giữ ranh giới truy cập package-private đúng như thiết kế.
+A safe design rule is that **each package belongs to exactly one named module** across the set of modules released and run together. Clear package ownership keeps the module graph consistent, prevents conflicts during resolution, and preserves package-private access boundaries as designed.
 
-## 2. Vì sao split package gây vấn đề?
+## 2. Why Do Split Packages Cause Problems?
 
-### Xung đột khi resolve module
+### Conflicts during module resolution
 
-JPMS kiểm tra tính nhất quán của module graph. Nếu một module đọc hai module khác nhau cùng export một package, resolver không thể xác định duy nhất nguồn package đó và resolution có thể thất bại với `ResolutionException`.
+JPMS verifies the consistency of the module graph. If a module reads two different modules that both export the same package, the resolver cannot uniquely determine the source of that package and resolution can fail with `ResolutionException`.
 
-Ví dụ:
+For example:
 
 ```text
 com.acme.app
@@ -42,50 +42,50 @@ com.acme.app
    +------> com.acme.plugin -- exports com.acme.util
 ```
 
-Ứng dụng đọc cả hai module và cả hai đều export `com.acme.util`. Đây là split-package conflict trong graph.
+The application reads both modules and both export `com.acme.util`. This is a split-package conflict in the graph.
 
-Không nên dựa vào việc một package trùng tên tình cờ chưa gây lỗi trong một cấu hình cụ thể. Khi dependency graph thay đổi, một module mới có thể đọc cả hai nguồn package và làm resolution thất bại.
+Do not rely on the fact that a duplicate package name happens not to error in a specific configuration. When the dependency graph changes, a new module may read both package sources and cause resolution to fail.
 
-### Package-private không chia sẻ giữa hai module
+### Package-private is not shared between two modules
 
-Hai class cùng khai báo `package com.acme.util` nhưng nằm trong hai named module khác nhau không vì thế mà trở thành cùng một runtime package. Các class không thể dựa vào package-private access để gọi lẫn nhau như khi chúng nằm trong cùng module/package.
+Two classes declaring the same `package com.acme.util` but residing in two different named modules do not become part of the same runtime package. Those classes cannot rely on package-private access to call each other as they could when residing in the same module/package.
 
-Điều này có thể làm hỏng giả định cũ của ứng dụng chạy trên classpath, nơi nhiều JAR cùng đóng góp class vào một package.
+This can break legacy assumptions of applications running on the classpath, where multiple JARs contributed classes to the same package.
 
-### Tăng rủi ro khi thay đổi dependency và đóng gói
+### Increased risk when changing dependencies and packaging
 
-Split package khiến việc nâng cấp hoặc thay thế một JAR dễ gây xung đột. Nó cũng làm khó việc xác định module nào sở hữu API, class hoặc resource của package. Với automatic modules, các package được export rộng rãi nên các xung đột package trong graph có thể lộ ra khi chuyển từ classpath sang module path.
+Split packages make upgrading or replacing a JAR prone to conflicts. They also make it harder to tell which module owns a package's API, classes, or resources. With automatic modules, packages are exported broadly, so package conflicts in the graph can surface when migrating from the classpath to the module path.
 
-## 3. Nhận diện split package trong các JAR phát hành
+## 3. Detecting Split Packages in Release JARs
 
-Kiểm tra **toàn bộ tập JAR được triển khai cùng nhau**, không chỉ kiểm tra từng JAR riêng lẻ. Một JAR không tự chứa package trùng bên trong vẫn có thể xung đột với JAR khác.
+Inspect the **entire set of JARs deployed together**, not just each JAR individually. A JAR that has no internal package duplicates can still conflict with another JAR.
 
-Ví dụ liệt kê nội dung JAR:
+For example, list JAR contents:
 
 ```bash
 jar --list --file dist/acme-core.jar
 jar --list --file dist/acme-plugin.jar
 ```
 
-Tìm các đường dẫn class có cùng thư mục package, chẳng hạn:
+Look for class paths sharing the same package directory, such as:
 
 ```text
 com/acme/util/StringHelper.class
 com/acme/util/DateHelper.class
 ```
 
-Xem module descriptor và các package được công bố:
+Inspect module descriptors and exposed packages:
 
 ```bash
 jar --describe-module --file dist/acme-core.jar
 jar --describe-module --file dist/acme-plugin.jar
 ```
 
-Lệnh này giúp xác nhận tên module, module descriptor và thông tin package. Với automatic module, tên module được suy ra từ tên JAR và package export có quy tắc khác explicit module; vẫn phải kiểm tra package overlap trong toàn bộ tập module.
+This command helps confirm module names, module descriptors, and package information. For automatic modules, the module name is derived from the JAR name and package exports follow different rules than explicit modules; you must still check for package overlap across the entire module set.
 
-## 4. Kiểm tra module graph bằng Java launcher
+## 4. Validating the Module Graph with the Java Launcher
 
-Có thể yêu cầu Java validate các module trên module path:
+You can ask Java to validate modules on the module path:
 
 ```bash
 java --validate-modules \
@@ -93,25 +93,25 @@ java --validate-modules \
   --add-modules ALL-MODULE-PATH
 ```
 
-`ALL-MODULE-PATH` yêu cầu đưa các module quan sát được trên module path vào phạm vi kiểm tra. Nếu graph có xung đột hoặc module không hợp lệ, lệnh có thể báo lỗi thay vì kết thúc thành công.
+`ALL-MODULE-PATH` requests adding all observable modules on the module path into the validation scope. If the graph has conflicts or invalid modules, the command can report errors instead of exiting cleanly.
 
-Đây là bước kiểm tra module graph tổng thể. Lỗi có thể liên quan tới dependency hoặc cấu hình module khác, không chỉ split package; hãy đọc đầy đủ thông báo lỗi để xác định hai module và package liên quan.
+This is a holistic module graph check. Errors may relate to dependencies or other module configuration issues, not only split packages; read the full error message to identify the two modules and packages involved.
 
-Có thể kiểm tra dependency và descriptor của một module cụ thể bằng `jdeps`:
+You can check dependencies and the descriptor of a specific module with `jdeps`:
 
 ```bash
 jdeps --check com.acme.app --module-path dist
 ```
 
-`jdeps --check` hỗ trợ xem xét module descriptor và dependency của module được chỉ định. Dùng nó cùng với module validation và kiểm tra package inventory để có kết quả rõ ràng.
+`jdeps --check` helps inspect the module descriptor and dependencies of the specified module. Use it together with module validation and package inventory checks for clear results.
 
-## 5. Tự động quét package trùng giữa các JAR
+## 5. Automatically Scanning for Duplicate Packages Across JARs
 
-Để chặn lỗi ngay trong build/release pipeline, có thể tạo một package inventory từ tất cả JAR trong thư mục phát hành rồi tìm package xuất hiện ở nhiều artifact.
+To catch errors right in the build/release pipeline, you can build a package inventory from all JARs in the release directory and find packages appearing in multiple artifacts.
 
-Script Python dưới đây dùng thư viện chuẩn `zipfile`, không cần cài package bên ngoài. Nó nhận một thư mục phát hành, quét đệ quy các file `.jar`, bỏ qua `module-info.class` và chuẩn hóa đường dẫn class trong multi-release JAR trước khi xác định package.
+The Python script below uses the standard library `zipfile` module and requires no external packages. It takes a release directory, recursively scans `.jar` files, skips `module-info.class`, and normalizes class paths in multi-release JARs before determining packages.
 
-Lưu thành `check_split_packages.py`:
+Save as `check_split_packages.py`:
 
 ```python
 from collections import defaultdict
@@ -183,13 +183,13 @@ if duplicates:
 print("No package appears in more than one JAR.")
 ```
 
-Chạy script từ thư mục project:
+Run the script from the project directory:
 
 ```bash
 python check_split_packages.py dist
 ```
 
-Kết quả khi có lỗi:
+Output when an error is found:
 
 ```text
 Scanned 3 JAR file(s) under dist
@@ -199,27 +199,27 @@ Split packages found:
     - acme-plugin.jar
 ```
 
-Kết quả khi không có package trùng:
+Output when there are no duplicate packages:
 
 ```text
 Scanned 3 JAR file(s) under dist
 No package appears in more than one JAR.
 ```
 
-Script kiểm tra package được suy ra từ đường dẫn các file class. Nó là một hàng rào kiểm tra hữu ích cho artifact, nhưng không thay thế việc validate module graph bằng JDK. Nếu một JAR lỗi định dạng hoặc không đọc được, script kết thúc với mã lỗi khác 0 để pipeline không bỏ qua artifact đó.
+The script checks packages inferred from class file paths. It is a useful artifact guardrail, though not a substitute for validating the module graph with the JDK. If a JAR is malformed or unreadable, the script exits with a non-zero status code so the pipeline does not silently skip that artifact.
 
-## 6. Tích hợp kiểm tra vào quy trình phát hành
+## 6. Integrating Checks into the Release Process
 
-Một quy trình đơn giản có thể đặt các bước sau sau khi build tất cả JAR:
+A straightforward workflow can add the following steps after building all JARs:
 
-1. Tạo thư mục staging chỉ chứa các artifact sẽ phát hành cùng nhau.
-2. Chạy package inventory để phát hiện package xuất hiện trong nhiều JAR.
-3. Chạy `java --validate-modules` trên module path staging.
-4. Chạy `jdeps --check` cho các module ứng dụng quan trọng.
-5. Chạy integration test trên module path, không chỉ trên classpath.
-6. Chỉ đóng gói hoặc publish artifact khi tất cả kiểm tra bắt buộc thành công.
+1. Create a staging directory containing only the artifacts to be released together.
+2. Run a package inventory to detect packages appearing in multiple JARs.
+3. Run `java --validate-modules` on the staging module path.
+4. Run `jdeps --check` for critical application modules.
+5. Run integration tests on the module path, not only on the classpath.
+6. Only package or publish artifacts when all mandatory checks pass.
 
-Ví dụ pipeline ở mức lệnh:
+Example pipeline at the command level:
 
 ```bash
 python check_split_packages.py dist
@@ -231,34 +231,34 @@ java --validate-modules \
 jdeps --check com.acme.app --module-path dist
 ```
 
-Trong CI, cần cấu hình các lệnh này làm bước bắt buộc. Nếu script tìm thấy package trùng hoặc Java validation trả về lỗi, build phải thất bại để artifact không được phát hành.
+In CI, configure these commands as mandatory steps. If the script finds duplicate packages or Java validation returns an error, the build must fail so the artifacts are not published.
 
-Nên chạy kiểm tra trên đúng thư mục staging cuối cùng. Kiểm tra source set hoặc thư mục build trung gian có thể bỏ sót JAR được đóng gói từ dependency bên ngoài hoặc artifact được copy thêm ở bước release.
+Run checks on the exact final staging directory. Checking source sets or intermediate build directories can miss JARs packaged from external dependencies or artifacts copied in during the release step.
 
-## 7. Cách xử lý khi phát hiện split package
+## 7. How to Resolve a Detected Split Package
 
-Khi hai JAR cùng chứa package, trước tiên xác định package đó thuộc về module nào theo thiết kế.
+When two JARs share the same package, first determine which module owns that package by design.
 
-- **Chuyển class về một module sở hữu package:** nếu các class cùng thuộc một thành phần, gom chúng vào một module và chỉ phát hành package từ module đó.
-- **Tách package theo trách nhiệm:** nếu hai nhóm class có mục đích khác nhau, đổi package của một nhóm, ví dụ `com.acme.core.util` và `com.acme.plugin.util`.
-- **Điều chỉnh ranh giới module:** nếu hai module cần chia sẻ implementation nội bộ chặt chẽ, cân nhắc gộp chúng hoặc thiết kế lại API giữa module.
-- **Kiểm tra dependency đóng gói:** một thư viện bên thứ ba có thể mang package trùng vào distribution. Cần nâng phiên bản, loại trừ artifact xung đột hoặc chọn cách đóng gói phù hợp với giấy phép và runtime.
+- **Move classes into a single owning module:** if the classes belong to the same component, consolidate them into one module and publish the package only from that module.
+- **Split packages by responsibility:** if the two groups of classes serve different purposes, rename the package of one group, e.g., `com.acme.core.util` and `com.acme.plugin.util`.
+- **Adjust module boundaries:** if two modules need to share tight internal implementations, consider merging them or redesigning the API between modules.
+- **Check packaged dependencies:** a third-party library may bring a duplicate package into the distribution. Upgrade versions, exclude conflicting artifacts, or choose a packaging approach compatible with licensing and runtime constraints.
 
-Không nên chỉ đổi tên module trong `module-info.java`: tên module khác nhau không giải quyết được việc hai module vẫn chứa cùng package. Cũng không nên dùng `--patch-module` như cách sửa mặc định cho artifact phát hành; đây là cơ chế đặc biệt để bổ sung nội dung vào một module đã chọn và cần được dùng có chủ đích.
+Do not simply change the module name in `module-info.java`: different module names do not fix two modules containing the same package. Also avoid using `--patch-module` as a default workaround for release artifacts; that is a special mechanism for supplementing a chosen module and should be used intentionally.
 
-## 8. Những trường hợp cần lưu ý
+## 8. Edge Cases to Watch For
 
-- **Classpath và module path:** ứng dụng cũ có thể chạy khi nhiều JAR cùng đóng góp class vào một package trên classpath. Khi chuyển các JAR thành named hoặc automatic modules, module graph áp dụng các ràng buộc khác.
-- **Automatic modules:** tên module được suy ra từ tên JAR nếu không có descriptor. Chúng vẫn tham gia module graph và có thể tạo xung đột package.
-- **Multi-release JAR:** class có thể nằm trong `META-INF/versions/<version>/`. Công cụ kiểm tra cần tính cả các package trong các phiên bản class này.
-- **Package-private:** cùng package name không đồng nghĩa cùng runtime package nếu class thuộc các module khác nhau.
-- **Package trùng nhưng không cùng được đọc:** một số graph cụ thể có thể chưa phát sinh xung đột resolution nếu không có module nào đọc đồng thời các nguồn export trùng. Tuy nhiên, phát hành package ownership không rõ ràng vẫn làm hệ thống mong manh khi graph thay đổi.
+- **Classpath vs. module path:** legacy applications can run when multiple JARs contribute classes to the same package on the classpath. When turning those JARs into named or automatic modules, the module graph enforces different constraints.
+- **Automatic modules:** the module name is derived from the JAR name if no descriptor exists. They still participate in the module graph and can create package conflicts.
+- **Multi-release JARs:** classes can reside inside `META-INF/versions/<version>/`. Inspection tools must account for packages in these versioned classes as well.
+- **Package-private:** having the same package name does not mean the same runtime package if the classes belong to different modules.
+- **Duplicate packages not read together:** some specific graphs may not immediately trigger a resolution conflict if no module simultaneously reads the overlapping export sources. However, releasing with unclear package ownership still leaves the system fragile when the graph evolves.
 
-## Ghi nhớ
+## Key Takeaways
 
-- Split package là cùng một package name được chia giữa nhiều module/JAR.
-- Trong module graph, hai module export cùng package tới một module đọc cả hai có thể khiến resolution thất bại.
-- Áp dụng quy tắc một package có một module sở hữu trong distribution.
-- Quét tất cả JAR phát hành cùng nhau; kiểm tra từng JAR riêng lẻ là chưa đủ.
-- Dùng package inventory, `java --validate-modules`, `jdeps --check` và integration test trên module path.
-- Sửa tận gốc bằng cách gom class vào một module hoặc tách package theo trách nhiệm; đổi tên module không sửa được split package.
+- A split package is the same package name divided across multiple modules/JARs.
+- In a module graph, two modules exporting the same package to a module that reads both can cause resolution to fail.
+- Apply the rule that one package has one owning module in a distribution.
+- Scan all JARs released together; checking each JAR in isolation is not enough.
+- Use a package inventory, `java --validate-modules`, `jdeps --check`, and integration tests on the module path.
+- Fix the root cause by consolidating classes into one module or splitting packages by responsibility; renaming modules does not fix split packages.

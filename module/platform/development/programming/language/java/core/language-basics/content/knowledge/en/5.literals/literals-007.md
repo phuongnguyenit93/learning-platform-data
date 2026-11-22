@@ -1,52 +1,52 @@
-# Escape sequence cho xuống dòng, dấu nháy và dấu gạch chéo ngược trong Java
+# Escape Sequences for Newlines, Quotes, and Backslashes in Java
 
-## 1. Escape sequence là gì?
+## 1. What is an escape sequence?
 
-Trong **string literal** (`"..." `) và **character literal** (`'...'`) của Java, dấu gạch chéo ngược `\\` mở đầu một **escape sequence**: cách viết một ký tự đặc biệt bằng tổ hợp ký tự trong mã nguồn.
+In Java **string literals** (`"..." `) and **character literals** (`'...'`), a backslash `\\` starts an **escape sequence**: a way of writing a special character using a combination of characters in source code.
 
-Ví dụ:
+Example:
 
 ~~~java
 System.out.println("Dong mot\nDong hai");
 ~~~
 
-Trong file nguồn, `\n` được viết bằng hai ký tự `\\` và `n`, nhưng **khi Java tạo chuỗi**, chúng biểu diễn **một ký tự xuống dòng** (line feed, LF, U+000A). Đầu ra:
+In the source file, `\n` is written with two characters `\\` and `n`, yet **when Java creates the string**, they represent **one newline character** (line feed, LF, U+000A). Output:
 
 ~~~text
 Dong mot
 Dong hai
 ~~~
 
-Điều này khác chuỗi `"Dong mot\\nDong hai"`, trong đó `\\` đã được escape để trở thành **dấu gạch chéo ngược thật**, rồi theo sau là chữ `n`.
+This differs from the string `"Dong mot\\nDong hai"`, in which `\\` has been escaped to become a **literal backslash**, followed by the letter `n`.
 
-**Ba escape cần nắm chắc trong bài:**
+**Three escapes to master in this lesson:**
 
-- `\n`: xuống dòng LF.
-- `\"`: đưa dấu nháy kép `"` vào một chuỗi được bao bởi nháy kép.
-- `\\`: đưa một dấu gạch chéo ngược `\\` vào chuỗi hoặc ký tự.
+- `\n`: LF newline.
+- `\"`: inserts a double quote `"` into a string enclosed by double quotes.
+- `\\`: inserts a backslash `\\` into a string or character.
 
-Các escape được xử lý khi phân tích **literal trong mã nguồn**, không phải là quy tắc tự động áp dụng cho mọi dữ liệu nhận từ bàn phím, file hoặc API.
+Escapes are processed when parsing **literals in source code**, not as an automatic rule applied to every piece of data received from the keyboard, files, or APIs.
 
-## 2. Bảng tra cứu ngắn
+## 2. Quick reference table
 
-| Cú pháp trong mã Java | Ký tự/ý nghĩa | Trường hợp sử dụng |
+| Syntax in Java code | Character/meaning | Use case |
 |---|---|---|
-| `\n` | Line feed, LF (U+000A) | Tạo dòng mới trong chuỗi |
-| `\r` | Carriage return, CR (U+000D) | Giao thức hoặc dữ liệu cần CR |
-| `\t` | Tab ngang | Thụt/căn bằng ký tự tab |
-| `\"` | Dấu nháy kép `"` | Viết nháy kép trong string literal |
-| `\'` | Dấu nháy đơn `'` | Viết nháy đơn trong char literal |
-| `\\` | Một dấu gạch chéo ngược `\\` | Đường dẫn, regex, biểu diễn escape dưới dạng chữ |
-| `\b` | Backspace | Ký tự điều khiển, ít dùng để định dạng văn bản |
-| `\f` | Form feed | Ký tự điều khiển, ít dùng |
+| `\n` | Line feed, LF (U+000A) | Creating a new line in a string |
+| `\r` | Carriage return, CR (U+000D) | Protocols or data requiring CR |
+| `\t` | Horizontal tab | Indenting/aligning with tab characters |
+| `\"` | Double quote `"` | Writing double quotes inside a string literal |
+| `\'` | Single quote `'` | Writing a single quote inside a char literal |
+| `\\` | One backslash `\\` | Paths, regex, representing an escape literally |
+| `\b` | Backspace | Control character, rarely used for text formatting |
+| `\f` | Form feed | Control character, rarely used |
 
-Tất cả ví dụ thuộc **Java 17+**. Những ký tự như `\\`, `"`, `'` trong bảng là ký hiệu mô tả; để viết chúng trong mã Java, phải chú ý dấu phân cách và escape của từng loại literal.
+All examples are for **Java 17+**. Characters such as `\\`, `"`, and `'` in the table are descriptive symbols; to write them in Java code, pay attention to the delimiters and escape rules of each literal kind.
 
-Java không hỗ trợ mọi kết hợp bắt đầu bằng `\\`: chẳng hạn `\q` không phải escape hợp lệ trong string literal thông thường.
+Java does not support arbitrary combinations starting with `\\`: for instance, `\q` is not a valid escape in an ordinary string literal.
 
-## 3. Xuống dòng: `\\n` khác với `\\\\n`
+## 3. Newlines: `\\n` differs from `\\\\n`
 
-Xét hai giá trị:
+Consider two values:
 
 ~~~java
 String withNewline = "A\nB";
@@ -56,7 +56,7 @@ System.out.println(withNewline);
 System.out.println(literalBackslashN);
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 A
@@ -64,7 +64,7 @@ B
 A\nB
 ~~~
 
-Có thể tự kiểm chứng bằng độ dài:
+You can verify this yourself by checking lengths:
 
 ~~~java
 System.out.println("\n".length());   // 1
@@ -73,66 +73,66 @@ System.out.println("A\nB".length()); // 3
 System.out.println("A\\nB".length());// 4
 ~~~
 
-Giải thích: `"A\nB"` gồm `A`, **một** ký tự LF, `B`; `"A\\nB"` gồm `A`, `\\`, `n`, `B`.
+Explanation: `"A\nB"` consists of `A`, **one** LF character, and `B`; `"A\\nB"` consists of `A`, `\\`, `n`, and `B`.
 
-### `print` khác `println`
+### `print` differs from `println`
 
 ~~~java
 System.out.print("A\nB");
 System.out.println("C");
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 A
 BC
 ~~~
 
-`print` không tự thêm dấu kết thúc dòng sau giá trị; chỉ có `\n` nằm trong chuỗi. `println` in phần nội dung và thêm dấu kết thúc dòng theo môi trường.
+`print` does not automatically append a line terminator after the value; only `\n` is inside the string. `println` prints the content and appends a line terminator according to the environment.
 
-**Phân biệt LF với xuống dòng theo hệ điều hành:**
+**Distinguishing LF from operating-system line breaks:**
 
-- `\n` luôn là ký tự LF, bất kể chương trình chạy trên Windows, Linux hay macOS.
-- `System.lineSeparator()` cho ký tự/chuỗi phân tách dòng theo nền tảng.
-- `System.out.println(...)` thêm dấu xuống dòng theo cơ chế của `PrintStream`, thường phù hợp với nền tảng.
-- `System.out.printf("A%nB%n");` dùng `%n` của định dạng để xuống dòng theo nền tảng.
+- `\n` is always the LF character, regardless of whether the program runs on Windows, Linux, or macOS.
+- `System.lineSeparator()` gives the platform-specific line separator character/string.
+- `System.out.println(...)` appends a line break via `PrintStream`'s mechanism, typically matching the platform.
+- `System.out.printf("A%nB%n");` uses the format specifier `%n` for a platform-specific line break.
 
-Nếu giao thức/tệp dữ liệu yêu cầu **LF chính xác**, hãy dùng `\n`; nếu mong đầu ra văn bản theo nền tảng, `println` hoặc `%n` thường thích hợp. Đừng tự giả định mọi tình huống đều cần `\r\n`.
+If a protocol or data file requires **exact LF**, use `\n`; if you want platform-appropriate text output, `println` or `%n` is usually suitable. Do not assume every situation requires `\r\n`.
 
-## 4. Dấu nháy kép: `\\\"`
+## 4. Double quotes: `\\\"`
 
-String literal Java dùng dấu nháy kép làm dấu **mở và đóng**. Muốn chứa dấu nháy kép thật bên trong chuỗi, phải escape:
+Java string literals use double quotes as **opening and closing** delimiters. To include a literal double quote inside a string, you must escape it:
 
 ~~~java
 String message = "Lan noi: \"Xin chao!\"";
 System.out.println(message);
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Lan noi: "Xin chao!"
 ~~~
 
-Không có escape, đoạn sau gây lỗi biên dịch do dấu nháy kết thúc chuỗi quá sớm:
+Without escaping, the following causes a compile error because the quote terminates the string too early:
 
 ~~~java
-// Sai: String bad = "Lan noi: "Xin chao!"";
+// Invalid: String bad = "Lan noi: "Xin chao!"";
 ~~~
 
-Dấu nháy đơn **không bắt buộc escape trong string literal** được bao bằng nháy kép:
+Single quotes **do not have to be escaped inside a string literal** enclosed by double quotes:
 
 ~~~java
 String text = "It's Java";
 System.out.println(text); // It's Java
 ~~~
 
-Đừng thêm dấu `\\` không cần thiết khắp chuỗi, vì một số tổ hợp escape không hợp lệ hoặc khiến nội dung thật khác mong muốn.
+Do not add unnecessary `\\` characters throughout a string, as some escape combinations are invalid or make the actual content differ from what you intended.
 
-## 5. Dấu nháy đơn và char literal: `\\'`
+## 5. Single quotes and char literals: `\\'`
 
-Character literal dùng dấu nháy đơn `'...'` và phải biểu diễn **một giá trị `char`**, tức một đơn vị mã UTF-16.
+Character literals use single quotes `'...'` and must represent **one `char` value**, meaning one UTF-16 code unit.
 
 ~~~java
 char quote = '\'';
@@ -144,20 +144,20 @@ System.out.println(doubleQuote);// "
 System.out.println((int) newline); // 10
 ~~~
 
-Vì dấu `'` là dấu phân cách của character literal, bạn cần `'\''` để biểu diễn chính dấu nháy đơn. Dấu nháy kép có thể viết trực tiếp trong char literal như `'"'`.
+Because `'` is the delimiter for character literals, you need `'\''` to represent the single quote itself. A double quote can be written directly in a char literal as `'"'`.
 
-Không nhầm:
+Do not confuse:
 
-- `'\n'` là **một char** mang mã 10.
-- `"\n"` là **một String** có độ dài 1.
-- `'\\'` là **một char** mang dấu gạch chéo ngược.
-- `"\\n"` là **một String** gồm hai ký tự gạch chéo ngược và `n`.
+- `'\n'` is **one char** with code 10.
+- `"\n"` is **one String** of length 1.
+- `'\\'` is **one char** holding a backslash.
+- `"\\n"` is **one String** consisting of two characters: backslash and `n`.
 
-Những đoạn như `char invalid = 'ab';` hoặc `char invalid = '';` không hợp lệ: character literal không được chứa hai ký tự thông thường hoặc rỗng.
+Snippets like `char invalid = 'ab';` or `char invalid = '';` are invalid: a character literal cannot contain two ordinary characters or be empty.
 
-## 6. Dấu gạch chéo ngược: `\\\\`
+## 6. Backslashes: `\\\\`
 
-Trong Java source, dấu `\\` mở đầu escape. Vì vậy để có **một dấu gạch chéo ngược thật** trong chuỗi hoặc ký tự, viết **hai dấu** `\\`:
+In Java source code, `\\` starts an escape. Therefore, to put **one literal backslash** into a string or character, write **two** `\\`:
 
 ~~~java
 String separator = "\\";
@@ -166,25 +166,25 @@ System.out.println(separator); // \
 System.out.println(slash);     // \
 ~~~
 
-Ví dụ đường dẫn Windows:
+Windows path example:
 
 ~~~java
 String path = "C:\\Users\\Lan\\notes.txt";
 System.out.println(path);
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 C:\Users\Lan\notes.txt
 ~~~
 
-**Hai bẫy phổ biến:**
+**Two common traps:**
 
-1. `"C:\Users\Lan"` chứa `\U` và `\L` không hợp lệ trong Java string literal; compiler báo lỗi *illegal escape character*.
-2. `"C:\new\temp"` **có thể biên dịch** nhưng sai nội dung đường dẫn: `\n` thành xuống dòng, `\t` thành tab.
+1. `"C:\Users\Lan"` contains `\U` and `\L`, which are invalid in a Java string literal; the compiler reports an *illegal escape character* error.
+2. `"C:\new\temp"` **may compile** yet produce the wrong path content: `\n` becomes a newline and `\t` becomes a tab.
 
-Tốt nhất khi thao tác đường dẫn thực tế là dùng `java.nio.file.Path`/ `Paths`, thay vì nối đường dẫn phụ thuộc hệ điều hành bằng tay:
+When working with real file paths, it is best to use `java.nio.file.Path`/`Paths`, rather than manually concatenating OS-dependent paths:
 
 ~~~java
 java.nio.file.Path file =
@@ -192,11 +192,11 @@ java.nio.file.Path file =
 System.out.println(file.getFileName()); // notes.txt
 ~~~
 
-Với API nhận đường dẫn, cách viết `Path.of("data", "notes.txt")` tránh phải chèn `\\` chỉ để nối hai thành phần. Đây là ví dụ về đường dẫn tương đối; file không nhất thiết phải tồn tại.
+With APIs that accept paths, writing `Path.of("data", "notes.txt")` avoids inserting `\\` just to join two components. This is a relative path example; the file does not necessarily need to exist.
 
-## 7. Chương trình Java 17 chạy được và kết quả rõ ràng
+## 7. Runnable Java 17 program with clear output
 
-Tạo tệp **`EscapeDemo.java`**:
+Create the file **`EscapeDemo.java`**:
 
 ~~~java
 public final class EscapeDemo {
@@ -225,7 +225,7 @@ public final class EscapeDemo {
 }
 ~~~
 
-Mở terminal trong thư mục chứa file; cần **JDK 17+**.
+Open a terminal in the directory containing the file; **JDK 17+** is required.
 
 **Bash (Linux/macOS):**
 
@@ -245,7 +245,7 @@ javac --release 17 -encoding UTF-8 .\EscapeDemo.java
 java -cp . EscapeDemo
 ~~~
 
-Đầu ra kỳ vọng:
+Expected output:
 
 ~~~text
 1) newline:
@@ -260,15 +260,15 @@ Dong 2
 8) equals: true
 ~~~
 
-Hai dòng `Dong 1` và `Dong 2` xuất hiện tách biệt vì `multiLine` chứa **LF thật**. Dòng `4) literal: \n` hiển thị đúng hai ký tự `\\` và `n` vì biến `visibleEscape` có giá trị `"\\n"`.
+The two lines `Dong 1` and `Dong 2` appear separately because `multiLine` contains a **real LF**. Line `4) literal: \n` displays the exact two characters `\\` and `n` because `visibleEscape` has the value `"\\n"`.
 
-Các lệnh ví dụ được thiết kế chạy độc lập; kết quả trên là **expected output** để người học tự đối chiếu, không phụ thuộc thư viện ngoài.
+The example commands are designed to run standalone; the output above is the **expected output** for learners to verify themselves, with no external library dependencies.
 
-## 8. Escape trong chuỗi không phải phép thay thế cho mọi dữ liệu
+## 8. String escapes are not a substitution rule for all data
 
-Nếu ứng dụng đọc một chuỗi có **hai ký tự** `\\` và `n` từ file hoặc đầu vào người dùng, Java **không tự chuyển** chúng thành LF. Escape sequence được diễn giải khi phân tích literal trong **source code**.
+If an application reads a string containing the **two characters** `\\` and `n` from a file or user input, Java **does not automatically convert** them into LF. Escape sequences are interpreted when parsing literals in **source code**.
 
-Ví dụ:
+Example:
 
 ~~~java
 String typed = "\\n";
@@ -277,57 +277,57 @@ String actual = "\n";
 System.out.println(typed.equals(actual)); // false
 ~~~
 
-Trong một API nhận chuỗi, muốn hỗ trợ cú pháp escape từ dữ liệu đầu vào thì cần có **quy tắc parse riêng** cho định dạng ấy (JSON, properties, ngôn ngữ template, v.v.). Mỗi định dạng có quy tắc escape khác nhau: không lấy cú pháp Java áp đặt nguyên xi cho mọi trường hợp.
+In a string-accepting API, if you want to support escape syntax from input data, you need **separate parsing rules** for that format (JSON, properties, template languages, etc.). Each format has different escape rules: do not impose Java syntax verbatim on every case.
 
-### Nhiều lớp escape
+### Multiple escape layers
 
-Khi chuỗi Java được dùng làm **regex**, backslash có thể phải đi qua **hai lớp cú pháp**: string literal của Java và biểu thức chính quy. Ví dụ:
+When a Java string is used as a **regex**, a backslash may have to pass through **two syntax layers**: Java's string literal and the regular expression. Example:
 
 ~~~java
 String regex = "\\d+";
 System.out.println("123".matches(regex)); // true
 ~~~
 
-Trong source Java, `"\\d+"` tạo chuỗi thật là `\d+`; sau đó regex engine diễn giải `\d` là lớp ký tự chữ số. Viết `"\d+"` trực tiếp trong Java source là **illegal escape character** vì `\d` không phải escape của string literal Java.
+In Java source code, `"\\d+"` produces the actual string `\d+`; then the regex engine interprets `\d` as the digit character class. Writing `"\d+"` directly in Java source is an **illegal escape character** because `\d` is not a Java string literal escape.
 
-**Ranh giới bài học:** chỉ cần nhận ra dấu `\\` có thể mang vai trò khác nhau ở mỗi lớp cú pháp; học đầy đủ regex/JSON là chủ đề khác.
+**Lesson boundary:** you only need to recognize that `\\` can play different roles in each syntax layer; learning regex/JSON in full is a separate topic.
 
-## 9. Những lỗi thường gặp
+## 9. Common mistakes
 
-| Code / triệu chứng | Nguyên nhân | Cách sửa |
+| Code / symptom | Cause | Fix |
 |---|---|---|
-| `String s = "A\nB";` nhưng muốn thấy `A\nB` trên một dòng | `\n` tạo LF thật | `"A\\nB"` |
-| `String s = "C:\Users\Lan";` | `\U` và `\L` không hợp lệ | `"C:\\Users\\Lan"` |
-| `String s = "A\qB";` | `\q` không phải escape hợp lệ | Bỏ `\\` hoặc dùng `\\q` nếu cần ký tự `\\` thật |
-| `String s = "Lan noi: "Hi"";` | Dấu nháy kép không được escape | `"Lan noi: \"Hi\""` |
-| `char c = ''';` | Dấu nháy đơn đóng literal sớm | `char c = '\'';` |
-| `String s = "A\nB";` cho length 3 | Hiểu nhầm `\n` gồm 2 ký tự khi chạy | LF là **1 char** |
-| `String s = "\\n";` cho length 2 | Nhầm `\\n` với LF | Giá trị gồm `\\` và `n` |
-| `System.out.print("A\nB")` không xuống dòng sau B | `print` không thêm dấu dòng cuối | Dùng `println` hoặc thêm ký tự cần thiết |
+| `String s = "A\nB";` yet want to see `A\nB` on one line | `\n` creates a real LF | `"A\\nB"` |
+| `String s = "C:\Users\Lan";` | `\U` and `\L` are invalid | `"C:\\Users\\Lan"` |
+| `String s = "A\qB";` | `\q` is not a valid escape | Remove `\\` or use `\\q` if a literal `\\` is needed |
+| `String s = "Lan noi: "Hi"";` | Double quotes are not escaped | `"Lan noi: \"Hi\""` |
+| `char c = ''';` | Single quote closes the literal early | `char c = '\'';` |
+| `String s = "A\nB";` gives length 3 | Mistakenly thinking `\n` is 2 characters at runtime | LF is **1 char** |
+| `String s = "\\n";` gives length 2 | Confusing `\\n` with LF | Value consists of `\\` and `n` |
+| `System.out.print("A\nB")` has no newline after B | `print` does not add a trailing line break | Use `println` or add the needed character |
 
-Trong những lỗi dạng *illegal escape character*, trước tiên hãy xác định ký tự **ngay sau dấu `\\`** ở vị trí bị báo; đó thường là phần mã nguồn không hợp lệ.
+In *illegal escape character* errors, first identify the character **immediately after `\\`** at the reported location; that is usually the invalid source fragment.
 
-## 10. Những lưu ý quan trọng cho Java 17+
+## 10. Important notes for Java 17+
 
-**Không gõ xuống dòng thật bên trong string literal thông thường:**
+**Do not type a literal newline inside an ordinary string literal:**
 
 ~~~java
-// Sai nếu viết như dưới đây thành hai dòng source:
+// Invalid if written as two source lines below:
 // String s = "A
 // B";
 ~~~
 
-Muốn xuống dòng, dùng `\n` trong string literal hoặc sử dụng **text block** (`"""`) khi nội dung thực sự nhiều dòng. Trong text block, các escape như `\n`, `\"`, `\\` vẫn có quy tắc riêng của Java; tuy nhiên text block có thêm cách xử lý xuống dòng và thụt lề, không nên dùng chỉ để thay cho một dấu `\n` đơn giản.
+To break lines, use `\n` in a string literal or use a **text block** (`"""`) when the content is genuinely multi-line. Inside a text block, escapes such as `\n`, `\"`, and `\\` still follow Java's rules; however, text blocks also have newline and indentation handling, so they should not be used merely to replace a simple `\n`.
 
-**Unicode escape khác escape trong string literal:** Java xử lý Unicode escapes kiểu `\\uXXXX` ở giai đoạn đọc nguồn đặc biệt, **trước khi nhận diện token**; vì vậy không đồng nhất `\n` với mã Unicode escape của LF. Để ghi một ký tự xuống dòng trong string literal, **ưu tiên `\n`** vì dễ đọc và tránh rắc rối từ giai đoạn xử lý Unicode escape.
+**Unicode escapes differ from escapes in string literals:** Java processes Unicode escapes like `\\uXXXX` during a special source-reading stage, **before token recognition**; therefore, do not equate `\n` with the Unicode escape code for LF. To write a newline character in a string literal, **prefer `\n`** because it is readable and avoids complications from the Unicode escape processing stage.
 
-**Không dùng `\r` thay thế `\n` một cách tùy tiện.** `\r` là carriage return; cách terminal hiển thị có thể khác tùy môi trường. Để tạo CRLF trong định dạng yêu cầu cặp ký tự này, dùng `\r\n`.
+**Do not substitute `\r` for `\n` arbitrarily.** `\r` is carriage return; how a terminal displays it can vary by environment. To produce CRLF in formats requiring that pair of characters, use `\r\n`.
 
-**Đừng nhầm dấu gạch chéo xuôi và ngược:** `/` là dấu slash thông thường, không phải mở đầu escape trong Java string literal. `"https://example.com"` không cần viết `\\` trước dấu `/`.
+**Do not confuse forward slash and backslash:** `/` is an ordinary slash, not an escape introducer in Java string literals. `"https://example.com"` does not require writing `\\` before `/`.
 
-## 11. Bài tập có đáp án
+## 11. Exercises with answers
 
-### Bài A — dự đoán độ dài
+### Exercise A — predict lengths
 
 ~~~java
 System.out.println("A\nB".length());
@@ -335,7 +335,7 @@ System.out.println("A\\nB".length());
 System.out.println("\\".length());
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 3
@@ -343,48 +343,48 @@ System.out.println("\\".length());
 1
 ~~~
 
-### Bài B — in dấu nháy
+### Exercise B — print quotes
 
-Hãy tạo chuỗi in ra: `Co ay noi: "Java!"`.
+Create a string that prints: `Co ay noi: "Java!"`.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 System.out.println("Co ay noi: \"Java!\"");
 ~~~
 
-### Bài C — đường dẫn Windows
+### Exercise C — Windows path
 
-Hãy viết một string literal có giá trị `C:\data\notes.txt` (dấu gạch chéo ngược thật).
+Write a string literal with the value `C:\data\notes.txt` (literal backslashes).
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 String path = "C:\\data\\notes.txt";
 ~~~
 
-### Bài D — dấu nháy đơn kiểu char
+### Exercise D — single quote of type char
 
-Muốn khai báo ký tự dấu nháy đơn, viết gì?
+What should you write to declare a single-quote character?
 
-**Đáp án:** `char apostrophe = '\'';`. Không thể viết `char apostrophe = ''';` vì dấu nháy đơn là ký tự phân cách char literal.
+**Answer:** `char apostrophe = '\'';`. You cannot write `char apostrophe = ''';` because the single quote is the char literal delimiter.
 
-### Bài E — phân biệt Java escape và dữ liệu
+### Exercise E — distinguish Java escapes from data
 
-Hai ký tự `\\` và `n` được đọc từ một file văn bản. Biến `String` có tự chứa LF không?
+The two characters `\\` and `n` are read from a text file. Does the `String` variable automatically contain LF?
 
-**Đáp án:** Không. Chúng vẫn là hai ký tự riêng trừ khi định dạng của file/API và code đọc file có cơ chế diễn giải escape. Không gọi `String.replace` mù quáng với dữ liệu chưa hiểu quy tắc.
+**Answer:** No. They remain two separate characters unless the file/API format and the file-reading code have an escape-interpretation mechanism. Do not call `String.replace` blindly on data whose rules you do not understand.
 
-## 12. Checklist hoàn thành
+## 12. Completion checklist
 
-- [ ] Giải thích được tại sao `\n` tạo LF và `\\n` tạo hai ký tự `\\` + `n`.
-- [ ] Biết dùng `\"` để đưa dấu nháy kép vào string literal.
-- [ ] Biết dùng `\'` cho dấu nháy đơn trong char literal.
-- [ ] Biết dùng `\\` để biểu diễn dấu gạch chéo ngược.
-- [ ] Phân biệt `print`, `println`, `\n` và `%n`.
-- [ ] Viết đúng literal cho đường dẫn có dấu `\\`, tránh `\U`/ `\q` không hợp lệ.
-- [ ] Biết `"\n".length() == 1` và `"\\n".length() == 2`.
-- [ ] Không nhầm escape trong source Java với dữ liệu string nhận từ bên ngoài.
-- [ ] Biên dịch và chạy `EscapeDemo.java` trên JDK 17+, đối chiếu từng dòng output.
+- [ ] Explain why `\n` creates LF and `\\n` creates the two characters `\\` + `n`.
+- [ ] Know how to use `\"` to put double quotes into a string literal.
+- [ ] Know how to use `\'` for a single quote in a char literal.
+- [ ] Know how to use `\\` to represent a backslash.
+- [ ] Distinguish `print`, `println`, `\n`, and `%n`.
+- [ ] Write valid literals for paths with `\\`, avoiding invalid `\U`/`\q`.
+- [ ] Know that `"\n".length() == 1` and `"\\n".length() == 2`.
+- [ ] Do not confuse escapes in Java source code with string data received from outside.
+- [ ] Compile and run `EscapeDemo.java` on JDK 17+, verifying each line of output.
 
-**Kết luận:** Trong Java, dấu `\\` là ký hiệu mở đầu escape khi nằm trong string/char literal. `\n` tạo LF thật, `\"` tạo dấu nháy kép và `\\` tạo một dấu gạch chéo ngược. Muốn **in nguyên văn ký hiệu escape** như `\n`, hãy escape chính dấu gạch chéo ngược thành `\\n`.
+**Conclusion:** In Java, `\\` is the escape introducer inside string/char literals. `\n` produces a real LF, `\"` produces a double quote, and `\\` produces one backslash. To **print an escape sequence literally** such as `\n`, escape the backslash itself as `\\n`.

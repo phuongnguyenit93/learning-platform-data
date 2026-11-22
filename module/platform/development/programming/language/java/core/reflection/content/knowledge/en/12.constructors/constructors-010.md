@@ -1,33 +1,33 @@
-# Vì sao không dùng `Class.newInstance()` đã lỗi thời?
+# Why Not Use the Obsolete `Class.newInstance()`?
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-Khi học Reflection, chúng ta thường gặp đoạn mã tạo object theo tên class:
+When learning Reflection, we often encounter a snippet creating an object by class name:
 
 ```java
 Class<?> type = Class.forName("com.example.Plugin");
 Object instance = type.newInstance();
 ```
 
-Lệnh `Class.newInstance()` ở dòng thứ hai **đã bị đánh dấu deprecated từ Java 9**. Java 17 vẫn có phương thức này để tương thích mã cũ, nhưng code mới nên dùng `Constructor<T>.newInstance(...)` qua một đối tượng `java.lang.reflect.Constructor<T>`.
+The `Class.newInstance()` call on the second line **has been marked deprecated since Java 9**. Java 17 still keeps this method for legacy compatibility, yet new code should use `Constructor<T>.newInstance(...)` through a `java.lang.reflect.Constructor<T>` object.
 
-Điểm cốt lõi không chỉ là cảnh báo deprecated. `Class.newInstance()` có ba hạn chế quan trọng:
+The core issue is not merely the deprecation warning. `Class.newInstance()` has three major limitations:
 
-1. **Chỉ gọi constructor không đối số**; không có cách truyền tham số khởi tạo.
-2. **Có thể phát tán trực tiếp checked exception từ constructor**, trong khi chữ ký `Class.newInstance()` không khai báo exception đó. Đây là vấn đề an toàn kiểm tra ngoại lệ tại compile time.
-3. **Không cho phép quản lý một constructor cụ thể**: khó kiểm tra signature, parameter types, annotations, modifiers và cân nhắc truy cập non-public constructor. API `Constructor` diễn đạt rõ hơn quy trình tìm, kiểm tra quyền rồi gọi constructor.
+1. **Only calls the no-argument constructor**; there is no way to pass initialization parameters.
+2. **Can directly propagate checked exceptions from the constructor**, even though `Class.newInstance()`'s signature does not declare those exceptions. This is a compile-time exception-checking safety issue.
+3. **Does not allow managing a specific constructor**: it is hard to inspect signatures, parameter types, annotations, modifiers, and evaluate access to non-public constructors. The `Constructor` API expresses the process of finding, checking permissions, and then invoking a constructor more clearly.
 
-Cách thay thế cơ bản theo tài liệu Java 17:
+Basic replacement according to Java 17 documentation:
 
 ```java
 T object = clazz.getDeclaredConstructor().newInstance();
 ```
 
-Ở đây `clazz` có kiểu `Class<T>`. `getDeclaredConstructor()` tìm constructor không tham số **khai báo bởi chính lớp**, `newInstance()` mới thực sự tạo instance. Cần xử lý `NoSuchMethodException` và `InvocationTargetException` cùng các lỗi Reflection có thể phát sinh. Không nên hiểu đoạn thay thế là mở quyền cho mọi constructor private; vấn đề truy cập vẫn phải xử lý riêng.
+Here `clazz` has type `Class<T>`. `getDeclaredConstructor()` looks up the no-argument constructor **declared by the class itself**, and `newInstance()` actually creates the instance. You must handle `NoSuchMethodException` and `InvocationTargetException` along with other Reflection errors that may arise. Do not interpret the replacement snippet as opening access to every private constructor; access issues must still be handled separately.
 
-## 2. `Class.newInstance()` thực sự làm gì?
+## 2. What Does `Class.newInstance()` Actually Do?
 
-Chữ ký của phương thức cũ:
+Signature of the legacy method:
 
 ```java
 @Deprecated(since = "9")
@@ -35,25 +35,25 @@ public T newInstance()
         throws InstantiationException, IllegalAccessException
 ```
 
-`Class<T>.newInstance()` cố tạo một đối tượng thuộc class được biểu diễn bởi `Class<T>` thông qua **constructor không đối số** có thể truy cập được từ caller. Nếu lớp chưa được khởi tạo, lời gọi sẽ kích hoạt quá trình khởi tạo lớp khi cần.
+`Class<T>.newInstance()` attempts to create an object of the class represented by `Class<T>` via a **no-argument constructor** accessible from the caller. If the class has not yet been initialized, the call triggers class initialization when necessary.
 
-Điều cần nhớ:
+Points to remember:
 
-- `Class.newInstance()` **không phải** `Constructor.newInstance()`. Hai phương thức cùng tên nhưng thuộc hai kiểu khác nhau và có quy tắc exception khác nhau.
-- Không thể truyền tên, id, service, configuration hoặc các constructor arguments khác vào `Class.newInstance()`.
-- Nếu lớp không có constructor không đối số thích hợp, phương thức cũ thường ném `InstantiationException`. Với API mới, thiếu constructor khi tra cứu sẽ được biểu diễn rõ bằng `NoSuchMethodException`.
-- Nếu lớp hoặc constructor không thể truy cập, phương thức cũ có thể ném `IllegalAccessException`.
-- Nếu constructor tự ném checked exception, phương thức cũ **phát tán trực tiếp ngoại lệ đó** dù chữ ký chỉ khai báo hai loại checked exception ở trên.
+- `Class.newInstance()` **is not** `Constructor.newInstance()`. The two methods share a name yet belong to different types and have different exception rules.
+- You cannot pass a name, id, service, configuration, or other constructor arguments into `Class.newInstance()`.
+- If the class lacks an appropriate no-argument constructor, the legacy method typically throws `InstantiationException`. With the modern API, a missing constructor during lookup is clearly represented by `NoSuchMethodException`.
+- If the class or constructor is inaccessible, the legacy method may throw `IllegalAccessException`.
+- If the constructor itself throws a checked exception, the legacy method **directly propagates that exception** even though its signature declares only the two checked exception types above.
 
-`@Deprecated(since = "9")` là thông báo **không nên tiếp tục sử dụng API này trong code mới**. Deprecated không đồng nghĩa nó đã bị xóa khỏi JDK 17, cũng không có nghĩa mọi lời gọi cũ lập tức thất bại. Nhưng code mới nên dùng phương án được Java SE khuyến nghị.
+`@Deprecated(since = "9")` is a notice that **this API should no longer be used in new code**. Deprecated does not mean it has been removed from JDK 17, nor does it mean all legacy calls fail immediately. Still, new code should use the approach recommended by Java SE.
 
-## 3. Vấn đề nghiêm trọng nhất: phá vỡ kiểm tra checked exception
+## 3. Most Serious Issue: Bypassing Checked Exception Checking
 
-### 3.1. Checked exception thông thường
+### 3.1. Ordinary Checked Exceptions
 
-Java yêu cầu code xử lý hoặc khai báo checked exception mà compiler nhận biết được từ chữ ký phương thức và constructor.
+Java requires code to handle or declare checked exceptions that the compiler recognizes from method and constructor signatures.
 
-Ví dụ một constructor hợp lệ:
+Example of a valid constructor:
 
 ```java
 import java.io.IOException;
@@ -65,11 +65,11 @@ class Loader {
 }
 ```
 
-Lời gọi trực tiếp `new Loader()` yêu cầu caller xử lý hoặc khai báo `IOException`. Đây là bảo đảm quan trọng: compiler buộc chương trình nhận biết trường hợp tạo đối tượng có thể thất bại vì I/O.
+A direct call `new Loader()` requires the caller to handle or declare `IOException`. This is an important safeguard: the compiler forces the program to acknowledge that object creation can fail due to I/O.
 
-### 3.2. Lỗ hổng của phương thức cũ
+### 3.2. Flaw of the Legacy Method
 
-Giả sử code sau chạy với `Class<Loader>`:
+Suppose the following code runs with `Class<Loader>`:
 
 ```java
 @SuppressWarnings("deprecation")
@@ -79,17 +79,17 @@ static Loader legacyCreate()
 }
 ```
 
-**Đây là ví dụ minh họa cần ghép với khai báo `Loader` phía trên.** Nó có thể biên dịch dù không `catch` và không `throws IOException`, bởi compiler chỉ thấy chữ ký `Class.newInstance()` khai báo `InstantiationException` và `IllegalAccessException`.
+**This is an illustrative example that must be paired with the `Loader` declaration above.** It compiles without catching or declaring `throws IOException`, because the compiler only sees `Class.newInstance()`'s signature declaring `InstantiationException` and `IllegalAccessException`.
 
-Khi constructor thực thi và ném `IOException`, `Class.newInstance()` có thể phát tán chính đối tượng exception đó ra ngoài. Nghĩa là runtime có thể ném **`IOException` mà phương thức `legacyCreate()` không khai báo**.
+When the constructor executes and throws `IOException`, `Class.newInstance()` can propagate that exact exception object outward. That means at runtime it can throw **`IOException` without `legacyCreate()` declaring it**.
 
-Kết quả không phải `InvocationTargetException`. Chính hành vi này khiến code có thể bỏ qua cơ chế kiểm tra checked exception của Java. Nó làm thiết kế hợp đồng lỗi của factory/helper khó dự đoán và dễ gây nhầm lẫn khi đọc code.
+The result is not `InvocationTargetException`. This exact behavior lets code bypass Java's checked exception checking mechanism. It makes the error contract of factories/helpers unpredictable and confusing when reading code.
 
-Một lưu ý về kỹ thuật thử lỗi: Nếu bạn muốn chứng minh trực tiếp việc phát tán exception từ code cũ, có thể dùng `catch (Exception e)` hoặc xử lý `Throwable` ở tầng thích hợp; compiler có thể từ chối một `catch (IOException e)` đặt quanh một lời gọi mà theo chữ ký không khai báo `IOException`, nếu trong khối `try` không có thao tác nào khác được khai báo ném `IOException`.
+A testing note: if you want to directly demonstrate exception propagation from legacy code, you can use `catch (Exception e)` or handle `Throwable` at an appropriate level; the compiler may reject a `catch (IOException e)` placed around a call whose signature does not declare `IOException`, if no other operation in the `try` block is declared to throw `IOException`.
 
-### 3.3. API mới giải quyết như thế nào?
+### 3.3. How Does the New API Solve This?
 
-`Constructor.newInstance(...)` có hợp đồng rõ ràng hơn: **ngoại lệ do chính constructor đích ném được bọc trong `InvocationTargetException`**.
+`Constructor.newInstance(...)` has a clearer contract: **exceptions thrown by the target constructor itself are wrapped in `InvocationTargetException`**.
 
 ```java
 Constructor<Loader> constructor = Loader.class.getDeclaredConstructor();
@@ -98,64 +98,64 @@ try {
     Loader loader = constructor.newInstance();
 } catch (InvocationTargetException ex) {
     Throwable original = ex.getCause();
-    // original là IOException("resource unavailable")
+    // original is IOException("resource unavailable")
 }
 ```
 
-Đoạn ví dụ này cần import `java.lang.reflect.Constructor`, `InvocationTargetException` và `Loader` phía trên; các checked exceptions khác của tra cứu/khởi tạo vẫn phải được xử lý hoặc khai báo.
+This example snippet requires importing `java.lang.reflect.Constructor`, `InvocationTargetException`, and `Loader` above; other checked exceptions from lookup/instantiation still need to be handled or declared.
 
-Kết quả là caller phân biệt được hai nhóm lỗi:
+As a result, the caller can distinguish two categories of errors:
 
-- **Reflection không tìm được/không được quyền/không tạo được đối tượng**: các exception thuộc lớp Reflection.
-- **Constructor đã chạy nhưng chính logic constructor thất bại**: `InvocationTargetException`, trong đó `getCause()` là lỗi gốc.
+- **Reflection failed to find/was not permitted/could not create the object**: exceptions belonging to the Reflection layer.
+- **The constructor ran, yet constructor logic itself failed**: `InvocationTargetException`, where `getCause()` holds the original error.
 
-`InvocationTargetException` là checked exception, nên compiler buộc caller xử lý hoặc khai báo nó. Đây là điểm cải thiện trực tiếp về an toàn hợp đồng API.
+`InvocationTargetException` is a checked exception, so the compiler forces the caller to handle or declare it. This is a direct improvement in API contract safety.
 
-## 4. So sánh `Class.newInstance()` và `Constructor.newInstance()`
+## 4. Comparing `Class.newInstance()` and `Constructor.newInstance()`
 
-| Tiêu chí | `Class.newInstance()` (deprecated) | `Constructor.newInstance(args...)` |
+| Criterion | `Class.newInstance()` (deprecated) | `Constructor.newInstance(args...)` |
 |---|---|---|
-| Điểm xuất phát | Đối tượng `Class<T>` | Đối tượng `Constructor<T>` |
-| Kể từ Java 9 | Được đánh dấu `@Deprecated` | API được khuyến nghị cho khởi tạo qua Reflection |
-| Constructor hỗ trợ | Chỉ constructor không đối số | Constructor được chọn theo **signature**, có hoặc không có tham số |
-| Chọn overloaded constructor | Không | Có, thông qua `getConstructor` / `getDeclaredConstructor` với đúng `Class<?>...` |
-| Kiểm tra metadata constructor | Không qua đối tượng constructor riêng | Có `getParameterTypes()`, `getModifiers()`, `getAnnotations()`, `isVarArgs()` ... |
-| Constructor non-public | Cần constructor truy cập được theo ngữ cảnh caller; không có đối tượng để yêu cầu suppression | Có thể tìm bằng `getDeclaredConstructor` rồi xét `canAccess`, `trySetAccessible` trong giới hạn module |
-| Exception từ constructor | Phát tán trực tiếp, kể cả checked exception | Bọc trong `InvocationTargetException` |
-| Thiếu constructor không đối số | Thường `InstantiationException` | `getDeclaredConstructor()` ném `NoSuchMethodException` |
-| Constructor thực thi khi nào? | Ngay trong `Class.newInstance()` | Khi gọi `Constructor.newInstance()`, sau bước tra cứu |
+| Starting point | `Class<T>` object | `Constructor<T>` object |
+| Since Java 9 | Marked `@Deprecated` | Recommended API for instantiation via Reflection |
+| Supported constructors | Only no-argument constructor | Constructor chosen by **signature**, with or without parameters |
+| Selecting overloaded constructor | No | Yes, via `getConstructor` / `getDeclaredConstructor` with exact `Class<?>...` |
+| Inspecting constructor metadata | Not via a separate constructor object | Has `getParameterTypes()`, `getModifiers()`, `getAnnotations()`, `isVarArgs()` ... |
+| Non-public constructor | Needs constructor accessible in caller context; no object to request suppression | Can find via `getDeclaredConstructor` then check `canAccess`, `trySetAccessible` within module limits |
+| Exception from constructor | Propagated directly, including checked exceptions | Wrapped in `InvocationTargetException` |
+| Missing no-argument constructor | Typically `InstantiationException` | `getDeclaredConstructor()` throws `NoSuchMethodException` |
+| When does constructor execute? | Immediately inside `Class.newInstance()` | When calling `Constructor.newInstance()`, after the lookup step |
 
-Cột bên phải **không hứa** rằng mọi constructor đều được phép gọi. Kiểu abstract, enum, lỗi khởi tạo lớp, sai arguments, quyền module và những điều kiện runtime khác vẫn tồn tại.
+The right-hand column **does not promise** every constructor is permitted to be called. Abstract types, enums, class initialization errors, wrong arguments, module permissions, and other runtime conditions still apply.
 
-## 5. Mẫu thay thế phù hợp cho từng nhu cầu
+## 5. Replacement Patterns Tailored to Each Need
 
-### 5.1. Tạo object bằng constructor không đối số
+### 5.1. Creating an Object with a No-Argument Constructor
 
-Nếu biết rõ class có public no-arg constructor:
+If you know the class has a public no-arg constructor:
 
 ```java
 Class<MyService> type = MyService.class;
 
-// Cũ (không nên tiếp tục viết):
+// Old (do not keep writing):
 // MyService service = type.newInstance();
 
-// Mới:
+// New:
 MyService service = type.getDeclaredConstructor().newInstance();
 ```
 
-Đây là snippet minh họa trong ngữ cảnh có lớp `MyService` và cơ chế xử lý checked exceptions; không phải file runnable độc lập.
+This is an illustrative snippet in a context with class `MyService` and checked exception handling; not a standalone runnable file.
 
-`getDeclaredConstructor()` tìm constructor không đối số **kể cả private**. Nó chỉ trả metadata; việc gọi vẫn có thể bị chặn. Khi chủ đích chỉ hỗ trợ **public constructor**, sử dụng:
+`getDeclaredConstructor()` finds a no-argument constructor **even if private**. It only returns metadata; invocation may still be blocked. When intending to support only **public constructors**, use:
 
 ```java
 MyService service = type.getConstructor().newInstance();
 ```
 
-`getConstructor()` chỉ tìm public constructor, còn `getDeclaredConstructor()` tìm constructor ở mọi mức truy cập. **Không tự động bật `setAccessible(true)` cho mọi constructor** khi chuyển đổi API.
+`getConstructor()` finds only public constructors, whereas `getDeclaredConstructor()` finds constructors at all access levels. **Do not automatically enable `setAccessible(true)` for every constructor** when migrating APIs.
 
-### 5.2. Tạo object có constructor tham số
+### 5.2. Creating an Object with a Parameterized Constructor
 
-`Class.newInstance()` không thể thực hiện tình huống này. Với constructor `public Worker(String name, int retries)`:
+`Class.newInstance()` cannot handle this scenario. For constructor `public Worker(String name, int retries)`:
 
 ```java
 Constructor<Worker> constructor =
@@ -164,13 +164,13 @@ Constructor<Worker> constructor =
 Worker worker = constructor.newInstance("report", 3);
 ```
 
-Đây là snippet cần khai báo `Worker` và import `Constructor` trong ngữ cảnh sử dụng.
+This snippet requires declaring `Worker` and importing `Constructor` in the usage context.
 
-Khi tra cứu constructor, các parameter types cần **khớp đúng chữ ký**. Ví dụ `int.class` khác `Integer.class`. Chọn đúng constructor trước khi gọi, thay vì mong `getConstructor` tự chọn overload theo đối số runtime. Khi thực thi `Constructor.newInstance`, Java có một số phép chuyển đổi đối số hợp lệ, nhưng điều này không làm `getConstructor` tự thay đổi luật tìm kiếm chữ ký.
+When looking up a constructor, parameter types must **match the exact signature**. For example, `int.class` differs from `Integer.class`. Select the exact constructor before invoking, instead of expecting `getConstructor` to pick an overload based on runtime arguments. When executing `Constructor.newInstance`, Java supports certain valid argument conversions, yet this does not make `getConstructor` change its signature lookup rules.
 
-### 5.3. Constructor private và kiểm tra module
+### 5.3. Private Constructors and Module Checks
 
-Một số framework có nhu cầu tạo instance qua non-public constructor. Khi thiết kế thật sự đòi hỏi điều này, thực hiện có điều kiện:
+Some frameworks need to create instances via non-public constructors. When the design genuinely requires this, do so conditionally:
 
 ```java
 Constructor<SecretConfig> ctor =
@@ -178,21 +178,21 @@ Constructor<SecretConfig> ctor =
 
 if (!ctor.canAccess(null) && !ctor.trySetAccessible()) {
     throw new IllegalStateException(
-            "Constructor không được phép mở quyền Reflection");
+            "Constructor is not permitted to open Reflection access");
 }
 
 SecretConfig instance = ctor.newInstance("configured");
 ```
 
-Đoạn này cần lớp `SecretConfig` được định nghĩa và xử lý checked exceptions, không phải chương trình độc lập. Với constructor, receiver cho `canAccess` luôn là `null`.
+This snippet requires `SecretConfig` to be defined and checked exceptions handled; it is not a standalone program. For constructors, the receiver for `canAccess` is always `null`.
 
-`trySetAccessible()` có thể trả `false` khi module chứa lớp đích không mở package tương ứng. `setAccessible(true)` có thể ném `InaccessibleObjectException`. Việc `getDeclaredConstructor` tìm thấy constructor private **không** đồng nghĩa đã được quyền sử dụng nó.
+`trySetAccessible()` can return `false` when the module containing the target class does not open the corresponding package. `setAccessible(true)` can throw `InaccessibleObjectException`. The fact that `getDeclaredConstructor` finds a private constructor **does not** mean you are already permitted to use it.
 
-Với ứng dụng thông thường, public factory method, constructor injection hoặc dependency injection là lựa chọn dễ bảo trì hơn so với tự bỏ qua kiểm tra quyền truy cập private.
+For ordinary applications, a public factory method, constructor injection, or dependency injection is easier to maintain than manually bypassing private access checks.
 
-### 5.4. Tạo theo loại được chọn tại runtime
+### 5.4. Creating by a Type Chosen at Runtime
 
-Khi nhận một `Class<? extends Handler>` từ registry tin cậy:
+When receiving a `Class<? extends Handler>` from a trusted registry:
 
 ```java
 static Handler create(Class<? extends Handler> implementation)
@@ -201,22 +201,22 @@ static Handler create(Class<? extends Handler> implementation)
 }
 ```
 
-Hàm này cần các định nghĩa `Handler`/implementations ở dự án. Nó minh họa cách giữ kiểu trả về mà không ép kiểu không kiểm soát. Nếu lớp đã biết khi biên dịch, hãy ưu tiên `new`, constructor reference hoặc factory hơn Reflection.
+This method requires `Handler`/implementation definitions in the project. It illustrates preserving the return type without unchecked casts. If the class is known at compile time, prefer `new`, constructor references, or factories over Reflection.
 
-Đối với tên class hoặc dữ liệu đầu vào từ nguồn không tin cậy, không tự động cho phép tạo bất kỳ class nào chỉ dựa trên chuỗi. Tạo whitelist/registry những implementation hợp lệ, xác nhận chúng triển khai interface mong đợi, và chỉ dùng constructor thuộc contract được cho phép.
+For class names or inputs from untrusted sources, do not automatically allow instantiating arbitrary classes solely from a string. Maintain a whitelist/registry of valid implementations, verify they implement the expected interface, and use only constructors belonging to the allowed contract.
 
-## 6. Chương trình Java 17+ chạy được: so sánh hành vi cũ và mới
+## 6. Runnable Java 17+ Program: Comparing Legacy and New Behavior
 
-Ví dụ sau kiểm chứng bốn tình huống trong cùng một file:
+The following example verifies four scenarios in a single file:
 
-1. Tạo bằng public constructor không đối số với API mới.
-2. Thiếu constructor không đối số nhưng có constructor tham số.
-3. Constructor ném checked `IOException`: API mới bọc lỗi, API cũ phát tán trực tiếp.
-4. Constructor private: tìm metadata bằng `getDeclaredConstructor`, kiểm tra và yêu cầu mở quyền có kiểm soát.
+1. Creating via a public no-arg constructor with the new API.
+2. Missing no-arg constructor while having a parameterized constructor.
+3. Constructor throwing checked `IOException`: new API wraps the error, legacy API propagates it directly.
+4. Private constructor: looking up metadata with `getDeclaredConstructor`, checking, and requesting controlled access opening.
 
-### 6.1. Mã nguồn đầy đủ
+### 6.1. Full Source Code
 
-Lưu vào file **`ConstructorMigrationDemo.java`**:
+Save to the file **`ConstructorMigrationDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -297,20 +297,20 @@ class LockedWidget {
 }
 ```
 
-Trong chương trình, `LockedWidget` là **top-level class riêng**, không cùng nest với `ConstructorMigrationDemo`. Vì constructor private, `locked.canAccess(null)` ban đầu trả `false`. Các lớp cùng file nằm trong unnamed module khi chạy trên classpath; ở môi trường minh họa thông thường, `trySetAccessible()` được phép mở quyền. Nếu chuyển sang named modules có ràng buộc `opens`, hành vi có thể khác.
+In the program, `LockedWidget` is a **separate top-level class**, not in the same nest as `ConstructorMigrationDemo`. Because the constructor is private, `locked.canAccess(null)` initially returns `false`. Classes in the same file belong to the unnamed module when run on the classpath; in an ordinary illustrative environment, `trySetAccessible()` is allowed to open access. If moved to named modules with `opens` constraints, behavior can differ.
 
-Code cũ chỉ xuất hiện **cố ý để minh họa sự khác biệt về exception**, có `@SuppressWarnings("deprecation")` chỉ tại helper `oldCreate`. Không dùng helper này trong code production mới.
+Legacy code appears **intentionally to illustrate the exception difference**, with `@SuppressWarnings("deprecation")` only on the `oldCreate` helper. Do not use this helper in new production code.
 
-### 6.2. Biên dịch và chạy
+### 6.2. Compiling and Running
 
-Dùng JDK 17 trở lên tại thư mục chứa file:
+Use JDK 17 or later in the directory containing the file:
 
 ```bash
 javac --release 17 ConstructorMigrationDemo.java
 java ConstructorMigrationDemo
 ```
 
-Kết quả đã được kiểm chứng khi biên dịch với `--release 17` và chạy trên OpenJDK 21:
+Verified output when compiled with `--release 17` and run on OpenJDK 21:
 
 ```text
 zero-arg: basic
@@ -324,19 +324,19 @@ private opened: true
 private created: secret
 ```
 
-### 6.3. Giải thích kết quả
+### 6.3. Output Explanation
 
-- `Basic.class.getDeclaredConstructor().newInstance()` tạo đối tượng hợp lệ bằng public no-arg constructor.
-- `NeedsArgument` chỉ có constructor nhận `String`, nên `getDeclaredConstructor()` (không tham số) ném `NoSuchMethodException`; tra cứu theo `String.class` rồi khởi tạo thành công.
-- `Exploding` ném `IOException("disk unavailable")` ngay trong constructor. `Constructor.newInstance()` báo `InvocationTargetException`; `getCause()` xác nhận `IOException` là lỗi gốc.
-- `oldCreate(Exploding.class)` dùng API deprecated và thực tế ném **trực tiếp `IOException`**, dù chữ ký `oldCreate` chỉ khai báo `InstantiationException` và `IllegalAccessException`.
-- `LockedWidget` có constructor private. `getDeclaredConstructor(String.class)` lấy được metadata; `canAccess(null)` cho biết hiện chưa được truy cập; `trySetAccessible()` thành công trong môi trường ví dụ, sau đó `newInstance("secret")` tạo đối tượng.
+- `Basic.class.getDeclaredConstructor().newInstance()` creates a valid object via the public no-arg constructor.
+- `NeedsArgument` only has a constructor taking `String`, so parameterless `getDeclaredConstructor()` throws `NoSuchMethodException`; looking up with `String.class` then instantiates successfully.
+- `Exploding` throws `IOException("disk unavailable")` directly inside its constructor. `Constructor.newInstance()` reports `InvocationTargetException`; `getCause()` confirms `IOException` is the root error.
+- `oldCreate(Exploding.class)` uses the deprecated API and actually throws **`IOException` directly**, even though `oldCreate`'s signature only declares `InstantiationException` and `IllegalAccessException`.
+- `LockedWidget` has a private constructor. `getDeclaredConstructor(String.class)` retrieves the metadata; `canAccess(null)` indicates it is not yet accessible; `trySetAccessible()` succeeds in the example environment, and then `newInstance("secret")` creates the object.
 
-Điểm chứng minh quan trọng nhất: **API mới tách việc tìm constructor và gọi constructor, làm rõ điểm phát sinh lỗi, đồng thời bao bọc exception do constructor thực thi.**
+The most important point demonstrated: **the new API separates finding a constructor from calling a constructor, clarifies where errors originate, and wraps exceptions thrown by the executing constructor.**
 
-## 7. Cách bắt lỗi và chuyển exception hợp lý
+## 7. Catching Errors and Converting Exceptions Appropriately
 
-Đoạn mã sau là một helper tạo object bằng constructor không đối số có thể tái sử dụng:
+The following snippet is a reusable helper that creates objects using a no-argument constructor:
 
 ```java
 import java.lang.reflect.InvocationTargetException;
@@ -349,34 +349,34 @@ public final class Constructors {
             return type.getDeclaredConstructor().newInstance();
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException(
-                    "Thiếu constructor không đối số: " + type.getName(), e);
+                    "Missing no-argument constructor: " + type.getName(), e);
         } catch (InvocationTargetException e) {
             throw new IllegalStateException(
-                    "Constructor của " + type.getName() + " đã thất bại",
+                    "Constructor of " + type.getName() + " failed",
                     e.getCause());
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException(
-                    "Không thể khởi tạo: " + type.getName(), e);
+                    "Cannot instantiate: " + type.getName(), e);
         }
     }
 }
 ```
 
-Đây là một **lớp tiện ích Java có thể biên dịch**, không có `main` riêng. Người dùng code gọi `Constructors.create(MyType.class)` khi lớp đích có zero-arg constructor hợp lệ. Helper này cố ý **không mở quyền private constructor**, và có thể thất bại nếu class/method không accessible theo luật Java/module.
+This is a **compilable Java utility class**, without its own `main`. Calling code invokes `Constructors.create(MyType.class)` when the target class has a valid zero-arg constructor. This helper intentionally **does not open private constructors**, and may fail if the class/method is inaccessible under Java/module rules.
 
-Cách bắt này phân biệt:
+This catch structure distinguishes:
 
-1. `NoSuchMethodException`: không tìm thấy đúng constructor cần dùng.
-2. `InvocationTargetException`: constructor có chạy và ném lỗi; chuyển lỗi gốc qua `getCause()`.
-3. Các lỗi `ReflectiveOperationException` khác như `IllegalAccessException`, `InstantiationException`: khởi tạo bị cản bởi quyền hoặc tính chất của kiểu.
+1. `NoSuchMethodException`: the required constructor was not found.
+2. `InvocationTargetException`: the constructor ran and threw an error; forward the root error via `getCause()`.
+3. Other `ReflectiveOperationException` errors such as `IllegalAccessException`, `InstantiationException`: instantiation was blocked by permissions or type properties.
 
-Chính sách wrap như `IllegalArgumentException`/`IllegalStateException` trong helper là **lựa chọn của ứng dụng**, không phải thứ Java Reflection bắt buộc. Nếu caller cần xử lý lỗi gốc theo từng loại, hãy giữ nguyên checked exceptions hoặc khai báo một domain exception có `cause`. Đừng nuốt lỗi hoặc chỉ log rồi trả `null` vì điều đó che giấu khởi tạo thất bại.
+The wrapping policy like `IllegalArgumentException`/`IllegalStateException` in the helper is an **application choice**, not something mandated by Java Reflection. If callers need to handle root errors individually by type, preserve checked exceptions or declare a domain exception with `cause`. Do not swallow errors or merely log and return `null`, as that hides failed instantiation.
 
-`InvocationTargetException` không phải exception duy nhất có thể gặp. Một lỗi từ quá trình **class initialization** có thể xuất hiện dưới dạng `ExceptionInInitializerError`; lỗi Java `Error` khác cũng không thuộc `ReflectiveOperationException` và cần được đánh giá theo chính sách ứng dụng.
+`InvocationTargetException` is not the only exception you may encounter. An error from **class initialization** can surface as `ExceptionInInitializerError`; other Java `Error`s also do not belong to `ReflectiveOperationException` and must be evaluated per application policy.
 
-## 8. Không có constructor mặc định? Đừng đoán
+## 8. No Default Constructor? Don't Guess
 
-Đây là lỗi phổ biến khi di chuyển code cũ:
+This is a common mistake when migrating legacy code:
 
 ```java
 class Job {
@@ -385,13 +385,13 @@ class Job {
 }
 ```
 
-Vì `Job` khai báo constructor có tham số, compiler **không tự sinh** no-arg constructor. Kết quả:
+Because `Job` declares a parameterized constructor, the compiler **does not generate** a no-arg constructor. Result:
 
 ```java
 Job.class.getDeclaredConstructor(); // NoSuchMethodException
 ```
 
-Không nên “sửa” bằng cách thêm constructor rỗng nếu domain bắt buộc `id`. Hãy khai báo chính xác constructor cần gọi:
+Do not "fix" this by adding an empty constructor if the domain requires `id`. Explicitly specify the constructor you intend to call:
 
 ```java
 Job job = Job.class
@@ -399,95 +399,95 @@ Job job = Job.class
         .newInstance("J-001");
 ```
 
-Hai đoạn `Job` ở trên dùng làm minh họa ngắn trong cùng ngữ cảnh và cần bắt/khai báo checked exceptions khi chạy thực tế.
+The two `Job` snippets above serve as brief illustrations in the same context and require catching/declaring checked exceptions when run in practice.
 
-### 8.1. Constructor implicit và phạm vi truy cập
+### 8.1. Implicit Constructors and Access Scope
 
-Nếu class không khai báo constructor nào, compiler có thể cung cấp **default constructor** không đối số theo luật Java. Tuy nhiên mức truy cập của constructor và khả năng truy cập lớp vẫn cần được xét. Một package-private class không tự trở thành public chỉ vì default constructor tồn tại.
+If a class declares no constructors at all, the compiler may provide a no-arg **default constructor** according to Java rules. However, constructor access level and class accessibility still must be considered. A package-private class does not automatically become public merely because a default constructor exists.
 
-Không nên dùng `Class.newInstance()` để đoán xem một class có thể khởi tạo hay không. Dùng `getDeclaredConstructor(...)` để xác định đúng chữ ký, kiểm tra quyền và xử lý rõ kết quả.
+Do not use `Class.newInstance()` to guess whether a class can be instantiated. Use `getDeclaredConstructor(...)` to identify the exact signature, verify permissions, and handle outcomes explicitly.
 
-### 8.2. Record, enum và class đặc biệt
+### 8.2. Records, Enums, and Special Classes
 
-- **Record có components:** canonical constructor thường nhận các components theo đúng kiểu và thứ tự. Không thể mặc nhiên đòi có no-arg constructor. Có thể thêm constructor không đối số delegating hợp lệ trong một số thiết kế, nhưng không phải tự nhiên luôn có.
-- **Enum:** không thể tùy ý tạo thêm enum constants qua `Constructor.newInstance`; Reflection có giới hạn riêng, và sẽ ném lỗi thích hợp.
-- **Abstract class/interface:** không thể tạo instance trực tiếp bằng constructor Reflection.
-- **Non-static inner class:** constructor ở mức bytecode thường cần thêm đối số enclosing instance; phải hiểu đúng chữ ký phản chiếu. `Class.newInstance()` không hỗ trợ việc truyền enclosing instance.
-- **Array hoặc primitive `Class`:** không tạo như instance class thông thường bằng constructor Reflection; với array, dùng các cơ chế phù hợp như `java.lang.reflect.Array.newInstance` khi thực sự cần.
+- **Records with components:** the canonical constructor typically takes the components in exact type and order. One cannot assume a no-arg constructor exists. A valid delegating no-argument constructor may be added in certain designs, yet it does not exist automatically.
+- **Enums:** cannot arbitrarily create additional enum constants via `Constructor.newInstance`; Reflection has specific restrictions and will throw an appropriate error.
+- **Abstract classes/interfaces:** cannot be instantiated directly via Reflection constructors.
+- **Non-static inner classes:** bytecode-level constructors typically require an extra enclosing instance argument; the reflected signature must be understood accurately. `Class.newInstance()` does not support passing an enclosing instance.
+- **Array or primitive `Class`:** not instantiated like ordinary class instances via Reflection constructors; for arrays, use appropriate mechanisms such as `java.lang.reflect.Array.newInstance` when genuinely needed.
 
-Một API khởi tạo động tốt phải có contract rõ về **những kiểu được phép tạo**, **constructor nào được hỗ trợ**, **tham số nào hợp lệ** và **exception nào được trả về**.
+A good dynamic instantiation API must have a clear contract regarding **which types are allowed to be created**, **which constructors are supported**, **which parameters are valid**, and **which exceptions are returned**.
 
-## 9. Bảng xử lý ngoại lệ khi dùng phương pháp mới
+## 9. Exception Handling Table When Using the Modern Approach
 
-| Trường hợp | Bước điển hình | Kết quả |
+| Case | Typical step | Result |
 |---|---|---|
-| Không tồn tại constructor đúng parameter types | `getDeclaredConstructor(...)` | `NoSuchMethodException` |
-| Constructor có tồn tại nhưng không được quyền gọi | `constructor.newInstance(...)` | `IllegalAccessException` |
-| Cố mở deep reflection qua package chưa mở | `setAccessible(true)` / `trySetAccessible()` | Có thể gặp `InaccessibleObjectException` / trả `false` |
-| Thiếu, thừa hoặc sai kiểu argument ở thời điểm gọi | `constructor.newInstance(args...)` | `IllegalArgumentException` |
-| Đích abstract, không thể khởi tạo | `constructor.newInstance(...)` | `InstantiationException` |
-| Constructor đích tự ném lỗi | `constructor.newInstance(...)` | `InvocationTargetException`, nguyên nhân trong `getCause()` |
-| Class initialization thất bại | Trước hoặc lúc thực thi constructor | `ExceptionInInitializerError` |
-| Cố tạo enum bằng constructor Reflection | `constructor.newInstance(...)` | `IllegalArgumentException` |
-| Kiểm soát truy cập trong môi trường hạn chế | Tra cứu hoặc thao tác | Có thể có `SecurityException` |
+| No constructor with exact parameter types exists | `getDeclaredConstructor(...)` | `NoSuchMethodException` |
+| Constructor exists yet caller lacks permission to invoke | `constructor.newInstance(...)` | `IllegalAccessException` |
+| Attempting deep reflection across an unopened package | `setAccessible(true)` / `trySetAccessible()` | May hit `InaccessibleObjectException` / return `false` |
+| Missing, extra, or wrongly typed arguments at invocation time | `constructor.newInstance(args...)` | `IllegalArgumentException` |
+| Target is abstract, cannot be instantiated | `constructor.newInstance(...)` | `InstantiationException` |
+| Target constructor itself throws an error | `constructor.newInstance(...)` | `InvocationTargetException`, root cause in `getCause()` |
+| Class initialization fails | Before or during constructor execution | `ExceptionInInitializerError` |
+| Attempting to create an enum via Reflection constructor | `constructor.newInstance(...)` | `IllegalArgumentException` |
+| Access control in restricted environments | Lookup or operation | Possible `SecurityException` |
 
-Lưu ý: lỗi do class loader/linkage hoặc quyền truy cập module có thể xuất hiện từ bước lấy `Class` hoặc khi nạp class; bảng không nhằm liệt kê mọi `Error` của JVM.
+Note: class loader/linkage errors or module access errors can occur from the `Class` lookup step or during class loading; the table does not aim to list every JVM `Error`.
 
-`ReflectiveOperationException` là cha chung hữu ích của nhiều **checked exceptions** như `NoSuchMethodException`, `IllegalAccessException`, `InstantiationException` và `InvocationTargetException`; nó không bao phủ `IllegalArgumentException`, `InaccessibleObjectException` và `ExceptionInInitializerError`.
+`ReflectiveOperationException` is a useful common superclass for many **checked exceptions** such as `NoSuchMethodException`, `IllegalAccessException`, `InstantiationException`, and `InvocationTargetException`; it does not cover `IllegalArgumentException`, `InaccessibleObjectException`, or `ExceptionInInitializerError`.
 
-## 10. Những sai lầm thường gặp khi chuyển code cũ
+## 10. Common Mistakes When Migrating Legacy Code
 
-**Sai lầm 1: Đổi tên API nhưng giữ nguyên cách bắt exception.** Sau khi chuyển sang `getDeclaredConstructor().newInstance()`, cần xử lý thêm `NoSuchMethodException` và `InvocationTargetException`. Nếu bỏ qua, code không biên dịch hoặc mất nguyên nhân từ constructor đích.
+**Mistake 1: Renaming the API while keeping the same exception catches.** After switching to `getDeclaredConstructor().newInstance()`, you must also handle `NoSuchMethodException` and `InvocationTargetException`. If omitted, code either fails to compile or loses the root cause from the target constructor.
 
-**Sai lầm 2: Bắt `Exception` rồi thông báo “constructor không tồn tại”.** `NoSuchMethodException` khác `IllegalAccessException` và khác `InvocationTargetException`. Hãy phân loại lỗi đúng bước.
+**Mistake 2: Catching `Exception` and reporting "constructor does not exist".** `NoSuchMethodException` differs from `IllegalAccessException` and from `InvocationTargetException`. Classify errors at the right step.
 
-**Sai lầm 3: Nghĩ `Class.newInstance()` chỉ deprecated vì “cú pháp cũ”.** Vấn đề checked exception bị phát tán trực tiếp là một lý do kỹ thuật thiết yếu, không đơn thuần là đổi tên phương thức.
+**Mistake 3: Thinking `Class.newInstance()` was deprecated only for "old syntax".** The direct propagation of checked exceptions is an essential technical flaw, not merely a method rename.
 
-**Sai lầm 4: Cứ dùng `getDeclaredConstructor()` là có quyền gọi private constructor.** API này tìm cả private constructor nhưng không tự cấp quyền truy cập. Bật suppression còn bị ràng buộc bởi module opens và ngữ cảnh caller.
+**Mistake 4: Assuming `getDeclaredConstructor()` grants permission to call a private constructor.** This API finds private constructors as well, yet does not automatically grant access. Enabling suppression is also constrained by module opens and caller context.
 
-**Sai lầm 5: Tự động `setAccessible(true)` cho mọi class.** Điều này xâm phạm ranh giới thiết kế, và có thể thất bại với JPMS. Nếu cần public contract, ưu tiên `getConstructor(...)`, public factory hoặc DI.
+**Mistake 5: Automatically calling `setAccessible(true)` on every class.** This violates design boundaries and can fail with JPMS. If a public contract is needed, prefer `getConstructor(...)`, public factories, or DI.
 
-**Sai lầm 6: Dùng sai tham số tra cứu.** `getDeclaredConstructor(int.class)` khác `getDeclaredConstructor(Integer.class)`; cả số lượng lẫn thứ tự parameter types đều quan trọng.
+**Mistake 6: Passing wrong lookup types.** `getDeclaredConstructor(int.class)` differs from `getDeclaredConstructor(Integer.class)`; both count and order of parameter types matter.
 
-**Sai lầm 7: Dùng Reflection khi không cần.** Nếu kiểu đã biết tại compile time, `new Widget(...)`, `Widget::new` hoặc `Supplier<Widget>` rõ ràng hơn, có compile-time type checking và không cần xử lý lỗi Reflection.
+**Mistake 7: Using Reflection when unnecessary.** If the type is known at compile time, `new Widget(...)`, `Widget::new`, or `Supplier<Widget>` is clearer, has compile-time type checking, and requires no Reflection error handling.
 
-**Sai lầm 8: Mở rộng phạm vi kiểu tùy ý từ dữ liệu ngoài.** Khởi tạo class qua tên hoặc class loader bằng input không tin cậy có thể kích hoạt constructor/static initializer với side effects. Dùng registry hoặc danh sách implementation được cho phép.
+**Mistake 8: Expanding type scope arbitrarily from external data.** Instantiating classes by name or class loader from untrusted input can trigger constructors/static initializers with side effects. Use a whitelist/registry of permitted implementations.
 
-**Sai lầm 9: Dùng một helper zero-arg cho record/class chỉ có constructor có tham số.** Nên xác định constructor phù hợp với domain và tạo object với các arguments bắt buộc, thay vì giả định mọi class đều có constructor mặc định.
+**Mistake 9: Using a zero-arg helper for records/classes that only have parameterized constructors.** Identify the domain-appropriate constructor and build the object with required arguments, instead of assuming every class has a default constructor.
 
-## 11. Chọn phương án khởi tạo hợp lý
+## 11. Choosing an Appropriate Instantiation Approach
 
-| Bối cảnh | Phương án nên ưu tiên | Lý do |
+| Context | Preferred approach | Reason |
 |---|---|---|
-| Biết type/constructor tại compile time | `new SomeType(args)` | Rõ ràng, được compiler kiểm tra |
-| Muốn truyền hành vi tạo object | `Supplier<T>` hoặc constructor reference | Giữ type safety, tránh Reflection |
-| Class được chọn từ registry/plugin runtime | `getConstructor(...)` / `getDeclaredConstructor(...)` + `Constructor.newInstance(...)` | Hỗ trợ constructor có tham số, metadata và kiểm soát lỗi |
-| Cần truy cập non-public constructor vì framework | `getDeclaredConstructor` rồi kiểm tra quyền rõ ràng | Tôn trọng Java access và JPMS |
-| Ứng dụng dùng Spring/DI container | Cơ chế container/factory phù hợp | Giảm coupling vào chi tiết private constructor |
-| Legacy code dùng `Class.newInstance()` | Di chuyển sang `Constructor.newInstance()` | Tránh API deprecated và checked-exception bypass |
+| Type/constructor known at compile time | `new SomeType(args)` | Clear, checked by compiler |
+| Want to pass object-creation behavior | `Supplier<T>` or constructor reference | Preserves type safety, avoids Reflection |
+| Class selected from runtime registry/plugin | `getConstructor(...)` / `getDeclaredConstructor(...)` + `Constructor.newInstance(...)` | Supports parameterized constructors, metadata, and error control |
+| Need non-public constructor access for framework | `getDeclaredConstructor` then explicit permission check | Respects Java access and JPMS |
+| Application uses Spring/DI container | Appropriate container/factory mechanism | Reduces coupling to private constructor details |
+| Legacy code using `Class.newInstance()` | Migrate to `Constructor.newInstance()` | Avoids deprecated API and checked-exception bypass |
 
-### Checklist khi sửa code hiện có
+### Checklist When Updating Existing Code
 
-1. Tìm các lời gọi `Class.newInstance()` thực tế, không nhầm với `Constructor.newInstance()`.
-2. Xác định lớp đích và chữ ký constructor cần dùng. Nếu no-arg constructor không có, chọn overload đúng với thiết kế.
-3. Dùng `getConstructor(...)` khi chỉ hỗ trợ public constructor; dùng `getDeclaredConstructor(...)` khi có lý do xét mọi mức truy cập.
-4. Kiểm tra quyền truy cập/JPMS trước khi yêu cầu deep reflection.
-5. Chuyển xử lý lỗi: phân biệt lỗi lookup, access, instantiation, arguments và exception phát sinh từ constructor đích.
-6. Với `InvocationTargetException`, bảo tồn nguyên nhân gốc bằng `getCause()` (hoặc `getTargetException()`).
-7. Kiểm thử những trường hợp khó: không có constructor đúng signature, constructor private, constructor ném checked exception, class abstract, tham số sai.
-8. Xóa `@SuppressWarnings("deprecation")` cũ nếu không còn gọi API deprecated; không giữ suppression thừa để che cảnh báo khác.
+1. Locate actual `Class.newInstance()` calls, not confusing them with `Constructor.newInstance()`.
+2. Identify the target class and required constructor signature. If no no-arg constructor exists, select the overload matching the design.
+3. Use `getConstructor(...)` when supporting only public constructors; use `getDeclaredConstructor(...)` when there is reason to consider all access levels.
+4. Verify access/JPMS permissions before requesting deep reflection.
+5. Update error handling: distinguish lookup, access, instantiation, arguments, and exceptions thrown by the target constructor.
+6. For `InvocationTargetException`, preserve the original cause via `getCause()` (or `getTargetException()`).
+7. Test edge cases: missing matching constructor signature, private constructor, constructor throwing checked exception, abstract class, invalid arguments.
+8. Remove old `@SuppressWarnings("deprecation")` if no deprecated API is called anymore; do not leave redundant suppression hiding other warnings.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-1. Vì sao `Class.newInstance()` bị deprecated từ Java 9 dù vẫn tồn tại trong Java 17?
-2. Tại sao constructor `Loader() throws IOException` có thể khiến `Class.newInstance()` ném trực tiếp `IOException` mà caller không khai báo?
-3. `InvocationTargetException` giúp phân biệt lỗi ở giai đoạn nào? Cách lấy nguyên nhân gốc?
-4. `getConstructor` và `getDeclaredConstructor` khác nhau về phạm vi visibility như thế nào?
-5. Với `Worker(String, int)`, vì sao `getDeclaredConstructor()` không tham số thất bại? Viết signature đúng.
-6. `trySetAccessible()` có bảo đảm truy cập được constructor private của named module khác không?
-7. Khi nào dùng `new` hoặc `Supplier` thay cho cả hai dạng Reflection?
-8. Vì sao việc đổi `Class.newInstance()` sang `getDeclaredConstructor().newInstance()` đòi hỏi xem lại catch/throws?
+1. Why was `Class.newInstance()` deprecated since Java 9 even though it still exists in Java 17?
+2. Why can constructor `Loader() throws IOException` cause `Class.newInstance()` to directly throw `IOException` without the caller declaring it?
+3. Errors from which stage does `InvocationTargetException` help distinguish? How do you obtain the root cause?
+4. How do `getConstructor` and `getDeclaredConstructor` differ in visibility scope?
+5. For `Worker(String, int)`, why does parameterless `getDeclaredConstructor()` fail? Write the correct signature.
+6. Does `trySetAccessible()` guarantee access to a private constructor of another named module?
+7. When should you use `new` or `Supplier` instead of both Reflection forms?
+8. Why does switching from `Class.newInstance()` to `getDeclaredConstructor().newInstance()` require reviewing `catch`/`throws`?
 
-**Ghi nhớ:** Hãy dùng `Constructor.newInstance(...)` khi thật sự cần khởi tạo động bằng Reflection. Nó cho phép chọn constructor có tham số, kiểm tra metadata và quyền rõ ràng, và **đóng gói exception do constructor ném vào `InvocationTargetException`**. `Class.newInstance()` đã deprecated từ Java 9, chỉ hỗ trợ constructor không đối số và có thể bỏ qua cơ chế kiểm tra checked exception của compiler.
+**Key takeaway:** Use `Constructor.newInstance(...)` when dynamic instantiation via Reflection is genuinely needed. It allows selecting parameterized constructors, checking metadata and permissions explicitly, and **wraps exceptions thrown by the constructor in `InvocationTargetException`**. `Class.newInstance()` has been deprecated since Java 9, supports only no-argument constructors, and can bypass the compiler's checked-exception checks.
 
-Tài liệu chuẩn: [Java SE 17 — `Class.newInstance()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#newInstance()), [`Class.getDeclaredConstructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getDeclaredConstructor(java.lang.Class...)), [`Constructor.newInstance`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)), [`InvocationTargetException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html).
+Official references: [Java SE 17 — `Class.newInstance()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#newInstance()), [`Class.getDeclaredConstructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getDeclaredConstructor(java.lang.Class...)), [`Constructor.newInstance`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)), [`InvocationTargetException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html).

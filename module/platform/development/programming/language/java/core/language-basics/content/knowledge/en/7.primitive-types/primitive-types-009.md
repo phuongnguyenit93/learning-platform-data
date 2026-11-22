@@ -1,14 +1,14 @@
-# Giới hạn giá trị với `MIN_VALUE`, `MAX_VALUE` và `SIZE` — Java 17+
+# Value Limits with `MIN_VALUE`, `MAX_VALUE`, and `SIZE` — Java 17+
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-Mỗi kiểu nguyên thủy Java có một **miền giá trị** hoặc một tập giá trị xác định. Muốn chọn kiểu lưu dữ liệu, kiểm tra đầu vào, hoặc tránh tràn số, bạn cần biết:
+Every Java primitive type has a defined **value range** or set of values. To choose a storage type, validate input, or prevent overflow, you need to know:
 
-- **`MIN_VALUE`**: giới hạn dưới theo định nghĩa của kiểu (với số dấu phẩy động có một ngoại lệ rất quan trọng).
-- **`MAX_VALUE`**: giá trị hữu hạn lớn nhất được biểu diễn theo kiểu đó.
-- **`SIZE`**: số **bit** dùng để biểu diễn một giá trị của kiểu, **không phải số byte** và không phải kích thước object.
+- **`MIN_VALUE`**: the lower bound as defined by the type (with a very important exception for floating-point numbers).
+- **`MAX_VALUE`**: the largest finite value representable by that type.
+- **`SIZE`**: the number of **bits** used to represent a value of the type, **not the number of bytes** and not the object size.
 
-Trong Java, các hằng này nằm trong **wrapper classes** thuộc `java.lang`: `Byte`, `Short`, `Integer`, `Long`, `Character`, `Float` và `Double`. Bạn có thể tra chúng mà không cần tự nhập những số dài:
+In Java, these constants live in the **wrapper classes** in `java.lang`: `Byte`, `Short`, `Integer`, `Long`, `Character`, `Float`, and `Double`. You can look them up without manually typing long numbers:
 
 ~~~java
 System.out.println(Integer.MIN_VALUE); // -2147483648
@@ -16,28 +16,28 @@ System.out.println(Integer.MAX_VALUE); // 2147483647
 System.out.println(Integer.SIZE);      // 32
 ~~~
 
-**Điểm chính:** không phải mọi kiểu đều hiểu `MIN_VALUE` giống nhau. Đặc biệt, `Float.MIN_VALUE` và `Double.MIN_VALUE` **không phải giá trị âm thấp nhất**.
+**Key point:** not every type interprets `MIN_VALUE` the same way. In particular, `Float.MIN_VALUE` and `Double.MIN_VALUE` **are not the lowest negative values**.
 
-## 2. Bảng đầy đủ cho bốn kiểu số nguyên có dấu
+## 2. Complete Table for the Four Signed Integer Types
 
-| Kiểu primitive | Wrapper | `MIN_VALUE` | `MAX_VALUE` | `SIZE` (bit) | `BYTES` |
+| Primitive type | Wrapper | `MIN_VALUE` | `MAX_VALUE` | `SIZE` (bits) | `BYTES` |
 |---|---|---:|---:|---:|---:|
 | `byte` | `Byte` | -128 | 127 | 8 | 1 |
-| `short` | `Short` | -32.768 | 32.767 | 16 | 2 |
-| `int` | `Integer` | -2.147.483.648 | 2.147.483.647 | 32 | 4 |
-| `long` | `Long` | -9.223.372.036.854.775.808 | 9.223.372.036.854.775.807 | 64 | 8 |
+| `short` | `Short` | -32,768 | 32,767 | 16 | 2 |
+| `int` | `Integer` | -2,147,483,648 | 2,147,483,647 | 32 | 4 |
+| `long` | `Long` | -9,223,372,036,854,775,808 | 9,223,372,036,854,775,807 | 64 | 8 |
 
-**`SIZE` đo bit; `BYTES` đo byte trong biểu diễn giá trị.** Ví dụ `Integer.SIZE == 32` và `Integer.BYTES == 4`.
+**`SIZE` measures bits; `BYTES` measures bytes in the value representation.** For example, `Integer.SIZE == 32` and `Integer.BYTES == 4`.
 
-Với số nguyên có dấu có độ rộng `n` bit và dùng biểu diễn bù hai, miền giá trị là:
+For a signed integer of width `n` bits using two's complement representation, the value range is:
 
 \[
 -2^{n-1} \;\leq x \leq\; 2^{n-1}-1.
 \]
 
-Nhờ đó `byte` 8 bit có giá trị từ \(-2^7=-128\) đến \(2^7-1=127\). Miền âm có một giá trị nhiều hơn miền dương. Vì thế `Integer.MIN_VALUE` không thể đổi thành số dương bằng `Math.abs` trong cùng kiểu `int`.
+Thus an 8-bit `byte` ranges from \(-2^7=-128\) to \(2^7-1=127\). The negative range has one more value than the positive range. Therefore, `Integer.MIN_VALUE` cannot be negated into a positive number by `Math.abs` within the same `int` type.
 
-### Ví dụ tra cứu không cần ghi nhớ số
+### Example Looking Up Limits Without Memorizing Numbers
 
 ~~~java
 int smallestInt = Integer.MIN_VALUE;
@@ -50,18 +50,18 @@ System.out.println(largestInt);  // 2147483647
 System.out.println(Long.SIZE);   // 64
 ~~~
 
-**Giới hạn cố định trên mọi nền tảng Java:** `int` luôn là giá trị 32 bit và `long` luôn là giá trị 64 bit theo đặc tả, bất kể Windows, Linux, hệ điều hành hay JVM 32/64 bit.
+**Fixed limits across all Java platforms:** `int` is always a 32-bit value and `long` is always a 64-bit value by specification, regardless of Windows, Linux, OS, or 32/64-bit JVM.
 
-## 3. `char`: 16 bit nhưng không thuộc nhóm số nguyên có dấu
+## 3. `char`: 16 Bits, Yet Not a Signed Integer Type
 
-`char` là một kiểu nguyên thủy đại diện cho **một đơn vị mã UTF-16**, không phải kiểu `short` có dấu. Java có:
+`char` is a primitive type representing **one UTF-16 code unit**, not a signed `short`. Java provides:
 
-| Hằng | Giá trị |
+| Constant | Value |
 |---|---|
-| `Character.MIN_VALUE` | U+0000 (giá trị số 0) |
-| `Character.MAX_VALUE` | U+FFFF (giá trị số 65535) |
-| `Character.SIZE` | 16 bit |
-| `Character.BYTES` | 2 byte |
+| `Character.MIN_VALUE` | U+0000 (numeric value 0) |
+| `Character.MAX_VALUE` | U+FFFF (numeric value 65535) |
+| `Character.SIZE` | 16 bits |
+| `Character.BYTES` | 2 bytes |
 
 ~~~java
 System.out.println((int) Character.MIN_VALUE); // 0
@@ -69,23 +69,23 @@ System.out.println((int) Character.MAX_VALUE); // 65535
 System.out.println(Character.SIZE);           // 16
 ~~~
 
-**Lưu ý Unicode:** một `char` là một **UTF-16 code unit**; một ký tự Unicode ngoài vùng BMP có thể cần **hai `char`** (surrogate pair). Vì vậy `Character.SIZE == 16` không có nghĩa Java chỉ hỗ trợ Unicode đến U+FFFF, cũng không có nghĩa mọi ký tự người dùng nhìn thấy chiếm đúng một `char`.
+**Unicode note:** a `char` is a **UTF-16 code unit**; a Unicode character outside the BMP can require **two `char` values** (a surrogate pair). Thus `Character.SIZE == 16` does not mean Java only supports Unicode up to U+FFFF, nor does it mean every character the user sees occupies exactly one `char`.
 
-`Character.MIN_VALUE` là ký tự điều khiển có mã 0, không phải một ký tự thường dễ nhìn thấy trên màn hình. Khi muốn in giới hạn của `char`, hãy **ép sang `int`** như ví dụ, thay vì cố hiển thị trực tiếp ký tự U+0000.
+`Character.MIN_VALUE` is the control character with code 0, not a character easily visible on screen. When you want to print the limits of `char`, **cast it to `int`** as in the example instead of trying to display the U+0000 character directly.
 
-## 4. `float` và `double`: ý nghĩa `MIN_VALUE` khác số nguyên
+## 4. `float` and `double`: `MIN_VALUE` Means Something Different from Integers
 
-Đây là bẫy quan trọng nhất của bài.
+This is the most important trap in the lesson.
 
-| Hằng | `float` | `double` |
+| Constant | `float` | `double` |
 |---|---:|---:|
-| `SIZE` | 32 bit | 64 bit |
-| `BYTES` | 4 byte | 8 byte |
+| `SIZE` | 32 bits | 64 bits |
+| `BYTES` | 4 bytes | 8 bytes |
 | `MAX_VALUE` | `3.4028235E38` | `1.7976931348623157E308` |
 | `MIN_VALUE` | `1.4E-45` | `4.9E-324` |
 | `MIN_NORMAL` | `1.17549435E-38` | `2.2250738585072014E-308` |
 
-**`Float.MIN_VALUE` và `Double.MIN_VALUE` là số dương nhỏ nhất khác 0 có thể biểu diễn**, ở dạng **subnormal**. Chúng **không phải** `-Float.MAX_VALUE` hoặc `-Double.MAX_VALUE`.
+**`Float.MIN_VALUE` and `Double.MIN_VALUE` are the smallest positive non-zero representable numbers**, in **subnormal** form. They are **not** `-Float.MAX_VALUE` or `-Double.MAX_VALUE`.
 
 ~~~java
 System.out.println(Float.MIN_VALUE);  // 1.4E-45
@@ -93,17 +93,17 @@ System.out.println(Float.MAX_VALUE);  // 3.4028235E38
 System.out.println(-Float.MAX_VALUE); // -3.4028235E38
 ~~~
 
-Nếu cần **số hữu hạn thấp nhất** theo thứ tự số học, dùng **`-Float.MAX_VALUE`** hoặc **`-Double.MAX_VALUE`**.
+If you need the **lowest finite number** in numerical order, use **`-Float.MAX_VALUE`** or **`-Double.MAX_VALUE`**.
 
-### Vì sao có `MIN_NORMAL`?
+### Why Does `MIN_NORMAL` Exist?
 
-Số dấu phẩy động nhị phân có dấu, số mũ và phần định trị. Giá trị rất gần 0 có thể nằm trong vùng **subnormal**, nơi độ chính xác hiệu dụng giảm để tạo ra các bước nhỏ tiếp cận 0. `MIN_NORMAL` là số dương nhỏ nhất ở vùng normal, còn `MIN_VALUE` là số dương subnormal nhỏ nhất khác 0.
+Binary floating-point numbers have a sign, exponent, and significand. Values very close to 0 can fall into the **subnormal** range, where effective precision is reduced to create small steps approaching 0. `MIN_NORMAL` is the smallest positive number in the normal range, while `MIN_VALUE` is the smallest positive non-zero subnormal number.
 
-Cặp hằng này đo **ngưỡng độ lớn của giá trị**, không bảo đảm một phép tính thập phân là chính xác. Chẳng hạn `0.1 + 0.2` ở `double` có thể khác chính xác `0.3` vì giới hạn độ chính xác nhị phân.
+This pair of constants measures **value magnitude thresholds**, and does not guarantee a decimal calculation is exact. For example, `0.1 + 0.2` in `double` can differ from exact `0.3` due to binary precision limits.
 
-### Vô cực và NaN vẫn tồn tại
+### Infinity and NaN Still Exist
 
-`MAX_VALUE` nghĩa là **giá trị hữu hạn lớn nhất**, không có nghĩa tập giá trị `double` chỉ từ `-Double.MAX_VALUE` đến `Double.MAX_VALUE`. Kiểu dấu phẩy động còn có `Infinity`, `-Infinity` và `NaN`.
+`MAX_VALUE` means the **largest finite value**, not that the value set of `double` only spans from `-Double.MAX_VALUE` to `Double.MAX_VALUE`. Floating-point types also have `Infinity`, `-Infinity`, and `NaN`.
 
 ~~~java
 double tooLarge = Double.MAX_VALUE * 2;
@@ -112,25 +112,25 @@ System.out.println(Double.isFinite(tooLarge)); // false
 System.out.println(Double.isNaN(0.0 / 0.0));  // true
 ~~~
 
-Nếu yêu cầu một số thực hữu hạn, **kiểm tra `Double.isFinite(value)`** (hoặc `Float.isFinite`) trước khi sử dụng. Chỉ kiểm tra `value <= Double.MAX_VALUE` chưa đủ để xác định dữ liệu hợp lệ vì NaN và các quy tắc so sánh đặc biệt.
+If a finite real number is required, **check `Double.isFinite(value)`** (or `Float.isFinite`) before using it. Checking only `value <= Double.MAX_VALUE` is not enough to determine valid data because of NaN and special comparison rules.
 
-## 5. `boolean` không có MIN_VALUE, MAX_VALUE hoặc SIZE
+## 5. `boolean` Has No `MIN_VALUE`, `MAX_VALUE`, or `SIZE`
 
-`boolean` chỉ có **`true` và `false`**; wrapper `Boolean` định nghĩa các giá trị như `Boolean.TRUE`, `Boolean.FALSE`.
+`boolean` only has **`true` and `false`**; the wrapper `Boolean` defines values such as `Boolean.TRUE` and `Boolean.FALSE`.
 
-Không có API chuẩn:
+There is no standard API:
 
 ~~~java
-// Boolean.MIN_VALUE // Không tồn tại
-// Boolean.MAX_VALUE // Không tồn tại
-// Boolean.SIZE      // Không tồn tại
+// Boolean.MIN_VALUE // Does not exist
+// Boolean.MAX_VALUE // Does not exist
+// Boolean.SIZE      // Does not exist
 ~~~
 
-Ngôn ngữ Java không đưa ra một giá trị `Boolean.SIZE` tương tự `Integer.SIZE`. Đừng tự suy ra “boolean luôn chiếm 1 bit bộ nhớ” từ việc kiểu chỉ có hai trạng thái: cách JVM lưu field, biến cục bộ, array, header và căn chỉnh là chuyện triển khai khác với **miền giá trị trừu tượng** của kiểu `boolean`.
+The Java language does not expose a `Boolean.SIZE` constant analogous to `Integer.SIZE`. Do not deduce "a boolean always takes 1 bit of memory" from the fact that the type has only two states: how the JVM stores fields, local variables, arrays, headers, and alignment is an implementation detail distinct from the **abstract value domain** of `boolean`.
 
-## 6. SIZE và BYTES không đo kích thước object trong heap
+## 6. `SIZE` and `BYTES` Do Not Measure Object Size on the Heap
 
-Ví dụ:
+Example:
 
 ~~~java
 System.out.println(Byte.SIZE);      // 8
@@ -139,18 +139,18 @@ System.out.println(Long.BYTES);     // 8
 System.out.println(Double.BYTES);   // 8
 ~~~
 
-Các hằng này mô tả **độ rộng biểu diễn giá trị**, không phải kết quả của `sizeof` như một số ngôn ngữ khác. Java không có toán tử `sizeof` cho object.
+These constants describe the **value representation width**, not the result of `sizeof` as in some other languages. Java has no `sizeof` operator for objects.
 
-- Một biến primitive có độ rộng giá trị xác định.
-- Một instance `Integer` có thể có overhead đối tượng, tham chiếu và yêu cầu căn chỉnh riêng.
-- Một field `byte` trong object không nhất thiết làm kích thước object tăng đúng 1 byte, do bố trí bộ nhớ của JVM.
-- Mảng có overhead và layout ngoài số byte tương ứng với từng phần tử.
+- A primitive variable has a fixed value width.
+- An `Integer` instance can have object overhead, references, and its own alignment requirements.
+- A `byte` field in an object does not necessarily increase the object size by exactly 1 byte, due to JVM memory layout.
+- Arrays have overhead and layout beyond the bytes corresponding to each element.
 
-Nếu làm việc với **buffer nhị phân**, `Integer.BYTES` hữu ích để tính số byte cho giá trị 32 bit. Nhưng nếu đo bộ nhớ thực tế trên heap, cần công cụ đo/quan sát JVM phù hợp, không nhân `SIZE` rồi kết luận tổng dung lượng object.
+When working with **binary buffers**, `Integer.BYTES` is useful for calculating the byte count of a 32-bit value. But to measure actual heap memory, use appropriate JVM profiling/measurement tools rather than multiplying `SIZE` to conclude total object footprint.
 
-## 7. Dùng MIN_VALUE/MAX_VALUE kiểm tra trước khi thu hẹp kiểu
+## 7. Use `MIN_VALUE`/`MAX_VALUE` to Check Before Narrowing
 
-Thay vì ép kiểu rồi hy vọng giá trị không mất dữ liệu, hãy **kiểm tra miền trước khi cast**.
+Instead of casting and hoping no data is lost, **check the range before casting**.
 
 ~~~java
 static boolean fitsInByte(long value) {
@@ -165,7 +165,7 @@ static byte toByteChecked(long value) {
 }
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 System.out.println(fitsInByte(127));  // true
@@ -173,25 +173,25 @@ System.out.println(fitsInByte(128));  // false
 System.out.println(toByteChecked(127)); // 127
 ~~~
 
-Nếu thay bằng `(byte) 128` mà không kiểm tra, kết quả thành `-128`, vì phép thu hẹp giữ các bit thấp và diễn giải theo `byte` có dấu.
+If replaced with `(byte) 128` without checking, the result becomes `-128`, because narrowing keeps the low bits and interprets them as a signed `byte`.
 
-Các wrapper limit giúp kiểm tra rõ ràng hơn việc hardcode `-128`/`127`, nhất là khi sau này đổi kiểu tham số hoặc đọc giá trị từ bên ngoài.
+Wrapper limits make checks clearer than hardcoding `-128`/`127`, especially if the parameter type changes later or values are read externally.
 
-### Dùng API kiểm tra chuyển kiểu sẵn có
+### Use Built-In Checked Conversion APIs
 
-Khi chuyển một `long` sang `int`, bạn còn có:
+When converting a `long` to an `int`, you also have:
 
 ~~~java
 long input = (long) Integer.MAX_VALUE + 1L;
-// int invalid = Math.toIntExact(input); // Ném ArithmeticException khi chạy
+// int invalid = Math.toIntExact(input); // Throws ArithmeticException at runtime
 ~~~
 
-`Math.toIntExact` báo tràn thay vì âm thầm cắt bit. Nó không thay thế việc xác định giá trị nào là hợp lệ theo quy tắc nghiệp vụ, nhưng tránh một lỗi mất dữ liệu phổ biến.
+`Math.toIntExact` reports overflow instead of silently truncating bits. It does not replace defining which values are valid under business rules, but it prevents a common data-loss bug.
 
 
-## 8. Ứng dụng `BYTES`: mô tả bản ghi nhị phân
+## 8. Applying `BYTES`: Describing a Binary Record
 
-Các hằng `SIZE`/`BYTES` hữu ích khi cần biết **bao nhiêu byte dữ liệu giá trị** sẽ ghi ra một định dạng nhị phân. Ví dụ, bản ghi gồm một số `int` và một số `long` cần `Integer.BYTES + Long.BYTES == 12` byte cho hai giá trị (chưa tính phần header/metadata nếu định dạng có thêm).
+The `SIZE`/`BYTES` constants are useful when you need to know **how many bytes of value data** will be written to a binary format. For example, a record containing one `int` and one `long` needs `Integer.BYTES + Long.BYTES == 12` bytes for the two values (excluding any header/metadata if the format adds them).
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -206,13 +206,13 @@ public class BinaryRecordSizeDemo {
 }
 ~~~
 
-Biên dịch và chạy `BinaryRecordSizeDemo.java` để kiểm chứng đầu ra `12`. `ByteBuffer` mặc định dùng thứ tự byte big-endian; khi đọc/ghi định dạng mạng hoặc file, phải thống nhất byte order với bên còn lại. `BYTES` không nói kích thước thực tế của object `Integer`, `Long` hoặc `ByteBuffer` trong bộ nhớ JVM.
+Compile and run `BinaryRecordSizeDemo.java` to verify the output `12`. `ByteBuffer` uses big-endian byte order by default; when reading/writing network or file formats, you must agree on byte order with the other party. `BYTES` does not tell you the actual size of an `Integer`, `Long`, or `ByteBuffer` object in JVM memory.
 
-Giới hạn kiểu cũng không tự phát hiện overflow: `Integer.MAX_VALUE + 1` vẫn quay vòng khi cộng `int`; nếu cần kết quả đáng tin, hãy kiểm tra miền hoặc dùng `Math.*Exact`. Chương trình dưới đây có ví dụ xác minh những tình huống biên này.
+Type limits also do not automatically detect overflow: `Integer.MAX_VALUE + 1` still wraps around during `int` addition; if reliable results are required, check the range or use `Math.*Exact`. The program below includes examples verifying these boundary cases.
 
-## 9. Ví dụ Java 17 hoàn chỉnh — tra giới hạn và phát hiện vượt miền
+## 9. Complete Java 17 Example — Inspecting Limits and Detecting Out-of-Range Values
 
-Tạo file **`PrimitiveLimitsDemo.java`** với mã sau:
+Create the file **`PrimitiveLimitsDemo.java`** with the following code:
 
 ~~~java
 public final class PrimitiveLimitsDemo {
@@ -285,7 +285,7 @@ public final class PrimitiveLimitsDemo {
 }
 ~~~
 
-Mở terminal trong thư mục chứa file và dùng **JDK 17 trở lên**.
+Open a terminal in the directory containing the file and use **JDK 17 or later**.
 
 **Bash (Linux/macOS):**
 
@@ -301,7 +301,7 @@ javac --release 17 -encoding UTF-8 .\PrimitiveLimitsDemo.java
 java -cp . PrimitiveLimitsDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 byte: -128..127, 8 bits
@@ -326,102 +326,102 @@ finite overflow=Infinity
 is finite=false
 ~~~
 
-Mọi dòng trong ví dụ đều do API và hằng chuẩn của JDK tạo ra; không phụ thuộc file dữ liệu hoặc thư viện ngoài. Đầu ra là kết quả kỳ vọng để tự đối chiếu sau khi biên dịch/chạy.
+Every line in the example is produced by standard JDK APIs and constants; it does not depend on data files or external libraries. The output is the expected result for self-verification after compiling/running.
 
-## 10. Các sai lầm thường gặp
+## 10. Common Misconceptions
 
-| Nhận định/cách viết | Vấn đề | Cách hiểu đúng |
+| Statement/code | Problem | Correct understanding |
 |---|---|---|
-| `Byte.MAX_VALUE == 255` | Sai, `byte` là kiểu có dấu | `Byte.MAX_VALUE == 127` |
-| `Integer.SIZE == 4` | Nhầm bit với byte | `Integer.SIZE == 32`; `Integer.BYTES == 4` |
-| `Long.MIN_VALUE == -Long.MAX_VALUE` | Quên miền âm có thêm một giá trị | `Long.MIN_VALUE == -Long.MAX_VALUE - 1` |
-| `Float.MIN_VALUE` là âm vô cùng hoặc giá trị âm thấp nhất | Sai nghĩa hằng của floating point | Đây là số **dương** nhỏ nhất khác 0 |
-| `Double.MAX_VALUE` bằng `Infinity` | Một giá trị hữu hạn bị nhầm với vô cực | `Double.isFinite(Double.MAX_VALUE)` là true |
-| `Character.SIZE == 8` | `char` dùng một code unit UTF-16 | `Character.SIZE == 16` |
-| `Boolean.SIZE` có tồn tại | Java không công bố hằng đó | Chỉ có true/false, không có `Boolean.SIZE` |
-| `(byte) 128` vẫn là 128 | Ép thu hẹp cắt bit | Kết quả là -128 |
-| `Integer.MAX_VALUE + 1` được tự mở rộng thành long | Toán hạng vẫn là int | Tràn int, kết quả là `Integer.MIN_VALUE` |
-| `Math.abs(Integer.MIN_VALUE)` luôn dương | Trị tuyệt đối không vừa int | Kết quả vẫn là `Integer.MIN_VALUE` |
+| `Byte.MAX_VALUE == 255` | Wrong, `byte` is signed | `Byte.MAX_VALUE == 127` |
+| `Integer.SIZE == 4` | Confuses bits with bytes | `Integer.SIZE == 32`; `Integer.BYTES == 4` |
+| `Long.MIN_VALUE == -Long.MAX_VALUE` | Forgets the negative range has one extra value | `Long.MIN_VALUE == -Long.MAX_VALUE - 1` |
+| `Float.MIN_VALUE` is negative infinity or the lowest negative value | Wrong meaning of floating-point constant | It is the smallest non-zero **positive** number |
+| `Double.MAX_VALUE` equals `Infinity` | Confuses a finite value with infinity | `Double.isFinite(Double.MAX_VALUE)` is true |
+| `Character.SIZE == 8` | `char` uses a UTF-16 code unit | `Character.SIZE == 16` |
+| `Boolean.SIZE` exists | Java does not declare such a constant | Only true/false, no `Boolean.SIZE` |
+| `(byte) 128` stays 128 | Narrowing cast truncates bits | The result is -128 |
+| `Integer.MAX_VALUE + 1` automatically widens to long | Operands are still int | int overflow, result is `Integer.MIN_VALUE` |
+| `Math.abs(Integer.MIN_VALUE)` is always positive | Absolute value does not fit in int | Result is still `Integer.MIN_VALUE` |
 
-### Quy tắc kiểm tra dữ liệu số thực
+### Rules for Validating Floating-Point Input
 
-Nếu người dùng nhập giá trị `double` từ bên ngoài, hãy phân biệt:
+If a user supplies an external `double` value, distinguish:
 
-- **Không hợp lệ về định dạng**: không phân tích được thành số.
-- **Không hữu hạn**: `NaN` hoặc `Infinity`.
-- **Hữu hạn nhưng ngoài miền nghiệp vụ**: ví dụ số lượng âm hoặc vượt mức cho phép.
+- **Invalid format**: cannot be parsed as a number.
+- **Non-finite**: `NaN` or `Infinity`.
+- **Finite but outside business range**: e.g., negative quantity or exceeding allowed limits.
 
-`MIN_VALUE`/`MAX_VALUE` của kiểu **không tự xác định miền nghiệp vụ**. Chẳng hạn, số lượng sản phẩm phải không âm có thể bị ràng buộc từ 0 đến 100, không nhất thiết sử dụng toàn bộ miền của `int`.
+A type's `MIN_VALUE`/`MAX_VALUE` **does not automatically define the business domain**. For instance, a product quantity must be non-negative and might be constrained from 0 to 100, not necessarily using the entire `int` range.
 
-## 11. Bài tập kèm đáp án
+## 11. Exercises with Answers
 
-### Bài A — phân biệt bit và byte
+### Exercise A — Distinguishing Bits and Bytes
 
-Hỏi `Short.SIZE`, `Short.BYTES`, `Long.SIZE`, `Long.BYTES`.
+Find `Short.SIZE`, `Short.BYTES`, `Long.SIZE`, `Long.BYTES`.
 
-**Đáp án:** lần lượt `16`, `2`, `64`, `8`.
+**Answer:** `16`, `2`, `64`, `8` respectively.
 
-### Bài B — giới hạn của char
+### Exercise B — Limits of `char`
 
 ~~~java
 System.out.println((int) Character.MAX_VALUE);
 System.out.println(Character.SIZE);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 65535
 16
 ~~~
 
-Vì `char` là UTF-16 code unit 16 bit, khác kiểu `short` có dấu.
+Because `char` is a 16-bit UTF-16 code unit, distinct from signed `short`.
 
-### Bài C — giới hạn float
+### Exercise C — Limits of `float`
 
-`Float.MIN_VALUE` có âm không? Muốn biểu diễn số hữu hạn âm nhỏ nhất theo thứ tự số học thì dùng gì?
+Is `Float.MIN_VALUE` negative? What should you use to represent the smallest finite negative number in numerical order?
 
-**Đáp án:** không; `Float.MIN_VALUE` là số dương subnormal nhỏ nhất khác 0. Số hữu hạn âm thấp nhất là `-Float.MAX_VALUE`.
+**Answer:** no; `Float.MIN_VALUE` is the smallest positive non-zero subnormal number. The lowest finite negative number is `-Float.MAX_VALUE`.
 
-### Bài D — phép ép kiểu thu hẹp
+### Exercise D — Narrowing Casts
 
 ~~~java
 System.out.println((byte) 128);
 System.out.println((byte) 255);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 -128
 -1
 ~~~
 
-Dữ liệu vượt miền byte, các bit thấp được giữ lại theo quy tắc chuyển kiểu.
+The data exceeds the byte range, and the low bits are kept according to conversion rules.
 
-### Bài E — kiểm tra overflow
+### Exercise E — Checking Overflow
 
-Bạn muốn tăng `Integer.MAX_VALUE` thêm 1 nhưng **phải báo lỗi nếu tràn**. Dùng phép cộng thông thường hay `Math.addExact`?
+You want to increment `Integer.MAX_VALUE` by 1, but **must report an error on overflow**. Should you use ordinary addition or `Math.addExact`?
 
-**Đáp án:** dùng `Math.addExact(Integer.MAX_VALUE, 1)` và xử lý `ArithmeticException`; phép `+` thông thường sẽ cho giá trị đã tràn.
+**Answer:** use `Math.addExact(Integer.MAX_VALUE, 1)` and handle `ArithmeticException`; ordinary `+` yields the overflowed value.
 
-### Bài F — giới hạn nghiệp vụ
+### Exercise F — Business Limits
 
-Một input `int age = -5;` hợp lệ theo miền `int`, nhưng có hợp lệ làm tuổi không?
+An input `int age = -5;` is valid within the `int` range, but is it valid as an age?
 
-**Đáp án:** không. `Integer.MIN_VALUE`/`MAX_VALUE` chỉ giới hạn **khả năng biểu diễn của kiểu**; miền nghiệp vụ của tuổi phải được kiểm tra bằng điều kiện riêng.
+**Answer:** no. `Integer.MIN_VALUE`/`MAX_VALUE` only bound **the type's representational capacity**; the business domain of age must be checked with a separate condition.
 
-## 12. Checklist hoàn thành
+## 12. Completion Checklist
 
-- [ ] Nhớ `Byte`, `Short`, `Integer`, `Long` có `MIN_VALUE`, `MAX_VALUE` và `SIZE`.
-- [ ] Đọc đúng các giới hạn `byte`/ `short`/ `int`/ `long` theo kiểu có dấu.
-- [ ] Biết `SIZE` là số bit, `BYTES` là số byte của biểu diễn giá trị.
-- [ ] Hiểu `Character.SIZE == 16` và `char` là UTF-16 code unit.
-- [ ] Phân biệt `Float.MIN_VALUE`/`Double.MIN_VALUE` với số âm hữu hạn thấp nhất.
-- [ ] Biết `MIN_NORMAL` của floating-point khác `MIN_VALUE`.
-- [ ] Biết `Boolean` không có `MIN_VALUE`, `MAX_VALUE`, `SIZE`.
-- [ ] Kiểm tra miền trước khi cast thu hẹp kiểu và chú ý overflow.
-- [ ] Không nhầm giới hạn của kiểu với miền giá trị hợp lệ của nghiệp vụ.
-- [ ] Biên dịch và chạy `PrimitiveLimitsDemo.java` bằng Java 17+, đối chiếu output.
+- [ ] Remember that `Byte`, `Short`, `Integer`, and `Long` have `MIN_VALUE`, `MAX_VALUE`, and `SIZE`.
+- [ ] Read `byte`/`short`/`int`/`long` limits accurately as signed types.
+- [ ] Know that `SIZE` is the bit count and `BYTES` is the byte count of the value representation.
+- [ ] Understand that `Character.SIZE == 16` and `char` is a UTF-16 code unit.
+- [ ] Distinguish `Float.MIN_VALUE`/`Double.MIN_VALUE` from the lowest finite negative number.
+- [ ] Know that floating-point `MIN_NORMAL` differs from `MIN_VALUE`.
+- [ ] Know that `Boolean` has no `MIN_VALUE`, `MAX_VALUE`, or `SIZE`.
+- [ ] Check range before narrowing casts and watch out for overflow.
+- [ ] Do not confuse type limits with valid business value ranges.
+- [ ] Compile and run `PrimitiveLimitsDemo.java` with Java 17+, and verify the output.
 
-**Kết luận:** `MIN_VALUE`, `MAX_VALUE` và `SIZE` giúp tra được giới hạn và độ rộng giá trị **đúng theo đặc tả Java**, tránh viết cứng các con số và hỗ trợ validation. Với số nguyên, `MIN_VALUE` là số âm nhỏ nhất; với `float`/`double`, `MIN_VALUE` là số **dương khác 0 nhỏ nhất**. Luôn phân biệt bit với byte, khả năng biểu diễn với yêu cầu nghiệp vụ, và kiểm tra trước những phép toán có thể tràn số.
+**Conclusion:** `MIN_VALUE`, `MAX_VALUE`, and `SIZE` let you look up limits and value widths **accurately according to the Java specification**, avoiding hardcoded magic numbers and aiding validation. For integers, `MIN_VALUE` is the smallest negative number; for `float`/`double`, `MIN_VALUE` is the **smallest positive non-zero** number. Always distinguish bits from bytes, representational capacity from business requirements, and check operations that may overflow.

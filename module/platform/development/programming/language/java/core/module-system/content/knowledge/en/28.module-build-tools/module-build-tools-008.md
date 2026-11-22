@@ -1,14 +1,14 @@
-# Packaging modular JAR trong build
+# Packaging modular JARs in builds
 
-Một ứng dụng sử dụng Java Platform Module System (JPMS) không chỉ cần file `module-info.java` trong source. Khi build, hệ thống phải **biên dịch descriptor thành `module-info.class` và đóng gói class đó đúng vị trí bên trong JAR**. Artifact nhận được gọi là **modular JAR** (thường cũng gọi là explicit modular JAR).
+An application using the Java Platform Module System (JPMS) needs more than a `module-info.java` file in its source tree. During the build, the system must **compile the descriptor into `module-info.class` and package that class at the right location inside the JAR**. The resulting artifact is called a **modular JAR** (often also called an explicit modular JAR).
 
-Packaging đúng giúp `java`, `javac`, `jdeps` và `jlink` nhận diện tên module, dependency, package export/open và service declaration. Ngược lại, nếu `module-info.class` bị bỏ sót hoặc đặt sai chỗ, JAR có thể trở thành automatic module khi đặt trên module path, khiến boundary và khả năng kiểm tra dependency khác xa thiết kế ban đầu.
+Proper packaging allows `java`, `javac`, `jdeps`, and `jlink` to recognize the module name, dependencies, exported/opened packages, and service declarations. Conversely, if `module-info.class` is omitted or placed in the wrong location, the JAR may become an automatic module when placed on the module path, causing boundaries and dependency verification to diverge sharply from the original design.
 
-Bài viết hướng dẫn cấu trúc artifact, build bằng lệnh JDK, cấu hình Maven/Gradle, đóng gói resource và service provider, kiểm tra kết quả và xử lý những lỗi phổ biến.
+This article walks through artifact structure, building with JDK commands, configuring Maven/Gradle, packaging resources and service providers, verifying outputs, and troubleshooting common issues.
 
-## 1. Modular JAR khác JAR thông thường ở đâu?
+## 1. How does a modular JAR differ from a regular JAR?
 
-Trong tình huống phổ biến, một explicit modular JAR có cấu trúc:
+In the standard layout, an explicit modular JAR has the structure:
 
 ~~~text
 org.example.greeter.jar
@@ -24,9 +24,9 @@ org.example.greeter.jar
     └── MANIFEST.MF
 ~~~
 
-`module-info.class` nằm **ngay tại gốc JAR**, không nằm dưới tên package và cũng không nằm dưới thư mục `classes/` bên trong JAR thông thường.
+`module-info.class` sits **directly at the root of the JAR**, not beneath a package name and not inside a `classes/` subdirectory in a standard JAR.
 
-Descriptor có thể bắt nguồn từ source:
+The descriptor can originate from source:
 
 ~~~java
 module org.example.greeter {
@@ -34,24 +34,24 @@ module org.example.greeter {
 }
 ~~~
 
-Tại compile-time, `javac` tạo `module-info.class` chứa `Module` attribute. Khi đặt JAR trên module path, module system đọc descriptor này để xác định các quan hệ module.
+At compile time, `javac` produces `module-info.class` containing the `Module` attribute. When the JAR is placed on the module path, the module system reads this descriptor to establish module relationships.
 
-So sánh:
+Comparison:
 
-| Loại artifact | Dấu hiệu | Hành vi khi đặt trên module path |
+| Artifact type | Indicator | Behavior when placed on the module path |
 | --- | --- | --- |
-| Explicit modular JAR | Có descriptor `module-info.class` hợp lệ | JPMS sử dụng đúng `requires`, `exports`, `opens`, `uses`, `provides` |
-| Non-modular JAR | Không có descriptor | Có thể trở thành automatic module với tên được suy ra hoặc khai báo qua manifest |
-| JAR trên classpath | Dù có descriptor hay không, được dùng qua classpath | Class của JAR được nạp trong unnamed module của class loader tương ứng |
-| JMOD | Định dạng `.jmod` với các section riêng | Chủ yếu là đầu vào compile/link-time, không phải JAR runtime trực tiếp |
+| Explicit modular JAR | Has a valid `module-info.class` descriptor | JPMS strictly applies `requires`, `exports`, `opens`, `uses`, `provides` |
+| Non-modular JAR | No descriptor | May become an automatic module with a name derived or declared via manifest |
+| JAR on the classpath | Whether it has a descriptor or not, used via classpath | JAR classes are loaded in the unnamed module of the corresponding class loader |
+| JMOD | `.jmod` format with distinct sections | Primarily a compile/link-time input, not a direct runtime JAR |
 
-Chỉ đặt `Automatic-Module-Name` vào manifest không tạo explicit modular JAR. Nó chỉ cung cấp tên ổn định cho automatic module khi artifact chưa có descriptor được dùng trong cấu hình module path.
+Merely putting `Automatic-Module-Name` into the manifest does not create an explicit modular JAR. It only supplies a stable name for an automatic module when an artifact lacking a descriptor is used in a module path configuration.
 
-## 2. Ví dụ hoàn chỉnh với hai module
+## 2. Complete example with two modules
 
-Ta xây dựng một module API và một module CLI sử dụng API đó.
+We build an API module and a CLI module that uses that API.
 
-Cấu trúc source:
+Source structure:
 
 ~~~text
 project/
@@ -66,7 +66,7 @@ project/
             └── Main.java
 ~~~
 
-Descriptor cho API:
+Descriptor for API:
 
 ~~~java
 // src/org.example.greeter/module-info.java
@@ -75,7 +75,7 @@ module org.example.greeter {
 }
 ~~~
 
-Class API:
+API class:
 
 ~~~java
 // src/org.example.greeter/org/example/greeter/api/GreetingService.java
@@ -90,7 +90,7 @@ public final class GreetingService {
 }
 ~~~
 
-Descriptor cho CLI:
+Descriptor for CLI:
 
 ~~~java
 // src/org.example.cli/module-info.java
@@ -114,11 +114,11 @@ public final class Main {
 }
 ~~~
 
-Phần tiếp theo sẽ biên dịch, đóng gói và chạy cả hai module từ modular JAR thực tế.
+The following sections compile, package, and run both modules from actual modular JARs.
 
-## 3. Biên dịch bằng javac trước khi đóng gói
+## 3. Compiling with javac before packaging
 
-Từ thư mục `project`, dùng:
+From the `project` directory, run:
 
 ~~~bash
 javac \
@@ -127,13 +127,13 @@ javac \
   -m org.example.greeter,org.example.cli
 ~~~
 
-Trong đó:
+Where:
 
-- `--module-source-path src` xác định thư mục chứa source được phân theo tên module.
-- `-d out` chỉ định thư mục output cho các class đã biên dịch.
-- `-m` nêu các root module cần biên dịch.
+- `--module-source-path src` specifies the directory containing sources organized by module name.
+- `-d out` specifies the output directory for compiled classes.
+- `-m` lists the root modules to compile.
 
-Sau khi biên dịch thành công, output có cấu trúc:
+After successful compilation, the output has the structure:
 
 ~~~text
 out/
@@ -145,21 +145,21 @@ out/
     └── org/example/cli/Main.class
 ~~~
 
-Mỗi module có một thư mục output độc lập với `module-info.class` tại gốc của thư mục module đó.
+Each module has an independent output directory with `module-info.class` at the root of that module's directory.
 
-Không dùng `-C out .` để tạo một JAR chung chứa hai module descriptor ở hai thư mục con. Với packaging theo module, mỗi explicit module cần artifact hoặc vùng output tương ứng để công cụ JPMS tìm đúng descriptor.
+Do not use `-C out .` to create one combined JAR containing two module descriptors in two subdirectories. With per-module packaging, each explicit module needs its own artifact or matching output root so JPMS tools find the right descriptor.
 
-Nếu đang sử dụng Maven/Gradle, công cụ build sẽ thay thế bước gọi `javac` thủ công, nhưng nguyên tắc descriptor tại gốc artifact vẫn giống nhau.
+When using Maven/Gradle, the build tool replaces the manual `javac` step, yet the principle of the descriptor residing at the artifact root remains the same.
 
-## 4. Đóng gói bằng jar --create
+## 4. Packaging with jar --create
 
-Tạo thư mục phân phối:
+Create a distribution directory:
 
 ~~~bash
 mkdir dist
 ~~~
 
-Đóng gói module API:
+Package the API module:
 
 ~~~bash
 jar --create \
@@ -167,7 +167,7 @@ jar --create \
   -C out/org.example.greeter .
 ~~~
 
-Đóng gói module CLI:
+Package the CLI module:
 
 ~~~bash
 jar --create \
@@ -175,16 +175,16 @@ jar --create \
   -C out/org.example.cli .
 ~~~
 
-Tùy chọn `-C directory .` yêu cầu công cụ đổi ngữ cảnh sang thư mục module rồi đưa toàn bộ nội dung trong đó vào gốc JAR. Đây là lý do `module-info.class` xuất hiện đúng ở gốc artifact.
+The `-C directory .` option instructs the tool to change context to the module directory and place all contents from inside it at the JAR root. This is why `module-info.class` appears directly at the root of the artifact.
 
-Kiểm tra nội dung:
+Inspect contents:
 
 ~~~bash
 jar --list --file dist/org.example.greeter.jar
 jar --list --file dist/org.example.cli.jar
 ~~~
 
-Output rút gọn:
+Abbreviated output:
 
 ~~~text
 META-INF/
@@ -193,7 +193,7 @@ module-info.class
 org/example/greeter/api/GreetingService.class
 ~~~
 
-Có thể thiết lập main class khi đóng gói CLI:
+You can configure the main class when packaging CLI:
 
 ~~~bash
 jar --create \
@@ -202,11 +202,11 @@ jar --create \
   -C out/org.example.cli .
 ~~~
 
-Nếu không gắn main-class metadata, vẫn có thể chạy bằng cú pháp `-m MODULE/MAIN_CLASS` với tên main class đầy đủ.
+If main-class metadata is not embedded, you can still run with the `-m MODULE/MAIN_CLASS` syntax specifying the full main class name.
 
-## 5. Chạy các modular JAR đã đóng gói
+## 5. Running the packaged modular JARs
 
-Đưa cả hai JAR lên module path:
+Put both JARs on the module path:
 
 ~~~bash
 java \
@@ -214,46 +214,46 @@ java \
   --module org.example.cli/org.example.cli.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hello, JPMS!
 ~~~
 
-JPMS tìm `org.example.cli` trong `dist`, đọc descriptor `requires org.example.greeter` và resolve module dependency.
+JPMS locates `org.example.cli` in `dist`, reads the descriptor `requires org.example.greeter`, and resolves the dependency module.
 
-Có thể dùng tên rút gọn:
+You can use the short flags:
 
 ~~~bash
 java -p dist -m org.example.cli/org.example.cli.Main
 ~~~
 
-Nếu đã lưu main class metadata trong modular JAR, có thể dùng dạng chỉ có tên module theo cấu hình hỗ trợ:
+If main-class metadata was stored in the modular JAR, you can use the module-name-only form under supported configurations:
 
 ~~~bash
 java -p dist -m org.example.cli
 ~~~
 
-Điều cần tránh là chạy:
+What to avoid is running:
 
 ~~~bash
 java -cp dist/org.example.cli.jar org.example.cli.Main
 ~~~
 
-Cách chạy classpath này không sử dụng JAR dưới dạng explicit named module. `module-info.class` trong JAR không tự biến việc khởi chạy classpath thành chạy modular.
+This classpath launch does not use the JAR as an explicit named module. Having `module-info.class` in the JAR does not turn a classpath launch into a modular launch.
 
-## 6. Kiểm tra descriptor trong artifact
+## 6. Inspecting descriptors inside artifacts
 
-Đừng dựa vào tên file `.jar` để khẳng định packaging đúng. Hãy xem artifact thực tế.
+Do not rely on `.jar` filenames to assume packaging is right. Inspect the actual artifact.
 
-Lệnh hữu ích nhất:
+The most useful command:
 
 ~~~bash
 jar --describe-module \
   --file dist/org.example.greeter.jar
 ~~~
 
-Kết quả sẽ thể hiện module name cùng các directive trong descriptor, ví dụ:
+The output displays the module name and directives in the descriptor, for example:
 
 ~~~text
 org.example.greeter
@@ -261,16 +261,16 @@ exports org.example.greeter.api
 requires java.base mandated
 ~~~
 
-Phần `requires java.base mandated` là dependency ngầm do module system áp dụng, dù source không viết `requires java.base;`.
+`requires java.base mandated` is the implicit dependency enforced by the module system, even though the source did not write `requires java.base;`.
 
-Kiểm tra module CLI:
+Inspect the CLI module:
 
 ~~~bash
 jar --describe-module \
   --file dist/org.example.cli.jar
 ~~~
 
-Kết quả có thể gồm:
+Output may include:
 
 ~~~text
 org.example.cli
@@ -278,27 +278,27 @@ requires java.base mandated
 requires org.example.greeter
 ~~~
 
-Lệnh tiếp theo kiểm tra Java launcher có thể nhận diện hai module từ thư mục phân phối:
+The next command checks whether the Java launcher can recognize both modules from the distribution directory:
 
 ~~~bash
 java --module-path dist --list-modules
 ~~~
 
-Tập module quan sát được sẽ bao gồm system modules và các module hợp lệ trong thư mục `dist`.
+The observable module set includes system modules and valid modules in the `dist` directory.
 
-Nếu muốn xem dependency thực tế ở mức module:
+To view actual dependencies at the module level:
 
 ~~~bash
 jdeps --module-path dist --check org.example.cli
 ~~~
 
-`jdeps` hữu ích để phát hiện dependency graph và kiểm tra các ràng buộc module. Nó không thay thế việc khởi chạy thử ứng dụng, đặc biệt nếu có reflection hoặc service provider nạp động.
+`jdeps` is useful for inspecting the dependency graph and checking module constraints. It does not replace launching and testing the application, especially if reflection or dynamically loaded service providers are involved.
 
-## 7. Build modular JAR bằng Maven
+## 7. Building modular JARs with Maven
 
-Trong Maven, mỗi Maven module thường tạo một artifact riêng. Cần phân biệt **Maven module** (một dự án/artifact trong multi-module build) với **JPMS module** (định nghĩa bằng `module-info.java`).
+In Maven, each Maven module typically produces a separate artifact. Distinguish a **Maven module** (a project/artifact in a multi-module build) from a **JPMS module** (defined by `module-info.java`).
 
-Giả sử cấu trúc:
+Suppose the layout is:
 
 ~~~text
 workspace/
@@ -315,7 +315,7 @@ workspace/
         └── org/example/cli/Main.java
 ~~~
 
-Parent POM chỉ định hai project con:
+The parent POM specifies the two subprojects:
 
 ~~~xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -357,7 +357,7 @@ Parent POM chỉ định hai project con:
 </project>
 ~~~
 
-Trong `greeter-api/pom.xml`, project có `groupId=org.example`, `artifactId=greeter-api`, `version=1.0.0`, `packaging=jar` và tham chiếu parent. Trong `greeter-cli/pom.xml`, khai báo dependency Maven:
+In `greeter-api/pom.xml`, the project has `groupId=org.example`, `artifactId=greeter-api`, `version=1.0.0`, `packaging=jar`, and references parent. In `greeter-cli/pom.xml`, declare the Maven dependency:
 
 ~~~xml
 <dependencies>
@@ -369,7 +369,7 @@ Trong `greeter-api/pom.xml`, project có `groupId=org.example`, `artifactId=gree
 </dependencies>
 ~~~
 
-Và descriptor Java trong project CLI:
+And the Java descriptor in the CLI project:
 
 ~~~java
 module org.example.cli {
@@ -377,40 +377,40 @@ module org.example.cli {
 }
 ~~~
 
-Hai khai báo này phục vụ mục đích khác nhau:
+These two declarations serve different purposes:
 
-- `<dependency>` trong POM giúp Maven lấy artifact và đưa dependency vào quá trình build.
-- `requires` trong `module-info.java` tạo quan hệ readability tại cấp JPMS.
+- `<dependency>` in the POM lets Maven fetch the artifact and include the dependency in the build.
+- `requires` in `module-info.java` establishes readability at the JPMS level.
 
-Khi dependency là explicit named module và toolchain/plugin được cấu hình phù hợp, Maven Compiler Plugin biên dịch module theo module path. Maven JAR Plugin đóng gói output trong `target/classes`, bao gồm `module-info.class`.
+When dependencies are explicit named modules and toolchains/plugins are configured properly, the Maven Compiler Plugin compiles modules via the module path. The Maven JAR Plugin packages output from `target/classes`, including `module-info.class`.
 
-Build từ thư mục root:
+Build from the root directory:
 
 ~~~bash
 mvn clean package
 ~~~
 
-Kết quả thường là:
+Output typically looks like:
 
 ~~~text
 greeter-api/target/greeter-api-1.0.0.jar
 greeter-cli/target/greeter-cli-1.0.0.jar
 ~~~
 
-Tên JAR là Maven artifact name, không nhất thiết trùng tên JPMS module. **Tên module thực tế được quyết định bởi descriptor**, không phải `artifactId`.
+The JAR filename is the Maven artifact name, which does not have to match the JPMS module name. **The actual module name is determined by the descriptor**, not the `artifactId`.
 
-Kiểm tra:
+Verify:
 
 ~~~bash
 jar --describe-module \
   --file greeter-api/target/greeter-api-1.0.0.jar
 ~~~
 
-Khi dùng plugin hoặc version Maven khác, hãy kiểm tra khả năng hỗ trợ JPMS và cấu hình compiler tương ứng thay vì mặc định mọi JAR được tạo ra đều modular.
+When using different Maven plugins or versions, verify JPMS support and compiler configuration rather than assuming every generated JAR is automatically modular.
 
-## 8. Build modular JAR bằng Gradle
+## 8. Building modular JARs with Gradle
 
-Với Gradle Java Plugin, một cách cấu hình Kotlin DSL cho project có `module-info.java`:
+With the Gradle Java Plugin, a Kotlin DSL configuration for a project with `module-info.java`:
 
 ~~~kotlin
 plugins {
@@ -426,7 +426,7 @@ java {
 }
 ~~~
 
-Cấu trúc source tiêu chuẩn:
+Standard source layout:
 
 ~~~text
 greeter-api/
@@ -436,7 +436,7 @@ greeter-api/
     └── org/example/greeter/api/GreetingService.java
 ~~~
 
-Trong project CLI, khai báo dependency tới project API:
+In the CLI project, declare the dependency on the API project:
 
 ~~~kotlin
 dependencies {
@@ -444,7 +444,7 @@ dependencies {
 }
 ~~~
 
-Và file `src/main/java/module-info.java` của CLI:
+And CLI's `src/main/java/module-info.java`:
 
 ~~~java
 module org.example.cli {
@@ -452,7 +452,7 @@ module org.example.cli {
 }
 ~~~
 
-Tương tự Maven, `implementation(project(":greeter-api"))` giúp Gradle cung cấp artifact để compile, còn `requires org.example.greeter` là quan hệ module được kiểm tra bởi `javac`.
+Just like Maven, `implementation(project(":greeter-api"))` tells Gradle to supply the artifact for compilation, whereas `requires org.example.greeter` is the module relationship verified by `javac`.
 
 Build:
 
@@ -460,31 +460,31 @@ Build:
 ./gradlew clean jar
 ~~~
 
-Hoặc trên Windows:
+Or on Windows:
 
 ~~~powershell
 .\gradlew.bat clean jar
 ~~~
 
-JAR thường nằm trong:
+JARs typically reside in:
 
 ~~~text
 greeter-api/build/libs/
 greeter-cli/build/libs/
 ~~~
 
-Dùng `jar --describe-module --file ...` để xác nhận descriptor thực sự đã được đóng gói. Nếu Gradle đang biên dịch trên classpath, hãy kiểm tra `modularity.inferModulePath`, toolchain và các dependency được nhận diện như named/automatic module.
+Use `jar --describe-module --file ...` to confirm the descriptor was actually packaged. If Gradle is compiling on the classpath, inspect `modularity.inferModulePath`, the toolchain, and how dependencies are recognized as named/automatic modules.
 
-## 9. Chọn Java release và toolchain thống nhất
+## 9. Choosing a consistent Java release and toolchain
 
-Module descriptor được giới thiệu trong Java 9. Vì vậy:
+Module descriptors were introduced in Java 9. Therefore:
 
-- Build explicit modular JAR thông thường cần compiler hỗ trợ JPMS.
-- `--release` phải tương thích với các API được dùng và class-file target.
-- Java runtime dùng để chạy phải có khả năng đọc class file và module descriptor đã biên dịch.
-- CI, local và môi trường phát hành nên sử dụng toolchain có phiên bản được quản lý rõ.
+- Building explicit modular JARs generally requires a JPMS-capable compiler.
+- `--release` must be compatible with used APIs and class-file targets.
+- The Java runtime executing the code must support reading the compiled class files and module descriptor.
+- CI, local, and release environments should use managed, consistent toolchain versions.
 
-Ví dụ `javac`:
+Example `javac`:
 
 ~~~bash
 javac --release 21 \
@@ -493,7 +493,7 @@ javac --release 21 \
   -m org.example.greeter,org.example.cli
 ~~~
 
-Trong Maven:
+In Maven:
 
 ~~~xml
 <properties>
@@ -501,13 +501,13 @@ Trong Maven:
 </properties>
 ~~~
 
-Trong Gradle, dùng Java toolchain để quản lý compiler. Nếu ứng dụng phải chạy trên Java 17, biên dịch `--release 21` sẽ tạo class file không phù hợp. Hãy chọn Java release theo runtime tối thiểu được hỗ trợ.
+In Gradle, use Java toolchains to manage the compiler. If the application must run on Java 17, compiling with `--release 21` creates incompatible class files. Select the Java release according to the minimum supported runtime.
 
-Một số thư viện muốn hỗ trợ Java 8 và cung cấp descriptor cho Java 9+ có thể áp dụng **multi-release JAR**: class thông thường tương thích Java 8, còn `module-info.class` đặt trong `META-INF/versions/9/` cùng manifest `Multi-Release: true`. Đây là quy trình đóng gói nâng cao cần cấu hình build riêng và kiểm tra trên cả hai nhóm runtime; không nên chỉ chuyển vị trí `module-info.class` thủ công rồi mặc định mọi công cụ nhận đúng.
+Some libraries wanting to support Java 8 while providing a descriptor for Java 9+ may use a **multi-release JAR**: regular classes target Java 8, while `module-info.class` is placed in `META-INF/versions/9/` alongside `Multi-Release: true` in the manifest. This is an advanced packaging workflow requiring dedicated build configuration and testing across both runtime groups; do not merely move `module-info.class` manually and assume every tool handles it properly.
 
-## 10. Packaging resource mà không phá cấu trúc module
+## 10. Packaging resources without breaking module structure
 
-Modular JAR vẫn có thể chứa file resource:
+A modular JAR can still contain resource files:
 
 ~~~text
 org.example.greeter.jar
@@ -517,9 +517,9 @@ org.example.greeter.jar
 └── META-INF/MANIFEST.MF
 ~~~
 
-Với Maven hoặc Gradle, resource trong `src/main/resources` thường được copy vào output rồi đóng gói vào JAR.
+With Maven or Gradle, resources in `src/main/resources` are typically copied into the output and packaged into the JAR.
 
-Ví dụ:
+Example:
 
 ~~~text
 greeter-api/
@@ -528,15 +528,15 @@ greeter-api/
 └── src/main/resources/org/example/greeter/messages.properties
 ~~~
 
-Không để `module-info.class` vào `src/main/resources` như một file độc lập không được compiler quản lý. Descriptor nên được biên dịch từ `module-info.java`.
+Do not place `module-info.class` into `src/main/resources` as a standalone unmanaged file. The descriptor should be compiled from `module-info.java`.
 
-Việc resource tồn tại trong JAR không bảo đảm mọi module khác có thể đọc resource đó tùy ý. Resource trong named module chịu các quy tắc truy cập module/resource tương ứng; đối với resource đóng trong package, quyền mở package và cách gọi API lấy resource có thể ảnh hưởng tới khả năng đọc từ bên ngoài.
+A resource existing inside a JAR does not guarantee every other module can read it freely. Resources in named modules are subject to the corresponding module/resource access rules; for resources encapsulated inside packages, whether packages are opened and which API is used to load resources can affect external readability.
 
-Khi dùng framework đọc resource hoặc reflection, hãy kiểm tra package `opens` và cơ chế class loader thay vì đưa toàn bộ source vào thư mục resource để “né” module boundary.
+When using frameworks that read resources or perform reflection, inspect package `opens` and class loader behavior instead of placing sources into the resources directory to “bypass” module boundaries.
 
-## 11. Packaging service provider
+## 11. Packaging service providers
 
-Nếu module cung cấp implementation cho SPI, khai báo `provides ... with ...` trong descriptor:
+If a module provides an implementation for an SPI, declare `provides ... with ...` in the descriptor:
 
 ~~~java
 module org.example.greeter.provider {
@@ -547,7 +547,7 @@ module org.example.greeter.provider {
 }
 ~~~
 
-Module consumer khai báo:
+The consumer module declares:
 
 ~~~java
 module org.example.greeter.client {
@@ -556,41 +556,41 @@ module org.example.greeter.client {
 }
 ~~~
 
-Khi đóng gói JAR, `module-info.class` sẽ chứa service metadata phù hợp. Khi sử dụng explicit named module trên module path, `ServiceLoader` đọc thông tin provider theo module descriptor.
+When packaging the JAR, `module-info.class` contains the appropriate service metadata. When using explicit named modules on the module path, `ServiceLoader` reads provider information from the module descriptor.
 
-Các thư viện legacy thường dùng file:
+Legacy libraries typically use the file:
 
 ~~~text
 META-INF/services/org.example.greeter.api.Greeter
 ~~~
 
-Cơ chế này phù hợp cho provider được khám phá qua classpath hoặc cách dùng tương thích. Với explicit named module, hãy định nghĩa `provides` đúng trong `module-info.java`; đừng chỉ chép file `META-INF/services` rồi kỳ vọng service sẽ được module system tự xử lý như khai báo module.
+This mechanism works for providers discovered on the classpath or in compatibility scenarios. With explicit named modules, define `provides` properly in `module-info.java`; do not merely copy `META-INF/services` files expecting the module system to treat them as module declarations automatically.
 
-Việc provider JAR có trên module path cũng chưa chắc đủ để nó được resolve vào runtime graph của một ứng dụng. Có thể cần đưa provider module vào tập root phù hợp, cấu hình service binding hoặc dùng plugin layer tương ứng. Hãy kiểm tra `java --show-module-resolution` và cách ứng dụng gọi `ServiceLoader` khi provider không được tìm thấy.
+Merely having the provider JAR on the module path does not guarantee it is resolved into an application's runtime graph. You may need to add the provider module to the root set, configure service binding, or use an appropriate plugin layer. Check `java --show-module-resolution` and how the application invokes `ServiceLoader` if a provider is not found.
 
-## 12. Nhiều dependency: đừng đóng gói sai ranh giới module
+## 12. Multiple dependencies: do not package across module boundaries
 
-Trong modular build, mỗi module có descriptor và tập package riêng. Không nên tạo một fat JAR bằng cách gộp tùy ý class của nhiều explicit modules vào cùng một JAR rồi giữ lại một descriptor bất kỳ.
+In a modular build, each module has its own descriptor and set of packages. Do not create a fat JAR by arbitrarily merging classes from multiple explicit modules into one JAR while keeping one random descriptor.
 
-Các rủi ro:
+Risks:
 
-- Chỉ có một `module-info.class` được giữ lại, làm mất thông tin module của dependency khác.
-- Package bị gộp gây split package hoặc xung đột namespace.
-- `requires`, `exports`, `opens` và service declarations không còn phản ánh nội dung thực tế.
-- Những công cụ phân tích module có thể cho kết quả sai so với build ban đầu.
+- Only one `module-info.class` survives, discarding module information of other dependencies.
+- Merged packages cause split packages or namespace collisions.
+- `requires`, `exports`, `opens`, and service declarations no longer reflect actual contents.
+- Module analysis tools can produce misleading results compared to the original build.
 
-Nếu ứng dụng cần một artifact triển khai, cân nhắc:
+If the application needs a single deployable artifact, consider:
 
-1. Giữ mỗi explicit module là một modular JAR và phân phối cùng module path.
-2. Dùng `jlink` để liên kết các module cần thiết thành runtime image.
-3. Dùng `jpackage` khi cần gói cài đặt ứng dụng và runtime theo nền tảng.
-4. Chỉ tạo fat JAR khi chủ động từ bỏ hoặc tái thiết kế module boundaries, với cấu hình packaging phù hợp và test rõ ràng.
+1. Keeping each explicit module as a modular JAR and distributing with the module path.
+2. Using `jlink` to link required modules into a runtime image.
+3. Using `jpackage` when platform installers bundling the application and runtime are needed.
+4. Creating a fat JAR only when intentionally abandoning or redesigning module boundaries, with proper packaging configuration and thorough testing.
 
-Đối với dependency legacy không có descriptor, Maven/Gradle có thể đưa chúng vào module path dưới dạng automatic modules trong một số cấu hình. Tên automatic module có thể dựa trên `Automatic-Module-Name` hoặc tên JAR. Đừng để module descriptor phụ thuộc vào tên suy ra dễ thay đổi nếu có thể chuyển thư viện thành explicit modular JAR.
+For legacy dependencies without descriptors, Maven/Gradle can place them on the module path as automatic modules in certain configurations. An automatic module's name may derive from `Automatic-Module-Name` or the JAR filename. Do not make module descriptors rely on fragile derived names if the library can be converted into an explicit modular JAR.
 
-## 13. Kiểm tra module name ổn định
+## 13. Checking stable module names
 
-Một module được định danh bởi tên trong `module-info.java`, chẳng hạn:
+A module is identified by the name in `module-info.java`, for example:
 
 ~~~java
 module org.example.greeter {
@@ -598,55 +598,55 @@ module org.example.greeter {
 }
 ~~~
 
-Artifact có thể được phát hành dưới tên:
+The artifact can be published under the filename:
 
 ~~~text
 greeter-api-1.0.0.jar
 ~~~
 
-Điều này hoàn toàn bình thường: Maven/Gradle quản lý artifact coordinate, còn JPMS quản lý module name.
+This is completely normal: Maven/Gradle manage artifact coordinates, while JPMS manages module names.
 
-Nếu artifact chưa có descriptor, có thể dùng manifest entry:
+If an artifact does not yet have a descriptor, you can use the manifest entry:
 
 ~~~text
 Automatic-Module-Name: org.example.greeter
 ~~~
 
-để cung cấp tên module ổn định khi JAR được đặt trên module path. Tuy nhiên, artifact đó vẫn là **automatic module** khi chưa có explicit descriptor.
+to provide a stable module name when the JAR is placed on the module path. However, that artifact remains an **automatic module** until it has an explicit descriptor.
 
-Sau khi thêm `module-info.java` thật, nên giữ tên module ổn định nếu các consumer đã sử dụng tên đó trong `requires`. Đổi tên module là thay đổi hợp đồng ở cấp module và có thể yêu cầu tất cả downstream consumers cập nhật descriptor.
+Once a real `module-info.java` is added, keep the module name stable if consumers already reference that name in `requires`. Renaming a module is a breaking change to the module-level contract and may require all downstream consumers to update their descriptors.
 
-## 14. Kiểm tra build artifact trong CI
+## 14. Verifying build artifacts in CI
 
-Một build thành công chưa bảo đảm packaging đúng JPMS. Có thể thêm các bước kiểm tra artifact vào pipeline.
+A passing build does not guarantee JPMS packaging is accurate. Artifact verification steps can be added to the pipeline.
 
-**Kiểm tra descriptor:**
+**Check the descriptor:**
 
 ~~~bash
 jar --describe-module --file dist/org.example.greeter.jar
 ~~~
 
-**Liệt kê entry gốc:**
+**List root entries:**
 
 ~~~bash
 jar --list --file dist/org.example.greeter.jar
 ~~~
 
-Đảm bảo có `module-info.class` ở gốc JAR (trừ trường hợp multi-release JAR được thiết kế có chủ đích).
+Ensure `module-info.class` is at the JAR root (except in intentionally designed multi-release JARs).
 
-**Liệt kê module mà launcher nhìn thấy:**
+**List modules visible to the launcher:**
 
 ~~~bash
 java --module-path dist --list-modules
 ~~~
 
-**Chạy ứng dụng modular:**
+**Run the modular application:**
 
 ~~~bash
 java -p dist -m org.example.cli/org.example.cli.Main
 ~~~
 
-**Hiển thị module resolution:**
+**Display module resolution:**
 
 ~~~bash
 java --show-module-resolution \
@@ -654,15 +654,15 @@ java --show-module-resolution \
   -m org.example.cli/org.example.cli.Main
 ~~~
 
-Nếu CI cần đảm bảo artifact không vô tình chuyển thành automatic module, hãy kiểm tra output `jar --describe-module` có descriptor và các directive dự kiến. Nhiều quy trình cũng kiểm tra tên module, exports và requires bằng test hoặc script nhỏ để ngăn build plugin làm mất `module-info.class`.
+If CI must ensure an artifact did not accidentally degrade into an automatic module, verify that `jar --describe-module` output reports an explicit descriptor and expected directives. Many workflows also assert module names, exports, and requires via tests or small scripts to prevent build plugins from stripping `module-info.class`.
 
-Chỉ kiểm tra rằng file JAR “chạy được” bằng `java -cp ...` là chưa đủ: classpath có thể bỏ qua module boundary nên che giấu lỗi packaging.
+Checking only that the JAR “runs” with `java -cp ...` is insufficient: the classpath can bypass module boundaries and mask packaging mistakes.
 
-## 15. Dùng modular JAR làm đầu vào jlink
+## 15. Using modular JARs as jlink inputs
 
-Một lợi ích của explicit modular JAR là có thể tham gia quá trình liên kết runtime image bằng `jlink` khi toàn bộ dependency tương thích.
+One benefit of explicit modular JARs is that they can participate in runtime image linking with `jlink` when all dependencies are compatible.
 
-Ví dụ:
+Example:
 
 ~~~bash
 jlink \
@@ -672,62 +672,62 @@ jlink \
   --output runtime-image
 ~~~
 
-Sau khi linking thành công:
+After linking succeeds:
 
 ~~~bash
 ./runtime-image/bin/greeter
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hello, JPMS!
 ~~~
 
-Windows sử dụng dấu chấm phẩy thay dấu hai chấm khi ghép nhiều đường dẫn trong `--module-path`:
+Windows uses a semicolon instead of a colon when joining multiple paths in `--module-path`:
 
 ~~~powershell
 jlink --module-path "$env:JAVA_HOME\jmods;dist" --add-modules org.example.cli --launcher greeter=org.example.cli/org.example.cli.Main --output runtime-image
 ~~~
 
-`jlink` yêu cầu tập module có thể liên kết phù hợp. Automatic modules không được hỗ trợ như explicit modules trong quá trình linking thông thường. Nếu một dependency chỉ tồn tại dưới dạng automatic module, nên cân nhắc modularize thư viện hoặc điều chỉnh kiến trúc trước khi yêu cầu `jlink` tạo image.
+`jlink` requires a suitable linkable set of modules. Automatic modules are not supported as explicit modules during standard linking. If a dependency exists only as an automatic module, consider modularizing the library or adjusting architecture before asking `jlink` to build an image.
 
-Nếu ứng dụng không cần runtime image riêng, phân phối modular JAR với JDK/runtime tương thích và module path rõ ràng vẫn là phương án hợp lệ.
+If the application does not need a custom runtime image, distributing modular JARs with a compatible JDK/runtime and an explicit module path remains a valid option.
 
-## 16. Lỗi phổ biến và hướng xử lý
+## 16. Common errors and troubleshooting
 
-| Triệu chứng | Nguyên nhân có thể | Cách kiểm tra hoặc sửa |
+| Symptom | Possible cause | How to check or fix |
 | --- | --- | --- |
-| `jar --describe-module` báo automatic module | Không có `module-info.class` được đóng gói đúng | Kiểm tra output compiler và nội dung JAR |
-| `module not found: org.example.greeter` | Artifact không nằm trên module path hoặc tên module không khớp | Kiểm tra `--module-path`, descriptor và tên JAR thực tế |
-| `package ... is not visible` | Module consumer thiếu readability hoặc dependency chưa export package | Kiểm tra `requires`, `exports` và compiler module path |
-| `ClassNotFoundException` khi chạy | Khác biệt giữa classpath và module path, hoặc artifact/resource bị thiếu | Kiểm tra cách launch và nội dung artifact |
-| Duplicate module name | Hai artifact cùng định nghĩa hoặc công bố cùng module name | Làm sạch module path và dependency resolution |
-| Split package gây lỗi resolution | Hai named modules có package trùng trong graph không hợp lệ | Tách package và điều chỉnh module boundaries |
-| `java -cp` chạy nhưng `java -m` thất bại | Build chưa thực sự đáp ứng module boundary | Kiểm tra modular launch, `requires`, `exports`, `opens` |
-| Service provider không được tìm thấy | Thiếu `provides`, `uses`, hoặc provider chưa được resolve | Kiểm tra descriptor, root modules và service binding |
-| `jlink` từ chối automatic module | Dependency chưa có explicit module descriptor | Modularize dependency hoặc chọn hình thức phân phối khác |
-| CI dùng class-file version không phù hợp runtime | Compiler toolchain hoặc `--release` cao hơn runtime mục tiêu | Khóa JDK/toolchain và chạy test trên runtime thấp nhất hỗ trợ |
+| `jar --describe-module` reports automatic module | `module-info.class` was not packaged properly | Check compiler output and JAR contents |
+| `module not found: org.example.greeter` | Artifact missing from module path or module name mismatches | Check `--module-path`, descriptor, and actual JARs |
+| `package ... is not visible` | Consuming module lacks readability or dependency has not exported the package | Check `requires`, `exports`, and compiler module path |
+| `ClassNotFoundException` at runtime | Difference between classpath and module path, or missing artifact/resource | Check launch command and artifact contents |
+| Duplicate module name | Two artifacts define or advertise the same module name | Clean up module path and dependency resolution |
+| Split package causes resolution error | Two named modules share a package in an invalid graph | Separate packages and adjust module boundaries |
+| `java -cp` works but `java -m` fails | Build does not actually satisfy module boundaries | Check modular launch, `requires`, `exports`, `opens` |
+| Service provider not found | Missing `provides`, `uses`, or provider not resolved | Check descriptor, root modules, and service binding |
+| `jlink` rejects an automatic module | Dependency lacks an explicit module descriptor | Modularize dependency or choose another distribution form |
+| CI produces class-file version incompatible with runtime | Compiler toolchain or `--release` higher than target runtime | Lock JDK/toolchain and test on lowest supported runtime |
 
-## 17. Quy trình packaging đề xuất
+## 17. Recommended packaging workflow
 
-Với một project modular mới, quy trình thực tế có thể đi theo thứ tự:
+For a new modular project, a practical workflow can follow this order:
 
-1. **Thiết kế module name:** chọn tên ổn định, rõ ràng và không phụ thuộc vào version artifact.
-2. **Viết descriptor:** khai báo `requires`, `exports`, `opens`, `uses`, `provides` cần thiết.
-3. **Thiết lập build tool:** chọn JDK toolchain và Java release; cấu hình Maven/Gradle nhận diện module path.
-4. **Biên dịch:** đảm bảo `module-info.java` được compiler chuyển thành `module-info.class`.
-5. **Đóng gói từng module:** giữ descriptor ở gốc modular JAR; kèm class/resource phù hợp.
-6. **Kiểm tra artifact:** dùng `jar --list` và `jar --describe-module`.
-7. **Chạy theo module path:** dùng `java -p ... -m ...` thay vì chỉ chạy classpath.
-8. **Kiểm tra resolution:** dùng `--show-module-resolution` và `jdeps` nếu cần.
-9. **Kiểm tra dịch vụ/reflective access:** xác nhận service provider được resolve và package mở đúng module.
-10. **Phân phối:** chọn modular JAR + module path hoặc image do `jlink` tạo theo yêu cầu triển khai.
+1. **Design module names:** choose stable, clear names independent of artifact versions.
+2. **Write descriptors:** declare necessary `requires`, `exports`, `opens`, `uses`, and `provides`.
+3. **Configure the build tool:** select JDK toolchain and Java release; configure Maven/Gradle to recognize the module path.
+4. **Compile:** ensure `module-info.java` is compiled into `module-info.class`.
+5. **Package each module:** keep the descriptor at the root of each modular JAR alongside classes/resources.
+6. **Inspect artifacts:** use `jar --list` and `jar --describe-module`.
+7. **Run via the module path:** use `java -p ... -m ...` instead of testing only on the classpath.
+8. **Verify resolution:** use `--show-module-resolution` and `jdeps` where needed.
+9. **Verify services/reflective access:** confirm service providers resolve and packages open to the right modules.
+10. **Distribute:** choose modular JARs + module path or a `jlink` image according to deployment requirements.
 
-Checklist này nên được tự động hóa trong build/CI để việc thêm dependency hoặc thay plugin không vô tình làm mất module metadata.
+This checklist should be automated in build/CI so adding dependencies or changing plugins cannot silently drop module metadata.
 
-## Kết luận
+## Conclusion
 
-**Packaging modular JAR** nghĩa là bảo toàn ranh giới JPMS từ source tới artifact phân phối. Một explicit modular JAR cần mang `module-info.class` hợp lệ ở đúng vị trí, đồng thời chứa class, resource và metadata phù hợp với descriptor.
+**Packaging modular JARs** means preserving JPMS boundaries from source code through distributable artifacts. An explicit modular JAR must carry a valid `module-info.class` in the right place while containing classes, resources, and metadata consistent with the descriptor.
 
-`javac` tạo descriptor và các class; `jar` đóng gói từng module; Maven/Gradle tự động hóa các bước đó khi được cấu hình đúng. Sau build, hãy dùng `jar --describe-module`, `java --module-path ... --list-modules` và modular launch để kiểm tra artifact. Không dựa vào việc JAR chạy được trên classpath để kết luận cấu hình module đã chính xác. Với hệ thống cần runtime image gọn và dễ phân phối, modular JAR hợp lệ cũng là nền tảng quan trọng cho quá trình liên kết bằng `jlink`.
+`javac` produces descriptors and classes; `jar` packages each module; Maven/Gradle automate those steps when configured properly. After building, use `jar --describe-module`, `java --module-path ... --list-modules`, and modular launches to verify artifacts. Do not rely on a JAR running on the classpath to conclude that module configuration is right. For systems requiring compact, easy-to-distribute runtime images, valid modular JARs are also the essential foundation for linking with `jlink`.

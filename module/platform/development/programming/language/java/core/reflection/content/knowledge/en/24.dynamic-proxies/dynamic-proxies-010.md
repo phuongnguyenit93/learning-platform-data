@@ -1,56 +1,56 @@
-# Gọi default method bằng `InvocationHandler.invokeDefault` trong Java
+# Invoking Default Methods with `InvocationHandler.invokeDefault` in Java
 
-## 1. Vấn đề: default method cũng đi qua InvocationHandler
+## 1. The problem: default methods also pass through InvocationHandler
 
-Dynamic proxy của JDK là một đối tượng được tạo bằng `java.lang.reflect.Proxy` để triển khai một hoặc nhiều interface. Khi gọi phương thức của proxy, lời gọi được chuyển tới `InvocationHandler.invoke(proxy, method, args)`, kể cả khi interface đã có phần thân `default method`. Vì thế, nếu handler muốn **thực thi phần thân mặc định** thay vì tự tính kết quả, nó cần chủ động chuyển tiếp lời gọi.
+A JDK dynamic proxy is an object created with `java.lang.reflect.Proxy` to implement one or more interfaces. When calling a method on the proxy, the call is routed to `InvocationHandler.invoke(proxy, method, args)`, even when the interface provides a `default method` body. Therefore, if the handler wants to **execute the default body** instead of computing a result itself, it must explicitly forward the call.
 
-Từ **Java 16**, API `InvocationHandler.invokeDefault` cung cấp cách trực tiếp để làm việc này. Với Java 17+, đây là lựa chọn rõ ràng khi viết dynamic proxy có hỗ trợ default method.
+Since **Java 16**, the `InvocationHandler.invokeDefault` API provides a direct way to do this. For Java 17+, this is the clear choice when writing dynamic proxies that support default methods.
 
 ```java
-// Mẫu dùng bên trong InvocationHandler.invoke:
+// Pattern used inside InvocationHandler.invoke:
 if (method.isDefault()) {
     return InvocationHandler.invokeDefault(proxy, method, args);
 }
 ```
 
-Đây là **đoạn minh họa đặt trong handler**, chưa phải chương trình độc lập. `method.isDefault()` giúp phân biệt default method thực sự với phương thức abstract của interface, phương thức của `Object` và các phương thức khác.
+This is an **illustrative snippet placed inside a handler**, not a standalone program. `method.isDefault()` helps distinguish a true default method from abstract interface methods, `Object` methods, and other methods.
 
-## 2. Cú pháp, tham số và cơ chế
+## 2. Syntax, parameters, and mechanism
 
-Chữ ký API:
+API signature:
 
 ```java
 public static Object invokeDefault(
         Object proxy, Method method, Object... args) throws Throwable;
 ```
 
-| Tham số | Ý nghĩa |
+| Parameter | Meaning |
 | --- | --- |
-| `proxy` | Đối tượng **dynamic proxy** đang xử lý lời gọi. |
-| `method` | `Method` đại diện cho **default method hợp lệ** được khai báo trên một proxy interface hoặc được interface đó kế thừa. |
-| `args` | Các đối số truyền cho default method, đúng số lượng và kiểu tham số; có thể là `null` khi phương thức không có tham số. |
-| Giá trị trả về | `Object` chứa kết quả do phần thân default method trả về (hoặc `null` nếu phương thức trả về `void`). |
+| `proxy` | The **dynamic proxy** object handling the call. |
+| `method` | `Method` representing a **valid default method** declared on a proxy interface or inherited by that interface. |
+| `args` | Arguments passed to the default method, matching parameter count and types; may be `null` when the method has no parameters. |
+| Return value | `Object` containing the result returned by the default method body (or `null` if the method returns `void`). |
 
-`InvocationHandler.invokeDefault(proxy, method, args)` thực thi phần thân mặc định theo ngữ nghĩa gần với lệnh JVM `invokespecial`, tương đương ý tưởng gọi `InterfaceName.super.method(...)` từ lớp proxy. Đây **không phải** lời gọi thông thường thông qua `Method.invoke(proxy, ...)`.
+`InvocationHandler.invokeDefault(proxy, method, args)` executes the default body with semantics close to the JVM `invokespecial` instruction, equivalent to the idea of calling `InterfaceName.super.method(...)` from the proxy class. This is **not** a normal call through `Method.invoke(proxy, ...)`.
 
-Điều kiện quan trọng: `method` phải là default method có thể được phân giải qua các interface của **chính proxy**. Không thể lấy một default method tùy ý từ interface không liên quan rồi yêu cầu proxy thực thi. Nếu một proxy interface override default method của interface cha, việc cố gọi trực tiếp phiên bản cha bằng một `Method` cũ có thể không còn hợp lệ.
+Important condition: `method` must be a default method resolvable through the interfaces of **that exact proxy**. You cannot grab an arbitrary default method from an unrelated interface and ask the proxy to execute it. If a proxy interface overrides a parent interface's default method, trying to directly invoke the parent version using an older `Method` may no longer be valid.
 
-Sơ đồ luồng:
+Flow diagram:
 
 ```text
-client gọi proxy.defaultMethod(...)
-    → JVM chuyển vào handler.invoke(proxy, method, args)
+client calls proxy.defaultMethod(...)
+    → JVM routes into handler.invoke(proxy, method, args)
         → method.isDefault() == true
             → InvocationHandler.invokeDefault(proxy, method, args)
-                → chạy thân default method trong interface
-                    → trả kết quả về handler rồi về client
+                → runs default method body in interface
+                    → returns result to handler then to client
 ```
 
-Nếu bên trong thân default method lại gọi một phương thức interface khác qua `this`, lời gọi ảo đó vẫn có thể đi qua handler của proxy. Handler phải xử lý được cả lời gọi tiếp theo.
+If inside the default method body it calls another interface method via `this`, that virtual call can still pass through the proxy's handler. The handler must be able to handle that follow-up call as well.
 
-## 3. Ví dụ Java 17+ chạy độc lập
+## 3. Standalone Java 17+ example
 
-Lưu tệp `InvokeDefaultDemo.java`:
+Save the file `InvokeDefaultDemo.java`:
 
 ```java
 import java.lang.reflect.InvocationHandler;
@@ -109,14 +109,14 @@ public class InvokeDefaultDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac --release 17 -encoding UTF-8 InvokeDefaultDemo.java
 java InvokeDefaultDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 handler default: greeting
@@ -127,38 +127,38 @@ proxy
 TextServiceProxy
 ```
 
-Diễn giải theo thứ tự:
+Step-by-step walkthrough:
 
-1. `service.greeting("An")` tới handler. Vì `greeting` là default method, `method.isDefault()` là `true` và `invokeDefault` chạy phần thân đã viết trong `TextService`.
-2. Trong thân `greeting` có `code()`; đây là phương thức abstract được gọi trên proxy, nên handler nhận lời gọi `code` và trả `"proxy"`. Kết quả ghép thành `Hello, An from proxy`.
-3. `plain()` không nhận tham số: `callArgs` trong handler có thể bằng `null`, và truyền nguyên giá trị đó cho `invokeDefault` là hợp lệ.
-4. `code()` không phải default method: handler tự cung cấp kết quả.
-5. `toString()` thuộc nhóm phương thức `Object` được proxy chuyển đến handler; nhánh xử lý riêng tránh việc mọi lời gọi không phải default đều bị ném lỗi. Ví dụ cũng xử lý `equals` và `hashCode` theo danh tính proxy.
+1. `service.greeting("An")` reaches the handler. Because `greeting` is a default method, `method.isDefault()` is `true` and `invokeDefault` runs the body written in `TextService`.
+2. Inside the body of `greeting` is `code()`; this is an abstract method invoked on the proxy, so the handler receives the `code` call and returns `"proxy"`. The combined result becomes `Hello, An from proxy`.
+3. `plain()` takes no parameters: `callArgs` in the handler may be `null`, and passing that value directly to `invokeDefault` is valid.
+4. `code()` is not a default method: the handler supplies the result itself.
+5. `toString()` belongs to the group of `Object` methods routed by the proxy to the handler; a dedicated branch prevents non-default calls from all throwing errors. The example also handles `equals` and `hashCode` by proxy identity.
 
-## 4. Tại sao không dùng Method.invoke(proxy, args)?
+## 4. Why not use Method.invoke(proxy, args)?
 
-Giả sử trong handler bạn viết:
+Suppose inside the handler you wrote:
 
 ```java
-// Sai khi mục tiêu là chạy phần thân default method:
+// Wrong when the goal is to run the default method body:
 return method.invoke(proxy, args);
 ```
 
-`Method.invoke` gọi phương thức trên chính đối tượng `proxy`. Đối tượng này lại chuyển lời gọi về handler, dẫn tới chu trình lặp và có nguy cơ `StackOverflowError`. `InvocationHandler.invokeDefault` đi vào **phần thân mặc định được chỉ định**, nên giải quyết đúng bài toán.
+`Method.invoke` calls the method on the `proxy` object itself. That object routes the call back to the handler, leading to an infinite loop and risking `StackOverflowError`. `InvocationHandler.invokeDefault` enters **the specified default body**, solving the problem properly.
 
-Cũng không thể viết `SomeInterface.super.method(...)` trực tiếp trong handler lambda: cú pháp đó chỉ hợp lệ ở ngữ cảnh Java cho phép gọi default method của superinterface, không phải một lời gọi động dựa vào đối tượng `Method`.
+Nor can you write `SomeInterface.super.method(...)` directly inside a handler lambda: that syntax is only valid in a Java context permitting a superinterface default method call, not a dynamic call based on a `Method` object.
 
-Trước Java 16, các cách xử lý thường liên quan `MethodHandles.Lookup` và quyền truy cập module; không nên sao chép những ví dụ cũ sang Java 17+ khi API `invokeDefault` đã đáp ứng nhu cầu.
+Prior to Java 16, workarounds typically involved `MethodHandles.Lookup` and module access permissions; do not copy old examples into Java 17+ when the `invokeDefault` API already meets the need.
 
-## 5. Kế thừa, override và nhiều default method trùng chữ ký
+## 5. Inheritance, overriding, and multiple default methods with matching signatures
 
-**Kế thừa:** nếu `Child extends Parent` và `Child` không override default method `Parent.run()`, proxy chỉ triển khai `Child` vẫn có thể gọi phần thân default kế thừa từ `Parent` thông qua `invokeDefault`. `Method` do handler nhận có thể có `getDeclaringClass() == Parent.class`.
+**Inheritance:** if `Child extends Parent` and `Child` does not override the default method `Parent.run()`, a proxy implementing only `Child` can still invoke the default body inherited from `Parent` via `invokeDefault`. The `Method` received by the handler may have `getDeclaringClass() == Parent.class`.
 
-**Override:** nếu sau đó `Child` định nghĩa lại `default run()`, phương thức hiệu lực là phiên bản của `Child`. Một handler lưu sẵn `Parent.class.getMethod("run")` rồi ép `invokeDefault` gọi bản cha có thể nhận `IllegalArgumentException`, vì bản cha không còn là mục tiêu phân giải hợp lệ qua `Child`. Đây là điểm cần kiểm tra khi nâng cấp thư viện interface.
+**Overriding:** if `Child` later redefines `default run()`, the effective method is `Child`'s version. A handler that cached `Parent.class.getMethod("run")` and forces `invokeDefault` to call the parent version may receive `IllegalArgumentException`, because the parent version is no longer a valid resolution target through `Child`. This is something to check when upgrading interface libraries.
 
-**Hai interface độc lập có cùng default method:** handler có thể chủ động chọn một bản bằng cách lấy đúng `Method` của interface mong muốn. Ví dụ độc lập sau cho kết quả cùng là `second`, bất kể client ép proxy về `First` hay `Second`:
+**Two independent interfaces with the same default method:** the handler can explicitly choose one version by obtaining the exact `Method` from the desired interface. The following standalone example produces `second` in both cases, regardless of whether the client casts the proxy to `First` or `Second`:
 
-Lưu tệp `ChooseDefaultDemo.java`:
+Save the file `ChooseDefaultDemo.java`:
 
 ```java
 import java.lang.reflect.InvocationHandler;
@@ -206,43 +206,43 @@ second
 second
 ```
 
-Ví dụ trên chọn rõ `Second.origin()`. Nó **không** nói rằng Java tự ưu tiên `Second`; thứ tự và `Method` ban đầu chuyển đến handler không nên được sử dụng thay cho quyết định nghiệp vụ. Nếu muốn chọn theo đối tượng gọi ban đầu, hãy thiết kế giao diện/điểm vào rõ ràng: với hai chữ ký trùng nhau, handler không tự nhận được thông tin client đã cast sang interface nào.
+The example above explicitly chooses `Second.origin()`. It does **not** mean Java automatically prefers `Second`; interface order and the initial `Method` passed to the handler should not be relied upon in place of a business decision. If you want to choose based on the caller's static type, design distinct interfaces or entry points: for two matching signatures, the handler does not automatically receive information about which interface the client cast to.
 
-## 6. Kiểm tra đầu vào, lỗi và ngoại lệ
+## 6. Input validation, errors, and exceptions
 
-| Trường hợp | Hành vi/cách xử lý |
+| Case | Behavior / handling |
 | --- | --- |
-| `method.isDefault() == false` | Không chuyển phương thức abstract hoặc `Object` sang `invokeDefault`; tự xử lý/delegate. |
-| `proxy` không phải dynamic proxy, hoặc `method` không phải default method hợp lệ của proxy | `IllegalArgumentException`. |
-| `method` đã bị proxy interface override khiến mục tiêu cũ không còn hợp lệ | Có thể nhận `IllegalArgumentException`; cập nhật lựa chọn `Method` theo interface hiệu lực. |
-| Số đối số sai hoặc kiểu đối số không tương thích, kể cả việc unbox primitive | `IllegalArgumentException`. |
-| `proxy == null` hoặc `method == null` | `NullPointerException`. |
-| Lớp khai báo default method không thể truy cập từ nơi gọi | Có thể phát sinh `IllegalAccessException`. |
-| Thân default method tự ném ngoại lệ | `invokeDefault` có thể ném tiếp `Throwable` đó; phải cân nhắc hợp đồng `throws` của phương thức interface. |
+| `method.isDefault() == false` | Do not pass abstract or `Object` methods to `invokeDefault`; handle/delegate them separately. |
+| `proxy` is not a dynamic proxy, or `method` is not a valid default method of the proxy | `IllegalArgumentException`. |
+| `method` was overridden by a proxy interface, invalidating the old target | May throw `IllegalArgumentException`; update the selected `Method` to the effective interface. |
+| Wrong argument count or incompatible argument types, including primitive unboxing | `IllegalArgumentException`. |
+| `proxy == null` or `method == null` | `NullPointerException`. |
+| Class declaring the default method is inaccessible from the call site | May throw `IllegalAccessException`. |
+| The default method body itself throws an exception | `invokeDefault` can throw that `Throwable`; the interface method's `throws` contract must be considered. |
 
-Handler có chữ ký `Object invoke(...) throws Throwable`, nên có thể chuyển tiếp `Throwable` từ `invokeDefault` mà không cần ép thành `RuntimeException`. Nếu ngoại lệ checked không được khai báo bởi phương thức interface thoát khỏi handler, lời gọi trên proxy có thể bao nó trong `UndeclaredThrowableException`. Với phương thức trả về primitive, kết quả handler trả về phải tương thích với wrapper tương ứng; trả `null` sẽ gây lỗi khi proxy cần unbox.
+The handler has the signature `Object invoke(...) throws Throwable`, so it can propagate a `Throwable` from `invokeDefault` without wrapping it into a `RuntimeException`. If a checked exception not declared by the interface method escapes the handler, the call on the proxy may wrap it in `UndeclaredThrowableException`. For primitive-returning methods, the result returned by the handler must match the corresponding wrapper; returning `null` will fail when the proxy needs to unbox.
 
-Để dùng an toàn, hãy kiểm tra `method.isDefault()` trước, truyền đúng proxy thực, chuyển nguyên `args` (kể cả `null` khi không có tham số), và xử lý riêng các phương thức còn lại.
+To use safely, check `method.isDefault()` first, pass the actual proxy, forward `args` intact (including `null` when there are no parameters), and handle remaining methods separately.
 
-## 7. Lỗi thường gặp và cách tránh
+## 7. Common pitfalls and how to avoid them
 
-- **Tự gọi lại proxy bằng reflection:** `method.invoke(proxy, args)` không phải cách gọi thân default; dùng `invokeDefault`.
-- **Cho rằng default method tự chạy:** dynamic proxy chuyển lời gọi vào handler; muốn chạy phần thân mặc định phải chọn làm điều đó.
-- **Nhầm `isDefault()` với `!isAbstract()`:** phương thức `Object` cũng không abstract nhưng không phải default method.
-- **Tự tạo `Method` theo tên mà không xét proxy interface:** chỉ dùng phương thức default hợp lệ, còn hiệu lực và có thể truy cập.
-- **Giả sử `args` luôn khác `null`:** handler nhận `null` khi phương thức không có tham số; nếu tự đọc `args[0]` phải chắc chắn phương thức cần đối số.
-- **Bỏ qua đường gọi tiếp từ default method:** phần thân default có thể gọi phương thức interface khác và làm handler chạy thêm lần nữa.
-- **Không kiểm tra tương thích JDK:** `InvocationHandler.invokeDefault` chỉ xuất hiện từ Java 16; biên dịch với `--release 11` không thể gọi API này.
-- **Quên kế thừa và override:** việc thêm default method mới trong interface con có thể thay đổi phương thức mà `invokeDefault` được phép gọi.
+- **Calling back into the proxy via reflection:** `method.invoke(proxy, args)` is not the way to run a default body; use `invokeDefault`.
+- **Assuming default methods run automatically:** dynamic proxies route calls to the handler; if you want to run the default body you must explicitly choose to do so.
+- **Confusing `isDefault()` with `!isAbstract()`:** `Object` methods are also non-abstract, yet they are not default methods.
+- **Looking up a `Method` by name without considering proxy interfaces:** only use a valid, effective, and accessible default method.
+- **Assuming `args` is always non-`null`:** the handler receives `null` when a method has no parameters; if reading `args[0]`, be sure the method requires arguments.
+- **Overlooking follow-up calls from inside the default method:** a default body can invoke another interface method and trigger the handler a second time.
+- **Not checking JDK compatibility:** `InvocationHandler.invokeDefault` only exists starting in Java 16; compiling with `--release 11` cannot call this API.
+- **Forgetting inheritance and overriding:** adding a new default method in a sub-interface can change which method `invokeDefault` is permitted to invoke.
 
-## 8. Câu hỏi tự kiểm tra
+## 8. Self-check questions
 
-1. **Vì sao `method.invoke(proxy, args)` không phù hợp để chạy default method từ handler?** Vì nó gọi lại phương thức trên proxy, có thể đưa lời gọi trở vào chính handler và lặp vô hạn.
-2. **Default method gọi một abstract method cùng interface thì sao?** Lời gọi thực hiện trên proxy; handler lại nhận phương thức abstract và phải xử lý nó.
-3. **Một proxy triển khai `First` và `Second` đều có `default origin()`. Có thể chọn `Second` không?** Có: lấy `Second.class.getMethod("origin")` rồi truyền phương thức đó vào `InvocationHandler.invokeDefault`, miễn hợp lệ với các interface của proxy.
-4. **Có thể truyền `null` cho `args` không?** Có, khi default method có 0 tham số; với phương thức có tham số phải truyền số lượng/kiểu đối số hợp lệ.
-5. **API này dùng trên Java 11 được không?** Không; API xuất hiện từ Java 16.
+1. **Why is `method.invoke(proxy, args)` unsuitable for running a default method from a handler?** Because it invokes the method on the proxy again, sending the call back into the handler itself and causing infinite recursion.
+2. **What happens when a default method calls an abstract method on the same interface?** The call executes on the proxy; the handler receives the abstract method and must handle it.
+3. **A proxy implements `First` and `Second`, both having `default origin()`. Can you select `Second`?** Yes: obtain `Second.class.getMethod("origin")` and pass that method to `InvocationHandler.invokeDefault`, provided it is valid for the proxy's interfaces.
+4. **Can `null` be passed for `args`?** Yes, when the default method has 0 parameters; for methods with parameters, you must pass the valid count and types of arguments.
+5. **Can this API be used on Java 11?** No; the API was introduced in Java 16.
 
-**Ghi nhớ:** `InvocationHandler.invokeDefault` là cầu nối từ `InvocationHandler` tới **phần thân default method hợp lệ của interface trên dynamic proxy**. Hãy dùng `Method.isDefault()` để nhận diện, xử lý riêng phương thức abstract/`Object`, và kiểm tra kỹ kế thừa, override, quyền truy cập cùng đối số.
+**Takeaway:** `InvocationHandler.invokeDefault` is the bridge from `InvocationHandler` to **the valid interface default method body on a dynamic proxy**. Use `Method.isDefault()` to identify them, handle abstract/`Object` methods separately, and carefully check inheritance, overriding, accessibility, and arguments.
 
-Tham khảo: [Javadoc Java 17 — InvocationHandler](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationHandler.html).
+Reference: [Java 17 Javadoc — InvocationHandler](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationHandler.html).

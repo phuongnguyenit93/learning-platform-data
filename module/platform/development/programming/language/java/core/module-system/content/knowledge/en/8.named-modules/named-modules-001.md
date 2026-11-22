@@ -1,14 +1,14 @@
-# Named module và module identity
+# Named Modules and Module Identity
 
-Trong Java Platform Module System (JPMS), **named module** là module có tên xác định. Tên này được khai báo trong module descriptor hoặc được suy ra khi một thư viện cũ trở thành automatic module. Tên module giúp module system nhận diện dependency và giải quyết đồ thị module.
+In the Java Platform Module System (JPMS), a **named module** is a module with a defined name. This name is declared in the module descriptor or derived when a legacy library becomes an automatic module. The module name helps the module system identify dependencies and resolve the module graph.
 
-Khi chương trình chạy, mỗi module được định nghĩa trong một runtime environment còn có đối tượng **java.lang.Module** đại diện. Đối tượng này cung cấp thông tin về tên, descriptor, class loader và ModuleLayer liên quan. Vì vậy, cần phân biệt tên module trong descriptor với danh tính của module object tại runtime, đồng thời không nhầm module identity với Maven coordinates hay class identity.
+When the program runs, each module defined in a runtime environment also has a **java.lang.Module** object representing it. This object provides information about the name, descriptor, class loader, and associated ModuleLayer. Therefore, it is necessary to distinguish the module name in the descriptor from the identity of the module object at runtime, while not confusing module identity with Maven coordinates or class identity.
 
-## 1. Named module là gì?
+## 1. What is a named module?
 
-Named module là module có tên. Với explicit named module, tên được khai báo trực tiếp trong file **module-info.java** ở thư mục gốc của source module.
+A named module is a module that has a name. For an explicit named module, the name is declared directly in the **module-info.java** file at the root directory of the module's source.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.orders {
@@ -19,9 +19,9 @@ module com.acme.orders {
 }
 ~~~
 
-Tên module ở đây là **com.acme.orders**. Descriptor cũng khai báo dependency và package được công bố. Khi biên dịch, compiler tạo **module-info.class**; file này được đặt ở gốc thư mục module đã biên dịch hoặc ở gốc modular JAR.
+The module name here is **com.acme.orders**. The descriptor also declares dependencies and exported packages. When compiled, the compiler creates **module-info.class**; this file is placed at the root of the compiled module directory or at the root of the modular JAR.
 
-Ví dụ cấu trúc source:
+Example source structure:
 
 ~~~text
 src/
@@ -34,39 +34,39 @@ src/
             └── OrderRepository.java
 ~~~
 
-Tên module thường dùng quy ước đảo ngược tên miền, chẳng hạn **com.acme.orders** hoặc **org.example.reporting**. Đây là quy ước đặt tên, không phải một yêu cầu bắt buộc phải sở hữu tên miền tương ứng. Tên module phân biệt chữ hoa/chữ thường và không phải tên package được suy ra tự động từ mọi thư mục source.
+Module names usually follow the reverse domain name convention, such as **com.acme.orders** or **org.example.reporting**. This is a naming convention, not a requirement to own the corresponding domain name. Module names are case-sensitive and are not package names automatically inferred from every source directory.
 
-Một explicit named module có các đặc điểm:
+An explicit named module has the following characteristics:
 
-- Có module descriptor thực sự được biên dịch từ **module-info.java**.
-- Có tên module do tác giả khai báo.
-- Có thể khai báo dependency bằng **requires**.
-- Có thể công bố package bằng **exports** và mở package cho reflection bằng **opens**.
-- Có thể khai báo service dependency và provider bằng **uses** và **provides**.
+- Has an actual module descriptor compiled from **module-info.java**.
+- Has a module name declared by the author.
+- Can declare dependencies with **requires**.
+- Can publish packages with **exports** and open packages for reflection with **opens**.
+- Can declare service dependencies and providers with **uses** and **provides**.
 
-## 2. Named module khác unnamed module
+## 2. How named modules differ from unnamed modules
 
-Không phải mọi code Java đều thuộc named module. Code được nạp từ classpath thuộc **unnamed module** gắn với class loader đã nạp code đó.
+Not all Java code belongs to a named module. Code loaded from the classpath belongs to the **unnamed module** associated with the class loader that loaded that code.
 
-| Đặc điểm | Named module | Unnamed module |
+| Characteristic | Named module | Unnamed module |
 |---|---|---|
-| Tên module | Có tên, ví dụ **com.acme.orders** | Không có tên; **Module.getName()** trả về **null** |
-| Descriptor | Có descriptor tường minh hoặc descriptor tự động của automatic module | Không có module descriptor |
-| Nguồn thường gặp | Module path, system modules | Classpath |
-| Khai báo **requires** | Có thể khai báo trong descriptor | Không khai báo bằng **module-info.java** |
-| Kiểm soát package | Package được export/open theo descriptor và quy tắc module | Các package của unnamed module được xem là export và open cho các module khác |
+| Module name | Has a name, e.g., **com.acme.orders** | Has no name; **Module.getName()** returns **null** |
+| Descriptor | Has an explicit descriptor or the automatic descriptor of an automatic module | Has no module descriptor |
+| Common sources | Module path, system modules | Classpath |
+| Declaring **requires** | Can declare in the descriptor | Cannot declare via **module-info.java** |
+| Package control | Packages are exported/opened according to the descriptor and module rules | Packages of an unnamed module are considered exported and open to other modules |
 
-Mỗi class loader có một unnamed module riêng. Do đó, hai class loader khác nhau có thể có hai unnamed module khác nhau, dù cả hai đều không có tên.
+Each class loader has its own unnamed module. Therefore, two different class loaders can have two different unnamed modules, even though neither has a name.
 
-Code trên classpath không trở thành named module chỉ vì nó gọi một API trong named module. Tương tự, việc thêm một thư viện vào classpath không làm xuất hiện một module name ổn định cho thư viện đó.
+Code on the classpath does not become a named module just because it calls an API in a named module. Similarly, adding a library to the classpath does not create a stable module name for that library.
 
-## 3. Explicit named module và automatic module
+## 3. Explicit named modules and automatic modules
 
-Cần phân biệt hai loại named module thường gặp.
+It is necessary to distinguish between the two common types of named modules.
 
 ### 3.1. Explicit named module
 
-Đây là module có **module-info.class** được đóng gói cùng code. Tác giả chủ động khai báo tên, dependency và ranh giới package.
+This is a module that has **module-info.class** packaged with the code. The author proactively declares the name, dependencies, and package boundaries.
 
 ~~~java
 module com.acme.customer {
@@ -74,9 +74,9 @@ module com.acme.customer {
 }
 ~~~
 
-Khi modular JAR được đặt trên module path, module system đọc descriptor này để nhận diện module. Tên module trong descriptor là tên có thẩm quyền; tên file JAR không quyết định tên module.
+When a modular JAR is placed on the module path, the module system reads this descriptor to identify the module. The module name in the descriptor is the authoritative name; the JAR file name does not determine the module name.
 
-Có thể xem descriptor bằng:
+You can inspect the descriptor with:
 
 ~~~bash
 jar --describe-module --file customer-api.jar
@@ -84,34 +84,34 @@ jar --describe-module --file customer-api.jar
 
 ### 3.2. Automatic module
 
-Một JAR cũ không có **module-info.class** vẫn có thể được xem là named module khi đặt trên module path. Module system tạo descriptor tự động cho JAR đó; loại module này được gọi là **automatic module**.
+A legacy JAR without **module-info.class** can still be treated as a named module when placed on the module path. The module system generates an automatic descriptor for that JAR; this type of module is called an **automatic module**.
 
-Tên automatic module được xác định theo thứ tự:
+The automatic module name is determined in order:
 
-1. Nếu manifest có thuộc tính **Automatic-Module-Name**, dùng tên ổn định được khai báo ở đó.
-2. Nếu không có thuộc tính này, tên được suy ra từ tên file JAR theo quy tắc đặt tên automatic module.
+1. If the manifest has the **Automatic-Module-Name** attribute, use the stable name declared there.
+2. If this attribute is not present, the name is derived from the JAR file name according to the automatic module naming rules.
 
-Ví dụ manifest:
+Manifest example:
 
 ~~~text
 Automatic-Module-Name: com.acme.legacy.csv
 ~~~
 
-Automatic module vẫn có tên và có thể được một named module khác khai báo trong **requires**. Tuy nhiên, descriptor của nó được tạo tự động, không thể hiện đầy đủ ý định encapsulation như explicit descriptor. Automatic module xuất toàn bộ package của nó và có quy tắc readability rộng để hỗ trợ chuyển đổi.
+An automatic module still has a name and can be declared by another named module in **requires**. However, its descriptor is generated automatically and does not express encapsulation intent as fully as an explicit descriptor. An automatic module exports all of its packages and has broad readability rules to support migration.
 
-Vì thế, automatic module là cầu nối tương thích hữu ích khi đưa thư viện cũ lên module path. Khi có thể sửa hoặc đóng gói lại thư viện, explicit named module thường giúp kiểm soát dependency và package rõ ràng hơn.
+Therefore, an automatic module is a useful compatibility bridge when bringing legacy libraries onto the module path. When it is possible to modify or repackage the library, an explicit named module usually provides clearer control over dependencies and packages.
 
-## 4. Module name là định danh, không phải phiên bản thư viện
+## 4. A module name is an identifier, not a library version
 
-Tên **com.acme.orders** nhận diện module trong module descriptor và trong quá trình resolve. Nó không đồng nghĩa với:
+The name **com.acme.orders** identifies the module in the module descriptor and during resolution. It is not synonymous with:
 
-- Tên file JAR.
-- Maven groupId hoặc artifactId.
-- Phiên bản dependency.
-- Đường dẫn file trên đĩa.
-- Tên package gốc của mọi class trong module.
+- The JAR file name.
+- The Maven groupId or artifactId.
+- The dependency version.
+- The file path on disk.
+- The root package name of every class in the module.
 
-Ví dụ, build tool có thể quản lý artifact bằng tọa độ:
+For example, a build tool may manage an artifact by coordinates:
 
 ~~~groovy
 dependencies {
@@ -119,7 +119,7 @@ dependencies {
 }
 ~~~
 
-Trong khi descriptor của artifact có tên module:
+While the artifact's descriptor has the module name:
 
 ~~~java
 module com.acme.orders {
@@ -127,15 +127,15 @@ module com.acme.orders {
 }
 ~~~
 
-Build tool chọn artifact và phiên bản cần dùng. JPMS sử dụng tên module cùng descriptor để thiết lập quan hệ module. Hai tên có thể liên quan theo quy ước dự án, nhưng không phải cùng một hệ thống định danh.
+The build tool selects the artifact and version to use. JPMS uses the module name along with the descriptor to establish module relationships. The two names may be related by project convention, but they do not belong to the same identification system.
 
-Module descriptor có thể mang metadata phiên bản trong một số quy trình đóng gói, nhưng tên module vẫn là một trường riêng. Directive **requires com.acme.orders** không phải khai báo dải phiên bản và module system không thay thế cơ chế chọn phiên bản của Maven hoặc Gradle.
+A module descriptor can carry version metadata in certain packaging workflows, but the module name remains a separate field. The **requires com.acme.orders** directive does not declare a version range, and the module system does not replace Maven's or Gradle's version selection mechanisms.
 
-Đặt tên module ổn định đặc biệt quan trọng với thư viện. Với automatic module, hãy khai báo **Automatic-Module-Name** trong manifest để tên không thay đổi chỉ vì tên file JAR được đổi.
+Choosing a stable module name is especially important for libraries. For automatic modules, declare **Automatic-Module-Name** in the manifest so the name does not change merely because the JAR file name is changed.
 
-## 5. Module name và runtime module identity
+## 5. Module name and runtime module identity
 
-Khi một class loader định nghĩa module, JVM tạo một đối tượng **java.lang.Module** đại diện cho module đó. Có thể lấy module object từ một class:
+When a class loader defines a module, the JVM creates a **java.lang.Module** object representing that module. You can obtain the module object from a class:
 
 ~~~java
 Module module = OrderService.class.getModule();
@@ -147,33 +147,33 @@ System.out.println(module.getLayer());
 System.out.println(module.getClassLoader());
 ~~~
 
-Các thông tin thường dùng:
+Commonly used information:
 
-| API | Thông tin |
+| API | Information |
 |---|---|
-| **Module.isNamed()** | Cho biết module có phải named module hay không. |
-| **Module.getName()** | Trả về tên module; trả về **null** với unnamed module. |
-| **Module.getDescriptor()** | Trả về descriptor của named module; unnamed module không có descriptor. |
-| **Module.getLayer()** | Trả về ModuleLayer định nghĩa module; unnamed module không thuộc một named module layer nên kết quả là **null**. |
-| **Module.getClassLoader()** | Trả về class loader định nghĩa module; có thể là **null** nếu module được định nghĩa bởi bootstrap class loader. |
-| **Module.getPackages()** | Trả về tập tên package thuộc module. |
-| **Module.canRead(other)** | Kiểm tra module hiện tại có readability tới module khác hay không. |
-| **Module.isExported(packageName, other)** | Kiểm tra package có được export cho module đích hay không. |
-| **Module.isOpen(packageName, other)** | Kiểm tra package có được mở cho deep reflection từ module đích hay không. |
+| **Module.isNamed()** | Indicates whether the module is a named module. |
+| **Module.getName()** | Returns the module name; returns **null** for an unnamed module. |
+| **Module.getDescriptor()** | Returns the descriptor of a named module; an unnamed module has no descriptor. |
+| **Module.getLayer()** | Returns the ModuleLayer that defines the module; an unnamed module does not belong to a named module layer so the result is **null**. |
+| **Module.getClassLoader()** | Returns the class loader that defines the module; may be **null** if the module is defined by the bootstrap class loader. |
+| **Module.getPackages()** | Returns the set of package names belonging to the module. |
+| **Module.canRead(other)** | Checks whether the current module has readability to another module. |
+| **Module.isExported(packageName, other)** | Checks whether a package is exported to the target module. |
+| **Module.isOpen(packageName, other)** | Checks whether a package is open for deep reflection from the target module. |
 
-Ví dụ, nếu **OrderService** thuộc explicit named module **com.acme.orders**, các giá trị có thể cho biết tên module, descriptor và layer đã định nghĩa class. Nếu class nằm trên classpath, **isNamed()** là **false** và **getName()** trả về **null**.
+For example, if **OrderService** belongs to the explicit named module **com.acme.orders**, the values can tell you the module name, descriptor, and the layer that defined the class. If the class is on the classpath, **isNamed()** is **false** and **getName()** returns **null**.
 
-Module object là đại diện runtime có thể dùng để kiểm tra quan hệ module. Trong code cần so sánh hoặc lưu một module runtime cụ thể, đừng chỉ lưu tên string rồi mặc định tên đó là một handle toàn cục. Hãy xét chính đối tượng **Module**, layer và class loader đã định nghĩa nó.
+The module object is the runtime representation that can be used to inspect module relationships. In code that needs to compare or store a specific runtime module, do not just store the string name and assume that name is a global handle. Consider the **Module** object itself, along with the layer and class loader that defined it.
 
-## 6. Vai trò của ModuleLayer đối với identity
+## 6. The role of ModuleLayer in identity
 
-**ModuleLayer** là môi trường runtime chứa các module đã được resolve và định nghĩa. JVM tạo boot layer khi khởi chạy ứng dụng; có thể truy cập layer này bằng:
+**ModuleLayer** is the runtime environment containing modules that have been resolved and defined. The JVM creates the boot layer when launching the application; this layer can be accessed via:
 
 ~~~java
 ModuleLayer boot = ModuleLayer.boot();
 ~~~
 
-Có thể tìm một module trong layer:
+You can find a module in a layer:
 
 ~~~java
 Module ordersModule = boot
@@ -182,11 +182,11 @@ Module ordersModule = boot
         new IllegalStateException("Module not found"));
 ~~~
 
-Một layer có thể có layer cha. Các module trong layer con có thể đọc module ở layer cha theo dependency đã resolve. Layer cũng liên kết các module với class loader được dùng để định nghĩa chúng.
+A layer can have parent layers. Modules in a child layer can read modules in parent layers according to resolved dependencies. A layer also associates modules with the class loaders used to define them.
 
-Khi ứng dụng dùng nhiều layer độc lập, không nên giả định một tên module string luôn là định danh runtime duy nhất trong toàn bộ tiến trình. Hãy xem module object và layer/class loader liên quan để xác định module đang được nói tới. Cách này đặc biệt hữu ích khi xây dựng plugin, nơi các nhóm module có thể được resolve và định nghĩa riêng trong những layer khác nhau.
+When an application uses multiple independent layers, you should not assume a string module name is always a unique runtime identifier across the entire process. Inspect the module object and its associated layer/class loader to identify the module being referenced. This approach is especially useful when building plugins, where groups of modules can be resolved and defined separately in different layers.
 
-Một số API thường dùng:
+Some commonly used APIs:
 
 ~~~java
 ModuleLayer layer = ModuleLayer.boot();
@@ -197,43 +197,43 @@ layer.modules().forEach(module -> {
 });
 ~~~
 
-- **ModuleLayer.boot()** lấy boot layer.
-- **ModuleLayer.modules()** trả về các module được định nghĩa trực tiếp trong layer đó.
-- **ModuleLayer.findModule(name)** tìm module theo tên trong layer và các layer cha.
-- **Module.getLayer()** cho biết layer đã định nghĩa module object.
+- **ModuleLayer.boot()** gets the boot layer.
+- **ModuleLayer.modules()** returns the modules defined directly in that layer.
+- **ModuleLayer.findModule(name)** finds a module by name in the layer and its parent layers.
+- **Module.getLayer()** indicates the layer that defined the module object.
 
-Layer là một phần của runtime module identity; nó không phải tên phiên bản hoặc tọa độ artifact.
+The layer is part of runtime module identity; it is not a version name or artifact coordinate.
 
-## 7. Module identity không đồng nhất với class identity
+## 7. Module identity is not the same as class identity
 
-Module và class là hai cấp định danh khác nhau.
+Modules and classes are two different levels of identification.
 
-Một class được JVM nhận diện theo tên nhị phân và defining class loader. Module system bổ sung ngữ cảnh module để áp dụng readability, exports, opens và các quy tắc truy cập. Vì vậy:
+A class is identified by the JVM by its binary name and defining class loader. The module system adds module context to enforce readability, exports, opens, and access rules. Therefore:
 
-- Hai class có cùng tên nhị phân nhưng được định nghĩa bởi hai class loader khác nhau vẫn là hai class runtime khác nhau.
-- Hai class thuộc cùng module có thể dùng chung module object nhưng vẫn có identity riêng theo class.
-- Module name không thay thế defining class loader khi phân tích lỗi nạp class.
-- Package không export ảnh hưởng khả năng truy cập qua ranh giới module; nó không tự đổi tên class hoặc di chuyển class sang module khác.
+- Two classes with the same binary name but defined by two different class loaders are still two different runtime classes.
+- Two classes belonging to the same module can share a module object while still having separate identities per class.
+- A module name does not replace the defining class loader when analyzing class loading errors.
+- Unexported packages affect accessibility across module boundaries; they do not rename classes or move classes to another module.
 
-Ví dụ, nếu gặp **ClassCastException** dù hai object có tên class hiển thị giống nhau, cần kiểm tra class loader đã định nghĩa từng class. Nếu gặp lỗi package không visible hoặc **IllegalAccessError**, cần kiểm tra readability và exports. Hai nhóm lỗi có thể cùng xuất hiện trong ứng dụng modular nhưng nguyên nhân nằm ở hai lớp khác nhau.
+For example, if you encounter a **ClassCastException** even though two objects have the same displayed class name, check the class loader that defined each class. If you encounter a package not visible error or **IllegalAccessError**, check readability and exports. Both categories of errors can appear together in a modular application, but their causes lie at two different layers.
 
-## 8. Quan sát named module bằng công cụ JDK
+## 8. Inspecting named modules with JDK tools
 
-Các công cụ JDK giúp xác nhận tên module và trạng thái module thực tế.
+JDK tools help verify module names and actual module states.
 
-Liệt kê các module có trong runtime hiện tại:
+List modules available in the current runtime:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Mô tả một JAR:
+Describe a JAR:
 
 ~~~bash
 jar --describe-module --file orders.jar
 ~~~
 
-Quan sát quá trình resolve khi khởi chạy:
+Observe the resolution process at launch:
 
 ~~~bash
 java --show-module-resolution \
@@ -241,48 +241,48 @@ java --show-module-resolution \
   -m com.acme.orders/com.acme.orders.Main
 ~~~
 
-Các lệnh trên trả lời những câu hỏi khác nhau:
+The commands above answer different questions:
 
-- **java --list-modules** cho biết các module mà runtime hiện tại liệt kê được.
-- **jar --describe-module** cho biết module descriptor hoặc thông tin automatic module của JAR.
-- **--show-module-resolution** cho biết module system resolve những module nào khi chạy ứng dụng.
+- **java --list-modules** shows the modules that the current runtime can list.
+- **jar --describe-module** shows the module descriptor or automatic module information of a JAR.
+- **--show-module-resolution** shows which modules the module system resolves when running the application.
 
-Để kiểm tra một class cụ thể trong chương trình, dùng **Class.getModule()** rồi xem **getName()**, **getDescriptor()**, **getLayer()** và **getClassLoader()**. Đừng suy luận module runtime chỉ từ tên file JAR hoặc package của class.
+To inspect a specific class in a program, use **Class.getModule()** and check **getName()**, **getDescriptor()**, **getLayer()**, and **getClassLoader()**. Do not infer the runtime module solely from the JAR file name or the class's package.
 
-## 9. Quy trình nhận diện module trong một ứng dụng
+## 9. Workflow for identifying modules in an application
 
-Khi cần xác định một class thuộc module nào, hãy làm theo thứ tự:
+When you need to determine which module a class belongs to, follow this order:
 
-1. Xác định class được nạp từ module path hay classpath.
-2. Nếu là modular JAR, đọc **module-info.class** để lấy tên module explicit.
-3. Nếu JAR không có descriptor nhưng nằm trên module path, kiểm tra **Automatic-Module-Name** hoặc tên automatic module suy ra từ file.
-4. Nếu class đến từ classpath, xác định unnamed module gắn với class loader đã nạp class.
-5. Trong runtime, lấy **Class.getModule()** để kiểm tra module object thật sự.
-6. Nếu có nhiều layer, kiểm tra **Module.getLayer()** và class loader để phân biệt các runtime context.
-7. Khi lỗi liên quan tới dependency hoặc package, kiểm tra thêm **canRead**, **isExported** và **isOpen**.
+1. Determine whether the class is loaded from the module path or the classpath.
+2. If it is a modular JAR, read **module-info.class** to get the explicit module name.
+3. If the JAR has no descriptor but is on the module path, check **Automatic-Module-Name** or the automatic module name derived from the file.
+4. If the class comes from the classpath, identify the unnamed module associated with the class loader that loaded the class.
+5. At runtime, get **Class.getModule()** to inspect the actual module object.
+6. If there are multiple layers, check **Module.getLayer()** and the class loader to distinguish runtime contexts.
+7. When errors involve dependencies or packages, also check **canRead**, **isExported**, and **isOpen**.
 
-Quy trình này giúp phân biệt lỗi do tên module, do artifact không nằm trên module path, do package chưa export, hoặc do class được nạp bởi một loader khác.
+This workflow helps distinguish errors caused by module names, artifacts not being on the module path, unexported packages, or classes loaded by a different loader.
 
-## 10. Bài tập thực hành
+## 10. Hands-on exercises
 
-1. Tạo explicit named module **com.acme.orders** với file **module-info.java** và một package API.
-2. Biên dịch module thành exploded module hoặc modular JAR, sau đó dùng **jar --describe-module** để xác nhận tên.
-3. Đổi tên file JAR nhưng giữ nguyên **module-info.class**. Quan sát tên module vẫn giữ nguyên.
-4. Tạo một JAR không có descriptor, thêm **Automatic-Module-Name** vào manifest và đặt JAR trên module path. Xác nhận nó trở thành automatic module có tên đã khai báo.
-5. Đặt một class Java lên classpath và gọi **Class.getModule()**. Quan sát **isNamed()** và **getName()**.
-6. In **getLayer()** và **getClassLoader()** của class thuộc named module và class thuộc unnamed module.
-7. Dùng **ModuleLayer.boot().findModule(...)** để tìm module nền tảng hoặc module ứng dụng trong boot layer.
-8. So sánh lỗi package không export với lỗi class được định nghĩa bởi hai class loader khác nhau; giải thích vì sao module identity và class identity không thể dùng thay cho nhau.
+1. Create an explicit named module **com.acme.orders** with a **module-info.java** file and an API package.
+2. Compile the module into an exploded module or modular JAR, then use **jar --describe-module** to verify the name.
+3. Rename the JAR file while keeping **module-info.class** intact. Observe that the module name remains unchanged.
+4. Create a JAR without a descriptor, add **Automatic-Module-Name** to the manifest, and place the JAR on the module path. Confirm that it becomes an automatic module with the declared name.
+5. Place a Java class on the classpath and call **Class.getModule()**. Observe **isNamed()** and **getName()**.
+6. Print **getLayer()** and **getClassLoader()** for a class in a named module and a class in an unnamed module.
+7. Use **ModuleLayer.boot().findModule(...)** to locate a platform module or application module in the boot layer.
+8. Compare a package-not-exported error with an error where a class is defined by two different class loaders; explain why module identity and class identity cannot be used interchangeably.
 
-## 11. Những điểm cần ghi nhớ
+## 11. Key takeaways
 
-- Named module là module có tên; explicit named module có descriptor do tác giả khai báo.
-- Automatic module cũng là named module, nhưng descriptor được tạo tự động từ manifest hoặc tên JAR.
-- Code trên classpath thuộc unnamed module; tên module của nó là **null**.
-- Module name là định danh trong module system, không phải Maven coordinates, tên file JAR hoặc version string.
-- **java.lang.Module** đại diện cho module tại runtime và cung cấp thông tin về descriptor, layer, class loader và quyền truy cập.
-- **ModuleLayer** xác định môi trường runtime nơi module được định nghĩa.
-- Class identity vẫn gắn với tên nhị phân và defining class loader; module system bổ sung quy tắc truy cập ở cấp module.
-- Khi debug, hãy kiểm tra module object thực tế thay vì suy luận chỉ từ tên package hoặc file JAR.
+- A named module is a module with a name; an explicit named module has a descriptor declared by the author.
+- An automatic module is also a named module, but its descriptor is generated automatically from the manifest or the JAR name.
+- Code on the classpath belongs to an unnamed module; its module name is **null**.
+- A module name is an identifier in the module system, not Maven coordinates, a JAR file name, or a version string.
+- **java.lang.Module** represents a module at runtime and provides information about its descriptor, layer, class loader, and access permissions.
+- **ModuleLayer** defines the runtime environment where modules are defined.
+- Class identity remains tied to the binary name and defining class loader; the module system adds module-level access rules.
+- When debugging, inspect the actual module object rather than inferring solely from package names or JAR files.
 
-Khi đã phân biệt được module name, module object, ModuleLayer và class loader, bạn sẽ đọc được dependency graph và chẩn đoán lỗi JPMS chính xác hơn. Đây cũng là nền tảng để hiểu các ứng dụng nhiều layer và cơ chế plugin ở runtime.
+Once you can distinguish module name, module object, ModuleLayer, and class loader, you will be able to read dependency graphs and diagnose JPMS errors more accurately. This is also the foundation for understanding multi-layer applications and runtime plugin mechanisms.

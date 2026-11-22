@@ -1,24 +1,24 @@
-# provides ... with khai báo service provider
+# provides ... with Declares a Service Provider
 
-## 1. Vai trò của provides trong JPMS
+## 1. The Role of provides in JPMS
 
-JPMS hỗ trợ cơ chế Service Provider Interface (SPI) để một module công bố implementation cho một service mà module khác định nghĩa. Cơ chế này giúp module tiêu thụ phụ thuộc vào abstraction, trong khi implementation có thể được thay thế hoặc bổ sung mà consumer không cần biết tên lớp triển khai cụ thể.
+JPMS supports the Service Provider Interface (SPI) mechanism so that a module can publish an implementation for a service defined by another module. This mechanism lets the consuming module depend on an abstraction, while implementations can be replaced or added without the consumer knowing the concrete implementation class names.
 
-Một service thường gồm ba phần:
+A service typically consists of three parts:
 
-- **Service API**: định nghĩa interface hoặc abstract class mà ứng dụng muốn sử dụng.
-- **Provider module**: chứa implementation và khai báo module đó cung cấp service bằng chỉ thị `provides ... with ...`.
-- **Consumer module**: sử dụng service và khai báo nhu cầu bằng chỉ thị `uses`.
+- **Service API**: defines the interface or abstract class that the application wants to use.
+- **Provider module**: contains the implementation and declares that the module supplies the service using the `provides ... with ...` directive.
+- **Consumer module**: uses the service and declares its need using the `uses` directive.
 
-Ví dụ, ứng dụng thanh toán chỉ cần biết `PaymentProcessor`. Một module khác có thể cung cấp xử lý thẻ, module khác cung cấp xử lý chuyển khoản. Consumer không cần import hoặc gọi constructor của từng implementation.
+For example, a payment application only needs to know `PaymentProcessor`. One module can provide card processing, while another module provides bank transfer processing. The consumer does not need to import or invoke the constructor of each implementation.
 
-Chỉ thị `provides` nằm trong `module-info.java` của module cung cấp service. Cú pháp tổng quát:
+The `provides` directive belongs in the `module-info.java` of the module providing the service. General syntax:
 
 ~~~java
 provides service.type with provider.type;
 ~~~
 
-Có thể khai báo nhiều provider cho cùng một service:
+Multiple providers can be declared for the same service:
 
 ~~~java
 provides com.acme.payment.api.PaymentProcessor
@@ -26,11 +26,11 @@ provides com.acme.payment.api.PaymentProcessor
          com.acme.payment.bank.BankPaymentProcessor;
 ~~~
 
-Tên service và provider thường được ghi đầy đủ theo package. Mỗi provider phải đáp ứng quy tắc của JPMS về constructor hoặc provider method.
+Service and provider names are typically fully qualified with their package names. Each provider must satisfy JPMS rules regarding constructors or provider methods.
 
-## 2. Tách service API khỏi implementation
+## 2. Separating the Service API from the Implementation
 
-Một cấu trúc module dễ bảo trì thường tách API và provider:
+A maintainable module structure typically separates the API and providers:
 
 ~~~text
 payment-api/
@@ -46,7 +46,7 @@ checkout-app/
   com/acme/checkout/Main.java
 ~~~
 
-Module API công bố package chứa service type:
+The API module exposes the package containing the service type:
 
 ~~~java
 module com.acme.payment.api {
@@ -64,11 +64,11 @@ public interface PaymentProcessor {
 }
 ~~~
 
-Package API phải được export để provider module và consumer module có thể tham chiếu kiểu `PaymentProcessor`. Việc export service API không yêu cầu phải export package chứa implementation.
+The API package must be exported so that provider modules and consumer modules can reference the `PaymentProcessor` type. Exporting the service API does not require exporting the package containing the implementation.
 
-## 3. Khai báo provider bằng provides ... with
+## 3. Declaring a Provider with provides ... with
 
-Provider module đọc module API và khai báo implementation:
+The provider module reads the API module and declares the implementation:
 
 ~~~java
 module com.acme.payment.card {
@@ -98,23 +98,23 @@ public final class CardPaymentProcessor implements PaymentProcessor {
 }
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- `requires com.acme.payment.api` tạo quan hệ readability để provider dùng service type.
-- `provides PaymentProcessor with CardPaymentProcessor` đăng ký provider với module system.
-- Provider class triển khai interface `PaymentProcessor`.
-- Provider có public no-argument constructor để `ServiceLoader` tạo instance.
-- Package `com.acme.payment.card` không cần export chỉ để `ServiceLoader` tìm và tạo provider.
+- `requires com.acme.payment.api` establishes the readability relationship so the provider can use the service type.
+- `provides PaymentProcessor with CardPaymentProcessor` registers the provider with the module system.
+- The provider class implements the `PaymentProcessor` interface.
+- The provider has a public no-argument constructor so `ServiceLoader` can create an instance.
+- The `com.acme.payment.card` package does not need to be exported just for `ServiceLoader` to locate and instantiate the provider.
 
-Điểm cuối rất quan trọng: consumer phụ thuộc vào service API, không phụ thuộc trực tiếp vào package triển khai. Provider implementation có thể nằm trong package nội bộ và được giữ kín.
+That last point is crucial: the consumer depends on the service API, not directly on the implementation package. The provider implementation can reside in an internal package and remain encapsulated.
 
-## 4. Hai cách tạo provider instance
+## 4. Two Ways to Create a Provider Instance
 
-Provider class được khai báo sau từ khóa `with` có thể dùng một trong hai cơ chế.
+A provider class declared after the `with` keyword can use one of two mechanisms.
 
 ### Public no-argument constructor
 
-Đây là cách thông dụng nhất. Provider class phải là public, triển khai service type và có public constructor không tham số:
+This is the most common approach. The provider class must be public, implement the service type, and have a public no-argument constructor:
 
 ~~~java
 public final class CardPaymentProcessor implements PaymentProcessor {
@@ -128,13 +128,13 @@ public final class CardPaymentProcessor implements PaymentProcessor {
 }
 ~~~
 
-Khi `ServiceLoader` khởi tạo provider, nó gọi constructor này. Nếu constructor không tồn tại, không public hoặc ném lỗi trong lúc khởi tạo, quá trình tải provider có thể thất bại.
+When `ServiceLoader` instantiates the provider, it invokes this constructor. If the constructor does not exist, is not public, or throws an error during initialization, loading the provider may fail.
 
-Cách này phù hợp khi implementation có thể được tạo trực tiếp mà không cần tham số cấu hình riêng.
+This approach fits when the implementation can be created directly without custom configuration parameters.
 
 ### Public static provider() method
 
-Nếu việc tạo service cần factory, cấu hình hoặc lựa chọn implementation, provider class có thể khai báo một public static method tên `provider`, không nhận tham số và trả về service type hoặc subtype của nó.
+If creating the service requires a factory, configuration, or implementation selection, the provider class can declare a public static method named `provider` that takes no parameters and returns the service type or a subtype of it.
 
 Descriptor:
 
@@ -169,13 +169,13 @@ public final class CardPaymentProvider {
 }
 ~~~
 
-Trong cách này, lớp `CardPaymentProvider` là provider class được ghi sau `with`; phương thức `provider()` trả về object thực hiện service. Provider class không nhất thiết phải tự triển khai `PaymentProcessor`. Nó phải public và có public static provider method với chữ ký phù hợp.
+In this approach, `CardPaymentProvider` is the provider class listed after `with`; the `provider()` method returns the object implementing the service. The provider class does not have to implement `PaymentProcessor` itself. It must be public and have a public static provider method with the matching signature.
 
-Factory method hữu ích khi implementation cần được khởi tạo thông qua một quy trình riêng. Nếu không cần factory, public no-argument constructor thường đơn giản hơn.
+A factory method is useful when the implementation needs to be initialized through a custom procedure. If no factory is needed, a public no-argument constructor is usually simpler.
 
-## 5. Consumer khai báo uses
+## 5. Consumer Declaring uses
 
-Module tiêu thụ service cần khai báo `uses` trong module descriptor:
+A module consuming the service needs to declare `uses` in its module descriptor:
 
 ~~~java
 module com.acme.checkout {
@@ -184,15 +184,15 @@ module com.acme.checkout {
 }
 ~~~
 
-Chỉ thị `uses` nói rằng module checkout cần tìm provider cho service `PaymentProcessor`. Consumer không cần khai báo:
+The `uses` directive states that the checkout module needs to find providers for the `PaymentProcessor` service. The consumer does not need to declare:
 
 ~~~java
 requires com.acme.payment.card;
 ~~~
 
-nếu nó chỉ sử dụng service interface và không gọi trực tiếp implementation. Việc liên kết provider là trách nhiệm của module resolution và `ServiceLoader`.
+if it only uses the service interface and does not call the implementation directly. Binding the provider is the responsibility of module resolution and `ServiceLoader`.
 
-Mã consumer:
+Consumer code:
 
 ~~~java
 package com.acme.checkout;
@@ -214,11 +214,11 @@ public class Main {
 }
 ~~~
 
-Trong một named module, nếu gọi `ServiceLoader.load(...)` mà không khai báo `uses` cho service tương ứng, việc tải service có thể thất bại với `ServiceConfigurationError`. Vì vậy, hãy khai báo `uses` ngay trong module consumer thay vì chỉ dựa vào việc service interface đã được import trong source.
+In a named module, calling `ServiceLoader.load(...)` without declaring `uses` for the corresponding service may fail with a `ServiceConfigurationError`. Therefore, declare `uses` directly in the consumer module rather than relying solely on the service interface being imported in the source code.
 
-## 6. Quan hệ giữa service API, provider và consumer
+## 6. Relationship Between Service API, Provider, and Consumer
 
-Sơ đồ phụ thuộc:
+Dependency diagram:
 
 ~~~text
                  requires
@@ -231,19 +231,19 @@ ServiceLoader <---------------- checkout-app
                                   uses PaymentProcessor
 ~~~
 
-Có thể đọc sơ đồ theo ba quan hệ:
+The diagram can be read as three relationships:
 
-1. Provider module đọc service API vì implementation cần tham chiếu interface.
-2. Consumer module cũng đọc service API vì mã ứng dụng gọi interface.
-3. Provider module đăng ký implementation qua `provides`; consumer module khai báo nhu cầu qua `uses`.
+1. The provider module reads the service API because the implementation must reference the interface.
+2. The consumer module also reads the service API because the application code calls the interface.
+3. The provider module registers the implementation via `provides`; the consumer module declares its need via `uses`.
 
-`provides` không tạo một API import trực tiếp cho consumer. Nó cũng không buộc consumer khai báo `requires` tới module provider. Khi module resolution thực hiện service binding, các provider phù hợp có thể được đưa vào cấu hình nếu chúng quan sát được trên module path và service được sử dụng trong cấu hình.
+`provides` does not create a direct API import for the consumer. Nor does it force the consumer to declare `requires` on the provider module. When module resolution performs service binding, matching providers can be included in the configuration if they are observable on the module path and the service is used in the configuration.
 
-Nếu ứng dụng tự tạo `ModuleLayer`, cần chú ý cách tạo `Configuration`. `Configuration.resolveAndBind(...)` thực hiện thêm bước liên kết service provider; `Configuration.resolve(...)` chỉ giải quyết các root dependency được yêu cầu. Khi muốn provider được tự động phát hiện trong layer riêng, hãy dùng quy trình resolve-and-bind phù hợp và tải service từ layer đó.
+If the application creates a `ModuleLayer` manually, pay attention to how the `Configuration` is constructed. `Configuration.resolveAndBind(...)` performs the additional step of binding service providers; `Configuration.resolve(...)` only resolves the requested root dependencies. When you want providers to be automatically discovered in a custom layer, use the appropriate resolve-and-bind process and load services from that layer.
 
-## 7. Một service có nhiều provider
+## 7. Multiple Providers for a Service
 
-Một module có thể cung cấp nhiều service khác nhau:
+A single module can provide multiple different services:
 
 ~~~java
 module com.acme.platform.adapters {
@@ -258,7 +258,7 @@ module com.acme.platform.adapters {
 }
 ~~~
 
-Một service cũng có thể có nhiều provider được liệt kê trong cùng một directive:
+A single service can also have multiple providers listed in the same directive:
 
 ~~~java
 provides com.acme.payment.api.PaymentProcessor
@@ -266,7 +266,7 @@ provides com.acme.payment.api.PaymentProcessor
          com.acme.platform.adapters.BankTransferProcessor;
 ~~~
 
-Consumer có thể duyệt tất cả provider được tìm thấy:
+The consumer can iterate through all discovered providers:
 
 ~~~java
 ServiceLoader<PaymentProcessor> loader =
@@ -277,15 +277,15 @@ loader.stream().forEach(provider ->
 );
 ~~~
 
-Không nên dùng thứ tự provider như một quy tắc ưu tiên nghiệp vụ nếu ứng dụng cần lựa chọn một implementation cụ thể. Nếu cần lựa chọn theo cấu hình, hãy đọc metadata hoặc cấu hình riêng rồi áp dụng chính sách lựa chọn rõ ràng trong ứng dụng.
+You should not rely on provider order as a business priority rule if the application needs to choose a specific implementation. If selection by configuration is needed, read dedicated metadata or configuration and apply an explicit selection policy in the application.
 
-Nếu provider cần tên, thứ tự hoặc thuộc tính cấu hình riêng, service API có thể cung cấp phương thức metadata, hoặc ứng dụng có thể quản lý registry riêng. Không nên suy luận hành vi từ thứ tự xuất hiện của JAR trên module path.
+If providers need their own name, order, or configuration properties, the service API can expose metadata methods, or the application can manage its own registry. You should not infer behavior from the order in which JARs appear on the module path.
 
-## 8. Lỗi thường gặp khi khai báo provides
+## 8. Common Mistakes When Declaring provides
 
-### Service type không được đọc
+### Service type is not readable
 
-Provider module phải đọc module sở hữu service type. Nếu thiếu:
+The provider module must read the module that owns the service type. If missing:
 
 ~~~java
 module com.acme.payment.card {
@@ -294,50 +294,50 @@ module com.acme.payment.card {
 }
 ~~~
 
-thì descriptor hoặc source provider có thể không được biên dịch đúng vì module chưa khai báo dependency. Thêm `requires com.acme.payment.api`.
+then the descriptor or provider source may fail to compile properly because the module has not declared the dependency. Add `requires com.acme.payment.api`.
 
-### Provider class không đáp ứng quy tắc khởi tạo
+### Provider class does not meet instantiation rules
 
-Nếu dùng constructor, provider class cần public no-argument constructor. Nếu dùng provider method, method phải là public static, không tham số và trả về kiểu tương thích với service.
+If using a constructor, the provider class needs a public no-argument constructor. If using a provider method, the method must be public static, take no parameters, and return a type compatible with the service.
 
-Các lỗi này có thể xuất hiện khi `ServiceLoader` duyệt hoặc khởi tạo provider. Hãy kiểm tra exception đầy đủ, bao gồm nguyên nhân bên trong, thay vì chỉ nhìn dòng đầu của `ServiceConfigurationError`.
+These errors may surface when `ServiceLoader` iterates over or instantiates the provider. Inspect the full exception, including its underlying cause, rather than looking only at the first line of the `ServiceConfigurationError`.
 
-### Consumer quên uses
+### Consumer forgets uses
 
-Module consumer đã `requires` service API nhưng quên:
+The consumer module already has `requires` on the service API, but forgets:
 
 ~~~java
 uses com.acme.payment.api.PaymentProcessor;
 ~~~
 
-Khi đó consumer có thể gặp `ServiceConfigurationError` khi sử dụng `ServiceLoader`. Thêm `uses` vào module descriptor của chính module gọi service.
+In that case, the consumer may encounter a `ServiceConfigurationError` when using `ServiceLoader`. Add `uses` to the module descriptor of the module invoking the service.
 
-### Provider module không được phân giải
+### Provider module is not resolved
 
-Provider JAR có thể tồn tại trên đĩa nhưng không nằm trong module configuration/layer đang chạy. Kiểm tra module path, tên module, service binding và cách tạo layer. Đừng chỉ kiểm tra rằng file JAR có trong thư mục.
+The provider JAR may exist on disk but not be part of the running module configuration/layer. Check the module path, module name, service binding, and how the layer is created. Do not just check that the JAR file exists in the directory.
 
-### Export nhầm implementation package
+### Accidentally exporting the implementation package
 
-Không cần thêm:
+There is no need to add:
 
 ~~~java
 exports com.acme.payment.card;
 ~~~
 
-chỉ để `ServiceLoader` tìm provider được khai báo bằng `provides`. Giữ package implementation không export nếu consumer không cần truy cập trực tiếp.
+just so `ServiceLoader` can find the provider declared with `provides`. Keep the implementation package unexported if consumers do not need direct access.
 
-## 9. Kiểm tra descriptor và artifact
+## 9. Checking Descriptors and Artifacts
 
-Sau khi build provider JAR, kiểm tra descriptor thực tế:
+After building the provider JAR, inspect the actual descriptor:
 
 ~~~bash
 jar --describe-module --file build/libs/payment-card.jar
 jar --list --file build/libs/payment-card.jar
 ~~~
 
-Kết quả cần cho thấy module name, dependency tới service API, directive `provides` và provider class có trong archive.
+The output should show the module name, the dependency on the service API, the `provides` directive, and that the provider class is present in the archive.
 
-Kiểm tra module resolution:
+Check module resolution:
 
 ~~~bash
 java --show-module-resolution \
@@ -345,45 +345,45 @@ java --show-module-resolution \
   -m com.acme.checkout/com.acme.checkout.Main
 ~~~
 
-Chạy ứng dụng tiêu thụ với đúng các JAR phát hành. Kiểm tra rằng:
+Run the consuming application with the actual release JARs. Verify that:
 
-- Consumer có `uses` đúng service type.
-- Provider module được phân giải và service binding tìm thấy provider.
-- Provider được khởi tạo thành công.
-- Mỗi provider thực hiện đúng hợp đồng service.
-- Không có dependency chỉ tồn tại trong môi trường IDE nhưng thiếu trong module path phát hành.
+- The consumer has `uses` for the correct service type.
+- The provider module is resolved and service binding locates the provider.
+- The provider is instantiated successfully.
+- Each provider fulfills the service contract properly.
+- No dependency exists only in the IDE environment while missing from the release module path.
 
-Nếu dùng custom layer, tạo configuration bằng cơ chế service binding thích hợp và gọi `ServiceLoader.load(layer, PaymentProcessor.class)` cho layer đó.
+If using a custom layer, create the configuration with the appropriate service binding mechanism and call `ServiceLoader.load(layer, PaymentProcessor.class)` for that layer.
 
-## 10. Khi nào dùng provides và khi nào dùng META-INF/services?
+## 10. When to Use provides vs. META-INF/services?
 
-Trong một explicit named module, khai báo provider bằng `provides ... with ...` trong `module-info.java`. Đây là cách module system đọc trực tiếp từ descriptor.
+In an explicit named module, declare the provider using `provides ... with ...` in `module-info.java`. This is how the module system reads it directly from the descriptor.
 
-Với ứng dụng hoặc thư viện chạy trên classpath theo cơ chế truyền thống, ServiceLoader dùng file cấu hình:
+For applications or libraries running on the classpath in the traditional manner, ServiceLoader uses a configuration file:
 
 ~~~text
 META-INF/services/com.acme.payment.api.PaymentProcessor
 ~~~
 
-Nội dung file liệt kê tên đầy đủ của từng provider class, mỗi tên trên một dòng.
+The file lists the fully qualified name of each provider class, one name per line.
 
-Hai cách phục vụ cùng mô hình SPI nhưng thuộc hai cơ chế đóng gói khác nhau. Khi chuyển JAR từ classpath sang explicit named module, hãy chuyển đăng ký provider sang `provides` và kiểm tra consumer `uses`. Không nên giả định chỉ thêm `module-info.java` là mọi cấu hình service cũ đã được chuyển đúng.
+Both approaches serve the same SPI model but belong to different packaging mechanisms. When migrating a JAR from the classpath to an explicit named module, move provider registration to `provides` and check consumer `uses`. Do not assume that merely adding `module-info.java` means all legacy service configurations have been migrated properly.
 
-## 11. Checklist trước khi phát hành provider module
+## 11. Checklist Before Releasing a Provider Module
 
-- [ ] Service interface nằm trong package được export từ module API.
-- [ ] Provider module khai báo `requires` tới module API.
-- [ ] `provides` dùng đúng service type và provider class.
-- [ ] Provider class có public no-argument constructor hoặc public static `provider()` method hợp lệ.
-- [ ] Consumer module khai báo `uses` cho service mà nó tải.
-- [ ] Package implementation không export nếu không có nhu cầu API trực tiếp.
-- [ ] Provider module có mặt trong module configuration hoặc service binding của layer.
-- [ ] JAR phát hành chứa đúng `module-info.class` và provider class.
-- [ ] ServiceLoader đã được thử trên module path thực tế và custom layer nếu có.
-- [ ] Lỗi khởi tạo provider và lỗi cấu hình service được kiểm tra đầy đủ.
+- [ ] The service interface is in an exported package of the API module.
+- [ ] The provider module declares `requires` on the API module.
+- [ ] `provides` uses the exact service type and provider class.
+- [ ] The provider class has a valid public no-argument constructor or public static `provider()` method.
+- [ ] The consumer module declares `uses` for the service it loads.
+- [ ] The implementation package is not exported unless there is a direct API need.
+- [ ] The provider module is present in the module configuration or service binding of the layer.
+- [ ] The release JAR contains the correct `module-info.class` and provider class.
+- [ ] ServiceLoader has been tested on the actual module path and any custom layers.
+- [ ] Provider instantiation errors and service configuration errors are thoroughly checked.
 
-## Kết luận
+## Conclusion
 
-`provides ... with` đăng ký provider ở phía module cung cấp; `uses` khai báo nhu cầu ở phía module tiêu thụ. Provider module đọc service API bằng `requires`, còn consumer thường chỉ cần đọc service API mà không cần phụ thuộc trực tiếp vào module implementation.
+`provides ... with` registers the provider on the supplying module side; `uses` declares the demand on the consuming module side. The provider module reads the service API via `requires`, while the consumer typically only needs to read the service API without directly depending on the implementation module.
 
-Để service hoạt động ổn định, hãy kiểm tra provider class hoặc provider method, service binding, module layer, artifact đóng gói và consumer thực tế. Khi giữ package implementation ở nội bộ và công bố đúng service API, các implementation có thể được thay thế hoặc bổ sung mà không làm consumer phụ thuộc vào lớp triển khai cụ thể.
+For a service to operate reliably, check the provider class or provider method, service binding, module layer, packaged artifacts, and the actual consumer. By keeping the implementation package internal and publishing the proper service API, implementations can be replaced or added without coupling consumers to concrete implementation classes.

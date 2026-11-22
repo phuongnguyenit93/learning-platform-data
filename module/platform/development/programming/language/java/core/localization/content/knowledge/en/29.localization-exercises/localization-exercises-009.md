@@ -1,136 +1,136 @@
-# Lập bảng chọn API và tự đánh giá các lỗi bản địa hóa thường gặp
+# Building an API Selection Matrix and Self-Assessing Common Localization Bugs
 
-## 1. Mục tiêu và cách dùng bài thực hành
+## 1. Objectives and How to Use This Practice
 
-Trong Java, “localization” không phải một hàm duy nhất. Dịch một thông báo, định dạng số tiền, sắp tên theo từ điển, xử lý Unicode có dấu và hiển thị chữ phải–trái là **những bài toán khác nhau**. Chọn nhầm API có thể tạo kết quả trông đúng ở máy phát triển nhưng sai trên máy người dùng, hoặc làm thay đổi dữ liệu nghiệp vụ.
+In Java, "localization" is not a single function. Translating a message, formatting a monetary amount, sorting names alphabetically, handling accented Unicode, and rendering right-to-left text are **different problems**. Choosing the wrong API can yield output that looks fine on a developer's laptop yet fails on a user's machine—or worse, corrupts business data.
 
-Bài Knowledge này xây dựng một **bảng quyết định chọn API** cho Java 17+, sau đó dùng những **tình huống sai–đúng**, **mã runnable**, **bài tập tự chấm điểm** và **checklist kiểm thử** để đánh giá một thiết kế bản địa hóa. Đây là bài thực hành tổng hợp: người học nên dùng được bảng chọn API cả khi đọc code cũ, review pull request và thiết kế chức năng mới.
+This Knowledge article builds an **API decision matrix** for Java 17+, then uses **anti-pattern vs. proper design scenarios**, **runnable code**, **self-scored exercises**, and **testing checklists** to evaluate a localization design. It is a comprehensive synthesis guide: learners should be able to apply the decision matrix when reading legacy code, reviewing pull requests, and designing new features.
 
-Sau khi học, bạn cần trả lời được:
+After studying this lesson, you should be able to answer:
 
-1. Dùng **Locale**, **ResourceBundle** hay **MessageFormat** trong tình huống nào?
-2. Vì sao **NumberFormat**, **Currency**, **BigDecimal** và tỷ giá không thay thế nhau?
-3. Khi nào dùng **LocalDate**, **Instant**, **ZoneId** và **DateTimeFormatter**?
-4. Khi nào **String.compareTo** không phù hợp và nên dùng **Collator**?
-5. Khi nào cần **Normalizer**, **BreakIterator**, **Character** hoặc **Bidi**?
-6. Vì sao một Locale hợp lệ không đồng nghĩa ứng dụng đã có bản dịch?
-7. Cách phát hiện lỗi do default Locale, fallback, Unicode spaces, thread safety hoặc timezone?
-8. Viết kiểm thử thế nào để tránh đóng đinh một kết quả phụ thuộc phiên bản CLDR/JDK?
-9. Đánh giá mức độ nghiêm trọng và ưu tiên sửa lỗi bản địa hóa bằng tiêu chí khách quan?
-10. Tách dữ liệu có kiểu khỏi chuỗi hiển thị ra sao để không làm hỏng số tiền hay thời gian?
+1. When to use **Locale**, **ResourceBundle**, or **MessageFormat**?
+2. Why don't **NumberFormat**, **Currency**, **BigDecimal**, and exchange rates substitute for one another?
+3. When to use **LocalDate**, **Instant**, **ZoneId**, and **DateTimeFormatter**?
+4. When is **String.compareTo** inappropriate and when should **Collator** be used?
+5. When are **Normalizer**, **BreakIterator**, **Character**, or **Bidi** needed?
+6. Why does a valid `Locale` not imply the application actually has translations?
+7. How to detect bugs caused by default `Locale`, fallback, Unicode spaces, thread safety, or time zones?
+8. How to write tests that avoid pinning outcomes tied to a single CLDR/JDK version?
+9. How to assess severity and prioritize localization bug fixes using objective criteria?
+10. How to separate typed data from display strings so monetary amounts and timestamps are never corrupted?
 
-## 2. Trước hết: chọn đúng lớp vấn đề
+## 2. First: Identify the Right Problem Category
 
-Hãy chia yêu cầu thành bảy nhóm. Nếu chưa biết yêu cầu thuộc nhóm nào, khoan chọn API.
+Divide requirements into seven categories. If you do not yet know which category a requirement belongs to, hold off on picking an API.
 
-| Nhóm | Câu hỏi thực tế | Ví dụ |
+| Category | Practical Question | Example |
 | --- | --- | --- |
-| **Ngôn ngữ** | Câu, nút, lỗi và nội dung có bản dịch nào? | “Thanh toán” / “Pay” |
-| **Định dạng** | Cùng một giá trị được viết theo vùng thế nào? | 1,234.50 so với 1.234,50 |
-| **Lịch/thời gian** | Một ngày hoặc thời điểm được hiển thị ở vùng nào? | Giờ đặt hàng ở Việt Nam và Mỹ |
-| **So sánh văn bản** | Xếp tên theo mã kỹ thuật hay theo từ điển người đọc? | An, Ánh, Đào |
-| **Chuẩn hóa và phân đoạn** | Các cách mã hóa Unicode, biên từ, grapheme được xử lý thế nào? | é và e + dấu sắc |
-| **Bố cục và chiều chữ** | LTR/RTL, số, dấu câu được vẽ ra sao? | Mã hàng trong câu Ả Rập |
-| **Nghiệp vụ và bảo mật** | Giá trị, ID, đơn vị, permission có đổi do locale không? | EUR, account ID, access policy |
+| **Language** | Which sentences, buttons, errors, and content have translations? | `"Thanh toán" / "Pay"` |
+| **Formatting** | How is the same value written for a region? | `1,234.50` vs. `1.234,50` |
+| **Calendar/Time** | In which region is a date or instant displayed? | Order timestamp in Vietnam vs. the US |
+| **Text Comparison** | Sort names by technical code units or reader's dictionary order? | `An`, `Ánh`, `Đào` |
+| **Normalization & Segmentation** | How are Unicode encodings, word boundaries, and graphemes handled? | `é` vs. `e` + combining acute |
+| **Layout & Text Direction** | How are LTR/RTL text, numbers, and punctuation rendered? | Order ID inside an Arabic sentence |
+| **Business Logic & Security** | Do values, IDs, units, or permissions change with locale? | EUR, account ID, access policy |
 
-Một số yêu cầu thuộc **nhiều nhóm đồng thời**. Ví dụ email hóa đơn cần: chọn thông điệp theo ngôn ngữ, định dạng tiền theo vùng, chuyển Instant sang ZoneId người nhận và render HTML có escaping/bidi. Điều này không có nghĩa nên tạo một lớp “LocaleUtils” chứa mọi logic; mỗi phần cần hợp đồng rõ.
+Some requirements span **multiple categories simultaneously**. For example, an invoice email needs: selecting messages by language, formatting currency by region, converting an `Instant` to the recipient's `ZoneId`, and rendering HTML with escaping/bidi. That does not mean creating one giant `"LocaleUtils"` class holding all logic; each part needs a clear contract.
 
-**Nguyên tắc dẫn đường:** lưu giá trị có kiểu và thứ tự logic; dùng API locale để tạo **biểu diễn** khi cần; không parse ngược biểu diễn nếu không có giao kèo đầu vào chính thức.
+**Guiding principle:** store typed values and logical ordering; call locale APIs to produce **representations** when needed; never parse representations back without a formal input contract.
 
-## 3. Bảng chọn API Java 17+ theo nhu cầu
+## 3. Java 17+ API Selection Matrix by Requirement
 
-Bảng dưới đây là công cụ tra cứu chính. Cột “tránh nhầm” quan trọng không kém cột API.
+The table below is your primary lookup reference. The "Avoid confusing with" column is just as important as the API column.
 
-| Nhu cầu | API/chức năng phù hợp | Tránh nhầm với |
+| Need | Suitable API / Feature | Avoid Confusing With |
 | --- | --- | --- |
-| Biểu diễn ngôn ngữ/vùng/script | **java.util.Locale**, Locale.forLanguageTag | Tạo Locale không đảm bảo có bản dịch |
-| Chọn một locale từ ưu tiên trình duyệt | **Locale.LanguageRange.parse**, Locale.lookup/filter | Không dùng mọi available locales làm menu app |
-| Biết tập locale JDK công bố | **Locale.getAvailableLocales()** | Không chứng minh mọi dịch vụ hoặc UI hỗ trợ |
-| Hỏi locale của formatter số | **NumberFormat.getAvailableLocales()** | Không suy từ danh sách Collator |
-| Hỏi locale của collation | **Collator.getAvailableLocales()** | Không dùng NumberFormat list để kết luận |
-| Tra thông điệp theo key/ngôn ngữ | **ResourceBundle.getBundle**, getString | Không tự dịch nội dung nghiệp vụ |
-| Chèn tham số theo ngữ pháp câu | **MessageFormat** | Không nối prefix + amount + suffix cố định |
-| Định dạng số thường | **NumberFormat.getNumberInstance(locale)** | Không dùng Double.toString làm format UI |
-| Định dạng tỷ lệ 0.125 → 12,5% theo vùng | **NumberFormat.getPercentInstance(locale)** | Không truyền 12.5 nếu input là fraction |
-| Định dạng tiền theo vùng | **NumberFormat.getCurrencyInstance(locale)** | Không thay thế tỷ giá hoặc Currency gốc |
-| Mô hình hóa đơn vị tiền | **Currency.getInstance("EUR")** | Currency không phải amount và không đổi tiền |
-| Tính toán thập phân chính xác | **BigDecimal** | Không dùng new BigDecimal(double) tùy tiện |
-| Chọn dấu nhóm/thập phân tường minh | **DecimalFormatSymbols**, DecimalFormat | Không dùng thay mọi tailoring của locale |
-| Ngày thuần, không timezone | **LocalDate** | Không tự xem LocalDate là Instant |
-| Một thời điểm tuyệt đối | **Instant** | Không xem Instant là local wall-clock |
-| Quy tắc giờ địa phương | **ZoneId**, ZonedDateTime | Không suy múi giờ từ Locale |
-| Định dạng ngày/giờ Java 17+ | **DateTimeFormatter**, FormatStyle, withLocale | Tránh SimpleDateFormat shared mutable |
-| Định dạng kỹ thuật ISO | **DateTimeFormatter.ISO_...**, toString có hợp đồng | Không dùng localized string cho API máy |
-| Sắp xếp tên theo ngôn ngữ | **Collator.getInstance(locale)** | Không dùng String.compareTo làm từ điển |
-| So sánh kỹ thuật theo UTF-16 | **String.compareTo** | Không xem là locale-aware |
-| Chuẩn hóa Unicode chính tắc | **Normalizer** với NFC/NFD | Không đồng nghĩa bỏ dấu/tìm kiếm/collation |
-| Chuẩn hóa tương thích có chủ đích | **Normalizer** với NFKC/NFKD | Có thể tạo collision giữa ký tự khác |
-| Ngắt từ/câu/cụm ký tự | **BreakIterator** | Không dùng split(" ") cho mọi ngôn ngữ |
-| Kiểm tra loại ký tự/hướng/điểm mã | **Character** và String.codePoints | Không giả định mỗi char là một code point |
-| Phân tích chữ hai chiều | **java.text.Bidi**, renderer text layout | Không reverse chuỗi RTL |
-| Phân biệt chữ hoa/thường theo locale | **String.toLowerCase(locale)** trong policy rõ | Không thay thế Collator hoặc full case-folding |
-| Giữ UTF-8 khi lưu/đọc | **StandardCharsets.UTF_8**, reader/writer rõ charset | Không dựa charset máy hoặc sửa lỗi bằng bỏ dấu |
-| Phân trang tên qua database | Collation của **DB** + tie-breaker ID nhất quán | Không sort riêng mỗi trang phía client |
-| Bảo vệ HTML có tham số người dùng | Template autoescape/contextual escaping | ResourceBundle/MessageFormat không chống XSS |
+| Represent language/region/script | **java.util.Locale**, `Locale.forLanguageTag` | Constructing a `Locale` does not guarantee translations exist |
+| Pick one locale from browser preferences | **Locale.LanguageRange.parse**, `Locale.lookup`/`filter` | Do not populate app menus with all available locales |
+| Query locales advertised by the JDK | **Locale.getAvailableLocales()** | Does not prove every service or UI supports them |
+| Query number-formatter locales | **NumberFormat.getAvailableLocales()** | Do not infer from `Collator`'s list |
+| Query collation locales | **Collator.getAvailableLocales()** | Do not use `NumberFormat`'s list to conclude support |
+| Look up messages by key/language | **ResourceBundle.getBundle**, `getString` | Do not auto-translate domain identifiers |
+| Substitute arguments per sentence grammar | **MessageFormat** | Do not concatenate fixed prefix + amount + suffix |
+| Format regular numbers | **NumberFormat.getNumberInstance(locale)** | Do not use `Double.toString` for UI formatting |
+| Format ratio `0.125` → `12.5%` per region | **NumberFormat.getPercentInstance(locale)** | Do not pass `12.5` if input is a fraction |
+| Format money per region | **NumberFormat.getCurrencyInstance(locale)** | Does not replace exchange rates or source `Currency` |
+| Model currency unit | **Currency.getInstance("EUR")** | `Currency` is not an amount and does not convert money |
+| Exact decimal arithmetic | **BigDecimal** | Do not call `new BigDecimal(double)` casually |
+| Explicit grouping/decimal symbols | **DecimalFormatSymbols**, `DecimalFormat` | Do not use to replace all locale tailoring |
+| Pure calendar date, no timezone | **LocalDate** | Never treat `LocalDate` as an `Instant` |
+| Absolute point in time | **Instant** | Never treat `Instant` as local wall-clock time |
+| Local time-zone rules | **ZoneId**, `ZonedDateTime` | Never infer timezone from `Locale` |
+| Java 17+ date/time formatting | **DateTimeFormatter**, `FormatStyle`, `withLocale` | Avoid shared mutable `SimpleDateFormat` |
+| Technical ISO formatting | **DateTimeFormatter.ISO_...**, contracted `toString` | Never send localized strings in machine APIs |
+| Sort names linguistically | **Collator.getInstance(locale)** | Do not use `String.compareTo` as dictionary order |
+| Technical UTF-16 comparison | **String.compareTo** | Not locale-aware |
+| Canonical Unicode normalization | **Normalizer** with `NFC`/`NFD` | Not equivalent to accent stripping, search, or collation |
+| Intentional compatibility normalization | **Normalizer** with `NFKC`/`NFKD` | Can introduce collisions across distinct characters |
+| Word/sentence/grapheme boundaries | **BreakIterator** | Do not use `split(" ")` for every language |
+| Inspect character category/direction/code point | **Character** and `String.codePoints` | Do not assume every `char` is a full code point |
+| Bidirectional text analysis | **java.text.Bidi**, renderer text layout | Never reverse RTL strings |
+| Locale-sensitive casing | **String.toLowerCase(locale)** under clear policy | Does not replace `Collator` or full case folding |
+| Preserve UTF-8 when reading/writing | **StandardCharsets.UTF_8**, explicit charset readers/writers | Do not rely on OS default charset or strip accents as a workaround |
+| Paginating sorted names in a database | **DB** collation + consistent ID tie-breaker | Do not sort each page independently on the client |
+| Protect HTML containing user arguments | Template autoescaping / contextual escaping | `ResourceBundle`/`MessageFormat` do not prevent XSS |
 
-**Cách dùng:** trước mỗi tính năng, chọn một hàng “nhu cầu”, ghi rõ kiểu dữ liệu đầu vào và tiêu chuẩn đúng; sau đó xác định các API phối hợp. Không lựa chọn chỉ vì một lớp có tên gần giống thuật ngữ của yêu cầu.
+**How to use:** before implementing any feature, locate its "Need" row, write down the input data type and correctness criteria, and then pick the collaborating APIs. Never choose a class solely because its name sounds similar to a word in the requirements.
 
-## 4. Ma trận dữ liệu → biểu diễn → kiểm thử
+## 4. Data → Representation → Testing Matrix
 
-Chọn đúng API mới là bước đầu. Phải xác định cái gì được phép thay đổi khi chuyển locale.
+Choosing the right API is only step one. You must explicitly define what is allowed to vary when switching locales.
 
-| Giá trị gốc | Kiểu nên giữ | Phần được phép đổi | Bất biến phải kiểm tra |
+| Source Value | Type to Preserve | Allowed to Vary | Invariant to Assert |
 | --- | --- | --- | --- |
-| 1234567.89 | BigDecimal | Dấu nhóm, thập phân, glyph chữ số | Giá trị số không đổi |
-| 1234.50 EUR | BigDecimal + Currency | Ký hiệu tiền, vị trí ký hiệu, khoảng trắng | Amount và currency code không đổi |
-| 0.125 | BigDecimal tỷ lệ | Cách viết 12,5%, vị trí % | Tỷ lệ là 0.125 |
-| 2026-10-28 | LocalDate | Thứ tự ngày/tháng, tên tháng | Ngày gốc không đổi |
-| 2026-10-28T02:30:00Z | Instant | Giờ/ngày địa phương và format | Instant/epoch không đổi |
-| ORD-1028 | String ID | Cách trình bày trong câu RTL có thể cần isolation | Nội dung logic của ID không đổi |
-| Tên người | String Unicode | Sort và bố cục theo locale | Không âm thầm xóa dấu |
-| order.confirmed | Message key | Nội dung dịch, trật tự tham số | Key và ý nghĩa nghiệp vụ không đổi |
+| `1234567.89` | `BigDecimal` | Grouping/decimal separators, digit glyphs | Numeric value unchanged |
+| `1234.50 EUR` | `BigDecimal` + `Currency` | Currency symbol, symbol placement, spacing | Amount and currency code unchanged |
+| `0.125` | `BigDecimal` ratio | `12.5%` phrasing, `%` placement | Ratio remains `0.125` |
+| `2026-10-28` | `LocalDate` | Day/month ordering, month names | Underlying calendar date unchanged |
+| `2026-10-28T02:30:00Z` | `Instant` | Local date/time and formatting | `Instant`/epoch unchanged |
+| `ORD-1028` | `String` ID | May need isolation inside RTL sentences | Logical content of ID unchanged |
+| Person's name | Unicode `String` | Locale-based sort and layout | Never silently strip diacritics |
+| `order.confirmed` | Message key | Translated text, placeholder order | Key and business meaning unchanged |
 
-Nếu một phép “localize” đã thay đổi amount, ID, Instant hoặc đơn vị tiền, đó thường là dấu hiệu **trộn trình bày với nghiệp vụ**. Một ngoại lệ cần được đặc tả là chức năng **chuyển đổi tiền tệ** hoặc **chuyển lịch nghiệp vụ** thực sự; ở đó việc đổi dữ liệu là thao tác riêng có quy tắc, không phải side effect của formatter.
+If a "localization" operation alters the amount, ID, `Instant`, or currency unit, that is almost always a sign of **mixing presentation with business logic**. Explicitly specified exceptions are genuine **currency conversion** or **business calendar conversion** features, where changing values is a dedicated, rule-governed operation—never a formatter side effect.
 
-## 5. Bảng chọn API: thông điệp và lựa chọn ngôn ngữ
+## 5. API Selection: Messages and Language Choice
 
-### 5.1. Locale chỉ là danh tính ngôn ngữ/vùng
+### 5.1. Locale Is Only a Language/Region Identity
 
 ~~~java
 Locale locale = Locale.forLanguageTag("vi-VN");
 ~~~
 
-Đoạn minh họa cần import java.util.Locale. Nó biểu diễn locale, **không có nghĩa** UI đã dịch tiếng Việt. Một ứng dụng có thể hỗ trợ hai ngôn ngữ trong khi JDK có dữ liệu locale cho nhiều ngôn ngữ hơn.
+This snippet requires `import java.util.Locale;`. It identifies a locale—it **does not mean** the UI has Vietnamese translations. An application may support two languages while the JDK ships locale data for hundreds more.
 
-Hãy đặt một danh sách **supportedLocales** do sản phẩm kiểm thử và công bố. Để lựa chọn theo ưu tiên, dùng Locale.LanguageRange và Locale.lookup. Không tự sửa Locale.setDefault cho mỗi request trên server; đây là trạng thái JVM có tác động rộng.
+Maintain a product-tested and published **`supportedLocales`** list. For priority-based matching, use `Locale.LanguageRange` and `Locale.lookup`. Never mutate `Locale.setDefault` per server request; it is global JVM state with broad side effects.
 
-### 5.2. ResourceBundle lấy nội dung, MessageFormat tạo câu
+### 5.2. ResourceBundle Fetches Content, MessageFormat Builds Sentences
 
-ResourceBundle trả mẫu theo key. MessageFormat thay các placeholder **{0}**, **{1}** theo cách người dịch sắp xếp. Ví dụ:
+`ResourceBundle` returns patterns by key. `MessageFormat` fills `{0}`, `{1}` placeholders in the order arranged by translators. Example:
 
 ~~~properties
 order.summary=Đơn {0} có tổng {1}.
 ~~~
 
-Với bản tiếng Anh:
+English version:
 
 ~~~properties
 order.summary=Order {0} totals {1}.
 ~~~
 
-Mẫu câu có thể đảo vị trí tham số giữa các ngôn ngữ. Đừng tự ghép cố định phần trước + số tiền + phần sau. Các chuỗi đã định dạng cho tiền/ngày có thể được chèn dưới dạng argument.
+Sentence patterns can swap argument positions across languages. Never hardcode fixed prefix + amount + suffix concatenation. Preformatted money/date strings can be passed in as arguments.
 
-**Cạm bẫy MessageFormat:** dấu nháy đơn là ký tự quote trong pattern. Muốn hiển thị dấu nháy đơn literal, thường phải viết **''**. Cần QA tất cả pattern theo locale; có key không đồng nghĩa pattern hợp lệ.
+**MessageFormat pitfall:** single quotes act as quoting syntax in patterns. To output a literal apostrophe, you generally must write **''**. QA every pattern across every locale; having a key does not guarantee valid pattern syntax.
 
-**Cạm bẫy ResourceBundle:** fallback có thể lấy base bundle hoặc ngôn ngữ khác. Nếu getBundle thành công, chưa chứng minh bản dịch vi-VN đầy đủ. Bộ kiểm thử phải so tập key và phát hiện partial translation theo chính sách ứng dụng.
+**ResourceBundle pitfall:** fallback may load the base bundle or another language. A successful `getBundle` call does not prove the `vi-VN` translation is complete. Test suites must compare key sets and detect partial translations per application policy.
 
-### 5.3. Nhóm nào không thuộc message service?
+### 5.3. What Does Not Belong in the Message Service?
 
-ResourceBundle **không** quyết định tỷ giá, rounding, ISO currency code, timezone hoặc quyền truy cập. Nếu một key hiển thị là “Thanh toán”, đừng dùng chính văn bản dịch làm action ID; hãy dùng một mã ổn định như payment.submit. Dịch vụ lấy message không được thay đổi domain objects.
+`ResourceBundle` does **not** decide exchange rates, rounding, ISO currency codes, time zones, or access permissions. If a display key translates to `"Pay"`, never use that translated text itself as the action ID; use a stable identifier like `payment.submit`. The message service must never mutate domain objects.
 
-## 6. Bảng chọn API: số, tiền, phần trăm
+## 6. API Selection: Numbers, Currency, and Percentages
 
-### 6.1. NumberFormat và dữ liệu số có kiểu
+### 6.1. NumberFormat and Typed Numeric Data
 
 ~~~java
 BigDecimal amount = new BigDecimal("1234.50");
@@ -144,11 +144,11 @@ NumberFormat percentage =
         NumberFormat.getPercentInstance(locale);
 ~~~
 
-Đoạn minh họa cần import java.math.BigDecimal, java.util.Locale và java.text.NumberFormat, đặt trong phương thức.
+This snippet requires importing `java.math.BigDecimal`, `java.util.Locale`, and `java.text.NumberFormat` inside a method.
 
-**getNumberInstance:** nhóm/thập phân. **getCurrencyInstance:** thêm quy tắc tiền (có thể gồm ký hiệu, vị trí và fraction digits). **getPercentInstance:** chuyển giá trị fraction để hiển thị dạng %. Không gộp chúng thành một formatter chỉ thay ký tự.
+**`getNumberInstance`:** grouping/decimals. **`getCurrencyInstance`:** adds currency formatting rules (symbol, placement, fraction digits). **`getPercentInstance`:** scales a fraction for `%` display. Never collapse them into one formatter and swap characters manually.
 
-### 6.2. Currency không phải tỷ giá
+### 6.2. Currency Is Not an Exchange Rate
 
 ~~~java
 Currency unit = Currency.getInstance("EUR");
@@ -156,35 +156,35 @@ money.setCurrency(unit);
 String shown = money.format(amount);
 ~~~
 
-Đoạn minh họa cần import Currency và các biến money/amount trước đó. Số tiền vẫn là 1234.50 EUR; setCurrency **không** chuyển nó sang VND hoặc USD. Nếu nghiệp vụ yêu cầu quy đổi, cần tỷ giá, thời điểm áp dụng, làm tròn, kiểm toán và một bước tính toán trước formatting.
+This snippet requires importing `Currency` and the `money`/`amount` variables above. The amount remains `1234.50 EUR`; `setCurrency` does **not** convert it to VND or USD. If business logic requires conversion, you need an exchange rate, effective timestamp, rounding, audit trail, and a calculation step prior to formatting.
 
-Một formatter có thể theo mặc định chọn tiền gắn với vùng locale, ví dụ USD với en-US. Khi dữ liệu đơn hàng ghi EUR, phải chỉ rõ EUR; không dùng currency mặc định của người xem để thay mã tiền thực.
+A formatter may default to the locale's regional currency—such as USD for `en-US`. When order data specifies EUR, set EUR explicitly; never let the viewer's default currency overwrite the transaction's true currency code.
 
-### 6.3. BigDecimal và rounding
+### 6.3. BigDecimal and Rounding
 
-Dùng **new BigDecimal("0.1")** để giữ thập phân được chỉ định; không dùng **new BigDecimal(0.1)** nếu mong đúng 0.1. Currency.getDefaultFractionDigits() hữu ích cho biểu diễn thông thường, nhưng **không đủ làm chính sách làm tròn tính tiền**. Trong nghiệp vụ tài chính, phân biệt số chữ số lưu trữ, số chữ số của phép tính và số chữ số hiển thị.
+Use **`new BigDecimal("0.1")`** to preserve exact specified decimals; never use **`new BigDecimal(0.1)`** when expecting exact `0.1`. `Currency.getDefaultFractionDigits()` helps standard presentation, yet **is insufficient as a financial calculation rounding policy**. In financial domains, distinguish storage precision, calculation precision, and display precision.
 
-### 6.4. Unicode spaces không phải lỗi formatter
+### 6.4. Unicode Spaces Are Not Formatter Bugs
 
-Một số locale có **U+00A0 NBSP** hoặc **U+202F NNBSP** giữa số và ký hiệu tiền, hoặc làm dấu phân nhóm. Dùng String.codePoints() để điều tra, không áp trim/replaceAll trên output một cách mù quáng. Hai chuỗi nhìn giống nhau nhưng chứa những code point khác nhau là điều bình thường trong dữ liệu bản địa hóa.
+Some locales insert **U+00A0 NBSP** or **U+202F NNBSP** between numbers and currency symbols or as grouping separators. Inspect with `String.codePoints()` rather than blindly calling `trim` or `replaceAll` on formatted output. Two strings that look identical yet hold different code points are completely normal in localized data.
 
-### 6.5. Đọc dữ liệu người dùng nhập
+### 6.5. Parsing User-Entered Input
 
-Không parse một chuỗi tiền có dấu nhóm vi-VN bằng Locale.US. NumberFormat.parse có thể chỉ tiêu thụ **một tiền tố hợp lệ**; khi yêu cầu nghiêm ngặt, kiểm tra **ParsePosition.getIndex() == input.length()** và xử lý lỗi. Với tiền chính xác, DecimalFormat hỗ trợ **setParseBigDecimal(true)**; phải hiểu provider và cấu hình đang dùng. Trao đổi giữa máy nên dùng giá trị có kiểu/định dạng kỹ thuật ổn định thay vì localized string.
+Never parse a string with `vi-VN` grouping separators using `Locale.US`. `NumberFormat.parse` may consume only **a valid prefix**; when strictness is required, verify **`ParsePosition.getIndex() == input.length()`** and handle errors. For exact money, `DecimalFormat` supports **`setParseBigDecimal(true)`**; understand your active provider and configuration. Machine-to-machine communication should use typed values or fixed technical formats instead of localized strings.
 
-## 7. Bảng chọn API: ngày, thời gian và timezone
+## 7. API Selection: Dates, Times, and Time Zones
 
-### 7.1. LocalDate, Instant, ZoneId có ý nghĩa khác
+### 7.1. LocalDate, Instant, and ZoneId Have Distinct Meanings
 
-- **LocalDate:** ngày lịch thuần, ví dụ ngày sinh hoặc ngày giao hàng 2026-10-28, không gắn giờ.
-- **Instant:** thời điểm tuyệt đối trên trục UTC, ví dụ thời điểm thanh toán.
-- **ZoneId:** bộ quy tắc giờ vùng, ví dụ Asia/Ho_Chi_Minh hay America/Los_Angeles.
-- **ZonedDateTime:** cách xem một local date-time trong zone, đủ thông tin để liên hệ với Instant khi dữ liệu hợp lệ.
-- **DateTimeFormatter:** chuyển giá trị thời gian có kiểu thành văn bản theo pattern/FormatStyle/Locale.
+- **`LocalDate`:** pure calendar date, such as a birthday or delivery date `2026-10-28`, with no time component.
+- **`Instant`:** absolute point on the UTC timeline, such as a payment timestamp.
+- **`ZoneId`:** regional time-zone rule set, such as `Asia/Ho_Chi_Minh` or `America/Los_Angeles`.
+- **`ZonedDateTime`:** a local date-time viewed in a zone, carrying enough context to map to an `Instant` when valid.
+- **`DateTimeFormatter`:** converts typed temporal values into text by pattern, `FormatStyle`, and `Locale`.
 
-**Locale không phải ZoneId.** Cùng một người dùng giao diện tiếng Anh có thể đang ở châu Á; Locale.US không đủ để xác định giờ địa phương.
+**`Locale` is not `ZoneId`.** An English-UI user can be located in Asia; `Locale.US` is insufficient to determine local time.
 
-### 7.2. Định dạng cho người xem và cho máy khác nhau
+### 7.2. Display Formatting vs. Machine Formatting
 
 ~~~java
 DateTimeFormatter display =
@@ -192,11 +192,11 @@ DateTimeFormatter display =
                 FormatStyle.LONG).withLocale(locale);
 ~~~
 
-Đoạn minh họa cần import DateTimeFormatter, FormatStyle và biến locale.
+This snippet requires importing `DateTimeFormatter` and `FormatStyle`, with `locale` defined.
 
-**Giao diện:** dùng định dạng localized. **API máy:** dùng ISO 8601/format cố định có hợp đồng. Đừng trả “28 tháng 10 năm 2026” rồi ép client parse bằng MM/dd/yyyy.
+**UI:** use localized formatting. **Machine APIs:** use ISO 8601 or a fixed contracted format. Never return `"28 tháng 10 năm 2026"` and force a client to parse it with `MM/dd/yyyy`.
 
-### 7.3. Instant trước, hiển thị sau
+### 7.3. Instant First, Display Afterward
 
 ~~~java
 Instant instant =
@@ -205,82 +205,82 @@ ZonedDateTime shown =
         instant.atZone(ZoneId.of("Asia/Ho_Chi_Minh"));
 ~~~
 
-Đoạn minh họa cần imports Instant, ZonedDateTime, ZoneId. Instant không đổi khi xem ở ZoneId khác, nhưng **ngày giờ địa phương có thể đổi**, kể cả rơi vào ngày lịch trước/sau.
+This snippet requires importing `Instant`, `ZonedDateTime`, and `ZoneId`. The `Instant` never changes when viewed in another `ZoneId`, whereas **local date and time can change**, even shifting to the previous or next calendar day.
 
-### 7.4. SimpleDateFormat hay DateTimeFormatter?
+### 7.4. SimpleDateFormat or DateTimeFormatter?
 
-Trong mã Java 17+ mới, ưu tiên java.time/DateTimeFormatter vì API có kiểu rõ, formatter immutable và thread-safe. **SimpleDateFormat** là API cũ mutable, không nên lưu một instance rồi dùng đồng thời trên server mà không đồng bộ/cách ly. Nếu phải duy trì legacy Date/java.util.Calendar, thiết lập chiến lược chuyển đổi rõ và tránh mất timezone.
+In modern Java 17+ code, prefer `java.time`/`DateTimeFormatter` because the API is strongly typed and formatters are immutable and thread-safe. **`SimpleDateFormat`** is a legacy mutable API; never share an instance across server threads without synchronization or isolation. When interfacing with legacy `Date`/`java.util.Calendar`, define explicit conversion boundaries and avoid dropping time zones.
 
-## 8. Bảng chọn API: sắp xếp, chuẩn hóa và ngắt văn bản
+## 8. API Selection: Sorting, Normalization, and Text Segmentation
 
-### 8.1. String.compareTo không phải Collator
+### 8.1. String.compareTo Is Not Collator
 
 ~~~java
 int codeUnitOrder = "Z".compareTo("a");
 ~~~
 
-**String.compareTo** so **char UTF-16** từ trái qua phải, không theo thứ tự từ điển địa phương. Ví dụ Z đứng trước a về mã kỹ thuật, nhưng một danh sách tên người thường cần chữ hoa/thường ở vị trí gần nhau. Dùng **Collator.getInstance(locale)** khi cần thứ tự tên theo người đọc.
+**`String.compareTo`** compares **UTF-16 `char`s** left to right, not according to local dictionary order. For example, `Z` precedes `a` in technical code units, whereas personal name lists typically group upper/lowercase letters near one another. Use **`Collator.getInstance(locale)`** when reader-friendly name ordering is needed.
 
-Collator có **PRIMARY, SECONDARY, TERTIARY, IDENTICAL** để chọn mức khác biệt cần xét và có chế độ decomposition. Một số khác biệt case/dấu có thể được xem ngang nhau khi chọn strength thấp; không suy rằng **collator.compare(a,b)==0** tương đương **a.equals(b)**.
+`Collator` offers **`PRIMARY`, `SECONDARY`, `TERTIARY`, `IDENTICAL`** strengths plus decomposition modes. Certain case or diacritic differences may compare equal at lower strengths; never assume **`collator.compare(a, b) == 0`** implies **`a.equals(b)`**.
 
-**Đặc biệt:** nếu comparator trả 0 cho hai String khác nhau, **TreeSet/TreeMap** có thể coi chúng là cùng key. Dùng ID nghiệp vụ làm định danh, có thể thêm tie-breaker khi muốn một thứ tự toàn phần.
+**Specifically:** if a comparator returns `0` for two distinct `String`s, **`TreeSet`/`TreeMap`** will treat them as the same key. Key identity by business ID, and optionally append a tie-breaker when a total ordering is required.
 
-### 8.2. Normalizer giải quyết canonical Unicode, không giải quyết từ điển
+### 8.2. Normalizer Handles Canonical Unicode, Not Dictionary Order
 
-Một chữ **é** có thể biểu diễn bằng **U+00E9** hoặc **U+0065 + U+0301**. Nếu cần so canonical equivalence, chuẩn hóa cả hai về **NFC** hoặc **NFD**. Chúng có thể trông như nhau nhưng String.equals trả false trước chuẩn hóa.
+The letter **é** can be encoded as **U+00E9** or **U+0065 + U+0301**. When checking canonical equivalence, normalize both to **`NFC`** or **`NFD`**. They can look identical yet fail `String.equals` prior to normalization.
 
-**NFKC/NFKD** đi xa hơn tới compatibility normalization, có thể gom một số ký hiệu/fullwidth/ligature thành dạng khác. Chọn có chủ đích, đặc biệt khi xử lý ID, quyền truy cập hoặc dữ liệu có thể xảy ra collision. **Normalizer không phải công cụ sort theo ngôn ngữ**, không phải full search engine và không thay Collator.
+**`NFKC`/`NFKD`** go further into compatibility normalization, folding certain symbols, fullwidth forms, and ligatures together. Choose deliberately, especially when handling IDs, access controls, or data where collisions are dangerous. **`Normalizer` is not a linguistic sorting tool**, not a full search engine, and does not replace `Collator`.
 
-### 8.3. BreakIterator chọn biên văn bản, không phải split(" ")
+### 8.3. BreakIterator Finds Text Boundaries, Not split(" ")
 
-Dùng **BreakIterator.getWordInstance(locale)**, **getSentenceInstance(locale)** hoặc **getCharacterInstance(locale)** để xác định ranh giới theo quy tắc runtime. Trong một số hệ chữ, việc tách từ không thể chỉ dựa vào dấu cách. Cần test emoji, combining marks và câu thực tế; “character instance” không tự giải quyết mọi thao tác UI phức tạp về grapheme trên mọi phiên bản Unicode.
+Use **`BreakIterator.getWordInstance(locale)`**, **`getSentenceInstance(locale)`**, or **`getCharacterInstance(locale)`** to determine boundaries via runtime rules. In some writing systems, word splitting cannot rely on spaces at all. Test real emojis, combining marks, and sentences; "character instance" does not automatically solve every complex UI grapheme scenario across every Unicode version.
 
-### 8.4. Chữ có dấu và supplementary code points
+### 8.4. Accented Characters and Supplementary Code Points
 
-**String.length()** đếm UTF-16 code units; một Unicode code point ngoài BMP có thể cần hai char. Dùng **String.codePoints()** khi debug dãy điểm mã; **StringBuilder.reverse()** không phải cách xử lý RTL, canonical normalization hay grapheme-safe editing.
+**`String.length()`** counts UTF-16 code units; a Unicode code point outside the BMP can require two `char`s. Use **`String.codePoints()`** when debugging code-point sequences; **`StringBuilder.reverse()`** is not a solution for RTL layout, canonical normalization, or grapheme-safe editing.
 
-## 9. Bảng chọn API: bidi, font và hiển thị
+## 9. API Selection: Bidi, Fonts, and Rendering
 
-Với nội dung có chữ Latin LTR, chữ Ả Rập/Do Thái RTL, chữ số và dấu câu, Unicode Bidirectional Algorithm quyết định thứ tự nhìn thấy từ chuỗi logic. Lớp **java.text.Bidi** cung cấp phân tích base direction/embedding levels/runs.
+For content mixing LTR Latin, RTL Arabic/Hebrew, digits, and punctuation, the Unicode Bidirectional Algorithm determines visual ordering from the logical string. **`java.text.Bidi`** provides analysis of base direction, embedding levels, and directional runs.
 
-Tuy nhiên, **Bidi không phải font shaping engine** và không tự vẽ chữ. Một UI còn cần renderer hỗ trợ shaping/line breaking. Không đảo String bằng reverse để “sửa” câu RTL, vì mã sản phẩm, số điện thoại, dấu ngoặc và thứ tự logic có thể bị hỏng.
+However, **`Bidi` is not a font shaping engine** and does not draw glyphs. A UI still requires a renderer supporting shaping and line breaking. Never reverse Strings with `reverse()` to "fix" RTL text, as that corrupts product codes, phone numbers, parentheses, and logical order.
 
-Với HTML có tên người dùng RTL trong câu LTR, có thể dùng vùng **bdi dir="auto"** hoặc direction/isolation của nền tảng. **Escaping HTML vẫn bắt buộc**: ResourceBundle, MessageFormat và bdi không thay cơ chế chống XSS.
+In HTML embedding an RTL user name inside an LTR sentence, use **`bdi dir="auto"`** or platform direction/isolation primitives. **HTML escaping remains mandatory**: `ResourceBundle`, `MessageFormat`, and `bdi` do not replace XSS protection.
 
-**Lưu ý bảo mật:** directional overrides như U+202E có thể làm văn bản nhìn khác logic, nên môi trường review code, tên file hoặc log audit phải có chính sách cảnh báo/escape hợp lý. Không cấm văn bản RTL hợp lệ một cách mù quáng.
+**Security note:** directional overrides such as `U+202E` can make text appear visually different from its logical order, so code review tools, filenames, and audit logs need clear warning/escaping policies. Never blindly ban legitimate RTL text.
 
-## 10. Ma trận các anti-pattern và cách sửa
+## 10. Anti-Pattern and Fix Matrix
 
-| Dấu hiệu sai | Nguyên nhân | Cách sửa an toàn |
+| Symptom | Root Cause | Safe Fix |
 | --- | --- | --- |
-| UI Việt nhưng số in kiểu máy chủ | Dùng default Locale | Truyền formatLocale tường minh |
-| Menu có 500 ngôn ngữ nhưng app chỉ dịch hai | Dùng Locale.getAvailableLocales làm UI list | Danh sách appSupportedLocales riêng |
-| Ngôn ngữ lẫn nhau giữa các câu | ResourceBundle fallback chưa kiểm soát | QA coverage và fallback policy |
-| Mẫu câu có dấu nháy bị mất chữ | MessageFormat quote chưa đúng | Nhân đôi dấu ' trong pattern, test |
-| USD xuất hiện trên đơn EUR | Currency mặc định của locale | Set Currency gốc của giao dịch |
-| Số tiền sai 0.1 | Dùng BigDecimal(double) | BigDecimal từ chuỗi/nguồn chính xác |
-| 12.5 hiển thị 1.250% | Nhầm fraction với percent value | Truyền 0.125 cho 12,5% |
-| Ngày lệch một ngày | Instant không đi qua ZoneId đúng | Xác định zone trước khi format |
-| dd/MM/yyyy gây lỗi trên user Mỹ | Hardcode kiểu ngày UI | DateTimeFormatter localized |
-| Hai request làm đổi formatter lẫn nhau | Chia sẻ NumberFormat mutable | Tạo theo request hoặc cách ly |
-| Tên hoa/không dấu sắp lạ | String.compareTo dùng cho UI | Collator theo locale |
-| Tên khác nhau bị mất trong TreeSet | Collator strength thấp, compare==0 | Dùng ID/Comparator tie-breaker |
-| é dựng sẵn và tổ hợp không match | Không normalize theo policy | Normalizer NFC/NFD khi phù hợp |
-| Từ tiếng Thái bị split sai | split(" ") | BreakIterator, test rule |
-| Mã hàng trong câu RTL hiển thị đảo | Reverse hoặc thiếu isolation | Bidi/layout và vùng hướng đúng |
-| Kết quả test đổi sau nâng JDK | Snapshot CLDR không version hóa | Tách invariant test và locale data test |
-| API gửi “1.234,50” cho hệ thống khác | Dùng localized output làm data format | Giá trị kiểu số/ISO theo contract |
-| HTML hiển thị tên người và lỗ hổng XSS | Chèn raw string | Template autoescape |
-| Phân trang A–Z bị đảo giữa các trang | DB/UI dùng hai comparator khác | Một nguồn sort toàn cục + ID tie-break |
-| Charset/emoji lỗi khi export | Không kiểm soát UTF-8/font | UTF-8 và renderer/font đủ glyph |
+| Vietnamese UI, but numbers format like server | Using default `Locale` | Pass `formatLocale` explicitly |
+| Menu lists 500 languages, app translated two | Using `Locale.getAvailableLocales` for UI menu | Maintain dedicated `appSupportedLocales` list |
+| Mixed languages across sentences | Uncontrolled `ResourceBundle` fallback | QA coverage and explicit fallback policy |
+| Apostrophe patterns drop words | Improper `MessageFormat` quoting | Double `'` in patterns and test |
+| USD appears on an EUR order | Default currency inferred from viewer locale | Set the transaction's actual `Currency` |
+| Monetary amount off by `0.1` | Using `BigDecimal(double)` | Construct `BigDecimal` from strings/exact sources |
+| `12.5` displays as `1,250%` | Confusing fraction with percentage value | Pass `0.125` for `12.5%` |
+| Date off by one day | `Instant` not converted through proper `ZoneId` | Resolve zone before formatting |
+| `dd/MM/yyyy` confuses US users | Hardcoded UI date format | Use localized `DateTimeFormatter` |
+| Concurrent requests corrupt each other's formatters | Sharing mutable `NumberFormat` | Create per request or isolate |
+| Capitalized/accented names sort strangely | Using `String.compareTo` for UI | Use locale-specific `Collator` |
+| Distinct names vanish in `TreeSet` | Low `Collator` strength yields `compare == 0` | Use IDs and comparator tie-breakers |
+| Precomposed and decomposed `é` fail to match | Missing normalization policy | Apply `Normalizer` `NFC`/`NFD` where appropriate |
+| Thai words split improperly | Using `split(" ")` | Use `BreakIterator` and test rules |
+| Order ID inside RTL sentence looks scrambled | Reversing strings or missing isolation | Use bidi/layout isolation properly |
+| Tests break after JDK upgrade | Unpinned CLDR snapshots | Separate invariant tests from locale-data tests |
+| API sends `"1.234,50"` to another service | Using localized display text as wire format | Use typed numbers/ISO per contract |
+| HTML displaying user names suffers XSS | Raw string insertion | Use template autoescaping |
+| A–Z pagination scrambles entries across pages | DB and UI use different comparators | Use one global sort + ID tie-breaker |
+| Garbled charsets/emojis on export | Uncontrolled UTF-8/fonts | Enforce UTF-8 and glyph-capable renderers/fonts |
 
-**Câu hỏi reviewer quan trọng:** vấn đề sai do dữ liệu được lưu, do chọn locale, do formatter, do bundle, hay chỉ do renderer? Trước khi “sửa nhanh” bằng replace String, phải xác định ranh giới gây lỗi.
+**Key reviewer question:** is the bug in stored data, locale selection, formatter configuration, bundle lookup, or purely the renderer? Before applying a quick `String.replace` patch, pinpoint the exact boundary at fault.
 
-## 11. Ví dụ runnable: bộ kiểm tra bất biến API
+## 11. Runnable Example: API Invariant Self-Check Suite
 
 **File LocalizationSelfCheck.java**
 
-Ví dụ này đưa vào các giá trị có kiểu, kiểm tra những điều **không phụ thuộc chuỗi format theo CLDR**: lựa chọn ngôn ngữ của ứng dụng, BigDecimal, mã tiền, UTC, Unicode normalization, raw UTF-16 và MessageFormat quote. Mỗi dòng PASS là một điều kiện được xác định theo API Java 17.
+This example feeds in typed values and asserts conditions **independent of CLDR-formatted strings**: app locale selection, `BigDecimal`, currency code, UTC date, Unicode normalization, raw UTF-16 order, and `MessageFormat` quoting. Every `PASS` line verifies an invariant guaranteed by Java 17 APIs.
 
 ~~~java
 import java.math.BigDecimal;
@@ -342,14 +342,14 @@ public class LocalizationSelfCheck {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 LocalizationSelfCheck.java
 java LocalizationSelfCheck
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 locale=PASS
@@ -361,23 +361,23 @@ rawOrder=PASS
 message=PASS
 ~~~
 
-### Giải thích bài kiểm tra
+### Explanation of Checks
 
-- **locale:** Locale.lookup được cho một tập supported có vi-VN, ưu tiên vi-VN cao nhất nên chọn vi-VN.
-- **decimal:** BigDecimal.compareTo xem 0.1 và 0.10 bằng nhau về giá trị số, khác với equals có xét scale.
-- **currency:** EUR là mã ISO currency đã được chọn rõ, không dựa vào vùng.
-- **utcDate:** Instant được chuyển với ZoneId UTC, không lấy timezone máy chủ.
-- **nfc:** hai chuỗi tương đương chính tắc được đưa về cùng biểu diễn NFC.
-- **rawOrder:** nhắc rằng compareTo là thứ tự UTF-16, không phải danh sách từ điển địa phương.
-- **message:** dấu nháy đôi trong MessageFormat pattern đưa ra một dấu nháy đơn literal.
+- **locale:** `Locale.lookup` receives a supported set containing `vi-VN`; since `vi-VN` has the highest priority, it selects `vi-VN`.
+- **decimal:** `BigDecimal.compareTo` treats `0.1` and `0.10` as numerically equal, unlike `equals` which also checks scale.
+- **currency:** `EUR` is explicitly constructed from its ISO currency code, independent of region.
+- **utcDate:** `Instant` is converted with `ZoneId` `UTC` rather than relying on the server's time zone.
+- **nfc:** two canonically equivalent strings normalize to the identical NFC form.
+- **rawOrder:** reminds that `compareTo` uses UTF-16 order rather than local dictionary order.
+- **message:** doubled single quotes inside the `MessageFormat` pattern output one literal apostrophe.
 
-**Hạn chế có chủ đích:** chương trình này không kiểm tra đúng mọi dữ liệu dịch của sản phẩm. Nó xác minh các bất biến và ý nghĩa API cơ bản, không phải chứng nhận rằng vi-VN có đầy đủ mọi bản dịch hoặc mọi kiểu định dạng trong runtime.
+**Intentional limitation:** this program does not validate product translations. It verifies core API invariants and semantics, not whether `vi-VN` has complete translations or formatting coverage on your runtime.
 
-## 12. Ví dụ runnable: khảo sát kết quả localized mà không đoán stdout
+## 12. Runnable Example: Auditing Localized Output Without Guessing Stdout
 
 **File LocaleFormatAudit.java**
 
-Chương trình thứ hai in cùng một BigDecimal/Currency/LocalDate/Instant dưới ba locale. Đây là bài test quan sát **giá trị thực tế từ JDK đang chạy**, không nên gắn một stdout exact cho mọi bản CLDR.
+This second program prints the same `BigDecimal`/`Currency`/`LocalDate`/`Instant` across three locales. It is an audit tool for observing **actual values produced by the running JDK** rather than pinning one exact stdout string across all CLDR versions. However, the final four lines print verifiable source values:
 
 ~~~java
 import java.math.BigDecimal;
@@ -450,14 +450,14 @@ public class LocaleFormatAudit {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 LocaleFormatAudit.java
 java LocaleFormatAudit
 ~~~
 
-Chương trình in ba khối bắt đầu bằng **locale=vi-VN**, **locale=en-US**, **locale=de-DE**. Trong mỗi khối, **number/money/date/time** được tính bởi runtime hiện tại; không nên tự định nghĩa một “golden” hoàn toàn chung cho mọi bản JDK. Tuy nhiên, bốn dòng cuối là giá trị gốc có thể kiểm chứng:
+The program prints three blocks beginning with **locale=vi-VN**, **locale=en-US**, and **locale=de-DE**. Within each block, **number/money/date/time** are computed by the active runtime; avoid defining one universal "golden" snapshot across every JDK release. Still, the last four lines are verifiable source values:
 
 ~~~text
 sourceAmount=1234.50
@@ -466,55 +466,55 @@ sourceDate=2026-10-28
 sourceInstant=2026-10-28T02:30:00Z
 ~~~
 
-**Tiêu chuẩn thành công:** dữ liệu gốc không đổi khi hiển thị cho ba locale, đơn vị tiền vẫn là EUR, Instant vẫn là cùng thời điểm. Khác biệt chữ số, dấu thập phân, dấu cách hoặc tên tháng là **biểu diễn**. Nếu muốn snapshot output theo từng locale chính xác, phải pin runtime/provider và kiểm tra các code point, đặc biệt NBSP/NNBSP.
+**Success criteria:** source data never mutates across the three locales, currency remains `EUR`, and `Instant` remains the exact same moment. Differences in digits, decimal points, spaces, or month names are purely **presentation**. If exact per-locale snapshots are required, pin the runtime/provider and inspect code points—especially NBSP/NNBSP.
 
-## 13. Bài tập chẩn đoán nhanh: chọn API nào?
+## 13. Quick Diagnostic Drill: Which API to Choose?
 
-Đọc 15 tình huống; trước khi xem đáp án, tự ghi **API chính + API phụ nếu có + một lỗi cần tránh**.
+Read all 15 scenarios; before checking the answer table, write down the **primary API + secondary API (if any) + one pitfall to avoid**.
 
-| Mã | Tình huống |
+| Code | Scenario |
 | --- | --- |
-| A1 | Người dùng chọn giao diện vi-VN nhưng máy chủ đang ở en-US |
-| A2 | Dịch một câu có tên khách và tổng đơn hàng |
-| A3 | Format 1234567.89 với dấu nhóm theo fr-FR |
-| A4 | Đơn hàng 1234.50 EUR được xem từ Hoa Kỳ |
-| A5 | Hiển thị “12,5%” từ tỷ lệ 0.125 |
-| A6 | Hiển thị ngày sinh 2026-10-28 ở nhiều vùng |
-| A7 | Hiển thị cùng thời điểm thanh toán ở Hà Nội và California |
-| A8 | Sắp xếp danh sách tên có ă, â, đ và dấu thanh |
-| A9 | Phát hiện hai cách mã hóa Unicode của chữ é |
-| A10 | Chọn từ tiếp theo khi double-click trong tài liệu đa ngữ |
-| A11 | Hiển thị mã ORD-1028 giữa câu tiếng Ả Rập |
-| A12 | Một TreeSet mất tên chỉ khác hoa/thường |
-| A13 | Locale.getAvailableLocales chứa ngôn ngữ app chưa dịch |
-| A14 | Hai request in sai tiền khi dùng chung NumberFormat |
-| A15 | Parser số đã đọc tiền tố hợp lệ nhưng bỏ rác cuối chuỗi |
+| A1 | User selects `vi-VN` UI while the server runs in `en-US` |
+| A2 | Translate a sentence containing customer name and order total |
+| A3 | Format `1234567.89` with `fr-FR` grouping separators |
+| A4 | Order for `1234.50 EUR` is viewed from the United States |
+| A5 | Display `12.5%` from ratio `0.125` |
+| A6 | Display birth date `2026-10-28` across multiple regions |
+| A7 | Display the same payment instant in Hanoi and California |
+| A8 | Sort a list of names with `ă`, `â`, `đ`, and tone marks |
+| A9 | Detect two Unicode encodings of the letter `é` |
+| A10 | Select the next word on double-click in a multilingual document |
+| A11 | Display order ID `ORD-1028` inside an Arabic sentence |
+| A12 | A `TreeSet` drops names differing only by case |
+| A13 | `Locale.getAvailableLocales` lists languages the app has not translated |
+| A14 | Two requests print wrong currencies when sharing a `NumberFormat` |
+| A15 | Number parser read a valid prefix and ignored trailing garbage |
 
-### 13.1. Đáp án và lý do
+### 13.1. Answers and Rationale
 
-| Mã | Chọn API/cách thiết kế | Lỗi cần tránh |
+| Code | Chosen API / Design | Pitfall to Avoid |
 | --- | --- | --- |
-| A1 | LocaleResolver + supportedLocales, truyền Locale tường minh | Không gọi Locale.setDefault theo request |
-| A2 | ResourceBundle + MessageFormat, các giá trị format riêng | Không ghép một trật tự câu cố định |
-| A3 | NumberFormat.getNumberInstance(Locale.FRANCE) | Không tự thay dấu bằng regex |
-| A4 | BigDecimal + Currency EUR + NumberFormat currency với locale người xem | Không tự đổi EUR thành USD |
-| A5 | NumberFormat.getPercentInstance(locale) với input 0.125 | Không đưa 12.5 thay ratio |
-| A6 | LocalDate + DateTimeFormatter localized | Không gắn timezone giả vào ngày thuần |
-| A7 | Instant + ZoneId của mỗi người xem + DateTimeFormatter | Không lấy timezone server |
-| A8 | Collator.getInstance(vi-VN), test tên thật | Không dùng String.compareTo làm từ điển |
-| A9 | Normalizer NFC hoặc NFD theo policy | Không dùng NFKC tùy tiện cho mọi ID |
-| A10 | BreakIterator phù hợp locale | Không split(" ") toàn cầu |
-| A11 | Renderer bidi/direction/isolate; java.text.Bidi khi cần phân tích | Không đảo String hoặc thay dấu ngoặc thủ công |
-| A12 | Comparator có equality phù hợp ID, strength/tie-breaker | Không nhầm compare==0 với String.equals |
-| A13 | App supportedLocales + coverage QA | Không dùng all available locales làm menu |
-| A14 | Tạo formatter theo request hoặc cách ly | Không chia sẻ NumberFormat mutable và đổi Currency |
-| A15 | ParsePosition/strict validation, parser đúng locale | Không coi parse thành công một phần là thành công toàn bộ |
+| A1 | `LocaleResolver` + `supportedLocales`, pass `Locale` explicitly | Never call `Locale.setDefault` per request |
+| A2 | `ResourceBundle` + `MessageFormat`, format values separately | Never hardcode one fixed word order |
+| A3 | `NumberFormat.getNumberInstance(Locale.FRANCE)` | Never replace separators manually with regex |
+| A4 | `BigDecimal` + `Currency` EUR + currency `NumberFormat` with viewer locale | Never convert EUR to USD automatically |
+| A5 | `NumberFormat.getPercentInstance(locale)` with input `0.125` | Never pass `12.5` instead of the ratio |
+| A6 | `LocalDate` + localized `DateTimeFormatter` | Never attach a fake timezone to a pure calendar date |
+| A7 | `Instant` + each viewer's `ZoneId` + `DateTimeFormatter` | Never use the server's timezone |
+| A8 | `Collator.getInstance(vi-VN)`, test with real names | Never use `String.compareTo` as dictionary order |
+| A9 | `Normalizer` `NFC` or `NFD` per policy | Never apply `NFKC` blindly to every ID |
+| A10 | Locale-appropriate `BreakIterator` | Never use `split(" ")` globally |
+| A11 | Renderer bidi/direction/isolation; `java.text.Bidi` when analyzing | Never reverse Strings or swap parentheses manually |
+| A12 | Comparator aligned with ID equality, proper strength/tie-breaker | Never equate `compare == 0` with `String.equals` |
+| A13 | App `supportedLocales` + coverage QA | Never populate UI menus from all available locales |
+| A14 | Create formatter per request or isolate | Never share mutable `NumberFormat` and mutate `Currency` |
+| A15 | `ParsePosition`/strict validation, locale-matched parser | Never treat partial parse success as full-string validity |
 
-**Phương pháp chấm:** mỗi tình huống được **2 điểm**: 1 điểm nêu đúng nhóm API, 1 điểm nêu được cạm bẫy. Tổng tối đa **30 điểm**. Nếu chọn đúng API nhưng đề xuất sửa bằng cách “đảo chuỗi”, “xóa dấu” hoặc “đổi ký hiệu tiền mà không đổi giá trị”, hãy tự trừ điểm cạm bẫy.
+**Scoring:** each scenario is worth **2 points**: 1 point for naming the right API group, 1 point for naming the pitfall. Maximum **30 points**. If you picked the right API but proposed "reversing strings," "stripping accents," or "swapping currency symbols without converting values," deduct the pitfall point.
 
-## 14. Bài tập code review: phát hiện lỗi trước khi sửa
+## 14. Code Review Exercise: Spot Bugs Before Fixing
 
-Đoạn sau **cố ý chứa lỗi** và không phải chương trình mẫu nên chạy trên production:
+The following snippet **intentionally contains bugs** and is not runnable production code:
 
 ~~~java
 static final NumberFormat SHARED =
@@ -531,22 +531,22 @@ void show(Order order, Locale locale) {
 }
 ~~~
 
-Giả định Order là kiểu miền có **amount()**, **createdAt()**, **id()**. Tập trung review logic, đừng nhầm đây là code standalone. Những vấn đề cần chỉ ra:
+Assume `Order` is a domain type exposing `amount()`, `createdAt()`, and `id()`. Focus on reviewing the logic rather than treating it as standalone code. Issues to flag:
 
-1. **Locale.setDefault(locale)** thay trạng thái JVM cho các request khác.
-2. **SHARED** là NumberFormat mutable, có thể gây race.
-3. **getCurrencyInstance() không truyền locale**, bị phụ thuộc default của thời điểm khởi tạo, không phải request đang xử lý.
-4. **Currency.getInstance(locale)** suy tiền theo vùng người xem, không phải Currency của đơn hàng; một số locale còn không đủ vùng để suy đơn vị.
-5. **setCurrency** chỉ đổi nhãn đơn vị, không quy đổi tỷ giá.
-6. **createdAt().toString()** có thể là biểu diễn kỹ thuật Instant; không phải ngày giờ ở ZoneId người nhận.
-7. **"Order " + ...** hardcode tiếng Anh và thứ tự câu.
-8. Không xác định fallback nếu app chưa có bản dịch.
-9. Không có policy cho fraction digits/rounding.
-10. Không có escaping theo kênh xuất nếu kết quả đưa vào HTML/email.
+1. **`Locale.setDefault(locale)`** mutates global JVM state across other requests.
+2. **`SHARED`** is a mutable `NumberFormat`, creating race conditions.
+3. **`getCurrencyInstance()` omits the locale**, binding to the default locale at initialization time rather than the active request.
+4. **`Currency.getInstance(locale)`** guesses currency from the viewer's region instead of the order's currency; some locales also lack sufficient region data to resolve a currency.
+5. **`setCurrency`** only relabels the currency unit without applying an exchange rate.
+6. **`createdAt().toString()`** may output a technical `Instant` string rather than local date/time in the recipient's `ZoneId`.
+7. **`"Order " + ...`** hardcodes English wording and sentence order.
+8. No fallback policy is defined if the app lacks translations.
+9. No fraction-digits or rounding policy is defined.
+10. No output-channel escaping is applied if the text goes into HTML or email.
 
-### 14.1. Bản sửa theo trách nhiệm
+### 14.1. Separation-of-Responsibilities Fix
 
-Một thiết kế tốt hơn có thể định nghĩa các kiểu/hợp đồng:
+A cleaner design can define clear types and contracts:
 
 ~~~java
 record PresentationContext(
@@ -570,271 +570,271 @@ interface FormattingService {
 }
 ~~~
 
-Đây là **các khai báo minh họa**, cần imports Locale, ZoneId, BigDecimal, Currency, Instant. Chúng không phải một chương trình độc lập. Domain giữ **Order.amount + Order.currency + Order.createdAt**. Presenter dùng context người nhận để gọi formatter, sau đó MessageService dựng câu theo key. Formatter mutable được tạo/cách ly mỗi thao tác; không sửa default JVM.
+These are **illustrative declarations** requiring imports for `Locale`, `ZoneId`, `BigDecimal`, `Currency`, and `Instant`. They do not form a standalone program. The domain holds **`Order.amount + Order.currency + Order.createdAt`**. A presenter uses the recipient's context to call formatters, then `MessageService` builds the sentence by key. Mutable formatters are created or isolated per call, and the JVM default locale is never modified.
 
-Bản sửa không chỉ “đổi một hàm” mà **giữ ranh giới giữa dữ liệu, chọn locale, định dạng và bản dịch**.
+The fix is not just "swapping one method call"—it **enforces boundaries between data, locale selection, formatting, and translation**.
 
-## 15. Bài tự đánh giá theo 10 tiêu chí
+## 15. Ten-Criterion Self-Assessment
 
-Chấm **0 / 1 / 2 điểm** cho từng tiêu chí:
+Score **0 / 1 / 2 points** per criterion:
 
-- **0:** không đáp ứng hoặc có rủi ro rõ ràng.
-- **1:** đáp ứng một phần, thiếu test/hợp đồng/fallback.
-- **2:** thiết kế rõ, có kiểm thử và không dựa ngầm vào môi trường.
+- **0:** not met or clear risk present.
+- **1:** partially met, missing tests, contracts, or fallback.
+- **2:** clean design, tested, and free of implicit environment dependencies.
 
-| Tiêu chí | Câu hỏi để tự đánh giá | Điểm |
+| Criterion | Self-Assessment Question | Score |
 | --- | --- | --- |
-| **1. Locale policy** | App có danh sách locale được dịch, được chọn/fallback rõ không? | 0–2 |
-| **2. Data model** | Amount/Currency/LocalDate/Instant có được giữ có kiểu không? | 0–2 |
-| **3. Messages** | Key ResourceBundle/MessageFormat có coverage và placeholder QA không? | 0–2 |
-| **4. Numbers/money** | Formatter nhận Locale tường minh, Currency đúng và rounding policy không? | 0–2 |
-| **5. Date/time** | Phân biệt LocalDate/Instant/ZoneId, không lấy timezone máy chủ không? | 0–2 |
-| **6. Unicode/text** | Normalization, collation và word boundaries có chọn đúng bài toán không? | 0–2 |
-| **7. RTL/render** | Bidi, isolation, fonts, escaping có được test nếu sản phẩm cần không? | 0–2 |
-| **8. Concurrency** | Formatter mutable có được cách ly, không set default toàn JVM không? | 0–2 |
-| **9. Tests** | Có test invariants, integration locale và dữ liệu CLDR/JDK version không? | 0–2 |
-| **10. Operations** | Có metric/log cho missing key, fallback, nâng JDK và error report không? | 0–2 |
+| **1. Locale policy** | Does the app have a translated, explicitly selected/fallback locale list? | 0–2 |
+| **2. Data model** | Are Amount, Currency, LocalDate, and Instant stored in typed forms? | 0–2 |
+| **3. Messages** | Do `ResourceBundle`/`MessageFormat` keys have coverage and placeholder QA? | 0–2 |
+| **4. Numbers/money** | Do formatters receive explicit `Locale`, accurate `Currency`, and rounding policy? | 0–2 |
+| **5. Date/time** | Are `LocalDate`/`Instant`/`ZoneId` distinguished without using server timezone? | 0–2 |
+| **6. Unicode/text** | Are normalization, collation, and boundaries matched to the right problems? | 0–2 |
+| **7. RTL/render** | Are bidi, isolation, fonts, and escaping tested where product needs dictate? | 0–2 |
+| **8. Concurrency** | Are mutable formatters isolated without setting JVM-wide defaults? | 0–2 |
+| **9. Tests** | Are invariants, multi-locale integration, and CLDR/JDK version behavior tested? | 0–2 |
+| **10. Operations** | Are metrics/logs tracking missing keys, fallbacks, JDK upgrades, and error reports? | 0–2 |
 
-**Tổng tối đa: 20 điểm.** Gợi ý diễn giải:
+**Maximum total: 20 points.** Suggested interpretation:
 
-- **0–7:** còn lỗi nền tảng; chưa đủ cơ sở để công bố hỗ trợ đa locale.
-- **8–13:** có cấu trúc nhưng còn rủi ro đáng kể; ưu tiên vùng có dữ liệu tài chính/thời gian.
-- **14–17:** tương đối tốt; cần đóng các khoảng trống test và vận hành.
-- **18–20:** đạt kiểm tra đầu vào ở mức bài học; vẫn cần QA thực tế theo từng locale, kênh và nội dung.
+- **0–7:** foundational bugs remain; insufficient basis to claim multi-locale support.
+- **8–13:** structure exists but significant risks remain; prioritize financial and temporal areas.
+- **14–17:** fairly solid; close remaining testing and operational gaps.
+- **18–20:** passes lesson-level assessment; still requires real-world QA per locale, channel, and content.
 
-Điểm số là **rubric đào tạo**, không phải chứng chỉ an ninh/chất lượng hay thay thế kiểm thử sản phẩm.
+This scoring is a **training rubric**, not a security/quality certification or substitute for product testing.
 
-### 15.1. Cách dùng rubric trong pull request
+### 15.1. Using the Rubric in Pull Requests
 
-Trong PR, người review có thể:
+During a PR review, reviewers can:
 
-1. Ghi các locale được hỗ trợ.
-2. Gắn nguồn/kiểu dữ liệu của amount, time, message key.
-3. Xem các hàm được gọi có nhận Locale/ZoneId/Currency tường minh hay không.
-4. Kiểm tra có bản dịch cho key mới và cú pháp pattern hợp lệ.
-5. Tìm các singleton NumberFormat/SimpleDateFormat bị chia sẻ.
-6. Yêu cầu test mô phỏng ít nhất hai locale và hai timezone.
-7. So kết quả với rubric, nêu hành động cụ thể cho mỗi tiêu chí chưa đạt.
+1. List the supported locales affected.
+2. Trace the source/type of amounts, timestamps, and message keys.
+3. Check whether called APIs receive explicit `Locale`/`ZoneId`/`Currency`.
+4. Verify translations exist for new keys and pattern syntax is valid.
+5. Search for shared `NumberFormat`/`SimpleDateFormat` singletons.
+6. Require tests exercising at least two locales and two time zones.
+7. Score against the rubric and list concrete action items for any criterion below 2.
 
-**Không tự coi 20/20 là toàn bộ yêu cầu accessibility, pháp lý hoặc dịch thuật.** Đây là bảng để phát hiện lỗi kỹ thuật bản địa hóa phổ biến, cần kết hợp với QA nội dung địa phương.
+**Never treat 20/20 as covering all accessibility, legal, or linguistic translation requirements.** This checklist catches common technical localization defects and must pair with local content QA.
 
-## 16. Phân loại mức độ nghiêm trọng của lỗi
+## 16. Classifying Bug Severity
 
-Không phải lỗi nào cũng có cùng mức ưu tiên.
+Not all localization bugs carry equal priority.
 
-| Mức | Ví dụ | Hậu quả |
+| Severity | Examples | Impact |
 | --- | --- | --- |
-| **Critical** | Đổi mã tiền nhưng không tính tỷ giá; rò dữ liệu người dùng qua cache message; lỗi bảo mật injection | Sai tiền/vi phạm bảo mật |
-| **High** | Sai ngày thanh toán do timezone; mất record vì comparator TreeSet; parse tiền sai dấu | Sai nghiệp vụ hoặc mất dữ liệu |
-| **Medium** | ResourceBundle fallback ngôn ngữ khác; số âm/đơn vị hiển thị khó hiểu; dấu câu RTL sai | Người dùng hiểu sai, khó thao tác |
-| **Low** | Một nhãn chưa tự nhiên, khoảng trắng hoặc chữ hoa chưa theo style guide | Chất lượng UX, nhất quán hiển thị |
+| **Critical** | Swapping currency code without exchange-rate conversion; leaking user data via message cache; injection vulnerabilities | Wrong money / security breach |
+| **High** | Wrong payment date due to timezone; dropped records from `TreeSet` comparator; misparsed monetary separators | Broken business logic or data loss |
+| **Medium** | `ResourceBundle` falls back to wrong language; confusing negative/unit formatting; scrambled RTL punctuation | User confusion, poor usability |
+| **Low** | Unnatural label phrasing, minor spacing or capitalization inconsistency against style guide | UX polish and consistency |
 
-**Mức độ thực tế phụ thuộc ứng dụng.** Một lỗi ngày trên màn hình lịch cá nhân có thể Medium, nhưng lỗi ngày trong hạn thanh toán hoặc lịch dùng thuốc có thể Critical. Đánh giá theo tác động và khả năng xảy ra; không chỉ theo tên API.
+**Actual severity depends on the application.** A date bug on a personal calendar might be Medium, whereas a date bug on a payment deadline or medication schedule can be Critical. Judge by business impact and likelihood, not by API name alone.
 
-Đừng giải quyết lỗi Critical bằng cách thêm một String.replace ngắn rồi bỏ qua hợp đồng dữ liệu. Hãy sửa ở tầng nguồn thích hợp và bổ sung regression test.
+Never patch a Critical bug with a quick `String.replace` while ignoring the data contract. Fix it at the proper source layer and add regression tests.
 
-## 17. Ma trận kiểm thử kết hợp
+## 17. Combined Test Matrix
 
-| Kịch bản | Input | Assert ổn định | Phần cần QA runtime |
+| Scenario | Input | Stable Assertion | Runtime QA Check |
 | --- | --- | --- | --- |
-| vi-VN vs en-US | BigDecimal("1234.50") | Giá trị gốc giữ nguyên | Dấu nhóm/thập phân |
-| EUR tại en-US | amount EUR | Currency code EUR | Ký hiệu/vị trí |
-| Thuế | ratio 0.125 | 0.125 không đổi | % và số chữ số |
-| Ngày thuần | LocalDate 2026-10-28 | LocalDate không đổi | Pattern/tên tháng |
-| Instant hai zone | Instant cố định | toInstant bằng nhau | Giờ hiển thị theo tzdb |
-| Unicode NFC | é và e+combining | NFC giống nhau | Font không phải assert dữ liệu |
-| Collator vi-VN | tên có ă/â/đ | Comparator có contract hợp lệ | Thứ tự cụ thể theo rules |
-| BreakIterator | câu có dấu/emoji | Boundary index hợp lệ | Ranh giới ngôn ngữ |
-| Bidi | mã LTR trong câu RTL | String logic không đổi | Renderer/dấu câu |
-| ResourceBundle | key có/không có | Fallback policy rõ | Nội dung dịch |
-| HTML | tên người không tin cậy | Có escaping | Hiển thị direction/font |
-| Nâng JDK/CLDR | cùng bộ dữ liệu | Value gốc không đổi | Output locale có thể cập nhật |
-| Multithreading | nhiều locale/currency | Không dùng shared mutable formatter | So kết quả concurrency |
+| `vi-VN` vs. `en-US` | `BigDecimal("1234.50")` | Underlying value preserved | Grouping/decimal separators |
+| EUR in `en-US` | EUR amount | Currency code `EUR` | Symbol and placement |
+| Tax | Ratio `0.125` | `0.125` unchanged | `%` and digit count |
+| Pure date | `LocalDate` `2026-10-28` | `LocalDate` unchanged | Pattern/month name |
+| Instant in two zones | Fixed `Instant` | `toInstant()` equal | Local time per `tzdb` |
+| Unicode NFC | `é` and `e` + combining | NFC forms match | Fonts not asserted as data |
+| `Collator` `vi-VN` | Names with `ă`/`â`/`đ` | Valid comparator contract | Exact rule-driven order |
+| `BreakIterator` | Text with diacritics/emojis | Valid boundary indices | Linguistic boundaries |
+| Bidi | LTR ID in RTL sentence | Logical string intact | Renderer/punctuation |
+| `ResourceBundle` | Present/missing keys | Explicit fallback policy | Translated copy |
+| HTML | Untrusted user name | Properly escaped | Direction/font rendering |
+| JDK/CLDR upgrade | Same dataset | Source values unchanged | Locale output updates |
+| Multithreading | Multiple locales/currencies | No shared mutable formatters | Concurrent output parity |
 
-### 17.1. Đừng snapshot mọi ký tự khi không cần
+### 17.1. Avoid Snapshotting Every Character Unnecessarily
 
-Nếu format một số tiền trong fr-FR, khoảng trắng có thể là **U+00A0** hoặc **U+202F** tùy dữ liệu runtime. So **String.equals** là cần khi sản phẩm đã pin phiên bản và yêu cầu output exact; nhưng nếu test chỉ nhằm chắc Currency gốc không đổi, đừng dùng một snapshot phụ thuộc CLDR để kiểm tra bất biến ấy.
+When formatting an amount in `fr-FR`, spacing can be **U+00A0** or **U+202F** depending on runtime data. Asserting **`String.equals`** makes sense when a product pins runtime versions and requires exact byte-for-byte output; however, if a test only intends to prove the source `Currency` stayed intact, never tie that invariant test to a CLDR-dependent string snapshot.
 
-Chia test thành:
+Split tests into:
 
-- **Unit test nghiệp vụ:** BigDecimal, Currency, Instant, LocalDate.
-- **Unit test lựa chọn locale:** supportedLocales và fallback.
-- **Integration test dịch vụ:** NumberFormat, DateTimeFormatter, Collator, BreakIterator.
-- **Localization QA:** bundle coverage, ngữ pháp, độ dài chữ và cấu trúc placeholder.
-- **Visual/accessibility QA:** font, RTL, dấu câu, HTML/PDF/email.
-- **Security test:** escaping, bidi controls trong định danh kỹ thuật, dữ liệu người dùng.
+- **Business unit tests:** `BigDecimal`, `Currency`, `Instant`, `LocalDate`.
+- **Locale selection unit tests:** `supportedLocales` and fallback.
+- **Service integration tests:** `NumberFormat`, `DateTimeFormatter`, `Collator`, `BreakIterator`.
+- **Localization QA:** bundle coverage, grammar, text expansion, placeholder structure.
+- **Visual/accessibility QA:** fonts, RTL, punctuation, HTML/PDF/email.
+- **Security tests:** escaping, bidi controls in technical IDs, user input handling.
 
-## 18. Câu hỏi trắc nghiệm tự đánh giá
+## 18. Multiple-Choice Self-Assessment Quiz
 
-Chọn một đáp án phù hợp nhất cho từng câu. Đáp án ở mục tiếp theo.
+Pick the single best answer for each question. Answers appear in the next section.
 
-**Câu 1.** App có vi-VN và en-US; người dùng yêu cầu fr-CA nhưng không có bản dịch. Cách đúng nhất là gì?
+**Question 1.** An app supports `vi-VN` and `en-US`; the user requests `fr-CA`, which has no translation. What is the best behavior?
 
-A. Gọi Locale.setDefault(fr-CA), mọi thứ sẽ tự dịch.
+A. Call `Locale.setDefault(fr-CA)` so everything translates automatically.
 
-B. Chọn locale được app hỗ trợ theo policy fallback và công bố rõ.
+B. Select a supported locale according to an explicit, documented fallback policy.
 
-C. Dùng Locale.getAvailableLocales() để coi fr-CA đã có bản dịch.
+C. Call `Locale.getAvailableLocales()` to treat `fr-CA` as already translated.
 
-D. Nối tiền tố tiếng Pháp vào mọi câu tiếng Anh.
+D. Prepend a French prefix to every English sentence.
 
-**Câu 2.** Đơn hàng ghi 100 EUR, người dùng đang ở Hoa Kỳ. Hành động đúng?
+**Question 2.** An order records `100 EUR`, and the viewer is in the United States. What is the right action?
 
-A. Tự đổi Currency thành USD vì Locale.US.
+A. Automatically change `Currency` to `USD` because of `Locale.US`.
 
-B. Dùng Currency EUR của giao dịch, format theo Locale.US nếu phù hợp.
+B. Keep the transaction's `EUR` `Currency` and format it under `Locale.US` if appropriate.
 
-C. Lấy Currency.getInstance(Locale.US) rồi set vào dữ liệu gốc.
+C. Call `Currency.getInstance(Locale.US)` and overwrite the source data.
 
-D. Bỏ Currency và chỉ in 100.
+D. Strip `Currency` and print only `100`.
 
-**Câu 3.** Cần sắp danh sách tên theo từ điển tiếng Việt. Chọn gì?
+**Question 3.** You need to sort a list of names in Vietnamese dictionary order. What should you choose?
 
-A. String.compareTo.
+A. `String.compareTo`.
 
-B. StringBuilder.reverse.
+B. `StringBuilder.reverse`.
 
-C. Collator.getInstance(Locale.forLanguageTag("vi-VN")) và test.
+C. `Collator.getInstance(Locale.forLanguageTag("vi-VN"))` with tests.
 
-D. Integer.parseInt của String.
+D. `Integer.parseInt` on the Strings.
 
-**Câu 4.** Thời điểm UTC đổi sang giờ California có thể khác ngày lịch; dùng gì?
+**Question 4.** A UTC timestamp converted to California time can fall on a different calendar date; what should you use?
 
-A. LocalDate.toString không zone.
+A. `LocalDate.toString` without a zone.
 
-B. Instant + ZoneId + DateTimeFormatter.
+B. `Instant` + `ZoneId` + `DateTimeFormatter`.
 
-C. Locale.setDefault(Locale.US).
+C. `Locale.setDefault(Locale.US)`.
 
-D. Currency.getInstance.
+D. `Currency.getInstance`.
 
-**Câu 5.** Hai chuỗi é dựng sẵn và e+dấu sắc kết hợp cần so canonical-equivalent; dùng gì?
+**Question 5.** Precomposed `é` and decomposed `e` + combining acute need canonical-equivalence comparison; what should you use?
 
-A. Normalizer NFC hai chuỗi rồi so.
+A. `Normalizer` NFC on both strings, then compare.
 
-B. String.compareToIgnoreCase là đủ cho mọi Unicode.
+B. `String.compareToIgnoreCase` suffices for all Unicode.
 
-C. Xóa toàn bộ dấu trước khi lưu.
+C. Strip all accents before storing.
 
-D. Chỉ thay font.
+D. Merely change the font.
 
-**Câu 6.** Một NumberFormat static singleton được setCurrency theo từng request; vấn đề chính?
+**Question 6.** A `static` singleton `NumberFormat` has `setCurrency` called per request; what is the main issue?
 
-A. NumberFormat immutable nên không có vấn đề.
+A. `NumberFormat` is immutable, so there is no issue.
 
-B. Locale không có Currency.
+B. Locales have no `Currency`.
 
-C. Mutable formatter có thể race/lẫn cấu hình.
+C. Mutable formatters suffer race conditions and cross-request configuration leaks.
 
-D. JVM luôn từ chối mọi Currency khác default.
+D. The JVM always rejects any `Currency` other than default.
 
-**Câu 7.** Form nhập số dùng NumberFormat.parse; điều gì cần kiểm tra thêm?
+**Question 7.** A numeric input form uses `NumberFormat.parse`; what else must be verified?
 
-A. Có parse được tiền tố đã đủ hợp lệ cho mọi input.
+A. Parsing a valid prefix is sufficient for any input.
 
-B. Phải loại mọi NBSP toàn cầu.
+B. All NBSP characters must be banned globally.
 
-C. ParsePosition tiêu thụ hết input theo policy; độ chính xác và kiểu kết quả.
+C. `ParsePosition` consumes the full input per policy, plus numeric precision and returned type.
 
-D. Dùng String.compareTo thay parser.
+D. Replace the parser with `String.compareTo`.
 
-**Câu 8.** Một phần tên Ả Rập trong câu tiếng Anh làm dấu ngoặc chạy sai. Chọn gì?
+**Question 8.** An Arabic name segment inside an English sentence scrambles surrounding parentheses. What should you do?
 
-A. Đảo String.
+A. Reverse the String.
 
-B. Sửa dữ liệu bằng thay mọi '(' thành ')'.
+B. Mutate the data by swapping every `'('` to `')'`.
 
-C. Dùng đúng paragraph direction/isolation và renderer bidi.
+C. Use proper paragraph direction/isolation and bidi-capable rendering.
 
-D. Thay NumberFormat.
+D. Swap `NumberFormat`.
 
-**Câu 9.** ResourceBundle.getBundle trả được base bundle cho fr-CA, điều đó chứng tỏ gì?
+**Question 9.** `ResourceBundle.getBundle` returns the base bundle for `fr-CA`; what does that prove?
 
-A. App đã dịch đầy đủ fr-CA.
+A. The app has complete `fr-CA` translations.
 
-B. Chỉ chứng tỏ có tài nguyên tìm được qua lookup/fallback.
+B. Only that a resource was found via lookup/fallback.
 
-C. Timezone mặc định ở Canada.
+C. The default timezone is in Canada.
 
-D. Currency bắt buộc là CAD.
+D. The currency must be `CAD`.
 
-**Câu 10.** Cần so sánh order IDs kỹ thuật theo thứ tự cố định do giao thức quy định, không quan tâm từ điển người xem. Chọn gì?
+**Question 10.** Technical order IDs must be compared in a fixed protocol-defined order regardless of viewer dictionary rules. What should you choose?
 
-A. Dùng Collator ở Locale người xem cho mọi ID.
+A. Use `Collator` with the viewer's `Locale` for all IDs.
 
-B. Dùng so sánh kỹ thuật được giao thức định nghĩa, có thể là String.compareTo/byte order tùy hợp đồng.
+B. Use the protocol-defined technical comparison, such as `String.compareTo` or byte order per contract.
 
-C. Dùng MessageFormat.
+C. Use `MessageFormat`.
 
-D. Xóa mọi chữ số.
+D. Strip all digits.
 
-### 18.1. Đáp án có giải thích
+### 18.1. Answers with Explanations
 
-| Câu | Đáp án | Lý do |
+| Question | Answer | Rationale |
 | --- | --- | --- |
-| 1 | **B** | Ngôn ngữ app hỗ trợ là một chính sách sản phẩm, không phải kết quả JDK |
-| 2 | **B** | EUR là đơn vị giao dịch, Locale.US chỉ quyết định biểu diễn |
-| 3 | **C** | Collator xử lý thứ tự ngôn ngữ, compareTo chỉ so UTF-16 |
-| 4 | **B** | Instant là thời điểm, ZoneId tạo giờ địa phương |
-| 5 | **A** | NFC giải quyết canonical equivalence |
-| 6 | **C** | NumberFormat mutable, không sửa chung đồng thời |
-| 7 | **C** | Parse có thể không tiêu thụ toàn chuỗi hoặc mất precision |
-| 8 | **C** | Bidi/layout xử lý hướng hiển thị; không phá logical order |
-| 9 | **B** | ResourceBundle fallback không chứng minh dịch thuật hoàn chỉnh |
-| 10 | **B** | ID kỹ thuật cần hợp đồng ổn định, không phụ thuộc người xem |
+| 1 | **B** | App-supported languages are a product policy, not whatever the JDK contains |
+| 2 | **B** | `EUR` is the transaction's unit; `Locale.US` governs only presentation |
+| 3 | **C** | `Collator` applies linguistic order; `compareTo` compares UTF-16 code units |
+| 4 | **B** | `Instant` captures the moment; `ZoneId` yields local wall-clock time |
+| 5 | **A** | `NFC` resolves canonical equivalence |
+| 6 | **C** | `NumberFormat` is mutable and must not be mutated concurrently |
+| 7 | **C** | Parsing may stop early or lose precision without explicit checks |
+| 8 | **C** | Bidi/layout handles visual direction without corrupting logical order |
+| 9 | **B** | `ResourceBundle` fallback never proves translation completeness |
+| 10 | **B** | Technical IDs require a stable contract independent of the viewer |
 
-**Chấm 1 điểm/câu**, tổng 10. Nếu sai các câu 2, 4, 6 hoặc 7, nên ưu tiên ôn phần liên quan **tính đúng của dữ liệu**, vì hậu quả có thể nghiêm trọng hơn một lỗi bố cục thông thường.
+**Score 1 point per question**, out of 10. If you missed questions 2, 4, 6, or 7, prioritize reviewing **data correctness**, since those bugs cause worse damage than visual layout glitches.
 
-## 19. Checklist khi review dự án thật
+## 19. Real-Project Review Checklist
 
-### Dữ liệu và hợp đồng
+### Data and Contracts
 
-- [ ] Số tiền được lưu dưới dạng BigDecimal + Currency, không phải localized String.
-- [ ] Không suy Currency hay ZoneId chỉ từ Locale.
-- [ ] Ngày thuần và thời điểm tuyệt đối được mô hình hóa bằng kiểu phù hợp.
-- [ ] ID và mã nghiệp vụ giữ nguyên thứ tự logic khi hiển thị.
-- [ ] Dữ liệu máy dùng định dạng được đặc tả, không parse localized display string tùy tiện.
+- [ ] Monetary values are stored as `BigDecimal` + `Currency`, never as localized Strings.
+- [ ] `Currency` and `ZoneId` are never inferred solely from `Locale`.
+- [ ] Pure calendar dates and absolute instants use the proper distinct types.
+- [ ] IDs and business codes retain logical character order when displayed.
+- [ ] Machine data uses documented technical formats rather than arbitrarily parsing localized display strings.
 
-### Ngôn ngữ, định dạng và Unicode
+### Language, Formatting, and Unicode
 
-- [ ] Supported locales của app có bản dịch/QA, không dùng toàn bộ locale của JDK.
-- [ ] Locale được truyền tường minh cho formatter, không set default theo request.
-- [ ] ResourceBundle có policy fallback và kiểm tra key/placeholder.
-- [ ] MessageFormat pattern xử lý dấu nháy, ngoặc nhọn và thứ tự tham số đúng.
-- [ ] NumberFormat/Currency/percent dùng đúng input và chính sách rounding.
-- [ ] DateTimeFormatter/ZoneId dùng đúng nhu cầu ngày hoặc thời điểm.
-- [ ] Collator/Normalizer/BreakIterator được chọn đúng lớp vấn đề.
-- [ ] Chữ RTL sử dụng text layout/isolation; không đảo String.
-- [ ] Unicode NBSP/NNBSP và code point đặc biệt được test khi quan trọng.
+- [ ] App-supported locales have real translations and QA, not the entire JDK available list.
+- [ ] `Locale` is passed explicitly to formatters without mutating JVM default per request.
+- [ ] `ResourceBundle` has an explicit fallback policy plus key/placeholder checks.
+- [ ] `MessageFormat` patterns properly handle apostrophes, braces, and argument ordering.
+- [ ] `NumberFormat`/`Currency`/percentages receive proper inputs and rounding policies.
+- [ ] `DateTimeFormatter`/`ZoneId` match pure-date vs. instant needs accurately.
+- [ ] `Collator`/`Normalizer`/`BreakIterator` are matched to their respective problems.
+- [ ] RTL text uses proper layout/isolation rather than reversing Strings.
+- [ ] Unicode NBSP/NNBSP and special code points are tested where relevant.
 
-### Vận hành và bảo mật
+### Operations and Security
 
-- [ ] Không chia sẻ rồi sửa NumberFormat/MessageFormat mutable đồng thời.
-- [ ] Không cache kết quả thông điệp đã chèn thông tin người dùng chỉ theo key.
-- [ ] Có escaping theo HTML/email/URL, không nhầm MessageFormat là bộ bảo mật.
-- [ ] Test nhiều locale, nhiều timezone và nhiều luồng.
-- [ ] Có regression khi nâng JDK/CLDR/tzdb.
-- [ ] Phân trang và cơ sở dữ liệu dùng collation/tie-breaker nhất quán.
-- [ ] Log/metric giúp tìm missing translations, fallback và lỗi formatting.
+- [ ] Mutable `NumberFormat`/`MessageFormat` instances are never shared and mutated concurrently.
+- [ ] Messages containing user-specific data are never cached solely by translation key.
+- [ ] Proper escaping is applied for HTML/email/URL sinks rather than mistaking `MessageFormat` for sanitization.
+- [ ] Tests cover multiple locales, time zones, and threads.
+- [ ] Regression tests run for JDK/CLDR/`tzdb` upgrades.
+- [ ] Pagination and database queries use consistent collation and tie-breakers.
+- [ ] Logs/metrics surface missing translations, fallbacks, and formatting errors.
 
-## 20. Cách áp dụng bảng chọn trong một thiết kế mới
+## 20. Applying the Matrix in a New Design
 
-Một quy trình sáu bước:
+A six-step workflow:
 
-**Bước 1 — Xác định dữ liệu gốc.** Viết rõ amount/ratio, Currency, LocalDate/Instant, ID và thông điệp có key nào. Tránh nhận diện dữ liệu qua chuỗi đã được localize.
+**Step 1 — Define source data.** Specify exact amount/ratio, `Currency`, `LocalDate`/`Instant`, IDs, and message keys. Avoid identifying business values from localized strings.
 
-**Bước 2 — Xác định người nhận.** Ghi uiLocale, formatLocale, ZoneId và ngữ cảnh render web/email/PDF; không tự xem chúng là một thuộc tính.
+**Step 2 — Define recipient context.** Capture `uiLocale`, `formatLocale`, `ZoneId`, and rendering channel (web/email/PDF); never collapse them into a single attribute.
 
-**Bước 3 — Tra bảng API.** Với mỗi giá trị và thao tác, chọn API phù hợp. Nếu có tên người và số tiền trong câu, cần cả Collator khi sort, NumberFormat khi format và ResourceBundle/MessageFormat khi ghép câu; không trộn chức năng.
+**Step 3 — Consult the API matrix.** Pick the right API for each value and operation. When a sentence includes names and money, you need `Collator` for sorting, `NumberFormat` for formatting, and `ResourceBundle`/`MessageFormat` for assembling the message—never conflate their roles.
 
-**Bước 4 — Định nghĩa fallback và failure.** Nếu thiếu bản dịch, locale không hỗ trợ, pattern sai hoặc parser không đọc hết chuỗi, hệ thống cần hành vi được quyết định trước.
+**Step 4 — Define fallback and failure behavior.** Specify upfront how missing translations, unsupported locales, malformed patterns, and incomplete parses behave.
 
-**Bước 5 — Kiểm thử ở hai mức.** Test dữ liệu bất biến và các điều kiện API có stdout chính xác; test locale-specific output trên runtime/provider mục tiêu. Kết hợp visual test cho Unicode/bidi.
+**Step 5 — Test at two levels.** Assert invariant data and deterministic API behaviors with exact stdout; verify locale-specific outputs on the target runtime/provider. Pair with visual tests for Unicode and bidi.
 
-**Bước 6 — Review rủi ro.** Chấm rubric 0–20, ưu tiên rủi ro sai tiền/ngày, mất định danh và bảo mật trước lỗi mỹ thuật. Thêm regression test tương ứng trước khi phát hành.
+**Step 6 — Review risks.** Score using the 0–20 rubric, prioritizing wrong money/dates, corrupted identifiers, and security bugs over cosmetic polish. Add regression tests before release.
 
-## 21. Tổng kết
+## 21. Summary
 
-**Chọn đúng API địa phương hóa trong Java là chọn đúng ngữ nghĩa của bài toán.** **Locale** mô tả ngôn ngữ/vùng; **ResourceBundle/MessageFormat** dựng thông điệp; **NumberFormat/Currency/BigDecimal** giữ đúng số và tiền; **LocalDate/Instant/ZoneId/DateTimeFormatter** giải quyết ngày và thời điểm; **Collator/Normalizer/BreakIterator** xử lý các khía cạnh khác nhau của văn bản; **Bidi** và renderer đảm trách hướng hiển thị.
+**Choosing the right localization API in Java means matching the semantics of the problem.** **`Locale`** identifies language/region; **`ResourceBundle`/`MessageFormat`** assemble messages; **`NumberFormat`/`Currency`/`BigDecimal`** preserve numbers and money; **`LocalDate`/`Instant`/`ZoneId`/`DateTimeFormatter`** handle dates and instants; **`Collator`/`Normalizer`/`BreakIterator`** address distinct text-processing concerns; and **`Bidi`** plus renderers handle visual direction.
 
-Bảng chọn API giúp tránh sử dụng một hàm tiện lợi sai chỗ; bài tập, đáp án và rubric giúp người học tự phát hiện lỗi thường gặp. Thành công của một sản phẩm đa locale không nằm ở số API được gọi, mà ở **việc dữ liệu nghiệp vụ luôn đúng, câu chữ phù hợp người dùng, fallback minh bạch, Unicode được giữ nguyên và kiểm thử được lặp lại trên môi trường thực sự triển khai**.
+The API matrix prevents misusing convenient methods in the wrong layer; exercises, answers, and the rubric help you spot recurring mistakes on your own. The success of a multilingual product lies not in how many APIs it calls, but in **keeping business data exact, prose natural for users, fallbacks transparent, Unicode intact, and tests reproducible on the real deployment environment**.

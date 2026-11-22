@@ -1,66 +1,66 @@
-# Dùng BigInteger hoặc phép tính tham chiếu để phát hiện tràn trong Java
+# Using `BigInteger` or Reference Calculations to Detect Overflow in Java
 
-## 1. Tại sao cần kiểm thử tràn số?
+## 1. Why Must We Test for Overflow?
 
-Trong Java, `int` và `long` là số nguyên có dấu với độ rộng cố định:
+In Java, `int` and `long` are fixed-width signed integers:
 
-| Kiểu | Độ rộng | Giá trị nhỏ nhất | Giá trị lớn nhất |
+| Type | Width | Minimum value | Maximum value |
 | --- | ---: | ---: | ---: |
 | `int` | 32 bit | `-2147483648` | `2147483647` |
 | `long` | 64 bit | `-9223372036854775808` | `9223372036854775807` |
 
-Các phép cộng, trừ, nhân kiểu nguyên thông thường **không ném ngoại lệ khi tràn**. Kết quả chỉ giữ các bit thấp trong độ rộng tương ứng rồi được diễn giải theo số nguyên có dấu hai bù. Ví dụ:
+Ordinary integer addition, subtraction, and multiplication **do not throw an exception on overflow**. The result simply retains the low-order bits within the corresponding width and is interpreted as a two's-complement signed integer. Example:
 
 ~~~java
 int x = Integer.MAX_VALUE;
-int wrapped = x + 1; // -2147483648, không có exception
+int wrapped = x + 1; // -2147483648, no exception
 ~~~
 
-Kết quả toán học đúng phải là `2147483648`, lớn hơn `Integer.MAX_VALUE` một đơn vị. Nếu ứng dụng chỉ kiểm tra “không có exception”, lỗi có thể lọt vào số lượng hàng, tổng doanh thu biểu diễn theo đơn vị nhỏ nhất, timestamp, giới hạn bộ nhớ, kích thước mảng hoặc thuật toán so sánh.
+The true mathematical result must be `2147483648`, one greater than `Integer.MAX_VALUE`. If an application checks only “no exception was thrown”, bugs can slip into item counts, total revenue in minor units, timestamps, memory limits, array sizes, or comparison logic.
 
-**Chiến lược kiểm thử cốt lõi:** tính cùng phép toán bằng một biểu diễn có phạm vi đủ lớn để làm **kết quả tham chiếu (oracle)**, chẳng hạn `BigInteger`, rồi so kết quả đó với miền giá trị của kiểu đích. Đối với phép toán đang chạy trong sản phẩm, `Math.addExact`, `subtractExact`, `multiplyExact` và các API kiểm tra chính xác khác giúp phát hiện tràn ngay tại chỗ.
+**Core testing strategy:** compute the same operation using a representation with a large enough range as a **reference result (oracle)**, such as `BigInteger`, then compare that result against the target type's value range. For operations running in production, `Math.addExact`, `subtractExact`, `multiplyExact`, and other exact-check APIs detect overflow on the spot.
 
-Có hai câu hỏi khác nhau:
+There are two separate questions:
 
-1. **Kết quả toán học đúng bằng bao nhiêu?** Dùng `BigInteger` hoặc phép tính với kiểu rộng hơn khi đủ chắc chắn.
-2. **Có thể biểu diễn kết quả chính xác bằng `int` hoặc `long` không?** So với `MIN_VALUE`/`MAX_VALUE`, hoặc dùng `intValueExact()`, `longValueExact()` và các hàm `Math.*Exact`.
+1. **What is the true mathematical result?** Use `BigInteger`, or arithmetic in a wider type when certainty suffices.
+2. **Can the result be represented exactly in `int` or `long`?** Compare against `MIN_VALUE`/`MAX_VALUE`, or use `intValueExact()`, `longValueExact()`, and the `Math.*Exact` functions.
 
-Không nên dùng ngay kết quả đã tràn làm đáp án tham chiếu, vì không còn đủ thông tin để biết giá trị toán học ban đầu.
+Never immediately use an already-overflowed result as the reference answer, because not enough information remains to know the original mathematical value.
 
-## 2. Cơ chế tràn số nguyên: hai bù và miền biểu diễn
+## 2. Integer Overflow Mechanics: Two's Complement and Representable Range
 
-Với số nguyên có dấu `n` bit, miền giá trị là:
+For an `n`-bit signed integer, the value range is:
 
 \[
 -2^{n-1} \le x \le 2^{n-1}-1.
 \]
 
-Khi một phép cộng/trừ/nhân nguyên thông thường vượt miền, Java giữ phần phù hợp với độ rộng 32/64 bit. Có thể hình dung kết quả được lấy theo modulo \(2^n\), sau đó diễn giải lại thành số có dấu.
+When ordinary integer addition, subtraction, or multiplication exceeds the range, Java keeps the portion fitting in 32/64 bits. You can picture the result taken modulo \(2^n\), then reinterpreted as signed.
 
-Ví dụ `Integer.MAX_VALUE + 1`:
+Example `Integer.MAX_VALUE + 1`:
 
-- Kết quả toán học: `2147483648 = 2^31`.
-- Biểu diễn `int` 32 bit ứng với bit dấu bật và các bit còn lại 0.
-- Giá trị `int` Java nhận được: `-2147483648`, tức `Integer.MIN_VALUE`.
+- Mathematical result: `2147483648 = 2^31`.
+- 32-bit `int` representation has the sign bit set and remaining bits 0.
+- Resulting Java `int`: `-2147483648`, i.e., `Integer.MIN_VALUE`.
 
-Với `Long.MAX_VALUE * 2`:
+For `Long.MAX_VALUE * 2`:
 
-- Kết quả toán học: `18446744073709551614`.
-- Kết quả `long` thông thường: `-2`.
+- Mathematical result: `18446744073709551614`.
+- Ordinary `long` result: `-2`.
 
-**Không có cờ overflow tự động trả về từ toán tử `+`, `-`, `*`.** Nếu ứng dụng cần từ chối tràn, phải chủ động dùng API exact hoặc kiểm tra với oracle.
+**No automatic overflow flag is returned by `+`, `-`, `*`.** If the application must reject overflow, actively use an exact API or check with an oracle.
 
-Đây là hành vi **được Java định nghĩa**, không phải undefined behavior. Nhưng việc kết quả có tính xác định không làm nó đúng với yêu cầu nghiệp vụ.
+This behavior is **defined by Java**, not undefined behavior. However, a deterministic result does not make it right for business requirements.
 
-### 2.1. Đừng nhầm tràn với mất độ chính xác dấu phẩy động
+### 2.1. Do Not Confuse Overflow with Floating-Point Precision Loss
 
-`float` và `double` hoạt động theo hệ số thực dấu phẩy động IEEE 754. Vượt giới hạn có thể dẫn đến `Infinity`, trong khi nhiều phép tính không tràn vẫn bị làm tròn vì precision hữu hạn. Chủ đề này tập trung vào **tràn `int`/`long`**, với `BigInteger` làm tham chiếu cho số học nguyên chính xác. Không dùng cùng một cách so sánh byte-for-byte cho số thực khi hợp đồng cho phép sai số xấp xỉ.
+`float` and `double` follow IEEE 754 floating-point arithmetic. Exceeding limits can lead to `Infinity`, while many non-overflowing operations still round due to finite precision. This topic focuses on **`int`/`long` overflow**, with `BigInteger` as the oracle for exact integer arithmetic. Do not apply the same byte-for-byte comparison to floating-point numbers when the contract permits approximate error.
 
-`BigDecimal` có thể hữu ích cho phép tính thập phân chính xác, nhưng nếu mục tiêu kiểm thử là phép toán nguyên `int`/`long`, `BigInteger` biểu đạt trực tiếp kết quả nguyên và thường là oracle rõ ràng hơn.
+`BigDecimal` can be helpful for exact decimal arithmetic, yet when the testing target is `int`/`long` integer operations, `BigInteger` directly expresses integer results and is usually a clearer oracle.
 
-## 3. BigInteger làm oracle độc lập
+## 3. `BigInteger` as an Independent Oracle
 
-`BigInteger` (gói `java.math`) biểu diễn số nguyên với độ chính xác tùy ý theo tài nguyên máy, không giới hạn trong 32 hoặc 64 bit.
+`BigInteger` (`java.math` package) represents integers with arbitrary precision up to machine resource limits, not restricted to 32 or 64 bits.
 
 ~~~java
 import java.math.BigInteger;
@@ -68,31 +68,31 @@ import java.math.BigInteger;
 long a = Long.MAX_VALUE;
 long b = 2L;
 
-long actual = a * b; // -2, kết quả long bị tràn
+long actual = a * b; // -2, overflowed long result
 BigInteger expected = BigInteger.valueOf(a)
         .multiply(BigInteger.valueOf(b));
-// 18446744073709551614: kết quả toán học chính xác
+// 18446744073709551614: exact mathematical result
 ~~~
 
-`BigInteger` bất biến. Các phép toán như `add`, `subtract`, `multiply`, `divide`, `remainder`, `pow`, `shiftLeft` trả đối tượng kết quả mới. Vì vậy các phép tham chiếu không chịu tràn kiểu `int`/`long` trong điều kiện bộ nhớ và giới hạn tài nguyên cho phép.
+`BigInteger` is immutable. Operations such as `add`, `subtract`, `multiply`, `divide`, `remainder`, `pow`, and `shiftLeft` return new result objects. Thus reference calculations do not suffer `int`/`long` overflow within memory and resource constraints.
 
-**Bẫy quan trọng:** phải chuyển **toán hạng gốc** sang `BigInteger` *trước* khi tính:
+**Critical pitfall:** you must convert the **original operands** to `BigInteger` *before* computing:
 
 ~~~java
 long a = Long.MAX_VALUE;
 long b = 2L;
 
 BigInteger wrongOracle = BigInteger.valueOf(a * b);
-// -2: phép nhân long đã tràn trước khi BigInteger xuất hiện!
+// -2: long multiplication already overflowed before BigInteger appeared!
 
 BigInteger correctOracle = BigInteger.valueOf(a)
         .multiply(BigInteger.valueOf(b));
 // 18446744073709551614
 ~~~
 
-Tương tự, `BigInteger.valueOf((long) (intA + intB))` **không an toàn** nếu phép cộng `int` đã được thực hiện trước khi ép kiểu.
+Similarly, `BigInteger.valueOf((long) (intA + intB))` is **unsafe** if the `int` addition was already performed before casting.
 
-### 3.1. Kiểm tra oracle có nằm trong phạm vi long/int không
+### 3.1. Checking Whether the Oracle Fits in `long`/`int`
 
 ~~~java
 BigInteger exact = BigInteger.valueOf(Long.MAX_VALUE)
@@ -104,37 +104,37 @@ boolean fitsLong =
 // false
 ~~~
 
-Với `int`, thay các cận bằng `Integer.MIN_VALUE` và `Integer.MAX_VALUE`. Đây là kiểm tra chính xác dựa trên toán học và không dựa vào kết quả primitive đã bị tràn.
+For `int`, replace the bounds with `Integer.MIN_VALUE` and `Integer.MAX_VALUE`. This is a mathematically exact check that does not rely on an already-overflowed primitive result.
 
-Có lựa chọn ngắn hơn:
+There is a shorter option:
 
 ~~~java
 try {
     long exactLong = exact.longValueExact();
 } catch (ArithmeticException ex) {
-    // Giá trị không nằm trong miền long
+    // Value is outside the long range
 }
 ~~~
 
-`intValueExact()` và `longValueExact()` của `BigInteger` ném `ArithmeticException` khi không thể biểu diễn chính xác trong kiểu đích.
+`BigInteger`'s `intValueExact()` and `longValueExact()` throw `ArithmeticException` when the value cannot be represented exactly in the target type.
 
-**Không dùng** `exact.longValue()` hoặc `exact.intValue()` làm phép kiểm tra tràn: các phương thức chuyển đổi không có chữ `Exact` có thể bỏ bit cao và trả một giá trị đã bị thay đổi.
+**Do not use** `exact.longValue()` or `exact.intValue()` as an overflow check: conversion methods without `Exact` can discard high-order bits and return an altered value.
 
-## 4. API Math.*Exact giúp phát hiện tràn tại phép toán
+## 4. `Math.*Exact` APIs Detect Overflow at the Operation
 
-Java cung cấp những phương thức kiểm tra khi cần kết quả `int`/`long` chính xác:
+Java provides checking methods when an exact `int`/`long` result is required:
 
-| Nhu cầu | API | Khi vượt miền |
+| Need | API | When out of range |
 | --- | --- | --- |
-| Cộng | `Math.addExact(a, b)` | Ném `ArithmeticException` |
-| Trừ | `Math.subtractExact(a, b)` | Ném `ArithmeticException` |
-| Nhân | `Math.multiplyExact(a, b)` | Ném `ArithmeticException` |
-| Đổi dấu | `Math.negateExact(value)` | Ném `ArithmeticException` |
-| Tăng/giảm một đơn vị | `Math.incrementExact(value)`, `Math.decrementExact(value)` | Ném `ArithmeticException` |
-| Trị tuyệt đối của `int`/`long` | `Math.absExact(value)` | Ném khi là giá trị MIN tương ứng |
-| Thu hẹp `long` xuống `int` | `Math.toIntExact(value)` | Ném nếu ngoài phạm vi int |
+| Addition | `Math.addExact(a, b)` | Throws `ArithmeticException` |
+| Subtraction | `Math.subtractExact(a, b)` | Throws `ArithmeticException` |
+| Multiplication | `Math.multiplyExact(a, b)` | Throws `ArithmeticException` |
+| Negation | `Math.negateExact(value)` | Throws `ArithmeticException` |
+| Increment/decrement by 1 | `Math.incrementExact(value)`, `Math.decrementExact(value)` | Throws `ArithmeticException` |
+| Absolute value of `int`/`long` | `Math.absExact(value)` | Throws at the respective MIN value |
+| Narrow `long` to `int` | `Math.toIntExact(value)` | Throws if outside int range |
 
-Các overload và phương thức cụ thể phải được chọn đúng kiểu. Chẳng hạn `Math.addExact(int,int)` trả `int`, còn `Math.addExact(long,long)` trả `long`. Khi hai toán hạng là `int` và mong muốn kết quả `long`, có thể chủ động mở rộng ít nhất một toán hạng **trước khi cộng**.
+Overloads and specific methods must be chosen with matching types. For example, `Math.addExact(int,int)` returns `int`, whereas `Math.addExact(long,long)` returns `long`. When both operands are `int` and a `long` result is desired, you can intentionally widen at least one operand **before adding**.
 
 ~~~java
 int left = Integer.MAX_VALUE;
@@ -143,41 +143,41 @@ int right = 1;
 long correct = (long) left + right;  // 2147483648
 long wrong = (long) (left + right);  // -2147483648
 
-// Nếu kết quả bắt buộc phải là int:
+// If the result must be int:
 try {
     int checked = Math.addExact(left, right);
 } catch (ArithmeticException ex) {
-    // Vượt phạm vi int, xử lý lỗi theo hợp đồng nghiệp vụ
+    // Exceeds int range, handle error per business contract
 }
 ~~~
 
-Trong biến thể `wrong`, dấu ngoặc buộc cộng `int` trước rồi mới ép kiểu `long`, nên không thể “sửa” tràn đã xảy ra. Trong biến thể `correct`, toán hạng trái thành `long` trước khi cộng, phép cộng được tính ở phạm vi 64 bit.
+In `wrong`, parentheses force `int` addition first before casting to `long`, so it cannot “repair” the overflow that already happened. In `correct`, the left operand becomes `long` before addition, so addition runs in 64-bit range.
 
-Với hai toán hạng `long`, mở rộng lên `long` lần nữa không giúp gì. Dùng `Math.*Exact` hoặc `BigInteger` để tính một kết quả lớn hơn miền 64 bit.
+With two `long` operands, widening to `long` again does nothing. Use `Math.*Exact` or `BigInteger` to compute results larger than 64-bit range.
 
-### 4.1. BigInteger và Math.*Exact bổ trợ nhau ra sao?
+### 4.1. How `BigInteger` and `Math.*Exact` Complement Each Other
 
-- **Trong logic ứng dụng:** dùng `Math.*Exact` nếu tràn là lỗi và cần phát hiện ngay khi thao tác.
-- **Trong test:** dùng `BigInteger` độc lập để xác nhận phép toán trả đúng giá trị khi còn trong miền và báo lỗi khi vượt miền.
-- **Khi dữ liệu hợp lệ thực sự có thể vượt long:** dùng `BigInteger` trong mô hình dữ liệu/kết quả thay vì chỉ bắt lỗi rồi tiếp tục lưu vào `long`.
-- **Khi cần giá trị thay thế như saturating arithmetic:** định nghĩa rõ hợp đồng trả `MIN_VALUE`/`MAX_VALUE`, rồi kiểm tra với oracle. Không gọi đó là phép tính exact.
+- **In application logic:** use `Math.*Exact` if overflow is an error that must be caught as soon as the operation executes.
+- **In tests:** use an independent `BigInteger` to verify that the operation returns the exact value when in range and reports an error when out of range.
+- **When valid data can genuinely exceed `long`:** use `BigInteger` in the data/result model instead of catching an error and continuing to store into `long`.
+- **When a fallback such as saturating arithmetic is required:** explicitly define the contract returning `MIN_VALUE`/`MAX_VALUE`, then verify against an oracle. Do not call that exact arithmetic.
 
-Một test chỉ gọi `Math.addExact` rồi tin nó đúng có thể hữu ích để kiểm tra API ứng dụng đã chọn. Nhưng kiểm tra độc lập bằng `BigInteger` giúp bắt lỗi ở cách gọi nhầm overload, ép kiểu sai thứ tự hoặc xử lý trường hợp biên thiếu nhất quán.
+A test that merely calls `Math.addExact` and trusts it can be helpful to verify which API the application chose. Yet independent verification with `BigInteger` catches bugs in picking the wrong overload, casting in the wrong order, or inconsistent boundary handling.
 
-## 5. Những phép toán đặc biệt rất dễ bỏ sót
+## 5. Special Operations That Are Easy to Miss
 
-### 5.1. Phép chia `MIN_VALUE / -1`
+### 5.1. `MIN_VALUE / -1` Division
 
-Trong Java, phép chia nguyên có một trường hợp tràn đặc biệt:
+In Java, integer division has one special overflow case:
 
 ~~~java
 long wrapped = Long.MIN_VALUE / -1L;
-// -9223372036854775808: không ném ArithmeticException
+// -9223372036854775808: does not throw ArithmeticException
 ~~~
 
-Kết quả toán học đúng là `9223372036854775808`, **lớn hơn `Long.MAX_VALUE`**. Tương tự, `Integer.MIN_VALUE / -1` trả lại `Integer.MIN_VALUE`.
+The true mathematical result is `9223372036854775808`, **larger than `Long.MAX_VALUE`**. Likewise, `Integer.MIN_VALUE / -1` returns `Integer.MIN_VALUE`.
 
-`Math.addExact` hay `multiplyExact` không phải phép kiểm tra cho phép chia. Với Java 17, bạn có thể kiểm tra trường hợp ngoại lệ bằng điều kiện:
+`Math.addExact` or `multiplyExact` do not cover division. In Java 17, you can check this exceptional case with a guard:
 
 ~~~java
 static long divideChecked(long dividend, long divisor) {
@@ -191,40 +191,40 @@ static long divideChecked(long dividend, long divisor) {
 }
 ~~~
 
-Đây là phương thức minh họa trong một lớp; nếu dùng phép chia BigInteger làm oracle, nhớ rằng `BigInteger.divide` cũng từ chối chia cho 0. Phép chia nguyên thông thường **cắt phần dư về 0**, không phải chia cho kết quả thực rồi làm tròn theo một rounding mode thập phân.
+This is an illustrative method inside a class; if using `BigInteger.divide` as an oracle, remember that `BigInteger.divide` also rejects division by 0. Ordinary integer division **truncates the remainder toward 0**, rather than dividing to a real result and rounding with a decimal rounding mode.
 
-### 5.2. Phép đổi dấu và trị tuyệt đối của giá trị nhỏ nhất
+### 5.2. Negation and Absolute Value of the Minimum Value
 
 ~~~java
 int x = Integer.MIN_VALUE;
 
-int negated = -x;         // vẫn là Integer.MIN_VALUE
-int magnitude = Math.abs(x); // vẫn là Integer.MIN_VALUE
+int negated = -x;         // still Integer.MIN_VALUE
+int magnitude = Math.abs(x); // still Integer.MIN_VALUE
 ~~~
 
-Nguyên nhân: `2147483648` không nằm trong miền `int` dương. Muốn từ chối trường hợp này có `Math.negateExact(x)` và `Math.absExact(x)` (Java 17+). Nếu chỉ cần độ lớn và chấp nhận `long`, dùng:
+Reason: `2147483648` is not within the positive `int` range. To reject this case, use `Math.negateExact(x)` and `Math.absExact(x)` (Java 17+). If you only need the magnitude and accept `long`, use:
 
 ~~~java
 long exactAbs = Math.abs((long) Integer.MIN_VALUE);
 // 2147483648
 ~~~
 
-Ép sang `long` phải diễn ra **trước** phép lấy trị tuyệt đối. `Math.abs(Integer.MIN_VALUE)` có thể trả số âm, nên không được coi `Math.abs` là phép kiểm tra rằng giá trị chắc chắn không âm.
+Casting to `long` must occur **before** taking the absolute value. `Math.abs(Integer.MIN_VALUE)` can return a negative number, so never treat `Math.abs` as proof that a value is guaranteed non-negative.
 
-### 5.3. Nhân, bình phương và biểu thức trung gian
+### 5.3. Multiplication, Squaring, and Intermediate Expressions
 
 ~~~java
 int x = 50_000;
 
-long wrongSquare = x * x;         // -1794967296 rồi nới sang long
+long wrongSquare = x * x;         // -1794967296 then widened to long
 long correctSquare = (long) x * x; // 2500000000
 ~~~
 
-Đối với phép nhân hai `int`, `Math.multiplyFull(x, x)` trả kết quả `long` đầy đủ trong Java 17. Với phép nhân `long`, kết quả có thể vượt 64 bit; `BigInteger.valueOf(a).multiply(BigInteger.valueOf(b))` là oracle phù hợp.
+For multiplying two `int`s, `Math.multiplyFull(x, x)` returns the full `long` result in Java 17. For `long` multiplication, the result can exceed 64 bits; `BigInteger.valueOf(a).multiply(BigInteger.valueOf(b))` is an appropriate oracle.
 
-`BigInteger` có `shiftLeft` để kiểm tra phép dịch cần giữ toàn bộ bit. Trong khi đó, toán tử `<<` trên primitive luôn giữ độ rộng kiểu và có thể bỏ bit cao; không nên dựa vào `Math.addExact` để phát hiện mất bit ở phép dịch.
+`BigInteger` has `shiftLeft` for checking shifts that must preserve all bits. Meanwhile, the primitive `<<` operator always keeps the type's width and can discard high-order bits; do not rely on `Math.addExact` to detect bit loss in shifts.
 
-### 5.4. Tích lũy trong vòng lặp và stream
+### 5.4. Accumulation in Loops and Streams
 
 ~~~java
 int sum = 0;
@@ -233,9 +233,9 @@ for (int value : values) {
 }
 ~~~
 
-Đoạn mã trên nằm trong một phương thức có biến `int[] values`. Nó phát hiện tràn tại **từng bước tích lũy**.
+The snippet above sits inside a method with variable `int[] values`. It detects overflow at **each accumulation step**.
 
-Một oracle độc lập có thể dùng:
+An independent oracle can use:
 
 ~~~java
 BigInteger reference = BigInteger.ZERO;
@@ -244,18 +244,18 @@ for (int value : values) {
 }
 ~~~
 
-Cần phân biệt hai mục tiêu:
+Distinguish two goals:
 
-- Nếu yêu cầu “không có bất kỳ phép cộng trung gian nào được phép tràn”, phép tính kiểm tra từng bước phù hợp.
-- Nếu chỉ yêu cầu “**tổng toán học cuối cùng** nằm trong miền int”, việc tích lũy `int` có thể tràn ở giữa rồi quay về giá trị hợp lệ khi có số âm bù lại. Oracle `BigInteger` vẫn biết tổng thực cuối cùng. Tùy hợp đồng, một quy tắc có thể chặt hơn quy tắc kia.
+- If the requirement is “no intermediate addition may overflow”, step-by-step checked arithmetic fits.
+- If the requirement is only “the **final mathematical sum** fits in `int`”, `int` accumulation might overflow partway and then return to a valid value when negative numbers cancel it out. The `BigInteger` oracle still knows the true final sum. Depending on the contract, one rule can be stricter than the other.
 
-Ví dụ mảng `{Integer.MAX_VALUE, 1, -1}` có tổng toán học cuối cùng bằng `Integer.MAX_VALUE`, nhưng cách cộng kiểm tra từng bước sẽ thất bại tại phần tử thứ hai. Cần xác định rõ ứng dụng phải ngăn tràn **trong mọi bước** hay chỉ chứng minh phạm vi của **kết quả cuối**.
+For example, the array `{Integer.MAX_VALUE, 1, -1}` has a final mathematical sum equal to `Integer.MAX_VALUE`, yet step-by-step checked addition fails at the second element. Clarify whether the application must prevent overflow **at every step** or only prove the range of the **final result**.
 
-`IntStream.sum()` trả `int` và có thể tràn. `mapToLong(x -> x).sum()` tăng phạm vi cho nguồn `int` nhưng tổng cực lớn vẫn có thể vượt `long`. Nếu cần tổng toán học tùy ý, tích lũy bằng `BigInteger`.
+`IntStream.sum()` returns `int` and can overflow. `mapToLong(x -> x).sum()` increases range for `int` sources, yet very large sums can still exceed `long`. If an arbitrary mathematical sum is needed, accumulate with `BigInteger`.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: so sánh kết quả với oracle
+## 6. Complete Java 17+ Example: Comparing Results Against an Oracle
 
-Tạo file `OverflowOracleDemo.java`:
+Create file `OverflowOracleDemo.java`:
 
 ~~~java
 import java.math.BigInteger;
@@ -334,14 +334,14 @@ public class OverflowOracleDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac OverflowOracleDemo.java
 java OverflowOracleDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 int wrapped: -2147483648
@@ -357,169 +357,169 @@ BigInteger MIN / -1: 9223372036854775808
 random additions: 10000 PASS
 ~~~
 
-Cách đọc kết quả:
+How to read the output:
 
-- `int wrapped` là kết quả primitive đã tràn; `int oracle` cho kết quả toán học đúng.
-- `Math.addExact` phát hiện tràn thay vì trả số sai.
-- `widen after` thực hiện mở rộng **sau** khi cộng `int`, nên quá muộn; `widen before` chuyển một toán hạng sang `long` trước khi tính.
-- `long wrapped multiply` bằng `-2` dù kết quả thật dương rất lớn.
-- `Long.MIN_VALUE / -1` chứng minh phép chia nguyên có một trường hợp tràn đặc biệt mà phép chia thông thường không báo.
-- `verifyRandomAdd` tạo 10.000 cặp `long` từ seed cố định. Với từng cặp, oracle `BigInteger` quyết định kết quả có vừa long không; test yêu cầu `Math.addExact` trả đúng số khi vừa và ném ngoại lệ khi vượt miền. Dòng `PASS` chỉ được in sau khi toàn bộ vòng lặp kết thúc không có assertion thất bại.
+- `int wrapped` is the overflowed primitive result; `int oracle` gives the true mathematical result.
+- `Math.addExact` detects overflow instead of returning a wrong number.
+- `widen after` performs widening **after** `int` addition, so it is too late; `widen before` converts one operand to `long` before computing.
+- `long wrapped multiply` equals `-2` even though the true result is a huge positive number.
+- `Long.MIN_VALUE / -1` proves integer division has a special overflow case that ordinary division does not report.
+- `verifyRandomAdd` generates 10,000 `long` pairs from a fixed seed. For each pair, the `BigInteger` oracle decides whether the result fits in `long`; the test requires `Math.addExact` to return the exact number when it fits and throw when out of range. `PASS` prints only after the entire loop finishes with zero assertion failures.
 
-Đây là **chương trình minh họa kiểm thử logic**, không phải benchmark tốc độ. `BigInteger` thường tốn tài nguyên hơn primitive, nhưng trong test nó ưu tiên sự chính xác và tính độc lập của oracle.
+This is a **logic-testing demonstration program**, not a speed benchmark. `BigInteger` typically costs more resources than primitives, yet in tests it prioritizes accuracy and oracle independence.
 
-## 7. Kiểm thử biên trước, rồi mới kiểm thử ngẫu nhiên
+## 7. Boundary Testing First, Then Random Testing
 
-Random testing có ích nhưng không thay thế kiểm thử ranh giới. Những giá trị gây tràn thường tập trung ở các mép của miền; một bộ kiểm thử nên bắt đầu bằng các case xác định được mong đợi.
+Random testing is helpful, yet it does not replace boundary testing. Overflow-inducing values cluster at the edges of ranges; a test suite should start with deterministic expected cases.
 
-| Biểu thức | Kết quả toán học | `int`/`long` thông thường | Kỳ vọng với phép kiểm tra exact |
+| Expression | Mathematical result | Ordinary `int`/`long` | Expectation with exact checks |
 | --- | --- | --- | --- |
-| `Integer.MAX_VALUE + 1` | `2147483648` | `Integer.MIN_VALUE` | `Math.addExact` ném lỗi |
-| `Integer.MIN_VALUE - 1` | `-2147483649` | `Integer.MAX_VALUE` | `Math.subtractExact` ném lỗi |
-| `50_000 * 50_000` khi cả hai là int | `2500000000` | `-1794967296` | `Math.multiplyExact(int,int)` ném lỗi |
-| `Long.MAX_VALUE + 1L` | `9223372036854775808` | `Long.MIN_VALUE` | `Math.addExact(long,long)` ném lỗi |
-| `Long.MAX_VALUE * 2L` | `18446744073709551614` | `-2` | `Math.multiplyExact(long,long)` ném lỗi |
-| `-Integer.MIN_VALUE` | `2147483648` | `Integer.MIN_VALUE` | `Math.negateExact` ném lỗi |
-| `Long.MIN_VALUE / -1L` | `9223372036854775808` | `Long.MIN_VALUE` | Phải xử lý trường hợp đặc biệt hoặc kiểm bằng oracle |
-| `Integer.MAX_VALUE + 0` | `2147483647` | Đúng | `Math.addExact` trả kết quả |
-| `Long.MIN_VALUE * 1L` | `Long.MIN_VALUE` | Đúng | `Math.multiplyExact` trả kết quả |
+| `Integer.MAX_VALUE + 1` | `2147483648` | `Integer.MIN_VALUE` | `Math.addExact` throws |
+| `Integer.MIN_VALUE - 1` | `-2147483649` | `Integer.MAX_VALUE` | `Math.subtractExact` throws |
+| `50_000 * 50_000` when both are `int` | `2500000000` | `-1794967296` | `Math.multiplyExact(int,int)` throws |
+| `Long.MAX_VALUE + 1L` | `9223372036854775808` | `Long.MIN_VALUE` | `Math.addExact(long,long)` throws |
+| `Long.MAX_VALUE * 2L` | `18446744073709551614` | `-2` | `Math.multiplyExact(long,long)` throws |
+| `-Integer.MIN_VALUE` | `2147483648` | `Integer.MIN_VALUE` | `Math.negateExact` throws |
+| `Long.MIN_VALUE / -1L` | `9223372036854775808` | `Long.MIN_VALUE` | Must handle special case or check via oracle |
+| `Integer.MAX_VALUE + 0` | `2147483647` | Correct | `Math.addExact` returns result |
+| `Long.MIN_VALUE * 1L` | `Long.MIN_VALUE` | Correct | `Math.multiplyExact` returns result |
 
-Test thêm các cặp `MIN_VALUE`, `MAX_VALUE`, `-1`, `0`, `1`, `2`, số gần ranh giới, giá trị âm/dương đối xứng và số lớn. Với phép chia, phải phân biệt **chia cho 0** và **tràn `MIN_VALUE / -1`**, vì đây là hai điều kiện lỗi khác nhau.
+Also test pairs combining `MIN_VALUE`, `MAX_VALUE`, `-1`, `0`, `1`, `2`, near-boundary numbers, symmetric negative/positive values, and large numbers. For division, distinguish **division by 0** and **`MIN_VALUE / -1` overflow**, because these are two different failure conditions.
 
-### 7.1. Dùng property-based testing với BigInteger
+### 7.1. Using Property-Based Testing with `BigInteger`
 
-Một thuộc tính (*property*) hữu ích cho hàm cộng long kiểm tra tràn:
+A useful *property* for an overflow-checking `long` addition function:
 
-> Với mọi `a` và `b`, gọi `BigInteger.valueOf(a).add(BigInteger.valueOf(b))` được oracle. Nếu oracle nằm trong khoảng `Long.MIN_VALUE..Long.MAX_VALUE`, hàm cần trả đúng oracle; nếu nằm ngoài, hàm phải báo tràn theo hợp đồng.
+> For all `a` and `b`, let `BigInteger.valueOf(a).add(BigInteger.valueOf(b))` be the oracle. If the oracle lies within `Long.MIN_VALUE..Long.MAX_VALUE`, the function must return the exact oracle; if outside, the function must report overflow per contract.
 
-Áp dụng tương tự cho trừ/nhân. Có thể lấy dữ liệu bằng `Random` với seed cố định như chương trình mẫu để tái tạo lỗi. Tốt hơn nữa, kết hợp một tập giá trị biên được chọn thủ công; các cặp ngẫu nhiên `long` có thể gặp tràn cộng nhưng dễ bỏ qua một số tình huống quan trọng như `MIN_VALUE / -1` nếu không cố ý tạo.
+Apply the same approach to subtraction/multiplication. You can generate inputs with `Random` using a fixed seed as in the sample program to reproduce failures. Better yet, combine with a manually curated boundary set; random `long` pairs can trigger addition overflow yet easily miss critical cases like `MIN_VALUE / -1` unless explicitly constructed.
 
-Nếu dùng thư viện property-testing, mỗi phép thử thất bại cần ghi đủ toán hạng, operation, giá trị oracle và exception để dễ tái lập. Thu hẹp (*shrinking*) giúp tìm phản ví dụ đơn giản hơn, nhưng không làm mất ý nghĩa của kiểm thử biên.
+If using a property-testing library, each failed trial should log operands, operation, oracle value, and exception to make reproduction easy. *Shrinking* helps find simpler counterexamples, yet does not diminish the value of explicit boundary testing.
 
-### 7.2. Phải xác định hợp đồng trước khi test
+### 7.2. Define the Contract Before Testing
 
-Không phải ứng dụng nào cũng cần ném lỗi khi vượt miền:
+Not every application should throw an error when exceeding a range:
 
-- **Checked arithmetic:** tràn là lỗi; dùng `Math.*Exact` và kỳ vọng `ArithmeticException`.
-- **Wraparound có chủ đích:** một số thuật toán hash/bit manipulation định nghĩa modulo \(2^{32}\) hoặc \(2^{64}\); oracle vẫn hữu ích nhưng cần so **bit thấp** theo đặc tả, thay vì luôn yêu cầu ném lỗi.
-- **Saturating arithmetic:** kẹp kết quả ở min/max; oracle xác định trước khi kẹp rồi kiểm kết quả cuối.
-- **Arbitrary precision:** giữ giá trị `BigInteger` hoặc kiểu thích hợp, không ép về `long`.
+- **Checked arithmetic:** overflow is an error; use `Math.*Exact` and expect `ArithmeticException`.
+- **Intentional wraparound:** some hash/bit-manipulation algorithms specify arithmetic modulo \(2^{32}\) or \(2^{64}\); an oracle is still useful, yet compare **low-order bits** per specification instead of always expecting an error.
+- **Saturating arithmetic:** clamp results at min/max; the oracle computes before clamping and then checks the final result.
+- **Arbitrary precision:** keep values in `BigInteger` or an appropriate type rather than casting back to `long`.
 
-Việc so `long actual` với `BigInteger.longValue()` chỉ kiểm tra phần bit thấp và **không phát hiện tràn** nếu yêu cầu là số học chính xác. Cách so ấy chỉ hợp lệ khi contract thực sự là modulo/wraparound.
+Comparing `long actual` with `BigInteger.longValue()` checks only the low-order bits and **fails to detect overflow** if exact arithmetic is required. That comparison is valid only when the contract truly specifies modulo/wraparound semantics.
 
-## 8. Phát hiện tràn khi ép kiểu và tổng hợp nhiều bước
+## 8. Detecting Overflow During Casting and Multi-Step Aggregations
 
-### 8.1. Ép long xuống int
+### 8.1. Casting `long` to `int`
 
 ~~~java
 long input = 2_147_483_648L;
 
-int silent = (int) input; // -2147483648, bỏ bit cao
+int silent = (int) input; // -2147483648, drops high bits
 
 try {
     int checked = Math.toIntExact(input);
 } catch (ArithmeticException ex) {
-    // input nằm ngoài miền int
+    // input is outside the int range
 }
 ~~~
 
-`Math.toIntExact` chỉ kiểm tra **chuyển `long` → `int`**. Nếu kết quả đã tràn khi tính trong `long` trước đó, nó không thể phục hồi giá trị gốc.
+`Math.toIntExact` only checks the **`long` → `int` conversion**. If the result already overflowed earlier while computed in `long`, it cannot recover the original value.
 
-`BigInteger.intValueExact()` cũng phát hiện giá trị ngoài miền int:
+`BigInteger.intValueExact()` also detects values outside the `int` range:
 
 ~~~java
 BigInteger large = BigInteger.valueOf(Integer.MAX_VALUE)
         .add(BigInteger.ONE);
 
-large.intValue();      // -2147483648: mất bit
+large.intValue();      // -2147483648: bit loss
 large.intValueExact(); // ArithmeticException
 ~~~
 
-### 8.2. Tìm lỗi ở đâu trong chuỗi tính toán
+### 8.2. Where to Locate Bugs in a Calculation Chain
 
-Một quy trình chẩn đoán có thể đi theo các bước:
+A diagnostic workflow can follow these steps:
 
-1. **Xác định kiểu của từng toán hạng ở thời điểm phép toán chạy**: hai `int` cộng trước khi gán vào `long` vẫn cộng theo `int`.
-2. **Ghi lại toán hạng gốc trước phép toán nghi ngờ**, không chỉ giá trị đầu ra sau khi đã tràn.
-3. **Tính oracle bằng BigInteger trên các toán hạng gốc**, tách khỏi mã sản phẩm đang kiểm thử.
-4. **So cận kiểu đích** và xác định bước đầu tiên vượt miền.
-5. **Thay toán tử bằng API exact hoặc đổi mô hình kiểu** nếu hợp đồng yêu cầu từ chối tràn.
-6. **Thêm regression test** với bộ số gây lỗi và những giá trị sát biên.
+1. **Identify the type of each operand at the moment the operation runs**: two `int`s added before assignment to `long` still add as `int`.
+2. **Capture the original operands before the suspect operation**, not just the output value after it has overflowed.
+3. **Compute an oracle with `BigInteger` on the original operands**, independent of the production code under test.
+4. **Compare against target type bounds** and locate the first step that exceeds range.
+5. **Replace operators with exact APIs or change the type model** if the contract requires rejecting overflow.
+6. **Add a regression test** with the failing numbers and near-boundary values.
 
-Cẩn thận khi debug bằng log: nếu log chỉ in `sum` đã bị wrap, việc thấy số âm có thể gây hiểu nhầm rằng dữ liệu nguồn đã âm. Log toán hạng gốc và ngữ nghĩa đơn vị/range giúp truy ngược nguyên nhân.
+Be careful when debugging via logs: if logs print only a wrapped `sum`, seeing a negative number can mislead you into thinking the source data was negative. Logging original operands and unit/range semantics helps trace back to the root cause.
 
-### 8.3. Tính toán kích thước và chỉ số
+### 8.3. Size and Index Calculations
 
-Ví dụ sai kinh điển là:
+A classic buggy example is:
 
 ~~~java
 int mid = (left + right) / 2;
 ~~~
 
-Khi `left` và `right` là chỉ số int rất lớn, phép cộng có thể tràn dù trung điểm toán học vẫn hợp lệ. Với `0 <= left <= right`, biểu thức:
+When `left` and `right` are very large `int` indices, the addition can overflow even when the mathematical midpoint is valid. With `0 <= left <= right`, the expression:
 
 ~~~java
 int mid = left + (right - left) / 2;
 ~~~
 
-tránh phép cộng trực tiếp hai chỉ số lớn trong trường hợp điều kiện đã được giữ. Nhưng **đừng áp công thức này ngoài điều kiện** vì `right - left` cũng có thể tràn khi chỉ số có dấu khác thường. Nếu cần hỗ trợ mọi giá trị int, có thể nâng sang long trước:
+avoids adding two large indices directly when that precondition holds. Yet **do not apply this formula outside that precondition** because `right - left` can also overflow when indices have unusual signs. If you need to support all `int` values, widen to `long` first:
 
 ~~~java
 long midWide = ((long) left + (long) right) / 2;
 ~~~
 
-Kết quả khi chia hai và làm tròn có thể khác nếu có số âm, nên định nghĩa lại hợp đồng trung điểm khi không còn dùng chỉ số không âm. Sửa overflow phải đi kèm bảo toàn **ngữ nghĩa tính toán**.
+The result of dividing by two and rounding can differ when negative numbers are involved, so redefine the midpoint contract when no longer using non-negative indices. Fixing overflow must go hand in hand with preserving **computational semantics**.
 
-## 9. Các lỗi phổ biến khi tạo phép tính tham chiếu
+## 9. Common Mistakes When Building Reference Calculations
 
-1. **Chuyển sang BigInteger sau khi đã tràn:** `BigInteger.valueOf(a * b)` không còn là oracle cho tích chính xác nếu `a*b` chạy bằng long.
-2. **Ép về long/int sau tính toán mà không dùng Exact:** `big.longValue()` và `big.intValue()` có thể mất bit cao.
-3. **Cho rằng mọi phép cộng có thể sửa bằng cast ở cuối:** `(long)(a+b)` tính `a+b` bằng int trước khi cast.
-4. **Chỉ kiểm tra số dương:** âm dưới `MIN_VALUE` cũng tràn, còn `MIN_VALUE` đổi dấu/trị tuyệt đối là trường hợp đặc biệt.
-5. **Bỏ qua phép chia `MIN_VALUE / -1`:** kết quả primitive đã tràn mà không ném ngoại lệ.
-6. **Nhầm overflow với rounding của float/double:** BigInteger oracle áp dụng cho số nguyên chính xác; số thực cần chiến lược test và sai số thích hợp.
-7. **Dùng lại chính công thức bị kiểm thử làm oracle:** hai phía có cùng lỗi sẽ cùng sai. Tách đường tính tham chiếu, dùng kiểu rộng/độ chính xác độc lập.
-8. **Random test mà không có case biên:** xác suất chạm đúng `Integer.MIN_VALUE`, `Long.MAX_VALUE` hoặc tổ hợp đặc biệt có thể rất nhỏ.
-9. **Chỉ kiểm kết quả cuối khi hợp đồng cấm tràn trung gian:** tổng cuối có thể nằm trong miền sau khi các tổng từng bước từng vượt miền.
-10. **Báo lỗi sau khi đã dùng giá trị hỏng:** kiểm tra tràn tại chỗ tạo giá trị, trước khi dùng làm chỉ số, kích thước, giới hạn hoặc thanh toán.
-11. **Đổi sang BigInteger khắp production không có chủ đích:** cần đánh giá hiệu năng/bộ nhớ và khả năng tương tác. Nếu phạm vi dữ liệu luôn phải nằm trong long, phép tính exact thường đơn giản hơn.
-12. **Ngộ nhận BigInteger tuyệt đối không có giới hạn thực tế:** nó không bị giới hạn 32/64 bit trong toán học thông thường, nhưng bộ nhớ, kích thước mảng và thời gian tính toán vẫn hữu hạn.
+1. **Converting to `BigInteger` after overflow already occurred:** `BigInteger.valueOf(a * b)` is no longer an oracle for the exact product if `a * b` executed in `long`.
+2. **Converting back to `long`/`int` after calculation without `Exact`:** `big.longValue()` and `big.intValue()` can lose high-order bits.
+3. **Assuming any addition can be fixed by a trailing cast:** `(long)(a + b)` computes `a + b` as `int` before casting.
+4. **Testing only positive numbers:** negatives below `MIN_VALUE` also overflow, and negating or taking the absolute value of `MIN_VALUE` is a special case.
+5. **Overlooking `MIN_VALUE / -1` division:** the primitive result overflows without throwing an exception.
+6. **Confusing overflow with `float`/`double` rounding:** `BigInteger` oracles apply to exact integer arithmetic; floating-point needs appropriate testing strategies and tolerances.
+7. **Reusing the formula under test as the oracle:** both sides share the same bug and fail together. Separate the reference calculation path using an independent wide/exact type.
+8. **Random testing without boundary cases:** the probability of hitting `Integer.MIN_VALUE`, `Long.MAX_VALUE`, or special combinations can be tiny.
+9. **Checking only the final result when the contract forbids intermediate overflow:** the final sum might land back in range after intermediate step sums exceeded it.
+10. **Reporting an error after already using the corrupted value:** check for overflow where the value is produced, before using it as an index, size, limit, or payment.
+11. **Switching to `BigInteger` everywhere in production unintentionally:** evaluate performance/memory and interoperability. If data ranges must always fit in `long`, exact arithmetic is usually simpler.
+12. **Misbelieving `BigInteger` has absolutely no practical limits:** it has no 32/64-bit mathematical limit, yet memory, array sizes, and computation time remain finite.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Vì sao `long result = Integer.MAX_VALUE + 1;` lại có thể nhận số âm?
+**Question 1.** Why can `long result = Integer.MAX_VALUE + 1;` receive a negative number?
 
-**Đáp án:** Hai toán hạng được cộng theo `int` trước khi gán vào `long`. Cộng tràn rồi mới mở rộng. Viết `(long) Integer.MAX_VALUE + 1` để phép cộng chạy bằng long.
+**Answer:** Both operands are added as `int` before assignment to `long`. Addition overflows first and only then widens. Write `(long) Integer.MAX_VALUE + 1` so addition executes in `long`.
 
-**Câu 2.** Kết quả của `BigInteger.valueOf(Long.MAX_VALUE * 2L)` có phải oracle đúng không?
+**Question 2.** Is `BigInteger.valueOf(Long.MAX_VALUE * 2L)` a valid oracle?
 
-**Đáp án:** Không. Phép nhân long đã tràn thành `-2` trước khi chuyển. Oracle đúng là `BigInteger.valueOf(Long.MAX_VALUE).multiply(BigInteger.TWO)`.
+**Answer:** No. `long` multiplication already overflowed to `-2` before conversion. The right oracle is `BigInteger.valueOf(Long.MAX_VALUE).multiply(BigInteger.TWO)`.
 
-**Câu 3.** Khi nào `Math.addExact(a,b)` trả số, khi nào ném lỗi?
+**Question 3.** When does `Math.addExact(a, b)` return a number, and when does it throw?
 
-**Đáp án:** Trả chính xác kết quả nếu còn trong phạm vi kiểu của overload được gọi; ném `ArithmeticException` nếu phép cộng vượt phạm vi đó.
+**Answer:** It returns the exact result if within the range of the invoked overload's type; it throws `ArithmeticException` if the addition exceeds that range.
 
-**Câu 4.** `Long.MIN_VALUE / -1L` có ném ngoại lệ không?
+**Question 4.** Does `Long.MIN_VALUE / -1L` throw an exception?
 
-**Đáp án:** Không; toán tử phép chia long trả `Long.MIN_VALUE`. Kết quả toán học lớn hơn `Long.MAX_VALUE`, nên phải kiểm trường hợp này hoặc dùng BigInteger nếu cần tính chính xác.
+**Answer:** No; the `long` division operator returns `Long.MIN_VALUE`. The mathematical result exceeds `Long.MAX_VALUE`, so guard this case or use `BigInteger` if exact calculation is required.
 
-**Câu 5.** Có thể dùng `BigInteger.longValue()` để phát hiện một số quá lớn cho long không?
+**Question 5.** Can `BigInteger.longValue()` be used to detect a number too large for `long`?
 
-**Đáp án:** Không. Dùng `longValueExact()` hoặc so với hai cận để phát hiện tràn; `longValue()` có thể bỏ bit cao.
+**Answer:** No. Use `longValueExact()` or compare against both bounds to detect overflow; `longValue()` can drop high-order bits.
 
-**Câu 6.** Mảng `{Integer.MAX_VALUE, 1, -1}` có tổng toán học cuối là bao nhiêu và vì sao test dùng `Math.addExact` có thể thất bại?
+**Question 6.** What is the final mathematical sum of `{Integer.MAX_VALUE, 1, -1}`, and why might a test using `Math.addExact` fail?
 
-**Đáp án:** Tổng chính xác cuối bằng `Integer.MAX_VALUE`, nhưng tổng trung gian sau phần tử thứ hai vượt phạm vi int. Test từ chối mọi tràn trung gian sẽ phát hiện ngay bước đó; test chỉ kiểm tổng toán học cuối cần một oracle khác.
+**Answer:** The final exact sum is `Integer.MAX_VALUE`, yet the intermediate sum after the second element exceeds `int` range. A test rejecting any intermediate overflow fails right at that step; a test checking only the final mathematical sum needs a different oracle.
 
-**Câu 7.** Nếu yêu cầu thực sự là arithmetic modulo \(2^{32}\), oracle nên làm gì?
+**Question 7.** If the requirement is truly arithmetic modulo \(2^{32}\), what should the oracle do?
 
-**Đáp án:** Tính kết quả nguyên chính xác bằng BigInteger, sau đó xác định 32 bit thấp theo hợp đồng. Khi hợp đồng cố ý wrap, việc `Math.addExact` ném lỗi không nhất thiết là hành vi mong muốn.
+**Answer:** Compute the exact integer result with `BigInteger`, then extract the low 32 bits per contract. When the contract intentionally specifies wraparound, having `Math.addExact` throw is not necessarily the desired behavior.
 
-## 11. Tài liệu chính thức
+## 11. Official Documentation
 
-- [`BigInteger` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): số nguyên chính xác tùy ý, `valueOf`, `add`, `multiply`, `intValueExact`, `longValueExact`.
+- [`BigInteger` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): arbitrary-precision integers, `valueOf`, `add`, `multiply`, `intValueExact`, `longValueExact`.
 - [`Math` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `addExact`, `subtractExact`, `multiplyExact`, `absExact`, `negateExact`, `toIntExact`.
-- [Java Language Specification 17, Integer Operations](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html): ngữ nghĩa toán tử số nguyên, chuyển kiểu, toán tử số học và trường hợp chia đặc biệt.
-- [`Integer` và `Long` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): giới hạn kiểu số nguyên; xem thêm [`Long`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html).
+- [Java Language Specification 17, Integer Operations](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html): integer operator semantics, conversions, arithmetic operators, and special division cases.
+- [`Integer` and `Long` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): integral type bounds; see also [`Long`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html).
 
-**Ghi nhớ:** Khi kiểm thử tràn `int`/`long`, tạo kết quả tham chiếu bằng `BigInteger` **trước khi tính**, xác minh miền kiểu đích và đối chiếu hành vi expected/actual. Trong logic sản phẩm, dùng `Math.*Exact` nếu muốn báo tràn ngay; khi giá trị hợp lệ vượt 64 bit thì giữ `BigInteger` thay vì ép về primitive. Kiểm thử các giá trị biên, phép chia `MIN_VALUE / -1` và lỗi “ép kiểu sau phép toán” để tránh những sai lệch âm thầm.
+**Takeaway:** When testing `int`/`long` overflow, construct the reference result using `BigInteger` **before computing**, verify target type bounds, and compare expected vs actual behavior. In production logic, use `Math.*Exact` when overflow must fail immediately; when valid values exceed 64 bits, keep `BigInteger` rather than casting to primitives. Test boundary values, `MIN_VALUE / -1` division, and “cast after operation” bugs to avoid silent inaccuracies.

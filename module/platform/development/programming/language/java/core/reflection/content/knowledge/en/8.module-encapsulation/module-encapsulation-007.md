@@ -1,6 +1,6 @@
-# `InaccessibleObjectException` và nguyên nhân không thể mở truy cập trong Java Reflection
+# `InaccessibleObjectException` and Why Access Cannot Be Opened in Java Reflection
 
-Một đoạn reflection có thể tìm được `Field`, `Method` hoặc `Constructor` nhưng thất bại ngay tại `setAccessible(true)`:
+A reflection snippet may find a `Field`, `Method`, or `Constructor`, yet fail immediately at `setAccessible(true)`:
 
 ```text
 java.lang.reflect.InaccessibleObjectException:
@@ -8,54 +8,54 @@ java.lang.reflect.InaccessibleObjectException:
   module java.base does not "opens java.lang" to unnamed module ...
 ```
 
-Đây thường là dấu hiệu của **strong encapsulation (đóng gói mạnh) giữa các module**, nhất là khi thư viện cố phản chiếu sâu vào thành viên `private` của JDK hay của một *named module* khác. Cần phân biệt ba chuyện: **tìm thấy khai báo**, **được phép bỏ qua kiểm tra truy cập của ngôn ngữ Java**, và **thực sự đọc/ghi/gọi thành viên**. Tìm thấy một field bằng `getDeclaredField()` chưa cấp quyền đọc field đó.
+This is usually a sign of **strong encapsulation between modules**, especially when a library attempts to deep-reflect into a `private` member of the JDK or another *named module*. You must distinguish three things: **finding a declaration**, **being permitted to bypass Java language access checks**, and **actually reading/writing/invoking the member**. Finding a field with `getDeclaredField()` does not grant permission to read that field.
 
-Bài này trình bày ngữ nghĩa của `InaccessibleObjectException` trong Java 17+, cách `exports` và `opens` của Java Platform Module System (JPMS) tác động đến reflection, quy trình chẩn đoán, cách sửa đúng từ `module-info.java` và cách dùng `--add-opens` có giới hạn.
+This lesson covers the semantics of `InaccessibleObjectException` in Java 17+, how `exports` and `opens` in the Java Platform Module System (JPMS) affect reflection, a diagnostic workflow, fixing it properly in `module-info.java`, and using `--add-opens` narrowly.
 
-## 1. Khi nào xuất hiện `InaccessibleObjectException`?
+## 1. When Does `InaccessibleObjectException` Appear?
 
-`java.lang.reflect.InaccessibleObjectException` là **unchecked exception** (kế thừa `RuntimeException`). Nó biểu thị rằng chương trình **không thể yêu cầu bỏ qua Java language access checks** cho một đối tượng reflection, thường là với `AccessibleObject.setAccessible(true)`. Các đối tượng có liên quan gồm:
+`java.lang.reflect.InaccessibleObjectException` is an **unchecked exception** (extending `RuntimeException`). It indicates that the program **cannot request bypassing Java language access checks** for a reflection object, typically with `AccessibleObject.setAccessible(true)`. The objects involved include:
 
-| Đối tượng | API thường kích hoạt lỗi | Định nghĩa điều muốn làm |
+| Object | API That Typically Triggers the Error | Definition of What It Wants to Do |
 | --- | --- | --- |
-| `Field` | `field.setAccessible(true)` | Xin cho phép đọc/ghi field dù kiểm tra truy cập thông thường sẽ chặn |
-| `Method` | `method.setAccessible(true)` | Xin cho phép gọi method vượt qua access checks thông thường |
-| `Constructor<?>` | `constructor.setAccessible(true)` | Xin cho phép gọi constructor vượt qua access checks thông thường |
-| Mảng `AccessibleObject[]` | `AccessibleObject.setAccessible(array, true)` | Xin suppress access checks cho từng phần tử |
+| `Field` | `field.setAccessible(true)` | Request permission to read/write the field even though normal access checks would block it |
+| `Method` | `method.setAccessible(true)` | Request permission to invoke the method bypassing normal access checks |
+| `Constructor<?>` | `constructor.setAccessible(true)` | Request permission to invoke the constructor bypassing normal access checks |
+| Array `AccessibleObject[]` | `AccessibleObject.setAccessible(array, true)` | Request suppressing access checks for each element |
 
-Đặc biệt, *exception này không có nghĩa field hoặc method không tồn tại*. Ví dụ `String.class.getDeclaredField("value")` có thể tìm được field `private` nội bộ, nhưng `setAccessible(true)` không nhất thiết thành công.
+In particular, *this exception does not mean the field or method does not exist*. For example, `String.class.getDeclaredField("value")` can find the internal `private` field, yet `setAccessible(true)` does not necessarily succeed.
 
-### Ba API, ba câu hỏi khác nhau
+### Three APIs, Three Different Questions
 
-- `getDeclaredField("x")`, `getDeclaredMethod(...)`: **có khai báo như vậy không?** Thường trả về metadata mà chưa cho phép thao tác member.
-- `canAccess(receiver)`: **với caller và receiver hiện tại, thao tác reflective có vượt được access check không?** Có thể trả `true` nếu thành viên vốn accessible hoặc việc suppress check đã được cho phép.
-- `trySetAccessible()`: **thử yêu cầu suppress Java language access checks**; trả `true` khi thành công, `false` khi không thể mở truy cập theo các quy tắc cho phép của API (một lỗi khác như `SecurityException` vẫn có thể xảy ra trong môi trường áp dụng chính sách bảo mật).
-- `setAccessible(true)`: yêu cầu tương tự `trySetAccessible()` nhưng có thể **ném `InaccessibleObjectException`** khi không thể bật quyền truy cập.
+- `getDeclaredField("x")`, `getDeclaredMethod(...)`: **is there such a declaration?** Usually returns metadata without granting permission to operate on the member.
+- `canAccess(receiver)`: **given the current caller and receiver, does the reflective operation pass access checks?** May return `true` if the member is already accessible or check suppression has been enabled.
+- `trySetAccessible()`: **attempt to request suppressing Java language access checks**; returns `true` when it succeeds, `false` when access cannot be enabled under the API's permission rules (another error such as `SecurityException` may still occur in environments enforcing a security policy).
+- `setAccessible(true)`: makes the same request as `trySetAccessible()`, but can **throw `InaccessibleObjectException`** when access cannot be enabled.
 
-Cờ accessibility trên đối tượng `AccessibleObject` là cơ chế reflection; nó **không thay đổi** modifier gốc của class, field hay method. `private` vẫn là `private`. `setAccessible(false)` chỉ bật lại việc kiểm tra truy cập thông thường đối với đối tượng reflection đó.
+The accessibility flag on an `AccessibleObject` is a reflection mechanism; it **does not change** the original modifier of the class, field, or method. `private` remains `private`. `setAccessible(false)` simply re-enables normal access checks for that reflection object.
 
-## 2. Nguyên nhân nền tảng: thiếu quyền mở package cho đúng caller
+## 2. Root Cause: Missing Package Open Permission for the Right Caller
 
-JPMS (Java 9+) bổ sung ranh giới giữa các named module trên quy tắc `public`/`private` của ngôn ngữ. `requires` tạo quan hệ đọc module, `exports` cung cấp quyền sử dụng public API, còn `opens` cho phép yêu cầu bỏ qua Java access checks khi Reflection cần truy cập sâu. **`InaccessibleObjectException` phát sinh ở bước xin mở quyền**, không phải vì một field đã biến mất.
+JPMS (Java 9+) adds boundaries between named modules on top of the language's `public`/`private` rules. `requires` establishes module readability, `exports` grants permission to use public APIs, and `opens` allows requesting to bypass Java access checks when Reflection needs deep access. **`InaccessibleObjectException` arises at the step of requesting access**, not because a field disappeared.
 
-| Chính sách của package trong named module | Public API từ module khác | `setAccessible(true)` vào private member từ module khác |
+| Package Policy in Named Module | Public API from Another Module | `setAccessible(true)` on a Private Member from Another Module |
 | --- | --- | --- |
-| Không `exports` hoặc `opens` | Không được phép theo đường Java thông thường | Bị chặn khi không có quyền hợp lệ khác |
-| Chỉ `exports p` (có thể `to m`) | Có, với caller được phép và visibility hợp lệ | `exports` không đủ |
-| Chỉ `opens p` (có thể `to m`) | Không tự cấp quyền `import` khi biên dịch | Có thể thành công với module caller được mở |
-| Cả `exports` và `opens` | Có quyền API public và khả năng deep reflection theo phạm vi đã cấp | Có thể thành công |
+| Neither `exports` nor `opens` | Not permitted via normal Java access | Blocked unless another valid permission exists |
+| Only `exports p` (optionally `to m`) | Yes, for permitted callers and valid visibility | `exports` is not enough |
+| Only `opens p` (optionally `to m`) | Does not automatically grant `import` at compile time | Can succeed for the caller module to which it is opened |
+| Both `exports` and `opens` | Public API permission and deep reflection within the granted scope | Can succeed |
 
-Nếu sở hữu module `com.example.domain`, có thể `exports com.example.domain.api;` cho API chính thức và `opens com.example.domain.model to com.example.serializer;` cho serializer phải đọc private members. Nếu chọn `open module`, mọi package sẽ mở cho Reflection; trong body của `open module` không thêm `opens` từng package.
+If you own module `com.example.domain`, you can `exports com.example.domain.api;` for the official API and `opens com.example.domain.model to com.example.serializer;` for a serializer that must read private members. If you choose `open module`, every package will be opened for Reflection; inside the body of an `open module`, do not add per-package `opens`.
 
-### Vì sao lỗi xuất hiện nhiều từ Java 17?
+### Why Does This Error Appear Frequently Starting in Java 17?
 
-Các phiên bản JDK trước đây có những cơ chế tương thích để nhiều thư viện tiếp tục phản chiếu vào nội bộ JDK. Từ **Java 17 (JEP 403)**, đóng gói mạnh các internal JDK APIs là hành vi mặc định và tùy chọn legacy `--illegal-access` không còn bật lại cơ chế mở rộng truy cập cũ. Những thư viện vẫn gọi `setAccessible(true)` vào field/method thuộc package JDK chưa mở có thể gặp `InaccessibleObjectException`.
+Earlier JDK versions had compatibility mechanisms allowing many libraries to keep reflecting into JDK internals. Since **Java 17 (JEP 403)**, strong encapsulation of internal JDK APIs is the default behavior and the legacy `--illegal-access` option no longer re-enables the old broadened-access mechanism. Libraries that still call `setAccessible(true)` on fields/methods in unopened JDK packages can hit `InaccessibleObjectException`.
 
-Ví dụ `java.lang` thuộc module `java.base`. Module này có public APIs thông dụng, nhưng việc nhìn thấy lớp `java.lang.String` **không** trao quyền đọc field `private` của `String`. Ngay cả khi sử dụng `String` bình thường, deep reflection vào cấu trúc nội bộ của nó có thể bị chặn.
+For example, `java.lang` belongs to module `java.base`. This module has widely used public APIs, yet seeing class `java.lang.String` **does not** grant permission to read `String`'s `private` fields. Even when using `String` normally, deep reflection into its internal structure can be blocked.
 
-## 3. Ví dụ Java 17+ có thể chạy và tái hiện lỗi
+## 3. Runnable Java 17+ Example to Reproduce the Error
 
-Lưu đoạn sau thành `DeepReflectionDemo.java`. Ví dụ cố tình thử truy cập field nội bộ của `String` để quan sát khác biệt giữa việc **tìm được khai báo** và việc **được phép mở truy cập**. Chương trình chỉ thử metadata/accessibility, không đọc hay sửa giá trị field `String`.
+Save the following as `DeepReflectionDemo.java`. The example intentionally tries to access an internal field of `String` to observe the difference between **finding the declaration** and **being allowed to open access**. The program only tests metadata/accessibility and does not read or modify `String`'s field value.
 
 ```java
 import java.lang.reflect.Field;
@@ -90,14 +90,14 @@ public class DeepReflectionDemo {
 }
 ```
 
-Biên dịch/chạy thông thường:
+Compile and run normally:
 
 ```bash
 javac DeepReflectionDemo.java
 java DeepReflectionDemo
 ```
 
-Khi chưa có quyền mở package `java.lang` cho code ở *unnamed module* (classpath), kết quả điển hình trên Java 17+ là:
+Without permission opening package `java.lang` to code in the *unnamed module* (classpath), typical output on Java 17+ is:
 
 ```text
 module: java.base
@@ -108,17 +108,17 @@ setAccessible: InaccessibleObjectException
 canAccess after: false
 ```
 
-- `getDeclaredField("value")` thành công vì API cho phép xem thông tin khai báo.
-- `trySetAccessible()` trả `false`: không có quyền suppress access checks tới private field thuộc package JDK đó.
-- `setAccessible(true)` yêu cầu cùng quyền nhưng ném exception. Đây là điểm xảy ra lỗi được mô phỏng trong bài.
+- `getDeclaredField("value")` succeeds because the API allows viewing declaration metadata.
+- `trySetAccessible()` returns `false`: no permission to suppress access checks on the private field in that JDK package.
+- `setAccessible(true)` makes the same permission request and throws the exception. This is the failure point simulated in this lesson.
 
-Chạy lại cùng class **với đúng một package được mở**:
+Run the same class again **with just that one package opened**:
 
 ```bash
 java --add-opens java.base/java.lang=ALL-UNNAMED DeepReflectionDemo
 ```
 
-Kết quả dự kiến:
+Expected output:
 
 ```text
 module: java.base
@@ -129,42 +129,42 @@ setAccessible: OK
 canAccess after: true
 ```
 
-Tùy chọn này mở `java.lang` của module `java.base` tới tất cả *unnamed modules*, gồm mã chạy trên classpath của ví dụ. Điều đó cho phép suppress checks tại runtime; **nó không biến field thành public** và không thay đổi `getModifiers()`. Tránh phụ thuộc trực tiếp vào `String.value` trong mã ứng dụng thật: cấu trúc nội bộ JDK không phải public contract ổn định.
+This option opens `java.lang` of module `java.base` to all *unnamed modules*, including the classpath code of the example. That allows suppressing checks at runtime; **it does not make the field public** and does not alter `getModifiers()`. Avoid depending directly on `String.value` in real application code: JDK internal structure is not a stable public contract.
 
-## 4. Tách bốn nguyên nhân thường bị nhầm
+## 4. Separating Four Commonly Confused Causes
 
-### 4.1. Package thuộc module khác chưa `opens`
+### 4.1. Package in Another Module Is Not `opens`-ed
 
-Triệu chứng: tên module và package nguồn xuất hiện trong thông báo, chẳng hạn:
+Symptom: the source module and package name appear in the message, for instance:
 
 ```text
 module com.example.domain does not "opens com.example.domain.model"
 to module com.example.serializer
 ```
 
-Đây là lỗi **mở package**. Sửa tại module sở hữu dữ liệu nếu có thể, ví dụ `opens com.example.domain.model to com.example.serializer;`. Đừng sửa ở module gọi bằng cách viết `opens` cho package không thuộc quyền sở hữu của nó.
+This is a **package-opening** error. Fix it in the module that owns the data if possible, e.g., `opens com.example.domain.model to com.example.serializer;`. Do not try to fix it in the calling module by writing `opens` for a package it does not own.
 
-### 4.2. Package `exports` nhưng không `opens`
+### 4.2. Package Is `exports`-ed but Not `opens`-ed
 
-Một method `public` của một class `public` có thể gọi theo cách bình thường từ module có quyền đọc/export; đồng thời field `private` của chính class đó vẫn không được truy cập sâu. Các framework JSON, ORM, dependency injection cần khởi tạo/điền field bằng reflection có thể gặp trường hợp này.
+A `public` method of a `public` class can be called normally from a module with read/export permission; at the same time, `private` fields of that very class remain inaccessible to deep access. JSON, ORM, and dependency injection frameworks that need to instantiate/populate fields via reflection can encounter this case.
 
-Sửa theo nhu cầu thực tế: API công khai → `exports`; truy cập private runtime bởi framework → `opens` thích hợp. Có thể dùng cả hai nếu hai nhu cầu cùng tồn tại.
+Fix according to actual need: public API → `exports`; private runtime access by a framework → appropriate `opens`. Both can be used if both needs coexist.
 
-### 4.3. Code không có quyền truy cập Java thông thường
+### 4.3. Code Lacks Normal Java Access Permission
 
-Field `private` hoặc method package-private từ package/caller khác có thể gây `IllegalAccessException` khi **đọc/ghi/gọi mà không suppress access checks**. Trường hợp này không mặc định đồng nghĩa với `InaccessibleObjectException`.
+A `private` field or package-private method from another package/caller can cause `IllegalAccessException` when **reading/writing/invoking without suppressing access checks**. This case does not inherently equate to `InaccessibleObjectException`.
 
-Ví dụ `field.get(receiver)` có thể ném `IllegalAccessException` nếu checks đang bật. Nhưng `field.setAccessible(true)` mới là yêu cầu suppress; nếu module chặn yêu cầu đó thì `InaccessibleObjectException` xuất hiện.
+For example, `field.get(receiver)` can throw `IllegalAccessException` while checks are active. Meanwhile, `field.setAccessible(true)` is the request to suppress checks; if the module blocks that request, `InaccessibleObjectException` appears.
 
-### 4.4. Chạy bằng classpath, module path hoặc môi trường khác nhau
+### 4.4. Running via Classpath, Module Path, or Different Environments
 
-Trong unnamed module (mã classpath), một module có tên thường thấy caller đích là `ALL-UNNAMED` trong cấu hình `--add-opens`. Với named module, đích phải là **đúng tên module**, ví dụ `com.example.serializer`. Vì vậy một lệnh chạy được trong IDE nhưng không chạy trong production có thể do flags JVM, module path, module descriptors hoặc cách đóng gói khác nhau.
+In an unnamed module (classpath code), a named module typically sees the target caller as `ALL-UNNAMED` in `--add-opens` configuration. With a named module, the target must be the **exact module name**, such as `com.example.serializer`. Therefore, a command that works in an IDE yet fails in production can result from differing JVM flags, module path, module descriptors, or packaging.
 
-Nhớ rằng cấu hình build hoặc tham số của `javac` không nhất thiết cũng là tham số của JVM đang chạy. Quyền deep reflection cần được cấp trong **process runtime** thật sự có lỗi.
+Remember that build configuration or `javac` arguments are not necessarily the arguments of the running JVM. Deep reflection permission must be granted in the **runtime process** actually experiencing the error.
 
-## 5. Chọn cách sửa: `module-info.java` hay runtime flag?
+## 5. Choosing the Fix: `module-info.java` or a Runtime Flag?
 
-Khi bạn **sở hữu module đích**, cách rõ ràng nhất là công khai hợp đồng phản chiếu cần thiết trong `module-info.java`. Ví dụ module domain:
+When you **own the target module**, the clearest approach is to declare the required reflection contract in `module-info.java`. For example, a domain module:
 
 ```java
 module com.example.domain {
@@ -173,9 +173,9 @@ module com.example.domain {
 }
 ```
 
-Giải thích: `com.example.mapper` là **tên module**, không phải tên package hoặc tên class. Nếu dự án sử dụng một framework được đóng gói thành named module, cần mở cho **module name mà framework thực sự sử dụng**. Đừng suy ra tên này từ artifact Maven một cách mù quáng: automatic module name và module name khai báo có thể khác artifact file name.
+Explanation: `com.example.mapper` is a **module name**, not a package name or class name. If your project uses a framework packaged as a named module, open to the **module name the framework actually uses**. Do not blindly guess this name from a Maven artifact: an automatic module name and declared module name can differ from the artifact filename.
 
-Khi bạn **không sở hữu module đích**, có thể dùng tùy chọn runtime hẹp nhất cho một vấn đề tương thích cụ thể:
+When you **do not own the target module**, you can use the narrowest runtime option for a specific compatibility issue:
 
 ```bash
 java --add-opens com.example.domain/com.example.domain.model=com.example.mapper \
@@ -183,36 +183,36 @@ java --add-opens com.example.domain/com.example.domain.model=com.example.mapper 
      --module com.example.app/com.example.app.Main
 ```
 
-Dấu `\` ở cuối dòng trong ví dụ là cách nối dòng cho shell kiểu POSIX; trên Windows PowerShell, hãy viết lệnh thành một dòng hoặc dùng cú pháp nối dòng của PowerShell. Tên module/package ở đây là **ví dụ cấu trúc**, chỉ dùng sau khi thay bằng tên có thật trong ứng dụng.
+The trailing `\` in the example is line continuation for POSIX-style shells; in Windows PowerShell, write the command on one line or use PowerShell's line-continuation syntax. The module/package names here are **structural examples**, to be used only after substituting the real names in your application.
 
-Đối với ứng dụng trên classpath:
+For applications on the classpath:
 
 ```bash
 java --add-opens java.base/java.lang=ALL-UNNAMED -cp app.jar com.example.Main
 ```
 
-Cú pháp của tùy chọn:
+Option syntax:
 
 ```text
 --add-opens SOURCE_MODULE/PACKAGE=TARGET_MODULE
 ```
 
-Khi nhiều target, có thể khai báo phù hợp theo tài liệu JVM/version; thường chỉ cần module của framework/caller thật sự sử dụng, hoặc `ALL-UNNAMED` nếu thư viện nằm trên classpath. **Chỉ mở package thực sự cần**, vì mỗi `--add-opens` làm rộng phạm vi mã có thể sử dụng reflection để vượt qua các kiểm tra truy cập trong package đó.
+When there are multiple targets, you can specify them per your JVM/version documentation; usually only the framework/caller module actually using it is needed, or `ALL-UNNAMED` if the library sits on the classpath. **Open only the packages genuinely needed**, because each `--add-opens` widens the scope of code able to use reflection to bypass access checks in that package.
 
-### `--add-opens` khác `--add-exports` ra sao?
+### How Does `--add-opens` Differ from `--add-exports`?
 
-| Tùy chọn | Mục đích chính | Có tự cho phép suppress private access không? |
+| Option | Primary Purpose | Does It Automatically Allow Suppressing Private Access? |
 | --- | --- | --- |
-| `--add-exports source/pkg=target` | Bổ sung quyền truy cập tới public types của package | Không |
-| `--add-opens source/pkg=target` | Mở package cho reflection tại runtime | Có thể, theo quy tắc `AccessibleObject` |
+| `--add-exports source/pkg=target` | Grants additional access to public types of a package | No |
+| `--add-opens source/pkg=target` | Opens a package for reflection at runtime | Possible, per `AccessibleObject` rules |
 
-**Không thay `--add-opens` bằng `--add-exports`** khi vấn đề là `setAccessible(true)` trên field `private`. Ngược lại, khi chương trình cần *compile/import* public class từ module không export, có thể phải giải quyết exports; `--add-opens` không làm cho mọi import compile-time hợp lệ.
+**Do not substitute `--add-exports` for `--add-opens`** when the issue is `setAccessible(true)` on a `private` field. Conversely, when a program needs to *compile/import* a public class from an unexported module, you may need to resolve exports; `--add-opens` does not make compile-time imports valid.
 
-Tốt hơn nữa, nếu có public API chính thức, hãy sử dụng public API hoặc phiên bản thư viện đã được cập nhật để tránh truy cập nội bộ. Flag tương thích nên được xem là giải pháp có kiểm soát, nhất là khi thư viện chạm nhiều gói JDK nội bộ.
+Better yet, if an official public API exists, use the public API or an updated library version to avoid internal access. Compatibility flags should be treated as a controlled measure, especially when a library touches multiple internal JDK packages.
 
-## 6. Quy trình đọc stack trace để tìm đúng package và module
+## 6. Workflow for Reading Stack Traces to Find the Right Package and Module
 
-Một stack trace điển hình thường có thông điệp chứa:
+A typical stack trace usually has a message containing:
 
 ```text
 Unable to make <member> accessible:
@@ -220,9 +220,9 @@ module <source-module> does not "opens <source-package>"
 to <caller-module>
 ```
 
-Hãy trích đúng bốn dữ kiện: **thành viên bị truy cập**, **source module**, **source package**, **caller module**. Ví dụ: `java.lang.String.value`, `java.base`, `java.lang` và `unnamed module`. Khi thông báo nói `to unnamed module`, giải pháp runtime thường cần `ALL-UNNAMED`; khi nói `to module com.example.mapper`, cần nhắm tới đúng named module.
+Extract four exact facts: **accessed member**, **source module**, **source package**, and **caller module**. For example: `java.lang.String.value`, `java.base`, `java.lang`, and `unnamed module`. When the message says `to unnamed module`, the runtime fix usually needs `ALL-UNNAMED`; when it says `to module com.example.mapper`, target that exact named module.
 
-Có thể kiểm tra metadata tại runtime:
+You can inspect metadata at runtime:
 
 ```java
 Class<?> type = String.class;
@@ -237,13 +237,13 @@ System.out.println(callerModule.isNamed());
 System.out.println(sourceModule.isOpen(packageName, callerModule));
 ```
 
-Đây là **đoạn minh họa dùng trong class `DeepReflectionDemo`**, không phải chương trình độc lập mới. Với ví dụ classpath chưa mở `java.lang`, `callerModule.isNamed()` là `false` và `sourceModule.isOpen("java.lang", callerModule)` là `false`. Khi thêm flag `--add-opens java.base/java.lang=ALL-UNNAMED`, phép kiểm tra `isOpen(packageName, callerModule)` trả `true`.
+This is an **illustrative snippet used inside `DeepReflectionDemo`**, not a new standalone program. For the classpath example where `java.lang` is not opened, `callerModule.isNamed()` is `false` and `sourceModule.isOpen("java.lang", callerModule)` is `false`. When `--add-opens java.base/java.lang=ALL-UNNAMED` is added, `isOpen(packageName, callerModule)` returns `true`.
 
-Nếu application được chia thành nhiều classloader/module layer hoặc nhiều Java processes, hãy kiểm tra đúng JVM process phát sinh exception. Các flags đã đặt cho process khác sẽ không giải quyết lỗi.
+If an application is split across multiple class loaders/module layers or multiple Java processes, check the exact JVM process throwing the exception. Flags set on a different process will not resolve the error.
 
-## 7. `canAccess()` và `trySetAccessible()`: cách dùng an toàn
+## 7. `canAccess()` and `trySetAccessible()`: Safe Usage
 
-Thay vì luôn gọi `setAccessible(true)` rồi để exception lan tới tận tầng ứng dụng, thư viện có thể chủ động thăm dò khả năng truy cập:
+Instead of always calling `setAccessible(true)` and letting the exception propagate up to the application layer, a library can proactively probe accessibility:
 
 ```java
 import java.lang.reflect.Field;
@@ -253,7 +253,7 @@ public final class SafeFieldRead {
             throws IllegalAccessException {
         if (!field.canAccess(receiver) && !field.trySetAccessible()) {
             throw new IllegalStateException(
-                    "Không thể mở reflection cho "
+                    "Cannot open reflection for "
                     + field.getDeclaringClass().getName()
                     + "." + field.getName());
         }
@@ -262,77 +262,77 @@ public final class SafeFieldRead {
 }
 ```
 
-Đây là **class tiện ích độc lập về cú pháp**; nó không bao gồm `main`. `receiver` phải hợp lệ với field: field instance cần một đối tượng thuộc class khai báo hoặc subtype phù hợp; field static dùng `null`. Truyền sai receiver có thể gây `IllegalArgumentException`. `trySetAccessible()` trả `false` khi không thể mở do quy tắc JPMS; không phải mọi lỗi truy cập đều chuyển thành `false`.
+This is a **syntactically standalone utility class**; it does not include `main`. `receiver` must be valid for the field: an instance field requires an object of the declaring class or a compatible subtype; a static field uses `null`. Passing the wrong receiver can cause `IllegalArgumentException`. `trySetAccessible()` returns `false` when access cannot be opened due to JPMS rules; not every access failure turns into `false`.
 
-Lưu ý về thiết kế: nếu làm thư viện dùng trên Java 17+, đừng bắt `InaccessibleObjectException` rồi tiếp tục giả vờ đọc field thành công. Hãy cung cấp thông báo chẩn đoán có tên module/package và phương án API công khai, `opens` có chủ đích, hoặc cập nhật thư viện.
+Design note: if building a library targeting Java 17+, do not catch `InaccessibleObjectException` and pretend reading the field succeeded. Provide a diagnostic message naming the module/package along with options for a public API, intentional `opens`, or updating the library.
 
-Với các framework mới, các lựa chọn có cấu trúc như constructor injection, accessors hợp lệ, factory methods, `MethodHandles.privateLookupIn` (nếu điều kiện module cho phép), hoặc cấu hình serialization được hỗ trợ có thể bền vững hơn so với phụ thuộc vào field `private` nội bộ của JDK. **`privateLookupIn` cũng không phải đường vòng để vượt qua package chưa được mở**, vì nó chịu những quy tắc access/module riêng.
+For modern frameworks, structured alternatives such as constructor injection, valid accessors, factory methods, `MethodHandles.privateLookupIn` (if module conditions permit), or supported serialization configuration are more sustainable than depending on internal JDK `private` fields. **`privateLookupIn` is not a backdoor to bypass unopened packages either**, since it is governed by its own access/module rules.
 
-## 8. Phân biệt với exception khác của Reflection
+## 8. Distinguishing from Other Reflection Exceptions
 
-| Loại lỗi | Thường xảy ra ở đâu | Ý nghĩa thực tế |
+| Error Type | Where It Usually Happens | Practical Meaning |
 | --- | --- | --- |
-| `NoSuchFieldException` / `NoSuchMethodException` | `getDeclaredField` / `getDeclaredMethod` | Không tìm được tên/chữ ký trong phạm vi API tìm kiếm |
-| `IllegalAccessException` | `Field.get/set`, `Method.invoke` hoặc constructor invoke | Access checks chưa được đáp ứng khi thực hiện thao tác |
-| `InaccessibleObjectException` | `setAccessible(true)` | Không thể bật suppress Java access checks, thường do package/module chưa `opens` |
-| `InvocationTargetException` | `Method.invoke` hoặc `Constructor.newInstance` | Thân method/constructor được gọi đã ném exception; xem `getCause()` |
-| `IllegalArgumentException` | `Field.get/set`, `canAccess`, `Method.invoke`... | Đối số/receiver/kiểu không hợp lệ |
-| `SecurityException` | Khi môi trường bảo mật có cơ chế kiểm soát tương ứng | Một chính sách runtime có thể từ chối thao tác khác với JPMS `opens` |
+| `NoSuchFieldException` / `NoSuchMethodException` | `getDeclaredField` / `getDeclaredMethod` | Name/signature could not be found within the search API's scope |
+| `IllegalAccessException` | `Field.get/set`, `Method.invoke`, or constructor invocation | Access checks were not satisfied when performing the operation |
+| `InaccessibleObjectException` | `setAccessible(true)` | Cannot enable suppressing Java access checks, usually because the package/module is not `opens`-ed |
+| `InvocationTargetException` | `Method.invoke` or `Constructor.newInstance` | The invoked method/constructor body threw an exception; inspect `getCause()` |
+| `IllegalArgumentException` | `Field.get/set`, `canAccess`, `Method.invoke`... | Invalid argument/receiver/type |
+| `SecurityException` | When a security environment enforces corresponding controls | A runtime policy may reject the operation independently of JPMS `opens` |
 
-Từ khóa phân biệt:
+Distinguishing keywords:
 
-- **Lookup failure:** tên thành viên hoặc chữ ký/phạm vi tìm kiếm sai.
-- **Access check failure:** member tồn tại nhưng chưa thể thao tác.
-- **Suppress failure:** không được bật chế độ vượt qua access checks ⇒ trường hợp `InaccessibleObjectException`.
-- **Target exception:** method đã chạy, lỗi phát sinh từ code đích chứ không phải do mở quyền.
+- **Lookup failure:** wrong member name, signature, or search scope.
+- **Access check failure:** the member exists, yet cannot be operated on yet.
+- **Suppress failure:** cannot enable bypassing access checks ⇒ the `InaccessibleObjectException` case.
+- **Target exception:** the method already ran; the error originated from target code, not from opening permissions.
 
-Chẩn đoán đúng loại lỗi sẽ tránh giải pháp sai như «thêm `--add-opens`» cho `NoSuchFieldException` hoặc sửa `getDeclaredMethod` khi thực tế package của module đang bị đóng.
+Diagnosing the right error category prevents wrong fixes like "add `--add-opens`" for `NoSuchFieldException` or editing `getDeclaredMethod` when the module's package is actually closed.
 
-## 9. Những lỗi cấu hình thường gặp
+## 9. Common Configuration Mistakes
 
-**Lỗi A — Dùng `exports` thay cho `opens`.** Thêm `exports p` chỉ giúp dùng public API; không cấp quyền truy cập `private` qua `setAccessible(true)` cho module bên ngoài. Cần `opens p to framework.module` nếu framework thực sự có yêu cầu legitimate deep reflection.
+**Mistake A — Using `exports` instead of `opens`.** Adding `exports p` only enables using public APIs; it does not grant `private` access via `setAccessible(true)` to external modules. You need `opens p to framework.module` if the framework genuinely has a legitimate deep reflection requirement.
 
-**Lỗi B — Mở sai phía.** Directive `opens` nằm trong module **sở hữu package bị phản chiếu**, không phải trong module caller. Nếu stack trace nói `module java.base does not "opens java.lang"` thì việc chỉnh `module-info.java` của ứng dụng để `opens com.example.app` không giải quyết vấn đề đối với `java.lang`.
+**Mistake B — Opening the wrong side.** The `opens` directive goes in the module **that owns the reflected package**, not in the caller module. If the stack trace says `module java.base does not "opens java.lang"`, editing the application's `module-info.java` to `opens com.example.app` does not solve anything for `java.lang`.
 
-**Lỗi C — Dùng sai target.** `ALL-UNNAMED` là tập unnamed modules trên classpath; một thư viện đã nằm trong named module cần quyền hướng tới tên module thật của nó. Thông báo exception là manh mối đáng tin hơn suy đoán từ tên JAR.
+**Mistake C — Using the wrong target.** `ALL-UNNAMED` covers unnamed modules on the classpath; a library already inside a named module needs permission directed to its actual module name. The exception message is a more reliable clue than guessing from a JAR name.
 
-**Lỗi D — Đặt cờ ở build mà không đặt ở runtime.** `--add-opens` phải áp dụng lên đúng JVM thực hiện reflection. IDE Run Configuration, lệnh `java`, tiến trình Gradle Test, container và server production có thể có JVM args khác nhau. Tránh giải pháp «đã thêm flag» khi thêm nhầm vào JVM khác.
+**Mistake D — Setting the flag at build time instead of runtime.** `--add-opens` must be applied to the exact JVM performing reflection. IDE Run Configurations, `java` commands, Gradle Test forks, containers, and production servers can have different JVM args. Avoid the "already added the flag" trap when it was added to the wrong JVM.
 
-**Lỗi E — Dùng `--illegal-access=permit` theo hướng dẫn cũ.** Từ Java 17 tùy chọn này đã lỗi thời, không khôi phục được quyền mở package JDK như cơ chế tương thích trước đó. Nên cập nhật thư viện hoặc cấp `--add-opens` chính xác nếu thật sự cần.
+**Mistake E — Using `--illegal-access=permit` from outdated guides.** Since Java 17 this option is obsolete and no longer restores JDK package-opening permissions like the earlier compatibility mechanism. Update the library or supply targeted `--add-opens` if genuinely needed.
 
-**Lỗi F — Mở mọi package JDK để dập log.** Cách đó vừa mở rộng quyền runtime không cần thiết vừa che dấu phụ thuộc vào API nội bộ thiếu ổn định. Chỉ mở package đã xác minh và theo dõi vì sao thư viện còn cần truy cập đó.
+**Mistake F — Opening all JDK packages to silence logs.** That both widens runtime permissions unnecessarily and hides reliance on unstable internal APIs. Open only verified packages and track why the library still requires that access.
 
-**Lỗi G — Nghĩ `public` member luôn đủ.** Một public method bên trong class/package/module không được xuất đúng phạm vi có thể vẫn inaccessible. Cần xét cả accessibility của declaring class, package/module và caller.
+**Mistake G — Thinking a `public` member is always enough.** A public method inside a class/package/module not appropriately exposed can still be inaccessible. You must consider the accessibility of the declaring class, package/module, and caller.
 
-## 10. Quy trình xử lý sự cố theo từng bước
+## 10. Step-by-Step Troubleshooting Workflow
 
-1. **Xác định nơi ném lỗi.** Là `setAccessible`, `trySetAccessible`, `getDeclaredXxx` hay `invoke`? Chỉ nhìn câu «reflection failed» chưa đủ.
-2. **Đọc chính xác message.** Ghi lại source module, package, caller và member. Nếu không có thông điệp JPMS, xem thêm khả năng khác.
-3. **Xác định cách chạy.** Mã caller thuộc unnamed module trên classpath hay named module trên module path? Nơi lỗi phát sinh là đúng JVM/process nào?
-4. **Xác minh mục đích.** Framework thực sự cần private field/method, hay có thể gọi public API hoặc cập nhật bản tương thích Java 17+?
-5. **Nếu sở hữu module nguồn**, mở package nhỏ nhất tới đúng module đích bằng `opens ... to ...`. Nếu bên sử dụng là unnamed module và phải hỗ trợ trường hợp đó, cân nhắc chính sách opens rộng hơn một cách chủ động.
-6. **Nếu không sở hữu module nguồn**, dùng phiên bản thư viện hỗ trợ JDK hiện tại; chỉ khi cần thiết mới thêm `--add-opens source/pkg=target` cho đúng runtime.
-7. **Chạy lại test thực tế** trên JDK, runtime args và cách đóng gói giống production; kiểm tra không còn `InaccessibleObjectException` và hành vi chức năng vẫn chính xác.
+1. **Identify where the error is thrown.** Is it `setAccessible`, `trySetAccessible`, `getDeclaredXxx`, or `invoke`? Merely reading "reflection failed" is not enough.
+2. **Read the exact message.** Note the source module, package, caller, and member. If there is no JPMS message, check other possibilities.
+3. **Determine how it runs.** Does the caller code belong to an unnamed module on the classpath or a named module on the module path? Which exact JVM/process is throwing the error?
+4. **Verify the intent.** Does the framework truly need private fields/methods, or can it call a public API or upgrade to a Java 17+ compatible version?
+5. **If you own the source module**, open the smallest package to the exact target module with `opens ... to ...`. If consumers are in unnamed modules and must be supported, consider a broader opens policy deliberately.
+6. **If you do not own the source module**, use a library version supporting the current JDK; only when necessary add `--add-opens source/pkg=target` to the right runtime.
+7. **Rerun real tests** on the same JDK, runtime args, and packaging as production; verify `InaccessibleObjectException` is gone and functional behavior remains correct.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-**1.** Vì sao `getDeclaredField("value")` có thể thành công nhưng `setAccessible(true)` thất bại?  
-Vì tìm metadata không đồng nghĩa có quyền suppress access checks xuyên ranh giới module.
+**1.** Why can `getDeclaredField("value")` succeed while `setAccessible(true)` fails?  
+Because finding metadata does not mean having permission to suppress access checks across module boundaries.
 
-**2.** `exports com.example.model;` có đủ để framework đọc private field bằng reflection không?  
-Không. Khi caller nằm trong module khác, thường cần `opens com.example.model to framework.module;` hoặc quyền runtime tương đương.
+**2.** Is `exports com.example.model;` enough for a framework to read private fields via reflection?  
+No. When the caller is in another module, `opens com.example.model to framework.module;` or equivalent runtime permission is usually needed.
 
-**3.** `--add-opens java.base/java.lang=ALL-UNNAMED` tác động đến đâu?  
-Mở **package `java.lang`** thuộc **module `java.base`** cho deep reflection từ **unnamed modules** trong runtime JVM có flag ấy; không biến `String.value` thành public, không cho phép mọi compile-time imports từ JDK internals.
+**3.** What does `--add-opens java.base/java.lang=ALL-UNNAMED` affect?  
+It opens **package `java.lang`** of **module `java.base`** for deep reflection from **unnamed modules** in the JVM runtime carrying that flag; it does not make `String.value` public and does not enable arbitrary compile-time imports from JDK internals.
 
-**4.** Khi `Method.invoke(...)` ném `InvocationTargetException`, có nên mặc định thêm `--add-opens`?  
-Không. Phải đọc `getCause()` vì phương thức đích đã chạy và ném lỗi riêng; chỉ bổ sung opens khi thật sự có bằng chứng lỗi liên quan JPMS.
+**4.** When `Method.invoke(...)` throws `InvocationTargetException`, should you default to adding `--add-opens`?  
+No. Inspect `getCause()` because the target method already ran and threw its own error; only add opens when there is actual evidence of a JPMS-related error.
 
-## Ghi nhớ
+## Takeaways
 
-- `InaccessibleObjectException` thường báo **không thể bật suppress access checks**; nó không đồng nghĩa `NoSuchFieldException` hay `IllegalAccessException`.
-- **`exports` cho public API**, **`opens` cho deep reflection tại runtime**, với khả năng chỉ định module đích.
-- **`trySetAccessible()`** giúp kiểm tra khả năng mở quyền mà không phải luôn nhận `InaccessibleObjectException`; **`canAccess()`** trả lời về access với caller/receiver thực tế.
-- Trên Java 17+, strong encapsulation bảo vệ phần lớn nội bộ JDK. Ưu tiên public API/thư viện tương thích; nếu buộc phải mở package, chỉ mở đúng nguồn/đích và đúng JVM.
+- `InaccessibleObjectException` usually reports **inability to enable access-check suppression**; it does not mean `NoSuchFieldException` or `IllegalAccessException`.
+- **`exports` is for public APIs**, **`opens` is for runtime deep reflection**, with the ability to specify target modules.
+- **`trySetAccessible()`** lets you check whether opening permission succeeds without always receiving `InaccessibleObjectException`; **`canAccess()`** answers about access with the actual caller/receiver.
+- On Java 17+, strong encapsulation protects most JDK internals. Prefer public APIs/compatible libraries; if you must open a package, open only the exact source/target and exact JVM.
 
-Hiểu rành mạch ba tầng **tìm khai báo → xin suppress checks → thực thi truy cập** là chìa khóa để giải thích và xử lý đúng nguyên nhân của `InaccessibleObjectException`.
+Clearly understanding the three layers **find declaration → request check suppression → execute access** is the key to explaining and properly fixing the root cause of `InaccessibleObjectException`.

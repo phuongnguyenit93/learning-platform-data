@@ -1,22 +1,22 @@
-# Guard clause để giảm mức lồng nhau — Java 17+
+# Guard Clauses to Reduce Nesting — Java 17+
 
-**Guard clause** (*mệnh đề bảo vệ*) là kiểm tra đặt ở **đầu một phương thức hoặc đoạn xử lý** để loại bỏ sớm những trường hợp không thể tiếp tục. Khi điều kiện loại trừ đúng, chương trình **thoát sớm** bằng `return`, `throw` hoặc, trong vòng lặp, `continue`. Phần xử lý chính vì vậy không phải nằm sâu trong nhiều lớp `if`.
+A **guard clause** is a check placed at the **beginning of a method or processing block** to filter out cases that cannot proceed early. When the exclusion condition is true, the program **exits early** with `return`, `throw`, or, inside a loop, `continue`. As a result, the main processing does not have to sit deep inside multiple layers of `if`.
 
 ~~~java
 static String greet(String name) {
     if (name == null || name.isBlank()) {
-        return "Tên không hợp lệ";
+        return "Invalid name";
     }
 
-    return "Xin chào " + name.trim();
+    return "Hello " + name.trim();
 }
 ~~~
 
-Với tên không hợp lệ, phương thức trả kết quả ngay; lệnh tạo lời chào **không chạy**. Đây là một kỹ thuật tổ chức luồng điều khiển bằng các câu lệnh Java thông thường, **không phải từ khóa hoặc cú pháp mới**.
+For an invalid name, the method returns immediately; the greeting-building statement **does not run**. This is a control-flow organization technique using ordinary Java statements, **not a new keyword or syntax**.
 
-## 1. So sánh trước và sau khi dùng guard clause
+## 1. Before and after using guard clauses
 
-### Nhiều cấp `if` lồng nhau
+### Multiple levels of nested `if`
 
 ~~~java
 static String checkNested(String name, Integer age, boolean banned) {
@@ -40,9 +40,9 @@ static String checkNested(String name, Integer age, boolean banned) {
 }
 ~~~
 
-Mỗi điều kiện bổ sung đẩy đường đi thành công vào sâu hơn. Người đọc phải theo dõi nhiều dấu `{ }` và nhánh `else` mới tìm được câu xử lý chính.
+Each additional condition pushes the success path deeper inside. Readers must track multiple `{ }` pairs and `else` branches just to find the main logic.
 
-### Tách các trường hợp loại trừ bằng guard
+### Separating exclusion cases with guards
 
 ~~~java
 static String checkGuarded(String name, Integer age, boolean banned) {
@@ -63,21 +63,21 @@ static String checkGuarded(String name, Integer age, boolean banned) {
 }
 ~~~
 
-Cả hai phiên bản cho **cùng kết quả** với những đầu vào minh họa ở bài, nhưng phiên bản guard làm nổi bật **đường đi thành công** ở cuối, thay vì giấu nó trong bốn cấp lồng nhau.
+Both versions yield the **same result** for the inputs illustrated in this lesson, but the guarded version highlights the **happy path** at the end instead of burying it four levels deep.
 
-| Khía cạnh | `if` lồng nhau | Guard clause |
+| Aspect | Nested `if` | Guard clause |
 | --- | --- | --- |
-| Kiểm tra đầu vào sai | Nằm ở nhiều nhánh `else` | Đọc theo thứ tự từ trên xuống |
-| Phần xử lý chính | Dễ bị đẩy sâu vào trong | Ở mức thụt dòng ngoài cùng của phương thức |
-| Luồng thoát | Có thể là một nhánh khác | Rõ ràng: `return` hoặc `throw` |
-| Khi nên dùng | Có nhiều nhánh nghiệp vụ thực sự phải đi tiếp | Muốn loại bỏ các trường hợp không hợp lệ sớm |
-| Rủi ro | Lồng sâu, dễ nhầm `else` | Quá nhiều điểm thoát nếu tổ chức kém |
+| Invalid input checks | Spread across multiple `else` branches | Read sequentially from top to bottom |
+| Main processing | Easily pushed deep inside | At the outermost indentation level of the method |
+| Exit flow | Might just be another branch | Explicit: `return` or `throw` |
+| When to use | Multiple real business branches must continue | Want to filter out invalid cases early |
+| Risk | Deep nesting, easy to misread `else` | Too many exit points if poorly organized |
 
-**Không có quy tắc bắt buộc** mọi `if` phải biến thành guard. Mục tiêu là luồng điều khiển **dễ hiểu, đúng ngữ nghĩa**.
+**There is no mandatory rule** that every `if` must become a guard. The goal is **readable, semantically accurate** control flow.
 
-## 2. Chương trình Java 17+ hoàn chỉnh
+## 2. Complete Java 17+ program
 
-Tạo tệp UTF-8 tên **`GuardClauseDemo.java`**:
+Create a UTF-8 file named **`GuardClauseDemo.java`**:
 
 ~~~java
 public class GuardClauseDemo {
@@ -204,7 +204,7 @@ public class GuardClauseDemo {
 }
 ~~~
 
-Yêu cầu **JDK 17 trở lên**. Tại thư mục chứa tệp, sử dụng PowerShell trên Windows hoặc Bash trên Linux/macOS:
+Requires **JDK 17 or later**. In the directory containing the file, use PowerShell on Windows or Bash on Linux/macOS:
 
 ~~~bash
 java -version
@@ -213,7 +213,7 @@ javac -encoding UTF-8 GuardClauseDemo.java
 java GuardClauseDemo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java GuardClauseDemo`:
+**Exact expected stdout** of `java GuardClauseDemo` alone:
 
 ~~~text
 == nested vs guarded ==
@@ -244,41 +244,41 @@ log=OK
 done
 ~~~
 
-`java -version` và `javac -version` có đầu ra tùy máy, không nằm trong khối stdout cố định. Mọi phương thức được sử dụng trong chương trình đều đã được định nghĩa trong cùng một lớp.
+`java -version` and `javac -version` have machine-dependent output and are not part of the fixed stdout block. Every method used in the program is defined in the same class.
 
-## 3. Luồng chạy của guard clause
+## 3. Execution flow of guard clauses
 
-Chương trình `trace` in từng lần kiểm tra. Với đầu vào `trace(null, null, false)`, stdout chỉ có `check=name` rồi `invalid=reject:name`. Các lần kiểm tra tuổi và trạng thái bị chặn **không diễn ra**.
+The `trace` method prints each check. For input `trace(null, null, false)`, stdout only has `check=name` followed by `invalid=reject:name`. The age and banned-status checks **do not occur**.
 
-Với `trace("Lan", 25, false)`, mọi guard đều vượt qua; chương trình đến phần `process=main` và trả giá trị thành công.
+With `trace("Lan", 25, false)`, all guards pass; execution reaches `process=main` and returns the success value.
 
 ~~~mermaid
 flowchart TD
-    A["Bắt đầu phương thức"] --> B{"Tên không hợp lệ?"}
-    B -- "Có" --> R1["return reject:name"]
-    B -- "Không" --> C{"Tuổi thiếu hoặc quá nhỏ?"}
-    C -- "Có" --> R2["return reject:age"]
-    C -- "Không" --> D{"Bị chặn?"}
-    D -- "Có" --> R3["return reject:banned"]
-    D -- "Không" --> E["Xử lý chính"]
+    A["Method start"] --> B{"Invalid name?"}
+    B -- "Yes" --> R1["return reject:name"]
+    B -- "No" --> C{"Missing or underage?"}
+    C -- "Yes" --> R2["return reject:age"]
+    C -- "No" --> D{"Banned?"}
+    D -- "Yes" --> R3["return reject:banned"]
+    D -- "No" --> E["Main processing"]
     E --> F["return approved"]
 ~~~
 
-**Quan trọng:** `return` rời khỏi **toàn bộ phương thức hiện tại**, không chỉ rời khỏi khối `if`. Mọi câu lệnh nằm sau `return` trên đường chạy đó đều không được thực thi.
+**Important:** `return` exits the **entire current method**, not just the `if` block. Any statement after `return` along that execution path does not execute.
 
-## 4. Chọn `return`, `throw` hay `continue`
+## 4. Choosing `return`, `throw`, or `continue`
 
-Guard clause là cách tổ chức các **điểm thoát sớm**. Điểm thoát thích hợp phụ thuộc vào việc đầu vào sai là một trường hợp bình thường hay một lỗi cần báo cho bên gọi.
+Guard clauses are a way to structure **early exit points**. The appropriate exit depends on whether invalid input is a normal case or an error that must be reported to the caller.
 
-| Câu lệnh | Phạm vi thoát | Dùng khi |
+| Statement | Exit scope | Use when |
 | --- | --- | --- |
-| `return value;` | Kết thúc phương thức có giá trị trả về | Một trường hợp hợp lệ được giải quyết sớm bằng kết quả |
-| `return;` | Kết thúc phương thức `void` | Không có gì cần xử lý tiếp |
-| `throw new ...;` | Kết thúc luồng bình thường bằng ngoại lệ | Đầu vào vi phạm hợp đồng và bên gọi cần được báo lỗi |
-| `continue;` | Bỏ phần còn lại của lần lặp, sang lần kế tiếp | Loại một phần tử khỏi xử lý trong vòng lặp |
-| `break;` | Kết thúc vòng lặp hoặc `switch` chứa nó | Không cần tiếp tục lặp |
+| `return value;` | Exits a value-returning method | A valid case is resolved early with a result |
+| `return;` | Exits a `void` method | There is nothing left to process |
+| `throw new ...;` | Exits normal flow via exception | Input violates the contract and the caller must be notified |
+| `continue;` | Skips the rest of the iteration, moves to next | Skipping an element inside a loop |
+| `break;` | Exits the enclosing loop or `switch` | No need to continue iterating |
 
-### `return` trong phương thức `void`
+### `return` in a `void` method
 
 ~~~java
 static void logIfPresent(String text) {
@@ -289,9 +289,9 @@ static void logIfPresent(String text) {
 }
 ~~~
 
-`return;` không mang giá trị vì phương thức có kiểu trả về `void`.
+`return;` carries no value because the method has return type `void`.
 
-### `throw` để báo vi phạm điều kiện đầu vào
+### `throw` to report input condition violations
 
 ~~~java
 static int divide(int total, int divisor) {
@@ -302,9 +302,9 @@ static int divide(int total, int divisor) {
 }
 ~~~
 
-Nếu `divisor` bằng 0, phương thức ném ngoại lệ **trước khi chia**, không chỉ trả một giá trị mặc định có thể che giấu lỗi.
+If `divisor` equals 0, the method throws an exception **before dividing**, rather than returning a default value that could mask a bug.
 
-### `continue` để tránh lồng `if` trong vòng lặp
+### `continue` to avoid nesting `if` inside loops
 
 ~~~java
 for (int number : numbers) {
@@ -315,26 +315,26 @@ for (int number : numbers) {
 }
 ~~~
 
-Khi `number <= 0`, `process(number)` bị bỏ qua **chỉ trong lần lặp đó**. `continue` **không** kết thúc phương thức bao quanh. `process` ở ví dụ này là tên mô tả một thao tác thực tế; chương trình runnable dùng `System.out.println` để minh họa mà không cần phương thức ngoài.
+When `number <= 0`, `process(number)` is skipped **for that iteration only**. `continue` **does not** exit the enclosing method. `process` in this snippet is a descriptive placeholder name for a real operation; the runnable program uses `System.out.println` to demonstrate without external methods.
 
-**Đừng nhầm `return` với `continue`:** dùng `return` trong vòng lặp sẽ kết thúc luôn phương thức; dùng `continue` chỉ bỏ qua phần xử lý còn lại của lần lặp hiện tại.
+**Do not confuse `return` with `continue`:** using `return` inside a loop exits the whole method; using `continue` only skips the remaining processing of the current iteration.
 
-## 5. Thứ tự guard ảnh hưởng đến an toàn và kết quả
+## 5. Guard order affects safety and outcomes
 
-### Kiểm tra `null` trước khi sử dụng dữ liệu
+### Check `null` before using data
 
 ~~~java
 static boolean isAdult(Integer age) {
     if (age == null) {
         return false;
     }
-    return age >= 18; // Unbox an toàn sau guard.
+    return age >= 18; // Safe unbox after guard.
 }
 ~~~
 
-Nếu viết `if (age < 18)` trước khi kiểm tra `age == null`, Java có thể ném `NullPointerException` vì phải unbox `Integer` null.
+If you write `if (age < 18)` before checking `age == null`, Java will throw `NullPointerException` because it has to unbox the null `Integer`.
 
-Có thể kết hợp bằng điều kiện ngắn mạch:
+You can combine checks with short-circuiting conditions:
 
 ~~~java
 if (name == null || name.isBlank()) {
@@ -342,9 +342,9 @@ if (name == null || name.isBlank()) {
 }
 ~~~
 
-`||` không gọi `name.isBlank()` nếu `name == null` đã true. Nếu dùng `|` thay `||`, cả hai vế được đánh giá và lời gọi trên null có thể ném ngoại lệ.
+`||` does not call `name.isBlank()` if `name == null` is already true. If you use `|` instead of `||`, both sides are evaluated and calling a method on null can throw an exception.
 
-### Kiểm tra miền đầu vào trước khi thực hiện phép tính
+### Validate input domain before performing calculations
 
 ~~~java
 if (people <= 0) {
@@ -353,9 +353,9 @@ if (people <= 0) {
 int average = total / people;
 ~~~
 
-Kiểm tra này không chỉ tránh phép chia cho 0 mà còn thực thi quy định nghiệp vụ “số người phải dương”.
+This check not only avoids division by zero, it also enforces the business rule “number of people must be positive”.
 
-### Thứ tự quyết định thông báo lỗi
+### Order determines the error message
 
 ~~~java
 if (name == null || name.isBlank()) {
@@ -366,13 +366,13 @@ if (age == null) {
 }
 ~~~
 
-Nếu cả hai đầu vào đều sai, guard **đầu tiên** quyết định giá trị được trả về. Khi nhiều điều kiện cùng có thể sai, hãy chọn thứ tự kiểm tra có chủ đích và giữ nguyên nếu đang refactor mã có hành vi quan sát được.
+If both inputs are invalid, the **first** guard determines the returned value. When multiple conditions can fail simultaneously, choose the check order intentionally and preserve it when refactoring code with observable behavior.
 
-**Guard clause không tự động loại bỏ tác dụng phụ** của biểu thức điều kiện: nếu điều kiện gọi phương thức có thay đổi trạng thái, việc sắp xếp lại thứ tự guard có thể thay đổi hành vi.
+**Guard clauses do not automatically eliminate side effects** of conditional expressions: if a condition calls a method that mutates state, reordering guards can change behavior.
 
-## 6. Guard clause và `if/else`: nên chọn phong cách nào?
+## 6. Guard clauses vs. `if/else`: which style to choose?
 
-**Guard phù hợp** khi có một đường đi chính và một số điều kiện khiến xử lý phải dừng sớm:
+**Guards fit best** when there is one main path and several conditions that must stop execution early:
 
 ~~~java
 static String describe(String text) {
@@ -386,7 +386,7 @@ static String describe(String text) {
 }
 ~~~
 
-**`if/else` phù hợp** khi cả hai nhánh đều là hành vi nghiệp vụ bình thường và có trọng lượng tương đương:
+**`if/else` fits best** when both branches represent normal business behavior of comparable weight:
 
 ~~~java
 if (isMorning) {
@@ -396,28 +396,28 @@ if (isMorning) {
 }
 ~~~
 
-Hai lời gọi `serveBreakfast`/`serveDinner` minh họa cấu trúc nhánh, không thuộc chương trình runnable ở mục 2. Không cần ép một lựa chọn hai nhánh cân bằng thành nhiều guard không tự nhiên.
+The calls `serveBreakfast`/`serveDinner` illustrate branch structure and are not part of the runnable program in section 2. Do not force a balanced two-branch choice into unnatural guards.
 
-**Các điểm cân nhắc:**
+**Points to weigh:**
 
-- Giữ điều kiện guard **đơn giản, có tên rõ ràng**, ưu tiên trả sớm khi không thể tiếp tục.
-- Nếu guard liên tục lặp lại ở nhiều nơi, cân nhắc một phương thức xác thực có hợp đồng rõ ràng.
-- Không cố gom mọi điều kiện vào một câu `if` dài nếu các trường hợp lỗi cần thông báo riêng.
-- Không dùng `return null` hoặc giá trị mặc định nếu nó khiến lỗi đầu vào nghiêm trọng trở nên khó phát hiện; cân nhắc `throw` hoặc kiểu kết quả phù hợp.
-- Không đặt quá nhiều điểm thoát khiến việc theo dõi **tài nguyên và thay đổi trạng thái** trở nên khó hiểu.
+- Keep guard conditions **simple and clearly named**, preferring early return when execution cannot proceed.
+- If a guard repeats constantly across many places, consider a validation helper with a clear contract.
+- Do not cram every condition into one long `if` if different failure cases require distinct messages.
+- Do not use `return null` or a default value if it hides serious input errors; consider `throw` or an appropriate result type.
+- Avoid too many exit points that make tracking **resources and state changes** hard to follow.
 
-## 7. Cleanup và tài nguyên khi thoát sớm
+## 7. Cleanup and resources on early exit
 
-Một `return` sớm có thể bỏ qua các câu lệnh ở phía sau. Vì vậy phải tính đến thao tác dọn dẹp:
+An early `return` can skip statements that follow it. Therefore, cleanup operations must be accounted for:
 
 ~~~java
 static void example() {
-    // Nếu đã mở tài nguyên, không được chỉ dựa vào một câu
-    // lệnh close() nằm sau mọi đường return.
+    // If a resource has been opened, do not rely solely on a
+    // close() call placed after every return path.
 }
 ~~~
 
-Với tài nguyên implements `AutoCloseable`, nên dùng **try-with-resources** để bảo đảm gọi `close()` khi rời khối, kể cả thoát bằng `return` hoặc `throw`:
+For resources implementing `AutoCloseable`, use **try-with-resources** to guarantee `close()` is called when exiting the block, including via `return` or `throw`:
 
 ~~~java
 static String firstLine(java.io.BufferedReader reader)
@@ -432,50 +432,50 @@ static String firstLine(java.io.BufferedReader reader)
 }
 ~~~
 
-Ví dụ nhận một `BufferedReader` và chủ động **nhận quyền đóng reader** trong khối try. Không dùng mẫu này nếu hợp đồng yêu cầu bên gọi tiếp tục sở hữu và sử dụng reader sau lời gọi. Java cũng thực hiện khối `finally` khi rời `try` bằng `return` theo luồng thông thường; hãy tránh viết `return` trong `finally` vì có thể che giấu kết quả hoặc ngoại lệ.
+This example accepts a `BufferedReader` and intentionally **takes ownership of closing the reader** in the try block. Do not use this pattern if the contract requires the caller to retain and use the reader after the call. Java also executes a `finally` block when leaving `try` via normal `return` flow; avoid writing `return` inside `finally` as it can mask results or exceptions.
 
-## 8. Lỗi thường gặp
+## 8. Common mistakes
 
-| Hiểu nhầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “Guard clause là cú pháp riêng của Java.” | Chỉ là mẫu dùng `if` với điểm thoát sớm |
-| “`return` chỉ thoát khỏi khối `if`.” | `return` kết thúc **phương thức** hiện tại |
-| “`continue` và `return` giống nhau trong vòng lặp.” | `continue` bỏ qua một lần lặp; `return` rời phương thức |
-| “Cứ đổi mọi `else` thành `return` là tốt.” | Cần giữ ngữ nghĩa và tính dễ đọc |
-| “Có thể kiểm tra `age < 18` trước khi biết `age != null`.” | Có thể gây unboxing null |
-| “Thứ tự các guard không quan trọng.” | Guard đầu tiên quyết định lỗi, tác dụng phụ và đường chạy |
-| “`throw` và `return false` tương đương.” | Một bên là ngoại lệ, một bên là kết quả bình thường |
-| “Thoát sớm luôn bỏ qua dọn dẹp `try-with-resources`.” | Tài nguyên vẫn được đóng khi rời khối theo cơ chế Java |
-| “Guard luôn phải ở dòng đầu tiên.” | Đặt trước đoạn xử lý phụ thuộc vào tiền điều kiện; có thể cần khởi tạo hợp lý trước đó |
+| “Guard clause is a special Java syntax.” | It is just a pattern using `if` with early exits |
+| “`return` only exits the `if` block.” | `return` exits the current **method** |
+| “`continue` and `return` are the same in a loop.” | `continue` skips one iteration; `return` exits the method |
+| “Replacing every `else` with `return` is always better.” | Must preserve semantics and readability |
+| “You can check `age < 18` before knowing `age != null`.” | Can cause null unboxing |
+| “Guard order does not matter.” | The first guard determines the error, side effects, and path |
+| “`throw` and `return false` are equivalent.” | One is an exception, the other is a normal result |
+| “Early exit always skips `try-with-resources` cleanup.” | Resources are still closed upon leaving the block per Java semantics |
+| “Guards must always be on the very first line.” | Place before processing that depends on preconditions; reasonable setup may precede them |
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-check exercises
 
-1. `String s = null; if (s == null) return;` có gọi `s.isBlank()` ở lệnh sau không?  
-   *Đáp án:* Không; phương thức đã kết thúc.
-2. Vì sao `if (age == null) return false;` hữu ích trước `age >= 18` khi `age` là `Integer`?  
-   *Đáp án:* Tránh unboxing null gây `NullPointerException`.
-3. Khi kiểm tra `people <= 0` và đây là lỗi đầu vào, nên làm gì?  
-   *Đáp án:* Thường `throw new IllegalArgumentException(...)` nếu hợp đồng phương thức yêu cầu số người dương.
-4. Trong vòng lặp, muốn bỏ qua phần tử âm nhưng vẫn tiếp tục phần tử sau thì chọn câu lệnh nào?  
-   *Đáp án:* `continue`.
-5. Trong vòng lặp, dùng `return` thay `continue` thì điều gì thay đổi?  
-   *Đáp án:* Kết thúc toàn bộ phương thức, không xử lý phần tử sau.
-6. Nếu `name` null và `age` null, phương thức `checkGuarded` báo lỗi gì?  
-   *Đáp án:* `reject:name` vì guard đó đứng trước.
-7. Hai phiên bản lồng nhau và dùng guard có nhất thiết luôn tương đương không?  
-   *Đáp án:* Không; cần giữ thứ tự đánh giá, tác dụng phụ, kết quả và ngoại lệ.
-8. Khi phương thức mở tài nguyên trước các guard, nên quản lý việc đóng tài nguyên bằng gì?  
-   *Đáp án:* Ví dụ `try-with-resources` (khi phương thức chịu trách nhiệm đóng tài nguyên).
+1. Does `String s = null; if (s == null) return;` call `s.isBlank()` in the next statement?  
+   *Answer:* No; the method has already exited.
+2. Why is `if (age == null) return false;` useful before `age >= 18` when `age` is `Integer`?  
+   *Answer:* Prevents null unboxing that would throw `NullPointerException`.
+3. When checking `people <= 0` and treating it as invalid input, what should be done?  
+   *Answer:* Usually `throw new IllegalArgumentException(...)` if the method contract requires positive people count.
+4. Inside a loop, to skip negative elements while continuing with subsequent elements, which statement should you choose?  
+   *Answer:* `continue`.
+5. Inside a loop, what changes if you use `return` instead of `continue`?  
+   *Answer:* Exits the entire method without processing remaining elements.
+6. If `name` is null and `age` is null, what error does `checkGuarded` report?  
+   *Answer:* `reject:name` because that guard comes first.
+7. Are the nested and guarded versions always guaranteed to be equivalent?  
+   *Answer:* No; evaluation order, side effects, return values, and exceptions must be preserved.
+8. When a method opens a resource before guards, how should resource closing be managed?  
+   *Answer:* For example with `try-with-resources` (when the method owns closing the resource).
 
 ## Checklist
 
-- [ ] Hiểu guard clause là một câu `if` để **thoát sớm khi không thể tiếp tục**.
-- [ ] Dùng `return` cho kết quả/điều kiện kết thúc bình thường, `throw` cho lỗi hợp đồng.
-- [ ] Dùng `continue` để bỏ qua phần tử trong vòng lặp, không nhầm với `return`.
-- [ ] Kiểm tra `null` và miền giá trị trước khi dùng dữ liệu.
-- [ ] Giữ **đường xử lý chính ít lồng nhau** và dễ đọc.
-- [ ] Bảo toàn thứ tự kiểm tra, thông báo lỗi và tác dụng phụ khi refactor.
-- [ ] Biết khi nào một `if/else` cân bằng phù hợp hơn guard.
-- [ ] Không quên dọn dẹp tài nguyên khi phương thức có nhiều đường thoát.
+- [ ] Understand a guard clause as an `if` statement to **exit early when execution cannot proceed**.
+- [ ] Use `return` for normal results/terminations, `throw` for contract violations.
+- [ ] Use `continue` to skip an element in a loop, without confusing it with `return`.
+- [ ] Check `null` and value domains before using data.
+- [ ] Keep the **main processing path shallowly nested** and readable.
+- [ ] Preserve check order, error messages, and side effects when refactoring.
+- [ ] Know when a balanced `if/else` fits better than guards.
+- [ ] Remember resource cleanup when a method has multiple exit paths.
 
-**Kết luận:** Guard clause không thay đổi khả năng rẽ nhánh của Java; nó giúp **diễn đạt các điều kiện dừng một cách sớm và rõ**, từ đó giảm mức lồng `if` cho đường đi chính. Hãy dùng nó có chủ đích và giữ nguyên hành vi cần thiết khi chuyển từ mã lồng nhau.
+**Conclusion:** Guard clauses do not change Java's branching capabilities; they help **express stopping conditions early and clearly**, reducing `if` nesting along the main path. Use them deliberately and preserve required behavior when converting from nested code.

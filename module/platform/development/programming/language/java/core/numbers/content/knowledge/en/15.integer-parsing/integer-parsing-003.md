@@ -1,20 +1,20 @@
-# Radix, dấu cộng hoặc trừ và phạm vi hợp lệ khi phân tích số nguyên trong Java
+# Radix, Plus or Minus Sign, and Valid Range When Parsing Integers in Java
 
-Khi nhận một số nguyên dưới dạng `String`, Java phải trả lời ba câu hỏi độc lập: **chuỗi dùng hệ cơ số nào (radix)?**, **dấu đứng ở đâu và có hợp lệ không?**, **giá trị toán học có nằm trong phạm vi của kiểu đích không?** Đọc đúng các ký tự vẫn chưa đủ: một chuỗi chỉ gồm chữ số hợp lệ có thể bị từ chối vì tràn phạm vi. Bài này tập trung vào `Integer.parseInt`, `Long.parseLong` và các lựa chọn phù hợp khi dữ liệu không còn là số nguyên có dấu thông thường.
+When receiving an integer as a `String`, Java must answer three independent questions: **which number base (radix) does the string use?**, **where is the sign placed and is it valid?**, **does the mathematical value fall within the target type's range?** Reading the characters accurately is not enough: a string containing only valid digits can still be rejected due to range overflow. This lesson focuses on `Integer.parseInt`, `Long.parseLong`, and appropriate options when the data is no longer a standard signed integer.
 
-## 1. Radix là gì?
+## 1. What is a radix?
 
-Radix (cơ số) quyết định tập chữ số được phép dùng và giá trị của từng vị trí. Với chuỗi các chữ số \(d_k\dots d_1d_0\) trong cơ số \(r\), phần trị tuyệt đối là:
+The radix (base) determines the allowed set of digits and the positional value of each place. For a string of digits \(d_k\dots d_1d_0\) in base \(r\), the absolute value is:
 
 \[
 |n|=\sum_{i=0}^{k} d_i r^i,\qquad 0\le d_i<r.
 \]
 
-Ví dụ, `"1A"` ở hệ 16 có giá trị \(1\times16+10=26\); `"101101"` ở hệ 2 có giá trị \(32+8+4+1=45\). Cùng một chuỗi `"10"` có giá trị 2 trong hệ 2, 10 trong hệ 10, và 16 trong hệ 16.
+For example, `"1A"` in base 16 has value \(1\times16+10=26\); `"101101"` in base 2 has value \(32+8+4+1=45\). The same string `"10"` has value 2 in base 2, 10 in base 10, and 16 in base 16.
 
-Trong các phương thức parse có tham số `radix`, Java hỗ trợ cơ số **từ 2 đến 36**, tương ứng `Character.MIN_RADIX` và `Character.MAX_RADIX`. Chữ số `0`–`9` mang giá trị 0–9; chữ cái `a`–`z` hoặc `A`–`Z` mang giá trị 10–35 khi cơ số đủ lớn. Do đó `F` hợp lệ ở hệ 16, còn `G` không hợp lệ ở hệ 16 (nhưng hợp lệ ở hệ 17 trở lên).
+In parsing methods with a `radix` parameter, Java supports bases **from 2 to 36**, corresponding to `Character.MIN_RADIX` and `Character.MAX_RADIX`. Digits `0`–`9` carry values 0–9; letters `a`–`z` or `A`–`Z` carry values 10–35 when the base is large enough. Therefore `F` is valid in base 16, whereas `G` is invalid in base 16 (but valid in base 17 and above).
 
-| Radix | Ký tự điển hình | Ví dụ và giá trị thập phân |
+| Radix | Typical characters | Example and decimal value |
 | --- | --- | --- |
 | 2 (binary) | `0`, `1` | `101101` → 45 |
 | 8 (octal) | `0`–`7` | `17` → 15 |
@@ -22,102 +22,102 @@ Trong các phương thức parse có tham số `radix`, Java hỗ trợ cơ số
 | 16 (hexadecimal) | `0`–`9`, `A`–`F` | `7F` → 127 |
 | 36 | `0`–`9`, `A`–`Z` | `Z` → 35 |
 
-API cơ bản:
+Basic APIs:
 
 ```java
-int decimal = Integer.parseInt("255");       // mặc định radix 10
+int decimal = Integer.parseInt("255");       // defaults to radix 10
 int binary  = Integer.parseInt("11111111", 2); // 255
 int hex     = Integer.parseInt("ff", 16);      // 255
 long big    = Long.parseLong("7fffffffffffffff", 16); // Long.MAX_VALUE
 ```
 
-`Integer.parseInt(String)` **luôn dùng hệ 10**. `Integer.parseInt(String, int)` dùng chính xác cơ số được truyền; Java không tự suy ra radix từ tiền tố hay từ số 0 đứng đầu.
+`Integer.parseInt(String)` **always uses base 10**. `Integer.parseInt(String, int)` uses the exact base passed in; Java does not infer the radix from a prefix or from a leading zero.
 
-## 2. Dấu cộng, dấu trừ và cú pháp chuỗi
+## 2. Plus sign, minus sign, and string syntax
 
-Với cách viết ASCII thông thường, dạng hợp lệ của `parseInt`/`parseLong` là:
+In standard ASCII notation, the valid form for `parseInt`/`parseLong` is:
 
 ```text
-[+|-]? <ít nhất một chữ số hợp lệ trong radix>
+[+|-]? <at least one valid digit in the radix>
 ```
 
-- Dấu `+` hoặc `-` là **tùy chọn** và chỉ được đứng ở ký tự đầu tiên. `"+7F"` (radix 16) cho 127; `"-7F"` cho -127; `"-"` và `"+"` đơn lẻ không hợp lệ.
-- Dấu chỉ tác động lên giá trị của toàn bộ dãy chữ số. `"-101"` (radix 2) là **-5**, không phải một mẫu bit two's complement tự động được diễn giải thành số âm.
-- `"0"`, `"+0"` và `"-0"` đều phân tích thành giá trị số 0. Số 0 đứng đầu được chấp nhận nhưng **không biến chuỗi thành hệ 8**: `Integer.parseInt("010")` cho 10.
-- Khoảng trắng, dấu phẩy, dấu chấm, dấu gạch dưới và ký tự thừa không được tự bỏ qua: `" 42"`, `"42 "`, `"1_000"`, `"1,000"` và `"42L"` đều không hợp lệ với `parseInt`.
-- `Integer.parseInt("0xFF", 16)` và `Integer.parseInt("0b1010", 2)` đều thất bại vì `x`/`b` trong các chuỗi này không phải chữ số hợp lệ tại vị trí tương ứng. Nếu tự chọn radix, chỉ truyền phần chữ số như `"FF"` và `"1010"`.
-- Chữ cái thường/hoa tương đương ở các radix chứa chữ cái: `"aF"` và `"Af"` trong hệ 16 đều là 175.
-- Radix ngoài đoạn 2–36, chữ số có giá trị lớn hơn hoặc bằng radix, chuỗi rỗng và `null` đều dẫn đến `NumberFormatException` ở `Integer.parseInt(String, int)`.
+- A `+` or `-` sign is **optional** and may only appear as the first character. `"+7F"` (radix 16) gives 127; `"-7F"` gives -127; standalone `"-"` and `"+"` are invalid.
+- The sign applies only to the value of the entire digit sequence. `"-101"` (radix 2) is **-5**, not a two's complement bit pattern automatically interpreted as a negative number.
+- `"0"`, `"+0"`, and `"-0"` all parse to the numeric value 0. Leading zeros are accepted, yet **do not turn the string into base 8**: `Integer.parseInt("010")` gives 10.
+- Whitespace, commas, periods, underscores, and extra characters are not automatically skipped: `" 42"`, `"42 "`, `"1_000"`, `"1,000"`, and `"42L"` are all invalid for `parseInt`.
+- `Integer.parseInt("0xFF", 16)` and `Integer.parseInt("0b1010", 2)` both fail because `x`/`b` in these strings are not valid digits at their respective positions. When specifying a radix manually, pass only the digit portion such as `"FF"` and `"1010"`.
+- Lowercase/uppercase letters are equivalent in radices that include letters: `"aF"` and `"Af"` in base 16 are both 175.
+- A radix outside 2–36, a digit whose value is greater than or equal to the radix, an empty string, and `null` all lead to `NumberFormatException` in `Integer.parseInt(String, int)`.
 
-**Chi tiết Unicode:** `parseInt` dùng logic chữ số dựa trên `Character.digit(char, radix)`, vì thế một số ký tự chữ số Unicode ngoài ASCII cũng có thể được chấp nhận. Nếu giao thức dữ liệu chỉ cho phép `[0-9A-Za-z]` hoặc chỉ chữ số ASCII, cần **kiểm tra định dạng riêng trước khi parse**. Không suy diễn rằng `parseInt` đồng nghĩa với một bộ kiểm tra ASCII nghiêm ngặt.
+**Unicode detail:** `parseInt` uses digit logic based on `Character.digit(char, radix)`, so certain non-ASCII Unicode digit characters may also be accepted. If a data protocol allows only `[0-9A-Za-z]` or ASCII digits only, you must **validate the format separately before parsing**. Do not assume `parseInt` is synonymous with a strict ASCII validator.
 
-### Bảng các tình huống thường gây nhầm lẫn
+### Table of commonly confused scenarios
 
-| Lời gọi | Kết quả | Giải thích |
+| Call | Result | Explanation |
 | --- | --- | --- |
-| `Integer.parseInt("+101", 2)` | `5` | Dấu cộng hợp lệ ở đầu |
-| `Integer.parseInt("-101", 2)` | `-5` | Dấu âm áp lên trị số |
-| `Integer.parseInt("077")` | `77` | Mặc định vẫn là hệ 10 |
-| `Integer.parseInt("077", 8)` | `63` | Đã yêu cầu hệ 8 |
+| `Integer.parseInt("+101", 2)` | `5` | Valid leading plus sign |
+| `Integer.parseInt("-101", 2)` | `-5` | Minus sign applied to the magnitude |
+| `Integer.parseInt("077")` | `77` | Still defaults to base 10 |
+| `Integer.parseInt("077", 8)` | `63` | Base 8 was requested |
 | `Integer.parseInt("7f", 16)` | `127` | `f` = 15 |
-| `Integer.parseInt("2", 2)` | Lỗi | `2` không phải chữ số hệ 2 |
-| `Integer.parseInt("0xFF", 16)` | Lỗi | Không tự nhận tiền tố `0x` |
-| `Integer.parseInt("--5")` | Lỗi | Chỉ cho phép một dấu ở đầu |
-| `Integer.parseInt("1_000")` | Lỗi | Dấu `_` không được parse từ chuỗi |
-| `Integer.parseInt(" 5 ")` | Lỗi | Không tự `trim()` |
+| `Integer.parseInt("2", 2)` | Error | `2` is not a base-2 digit |
+| `Integer.parseInt("0xFF", 16)` | Error | Does not recognize `0x` prefix |
+| `Integer.parseInt("--5")` | Error | Only one leading sign is allowed |
+| `Integer.parseInt("1_000")` | Error | Underscore `_` is not parsed from strings |
+| `Integer.parseInt(" 5 ")` | Error | Does not automatically `trim()` |
 
-Không nên vô điều kiện gọi `trim()`/`strip()` chỉ để “làm cho parse thành công”. Hãy quyết định rõ hợp đồng đầu vào: với dữ liệu người dùng có thể cho phép khoảng trắng ở hai đầu; với mã định danh hoặc dữ liệu máy cần giữ chặt định dạng gốc.
+You should not unconditionally call `trim()`/`strip()` just to "make parsing succeed." Clearly define the input contract: for user input you may allow leading/trailing whitespace; for identifiers or machine data you should preserve the strict original format.
 
-## 3. Phạm vi giá trị: đúng chữ số vẫn có thể bị từ chối
+## 3. Value range: valid digits can still be rejected
 
-`int` và `long` của Java là số nguyên **có dấu**. Radix chỉ thay đổi cách biểu diễn, **không thay đổi phạm vi chứa được**.
+Java's `int` and `long` are **signed** integers. The radix only changes the representation, **not the storable range**.
 
-| Kiểu | Độ rộng | Giá trị nhỏ nhất | Giá trị lớn nhất |
+| Type | Width | Minimum value | Maximum value |
 | --- | --- | --- | --- |
-| `byte` | 8 bit | -128 | 127 |
-| `short` | 16 bit | -32 768 | 32 767 |
-| `int` | 32 bit | -2 147 483 648 | 2 147 483 647 |
-| `long` | 64 bit | -9 223 372 036 854 775 808 | 9 223 372 036 854 775 807 |
+| `byte` | 8 bits | -128 | 127 |
+| `short` | 16 bits | -32 768 | 32 767 |
+| `int` | 32 bits | -2 147 483 648 | 2 147 483 647 |
+| `long` | 64 bits | -9 223 372 036 854 775 808 | 9 223 372 036 854 775 807 |
 
-Về toán học, một kiểu số nguyên có dấu rộng \(w\) bit có miền \([-2^{w-1},\,2^{w-1}-1]\). Do đó **biên âm có trị tuyệt đối lớn hơn biên dương 1 đơn vị**.
+Mathematically, a \(w\)-bit signed integer type has the range \([-2^{w-1},\,2^{w-1}-1]\). Therefore **the negative bound has an absolute value 1 greater than the positive bound**.
 
-Những ví dụ then chốt của `Integer.parseInt`:
+Key examples for `Integer.parseInt`:
 
 ```java
-Integer.parseInt("2147483647");       // hợp lệ: Integer.MAX_VALUE
-Integer.parseInt("-2147483648");      // hợp lệ: Integer.MIN_VALUE
+Integer.parseInt("2147483647");       // valid: Integer.MAX_VALUE
+Integer.parseInt("-2147483648");      // valid: Integer.MIN_VALUE
 
 Integer.parseInt("2147483648");       // NumberFormatException
 Integer.parseInt("-2147483649");      // NumberFormatException
 
-Integer.parseInt("7fffffff", 16);     //  2147483647, hợp lệ
-Integer.parseInt("-80000000", 16);    // -2147483648, hợp lệ
+Integer.parseInt("7fffffff", 16);     //  2147483647, valid
+Integer.parseInt("-80000000", 16);    // -2147483648, valid
 Integer.parseInt("80000000", 16);     // NumberFormatException
 Integer.parseInt("-80000001", 16);    // NumberFormatException
 ```
 
-`"80000000"` trong hệ 16 có giá trị **dương** 2 147 483 648, vượt `int` có dấu. Java không tự bọc vòng (wrap) thành -2 147 483 648 khi gọi `parseInt`; đây là lỗi phạm vi. Tương tự, chuỗi 64-bit lớn hơn `Long.MAX_VALUE` không thể parse bằng `Long.parseLong` thông thường dù các chữ số hoàn toàn hợp lệ.
+`"80000000"` in base 16 has the **positive** value 2 147 483 648, which exceeds signed `int`. Java does not automatically wrap around to -2 147 483 648 when calling `parseInt`; this is a range error. Similarly, a 64-bit string larger than `Long.MAX_VALUE` cannot be parsed with standard `Long.parseLong` even when the digits are completely valid.
 
-Về cơ chế, parser phải kiểm tra tràn trong lúc nhân giá trị tích lũy với radix rồi thêm chữ số tiếp theo. JDK có thể tích lũy ở phía âm để xử lý an toàn cả `Integer.MIN_VALUE`, vì giá trị `2147483648` không biểu diễn được bằng `int` dương. Đây là lý do không nên tự viết parser bằng phép tính `int result = result * radix + digit` rồi chỉ kiểm tra phạm vi ở cuối: phép tính có thể đã tràn trước khi kiểm tra.
+Under the hood, the parser must check for overflow while multiplying the accumulated value by the radix and adding the next digit. The JDK can accumulate in the negative domain to handle `Integer.MIN_VALUE` safely as well, since the value `2147483648` cannot be represented as a positive `int`. This is why you should not hand-roll a parser with `int result = result * radix + digit` and only check the range at the end: the arithmetic can already overflow before the check.
 
-Đối với `byte` và `short`, dùng `Byte.parseByte`/`Short.parseShort`; chúng áp dụng miền tương ứng. Parse vào `int` rồi ép kiểu `(byte)` hoặc `(short)` có thể âm thầm mất dữ liệu:
+For `byte` and `short`, use `Byte.parseByte`/`Short.parseShort`; they enforce their respective ranges. Parsing into `int` and casting `(byte)` or `(short)` can silently lose data:
 
 ```java
-Byte.parseByte("128");  // NumberFormatException: quá 127
-byte lost = (byte) Integer.parseInt("128"); // -128 vì bị thu hẹp kiểu
+Byte.parseByte("128");  // NumberFormatException: exceeds 127
+byte lost = (byte) Integer.parseInt("128"); // -128 due to narrowing conversion
 ```
 
-Khi cần từ chối dữ liệu ngoài phạm vi, hãy dùng parser đúng kiểu hoặc kiểm tra biên trước khi chuyển kiểu.
+When out-of-range data must be rejected, use the parser for the exact type or check bounds before converting types.
 
-## 4. Phân biệt chuỗi runtime, literal Java và tự nhận diện tiền tố
+## 4. Distinguishing runtime strings, Java literals, and automatic prefix detection
 
-Ba cơ chế thường bị lẫn:
+Three mechanisms are frequently confused:
 
-1. **Literal trong mã nguồn** do trình biên dịch Java đọc: `10` (thập phân), `010` (bát phân), `0x10` (thập lục phân), `0b10` (nhị phân). Từ Java 7, literal còn có thể chứa `_` ở các vị trí hợp lệ, ví dụ `1_000`.
-2. **`Integer.parseInt(text, radix)`** đọc một chuỗi runtime với radix đã định. Nó không áp dụng cú pháp literal: `"010"` với radix 10 là 10 và `"1_000"` không hợp lệ.
-3. **`Integer.decode(text)`** nhận diện một số tiền tố theo quy tắc riêng: `0x`/`0X` hoặc `#` cho hệ 16, số `0` đứng đầu (với nhiều hơn một chữ số) cho hệ 8, còn lại dùng hệ 10. Có thể có `+`/`-` **trước tiền tố**, ví dụ `"-0x2A"` → -42; đặt dấu sau tiền tố như `"0x-2A"` không hợp lệ.
+1. **Source-code literals** read by the Java compiler: `10` (decimal), `010` (octal), `0x10` (hexadecimal), `0b10` (binary). Since Java 7, literals can also contain `_` in valid positions, such as `1_000`.
+2. **`Integer.parseInt(text, radix)`** reads a runtime string with a specified radix. It does not apply literal syntax: `"010"` with radix 10 is 10 and `"1_000"` is invalid.
+3. **`Integer.decode(text)`** recognizes certain prefixes by its own rules: `0x`/`0X` or `#` for base 16, a leading `0` (with more than one digit) for base 8, and base 10 otherwise. A `+`/`-` sign may appear **before the prefix**, e.g. `"-0x2A"` → -42; placing the sign after the prefix like `"0x-2A"` is invalid.
 
-Ví dụ:
+Examples:
 
 ```java
 Integer.parseInt("010");     // 10
@@ -126,52 +126,52 @@ Integer.decode("010");       // 8
 Integer.decode("0x10");      // 16
 Integer.decode("#10");       // 16
 Integer.decode("-0x2A");     // -42
-Integer.decode("08");        // NumberFormatException: 8 không thuộc hệ 8
+Integer.decode("08");        // NumberFormatException: 8 is not in base 8
 ```
 
-Chọn `decode` khi **đặc tả đầu vào thực sự cho phép** kiểu tiền tố trên. Với dữ liệu cần hệ 10 nhất quán, nên dùng `parseInt(text, 10)` để tránh việc `"010"` bất ngờ mang nghĩa hệ 8. `decode` cũng chịu giới hạn `int` có dấu; nó không giải quyết lỗi tràn.
+Choose `decode` when **the input specification genuinely allows** these prefix forms. For data requiring consistent base 10, use `parseInt(text, 10)` to avoid `"010"` unexpectedly being treated as base 8. `decode` is also subject to signed `int` limits; it does not solve overflow errors.
 
-Một khác biệt tinh tế: `0xFFFFFFFF` viết trực tiếp như một literal `int` có thể biểu diễn mẫu bit -1 theo quy tắc literal của Java, nhưng `Integer.parseInt("FFFFFFFF", 16)` vẫn từ chối vì đây là chuỗi biểu diễn **giá trị dương** 4 294 967 295, vượt `Integer.MAX_VALUE`.
+A subtle distinction: `0xFFFFFFFF` written directly as an `int` literal can represent the bit pattern -1 according to Java's literal rules, yet `Integer.parseInt("FFFFFFFF", 16)` still rejects it because it is a string representing the **positive value** 4 294 967 295, which exceeds `Integer.MAX_VALUE`.
 
-## 5. Khi chuỗi biểu diễn một giá trị unsigned hoặc số lớn
+## 5. When a string represents an unsigned value or a large number
 
-Trong Java, kiểu nguyên thủy `int` và `long` vẫn lưu theo dạng có dấu. Nếu đặc tả dữ liệu là số nguyên **không dấu** (unsigned), dùng API parse unsigned tương ứng, rồi diễn giải kết quả cho đúng:
+In Java, the primitive types `int` and `long` are still stored in signed form. If the data specification is an **unsigned** integer, use the corresponding unsigned parse API, then interpret the result properly:
 
 ```java
 int bits = Integer.parseUnsignedInt("FFFFFFFF", 16);
-// bits == -1 nếu nhìn như int có dấu, nhưng bit pattern là 0xFFFFFFFF
+// bits == -1 if viewed as a signed int, but the bit pattern is 0xFFFFFFFF
 
 long unsignedValue = Integer.toUnsignedLong(bits); // 4294967295
 String decimal = Integer.toUnsignedString(bits);   // "4294967295"
 String hex = Integer.toUnsignedString(bits, 16);    // "ffffffff"
 ```
 
-`Integer.parseUnsignedInt` cho miền số học 0 đến \(2^{32}-1\), còn `Long.parseUnsignedLong` cho 0 đến \(2^{64}-1\). Giá trị trả về vẫn là `int`/`long` nguyên thủy, vì vậy các giá trị có bit dấu bật sẽ hiển thị như số âm nếu dùng `System.out.println(bits)` hoặc các phép toán signed thông thường.
+`Integer.parseUnsignedInt` covers the arithmetic range 0 to \(2^{32}-1\), while `Long.parseUnsignedLong` covers 0 to \(2^{64}-1\). The return value is still a primitive `int`/`long`, so values with the sign bit set will display as negative numbers if passed to `System.out.println(bits)` or ordinary signed operations.
 
-`Integer.parseUnsignedInt("-1", 10)` không hợp lệ: dấu âm không phù hợp với miền unsigned. Sau khi parse, dùng các API có chữ `Unsigned` khi cần so sánh, chia hoặc định dạng theo ngữ nghĩa unsigned (`Integer.compareUnsigned`, `Integer.divideUnsigned`, `Integer.toUnsignedString`...). Với `long` unsigned vượt `Long.MAX_VALUE`, muốn xử lý như một số dương lớn trong tính toán thường dùng `BigInteger`, chẳng hạn:
+`Integer.parseUnsignedInt("-1", 10)` is invalid: a minus sign does not fit the unsigned range. After parsing, use the APIs containing `Unsigned` when comparing, dividing, or formatting with unsigned semantics (`Integer.compareUnsigned`, `Integer.divideUnsigned`, `Integer.toUnsignedString`, etc.). For unsigned `long` values exceeding `Long.MAX_VALUE`, if you want to process them as large positive numbers in arithmetic, typically use `BigInteger`, for example:
 
 ```java
 BigInteger maxUnsignedLong =
         new BigInteger("FFFFFFFFFFFFFFFF", 16); // 18446744073709551615
 ```
 
-Khi số có thể lớn hơn miền `int`, `long` hoặc `unsigned long`, dùng `java.math.BigInteger(String value, int radix)`. `BigInteger` vẫn yêu cầu chuỗi chữ số hợp lệ với radix và dấu ở đầu; nó không tự chấp nhận `"0x"` khi đã truyền radix 16. Không có giới hạn cố định 32/64 bit như kiểu nguyên thủy, nhưng vẫn phải để ý giới hạn bộ nhớ/tài nguyên với đầu vào quá dài.
+When a number can exceed the `int`, `long`, or `unsigned long` range, use `java.math.BigInteger(String value, int radix)`. `BigInteger` still requires a valid digit string for the radix and an optional leading sign; it does not automatically accept `"0x"` when radix 16 is passed. There is no fixed 32/64-bit limit as with primitive types, though you must still watch memory/resource limits for overly long inputs.
 
-### Chọn API theo hợp đồng đầu vào
+### Choosing the API by input contract
 
-| Đầu vào cần đọc | API nên dùng | Điều cần ghi nhớ |
+| Input to read | Recommended API | Key point to remember |
 | --- | --- | --- |
-| Số có dấu hệ 10 trong miền 32 bit | `Integer.parseInt(text)` | Không chấp nhận tiền tố hoặc phân cách |
-| Số có dấu hệ 2–36 trong miền 32 bit | `Integer.parseInt(text, radix)` | Dấu đầu chuỗi, kiểm tra radix và tràn |
-| Số có dấu trong miền 64 bit | `Long.parseLong(text, radix)` | Giới hạn của `long` |
-| Văn bản cho phép `0x`, `#`, số 0 đầu | `Integer.decode(text)` | `010` trở thành hệ 8 |
-| Số không dấu 32 bit | `Integer.parseUnsignedInt(text, radix)` | Kết quả là `int` chứa bit pattern |
-| Số không dấu 64 bit | `Long.parseUnsignedLong(text, radix)` | Kết quả là `long` chứa bit pattern |
-| Số nguyên tùy độ lớn | `new BigInteger(text, radix)` | Không giới hạn cố định 32/64 bit |
+| Signed base-10 number in 32-bit range | `Integer.parseInt(text)` | Does not accept prefixes or separators |
+| Signed base 2–36 number in 32-bit range | `Integer.parseInt(text, radix)` | Leading sign, validates radix and overflow |
+| Signed number in 64-bit range | `Long.parseLong(text, radix)` | Bounds of `long` |
+| Text allowing `0x`, `#`, leading zeros | `Integer.decode(text)` | `010` becomes base 8 |
+| 32-bit unsigned number | `Integer.parseUnsignedInt(text, radix)` | Result is an `int` holding the bit pattern |
+| 64-bit unsigned number | `Long.parseUnsignedLong(text, radix)` | Result is a `long` holding the bit pattern |
+| Arbitrary-size integer | `new BigInteger(text, radix)` | No fixed 32/64-bit limit |
 
-## 6. Chương trình Java 17+ hoàn chỉnh có thể chạy
+## 6. Complete runnable Java 17+ program
 
-Lưu thành **`RadixParsingDemo.java`**:
+Save as **`RadixParsingDemo.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -202,21 +202,21 @@ public class RadixParsingDemo {
             int value = Integer.parseInt(input, radix);
             System.out.println("\"" + input + "\" base " + radix + " -> " + value);
         } catch (NumberFormatException ex) {
-            // Thông báo tự định nghĩa để ví dụ không phụ thuộc cách JDK diễn đạt lỗi.
+            // Custom message so the example does not depend on how the JDK phrases errors.
             System.out.println("\"" + input + "\" base " + radix + " -> INVALID");
         }
     }
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 RadixParsingDemo.java
 java RadixParsingDemo
 ```
 
-Stdout kỳ vọng:
+Expected stdout:
 
 ```text
 "101101" base 2 -> 45
@@ -233,43 +233,43 @@ big = 4294967296
 format = ff
 ```
 
-Trong ví dụ, `show()` phân biệt dữ liệu hợp lệ với dữ liệu sai chữ số hoặc vượt phạm vi bằng cách bắt `NumberFormatException`. Cả `"80000000"` (sai phạm vi signed int) và `"2"` trong hệ 2 (sai chữ số) đều bị từ chối; nếu ứng dụng cần thông báo chính xác nguyên nhân, phải kiểm tra thêm định dạng, radix và phạm vi theo quy tắc nghiệp vụ. Không nên dựa vào nguyên văn thông báo lỗi của JDK để phân loại vì thông báo có thể khác giữa các phiên bản.
+In the example, `show()` distinguishes valid data from invalid digits or out-of-range data by catching `NumberFormatException`. Both `"80000000"` (signed int range error) and `"2"` in base 2 (invalid digit) are rejected; if an application needs to report the exact cause, it must additionally check the format, radix, and range according to business rules. Do not rely on the verbatim JDK error message to classify failures because messages may vary across versions.
 
-## 7. Thiết kế lớp nhập liệu tin cậy
+## 7. Designing a reliable input layer
 
-Để xử lý đầu vào từ biểu mẫu, CSV, giao thức mạng hoặc tệp cấu hình:
+To handle input from forms, CSVs, network protocols, or configuration files:
 
-1. **Xác định hợp đồng trước:** hệ cơ số cố định hay có tiền tố? Có cho phép dấu `+`? Có chấp nhận âm? Có chấp nhận số 0 đầu, khoảng trắng, chữ số Unicode, phân cách hàng nghìn không? Có giới hạn độ dài không?
-2. **Chuẩn hóa có chủ đích:** chỉ `strip()` khoảng trắng khi hợp đồng cho phép. Nếu phải chấp nhận ký hiệu như `0x`, hãy nhận diện, bỏ tiền tố và chọn radix theo quy tắc của giao thức; hoặc dùng `decode` nếu quy tắc của nó trùng khớp.
-3. **Kiểm tra radix và cú pháp:** radix thuộc 2–36. Nếu chỉ chấp nhận ASCII hex có dấu, ví dụ có thể kiểm tra chuỗi bằng `[+-]?[0-9A-Fa-f]+`; với radix khác cần kiểm tra giá trị từng chữ số tương ứng (hoặc để parser kiểm tra).
-4. **Dùng parser đúng miền số:** parse vào `int`/`long` khi miền ứng dụng phù hợp; dùng unsigned API cho đại lượng không dấu; dùng `BigInteger` khi cần biểu diễn vượt 64 bit.
-5. **Xử lý lỗi rõ ràng:** bắt `NumberFormatException` ở biên nhập liệu, thông báo giá trị không hợp lệ cho người dùng hoặc trả lỗi có cấu trúc. Không âm thầm đổi lỗi thành `0` vì sẽ lẫn với dữ liệu `"0"` thật.
-6. **Giới hạn tài nguyên:** với đầu vào không tin cậy, giới hạn độ dài trước khi parse, nhất là trước khi tạo `BigInteger`; tránh cấp phát/kiểm tra khối dữ liệu khổng lồ không cần thiết.
+1. **Define the contract first:** fixed radix or prefixed? Is the `+` sign allowed? Are negatives accepted? Are leading zeros, whitespace, Unicode digits, or thousands separators accepted? Is there a length limit?
+2. **Normalize deliberately:** only `strip()` whitespace when the contract allows it. If notation like `0x` must be accepted, detect it, strip the prefix, and choose the radix per the protocol rules; or use `decode` if its rules match exactly.
+3. **Validate radix and syntax:** radix in 2–36. If only signed ASCII hex is accepted, for example you can validate the string with `[+-]?[0-9A-Fa-f]+`; for other radices you need to validate each digit's value accordingly (or let the parser validate it).
+4. **Use a parser matching the numeric range:** parse into `int`/`long` when the application domain fits; use unsigned APIs for unsigned quantities; use `BigInteger` when values must exceed 64 bits.
+5. **Handle errors explicitly:** catch `NumberFormatException` at the input boundary, report the invalid value to the user or return a structured error. Do not silently convert errors to `0` because that mixes them up with real `"0"` data.
+6. **Bound resources:** for untrusted input, limit the length before parsing, especially before constructing a `BigInteger`; avoid allocating or scanning huge blocks of data unnecessarily.
 
-Một helper giữ nguyên chính sách “ASCII hex có thể có dấu, không có tiền tố”, rồi ủy quyền kiểm tra phạm vi cho `parseInt`:
+A helper enforcing the policy "optional-sign ASCII hex without prefix", then delegating range checking to `parseInt`:
 
 ```java
 static int parseAsciiHexSignedInt(String text) {
     if (text == null || !text.matches("[+-]?[0-9A-Fa-f]+")) {
-        throw new IllegalArgumentException("Yêu cầu chuỗi hex ASCII có thể có dấu");
+        throw new IllegalArgumentException("Requires an optionally signed ASCII hex string");
     }
     return Integer.parseInt(text, 16);
 }
 ```
 
-Đoạn helper này **không phải một chương trình chạy độc lập**: đặt nó bên trong một class phù hợp. Regex kiểm tra **cú pháp ASCII**, còn `Integer.parseInt` kiểm tra **giá trị có vừa `int` signed hay không**. `IllegalArgumentException` do helper ném ra dành cho cú pháp; `NumberFormatException` của parser vẫn dùng cho tràn phạm vi. Vì `String.matches` sẽ biên dịch regex mỗi lần gọi, với đường xử lý lặp thường xuyên có thể khai báo trước một `Pattern` và dùng `matcher(text).matches()`.
+This helper snippet **is not a standalone runnable program**: place it inside an appropriate class. The regex checks **ASCII syntax**, while `Integer.parseInt` checks whether **the value fits in a signed `int`**. `IllegalArgumentException` thrown by the helper is for syntax; the parser's `NumberFormatException` is still used for range overflow. Because `String.matches` compiles the regex on every call, for frequently executed paths you can predeclare a `Pattern` and use `matcher(text).matches()`.
 
-Nếu hợp đồng đầu vào cho phép Unicode digits theo Java, không nên dùng regex ASCII như trên. Nếu hợp đồng bắt buộc radix 10 và giới hạn 0–100, kiểm tra phạm vi nghiệp vụ sau khi parse (`0 <= value && value <= 100`) ngoài phạm vi kỹ thuật của `int`.
+If the input contract allows Unicode digits as in Java, do not use an ASCII regex like the above. If the contract mandates radix 10 and a 0–100 bound, check the business range after parsing (`0 <= value && value <= 100`) in addition to the technical range of `int`.
 
-## 8. Các lỗi thường gặp và cách tự kiểm tra
+## 8. Common mistakes and self-check
 
-- **Nhầm radix với phạm vi:** đổi từ radix 10 sang 16 không làm `int` chứa được số lớn hơn; nó chỉ thay cách viết.
-- **Nhầm dấu âm với bit dấu:** `"-FF"` là -255, còn `"FFFFFFFF"` là số dương 4 294 967 295 về mặt văn bản; muốn đọc mẫu bit unsigned, dùng `parseUnsignedInt`.
-- **Tưởng tiền tố luôn được hiểu:** `parseInt("0xFF", 16)` không hợp lệ, nhưng `decode("0xFF")` hợp lệ.
-- **Áp dụng luật literal cho String:** `1_000` hợp lệ trong mã Java, còn `"1_000"` không thể parse trực tiếp.
-- **Coi mọi số có số 0 đầu là octal:** chỉ cách diễn giải như `decode` (và một số literal) có quy tắc đó; `parseInt("010")` vẫn là 10.
-- **Cắt dữ liệu qua cast:** `(byte) 128` thành -128; đây không phải kiểm tra phạm vi.
-- **Tin rằng chữ số đúng luôn parse được:** `"2147483648"` chỉ chứa ký tự hợp lệ hệ 10 nhưng vẫn vượt `int`.
-- **Bắt `Exception` quá rộng hoặc dùng mặc định 0:** đánh mất nguyên nhân và làm hỏng ý nghĩa dữ liệu.
+- **Confusing radix with range:** switching from radix 10 to 16 does not let `int` store larger numbers; it only changes how they are written.
+- **Confusing negative signs with the sign bit:** `"-FF"` is -255, whereas `"FFFFFFFF"` is textually the positive number 4 294 967 295; to read an unsigned bit pattern, use `parseUnsignedInt`.
+- **Assuming prefixes are always understood:** `parseInt("0xFF", 16)` is invalid, whereas `decode("0xFF")` is valid.
+- **Applying literal rules to Strings:** `1_000` is valid in Java code, whereas `"1_000"` cannot be parsed directly.
+- **Treating every leading-zero number as octal:** only interpretations such as `decode` (and certain literals) have that rule; `parseInt("010")` is still 10.
+- **Truncating data via casting:** `(byte) 128` becomes -128; this is not range validation.
+- **Believing valid digits always parse:** `"2147483648"` contains only valid base-10 characters yet still exceeds `int`.
+- **Catching overly broad `Exception` or defaulting to 0:** loses the root cause and corrupts data semantics.
 
-Tự đối chiếu nhanh trước khi gọi parser: **radix ∈ [2,36] → dấu (nếu có) chỉ đứng đầu → còn ít nhất một chữ số → mọi chữ số thuộc radix → giá trị nằm trong miền kiểu đích**. Sau đó mới quyết định số nguyên đang là signed, unsigned hay cần `BigInteger`. Chuỗi đầu vào, cách hiển thị bit và miền giá trị là ba vấn đề khác nhau; tách chúng giúp tránh hầu hết lỗi phân tích số nguyên trong Java.
+Quick self-check before calling a parser: **radix ∈ [2,36] → sign (if any) only at the front → at least one digit remaining → every digit belongs to the radix → value lies within the target type's range**. Only then decide whether the integer is signed, unsigned, or requires `BigInteger`. Input strings, bit representation, and value range are three separate concerns; keeping them separate prevents most integer parsing bugs in Java.

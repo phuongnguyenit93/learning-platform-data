@@ -1,29 +1,29 @@
-# Chi phí BigDecimal theo precision và scale
+# BigDecimal Cost by Precision and Scale
 
-## 1. Vì sao hiệu năng BigDecimal phụ thuộc dữ liệu?
+## 1. Why Does `BigDecimal` Performance Depend on Data?
 
-`BigDecimal` trong Java dùng để tính toán giá trị thập phân với độ chính xác tùy ý. Nó cho phép cộng, trừ, nhân, chia và làm tròn theo các quy tắc kiểm soát được, nhưng thường cần nhiều bộ nhớ và công việc hơn kiểu nguyên thủy `long` hoặc `double`. Hai phép `add` nhìn giống nhau trong source code có thể chênh lệch chi phí rất lớn: một phép cộng hai số vài chữ số và một phép cộng giữa `1E+1000000` với `1` đều gọi `add`, nhưng kết quả chính xác của trường hợp thứ hai cần khoảng một triệu chữ số nguyên.
+`BigDecimal` in Java is used to compute decimal values with arbitrary precision. It supports addition, subtraction, multiplication, division, and rounding under controllable rules, but usually requires more memory and work than primitive `long` or `double`. Two `add` calls that look identical in source code can differ dramatically in cost: adding two numbers with a few digits and adding `1E+1000000` with `1` both call `add`, yet the exact result of the second case requires roughly one million integer digits.
 
-Để phân tích hiệu năng cần hiểu **precision**, **scale**, kích thước số nguyên chưa đặt dấu thập phân, chênh lệch scale, kết quả trung gian, chế độ làm tròn và việc format chuỗi. Bài này dùng ví dụ Java 17+, chỉ ra các ranh giới đúng/sai khi tối ưu và cách đo thực tế.
+To analyze performance, you need to understand **precision**, **scale**, the size of the unscaled integer before placing the decimal point, scale differences, intermediate results, rounding modes, and string formatting. This lesson uses Java 17+ examples, highlights correctness/incorrectness boundaries when optimizing, and shows how to measure in practice.
 
-## 2. Precision, scale và unscaled value
+## 2. Precision, Scale, and Unscaled Value
 
-BigDecimal biểu diễn giá trị theo công thức:
+`BigDecimal` represents a value according to the formula:
 
 \[
 \text{value} = \text{unscaledValue}\times10^{-\text{scale}}.
 \]
 
-- **Unscaled value** là số nguyên mang các chữ số của giá trị. Ví dụ, `123.4500` có unscaled value `1234500`.
-- **Scale** là số nguyên `int`: `123.4500` có scale 4; `1E+6` có scale -6; `1000` có scale 0. Scale có thể âm.
-- **Precision** là số chữ số thập phân của giá trị tuyệt đối unscaled value, không tính các số 0 ở đầu. Với zero, precision là 1. `123.4500` có precision 7, `1E+6` có precision 1.
-- **MathContext precision** là giới hạn số chữ số có nghĩa sau phép toán khi chỉ định `MathContext`; nó **không phải** số chữ số sau dấu thập phân.
+- **Unscaled value** is the integer carrying the digits of the value. For example, `123.4500` has unscaled value `1234500`.
+- **Scale** is an `int` integer: `123.4500` has scale 4; `1E+6` has scale -6; `1000` has scale 0. Scale can be negative.
+- **Precision** is the number of decimal digits in the absolute unscaled value, excluding leading zeros. For zero, precision is 1. `123.4500` has precision 7, and `1E+6` has precision 1.
+- **`MathContext` precision** is the limit on significant digits after an operation when `MathContext` is specified; it is **not** the number of digits after the decimal point.
 
-Precision = 1 không có nghĩa giá trị nhỏ: `1E+1000000` có precision 1 nhưng trị số cực lớn. Scale lớn không có nghĩa precision lớn: `1E-1000000` có precision 1 và scale 1000000.
+Precision = 1 does not mean a small value: `1E+1000000` has precision 1 yet a gigantic magnitude. Large scale does not mean large precision: `1E-1000000` has precision 1 and scale 1000000.
 
-### Ví dụ 1: đọc metadata của BigDecimal
+### Example 1: reading `BigDecimal` metadata
 
-Lưu thành `BigDecimalMetaDemo.java`:
+Save as `BigDecimalMetaDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -45,14 +45,14 @@ public class BigDecimalMetaDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 17:
+Compile/run with JDK 17:
 
 ~~~bash
 javac BigDecimalMetaDemo.java
 java BigDecimalMetaDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 123.4500: p=7, s=4
@@ -62,37 +62,37 @@ Kết quả:
 0.00: p=1, s=2
 ~~~
 
-Các số có **giá trị số học bằng nhau** vẫn có thể khác biểu diễn. `2.0` và `2.00` có `compareTo(...) == 0` nhưng `equals(...) == false` vì scale khác nhau; việc chuẩn hóa scale có thể tác động đến khóa bản đồ và dữ liệu hiển thị.
+Numbers with **equal arithmetic value** can still differ in representation. `2.0` and `2.00` have `compareTo(...) == 0` but `equals(...) == false` because their scales differ; normalizing scale can affect map keys and displayed data.
 
-## 3. Biểu diễn nội bộ và chi phí của số nguyên lớn
+## 3. Internal Representation and the Cost of Large Integers
 
-BigDecimal lưu unscaled value và scale. Trong JDK 17, những giá trị unscaled nhỏ có thể đi qua biểu diễn gọn tương tự `long`; những giá trị lớn hơn có thể cần cấu trúc số nguyên lớn như `BigInteger`. Chi tiết nội bộ và ngưỡng tối ưu hóa có thể thay đổi theo phiên bản JDK, nên đây là lời giải thích cơ chế phổ biến, **không phải hợp đồng thời gian chạy của API**.
+`BigDecimal` stores an unscaled value and a scale. In JDK 17, small unscaled values can go through a compact `long`-like representation; larger values may require a large-integer structure such as `BigInteger`. Internal details and optimization thresholds can change across JDK versions, so this is an explanation of common mechanics, **not a runtime API contract**.
 
-Về nguyên tắc, các phép số học trên số nguyên gồm hàng trăm hoặc hàng nghìn chữ số cần nhiều công việc hơn phép toán trên số nguyên nhỏ. Nhân/chia số lớn còn có thể dùng các thuật toán khác nhau theo kích cỡ. BigDecimal là **immutable**: các kết quả logic mới, biểu diễn trung gian và số nguyên lớn có thể gây cấp phát bộ nhớ/GC. Implementation có thể tái sử dụng một số đối tượng hoặc tối ưu đường nhanh trong vài trường hợp, nhưng chương trình không được giả định mọi phép cộng là “không cấp phát”.
+In principle, arithmetic on integers with hundreds or thousands of digits takes more work than operations on small integers. Multiplying/dividing large numbers may also use different algorithms depending on size. `BigDecimal` is **immutable**: new logical results, intermediate representations, and large integers can cause memory allocations/GC. Implementations may reuse certain objects or optimize fast paths in some cases, but a program must not assume every addition is "zero-allocation".
 
-Vì vậy, chi phí thực phải đo trên **độ dài chữ số, scale và phép toán cụ thể**, không đoán từ số lượng object BigDecimal hoặc một phép tính tổng quát.
+Therefore, real cost must be measured on **specific digit lengths, scales, and operations**, not guessed from the number of `BigDecimal` objects or a generic formula.
 
-## 4. Cộng và trừ: căn chỉnh scale
+## 4. Addition and Subtraction: Scale Alignment
 
-Với phép cộng chính xác, các toán hạng cần được đưa về một đơn vị thập phân tương thích:
+For exact addition, operands must be aligned to a compatible decimal unit:
 
 \[
 1.20 + 0.003 = 1.203.
 \]
 
-Khi cộng/trừ chính xác, scale kết quả thường là scale lớn hơn trong hai toán hạng. Chênh lệch scale lớn có thể buộc JDK xử lý lũy thừa 10 rất lớn và số nguyên kết quả dài.
+In exact addition/subtraction, the result scale is usually the larger scale of the two operands. A large scale difference can force the JDK to compute large powers of 10 and a long resulting integer.
 
-Ví dụ:
+Example:
 
 - `1E+6`: precision 1, scale -6.
 - `1`: precision 1, scale 0.
-- Tổng **chính xác**: `1000001`, precision 7, scale 0.
+- **Exact** sum: `1000001`, precision 7, scale 0.
 
-Nếu thay `1E+6` bằng `1E+1000000`, kết quả chính xác cộng `1` cần khoảng một triệu chữ số nguyên. Dù hai toán hạng có precision nhỏ, **chênh lệch scale quyết định lượng dữ liệu phải được biểu diễn**.
+If `1E+6` is replaced with `1E+1000000`, the exact result of adding `1` requires roughly one million integer digits. Even though both operands have small precision, **the scale difference dictates how much data must be represented**.
 
-### Ví dụ 2: so sánh cộng chính xác và có MathContext
+### Example 2: comparing exact addition and `MathContext` addition
 
-Lưu thành `BigDecimalAddDemo.java`:
+Save as `BigDecimalAddDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -122,7 +122,7 @@ javac BigDecimalAddDemo.java
 java BigDecimalAddDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 a scale = -6
@@ -132,15 +132,15 @@ rounded = 1000000
 rounded p = 4
 ~~~
 
-`MathContext(4, HALF_UP)` giới hạn bốn chữ số có nghĩa và làm mất đóng góp `1` trong kết quả. Đây là **thay đổi ngữ nghĩa**, không đơn thuần tăng tốc. Một số thuật toán có thể tiết kiệm công việc nhờ precision hữu hạn, nhưng không được khẳng định mọi phép toán có MathContext đều nhanh hơn.
+`MathContext(4, HALF_UP)` limits the result to four significant digits and discards the contribution of `1`. This is a **semantic change**, not merely a speedup. Some algorithms can save work thanks to finite precision, but one cannot claim every operation with `MathContext` is faster.
 
-## 5. Nhân: độ dài chữ số và scale có thể tăng
+## 5. Multiplication: Digit Length and Scale Can Grow
 
-Với `a.multiply(b)` chính xác, scale kết quả thông thường bằng tổng scale của hai toán hạng, nếu còn trong phạm vi hợp lệ. Độ dài unscaled value của tích thường tăng theo số chữ số của cả hai toán hạng. Chi phí nhân số có vài chữ số khác đáng kể nhân hai số có hàng nghìn chữ số.
+With exact `a.multiply(b)`, the result scale normally equals the sum of the two operands' scales, provided it remains within the valid range. The length of the product's unscaled value generally grows with the digit counts of both operands. The cost of multiplying numbers of a few digits differs substantially from multiplying two numbers with thousands of digits.
 
-### Ví dụ 3: scale sản phẩm giữ chữ số 0
+### Example 3: product scale preserves trailing zeros
 
-Lưu thành `BigDecimalMultiplyDemo.java`:
+Save as `BigDecimalMultiplyDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -165,7 +165,7 @@ javac BigDecimalMultiplyDemo.java
 java BigDecimalMultiplyDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 a scale = 4
@@ -175,21 +175,21 @@ product scale = 7
 product p = 7
 ~~~
 
-Số 0 cuối của `0.1234000` không làm thay đổi giá trị, nhưng được giữ trong biểu diễn scale 7 của phép nhân chính xác. Lặp phép nhân nhiều lần có thể tạo precision và scale trung gian ngày càng lớn. Chọn làm tròn chỉ khi chính sách độ chính xác của bài toán cho phép.
+The trailing zeros in `0.1234000` do not change the value, yet they are preserved in the scale-7 representation of exact multiplication. Repeating multiplication many times can produce ever-larger intermediate precisions and scales. Choose rounding only when the problem's precision policy allows it.
 
-## 6. Chia: precision, scale và rounding mode tác động trực tiếp
+## 6. Division: Precision, Scale, and Rounding Mode Directly Affect Cost
 
-`divide(divisor)` không tự chọn mức làm tròn. Nếu kết quả thập phân vô hạn như `1/3`, phương thức ném `ArithmeticException`. Các overload nhận tham số cho phép kiểm soát:
+`divide(divisor)` does not pick a rounding level automatically. If the decimal expansion is non-terminating, such as `1/3`, the method throws `ArithmeticException`. Overloads accepting parameters provide control:
 
-- `divide(divisor, scale, roundingMode)`: số chữ số **sau dấu thập phân** và cách làm tròn.
-- `divide(divisor, MathContext)`: số chữ số **có nghĩa** và cách làm tròn.
-- `divide(divisor)`: chỉ chấp nhận kết quả thập phân chính xác hữu hạn.
+- `divide(divisor, scale, roundingMode)`: number of digits **after the decimal point** and rounding mode.
+- `divide(divisor, MathContext)`: number of **significant** digits and rounding mode.
+- `divide(divisor)`: accepts only exact terminating decimal results.
 
-Yêu cầu nhiều chữ số thương thường tăng công việc, bộ nhớ và chi phí làm tròn. Nhưng thời gian thực còn phụ thuộc kích thước và cấu trúc của divisor; không đưa ra một hệ số tốc độ cố định khi chưa benchmark.
+Requesting more quotient digits typically increases work, memory, and rounding cost. However, actual runtime also depends on the size and structure of the divisor; do not state a fixed speed factor without benchmarking.
 
-### Ví dụ 4: so sánh hai hợp đồng chia
+### Example 4: comparing two division contracts
 
-Lưu thành `BigDecimalDivideDemo.java`:
+Save as `BigDecimalDivideDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -221,7 +221,7 @@ javac BigDecimalDivideDemo.java
 java BigDecimalDivideDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 exact division rejected
@@ -229,20 +229,20 @@ scale 2 = 0.33
 precision 6 = 0.333333
 ~~~
 
-Giới hạn precision một cách mù quáng có thể làm sai kết quả, còn đặt precision cực lớn “cho an toàn” có thể lãng phí tài nguyên. Cần xác định chính sách làm tròn theo nghiệp vụ và đo trên dữ liệu thực.
+Blindly capping precision can make results wrong, while setting an enormous precision "to be safe" can waste resources. You must define the rounding policy per business requirements and measure on real data.
 
-## 7. setScale không phải lúc nào cũng rẻ
+## 7. `setScale` Is Not Always Cheap
 
-`setScale(newScale)` có thể:
+`setScale(newScale)` can:
 
-- **Tăng scale:** nhân unscaled value với lũy thừa 10 để giữ giá trị, làm số chữ số unscaled tăng.
-- **Giảm scale:** chia unscaled value, có thể cần rounding nếu phần bị bỏ khác 0.
-- **Giữ scale:** thường ít công việc hơn, nhưng API không cam kết kết quả luôn không cấp phát.
-- **Dùng scale âm:** ví dụ `1E+3` có scale -3 và giá trị 1000.
+- **Increase scale:** multiplies the unscaled value by a power of 10 to preserve value, increasing the number of unscaled digits.
+- **Decrease scale:** divides the unscaled value, potentially requiring rounding if dropped digits are nonzero.
+- **Keep scale:** usually less work, though the API does not promise the result is always zero-allocation.
+- **Use negative scale:** for example, `1E+3` has scale -3 and value 1000.
 
-### Ví dụ 5: tăng scale làm precision tăng
+### Example 5: increasing scale increases precision
 
-Lưu thành `ScaleExpansionDemo.java`:
+Save as `ScaleExpansionDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -266,7 +266,7 @@ javac ScaleExpansionDemo.java
 java ScaleExpansionDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 original = 12.3
@@ -276,22 +276,22 @@ after p = 7
 after s = 5
 ~~~
 
-Giá trị số học vẫn là 12.3, nhưng biểu diễn unscaled dài hơn. Scale tăng hàng trăm nghìn bậc có thể gây cấp phát lớn; không cho phép đầu vào tùy ý quyết định scale không giới hạn trong ứng dụng cần kiểm soát tài nguyên.
+The numeric value remains 12.3, but the unscaled representation is longer. Increasing scale by hundreds of thousands of orders of magnitude can trigger huge allocations; do not allow arbitrary input to dictate unbounded scale in resource-constrained applications.
 
-## 8. stripTrailingZeros và so sánh
+## 8. `stripTrailingZeros` and Comparisons
 
-`stripTrailingZeros()` loại các số 0 cuối trong unscaled value và điều chỉnh scale. Nó có thể làm biểu diễn ngắn hơn, nhưng cũng có thể đổi scale sang số âm. Ví dụ `1000.00` trở thành dạng `1E+3`, scale -3.
+`stripTrailingZeros()` removes trailing zeros in the unscaled value and adjusts the scale. It can shorten the representation, yet it can also turn the scale negative. For example, `1000.00` becomes `1E+3`, scale -3.
 
-`BigDecimal.equals` và `compareTo` khác nhau:
+`BigDecimal.equals` and `compareTo` differ:
 
-- `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` là `false` vì scale khác nhau.
-- `compareTo` trên hai số này trả `0` vì giá trị số học bằng nhau.
+- `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` is `false` because the scales differ.
+- `compareTo` on these two numbers returns `0` because their arithmetic values are equal.
 
-Không xem `stripTrailingZeros` như tối ưu miễn phí trong mọi vòng lặp; phép chuẩn hóa cũng có thể xử lý unscaled value và làm thay đổi hợp đồng biểu diễn. Sự khác biệt equals/compareTo còn tác động tới khóa `HashMap` và tập `TreeSet`. Với dữ liệu lớn, chi phí so sánh có thể phụ thuộc độ dài và scale; không giả định mọi phép compareTo là O(1).
+Do not treat `stripTrailingZeros` as a free optimization in every loop; normalization also processes the unscaled value and alters the representation contract. The `equals`/`compareTo` difference also affects `HashMap` keys and `TreeSet` sets. With large data, comparison cost can depend on length and scale; do not assume every `compareTo` is O(1).
 
-### Ví dụ 6: chuẩn hóa có thể tạo scale âm
+### Example 6: normalization can produce negative scale
 
-Lưu thành `NormalizeDemo.java`:
+Save as `NormalizeDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -317,7 +317,7 @@ javac NormalizeDemo.java
 java NormalizeDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 before s = 2
@@ -327,15 +327,15 @@ compare = 0
 equals = false
 ~~~
 
-Chỉ loại zero cuối khi hợp đồng của bài toán cho phép thay đổi scale. Với dữ liệu tiền tệ bắt buộc hai chữ số thập phân, phải giữ quy ước scale thích hợp thay vì chuẩn hóa vô điều kiện.
+Strip trailing zeros only when the problem contract permits changing scale. For monetary data requiring two decimal places, preserve the appropriate scale convention instead of normalizing unconditionally.
 
-## 9. Chuỗi có thể rất dài dù precision là 1
+## 9. Strings Can Be Very Long Even When Precision Is 1
 
-`toString()` có thể biểu diễn giá trị bằng ký pháp khoa học, còn `toPlainString()` xuất số thập phân không dùng số mũ. Do đó `new BigDecimal("1E+1000000")` có precision 1 nhưng `toPlainString()` tạo chuỗi gồm chữ số 1 cùng khoảng một triệu số 0.
+`toString()` can represent a value using scientific notation, whereas `toPlainString()` outputs the decimal number without an exponent. Consequently, `new BigDecimal("1E+1000000")` has precision 1, yet `toPlainString()` creates a string consisting of the digit 1 followed by roughly one million zeros.
 
-### Ví dụ 7: phí tạo chuỗi
+### Example 7: string creation cost
 
-Lưu thành `StringRepresentationDemo.java`:
+Save as `StringRepresentationDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -358,7 +358,7 @@ javac StringRepresentationDemo.java
 java StringRepresentationDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 precision = 1
@@ -368,19 +368,19 @@ plain = 1000000
 plain length = 7
 ~~~
 
-Việc tạo chuỗi dài tốn bộ nhớ theo độ dài chuỗi đầu ra ngay cả khi giá trị BigDecimal ngắn gọn. Không gọi `toPlainString` liên tục trong vòng lặp hoặc log số có scale cực đoan mà không giới hạn độ dài và nhu cầu hiển thị.
+Creating long strings consumes memory proportional to the output string length even when the `BigDecimal` value itself is compact. Do not call `toPlainString` repeatedly in loops or log numbers with extreme scales without bounding length and display needs.
 
-## 10. MathContext và trade-off độ chính xác
+## 10. `MathContext` and Precision Trade-Offs
 
-`MathContext` chứa precision và rounding mode. Nó **không trực tiếp quy định scale**. Ví dụ `new MathContext(4, HALF_UP)` chỉ giữ bốn chữ số có nghĩa; `setScale(4, HALF_UP)` giữ bốn chữ số sau dấu thập phân.
+`MathContext` holds precision and a rounding mode. It **does not directly specify scale**. For example, `new MathContext(4, HALF_UP)` keeps four significant digits; `setScale(4, HALF_UP)` keeps four digits after the decimal point.
 
-Giới hạn precision có thể làm một số phép toán xử lý kết quả ngắn hơn, nhưng cũng có thể tạo bước làm tròn. Chi phí phụ thuộc thuật toán và JDK; **không bảo đảm MathContext nhỏ luôn nhanh hơn**. Quan trọng hơn, precision thấp có thể loại đóng góp của số nhỏ hoặc làm thay đổi kết quả.
+Limiting precision can let some operations process shorter results, but it can also introduce rounding steps. Cost depends on the algorithm and JDK; **a small `MathContext` is not guaranteed to be faster**. More importantly, low precision can drop the contribution of small numbers or alter the result.
 
-Cộng chính xác trước rồi làm tròn sau cũng có thể khác làm tròn ở **mỗi bước cộng**, nên chính sách này phải được thiết kế từ yêu cầu độ chính xác. Với tiền, thuế và sổ sách, không được thay đổi thời điểm làm tròn chỉ vì thấy nhanh hơn.
+Exact addition followed by rounding can also differ from rounding at **every addition step**, so this policy must be designed from precision requirements. For money, taxes, and accounting ledgers, never change when rounding happens merely because it looks faster.
 
-## 11. Cấp phát, bộ nhớ và thiết kế dữ liệu
+## 11. Allocation, Memory, and Data Design
 
-Vì BigDecimal bất biến, một vòng lặp tích lũy như đoạn minh họa sau tạo kết quả logic sau mỗi phép cộng:
+Because `BigDecimal` is immutable, an accumulation loop like the following illustrative snippet creates a logical result after each addition:
 
 ~~~java
 BigDecimal total = BigDecimal.ZERO;
@@ -389,101 +389,101 @@ for (BigDecimal item : values) {
 }
 ~~~
 
-Đây chỉ là đoạn minh họa; `values` cần được khai báo khi dùng trong chương trình độc lập. Trong quá trình chạy, implementation có thể tối ưu hoặc tái sử dụng một số đối tượng, nhưng phép tính trên unscaled value lớn vẫn có thể tạo nhiều dữ liệu trung gian.
+This is only an illustrative snippet; `values` must be declared when used in a standalone program. At runtime, the implementation may optimize or reuse certain objects, yet operations on large unscaled values can still create substantial intermediate data.
 
-Hướng cải thiện hợp lý:
+Reasonable improvement directions:
 
-- Dùng `BigDecimal.ZERO`, `ONE`, `TEN` và `BigDecimal.valueOf(long)` khi thích hợp; tránh parse chuỗi trong mỗi bước nếu dữ liệu đã là số decimal chính xác.
-- Với literal thập phân, dùng `new BigDecimal("0.1")` nếu cần giá trị đúng 0.1; `new BigDecimal(0.1)` giữ giá trị nhị phân gần đúng của `double`.
-- Hạn chế gọi `setScale`, `stripTrailingZeros` và format chuỗi trong vòng lặp nóng nếu chỉ cần biểu diễn sau cùng.
-- Với nghiệp vụ scale cố định và miền số cho phép, cân nhắc lưu bằng đơn vị nhỏ nhất trong `long`; bắt buộc kiểm soát overflow và rounding. Không áp dụng mẹo này cho bài toán scale/precision tùy ý.
-- Cấu hình bộ nhớ và đánh giá lượng cấp phát/GC bằng profiler hoặc benchmark khi có bằng chứng đó là điểm nghẽn.
+- Use `BigDecimal.ZERO`, `ONE`, `TEN`, and `BigDecimal.valueOf(long)` when appropriate; avoid parsing strings on every step if the data is already exact decimal numbers.
+- For decimal literals, use `new BigDecimal("0.1")` when exact 0.1 is needed; `new BigDecimal(0.1)` retains the binary approximation of `double`.
+- Limit calls to `setScale`, `stripTrailingZeros`, and string formatting inside hot loops if only the final representation is needed.
+- For domains with fixed scale and a permissible numeric range, consider storing in minor units using `long`; you must strictly control overflow and rounding. Do not apply this trick to arbitrary scale/precision problems.
+- Profile memory and evaluate allocation/GC with a profiler or benchmark when there is evidence it is a bottleneck.
 
-## 12. Benchmark đúng để tránh kết luận sai
+## 12. Proper Benchmarking to Avoid Wrong Conclusions
 
-Dùng một phép `System.nanoTime()` cho một lời gọi BigDecimal thường thiếu độ tin cậy vì JVM warmup/JIT, GC, lịch CPU và tối ưu loại bỏ phép tính không dùng kết quả.
+Using a single `System.nanoTime()` around one `BigDecimal` call is usually unreliable because of JVM warmup/JIT, GC, CPU scheduling, and optimizations eliminating computations whose results are unused.
 
-**JMH (Java Microbenchmark Harness)** là công cụ phù hợp cho microbenchmark, cần thêm dependency vào dự án thử nghiệm riêng; nó không tích hợp sẵn trong JDK. Quy trình đo nên:
+**JMH (Java Microbenchmark Harness)** is the appropriate tool for microbenchmarks and must be added as a dependency in a separate test project; it is not bundled in the JDK. Measurement procedures should:
 
-1. Chuẩn bị toán hạng trước vùng đo nếu mục tiêu chỉ đo `add` hoặc `multiply`.
-2. Warmup đủ, chạy nhiều lần và báo cáo phân bố, không chỉ một trị số.
-3. Tiêu thụ kết quả bằng `Blackhole` hoặc cơ chế JMH tương đương để tránh dead-code elimination.
-4. Đo cả thời gian/op và allocation/op; quan sát GC nếu liên quan.
-5. Thử dữ liệu có unscaled ngắn/dài, scale bằng/khác xa, precision 16/100/1000, kết quả format ngắn/dài.
-6. Xác minh giá trị và scale đầu ra trước khi so sánh tốc độ; tối ưu làm sai số học không phải phép tối ưu tương đương.
+1. Prepare operands outside the measured region if the goal is solely measuring `add` or `multiply`.
+2. Warm up sufficiently, run multiple iterations, and report distributions, not just a single number.
+3. Consume results using `Blackhole` or an equivalent JMH mechanism to avoid dead-code elimination.
+4. Measure both time/op and allocation/op; observe GC if relevant.
+5. Test data with short/long unscaled values, equal/far-apart scales, precision 16/100/1000, and short/long formatted outputs.
+6. Verify output values and scales before comparing speeds; an optimization that breaks arithmetic is not an equivalent optimization.
 
-Một ma trận benchmark hữu ích:
+A useful benchmark matrix:
 
-| Tình huống | Ví dụ | Điều cần đo |
+| Scenario | Example | What to measure |
 | --- | --- | --- |
-| Cộng cùng scale | `1234.56 + 78.90` | Chi phí cơ bản |
-| Cộng scale rất lệch | `1E+1000 + 1` | Căn chỉnh và cấp phát |
-| Nhân số dài | Hai số hàng nghìn chữ số | Độ dài tích và CPU |
-| Chia precision lớn | `1/7` precision 16, 100, 1000 | Chi phí tính thương/làm tròn |
-| Format số mũ | `1E+100000` | `toString` vs `toPlainString` |
+| Same-scale addition | `1234.56 + 78.90` | Baseline cost |
+| Widely differing scale addition | `1E+1000 + 1` | Alignment and allocation |
+| Long-number multiplication | Two thousand-digit numbers | Product length and CPU |
+| High-precision division | `1/7` precision 16, 100, 1000 | Quotient/rounding cost |
+| Formatting exponents | `1E+100000` | `toString` vs `toPlainString` |
 
-Bảng là **đề xuất thử nghiệm**, không phải kết quả đo. Không tuyên bố “BigDecimal chậm hơn double N lần” khi chưa so đúng công việc và tập dữ liệu.
+This table is a **testing suggestion**, not measured results. Do not claim "BigDecimal is N times slower than double" without comparing the exact same task and dataset.
 
-## 13. Đầu vào cực đoan và an toàn tài nguyên
+## 13. Extreme Inputs and Resource Safety
 
-Scale là kiểu `int`, nhưng các phép toán với scale cực lớn vẫn có thể đòi cấp phát hàng triệu chữ số. Ví dụ:
+Scale is of type `int`, yet operations with extreme scales can still demand allocating millions of digits. For example:
 
-- Cộng `1E+1000000 + 1` tạo kết quả decimal chính xác khổng lồ.
-- `setScale` tăng nhiều bậc có thể tạo unscaled value dài.
-- `multiply` nhiều lần có thể làm precision/scale tăng.
-- `divide` với precision rất cao phải xử lý nhiều chữ số thương.
-- `toPlainString` có thể tạo chuỗi lớn hơn nhiều so với biểu diễn khoa học.
-- Phép toán có thể phát sinh `ArithmeticException` với scale không hợp lệ, phép chia vô hạn không được làm tròn hoặc chế độ `UNNECESSARY`; tải bộ nhớ quá lớn còn có thể gây `OutOfMemoryError`.
+- Adding `1E+1000000 + 1` creates a huge exact decimal result.
+- `setScale` increasing by many orders of magnitude can create a long unscaled value.
+- Repeated `multiply` can cause precision/scale to grow.
+- `divide` with very high precision must compute many quotient digits.
+- `toPlainString` can produce a much larger string than scientific notation.
+- Operations can raise `ArithmeticException` for invalid scale, non-terminating division without rounding, or `UNNECESSARY` mode; excessive memory load can even cause `OutOfMemoryError`.
 
-Nên kiểm soát độ dài chuỗi nhập, precision, scale, số phần tử và kích thước kết quả trước khi chạy phép tính từ input bên ngoài. Giới hạn phải xuất phát từ ứng dụng và tài nguyên cho phép.
+Validate input string length, precision, scale, element counts, and result sizes before executing calculations on external input. Limits must derive from application requirements and available resources.
 
-## 14. Sai lầm phổ biến
+## 14. Common Mistakes
 
-1. **Nhầm precision với scale:** `1E+6` có precision 1 và scale -6.
-2. **Nghĩ precision thấp nghĩa là mọi phép toán nhẹ:** chênh lệch scale vẫn có thể tạo kết quả dài.
-3. **Nghĩ setScale chỉ đổi metadata:** nó có thể nhân/chia unscaled value với lũy thừa 10.
-4. **Dùng MathContext precision thấp chỉ để tăng tốc:** có thể làm mất dữ liệu.
-5. **Dùng divide không quy định rounding cho 1/3:** sẽ ném `ArithmeticException`.
-6. **Tưởng stripTrailingZeros giữ nguyên scale:** có thể tạo scale âm.
-7. **Nhầm equals và compareTo:** equals xét scale, compareTo xét giá trị.
-8. **Gọi toPlainString với số mũ cực lớn:** có thể tạo chuỗi rất dài.
-9. **Chuyển sang double vì nhanh:** có thể mất tính chính xác thập phân.
-10. **Dùng long đơn vị nhỏ nhất mà không kiểm tra overflow:** làm sai miền giá trị.
-11. **Benchmark không warmup hoặc đo cả parse:** không phân lập được chi phí phép tính.
-12. **Bỏ qua precision/scale do người dùng cung cấp:** có thể gây quá tải bộ nhớ/CPU.
+1. **Confusing precision with scale:** `1E+6` has precision 1 and scale -6.
+2. **Thinking low precision means every operation is cheap:** scale differences can still produce long results.
+3. **Thinking `setScale` only changes metadata:** it can multiply/divide the unscaled value by powers of 10.
+4. **Using low `MathContext` precision just for speedup:** can cause data loss.
+5. **Using `divide` without rounding for 1/3:** will throw `ArithmeticException`.
+6. **Assuming `stripTrailingZeros` preserves scale:** can produce a negative scale.
+7. **Confusing `equals` and `compareTo`:** `equals` checks scale, `compareTo` checks value.
+8. **Calling `toPlainString` on huge exponents:** can generate huge strings.
+9. **Switching to `double` for speed:** can lose decimal exactness.
+10. **Using `long` minor units without checking overflow:** corrupts the value range.
+11. **Benchmarking without warmup or including parsing:** fails to isolate operation cost.
+12. **Ignoring user-supplied precision/scale:** can cause memory/CPU exhaustion.
 
-## 15. Tự kiểm tra
+## 15. Self-Check
 
-**Câu 1.** `new BigDecimal("123.4500")` có precision và scale bằng bao nhiêu?
+**Question 1.** What are the precision and scale of `new BigDecimal("123.4500")`?
 
-**Đáp án:** Precision 7, scale 4 vì unscaled value là 1234500.
+**Answer:** Precision 7, scale 4 because the unscaled value is 1234500.
 
-**Câu 2.** Tại sao `1E+1000000 + 1` tốn tài nguyên dù toán hạng thứ nhất có precision 1?
+**Question 2.** Why is `1E+1000000 + 1` resource-intensive even though the first operand has precision 1?
 
-**Đáp án:** Phép cộng chính xác cần căn scale và biểu diễn kết quả có khoảng một triệu chữ số nguyên.
+**Answer:** Exact addition requires aligning scales and representing a result with roughly one million integer digits.
 
-**Câu 3.** `new BigDecimal("12.3").setScale(5)` tạo giá trị nào?
+**Question 3.** What value does `new BigDecimal("12.3").setScale(5)` produce?
 
-**Đáp án:** `12.30000`, precision tăng từ 3 lên 7, scale trở thành 5; giá trị số học không đổi.
+**Answer:** `12.30000`; precision increases from 3 to 7 and scale becomes 5; the arithmetic value does not change.
 
-**Câu 4.** `new BigDecimal("1000.00").stripTrailingZeros()` có thể có scale nào?
+**Question 4.** What scale can `new BigDecimal("1000.00").stripTrailingZeros()` have?
 
-**Đáp án:** -3, biểu diễn `1E+3`.
+**Answer:** -3, represented as `1E+3`.
 
-**Câu 5.** Vì sao MathContext precision thấp không phải tối ưu miễn phí?
+**Question 5.** Why is low `MathContext` precision not a free optimization?
 
-**Đáp án:** Nó làm tròn, có thể loại những chữ số cần thiết và thay đổi kết quả nghiệp vụ.
+**Answer:** It rounds, potentially dropping required digits and changing business results.
 
-**Câu 6.** Muốn đo hiệu năng riêng của `add`, cần chú ý gì?
+**Question 6.** What should you pay attention to when measuring the isolated performance of `add`?
 
-**Đáp án:** Chuẩn bị operand ngoài phần benchmark, warmup, tiêu thụ kết quả, đo nhiều mẫu với precision/scale khác nhau và đối chiếu độ đúng.
+**Answer:** Prepare operands outside the benchmarked section, warm up, consume results, measure multiple samples across varying precisions/scales, and verify correctness.
 
-## 16. Kết luận
+## 16. Conclusion
 
-- Precision đo số chữ số có nghĩa của unscaled value; scale xác định vị trí dấu thập phân và có thể âm.
-- Chi phí BigDecimal phụ thuộc **precision, scale, chênh lệch scale, phép toán, intermediate allocation và định dạng đầu ra**.
-- Cộng scale lệch lớn và `toPlainString` của số mũ lớn có thể gây tải rất cao dù precision ban đầu nhỏ.
-- Chia/nhân với precision lớn tốn thêm công việc, nhưng làm tròn sớm chỉ hợp lệ khi nghiệp vụ cho phép.
-- Đo trên dữ liệu mục tiêu bằng công cụ như JMH và kiểm tra độ đúng trước khi tối ưu.
+- Precision measures the significant digits of the unscaled value; scale determines decimal point placement and can be negative.
+- `BigDecimal` cost depends on **precision, scale, scale difference, operation, intermediate allocations, and output formatting**.
+- Widely skewed scale addition and `toPlainString` on large exponents can cause very high load even when initial precision is small.
+- High-precision division/multiplication costs more work, yet early rounding is only valid when business rules permit it.
+- Measure on target data with tools such as JMH and verify correctness before optimizing.
 
-Tài liệu tham khảo: Java SE 17 API `BigDecimal`, `BigInteger`, `MathContext`, `RoundingMode`.
+References: Java SE 17 API `BigDecimal`, `BigInteger`, `MathContext`, `RoundingMode`.

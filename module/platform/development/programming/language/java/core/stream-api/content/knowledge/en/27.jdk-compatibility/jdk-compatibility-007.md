@@ -1,171 +1,171 @@
-# Xác định JDK tối thiểu và chọn cách triển khai tương thích
+# Determining the Minimum JDK and Choosing Compatible Implementations
 
-Khi phát triển ứng dụng bằng **Java Stream API**, một đoạn mã chạy tốt trên máy lập trình chưa chắc chạy được ở môi trường triển khai. Chẳng hạn, `stream().toList()` rất thuận tiện trên Java 17 nhưng **không tồn tại trong Java 8**; `Collectors.teeing()` cần Java 12 trở lên; còn **Stream Gatherers** chỉ trở thành API chính thức từ Java 24. Nếu sản phẩm phải chạy trên JDK cũ hơn, lựa chọn API cần được quyết định **trước khi viết hoặc nâng cấp pipeline**.
+When developing applications with the **Java Stream API**, code that runs fine on a developer's machine is not guaranteed to run in the deployment environment. For example, `stream().toList()` is very convenient on Java 17 yet **does not exist in Java 8**; `Collectors.teeing()` requires Java 12 or higher; and **Stream Gatherers** only became an official API in Java 24. If the product must run on an older JDK, API choices must be decided **before writing or upgrading pipelines**.
 
-Bài học **“Xác định JDK tối thiểu và chọn cách triển khai tương thích”** thuộc chương **Khả năng tương thích JDK** của module **JAVA_STREAM_API**. Nội dung gắn với quá trình học pipeline khai báo và lazy bằng `filter`, `map`, `reduce`, `collect`, grouping, collector tùy chỉnh, `Spliterator`, Stream song song và Stream Gatherers; đồng thời chỉ ra các giới hạn về phiên bản, trạng thái, tài nguyên và hiệu năng.
+The lesson **"Determining the Minimum JDK and Choosing Compatible Implementations"** belongs to the **JDK Compatibility** chapter of the **JAVA_STREAM_API** module. Its content ties directly into learning declarative, lazy pipelines with `filter`, `map`, `reduce`, `collect`, grouping, custom collectors, `Spliterator`, parallel Streams, and Stream Gatherers, while highlighting limits around versions, state, resources, and performance.
 
-Mục tiêu là giúp bạn:
+The goal is to help you:
 
-1. Phân biệt phiên bản JDK **dùng để biên dịch**, phiên bản **mã nguồn/API yêu cầu** và phiên bản **runtime thực tế**.
-2. Lập bảng kiểm các API/syntax trước khi chốt **JDK tối thiểu**.
-3. Sử dụng `javac --release` để tránh vô tình gọi API mới trong bản build dành cho JDK cũ.
-4. Lựa chọn phương án thay thế có **ngữ nghĩa tương đương**, không chỉ tương tự về cú pháp.
-5. Viết và kiểm tra một dự án tổng hợp bằng Java 8, sau đó biết khi nào nên dùng API của Java 9, 12, 16 hay 24.
-6. Xây ma trận kiểm thử khi nâng JDK, cập nhật thư viện hoặc dùng API preview.
+1. Distinguish the JDK version **used to compile**, the **source/API version required**, and the **actual runtime version**.
+2. Build a checklist of APIs/syntax before locking in the **minimum JDK**.
+3. Use `javac --release` to avoid accidentally calling newer APIs in builds targeting older JDKs.
+4. Choose alternatives with **equivalent semantics**, not merely similar syntax.
+5. Write and test an integrated project in Java 8, and know when to adopt APIs from Java 9, 12, 16, or 24.
+6. Design a test matrix when upgrading JDKs, updating libraries, or using preview APIs.
 
-> **Phạm vi:** các mốc phiên bản dưới đây là thời điểm API/cú pháp lần đầu có trong Java SE/JDK. “JDK tối thiểu” khi triển khai còn phụ thuộc thư viện bên thứ ba, hệ điều hành, chính sách hỗ trợ và môi trường thực thi của tổ chức. Không nên lấy “phiên bản đang cài trên máy” làm yêu cầu sản phẩm một cách tự động.
+> **Scope:** the version milestones below mark when an API/syntax first appeared in Java SE/JDK. The "minimum JDK" at deployment also depends on third-party libraries, operating system, support policy, and organizational execution environments. Never automatically treat "the version installed on your machine" as the product requirement.
 
-## 1. Một chương trình Java có những “phiên bản” nào?
+## 1. What "Versions" Does a Java Program Have?
 
-Trước tiên, phân biệt bốn khái niệm thường bị gộp làm một.
+First, distinguish four concepts commonly conflated into one.
 
-| Khái niệm | Câu hỏi cần trả lời | Ví dụ |
+| Concept | Question to Answer | Example |
 |---|---|---|
-| **JDK dùng để build** | Trình biên dịch `javac` đang chạy ở đâu? | Build bằng JDK 17 |
-| **Mức ngôn ngữ (source level)** | Code được phép dùng cú pháp nào? | Dùng lambda Java 8, không dùng `record` |
-| **Mức API/bytecode mục tiêu** | Code được phép gọi thư viện chuẩn nào và sinh class cho JVM nào? | `--release 8` |
-| **Runtime triển khai** | Máy chạy ứng dụng thực sự có phiên bản Java nào? | Production dùng Java 8 hoặc 17 |
+| **Build JDK** | Which `javac` compiler is running? | Building with JDK 17 |
+| **Language level (source level)** | Which syntax is the code allowed to use? | Use Java 8 lambdas, do not use `record` |
+| **Target API/bytecode level** | Which standard libraries may be called and for which JVM are classes emitted? | `--release 8` |
+| **Deployment runtime** | Which Java version does the machine running the app actually have? | Production runs Java 8 or 17 |
 
-Ví dụ: một nhóm phát triển có thể **dùng JDK 17 để biên dịch code Java 8**, miễn cấu hình build bảo đảm cả cú pháp, API chuẩn và bytecode đều tương thích Java 8. Nhưng nếu dùng `record` hoặc `Stream.toList()` trong phần code phải chạy trên Java 8, việc “máy build có JDK 17” không làm các tính năng ấy xuất hiện ở runtime cũ.
+For example, a team can **use JDK 17 to compile Java 8 code**, provided the build configuration ensures syntax, standard APIs, and bytecode are all Java 8-compatible. Yet if `record` or `Stream.toList()` is used in code that must run on Java 8, having "JDK 17 on the build machine" does not make those features exist on the older runtime.
 
-### 1.1. Hai loại lỗi rất khác nhau
+### 1.1. Two Very Different Kinds of Errors
 
-**Dùng class file quá mới:** JVM cũ không hiểu định dạng bytecode do compiler mới sinh, thường gây `UnsupportedClassVersionError`.
+**Class files too new:** an older JVM does not understand the bytecode format generated by a newer compiler, typically throwing `UnsupportedClassVersionError`.
 
-**Class file đủ cũ nhưng gọi API mới:** nếu build cấu hình thiếu kiểm tra API chuẩn, code có thể được phát hành dưới bytecode Java 8 nhưng gọi `String.isBlank()` hoặc `Stream.toList()`. Trên Java 8, lời gọi đó không tồn tại, có thể dẫn đến `NoSuchMethodError` khi thực thi đường code liên quan.
+**Class files old enough yet calling newer APIs:** if the build lacks standard-API checking, code might be emitted as Java 8 bytecode while calling `String.isBlank()` or `Stream.toList()`. On Java 8, that method does not exist, potentially causing `NoSuchMethodError` when that code path executes.
 
-Bởi vậy, **không thể chỉ nhìn phiên bản class file** để kết luận một ứng dụng chạy được trên JDK tối thiểu.
+Therefore, **you cannot look only at the class file version** to conclude an application runs on the minimum JDK.
 
 ~~~mermaid
 flowchart TD
-    A["Mã nguồn Java"] --> B["Kiểm tra cú pháp"]
-    B --> C["Kiểm tra API chuẩn"]
-    C --> D["Biên dịch bytecode"]
-    D --> E["Kiểm tra dependencies"]
-    E --> F["Chạy trên runtime tối thiểu"]
-    F --> G["Kiểm thử kết quả và tài nguyên"]
+    A["Java Source Code"] --> B["Syntax Check"]
+    B --> C["Standard API Check"]
+    C --> D["Bytecode Compilation"]
+    D --> E["Dependency Check"]
+    E --> F["Run on Minimum Runtime"]
+    F --> G["Result and Resource Testing"]
 ~~~
 
-Một mắt xích không đạt có thể khiến lời hứa “hỗ trợ JDK X” không còn đúng.
+Failing any single link can invalidate the promise to "support JDK X".
 
-## 2. Cách xác định JDK tối thiểu từ yêu cầu sản phẩm
+## 2. How to Determine the Minimum JDK from Product Requirements
 
-Đừng bắt đầu bằng câu hỏi “nên dùng JDK mới nhất hay không?”. Hãy bắt đầu từ **hợp đồng triển khai**.
+Do not start with the question "should we use the latest JDK?". Start from the **deployment contract**.
 
-Một quy trình thực tế:
+A practical process:
 
-1. **Liệt kê runtime cần hỗ trợ:** máy chủ, desktop, thiết bị, CI, môi trường khách hàng, container, job batch.
-2. **Xác định phiên bản thấp nhất bắt buộc:** do yêu cầu sản phẩm hoặc hợp đồng vận hành.
-3. **Liệt kê tính năng sử dụng:** syntax (ví dụ `record`), API (`teeing`), bộ thư viện, annotation processor, agent và tool build.
-4. **Tính mốc tối thiểu của từng phụ thuộc** và tìm xung đột với runtime mục tiêu.
-5. **Chọn cách triển khai:** dùng API cũ tương đương, tăng baseline, tách module mới hoặc duy trì hai cách triển khai.
-6. **Build và chạy test trên runtime thấp nhất**; sau đó kiểm tra thêm các runtime cao hơn cần hỗ trợ.
+1. **List supported runtimes:** servers, desktops, devices, CI, customer environments, containers, batch jobs.
+2. **Identify the mandatory lowest version:** dictated by product requirements or operational contracts.
+3. **List features used:** syntax (e.g., `record`), APIs (`teeing`), libraries, annotation processors, agents, and build tools.
+4. **Compute the minimum milestone of each dependency** and look for conflicts with the target runtime.
+5. **Choose an implementation approach:** use equivalent older APIs, raise the baseline, isolate a newer module, or maintain dual implementations.
+6. **Build and run tests on the lowest runtime**; then also verify higher supported runtimes.
 
-Ví dụ, nếu ứng dụng bắt buộc chạy trên Java 11 nhưng thiết kế đang sử dụng `Collectors.teeing()`, ta có ba lựa chọn chính: viết collector thay thế trên Java 11, đổi yêu cầu runtime tối thiểu thành Java 12+ nếu được phép, hoặc cô lập tính năng vào thành phần riêng chỉ chạy trên runtime phù hợp.
+For example, if an application must run on Java 11 while the design uses `Collectors.teeing()`, there are three main options: write a replacement collector in Java 11, change the minimum runtime requirement to Java 12+ if permitted, or isolate the feature into a separate component running only on a suitable runtime.
 
-**Không được tự chọn tăng baseline** khi yêu cầu vận hành đã khóa Java 11; cũng không nên cố viết lại một API phức tạp nếu dự án thực tế đã được phép chuyển lên Java mới và việc nâng cấp đem lại lợi ích bảo trì rõ ràng.
+**Do not unilaterally raise the baseline** when operational requirements lock Java 11; nor should you rewrite a complex API if the project is genuinely allowed to move to a newer Java and upgrading brings clear maintenance benefits.
 
-## 3. Bảng mốc Java Stream API và các tiện ích thường dùng
+## 3. Milestone Table of Java Stream API and Commonly Used Utilities
 
-Bảng sau tập trung vào những phiên bản có ảnh hưởng rõ đến thiết kế pipeline và bài thực hành trong module.
+The table below focuses on releases with a clear impact on pipeline design and exercises in this module.
 
-| Mốc Java | API hoặc cú pháp tiêu biểu | Ý nghĩa khi chọn baseline |
+| Java Milestone | Representative API or Syntax | Meaning When Choosing a Baseline |
 |---|---|---|
-| **8** | `Stream`, `IntStream`, `LongStream`, `DoubleStream`, `filter`, `map`, `flatMap`, `reduce`, `collect`, `Collectors.groupingBy`, `partitioningBy`, `joining`, `Spliterator`, `StreamSupport`, `Files.lines` | Nền tảng của phần lớn bài học Stream |
-| **9** | `Stream.ofNullable`, `takeWhile`, `dropWhile`, `iterate(seed, hasNext, next)`, `Optional.stream`, `Collectors.filtering`, `Collectors.flatMapping`, `List.of` | Cú pháp ngắn hơn và một số khả năng xử lý mới |
-| **10** | `Collectors.toUnmodifiableList`, `List.copyOf`, suy luận biến cục bộ `var` | Chọn rõ tính không thể sửa; `var` không dùng được ở source level 8 |
-| **11** | `String.isBlank`, `Path.of` | Tiện ích thường vô tình lọt vào code gọi Stream dù không thuộc API Stream |
-| **12** | `Collectors.teeing` | Thu hai kết quả rồi gộp trong một collector |
-| **14** | Switch expression chính thức | Cú pháp tiện cho các phép ánh xạ theo trạng thái |
-| **16** | `Stream.toList`, `Stream.mapMulti`, `record` chính thức | Giảm boilerplate nhưng tăng mức JDK/source tối thiểu |
-| **17** | Phiên bản LTS được nhiều dự án sử dụng; các API trên vẫn có mặt | Baseline thực tế thường cần xét cùng chính sách vận hành |
-| **21** | Phiên bản LTS; tiếp tục có các API Stream đã chuẩn hóa trước đó | Có thể là baseline mới tùy môi trường |
-| **24** | `Stream.gather`, `Gatherer` và các built-in `Gatherers` thành API chính thức | Cần Java 24+ nếu dùng trực tiếp Gatherers chuẩn |
+| **8** | `Stream`, `IntStream`, `LongStream`, `DoubleStream`, `filter`, `map`, `flatMap`, `reduce`, `collect`, `Collectors.groupingBy`, `partitioningBy`, `joining`, `Spliterator`, `StreamSupport`, `Files.lines` | Foundation of most Stream lessons |
+| **9** | `Stream.ofNullable`, `takeWhile`, `dropWhile`, `iterate(seed, hasNext, next)`, `Optional.stream`, `Collectors.filtering`, `Collectors.flatMapping`, `List.of` | Shorter syntax and several new processing capabilities |
+| **10** | `Collectors.toUnmodifiableList`, `List.copyOf`, local variable type inference `var` | Explicit unmodifiability; `var` cannot be used at source level 8 |
+| **11** | `String.isBlank`, `Path.of` | Utilities that often slip into Stream-calling code despite not belonging to the Stream API |
+| **12** | `Collectors.teeing` | Collects two results and merges them in one collector |
+| **14** | Official switch expressions | Convenient syntax for status-based mappings |
+| **16** | `Stream.toList`, `Stream.mapMulti`, official `record` | Reduces boilerplate but raises minimum JDK/source level |
+| **17** | LTS release used by many projects; all above APIs are present | Practical baseline often evaluated alongside operational policy |
+| **21** | LTS release; continues including previously standardized Stream APIs | May serve as a newer baseline depending on environment |
+| **24** | `Stream.gather`, `Gatherer`, and built-in `Gatherers` become official APIs | Requires Java 24+ to use standard Gatherers directly |
 
-Một số lưu ý:
+Some notes:
 
-- `Collectors.teeing` **không có trong Java 8 hoặc 11**.
-- `Stream.toList()` **không có trong Java 11**, dù `Collectors.toList()` đã có từ Java 8.
-- `Stream.mapMulti` và `Stream.toList` đều đến ở Java 16, nhưng **không có cùng ngữ nghĩa**.
-- `record` là **tính năng ngôn ngữ**, không phải phương thức Stream. Một ví dụ dùng `record` không thể biên dịch ở source level 8 dù phần pipeline Stream chỉ gọi các API Java 8.
-- Stream Gatherers từng xuất hiện dưới dạng **preview** ở Java 22 và 23; API chính thức là Java 24. Một bản preview không đồng nghĩa với cam kết tương thích mã nguồn/nhị phân như API chuẩn.
+- `Collectors.teeing` **does not exist in Java 8 or 11**.
+- `Stream.toList()` **does not exist in Java 11**, even though `Collectors.toList()` has existed since Java 8.
+- `Stream.mapMulti` and `Stream.toList` both arrived in Java 16, yet **do not share the same semantics**.
+- `record` is a **language feature**, not a Stream method. An example using `record` cannot compile at source level 8 even if the Stream pipeline itself calls only Java 8 APIs.
+- Stream Gatherers appeared as a **preview** in Java 22 and 23; the official API is Java 24. A preview release does not carry the same source/binary compatibility guarantees as a standard API.
 
-**Lưu ý về bảo trì:** mốc API tối thiểu là thông tin lâu dài; tình trạng còn được nhà cung cấp hỗ trợ, bản vá bảo mật và LTS của một runtime là **quyết định vận hành theo thời điểm**, cần kiểm tra chính sách hiện hành của nhà cung cấp thay vì suy ra trực tiếp từ bảng trên.
+**Maintenance note:** minimum API milestones are long-term facts; vendor support status, security patches, and LTS status of a runtime are **time-bound operational decisions** that must be checked against current vendor policies rather than inferred directly from the table above.
 
-## 4. Đọc và xác nhận phiên bản trong môi trường thực tế
+## 4. Reading and Confirming Versions in Real Environments
 
-Trước khi kết luận một lỗi tương thích, xác nhận cả compiler và runtime đang dùng.
+Before diagnosing a compatibility error, confirm both the compiler and runtime in use.
 
 ~~~powershell
 java -version
 javac -version
 ~~~
 
-Lệnh `java -version` dùng được trên Java 8; từ Java 9 trở lên cũng có cú pháp `java --version`. Kết quả của hai lệnh cần được kiểm tra riêng vì trong môi trường có nhiều bản cài, `java` và `javac` **có thể trỏ tới hai JDK khác nhau**.
+`java -version` works on Java 8; from Java 9 onward, `java --version` also exists. Both outputs must be checked separately because in environments with multiple installations, `java` and `javac` **can point to two different JDKs**.
 
-Ví dụ tình huống:
+Scenario example:
 
 ~~~text
-java  -> runtime Java 8
-javac -> compiler JDK 17
+java  -> Java 8 runtime
+javac -> JDK 17 compiler
 ~~~
 
-Đây không tự động là cấu hình sai. Nhưng build phải dùng mục tiêu tương thích Java 8 và kiểm thử trên runtime Java 8 trước khi phát hành.
+This is not automatically a misconfiguration. However, the build must target Java 8 compatibility and be tested on a Java 8 runtime prior to release.
 
-Các thông tin cần ghi trong báo cáo build:
+Information to record in a build report:
 
-- Phiên bản compiler và bản phân phối JDK.
-- Cấu hình `--release` hoặc toolchain mục tiêu.
-- Runtime thấp nhất cam kết.
-- Phiên bản các dependency trực tiếp và runtime library quan trọng.
-- Hệ điều hành/kiến trúc triển khai nếu có thư viện native hoặc phụ thuộc môi trường.
+- Compiler version and JDK distribution.
+- `--release` setting or target toolchain.
+- Lowest promised runtime.
+- Versions of direct dependencies and key runtime libraries.
+- Deployment OS/architecture if native libraries or environment dependencies exist.
 
-Không suy luận runtime của production chỉ từ phiên bản JDK dùng trong IDE cá nhân.
+Do not infer the production runtime merely from the JDK version configured in a personal IDE.
 
-## 5. Dùng javac --release để xây bản tương thích
+## 5. Using javac --release to Build Compatible Artifacts
 
-Từ **JDK 9**, `javac` có tùy chọn `--release` để biên dịch hướng đến một phiên bản Java được compiler hỗ trợ.
+Since **JDK 9**, `javac` has provided the `--release` option to compile targeting a Java version supported by the compiler.
 
-Ví dụ dùng JDK hiện đại biên dịch code Java 8:
+Example using a modern JDK to compile Java 8 code:
 
 ~~~powershell
 javac --release 8 -d out8 MinJdkEightExample.java
 ~~~
 
-Tùy chọn này đồng thời ràng buộc:
+This option simultaneously enforces:
 
-1. **Cú pháp** theo mức ngôn ngữ mục tiêu.
-2. **API chuẩn được phép sử dụng** trong phiên bản Java mục tiêu.
-3. **Định dạng class file** tương ứng.
+1. **Syntax** per the target language level.
+2. **Standard APIs permitted** in the target Java version.
+3. Corresponding **class file format**.
 
-Vì vậy, nếu mã sử dụng `Stream.toList()`, `Collectors.teeing()` hoặc `String.isBlank()` mà biên dịch với `--release 8`, compiler sẽ không chấp nhận lời gọi API đó.
+Thus, if code uses `Stream.toList()`, `Collectors.teeing()`, or `String.isBlank()` while compiling with `--release 8`, the compiler rejects those API calls.
 
-### 5.1. Vì sao -source và -target thôi chưa đủ?
+### 5.1. Why -source and -target Alone Are Not Enough
 
-Ví dụ cấu hình cũ:
+Example legacy configuration:
 
 ~~~powershell
 javac -source 8 -target 8 -d out8 Example.java
 ~~~
 
-`-source 8` kiểm tra mức cú pháp và `-target 8` đặt phiên bản class file, **nhưng có thể vẫn biên dịch lời gọi tới API mới của JDK đang chạy compiler** nếu không sử dụng đúng bootclasspath/API mục tiêu. Ví dụ code chứa `"hello".isBlank()` có thể biên dịch thành bytecode mức 8 khi build bằng JDK mới trong cấu hình không kiểm soát API, nhưng khi chạy ở Java 8 lại không tìm được phương thức.
+`-source 8` checks syntax level and `-target 8` sets the class file version, **yet may still compile calls to newer APIs of the JDK running the compiler** if the proper bootclasspath/target APIs are not configured. For instance, code containing `"hello".isBlank()` can compile to level-8 bytecode when built with a newer JDK under an unguarded setup, only to fail with a missing method when running on Java 8.
 
-Do đó, khi compiler hỗ trợ, ưu tiên **`--release 8`** thay vì chỉ kết hợp `-source 8 -target 8`.
+Therefore, whenever the compiler supports it, prefer **`--release 8`** instead of combining `-source 8 -target 8` alone.
 
-### 5.2. Hai giới hạn của --release
+### 5.2. Two Limitations of --release
 
-- Không phải mọi JDK mới đều hỗ trợ biên dịch về **mọi** phiên bản cũ; cần kiểm tra danh sách `--release` của compiler đang dùng.
-- `--release` chủ yếu kiểm soát cú pháp, class file và **API nền tảng Java**. Nó **không tự bảo đảm mọi thư viện bên thứ ba**, plugin, agent hay thư viện native đều chạy được trên runtime đích.
+- Not every newer JDK supports compiling back to **every** older version; check the `--release` targets supported by the compiler in use.
+- `--release` primarily controls syntax, class files, and **Java platform APIs**. It **does not guarantee all third-party libraries**, plugins, agents, or native libraries run on the target runtime.
 
-**Không dùng đồng thời `--release` với các tùy chọn source/target hoặc cấu hình hệ thống mâu thuẫn.** Với dự án build bằng Maven/Gradle, hãy quản lý mức đích nhất quán tại một nơi.
+**Do not combine `--release` with conflicting source/target options or system configurations.** In Maven/Gradle projects, manage the target level consistently in a single place.
 
-## 6. Dự án Java 8 hoàn chỉnh: báo cáo thanh toán không cần API mới
+## 6. Complete Java 8 Project: Payment Report Without Newer APIs
 
-Để thấy cách chọn baseline tác động đến code, ta viết một chương trình **Java 8 thật sự**: không dùng `record`, `List.of`, `Stream.toList`, `teeing`, `var` hay `Map.copyOf`.
+To see how choosing a baseline affects code, let's write a **genuine Java 8** program: no `record`, `List.of`, `Stream.toList`, `teeing`, `var`, or `Map.copyOf`.
 
-**Yêu cầu:** từ các giao dịch, thống kê số khoản thanh toán thành công, tổng tiền và tổng tiền theo khu vực. Code phải tuân thủ hợp đồng collector, có thể chạy tuần tự hoặc song song nếu dữ liệu đầu vào ổn định.
+**Requirement:** from transactions, summarize the count of successful payments, total amount, and total amount by region. The code must obey the collector contract and run sequentially or in parallel when input data is stable.
 
-Đặt trong file `MinJdkEightExample.java`:
+Save in `MinJdkEightExample.java`:
 
 ~~~java
 import java.util.ArrayList;
@@ -188,10 +188,10 @@ public final class MinJdkEightExample {
         Payment(String region, long amountVnd, boolean paid) {
             this.region = Objects.requireNonNull(region, "region");
             if (region.trim().isEmpty()) {
-                throw new IllegalArgumentException("region rỗng");
+                throw new IllegalArgumentException("empty region");
             }
             if (amountVnd < 0L) {
-                throw new IllegalArgumentException("amountVnd âm");
+                throw new IllegalArgumentException("negative amountVnd");
             }
             this.amountVnd = amountVnd;
             this.paid = paid;
@@ -210,7 +210,7 @@ public final class MinJdkEightExample {
         Report(long count, long totalVnd, Map<String, Long> byRegion) {
             this.count = count;
             this.totalVnd = totalVnd;
-            // Sao chép trước khi tạo view không thể sửa.
+            // Copy before creating an unmodifiable view.
             this.byRegion = Collections.unmodifiableMap(
                 new TreeMap<String, Long>(byRegion)
             );
@@ -291,34 +291,34 @@ public final class MinJdkEightExample {
 }
 ~~~
 
-### 6.1. Vì sao ví dụ đáp ứng Java 8?
+### 6.1. Why Does This Example Satisfy Java 8?
 
-- `static final class Payment` và `Report` thay cho `record`.
-- `Arrays.asList(...)` thay cho `List.of(...)`.
-- `Collector.of(supplier, accumulator, combiner, finisher)` đã có từ Java 8.
-- `Math.addExact` đã có trong Java 8; nó báo lỗi nếu tổng `long` bị tràn thay vì trả số sai.
-- `Collections.unmodifiableMap(new TreeMap<>(...))` tạo bản sao rồi cung cấp view không cho sửa, thay cho `Map.copyOf` của Java 10.
-- Các lambda và method reference đều là cú pháp Java 8.
+- `static final class Payment` and `Report` replace `record`.
+- `Arrays.asList(...)` replaces `List.of(...)`.
+- `Collector.of(supplier, accumulator, combiner, finisher)` has existed since Java 8.
+- `Math.addExact` exists in Java 8; it reports an error if a `long` sum overflows instead of returning an incorrect number.
+- `Collections.unmodifiableMap(new TreeMap<>(...))` creates a copy and provides an unmodifiable view, replacing Java 10's `Map.copyOf`.
+- All lambdas and method references are valid Java 8 syntax.
 
-Đây là một ví dụ về **mutable reduction**: `MutableReport` là bộ chứa trung gian được collector tạo và gộp, còn `Report` là kết quả cuối. Code không dùng một `HashMap` chia sẻ bên ngoài pipeline, nên tránh lỗi thường gặp của `parallelStream().forEach(sharedMap::put)`.
+This is an example of **mutable reduction**: `MutableReport` is an intermediate container created and merged by the collector, while `Report` is the final result. The code does not use a shared `HashMap` outside the pipeline, avoiding the common bug of `parallelStream().forEach(sharedMap::put)`.
 
-### 6.2. Những điều ví dụ chưa bảo đảm
+### 6.2. What Does This Example Not Guarantee Yet?
 
-Dù mã có thể biên dịch bằng Java 8, hệ thống nghiệp vụ vẫn cần quyết định xử lý ID trùng, xác thực dữ liệu nguồn, thời điểm ghi dữ liệu, lỗi I/O và giới hạn kích thước. Bài này tập trung vào **mức tương thích và hợp đồng Stream**, không phải một hệ thống tài chính hoàn chỉnh.
+Even though the code compiles with Java 8, a production system still needs decisions on duplicate IDs, source data validation, data write timing, I/O errors, and size limits. This lesson focuses on **compatibility levels and Stream contracts**, not a complete financial system.
 
-Ví dụ trên không thay đổi nguồn, sử dụng phép cộng kiểm tra tràn và giữ trạng thái collector cục bộ. Nếu muốn đánh giá `parallelStream()`, vẫn phải kiểm thử kết quả tương đương và đo hiệu năng với dữ liệu thật.
+The example does not mutate the source, uses overflow-checked addition, and keeps collector state local. To evaluate `parallelStream()`, you must still test equivalent results and benchmark with real data.
 
-## 7. Thay Stream.toList() khi baseline là Java 8 hoặc 11
+## 7. Replacing Stream.toList() When Baseline Is Java 8 or 11
 
-Một lỗi rất thường gặp khi sao chép ví dụ hiện đại:
+A very common mistake when copying modern examples:
 
 ~~~java
 List<String> names = students.stream()
     .map(Student::getName)
-    .toList(); // Chỉ có trên Java 16+.
+    .toList(); // Only available on Java 16+.
 ~~~
 
-Nếu baseline là Java 8, 11 hoặc 15, cần dùng collector:
+If the baseline is Java 8, 11, or 15, use a collector:
 
 ~~~java
 List<String> names = students.stream()
@@ -326,16 +326,16 @@ List<String> names = students.stream()
     .collect(java.util.stream.Collectors.toList());
 ~~~
 
-**Nhưng đừng cho rằng hai cách hoàn toàn tương đương.**
+**However, do not assume the two approaches are completely equivalent.**
 
-| API | Mốc | Có thể sửa kết quả? | Chính sách null cần nhớ |
+| API | Milestone | Result Mutable? | Null Policy to Remember |
 |---|---|---|---|
-| `Stream.toList()` | Java 16 | Không thể sửa | Có thể chứa null |
-| `Collectors.toList()` | Java 8 | **Không có cam kết** cụ thể về mutability hay kiểu triển khai | Không cam kết cụ thể ngoài hợp đồng của collector |
-| `Collectors.toUnmodifiableList()` | Java 10 | Không thể sửa | Từ chối null |
-| `Collectors.toCollection(ArrayList::new)` | Java 8 | Trả `ArrayList` mutable | `ArrayList` chấp nhận null |
+| `Stream.toList()` | Java 16 | Unmodifiable | May contain null |
+| `Collectors.toList()` | Java 8 | **No concrete guarantee** on mutability or implementation type | No concrete guarantee beyond collector contract |
+| `Collectors.toUnmodifiableList()` | Java 10 | Unmodifiable | Rejects null |
+| `Collectors.toCollection(ArrayList::new)` | Java 8 | Returns mutable `ArrayList` | `ArrayList` accepts null |
 
-### 7.1. Khi muốn danh sách có thể sửa trên Java 8
+### 7.1. When You Want a Mutable List on Java 8
 
 ~~~java
 List<String> mutable = students.stream()
@@ -344,12 +344,12 @@ List<String> mutable = students.stream()
         java.util.ArrayList::new
     ));
 
-mutable.add("Sinh viên mới");
+mutable.add("New student");
 ~~~
 
-`Collectors.toList()` thường trả một List có thể sửa trong một số triển khai, nhưng **không có bảo đảm API** để dựa vào. Muốn `ArrayList` mutable, chỉ định `toCollection(ArrayList::new)`.
+`Collectors.toList()` happens to return a mutable List in some implementations, but **there is no API guarantee** to rely on. When you want a mutable `ArrayList`, specify `toCollection(ArrayList::new)`.
 
-### 7.2. Khi muốn danh sách không thể sửa trên Java 8
+### 7.2. When You Want an Unmodifiable List on Java 8
 
 ~~~java
 List<String> collected = students.stream()
@@ -363,20 +363,20 @@ List<String> readOnly = java.util.Collections.unmodifiableList(
 // readOnly.add("X"); // UnsupportedOperationException.
 ~~~
 
-**Phải sao chép** trước khi bao bằng `unmodifiableList` nếu không muốn view còn phản ánh thay đổi từ một tham chiếu khác đến danh sách gốc. Cách này không tự loại null và không cam kết bất biến sâu của các đối tượng phần tử.
+**You must copy** before wrapping with `unmodifiableList` if you do not want the view to reflect changes through another reference to the original list. This approach does not filter out nulls automatically and does not promise deep immutability of element objects.
 
-Do đó, khi chuyển từ `Stream.toList()` về Java 8, chọn fallback theo **hợp đồng mutability và null**, không chỉ theo việc code biên dịch thành công.
+Therefore, when porting `Stream.toList()` back to Java 8, choose a fallback based on **mutability and null contracts**, not merely whether code compiles.
 
-## 8. List.of, Map.of và copyOf: đừng nhầm với collection cũ
+## 8. List.of, Map.of, and copyOf: Do Not Confuse with Older Collections
 
-`List.of(...)` và `Map.of(...)` có từ Java 9; `List.copyOf(...)` và `Map.copyOf(...)` có từ Java 10. Chúng tạo các collection không thể sửa (unmodifiable) theo hợp đồng, với chính sách null chặt chẽ.
+`List.of(...)` and `Map.of(...)` exist since Java 9; `List.copyOf(...)` and `Map.copyOf(...)` exist since Java 10. They create unmodifiable collections by contract, with a strict null policy.
 
-Trong Java 8:
+In Java 8:
 
 ~~~java
 List<String> fixedSize = java.util.Arrays.asList("A", "B");
 // fixedSize.add("C"); // UnsupportedOperationException.
-// fixedSize.set(0, "X"); // Hợp lệ.
+// fixedSize.set(0, "X"); // Valid.
 
 List<String> immutableView =
     java.util.Collections.unmodifiableList(
@@ -386,9 +386,9 @@ List<String> immutableView =
     );
 ~~~
 
-`Arrays.asList` không tương đương `List.of`: nó tạo List **kích thước cố định** được hỗ trợ bởi mảng và cho phép `set`, đồng thời chấp nhận null. `List.of` không thể sửa và từ chối null.
+`Arrays.asList` is not equivalent to `List.of`: it creates an array-backed **fixed-size** List that permits `set` and accepts null. `List.of` is unmodifiable and rejects null.
 
-Nếu cần Map không thể sửa trên Java 8:
+If an unmodifiable Map is needed in Java 8:
 
 ~~~java
 Map<String, Integer> temp = new java.util.HashMap<String, Integer>();
@@ -401,11 +401,11 @@ Map<String, Integer> readOnlyMap =
     );
 ~~~
 
-Bản sao chỉ bảo vệ cấu trúc Map khỏi sửa qua tham chiếu `temp`; nếu giá trị là đối tượng mutable, cần xem xét **deep immutability** riêng.
+The copy only protects the Map structure from modifications via the `temp` reference; if values are mutable objects, address **deep immutability** separately.
 
-## 9. Stream.ofNullable và Optional.stream trên Java 8
+## 9. Stream.ofNullable and Optional.stream on Java 8
 
-Từ Java 9, `Stream.ofNullable(value)` giúp biến một giá trị có thể null thành Stream gồm **0 hoặc 1 phần tử**:
+Since Java 9, `Stream.ofNullable(value)` turns a nullable value into a Stream of **0 or 1 element**:
 
 ~~~java
 String value = null;
@@ -414,7 +414,7 @@ long count = java.util.stream.Stream.ofNullable(value)
     .count(); // Java 9+: 0
 ~~~
 
-Java 8 có thể diễn đạt rõ ràng:
+Java 8 can express this clearly:
 
 ~~~java
 static <T> java.util.stream.Stream<T> zeroOrOne(T value) {
@@ -424,11 +424,11 @@ static <T> java.util.stream.Stream<T> zeroOrOne(T value) {
 }
 ~~~
 
-Dùng `Stream.of(value)` trực tiếp **không** tương đương: khi `value == null`, biểu thức có thể tạo một Stream chứa **một phần tử null**, thay vì Stream rỗng.
+Using `Stream.of(value)` directly is **not** equivalent: when `value == null`, the expression can create a Stream containing **one null element**, instead of an empty Stream.
 
 ### 9.1. Optional.stream
 
-`Optional.stream()` có từ Java 9. Ví dụ Java 9+:
+`Optional.stream()` exists since Java 9. Java 9+ example:
 
 ~~~java
 List<java.util.Optional<String>> values =
@@ -443,7 +443,7 @@ List<String> present = values.stream()
     .collect(java.util.stream.Collectors.toList());
 ~~~
 
-Một cách viết Java 8:
+A Java 8 way to write it:
 
 ~~~java
 List<String> present = values.stream()
@@ -452,25 +452,25 @@ List<String> present = values.stream()
     .collect(java.util.stream.Collectors.toList());
 ~~~
 
-`Optional.get()` trong ví dụ chỉ được gọi **sau khi lọc `isPresent`**. Với code tổng quát, có thể viết helper dùng `flatMap` và `Stream.empty()/of()` để tránh việc gọi `get` ngoài điều kiện bảo đảm.
+`Optional.get()` in this example is called **only after filtering `isPresent`**. For general-purpose code, you can write a helper using `flatMap` and `Stream.empty()/of()` to avoid calling `get` outside guaranteed conditions.
 
-Khi review fallback, chú ý cả **Stream rỗng**, **null** và **số lần thực thi callback**; một biến thể ngắn hơn không tự động giữ toàn bộ hợp đồng ban đầu.
+When reviewing fallbacks, check **empty Streams**, **nulls**, and **callback invocation counts**; a shorter variant does not automatically preserve the full original contract.
 
-## 10. takeWhile và dropWhile khác filter
+## 10. takeWhile and dropWhile Differ from filter
 
-Từ Java 9, Stream hỗ trợ:
+Since Java 9, Streams support:
 
 ~~~java
 stream.takeWhile(predicate)
 stream.dropWhile(predicate)
 ~~~
 
-Trên **Stream có thứ tự**:
+On an **ordered Stream**:
 
-- `takeWhile` lấy **tiền tố liên tiếp đầu tiên** thỏa predicate và dừng khi gặp phần tử không thỏa.
-- `dropWhile` bỏ **tiền tố liên tiếp đầu tiên** thỏa predicate, sau đó giữ các phần còn lại.
+- `takeWhile` takes the **first contiguous prefix** matching the predicate and stops upon hitting a non-matching element.
+- `dropWhile` drops the **first contiguous prefix** matching the predicate, then keeps the remaining elements.
 
-Ví dụ:
+Example:
 
 ~~~java
 List<Integer> values = java.util.Arrays.asList(1, 2, 5, 3, 4);
@@ -486,11 +486,11 @@ System.out.println(values.stream()
 // [1, 2, 3]
 ~~~
 
-**Không thể thay `takeWhile(p)` bằng `filter(p)` nói chung**, vì `filter` có thể giữ các phần tử thỏa điều kiện xuất hiện **sau** phần tử không thỏa đầu tiên.
+**`takeWhile(p)` cannot generally be replaced with `filter(p)`**, because `filter` keeps matching elements appearing **after** the first non-matching element.
 
-### 10.1. Java 8: chọn thuật toán khác nếu cần dừng tại phần tử đầu không đạt
+### 10.1. Java 8: Choose Another Algorithm If Stopping at the First Non-Matching Element Is Needed
 
-Với dữ liệu trong List và yêu cầu tuần tự:
+For data in a List and sequential processing:
 
 ~~~java
 List<Integer> prefix = new java.util.ArrayList<Integer>();
@@ -505,24 +505,24 @@ for (Integer value : values) {
 System.out.println(prefix); // [1, 2]
 ~~~
 
-Một vòng `for` rõ ý nghĩa hơn một `filter` sai. Nếu dự án cần hỗ trợ lười (*lazy*) hoặc nguồn I/O, có thể tự triển khai Iterator/Spliterator có điểm dừng, nhưng phải quản lý quyền sở hữu tài nguyên và ngữ nghĩa `trySplit` rất cẩn thận.
+A clear `for` loop is better than an incorrect `filter`. If the project requires *lazy* support or I/O sources, you can implement an Iterator/Spliterator with a stopping condition, though resource ownership and `trySplit` semantics must be managed very carefully.
 
-### 10.2. iterate ba tham số
+### 10.2. Three-Parameter iterate
 
-`Stream.iterate(seed, hasNext, next)` có từ Java 9 và giúp tạo dãy hữu hạn theo điều kiện:
+`Stream.iterate(seed, hasNext, next)` exists since Java 9 and creates a finite conditional sequence:
 
 ~~~java
 java.util.stream.IntStream.iterate(0, n -> n < 5, n -> n + 1)
     .forEach(System.out::println); // Java 9+
 ~~~
 
-Với dãy số học đơn giản, Java 8 có thể chọn `IntStream.range(0, 5)`. Nhưng với bộ sinh có bước tiếp theo phụ thuộc trạng thái hoặc điều kiện kết thúc phức tạp, không thể thay thế máy móc bằng `range`; cần thiết kế lại nguồn theo đúng ngữ nghĩa.
+For simple arithmetic sequences, Java 8 can choose `IntStream.range(0, 5)`. Yet for generators whose next step depends on state or complex termination conditions, you cannot mechanically substitute `range`; redesign the source with matching semantics.
 
-## 11. Collectors.filtering và flatMapping: fallback phải giữ nghĩa của nhóm
+## 11. Collectors.filtering and flatMapping: Fallbacks Must Preserve Group Semantics
 
-Từ Java 9, `Collectors.filtering` và `Collectors.flatMapping` có thể được dùng **bên trong downstream collector**.
+Since Java 9, `Collectors.filtering` and `Collectors.flatMapping` can be used **inside downstream collectors**.
 
-Ví dụ muốn giữ cả nhóm có doanh thu thành công bằng 0:
+For example, wanting to retain groups with zero successful revenue:
 
 ~~~java
 Map<String, Long> paidCountByRegion = payments.stream()
@@ -535,9 +535,9 @@ Map<String, Long> paidCountByRegion = payments.stream()
     ));
 ~~~
 
-`Payment` ở đây là kiểu dữ liệu Java có phương thức `getRegion()` và `isPaid()`, ví dụ như chương trình mục 6. Cách viết trên cần Java 9+.
+`Payment` here is a Java data type with `getRegion()` and `isPaid()`, such as in section 6's program. This style requires Java 9+.
 
-Nếu chuyển điều kiện sang trước khi nhóm:
+If you move the condition before grouping:
 
 ~~~java
 payments.stream()
@@ -548,9 +548,9 @@ payments.stream()
     ));
 ~~~
 
-thì nhóm **không có khoản thanh toán thành công** biến mất hoàn toàn. Đây **không** là fallback tương đương nếu yêu cầu phải hiển thị nhóm với count = 0.
+then groups **with no successful payments** disappear completely. This is **not** an equivalent fallback if the requirement is to display groups with count = 0.
 
-### 11.1. Java 8 fallback cho trường hợp chỉ cần đếm
+### 11.1. Java 8 Fallback When Only Counting Is Needed
 
 ~~~java
 Map<String, Long> paidCountByRegion = payments.stream()
@@ -562,24 +562,24 @@ Map<String, Long> paidCountByRegion = payments.stream()
     ));
 ~~~
 
-Tất cả khoản thanh toán được đưa đến `groupingBy`; giá trị tích lũy của mỗi phần tử là 1 nếu đạt điều kiện và 0 nếu không. Vì vậy, một khu vực có dữ liệu nhưng toàn khoản chưa thanh toán **vẫn có khóa với số đếm 0**.
+All payments reach `groupingBy`; each element's accumulated value is 1 if it passes the condition and 0 otherwise. Thus, a region with data consisting solely of unpaid transactions **still has a key with count 0**.
 
-Fallback này giữ nghĩa **cho bài toán đếm**. Nó không thay thế tổng quát mọi `Collectors.filtering(predicate, downstream)` hoặc một `flatMapping` tùy ý. Khi yêu cầu phức tạp hơn, cần viết downstream collector tương thích hoặc thay đổi thiết kế một cách có kiểm soát.
+This fallback preserves semantics **for counting**. It is not a general replacement for every `Collectors.filtering(predicate, downstream)` or an arbitrary `flatMapping`. When requirements are more complex, write a compatible downstream collector or adjust the design deliberately.
 
-### 11.2. Khi cần flatMapping
+### 11.2. When flatMapping Is Needed
 
-`Collectors.flatMapping(mapper, downstream)` (Java 9+) cho phép từ một phần tử của **một nhóm** phát ra 0..n giá trị để downstream thu lại. Ở Java 8, có thể dùng collector tự viết hoặc thu trung gian trong từng nhóm rồi xử lý tiếp, nhưng phương án thu List sẽ tăng bộ nhớ.
+`Collectors.flatMapping(mapper, downstream)` (Java 9+) lets each element in **a group** emit 0..n values for a downstream to collect. In Java 8, you can write a custom collector or collect intermediates per group and process further, though collecting into a List increases memory usage.
 
-**Không dời `flatMap` ra trước `groupingBy` nếu thao tác đó làm mất khóa nhóm hoặc thay đổi cách gán phần tử vào nhóm.** Đây là vấn đề tương thích **ngữ nghĩa**, không chỉ khác phiên bản API.
+**Do not move `flatMap` before `groupingBy` if doing so drops group keys or changes how elements are assigned to groups.** This is a **semantic** compatibility issue, not merely an API version difference.
 
-## 12. teeing trên Java 12 và collector thay thế từ Java 8
+## 12. teeing in Java 12 and Replacement Collectors from Java 8
 
-`Collectors.teeing(downstream1, downstream2, merger)` (Java 12+) đưa mỗi phần tử cho **hai downstream collector**, rồi gọi merger để ghép hai kết quả.
+`Collectors.teeing(downstream1, downstream2, merger)` (Java 12+) feeds each element to **two downstream collectors**, then invokes the merger to combine the two results.
 
-Ví dụ nếu chỉ cần số lượng và tổng tiền của **mọi khoản thanh toán**:
+For example, if you only need count and total amount across **all payments**:
 
 ~~~java
-// Java 12+. Payment và Report là các lớp trong ví dụ mục 6.
+// Java 12+. Payment and Report are the classes from section 6's example.
 java.util.Map.Entry<Long, Long> pair = payments.stream()
     .collect(java.util.stream.Collectors.teeing(
         java.util.stream.Collectors.counting(),
@@ -591,7 +591,7 @@ java.util.Map.Entry<Long, Long> pair = payments.stream()
     ));
 ~~~
 
-Ở Java 8, `teeing` chưa tồn tại. Nếu hai giá trị cùng thuộc một trường số, có thể dùng `summarizingLong`:
+In Java 8, `teeing` does not exist. If both values come from the same numeric field, `summarizingLong` can be used:
 
 ~~~java
 java.util.LongSummaryStatistics summary = payments.stream()
@@ -603,25 +603,25 @@ System.out.println(summary.getCount());
 System.out.println(summary.getSum());
 ~~~
 
-Nếu cần nhiều phép thu thập không cùng bản chất, có thể viết **collector tùy chỉnh** với supplier, accumulator, combiner, finisher như `MutableReport` trong mục 6. Làm như vậy **không** yêu cầu duyệt lại nguồn và vẫn hỗ trợ chia/gộp theo hợp đồng.
+If you need multiple aggregations of different natures, you can write a **custom collector** with supplier, accumulator, combiner, and finisher like `MutableReport` in section 6. Doing so does **not** require re-traversing the source and still supports splitting/merging per contract.
 
-### 12.1. Đừng sử dụng reduce với một ArrayList dùng chung để “bù” teeing
+### 12.1. Do Not Use reduce with a Shared ArrayList to "Substitute" for teeing
 
-Một cách viết sai là gọi `reduce(new ArrayList<>(), accumulatorMutating, combiner)` rồi chỉnh sửa chính identity trong accumulator. Cách này vi phạm mô hình non-mutating reduction và có thể sai khi chạy song song.
+An incorrect pattern is calling `reduce(new ArrayList<>(), accumulatorMutating, combiner)` and mutating the identity itself inside the accumulator. This violates the non-mutating reduction model and can break when run in parallel.
 
-Khi xây báo cáo tích lũy mutable, hãy dùng `collect` hoặc `Collector.of`. Để có kết quả bất biến, dùng finisher tạo **bản sao độc lập** thay vì đưa thẳng container mutable trung gian ra bên ngoài.
+When building mutable accumulation reports, use `collect` or `Collector.of`. For immutable results, use the finisher to create an **independent copy** instead of exposing the intermediate mutable container directly.
 
-### 12.2. Có cần tăng baseline chỉ để dùng teeing?
+### 12.2. Should You Raise the Baseline Just to Use teeing?
 
-Không nhất thiết. Nếu dự án chỉ có vài phép cộng/đếm, collector Java 8 hoặc `summarizingLong` có thể đơn giản hơn. Nhưng nếu nhiều báo cáo phức hợp thường xuyên ghép hai downstream có sẵn, Java 12+ có thể cải thiện đáng kể khả năng diễn đạt.
+Not necessarily. If the project only has a few sums/counts, a Java 8 collector or `summarizingLong` can be simpler. However, if many composite reports frequently pair two existing downstreams, Java 12+ can noticeably improve expressiveness.
 
-Quyết định nên dựa trên **mức JDK deployment được phép**, số lượng nơi cần fallback và chi phí bảo trì, chứ không chỉ số dòng code.
+The decision should rest on **permitted deployment JDK level**, how many places need fallbacks, and maintenance cost—not merely line count.
 
-## 13. mapMulti: API mới và phương án flatMap cũ
+## 13. mapMulti: Newer API and the Older flatMap Approach
 
-`Stream.mapMulti` có từ Java 16, dùng khi một phần tử cần phát **không, một hoặc nhiều** phần tử đầu ra. Trên Java 8, cách phổ biến là `flatMap`.
+`Stream.mapMulti` exists since Java 16, used when one element must emit **zero, one, or more** output elements. In Java 8, the common approach is `flatMap`.
 
-Ví dụ Java 8: tách các chuỗi bằng dấu phẩy rồi chỉ giữ phần không rỗng.
+Java 8 example: splitting comma-separated strings and keeping only non-empty parts.
 
 ~~~java
 List<String> parts = java.util.Arrays.asList(
@@ -636,7 +636,7 @@ List<String> tokens = parts.stream()
 System.out.println(tokens); // [java, stream, collector, api]
 ~~~
 
-Từ Java 16 có thể diễn đạt qua `mapMulti`:
+Since Java 16 this can be expressed with `mapMulti`:
 
 ~~~java
 List<String> tokens = parts.stream()
@@ -650,21 +650,21 @@ List<String> tokens = parts.stream()
     .toList();
 ~~~
 
-Hai đoạn có cùng kết quả với dữ liệu mẫu. `mapMulti` có thể tránh việc tạo một Stream trung gian cho mỗi phần tử như cách viết `flatMap`, nhưng **không được khẳng định luôn nhanh hơn** mà không đo trên workload thực tế.
+Both snippets yield the same result on sample data. `mapMulti` can avoid creating an intermediate Stream per element as `flatMap` does, yet **must not be claimed always faster** without measuring on real workloads.
 
-Đây là ví dụ nâng cấp khi runtime cho phép; nếu phải giữ Java 8, `flatMap` vẫn diễn đạt tốt bài toán.
+This is an upgrade example when the runtime permits; if Java 8 must be preserved, `flatMap` still expresses the problem well.
 
-## 14. Stream Gatherers và giới hạn baseline Java 24
+## 14. Stream Gatherers and the Java 24 Baseline Boundary
 
-**Stream Gatherers** mở rộng khả năng tạo thao tác trung gian có trạng thái và cấu trúc xử lý phức tạp, như quét tích lũy, cửa sổ cố định/trượt hoặc tích hợp một số mô hình xử lý đồng thời.
+**Stream Gatherers** expand the ability to build stateful intermediate operations and complex processing structures, such as running scans, fixed/sliding windows, or integrating certain concurrency models.
 
-Điểm tương thích:
+Compatibility points:
 
-- Java **22 và 23** có phiên bản **preview**, nên phải xem xét cơ chế bật preview tương ứng và các thay đổi có thể xảy ra.
-- **Java 24** là phiên bản mà `Stream.gather`, `Gatherer` và `Gatherers` trở thành API **chuẩn**, không còn yêu cầu bật preview chỉ để dùng các API này.
-- Nếu runtime tối thiểu là Java 8, 11, 17 hoặc 21, **không thể gọi trực tiếp Gatherers chuẩn** trong phần mã bắt buộc chạy trên runtime đó.
+- Java **22 and 23** included **preview** versions, so corresponding preview flags and potential changes must be accounted for.
+- **Java 24** is the version in which `Stream.gather`, `Gatherer`, and `Gatherers` became **standard** APIs, no longer requiring preview flags just to use them.
+- If the minimum runtime is Java 8, 11, 17, or 21, **you cannot directly call standard Gatherers** in code that must run on that runtime.
 
-Ví dụ minh họa **Java 24+**:
+Illustrative **Java 24+** example:
 
 ~~~java
 import java.util.List;
@@ -683,18 +683,18 @@ public class GathererWindowDemo {
 }
 ~~~
 
-Đây là ví dụ tính năng mới, **không được đưa vào module phải biên dịch với `--release 17` hoặc `--release 8`**.
+This is a newer-feature example; **it must not be placed in a module compiled with `--release 17` or `--release 8`**.
 
-### 14.1. Fallback phải xét vị trí trong pipeline
+### 14.1. Fallbacks Must Consider Pipeline Position
 
-Gatherer là **intermediate operation**. Một phép `collect` thông thường là **terminal operation**; do vậy không phải gatherer nào cũng thay bằng collector mà giữ nguyên khả năng tiếp tục `filter`/`map` ở phía sau.
+A Gatherer is an **intermediate operation**. An ordinary `collect` is a **terminal operation**; thus not every gatherer can be replaced by a collector while retaining the ability to chain `filter`/`map` afterward.
 
-Nếu yêu cầu chỉ chia **một List hữu hạn** thành các lô cố định trên Java 8, một vòng lặp tạo bản sao từng đoạn thường dễ hiểu và dễ kiểm chứng:
+If the requirement is merely splitting **a finite List** into fixed batches in Java 8, a loop copying slices is usually easy to understand and verify:
 
 ~~~java
 static <T> List<List<T>> batches(List<T> source, int batchSize) {
     if (batchSize <= 0) {
-        throw new IllegalArgumentException("batchSize phải dương");
+        throw new IllegalArgumentException("batchSize must be positive");
     }
 
     List<List<T>> result = new java.util.ArrayList<List<T>>();
@@ -710,24 +710,24 @@ static <T> List<List<T>> batches(List<T> source, int batchSize) {
 }
 ~~~
 
-Phương thức trên có **đầu vào List hữu hạn**, trả toàn bộ các lô vào bộ nhớ và không lazy như một nguồn Stream. Nó cũng cần xem xét tràn số khi cộng `from + batchSize` nếu kích thước/giới hạn có thể cực lớn; có thể thiết kế phép tính `to` bằng hiệu để bảo vệ hoàn toàn.
+This method takes a **finite List input**, materializes all batches into memory, and is not lazy like a Stream source. It must also watch for overflow when adding `from + batchSize` if sizes/bounds can be huge; computing `to` via subtraction guards completely against overflow.
 
-Với bài toán bắt buộc **lazy** hoặc xử lý streaming theo cửa sổ, cần một Iterator/Spliterator hay thao tác trung gian khác được thiết kế theo hợp đồng, không đơn giản coi vòng lặp trên List là bản thay thế hoàn toàn.
+For problems strictly requiring **laziness** or windowed streaming, a contract-compliant Iterator/Spliterator or custom intermediate stage is needed—never treat a List loop as a full replacement.
 
-### 14.2. Tránh preview trong phần core nếu baseline yêu cầu ổn định
+### 14.2. Avoid Preview APIs in Core Components When the Baseline Requires Stability
 
-API preview có thể thay đổi hoặc bị rút lại trước khi chuẩn hóa. Nếu dự án cần xây dựng thư viện phát hành lâu dài cho nhiều môi trường, nên:
+Preview APIs may change or be withdrawn before standardization. If a project builds a long-lived library for multiple environments, you should:
 
-1. Cô lập phần thử nghiệm trong module/ứng dụng riêng.
-2. Ghi rõ phiên bản preview và cờ build/runtime.
-3. Không coi artifact preview là binary tương thích xuyên nhiều bản JDK.
-4. Khi API chuẩn được phát hành, kiểm tra lại mã nguồn, chữ ký API và kiểm thử, không chỉ bỏ cờ preview.
+1. Isolate experimental code in a separate module/application.
+2. Explicitly document preview version and build/runtime flags.
+3. Never treat preview artifacts as binary-compatible across multiple JDK versions.
+4. Once the official API ships, re-verify source code, API signatures, and tests—do not just delete the preview flag.
 
-## 15. Không phải khác biệt nào cũng do phiên bản JDK
+## 15. Not Every Difference Comes from the JDK Version
 
-Một pipeline có thể biên dịch trên cả Java 8 và Java 17 nhưng khác **ngữ nghĩa** nếu thay đổi API một cách máy móc.
+A pipeline may compile on both Java 8 and Java 17 yet differ in **semantics** if APIs are swapped mechanically.
 
-### 15.1. Rỗng và Optional
+### 15.1. Empty Sources and Optional
 
 ~~~java
 java.util.Optional<Integer> max =
@@ -735,9 +735,9 @@ java.util.Optional<Integer> max =
         .max(Integer::compareTo);
 ~~~
 
-`max` trả `Optional` trên Java 8 trở lên vì nguồn có thể rỗng. Nếu viết mã cho Java 8, không nên đổi sang `max.get()` chỉ để rút ngắn; phải xử lý trường hợp `Optional.empty()`.
+`max` returns `Optional` on Java 8+ because the source may be empty. When writing Java 8 code, do not switch to `max.get()` just to shorten code; handle the `Optional.empty()` case.
 
-### 15.2. Primitive stream và boxing
+### 15.2. Primitive Streams and Boxing
 
 ~~~java
 long total = java.util.stream.IntStream.range(0, 100)
@@ -745,23 +745,23 @@ long total = java.util.stream.IntStream.range(0, 100)
     .sum();
 ~~~
 
-`IntStream`, `LongStream` và `DoubleStream` đã tồn tại từ Java 8; không cần nâng JDK chỉ để tránh boxing trong phép cộng đơn giản. `mapToLong`/`asLongStream` thường biểu diễn bài toán số học rõ ràng.
+`IntStream`, `LongStream`, and `DoubleStream` have existed since Java 8; there is no need to upgrade the JDK just to avoid boxing in simple sums. `mapToLong`/`asLongStream` usually express numeric problems clearly.
 
-### 15.3. Thứ tự và collector
+### 15.3. Ordering and Collectors
 
-`Collectors.toSet()` không bảo đảm thứ tự duyệt; `groupingBy(...)` không cam kết Map triển khai cụ thể; `findAny()` không phải cách chọn phần tử đầu. Đó là **hợp đồng API đã có từ Java 8**, không phải điểm thay đổi chỉ do nâng JDK.
+`Collectors.toSet()` does not guarantee iteration order; `groupingBy(...)` does not guarantee a concrete Map implementation; `findAny()` is not a way to pick the first element. Those are **API contracts existing since Java 8**, not changes introduced by upgrading JDKs.
 
-Khi thay bản triển khai để tương thích, phải giữ các thuộc tính mà nghiệp vụ thật sự cần: thứ tự, khả năng sửa, null, equality, trình tự kết hợp và tài nguyên.
+When replacing an implementation for compatibility, preserve the properties business logic truly relies upon: ordering, mutability, nulls, equality, combining sequence, and resources.
 
-### 15.4. Parallel và trạng thái
+### 15.4. Parallelism and State
 
-Một code chạy tuần tự đúng trên Java 8 có thể sai trên chính Java 8 khi thêm `parallel()` nếu accumulator dùng trạng thái ngoài. Tăng phiên bản JDK cũng không tự sửa race condition, phép `reduce` không associative hay việc dùng chung `ArrayList`.
+Code that runs sequentially and produces right results on Java 8 can fail on the exact same Java 8 when `.parallel()` is added if the accumulator uses external state. Upgrading the JDK also does not automatically fix race conditions, non-associative `reduce`, or shared `ArrayList` mutations.
 
-Hãy kiểm tra **tính đúng trước khi benchmark**, nhất là khi thay pipeline để tận dụng khả năng phân chia của `Spliterator` hoặc collector đồng thời.
+Verify **correctness before benchmarking**, especially when rewriting pipelines to exploit `Spliterator` splitting or concurrent collectors.
 
-## 16. Tương thích tài nguyên: Files.lines và try-with-resources
+## 16. Resource Compatibility: Files.lines and try-with-resources
 
-`Files.lines(Path, Charset)` đã có từ Java 8, tạo Stream từ tệp và cần đóng khi không dùng nữa.
+`Files.lines(Path, Charset)` has existed since Java 8, creating a Stream from a file that must be closed when no longer used.
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -770,7 +770,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
-Path path = Paths.get("payments.txt"); // Tương thích Java 8.
+Path path = Paths.get("payments.txt"); // Java 8 compatible.
 
 try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
     long rows = lines
@@ -781,29 +781,29 @@ try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
 }
 ~~~
 
-Code này không dùng `Path.of` (Java 11) hoặc `String.isBlank` (Java 11). Nó chạy với Java 8 nếu tệp tồn tại và runtime có quyền truy cập.
+This code does not use `Path.of` (Java 11) or `String.isBlank` (Java 11). It runs on Java 8 if the file exists and the runtime has access permissions.
 
-**Nhưng `trim().isEmpty()` không hoàn toàn tương đương `isBlank()` theo mọi ký tự Unicode.** Nếu dự án chuyển giữa hai cách xử lý để hạ baseline, phải quyết định rõ định nghĩa “dòng trắng” và kiểm thử các loại whitespace thực tế.
+**However, `trim().isEmpty()` is not completely equivalent to `isBlank()` for all Unicode characters.** If a project switches between the two approaches when lowering a baseline, define "blank line" explicitly and test realistic whitespace characters.
 
-### 16.1. Terminal operation không tự đóng nguồn I/O
+### 16.1. Terminal Operations Do Not Automatically Close I/O Sources
 
-`count()`, `findFirst()`, `collect()` không tự đóng Stream do `Files.lines` tạo. Quyền sở hữu tài nguyên cần thể hiện qua `try-with-resources`.
+`count()`, `findFirst()`, and `collect()` do not close a Stream created by `Files.lines`. Resource ownership must be expressed with `try-with-resources`.
 
-`onClose` (Java 8) chỉ **đăng ký callback khi đóng**, không tự đóng sau khi terminal operation chạy xong. Khi hạ baseline, đừng thay khối quản lý tài nguyên bằng việc gọi `onClose` rồi cho rằng đã xử lý xong.
+`onClose` (Java 8) only **registers a callback upon closing**; it does not close the Stream after a terminal operation finishes. When lowering a baseline, do not replace resource management with `onClose` assuming cleanup is handled.
 
-### 16.2. Nếu nguồn quá lớn
+### 16.2. When the Source Is Very Large
 
-Dù dùng JDK mới, một terminal `collect(toList())` có thể đưa toàn bộ nội dung vào bộ nhớ. `Stream` lazy không đồng nghĩa bộ nhớ kết quả không giới hạn. Nếu chỉ cần đếm/tổng, ưu tiên collector tổng hợp hoặc xử lý theo lô.
+Even on a newer JDK, a `collect(toList())` terminal can pull all contents into memory. A lazy `Stream` does not mean unboundedly small result memory. If only counts/sums are needed, prefer aggregating collectors or batch processing.
 
-Bài toán I/O, bộ nhớ, giới hạn xử lý và thời gian không được giải quyết chỉ bằng cách nâng JDK hay bật `parallelStream()`.
+I/O, memory, processing limits, and latency problems are not solved merely by upgrading the JDK or enabling `parallelStream()`.
 
-## 17. Maven, Gradle và toolchain: khai báo ý định ở build
+## 17. Maven, Gradle, and Toolchains: Declaring Intent in the Build
 
-**Mục tiêu:** mọi môi trường CI và máy phát triển phải cùng hiểu mức Java được phép sử dụng.
+**Goal:** every CI environment and developer machine must agree on the allowed Java level.
 
 ### 17.1. Maven
 
-Một cấu hình Maven điển hình cho module Java 8 khi build bằng JDK hỗ trợ `--release`:
+A typical Maven configuration for a Java 8 module when built with a JDK supporting `--release`:
 
 ~~~xml
 <properties>
@@ -811,13 +811,13 @@ Một cấu hình Maven điển hình cho module Java 8 khi build bằng JDK h�
 </properties>
 ~~~
 
-Cần sử dụng phiên bản **Maven Compiler Plugin** có hỗ trợ cấu hình `release` và phiên bản JDK chạy Maven phù hợp. Nếu build bằng chính JDK 8, `javac` của Java 8 **không có `--release`**; lúc đó cần cấu hình build/toolchain thích hợp cho môi trường đó thay vì giả định thuộc tính trên hoạt động giống hệt ở mọi phiên bản plugin/JDK.
+You must use a **Maven Compiler Plugin** version supporting the `release` configuration and an appropriate JDK running Maven. If building with JDK 8 itself, Java 8's `javac` **has no `--release`**; in that case configure build/toolchain settings suitable for that environment instead of assuming the property behaves identically across all plugin/JDK versions.
 
-Trong dự án multi-module, có thể cấu hình release khác nhau cho những module được phép dùng API mới, nhưng phải tránh để module baseline cũ vô tình phụ thuộc module đã biên dịch với class version mới hơn.
+In multi-module projects, different release levels can be set for modules allowed to use newer APIs, while preventing older-baseline modules from accidentally depending on modules compiled with newer class versions.
 
 ### 17.2. Gradle
 
-Ví dụ minh họa **Gradle Groovy DSL** dùng toolchain và cấu hình mức bytecode/API mục tiêu:
+Illustrative **Gradle Groovy DSL** example using a toolchain and configuring target bytecode/API level:
 
 ~~~groovy
 java {
@@ -831,38 +831,38 @@ tasks.withType(JavaCompile).configureEach {
 }
 ~~~
 
-Ý nghĩa: dùng compiler từ JDK 17 theo toolchain, nhưng yêu cầu phát hành code tương thích Java 8. Tùy phiên bản Gradle, plugin và toolchain, cần kiểm tra hỗ trợ thực tế trước khi áp dụng nguyên mẫu. **Toolchain JDK 17 không đồng nghĩa runtime triển khai tối thiểu cũng là 17** nếu mức `release` của code và phụ thuộc thực sự được giữ ở 8.
+Meaning: use the compiler from JDK 17 via toolchain, while requiring emitted code to be Java 8-compatible. Depending on Gradle, plugin, and toolchain versions, verify actual support before applying templates verbatim. **A JDK 17 toolchain does not mean the minimum deployment runtime is 17** if the `release` level of code and dependencies is genuinely kept at 8.
 
-### 17.3. Không trộn lẫn source level với runtime của test
+### 17.3. Do Not Mix Source Level with Test Runtime
 
-Nếu compile bằng JDK 17 với `--release 8` rồi chỉ chạy unit test trên Java 17, bạn **chưa kiểm chứng** rằng toàn bộ dependency và nhánh runtime hoạt động trên Java 8. Bản build vượt qua phép kiểm tra API nền tảng, nhưng kiểm thử runtime tối thiểu vẫn cần thiết.
+If you compile with JDK 17 using `--release 8` and only run unit tests on Java 17, you **have not verified** that all dependencies and runtime paths work on Java 8. The build passes platform-API checks, yet minimum-runtime testing remains necessary.
 
-Đối với thư viện phát hành cho người khác, ghi rõ các phiên bản runtime được hỗ trợ trong tài liệu và kiểm tra trên từng runtime đó theo khả năng của hệ thống CI.
+For libraries published to others, clearly document supported runtime versions and test on each such runtime as CI capacity permits.
 
-## 18. Dependencies: giới hạn thường bị bỏ sót
+## 18. Dependencies: An Often-Overlooked Constraint
 
-Giả sử mã nguồn ứng dụng chỉ dùng các API Java 8, nhưng một dependency đã được biên dịch cho Java 17. Ứng dụng có thể **không nạp được class của dependency** trên Java 8, kể cả khi source của ứng dụng vẫn pass `--release 8`.
+Suppose application source code uses only Java 8 APIs, yet a dependency was compiled for Java 17. The application may **fail to load the dependency's classes** on Java 8, even when the application's own source passes `--release 8`.
 
-Các rủi ro cần kiểm tra:
+Risks to inspect:
 
-| Nhóm phụ thuộc | Vấn đề có thể gặp |
+| Dependency Group | Possible Issue |
 |---|---|
-| JAR bên thứ ba | Class file biên dịch từ phiên bản Java cao hơn |
-| Thư viện gọi API mới | `NoSuchMethodError`/`NoClassDefFoundError` ở runtime cũ |
-| Annotation processor | Yêu cầu JDK build cao hơn, khác runtime mục tiêu |
-| Java agent | Hook vào JVM và JDK internals có thể thay đổi |
-| JNI/native library | Phụ thuộc OS/kiến trúc và ABI, không chỉ Java |
-| Framework/server | Có baseline Java riêng hoặc yêu cầu module/JVM flag khác |
-| Test tool | Có thể chạy được trên JDK build nhưng không hỗ trợ runtime thử nghiệm |
-| Reflection/internal APIs | Có thể bị giới hạn bởi mô hình module và encapsulation của JDK mới |
+| Third-party JAR | Class files compiled from a higher Java version |
+| Library calling newer APIs | `NoSuchMethodError`/`NoClassDefFoundError` on older runtimes |
+| Annotation processor | Requires a newer build JDK, differing from target runtime |
+| Java agent | Hooks into JVM and JDK internals that may change |
+| JNI/native library | Depends on OS/architecture and ABI, not just Java |
+| Framework/server | Has its own Java baseline or requires different module/JVM flags |
+| Test tool | May run on build JDK yet not support the test target runtime |
+| Reflection/internal APIs | May be restricted by the module system and strong encapsulation of newer JDKs |
 
-Vì vậy, xác định JDK tối thiểu là việc của **toàn ứng dụng và chuỗi phụ thuộc**, không chỉ một file Java.
+Thus, determining the minimum JDK applies to **the entire application and dependency chain**, not just a single Java file.
 
-### 18.1. Nhận biết class version
+### 18.1. Identifying Class Versions
 
-Một số mốc class file hay dùng khi chẩn đoán:
+Common class file milestones used during diagnosis:
 
-| Phiên bản Java | Class file major version |
+| Java Version | Class File Major Version |
 |---|---:|
 | 8 | 52 |
 | 11 | 55 |
@@ -870,85 +870,85 @@ Một số mốc class file hay dùng khi chẩn đoán:
 | 21 | 65 |
 | 24 | 68 |
 
-Trình biên dịch phát ra class file tương ứng với target release, nhưng bản thân con số major **không chứng minh API hoặc dependency tương thích hoàn toàn**. Có thể dùng `javap -verbose` để kiểm tra metadata của class đã biên dịch, rồi vẫn phải chạy test trên JVM mục tiêu.
+The compiler emits class files matching the target release, yet the major version number alone **does not prove complete API or dependency compatibility**. You can run `javap -verbose` to inspect compiled class metadata, and still must run tests on the target JVM.
 
-## 19. Khi cần hai cách triển khai cho hai baseline
+## 19. When Two Implementations Are Needed for Two Baselines
 
-Không phải dự án nào cũng có thể nâng đồng loạt. Một hệ thống có thể có:
+Not every project can upgrade all at once. A system might have:
 
-- **Core library** hỗ trợ Java 8 để tích hợp với khách hàng cũ.
-- **Service mới** chạy Java 17 hoặc cao hơn.
-- **Module thử nghiệm** dùng Gatherers trên Java 24+.
+- A **core library** supporting Java 8 for integration with legacy clients.
+- A **newer service** running Java 17 or higher.
+- An **experimental module** using Gatherers on Java 24+.
 
-Cách tiếp cận thường an toàn là định nghĩa một **hợp đồng đầu ra chung**, rồi lựa chọn triển khai theo module/runtime riêng.
+A generally safe approach is defining a **shared output contract**, then selecting implementations per separate module/runtime.
 
 ~~~text
-                      Hợp đồng Report
+                      Report Contract
                              |
                  +-----------+-----------+
                  |                       |
-          Core Java 8             Adapter Java mới
+          Java 8 Core             Newer Java Adapter
          Collector.of(...)        teeing / Gatherers
                  |                       |
                  +----------+------------+
                             |
-                  Kiểm thử kết quả chung
+                   Shared Result Tests
 ~~~
 
-Quan trọng:
+Important:
 
-1. Interface và kiểu dữ liệu dùng chung **không** được tham chiếu kiểu chỉ tồn tại trên JDK mới nếu core phải nạp được trên JDK cũ.
-2. Module Java 8 không được phụ thuộc trực tiếp class chỉ biên dịch cho Java 17/24.
-3. Dù hai cách triển khai khác nhau, yêu cầu null, thứ tự, kết quả rỗng, số học và lỗi phải được kiểm thử tương đương.
-4. Việc chọn triển khai theo runtime nên được cách ly và tài liệu hóa; tránh gọi API mới từ những class luôn được nạp ở runtime cũ.
+1. Shared interfaces and data types **must not** reference types existing only on newer JDKs if core must load on older JDKs.
+2. Java 8 modules must not directly depend on classes compiled only for Java 17/24.
+3. Even across two different implementations, null, ordering, empty-result, arithmetic, and error requirements must be tested equivalently.
+4. Runtime-based implementation selection should be isolated and documented; avoid referencing newer APIs from classes always loaded on older runtimes.
 
-**Multi-release JAR** (từ Java 9) là một kỹ thuật đóng gói biến thể class theo phiên bản runtime, nhưng làm tăng chi phí build/test và không thay thế thiết kế ranh giới API rõ ràng. Chỉ nên chọn khi thật sự có lý do về tương thích và bảo trì.
+**Multi-release JARs** (since Java 9) allow packaging class variants per runtime version, yet increase build/test cost and do not replace clear API boundaries. Choose them only when compatibility and maintenance needs truly justify them.
 
-## 20. Ma trận kiểm thử tính tương thích
+## 20. Compatibility Test Matrix
 
-Một dự án tuyên bố “hỗ trợ Java 8, 11, 17 và 21” cần bằng chứng trên các runtime đó, không chỉ một lần build thành công.
+A project claiming "supports Java 8, 11, 17, and 21" needs evidence on those runtimes, not just one passing build.
 
-| Bước | Java thấp nhất | Java cao hơn | Mục đích |
+| Step | Lowest Java | Higher Java | Purpose |
 |---|---|---|---|
-| Kiểm tra cú pháp/API bằng `--release` | Target 8 | Compiler hỗ trợ release 8 | Ngăn dùng API Java 9+ ngoài ý muốn |
-| Build dependency | Theo baseline | Theo phiên bản các thư viện | Phát hiện bytecode mới lọt vào artifact |
-| Unit test | Chạy trên 8 | Chạy thêm 11/17/21 nếu hỗ trợ | Kiểm tra đường code và hợp đồng API |
-| Integration test | Chạy với môi trường thực | Chạy thêm môi trường nâng cấp | Phát hiện I/O, reflection, TLS, framework, native |
-| Kiểm thử dữ liệu rỗng/null/lỗi | Có | Có | Tránh khác biệt ngữ nghĩa fallback |
-| Kiểm thử parallel | Có nếu dùng | Có nếu dùng | Kiểm tra order, accumulator, combiner, race |
-| Hiệu năng | Dữ liệu đại diện | Dữ liệu đại diện | So sánh sau khi đúng, không chỉ đo thời gian đơn lẻ |
+| Check syntax/APIs with `--release` | Target 8 | Compiler supporting release 8 | Prevent accidental use of Java 9+ APIs |
+| Build dependencies | Matching baseline | Per library versions | Catch newer bytecode sneaking into artifacts |
+| Unit tests | Run on 8 | Also run on 11/17/21 if supported | Verify code paths and API contracts |
+| Integration tests | Run with real environment | Also run on upgraded environments | Catch I/O, reflection, TLS, framework, native issues |
+| Empty/null/error data tests | Yes | Yes | Avoid fallback semantic drift |
+| Parallel tests | Yes if used | Yes if used | Verify order, accumulator, combiner, races |
+| Performance | Representative data | Representative data | Compare after correctness, not single isolated timings |
 
-### 20.1. Các ca kiểm thử tối thiểu cho chương trình mục 6
+### 20.1. Minimum Test Cases for Section 6's Program
 
-1. **Nguồn rỗng:** trả count = 0, total = 0 và Map rỗng.
-2. **Tất cả `paid = false`:** trả báo cáo tương tự rỗng, nhưng nguồn vẫn có phần tử.
-3. **Dữ liệu mẫu:** count = 3, total = 250.000, North = 200.000, South = 50.000.
-4. **Một khu vực mới:** có khóa mới với tổng chính xác.
-5. **Số tiền âm:** constructor từ chối.
-6. **Tổng vượt `long`:** `Math.addExact` ném `ArithmeticException`, không lặng lẽ tràn.
-7. **Map báo cáo:** không cho phép `put` qua getter.
-8. **Sequential vs parallel (khi thử):** báo cáo bằng nhau trên dữ liệu bất biến.
-9. **Runtime thấp nhất:** chạy được artifact đã build cùng toàn bộ dependencies cần thiết.
+1. **Empty source:** returns count = 0, total = 0, and an empty Map.
+2. **All `paid = false`:** returns a report equivalent to empty, even though source has elements.
+3. **Sample data:** count = 3, total = 250,000, North = 200,000, South = 50,000.
+4. **A new region:** creates a new key with the exact sum.
+5. **Negative amount:** rejected by constructor.
+6. **Sum exceeding `long`:** `Math.addExact` throws `ArithmeticException`, not silent overflow.
+7. **Report map:** disallows `put` via getter.
+8. **Sequential vs. parallel (when tested):** identical reports on immutable data.
+9. **Lowest runtime:** built artifact runs with all required dependencies.
 
-Nếu một ca chưa có chính sách nghiệp vụ (ví dụ giao dịch trùng ID), ghi nhận là **chưa xác định**, không tự đánh dấu PASS chỉ vì test hiện tại không chứa dữ liệu trùng.
+If a case lacks a defined business policy (such as duplicate transaction IDs), mark it **unspecified**, rather than marking PASS just because current tests lack duplicates.
 
-### 20.2. Kiểm thử regression khi nâng baseline
+### 20.2. Regression Testing When Raising the Baseline
 
-Khi chuyển từ Java 8 sang 17, việc thay `collect(toList())` bằng `toList()` có thể khiến code **đang sửa List kết quả** ném `UnsupportedOperationException`. Tương tự, chuyển từ Map/List có thể sửa sang `copyOf` có thể từ chối null.
+When moving from Java 8 to 17, replacing `collect(toList())` with `toList()` can cause code **mutating the returned List** to throw `UnsupportedOperationException`. Likewise, switching from mutable Maps/Lists to `copyOf` can reject nulls.
 
-Vì vậy, test nên xác định:
+Therefore, tests should determine:
 
-- Caller có được sửa collection kết quả hay không.
-- Null được giữ, loại hay báo lỗi.
-- Thứ tự kết quả có phải một phần contract hay không.
-- Kết quả trên nguồn rỗng, số lớn, dữ liệu có giá trị trùng.
-- Kết quả khi xử lý song song và thao tác I/O.
+- Whether callers are permitted to modify returned collections.
+- Whether nulls are retained, dropped, or errored.
+- Whether result ordering is part of the contract.
+- Behavior on empty sources, large numbers, and duplicate values.
+- Behavior under parallel execution and I/O operations.
 
-Đây là những thay đổi có thể **hợp lệ về mặt biên dịch** nhưng phá hợp đồng nghiệp vụ.
+These are changes that can be **valid at compile time** yet break business contracts.
 
-## 21. Bài tập 1 — tìm JDK tối thiểu từ một đoạn code
+## 21. Exercise 1 — Finding the Minimum JDK from a Code Snippet
 
-Xét chương trình:
+Consider the program:
 
 ~~~java
 record Item(String code, long amount) {}
@@ -963,18 +963,18 @@ List<String> codes = items.stream()
     .toList();
 ~~~
 
-**Câu hỏi:** JDK tối thiểu để biên dịch chương trình này với các API/cú pháp chuẩn, không dùng preview, là bao nhiêu?
+**Question:** What is the minimum JDK to compile this program using standard APIs/syntax without preview?
 
-**Phân tích:**
+**Analysis:**
 
 - `List.of`: Java 9.
-- `record` chính thức: Java 16.
+- Official `record`: Java 16.
 - `Stream.toList`: Java 16.
 - `Stream.map`: Java 8.
 
-Mốc cao nhất là **Java 16**. Bản thân code không bắt buộc Java 17 chỉ vì người viết thường dùng JDK 17.
+The highest milestone is **Java 16**. The code itself does not require Java 17 merely because developers commonly use JDK 17.
 
-### 21.1. Viết lại cho Java 8
+### 21.1. Rewriting for Java 8
 
 ~~~java
 final class Item {
@@ -990,7 +990,7 @@ final class Item {
     long getAmount() { return amount; }
 }
 
-// Sử dụng bên trong một phương thức:
+// Used inside a method:
 List<Item> items = java.util.Arrays.asList(
     new Item("A", 100L),
     new Item("B", 200L)
@@ -1001,13 +1001,13 @@ List<String> codes = items.stream()
     .collect(java.util.stream.Collectors.toList());
 ~~~
 
-Bản Java 8 vẫn tạo cùng **danh sách mã** với đầu vào mẫu. Nhưng tính bất biến của `List.of` và `Stream.toList` đã thay đổi; nếu nghiệp vụ cần List không thể sửa, phải thêm lớp bảo vệ đầu ra và kiểm thử theo mục 7–8.
+The Java 8 version produces the same **list of codes** on the sample input. However, the immutability of `List.of` and `Stream.toList` has changed; if business logic needs an unmodifiable List, add output protection and tests as in sections 7–8.
 
-## 22. Bài tập 2 — chọn fallback giữ nhóm có giá trị 0
+## 22. Exercise 2 — Choosing a Fallback That Keeps Zero-Count Groups
 
-**Yêu cầu:** một báo cáo phải hiển thị **mọi khu vực đã có giao dịch**, kể cả khu vực không có khoản thanh toán thành công, với số đếm bằng 0.
+**Requirement:** a report must display **every region that had transactions**, including regions with zero successful payments, with a count of 0.
 
-Phiên bản Java 9+:
+Java 9+ version:
 
 ~~~java
 Map<String, Long> counts = payments.stream()
@@ -1020,9 +1020,9 @@ Map<String, Long> counts = payments.stream()
     ));
 ~~~
 
-**Nhiệm vụ:** viết lại trên Java 8 và giải thích vì sao không chỉ `filter` trước nhóm.
+**Task:** rewrite in Java 8 and explain why you cannot just `filter` before grouping.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 Map<String, Long> counts = payments.stream()
@@ -1034,108 +1034,108 @@ Map<String, Long> counts = payments.stream()
     ));
 ~~~
 
-Nhóm được tạo trước khi tính 1 hay 0, nên nhóm có dữ liệu nhưng không có khoản `paid` vẫn xuất hiện. Nếu `stream.filter(Payment::isPaid)` được đặt trước grouping, nhóm chỉ có giao dịch chưa thanh toán sẽ **không có khóa**.
+Groups are created before counting 1 or 0, so a region with data yet zero `paid` transactions still appears. If `stream.filter(Payment::isPaid)` were placed before grouping, regions with only unpaid transactions would **have no key**.
 
-Fallback này chỉ thay thế đúng ngữ nghĩa của phép **đếm phần tử đạt điều kiện**; với các downstream phức tạp hơn, phải phân tích lại.
+This fallback only replaces the exact semantics of **counting matching elements**; for more complex downstreams, re-analyze carefully.
 
-## 23. Bài tập 3 — lập quyết định hỗ trợ JDK cho dự án
+## 23. Exercise 3 — Making a JDK Support Decision for a Project
 
-Giả sử một thư viện báo cáo Stream được khách hàng sử dụng ở ba môi trường:
+Suppose a Stream reporting library is used by customers across three environments:
 
-- Khách hàng A: runtime bắt buộc **Java 8**.
-- Khách hàng B: runtime **Java 17**.
-- Một dịch vụ nội bộ: muốn thử **Gatherers chuẩn**.
+- Customer A: mandatory **Java 8** runtime.
+- Customer B: **Java 17** runtime.
+- An internal service: wants to try **standard Gatherers**.
 
-**Yêu cầu:**
+**Requirements:**
 
-1. Xác định mức Java tối thiểu của artifact dùng chung cho A và B.
-2. Xác định module nào có thể dùng `teeing` trực tiếp.
-3. Chỉ ra cách thử Gatherers mà không làm thư viện dùng chung không chạy được trên Java 8.
-4. Đề xuất kiểm thử bắt buộc trước khi phát hành.
-5. Nêu trường hợp nào nên đề xuất nâng baseline thay vì viết thêm fallback.
+1. Determine the minimum Java level of the artifact shared by A and B.
+2. Identify which module can use `teeing` directly.
+3. Show how to try Gatherers without breaking the shared library on Java 8.
+4. Propose mandatory tests before release.
+5. State when raising the baseline should be recommended instead of writing more fallbacks.
 
-### Gợi ý lời giải
+### Solution Hints
 
-**Artifact dùng chung** phải tiếp tục hỗ trợ **Java 8**, nếu yêu cầu dành cho A vẫn còn hiệu lực. Nó không thể công khai kiểu hoặc lời gọi API chỉ có ở JDK mới trong phần code A phải nạp.
+**The shared artifact** must continue supporting **Java 8** as long as Customer A's requirement remains active. It cannot expose types or API calls available only on newer JDKs in code A must load.
 
-**Dịch vụ Java 17** có thể sử dụng `Collectors.teeing` và `Stream.toList` trong module riêng mà chỉ chạy ở Java 17, miễn không làm tăng mức class file/API của artifact dùng chung.
+**The Java 17 service** can use `Collectors.teeing` and `Stream.toList` in its own module running solely on Java 17, provided it does not raise the class-file/API level of the shared artifact.
 
-**Gatherers chuẩn** đòi hỏi Java 24+, nên thử ở module hoặc ứng dụng nội bộ chạy runtime phù hợp, độc lập với artifact baseline 8. Giữ hợp đồng đầu ra hoặc mô hình dữ liệu chung ở dạng mà module Java 8 có thể hiểu.
+**Standard Gatherers** require Java 24+, so evaluate them in a separate internal module or service running on a suitable runtime, independent of the baseline-8 artifact. Keep shared output contracts or data models in forms the Java 8 module can understand.
 
-**Ma trận test** cần ít nhất một lượt chạy trên Java 8 cho thư viện core, thêm runtime Java 17 cho service, và môi trường Java 24+ cho nhánh Gatherers. Những lớp giao tiếp giữa các phần cần test tương thích kiểu, dữ liệu rỗng, lỗi và thứ tự.
+**The test matrix** needs at least one run on Java 8 for the core library, plus a Java 17 runtime for the service, and a Java 24+ environment for the Gatherers branch. Interfaces between components need tests for type compatibility, empty data, errors, and ordering.
 
-**Nâng baseline** hợp lý nếu chi phí bảo trì cách triển khai cũ quá cao, khách hàng đã có kế hoạch nâng runtime, hoặc có ràng buộc hỗ trợ/bảo mật đòi hỏi thay đổi. Việc này cần quyết định sản phẩm và vận hành; không nên do một refactor Stream đơn lẻ tự quyết.
+**Raising the baseline** makes sense when maintaining legacy implementations is too costly, customers already plan runtime upgrades, or support/security constraints require change. This requires a product and operational decision; it should not be decided unilaterally by a single Stream refactor.
 
-## 24. Các lỗi tương thích thường gặp
+## 24. Common Compatibility Mistakes
 
-| Sai lầm | Vì sao gây vấn đề | Cách xử lý |
+| Mistake | Why It Causes Problems | How to Fix |
 |---|---|---|
-| Dùng `Stream.toList()` trong code phải chạy trên Java 11 | API chỉ có từ Java 16 | Dùng collector Java 8 phù hợp và xét mutability |
-| Dùng `Collectors.teeing` khi target 8 | API chỉ có từ Java 12 | Dùng collector Java 8 hoặc `summarizingLong` |
-| Dùng `List.of` rồi đổi thẳng sang `Arrays.asList` | Mutability/null khác nhau | Tạo bản sao và wrapper nếu cần |
-| Thay `takeWhile` bằng `filter` | Có thể thay đổi tập kết quả | Dùng vòng lặp dừng sớm hoặc nguồn custom |
-| Dùng `String.isBlank` trong module `--release 8` | API chỉ có từ Java 11 | Xác định chính sách blank và dùng cách tương thích |
-| Dùng `Path.of` trong Java 8 | `Path.of` có từ Java 11 | Dùng `Paths.get` |
-| Dùng `record` trong source level 8 | Cú pháp chưa được hỗ trợ | Dùng class thường |
-| Chỉ cấu hình `-source/-target` rồi cho rằng API cũng bị giới hạn | Có thể lọt lời gọi API mới | Ưu tiên `--release` |
-| Chỉ test trên JDK build cao | Không thấy lỗi của runtime cũ | Test trên runtime thấp nhất |
-| Không kiểm tra class version của dependencies | Library có thể không nạp được | Quản lý dependency baseline |
-| Đưa preview API vào thư viện core ổn định | Phụ thuộc bản preview có thể thay đổi | Cô lập module thử nghiệm |
-| Tin rằng nâng JDK tự sửa lỗi parallel | Race, side effect và combiner sai vẫn tồn tại | Kiểm thử hợp đồng độc lập với phiên bản |
-| Không xác định ai đóng `Files.lines` | Leak file descriptor/tài nguyên | `try-with-resources`, ownership rõ ràng |
-| Thay `toList` bằng collector rồi giả định collection có thể sửa | API không cam kết mutability | Dùng `toCollection(ArrayList::new)` khi cần |
-| Cho rằng `--release` kiểm hết tương thích của hệ thống | Không kiểm tra mọi dependency/native/environment | Thực thi test tích hợp trên runtime đích |
+| Using `Stream.toList()` in code that must run on Java 11 | API only exists since Java 16 | Use an appropriate Java 8 collector and check mutability |
+| Using `Collectors.teeing` when targeting 8 | API only exists since Java 12 | Use a Java 8 collector or `summarizingLong` |
+| Replacing `List.of` directly with `Arrays.asList` | Mutability/null behavior differs | Make a copy and wrap if needed |
+| Replacing `takeWhile` with `filter` | May change the result set | Use an early-breaking loop or custom source |
+| Using `String.isBlank` in a `--release 8` module | API only exists since Java 11 | Define blank policy and use a compatible check |
+| Using `Path.of` in Java 8 | `Path.of` is from Java 11 | Use `Paths.get` |
+| Using `record` at source level 8 | Syntax not supported | Use a regular class |
+| Configuring only `-source/-target` assuming APIs are also restricted | Newer API calls may slip through | Prefer `--release` |
+| Testing only on the high build JDK | Misses failures on older runtimes | Test on the lowest runtime |
+| Not checking dependency class versions | Libraries may fail to load | Manage dependency baselines |
+| Putting preview APIs in a stable core library | Preview features may change | Isolate experimental modules |
+| Believing JDK upgrades automatically fix parallel bugs | Races, side effects, and bad combiners persist | Test contracts independently of version |
+| Failing to define who closes `Files.lines` | File descriptor/resource leak | `try-with-resources`, clear ownership |
+| Replacing `toList` with a collector and assuming mutability | API does not promise mutability | Use `toCollection(ArrayList::new)` when needed |
+| Assuming `--release` checks whole-system compatibility | Does not check all dependencies/native/environment | Run integration tests on target runtimes |
 
-## 25. Checklist trước khi chốt JDK tối thiểu
+## 25. Checklist Before Locking the Minimum JDK
 
-| Câu hỏi kiểm tra | Bằng chứng nên có |
+| Verification Question | Expected Evidence |
 |---|---|
-| Môi trường runtime thấp nhất là phiên bản nào? | Danh sách phiên bản sản phẩm cam kết hỗ trợ |
-| Đã phân biệt compiler JDK và runtime JDK? | Log `java -version`, `javac -version` |
-| Mỗi API/cú pháp mới có mốc tối thiểu rõ? | Bảng các API đang sử dụng |
-| Build đã ràng buộc source, API và bytecode? | Cấu hình `--release` hoặc toolchain tương ứng |
-| Có dependency yêu cầu Java mới hơn không? | Dependency audit, class version, tài liệu thư viện |
-| Fallback có giữ null/mutability/order/empty semantics? | Unit test trên dữ liệu biên |
-| Có API preview hoặc JDK-internal không? | Danh mục rủi ro và kế hoạch nâng cấp |
-| Có dùng nguồn I/O với quyền sở hữu rõ? | `try-with-resources` và test lỗi |
-| Có dùng parallel hoặc custom Spliterator đúng hợp đồng? | Test kết quả, race, split/estimate và combiner |
-| Test đã chạy trên runtime tối thiểu? | CI job và artifact log |
-| Có test trên phiên bản JDK cao hơn được hỗ trợ? | Ma trận test đa phiên bản |
-| Benchmark chỉ thực hiện sau khi code đúng? | Kết quả test và báo cáo hiệu năng |
-| Lịch hỗ trợ/bảo mật của runtime đã được xác minh? | Chính sách nhà cung cấp và kế hoạch nâng cấp |
+| What is the lowest runtime environment? | List of product-supported versions |
+| Are compiler JDK and runtime JDK distinguished? | Logs of `java -version`, `javac -version` |
+| Does every newer API/syntax have a clear minimum milestone? | Inventory table of APIs in use |
+| Does the build constrain source, API, and bytecode? | `--release` or corresponding toolchain config |
+| Do any dependencies require a newer Java? | Dependency audit, class versions, library docs |
+| Do fallbacks preserve null/mutability/order/empty semantics? | Unit tests on boundary data |
+| Are any preview or JDK-internal APIs used? | Risk register and upgrade plan |
+| Do I/O sources have clear ownership? | `try-with-resources` and error tests |
+| Do parallel runs or custom Spliterators obey contracts? | Tests for results, races, split/estimate, and combiners |
+| Have tests run on the minimum runtime? | CI jobs and artifact logs |
+| Have higher supported JDK versions been tested? | Multi-version test matrix |
+| Are benchmarks run only after correctness is verified? | Test results and performance reports |
+| Have runtime support/security schedules been verified? | Vendor policy and upgrade roadmap |
 
-## 26. Câu hỏi tự kiểm tra
+## 26. Self-Check Questions
 
-1. `Stream` và `Collectors.groupingBy` có từ Java nào? — **Java 8**.
-2. `Stream.toList()` có từ Java nào? — **Java 16**.
-3. `Collectors.teeing` có từ Java nào? — **Java 12**.
-4. `Stream.ofNullable` và `Optional.stream` có từ Java nào? — **Java 9**.
-5. `Collectors.toUnmodifiableList` có từ Java nào? — **Java 10**.
-6. `Stream.mapMulti` có từ Java nào? — **Java 16**.
-7. `Stream.gather` và Gatherers chuẩn cần Java nào? — **Java 24 trở lên**.
-8. `record` chính thức ở Java nào? — **Java 16**.
-9. Dùng JDK 17 để build có bắt buộc runtime tối thiểu là Java 17 không? — **Không**, nếu biên dịch và phụ thuộc được ràng buộc về release thấp hơn đúng cách.
-10. Vì sao `--release 8` hữu ích hơn chỉ `-source 8 -target 8`? — Vì nó còn kiểm soát **API nền tảng Java** được phép gọi.
-11. `--release` có bảo đảm mọi JAR bên thứ ba chạy được trên Java 8 không? — **Không**.
-12. `Arrays.asList` có tương đương `List.of` không? — **Không**, khác chính sách sửa và null.
-13. `Collectors.toList` có bảo đảm List mutable không? — **Không**.
-14. Vì sao `takeWhile(p)` không thể thay máy móc bằng `filter(p)`? — Vì một bên lấy **tiền tố liên tiếp**, một bên giữ **mọi phần tử thỏa điều kiện**.
-15. `Collectors.filtering` trong `groupingBy` có thể khác `stream.filter` ở đâu? — **Khả năng giữ nhóm có count 0**.
-16. Một Stream từ `Files.lines` có tự đóng sau `count` không? — **Không**, cần quản lý đóng nguồn.
-17. Vì sao parallel Stream không tự nhanh hơn khi nâng JDK? — Vì còn kích thước nguồn, chi phí, cách chia, order và combiner.
-18. Nếu mã dùng `Stream.toList()` và `record`, mốc tối thiểu không preview là gì? — **Java 16**.
-19. Khi nào nên chọn collector tùy chỉnh Java 8 thay vì `teeing`? — Khi baseline cũ bắt buộc và hợp đồng thu thập cần gộp nhiều kết quả trong một lượt duyệt.
-20. Một dự án tương thích thật cần bước cuối nào? — **Chạy kiểm thử trên runtime thấp nhất cùng dependencies thực tế**.
+1. Since which Java version have `Stream` and `Collectors.groupingBy` existed? — **Java 8**.
+2. Since which Java version has `Stream.toList()` existed? — **Java 16**.
+3. Since which Java version has `Collectors.teeing` existed? — **Java 12**.
+4. Since which Java version have `Stream.ofNullable` and `Optional.stream` existed? — **Java 9**.
+5. Since which Java version has `Collectors.toUnmodifiableList` existed? — **Java 10**.
+6. Since which Java version has `Stream.mapMulti` existed? — **Java 16**.
+7. Which Java version do `Stream.gather` and standard Gatherers require? — **Java 24 or higher**.
+8. In which Java version did `record` become official? — **Java 16**.
+9. Does building with JDK 17 force the minimum runtime to be Java 17? — **No**, if compilation and dependencies are properly constrained to a lower release.
+10. Why is `--release 8` more useful than `-source 8 -target 8` alone? — Because it also restricts the **Java platform APIs** permitted to be called.
+11. Does `--release` guarantee all third-party JARs run on Java 8? — **No**.
+12. Is `Arrays.asList` equivalent to `List.of`? — **No**, they differ in mutability and null policy.
+13. Does `Collectors.toList` guarantee a mutable List? — **No**.
+14. Why can't `takeWhile(p)` be mechanically replaced with `filter(p)`? — Because one takes a **contiguous prefix**, while the other keeps **every matching element**.
+15. Where can `Collectors.filtering` inside `groupingBy` differ from `stream.filter`? — **The ability to retain groups with count 0**.
+16. Does a Stream from `Files.lines` close itself after `count`? — **No**, closing the source must be managed explicitly.
+17. Why do parallel Streams not automatically get faster when upgrading the JDK? — Because source size, overhead, splitting strategy, ordering, and combiners still matter.
+18. If code uses `Stream.toList()` and `record`, what is the minimum non-preview milestone? — **Java 16**.
+19. When should a Java 8 custom collector be chosen over `teeing`? — When an older baseline is mandatory and the collection contract requires aggregating multiple results in one pass.
+20. What final step does a truly compatible project need? — **Running tests on the lowest runtime together with real dependencies**.
 
-## 27. Tổng kết: tương thích là một hợp đồng, không phải một cờ compiler
+## 27. Summary: Compatibility Is a Contract, Not a Compiler Flag
 
-Để xác định **JDK tối thiểu**, trước tiên hãy xét **runtime phải hỗ trợ**, sau đó lập danh sách **tính năng ngôn ngữ**, **API chuẩn**, **dependency** và **công cụ build**. Cấu hình `javac --release` giúp bảo vệ mốc API/bytecode, nhưng không thay thế kiểm thử trên runtime thật.
+To determine the **minimum JDK**, first inspect the **runtimes that must be supported**, then inventory **language features**, **standard APIs**, **dependencies**, and **build tools**. Configuring `javac --release` helps guard API/bytecode targets, yet does not replace testing on real runtimes.
 
-Khi muốn dùng một API Stream mới, hãy hỏi:
+Whenever you want to adopt a new Stream API, ask:
 
-- Có thực sự cần nó, hay API Java 8 đã giải quyết bài toán đủ rõ và đúng?
-- Nếu dùng fallback, có giữ đúng **null**, **kết quả rỗng**, **mutability**, **thứ tự** và **quy tắc nhóm** không?
-- Nếu nâng baseline, có ảnh hưởng khách hàng, deployment, CI hay thư viện bên thứ ba không?
-- Nếu dùng preview/Gatherers hoặc xử lý song song, có bằng chứng về tính đúng, vòng đời tài nguyên và hiệu năng không?
+- Is it truly needed, or do Java 8 APIs already solve the problem clearly and accurately?
+- If using a fallback, does it preserve **nulls**, **empty results**, **mutability**, **ordering**, and **grouping rules**?
+- If raising the baseline, does it impact customers, deployments, CI, or third-party libraries?
+- If using preview/Gatherers or parallel processing, is there evidence of correctness, resource lifecycle, and performance?
 
-Tính tương thích tốt không có nghĩa luôn giữ JDK cũ nhất hay chạy theo JDK mới nhất. Đó là việc **chọn phiên bản tối thiểu có căn cứ, thiết kế fallback có ngữ nghĩa rõ ràng và kiểm chứng bằng build/test thực tế**. Nguyên tắc này giúp các dự án Java Stream API dùng `filter`, `map`, `reduce`, `collect`, grouping, `Spliterator`, parallel Stream và Stream Gatherers một cách bền vững, dễ bảo trì và đáng tin cậy.
+Good compatibility does not mean staying on the oldest JDK forever or chasing the newest JDK blindly. It means **choosing an evidence-based minimum version, designing fallbacks with clear semantics, and verifying with real builds and tests**. This principle keeps Java Stream API projects using `filter`, `map`, `reduce`, `collect`, grouping, `Spliterator`, parallel Streams, and Stream Gatherers sustainable, maintainable, and reliable.

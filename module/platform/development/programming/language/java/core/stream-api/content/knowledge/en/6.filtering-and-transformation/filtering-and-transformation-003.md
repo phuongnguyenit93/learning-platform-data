@@ -1,10 +1,10 @@
-# Làm phẳng cấu trúc lồng nhau bằng `flatMap`
+# Flattening Nested Structures with `flatMap`
 
-## 1. Vấn đề: một phần tử chứa nhiều phần tử khác
+## 1. The Problem: One Element Containing Multiple Elements
 
-Trong Java Stream API, dữ liệu thường không nằm trên cùng một tầng. Một đơn hàng chứa nhiều dòng hàng, một phòng ban chứa nhiều nhân viên, một bài viết chứa nhiều thẻ, hoặc một `List` chứa những `List` khác. Khi cần xử lý **từng phần tử bên trong** như một dãy chung, ta cần phép toán **làm phẳng** (*flatten*).
+In the Java Stream API, data often does not reside on a single level. An order contains multiple line items, a department contains multiple employees, an article contains multiple tags, or a `List` contains other `List`s. When you need to process **each inner element** as a single unified sequence, you need a **flattening** (*flatten*) operation.
 
-Ví dụ, dữ liệu ban đầu có hai tầng:
+For example, the initial data has two levels:
 
 ```text
 [
@@ -15,33 +15,33 @@ Ví dụ, dữ liệu ban đầu có hai tầng:
 ]
 ```
 
-Kết quả mong muốn chỉ còn một tầng:
+The desired result has only one level:
 
 ```text
 ["Java", "Stream", "API", "filter", "map"]
 ```
 
-Phương thức `flatMap` kết hợp hai việc:
+The `flatMap` method combines two actions:
 
-1. **Map:** chuyển mỗi phần tử nguồn thành một stream chứa không, một hoặc nhiều phần tử kết quả.
-2. **Flatten:** nối các phần tử từ những stream con vào một stream kết quả chung.
+1. **Map:** transforms each source element into a stream containing zero, one, or more result elements.
+2. **Flatten:** concatenates the elements from those inner streams into a single shared result stream.
 
-Đây là một **intermediate operation** của Stream API. Tương tự `filter` và `map`, `flatMap` được thực thi lười (*lazy*); việc duyệt dữ liệu chỉ xảy ra khi một terminal operation như `toList`, `count`, `findFirst`, `reduce` hay `collect` yêu cầu kết quả.
+This is an **intermediate operation** of the Stream API. Similar to `filter` and `map`, `flatMap` is executed lazily (*lazy*); data traversal only occurs when a terminal operation such as `toList`, `count`, `findFirst`, `reduce`, or `collect` requests results.
 
-Mục tiêu của bài:
+Lesson objectives:
 
-- Phân biệt `map` và `flatMap` qua kiểu dữ liệu và sơ đồ luồng.
-- Đọc chữ ký generic `flatMap` trên `Stream<T>`.
-- Làm phẳng `List<List<T>>`, object có collection con và cấu trúc nhiều cấp.
-- Kết hợp `filter`, `distinct`, `map`, `groupingBy`, `reduce` với `flatMap`.
-- Biểu diễn quan hệ một-nhiều, không-một-nhiều và các phần tử tùy chọn.
-- Hiểu tính lười, thứ tự, đóng stream con, các giới hạn của xử lý song song và các lựa chọn thay thế.
+- Distinguish `map` and `flatMap` via data types and flow diagrams.
+- Read the generic signature of `flatMap` on `Stream<T>`.
+- Flatten `List<List<T>>`, objects with nested collections, and multi-level structures.
+- Combine `filter`, `distinct`, `map`, `groupingBy`, and `reduce` with `flatMap`.
+- Represent one-to-many, zero-to-one-to-many, and optional element relationships.
+- Understand laziness, ordering, inner stream closing, limits of parallel processing, and alternatives.
 
-## 2. `map` và `flatMap` khác nhau ở đâu?
+## 2. How Do `map` and `flatMap` Differ?
 
-### 2.1. `map` giữ lại một lớp cấu trúc
+### 2.1. `map` Retains One Layer of Structure
 
-Giả sử có danh sách gồm nhiều danh sách từ khóa:
+Suppose you have a list containing multiple lists of keywords:
 
 ```java
 import java.util.List;
@@ -58,9 +58,9 @@ Stream<Stream<String>> nested = groups.stream()
     .map(List::stream);
 ```
 
-Đầu vào của `map` là `List<String>`; hàm `List::stream` trả `Stream<String>`. Vì `map` tạo **một kết quả cho mỗi phần tử đầu vào**, nên kiểu kết quả là **`Stream<Stream<String>>`**: ta vẫn còn các stream con.
+The input to `map` is `List<String>`; the function `List::stream` returns `Stream<String>`. Because `map` produces **one result per input element**, the resulting type is **`Stream<Stream<String>>`**: we still have nested streams.
 
-Ngay cả khi dùng `map` để tạo một danh sách khác, cấu trúc vẫn lồng nhau:
+Even when using `map` to create another list, the structure remains nested:
 
 ```java
 List<List<String>> upperGroups = groups.stream()
@@ -73,9 +73,9 @@ System.out.println(upperGroups);
 // [[JAVA, STREAM], [API], [], [FILTER, MAP]]
 ```
 
-`map` đúng khi ta **muốn giữ cấu trúc nhóm**, chẳng hạn mỗi nhóm vẫn là một phần tử riêng của kết quả.
+`map` is right when you **want to preserve group structure**, such as when each group remains a separate element of the result.
 
-### 2.2. `flatMap` bỏ một lớp lồng nhau
+### 2.2. `flatMap` Removes One Layer of Nesting
 
 ```java
 List<String> flat = groups.stream()
@@ -86,7 +86,7 @@ System.out.println(flat);
 // [Java, Stream, API, filter, map]
 ```
 
-Sơ đồ luồng:
+Flow diagram:
 
 ```mermaid
 flowchart LR
@@ -103,21 +103,21 @@ flowchart LR
     G --> H
 ```
 
-Danh sách rỗng sinh ra stream con rỗng, vì vậy không đóng góp phần tử nào. `flatMap` không tự xóa các giá trị trùng nhau, không tự sắp xếp và không tự kiểm tra phần tử hợp lệ. Các việc đó cần các phép toán khác như `distinct`, `sorted` hoặc `filter`.
+An empty list produces an empty sub-stream, so it contributes no elements. `flatMap` does not automatically remove duplicate values, sort, or validate elements. Those tasks require other operations such as `distinct`, `sorted`, or `filter`.
 
-| Đặc điểm | `map` | `flatMap` |
+| Characteristic | `map` | `flatMap` |
 | --- | --- | --- |
-| Đầu ra của hàm ánh xạ | Một giá trị kiểu `R` | Một `Stream<R>` |
-| Số phần tử đầu ra cho mỗi phần tử được xử lý | Đúng một giá trị, kể cả giá trị đó là `null` | 0, 1 hoặc nhiều phần tử |
-| Kiểu kết quả khi biến `List<T>` thành stream con | `Stream<Stream<T>>` | `Stream<T>` |
-| Khi nên chọn | Giữ các nhóm hoặc chuyển đổi từng giá trị | Cần duyệt/phân tích các phần tử nằm trong nhóm |
-| Ví dụ | Đơn hàng → số dòng hàng của đơn | Đơn hàng → mọi dòng hàng của tất cả đơn |
+| Output of mapping function | A single value of type `R` | A `Stream<R>` |
+| Number of output elements per processed element | Exactly one value, even if that value is `null` | 0, 1, or more elements |
+| Result type when turning `List<T>` into a sub-stream | `Stream<Stream<T>>` | `Stream<T>` |
+| When to choose | Keep groups or transform individual values | Need to traverse/analyze elements inside groups |
+| Example | Order → number of line items in the order | Order → all line items across all orders |
 
-**Quy tắc đọc kiểu:** nếu dùng `map` mà kết quả có dạng `Stream<Stream<R>>`, nhưng yêu cầu nghiệp vụ là `Stream<R>`, `flatMap` thường là lựa chọn phù hợp.
+**Type-reading rule:** if using `map` results in `Stream<Stream<R>>`, yet the business requirement calls for `Stream<R>`, `flatMap` is usually the right choice.
 
-## 3. Giải mã chữ ký `flatMap`
+## 3. Decoding the `flatMap` Signature
 
-Chữ ký trong `java.util.stream.Stream<T>`:
+Signature in `java.util.stream.Stream<T>`:
 
 ```java
 <R> Stream<R> flatMap(
@@ -125,15 +125,15 @@ Chữ ký trong `java.util.stream.Stream<T>`:
 )
 ```
 
-Các thành phần:
+Components:
 
-- `T`: kiểu phần tử của stream nguồn.
-- `R`: kiểu phần tử kết quả sau khi làm phẳng.
-- `Function<? super T, ...>`: mapper chấp nhận phần tử nguồn kiểu `T` (hoặc qua kiểu cha tương thích).
-- `? extends Stream<? extends R>`: mapper trả một stream chứa những phần tử có thể dùng như `R`.
-- `Stream<R>`: tất cả phần tử phát ra từ các stream con được kết hợp vào một stream đầu ra.
+- `T`: element type of the source stream.
+- `R`: result element type after flattening.
+- `Function<? super T, ...>`: mapper accepts a source element of type `T` (or via a compatible supertype).
+- `? extends Stream<? extends R>`: mapper returns a stream containing elements usable as `R`.
+- `Stream<R>`: all elements emitted from sub-streams are combined into a single output stream.
 
-Hãy theo dõi kiểu ở ba bước:
+Follow the types across three steps:
 
 ```java
 List<List<Integer>> matrix = List.of(
@@ -141,25 +141,25 @@ List<List<Integer>> matrix = List.of(
     List.of(3, 4)
 );
 
-// Bước 1: Stream<List<Integer>>
+// Step 1: Stream<List<Integer>>
 var outer = matrix.stream();
 
-// Bước 2: List<Integer> -> Stream<Integer>
-// Bước 3: Stream<Integer>
+// Step 2: List<Integer> -> Stream<Integer>
+// Step 3: Stream<Integer>
 var flattened = outer.flatMap(List::stream);
 
 System.out.println(flattened.toList()); // [1, 2, 3, 4]
 ```
 
-Trong ví dụ, `T = List<Integer>` và `R = Integer`. Phương thức `List::stream` phù hợp vì nhận một `List<Integer>` và trả `Stream<Integer>`.
+In the example, `T = List<Integer>` and `R = Integer`. `List::stream` fits because it accepts a `List<Integer>` and returns `Stream<Integer>`.
 
-Lưu ý: biến `outer` và `flattened` tham gia **cùng một pipeline**, không được có hai terminal operation tiêu thụ lại chúng. Khi cần lấy hai kết quả độc lập, hãy tạo hai stream mới từ `matrix`.
+Note: `outer` and `flattened` participate in the **same pipeline**; you cannot have two terminal operations consume them again. When you need two independent results, create two fresh streams from `matrix`.
 
-## 4. Ba dạng ánh xạ thường gặp
+## 4. Three Common Mapping Patterns
 
-### 4.1. Một phần tử thành nhiều phần tử
+### 4.1. One Element to Many Elements
 
-Tách câu thành từ:
+Splitting sentences into words:
 
 ```java
 List<String> sentences = List.of(
@@ -176,7 +176,7 @@ System.out.println(words);
 // [Java, Stream, API, filter, map, flatMap]
 ```
 
-`String.split("\\s+")` trả `String[]`; `Arrays.stream(...)` biến mảng thành `Stream<String>` để `flatMap` nối các từ. Với dữ liệu thực tế có câu rỗng hoặc chỉ có khoảng trắng, nên chuẩn hóa và lọc trước, vì `split` có quy tắc riêng cho chuỗi rỗng.
+`String.split("\\s+")` returns `String[]`; `Arrays.stream(...)` turns the array into `Stream<String>` so `flatMap` concatenates the words. With real-world data that may have empty or whitespace-only sentences, normalize and filter first, because `split` has special rules for empty strings.
 
 ```java
 List<String> normalizedWords = sentences.stream()
@@ -188,9 +188,9 @@ List<String> normalizedWords = sentences.stream()
     .toList();
 ```
 
-### 4.2. Một phần tử thành không hoặc một phần tử
+### 4.2. One Element to Zero or One Element
 
-`Optional<T>` biểu diễn một giá trị có thể vắng mặt. Từ JDK 9, `Optional.stream()` chuyển `Optional.empty()` thành stream rỗng và `Optional.of(value)` thành stream có một phần tử.
+`Optional<T>` represents a value that may be absent. Since JDK 9, `Optional.stream()` turns `Optional.empty()` into an empty stream and `Optional.of(value)` into a single-element stream.
 
 ```java
 import java.util.List;
@@ -209,11 +209,11 @@ List<String> present = inputs.stream()
 System.out.println(present); // [Java, Stream]
 ```
 
-Đây là cách rõ ràng để loại bỏ những giá trị **vắng mặt theo hợp đồng nghiệp vụ**. Không nên biến lỗi dữ liệu nghiêm trọng thành `Optional.empty()` rồi âm thầm bỏ qua.
+This is a clean way to drop values that are **absent by business contract**. Do not turn critical data errors into `Optional.empty()` and silently ignore them.
 
-### 4.3. Một phần tử thành không, một hoặc nhiều phần tử
+### 4.3. One Element to Zero, One, or Many Elements
 
-`flatMap` có thể biến một bản ghi thành stream con dựa trên chính bản ghi ấy:
+`flatMap` can turn a record into a sub-stream based on that record itself:
 
 ```java
 record TagGroup(String topic, List<String> tags) {}
@@ -231,13 +231,13 @@ List<String> tags = groups.stream()
 System.out.println(tags); // [stream, api, query]
 ```
 
-Nhóm Kotlin không có thẻ nên tạo stream con rỗng; những nhóm khác tạo số phần tử bằng kích thước danh sách thẻ. Ví dụ dùng `record` yêu cầu JDK 16 trở lên.
+The Kotlin group has no tags so it produces an empty sub-stream; the other groups produce as many elements as the size of their tag lists. The example uses `record`, requiring JDK 16 or later.
 
-## 5. Ví dụ thực tế: đơn hàng chứa các dòng hàng
+## 5. Real-World Example: Orders Containing Line Items
 
-Giả sử mỗi đơn hàng có danh sách các mặt hàng. Cần tìm tất cả dòng hàng được bán, thống kê số lượng theo mã hàng và tính tổng số tiền. Dùng `flatMap` sẽ làm phẳng quan hệ **một đơn hàng → nhiều dòng hàng**.
+Suppose each order has a list of line items. We need to find all sold line items, aggregate quantity by SKU, and calculate total revenue. Using `flatMap` flattens the **one order → many line items** relationship.
 
-Ví dụ hoàn chỉnh, có thể biên dịch và chạy trên **JDK 17 trở lên**:
+Complete example, compilable and runnable on **JDK 17 or later**:
 
 ```java
 import java.util.List;
@@ -276,16 +276,16 @@ public class FlattenOrdersDemo {
             new Order("O-2", List.of(
                 new LineItem("PEN", 1, 1_000)
             )),
-            new Order("O-3", List.of()) // Đơn không có dòng hàng
+            new Order("O-3", List.of()) // Order with no line items
         );
 
-        // Mỗi Order -> Stream<LineItem> -> một Stream<LineItem> chung.
+        // Each Order -> Stream<LineItem> -> one unified Stream<LineItem>.
         List<LineItem> allItems = orders.stream()
             .flatMap(order -> order.items().stream())
             .toList();
         System.out.println(allItems.size()); // 3
 
-        // Tổng số lượng từng SKU.
+        // Total quantity per SKU.
         Map<String, Integer> quantityBySku = orders.stream()
             .flatMap(order -> order.items().stream())
             .collect(Collectors.groupingBy(
@@ -295,7 +295,7 @@ public class FlattenOrdersDemo {
         System.out.println(quantityBySku.get("PEN"));  // 3
         System.out.println(quantityBySku.get("BOOK")); // 1
 
-        // Tổng thành tiền (đơn vị: VND).
+        // Total revenue (unit: VND).
         long revenueVnd = orders.stream()
             .flatMap(order -> order.items().stream())
             .mapToLong(LineItem::amountVnd)
@@ -305,22 +305,22 @@ public class FlattenOrdersDemo {
 }
 ```
 
-Theo dõi kiểu trong dòng tính doanh thu:
+Type tracking in the revenue calculation pipeline:
 
-| Biểu thức | Kiểu kết quả | Vai trò |
+| Expression | Result type | Role |
 | --- | --- | --- |
-| `orders.stream()` | `Stream<Order>` | Nguồn dữ liệu |
-| `.flatMap(order -> order.items().stream())` | `Stream<LineItem>` | Bỏ tầng đơn hàng |
-| `.mapToLong(LineItem::amountVnd)` | `LongStream` | Đổi dòng hàng thành tiền nguyên thủy |
-| `.sum()` | `long` | Terminal operation tính tổng |
+| `orders.stream()` | `Stream<Order>` | Data source |
+| `.flatMap(order -> order.items().stream())` | `Stream<LineItem>` | Remove the order layer |
+| `.mapToLong(LineItem::amountVnd)` | `LongStream` | Convert line items to primitive amounts |
+| `.sum()` | `long` | Terminal operation computing the sum |
 
-Đây là ví dụ về cách ghép `flatMap` với các phép toán khác: `groupingBy` tổng hợp theo mã, `mapToLong` tránh boxing khi tính toán, và `sum` trả tổng. Mỗi terminal operation tiêu thụ một stream nên ví dụ **tạo lại stream từ `orders`** cho từng kết quả.
+This is an example of combining `flatMap` with other operations: `groupingBy` aggregates by code, `mapToLong` avoids boxing during calculations, and `sum` returns the total. Each terminal operation consumes a stream, so the example **creates a fresh stream from `orders`** for each result.
 
-**Giới hạn về số học:** `Math.multiplyExact` phát hiện tràn số khi tính thành tiền của một dòng. `LongStream.sum()` và `Collectors.summingInt` không tự bảo vệ khỏi tràn số. Nếu nghiệp vụ có giá trị hoặc số lượng lớn, cần xác định miền dữ liệu hợp lệ hay dùng `BigDecimal`/`BigInteger` và quy tắc tính tổng thích hợp.
+**Arithmetic limits:** `Math.multiplyExact` detects overflow when computing a line item's amount. `LongStream.sum()` and `Collectors.summingInt` do not automatically guard against overflow. If the business domain involves large prices or quantities, define valid data bounds or use `BigDecimal`/`BigInteger` with appropriate summation rules.
 
-## 6. Làm phẳng nhiều hơn hai tầng
+## 6. Flattening More Than Two Levels
 
-`flatMap` **bỏ một tầng lồng nhau mỗi lần dùng**. Với cấu trúc ba tầng `List<List<List<Integer>>>`:
+`flatMap` **removes one nesting level per use**. For a three-level structure `List<List<List<Integer>>>`:
 
 ```java
 List<List<List<Integer>>> cubes = List.of(
@@ -328,7 +328,7 @@ List<List<List<Integer>>> cubes = List.of(
     List.of(List.of(4, 5))
 );
 
-// Mỗi lớp List trong cùng một dòng xử lý phải được bóc riêng.
+// Each List layer in the same pipeline must be unwrapped separately.
 List<Integer> numbers = cubes.stream()
     .flatMap(List::stream) // Stream<List<Integer>>
     .flatMap(List::stream) // Stream<Integer>
@@ -337,9 +337,9 @@ List<Integer> numbers = cubes.stream()
 System.out.println(numbers); // [1, 2, 3, 4, 5]
 ```
 
-Nếu dừng sau `flatMap` đầu tiên, kiểu kết quả là `Stream<List<Integer>>`, nghĩa là các danh sách số vẫn còn lồng trong stream. Việc đọc kiểu sau **từng bước** giúp nhận ra nên thêm bao nhiêu cấp làm phẳng.
+If you stop after the first `flatMap`, the result type is `Stream<List<Integer>>`, meaning the number lists are still nested inside the stream. Checking the type after **each step** helps identify how many flattening levels to add.
 
-Với mô hình object, nguyên lý tương tự:
+For object models, the same principle applies:
 
 ```java
 record Team(String name, List<String> members) {}
@@ -361,7 +361,7 @@ List<String> members = departments.stream()
 System.out.println(members); // [An, Bình, Chi]
 ```
 
-Ở đây ta chuyển lần lượt:
+Here we transition step by step:
 
 ```text
 Stream<Department>
@@ -370,7 +370,7 @@ Stream<Department>
   -> List<String>
 ```
 
-Để giữ **ngữ cảnh cha** như tên phòng ban đi cùng thành viên, hãy đưa cả thông tin cha vào stream kết quả; nếu chỉ trả `String` tên thành viên, thông tin cha đã mất.
+To retain **parent context** such as the department name alongside each member, include the parent information in the result stream; if you only return the member name `String`, the parent information is lost.
 
 ```java
 record Membership(String department, String team, String member) {}
@@ -386,13 +386,13 @@ List<Membership> memberships = departments.stream()
     .toList();
 ```
 
-Lúc này mỗi bản ghi `Membership` vẫn biết người đó thuộc phòng ban và nhóm nào. Cần cân nhắc lưu ngữ cảnh đúng cấp trước khi làm phẳng quá sâu.
+Now each `Membership` record still knows which department and team that person belongs to. Consider capturing context at the right level before flattening too deeply.
 
-## 7. Kết hợp `flatMap` với `filter`, `map`, `distinct` và `collect`
+## 7. Combining `flatMap` with `filter`, `map`, `distinct`, and `collect`
 
-Không có một thứ tự duy nhất cho mọi pipeline. Hãy đặt phép toán theo **kiểu dữ liệu mà điều kiện cần đọc** và giữ ngữ nghĩa đầu ra.
+There is no single fixed order for every pipeline. Place operations according to the **data type the condition needs to read** while preserving output semantics.
 
-Ví dụ: lấy tất cả mã mặt hàng bắt đầu bằng `"P"` từ các đơn còn ít nhất một dòng hàng:
+Example: get all item codes starting with `"P"` from orders that have at least one line item:
 
 ```java
 List<String> skus = orders.stream()
@@ -400,16 +400,16 @@ List<String> skus = orders.stream()
     .flatMap(order -> order.items().stream())  // Stream<LineItem>
     .map(LineItem::sku)                        // Stream<String>
     .filter(sku -> sku.startsWith("P"))        // Predicate<String>
-    .distinct()                               // SKU không trùng
-    .sorted()                                 // Thứ tự từ điển
+    .distinct()                               // Unique SKUs
+    .sorted()                                 // Lexicographical order
     .toList();
 
 System.out.println(skus); // [PEN]
 ```
 
-Ở ví dụ này, lọc đơn hàng rỗng trước `flatMap` là tùy chọn vì stream con rỗng vốn không tạo phần tử. Tuy nhiên, lọc trước có ý nghĩa khi điều kiện chọn **cha** là quan trọng, ví dụ `order.status() == PAID`. Lọc sau `flatMap` phù hợp với điều kiện trên **dòng hàng** như SKU hay số lượng.
+In this example, filtering out empty orders before `flatMap` is optional because an empty sub-stream naturally produces no elements. However, filtering beforehand matters when a **parent** selection condition is significant, such as `order.status() == PAID`. Filtering after `flatMap` suits conditions on **line items** such as SKU or quantity.
 
-Một ví dụ kết hợp `flatMap` với `groupingBy` và downstream collector đã có ở mục 5. Có thể ghép thêm `Collectors.mapping` để thu các giá trị con:
+An example combining `flatMap` with `groupingBy` and a downstream collector appeared in Section 5. You can also pair `Collectors.mapping` to collect child values:
 
 ```java
 Map<String, List<Integer>> quantitiesBySku = orders.stream()
@@ -425,13 +425,13 @@ Map<String, List<Integer>> quantitiesBySku = orders.stream()
 System.out.println(quantitiesBySku.get("PEN")); // [2, 1]
 ```
 
-**Phân biệt `flatMap` và `Collectors.flatMapping`:** `Stream.flatMap` làm phẳng **toàn bộ stream tại một bước trung gian**. `Collectors.flatMapping` (JDK 9+) là **downstream collector**, thường được dùng trong `groupingBy` khi cần làm phẳng riêng bên trong từng nhóm rồi thu thập kết quả.
+**Distinguishing `flatMap` and `Collectors.flatMapping`:** `Stream.flatMap` flattens the **entire stream at an intermediate step**. `Collectors.flatMapping` (JDK 9+) is a **downstream collector**, commonly used inside `groupingBy` when you need to flatten separately within each group before collecting results.
 
-## 8. Giá trị rỗng, `null` và chính sách dữ liệu
+## 8. Empty Values, `null`, and Data Policies
 
-### 8.1. Collection rỗng
+### 8.1. Empty Collections
 
-Khi mapper trả một stream rỗng, nó không đóng góp phần tử:
+When the mapper returns an empty stream, it contributes no elements:
 
 ```java
 List<List<String>> data = List.of(
@@ -445,9 +445,9 @@ System.out.println(data.stream()
     .toList()); // [Java]
 ```
 
-### 8.2. Collection bằng `null`
+### 8.2. `null` Collections
 
-Khác với collection rỗng, collection `null` làm `list.stream()` ném `NullPointerException`. Nếu nghiệp vụ xác định `null` tương đương “không có phần tử”, hãy thể hiện lựa chọn đó:
+Unlike an empty collection, a `null` collection causes `list.stream()` to throw `NullPointerException`. If the business rules define `null` as equivalent to "no elements", express that choice explicitly:
 
 ```java
 record Group(String id, List<String> values) {}
@@ -466,13 +466,13 @@ List<String> allValues = groups.stream()
 System.out.println(allValues); // [x, y]
 ```
 
-Tuy nhiên, nếu `values == null` là dữ liệu **không hợp lệ**, nên báo lỗi tại lúc tạo `Group` hoặc lúc nhập dữ liệu. Không tùy tiện biến lỗi thành dữ liệu trống, vì có thể gây thiếu phần tử trong thống kê.
+However, if `values == null` is **invalid** data, report an error when constructing `Group` or during data ingestion. Do not arbitrarily convert errors into empty data, as this can cause missing elements in statistics.
 
-Theo hợp đồng Javadoc, nếu mapper của `flatMap` **trả chính tham chiếu stream bằng `null`**, `flatMap` sẽ coi kết quả đó như stream rỗng; dù vậy, cách rõ ràng và dễ kiểm thử hơn là trả `Stream.empty()` thay vì cố ý trả `null`.
+According to the Javadoc contract, if `flatMap`'s mapper **returns a `null` stream reference itself**, `flatMap` treats that result as an empty stream; even so, the clearer and more testable approach is to return `Stream.empty()` rather than intentionally returning `null`.
 
-### 8.3. Phần tử bên trong bằng `null`
+### 8.3. Inner `null` Elements
 
-Nếu nguồn con có phần tử `null` (ví dụ từ `ArrayList`), việc làm phẳng không tự loại các phần tử đó. Lựa chọn chính sách rõ ràng:
+If a child source contains `null` elements (for example from an `ArrayList`), flattening does not automatically remove them. Choose an explicit policy:
 
 ```java
 import java.util.ArrayList;
@@ -491,13 +491,13 @@ List<String> safe = java.util.stream.Stream.of(mutableGroup)
 System.out.println(safe); // [Java, Stream]
 ```
 
-`List.of(...)` không cho phép phần tử `null`; đó là lý do ví dụ dùng `ArrayList` để minh họa dữ liệu nguồn có thể chứa `null`.
+`List.of(...)` does not allow `null` elements; that is why the example uses `ArrayList` to illustrate source data that may contain `null`.
 
-## 9. Tính lười, thứ tự và vòng đời stream con
+## 9. Laziness, Ordering, and Sub-Stream Lifecycle
 
-### 9.1. Lười thực thi và short-circuit
+### 9.1. Lazy Execution and Short-Circuiting
 
-`flatMap` không lập tức duyệt hết các nhóm. Nó xây dựng pipeline và xử lý dữ liệu khi terminal operation yêu cầu.
+`flatMap` does not immediately traverse all groups. It builds the pipeline and processes data when the terminal operation demands it.
 
 ```java
 List<List<Integer>> batches = List.of(
@@ -513,13 +513,13 @@ List<Integer> firstTwo = batches.stream()
 System.out.println(firstTwo); // [1, 2]
 ```
 
-`limit(2)` có thể dừng pipeline sớm nên không nhất thiết phải xử lý tất cả phần tử bên trong mọi nhóm. Tuy nhiên, không nên dùng tác dụng phụ để khẳng định **chính xác** mapper được gọi bao nhiêu lần; chiến lược tối ưu, chi tiết triển khai và chế độ song song có thể thay đổi số lần quan sát được.
+`limit(2)` can stop the pipeline early, so it does not necessarily have to process every element inside all groups. However, do not use side effects to assert **exactly** how many times the mapper is called; optimization strategies, implementation details, and parallel mode can change the observed count.
 
-### 9.2. Encounter order
+### 9.2. Encounter Order
 
-Với nguồn `List` và các `List` con có thứ tự, một pipeline tuần tự như ví dụ đầu bài giữ thứ tự: từng nhóm theo thứ tự nguồn, từng phần tử theo thứ tự trong nhóm. Ngược lại, `HashSet` hoặc một stream được đánh dấu `unordered()` không cung cấp bảo đảm tương tự.
+With an ordered `List` source and ordered child `List`s, a sequential pipeline like the introductory example preserves order: each group in source order, and each element in its group's order. Conversely, a `HashSet` or a stream marked `unordered()` provides no such guarantee.
 
-Ví dụ:
+Example:
 
 ```java
 List<String> ordered = List.of(
@@ -532,13 +532,13 @@ List<String> ordered = List.of(
 System.out.println(ordered); // [A, B, C]
 ```
 
-`toList()` giữ encounter order **nếu stream có encounter order**. Trong xử lý song song, thời điểm thực thi có thể xen kẽ, nhưng `toList` vẫn giữ encounter order tương ứng khi nguồn có thứ tự. `forEach` không đảm bảo thứ tự khi dùng parallel; khi cần thứ tự, đọc hợp đồng `forEachOrdered` và cân nhắc chi phí của nó.
+`toList()` preserves encounter order **if the stream has an encounter order**. In parallel processing, execution timing may interleave, yet `toList` still preserves the corresponding encounter order when the source is ordered. `forEach` does not guarantee order under parallel execution; when order is needed, read the `forEachOrdered` contract and consider its cost.
 
-### 9.3. Đóng stream con
+### 9.3. Closing Sub-Streams
 
-Một chi tiết quan trọng trong Javadoc: **mỗi stream con do mapper của `flatMap` tạo ra sẽ được đóng sau khi nội dung của nó được đưa vào stream kết quả**. Với các stream chỉ dựa trên `List`/mảng, việc đóng thường không đáng chú ý. Với stream mở từ file hoặc I/O, vòng đời cần được quản lý cẩn thận.
+An important detail in the Javadoc: **each sub-stream created by `flatMap`'s mapper is closed after its contents have been placed into the result stream**. For streams backed solely by a `List`/array, closing is usually unnoticeable. For streams opened from files or I/O, lifecycle management requires care.
 
-Ví dụ đọc nhiều tệp văn bản trong một thư mục:
+Example reading multiple text files in a directory:
 
 ```java
 import java.io.IOException;
@@ -549,7 +549,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 static long countNonEmptyLines(Path directory) throws IOException {
-    // Files.list trả stream nắm tài nguyên thư mục, cần đóng.
+    // Files.list returns a stream holding directory resources; must be closed.
     try (Stream<Path> paths = Files.list(directory)) {
         return paths
             .filter(Files::isRegularFile)
@@ -566,20 +566,20 @@ static long countNonEmptyLines(Path directory) throws IOException {
 }
 ```
 
-Ở đây:
+Here:
 
-- `Files.list` tạo stream nguồn có tài nguyên, được đóng bởi `try-with-resources`.
-- `Files.lines` tạo stream con cho từng file; `flatMap` chịu trách nhiệm đóng stream con sau khi sử dụng.
-- `UncheckedIOException` giúp chuyển lỗi I/O dạng checked thành dạng unchecked trong lambda; bên gọi phải quyết định có bắt, ghi nhận hoặc chuyển tiếp lỗi hay không.
-- Với ứng dụng thực tế, cần xác định file nào được đọc (loại tệp, thư mục con, quyền truy cập) và thứ tự có quan trọng không; việc liệt kê thư mục không đảm bảo thứ tự.
+- `Files.list` creates the resource-backed source stream, closed by `try-with-resources`.
+- `Files.lines` creates a sub-stream per file; `flatMap` is responsible for closing each sub-stream after use.
+- `UncheckedIOException` wraps checked I/O errors into unchecked form inside the lambda; the caller must decide whether to catch, log, or propagate the error.
+- In real applications, specify which files are read (file types, subdirectories, permissions) and whether order matters; directory listing does not guarantee order.
 
-Việc đóng stream không làm mất mọi rủi ro I/O; đọc file có thể phát sinh lỗi khi duyệt, nên đường đi lỗi cũng cần được kiểm thử. Nếu yêu cầu chỉ xử lý một lượng dữ liệu nhỏ, đọc trước và làm phẳng collection trong bộ nhớ có thể đơn giản hơn.
+Closing streams does not eliminate all I/O risks; reading files can raise errors during traversal, so error paths must also be tested. If the requirement only processes a small amount of data, reading first and flattening collections in memory can be simpler.
 
-## 10. `flatMap`, các biến thể primitive và `mapMulti`
+## 10. `flatMap`, Primitive Variants, and `mapMulti`
 
 ### 10.1. `flatMapToInt`, `flatMapToLong`, `flatMapToDouble`
 
-Khi kết quả sau khi làm phẳng là dữ liệu số nguyên thủy, có thể dùng các biến thể chuyên biệt để tránh boxing không cần thiết:
+When the flattened results are primitive numeric data, specialized variants can avoid unnecessary boxing:
 
 ```java
 List<int[]> samples = List.of(
@@ -594,20 +594,20 @@ int sum = samples.stream()
 System.out.println(sum); // 10
 ```
 
-`flatMapToInt` trả `IntStream`, `flatMapToLong` trả `LongStream`, và `flatMapToDouble` trả `DoubleStream`. Chúng có các terminal operation như `sum`, `average`, `summaryStatistics` phù hợp với kiểu nguyên thủy.
+`flatMapToInt` returns `IntStream`, `flatMapToLong` returns `LongStream`, and `flatMapToDouble` returns `DoubleStream`. They provide terminal operations like `sum`, `average`, and `summaryStatistics` tailored to primitive types.
 
-Đối chiếu kiểu:
+Type comparison:
 
-| Phương thức | Mapper trả về | Kết quả |
+| Method | Mapper returns | Result |
 | --- | --- | --- |
 | `flatMap` | `Stream<? extends R>` | `Stream<R>` |
 | `flatMapToInt` | `IntStream` | `IntStream` |
 | `flatMapToLong` | `LongStream` | `LongStream` |
 | `flatMapToDouble` | `DoubleStream` | `DoubleStream` |
 
-### 10.2. Khi nào cân nhắc `mapMulti`?
+### 10.2. When to Consider `mapMulti`?
 
-`Stream.mapMulti` được bổ sung trong **JDK 16**. Thay vì tạo một `Stream<R>` riêng cho mỗi phần tử, mapper nhận thêm một `Consumer<R>` để **phát** 0, 1 hoặc nhiều kết quả:
+`Stream.mapMulti` was added in **JDK 16**. Instead of creating a separate `Stream<R>` for each element, the mapper receives an extra `Consumer<R>` to **emit** 0, 1, or more results:
 
 ```java
 import java.util.List;
@@ -626,42 +626,42 @@ List<String> allWords = wordsByGroup.stream()
 System.out.println(allWords); // [Java, Stream, API]
 ```
 
-`mapMulti` có thể hữu ích khi số phần tử phát ra từ mỗi đầu vào ít và ta muốn tránh tạo nhiều stream con, hoặc khi thao tác phát đầu ra khó biểu diễn bằng một stream tạm. Tuy nhiên, Javadoc nêu **implementation mặc định** của `mapMulti` có thể dùng `flatMap` bên trong, nên không được giả định luôn nhanh hơn; hãy đo trên môi trường và dữ liệu thực.
+`mapMulti` can be useful when few elements are emitted per input and you want to avoid creating many sub-streams, or when emitting output is awkward to express as a temporary stream. However, the Javadoc notes that the **default implementation** of `mapMulti` may use `flatMap` internally, so do not assume it is always faster; measure on your actual environment and data.
 
-Nếu cần trạng thái có chủ đích như chia cửa sổ hoặc biến đổi theo chuỗi phần tử liên tiếp, có thể tìm hiểu **Stream Gatherers** (API chính thức từ **JDK 24**) thay vì ép mọi bài toán vào `flatMap`. `flatMap` phục vụ quan hệ một phần tử thành nhiều phần tử độc lập; các phép biến đổi phụ thuộc trạng thái lịch sử cần hợp đồng rõ hơn.
+If intentional state is needed—such as windowing or transformations over consecutive element sequences—look into **Stream Gatherers** (an official API since **JDK 24**) rather than forcing every problem into `flatMap`. `flatMap` serves independent one-to-many element relationships; transformations depending on historical state need a clearer contract.
 
-## 11. Các lỗi thiết kế và chi phí thường gặp
+## 11. Common Design Mistakes and Costs
 
-### 11.1. Gọi nhầm `map`
+### 11.1. Mistakenly Calling `map`
 
 ```java
-// Kết quả là Stream<Stream<String>>, chưa làm phẳng.
+// Result is Stream<Stream<String>>, not yet flattened.
 var wrong = groups.stream().map(List::stream);
 
-// Kết quả là Stream<String>.
+// Result is Stream<String>.
 var correct = groups.stream().flatMap(List::stream);
 ```
 
-Không nhất thiết `map` là sai: nếu mục tiêu giữ từng nhóm để tính riêng, `map` có thể đúng. Hãy đối chiếu kiểu mong muốn với kiểu thực tế.
+`map` is not necessarily wrong: if the goal is to keep each group to compute separately, `map` may be right. Always compare the desired type with the actual type.
 
-### 11.2. Tự gom vào danh sách mutable từ lambda
+### 11.2. Accumulating into a Mutable List from a Lambda
 
 ```java
-// Tránh: tích lũy bằng trạng thái mutable từ bên ngoài.
+// Avoid: accumulating via external mutable state.
 List<String> shared = new java.util.ArrayList<>();
 groups.stream().forEach(group -> shared.addAll(group));
 
-// Diễn đạt trực tiếp, không cần trạng thái dùng chung.
+// Express directly without shared state.
 List<String> flat = groups.stream()
     .flatMap(List::stream)
     .toList();
 ```
 
-Việc sửa `shared` từ lambda có thể gây race condition khi dùng `parallelStream`. Lambda truyền vào `flatMap` nên **non-interfering** (không can thiệp nguồn) và **stateless** (không phụ thuộc trạng thái thay đổi giữa các lần gọi).
+Mutating `shared` from a lambda can cause race conditions with `parallelStream`. Lambdas passed to `flatMap` should be **non-interfering** (not modifying the source) and **stateless** (not depending on state that changes between invocations).
 
-### 11.3. Quên rằng mỗi đầu vào có thể tạo rất nhiều kết quả
+### 11.3. Forgetting That Each Input Can Produce Many Outputs
 
-Nếu có `N` nhóm, mỗi nhóm chứa `M` phần tử, sau làm phẳng có thể có xấp xỉ `N × M` phần tử. Khi thu tất cả bằng `toList()`, bộ nhớ phải chứa các phần tử kết quả và có thể rất lớn. Chỉ cần một số kết quả đầu tiên thì `limit` có thể tiết kiệm công việc trên stream có thứ tự, nhưng giới hạn sau khi làm phẳng khác giới hạn trước khi làm phẳng:
+If there are `N` groups, each containing `M` elements, flattening yields roughly `N × M` elements. Collecting everything with `toList()` requires memory to hold all resulting elements, which can be very large. If only the first few results are needed, `limit` can save work on an ordered stream, though limiting after flattening differs from limiting before flattening:
 
 ```java
 List<List<Integer>> nested = List.of(
@@ -672,21 +672,21 @@ List<List<Integer>> nested = List.of(
 var limitGroups = nested.stream()
     .limit(1)
     .flatMap(List::stream)
-    .toList(); // [1, 2, 3]: một nhóm đầu tiên
+    .toList(); // [1, 2, 3]: the first group
 
 var limitElements = nested.stream()
     .flatMap(List::stream)
     .limit(1)
-    .toList(); // [1]: một phần tử đầu tiên
+    .toList(); // [1]: the first element
 ```
 
-Thứ tự đặt `filter` và `limit` cũng thay đổi tập dữ liệu được xét, nên cần mô tả rõ quy tắc nghiệp vụ.
+The relative placement of `filter` and `limit` also changes the dataset under consideration, so specify business rules clearly.
 
-### 11.4. Dữ liệu nested bị thay đổi trong lúc duyệt
+### 11.4. Nested Data Mutated During Traversal
 
-`flatMap` không sao chép snapshot đầu vào. Nếu luồng khác thay đổi danh sách con trong lúc pipeline đang duyệt (và cấu trúc không hỗ trợ thao tác đồng thời phù hợp), kết quả có thể sai hoặc phát sinh `ConcurrentModificationException`. Nên dùng mô hình dữ liệu bất biến, snapshot phù hợp hoặc cơ chế đồng bộ rõ ràng.
+`flatMap` does not copy an input snapshot. If another thread modifies a child list while the pipeline is traversing it (and the structure does not support appropriate concurrent access), results may be wrong or throw `ConcurrentModificationException`. Use immutable data models, appropriate snapshots, or explicit synchronization.
 
-### 11.5. Kỳ vọng `parallel()` chắc chắn nhanh hơn
+### 11.5. Expecting `parallel()` to Definitely Be Faster
 
 ```java
 List<String> all = groups.parallelStream()
@@ -694,12 +694,12 @@ List<String> all = groups.parallelStream()
     .toList();
 ```
 
-Với một số ít nhóm nhỏ, chi phí phân chia và gộp kết quả có thể lớn hơn lợi ích song song. Hiệu năng còn phụ thuộc độ cân bằng kích thước các nhóm và encounter order. Khi mapper có side effect hoặc nguồn mutable, song song dễ làm lỗi khó tái hiện hơn. Hãy đo đạc trước khi tối ưu và dùng mapper thuần, không dựa vào thứ tự thực thi của các luồng.
+With a few small groups, splitting and merging overhead can outweigh parallel gains. Performance also depends on group size balance and encounter order. When a mapper has side effects or mutable sources, parallelism makes bugs harder to reproduce. Measure before optimizing, and use pure mappers that do not rely on thread execution order.
 
-### 11.6. Xây pipeline lồng quá sâu
+### 11.6. Building Overly Deep Nested Pipelines
 
 ```java
-// Đúng về ý nghĩa nhưng khó đọc nếu nghiệp vụ dài:
+// Semantically right, but hard to read when business logic grows:
 var result = departments.stream()
     .flatMap(d -> d.teams().stream()
         .flatMap(t -> t.members().stream()
@@ -707,13 +707,13 @@ var result = departments.stream()
     .toList();
 ```
 
-Khi biểu thức lớn, cân nhắc tách mapper thành phương thức có tên hoặc định nghĩa record trung gian chứa ngữ cảnh. Cách đó cũng tạo điểm kiểm thử độc lập và giúp tránh mắc lỗi kiểu generic ở nhiều tầng.
+When expressions grow large, consider extracting mappers into named methods or defining intermediate records to hold context. That also creates independent test seams and helps avoid multi-level generic type errors.
 
-## 12. Thực hành và tự kiểm tra
+## 12. Practice and Self-Check
 
-### Bài 1: chuyển từ `map` sang `flatMap`
+### Exercise 1: Switching from `map` to `flatMap`
 
-Đầu vào:
+Input:
 
 ```java
 List<List<String>> courses = List.of(
@@ -722,9 +722,9 @@ List<List<String>> courses = List.of(
 );
 ```
 
-**Yêu cầu:** viết pipeline tạo `List<String>` gồm bốn tên thao tác. Giải thích tại sao `courses.stream().map(List::stream)` không cho đúng kiểu đầu ra.
+**Requirement:** write a pipeline creating a `List<String>` of the four operation names. Explain why `courses.stream().map(List::stream)` does not produce the right output type.
 
-Gợi ý lời giải:
+Suggested solution:
 
 ```java
 List<String> operations = courses.stream()
@@ -733,9 +733,9 @@ List<String> operations = courses.stream()
 // [filter, map, flatMap, collect]
 ```
 
-### Bài 2: lọc dữ liệu sau khi làm phẳng
+### Exercise 2: Filtering Data After Flattening
 
-Cho các nhóm số:
+Given groups of numbers:
 
 ```java
 List<List<Integer>> groupsOfNumbers = List.of(
@@ -745,7 +745,7 @@ List<List<Integer>> groupsOfNumbers = List.of(
 );
 ```
 
-**Yêu cầu:** lấy tất cả số chẵn, không trùng, sắp xếp tăng dần; kết quả dự kiến `[2, 4, 6]`. Viết pipeline:
+**Requirement:** get all even numbers, deduplicated, sorted ascending; expected result `[2, 4, 6]`. Write the pipeline:
 
 ```java
 List<Integer> even = groupsOfNumbers.stream()
@@ -756,11 +756,11 @@ List<Integer> even = groupsOfNumbers.stream()
     .toList();
 ```
 
-### Bài 3: thống kê trên danh sách đơn hàng
+### Exercise 3: Statistics on an Order List
 
-Từ `List<Order>` ở mục 5, tính số dòng hàng có `quantity > 1`, tổng số lượng bút `PEN` và tổng số mã hàng khác nhau. Xác định tại bước nào stream có kiểu `Stream<Order>`, `Stream<LineItem>` hoặc `Stream<String>`.
+From `List<Order>` in Section 5, compute the number of line items with `quantity > 1`, the total quantity of `PEN` items, and the count of distinct SKUs. Identify at which step the stream has type `Stream<Order>`, `Stream<LineItem>`, or `Stream<String>`.
 
-Một đáp án tham khảo:
+A reference answer:
 
 ```java
 long linesWithMultipleUnits = orders.stream()
@@ -781,9 +781,9 @@ long distinctSkus = orders.stream()
     .count(); // 2
 ```
 
-### Bài 4: lỗi về nguồn rỗng và `null`
+### Exercise 4: Empty Sources and `null` Pitfalls
 
-So sánh hành vi của ba mapper sau khi `group.values()` có thể bằng `null`:
+Compare the behavior of the following three mappers when `group.values()` may be `null`:
 
 ```java
 group -> group.values().stream()
@@ -794,32 +794,32 @@ group -> java.util.stream.Stream.ofNullable(group.values())
     .flatMap(List::stream)
 ```
 
-**Yêu cầu:** giải thích trường hợp nào ném `NullPointerException`, trường hợp nào coi `null` là không có phần tử, và tại sao chính sách xử lý dữ liệu phải được xác định ở ranh giới nghiệp vụ. `Stream.ofNullable` có từ JDK 9.
+**Requirement:** explain which case throws `NullPointerException`, which cases treat `null` as having no elements, and why data-handling policy must be defined at the business boundary. `Stream.ofNullable` has been available since JDK 9.
 
-### Bài 5: thứ tự và tài nguyên
+### Exercise 5: Ordering and Resources
 
-Giải thích sự khác nhau giữa:
+Explain the difference between:
 
 ```java
 groups.stream().limit(2).flatMap(List::stream).toList()
 groups.stream().flatMap(List::stream).limit(2).toList()
 ```
 
-Sau đó, viết hàm đọc các dòng từ nhiều file bằng `Files.lines`; xác định stream nào cần `try-with-resources` và stream con nào do `flatMap` đóng. Nếu dùng `parallel()`, nêu lý do vì sao không thể dựa vào thứ tự xử lý và vì sao phải đo hiệu năng trên dữ liệu thực.
+Then, write a function that reads lines from multiple files using `Files.lines`; identify which stream requires `try-with-resources` and which sub-streams are closed by `flatMap`. If using `parallel()`, state why you cannot rely on processing order and why you must measure performance on real data.
 
-## 13. Bảng ghi nhớ
+## 13. Cheat Sheet
 
-| Câu hỏi | Hướng xử lý |
+| Question | Approach |
 | --- | --- |
-| Kết quả có kiểu `Stream<Stream<T>>` nhưng cần `Stream<T>`? | Dùng `flatMap` thay cho `map` |
-| Danh sách có nhiều tầng lồng nhau? | Dùng `flatMap` theo từng tầng cần bỏ |
-| Một bản ghi có thể không sinh kết quả? | Mapper trả `Stream.empty()`; `Optional.stream()` khi phù hợp |
-| Có thể có `null`? | Làm rõ hợp đồng dữ liệu; kiểm tra collection null và phần tử null khác nhau |
-| Cần giữ thông tin từ object cha? | Đưa ngữ cảnh cha vào object kết quả trước khi mất quan hệ |
-| Cần tính tổng/thống kê dữ liệu số? | Sau làm phẳng, dùng `mapToInt`/`mapToLong` và phép toán kết thúc phù hợp |
-| Cần chia nhóm và gom nhiều giá trị con? | Kết hợp `flatMap`, `groupingBy` hoặc downstream `Collectors.flatMapping` |
-| Mapper tạo stream con chứa I/O? | Đọc hợp đồng đóng stream con của `flatMap`; đóng stream nguồn quản lý tài nguyên bằng `try-with-resources` |
-| Muốn xử lý song song? | Mapper không can thiệp và không trạng thái; kiểm tra nguồn, thứ tự và đo hiệu năng |
-| Không muốn tạo stream con cho mỗi phần tử? | Cân nhắc `mapMulti` từ JDK 16 và đo hiệu quả thực tế |
+| Result has type `Stream<Stream<T>>` but `Stream<T>` is needed? | Use `flatMap` instead of `map` |
+| List has multiple nested levels? | Use `flatMap` once per layer to unwrap |
+| A record may produce no results? | Mapper returns `Stream.empty()`; `Optional.stream()` when appropriate |
+| `null` may be present? | Clarify data contract; handle null collections and null elements separately |
+| Need to keep info from parent object? | Include parent context in the result object before the link is lost |
+| Need sums/statistics on numeric data? | After flattening, use `mapToInt`/`mapToLong` and an appropriate terminal operation |
+| Need to group and collect multiple child values? | Combine `flatMap`, `groupingBy`, or downstream `Collectors.flatMapping` |
+| Mapper creates I/O-backed sub-streams? | Check `flatMap`'s sub-stream closing contract; close resource-holding source stream with `try-with-resources` |
+| Want parallel processing? | Keep mapper non-interfering and stateless; verify source, order, and benchmark performance |
+| Want to avoid creating sub-streams per element? | Consider `mapMulti` from JDK 16 and measure real impact |
 
-`flatMap` là phép biến đổi quan trọng khi xử lý dữ liệu khai báo bằng Java Stream API: từ nhiều nhóm dữ liệu tạo một luồng phần tử thống nhất để tiếp tục lọc, ánh xạ, giảm gọn hoặc thu thập. Giá trị của nó nằm ở việc diễn đạt rõ **một-nhiều** trong pipeline, song tính chính xác còn phụ thuộc kiểu dữ liệu, chính sách dữ liệu rỗng, encounter order, tài nguyên và hàm mapper không tạo side effect.
+`flatMap` is a key transformation in declarative data processing with the Java Stream API: turning multiple data groups into a unified stream of elements for further filtering, mapping, reduction, or collection. Its value lies in clearly expressing **one-to-many** relationships in a pipeline, while correctness also depends on data types, empty-data policies, encounter order, resources, and side-effect-free mapper functions.

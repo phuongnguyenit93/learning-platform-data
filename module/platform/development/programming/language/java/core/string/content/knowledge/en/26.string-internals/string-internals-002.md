@@ -1,64 +1,64 @@
-# Compact Strings và hai dạng LATIN1, UTF16 trong OpenJDK
+# Compact Strings and the LATIN1 and UTF16 Representations in OpenJDK
 
-Từ Java 9, các phiên bản OpenJDK dùng cơ chế **Compact Strings** (JEP 254) để giảm bộ nhớ lưu trữ nội dung của nhiều đối tượng `String`. Một chuỗi chỉ chứa các đơn vị mã nằm trong phạm vi Latin-1 có thể lưu bằng **1 byte cho mỗi đơn vị mã**; chuỗi chứa đơn vị mã ngoài phạm vi đó dùng dạng **UTF16, 2 byte cho mỗi đơn vị mã**. Đây là **chi tiết triển khai nội bộ** của OpenJDK/HotSpot, không thay đổi ý nghĩa của API `String`.
+Since Java 9, OpenJDK builds have used **Compact Strings** (JEP 254) to reduce the memory required to store the contents of many `String` objects. A string containing only code units within the Latin-1 range can be stored using **1 byte per code unit**; a string containing any code unit outside that range uses the **UTF16 representation, 2 bytes per code unit**. This is an **internal implementation detail** of OpenJDK/HotSpot and does not change the semantics of the `String` API.
 
-Bài này giải thích lý do ra đời, cách OpenJDK chọn dạng `LATIN1` hoặc `UTF16`, tác động đến bộ nhớ và tốc độ, cách tự kiểm tra ví dụ Java 17+, cũng như những nhầm lẫn khi so sánh Compact Strings với UTF-8 hoặc `String.length()`.
+This article explains why it was introduced, how OpenJDK chooses between `LATIN1` and `UTF16`, its impact on memory and speed, how to verify it yourself with Java 17+ examples, and common misconceptions when comparing Compact Strings to UTF-8 or `String.length()`.
 
-## 1. Bối cảnh: từ `char[]` tới `byte[]`
+## 1. Background: from `char[]` to `byte[]`
 
-Trước Java 9, các bản OpenJDK phổ biến biểu diễn nội dung `String` bằng một mảng `char[]`. Mỗi `char` là một **đơn vị mã UTF-16** dài 16 bit (2 byte), kể cả khi chuỗi chỉ chứa ASCII như `"Hello"`. Với trường hợp ASCII hoặc Latin-1 chiếm tỷ trọng cao, phần lớn dung lượng 16 bit mỗi đơn vị mã không cần đến.
+Before Java 9, common OpenJDK builds represented `String` contents using a `char[]` array. Each `char` is a 16-bit (2-byte) **UTF-16 code unit**, even when the string contains only ASCII such as `"Hello"`. When ASCII or Latin-1 strings make up a large share of data, most of the 16 bits per code unit go unused.
 
-JEP 254 (triển khai trong JDK 9) chuyển nội dung sang một mảng `byte[]` kèm **một trường nhận diện cách mã hóa nội bộ**, thường được gọi là `coder`:
+JEP 254 (implemented in JDK 9) switched the backing content to a `byte[]` array paired with **an internal encoding identifier field**, commonly called `coder`:
 
 ~~~text
-                    String trong OpenJDK từ Java 9
+                    String in OpenJDK since Java 9
                   ┌───────────────────────────────┐
                   │ value: byte[]                 │
-                  │ coder: LATIN1 hoặc UTF16      │
-                  │ các metadata nội bộ khác      │
+                  │ coder: LATIN1 or UTF16        │
+                  │ other internal metadata       │
                   └───────────────────────────────┘
                                  │
                     ┌────────────┴────────────┐
                     │                         │
               coder = LATIN1            coder = UTF16
-             1 byte/code unit          2 byte/code unit
-             (nội dung phù hợp)        (nội dung ngoài Latin-1)
+             1 byte/code unit          2 bytes/code unit
+             (eligible content)        (content outside Latin-1)
 ~~~
 
-Đây là **sơ đồ ý tưởng**. Mảng `byte[]` là đối tượng riêng trên heap, ngoài dữ liệu nội dung còn có chi phí header, căn chỉnh bộ nhớ và tham chiếu. Sơ đồ không thể dùng để tính chính xác kích thước toàn bộ đối tượng.
+This is a **conceptual diagram**. The `byte[]` array is a separate object on the heap; beyond the character data itself, there are header overhead, memory alignment, and reference costs. The diagram cannot be used to calculate the exact size of the entire object.
 
-**Lưu ý về phiên bản:** đây là cơ chế triển khai của OpenJDK từ Java 9, không phải quy định bắt buộc của Java Language Specification. Một JVM khác hoặc một bản Java tương lai có thể triển khai khác mà vẫn tuân thủ cùng API `String`.
+**Version note:** this is an OpenJDK implementation mechanism starting in Java 9, not a mandatory requirement of the Java Language Specification. Another JVM or a future Java release may implement storage differently while adhering to the same `String` API.
 
-## 2. Quy tắc chọn `LATIN1` hay `UTF16`
+## 2. Rules for choosing `LATIN1` or `UTF16`
 
-Trong OpenJDK khi Compact Strings được bật:
+In OpenJDK with Compact Strings enabled:
 
-- **`LATIN1`:** mọi đơn vị mã UTF-16 của chuỗi đều nằm trong khoảng `U+0000`–`U+00FF`. Mỗi đơn vị mã có thể biểu diễn bằng một byte. Đây là tập giá trị tương ứng ISO-8859-1/Latin-1, bao gồm ASCII và các ký tự như `é` (`U+00E9`), `ñ` (`U+00F1`).
-- **`UTF16`:** có ít nhất một đơn vị mã nằm ngoài `U+00FF`; toàn bộ nội dung của chuỗi được lưu theo biểu diễn UTF-16 nội bộ, hai byte trên mỗi đơn vị mã. Ví dụ `€` (`U+20AC`), `ệ` (`U+1EC7`), chữ Hán, ký tự emoji.
-- Với ký tự ngoài BMP như `😀` (`U+1F600`), một Unicode code point cần một **cặp surrogate** gồm hai đơn vị mã UTF-16; dạng nội bộ `UTF16` dùng tổng cộng bốn byte cho cặp đó.
+- **`LATIN1`:** every UTF-16 code unit in the string falls in the range `U+0000`–`U+00FF`. Each code unit can be represented in one byte. This range corresponds to ISO-8859-1/Latin-1, including ASCII and characters such as `é` (`U+00E9`) and `ñ` (`U+00F1`).
+- **`UTF16`:** at least one code unit lies outside `U+00FF`; the entire content of the string is stored in the internal UTF-16 representation at two bytes per code unit. Examples include `€` (`U+20AC`), `ệ` (`U+1EC7`), Han characters, and emojis.
+- For non-BMP characters such as `😀` (`U+1F600`), one Unicode code point requires a **surrogate pair** of two UTF-16 code units; the internal `UTF16` representation uses a total of four bytes for that pair.
 
-Điều kiện thuộc về **toàn chuỗi**. `"ABCé"` vẫn đủ điều kiện `LATIN1`, trong khi `"ABC€"` buộc sử dụng `UTF16` cho cả chuỗi, không phải ba ký tự đầu dùng Latin-1 và ký tự cuối dùng UTF-16 trong cùng một `String`.
+The condition applies to the **entire string**. `"ABCé"` still qualifies for `LATIN1`, whereas `"ABC€"` forces `UTF16` for the whole string—not the first three characters in Latin-1 and the last character in UTF-16 within the same `String`.
 
-### Bảng so sánh dễ nhớ
+### Quick comparison table
 
-| Nội dung | `String.length()` | Có thể dùng `LATIN1` khi bật Compact Strings? | Số byte của riêng mảng nội dung theo dạng tương ứng |
+| Content | `String.length()` | Eligible for `LATIN1` with Compact Strings enabled? | Backing array content bytes in the corresponding format |
 | --- | ---: | --- | ---: |
-| `"Hello"` | 5 | Có | 5 |
-| `"café"` | 4 | Có | 4 |
-| `"Euro €"` | 6 | Không, vì `€` lớn hơn `U+00FF` | 12 |
-| `"Việt"` | 4 | Không, vì `ệ` là `U+1EC7` | 8 |
-| `"A😀B"` | 4 | Không, vì emoji là cặp surrogate | 8 |
+| `"Hello"` | 5 | Yes | 5 |
+| `"café"` | 4 | Yes | 4 |
+| `"Euro €"` | 6 | No, because `€` is greater than `U+00FF` | 12 |
+| `"Việt"` | 4 | No, because `ệ` is `U+1EC7` | 8 |
+| `"A😀B"` | 4 | No, because the emoji is a surrogate pair | 8 |
 
-Cột cuối **chỉ biểu thị số byte nội dung lý thuyết trong mảng `value`**, giả sử chuỗi được tạo theo dạng nêu trong bảng. Nó không bao gồm kích thước đối tượng `String`, mảng `byte[]`, header, alignment, khả năng dùng chung dữ liệu hay kỹ thuật tối ưu khác của JVM.
+The last column **only shows the theoretical content byte count in the `value` array**, assuming the string is constructed in the format listed in the table. It excludes the size of the `String` object, the `byte[]` array object, headers, alignment, potential data sharing, or other JVM optimizations.
 
-**Hai nhầm lẫn quan trọng:**
+**Two important misconceptions:**
 
-1. `LATIN1` không đồng nghĩa chỉ có ASCII: `é` vẫn đủ điều kiện, dù UTF-8 của `é` dùng 2 byte.
-2. `LATIN1` là phạm vi Unicode `U+0000`–`U+00FF`, **không phải Windows-1252**. Dấu nháy cong `’` là `U+2019`; dù Windows-1252 mã hóa được ký tự đó bằng một byte, OpenJDK Compact Strings vẫn không thể lưu nó trong dạng `LATIN1`.
+1. `LATIN1` does not mean ASCII-only: `é` still qualifies, even though UTF-8 for `é` uses 2 bytes.
+2. `LATIN1` is the Unicode range `U+0000`–`U+00FF`, **not Windows-1252**. The curly apostrophe `’` is `U+2019`; even though Windows-1252 encodes it in one byte, OpenJDK Compact Strings still cannot store it in `LATIN1` form.
 
-## 3. `byte[] value` và `coder` hoạt động ra sao?
+## 3. How do `byte[] value` and `coder` work?
 
-Trong mã nguồn `java.lang.String` của các phiên bản OpenJDK có Compact Strings, bạn có thể thấy các thành phần nội bộ tương đương:
+In the `java.lang.String` source code of OpenJDK versions with Compact Strings, you can find equivalent internal members:
 
 ~~~java
 private final byte[] value;
@@ -66,29 +66,29 @@ private final byte coder;
 static final boolean COMPACT_STRINGS;
 ~~~
 
-Đây là **trích đoạn minh họa khai báo trường nội bộ**, không phải đoạn chương trình Java có thể biên dịch độc lập và cũng không phải public API.
+This is an **illustrative excerpt of internal field declarations**, not a standalone compilable Java program and not part of the public API.
 
-- `value` chứa byte biểu diễn nội dung chuỗi.
-- `coder` cho biết phải diễn giải `value` theo dạng `LATIN1` hay `UTF16`. Trong các bản OpenJDK được đề cập, giá trị nội bộ điển hình là `LATIN1 = 0` và `UTF16 = 1`; lập trình ứng dụng không nên phụ thuộc những hằng số nội bộ này.
-- `COMPACT_STRINGS` là cờ nội bộ mà JIT có thể dùng để tối ưu nhánh thực thi. Khi chế độ nén bị tắt ở mức VM, đường thực thi UTF16 được sử dụng.
+- `value` holds the bytes representing the string's content.
+- `coder` indicates whether `value` should be interpreted as `LATIN1` or `UTF16`. In the OpenJDK versions discussed, typical internal values are `LATIN1 = 0` and `UTF16 = 1`; application code should not depend on these internal constants.
+- `COMPACT_STRINGS` is an internal flag that the JIT can use to optimize execution branches. When compaction is disabled at the VM level, the UTF16 execution path is used.
 
-OpenJDK có các lớp trợ giúp nội bộ như `StringLatin1` và `StringUTF16` để cài đặt những thao tác trên từng dạng lưu trữ. Nhiều phép toán của `String` có đường xử lý riêng hoặc đường tối ưu tương ứng với `coder`. Những lớp này thuộc `java.lang` nhưng **không phải API công khai để ứng dụng phụ thuộc**.
+OpenJDK provides internal helper classes such as `StringLatin1` and `StringUTF16` to implement operations for each storage format. Many `String` operations have dedicated code paths or optimized intrinsics corresponding to `coder`. These classes reside in `java.lang`, but **they are not public APIs for applications to depend on**.
 
-Bạn có thể quan sát tên trường của JDK đang sử dụng bằng lệnh:
+You can inspect the field names in the JDK you are using with:
 
 ~~~bash
 javap -private java.lang.String
 ~~~
 
-Trong các phiên bản OpenJDK có cách tổ chức này, phần khai báo có thể thấy `byte[] value`, `byte coder` và `COMPACT_STRINGS`. Lệnh `javap` là công cụ xem cấu trúc class; nó **không xác định `coder` của một đối tượng `String` cụ thể**.
+In OpenJDK builds with this layout, the declarations show `byte[] value`, `byte coder`, and `COMPACT_STRINGS`. The `javap` command is a class-structure inspection tool; it **does not determine the `coder` of a specific runtime `String` object**.
 
-Không nên viết logic nghiệp vụ bằng reflection vào `String.value`/`String.coder`: các trường `private` có thể thay đổi theo JDK, Java Module System giới hạn quyền truy cập sâu, và thao tác sửa nội dung bên trong còn phá vỡ bất biến `String`.
+Do not write business logic using reflection on `String.value`/`String.coder`: `private` fields can change across JDKs, the Java Module System restricts deep access, and mutating internal contents breaks `String` immutability.
 
-## 4. Thí nghiệm chạy được trên Java 17+: tính điều kiện dùng Latin-1
+## 4. Runnable Java 17+ experiment: checking Latin-1 eligibility
 
-Public API không cho biết trực tiếp `coder`, nhưng ta có thể tự kiểm tra **nội dung có đủ điều kiện** lưu bằng Latin-1 hay không. Điều này khác với việc đo trạng thái thực tế của bộ nhớ JVM.
+The public API does not expose `coder` directly, but we can check whether **content is eligible** for Latin-1 storage. This is different from measuring the actual state of JVM memory.
 
-Tạo tệp `CompactStringsDemo.java`:
+Create the file `CompactStringsDemo.java`:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -107,7 +107,7 @@ public class CompactStringsDemo {
         int codePoints = text.codePointCount(0, text.length());
         int utf8Bytes = text.getBytes(StandardCharsets.UTF_8).length;
 
-        // chars() duyệt từng đơn vị mã UTF-16, không phải code point.
+        // chars() iterates over each UTF-16 code unit, not code points.
         boolean latin1Eligible = text.chars()
                 .allMatch(codeUnit -> codeUnit <= 0xFF);
 
@@ -119,14 +119,14 @@ public class CompactStringsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 CompactStringsDemo.java
 java CompactStringsDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 ASCII: units=4, codePoints=4, utf8Bytes=4, latin1Eligible=true
@@ -136,46 +136,46 @@ Euro: units=6, codePoints=6, utf8Bytes=8, latin1Eligible=false
 Emoji: units=4, codePoints=3, utf8Bytes=6, latin1Eligible=false
 ~~~
 
-Giải thích:
+Explanation:
 
-- `"Cafe"` gồm 4 ký tự ASCII: đủ điều kiện Latin-1 và cũng cần đúng 4 byte UTF-8.
-- `"café"` gồm 4 đơn vị mã UTF-16, tất cả không vượt `U+00FF`, nên đủ điều kiện Latin-1; tuy nhiên UTF-8 của `é` chiếm **2 byte**, vì vậy toàn chuỗi có 5 byte UTF-8.
-- `"Việt"` có `ệ` (`U+1EC7`), nằm ngoài Latin-1. `length()` là 4 nhưng khi mã hóa UTF-8 cần 6 byte.
-- `"Euro €"` chứa ký hiệu euro `U+20AC`, nên không đủ điều kiện Latin-1 dù các ký tự đầu là ASCII.
-- `"A😀B"` chứa 3 code point nhưng 4 đơn vị mã UTF-16: emoji chiếm 2 đơn vị mã và 4 byte UTF-8.
+- `"Cafe"` consists of 4 ASCII characters: it is Latin-1 eligible and also requires exactly 4 UTF-8 bytes.
+- `"café"` consists of 4 UTF-16 code units, none exceeding `U+00FF`, so it is Latin-1 eligible; however, UTF-8 for `é` takes **2 bytes**, so the entire string takes 5 UTF-8 bytes.
+- `"Việt"` has `ệ` (`U+1EC7`), which lies outside Latin-1. `length()` is 4, while UTF-8 encoding requires 6 bytes.
+- `"Euro €"` contains the euro sign `U+20AC`, so it is not Latin-1 eligible even though the leading characters are ASCII.
+- `"A😀B"` contains 3 code points but 4 UTF-16 code units: the emoji occupies 2 code units and 4 UTF-8 bytes.
 
-`text.chars()` trả về một `IntStream` của **đơn vị mã UTF-16**, nên ở đây kiểm tra `<= 0xFF` là phù hợp để diễn tả điều kiện nén Latin-1. Nếu dùng `codePoints()`, bạn đang duyệt theo code point; trong trường hợp này vẫn có thể suy luận điều kiện với chuỗi hợp lệ, nhưng cần hiểu sự khác nhau khi làm việc với surrogate đơn lẻ.
+`text.chars()` returns an `IntStream` of **UTF-16 code units**, so checking `<= 0xFF` here accurately expresses the Latin-1 compaction condition. If you used `codePoints()`, you would be iterating by code point; for valid strings you could still deduce the condition, but you must understand the difference when dealing with unpaired surrogates.
 
-Biến `latin1Eligible` chỉ trả lời “nội dung có vừa Latin-1 không?”. Nếu chạy với Compact Strings **đã tắt**, biểu thức vẫn là `true` cho `"café"`, trong khi VM sẽ sử dụng dạng nội bộ `UTF16`. Không gọi đây là cách kiểm tra chính xác `String.coder`.
+The `latin1Eligible` variable only answers "can this content fit in Latin-1?". If run with Compact Strings **disabled**, the expression is still `true` for `"café"`, while the VM will use the internal `UTF16` representation. Do not treat this as a way to inspect the exact `String.coder` value.
 
-## 5. Thử tùy chọn JVM `-XX:-CompactStrings`
+## 5. Testing the `-XX:-CompactStrings` JVM option
 
-Với HotSpot/OpenJDK hỗ trợ cờ này, Compact Strings được bật mặc định từ Java 9. Có thể chạy chương trình trên ở hai chế độ:
+On HotSpot/OpenJDK builds supporting this flag, Compact Strings is enabled by default starting in Java 9. You can run the program above in both modes:
 
 ~~~bash
 java CompactStringsDemo
 java -XX:-CompactStrings CompactStringsDemo
 ~~~
 
-Ở chế độ thứ hai, HotSpot tắt cơ chế nén và sử dụng dạng nội bộ `UTF16` cho chuỗi. **Hai lần chạy vẫn phải in ra cùng nội dung** như ví dụ trên: cả `String.length()`, `codePointCount()`, byte UTF-8 và `latin1Eligible` đều xuất phát từ ký tự/Unicode, không phải trạng thái `coder` nội bộ.
+In the second run, HotSpot disables compaction and uses the internal `UTF16` representation for strings. **Both runs must still print the exact same output** as shown above: `String.length()`, `codePointCount()`, UTF-8 bytes, and `latin1Eligible` all come from the characters/Unicode data, not the internal `coder` state.
 
-Điều này cho thấy Compact Strings được thiết kế để **bảo toàn hành vi của public API**. Bạn có thể dùng cờ tắt để nghiên cứu hiệu ứng bộ nhớ/hiệu năng, nhưng không nên tắt nó mặc định nếu không có benchmark hoặc bằng chứng hồi quy trên workload thực tế.
+This demonstrates that Compact Strings is designed to **preserve public API behavior**. You can use the disable flag to study memory/performance effects, but you should not disable it by default without benchmarks or regression evidence on real workloads.
 
-Lưu ý cú pháp cờ VM: `-XX:-CompactStrings` phải đứng **trước tên class** khi gọi `java`, vì nó là tùy chọn của JVM, không phải đối số truyền vào `main(String[] args)`.
+Note on VM flag syntax: `-XX:-CompactStrings` must appear **before the class name** when invoking `java`, because it is a JVM option, not an argument passed to `main(String[] args)`.
 
-## 6. Phân biệt ba khái niệm: nội bộ, UTF-16 và UTF-8
+## 6. Distinguishing three concepts: internal storage, UTF-16, and UTF-8
 
-Đây là điểm rất dễ gây hiểu nhầm khi học về Compact Strings.
+This is a common point of confusion when learning about Compact Strings.
 
-| Câu hỏi | Cơ chế/API thích hợp |
+| Question | Appropriate mechanism/API |
 | --- | --- |
-| Có bao nhiêu đơn vị mã trong `String`? | `text.length()`: luôn đếm UTF-16 code units theo hợp đồng API |
-| Có bao nhiêu Unicode code point? | `text.codePointCount(0, text.length())` |
-| Có bao nhiêu byte UTF-8 khi xuất chuỗi? | `text.getBytes(StandardCharsets.UTF_8).length` |
-| OpenJDK có thể lưu phần nội dung của chuỗi này ở dạng Latin-1? | Mọi đơn vị mã UTF-16 đều `<= U+00FF`, với Compact Strings được bật |
-| Kích thước heap thật sự là bao nhiêu? | Đo trên VM cụ thể bằng heap profiler/công cụ layout, bao gồm overhead và tương tác với GC |
+| How many code units are in the `String`? | `text.length()`: always counts UTF-16 code units per the API contract |
+| How many Unicode code points? | `text.codePointCount(0, text.length())` |
+| How many UTF-8 bytes when exporting the string? | `text.getBytes(StandardCharsets.UTF_8).length` |
+| Can OpenJDK store this string's content in Latin-1 form? | Every UTF-16 code unit is `<= U+00FF`, with Compact Strings enabled |
+| What is the actual heap size? | Measure on the specific VM using a heap profiler/layout tool, including overhead and GC interactions |
 
-**Nội bộ `LATIN1` không đồng nghĩa dây truyền dùng ISO-8859-1.** Chẳng hạn một `String` Java chứa `"café"` có thể chiếm 4 byte ở mảng `value` nội bộ, nhưng:
+**Internal `LATIN1` does not mean wire protocols use ISO-8859-1.** For instance, a Java `String` holding `"café"` may occupy 4 bytes in its internal `value` array, yet:
 
 ~~~java
 String text = "caf\u00E9";
@@ -184,44 +184,44 @@ int utf8Size = text.getBytes(
 ).length; // 5
 ~~~
 
-Đoạn mã trên minh họa một biểu thức Java trong phương thức; đầu ra ở giao thức UTF-8 vẫn là **5 byte**. Ngược lại, gọi `getBytes(StandardCharsets.ISO_8859_1)` là **yêu cầu mã hóa dữ liệu bên ngoài** sang ISO-8859-1, không phải hành động “lấy mảng `value` nội bộ” của `String`.
+The snippet above illustrates a Java expression inside a method; the output in the UTF-8 protocol is still **5 bytes**. Conversely, calling `getBytes(StandardCharsets.ISO_8859_1)` is a **request to encode external data** to ISO-8859-1, not an action that "extracts the internal `value` array" of the `String`.
 
-**Nội bộ `UTF16` không đồng nghĩa dữ liệu bên ngoài buộc phải dùng UTF-16.** `"A😀B"` có thể ở dạng `UTF16` trong heap, nhưng khi truyền HTTP body/ghi file qua UTF-8, kết quả vẫn là mã UTF-8 theo charset chỉ định. Không bao giờ suy ra kích thước UTF-8 trực tiếp từ `coder` hoặc `length()`.
+**Internal `UTF16` does not mean external data must use UTF-16.** `"A😀B"` may be in `UTF16` form on the heap, but when sent in an HTTP body or written to a file as UTF-8, the output is still UTF-8 according to the specified charset. Never infer UTF-8 size directly from `coder` or `length()`.
 
-## 7. Tác động đến bộ nhớ thực tế
+## 7. Real-world memory impact
 
-### Tiết kiệm ở đâu?
+### Where are the savings?
 
-Khi một chuỗi có `n` đơn vị mã UTF-16 và phù hợp Latin-1:
+When a string has `n` UTF-16 code units and fits in Latin-1:
 
-- Dạng `LATIN1` cần xấp xỉ `n` byte cho **phần dữ liệu ký tự**.
-- Dạng `UTF16` cần xấp xỉ `2n` byte cho **phần dữ liệu ký tự**.
-- Về riêng phần nội dung, dữ liệu dạng Latin-1 dùng khoảng **một nửa** dung lượng so với biểu diễn UTF-16 hai byte trên mỗi đơn vị mã.
+- The `LATIN1` format needs approximately `n` bytes for the **character data portion**.
+- The `UTF16` format needs approximately `2n` bytes for the **character data portion**.
+- For the content portion alone, Latin-1 data uses about **half** the space of a two-byte-per-code-unit UTF-16 representation.
 
-Ví dụ một chuỗi 1.000 ký tự ASCII có thể dùng khoảng 1.000 byte cho nội dung thay vì khoảng 2.000 byte. Đây **không phải** tuyên bố rằng toàn đối tượng `String` hay tổng heap của ứng dụng sẽ giảm 50%. Tổng bộ nhớ còn phụ thuộc header, alignment, mảng, trường `coder`, tham chiếu, String pool, GC, deduplication và các thành phần khác.
+For example, a 1,000-character ASCII string can use roughly 1,000 bytes for its content instead of roughly 2,000 bytes. This is **not** a claim that the entire `String` object or the application's total heap will shrink by 50%. Total memory also depends on headers, alignment, arrays, the `coder` field, references, the String pool, GC, deduplication, and other components.
 
-### Khi nào lợi ích giảm?
+### When do the benefits diminish?
 
-Một chuỗi có một ký tự ngoài Latin-1, như `"report-2026-€"`, cần dùng dạng `UTF16` cho toàn bộ chuỗi trong mô hình Compact Strings này. Tỷ lệ các chuỗi như vậy, độ dài chuỗi, vòng đời đối tượng và lượng string được tái sử dụng sẽ ảnh hưởng lợi ích tổng thể.
+A string with a single non-Latin-1 character, such as `"report-2026-€"`, must use the `UTF16` representation for the entire string in this Compact Strings model. The proportion of such strings, string lengths, object lifetimes, and the amount of string reuse all affect the overall benefit.
 
-Đối với ứng dụng đa ngôn ngữ, **không kết luận “tiếng Việt luôn dùng 2 byte mỗi ký tự”**. Một số ký tự tiếng Việt như `ê` (`U+00EA`) thuộc Latin-1, nhưng nhiều ký tự như `ệ` (`U+1EC7`) nằm ngoài. Coder được chọn trên cơ sở toàn chuỗi, và emoji còn có surrogate pair. Vì vậy cần phân tích dữ liệu thực tế.
+For multilingual applications, **do not conclude that "Vietnamese always uses 2 bytes per character."** Some Vietnamese characters like `ê` (`U+00EA`) belong to Latin-1, while many like `ệ` (`U+1EC7`) fall outside it. The coder is chosen on a per-string basis, and emojis also involve surrogate pairs. Therefore, you should analyze real data.
 
-### Tốc độ xử lý có luôn tăng không?
+### Does processing speed always increase?
 
-Không có bảo đảm mọi thao tác luôn nhanh hơn. Compact Strings có thể giảm băng thông bộ nhớ, giảm áp lực cache/GC khi phần lớn chuỗi phù hợp Latin-1. Đồng thời có thêm những đường xử lý/phân nhánh hoặc chuyển đổi giữa biểu diễn; HotSpot dùng nội tại (intrinsics) và tối ưu JIT để giảm overhead cho nhiều thao tác. Kết quả phụ thuộc thao tác và workload.
+There is no guarantee that every operation is faster. Compact Strings can reduce memory bandwidth and relieve cache/GC pressure when most strings fit in Latin-1. At the same time, it introduces separate code paths/branches or conversions between representations; HotSpot uses intrinsics and JIT optimizations to reduce overhead for many operations. Results depend on the operation and workload.
 
-Để đánh giá:
+To evaluate properly:
 
-1. Giữ nguyên ứng dụng/dữ liệu thử nghiệm; so sánh mặc định với `-XX:-CompactStrings` trên **cùng phiên bản JDK và cấu hình máy**.
-2. Đo lượng cấp phát, live heap, GC, throughput và latency đại diện cho thực tế.
-3. Warm-up, dùng công cụ benchmark đúng mục đích (ví dụ JMH cho microbenchmark) và tránh đo duy nhất thời gian của một vòng lặp thiếu kiểm soát.
-4. Không suy ra lợi ích hiệu năng chỉ từ công thức `n` và `2n`, hoặc từ một ví dụ vài chuỗi ngắn.
+1. Keep the test application/data identical; compare the default against `-XX:-CompactStrings` on the **same JDK version and machine configuration**.
+2. Measure allocation rate, live heap, GC, throughput, and latency representative of production.
+3. Warm up the JVM, use an appropriate benchmarking tool (such as JMH for microbenchmarks), and avoid timing a single uncontrolled loop.
+4. Do not deduce performance gains solely from the `n` vs `2n` formula or from an example of a few short strings.
 
-## 8. Vì sao `String.length()` không đổi?
+## 8. Why does `String.length()` stay unchanged?
 
-Theo API Java, `length()` luôn trả về số **đơn vị mã UTF-16** trong chuỗi. Nội bộ OpenJDK có thể lưu Latin-1 một byte trên mỗi đơn vị mã, nhưng Java vẫn phải trả về `length()` như trước JDK 9.
+Under the Java API, `length()` always returns the number of **UTF-16 code units** in the string. OpenJDK may internally store Latin-1 at one byte per code unit, yet Java still must return the same `length()` as before JDK 9.
 
-Ví dụ:
+Example:
 
 ~~~java
 String latin1 = "caf\u00E9";
@@ -232,15 +232,15 @@ System.out.println(emoji.length());  // 4
 System.out.println(emoji.codePointCount(0, emoji.length())); // 3
 ~~~
 
-Đây là đoạn mã minh họa trong một phương thức, không phải class độc lập; các giá trị là `4`, `4` và `3`. Chế độ Compact Strings không đổi kết quả đó.
+This is an illustrative snippet inside a method, not a standalone class; the values are `4`, `4`, and `3`. Compact Strings mode does not change those results.
 
-Với ký tự ngoài BMP, Java vẫn biểu diễn một code point bằng một **cặp surrogate ở lớp API UTF-16**. Dù cơ chế lưu trữ bên dưới thay đổi, các phương thức `charAt`, `substring`, `codePointAt`, `codePointCount` phải giữ đúng hợp đồng API. Lưu ý `substring` và chỉ số `charAt` dùng vị trí của **đơn vị mã UTF-16**; có thể cắt giữa surrogate pair nếu lập trình viên chọn chỉ số không phù hợp.
+For non-BMP characters, Java still represents a code point as a **surrogate pair at the UTF-16 API layer**. Even though the underlying storage mechanism changed, `charAt`, `substring`, `codePointAt`, and `codePointCount` must preserve the API contract. Keep in mind that `substring` and `charAt` indices use positions of **UTF-16 code units**; you can slice in the middle of a surrogate pair if you choose inappropriate indices.
 
-## 9. Hoạt động khi tạo và biến đổi chuỗi
+## 9. Behavior when creating and transforming strings
 
-Những thao tác như tạo chuỗi từ literal, ghép chuỗi, chuyển từ `StringBuilder`, đổi chữ hoa/thường hay trích chuỗi con có thể dẫn đến **một đối tượng `String` khác**. Biểu diễn nội bộ của đối tượng kết quả có thể được chọn theo **nội dung của kết quả**, độc lập với dạng của đối tượng đầu vào.
+Operations such as creating strings from literals, concatenating, converting from `StringBuilder`, changing case, or taking substrings can produce **a different `String` object**. The internal representation of the resulting object can be chosen based on the **result's content**, independent of the input object's format.
 
-Ví dụ ở góc độ nội dung:
+A content-level example:
 
 ~~~java
 String original = "ABC\u20AC";
@@ -250,58 +250,58 @@ System.out.println(original); // ABC€
 System.out.println(onlyAscii); // ABC
 ~~~
 
-Đây là đoạn minh họa có thể đặt trong phương thức. Khi Compact Strings bật, một `String` mới chỉ chứa `"ABC"` đủ điều kiện Latin-1 dù `original` có ký tự `€`. Tuy nhiên, **không nên dựa vào chi tiết đối tượng có dùng chung/copy mảng nào hoặc đúng thời điểm chọn coder**: đó là quyết định của phiên bản triển khai. Mục tiêu quan trọng là các API trả về văn bản đúng.
+This is an illustrative snippet that can be placed in a method. With Compact Strings enabled, a new `String` containing only `"ABC"` is eligible for Latin-1 even though `original` contains `€`. However, **do not rely on details of which arrays an object shares/copies or the exact timing of coder selection**: those are implementation-version decisions. What matters is that APIs return the correct text.
 
-`StringBuilder` và `StringBuffer` trong các bản OpenJDK hỗ trợ JEP 254 cũng có những tối ưu biểu diễn nội dung liên quan, nhưng chiến lược quản lý dung lượng/capacity của builder không đồng nhất với `String` bất biến. Tránh suy ra rằng phép `append` hay `toString()` luôn sao chép, luôn dùng chung mảng hoặc luôn có chi phí cố định.
+`StringBuilder` and `StringBuffer` in OpenJDK versions supporting JEP 254 also have related internal content representation optimizations, though a builder's capacity management strategy is not identical to immutable `String`. Avoid assuming that `append` or `toString()` always copies, always shares arrays, or always has a fixed cost.
 
-## 10. Những nhầm lẫn thường gặp
+## 10. Common misconceptions
 
-**Nhầm 1 — “Java từ Java 9 đã đổi String sang UTF-8”.** Sai. Compact Strings sử dụng **LATIN1 hoặc UTF16** để lưu trữ nội bộ, không dùng UTF-8 làm hai dạng coder chính.
+**Misconception 1 — "Java switched String to UTF-8 starting in Java 9."** False. Compact Strings uses **LATIN1 or UTF16** for internal storage, not UTF-8 as its two main coder formats.
 
-**Nhầm 2 — “Vì mảng là `byte[]` nên `String.length()` đếm byte”.** Sai. `length()` vẫn đếm UTF-16 code units, bất kể Java sử dụng dạng lưu trữ nội bộ nào.
+**Misconception 2 — "Because the array is `byte[]`, `String.length()` counts bytes."** False. `length()` still counts UTF-16 code units, regardless of which internal storage format Java uses.
 
-**Nhầm 3 — “Mọi ký tự không phải ASCII đều dùng UTF16”.** Sai. `é`, `ñ` hoặc `ÿ` đều nằm trong phạm vi Latin-1. Trong khi đó, `€` và phần lớn các dấu Unicode ngoài `U+00FF` buộc dùng UTF16.
+**Misconception 3 — "Every non-ASCII character uses UTF16."** False. `é`, `ñ`, and `ÿ` all lie within the Latin-1 range. Meanwhile, `€` and most Unicode characters above `U+00FF` require UTF16.
 
-**Nhầm 4 — “Chỉ ký tự vượt Latin-1 mới chiếm 2 byte”.** Sai ở cấp **một đối tượng `String`**: khi một đơn vị mã không vừa Latin-1, cả chuỗi chuyển sang dạng UTF16.
+**Misconception 4 — "Only characters beyond Latin-1 take 2 bytes."** False at the level of **a single `String` object**: when one code unit does not fit in Latin-1, the entire string switches to UTF16 format.
 
-**Nhầm 5 — “Có thể đọc `coder` để tối ưu logic ứng dụng”.** Trường này là nội bộ và có thể thay đổi. Không dùng reflection/`Unsafe` để viết logic phụ thuộc `coder`; xử lý chuỗi bằng public API.
+**Misconception 5 — "You can read `coder` to optimize application logic."** This field is internal and subject to change. Do not use reflection/`Unsafe` to write logic that depends on `coder`; process strings through the public API.
 
-**Nhầm 6 — “Tắt Compact Strings thì chương trình trả ra văn bản khác”.** Sai đối với hành vi hợp lệ của public API. Cờ tác động biểu diễn và có thể ảnh hưởng bộ nhớ/hiệu năng, không thay đổi nội dung hay cách đếm `length()`.
+**Misconception 6 — "Disabling Compact Strings makes a program output different text."** False for valid public API behavior. The flag affects representation and may impact memory/performance, not content or `length()` counting.
 
-**Nhầm 7 — “String đủ điều kiện Latin-1 thì dữ liệu UTF-8 cũng chỉ có một byte/ký tự”.** Sai: `"café"` có 4 đơn vị mã và đủ điều kiện Latin-1, nhưng cần 5 byte khi mã hóa UTF-8.
+**Misconception 7 — "If a String is Latin-1 eligible, its UTF-8 data also has only one byte per character."** False: `"café"` has 4 code units and is Latin-1 eligible, yet requires 5 bytes when encoded as UTF-8.
 
-**Nhầm 8 — “Tiết kiệm 50% dữ liệu ký tự tức tiết kiệm 50% toàn bộ heap”.** Sai. Tổng heap gồm nhiều đối tượng và overhead; cần đo thực tế.
+**Misconception 8 — "Saving 50% of character data means saving 50% of the entire heap."** False. The total heap includes many objects and overhead; you must measure in practice.
 
-## 11. Kiểm tra kiến thức
+## 11. Knowledge check
 
-**Câu 1.** `"ABC\u00E9"` có dùng dạng `LATIN1` được không? Tại sao?
+**Question 1.** Can `"ABC\u00E9"` use the `LATIN1` format? Why?
 
-**Đáp án:** Có, vì cả bốn đơn vị mã UTF-16 đều nằm trong `U+0000`–`U+00FF`. Trong môi trường bật Compact Strings, nội dung đủ điều kiện nén còn 4 byte.
+**Answer:** Yes, because all four UTF-16 code units lie within `U+0000`–`U+00FF`. In an environment with Compact Strings enabled, the content is eligible to be compacted to 4 bytes.
 
-**Câu 2.** `"ABC\u20AC"` có thể lưu 3 ký tự đầu ở LATIN1 và ký tự cuối ở UTF16 trong cùng đối tượng `String` không?
+**Question 2.** Can `"ABC\u20AC"` store the first 3 characters in LATIN1 and the last character in UTF16 inside the same `String` object?
 
-**Đáp án:** Không theo mô hình JEP 254 của OpenJDK: `coder` chọn một dạng cho nội dung của toàn đối tượng. Có ký tự `€` ngoài Latin-1 nên cần dạng UTF16.
+**Answer:** Not under OpenJDK's JEP 254 model: `coder` selects a single format for the entire object's content. Because `€` lies outside Latin-1, the UTF16 format is required.
 
-**Câu 3.** Chạy cùng chương trình Java với `-XX:-CompactStrings`. Giá trị `"A😀B".length()` có thay đổi không?
+**Question 3.** Run the same Java program with `-XX:-CompactStrings`. Does the value of `"A😀B".length()` change?
 
-**Đáp án:** Không. Giá trị vẫn là `4`, gồm `A` (1), emoji (2 đơn vị mã UTF-16) và `B` (1).
+**Answer:** No. The value remains `4`, consisting of `A` (1), the emoji (2 UTF-16 code units), and `B` (1).
 
-**Câu 4.** Một dịch vụ gửi UTF-8 qua mạng. Có nên lấy số byte mảng nội bộ `String.value` làm `Content-Length`?
+**Question 4.** A service sends UTF-8 over the network. Should it use the byte length of the internal `String.value` array as `Content-Length`?
 
-**Đáp án:** Không. Phải dùng số byte của **payload cuối cùng** được gửi. Compact Strings là chi tiết lưu trữ nội bộ; khi xuất UTF-8, chuỗi được mã hóa sang UTF-8 độc lập với coder bên trong.
+**Answer:** No. You must use the byte count of the **final payload** being sent. Compact Strings is an internal storage detail; when exporting UTF-8, the string is encoded to UTF-8 independently of its internal coder.
 
-**Câu 5.** Tại sao nên đánh giá bằng heap profiling thay vì dùng `text.length() * 1` hay `* 2` để báo lượng RAM mà `String` chiếm?
+**Question 5.** Why should you evaluate using heap profiling instead of using `text.length() * 1` or `* 2` to report how much RAM a `String` occupies?
 
-**Đáp án:** Các công thức đó chỉ mô tả gần đúng **phần dữ liệu** trong mảng lưu trữ, bỏ qua object header, array header, alignment, tham chiếu, khả năng tái sử dụng và nhiều tối ưu khác. Kích thước thực còn phụ thuộc cấu hình JVM.
+**Answer:** Those formulas only approximate the **data portion** inside the backing array, ignoring object headers, array headers, alignment, references, reuse, and many other optimizations. Actual size also depends on JVM configuration.
 
-## 12. Kết luận và cách áp dụng
+## 12. Conclusion and how to apply it
 
-Compact Strings là tối ưu lưu trữ của OpenJDK từ Java 9: `String` sử dụng `byte[] value` cùng `coder` để chọn **LATIN1 khi mọi đơn vị mã nằm trong `U+0000`–`U+00FF`**, hoặc **UTF16 khi có đơn vị mã ngoài phạm vi đó**. Trên nhiều workload chứa lượng lớn chuỗi Latin-1, phần dữ liệu ký tự có thể giảm gần một nửa so với cách lưu UTF-16 cố định. Nhưng đây là tối ưu phía dưới API; trong ứng dụng, hãy tiếp tục dùng `String.length()`, các API code point và mã hóa byte bằng `StandardCharsets.UTF_8` theo đúng ngữ nghĩa từng nhu cầu.
+Compact Strings is an OpenJDK storage optimization introduced in Java 9: `String` uses `byte[] value` along with `coder` to choose **LATIN1 when all code units fall in `U+0000`–`U+00FF`**, or **UTF16 when any code unit falls outside that range**. On many workloads dominated by Latin-1 strings, the character data portion can drop by nearly half compared to fixed UTF-16 storage. Still, this is an optimization beneath the API; in applications, continue using `String.length()`, code point APIs, and byte encoding with `StandardCharsets.UTF_8` according to each requirement's exact semantics.
 
-Khi tối ưu heap, nên đo dữ liệu/ứng dụng thực tế và chỉ cân nhắc `-XX:-CompactStrings` nếu phép đo cho thấy lý do cụ thể; khi triển khai định dạng file, HTTP hay cơ sở dữ liệu, hãy căn cứ **charset và định dạng đầu ra**, không căn cứ coder nội bộ.
+When optimizing the heap, measure real data and applications and only consider `-XX:-CompactStrings` if measurements reveal a specific reason; when implementing file formats, HTTP, or databases, rely on **the charset and output format**, never on the internal coder.
 
-Tài liệu tham khảo:
+References:
 
 - [OpenJDK JEP 254 — Compact Strings](https://openjdk.org/jeps/254).
 - [Oracle JDK 21 — Java HotSpot Virtual Machine Performance Enhancements](https://docs.oracle.com/en/java/javase/21/vm/java-hotspot-virtual-machine-performance-enhancements.html).
-- [OpenJDK: mã nguồn `java.lang.String`](https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/String.java) và [`StringUTF16`](https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/StringUTF16.java).
+- [OpenJDK: `java.lang.String` source code](https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/String.java) and [`StringUTF16`](https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/StringUTF16.java).

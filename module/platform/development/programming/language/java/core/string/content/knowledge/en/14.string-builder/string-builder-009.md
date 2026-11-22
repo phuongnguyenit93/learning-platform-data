@@ -1,42 +1,42 @@
-# StringBuilder.reverse(): Bảo toàn surrogate pair nhưng không bảo toàn cụm ký tự
+# StringBuilder.reverse(): Preserves Surrogate Pairs, Not Character Clusters
 
-## 1. Ý chính cần nhớ
+## 1. Key Points to Remember
 
-`StringBuilder.reverse()` đảo thứ tự nội dung **ngay trong builder hiện tại** và trả về chính builder đó. Theo hợp đồng Java, phương thức **giữ nguyên thứ tự high surrogate – low surrogate trong một surrogate pair UTF-16 hợp lệ** khi đảo. Nhờ vậy, emoji hay ký tự bổ sung Unicode được biểu diễn bởi một cặp surrogate không tự biến thành hai surrogate sai thứ tự chỉ do `reverse()`.
+`StringBuilder.reverse()` reverses the order of content **in place within the current builder** and returns the builder itself. By Java's contract, the method **preserves the high surrogate – low surrogate order within a valid UTF-16 surrogate pair** when reversing. As a result, emojis or supplementary Unicode characters represented by a surrogate pair do not turn into two misordered surrogates merely from calling `reverse()`.
 
-Nhưng bảo toàn **surrogate pair** hoàn toàn khác với bảo toàn **grapheme cluster** — cụm ký tự người đọc thường cảm nhận như một ký tự. Nhiều grapheme cluster có hai hoặc nhiều Unicode code point, ví dụ chữ có dấu kết hợp, emoji có ký tự nối ZWJ, ký hiệu với variation selector, hay cờ biểu diễn bằng hai regional indicator.
+However, preserving **surrogate pairs** is completely different from preserving **grapheme clusters** — character clusters that readers typically perceive as one character. Many grapheme clusters consist of two or more Unicode code points, such as letters with combining diacritics, emojis with ZWJ joiners, symbols with variation selectors, or flags represented by two regional indicators.
 
-Hai trường hợp quan trọng:
+Two important cases:
 
 ~~~text
 "A😀B"  -> reverse() -> "B😀A"
-Emoji U+1F600 vẫn gồm đúng high surrogate U+D83D và low surrogate U+DE00.
+Emoji U+1F600 still consists of high surrogate U+D83D and low surrogate U+DE00 in order.
 
 "a" + U+0301 + "b"
-Code point ban đầu: U+0061 U+0301 U+0062
-Sau reverse():     U+0062 U+0301 U+0061
-Dấu sắc có thể gắn sang chữ b thay vì chữ a.
+Initial code points: U+0061 U+0301 U+0062
+After reverse():     U+0062 U+0301 U+0061
+The acute accent may attach to letter b instead of letter a.
 ~~~
 
-**Kết luận:** `reverse()` thích hợp khi muốn dùng **hợp đồng đảo UTF-16 của Java**; không tự động thích hợp khi bài toán yêu cầu đảo theo **ký tự hiển thị** và giữ nguyên emoji phức tạp hay tổ hợp dấu.
+**Conclusion:** `reverse()` is appropriate when you want **Java's UTF-16 reversal contract**; it is not automatically suitable when a problem requires reversing by **visible character** and keeping complex emojis or combining marks intact.
 
-## 2. UTF-16 code unit, Unicode code point và grapheme cluster
+## 2. UTF-16 Code Units, Unicode Code Points, and Grapheme Clusters
 
-Trước khi đọc mã nguồn, hãy tách rõ ba đơn vị:
+Before reading the code, clearly separate these three units:
 
-| Đơn vị | Định nghĩa | Java API điển hình |
+| Unit | Definition | Typical Java APIs |
 | --- | --- | --- |
-| UTF-16 code unit | Một đơn vị rộng 16 bit, chính là `char` của Java | `length()`, `charAt(i)` |
-| Unicode code point | Một giá trị Unicode, ví dụ `U+0041` hoặc `U+1F600` | `codePointAt(i)`, `codePoints()`, `appendCodePoint(cp)` |
-| Extended grapheme cluster | Một nhóm code point được các quy tắc Unicode nhận diện như một đơn vị ký tự trong văn bản | Cần thuật toán phân đoạn grapheme phù hợp UAX #29 |
+| UTF-16 code unit | A 16-bit wide unit, which is Java's `char` | `length()`, `charAt(i)` |
+| Unicode code point | A Unicode value, such as `U+0041` or `U+1F600` | `codePointAt(i)`, `codePoints()`, `appendCodePoint(cp)` |
+| Extended grapheme cluster | A group of code points recognized by Unicode rules as a single character unit in text | Requires a UAX #29-compliant grapheme segmentation algorithm |
 
-Trong UTF-16, Unicode code point thuộc các mặt phẳng bổ sung (`U+10000..U+10FFFF`) cần **hai** code unit:
+In UTF-16, Unicode code points in supplementary planes (`U+10000..U+10FFFF`) require **two** code units:
 
-- High surrogate trong `U+D800..U+DBFF`.
-- Low surrogate trong `U+DC00..U+DFFF`.
-- Cặp phải có thứ tự **high trước, low sau**.
+- High surrogate in `U+D800..U+DBFF`.
+- Low surrogate in `U+DC00..U+DFFF`.
+- The pair must be ordered **high first, low second**.
 
-Ví dụ:
+Example:
 
 ~~~java
 int smile = 0x1F600;
@@ -45,19 +45,19 @@ System.out.printf("U+%04X U+%04X%n", (int) pair[0], (int) pair[1]);
 // U+D83D U+DE00
 ~~~
 
-`StringBuilder("😀").length()` bằng `2` (hai code unit), trong khi `codePointCount(0, length())` bằng `1`. Đây vẫn thường là **một** grapheme cluster.
+`new StringBuilder("😀").length()` equals `2` (two code units), while `codePointCount(0, length())` equals `1`. This is also typically **one** grapheme cluster.
 
-Một ví dụ khác: chữ `á` có thể là `U+00E1`, hoặc là `U+0061 U+0301` (chữ `a` cộng dấu sắc kết hợp). Cách thứ hai có **hai code point** nhưng vẫn thường hiển thị thành một cụm ký tự. Vì thế đảo theo code point cũng chưa chắc là đảo theo grapheme cluster.
+Another example: the letter `á` can be `U+00E1`, or `U+0061 U+0301` (letter `a` plus combining acute accent). The second form has **two code points** yet still usually displays as a single character cluster. Therefore, reversing by code point is still not guaranteed to reverse by grapheme cluster.
 
-## 3. Hợp đồng chính xác của StringBuilder.reverse()
+## 3. Exact Contract of StringBuilder.reverse()
 
-Chữ ký:
+Signature:
 
 ~~~java
 public StringBuilder reverse()
 ~~~
 
-Phương thức thay nội dung hiện tại bằng dãy đảo và **trả về `this`**, do đó có thể nối lời gọi:
+The method replaces the current content with the reversed sequence and **returns `this`**, allowing method chaining:
 
 ~~~java
 StringBuilder sb = new StringBuilder("abc");
@@ -67,19 +67,19 @@ System.out.println(sb);             // cba
 System.out.println(returned == sb); // true
 ~~~
 
-`returned == sb` là phép so sánh **identity của hai tham chiếu builder**, dùng ở đây để cho thấy `reverse()` không trả một builder mới.
+`returned == sb` is an **identity comparison of two builder references**, used here to show that `reverse()` does not return a new builder.
 
-Các bảo đảm và giới hạn:
+Guarantees and limitations:
 
-1. **Surrogate pair hợp lệ được coi như một đơn vị khi đảo**. Thứ tự high–low trong mỗi pair được giữ đúng.
-2. Những code unit không thuộc pair hợp lệ được đảo theo cơ chế của phương thức.
-3. Phương thức không phân đoạn **extended grapheme cluster** theo UAX #29.
-4. Những surrogate **lẻ** đứng riêng có thể **hình thành một pair hợp lệ** sau khi đảo nếu trước đó chúng nằm theo thứ tự low–high. Đây là hành vi được đặc tả, không phải một bước sửa dữ liệu Unicode tổng quát.
-5. Dãy `String` lấy bằng `toString()` trước khi sửa builder giữ nguyên nội dung vì `String` bất biến.
+1. **Valid surrogate pairs are treated as a single unit during reversal**. The high–low order within each pair is kept intact.
+2. Code units not belonging to a valid pair are reversed according to the method's mechanism.
+3. The method does not segment **extended grapheme clusters** per UAX #29.
+4. **Lone** surrogates standing apart can **form a valid pair** after reversal if they were previously in low–high order. This is specified behavior, not a general Unicode repair step.
+5. A `String` obtained via `toString()` before mutating the builder keeps its original content because `String` is immutable.
 
-Điều quan trọng là **hợp đồng kết quả**, không phải giả định về thuật toán nội bộ hay backing array của một bản OpenJDK cụ thể.
+What matters is the **output contract**, not assumptions about internal algorithms or the backing array of a specific OpenJDK release.
 
-### Ví dụ đơn giản
+### Simple Example
 
 ~~~java
 StringBuilder sb = new StringBuilder("A");
@@ -92,51 +92,51 @@ System.out.printf("U+%X%n", sb.codePointAt(1)); // U+1F600
 System.out.println(original.codePointCount(0, original.length())); // 3
 ~~~
 
-Sau `reverse()`, builder biểu diễn `B`, emoji `U+1F600`, `A`. Nếu nhìn ở mức UTF-16 code unit:
+After `reverse()`, the builder represents `B`, emoji `U+1F600`, `A`. Viewed at the UTF-16 code unit level:
 
 ~~~text
-Trước: [0041] [D83D] [DE00] [0042]
-                high    low
-Sau:   [0042] [D83D] [DE00] [0041]
-                high    low
+Before: [0041] [D83D] [DE00] [0042]
+                 high    low
+After:  [0042] [D83D] [DE00] [0041]
+                 high    low
 ~~~
 
-Cặp surrogate của emoji **không trở thành** `[DE00][D83D]`. Nếu tự viết vòng lặp đảo từng `char`, bạn có nguy cơ tạo ra thứ tự low–high sai đó.
+The emoji's surrogate pair **does not become** `[DE00][D83D]`. If you write your own loop reversing each `char`, you risk producing that broken low–high order.
 
-## 4. Dấu kết hợp: ví dụ rõ nhất của grapheme bị tách
+## 4. Combining Marks: The Clear Example of a Split Grapheme
 
-Xét dãy Unicode:
+Consider the Unicode sequence:
 
 ~~~text
 U+0061 U+0301 U+0062
-    a   dấu sắc   b
+    a   acute    b
 ~~~
 
-Bộ dựng chữ thường hiển thị `a + U+0301` thành một chữ `á` có dấu. Nhưng `StringBuilder.reverse()` chỉ giữ quy tắc surrogate, không có hợp đồng giữ chữ và dấu kết hợp thành một cluster:
+Text renderers typically display `a + U+0301` as a single accented letter `á`. However, `StringBuilder.reverse()` only enforces surrogate rules, with no contract to keep a base letter and its combining mark together as a cluster:
 
 ~~~java
 String input = "a\u0301b";
 String reversed = new StringBuilder(input).reverse().toString();
 ~~~
 
-`input` là dãy code point `U+0061 U+0301 U+0062`; `reversed` là `U+0062 U+0301 U+0061`. Dấu sắc đã chuyển sang ngay sau `b`, nên cách hiển thị có thể thành `b́a`.
+`input` is the code point sequence `U+0061 U+0301 U+0062`; `reversed` is `U+0062 U+0301 U+0061`. The acute accent has moved right after `b`, so rendering can turn into `b́a`.
 
-Nếu mục tiêu là **đảo hai grapheme cluster** `[a + dấu sắc]` và `[b]`, thứ tự mong muốn sẽ là:
+If the goal is to **reverse two grapheme clusters** `[a + acute]` and `[b]`, the desired order would be:
 
 ~~~text
 [b] [a + U+0301]
-Code point: U+0062 U+0061 U+0301
+Code points: U+0062 U+0061 U+0301
 ~~~
 
-Khác biệt này cho thấy việc đảo **code point** riêng lẻ cũng chưa đủ; cần biết **ranh giới cluster** để giữ nguyên cấu trúc bên trong từng cluster.
+This difference shows that reversing individual **code points** is still not enough; you need **cluster boundaries** to keep the internal structure of each cluster intact.
 
-### Chuẩn hóa NFC có giải quyết không?
+### Does NFC Normalization Solve It?
 
-`java.text.Normalizer` với `NFC` có thể kết hợp `a + dấu sắc` thành một code point dựng sẵn `U+00E1`. Nhờ vậy **riêng ví dụ này** có thể trở nên dễ đảo hơn. Tuy nhiên NFC không biến mọi emoji ZWJ, variation selector hay cluster khác thành một code point. **Normalization** và **grapheme segmentation** là hai bài toán riêng; NFC không biến `reverse()` thành thuật toán đảo cluster đúng cho mọi Unicode text.
+`java.text.Normalizer` with `NFC` can combine `a + acute` into a single precomposed code point `U+00E1`. That makes **this particular example** easier to reverse. However, NFC does not turn every ZWJ emoji, variation selector, or other cluster into one code point. **Normalization** and **grapheme segmentation** are two separate problems; NFC does not turn `reverse()` into a valid cluster reversal algorithm for all Unicode text.
 
-## 5. Emoji nối bằng ZWJ: surrogate không hỏng, emoji vẫn có thể thay đổi
+## 5. ZWJ-Joined Emojis: Surrogates Stay Intact, Emoji Can Still Change
 
-Emoji **woman technologist** có thể được mã hóa thành dãy:
+The **woman technologist** emoji can be encoded as the sequence:
 
 ~~~text
 U+1F469  WOMAN
@@ -144,7 +144,7 @@ U+200D   ZERO WIDTH JOINER (ZWJ)
 U+1F4BB  PERSONAL COMPUTER
 ~~~
 
-Hai code point hai đầu là supplementary, nên từng code point được lưu bằng **surrogate pair**. Trên nền tảng hỗ trợ, ba code point có thể hiển thị như một emoji kết hợp.
+Both outer code points are supplementary, so each is stored as a **surrogate pair**. On supporting platforms, the three code points can render as one combined emoji.
 
 ~~~java
 String womanTechnologist = new StringBuilder()
@@ -158,39 +158,39 @@ String reversed = new StringBuilder(womanTechnologist)
         .toString();
 ~~~
 
-Sau đảo, dãy là:
+After reversal, the sequence is:
 
 ~~~text
 U+1F4BB U+200D U+1F469
 ~~~
 
-Các surrogate pair bên trong U+1F469 và U+1F4BB vẫn hợp lệ, nhưng **thứ tự các thành phần của cụm emoji bị thay đổi**. Màn hình có thể hiển thị cụm khác hoặc hiển thị tách rời, phụ thuộc bộ dựng chữ và font. `reverse()` **không** coi toàn bộ cụm emoji ZWJ là một phần tử cần giữ nguyên.
+The surrogate pairs inside U+1F469 and U+1F4BB remain valid, yet **the order of components in the emoji cluster has changed**. The screen may display a different cluster or render them separately, depending on the text shaper and font. `reverse()` **does not** treat the entire ZWJ emoji cluster as a single element to keep together.
 
-## 6. Variation selector và cờ
+## 6. Variation Selectors and Flags
 
-**Variation selector:** Cụm `U+2764 U+FE0F` chứa ký hiệu trái tim cùng VARIATION SELECTOR-16. Sau đảo:
-
-~~~text
-Trước: U+2764 U+FE0F
-Sau:   U+FE0F U+2764
-~~~
-
-Selector đứng trước base, thay vì theo sau, nên dạng hiển thị có thể thay đổi. `U+FE0F` không phải surrogate pair và không được giữ kèm base bởi hợp đồng `reverse()`.
-
-**Cờ bằng regional indicators:** Ví dụ cờ Việt Nam có hai code point theo thứ tự:
+**Variation selector:** The sequence `U+2764 U+FE0F` contains a heart symbol plus VARIATION SELECTOR-16. After reversal:
 
 ~~~text
-Trước: U+1F1FB U+1F1F3
-Sau:   U+1F1F3 U+1F1FB
+Before: U+2764 U+FE0F
+After:  U+FE0F U+2764
 ~~~
 
-Mỗi regional indicator supplementary vẫn được mã hóa UTF-16 đúng, nhưng cặp **không còn cùng thứ tự**. Do vậy ý nghĩa biểu tượng và cách hiển thị không được bảo toàn.
+The selector precedes the base instead of following it, so its visual rendering can change. `U+FE0F` is not a surrogate pair and is not kept attached to its base by `reverse()`'s contract.
 
-Các hiện tượng tương tự có thể liên quan đến emoji modifier, dấu kết hợp đa tầng hoặc cấu trúc chữ của một số hệ viết. Bộ kiểm thử chỉ dùng ASCII hoặc một emoji đơn code point thường không bắt được lỗi ở mức cluster.
+**Flags via regional indicators:** For example, the Vietnam flag has two code points in order:
 
-## 7. Surrogate lẻ: trường hợp đặc biệt phải hiểu
+~~~text
+Before: U+1F1FB U+1F1F3
+After:  U+1F1F3 U+1F1FB
+~~~
 
-Java `String` và `StringBuilder` có thể chứa một `char` surrogate đứng riêng. Ví dụ chuỗi cố ý chứa hai code unit theo thứ tự **low trước, high sau**:
+Each supplementary regional indicator remains validly UTF-16 encoded, yet the pair **is no longer in the same order**. Consequently, the flag meaning and visual rendering are not preserved.
+
+Similar phenomena can involve emoji modifiers, stacked combining marks, or script-specific shaping structures. Test suites using only ASCII or single-code-point emojis often miss cluster-level bugs.
+
+## 7. Lone Surrogates: A Special Case You Must Understand
+
+Java `String` and `StringBuilder` can hold an isolated surrogate `char`. For example, a string intentionally containing two code units in **low first, high second** order:
 
 ~~~java
 char low = '\uDE00';
@@ -200,29 +200,29 @@ String malformed = new String(new char[] {low, high});
 String after = new StringBuilder(malformed).reverse().toString();
 ~~~
 
-Trước đảo:
+Before reversing:
 
 ~~~text
-U+DE00 U+D83D  // low rồi high: không tạo một pair hợp lệ
+U+DE00 U+D83D  // low then high: does not form a valid pair
 ~~~
 
-Sau đảo:
+After reversing:
 
 ~~~text
-U+D83D U+DE00  // high rồi low: pair hợp lệ, code point U+1F600
+U+D83D U+DE00  // high then low: valid pair, code point U+1F600
 ~~~
 
-Điều này chứng minh một chi tiết thú vị: `reverse()` có thể biến hai surrogate trước đó **không ghép cặp** thành **một pair hợp lệ**. Phép đảo không được đảm bảo là một phép hoán vị giữ nguyên mọi phân nhóm code point trên dữ liệu UTF-16 hỏng.
+This illustrates an interesting detail: `reverse()` can turn two previously **unpaired** surrogates into **a valid pair**. Reversal is not guaranteed to be a permutation that preserves every code point grouping on malformed UTF-16 data.
 
-Hệ quả là không nên khẳng định gọi `reverse()` **hai lần** luôn khôi phục chính xác dãy code unit ban đầu trong mọi dữ liệu có surrogate lẻ. Khi pair đã hình thành ở lượt đảo đầu, lượt đảo thứ hai có thể giữ cặp đó theo quy tắc bảo toàn surrogate pair, chứ không khôi phục cấu trúc sai cũ.
+As a consequence, you should not claim that calling `reverse()` **twice** always restores the exact original code unit sequence for arbitrary data containing lone surrogates. Once a pair forms on the first reversal, the second reversal can preserve that pair under the surrogate-pair rule instead of restoring the old malformed layout.
 
-Nếu dữ liệu phải tuân thủ Unicode scalar values, hãy kiểm tra/loại/thay surrogate lẻ bằng chính sách rõ ràng. `reverse()` không phải API sửa chữa UTF-16 bị hỏng.
+If data must conform to Unicode scalar values, check/reject/replace lone surrogates with an explicit policy. `reverse()` is not a repair API for corrupted UTF-16.
 
-## 8. Chương trình Java 17+ đầy đủ và kết quả đã kiểm chứng
+## 8. Complete Java 17+ Program and Verified Output
 
-Chương trình dưới đây in code point và code unit dạng `U+XXXX` để kiểm tra khách quan, không phụ thuộc vào font hoặc khả năng console hiển thị emoji.
+The program below prints code points and code units in `U+XXXX` form for objective verification, independent of fonts or console emoji support.
 
-Lưu tệp **`ReverseUnicodeDemo.java`**:
+Save as **`ReverseUnicodeDemo.java`**:
 
 ~~~java
 import java.util.stream.Collectors;
@@ -283,14 +283,14 @@ public class ReverseUnicodeDemo {
 }
 ~~~
 
-Lệnh biên dịch/chạy:
+Compile/run commands:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 ReverseUnicodeDemo.java
 java ReverseUnicodeDemo
 ~~~
 
-`stdout` đã xác nhận trực tiếp bằng trình biên dịch/JVM:
+`stdout` directly verified by the compiler/JVM:
 
 ~~~text
 sameBuilder=true
@@ -309,21 +309,21 @@ malformedUnits=U+DE00 U+D83D
 malformedReversed=U+1F600
 ~~~
 
-**Đọc kết quả:**
+**Reading the output:**
 
-- `sameBuilder=true`: `reverse` sửa tại chỗ và trả `this`.
-- `reversedUnits`: surrogate pair của emoji vẫn là `D83D DE00`, không đảo thành `DE00 D83D`.
-- `originalStill`: biến `String` đã tạo trước đó vẫn giữ nội dung ban đầu.
-- `accentAfter`: dấu kết hợp đã chuyển vị trí giữa các chữ.
-- `zwjAfter`: thứ tự trong emoji ZWJ sequence bị đảo.
-- `heartAfter` và `flagAfter`: variation selector và regional indicators bị đảo thứ tự.
-- `malformedReversed`: hai surrogate lẻ đã trở thành một supplementary code point hợp lệ.
+- `sameBuilder=true`: `reverse` mutates in place and returns `this`.
+- `reversedUnits`: the emoji's surrogate pair stays `D83D DE00`, not flipped to `DE00 D83D`.
+- `originalStill`: the `String` created earlier still keeps its original content.
+- `accentAfter`: the combining mark shifted position between letters.
+- `zwjAfter`: the order within the ZWJ emoji sequence was reversed.
+- `heartAfter` and `flagAfter`: the variation selector and regional indicators were reversed in order.
+- `malformedReversed`: two lone surrogates became a valid supplementary code point.
 
-Như vậy, kiểm tra đầy đủ cần xem **code point** và đôi khi cả **UTF-16 code unit**, không chỉ so sánh ảnh hiển thị.
+Thus, thorough testing needs to inspect **code points** and sometimes **UTF-16 code units**, not just visually compare rendered output.
 
-## 9. Tự đảo theo code point có giải quyết được không?
+## 9. Does Manual Reversal by Code Point Solve It?
 
-Một giải pháp tốt hơn **đảo `char` ngây thơ** khi muốn xử lý Unicode code point là đọc `String.codePoints()` rồi `appendCodePoint()` ngược thứ tự:
+A better solution than **naive `char` reversal** when working with Unicode code points is reading `String.codePoints()` and calling `appendCodePoint()` in reverse order:
 
 ~~~java
 static String reverseCodePoints(String input) {
@@ -337,26 +337,26 @@ static String reverseCodePoints(String input) {
 }
 ~~~
 
-Đây là một **phương thức minh họa** cần đặt trong một class Java; đầu vào giả định không null.
+This is an **illustrative method** to place inside a Java class; the input is assumed non-null.
 
-Nó giữ nguyên từng supplementary code point hợp lệ, nhưng vẫn **đảo riêng** dấu kết hợp, ZWJ, variation selector và từng regional indicator. `reverseCodePoints` **không** là thuật toán đảo theo grapheme cluster.
+It preserves each valid supplementary code point, yet still **reverses** combining marks, ZWJs, variation selectors, and each regional indicator individually. `reverseCodePoints` is **not** a grapheme-cluster-preserving reversal algorithm.
 
-Với dữ liệu UTF-16 không hợp lệ, `String.codePoints()` cũng có thể trả surrogate lẻ như một giá trị `int` riêng; `appendCodePoint` không tự áp dụng chính sách loại bỏ toàn bộ surrogate lẻ. Nếu cần Unicode scalar values chuẩn, xác thực đầu vào riêng.
+For invalid UTF-16 data, `String.codePoints()` can also emit a lone surrogate as a separate `int` value; `appendCodePoint` does not automatically enforce a policy stripping all lone surrogates. If canonical Unicode scalar values are required, validate inputs separately.
 
-Với yêu cầu đơn giản không cần grapheme-aware, hãy dùng `new StringBuilder(input).reverse().toString()` thay vì tự viết logic đảo `charAt` dễ làm hỏng surrogate.
+For simple requirements that do not need grapheme awareness, use `new StringBuilder(input).reverse().toString()` instead of writing `charAt` reversal logic that easily breaks surrogates.
 
-## 10. Muốn đảo theo cụm ký tự phải làm gì?
+## 10. What Must Be Done to Reverse by Character Cluster?
 
-Nếu đặc tả yêu cầu đảo **các ký tự theo cách người đọc nhận thức**, phải **phân đoạn extended grapheme cluster trước, đảo thứ tự các cluster sau**, và **không thay thứ tự các code point bên trong cluster**.
+If a specification requires reversing **characters as perceived by readers**, you must **segment extended grapheme clusters first, reverse the order of the clusters afterward**, and **keep the order of code points inside each cluster unchanged**.
 
-Ví dụ logic:
+Logical example:
 
 ~~~text
 Input:
 [a U+0301] [b] [woman U+200D laptop]
 
 Grapheme segmentation:
-cluster 1 = a + dấu sắc
+cluster 1 = a + acute accent
 cluster 2 = b
 cluster 3 = emoji woman-ZWJ-laptop
 
@@ -364,68 +364,68 @@ Reverse cluster order:
 [woman U+200D laptop] [b] [a U+0301]
 ~~~
 
-Ở mức thiết kế, thuật toán gồm:
+At the design level, the algorithm consists of:
 
-1. Chọn một bộ phân đoạn grapheme phù hợp phiên bản Unicode và ngôn ngữ/dữ liệu thực tế.
-2. Lấy các khoảng `[start,end)` theo **chỉ số UTF-16** hoặc các chuỗi con đại diện cho từng cluster.
-3. Đảo **thứ tự các khoảng**, giữ nguyên dãy code unit trong mỗi khoảng.
-4. Ghép các khoảng bằng `StringBuilder.append` rồi trả `toString()`.
-5. Kiểm thử với chữ+dấu, emoji ZWJ, flags, variation selector và dữ liệu đa ngôn ngữ.
+1. Choosing a grapheme segmenter appropriate for the Unicode version and real-world language/data.
+2. Obtaining `[start,end)` ranges in **UTF-16 indices** or substrings representing each cluster.
+3. Reversing **the order of the ranges**, preserving the code unit sequence inside each range.
+4. Joining the ranges with `StringBuilder.append` and returning `toString()`.
+5. Testing with base+combining marks, ZWJ emojis, flags, variation selectors, and multilingual data.
 
-Trong Java, `java.text.BreakIterator.getCharacterInstance(...)` có chức năng xác định ranh giới ký tự, nhưng khả năng hỗ trợ **extended grapheme clusters phức tạp**, nhất là emoji và quy tắc Unicode mới, cần được xác minh theo **phiên bản JDK**. Với yêu cầu tuân thủ UAX #29 nghiêm ngặt, có thể cân nhắc công cụ phân đoạn Unicode chuyên dụng như ICU4J theo phiên bản phù hợp; không giả định mọi công cụ “character boundary” đều xử lý mọi emoji như nhau.
+In Java, `java.text.BreakIterator.getCharacterInstance(...)` provides character boundary detection, though its support for **complex extended grapheme clusters**, especially newer emojis and Unicode rules, must be verified against the **JDK version**. For strict UAX #29 compliance, consider a dedicated Unicode segmentation library such as ICU4J at an appropriate version; do not assume every "character boundary" tool handles all emojis identically.
 
-**Quan trọng:** đảo theo grapheme cluster cũng chưa chắc tương đương *đảo hình ảnh trên màn hình*. Văn bản có hướng RTL/LTR, thuật toán hai chiều Unicode (bidi) và contextual shaping cần sự hỗ trợ của hệ thống dàn chữ. Để hiển thị văn bản theo hướng đọc thích hợp, thường nên điều chỉnh layout/text direction, không phải `reverse()` chuỗi logic.
+**Important:** reversing by grapheme cluster is also not necessarily equivalent to *reversing visual rendering on screen*. RTL/LTR text, the Unicode bidirectional algorithm (bidi), and contextual shaping require support from the typesetting system. To display text in the right reading direction, usually adjust layout/text direction rather than calling `reverse()` on the logical string.
 
-## 11. Những lỗi thường gặp
+## 11. Common Mistakes
 
-1. **Nghĩ `char` là ký tự Unicode hoàn chỉnh.** Một supplementary code point có hai `char`.
-2. **Viết vòng lặp đảo từng `charAt` từ cuối đến đầu.** Có thể tách surrogate pair hợp lệ thành thứ tự low–high sai.
-3. **Cho rằng bảo toàn surrogate pair là giữ mọi emoji.** Nhiều emoji gồm nhiều code point.
-4. **Cho rằng `reverse()` giữ nguyên dấu kết hợp.** `a + U+0301` có thể thành dấu phía sau chữ khác.
-5. **Cho rằng `String.codePoints()` là grapheme segmentation.** Một cluster có thể gồm nhiều code point.
-6. **Cho rằng NFC khiến mọi cụm ký tự thành một code point.** Nhiều emoji ZWJ/variation selector vẫn nhiều code point.
-7. **Đoán kết quả bằng mắt trên console.** Font và rendering có thể khác nhau; nên in `U+XXXX` khi QA.
-8. **Bỏ qua surrogate lẻ.** `reverse()` có thể tạo cặp mới từ đầu vào sai cấu trúc; không bảo đảm đảo hai lần trả nguyên dãy sai ban đầu.
-9. **Cho rằng `reverse()` tạo builder mới.** Nó sửa chính builder nhận lời gọi; chụp `String` trước khi sửa nếu cần giá trị gốc.
-10. **Dùng `reverse()` để sửa hướng hiển thị RTL.** Logical order, bidi và grapheme order là các khái niệm khác nhau.
-11. **Bỏ qua việc đánh giá bộ phân đoạn theo JDK.** Tài liệu/triển khai Unicode thay đổi theo phiên bản; cần test thực tế với dữ liệu của ứng dụng.
+1. **Thinking `char` is a complete Unicode character.** A supplementary code point takes two `char`s.
+2. **Writing a loop reversing each `charAt` from end to start.** Can split a valid surrogate pair into broken low–high order.
+3. **Thinking preserving surrogate pairs keeps every emoji intact.** Many emojis consist of multiple code points.
+4. **Thinking `reverse()` preserves combining marks.** `a + U+0301` can move the accent onto a different letter.
+5. **Thinking `String.codePoints()` is grapheme segmentation.** One cluster can contain multiple code points.
+6. **Thinking NFC turns every character cluster into one code point.** Many ZWJ/variation selector emojis remain multi-code-point.
+7. **Judging output visually in the console.** Fonts and rendering vary; print `U+XXXX` during QA.
+8. **Ignoring lone surrogates.** `reverse()` can form new pairs from malformed input; double reversal is not guaranteed to restore the original malformed sequence.
+9. **Thinking `reverse()` creates a new builder.** It mutates the receiver builder itself; capture a `String` before modifying if the original value is needed.
+10. **Using `reverse()` to fix RTL display direction.** Logical order, bidi, and grapheme order are distinct concepts.
+11. **Skipping JDK-specific evaluation of the segmenter.** Unicode data/implementations change across versions; test with real application data.
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-**Câu 1.** `reverse()` có làm surrogate pair của `U+1F600` thành low–high không?
+**Question 1.** Does `reverse()` turn the surrogate pair of `U+1F600` into low–high order?
 
-**Đáp án:** không. Pair hợp lệ vẫn giữ high–low.
+**Answer:** no. Valid pairs preserve high–low order.
 
-**Câu 2.** Dãy `U+0061 U+0301 U+0062` thành gì sau `reverse()`?
+**Question 2.** What does the sequence `U+0061 U+0301 U+0062` become after `reverse()`?
 
-**Đáp án:** `U+0062 U+0301 U+0061`; dấu sắc thay đổi vị trí so với chữ `a`.
+**Answer:** `U+0062 U+0301 U+0061`; the acute accent changes position relative to `a`.
 
-**Câu 3.** `U+1F469 U+200D U+1F4BB` sau `reverse()` có được bảo đảm vẫn là cùng một emoji hợp nhất không?
+**Question 3.** Is `U+1F469 U+200D U+1F4BB` guaranteed to remain the same unified emoji after `reverse()`?
 
-**Đáp án:** không. Kết quả đảo thứ tự thành `U+1F4BB U+200D U+1F469`.
+**Answer:** no. The result reverses order to `U+1F4BB U+200D U+1F469`.
 
-**Câu 4.** Vì sao đảo ngược theo code point vẫn không đủ để đảo theo “ký tự nhìn thấy”?
+**Question 4.** Why is reversing by code point still insufficient to reverse by "visible character"?
 
-**Đáp án:** một grapheme cluster có thể chứa nhiều code point. Đảo từng code point phá cấu trúc cụm.
+**Answer:** a grapheme cluster can contain multiple code points. Reversing code point by code point breaks cluster structure.
 
-**Câu 5.** Có nên dùng `new StringBuilder(text).reverse().toString()` cho ứng dụng cần giữ nguyên dấu tiếng Việt kết hợp và emoji phức tạp?
+**Question 5.** Should you use `new StringBuilder(text).reverse().toString()` for an application that must preserve Vietnamese combining diacritics and complex emojis?
 
-**Đáp án:** không thể mặc định. Phải phân đoạn và đảo theo grapheme cluster theo yêu cầu ứng dụng.
+**Answer:** not by default. You must segment and reverse by grapheme cluster according to application requirements.
 
-**Câu 6.** Dữ liệu low surrogate rồi high surrogate có thể trở thành gì sau reverse?
+**Question 6.** What can low surrogate followed by high surrogate turn into after reverse?
 
-**Đáp án:** một pair high–low hợp lệ; do đó không được xem reverse là phép biến đổi luôn có thể đảo ngược trên dữ liệu UTF-16 sai.
+**Answer:** a valid high–low pair; therefore reverse must not be treated as an always-reversible transformation on malformed UTF-16 data.
 
-**Câu 7.** Nếu cần đổi hướng hiển thị một đoạn tiếng Ả Rập, có nên đảo nội dung `String` không?
+**Question 7.** If you need to change the display direction of an Arabic text segment, should you reverse the `String` content?
 
-**Đáp án:** thông thường không. Dùng cơ chế bố trí/Unicode bidi đúng thay vì sửa logical order bằng `reverse()`.
+**Answer:** normally no. Use proper layout / Unicode bidi mechanisms instead of mutating logical order with `reverse()`.
 
-## 13. Nguồn tham khảo chuẩn
+## 13. Official References
 
-- [Java SE 17 — StringBuilder.reverse()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html#reverse()): hợp đồng đảo, bảo toàn surrogate pair và khả năng tạo pair từ hai surrogate lẻ.
-- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): UTF-16, high/low surrogate, `toChars`, `charCount` và code point.
-- [Java SE 17 — String.codePoints()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#codePoints()): cách đọc dãy code point và các trường hợp surrogate lẻ.
-- [Unicode Standard Annex #29 — Unicode Text Segmentation](https://www.unicode.org/reports/tr29/): quy tắc phân đoạn extended grapheme cluster.
-- [Unicode Technical Standard #51 — Unicode Emoji](https://www.unicode.org/reports/tr51/): emoji ZWJ sequences, variation selector, emoji modifier và regional indicator.
+- [Java SE 17 — StringBuilder.reverse()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html#reverse()): reversal contract, surrogate pair preservation, and pair formation from lone surrogates.
+- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): UTF-16, high/low surrogates, `toChars`, `charCount`, and code points.
+- [Java SE 17 — String.codePoints()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#codePoints()): reading code point sequences and lone surrogate cases.
+- [Unicode Standard Annex #29 — Unicode Text Segmentation](https://www.unicode.org/reports/tr29/): extended grapheme cluster segmentation rules.
+- [Unicode Technical Standard #51 — Unicode Emoji](https://www.unicode.org/reports/tr51/): emoji ZWJ sequences, variation selectors, emoji modifiers, and regional indicators.
 
-**Ghi nhớ:** `StringBuilder.reverse()` giữ đúng cấu trúc **surrogate pair UTF-16 hợp lệ**, nhưng không biết ranh giới **grapheme cluster**. Muốn đảo “ký tự người dùng nhìn thấy”, hãy phân đoạn cluster theo quy tắc Unicode phù hợp rồi đảo **nguyên từng cluster**.
+**Key takeaway:** `StringBuilder.reverse()` preserves valid **UTF-16 surrogate pair** structure, yet knows nothing about **grapheme cluster** boundaries. To reverse "user-perceived characters", segment clusters using appropriate Unicode rules and reverse **each cluster as a whole**.

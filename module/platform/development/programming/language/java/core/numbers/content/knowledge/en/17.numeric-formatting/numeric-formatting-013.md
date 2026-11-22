@@ -1,6 +1,6 @@
-# Không dùng chuỗi đã định dạng cho người đọc làm dạng trao đổi dữ liệu mặc định
+# Do Not Use Human-Formatted Strings as the Default Data-Exchange Format
 
-Trong Java, một **giá trị số** và một **chuỗi trình bày giá trị số** không phải cùng một loại dữ liệu. Khi hiển thị, ứng dụng có thể dùng dấu phân nhóm hàng nghìn, dấu thập phân theo ngôn ngữ, ký hiệu tiền tệ, số chữ số làm tròn hay đơn vị đo để con người dễ đọc. Nhưng nếu mặc định dùng chính chuỗi **đã định dạng cho người đọc** để lưu file, truyền API hoặc tích hợp với hệ thống khác, dữ liệu có thể **bị đọc sai, không parse được hoặc mất độ chính xác**.
+In Java, a **numeric value** and a **string presenting a numeric value** are not the same kind of data. For display, an application may use thousands grouping separators, language-specific decimal marks, currency symbols, rounded digit counts, or measurement units to make numbers easy for humans to read. However, if you use those **human-formatted strings** by default to write files, send API payloads, or integrate with other systems, the data can **be misread, fail to parse, or lose precision**.
 
 ```java
 double amount = 1_234_567.89;
@@ -17,52 +17,52 @@ System.out.println(Double.toString(amount));
 // 1234567.89
 ```
 
-Ba chuỗi biểu diễn cùng một `double` đầu vào, nhưng hai chuỗi đầu phục vụ **con người ở các locale khác nhau**. Chuỗi thứ ba là cách biểu diễn số `double` ổn định theo quy tắc Java, không phụ thuộc locale, tiện hơn cho một số hợp đồng trao đổi văn bản đã được **quy định rõ**.
+All three strings represent the same input `double`, yet the first two serve **humans in different locales**. The third is Java's stable, locale-independent `double` representation, better suited for certain **explicitly specified** text exchange contracts.
 
-**Quy tắc chính:** dữ liệu trao đổi giữa chương trình phải có **schema và định dạng máy** được định nghĩa tường minh. Định dạng trình bày giao diện (human display format) không nên trở thành wire format mặc định chỉ vì người dùng nhìn thấy nó.
+**Primary rule:** data exchanged between programs must have an explicitly defined **schema and machine format**. UI presentation formats (human display formats) should not become the default wire format simply because users see them.
 
-## 1. Phân biệt value, presentation và wire representation
+## 1. Distinguishing value, presentation, and wire representation
 
-Ba tầng thường gặp:
+Three common layers:
 
-| Tầng | Câu hỏi cần trả lời | Ví dụ |
+| Layer | Question to answer | Example |
 | --- | --- | --- |
-| **Giá trị nội bộ** | Hệ thống đang tính trên kiểu và giá trị nào? | `long 1234567L`, `double 1234.5`, `BigDecimal("1234.50")` |
-| **Trình bày cho người đọc** | Người dùng ở locale nào, muốn bao nhiêu chữ số, đơn vị gì? | `"1.234,50"`, `"1,234.50"`, `"1 234,50 €"` |
-| **Dữ liệu trao đổi** | Bên nhận sẽ đọc chính xác theo schema nào? | JSON number `1234.5`, JSON string `"1234.50"` với quy tắc decimal, hoặc binary int64 |
+| **Internal value** | What type and value is the system computing on? | `long 1234567L`, `double 1234.5`, `BigDecimal("1234.50")` |
+| **Human presentation** | Which locale is the user in, how many digits, which unit? | `"1.234,50"`, `"1,234.50"`, `"1 234,50 €"` |
+| **Exchange data** | Under what exact schema will the receiver read it? | JSON number `1234.5`, JSON string `"1234.50"` with decimal rules, or binary int64 |
 
-**Định dạng cho người đọc** là một phép biến đổi từ giá trị thành chuỗi để hiển thị. Nó có thể làm tròn, thêm dấu phân nhóm, thay ký hiệu decimal hoặc đưa thêm chữ. Một khi đã làm tròn cho UI, việc parse ngược chưa chắc phục hồi giá trị trước khi làm tròn.
+**Human formatting** is a transformation from a value into a string for display. It may round, insert grouping separators, swap decimal symbols, or add text. Once rounded for UI display, parsing back may not recover the pre-rounding value.
 
-**Định dạng trao đổi** cần xác định rõ tập ký tự, kiểu dữ liệu, signedness, đơn vị, cách biểu diễn phần lẻ, phiên bản schema, cách biểu diễn giá trị đặc biệt và quy tắc validation. Đây là hợp đồng giữa bên phát và bên nhận, **không phải** hiệu ứng phụ của cài đặt locale trên máy.
+**Exchange format** must explicitly specify character set, data type, signedness, unit, fractional representation, schema version, special-value representation, and validation rules. This is a contract between sender and receiver, **not** a side effect of a machine's locale settings.
 
-### Ví dụ điển hình
+### Typical example
 
-Ứng dụng có giá trị `1234.5`:
+An application has the value `1234.5`:
 
 ```text
 Internal double:             1234.5
-Hiển thị English (US):       1,234.50
-Hiển thị German (Germany):   1.234,50
-Wire decimal text (ví dụ):   1234.5
+English (US) display:        1,234.50
+German (Germany) display:    1.234,50
+Wire decimal text (example): 1234.5
 ```
 
-Nếu một API nhận chuỗi `"1.234,50"` nhưng giả định đó là số decimal dùng dấu chấm, nó có thể từ chối, cắt một phần chuỗi hoặc diễn giải sai. Nếu format cho UI vô tình trở thành dữ liệu lưu trữ, chỉ cần đổi locale của server hoặc người dùng đã đủ tạo lỗi tương thích.
+If an API receives `"1.234,50"` while assuming dot-based decimals, it may reject it, parse only part of the string, or misinterpret it. If UI formatting accidentally becomes stored data, merely changing the server's or user's locale is enough to cause compatibility failures.
 
-## 2. Dấu phân nhóm và dấu thập phân không có nghĩa toàn cầu
+## 2. Grouping and decimal separators have no universal meaning
 
-Các ký tự dấu phẩy và dấu chấm có vai trò khác nhau tùy locale.
+Commas and dots play different roles depending on locale.
 
-| Giá trị | Ví dụ US | Ví dụ Germany |
+| Value | US Example | Germany Example |
 | ---: | --- | --- |
-| 1234.5 với 2 chữ số lẻ | `1,234.50` | `1.234,50` |
-| 1234567.89 với 2 chữ số lẻ | `1,234,567.89` | `1.234.567,89` |
-| 1000 nếu phân nhóm | `1,000` | `1.000` |
+| 1234.5 with 2 fractional digits | `1,234.50` | `1.234,50` |
+| 1234567.89 with 2 fractional digits | `1,234,567.89` | `1.234.567,89` |
+| 1000 with grouping | `1,000` | `1.000` |
 
-Chuỗi `"1,234"` **mơ hồ** nếu không có locale: có thể được hiểu là một nghìn hai trăm ba mươi tư trong hệ US, hoặc một phẩy hai ba bốn trong hệ dùng dấu phẩy thập phân. Chuỗi `"1.234"` cũng có tình huống ngược lại.
+The string `"1,234"` is **ambiguous** without a locale: it can be read as one thousand two hundred thirty-four in the US system, or one point two three four in a decimal-comma system. The string `"1.234"` has the opposite ambiguity.
 
-Không chỉ có dấu chấm/phẩy: một số locale dùng khoảng trắng, khoảng trắng không ngắt dòng hoặc ký tự Unicode riêng làm dấu phân nhóm. Tiền tệ còn có ký hiệu và quy tắc vị trí ký hiệu khác nhau. Vì vậy, regex đơn giản để bỏ dấu phẩy hoặc dấu chấm **không phải một parser quốc tế an toàn**.
+It is not just dots and commas: some locales use spaces, non-breaking spaces, or specialized Unicode characters as grouping separators. Currencies also have differing symbols and symbol-placement rules. Therefore, a simple regex stripping commas or dots is **not a safe international parser**.
 
-### Định dạng bằng `String.format`
+### Formatting with `String.format`
 
 ```java
 double value = 1_234_567.89;
@@ -73,19 +73,19 @@ String de = String.format(
         java.util.Locale.GERMANY, "%,.2f", value);
 ```
 
-Trong định dạng kiểu `%,.2f`:
-- `,` là **cờ grouping** của `Formatter`; ký tự phân nhóm thực tế phụ thuộc locale.
-- `.2` yêu cầu hai chữ số sau dấu thập phân trong chuỗi hiển thị.
-- `f` yêu cầu định dạng số thực dạng fixed-point.
-- `Locale.US` hoặc `Locale.GERMANY` quyết định ký tự hiển thị.
+In `%,.2f`-style formatting:
+- `,` is `Formatter`'s **grouping flag**; the actual grouping character depends on locale.
+- `.2` requests two digits after the decimal point in the display string.
+- `f` requests fixed-point floating-point formatting.
+- `Locale.US` or `Locale.GERMANY` determines the displayed characters.
 
-Mẫu `%,.2f` **không có nghĩa đầu ra luôn dùng dấu phẩy phân nhóm và dấu chấm thập phân**. Nó diễn đạt chính sách trình bày thông qua locale.
+The pattern `%,.2f` **does not mean output always uses commas for grouping and a dot for the decimal point**. It expresses presentation policy through the locale.
 
-Đối với giao thức, chỉ dùng `String.format` nếu giao thức **quy định đúng** locale, số chữ số, quy tắc làm tròn, grouping và cách parse. Không tự dùng output của formatter UI làm nội dung mặc định cho JSON, CSV hay cơ sở dữ liệu.
+For protocols, only use `String.format` if the protocol **explicitly specifies** the locale, digit count, rounding rule, grouping, and parsing behavior. Do not use UI formatter output as the default content for JSON, CSV, or databases.
 
-## 3. Tác hại của việc parse chuỗi trình bày bằng parser máy
+## 3. Damage from parsing presentation strings with machine parsers
 
-`Double.parseDouble` hiểu cú pháp số thực của Java theo hợp đồng riêng, **không** nhận định dạng phân nhóm số theo locale:
+`Double.parseDouble` understands Java floating-point syntax per its own contract, and **does not** accept locale-grouped numbers:
 
 ```java
 double original = 1_234_567.89;
@@ -93,21 +93,21 @@ String shown = "1.234.567,89";
 
 // Double.parseDouble(shown); // NumberFormatException.
 double recovered = Double.parseDouble(
-        Double.toString(original)); // Hoạt động.
+        Double.toString(original)); // Works.
 ```
 
-`Double.parseDouble` không phải bộ parser tất cả các kiểu hiển thị địa phương. `Integer.parseInt("1,000")` cũng không hoạt động dù `"1,000"` trông rất bình thường với người dùng US.
+`Double.parseDouble` is not a parser for all local display formats. `Integer.parseInt("1,000")` also fails even though `"1,000"` looks completely ordinary to a US user.
 
-Cần phân biệt:
-- **`Double.parseDouble`/`Integer.parseInt`**: parser giá trị số theo các cú pháp riêng của Java, không tự nhận grouping locale.
-- **`NumberFormat.parse`/`DecimalFormat.parse`**: parser theo quy tắc trình bày và locale; phù hợp khi nhận **input dành cho con người** với quy tắc cụ thể.
-- **Parser của chuẩn dữ liệu**: ví dụ JSON parser, CSV reader + codec field, binary decoder; phải tuân theo **schema dữ liệu trao đổi**.
+Distinguish:
+- **`Double.parseDouble`/`Integer.parseInt`**: numeric parsers using Java's own syntax, unaware of locale grouping.
+- **`NumberFormat.parse`/`DecimalFormat.parse`**: parsers following presentation and locale rules; suitable when receiving **human-entered input** under explicit rules.
+- **Data-format parsers**: e.g., JSON parsers, CSV readers + field codecs, binary decoders; must follow the **data-exchange schema**.
 
-Nếu dữ liệu thực sự do người dùng gõ theo locale, việc dùng `NumberFormat` có thể hợp lý. Nhưng kết quả parse nên được **chuẩn hóa thành kiểu số** trước khi đi tiếp tới lớp xử lý và lưu trữ.
+If data is genuinely typed by a user in a locale, using `NumberFormat` can make sense. However, the parsed result should be **normalized into a numeric type** before moving on to processing and storage layers.
 
-## 4. `NumberFormat.parse` có thể đọc được tiền tố hợp lệ rồi dừng
+## 4. `NumberFormat.parse` can read a valid prefix and stop
 
-Một bẫy ít được để ý: parser định dạng cho người đọc có thể **chấp nhận một phần đầu chuỗi** mà không tiêu thụ hết dữ liệu. Chẳng hạn:
+A subtle trap: human-format parsers can **accept a leading portion of the string** without consuming all data. For example:
 
 ```java
 java.text.NumberFormat german =
@@ -123,32 +123,32 @@ System.out.println(position.getIndex()); // 8
 System.out.println(input.length());      // 12
 ```
 
-Ở đây chuỗi có phần cuối `"junk"`. Một kết quả `Number` khác null **không đồng nghĩa toàn bộ input đã hợp lệ**. Muốn validator chặt chẽ khi nhận dữ liệu do người dùng nhập, cần kiểm tra:
+Here the string ends with `"junk"`. A non-null `Number` result **does not mean the entire input was valid**. To build a strict validator for user-entered data, check:
 
 ```java
 boolean allConsumed = number != null
         && position.getIndex() == input.length();
 ```
 
-Dù tiêu thụ hết chuỗi, còn phải kiểm tra miền giá trị, kiểu số trả về, ký tự cho phép, giới hạn độ dài và điều kiện nghiệp vụ. `NumberFormat` có thể dùng các chế độ parse khác nhau như `setParseIntegerOnly` hoặc `DecimalFormat.setParseBigDecimal`; kiểu `Number` trả về không nhất thiết là `BigDecimal` hay `Double` duy nhất.
+Even after consuming the whole string, you must still check value range, returned numeric type, allowed characters, length limits, and business conditions. `NumberFormat` can use different parse modes such as `setParseIntegerOnly` or `DecimalFormat.setParseBigDecimal`; the returned `Number` is not guaranteed to be solely `BigDecimal` or `Double`.
 
-**Không sử dụng parser trình bày địa phương làm bộ kiểm tra wire format không khai báo locale.** Khi parsing phụ thuộc cấu hình, hai máy/phiên bản hoặc hai người dùng có thể hiểu cùng chuỗi theo cách khác nhau.
+**Do not use a regional presentation parser as a locale-unspecified wire-format validator.** When parsing depends on configuration, two machines/versions or two users can interpret the same string differently.
 
-## 5. Xác định wire format bằng schema rõ ràng
+## 5. Defining wire formats with an explicit schema
 
-Một schema trao đổi số nguyên/số thực thường cần quy định:
+An integer/floating-point exchange schema typically needs to specify:
 
-1. **Loại giá trị:** signed 32-bit, signed 64-bit, unsigned, decimal cố định, binary float, phần trăm, hay định danh?
-2. **Kiểu của trường:** JSON number, JSON string, CSV text field, binary integer/float, database numeric column?
-3. **Cú pháp:** dấu thập phân `.` hay `,`, exponent có được phép không, có grouping không, có dấu `+` không?
-4. **Độ chính xác và miền:** giá trị tối thiểu/tối đa, có cho số thập phân vô hạn hay độ phân giải cố định không?
-5. **Làm tròn:** cho phép làm tròn ở lớp nào, theo `RoundingMode` nào nếu dùng decimal?
-6. **Giá trị đặc biệt:** null, thiếu field, NaN, ±Infinity, ±0 được biểu diễn thế nào?
-7. **Đơn vị:** giá trị là đồng, xu, giây, mili giây, mét, độ hay một đại lượng không đơn vị?
-8. **Tương thích phiên bản:** khi schema đổi đơn vị, cách parse, kiểu hoặc ký hiệu, làm sao client cũ nhận ra?
-9. **Giới hạn bảo mật:** độ dài đầu vào, độ lớn số mũ, ký tự Unicode, validation và thông báo lỗi.
+1. **Value kind:** signed 32-bit, signed 64-bit, unsigned, fixed decimal, binary float, percentage, or identifier?
+2. **Field type:** JSON number, JSON string, CSV text field, binary integer/float, database numeric column?
+3. **Syntax:** `.` or `,` decimal mark, are exponents allowed, grouping allowed, leading `+` allowed?
+4. **Precision and range:** minimum/maximum values, are infinite decimals allowed or fixed resolution?
+5. **Rounding:** at which layer is rounding allowed, and under which `RoundingMode` if using decimals?
+6. **Special values:** how are null, missing field, NaN, ±Infinity, ±0 represented?
+7. **Unit:** is the value dollars, cents, seconds, milliseconds, meters, degrees, or dimensionless?
+8. **Version compatibility:** when the schema changes units, parsing, types, or symbols, how do older clients detect it?
+9. **Security limits:** input length, exponent magnitude, Unicode characters, validation, and error messages.
 
-Ví dụ một hợp đồng text decimal đơn giản có thể viết:
+Example of a simple decimal text contract:
 
 ```text
 Field: amount_decimal
@@ -161,13 +161,13 @@ Example: "1234.50"
 Java receiver: new BigDecimal(value) after validation
 ```
 
-Đây là **định dạng do hệ thống tự quy định**, không phải chuẩn chung bắt buộc của mọi API. Điều quan trọng là cả hai phía hiểu cùng hợp đồng.
+This is a **system-defined format**, not a mandatory universal standard for every API. What matters is that both sides agree on the same contract.
 
-Một định dạng khác có thể dùng JSON number `1234.5` trực tiếp. Nó phù hợp nếu tất cả bên nhận có thể bảo toàn miền và độ chính xác cần thiết. Không có một cách biểu diễn tối ưu cho mọi nhu cầu.
+Another format might use a JSON number `1234.5` directly. That works if all receivers can preserve the required range and precision. There is no single optimal representation for every need.
 
-## 6. `toString` và `parseXxx`: lựa chọn tốt hơn formatter UI khi hợp đồng phù hợp
+## 6. `toString` and `parseXxx`: better choices than UI formatters when the contract matches
 
-Đối với số nguyên có dấu:
+For signed integers:
 
 ```java
 int i = -42;
@@ -180,26 +180,26 @@ int decodedInt = Integer.parseInt(encodedInt);
 long decodedLong = Long.parseLong(encodedLong);
 ```
 
-Các API này không tự thêm grouping, ký hiệu tiền tệ hay thay dấu thập phân theo default locale. Chúng có thể dùng trong **schema decimal ASCII có dấu** cho `int`/`long` nếu bên nhận đồng ý về cú pháp và miền.
+These APIs do not add grouping, currency symbols, or switch decimal marks based on the default locale. They can be used in a **signed ASCII decimal schema** for `int`/`long` if the receiver agrees on syntax and range.
 
-Với cơ số khác 10:
+For bases other than 10:
 
 ```java
 String hex = Integer.toString(255, 16);  // "ff"
 int recovered = Integer.parseInt(hex, 16); // 255
 ```
 
-`radix` cũng phải là một phần hợp đồng. `Integer.toString(value,16)` không tự tạo `0x`; parser `parseInt(text,16)` không tự bỏ `0x`. Không đưa chuỗi với tiền tố UI vào parser không hỗ trợ tiền tố ấy.
+`radix` must also be part of the contract. `Integer.toString(value,16)` does not add `0x`; `parseInt(text,16)` does not strip `0x`. Do not feed UI-prefixed strings into parsers that do not support that prefix.
 
-### Signed và unsigned là hai quy ước riêng
+### Signed and unsigned are two separate conventions
 
-`Integer.toUnsignedString(-1)` trả `"4294967295"`, còn `Integer.toString(-1)` trả `"-1"`. Chuỗi khác dù mẫu bit `int` giống nhau. Nếu wire schema là unsigned 32 bit, bên nhận cần phân tích với `Integer.parseUnsignedInt` (hoặc mô hình số rộng hơn) và biết đây là giá trị unsigned.
+`Integer.toUnsignedString(-1)` returns `"4294967295"`, whereas `Integer.toString(-1)` returns `"-1"`. The strings differ even though the `int` bit pattern is identical. If the wire schema is unsigned 32-bit, the receiver must parse with `Integer.parseUnsignedInt` (or a wider numeric model) and know the value is unsigned.
 
-Với `long`, `Long.toUnsignedString` và `Long.parseUnsignedLong` diễn đạt bit 64 theo nghĩa không dấu. Đừng mô tả số âm dạng hex “ffffffff” rồi gọi parser signed mặc định, vì có thể vượt miền và thất bại.
+For `long`, `Long.toUnsignedString` and `Long.parseUnsignedLong` express 64 bits in an unsigned sense. Do not emit a negative number in hex `"ffffffff"` and call a default signed parser, because it can exceed range and fail.
 
-### `Double.toString` là formatter cho giá trị binary64, không phải tiền tệ
+### `Double.toString` is a formatter for binary64 values, not currency
 
-`Double.toString(double)` trả một biểu diễn số thực decimal **không phụ thuộc locale** cho giá trị binary64. Với số hữu hạn, chuỗi được thiết kế để parse bằng `Double.parseDouble` và nhận lại cùng giá trị `double`.
+`Double.toString(double)` returns a **locale-independent** decimal floating-point representation for a binary64 value. For finite numbers, the string is designed to parse with `Double.parseDouble` back to the exact same `double` value.
 
 ```java
 double sample = 0.1 + 0.2;
@@ -209,13 +209,13 @@ System.out.println(text); // 0.30000000000000004
 System.out.println(Double.parseDouble(text) == sample); // true
 ```
 
-Điều đó bảo toàn **giá trị nhị phân hiện có**, không chứng minh `0.1 + 0.2` là phép tính thập phân chính xác. `Double.toString` còn có dạng chuỗi `"NaN"`, `"Infinity"`, `"-Infinity"` cho giá trị đặc biệt, **không hợp lệ làm JSON number theo chuẩn JSON**.
+That preserves the **existing binary value**, not proving `0.1 + 0.2` is an exact decimal calculation. `Double.toString` also produces `"NaN"`, `"Infinity"`, and `"-Infinity"` for special values, which are **invalid as JSON numbers under the JSON standard**.
 
-Vì vậy, trong ứng dụng trao đổi JSON, dùng một **JSON serializer** đúng chuẩn, với chính sách xử lý số không hữu hạn; không nối chuỗi tùy tiện từ `Double.toString` để dựng JSON.
+Therefore, in applications exchanging JSON, use a compliant **JSON serializer** with a policy for non-finite numbers; do not arbitrarily concatenate `Double.toString` to assemble JSON.
 
-## 7. `BigDecimal`: giữ decimal có ý nghĩa nghiệp vụ
+## 7. `BigDecimal`: preserving business-meaningful decimals
 
-Khi dữ liệu mang nghĩa số thập phân chính xác (ví dụ lượng tiền, thuế suất, số lượng tính theo đơn vị nhỏ nhất), `BigDecimal` là một lựa chọn phổ biến. Nó khác `double` ở chỗ có thể biểu diễn chính xác số decimal như `0.1` khi được tạo từ **chuỗi decimal**.
+When data represents exact decimal numbers (such as monetary amounts, tax rates, or quantities in smallest units), `BigDecimal` is a common choice. It differs from `double` in that it can accurately represent decimals like `0.1` when constructed from a **decimal string**.
 
 ```java
 java.math.BigDecimal a = new java.math.BigDecimal("0.1");
@@ -224,7 +224,7 @@ java.math.BigDecimal b = new java.math.BigDecimal("0.2");
 System.out.println(a.add(b).toPlainString()); // 0.3
 ```
 
-Không xây `BigDecimal` từ chuỗi đã thêm grouping/đổi dấu thập phân:
+Do not construct `BigDecimal` from strings with grouping separators or altered decimal marks:
 
 ```java
 // new BigDecimal("1.234,50"); // NumberFormatException.
@@ -236,7 +236,7 @@ System.out.println(amount.toPlainString()); // 1234.50
 System.out.println(amount.scale());         // 2
 ```
 
-`BigDecimal.toPlainString()` không dùng notation số mũ; `BigDecimal.toString()` có thể chọn cách biểu diễn exponent khi phù hợp:
+`BigDecimal.toPlainString()` does not use exponent notation; `BigDecimal.toString()` may choose exponent notation when appropriate:
 
 ```java
 java.math.BigDecimal x = new java.math.BigDecimal("1E+7");
@@ -244,23 +244,23 @@ System.out.println(x.toString());      // 1E+7
 System.out.println(x.toPlainString()); // 10000000
 ```
 
-### Chọn `toString` hay `toPlainString`?
+### Choosing `toString` or `toPlainString`?
 
-- `toString()` là biểu diễn chuẩn của `BigDecimal` có thể dùng exponent, được thiết kế cho các nhu cầu biểu diễn/parse và giữ thông tin scale theo định nghĩa API.
-- `toPlainString()` phù hợp với schema chỉ nhận decimal digits và dấu chấm, **không cho exponent**; nhưng dạng plain có thể dài đáng kể khi số có exponent rất lớn.
-- `stripTrailingZeros()`, `setScale(...)` và các phép làm tròn có thể thay đổi scale hoặc giá trị, nên chỉ áp dụng khi **schema quy định**. Không tùy ý strip `"1234.50"` thành `"1234.5"` nếu số chữ số lẻ/scale mang ý nghĩa.
+- `toString()` is `BigDecimal`'s canonical representation that may use exponents, designed for representation/parsing and preserving scale information per the API definition.
+- `toPlainString()` suits schemas that accept only decimal digits and a dot, **disallowing exponents**; however, plain form can grow very long when a number has a huge exponent.
+- `stripTrailingZeros()`, `setScale(...)`, and rounding operations can alter scale or value, so apply them only when **the schema specifies**. Do not arbitrarily strip `"1234.50"` to `"1234.5"` if fractional digit count/scale carries meaning.
 
-Nếu yêu cầu giữ **scale** qua round trip, chú ý `toPlainString()` với các `BigDecimal` có scale âm có thể dựng lại cùng giá trị số nhưng scale khác khi parse. Cần dùng `BigDecimal.toString` hoặc lưu cả scale/representation khi đây là thành phần của hợp đồng. Đừng dùng `toPlainString` như cách “giữ mọi metadata số” phổ quát.
+If preserving **scale** across a round trip is required, note that `toPlainString()` on `BigDecimal` values with negative scale may reconstruct the same numeric value with a different scale when parsed. Use `BigDecimal.toString` or store scale/representation explicitly when it is part of the contract. Do not treat `toPlainString` as a universal way to "keep all numeric metadata".
 
-### `new BigDecimal(double)` khác `new BigDecimal(String)`
+### `new BigDecimal(double)` differs from `new BigDecimal(String)`
 
-`new BigDecimal(0.1)` diễn đạt chính xác giá trị **xấp xỉ nhị phân** của `double 0.1`, vì thế chuỗi decimal của nó có thể rất dài. Nếu đầu vào thực sự là số thập phân do user gõ, ưu tiên **giữ text gốc hợp lệ** và tạo bằng `new BigDecimal("0.1")` thay vì cho nó đi qua `double` trước.
+`new BigDecimal(0.1)` expresses the exact **binary approximation** of `double 0.1`, so its decimal string can be very long. If the input is truly a decimal number typed by a user, prefer **retaining the valid original text** and creating `new BigDecimal("0.1")` instead of passing it through `double` first.
 
-`BigDecimal.valueOf(0.1)` dùng biểu diễn chuỗi chuẩn của `double` nên thường nhận `BigDecimal("0.1")`, nhưng nó **không thể phục hồi số chữ số hoặc sai số bị mất trước đó** ở dữ liệu gốc. Cần xem hợp đồng nguồn và xử lý rounding rõ ràng.
+`BigDecimal.valueOf(0.1)` uses the canonical string representation of `double`, so it typically yields `BigDecimal("0.1")`, yet it **cannot recover digits or precision previously lost** in the source data. Review the source contract and handle rounding explicitly.
 
-## 8. JSON: numeric token không giống chuỗi hiển thị
+## 8. JSON: numeric tokens are not the same as display strings
 
-JSON phân biệt **number** và **string**:
+JSON distinguishes **number** and **string**:
 
 ```json
 {
@@ -271,28 +271,28 @@ JSON phân biệt **number** và **string**:
 }
 ```
 
-Đây là ví dụ một **schema có chủ đích**:
-- `quantity` là numeric integer.
-- `ratio` là JSON number có cú pháp thập phân của JSON, không có grouping locale.
-- `amountDecimal` là JSON **string** chứa decimal text chính xác theo hợp đồng.
-- `accountCode` là string vì các số 0 đầu là một phần định danh.
+This is an example of an **intentional schema**:
+- `quantity` is a numeric integer.
+- `ratio` is a JSON number using JSON's decimal syntax, with no locale grouping.
+- `amountDecimal` is a JSON **string** containing exact decimal text per contract.
+- `accountCode` is a string because leading zeros are part of the identifier.
 
-Với JSON, numeric token dùng dấu chấm `.` cho phần fraction theo grammar chuẩn. Chuỗi `"1.234,50"` có thể xuất hiện như một **string** nhưng **không trở thành JSON number chỉ vì đặt trong JSON**.
+In JSON, numeric tokens use `.` for the fractional part per the standard grammar. The string `"1.234,50"` can appear as a **string** but **does not become a JSON number just by sitting inside JSON**.
 
-### NaN và Infinity
+### `NaN` and `Infinity`
 
-JSON không có numeric token chuẩn cho `NaN`, `Infinity` hoặc `-Infinity`. Bởi vậy:
+JSON has no standard numeric tokens for `NaN`, `Infinity`, or `-Infinity`. Therefore:
 
 ```java
 double value = Double.NaN;
 System.out.println(Double.toString(value)); // NaN
 ```
 
-Chuỗi `NaN` đó **không phải** JSON number hợp lệ. Khi serialize giá trị chấm động, phải quy định xử lý: từ chối, dùng null với hợp đồng riêng, hoặc dùng một enum/string trạng thái được schema mô tả. Đừng ghi `{"value": NaN}` rồi nghĩ mọi JSON parser đều đọc được.
+That `NaN` string is **not** a valid JSON number. When serializing floating-point values, define handling explicitly: reject them, use `null` under a clear contract, or use a schema-described status enum/string. Do not write `{"value": NaN}` expecting every JSON parser to read it.
 
-### Giới hạn của phía nhận
+### Receiver limitations
 
-Một giá trị `long` hợp lệ có thể vượt miền **số nguyên liên tiếp chính xác** của JavaScript `Number`, tức lớn hơn `2^53` về độ lớn. Ví dụ:
+A valid `long` value can exceed the **contiguous exact integer** range of JavaScript `Number`, i.e., larger than `2^53` in magnitude. For example:
 
 ```java
 long id = 9_007_199_254_740_993L;
@@ -300,83 +300,83 @@ System.out.println(Long.toString(id)); // 9007199254740993
 System.out.println((double) id);       // 9.007199254740992E15
 ```
 
-`double` không biểu diễn chính xác số nguyên này; nhiều client xử lý JSON number bằng binary64 có cùng rủi ro. Với **ID hoặc số nguyên lớn cần chính xác tuyệt đối**, có thể quy định truyền **decimal string** và parse vào `long`/`BigInteger` phù hợp ở phía nhận, thay vì JSON number tùy tiện.
+`double` cannot represent this integer accurately; many clients handling JSON numbers as binary64 share the same risk. For **IDs or large integers requiring absolute precision**, you can specify transmitting a **decimal string** and parsing into `long`/`BigInteger` on the receiving side, rather than an arbitrary JSON number.
 
-Tuy nhiên, **không phải mọi số JSON phải chuyển sang string**. Numeric token vẫn là lựa chọn tự nhiên cho các số trong miền/độ chính xác đã kiểm soát, miễn hai phía dùng model tương thích.
+However, **not every JSON number must be converted to a string**. Numeric tokens remain the natural choice for numbers within controlled range/precision, provided both sides use compatible models.
 
-### Tránh tự nối chuỗi JSON
+### Avoid hand-concatenating JSON strings
 
-Không ghép:
+Do not concatenate:
 
 ```java
-// KHÔNG nên làm một JSON serializer tổng quát như vậy:
+// Do NOT build a general JSON serializer like this:
 String json = "{\\"value\\":" + Double.toString(value) + "}";
 ```
 
-Đoạn trên không kiểm tra NaN/Infinity, không xử lý object string escaping, field optional, schema hay các quy tắc serialization khác. Hãy dùng thư viện JSON phù hợp của dự án để serialize **giá trị có kiểu**, sau khi chính sách precision/finite/null đã được xác định.
+This snippet does not check NaN/Infinity, does not handle object string escaping, optional fields, schemas, or other serialization rules. Use your project's JSON library to serialize **typed values**, after policies for precision/finiteness/nulls are decided.
 
-## 9. CSV và các file văn bản: cần schema cho từng cột
+## 9. CSV and text files: each column needs a schema
 
-CSV là ví dụ rõ về nguy cơ nhầm display với data. Giả sử dấu phân tách cột là dấu phẩy:
+CSV clearly illustrates the danger of mixing display with data. Suppose the column delimiter is a comma:
 
 ```text
 id,quantity,price
 42,3,1234.50
 ```
 
-Một chuỗi tiền tệ hiển thị kiểu US `"1,234.50"` nếu viết thẳng vào cột price sẽ chứa **dấu phẩy có vai trò phân tách cột**. Nếu thực sự muốn lưu text có dấu phẩy, cần **CSV escaping/quoting** theo quy tắc CSV được chọn:
+A US-formatted currency string `"1,234.50"` written directly into the `price` column contains **a comma that also serves as the column delimiter**. If you genuinely intend to store text containing commas, **CSV escaping/quoting** per the chosen CSV rules is required:
 
 ```text
 id,quantity,price_display
 42,3,"1,234.50"
 ```
 
-Nhưng CSV quoting chỉ bảo vệ **cấu trúc hàng/cột**, nó **không bảo đảm** bên nhận sẽ hiểu decimal format US. Một schema ổn định thường quy định riêng rằng cột `price` có định dạng decimal với dấu chấm, không grouping và đơn vị rõ.
+Yet CSV quoting only protects **row/column structure**; it **does not guarantee** the receiver will understand the US decimal format. A stable schema usually specifies that the `price` column uses dot-decimal format, no grouping, and an explicit unit.
 
-Nếu ứng dụng cần export CSV cho **người dùng mở trong spreadsheet**, có thể cần format theo locale và công cụ nhận. Đó là **xuất báo cáo phục vụ con người**, khác **CSV integration feed** giữa các dịch vụ. Không nên dùng cùng một export mode cho cả hai nếu hợp đồng không tương thích.
+If an application needs to export CSV for **humans to open in a spreadsheet**, it may need formatting matching the user's locale and target tool. That is **human report export**, distinct from a **CSV integration feed** between services. Do not use the same export mode for both if their contracts conflict.
 
-### Ký tự phân tách và ký tự số có thể xung đột
+### Delimiters and numeric characters can conflict
 
-Ở locale dùng dấu phẩy thập phân, CSV dùng dấu phẩy làm delimiter càng dễ bị mơ hồ. Có nơi dùng dấu chấm phẩy làm delimiter trong file văn bản cho spreadsheet. Không tự suy rằng mọi tệp `.csv` đều có quy ước giống nhau; cần biết schema, delimiter, encoding, quoting và cách parse decimal.
+In locales using a decimal comma, CSVs using a comma delimiter are even more prone to ambiguity. Some regions use semicolons as delimiters in spreadsheet text files. Do not assume every `.csv` file follows the same convention; know the schema, delimiter, encoding, quoting, and decimal parsing rules.
 
-### Những dữ liệu trông như số nhưng không nên chuyển sang numeric
+### Data that looks numeric but should not be converted to numeric types
 
-Mã bưu chính, số chứng từ, số điện thoại, số tài khoản và ID có số 0 đầu là **chuỗi định danh**, không phải đối tượng để cộng trừ. Nếu đưa `"00042"` qua `Integer.parseInt` rồi `Integer.toString` sẽ chỉ còn `"42"`. Đừng mất thông tin vì cho rằng “ký tự toàn số thì phải lưu số”.
+Postal codes, document numbers, phone numbers, account numbers, and IDs with leading zeros are **identifier strings**, not operands for addition and subtraction. Passing `"00042"` through `Integer.parseInt` and `Integer.toString` leaves only `"42"`. Do not lose information by assuming "all-digit text must be stored as a number".
 
-## 10. Lưu trữ database và thông điệp giữa dịch vụ
+## 10. Database storage and inter-service messages
 
-Cùng một nguyên tắc áp dụng cho database:
+The same principle applies to databases:
 
-- Nếu column có ý nghĩa **số nguyên**, dùng kiểu nguyên phù hợp với miền.
-- Nếu column là số decimal cần chính xác, dùng `DECIMAL`/`NUMERIC` với precision/scale rõ, và Java `BigDecimal` nếu driver/API thích hợp.
-- Nếu column là mã định danh, dùng text hoặc kiểu chuyên biệt đúng ngữ nghĩa.
-- Nếu giao diện muốn hiển thị tiền tệ, chỉ **format tại lớp trình bày** khi biết locale/ngôn ngữ/quy tắc.
+- If a column represents an **integer**, use an integer type matching the range.
+- If a column is a decimal needing exactness, use `DECIMAL`/`NUMERIC` with explicit precision/scale, and Java `BigDecimal` when appropriate for the driver/API.
+- If a column is an identifier, use text or a semantically appropriate specialized type.
+- If a UI wants to display currency, **format only at the presentation layer** once locale/language/rules are known.
 
-Không nên lưu chuỗi `"1.234,50 €"` làm giá trị duy nhất của cột tiền chỉ vì UI hiển thị như vậy: truy vấn sắp xếp, lọc, tính tổng, đổi đơn vị và đổi locale sau này sẽ khó khăn hơn. Dữ liệu chuẩn hóa nên tách **giá trị, currency code, đơn vị và metadata** theo schema.
+Do not store `"1.234,50 €"` as the sole value of a money column just because the UI renders it that way: sorting, filtering, summing, converting units, and switching locales later will be far harder. Normalized data should separate **value, currency code, unit, and metadata** per schema.
 
-Nếu dùng JDBC, hãy dùng các setter/getter có kiểu (`setLong`, `setBigDecimal`...) phù hợp với schema/driver, thay vì `setString` một chuỗi đã format cho người đọc rồi hy vọng database nhận biết đúng.
+When using JDBC, use typed setters/getters (`setLong`, `setBigDecimal`, etc.) matching the schema/driver, rather than calling `setString` with a human-formatted string and hoping the database interprets it correctly.
 
-### Tách rõ luồng dữ liệu
+### Clearly separate data flows
 
 ```text
-Input của người dùng
+User input
        |
        v
-Validation + parse theo locale/chính sách nhập
+Validation + parse per locale/input policy
        |
        v
-Giá trị có kiểu: int / long / BigDecimal / double
+Typed value: int / long / BigDecimal / double
        |                         |
-       |                         +--> Codec wire theo schema -> API/file/DB
+       |                         +--> Wire codec per schema -> API/file/DB
        |
-       +--> Formatter theo locale -> UI/report
+       +--> Locale-based formatter -> UI/report
 ```
 
-Không nên cho nhánh **Formatter theo locale** chảy ngược thành nhánh **Codec wire** mà không có hợp đồng parse tương ứng và kiểm tra chính xác.
+Do not let the **Locale-based formatter** branch flow back into the **Wire codec** branch without a matching parse contract and exact validation.
 
-## 11. Chương trình Java 17+ chạy độc lập
+## 11. Standalone runnable Java 17+ program
 
-Lưu tệp `HumanVsWireDemo.java`:
+Save the file `HumanVsWireDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -452,14 +452,14 @@ public class HumanVsWireDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 HumanVsWireDemo.java
 java HumanVsWireDemo
 ```
 
-Stdout trên JDK 17+ với dữ liệu locale tương ứng:
+Stdout on JDK 17+ with corresponding locale data:
 
 ```text
 Human US: 1,234,567.89
@@ -481,132 +481,132 @@ Infinity is finite? false
 German decimal code point: 44
 ```
 
-`44` là mã số Unicode/ASCII của ký tự dấu phẩy (`,`). Dòng `Lenient locale parse` cho thấy parser đã đọc `"1.234,50"` nhưng **không tiêu thụ `"junk"`**; đây là lý do cần kiểm tra `ParsePosition` nếu biến nó thành validation.
+`44` is the Unicode/ASCII code of the comma character (`,`). The `Lenient locale parse` line shows the parser read `"1.234,50"` yet **did not consume `"junk"`**; this is why `ParsePosition` must be checked if turning it into validation.
 
-Các kết quả định dạng locale hiển thị như ví dụ phụ thuộc vào **dữ liệu locale của JDK**; với giao thức lâu dài, càng không nên để cấu hình locale trở thành hợp đồng wire. Các kết quả `Double.toString`, `Long.toString` và `BigDecimal` minh họa chuỗi số không phải số đã định dạng cho UI.
+Illustrative locale-formatted outputs depend on the **JDK's locale data**; for long-lived protocols, all the more reason never to let locale settings become the wire contract. The `Double.toString`, `Long.toString`, and `BigDecimal` outputs demonstrate numeric strings that are not UI-formatted numbers.
 
-## 12. Thiết kế parser / serializer theo ranh giới trách nhiệm
+## 12. Designing parsers/serializers along responsibility boundaries
 
-### Tại nơi người dùng nhập
+### At the user input boundary
 
-1. Xác định ngôn ngữ/locale của người dùng và loại ô nhập.
-2. Hiển thị gợi ý rõ về dấu thập phân, dấu phân nhóm và đơn vị.
-3. Parse bằng bộ parser dành cho input đó; kiểm tra toàn bộ chuỗi đã tiêu thụ.
-4. Xác thực miền, precision, scale, kiểu và null.
-5. Biến kết quả thành **giá trị có kiểu** để tầng nghiệp vụ sử dụng.
+1. Determine the user's language/locale and input field type.
+2. Display clear hints about decimal mark, grouping separator, and unit.
+3. Parse using a parser suited for that input; check that the entire string was consumed.
+4. Validate range, precision, scale, type, and nullability.
+5. Turn the result into a **typed value** for use by the business layer.
 
-### Tại nơi hệ thống xuất API/file
+### At the API/file output boundary
 
-1. Chọn JSON/CSV/protobuf/SQL/... theo giao thức thật, không chọn output trực tiếp của `NumberFormat` theo cảm tính.
-2. Ghi schema rõ số nguyên hay decimal, đơn vị, cách xử lý null và số đặc biệt.
-3. Dùng serializer/codec tiêu chuẩn hoặc một codec được kiểm thử chặt chẽ.
-4. Bảo toàn chính xác theo yêu cầu của phía nhận; chú ý giới hạn IEEE binary64 cho integer lớn.
-5. Validate khi nhận ngược; **không tin** rằng mọi chuỗi đến từ hệ thống khác đều hợp lệ.
-6. Kiểm thử round trip và tương thích chéo các locale/JDK/đối tác.
+1. Choose JSON/CSV/protobuf/SQL/etc. per the real protocol, rather than picking `NumberFormat` output by intuition.
+2. Document in the schema whether numbers are integer or decimal, units, null handling, and special numbers.
+3. Use a standard serializer/codec or a strictly tested codec.
+4. Preserve precision as required by the receiver; watch IEEE binary64 limits for large integers.
+5. Validate when receiving back; **do not trust** that every string from another system is valid.
+6. Test round trips and cross-compatibility across locales/JDKs/partners.
 
-### Tại nơi hiển thị
+### At the display boundary
 
-1. Nhận **giá trị đã có kiểu** từ nghiệp vụ hoặc API.
-2. Chọn locale người dùng, kiểu tiền tệ, quy tắc rounding và số chữ số.
-3. Format thành một chuỗi để đọc, không sử dụng nó làm nguồn dữ liệu tính toán.
-4. Nếu UI cần người dùng chỉnh sửa, parse trở lại **qua lớp input** với validation, không đưa chuỗi display xuyên qua các service như một “numeric value”.
+1. Receive **typed values** from business logic or APIs.
+2. Choose user locale, currency style, rounding rule, and digit count.
+3. Format into a readable string; never use it as a computation source.
+4. If the UI allows user editing, parse back **through the input layer** with validation, instead of passing display strings across services as a "numeric value".
 
-Các bước tách riêng này cũng giúp test dễ hơn: codec có test tính đúng chuẩn, logic nghiệp vụ có test số học, còn UI format có test locale mà không ảnh hưởng wire protocol.
+Separating these steps also makes testing easier: codecs have correctness tests, business logic has arithmetic tests, and UI formatting has locale tests without impacting the wire protocol.
 
-## 13. Các trường hợp đặc biệt cần ghi hợp đồng rõ
+## 13. Special cases that must be explicitly specified in the contract
 
-### 13.1. Làm tròn để hiển thị
+### 13.1. Rounding for display
 
-`String.format(Locale.US,"%.2f",value)` có thể rút số chữ số hiển thị xuống hai chữ số phần lẻ. Nếu giá trị gốc có nhiều chữ số hơn, chuỗi hiển thị đã **mất thông tin**. Không parse lại nó để lưu thay giá trị gốc trừ khi nghiệp vụ thực sự muốn làm tròn tại bước đó.
+`String.format(Locale.US,"%.2f",value)` can shorten displayed fractional digits to two. If the original value had more digits, the display string has **lost information**. Do not re-parse it to store in place of the original value unless business logic genuinely wants rounding at that step.
 
-Ví dụ giá trị `1234.567` hiển thị thành `"1,234.57"` với nhóm và 2 chữ số lẻ; parse ngược `1234.57` không thể hồi phục `1234.567`.
+For example, `1234.567` displays as `"1,234.57"` with grouping and 2 fractional digits; parsing back `1234.57` cannot restore `1234.567`.
 
-### 13.2. Giá trị âm không, Infinity và NaN
+### 13.2. Negative zero, `Infinity`, and `NaN`
 
-Trong `double` có `-0.0` và `+0.0`, cùng `NaN`/`±Infinity`. Một formatter UI có thể xử lý hoặc hiển thị chúng theo chính sách địa phương. Với JSON number chuẩn, các giá trị NaN/Infinity không hợp lệ; còn signed zero có thể cần kiểm tra nghĩa ở phía nhận. Nếu các trạng thái đặc biệt quan trọng, **schema phải định nghĩa riêng**, không chỉ dùng kết quả `toString`.
+In `double`, there are `-0.0` and `+0.0`, along with `NaN`/`±Infinity`. A UI formatter may handle or display them according to regional policy. In standard JSON numbers, NaN/Infinity values are invalid; signed zero may need semantic checks on the receiving end. If these special states matter, **the schema must define them separately**, rather than merely using `toString` output.
 
-### 13.3. Precision và exponent
+### 13.3. Precision and exponents
 
-Một JSON number có thể chứa ký pháp exponent, nhưng bên nhận có thể chuyển nó sang binary64, `BigDecimal` hoặc kiểu số khác. Dùng `BigDecimal.toPlainString` khi hợp đồng cấm exponent, nhưng phải giới hạn độ lớn/độ dài để tránh sinh chuỗi khổng lồ từ giá trị exponent không tin cậy.
+A JSON number can contain exponent notation, though the receiver may convert it into binary64, `BigDecimal`, or another numeric type. Use `BigDecimal.toPlainString` when the contract forbids exponents, while capping magnitude/length to prevent generating huge strings from untrusted exponent values.
 
-### 13.4. Đơn vị và phần trăm
+### 13.4. Units and percentages
 
-Chuỗi UI `"12.5%"` là biểu diễn cho người đọc: số thật trong hệ thống có thể là `0.125`, `12.5` hoặc một giá trị có đơn vị “percent” tùy hợp đồng. Một phép xóa ký tự `%` không xác định được cách chuẩn hóa. Tương tự, `"1,2 km"` cần xử lý đơn vị, decimal locale và quy tắc đổi km sang m, không chỉ gọi `Double.parseDouble`.
+The UI string `"12.5%"` is a human-readable representation: the real number in the system might be `0.125`, `12.5`, or a value with unit "percent" depending on the contract. Simply stripping `%` does not determine how to normalize it. Similarly, `"1,2 km"` requires handling units, decimal locale, and km-to-m conversion rules, not merely calling `Double.parseDouble`.
 
-### 13.5. Kiểu số nguyên rất lớn
+### 13.5. Very large integer types
 
-Mã định danh `9007199254740993` vừa `long` Java nhưng vượt khoảng liên tiếp chính xác của JavaScript `Number`. Một schema có thể giữ nó như JSON string decimal. Với ứng dụng chỉ Java-to-Java sử dụng parser long chính xác và miền có kiểm soát, numeric token cũng có thể phù hợp. **Lựa chọn dựa trên toàn bộ hệ sinh thái bên nhận**, không chỉ code Java phía gửi.
+An identifier `9007199254740993` fits in Java `long` yet exceeds the contiguous exact range of JavaScript `Number`. A schema may keep it as a decimal JSON string. For Java-to-Java applications using exact `long` parsers and controlled ranges, a numeric token can also fit. **Choose based on the entire receiving ecosystem**, not just the sending Java code.
 
-## 14. Bộ test nên có khi xây định dạng trao đổi
+## 14. Test suite to have when building an exchange format
 
-| Nhóm test | Input/góc cạnh | Kỳ vọng |
+| Test group | Input/edge case | Expectation |
 | --- | --- | --- |
-| Locale US/DE | `1234.5` | UI format khác, wire format không tùy tiện thay đổi |
-| Parse human | `"1.234,50"` | Chỉ parser locale phù hợp mới nhận theo policy |
-| Parse machine | `"1234.50"` | Codec decimal nhận đúng, không grouping |
-| Grouping lạ | `"1,23,4.5"` | Reject nếu schema không cho grouping |
-| Có dữ liệu thừa | `"1.234,50junk"` | Full-consumption validation phải từ chối |
-| Precision decimal | `"0.1"` cộng `"0.2"` | BigDecimal đúng `0.3` |
-| Trailing zeros/scale | `"1234.50"` | Giữ scale nếu schema yêu cầu |
-| Exponent | `"1E+7"` | Định nghĩa có cho exponent không |
-| Số nguyên lớn | `"9007199254740993"` | Bảo toàn trên mọi client yêu cầu exact |
-| Non-finite | NaN, Infinity | Không sinh JSON numeric token không hợp lệ |
-| Âm zero | `-0.0` | Xác định có cần phân biệt dấu không |
-| Định danh | `"00042"` | Không làm mất số 0 đầu |
-| CSV quoting | `"1,234.50"` | Trường không bị tách sai cột |
-| Ký tự Unicode | NBSP, chữ số Unicode | Policy chấp nhận/từ chối rõ ràng |
-| Giá trị quá dài | Nhiều nghìn chữ số/số mũ lớn | Giới hạn tài nguyên và thông báo lỗi |
-| Default locale bị đổi | Locale JVM khác giữa các host | Wire payload không đổi với cùng giá trị/schema |
+| Locale US/DE | `1234.5` | UI format differs; wire format does not arbitrarily change |
+| Parse human | `"1.234,50"` | Only matching locale parser accepts per policy |
+| Parse machine | `"1234.50"` | Decimal codec accepts properly, no grouping |
+| Weird grouping | `"1,23,4.5"` | Reject if schema disallows grouping |
+| Trailing junk | `"1.234,50junk"` | Full-consumption validation must reject |
+| Decimal precision | `"0.1"` plus `"0.2"` | `BigDecimal` gives exact `0.3` |
+| Trailing zeros/scale | `"1234.50"` | Preserve scale if schema requires |
+| Exponent | `"1E+7"` | Specify whether exponents are permitted |
+| Large integer | `"9007199254740993"` | Preserved across all clients requiring exactness |
+| Non-finite | NaN, Infinity | Never emit invalid JSON numeric tokens |
+| Negative zero | `-0.0` | Specify whether sign must be distinguished |
+| Identifiers | `"00042"` | Do not lose leading zeros |
+| CSV quoting | `"1,234.50"` | Field does not split columns incorrectly |
+| Unicode characters | NBSP, Unicode digits | Explicit accept/reject policy |
+| Overly long values | Thousands of digits/large exponents | Resource bounds and error reporting |
+| Default locale changed | Different JVM locale across hosts | Wire payload unchanged for same value/schema |
 
-Các bài kiểm thử cần bao gồm cả **giá trị qua lại** và **cú pháp**. Nếu một parser quá dễ dãi tự bỏ qua ký tự lạ, round-trip các giá trị hợp lệ vẫn có thể qua hết trong khi input độc hại được chấp nhận.
+Tests should cover both **value round-trips** and **syntax**. If a lenient parser silently ignores weird characters, round-trips of valid values may still pass while malicious inputs get accepted.
 
-## 15. Các sai lầm thường gặp
+## 15. Common mistakes
 
-| Sai lầm | Hệ quả | Cách làm phù hợp |
+| Mistake | Consequence | Proper practice |
 | --- | --- | --- |
-| Dùng `NumberFormat.getInstance().format(x)` rồi gửi API | Phụ thuộc default locale | Xác định wire codec và schema riêng |
-| Parse output locale bằng `Double.parseDouble` | Gặp grouping/decimal comma sẽ lỗi | Parse UI bằng parser theo locale; wire bằng parser ổn định |
-| Dùng `NumberFormat.parse` làm strict validator | Có thể chỉ đọc đầu chuỗi | Kiểm tra `ParsePosition` đã đi hết |
-| Bỏ mọi dấu phẩy/chấm để “chuẩn hóa” | Có thể biến thập phân thành số lớn hơn | Validate đúng locale/grammar trước |
-| Gửi giá trị tiền bằng `String.format("%.2f")` | Làm tròn và mất dữ liệu gốc | BigDecimal + policy rounding đúng thời điểm |
-| Cho rằng `Double.toString` giữ decimal gốc hoàn hảo | Chỉ bảo toàn giá trị binary64 hiện có | Giữ input decimal dưới dạng BigDecimal/String nếu cần |
-| Tạo `BigDecimal` từ một `double` đã mất thông tin | Không khôi phục số decimal ban đầu | Parse từ text decimal đúng schema |
-| Gửi `NaN` thành JSON number | Không phải JSON chuẩn | Policy non-finite rõ ràng trước serialize |
-| Gửi ID long lớn dưới JSON number mà bỏ qua client JS | Có thể mất độ chính xác | Decimal string theo schema khi cần |
-| Đổi `"00042"` thành số để “gọn” | Mất số 0 đầu | Giữ mã định danh ở kiểu String |
-| Dùng `toPlainString` cho exponent rất lớn không giới hạn | Chuỗi có thể quá lớn | Giới hạn miền/độ dài khi encode |
-| Dùng output `String.format` để lưu DB numeric | Chuỗi có thể bị diễn giải sai | JDBC setter theo kiểu số và schema |
-| Coi CSV quoting là giải pháp parse decimal | Chỉ bảo vệ cấu trúc trường | Quy định codec cột numeric |
-| Thay đổi locale JVM rồi API response đổi theo | Phá tương thích và test | Không dùng locale mặc định ở wire layer |
-| Không ghi đơn vị và scale | Bên nhận tính sai ý nghĩa số | Schema có đơn vị/currency/scale rõ ràng |
-| Dùng cùng formatter cho UI và integration | Trộn hai loại hợp đồng | Tách formatter trình bày khỏi serializer |
+| Calling `NumberFormat.getInstance().format(x)` and sending over API | Depends on default locale | Define separate wire codec and schema |
+| Parsing locale output with `Double.parseDouble` | Fails on grouping/decimal comma | Parse UI with locale parser; wire with stable parser |
+| Using `NumberFormat.parse` as a strict validator | May read only a prefix | Check `ParsePosition` consumed the whole string |
+| Stripping all commas/dots to "normalize" | Can turn decimals into much larger numbers | Validate locale/grammar properly first |
+| Sending money via `String.format("%.2f")` | Rounds and loses original data | `BigDecimal` + rounding policy at the right step |
+| Thinking `Double.toString` preserves original decimals perfectly | Preserves only existing binary64 value | Keep decimal input as `BigDecimal`/`String` if needed |
+| Creating `BigDecimal` from a `double` that already lost info | Cannot recover original decimal number | Parse from decimal text per schema |
+| Sending `NaN` as a JSON number | Not standard JSON | Explicit non-finite policy before serialization |
+| Sending large `long` IDs as JSON numbers ignoring JS clients | Can lose precision | Decimal string per schema when needed |
+| Turning `"00042"` into a number to be "compact" | Loses leading zeros | Keep identifiers as `String` |
+| Using `toPlainString` for huge exponents without limits | Strings can grow massive | Cap range/length when encoding |
+| Using `String.format` output to store numeric DB columns | Strings can be misinterpreted | Use typed JDBC setters per schema |
+| Treating CSV quoting as decimal parsing | Only protects field structure | Specify numeric column codec |
+| Changing JVM locale changes API responses | Breaks compatibility and tests | Do not use default locale in wire layer |
+| Omitting unit and scale | Receiver misinterprets numeric meaning | Schema must specify unit/currency/scale clearly |
+| Using the same formatter for UI and integration | Mixes two contract types | Separate presentation formatters from serializers |
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-check questions
 
-1. Vì sao `"1,234.50"` và `"1.234,50"` có thể hiển thị cùng giá trị nhưng không nên dùng làm một wire format không khai báo locale?
-2. `Double.parseDouble("1.234.567,89")` cho kết quả gì? Muốn nhận input người dùng Đức, API nào liên quan?
-3. Vì sao dùng `NumberFormat.parse` mà không kiểm tra `ParsePosition` có thể bỏ lọt `"1.234,50junk"`?
-4. `Integer.toString`/`Long.toString` và `NumberFormat` khác nhau ở mục tiêu nào?
-5. `Double.toString(0.1+0.2)` có bảo đảm kết quả đúng 0.3 theo số thập phân hay chỉ bảo toàn giá trị `double` hiện có?
-6. Vì sao `new BigDecimal("1234.50")` có lợi hơn việc parse chuỗi hiển thị với grouping rồi đưa qua `double` nếu cần exact decimal?
-7. `BigDecimal.toString` và `toPlainString` khác nhau khi giá trị được tạo từ `"1E+7"` như thế nào?
-8. Vì sao `NaN` là một trạng thái `double` hợp lệ nhưng không thể ghi trực tiếp làm JSON numeric token chuẩn?
-9. Một ID kiểu `long` bằng `9007199254740993` có vấn đề gì khi client dùng JavaScript `Number`?
-10. CSV có dấu phẩy ngăn cột: nếu một field chứa `"1,234.50"`, bước nào giữ được cấu trúc cột? Bước nào định nghĩa ý nghĩa numeric của field?
-11. Vì sao mã `"00042"` thường cần giữ dưới dạng `String` dù toàn chữ số?
-12. Tầng UI, tầng nghiệp vụ và tầng wire nên mỗi tầng giữ loại giá trị nào?
-13. Trong schema decimal string, phải ghi những điều gì về ký tự dấu, radix, exponent, grouping, precision/scale và đơn vị?
-14. Nếu một formatter làm tròn 1234.567 thành `"1,234.57"`, parse lại có thể phục hồi số gốc không?
-15. Làm sao test rằng thay đổi `Locale.getDefault()` không làm đổi JSON/CSV integration payload theo cùng schema?
+1. Why can `"1,234.50"` and `"1.234,50"` display the same value yet should not be used as a locale-unspecified wire format?
+2. What does `Double.parseDouble("1.234.567,89")` produce? To accept German user input, which API is relevant?
+3. Why can calling `NumberFormat.parse` without checking `ParsePosition` let `"1.234,50junk"` slip through?
+4. How do `Integer.toString`/`Long.toString` and `NumberFormat` differ in purpose?
+5. Does `Double.toString(0.1+0.2)` guarantee an exact decimal `0.3`, or does it merely preserve the existing `double` value?
+6. Why is `new BigDecimal("1234.50")` better than parsing a grouped display string and passing it through `double` when exact decimals are required?
+7. How do `BigDecimal.toString` and `toPlainString` differ when a value is created from `"1E+7"`?
+8. Why is `NaN` a valid `double` state yet cannot be written directly as a standard JSON numeric token?
+9. What problem does a `long` ID equal to `9007199254740993` have when the client uses JavaScript `Number`?
+10. CSV uses commas to separate columns: if a field contains `"1,234.50"`, which step preserves column structure? Which step defines the numeric meaning of the field?
+11. Why must a code `"00042"` usually be kept as `String` even though it consists only of digits?
+12. What kind of values should the UI layer, business layer, and wire layer each hold?
+13. In a decimal string schema, what must be documented regarding sign characters, radix, exponents, grouping, precision/scale, and units?
+14. If a formatter rounds `1234.567` to `"1,234.57"`, can parsing it back recover the original number?
+15. How do you test that changing `Locale.getDefault()` does not alter JSON/CSV integration payloads under the same schema?
 
-## 17. Tài liệu tham khảo chính thức
+## 17. Official references
 
-- [Java SE 17 — `NumberFormat`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): định dạng và parse số theo locale, các tùy chỉnh grouping/precision.
-- [Java SE 17 — `DecimalFormat`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html): pattern trình bày decimal và tính chất parser.
-- [Java SE 17 — `ParsePosition`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ParsePosition.html): vị trí parser đã tiêu thụ và thông tin lỗi.
-- [Java SE 17 — `Double`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): `toString`, `parseDouble`, non-finite và quy tắc binary64.
-- [Java SE 17 — `BigDecimal`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `toString`, `toPlainString`, scale, decimal exact.
-- [RFC 8259 — The JavaScript Object Notation (JSON) Data Interchange Format](https://www.rfc-editor.org/rfc/rfc8259): JSON number grammar, interoperability, non-finite values không được phép.
-- [Java SE 17 — `Formatter`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html): ký hiệu grouping, precision và locale trong output trình bày.
+- [Java SE 17 — `NumberFormat`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): locale-based number formatting and parsing, grouping/precision options.
+- [Java SE 17 — `DecimalFormat`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html): decimal presentation patterns and parser properties.
+- [Java SE 17 — `ParsePosition`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ParsePosition.html): parser-consumed index and error info.
+- [Java SE 17 — `Double`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): `toString`, `parseDouble`, non-finite values, and binary64 rules.
+- [Java SE 17 — `BigDecimal`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `toString`, `toPlainString`, scale, exact decimals.
+- [RFC 8259 — The JavaScript Object Notation (JSON) Data Interchange Format](https://www.rfc-editor.org/rfc/rfc8259): JSON number grammar, interoperability, non-finite values disallowed.
+- [Java SE 17 — `Formatter`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html): grouping, precision, and locale symbols in presentation output.
 
-**Kết luận:** Chuỗi định dạng theo locale thích hợp cho **UI và báo cáo con người**, nhưng không phải wire format đáng tin cậy mặc định. Hãy trao đổi **giá trị có kiểu** thông qua **schema/serializer ổn định**; với số thập phân cần chính xác, xác định decimal text và BigDecimal; với `long` lớn, cân nhắc client JS; với floating-point, quy định chính sách NaN/Infinity. Chỉ tại lớp hiển thị mới chọn cách phân nhóm, tiền tệ, ký hiệu thập phân, đơn vị và làm tròn phù hợp người đọc.
+**Conclusion:** Locale-formatted strings are well suited for **UIs and human reports**, not as a reliable default wire format. Exchange **typed values** through **stable schemas/serializers**; for decimals needing precision, specify decimal text and `BigDecimal`; for large `long` values, consider JS clients; for floating-point, define `NaN`/`Infinity` policies. Only at the display layer should you pick grouping, currency, decimal marks, units, and rounding suited for human readers.

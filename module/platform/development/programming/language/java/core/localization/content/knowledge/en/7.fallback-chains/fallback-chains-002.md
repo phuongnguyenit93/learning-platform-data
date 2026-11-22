@@ -1,64 +1,64 @@
-# Quan hệ tài nguyên con với bundle cha trong Java ResourceBundle
+# Child-to-Parent Resource Bundle Relationships in Java ResourceBundle
 
-## 1. Vì sao một bundle con có thể dùng tài nguyên từ bundle cha?
+## 1. Why Can a Child Bundle Use Resources from a Parent Bundle?
 
-Trong ứng dụng Java hỗ trợ nhiều ngôn ngữ, một số nội dung giống nhau giữa các biến thể locale. Chẳng hạn, giao diện tiếng Việt chung và giao diện tiếng Việt tại Việt Nam đều dùng phần lớn nhãn giống nhau; bản Việt Nam chỉ cần sửa vài cách diễn đạt. Nếu sao chép toàn bộ thông điệp vào từng tệp, các bản dịch dễ lệch nhau và khó bảo trì.
+In a multilingual Java application, some content is shared across locale variants. For example, a general Vietnamese UI and a Vietnam-specific Vietnamese UI share most of the same labels; the Vietnam version only needs to adjust a few phrasings. Copying every message into each file makes translations drift easily and becomes hard to maintain.
 
-**`ResourceBundle` hỗ trợ quan hệ cha–con (parent chain)** để một bundle chuyên biệt có thể:
+**`ResourceBundle` supports a parent–child relationship (parent chain)** so that a specialized bundle can:
 
-- **Ghi đè** giá trị của khóa đã có trong bundle chung.
-- **Kế thừa** giá trị của khóa chưa định nghĩa ở bundle con, bằng cách tìm tiếp trong bundle cha.
-- **Bổ sung** khóa riêng cho một vùng/ngôn ngữ mà bundle cha không có.
+- **Override** the value of a key already defined in a general bundle.
+- **Inherit** the value of a key not defined in the child bundle by continuing the lookup in the parent bundle.
+- **Add** keys specific to a region/language that the parent bundle does not have.
 
-Ví dụ với base name `messages` và locale `vi-VN`, khi có đủ ba tệp resource bundle theo quy ước chuẩn, chuỗi quan hệ là:
+For example, with base name `messages` and locale `vi-VN`, when all three resource bundle files exist following standard conventions, the relationship chain is:
 
 ~~~text
-messages_vi_VN.properties       <- con, cụ thể nhất (tiếng Việt ở Việt Nam)
+messages_vi_VN.properties       <- child, most specific (Vietnamese in Vietnam)
              |
-             v  nếu thiếu khóa trong con
-messages_vi.properties          <- cha gần (tiếng Việt)
+             v  if key is missing in child
+messages_vi.properties          <- immediate parent (Vietnamese)
              |
-             v  nếu vẫn thiếu khóa
-messages.properties             <- cha gốc (root bundle)
+             v  if key is still missing
+messages.properties             <- root parent (root bundle)
              |
-             v  nếu cả chuỗi đều thiếu khóa
+             v  if key is missing across the entire chain
 MissingResourceException
 ~~~
 
-**Thứ tự ưu tiên:** tài nguyên ở bundle cụ thể nhất được dùng trước; chỉ khi khóa chưa xuất hiện ở đó mới chuyển sang cha. Quan hệ cha–con áp dụng **theo từng khóa**, nên một màn hình có thể lấy các nhãn từ nhiều tệp khác nhau trong cùng chuỗi.
+**Priority order:** resources in the most specific bundle are used first; only when a key does not appear there does lookup move to the parent. The parent–child relationship applies **per key**, so a single screen can pull labels from multiple files within the same chain.
 
-Đây là một dạng **fallback nội dung**, có thể hoạt động ngay cả khi chính bundle được yêu cầu đã tồn tại. Không cần phải thiếu cả tệp `messages_vi_VN.properties` thì Java mới đọc `messages_vi.properties`.
+This is a form of **content fallback** that can operate even when the requested bundle itself exists. The entire `messages_vi_VN.properties` file does not have to be missing for Java to read `messages_vi.properties`.
 
-## 2. Tên bundle quyết định chuỗi ứng viên
+## 2. Bundle Names Determine the Candidate Chain
 
-`ResourceBundle.getBundle(baseName, locale)` sử dụng base name và các thành phần của `Locale` để tìm họ tài nguyên thích hợp. Với cấu hình thông thường, tệp properties có quy tắc tên:
+`ResourceBundle.getBundle(baseName, locale)` uses the base name and `Locale` components to locate the appropriate resource family. Under standard configuration, properties files follow these naming rules:
 
-| Tệp | Phạm vi |
+| File | Scope |
 | --- | --- |
-| `messages.properties` | Bundle gốc, không gắn locale cụ thể |
-| `messages_vi.properties` | Chuyên biệt cho tiếng Việt |
-| `messages_vi_VN.properties` | Chuyên biệt cho tiếng Việt ở Việt Nam |
-| `messages_en.properties` | Chuyên biệt cho tiếng Anh |
-| `messages_en_GB.properties` | Chuyên biệt cho tiếng Anh ở Anh |
+| `messages.properties` | Root bundle, not tied to a specific locale |
+| `messages_vi.properties` | Specialized for Vietnamese |
+| `messages_vi_VN.properties` | Specialized for Vietnamese in Vietnam |
+| `messages_en.properties` | Specialized for English |
+| `messages_en_GB.properties` | Specialized for English in Great Britain |
 
-Ví dụ Java:
+Java example:
 
 ~~~java
 Locale locale = Locale.forLanguageTag("vi-VN");
 ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
 ~~~
 
-Đây là đoạn minh họa cần `import java.util.Locale;` và `import java.util.ResourceBundle;`. Khi các file nằm đúng classpath, Java tạo hoặc lấy từ cache bundle cụ thể nhất tìm được và thiết lập quan hệ với các bundle cha đã tìm thấy.
+This snippet illustrates code requiring `import java.util.Locale;` and `import java.util.ResourceBundle;`. When the files are properly on the classpath, Java creates or retrieves from cache the most specific bundle found and links it with the discovered parent bundles.
 
-Trong ứng dụng có package, base name có thể là `com.example.i18n.messages`; khi đó file properties tương ứng nằm dưới đường dẫn classpath `com/example/i18n/messages*.properties`. **Không** dùng tên file có đuôi `.properties` làm base name và không dùng dấu `-` của BCP 47 trực tiếp trong tên file: quy ước tên tài nguyên ở đây là dấu gạch dưới, chẳng hạn `messages_vi_VN.properties`, trong khi `Locale.toLanguageTag()` trả `vi-VN`.
+In applications with packages, the base name might be `com.example.i18n.messages`; the corresponding properties files then reside under the classpath path `com/example/i18n/messages*.properties`. Do **not** use a filename with the `.properties` extension as the base name, and do not use BCP 47 `-` hyphens directly in filenames: the resource naming convention here uses underscores, such as `messages_vi_VN.properties`, whereas `Locale.toLanguageTag()` returns `vi-VN`.
 
-Với `vi-VN` đơn giản và cơ chế tra cứu mặc định, thứ tự ứng viên là `vi_VN` → `vi` → root. Locale có script, variant và trường hợp đặc biệt có thể có **nhiều ứng viên hơn**; ví dụ `zh-Hant-TW` có thể xem xét bundle theo chữ viết và khu vực. Không tự viết hàm cắt chuỗi `locale.toString()` để dựng parent chain khi Java đã cung cấp thuật toán chuẩn.
+For a simple `vi-VN` and the default lookup mechanism, the candidate order is `vi_VN` → `vi` → root. Locales with scripts, variants, and special cases can have **more candidates**; for example, `zh-Hant-TW` may consider bundles by script and region. Do not write your own string-splitting function on `locale.toString()` to build a parent chain when Java already provides the standard algorithm.
 
-## 3. Ví dụ đầy đủ: ba tệp, một chương trình Java 17
+## 3. Complete Example: Three Files, One Java 17 Program
 
-Đặt **bốn tệp** dưới cùng một thư mục, không khai báo package, rồi chạy lệnh phía dưới. Đừng đặt nhầm tệp properties trong thư mục con nếu base name là `messages`.
+Place **four files** in the same directory, without declaring a package, then run the commands below. Do not accidentally place the properties files in a subdirectory if the base name is `messages`.
 
-**Tệp `messages.properties` — gốc:**
+**File `messages.properties` — root:**
 
 ~~~properties
 app.name=Sample App
@@ -67,21 +67,21 @@ button.cancel=Cancel
 help.text=General help
 ~~~
 
-**Tệp `messages_vi.properties` — tiếng Việt:**
+**File `messages_vi.properties` — Vietnamese:**
 
 ~~~properties
 app.name=Ứng dụng mẫu
 button.save=Lưu
 ~~~
 
-**Tệp `messages_vi_VN.properties` — tiếng Việt tại Việt Nam:**
+**File `messages_vi_VN.properties` — Vietnamese in Vietnam:**
 
 ~~~properties
 button.save=Lưu tại Việt Nam
 help.text=Hỗ trợ tại Việt Nam
 ~~~
 
-**Tệp `BundleParentDemo.java`:**
+**File `BundleParentDemo.java`:**
 
 ~~~java
 import java.util.Locale;
@@ -119,14 +119,14 @@ public class BundleParentDemo {
 }
 ~~~
 
-Biên dịch và chạy với **JDK 17+** từ chính thư mục chứa cả bốn tệp:
+Compile and run with **JDK 17+** from the exact directory containing all four files:
 
 ~~~bash
 javac -encoding UTF-8 BundleParentDemo.java
 java BundleParentDemo
 ~~~
 
-**Kết quả dự kiến** khi chạy đúng bốn file trên, không có bundle cùng tên khác chiếm ưu tiên trên classpath:
+**Expected output** when running those exact four files, with no other same-named bundle taking precedence on the classpath:
 
 ~~~text
 bundle locale: vi-VN
@@ -139,79 +139,79 @@ keys: [app.name, button.cancel, button.save, help.text]
 missing.key: MissingResourceException
 ~~~
 
-Cách suy ra từng dòng:
+How each line is derived:
 
-| Khóa | File chứa giá trị được chọn | Lý do |
+| Key | File containing the selected value | Reason |
 | --- | --- | --- |
-| `app.name` | `messages_vi.properties` | Con `vi_VN` thiếu khóa, cha `vi` có |
-| `button.save` | `messages_vi_VN.properties` | Con định nghĩa khóa, ghi đè `vi` và root |
-| `button.cancel` | `messages.properties` | Cả `vi_VN` và `vi` đều thiếu, root có |
-| `help.text` | `messages_vi_VN.properties` | Con định nghĩa lại giá trị của root |
-| `missing.key` | Không có | Không tìm thấy trong toàn bộ chuỗi cha–con |
+| `app.name` | `messages_vi.properties` | Child `vi_VN` lacks the key; parent `vi` has it |
+| `button.save` | `messages_vi_VN.properties` | Child defines the key, overriding `vi` and root |
+| `button.cancel` | `messages.properties` | Both `vi_VN` and `vi` lack it; root has it |
+| `help.text` | `messages_vi_VN.properties` | Child redefines root's value |
+| `missing.key` | None | Not found anywhere in the parent–child chain |
 
-`bundle.getLocale()` trả locale của **bundle đã được chọn**, ở đây là `vi-VN`; nó **không chỉ ra riêng** `app.name` hay `button.cancel` đến từ tệp nào. `getString(key)` tự lần theo quan hệ cha khi cần.
+`bundle.getLocale()` returns the locale of the **selected bundle**, which here is `vi-VN`; it **does not separately indicate** which file `app.name` or `button.cancel` came from. `getString(key)` walks the parent relationship automatically when needed.
 
-`bundle.keySet()` bao gồm khóa tìm thấy trên **bundle hiện tại và các bundle cha**. Ở đây dùng `TreeSet` để sắp thứ tự khóa cho đầu ra ổn định; thứ tự duyệt trực tiếp của một `Set` không nên được giả định. `containsKey("button.cancel")` trả `true` ngay cả khi khóa chỉ tồn tại trong root.
+`bundle.keySet()` includes keys found on the **current bundle and its parent bundles**. Here `TreeSet` is used to sort keys for deterministic output; the iteration order of a raw `Set` should not be assumed. `containsKey("button.cancel")` returns `true` even when the key only exists in root.
 
-## 4. Cơ chế tra cứu: tìm bundle khác với tìm khóa
+## 4. Lookup Mechanism: Finding a Bundle vs. Finding a Key
 
-Có hai bước khác nhau:
+There are two distinct steps:
 
-### Bước A — Chọn bundle để trả về
+### Step A — Selecting the Bundle to Return
 
-`getBundle("messages", requestedLocale)` tạo chuỗi tên ứng viên từ locale. Java cố tìm bundle phù hợp nhất, có thể kiểm tra class-based bundle và properties-based bundle theo thứ tự định nghĩa. Sau đó, đối với các ứng viên còn lại thực sự có tài nguyên, nó nối quan hệ `parent`.
+`getBundle("messages", requestedLocale)` constructs a candidate name sequence from the locale. Java attempts to locate the best-matching bundle, possibly checking class-based bundles and properties-based bundles in their defined order. Then, for the remaining candidates that actually have resources, it links their `parent` relationships.
 
-Ví dụ nếu thiếu `messages_vi_VN.properties`, nhưng `messages_vi.properties` có mặt, đối tượng trả về có thể là `messages_vi`, với parent là `messages`. `bundle.getLocale()` lúc đó là `vi`. Nếu cả `vi_VN` và `vi` không có, thuật toán mặc định có thể thử **locale mặc định của JVM** trước khi dùng root, tùy các bundle hiện có; vì vậy không thể khẳng định yêu cầu `vi-VN` sẽ luôn trả root khi không có bản tiếng Việt.
+For example, if `messages_vi_VN.properties` is missing, while `messages_vi.properties` is present, the returned object may be `messages_vi` with `messages` as its parent. `bundle.getLocale()` is then `vi`. If both `vi_VN` and `vi` are absent, the default algorithm may try the **JVM default locale** before using root, depending on available bundles; hence you cannot assume a request for `vi-VN` will always return root when no Vietnamese bundle exists.
 
-### Bước B — Tìm một khóa bên trong đối tượng đã chọn
+### Step B — Looking Up a Key Inside the Selected Object
 
-`bundle.getObject(key)`/ `getString(key)` bắt đầu ở bundle được chọn:
+`bundle.getObject(key)` / `getString(key)` starts at the selected bundle:
 
 ~~~text
-handleGetObject(key) ở bundle hiện tại
+handleGetObject(key) in current bundle
       |
-      +-- tìm thấy giá trị --> trả về, không đọc cha
+      +-- value found --> return it, do not read parent
       |
-      +-- không tìm thấy --> thử parent.getObject(key)
-                                  |
-                                  +-- tiếp tục đến root
-                                  |
-                                  +-- không có ở bất kỳ cấp nào
-                                      --> MissingResourceException
+      +-- not found --> try parent.getObject(key)
+                              |
+                              +-- continue up to root
+                              |
+                              +-- absent at every level
+                                  --> MissingResourceException
 ~~~
 
-Vì vậy:
+Therefore:
 
-- **Thiếu file** ở một cấp: Java có thể chọn ứng viên ít chuyên biệt hơn ngay từ bước A.
-- **Có file nhưng thiếu key**: Java có thể lấy key từ cha theo bước B.
-- **Có key tại con**: giá trị ở con thắng, ngay cả khi cha có key trùng tên.
-- **Không có key ở toàn chuỗi**: `getString` ném `MissingResourceException`, không tự trả về tên key và cũng không tự tạo ra bản dịch.
+- **Missing file** at a level: Java may select a less specific candidate right at Step A.
+- **File exists but key is missing**: Java can fetch the key from a parent per Step B.
+- **Key exists in child**: the child's value wins, even if the parent has a key with the same name.
+- **Key absent across the entire chain**: `getString` throws `MissingResourceException`; it neither returns the key name nor generates a translation automatically.
 
-### Nhìn kỹ mối quan hệ “cha”
+### A Closer Look at the "Parent" Relationship
 
-Trong Java, `ResourceBundle` có trường `parent` ở mức `protected` và phương thức `setParent` dùng khi kết nối các bundle. Với `PropertyResourceBundle`, ứng dụng thông thường **không cần tự gọi `setParent`**; `ResourceBundle.getBundle` thực hiện cấu hình chuỗi trong quá trình tải.
+In Java, `ResourceBundle` has a `protected` field `parent` and a `setParent` method used when connecting bundles. With `PropertyResourceBundle`, typical applications **do not need to call `setParent` manually**; `ResourceBundle.getBundle` wires up the chain during loading.
 
-Bundle cha **không phải** một lớp Java bắt buộc phải được `extends` bởi bundle con. Trong ví dụ properties, cả ba là **các tệp tài nguyên độc lập**; quan hệ cha–con được thiết lập theo tên và locale lúc tải. Java cũng hỗ trợ `ListResourceBundle`/class-based bundle, nhưng khái niệm resource parent khác với quan hệ kế thừa `extends` của ngôn ngữ Java.
+A parent bundle is **not** a Java class that a child bundle must `extends`. In the properties example, all three are **independent resource files**; the parent–child relationship is established by name and locale at load time. Java also supports `ListResourceBundle`/class-based bundles, but the concept of a resource parent differs from the Java language's `extends` inheritance relationship.
 
-## 5. Điểm dễ nhầm: các loại fallback khác nhau
+## 5. Common Confusion: Different Types of Fallback
 
-| Tình huống | Nguyên nhân | Kết quả hoặc cơ chế |
+| Situation | Cause | Outcome or mechanism |
 | --- | --- | --- |
-| Thiếu khóa trong bundle `vi_VN` | Chưa ghi đè khóa | Tìm tiếp `vi`, rồi root nếu có |
-| Không tồn tại `messages_vi_VN.properties` | Thiếu ứng viên chính xác | Chọn `vi` hoặc ứng viên phù hợp hơn còn tồn tại |
-| Không có bundle theo locale yêu cầu | Thiếu toàn bộ nhánh tài nguyên | Mặc định có thể thử locale của JVM rồi root |
-| Không có bundle nào cho base name | Không có tài nguyên tải được | `getBundle` ném `MissingResourceException` |
-| Có bundle nhưng toàn chuỗi thiếu một key | Thiếu thông điệp | `getString(key)` ném `MissingResourceException` |
-| Con có `button.save=` | Khóa tồn tại với chuỗi rỗng | Chuỗi rỗng của con **ghi đè cha**, không fallback |
-| Con có giá trị khác phiên bản cha | Ghi đè chủ đích | Giá trị của con được ưu tiên |
+| Key missing in `vi_VN` bundle | Key not overridden | Continues lookup in `vi`, then root if present |
+| `messages_vi_VN.properties` does not exist | Exact candidate missing | Selects `vi` or a better-matching existing candidate |
+| No bundle for the requested locale | Entire resource branch missing | Default behavior may try the JVM locale then root |
+| No bundle at all for the base name | No loadable resources | `getBundle` throws `MissingResourceException` |
+| Bundle exists, but a key is missing across the entire chain | Missing message | `getString(key)` throws `MissingResourceException` |
+| Child has `button.save=` | Key exists with an empty string | The child's empty string **overrides the parent**, no fallback |
+| Child has a different value from parent | Intentional override | Child's value takes precedence |
 
-**Mấu chốt:** “chuỗi rỗng” khác “không tồn tại key”. Trong file properties, dòng `button.save=` định nghĩa một key với giá trị rỗng. Khi muốn dùng bản dịch của cha, hãy **bỏ hẳn key** ở con thay vì để key với giá trị `""` hoặc khoảng trắng.
+**Key takeaway:** an "empty string" differs from a "non-existent key". In a properties file, the line `button.save=` defines a key with an empty value. When you want to use the parent's translation, **omit the key entirely** in the child rather than leaving the key with `""` or whitespace.
 
-Một nguồn nhầm lẫn khác: `ResourceBundle.getBundle("messages")` không truyền locale nên dựa trên **`Locale.getDefault()`**, và hành vi có thể thay đổi nếu một phần khác của chương trình gọi `Locale.setDefault`. Đối với ứng dụng phục vụ nhiều người dùng, nên truyền locale tường minh cho từng request.
+Another source of confusion: `ResourceBundle.getBundle("messages")` takes no locale, so it relies on **`Locale.getDefault()`**, and its behavior can change if another part of the program calls `Locale.setDefault`. For applications serving multiple users, pass the locale explicitly per request.
 
-## 6. Parent chain không phải “mọi nhánh locale đều kế thừa nhau”
+## 6. Parent Chain Does Not Mean "All Locale Branches Inherit from Each Other"
 
-Các nhánh ngôn ngữ khác nhau không tự tạo quan hệ cha–con chỉ vì cùng một base name:
+Different language branches do not automatically form a parent–child relationship just because they share a base name:
 
 ~~~text
                    messages.properties
@@ -221,11 +221,11 @@ Các nhánh ngôn ngữ khác nhau không tự tạo quan hệ cha–con chỉ v
    messages_vi_VN.properties   messages_en_GB.properties
 ~~~
 
-Trong ví dụ đủ các bundle trên, `messages_vi_VN` không lấy key thiếu từ `messages_en_GB`, vì `en_GB` **không phải cha** của `vi_VN`. Root là mức dùng chung, không mặc định chứa tiếng Anh có thể coi là chính sách bản dịch của toàn sản phẩm mà không có chủ ý rõ ràng.
+In an example with all the bundles above present, `messages_vi_VN` does not pull missing keys from `messages_en_GB`, because `en_GB` is **not a parent** of `vi_VN`. Root is the shared level; implicitly treating English in root as a product-wide translation policy without explicit intent is risky.
 
-Có một trường hợp cần phân biệt kỹ: khi không tìm thấy bundle phù hợp với requested locale, cơ chế **fallback locale của JVM** có thể khiến Java chọn một nhánh ngôn ngữ khác làm bundle kết quả. Đây là cơ chế **chọn bundle thay thế**, không phải `vi_VN` tự có quan hệ cha với `en_GB`.
+One case requires careful distinction: when no bundle matching the requested locale is found, the **JVM fallback locale** mechanism can cause Java to select a different language branch as the resulting bundle. That is an **alternative bundle selection** mechanism, not `vi_VN` having a parent relationship with `en_GB`.
 
-Nếu ứng dụng yêu cầu quy tắc “chỉ dùng chuỗi cha trong nhánh ngôn ngữ được yêu cầu, không chọn ngôn ngữ mặc định của máy”, trên **classpath/unnamed module** có thể cân nhắc `ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES)` và overload `getBundle` tương ứng. Ví dụ sau là **đoạn minh họa**:
+If an application requires the rule "only use the parent chain within the requested language branch, never pick the machine's default language", on **classpath/unnamed modules** you can consider `ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES)` and the corresponding `getBundle` overload. The following is an **illustrative snippet**:
 
 ~~~java
 ResourceBundle.Control control =
@@ -235,89 +235,89 @@ ResourceBundle bundle =
         ResourceBundle.getBundle("messages", requestedLocale, control);
 ~~~
 
-Dù tắt fallback sang **default JVM locale**, root `messages.properties` vẫn có thể là bundle cuối trong chuỗi nếu nó tồn tại. `getNoFallbackControl` không có nghĩa bỏ root hoặc kiểm tra xem đã có bản dịch đúng ngôn ngữ hay chưa. Các overload nhận `ResourceBundle.Control` không được hỗ trợ khi caller nằm trong **named module**; ở mô hình JPMS cần thiết kế cơ chế resource/provider phù hợp, không sao chép máy móc snippet này.
+Even with fallback to the **default JVM locale** disabled, root `messages.properties` can still be the final bundle in the chain if it exists. `getNoFallbackControl` does not mean dropping root or verifying that a translation in the right language exists. Overloads accepting `ResourceBundle.Control` are not supported when the caller is in a **named module**; in the JPMS model, design an appropriate resource/provider mechanism rather than copying this snippet mechanically.
 
-## 7. Thiết kế chiến lược dịch: cha chung và bản chuyên biệt
+## 7. Designing a Translation Strategy: Shared Parent and Specialized Overrides
 
-Một họ resource có thể được tổ chức theo “nội dung chung trước, ngoại lệ sau”:
+A resource family can be organized as "shared content first, exceptions later":
 
-1. **Root:** toàn bộ khóa bắt buộc, có giá trị fallback được nhóm phát triển chấp nhận và kiểm soát chất lượng.
-2. **Bundle theo ngôn ngữ:** các khóa tiếng Việt, tiếng Anh, tiếng Pháp… có nội dung dịch được quản lý rõ ràng.
-3. **Bundle theo region/script:** chỉ định nghĩa những cụm từ thực sự khác về vùng hoặc chữ viết, thay vì sao chép nguyên cả bundle ngôn ngữ.
+1. **Root:** all required keys, with fallback values accepted and quality-controlled by the development team.
+2. **Per-language bundles:** keys for Vietnamese, English, French, etc., with clearly managed translated content.
+3. **Per-region/script bundles:** define only phrases that genuinely differ by region or script, instead of duplicating the entire language bundle.
 
-Tuy nhiên, **không nên lạm dụng parent fallback để che việc chưa dịch**. Nếu root đang là tiếng Anh và một bundle tiếng Việt thiếu nhiều khóa, người dùng có thể thấy màn hình trộn tiếng Việt với tiếng Anh. Java vẫn coi đó là chuỗi tra cứu hợp lệ; việc bản dịch có đủ đạt yêu cầu sản phẩm hay không là một quyết định chất lượng riêng.
+However, **do not abuse parent fallback to hide missing translations**. If root is in English and a Vietnamese bundle is missing many keys, users may see a screen mixing Vietnamese and English. Java still considers that a valid lookup chain; whether the translation meets product quality requirements is a separate quality decision.
 
-Đề xuất thực hành:
+Recommended practices:
 
-- Dùng tên khóa ổn định, có ngữ cảnh (`checkout.button.pay`, `order.status.pending`), tránh dùng nguyên câu ngôn ngữ gốc làm khóa.
-- Quản lý danh sách khóa bắt buộc và kiểm thử từng bundle theo ngôn ngữ. Đừng dùng `bundle.keySet()` để kết luận mọi khóa đều được dịch ở **bundle con**, vì tập này có thể gồm khóa kế thừa.
-- Chỉ tạo bundle vùng/ngôn ngữ khi có khác biệt thực chất; nếu hai locale sử dụng cùng một bản dịch, cha theo ngôn ngữ có thể là nguồn duy nhất.
-- Định nghĩa chính sách fallback minh bạch: thiếu nhánh locale nên quay về ngôn ngữ mặc định sản phẩm hay báo không hỗ trợ; thiếu key ở cùng ngôn ngữ có được dùng root hay cần báo lỗi?
-- Không đưa dữ liệu nghiệp vụ như giá, mã trạng thái, số tiền đã định dạng vào file bundle. Bundle giữ thông điệp/nhãn/mẫu câu; giá trị vẫn được tính ở domain rồi trình bày theo `Locale`.
-- Khi dùng `MessageFormat`, giữ placeholder và mẫu câu hoàn chỉnh theo từng ngôn ngữ. Kế thừa một câu ở root có thể tạo ngữ pháp không phù hợp cho ngôn ngữ yêu cầu; cần kiểm thử bản dịch.
-- Với Java 17, resource bundle properties hỗ trợ UTF-8 theo hành vi chuẩn từ Java 9; hãy lưu tệp đúng encoding, kiểm tra việc đóng gói resource vào classpath/JAR.
+- Use stable, contextual key names (`checkout.button.pay`, `order.status.pending`), avoiding full source-language sentences as keys.
+- Maintain a list of mandatory keys and test each bundle by language. Do not use `bundle.keySet()` to conclude that every key is translated in the **child bundle**, because that set can include inherited keys.
+- Only create regional/language bundles when there is a real difference; if two locales use the same translation, the language-level parent can be the single source.
+- Define a transparent fallback policy: when a locale branch is missing, should it fall back to the product's default language or report unsupported; when a key is missing in the same language, may it use root or must it raise an error?
+- Do not put business data such as prices, status codes, or formatted currency amounts into bundle files. Bundles hold messages/labels/sentence templates; values are computed in the domain and then presented according to `Locale`.
+- When using `MessageFormat`, keep placeholders and complete sentence templates per language. Inheriting a sentence from root can produce ungrammatical phrasing for the requested language; test translations carefully.
+- With Java 17, resource bundle properties support UTF-8 by default since Java 9; save files with the proper encoding and verify resource packaging in the classpath/JAR.
 
-## 8. Kiểm tra chính xác nguồn giá trị của key
+## 8. Checking the Exact Source of a Key's Value
 
-Có sự khác nhau giữa việc biết **key có thể được tra được** và biết **bundle trực tiếp nào đang sở hữu key**:
+There is a difference between knowing **a key can be resolved** and knowing **which direct bundle owns the key**:
 
-- `bundle.containsKey(key)`: có thể trả `true` nhờ **cha**, không chỉ nhờ bundle con.
-- `bundle.keySet()`: là **hợp** khóa từ bundle hiện tại và các parent bundle, không có thông tin bundle xuất xứ của từng key.
-- `bundle.getLocale()`: báo locale của bundle được chọn, **không báo** locale của từng giá trị lấy qua parent.
-- `bundle.getString(key)`: trả nội dung cuối cùng theo ưu tiên con → cha; không cung cấp metadata nguồn.
+- `bundle.containsKey(key)`: can return `true` because of a **parent**, not just the child bundle.
+- `bundle.keySet()`: is the **union** of keys from the current bundle and parent bundles, without metadata about which bundle each key came from.
+- `bundle.getLocale()`: reports the locale of the selected bundle, **not** the locale of each value fetched via a parent.
+- `bundle.getString(key)`: returns the final content in child → parent priority; it provides no source metadata.
 
-Nếu nhóm cần báo cáo tỷ lệ dịch trực tiếp ở từng locale, hãy kiểm tra từng file nguồn hoặc bundle nội bộ bằng công cụ QA phù hợp và phân biệt key hiện diện trực tiếp với key kế thừa. Khi dùng class-based bundle, `handleKeySet()` là API `protected` cho khóa riêng của bundle, không thể gọi từ mã ứng dụng bất kỳ như một phương thức public.
+If the team needs to report direct translation coverage per locale, inspect each source file or internal bundle using an appropriate QA tool and distinguish directly present keys from inherited keys. When using class-based bundles, `handleKeySet()` is a `protected` API for a bundle's own keys and cannot be called from arbitrary application code as a public method.
 
-**Không nên tự viết thuật toán kiểm tra `containsKey` rồi cố đoán “bản dịch đã có ở locale cụ thể”**: `containsKey` đã tính parent, nên kiểm thử như vậy có thể bỏ lọt các khóa chưa dịch. Bản dịch thiếu đôi khi cần được đánh dấu trong quy trình dịch thay vì để runtime âm thầm xử lý.
+**Do not write custom `containsKey` checks to guess "the translation exists in a specific locale":** `containsKey` already accounts for parents, so such tests can let untranslated keys slip through. Missing translations sometimes need to be flagged in the translation workflow rather than silently handled at runtime.
 
-## 9. Cache và thay đổi tài nguyên tại runtime
+## 9. Caching and Runtime Resource Changes
 
-`ResourceBundle.getBundle` mặc định **có cache**. Khi một bundle đã được tải, các lần gọi sau có thể trả đối tượng đã cache, bao gồm quan hệ parent đã được thiết lập. Vì vậy:
+`ResourceBundle.getBundle` **caches by default**. Once a bundle is loaded, subsequent calls may return the cached object, including the already-wired parent relationships. Therefore:
 
-- Sửa tệp properties trên đĩa sau khi ứng dụng đang chạy **không đảm bảo** mọi lần `getBundle` lập tức nhìn thấy nội dung mới.
-- Thông thường, sửa bản dịch được phân phối thông qua build/deploy lại ứng dụng.
-- Nếu cần tải lại có kiểm soát, có thể cân nhắc chính sách TTL/reload với `ResourceBundle.Control` hoặc `ResourceBundle.clearCache(...)` tùy kiến trúc, nhưng việc xóa cache không bảo đảm một đối tượng `ResourceBundle` đã được giữ ở nơi khác tự cập nhật.
-- Dữ liệu ở bundle con, cha và root cần được cập nhật đồng bộ; một lần reload có thể phơi bày cấu hình chưa nhất quán nếu triển khai nhiều phiên bản không khớp.
-- Với named module và resource provider, cần tuân thủ API module tương ứng; không giả định mọi overload có `Control` đều dùng được.
+- Editing properties files on disk while the application is running **does not guarantee** that every `getBundle` call will immediately see the new content.
+- Typically, translation fixes are distributed by rebuilding/redeploying the application.
+- If controlled reloading is needed, consider a TTL/reload policy with `ResourceBundle.Control` or `ResourceBundle.clearCache(...)` depending on architecture, though clearing the cache does not guarantee that a `ResourceBundle` reference already held elsewhere updates itself.
+- Data across child, parent, and root bundles must be updated synchronously; a partial reload can expose inconsistent configuration if mismatched versions are deployed.
+- For named modules and resource providers, follow the corresponding module APIs; do not assume every overload taking `Control` is usable.
 
-Thay đổi `Locale.setDefault` cũng không phải cách “làm mới parent chain”: nó làm thay đổi lựa chọn locale mặc định toàn JVM, có thể ảnh hưởng người dùng khác và không giải quyết được cache hoặc dữ liệu thiếu.
+Changing `Locale.setDefault` is also not a way to "refresh the parent chain": it alters the JVM-wide default locale selection, can affect other users, and does not resolve caching or missing data.
 
-## 10. Lỗi thường gặp và cách sửa
+## 10. Common Mistakes and How to Fix Them
 
-| Lỗi | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Right approach |
 | --- | --- | --- |
-| Nhân bản tất cả key của cha sang bundle con | Bản dịch trùng lặp, khó cập nhật | Chỉ ghi override cần thiết ở bundle chuyên biệt |
-| Đặt `key=` ở con với ý định fallback | Giá trị rỗng che mất giá trị cha | Bỏ key ở con nếu muốn kế thừa |
-| Nghĩ `containsKey` chứng minh key có trong file `vi_VN` | Đếm sai độ phủ bản dịch | QA từng file trực tiếp, phân biệt inherited keys |
-| Nghĩ `getLocale()` chỉ ra file chứa từng key | Sai khi key được lấy từ parent | Theo dõi nguồn riêng trong công cụ QA nếu cần |
-| Dùng `messages_vi-VN.properties` | Không theo quy ước tên bundle chuẩn | Dùng `messages_vi_VN.properties` |
-| Chỉ tạo file root rồi gọi mọi locale và nghĩ đã dịch đủ | UI trộn hoặc chỉ hiện fallback | Kiểm tra chính sách locale hỗ trợ và chất lượng từng bản |
-| Cho rằng fallback chỉ xảy ra khi cả file thiếu | Bỏ qua cơ chế kế thừa từng key | Hiểu cả bước chọn bundle và tra khóa |
-| Cho rằng bundle con `extends` bundle cha ở Java source | Nhầm quan hệ ngôn ngữ với runtime parent chain | Để `ResourceBundle.getBundle` xây chain |
-| Sửa file runtime rồi chờ tự cập nhật | Cache vẫn giữ dữ liệu cũ | Chính sách reload/deploy rõ ràng |
-| Tự nối chuỗi thông báo từ nhiều khóa nhỏ | Sai ngữ pháp giữa ngôn ngữ | Dùng template hoàn chỉnh theo locale |
+| Duplicating all parent keys into child bundles | Duplicate translations, hard to update | Only write necessary overrides in specialized bundles |
+| Setting `key=` in child intending to fall back | Empty value shadows parent's value | Omit the key in child if inheritance is desired |
+| Thinking `containsKey` proves the key is in the `vi_VN` file | Miscounts translation coverage | QA each file directly, distinguishing inherited keys |
+| Thinking `getLocale()` indicates which file holds each key | Wrong when keys are fetched from a parent | Track origin separately in QA tooling if needed |
+| Using `messages_vi-VN.properties` | Does not match standard bundle naming rules | Use `messages_vi_VN.properties` |
+| Creating only the root file, calling any locale, and assuming it's translated | Mixed UI or only fallback shown | Check supported locale policy and per-bundle quality |
+| Assuming fallback only happens when an entire file is missing | Overlooks per-key inheritance | Understand both bundle selection and key lookup |
+| Assuming child bundle `extends` parent bundle in Java source | Confuses language relationship with runtime parent chain | Let `ResourceBundle.getBundle` build the chain |
+| Editing files at runtime and expecting auto-refresh | Cache keeps serving old data | Clear reload/deploy policy |
+| Concatenating messages from multiple small keys | Broken grammar across languages | Use complete locale-specific templates |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-Bắt đầu từ ba tệp của ví dụ chính, thử các thay đổi sau (mỗi thay đổi là một thí nghiệm riêng, không gộp tất cả cùng lúc):
+Starting from the three files in the main example, try the following changes (run each change as a separate experiment, not all at once):
 
-1. **Xóa `button.save` trong `messages_vi_VN.properties`:** dự đoán kết quả sẽ trở về `Lưu` từ `messages_vi.properties`. Chạy lại và so sánh.
-2. **Xóa tiếp `button.save` khỏi `messages_vi.properties`:** dự đoán giá trị sẽ là `Save` từ root.
-3. **Đặt `button.cancel=` trong `messages_vi_VN.properties`:** dự đoán `bundle.getString("button.cancel")` trả chuỗi rỗng; không còn kế thừa `Cancel`.
-4. **Xóa `messages_vi_VN.properties` khỏi classpath:** `getBundle` chọn `messages_vi` nếu file đó tồn tại. Kiểm tra `getLocale().toLanguageTag()`.
-5. **Xóa mọi phiên bản ngôn ngữ của một key:** dự đoán `MissingResourceException` khi gọi `getString`.
-6. **Thêm `messages_en.properties` rồi yêu cầu một locale không có bundle riêng:** quan sát ảnh hưởng của default JVM locale trong bước chọn bundle; cần phân biệt với fallback key qua parent.
-7. **Sắp xếp `keySet()`:** so sánh số khóa hiệu dụng với số khóa có trong từng file; chúng không nhất thiết bằng nhau do ghi đè và kế thừa.
+1. **Delete `button.save` from `messages_vi_VN.properties`:** predict the result will revert to `Lưu` from `messages_vi.properties`. Re-run and compare.
+2. **Also delete `button.save` from `messages_vi.properties`:** predict the value will be `Save` from root.
+3. **Set `button.cancel=` in `messages_vi_VN.properties`:** predict `bundle.getString("button.cancel")` returns an empty string; it no longer inherits `Cancel`.
+4. **Remove `messages_vi_VN.properties` from the classpath:** `getBundle` selects `messages_vi` if that file exists. Check `getLocale().toLanguageTag()`.
+5. **Delete every language version of a key:** predict `MissingResourceException` when calling `getString`.
+6. **Add `messages_en.properties` and request a locale with no dedicated bundle:** observe the effect of the default JVM locale during bundle selection; distinguish this from key fallback via parent.
+7. **Sort `keySet()`:** compare the effective key count with the number of keys present in each file; they need not be equal due to overrides and inheritance.
 
-Mỗi bài tập cho thấy một khía cạnh của cùng một mô hình: **bundle con ghi đè, bundle cha cung cấp phần còn thiếu, còn thuật toán chọn bundle xác định cây cha–con được sử dụng**.
+Each exercise highlights a different facet of the same model: **child bundles override, parent bundles supply what is missing, and the bundle selection algorithm determines which parent–child tree is used**.
 
-## 12. Điều cần ghi nhớ
+## 12. Key Takeaways
 
-Quan hệ giữa bundle con và bundle cha trong Java localization là **cơ chế tra cứu tài nguyên có thứ tự ưu tiên**. Với `messages_vi_VN`, `messages_vi`, `messages` có đủ trên classpath, lời gọi `getString` tìm khóa từ cụ thể đến tổng quát: con → cha ngôn ngữ → root. Cấp đầu tiên có khóa sẽ cung cấp giá trị; nếu cả chuỗi đều không có, chương trình nhận `MissingResourceException`.
+The child-to-parent bundle relationship in Java localization is a **priority-ordered resource lookup mechanism**. With `messages_vi_VN`, `messages_vi`, and `messages` all present on the classpath, `getString` looks up keys from specific to general: child → language parent → root. The first level containing the key provides the value; if none in the chain has it, the program receives `MissingResourceException`.
 
-Hãy tách bạch ba khái niệm khi thiết kế và gỡ lỗi: **ứng viên bundle được chọn**, **chuỗi parent được tạo**, và **key được tìm thấy ở cấp nào**. Tổ chức bundle theo mức độ chuyên biệt giúp tránh lặp bản dịch, nhưng vẫn cần QA nghiêm ngặt để không che mất các bản dịch còn thiếu.
+Keep three concepts distinct when designing and debugging: **which bundle candidate is selected**, **which parent chain is constructed**, and **at which level a key is found**. Organizing bundles by specificity avoids duplicating translations, but still requires strict QA so missing translations are not masked.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `ResourceBundle`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html
 - Java SE 17, `ResourceBundle.Control`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html

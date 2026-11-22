@@ -1,40 +1,40 @@
-# Tổng `BigDecimal` và chính sách `MathContext` trong Java
+# `BigDecimal` Sums and `MathContext` Policy in Java
 
-## 1. Tổng nhiều số thập phân cần chính sách rõ ràng
+## 1. Summing Multiple Decimals Requires a Clear Policy
 
-Khi cộng nhiều khoản tiền, phép đo hoặc giá trị nghiệp vụ, vấn đề không chỉ là lấy tổng mà còn là **tổng phải chính xác đến đâu**, **khi nào được làm tròn** và **quy tắc làm tròn nào được phép**.
+When adding multiple monetary amounts, measurements, or business values, the issue is not only getting the sum, but also **how accurate the sum must be**, **when rounding is permitted**, and **which rounding rule is allowed**.
 
-`BigDecimal` hỗ trợ hai cách cộng quan trọng:
+`BigDecimal` supports two important ways to add:
 
 ~~~java
 BigDecimal exact = left.add(right);
 BigDecimal limited = left.add(right, context);
 ~~~
 
-- `add(BigDecimal)` tính tổng **chính xác về mặt giá trị thập phân**. Phép cộng không mặc định giới hạn số chữ số có nghĩa.
-- `add(BigDecimal, MathContext)` áp dụng **precision** và **rounding mode** cho kết quả phép cộng. Nếu precision hữu hạn, một phần chữ số có thể bị làm tròn ngay ở bước đó.
-- “Cộng chính xác tất cả phần tử rồi làm tròn một lần” **có thể khác** “làm tròn ở mỗi lần cộng”. Đó là hai chính sách tính toán riêng.
+- `add(BigDecimal)` computes the sum **exactly in decimal value**. Addition does not limit significant digits by default.
+- `add(BigDecimal, MathContext)` applies **precision** and **rounding mode** to the addition result. If precision is finite, some digits may be rounded away right at that step.
+- "Add all elements exactly then round once" **can differ from** "round at every addition". Those are two distinct calculation policies.
 
-Nếu hợp đồng chỉ yêu cầu “lấy tổng rồi biểu diễn thành hai chữ số thập phân”, thường nên **cộng chính xác trước, áp scale cuối cùng**. Nếu đặc tả yêu cầu kết quả trung gian luôn giới hạn precision, hãy dùng `MathContext` ở từng phép tính và chấp nhận tác động của làm tròn tích lũy.
+If the contract only asks to "take the sum and represent it to two decimal places", you should normally **add exactly first, then apply scale at the end**. If the specification requires every intermediate result to have bounded precision, use `MathContext` on each operation and accept the effect of accumulated rounding.
 
-## 2. Kiến thức nền: giá trị, scale và precision
+## 2. Background: Value, Scale, and Precision
 
-Giá trị của một `BigDecimal` được xác định bởi:
+The value of a `BigDecimal` is determined by:
 
 ~~~text
 value = unscaledValue × 10^(-scale)
 ~~~
 
-| Chuỗi | Giá trị | Scale | Precision |
+| String | Value | Scale | Precision |
 | --- | --- | ---: | ---: |
 | `"1.20"` | 1.20 | 2 | 3 |
 | `"2.345"` | 2.345 | 3 | 4 |
 | `"0.005"` | 0.005 | 3 | 1 |
 | `"1234.00"` | 1234.00 | 2 | 6 |
 
-**Scale** quy định vị trí dấu thập phân; **precision** đếm số chữ số có nghĩa trong unscaled value. `MathContext(3, HALF_UP)` giới hạn **ba chữ số có nghĩa trên toàn bộ kết quả**, không phải ba chữ số sau dấu chấm.
+**Scale** specifies the decimal point position; **precision** counts the significant digits in the unscaled value. `MathContext(3, HALF_UP)` limits **three significant digits across the entire result**, not three digits after the decimal point.
 
-Phép cộng chính xác có *preferred scale* bằng giá trị lớn hơn giữa scale hai toán hạng. Ví dụ:
+Exact addition has a *preferred scale* equal to the larger of the two operands' scales. For example:
 
 ~~~java
 BigDecimal a = new BigDecimal("1.20");
@@ -44,15 +44,15 @@ System.out.println(result);         // 3.545
 System.out.println(result.scale()); // 3
 ~~~
 
-Cộng thêm `new BigDecimal("0.005")` được `3.550`, vẫn có scale 3. Giá trị toán học này bằng `3.55`; tuy nhiên `equals` còn xét scale nên `new BigDecimal("3.550").equals(new BigDecimal("3.55"))` là `false`, còn `compareTo` trả về 0.
+Adding `new BigDecimal("0.005")` gives `3.550`, still with scale 3. Its mathematical value equals `3.55`; however, `equals` also checks scale, so `new BigDecimal("3.550").equals(new BigDecimal("3.55"))` is `false`, whereas `compareTo` returns 0.
 
-Vì `BigDecimal` bất biến, mỗi phép `add` trả về một đối tượng kết quả; toán hạng không thay đổi. Cần gán kết quả cho biến tổng, không chỉ gọi `total.add(value)` rồi bỏ kết quả.
+Because `BigDecimal` is immutable, every `add` returns a new result object; the operands do not change. You must assign the result to the sum variable rather than calling `total.add(value)` and discarding the return value.
 
-## 3. Cộng chính xác trước khi xử lý đầu ra
+## 3. Summing Exactly Before Output Formatting
 
-### 3.1. Dùng vòng lặp
+### 3.1. Using a Loop
 
-Đoạn sau cần đặt trong một phương thức và import `java.math.BigDecimal`, `java.util.List`:
+The following snippet must be placed inside a method and import `java.math.BigDecimal`, `java.util.List`:
 
 ~~~java
 List<BigDecimal> amounts = List.of(
@@ -67,38 +67,38 @@ for (BigDecimal amount : amounts) {
 System.out.println(total); // 3.550
 ~~~
 
-`BigDecimal.ZERO` là phần tử trung hòa cho phép cộng về **giá trị**: bắt đầu với zero và lần lượt cộng các giá trị là cách đơn giản, minh bạch. Với danh sách rỗng, kết quả ở cách này là `BigDecimal.ZERO` (scale 0). Nếu đầu ra yêu cầu scale 2, có thể chuẩn hóa zero đó bằng `setScale(2)`.
+`BigDecimal.ZERO` is the additive identity by **numeric value**: starting at zero and adding values sequentially is simple and transparent. For an empty list, the result here is `BigDecimal.ZERO` (scale 0). If the output requires scale 2, you can normalize that zero using `setScale(2)`.
 
-### 3.2. Dùng `Stream.reduce`
+### 3.2. Using `Stream.reduce`
 
 ~~~java
 BigDecimal total = amounts.stream()
         .reduce(BigDecimal.ZERO, BigDecimal::add);
 ~~~
 
-Khi không truyền `MathContext`, cách này giữ nguyên chính sách **cộng chính xác**. Với stream rỗng, `reduce(identity, accumulator)` trả `BigDecimal.ZERO`. Nếu “không có bản ghi” phải khác với “tổng bằng 0”, có thể dùng overload:
+Without passing a `MathContext`, this preserves the **exact addition** policy. For an empty stream, `reduce(identity, accumulator)` returns `BigDecimal.ZERO`. If "no records" must be distinguished from "sum equals 0", use the overload:
 
 ~~~java
 Optional<BigDecimal> optionalTotal = amounts.stream()
         .reduce(BigDecimal::add);
 ~~~
 
-Overload này trả `Optional.empty()` khi không có phần tử. Đây là **đoạn mã minh họa**, cần import `java.util.Optional`.
+This overload returns `Optional.empty()` when there are no elements. This is an **illustrative snippet**, requiring `import java.util.Optional`.
 
-Không có phương thức tĩnh `BigDecimal.sum(List)` chuẩn giống `IntStream.sum()`. `reduce` hoặc vòng lặp là lựa chọn phổ biến.
+There is no standard static `BigDecimal.sum(List)` method like `IntStream.sum()`. `reduce` or a loop is the common choice.
 
-### 3.3. Chất lượng dữ liệu đầu vào
+### 3.3. Input Data Quality
 
-Hãy xây dựng các số thập phân từ chuỗi khi muốn bảo toàn số thập phân nguồn: `new BigDecimal("0.1")` có đúng giá trị 0.1, còn `new BigDecimal(0.1)` nhận giá trị `double` nhị phân đã làm tròn. Nếu dữ liệu đến từ `double`, `BigDecimal.valueOf(value)` thường phù hợp hơn constructor nhận `double`, nhưng không thể tự khôi phục văn bản thập phân gốc chưa biết.
+Construct decimal numbers from strings when you want to preserve the source decimal number: `new BigDecimal("0.1")` has the exact value 0.1, while `new BigDecimal(0.1)` receives the already-rounded binary `double` value. If data comes from a `double`, `BigDecimal.valueOf(value)` is usually preferable to the `double` constructor, though it still cannot recover unknown original decimal text.
 
-Danh sách chứa `null` không thể cộng trực tiếp; `BigDecimal.add(null)` sẽ gây lỗi. Phải có hợp đồng đầu vào: từ chối, loại bỏ bản ghi thiếu hoặc xem thiếu là 0 **chỉ khi nghiệp vụ cho phép**. Đừng âm thầm loại dữ liệu sai.
+A list containing `null` cannot be summed directly; `BigDecimal.add(null)` throws an error. Have an input contract: reject, drop missing records, or treat missing as 0 **only when business rules allow**. Do not silently discard bad data.
 
-## 4. `MathContext`: precision và rounding mode
+## 4. `MathContext`: Precision and Rounding Mode
 
-Một `MathContext` gồm hai thành phần:
+A `MathContext` has two parts:
 
-- `precision`: giới hạn số chữ số có nghĩa của kết quả. Giá trị 0 nghĩa là không giới hạn.
-- `roundingMode`: chính sách làm tròn khi số chữ số của kết quả vượt giới hạn, ví dụ `HALF_UP`, `HALF_EVEN`, `DOWN`, `UNNECESSARY`.
+- `precision`: limit on the number of significant digits in the result. A value of 0 means unlimited.
+- `roundingMode`: rounding policy when the result's digits exceed the limit, such as `HALF_UP`, `HALF_EVEN`, `DOWN`, `UNNECESSARY`.
 
 ~~~java
 MathContext mc = new MathContext(3, RoundingMode.HALF_UP);
@@ -107,15 +107,15 @@ System.out.println(new BigDecimal("1.234").round(mc)); // 1.23
 System.out.println(new BigDecimal("12345").round(mc)); // 1.23E+4
 ~~~
 
-Đoạn mã trên cần import `java.math.MathContext`, `java.math.BigDecimal`, `java.math.RoundingMode`. Khi precision hữu hạn, `BigDecimal.add(other, mc)` có thể làm tròn **mỗi tổng trung gian**.
+The snippet above requires importing `java.math.MathContext`, `java.math.BigDecimal`, and `java.math.RoundingMode`. When precision is finite, `BigDecimal.add(other, mc)` can round **each intermediate sum**.
 
-`MathContext.UNLIMITED` có precision 0. Dùng `add(other, MathContext.UNLIMITED)` cho tổng chính xác về giá trị như overload không có context, miễn thao tác không gặp vấn đề tài nguyên. Rounding mode không tạo khác biệt khi precision không giới hạn và không có chữ số nào cần bỏ.
+`MathContext.UNLIMITED` has precision 0. Using `add(other, MathContext.UNLIMITED)` produces an exact sum in value just like the overload without a context, provided the operation does not hit resource limits. The rounding mode makes no difference when precision is unlimited and no digits need to be dropped.
 
-## 5. Cộng rồi làm tròn một lần và làm tròn từng lần
+## 5. Sum Then Round Once vs. Round at Every Step
 
-Giả sử ta có `1.234`, `0.004`, `0.004` với precision 3 và `HALF_UP`.
+Suppose we have `1.234`, `0.004`, `0.004` with precision 3 and `HALF_UP`.
 
-**Chính sách A — Cộng chính xác rồi làm tròn cuối:**
+**Policy A — Sum exactly, then round at the end:**
 
 ~~~java
 BigDecimal exact = BigDecimal.ZERO;
@@ -125,7 +125,7 @@ for (BigDecimal x : values) {
 BigDecimal roundedOnce = exact.round(mc);
 ~~~
 
-**Chính sách B — Mỗi phép cộng áp `MathContext`:**
+**Policy B — Apply `MathContext` on every addition:**
 
 ~~~java
 BigDecimal roundedEveryStep = BigDecimal.ZERO;
@@ -134,22 +134,22 @@ for (BigDecimal x : values) {
 }
 ~~~
 
-| Bước | A: Tổng chính xác | B: Tổng làm tròn từng bước |
+| Step | A: Exact sum | B: Step-by-step rounded sum |
 | --- | ---: | ---: |
-| Cộng `1.234` | 1.234 | 1.23 |
-| Cộng `0.004` | 1.238 | 1.23 |
-| Cộng `0.004` | 1.242 | 1.23 |
-| Áp precision 3 tại cuối | **1.24** | **1.23** |
+| Add `1.234` | 1.234 | 1.23 |
+| Add `0.004` | 1.238 | 1.23 |
+| Add `0.004` | 1.242 | 1.23 |
+| Apply precision 3 at the end | **1.24** | **1.23** |
 
-Đối với A, `1.242` làm tròn một lần thành `1.24`. Với B, `1.234` bị làm tròn thành `1.23` ngay ở bước đầu. Hai giá trị `0.004` không đủ lớn để thay đổi từng tổng đã bị làm tròn, nên kết quả cuối vẫn `1.23`.
+For A, `1.242` rounds once to `1.24`. For B, `1.234` is rounded to `1.23` at the very first step. The two `0.004` values are not large enough to change the already-rounded sums, so the final result remains `1.23`.
 
-Đây là **mất đóng góp do làm tròn trung gian**. Không thể khôi phục các chữ số đã bị loại ở một bước trước chỉ bằng việc cộng thêm những giá trị khác.
+This is **loss of contribution due to intermediate rounding**. Digits dropped in an earlier step cannot be recovered merely by adding subsequent values.
 
-Chính sách B không phải lúc nào cũng sai: nếu một thuật toán quy định precision hữu hạn cho **từng phép tính**, đó là hành vi được chủ đích. Nhưng khi đặc tả là “tổng các khoản chính xác rồi mới làm tròn”, phải áp dụng A.
+Policy B is not always wrong: if an algorithm specifies finite precision for **each operation**, that is the intended behavior. Yet when the specification says "sum amounts exactly and then round", Policy A must be used.
 
-## 6. Rounding mode ảnh hưởng thế nào?
+## 6. How Does Rounding Mode Affect the Result?
 
-Các chính sách làm tròn có thể khác nhau ngay cả khi precision giống nhau. Ví dụ:
+Rounding policies can differ even when precision is identical. For example:
 
 ~~~java
 BigDecimal x = new BigDecimal("2.345");
@@ -161,26 +161,26 @@ System.out.println(x.round(halfEven)); // 2.34
 System.out.println(x.round(halfUp));   // 2.35
 ~~~
 
-Ở trường hợp đúng nửa đơn vị, `HALF_EVEN` ưu tiên chữ số cuối được giữ lại là số chẵn; `HALF_UP` làm tròn theo hướng tăng độ lớn khi đúng nửa. Không có một rounding mode “đúng cho mọi nghiệp vụ”.
+At an exact midpoint, `HALF_EVEN` prefers the retained last digit to be even; `HALF_UP` rounds away from zero at midpoints. There is no single rounding mode "right for every business domain".
 
-`RoundingMode.UNNECESSARY` yêu cầu **kết quả phải chính xác mà không cần loại chữ số khác 0**. Nếu tổng chính xác không thể biểu diễn dưới precision/scale yêu cầu mà vẫn giữ giá trị, thao tác sẽ ném `ArithmeticException`.
+`RoundingMode.UNNECESSARY` requires **the result to be exact without discarding any non-zero digits**. If the exact sum cannot be represented under the required precision/scale while preserving its value, the operation throws `ArithmeticException`.
 
 ~~~java
 MathContext strict = new MathContext(3, RoundingMode.UNNECESSARY);
 
-new BigDecimal("3.550").round(strict); // 3.55, hợp lệ: bỏ zero dư
+new BigDecimal("3.550").round(strict); // 3.55, valid: drops trailing zero
 
-// Ném ArithmeticException:
+// Throws ArithmeticException:
 // new BigDecimal("1.242").round(strict);
 ~~~
 
-Chú ý: `UNNECESSARY` có thể bỏ những số 0 tận cùng; nó **không** có nghĩa là cấm thay đổi cách biểu diễn.
+Note: `UNNECESSARY` can strip trailing zeros; it **does not** forbid changing the representation.
 
-## 7. Thứ tự cộng và tính kết hợp
+## 7. Addition Order and Associativity
 
-Phép cộng số học chính xác có tính kết hợp: `(a + b) + c = a + (b + c)`. Nhưng nếu làm tròn **mỗi phép cộng**, kết quả có thể phụ thuộc thứ tự.
+Exact arithmetic addition is associative: `(a + b) + c = a + (b + c)`. However, if you round **every addition**, the result can depend on order.
 
-Xét ba giá trị `1000`, `1`, `-1000`, precision 3 và `HALF_UP`:
+Consider the three values `1000`, `1`, `-1000`, precision 3 and `HALF_UP`:
 
 ~~~java
 BigDecimal a = new BigDecimal("1000");
@@ -195,14 +195,14 @@ System.out.println(first);  // 0
 System.out.println(second); // 1
 ~~~
 
-Trong thứ tự thứ nhất, `1000 + 1 = 1001` bị làm tròn về `1.00E+3`, rồi cộng `-1000` thành 0. Trong thứ tự thứ hai, `1000 + (-1000) = 0`, rồi cộng 1 thành 1. **Tổng chính xác luôn là 1.**
+In the first order, `1000 + 1 = 1001` rounds to `1.00E+3`, and adding `-1000` yields 0. In the second order, `1000 + (-1000) = 0`, and adding 1 yields 1. **The exact sum is always 1.**
 
-Điều này dẫn tới quy tắc quan trọng đối với `Stream.reduce`:
+This leads to an important rule for `Stream.reduce`:
 
-- Với `BigDecimal::add` **không truyền context**, phép cộng kết hợp về giá trị và có thể dùng trong parallel stream nếu mọi phần tử hợp lệ, không có side effect.
-- Với lambda `(a, b) -> a.add(b, mc)` khi precision hữu hạn, phép toán có thể **không còn kết hợp**. Parallel reduction có thể gom nhóm khác nhau và cho kết quả khác nhau. Tránh dùng accumulator kiểu này trong `parallelStream` nếu không có thiết kế thuật toán và kiểm chứng riêng.
+- With `BigDecimal::add` **without a context**, addition is associative by value and can be used in parallel streams if all elements are valid and side-effect-free.
+- With a lambda `(a, b) -> a.add(b, mc)` using finite precision, the operation may **no longer be associative**. Parallel reduction can group differently and yield different results. Avoid using this kind of accumulator in `parallelStream` without dedicated algorithmic design and verification.
 
-Mẫu an toàn hơn cho bài toán “tổng chính xác rồi làm tròn”:
+A safer pattern for "sum exactly then round":
 
 ~~~java
 BigDecimal exact = values.parallelStream()
@@ -210,11 +210,11 @@ BigDecimal exact = values.parallelStream()
 BigDecimal result = exact.round(mc);
 ~~~
 
-Cần bảo đảm đầu vào không chứa `null` và danh sách không bị sửa trong khi tính tổng. `BigDecimal` bất biến nên bản thân phép cộng trên các giá trị hợp lệ không có side effect.
+Ensure inputs contain no `null` and the list is not modified during summation. Because `BigDecimal` is immutable, adding valid values has no side effects.
 
-## 8. Đừng nhầm giới hạn precision với scale đầu ra
+## 8. Do Not Confuse Precision Limit with Output Scale
 
-Ví dụ với dữ liệu khoản tiền:
+Example with monetary amounts:
 
 ~~~java
 BigDecimal total = new BigDecimal("1.20")
@@ -227,18 +227,18 @@ BigDecimal normalized = total.setScale(2, RoundingMode.HALF_EVEN);
 System.out.println(normalized); // 3.55
 ~~~
 
-`setScale(2, ...)` yêu cầu **2 chữ số sau dấu chấm**. `new MathContext(2, ...)` lại giới hạn **2 chữ số có nghĩa**, kể cả phần nguyên. Với số lớn, hai chính sách tạo ra kết quả rất khác nhau.
+`setScale(2, ...)` requires **2 digits after the decimal point**. `new MathContext(2, ...)` instead limits **2 significant digits total**, including the integer part. For large numbers, the two policies produce vastly different results.
 
-Nếu nghiệp vụ **không cho phép làm tròn** khi chuẩn hóa scale, dùng:
+If business rules **prohibit rounding** when normalizing scale, use:
 
 ~~~java
 BigDecimal normalized =
         total.setScale(2, RoundingMode.UNNECESSARY);
 ~~~
 
-`3.550` đổi chính xác thành `3.55` vì chỉ bỏ zero dư. Nhưng `3.551` không thể biểu diễn chính xác với scale 2 nên sẽ ném `ArithmeticException`.
+`3.550` converts exactly to `3.55` because only a trailing zero is removed. However, `3.551` cannot be represented exactly with scale 2 and will throw `ArithmeticException`.
 
-Nếu cần giới hạn cả scale và tổng precision, hãy ghi rõ **thứ tự kiểm tra**:
+If you need to enforce both scale and total precision, specify **the order of checks** clearly:
 
 ~~~java
 BigDecimal scaled = total.setScale(2, RoundingMode.HALF_EVEN);
@@ -246,11 +246,11 @@ BigDecimal checked = scaled.round(
         new MathContext(12, RoundingMode.UNNECESSARY));
 ~~~
 
-Chính sách ví dụ: cho phép làm tròn tổng một lần về scale 2, sau đó yêu cầu biểu diễn được trong 12 chữ số có nghĩa mà không làm tròn thêm. Kiểm tra precision không thay thế kiểm tra miền giá trị, loại tiền hoặc giới hạn dữ liệu của cơ sở dữ liệu.
+Example policy: allow rounding the sum once to scale 2, then require it to fit within 12 significant digits without further rounding. Precision checks do not replace domain range checks, currency validation, or database column limits.
 
-## 9. Chương trình Java 17+ hoàn chỉnh
+## 9. Complete Java 17+ Program
 
-Lưu tệp **BigDecimalSumPolicyDemo.java**:
+Save as **BigDecimalSumPolicyDemo.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -329,14 +329,14 @@ public class BigDecimalSumPolicyDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac BigDecimalSumPolicyDemo.java
 java BigDecimalSumPolicyDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 exact total: 1.242
@@ -354,11 +354,11 @@ half even: 2.34
 half up: 2.35
 ~~~
 
-Chương trình chứng minh sự khác biệt giữa hai chính sách tổng, sự phụ thuộc vào thứ tự khi làm tròn ở mỗi lần cộng, chuẩn hóa về scale đầu ra, `UNNECESSARY` khi bắt buộc chính xác, và phép cộng chính xác trong parallel stream.
+The program demonstrates the difference between the two summation policies, order dependence when rounding at every addition, normalization to an output scale, `UNNECESSARY` when exactness is mandatory, and exact addition in a parallel stream.
 
-## 10. Mẫu thiết kế tổng cho ứng dụng
+## 10. Application Summation Design Patterns
 
-### 10.1. Chính sách tổng cuối, làm tròn cuối
+### 10.1. Exact Sum, Round at the End Policy
 
 ~~~java
 public static BigDecimal sumToTwoDecimals(List<BigDecimal> values) {
@@ -370,11 +370,11 @@ public static BigDecimal sumToTwoDecimals(List<BigDecimal> values) {
 }
 ~~~
 
-Đây là **phương thức để đặt trong một class**, cần import `BigDecimal`, `RoundingMode`, `List`. Hàm hợp với quy tắc “cộng tất cả giá trị chính xác rồi trả kết quả scale 2 theo `HALF_EVEN`”. Nếu bị cấm làm tròn, đổi sang `UNNECESSARY` và xử lý lỗi.
+This is a **method to place inside a class**, requiring imports for `BigDecimal`, `RoundingMode`, and `List`. It matches the rule "add all values exactly then return a scale-2 result using `HALF_EVEN`". If rounding is prohibited, switch to `UNNECESSARY` and handle the error.
 
-Cần quy định trước liệu danh sách rỗng có đại diện tổng bằng `0.00` hay một trạng thái không có dữ liệu. Hàm trên trả `0.00` trong trường hợp rỗng, do `setScale(2)` trên zero.
+Decide in advance whether an empty list represents a total of `0.00` or a no-data state. The function above returns `0.00` when empty due to `setScale(2)` on zero.
 
-### 10.2. Khi thực sự cần `MathContext` mỗi lần cộng
+### 10.2. When You Truly Need `MathContext` on Every Addition
 
 ~~~java
 BigDecimal total = BigDecimal.ZERO;
@@ -383,35 +383,35 @@ for (BigDecimal value : values) {
 }
 ~~~
 
-Chỉ nên chọn cách này khi **precision trung gian** được chỉ định trong hợp đồng tính toán, ví dụ thuật toán mô phỏng số học hữu hạn, hoặc cần tái tạo kết quả của một quy trình xử lý đã có quy định làm tròn theo bước. Chú ý thứ tự duyệt phải có ý nghĩa xác định; test với số rất lớn, số rất nhỏ và các phần tử có dấu ngược nhau dễ triệt tiêu.
+Choose this only when **intermediate precision** is specified by the computation contract—such as an algorithm simulating finite-precision arithmetic, or reproducing an existing step-by-step rounded process. Ensure traversal order is deterministic; test with very large numbers, very small numbers, and cancelling opposite-sign elements.
 
-### 10.3. Tối ưu hiệu năng không được làm đổi hợp đồng
+### 10.3. Performance Optimization Must Not Alter the Contract
 
-Các đối tượng `BigDecimal` bất biến, nên việc cộng nhiều phần tử có thể cấp phát nhiều đối tượng và tốn tài nguyên với giá trị/scale rất lớn. Tuy nhiên, giới hạn precision ở từng bước để giảm chi phí **có thể thay đổi tổng**. Đây là lựa chọn thuật toán cần kiểm chứng với sai số cho phép; không phải một tối ưu hóa bảo toàn hoàn toàn ngữ nghĩa.
+`BigDecimal` objects are immutable, so adding many elements can allocate many objects and consume significant resources for very large values or scales. However, bounding precision at each step to cut cost **can change the sum**. That is an algorithmic choice requiring validation against permitted error, not a purely semantics-preserving optimization.
 
-Với bài toán tài chính dùng đơn vị nhỏ nhất cố định, biểu diễn bằng số nguyên cũng có thể phù hợp, nhưng cần một chính sách khác cho scale, overflow và đơn vị tiền. Không chuyển kiểu chỉ vì tốc độ trước khi xác định đúng hợp đồng.
+For financial problems with a fixed smallest unit, integer representation may also fit, though it requires a different policy for scale, overflow, and currency units. Do not switch types purely for speed before establishing the right contract.
 
-## 11. Lỗi phổ biến và câu hỏi tự kiểm tra
+## 11. Common Mistakes and Self-Check Questions
 
-| Hiểu lầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| `MathContext(2, HALF_UP)` cho ra 2 chữ số sau dấu chấm | Nó cho tối đa **2 chữ số có nghĩa**; dùng `setScale(2, ...)` cho phần thập phân |
-| Cộng với `MathContext` mỗi bước tương đương cộng chính xác rồi làm tròn | Có thể mất các đóng góp nhỏ và cho tổng khác |
-| Đổi thứ tự cộng không ảnh hưởng khi có context | Làm tròn trung gian có thể phá vỡ tính kết hợp |
-| `parallelStream` với accumulator `add(mc)` luôn an toàn | Accumulator có thể không kết hợp, làm kết quả tùy cách nhóm |
-| `BigDecimal.ZERO` đã có scale 2 | Zero mặc định có scale 0; chuẩn hóa sau theo hợp đồng |
-| `UNNECESSARY` bỏ qua xử lý làm tròn | Nó **báo lỗi** nếu phải thay đổi giá trị để đạt precision/scale mong muốn |
-| `equals` và `compareTo` giống nhau | `equals` còn so scale; `compareTo` xét giá trị |
-| `new BigDecimal(0.1)` luôn chính xác số thập phân 0.1 | Constructor nhận giá trị `double` nhị phân đã làm tròn |
+| `MathContext(2, HALF_UP)` gives 2 decimal places | It gives at most **2 significant digits**; use `setScale(2, ...)` for fractional places |
+| Adding with `MathContext` each step equals exact sum then round | Small contributions can be lost, giving a different total |
+| Changing addition order has no effect when using a context | Intermediate rounding can break associativity |
+| `parallelStream` with `add(mc)` accumulator is always safe | The accumulator may be non-associative, making results depend on grouping |
+| `BigDecimal.ZERO` already has scale 2 | Default zero has scale 0; normalize afterward per contract |
+| `UNNECESSARY` skips rounding | It **throws an error** if value must change to meet target precision/scale |
+| `equals` and `compareTo` are identical | `equals` also compares scale; `compareTo` compares numeric value |
+| `new BigDecimal(0.1)` always equals exact decimal 0.1 | Constructor receives the already-rounded binary `double` value |
 
-Tự kiểm tra:
+Self-check:
 
-1. Tổng chính xác của `1.234 + 0.004 + 0.004`? **`1.242`**.
-2. Làm tròn tổng đó một lần với precision 3, `HALF_UP`? **`1.24`**.
-3. Nếu làm tròn sau từng phép cộng cùng context? **`1.23`**.
-4. Vì sao `1000 + 1 - 1000` có thể ra 0 với precision 3? **Làm tròn mất đơn vị 1 ở bước đầu**, trong khi tổng chính xác là 1.
-5. Muốn đầu ra luôn có hai chữ số sau dấu chấm thì dùng gì? **`setScale(2, roundingMode)`** sau khi tổng đã tính theo hợp đồng.
-6. Có thể dùng `BigDecimal::add` làm accumulator cho tổng chính xác trong parallel stream không? **Có**, nếu dữ liệu hợp lệ và không có tác dụng phụ.
-7. `RoundingMode.UNNECESSARY` phù hợp lúc nào? **Khi ràng buộc precision hoặc scale phải được đáp ứng mà không đổi giá trị**; nếu không thể, thao tác ném `ArithmeticException`.
+1. Exact sum of `1.234 + 0.004 + 0.004`? **`1.242`**.
+2. Round that total once with precision 3, `HALF_UP`? **`1.24`**.
+3. If rounding after each addition with the same context? **`1.23`**.
+4. Why can `1000 + 1 - 1000` yield 0 with precision 3? **Rounding drops the 1 at the first step**, whereas the exact sum is 1.
+5. What should be used to ensure output always has two digits after the decimal point? **`setScale(2, roundingMode)`** after the sum is computed per contract.
+6. Can `BigDecimal::add` be used as the accumulator for an exact sum in a parallel stream? **Yes**, if data is valid and side-effect-free.
+7. When is `RoundingMode.UNNECESSARY` appropriate? **When a precision or scale constraint must be met without changing the value**; if impossible, the operation throws `ArithmeticException`.
 
-**Ghi nhớ:** Tách ba quyết định: **cộng chính xác bằng `add`**, **giới hạn chữ số có nghĩa bằng `MathContext`**, và **chuẩn hóa chữ số sau dấu chấm bằng `setScale`**. Thời điểm áp chính sách làm tròn ảnh hưởng trực tiếp kết quả, khả năng song song hóa và tính nhất quán nghiệp vụ.
+**Remember:** Separate three decisions: **exact addition via `add`**, **significant-digit bounds via `MathContext`**, and **decimal-place normalization via `setScale`**. When rounding policies are applied directly affects results, parallelizability, and business consistency.

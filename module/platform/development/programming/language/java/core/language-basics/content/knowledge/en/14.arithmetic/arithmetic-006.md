@@ -1,14 +1,14 @@
-# Tràn số nguyên không tự động ném ngoại lệ trong Java
+# Integer Overflow Does Not Automatically Throw an Exception in Java
 
-> **Java core — language-basics / Số học**  
-> **Môi trường:** JDK 17+; chỉ dùng thư viện chuẩn Java.  
-> **Mục tiêu:** Nhận diện tràn số ở `int`/`long`, hiểu vì sao phép tính vẫn tiếp tục mà **không tự ném ngoại lệ**, và biết cách chọn `Math.*Exact`, chuyển kiểu đúng thời điểm hoặc `BigInteger` để không âm thầm mất kết quả.
+> **Java core — language-basics / Arithmetic**  
+> **Environment:** JDK 17+; using only the Java standard library.  
+> **Objectives:** Recognize overflow in `int`/`long`, understand why calculations continue without **automatically throwing an exception**, and know how to choose `Math.*Exact`, timely type widening, or `BigInteger` so results are not silently lost.
 
-## 1. Thế nào là tràn số nguyên?
+## 1. What Is Integer Overflow?
 
-`int` là kiểu nguyên **32 bit có dấu**, từ **-2.147.483.648** đến **2.147.483.647**. `long` là kiểu nguyên **64 bit có dấu**, từ **-9.223.372.036.854.775.808** đến **9.223.372.036.854.775.807**.
+`int` is a **32-bit signed** integer type, from **-2,147,483,648** to **2,147,483,647**. `long` is a **64-bit signed** integer type, from **-9,223,372,036,854,775,808** to **9,223,372,036,854,775,807**.
 
-Một phép cộng, trừ hoặc nhân có kết quả toán học vượt miền biểu diễn sẽ **tràn số** (*integer overflow*).
+An addition, subtraction, or multiplication whose mathematical result exceeds the representable range will **overflow** (*integer overflow*).
 
 ~~~java
 int max = Integer.MAX_VALUE; // 2147483647
@@ -16,18 +16,18 @@ int wrapped = max + 1;
 System.out.println(wrapped); // -2147483648
 ~~~
 
-Java **không tự động ném `ArithmeticException` khi cộng, trừ hoặc nhân tràn `int`/`long`**. Phần bit kết quả còn lại được diễn giải theo biểu diễn số nguyên có dấu, nên kết quả có thể đổi dấu hoặc khác xa giá trị toán học mong đợi.
+Java **does not automatically throw `ArithmeticException` when addition, subtraction, or multiplication overflows `int`/`long`**. The remaining result bits are interpreted under signed integer representation, so the result can flip sign or differ wildly from the expected mathematical value.
 
-- `int` sử dụng 32 bit; phép toán nguyên tràn có hiệu ứng quay vòng theo **modulo `2^32`**.
-- `long` sử dụng 64 bit; tương tự theo **modulo `2^64`**.
-- Điều này là hành vi **được Java quy định**, không phải hành vi ngẫu nhiên hoặc lỗi bộ nhớ.
-- `float`/`double` dùng quy tắc số thực khác: có thể ra `Infinity`/`NaN`. Chúng không phải giải pháp giữ nguyên mọi giá trị nguyên.
+- `int` uses 32 bits; overflowing integer operations wrap around **modulo `2^32`**.
+- `long` uses 64 bits; similarly **modulo `2^64`**.
+- This is behavior **specified by Java**, not random behavior or a memory bug.
+- `float`/`double` follow different floating-point rules: they can produce `Infinity`/`NaN`. They are not a solution for preserving every integer value.
 
-**Kết luận:** Chương trình chạy thành công **không chứng minh phép tính đúng về mặt toán học**.
+**Conclusion:** A program that runs successfully **does not prove the calculation is mathematically correct**.
 
-## 2. Các phép toán dễ tràn nhưng vẫn chạy
+## 2. Operations That Overflow Easily Yet Keep Running
 
-| Biểu thức | Giá trị toán học | Kết quả `int` thực tế |
+| Expression | Mathematical Value | Actual `int` Result |
 | --- | ---: | ---: |
 | `Integer.MAX_VALUE + 1` | 2147483648 | -2147483648 |
 | `Integer.MIN_VALUE - 1` | -2147483649 | 2147483647 |
@@ -35,38 +35,38 @@ Java **không tự động ném `ArithmeticException` khi cộng, trừ hoặc n
 | `-Integer.MIN_VALUE` | 2147483648 | -2147483648 |
 | `Integer.MIN_VALUE / -1` | 2147483648 | -2147483648 |
 
-Phép `Integer.MIN_VALUE / -1` là **trường hợp đặc biệt**: phép chia nguyên này có kết quả toán học vượt `int`, Java vẫn trả `Integer.MIN_VALUE` mà **không ném ngoại lệ**. Phần dư `Integer.MIN_VALUE % -1` bằng **0**.
+The operation `Integer.MIN_VALUE / -1` is a **special case**: this integer division has a mathematical result exceeding `int`, yet Java still returns `Integer.MIN_VALUE` without **throwing an exception**. The remainder `Integer.MIN_VALUE % -1` equals **0**.
 
-Tương tự với `long`:
+Similarly with `long`:
 
 ~~~java
 long max = Long.MAX_VALUE;
 System.out.println(max + 1L); // -9223372036854775808
 ~~~
 
-Thao tác tăng `++`, giảm `--` hoặc gán cộng `+=` cũng có thể tràn khi tính và lưu vào kiểu nguyên. Ví dụ `int n = Integer.MAX_VALUE; n++;` khiến `n` trở thành `Integer.MIN_VALUE`.
+Increment `++`, decrement `--`, or compound addition `+=` can also overflow when computing and storing into an integer type. For example, `int n = Integer.MAX_VALUE; n++;` causes `n` to become `Integer.MIN_VALUE`.
 
-## 3. Chuyển sang `long`: phải làm **trước** phép tính
+## 3. Converting to `long`: Must Be Done **Before** the Calculation
 
-Một bẫy thường gặp:
+A common trap:
 
 ~~~java
 int max = Integer.MAX_VALUE;
 
-long wrong = max + 1;        // -2147483648, rồi mới mở rộng sang long.
-long right = (long) max + 1; // 2147483648, phép cộng thực hiện bằng long.
+long wrong = max + 1;        // -2147483648, then widened to long.
+long right = (long) max + 1; // 2147483648, addition performed in long.
 ~~~
 
-Trong `long wrong = max + 1`, hai toán hạng đều có kiểu `int` nên **cộng kiểu `int` trước**, tràn rồi mới gán sang `long`. Kiểu biến đích không cứu được phép toán đã xảy ra.
+In `long wrong = max + 1`, both operands have type `int`, so **`int` addition runs first**, overflows, and is then assigned to `long`. The target variable's type cannot rescue an operation that already happened.
 
-Ngay cả cast sau ngoặc cũng quá muộn:
+Even casting after parentheses is too late:
 
 ~~~java
 long wrongAgain = (long) (max + 1); // -2147483648
 long rightAgain = ((long) max) + 1; // 2147483648
 ~~~
 
-**Đối với phép nhân**, hãy chuyển toán hạng trước phép nhân:
+**For multiplication**, convert an operand before multiplying:
 
 ~~~java
 int a = 50_000, b = 50_000;
@@ -74,23 +74,23 @@ long wrongProduct = a * b;         // -1794967296
 long rightProduct = (long) a * b; // 2500000000
 ~~~
 
-**Giới hạn:** `long` cũng có thể tràn. Việc chuyển `int` sang `long` chỉ giải quyết được khi kết quả **nằm trong miền `long`**; không có kiểu primitive nguyên nào của Java tự mở rộng vô hạn.
+**Limit:** `long` can also overflow. Converting `int` to `long` only solves the issue when the result **fits within the `long` range**; no primitive integer type in Java expands infinitely on its own.
 
-## 4. Muốn phát hiện tràn: dùng các phép toán `Math.*Exact`
+## 4. To Detect Overflow: Use `Math.*Exact` Operations
 
-Java có các API **kiểm tra tràn** chủ động. Khi kết quả không nằm trong miền kiểu số nguyên được yêu cầu, chúng ném **`ArithmeticException`**:
+Java provides proactive **overflow-checking** APIs. When the result does not fit in the requested integer type's range, they throw **`ArithmeticException`**:
 
-| Phương thức | Vai trò |
+| Method | Role |
 | --- | --- |
-| `Math.addExact(a, b)` | Cộng, phát hiện tràn |
-| `Math.subtractExact(a, b)` | Trừ, phát hiện tràn |
-| `Math.multiplyExact(a, b)` | Nhân, phát hiện tràn |
-| `Math.incrementExact(a)` | Tăng 1, phát hiện tràn |
-| `Math.decrementExact(a)` | Giảm 1, phát hiện tràn |
-| `Math.negateExact(a)` | Đổi dấu, phát hiện trường hợp giá trị nhỏ nhất |
-| `Math.toIntExact(value)` | Chuyển `long` sang `int`, kiểm tra ngoài miền |
+| `Math.addExact(a, b)` | Add, detect overflow |
+| `Math.subtractExact(a, b)` | Subtract, detect overflow |
+| `Math.multiplyExact(a, b)` | Multiply, detect overflow |
+| `Math.incrementExact(a)` | Increment by 1, detect overflow |
+| `Math.decrementExact(a)` | Decrement by 1, detect overflow |
+| `Math.negateExact(a)` | Negate sign, detect minimum-value case |
+| `Math.toIntExact(value)` | Convert `long` to `int`, check out-of-range |
 
-Ví dụ:
+Example:
 
 ~~~java
 int a = Integer.MAX_VALUE;
@@ -103,29 +103,29 @@ try {
 }
 ~~~
 
-Khi hệ thống yêu cầu **không được sai một đơn vị**, dùng API checked arithmetic có ý nghĩa hơn tự ngầm chấp nhận phép tính quay vòng. Đừng dùng `Math.addExact` trên một kết quả **đã tràn trước đó** rồi hy vọng nó có thể khôi phục giá trị gốc: phải gọi hàm kiểm tra **ngay tại phép tính có nguy cơ tràn**.
+When a system requires **zero tolerance for off-by-even-one errors**, using checked arithmetic APIs makes more sense than silently accepting wrap-around arithmetic. Do not call `Math.addExact` on a result that **already overflowed earlier** hoping it can recover the original value: you must call the checking method **right at the calculation that risks overflowing**.
 
-## 5. Chia cho 0 là ngoại lệ khác
+## 5. Division by 0 Is a Different Exception
 
-Đừng nhầm **tràn số** với **chia nguyên cho 0**:
+Do not confuse **integer overflow** with **integer division by 0**:
 
 ~~~java
 int a = 10;
 int zero = 0;
-// a / zero; // ArithmeticException tại runtime.
-// a % zero; // ArithmeticException tại runtime.
+// a / zero; // ArithmeticException at runtime.
+// a % zero; // ArithmeticException at runtime.
 ~~~
 
-- `int`/`long` chia hoặc lấy phần dư cho **0** → `ArithmeticException`.
-- `int`/`long` cộng, trừ, nhân bị tràn → **không tự ném**.
-- `Integer.MIN_VALUE / -1` → **tràn theo quy tắc đặc biệt nhưng không ném**.
-- `Math.addExact`/`multiplyExact`/`negateExact`... → **có ném** nếu không thể biểu diễn chính xác.
+- `int`/`long` division or remainder by **0** → `ArithmeticException`.
+- `int`/`long` addition, subtraction, multiplication overflow → **does not throw automatically**.
+- `Integer.MIN_VALUE / -1` → **overflows under a special rule without throwing**.
+- `Math.addExact`/`multiplyExact`/`negateExact`... → **throws** if not exactly representable.
 
-Nếu mẫu số có thể bằng 0, cần kiểm tra đầu vào. Việc chọn API `Exact` không thay thế guard chia cho 0.
+If the divisor can be 0, you must validate inputs. Choosing `Exact` APIs does not replace a divide-by-zero guard.
 
-## 6. Chương trình Java 17+ chạy độc lập
+## 6. Standalone Runnable Java 17+ Program
 
-Tạo file **IntegerOverflowDemo.java**:
+Create the file **IntegerOverflowDemo.java**:
 
 ~~~java
 import java.math.BigInteger;
@@ -177,14 +177,14 @@ public final class IntegerOverflowDemo {
 }
 ~~~
 
-Mở terminal tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Open a terminal in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 IntegerOverflowDemo.java
 java IntegerOverflowDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 addWrap=-2147483648
@@ -205,11 +205,11 @@ divideZero=ArithmeticException
 bigInteger=9223372036854775808
 ~~~
 
-Các dòng `addWrap`, `subtractWrap`, `multiplyWrap`, `longWrap` và `minDivNegOne` **không có exception**, mặc dù giá trị toán học không vừa kiểu đích. Các dòng `...Exact=ArithmeticException` cho thấy ngoại lệ chỉ xuất hiện khi chủ động dùng phép tính có kiểm tra. `divideZero` là lỗi **chia nguyên cho 0**, độc lập với tràn số.
+The lines `addWrap`, `subtractWrap`, `multiplyWrap`, `longWrap`, and `minDivNegOne` **produce no exception**, even though the mathematical value does not fit in the target type. The `...Exact=ArithmeticException` lines show that an exception only appears when proactively using checked operations. `divideZero` is an **integer divide-by-zero** error, independent of overflow.
 
-## 7. Khi kết quả vượt cả `long`: dùng `BigInteger`
+## 7. When Results Exceed Even `long`: Use `BigInteger`
 
-`BigInteger` trong `java.math` lưu số nguyên với độ lớn không bị giới hạn bởi 32/64 bit primitive (trong thực tế còn giới hạn bộ nhớ):
+`BigInteger` in `java.math` stores integers with magnitude not limited by 32/64-bit primitives (in practice limited only by memory):
 
 ~~~java
 BigInteger x = BigInteger.valueOf(Long.MAX_VALUE);
@@ -217,31 +217,31 @@ BigInteger y = x.add(BigInteger.ONE);
 System.out.println(y); // 9223372036854775808
 ~~~
 
-Các phép tính với `BigInteger` dùng method như `add`, `subtract`, `multiply`. Nó **không** hỗ trợ viết `x + y` như primitive.
+Operations on `BigInteger` use methods such as `add`, `subtract`, `multiply`. It **does not** support writing `x + y` like primitives.
 
-Nếu vẫn cần xuất `int`/`long`, kiểm tra miền hoặc dùng các phép chuyển đổi chính xác như `intValueExact()`/`longValueExact()` để **không âm thầm mất số**. Chuyển `BigInteger` sang primitive bằng `intValue()` đơn thuần có thể cắt mất các bit quan trọng.
+If you still need to output `int`/`long`, check the range or use exact conversion methods like `intValueExact()`/`longValueExact()` so **digits are not silently lost**. Converting `BigInteger` to a primitive with plain `intValue()` can truncate significant bits.
 
-## 8. Thực hành an toàn và bài tập
+## 8. Safe Practices and Exercises
 
-| Yêu cầu | Lựa chọn |
+| Requirement | Choice |
 | --- | --- |
-| Đếm, tính tổng nhỏ chắc chắn vừa `int` | Dùng `int` và kiểm soát miền dữ liệu |
-| Kết quả có thể vượt `int` nhưng vừa `long` | Chuyển một toán hạng sang `long` **trước khi tính** |
-| Không được phép tràn âm thầm | `Math.addExact`, `subtractExact`, `multiplyExact`, ... |
-| Có thể vượt cả `long` | `BigInteger`, cùng xử lý giới hạn tài nguyên |
-| Chuyển `long` về `int` mà phải giữ nguyên giá trị | `Math.toIntExact` |
-| Chia cho mẫu số có thể bằng 0 | Guard đầu vào trước `/` hoặc `%` |
+| Counting, small sums guaranteed to fit in `int` | Use `int` and control data domain |
+| Result may exceed `int` but fits in `long` | Convert one operand to `long` **before computing** |
+| Silent overflow must not occur | `Math.addExact`, `subtractExact`, `multiplyExact`, ... |
+| May exceed even `long` | `BigInteger`, along with resource limit handling |
+| Convert `long` to `int` while preserving exact value | `Math.toIntExact` |
+| Dividing by a divisor that may be 0 | Guard input before `/` or `%` |
 
-**Bài 1.** Tính `Integer.MAX_VALUE + 1` và `Integer.MIN_VALUE - 1` trong Java. Vì sao chương trình không dừng?
+**Exercise 1.** Compute `Integer.MAX_VALUE + 1` and `Integer.MIN_VALUE - 1` in Java. Why doesn't the program stop?
 
-**Bài 2.** So sánh `long x = 50_000 * 50_000;` với `long y = 50_000L * 50_000;`. Phép nào tràn? Khi nào Java quyết định kiểu phép nhân?
+**Exercise 2.** Compare `long x = 50_000 * 50_000;` with `long y = 50_000L * 50_000;`. Which one overflows? When does Java decide the type of the multiplication?
 
-**Bài 3.** Viết `Math.multiplyExact(50_000, 50_000)` trong `try/catch`. Giải thích khác biệt với toán tử `*`.
+**Exercise 3.** Write `Math.multiplyExact(50_000, 50_000)` inside `try/catch`. Explain the difference from the `*` operator.
 
-**Bài 4.** Dự đoán `Integer.MIN_VALUE / -1` và `Integer.MIN_VALUE % -1`. Tại sao đây không giống trường hợp chia cho 0?
+**Exercise 4.** Predict `Integer.MIN_VALUE / -1` and `Integer.MIN_VALUE % -1`. Why is this unlike the divide-by-zero case?
 
-**Bài 5.** Tính `Long.MAX_VALUE + 1` bằng `BigInteger` mà không mất giá trị nguyên ban đầu.
+**Exercise 5.** Compute `Long.MAX_VALUE + 1` using `BigInteger` without losing the original integer value.
 
-### Ghi nhớ
+### Key Takeaways
 
-**Java không tự động ném ngoại lệ khi các phép toán nguyên `int`/`long` thông thường bị tràn.** Giá trị có thể quay vòng theo giới hạn bit và làm sai dữ liệu mà chương trình vẫn chạy. Nếu cần kết quả chính xác, hãy **mở rộng toán hạng trước khi tính** (khi `long` đủ miền), dùng **`Math.*Exact`** để phát hiện tràn, hoặc **`BigInteger`** khi vượt miền `long`. Chia nguyên cho 0 là một lỗi riêng: nó **ném `ArithmeticException`**.
+**Java does not automatically throw an exception when ordinary `int`/`long` integer operations overflow.** Values can wrap around at bit limits and corrupt data while the program keeps running. If an exact result is needed, **widen an operand before computing** (when `long` has enough range), use **`Math.*Exact`** to detect overflow, or use **`BigInteger`** when exceeding `long` range. Integer division by 0 is a separate error: it **throws `ArithmeticException`**.

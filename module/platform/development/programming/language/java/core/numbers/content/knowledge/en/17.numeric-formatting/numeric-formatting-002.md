@@ -1,12 +1,12 @@
-# `toBinaryString`, `toHexString` và `toUnsignedString` trong Java
+# `toBinaryString`, `toHexString`, and `toUnsignedString` in Java
 
-Khi cần hiển thị hoặc kiểm tra **biểu diễn của số nguyên**, Java cung cấp các phương thức tĩnh trong `Integer` và `Long`. Ba tên quan trọng nhất là **`toBinaryString`**, **`toHexString`** và **`toUnsignedString`**:
+When you need to display or inspect the **representation of an integer**, Java provides static methods in `Integer` and `Long`. The three most important names are **`toBinaryString`**, **`toHexString`**, and **`toUnsignedString`**:
 
-- `Integer.toBinaryString(int)`: tạo chuỗi **nhị phân** (cơ số 2) từ **mẫu bit 32 bit** của một `int`.
-- `Integer.toHexString(int)`: tạo chuỗi **thập lục phân** (cơ số 16), chữ `a`–`f` viết thường, từ cùng mẫu bit.
-- `Integer.toUnsignedString(int)`: tạo chuỗi **thập phân không dấu** (cơ số 10 mặc định), coi cùng 32 bit là số trong khoảng `0` đến `4_294_967_295`.
+- `Integer.toBinaryString(int)`: produces a **binary** string (base 2) from the **32-bit pattern** of an `int`.
+- `Integer.toHexString(int)`: produces a **hexadecimal** string (base 16), using lowercase `a`–`f`, from the same bit pattern.
+- `Integer.toUnsignedString(int)`: produces an **unsigned decimal** string (base 10 by default), treating the same 32 bits as a number in the range `0` to `4_294_967_295`.
 
-Ví dụ cùng một giá trị `int`:
+Example with the same `int` value:
 
 ```java
 int value = -1;
@@ -21,50 +21,50 @@ System.out.println(Integer.toUnsignedString(value));
 // 4294967295
 ```
 
-`value` vẫn là **`int -1`**, không tự biến thành kiểu số nguyên không dấu. Những phương thức này **đổi cách trình bày bit thành chuỗi**; chúng không sửa giá trị biến, không thay đổi bit trong bộ nhớ và không tạo kiểu primitive `uint`.
+`value` is still **`int -1`**, and does not automatically turn into an unsigned integer type. These methods **change how bits are presented as a string**; they do not modify the variable's value, do not alter bits in memory, and do not create a primitive `uint` type.
 
-## 1. Hiểu đúng signed và unsigned trước khi định dạng
+## 1. Properly understanding signed and unsigned before formatting
 
-Java có các kiểu số nguyên primitive `byte` (8 bit), `short` (16 bit), `int` (32 bit) và `long` (64 bit), đều có dấu theo cách hiểu số nguyên thông thường. Riêng `char` là giá trị nguyên không dấu 16 bit phục vụ đơn vị mã UTF-16.
+Java has the primitive integer types `byte` (8 bits), `short` (16 bits), `int` (32 bits), and `long` (64 bits), all signed in standard integer arithmetic. Specifically, `char` is a 16-bit unsigned integer value serving UTF-16 code units.
 
-Với `int`, cùng **32 bit** có thể được diễn giải:
+For `int`, the same **32 bits** can be interpreted as:
 
-- **Có dấu (signed)** theo bù hai (*two's complement*): `-2_147_483_648` tới `2_147_483_647`.
-- **Không dấu (unsigned)**: `0` tới `4_294_967_295`.
+- **Signed** in two's complement: `-2_147_483_648` to `2_147_483_647`.
+- **Unsigned**: `0` to `4_294_967_295`.
 
-Ví dụ mẫu bit toàn `1`:
+Example of an all-`1` bit pattern:
 
 ```text
-Bit 32 bit:       11111111111111111111111111111111
+32 bits:          11111111111111111111111111111111
 Hex:              ffffffff
 Signed int:       -1
 Unsigned 32-bit:  4294967295
 ```
 
-Đây **không phải ba giá trị được lưu riêng**. Chúng là **ba cách trình bày cùng mẫu bit**. Biểu thức `int x = -1;` tiếp tục hoạt động theo số học có dấu nếu viết `x + 1`, `x < 0` hoặc `x / 2`. Nếu nghiệp vụ muốn **so sánh/chia theo unsigned**, Java có các API như `Integer.compareUnsigned`, `divideUnsigned` và `remainderUnsigned`; chỉ việc gọi `toUnsignedString` không đổi nghĩa các phép toán về sau.
+These are **not three separately stored values**. They are **three ways of presenting the same bit pattern**. The expression `int x = -1;` continues to operate under signed arithmetic if you write `x + 1`, `x < 0`, or `x / 2`. If business logic requires **unsigned comparison/division**, Java provides APIs such as `Integer.compareUnsigned`, `divideUnsigned`, and `remainderUnsigned`; merely calling `toUnsignedString` does not change the semantics of subsequent operations.
 
-### Bảng nhanh với `Integer`
+### Quick table for `Integer`
 
-| Giá trị `int` | `toBinaryString` | `toHexString` | `toUnsignedString` |
+| `int` value | `toBinaryString` | `toHexString` | `toUnsignedString` |
 | --- | --- | --- | --- |
 | `0` | `0` | `0` | `0` |
 | `10` | `1010` | `a` | `10` |
 | `42` | `101010` | `2a` | `42` |
 | `255` | `11111111` | `ff` | `255` |
-| `-1` | 32 ký tự `1` | `ffffffff` | `4294967295` |
-| `Integer.MIN_VALUE` | `1` và 31 ký tự `0` | `80000000` | `2147483648` |
+| `-1` | 32 `1` characters | `ffffffff` | `4294967295` |
+| `Integer.MIN_VALUE` | `1` and 31 `0` characters | `80000000` | `2147483648` |
 
-Đối với số `int` không âm, chuỗi nhị phân và hex thường **bỏ các số 0 dẫn đầu**. Với số âm, bit dấu là 1 và biểu diễn bù hai 32 bit được thể hiện đầy đủ theo chiều rộng kiểu `int`. Đây là lý do `Integer.toBinaryString(-1)` dài 32 ký tự, còn `Integer.toBinaryString(1)` chỉ là `"1"`.
+For non-negative `int` numbers, binary and hex strings usually **omit leading zeros**. For negative numbers, the sign bit is 1 and the 32-bit two's complement representation is shown across the full width of the `int` type. That is why `Integer.toBinaryString(-1)` is 32 characters long, whereas `Integer.toBinaryString(1)` is just `"1"`.
 
-## 2. `Integer.toBinaryString(int)`: đọc mẫu bit ở cơ số 2
+## 2. `Integer.toBinaryString(int)`: reading the bit pattern in base 2
 
-Cú pháp:
+Syntax:
 
 ```java
 String bits = Integer.toBinaryString(42); // "101010"
 ```
 
-Các chữ số trong chuỗi chỉ gồm `0` và `1`; **không có tiền tố `0b`** và không có dấu âm tách rời. Phương thức mô tả mẫu bit của `int` như giá trị 32 bit không dấu rồi ghi bằng cơ số 2.
+The digits in the string consist only of `0` and `1`; **there is no `0b` prefix** and no separate minus sign. The method treats the bit pattern of `int` as an unsigned 32-bit value and writes it in base 2.
 
 ```java
 System.out.println(Integer.toBinaryString(10)); // 1010
@@ -72,20 +72,20 @@ System.out.println(Integer.toBinaryString(-1));
 // 11111111111111111111111111111111
 ```
 
-Vì `int` có 32 bit, một giá trị âm như `-1` tương đương mẫu bù hai toàn bit 1. **Không đọc** chuỗi `111...111` thành số có dấu âm bằng cách nhìn chữ số đầu tiên rồi thêm dấu `-`; đây là chuỗi số nhị phân không dấu đại diện cho 32 bit gốc.
+Because `int` has 32 bits, a negative value like `-1` corresponds to a two's complement pattern of all `1` bits. **Do not read** the string `111...111` as a signed negative number by looking at the first digit and adding a `-` sign; it is an unsigned binary string representing the original 32 bits.
 
-Đặc biệt:
+Special case:
 
 ```java
 String minBits = Integer.toBinaryString(Integer.MIN_VALUE);
 // "10000000000000000000000000000000"
 ```
 
-Bit cao nhất bằng 1 còn các bit khác bằng 0. Với ngữ nghĩa signed, mẫu này là `-2^31`; với ngữ nghĩa unsigned, là `2^31`.
+The highest bit is 1 and all other bits are 0. With signed semantics, this pattern is `-2^31`; with unsigned semantics, it is `2^31`.
 
-### Muốn chuỗi luôn đủ 32 bit?
+### Want a string that is always 32 bits long?
 
-`toBinaryString` không thêm zero dẫn đầu cho số dương. Nếu cần bản 32 bit cố định:
+`toBinaryString` does not add leading zeros for positive numbers. If you need a fixed 32-bit version:
 
 ```java
 int x = 42;
@@ -94,11 +94,11 @@ String padded = "0".repeat(32 - bits.length()) + bits;
 // "00000000000000000000000000101010"
 ```
 
-Cách viết này phù hợp Java 17+ và với một `int` bất kỳ có chuỗi nhị phân tối đa 32 ký tự. Khi giao thức nhị phân cần **số byte** chứ không phải ký tự `0`/`1`, hãy ghi byte thực qua `ByteBuffer` hoặc API I/O tương ứng; chuỗi nhị phân là cách **hiển thị phục vụ đọc/debug**, không phải định dạng dữ liệu nhị phân có hiệu suất tốt.
+This style works in Java 17+ and for any `int` whose binary string is at most 32 characters. When a binary protocol needs **raw bytes** rather than `'0'`/`'1'` characters, write actual bytes via `ByteBuffer` or the appropriate I/O API; a binary string is a **display format for reading/debugging**, not an efficient binary data format.
 
-## 3. `Integer.toHexString(int)`: hiển thị hex dễ đọc
+## 3. `Integer.toHexString(int)`: readable hex display
 
-Hex (cơ số 16) nhóm **mỗi 4 bit thành một chữ số** từ `0` tới `9` và `a` tới `f`:
+Hex (base 16) groups **every 4 bits into one digit** from `0` to `9` and `a` to `f`:
 
 ```java
 int x = 42;
@@ -108,37 +108,37 @@ System.out.println(Integer.toHexString(255)); // ff
 System.out.println(Integer.toHexString(-1));  // ffffffff
 ```
 
-Một `int` có tối đa 8 ký tự hex, vì `32 / 4 = 8`. Hex gọn hơn binary nên thường phù hợp khi quan sát bit masks, mã màu và địa chỉ/word dữ liệu.
+An `int` has at most 8 hex characters, because `32 / 4 = 8`. Hex is more compact than binary, so it is often convenient when inspecting bit masks, color codes, and data addresses/words.
 
-**Lưu ý cú pháp:** Chuỗi trả về **không chứa `0x`**, không chứa dấu phân cách và dùng `a`–`f` viết thường. `"2a"` là chuỗi được hàm trả về; nếu muốn nhãn `0x` trong giao diện, ghép rõ ràng:
+**Syntax note:** The returned string **does not contain `0x`**, contains no separators, and uses lowercase `a`–`f`. `"2a"` is the string returned by the function; if you want a `0x` label in the UI, concatenate it explicitly:
 
 ```java
 String shown = "0x" + Integer.toHexString(42); // "0x2a"
 ```
 
-Không nhầm **chuỗi trả về từ API** với literal Java:
+Do not confuse **the string returned by the API** with a Java literal:
 
 ```java
-int sourceLiteral = 0x2A;       // literal int 42 trong mã Java
+int sourceLiteral = 0x2A;       // int literal 42 in Java code
 String displayed = Integer.toHexString(sourceLiteral); // "2a"
 ```
 
-Với bit pattern 32 bit âm, ví dụ `-1`, `Integer.toHexString(-1)` cho `"ffffffff"` vì nó biểu diễn bit dưới dạng không dấu, **không cho `"-1"`**. Nếu cần viết số có dấu trong cơ số 16, xem `Integer.toString(value, 16)` ở mục 5.
+For negative 32-bit patterns, such as `-1`, `Integer.toHexString(-1)` returns `"ffffffff"` because it represents the bits as unsigned, **not `"-1"`**. If you need to write a signed number in base 16, see `Integer.toString(value, 16)` in section 5.
 
-### Hiển thị đủ 8 chữ số hex
+### Displaying all 8 hex digits
 
-`Integer.toHexString(42)` trả `"2a"`, không tự pad thành `"0000002a"`. Nếu định dạng báo cáo yêu cầu đúng 8 chữ số, có thể viết:
+`Integer.toHexString(42)` returns `"2a"`, without padding it to `"0000002a"`. If a report format requires exactly 8 digits, you can write:
 
 ```java
 int x = 42;
 String padded = String.format("%08x", x); // "0000002a"
 ```
 
-`String.format` hỗ trợ độ rộng và zero-padding. Với dữ liệu dùng trong giao thức hoặc hash, **độ rộng và dạng chữ hoa/chữ thường phải được quy định nhất quán**. Trong UI, có thể dùng `%08X` để in hex chữ hoa nếu đúng yêu cầu.
+`String.format` supports width and zero-padding. For data used in protocols or hashes, **width and letter case must be specified consistently**. In UIs, `%08X` can be used to print uppercase hex if required.
 
-## 4. `Integer.toUnsignedString(int)`: đọc 32 bit như số không dấu
+## 4. `Integer.toUnsignedString(int)`: reading 32 bits as an unsigned number
 
-`Integer.toUnsignedString(value)` mặc định biểu diễn `int` như giá trị **unsigned 32 bit trong cơ số 10**:
+`Integer.toUnsignedString(value)` by default represents an `int` as an **unsigned 32-bit value in base 10**:
 
 ```java
 int x = -1;
@@ -146,12 +146,12 @@ String signed = Integer.toString(x);         // "-1"
 String unsigned = Integer.toUnsignedString(x); // "4294967295"
 ```
 
-Cùng 32 bit có cách đọc khác nhau theo mục tiêu. Quy tắc toán học cho `int x`:
+The same 32 bits have different interpretations depending on the goal. Mathematical rule for `int x`:
 
-- Nếu `x >= 0`, giá trị unsigned bằng `x`.
-- Nếu `x < 0`, giá trị unsigned tương ứng là `x + 2^32` về mặt toán học (phải tính bằng kiểu đủ rộng).
+- If `x >= 0`, the unsigned value equals `x`.
+- If `x < 0`, the corresponding unsigned value is mathematically `x + 2^32` (which must be computed using a sufficiently wide type).
 
-Có thể quan sát tương đương qua widening rồi mask:
+You can observe the equivalence via widening and masking:
 
 ```java
 int x = -1;
@@ -159,13 +159,13 @@ long u = Integer.toUnsignedLong(x); // 4294967295L
 long alsoU = ((long) x) & 0xFFFF_FFFFL; // 4294967295L
 ```
 
-`Integer.toUnsignedLong` mở rộng theo cách hiểu không dấu. **Không dùng `(long) x` đơn thuần** nếu muốn giải mã unsigned vì cast `int → long` có dấu sẽ giữ `-1L` cho `x = -1`.
+`Integer.toUnsignedLong` widens with unsigned semantics. **Do not use `(long) x` alone** if you want unsigned decoding, because a signed `int → long` cast will keep `-1L` for `x = -1`.
 
-Không có primitive `uint` trong Java. Do đó `toUnsignedString` chỉ trả `String` để hiển thị/trao đổi, còn dữ liệu gốc vẫn là `int`. Khi cần làm phép toán số học unsigned, phải dùng đúng API, không chỉ thay cách in.
+There is no primitive `uint` in Java. Hence `toUnsignedString` only returns a `String` for display/exchange, while the underlying data remains an `int`. When performing unsigned arithmetic operations, you must use the proper APIs, not just change how you print.
 
-## 5. Khác biệt với `toString(value, radix)` và overload radix
+## 5. Differences from `toString(value, radix)` and the radix overload
 
-Đây là chỗ rất dễ nhầm. So sánh:
+This is a very common point of confusion. Compare:
 
 ```java
 int x = -1;
@@ -175,69 +175,69 @@ String unsignedHex = Integer.toUnsignedString(x, 16); // "ffffffff"
 String hexBits = Integer.toHexString(x);              // "ffffffff"
 ```
 
-- `Integer.toString(int, radix)` xem giá trị như **số có dấu**, nên khi âm thêm dấu `-` và định dạng độ lớn.
-- `Integer.toUnsignedString(int, radix)` xem **cùng 32 bit là unsigned**, rồi chuyển sang cơ số được chọn.
-- `Integer.toBinaryString(int)` tương đương trình bày unsigned cơ số 2 của mẫu `int`.
-- `Integer.toHexString(int)` tương đương trình bày unsigned cơ số 16 của mẫu `int`.
-- `Integer.toOctalString(int)` cũng có hành vi tương tự cho cơ số 8, dù không phải API trọng tâm của bài.
+- `Integer.toString(int, radix)` treats the value as a **signed number**, so when negative it adds `-` and formats the magnitude.
+- `Integer.toUnsignedString(int, radix)` treats **the same 32 bits as unsigned**, then converts to the chosen base.
+- `Integer.toBinaryString(int)` is equivalent to presenting the `int` pattern as unsigned base 2.
+- `Integer.toHexString(int)` is equivalent to presenting the `int` pattern as unsigned base 16.
+- `Integer.toOctalString(int)` behaves similarly for base 8, though it is not the central API of this lesson.
 
 ```java
 System.out.println(Integer.toUnsignedString(10, 8));  // "12"
 System.out.println(Integer.toUnsignedString(31, 36)); // "v"
 ```
 
-Overload `Integer.toUnsignedString(int, int)` nhận radix. Nên chủ động dùng radix hợp lệ từ `Character.MIN_RADIX` (**2**) đến `Character.MAX_RADIX` (**36**). Java dùng chữ cái Latin thường cho các chữ số từ 10 đến 35. Nếu muốn hex, dùng radix 16; nếu muốn binary, dùng radix 2. Trong mã tự xử lý chuỗi nguồn, kiểm tra radix thay vì mặc nhiên mong API sẽ cảnh báo mọi radix không hợp lệ theo cách bạn nghĩ.
+The `Integer.toUnsignedString(int, int)` overload accepts a radix. You should proactively use valid radices from `Character.MIN_RADIX` (**2**) to `Character.MAX_RADIX` (**36**). Java uses lowercase Latin letters for digits from 10 to 35. If you want hex, use radix 16; if you want binary, use radix 2. In code that handles source strings yourself, validate the radix instead of assuming the API will warn on every invalid radix the way you expect.
 
-Bảng đối chiếu các API:
+API comparison table:
 
-| Lời gọi với `x = -1` | Kết quả | Cách hiểu |
+| Call with `x = -1` | Result | Interpretation |
 | --- | --- | --- |
-| `Integer.toString(x)` | `"-1"` | Signed, thập phân |
-| `Integer.toString(x, 16)` | `"-1"` | Signed, hex có dấu trừ |
-| `Integer.toUnsignedString(x)` | `"4294967295"` | Unsigned, thập phân |
-| `Integer.toUnsignedString(x, 2)` | 32 chữ `1` | Unsigned, binary |
-| `Integer.toBinaryString(x)` | 32 chữ `1` | Bit pattern, binary |
+| `Integer.toString(x)` | `"-1"` | Signed, decimal |
+| `Integer.toString(x, 16)` | `"-1"` | Signed, hex with minus sign |
+| `Integer.toUnsignedString(x)` | `"4294967295"` | Unsigned, decimal |
+| `Integer.toUnsignedString(x, 2)` | 32 `'1'` digits | Unsigned, binary |
+| `Integer.toBinaryString(x)` | 32 `'1'` digits | Bit pattern, binary |
 | `Integer.toUnsignedString(x, 16)` | `"ffffffff"` | Unsigned, hex |
 | `Integer.toHexString(x)` | `"ffffffff"` | Bit pattern, hex |
 
-**Ý nghĩa chính:** Khi giá trị nằm trong phần âm của `int`, chữ số hiển thị phụ thuộc việc chọn ngữ nghĩa **signed** hay **unsigned**.
+**Key takeaway:** When a value is in the negative range of `int`, the displayed digits depend on choosing **signed** or **unsigned** semantics.
 
-## 6. Phiên bản `Long` và độ rộng 64 bit
+## 6. `Long` versions and 64-bit width
 
-`Long` cũng cung cấp:
+`Long` also provides:
 
 - `Long.toBinaryString(long)`;
 - `Long.toHexString(long)`;
 - `Long.toUnsignedString(long)`;
 - `Long.toUnsignedString(long, int radix)`.
 
-Cùng nguyên tắc như `Integer`, nhưng làm việc với **64 bit**. Số không dấu lớn nhất theo 64 bit là **`2^64 - 1 = 18_446_744_073_709_551_615`**, vượt `Long.MAX_VALUE`.
+The same principles as `Integer` apply, but working with **64 bits**. The largest 64-bit unsigned number is **`2^64 - 1 = 18_446_744_073_709_551_615`**, exceeding `Long.MAX_VALUE`.
 
 ```java
 long value = -1L;
 
 System.out.println(Long.toHexString(value));
-// ffffffffffffffff (16 ký tự f)
+// ffffffffffffffff (16 f characters)
 
 System.out.println(Long.toUnsignedString(value));
 // 18446744073709551615
 ```
 
-`Long.toBinaryString(-1L)` trả 64 chữ `1`. Với `Long.MIN_VALUE`, mẫu hex là `8000000000000000`; diễn giải signed là `-2^63`, còn unsigned là `2^63`.
+`Long.toBinaryString(-1L)` returns 64 `'1'` digits. For `Long.MIN_VALUE`, the hex pattern is `8000000000000000`; the signed interpretation is `-2^63`, while the unsigned interpretation is `2^63`.
 
-**Không ép số nguyên không dấu 64 bit lớn vào một kiểu `long` khác để lấy giá trị dương**, vì primitive `long` không có miền dương đủ lớn. Nếu cần làm việc với giá trị toán học trong miền unsigned 64 bit dưới dạng số không âm, có thể dùng `BigInteger` hoặc các phép unsigned chuyên dụng `Long.compareUnsigned`, `divideUnsigned`, `remainderUnsigned`; chọn cách phù hợp bài toán.
+**Do not force a large 64-bit unsigned integer into another `long` to get a positive value**, because primitive `long` does not have a large enough positive range. If you need to work with mathematical values in the 64-bit unsigned range as non-negative numbers, you can use `BigInteger` or the dedicated unsigned operations `Long.compareUnsigned`, `divideUnsigned`, `remainderUnsigned`; choose what fits the problem.
 
-## 7. Bẫy `byte`/`short`: sign extension trước khi format
+## 7. `byte`/`short` pitfall: sign extension before formatting
 
-Ba phương thức `Integer.toBinaryString`, `Integer.toHexString` và `Integer.toUnsignedString` nhận `int`, **không có overload trực tiếp cho `byte` hay `short`**. Khi truyền `byte`/`short`, Java mở rộng chúng lên `int` trước khi gọi phương thức.
+The three methods `Integer.toBinaryString`, `Integer.toHexString`, and `Integer.toUnsignedString` accept `int`; **there are no direct overloads for `byte` or `short`**. When passing a `byte`/`short`, Java widens it to `int` before calling the method.
 
-Với giá trị âm, widening primitive bảo toàn **giá trị có dấu**, có thể được nhìn thấy như **sign extension** (nhân bit dấu lên phần cao):
+For negative values, primitive widening preserves the **signed value**, which can be observed as **sign extension** (propagating the sign bit into the upper bits):
 
 ```java
 byte b = -1;
 
 String unexpected = Integer.toBinaryString(b);
-// 11111111111111111111111111111111 (32 bit, không phải 8)
+// 11111111111111111111111111111111 (32 bits, not 8)
 
 String eightBits = Integer.toBinaryString(b & 0xFF);
 // 11111111
@@ -245,7 +245,7 @@ String eightBits = Integer.toBinaryString(b & 0xFF);
 int unsignedByte = Byte.toUnsignedInt(b); // 255
 ```
 
-Nếu muốn biểu diễn đúng **8 bit** của `byte`, mask bằng `0xFF` trước khi format. Với `short`, dùng `0xFFFF` để giữ 16 bit:
+If you want to represent the exact **8 bits** of a `byte`, mask with `0xFF` before formatting. For `short`, use `0xFFFF` to keep 16 bits:
 
 ```java
 short s = -1;
@@ -255,11 +255,11 @@ String sBits = Integer.toBinaryString(s & 0xFFFF);
 // "1111111111111111"
 ```
 
-Nếu muốn một giá trị unsigned dễ tính toán, `Byte.toUnsignedInt` và `Short.toUnsignedInt` diễn đạt rõ ý định. Cũng có thể dùng `Byte.toUnsignedInt(b)` rồi `Integer.toUnsignedString(...)`. Mask là cách phổ biến khi làm bit field, network protocol hoặc giải mã byte có dấu thành giá trị trong `0..255`.
+If you want an unsigned value that is easy to compute with, `Byte.toUnsignedInt` and `Short.toUnsignedInt` express the intent clearly. You can also use `Byte.toUnsignedInt(b)` followed by `Integer.toUnsignedString(...)`. Masking is a common approach when working with bit fields, network protocols, or decoding signed bytes into values in `0..255`.
 
-### Chú ý chiều rộng đầu ra
+### Mind the output width
 
-`Integer.toBinaryString(b & 0xFF)` vẫn loại **zero dẫn đầu** cho giá trị như `5` (sẽ thành `"101"`). Nếu bắt buộc đúng 8 bit, kết hợp mask với padding:
+`Integer.toBinaryString(b & 0xFF)` still strips **leading zeros** for values like `5` (which becomes `"101"`). If exactly 8 bits are required, combine masking with padding:
 
 ```java
 byte b = 5;
@@ -267,11 +267,11 @@ String raw = Integer.toBinaryString(b & 0xFF); // "101"
 String padded = "0".repeat(8 - raw.length()) + raw; // "00000101"
 ```
 
-Tương tự, muốn đúng 4 ký tự hex cho `short`, có thể dùng `String.format("%04x", s & 0xFFFF)`. Việc **mask** xử lý chiều rộng bit, còn việc **padding** xử lý độ dài chuỗi hiển thị; hai bước này có nhiệm vụ khác nhau.
+Similarly, to get exactly 4 hex characters for a `short`, you can use `String.format("%04x", s & 0xFFFF)`. **Masking** handles the bit width, whereas **padding** handles the display string length; these two steps have different responsibilities.
 
-## 8. Chuyển chuỗi unsigned trở lại mẫu bit: `parseUnsignedInt`, `parseUnsignedLong`
+## 8. Converting an unsigned string back to a bit pattern: `parseUnsignedInt`, `parseUnsignedLong`
 
-Nếu một chuỗi unsigned vượt `Integer.MAX_VALUE` nhưng vẫn thuộc miền unsigned 32 bit, `Integer.parseInt` sẽ từ chối nó. Dùng `Integer.parseUnsignedInt` để đọc **mẫu bit 32 bit**:
+If an unsigned string exceeds `Integer.MAX_VALUE` yet still belongs to the unsigned 32-bit range, `Integer.parseInt` will reject it. Use `Integer.parseUnsignedInt` to read the **32-bit pattern**:
 
 ```java
 int bits = Integer.parseUnsignedInt("4294967295");
@@ -281,26 +281,26 @@ System.out.println(Integer.toUnsignedString(bits)); // 4294967295
 System.out.println(Integer.toHexString(bits)); // ffffffff
 ```
 
-Hàm parser trả về **`int`**, không phải một loại `uint`. Điều quan trọng khi round-trip là giữ **mẫu bit**, dù biến `int` tạm thời có thể in signed là số âm.
+The parser method returns an **`int`**, not a `uint` type. What matters in a round-trip is preserving the **bit pattern**, even though the temporary `int` variable may print as a negative number when interpreted as signed.
 
-Với cơ số 16:
+With base 16:
 
 ```java
 int b = Integer.parseUnsignedInt("ffffffff", 16); // bit pattern -1
 String output = Integer.toHexString(b); // "ffffffff"
 ```
 
-Các API `parseUnsignedInt` vẫn kiểm tra **chữ số hợp lệ và miền unsigned 32 bit**. Ví dụ chuỗi thập phân `"4294967296"` vượt miền không dấu sẽ gây `NumberFormatException`. Chúng không tự chấp nhận các prefix như `0x` trong overload cơ số 16, nên cần quy định/loại bỏ prefix theo hợp đồng đầu vào.
+The `parseUnsignedInt` APIs still check for **valid digits and the unsigned 32-bit range**. For example, the decimal string `"4294967296"` exceeds the unsigned range and will throw `NumberFormatException`. They do not automatically accept prefixes such as `0x` in the base-16 overload, so prefixes must be specified/stripped according to the input contract.
 
-Với `long`, `Long.parseUnsignedLong("18446744073709551615")` trả mẫu bit tương ứng `-1L`, và `Long.toUnsignedString` hiển thị trở lại chuỗi số dương cực đại. Nếu cần lưu giá trị unsigned 64 bit dưới dạng số không âm cho phép toán tổng quát, cân nhắc `BigInteger`.
+For `long`, `Long.parseUnsignedLong("18446744073709551615")` returns the bit pattern corresponding to `-1L`, and `Long.toUnsignedString` displays the maximum unsigned string again. If you need to store a 64-bit unsigned value as a non-negative number for general arithmetic, consider `BigInteger`.
 
-### Không nhầm parse số có dấu với parse mẫu bit
+### Do not confuse parsing a signed number with parsing a bit pattern
 
-`Integer.parseInt("ffffffff", 16)` gây `NumberFormatException` do giá trị tích cực lớn hơn signed `int` (với chuỗi không có dấu trừ). `Integer.parseUnsignedInt("ffffffff", 16)` nhận vì nằm trong miền unsigned 32 bit, rồi cho mẫu `int` có dấu là `-1`. Đây là sự khác nhau về **miền phân tích**, không phải việc Java tự làm tràn mà không báo lỗi.
+`Integer.parseInt("ffffffff", 16)` throws `NumberFormatException` because the positive value is larger than signed `int` (for a string without a minus sign). `Integer.parseUnsignedInt("ffffffff", 16)` accepts it because it fits in the unsigned 32-bit range, yielding the signed `int` pattern `-1`. This is a difference in **parsing range**, not Java silently overflowing without reporting an error.
 
-## 9. Ví dụ Java 17+ hoàn chỉnh
+## 9. Complete Java 17+ example
 
-Tạo tệp `IntegerFormatsDemo.java`:
+Create the file `IntegerFormatsDemo.java`:
 
 ```java
 public class IntegerFormatsDemo {
@@ -345,14 +345,14 @@ public class IntegerFormatsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac IntegerFormatsDemo.java
 java IntegerFormatsDemo
 ```
 
-Stdout đã kiểm chứng:
+Verified stdout:
 
 ```text
 42 binary: 101010
@@ -380,13 +380,13 @@ padded hex: 0000002a
 padded binary: 00101010
 ```
 
-**Cách đọc chương trình:** Các dòng `42` minh họa cơ số; nhóm `-1` cho thấy cùng mẫu 32 bit có diễn giải signed/unsigned khác nhau; `MIN_VALUE` có bit cao nhất 1; nhóm `byte` giải thích sign extension và mặt nạ 8 bit; nhóm `long` hiển thị 64 bit; `parseUnsignedInt` round-trip về chuỗi unsigned; hai dòng cuối cho thấy định dạng **độ rộng cố định** không phải hành vi mặc định của `toBinaryString`/`toHexString`.
+**How to read the program:** The `42` lines illustrate bases; the `-1` group shows that the same 32-bit pattern has different signed/unsigned interpretations; `MIN_VALUE` has the highest bit set to 1; the `byte` group explains sign extension and an 8-bit mask; the `long` group displays 64 bits; `parseUnsignedInt` round-trips back to the unsigned string; the last two lines show that **fixed-width** formatting is not the default behavior of `toBinaryString`/`toHexString`.
 
-## 10. Những ứng dụng thực tế và cách chọn API
+## 10. Practical applications and how to choose an API
 
-### Quan sát bit flags và masks
+### Inspecting bit flags and masks
 
-Khi kiểm tra một `int` gồm nhiều cờ bit, binary/hex giúp nhìn các vị trí bit đang bật:
+When inspecting an `int` consisting of multiple bit flags, binary/hex helps visualize which bit positions are turned on:
 
 ```java
 int flags = 0b1010_0101;
@@ -394,72 +394,72 @@ String hex = Integer.toHexString(flags);    // "a5"
 String bits = Integer.toBinaryString(flags); // "10100101"
 ```
 
-Để phân tích bit cụ thể, kết hợp toán tử `&`, `|`, `^`, `~`, `<<` và `>>>` trên giá trị nguyên. `toBinaryString` chỉ tạo **chuỗi hiển thị**, không thay thế phép toán bit.
+To analyze specific bits, combine the operators `&`, `|`, `^`, `~`, `<<`, and `>>>` on the integer value. `toBinaryString` only generates a **display string**; it does not replace bitwise operators.
 
-### Giao diện hoặc log cần hiểu unsigned
+### UIs or logs needing unsigned semantics
 
-Có hệ thống lưu số 32 bit trong `int` nhưng thực tế xem đó là **unsigned ID/counter**. Dùng `Integer.toUnsignedString` khi hiển thị để người dùng không nhìn thấy số âm không mong muốn. Tuy nhiên, nếu phép so sánh thứ tự của ID/counter cũng theo unsigned, dùng `Integer.compareUnsigned` thay vì `<` giữa hai `int`.
+Some systems store 32-bit numbers in an `int` while practically treating them as **unsigned IDs/counters**. Use `Integer.toUnsignedString` when displaying so users do not see unwanted negative numbers. However, if ordering comparisons of IDs/counters are also unsigned, use `Integer.compareUnsigned` instead of `<` between two `int`s.
 
-### Lưu trữ và giao thức nhị phân
+### Binary storage and protocols
 
-`"ffffffff"` là **8 ký tự hex**, không phải bốn byte `0xFF`. Nếu giao thức cần thực sự gửi byte, phải chuyển bit pattern thành mảng byte (ví dụ `ByteBuffer.putInt` với byte order được chỉ định). `toHexString` hữu ích để debug nhưng tự nó **không quyết định endianness** (big-endian hay little-endian).
+`"ffffffff"` is **8 hex characters**, not four `0xFF` bytes. If a protocol truly needs to send bytes, you must convert the bit pattern into a byte array (for example, `ByteBuffer.putInt` with a specified byte order). `toHexString` is useful for debugging, but on its own it **does not determine endianness** (big-endian or little-endian).
 
-Ví dụ `0x12345678` có cùng chuỗi hex `"12345678"` dù khi serialize big-endian sẽ là các byte `12 34 56 78` và little-endian là `78 56 34 12`. Byte order được quyết định ở bước đọc/ghi byte, không bởi phương thức format số thành chuỗi.
+For instance, `0x12345678` has the same hex string `"12345678"` whether serialized as big-endian bytes `12 34 56 78` or little-endian bytes `78 56 34 12`. Byte order is decided at the step of reading/writing bytes, not by the method that formats a number into a string.
 
-### Chọn theo yêu cầu
+### Choosing by requirement
 
-| Cần gì? | API nên xem xét |
+| What is needed? | API to consider |
 | --- | --- |
-| Xem bit `int` theo nhị phân | `Integer.toBinaryString(value)` |
-| Xem bit `int` bằng hex | `Integer.toHexString(value)` |
-| Hiển thị `int` có dấu thập phân | `Integer.toString(value)` |
-| Hiển thị `int` không dấu thập phân | `Integer.toUnsignedString(value)` |
-| Hiển thị `int` không dấu với radix bất kỳ 2–36 | `Integer.toUnsignedString(value, radix)` |
-| Làm việc với giá trị `long` | Các API `Long` tương ứng |
-| Xem đúng 8 bit thấp của `byte` | Mask `value & 0xFF`, rồi format/pad |
-| Parse lại unsigned 32/64 bit | `Integer.parseUnsignedInt` / `Long.parseUnsignedLong` |
-| In hex luôn đủ chữ số | `String.format("%08x", intValue)` hoặc format thủ công |
-| Xử lý giá trị unsigned trong phép tính | `compareUnsigned`, `divideUnsigned`, `remainderUnsigned`, hoặc kiểu rộng hơn |
+| View `int` bits in binary | `Integer.toBinaryString(value)` |
+| View `int` bits in hex | `Integer.toHexString(value)` |
+| Display signed decimal `int` | `Integer.toString(value)` |
+| Display unsigned decimal `int` | `Integer.toUnsignedString(value)` |
+| Display unsigned `int` in any radix 2–36 | `Integer.toUnsignedString(value, radix)` |
+| Work with `long` values | The corresponding `Long` APIs |
+| View exact low 8 bits of a `byte` | Mask `value & 0xFF`, then format/pad |
+| Parse back unsigned 32/64 bits | `Integer.parseUnsignedInt` / `Long.parseUnsignedLong` |
+| Print hex always with full digits | `String.format("%08x", intValue)` or manual formatting |
+| Handle unsigned values in arithmetic | `compareUnsigned`, `divideUnsigned`, `remainderUnsigned`, or a wider type |
 
-Không nhất thiết mọi số âm đều phải in unsigned: với số dư nợ, nhiệt độ âm, độ lệch hay tọa độ có dấu, `Integer.toString` thường mới đúng ngữ nghĩa nghiệp vụ. Sử dụng `toUnsignedString` khi **dữ liệu thật sự mang ý nghĩa không dấu hoặc cần quan sát bit**.
+Not every negative number should be printed as unsigned: for debt balances, negative temperatures, offsets, or signed coordinates, `Integer.toString` is usually what matches the business semantics. Use `toUnsignedString` when **the data genuinely carries unsigned meaning or when inspecting bits**.
 
-## 11. Sai lầm thường gặp
+## 11. Common mistakes
 
-1. **“`toBinaryString` trả integer nhị phân.”** Sai: trả `String`, không trả một giá trị primitive số mới.
-2. **“`toHexString` luôn có tiền tố `0x`.”** Sai: kết quả chỉ gồm chữ số hex.
-3. **“`toBinaryString(42)` luôn dài 32 ký tự.”** Sai: với số dương, zero đầu được bỏ; cần pad nếu giao thức yêu cầu.
-4. **“`Integer.toBinaryString(-1)` trả `"-1"`.”** Sai: trả 32 bit `1` của số nguyên có dấu -1.
-5. **“`toUnsignedString(-1)` biến `int` thành kiểu `uint`.”** Sai: biến vẫn là `int -1`, chỉ cách hiển thị đổi thành `4294967295`.
-6. **“`Integer.toString(-1, 16)` giống `Integer.toHexString(-1)`.”** Sai: cái đầu trả `"-1"`, cái sau trả `"ffffffff"`.
-7. **“Truyền `byte -1` vào `Integer.toBinaryString` sẽ trả 8 bit.”** Sai: `byte` được sign-extend thành `int`, nên cho 32 bit; mask `0xFF` để lấy 8 bit.
-8. **“`String.format("%08x", x)` và `toHexString(x)` có cùng quy tắc padding.”** Sai: `%08x` yêu cầu độ rộng tối thiểu 8 và pad zero, còn `toHexString` không pad số dương.
-9. **“Unsigned 64 bit luôn vừa `long` dưới dạng số dương.”** Sai: `2^64 - 1` vượt `Long.MAX_VALUE`; chỉ có thể giữ mẫu bit và diễn giải phù hợp.
-10. **“`parseUnsignedInt` luôn trả số không âm khi `System.out.println(int)`.”** Sai: giá trị `int` có dấu có thể âm; dùng `toUnsignedString` khi in.
-11. **“Chuỗi hex chứa ký tự `ff` là hai byte dữ liệu nhị phân.”** Sai: đó là hai ký tự; cần chuyển đổi thực sang byte nếu giao thức yêu cầu.
-12. **“Đã gọi `toUnsignedString` thì toán tử `<` trên `int` sẽ so sánh không dấu.”** Sai: chỉ thao tác trên chuỗi hiển thị; phép so sánh `int` vẫn có dấu.
-13. **“`Integer.parseInt("ffffffff", 16)` sẽ thành -1 vì chuỗi là mẫu bit.”** Sai: parser signed từ chuỗi không dấu trừ thấy số quá miền `int` và báo lỗi; dùng `parseUnsignedInt` để giải mã bit pattern.
-14. **“Dùng hex luôn mô tả đúng thứ tự byte mạng.”** Sai: hex biểu diễn giá trị, còn endianness thuộc bước chuyển sang byte.
+1. **"`toBinaryString` returns a binary integer."** False: it returns a `String`, not a new numeric primitive value.
+2. **"`toHexString` always includes the `0x` prefix."** False: the result consists only of hex digits.
+3. **"`toBinaryString(42)` is always 32 characters long."** False: for positive numbers, leading zeros are omitted; pad if the protocol requires it.
+4. **"`Integer.toBinaryString(-1)` returns `"-1"`."** False: it returns the 32 `1` bits of the signed integer -1.
+5. **"`toUnsignedString(-1)` turns `int` into a `uint` type."** False: the variable remains `int -1`; only the display changes to `4294967295`.
+6. **"`Integer.toString(-1, 16)` is the same as `Integer.toHexString(-1)`."** False: the former returns `"-1"`, while the latter returns `"ffffffff"`.
+7. **"Passing `byte -1` to `Integer.toBinaryString` returns 8 bits."** False: `byte` is sign-extended to `int`, yielding 32 bits; mask with `0xFF` to get 8 bits.
+8. **"`String.format("%08x", x)` and `toHexString(x)` have the same padding rules."** False: `%08x` requires a minimum width of 8 and pads with zeros, whereas `toHexString` does not pad positive numbers.
+9. **"64-bit unsigned always fits in `long` as a positive number."** False: `2^64 - 1` exceeds `Long.MAX_VALUE`; you can only keep the bit pattern and interpret it appropriately.
+10. **"`parseUnsignedInt` always returns a non-negative number when calling `System.out.println(int)`."** False: a signed `int` value can be negative; use `toUnsignedString` when printing.
+11. **"A hex string containing characters `ff` is two bytes of binary data."** False: those are two characters; an actual conversion to bytes is needed if the protocol requires it.
+12. **"After calling `toUnsignedString`, the `<` operator on `int` compares as unsigned."** False: it only produces a display string; `int` comparisons remain signed.
+13. **"`Integer.parseInt("ffffffff", 16)` becomes -1 because the string is a bit pattern."** False: a signed parser reading a string without a minus sign sees a number beyond the `int` range and throws an error; use `parseUnsignedInt` to decode bit patterns.
+14. **"Using hex always accurately describes network byte order."** False: hex represents a value, whereas endianness belongs to the step of converting to bytes.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**1. `Integer.toBinaryString(10)` trả gì?** → `"1010"`.
+**1. What does `Integer.toBinaryString(10)` return?** → `"1010"`.
 
-**2. `Integer.toHexString(255)` trả gì?** → `"ff"` (không có `0x`).
+**2. What does `Integer.toHexString(255)` return?** → `"ff"` (without `0x`).
 
-**3. `Integer.toUnsignedString(-1)` cho giá trị nào?** → `"4294967295"`; biến gốc vẫn là `int -1`.
+**3. What value does `Integer.toUnsignedString(-1)` give?** → `"4294967295"`; the original variable remains `int -1`.
 
-**4. Vì sao `Integer.toBinaryString(-1)` có 32 chữ `1`?** → `-1` biểu diễn bù hai bằng toàn bit 1 trong 32 bit.
+**4. Why does `Integer.toBinaryString(-1)` have 32 `'1'` characters?** → `-1` is represented in two's complement with all 1 bits across 32 bits.
 
-**5. `Integer.toString(-1, 16)` khác `Integer.toHexString(-1)` như thế nào?** → Một bên là chuỗi số có dấu `"-1"`, bên kia là bit pattern hex `"ffffffff"`.
+**5. How does `Integer.toString(-1, 16)` differ from `Integer.toHexString(-1)`?** → One is the signed numeric string `"-1"`, while the other is the hex bit pattern `"ffffffff"`.
 
-**6. Làm sao lấy chuỗi nhị phân của `byte -1` đúng 8 bit?** → Dùng `Integer.toBinaryString(b & 0xFF)`, với `b=-1` cho `"11111111"`; nếu `b` dương nhỏ, pad thêm zero.
+**6. How do you get the binary string of `byte -1` in exact 8 bits?** → Use `Integer.toBinaryString(b & 0xFF)`, which for `b=-1` gives `"11111111"`; if `b` is small and positive, pad with extra zeros.
 
-**7. Làm sao in `int -1` theo unsigned 32 bit rồi parse lại giữ bit?** → `String s = Integer.toUnsignedString(-1); int raw = Integer.parseUnsignedInt(s);`; `raw` là mẫu `int -1`.
+**7. How do you print `int -1` as unsigned 32-bit and then parse it back preserving the bits?** → `String s = Integer.toUnsignedString(-1); int raw = Integer.parseUnsignedInt(s);`; `raw` is the `int -1` bit pattern.
 
-**8. `Long.toUnsignedString(-1L)` trả gì?** → `"18446744073709551615"`.
+**8. What does `Long.toUnsignedString(-1L)` return?** → `"18446744073709551615"`.
 
-**9. `toHexString` có quyết định byte order khi ghi file không?** → Không; byte order được xác định ở bước serialize thành các byte.
+**9. Does `toHexString` determine byte order when writing to a file?** → No; byte order is determined during the step of serializing into bytes.
 
-**10. Khi nào không nên dùng `toUnsignedString`?** → Khi dữ liệu thật sự có ý nghĩa signed, ví dụ nợ âm hoặc nhiệt độ âm; hãy hiển thị theo ngữ nghĩa đúng.
+**10. When should `toUnsignedString` not be used?** → When the data genuinely has signed semantics, such as negative debt or negative temperature; display it according to the proper semantics.
 
-**Ghi nhớ:** `toBinaryString` và `toHexString` biến **mẫu bit** `int`/`long` thành chuỗi cơ số 2/16, thường theo cách nhìn **không dấu**. `toUnsignedString` mặc định biểu diễn cùng mẫu bit ở **thập phân không dấu**, hoặc radix được chỉ định. Các hàm **không sửa bit, không tạo kiểu unsigned mới và không đổi ý nghĩa các phép toán khác**. Với `byte`/`short` âm, xử lý sign extension bằng mask trước khi format; với yêu cầu chiều rộng cố định, bổ sung padding.
+**Takeaway:** `toBinaryString` and `toHexString` turn the **bit pattern** of an `int`/`long` into a base-2/base-16 string, typically under an **unsigned** view. `toUnsignedString` by default represents the same bit pattern in **unsigned decimal**, or a specified radix. These functions **do not modify bits, do not create new unsigned types, and do not alter the semantics of other operations**. For negative `byte`/`short`, handle sign extension by masking before formatting; for fixed-width requirements, add padding.

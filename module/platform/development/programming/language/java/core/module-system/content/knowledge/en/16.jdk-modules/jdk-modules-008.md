@@ -1,73 +1,73 @@
-# Kiểm tra module có tồn tại trong JDK runtime
+# Checking Whether a Module Exists in the JDK Runtime
 
-Khi phát triển ứng dụng modular, một module có thể được khai báo trong `module-info.java` nhưng không tồn tại trong runtime image đang dùng để chạy ứng dụng. Tình huống này thường xuất hiện khi chạy ứng dụng trên một JRE tùy chỉnh được tạo bằng `jlink`, dùng nhầm JDK, hoặc triển khai lên container có bộ module nhỏ hơn môi trường phát triển.
+When developing modular applications, a module may be declared in `module-info.java` yet be absent from the runtime image used to run the application. This situation often arises when running an application on a custom JRE created with `jlink`, using the wrong JDK, or deploying to a container with a smaller module set than the development environment.
 
-Để kiểm tra chính xác, cần xác định **runtime image mà tiến trình Java thực sự sử dụng**, sau đó tra cứu module trong tập system modules của image đó. Có thể dùng lệnh `java --list-modules`, `java --describe-module` hoặc API `ModuleFinder.ofSystem()`.
+To check accurately, identify **the runtime image actually used by the Java process**, then look up the module in that image's system modules. You can use `java --list-modules`, `java --describe-module`, or the `ModuleFinder.ofSystem()` API.
 
-## Mục tiêu
+## Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Xác định Java runtime đang được dùng bởi terminal hoặc ứng dụng.
-- Liệt kê các module có trong runtime image.
-- Tra cứu descriptor của một module cụ thể.
-- Dùng ModuleFinder để kiểm tra sự tồn tại của system module bằng Java code.
-- Phân biệt module có trong runtime image với module đã được resolve vào boot layer.
-- Chẩn đoán lỗi khi module cần thiết không có trong runtime image.
-- Kiểm tra tập module trước khi tạo custom runtime bằng jlink.
+- Identify the Java runtime currently used by a terminal or application.
+- List the modules contained in a runtime image.
+- Look up the descriptor of a specific module.
+- Use ModuleFinder to verify the existence of a system module in Java code.
+- Distinguish a module present in the runtime image from a module resolved into the boot layer.
+- Diagnose errors when a required module is missing from the runtime image.
+- Verify the module set before creating a custom runtime with jlink.
 
-## 1. Module của JDK và runtime image
+## 1. JDK Modules and Runtime Images
 
-JDK được tổ chức thành nhiều module. Mỗi module cung cấp một nhóm API hoặc công cụ có tên riêng, ví dụ:
+The JDK is organized into many modules. Each module provides a named group of APIs or tools, for example:
 
-| Module | Vai trò khái quát |
+| Module | General role |
 |---|---|
-| `java.base` | Các API nền tảng như `java.lang`, `java.util`, I/O cơ bản và reflection |
+| `java.base` | Foundational APIs such as `java.lang`, `java.util`, basic I/O, and reflection |
 | `java.sql` | JDBC API |
-| `java.xml` | API XML |
-| `java.logging` | Logging API chuẩn |
-| `java.desktop` | AWT, Swing và một số API desktop |
-| `java.compiler` | API liên quan đến compiler và mô hình ngôn ngữ |
-| `jdk.compiler` | Công cụ biên dịch javac và implementation compiler |
-| `jdk.jlink` | Công cụ tạo runtime image tùy chỉnh |
+| `java.xml` | XML APIs |
+| `java.logging` | Standard logging API |
+| `java.desktop` | AWT, Swing, and several desktop APIs |
+| `java.compiler` | Compiler and language model APIs |
+| `jdk.compiler` | The javac compiler tool and compiler implementation |
+| `jdk.jlink` | Tool for creating custom runtime images |
 
-Một bản JDK thông thường chứa nhiều module, nhưng runtime image có thể được tạo với tập module nhỏ hơn. Ví dụ, nhà phát triển có thể dùng `jlink` để tạo runtime chỉ chứa những module mà ứng dụng cần.
+A typical JDK installation contains many modules, whereas a runtime image can be built with a smaller set of modules. For instance, developers can use `jlink` to build a runtime containing only the modules the application requires.
 
-Vì vậy, việc một module có trong một bản JDK cài trên máy phát triển không bảo đảm module đó có trong runtime image mà ứng dụng production đang sử dụng.
+Consequently, a module existing in a JDK installed on a development machine does not guarantee that module exists in the runtime image used in production.
 
-### 1.1. Module name khác package name
+### 1.1. Module Name Differs from Package Name
 
-Module name là định danh của module trong module graph. Package name là tên namespace của class.
+A module name is the module's identifier in the module graph. A package name is a class namespace.
 
-Ví dụ:
+Example:
 
 - Module: `java.sql`
 - Package: `java.sql`
 - Class: `java.sql.Connection`
 
-Trong trường hợp này module và package trùng tên, nhưng đó không phải quy tắc bắt buộc. Một module có thể chứa nhiều package.
+In this case the module and package share the same name, though that is not a mandatory rule. One module can contain multiple packages.
 
-Khi kiểm tra module, hãy dùng module name như `java.sql`. Khi kiểm tra class, hãy dùng tên đầy đủ như `java.sql.Connection`.
+When checking a module, use the module name such as `java.sql`. When checking a class, use its fully qualified name such as `java.sql.Connection`.
 
-### 1.2. java.base luôn có mặt
+### 1.2. java.base Is Always Present
 
-Mọi named module đều phụ thuộc trực tiếp hoặc gián tiếp vào `java.base`. Đây là module nền tảng của Java và luôn có trong runtime image hợp lệ.
+Every named module depends directly or indirectly on `java.base`. It is Java's foundational module and is always present in a valid runtime image.
 
-Các module khác như `java.sql`, `java.xml`, `java.desktop`, `jdk.compiler` hoặc `jdk.jlink` có thể không có trong một runtime image tối giản.
+Other modules such as `java.sql`, `java.xml`, `java.desktop`, `jdk.compiler`, or `jdk.jlink` may be absent from a minimal runtime image.
 
-## 2. Xác định runtime đang được sử dụng
+## 2. Identifying the Runtime in Use
 
-Trước khi kiểm tra module, cần xác định đúng executable Java. Một máy có thể cài nhiều phiên bản JDK, nhiều bản JRE hoặc một runtime image được tạo riêng.
+Before checking modules, identify the exact Java executable. A machine may have multiple JDK versions, multiple JREs, or a custom runtime image installed.
 
-### 2.1. Kiểm tra phiên bản Java
+### 2.1. Checking the Java Version
 
-Chạy:
+Run:
 
 ~~~bash
 java --version
 ~~~
 
-Ví dụ đầu ra:
+Example output:
 
 ~~~text
 openjdk 21.0.2 2024-01-16
@@ -75,54 +75,54 @@ OpenJDK Runtime Environment
 OpenJDK 64-Bit Server VM
 ~~~
 
-Lệnh cho biết phiên bản của executable `java` được shell tìm thấy. Nó chưa cho biết đầy đủ đường dẫn cài đặt.
+This command reports the version of the `java` executable found by the shell. It does not show the full installation path.
 
-### 2.2. Kiểm tra đường dẫn executable
+### 2.2. Checking the Executable Path
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ~~~powershell
 Get-Command java -All | Select-Object Source
 Get-Command javac -All | Select-Object Source
 ~~~
 
-Hoặc trong Command Prompt:
+Or in Command Prompt:
 
 ~~~cmd
 where java
 where javac
 ~~~
 
-Trên Linux hoặc macOS:
+On Linux or macOS:
 
 ~~~bash
 command -v java
 command -v javac
 ~~~
 
-Nếu có nhiều kết quả, shell có thể đang chọn một Java khác với Java mà IDE hoặc service sử dụng. Hãy kiểm tra executable cụ thể thay vì chỉ dựa vào giá trị `JAVA_HOME`.
+If multiple results appear, the shell may be picking a different Java installation than the one used by an IDE or service. Check the specific executable rather than relying solely on the `JAVA_HOME` value.
 
-Có thể gọi trực tiếp Java trong `JAVA_HOME`:
+You can invoke Java directly inside `JAVA_HOME`:
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 & "$env:JAVA_HOME\bin\java.exe" --version
 & "$env:JAVA_HOME\bin\java.exe" --list-modules
 ~~~
 
-Trên Linux hoặc macOS:
+On Linux or macOS:
 
 ~~~bash
 "$JAVA_HOME/bin/java" --version
 "$JAVA_HOME/bin/java" --list-modules
 ~~~
 
-### 2.3. Kiểm tra java.home bên trong ứng dụng
+### 2.3. Checking java.home Inside the Application
 
-Nếu ứng dụng chạy qua IDE, service manager, container hoặc script riêng, runtime của tiến trình có thể khác runtime trong terminal.
+If the application runs via an IDE, service manager, container, or custom script, the process's runtime may differ from the terminal's runtime.
 
-In thông tin runtime ngay trong ứng dụng:
+Print runtime details directly inside the application:
 
 ~~~java
 public class RuntimeInfo {
@@ -142,19 +142,19 @@ public class RuntimeInfo {
 }
 ~~~
 
-`java.home` cho biết thư mục runtime mà JVM đang chạy sử dụng. Đây là bằng chứng hữu ích khi đối chiếu kết quả kiểm tra từ terminal với môi trường thực tế của ứng dụng.
+`java.home` shows the runtime directory used by the running JVM. This is useful evidence when comparing terminal checks against the application's actual environment.
 
-## 3. Liệt kê module có trong runtime image
+## 3. Listing Modules in the Runtime Image
 
-### 3.1. Dùng java --list-modules
+### 3.1. Using java --list-modules
 
-Lệnh cơ bản:
+Basic command:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Ví dụ một phần kết quả:
+Partial example output:
 
 ~~~text
 java.base@21.0.2
@@ -168,74 +168,74 @@ jdk.compiler@21.0.2
 jdk.jlink@21.0.2
 ~~~
 
-Tên module đứng trước ký tự `@` là module name. Phần sau `@` thường là phiên bản module được cung cấp bởi runtime.
+The name before the `@` character is the module name. The part after `@` is typically the module version supplied by the runtime.
 
-Khi chạy lệnh mà không bổ sung module path của ứng dụng, danh sách cho biết các system modules có thể quan sát từ runtime image hiện tại. Đây là bước kiểm tra nhanh để xác định module JDK có sẵn hay không.
+When run without adding an application module path, the list shows the system modules observable from the current runtime image. This is a quick check to verify whether a JDK module is available.
 
-### 3.2. Tìm một module cụ thể
+### 3.2. Searching for a Specific Module
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ~~~powershell
 java --list-modules | Select-String '^java.sql(@|$)'
 ~~~
 
-Trên Command Prompt:
+On Command Prompt:
 
 ~~~cmd
 java --list-modules | findstr /B java.sql
 ~~~
 
-Trên Linux hoặc macOS:
+On Linux or macOS:
 
 ~~~bash
 java --list-modules | grep '^java.sql@'
 ~~~
 
-Nếu có kết quả, runtime image hiện tại có module `java.sql`. Nếu không có kết quả, hãy xác nhận lại executable Java và runtime image đang được kiểm tra.
+If a match is printed, the current runtime image contains the `java.sql` module. If nothing is printed, double-check the Java executable and runtime image being inspected.
 
-Ví dụ kiểm tra module compiler:
+Example checking the compiler module:
 
 ~~~bash
 java --list-modules | grep '^jdk.compiler@'
 ~~~
 
-Trên Windows có thể thay `grep` bằng `Select-String` hoặc `findstr`.
+On Windows, `grep` can be replaced with `Select-String` or `findstr`.
 
-### 3.3. Đọc kết quả đúng cách
+### 3.3. Interpreting the Output Properly
 
-Nếu kết quả có:
+If the output contains:
 
 ~~~text
 java.sql@21.0.2
 ~~~
 
-Điều đó cho biết system module `java.sql` có trong runtime image đang được truy vấn.
+That indicates the system module `java.sql` is present in the queried runtime image.
 
-Nếu không có:
+If it produces nothing:
 
 ~~~text
 ~~~
 
-Không thể kết luận ngay rằng toàn bộ JDK bị lỗi. Runtime có thể là một custom image chỉ chứa các module cần thiết. Hãy kiểm tra `java.home`, đường dẫn executable và cách runtime image được tạo.
+Do not immediately conclude that the entire JDK is broken. The runtime may be a custom image containing only required modules. Check `java.home`, the executable path, and how the runtime image was built.
 
-## 4. Xem descriptor của module bằng java --describe-module
+## 4. Viewing a Module's Descriptor with java --describe-module
 
-Khi đã xác định module tồn tại, dùng:
+Once you confirm a module exists, use:
 
 ~~~bash
 java --describe-module java.sql
 ~~~
 
-Lệnh hiển thị module descriptor, gồm thông tin như:
+The command displays the module descriptor, including information such as:
 
-- Tên module.
-- Các package được chứa hoặc export.
-- Các dependency `requires`.
-- Các service được `uses`.
-- Các provider được `provides`, nếu có.
+- Module name.
+- Packages contained or exported.
+- `requires` dependencies.
+- Services listed under `uses`.
+- Providers listed under `provides`, if any.
 
-Ví dụ đầu ra rút gọn có thể chứa:
+Shortened example output might contain:
 
 ~~~text
 java.sql
@@ -247,9 +247,9 @@ requires java.base mandated
 uses java.sql.Driver
 ~~~
 
-Đầu ra thực tế phụ thuộc phiên bản JDK. Hãy dùng nó để xác nhận tên module, package và dependency mà module công bố.
+Actual output depends on the JDK version. Use it to confirm the module name, packages, and dependencies published by the module.
 
-Có thể kiểm tra module khác:
+You can check other modules:
 
 ~~~bash
 java --describe-module java.xml
@@ -257,33 +257,33 @@ java --describe-module java.logging
 java --describe-module jdk.compiler
 ~~~
 
-Nếu module không được tìm thấy trong runtime image, lệnh có thể báo lỗi tìm module. Khi đó quay lại kiểm tra danh sách module và executable Java.
+If the module is not found in the runtime image, the command may report a module lookup error. In that case, go back and verify the module list and Java executable.
 
-### 4.1. Phân biệt với jar --describe-module
+### 4.1. Distinguishing from jar --describe-module
 
-Hai lệnh có mục đích khác nhau:
+The two commands serve different purposes:
 
 ~~~bash
 java --describe-module java.sql
 ~~~
 
-Tra cứu module trong môi trường Java runtime hiện tại.
+Queries a module in the current Java runtime environment.
 
 ~~~bash
 jar --describe-module --file libs/payment.jar
 ~~~
 
-Tra cứu descriptor hoặc tên module của một JAR cụ thể.
+Queries the descriptor or module name of a specific JAR file.
 
-Một JAR trên đĩa có thể là explicit module hoặc automatic module. Việc JAR tồn tại không chứng minh module cùng tên là một system module của JDK.
+A JAR on disk may be an explicit module or an automatic module. The JAR's existence does not prove a module of the same name is a JDK system module.
 
-## 5. Kiểm tra bằng Java API với ModuleFinder.ofSystem()
+## 5. Checking via the Java API with ModuleFinder.ofSystem()
 
-Nếu cần kiểm tra trong code, dùng API `java.lang.module.ModuleFinder`.
+If you need to check in code, use the `java.lang.module.ModuleFinder` API.
 
-`ModuleFinder.ofSystem()` tạo finder cho các system modules của runtime image hiện tại. Có thể gọi `find(moduleName)` để kiểm tra một module cụ thể.
+`ModuleFinder.ofSystem()` creates a finder for the system modules of the current runtime image. You can call `find(moduleName)` to check a specific module.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -310,13 +310,13 @@ public class CheckSystemModule {
 }
 ~~~
 
-Nếu `find()` trả về một `Optional` có giá trị, module được tìm thấy trong system modules của runtime image hiện tại.
+If `find()` returns a present `Optional`, the module was found in the system modules of the current runtime image.
 
-Có thể thay `java.sql` bằng `java.xml`, `java.desktop`, `jdk.compiler` hoặc module cần kiểm tra khác.
+You can replace `java.sql` with `java.xml`, `java.desktop`, `jdk.compiler`, or any other module to inspect.
 
-### 5.1. Kiểm tra nhiều module
+### 5.1. Checking Multiple Modules
 
-Ví dụ kiểm tra một danh sách:
+Example checking a list:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -342,11 +342,11 @@ public class CheckSeveralModules {
 }
 ~~~
 
-Kết quả phụ thuộc runtime image đang chạy. Một custom image có thể có `java.base` và `java.sql` nhưng thiếu `java.desktop` hoặc `jdk.compiler`.
+Results depend on the running runtime image. A custom image might have `java.base` and `java.sql` while missing `java.desktop` or `jdk.compiler`.
 
-### 5.2. Kiểm tra descriptor
+### 5.2. Inspecting the Descriptor
 
-Sau khi tìm thấy module, có thể đọc descriptor:
+After finding the module, you can read its descriptor:
 
 ~~~java
 ModuleFinder.ofSystem()
@@ -361,22 +361,22 @@ ModuleFinder.ofSystem()
     });
 ~~~
 
-Đoạn code giúp kiểm tra cấu trúc module mà runtime cung cấp mà không cần mở file JMOD thủ công.
+This snippet lets you inspect the module structure provided by the runtime without manually opening JMOD files.
 
-## 6. Module có trong runtime image và module đã resolve là hai trạng thái khác nhau
+## 6. Being Present in the Runtime Image vs. Being Resolved Are Different States
 
-Đây là điểm quan trọng khi debug JPMS.
+This is a crucial point when debugging JPMS.
 
-Một system module có thể tồn tại trong runtime image nhưng chưa được đưa vào module graph của ứng dụng đang chạy. Module chỉ được resolve khi là root module hoặc được yêu cầu gián tiếp qua dependency/service binding phù hợp.
+A system module may exist in the runtime image yet not be included in the running application's module graph. A module is resolved only when it is a root module or is pulled in indirectly via appropriate dependencies or service binding.
 
-Có hai cách kiểm tra khác nhau:
+There are two different checks:
 
-| Câu hỏi | Cách kiểm tra |
+| Question | How to check |
 |---|---|
-| Runtime image có cung cấp module không? | `ModuleFinder.ofSystem().find(name)` hoặc `java --list-modules` |
-| Module đã được resolve vào boot layer chưa? | `ModuleLayer.boot().findModule(name)` |
+| Does the runtime image provide the module? | `ModuleFinder.ofSystem().find(name)` or `java --list-modules` |
+| Has the module been resolved into the boot layer? | `ModuleLayer.boot().findModule(name)` |
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -397,29 +397,29 @@ public class ModuleState {
 }
 ~~~
 
-Nếu `inRuntimeImage` là `true` nhưng `inBootLayer` là `false`, module có sẵn trong runtime image nhưng chưa được resolve vào boot layer của tiến trình.
+If `inRuntimeImage` is `true` while `inBootLayer` is `false`, the module is available in the runtime image but was not resolved into the process's boot layer.
 
-Muốn module được resolve khi khởi chạy, ứng dụng có thể khai báo `requires` trong descriptor hoặc bổ sung root module phù hợp bằng tùy chọn `--add-modules`.
+To have the module resolved at launch, the application can declare `requires` in its descriptor or add the appropriate root module via the `--add-modules` option.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-modules java.sql --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Không cần thêm `--add-modules` nếu ứng dụng đã khai báo dependency cần thiết bằng `requires`.
+There is no need to add `--add-modules` if the application already declares the required dependency using `requires`.
 
-## 7. Kiểm tra module graph thực tế của ứng dụng
+## 7. Inspecting the Application's Actual Module Graph
 
-Khi cần biết module nào thực sự được resolve lúc khởi động, dùng:
+When you need to see which modules are actually resolved at startup, use:
 
 ~~~bash
 java --show-module-resolution --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Tùy chọn `--show-module-resolution` in thông tin resolution, bao gồm các module được chọn làm root và các dependency được resolve.
+The `--show-module-resolution` option prints resolution details, including the modules chosen as roots and resolved dependencies.
 
-So sánh ba lệnh:
+Compare the three commands:
 
 ~~~bash
 java --list-modules
@@ -427,15 +427,15 @@ java --describe-module java.sql
 java --show-module-resolution --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-- `--list-modules`: liệt kê các module có thể quan sát trong runtime/module path của lần gọi.
-- `--describe-module`: xem descriptor của một module.
-- `--show-module-resolution`: xem module graph được resolve khi chạy ứng dụng cụ thể.
+- `--list-modules`: lists observable modules in the invocation's runtime/module path.
+- `--describe-module`: views a module's descriptor.
+- `--show-module-resolution`: views the resolved module graph when running a specific application.
 
-Đừng dùng kết quả của `--show-module-resolution` để kết luận module không xuất hiện trong runtime image. Một module có thể có sẵn nhưng không được chọn vào graph của ứng dụng.
+Do not use `--show-module-resolution` output to conclude that a module is absent from the runtime image. A module may be available yet not selected into the application's graph.
 
-## 8. Khi module cần thiết không tồn tại trong runtime
+## 8. When a Required Module Does Not Exist in the Runtime
 
-Giả sử module app khai báo:
+Suppose the app module declares:
 
 ~~~java
 module com.acme.app {
@@ -443,157 +443,157 @@ module com.acme.app {
 }
 ~~~
 
-Nhưng runtime image triển khai không chứa `java.sql`. Khi resolve module graph, JVM không thể tìm dependency bắt buộc và ứng dụng có thể thất bại với lỗi dạng:
+Yet the deployment runtime image lacks `java.sql`. During module graph resolution, the JVM cannot find the mandatory dependency and the application may fail with an error like:
 
 ~~~text
 java.lang.module.FindException:
 Module java.sql not found, required by com.acme.app
 ~~~
 
-Cách xử lý:
+How to handle it:
 
-1. Xác định chính xác runtime image mà ứng dụng đang chạy.
-2. Dùng `java --list-modules` để kiểm tra module còn thiếu.
-3. Kiểm tra module có thực sự cần thiết với chức năng ứng dụng không.
-4. Nếu cần, tạo lại runtime image có chứa module đó.
-5. Chạy lại ứng dụng bằng đúng runtime image vừa tạo.
+1. Identify the exact runtime image the application is running on.
+2. Use `java --list-modules` to verify the missing module.
+3. Check whether the module is genuinely required by application features.
+4. If needed, rebuild the runtime image to include that module.
+5. Re-run the application using the newly built runtime image.
 
-Không thể khắc phục việc thiếu system module bằng cách chỉ thêm một dòng `requires`. `requires` khai báo dependency; runtime image vẫn phải cung cấp module tương ứng.
+You cannot fix a missing system module merely by adding a `requires` line. `requires` declares a dependency; the runtime image must still provide the corresponding module.
 
-## 9. Tạo custom runtime có module cần thiết bằng jlink
+## 9. Creating a Custom Runtime with Required Modules Using jlink
 
-`jlink` tạo runtime image tùy chỉnh từ các module có sẵn. Công cụ này phù hợp khi muốn đóng gói runtime nhỏ hơn một JDK đầy đủ.
+`jlink` builds a custom runtime image from available modules. This tool is suitable when packaging a runtime smaller than a full JDK.
 
-Ví dụ:
+Example:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods"       --add-modules com.acme.app,java.sql       --output app-runtime
 ~~~
 
-Trong ví dụ:
+In the example:
 
-- `$JAVA_HOME/jmods` cung cấp các JDK modules từ JDK đang dùng.
-- `mods` cung cấp module của ứng dụng.
-- `--add-modules` chọn root modules cho runtime image.
-- `--output` xác định thư mục runtime được tạo.
+- `$JAVA_HOME/jmods` provides the JDK modules from the JDK in use.
+- `mods` provides the application's modules.
+- `--add-modules` selects the root modules for the runtime image.
+- `--output` specifies the created runtime directory.
 
-Trên Windows, dấu phân cách giữa các vị trí module path là dấu chấm phẩy:
+On Windows, the separator between module path locations is a semicolon:
 
 ~~~powershell
 jlink --module-path "$env:JAVA_HOME\jmods;mods" --add-modules com.acme.app,java.sql --output app-runtime
 ~~~
 
-Nếu module được chỉ định không có trong nguồn module finder, `jlink` sẽ báo lỗi. Nếu app đã khai báo `requires java.sql;`, dependency này cũng được đưa vào quá trình giải quyết khi tạo image từ root app.
+If a specified module is absent from the module finder sources, `jlink` reports an error. If the app already declares `requires java.sql;`, that dependency is also included during resolution when building the image from the app root.
 
-Sau khi tạo image, kiểm tra chính runtime mới:
+After building the image, inspect the new runtime itself:
 
 ~~~bash
 app-runtime/bin/java --list-modules
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 .\app-runtime\bin\java.exe --list-modules
 ~~~
 
-Đây là bước xác nhận runtime image được tạo có module mong muốn. Không nên chỉ kiểm tra JDK dùng để chạy `jlink`, vì tập module của image đầu ra có thể nhỏ hơn JDK nguồn.
+This step confirms the created runtime image contains the desired modules. Do not check only the JDK used to run `jlink`, because the output image's module set can be smaller than the source JDK.
 
-## 10. Dùng jdeps để tìm module ứng dụng cần
+## 10. Using jdeps to Find Modules the Application Needs
 
-Khi không chắc ứng dụng cần những system module nào, có thể dùng `jdeps` để phân tích dependency tĩnh.
+When unsure which system modules an application needs, you can use `jdeps` for static dependency analysis.
 
-Với một JAR thông thường:
+For a regular JAR:
 
 ~~~bash
 jdeps --print-module-deps --class-path "libs/*" app.jar
 ~~~
 
-Với named module:
+For a named module:
 
 ~~~bash
 jdeps --print-module-deps --module-path mods --module com.acme.app
 ~~~
 
-Kết quả có thể được dùng làm đầu vào cho `jlink --add-modules`.
+The output can be used as input to `jlink --add-modules`.
 
-Ví dụ kết quả rút gọn:
+Shortened example output:
 
 ~~~text
 java.base,java.logging,java.sql
 ~~~
 
-Lưu ý:
+Notes:
 
-- `jdeps` phân tích dependency có thể suy ra từ bytecode.
-- Reflection, class name lấy từ cấu hình, plugin và class loading động có thể không được phát hiện đầy đủ.
-- Cần kiểm tra thêm các module mà ứng dụng sử dụng qua `ServiceLoader` hoặc cơ chế nạp động.
-- Luôn chạy kiểm thử trên runtime image cuối cùng.
+- `jdeps` analyzes dependencies inferable from bytecode.
+- Reflection, class names read from configuration, plugins, and dynamic class loading may not be fully detected.
+- Also verify modules used by the application via `ServiceLoader` or dynamic loading mechanisms.
+- Always run tests on the final runtime image.
 
-## 11. Lỗi và nhầm lẫn thường gặp
+## 11. Common Errors and Misconceptions
 
-### 11.1. Terminal có module nhưng ứng dụng vẫn báo thiếu
+### 11.1. The Terminal Has the Module, Yet the Application Still Reports It Missing
 
-Nguyên nhân thường là terminal và ứng dụng sử dụng hai Java executable khác nhau. Kiểm tra `java.home` bên trong tiến trình và so sánh với đường dẫn của lệnh `java` trong terminal.
+The usual cause is that the terminal and the application use two different Java executables. Check `java.home` inside the process and compare it with the path of the `java` command in the terminal.
 
-### 11.2. Module có trong JDK nhưng không có trong custom runtime
+### 11.2. The Module Exists in the JDK, Yet Is Absent from the Custom Runtime
 
-JDK đầy đủ và runtime image tạo bằng `jlink` có thể chứa tập module khác nhau. Chạy `--list-modules` bằng executable của custom runtime để kiểm tra.
+A full JDK and a runtime image created with `jlink` can contain different module sets. Run `--list-modules` using the custom runtime's executable to verify.
 
-### 11.3. Module không được resolve nhưng thực tế vẫn có
+### 11.3. The Module Is Unresolved Yet Actually Present
 
-`java --list-modules` có thể liệt kê module, trong khi `ModuleLayer.boot().findModule(name)` trả về rỗng. Điều này có thể bình thường vì module chưa được đưa vào graph khởi động.
+`java --list-modules` may list the module while `ModuleLayer.boot().findModule(name)` returns empty. This can be normal when the module has not been pulled into the startup graph.
 
-### 11.4. Nhầm module với package
+### 11.4. Confusing a Module with a Package
 
-Một package có thể thuộc một module nhưng không được export. Việc tìm thấy module không đảm bảo module sử dụng có thể truy cập mọi package bên trong.
+A package may belong to a module without being exported. Finding the module does not guarantee consuming modules can access every package inside.
 
-### 11.5. Nhầm JAR với system module
+### 11.5. Confusing a JAR with a System Module
 
-Một thư viện JAR nằm trên module path có thể là explicit named module hoặc automatic module. Nó không vì thế trở thành module thuộc JDK runtime image. Dùng `ModuleFinder.ofSystem()` để kiểm tra system modules; dùng `ModuleFinder.of(path)` để tìm module từ nguồn bên ngoài.
+A library JAR on the module path may be an explicit named module or an automatic module. That does not make it a module of the JDK runtime image. Use `ModuleFinder.ofSystem()` to check system modules; use `ModuleFinder.of(path)` to locate modules from external sources.
 
-## 12. Quy trình kiểm tra thực tế
+## 12. Practical Verification Workflow
 
-Khi được giao xác minh một module có tồn tại trong JDK runtime, thực hiện theo trình tự:
+When tasked with verifying whether a module exists in a JDK runtime, follow this sequence:
 
-1. Lấy đường dẫn Java executable đang chạy ứng dụng.
-2. In `java.home` và `java.version` từ chính tiến trình nếu có thể.
-3. Chạy `java --list-modules` bằng đúng executable đó.
-4. Tìm tên module chính xác trong danh sách.
-5. Dùng `java --describe-module <module-name>` để xem descriptor.
-6. Nếu cần kiểm tra bằng code, dùng `ModuleFinder.ofSystem().find(name)`.
-7. Nếu cần biết module đã được resolve chưa, kiểm tra `ModuleLayer.boot().findModule(name)`.
-8. Nếu thiếu module trong custom runtime, cập nhật danh sách root cho `jlink` rồi tạo và kiểm tra lại image.
-9. Chạy ứng dụng và quan sát `--show-module-resolution` để xác nhận module graph thực tế.
+1. Obtain the path to the Java executable running the application.
+2. Print `java.home` and `java.version` from within the process itself if possible.
+3. Run `java --list-modules` using that exact executable.
+4. Search for the exact module name in the list.
+5. Use `java --describe-module <module-name>` to inspect the descriptor.
+6. If programmatic verification is needed, use `ModuleFinder.ofSystem().find(name)`.
+7. If you need to know whether the module is resolved, check `ModuleLayer.boot().findModule(name)`.
+8. If a module is missing in a custom runtime, update the root list for `jlink`, then rebuild and re-verify the image.
+9. Run the application and observe `--show-module-resolution` to confirm the actual module graph.
 
-## 13. Tự kiểm tra
+## 13. Self-Check
 
-**Tình huống 1:** Lệnh `java --list-modules` hiển thị `java.sql@21.0.2`. Tên module cần dùng trong `requires` là gì?
+**Scenario 1:** `java --list-modules` displays `java.sql@21.0.2`. What module name should be used in `requires`?
 
-**Trả lời:** `java.sql`. Phần sau dấu `@` là thông tin phiên bản.
+**Answer:** `java.sql`. The portion after `@` is version information.
 
-**Tình huống 2:** `ModuleFinder.ofSystem().find("java.sql")` có giá trị nhưng `ModuleLayer.boot().findModule("java.sql")` rỗng. Có phải runtime bị lỗi?
+**Scenario 2:** `ModuleFinder.ofSystem().find("java.sql")` is present, yet `ModuleLayer.boot().findModule("java.sql")` is empty. Is the runtime broken?
 
-**Trả lời:** Không nhất thiết. Module có trong runtime image nhưng chưa được resolve vào boot layer của tiến trình.
+**Answer:** Not necessarily. The module exists in the runtime image, but has not been resolved into the process's boot layer.
 
-**Tình huống 3:** Vì sao `java --list-modules` trên máy phát triển có `java.desktop`, nhưng custom runtime lại không có?
+**Scenario 3:** Why does `java --list-modules` on a development machine show `java.desktop`, while the custom runtime does not?
 
-**Trả lời:** Custom runtime có thể được tạo bằng jlink với tập root modules nhỏ hơn và không bao gồm dependency dẫn tới `java.desktop`.
+**Answer:** The custom runtime may have been built with jlink using a smaller set of root modules that does not include dependencies leading to `java.desktop`.
 
-**Tình huống 4:** `module-info.java` có `requires java.xml;` nhưng ứng dụng báo module không tìm thấy. Cần kiểm tra gì?
+**Scenario 4:** `module-info.java` has `requires java.xml;`, yet the application reports module not found. What should you check?
 
-**Trả lời:** Kiểm tra runtime image thực tế, executable Java và kết quả `java --list-modules`. Nếu image thiếu `java.xml`, cần tạo lại image có module đó.
+**Answer:** Check the actual runtime image, the Java executable, and the output of `java --list-modules`. If the image lacks `java.xml`, rebuild the image to include that module.
 
-**Tình huống 5:** Lệnh nào xem descriptor của system module `java.sql`?
+**Scenario 5:** Which command displays the descriptor of the `java.sql` system module?
 
-**Trả lời:** `java --describe-module java.sql`.
+**Answer:** `java --describe-module java.sql`.
 
-**Tình huống 6:** Muốn kiểm tra module system có tồn tại ngay bên trong ứng dụng Java, nên dùng API nào?
+**Scenario 6:** Which API should you use to check inside a Java application whether a system module exists?
 
-**Trả lời:** Dùng `ModuleFinder.ofSystem().find(moduleName)` và kiểm tra `Optional` trả về.
+**Answer:** Use `ModuleFinder.ofSystem().find(moduleName)` and check the returned `Optional`.
 
-**Tình huống 7:** Muốn biết module nào thực sự được resolve khi chạy ứng dụng, dùng tùy chọn nào?
+**Scenario 7:** Which option reveals which modules are actually resolved when running an application?
 
-**Trả lời:** Dùng `--show-module-resolution` trong lệnh khởi chạy.
+**Answer:** Use `--show-module-resolution` in the launch command.
 
-Khi kiểm tra module JDK, hãy luôn gắn kết quả với đúng runtime image đang chạy ứng dụng. Liệt kê module xác nhận module có sẵn; xem descriptor xác nhận nội dung module; kiểm tra boot layer xác nhận module đã được resolve; còn log module resolution cho biết graph của ứng dụng được hình thành ra sao.
+When checking JDK modules, always tie your findings to the exact runtime image running the application. Listing modules confirms availability; viewing descriptors confirms module contents; checking the boot layer confirms resolution; and module resolution logs show how the application's graph is formed.

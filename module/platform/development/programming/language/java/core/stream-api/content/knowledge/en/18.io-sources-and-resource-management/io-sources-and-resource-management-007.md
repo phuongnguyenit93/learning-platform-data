@@ -1,17 +1,17 @@
-# Quản lý vòng đời Stream con trong `flatMap` và `mapMulti`
+# Managing Child Stream Lifecycles in `flatMap` and `mapMulti`
 
-## 1. Vấn đề: một pipeline có thể sở hữu nhiều tài nguyên
+## 1. The Problem: A Single Pipeline Can Own Multiple Resources
 
-Một trong những ưu điểm của **JAVA_STREAM_API** là xử lý dữ liệu khai báo: từ nguồn, ta ghép `filter`, `map`, `flatMap`, `reduce` và `collect` thành pipeline lazy. Với danh sách trong bộ nhớ, việc đóng stream thường không đáng chú ý. Nhưng khi dữ liệu đến từ tệp, thư mục, socket hoặc nguồn có tài nguyên hệ thống, **stream không còn chỉ là một dãy giá trị**.
+One of the strengths of **JAVA_STREAM_API** is declarative data processing: from a source, we chain `filter`, `map`, `flatMap`, `reduce`, and `collect` into a lazy pipeline. With in-memory lists, closing streams rarely attracts attention. However, when data comes from files, directories, sockets, or sources backed by system resources, **a stream is no longer just a sequence of values**.
 
-Xét yêu cầu: tìm những dòng không rỗng trong nhiều tệp văn bản của một thư mục.
+Consider the requirement: find non-empty lines across multiple text files in a directory.
 
 ```text
-Files.list(directory)   -> Stream<Path>         (stream nguồn, giữ tài nguyên thư mục)
+Files.list(directory)   -> Stream<Path>         (source stream, holds directory resource)
        │
-       ├── file-a.txt  -> Files.lines(a)        (stream con, giữ tài nguyên tệp A)
-       ├── file-b.txt  -> Files.lines(b)        (stream con, giữ tài nguyên tệp B)
-       └── file-c.txt  -> Files.lines(c)        (stream con, giữ tài nguyên tệp C)
+       ├── file-a.txt  -> Files.lines(a)        (child stream, holds file A resource)
+       ├── file-b.txt  -> Files.lines(b)        (child stream, holds file B resource)
+       └── file-c.txt  -> Files.lines(c)        (child stream, holds file C resource)
                                     │
                                     ▼
                               Stream<String>
@@ -19,42 +19,42 @@ Files.list(directory)   -> Stream<Path>         (stream nguồn, giữ tài nguy
                          filter / limit / collect
 ```
 
-Cần trả lời **hai câu hỏi khác nhau**:
+We must answer **two distinct questions**:
 
-1. **Ai đóng stream nguồn** mà `Files.list` tạo ra?
-2. **Ai đóng từng stream con** mà việc mở các tệp tạo ra?
+1. **Who closes the source stream** created by `Files.list`?
+2. **Who closes each child stream** created when opening the files?
 
-Khi dùng `flatMap`, hợp đồng API có cơ chế đóng các stream con do mapper trả về. Khi dùng `mapMulti`, mapper **không trả về stream con** mà chủ động phát từng giá trị qua một `Consumer`; nếu mapper mở stream hoặc tài nguyên khác, **chính mapper phải tổ chức đóng tài nguyên đó**.
+When using `flatMap`, the API contract includes a mechanism to close child streams returned by the mapper. When using `mapMulti`, the mapper **does not return a child stream**; instead, it actively pushes each value through a `Consumer`. If the mapper opens a stream or another resource, **the mapper itself must arrange to close that resource**.
 
-Sau bài học, bạn có thể:
+After this lesson, you can:
 
-- Phân biệt stream không nắm tài nguyên và stream phụ thuộc tài nguyên I/O.
-- Xác định quyền sở hữu và vòng đời của stream nguồn, stream con và kết quả cuối.
-- Sử dụng `try-with-resources`, `BaseStream.close` và `onClose` đúng chỗ.
-- Thiết kế `flatMap` với `Files.lines` và `mapMulti` có vòng đời tài nguyên rõ ràng.
-- Xử lý lỗi mở/đọc/đóng tệp, bao gồm `IOException` và `UncheckedIOException`.
-- Hiểu ảnh hưởng của `limit`, `findFirst`, nguồn vô hạn và xử lý song song.
-- Kiểm thử cả **giá trị trả về** lẫn **việc đóng tài nguyên**, không chỉ kiểm tra đầu ra.
+- Distinguish streams holding no resources from streams backed by I/O resources.
+- Identify ownership and lifecycles of the source stream, child streams, and final results.
+- Use `try-with-resources`, `BaseStream.close`, and `onClose` in the right places.
+- Design `flatMap` with `Files.lines` and `mapMulti` with explicit resource lifecycles.
+- Handle file open/read/close failures, including `IOException` and `UncheckedIOException`.
+- Understand the effects of `limit`, `findFirst`, infinite sources, and parallel processing.
+- Test both **return values** and **resource closing**, not just output data.
 
-Các ví dụ dùng **JDK 17 trở lên** (có `mapMulti` từ JDK 16 và `Stream.toList()` từ JDK 16). `flatMap` và `BaseStream.close` đã có từ JDK 8.
+Examples use **JDK 17 or later** (`mapMulti` was added in JDK 16 and `Stream.toList()` in JDK 16). `flatMap` and `BaseStream.close` have existed since JDK 8.
 
-## 2. Không phải mọi `Stream` đều cần đóng
+## 2. Not Every `Stream` Needs to Be Closed
 
-`Stream` kế thừa `BaseStream`, mà `BaseStream` mở rộng `AutoCloseable`. Vì vậy, stream có phương thức `close()` và có thể được dùng với `try-with-resources`. Nhưng **việc cần đóng hay không phụ thuộc nguồn tạo stream**.
+`Stream` extends `BaseStream`, and `BaseStream` extends `AutoCloseable`. Therefore, a stream has a `close()` method and can be used with `try-with-resources`. Still, **whether closing is needed depends on the source that created the stream**.
 
-| Nguồn | Có tài nguyên bên ngoài cần quản lý? | Cách sử dụng thường gặp |
+| Source | Has external resource to manage? | Typical usage |
 | --- | --- | --- |
-| `List.stream()`, `Set.stream()` | Thường không | Không cần `try-with-resources` |
-| `Stream.of(...)`, `IntStream.range(...)` | Không, nếu chỉ tạo giá trị trong bộ nhớ | Không cần đóng chỉ vì có Stream |
-| `Files.lines(path)` | Có: tài nguyên đọc tệp | Đóng stream hoặc chuyển quyền đóng theo hợp đồng |
-| `Files.list(directory)` | Có: tài nguyên duyệt thư mục | `try-with-resources` |
-| `Files.walk(directory)`, `Files.find(...)` | Có: tài nguyên duyệt cây tệp | `try-with-resources` |
-| `BufferedReader.lines()` | Reader bên dưới vẫn cần được đóng | Đóng **`BufferedReader`**, không giả định đóng stream sẽ đóng reader |
-| Stream do ứng dụng tự tạo kèm `onClose` | Tùy handler và tài nguyên liên quan | Làm rõ quyền sở hữu với caller |
+| `List.stream()`, `Set.stream()` | Usually no | No `try-with-resources` needed |
+| `Stream.of(...)`, `IntStream.range(...)` | No, if only creating in-memory values | No need to close just because it is a Stream |
+| `Files.lines(path)` | Yes: file-reading resource | Close stream or transfer closing responsibility per contract |
+| `Files.list(directory)` | Yes: directory-listing resource | `try-with-resources` |
+| `Files.walk(directory)`, `Files.find(...)` | Yes: file-tree traversal resource | `try-with-resources` |
+| `BufferedReader.lines()` | Underlying reader still must be closed | Close **`BufferedReader`**; do not assume closing the stream closes the reader |
+| Custom application stream with `onClose` | Depends on handlers and related resources | Clarify ownership with callers |
 
-**Quy tắc:** khi gọi một API trả stream, hãy đọc Javadoc của **API tạo nguồn**, không chỉ đọc Javadoc chung của `Stream`. Một terminal operation như `count()` hoặc `toList()` **không tự động gọi `close()` trên stream nguồn**.
+**Rule:** when calling an API that returns a stream, read the Javadoc of **the source-creating API**, not just the general Javadoc of `Stream`. A terminal operation such as `count()` or `toList()` **does not automatically call `close()` on the source stream**.
 
-Ví dụ đúng:
+Correct example:
 
 ```java
 import java.io.IOException;
@@ -70,28 +70,28 @@ static long countLines(Path file) throws IOException {
 }
 ```
 
-`count()` tiêu thụ pipeline; khi thoát khỏi khối `try`, `lines.close()` được gọi dù không có dòng nào hay terminal operation ném lỗi.
+`count()` consumes the pipeline; upon exiting the `try` block, `lines.close()` is invoked even if there are no lines or the terminal operation throws an error.
 
-Ngược lại:
+Conversely:
 
 ```java
-// Không cần try-with-resources cho nguồn trong bộ nhớ thông thường:
+// No try-with-resources needed for typical in-memory sources:
 long count = java.util.List.of("Java", "Stream")
     .stream()
     .filter(s -> s.length() > 4)
     .count();
 ```
 
-## 3. Hiểu `close()` và `onClose()` trước khi lồng stream
+## 3. Understanding `close()` and `onClose()` Before Nesting Streams
 
-### 3.1. `close()` không giống terminal operation
+### 3.1. `close()` Is Not a Terminal Operation
 
-Trong Java Stream API:
+In the Java Stream API:
 
-- `collect`, `count`, `findFirst`, `forEach` là **terminal operations**: kích hoạt/tiêu thụ pipeline.
-- `close()` là hành động **giải phóng tài nguyên** và kích hoạt các close handlers đã đăng ký.
-- Terminal operation kết thúc **không đồng nghĩa** stream tự được đóng.
-- Stream đã đóng không được tiếp tục xử lý như pipeline mới; muốn chạy lại, phải mở nguồn mới.
+- `collect`, `count`, `findFirst`, and `forEach` are **terminal operations**: they trigger/consume the pipeline.
+- `close()` is the action that **releases resources** and triggers registered close handlers.
+- Finishing a terminal operation **does not mean** the stream is closed automatically.
+- A closed stream cannot continue being processed as a new pipeline; to run again, open a new source.
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -103,34 +103,34 @@ Stream<String> source = Stream.of("A", "B")
 
 long count = source.count();
 System.out.println(count);        // 2
-System.out.println(closed.get()); // 0: count() không tự close.
+System.out.println(closed.get()); // 0: count() does not auto-close.
 
 source.close();
 System.out.println(closed.get()); // 1
 ```
 
-Ví dụ dùng `AtomicInteger` chỉ để **quan sát vòng đời trong bài thử**, không phải khuyến khích đưa trạng thái ngoài vào mapper nghiệp vụ.
+This example uses `AtomicInteger` solely to **observe the lifecycle in a test**, not to encourage placing external state into business mappers.
 
-### 3.2. `onClose` đăng ký hành động dọn dẹp
+### 3.2. `onClose` Registers a Cleanup Action
 
-`BaseStream.onClose(Runnable)` trả về stream kèm một close handler. Khi stream được đóng, các handler được thực hiện theo thứ tự đã đăng ký. Nếu có nhiều handler ném ngoại lệ, các ngoại lệ tiếp theo có thể được gắn vào ngoại lệ ban đầu dưới dạng *suppressed exceptions*.
+`BaseStream.onClose(Runnable)` returns a stream with an attached close handler. When the stream closes, handlers run in registration order. If multiple handlers throw exceptions, subsequent exceptions can be attached to the initial exception as *suppressed exceptions*.
 
 ```java
 import java.util.stream.Stream;
 
 try (Stream<String> s = Stream.of("A", "B")
-        .onClose(() -> System.out.println("Đã đóng"))) {
-    System.out.println(s.findFirst().orElse("Rỗng"));
+        .onClose(() -> System.out.println("Closed"))) {
+    System.out.println(s.findFirst().orElse("Empty"));
 }
 // A
-// Đã đóng
+// Closed
 ```
 
-`onClose` không biến `count` hay `findFirst` thành thao tác tự đóng; chính `try-with-resources` trong ví dụ gọi `close`.
+`onClose` does not turn `count` or `findFirst` into auto-closing operations; `try-with-resources` in the example is what calls `close`.
 
-### 3.3. Với `BufferedReader.lines()`, chủ sở hữu là reader
+### 3.3. With `BufferedReader.lines()`, the Owner Is the Reader
 
-`BufferedReader.lines()` cung cấp một stream đọc từ reader nhưng không chuyển quyền đóng reader cho stream một cách mặc định. Cách an toàn là đóng **chính reader**:
+`BufferedReader.lines()` provides a stream reading from the reader, but does not transfer reader-closing ownership to the stream by default. The safe practice is to close **the reader itself**:
 
 ```java
 import java.io.BufferedReader;
@@ -149,11 +149,11 @@ static long countNonBlank(Path path) throws IOException {
 }
 ```
 
-Với `Files.lines(path)`, stream do chính `Files` tạo là tài nguyên cần đóng. Đừng đánh đồng hai API chỉ vì cả hai đều trả về `Stream<String>`.
+With `Files.lines(path)`, the stream created by `Files` itself is the resource to close. Do not equate the two APIs simply because both return `Stream<String>`.
 
-## 4. `flatMap`: stream con được đóng theo hợp đồng
+## 4. `flatMap`: Child Streams Are Closed by Contract
 
-Chữ ký rút gọn:
+Simplified signature:
 
 ```java
 <R> Stream<R> flatMap(
@@ -161,9 +161,9 @@ Chữ ký rút gọn:
 )
 ```
 
-Với mỗi phần tử `T`, mapper tạo một `Stream<R>`. `flatMap` kết hợp các phần tử của những stream con để trả về một stream duy nhất.
+For each element `T`, the mapper produces a `Stream<R>`. `flatMap` flattens the elements of those child streams into a single returned stream.
 
-**Điểm đặc biệt của vòng đời:** Javadoc quy định **mỗi stream con do mapper tạo ra được đóng sau khi nội dung của nó được đưa vào stream kết quả**. Điều này cho phép:
+**Special lifecycle rule:** the Javadoc specifies that **each child stream produced by the mapper is closed after its contents have been placed into the resulting stream**. This enables:
 
 ```java
 files.stream()
@@ -172,30 +172,30 @@ files.stream()
     .toList();
 ```
 
-Ở đây `openLines(path)` phải trả **một stream còn mở**. Khi nội dung stream con được xử lý trong `flatMap`, framework chịu trách nhiệm đóng stream con. `files.stream()` từ `List<Path>` thường không nắm tài nguyên, nên không cần `try-with-resources` cho stream nguồn trong ví dụ này.
+Here `openLines(path)` must return **an open stream**. Once the child stream's contents are processed inside `flatMap`, the framework takes responsibility for closing that child stream. `files.stream()` from `List<Path>` typically holds no resources, so `try-with-resources` is not needed for the outer stream in this example.
 
-Sơ đồ quyền sở hữu:
+Ownership diagram:
 
 ```text
 Caller
   │
-  ├── sở hữu Stream<Path> nguồn khi Files.list / Files.walk tạo ra nó
-  │       └── đóng bằng try-with-resources
+  ├── owns source Stream<Path> when Files.list / Files.walk creates it
+  │       └── closed via try-with-resources
   │
   └── flatMap
-          ├── mapper trả Stream<String> cho file A (đang mở)
-          │       └── flatMap quản lý close của stream A
-          ├── mapper trả Stream<String> cho file B (đang mở)
-          │       └── flatMap quản lý close của stream B
+          ├── mapper returns Stream<String> for file A (open)
+          │       └── flatMap manages close of stream A
+          ├── mapper returns Stream<String> for file B (open)
+          │       └── flatMap manages close of stream B
           └── ...
 ```
 
-### 4.1. Không đóng stream con trước khi trả về
+### 4.1. Do Not Close the Child Stream Before Returning It
 
-Phản ví dụ:
+Anti-pattern:
 
 ```java
-// SAI: trả về một stream đã đóng.
+// WRONG: returns an already-closed stream.
 paths.stream()
     .flatMap(path -> {
         try (Stream<String> lines = Files.lines(path)) {
@@ -207,31 +207,31 @@ paths.stream()
     .toList();
 ```
 
-Khi lambda trả `lines`, khối `try-with-resources` đã kết thúc và stream bị đóng trước khi `flatMap` sử dụng. Việc duyệt có thể ném `IllegalStateException` do stream đã đóng. **Không bọc stream sẽ được trả về cho `flatMap` trong một `try-with-resources` kết thúc ngay bên trong mapper.**
+When the lambda returns `lines`, the `try-with-resources` block has already exited and the stream is closed before `flatMap` uses it. Traversal may throw `IllegalStateException` because the stream is closed. **Do not wrap a stream being returned to `flatMap` in a `try-with-resources` block that finishes inside the mapper.**
 
-### 4.2. Không mở stream con rồi bỏ quên quyền đóng
+### 4.2. Do Not Open Child Streams and Abandon Closing Ownership
 
-Phản ví dụ khác:
+Another anti-pattern:
 
 ```java
-// Sai về quản lý tài nguyên: giữ lại các stream con trong một List.
+// Broken resource management: retaining child streams in a List.
 List<Stream<String>> childStreams = paths.stream()
     .map(path -> openLines(path))
     .toList();
 
-// Các stream con không được flatMap quản lý, cũng chưa được close.
+// Child streams are neither managed by flatMap nor closed.
 ```
 
-`map` chỉ tạo `Stream<Stream<String>>`; nó không có hợp đồng **đóng từng stream con** giống `flatMap`. Nếu ứng dụng thật sự cần lưu stream con riêng rẽ, phải định nghĩa chủ sở hữu và đóng mọi stream đã mở, kể cả khi có ngoại lệ. Thường đơn giản hơn là dùng `flatMap` hoặc một vòng lặp `try-with-resources` đúng chỗ.
+`map` only creates a `Stream<Stream<String>>`; it has no contract to **close each child stream** like `flatMap` does. If an application truly needs to store child streams separately, it must define an owner and close every opened stream, even on exceptions. Usually it is much simpler to use `flatMap` or a properly scoped `try-with-resources` loop.
 
-## 5. Ví dụ hoàn chỉnh: xử lý nhiều tệp bằng `flatMap`
+## 5. Complete Example: Processing Multiple Files with `flatMap`
 
-Giả sử muốn duyệt mọi tệp thông thường trong một thư mục và đếm tổng số dòng không trắng. Có **hai tầng tài nguyên**:
+Suppose we want to scan all regular files in a directory and count the total number of non-blank lines. There are **two resource layers**:
 
-1. `Files.list(directory)` tạo stream nguồn chứa tài nguyên duyệt thư mục.
-2. `Files.lines(file)` tạo stream con chứa tài nguyên đọc tệp.
+1. `Files.list(directory)` creates the source stream holding the directory-listing resource.
+2. `Files.lines(file)` creates a child stream holding a file-reading resource.
 
-Mã hoàn chỉnh, có thể chạy trên **JDK 17+**:
+Complete code, runnable on **JDK 17+**:
 
 ```java
 import java.io.IOException;
@@ -247,20 +247,20 @@ public final class FileLinePipelines {
 
     static Stream<String> openLinesUnchecked(Path path) {
         try {
-            // Chuyển quyền quản lý stream còn mở cho caller.
+            // Transfer management of the open stream to the caller.
             return Files.lines(path, StandardCharsets.UTF_8);
         } catch (IOException ex) {
-            throw new UncheckedIOException("Không mở được: " + path, ex);
+            throw new UncheckedIOException("Cannot open: " + path, ex);
         }
     }
 
     public static long countFlatMap(Path directory) throws IOException {
-        // Caller sở hữu stream thư mục.
+        // Caller owns the directory stream.
         try (Stream<Path> paths = Files.list(directory)) {
             return paths
                 .filter(Files::isRegularFile)
                 .flatMap(FileLinePipelines::openLinesUnchecked)
-                // flatMap quản lý close của từng stream Files.lines.
+                // flatMap manages close of each Files.lines stream.
                 .map(String::strip)
                 .filter(line -> !line.isEmpty())
                 .count();
@@ -272,7 +272,7 @@ public final class FileLinePipelines {
             return paths
                 .filter(Files::isRegularFile)
                 .<String>mapMulti((path, emit) -> {
-                    // mapMulti KHÔNG đóng stream thay mapper.
+                    // mapMulti does NOT close streams on the mapper's behalf.
                     try (Stream<String> lines = openLinesUnchecked(path)) {
                         lines.forEachOrdered(emit);
                     }
@@ -285,7 +285,7 @@ public final class FileLinePipelines {
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
-            System.out.println("Cách dùng: java FileLinePipelines <directory>");
+            System.out.println("Usage: java FileLinePipelines <directory>");
             return;
         }
 
@@ -296,20 +296,20 @@ public final class FileLinePipelines {
 }
 ```
 
-Hai phương thức có cùng **nghĩa kết quả** với nguồn tệp không thay đổi và cùng chính sách đọc: mỗi dòng không trắng đóng góp một đơn vị vào bộ đếm. Nhưng **vòng đời và khả năng dừng sớm bên trong tệp** không giống nhau.
+The two methods produce the **same semantic result** for unchanged file sources and identical reading policies: each non-blank line contributes one to the count. However, **resource lifecycles and early-stop capability inside files** differ.
 
-Trong ví dụ:
+In this example:
 
-- `Files.list` có thể đưa các `Path` theo thứ tự không xác định. Vì chỉ đếm, điều này không ảnh hưởng kết quả.
-- `Files.isRegularFile` chỉ kiểm tra tại thời điểm gọi; tệp vẫn có thể thay đổi, bị xóa hoặc mất quyền truy cập trước lúc mở.
-- `openLinesUnchecked` dùng khi lambda không được khai báo `throws IOException`; nó không nuốt lỗi.
-- Nếu đọc tệp xảy ra lỗi khi terminal operation duyệt, ngoại lệ có thể là `UncheckedIOException`; nguồn thư mục vẫn được đóng khi thoát `try`.
-- Ví dụ xử lý **tệp trực tiếp trong thư mục**, không đệ quy. Muốn duyệt cây thư mục có thể dùng `Files.walk` nhưng phải đóng stream nguồn như `Files.list`.
-- Ví dụ không áp đặt thứ tự tệp để tránh chi phí sắp xếp khi chỉ cần đếm.
+- `Files.list` can emit `Path` values in unspecified order. Because we are only counting, this does not affect the result.
+- `Files.isRegularFile` checks only at call time; a file can still change, be deleted, or lose permissions before being opened.
+- `openLinesUnchecked` is used because the lambda cannot declare `throws IOException`; it does not swallow errors.
+- If reading a file fails while the terminal operation traverses, the exception may be `UncheckedIOException`; the directory stream is still closed upon exiting `try`.
+- The example processes **direct files in the directory**, not recursively. To traverse a directory tree, you can use `Files.walk`, while still closing the source stream just like `Files.list`.
+- The example imposes no file order to avoid sorting overhead when only a count is needed.
 
-## 6. Vì sao `mapMulti` có quy tắc quản lý khác?
+## 6. Why Does `mapMulti` Have Different Management Rules?
 
-`Stream.mapMulti` được bổ sung từ **JDK 16**, với chữ ký:
+`Stream.mapMulti` was added in **JDK 16**, with signature:
 
 ```java
 <R> Stream<R> mapMulti(
@@ -317,13 +317,13 @@ Trong ví dụ:
 )
 ```
 
-Không giống `flatMap`:
+Unlike `flatMap`:
 
-- `flatMap` cần mapper **trả một `Stream<R>`**.
-- `mapMulti` cho mapper một `Consumer<R>` tên tùy chọn (ví dụ `emit`, `downstream`). Mapper gọi `emit.accept(value)` **không, một hoặc nhiều lần** để phát các giá trị.
-- Mapper của `mapMulti` trả `void`, nên **không có đối tượng stream con được trả cho framework để nó đóng theo hợp đồng `flatMap`**.
+- `flatMap` requires the mapper to **return a `Stream<R>`**.
+- `mapMulti` gives the mapper a `Consumer<R>` with any chosen name (e.g., `emit`, `downstream`). The mapper calls `emit.accept(value)` **zero, one, or many times** to push values.
+- The `mapMulti` mapper returns `void`, so **no child stream object is handed to the framework to close under the `flatMap` contract**.
 
-Ví dụ trong bộ nhớ:
+In-memory example:
 
 ```java
 import java.util.List;
@@ -341,9 +341,9 @@ List<String> values = groups.stream()
 System.out.println(values); // [Java, Stream, API]
 ```
 
-Với `List` trong bộ nhớ, không có tài nguyên I/O đặc biệt. Nhưng khi mapper mở `Files.lines`, `BufferedReader` hoặc một tài nguyên riêng, **mapper phải tự sở hữu và đóng nó**.
+With an in-memory `List`, there are no special I/O resources. However, when the mapper opens `Files.lines`, `BufferedReader`, or a custom resource, **the mapper must own and close it itself**.
 
-### 6.1. Mẫu chuẩn cho `mapMulti` với nguồn I/O
+### 6.1. Standard Pattern for `mapMulti` with I/O Sources
 
 ```java
 paths.stream()
@@ -355,43 +355,43 @@ paths.stream()
     .toList();
 ```
 
-Ở đây `try-with-resources` **đúng** vì mapper phát các dòng **ngay trong lần gọi của nó**, không trả stream còn mở để xử lý về sau. Dù `forEachOrdered` kết thúc bình thường hay ném ngoại lệ, `lines` được đóng khi thoát khối `try`.
+Here `try-with-resources` is **correct** because the mapper emits all lines **right inside its own invocation**, rather than returning an open stream for deferred processing. Whether `forEachOrdered` finishes normally or throws an exception, `lines` is closed upon exiting `try`.
 
-### 6.2. Không lưu lại `emit` để dùng ngoài mapper
+### 6.2. Do Not Retain `emit` for Use Outside the Mapper
 
-`Consumer<R>` được truyền vào `mapMulti` chỉ dành cho việc phát kết quả **trong phạm vi thực thi mapper**. Không lưu consumer vào biến toàn cục, không dùng nó từ callback bất đồng bộ sau khi mapper đã trả về, không khởi chạy tác vụ nền dùng lại nó.
+The `Consumer<R>` passed into `mapMulti` is strictly for emitting results **within the mapper's execution scope**. Do not store the consumer in a global variable, invoke it from an asynchronous callback after the mapper has returned, or launch a background task that reuses it.
 
-Sai về mô hình sử dụng:
+Misuse pattern:
 
 ```java
-// Không làm: giữ Consumer do mapMulti đưa vào để phát giá trị về sau.
+// Do not do this: retaining the Consumer provided by mapMulti to emit values later.
 // savedConsumers.add(emit);
 // asyncExecutor.submit(() -> emit.accept("late"));
 ```
 
-Nếu dữ liệu đến từ một nguồn bất đồng bộ, cần mô hình quản lý bất đồng bộ và backpressure riêng. `mapMulti` không tự biến Java Stream API thành một reactive-stream API.
+If data comes from an asynchronous source, you need a dedicated async and backpressure model. `mapMulti` does not turn the Java Stream API into a reactive-streams API.
 
-## 7. `flatMap` so với `mapMulti`: khi nào chọn cách nào?
+## 7. `flatMap` vs. `mapMulti`: When to Choose Which?
 
-| Tiêu chí | `flatMap` | `mapMulti` |
+| Criterion | `flatMap` | `mapMulti` |
 | --- | --- | --- |
-| Mapper trả về | `Stream<R>` | `void`; phát qua `Consumer<R>` |
-| Quan hệ một-nhiều | Thể hiện bằng stream con | Thể hiện bằng các lần `emit.accept` |
-| Stream con được framework đóng? | Có, theo hợp đồng `flatMap` | Không có stream con được trả |
-| Mở tệp ngay trong mapper | Trả `Files.lines` còn mở; để `flatMap` đóng | Dùng `try-with-resources` trong mapper |
-| Dừng sớm của downstream | Có thể làm việc kết hợp với cơ chế duyệt stream con | Không có tín hiệu dừng sớm truyền trực tiếp vào vòng lặp phát của mapper |
-| Biểu diễn nguồn I/O lớn | Tự nhiên nếu có API trả `Stream<R>` | Cần tự điều khiển vòng lặp và đóng tài nguyên |
-| Phát ít giá trị/không muốn tạo stream con | Có thể tạo nhiều stream nhỏ | Có thể tiện hơn |
-| Bảo đảm luôn nhanh hơn? | Không | Không |
-| Phiên bản xuất hiện | Java 8 | JDK 16 |
+| Mapper returns | `Stream<R>` | `void`; emits via `Consumer<R>` |
+| One-to-many mapping | Expressed as a child stream | Expressed as calls to `emit.accept` |
+| Child stream closed by framework? | Yes, per `flatMap` contract | No child stream returned |
+| Opening a file inside mapper | Return open `Files.lines`; let `flatMap` close it | Use `try-with-resources` inside mapper |
+| Downstream early stop | Can cooperate with child stream traversal | No early-stop signal passed directly into mapper's push loop |
+| Representing large I/O sources | Natural when an API returns `Stream<R>` | Requires manual loop control and resource closing |
+| Emitting few values / avoiding child streams | Can create many small streams | Can be more convenient |
+| Guaranteed always faster? | No | No |
+| Version introduced | Java 8 | JDK 16 |
 
-**Lưu ý hiệu năng:** Javadoc nêu implementation mặc định của `mapMulti` có thể dùng một buffer và gọi `flatMap` bên trong. Vì thế, “`mapMulti` chắc chắn không cấp phát” hoặc “`mapMulti` luôn nhanh hơn” là kết luận không có cơ sở. Hãy đo trên JDK, nguồn dữ liệu và terminal operation thực tế.
+**Performance note:** Javadoc notes that the default implementation of `mapMulti` may use a buffer and call `flatMap` internally. Therefore, claiming "`mapMulti` definitely performs zero allocations" or "`mapMulti` is always faster" is unfounded. Benchmark on your actual JDK, data source, and terminal operation.
 
-## 8. `limit`, `findFirst` và dừng sớm: khác biệt quan trọng
+## 8. `limit`, `findFirst`, and Early Stopping: An Important Difference
 
-Với pipeline có terminal operation **short-circuit** hoặc intermediate operation như `limit`, có thể không cần đọc toàn bộ dữ liệu. Nhưng cách phát giá trị ảnh hưởng khả năng tiết kiệm công việc.
+In a pipeline with a **short-circuiting** terminal operation or intermediate operation like `limit`, reading all data may not be necessary. Yet how elements are produced affects how much work can be saved.
 
-### 8.1. `flatMap` có thể hỗ trợ dừng khi downstream đã đủ
+### 8.1. `flatMap` Can Support Stopping Once Downstream Has Enough
 
 ```java
 import java.util.List;
@@ -402,13 +402,13 @@ List<String> firstThree = paths.stream()
     .toList();
 ```
 
-Trong pipeline tuần tự, `limit(3)` không yêu cầu thu tất cả các dòng từ mọi tệp: sau khi đủ ba phần tử, pipeline có thể dừng. **Không nên viết test ép chính xác bao nhiêu lần mapper/reader được gọi**, vì chi tiết duyệt và tối ưu hóa có thể khác giữa các JDK hoặc chế độ song song.
+In a sequential pipeline, `limit(3)` does not require reading all lines from every file: once three elements are obtained, the pipeline can stop. **Do not write tests asserting the exact number of mapper/reader invocations**, since traversal details and optimizations can vary across JDKs or parallel mode.
 
-Nếu `paths` thực chất đến từ `Files.list`, caller vẫn phải bảo đảm đóng **stream thư mục** bằng `try-with-resources`. Việc `limit` hoàn tất không đóng stream nguồn.
+If `paths` actually comes from `Files.list`, the caller must still ensure **the directory stream** is closed via `try-with-resources`. Completing `limit` does not close the outer stream.
 
-### 8.2. `mapMulti` có thể tiêu thụ hết nguồn con trước khi giới hạn phát huy tác dụng
+### 8.2. `mapMulti` May Consume an Entire Child Source Before the Limit Takes Effect
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.List;
@@ -424,15 +424,15 @@ List<String> firstThree = paths.stream()
     .toList();
 ```
 
-`lines.forEachOrdered(emit)` có nghĩa là mapper chủ động duyệt các dòng của tệp đang mở. `mapMulti` không trao cho mapper một API tiêu chuẩn để hỏi “downstream đã nhận đủ ba phần tử chưa?”. Vì vậy, **không kỳ vọng `limit(3)` sẽ ngăn vòng lặp `forEachOrdered` đọc tiếp bên trong tệp đang xử lý**. Nếu một tệp rất lớn, đó có thể là lãng phí đáng kể.
+`lines.forEachOrdered(emit)` means the mapper actively iterates over lines of the open file. `mapMulti` gives the mapper no standard API to ask "has downstream already received three elements?". Therefore, **do not expect `limit(3)` to stop the `forEachOrdered` loop from reading further inside the current file**. For a huge file, that can waste substantial I/O.
 
-Mọi thứ vẫn được đóng bằng `try-with-resources`, nhưng **đóng đúng không đồng nghĩa đọc tiết kiệm**.
+Everything is still closed by `try-with-resources`, but **proper closing does not equate to economical reading**.
 
-### 8.3. Thứ tự nguồn và kết quả “đầu tiên”
+### 8.3. Source Ordering and "First" Results
 
-`Files.list(directory)` không bảo đảm thứ tự đường dẫn. Do đó, “ba dòng đầu tiên của thư mục” là yêu cầu mơ hồ nếu không nêu thứ tự tệp.
+`Files.list(directory)` does not guarantee path ordering. Thus, "the first three lines in the directory" is ambiguous without specifying file ordering.
 
-Nếu cần thứ tự **tên tệp tăng dần**, có thể thêm:
+If **ascending filename** order is needed, you can add:
 
 ```java
 try (Stream<Path> paths = Files.list(directory)) {
@@ -447,47 +447,47 @@ try (Stream<Path> paths = Files.list(directory)) {
 }
 ```
 
-`sorted` phải có khả năng sắp xếp các đường dẫn, vì vậy có thể cần giữ toàn bộ danh sách đường dẫn trước khi phát phần tử. Cân nhắc chi phí nếu thư mục rất lớn. Cũng cần phân biệt thứ tự tên tệp, thứ tự thời gian và thứ tự dòng bên trong mỗi tệp.
+`sorted` must be able to sort the paths, so it may need to buffer all paths before emitting any element. Weigh the cost if the directory is very large. Also distinguish filename order, timestamp order, and line order within each file.
 
-### 8.4. Nguồn vô hạn
+### 8.4. Infinite Sources
 
-Nếu mapper của `mapMulti` chạy một vòng lặp **không bao giờ kết thúc** để tiếp tục gọi `emit.accept`, một `limit` phía sau **không bảo đảm cứu được** pipeline khỏi việc mắc kẹt trong mapper. Trong mô hình thông thường, `flatMap` với một stream con có khả năng short-circuit thích hợp hơn cho nguồn rất dài hoặc tiềm năng vô hạn, nhưng vẫn phải tuân hợp đồng tài nguyên của nguồn và bảo đảm terminal operation có đường kết thúc.
+If a `mapMulti` mapper runs a **never-ending loop** calling `emit.accept`, a downstream `limit` **is not guaranteed to save** the pipeline from getting stuck inside the mapper. In standard patterns, `flatMap` with a short-circuitable child stream is better suited for very long or potentially infinite sources, while still honoring the source's resource contract and ensuring the terminal operation can terminate.
 
-## 9. Ngoại lệ: mở, duyệt và đóng là ba thời điểm khác nhau
+## 9. Exceptions: Opening, Traversing, and Closing Are Three Distinct Moments
 
-Các API I/O có thể phát sinh lỗi ở **nhiều giai đoạn**:
+I/O APIs can fail at **multiple stages**:
 
-1. **Mở nguồn:** `Files.list` hoặc `Files.lines` có thể ném checked `IOException`.
-2. **Duyệt nguồn:** một stream đã mở có thể phát sinh lỗi trong quá trình đọc; những lỗi I/O khi duyệt có thể xuất hiện dưới dạng `UncheckedIOException`.
-3. **Đóng nguồn:** thao tác giải phóng tài nguyên có thể gây lỗi; `try-with-resources` vẫn có cơ chế xử lý ngoại lệ và suppressed exceptions.
+1. **Opening the source:** `Files.list` or `Files.lines` can throw a checked `IOException`.
+2. **Traversing the source:** an already-open stream can fail while reading; I/O errors during traversal may appear as `UncheckedIOException`.
+3. **Closing the source:** resource release can fail; `try-with-resources` still handles exceptions and suppressed exceptions.
 
-Chữ ký `Function`/`BiConsumer` trong Stream API **không khai báo `throws IOException`**, nên đoạn mã này không biên dịch:
+`Function`/`BiConsumer` signatures in the Stream API **do not declare `throws IOException`**, so this snippet will not compile:
 
 ```java
-// Không biên dịch: Files.lines có checked IOException.
+// Does not compile: Files.lines declares checked IOException.
 // paths.stream().flatMap(path -> Files.lines(path)).count();
 ```
 
-Một phương thức adapter có thể chuyển lỗi mở sang `UncheckedIOException`:
+An adapter method can convert open errors into `UncheckedIOException`:
 
 ```java
 static Stream<String> openLinesUnchecked(Path path) {
     try {
         return Files.lines(path, StandardCharsets.UTF_8);
     } catch (IOException ex) {
-        throw new UncheckedIOException("Không mở được: " + path, ex);
+        throw new UncheckedIOException("Cannot open: " + path, ex);
     }
 }
 ```
 
-**Không nuốt lỗi I/O bằng `Stream.empty()`** nếu hợp đồng nghiệp vụ đòi đủ dữ liệu. Làm như vậy có thể khiến báo cáo được ghi nhận thành công nhưng thiếu toàn bộ một tệp.
+**Do not swallow I/O errors by returning `Stream.empty()`** when the business contract requires complete data. Doing so can cause reports to appear successful while silently omitting an entire file.
 
-Phân biệt hai thiết kế:
+Distinguish two designs:
 
-- **Fail fast:** tệp không đọc được thì phép tổng hợp thất bại với ngoại lệ có nguyên nhân.
-- **Best effort:** ứng dụng chấp nhận bỏ qua tệp lỗi nhưng phải **ghi nhận đường dẫn, lý do và số tệp thất bại** trong một kiểu kết quả rõ ràng. Việc quyết định bỏ qua lỗi thuộc tầng nghiệp vụ, không phải mặc định của `flatMap` hay `mapMulti`.
+- **Fail fast:** if a file cannot be read, the aggregation fails with an exception preserving the cause.
+- **Best effort:** the application accepts skipping unreadable files, but must **record the path, reason, and failed-file count** in an explicit result type. Deciding to skip errors belongs to the business layer, not as an implicit default of `flatMap` or `mapMulti`.
 
-### 9.1. `try-with-resources` bảo vệ đường đi lỗi
+### 9.1. `try-with-resources` Protects Error Paths
 
 ```java
 try (Stream<Path> files = Files.list(directory)) {
@@ -498,35 +498,35 @@ try (Stream<Path> files = Files.list(directory)) {
 }
 ```
 
-Nếu việc đọc một tệp ném ngoại lệ, khối `try` vẫn đóng stream thư mục. Các stream con được `flatMap` quản lý theo hợp đồng của nó; tránh gắn thêm một cơ chế đóng thủ công bên ngoài cho đúng cùng stream con theo cách gây nhập nhằng ownership.
+If reading one file throws an exception, the `try` block still closes the directory stream. Child streams are managed by `flatMap` per its contract; avoid attaching an extra external manual close mechanism to the same child stream in a way that creates ambiguous ownership.
 
-### 9.2. Nếu mở nhiều tài nguyên trong một mapper
+### 9.2. When Opening Multiple Resources in One Mapper
 
-Giả sử mapper cần mở **cả reader và một tài nguyên khác**, rồi mới tạo stream. Nếu mở tài nguyên đầu thành công nhưng mở tài nguyên thứ hai thất bại, mapper phải đóng tài nguyên đã mở. Đừng nghĩ rằng `flatMap` có thể dọn một tài nguyên chưa từng được gói vào stream được trả về.
+Suppose a mapper must open **both a reader and another resource**, and only then create a stream. If opening the first resource succeeds but opening the second fails, the mapper must close the already-opened resource. Do not assume `flatMap` can clean up a resource that was never wrapped into the returned stream.
 
-Mẫu xử lý phải thiết kế theo owner:
+The pattern must be designed around ownership:
 
 ```java
-// Ý tưởng: trong mapMulti, đóng mọi tài nguyên ngay trong lambda.
+// Idea: in mapMulti, close every resource right inside the lambda.
 .<String>mapMulti((path, emit) -> {
     try (BufferedReader reader =
              Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
         reader.lines().forEachOrdered(emit);
     } catch (IOException ex) {
-        throw new UncheckedIOException("Không đọc được: " + path, ex);
+        throw new UncheckedIOException("Cannot read: " + path, ex);
     }
 })
 ```
 
-Đoạn trên là **phần nối tiếp của một pipeline `Stream<Path>`**, không phải một chương trình Java độc lập. Nó đóng `BufferedReader` thay vì chỉ đóng `reader.lines()`; nếu lỗi đọc xuất hiện muộn dưới dạng `UncheckedIOException`, khối `try` vẫn đóng reader trước khi ngoại lệ truyền ra ngoài.
+The snippet above is **a continuation of a `Stream<Path>` pipeline**, not a standalone Java program. It closes `BufferedReader` rather than only closing `reader.lines()`; if a read error occurs later as an `UncheckedIOException`, the `try` block still closes the reader before the exception propagates outward.
 
-## 10. Kiểm thử vòng đời stream con bằng `onClose`
+## 10. Testing Child Stream Lifecycles with `onClose`
 
-Kiểm thử `toList` trả đúng dữ liệu là chưa đủ với bài toán I/O. Một pipeline có thể cho đúng giá trị nhưng **rò rỉ descriptor** hoặc để nguồn thư mục chưa đóng.
+Testing that `toList` returns the right data is insufficient for I/O problems. A pipeline can return the right values while **leaking descriptors** or leaving the directory source unclosed.
 
-Để kiểm tra mà không cần tạo tệp thật, dùng `onClose` trên stream giả lập và bộ đếm chỉ phục vụ test.
+To verify without creating real files, use `onClose` on simulated streams with test-only counters.
 
-### 10.1. `flatMap` đóng từng stream con
+### 10.1. `flatMap` Closes Each Child Stream
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -600,11 +600,11 @@ class StreamResourceLifecycleTest {
 }
 ```
 
-Đây là **bài kiểm thử vòng đời**, không phải benchmark. `AtomicInteger` quan sát close handler sau khi pipeline hoàn tất, không tham gia quyết định đầu ra nghiệp vụ. Mọi ví dụ kiểm thử ở đây dùng nguồn tuần tự và hữu hạn để kỳ vọng có thể xác định.
+These are **lifecycle tests**, not benchmarks. `AtomicInteger` observes close handlers after the pipeline finishes and does not participate in business output decisions. All test examples here use sequential, finite sources so expectations remain deterministic.
 
-### 10.2. Kiểm thử khi mapper ném ngoại lệ
+### 10.2. Testing When the Mapper Throws an Exception
 
-Với `mapMulti`, hãy kiểm chứng tài nguyên được đóng kể cả khi phát dữ liệu bị lỗi:
+With `mapMulti`, verify that resources still close even if emitting data fails:
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -627,7 +627,7 @@ class MapMultiFailureTest {
                     try (Stream<String> child = Stream.of("A")
                             .onClose(closed::incrementAndGet)) {
                         child.forEachOrdered(emit);
-                        throw new IllegalStateException("Lỗi kiểm thử");
+                        throw new IllegalStateException("Test error");
                     }
                 })
                 .toList()
@@ -638,25 +638,25 @@ class MapMultiFailureTest {
 }
 ```
 
-Nếu dùng file thật, thêm test cho tệp rỗng, tệp không tồn tại, file bị khóa/quyền truy cập không đủ (tùy hệ điều hành) và lỗi trong quá trình đọc. **Không để kiểm thử phụ thuộc thứ tự `Files.list`**, vì thứ tự duyệt thư mục không được cam kết.
+When using real files, also add tests for empty files, missing files, locked files or insufficient permissions (OS-dependent), and read-time errors. **Never make tests depend on `Files.list` order**, because directory listing order is not guaranteed.
 
-## 11. Các lỗi thiết kế và phản ví dụ cần tránh
+## 11. Design Bugs and Anti-Patterns to Avoid
 
-### 11.1. Chỉ đóng một nguồn, quên nguồn còn lại
+### 11.1. Closing One Source While Forgetting the Other
 
 ```java
-// Phản ví dụ: Files.list chưa được đặt trong try-with-resources.
+// Anti-pattern: Files.list is not placed inside try-with-resources.
 // Files.list(directory)
 //     .flatMap(FileLinePipelines::openLinesUnchecked)
 //     .count();
 ```
 
-`flatMap` chịu trách nhiệm đóng **stream con** nhưng không thay việc đóng **stream nguồn `Files.list`**. Đặt `Files.list` trong `try-with-resources` của caller.
+`flatMap` is responsible for closing **child streams**, not for replacing closing **the outer `Files.list` source stream**. Place `Files.list` in the caller's `try-with-resources`.
 
-### 11.2. Đóng stream con quá sớm khi dùng `flatMap`
+### 11.2. Closing a Child Stream Too Early When Using `flatMap`
 
 ```java
-// Trả stream từ bên trong try: stream bị đóng trước khi dùng.
+// Returning a stream from inside try: the stream closes before use.
 // .flatMap(path -> {
 //     try (Stream<String> lines = openLinesUnchecked(path)) {
 //         return lines;
@@ -664,43 +664,43 @@ Nếu dùng file thật, thêm test cho tệp rỗng, tệp không tồn tại, 
 // })
 ```
 
-Khi muốn để framework đóng con, trả stream **còn mở**. Khi muốn tự đóng tài nguyên **trong mapper**, dùng mô hình phát dữ liệu đồng bộ của `mapMulti` hoặc vòng lặp xử lý trực tiếp.
+When you want the framework to close the child, return an **open** stream. When you want to close the resource **inside the mapper**, use `mapMulti`'s synchronous emission model or a direct processing loop.
 
-### 11.3. Dùng `mapMulti` nhưng không đóng stream mở bên trong
+### 11.3. Using `mapMulti` Without Closing Streams Opened Inside
 
 ```java
-// Phản ví dụ: tạo stream I/O bên trong mapper mà không close.
+// Anti-pattern: creating an I/O stream inside the mapper without closing it.
 // .<String>mapMulti((path, emit) -> {
 //     Stream<String> lines = openLinesUnchecked(path);
 //     lines.forEachOrdered(emit);
 // })
 ```
 
-Nếu `forEachOrdered` kết thúc hay ném ngoại lệ, đoạn trên vẫn không tự đóng `lines`. Thêm `try-with-resources` bao quanh mọi lần sử dụng tài nguyên.
+Whether `forEachOrdered` finishes or throws, the code above never closes `lines`. Wrap every resource usage in `try-with-resources`.
 
-### 11.4. Dùng `mapMulti` và kỳ vọng downstream `limit` ngăn đọc toàn bộ tệp
+### 11.4. Using `mapMulti` and Expecting Downstream `limit` to Prevent Reading the Whole File
 
-Mapper kiểu `lines.forEachOrdered(emit)` không có tín hiệu dừng tiêu chuẩn từ `limit` xuống vòng lặp này. Nếu yêu cầu quan trọng là lấy vài dòng đầu và **không đọc tiếp**, `flatMap` thường rõ ràng hơn cho nguồn đã biểu diễn bằng `Stream<String>`.
+A mapper like `lines.forEachOrdered(emit)` has no standard stop signal flowing from `limit` down into this loop. If taking just a few initial lines **without reading further** is important, `flatMap` is usually clearer for sources already modeled as `Stream<String>`.
 
-### 11.5. Bỏ qua mọi `IOException` thành stream rỗng
+### 11.5. Swallowing Every `IOException` as an Empty Stream
 
 ```java
-// Phản ví dụ nguy hiểm về tính đúng đắn số liệu:
+// Dangerous anti-pattern for metric accuracy:
 // .flatMap(path -> {
 //     try { return Files.lines(path); }
 //     catch (IOException ex) { return Stream.empty(); }
 // })
 ```
 
-Một tệp không đọc được là lỗi dữ liệu nguồn, không tự động tương đương một tệp rỗng. Nếu nghiệp vụ chấp nhận best effort, báo cáo phải thể hiện số tệp bỏ qua và nguyên nhân, không được âm thầm đánh dấu dữ liệu đầy đủ.
+An unreadable file is a source data error, not automatically equivalent to an empty file. If best-effort processing is acceptable, the report must expose the skipped-file count and reasons rather than silently marking data complete.
 
-### 11.6. Mở file trong `peek` hoặc mapper chỉ để gây side effect
+### 11.6. Opening Files Inside `peek` or a Mapper Purely for Side Effects
 
-`peek` phục vụ quan sát hoặc gỡ lỗi có điều kiện, không phải cơ chế I/O bắt buộc. Stream API có thể tối ưu một số pipeline, kết thúc sớm hoặc thực thi song song; đừng dựa vào số lần gọi `peek`/mapper để đảm bảo một tệp được xử lý hoặc ghi log đúng một lần. Logic nghiệp vụ có side effect cần được thiết kế thành tác vụ có owner, điều kiện thành công và chính sách lỗi rõ ràng.
+`peek` is meant for observation or conditional debugging, not mandatory I/O. The Stream API can optimize some pipelines, short-circuit, or run in parallel; do not rely on how many times `peek`/mappers run to ensure a file is processed or logged once. Business logic with side effects should be designed as tasks with explicit owners, success criteria, and error policies.
 
-## 12. Xử lý song song: tài nguyên có thể mở đồng thời
+## 12. Parallel Processing: Resources Can Be Open Concurrently
 
-`flatMap` hoặc `mapMulti` có thể xuất hiện sau `parallel()`:
+`flatMap` or `mapMulti` can appear after `parallel()`:
 
 ```java
 try (Stream<Path> paths = Files.list(directory)) {
@@ -712,22 +712,22 @@ try (Stream<Path> paths = Files.list(directory)) {
 }
 ```
 
-Về mặt API, pipeline có thể hợp lệ; nhưng xử lý I/O song song đặt ra những vấn đề thực tế:
+At the API level, the pipeline may be valid, yet parallel I/O introduces practical concerns:
 
-- Nhiều mapper có thể **đang mở các stream tệp khác nhau đồng thời**; số lượng descriptor và tài nguyên I/O có thể tăng.
-- Tệp lớn, tệp nhỏ, đĩa cục bộ và network filesystem có đặc tính rất khác; parallel không mặc nhiên tăng tốc.
-- Các lời gọi đọc tệp là blocking I/O; cần cân nhắc cấu hình thread pool và hệ thống tải thực tế.
-- `Files.list` không bảo đảm thứ tự đường dẫn, còn `forEach` trên parallel stream không bảo đảm thứ tự thực thi.
-- Mapper không được can thiệp collection nguồn hoặc cập nhật trạng thái mutable bên ngoài không được quản lý. Đếm bằng `count`/collector thay vì sửa một `ArrayList` dùng chung từ `forEach`.
-- Lỗi ở một tác vụ có thể làm pipeline thất bại và cần đóng các tài nguyên đã mở theo đúng ownership; không dựa vào thứ tự ngoại lệ để suy ra file nào được xử lý cuối cùng.
+- Multiple mappers may **keep different file streams open simultaneously**, increasing descriptor and I/O resource counts.
+- Large files, small files, local disks, and network filesystems behave very differently; parallel does not automatically speed things up.
+- File-reading calls are blocking I/O; consider thread-pool configuration and actual system load.
+- `Files.list` does not guarantee path ordering, and `forEach` on a parallel stream does not guarantee execution order.
+- Mappers must not mutate the source collection or update unmanaged external mutable state. Count with `count`/collectors instead of mutating a shared `ArrayList` from `forEach`.
+- A failure in one task can fail the pipeline and requires closing opened resources according to ownership; do not rely on exception ordering to deduce which file was processed last.
 
-Nếu phải giới hạn số file mở đồng thời hoặc có yêu cầu thứ tự xử lý nghiêm ngặt, một pipeline tuần tự có thể phù hợp hơn. Với bài toán I/O phức tạp, có thể cần cơ chế điều phối đồng thời chuyên dụng thay vì chỉ thêm `parallel()`.
+If you must bound the number of simultaneously open files or enforce strict processing order, a sequential pipeline may be more suitable. For complex I/O workloads, a dedicated concurrency coordinator may be needed instead of simply adding `parallel()`.
 
-## 13. Hiệu năng và bộ nhớ: chọn công cụ theo dạng nguồn
+## 13. Performance and Memory: Choosing Tools Based on Source Shape
 
-### 13.1. Tạo stream con hay phát trực tiếp?
+### 13.1. Creating a Child Stream vs. Pushing Directly
 
-Với dữ liệu thuần trong bộ nhớ, `mapMulti` có thể tiện khi một phần tử tạo rất ít kết quả:
+For purely in-memory data, `mapMulti` can be convenient when one element produces very few results:
 
 ```java
 import java.util.List;
@@ -747,17 +747,17 @@ List<String> values = List.of(
 System.out.println(values); // [A, B, C, D]
 ```
 
-Việc này không tạo stream con ở cấp biểu thức của mapper. Nhưng implementation mặc định của `mapMulti` có thể đệm kết quả; đo hiệu năng trước khi khẳng định tối ưu allocation.
+This avoids creating child streams at the mapper expression level. Still, the default implementation of `mapMulti` may buffer results; benchmark before claiming allocation wins.
 
-### 13.2. Với file lớn, ưu tiên khả năng tiêu thụ lười
+### 13.2. For Large Files, Prefer Lazy Consumption
 
-`Files.lines` tạo stream đọc dòng lười. Nếu chỉ cần một phần nhỏ dữ liệu, kết hợp `flatMap` với `findFirst`, `limit` hoặc `takeWhile` có thể tránh việc phải duyệt toàn bộ tệp. Với `mapMulti` tự gọi `lines.forEachOrdered(emit)`, mapper có thể duyệt trọn file để phát dữ liệu, kể cả khi downstream không cần nhiều như vậy.
+`Files.lines` creates a lazy line-reading stream. If only a small slice of data is needed, combining `flatMap` with `findFirst`, `limit`, or `takeWhile` can avoid scanning the entire file. With `mapMulti` calling `lines.forEachOrdered(emit)`, the mapper may scan the entire file to push values even when downstream needs far fewer.
 
-Ngược lại, nếu nghiệp vụ **bắt buộc** xử lý toàn bộ dòng của mọi file và cần phát nhiều loại đối tượng từ mỗi dòng, `mapMulti` có thể diễn đạt rõ logic 0–n phần tử, miễn là tài nguyên được đóng ở đúng phạm vi.
+Conversely, if business rules **require** processing every line of every file and emitting multiple object types per line, `mapMulti` can express 0-to-n logic cleanly, provided resources are closed in the right scope.
 
-### 13.3. Giữ tất cả dòng trong `List` có thể rất tốn RAM
+### 13.3. Holding All Lines in a `List` Can Consume High RAM
 
-`toList()` sẽ materialize kết quả. Nếu chỉ cần số lượng hoặc tổng hợp, dùng `count`, `mapToLong`/`sum`, `reduce` hay collector thống kê thay vì giữ toàn bộ chuỗi:
+`toList()` materializes results. If you only need counts or aggregates, use `count`, `mapToLong`/`sum`, `reduce`, or summarizing collectors instead of holding all strings:
 
 ```java
 try (Stream<Path> paths = Files.list(directory)) {
@@ -769,85 +769,85 @@ try (Stream<Path> paths = Files.list(directory)) {
 }
 ```
 
-Khi dùng `Files.lines`, giảm bộ nhớ kết quả không thay thế trách nhiệm đóng file. Tối ưu về **dung lượng trạng thái**, **số file đang mở** và **lượng I/O đã đọc** là ba vấn đề khác nhau.
+When using `Files.lines`, reducing result memory does not replace the responsibility to close files. Optimizing **state size**, **concurrent open files**, and **I/O read volume** are three distinct concerns.
 
-## 14. Quy trình kiểm tra quyền sở hữu tài nguyên
+## 14. Resource Ownership Review Checklist
 
-Trước khi đưa một pipeline lồng stream vào sản xuất, trả lời lần lượt:
+Before putting a nested-stream pipeline into production, answer in order:
 
-1. **Nguồn đến từ đâu?** `List`, `Stream.of`, `Files.list`, `Files.walk`, `BufferedReader` hay API riêng?
-2. **Có tài nguyên phải đóng không?** Javadoc của API tạo nguồn nói gì?
-3. **Ai là owner?** Caller, `flatMap` với stream con, hay mapper `mapMulti`?
-4. **Khi nào terminal operation dừng?** Duyệt hết hay có `limit`/`findFirst`?
-5. **Dừng sớm có đóng được các tài nguyên đã mở không?** Có `try-with-resources` ở nguồn và phạm vi mapper phù hợp không?
-6. **Lỗi mở, đọc và đóng được truyền đi thế nào?** Có đang nuốt lỗi thành dữ liệu rỗng?
-7. **Nguồn có thứ tự không?** Nếu lấy “dòng đầu tiên”, thứ tự file đã được định nghĩa chưa?
-8. **Pipeline chạy song song?** Có giới hạn số file mở, yêu cầu thứ tự và đo hiệu năng không?
-9. **Kết quả có cần giữ toàn bộ?** Có thể dùng terminal operation tổng hợp thay vì `toList`?
-10. **Đã có kiểm thử vòng đời?** Không chỉ test giá trị; cần test close và trường hợp ném ngoại lệ.
+1. **Where does the source come from?** `List`, `Stream.of`, `Files.list`, `Files.walk`, `BufferedReader`, or a custom API?
+2. **Are there resources that must be closed?** What does the Javadoc of the source-creating API say?
+3. **Who is the owner?** The caller, `flatMap` for child streams, or the `mapMulti` mapper?
+4. **When does the terminal operation stop?** Full traversal or `limit`/`findFirst`?
+5. **Does early stopping close opened resources?** Are `try-with-resources` blocks in place on the source and appropriate mapper scopes?
+6. **How are open, read, and close errors propagated?** Are errors being swallowed into empty data?
+7. **Is the source ordered?** If taking the "first line", has file ordering been defined?
+8. **Does the pipeline run in parallel?** Are concurrent open-file limits, ordering requirements, and benchmarks addressed?
+9. **Must all results be retained?** Can an aggregating terminal operation replace `toList`?
+10. **Are there lifecycle tests?** Not just value assertions; test closing and exception paths too.
 
-## 15. Bài tập áp dụng
+## 15. Practice Exercises
 
-### Bài 1 — Đóng đúng hai tầng tài nguyên
+### Exercise 1 — Properly Closing Two Resource Layers
 
-Viết phương thức nhận `Path directory`, dùng `Files.list` và `flatMap` để đọc tất cả dòng văn bản ở các file thông thường rồi đếm số dòng chứa chuỗi `"ERROR"`. Xác định chính xác:
+Write a method taking `Path directory`, using `Files.list` and `flatMap` to read all text lines in regular files and count lines containing `"ERROR"`. Identify precisely:
 
-- Stream nào do caller đóng bằng `try-with-resources`?
-- Stream nào được `flatMap` đóng?
-- Lỗi `Files.lines` được chuyển sang `UncheckedIOException` thế nào?
+- Which stream is closed by the caller with `try-with-resources`?
+- Which streams are closed by `flatMap`?
+- How is an `Files.lines` error converted to `UncheckedIOException`?
 
-### Bài 2 — Chuyển từ `flatMap` sang `mapMulti`
+### Exercise 2 — Converting from `flatMap` to `mapMulti`
 
-Viết lại Bài 1 bằng `mapMulti`. Phải đặt `Files.lines` trong `try-with-resources` ngay trong mapper và chỉ phát từng dòng trong phạm vi ấy. Giải thích vì sao không được tạo stream rồi bỏ quên hoặc lưu `emit` để gọi bất đồng bộ.
+Rewrite Exercise 1 using `mapMulti`. You must place `Files.lines` inside `try-with-resources` right inside the mapper and emit lines only within that scope. Explain why you must not create the stream and leave it unclosed, or store `emit` to call asynchronously.
 
-### Bài 3 — Kiểm thử `close`
+### Exercise 3 — Testing `close`
 
-Dùng `Stream.of("A")` kèm `onClose` để tạo hai stream con. Chạy `flatMap(...).toList()` rồi xác nhận cả hai close handlers đã chạy. Làm thí nghiệm riêng cho stream nguồn kèm `onClose`, so sánh terminal `count()` với việc đóng trong `try-with-resources`.
+Use `Stream.of("A")` with `onClose` to create two child streams. Run `flatMap(...).toList()` and verify both close handlers executed. Run a separate experiment for the outer source stream with `onClose`, comparing terminal `count()` against closing in `try-with-resources`.
 
-### Bài 4 — Short-circuit
+### Exercise 4 — Short-Circuiting
 
-Cho một tệp có một triệu dòng nhưng chỉ cần ba dòng đầu. So sánh:
+Given a file with one million lines where only the first three lines are needed, compare:
 
 ```java
 paths.stream().flatMap(FileLinePipelines::openLinesUnchecked)
     .limit(3).toList();
 ```
 
-và phiên bản `mapMulti` mở `Files.lines`, gọi `lines.forEachOrdered(emit)` rồi đặt `limit(3)` phía sau. Nêu hệ quả về **lượng I/O** và **vòng đời tài nguyên**. Không kết luận số lần đọc chính xác mà không đo hoặc kiểm thử cách triển khai.
+with a `mapMulti` version that opens `Files.lines`, calls `lines.forEachOrdered(emit)`, and places `limit(3)` afterward. State the consequences for **I/O volume** and **resource lifecycle**. Do not claim exact read counts without measuring or testing the implementation.
 
-### Bài 5 — Lỗi dữ liệu
+### Exercise 5 — Data Errors
 
-Giả sử ba file tồn tại nhưng file thứ hai không đọc được. Chọn giữa hợp đồng:
+Suppose three files exist, but the second file is unreadable. Choose between contracts:
 
-- Dừng ngay và báo lỗi có đường dẫn.
-- Tiếp tục đọc file khác, nhưng trả **kết quả và danh sách file thất bại**.
+- Stop immediately and report an error including the path.
+- Continue reading other files, while returning **the result and the list of failed files**.
 
-Không được dùng `Stream.empty()` để âm thầm báo thành công. Mô tả cách tránh mở tài nguyên mới khi không cần thiết và cách đóng nguồn sau khi thất bại.
+Do not use `Stream.empty()` to silently report success. Describe how to avoid opening new resources unnecessarily and how to close sources after a failure.
 
-### Bài 6 — Reader ownership
+### Exercise 6 — Reader Ownership
 
-Viết một pipeline dùng `BufferedReader.lines()` để đếm dòng không trắng. Chứng minh bằng `try-with-resources` rằng **reader** được đóng sau khi terminal operation hoàn tất hoặc ném lỗi. So sánh với `Files.lines(path)` về đối tượng phải đóng.
+Write a pipeline using `BufferedReader.lines()` to count non-blank lines. Prove via `try-with-resources` that **the reader** is closed after the terminal operation completes or throws an error. Compare with `Files.lines(path)` regarding which object must be closed.
 
-### Bài 7 — Hiệu năng và song song
+### Exercise 7 — Performance and Parallelism
 
-Một thư mục có 10.000 file rất nhỏ trên network filesystem. Lập kế hoạch đo benchmark `stream()` và `parallel()` cho cùng phép đếm dòng; nêu cách theo dõi **số file mở đồng thời**, CPU, I/O, bộ nhớ và thời gian. Giải thích vì sao chỉ thay đổi sang `parallel()` chưa đủ chứng minh giải pháp đúng hoặc nhanh.
+A directory has 10,000 tiny files on a network filesystem. Design a benchmark plan comparing `stream()` and `parallel()` for the same line-counting task; explain how to monitor **concurrent open files**, CPU, I/O, memory, and elapsed time. Explain why merely switching to `parallel()` is not enough to prove correctness or speedup.
 
-## 16. Bảng quyết định
+## 16. Decision Table
 
-| Tình huống | Hướng xử lý phù hợp |
+| Scenario | Appropriate approach |
 | --- | --- |
-| Duyệt `List<List<T>>` trong bộ nhớ | `flatMap(List::stream)` hoặc `mapMulti` không tài nguyên I/O |
-| Mapper có sẵn một `Stream<R>` nắm tài nguyên | Trả stream còn mở cho `flatMap` để nó đóng theo hợp đồng |
-| Mapper mở tài nguyên rồi **phát đồng bộ** các giá trị | `mapMulti` + `try-with-resources` bên trong mapper |
-| Nguồn là `Files.list` hoặc `Files.walk` | Caller đóng stream nguồn bằng `try-with-resources` |
-| Nguồn là `BufferedReader.lines()` | Đóng `BufferedReader` owner |
-| Terminal operation là `count` hoặc `toList` | **Không** tự đóng stream nguồn; vẫn cần quản lý close |
-| Có `limit`/`findFirst` và file rất lớn | Cân nhắc `flatMap` để tận dụng short-circuit của stream con |
-| `mapMulti` đang gọi `lines.forEachOrdered(emit)` | Không giả định downstream giới hạn số dòng được đọc trong mapper |
-| Mở file ném checked `IOException` trong lambda | Chuyển có nguyên nhân sang `UncheckedIOException` hoặc xử lý bằng API nghiệp vụ tường minh |
-| Có thể lỗi khi duyệt hoặc đóng | Dùng owner/try-with-resources; không nuốt lỗi |
-| Nguồn không cam kết thứ tự | Định nghĩa thứ tự trước khi nói “dòng đầu tiên” |
-| Xử lý file song song | Kiểm soát số tài nguyên đồng thời, thread-safety và đo hiệu năng |
-| Chỉ cần count/sum | Dùng terminal operation thống kê thay vì `toList` toàn bộ dữ liệu |
+| Traversing in-memory `List<List<T>>` | `flatMap(List::stream)` or `mapMulti` with no I/O resources |
+| Mapper already produces a resource-holding `Stream<R>` | Return the open stream to `flatMap` so it closes per contract |
+| Mapper opens a resource and **synchronously emits** values | `mapMulti` + `try-with-resources` inside the mapper |
+| Source is `Files.list` or `Files.walk` | Caller closes the source stream via `try-with-resources` |
+| Source is `BufferedReader.lines()` | Close the owning `BufferedReader` |
+| Terminal operation is `count` or `toList` | Does **not** auto-close the source stream; close management still required |
+| Using `limit`/`findFirst` with huge files | Consider `flatMap` to leverage child-stream short-circuiting |
+| `mapMulti` calling `lines.forEachOrdered(emit)` | Do not assume downstream bounds how many lines the mapper reads |
+| Opening a file throws checked `IOException` in a lambda | Wrap with cause into `UncheckedIOException` or handle with an explicit business API |
+| Errors possible during traversal or closing | Use owner/`try-with-resources`; never swallow errors |
+| Source does not guarantee order | Define ordering before speaking of "the first line" |
+| Processing files in parallel | Control concurrent resource count, thread-safety, and benchmark |
+| Only need count/sum | Use statistical terminal operations instead of `toList` over all data |
 
-`flatMap` và `mapMulti` đều diễn đạt biến đổi **một phần tử đầu vào thành không, một hoặc nhiều phần tử đầu ra**, nhưng không có cùng **hợp đồng sở hữu tài nguyên**. Với `flatMap`, stream con được trả về còn mở để framework quản lý việc đóng; với `mapMulti`, tài nguyên mở bên trong mapper phải được đóng tại phạm vi mapper, thường bằng `try-with-resources`. Trong cả hai trường hợp, stream nguồn có tài nguyên như `Files.list` vẫn thuộc trách nhiệm của caller. Chú ý ba việc độc lập — **đúng kết quả, đóng đúng tài nguyên và chỉ đọc lượng dữ liệu cần thiết** — sẽ giúp các pipeline I/O trong Java Stream API an toàn và dễ tối ưu hơn.
+`flatMap` and `mapMulti` both express transforming **one input element into zero, one, or many output elements**, yet they do not share the same **resource ownership contract**. With `flatMap`, child streams are returned open so the framework manages closing them; with `mapMulti`, resources opened inside the mapper must be closed within the mapper scope, typically via `try-with-resources`. In both cases, resource-backed source streams such as `Files.list` remain the caller's responsibility. Attending to three independent concerns — **correct results, proper resource closing, and reading only as much data as needed** — makes Java Stream I/O pipelines safer and easier to optimize.

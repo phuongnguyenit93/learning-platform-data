@@ -1,49 +1,49 @@
-# Tập hợp không cho sửa cấu trúc không đồng nghĩa với bất biến sâu trong Java
+# Unmodifiable Collections Do Not Mean Deep Immutability in Java
 
-## 1. Vấn đề: không gọi được `add()` vẫn chưa có nghĩa dữ liệu không đổi
+## 1. The Problem: Not Being Able to Call `add()` Does Not Mean Data Cannot Change
 
-Trong Java, một tập hợp có thể **không cho phép thay đổi cấu trúc thông qua giao diện của chính nó**, nhưng giá trị mà người dùng nhìn thấy qua tập hợp đó vẫn thay đổi. Nguyên nhân là tập hợp lưu **tham chiếu tới các phần tử**, và có thể chỉ là một *view* trên tập hợp nguồn.
+In Java, a collection can **forbid structural modification through its own interface**, yet the values observed by users through that collection can still change. The reason is that a collection stores **references to elements**, and may simply be a *view* over a source collection.
 
-Xét hai ví dụ:
+Consider two examples:
 
 ```java
 List<String> source = new ArrayList<>(List.of("A"));
 List<String> view = Collections.unmodifiableList(source);
 source.add("B");
-// view giờ là [A, B], dù view.add(...) không được hỗ trợ.
+// view is now [A, B], even though view.add(...) is unsupported.
 ```
 
 ```java
 StringBuilder item = new StringBuilder("A");
 List<StringBuilder> list = List.of(item);
 item.append("B");
-// list.get(0).toString() giờ là "AB", dù list.add(...) không được hỗ trợ.
+// list.get(0).toString() is now "AB", even though list.add(...) is unsupported.
 ```
 
-Hai đoạn là mảnh minh họa (cần import `java.util.*`); chương trình Java 17 đầy đủ có ở phần 6. Trong ví dụ thứ nhất, **collection nguồn** tiếp tục thay đổi và *unmodifiable view* phản ánh thay đổi đó. Trong ví dụ thứ hai, chính **đối tượng phần tử** thay đổi, dù container có giao diện không sửa được.
+Both snippets are illustrative fragments (requiring `import java.util.*`); a complete Java 17 program appears in Section 6. In the first example, **the source collection** continues to change and the *unmodifiable view* reflects those changes. In the second example, **the element object itself** mutates, even though the container has an unmodifiable interface.
 
-Do đó cần phân biệt ba khái niệm:
+Therefore, we must distinguish three concepts:
 
-1. **Không sửa được cấu trúc qua tham chiếu đang cầm** (*unmodifiable interface/view*): không thể gọi thành công `add`, `remove`, `set`, `put` hoặc các thao tác cập nhật tương ứng qua tham chiếu đó.
-2. **Bản chụp cấu trúc độc lập** (*structural snapshot*): việc thêm, xóa, thay thế phần tử trong collection nguồn về sau không làm thay đổi danh sách/phần tử liên kết được giữ trong bản chụp.
-3. **Bất biến sâu** (*deep immutability*): không có đường sửa hợp lệ nào qua các tham chiếu được cung cấp hoặc chia sẻ để thay đổi cả cấu trúc container lẫn trạng thái mutable của những phần tử được coi là một phần giá trị.
+1. **Structurally unmodifiable through the held reference** (*unmodifiable interface/view*): you cannot successfully call `add`, `remove`, `set`, `put`, or equivalent update operations through that reference.
+2. **Independent structural snapshot** (*structural snapshot*): subsequent additions, removals, or replacements in the source collection do not alter the list/element links held in the snapshot.
+3. **Deep immutability** (*deep immutability*): there is no valid mutation path through any provided or shared reference to alter either the container structure or the mutable state of elements considered part of the value.
 
-Điểm mấu chốt: `unmodifiable` nói về **các thao tác bị cấm qua một API**; `immutable` nói về **trạng thái có thể quan sát có thay đổi theo thời gian không**. Một lớp có thể đáp ứng điều thứ nhất mà không đáp ứng hai điều còn lại.
+Key point: `unmodifiable` describes **operations disallowed through an API**; `immutable` describes **whether observable state can change over time**. A class can satisfy the first without satisfying the other two.
 
-## 2. Hai trục độc lập: cấu trúc collection và trạng thái phần tử
+## 2. Two Independent Axes: Collection Structure and Element State
 
-Một collection chứa các tham chiếu, không phải bản sao tự động của object phần tử. Vì vậy có ít nhất hai kiểu biến đổi cần xem xét:
+A collection holds references, not automatic copies of element objects. Hence there are at least two types of mutation to consider:
 
-| Loại biến đổi | Ví dụ | Container unmodifiable có ngăn được không? |
+| Type of Mutation | Example | Can an Unmodifiable Container Prevent It? |
 | --- | --- | --- |
-| Thêm phần tử mới | `list.add(newItem)` | Ngăn qua API của chính list đó |
-| Xóa phần tử | `list.remove(0)` | Ngăn qua API của chính list đó |
-| Thay phần tử ở vị trí | `list.set(0, other)` | Ngăn qua API của chính list đó |
-| Sửa chính object ở vị trí 0 | `list.get(0).rename("X")` | **Không**, nếu phần tử mutable và lộ tham chiếu |
-| Sửa qua alias tới collection nguồn | `backing.add(newItem)` | **Không** với unmodifiable *view* bọc backing mutable |
-| Sửa collection lồng trong collection | `list.get(0).add("X")` | **Không**, nếu danh sách con còn mutable |
+| Adding a new element | `list.add(newItem)` | Prevented through that list's own API |
+| Removing an element | `list.remove(0)` | Prevented through that list's own API |
+| Replacing an element at an index | `list.set(0, other)` | Prevented through that list's own API |
+| Mutating the object itself at index 0 | `list.get(0).rename("X")` | **No**, if the element is mutable and its reference is exposed |
+| Mutating via an alias to the source collection | `backing.add(newItem)` | **No** for an unmodifiable *view* wrapping a mutable backing |
+| Mutating a collection nested inside the collection | `list.get(0).add("X")` | **No**, if the inner list remains mutable |
 
-Một sơ đồ tham chiếu giúp nhận ra rủi ro:
+A reference diagram helps reveal the risks:
 
 ```text
 source (ArrayList) ──────────────┐
@@ -53,18 +53,18 @@ unmodifiableView ────────────> backing ArrayList ──>
                                                        │
 caller.item ────────────────────────────────────────────┘
 
-view.add(...)                 => bị từ chối
-source.add(...)               => thay đổi dữ liệu view thấy được
-caller.item.rename(...)       => thay đổi phần tử view thấy được
+view.add(...)                 => rejected
+source.add(...)               => changes data visible through view
+caller.item.rename(...)       => changes element visible through view
 ```
 
-Trong sơ đồ, hai đường thay đổi cuối cùng **không cần** gọi một phương thức sửa trên `unmodifiableView`.
+In the diagram, the last two mutation paths **do not need** to call any mutating method on `unmodifiableView`.
 
-## 3. `Collections.unmodifiableXxx`: view không sửa được
+## 3. `Collections.unmodifiableXxx`: Unmodifiable Views
 
-Các hàm như `Collections.unmodifiableList`, `unmodifiableSet`, `unmodifiableMap` trả một lớp bọc không hỗ trợ sửa qua giao diện wrapper. Phần tử và cấu trúc vẫn có thể biến đổi qua **backing collection** nếu mã khác tiếp tục giữ tham chiếu đến nó.
+Methods like `Collections.unmodifiableList`, `unmodifiableSet`, and `unmodifiableMap` return a wrapper that does not support modification through the wrapper interface. Elements and structure can still mutate through the **backing collection** if other code continues to hold a reference to it.
 
-Ví dụ có thể dự đoán:
+A predictable example:
 
 ```java
 List<String> backing = new ArrayList<>(List.of("red"));
@@ -73,27 +73,27 @@ List<String> view = Collections.unmodifiableList(backing);
 backing.add("blue");
 System.out.println(view); // [red, blue]
 
-view.add("green"); // Ném UnsupportedOperationException
+view.add("green"); // Throws UnsupportedOperationException
 ```
 
-Một `unmodifiableList` không tự gọi `new ArrayList<>(backing)` để tách nguồn. Tương tự, `Collections.unmodifiableMap(map)` không tự chụp một bản độc lập của map, còn `Collections.unmodifiableSet(set)` không tự tách set gốc.
+An `unmodifiableList` does not automatically call `new ArrayList<>(backing)` to detach from the source. Similarly, `Collections.unmodifiableMap(map)` does not automatically capture an independent copy of the map, and `Collections.unmodifiableSet(set)` does not automatically detach from the original set.
 
-Không nên nhầm với **read-only view** có chủ đích: trong một số API, ta *muốn* người nhận nhìn thấy các cập nhật tiếp theo từ chủ sở hữu nhưng không có quyền cập nhật qua view. Đây là một ngữ nghĩa hợp lệ nếu được thiết kế và mô tả rõ ràng. Nhưng nếu API hứa “bản chụp tại thời điểm gọi” hoặc “giá trị không đổi”, chỉ wrapper là chưa đủ.
+Do not confuse this with an intentional **read-only view**: in some APIs, you *want* recipients to see subsequent updates from the owner without having permission to update through the view. That is valid semantics when clearly designed and documented. However, if an API promises a "snapshot at call time" or an "unchanging value", a wrapper alone is not enough.
 
-Muốn có bản chụp về **cấu trúc**, có thể sao chép trước rồi mới bọc:
+If you want a **structural** snapshot, you can copy first and then wrap:
 
 ```java
 List<String> snapshot =
     Collections.unmodifiableList(new ArrayList<>(backing));
 ```
 
-Sau đó `backing.add(...)` không đổi kích thước `snapshot`. Dù vậy, nếu danh sách chứa `MutableItem` thay vì `String`, cả bản chụp và nguồn vẫn có thể trỏ tới cùng `MutableItem`; việc sửa phần tử còn ảnh hưởng.
+After that, `backing.add(...)` does not change `snapshot`'s size. Even so, if the list holds `MutableItem` instead of `String`, both the snapshot and the source can still point to the same `MutableItem`; mutating the element still has an effect.
 
-## 4. `List.of`, `List.copyOf` và `Stream.toList` bảo đảm gì?
+## 4. What Do `List.of`, `List.copyOf`, and `Stream.toList` Guarantee?
 
 ### 4.1. `List.of(...)`
 
-`List.of(a, b, ...)` tạo một list không hỗ trợ thay đổi cấu trúc. Nó không cho phép phần tử `null`. Tuy nhiên, nếu `a` hoặc `b` là mutable object, các object đó **vẫn mutable**; list giữ tham chiếu chứ không tự tạo clone của phần tử.
+`List.of(a, b, ...)` creates a list that does not support structural modification. It does not allow `null` elements. However, if `a` or `b` are mutable objects, those objects **remain mutable**; the list stores references rather than automatically cloning elements.
 
 ```java
 StringBuilder name = new StringBuilder("A");
@@ -104,32 +104,32 @@ System.out.println(names.get(0)); // AB
 
 ### 4.2. `List.copyOf(source)`
 
-`List.copyOf` (Java 10+) trả một list không sửa được chứa các phần tử của collection đầu vào tại thời điểm copy, theo thứ tự lặp được quan sát. Khi `source` là một collection mutable thông thường, thay đổi cấu trúc nguồn về sau sẽ không đổi nội dung cấu trúc của list kết quả.
+`List.copyOf` (Java 10+) returns an unmodifiable list containing the elements of the input collection at copy time, in the observed iteration order. When `source` is a typical mutable collection, later structural changes to the source will not alter the structural contents of the resulting list.
 
-Nhưng:
+However:
 
-- Đây là bản sao **nông về phần tử**: các object mutable bên trong vẫn được chia sẻ bằng tham chiếu.
-- `List.copyOf` không cho phần tử `null`; nếu input chứa `null` sẽ ném `NullPointerException`.
-- Nếu input đã là unmodifiable list phù hợp, JDK có thể **tái sử dụng chính instance đó**; không được phụ thuộc vào việc `copyOf` luôn cấp phát object list mới.
-- Bản chụp không tự định nghĩa ngữ nghĩa equality của phần tử; `List.equals()` và `List.hashCode()` sử dụng quan hệ equality/hash của phần tử.
+- It is a **shallow copy of elements**: mutable objects inside remain shared by reference.
+- `List.copyOf` does not allow `null` elements; if the input contains `null`, it throws `NullPointerException`.
+- If the input is already a suitable unmodifiable list, the JDK may **reuse that exact instance**; do not rely on `copyOf` always allocating a new list object.
+- The snapshot does not define element equality semantics itself; `List.equals()` and `List.hashCode()` use the elements' equality/hash relations.
 
-### 4.3. `Stream.toList()` trong Java 17
+### 4.3. `Stream.toList()` in Java 17
 
-`stream.toList()` trả một `List` không cho sửa qua các thao tác cập nhật thông thường, giữ thứ tự encounter của stream nếu có. Khác `List.copyOf`, `Stream.toList()` có thể chứa `null`. Việc list không cho sửa **không** khiến mutable object phần tử bất biến. Không dùng tính chất “không sửa được” của kết quả stream để suy ra “bất biến sâu”.
+`stream.toList()` returns a `List` that forbids modification through standard update operations, preserving the stream's encounter order if any. Unlike `List.copyOf`, `Stream.toList()` can contain `null`. The list being unmodifiable **does not** make mutable element objects immutable. Never infer "deep immutability" from the "unmodifiable" property of a stream's result.
 
-### 4.4. `Set` và `Map` cũng có vấn đề tương tự
+### 4.4. `Set` and `Map` Have the Same Issue
 
-- `Set.of`, `Set.copyOf` và `Map.of`, `Map.copyOf` tạo container không sửa được nhưng không sao chép sâu key/value mutable.
-- `Set.of` từ chối phần tử trùng theo equality; `Set.copyOf` từ collection có phần tử trùng chỉ giữ một đại diện, không có bảo đảm sẽ giữ đại diện nào trong các bản bằng nhau. Nếu thông tin trùng lặp quan trọng, đừng chuyển danh sách thành set một cách máy móc.
-- `Map.copyOf` không nhận key/value `null`; `Set.copyOf` không nhận `null`. Việc chuyển có thể thay đổi chính sách null đang được API chấp nhận.
-- Thứ tự duyệt của các collection không sửa được từ `Set.of/copyOf` và `Map.of/copyOf` không nên được giả định là thứ tự chèn hay thứ tự sắp xếp.
-- Nếu mutable object được dùng làm key trong map hoặc phần tử set và bị sửa những trường tham gia `equals/hashCode`, lookup có thể hỏng **ngay cả khi chính map/set không sửa được cấu trúc**.
+- `Set.of`, `Set.copyOf`, and `Map.of`, `Map.copyOf` create unmodifiable containers without deep-copying mutable keys/values.
+- `Set.of` rejects duplicate elements under equality; `Set.copyOf` from a collection with duplicates retains only one representative, with no guarantee as to which equal instance is kept. If duplicate information matters, do not mechanically convert a list to a set.
+- `Map.copyOf` does not accept `null` keys/values; `Set.copyOf` does not accept `null`. Converting can change the null policy previously accepted by an API.
+- Iteration order of unmodifiable collections from `Set.of/copyOf` and `Map.of/copyOf` must not be assumed to be insertion order or sorted order.
+- If a mutable object is used as a map key or set element and fields participating in `equals/hashCode` are mutated, lookups can break **even when the map/set itself forbids structural modification**.
 
-## 5. Bản sao nông và bất biến sâu khác nhau như thế nào?
+## 5. How Do Shallow Copies and Deep Immutability Differ?
 
-**Shallow copy** tạo container mới nhưng vẫn giữ các tham chiếu phần tử. Với phần tử bất biến như `String`, `Integer` hoặc một record chỉ chứa giá trị bất biến, shallow copy thường đủ để bảo vệ toàn bộ giá trị mà API quan tâm.
+A **shallow copy** creates a new container while keeping element references. With immutable elements such as `String`, `Integer`, or a record containing only immutable values, a shallow copy is usually enough to protect the entire value the API cares about.
 
-Với phần tử mutable, shallow copy không đủ:
+With mutable elements, a shallow copy is not enough:
 
 ```java
 StringBuilder part = new StringBuilder("A");
@@ -142,7 +142,7 @@ part.append("B");
 System.out.println(shallow.get(0)); // AB
 ```
 
-Nếu bên ngoài giữ `part`, họ vẫn có thể thay đổi dữ liệu mà `shallow` trình bày. Muốn snapshot thực sự ổn định, phải **sao chép hoặc chuyển đổi từng phần tử mutable** sang biểu diễn bất biến tương ứng:
+If external code holds `part`, it can still change the data presented by `shallow`. To get a truly stable snapshot, you must **copy or convert each mutable element** into a corresponding immutable representation:
 
 ```java
 List<String> stable =
@@ -151,28 +151,28 @@ List<String> stable =
          .toList();
 ```
 
-Ở đây `StringBuilder::toString` tạo giá trị `String` bất biến tại thời điểm duyệt; sửa builder sau đó không thay đổi các String đã ghi. Đây là một **phương án snapshot theo giá trị** phù hợp khi chỉ cần nội dung chuỗi, không bảo toàn bản sắc của từng builder.
+Here `StringBuilder::toString` creates an immutable `String` value at iteration time; mutating the builder afterward does not change the recorded Strings. This is a **value-based snapshot approach** suitable when only string contents are needed, without preserving the identity of individual builders.
 
-Với dữ liệu lồng nhau, copy cần đi qua từng cấp mutable:
+For nested data, copying must traverse each mutable level:
 
 ```java
-// input: List<List<String>>, các danh sách con ban đầu mutable.
-// Sau thao tác này, cả container ngoài và từng container trong đều
-// không sửa được; String cũng bất biến.
+// input: List<List<String>>, where the inner lists are initially mutable.
+// After this operation, both the outer container and each inner container are
+// unmodifiable; String is also immutable.
 List<List<String>> nestedSnapshot = List.copyOf(
     input.stream().map(List::copyOf).toList()
 );
 ```
 
-Đây là mảnh minh họa dùng `java.util.List`, đặt trong bối cảnh có biến `input` đúng kiểu. Trường hợp `List<List<MutableItem>>` vẫn cần sao chép/chuyển đổi từng `MutableItem`; wrapper hai tầng chưa thành deep immutability.
+This is an illustrative fragment using `java.util.List`, placed in a context where an `input` variable of the right type exists. The `List<List<MutableItem>>` case still requires copying/converting each `MutableItem`; a two-level wrapper is not yet deep immutability.
 
-Một điểm quan trọng: “bất biến sâu” phải được xét đối với **đồ thị trạng thái liên quan**. Nếu object con là một kết nối mạng, một đối tượng có ID định danh hay một nguồn dữ liệu sống, việc sao chép mọi thứ theo kiểu clone tổng quát vừa không luôn khả thi vừa có thể sai nghĩa. Lớp cần xác định dữ liệu nào thuộc giá trị và ranh giới nào cần snapshot.
+An important point: "deep immutability" must be evaluated with respect to **the relevant state graph**. If a child object is a network connection, an entity with a unique identity ID, or a live data source, copying every node in a generic clone style is neither always feasible nor semantically sound. A class must define which data belongs to its value and what boundary needs snapshotting.
 
-## 6. Ví dụ Java 17 chạy được: view, snapshot và phần tử mutable
+## 6. Runnable Java 17+ Example: Views, Snapshots, and Mutable Elements
 
-Ví dụ đầy đủ dưới đây đối chiếu bốn trường hợp: view phản ánh backing list; structural snapshot tách backing nhưng chưa tách phần tử; snapshot sâu của giá trị phần tử; danh sách lồng nhau được sao chép từng cấp.
+The complete example below contrasts four cases: a view reflecting a backing list; a structural snapshot detaching the backing but not the elements; a deep snapshot of element values; and a nested list copied at every level.
 
-Lưu thành **`CollectionDeepImmutabilityDemo.java`**:
+Save as **`CollectionDeepImmutabilityDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -303,14 +303,14 @@ public class CollectionDeepImmutabilityDemo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 17 trở lên** trong thư mục chứa tệp:
+Compile and run with **JDK 17 or later** in the directory containing the file:
 
 ```bash
 javac CollectionDeepImmutabilityDemo.java
 java CollectionDeepImmutabilityDemo
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 View: [red, blue]
@@ -324,41 +324,41 @@ All-level nested: [x]
 Key hash changed: true
 ```
 
-Giải thích chi tiết:
+Detailed explanation:
 
-1. `Collections.unmodifiableList(source)` là **view** trên `source`; khi thêm `"blue"` vào nguồn, view hiện `[red, blue]`. `List.copyOf(source)` đã tạo structural snapshot ban đầu `[red]`, nên không thay đổi.
-2. View không cho `add` thông qua nó; exception chỉ xác nhận API view không sửa được, **không xác nhận backing không đổi**.
-3. `shallow` giữ chính tham chiếu `MutableItem`. Dù container không cho cập nhật, `item.rename("B")` làm giá trị phần tử quan sát được đổi sang `B`.
-4. `Catalog` chuyển mỗi `MutableItem` thành một `ImmutableItem` có field kiểu `String` bất biến. Kết quả thu tại thời điểm `"A"`, độc lập với việc đổi `item` về sau. `Stream.toList()` cho container không sửa được, nên cả cấu trúc lẫn các giá trị record trong ví dụ đều ổn định.
-5. `outerOnly` copy **list ngoài** nhưng vẫn tham chiếu `inner` mutable; khi sửa `inner`, nội dung của `outerOnly.get(0)` đổi. `allLevels` copy list con trước khi copy list ngoài; giá trị `[x]` được giữ nguyên.
-6. `ShallowKey` copy container bằng `List.copyOf` nhưng vẫn chứa một `MutableItem` có equality/hash dựa trên `code` mutable. Đổi code từ `K1` sang `K2` làm hash của cả `ShallowKey` thay đổi. Điều này nguy hiểm nếu `ShallowKey` đang được dùng làm khóa trong `HashSet`/`HashMap`. Ví dụ chỉ kiểm tra hash đã đổi, không phụ thuộc giả định về bucket hay kết quả tra cứu cụ thể của implementation.
+1. `Collections.unmodifiableList(source)` is a **view** over `source`; when `"blue"` is added to the source, the view shows `[red, blue]`. `List.copyOf(source)` created an initial structural snapshot `[red]`, so it does not change.
+2. The view rejects `add` through itself; the exception only confirms the view API is unmodifiable, **not that the backing cannot change**.
+3. `shallow` holds the exact `MutableItem` reference. Even though the container forbids updates, `item.rename("B")` changes the observable element value to `B`.
+4. `Catalog` converts each `MutableItem` into an `ImmutableItem` with an immutable `String` field. The value is captured while it is `"A"`, independent of later changes to `item`. `Stream.toList()` provides an unmodifiable container, so both the structure and record values in the example remain stable.
+5. `outerOnly` copies the **outer list** yet still references the mutable `inner`; when `inner` is modified, the contents of `outerOnly.get(0)` change. `allLevels` copies the inner list before copying the outer list; the value `[x]` is preserved.
+6. `ShallowKey` copies the container with `List.copyOf` yet still holds a `MutableItem` whose equality/hash is based on a mutable `code`. Changing `code` from `K1` to `K2` changes the hash of the entire `ShallowKey`. This is dangerous if `ShallowKey` is currently used as a key in a `HashSet`/`HashMap`. The example checks only that the hash changed, without depending on assumptions about buckets or implementation-specific lookup outcomes.
 
-## 7. Liên hệ hợp đồng `equals()` và `hashCode()`
+## 7. Relation to the `equals()` and `hashCode()` Contract
 
-Trong Java, một `List` được so sánh theo thứ tự phần tử: `List.equals` lần lượt so các phần tử bằng quy tắc equality; `List.hashCode` tổng hợp hash của các phần tử theo thứ tự. `Set` và `Map` có hợp đồng equality/hash dựa trên các phần tử hoặc entry tương ứng.
+In Java, a `List` is compared by element order: `List.equals` compares elements sequentially using equality rules; `List.hashCode` aggregates element hashes in order. `Set` and `Map` have equality/hash contracts based on their respective elements or entries.
 
-Nếu một phần tử mutable nằm trong list, thay đổi của phần tử có thể thay đổi:
+If a mutable element resides in a list, mutating the element can change:
 
-- Kết quả `list.equals(otherList)`.
-- Giá trị `list.hashCode()`.
-- Giá trị `hashCode()` của một đối tượng bọc list và sử dụng list làm thành phần equality/hash.
+- The result of `list.equals(otherList)`.
+- The value of `list.hashCode()`.
+- The `hashCode()` of an object wrapping the list and using the list as a component of equality/hash.
 
-Đây là lý do một khóa được tạo bằng `List.copyOf(mutableElements)` **vẫn có thể là khóa không ổn định** dù list không cho thay đổi cấu trúc. Khi object đã nằm trong một cấu trúc hash, nên tránh thay đổi các thông tin dùng trong `equals()` và `hashCode()` của khóa. Nếu cần khóa theo nội dung, hãy lưu các phần tử dưới dạng value object bất biến hoặc snapshot.
+This is why a key created with `List.copyOf(mutableElements)` **can still be an unstable key** even though the list forbids structural modification. Once an object resides in a hash structure, avoid mutating information used in the key's `equals()` and `hashCode()`. If you need a content-based key, store elements as immutable value objects or snapshots.
 
-Các nguyên tắc cần tuân theo:
+Principles to follow:
 
-- **Equal implies same hash:** nếu `a.equals(b)` là `true` thì `a.hashCode() == b.hashCode()` phải là `true`; chiều đảo lại không bắt buộc.
-- **Hash nhất quán theo trạng thái equality:** mã hash phải giữ ổn định khi các thông tin được dùng trong equality không đổi. Sửa mutable element có thể làm cả equality và hash biến đổi.
-- **Không dùng tính unmodifiable của container để chứng minh an toàn khi làm hash key.** Kiểm tra cả keys, values và các đối tượng lồng nhau.
-- **Không đưa object mutable làm key của một `Map` chỉ vì map đã được tạo bằng `Map.copyOf`.** Bất biến cấu trúc map và tính ổn định của key là hai chuyện khác nhau.
+- **Equal implies same hash:** if `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()` must be `true`; the reverse is not required.
+- **Hash consistent with equality state:** the hash code must stay stable when information used in equality does not change. Mutating a mutable element can alter both equality and hash.
+- **Do not use container unmodifiability as proof of hash key safety.** Check keys, values, and nested objects alike.
+- **Do not put mutable objects as keys of a `Map` merely because the map was built with `Map.copyOf`.** Map structural immutability and key stability are two different matters.
 
-Nếu một phần tử mutable **không** dùng những trường thay đổi trong `equals/hashCode` (ví dụ class kế thừa identity equality), sửa dữ liệu hiển thị có thể không làm hash của list đổi. Nhưng list đó vẫn **không bất biến sâu**: nội dung có thể quan sát từ phần tử vẫn biến đổi. Đây là hai tiêu chí riêng cần kiểm tra.
+If a mutable element **does not** use the mutating fields in `equals/hashCode` (for instance, a class inheriting identity equality), editing display data may not alter the list's hash. Yet the list is still **not deeply immutable**: observable contents of its elements still change. These are two separate criteria to check.
 
-## 8. Thiết kế API bảo vệ giá trị collection
+## 8. Designing APIs That Protect Collection Values
 
-### 8.1. Khi collection chứa giá trị bất biến
+### 8.1. When a Collection Holds Immutable Values
 
-Ví dụ với `List<String>`:
+Example with `List<String>`:
 
 ```java
 final class Tags {
@@ -374,133 +374,133 @@ final class Tags {
 }
 ```
 
-Đây là một lớp minh họa Java hoàn chỉnh không có `main`. `Tags` giữ snapshot cấu trúc bằng `List.copyOf` và `String` là bất biến. Vì vậy getter có thể trả trực tiếp list đã lưu: caller không thể `add/set/remove` qua đó và không thể sửa nội dung String. Nếu business domain cho phép `null` hoặc đòi bảo toàn một cấu trúc khác, phải chọn cách sao chép theo hợp đồng thay vì áp dụng `copyOf` bất kể dữ liệu.
+This is a complete illustrative Java class without `main`. `Tags` holds a structural snapshot via `List.copyOf`, and `String` is immutable. Therefore, the getter can return the stored list directly: callers cannot `add/set/remove` through it and cannot mutate String contents. If the business domain allows `null` or needs to preserve a different structure, you must choose a contract-appropriate copy method instead of applying `copyOf` blindly regardless of data.
 
-### 8.2. Khi collection chứa phần tử mutable
+### 8.2. When a Collection Holds Mutable Elements
 
-Đừng dừng ở `List.copyOf(input)`:
+Do not stop at `List.copyOf(input)`:
 
 ```java
-// Ví dụ: giá trị cần công bố chỉ là tên tại thời điểm tạo.
+// Example: the value to expose is only the name at creation time.
 List<String> namesSnapshot = input.stream()
     .map(Person::name)
     .toList();
 ```
 
-Đây là mảnh code minh họa, giả định `input` là `List<Person>` và `Person.name()` trả `String`. Kết quả là list không sửa được của các String bất biến. Nếu cần toàn bộ trạng thái người, hãy thiết kế immutable DTO/record snapshot:
+This is an illustrative code snippet, assuming `input` is `List<Person>` and `Person.name()` returns `String`. The result is an unmodifiable list of immutable Strings. If the entire person state is needed, design an immutable DTO/record snapshot:
 
 ```java
 record PersonSnapshot(String id, String name) {}
-// Trong luồng chuyển đổi, nếu Person có các getter tương ứng:
+// Inside a transformation pipeline, if Person has the corresponding getters:
 List<PersonSnapshot> snapshots = input.stream()
     .map(p -> new PersonSnapshot(p.id(), p.name()))
     .toList();
 ```
 
-Đây cũng là mảnh code minh họa; record trên chỉ đủ bất biến sâu nếu các component là giá trị bất biến. Nếu đưa `List<MutableAddress>` vào record thì record không tự copy sâu chúng.
+This is also an illustrative code snippet; the record above is only deeply immutable if its components are immutable values. If you pass a `List<MutableAddress>` into the record, the record does not automatically deep-copy it.
 
-### 8.3. Khi giá trị lồng nhau là map/list
+### 8.3. When Nested Values Are Maps/Lists
 
-Với `Map<String, List<String>>` và String bất biến, có thể copy từng list rồi copy map:
+With `Map<String, List<String>>` and immutable Strings, you can copy each list and then copy the map:
 
 ```java
-// input là Map<String, List<String>>.
+// input is Map<String, List<String>>.
 Map<String, List<String>> nested = new HashMap<>();
 input.forEach((key, value) ->
     nested.put(key, List.copyOf(value)));
 Map<String, List<String>> snapshot = Map.copyOf(nested);
 ```
 
-Đoạn này cần import `java.util.Map` và `java.util.HashMap`, là mảnh code minh họa ở phạm vi có biến `input`. Kết quả không cho sửa cấu trúc map và list value, còn String ở cả key và value là bất biến. Nếu map chứa các object mutable làm key hoặc value, phải xử lý chúng. Nếu cần giữ thứ tự chèn hoặc giá trị `null`, cần dùng loại collection và cách bọc phù hợp, không tự ý đổi nghĩa dữ liệu.
+This snippet requires importing `java.util.Map` and `java.util.HashMap`, and is an illustrative fragment in a scope with an `input` variable. The result forbids structural modification of the map and value lists, while Strings in both keys and values are immutable. If the map holds mutable objects as keys or values, you must handle them. If insertion order or `null` values must be preserved, use an appropriate collection type and wrapping strategy rather than silently changing data semantics.
 
-### 8.4. Phân biệt snapshot với dữ liệu sống
+### 8.4. Distinguishing Snapshots from Live Data
 
-Một API có thể chọn một trong hai hợp đồng:
+An API can choose either of two contracts:
 
-- **Snapshot:** “Dữ liệu nhận được là giá trị tại thời điểm gọi; cập nhật tiếp theo từ chủ sở hữu không phản ánh vào bản trả về.”
-- **View đang sống:** “Dữ liệu trả về có thể phản ánh cập nhật từ chủ sở hữu; bên nhận không thể cập nhật qua view này.”
+- **Snapshot:** "The received data is the value at call time; subsequent updates from the owner are not reflected in the returned copy."
+- **Live view:** "The returned data may reflect updates from the owner; the recipient cannot update through this view."
 
-Cả hai đều hợp lệ nếu tài liệu hóa rõ. Để hỗ trợ an toàn luồng hoặc hashing, cần thêm cam kết về đồng bộ và tính ổn định của **đối tượng phần tử**; chỉ API unmodifiable không giải quyết toàn bộ.
+Both are valid if clearly documented. To support thread safety or hashing, additional guarantees are needed on synchronization and **element object** stability; an unmodifiable API alone does not solve everything.
 
-## 9. Các ngộ nhận thường gặp
+## 9. Common Misconceptions
 
-| Ngộ nhận | Thực tế | Cách xử lý |
+| Misconception | Reality | How to Handle |
 | --- | --- | --- |
-| “Gọi `add` bị exception thì list bất biến sâu” | Có thể chỉ là view và/hoặc chứa phần tử mutable | Kiểm tra backing alias và từng cấp phần tử |
-| “`Collections.unmodifiableList` tự sao chép source” | Là view bọc backing collection | Copy trước rồi bọc nếu cần snapshot |
-| “`List.copyOf` clone từng object phần tử” | Sao chép tham chiếu phần tử | Chuyển thành DTO/giá trị bất biến hoặc deep copy thích hợp |
-| “`List.of` chứa phần tử mutable mà vẫn immutable sâu” | Container không sửa được, phần tử vẫn mutable | Tạo snapshot giá trị phần tử |
-| “`final List<Person>` là một danh sách bất biến” | `final` chỉ ngăn gán lại field; không khóa nội dung list/person | Lưu immutable snapshot và kiểm soát getter |
-| “Record luôn bất biến sâu” | Record component có thể trỏ tới array/collection/object mutable | Copy-in, copy-out và xử lý từng component mutable |
-| “Copy một list ngoài đủ cho mọi nested list” | List con vẫn có thể được chia sẻ | Copy các tầng có thể sửa |
-| “Unmodifiable `Map` bảo vệ giá trị mutable” | Value mutable vẫn thay đổi từ alias | Copy hoặc dùng value bất biến |
-| “Collection unmodifiable làm `hashCode` ổn định” | Hash có thể phụ thuộc các phần tử mutable | Dùng trường/giá trị ổn định trong equality/hash |
-| “Copy luôn là snapshot nguyên tử trong concurrency” | Nguồn có thể bị sửa trong quá trình copy | Đồng bộ khi đọc/ghi hoặc dùng snapshot bất biến theo thiết kế |
+| "Calling `add` throws an exception, so the list is deeply immutable" | It may only be a view and/or contain mutable elements | Check backing aliases and every element level |
+| "`Collections.unmodifiableList` automatically copies the source" | It is a view wrapping the backing collection | Copy first and then wrap if a snapshot is needed |
+| "`List.copyOf` clones each element object" | It copies element references | Convert to an immutable DTO/value or appropriate deep copy |
+| "`List.of` containing mutable elements is still deeply immutable" | Container cannot be modified; elements remain mutable | Create value snapshots of elements |
+| "`final List<Person>` is an immutable list" | `final` only prevents reassigning the field; does not lock list/person contents | Store an immutable snapshot and control getters |
+| "Records are always deeply immutable" | A record component can point to a mutable array/collection/object | Copy-in, copy-out, and handle each mutable component |
+| "Copying an outer list is enough for all nested lists" | Inner lists can still be shared | Copy every mutable level |
+| "An unmodifiable `Map` protects mutable values" | Mutable values still change through aliases | Copy or use immutable values |
+| "An unmodifiable collection stabilizes `hashCode`" | Hash can depend on mutable elements | Use stable fields/values in equality/hash |
+| "Copying is always an atomic snapshot under concurrency" | Source may be mutated during copying | Synchronize reads/writes or use designed immutable snapshots |
 
-## 10. Những giới hạn cần biết
+## 10. Limitations to Know
 
-### 10.1. Không có một `deepCopy` tổng quát cho mọi object graph
+### 10.1. There Is No Universal `deepCopy` for Every Object Graph
 
-Đối tượng có thể tham chiếu vòng, chứa tài nguyên hệ thống, cache, trạng thái đa luồng hoặc khóa nhận diện duy nhất. Sao chép tất cả node có thể làm sai ngữ nghĩa. Nên xác định rõ **biểu diễn giá trị cần bất biến**, xây immutable representation riêng hoặc đặt quyền sở hữu dữ liệu rõ ràng.
+Objects can have circular references, hold system resources, caches, multithreaded state, or unique identity keys. Copying every node can distort semantics. Clearly identify the **value representation that needs immutability**, build a dedicated immutable representation, or establish explicit data ownership.
 
-Ví dụ, với một `Person` có danh sách `Address` mutable, có thể lưu `List<AddressSnapshot>` với từng địa chỉ gồm các trường String và số bất biến. Đây là copy theo giá trị nghiệp vụ, thường rõ hơn cố clone mù toàn bộ `Person`.
+For example, for a `Person` with a list of mutable `Address` objects, you can store `List<AddressSnapshot>` where each address contains immutable String and numeric fields. This is business-value copying, which is usually clearer than trying to blindly clone the entire `Person`.
 
-### 10.2. Tính bất biến và thread safety không đồng nhất
+### 10.2. Immutability and Thread Safety Are Not Identical
 
-Một graph thực sự bất biến sau khi được khởi tạo và **công bố an toàn** có thể được chia sẻ để đọc mà không cần khóa cho việc bảo vệ giá trị đó. Nhưng bản thân việc gọi `List.copyOf(source)` khi một thread khác đang sửa `source` không bảo đảm có snapshot nguyên tử; có thể phát sinh dữ liệu không nhất quán hoặc exception tùy cấu trúc. Cần giao thức đồng bộ giữa bên ghi và bên sao chép, hoặc chuyển quyền sở hữu/trao đổi snapshot bất biến.
+A truly immutable graph, once constructed and **safely published**, can be shared for reading without locks to protect that value. However, calling `List.copyOf(source)` itself while another thread is modifying `source` does not guarantee an atomic snapshot; inconsistent data or exceptions can occur depending on the structure. You need a synchronization protocol between writer and copier, or ownership transfer/exchange of immutable snapshots.
 
-Unmodifiable view của `ArrayList` không tự làm `ArrayList` thread-safe. Tương tự, object phần tử mutable trong immutable container vẫn cần cơ chế đồng bộ nếu bị nhiều thread truy cập thay đổi.
+An unmodifiable view of an `ArrayList` does not automatically make the `ArrayList` thread-safe. Likewise, mutable element objects inside an immutable container still require synchronization if accessed and modified by multiple threads.
 
-### 10.3. Chi phí sao chép và lựa chọn đường API
+### 10.3. Copying Cost and API Path Choices
 
-Copy container có chi phí tỷ lệ với kích thước collection; copy sâu còn cộng chi phí từng phần tử và dữ liệu lồng nhau. Nếu getter thường xuyên tạo snapshot của danh sách lớn, có thể cân nhắc lưu immutable snapshot một lần, trả thao tác truy vấn dạng `size()`/`get()` cho giá trị bất biến, hoặc tổ chức cơ chế version/snapshot phù hợp. Không tối ưu bằng cách vô tình trả alias mutable làm lộ bất biến.
+Copying a container has a cost proportional to collection size; deep copying adds the cost of each element and nested data. If a getter frequently creates snapshots of a large list, consider storing an immutable snapshot once, exposing query operations like `size()`/`get()` over immutable values, or organizing an appropriate versioning/snapshot mechanism. Do not optimize by accidentally returning a mutable alias that breaches immutability.
 
-## 11. Quy trình review một trường collection
+## 11. Checklist for Reviewing a Collection Field
 
-Khi đánh giá class có field `List`, `Set` hoặc `Map`, hãy lần lượt trả lời:
+When evaluating a class with a `List`, `Set`, or `Map` field, answer in order:
 
-1. Collection được tạo ở đâu? Có caller nào vẫn giữ tham chiếu đến backing collection không?
-2. Constructor có giữ nguyên tham chiếu của collection đầu vào, dùng wrapper view hay tạo structural snapshot?
-3. Getter có trả bản sao, immutable container hoặc view đang sống? Hợp đồng có nêu rõ sự khác biệt không?
-4. Phần tử thuộc loại bất biến hay mutable? Có thể sửa từng phần tử thông qua alias bên ngoài hoặc `get` không?
-5. Các phần tử có chứa array, list, map hay object mutable bên trong không? Đã bảo vệ tới độ sâu cần thiết chưa?
-6. Key/value của map và phần tử của set có equality/hash dựa vào trạng thái mutable không?
-7. Có yêu cầu đặc biệt về `null`, phần tử trùng, thứ tự hoặc tính tương thích của dữ liệu không?
-8. Khi thread khác sửa source lúc copy, dữ liệu snapshot có cần nhất quán không và cơ chế nào bảo đảm điều đó?
-9. Bài test có thử thay đổi source sau constructor, sửa phần tử qua tham chiếu giữ lại, sửa thông qua getter và sửa collection lồng nhau không?
+1. Where is the collection created? Does any caller still hold a reference to the backing collection?
+2. Does the constructor keep the input collection's reference directly, wrap it in a view, or create a structural snapshot?
+3. Does the getter return a copy, an immutable container, or a live view? Does the contract clearly state the distinction?
+4. Are the elements immutable or mutable? Can individual elements be mutated through an external alias or `get`?
+5. Do elements contain arrays, lists, maps, or mutable objects inside? Are they protected to the necessary depth?
+6. Do map keys/values and set elements have equality/hash based on mutable state?
+7. Are there special requirements regarding `null`, duplicate elements, order, or data compatibility?
+8. When another thread modifies the source during copying, must the snapshot data be consistent, and what mechanism guarantees that?
+9. Do tests try mutating the source after the constructor, mutating an element via a retained reference, mutating via the getter, and mutating nested collections?
 
-Một phép kiểm tra thực tế tốt là vừa thử `add` lên list trả về, **vừa thử sửa backing list, từng object phần tử và nested collection**. Chỉ kiểm tra ngoại lệ từ `add` là chưa đủ để kết luận bất biến sâu.
+A good practical check is to test calling `add` on the returned list **while also trying to mutate the backing list, individual element objects, and nested collections**. Only checking for an exception from `add` is not enough to conclude deep immutability.
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-**Câu 1.** `Collections.unmodifiableList(backing)` trả view; sau đó `backing.add("B")`. View có hiển thị `"B"` không?
+**Q1.** `Collections.unmodifiableList(backing)` returns a view; then `backing.add("B")`. Does the view show `"B"`?
 
-**Đáp án:** Có. Wrapper cấm cập nhật qua view nhưng phản ánh thay đổi của backing collection.
+**Answer:** Yes. The wrapper forbids updates through the view, yet reflects changes to the backing collection.
 
-**Câu 2.** `List.copyOf(source)` chứa `MutableItem`. Sau copy, bên gọi có thể gọi `item.rename("B")` và thấy tên đổi qua list không?
+**Q2.** `List.copyOf(source)` holds `MutableItem`. After copying, can the caller invoke `item.rename("B")` and observe the changed name through the list?
 
-**Đáp án:** Có, nếu list và bên gọi vẫn giữ cùng tham chiếu `MutableItem`. `List.copyOf` chỉ sao chép cấu trúc/phần tử dưới dạng tham chiếu, không clone từng object mutable.
+**Answer:** Yes, if the list and the caller still hold the same `MutableItem` reference. `List.copyOf` only copies structure/elements by reference, without cloning individual mutable objects.
 
-**Câu 3.** Bạn lưu `List<String>` từ `List.copyOf` vào một field cuối và chỉ trả chính list đó qua getter. Bất biến sâu đối với những chuỗi ấy được bảo vệ chưa?
+**Q3.** You store a `List<String>` from `List.copyOf` in a final field and return that exact list from the getter. Is deep immutability for those strings protected?
 
-**Đáp án:** Có, nếu không có dữ liệu mutable khác trong graph liên quan, bởi list không sửa được và String là bất biến. Việc container có phải instance mới ở mỗi lần gọi hay không không ảnh hưởng tính bất biến của giá trị này.
+**Answer:** Yes, assuming no other mutable data in the relevant graph, because the list is unmodifiable and `String` is immutable. Whether the container is a new instance on each call does not affect the immutability of this value.
 
-**Câu 4.** Tạo `List<List<String>> outerCopy = List.copyOf(outer)` trong khi các list con vẫn mutable. Bất biến sâu đã có chưa?
+**Q4.** You create `List<List<String>> outerCopy = List.copyOf(outer)` while the inner lists remain mutable. Do you have deep immutability yet?
 
-**Đáp án:** Chưa. Cần snapshot từng list con trước (ví dụ `List.copyOf(inner)`) rồi mới đóng băng list ngoài.
+**Answer:** No. You must snapshot each inner list first (for example `List.copyOf(inner)`) before freezing the outer list.
 
-**Câu 5.** Vì sao `Map.copyOf(source)` không bảo đảm khóa map an toàn khi dùng trong cấu trúc hash nếu key mutable?
+**Q5.** Why does `Map.copyOf(source)` not guarantee a map key is safe for use in a hash structure if the key is mutable?
 
-**Đáp án:** `Map.copyOf` không sao chép sâu key. Nếu key bị thay đổi dữ liệu tham gia `equals/hashCode`, quan hệ equality hoặc hash có thể thay đổi, làm hỏng việc tìm kiếm dù bản thân map cấm sửa cấu trúc.
+**Answer:** `Map.copyOf` does not deep-copy keys. If data participating in the key's `equals/hashCode` is mutated, equality or hash can change, breaking lookups even though the map itself forbids structural modification.
 
-**Câu 6.** Một class trả `Collections.unmodifiableList(new ArrayList<>(source))`. Đây là snapshot sâu chưa?
+**Q6.** A class returns `Collections.unmodifiableList(new ArrayList<>(source))`. Is this a deep snapshot?
 
-**Đáp án:** Đây là snapshot **cấu trúc** độc lập ở cấp list ngoài; chưa phải snapshot sâu nếu source chứa các object mutable hoặc collection lồng nhau.
+**Answer:** This is an independent **structural** snapshot at the outer list level; it is not a deep snapshot if `source` contains mutable objects or nested collections.
 
-**Câu 7.** Một record chỉ chứa component `List<MutableItem>`. Record tự động làm giá trị đó bất biến sâu không?
+**Q7.** A record contains only a `List<MutableItem>` component. Does the record automatically make that value deeply immutable?
 
-**Đáp án:** Không. Trường component là final nhưng mutable list và mutable item có thể bị thay đổi qua tham chiếu chia sẻ; cần thiết kế copy-in/copy-out và snapshot của phần tử khi cần.
+**Answer:** No. The component field is final, yet the mutable list and mutable items can be modified through shared references; copy-in/copy-out design and element snapshots are needed when required.
 
 ---
 
-**Ghi nhớ:** “Không cho sửa cấu trúc” mới bảo vệ **các thao tác lên container thông qua một tham chiếu**. Một *unmodifiable view* vẫn có thể phản ánh cập nhật của backing collection; một immutable structural snapshot vẫn có thể chứa object mutable. Muốn bất biến sâu, hãy xem toàn bộ graph dữ liệu có thể quan sát, bảo vệ alias ở cả đầu vào và đầu ra, và chuyển các thành phần mutable liên quan thành giá trị hoặc snapshot bất biến.
+**Takeaway:** "Structurally unmodifiable" only protects **operations on the container through a single reference**. An *unmodifiable view* can still reflect updates to the backing collection; an immutable structural snapshot can still contain mutable objects. For deep immutability, examine the entire observable data graph, protect aliases on both input and output, and convert relevant mutable components into immutable values or snapshots.

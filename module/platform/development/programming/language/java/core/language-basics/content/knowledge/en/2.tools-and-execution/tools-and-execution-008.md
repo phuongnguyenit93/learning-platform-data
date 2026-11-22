@@ -1,49 +1,49 @@
-# Nhận diện lỗi không tìm thấy lớp và không tương thích phiên bản
+# Identifying Class Not Found and Version Mismatch Errors
 
-## 1. Mục tiêu: đọc đúng lỗi trước khi sửa
+## 1. Objective: read the error accurately before fixing
 
-Một chương trình Java có thể **biên dịch thành công nhưng không khởi động**, hoặc chạy được trên máy phát triển mà thất bại trên máy khác. Hai nhóm nguyên nhân rất phổ biến là:
+A Java program can **compile successfully yet fail to start**, or run on a development machine yet fail on another machine. Two very common categories of causes are:
 
-- **Không tìm thấy lớp:** Java launcher hoặc class loader không tìm được class theo tên và nơi tìm kiếm được cấu hình; hoặc có class chính nhưng thiếu một class phụ thuộc.
-- **Không tương thích phiên bản:** bytecode được biên dịch cho mức Java mới hơn JVM đang chạy có thể đọc, gây `UnsupportedClassVersionError`.
+- **Class not found:** The Java launcher or class loader cannot find a class by the configured name and search locations; or the main class exists yet a dependent class is missing.
+- **Version incompatibility:** Bytecode was compiled for a newer Java level than the running JVM can read, causing `UnsupportedClassVersionError`.
 
-Đừng vội sửa mã nghiệp vụ. Trước tiên hãy xác định: lỗi xảy ra lúc **`javac`**, lúc **`java` tìm main class**, hay lúc **JVM nạp một class phụ thuộc**.
+Do not rush to edit business logic. First determine: did the error occur during **`javac`**, when **`java` looked for the main class**, or when **the JVM loaded a dependent class**.
 
 ~~~mermaid
 flowchart TD
-    START["Lệnh Java thất bại"] --> PHASE{"Lệnh nào báo lỗi?"}
-    PHASE -->|"javac"| BUILD["Kiểm tra mã nguồn,<br/>dependency khi biên dịch"]
-    PHASE -->|"java"| MSG{"Thông báo chính?"}
-    MSG -->|"Could not find or load main class"| NAME["Tên class, package,<br/>classpath root"]
-    MSG -->|"NoClassDefFoundError"| DEP["Thiếu dependency runtime<br/>hoặc lỗi định nghĩa/khởi tạo class"]
-    MSG -->|"UnsupportedClassVersionError"| VER["JVM chạy quá cũ<br/>so với class file"]
-    MSG -->|"Main method not found"| MAIN["Kiểm tra chữ ký main"]
-    NAME --> AGAIN["Sửa đúng nguyên nhân<br/>rồi chạy lại"]
+    START["Java command fails"] --> PHASE{"Which command reported the error?"}
+    PHASE -->|"javac"| BUILD["Check source code,<br/>compile-time dependencies"]
+    PHASE -->|"java"| MSG{"Main message?"}
+    MSG -->|"Could not find or load main class"| NAME["Class name, package,<br/>classpath root"]
+    MSG -->|"NoClassDefFoundError"| DEP["Missing runtime dependency<br/>or class definition/initialization error"]
+    MSG -->|"UnsupportedClassVersionError"| VER["Running JVM is too old<br/>for the class file"]
+    MSG -->|"Main method not found"| MAIN["Check main signature"]
+    NAME --> AGAIN["Fix the right cause<br/>and run again"]
     DEP --> AGAIN
     VER --> AGAIN
     MAIN --> AGAIN
 ~~~
 
-Các thông báo đầy đủ có thể khác theo JVM và môi trường; sơ đồ là hướng chẩn đoán ban đầu, không phải kết luận dựa vào duy nhất một dòng stack trace.
+Full messages can vary by JVM and environment; the diagram is an initial diagnostic guide, not a conclusion drawn from a single line of stack trace.
 
-## 2. Ba nơi dễ bị nhầm: source, bytecode và runtime
+## 2. Three easily confused places: source, bytecode, and runtime
 
-| Thành phần | Ví dụ | Công dụng |
+| Component | Example | Purpose |
 |---|---|---|
-| Source file | `src/demo/Hello.java` | Đầu vào cho `javac` |
-| Class file | `out/demo/Hello.class` | Bytecode JVM có thể nạp |
-| Tên class đầy đủ | `demo.Hello` | Tên được chỉ định khi chạy class mode |
-| Classpath root | `out` | Nơi JVM bắt đầu tìm đường dẫn `demo/Hello.class` |
-| Runtime Java | `java` và JVM đi kèm | Nạp, kiểm tra và thực thi bytecode |
-| Compiler | `javac` | Chọn mức ngôn ngữ/API/class file lúc build |
+| Source file | `src/demo/Hello.java` | Input to `javac` |
+| Class file | `out/demo/Hello.class` | Bytecode the JVM can load |
+| Fully qualified class name | `demo.Hello` | Name specified when running in class mode |
+| Classpath root | `out` | Where the JVM begins looking for `demo/Hello.class` |
+| Java runtime | `java` and accompanying JVM | Loads, verifies, and executes bytecode |
+| Compiler | `javac` | Selects language/API/class-file level at build time |
 
-**Quy tắc:** với `package demo;` và `public class Hello`, sau khi biên dịch ra `out/demo/Hello.class`, cách chạy đúng là **`java -cp out demo.Hello`**, không phải `java -cp out Hello` hay `java -cp out/demo demo.Hello`.
+**Rule:** with `package demo;` and `public class Hello`, after compiling to `out/demo/Hello.class`, the right way to run is **`java -cp out demo.Hello`**, not `java -cp out Hello` or `java -cp out/demo demo.Hello`.
 
-Classpath chỉ định **gốc tìm kiếm**, còn package là một phần của **tên định danh class**. Tên tệp `.java` và `.class` không được truyền thay thế tên class trong class mode.
+The classpath specifies the **search root**, whereas the package is part of the **class identifier name**. `.java` and `.class` file names must not be passed instead of the class name in class mode.
 
-## 3. Dựng một ví dụ chạy đúng trên Java 17+
+## 3. Building a working example on Java 17+
 
-Tạo cấu trúc sau:
+Create the following structure:
 
 ~~~text
 classpath-demo/
@@ -52,7 +52,7 @@ classpath-demo/
         └── Hello.java
 ~~~
 
-Nội dung `src/demo/Hello.java`:
+Contents of `src/demo/Hello.java`:
 
 ~~~java
 package demo;
@@ -67,7 +67,7 @@ public final class Hello {
 }
 ~~~
 
-Từ thư mục `classpath-demo`, tạo thư mục output, biên dịch, rồi chạy.
+From the `classpath-demo` directory, create the output directory, compile, and then run.
 
 **Bash (Linux/macOS):**
 
@@ -87,14 +87,14 @@ java -cp out demo.Hello
 java -cp out demo.Hello Lan
 ~~~
 
-Kết quả dự kiến từ **hai lệnh chạy**:
+Expected output from the **two run commands**:
 
 ~~~text
 Hello, Java
 Hello, Lan
 ~~~
 
-Tệp được tạo:
+Generated file:
 
 ~~~text
 out/
@@ -102,36 +102,36 @@ out/
     └── Hello.class
 ~~~
 
-`javac -d out` giữ cấu trúc package trong output. `java -cp out demo.Hello` nạp bytecode tương ứng, rồi gọi `main(String[] args)`.
+`javac -d out` preserves the package structure in the output. `java -cp out demo.Hello` loads the corresponding bytecode, then invokes `main(String[] args)`.
 
-**Thử lỗi có chủ đích:** chạy `java -cp out Hello`. Launcher tìm `Hello` ở default package, không phải `demo.Hello`, nên thường báo:
+**Intentional error test:** run `java -cp out Hello`. The launcher searches for `Hello` in the default package rather than `demo.Hello`, so it typically reports:
 
 ~~~text
 Error: Could not find or load main class Hello
 Caused by: java.lang.ClassNotFoundException: Hello
 ~~~
 
-Cách sửa là **đổi lệnh chạy** thành `java -cp out demo.Hello`. Không cần đổi tên source, xóa class file hay thêm package lần nữa.
+The fix is to **change the run command** to `java -cp out demo.Hello`. There is no need to rename the source, delete class files, or add another package.
 
-## 4. Lỗi không tìm thấy main class: điều gì cần kiểm tra?
+## 4. Main class not found error: what to check?
 
-Một lỗi điển hình:
+A typical error:
 
 ~~~text
 Error: Could not find or load main class demo.Hello
 Caused by: java.lang.ClassNotFoundException: demo.Hello
 ~~~
 
-Hãy kiểm tra tuần tự:
+Check in sequence:
 
-1. **Biên dịch có thành công không?** Nếu `javac` báo lỗi, `.class` mới có thể chưa được tạo; tệp bytecode cũ vẫn còn và có thể gây nhầm lẫn.
-2. **Class có nằm đúng chỗ?** Với tên `demo.Hello` và classpath `out`, cần có `out/demo/Hello.class`.
-3. **Đang đứng trong thư mục nào?** Đường dẫn `out` là tương đối theo thư mục làm việc hiện tại.
-4. **Tên class có đầy đủ package không?** `Hello` khác `demo.Hello`; chữ hoa/thường trong tên class cũng quan trọng.
-5. **`-cp` có trỏ tới gốc đúng không?** `out/demo` không phải root của class `demo.Hello`.
-6. **Có vô tình chạy source mode?** `java Hello.java` có ý nghĩa khác `java Hello` trên các JDK hỗ trợ chạy trực tiếp source.
+1. **Did compilation succeed?** If `javac` reported an error, the new `.class` may not have been created; old bytecode files can remain and cause confusion.
+2. **Is the class in the right place?** With name `demo.Hello` and classpath `out`, `out/demo/Hello.class` must exist.
+3. **Which directory are you in?** The path `out` is relative to the current working directory.
+4. **Does the class name include the full package?** `Hello` differs from `demo.Hello`; uppercase/lowercase letters in class names also matter.
+5. **Does `-cp` point to the right root?** `out/demo` is not the root for class `demo.Hello`.
+6. **Did you accidentally run source mode?** `java Hello.java` means something different from `java Hello` on JDKs supporting direct source execution.
 
-Lệnh xem file và thư mục hiện hành:
+Commands to inspect files and current directory:
 
 | Bash | PowerShell |
 |---|---|
@@ -139,7 +139,7 @@ Lệnh xem file và thư mục hiện hành:
 | `ls out/demo/Hello.class` | `Get-Item .\out\demo\Hello.class` |
 | `ls out` | `Get-ChildItem .\out` |
 
-Nếu trình biên dịch và runtime đều tìm thấy class nhưng launcher lại báo thiếu **`main`**, đó là lỗi khác. Với cách chạy class thông thường trên Java 17, điểm vào thường là:
+If both compiler and runtime locate the class yet the launcher reports missing **`main`**, that is a different error. For standard class execution on Java 17, the entry point is normally:
 
 ~~~java
 public static void main(String[] args) {
@@ -147,56 +147,56 @@ public static void main(String[] args) {
 }
 ~~~
 
-Class thiếu `main` vẫn có thể biên dịch thành công; nó chỉ không tự trở thành chương trình khởi chạy theo cách này.
+A class without `main` can still compile successfully; it simply cannot launch as a standalone program this way.
 
-## 5. Phân biệt ClassNotFoundException và NoClassDefFoundError
+## 5. Distinguishing ClassNotFoundException and NoClassDefFoundError
 
-Hai tên trông giống nhau nhưng thường chỉ **những tình huống khác nhau**:
+Two similar-looking names usually indicate **different situations**:
 
-| Lỗi | Ý nghĩa phổ biến | Khi nào gặp? |
+| Error | Common meaning | When is it encountered? |
 |---|---|---|
-| `ClassNotFoundException` | Một API tải class **bằng tên**, như `Class.forName` hoặc `ClassLoader.loadClass`, không tìm được class | Nạp động, reflection, hoặc nguyên nhân bên dưới khi launcher không tìm thấy main class |
-| `NoClassDefFoundError` | JVM cần định nghĩa/hoàn tất việc sử dụng một class nhưng không có định nghĩa cần thiết, hoặc class trước đó khởi tạo lỗi | Thiếu JAR/class ở runtime, khác biệt classpath hoặc lỗi khởi tạo class |
+| `ClassNotFoundException` | An API loading a class **by name**, such as `Class.forName` or `ClassLoader.loadClass`, cannot find the class | Dynamic loading, reflection, or the underlying cause when the launcher cannot find the main class |
+| `NoClassDefFoundError` | The JVM needs to define/complete use of a class yet lacks the required definition, or the class previously failed initialization | Missing JAR/class at runtime, classpath mismatch, or class initialization error |
 
-Ví dụ thiếu class chỉ **khi chạy**:
+Example of a class missing only **at runtime**:
 
-- Biên dịch `demo.App` có tham chiếu `lib.Helper` khi thư viện `lib.jar` tồn tại trong build classpath.
-- Khi chạy, quên đưa `lib.jar` vào runtime classpath.
-- JVM cố dùng `lib.Helper` và có thể ném `NoClassDefFoundError: lib/Helper` (thường có `ClassNotFoundException` trong chuỗi nguyên nhân).
+- Compile `demo.App` referencing `lib.Helper` while `lib.jar` exists on the build classpath.
+- At runtime, forget to include `lib.jar` on the runtime classpath.
+- The JVM tries to use `lib.Helper` and may throw `NoClassDefFoundError: lib/Helper` (often with `ClassNotFoundException` in the cause chain).
 
-**Không giải quyết mọi `NoClassDefFoundError` bằng cách thêm một JAR.** Nếu phần stack trace đề cập `Could not initialize class` hoặc `ExceptionInInitializerError`, class có thể đã được tìm thấy nhưng **static initialization trước đó thất bại**. Khi ấy cần xem lỗi gốc từ static initializer, không chỉ tìm file.
+**Do not try to solve every `NoClassDefFoundError` by adding a JAR.** If the stack trace mentions `Could not initialize class` or `ExceptionInInitializerError`, the class may have been found yet **earlier static initialization failed**. In that case, inspect the root error from the static initializer, not just file lookup.
 
-`NoClassDefFoundError` thuộc nhóm `Error`, không phải ngoại lệ nghiệp vụ nên dùng `try/catch` để tiếp tục bình thường. Hướng sửa thông thường là cấu hình đúng và loại bỏ nguyên nhân lỗi khi khởi động.
+`NoClassDefFoundError` belongs to `Error`, not a business exception to catch with `try/catch` and continue normally. The usual fix is proper configuration and eliminating startup initialization errors.
 
-## 6. Lớp có tồn tại nhưng sai tên package: “wrong name”
+## 6. Class exists but wrong package name: “wrong name”
 
-Nếu JVM đang tìm `Hello` ở default package nhưng bytecode thực sự chứa tên nhị phân `demo.Hello`, có môi trường hiện lỗi liên quan:
+If the JVM is looking for `Hello` in the default package while the bytecode actually contains the binary name `demo.Hello`, some environments show a related error:
 
 ~~~text
 java.lang.NoClassDefFoundError: Hello (wrong name: demo/Hello)
 ~~~
 
-Điều này khác với “không có file”. **File có thể tồn tại** nhưng vị trí và tên class được JVM yêu cầu **không khớp tên định danh bên trong class file**.
+This differs from “file missing.” **The file may exist**, yet the location and class name requested by the JVM **do not match the identifier name inside the class file**.
 
-Không dùng thủ thuật đổi tên `Hello.class` hay chuyển bừa nó sang thư mục gốc. Hãy xác nhận nội dung `package demo;`, chạy bằng `demo.Hello` và đặt `-cp` vào đúng thư mục root.
+Do not resort to renaming `Hello.class` or randomly moving it to the root directory. Confirm `package demo;` in the contents, run with `demo.Hello`, and point `-cp` to the exact root directory.
 
-Bạn có thể dùng JDK tool:
+You can use the JDK tool:
 
 ~~~bash
 javap -classpath out demo.Hello
 ~~~
 
-Nếu lệnh này hiển thị được class `demo.Hello`, nó là bằng chứng rằng `javap` tìm thấy class dưới root `out` theo tên đó (không chứng minh `main` hay toàn bộ dependency runtime đều đúng).
+If this command displays class `demo.Hello`, it is evidence that `javap` found the class beneath root `out` under that name (it does not prove `main` or all runtime dependencies are correct).
 
-## 7. UnsupportedClassVersionError: bytecode mới, JVM cũ
+## 7. UnsupportedClassVersionError: new bytecode, old JVM
 
-Ví dụ tình huống:
+Example scenario:
 
-- Một project được **biên dịch cho Java 17**, tạo class-file major version **61**.
-- Bạn cố chạy class ấy bằng **Java 11**, runtime chỉ hỗ trợ class-file major version tối đa **55**.
-- JVM có thể báo `UnsupportedClassVersionError`.
+- A project is **compiled for Java 17**, generating class-file major version **61**.
+- You try running that class with **Java 11**, whose runtime only supports class-file major versions up to **55**.
+- The JVM may report `UnsupportedClassVersionError`.
 
-Thông báo thường có ý như:
+The message typically reads along the lines of:
 
 ~~~text
 java.lang.UnsupportedClassVersionError: demo/Hello
@@ -205,9 +205,9 @@ has been compiled by a more recent version of the Java Runtime
 this version of the Java Runtime only recognizes class file versions up to 55.0
 ~~~
 
-Thông báo có thể khác giữa các JVM; hai con số là ví dụ chuẩn cho Java 17 và Java 11.
+Messages can vary across JVMs; the two numbers are standard examples for Java 17 and Java 11.
 
-Bảng đối chiếu thường gặp:
+Common reference table:
 
 | Java release | Class-file major version |
 |---|---:|
@@ -216,13 +216,13 @@ Bảng đối chiếu thường gặp:
 | Java 17 | 61 |
 | Java 21 | 65 |
 
-**Không nhầm `javac -version` với `java -version`.** Hai lệnh có thể trỏ tới các JDK/runtime khác nhau nếu máy cài nhiều phiên bản hoặc cấu hình PATH không nhất quán.
+**Do not confuse `javac -version` with `java -version`.** The two commands can point to different JDKs/runtimes if multiple versions are installed on the machine or PATH configuration is inconsistent.
 
-Bạn cũng không thể chạy class-file version mới bằng cách **đổi tên file**, sửa package hay thêm `-cp`. Đây là vấn đề tương thích định dạng bytecode/runtime, không phải thiếu đường dẫn.
+You also cannot run a newer class-file version by **renaming files**, editing packages, or adding `-cp`. This is a bytecode/runtime format compatibility issue, not a missing path.
 
-## 8. Chẩn đoán phiên bản bằng lệnh thật
+## 8. Diagnosing versions with real commands
 
-**Trên Bash:**
+**In Bash:**
 
 ~~~bash
 java -version
@@ -231,7 +231,7 @@ type -a java
 type -a javac
 ~~~
 
-**Trên PowerShell:**
+**In PowerShell:**
 
 ~~~powershell
 java -version
@@ -242,15 +242,15 @@ where.exe java
 where.exe javac
 ~~~
 
-Các lệnh này giúp xác minh **lệnh nào được tìm thấy trong PATH**. Trên Windows, `where.exe` khác alias `where` của PowerShell.
+These commands verify **which executables are found on PATH**. On Windows, `where.exe` differs from PowerShell's `where` alias.
 
-Để xem version của `.class`, với demo đã biên dịch:
+To check the version of a `.class` file, with the compiled demo:
 
 ~~~bash
 javap -verbose -classpath out demo.Hello
 ~~~
 
-Tìm các dòng gần phần đầu:
+Look for lines near the top:
 
 ~~~text
 Classfile .../demo/Hello.class
@@ -258,93 +258,93 @@ Classfile .../demo/Hello.class
   major version: 61
 ~~~
 
-`major version: 61` đúng với class file dành cho Java 17. Đường dẫn và chi tiết khác có thể thay đổi theo nền tảng/JDK.
+`major version: 61` corresponds to a class file for Java 17. Paths and other details may vary by platform/JDK.
 
-Nếu đang dùng JDK hỗ trợ Java 17 và cần chạy trên runtime Java 17, biên dịch với:
-
-~~~bash
-javac --release 17 -encoding UTF-8 -d out src/demo/Hello.java
-~~~
-
-`--release 17` đồng thời chọn mức ngôn ngữ, bytecode target và **các API chuẩn được phép dùng** tương ứng Java 17. Nếu trình biên dịch quá cũ để hỗ trợ release đã yêu cầu, nó sẽ báo lỗi; bạn cần cài JDK phù hợp.
-
-## 9. Ba hướng sửa lỗi phiên bản — chọn theo hoàn cảnh
-
-### Hướng A: Nâng runtime
-
-Nếu môi trường được phép nâng JDK/runtime, chọn runtime **có hỗ trợ class file mới**, đồng thời kiểm thử ứng dụng, thư viện và cấu hình. Đây thường là hướng phù hợp khi project thực sự cần API/tính năng Java mới.
-
-**Không được giả định** nâng runtime là miễn phí rủi ro: framework, flag JVM, bảo mật và dependency native có thể đòi cập nhật.
-
-### Hướng B: Biên dịch cho release cũ hơn
-
-Nếu môi trường bắt buộc chạy Java 17 nhưng bạn đang build bằng JDK 21 (và mã không phụ thuộc tính năng Java 21), thử:
+If using a JDK that supports Java 17 and needing to run on a Java 17 runtime, compile with:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 -d out src/demo/Hello.java
 ~~~
 
-Mức release yêu cầu phải được **chính phiên bản `javac` đang dùng hỗ trợ**. Với ví dụ này, class file đầu ra sẽ mang major 61. Dùng `javap -verbose` để tự kiểm tra.
+`--release 17` simultaneously selects the language level, bytecode target, and **permitted standard APIs** corresponding to Java 17. If the compiler is too old to support the requested release, it reports an error; you need to install a suitable JDK.
 
-Không thể chỉ thay `--release` rồi giữ cú pháp hoặc API chỉ có ở Java mới: compiler sẽ từ chối, và bạn cần refactor mã hoặc chọn runtime mới.
+## 9. Three ways to fix version errors — choose by situation
 
-### Hướng C: Đồng bộ môi trường build và runtime
+### Approach A: Upgrade the runtime
 
-Ghi rõ yêu cầu phiên bản Java vào cấu hình project, CI và hướng dẫn chạy. Nếu build bằng Maven hoặc Gradle, cấu hình Java toolchain và release mục tiêu cho nhất quán. Nếu triển khai container, kiểm tra **base image runtime** thay vì chỉ JDK trên máy phát triển.
+If the environment allows upgrading the JDK/runtime, select a runtime **that supports the new class files**, while testing the application, libraries, and configuration. This is usually the right approach when the project genuinely needs newer Java APIs/features.
 
-Một ứng dụng chạy được trên laptop chưa đủ bằng chứng image/server sẽ chạy được: cần chạy smoke test trên **runtime đích thực tế**.
+**Do not assume** upgrading the runtime is risk-free: frameworks, JVM flags, security settings, and native dependencies may require updates.
 
-## 10. Classpath lúc biên dịch khác classpath lúc chạy
+### Approach B: Compile for an older release
 
-Xét ứng dụng phụ thuộc một thư viện JAR. Bạn có thể biên dịch thành công nhờ tham số `-cp` của `javac`, nhưng khi chạy lại quên thư viện ấy trong `java -cp`.
+If the environment requires Java 17 yet you are building with JDK 21 (and the code does not depend on Java 21 features), try:
 
-Ví dụ cú pháp, giả sử **`lib/helper.jar` thực sự tồn tại** và chứa các class mà ứng dụng cần:
+~~~bash
+javac --release 17 -encoding UTF-8 -d out src/demo/Hello.java
+~~~
 
-**Bash trên Linux/macOS:**
+The requested release level must be **supported by the `javac` version in use**. For this example, the output class file will carry major 61. Use `javap -verbose` to verify yourself.
+
+You cannot simply change `--release` while keeping syntax or APIs exclusive to newer Java: the compiler will reject it, and you must refactor code or choose a newer runtime.
+
+### Approach C: Align build and runtime environments
+
+Document the required Java version in project configuration, CI, and run instructions. If building with Maven or Gradle, configure the Java toolchain and target release consistently. If deploying containers, check the **runtime base image**, not just the JDK on the development machine.
+
+An application running on a laptop is not sufficient proof that the image/server will run it: you must run a smoke test on the **actual target runtime**.
+
+## 10. Compile-time classpath differs from runtime classpath
+
+Consider an application depending on a JAR library. You might compile successfully thanks to `javac`'s `-cp` flag, yet forget to include that library in `java -cp` when running.
+
+Syntax example, assuming **`lib/helper.jar` actually exists** and contains classes needed by the application:
+
+**Bash on Linux/macOS:**
 
 ~~~bash
 javac -cp "lib/helper.jar" -d out src/demo/App.java
 java -cp "out:lib/helper.jar" demo.App
 ~~~
 
-**PowerShell trên Windows:**
+**PowerShell on Windows:**
 
 ~~~powershell
 javac -cp "lib/helper.jar" -d out .\src\demo\App.java
 java -cp "out;lib/helper.jar" demo.App
 ~~~
 
-Dấu phân cách nhiều classpath entries là **`:` trên Linux/macOS**, **`;` trên Windows** (phụ thuộc hệ điều hành của JVM, không đơn thuần loại terminal). Đây là ví dụ về **cú pháp**, không phải dự án hoàn chỉnh: class `App` và `helper.jar` phải có sẵn thì lệnh mới chạy được.
+The separator for multiple classpath entries is **`:` on Linux/macOS** and **`;` on Windows** (depending on the JVM's OS, not merely the terminal type). This is a **syntax example**, not a complete project: class `App` and `helper.jar` must be present for the commands to run.
 
-Một lỗi khác là thiếu dependency **bắc cầu**: ứng dụng có `library-a.jar` nhưng library A cần thêm library B lúc chạy. Đọc **stack trace tới nguyên nhân sâu nhất**, kiểm tra dependency tree hoặc nội dung JAR, thay vì đoán tên thư viện từ một dòng đầu.
+Another error is missing **transitive** dependencies: the application has `library-a.jar`, yet library A additionally requires library B at runtime. Read **the stack trace down to the deepest cause**, inspect the dependency tree or JAR contents, instead of guessing library names from the first line.
 
-**Lưu ý `java -jar`:** chế độ JAR thực thi có các quy tắc entry point và classpath riêng; `-cp` do bạn chỉ định thường bị bỏ qua khi dùng `-jar`. Khi thiếu dependency, hãy xem manifest, cơ chế đóng gói và tài liệu build của ứng dụng, không áp dụng máy móc cú pháp `java -cp ... Main` vào mọi file JAR.
+**Note on `java -jar`:** executable JAR mode has its own entry-point and classpath rules; `-cp` specified by you is normally ignored when using `-jar`. When dependencies are missing, inspect the manifest, packaging mechanism, and build documentation of the application instead of mechanically applying `java -cp ... Main` to every JAR file.
 
-## 11. Những trường hợp dễ chẩn đoán nhầm
+## 11. Easily misdiagnosed cases
 
-| Triệu chứng | Không nên kết luận ngay | Điều nên xác minh |
+| Symptom | Do not immediately conclude | What to verify |
 |---|---|---|
-| `Could not find or load main class` | “Code Java viết sai” | Full class name, classpath root, vị trí `.class` |
-| `ClassNotFoundException` | “Luôn thiếu dependency JAR” | Tên lớp được yêu cầu, class loader đang dùng |
-| `NoClassDefFoundError` | “Chắc chắn thiếu file” | Có `Caused by`, `wrong name`, `Could not initialize class` không? |
-| `UnsupportedClassVersionError` | “Sửa lại source cho đúng cú pháp” | Class-file major vs runtime `java -version` |
-| `cannot find symbol` từ `javac` | “Runtime classpath thiếu” | Source/build dependencies ở thời điểm compile |
-| `Main method not found` | “Class không tồn tại” | Main class có được tìm thấy nhưng thiếu entry point không? |
-| Lỗi xuất hiện chỉ trên server | “Server Java bị hỏng” | JDK/JVM version, container image, PATH, thư mục làm việc, packaging |
-| Sau build vẫn in kết quả cũ | “JVM cache nhầm mã” | Có đang chạy class/JAR cũ hoặc output directory khác? |
+| `Could not find or load main class` | “Java code has syntax errors” | Full class name, classpath root, `.class` location |
+| `ClassNotFoundException` | “Always a missing dependency JAR” | Requested class name, class loader being used |
+| `NoClassDefFoundError` | “Definitely a missing file” | Is there a `Caused by`, `wrong name`, or `Could not initialize class`? |
+| `UnsupportedClassVersionError` | “Fix source syntax” | Class-file major version vs. runtime `java -version` |
+| `cannot find symbol` from `javac` | “Missing runtime classpath” | Source/build dependencies at compile time |
+| `Main method not found` | “Class does not exist” | Was the main class found yet lacking an entry point? |
+| Error appears only on server | “Server Java is broken” | JDK/JVM version, container image, PATH, working directory, packaging |
+| Still prints old output after build | “JVM cached the wrong code” | Are you running an old class/JAR or a different output directory? |
 
-**Phân biệt thêm:** `ClassNotFoundException` là checked exception khi API tải class theo tên không tìm thấy. `NoClassDefFoundError` là lỗi liên kết/định nghĩa class ở runtime; một lỗi khởi tạo class có thể khiến những lần dùng tiếp theo báo dạng này. Đừng xem hai loại là từ đồng nghĩa.
+**Further distinction:** `ClassNotFoundException` is a checked exception when a class-loading-by-name API fails to find a class. `NoClassDefFoundError` is a runtime class linking/definition error; a class initialization error can cause subsequent uses to report this error. Do not treat the two as synonyms.
 
-## 12. Quy trình xử lý sự cố 6 bước
+## 12. 6-step troubleshooting workflow
 
-1. **Sao chép đầy đủ lỗi và command** gây lỗi (bao gồm `-cp`, `-jar`, thư mục hiện hành).
-2. **Xác định giai đoạn**: `javac`, launcher tìm main class, nạp class phụ thuộc, hay initialization.
-3. **Kiểm tra version**: `java -version`, `javac -version`, và `javap -verbose` với class liên quan nếu cần.
-4. **Kiểm tra đường đi**: full name, package, classpath root, file `.class`/JAR và đường dẫn tương đối.
-5. **Chọn một thay đổi nhỏ nhất**: sửa `-cp`, bổ sung dependency runtime, đồng bộ JDK hoặc đổi `--release`. Không thay đồng thời nhiều yếu tố rồi mất dấu nguyên nhân.
-6. **Chạy lại trên môi trường đích**, lưu lệnh hoạt động và thêm kiểm tra smoke test vào hướng dẫn triển khai/CI.
+1. **Copy the full error and command** that failed (including `-cp`, `-jar`, current working directory).
+2. **Identify the phase**: `javac`, launcher looking up the main class, loading dependent classes, or initialization.
+3. **Check versions**: `java -version`, `javac -version`, and `javap -verbose` on the relevant class if needed.
+4. **Check paths**: full name, package, classpath root, `.class`/JAR files, and relative paths.
+5. **Make one minimal change**: fix `-cp`, add a runtime dependency, align JDKs, or change `--release`. Do not change multiple factors at once and lose track of the cause.
+6. **Re-run on the target environment**, save the working command, and add a smoke test check to deployment/CI instructions.
 
-### Ví dụ checklist nhanh cho demo
+### Quick checklist example for the demo
 
 ~~~bash
 java -version
@@ -353,55 +353,55 @@ javap -verbose -classpath out demo.Hello
 java -cp out demo.Hello
 ~~~
 
-Trên PowerShell, bốn lệnh này có cú pháp tương tự. Nếu `javap` không tìm được `demo.Hello`, ưu tiên kiểm tra **output root và tên lớp**. Nếu `javap` hiển thị major 61 nhưng runtime là Java 11, ưu tiên **nâng runtime hoặc build lại với release mà runtime hỗ trợ**.
+In PowerShell, these four commands have similar syntax. If `javap` cannot find `demo.Hello`, prioritize checking **the output root and class name**. If `javap` shows major 61 while the runtime is Java 11, prioritize **upgrading the runtime or rebuilding with a release supported by the runtime**.
 
-## 13. Bài tập có đáp án
+## 13. Exercises with answers
 
-### Bài A — tìm lỗi classpath
+### Exercise A — find the classpath error
 
-Bạn có `out/demo/Hello.class`, package bên trong là `demo`. Chạy:
+You have `out/demo/Hello.class`, with internal package `demo`. Run:
 
 ~~~bash
 java -cp out/demo Hello
 ~~~
 
-**Đáp án:** classpath root sai cho lớp `demo.Hello`; sửa thành `java -cp out demo.Hello`.
+**Answer:** wrong classpath root for class `demo.Hello`; fix to `java -cp out demo.Hello`.
 
-### Bài B — nhận diện lỗi version
+### Exercise B — identify the version error
 
-Class có `major version: 65`, máy đích dùng JVM Java 17. Lý do có thể thất bại?
+The class has `major version: 65`, and the target machine runs a Java 17 JVM. Why might it fail?
 
-**Đáp án:** major 65 là Java 21, Java 17 thông thường chỉ hỗ trợ tới major 61. Có thể xuất hiện `UnsupportedClassVersionError`. Hướng sửa: chạy bằng runtime hỗ trợ Java 21, hoặc biên dịch lại cho release 17 sau khi bảo đảm code/API tương thích.
+**Answer:** major 65 is Java 21, whereas Java 17 normally supports only up to major 61. `UnsupportedClassVersionError` may occur. Fix: run with a Java 21-capable runtime, or recompile for release 17 after ensuring code/API compatibility.
 
-### Bài C — phân loại lỗi thiếu phụ thuộc
+### Exercise C — classify missing dependency error
 
-Build có `helper.jar`, lúc chạy quên đưa JAR vào classpath, ứng dụng chỉ lỗi khi gọi một tính năng cụ thể.
+The build included `helper.jar`, at runtime you forgot to put the JAR on the classpath, and the application only fails when calling a specific feature.
 
-**Đáp án:** đây là nghi vấn **thiếu class dependency ở runtime**, có thể báo `NoClassDefFoundError`. Kiểm tra classpath runtime và stack trace; đừng chỉ sửa source hoặc tên main class.
+**Answer:** this is suspected **missing class dependency at runtime**, likely reporting `NoClassDefFoundError`. Check runtime classpath and stack trace; do not just edit source or main class name.
 
-### Bài D — phân biệt hai loại thông báo
+### Exercise D — distinguish two message types
 
-1. `java -cp out demo.Hello` báo `Could not find or load main class demo.Hello`.
-2. `java -cp out demo.Hello` tìm được class nhưng báo `Main method not found`.
+1. `java -cp out demo.Hello` reports `Could not find or load main class demo.Hello`.
+2. `java -cp out demo.Hello` finds the class yet reports `Main method not found`.
 
-**Đáp án:** (1) xem classpath root/tên đầy đủ/file; (2) xem chữ ký `main` của class đã tìm thấy. Hai trường hợp cần hai cách sửa khác nhau.
+**Answer:** (1) check classpath root/full name/file; (2) check the `main` signature of the found class. The two cases require two different fixes.
 
-### Bài E — build bằng JDK mới, chạy JVM cũ
+### Exercise E — build with newer JDK, run on older JVM
 
-Bạn build bằng JDK 21, deploy lên Java 17. Nêu ba câu hỏi trước khi sửa.
+You build with JDK 21 and deploy to Java 17. List three questions to ask before fixing.
 
-**Đáp án gợi ý:** (i) class file major version hiện là bao nhiêu? (ii) source và API có tương thích Java 17 không? (iii) được nâng runtime đích hay phải dùng `--release 17`? Sau thay đổi, xác minh bằng `javap` và chạy smoke test trên JVM 17 thực tế.
+**Suggested answer:** (i) what is the current class-file major version? (ii) are the source and APIs compatible with Java 17? (iii) can the target runtime be upgraded or must `--release 17` be used? After making changes, verify with `javap` and run a smoke test on an actual Java 17 JVM.
 
-## 14. Checklist nghiệm thu
+## 14. Acceptance checklist
 
-- [ ] Phân biệt được **không tìm thấy main class**, **thiếu class phụ thuộc**, **sai tên package**, **không có main** và **không tương thích class-file version**.
-- [ ] Biên dịch và chạy ví dụ `demo.Hello` bằng đúng classpath root.
-- [ ] Biết `javac` và `java` là hai lệnh có vai trò khác nhau; kiểm tra được cả hai phiên bản.
-- [ ] Dùng `javap -verbose` để đọc major version và hiểu 52/55/61/65.
-- [ ] Biết Java 17 class (major 61) không chạy được trên JVM Java 11.
-- [ ] Phân biệt build classpath và runtime classpath.
-- [ ] Biết `java -jar` có cách xử lý classpath khác với class mode.
-- [ ] Biết đọc dòng `Caused by` và lỗi initialization trước khi kết luận thiếu JAR.
-- [ ] Có thể sửa từng nguyên nhân một và kiểm chứng lại trên runtime đích.
+- [ ] Distinguish **main class not found**, **missing dependent class**, **wrong package name**, **missing main**, and **class-file version mismatch**.
+- [ ] Compile and run the `demo.Hello` example using the right classpath root.
+- [ ] Know that `javac` and `java` are two commands with different roles; can check both versions.
+- [ ] Use `javap -verbose` to read major version and understand 52/55/61/65.
+- [ ] Know that a Java 17 class (major 61) cannot run on a Java 11 JVM.
+- [ ] Distinguish build classpath and runtime classpath.
+- [ ] Know that `java -jar` handles classpath differently from class mode.
+- [ ] Know to read `Caused by` lines and initialization errors before concluding a JAR is missing.
+- [ ] Can fix one cause at a time and re-verify on the target runtime.
 
-**Kết luận:** khi gặp lỗi Java lúc khởi động, hãy tách ba câu hỏi: **JVM đang tìm class tên nào? Tìm từ classpath root nào? Bytecode có tương thích với JVM đang chạy không?** Trả lời đúng ba câu đó sẽ loại bỏ phần lớn cách sửa mò như đổi tên file, chép JAR ngẫu nhiên hoặc thay phiên bản Java không có căn cứ.
+**Conclusion:** when encountering a Java startup error, separate three questions: **Which class name is the JVM looking for? From which classpath root is it searching? Is the bytecode compatible with the running JVM?** Answering those three questions accurately eliminates most guesswork fixes like renaming files, copying random JARs, or switching Java versions without basis.

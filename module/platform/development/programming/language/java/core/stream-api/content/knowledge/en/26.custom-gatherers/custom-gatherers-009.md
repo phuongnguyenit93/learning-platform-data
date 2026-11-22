@@ -1,83 +1,83 @@
-# Kiểm thử số lượng đầu ra, tính lười, dừng sớm và ghép trạng thái
+# Testing Output Counts, Laziness, Early Termination, and State Merging
 
-> **Chương:** Xây dựng Gatherer tùy biến  
-> **Module:** `JAVA_STREAM_API` — học xử lý dữ liệu khai báo bằng Java Stream API qua pipeline lazy, `filter`, `map`, `reduce`, `collect`; thực hành grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers, đồng thời nhận diện giới hạn về trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Building Custom Gatherers  
+> **Module:** `JAVA_STREAM_API` — learn declarative data processing with the Java Stream API through lazy pipelines, `filter`, `map`, `reduce`, `collect`; practice grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers, while recognizing constraints around state, resources, and performance.
 
-Khi tự viết một `Gatherer`, việc chạy được trên vài phần tử **chưa chứng minh được nó đúng**. Một Gatherer có thể phát ra **không, một hoặc nhiều phần tử** cho mỗi phần tử đầu vào; có thể đợi đến cuối nguồn mới phát kết quả; có thể tự yêu cầu dừng sớm; và nếu hỗ trợ song song, nó phải ghép trạng thái từ nhiều nhánh theo hợp đồng. Những hành vi này cần các ca kiểm thử khác nhau.
+When writing a custom `Gatherer`, getting it to run on a few elements **does not prove it is correct**. A Gatherer can emit **zero, one, or multiple elements** per input element; may wait until the end of the source to emit results; may request early termination itself; and if it supports parallel execution, it must merge states from multiple branches according to contract. These behaviors require distinct test cases.
 
-Bài học tập trung vào **cách thiết kế và kiểm thử Gatherer tùy biến**, không chỉ cách viết lambda. Các ví dụ sử dụng API `java.util.stream.Gatherer` và `Stream.gather(...)` đã là tính năng chính thức từ **Java 24**. Trên Java 22/23, Stream Gatherers ở trạng thái preview và cần cấu hình preview tương ứng; mã trong bài nhắm tới **JDK 24 trở lên**, không chạy trên JDK 17.
+This lesson focuses on **how to design and test custom Gatherers**, not merely how to write lambdas. Examples use the `java.util.stream.Gatherer` and `Stream.gather(...)` APIs, which are official features starting in **Java 24**. On Java 22/23, Stream Gatherers are in preview and require the corresponding preview configuration; code in this lesson targets **JDK 24 and later** and does not run on JDK 17.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Xác định số kết quả của Gatherer với nguồn rỗng, nguồn nhiều phần tử, batch chưa đầy và downstream giới hạn số phần tử.
-2. Kiểm tra pipeline chỉ thực thi khi có terminal operation, không lấy side effect trong `peek` làm hợp đồng nghiệp vụ.
-3. Phân biệt **dừng do integrator** và **dừng vì downstream không nhận thêm**; truyền tín hiệu `false` đúng cách.
-4. Kiểm thử `initializer`, `integrator`, `combiner`, `finisher` của Gatherer có trạng thái; đối chiếu bản tuần tự và song song.
-5. Phát hiện lỗi khi `combiner` bỏ dữ liệu, khi state bị dùng chung, hoặc khi phép gộp không kết hợp.
+1. Verify a Gatherer's output count on empty sources, multi-element sources, partial batches, and downstream output limits.
+2. Verify that pipelines execute only when a terminal operation runs, without relying on side effects in `peek` as a business contract.
+3. Distinguish **integrator-driven termination** from **downstream-rejection termination**; propagate `false` signals properly.
+4. Test `initializer`, `integrator`, `combiner`, and `finisher` of a stateful Gatherer; compare sequential and parallel runs.
+5. Catch bugs where `combiner` drops data, state is shared, or merging is non-associative.
 
-## 1. Nhắc lại hợp đồng `Gatherer<T, A, R>`
+## 1. Review of the `Gatherer<T, A, R>` Contract
 
-Một Gatherer là **intermediate operation** chuyển `Stream<T>` thành `Stream<R>`; không nhất thiết có tương quan 1:1 giữa số phần tử đầu vào và đầu ra. Với Gatherer có trạng thái, `A` là kiểu state nội bộ.
+A Gatherer is an **intermediate operation** transforming `Stream<T>` into `Stream<R>`; there is not necessarily a 1:1 ratio between input and output elements. For stateful Gatherers, `A` is the internal state type.
 
-| Thành phần | Kiểu khái quát | Ý nghĩa khi kiểm thử |
+| Component | Conceptual Type | Testing Meaning |
 | --- | --- | --- |
-| `initializer` | `Supplier<A>` | Mỗi trạng thái phải được tạo mới, không rò rỉ giữa các lượt chạy hoặc các nhánh. |
-| `integrator` | `Integrator<A, T, R>` | Nhận phần tử, có thể `push` 0..n kết quả, trả `true` để tiếp tục hoặc `false` để dừng. |
-| `combiner` | `BinaryOperator<A>` | Ghép hai trạng thái từ các phân vùng; cần đúng với identity và associativity. |
-| `finisher` | `BiConsumer<A, Downstream<? super R>>` | Tùy chọn phát kết quả cuối sau khi tích lũy, có thể tạo đầu ra cả khi nguồn rỗng. |
+| `initializer` | `Supplier<A>` | Each state must be freshly created, never leaking across runs or branches. |
+| `integrator` | `Integrator<A, T, R>` | Receives elements, may `push` 0..n results, returns `true` to continue or `false` to stop. |
+| `combiner` | `BinaryOperator<A>` | Merges two states from partitions; must satisfy identity and associativity. |
+| `finisher` | `BiConsumer<A, Downstream<? super R>>` | Optionally emits final results after accumulation; may produce output even on an empty source. |
 
-Hai phương thức liên quan tới dừng sớm:
+Two methods related to early termination:
 
 ```java
 boolean accepted = downstream.push(result);
 boolean rejecting = downstream.isRejecting();
 ```
 
-- `push(result)` trả `false` nếu downstream không muốn nhận thêm kết quả. Nếu đã trả `false`, những lần `push` tiếp theo không được chấp nhận.
-- `isRejecting()` chỉ là tín hiệu kiểm tra **best-effort**: không được dựa vào nó như bảo đảm tuyệt đối rằng downstream sẽ nhận thêm.
-- `Integrator.integrate(...)` trả `false` để báo **không cần thêm đầu vào**. Khi đó không nên chờ integrator được gọi tiếp.
-- `Gatherer.Integrator.Greedy` là loại integrator **không tự khởi phát dừng sớm**; nó chỉ có thể phản ánh yêu cầu dừng từ downstream. Không đánh dấu greedy cho một integrator chủ động trả `false` khi đạt số phần tử.
+- `push(result)` returns `false` if downstream wants no more results. Once it has returned `false`, subsequent `push` calls will not be accepted.
+- `isRejecting()` is only a **best-effort** check signal: never rely on it as an absolute guarantee that downstream will accept more.
+- `Integrator.integrate(...)` returns `false` to signal **no more inputs needed**. After that, do not expect the integrator to be called further.
+- `Gatherer.Integrator.Greedy` is an integrator kind that **never initiates early termination itself**; it may only reflect a stop request from downstream. Never mark an integrator as greedy if it proactively returns `false` upon reaching a count.
 
-Sơ đồ tổng quát:
+Overview diagram:
 
 ```text
-Nguồn T ──► integrator(state, T, downstream)
+Source T ──► integrator(state, T, downstream)
                     │
-                    ├── không push        → 0 kết quả
-                    ├── push một lần      → 1 kết quả
-                    ├── push nhiều lần    → nhiều kết quả
-                    └── return false      → ngừng nhận phần tử nguồn
+                    ├── no push           → 0 results
+                    ├── push once         → 1 result
+                    ├── push many times   → multiple results
+                    └── return false      → stop receiving source elements
                               │
                               ▼
-               combiner (nếu chia nhánh) + finisher
+               combiner (if split) + finisher
                               │
                               ▼
                          Stream<R>
 ```
 
-Lưu ý `Gatherer.ofSequential(...)` tạo Gatherer có hợp đồng xử lý tuần tự cho chính giai đoạn gather. `Gatherer.of(initializer, integrator, combiner, finisher)` cho phép giai đoạn này phân vùng và ghép state khi cần. Không nên giả định mọi pipeline song song **bắt buộc** gọi combiner hoặc gọi nó một số lần cố định.
+Note that `Gatherer.ofSequential(...)` creates a Gatherer with sequential processing semantics for the gather stage itself. `Gatherer.of(initializer, integrator, combiner, finisher)` allows this stage to partition and merge state when needed. Never assume every parallel pipeline **must** invoke the combiner or invoke it a fixed number of times.
 
-## 2. Ma trận kiểm thử cần chuẩn bị trước khi viết mã
+## 2. Test Matrix to Prepare Before Writing Code
 
-| Tiêu chí | Ca kiểm thử | Kỳ vọng cần khẳng định |
+| Criterion | Test Case | Expectation to Assert |
 | --- | --- | --- |
-| Số đầu ra | 0 phần tử nguồn | 0 hoặc số đầu ra do finisher **được thiết kế rõ**, không tự mặc định. |
-| Số đầu ra | Gatherer nhân đôi 3 phần tử | Đúng 6 phần tử và đúng nội dung. |
-| Batch | 5 phần tử, cỡ batch 2 | Hai batch đầy và một batch cuối có 1 phần tử. |
-| Lazy | Tạo pipeline nhưng chưa có terminal operation | Chưa duyệt nguồn. |
-| Dừng do integrator | `takeFirst(3)` trên nguồn dài/vô hạn | Đúng 3 kết quả; kết thúc được mà không phải xử lý toàn nguồn. |
-| Dừng do downstream | `duplicate().limit(3)` | Đúng 3 kết quả; integrator không cố gửi mãi sau khi bị từ chối. |
-| Ghép state | Chia dữ liệu thành nhiều phần | Tổng kết hợp giống tính một lượt. |
-| Identity | Gộp với state rỗng | Kết quả không đổi. |
-| Associativity | `(A + B) + C` và `A + (B + C)` | Kết quả tương đương. |
-| Song song | Cùng một dữ liệu, tuần tự và song song | Kết quả nghiệp vụ giống nhau. |
-| Thứ tự | Nguồn `List` có encounter order | Giữ thứ tự nếu đây là hợp đồng của Gatherer. |
+| Output count | 0 source elements | 0 or the number of outputs **explicitly designed** by the finisher, not assumed by default. |
+| Output count | Gatherer duplicating 3 elements | Exactly 6 elements with exact content. |
+| Batch | 5 elements, batch size 2 | Two full batches and one final batch of 1 element. |
+| Laziness | Build pipeline without a terminal operation | Source is not traversed yet. |
+| Integrator stop | `takeFirst(3)` on long/infinite source | Exactly 3 results; terminates without processing the entire source. |
+| Downstream stop | `duplicate().limit(3)` | Exactly 3 results; integrator stops pushing once rejected. |
+| State merging | Split data into multiple segments | Combined total matches single-pass calculation. |
+| Identity | Merge with empty state | Result is unchanged. |
+| Associativity | `(A + B) + C` and `A + (B + C)` | Results are equivalent. |
+| Parallel | Same data, sequential vs parallel | Business results match. |
+| Order | `List` source with encounter order | Preserves order if part of the Gatherer's contract. |
 
-Không nên gom tất cả vào một kiểm thử tổng quát. Nếu chỉ kiểm `count()`, bạn có thể bỏ sót **thứ tự sai nhưng số phần tử đúng**; nếu chỉ kiểm dữ liệu nhỏ tuần tự, bạn có thể không phát hiện **combiner mất dữ liệu**.
+Do not lump everything into one generic test. Checking only `count()` can miss **wrong order with right count**; checking only small sequential inputs can miss **a combiner dropping data**.
 
-## 3. Kiểm thử số lượng đầu ra: một đầu vào có thể tạo nhiều kết quả
+## 3. Testing Output Counts: One Input Can Produce Multiple Results
 
-Ví dụ nhỏ nhất là một Gatherer **phát mỗi phần tử hai lần**. Vì không cần trạng thái, ta dùng overload không có initializer:
+The smallest example is a Gatherer that **emits each element twice**. Since no state is needed, we use the overload without an initializer:
 
 ```java
 import java.util.stream.Gatherer;
@@ -94,7 +94,7 @@ static Gatherer<Integer, ?, Integer> duplicateEach() {
 }
 ```
 
-`duplicateEach()` là một **intermediate operation**, không phải `map` thông thường: `map` phát đúng một kết quả cho một đầu vào còn Gatherer này phát tối đa hai.
+`duplicateEach()` is an **intermediate operation**, not regular `map`: `map` emits exactly one output per input, whereas this Gatherer emits up to two.
 
 ```java
 List<Integer> doubled = Stream.of(2, 4, 6)
@@ -104,18 +104,18 @@ List<Integer> doubled = Stream.of(2, 4, 6)
 System.out.println(doubled); // [2, 2, 4, 4, 6, 6]
 ```
 
-Nếu nguồn rỗng, kết quả rỗng. Nếu downstream dừng sau 3 đầu ra, kết quả là `[2, 2, 4]`: không có yêu cầu phải phát đủ cặp cho phần tử `4` **sau khi downstream từ chối**.
+If the source is empty, the result is empty. If downstream stops after 3 outputs, the result is `[2, 2, 4]`: there is no requirement to emit the complete pair for `4` **after downstream rejects**.
 
-**Lỗi thường gặp:** viết hai lần `downstream.push(value)` rồi luôn `return true`. Khi `push` đầu tiên trả `false`, lời gọi thứ hai là công việc thừa và Gatherer không phản ánh tín hiệu dừng tới upstream.
+**Common mistake:** calling `downstream.push(value)` twice and always doing `return true`. When the first `push` returns `false`, the second call is wasted work and the Gatherer fails to propagate the stop signal upstream.
 
-## 4. Kiểm thử batch cuối: `finisher` có thể thay đổi số đầu ra
+## 4. Testing the Final Batch: `finisher` Can Change Output Count
 
-Một mẫu phổ biến là gom từng nhóm `size` phần tử thành `List<T>`. Nếu còn nhóm chưa đầy khi nguồn hết, `finisher` cần phát nốt. Đây là ví dụ **tuần tự**, để tránh yêu cầu phức tạp về vị trí ghép các batch giữa những nhánh song song.
+A common pattern is grouping every `size` elements into a `List<T>`. If an incomplete group remains when the source ends, `finisher` must flush it. This is a **sequential** example to avoid complex requirements around merging batch positions across parallel branches.
 
 ```java
 static Gatherer<Integer, ?, List<Integer>> fixedBatches(int size) {
     if (size <= 0) {
-        throw new IllegalArgumentException("size phải dương");
+        throw new IllegalArgumentException("size must be positive");
     }
     return Gatherer.<Integer, List<Integer>, List<Integer>>ofSequential(
             ArrayList::new,
@@ -137,7 +137,7 @@ static Gatherer<Integer, ?, List<Integer>> fixedBatches(int size) {
 }
 ```
 
-Kết quả:
+Result:
 
 ```java
 List<List<Integer>> batches = Stream.of(1, 2, 3, 4, 5)
@@ -146,19 +146,19 @@ List<List<Integer>> batches = Stream.of(1, 2, 3, 4, 5)
 // [[1, 2], [3, 4], [5]]
 ```
 
-Ở đây:
+Here:
 
-- Đầu vào có 5 phần tử, đầu ra chỉ có **3 phần tử**, mỗi phần tử đầu ra lại là một `List<Integer>`.
-- `integrator` phát batch ngay khi đủ 2 phần tử.
-- `finisher` phát batch cuối chỉ nếu còn dữ liệu và downstream chưa biết là đang từ chối.
-- Với nguồn rỗng, kết quả là danh sách rỗng vì `buffer` rỗng; khác với một Gatherer tổng hợp toàn kỳ có thể cố ý phát **một đối tượng tổng kết rỗng**.
-- `List.copyOf(buffer)` tách batch đầu ra khỏi buffer mutable đang dùng lại. Nếu đẩy trực tiếp `buffer` rồi gọi `clear()`, những batch đã trả có thể bị thay đổi ngoài ý muốn.
+- Input has 5 elements, output has only **3 elements**, each output element being a `List<Integer>`.
+- `integrator` emits a batch as soon as 2 elements accumulate.
+- `finisher` emits the final batch only if data remains and downstream is not known to be rejecting.
+- With an empty source, the result is an empty list because `buffer` is empty; unlike a full-period summary Gatherer that may intentionally emit **one empty summary object**.
+- `List.copyOf(buffer)` isolates emitted batches from the reused mutable buffer. Pushing `buffer` directly and then calling `clear()` would unexpectedly mutate already-returned batches.
 
-Đừng chỉ kiểm `batches.size() == 3`: còn phải kiểm từng batch, vì các lỗi `[1,2], [2,3], [4]` cũng cho ba batch nhưng sai nội dung.
+Do not only assert `batches.size() == 3`: inspect every batch as well, because bugs like `[1,2], [2,3], [4]` also produce three batches yet with wrong contents.
 
-## 5. Kiểm thử tính lười: phân biệt tạo pipeline với chạy pipeline
+## 5. Testing Laziness: Distinguish Pipeline Creation from Pipeline Execution
 
-Gatherer là phép toán trung gian, nên **việc tạo pipeline không tự kéo phần tử từ nguồn**. Mã kiểm thử có thể dùng một biến đếm chỉ để quan sát số lần bước trung gian được đánh giá:
+A Gatherer is an intermediate operation, so **constructing the pipeline does not pull elements from the source**. Test code can use a counter solely to observe how many times an intermediate step was evaluated:
 
 ```java
 AtomicInteger visited = new AtomicInteger();
@@ -166,30 +166,30 @@ AtomicInteger visited = new AtomicInteger();
 Stream<Integer> pipeline = IntStream.rangeClosed(1, 4)
         .boxed()
         .map(n -> {
-            visited.incrementAndGet(); // Chỉ dùng làm đo đạc trong test
+            visited.incrementAndGet(); // Used solely for measurement in test
             return n;
         })
         .gather(duplicateEach());
 
-check(visited.get() == 0, "Pipeline chạy quá sớm");
+check(visited.get() == 0, "Pipeline ran too early");
 List<Integer> result = pipeline.toList();
 check(result.equals(List.of(1, 1, 2, 2, 3, 3, 4, 4)),
-        "Nội dung đầu ra");
-check(visited.get() == 4, "Nguồn không được xử lý đủ");
+        "Output content");
+check(visited.get() == 4, "Source was not fully processed");
 ```
 
-Trong ví dụ này, `toList()` cần các kết quả mà Gatherer tạo ra, vì vậy bốn đầu vào phải đi qua `map`. Tuy nhiên, **không suy rộng** rằng mọi `map` hoặc `peek` luôn được gọi đúng một lần cho mỗi phần tử ở mọi pipeline: Java Stream cho phép tối ưu bỏ qua thao tác trung gian nếu nó không ảnh hưởng kết quả terminal operation.
+In this example, `toList()` needs the results produced by the Gatherer, so all four inputs must pass through `map`. However, **do not generalize** that every `map` or `peek` is always invoked once per element in all pipelines: Java Streams may optimize away intermediate operations that cannot affect the terminal result.
 
-**Nguyên tắc:** biến đếm ngoài pipeline là công cụ **quan sát trong ca kiểm thử cụ thể**, không phải thiết kế nghiệp vụ. Ở sản phẩm thực, tránh đặt ghi dữ liệu, tăng bộ đếm kinh doanh hoặc gửi thông báo trong `peek` rồi mặc định pipeline sẽ luôn thực thi chúng.
+**Rule:** an external counter is an **observation tool in a specific test**, not a business design. In production code, avoid putting database writes, business counters, or notifications inside `peek` assuming the pipeline will always execute them.
 
-## 6. Kiểm thử dừng sớm do chính Gatherer
+## 6. Testing Self-Initiated Early Termination by the Gatherer
 
-Một Gatherer kiểu `takeFirst(maximum)` có state đếm số phần tử đã phát. Ngay khi phát đủ số lượng, integrator trả `false`.
+A `takeFirst(maximum)`-style Gatherer maintains state counting emitted elements. Once the count is reached, the integrator returns `false`.
 
 ```java
 static Gatherer<Integer, ?, Integer> takeFirst(int maximum) {
     if (maximum < 0) {
-        throw new IllegalArgumentException("maximum âm");
+        throw new IllegalArgumentException("negative maximum");
     }
     return Gatherer.<Integer, int[], Integer>ofSequential(
             () -> new int[1],
@@ -204,7 +204,7 @@ static Gatherer<Integer, ?, Integer> takeFirst(int maximum) {
 }
 ```
 
-Kiểm thử:
+Test:
 
 ```java
 List<Integer> firstThree = Stream.iterate(1, n -> n + 1)
@@ -213,17 +213,17 @@ List<Integer> firstThree = Stream.iterate(1, n -> n + 1)
 // [1, 2, 3]
 ```
 
-Nguồn `Stream.iterate` có thể vô hạn. Nếu Gatherer không dừng đúng lúc, terminal operation `toList()` sẽ không kết thúc. Trong một bộ kiểm thử tự động lớn, nên bổ sung **timeout của cả ca kiểm thử**, để khi code dừng sớm bị lỗi, suite không treo vô hạn.
+A `Stream.iterate` source can be infinite. If the Gatherer fails to stop on time, the `toList()` terminal operation will never finish. In a large automated test suite, add a **test-case timeout** so that a broken short-circuit does not hang the suite forever.
 
-Đừng sử dụng `Gatherer.Integrator.ofGreedy(...)` cho `takeFirst`: integrator này **tự chủ động** ngừng nhận phần tử nguồn theo số lượng, nên không thỏa ý nghĩa *greedy*.
+Do not use `Gatherer.Integrator.ofGreedy(...)` for `takeFirst`: this integrator **proactively** stops accepting source elements based on count, so it violates the *greedy* contract.
 
-### `maximum == 0` có nghĩa gì?
+### What Does `maximum == 0` Mean?
 
-`takeFirst(0)` tạo **đầu ra rỗng**. Với triển khai mẫu, nó có thể nhận một phần tử đầu vào để integrator xác định cần dừng rồi mới trả `false`; vì vậy không nên quảng bá phép kiểm thử này như bảo đảm **không kéo bất kỳ phần tử nguồn nào**. Nếu nghiệp vụ cần không chạm vào nguồn khi số lượng bằng 0, đặt `limit(0)` trước khi bắt đầu xử lý hoặc thiết kế riêng phía gọi.
+`takeFirst(0)` produces an **empty output**. With the sample implementation, it may receive one input element so the integrator sees it must stop and returns `false`; therefore, do not advertise this check as guaranteeing **zero source elements pulled**. If business rules require never touching the source when the limit is 0, apply `limit(0)` upfront or handle it on the caller side.
 
-## 7. Kiểm thử dừng do downstream: `push` và `limit`
+## 7. Testing Downstream Termination: `push` and `limit`
 
-Khác với `takeFirst`, ở đây **downstream** là phía quyết định đã đủ dữ liệu:
+Unlike `takeFirst`, here **downstream** is the side deciding enough data has arrived:
 
 ```java
 List<Integer> limited = Stream.iterate(1, n -> n + 1)
@@ -234,20 +234,20 @@ List<Integer> limited = Stream.iterate(1, n -> n + 1)
 System.out.println(limited); // [1, 1, 2]
 ```
 
-Sau `limit(3)`, downstream không cần thêm phần tử. Gatherer cần ngừng gửi thêm ngay khi `push` báo `false`, không tiếp tục cố nhân đôi các phần tử tiếp theo.
+After `limit(3)`, downstream needs no more elements. The Gatherer must stop sending more as soon as `push` reports `false`, rather than trying to duplicate subsequent elements.
 
-Hai hướng dừng cần kiểm tra độc lập:
+Both termination directions need independent tests:
 
-| Nguồn dừng | Mã ví dụ | Tín hiệu chính |
+| Stop Source | Example Code | Primary Signal |
 | --- | --- | --- |
-| Integrator chủ động dừng | `gather(takeFirst(3))` | `integrate` trả `false` khi đạt hạn mức. |
-| Downstream từ chối | `gather(duplicateEach()).limit(3)` | `downstream.push(...)` trả `false`, integrator truyền lại. |
+| Integrator proactively stops | `gather(takeFirst(3))` | `integrate` returns `false` upon reaching limit. |
+| Downstream rejects | `gather(duplicateEach()).limit(3)` | `downstream.push(...)` returns `false`, integrator propagates it. |
 
-Đối với pipeline song song hoặc có buffer, **không kiểm thử bằng giả định rằng upstream nhất định chỉ truy cập đúng 3 phần tử**. Các bước có thể đã kéo trước hoặc xử lý thêm phần tử theo chi tiết triển khai. Hãy kiểm tra **đầu ra và khả năng kết thúc**; chỉ dùng các mốc đếm chính xác khi hợp đồng hoặc thiết kế nguồn thực sự bảo đảm chúng.
+For parallel or buffered pipelines, **do not test by assuming upstream accesses strictly 3 elements**. Stages may prefetch or process extra elements depending on implementation details. Test **outputs and termination**; only rely on exact visit counts when the contract or source design actually guarantees them.
 
-## 8. Ghép trạng thái: kiểm thử identity và associativity
+## 8. Merging State: Testing Identity and Associativity
 
-Gatherer thu thập thống kê có thể dùng `A = CountState`, trong đó `count` và `sum` được cập nhật khi nhận phần tử. Thay vì phát kết quả ở từng lần tích lũy, `finisher` phát **một** `Summary` sau khi xử lý xong.
+A statistics-collecting Gatherer can use `A = CountState`, where `count` and `sum` update as elements arrive. Instead of emitting on every accumulation, `finisher` emits **one** `Summary` upon completion.
 
 ```java
 record Summary(long count, long sum) {}
@@ -273,7 +273,7 @@ static final class CountState {
 }
 ```
 
-Với Gatherer có bốn thành phần:
+With the four-component Gatherer:
 
 ```java
 static Gatherer<Long, ?, Summary> countAndSum() {
@@ -281,7 +281,7 @@ static Gatherer<Long, ?, Summary> countAndSum() {
             CountState::new,
             Gatherer.Integrator.ofGreedy((state, value, downstream) -> {
                 state.add(value);
-                return true; // Không tự dừng trước khi nguồn kết thúc
+                return true; // Never self-stops before source ends
             }),
             CountState::merge,
             (state, downstream) -> {
@@ -293,25 +293,25 @@ static Gatherer<Long, ?, Summary> countAndSum() {
 }
 ```
 
-Khác biệt với `duplicateEach`:
+Differences from `duplicateEach`:
 
-- `initializer` tạo **state riêng** cho mỗi phân vùng.
-- `integrator` chỉ cập nhật state, **không phát gì trong lúc duyệt**.
-- `combiner` gộp count và sum của hai state. Một `CountState` đã gộp vẫn phải hợp lệ để gộp tiếp.
-- `finisher` phát một `Summary` sau khi tích lũy; ngay cả nguồn rỗng, nếu finisher được chạy và downstream nhận kết quả thì đầu ra là `Summary(0, 0)`.
+- `initializer` creates a **separate state** per partition.
+- `integrator` only updates state, **emitting nothing during traversal**.
+- `combiner` merges count and sum of two states. A merged `CountState` must remain valid for further merging.
+- `finisher` emits one `Summary` after accumulation; even on an empty source, if the finisher runs and downstream accepts, output is `Summary(0, 0)`.
 
-Phép gộp phải thỏa:
+The merge operation must satisfy:
 
 ```text
 identity:      merge(a, empty)           ~ a
 associativity: merge(merge(a,b), c)     ~ merge(a, merge(b,c))
 ```
 
-`~` nghĩa là **tương đương về kết quả**, không đòi hai biểu thức phải trả cùng địa chỉ đối tượng. Trong bài toán với `count` và `sum`, state rỗng `(0, 0)` là phần tử trung hòa; cộng các giá trị trong miền `long` hợp lệ có tính kết hợp. `Math.addExact` ném ngoại lệ nếu tràn, giúp lỗi số học không bị che giấu.
+`~` means **equivalent in result**, not requiring both expressions to return the same object reference. In this `count` and `sum` problem, empty state `(0, 0)` is the identity element; addition over valid `long` ranges is associative. `Math.addExact` throws on overflow so arithmetic errors are never hidden.
 
-### Kiểm thử combiner trực tiếp
+### Testing the Combiner Directly
 
-Không nên chỉ chạy `parallelStream()` với ba phần tử và kỳ vọng combiner phải được gọi. Framework có quyền chọn chia ít hoặc không chia. Hãy gọi phép merge **trực tiếp** với các state độc lập:
+Do not merely run `parallelStream()` on three elements and hope the combiner gets called. The framework may choose few or zero splits. Invoke `merge` **directly** on independent states:
 
 ```java
 static CountState stateOf(long... values) {
@@ -331,15 +331,15 @@ Summary rightGrouped = stateOf(1, 2)
         .merge(stateOf(3).merge(stateOf(4, 5)))
         .snapshot();
 
-check(leftGrouped.equals(rightGrouped), "Ghép state phụ thuộc cách chia");
-check(leftGrouped.equals(new Summary(5, 15)), "Ghép state sai");
+check(leftGrouped.equals(rightGrouped), "State merge depends on splitting");
+check(leftGrouped.equals(new Summary(5, 15)), "Incorrect state merge");
 check(stateOf(1, 2).merge(new CountState())
-        .snapshot().equals(new Summary(2, 3)), "Identity sai");
+        .snapshot().equals(new Summary(2, 3)), "Incorrect identity");
 ```
 
-Phép thử này có thể phát hiện lỗi quên cộng `right.count` hoặc `right.sum` dù lúc chạy tuần tự chưa thấy vấn đề.
+This test catches bugs like forgetting to add `right.count` or `right.sum` even when sequential runs show no issue.
 
-### Kiểm thử trên Stream tuần tự và song song
+### Testing on Sequential and Parallel Streams
 
 ```java
 List<Summary> sequential = LongStream.rangeClosed(1, 100)
@@ -354,21 +354,21 @@ List<Summary> parallel = LongStream.rangeClosed(1, 100)
         .toList();
 
 check(sequential.equals(List.of(new Summary(100, 5050))),
-        "Tổng tuần tự sai");
-check(parallel.equals(sequential), "Tổng song song khác tuần tự");
+        "Incorrect sequential sum");
+check(parallel.equals(sequential), "Parallel sum differs from sequential");
 ```
 
-Đây là kiểm thử **kết quả**, không phải kiểm thử số thread, thứ tự thực thi hoặc số lần gọi combiner. Vì chỉ phát một `Summary` trong finisher sau khi đã gộp các nhánh, kết quả được kiểm soát bằng hợp đồng tích lũy và gộp.
+This tests **outputs**, not thread counts, execution order, or combiner invocation counts. Since only one `Summary` is emitted in the finisher after branches are merged, outputs are governed by accumulation and merge contracts.
 
-### Những gatherer KHÔNG thể ghép state đơn giản
+### Gatherers That CANNOT Simply Merge State
 
-Đối với thao tác phụ thuộc thứ tự như lấy “3 phần tử đầu tiên”, “batch 2 phần tử liên tiếp” hoặc “trung bình trượt”, không thể tự cho `combiner` gộp hai `List` bất kỳ rồi suy rằng kết quả song song sẽ đúng.
+For order-dependent operations like taking "first 3 elements", "consecutive 2-element batches", or "moving averages", you cannot simply have `combiner` concatenate two arbitrary `List`s and expect parallel execution to be right.
 
-Ví dụ batch ở ranh giới nhánh có thể phải kết hợp phần dư của nhánh trái với phần đầu nhánh phải. Nếu không quản lý thứ tự, vị trí, phần dư và tính kết hợp thật chặt, **hãy dùng `Gatherer.ofSequential`**. Chỉ chuyển sang `Gatherer.of` có combiner khi đã chứng minh được phép gộp tương đương xử lý toàn nguồn theo encounter order.
+For instance, a batch at a branch boundary may need to combine the left branch's remainder with the right branch's head. Unless order, positions, remainders, and associativity are strictly managed, **use `Gatherer.ofSequential`**. Only switch to `Gatherer.of` with a combiner once you have proven the merge is equivalent to processing the whole source in encounter order.
 
-## 9. Chương trình Java 24+ hoàn chỉnh để tự kiểm tra
+## 9. Complete Self-Check Java 24+ Program
 
-Đoạn dưới đây tập hợp các Gatherer đã giới thiệu và kiểm thử trong một tệp. Lưu thành `GathererVerificationDemo.java`; yêu cầu **JDK 24+**.
+The program below brings together all introduced Gatherers and tests in one file. Save as `GathererVerificationDemo.java`; requires **JDK 24+**.
 
 ```java
 import java.util.ArrayList;
@@ -416,7 +416,7 @@ public class GathererVerificationDemo {
 
     static Gatherer<Integer, ?, List<Integer>> fixedBatches(int size) {
         if (size <= 0) {
-            throw new IllegalArgumentException("size phải dương");
+            throw new IllegalArgumentException("size must be positive");
         }
         return Gatherer.<Integer, List<Integer>, List<Integer>>ofSequential(
                 ArrayList::new,
@@ -439,7 +439,7 @@ public class GathererVerificationDemo {
 
     static Gatherer<Integer, ?, Integer> takeFirst(int maximum) {
         if (maximum < 0) {
-            throw new IllegalArgumentException("maximum âm");
+            throw new IllegalArgumentException("negative maximum");
         }
         return Gatherer.<Integer, int[], Integer>ofSequential(
                 () -> new int[1],
@@ -486,20 +486,20 @@ public class GathererVerificationDemo {
 
     static void testOutputCounts() {
         check(Stream.<Integer>empty().gather(duplicateEach())
-                .toList().isEmpty(), "Nguồn rỗng");
+                .toList().isEmpty(), "Empty source");
         check(Stream.of(2, 4, 6).gather(duplicateEach())
                 .toList().equals(List.of(2, 2, 4, 4, 6, 6)),
-                "Số lượng/nội dung khi nhân đôi");
+                "Duplication count/content");
 
         List<List<Integer>> batches = Stream.of(1, 2, 3, 4, 5)
                 .gather(fixedBatches(2))
                 .toList();
         check(batches.equals(List.of(
                 List.of(1, 2), List.of(3, 4), List.of(5))),
-                "Batch cuối");
+                "Final batch");
         check(Stream.<Integer>empty()
                 .gather(fixedBatches(2)).toList().isEmpty(),
-                "Batch nguồn rỗng");
+                "Empty source batches");
     }
 
     static void testLaziness() {
@@ -507,31 +507,31 @@ public class GathererVerificationDemo {
         Stream<Integer> pipeline = IntStream.rangeClosed(1, 4)
                 .boxed()
                 .map(n -> {
-                    visited.incrementAndGet(); // Đo trong test
+                    visited.incrementAndGet(); // Measured in test
                     return n;
                 })
                 .gather(duplicateEach());
 
-        check(visited.get() == 0, "Chưa terminal mà đã duyệt");
+        check(visited.get() == 0, "Traversed before terminal");
         check(pipeline.toList().equals(
                 List.of(1, 1, 2, 2, 3, 3, 4, 4)),
-                "Kết quả lazy pipeline");
-        check(visited.get() == 4, "Sai số phần tử được duyệt");
+                "Lazy pipeline result");
+        check(visited.get() == 4, "Wrong number of elements traversed");
     }
 
     static void testShortCircuit() {
         check(Stream.iterate(1, n -> n + 1)
                 .gather(takeFirst(3))
                 .toList().equals(List.of(1, 2, 3)),
-                "Integrator không dừng sớm");
+                "Integrator did not stop early");
         check(Stream.of(1, 2, 3)
                 .gather(takeFirst(0)).toList().isEmpty(),
-                "Lấy 0 phần tử");
+                "Take 0 elements");
         check(Stream.iterate(1, n -> n + 1)
                 .gather(duplicateEach())
                 .limit(3)
                 .toList().equals(List.of(1, 1, 2)),
-                "Không tôn trọng downstream limit");
+                "Did not honor downstream limit");
     }
 
     static void testStateCombiner() {
@@ -543,11 +543,11 @@ public class GathererVerificationDemo {
                 .merge(stateOf(3).merge(stateOf(4, 5)))
                 .snapshot();
 
-        check(left.equals(right), "Combiner không kết hợp");
-        check(left.equals(new Summary(5, 15)), "Combiner bỏ dữ liệu");
+        check(left.equals(right), "Combiner is not associative");
+        check(left.equals(new Summary(5, 15)), "Combiner dropped data");
         check(stateOf(1, 2).merge(new CountState())
                 .snapshot().equals(new Summary(2, 3)),
-                "Phần tử trung hòa sai");
+                "Incorrect identity element");
 
         List<Summary> sequential = LongStream.rangeClosed(1, 100)
                 .boxed().gather(countAndSum()).toList();
@@ -555,12 +555,12 @@ public class GathererVerificationDemo {
                 .parallel().boxed().gather(countAndSum()).toList();
 
         check(sequential.equals(List.of(new Summary(100, 5050))),
-                "Tổng tuần tự");
+                "Sequential sum");
         check(parallel.equals(sequential),
-                "Tổng song song khác tuần tự");
+                "Parallel sum differs from sequential");
         check(Stream.<Long>empty().gather(countAndSum()).toList()
                 .equals(List.of(new Summary(0, 0))),
-                "Finisher với nguồn rỗng");
+                "Finisher with empty source");
     }
 
     public static void main(String[] args) {
@@ -573,46 +573,46 @@ public class GathererVerificationDemo {
 }
 ```
 
-Trên JDK 24+ có thể biên dịch và chạy trực tiếp:
+On JDK 24+ this can be compiled and run directly:
 
 ```text
 javac GathererVerificationDemo.java
 java GathererVerificationDemo
 ```
 
-Kết quả mong đợi khi mọi kiểm tra đạt:
+Expected output when all checks pass:
 
 ```text
 ALL GATHERER TESTS PASS
 ```
 
-Trong chương trình, `check` ném `AssertionError` nếu kết quả sai nên không phụ thuộc cờ `-ea` của lệnh `java`. Phần này cung cấp **mã kiểm thử cho người học**, không khẳng định chương trình đã được biên dịch/thực thi trong bước viết tài liệu.
+In the program, `check` throws `AssertionError` on failure so it does not depend on the `-ea` flag of `java`. This section provides **test code for learners**, without claiming the program was compiled/executed during authoring.
 
-## 10. Những lỗi thường gặp khi kiểm thử Gatherer
+## 10. Common Mistakes When Testing Gatherers
 
-| Lỗi | Vì sao nguy hiểm | Hướng kiểm thử/khắc phục |
+| Mistake | Why It Is Dangerous | Testing / Fixing Approach |
 | --- | --- | --- |
-| Giả định mỗi đầu vào chỉ phát một đầu ra | Gatherer có thể nhân đôi, lọc, gom batch, hoặc phát từ finisher | Kiểm tra cả số lượng và nội dung với dữ liệu mẫu và nguồn rỗng. |
-| `push` tiếp sau khi downstream báo `false` | Gây việc thừa, có thể làm mất ý nghĩa short-circuit | Trả `false` ngay và kiểm thử với `limit`. |
-| Dùng `Integrator.Greedy` cho gatherer tự dừng sau N phần tử | Khai báo sai hợp đồng; hệ thống có thể bỏ qua tín hiệu dừng | Dùng integrator thường khi chủ động short-circuit. |
-| Quên phát batch chưa đủ trong finisher | Mất phần tử cuối | Thử đầu vào cỡ 0, 1, đúng bội số batch, hơn bội số một phần tử. |
-| Gửi buffer mutable rồi `clear()` | Kết quả đã phát bị thay đổi | Phát bản sao độc lập; kiểm tra danh sách batch. |
-| Suy từ `count()` rằng `peek` luôn được gọi | Một số phép toán cho phép tối ưu bỏ qua stage không ảnh hưởng kết quả | Kiểm tra lazy bằng kết quả, không dùng side effect làm hợp đồng. |
-| Chỉ kiểm chạy `parallel()` mà không kiểm combiner | Nguồn nhỏ có thể không chia nhánh | Thử trực tiếp identity/associativity và đối chiếu tuần tự/song song. |
-| Cho nhiều nhánh dùng chung state mutable | Race, mất dữ liệu, kết quả khó lặp | `initializer` tạo state độc lập; chỉ gộp qua combiner. |
-| Dùng phép trừ hay trung bình hai trung bình làm combiner | Có thể cho kết quả khác khi đổi cách chia | Gộp các đại lượng đủ thông tin, ví dụ `sum` và `count`. |
-| Khẳng định số lần gọi callback bằng một số cố định khi chạy parallel | Lập lịch/chia nhánh là chi tiết triển khai | Kiểm thử kết quả và bất biến, không ép lịch gọi. |
-| Kiểm thử nguồn vô hạn mà không có timeout | Một lỗi dừng sớm có thể treo suite | Đặt timeout ở test runner; có thêm ca finite để chẩn đoán. |
+| Assuming each input emits exactly one output | Gatherer can duplicate, filter, batch, or emit from finisher | Check both counts and contents with sample data and empty sources. |
+| Calling `push` again after downstream returned `false` | Wastes work, breaks short-circuit intent | Return `false` immediately and test with `limit`. |
+| Using `Integrator.Greedy` for a gatherer stopping after N elements | Violates contract; runtime may ignore stop signal | Use regular integrator when proactively short-circuiting. |
+| Forgetting to emit partial batch in finisher | Loses trailing elements | Test input sizes 0, 1, exact multiples, and multiple + 1. |
+| Pushing mutable buffer then calling `clear()` | Previously emitted results get mutated | Emit an independent copy; inspect batch lists. |
+| Inferring from `count()` that `peek` always runs | Some operations allow eliding stages that do not affect outcome | Verify laziness via results, never use side effects as contract. |
+| Only running `parallel()` without testing combiner | Small sources may not split into branches | Directly test identity/associativity and compare sequential/parallel. |
+| Letting multiple branches share mutable state | Races, lost data, flaky outputs | `initializer` creates independent state; merge only via combiner. |
+| Using subtraction or average of averages as combiner | Yields different results under different splits | Merge sufficient statistics, such as `sum` and `count`. |
+| Asserting a fixed callback count during parallel runs | Scheduling/splitting are implementation details | Test outputs and invariants, never force call schedules. |
+| Testing infinite sources without a timeout | A broken early stop can hang the suite | Set a timeout in the test runner; include finite cases for diagnosis. |
 
-## 11. Bài tập mở rộng
+## 11. Extension Exercises
 
-**Bài 1 — Kiểm thử 0, 1, N đầu ra.** Viết Gatherer loại các số âm (`0` đầu ra cho số âm), giữ nguyên số không âm (`1` đầu ra), rồi thay đổi thành nhân đôi số dương (`2` đầu ra). Với `[-2, 0, 3]`, tự xác định đầu ra và kiểm bằng `toList()`.
+**Exercise 1 — Testing 0, 1, N Outputs.** Write a Gatherer dropping negative numbers (`0` outputs for negative), keeping non-negative (`1` output), and then change it to duplicate positive numbers (`2` outputs). Given `[-2, 0, 3]`, determine outputs by hand and verify with `toList()`.
 
-Gợi ý: trong integrator, có thể không gọi `push` khi loại phần tử; nhưng nếu không phát gì mà còn muốn nhận phần tử kế tiếp, phải trả `true`.
+Hint: in the integrator, you can skip calling `push` when filtering out an element; however, if you emit nothing and still want the next element, return `true`.
 
-**Bài 2 — Batch biên.** Với `fixedBatches(3)`, kiểm tra nguồn có `0`, `1`, `3`, `4`, `6` phần tử. Dự đoán số batch và danh sách phần tử từng batch. Vì sao chỉ kiểm `count()` chưa đủ?
+**Exercise 2 — Boundary Batches.** For `fixedBatches(3)`, test sources with `0`, `1`, `3`, `4`, `6` elements. Predict batch counts and elements in each batch. Why is checking `count()` alone insufficient?
 
-**Bài 3 — Dừng sớm.** Thay `takeFirst(N)` bằng `takeUntilInclusive(predicate)`: phát cả phần tử đầu tiên thỏa predicate, sau đó dừng. Với `[1, 3, 5, 6, 8]` và predicate là số chẵn, đầu ra phải là `[1, 3, 5, 6]`.
+**Exercise 3 — Early Termination.** Replace `takeFirst(N)` with `takeUntilInclusive(predicate)`: emit up to and including the first element matching the predicate, then stop. For `[1, 3, 5, 6, 8]` and an even-number predicate, output must be `[1, 3, 5, 6]`.
 
 ```java
 static Gatherer<Integer, ?, Integer> takeUntilEven() {
@@ -623,18 +623,18 @@ static Gatherer<Integer, ?, Integer> takeUntilEven() {
 }
 ```
 
-**Bài 4 — Ghép trạng thái sai.** Thử thay `CountState::merge` bằng phép chỉ giữ `left`. Dự đoán vì sao bản tuần tự có thể vẫn đúng, nhưng bản song song có thể sai; tạo kiểm thử **trực tiếp** để chắc chắn phát hiện lỗi ngay cả khi framework không chia nguồn.
+**Exercise 4 — Broken State Merging.** Try replacing `CountState::merge` with one that only keeps `left`. Predict why sequential execution can still pass while parallel execution can fail; write a **direct** test to guarantee catching the bug even when the framework does not split the source.
 
-**Bài 5 — Kiểm thử nguồn rỗng.** So sánh `Stream.empty().gather(duplicateEach())` với `Stream.empty().gather(countAndSum())`: vì sao cái đầu rỗng còn cái sau có thể có một `Summary(0, 0)`? Gợi ý: `finisher` quyết định có phát một giá trị tổng hợp cho nguồn rỗng hay không.
+**Exercise 5 — Testing Empty Sources.** Compare `Stream.empty().gather(duplicateEach())` with `Stream.empty().gather(countAndSum())`: why is the first empty while the second can contain `Summary(0, 0)`? Hint: `finisher` decides whether to emit an aggregate value for an empty source.
 
-**Bài 6 — Khả năng song song.** Thiết kế Gatherer tính `min`, `max`, `count` của các số nguyên. Đặc tả trạng thái cho nhóm rỗng, cách gộp identity và associativity, sau đó kiểm thử với 1.000 số ở cả chế độ tuần tự và song song.
+**Exercise 6 — Parallelizability.** Design a Gatherer computing `min`, `max`, `count` of integers. Specify state for an empty group, identity merging, and associativity, then test with 1,000 numbers in both sequential and parallel modes.
 
-## 12. Ghi nhớ
+## 12. Takeaways
 
-- Gatherer không bị giới hạn tỷ lệ 1:1: kiểm thử **đầu vào rỗng, 0/1/nhiều đầu ra cho mỗi phần tử và finisher**.
-- `gather` là intermediate operation: pipeline lười đến terminal operation. Không biến `peek` hoặc side effect quan sát được thành điều kiện đúng đắn của nghiệp vụ.
-- `Integrator.integrate` trả `false` để dừng nhận thêm phần tử; `Downstream.push` trả `false` khi downstream không muốn nhận thêm. **Phải lan truyền tín hiệu dừng** và tránh đẩy tiếp sau khi bị từ chối.
-- Gatherer có combiner phải dùng state độc lập và phép gộp thỏa **identity/associativity**; kiểm tra trực tiếp phép gộp rồi mới đối chiếu kết quả tuần tự/song song.
-- Không kiểm thử dựa trên số thread, số lần gọi combiner hay lượng prefetch bất biến; kiểm tra **giá trị, thứ tự, số đầu ra và khả năng hoàn tất** trên dữ liệu đại diện.
+- Gatherers are not restricted to a 1:1 ratio: test **empty input, 0/1/many outputs per element, and the finisher**.
+- `gather` is an intermediate operation: pipelines remain lazy until a terminal operation. Never turn `peek` or observable side effects into a business correctness requirement.
+- `Integrator.integrate` returns `false` to stop receiving more elements; `Downstream.push` returns `false` when downstream wants no more. **Always propagate stop signals** and avoid pushing after rejection.
+- A Gatherer with a combiner must use independent state and a merge satisfying **identity/associativity**; test the merge directly before comparing sequential/parallel results.
+- Never write tests depending on thread count, combiner call count, or fixed prefetch amounts; test **values, order, output counts, and completion** on representative data.
 
-**Tài liệu API tham khảo:** [Gatherer (JDK 24)](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html), [Gatherer.Integrator](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.html) và [Gatherer.Downstream](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Downstream.html).
+**API References:** [Gatherer (JDK 24)](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html), [Gatherer.Integrator](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.html), and [Gatherer.Downstream](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Downstream.html).

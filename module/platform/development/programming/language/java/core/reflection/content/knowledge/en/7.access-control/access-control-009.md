@@ -1,82 +1,82 @@
-# Không xem `setAccessible` là bảo đảm sửa được mọi field trong Java Reflection
+# Do not treat `setAccessible` as a guarantee to modify every field in Java Reflection
 
-## 1. Vấn đề: mở kiểm tra truy cập khác với có quyền ghi
+## 1. Problem: opening access checks differs from having write permission
 
-Trong Java Reflection, ta có thể nhận được đối tượng `Field` đại diện cho một trường, kể cả trường `private`, qua `getDeclaredField(...)`. Sau đó, `setAccessible(true)` yêu cầu Reflection **bỏ qua một số kiểm tra quyền truy cập của ngôn ngữ Java** khi đọc/ghi trường đó. Điều này **không phải** cam kết rằng `Field.set(...)` sẽ luôn thành công.
+In Java Reflection, you can obtain a `Field` object representing a field, including a `private` field, via `getDeclaredField(...)`. Then, `setAccessible(true)` requests Reflection to **bypass certain Java language access checks** when reading/writing that field. This is **not** a guarantee that `Field.set(...)` will always succeed.
 
-Có ít nhất bốn câu hỏi khác nhau:
+There are at least four distinct questions:
 
-1. **Tìm được field không?** `getField` chỉ tra cứu thành viên public phù hợp, còn `getDeclaredField` tìm thành viên trực tiếp được khai báo bất kể visibility; không có nghĩa thao tác truy cập hợp lệ.
-2. **Có thể tắt kiểm tra truy cập không?** `setAccessible(true)` có thể thành công hoặc bị chặn bởi ranh giới module/runtime. `trySetAccessible()` cho biết thành công bằng kết quả boolean trong trường hợp thường gặp.
-3. **Field có được phép ghi không?** `static final`, field `final` trong record và field `final` trong hidden class là những trường không thể đổi bằng `Field.set` dù thao tác mở quyền đã thành công.
-4. **Lời gọi ghi có hợp lệ không?** Đối tượng đích, kiểu giá trị, quy tắc chuyển đổi primitive và trạng thái khởi tạo lớp phải phù hợp. Khi một kiểm tra không đạt, API có thể ném exception.
+1. **Can the field be found?** `getField` only looks up matching public members, whereas `getDeclaredField` finds directly declared members regardless of visibility; neither means the access operation is valid.
+2. **Can access checks be suppressed?** `setAccessible(true)` may succeed or be blocked by module/runtime boundaries. `trySetAccessible()` reports success as a boolean in the usual cases.
+3. **Is the field allowed to be written?** `static final`, `final` fields in records, and `final` fields in hidden classes cannot be modified via `Field.set` even if opening access succeeded.
+4. **Is the write call valid?** The target object, value type, primitive conversion rules, and class initialization state must all match. When any check fails, the API can throw an exception.
 
-Sự khác nhau này quan trọng với mapper, framework dependency injection, serializer, công cụ migration, unit test và mọi đoạn mã định “sửa field private bằng Reflection”. Hãy luôn xử lý kết quả mở quyền và kết quả ghi như **hai bước độc lập**.
+This distinction matters for mappers, dependency injection frameworks, serializers, migration tools, unit tests, and any code intending to "modify a private field via Reflection". Always treat opening access and writing as **two independent steps**.
 
-## 2. `setAccessible`, `trySetAccessible` và `canAccess` thực sự nói gì?
+## 2. What do `setAccessible`, `trySetAccessible`, and `canAccess` actually say?
 
-| API | Kết quả có ý nghĩa | Điều **không** được suy ra |
+| API | Meaningful result | What must **not** be inferred |
 | --- | --- | --- |
-| `field.setAccessible(true)` | Yêu cầu Reflection bỏ qua kiểm tra truy cập theo phạm vi runtime cho phép; nếu không thể, có thể ném `InaccessibleObjectException`. | Field chắc chắn ghi được hoặc toàn bộ module đã mở. |
-| `field.trySetAccessible()` | Trả `true` khi đã bật được quyền bỏ qua kiểm tra; thường trả `false` khi không thể mở do module. Có thể ném `SecurityException` nếu bị từ chối theo cơ chế security áp dụng. | `Field.set` chắc chắn thành công. |
-| `field.canAccess(target)` | Kiểm tra liệu **caller tại thời điểm gọi** có thể truy cập phản xạ trên target hợp lệ theo trạng thái hiện tại không. | Field có thể sửa; không thay thế kiểm tra `final`, target và giá trị. |
-| `field.get(target)` | Đọc được giá trị khi thỏa điều kiện truy cập và target. | Việc đọc được giá trị đồng nghĩa có quyền ghi. |
-| `field.set(target, value)` | Yêu cầu cập nhật giá trị; chỉ thành công khi mọi điều kiện về quyền, tính ghi được và kiểu đều thỏa. | Chỉ cần gọi `setAccessible(true)` trước là đủ. |
+| `field.setAccessible(true)` | Requests Reflection to bypass access checks within runtime-permitted scope; if not possible, can throw `InaccessibleObjectException`. | That the field is definitely writable or the entire module is open. |
+| `field.trySetAccessible()` | Returns `true` when access-check suppression was enabled; usually returns `false` when it cannot be opened due to modules. Can throw `SecurityException` if denied by an active security mechanism. | That `Field.set` will definitely succeed. |
+| `field.canAccess(target)` | Checks whether **the caller at call time** can reflectively access on a valid target under current state. | That the field can be modified; does not replace `final`, target, and value checks. |
+| `field.get(target)` | Reads the value when access conditions and target are satisfied. | That being able to read a value means having write permission. |
+| `field.set(target, value)` | Requests updating the value; succeeds only when all conditions for permission, writability, and type hold. | That merely calling `setAccessible(true)` beforehand is enough. |
 
-`setAccessible(false)` bật lại việc thực thi kiểm tra truy cập cho đối tượng Reflection đó; lời gọi `setAccessible(true)` không sửa modifier của field trong class file, không đổi định nghĩa module và không phá vỡ mọi giới hạn của JVM.
+`setAccessible(false)` re-enables access check enforcement for that Reflection object; calling `setAccessible(true)` does not edit the field's modifier in the class file, does not alter module definitions, and does not break every JVM constraint.
 
-**Một lưu ý thuật ngữ:** “accessible flag” trên đối tượng `Field` biểu thị việc bỏ qua kiểm tra truy cập bằng Reflection. Nó khác với modifier `public`/`private`/`protected`, và hoàn toàn khác với modifier `final`. `canAccess` là phép kiểm tra quyền truy cập trong hoàn cảnh cụ thể, không phải API dự báo khả năng ghi.
+**Terminology note:** "accessible flag" on a `Field` object represents bypassing Reflection access checks. It is distinct from `public`/`private`/`protected` modifiers, and completely distinct from the `final` modifier. `canAccess` is a permission check in a specific context, not a writability prediction API.
 
-## 3. Quyền mở reflection chịu ràng buộc của Java Platform Module System
+## 3. Enabling reflection is bounded by the Java Platform Module System
 
-Từ Java 9, ranh giới module có ý nghĩa đối với deep reflection. Với caller nằm trong class `C` muốn bật quyền truy cập thành viên thuộc class `D`, API nêu những trường hợp có thể bật, trong đó có:
+Since Java 9, module boundaries matter for deep reflection. For a caller in class `C` wanting to enable access to a member of class `D`, the API lists cases where enabling is allowed, including:
 
-- `C` và `D` thuộc **cùng module**.
-- Thành viên và `D` đều `public`; package của `D` được **exports** đến module gọi.
-- Thành viên `protected static` trong `D` public; package được exports và `C` là subclass của `D`.
-- Package của `D` được **opens** đến module gọi; các package thuộc unnamed module hoặc open module được mở theo ngữ nghĩa tương ứng.
+- `C` and `D` belong to **the same module**.
+- Both the member and `D` are `public`; `D`'s package is **exports** to the calling module.
+- A `protected static` member in a public `D`; the package is exported and `C` is a subclass of `D`.
+- `D`'s package is **opens** to the calling module; packages in unnamed modules or open modules are opened according to their respective semantics.
 
-Đối với private, package-private hoặc protected instance member ở **module khác**, `exports` đơn thuần không cấp deep reflection; cần package được `opens` phù hợp. Nếu không, `setAccessible(true)` có thể ném `InaccessibleObjectException` và `trySetAccessible()` thường trả `false`. Các quy tắc chính xác phụ thuộc caller, loại thành viên, vị trí class và cách mở module.
+For private, package-private, or protected instance members in **another module**, `exports` alone does not grant deep reflection; the package must be appropriately `opens`. Otherwise, `setAccessible(true)` can throw `InaccessibleObjectException` and `trySetAccessible()` typically returns `false`. Exact rules depend on the caller, member kind, class location, and module opening configuration.
 
-Ví dụ minh họa trong `module-info.java` của module sở hữu model (mảnh cấu hình, không phải chương trình Java độc lập):
+Illustrative example in `module-info.java` of the module owning the model (configuration snippet, not a standalone Java program):
 
 ~~~java
 module app.domain {
-    exports app.domain.model;          // Cho truy cập API public.
-    opens app.domain.model to app.mapper; // Cho app.mapper deep reflection.
+    exports app.domain.model;          // Grants public API access.
+    opens app.domain.model to app.mapper; // Grants app.mapper deep reflection.
 }
 ~~~
 
-`exports` và `opens` có mục đích khác nhau. Một chương trình trên classpath (unnamed module) chỉ muốn mở package cụ thể cho hoạt động kiểm thử có thể chạy với tùy chọn VM có phạm vi rõ ràng, ví dụ:
+`exports` and `opens` serve different purposes. A program on the classpath (unnamed module) that only wants to open a specific package for testing can run with a clearly scoped VM option, for example:
 
 ~~~bash
 java --add-opens java.base/java.lang=ALL-UNNAMED -cp out ReflectiveWriteDemo
 ~~~
 
-Tùy chọn trên mở việc phản xạ vào `java.lang` cho unnamed modules và có thể khiến `trySetAccessible` của một field private bên trong `java.lang.String` trả `true`, nhưng **không** tạo quyền ghi vào field `final` vốn bị cấm sửa. Hãy hạn chế `--add-opens` cho nhu cầu hợp lệ, ưu tiên cấu hình mở package ở module sở hữu mã; tránh mở rộng toàn bộ module chỉ để thử vận may.
+That option opens reflection into `java.lang` for unnamed modules and can make `trySetAccessible` on an internal private field of `java.lang.String` return `true`, yet it **does not** grant write permission to `final` fields that are forbidden from modification. Restrict `--add-opens` to legitimate needs and prefer configuring package opening in the module owning the code; avoid opening entire modules just to try your luck.
 
-## 4. Trường nào vẫn không thể sửa dù mở quyền thành công?
+## 4. Which fields still cannot be modified even when opening succeeds?
 
-Javadoc Java 17 định nghĩa nhóm **non-modifiable final fields** mà `setAccessible(true)` chỉ có thể hỗ trợ đọc, không tạo write access:
+The Java 17 Javadoc defines a group of **non-modifiable final fields** for which `setAccessible(true)` can only support reading, without granting write access:
 
-| Dạng field | Mở truy cập (khi được phép) | `Field.set(...)` |
+| Field form | Open access (when allowed) | `Field.set(...)` |
 | --- | --- | --- |
-| Field instance bình thường, không `final` | Có thể bật | Có thể ghi nếu target và value hợp lệ. |
-| Field `private final` instance của class thường | Có thể bật nếu module cho phép | Trong Java 17, API có thể cho ghi nếu các điều kiện đặc biệt được đáp ứng, nhưng không nên dựa vào kết quả dùng được sau đó. |
-| Field `static final` của bất kỳ class/interface | Có thể bật để đọc | **Không có write access** qua `Field.set`. |
-| Field `final` do record khai báo | Có thể bật để đọc | **Không có write access** qua `Field.set`. |
-| Field `final` trong hidden class | Có thể bật để đọc | **Không có write access** qua `Field.set`. |
-| Field private thuộc package không mở ở module khác | Có thể không bật được | Không thể bỏ qua module boundary bằng cách chỉ gọi `setAccessible`. |
+| Normal instance field, non-`final` | Can be enabled | Writable if target and value are valid. |
+| Normal class `private final` instance field | Can be enabled if module allows | In Java 17, the API may allow writing if special conditions are met, but subsequent usability should not be relied upon. |
+| `static final` field of any class/interface | Can be enabled for reading | **No write access** via `Field.set`. |
+| `final` field declared by a record | Can be enabled for reading | **No write access** via `Field.set`. |
+| `final` field in a hidden class | Can be enabled for reading | **No write access** via `Field.set`. |
+| Private field in an unopened package of another module | May fail to enable | Cannot bypass module boundaries merely by calling `setAccessible`. |
 
-Không nhầm `static` với `static final`: field `static` **không final** vẫn có thể thay đổi nếu quy tắc quyền và kiểu cho phép; khi gọi `Field.set` với static field, tham số target không dùng đến và có thể truyền `null`.
+Do not confuse `static` with `static final`: a **non-final** `static` field can still be changed if access rules and types permit; when calling `Field.set` on a static field, the target parameter is ignored and `null` can be passed.
 
-**Rủi ro của instance `final` trong class thường:** Theo hợp đồng `Field.set` của Java 17, việc sửa qua Reflection chỉ có ý nghĩa trong một số quy trình khôi phục/deserialization được kiểm soát trước khi đối tượng được công bố. Các lần đọc khác có thể vẫn quan sát giá trị cũ do giả định/optimization dựa vào `final`. Không dùng việc thấy một lần ghi thành công làm bằng chứng invariants của đối tượng đã được cập nhật an toàn. Hành vi và hạn chế với `final` cũng có thể khác ở phiên bản JDK mới; kiểm tra tài liệu của phiên bản thực tế.
+**Risk with instance `final` fields in normal classes:** Per Java 17's `Field.set` contract, reflective modification is only meaningful in certain controlled reconstruction/deserialization workflows before the object is published. Other reads may continue observing the old value due to `final`-based assumptions/optimizations. Do not treat observing one successful write as proof that object invariants were safely updated. Behavior and limits on `final` can also change in newer JDK versions; check the actual version's documentation.
 
-## 5. Ví dụ Java 17+ chạy được: bật quyền thành công nhưng ghi thất bại
+## 5. Runnable Java 17+ example: opening succeeds, writing fails
 
-Chương trình sau tách riêng bước mở quyền, ghi và báo lỗi. Nó kiểm tra field mutable bình thường, `static final`, record component, sai kiểu giá trị và giới hạn module của JDK.
+The following program separates opening access, writing, and error reporting. It tests a normal mutable field, `static final`, a record component, wrong value type, and JDK module boundaries.
 
-Lưu vào `ReflectiveWriteDemo.java`:
+Save to `ReflectiveWriteDemo.java`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -133,14 +133,14 @@ public class ReflectiveWriteDemo {
 }
 ~~~
 
-Biên dịch và chạy trên Java 17+ trong cấu hình JDK thông thường, không dùng `--add-opens`:
+Compile and run on Java 17+ in a standard JDK configuration, without `--add-opens`:
 
 ~~~bash
 javac -encoding UTF-8 ReflectiveWriteDemo.java
 java ReflectiveWriteDemo
 ~~~
 
-Đầu ra trên JDK 17 hoặc 21 với `java.base/java.lang` chưa được mở cho unnamed module:
+Output on JDK 17 or 21 when `java.base/java.lang` is not opened to the unnamed module:
 
 ~~~text
 mutable private | opened=true
@@ -154,42 +154,42 @@ wrong value type | write=IllegalArgumentException
 JDK private | opened=false
 ~~~
 
-Giải thích từng trường hợp:
+Explanation of each case:
 
-- `mutable private`: field private của model trong cùng unnamed module cho phép bật bỏ qua access check; target đúng kiểu và giá trị `String` hợp lệ nên ghi được.
-- `static final`: mở quyền trả `true`, nhưng `CATEGORY` là field không được sửa. `Field.set(null, ...)` ném `IllegalAccessException`.
-- `record final`: `Snapshot.code` do record khai báo là field final không được sửa; cũng thất bại với `IllegalAccessException`.
-- `wrong value type`: `count` là `int`. Truyền `String` không được unbox/widen thành `int`; `Field.set` ném `IllegalArgumentException` dù đã mở quyền.
-- `JDK private`: `String.value` là field implementation private trong module `java.base`. Trong cấu hình JDK nêu trên, package `java.lang` không mở cho chương trình, nên `trySetAccessible()` trả `false`. Chạy với `--add-opens` tương ứng có thể thay đổi dòng này; ví dụ chỉ minh họa trạng thái mặc định, không viết mã phụ thuộc cấu trúc nội bộ `String`.
+- `mutable private`: the model's private field in the same unnamed module allows enabling access-check suppression; the target type matches and the `String` value is valid, so writing succeeds.
+- `static final`: opening returns `true`, yet `CATEGORY` is a non-modifiable field. `Field.set(null, ...)` throws `IllegalAccessException`.
+- `record final`: `Snapshot.code` declared by a record is a non-modifiable final field; it also fails with `IllegalAccessException`.
+- `wrong value type`: `count` is `int`. Passing a `String` cannot be unboxed/widened to `int`; `Field.set` throws `IllegalArgumentException` even though access was opened.
+- `JDK private`: `String.value` is a private implementation field in module `java.base`. In the JDK configuration above, package `java.lang` is not opened to the program, so `trySetAccessible()` returns `false`. Running with an appropriate `--add-opens` can change this line; the example only illustrates the default state, do not write code depending on `String`'s internal structure.
 
-Việc lấy `Field` ở đây thành công không chứng minh rằng thao tác đọc hoặc ghi sẽ được phép. Kết quả cụ thể của một field nội bộ JDK phụ thuộc cả phiên bản JVM và cờ dòng lệnh, vì vậy không nên dựa vào những chi tiết đó trong ứng dụng.
+Successfully obtaining `Field` here does not prove reading or writing will be allowed. Exact results for an internal JDK field depend on both JVM version and command-line flags, so applications should not rely on those details.
 
-## 6. Vì sao `Field.set` còn có thể thất bại?
+## 6. Why else can `Field.set` fail?
 
-Sau khi đã bật truy cập, `Field.set(target, value)` vẫn phải tuân các điều kiện của Javadoc:
+Even after opening access, `Field.set(target, value)` must still satisfy the Javadoc conditions:
 
-1. **Sai đối tượng đích:** Với field instance, `target == null` gây `NullPointerException`. Nếu target không là instance của lớp khai báo field (hoặc subtype tương thích), có thể ném `IllegalArgumentException`. Với field static, target được bỏ qua.
-2. **Sai kiểu dữ liệu:** Java Reflection cho phép các chuyển đổi tự động có giới hạn: unboxing và widening primitive hợp lệ, không ép kiểu thu hẹp tùy ý; ví dụ truyền `Long` vào field `int` không phải conversion widening. Cần tránh giả định nó hoạt động như converter của JSON mapper.
-3. **Chưa có quyền truy cập:** Nếu checks còn được thực thi và field không thể truy cập, `Field.set` có thể ném `IllegalAccessException`. `trySetAccessible()==false` cần được xử lý trước khi gọi.
-4. **Field không có write access:** Nhóm non-modifiable final đã nêu khiến `Field.set` ném `IllegalAccessException` dù accessible flag có thể là `true`.
-5. **Khởi tạo class static:** Ghi static field có thể kích hoạt class initialization; lỗi khởi tạo có thể dẫn đến `ExceptionInInitializerError`.
-6. **Chính sách runtime/security:** `setAccessible(true)` có thể ném `InaccessibleObjectException`; nếu có cơ chế `SecurityManager` và quyền bị từ chối, `SecurityException` cũng có thể phát sinh. Không bắt `Exception` chung rồi coi đó là lỗi field không tồn tại.
+1. **Wrong target object:** For instance fields, `target == null` causes `NullPointerException`. If target is not an instance of the field's declaring class (or a compatible subtype), it can throw `IllegalArgumentException`. For static fields, target is ignored.
+2. **Wrong data type:** Java Reflection permits limited automatic conversions: valid unboxing and primitive widening, without arbitrary narrowing casts; for example, passing `Long` to an `int` field is not a widening conversion. Avoid assuming it behaves like a JSON mapper converter.
+3. **Lack of access permission:** If checks are still enforced and the field is inaccessible, `Field.set` can throw `IllegalAccessException`. `trySetAccessible()==false` must be handled before calling.
+4. **Field has no write access:** The non-modifiable final group listed above causes `Field.set` to throw `IllegalAccessException` even when the accessible flag can be `true`.
+5. **Static class initialization:** Writing a static field can trigger class initialization; initialization errors can lead to `ExceptionInInitializerError`.
+6. **Runtime/security policy:** `setAccessible(true)` can throw `InaccessibleObjectException`; if a `SecurityManager` mechanism is present and permission is denied, `SecurityException` can also be raised. Do not catch generic `Exception` and treat it as a missing-field error.
 
-Cần phân biệt lỗi **tìm metadata** (`NoSuchFieldException`), lỗi **bật truy cập** (`InaccessibleObjectException` hoặc `SecurityException`), lỗi **không được ghi** (`IllegalAccessException`) và lỗi **tham số** (`IllegalArgumentException` / `NullPointerException`). Mỗi loại báo một nguyên nhân khác nhau.
+Distinguish **metadata lookup** errors (`NoSuchFieldException`), **access-enabling** errors (`InaccessibleObjectException` or `SecurityException`), **non-writable** errors (`IllegalAccessException`), and **argument** errors (`IllegalArgumentException` / `NullPointerException`). Each reports a different root cause.
 
-## 7. Quy trình triển khai an toàn cho công cụ dùng Reflection
+## 7. Safe implementation workflow for tools using Reflection
 
-Khi một công cụ buộc phải sửa field, nên biến những quyết định ẩn thành điều kiện tường minh:
+When a tool must modify fields, turn hidden decisions into explicit conditions:
 
-1. **Ưu tiên API bình thường:** constructor, builder, setter, factory, phương thức nghiệp vụ hoặc tạo object mới. Với record, tạo record mới thay vì cố gắng thay field cũ.
-2. **Chọn đúng field:** chỉ ra `declaringClass`, `name`, `type`; dùng `getDeclaredField` khi cần tìm field private trực tiếp; khi duyệt lớp cha cần chính sách rõ để xử lý field trùng tên. Không chọn ngẫu nhiên theo tên duy nhất.
-3. **Kiểm tra modifier và cấu trúc:** `Modifier.isFinal(field.getModifiers())`, `Modifier.isStatic(...)`, `field.getDeclaringClass().isRecord()` và phạm vi model. Nếu nghiệp vụ không hỗ trợ `final`, từ chối sớm; đừng dựa vào việc thử ghi.
-4. **Kiểm tra ngữ cảnh module:** nếu cần deep reflection, yêu cầu package mở đúng module; không mặc định caller được quyền. Dùng `trySetAccessible` và kiểm tra boolean, hoặc bắt lỗi từ `setAccessible(true)`.
-5. **Kiểm tra target/value:** field instance có target phù hợp; static field không cần target; xác định conversion đúng thay vì thử ép tùy tiện.
-6. **Ghi trong phạm vi được kiểm soát:** bắt các exception có ý nghĩa, trả thông báo chỉ ra `class.field` và nguyên nhân. Không tự fallback qua `Unsafe`, JNI hay hack modifier để cố viết vào field bị cấm.
-7. **Kiểm tra kết quả theo hợp đồng nghiệp vụ:** có thể đọc lại field mutable trong trường hợp phù hợp, nhưng đừng dựa trên đọc lại Reflection để khẳng định việc sửa `final` có hiệu lực với mọi luồng hay mọi code đã biên dịch.
+1. **Prefer normal APIs:** constructors, builders, setters, factories, business methods, or creating a new object. For records, create a new record rather than trying to mutate the old field.
+2. **Select the exact field:** specify `declaringClass`, `name`, and `type`; use `getDeclaredField` when directly looking up a private field; when traversing superclasses, have a clear policy for shadowed field names. Do not pick arbitrarily by name alone.
+3. **Check modifiers and structure:** `Modifier.isFinal(field.getModifiers())`, `Modifier.isStatic(...)`, `field.getDeclaringClass().isRecord()`, and model scope. If business logic does not support `final`, reject early; do not rely on attempting to write.
+4. **Check module context:** if deep reflection is needed, require the package to be opened to the right module; do not assume the caller has permission. Use `trySetAccessible` and check the boolean, or catch errors from `setAccessible(true)`.
+5. **Validate target/value:** instance fields need a matching target; static fields do not need a target; determine valid conversions instead of trying arbitrary casts.
+6. **Write within controlled boundaries:** catch meaningful exceptions and return messages identifying `class.field` and the cause. Do not fall back to `Unsafe`, JNI, or modifier hacks to force writes into forbidden fields.
+7. **Verify results per business contract:** mutable fields can be re-read when appropriate, but do not rely on a Reflection re-read to assert that modifying a `final` field took effect across all threads or all compiled code.
 
-Một hàm tiện ích có thể diễn đạt chính sách cấm ghi vào field final ngay từ đầu, tránh xem `trySetAccessible` là phép thử quyền ghi:
+A utility method can express the policy forbidding writes to final fields upfront, avoiding treating `trySetAccessible` as a writability test:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -211,32 +211,32 @@ static void setMutableField(Field field, Object target, Object value)
 }
 ~~~
 
-Đây là **đoạn minh họa** để đặt trong một class thích hợp, không phải source độc lập thứ hai. Ngay cả khi từ chối `final` và đã bật access, `Field.set` vẫn có thể thất bại nếu target/value sai hoặc runtime có điều kiện khác. Nếu công cụ muốn tránh phản xạ private, chỉ hỗ trợ field public hoặc yêu cầu API setter trong module sở hữu model sẽ dễ kiểm chứng hơn.
+This is an **illustrative snippet** to place inside a suitable class, not a second standalone source file. Even when rejecting `final` and having enabled access, `Field.set` can still fail if target/value are wrong or runtime has other conditions. If a tool wants to avoid private reflection, supporting only public fields or requiring setter APIs in the model-owning module is easier to verify.
 
-## 8. Những hiểu nhầm phổ biến và cách sửa
+## 8. Common misconceptions and how to fix them
 
-| Nhận định dễ nhầm | Cách hiểu đúng |
+| Common misconception | Correct understanding |
 | --- | --- |
-| “Lấy được `getDeclaredField` là sửa được field.” | Tra cứu metadata không quyết định quyền đọc/ghi. |
-| “`setAccessible(true)` luôn mở được private.” | Module/package/security có thể ngăn deep reflection. |
-| “`trySetAccessible()==true` chứng minh `Field.set` thành công.” | Chỉ xác nhận trạng thái bỏ qua access check; tính ghi được và target/value vẫn cần kiểm tra. |
-| “`final` chỉ là rào cản cú pháp.” | Có nhóm `final` hoàn toàn không có write access và các quy tắc về tính bất biến/bộ nhớ cần tôn trọng. |
-| “Mở module bằng `--add-opens` thì sửa được `static final`.” | Mở truy cập không thay đổi quy tắc non-modifiable final. |
-| “Đọc lại thấy giá trị mới tức hệ thống đã cập nhật an toàn.” | Đặc biệt với `final`, những đoạn code khác có thể tiếp tục quan sát giá trị cũ; nên dùng mô hình cập nhật object có hợp đồng rõ. |
-| “Một lỗi trong `Field.set` nên bị bỏ qua im lặng.” | Phải phân biệt lỗi module, quyền ghi, target, kiểu và initialization để chẩn đoán đúng. |
+| "Getting `getDeclaredField` means the field can be modified." | Metadata lookup does not determine read/write permission. |
+| "`setAccessible(true)` can always open private members." | Module/package/security boundaries can prevent deep reflection. |
+| "`trySetAccessible()==true` proves `Field.set` will succeed." | It only confirms access-check suppression state; writability and target/value still require validation. |
+| "`final` is only a syntactic barrier." | There is a group of `final` fields with zero write access, plus immutability/memory rules that must be respected. |
+| "Opening a module with `--add-opens` allows modifying `static final`." | Opening access does not change non-modifiable final rules. |
+| "Re-reading the new value means the system updated safely." | Especially with `final`, other code paths may continue observing the old value; use an object-update model with clear contracts. |
+| "An error in `Field.set` should be silently ignored." | You must distinguish module, writability, target, type, and initialization errors for accurate diagnostics. |
 
-## 9. Bài tập kiểm chứng
+## 9. Verification exercises
 
-- Bỏ `trySetAccessible` ở ví dụ và thử `Field.set` vào `MutableModel.name` từ một class ở top-level không có quyền private; so sánh `IllegalAccessException`.
-- Giữ `trySetAccessible` nhưng thay `newValue` cho `count` bằng `Integer.valueOf(5)`, dự đoán vì sao unboxing từ `Integer` sang `int` hợp lệ.
-- Chạy demo với và không với `--add-opens java.base/java.lang=ALL-UNNAMED`; so sánh **chỉ khả năng mở truy cập** vào `String.value`, tránh thay đổi cấu trúc nội bộ của JDK.
-- Viết constructor hoặc method `withCode(...)` trả về record `Snapshot` mới để cập nhật logic mà vẫn giữ tính bất biến.
-- Tạo một ứng dụng nhiều module riêng và thực nghiệm sự khác nhau giữa `exports` và `opens` đối với truy cập `private`. Giữ phạm vi module mở càng hẹp càng tốt.
+- Remove `trySetAccessible` in the example and try `Field.set` on `MutableModel.name` from a top-level class without private access; compare `IllegalAccessException`.
+- Keep `trySetAccessible` but replace `newValue` for `count` with `Integer.valueOf(5)`, and predict why unboxing from `Integer` to `int` is valid.
+- Run the demo with and without `--add-opens java.base/java.lang=ALL-UNNAMED`; compare **only the ability to open access** to `String.value`, avoiding changing JDK internal structures.
+- Write a constructor or `withCode(...)` method returning a new `Snapshot` record to update logic while preserving immutability.
+- Create a separate multi-module application and experiment with the difference between `exports` and `opens` for `private` access. Keep opened module scopes as narrow as possible.
 
-## 10. Nguồn tham khảo và nguyên tắc cần nhớ
+## 10. References and takeaways
 
-- [Java SE 17 — `AccessibleObject`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): ý nghĩa accessible flag, quy tắc JPMS, `trySetAccessible`, nhóm non-modifiable final.
-- [Java SE 17 — `Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html): điều kiện `Field.set`, lỗi target/type, ghi `final` và cảnh báo về kết quả quan sát.
-- [dev.java — Reading and Writing Fields](https://dev.java/learn/api/reflection-method-handles/reflection/fields/): quy trình đọc/ghi field và lưu ý khi thao tác field final.
+- [Java SE 17 — `AccessibleObject`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): meaning of the accessible flag, JPMS rules, `trySetAccessible`, and non-modifiable final fields.
+- [Java SE 17 — `Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html): `Field.set` conditions, target/type errors, writing `final`, and warnings about observed results.
+- [dev.java — Reading and Writing Fields](https://dev.java/learn/api/reflection-method-handles/reflection/fields/): field read/write workflow and notes when operating on final fields.
 
-**Điểm cốt lõi:** `setAccessible` giải quyết **kiểm tra truy cập**, không đại diện cho **quyền ghi không giới hạn**. Mọi đường ghi Reflection cần xác minh ranh giới module, modifier, khả năng ghi thật sự, target, value và xử lý lỗi rõ ràng. Với các giá trị bất biến, việc thiết kế API cập nhật hợp lệ luôn an toàn hơn cố phá bất biến.
+**Core takeaway:** `setAccessible` addresses **access checks**, not **unlimited write permission**. Every reflective write path needs to verify module boundaries, modifiers, actual writability, target, value, and clear error handling. For immutable values, designing valid update APIs is always safer than trying to break immutability.

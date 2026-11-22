@@ -1,36 +1,36 @@
-# Biến tham chiếu khác với đối tượng được tham chiếu trong Java
+# A Reference Variable Is Different from the Referenced Object in Java
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể phân biệt **biến tham chiếu** (reference variable) với **đối tượng** (object), giải thích vì sao hai biến có thể cùng trỏ tới một đối tượng, dự đoán tác động của phép gán và thay đổi trạng thái, hiểu `null`, `==` và việc truyền tham số đối tượng trong Java. Đây là nền tảng để tránh những lỗi do vô tình chia sẻ một đối tượng có thể thay đổi (mutable object).
+After this lesson, you can distinguish a **reference variable** from an **object**, explain why two variables can point to the same object, predict the effects of assignment and state mutation, and understand `null`, `==`, and passing object parameters in Java. This is the foundation for avoiding bugs caused by accidentally sharing a mutable object.
 
-## 1. Hai khái niệm khác nhau
+## 1. Two Different Concepts
 
-Xét khai báo:
+Consider the declaration:
 
 ```java
 Box first = new Box(10);
 ```
 
-- `Box` là kiểu tham chiếu. `first` là **một biến** có thể chứa giá trị tham chiếu tới một đối tượng `Box` hoặc giá trị `null`.
-- `new Box(10)` tạo ra một **đối tượng** (một thực thể có danh tính và trạng thái). Trường `value` của đối tượng ban đầu bằng `10`.
-- Dấu `=` gán **giá trị tham chiếu** của đối tượng mới cho biến `first`; biến `first` không phải chính đối tượng đó.
-- `first.value` truy cập trường của đối tượng thông qua tham chiếu đang có trong `first`.
+- `Box` is a reference type. `first` is **a variable** that can hold a reference value pointing to a `Box` object or the value `null`.
+- `new Box(10)` creates an **object** (an entity with identity and state). The object's `value` field is initially `10`.
+- The `=` operator assigns the **reference value** of the new object to the variable `first`; the variable `first` is not that object itself.
+- `first.value` accesses the object's field through the reference currently held in `first`.
 
-Có thể hình dung:
+You can picture it as:
 
 ```text
-Biến tham chiếu                   Đối tượng
+Reference variable                Object
 first ─────────────────────────► Box { value = 10 }
 ```
 
-Đây là **sơ đồ quan hệ logic**, không phải cam kết về vị trí vật lý của biến hay đối tượng trong bộ nhớ JVM. Trình biên dịch/JVM có thể tối ưu cách lưu trữ; điều cần nắm chắc là **biến tham chiếu và đối tượng là hai thực thể khái niệm khác nhau**.
+This is a **logical relationship diagram**, not a guarantee about the physical location of the variable or the object in JVM memory. The compiler/JVM may optimize how storage is laid out; what must be firmly understood is that **a reference variable and an object are two conceptually different entities**.
 
-Một biến kiểu nguyên thủy như `int count = 10;` lưu trực tiếp giá trị nguyên thủy `10`. Ngược lại, với `Box first`, giá trị của `first` là **tham chiếu tới** đối tượng `Box`, không phải toàn bộ dữ liệu của `Box`.
+A primitive variable such as `int count = 10;` directly stores the primitive value `10`. By contrast, with `Box first`, the value of `first` is a **reference to** the `Box` object, not the entire data of `Box`.
 
-## 2. Nhiều biến có thể tham chiếu cùng một đối tượng
+## 2. Multiple Variables Can Reference the Same Object
 
-Xét:
+Consider:
 
 ```java
 Box first = new Box(10);
@@ -38,7 +38,7 @@ Box alias = first;
 Box sameValue = new Box(10);
 ```
 
-Sơ đồ:
+Diagram:
 
 ```text
 first ───────────┐
@@ -48,20 +48,20 @@ alias ───────────┘
 sameValue ──────────────────────► Box B { value = 10 }
 ```
 
-Ở đây:
+Here:
 
-- `first` và `alias` là **hai biến khác nhau**, nhưng giá trị tham chiếu của chúng cùng chỉ tới **Box A**.
-- Lệnh `Box alias = first;` **sao chép giá trị tham chiếu**; nó không tạo bản sao đối tượng và không chạy `new`.
-- `sameValue` tham chiếu **Box B**: đối tượng khác, dù trạng thái ban đầu (trường `value`) giống Box A.
-- Vì vậy, **số lượng biến tham chiếu không đồng nghĩa số lượng đối tượng**.
+- `first` and `alias` are **two different variables**, but their reference values both point to **Box A**.
+- The statement `Box alias = first;` **copies the reference value**; it does not create a copy of the object and does not execute `new`.
+- `sameValue` references **Box B**: a different object, even though its initial state (the `value` field) matches Box A.
+- Therefore, **the number of reference variables does not mean the same number of objects**.
 
-Hai đối tượng có thể có trạng thái như nhau nhưng khác danh tính. Ngược lại, hai biến khác nhau có thể cùng tham chiếu một đối tượng duy nhất.
+Two objects can have the same state yet different identities. Conversely, two different variables can reference one single object.
 
-## 3. Thay đổi trạng thái và gán lại biến là hai thao tác khác nhau
+## 3. Mutating State and Reassigning a Variable Are Two Different Operations
 
-Chạy ví dụ độc lập sau với **Java 17+**.
+Run the following standalone example with **Java 17+**.
 
-**Tệp `ReferenceVsObjectDemo.java`:**
+**File `ReferenceVsObjectDemo.java`:**
 
 ```java
 public class ReferenceVsObjectDemo {
@@ -95,14 +95,14 @@ public class ReferenceVsObjectDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac ReferenceVsObjectDemo.java
 java ReferenceVsObjectDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 first == alias: true
@@ -114,80 +114,80 @@ first still references an object: true
 alias == null: true
 ```
 
-Phân tích theo từng chặng:
+Step-by-step analysis:
 
-1. Sau `Box alias = first;`, cả `first` và `alias` trỏ tới Box A. `first == alias` trả về `true`.
-2. `new Box(10)` thứ hai tạo Box B. `first == sameValue` trả về `false`, dù cả hai đối tượng đang có `value = 10`.
-3. `alias.value = 20;` **thay đổi trường của Box A**. Đọc qua `first.value` cũng thấy `20` vì `first` vẫn trỏ tới chính Box A.
-4. `alias = new Box(30);` **gán lại biến `alias`** để nó trỏ tới Box C. Không làm Box A thay đổi và không làm `first` đổi tham chiếu.
-5. `alias = null;` chỉ xóa tham chiếu đang giữ trong **biến `alias`**. `first` vẫn trỏ tới Box A. Box C có thể trở thành đối tượng không còn truy cập được nếu không có tham chiếu mạnh nào khác giữ nó.
+1. After `Box alias = first;`, both `first` and `alias` point to Box A. `first == alias` returns `true`.
+2. The second `new Box(10)` creates Box B. `first == sameValue` returns `false`, even though both objects currently have `value = 10`.
+3. `alias.value = 20;` **mutates the field of Box A**. Reading through `first.value` also sees `20` because `first` still points to the very same Box A.
+4. `alias = new Box(30);` **reassigns the variable `alias`** so that it points to Box C. It does not change Box A and does not change what `first` references.
+5. `alias = null;` only clears the reference held in **the variable `alias`**. `first` still points to Box A. Box C can become unreachable if no other strong reference holds it.
 
-So sánh ngắn:
+Short comparison:
 
-| Câu lệnh | Điều bị thay đổi | Điều không tự động thay đổi |
+| Statement | What is changed | What does not automatically change |
 | --- | --- | --- |
-| `Box b = a;` | Biến `b` nhận bản sao tham chiếu từ `a` | Không tạo đối tượng mới |
-| `b.value = 20;` | Trạng thái của đối tượng mà `b` tham chiếu | Không gán lại `b` hoặc `a` |
-| `b = new Box(30);` | Giá trị tham chiếu lưu trong `b` | Đối tượng cũ và biến `a` |
-| `b = a;` (lần nữa) | `b` lại tham chiếu đối tượng của `a` | Không sao chép các trường của đối tượng |
-| `b = null;` | Giá trị trong `b` thành `null` | Không hủy đối tượng ngay; tham chiếu khác vẫn tồn tại |
+| `Box b = a;` | Variable `b` receives a copy of the reference from `a` | No new object is created |
+| `b.value = 20;` | The state of the object referenced by `b` | Does not reassign `b` or `a` |
+| `b = new Box(30);` | The reference value stored in `b` | The old object and variable `a` |
+| `b = a;` (again) | `b` references `a`'s object again | Does not copy the object's fields |
+| `b = null;` | The value in `b` becomes `null` | Does not destroy the object immediately; other references still exist |
 
-Các từ dễ gây nhầm: **“thay đổi đối tượng”** là sửa trạng thái của thực thể đang được tham chiếu; **“thay đổi biến tham chiếu”** là sửa giá trị tham chiếu lưu trong biến.
+Easily confused terms: **“changing the object”** means modifying the state of the referenced entity; **“changing the reference variable”** means modifying the reference value stored in the variable.
 
-## 4. `==` so sánh gì đối với tham chiếu?
+## 4. What Does `==` Compare for References?
 
-Với hai toán hạng thuộc kiểu tham chiếu phù hợp để so sánh, `==` trả về `true` khi chúng cùng tham chiếu **một đối tượng**, hoặc khi cả hai đều là `null`. Đây là phép so sánh **danh tính tham chiếu** (reference identity), không tự so sánh từng trường.
+For two operands of compatible reference types for comparison, `==` returns `true` when they reference **the same object**, or when both are `null`. This is a **reference identity** comparison, not an automatic field-by-field comparison.
 
-Ví dụ:
+Example:
 
 ```java
 Box a = new Box(1);
 Box b = a;
 Box c = new Box(1);
 
-// a == b là true: cùng một đối tượng.
-// a == c là false: hai đối tượng khác nhau.
-// a == null là false.
+// a == b is true: the same object.
+// a == c is false: two different objects.
+// a == null is false.
 ```
 
-Đoạn trên minh họa, giả định lớp `Box` được khai báo như ví dụ đầy đủ ở mục 3.
+The snippet above is illustrative, assuming the `Box` class is declared as in the complete example in section 3.
 
-Phân biệt với `equals(Object)`:
+Distinguish from `equals(Object)`:
 
-- `a == b` hỏi: **Có cùng đối tượng không?**
-- `a.equals(b)` hỏi: **Theo quy tắc của lớp, hai đối tượng có được coi là bằng nhau không?**
-- Triển khai mặc định của `Object.equals` so sánh danh tính như `==`. Một lớp có thể ghi đè `equals` để so sánh giá trị/ngữ nghĩa; ví dụ `String` so sánh nội dung chuỗi.
-- Không thể suy ra `a == b` từ `a.equals(b) == true`. Hai đối tượng độc lập có thể bằng nhau về nội dung nhưng vẫn có danh tính khác nhau.
-- Nếu `a` có thể là `null`, gọi `a.equals(b)` sẽ gây `NullPointerException`. Khi cần so sánh bằng nhau có xử lý `null`, có thể dùng `java.util.Objects.equals(a, b)`.
+- `a == b` asks: **Is it the same object?**
+- `a.equals(b)` asks: **According to the class's rules, are the two objects considered equal?**
+- The default implementation of `Object.equals` compares identity just like `==`. A class can override `equals` to compare values/semantics; for example, `String` compares string content.
+- You cannot infer `a == b` from `a.equals(b) == true`. Two independent objects can be equal in content yet still have different identities.
+- If `a` can be `null`, calling `a.equals(b)` will cause a `NullPointerException`. When you need equality comparison with `null` handling, you can use `java.util.Objects.equals(a, b)`.
 
-**Tránh dùng `==` để kiểm tra nội dung `String`**, dù đôi khi hai biến `String` có cùng tham chiếu do cơ chế intern. Việc cùng tham chiếu trong một tình huống không biến `==` thành phép so sánh nội dung. Tương tự, tránh suy luận danh tính từ việc Java có thể dùng lại một số đối tượng wrapper.
+**Avoid using `==` to check `String` content**, even though two `String` variables may sometimes share the same reference due to interning. Sharing a reference in one situation does not turn `==` into a content comparison. Similarly, avoid inferring identity from the fact that Java may reuse certain wrapper objects.
 
-`System.identityHashCode(obj)` có thể hữu ích khi chẩn đoán, nhưng **không phải địa chỉ bộ nhớ** và **không bảo đảm duy nhất** giữa mọi đối tượng; không dùng nó thay cho `==` để quyết định danh tính.
+`System.identityHashCode(obj)` can be useful for diagnostics, but it is **not a memory address** and is **not guaranteed to be unique** across all objects; do not use it in place of `==` to determine identity.
 
-## 5. `null` là giá trị tham chiếu, không phải một đối tượng
+## 5. `null` Is a Reference Value, Not an Object
 
-`Box box = null;` nghĩa là `box` hiện **không tham chiếu tới đối tượng nào**. Không tồn tại “đối tượng null” để truy cập.
+`Box box = null;` means `box` currently **does not reference any object**. There is no “null object” to access.
 
 ```java
 Box box = null;
 
 System.out.println(box == null);  // true
-// System.out.println(box.value); // Nếu bỏ chú thích: NullPointerException.
+// System.out.println(box.value); // If uncommented: NullPointerException.
 ```
 
-Kiểm tra `box != null` trước khi truy cập nếu biến có khả năng bằng `null`.
+Check `box != null` before accessing if the variable might be `null`.
 
-Gán `box = null` không lập tức gọi bộ thu gom rác và không hủy đối tượng trước đó. Một đối tượng chỉ **có thể đủ điều kiện** để thu gom khi không còn có thể truy cập qua các tham chiếu mạnh từ những gốc thích hợp của chương trình. Thời điểm thu gom, nếu có, do JVM quyết định; không nên thiết kế logic phụ thuộc vào lúc đối tượng bị thu hồi.
+Assigning `box = null` does not immediately invoke the garbage collector and does not destroy the previous object. An object only **becomes eligible** for collection when it is no longer reachable through strong references from appropriate roots of the program. When collection happens, if at all, is decided by the JVM; do not design logic that depends on when an object is reclaimed.
 
-## 6. Truyền tham số đối tượng: Java luôn truyền theo giá trị
+## 6. Passing Object Parameters: Java Always Passes by Value
 
-Đối với tham số kiểu tham chiếu, Java **truyền bản sao của giá trị tham chiếu** cho biến tham số trong phương thức. Vì vậy:
+For parameters of reference types, Java **passes a copy of the reference value** to the parameter variable inside the method. Therefore:
 
-- Phương thức có thể dùng bản sao tham chiếu để **thay đổi trạng thái của cùng một đối tượng** mà bên gọi cũng đang tham chiếu.
-- Nếu phương thức **gán lại tham số** sang đối tượng khác hoặc `null`, biến tham chiếu ở phía gọi **không bị gán lại**.
-- Đây vẫn là **pass-by-value**, không phải pass-by-reference theo nghĩa phương thức nhận được chính biến của bên gọi.
+- The method can use the copied reference to **mutate the state of the same object** that the caller also references.
+- If the method **reassigns the parameter** to another object or `null`, the reference variable on the caller side **is not reassigned**.
+- This is still **pass-by-value**, not pass-by-reference in the sense of the method receiving the caller's variable itself.
 
-**Tệp `PassingReferenceDemo.java`:**
+**File `PassingReferenceDemo.java`:**
 
 ```java
 public class PassingReferenceDemo {
@@ -225,7 +225,7 @@ javac PassingReferenceDemo.java
 java PassingReferenceDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 after mutate: 7
@@ -233,55 +233,55 @@ inside reassign: 99
 after reassign: 7
 ```
 
-Trong `mutate(original)`, `parameter` và `original` cùng trỏ tới đối tượng ban đầu, nên sửa `parameter.value` được nhìn thấy qua `original`. Trong `reassign(original)`, `parameter = new Box(99)` chỉ thay giá trị của **tham số cục bộ**, nên `original` vẫn trỏ tới đối tượng có `value = 7`.
+In `mutate(original)`, `parameter` and `original` both point to the initial object, so modifying `parameter.value` is visible through `original`. In `reassign(original)`, `parameter = new Box(99)` only changes the value of the **local parameter**, so `original` still points to the object with `value = 7`.
 
-Muốn bên gọi nhận một đối tượng thay thế, phương thức có thể **trả về tham chiếu mới**, và bên gọi chủ động gán kết quả: `original = createReplacement(original);`. Không thể làm điều đó chỉ bằng cách gán lại tham số trong phương thức `void`.
+If you want the caller to receive a replacement object, the method can **return the new reference**, and the caller explicitly assigns the result: `original = createReplacement(original);`. You cannot achieve that merely by reassigning the parameter inside a `void` method.
 
-## 7. `final` cố định biến tham chiếu, không đóng băng đối tượng
+## 7. `final` Fixes the Reference Variable, Not the Object
 
-Khai báo:
+Declaration:
 
 ```java
 final Box fixed = new Box(5);
-fixed.value = 6; // Hợp lệ: thay đổi trạng thái đối tượng.
+fixed.value = 6; // Valid: mutates the object's state.
 ```
 
-`final` ngăn biến `fixed` được gán lại sau khi đã khởi tạo. Nó **không tự biến đối tượng thành bất biến** (immutable). Với khai báo trên, `fixed = new Box(7);` sẽ gây **lỗi biên dịch** nếu thêm vào chương trình.
+`final` prevents the variable `fixed` from being reassigned after initialization. It **does not automatically make the object immutable**. With the declaration above, `fixed = new Box(7);` will cause a **compile-time error** if added to the program.
 
-Muốn đối tượng bất biến, cần thiết kế trạng thái và API phù hợp (ví dụ không cung cấp thao tác sửa trạng thái; bảo vệ các trường chứa đối tượng mutable khi cần). Đó là một thuộc tính của **đối tượng/thiết kế lớp**, khác với việc một **biến tham chiếu** được khai báo `final`.
+To make an object immutable, you must design its state and API appropriately (for example, providing no state-mutating operations; protecting fields that hold mutable objects when necessary). That is a property of the **object/class design**, distinct from a **reference variable** being declared `final`.
 
-## 8. Liên hệ thực tế: aliasing và tác dụng phụ
+## 8. Practical Connection: Aliasing and Side Effects
 
-Hiện tượng nhiều tham chiếu cùng trỏ tới một đối tượng gọi là **aliasing**. Với đối tượng mutable, thay đổi qua một đường tham chiếu có thể làm những nơi khác quan sát được trạng thái mới.
+The phenomenon where multiple references point to the same object is called **aliasing**. With a mutable object, changes made through one reference path can cause other places to observe the new state.
 
-Ví dụ trong chương trình quản lý giỏ hàng, nếu hai thành phần nhận cùng một đối tượng giỏ hàng rồi một thành phần sửa danh sách sản phẩm, thành phần kia cũng thấy thay đổi. Điều này có thể là mục đích thiết kế (chia sẻ trạng thái) hoặc lỗi (ngoài ý muốn).
+For example, in a shopping cart management program, if two components receive the same cart object and one component modifies the product list, the other component also sees the change. This can be intentional by design (shared state) or a bug (unintended).
 
-Khi đọc một API nhận/trả về đối tượng mutable, hãy hỏi:
+When reading an API that accepts/returns mutable objects, ask:
 
-1. API nhận hoặc trả về **cùng một đối tượng**, hay tạo **bản sao**?
-2. Bên gọi có được phép sửa đối tượng đó không?
-3. Việc sửa qua một tham chiếu có ảnh hưởng đến thành phần khác đang giữ cùng tham chiếu không?
+1. Does the API accept or return **the same object**, or create a **copy**?
+2. Is the caller allowed to mutate that object?
+3. Will mutating through one reference affect another component holding the same reference?
 
-Phép gán thông thường `copy = original;` **không tạo bản sao độc lập**. Nếu cần dữ liệu tách biệt, phải có cơ chế sao chép phù hợp với lớp, và cần hiểu sao chép nông/sâu khi đối tượng chứa những tham chiếu mutable khác. Không có cú pháp gán nào tự động deep-copy một đối tượng tùy ý.
+A regular assignment `copy = original;` **does not create an independent copy**. If separate data is needed, there must be a copying mechanism appropriate for the class, and you must understand shallow/deep copying when the object contains other mutable references. There is no assignment syntax that automatically deep-copies an arbitrary object.
 
-## 9. Các nhầm lẫn thường gặp
+## 9. Common Misconceptions
 
-| Nhầm lẫn | Giải thích đúng |
+| Misconception | Correct Explanation |
 | --- | --- |
-| “Hai biến là hai đối tượng.” | Hai biến có thể cùng tham chiếu một đối tượng. |
-| “`b = a` sao chép các trường của đối tượng.” | Nó sao chép **giá trị tham chiếu**; không tạo đối tượng mới. |
-| “`b.value = 9` gán lại `b`.” | Nó sửa trạng thái của đối tượng đang được `b` tham chiếu. |
-| “`b = new Box(9)` khiến `a` chuyển đối tượng nếu trước đó `a == b`.” | Chỉ `b` đổi tham chiếu; `a` giữ nguyên. |
-| “`==` so sánh nội dung của đối tượng.” | Với tham chiếu, `==` so sánh **danh tính**. |
-| “Tham số đối tượng được truyền bằng reference.” | Java sao chép **giá trị tham chiếu** vào biến tham số; vẫn pass-by-value. |
-| “`final` làm đối tượng bất biến.” | `final` trên biến chỉ cấm gán lại biến đó. |
-| “`x = null` hủy đối tượng lập tức.” | Nó chỉ thay giá trị của `x`; đối tượng có thể vẫn được tham chiếu ở nơi khác. |
+| “Two variables are two objects.” | Two variables can reference the same object. |
+| “`b = a` copies the object's fields.” | It copies the **reference value**; no new object is created. |
+| “`b.value = 9` reassigns `b`.” | It modifies the state of the object currently referenced by `b`. |
+| “`b = new Box(9)` makes `a` switch objects if `a == b` was true before.” | Only `b` changes its reference; `a` stays the same. |
+| “`==` compares the content of objects.” | For references, `==` compares **identity**. |
+| “Object parameters are passed by reference.” | Java copies the **reference value** into the parameter variable; it is still pass-by-value. |
+| “`final` makes the object immutable.” | `final` on a variable only forbids reassigning that variable. |
+| “`x = null` destroys the object immediately.” | It only changes the value of `x`; the object may still be referenced elsewhere. |
 
-## 10. Tự kiểm tra hiểu bài
+## 10. Self-Check
 
-Giả sử `Box` có trường `int value` và constructor nhận một số nguyên như ở các ví dụ trước.
+Assume `Box` has an `int value` field and a constructor taking an integer as in the previous examples.
 
-**Tình huống A**
+**Scenario A**
 
 ```java
 Box a = new Box(1);
@@ -289,11 +289,11 @@ Box b = a;
 b.value = 3;
 ```
 
-Hỏi: `a.value` là bao nhiêu? `a == b` là gì?
+Question: What is `a.value`? What is `a == b`?
 
-**Đáp án:** `a.value == 3` và `a == b` là `true`, vì `a` và `b` cùng tham chiếu một đối tượng đã bị thay đổi.
+**Answer:** `a.value == 3` and `a == b` is `true`, because `a` and `b` reference the same object that was mutated.
 
-**Tình huống B**
+**Scenario B**
 
 ```java
 Box a = new Box(1);
@@ -301,11 +301,11 @@ Box b = a;
 b = new Box(2);
 ```
 
-Hỏi: `a.value`, `b.value`, `a == b`?
+Question: What are `a.value`, `b.value`, and `a == b`?
 
-**Đáp án:** Lần lượt `1`, `2`, `false`. Gán lại `b` không sửa đối tượng cũ và không gán lại `a`.
+**Answer:** `1`, `2`, and `false`, respectively. Reassigning `b` does not modify the old object and does not reassign `a`.
 
-**Tình huống C**
+**Scenario C**
 
 ```java
 Box a = new Box(1);
@@ -313,16 +313,16 @@ Box b = a;
 a = null;
 ```
 
-Hỏi: đối tượng ban đầu có nhất thiết không còn truy cập được không?
+Question: Is the original object necessarily unreachable?
 
-**Đáp án:** Không. `b` vẫn trỏ tới đối tượng đó. Giá trị `null` của `a` không ảnh hưởng tới `b`.
+**Answer:** No. `b` still points to that object. Setting `a` to `null` does not affect `b`.
 
-**Tình huống D**
+**Scenario D**
 
-Một phương thức nhận `Box parameter` rồi thực hiện `parameter = new Box(8);`. Hỏi biến bên gọi có đổi tham chiếu không?
+A method receives `Box parameter` and executes `parameter = new Box(8);`. Does the caller's variable change its reference?
 
-**Đáp án:** Không. Tham số chứa bản sao giá trị tham chiếu của bên gọi; phép gán chỉ cập nhật tham số cục bộ.
+**Answer:** No. The parameter holds a copy of the caller's reference value; the assignment only updates the local parameter.
 
-## Kết luận cần nhớ
+## Key Takeaway
 
-**Biến tham chiếu giữ một giá trị tham chiếu; đối tượng là thực thể được tham chiếu.** Phép gán giữa hai biến kiểu tham chiếu sao chép giá trị tham chiếu, có thể tạo alias. Sửa **trạng thái đối tượng** qua một alias được nhìn thấy qua các alias khác; **gán lại một biến** chỉ đổi nơi biến đó tham chiếu. Phân biệt hai thao tác này giúp hiểu `==`, `null`, `final`, truyền tham số, quản lý vòng đời và các tác dụng phụ khi chia sẻ đối tượng mutable.
+**A reference variable holds a reference value; an object is the referenced entity.** Assignment between two reference-type variables copies the reference value, which can create aliases. Modifying **object state** through one alias is visible through other aliases; **reassigning a variable** only changes where that variable points. Distinguishing these two operations helps you understand `==`, `null`, `final`, parameter passing, lifecycle management, and side effects when sharing mutable objects.

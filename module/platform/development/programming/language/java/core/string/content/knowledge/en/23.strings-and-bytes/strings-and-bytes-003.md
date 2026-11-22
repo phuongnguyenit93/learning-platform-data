@@ -1,23 +1,23 @@
-# Giải mã `byte[]` thành `String` với `Charset` và giải mã một vùng byte
+# Decoding `byte[]` to `String` with `Charset` and Decoding a Byte Range
 
-## Mục tiêu
+## Objectives
 
-Dữ liệu đọc từ tệp, socket, HTTP hoặc một giao thức nhị phân thường bắt đầu dưới dạng `byte[]`. Để biến các byte này thành văn bản Java, phải **giải mã (decode)** chúng theo đúng bảng mã đã dùng khi tạo dữ liệu. Hai constructor quan trọng là:
+Data read from files, sockets, HTTP, or a binary protocol often starts as a `byte[]`. To turn those bytes into Java text, you must **decode** them using the exact character encoding used when the data was created. Two important constructors are:
 
 ```java
 new String(byte[] bytes, Charset charset)
 new String(byte[] bytes, int offset, int length, Charset charset)
 ```
 
-Sau bài này, bạn có thể chọn đúng `Charset`, hiểu chính xác `offset` và `length` tính theo **byte**, giải mã một phần mảng mà không tự cắt sai ranh giới ký tự Unicode, đồng thời nhận biết trường hợp dữ liệu bị lỗi.
+After this lesson, you will be able to choose the right `Charset`, understand `offset` and `length` measured in **bytes**, decode a sub-array without accidentally cutting across a Unicode character boundary, and recognize when input data is malformed.
 
-## 1. Byte không tự mang ý nghĩa là ký tự
+## 1. Bytes Do Not Inherently Mean Characters
 
-Java `String` lưu nội dung văn bản Unicode; `byte[]` lưu dãy byte. Các giá trị byte giống nhau có thể tạo ra văn bản khác nhau tùy bảng mã.
+Java `String` stores Unicode text; `byte[]` stores a sequence of bytes. The same byte values can produce different text depending on the encoding.
 
-Ví dụ, ký tự `é` có dạng UTF-8 gồm hai byte `C3 A9`, còn trong ISO-8859-1 nó là một byte `E9`. Đọc `E9` như một ký tự UTF-8 hợp lệ sẽ không cho ra chữ `é`. Vì thế, **charset khi giải mã phải khớp charset khi mã hóa**; chỉ định UTF-8 không thể tự sửa dữ liệu vốn được tạo bằng một bảng mã khác.
+For example, the character `é` is two bytes `C3 A9` in UTF-8, whereas in ISO-8859-1 it is one byte `E9`. Reading `E9` as a valid UTF-8 character will not produce `é`. Therefore, **the decoding charset must match the encoding charset**; specifying UTF-8 cannot magically fix data originally created with a different encoding.
 
-`Charset` nằm trong package `java.nio.charset`. Với các charset phổ biến, dùng hằng số có sẵn trong `StandardCharsets`:
+`Charset` is in the `java.nio.charset` package. For common charsets, use the predefined constants in `StandardCharsets`:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -27,33 +27,33 @@ String text = new String(bytes, StandardCharsets.UTF_8);
 System.out.println(text);
 ```
 
-Kết quả:
+Output:
 
 ```text
 Chào Java
 ```
 
-`getBytes(StandardCharsets.UTF_8)` là chiều **mã hóa (encode)** từ `String` sang `byte[]`; `new String(bytes, StandardCharsets.UTF_8)` là chiều **giải mã (decode)** ngược lại. Chúng tạo thành một vòng khứ hồi khi dữ liệu có thể được biểu diễn trong bảng mã đã chọn và không bị sửa đổi trên đường đi.
+`getBytes(StandardCharsets.UTF_8)` is the **encoding** direction from `String` to `byte[]`; `new String(bytes, StandardCharsets.UTF_8)` is the reverse **decoding** direction. They form a round-trip when the data is representable in the chosen encoding and is not altered in transit.
 
-Nên chỉ định charset rõ ràng, đặc biệt với dữ liệu trao đổi giữa các chương trình. Constructor `new String(bytes)` dùng charset mặc định của môi trường Java đang chạy; không nên dựa vào mặc định khi giao thức hoặc định dạng tệp đã quy định một charset cụ thể.
+Always specify the charset explicitly, especially for data exchanged between programs. The `new String(bytes)` constructor uses the default charset of the running Java environment; do not rely on the default when a protocol or file format specifies a particular charset.
 
-## 2. Giải mã toàn bộ mảng: `new String(byte[], Charset)`
+## 2. Decoding an Entire Array: `new String(byte[], Charset)`
 
-Cú pháp:
+Syntax:
 
 ```java
 String text = new String(bytes, StandardCharsets.UTF_8);
 ```
 
-Trong đó:
+Where:
 
-- `bytes`: mảng byte chứa dữ liệu văn bản đã mã hóa.
-- `StandardCharsets.UTF_8`: `Charset` dùng để diễn giải dãy byte.
-- `text`: đối tượng `String` mới chứa văn bản đã giải mã.
+- `bytes`: the byte array containing encoded text data.
+- `StandardCharsets.UTF_8`: the `Charset` used to interpret the byte sequence.
+- `text`: a new `String` object containing the decoded text.
 
-Constructor giải mã **toàn bộ** mảng từ chỉ số `0` đến `bytes.length - 1`. Nếu mảng rỗng, kết quả là chuỗi rỗng `""`. Với `bytes` hoặc `charset` bằng `null`, lời gọi không hợp lệ và ném `NullPointerException`.
+The constructor decodes the **entire** array from index `0` to `bytes.length - 1`. If the array is empty, the result is the empty string `""`. Passing `null` for `bytes` or `charset` is invalid and throws `NullPointerException`.
 
-Ví dụ với dữ liệu UTF-8 xác định sẵn:
+Example with predefined UTF-8 data:
 
 ```java
 byte[] encoded = {(byte) 0x43, (byte) 0x61, (byte) 0x66,
@@ -63,51 +63,51 @@ String decoded = new String(encoded, StandardCharsets.UTF_8);
 System.out.println(decoded);
 ```
 
-Kết quả:
+Output:
 
 ```text
 Café
 ```
 
-Các byte ASCII `43 61 66` cho `Caf`; cặp UTF-8 `C3 A9` cho `é`. Phép ép kiểu `(byte)` ở đây là cần thiết với các literal hex lớn hơn `0x7F`, vì kiểu `byte` trong Java có dấu (miền giá trị từ -128 đến 127). Dấu âm trong phần hiển thị của mảng byte không có nghĩa dữ liệu mã hóa đã thay đổi.
+ASCII bytes `43 61 66` give `Caf`; the UTF-8 pair `C3 A9` gives `é`. The `(byte)` cast here is needed for hex literals greater than `0x7F` because Java's `byte` type is signed (range -128 to 127). Negative signs when displaying a byte array do not mean the encoded data changed.
 
-Sau khi constructor hoàn tất, thay đổi các phần tử của mảng đầu vào **không làm đổi nội dung của `String` đã tạo**. Điều này phù hợp với tính bất biến của `String`.
+After the constructor finishes, modifying elements of the input array **does not alter the contents of the created `String`**. This is consistent with the immutability of `String`.
 
-## 3. Giải mã một vùng: `new String(byte[], offset, length, Charset)`
+## 3. Decoding a Range: `new String(byte[], offset, length, Charset)`
 
-Nhiều bản tin có header, dữ liệu văn bản và phần đuôi nhị phân. Nếu chỉ phần giữa là văn bản, cần giải mã đúng vùng được chỉ định:
+Many messages contain a header, text payload, and binary trailer. If only the middle portion is text, decode the exact specified range:
 
 ```java
 String text = new String(bytes, offset, length, StandardCharsets.UTF_8);
 ```
 
-**Ý nghĩa của các tham số:**
+**Parameter meanings:**
 
-| Tham số | Ý nghĩa |
+| Parameter | Meaning |
 | --- | --- |
-| `bytes` | Toàn bộ mảng byte nguồn |
-| `offset` | Chỉ số **byte đầu tiên** của vùng cần đọc, bắt đầu từ 0 |
-| `length` | **Số byte** cần giải mã, không phải chỉ số byte cuối |
-| `charset` | Bảng mã của phần byte văn bản |
+| `bytes` | The entire source byte array |
+| `offset` | Index of the **first byte** of the range to read, starting from 0 |
+| `length` | **Number of bytes** to decode, not the ending byte index |
+| `charset` | Character encoding of the text byte section |
 
-Vùng được chọn có chỉ số trong khoảng **`[offset, offset + length)`**: bao gồm byte tại `offset` và loại trừ byte tại `offset + length`. Đây là đúng kiểu khoảng nửa mở thường gặp trong Java.
+The selected range spans indices **`[offset, offset + length)`**: inclusive of the byte at `offset` and exclusive of the byte at `offset + length`. This matches the standard half-open interval convention used throughout Java.
 
 ```text
-Mảng byte:  [H0] [H1] [C] [a] [f] [C3] [A9] [T]
-Chỉ số:     0    1    2   3   4    5    6    7
-                       <------ 5 byte ----->
+Byte array: [H0] [H1] [C] [a] [f] [C3] [A9] [T]
+Index:      0    1    2   3   4    5    6    7
+                       <------ 5 bytes ----->
                        offset=2, length=5
 ```
 
-Ở minh họa này, `H0`/`H1` là header, `T` là trailer. Dãy byte từ vị trí 2 đến 6 tương ứng văn bản UTF-8 `Café`. Byte `C3` và `A9` phải cùng nằm trong vùng giải mã để tạo thành ký tự `é`.
+In this illustration, `H0`/`H1` is the header and `T` is the trailer. The byte sequence from position 2 to 6 corresponds to the UTF-8 text `Café`. Both `C3` and `A9` must lie inside the decoded range to form the character `é`.
 
-Ví dụ:
+Example:
 
 ```java
 byte[] packet = {
         0x01, 0x02,             // Header
         0x43, 0x61, 0x66,
-        (byte) 0xC3, (byte) 0xA9, // "Café" trong UTF-8
+        (byte) 0xC3, (byte) 0xA9, // "Café" in UTF-8
         0x7F                    // Trailer
 };
 
@@ -115,33 +115,33 @@ String payload = new String(packet, 2, 5, StandardCharsets.UTF_8);
 System.out.println(payload);
 ```
 
-Kết quả:
+Output:
 
 ```text
 Café
 ```
 
-Nếu chỉ cần giải mã, dùng constructor có vùng sẽ tiện hơn việc tạo một mảng tạm bằng `Arrays.copyOfRange(bytes, offset, offset + length)` rồi gọi `new String(... )`. Tuy nhiên, constructor vẫn cần xử lý và tạo chuỗi đầu ra; "không phải tự cắt mảng" **không đồng nghĩa với giải mã không cấp phát bộ nhớ**.
+If you only need to decode, using the range constructor is more convenient than creating a temporary array with `Arrays.copyOfRange(bytes, offset, offset + length)` and then calling `new String(...)`. However, the constructor still has to process the bytes and allocate the output string; "not slicing the array manually" **does not mean zero-allocation decoding**.
 
-### Kiểm tra giới hạn vùng
+### Bounds Checking
 
-`offset` và `length` phải không âm, và vùng phải nằm hoàn toàn trong `bytes`. Nếu vượt giới hạn, constructor ném `IndexOutOfBoundsException`. Ví dụ:
+`offset` and `length` must be non-negative, and the range must lie completely within `bytes`. If it goes out of bounds, the constructor throws `IndexOutOfBoundsException`. For example:
 
 ```java
 byte[] data = {65, 66, 67}; // "ABC"
 String value = new String(data, 1, 2, StandardCharsets.UTF_8);
-// Kết quả: "BC"
+// Result: "BC"
 ```
 
-`new String(data, 1, 3, StandardCharsets.UTF_8)` vượt quá độ dài mảng và gây lỗi. `offset=1, length=2` là chọn byte tại chỉ số 1 và 2, **không phải** "từ chỉ số 1 đến chỉ số 2" theo cách hiểu tham số `length` là điểm kết thúc.
+`new String(data, 1, 3, StandardCharsets.UTF_8)` exceeds the array length and fails. `offset=1, length=2` selects the bytes at indices 1 and 2, **not** "from index 1 to index 2" as if `length` were an end index.
 
-`length=0` tạo chuỗi rỗng nếu `offset` hợp lệ (kể cả `offset == bytes.length`).
+`length=0` produces an empty string if `offset` is valid (including `offset == bytes.length`).
 
-## 4. Chọn ranh giới byte phù hợp với charset
+## 4. Choosing Byte Boundaries Compatible with the Charset
 
-Với UTF-8, một ký tự Unicode có thể dùng từ một đến bốn byte. `offset` và `length` là tọa độ **byte**, vì vậy một vùng byte hợp lệ về giới hạn mảng vẫn có thể cắt ngang chuỗi mã hóa của một ký tự.
+With UTF-8, a single Unicode character can take from one to four bytes. `offset` and `length` are **byte** coordinates, so a byte range that is valid with respect to array bounds can still cut right through the encoded sequence of a character.
 
-Ví dụ:
+Example:
 
 ```java
 byte[] eAcute = {(byte) 0xC3, (byte) 0xA9};
@@ -150,22 +150,22 @@ System.out.println(new String(eAcute, 0, 2, StandardCharsets.UTF_8));
 System.out.println((int) new String(eAcute, 0, 1, StandardCharsets.UTF_8).charAt(0));
 ```
 
-Kết quả:
+Output:
 
 ```text
 é
 65533
 ```
 
-Giải mã đủ hai byte cho ra `é`; chỉ lấy byte đầu `C3` khiến UTF-8 thiếu byte nối tiếp, nên constructor thay bằng ký tự thay thế Unicode **U+FFFD**, có giá trị thập phân 65533. Đây không phải lỗi chỉ số mảng, mà là **lỗi dãy byte sau khi chọn vùng**.
+Decoding both bytes yields `é`; taking only the first byte `C3` leaves UTF-8 missing its continuation byte, so the constructor substitutes the Unicode replacement character **U+FFFD**, which has decimal value 65533. This is not an array index error, but a **byte sequence error after slicing the range**.
 
-Nếu muốn tách một vùng theo số ký tự của **văn bản đã giải mã**, hãy giải mã phần dữ liệu hợp lệ trước, rồi dùng API xử lý `String` phù hợp. Đặc biệt, `String.length()` đếm đơn vị mã UTF-16, không phải byte và cũng không luôn bằng số Unicode code point.
+If you want to extract a range by character count in the **decoded text**, decode the valid data first, then use the appropriate `String` APIs. In particular, `String.length()` counts UTF-16 code units, not bytes and not always Unicode code points.
 
-Nếu dữ liệu đến theo nhiều khối từ mạng và một ký tự UTF-8 nằm trên ranh giới hai khối, không được giải mã mỗi khối độc lập rồi mong kết quả luôn chính xác. Hãy ghép đủ byte trước khi giải mã, hoặc dùng `CharsetDecoder` theo cơ chế giải mã tăng dần, giữ trạng thái giữa các khối.
+If data arrives in multiple chunks from a network and a UTF-8 character straddles two chunks, do not decode each chunk independently and expect always-accurate results. Buffer enough bytes before decoding, or use `CharsetDecoder` for incremental decoding that preserves state across chunks.
 
-## 5. Byte không hợp lệ và chế độ kiểm soát lỗi
+## 5. Invalid Bytes and Error-Control Modes
 
-Hai constructor `String` dùng `Charset` ở trên sẽ **thay các dãy byte sai hoặc không thể biểu diễn bằng chuỗi thay thế mặc định của charset**. Với UTF-8, thường thấy ký tự thay thế `�` (`U+FFFD`) trong đầu ra.
+The two `String` constructors taking `Charset` above **replace malformed or unmappable byte sequences with the charset's default replacement string**. With UTF-8, you commonly see the replacement character `�` (`U+FFFD`) in the output.
 
 ```java
 byte[] badUtf8 = {(byte) 0xC3, (byte) 0x28};
@@ -175,16 +175,16 @@ System.out.println((int) text.charAt(0));
 System.out.println(text.charAt(1));
 ```
 
-Kết quả:
+Output:
 
 ```text
 65533
 (
 ```
 
-Byte `C3` cần byte tiếp nối UTF-8 hợp lệ, nhưng `28` không đáp ứng; byte lỗi được thay bằng `U+FFFD`, còn `28` được hiểu thành dấu `(`. Hành vi thay thế giúp tiếp tục hiển thị dữ liệu có lỗi, nhưng có thể **che giấu việc đầu vào bị hỏng**.
+Byte `C3` requires a valid UTF-8 continuation byte, which `28` is not; the invalid byte is replaced with `U+FFFD`, while `28` is interpreted as `(`. Replacement behavior allows displaying damaged data without crashing, but it can **hide input corruption**.
 
-Khi yêu cầu kiểm soát chặt, ví dụ đọc mã định danh, thông điệp giao thức hoặc dữ liệu cần xác minh, dùng `CharsetDecoder` và yêu cầu báo lỗi:
+When strict validation is required—for example, reading identifiers, protocol messages, or data that must be verified—use `CharsetDecoder` and configure it to report errors:
 
 ```java
 import java.nio.ByteBuffer;
@@ -203,21 +203,21 @@ try {
     String text = decoder.decode(ByteBuffer.wrap(badUtf8)).toString();
     System.out.println(text);
 } catch (CharacterCodingException error) {
-    System.out.println("Dữ liệu UTF-8 không hợp lệ");
+    System.out.println("Invalid UTF-8 data");
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
-Dữ liệu UTF-8 không hợp lệ
+Invalid UTF-8 data
 ```
 
-Đây là **đoạn mã minh họa** để đặt trong một phương thức hoặc `main`; các lệnh `import` đặt ở đầu tệp. `REPORT` yêu cầu báo lỗi thay vì âm thầm thay ký tự. Khi chỉ muốn giải mã một vùng với decoder, dùng `ByteBuffer.wrap(bytes, offset, length)` để tạo buffer có vị trí và giới hạn tương ứng vùng byte. `CharsetDecoder` có trạng thái và không nên dùng chung một instance giữa các luồng nếu không đồng bộ đúng cách.
+This is an **illustrative snippet** to place inside a method or `main`; the `import` statements go at the top of the file. `REPORT` asks the decoder to throw an error instead of silently substituting characters. When you only want to decode a sub-range with a decoder, use `ByteBuffer.wrap(bytes, offset, length)` to create a buffer whose position and limit match the byte range. `CharsetDecoder` is stateful and should not be shared across threads without proper synchronization.
 
-## 6. Chương trình Java 17+ chạy hoàn chỉnh
+## 6. Complete Runnable Java 17+ Program
 
-Tạo tệp **`ByteDecodingDemo.java`** với nội dung:
+Create a file named **`ByteDecodingDemo.java`** with the following content:
 
 ```java
 import java.nio.ByteBuffer;
@@ -242,14 +242,14 @@ public class ByteDecodingDemo {
         String selectedText = new String(
                 packet, prefix.length, content.length, StandardCharsets.UTF_8);
 
-        System.out.println("Giải mã đầy đủ: " + allTextBytes);
-        System.out.println("Giải mã vùng: " + selectedText);
-        System.out.println("Số đơn vị UTF-16: " + selectedText.length());
-        System.out.println("Số byte UTF-8: " + content.length);
+        System.out.println("Full decode: " + allTextBytes);
+        System.out.println("Range decode: " + selectedText);
+        System.out.println("UTF-16 units: " + selectedText.length());
+        System.out.println("UTF-8 bytes: " + content.length);
 
         byte[] invalid = {(byte) 0xC3, (byte) 0x28};
         String replaced = new String(invalid, StandardCharsets.UTF_8);
-        System.out.println("Mã ký tự thay thế: " + (int) replaced.charAt(0));
+        System.out.println("Replacement char code: " + (int) replaced.charAt(0));
 
         CharsetDecoder strict = StandardCharsets.UTF_8.newDecoder()
                 .onMalformedInput(CodingErrorAction.REPORT)
@@ -257,63 +257,63 @@ public class ByteDecodingDemo {
 
         try {
             strict.decode(ByteBuffer.wrap(invalid));
-            System.out.println("Dữ liệu hợp lệ");
+            System.out.println("Valid data");
         } catch (CharacterCodingException ex) {
-            System.out.println("Dữ liệu không hợp lệ");
+            System.out.println("Invalid data");
         }
     }
 }
 ```
 
-Biên dịch tệp được lưu bằng UTF-8 và chạy:
+Compile the file saved as UTF-8 and run it:
 
 ```bash
 javac -encoding UTF-8 ByteDecodingDemo.java
 java ByteDecodingDemo
 ```
 
-Đầu ra hiển thị trên console hỗ trợ Unicode:
+Output displayed on a Unicode-capable console:
 
 ```text
-Giải mã đầy đủ: Chào Java
-Giải mã vùng: Chào Java
-Số đơn vị UTF-16: 9
-Số byte UTF-8: 10
-Mã ký tự thay thế: 65533
-Dữ liệu không hợp lệ
+Full decode: Chào Java
+Range decode: Chào Java
+UTF-16 units: 9
+UTF-8 bytes: 10
+Replacement char code: 65533
+Invalid data
 ```
 
-Giải thích: `"Chào Java"` gồm 9 đơn vị UTF-16 nhưng 10 byte UTF-8, vì chữ `à` được mã hóa bằng hai byte. `packet` chứa ba byte header, mười byte văn bản, một byte trailer. Constructor bốn tham số chỉ lấy đúng mười byte văn bản; hai phần nhị phân không đi vào kết quả. Đoạn cuối phân biệt hành vi thay thế ký tự của constructor với cơ chế báo lỗi của decoder.
+Explanation: `"Chào Java"` consists of 9 UTF-16 code units but 10 UTF-8 bytes, because the letter `à` is encoded in two bytes. `packet` contains three header bytes, ten text bytes, and one trailer byte. The four-parameter constructor reads only the exact ten text bytes; the two binary sections do not enter the result. The final block contrasts the constructor's character-replacement behavior with the decoder's error-reporting mechanism.
 
-## 7. Lưu ý thực tế và lỗi thường gặp
+## 7. Practical Notes and Common Mistakes
 
-| Tình huống | Nguyên nhân hoặc cách xử lý |
+| Situation | Cause or How to Handle |
 | --- | --- |
-| Chữ tiếng Việt biến thành `�` hoặc ký tự lạ | Kiểm tra charset nguồn và tính hợp lệ của byte, đừng đoán UTF-8 nếu định dạng thực tế khác |
-| Lấy nhầm phần header hoặc trailer | Tính `offset` từ đầu mảng và `length` là số byte thực sự của payload |
-| Cắt giữa ký tự đa byte | Chọn ranh giới mã hóa đúng, hoặc giải mã dạng streaming bằng decoder giữ trạng thái |
-| `IndexOutOfBoundsException` | Rà lại chỉ số byte, độ dài và giới hạn mảng |
-| Dữ liệu lỗi nhưng chương trình không ném ngoại lệ | Constructor `String` đang dùng cơ chế thay thế; chuyển sang `CharsetDecoder` với `REPORT` nếu cần |
-| Đếm `String.length()` để tính kích thước bản tin | Độ dài `String` là số đơn vị UTF-16; dùng độ dài `byte[]` khi giao thức cần số byte |
-| Tệp UTF-8 bắt đầu bằng BOM | Các byte `EF BB BF` biểu diễn `U+FEFF`; khi giải mã UTF-8 với `String`, hãy kiểm tra và xử lý dấu này nếu định dạng tệp yêu cầu bỏ BOM |
-| Đưa dữ liệu của người dùng vào `new String(bytes)` không nêu charset | Nêu charset theo giao thức, ví dụ `StandardCharsets.UTF_8`, để dữ liệu có ý nghĩa nhất quán |
+| Vietnamese text turns into `�` or strange characters | Check the source charset and byte validity; do not assume UTF-8 if the actual format differs |
+| Accidentally including header or trailer bytes | Compute `offset` from the start of the array and `length` as the exact byte count of the payload |
+| Splitting in the middle of a multi-byte character | Pick proper encoded boundaries, or decode in streaming fashion with a stateful decoder |
+| `IndexOutOfBoundsException` | Double-check byte indices, length, and array bounds |
+| Corrupted data but the program throws no exception | The `String` constructor is using replacement mode; switch to `CharsetDecoder` with `REPORT` if needed |
+| Using `String.length()` to compute message byte size | `String` length is the number of UTF-16 units; use `byte[]` length when the protocol requires byte count |
+| UTF-8 file starting with a BOM | Bytes `EF BB BF` represent `U+FEFF`; when decoding UTF-8 into `String`, check for and strip this mark if the file format requires removing BOM |
+| Passing user data to `new String(bytes)` without specifying a charset | Specify the protocol's charset, e.g., `StandardCharsets.UTF_8`, so data is interpreted consistently |
 
-Không được nhầm `new String(bytes, 2, 5, UTF_8)` với `substring(2, 5)`: `substring` nhận vị trí trong văn bản Java sau khi giải mã và đối số thứ hai là **chỉ số kết thúc loại trừ**; constructor vùng byte nhận **số byte**. Hai thao tác có đơn vị và ý nghĩa khác nhau.
+Do not confuse `new String(bytes, 2, 5, UTF_8)` with `substring(2, 5)`: `substring` takes positions in the decoded Java text and its second argument is an **exclusive end index**; the byte-range constructor takes a **byte count**. The two operations use different units and have different meanings.
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-**Câu 1.** Cho `byte[] data = {65, 66, 67, 68};`. Giá trị của `new String(data, 1, 2, StandardCharsets.US_ASCII)` là gì?
+**Question 1.** Given `byte[] data = {65, 66, 67, 68};`, what is the value of `new String(data, 1, 2, StandardCharsets.US_ASCII)`?
 
-**Đáp án:** `"BC"`. Vùng giải mã gồm byte chỉ số 1 và 2, ứng với mã ASCII 66 và 67.
+**Answer:** `"BC"`. The decoded range consists of bytes at indices 1 and 2, corresponding to ASCII codes 66 and 67.
 
-**Câu 2.** Vì sao `new String(utf8, 0, 1, UTF_8)` có thể tạo `�` dù chỉ số `0` và độ dài `1` đều hợp lệ?
+**Question 2.** Why can `new String(utf8, 0, 1, UTF_8)` produce `�` even though index `0` and length `1` are both in bounds?
 
-**Đáp án:** Một byte đầu có thể là phần đầu của ký tự UTF-8 hai đến bốn byte. Vùng byte không chứa đủ dãy mã hóa nên đầu vào không hợp lệ với decoder.
+**Answer:** The first byte may be the leading byte of a two-to-four-byte UTF-8 character. The byte range does not contain the full encoded sequence, so the input is invalid to the decoder.
 
-**Câu 3.** Khi nào nên dùng `CharsetDecoder` thay cho constructor `String`?
+**Question 3.** When should you use `CharsetDecoder` instead of a `String` constructor?
 
-**Đáp án:** Khi cần phát hiện dữ liệu không hợp lệ thay vì tự động thay ký tự, hoặc cần giải mã dữ liệu nhiều đợt với trạng thái duy trì giữa các lần nhận byte.
+**Answer:** When you need to detect invalid data instead of silently substituting replacement characters, or when decoding chunked data while preserving state across reads.
 
-## Ghi nhớ
+## Key Takeaways
 
-Dùng **`new String(bytes, charset)`** để giải mã toàn bộ dãy byte và **`new String(bytes, offset, length, charset)`** để giải mã đúng vùng byte thuộc payload. `offset` là vị trí byte đầu, `length` là **số byte**, và bảng mã phải khớp dữ liệu nguồn. Với UTF-8, đặc biệt chú ý ranh giới ký tự nhiều byte và sử dụng `CharsetDecoder` nếu cần xác thực lỗi đầu vào.
+Use **`new String(bytes, charset)`** to decode an entire byte array and **`new String(bytes, offset, length, charset)`** to decode the exact byte range of a payload. `offset` is the starting byte index, `length` is the **number of bytes**, and the charset must match the source data. With UTF-8, pay close attention to multi-byte character boundaries and use `CharsetDecoder` when input errors must be validated.

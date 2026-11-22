@@ -1,46 +1,46 @@
 # java --show-module-resolution
 
-Khi chạy ứng dụng modular, JVM phải resolve một tập module trước khi khởi chạy main class. Quá trình này xác định module gốc (root), các dependency được khai báo bằng `requires`, vị trí tìm thấy từng module và những module provider được bổ sung qua service binding.
+When running a modular application, the JVM must resolve a set of modules before launching the main class. This process determines the root modules, the dependencies declared via `requires`, the location where each module is found, and the provider modules added through service binding.
 
-Tùy chọn `java --show-module-resolution` yêu cầu Java launcher in thông tin của quá trình resolve trong lúc khởi động. Đây là công cụ hữu ích khi ứng dụng chạy được trên máy này nhưng thất bại trên máy khác, khi module path chứa nhiều phiên bản thư viện, hoặc khi một service provider bất ngờ xuất hiện hay biến mất khỏi runtime graph.
+The `java --show-module-resolution` option instructs the Java launcher to print information about the resolution process during startup. This is a useful tool when an application runs on one machine but fails on another, when the module path contains multiple library versions, or when a service provider unexpectedly appears in or disappears from the runtime graph.
 
-Bài này dùng JDK 21 và một ứng dụng có module `com.acme.app`. Các đường dẫn và tên module trong output minh họa có thể khác theo hệ điều hành, JDK và cách đóng gói.
+This lesson uses JDK 21 and an application with a module named `com.acme.app`. Paths and module names in the sample output may vary depending on the operating system, JDK, and packaging.
 
-## 1. Cú pháp cơ bản
+## 1. Basic Syntax
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~bash
 java --show-module-resolution --module-path <module-path> --module <module-name>/<main-class>
 ~~~
 
-Các tùy chọn:
+Options:
 
-- `--show-module-resolution`: in thông tin module resolution khi ứng dụng khởi chạy.
-- `--module-path` hoặc `-p`: chỉ định thư mục hoặc file JAR chứa named module.
-- `--module` hoặc `-m`: chỉ định module chứa ứng dụng; có thể kèm main class sau dấu gạch chéo.
-- `--add-modules`: bổ sung root module ngoài root được launcher chọn từ cách khởi chạy.
-- `--limit-modules`: giới hạn tập module có thể quan sát khi resolve, hữu ích cho một số cấu hình runtime nhưng có thể làm dependency không còn tìm thấy.
+- `--show-module-resolution`: prints module resolution information when the application starts.
+- `--module-path` or `-p`: specifies directories or JAR files containing named modules.
+- `--module` or `-m`: specifies the module containing the application; may include the main class after a slash.
+- `--add-modules`: adds root modules in addition to the root selected by the launcher based on how the application is started.
+- `--limit-modules`: limits the set of observable modules during resolution, which is useful for certain runtime configurations but can cause dependencies to no longer be found.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --show-module-resolution   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Cách viết ngắn:
+Short form:
 
 ~~~bash
 java --show-module-resolution -p mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong ví dụ này, `com.acme.app` là root module được khởi chạy. Java launcher tìm module trong `mods`, resolve các dependency của nó, tạo configuration và sau đó khởi chạy `com.acme.app.Main`.
+In this example, `com.acme.app` is the root module being launched. The Java launcher locates the module in `mods`, resolves its dependencies, builds a configuration, and then runs `com.acme.app.Main`.
 
-Nếu module descriptor khai báo main class, bạn có thể khởi chạy module mà không cần ghi class sau dấu gạch chéo. Tuy nhiên, ghi rõ `module/main-class` giúp lệnh dễ đọc và tránh nhầm lẫn khi học hoặc debug.
+If the module descriptor declares a main class, you can launch the module without writing the class after the slash. However, specifying `module/main-class` explicitly makes the command easier to read and avoids confusion when learning or debugging.
 
-## 2. Đọc output: root và requires
+## 2. Reading Output: root and requires
 
-Giả sử ứng dụng có các module:
+Suppose the application has the following modules:
 
 ~~~text
 mods/
@@ -50,7 +50,7 @@ mods/
     └── module-info.class
 ~~~
 
-Descriptor của ứng dụng:
+Application descriptor:
 
 ~~~java
 module com.acme.app {
@@ -58,7 +58,7 @@ module com.acme.app {
 }
 ~~~
 
-Descriptor của API:
+API descriptor:
 
 ~~~java
 module com.acme.api {
@@ -66,7 +66,7 @@ module com.acme.api {
 }
 ~~~
 
-Một output rút gọn có thể có dạng:
+A condensed output might look like:
 
 ~~~text
 root com.acme.app file:///project/mods/com.acme.app/
@@ -75,66 +75,66 @@ com.acme.app requires java.base jrt:/java.base
 com.acme.api requires java.base jrt:/java.base
 ~~~
 
-Cách đọc:
+How to read it:
 
-- `root` cho biết module nào được chọn làm điểm bắt đầu của configuration.
-- `requires` cho biết module nào cần module khác theo descriptor.
-- Đường dẫn sau tên module cho biết vị trí module được tìm thấy.
-- `jrt:/...` là URI dùng để chỉ module nằm trong runtime image của JDK.
-- `file:/...` hoặc URI file tương tự thường chỉ module được tìm từ module path.
+- `root` indicates which module was selected as the starting point of the configuration.
+- `requires` indicates which module needs another module according to its descriptor.
+- The path after the module name indicates where the module was found.
+- `jrt:/...` is a URI referring to a module located in the JDK's runtime image.
+- `file:/...` or a similar file URI typically indicates a module found on the module path.
 
-Trong graph này, `com.acme.app` là root. Nó yêu cầu `com.acme.api`; cả hai module đều phụ thuộc ngầm định vào `java.base`. Vì vậy, dù ứng dụng chỉ khai báo một dependency trực tiếp, graph còn có các dependency nền tảng được resolve theo descriptor.
+In this graph, `com.acme.app` is the root. It requires `com.acme.api`; both modules implicitly depend on `java.base`. Thus, even though the application only declares one direct dependency, the graph also includes foundational dependencies resolved from descriptors.
 
-Tên và thứ tự các dòng output không nên được xem là giao diện ổn định để máy khác phân tích. Hãy đọc chúng như thông tin chẩn đoán dành cho con người; nếu cần xử lý tự động, dùng Java Module API thay vì parse văn bản console.
+Line labels and ordering in the output should not be treated as a stable interface for automated parsing. Read them as diagnostic information for humans; if automated processing is needed, use the Java Module API instead of parsing console text.
 
-## 3. Root module được chọn như thế nào?
+## 3. How Are Root Modules Selected?
 
-Root module là điểm bắt đầu của quá trình resolve. Root set ảnh hưởng trực tiếp đến graph cuối cùng.
+Root modules are the starting point of the resolution process. The root set directly affects the final graph.
 
-Khi chạy:
+When running:
 
 ~~~bash
 java --show-module-resolution -p mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-module `com.acme.app` được chọn làm root.
+the `com.acme.app` module is selected as a root.
 
-Có thể bổ sung một root khác:
+You can add another root:
 
 ~~~bash
 java --show-module-resolution   --module-path mods   --add-modules com.acme.tools   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Lúc này `com.acme.tools` cũng được đưa vào tập root. Nếu module đó có dependency riêng, các dependency ấy có thể xuất hiện trong output dù `com.acme.app` không yêu cầu trực tiếp `com.acme.tools`.
+Now `com.acme.tools` is also included in the root set. If that module has its own dependencies, those dependencies can appear in the output even though `com.acme.app` does not directly require `com.acme.tools`.
 
-Một số giá trị đặc biệt của `--add-modules`:
+Some special values of `--add-modules`:
 
-- `ALL-MODULE-PATH`: chọn tất cả module quan sát được trên module path làm root.
-- `ALL-SYSTEM`: chọn tất cả module hệ thống có thể quan sát trong runtime image.
-- Tên module cụ thể: thêm module đó vào root set.
+- `ALL-MODULE-PATH`: selects all observable modules on the module path as roots.
+- `ALL-SYSTEM`: selects all observable system modules in the runtime image.
+- Specific module name: adds that module to the root set.
 
-Không nên dùng `ALL-MODULE-PATH` chỉ để “sửa” lỗi thiếu dependency mà không tìm nguyên nhân. Nó có thể làm graph lớn hơn đáng kể, che khuất dependency thực sự của ứng dụng và làm runtime chứa những module không cần thiết.
+Do not use `ALL-MODULE-PATH` merely to "fix" missing dependency errors without finding the root cause. It can enlarge the graph significantly, obscure the application's actual dependencies, and cause the runtime to include unnecessary modules.
 
-## 4. Đọc vị trí module trong output
+## 4. Reading Module Locations in the Output
 
-Vị trí module giúp xác định launcher đang dùng module nào khi có nhiều nguồn cung cấp:
+Module locations help identify which module the launcher is using when multiple sources exist:
 
-| Dạng vị trí | Ý nghĩa thường gặp |
+| Location Pattern | Common Meaning |
 |---|---|
-| `jrt:/java.base` | Module nằm trong runtime image của JDK |
-| `file:/.../mods/com.acme.api/` | Exploded module được tìm thấy trên module path |
-| `file:/.../lib/com.acme.api.jar` | Modular JAR hoặc JAR được nhận diện thành module |
-| `jrt:/java.sql` | Module hệ thống `java.sql` của runtime image |
+| `jrt:/java.base` | Module located in the JDK runtime image |
+| `file:/.../mods/com.acme.api/` | Exploded module found on the module path |
+| `file:/.../lib/com.acme.api.jar` | Modular JAR or JAR recognized as a module |
+| `jrt:/java.sql` | System module `java.sql` from the runtime image |
 
-Nếu bạn có hai bản JAR cùng tên ở hai thư mục khác nhau, output giúp xác định bản nào đã được chọn. Hãy đối chiếu đường dẫn đó với cấu hình module path và artifact mà build tool tạo ra.
+If you have two JARs with the same name in two different directories, the output helps determine which one was selected. Compare that path against your module path configuration and the artifacts produced by your build tool.
 
-Đừng nhầm module location với vị trí source code. Java launcher resolve module đã đóng gói hoặc đã biên dịch; nó không dùng đường dẫn source `.java` để chạy ứng dụng.
+Do not confuse module locations with source code locations. The Java launcher resolves packaged or compiled modules; it does not use `.java` source paths to run the application.
 
-## 5. Service binding và các dòng binds
+## 5. Service Binding and `binds` Lines
 
-Ngoài dependency `requires`, module graph có thể được mở rộng qua service binding.
+In addition to `requires` dependencies, the module graph can be expanded via service binding.
 
-Consumer khai báo service:
+The consumer declares the service:
 
 ~~~java
 module com.acme.app {
@@ -143,7 +143,7 @@ module com.acme.app {
 }
 ~~~
 
-Provider khai báo implementation:
+The provider declares the implementation:
 
 ~~~java
 module com.acme.codec.json {
@@ -154,7 +154,7 @@ module com.acme.codec.json {
 }
 ~~~
 
-Khi configuration thực hiện service binding, provider phù hợp có thể được bổ sung nếu module provider nằm trong tập module quan sát được. Output resolution có thể thể hiện quan hệ này bằng dòng `binds`, ví dụ minh họa:
+When the configuration performs service binding, matching providers can be added if the provider module is in the set of observable modules. Resolution output can show this relationship using a `binds` line, as illustrated below:
 
 ~~~text
 root com.acme.app file:///project/mods/com.acme.app/
@@ -163,145 +163,145 @@ com.acme.app binds com.acme.codec.json file:///project/mods/com.acme.codec.json/
 com.acme.codec.json requires com.acme.api file:///project/mods/com.acme.api/
 ~~~
 
-Dòng `binds` giúp nhận ra provider được thêm vào do service binding. Module provider có thể kéo theo dependency của chính nó; nếu provider dùng một service khác, quá trình binding có thể tiếp tục mở rộng graph.
+The `binds` line helps identify providers added due to service binding. A provider module can pull in its own dependencies; if the provider uses another service, binding can continue expanding the graph.
 
-Một số điểm quan trọng:
+Several important points:
 
-- Consumer phải nằm trong graph và khai báo `uses` cho service cần tìm.
-- Provider phải khai báo `provides ... with ...` cho đúng service type.
-- Provider phải có thể được quan sát qua module finder/module path và không bị giới hạn khỏi tập module resolve.
-- Nếu provider được chọn làm root hoặc được yêu cầu qua `requires`, nó vẫn xuất hiện dù không cần service binding.
-- Nhiều provider có thể cùng được thêm cho một service. Service binding không phải cơ chế chọn duy nhất một implementation.
+- The consumer must be in the graph and declare `uses` for the service being looked up.
+- The provider must declare `provides ... with ...` for the matching service type.
+- The provider must be observable via the module finder/module path and not excluded from the resolved module set.
+- If a provider is selected as a root or required via `requires`, it still appears even without needing service binding.
+- Multiple providers can be added together for the same service. Service binding is not a mechanism for picking a single implementation.
 
-Output cụ thể phụ thuộc phiên bản JDK và graph. Nếu không có dòng `binds`, đừng kết luận ngay rằng descriptor provider sai; hãy kiểm tra root set, service type, module path và các giới hạn resolve.
+Exact output depends on the JDK version and the graph. If there is no `binds` line, do not immediately conclude that the provider descriptor is wrong; check the root set, service type, module path, and resolution limits.
 
-## 6. So sánh root set và module graph
+## 6. Comparing Root Sets and Module Graphs
 
-Để hiểu một module xuất hiện vì lý do nào, hãy chạy cùng ứng dụng với các root set khác nhau.
+To understand why a module appears, run the same application with different root sets.
 
-Chỉ root ứng dụng:
+Application root only:
 
 ~~~bash
 java --show-module-resolution -p mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Bổ sung một module làm root:
+Adding a module as a root:
 
 ~~~bash
 java --show-module-resolution   -p mods   --add-modules com.acme.tools   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Đưa tất cả module trên module path vào root set:
+Putting all modules on the module path into the root set:
 
 ~~~bash
 java --show-module-resolution   -p mods   --add-modules ALL-MODULE-PATH   -m com.acme.app/com.acme.app.Main
 ~~~
 
-So sánh các output:
+Compare the outputs:
 
-1. Ghi lại các dòng `root`.
-2. Tìm các dòng `requires` để xác định dependency thông thường.
-3. Tìm các dòng `binds` nếu service binding bổ sung provider.
-4. So sánh module location để xem module đến từ runtime image hay module path.
-5. Với mỗi module chỉ xuất hiện ở lần chạy thứ hai, xác định nó được thêm bởi root mới, dependency của root đó hay service binding.
+1. Record the `root` lines.
+2. Find the `requires` lines to identify regular dependencies.
+3. Find the `binds` lines if service binding added providers.
+4. Compare module locations to see whether a module comes from the runtime image or the module path.
+5. For each module that only appears in the second run, determine whether it was added by the new root, a dependency of that root, or service binding.
 
-Cách làm này hữu ích khi một module “tự nhiên” xuất hiện trong ứng dụng. Đừng chỉ so sánh tổng số module; hãy tìm đường đi cụ thể khiến module được resolve.
+This approach is useful when a module "unexpectedly" shows up in an application. Do not merely compare total module counts; trace the specific path that caused the module to be resolved.
 
-## 7. Kết hợp với các công cụ chẩn đoán khác
+## 7. Combining with Other Diagnostic Tools
 
-`--show-module-resolution` tập trung vào graph module. Có thể kết hợp với những lệnh sau để kiểm tra các khía cạnh khác.
+`--show-module-resolution` focuses on the module graph. You can combine it with the following commands to check other aspects.
 
-### Liệt kê module có thể quan sát
+### Listing Observable Modules
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Lệnh này liệt kê module mà runtime có thể quan sát trong runtime image và module path. Danh sách đó không đồng nghĩa tất cả module đều đã được resolve vào graph của ứng dụng.
+This command lists modules observable by the runtime in the runtime image and module path. That list does not mean all of those modules were resolved into the application's graph.
 
-### Mô tả descriptor một module
+### Describing a Module's Descriptor
 
 ~~~bash
 java --module-path mods --describe-module com.acme.app
 ~~~
 
-Dùng lệnh này để xem `requires`, `exports`, `opens`, `uses` và `provides` của một module. Nó trả lời module khai báo gì, trong khi `--show-module-resolution` giúp thấy module nào thực sự được resolve khi chạy ứng dụng.
+Use this command to view `requires`, `exports`, `opens`, `uses`, and `provides` of a module. It answers what a module declares, whereas `--show-module-resolution` helps show which modules are actually resolved when running the application.
 
-### Xem class loading
+### Viewing Class Loading
 
 ~~~bash
 java -Xlog:class+load=info   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu lỗi nằm ở class loading, classpath hoặc class được nạp từ đâu, log class loading phù hợp hơn. Module resolution không phải log từng class được nạp.
+If the error involves class loading, the classpath, or where a class is loaded from, class loading logs are more suitable. Module resolution does not log individual loaded classes.
 
-### Kiểm tra dependency tĩnh bằng jdeps
+### Checking Static Dependencies with jdeps
 
 ~~~bash
 jdeps --module-path mods --check com.acme.app
 ~~~
 
-`jdeps` hỗ trợ kiểm tra dependency của module và một số vấn đề liên quan đến module descriptor. Nó bổ sung thông tin phân tích tĩnh; không thay thế quan sát graph lúc launcher chạy.
+`jdeps` assists in checking module dependencies and certain issues related to module descriptors. It provides supplemental static analysis information; it does not replace observing the graph when the launcher runs.
 
-## 8. Phân biệt java launcher với jlink
+## 8. Distinguishing the java Launcher from jlink
 
-Hai công cụ đều làm việc với module graph nhưng phục vụ hai thời điểm khác nhau:
+Both tools work with the module graph, but serve different points in time:
 
-| Công cụ | Thời điểm | Mục đích |
+| Tool | Timing | Purpose |
 |---|---|---|
-| `java --show-module-resolution` | Lúc khởi chạy | Quan sát module được resolve cho lần chạy ứng dụng |
-| `jlink` | Lúc tạo runtime image | Liên kết tập module thành runtime có thể triển khai |
-| `jlink --bind-services` | Lúc tạo runtime image | Bổ sung provider module cho service trong graph liên kết |
+| `java --show-module-resolution` | At launch time | Observe modules resolved for an application run |
+| `jlink` | When creating a runtime image | Link a set of modules into a deployable runtime |
+| `jlink --bind-services` | When creating a runtime image | Add service provider modules into the linked graph |
 
-Ví dụ:
+Example:
 
 ~~~bash
 jlink   --module-path "$JAVA_HOME/jmods:mods"   --add-modules com.acme.app   --bind-services   --output runtime-app
 ~~~
 
-Sau đó quan sát runtime image:
+Then observe the runtime image:
 
 ~~~bash
 runtime-app/bin/java   --show-module-resolution   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Ở bước đầu, `jlink --bind-services` ảnh hưởng thành phần module được đóng vào image. Ở bước sau, `java --show-module-resolution` cho biết graph được launcher resolve khi ứng dụng khởi chạy trên runtime đó. Hai output thuộc hai giai đoạn khác nhau, vì vậy không nên xem chúng là cùng một báo cáo.
+In the first step, `jlink --bind-services` affects which modules are packaged into the image. In the later step, `java --show-module-resolution` shows the graph resolved by the launcher when the application starts on that runtime. The two outputs belong to two different stages, so they should not be treated as the same report.
 
-## 9. Giới hạn của --show-module-resolution
+## 9. Limitations of --show-module-resolution
 
-Tùy chọn này rất hữu ích nhưng không trả lời mọi câu hỏi về ứng dụng:
+This option is very useful, but it does not answer every question about an application:
 
-- Nó cho biết module graph, không cho biết mọi class đã được nạp.
-- Nó không chứng minh một provider đã được khởi tạo hoặc method của provider đã được gọi.
-- Nó không cho biết thứ tự xử lý nghiệp vụ của các provider trong ứng dụng.
-- Nó không hiển thị đầy đủ mọi quy tắc truy cập package, reflection hoặc lỗi runtime xảy ra sau khi main bắt đầu.
-- Output là văn bản chẩn đoán; không nên phụ thuộc vào thứ tự dòng hoặc parse nó như một định dạng máy ổn định.
+- It shows the module graph, not every class that has been loaded.
+- It does not prove a provider has been instantiated or a provider's method has been invoked.
+- It does not show the business processing order of providers in the application.
+- It does not fully display all package access rules, reflection rules, or runtime errors occurring after `main` starts.
+- The output is diagnostic text; you should not rely on line ordering or parse it as a stable machine-readable format.
 
-Nếu ứng dụng không khởi chạy được, hãy kết hợp thông tin resolution với exception đầy đủ, descriptor của module liên quan, module path và log class loading. Nếu ứng dụng khởi chạy nhưng không tìm thấy service, kiểm tra `uses`, `provides`, provider visibility và cách configuration được tạo.
+If the application fails to start, combine resolution information with the full exception, the descriptors of the involved modules, the module path, and class loading logs. If the application starts but cannot find a service, check `uses`, `provides`, provider visibility, and how configurations are created.
 
-## 10. Quy trình debug thực tế
+## 10. Practical Debugging Workflow
 
-Khi một module hoặc provider không xuất hiện như mong đợi, có thể đi theo thứ tự:
+When a module or provider does not appear as expected, you can follow this order:
 
-1. Xác định main module và root set thực tế từ lệnh `java`.
-2. Chạy lại với `--show-module-resolution` để ghi nhận root và các cạnh `requires`.
-3. Dùng `--describe-module` cho consumer để xác nhận `requires` và `uses`.
-4. Dùng `--describe-module` cho provider để xác nhận `provides` và dependency của nó.
-5. Dùng `--list-modules` hoặc kiểm tra module path để xác nhận provider có thể được quan sát.
-6. Kiểm tra có `--limit-modules` hoặc cấu hình module path nào loại provider khỏi tập resolve không.
-7. Nếu dùng runtime image, kiểm tra cách tạo image và việc có bật `jlink --bind-services` hay không.
-8. So sánh output sau mỗi thay đổi nhỏ để tìm chính xác root, dependency hoặc service binding làm graph thay đổi.
+1. Identify the main module and the actual root set from the `java` command.
+2. Re-run with `--show-module-resolution` to record the roots and `requires` edges.
+3. Use `--describe-module` on the consumer to verify `requires` and `uses`.
+4. Use `--describe-module` on the provider to verify `provides` and its dependencies.
+5. Use `--list-modules` or inspect the module path to confirm the provider is observable.
+6. Check whether `--limit-modules` or any module path setting excludes the provider from the resolved set.
+7. If using a runtime image, check how the image was built and whether `jlink --bind-services` was enabled.
+8. Compare outputs after each small change to pinpoint the exact root, dependency, or service binding that alters the graph.
 
-Không thêm tất cả module vào root set chỉ để làm lỗi biến mất. Cách đó có thể che mất nguyên nhân và tạo runtime graph lớn hơn cần thiết.
+Do not add all modules to the root set just to make an error disappear. That can mask the underlying cause and create a runtime graph larger than necessary.
 
-## 11. Thực hành
+## 11. Exercises
 
-1. Tạo module `com.acme.api`, `com.acme.app` và `com.acme.codec.json` với các descriptor `requires`, `uses`, `provides` như ví dụ.
-2. Đặt các module đã compile vào thư mục `mods`.
-3. Chạy `java --show-module-resolution -p mods -m com.acme.app/com.acme.app.Main` và ghi lại root, requires, binds cùng module location.
-4. Chạy lại với `--add-modules com.acme.codec.json`. Xác định provider xuất hiện do root hay service binding.
-5. Chạy với `--add-modules ALL-MODULE-PATH`. So sánh số root và graph với hai lần trước.
-6. Dùng `java --describe-module` để đọc descriptor consumer/provider, sau đó đối chiếu với output resolution.
-7. Tạo runtime image bằng `jlink --bind-services`, chạy ứng dụng trên image đó với `--show-module-resolution` và so sánh graph lúc link với graph lúc launch.
+1. Create modules `com.acme.api`, `com.acme.app`, and `com.acme.codec.json` with `requires`, `uses`, and `provides` descriptors as shown in the examples.
+2. Place the compiled modules into the `mods` directory.
+3. Run `java --show-module-resolution -p mods -m com.acme.app/com.acme.app.Main` and record the root, requires, binds, and module locations.
+4. Re-run with `--add-modules com.acme.codec.json`. Determine whether the provider appears due to the root or service binding.
+5. Run with `--add-modules ALL-MODULE-PATH`. Compare the root count and graph with the previous two runs.
+6. Use `java --describe-module` to read the consumer/provider descriptors, then compare them with the resolution output.
+7. Create a runtime image with `jlink --bind-services`, run the application on that image with `--show-module-resolution`, and compare the link-time graph with the launch-time graph.
 
-Khi đọc `java --show-module-resolution`, hãy phân biệt module được chọn làm root, dependency qua `requires`, provider được thêm qua service binding và vị trí thực tế của từng module. Từ những thông tin đó, bạn có thể giải thích vì sao graph có thành phần hiện tại, phát hiện module path sai và kiểm soát runtime modular một cách có căn cứ.
+When reading `java --show-module-resolution`, distinguish modules selected as roots, dependencies via `requires`, providers added via service binding, and the actual location of each module. With that information, you can explain why the graph has its current composition, spot incorrect module paths, and control your modular runtime on a sound basis.

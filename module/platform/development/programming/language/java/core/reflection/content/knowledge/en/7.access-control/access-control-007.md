@@ -1,10 +1,10 @@
-# Package, lớp khai báo và thành viên public trong kiểu không public (Java Reflection)
+# Packages, declaring classes, and public members in non-public types (Java Reflection)
 
-## 1. Vấn đề: `public` của thành viên chưa đủ để truy cập được
+## 1. Problem: a member being `public` is not enough for access
 
-Trong Java, từ khóa `public` đặt trên **method hoặc field** mô tả mức truy cập của **thành viên đó**. Nó không tự biến **lớp khai báo thành viên** thành một lớp có thể nhìn thấy từ mọi package.
+In Java, the `public` keyword placed on a **method or field** describes the access level of **that member**. It does not automatically turn **the class declaring the member** into a class visible from every package.
 
-Ví dụ, Java cho phép khai báo lớp cấp cao nhất không có `public`:
+For example, Java allows declaring a top-level class without `public`:
 
 ```java
 package demo.api;
@@ -16,36 +16,36 @@ class HiddenGreeting {
 }
 ```
 
-`HiddenGreeting` có mức truy cập **package-private** vì khai báo lớp không có từ khóa `public`. Method `greet()` là `public`, nhưng code trong `demo.client` không thể trực tiếp khai báo biến kiểu `demo.api.HiddenGreeting` hay import lớp đó. Khi dùng Reflection, code bên ngoài có thể **tìm thấy metadata** của `greet()` mà vẫn bị chặn lúc **gọi method**.
+`HiddenGreeting` has **package-private** access because the class declaration lacks the `public` keyword. The `greet()` method is `public`, yet code in `demo.client` cannot directly declare a variable of type `demo.api.HiddenGreeting` or import that class. When using Reflection, external code can **find the metadata** of `greet()` and still be blocked when **invoking the method**.
 
-Ba câu hỏi phải tách bạch:
+Three questions must be kept separate:
 
-1. **Package nào là ngữ cảnh của code gọi?** Hai lớp thuộc cùng package hay khác package? Có ranh giới module hoặc class loader không?
-2. **Thành viên được khai báo trên lớp/interface nào?** Đọc `Method.getDeclaringClass()` hoặc `Field.getDeclaringClass()`; đừng mặc nhiên coi kiểu runtime là lớp khai báo.
-3. **Cả lớp khai báo lẫn thành viên có thể truy cập từ nơi gọi không?** `Modifier.isPublic(method.getModifiers())` chỉ trả lời phần **member**, chưa kiểm tra visibility của lớp, package/module và toàn bộ quy tắc truy cập.
+1. **Which package is the calling code's context?** Are the two classes in the same package or different packages? Are there module or class loader boundaries?
+2. **On which class/interface is the member declared?** Check `Method.getDeclaringClass()` or `Field.getDeclaringClass()`; do not assume the runtime type is the declaring class.
+3. **Are both the declaring class and the member accessible from the call site?** `Modifier.isPublic(method.getModifiers())` only answers the **member** part; it does not check class visibility, package/module, and the full access rules.
 
-Nguyên tắc: **Có thể tra cứu metadata không đồng nghĩa được quyền sử dụng thành viên qua Reflection.**
+Principle: **Being able to look up metadata does not mean having permission to use the member via Reflection.**
 
-## 2. Package và mức truy cập của lớp
+## 2. Packages and class access levels
 
-Một *top-level class* (lớp khai báo trực tiếp trong file, không nằm trong lớp khác) chỉ có thể là `public` hoặc **package-private** ở góc độ access modifier; Java không cho khai báo top-level `private` hay `protected`.
+A *top-level class* (a class declared directly in a file, not inside another class) can only be `public` or **package-private** in terms of access modifiers; Java does not allow top-level `private` or `protected`.
 
-| Khai báo lớp | Code trong cùng package | Code trong package khác |
+| Class declaration | Code in the same package | Code in a different package |
 | --- | --- | --- |
-| `public class Api` | Có thể tham chiếu nếu đáp ứng ranh giới module | Có thể tham chiếu nếu package được xuất phù hợp và API tiếp cận được |
-| `class Implementation` | Có thể tham chiếu theo quy tắc package | Không thể trực tiếp tham chiếu lớp bằng mã Java thông thường |
+| `public class Api` | Referenceable if module boundaries are satisfied | Referenceable if the package is properly exported and the API is reachable |
+| `class Implementation` | Referenceable under package rules | Cannot directly reference the class in normal Java code |
 
-Java dùng tên package được khai báo bằng `package ...;` để xác định quan hệ truy cập, không dựa vào tên thư mục tình cờ giống nhau. Ở runtime, danh tính package còn phụ thuộc class loader và module; **hai lớp có cùng chuỗi tên package không mặc nhiên được hưởng package-private access** nếu chúng ở các runtime package khác nhau.
+Java uses the package name declared by `package ...;` to determine access relationships, not accidentally matching directory names. At runtime, package identity also depends on the class loader and module; **two classes with the same package name string do not automatically share package-private access** if they are in different runtime packages.
 
-Một thành viên `public` có thể nằm trong lớp package-private; điều này hợp lệ. Trong cùng package, code gọi thường có thể sử dụng lớp và method ấy. Ngoài package, việc truy cập trực tiếp bằng tên lớp sẽ thất bại ngay ở bước biên dịch. Với Reflection, lỗi có thể chỉ xuất hiện khi `Method.invoke(...)` thực hiện kiểm tra truy cập.
+A `public` member can reside in a package-private class; this is valid. Within the same package, calling code can usually use that class and method. Outside the package, direct access by class name fails at compile time. With Reflection, the error may only appear when `Method.invoke(...)` performs access checks.
 
-Với **nested class**, cần xem cả chuỗi lớp bao ngoài và modifier của nested class. Ví dụ `private static class Impl` có thể chứa `public void run()`, nhưng chữ `public` của `run()` không làm `Impl` thành kiểu có thể tham chiếu từ code bên ngoài. Khả năng truy cập không chỉ là modifier của method.
+For **nested classes**, consider both the chain of enclosing classes and the nested class's modifier. For example, `private static class Impl` can contain `public void run()`, yet the `public` on `run()` does not make `Impl` a type referenceable from outside code. Accessibility is not just the method's modifier.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh: method public nhưng gọi Reflection bị chặn
+## 3. Complete Java 17+ example: public method blocked on reflective call
 
-Ví dụ sau có **hai package** để thể hiện đúng ranh giới: `demo.api` giữ lớp triển khai kín bên trong, còn `demo.client` là người dùng API. Lớp triển khai là package-private, method triển khai là public; giao diện cung cấp hợp đồng public để gọi an toàn.
+The following example has **two packages** to demonstrate the boundary accurately: `demo.api` keeps the implementation class internal, while `demo.client` is the API consumer. The implementation class is package-private, the implementation method is public; the interface provides a public contract for safe invocation.
 
-Tạo cấu trúc:
+Create the structure:
 
 ```text
 src/
@@ -57,7 +57,7 @@ src/
       Main.java
 ```
 
-### Tệp `src/demo/api/GreetingService.java`
+### File `src/demo/api/GreetingService.java`
 
 ```java
 package demo.api;
@@ -67,7 +67,7 @@ public interface GreetingService {
 }
 ```
 
-### Tệp `src/demo/api/Services.java`
+### File `src/demo/api/Services.java`
 
 ```java
 package demo.api;
@@ -88,9 +88,9 @@ class HiddenGreeting implements GreetingService {
 }
 ```
 
-`Services` là factory public; `HiddenGreeting` không có `public` nên chỉ là một kiểu package-private. `GreetingService` công khai hành vi cần dùng mà không phơi bày tên lớp triển khai.
+`Services` is a public factory; `HiddenGreeting` lacks `public`, so it is only a package-private type. `GreetingService` exposes the needed behavior without exposing the implementation class name.
 
-### Tệp `src/demo/client/Main.java`
+### File `src/demo/client/Main.java`
 
 ```java
 package demo.client;
@@ -125,7 +125,7 @@ public class Main {
 }
 ```
 
-Tại thư mục gốc chứa `src`, tạo thư mục `out` trước khi chạy; các lệnh sau sử dụng đường dẫn tường minh, phù hợp cả shell thông thường và PowerShell:
+In the root directory containing `src`, create directory `out` before running; the following commands use explicit paths, suitable for both standard shells and PowerShell:
 
 ```bash
 mkdir out
@@ -133,7 +133,7 @@ javac --release 17 -d out src/demo/api/GreetingService.java src/demo/api/Service
 java -cp out demo.client.Main
 ```
 
-Kết quả stdout (đã kiểm chứng bằng biên dịch và chạy):
+Stdout result (verified by compiling and running):
 
 ```text
 Runtime class: demo.api.HiddenGreeting
@@ -145,62 +145,62 @@ Reflect impl: IllegalAccessException
 Reflect API: Hello
 ```
 
-**Phân tích chính xác từng kết quả:**
+**Exact analysis of each output line:**
 
-- `service.getClass()` trả `HiddenGreeting.class` vì đó là lớp runtime của object mà factory tạo ra, dù biến được khai báo theo interface `GreetingService`.
-- `Modifier.isPublic(service.getClass().getModifiers())` trả `false` vì lớp triển khai là package-private.
-- `getMethod("greet")` **tìm thấy method public**: nó chỉ tìm theo metadata của các method public trong phạm vi API, không bảo đảm caller có quyền gọi method.
-- `impl.getDeclaringClass()` là `HiddenGreeting.class`. Method có modifier `public` nhưng lớp khai báo không accessible từ `demo.client.Main`, nên `impl.invoke(service)` ném `IllegalAccessException`.
-- Lời gọi Java thông thường `service.greet()` hợp lệ vì static type `GreetingService` là interface public, method trong interface là public; JVM thực hiện dispatch tới implementation.
-- `GreetingService.class.getMethod("greet")` lấy `Method` **khai báo trên interface public**. Gọi `api.invoke(service)` có thể truy cập method của interface rồi dispatch tới implementation; kết quả là `Hello`.
+- `service.getClass()` returns `HiddenGreeting.class` because that is the runtime class of the object created by the factory, even though the variable is declared with interface `GreetingService`.
+- `Modifier.isPublic(service.getClass().getModifiers())` returns `false` because the implementation class is package-private.
+- `getMethod("greet")` **finds the public method**: it only searches metadata of public methods within the API scope, without guaranteeing the caller has permission to invoke the method.
+- `impl.getDeclaringClass()` is `HiddenGreeting.class`. The method has the `public` modifier, but its declaring class is not accessible from `demo.client.Main`, so `impl.invoke(service)` throws `IllegalAccessException`.
+- The normal Java call `service.greet()` is valid because the static type `GreetingService` is a public interface, the method in the interface is public, and the JVM dispatches to the implementation.
+- `GreetingService.class.getMethod("greet")` gets the `Method` **declared on the public interface**. Calling `api.invoke(service)` can access the interface method and then dispatch to the implementation; the result is `Hello`.
 
-Đây là ví dụ chỉ dùng **classpath/unnamed module**, không cần `module-info.java`. Với named module, cần xét thêm quy tắc `exports`/`opens` ở phần sau.
+This example uses only **classpath/unnamed module**, without needing `module-info.java`. With named modules, `exports`/`opens` rules also need to be considered as discussed later.
 
-## 4. “Lớp runtime” và “lớp khai báo” là hai khái niệm khác nhau
+## 4. "Runtime class" and "declaring class" are two different concepts
 
-Xét một biến `GreetingService service`:
+Consider a variable `GreetingService service`:
 
-- **Kiểu của biến tại compile time:** `GreetingService` (public interface).
-- **Kiểu runtime của object:** `HiddenGreeting` (package-private class).
-- **Lớp khai báo của một đối tượng `Method`:** thứ được trả về bởi `method.getDeclaringClass()`. Nếu lấy method từ `HiddenGreeting` thì đó là `HiddenGreeting`; nếu lấy từ `GreetingService` thì đó là `GreetingService`.
+- **Compile-time type of the variable:** `GreetingService` (public interface).
+- **Runtime type of the object:** `HiddenGreeting` (package-private class).
+- **Declaring class of a `Method` object:** what `method.getDeclaringClass()` returns. If obtained from `HiddenGreeting`, it is `HiddenGreeting`; if obtained from `GreetingService`, it is `GreetingService`.
 
-Đặc biệt khi có kế thừa, `SomeSubclass.class.getMethod("action")` có thể trả `Method` khai báo ở một superclass hoặc interface, thay vì ở `SomeSubclass`. Mã biên dịch và công cụ sinh lớp cũng có thể bổ sung method chuyển tiếp, nên **không suy đoán declaring class chỉ từ tên lớp dùng khi gọi `getMethod`**. Luôn xem `getDeclaringClass()` của đối tượng `Method` thực tế.
+Especially with inheritance, `SomeSubclass.class.getMethod("action")` can return a `Method` declared on a superclass or interface instead of on `SomeSubclass`. Compilers and class-generation tools can also add bridge/forwarding methods, so **do not guess the declaring class solely from the class name used when calling `getMethod`**. Always check `getDeclaringClass()` of the actual `Method` object.
 
-Đừng nhầm hai API sau:
+Do not confuse these two APIs:
 
-- `method.getDeclaringClass()`: kiểu **khai báo method**.
-- `someClass.getDeclaringClass()`: khi gọi trên đối tượng `Class` của nested/member class, cung cấp thông tin về lớp chứa khai báo kiểu đó (không phải “lớp khai báo một method”).
+- `method.getDeclaringClass()`: the type **declaring the method**.
+- `someClass.getDeclaringClass()`: when called on a `Class` object of a nested/member class, provides information about the enclosing class that declares that type (not "the class declaring a method").
 
-Đối với `Field` và `Constructor` cũng có `getDeclaringClass()`. Lớp khai báo có thể không public dù member constructor/method/field trông như public trong metadata.
+`Field` and `Constructor` also have `getDeclaringClass()`. The declaring class may be non-public even though the constructor/method/field member appears public in metadata.
 
-## 5. `getMethod`, `getDeclaredMethod` và kiểm tra truy cập
+## 5. `getMethod`, `getDeclaredMethod`, and access checks
 
-| API | Nó trả về cái gì? | Nó có tự bỏ qua kiểm tra access không? |
+| API | What does it return? | Does it bypass access checks automatically? |
 | --- | --- | --- |
-| `type.getMethod("name", ...)` | Method public trong phạm vi tra cứu công khai, có thể kế thừa | Không |
-| `type.getMethods()` | Mảng các method public theo hợp đồng Reflection | Không |
-| `type.getDeclaredMethod("name", ...)` | Method **khai báo trực tiếp** tại `type`, không phụ thuộc public/private của method | Không |
-| `type.getDeclaredMethods()` | Mảng các method khai báo trực tiếp, gồm private/protected/package-private | Không |
-| `method.invoke(receiver, args...)` | Thực thi method, nếu receiver và quyền truy cập hợp lệ | **Có kiểm tra** truy cập khi chưa bật suppression hợp lệ |
-| `method.canAccess(receiver)` | Kiểm tra tại nơi gọi hiện tại có thể truy cập member trên receiver phù hợp hay không | Chỉ kiểm tra, không tự cấp quyền |
+| `type.getMethod("name", ...)` | Public method within public lookup scope, possibly inherited | No |
+| `type.getMethods()` | Array of public methods per the Reflection contract | No |
+| `type.getDeclaredMethod("name", ...)` | Method **declared directly** on `type`, regardless of public/private on the method | No |
+| `type.getDeclaredMethods()` | Array of directly declared methods, including private/protected/package-private | No |
+| `method.invoke(receiver, args...)` | Executes the method if receiver and access permission are valid | **Checks access** when valid suppression is not enabled |
+| `method.canAccess(receiver)` | Checks at the current call site whether the member can be accessed on an appropriate receiver | Only checks, does not grant permission |
 
-Việc `getDeclaredMethod` nhìn thấy một method `private` không làm method đó trở thành public. Ngược lại, `getMethod` tìm thấy method public trong lớp không public cũng không khiến `invoke` mặc nhiên thành công.
+Seeing a `private` method via `getDeclaredMethod` does not make that method public. Conversely, finding a public method in a non-public class via `getMethod` does not make `invoke` succeed by default.
 
-**Thứ tự kiểm tra khi gặp sự cố** nên là: (1) kiểu runtime; (2) `getDeclaringClass()`; (3) modifier của declaring class và member; (4) package của caller; (5) module và chính sách `exports`/`opens`; (6) object nhận lời gọi, đối số và ngoại lệ thực thi.
+**The debugging order when encountering an issue** should be: (1) runtime type; (2) `getDeclaringClass()`; (3) modifiers of both declaring class and member; (4) caller's package; (5) module and `exports`/`opens` policy; (6) receiver object, arguments, and execution exceptions.
 
-Đối tượng `Method` được lưu/cached có thể được gọi ở những vị trí code khác nhau. Kiểm tra quyền truy cập thông thường được thực hiện đối với caller phản chiếu ở thời điểm gọi; đừng kết luận rằng một `Method` đã tìm thấy ở nơi có quyền thì tự mang quyền ấy tới mọi vị trí sử dụng.
+A cached/stored `Method` object can be invoked from different code locations. Normal access checks are performed against the reflective caller at invocation time; do not assume a `Method` found in a privileged location carries that permission everywhere it is used.
 
-## 6. Các cách giải quyết đúng theo thiết kế
+## 6. Clean design solutions
 
-### 6.1. Ưu tiên hợp đồng public
+### 6.1. Prefer public contracts
 
-Nếu bạn kiểm soát API, hãy khai báo method trong **public interface** hoặc public class có thể truy cập và truyền object triển khai qua hợp đồng đó. Ví dụ `GreetingService.class.getMethod("greet")` trong bài chạy được mà không cần can thiệp kiểm tra truy cập.
+If you control the API, declare the method in a **public interface** or an accessible public class and pass the implementation object through that contract. In the article's example, `GreetingService.class.getMethod("greet")` runs without touching access checks.
 
-Cách này cũng giữ được khả năng thay implementation mà không buộc phía dùng phải biết tên lớp package-private. Đối với public method trong public interface/public class, vẫn cần package được export thích hợp nếu chạy giữa các named module.
+This approach also preserves the ability to swap implementations without forcing callers to know package-private class names. Even for public methods in public interfaces/classes, the package still needs to be properly exported when running across named modules.
 
-### 6.2. Công bố phương thức qua một public facade
+### 6.2. Expose the method via a public facade
 
-Một public facade có thể **tự khai báo** phương thức public rồi ủy quyền cho implementation nội bộ:
+A public facade can **declare** the public method itself and delegate to the internal implementation:
 
 ```java
 package demo.api;
@@ -212,66 +212,66 @@ public final class GreetingFacade {
 }
 ```
 
-Đây là **mảnh code thêm vào ví dụ ở mục 3**, sử dụng `HiddenGreeting` trong cùng package; lưu tên file `GreetingFacade.java` nếu muốn dùng thực tế. Khi phía client lấy `GreetingFacade.class.getMethod("greet")`, declaring class là một kiểu public. Đây là cách thích hợp nếu public class là hình thức API mong muốn.
+This is a **snippet added to the example in section 3**, using `HiddenGreeting` in the same package; save as `GreetingFacade.java` if you want to use it in practice. When the client obtains `GreetingFacade.class.getMethod("greet")`, the declaring class is a public type. This is appropriate if a public class is the desired API form.
 
-Lưu ý nếu facade **chỉ kế thừa** method từ một superclass không public, không thể khẳng định method Reflection nhận được có declaring class public. Kết quả có thể chịu ảnh hưởng method kế thừa/forwarder được biên dịch. Muốn hợp đồng nhất quán, tự khai báo/override method trên public facade và kiểm tra `getDeclaringClass()`.
+Note that if the facade **only inherits** the method from a non-public superclass, you cannot assume the Reflection `Method` obtained will have a public declaring class. Results can be affected by inherited/compiler-generated forwarding methods. For a consistent contract, declare/override the method on the public facade itself and verify `getDeclaringClass()`.
 
-### 6.3. Đưa code gọi vào cùng package khi đó là quyền nội bộ
+### 6.3. Put calling code in the same package when access is internal
 
-Code trong cùng runtime package với lớp package-private thường được quyền truy cập lớp và public member của nó. Dùng cách này cho **mã nội bộ** khi thiết kế package cho phép; không nên thay đổi package của client tùy tiện chỉ để vượt ranh giới API. Cùng chuỗi tên package nhưng class loader/module khác có thể không tạo cùng runtime package.
+Code in the same runtime package as a package-private class normally has permission to access the class and its public members. Use this for **internal code** when package design allows; do not arbitrarily move client packages just to cross API boundaries. The same package name string with a different class loader/module may not form the same runtime package.
 
-### 6.4. `setAccessible`/`trySetAccessible` chỉ khi thực sự cần deep reflection
+### 6.4. `setAccessible`/`trySetAccessible` only when deep reflection is truly needed
 
-`AccessibleObject.trySetAccessible()` cố bật bỏ qua kiểm tra truy cập theo khả năng được phép và trả boolean; `setAccessible(true)` có thể ném `InaccessibleObjectException` nếu Java module system không cho phép. Việc suppression thành công phụ thuộc lớp khai báo, module của caller, các package `opens`/`exports` và trường hợp cụ thể.
+`AccessibleObject.trySetAccessible()` attempts to enable access-check suppression as permitted and returns a boolean; `setAccessible(true)` can throw `InaccessibleObjectException` if disallowed by the Java module system. Whether suppression succeeds depends on the declaring class, caller module, `opens`/`exports` packages, and the specific case.
 
-- Trên **classpath/unnamed module**, deep reflection đối với lớp của ứng dụng thường được phép, nên có thể quan sát thấy `trySetAccessible()` thành công.
-- Giữa **named module**, một package chỉ `exports` chưa đủ để tự do deep-reflect member/lớp không public; `opens` tới module gọi (hoặc cấu hình mở tương đương) mới cho phép một số trường hợp suppression.
-- Không lấy việc thử `setAccessible(true)` làm phương án sửa mặc định khi đã có public interface/facade đúng thiết kế. Không có bảo đảm có thể vượt mọi ranh giới access trên mọi JDK/module.
+- On **classpath/unnamed module**, deep reflection on application classes is usually allowed, so `trySetAccessible()` can be observed succeeding.
+- Across **named modules**, a package that is only `exports` is not enough for free deep reflection on non-public members/classes; `opens` to the calling module (or equivalent opening configuration) is required for certain suppression cases.
+- Do not use trying `setAccessible(true)` as the default fix when a well-designed public interface/facade already exists. There is no guarantee that every access boundary can be crossed on every JDK/module.
 
-## 7. Vai trò của JPMS: `exports` khác `opens`
+## 7. Role of JPMS: `exports` vs `opens`
 
-Từ Java 9, ngoài quyền truy cập theo Java language, named module còn có ranh giới package.
+Since Java 9, in addition to Java language access control, named modules also enforce package boundaries.
 
-- `exports demo.api;` trong module cung cấp: cho các module đọc được module ấy truy cập **public types và public members** của package theo quy tắc Java. Nó **không làm `HiddenGreeting` thành public**.
-- `opens demo.api;` hoặc `opens demo.api to some.module;`: cho phép deep reflection theo phạm vi mở; không đồng nghĩa mở quyền compile-time reference như `exports`.
-- Package **không export** của named module có thể làm Reflection từ module khác bị chặn ngay cả với public class/method, nếu thiếu cấu hình truy cập tương ứng.
-- `--add-exports` và `--add-opens` có thể dùng trong tình huống tích hợp/phân tích được kiểm soát, nhưng phải xác định đúng source module, package và target module; không sử dụng bừa bãi làm giải pháp API lâu dài.
+- `exports demo.api;` in the providing module: allows modules that read that module to access **public types and public members** of the package per Java rules. It **does not make `HiddenGreeting` public**.
+- `opens demo.api;` or `opens demo.api to some.module;`: allows deep reflection within the opened scope; it does not grant compile-time referencing like `exports`.
+- A **non-exported** package of a named module can cause Reflection from another module to be blocked even for public classes/methods if corresponding access configuration is missing.
+- `--add-exports` and `--add-opens` can be used in controlled integration/analysis scenarios, but must specify the exact source module, package, and target module; do not use them indiscriminately as a long-term API solution.
 
-Ví dụ, nếu `demo.api` nằm trong named module `demo.library` và `demo.client` trong `demo.app`, cần quan hệ module thích hợp (`requires` ở caller, `exports demo.api` ở thư viện) để mã Java ở phía client dùng `GreetingService`. Kể cả khi package được export, `HiddenGreeting` vẫn package-private, nên dùng `Method` khai báo trực tiếp tại lớp ấy để gọi từ module khác vẫn có thể bị `IllegalAccessException`. Một **public interface được export** vẫn là bề mặt API phù hợp.
+For example, if `demo.api` resides in named module `demo.library` and `demo.client` in `demo.app`, proper module relationships (`requires` on the caller, `exports demo.api` on the library) are needed for client Java code to use `GreetingService`. Even when the package is exported, `HiddenGreeting` remains package-private, so invoking a `Method` declared directly on that class from another module can still throw `IllegalAccessException`. An **exported public interface** remains the proper API surface.
 
-## 8. Phân biệt lỗi tra cứu, lỗi quyền và lỗi khi method chạy
+## 8. Distinguishing lookup errors, access errors, and runtime errors in the method
 
-| Hiện tượng | Ý nghĩa thường gặp | Hướng xử lý |
+| Symptom | Common meaning | How to handle |
 | --- | --- | --- |
-| `NoSuchMethodException` tại `getMethod(...)` | Không có method public phù hợp theo tên/chữ ký được tra cứu | Kiểm tra tham số `Class<?>...`, overload, và `getDeclaredMethod` nếu cần |
-| `IllegalAccessException` tại `invoke(...)` | Reflection không có quyền gọi method theo kiểm tra truy cập hiện hành | Xác định `getDeclaringClass()`, package/module, chọn public API thích hợp |
-| `InaccessibleObjectException` tại `setAccessible(true)` | Không thể bật suppression do giới hạn encapsulation | Kiểm tra cấu hình `opens` và sự cần thiết của deep reflection |
-| `InvocationTargetException` tại `invoke(...)` | Method đích đã được gọi và tự ném exception; nguyên nhân nằm trong `getCause()` | Xử lý lỗi logic/runtime của method đích, không quy ngay về visibility |
-| `IllegalArgumentException` tại `invoke(...)` | Receiver sai kiểu hoặc đối số/số lượng/kiểu không phù hợp | Kiểm tra object và chữ ký method |
+| `NoSuchMethodException` at `getMethod(...)` | No matching public method found for the searched name/signature | Check `Class<?>...` parameter types, overloads, and `getDeclaredMethod` if needed |
+| `IllegalAccessException` at `invoke(...)` | Reflection lacks permission to call the method under current access checks | Check `getDeclaringClass()`, package/module, and choose an appropriate public API |
+| `InaccessibleObjectException` at `setAccessible(true)` | Cannot enable suppression due to encapsulation limits | Check `opens` configuration and whether deep reflection is necessary |
+| `InvocationTargetException` at `invoke(...)` | Target method was invoked and threw an exception itself; root cause is in `getCause()` | Handle logic/runtime error of the target method; do not immediately blame visibility |
+| `IllegalArgumentException` at `invoke(...)` | Wrong receiver type or mismatched arguments/count/types | Check the target object and method signature |
 
-Ví dụ câu sau là sai về lập luận:
+For example, the following statement is logically flawed:
 
-> “Method có modifier `public` và `getMethod` trả về thành công, vậy `invoke` chắc chắn thành công.”
+> "The method has the `public` modifier and `getMethod` returned successfully, so `invoke` is guaranteed to succeed."
 
-Bài chạy ở mục 3 là phản ví dụ: cả hai điều kiện đúng nhưng `impl.invoke(service)` vẫn bị `IllegalAccessException` vì `HiddenGreeting` không public đối với caller ở package khác.
+The runnable example in section 3 is a counterexample: both conditions hold, yet `impl.invoke(service)` still fails with `IllegalAccessException` because `HiddenGreeting` is not public to a caller in another package.
 
-## 9. Quy trình thực hành khi viết công cụ Reflection
+## 9. Practical workflow when writing Reflection utilities
 
-1. Xác định **public API contract** mà phía gọi được phép dùng (interface hoặc facade).
-2. Nếu phải truy vấn một class runtime, ghi nhận `type.getName()` và `Modifier.isPublic(type.getModifiers())`.
-3. Với mỗi method/field, kiểm tra `getDeclaringClass()` và modifier của cả member lẫn kiểu khai báo; cân nhắc mọi lớp bao ngoài nếu là nested type.
-4. Phân biệt rõ thao tác **khám phá metadata** và thao tác **gọi/đọc thành viên**. Bản ghi metadata không thay cho một kiểm tra quyền hợp lệ.
-5. Giữ nguyên ranh giới package/module khi có thể. Với plugin/framework cần deep reflection, tài liệu hóa package phải `opens` và xử lý trường hợp không được cấp quyền.
-6. Bắt chính xác `IllegalAccessException` khi invoke, và tách khỏi `InvocationTargetException` vốn là lỗi phát sinh từ method đích.
+1. Identify the **public API contract** the caller is allowed to use (interface or facade).
+2. If you must inspect a runtime class, log `type.getName()` and `Modifier.isPublic(type.getModifiers())`.
+3. For each method/field, check `getDeclaringClass()` and modifiers of both the member and the declaring type; consider any enclosing classes if it is a nested type.
+4. Clearly separate **metadata discovery** from **member invocation/reading**. Having metadata does not substitute for a valid access check.
+5. Preserve package/module boundaries whenever possible. For plugins/frameworks requiring deep reflection, document which packages must be `opens` and handle denied access cleanly.
+6. Catch `IllegalAccessException` specifically on invoke, separate from `InvocationTargetException`, which is an error thrown by the target method.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-1. `class Worker { public void run() {} }` nằm ở `demo.impl` và là top-level class package-private. Tại sao `demo.client` không thể trực tiếp viết `new Worker()`?
-2. Tại sao `Modifier.isPublic(method.getModifiers()) == true` chưa đủ để kết luận `method.invoke(...)` thành công?
-3. Với ví dụ `HiddenGreeting`, đối tượng `Method` của `GreetingService.class.getMethod("greet")` và của `service.getClass().getMethod("greet")` có cùng `getDeclaringClass()` không? Kết quả `invoke` khác nhau như thế nào?
-4. Đối với named module, `exports` có làm một top-level package-private class thành public không? Khi nào `opens` có tác dụng?
-5. `InvocationTargetException` có chứng minh caller bị từ chối truy cập method không?
+1. `class Worker { public void run() {} }` is in `demo.impl` and is a package-private top-level class. Why can't `demo.client` directly write `new Worker()`?
+2. Why is `Modifier.isPublic(method.getModifiers()) == true` insufficient to conclude `method.invoke(...)` will succeed?
+3. In the `HiddenGreeting` example, do the `Method` objects from `GreetingService.class.getMethod("greet")` and `service.getClass().getMethod("greet")` have the same `getDeclaringClass()`? How do their `invoke` results differ?
+4. For named modules, does `exports` turn a top-level package-private class into `public`? When does `opens` take effect?
+5. Does `InvocationTargetException` prove that the caller was denied access to the method?
 
-**Đáp án định hướng:** (1) class package-private không accessible từ package khác; (2) quyền truy cập còn phụ thuộc lớp khai báo, caller và module; (3) lần lượt là public `GreetingService` và package-private `HiddenGreeting`, chỉ lời gọi qua interface thành công trong chương trình mẫu; (4) không, `opens` cho deep reflection có kiểm soát; (5) không, nó bọc exception do method đích ném.
+**Guided answers:** (1) a package-private class is not accessible from another package; (2) access permission also depends on the declaring class, caller, and module; (3) they are public `GreetingService` and package-private `HiddenGreeting` respectively—only the call via the interface succeeds in the sample program; (4) no, `opens` enables controlled deep reflection; (5) no, it wraps an exception thrown by the target method.
 
-**Ghi nhớ:** Khi Reflection xử lý một thành viên `public` nhưng lớp khai báo không public, hãy đặt câu hỏi **“`Method.getDeclaringClass()` là ai, và caller có thể truy cập lớp đó không?”**. Tách riêng modifier của member, accessibility của declaring type, package và JPMS sẽ giúp hiểu chính xác vì sao đọc được metadata nhưng gọi bị chặn; public interface/facade là lời giải sạch cho API được dùng từ package khác.
+**Remember:** When Reflection deals with a `public` member whose declaring class is non-public, ask **"Who is `Method.getDeclaringClass()`, and can the caller access that class?"**. Separating the member's modifier, declaring type's accessibility, package, and JPMS explains exactly why metadata can be read while invocation is blocked; a public interface/facade is the clean solution for APIs used across packages.

@@ -1,26 +1,26 @@
-# Class.getPackage(), Class.getPackageName() và Class.getModule() trong Java Reflection
+# Class.getPackage(), Class.getPackageName(), and Class.getModule() in Java Reflection
 
-## 1. Mục tiêu và bối cảnh
+## 1. Objectives and Context
 
-Khi đã có một đối tượng **Class<?>**, Reflection cho phép bạn hỏi kiểu đó thuộc package nào và module nào. Ba API thường bị nhầm lẫn là:
+Once you have a **Class<?>** object, Reflection lets you query which package and module that type belongs to. Three commonly confused APIs are:
 
-- **Class.getPackage()**: trả đối tượng **Package** để truy vấn metadata của package tại runtime.
-- **Class.getPackageName()**: trả **String** là tên package, tiện để hiển thị, phân loại và ghi log.
-- **Class.getModule()**: trả đối tượng **Module** của Java Platform Module System (JPMS), dùng khi cần biết kiểu thuộc named module hay unnamed module, hoặc cần xem quan hệ đọc/xuất/mở package.
+- **Class.getPackage()**: returns a **Package** object to query runtime metadata of the package.
+- **Class.getPackageName()**: returns a **String** containing the package name, convenient for display, categorization, and logging.
+- **Class.getModule()**: returns a **Module** object from the Java Platform Module System (JPMS), useful when checking whether a type belongs to a named module or an unnamed module, or inspecting package reads/exports/opens relationships.
 
-Đây là **ba góc nhìn khác nhau về cùng một kiểu**, không phải ba cách gọi thay thế nhau. Package tổ chức namespace của class; module nhóm các package và diễn đạt phụ thuộc/ranh giới truy cập; đối tượng Class là điểm bắt đầu để truy vấn metadata.
+These are **three different views of the same type**, not three interchangeable calls. A package organizes class namespaces; a module groups packages and expresses dependencies/access boundaries; a Class object is the starting point for querying metadata.
 
-Sau bài học, bạn có thể giải thích giá trị trả về, cách xử lý null, kết quả đặc biệt với array/primitive/void, phân biệt unnamed package và unnamed module, viết code Reflection tránh giả định sai và dự đoán output của ví dụ Java 17+.
+After this lesson, you will be able to explain their return values, how to handle null, special results for arrays/primitives/void, the difference between an unnamed package and an unnamed module, write Reflection code without wrong assumptions, and predict the output of a Java 17+ example.
 
-## 2. Ba API và mối quan hệ Class → Package → Module
+## 2. The Three APIs and the Class → Package → Module Relationship
 
-| API trên Class<?> | Kiểu trả về | Câu hỏi trả lời | Kết quả đáng chú ý |
+| API on Class<?> | Return type | Question answered | Notable results |
 | --- | --- | --- | --- |
-| **getPackage()** | **java.lang.Package** (có thể null) | Package runtime của class này có metadata gì? | **null** với array, primitive, void |
-| **getPackageName()** | **String** | Tên package đầy đủ là gì? | **""** với unnamed package; **"java.lang"** với primitive/void; array dùng package của element type |
-| **getModule()** | **java.lang.Module** | Class này thuộc module runtime nào? | Array dùng module của element type; primitive/void thuộc **java.base**; class trên classpath thường thuộc unnamed module |
+| **getPackage()** | **java.lang.Package** (nullable) | What metadata does this class's runtime package have? | **null** for arrays, primitives, and void |
+| **getPackageName()** | **String** | What is the full package name? | **""** for unnamed package; **"java.lang"** for primitives/void; arrays use the package of the element type |
+| **getModule()** | **java.lang.Module** | Which runtime module does this class belong to? | Arrays use the module of the element type; primitives/void belong to **java.base**; classes on the classpath usually belong to an unnamed module |
 
-Ba phương thức đều là phương thức instance của **java.lang.Class**, không phải phương thức của một object bất kỳ:
+All three methods are instance methods on **java.lang.Class**, not methods on arbitrary objects:
 
 ~~~java
 Class<?> type = String.class;
@@ -29,44 +29,44 @@ String packageName = type.getPackageName();
 Module module = type.getModule();
 ~~~
 
-Nếu có đối tượng hiện hữu, lấy Class token bằng **instance.getClass()**, với điều kiện **instance != null**. Class token biểu diễn **kiểu thực tế của object**, còn kiểu khai báo của biến không làm đổi package hay module của object đó.
+If you have an existing instance, obtain the Class token via **instance.getClass()**, provided **instance != null**. The Class token represents the **actual runtime type of the object**, and the variable's declared type does not change that object's package or module.
 
-Sơ đồ khái niệm:
+Conceptual diagram:
 
 ~~~text
-Class<?>  ----getPackage()----> Package metadata (hoặc null)
+Class<?>  ----getPackage()----> Package metadata (or null)
     |
-    +-------getPackageName()--> Chuỗi tên package
+    +-------getPackageName()--> Package name string
     |
     +-------getModule()------> Module metadata
 
-Ví dụ String.class:
+Example String.class:
   class              = java.lang.String
   package            = java.lang
   named module       = java.base
 ~~~
 
-Một module có thể chứa nhiều package. Một package gồm các class/interface được tổ chức dưới cùng tên package; package không đồng nghĩa với module. Tên package có thể trùng một đoạn trong tên module nhưng Java không yêu cầu hai tên khớp nhau.
+One module can contain multiple packages. A package consists of classes/interfaces organized under the same package name; a package is not synonymous with a module. A package name may share a segment with a module name, but Java does not require the two names to match.
 
-## 3. Class.getPackage(): khi nào cần đối tượng Package?
+## 3. Class.getPackage(): When Do You Need a Package Object?
 
-Chữ ký:
+Signature:
 
 ~~~java
 public Package getPackage()
 ~~~
 
-Với class thông thường, API trả về đối tượng **Package** đại diện package runtime của class. Khác với một chuỗi tên, Package có metadata và API riêng:
+For ordinary classes, the API returns a **Package** object representing the class's runtime package. Unlike a plain name string, Package has its own metadata and APIs:
 
-- **getName()**: tên package.
-- **getSpecificationTitle()**, **getSpecificationVersion()**, **getSpecificationVendor()**: thông tin đặc tả nếu có.
-- **getImplementationTitle()**, **getImplementationVersion()**, **getImplementationVendor()**: thông tin triển khai nếu có.
-- **isSealed()** và **isSealed(URL)**: thông tin sealing của package.
-- **getAnnotation(...)**, **isAnnotationPresent(...)**: truy vấn annotation trên package khi có metadata tương ứng, ví dụ từ **package-info.class** với annotation lưu ở runtime.
+- **getName()**: the package name.
+- **getSpecificationTitle()**, **getSpecificationVersion()**, **getSpecificationVendor()**: specification information if present.
+- **getImplementationTitle()**, **getImplementationVersion()**, **getImplementationVendor()**: implementation information if present.
+- **isSealed()** and **isSealed(URL)**: package sealing information.
+- **getAnnotation(...)**, **isAnnotationPresent(...)**: queries annotations on the package when corresponding metadata exists, for example from **package-info.class** with runtime-retained annotations.
 
-Nhiều trường thông tin phiên bản/vendor **có thể null**. Java không tự lấy phiên bản ứng dụng, phiên bản Maven/Gradle hay phiên bản module từ tên package. Không nên coi **Package.getImplementationVersion()** là nguồn luôn tồn tại cho phiên bản hệ thống.
+Many version/vendor fields **can be null**. Java does not automatically derive application versions, Maven/Gradle versions, or module versions from the package name. You should not treat **Package.getImplementationVersion()** as an always-present source of system version.
 
-Ví dụ an toàn khi đọc metadata:
+Safe example when reading metadata:
 
 ~~~java
 Package info = String.class.getPackage();
@@ -78,23 +78,23 @@ if (info != null) {
 }
 ~~~
 
-Dòng đầu ở trên in **Package: java.lang**. Dòng thứ hai phụ thuộc metadata và môi trường Java, vì vậy không nên ghi cứng rằng nhất định true hay false.
+The first line above prints **Package: java.lang**. The second line depends on metadata and the Java environment, so you should not hard-code that it is always true or false.
 
-### 3.1. getPackage() có thể null
+### 3.1. getPackage() can return null
 
-Theo API, **getPackage() trả null** khi Class token biểu diễn:
+Per the API, **getPackage() returns null** when the Class token represents:
 
-- Array: **String[].class**, **int[][].class**, ...
-- Primitive: **int.class**, **boolean.class**, ...
+- Arrays: **String[].class**, **int[][].class**, ...
+- Primitives: **int.class**, **boolean.class**, ...
 - Void: **void.class**.
 
-Vì vậy code sau có lỗi runtime:
+Therefore, the following code has a runtime error:
 
 ~~~java
 // String[].class.getPackage().getName(); // NullPointerException
 ~~~
 
-Hãy kiểm tra null trước khi dùng Package, hoặc dùng **getPackageName()** nếu chỉ cần tên:
+Check for null before using Package, or use **getPackageName()** if you only need the name:
 
 ~~~java
 Class<?> type = String[].class;
@@ -104,19 +104,19 @@ String name = info == null ? type.getPackageName() : info.getName();
 System.out.println(name); // java.lang
 ~~~
 
-**Lưu ý:** Giá trị null của Package đối với array/primitive/void là quy tắc của API, không có nghĩa array không có runtime module hoặc không xác định được tên package theo quy ước **getPackageName()**.
+**Note:** A null Package for arrays/primitives/void is an API rule; it does not mean arrays lack a runtime module or cannot determine a package name under **getPackageName()** rules.
 
-## 4. Class.getPackageName(): dùng khi chỉ cần tên package
+## 4. Class.getPackageName(): Use When You Only Need the Package Name
 
-Chữ ký:
+Signature:
 
 ~~~java
 public String getPackageName()
 ~~~
 
-Phương thức có từ **Java 9**, trả tên package đầy đủ, không kèm tên class. Đây thường là lựa chọn trực tiếp nhất cho báo cáo, phân loại class hoặc logging.
+Introduced in **Java 9**, this method returns the full package name without the class name. It is usually the most direct choice for reporting, class categorization, or logging.
 
-Ví dụ:
+Example:
 
 ~~~java
 System.out.println(String.class.getPackageName());           // java.lang
@@ -125,18 +125,18 @@ System.out.println(String[].class.getPackageName());         // java.lang
 System.out.println(int.class.getPackageName());              // java.lang
 ~~~
 
-Khác biệt cần nhớ:
+Key differences to remember:
 
-1. Class ở **named package** trả tên đầy đủ, ví dụ **java.util**.
-2. Class ở **unnamed package** (source không khai báo package) trả chuỗi rỗng **""**, không phải null.
-3. Nested/member class trả tên package của enclosing class. **Map.Entry** là nested interface nhưng vẫn thuộc **java.util**, không thuộc một package có tên **java.util.Map**.
-4. Local/anonymous class lấy package từ class bao quanh theo định nghĩa API.
-5. Array trả tên package của **element type**: **String[]**, **String[][]** đều cho **java.lang**.
-6. Primitive và **void** trả **java.lang** theo quy định đặc biệt. Điều này không có nghĩa có source class tên **java.lang.int** hoặc **java.lang.void**.
+1. Classes in a **named package** return the full name, for example **java.util**.
+2. Classes in the **unnamed package** (source without a package declaration) return the empty string **""**, not null.
+3. Nested/member classes return the package name of the enclosing class. **Map.Entry** is a nested interface, yet it still belongs to **java.util**, not a package named **java.util.Map**.
+4. Local/anonymous classes take their package from the enclosing class per the API definition.
+5. Arrays return the package name of the **element type**: **String[]** and **String[][]** both yield **java.lang**.
+6. Primitives and **void** return **java.lang** by special rule. This does not mean there are source classes named **java.lang.int** or **java.lang.void**.
 
-### 4.1. Unnamed package khác với unnamed module
+### 4.1. Unnamed package differs from unnamed module
 
-Ví dụ tệp **Demo.java** đặt trong thư mục gốc, không có khai báo **package**:
+Example file **Demo.java** placed in the root directory, with no **package** declaration:
 
 ~~~java
 public class Demo {
@@ -157,37 +157,37 @@ Stdout:
 []
 ~~~
 
-Dấu ngoặc vuông giúp thấy rõ chuỗi package rỗng.
+The square brackets make the empty package string easy to see.
 
-**Unnamed package** là trường hợp class không có khai báo package. **Unnamed module** là module runtime dành cho class không thuộc named module (điển hình các class chạy trên **classpath**). Hai khái niệm độc lập: class có **package com.example** vẫn có thể thuộc **unnamed module** nếu được chạy trên classpath.
+An **unnamed package** is the case where a class has no package declaration. An **unnamed module** is the runtime module for classes that do not belong to a named module (typically classes run on the **classpath**). These two concepts are independent: a class with **package com.example** can still belong to an **unnamed module** if run on the classpath.
 
-### 4.2. Không tự cắt chuỗi getName() để suy package
+### 4.2. Do not slice getName() manually to infer the package
 
-**Class.getName()** không đảm bảo định dạng "package.class" cho mọi loại Class token:
+**Class.getName()** does not guarantee a "package.class" format for every kind of Class token:
 
-- Nested class thường có dấu **$** trong binary name.
-- Array có định dạng kiểu **[Ljava.lang.String;** hoặc **[I**.
-- Primitive trả tên keyword như **int**.
-- Các loại class đặc biệt có quy tắc tên riêng.
+- Nested classes usually contain **$** in their binary name.
+- Arrays have formats like **[Ljava.lang.String;** or **[I**.
+- Primitives return keyword names such as **int**.
+- Special class kinds have their own naming rules.
 
-Vì vậy, nếu mục tiêu chỉ là tên package, dùng **getPackageName()** thay cho việc tìm dấu chấm cuối cùng trong **getName()**. Điều này giảm lỗi với mảng và những trường hợp đặc biệt.
+Therefore, if your goal is only the package name, use **getPackageName()** instead of searching for the last dot in **getName()**. This reduces bugs with arrays and special cases.
 
-## 5. Class.getModule(): metadata của Java module
+## 5. Class.getModule(): Metadata of a Java Module
 
-Chữ ký:
+Signature:
 
 ~~~java
 public Module getModule()
 ~~~
 
-Phương thức có từ **Java 9**, là điểm vào của Java Platform Module System (JPMS). **java.lang.Module** mô tả một module runtime, gồm hai nhóm:
+Introduced in **Java 9**, this method is the entry point to the Java Platform Module System (JPMS). **java.lang.Module** describes a runtime module, falling into two groups:
 
-- **Named module**: có tên module (ví dụ **java.base**, **java.sql**, hoặc tên tự định nghĩa trong **module-info.java**).
-- **Unnamed module**: không có tên module, thường chứa class chạy trên classpath. Runtime gắn unnamed module với class loader tương ứng.
+- **Named module**: has a module name (for example **java.base**, **java.sql**, or a custom name defined in **module-info.java**).
+- **Unnamed module**: has no module name, typically containing classes run on the classpath. The runtime associates unnamed modules with their corresponding class loaders.
 
-Với bất kỳ Class token hợp lệ nào, **getModule()** trả một Module, kể cả class ở unnamed module, array, primitive và void; kết quả **Module.getName()** có thể null nếu module không tên.
+For any valid Class token, **getModule()** returns a Module, including classes in an unnamed module, arrays, primitives, and void; **Module.getName()** can be null if the module is unnamed.
 
-Ví dụ:
+Example:
 
 ~~~java
 Module javaBase = String.class.getModule();
@@ -196,44 +196,44 @@ System.out.println(javaBase.getName()); // java.base
 System.out.println(javaBase.isNamed()); // true
 ~~~
 
-Đối với class ứng dụng chạy trên classpath, **MyClass.class.getModule().isNamed()** thường là false và **getName()** trả null. Đừng gọi **getModule().getName().length()** mà không kiểm tra null.
+For an application class run on the classpath, **MyClass.class.getModule().isNamed()** is usually false and **getName()** returns null. Do not call **getModule().getName().length()** without checking for null.
 
-### 5.1. Các API hữu ích trên Module
+### 5.1. Useful APIs on Module
 
-| API | Dùng để hiểu |
+| API | Used to understand |
 | --- | --- |
-| **getName()** | Tên named module; null nếu unnamed module |
-| **isNamed()** | Named hay unnamed module |
-| **getDescriptor()** | Module descriptor; null với unnamed module |
-| **getPackages()** | Tập tên package trong module |
-| **canRead(Module other)** | Module này có quan hệ đọc module khác không |
-| **isExported(String packageName)** | Package có được export vô điều kiện không |
-| **isExported(String packageName, Module other)** | Package có được export cho module đích không |
-| **isOpen(String packageName)** | Package có được open vô điều kiện không |
-| **isOpen(String packageName, Module other)** | Package có được open cho module đích không |
+| **getName()** | Name of a named module; null if unnamed module |
+| **isNamed()** | Named vs. unnamed module |
+| **getDescriptor()** | Module descriptor; null for unnamed module |
+| **getPackages()** | Set of package names in the module |
+| **canRead(Module other)** | Whether this module has a read relationship to another module |
+| **isExported(String packageName)** | Whether the package is unconditionally exported |
+| **isExported(String packageName, Module other)** | Whether the package is exported to the target module |
+| **isOpen(String packageName)** | Whether the package is unconditionally open |
+| **isOpen(String packageName, Module other)** | Whether the package is open to the target module |
 
-**Không đồng nhất exports với opens**:
+**Do not equate exports with opens**:
 
-- **exports** chủ yếu cho phép các module đủ quan hệ đọc truy cập public type và public member từ package được xuất, theo kiểm tra của Java.
-- **opens** cho phép deep reflection vào package theo cơ chế truy cập Reflection (vẫn có những điều kiện truy cập khác).
-- Một package có thể được **qualified export/open** chỉ cho một số module; khi đó phép kiểm tra không có tham số module đích không phản ánh đầy đủ quyền của từng caller.
-- Có được đối tượng **Module** và tên module không tự trao quyền đọc/ghi member private. Các thao tác như **setAccessible(true)** vẫn có thể không được phép.
+- **exports** primarily allows modules with a read relationship to access public types and public members from the exported package, per Java access checks.
+- **opens** allows deep reflection into the package per Reflection access rules (other access conditions still apply).
+- A package can have a **qualified export/open** to only certain modules; in that case, checks without the target module parameter do not fully reflect a specific caller's permissions.
+- Having a **Module** object and module name does not by itself grant permission to read/write private members. Operations like **setAccessible(true)** can still be disallowed.
 
-**Module** ở đây là JPMS module tại runtime. Nó không phải khái niệm "module Gradle" hay "module Maven" mặc dù các hệ công cụ build có thể tạo ra artifact chứa named module.
+**Module** here refers to a JPMS module at runtime. It is not the concept of a "Gradle module" or "Maven module", although build tools can produce artifacts containing named modules.
 
-### 5.2. Quy tắc đặc biệt với array, primitive, void
+### 5.2. Special rules for arrays, primitives, and void
 
-Theo đặc tả của **Class.getModule()**:
+Per the specification of **Class.getModule()**:
 
-- Với array, trả Module của **element type**. **String[]** thuộc module **java.base**; một array của class ứng dụng thuộc module của chính element class đó.
-- Với primitive hoặc **void**, trả **java.base**.
-- Với class trong unnamed module, trả đối tượng Module không tên của class loader định nghĩa class ấy.
+- For arrays, returns the Module of the **element type**. **String[]** belongs to module **java.base**; an array of an application class belongs to the module of that element class itself.
+- For primitives or **void**, returns **java.base**.
+- For classes in an unnamed module, returns the unnamed Module object of the class loader that defined that class.
 
-Đây là lý do **String[].class.getPackage() == null** và **String[].class.getModule()** vẫn là Module **java.base**: package metadata của array và module theo element type được API xử lý theo hai quy tắc khác nhau.
+This is why **String[].class.getPackage() == null** while **String[].class.getModule()** is still Module **java.base**: array package metadata and element-type module lookup follow two different rules in the API.
 
-## 6. Ví dụ Java 17+ chạy được: so sánh cả ba API
+## 6. Runnable Java 17+ Example: Comparing All Three APIs
 
-Tạo tệp **ClassNamespaceDemo.java** trong thư mục không khai báo package.
+Create the file **ClassNamespaceDemo.java** in a directory without a package declaration.
 
 ~~~java
 public class ClassNamespaceDemo {
@@ -266,7 +266,7 @@ public class ClassNamespaceDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên trên **classpath**, không khai báo **module-info.java**:
+Compile and run with JDK 17 or later on the **classpath**, without declaring **module-info.java**:
 
 ~~~bash
 javac ClassNamespaceDemo.java
@@ -284,19 +284,19 @@ Local package: []
 Local module named: false
 ~~~
 
-Giải thích:
+Explanation:
 
-1. **String.class** là class bình thường thuộc package **java.lang**, named module **java.base**.
-2. **String[].class** là array: không có đối tượng Package từ **getPackage()**, nhưng tên package và module lấy từ element type String.
-3. **int.class** và **void.class** có **getPackage() == null**, **getPackageName() == "java.lang"** và module **java.base** theo đặc tả.
-4. **ClassNamespaceDemo** được đặt ở unnamed package nên tên package là chuỗi rỗng. Khi chạy lệnh **java ClassNamespaceDemo** qua classpath, nó thuộc unnamed module.
-5. Ví dụ dùng **module.isNamed()** trước khi đọc tên để tránh suy luận sai rằng null là lỗi tìm module.
+1. **String.class** is a normal class belonging to package **java.lang** and named module **java.base**.
+2. **String[].class** is an array: there is no Package object from **getPackage()**, but package name and module are taken from the element type String.
+3. **int.class** and **void.class** have **getPackage() == null**, **getPackageName() == "java.lang"**, and module **java.base** per the specification.
+4. **ClassNamespaceDemo** is placed in the unnamed package, so its package name is an empty string. When run via **java ClassNamespaceDemo** on the classpath, it belongs to the unnamed module.
+5. The example checks **module.isNamed()** before reading the name to avoid mistakenly inferring that null means a module lookup error.
 
-**Phạm vi kết quả:** Lệnh ở trên giả định tệp nằm trong unnamed package và được chạy bằng classpath như minh họa. Nếu bạn đưa cùng class vào một named module hoặc thay source khai báo package, phần thông tin của **ClassNamespaceDemo** sẽ đổi tương ứng.
+**Scope of results:** The commands above assume the file is in the unnamed package and run on the classpath as illustrated. If you place the same class in a named module or add a package declaration to the source, the output for **ClassNamespaceDemo** will change accordingly.
 
-## 7. Ví dụ named module: package name độc lập với module name
+## 7. Named Module Example: Package Name Independent of Module Name
 
-Để thấy rõ khác biệt, tạo một Java module nhỏ với cấu trúc:
+To see the difference clearly, create a small Java module with this structure:
 
 ~~~text
 src/
@@ -307,7 +307,7 @@ src/
             └── NamespaceApp.java
 ~~~
 
-Nội dung tệp **src/com.example.namespace/module-info.java**:
+Contents of **src/com.example.namespace/module-info.java**:
 
 ~~~java
 module com.example.namespace {
@@ -315,7 +315,7 @@ module com.example.namespace {
 }
 ~~~
 
-Nội dung tệp **src/com.example.namespace/demo/api/NamespaceApp.java**:
+Contents of **src/com.example.namespace/demo/api/NamespaceApp.java**:
 
 ~~~java
 package demo.api;
@@ -333,14 +333,14 @@ public class NamespaceApp {
 }
 ~~~
 
-Đứng ở thư mục có **src/**, dùng JDK 17+:
+From the directory containing **src/**, using JDK 17+:
 
 ~~~bash
 javac --module-source-path src -d out -m com.example.namespace
 java --module-path out -m com.example.namespace/demo.api.NamespaceApp
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 demo.api
@@ -349,37 +349,37 @@ com.example.namespace
 true
 ~~~
 
-Đối chiếu:
+Comparison:
 
-- **demo.api** là tên **package** của class NamespaceApp.
-- **com.example.namespace** là tên **named module** chứa package đó.
-- **Package.getName()** và **Class.getPackageName()** khớp trong trường hợp class bình thường này.
-- **Module.getName()** khác với tên package và có nhiệm vụ khác.
+- **demo.api** is the **package** name of class NamespaceApp.
+- **com.example.namespace** is the **named module** name containing that package.
+- **Package.getName()** and **Class.getPackageName()** match in this ordinary class case.
+- **Module.getName()** differs from the package name and serves a different role.
 
-Hãy thử thay **exports demo.api;** bằng một chỉ thị module hợp lệ khác phù hợp với mục tiêu học; nhớ rằng quyền truy cập giữa module còn phụ thuộc **requires**, **exports**, **opens** và caller. Ví dụ hiện tại chỉ dùng truy cập public và tự quan sát metadata trong cùng module.
+Try replacing **exports demo.api;** with another valid module directive suited to your learning goal; remember that inter-module access also depends on **requires**, **exports**, **opens**, and the caller. The current example only uses public access and inspects metadata within the same module.
 
-## 8. Bảng các trường hợp dễ gây nhầm
+## 8. Table of Commonly Confused Cases
 
-| Loại Class token | getPackage() | getPackageName() | getModule() |
+| Class token kind | getPackage() | getPackageName() | getModule() |
 | --- | --- | --- | --- |
-| **String.class** | Package có tên **java.lang** | **java.lang** | named module **java.base** |
-| **java.util.List.class** | Package có tên **java.util** | **java.util** | named module **java.base** |
-| **String[].class** | **null** | **java.lang** | module của String: **java.base** |
+| **String.class** | Package named **java.lang** | **java.lang** | named module **java.base** |
+| **java.util.List.class** | Package named **java.util** | **java.util** | named module **java.base** |
+| **String[].class** | **null** | **java.lang** | String's module: **java.base** |
 | **int.class** | **null** | **java.lang** | **java.base** |
 | **void.class** | **null** | **java.lang** | **java.base** |
-| **Class ở unnamed package** | Đọc Package metadata một cách null-safe | **""** | Phụ thuộc module chứa class; trên classpath thường unnamed |
-| **Class package demo.api trên classpath** | Package có tên **demo.api** | **demo.api** | unnamed module của class loader |
-| **Class package demo.api trong named module com.example.namespace** | Package có tên **demo.api** | **demo.api** | named module **com.example.namespace** |
+| **Class in unnamed package** | Read Package metadata null-safely | **""** | Depends on module containing the class; on classpath usually unnamed |
+| **Class in package demo.api on classpath** | Package named **demo.api** | **demo.api** | unnamed module of the class loader |
+| **Class in package demo.api in named module com.example.namespace** | Package named **demo.api** | **demo.api** | named module **com.example.namespace** |
 
-Các trường hợp đầu là kiến thức API độc lập với tên project; hai trường hợp cuối cần xét **cách class được triển khai và nạp**, không suy ra JPMS module chỉ từ chuỗi package.
+The first cases are project-independent API behavior; the last two cases depend on **how the class is deployed and loaded**—do not deduce the JPMS module solely from the package string.
 
-### getPackageName() có phải là duy nhất để nhận diện lớp?
+### Is getPackageName() unique enough to identify a class?
 
-Không. Hai class có cùng **package name** (thậm chí cùng binary class name) nhưng do class loader khác nhau định nghĩa không nhất thiết là cùng kiểu runtime. Một **String** đơn lẻ không mô tả đầy đủ identity của Class token. Khi thiết kế registry Reflection hoặc plugin, cần cân nhắc cả **Class object**, class loader và module tương ứng; đừng dùng package name như khóa duy nhất toàn hệ thống.
+No. Two classes with the same **package name** (or even the same binary class name) defined by different class loaders are not necessarily the same runtime type. A single **String** does not fully describe the identity of a Class token. When designing a Reflection registry or plugin system, consider the **Class object**, class loader, and corresponding module; do not use package name as a system-wide unique key.
 
-## 9. Dùng trong ứng dụng và framework như thế nào?
+## 9. How to Use Them in Applications and Frameworks
 
-### 9.1. Ghi log để xác định nguồn class
+### 9.1. Logging to identify a class's origin
 
 ~~~java
 static String identify(Class<?> type) {
@@ -391,20 +391,20 @@ static String identify(Class<?> type) {
 }
 ~~~
 
-Đây là đoạn **method minh họa** (không phải chương trình độc lập). Nó giúp chẩn đoán vì sao một class đến từ named module hay classpath, nhất là khi ứng dụng pha trộn jar truyền thống và JPMS.
+This is an **illustrative method** snippet (not a standalone program). It helps diagnose whether a class comes from a named module or the classpath, especially when an application mixes traditional JARs and JPMS.
 
-### 9.2. Truy vấn package annotation
+### 9.2. Querying package annotations
 
 ~~~java
 Package pkg = targetClass.getPackage();
 if (pkg != null && pkg.isAnnotationPresent(MyMarker.class)) {
-    // Package này có MyMarker với retention phù hợp ở runtime.
+    // This package has MyMarker with appropriate runtime retention.
 }
 ~~~
 
-Đoạn trên là **mã minh họa**, giả định **targetClass** và annotation **MyMarker** đã được khai báo. Annotation cần **@Retention(RetentionPolicy.RUNTIME)** nếu muốn thấy khi phản chiếu; package annotation thường được khai báo trong **package-info.java**. Cần dùng **Package** thay vì chỉ chuỗi tên vì **String** không mang annotation.
+The snippet above is **illustrative code**, assuming **targetClass** and annotation **MyMarker** are already declared. The annotation needs **@Retention(RetentionPolicy.RUNTIME)** to be visible via reflection; package annotations are typically declared in **package-info.java**. You must use **Package** rather than just a name string because **String** does not carry annotations.
 
-### 9.3. Kiểm tra truy cập package qua module
+### 9.3. Checking package access through a module
 
 ~~~java
 Module owner = targetClass.getModule();
@@ -415,67 +415,67 @@ boolean exportedToCaller = owner.isExported(packageName, caller);
 boolean openToCaller = owner.isOpen(packageName, caller);
 ~~~
 
-Đây là **mã minh họa** (giả định **targetClass** và **SomeCaller** đã được cung cấp). Hai boolean phản ánh trạng thái **exports**/**opens** theo module đích, giúp phân tích một phần điều kiện truy cập. Chúng không tự thực hiện lời gọi Reflection và cũng không thay thế toàn bộ luật truy cập Java. Nếu đang xử lý array hoặc primitive, hãy xác định rõ bạn muốn truy vấn package/module của **element type** hay metadata theo quy tắc riêng của Class API, tránh dùng nhầm giá trị suy ra.
+This is **illustrative code** (assuming **targetClass** and **SomeCaller** are provided). The two booleans reflect **exports**/**opens** status for the target module, helping analyze part of the access conditions. They do not perform the Reflection call themselves and do not replace the full Java access rules. If you are handling arrays or primitives, be clear whether you want to query the package/module of the **element type** or metadata per the special Class API rules, avoiding misuse of derived values.
 
-### 9.4. Chọn API theo mục đích
+### 9.4. Choosing the API by purpose
 
-- **Chỉ cần chuỗi namespace trong log/cấu hình** → **getPackageName()**.
-- **Cần phiên bản, sealing hoặc annotation của runtime package** → **getPackage()** và kiểm tra null.
-- **Cần named/unnamed module, exports, opens, reads** → **getModule()**, tiếp tục qua **Module**.
-- **Cần tên đầy đủ class** → **getName()** hoặc API tên phù hợp, không thay thế bằng package name.
-- **Cần biết đối tượng hiện tại có class gì** → **obj.getClass()**, rồi mới truy vấn ba API trên.
+- **Only need the namespace string in logs/configuration** → **getPackageName()**.
+- **Need version, sealing, or annotations of the runtime package** → **getPackage()** and check for null.
+- **Need named/unnamed module, exports, opens, reads** → **getModule()**, then continue via **Module**.
+- **Need the full class name** → **getName()** or an appropriate naming API, not substituting package name.
+- **Need to know what class the current object has** → **obj.getClass()**, then query the three APIs above.
 
-## 10. Lỗi phổ biến và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-**Lỗi 1: coi ba API tương đương.** Package object, package name và Module object có kiểu trả về cũng như ý nghĩa khác nhau. Ví dụ **String[].class.getPackage()** null nhưng hai API kia vẫn trả thông tin có ích.
+**Mistake 1: treating the three APIs as equivalent.** Package object, package name, and Module object have different return types and meanings. For example, **String[].class.getPackage()** is null, while the other two APIs still return useful information.
 
-**Lỗi 2: gọi thẳng getPackage().getName() cho mọi Class token.** Có thể ném **NullPointerException** trên array/primitive/void. Dùng **getPackageName()** nếu chỉ cần tên hoặc xử lý nhánh null.
+**Mistake 2: calling getPackage().getName() directly for every Class token.** This can throw **NullPointerException** on arrays/primitives/void. Use **getPackageName()** if you only need the name, or handle the null branch.
 
-**Lỗi 3: suy ra tên module từ tên package.** **java.lang** thuộc **java.base**; class **demo.api** có thể ở unnamed module trên classpath hoặc named module khác. Chỉ **getModule()** cho biết module runtime thực tế.
+**Mistake 3: inferring the module name from the package name.** **java.lang** belongs to **java.base**; a **demo.api** class can be in an unnamed module on the classpath or in another named module. Only **getModule()** tells you the actual runtime module.
 
-**Lỗi 4: suy ra unnamed package và unnamed module là một.** Một class khai báo **package demo.api** vẫn có thể ở unnamed module nếu triển khai qua classpath.
+**Mistake 4: assuming unnamed package and unnamed module are the same thing.** A class declaring **package demo.api** can still be in an unnamed module if deployed via classpath.
 
-**Lỗi 5: dùng Module.getName() mà không xét unnamed module.** **getModule()** vẫn trả Module, nhưng **getName()** trả null khi unnamed. Kiểm tra **isNamed()** trước khi xử lý tên.
+**Mistake 5: using Module.getName() without considering unnamed modules.** **getModule()** still returns a Module, but **getName()** returns null when unnamed. Check **isNamed()** before handling the name.
 
-**Lỗi 6: mặc định Package luôn chứa version hoặc vendor.** Metadata nhiều khi không có và các getter trả null. Nếu ứng dụng yêu cầu version, cần có nguồn dữ liệu được khai báo rõ ràng trong quá trình đóng gói.
+**Mistake 6: assuming Package always contains version or vendor.** Metadata is often absent and getters return null. If the application requires a version, there must be a data source explicitly declared during packaging.
 
-**Lỗi 7: cho rằng có module nghĩa là Reflection được mở khóa.** Module có thể export package cho public access nhưng không open package cho deep reflection. Cần hiểu JPMS access rules và kiểm tra điều kiện của caller.
+**Mistake 7: assuming having a Module means Reflection is unlocked.** A module can export a package for public access without opening it for deep reflection. You must understand JPMS access rules and check the caller's conditions.
 
-**Lỗi 8: tách package bằng substring từ getName().** Dễ sai với array, primitive, nested class. Dùng API chuyên dụng **getPackageName()**.
+**Mistake 8: extracting the package by substring from getName().** Error-prone with arrays, primitives, and nested classes. Use the dedicated **getPackageName()** API.
 
-**Lỗi 9: bỏ qua runtime class loader.** Cùng tên class/package không đảm bảo Class token giống nhau; điều này đặc biệt quan trọng khi viết plugin container hoặc cơ chế nạp lớp động.
+**Mistake 9: ignoring the runtime class loader.** The same class/package name does not guarantee the same Class token; this is especially important when writing plugin containers or dynamic class-loading mechanisms.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Câu 1.** Đúng hay sai: **String[].class.getPackage().getName()** trả **java.lang**?
+**Question 1.** True or false: **String[].class.getPackage().getName()** returns **java.lang**?
 
-**Câu 2.** Với **String[].class**, vì sao **getPackage()** trả null nhưng **getModule().getName()** lại là **java.base**?
+**Question 2.** For **String[].class**, why does **getPackage()** return null while **getModule().getName()** is **java.base**?
 
-**Câu 3.** Class **demo.api.Service** được nạp từ classpath, không có **module-info.java**. Có thể chắc chắn module runtime của nó tên **demo.api** không?
+**Question 3.** Class **demo.api.Service** is loaded from the classpath without **module-info.java**. Can you be sure its runtime module is named **demo.api**?
 
-**Câu 4.** Khi chỉ cần xuất tên package của một **Class<?>** bất kỳ (kể cả array/primitive), nên chọn API nào?
+**Question 4.** When you only need to output the package name of an arbitrary **Class<?>** (including arrays/primitives), which API should you choose?
 
-**Câu 5.** Nếu gọi **someClass.getModule().getName()** và nhận null thì class có "không thuộc module nào" hay không?
+**Question 5.** If calling **someClass.getModule().getName()** returns null, does that mean the class "belongs to no module"?
 
-**Câu 6.** Khi cần phát hiện package annotation ở runtime, nên dùng tên package String hay Package metadata? Điều kiện về annotation là gì?
+**Question 6.** When needing to detect package annotations at runtime, should you use the package name String or Package metadata? What is the requirement on the annotation?
 
-**Câu 7.** Named module **com.example.namespace** có class trong package **demo.api**. Dự đoán **getPackageName()** và **getModule().getName()** của class đó.
+**Question 7.** Named module **com.example.namespace** has a class in package **demo.api**. Predict **getPackageName()** and **getModule().getName()** for that class.
 
-### Đáp án giải thích
+### Answers and Explanations
 
-1. **Sai.** **getPackage()** của array trả null; chuỗi lời gọi sẽ ném NullPointerException. **getPackageName()** mới trả **java.lang**.
-2. Vì **getPackage()** áp dụng quy tắc array => null, còn **getModule()** dùng module của **element type String** là **java.base**.
-3. **Không.** Nếu class không nằm trong named JPMS module thì nó thuộc **unnamed module**, thường **isNamed() == false** và **getName() == null**.
-4. **getPackageName()**. Đây là API trả String và có xử lý đặc biệt cho các loại Class token đó.
-5. **Vẫn có Module object**; chỉ là unnamed module có tên null.
-6. Dùng **Package**; annotation cần có metadata tương ứng (thường trong **package-info.class**) và **RUNTIME retention** để truy vấn runtime.
-7. **demo.api** và **com.example.namespace**: package name khác module name.
+1. **False.** **getPackage()** on an array returns null; the chained call will throw NullPointerException. **getPackageName()** is what returns **java.lang**.
+2. Because **getPackage()** applies the array => null rule, whereas **getModule()** uses the module of the **element type String**, which is **java.base**.
+3. **No.** If the class is not inside a named JPMS module, it belongs to the **unnamed module**, typically with **isNamed() == false** and **getName() == null**.
+4. **getPackageName()**. This is the API that returns String and handles those kinds of Class tokens specifically.
+5. **It still has a Module object**; it is simply an unnamed module whose name is null.
+6. Use **Package**; the annotation needs corresponding metadata (usually in **package-info.class**) and **RUNTIME retention** to be queried at runtime.
+7. **demo.api** and **com.example.namespace**: the package name differs from the module name.
 
-## 12. Ghi nhớ
+## 12. Takeaways
 
-**getPackage()** trả runtime Package metadata, có thể null; **getPackageName()** trả chuỗi tên package; **getModule()** trả JPMS Module của Class token. Khi phân tích lỗi Reflection, xác định rõ mục tiêu là package **metadata**, package **name** hay module **membership/access**, đồng thời xét các trường hợp array/primitive/void, unnamed module và class loader.
+**getPackage()** returns runtime Package metadata, which can be null; **getPackageName()** returns the package name string; **getModule()** returns the JPMS Module of the Class token. When analyzing Reflection issues, identify clearly whether the goal is package **metadata**, package **name**, or module **membership/access**, while accounting for arrays/primitives/void, unnamed modules, and class loaders.
 
-### Tài liệu chuẩn
+### Standard Documentation
 
 - Java SE 17 API — **Class**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html
 - Java SE 17 API — **Package**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Package.html

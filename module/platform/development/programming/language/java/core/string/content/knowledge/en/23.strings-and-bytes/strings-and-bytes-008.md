@@ -1,51 +1,51 @@
-# Đối chiếu chuỗi qua ranh giới tệp, console và dữ liệu truyền trong Java
+# Comparing Strings Across File, Console, and Wire Boundaries in Java
 
-## Mục tiêu
+## Objectives
 
-Khi một chuỗi tiếng Việt hoặc emoji trông đúng trong chương trình nhưng bị lỗi sau khi lưu tệp, in ra terminal hay gửi cho dịch vụ khác, câu hỏi cần đặt ra là: **bên gửi đã biến ký tự thành byte bằng quy tắc nào, và bên nhận đang biến byte trở lại thành ký tự bằng quy tắc nào?**
+When a Vietnamese string or emoji looks right inside a program yet breaks after saving to a file, printing to a terminal, or sending to another service, the question to ask is: **what rule did the sender use to turn characters into bytes, and what rule is the receiver using to turn bytes back into characters?**
 
-Sau bài học, bạn có thể kiểm tra một chuỗi ở ba mức **ký tự Unicode, đơn vị UTF-16 và byte**, đối chiếu kết quả qua tệp/console/dữ liệu truyền, phát hiện sai lệch charset, BOM, xuống dòng và chuẩn hóa Unicode, rồi thiết kế quy trình truyền nhận có thể kiểm chứng trong Java 17+.
+After this lesson, you will be able to inspect a string at three levels—**Unicode characters, UTF-16 code units, and bytes**—verify results across file/console/wire boundaries, detect charset mismatches, BOMs, line-ending differences, and Unicode normalization issues, and design a verifiable send-and-receive workflow in Java 17+.
 
-## 1. Ba lớp cần phân biệt khi so sánh chuỗi
+## 1. Three Layers to Distinguish When Comparing Strings
 
-Trong Java, `String` là chuỗi bất biến được biểu diễn theo các **đơn vị mã UTF-16**. Khi lưu ra tệp hoặc truyền trên mạng, chương trình phải **mã hóa** (`encode`) chuỗi thành `byte[]`; ở đầu nhận, các byte được **giải mã** (`decode`) theo một `Charset` để có chuỗi trở lại.
+In Java, a `String` is an immutable sequence represented by **UTF-16 code units**. When writing to a file or transmitting over a network, the program must **encode** (`encode`) the string into `byte[]`; on the receiving end, bytes are **decoded** (`decode`) according to a `Charset` to reconstruct a string.
 
 ```text
-String trong Java ── encode với charset ──> byte[] ── ghi tệp / truyền đi
-String trong Java <── decode với charset ─── byte[] <── đọc tệp / nhận về
+String in Java ── encode with charset ──> byte[] ── write file / transmit
+String in Java <── decode with charset ─── byte[] <── read file / receive
 ```
 
-Đây là ba phép so sánh khác nhau:
+Here are the distinct comparisons:
 
-| Câu hỏi | API dùng trong Java | Ý nghĩa |
+| Question | Java API Used | Meaning |
 | --- | --- | --- |
-| Hai chuỗi có cùng dãy đơn vị mã UTF-16? | `a.equals(b)` | So sánh nội dung `String` chính xác, phân biệt chữ hoa/thường và dạng Unicode khác nhau |
-| Hai chuỗi có cùng dãy Unicode code point? | `s.codePoints()` | Quan sát ký tự theo code point, tránh nhầm một emoji với hai đơn vị UTF-16 |
-| Hai bản ghi có đúng cùng các byte? | `Arrays.equals(bytesA, bytesB)` | Kiểm tra dữ liệu được lưu/truyền thực sự giống nhau |
-| Byte có hợp lệ theo charset dự kiến? | `CharsetDecoder` với `CodingErrorAction.REPORT` | Phát hiện dãy byte lỗi trước khi chấp nhận nội dung |
+| Do two strings have the same UTF-16 code unit sequence? | `a.equals(b)` | Exact `String` content comparison, sensitive to case and different Unicode forms |
+| Do two strings have the same Unicode code point sequence? | `s.codePoints()` | Inspects characters by code point, avoiding mistaking one emoji for two UTF-16 units |
+| Do two records have the exact same bytes? | `Arrays.equals(bytesA, bytesB)` | Verifies that stored/transmitted binary data is genuinely identical |
+| Are the bytes valid under the expected charset? | `CharsetDecoder` with `CodingErrorAction.REPORT` | Detects malformed byte sequences before accepting content |
 
-**Ví dụ:** chuỗi `"A😀"` có `String.length() == 3` (một đơn vị cho `A`, hai đơn vị UTF-16 cho emoji), nhưng chỉ có **2 Unicode code point**. Mã hóa UTF-8 cho ra **5 byte**: `41 f0 9f 98 80`. Độ dài `String` không phải số ký tự người đọc nhận thấy, và càng không phải số byte.
+**Example:** the string `"A😀"` has `String.length() == 3` (one unit for `A`, two UTF-16 units for the emoji), yet has only **2 Unicode code points**. UTF-8 encoding yields **5 bytes**: `41 f0 9f 98 80`. `String` length is not the number of user-perceived characters, and certainly not the byte count.
 
 ```java
 String text = "A\uD83D\uDE00";
-System.out.println(text.length());                        // 3 đơn vị UTF-16
-System.out.println(text.codePointCount(0, text.length())); // 2 code point
-System.out.println(text.getBytes(java.nio.charset.StandardCharsets.UTF_8).length); // 5 byte
+System.out.println(text.length());                        // 3 UTF-16 units
+System.out.println(text.codePointCount(0, text.length())); // 2 code points
+System.out.println(text.getBytes(java.nio.charset.StandardCharsets.UTF_8).length); // 5 bytes
 ```
 
-Đoạn trên là mã minh họa có thể chạy trong `jshell`; hai mã `\uD83D\uDE00` là surrogate pair của emoji 😀. Không cắt một `String` tại chỉ số tùy ý nếu có thể chia đôi một surrogate pair; với văn bản thực tế, khái niệm "ký tự người dùng nhìn thấy" (grapheme cluster) còn có thể gồm nhiều code point.
+The snippet above can be run in `jshell`; `\uD83D\uDE00` is the surrogate pair for emoji 😀. Never slice a `String` at an arbitrary index that could split a surrogate pair; in real text, a "user-perceived character" (grapheme cluster) can also consist of multiple code points.
 
-## 2. Charset là hợp đồng giữa các ranh giới
+## 2. Charset Is the Contract Across Boundaries
 
-`java.nio.charset.StandardCharsets.UTF_8` xác định rõ cách ánh xạ Unicode ↔ byte. Nếu ghi UTF-8 mà đọc với `ISO_8859_1` hoặc Windows-1252, byte có thể còn nguyên nhưng **ký tự sau giải mã khác đi**, thường thấy như chuỗi kiểu `"Ã..."` (mojibake). Ngược lại, nếu mã hóa bằng charset không hỗ trợ ký tự nguồn, dữ liệu có thể bị thay bằng dấu hỏi hoặc ký tự thay thế và không thể khôi phục chỉ bằng việc đổi charset khi đọc.
+`java.nio.charset.StandardCharsets.UTF_8` unambiguously defines the Unicode ↔ byte mapping. If you write UTF-8 and read with `ISO_8859_1` or Windows-1252, the bytes may remain intact yet the **decoded characters differ**, often appearing as `"Ã..."` strings (mojibake). Conversely, if you encode with a charset that lacks the source character, data may be replaced with question marks or replacement characters and cannot be recovered merely by switching charsets on read.
 
-| Nội dung | UTF-8 | UTF-16BE | Nhận xét |
+| Content | UTF-8 | UTF-16BE | Remarks |
 | --- | --- | --- | --- |
-| `A` (U+0041) | `41` | `00 41` | Cùng ký tự, số byte khác nhau |
-| `é` (U+00E9) | `c3 a9` | `00 e9` | Nếu đọc `c3 a9` bằng Latin-1 sẽ không nhận lại `é` |
-| 😀 (U+1F600) | `f0 9f 98 80` | `d8 3d de 00` | UTF-16 dùng surrogate pair |
+| `A` (U+0041) | `41` | `00 41` | Same character, different byte counts |
+| `é` (U+00E9) | `c3 a9` | `00 e9` | Reading `c3 a9` as Latin-1 will not yield `é` |
+| 😀 (U+1F600) | `f0 9f 98 80` | `d8 3d de 00` | UTF-16 uses a surrogate pair |
  
-Trong thực hành hiện đại, **chọn UTF-8 làm hợp đồng trao đổi mặc định** khi không có định dạng giao thức riêng; hai đầu phải nhất trí trên cùng charset. Trong Java 17, không giả định mọi API đều dùng một charset giống nhau. Các overload có truyền `Charset` rõ ràng giúp mã nguồn dễ hiểu và tránh khác biệt theo máy chạy.
+In modern practice, **choose UTF-8 as the default exchange contract** unless a specific protocol format dictates otherwise; both sides must agree on the same charset. In Java 17, never assume every API uses the same charset. Overloads taking an explicit `Charset` make code clearer and prevent machine-dependent discrepancies.
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -54,13 +54,13 @@ byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
 String restored = new String(bytes, StandardCharsets.UTF_8);
 ```
 
-Đây là đoạn minh họa, giả sử `text` đã tồn tại. `getBytes(UTF_8)` mã hóa; `new String(bytes, UTF_8)` giải mã. Cặp thao tác này cần giữ **đúng byte thực sự đi qua ranh giới**, không mã hóa thành byte rồi quay lại chuỗi bằng charset khác ở giữa.
+This is an illustrative snippet assuming `text` already exists. `getBytes(UTF_8)` encodes; `new String(bytes, UTF_8)` decodes. This pair must preserve the **exact bytes crossing the boundary**, rather than encoding to bytes and converting back to a string using a different charset in between.
 
-## 3. Ví dụ chạy được: kiểm tra đồng thời tệp và "dữ liệu truyền"
+## 3. Runnable Example: Verifying Both File and "Wire Payload"
 
-Chương trình sau tạo dữ liệu nguồn, lấy byte UTF-8 làm payload truyền, ghi chính các byte ấy vào tệp tạm, rồi kiểm tra cả byte lẫn `String` khi đọc về. Nó dùng một phép giải mã sai để cho thấy vì sao **byte không thay đổi vẫn có thể hiển thị sai**.
+The following program creates source data, obtains UTF-8 bytes as a wire payload, writes those exact bytes to a temporary file, and checks both bytes and `String` upon reading back. It also performs a wrong-charset decode to show why **unchanged bytes can still display incorrectly**.
 
-Lưu thành `BoundaryRoundTrip.java`:
+Save as `BoundaryRoundTrip.java`:
 
 ```java
 import java.io.IOException;
@@ -73,10 +73,10 @@ import java.util.HexFormat;
 
 public class BoundaryRoundTrip {
     public static void main(String[] args) throws IOException {
-        // \u00E0 là à; \uD83D\uDE00 là 😀; \n là LF.
+        // \u00E0 is à; \uD83D\uDE00 is 😀; \n is LF.
         String original = "Xin ch\u00E0o \uD83D\uDE00\n";
 
-        // Giả lập payload mà bên gửi đưa vào kênh truyền.
+        // Simulate the payload placed onto the wire by the sender.
         byte[] wire = original.getBytes(StandardCharsets.UTF_8);
         String received = new String(wire, StandardCharsets.UTF_8);
 
@@ -112,14 +112,14 @@ public class BoundaryRoundTrip {
 }
 ```
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac BoundaryRoundTrip.java
 java BoundaryRoundTrip
 ```
 
-Kết quả chuẩn (không phụ thuộc khả năng hiển thị emoji của terminal vì chỉ in các nhãn ASCII và số):
+Expected output (independent of terminal emoji rendering because it prints only ASCII labels and numbers):
 
 ```text
 file-bytes-match=true
@@ -134,15 +134,15 @@ utf8-length=5
 utf8-hex=41f09f9880
 ```
 
-Giải thích: `wire` là dữ liệu byte mà một giao thức truyền thực tế phải mang đi; `disk` là byte nằm trên tệp. `Arrays.equals(wire, disk)` xác nhận từng byte giống nhau. `original.equals(restored)` xác nhận nội dung giải mã giống dữ liệu nguồn. `original.equals(wrong)` là `false` vì cùng byte đã bị giải mã theo charset khác.
+Explanation: `wire` is the byte data an actual transport protocol would carry; `disk` is the bytes stored in the file. `Arrays.equals(wire, disk)` confirms byte-for-byte identity. `original.equals(restored)` confirms decoded text matches the source data. `original.equals(wrong)` is `false` because the same bytes were decoded under a different charset.
 
-Trong hệ thống thật, thay "giả lập payload" bằng byte thu được **sau khi đi qua mạng/hàng đợi/message broker**; chỉ gọi `getBytes(UTF_8)` ở đầu nhận từ chuỗi gốc sẽ bỏ qua khả năng dữ liệu đã bị thay đổi trên đường truyền.
+In a real system, replace "simulate payload" with the actual bytes received **after crossing the network/queue/message broker**; calling `getBytes(UTF_8)` on the receiving side from the original string would miss modifications that happened in transit.
 
-## 4. Đối chiếu qua ranh giới tệp
+## 4. Verifying Across File Boundaries
 
-### Ghi và đọc chuỗi với charset rõ ràng
+### Writing and Reading Strings with an Explicit Charset
 
-Java 11+ có các phương thức `Files.writeString` và `Files.readString`; chúng dùng UTF-8 nếu không truyền charset. Để hợp đồng được hiển thị ngay trong code, có thể truyền tường minh:
+Java 11+ provides `Files.writeString` and `Files.readString`; they use UTF-8 if no charset is passed. To make the contract visible right in the code, pass it explicitly:
 
 ```java
 Files.writeString(path, source, StandardCharsets.UTF_8);
@@ -150,18 +150,18 @@ String actual = Files.readString(path, StandardCharsets.UTF_8);
 boolean sameText = source.equals(actual);
 ```
 
-Đoạn trên minh họa trong ngữ cảnh đã có các biến `path` (`Path`) và `source` (`String`), cùng xử lý `IOException`. Với dữ liệu nhị phân hoặc khi cần kiểm tra chính xác byte, dùng `Files.write(path, byte[])` và `Files.readAllBytes(path)`.
+This snippet assumes existing `path` (`Path`) and `source` (`String`) variables, along with `IOException` handling. For binary data or exact byte verification, use `Files.write(path, byte[])` and `Files.readAllBytes(path)`.
 
-Một số API cũ hoặc overload không có charset rõ ràng, ví dụ `new FileReader(file)` trong Java 17, dùng charset mặc định của runtime. Không nên trộn tùy tiện cách đọc/ghi dựa trên mặc định với cách cố định UTF-8. Java 18+ chuẩn hóa mặc định UTF-8 cho nhiều API qua JEP 400, nhưng điều đó không làm mọi luồng console và mọi tệp lịch sử tự động trở thành UTF-8.
+Some older APIs or overloads without an explicit charset, such as `new FileReader(file)` in Java 17, use the runtime's default charset. Do not mix default-based reading/writing arbitrarily with fixed UTF-8. Java 18+ standardizes UTF-8 as the default for many APIs via JEP 400, yet that does not automatically make all console streams and legacy files UTF-8.
 
-### BOM, xuống dòng và biến đổi ngoài ý muốn
+### BOM, Line Endings, and Unintended Transformations
 
-- **BOM (Byte Order Mark):** Một tệp UTF-8 có thể bắt đầu bằng ba byte `ef bb bf`. Khi giải mã UTF-8 thành chuỗi, dấu này có thể hiện thành ký tự đầu `U+FEFF`; `"header".equals(text)` khi ấy là `false` dù màn hình không cho thấy dấu lạ. Chỉ loại BOM theo chính sách định dạng tệp đã thống nhất, không xóa mọi `U+FEFF` tùy tiện giữa nội dung.
-- **Xuống dòng:** `\n` (LF) và `\r\n` (CRLF) là các dãy khác nhau cả ở `String` và byte. API `readAllLines` trả về các dòng **không giữ ký tự kết thúc dòng**; việc ghép lại có thể thay đổi dữ liệu. Nếu cần đối chiếu nguyên vẹn, ưu tiên `readString` hoặc byte thô.
-- **Đầu/cuối văn bản:** `trim()`, `strip()`, việc tự thêm `println` hoặc bộ lọc chuyển đổi newline có thể đổi nội dung. Ghi lại các bước biến đổi này khi truy tìm khác biệt.
-- **Byte không tương thích charset:** Phương thức tạo `String` tiện lợi có thể thay byte lỗi bằng `U+FFFD`. Một chuỗi đọc được không tự chứng minh rằng toàn bộ byte đều hợp lệ theo định dạng đã cam kết.
+- **BOM (Byte Order Mark):** A UTF-8 file may start with three bytes `ef bb bf`. When decoded as UTF-8 into a string, this mark can appear as leading character `U+FEFF`; `"header".equals(text)` is then `false` even though the screen shows no visible mark. Strip a BOM only according to an agreed file-format policy, and never strip every `U+FEFF` arbitrarily inside content.
+- **Line endings:** `\n` (LF) and `\r\n` (CRLF) are different sequences in both `String` and bytes. `readAllLines` returns lines **without line terminators**; joining them back can alter the data. When exact comparison is required, prefer `readString` or raw bytes.
+- **Leading/trailing text changes:** `trim()`, `strip()`, extra `println` calls, or newline-conversion filters can alter content. Record all such transformation steps when tracking down discrepancies.
+- **Charset-incompatible bytes:** Convenience `String` constructors can replace malformed bytes with `U+FFFD`. A readable string does not by itself prove all bytes complied with the agreed format.
 
-Khi biết định dạng tệp cho phép BOM ở đầu, có thể kiểm tra:
+When you know the file format allows a leading BOM, you can check:
 
 ```java
 if (!text.isEmpty() && text.charAt(0) == '\uFEFF') {
@@ -169,15 +169,15 @@ if (!text.isEmpty() && text.charAt(0) == '\uFEFF') {
 }
 ```
 
-Đây chỉ là đoạn minh họa sau khi đã đọc tệp thành biến `text`. Việc loại BOM nên diễn ra **một lần tại ranh giới nhập dữ liệu**, có ghi rõ quy định.
+This is only an illustrative snippet after reading a file into `text`. BOM removal should happen **once at the input boundary**, with the rule clearly documented.
 
-## 5. Đối chiếu qua console
+## 5. Verifying Across the Console
 
-`System.out.println(text)` đi qua một `PrintStream`, lớp mã hóa ký tự của console/terminal và phần mềm hiển thị. Dòng chữ nhìn thấy trên màn hình là **kết quả trình bày**, không phải phép kiểm chứng rằng byte UTF-8 hay Unicode gốc còn nguyên.
+`System.out.println(text)` passes through a `PrintStream`, the console/terminal character encoder, and the display software. The text seen on screen is a **presentation result**, not proof that the underlying UTF-8 bytes or Unicode characters remain intact.
 
-Những nơi có thể xảy ra khác biệt gồm: charset của terminal hoặc output stream, shell/IDE xử lý Unicode, phông chữ không có glyph, cấu hình chuyển hướng stdout sang tệp, và newline mà `println` tự thêm. Ví dụ một emoji có thể thành hình vuông do thiếu glyph dù byte hợp lệ. Ngược lại, khi code ghi đúng chuỗi ra console nhưng redirect sang tệp theo encoding khác, đọc tệp ấy bằng UTF-8 có thể lỗi.
+Discrepancies can arise at: the terminal or output stream's charset, shell/IDE Unicode handling, fonts lacking a glyph, stdout redirection settings to a file, and the newline appended by `println`. For instance, an emoji may appear as a box due to a missing glyph even though the bytes are valid. Conversely, when code writes a valid string to the console but redirects it to a file under a different encoding, reading that file as UTF-8 can fail.
 
-Cách kiểm tra đáng tin hơn là ghi **bản chẩn đoán ASCII** bên cạnh nội dung:
+A more reliable check is printing an **ASCII diagnostic dump** alongside the content:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -190,7 +190,7 @@ text.codePoints().forEach(cp ->
         System.out.printf("U+%04X%n", cp));
 ```
 
-Đây là đoạn minh họa có thể chạy trong `jshell`. Với chuỗi này, kết quả là:
+This snippet can be run in `jshell`. For this string, the output is:
 
 ```text
 utf8=41f09f9880
@@ -198,23 +198,23 @@ U+0041
 U+1F600
 ```
 
-`codePoints()` cho thấy giá trị Unicode của từng code point; `HexFormat` cho thấy byte khi **chủ động mã hóa UTF-8**. Các số này không nhất thiết chính là byte do `System.out` gửi xuống terminal. Để kiểm tra file stdout đã redirect, cần xem trực tiếp byte của file đó.
+`codePoints()` shows the Unicode value of each code point; `HexFormat` shows the bytes when **explicitly UTF-8 encoded**. These values are not necessarily the exact bytes sent by `System.out` to the terminal. To inspect a redirected stdout file, examine the raw bytes of that file directly.
 
-Đối với nhập từ `System.in`, đừng vô tình dùng bộ đọc mặc định khác với charset mà phía terminal gửi. Nếu đã xác nhận input là UTF-8, có thể tạo `new InputStreamReader(System.in, StandardCharsets.UTF_8)` (trong một `BufferedReader`); nếu terminal thực tế gửi charset khác, việc ép UTF-8 ở Java sẽ không tự sửa dữ liệu. `System.console()` có thể trả về `null` trong IDE hoặc lúc redirect, nên không giả định chương trình luôn gắn console tương tác.
+For reading from `System.in`, do not accidentally use a default reader that differs from the charset the terminal sends. Once you confirm input is UTF-8, you can create `new InputStreamReader(System.in, StandardCharsets.UTF_8)` (inside a `BufferedReader`); if the terminal actually sends another charset, forcing UTF-8 in Java will not fix the data. `System.console()` can return `null` inside an IDE or when redirected, so never assume an interactive console is always attached.
 
-## 6. Đối chiếu qua dữ liệu truyền (HTTP, socket, message)
+## 6. Verifying Across Wire Data (HTTP, Sockets, Messages)
 
-Một giao thức truyền byte không tự biết "chuỗi Java" là gì. Bên gửi phải **quy định mã hóa payload**; bên nhận phải giải mã nhất quán. Với nội dung dạng text truyền qua HTTP, có thể công bố charset trong `Content-Type`, chẳng hạn:
+A byte transport protocol does not inherently know what a "Java string" is. The sender must **specify payload encoding**; the receiver must decode consistently. For text content sent over HTTP, the charset can be declared in `Content-Type`, for example:
 
 ```http
 Content-Type: text/plain; charset=UTF-8
 ```
 
-Nếu không có `charset` hoặc định dạng giao thức quy định riêng, bên nhận phải áp dụng quy tắc của giao thức đó; không nên đoán charset từ cách chữ hiển thị. Trong Java HTTP Client (Java 11+), một cặp lựa chọn có charset tường minh là:
+If no `charset` is present or the protocol format sets its own rule, the receiver must follow that protocol's specification; do not guess the charset from how text renders. In the Java HTTP Client (Java 11+), a pair of explicit-charset choices is:
 
 ```java
-// Trích đoạn minh họa; giả sử đã có HttpRequest.Builder builder,
-// HttpResponse<byte[]> response, và String text.
+// Illustrative snippet; assumes HttpRequest.Builder builder,
+// HttpResponse<byte[]> response, and String text already exist.
 builder.header("Content-Type", "text/plain; charset=UTF-8")
        .POST(HttpRequest.BodyPublishers.ofString(text, StandardCharsets.UTF_8));
 
@@ -222,15 +222,15 @@ byte[] receivedBytes = response.body();
 String receivedText = new String(receivedBytes, StandardCharsets.UTF_8);
 ```
 
-Hai đoạn trên minh họa hai phía khác nhau; đây **không** phải chương trình độc lập gửi request. Khi kết nối thật, kiểm tra header mà dịch vụ gửi về trước khi quyết định charset giải mã. Một cách khác là chọn `BodyHandlers.ofString(StandardCharsets.UTF_8)` nếu hợp đồng đầu nhận đã chắc chắn. Với socket, dùng `OutputStreamWriter` và `InputStreamReader` cùng charset; còn giao thức nhị phân thì xử lý frame và chiều dài ở cấp byte.
+These two fragments illustrate opposite sides; this is **not** a standalone request-sending program. In real connections, inspect the response headers returned by the service before deciding the decoding charset. Alternatively, choose `BodyHandlers.ofString(StandardCharsets.UTF_8)` when the receiving contract is already certain. For sockets, use `OutputStreamWriter` and `InputStreamReader` with the same charset; for binary protocols, handle framing and lengths at the byte level.
 
-**Độ dài payload** là số byte, không phải `String.length()`. Ví dụ `"A😀"` dài 3 đơn vị UTF-16 nhưng chiếm 5 byte UTF-8. Độ dài của frame, payload, hash hoặc `Content-Length` phải được tính từ byte thực sự gửi đi. Thư viện HTTP thường tự tính độ dài khi gửi body; tránh tự điền một giá trị bằng `text.length()`.
+**Payload length** is the byte count, not `String.length()`. For example, `"A😀"` is 3 UTF-16 units long yet occupies 5 UTF-8 bytes. Frame lengths, payload sizes, hashes, and `Content-Length` must be computed from the actual bytes sent. HTTP libraries usually calculate the length when sending a body; avoid manually supplying `text.length()`.
 
-Cũng phải phân biệt **charset** (byte ↔ ký tự) với **truyền tải/biến đổi khác**: nén gzip, escaping JSON, Base64 và việc chuyển `\n` thành hai ký tự `\\n` trong dữ liệu JSON là các lớp xử lý riêng. Byte payload JSON có thể khác chuỗi hiển thị sau khi parser xử lý escape mà vẫn mang cùng giá trị văn bản theo giao thức.
+Also distinguish **charset** (bytes ↔ characters) from **other transport/format transformations**: gzip compression, JSON escaping, Base64, and turning `\n` into the two characters `\\n` inside JSON are separate layers. JSON payload bytes can differ from the displayed string after a parser unescapes it while still conveying the same protocol text value.
 
-## 7. Kiểm tra byte ngay tại ranh giới nhận
+## 7. Validating Bytes Right at the Receiving Boundary
 
-Ví dụ `new String(bytes, StandardCharsets.UTF_8)` có thể thay byte UTF-8 không hợp lệ bằng U+FFFD. Nếu một thông điệp cần giữ nguyên nội dung, kiểm tra **byte nhận được** trước khi đưa vào parser hoặc ghi đè dữ liệu nguồn:
+For example, `new String(bytes, StandardCharsets.UTF_8)` can replace invalid UTF-8 bytes with U+FFFD. If a message must preserve exact content, validate the **received bytes** before passing them to a parser or overwriting source data:
 
 ~~~java
 byte[] malformed = {(byte) 0xC3, 0x28};
@@ -246,15 +246,15 @@ try {
 }
 ~~~
 
-Đặt đoạn trong phương thức và import `java.nio.ByteBuffer` cùng các lớp `java.nio.charset.*` liên quan. Kết quả cho dữ liệu trên là `valid-utf8=false`. Kết quả giải mã strict chứng minh byte tuân thủ charset **đã chọn**, nhưng không tự chứng minh phía gửi đã chọn đúng charset theo giao thức. Bài **CharsetEncoder, CharsetDecoder và chính sách REPORT** đi sâu vào chuyển đổi nghiêm ngặt, bao gồm decoder theo luồng.
+Place this inside a method and import `java.nio.ByteBuffer` along with the relevant `java.nio.charset.*` classes. The output for the data above is `valid-utf8=false`. A strict decode proves the bytes conform to the **chosen** charset, but does not by itself prove the sender chose the right charset under the protocol. The lesson **CharsetEncoder, CharsetDecoder, and the REPORT Policy** covers strict conversion in depth, including streaming decoders.
 
-## 8. Hai chuỗi nhìn giống nhau vẫn có thể khác nhau
+## 8. Two Visually Identical Strings Can Still Differ
 
-Unicode có thể biểu diễn ký tự có dấu theo nhiều cách. Chẳng hạn `"\u00E9"` (một code point `é`) và `"e\u0301"` (chữ `e` cộng dấu sắc kết hợp) thường nhìn giống nhau nhưng:
+Unicode can represent accented characters in multiple ways. For example, `"\u00E9"` (single code point `é`) and `"e\u0301"` (`e` plus combining acute accent) usually look identical yet:
 
-- `String.equals` ban đầu là `false` vì dãy đơn vị UTF-16 khác.
-- UTF-8 byte cũng khác: `c3 a9` so với `65 cc 81`.
-- Sau `Normalizer.normalize(value, Normalizer.Form.NFC)`, hai chuỗi trở nên bằng nhau.
+- `String.equals` is initially `false` because their UTF-16 unit sequences differ.
+- UTF-8 bytes also differ: `c3 a9` versus `65 cc 81`.
+- After `Normalizer.normalize(value, Normalizer.Form.NFC)`, the two strings become equal.
 
 ```java
 import java.text.Normalizer;
@@ -266,42 +266,42 @@ boolean normalizedEqual = first.equals(
         Normalizer.normalize(second, Normalizer.Form.NFC)); // true
 ```
 
-Đoạn trên là mã minh họa. **Chuẩn hóa phải là quyết định của hợp đồng dữ liệu**, không thực hiện bừa ở giữa chuỗi ký số, đường dẫn, mã định danh hay payload cần kiểm tra toàn vẹn byte: nó thay đổi biểu diễn nguồn. Nếu mục đích là hiển thị hoặc tìm kiếm không phân biệt biến thể chuẩn hóa, hãy thống nhất việc chuẩn hóa **trước khi so sánh** ở cả hai phía.
+The snippet above is illustrative. **Normalization must be a data-contract decision**, never performed haphazardly in the middle of signed payloads, file paths, identifiers, or payloads requiring byte-integrity checks: it changes the source representation. When the goal is display or normalization-insensitive search, agree on normalizing **before comparison** on both sides.
 
-## 9. Quy trình chẩn đoán khi dữ liệu đi qua nhiều lớp
+## 9. Diagnostic Workflow Across Multiple Layers
 
-Khi dữ liệu khác giữa file, console và bên nhận, làm theo thứ tự sau:
+When data differs across files, console, and receiver, proceed in this order:
 
-1. **Chọn mốc chuẩn:** giữ `String` gốc tại bên gửi và `byte[]` ngay trước khi rời tiến trình. Nếu tệp là mốc chuẩn, lấy byte thô bằng `Files.readAllBytes`.
-2. **Xác định hợp đồng:** ghi charset, định dạng payload, BOM có được phép hay không, quy ước newline, Unicode normalization, và các lớp nén/escape.
-3. **Đối chiếu byte ở từng ranh giới:** dùng `Arrays.equals` khi có hai mảng byte, hoặc ghi kích thước và bản hex/hash của byte nguồn và byte nhận. Hash chỉ chứng minh byte đồng nhất theo mức tin cậy của thuật toán, không tự chứng minh ký tự đúng.
-4. **Giải mã bằng charset đã thống nhất:** dùng `new String(bytes, charset)` nếu đầu vào đáng tin; dùng `CharsetDecoder` strict khi cần từ chối byte không hợp lệ.
-5. **Đối chiếu nội dung Unicode:** so sánh bằng `String.equals`, xem `codePoints()` khi cần, kiểm tra BOM/newline/normalization nếu byte hoặc text chưa khớp.
-6. **Cuối cùng mới đánh giá hiển thị:** so sánh terminal, editor, log viewer. Lỗi font hoặc cách hiển thị có thể khác với lỗi byte thật.
+1. **Establish a baseline:** capture the original `String` at the sender and the `byte[]` right before leaving the process. If a file is the baseline, read raw bytes with `Files.readAllBytes`.
+2. **Confirm the contract:** record the charset, payload format, whether BOM is allowed, newline conventions, Unicode normalization, and any compression/escaping layers.
+3. **Compare bytes at each boundary:** use `Arrays.equals` when you have both byte arrays, or log sizes and hex/hashes of sent and received bytes. A hash only proves byte identity up to the algorithm's strength; it does not prove the characters are right.
+4. **Decode with the agreed charset:** use `new String(bytes, charset)` for trusted input; use a strict `CharsetDecoder` when malformed bytes must be rejected.
+5. **Compare Unicode content:** compare with `String.equals`, inspect `codePoints()` when needed, and check BOM/newlines/normalization if bytes or text do not match.
+6. **Evaluate display last:** compare terminal, editor, and log viewer behavior. Font or rendering issues can differ from actual byte bugs.
 
-| Triệu chứng | Kiểm tra ưu tiên | Khả năng và hướng xử lý |
+| Symptom | Check First | Likely Cause and Fix |
 | --- | --- | --- |
-| Tệp có chữ `Ã` hoặc ký tự lạ | Xem byte hex, charset lúc ghi và lúc đọc | Sai charset; thống nhất UTF-8 cho các đầu liên quan |
-| Emoji hiện thành ô vuông ở console | Kiểm tra code point và UTF-8 hex trước khi in | Có thể do terminal/font; đừng đổi byte khi dữ liệu gốc đúng |
-| File đọc về khác ở đầu chuỗi | Kiểm tra `ef bb bf`, `U+FEFF` | BOM; thống nhất chính sách xử lý |
-| Hai chuỗi trông giống nhưng `equals` sai | Kiểm tra code point, dấu kết hợp, khoảng trắng/newline | Unicode normalization hoặc ký tự ẩn/khác dấu xuống dòng |
-| API nhận sai số byte hay cắt payload | Đếm `byte[].length` và kiểm tra framing | Dùng số byte, không dùng `String.length()` |
-| Đầu nhận có `�` (U+FFFD) | Giải mã strict từ byte gốc | Byte lỗi hoặc charset không khớp, không nên chấp nhận mất dữ liệu im lặng |
-| Nội dung trong IDE đúng, redirect stdout bị lỗi | Xem byte của file redirect và encoding terminal | Console/luồng redirect có cấu hình mã hóa khác |
+| File shows `Ã` or strange characters | Inspect hex bytes, write charset, and read charset | Wrong charset; standardize on UTF-8 across the endpoints involved |
+| Emoji renders as a square box in console | Check code points and UTF-8 hex before printing | Likely terminal/font issue; do not alter bytes if source data is valid |
+| File read differs at the start of the string | Check for `ef bb bf`, `U+FEFF` | BOM; agree on handling policy |
+| Two visually identical strings fail `equals` | Inspect code points, combining marks, spaces/newlines | Unicode normalization or hidden characters/different line endings |
+| API receives wrong byte count or truncates payload | Count `byte[].length` and inspect framing | Use byte count, not `String.length()` |
+| Receiver sees `�` (U+FFFD) | Strict decode from raw bytes | Malformed bytes or charset mismatch; do not accept silent data loss |
+| Content is fine in IDE, broken when stdout is redirected | Inspect bytes of the redirected file and terminal encoding | Console/redirected stream uses a different encoding configuration |
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-1. `String s = "A\uD83D\uDE00";` có `s.length()` bằng bao nhiêu? Có bao nhiêu code point? Mã hóa UTF-8 được bao nhiêu byte?
-2. Một tệp lưu byte `c3 a9`. Đọc theo UTF-8 rồi theo ISO-8859-1 có giữ nguyên cùng ký tự không? Byte gốc có thay đổi chỉ bởi thao tác đọc không?
-3. Hai hệ thống truyền `"e\u0301"` và `"\u00E9"`. Tại sao giao diện có thể hiển thị giống nhau dù `String.equals` là `false`? Trường hợp nào nên chuẩn hóa trước khi so sánh?
-4. Nếu `System.out.println(text)` hiện ký tự lỗi, bạn nên kiểm tra `String.codePoints()`, hex UTF-8, hay đổi mã hóa tệp ngay? Vì sao?
-5. Khi truyền `"A😀"` trong HTTP body UTF-8, có thể lấy `String.length()` làm độ dài body không?
+1. For `String s = "A\uD83D\uDE00";`, what is `s.length()`? How many code points does it have? How many bytes when UTF-8 encoded?
+2. A file stores bytes `c3 a9`. Does reading it as UTF-8 vs. ISO-8859-1 produce the same characters? Do the original bytes change merely from reading?
+3. Two systems transmit `"e\u0301"` and `"\u00E9"`. Why can the UI render them identically even though `String.equals` is `false`? When should you normalize before comparing?
+4. If `System.out.println(text)` prints garbled characters, should you check `String.codePoints()` and UTF-8 hex first, or immediately change the file's encoding? Why?
+5. When sending `"A😀"` in a UTF-8 HTTP body, can you use `String.length()` as the body length?
 
-**Gợi ý đáp án:** (1) 3 đơn vị UTF-16, 2 code point, 5 byte; (2) khác ký tự vì giải mã bằng charset khác, byte gốc không đổi; (3) khác cách biểu diễn Unicode, chỉ chuẩn hóa khi hợp đồng cho phép; (4) kiểm tra code point và hex để xác định lỗi dữ liệu hay lỗi hiển thị trước; (5) không, body UTF-8 có 5 byte.
+**Answer hints:** (1) 3 UTF-16 units, 2 code points, 5 bytes; (2) different characters because they are decoded with different charsets, while raw bytes are unchanged; (3) different Unicode representations, normalize only when the contract permits; (4) inspect code points and hex first to distinguish a data error from a display error; (5) no, the UTF-8 body is 5 bytes.
 
-### Tài liệu tham khảo
+### References
 
 - [`String` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
-- [`StandardCharsets` và `CharsetDecoder` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/package-summary.html)
+- [`StandardCharsets` and `CharsetDecoder` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/package-summary.html)
 - [`Files` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html)
 - [`Normalizer` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html)

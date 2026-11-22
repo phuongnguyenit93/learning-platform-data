@@ -1,6 +1,6 @@
-# `else` gắn với `if` gần nhất chưa có `else` — Java 17+
+# `else` Binds to the Nearest `if` Without an `else` — Java 17+
 
-Trong Java, nếu nhiều câu lệnh `if` **lồng nhau mà không có ngoặc nhọn xác định rõ khối**, một `else` sẽ thuộc về **`if` gần nhất ở trước nó mà chưa có `else` tương ứng**. Quy tắc này thường được gọi là **dangling else** (*else lơ lửng*).
+In Java, if multiple `if` statements are **nested without braces explicitly defining blocks**, an `else` belongs to the **nearest preceding `if` that does not yet have a matching `else`**. This rule is commonly called **dangling else**.
 
 ~~~java
 boolean outer = true;
@@ -13,13 +13,13 @@ if (outer)
         System.out.println("B");
 ~~~
 
-Kết quả là **`B`**, vì `else` gắn với **`if (inner)`**, không phải `if (outer)`. **Thụt đầu dòng không quyết định phạm vi câu lệnh trong Java**; cấu trúc cú pháp và dấu `{ }` mới quyết định.
+The result is **`B`**, because `else` binds to **`if (inner)`**, not `if (outer)`. **Indentation does not determine statement scope in Java**; syntactic structure and `{ }` braces do.
 
-Nếu `outer` là `false`, chương trình bỏ qua toàn bộ câu lệnh `if (inner) ... else ...`, vì đó là phần thân của `if (outer)`. Lúc ấy **không có dòng A/B nào được in**.
+If `outer` is `false`, the program skips the entire `if (inner) ... else ...` statement, because it is the body of `if (outer)`. In that case, **neither A nor B is printed**.
 
-## 1. Quy tắc gắn `else` chính xác
+## 1. The exact `else` binding rule
 
-Với đoạn sau không có ngoặc nhọn:
+With the following braceless snippet:
 
 ~~~java
 if (outer)
@@ -29,7 +29,7 @@ if (outer)
         actionB();
 ~~~
 
-Java hiểu tương đương:
+Java interprets it equivalently to:
 
 ~~~java
 if (outer) {
@@ -41,22 +41,22 @@ if (outer) {
 }
 ~~~
 
-Hai phương thức `actionA()`, `actionB()` ở hai đoạn trên chỉ là tên minh họa cú pháp; chương trình runnable ở phần tiếp theo tự định nghĩa đầy đủ các phương thức của nó.
+The methods `actionA()` and `actionB()` in the two snippets above are only syntax placeholders; the runnable program in the next section defines all of its own methods completely.
 
-### Bảng kết quả
+### Result table
 
-| `outer` | `inner` | Hành vi của đoạn không có ngoặc |
+| `outer` | `inner` | Behavior of the braceless snippet |
 | --- | --- | --- |
-| false | false | Không gọi `actionA` hay `actionB` |
-| false | true | Không gọi `actionA` hay `actionB` |
-| true | false | Gọi `actionB` — `else` của `inner` |
-| true | true | Gọi `actionA` |
+| false | false | Calls neither `actionA` nor `actionB` |
+| false | true | Calls neither `actionA` nor `actionB` |
+| true | false | Calls `actionB` — `else` of `inner` |
+| true | true | Calls `actionA` |
 
-**Không được** tự diễn giải `else` thành “nhánh ngược lại của điều kiện đầu tiên”. Khi có hai `if` lồng nhau, nó thường thuộc về `if` **bên trong** nếu `if` đó chưa có `else`.
+**Do not** interpret `else` as “the opposite branch of the first condition”. When two `if` statements are nested, it usually belongs to the **inner** `if` if that `if` does not yet have an `else`.
 
-## 2. Chương trình Java 17+ chạy độc lập
+## 2. Standalone runnable Java 17+ program
 
-Tạo file UTF-8 tên **`DanglingElseDemo.java`**:
+Create a UTF-8 file named **`DanglingElseDemo.java`**:
 
 ~~~java
 public class DanglingElseDemo {
@@ -156,7 +156,7 @@ public class DanglingElseDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) tại thư mục chứa file; sử dụng **JDK 17 trở lên**:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file; use **JDK 17 or later**:
 
 ~~~bash
 java -version
@@ -165,7 +165,7 @@ javac -encoding UTF-8 DanglingElseDemo.java
 java DanglingElseDemo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java DanglingElseDemo`:
+**Exact expected stdout** of `java DanglingElseDemo` alone:
 
 ~~~text
 == no braces ==
@@ -200,11 +200,11 @@ chained=first
 done
 ~~~
 
-Lệnh `java -version` và `javac -version` hiển thị phiên bản cài trên từng máy, nên không thuộc expected stdout cố định. Ví dụ này chỉ dùng Java chuẩn.
+`java -version` and `javac -version` display the version installed on each machine, so they are not part of the fixed expected stdout. This example uses standard Java only.
 
-## 3. Dùng ngoặc nhọn để gắn `else` với `if` ngoài
+## 3. Using braces to bind `else` to the outer `if`
 
-Nếu muốn `else` chạy khi `outer` false thì **phải đóng phần thân của `if (outer)` trước `else`**:
+If you want `else` to run when `outer` is false, you **must close the body of `if (outer)` before `else`**:
 
 ~~~java
 if (outer) {
@@ -216,23 +216,23 @@ if (outer) {
 }
 ~~~
 
-Trong trường hợp này, `else` **thuộc `if (outer)`**, vì `if (inner)` đã nằm trong khối ngoặc của `outer`, và khối đó kết thúc trước `else`.
+In this case, `else` **belongs to `if (outer)`**, because `if (inner)` is inside the braced block of `outer`, and that block ends before `else`.
 
-So sánh trực tiếp:
+Direct comparison:
 
-| Cách viết | `else` gắn với | Khi `outer=false` |
+| Syntax | `else` binds to | When `outer=false` |
 | --- | --- | --- |
-| `if (outer) if (inner) A; else B;` | `if (inner)` | Không chạy A/B |
-| `if (outer) { if (inner) A; } else B;` | `if (outer)` | Chạy B |
-| `if (outer) { if (inner) A; else B; }` | `if (inner)` | Không chạy A/B |
+| `if (outer) if (inner) A; else B;` | `if (inner)` | Runs neither A nor B |
+| `if (outer) { if (inner) A; } else B;` | `if (outer)` | Runs B |
+| `if (outer) { if (inner) A; else B; }` | `if (inner)` | Runs neither A nor B |
 
-`A;` và `B;` trong bảng là ký hiệu cho một câu lệnh hợp lệ, không phải các biến có sẵn của Java. Cần thay chúng bằng câu lệnh thực tế khi sao chép để chạy.
+`A;` and `B;` in the table stand for valid statements, not predefined Java variables. Replace them with actual statements when copying to run.
 
-**Nguyên tắc:** Viết dấu ngoặc nhọn cho từng nhánh ngay cả khi chỉ có một câu lệnh. Việc này khiến người đọc và trình biên dịch hiểu cùng một cấu trúc, tránh lỗi khi thêm mã sau này.
+**Rule:** Write braces for every branch even when there is only one statement. This ensures the reader and the compiler understand the exact same structure and prevents bugs when adding code later.
 
-## 4. Nếu có hai `else` thì sao?
+## 4. What if there are two `else` clauses?
 
-Có thể có một `else` cho `if` bên trong **và** một `else` cho `if` bên ngoài:
+You can have one `else` for the inner `if` **and** one `else` for the outer `if`:
 
 ~~~java
 if (outer)
@@ -244,7 +244,7 @@ else
     System.out.println("outer=false");
 ~~~
 
-Cách viết này hợp lệ. `else` thứ nhất thuộc `if (inner)`; `else` thứ hai thuộc `if (outer)`. Nhưng khi có nhiều mức lồng, cách không ngoặc dễ làm người đọc nhầm; nên viết lại:
+This syntax is valid. The first `else` belongs to `if (inner)`; the second `else` belongs to `if (outer)`. However, with deeper nesting, omitting braces easily confuses readers; rewrite it as:
 
 ~~~java
 if (outer) {
@@ -258,17 +258,17 @@ if (outer) {
 }
 ~~~
 
-| `outer` | `inner` | Nhánh được chọn |
+| `outer` | `inner` | Selected branch |
 | --- | --- | --- |
-| false | bất kỳ | `outer=false` |
+| false | any | `outer=false` |
 | true | false | `inner=false` |
 | true | true | `inner=true` |
 
-Đây là **một cây quyết định lồng nhau** chứ không phải ba điều kiện độc lập chạy liên tục.
+This is **a nested decision tree**, not three independent conditions evaluated sequentially.
 
-## 5. `else if` là một `else` theo sau bởi `if`
+## 5. `else if` is an `else` followed by `if`
 
-Java không có từ khóa riêng tên `elseif`. Cú pháp:
+Java has no separate keyword named `elseif`. Syntax:
 
 ~~~java
 if (score >= 90) {
@@ -280,7 +280,7 @@ if (score >= 90) {
 }
 ~~~
 
-Có thể hiểu cấu trúc như:
+You can view this structure as:
 
 ~~~java
 if (score >= 90) {
@@ -294,13 +294,13 @@ if (score >= 90) {
 }
 ~~~
 
-Điều này giải thích vì sao `else if` thực chất kết hợp `else` với một câu `if` khác. Với chuỗi này, các điều kiện được đánh giá từ trên xuống; gặp nhánh true đầu tiên thì những nhánh sau bị bỏ qua.
+This explains why `else if` actually combines `else` with another `if` statement. With this chain, conditions are evaluated from top to bottom; once the first true branch is found, subsequent branches are skipped.
 
-**Khác `if` độc lập:** Hai câu `if` đặt liên tiếp có thể cùng chạy. Một chuỗi `if / else if / else` sẽ chỉ chạy tối đa một nhánh trong một lần đi qua chuỗi, nếu điều kiện không ném ngoại lệ.
+**Different from independent `if`:** Two consecutive `if` statements can both run. An `if / else if / else` chain runs at most one branch in a single pass, assuming no condition throws an exception.
 
-## 6. Thụt đầu dòng không thay thế cú pháp
+## 6. Indentation does not replace syntax
 
-Đây là ví dụ dễ gây hiểu nhầm:
+Here is an easily misunderstood example:
 
 ~~~java
 boolean outer = false;
@@ -313,9 +313,9 @@ else
     System.out.println("B");
 ~~~
 
-Mặc dù `else` trông giống thụt dòng cùng cấp với `if (outer)`, nó vẫn **thuộc `if (inner)`**. Khi `outer` false, không in A hoặc B. Thụt đầu dòng chỉ là hình thức trình bày mã nguồn; Java không dựa vào số khoảng trắng để ghép `else`.
+Even though `else` looks indented at the same level as `if (outer)`, it still **belongs to `if (inner)`**. When `outer` is false, neither A nor B is printed. Indentation is purely visual formatting; Java does not rely on whitespace count to pair `else`.
 
-Hãy sửa thành cấu trúc có ngoặc:
+Fix it into a braced structure:
 
 ~~~java
 if (outer) {
@@ -327,13 +327,13 @@ if (outer) {
 }
 ~~~
 
-Bây giờ `B` được in khi `outer` false. Hai đoạn **không tương đương** dù có thể được trình bày với thụt đầu dòng khá giống nhau.
+Now `B` is printed when `outer` is false. The two snippets **are not equivalent** even though they can be formatted with very similar indentation.
 
-## 7. `else` gần nhất chưa có `else` và những giới hạn cú pháp
+## 7. Nearest `if` without `else` and syntactic limits
 
-Quy tắc “gần nhất” áp dụng cho `if` chưa có `else` trong **cấu trúc câu lệnh hợp lệ**; nó **không có nghĩa** có thể nối `else` vào bất kỳ câu `if` nào xuất hiện trước đó dù đã đóng khối hoặc tách ra bằng câu lệnh khác.
+The “nearest” rule applies to an `if` without an `else` within a **valid statement structure**; it **does not mean** you can attach `else` to any preceding `if` after its block is closed or separated by another statement.
 
-Ví dụ:
+Example:
 
 ~~~java
 int n = 2;
@@ -341,30 +341,30 @@ int n = 2;
 if (n > 0) {
     System.out.println("positive");
 }
-// else phải đặt ngay sau câu if ở trên nếu muốn tạo nhánh của nó.
+// else must be placed immediately after the if above to form its branch.
 
 System.out.println("between");
-// else { System.out.println("non-positive"); } // Lỗi biên dịch.
+// else { System.out.println("non-positive"); } // Compile error.
 ~~~
 
-Câu `else` không thể đứng riêng sau `System.out.println("between")` vì không có một câu `if` hợp lệ tương ứng tại vị trí cú pháp đó.
+An `else` cannot stand alone after `System.out.println("between")` because there is no matching `if` at that syntactic position.
 
-Một bẫy khác là dấu chấm phẩy ngay sau điều kiện:
+Another trap is a semicolon right after the condition:
 
 ~~~java
 boolean ready = true;
 
-if (ready); // Đây là if có thân là câu lệnh rỗng.
+if (ready); // This is an if whose body is an empty statement.
 {
     System.out.println("always");
 }
 ~~~
 
-Khối có `System.out.println("always")` là **khối độc lập**, không phải phần thân của `if`. Vì thế hãy tránh thêm `;` sau `if (...)` và luôn xem lại vị trí đóng mở ngoặc.
+The block containing `System.out.println("always")` is a **standalone block**, not the body of `if`. Therefore, avoid putting `;` after `if (...)` and always inspect opening and closing brace positions.
 
-## 8. Khi nào cần quan tâm thứ tự đánh giá điều kiện?
+## 8. When does condition evaluation order matter?
 
-Xét:
+Consider:
 
 ~~~java
 if (outer)
@@ -374,9 +374,9 @@ if (outer)
         doFallback();
 ~~~
 
-Nếu `outer` false, biểu thức `inner` **không được đánh giá**, `doWork()` và `doFallback()` đều không chạy.
+If `outer` is false, the `inner` expression **is not evaluated**, and neither `doWork()` nor `doFallback()` runs.
 
-Điều này đáng chú ý nếu `inner` là lời gọi phương thức có log, thay đổi biến hoặc có thể ném exception. Ví dụ trong chương trình `DanglingElseDemo`:
+This matters if `inner` is a method call that logs, mutates a variable, or can throw an exception. For example, in `DanglingElseDemo`:
 
 ~~~java
 if (test("outer", false))
@@ -386,52 +386,52 @@ if (test("outer", false))
         System.out.println("unexpected=inner-false");
 ~~~
 
-Chỉ xuất hiện `check=outer`, không có `check=inner-skipped`. Không phải Java “quên” đánh giá điều kiện trong; đó là quy tắc **điều khiển luồng của `if` ngoài**.
+Only `check=outer` appears, without `check=inner-skipped`. Java did not “forget” to evaluate the inner condition; that is the **control-flow rule of the outer `if`**.
 
-Nên tránh dựa vào tác dụng phụ ẩn trong điều kiện để thực hiện thao tác bắt buộc; hãy tách thao tác đó thành câu lệnh rõ ràng nếu nó phải xảy ra dù nhánh nào được chọn.
+Avoid relying on hidden side effects inside conditions to perform mandatory operations; extract such operations into explicit statements if they must occur regardless of which branch is taken.
 
-## 9. Những lỗi thường gặp
+## 9. Common mistakes
 
-| Hiểu nhầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “`else` gắn với `if` có cùng mức thụt dòng.” | Gắn với `if` gần nhất chưa có `else` theo **cú pháp** |
-| “`else` luôn thuộc `if` ngoài cùng.” | Sai khi có `if` bên trong chưa có `else` |
-| “Nếu `outer` false, `else` của `inner` vẫn chạy.” | Không; toàn bộ `if (inner)...else...` bị bỏ qua |
-| “Thêm ngoặc nhọn chỉ để đẹp.” | Có thể **thay đổi quan hệ gắn `else`** và hành vi |
-| “`else if` là một từ khóa riêng.” | Là `else` theo sau bởi câu `if` |
-| “Hai `if` liên tiếp giống chuỗi `else if`.” | Hai `if` độc lập có thể cùng chạy |
-| “Có thể đặt một `else` sau một câu lệnh bất kỳ.” | `else` phải theo đúng cấu trúc `if` |
-| “Thêm `;` ngay sau `if (...)` vô hại.” | Tạo thân `if` rỗng, dễ làm mã chạy khác ý định |
-| “Một `else` có thể thuộc hai `if` cùng lúc.” | Mỗi `else` chỉ thuộc **một** `if` hợp lệ |
+| “`else` binds to the `if` with the same indentation.” | Binds to the nearest `if` without an `else` by **syntax** |
+| “`else` always belongs to the outermost `if`.” | Wrong when an inner `if` lacks an `else` |
+| “If `outer` is false, `inner`'s `else` still runs.” | No; the entire `if (inner)...else...` is skipped |
+| “Adding braces is only cosmetic.” | It can **change `else` binding** and behavior |
+| “`else if` is a distinct keyword.” | It is `else` followed by an `if` statement |
+| “Two consecutive `if` statements are like an `else if` chain.” | Two independent `if` statements can both run |
+| “You can place an `else` after any statement.” | `else` must directly follow a matching `if` structure |
+| “Adding `;` right after `if (...)` is harmless.” | Creates an empty `if` body, easily causing unintended execution |
+| “One `else` can belong to two `if` statements at once.” | Each `else` belongs to only **one** valid `if` |
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-check exercises
 
-1. Với `outer=true`, `inner=false` và đoạn `if (outer) if (inner) A; else B;`, câu lệnh nào được chạy?  
-   *Đáp án:* **B**, thuộc `else` của `inner`.
-2. Với `outer=false`, `inner=false` và cùng đoạn trên, có chạy `B` không?  
-   *Đáp án:* **Không**; toàn bộ câu `if` bên trong bị bỏ qua.
-3. Thụt `else` về cùng mức với `if (outer)` có đổi cách Java ghép `else` không?  
-   *Đáp án:* **Không**.
-4. Muốn `else` thuộc `if (outer)`, cách chắc chắn nhất là gì?  
-   *Đáp án:* Đặt `{ }` quanh phần thân của `if (outer)`, đóng khối trước `else`.
-5. Đoạn lồng có hai `else`, `else` đầu gắn với câu `if` nào?  
-   *Đáp án:* `if` bên trong chưa có `else`; `else` tiếp theo thuộc `if` ngoài.
-6. `else if` có được xem như một từ khóa riêng trong Java không?  
-   *Đáp án:* Không; là `else` + một câu `if`.
-7. Vì sao đoạn `if (outer) if (inner) A; else B;` không gọi phép kiểm tra `inner` khi `outer=false`?  
-   *Đáp án:* Thân `if (outer)` đã bị bỏ qua.
-8. `if (ready);` gây vấn đề gì?  
-   *Đáp án:* `if` có thân rỗng; câu lệnh hoặc khối tiếp theo không được bảo vệ bởi điều kiện.
+1. With `outer=true`, `inner=false`, and `if (outer) if (inner) A; else B;`, which statement runs?  
+   *Answer:* **B**, belonging to `inner`'s `else`.
+2. With `outer=false`, `inner=false`, and the same snippet above, does `B` run?  
+   *Answer:* **No**; the entire inner `if` is skipped.
+3. Does indenting `else` to the same level as `if (outer)` change how Java pairs `else`?  
+   *Answer:* **No**.
+4. To bind `else` to `if (outer)`, what is the most reliable way?  
+   *Answer:* Put `{ }` around the body of `if (outer)`, closing the block before `else`.
+5. In a nested snippet with two `else` clauses, which `if` does the first `else` bind to?  
+   *Answer:* The inner `if` without an `else`; the next `else` belongs to the outer `if`.
+6. Is `else if` treated as a separate keyword in Java?  
+   *Answer:* No; it is `else` + an `if` statement.
+7. Why does `if (outer) if (inner) A; else B;` not evaluate `inner` when `outer=false`?  
+   *Answer:* The body of `if (outer)` is skipped.
+8. What problem does `if (ready);` cause?  
+   *Answer:* The `if` has an empty body; the following statement or block is not guarded by the condition.
 
 ## Checklist
 
-- [ ] Hiểu `else` gắn với **`if` gần nhất chưa có `else`** trong cấu trúc hợp lệ.
-- [ ] Nhận biết `dangling else` khi viết `if` lồng nhau không ngoặc.
-- [ ] Phân biệt `else` của `if` trong với `else` của `if` ngoài.
-- [ ] Biết thụt đầu dòng **không quyết định** liên kết cú pháp.
-- [ ] Luôn ưu tiên `{ }` để thể hiện rõ các nhánh.
-- [ ] Hiểu `else if` là `else` tiếp theo bởi một câu `if`.
-- [ ] Phân biệt chuỗi `else if` với nhiều câu `if` độc lập.
-- [ ] Không vô tình tạo thân `if` rỗng bằng dấu `;`.
+- [ ] Understand that `else` binds to the **nearest `if` without an `else`** in a valid structure.
+- [ ] Recognize `dangling else` when writing braceless nested `if` statements.
+- [ ] Distinguish an inner `if`'s `else` from an outer `if`'s `else`.
+- [ ] Know that indentation **does not determine** syntactic binding.
+- [ ] Always prefer `{ }` to make branches explicit.
+- [ ] Understand that `else if` is `else` followed by an `if` statement.
+- [ ] Distinguish an `else if` chain from multiple independent `if` statements.
+- [ ] Avoid accidentally creating an empty `if` body with `;`.
 
-**Kết luận:** Quy tắc **dangling else** của Java đơn giản nhưng dễ gây lỗi: **`else` thuộc `if` gần nhất chưa có `else`**, bất kể cách thụt đầu dòng. Dùng ngoặc nhọn nhất quán để làm rõ ý định, tránh thay đổi hành vi khi thêm hoặc chỉnh sửa các nhánh.
+**Conclusion:** Java's **dangling else** rule is simple yet error-prone: **`else` belongs to the nearest `if` without an `else`**, regardless of indentation. Use braces consistently to clarify intent and avoid changing behavior when adding or editing branches.

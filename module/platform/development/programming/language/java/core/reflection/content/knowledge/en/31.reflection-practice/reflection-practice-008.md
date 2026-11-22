@@ -1,21 +1,21 @@
-# Thực hành: Dynamic proxy đo thời gian xử lý và giữ nguyên ngoại lệ mã đích
+# Practice: Dynamic Proxy for Timing Execution and Preserving Target Exceptions
 
-## 1. Bài toán và tiêu chí hoàn thành
+## 1. Problem Statement and Completion Criteria
 
-Một dịch vụ Java có interface `Job`. Ta muốn bọc mỗi lời gọi của dịch vụ bằng **JDK dynamic proxy** để đo thời gian thực thi, ghi kết quả thành công/thất bại và **không làm biến dạng ngoại lệ do mã đích ném ra**.
+Suppose a Java service has an interface `Job`. We want to wrap each call to the service with a **JDK dynamic proxy** to measure execution time, record success/failure status, and **not distort exceptions thrown by the target code**.
 
-Đây là hai mối quan tâm khác nhau:
+These are two separate concerns:
 
-- **Đo thời gian:** lấy mốc `System.nanoTime()` trước lúc chuyển tiếp lời gọi, tính chênh lệch trong `finally` để luôn ghi nhận cả đường thành công lẫn thất bại.
-- **Giữ nguyên ngoại lệ:** khi gọi mã đích bằng `Method.invoke`, Java Reflection bọc bất kỳ `Throwable` nào do method đích ném trong `InvocationTargetException`. Handler phải **lấy đúng `getCause()` và ném lại chính đối tượng đó**, nếu phù hợp với contract của interface proxy.
+- **Timing:** capture `System.nanoTime()` before forwarding the call, and compute the elapsed time in `finally` so both success and failure paths are always recorded.
+- **Preserving exceptions:** when invoking target code via `Method.invoke`, Java Reflection wraps any `Throwable` thrown by the target method inside `InvocationTargetException`. The handler must **extract `getCause()` and rethrow that exact object**, provided it complies with the proxy interface contract.
 
-Sau bài học, bạn sẽ tạo được proxy, kiểm tra kết quả/identity của `IOException`, `RuntimeException` và `Error`, hiểu lúc nào `UndeclaredThrowableException` xuất hiện và nhận biết các rủi ro khi code ghi log làm thay đổi lỗi của nghiệp vụ.
+After this lesson, you will be able to build the proxy, verify the result/identity of `IOException`, `RuntimeException`, and `Error`, understand when `UndeclaredThrowableException` appears, and recognize risks when logging code alters business exceptions.
 
-**Phạm vi:** JDK 17+, `java.lang.reflect.Proxy` chỉ bọc các **interface**. Ví dụ không dùng thư viện bên ngoài; với concrete class không có interface, bạn cần một cách tiếp cận khác như decorator thủ công hoặc công cụ proxy bytecode phù hợp.
+**Scope:** JDK 17+; `java.lang.reflect.Proxy` wraps only **interfaces**. The example uses no external libraries; for a concrete class without an interface, you need a different approach such as a manual decorator or an appropriate bytecode proxy tool.
 
-## 2. Luồng xử lý của `InvocationHandler`
+## 2. Execution Flow of `InvocationHandler`
 
-Khi ứng dụng gọi `proxy.execute("A")`:
+When the application calls `proxy.execute("A")`:
 
 ~~~text
 Caller
@@ -30,31 +30,31 @@ InvocationHandler.invoke(proxy, method, args)
   |
   +--> method.invoke(realTarget, args)
   |       |
-  |       +--> trả về bình thường ------> return result
+  |       +--> normal return ---------> return result
   |       |
-  |       +--> method đích throw ------> InvocationTargetException
+  |       +--> target throws ---------> InvocationTargetException
   |                                         |
   |                                         +--> throw ex.getCause()
   |
   +--> finally: elapsed = System.nanoTime() - start
-  |              ghi nhận tên method, elapsed, trạng thái
+  |              record method name, elapsed, status
   |
   v
-Caller nhận kết quả hoặc ngoại lệ gốc
+Caller receives result or original exception
 ~~~
 
-`InvocationHandler.invoke(Object proxy, Method method, Object[] args)` khai báo `throws Throwable`. Điều này cho phép handler ném lại cả checked exception, unchecked exception và `Error` mà **không cần ép chúng thành `RuntimeException`**.
+`InvocationHandler.invoke(Object proxy, Method method, Object[] args)` declares `throws Throwable`. This lets the handler rethrow checked exceptions, unchecked exceptions, and `Error`s **without forcing them into `RuntimeException`**.
 
-Các tham số:
+Parameters:
 
-| Tham số | Ý nghĩa | Lưu ý |
+| Parameter | Meaning | Notes |
 | --- | --- | --- |
-| `proxy` | Instance proxy đang được gọi | **Không** gọi lại cùng method trên `proxy` để delegate; dễ đệ quy vô hạn |
-| `method` | Đối tượng `Method` tương ứng lời gọi được proxy chuyển đến | Có thể khai báo trên interface cha hoặc là method của `Object` |
-| `args` | Giá trị đối số đã được đóng hộp nếu là primitive | Có thể là `null` khi method không có tham số |
-| Kết quả `invoke` | Giá trị gửi về caller qua proxy | Phải tương thích kiểu trả về; method `void` nhận kết quả `null` |
+| `proxy` | The proxy instance being invoked | **Do not** call the same method back on `proxy` to delegate; easily causes infinite recursion |
+| `method` | The `Method` object for the dispatched call | May be declared on a parent interface or be an `Object` method |
+| `args` | Argument values, boxed if primitive | May be `null` when the method takes no parameters |
+| Return value of `invoke` | Value sent back to the caller through the proxy | Must be compatible with the return type; `void` methods receive `null` |
 
-Mẫu cốt lõi:
+Core pattern:
 
 ~~~java
 long started = System.nanoTime();
@@ -68,28 +68,28 @@ try {
 }
 ~~~
 
-Đây là **fragment**, giả định `target`, `method`, `args` và hàm `recordTime` đã tồn tại. Phần thực hành dưới đây cung cấp chương trình hoàn chỉnh.
+This is a **fragment**, assuming `target`, `method`, `args`, and `recordTime` already exist. The practice section below provides the complete program.
 
-## 3. Vì sao phải bóc `InvocationTargetException`?
+## 3. Why Must `InvocationTargetException` Be Unwrapped?
 
-`java.lang.reflect.Method.invoke` dùng Reflection gọi phương thức đích. Nếu mã đích có:
+`java.lang.reflect.Method.invoke` uses Reflection to call the target method. If the target code executes:
 
 ~~~java
 throw new IOException("disk offline");
 ~~~
 
-thì lời gọi Java trực tiếp nhận `IOException`; còn `method.invoke(target, args)` sẽ ném **`InvocationTargetException`**, với `getCause()` trỏ tới chính `IOException` gốc.
+then a direct Java call receives `IOException`; whereas `method.invoke(target, args)` throws **`InvocationTargetException`**, with `getCause()` pointing to the original `IOException`.
 
-Nếu handler viết sai:
+If a handler is written incorrectly:
 
 ~~~java
-// Sai khi muốn giữ nguyên hợp đồng lỗi của Job
+// Wrong when trying to preserve Job's exception contract
 (proxy, method, args) -> method.invoke(target, args)
 ~~~
 
-`InvocationTargetException` là **checked exception**. Nếu phương thức interface chỉ khai báo `throws IOException`, proxy không được ném một `InvocationTargetException` từ handler như checked exception hợp lệ. Khi đó lời gọi proxy thường trả ra `UndeclaredThrowableException`, và ngoại lệ nghiệp vụ bị che dưới nhiều lớp wrapper.
+`InvocationTargetException` is a **checked exception**. If the interface method only declares `throws IOException`, the proxy cannot legally throw an `InvocationTargetException` from the handler as a valid checked exception. The proxy call will then typically throw `UndeclaredThrowableException`, burying the business exception under multiple wrapper layers.
 
-Đúng là:
+The right way is:
 
 ~~~java
 try {
@@ -99,18 +99,18 @@ try {
 }
 ~~~
 
-Điểm quan trọng của `throw ex.getCause()`:
+Key properties of `throw ex.getCause()`:
 
-1. Ném lại **đúng đối tượng `Throwable`** do method đích phát sinh; không đổi thông điệp và không tạo instance ngoại lệ mới.
-2. Giữ lại cause và suppressed exceptions đã nằm trên đối tượng gốc.
-3. Caller có thể tiếp tục bắt `IOException`, `IllegalStateException` hay `AssertionError` theo đúng hợp đồng.
-4. Không bóc mọi `getCause()` một cách vô điều kiện. Nếu **mã đích thực sự ném một wrapper** như `CompletionException`, đó là hành vi của mã đích; interceptor không nên tự ý làm mất wrapper ấy.
+1. Rethrows the **exact `Throwable` object** thrown by the target method; does not change the message or create a new exception instance.
+2. Preserves the cause and suppressed exceptions attached to the original object.
+3. Callers can continue catching `IOException`, `IllegalStateException`, or `AssertionError` according to the contract.
+4. Do not unwrap every `getCause()` unconditionally. If **the target code itself actually threw a wrapper** such as `CompletionException`, that is the target code's behavior; an interceptor should not arbitrarily strip that wrapper away.
 
-`Method.invoke` có thể tự phát sinh lỗi do truyền sai đối số, quyền truy cập không đủ hoặc receiver sai. Các lỗi xảy ra **trước khi method đích chạy** không phải `InvocationTargetException` đại diện cho lỗi nghiệp vụ, và cần chẩn đoán riêng.
+`Method.invoke` itself can raise errors due to bad arguments, insufficient access, or a wrong receiver. Errors occurring **before the target method runs** are not `InvocationTargetException`s representing business failures, and must be diagnosed separately.
 
-## 4. Chương trình đầy đủ Java 17+: proxy đo thời gian và giữ nguyên cả ba loại ngoại lệ
+## 4. Complete Java 17+ Program: Timing Proxy Preserving All Three Throwable Kinds
 
-Tạo file **`TimedProxyDemo.java`**:
+Create a file named **`TimedProxyDemo.java`**:
 
 ~~~java
 import java.io.IOException;
@@ -161,7 +161,7 @@ public class TimedProxyDemo {
                 contract.getClassLoader(),
                 new Class<?>[] { contract },
                 (self, method, args) -> {
-                    // Object methods được xử lý tường minh, không đo ở ví dụ này.
+                    // Object methods are handled explicitly and not measured in this example.
                     if (method.getDeclaringClass() == Object.class) {
                         return switch (method.getName()) {
                             case "toString" ->
@@ -181,8 +181,8 @@ public class TimedProxyDemo {
                         succeeded = true;
                         return result;
                     } catch (InvocationTargetException ex) {
-                        // Giữ nguyên đúng IOException, RuntimeException
-                        // hoặc Error do method đích ném.
+                        // Preserve the exact IOException, RuntimeException,
+                        // or Error thrown by the target method.
                         throw ex.getCause();
                     } finally {
                         long nanos = System.nanoTime() - start;
@@ -237,14 +237,14 @@ public class TimedProxyDemo {
 }
 ~~~
 
-Lệnh biên dịch/chạy (từ thư mục chứa file):
+Compile/run commands (from the directory containing the file):
 
 ~~~bash
 javac --release 17 TimedProxyDemo.java
 java TimedProxyDemo
 ~~~
 
-**Phần output cố định, đã kiểm chứng với OpenJDK 21 và `javac --release 17`:**
+**Fixed output portion, verified with OpenJDK 21 and `javac --release 17`:**
 
 ~~~text
 done:A
@@ -256,7 +256,7 @@ samples: [execute:ok, failChecked:fail, failRuntime:fail, failError:fail]
 durations recorded: true
 ~~~
 
-Sau đó chương trình in bốn dòng đo thời gian, ví dụ:
+Then the program prints four timing lines, for example:
 
 ~~~text
 timing execute: 2029596 ns
@@ -265,36 +265,36 @@ timing failRuntime: 164227 ns
 timing failError: 69275 ns
 ~~~
 
-**Các con số trên chỉ là một lần chạy**; không phải giá trị stdout cố định. Trên máy khác hoặc lần chạy khác, thời gian thay đổi theo JIT, scheduler, GC và tải hệ thống. Tính đúng của bài không phụ thuộc số nanosecond cụ thể.
+**The numbers above are from a single run**; they are not fixed stdout values. On another machine or run, timings vary with JIT, scheduler, GC, and system load. The correctness of the lesson does not depend on specific nanosecond numbers.
 
-## 5. Vì sao chương trình thực sự giữ nguyên ngoại lệ?
+## 5. Why Does the Program Truly Preserve Exceptions?
 
-`RealJob` tạo trước ba đối tượng lỗi và giữ trong các field `checked`, `unchecked` và `error`. Các method tương ứng ném **đúng object đã tạo**, nên câu lệnh:
+`RealJob` pre-allocates three error objects and stores them in the `checked`, `unchecked`, and `error` fields. The corresponding methods throw **those exact created objects**, so the check:
 
 ~~~java
 ex == target.checked
 ~~~
 
-chứng minh **identity** của ngoại lệ được giữ, chứ không chỉ tình cờ có cùng class hoặc thông điệp.
+proves the **identity** of the exception is preserved, not merely that it happens to share the same class or message.
 
-Bốn trường hợp:
+Four cases:
 
-| Lời gọi | Hành vi mã đích | Caller quan sát | Ghi thời gian |
+| Call | Target behavior | Caller observes | Timing record |
 | --- | --- | --- | --- |
-| `execute("A")` | Trả về `done:A` | Nhận chuỗi kết quả | `succeeded=true` |
-| `failChecked()` | Ném `IOException` | Bắt được chính `IOException` gốc | `succeeded=false` |
-| `failRuntime()` | Ném `IllegalStateException` | Bắt được chính unchecked exception gốc | `succeeded=false` |
-| `failError()` | Ném `AssertionError` | Bắt được chính `Error` gốc | `succeeded=false` |
+| `execute("A")` | Returns `done:A` | Receives result string | `succeeded=true` |
+| `failChecked()` | Throws `IOException` | Catches the original `IOException` directly | `succeeded=false` |
+| `failRuntime()` | Throws `IllegalStateException` | Catches the original unchecked exception | `succeeded=false` |
+| `failError()` | Throws `AssertionError` | Catches the original `Error` | `succeeded=false` |
 
-Từng nhánh đều đi qua `finally`. Điều này bảo đảm ghi bản ghi ngay cả khi nghiệp vụ thất bại, **miễn là bản thân phép ghi metric không phát sinh lỗi phá vỡ luồng**. Khi dùng logger/metric backend thật, cần bảo vệ thao tác ghi khỏi lỗi mới để không che mất lỗi nghiệp vụ.
+Every branch passes through `finally`. This guarantees a record is written even when business logic fails, **provided that metric recording itself does not throw an exception disrupting the flow**. When using a real logger/metric backend, guard the recording operation against new exceptions so business errors are not masked.
 
-`succeeded` được đặt thành `true` **chỉ sau khi `Method.invoke` trả về bình thường**. Nó diễn tả trạng thái của **lời gọi method đích**, không chắc chắn mô tả kết quả của mọi adapter phía ngoài: proxy có thể còn cần cast/unbox giá trị trả về theo signature. Vì vậy, đừng dùng biến cờ này để tuyên bố toàn bộ request HTTP/transaction đã commit thành công.
+`succeeded` is set to `true` **only after `Method.invoke` returns normally**. It describes the status of the **target method invocation**, not necessarily the outcome of any outer adapter: the proxy may still need to cast/unbox the return value per the signature. Therefore, do not use this flag to declare that an entire HTTP request/transaction committed successfully.
 
-## 6. Đo thời gian đúng cách
+## 6. Measuring Time Properly
 
-### 6.1. Dùng `System.nanoTime()`, không dùng đồng hồ hệ thống
+### 6.1. Use `System.nanoTime()`, not the wall-clock time
 
-`System.nanoTime()` phù hợp tính **elapsed duration**:
+`System.nanoTime()` is suited for computing **elapsed duration**:
 
 ~~~java
 long start = System.nanoTime();
@@ -305,57 +305,57 @@ try {
 }
 ~~~
 
-- Giá trị đơn lẻ của `nanoTime()` **không phải** mốc thời gian lịch; không chuyển trực tiếp sang ngày giờ.
-- Dùng phép **lấy hiệu** hai lần đọc trong cùng JVM; tuyệt đối không so sánh timestamp `nanoTime` giữa hai JVM.
-- Đây là số nanosecond theo đơn vị biểu diễn, **không bảo đảm độ phân giải phần cứng là một nanosecond**.
-- Đặt mốc trước `method.invoke` nghĩa là thời gian bao gồm **chi phí gọi thông qua Reflection và dispatch bên trong method**, không thuần CPU time của nghiệp vụ.
-- Với lời gọi async trả về `CompletableFuture` hay `Mono`, thời gian này có thể chỉ là thời gian **khởi tạo công việc**; để đo tới completion cần hook vào thời điểm tác vụ thực sự hoàn thành.
+- A single value of `nanoTime()` is **not** a calendar timestamp; do not convert it directly to date/time.
+- Take the **difference** between two readings within the same JVM; never compare `nanoTime` timestamps across two JVMs.
+- Its unit of representation is nanoseconds, **without guaranteeing one-nanosecond hardware resolution**.
+- Placing the start mark before `method.invoke` means the duration includes **Reflection invocation overhead and dispatch inside the method**, not pure business CPU time.
+- For async calls returning `CompletableFuture` or `Mono`, this time may only measure **work initiation**; to measure until completion, hook into the moment the task actually finishes.
 
-Đổi đơn vị để hiển thị (không tự làm tròn sai bằng phép chia kiểu double):
+Convert units for display (without inaccurate rounding from double division):
 
 ~~~java
 long micros = java.util.concurrent.TimeUnit.NANOSECONDS.toMicros(elapsedNanos);
 long millis = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
 ~~~
 
-Câu lệnh này là fragment cần biến `elapsedNanos`. Dùng clock đo elapsed để quan sát hoạt động; dùng `Instant.now()` hoặc logging timestamp nếu muốn ghi **thời điểm sự kiện**.
+This statement is a fragment requiring the `elapsedNanos` variable. Use an elapsed-time clock for operational timing; use `Instant.now()` or a logging timestamp when recording **when an event occurred**.
 
-### 6.2. `finally` cần thiết nhưng không miễn nhiễm lỗi
+### 6.2. `finally` is necessary, yet not immune to errors
 
-Đặt phép ghi log trong `finally` sẽ chạy dù target trả về hoặc ném lỗi. Tuy nhiên, nếu `samples.add(...)`, backend metric hoặc logger **tự ném ngoại lệ**, ngoại lệ mới từ `finally` có thể **ghi đè** kết quả/ngoại lệ của nghiệp vụ.
+Putting logging in `finally` runs whether the target returns or throws. However, if `samples.add(...)`, a metric backend, or a logger **itself throws an exception**, the new exception from `finally` can **overwrite** the business result or exception.
 
-Để bảo đảm không che lỗi vì lỗi ghi log trong tình huống thông thường, có thể tách một sink *best effort*:
+To ensure logging failures do not mask business exceptions in normal cases, you can isolate a *best-effort* sink:
 
 ~~~java
-// Fragment bên trong finally, giả sử metricSink.record(...) có sẵn.
+// Fragment inside finally, assuming metricSink.record(...) is available.
 long elapsed = System.nanoTime() - start;
 try {
     metricSink.record(method.getName(), elapsed, succeeded);
 } catch (RuntimeException loggingFailure) {
-    // Ghi lỗi của chính telemetry sang kênh an toàn khác nếu có.
-    // Không ném lỗi logger đè lên exception nghiệp vụ.
+    // Log telemetry's own failure to another safe channel if available.
+    // Do not throw the logger's error over the business exception.
 }
 ~~~
 
-Đây chỉ là **mẫu chính sách**: trong sản phẩm phải chủ động quyết định cách phát hiện và giám sát lỗi telemetry; không nên im lặng mãi khi hệ thống ghi log hỏng. Bắt `RuntimeException` ở đây không bảo đảm chống mọi `Error` nghiêm trọng (ví dụ thiếu bộ nhớ), và cũng không phải lời hứa tuyệt đối rằng không có cách nào che lỗi gốc.
+This is only a **policy template**: in production, proactively decide how to detect and monitor telemetry failures; do not stay silent forever when logging breaks. Catching `RuntimeException` here does not protect against severe `Error`s (such as out-of-memory), nor is it an absolute guarantee that nothing can ever mask the original error.
 
-Trong demo một thread, `ArrayList` là đủ. Nếu proxy được gọi đồng thời, **không dùng chung `ArrayList` không đồng bộ**; hãy chọn `ConcurrentLinkedQueue<Sample>`, `CopyOnWriteArrayList` (chỉ nếu tần suất ghi phù hợp), hoặc hệ thống metrics thread-safe.
+In the single-threaded demo, `ArrayList` suffices. If the proxy is called concurrently, **do not share an unsynchronized `ArrayList`**; choose `ConcurrentLinkedQueue<Sample>`, `CopyOnWriteArrayList` (only if write frequency fits), or a thread-safe metrics system.
 
-## 7. Quy tắc của checked exception ở ranh giới proxy
+## 7. Checked Exception Rules at the Proxy Boundary
 
-`InvocationHandler.invoke` có thể `throw Throwable`, nhưng class proxy được sinh ra phải tuân thủ hợp đồng của **interface method**.
+`InvocationHandler.invoke` can `throw Throwable`, yet the generated proxy class must obey the contract of the **interface method**.
 
-| Handler ném | Method interface khai báo | Caller nhận |
+| Handler throws | Interface method declares | Caller receives |
 | --- | --- | --- |
-| `IOException` | `throws IOException` (hoặc superclass phù hợp) | `IOException` gốc |
-| `IOException` | Không khai báo checked exception phù hợp | `UndeclaredThrowableException` bọc `IOException` |
-| `IllegalStateException` | Có hoặc không có `throws` | Unchecked exception gốc |
-| `AssertionError` | Có hoặc không có `throws` | `Error` gốc |
-| `InvocationTargetException` chưa bóc | Chỉ `throws IOException` | Thường `UndeclaredThrowableException` bọc `InvocationTargetException` |
+| `IOException` | `throws IOException` (or compatible supertype) | Original `IOException` |
+| `IOException` | Does not declare compatible checked exception | `UndeclaredThrowableException` wrapping `IOException` |
+| `IllegalStateException` | With or without `throws` | Original unchecked exception |
+| `AssertionError` | With or without `throws` | Original `Error` |
+| Unwrapped `InvocationTargetException` | Only `throws IOException` | Typically `UndeclaredThrowableException` wrapping `InvocationTargetException` |
 
-Vì thế **bóc wrapper của Reflection là điều kiện cần, chưa phải điều kiện đủ** để mọi checked exception đi ra như ban đầu. Interface phải cho phép loại exception ấy.
+Therefore, **unwrapping the Reflection wrapper is a necessary condition, not a sufficient condition** for every checked exception to emerge untouched. The interface must permit that exception type.
 
-Ví dụ một handler cố tình ném checked exception không được khai báo:
+Example of a handler intentionally throwing an undeclared checked exception:
 
 ~~~java
 interface NoChecked {
@@ -374,64 +374,64 @@ try {
 }
 ~~~
 
-Đây là **fragment Java 17+** để đặt trong method thích hợp với `Proxy` được import hoặc fully-qualified. Nó in `IOException`; `getUndeclaredThrowable()` tham chiếu tới checked exception mà handler đã ném.
+This is a **Java 17+ fragment** to place in a suitable method with `Proxy` imported or fully qualified. It prints `IOException`; `getUndeclaredThrowable()` references the checked exception thrown by the handler.
 
-Nếu một proxy cài đặt **nhiều interface có cùng tên/tham số**, tập checked exception được phép là những loại thỏa mãn `throws` của **tất cả** lời khai báo trùng liên quan, không chỉ interface đứng đầu danh sách. Điều này có thể khiến exception bị `UndeclaredThrowableException` bọc ngay cả khi một interface riêng lẻ khai báo nó.
+If a proxy implements **multiple interfaces with the same method name/parameters**, the allowed checked exceptions are those satisfying the `throws` clauses of **all** matching declarations, not just the first interface in the list. This can cause an exception to be wrapped in `UndeclaredThrowableException` even when one individual interface declares it.
 
-**Khuyến nghị:** viết proxy theo contract interface rõ ràng; đừng “sửa” trường hợp ngoại lệ không được khai báo bằng ép tất cả lỗi thành `RuntimeException` nếu mục tiêu là giữ nguyên ngữ nghĩa mã đích.
+**Recommendation:** write proxies against clear interface contracts; do not "fix" undeclared exceptions by forcing all errors into `RuntimeException` if the goal is preserving target-code semantics.
 
-## 8. Xử lý `equals`, `hashCode` và `toString`
+## 8. Handling `equals`, `hashCode`, and `toString`
 
-JDK dynamic proxy cũng điều hướng ba method public, non-final của `Object` vào `InvocationHandler`. Với chúng, `method.getDeclaringClass() == Object.class`.
+A JDK dynamic proxy also routes the three public, non-final methods of `Object` into `InvocationHandler`. For them, `method.getDeclaringClass() == Object.class`.
 
-Nếu handler dùng:
+If the handler uses:
 
 ~~~java
-return method.invoke(proxy, args); // Sai: lại gọi chính proxy!
+return method.invoke(proxy, args); // Wrong: invokes the proxy itself again!
 ~~~
 
-thì lần gọi mới lại chạy vào cùng handler và có thể dẫn đến đệ quy/`StackOverflowError`.
+then the new call re-enters the same handler and can lead to infinite recursion/`StackOverflowError`.
 
-Demo chọn một chính sách **proxy identity**:
+The demo chooses a **proxy identity** policy:
 
-- `equals(other)` trả `self == other`.
-- `hashCode()` trả `System.identityHashCode(self)`.
-- `toString()` trả `TimedProxy(Job)`.
-- Không đo các lời gọi `Object` này; danh sách `Sample` chỉ chứa method nghiệp vụ.
+- `equals(other)` returns `self == other`.
+- `hashCode()` returns `System.identityHashCode(self)`.
+- `toString()` returns `TimedProxy(Job)`.
+- Does not time these `Object` calls; the `Sample` list contains only business methods.
 
-Một decorator khác có thể chọn delegate các lời gọi `Object` sang target, nhưng phải cân nhắc **đẳng thức đối xứng, transitivity** và hash contract. Không mặc định `target.equals(proxy)` sẽ đúng nếu proxy.equals(target)` do handler tùy biến quyết định; nhất quán `equals`/`hashCode` mới là điều quan trọng.
+Another decorator might choose to delegate `Object` calls to the target, but must weigh **equality symmetry, transitivity**, and the hash contract. Do not assume `target.equals(proxy)` will hold if `proxy.equals(target)` is decided by a custom handler; `equals`/`hashCode` consistency is what matters.
 
-## 9. Không làm mất thông tin lỗi khi log
+## 9. Do Not Lose Error Information When Logging
 
-Một interceptor quan sát lỗi cần tách **nguyên nhân nghiệp vụ** khỏi **lỗi của chính hệ thống đo**.
+An error-observing interceptor must separate **business cause** from **measurement system errors**.
 
-Những điều nên làm:
+Practices to follow:
 
-1. **Không tạo lại exception** chỉ để log: `throw new IOException(ex.getMessage())` làm mất identity, stack trace gốc và có thể mất cause/suppressed.
-2. **Không dùng `throw new RuntimeException(ex)`** nếu interface có hợp đồng checked exception mà caller cần bắt trực tiếp.
-3. **Không viết `catch (Exception ex) { return null; }`**: nó vừa nuốt lỗi, vừa gây `NullPointerException` về sau nếu method trả primitive.
-4. **Không quên `finally`**: nếu chỉ ghi metric sau `return method.invoke(...)`, nhánh throw sẽ không được đo.
-5. **Tránh log dữ liệu nhạy cảm trong `args` hoặc return value**; bài thực hành chỉ ghi tên method và thời lượng.
-6. **Không tự gọi lại method nghiệp vụ** để “thử lại timing” trừ khi retry là contract độc lập, được quyết định tường minh. Gọi hai lần có thể nhân đôi side effect.
-7. **Không đóng nhãn “thành công” cho tác vụ bất đồng bộ** chỉ vì trả về một future; kết quả có thể thất bại sau đó.
+1. **Do not recreate exceptions** just to log: `throw new IOException(ex.getMessage())` loses identity, the original stack trace, and potentially cause/suppressed exceptions.
+2. **Do not use `throw new RuntimeException(ex)`** when the interface has a checked exception contract that callers need to catch directly.
+3. **Do not write `catch (Exception ex) { return null; }`**: it both swallows errors and causes a `NullPointerException` later if the method returns a primitive.
+4. **Do not forget `finally`**: if metrics are recorded only after `return method.invoke(...)`, throwing branches go unmeasured.
+5. **Avoid logging sensitive data in `args` or return values**; this practice exercise records only method name and duration.
+6. **Do not re-invoke the business method** to "retry timing" unless retry is an independent, explicitly decided contract. Calling twice can duplicate side effects.
+7. **Do not label an async task "succeeded"** merely because it returned a future; the result may fail later.
 
-Khi cần correlation trong ứng dụng có nhiều request, thêm một trace/request id vào metric, nhưng đừng dùng `proxy.toString()` trong chính handler để sinh log message.
+When correlation is needed in multi-request applications, attach a trace/request ID to metrics, rather than calling `proxy.toString()` inside the handler itself to format log messages.
 
-## 10. Sai lầm đặc trưng khi dùng `Method.invoke`
+## 10. Typical Mistakes When Using `Method.invoke`
 
-### 10.1. Gọi trên sai receiver
+### 10.1. Invoking on the wrong receiver
 
-`method` do proxy chuyển vào thường là method trên một **interface**. `target` phải implement interface tương ứng; nếu truyền instance sai, Reflection có thể ném `IllegalArgumentException`. Hàm `timedProxy` kiểm tra trước bằng:
+A `method` forwarded by a proxy is usually a method on an **interface**. `target` must implement the corresponding interface; passing an incompatible instance causes Reflection to throw `IllegalArgumentException`. `timedProxy` checks upfront using:
 
 ~~~java
 contract.isInterface() && contract.isInstance(target)
 ~~~
 
-để phát hiện cấu hình sai trước khi bắt đầu tạo proxy. Điều kiện này không thay thế toàn bộ kiểm tra class loader, interface visibility/module hoặc method accessibility.
+to catch misconfiguration before creating the proxy. This check does not replace full verification of class loaders, interface/module visibility, or method accessibility.
 
-### 10.2. Method overload và nhận dạng metric
+### 10.2. Method overloads and metric identification
 
-`method.getName()` đủ để trình bày ví dụ nhưng **không phân biệt** các overload như `run(String)` và `run(int)`. Với telemetry chuẩn, key có thể cần:
+`method.getName()` suffices for demonstrating the example, yet **does not distinguish** overloads such as `run(String)` and `run(int)`. For proper telemetry, keys may need:
 
 ~~~java
 String signature =
@@ -440,65 +440,65 @@ String signature =
         + java.util.Arrays.toString(method.getParameterTypes());
 ~~~
 
-Đây là fragment; có thể thêm return type hoặc module/classloader identity trong hệ thống nhiều loại proxy nếu định danh metric thực sự cần các thông tin đó. Tránh tạo label độc nhất theo input mỗi request vì cardinality cao làm metrics backend tốn bộ nhớ.
+This is a fragment; you can add return type or module/classloader identity in systems with multiple proxy kinds if metric identification genuinely needs them. Avoid creating per-request input-specific labels because high cardinality exhausts metric backend memory.
 
-### 10.3. `null` và kiểu primitive
+### 10.3. `null` and primitive types
 
-Khi method interface không nhận đối số, `args` có thể `null`; `Method.invoke(target, args)` dùng mảng đối số null hợp lệ cho phương thức không tham số. Khi method trả `void`, Reflection trả `null`. Ngược lại, nếu handler trả `null` cho method proxy khai báo trả `int`, proxy có thể ném `NullPointerException` trong unboxing; đây là lỗi adapter, không phải exception gốc của method đích.
+When an interface method takes no arguments, `args` may be `null`; `Method.invoke(target, args)` validly accepts a null argument array for zero-parameter methods. When a method returns `void`, Reflection returns `null`. Conversely, if a handler returns `null` for a proxy method declared to return `int`, the proxy can throw `NullPointerException` during unboxing; that is an adapter bug, not an exception from the target method.
 
-### 10.4. Quyền truy cập
+### 10.4. Access permissions
 
-`Method.invoke` vẫn tuân thủ Java access checks và JPMS encapsulation. Tạo proxy không tự mở private package hay bỏ qua `IllegalAccessException`. Trường hợp dùng public interface nhưng implementation/lookup ở module khác cần bảo đảm receiver, declaring type và visibility thích hợp. Bài demo cố ý dùng `public interface Job` và `public static final class RealJob` để tránh nhiễu do quyền truy cập.
+`Method.invoke` still obeys Java access checks and JPMS encapsulation. Creating a proxy does not automatically open private packages or bypass `IllegalAccessException`. When using a public interface whose implementation or lookup is in another module, ensure proper receiver, declaring type, and visibility. The demo intentionally uses `public interface Job` and `public static final class RealJob` to avoid permission-related noise.
 
-## 11. Kiểm thử có giá trị thực tế
+## 11. Tests with Practical Value
 
-Thay vì chỉ so sánh tên class của exception, hãy kiểm tra **object identity** và dữ liệu đo:
+Instead of only checking exception class names, verify **object identity** and recorded telemetry:
 
-| Ca | Điều cần xác minh |
+| Case | What to verify |
 | --- | --- |
-| Lời gọi trả về | Giá trị đúng và có đúng một bản ghi timing thành công |
-| Checked exception khai báo | Caller bắt trực tiếp đúng loại, `caught == original` |
-| Runtime exception | Caller bắt đúng object gốc, không bị bọc |
-| `Error` | Caller nhận đúng `Error`, timing vẫn được ghi |
-| `Object.toString` | Không đệ quy vô hạn, theo chính sách log đã định |
-| Lỗi ở metric sink | Không được thay exception nghiệp vụ trong các trường hợp backend logging lỗi có thể xử lý |
-| Hai method overload | Metric key phân biệt được nếu yêu cầu quan sát theo signature |
-| Gọi đồng thời | Data sink và counter thread-safe, không mất record |
-| Có nhiều interface với method trùng | Checked exception phải hợp lệ với mọi contract |
+| Returning call | Correct value and exactly one successful timing record |
+| Declared checked exception | Caller catches the exact type directly, `caught == original` |
+| Runtime exception | Caller catches the exact original object, unwrapped |
+| `Error` | Caller receives the exact `Error`, timing still recorded |
+| `Object.toString` | No infinite recursion, matches defined logging policy |
+| Metric sink failure | Does not replace the business exception when logging errors can be handled |
+| Two overloaded methods | Metric key distinguishes them if signature-level observation is required |
+| Concurrent calls | Thread-safe data sink and counters, no lost records |
+| Multiple interfaces with overlapping methods | Checked exceptions must satisfy every contract |
 
-Trong demo, câu `checked preserved: true` là bằng chứng mạnh hơn việc in `IOException`. Đối với benchmark hiệu năng, đo nhiều lần và sử dụng **JMH** khi cần kết luận định lượng; ví dụ ngắn chỉ chứng minh luồng logic đo, không phải số nanosecond ổn định hay mức chi phí của proxy.
+In the demo, `checked preserved: true` is stronger proof than printing `IOException`. For performance benchmarking, run multiple iterations and use **JMH** when quantitative conclusions are needed; the short example only demonstrates the timing logic flow, not stable nanosecond figures or proxy overhead.
 
-## 12. Tình huống nâng cao và giới hạn lựa chọn
+## 12. Advanced Scenarios and Design Limits
 
-**Nested proxies:** Nếu target lại là một proxy khác, tổng thời gian ở lớp ngoài bao gồm lớp trong. Nếu lớp trong thay đổi/wrap exception, outer handler chỉ nhìn thấy exception thực tế target proxy đã ném; không thể bảo đảm khôi phục một “ngoại lệ sâu hơn” nếu không biết hợp đồng nhiều lớp.
+**Nested proxies:** If the target is itself another proxy, total time at the outer layer includes the inner layer. If the inner layer alters/wraps an exception, the outer handler only sees the exception actually thrown by the target proxy; you cannot reliably recover a "deeper exception" without knowing multi-layer contracts.
 
-**Default methods:** Lời gọi default method trên interface cũng được đưa đến handler. `Method.invoke(target,args)` chỉ đúng khi bạn **cố ý delegate tới target** implement interface phù hợp. Nếu muốn chạy default body **trên chính proxy** theo Java 17, xem `InvocationHandler.invokeDefault` và các điều kiện truy cập/override riêng; không gọi lại default method trên proxy như lệnh delegate.
+**Default methods:** Calls to interface default methods are also routed to the handler. `Method.invoke(target,args)` is only right when you **intentionally delegate to a target** implementing the interface. If you want to execute the default body **on the proxy itself** in Java 17, see `InvocationHandler.invokeDefault` and its specific access/override conditions; do not call the default method back on the proxy as a delegate call.
 
-**`MethodHandle`:** Có thể dùng `MethodHandle` thay `Method.invoke` cho một số đường gọi sau khi xây lookup/access thích hợp. MethodHandle thường truyền exception từ target mà không bọc `InvocationTargetException` theo cơ chế của `Method.invoke`, nhưng bạn vẫn phải giữ nguyên contract exception, đo timing, và xử lý adapter errors.
+**`MethodHandle`:** You can use `MethodHandle` instead of `Method.invoke` on some call paths after setting up proper lookup/access. `MethodHandle` generally propagates target exceptions without wrapping them in `InvocationTargetException` like `Method.invoke`, yet you must still preserve exception contracts, measure timing, and handle adapter errors.
 
-**Spring AOP:** Có thể đo thời gian bằng around advice với `ProceedingJoinPoint.proceed()`, nơi exception từ join point có thể được truyền ra qua `throws Throwable`. Cách unwrap khác nhau giữa proxy/advice; **không áp dụng vô điều kiện** quy tắc bóc `InvocationTargetException` ở mọi framework, chỉ dùng khi chính bạn gọi `Method.invoke`.
+**Spring AOP:** Timing can be done with around advice using `ProceedingJoinPoint.proceed()`, where join-point exceptions can pass through via `throws Throwable`. Unwrapping rules differ across proxy/advice implementations; **do not unconditionally apply** `InvocationTargetException` unwrapping in every framework — only when you invoke `Method.invoke` yourself.
 
-**Async/reactive:** Muốn đo thời gian nghiệp vụ hoàn tất chứ không chỉ thời gian trả về future/reactive publisher, cần thiết kế metric lúc completion/error/subscribe phù hợp với mô hình concurrency. Không được “block” async chỉ để tái sử dụng interceptor đồng bộ của ví dụ.
+**Async/reactive:** To measure end-to-end business completion rather than just returning a future/reactive publisher, design metrics at completion/error/subscribe hooks suited to the concurrency model. Never "block" async calls just to reuse the synchronous interceptor in this example.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-1. Vì sao `method.invoke` khiến caller thấy exception lạ nếu handler không unwrap? Vì ngoại lệ từ method đích bị bọc trong `InvocationTargetException`, và proxy có thể bọc tiếp thành `UndeclaredThrowableException`.
-2. Đâu là cách giữ nguyên throwable gốc? **`catch (InvocationTargetException ex) { throw ex.getCause(); }`**.
-3. Vì sao không thể bảo đảm giữ checked exception khi interface không có `throws` phù hợp? Vì bytecode proxy phải tôn trọng hợp đồng checked exception của interface; trường hợp không hợp lệ bị bọc thành `UndeclaredThrowableException`.
-4. Dùng `System.nanoTime()` để lấy “ngày giờ gọi method” có đúng không? **Không**; nó dùng đo khoảng thời gian bằng phép trừ, không phải wall-clock timestamp.
-5. Vì sao ghi metric trong `finally`? Để ghi cả nhánh return và nhánh exception. Nhưng phải hạn chế lỗi của chính metric sink che lỗi chính.
-6. Kiểm tra `ex == target.checked` xác minh điều gì? **Cùng identity Throwable**, không chỉ cùng class hoặc nội dung thông báo.
-7. Có nên gọi `method.invoke(proxy, args)` từ handler không? **Không**, vì có thể lặp lại handler vô hạn. Delegate vào `target`.
-8. Dùng `ArrayList` chung để ghi timing từ nhiều thread an toàn không? **Không**; dùng cấu trúc đồng thời hoặc recorder có cơ chế thread safety.
-9. Vì sao thời gian đo không luôn là thời gian “method thật” thuần túy? Vì khoảng đo bao gồm cả Reflective Invocation và overhead liên quan; phương thức async có thể hoàn thành sau.
-10. Tại sao `toString`/`equals`/`hashCode` cần chính sách riêng? Vì ba method này cũng được JDK proxy điều hướng qua handler.
+1. Why does `method.invoke` make callers see unexpected exceptions if the handler does not unwrap? Because exceptions from the target method are wrapped in `InvocationTargetException`, and the proxy may wrap them further in `UndeclaredThrowableException`.
+2. What is the right way to preserve the original throwable? **`catch (InvocationTargetException ex) { throw ex.getCause(); }`**.
+3. Why is preserving a checked exception not guaranteed when the interface lacks a matching `throws` clause? Because the proxy bytecode must respect the interface's checked exception contract; undeclared cases are wrapped in `UndeclaredThrowableException`.
+4. Is using `System.nanoTime()` to capture the "date/time a method was called" right? **No**; it measures elapsed intervals by subtraction, not wall-clock timestamps.
+5. Why record metrics in `finally`? To record both return and exception paths. Still, prevent errors in the metric sink itself from masking the primary error.
+6. What does `ex == target.checked` verify? **The exact same `Throwable` instance identity**, not just the same class or message text.
+7. Should you call `method.invoke(proxy, args)` from the handler? **No**, as it can recurse infinitely into the handler. Delegate to `target`.
+8. Is sharing an `ArrayList` to record timings across multiple threads safe? **No**; use a concurrent structure or a thread-safe recorder.
+9. Why is the measured time not always purely "real method" time? Because the interval includes Reflective invocation and related overhead; async methods may finish later.
+10. Why do `toString`/`equals`/`hashCode` need an explicit policy? Because JDK proxies also route those three methods through the handler.
 
-## 14. Tài liệu tham khảo chính thức Java 17
+## 14. Official Java 17 Documentation References
 
-- [Oracle Java SE 17 — Proxy](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Proxy.html): cách dispatch method, xử lý `Object` methods và giới hạn checked exception.
-- [Oracle Java SE 17 — InvocationHandler](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationHandler.html): hợp đồng `invoke` và `invokeDefault`.
-- [Oracle Java SE 17 — Method](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): `invoke` và hành vi bọc exception.
-- [Oracle Java SE 17 — InvocationTargetException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html): `getCause()` trả ngoại lệ của method đích.
-- [Oracle Java SE 17 — UndeclaredThrowableException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/UndeclaredThrowableException.html): wrapper cho checked exception không được interface khai báo.
+- [Oracle Java SE 17 — Proxy](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Proxy.html): method dispatch, `Object` method handling, and checked exception limits.
+- [Oracle Java SE 17 — InvocationHandler](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationHandler.html): `invoke` and `invokeDefault` contracts.
+- [Oracle Java SE 17 — Method](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): `invoke` and exception wrapping behavior.
+- [Oracle Java SE 17 — InvocationTargetException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html): `getCause()` returns the target method's exception.
+- [Oracle Java SE 17 — UndeclaredThrowableException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/UndeclaredThrowableException.html): wrapper for checked exceptions not declared by the interface.
 
-**Ghi nhớ:** Dynamic proxy có thể đo thời gian và chuyển tiếp minh bạch khi handler dùng `System.nanoTime()` trong `try/finally`, gọi **target thật**, và **ném lại đúng `InvocationTargetException.getCause()`**. Ngoại lệ checked vẫn phải được interface cho phép; metric/logging không được làm mất kết quả hoặc throwable của nghiệp vụ.
+**Key takeaway:** A dynamic proxy can time calls and forward transparently when the handler uses `System.nanoTime()` in `try/finally`, calls the **real target**, and **rethrows the exact `InvocationTargetException.getCause()`**. Checked exceptions must still be permitted by the interface; metric/logging code must never discard business results or throwables.

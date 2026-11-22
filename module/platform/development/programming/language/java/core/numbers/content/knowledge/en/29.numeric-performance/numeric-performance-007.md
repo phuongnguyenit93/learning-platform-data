@@ -1,60 +1,60 @@
-# Benchmark Java: tránh constant folding và dead-code elimination
+# Java Benchmarking: Avoiding Constant Folding and Dead-Code Elimination
 
-Một phép toán Java chạy mất "0 ns" hoặc nhanh hơn cả việc đọc một biến chưa chắc là thuật toán đã được tối ưu xuất sắc. Đôi khi JVM đã chứng minh **đầu ra luôn là hằng số** rồi thay cả phép tính bằng một giá trị có sẵn (*constant folding*), hoặc đã chứng minh **kết quả không ảnh hưởng điều gì có thể quan sát** rồi loại phép tính (*dead-code elimination*, DCE). Nếu mục tiêu là đo chi phí của một phép tính thực sự được ứng dụng sử dụng, hai tối ưu hợp lệ của JVM này có thể làm benchmark đo sai đối tượng.
+A Java operation running in "0 ns" or faster than reading a variable does not necessarily mean the algorithm was brilliantly optimized. Sometimes the JVM has proven **the output is always a constant** and replaced the entire calculation with a precomputed value (*constant folding*), or proven **the result affects nothing observable** and eliminated the calculation (*dead-code elimination*, DCE). If the goal is to measure the cost of a calculation actually used by the application, these two legal JVM optimizations can cause the benchmark to measure the wrong thing.
 
-Bài học thuộc chủ đề **Hiệu năng** trong Java Core - Numbers. Mục tiêu là hiểu khi nào benchmark số học bị JVM tối ưu mất, cách thiết kế đầu vào/đầu ra để đo đúng công việc, cách dùng **Java Microbenchmark Harness (JMH)** và cách đọc kết quả thận trọng. Bài dùng cú pháp Java 17+, giải thích cả trường hợp mã “chạy đúng” nhưng phép đo không còn đại diện cho workload thật.
+This lesson belongs to the **Performance** topic in Java Core - Numbers. The goal is to understand when numeric benchmarks get optimized away by the JVM, how to design inputs and outputs to measure the real work, how to use **Java Microbenchmark Harness (JMH)**, and how to interpret results cautiously. The lesson uses Java 17+ syntax and also explains cases where code "runs correctly" yet the measurement no longer represents a real workload.
 
-## 1. Benchmark đo điều gì?
+## 1. What Does a Benchmark Measure?
 
-Một *microbenchmark* cô lập một thao tác nhỏ, chẳng hạn phép nhân `long`, hàm chuyển đổi số, `BigDecimal.add()`, hoặc một hàm kiểm tra điều kiện. Mục tiêu là ước lượng chi phí và/hoặc thông lượng khi JVM đã thực thi mã trong bối cảnh tương ứng.
+A *microbenchmark* isolates a small operation, such as `long` multiplication, a number conversion method, `BigDecimal.add()`, or a condition check. Its goal is to estimate cost and/or throughput once the JVM executes the code in the corresponding context.
 
-Một phép đo chỉ có ý nghĩa khi ta trả lời được:
+A measurement is meaningful only when you can answer:
 
-1. **Tác vụ được đo:** chính xác phương thức và đầu vào nào?
-2. **Kết quả có được sử dụng?** Trong ứng dụng thật, phép tính có tác động đến kết quả trả về, dữ liệu lưu trữ, hoặc trạng thái quan sát được không?
-3. **Đầu vào thay đổi ở mức nào?** Một hằng số trong bytecode, trường `final`, trường trạng thái được gán lúc chạy, hay dữ liệu thật?
-4. **Có đang đo cả thứ khác không?** Tạo đối tượng, đọc I/O, cấp phát, khởi tạo thư viện, chuyển đổi dữ liệu và gọi hàm có thể đã bị trộn vào thời gian tính toán.
-5. **JIT đã warm up chưa?** JVM có thể diễn dịch và biên dịch tối ưu cùng phương thức ở các giai đoạn khác nhau; lần đầu chạy thường không đại diện cho trạng thái ổn định.
-6. **Chi phí đo và điều kiện chạy:** có fork JVM độc lập, warmup, chu kỳ đo, GC, CPU contention và cách xử lý thống kê hay chưa?
+1. **What task is measured:** exactly which method and which inputs?
+2. **Is the result used?** In the real application, does the calculation affect a return value, stored data, or observable state?
+3. **How much do inputs vary?** Is it a constant in bytecode, a `final` field, a state field assigned at runtime, or realistic data?
+4. **Is anything else being measured?** Object creation, I/O reads, allocation, library initialization, data conversion, and method dispatch may be mixed into the computation time.
+5. **Has the JIT warmed up?** The JVM can interpret and optimize-compile the same method across different phases; initial runs rarely represent steady state.
+6. **Measurement overhead and execution conditions:** are there independent JVM forks, warmup, measurement intervals, GC, CPU contention, and proper statistical handling?
 
-Đơn vị báo cáo `ns/op` nghĩa là **nanosecond trên một đơn vị công việc benchmark** theo cấu hình harness. Nó không tự chứng minh đồng hồ đo có độ phân giải một nanosecond hay thao tác tương đương sẽ mất chừng ấy thời gian trong mọi ứng dụng.
+The reported unit `ns/op` means **nanoseconds per benchmark operation** under the harness configuration. It does not prove that the clock has single-nanosecond resolution or that an equivalent operation will take that exact time in every application.
 
-## 2. JVM được phép tối ưu những gì?
+## 2. What Is the JVM Allowed to Optimize?
 
-Java cho phép compiler/JIT thực hiện những biến đổi giữ nguyên **hành vi quan sát được** của chương trình. Đối với các phép tính thuần túy, không có tác động phụ, việc bỏ đi hoặc thay bằng hằng số là hợp lệ khi nó không làm thay đổi đầu ra cần quan sát.
+Java allows the compiler/JIT to perform transformations that preserve the **observable behavior** of the program. For pure calculations without side effects, eliminating them or replacing them with a constant is legal when doing so does not change any observable output.
 
-Mô hình đơn giản:
+Simplified model:
 
 ~~~text
 Java source
     |
     v
-javac tạo bytecode
+javac produces bytecode
     |
     v
-JVM diễn dịch / biên dịch JIT các đoạn nóng
+JVM interprets / JIT-compiles hot paths
     |
     +--> constant propagation / constant folding
     +--> inline method / hoist loop-invariant work
     +--> dead-code elimination / escape analysis
     |
     v
-Machine code được thực thi
+Machine code is executed
 ~~~
 
-Đây là sơ đồ khái niệm; vị trí và mức độ tối ưu thay đổi giữa JVM, phiên bản, workload và profile chạy. `javac` có thể rút gọn một số biểu thức hằng từ thời điểm biên dịch, còn JIT có thể tối ưu sau khi đã biết thêm thông tin về các lời gọi thực tế.
+This is a conceptual diagram; where and how much optimization occurs varies across JVMs, versions, workloads, and execution profiles. `javac` can fold certain constant expressions at compile time, while the JIT can optimize after gathering information about actual calls.
 
-**Benchmark cần đo mã *sau tối ưu*** vì đó là mã ứng dụng thực sự chạy. Ta không cố “tắt mọi tối ưu”. Ta cần tạo bối cảnh đầu vào và đầu ra **đúng với tình huống thực tế**, để JIT không biến mất chính công việc mà benchmark giả định đang đo.
+**A benchmark needs to measure code *after optimization*** because that is what the real application runs. You do not try to "disable all optimizations". You need to construct an input and output context **true to the real scenario**, so the JIT does not eliminate the very work the benchmark assumes it is measuring.
 
-## 3. Constant folding: khi cả phép tính chỉ còn hằng số
+## 3. Constant Folding: When the Entire Calculation Becomes a Constant
 
-*Constant folding* xảy ra khi compiler biết các toán hạng và có thể xác định kết quả trước, ví dụ:
+*Constant folding* happens when the compiler knows the operands and can determine the result ahead of time, for example:
 
 ~~~java
-int result = 12 * 12; // Kết quả 144 có thể được tính sẵn.
+int result = 12 * 12; // Result 144 may be precomputed.
 ~~~
 
-Đối với benchmark, tình huống nguy hiểm là đưa toàn bộ đầu vào như hằng số:
+For benchmarks, the dangerous scenario is passing all inputs as constants:
 
 ~~~java
 static long compute(long x) {
@@ -65,23 +65,23 @@ static long compute(long x) {
     return result;
 }
 
-// Phép tính với đầu vào cố định:
+// Calculation with fixed input:
 long result = compute(7L);
 ~~~
 
-Nếu JIT inline `compute` rồi suy luận được vòng lặp và `x = 7L` không đổi, nó **có thể** precompute hoặc rút gọn phần lớn công việc. Một hàm có nhiều phép nhân, phép cộng và XOR ở mã nguồn không bảo đảm số lượng lệnh máy tương ứng thực sự được chạy ở mỗi iteration đo.
+If the JIT inlines `compute` and deduces that the loop and `x = 7L` are invariant, it **can** precompute or fold away most of the work. Having many multiplications, additions, and XORs in source code does not guarantee the corresponding machine instructions actually run in each measured iteration.
 
-Lưu ý ba cấp độ:
+Note three levels:
 
-- **Constant folding:** rút gọn một biểu thức khi đã biết đầu vào.
-- **Constant propagation:** truyền thông tin về giá trị hằng qua biến hoặc lời gọi, mở cơ hội folding.
-- **Loop-invariant code motion:** đưa một phép tính không đổi giữa các vòng ra ngoài vòng lặp khi hợp lệ; benchmark thủ công lặp lại cùng phép tính có thể thực hiện công việc chỉ một lần.
+- **Constant folding:** simplifying an expression when inputs are known.
+- **Constant propagation:** propagating known constant values through variables or calls, creating folding opportunities.
+- **Loop-invariant code motion:** hoisting an invariant computation outside a loop when legal; a hand-rolled benchmark repeating the same calculation may execute the work only once.
 
-Một số tối ưu có thể diễn ra ngay trong `javac`, số khác do JIT quyết định. Không nên nói rằng JVM **luôn** tối ưu mọi hàm thuần thành hằng; đúng hay không phụ thuộc cấu trúc chương trình, khả năng inline, điều kiện chạy và trình biên dịch. Nguy cơ benchmark là **JVM được phép và có cơ hội làm điều đó**, nên kết quả cực nhanh chưa đủ chứng minh phép tính đã được thực hiện như mong đợi.
+Some optimizations can occur right inside `javac`, while others are decided by the JIT. You should not say the JVM **always** folds every pure function into a constant; whether it does depends on program structure, inlining eligibility, runtime conditions, and the compiler. The benchmark risk is that **the JVM is allowed and may have the opportunity to do so**, so an ultra-fast result alone is not proof that the computation ran as expected.
 
-## 4. Dead-code elimination: tính xong nhưng không ai dùng
+## 4. Dead-Code Elimination: Computed, Yet Nobody Uses It
 
-*Dead-code elimination* (DCE) loại những thao tác mà kết quả của chúng không được chương trình quan sát. Ví dụ:
+*Dead-code elimination* (DCE) removes operations whose results are never observed by the program. For example:
 
 ~~~java
 static long compute(long x) {
@@ -89,29 +89,29 @@ static long compute(long x) {
 }
 
 static void wrongBenchmark(long input) {
-    compute(input); // Kết quả bị bỏ; không có side effect.
+    compute(input); // Result discarded; no side effect.
 }
 ~~~
 
-Đoạn trên là minh họa **không phải chương trình hoàn chỉnh**. Nếu `compute` được inline, JVM có thể nhận ra phép tính không thay đổi trạng thái quan sát được rồi xóa toàn bộ. Benchmark có thể chủ yếu đo overhead của harness hoặc biến đổi còn sót lại, không đo chi phí phép toán.
+The snippet above is an illustration, **not a complete program**. If `compute` is inlined, the JVM can recognize that the calculation changes no observable state and remove it entirely. The benchmark may end up measuring mostly harness overhead or leftover transformations rather than the operation's cost.
 
-Điểm cần hiểu: **đầu vào biến đổi vẫn chưa đủ** nếu đầu ra bị bỏ. Ngược lại, **đầu ra được dùng vẫn chưa đủ** nếu toàn bộ công việc có thể được thay bằng kết quả hằng. Một benchmark tốt phải bảo vệ cả hai đầu:
+Key insight: **varying inputs are not enough** if the output is discarded. Conversely, **using the output is not enough** if the entire computation can be replaced with a constant result. A good benchmark must guard both ends:
 
 ~~~text
-Dữ liệu đầu vào thực tế, không bị compiler coi là hằng
+Realistic input data, not treated as constant by compiler
                         |
                         v
-                   Công việc đo
+                  Measured work
                         |
                         v
-Kết quả được dùng/tiêu thụ theo cách harness có thể quan sát
+Result used/consumed in a way observable by harness
 ~~~
 
-Đừng sửa bằng cách thêm `System.out.println(result)` **trong chính vòng benchmark**: I/O console đắt và biến động hơn nhiều phép toán số học, khiến phép đo trở thành benchmark in log. Đừng dùng `Thread.sleep()` để làm số đo “thấy rõ”: nó đo việc chờ và scheduler, không đo phép tính.
+Do not fix this by adding `System.out.println(result)` **inside the benchmark loop itself**: console I/O is far more expensive and variable than arithmetic operations, turning the measurement into a log-printing benchmark. Do not use `Thread.sleep()` to make timings "visible": that measures waiting and the OS scheduler, not the computation.
 
-## 5. Hai lỗi có thể cùng xuất hiện
+## 5. Both Mistakes Can Happen Together
 
-Xét một benchmark thủ công:
+Consider a manual benchmark:
 
 ~~~java
 long start = System.nanoTime();
@@ -124,36 +124,36 @@ long elapsed = System.nanoTime() - start;
 System.out.println(elapsed);
 ~~~
 
-Mã có thể báo số rất nhỏ hoặc thay đổi thất thường dù một triệu lượt lặp xuất hiện trong source:
+The code may report a tiny number or swing erratically even though one million iterations appear in the source:
 
-- `result` không được dùng; JVM có thể loại việc tính `compute`.
-- Đầu vào `7L` cố định; compiler có thể rút gọn hoặc đưa công việc ra ngoài vòng lặp.
-- Việc tự đo bằng `nanoTime()` thiếu warmup/fork kiểm soát, mắc nhiễu JIT/GC/OS scheduling; timing overhead có thể đáng kể so với phép toán nhỏ.
-- Nếu thay kết quả bằng một biến cộng dồn dùng ở cuối, JIT vẫn có thể biến đổi phép tính lặp, và khi phép toán quá nhỏ thì chính vòng lặp/accumulator trở thành phần lớn chi phí.
-- Nếu đo mà in kết quả trong mỗi lượt, chi phí I/O áp đảo phép tính.
+- `result` is unused; the JVM can eliminate calling `compute`.
+- The input `7L` is fixed; the compiler can fold or hoist the work outside the loop.
+- Self-timing with `nanoTime()` lacks controlled warmup/forks and suffers from JIT/GC/OS scheduling noise; timing overhead can be substantial relative to small operations.
+- If you switch to accumulating results in a variable used at the end, the JIT can still transform the repeated calculation, and for tiny operations the loop/accumulator itself becomes most of the cost.
+- If you print the result on every iteration, I/O cost overwhelms the computation.
 
-Không kết luận "phép nhân Java tốn 0 ns" từ số đo này. Có thể **phép nhân không còn nằm trong đoạn máy được thực thi để đo**.
+Do not conclude "Java multiplication takes 0 ns" from such a measurement. It is quite possible **the multiplication is no longer in the executed machine code being measured**.
 
-## 6. JMH: harness dành cho microbenchmark JVM
+## 6. JMH: A Harness Built for JVM Microbenchmarks
 
-**Java Microbenchmark Harness (JMH)** là dự án OpenJDK được tạo để thiết kế và chạy microbenchmark trên JVM, có hỗ trợ warmup, measurement iterations, fork JVM, chế độ đo và cơ chế tiêu thụ kết quả. Với benchmark hiệu năng Java nhỏ, đây là điểm bắt đầu đáng tin cậy hơn vòng lặp `nanoTime()` tự viết.
+**Java Microbenchmark Harness (JMH)** is an OpenJDK project designed for writing and running microbenchmarks on the JVM, supporting warmup, measurement iterations, JVM forks, measurement modes, and result-consumption mechanisms. For small Java performance benchmarks, it is a much more reliable starting point than a hand-written `nanoTime()` loop.
 
-JMH giúp kiểm soát điều kiện đo, **không thể tự biết nghiệp vụ muốn đo gì**. Nếu tác giả đưa đầu vào hằng, bỏ kết quả hoặc đo sai công việc, JMH vẫn có thể chạy benchmark đó và trả số đo hợp lệ cho đoạn mã *thực sự được thực thi*. Thiết kế workload vẫn là trách nhiệm của người viết benchmark.
+JMH helps control measurement conditions, yet **cannot know what business logic you intend to measure**. If the author supplies constant inputs, discards results, or measures the wrong task, JMH will still run that benchmark and return valid measurements for the code *that actually ran*. Workload design remains the benchmark author's responsibility.
 
-Để có cấu hình annotation processing và đóng gói chuẩn, dùng Maven archetype của JMH tạo một dự án biệt lập. Ví dụ dùng JMH 1.37:
+To get standard annotation processing and packaging configured, use the JMH Maven archetype to create an isolated project. Example using JMH 1.37:
 
 ~~~bash
 mvn archetype:generate -B -DinteractiveMode=false -DarchetypeGroupId=org.openjdk.jmh -DarchetypeArtifactId=jmh-java-benchmark-archetype -DarchetypeVersion=1.37 -DgroupId=example.bench -DartifactId=jmh-demo -Dversion=1.0-SNAPSHOT
 cd jmh-demo
 ~~~
 
-Lệnh cần Maven và khả năng tải dependency khi chưa có cache. Dự án tạo ra có `pom.xml`, mã mẫu và cấu hình JMH. Những ví dụ tiếp theo đặt trong `src/main/java/example/bench/`. Phiên bản `1.37` là phiên bản đã được đối chiếu trong Maven Central; khi dự án có quy trình quản lý phiên bản dependency riêng, sử dụng phiên bản phù hợp được kiểm thử trong môi trường của dự án.
+The command requires Maven and access to download dependencies if not already cached. The generated project contains `pom.xml`, sample code, and JMH configuration. The following examples go in `src/main/java/example/bench/`. Version `1.37` is a version verified in Maven Central; when a project has its own dependency version management process, use an appropriate version tested in the project's environment.
 
-Không chạy `@Benchmark` như một hàm thông thường rồi tự gọi `System.nanoTime()` quanh nó; như vậy không sử dụng các tính năng của harness.
+Do not call `@Benchmark` like an ordinary method and wrap `System.nanoTime()` around it yourself; doing so bypasses the harness features.
 
-## 7. Ví dụ JMH đầy đủ: giữ đầu vào runtime và dùng kết quả
+## 7. Complete JMH Example: Keeping Runtime Inputs and Using Results
 
-Tạo `src/main/java/example/bench/ComputeBench.java` trong dự án archetype:
+Create `src/main/java/example/bench/ComputeBench.java` in the archetype project:
 
 ~~~java
 package example.bench;
@@ -201,31 +201,31 @@ public class ComputeBench {
 }
 ~~~
 
-Biên dịch/đóng gói bằng Maven trong thư mục dự án:
+Compile/package with Maven inside the project directory:
 
 ~~~bash
 mvn clean verify
 java -jar target/benchmarks.jar ComputeBench -t 1
 ~~~
 
-**Giải thích những điểm chống benchmark sai:**
+**Explanation of anti-bad-benchmark safeguards:**
 
-1. `@State(Scope.Thread)` cung cấp một trạng thái trên mỗi thread benchmark. Ta đo trên đối tượng do JMH quản lý, không phụ thuộc một biến cục bộ có thể được compiler nhận ngay là hằng.
-2. `@Param({"7", "11", "19"})` yêu cầu JMH chạy các trường hợp tham số. Trường `input` không khai báo `final` và được harness gán tại runtime. Đây là cách tránh việc đưa trực tiếp cùng một literal vào phép tính có thể gập thành hằng. Nếu ứng dụng thật chỉ có vài hằng và JIT thực sự được phép gập, benchmark đó cần mục tiêu khác, không nên cố “cản JIT” ngoài ngữ cảnh.
-3. `resultReturned()` trả kết quả từ `@Benchmark`. JMH **tiêu thụ kết quả trả về** để hạn chế DCE; trả một giá trị khác hoặc một hằng giả thay cho kết quả thật sẽ không đạt mục tiêu.
-4. `resultConsumed(Blackhole)` minh họa cách chuyển kết quả trực tiếp vào `Blackhole.consume(...)` khi phương thức benchmark cần kiểu `void` hoặc xử lý nhiều kết quả trung gian. JMH sử dụng cơ chế này để hạn chế compiler coi giá trị đầu ra là không cần thiết.
-5. `@Warmup` và `@Measurement` tách giai đoạn khởi động tối ưu và giai đoạn lấy số liệu; `@Fork(2)` chạy hai JVM fork độc lập để giảm phụ thuộc trạng thái một phiên chạy.
-6. `@BenchmarkMode(Mode.AverageTime)` cùng `@OutputTimeUnit(NANOSECONDS)` yêu cầu JMH báo thời gian trung bình trên một operation. Đây **không phải** hứa hẹn latency từng lời gọi là chính xác một số nano giây cố định.
+1. `@State(Scope.Thread)` provides one state instance per benchmark thread. We measure against a JMH-managed object, rather than relying on a local variable that the compiler could immediately recognize as constant.
+2. `@Param({"7", "11", "19"})` instructs JMH to run parameterized cases. The `input` field is not declared `final` and is assigned by the harness at runtime. This avoids passing the same literal directly into an expression that can fold to a constant. If the real application only ever has a few constants and the JIT is genuinely allowed to fold them, that benchmark needs a different goal rather than artificially "blocking the JIT" out of context.
+3. `resultReturned()` returns the result from `@Benchmark`. JMH **consumes the return value** to prevent DCE; returning a different value or a dummy constant instead of the real result defeats the goal.
+4. `resultConsumed(Blackhole)` demonstrates passing results directly into `Blackhole.consume(...)` when the benchmark method must return `void` or produces multiple intermediate results. JMH uses this mechanism to prevent the compiler from treating the output as unneeded.
+5. `@Warmup` and `@Measurement` separate the optimization warmup phase from the data-collection phase; `@Fork(2)` runs two independent JVM forks to reduce dependence on a single run's state.
+6. `@BenchmarkMode(Mode.AverageTime)` with `@OutputTimeUnit(NANOSECONDS)` asks JMH to report average time per operation. This is **not** a promise that every individual call's latency is an exact fixed number of nanoseconds.
 
-Hai phương thức dùng hai cách khác nhau để giữ kết quả; chúng **không được kỳ vọng cho số đo giống hệt từng chữ số**, vì đường đi tiêu thụ kết quả/harness có overhead và đặc tính tối ưu khác nhau. Mục tiêu bài là thiết kế một phép đo không vô tình bỏ toàn bộ công việc. Kết quả thời gian tùy CPU, JVM, môi trường và phiên chạy; **không cung cấp bảng số ns/op giả định**.
+The two methods use two different ways of retaining the result; they are **not expected to produce digit-for-digit identical measurements**, because result-consumption/harness paths have different overhead and optimization traits. The lesson's goal is designing a measurement that does not accidentally drop all the work. Timing results depend on CPU, JVM, environment, and run; **no fabricated `ns/op` table is provided**.
 
-Nếu Maven build báo không tìm `org.openjdk.jmh.generated` hay benchmark không được đăng ký, hãy kiểm tra annotation processor JMH trong cấu hình archetype/build. Chỉ chép lớp `ComputeBench` vào một chương trình Java thường rồi gọi `main` không đủ để JMH tự chạy.
+If the Maven build reports `org.openjdk.jmh.generated` not found or benchmarks are not registered, check the JMH annotation processor in the archetype/build config. Merely copying `ComputeBench` into a regular Java program and calling `main` is not enough for JMH to run properly.
 
-## 8. Phân biệt ví dụ sai và ví dụ đúng
+## 8. Distinguishing Wrong Examples from Right Examples
 
-Các đoạn sau là **minh họa về vấn đề**, không phải các benchmark JMH độc lập nên chạy để rút kết luận hiệu năng.
+The following snippets **illustrate the issue**, not standalone JMH benchmarks to run for drawing performance conclusions.
 
-### Sai A: dùng đầu vào hằng
+### Wrong A: using a constant input
 
 ~~~java
 @Benchmark
@@ -234,9 +234,9 @@ public long foldable() {
 }
 ~~~
 
-Dù trả kết quả về harness, JIT vẫn có thể inline và constant-fold `compute(7L)`. Đầu ra đã được sử dụng **nhưng công việc cần đo có thể đã bị gập**. So với ví dụ đúng `compute(input)` mà `input` là trường trạng thái runtime.
+Even though the result is returned to the harness, the JIT can still inline and constant-fold `compute(7L)`. The output is used, **yet the work meant to be measured may have been folded away**. Compare this to the right example `compute(input)` where `input` is a runtime state field.
 
-### Sai B: bỏ kết quả
+### Wrong B: discarding the result
 
 ~~~java
 @Benchmark
@@ -245,9 +245,9 @@ public void unused() {
 }
 ~~~
 
-Dù `input` đến từ một trạng thái runtime, phép tính thuần không có hiệu ứng quan sát khi kết quả bị bỏ. DCE có thể loại bỏ nó. So với ví dụ đúng `return compute(input)` hoặc `blackhole.consume(compute(input))`.
+Even though `input` comes from runtime state, a pure computation has no observable effect when the result is discarded. DCE can remove it. Compare this to the right example `return compute(input)` or `blackhole.consume(compute(input))`.
 
-### Sai C: tạo hằng với `final`
+### Wrong C: creating a constant with `final`
 
 ~~~java
 private static final long FIXED = 7L;
@@ -258,9 +258,9 @@ public long foldedConstant() {
 }
 ~~~
 
-Khai báo `final` thường có ý nghĩa tốt trong mã ứng dụng; nhưng khi mục tiêu benchmark là **tính toán với dữ liệu thay đổi**, `static final` và literal tạo điều kiện cho folding. Không “cấm final” ở mọi nơi; hãy phân biệt dữ liệu benchmark phải động với các thông số thực sự cố định theo hợp đồng ứng dụng.
+Declaring `final` is usually good practice in application code; however, when the benchmark goal is **computing with varying data**, `static final` and literals invite folding. Do not "ban `final`" everywhere; distinguish benchmark data that must be dynamic from parameters that are genuinely fixed by the application contract.
 
-### Đúng theo mục tiêu đo dữ liệu runtime
+### Right for measuring runtime data
 
 ~~~java
 @State(Scope.Thread)
@@ -275,13 +275,13 @@ public long runtimeInput(Inputs inputs) {
 }
 ~~~
 
-Đoạn này cần nằm trong lớp benchmark có phương thức `compute` và các import JMH tương ứng. `@Param`/`@State` không bảo đảm tuyệt đối mọi phép tính đều còn tồn tại ở máy; chúng giúp benchmark phản ánh dữ liệu được cung cấp ở runtime và giảm nguy cơ gập thành hằng. Kiểm chứng đầu ra máy khi phép đo cực nhỏ hoặc bất thường vẫn có giá trị.
+This snippet needs to reside inside a benchmark class with `compute` and the corresponding JMH imports. `@Param`/`@State` do not absolutely guarantee every single operation survives in machine code; they help the benchmark reflect runtime-supplied data and reduce the risk of constant folding. Inspecting generated machine code when a measurement is suspiciously tiny or abnormal remains valuable.
 
-## 9. Chương trình Java 17 độc lập để kiểm tra chức năng, không đo hiệu năng
+## 9. Standalone Java 17 Program for Functional Verification, Not Performance Measurement
 
-Trước khi đo thời gian, hãy chứng minh hàm tính toán **thực sự phụ thuộc đầu vào** và kết quả kỳ vọng là gì. Ví dụ đơn giản không phụ thuộc JMH:
+Before measuring time, prove that the calculation function **truly depends on its input** and verify what the expected outputs are. Simple example without JMH dependencies:
 
-Tạo tệp `BenchmarkPitfallsDemo.java`:
+Create `BenchmarkPitfallsDemo.java`:
 
 ~~~java
 public final class BenchmarkPitfallsDemo {
@@ -306,14 +306,14 @@ public final class BenchmarkPitfallsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 BenchmarkPitfallsDemo.java
 java BenchmarkPitfallsDemo
 ~~~
 
-Kết quả xác định cho các giá trị minh họa:
+Deterministic output for the illustrative values:
 
 ~~~text
 a = 5985353341353
@@ -322,11 +322,11 @@ different results = true
 sink = 5985353341353
 ~~~
 
-Chương trình chứng minh hàm `compute` có hai kết quả khác nhau theo hai đầu vào; biến `volatile sink` cho phép một cách sử dụng kết quả có thể quan sát. **Đây không phải benchmark thời gian.** Việc thêm `volatile` không thay thế warmup, fork, thống kê và cơ chế chống compiler tối ưu sai ngữ cảnh của JMH. Nếu viết thêm vòng lặp đo quanh chương trình này, vẫn phải phân tích các tối ưu và chi phí truy cập `volatile` riêng.
+The program proves `compute` yields two different results for two inputs; the `volatile sink` variable demonstrates one way of consuming a result observably. **This is not a timing benchmark.** Adding `volatile` does not replace JMH's warmup, forks, statistics, and safeguards against out-of-context compiler optimizations. If you wrap a timing loop around this program, you still have to analyze optimizations and `volatile` access costs separately.
 
-## 10. Blackhole: tiêu thụ kết quả đúng cách
+## 10. `Blackhole`: Consuming Results Properly
 
-JMH cung cấp `org.openjdk.jmh.infra.Blackhole`. Ta có thể dùng:
+JMH provides `org.openjdk.jmh.infra.Blackhole`. You can use:
 
 ~~~java
 @Benchmark
@@ -336,23 +336,23 @@ public void benchmark(Blackhole blackhole) {
 }
 ~~~
 
-Nếu benchmark là `public long benchmark()`, chỉ cần `return compute(input)` thường là đủ: JMH xử lý giá trị trả về. Blackhole hữu ích hơn khi một iteration tính nhiều kết quả hoặc thao tác benchmark không có kiểu trả về thuận tiện.
+If the benchmark is `public long benchmark()`, simply writing `return compute(input)` is usually enough: JMH handles the return value. `Blackhole` is more useful when a single iteration computes multiple results or the benchmarked operation has no convenient return type.
 
-**Không gọi `Blackhole.consumeCPU(...)` chỉ để đảm bảo CPU làm việc**: phương thức này được dùng cho những mục tiêu mô phỏng tải CPU riêng; nó không chứng minh công việc cần đo đã chạy và có thể tạo thêm chi phí không thuộc workload.
+**Do not call `Blackhole.consumeCPU(...)` just to ensure the CPU does work**: that method is meant for simulating artificial CPU load in specific experiments; it does not prove the work you wanted to measure ran, and it adds cost outside the workload.
 
-**Không tự viết một biến static `volatile` thành giải pháp phổ quát.** Ghi volatile có chi phí, hiệu ứng bộ nhớ và cạnh tranh trạng thái khi nhiều thread dùng chung. Nó có thể làm kết quả so sánh hai thuật toán lệch theo chi phí phụ do chính benchmark thêm vào.
+**Do not invent a static `volatile` variable as a universal solution.** Volatile writes carry cost, memory effects, and contention when multiple threads share it. They can skew the comparison between two algorithms by the extra overhead added by the benchmark itself.
 
-**Không in kết quả trong `@Benchmark`** và tránh cập nhật shared `List`/`Map` chỉ để giữ kết quả nếu ứng dụng thật không yêu cầu hoạt động đó. Việc làm giả “observable use” có thể đo cả allocation, synchronization và contention không liên quan. Chọn `return` hoặc `Blackhole` trước, sau đó xác minh JVM không loại/biến đổi phần quan trọng.
+**Do not print results inside `@Benchmark`** and avoid updating a shared `List`/`Map` merely to retain results if the real application does not do that. Faking "observable use" can end up measuring unrelated allocation, synchronization, and contention. Prefer `return` or `Blackhole` first, then verify the JVM did not eliminate or transform the critical part.
 
-## 11. @State, @Param và dữ liệu đầu vào thực tế
+## 11. `@State`, `@Param`, and Realistic Input Data
 
-Một benchmark đáng tin cậy phải phản ánh **phân bố đầu vào** của ứng dụng, không chỉ một hằng thuận tiện.
+A trustworthy benchmark must reflect the application's **input distribution**, not just a single convenient constant.
 
-`@Param` cho phép báo cáo nhiều trường hợp, ví dụ các số nguyên nhỏ, lớn, âm và gần biên. Với bài toán số học, thời gian có thể phụ thuộc số chữ số hoặc kích thước nội bộ, đặc biệt với `BigInteger` và `BigDecimal`. Đo một đối tượng đặc biệt như `BigInteger.ONE` rồi suy ra hiệu năng cho hàng nghìn chữ số là thiếu căn cứ.
+`@Param` lets you report multiple cases, such as small, large, negative, and near-boundary integers. For numeric problems, runtime can depend on digit counts or internal representation size, especially with `BigInteger` and `BigDecimal`. Measuring a special object like `BigInteger.ONE` and generalizing performance to thousands of digits is unfounded.
 
-`@State(Scope.Thread)` tạo state riêng trên mỗi benchmark thread; `Scope.Benchmark` tạo state chia sẻ trong phạm vi benchmark theo hợp đồng JMH, phù hợp nếu bạn **thực sự muốn đo contention**. Nếu mục tiêu là tốc độ tính toán đơn luồng, vô tình dùng shared mutable state có thể khiến ta đo tranh chấp thay vì thuật toán.
+`@State(Scope.Thread)` creates dedicated state per benchmark thread; `Scope.Benchmark` creates benchmark-wide shared state per JMH's contract, suitable if you **genuinely want to measure contention**. If your goal is single-threaded computation speed, accidentally using shared mutable state can make you measure contention instead of the algorithm.
 
-Với dữ liệu số phức tạp, có thể dùng `@Setup(Level.Trial)` để chuẩn bị dữ liệu ngoài đường đo:
+For complex numeric data, you can use `@Setup(Level.Trial)` to prepare data outside the measurement path:
 
 ~~~java
 @State(Scope.Thread)
@@ -370,55 +370,55 @@ public static class DecimalInputs {
 }
 ~~~
 
-Đoạn này cần các import JMH `@State`, `Scope`, `@Param`, `@Setup` và `Level`. Không xây dựng `BigInteger` lớn bên trong mỗi `@Benchmark` nếu mục tiêu là **chỉ đo phép toán trên số đã có sẵn**; còn nếu ứng dụng thật phải parse/chuyển đổi số trong mỗi tác vụ, việc đưa công đoạn đó vào lại hợp lý. Hãy phát biểu phạm vi đo trong tên benchmark và giải thích.
+This snippet requires JMH imports `@State`, `Scope`, `@Param`, `@Setup`, and `Level`. Do not construct a large `BigInteger` inside every `@Benchmark` call if the goal is **only measuring the operation on pre-existing numbers**; conversely, if the real application must parse/convert numbers on every task, including that step makes sense. State the measurement scope in the benchmark name and explanation.
 
-Đừng chuyển mọi đầu vào thành `final static` để giảm noise nếu bạn cần biết hiệu năng trên dữ liệu runtime. Và đừng cập nhật tham số theo một quy luật giả tạo ngay trong mỗi invocation nếu chính việc cập nhật tham số sẽ áp đảo phép tính nhỏ được đo.
+Do not turn all inputs into `final static` to reduce noise when you need performance on runtime data. And do not update a parameter with an artificial pattern on every invocation if updating the parameter itself will dominate the tiny operation being measured.
 
-## 12. Warmup, fork và các mode đo
+## 12. Warmup, Forks, and Measurement Modes
 
-Khi chạy Java, JVM có thể trải qua thông dịch, compiler tầng khác nhau, thu thập profile, inline, cache warming, tải class và GC. Nếu đo vài lời gọi ban đầu rồi chia thời gian, kết quả phụ thuộc mạnh vào trạng thái khởi tạo.
+When running Java, the JVM may go through interpretation, tiered compilation, profile collection, inlining, cache warming, class loading, and GC. Timing the first few calls and dividing gives results heavily dependent on startup state.
 
-Các thuộc tính JMH quan trọng:
+Important JMH settings:
 
-| Cấu hình | Ý nghĩa |
+| Setting | Meaning |
 |---|---|
-| `@Warmup(iterations = 3, time = 1)` | Chạy các khoảng warmup không dùng làm kết quả cuối |
-| `@Measurement(iterations = 5, time = 1)` | Lấy 5 khoảng đo trong mỗi fork |
-| `@Fork(2)` | Chạy hai JVM fork độc lập |
-| `@BenchmarkMode(Mode.AverageTime)` | Báo thời gian trung bình trên operation |
-| `@BenchmarkMode(Mode.Throughput)` | Báo số operation mỗi đơn vị thời gian |
-| `@OutputTimeUnit(TimeUnit.NANOSECONDS)` | Chỉ định đơn vị báo cáo |
-| `-t 1` | Chạy một benchmark thread, tránh trộn contention vào phép đo đơn luồng |
+| `@Warmup(iterations = 3, time = 1)` | Runs warmup intervals excluded from final results |
+| `@Measurement(iterations = 5, time = 1)` | Collects 5 measurement intervals per fork |
+| `@Fork(2)` | Runs two independent JVM forks |
+| `@BenchmarkMode(Mode.AverageTime)` | Reports average time per operation |
+| `@BenchmarkMode(Mode.Throughput)` | Reports operations per unit of time |
+| `@OutputTimeUnit(TimeUnit.NANOSECONDS)` | Specifies reporting unit |
+| `-t 1` | Runs one benchmark thread, avoiding mixing contention into single-threaded measurements |
 
-Ví dụ chạy JMH sau khi build có thể ghi đè cấu hình annotation:
+An example JMH command after building can override annotation settings:
 
 ~~~bash
 java -jar target/benchmarks.jar ComputeBench -wi 3 -i 5 -w 1s -r 1s -f 2 -t 1
 ~~~
 
-Các tùy chọn này chọn warmup 3 iteration, measurement 5 iteration, mỗi khoảng một giây, hai fork và một thread. Điều kiện CPU, nhiệt độ, hệ điều hành, power plan và workload cạnh tranh đều có thể tác động số đo.
+These options select 3 warmup iterations, 5 measurement iterations, one second per interval, two forks, and one thread. CPU conditions, temperature, OS, power plan, and competing workloads can all affect measurements.
 
-JMH output thường có tên benchmark, số lượng mẫu, mode, score, error và units. `Score Error` là chỉ báo bất định theo cách tính của harness, **không có nghĩa tất cả phép đo của ứng dụng ngoài đời đều nằm trong đúng khoảng đó**. Khi khác biệt nhỏ hơn noise hoặc phụ thuộc hệ thống, không tuyên bố chiến thắng hiệu năng chỉ từ một lần benchmark.
+JMH output typically shows benchmark name, sample count, mode, score, error, and units. `Score Error` is an uncertainty indicator calculated by the harness; **it does not mean all measurements in a real-world application will fall within that exact interval**. When differences are smaller than noise or system-dependent, do not declare a performance victory from a single benchmark run.
 
-## 13. Các tối ưu khác cũng làm benchmark lệch mục tiêu
+## 13. Other Optimizations That Also Skew Benchmark Goals
 
-Constant folding và DCE là hai ví dụ nổi bật, nhưng microbenchmark Java còn gặp:
+Constant folding and DCE are two prominent examples, yet Java microbenchmarks also encounter:
 
-- **Inlining:** JIT thay lời gọi method bằng thân hàm. Đó là tối ưu thực tế cần cân nhắc; nếu benchmark cố đo “overhead lời gọi”, hãy xác định ứng dụng có thực sự không được inline hay không.
-- **Escape analysis và scalar replacement:** object được tạo nhưng không “thoát” có thể được JVM loại allocation hoặc thay bằng trường scalar. Nếu đo allocation thật, bảo đảm tình huống object sống/thoát phù hợp ứng dụng, nhưng đừng cố tình giữ object sai mục tiêu.
-- **Loop unrolling và loop-invariant hoisting:** vòng lặp lặp lại cùng đầu vào có thể được rút gọn/đưa phép tính ra ngoài. JMH thường điều khiển lặp nội bộ, nên tránh tự thêm vòng `for` lớn vào benchmark nếu không thật sự đang đo batch.
-- **Profile-guided/speculative optimization:** JVM tối ưu theo kiểu/nhánh thường gặp; đầu vào benchmark quá đồng nhất có thể khiến branch prediction và việc inline thuận lợi hơn workload thực tế.
-- **Cấp phát và GC:** benchmark tạo mảng hoặc `BigDecimal` mới có thể có chi phí garbage collection không đều giữa lần chạy. Chọn đo cả cấp phát hay chỉ xử lý dữ liệu có sẵn.
-- **Cache locality và memory layout:** dữ liệu nhỏ luôn nằm trong cache có thể tạo kết quả khác hẳn input lớn trên máy thật.
-- **Autoboxing:** đo `Long`/`Integer` trong khi ứng dụng sử dụng primitive hoặc ngược lại sẽ pha thêm chi phí không mong muốn.
+- **Inlining:** the JIT replaces a method call with the method body. This is a real optimization to account for; if a benchmark tries to measure "call overhead", verify whether the application actually fails to inline it.
+- **Escape analysis and scalar replacement:** an object that is created without "escaping" can have its allocation eliminated or replaced by scalar fields by the JVM. If measuring real allocation, ensure object lifetimes/escapes match the application, without artificially retaining objects out of context.
+- **Loop unrolling and loop-invariant hoisting:** a loop repeating the same input can be unrolled or have computations hoisted out. JMH normally manages the inner loop, so avoid adding a large `for` loop inside a benchmark unless genuinely measuring a batch.
+- **Profile-guided/speculative optimization:** the JVM optimizes for commonly observed types/branches; overly uniform benchmark inputs can make branch prediction and inlining far more favorable than real workloads.
+- **Allocation and GC:** benchmarks creating new arrays or `BigDecimal` instances may show uneven garbage collection costs across runs. Choose whether to measure allocation too or only processing of existing data.
+- **Cache locality and memory layout:** tiny datasets that always stay in cache can yield vastly different results from large inputs on real machines.
+- **Autoboxing:** measuring `Long`/`Integer` when the application uses primitives, or vice versa, injects unwanted costs.
 
-Các tối ưu này **không xấu**. Chúng làm benchmark lệch khi thiết lập dữ liệu hoặc việc sử dụng kết quả khác với mục tiêu cần đo. Mục tiêu là có một phép đo tương ứng với workload, không phải chống compiler bằng mọi giá.
+These optimizations are **not bad**. They skew benchmarks when data setup or result usage differs from the measurement target. The goal is a measurement faithful to the workload, not fighting the compiler at all costs.
 
-## 14. Ví dụ với Numbers: đo BigDecimal đúng phạm vi
+## 14. Numbers Example: Measuring `BigDecimal` at the Right Scope
 
-Giả sử cần so sánh chi phí `BigDecimal.add()` và `BigDecimal.multiply()`. Tạo hai đối tượng từ chuỗi bên trong mỗi `@Benchmark` sẽ khiến thời gian bao gồm **parse decimal + cấp phát + phép toán**, khác với trường hợp ứng dụng đã có sẵn dữ liệu.
+Suppose you need to compare the cost of `BigDecimal.add()` and `BigDecimal.multiply()`. Creating both objects from strings inside each `@Benchmark` will make the timing include **decimal parsing + allocation + arithmetic**, unlike a scenario where the application already holds the data.
 
-Thiết kế gợi ý:
+Suggested design:
 
 ~~~java
 @State(Scope.Thread)
@@ -447,30 +447,30 @@ public BigDecimal multiply(NumberState state) {
 }
 ~~~
 
-Đây là **đoạn minh họa cần đặt trong lớp JMH** với import `BigDecimal`, các annotation JMH và `Level`; không phải tệp Java chạy trực tiếp. Bên ngoài đường đo, `@Setup(Level.Trial)` dựng dữ liệu để benchmark phản ánh phép toán trên các `BigDecimal` đã tồn tại. Kết quả `BigDecimal` được trả về và JMH tiêu thụ, tránh để DCE xóa thao tác.
+This is an **illustrative snippet to place inside a JMH class** with `BigDecimal`, JMH annotations, and `Level` imports; it is not a directly runnable Java file. Outside the measurement path, `@Setup(Level.Trial)` constructs the data so the benchmark reflects operations on existing `BigDecimal` instances. The `BigDecimal` result is returned and consumed by JMH, preventing DCE from deleting the operation.
 
-Tuy nhiên, chọn trước `left/right` cố định có thể giúp JIT khai thác thêm đặc tính dữ liệu và phép toán tùy cấu trúc mã; nó không tự chứng minh benchmark bao trùm mọi giá trị thực tế. Để đo phân bố đầu vào lớn/nhỏ, âm/dương hoặc các `scale` khác nhau, cần nhiều case và dữ liệu thay đổi hợp lý theo nghiệp vụ. Khi muốn so sánh bộ xử lý, luôn kiểm chứng phép toán thực sự được tính chứ không đã được “trả về từ cache” theo một đặc điểm riêng của input.
+However, pre-selecting fixed `left/right` values can still let the JIT exploit data/operation specifics depending on code structure; it does not automatically prove the benchmark covers all real values. To measure distributions of large/small, positive/negative, or varying `scale` inputs, use multiple cases and data varying realistically per business rules. When comparing processors, always verify the operation actually computes rather than being "returned from cache" due to a special input property.
 
-## 15. Checklist đánh giá một microbenchmark
+## 15. Checklist for Evaluating a Microbenchmark
 
-Trước khi tin kết luận hiệu năng, kiểm tra lần lượt:
+Before trusting performance conclusions, check item by item:
 
-1. **Định nghĩa phép toán:** Bạn đang đo hàm thuần, parse, khởi tạo, I/O, đồng bộ hay cả quy trình?
-2. **Chặn constant folding không phù hợp:** Dữ liệu ứng dụng thật có biến đổi không? Nếu có, tham số benchmark có đến từ state runtime (ví dụ `@Param`) thay vì literal hoặc `static final` không?
-3. **Chặn DCE:** Kết quả của công việc cần đo có được `return` hoặc `Blackhole.consume` trong JMH không? Có side effect phù hợp thực tế không?
-4. **Không đưa chi phí ngoại lai vào đường đo:** In console, sleep, cấp phát test fixture, tạo RNG, parse không cần thiết hoặc cập nhật global `volatile` có đang chiếm thời gian không?
-5. **Dùng JMH đúng cách:** Annotation processor hoạt động, benchmark chạy qua harness, có warmup, measurement, fork phù hợp.
-6. **Đảm bảo chức năng:** Kết quả tính toán với các đầu vào có thể kiểm chứng; benchmark sai logic nhưng rất nhanh không có giá trị.
-7. **Xem xét tối ưu máy:** Với phép đo quá nhanh/bất thường, có thể kiểm tra profiling/disassembly nếu môi trường hỗ trợ để hiểu mã máy và tỷ lệ công việc bị bỏ; không suy đoán từ số ns/op một mình.
-8. **Kiểm soát nguồn nhiễu:** JVM/JDK version, CPU, GC, load hệ thống, mức song song và điều kiện nhiệt/điện phải được ghi lại.
-9. **Không nhầm khác biệt ngắn hạn với cải tiến:** Chạy lại khi có lý do, xem sai số và phạm vi ứng dụng; báo kết quả kèm điều kiện, không suy ra một con số tuyệt đối cho mọi máy.
-10. **So sánh công bằng:** Hai phương án phải cùng đầu vào, cùng tiêu chí đầu ra đúng, cùng loại chi phí được tính. Không để một bên thực hiện ít công việc hơn chỉ nhờ benchmark quên tiêu thụ kết quả.
+1. **Define the operation:** are you measuring a pure function, parsing, initialization, I/O, synchronization, or an entire workflow?
+2. **Prevent inappropriate constant folding:** does real application data vary? If so, do benchmark parameters come from runtime state (e.g., `@Param`) rather than literals or `static final`?
+3. **Prevent DCE:** is the measured work's result returned via `return` or `Blackhole.consume` in JMH? Are there realistic side effects?
+4. **Keep extraneous costs out of the measurement path:** are console printing, sleeping, test-fixture allocation, RNG creation, unnecessary parsing, or global `volatile` updates taking up time?
+5. **Use JMH properly:** annotation processor works, benchmark runs through the harness, and warmup, measurement, and forks are configured appropriately.
+6. **Ensure functional correctness:** computed results on inputs can be verified; a logically wrong yet super-fast benchmark has no value.
+7. **Examine machine optimizations:** for suspiciously fast/abnormal timings, inspect profiling/disassembly if the environment supports it to understand generated machine code and how much work was eliminated; do not guess from `ns/op` alone.
+8. **Control noise sources:** JVM/JDK version, CPU, GC, system load, concurrency level, and thermal/power conditions must be recorded.
+9. **Do not mistake short-term variance for improvement:** re-run when justified, examine error margins and scope of applicability; report results with conditions instead of generalizing one absolute number to every machine.
+10. **Compare fairly:** both approaches must share the same inputs, same correctness criteria, and same included costs. Do not let one side do less work simply because the benchmark forgot to consume its result.
 
-Không có một “anti-optimizer trick” duy nhất đủ cho mọi bài benchmark. `Blackhole` giúp hạn chế DCE, `@State`/`@Param` giúp cung cấp runtime input, còn **thiết kế thí nghiệm** quyết định tính đại diện cho bài toán.
+There is no single "anti-optimizer trick" sufficient for every benchmark. `Blackhole` helps curb DCE, `@State`/`@Param` help supply runtime inputs, and **experimental design** determines whether the benchmark represents the problem.
 
-## 16. Bài tập dự đoán và sửa lỗi
+## 16. Prediction and Debugging Exercises
 
-**Bài 1 — Kết quả bị bỏ.** Phương thức dưới đây sai ở đâu?
+**Exercise 1 — Discarded result.** What is wrong with the method below?
 
 ~~~java
 @Benchmark
@@ -479,9 +479,9 @@ public void test() {
 }
 ~~~
 
-**Đáp án:** Nếu hàm không có side effect, đầu ra bị bỏ nên JVM có thể DCE. Đổi thành benchmark trả kết quả hoặc truyền kết quả vào `Blackhole.consume`. Đồng thời kiểm tra `input` không là hằng số ngoài ý muốn.
+**Answer:** If the method has no side effects, the output is discarded so the JVM can apply DCE. Change it to return the result or pass the result into `Blackhole.consume`. Also check that `input` is not an unintended constant.
 
-**Bài 2 — Có return vẫn có thể sai.**
+**Exercise 2 — Returning a value can still be wrong.**
 
 ~~~java
 @Benchmark
@@ -490,31 +490,31 @@ public long test() {
 }
 ~~~
 
-**Đáp án:** Trả kết quả giúp chống DCE nhưng `123L` cố định tạo điều kiện cho constant folding, inlining và hoisting. Nếu ứng dụng xử lý nhiều số runtime, dùng `@State` và `@Param` hoặc dữ liệu runtime tương ứng.
+**Answer:** Returning the result prevents DCE, yet the fixed `123L` enables constant folding, inlining, and hoisting. If the application processes varying runtime numbers, use `@State` and `@Param` or equivalent runtime data.
 
-**Bài 3 — Dùng volatile là đủ chưa?** Một lập trình viên thay `Blackhole` bằng `private static volatile long sink;`, rồi ghi `sink = compute(7L);` sau mỗi lần gọi. Đã an toàn để so sánh hiệu năng chưa?
+**Exercise 3 — Is using `volatile` enough?** A developer replaces `Blackhole` with `private static volatile long sink;`, then writes `sink = compute(7L);` after each call. Is it safe for comparing performance yet?
 
-**Đáp án:** Chưa. Phép tính với literal vẫn có thể gập thành hằng; ghi volatile trở thành phần đáng kể của chi phí. Cần JMH, đầu vào runtime và tiêu thụ kết quả đúng ngữ cảnh.
+**Answer:** Not yet. A calculation with a literal can still constant-fold; the volatile write becomes a significant part of the cost. You need JMH, runtime inputs, and context-appropriate result consumption.
 
-**Bài 4 — Đầu vào cố định khi nào hợp lệ?** Ứng dụng thật luôn gọi `compute(7L)` và JIT thực sự biến nó thành hằng. Có nên cố buộc benchmark thực hiện tám vòng phép tính?
+**Exercise 4 — When is a fixed input valid?** The real application always calls `compute(7L)` and the JIT genuinely turns it into a constant. Should you force the benchmark to execute eight loop iterations?
 
-**Đáp án:** Nếu mục tiêu là đo **chi phí thực tế của đúng call-site này**, để JIT tối ưu theo điều kiện thật có thể là lựa chọn hợp lý. Chỉ khi muốn đo thuật toán với đầu vào biến đổi mới cần thiết kế state runtime để tránh kết quả bị gập. Benchmark phải phản ánh yêu cầu, không máy móc “ngăn mọi tối ưu”.
+**Answer:** If the goal is measuring **the real cost of that exact call site**, letting the JIT optimize under real conditions can be the reasonable choice. Only when you want to measure the algorithm with varying inputs should you design runtime state to prevent folding. A benchmark must reflect requirements, not mechanically "block every optimization".
 
-**Bài 5 — Kết quả 0.001 ns/op.** Một phép nhân phức tạp được báo ở tốc độ khó tin. Nên làm gì trước khi quảng bá đây là tối ưu vượt trội?
+**Exercise 5 — A `0.001 ns/op` result.** A complex multiplication is reported at an unbelievable speed. What should you do before advertising this as a superior optimization?
 
-**Đáp án:** Kiểm tra kết quả có được tiêu thụ không, input có constant-fold được không, benchmark có lặp batch khiến đơn vị `op` bị chia sai không, có chạy đúng JMH không, và nếu cần kiểm tra phần mã máy/JIT. Không được kết luận thuật toán nhanh từ số đo bất thường mà chưa kiểm chứng nội dung phép đo.
+**Answer:** Check whether the result is consumed, whether inputs can constant-fold, whether the benchmark batches loops so the `op` unit is divided incorrectly, whether it ran properly via JMH, and if needed inspect machine/JIT code. Never conclude an algorithm is fast from an anomalous timing without verifying what was actually measured.
 
-## 17. Ghi nhớ và nguồn tham khảo
+## 17. Key Takeaways and References
 
-- **Constant folding:** nếu dữ liệu/biểu thức đủ xác định, JVM có thể thay phép tính bằng kết quả biết trước. Với benchmark cần đo dữ liệu runtime, dùng trường trạng thái không `final`, `@Param` và tình huống có phân bố input đại diện.
-- **Dead-code elimination:** nếu kết quả không được dùng, JVM có thể bỏ hẳn phép tính thuần. Trong JMH, hãy `return` kết quả hoặc `Blackhole.consume(...)`.
-- **Hai điều kiện là độc lập:** dùng kết quả chưa chắc chống folding; dùng runtime input chưa chắc chống DCE.
-- **JMH cung cấp harness**, warmup, fork, đo và xử lý kết quả; người viết vẫn phải chọn đúng công việc, dữ liệu và cách quan sát.
-- **Đánh giá kết quả theo hợp đồng workload và điều kiện máy**, không suy ra một quy luật tuyệt đối từ số ns/op đơn lẻ.
+- **Constant folding:** if data/expressions are sufficiently determined, the JVM can replace the calculation with a precomputed result. For benchmarks needing to measure runtime data, use non-`final` state fields, `@Param`, and scenarios with representative input distributions.
+- **Dead-code elimination:** if the result is unused, the JVM can drop a pure calculation altogether. In JMH, `return` the result or call `Blackhole.consume(...)`.
+- **The two conditions are independent:** using the result does not automatically prevent folding; using runtime inputs does not automatically prevent DCE.
+- **JMH provides the harness**, warmup, forks, measurement, and result handling; the author must still choose the right work, data, and observation method.
+- **Evaluate results according to the workload contract and machine conditions**, without extrapolating an absolute rule from a single `ns/op` number.
 
-Tài liệu chính thức và ví dụ nên đọc:
-- [OpenJDK JMH](https://github.com/openjdk/jmh): dự án, cách khởi tạo bằng Maven archetype, cấu hình chạy microbenchmark.
-- [JMHSample_08_DeadCode](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_08_DeadCode.java): so sánh benchmark bỏ kết quả với benchmark trả kết quả.
-- [JMHSample_09_Blackholes](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_09_Blackholes.java): sử dụng `Blackhole` khi kết quả cần được tiêu thụ.
-- [JMHSample_10_ConstantFold](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_10_ConstantFold.java): đầu vào `final`, constant folding và dữ liệu trong trường trạng thái runtime.
-- [JMH Core trên Maven Central](https://central.sonatype.com/artifact/org.openjdk.jmh/jmh-core): phiên bản dependency được xuất bản.
+Official docs and examples worth reading:
+- [OpenJDK JMH](https://github.com/openjdk/jmh): project, Maven archetype setup, running microbenchmarks.
+- [JMHSample_08_DeadCode](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_08_DeadCode.java): comparing a benchmark that discards results with one that returns results.
+- [JMHSample_09_Blackholes](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_09_Blackholes.java): using `Blackhole` when results must be consumed.
+- [JMHSample_10_ConstantFold](https://github.com/openjdk/jmh/blob/master/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_10_ConstantFold.java): `final` inputs, constant folding, and data in runtime state fields.
+- [JMH Core on Maven Central](https://central.sonatype.com/artifact/org.openjdk.jmh/jmh-core): published dependency versions.

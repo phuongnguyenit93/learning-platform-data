@@ -1,14 +1,14 @@
-# Thiết kế Gatherer có combiner cho xử lý song song
+# Designing Gatherers with a Combiner for Parallel Processing
 
-Trong **Java Stream API**, các phép toán `map`, `filter`, `flatMap`, `reduce` và `collect` giải quyết nhiều bài toán xử lý dữ liệu khai báo. Tuy nhiên, có những phép biến đổi cần **trạng thái riêng**, có thể phát ra không phần tử, một phần tử hoặc nhiều phần tử, và có thể phát ra kết quả khi nguồn kết thúc. **Stream Gatherers** cung cấp điểm mở rộng `Stream.gather(...)` để mô tả những phép toán trung gian như vậy.
+In the **Java Stream API**, `map`, `filter`, `flatMap`, `reduce`, and `collect` solve many declarative data-processing problems. However, some transformations require **private state**, may emit zero, one, or multiple elements, and may emit results when the source finishes. **Stream Gatherers** provide the `Stream.gather(...)` extension point to describe such intermediate operations.
 
-Khi muốn Gatherer tự định nghĩa hoạt động hiệu quả trên **parallel stream**, phần khó nhất thường là thiết kế **`combiner`**. Hàm này không chỉ “ghép hai đối tượng”: nó phải tạo ra trạng thái tương đương với trạng thái thu được nếu toàn bộ phần tử được xử lý theo đúng ngữ nghĩa, bất kể framework chia nguồn thành bao nhiêu phần.
+When you want a custom Gatherer to work effectively on a **parallel stream**, the hardest part is usually designing the **`combiner`**. This function does not merely "merge two objects": it must produce a state equivalent to the state obtained if all elements were processed according to the right semantics, regardless of how many partitions the framework splits the source into.
 
-Bài học thuộc chương **Xây dựng Gatherer tùy biến** của mô-đun `JAVA_STREAM_API`. Chúng ta sẽ xây một Gatherer có bốn thành phần `initializer`, `integrator`, `combiner`, `finisher`; phân tích các luật kết hợp, kiểm thử tuần tự/song song và nhận diện những thuật toán **không thể song song hóa chỉ bằng một combiner đơn giản**.
+This lesson belongs to the **Building Custom Gatherers** chapter of the `JAVA_STREAM_API` module. We will build a Gatherer with all four components `initializer`, `integrator`, `combiner`, and `finisher`; analyze the associativity laws; test sequential/parallel equivalence; and recognize algorithms **that cannot be parallelized with a simple combiner alone**.
 
-## 1. Phiên bản Java và phạm vi của API
+## 1. Java Version and Scope of the API
 
-`Gatherer<T, A, R>`, `Gatherers` và `Stream.gather(...)` là API chính thức từ **Java 24**. Chúng từng xuất hiện dưới dạng **preview** ở Java 22 và Java 23; mã trong bài sử dụng API chuẩn của **Java 24 trở lên**, không cần bật preview khi biên dịch với JDK 24.
+`Gatherer<T, A, R>`, `Gatherers`, and `Stream.gather(...)` are official APIs starting in **Java 24**. They previously appeared as **preview** features in Java 22 and Java 23; code in this lesson uses the standard API of **Java 24 and later**, requiring no preview flags when compiling with JDK 24.
 
 ```java
 import java.util.stream.Gatherer;
@@ -16,78 +16,78 @@ import java.util.stream.Gatherers;
 import java.util.stream.Stream;
 ```
 
-Ở những dự án chỉ chạy Java 17 hoặc 21, không thể sao chép trực tiếp ví dụ `gather` mà mong biên dịch. Khi đó hãy dùng `map`, `flatMap`, `collect`, một collector tùy chỉnh hoặc nâng mức JDK theo kế hoạch của dự án.
+In projects running only Java 17 or 21, you cannot copy `gather` examples directly and expect them to compile. In those cases, use `map`, `flatMap`, `collect`, a custom collector, or upgrade the JDK per the project roadmap.
 
-Một Gatherer là **intermediate operation**: `stream.gather(gatherer)` trả một stream mới, và việc xử lý thực tế vẫn được kích hoạt bởi terminal operation như `toList()`, `count()`, `findFirst()` hoặc `collect()`.
+A Gatherer is an **intermediate operation**: `stream.gather(gatherer)` returns a new stream, and actual processing is still triggered by a terminal operation such as `toList()`, `count()`, `findFirst()`, or `collect()`.
 
-## 2. Bốn thành phần phối hợp thế nào?
+## 2. How Do the Four Components Cooperate?
 
-Các kiểu generic của `Gatherer<T, A, R>` có ý nghĩa:
+The generic types of `Gatherer<T, A, R>` mean:
 
-| Ký hiệu | Vai trò | Ví dụ của bài |
+| Symbol | Role | Lesson Example |
 | --- | --- | --- |
-| `T` | Kiểu phần tử đi vào Gatherer. | `Integer` |
-| `A` | Kiểu trạng thái tích lũy riêng, có thể mutable. | `State` chứa count, sum, min, max |
-| `R` | Kiểu phần tử Gatherer phát ra cho downstream. | `Summary` bất biến |
+| `T` | Type of elements entering the Gatherer. | `Integer` |
+| `A` | Private accumulated state type, may be mutable. | `State` holding count, sum, min, max |
+| `R` | Type of elements emitted by the Gatherer downstream. | Immutable `Summary` |
 
-Một Gatherer đầy đủ sử dụng bốn hàm:
+A full Gatherer uses four functions:
 
-| Thành phần | Chữ ký/ý nghĩa khái quát | Trách nhiệm |
+| Component | Conceptual Signature / Meaning | Responsibility |
 | --- | --- | --- |
-| `initializer` | `Supplier<A>` | Tạo **trạng thái mới** cho mỗi phần tích lũy cần thiết. |
-| `integrator` | `(A, T, Downstream<R>) -> boolean` | Xử lý một đầu vào, cập nhật trạng thái và có thể `push` đầu ra. |
-| `combiner` | `BinaryOperator<A>` | Gộp hai trạng thái bộ phận thành một trạng thái tương đương. |
-| `finisher` | `(A, Downstream<R>) -> void` | Thực hiện bước cuối khi đã xử lý xong nguồn, có thể phát ra kết quả. |
+| `initializer` | `Supplier<A>` | Creates a **new state** for each accumulation chunk as needed. |
+| `integrator` | `(A, T, Downstream<R>) -> boolean` | Processes one input, updates state, and may `push` outputs. |
+| `combiner` | `BinaryOperator<A>` | Merges two partial states into one equivalent state. |
+| `finisher` | `(A, Downstream<R>) -> void` | Performs the final step after the source finishes, may emit results. |
 
-Trên Java 24, factory phù hợp là:
+On Java 24, the appropriate factory is:
 
 ```java
 Gatherer.of(initializer, integrator, combiner, finisher);
 ```
 
-Sơ đồ ý tưởng với nguồn được chia:
+Conceptual diagram with a split source:
 
 ```text
-                      Stream<T> có thể chia
-                               |
-                    +----------+----------+
-                    |                     |
-                  Phần 1                Phần 2
-                    |                     |
-              initializer()           initializer()
-                    |                     |
-              State A1                State A2
-                    |                     |
-           integrator() nhiều lần  integrator() nhiều lần
-                    |                     |
-                    +--------+------------+
-                             |
-                    combiner(A1, A2)
-                             |
-                       State kết hợp
-                             |
-                       finisher()
-                             |
-                   Downstream.push(R)
+                       Splittable Stream<T>
+                                |
+                     +----------+----------+
+                     |                     |
+                   Part 1                Part 2
+                     |                     |
+               initializer()           initializer()
+                     |                     |
+               State A1                State A2
+                     |                     |
+            integrator() many times  integrator() many times
+                     |                     |
+                     +--------+------------+
+                              |
+                     combiner(A1, A2)
+                              |
+                        Combined State
+                              |
+                         finisher()
+                              |
+                     Downstream.push(R)
 ```
 
-Số phần, vị trí cắt, thứ tự thực thi và số lần gọi `combiner` là quyết định của framework. **Không** được viết logic phụ thuộc vào việc nguồn chắc chắn được chia làm hai phần hay `combiner` chắc chắn được gọi.
+The number of parts, split points, execution order, and number of `combiner` invocations are framework decisions. **Never** write logic assuming the source is definitely split into two parts or that `combiner` is definitely called.
 
-## 3. Có combiner khác gì với `ofSequential`?
+## 3. How Does Having a Combiner Differ from `ofSequential`?
 
-Một Gatherer **có trạng thái** nhưng không có combiner phù hợp nên dùng `Gatherer.ofSequential(...)`. Nếu `combiner()` của Gatherer là `Gatherer.defaultCombiner()`, Gatherer ấy **chỉ được thực thi tuần tự**, kể cả khi upstream được đánh dấu `parallel()`.
+A **stateful** Gatherer without a suitable combiner should use `Gatherer.ofSequential(...)`. If a Gatherer's `combiner()` is `Gatherer.defaultCombiner()`, that Gatherer **is executed sequentially only**, even when upstream is marked `parallel()`.
 
 ```java
-// Khái niệm, với State và integrator đã được định nghĩa:
+// Conceptual, with State and integrator already defined:
 Gatherer.ofSequential(State::new, integrator, finisher);
 
-// Cho phép phân chia và gộp trạng thái khi combiner hợp lệ:
+// Permits splitting and merging state when combiner is valid:
 Gatherer.of(State::new, integrator, combiner, finisher);
 ```
 
-Từ **cho phép** rất quan trọng: cung cấp combiner không bảo đảm runtime **sẽ** thực thi song song, và cũng không bảo đảm nó **nhanh hơn**. Framework có thể chọn kế hoạch thực thi khác tùy nguồn, terminal operation và tính chất Gatherer.
+The word **permits** is vital: supplying a combiner does not guarantee the runtime **will** execute in parallel, nor does it guarantee it is **faster**. The framework may choose a different execution plan depending on source, terminal operation, and Gatherer characteristics.
 
-Ngược lại, với Gatherer **không có trạng thái**, Java có `Gatherer.of(integrator)` tạo Gatherer parallelizable mà không cần cung cấp trạng thái hoặc combiner thủ công:
+Conversely, for a **stateless** Gatherer, Java has `Gatherer.of(integrator)` which creates a parallelizable Gatherer without manually supplying state or a combiner:
 
 ```java
 import java.util.List;
@@ -108,41 +108,41 @@ List<Integer> result = Stream.of(1, 2, 3, 4)
 System.out.println(result); // [2, 4, 6, 8]
 ```
 
-Đây chỉ là cách **minh họa API**; phép biến đổi một-một đơn giản nên dùng `map(value -> value * 2)` thay vì tự viết Gatherer.
+This is purely for **API demonstration**; simple one-to-one transformations should use `map(value -> value * 2)` instead of writing a custom Gatherer.
 
-## 4. Luật quan trọng nhất: trạng thái phải gộp được
+## 4. The Most Important Law: State Must Be Mergeable
 
-Giả sử nguồn được chia thành ba đoạn `P`, `Q`, `R`. Gọi `S(P)` là trạng thái thu được bằng cách tích lũy đoạn `P`, và `C(a, b)` là combiner.
+Suppose the source is split into three segments `P`, `Q`, `R`. Let `S(P)` be the state obtained by accumulating segment `P`, and `C(a, b)` be the combiner.
 
-Điều kiện mong muốn là:
+The desired condition is:
 
 \[
 C(S(P), S(Q)) \equiv S(P \mathbin{+\!+} Q)
 \]
 
-Ký hiệu `++` ở đây là phép nối hai đoạn nguồn theo đúng thứ tự nếu đầu vào có encounter order. Với ba đoạn, combiner phải có tính **kết hợp** (*associativity*) theo ngữ nghĩa:
+Here `++` denotes concatenating two source segments in order if the input has encounter order. For three segments, the combiner must satisfy semantic **associativity**:
 
 \[
 C(C(a,b),c) \equiv C(a,C(b,c))
 \]
 
-Nếu `e` là trạng thái rỗng do initializer tạo, cần phần tử đơn vị:
+If `e` is the empty state produced by the initializer, an identity element is required:
 
 \[
 C(e,a) \equiv a, \quad C(a,e) \equiv a
 \]
 
-Dấu `≡` nói về **kết quả quan sát được**, không đòi các object có cùng tham chiếu. Ví dụ một combiner có thể sửa `left` rồi trả `left`, miễn là nó chỉ sửa trạng thái riêng phù hợp và bảo toàn ngữ nghĩa.
+The symbol `≡` refers to **observable results**, not requiring objects to have the same reference. For example, a combiner may mutate `left` and return `left`, provided it only mutates appropriate private state and preserves semantics.
 
-**Tính kết hợp không đồng nghĩa tính giao hoán.** Phép nối chuỗi `"A" + "B"` có tính kết hợp nhưng `"AB"` khác `"BA"`. Khi kết quả cần giữ thứ tự nguồn, combiner phải bảo toàn thứ tự ghép các đoạn; không tự ý đảo `left` và `right`. Với nguồn unordered, cần xác định rõ kết quả có được phép khác thứ tự hay không.
+**Associativity is not commutativity.** String concatenation `"A" + "B"` is associative, yet `"AB"` differs from `"BA"`. When output must preserve source order, the combiner must preserve the merge order of segments; never swap `left` and `right` arbitrarily. With unordered sources, clarify whether results are permitted to differ in order.
 
-## 5. Dự án mẫu: Gatherer thống kê song song, phát một báo cáo
+## 5. Sample Project: Parallel Statistics Gatherer Emitting One Report
 
-Bài toán: đầu vào là một stream `Integer`; đầu ra là **một `Summary`** chứa số lượng, tổng, giá trị nhỏ nhất/lớn nhất. Chúng ta không phát kết quả sau mỗi phần tử. Mỗi phần dữ liệu được tích lũy vào `State` riêng; các trạng thái được gộp; cuối cùng `finisher` mới phát báo cáo.
+Problem: input is a stream of `Integer`; output is **one `Summary`** containing count, sum, minimum, and maximum values. We do not emit results after each element. Each data partition accumulates into its own `State`; states are merged; finally, `finisher` emits the report.
 
-Đây là ví dụ sư phạm để minh họa **combiner của Gatherer**. Nếu chỉ muốn thống kê số nguyên trong ứng dụng thực tế, `IntStream.summaryStatistics()` hoặc `Collectors.summarizingInt(...)` thường đơn giản hơn.
+This is a pedagogical example illustrating **a Gatherer's combiner**. If you only want integer statistics in a real application, `IntStream.summaryStatistics()` or `Collectors.summarizingInt(...)` is usually simpler.
 
-### Chương trình hoàn chỉnh (Java 24+)
+### Complete Program (Java 24+)
 
 ```java
 import java.util.List;
@@ -155,7 +155,7 @@ import java.util.stream.Stream;
 public final class ParallelSummaryGatherer {
     private ParallelSummaryGatherer() {}
 
-    // Đầu ra chỉ chứa các giá trị không thể thay đổi.
+    // Output holds only immutable values.
     public record Summary(
         long count,
         long sum,
@@ -163,7 +163,7 @@ public final class ParallelSummaryGatherer {
         OptionalInt maximum
     ) {}
 
-    // Trạng thái tích lũy nội bộ cho từng phần dữ liệu.
+    // Internal accumulation state per data partition.
     private static final class State {
         private long count = 0L;
         private long sum = 0L;
@@ -172,7 +172,7 @@ public final class ParallelSummaryGatherer {
 
         void add(Integer boxedValue) {
             int value = Objects.requireNonNull(
-                boxedValue, "Gatherer không nhận null"
+                boxedValue, "Gatherer does not accept null"
             );
 
             count = Math.addExact(count, 1L);
@@ -182,7 +182,7 @@ public final class ParallelSummaryGatherer {
         }
 
         State combine(State right) {
-            // State rỗng phải là phần tử đơn vị.
+            // Empty state must act as identity.
             if (right.count == 0L) {
                 return this;
             }
@@ -219,7 +219,7 @@ public final class ParallelSummaryGatherer {
         return Gatherer.<Integer, State, Summary>of(
             State::new,
 
-            // Integrator: chỉ tích lũy; chưa phát kết quả.
+            // Integrator: accumulate only; do not emit results yet.
             Gatherer.Integrator.ofGreedy(
                 (state, element, downstream) -> {
                     state.add(element);
@@ -227,10 +227,10 @@ public final class ParallelSummaryGatherer {
                 }
             ),
 
-            // Combiner: gộp hai State độc lập.
+            // Combiner: merge two independent States.
             (left, right) -> left.combine(right),
 
-            // Finisher: phát đúng một báo cáo cuối cùng.
+            // Finisher: emit exactly one final report.
             (state, downstream) ->
                 downstream.push(state.snapshot())
         );
@@ -251,10 +251,10 @@ public final class ParallelSummaryGatherer {
             .toList();
 
         if (!sequential.equals(parallel)) {
-            throw new AssertionError("Kết quả không tương đương");
+            throw new AssertionError("Results are not equivalent");
         }
         if (parallel.size() != 1) {
-            throw new AssertionError("Phải có một báo cáo");
+            throw new AssertionError("Must have one report");
         }
 
         Summary report = parallel.get(0);
@@ -273,28 +273,28 @@ public final class ParallelSummaryGatherer {
 }
 ```
 
-Lưu thành `ParallelSummaryGatherer.java`, biên dịch và chạy bằng **JDK 24 hoặc mới hơn**:
+Save as `ParallelSummaryGatherer.java`, compile and run with **JDK 24 or newer**:
 
 ```text
 javac ParallelSummaryGatherer.java
 java ParallelSummaryGatherer
 ```
 
-Đây là mã thực hành được cung cấp để người học chạy; bài viết **không đưa ra số liệu benchmark** và không coi một lần chạy đúng là kiểm thử đầy đủ các cách phân hoạch.
+This is practice code provided for learners to run; the lesson **does not present benchmark figures** and does not treat a single passing run as exhaustive testing of all partitionings.
 
-## 6. Phân tích từng thành phần của chương trình
+## 6. Analyzing Each Component of the Program
 
-### `initializer`: mỗi phần có trạng thái mới
+### `initializer`: Fresh State per Partition
 
 ```java
 State::new
 ```
 
-Khi framework chia nguồn, nó có thể gọi initializer nhiều lần để tạo các `State` độc lập. **Không** tạo một biến `State shared = new State()` ở bên ngoài rồi cung cấp `() -> shared`: làm vậy khiến nhiều phần tích lũy dùng chung count/sum/min/max, phá vỡ khả năng phân chia an toàn.
+When the framework splits the source, it may invoke the initializer multiple times to create independent `State`s. **Never** create a `State shared = new State()` outside and supply `() -> shared`: doing so causes multiple accumulations to share count/sum/min/max, breaking safe partitioning.
 
-Trong ví dụ, `State` cố ý mutable, nhưng không bị lộ ra ngoài. **Không cần đồng bộ mọi `State.add`** nếu framework dùng chúng theo hợp đồng Gatherer: mỗi phần được tích lũy riêng, việc kết hợp bắt đầu sau khi tích lũy các phần liên quan kết thúc.
+In the example, `State` is intentionally mutable, yet never exposed outside. **There is no need to synchronize every `State.add`** if the framework uses them per the Gatherer contract: each partition accumulates separately, and combining starts after accumulation of the relevant partitions finishes.
 
-### `integrator`: cập nhật phần dữ liệu hiện tại
+### `integrator`: Updating the Current Data Partition
 
 ```java
 Gatherer.Integrator.ofGreedy(
@@ -305,50 +305,50 @@ Gatherer.Integrator.ofGreedy(
 )
 ```
 
-`Integrator.ofGreedy` báo rằng integrator không tự ngắn mạch việc tiêu thụ đầu vào. Nó vẫn phải tôn trọng downstream nếu phát phần tử và downstream không muốn nhận thêm. Trong ví dụ, integrator **chưa `push` gì**, nên luôn trả `true`, dành việc phát kết quả cho `finisher`.
+`Integrator.ofGreedy` signals that the integrator does not self-short-circuit input consumption. It must still respect downstream if it emits elements and downstream wants no more. In the example, the integrator **does not `push` anything yet**, so it always returns `true`, leaving emission to `finisher`.
 
-`Downstream.push(r)` trả `boolean` để cho biết downstream còn muốn nhận phần tử hay không. Khi viết một Gatherer phát nhiều phần tử trong integrator, phải xem xét kết quả trả về và không cố phát mãi sau khi downstream từ chối.
+`Downstream.push(r)` returns a `boolean` indicating whether downstream still wants elements. When writing a Gatherer that emits multiple elements inside the integrator, inspect the return value and stop pushing once downstream rejects.
 
-### `combiner`: ghép hai kết quả bộ phận
+### `combiner`: Merging Two Partial Results
 
 ```java
 (left, right) -> left.combine(right)
 ```
 
-`left` và `right` là hai trạng thái được trả về bởi initializer hoặc combiner, không phải hai phần tử `Integer` đầu vào. `combine` ở ví dụ:
+`left` and `right` are two states returned by the initializer or combiner, not two input `Integer` elements. `combine` in the example:
 
-- Cộng `count` và `sum`.
-- Lấy min của hai min và max của hai max.
-- Xử lý trạng thái rỗng làm identity.
-- Trả trạng thái đã gộp.
+- Adds `count` and `sum`.
+- Takes min of the two mins and max of the two maxes.
+- Handles empty state as identity.
+- Returns the merged state.
 
-Với các giá trị nằm trong phạm vi số học cho phép, kết quả không phụ thuộc cách ngoặc hóa phép gộp. `Math.addExact` chủ động ném `ArithmeticException` khi tổng vượt `long`, tránh tràn âm thầm; ở dữ liệu cực lớn có thể cần `BigInteger` hoặc chính sách số học khác.
+For values within permitted arithmetic bounds, the result does not depend on parenthesization of merges. `Math.addExact` proactively throws `ArithmeticException` when the sum exceeds `long`, avoiding silent overflow; for huge data, `BigInteger` or another arithmetic policy may be needed.
 
-Một điều ít người chú ý: sau khi trạng thái đã được đưa vào **combiner hoặc finisher**, framework sẽ không chuyển trạng thái ấy lại cho integrator. Điều này cho phép combiner gộp và chuyển quyền sở hữu trạng thái, nhưng **không** cho phép giữ tham chiếu trạng thái để tự sửa ở thread khác.
+One subtle point: once a state has been passed to **combiner or finisher**, the framework will not hand that same state back to the integrator. This allows the combiner to merge and transfer state ownership, yet **does not** permit keeping a state reference to mutate later on another thread.
 
-### `finisher`: một báo cáo, không phải một báo cáo cho mỗi phần
+### `finisher`: One Report, Not One Report per Partition
 
 ```java
 (state, downstream) -> downstream.push(state.snapshot())
 ```
 
-Vì `integrator` chỉ tích lũy và `combiner` kết hợp trạng thái, finisher phát **một Summary cuối cùng**. Record `Summary` chỉ giữ primitive và `OptionalInt`, nên không chứa tham chiếu tới `State` mutable.
+Because `integrator` only accumulates and `combiner` merges states, the finisher emits **one final Summary**. The `Summary` record holds only primitives and `OptionalInt`, so it holds no reference to the mutable `State`.
 
-Đừng nghĩ finisher sẽ chạy một lần cho **mỗi partition** rồi tự động gộp các báo cáo đã phát. Với Gatherer có combiner, việc gộp **trạng thái** là bước cần thiết trước khi phát kết quả cuối.
+Do not think the finisher runs once for **each partition** and magically merges emitted reports. For a Gatherer with a combiner, merging **state** is the necessary step before emitting the final result.
 
-## 7. Tự kiểm tra luật của combiner
+## 7. Self-Testing Combiner Laws
 
-Không chỉ chạy `parallel()` một lần rồi thấy kết quả đúng. Hãy kiểm tra chính phép kết hợp trạng thái bằng những trường hợp có thể tự tính tay.
+Do not merely run `parallel()` once and see the right answer. Test the state-merging function itself with hand-verifiable cases.
 
-Ví dụ nguồn `[2, 4, 6, 8]`:
+Example source `[2, 4, 6, 8]`:
 
-| Phân hoạch | Trạng thái riêng | Gộp cuối |
+| Partitioning | Individual States | Final Merge |
 | --- | --- | --- |
 | `[2, 4]`, `[6, 8]` | `(2,6,2,4)`, `(2,14,6,8)` | `(4,20,2,8)` |
 | `[2]`, `[4,6,8]` | `(1,2,2,2)`, `(3,18,4,8)` | `(4,20,2,8)` |
-| `[]`, `[2,4,6,8]` | State rỗng và `(4,20,2,8)` | `(4,20,2,8)` |
+| `[]`, `[2,4,6,8]` | Empty state and `(4,20,2,8)` | `(4,20,2,8)` |
 
-Các tuple lần lượt có nghĩa `(count, sum, min, max)`. Với dữ liệu không tràn số:
+The tuples mean `(count, sum, min, max)`. With non-overflowing data:
 
 ```text
 combine(combine(A, B), C)
@@ -356,41 +356,41 @@ combine(combine(A, B), C)
 combine(A, combine(B, C))
 ```
 
-**Lưu ý về mutation trong test:** `State.combine` ở ví dụ sửa đối tượng bên trái. Không được lấy **cùng một State** rồi thử cả hai cách ngoặc hóa trên nó; phép thử thứ hai sẽ nhìn thấy trạng thái đã bị thay đổi bởi phép thử thứ nhất. Cần tạo các bản trạng thái độc lập cho từng đường tính và so sánh `Summary` cuối.
+**Note on mutation in tests:** `State.combine` in the example mutates the left object. Never reuse the **exact same State** to test both parenthesizations on it; the second test would observe a state already mutated by the first. Create independent state instances for each evaluation path and compare the final `Summary`.
 
-Một test mạnh hơn nên thử:
+A stronger test suite should check:
 
-- Không phần tử.
-- Một phần tử.
-- Nhiều phần tử chẵn/lẻ, số âm và số dương.
-- Giá trị `Integer.MIN_VALUE` và `Integer.MAX_VALUE`.
-- Nhiều cách chia đoạn, kể cả các đoạn rỗng.
-- Kết quả tuần tự so với song song ở nhiều kích thước nguồn.
-- Nguồn có dữ liệu lặp lại, bảo đảm không mất hoặc cộng trùng phần tử.
+- Zero elements.
+- One element.
+- Many even/odd, negative, and positive numbers.
+- `Integer.MIN_VALUE` and `Integer.MAX_VALUE`.
+- Various split strategies, including empty segments.
+- Sequential vs parallel results across varying source sizes.
+- Sources with duplicate data, ensuring no lost or double-counted elements.
 
-Nếu phép toán sử dụng `double`, tính kết hợp **không còn chính xác tuyệt đối theo bit** do quy tắc làm tròn. Khi đó test cần tiêu chí sai số và yêu cầu nghiệp vụ rõ ràng; không giả định tổng `double` tuần tự/song song luôn giống từng bit.
+If the operation uses `double`, associativity **is no longer bit-exact** due to rounding rules. In that case, tests need explicit error tolerances and business rules; never assume sequential and parallel `double` sums match bit-for-bit.
 
-## 8. Vì sao phát kết quả sớm làm combiner khó hơn nhiều?
+## 8. Why Does Early Emission Make the Combiner Much Harder?
 
-Gatherer có thể phát kết quả trong **integrator**, chứ không cần chờ finisher. Nhưng khi đầu ra của phần sau **phụ thuộc trạng thái của phần trước**, việc kết hợp trạng thái cuối cùng thường **không sửa được những kết quả đã phát**.
+A Gatherer can emit results in the **integrator**, without waiting for the finisher. However, when outputs of a later partition **depend on the state of an earlier partition**, merging final states usually **cannot fix already-emitted results**.
 
-Ví dụ một phép **prefix sum** của `[1, 2, 3, 4]` phải phát:
+For example, a **prefix sum** of `[1, 2, 3, 4]` must emit:
 
 ```text
 Input:      1   2   3   4
 Prefix:     1   3   6  10
 ```
 
-Giả sử framework chia thành `[1,2]` và `[3,4]`. Nếu mỗi phần bắt đầu từ tổng `0` và phát ngay:
+Suppose the framework splits into `[1,2]` and `[3,4]`. If each part starts at sum `0` and emits immediately:
 
 ```text
-Phần 1 phát: [1, 3]
-Phần 2 phát: [3, 7]    <-- sai: cần [6, 10]
+Part 1 emits: [1, 3]
+Part 2 emits: [3, 7]    <-- wrong: needs [6, 10]
 ```
 
-Dù sau đó combiner có cộng hai tổng phần (`3 + 7 = 10`), nó **không tự sửa các phần tử `3,7` đã được phát** từ nhánh thứ hai. Muốn song song hóa prefix scan cần thuật toán nhiều pha: tính tổng từng phần, tính offset cho phần sau, rồi điều chỉnh các giá trị đầu ra **trước khi phát chúng**. Đó là bài toán khác với chỉ cung cấp `(left, right) -> left.sum += right.sum`.
+Even if the combiner later adds the two partial sums (`3 + 7 = 10`), it **cannot retroactively fix `3,7` already emitted** from the second branch. Parallelizing a prefix scan requires a multi-phase algorithm: compute per-part sums, compute offsets for later parts, and adjust output values **before emitting them**. That is a different problem from merely supplying `(left, right) -> left.sum += right.sum`.
 
-Java đã có `Gatherers.scan(...)` cho phép quét tiền tố theo thứ tự, và `Gatherers.fold(...)` cho bài toán rút gọn có tính phụ thuộc thứ tự. Hai Gatherer này diễn đạt những tác vụ thường **cần xử lý tuần tự** theo hợp đồng, thay vì lắp một combiner giả để ép chạy song song.
+Java already provides `Gatherers.scan(...)` for ordered prefix scans, and `Gatherers.fold(...)` for order-dependent reductions. These two Gatherers express tasks that typically **require sequential evaluation** per contract, rather than bolting on a fake combiner to force parallel execution.
 
 ```java
 import java.util.List;
@@ -404,31 +404,31 @@ List<Integer> prefixes = Stream.of(1, 2, 3, 4)
 System.out.println(prefixes); // [1, 3, 6, 10]
 ```
 
-**Bài học cốt lõi:** khi phép biến đổi phát ra nhiều phần tử phụ thuộc vào lịch sử, phải chứng minh **đầu ra** của từng phần vẫn tương đương với chạy tuần tự, chứ không chỉ chứng minh trạng thái cuối gộp được.
+**Core lesson:** when a transformation emits multiple elements depending on history, you must prove **the outputs** of each partition still match sequential execution, not just that the final states can be merged.
 
-## 9. Tính kết hợp nhưng không giao hoán: thứ tự cũng là hợp đồng
+## 9. Associative Yet Non-Commutative: Order Is Also a Contract
 
-Một combiner gộp trạng thái là danh sách hoặc chuỗi có thể dùng phép nối:
+A combiner merging list or string states might use concatenation:
 
 ```text
 combine("AB", "CD") = "ABCD"
 ```
 
-Phép nối có tính kết hợp:
+Concatenation is associative:
 
 ```text
 ("AB" + "CD") + "EF" = "AB" + ("CD" + "EF")
 ```
 
-nhưng không có tính giao hoán:
+but not commutative:
 
 ```text
 "AB" + "CD" != "CD" + "AB"
 ```
 
-Nếu Gatherer dùng thứ tự nguồn để tạo chuỗi hoặc danh sách, combiner phải giữ đúng **thứ tự các đoạn**. Không được dùng một `HashSet` rồi kỳ vọng thứ tự encounter order sẽ được giữ nguyên. Nếu đầu vào đến từ nguồn không có encounter order hoặc đã gọi `unordered()`, phải xác định rõ kết quả nào được coi là hợp lệ.
+If a Gatherer relies on source order to build strings or lists, the combiner must preserve **the order of segments**. Never use a `HashSet` and expect encounter order to be preserved. If input comes from a source without encounter order or after calling `unordered()`, define clearly which outputs are considered valid.
 
-Với phép `windowFixed(3)`, ranh giới chia nguồn còn tạo vấn đề khác: một cửa sổ có thể bắt đầu ở phần trái và kết thúc ở phần phải. Combiner đúng phải **giữ hoặc tái tạo được các phần tử ở ranh giới**, không thể chỉ nối hai danh sách cửa sổ đã phát mà bỏ qua phần dư. Khi không có một thiết kế gộp ranh giới đúng, nên sử dụng `Gatherers.windowFixed(3)` thay vì tự viết Gatherer song song.
+With `windowFixed(3)`, source splitting creates another issue: a window may start in the left part and end in the right part. A correct combiner must **preserve or reconstruct elements at the boundary**, rather than merely concatenating two emitted window lists and dropping leftovers. Without a sound boundary-merging design, use `Gatherers.windowFixed(3)` instead of writing a custom parallel Gatherer.
 
 ```java
 import java.util.List;
@@ -442,98 +442,98 @@ List<List<Integer>> windows = Stream.of(1, 2, 3, 4, 5, 6, 7)
 System.out.println(windows); // [[1, 2, 3], [4, 5, 6], [7]]
 ```
 
-## 10. Những combiner sai thường gặp
+## 10. Common Broken Combiners
 
-| Thiết kế sai | Hậu quả | Cách sửa |
+| Flawed Design | Consequence | Fix |
 | --- | --- | --- |
-| `(left, right) -> left` | Bỏ toàn bộ trạng thái của nhánh phải. | Gộp đủ thông tin từ hai nhánh. |
-| `(left, right) -> right` | Bỏ toàn bộ nhánh trái. | Thiết kế phép kết hợp theo nghiệp vụ. |
-| `(left, right) -> new State()` | Mất dữ liệu đã tích lũy. | Trả trạng thái thực sự tổng hợp hai nhánh. |
-| Lấy **trung bình của hai trung bình** | Sai khi số mẫu hai nhánh khác nhau. | Gộp `sum` và `count`, rồi mới chia. |
-| Gộp min/max nhưng không xử lý trạng thái rỗng | Có thể phát sentinel `MAX_VALUE`/`MIN_VALUE` như dữ liệu thật. | Thiết kế identity rỗng và `Optional` khi chốt. |
-| Dùng chung một `State` từ initializer | Race, đếm trùng hoặc gộp chính đối tượng đó vào nó. | `State::new` tạo riêng cho từng phần. |
-| Combiner có side effect ngoài, ví dụ ghi vào `List` toàn cục | Tính đúng phụ thuộc lịch gọi, khó kiểm thử. | Chỉ gộp hai state của Gatherer. |
-| `left + right` trên phép toán không kết hợp, như phép trừ | Kết quả có thể phụ thuộc ranh giới phân hoạch. | Chọn biểu diễn trạng thái có phép kết hợp hợp lệ hoặc dùng sequential. |
-| Gộp trạng thái sau khi integrator đã phát prefix phụ thuộc phần trước | Đầu ra từng phần đã sai, không tự sửa được. | Thiết kế thuật toán hiệu chỉnh ranh giới/offset hoặc dùng `scan` tuần tự. |
-| Giữ tham chiếu `Downstream` để `push` sau khi callback trả về | Vi phạm vòng đời do API quy định. | Chỉ dùng downstream trong lời gọi integrator/finisher hợp lệ. |
+| `(left, right) -> left` | Drops the entire right branch's state. | Merge full information from both branches. |
+| `(left, right) -> right` | Drops the entire left branch. | Design the combine operation per business semantics. |
+| `(left, right) -> new State()` | Loses accumulated data. | Return a state truly combining both branches. |
+| Taking **average of two averages** | Wrong when sample counts differ across branches. | Merge `sum` and `count`, then divide at the end. |
+| Merging min/max without handling empty state | May emit `MAX_VALUE`/`MIN_VALUE` sentinels as real data. | Design empty identity and `Optional` at finalization. |
+| Sharing one `State` from initializer | Races, double-counting, or merging an object into itself. | `State::new` creates a separate instance per partition. |
+| Combiner has external side effects, e.g. writing to a global `List` | Correctness depends on call schedule, hard to test. | Only merge the Gatherer's two states. |
+| `left + right` on non-associative ops, like subtraction | Result can depend on partition boundaries. | Choose a state representation with a valid associative merge or use sequential. |
+| Merging state after integrator emitted history-dependent prefixes | Partial outputs are already wrong and unfixable. | Design boundary/offset adjustment algorithm or use sequential `scan`. |
+| Retaining a `Downstream` reference to `push` after callback returns | Violates API-defined lifecycle. | Only use downstream within valid integrator/finisher calls. |
 
-### Ví dụ lỗi trung bình của các trung bình
+### Example of the Average-of-Averages Bug
 
 ```text
-Nhóm A: [10]         -> mean = 10, count = 1
-Nhóm B: [20,30,40]   -> mean = 30, count = 3
+Group A: [10]         -> mean = 10, count = 1
+Group B: [20,30,40]   -> mean = 30, count = 3
 
-(10 + 30) / 2 = 20         // SAI
-(10 + 20 + 30 + 40) / 4 = 25 // ĐÚNG
+(10 + 30) / 2 = 20         // WRONG
+(10 + 20 + 30 + 40) / 4 = 25 // RIGHT
 ```
 
-Một `State` đúng cho average nên lưu `sum` và `count`, combiner cộng từng trường, rồi finisher tính `sum / count`. Nếu yêu cầu độ chính xác thập phân đặc biệt, chọn kiểu số và chính sách làm tròn phù hợp trước khi triển khai.
+A proper `State` for averages stores `sum` and `count`, the combiner sums each field, and the finisher computes `sum / count`. If special decimal precision is required, select the numeric type and rounding policy before implementing.
 
-## 11. State mutable không đồng nghĩa phải thread-safe
+## 11. Mutable State Does Not Mean It Must Be Thread-Safe
 
-Trong một Gatherer có combiner hợp lệ, framework có thể tạo nhiều state bằng initializer, xử lý **các phân vùng độc lập**, sau đó kết hợp. Vì vậy một `State` với các trường `long`/ `int` đơn giản hoặc một `ArrayList` nội bộ có thể được dùng an toàn **trong phạm vi trạng thái riêng** mà không nhất thiết phải dùng `AtomicLong` hay khóa.
+In a Gatherer with a valid combiner, the framework may create multiple states via initializer, process **independent partitions**, and then merge them. Thus a `State` with plain `long`/`int` fields or an internal `ArrayList` can be used safely **within its private state scope** without needing `AtomicLong` or locks.
 
-Tuy nhiên, có những điều **không được làm**:
+However, here is what you **must not do**:
 
-- Giữ một `State` dùng chung trong biến static để mọi integrator cùng cập nhật.
-- Trả lại state mutable trực tiếp trong kết quả mà mã khác có thể sửa khi stream chưa hoàn tất.
-- Capture tham chiếu `State` hoặc `Downstream` rồi giữ lại để dùng ở thread khác sau khi callback kết thúc.
-- Tạo task bất đồng bộ trong integrator và để task đó tiếp tục sửa state sau khi integrator trả về.
-- Đánh đồng `parallel()` với “mỗi phần tử có thread riêng”, hoặc dự đoán số lần framework gọi initializer/combiner.
+- Keep a shared `State` in a static field for all integrators to update together.
+- Return mutable state directly in results where other code could mutate it before the stream finishes.
+- Capture a `State` or `Downstream` reference and retain it for use on another thread after the callback ends.
+- Spawn an async task inside the integrator and let that task keep mutating state after the integrator returns.
+- Equate `parallel()` with "one thread per element", or predict how many times the framework calls initializer/combiner.
 
-**Không dùng một state đồng thời hóa toàn cục để né thiết kế combiner.** Cách đó có thể triệt tiêu lợi ích của song song, thay đổi ngữ nghĩa và làm mất tính độc lập của các phần tích lũy.
+**Do not use a globally synchronized state to dodge designing a combiner.** That can erase parallel gains, alter semantics, and destroy partition independence.
 
-## 12. Kỹ thuật kiểm thử không phụ thuộc lịch chia của runtime
+## 12. Testing Techniques Independent of Runtime Split Schedules
 
-Không có cơ sở để viết test rằng input có 1.000 phần tử thì runtime luôn gọi `combiner` đúng 3 lần hoặc luôn dùng 4 worker. Một phép kiểm thử tốt cần tập trung vào **bất biến kết quả**:
+There is no basis for writing a test asserting that on 1,000 inputs the runtime always calls `combiner` 3 times or always uses 4 workers. A good test suite focuses on **result invariants**:
 
-1. Chạy tuần tự trên cùng dữ liệu, lấy `Summary` mong đợi.
-2. Chạy song song nhiều lần và so sánh **giá trị**, không so sánh lịch callback hoặc thread.
-3. Thử trên nguồn mảng/`ArrayList` có thứ tự và nguồn không có encounter order nếu ngữ nghĩa hỗ trợ.
-4. Kiểm tra trạng thái rỗng, một phần tử, số âm, các giá trị biên và dữ liệu trùng.
-5. Thử trực tiếp luật identity/associativity trên những state **mới**, không tái sử dụng state đã bị combiner sửa.
-6. Thử downstream ngắn mạch như `limit` hoặc `findFirst` theo **hợp đồng đầu ra** thực sự của Gatherer; không suy ra mọi phần tử bắt buộc đã đi qua integrator.
-7. Nếu combiner có phép gộp không giao hoán, kiểm tra chính xác yêu cầu **giữ thứ tự**.
+1. Run sequentially on the same data to get the expected `Summary`.
+2. Run in parallel multiple times and compare **values**, not callback schedules or threads.
+3. Test on ordered array/`ArrayList` sources and unordered sources if semantics permit.
+4. Check empty state, single element, negative numbers, boundary values, and duplicates.
+5. Directly test identity/associativity laws on **fresh** states, never reusing states already mutated by a combiner.
+6. Test short-circuiting downstream like `limit` or `findFirst` per the Gatherer's actual **output contract**; do not infer every element must have passed through the integrator.
+7. If the combiner performs a non-commutative merge, explicitly test **order preservation**.
 
-Đối với bài thống kê của chúng ta, `Math.addExact` cố ý báo lỗi nếu vượt `long`. Điều đó tốt hơn trả một tổng sai không có cảnh báo, nhưng cũng có nghĩa những input mà tổng **trung gian** vượt phạm vi có thể không được xử lý thành công. Nếu muốn hỗ trợ mọi dữ liệu số nguyên trong một miền rộng hơn, thay `sum` bằng kiểu không tràn như `BigInteger` và thiết kế combiner tương ứng.
+In our statistics example, `Math.addExact` intentionally fails on `long` overflow. That is better than returning a silent wrong total, though it means inputs whose **intermediate** sum overflows cannot be processed successfully. To support any integer input over a wider range, replace `sum` with a non-overflowing type like `BigInteger` and design the combiner accordingly.
 
-**Tách test đúng đắn khỏi benchmark:** việc kết quả tuần tự/song song bằng nhau chỉ chứng minh một số trường hợp đầu vào đã thử, không chứng minh phiên bản song song nhanh hơn.
+**Separate correctness tests from benchmarks:** matching sequential/parallel outputs only verifies tested input cases; it does not prove the parallel version is faster.
 
-## 13. Có combiner rồi, vì sao vẫn có thể chậm?
+## 13. With a Combiner in Place, Why Can It Still Be Slow?
 
-Khả năng mở rộng phụ thuộc nhiều yếu tố:
+Scalability depends on several factors:
 
-| Yếu tố | Hệ quả có thể xảy ra |
+| Factor | Possible Consequence |
 | --- | --- |
-| Nguồn nhỏ, integrator rẻ | Chi phí chia/gộp và tạo state lớn hơn lợi ích. |
-| Spliterator khó chia hoặc `trySplit()` không hữu ích | Không tận dụng được nhiều worker. |
-| Combiner phải nối/copy container lớn | Chi phí gộp tăng theo lượng dữ liệu, có thể làm song song chậm hơn. |
-| Finisher tạo output lớn | Chi phí sau bước gộp có thể là nút thắt tuần tự. |
-| Integrator giữ nhiều trạng thái | Áp lực bộ nhớ và cache tăng theo số partition. |
-| Nguồn có encounter order và thuật toán phụ thuộc thứ tự | Cần duy trì thứ tự ranh giới, chi phí phối hợp tăng. |
-| Mapper hoặc tích lũy có blocking I/O | Worker có thể bị giữ khi chờ I/O; parallel stream không phải bộ điều phối kết nối. |
-| Nhiều request song song dùng chung tài nguyên | Tranh chấp CPU, bộ nhớ và pool làm latency biến động. |
+| Small source, cheap integrator | Split/merge and state-creation overhead exceeds gains. |
+| Hard-to-split Spliterator or ineffective `trySplit()` | Fails to utilize multiple workers. |
+| Combiner must concatenate/copy large containers | Merge cost grows with data size, potentially making parallel slower. |
+| Finisher builds a huge output | Post-merge work becomes a sequential bottleneck. |
+| Integrator holds heavy state | Memory and cache pressure grows with partition count. |
+| Ordered source and order-dependent algorithm | Must maintain boundary order, raising coordination cost. |
+| Mapper or accumulation performs blocking I/O | Workers block waiting for I/O; parallel stream is not a connection scheduler. |
+| Multiple concurrent requests sharing resources | CPU, memory, and pool contention causes latency jitter. |
 
-Chẳng hạn, Gatherer thống kê count/sum/min/max chỉ gộp vài trường nên **chi phí combiner nhỏ**. Nhưng nếu bài toán thật là ghi file, nối một triệu chuỗi hoặc duy trì mọi phần tử để xử lý hậu kỳ, chi phí gộp có thể hoàn toàn khác.
+For example, the count/sum/min/max statistics Gatherer merges only a few fields, so **combiner cost is small**. But if the real task writes files, concatenates a million strings, or retains every element for post-processing, merge costs can be completely different.
 
-Khi đo, nên so sánh **stream tuần tự**, **stream song song với Gatherer**, và một phương án **collector/reduction chuẩn** cho cùng yêu cầu. Dùng JMH với warm-up, nhiều lần đo/fork, input đã chuẩn bị ngoài đoạn đo; quan sát throughput, time/op và cấp phát. Không đưa ra speedup giả định khi chưa có số liệu thật.
+When benchmarking, compare **sequential stream**, **parallel stream with Gatherer**, and a **standard collector/reduction** approach for the same requirement. Use JMH with warm-up, multiple iterations/forks, and pre-built inputs outside the measured section; observe throughput, time/op, and allocations. Never claim an assumed speedup without real measurements.
 
-## 14. Gatherer có combiner hay Collector thông thường?
+## 14. Gatherer with Combiner or Regular Collector?
 
-Không phải bài toán tổng hợp nào cũng nên viết Gatherer mới:
+Not every aggregation problem warrants writing a new Gatherer:
 
-| Nhu cầu | API thường phù hợp | Vì sao |
+| Need | Typically Suitable API | Why |
 | --- | --- | --- |
-| Tính tổng, count, min, max cho stream số | `IntStream.summaryStatistics()` | Có sẵn, dễ đọc, không tự quản lý state/combiner. |
-| Tổng hợp thành một giá trị từ `Stream<T>` | `reduce` hoặc `collect` | Terminal reduction thể hiện đúng mục tiêu đầu ra. |
-| Thu phần tử vào `Map<K,V>` hoặc nhóm | `toMap`, `groupingBy`, `groupingByConcurrent` | Collector chuẩn đã xử lý tích lũy và kết hợp. |
-| Phép biến đổi một-một không có trạng thái | `map` | Đơn giản hơn `Gatherer.of`. |
-| Biến đổi một-nhiều đơn giản | `flatMap` hoặc `mapMulti` | Không cần quản lý combiner cho một thuật toán stateful. |
-| Prefix scan theo thứ tự | `Gatherers.scan` | Phụ thuộc lịch sử, không thể gộp bằng sum state cuối thông thường. |
-| Chia cửa sổ cố định | `Gatherers.windowFixed` | Xử lý ranh giới cửa sổ theo hợp đồng. |
-| Phép biến đổi mới có trạng thái và có luật gộp | **Gatherer tự định nghĩa với combiner** | Điều khiển đầu ra và khả năng xử lý song song. |
+| Compute sum, count, min, max for numeric streams | `IntStream.summaryStatistics()` | Built-in, readable, no manual state/combiner management. |
+| Aggregate a `Stream<T>` into one value | `reduce` or `collect` | Terminal reduction expresses the single-output goal directly. |
+| Collect elements into `Map<K,V>` or groups | `toMap`, `groupingBy`, `groupingByConcurrent` | Standard collectors already handle accumulation and combining. |
+| Stateless one-to-one transformation | `map` | Simpler than `Gatherer.of`. |
+| Simple one-to-many transformation | `flatMap` or `mapMulti` | No need to manage a combiner for a stateful algorithm. |
+| Ordered prefix scan | `Gatherers.scan` | History-dependent, cannot be merged via simple final-state sum. |
+| Fixed windowing | `Gatherers.windowFixed` | Handles window boundaries per contract. |
+| Novel stateful transformation with merge rules | **Custom Gatherer with combiner** | Controls intermediate output and parallelizability. |
 
-Ở ví dụ thống kê, Gatherer là một lựa chọn **để học cơ chế mở rộng Stream**; phương án production thông thường có thể chỉ cần:
+In the statistics example, Gatherer is a way **to learn the Stream extension mechanism**; typical production code may only need:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -545,39 +545,39 @@ IntSummaryStatistics summary =
 System.out.println(summary.getSum()); // 500500
 ```
 
-Sử dụng một Gatherer custom khi các phép toán có sẵn không biểu đạt được ngữ nghĩa, hoặc khi thiết kế ấy có lợi ích rõ ràng về khả năng kết hợp với các bước `gather` khác trong pipeline.
+Use a custom Gatherer when built-in operations cannot express the semantics, or when that design clearly improves composability with other `gather` steps in a pipeline.
 
-## 15. Bài tập thực hành
+## 15. Practice Exercises
 
-**Bài 1 — Tự chứng minh combiner.** Viết một `State` có `count` và `sum`, thử gộp trạng thái từ `[1,2]`, `[3]`, `[4,5]` theo hai cách ngoặc hóa. Chứng minh hai cách cho `(count=5,sum=15)` và state rỗng không làm thay đổi kết quả.
+**Exercise 1 — Prove the combiner yourself.** Write a `State` with `count` and `sum`, and test merging states from `[1,2]`, `[3]`, `[4,5]` under both parenthesizations. Show both yield `(count=5,sum=15)` and an empty state leaves the result unchanged.
 
-**Bài 2 — Kiểm tra dữ liệu biên.** Chạy `summaryGatherer()` với stream rỗng, một phần tử, `Integer.MIN_VALUE` và `Integer.MAX_VALUE`. Vì sao phải dùng `OptionalInt` cho min/max của nhóm rỗng thay vì công bố `Integer.MAX_VALUE` như một dữ liệu đo thật?
+**Exercise 2 — Test boundary data.** Run `summaryGatherer()` with an empty stream, one element, `Integer.MIN_VALUE`, and `Integer.MAX_VALUE`. Why must `OptionalInt` be used for min/max of an empty group instead of exposing `Integer.MAX_VALUE` as a real measurement?
 
-**Bài 3 — Chỉ số trung bình.** Mở rộng `Summary` thêm average. Chỉ tính `sum/count` trong finisher sau khi combiner đã gộp sum và count. Giải thích tại sao trung bình của hai trung bình không đúng nếu hai partition có số mẫu khác nhau.
+**Exercise 3 — Average metric.** Extend `Summary` with an average. Compute `sum/count` only inside the finisher after the combiner has merged sum and count. Explain why the average of two averages is wrong when two partitions have different sample counts.
 
-**Bài 4 — Phân tích thiết kế sai.** Một Gatherer dùng `() -> sharedState` cho initializer và `(left,right) -> left` cho combiner. Chỉ ra ít nhất hai lỗi độc lập, giải thích vì sao đổi `sharedState` thành một đối tượng dùng `AtomicLong` không tự sửa đúng mọi lỗi.
+**Exercise 4 — Analyze a flawed design.** A Gatherer uses `() -> sharedState` for initializer and `(left,right) -> left` for combiner. Point out at least two independent bugs, and explain why changing `sharedState` to an object using `AtomicLong` does not fix all of them.
 
-**Bài 5 — Prefix scan.** Với `[1,2,3,4]`, chia làm hai phần và tính prefix cục bộ. Trình bày offset mà phần thứ hai cần cộng thêm để cho ra `[1,3,6,10]`. Vì sao một combiner gộp tổng cuối mà không đụng tới các giá trị đã phát không đủ?
+**Exercise 5 — Prefix scan.** For `[1,2,3,4]`, split into two parts and compute local prefixes. Show the offset the second part needs to add to produce `[1,3,6,10]`. Why is a combiner that merges final sums without touching already-emitted values insufficient?
 
-**Bài 6 — Thứ tự.** Tưởng tượng một Gatherer ghép các tên bằng dấu phẩy trong thứ tự nguồn. Combiner nào có tính kết hợp, và tại sao `combine(right,left)` có thể làm sai kết quả? Điều gì thay đổi khi nguồn không có encounter order?
+**Exercise 6 — Order.** Imagine a Gatherer joining names with commas in source order. Which combiner is associative, and why can `combine(right,left)` break the result? What changes when the source has no encounter order?
 
-**Bài 7 — Thiết kế benchmark.** Trên JDK 24+, so sánh `summaryGatherer()`, `IntStream.summaryStatistics()` và vòng lặp `for` cho nhiều kích thước dữ liệu, bảo đảm đầu ra tương đương. Ghi số liệu đo thực tế và giải thích overhead của state, combiner, box/unbox, chia nguồn trước khi đưa ra kết luận.
+**Exercise 7 — Design a benchmark.** On JDK 24+, compare `summaryGatherer()`, `IntStream.summaryStatistics()`, and a `for` loop across multiple data sizes, verifying equivalent outputs. Record real measurements and explain the overhead of state, combiner, boxing/unboxing, and source splitting before drawing conclusions.
 
-## 16. Checklist trước khi chọn Gatherer song song
+## 16. Checklist Before Choosing a Parallel Gatherer
 
-- [ ] Đã xác nhận JDK hỗ trợ `Stream.gather` và `Gatherer.of` (Java 24+ cho API chuẩn).
-- [ ] Bài toán cần phép biến đổi Gatherer thay vì chỉ `map`, `collect` hoặc `reduce`.
-- [ ] Initializer tạo **state mới** cho từng phần tích lũy.
-- [ ] Integrator cập nhật đúng state được truyền vào, không sửa nguồn hoặc trạng thái toàn cục.
-- [ ] Combiner giữ **đầy đủ thông tin** từ hai state, có identity và tính kết hợp theo ngữ nghĩa.
-- [ ] Đã xét thứ tự encounter order nếu đầu ra không giao hoán.
-- [ ] Không phát kết quả bộ phận quá sớm khi còn cần hiệu chỉnh bởi các phần trước.
-- [ ] Finisher tạo đúng output, không để lộ state mutable.
-- [ ] Không giữ state hoặc `Downstream` để sử dụng ngoài vòng đời lời gọi callback.
-- [ ] Kiểm tra kết quả trên dữ liệu rỗng, dữ liệu biên và nhiều cách chia.
-- [ ] So sánh tuần tự/song song về **giá trị**, không phụ thuộc số thread hoặc số lần combiner chạy.
-- [ ] Đã đánh giá giới hạn số học, bộ nhớ, Spliterator, hiệu năng và điều kiện dừng.
+- [ ] Confirmed JDK supports `Stream.gather` and `Gatherer.of` (Java 24+ for standard API).
+- [ ] Problem genuinely needs a Gatherer transformation rather than just `map`, `collect`, or `reduce`.
+- [ ] Initializer creates a **new state** for each accumulation partition.
+- [ ] Integrator updates only the passed-in state without mutating the source or global state.
+- [ ] Combiner preserves **complete information** from both states, with identity and semantic associativity.
+- [ ] Encounter order has been accounted for if output is non-commutative.
+- [ ] Does not emit partial outputs too early if later adjustments from earlier parts are needed.
+- [ ] Finisher creates proper output without leaking mutable state.
+- [ ] Does not retain state or `Downstream` outside callback invocation lifetime.
+- [ ] Tested on empty data, boundary values, and multiple split layouts.
+- [ ] Compared sequential/parallel by **values**, independent of thread count or combiner call count.
+- [ ] Evaluated arithmetic limits, memory, Spliterator, performance, and termination conditions.
 
-**Ghi nhớ:** Một Gatherer có combiner **không** đơn giản là Gatherer tuần tự được thêm một lambda ghép state. Muốn song song hóa đúng, initializer phải cung cấp trạng thái độc lập, integrator không làm lộ hoặc dùng chung trạng thái, combiner phải bảo toàn **ngữ nghĩa của mọi cách chia/gộp**, và finisher chỉ phát đầu ra khi dữ liệu cần thiết đã hoàn chỉnh. Nếu đầu ra phụ thuộc lịch sử hoặc ranh giới phân vùng mà chưa có thuật toán hiệu chỉnh đúng, hãy chọn Gatherer tuần tự hoặc thiết kế lại phép biến đổi thay vì cố ép `parallel()`.
+**Remember:** A Gatherer with a combiner is **not** simply a sequential Gatherer with a state-merging lambda tacked on. To parallelize properly, the initializer must supply independent states, the integrator must not leak or share state, the combiner must preserve **semantics across all split/merge trees**, and the finisher must emit output only when the needed data is complete. If output depends on history or partition boundaries without a valid correction algorithm, choose a sequential Gatherer or redesign the transformation instead of forcing `parallel()`.
 
-**Tài liệu API chính thức:** [Gatherer (Java 24)](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html), [Gatherer.Integrator](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.html), [Gatherers](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html) và [Stream.gather](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Stream.html#gather(java.util.stream.Gatherer)).
+**Official API Docs:** [Gatherer (Java 24)](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html), [Gatherer.Integrator](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.Integrator.html), [Gatherers](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html), and [Stream.gather](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Stream.html#gather(java.util.stream.Gatherer)).

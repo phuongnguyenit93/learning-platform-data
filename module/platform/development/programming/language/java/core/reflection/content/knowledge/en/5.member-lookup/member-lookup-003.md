@@ -1,20 +1,20 @@
-# Java Reflection: tra cứu thành viên bằng `getDeclaredField()`, `getDeclaredMethod()` và `getDeclaredConstructor()`
+# Java Reflection: Member Lookup with `getDeclaredField()`, `getDeclaredMethod()`, and `getDeclaredConstructor()`
 
-Khi đã có một đối tượng `Class<?>`, Reflection cho phép tra cứu chính xác **field**, **method** và **constructor** được **khai báo trực tiếp** trong kiểu đó. Ba phương thức `getDeclaredField()`, `getDeclaredMethod()` và `getDeclaredConstructor()` là công cụ chính cho công việc này. Chúng có thể tìm thấy cả thành viên `private`, `protected`, package-private và `public`, nhưng **việc tìm được thành viên không tự động cho phép đọc, gọi hoặc khởi tạo qua thành viên ấy**.
+Once you have a `Class<?>` object, Reflection lets you look up the exact **field**, **method**, and **constructor** **declared directly** in that type. The three methods `getDeclaredField()`, `getDeclaredMethod()`, and `getDeclaredConstructor()` are the primary tools for this job. They can find `private`, `protected`, package-private, and `public` members alike, but **finding a member does not automatically allow reading, invoking, or instantiating through that member**.
 
-Bài học tập trung vào tra cứu thành viên theo tên/chữ ký, khác biệt giữa thành viên khai báo và thành viên kế thừa, cách xử lý chữ ký phương thức chính xác, kết quả trả về, ngoại lệ, và quyền truy cập khi sử dụng đối tượng Reflection đã tìm được.
+This lesson focuses on looking up members by name/signature, the difference between declared members and inherited members, how to handle exact method signatures, return values, exceptions, and access permissions when using the found Reflection objects.
 
-## 1. Từ `Class<?>` tới ba loại thành viên
+## 1. From `Class<?>` to the Three Member Kinds
 
-Ba API nằm trên `java.lang.Class`:
+The three APIs reside on `java.lang.Class`:
 
-| API | Đối tượng trả về | Điều kiện tra cứu | Không bao gồm |
+| API | Returned Object | Lookup Condition | Excludes |
 | --- | --- | --- | --- |
-| `getDeclaredField(String name)` | `Field` | Field có tên `name`, khai báo trực tiếp trong lớp/interface đang xét | Field chỉ được kế thừa từ superclass |
-| `getDeclaredMethod(String name, Class<?>... parameterTypes)` | `Method` | Method khai báo trực tiếp, đúng tên và đúng **dãy kiểu tham số** | Method chỉ được kế thừa; phương thức cùng tên nhưng sai kiểu/số lượng tham số |
-| `getDeclaredConstructor(Class<?>... parameterTypes)` | `Constructor<T>` | Constructor được khai báo bởi lớp, với dãy kiểu tham số yêu cầu | Constructor của lớp cha; constructor có chữ ký khác |
+| `getDeclaredField(String name)` | `Field` | Field named `name`, declared directly in the class/interface under inspection | Fields only inherited from a superclass |
+| `getDeclaredMethod(String name, Class<?>... parameterTypes)` | `Method` | Directly declared method, matching name and exact **parameter type sequence** | Methods only inherited; methods with the same name but different parameter types/count |
+| `getDeclaredConstructor(Class<?>... parameterTypes)` | `Constructor<T>` | Constructor declared by the class, with the requested parameter type sequence | Superclass constructors; constructors with a different signature |
 
-Cú pháp điển hình:
+Typical syntax:
 
 ~~~java
 Class<?> type = Example.class;
@@ -24,73 +24,73 @@ Method method = type.getDeclaredMethod("convert", String.class, int.class);
 Constructor<?> constructor = type.getDeclaredConstructor(String.class);
 ~~~
 
-Đây là **đoạn mã minh họa API**; nó chỉ hoạt động khi lớp `Example` thực sự có các khai báo tương ứng. Nếu không tìm thấy thành viên, phương thức sẽ ném checked exception (`NoSuchFieldException` hoặc `NoSuchMethodException`).
+This is an **API illustrative snippet**; it only works when the `Example` class actually has the corresponding declarations. If the member is not found, the method throws a checked exception (`NoSuchFieldException` or `NoSuchMethodException`).
 
-Cụm từ *declared* có hai ý nghĩa cần nhớ:
+The word *declared* carries two meanings to remember:
 
-1. **Không lọc theo mức truy cập:** thành viên `private` vẫn có thể được tìm thấy dưới dạng `Field`, `Method` hoặc `Constructor`.
-2. **Chỉ xét khai báo trực tiếp:** field và method nằm ở lớp cha không xuất hiện khi tra cứu `getDeclaredField`/`getDeclaredMethod` trên lớp con. Constructor vốn không được kế thừa.
+1. **Does not filter by access level:** `private` members can still be found as `Field`, `Method`, or `Constructor`.
+2. **Inspects only direct declarations:** fields and methods located in a superclass do not appear when calling `getDeclaredField`/`getDeclaredMethod` on a subclass. Constructors are never inherited anyway.
 
-Các phương thức có dạng số nhiều là `getDeclaredFields()`, `getDeclaredMethods()`, `getDeclaredConstructors()`. Chúng dùng để khám phá toàn bộ thành viên được khai báo; khi đã biết tên/chữ ký thì nên dùng API số ít để tra cứu đúng mục tiêu. Thứ tự phần tử trong mảng kết quả `getDeclared*()` số nhiều không được đảm bảo.
+The plural forms are `getDeclaredFields()`, `getDeclaredMethods()`, `getDeclaredConstructors()`. They are used to discover all declared members; when the name/signature is already known, use the singular APIs to target the exact member. The order of elements in the resulting `getDeclared*()` plural arrays is not guaranteed.
 
-## 2. `getDeclaredField(String name)`: tìm field theo tên
+## 2. `getDeclaredField(String name)`: Finding a Field by Name
 
-`getDeclaredField("code")` tìm trường tên `code` trực tiếp trên đối tượng `Class` đang xét. Nó trả về `java.lang.reflect.Field`, từ đó có thể đọc metadata:
+`getDeclaredField("code")` looks up the field named `code` directly on the `Class` object under inspection. It returns `java.lang.reflect.Field`, from which metadata can be read:
 
-- `field.getName()`: tên field.
-- `field.getType()`: kiểu runtime của field dưới dạng `Class<?>`.
-- `field.getGenericType()`: metadata của kiểu generic khi có.
-- `field.getDeclaringClass()`: lớp/interface thực sự khai báo field.
-- `field.getModifiers()`: cờ truy cập và các modifier; sử dụng `Modifier.isPrivate(...)`, `Modifier.isStatic(...)` khi cần.
-- `field.get(target)` hoặc các phương thức như `field.getInt(target)`: đọc giá trị **sau khi thỏa quy tắc truy cập**.
+- `field.getName()`: field name.
+- `field.getType()`: runtime type of the field as a `Class<?>`.
+- `field.getGenericType()`: metadata of the generic type when available.
+- `field.getDeclaringClass()`: class/interface that actually declares the field.
+- `field.getModifiers()`: access flags and modifiers; use `Modifier.isPrivate(...)`, `Modifier.isStatic(...)` when needed.
+- `field.get(target)` or methods like `field.getInt(target)`: read the value **after satisfying access rules**.
 
-Field không có danh sách tham số hay overload theo chữ ký. Một lớp Java không thể khai báo hai field trùng tên trong cùng một khai báo lớp hợp lệ; nhưng lớp con có thể **che khuất** field cùng tên của lớp cha. Khi đó `Child.class.getDeclaredField("code")` tìm field của `Child`, còn `Parent.class.getDeclaredField("code")` tìm field của `Parent` nếu mỗi lớp tự khai báo field ấy.
+Fields do not have parameter lists or overloads by signature. A Java class cannot declare two fields with the same name in the same valid class declaration; however, a subclass can **hide** a field of the same name in the superclass. In that case `Child.class.getDeclaredField("code")` finds `Child`'s field, while `Parent.class.getDeclaredField("code")` finds `Parent`'s field if each class declares that field itself.
 
-**Sai lầm thường gặp:** cho rằng `Child.class.getDeclaredField("inherited")` tìm được field của `Parent`. Đây là yêu cầu ngoài phạm vi *declared*. Nếu field là `public`, `Child.class.getField("inherited")` có thể tìm thấy field kế thừa; nếu không phải public, phải duyệt `getSuperclass()` theo đúng yêu cầu nghiệp vụ rồi tra cứu trên lớp khai báo.
+**Common mistake:** assuming `Child.class.getDeclaredField("inherited")` finds a field of `Parent`. That request is outside the *declared* scope. If the field is `public`, `Child.class.getField("inherited")` can find the inherited field; if it is not public, you must traverse `getSuperclass()` according to your business requirements and then look up on the declaring class.
 
-## 3. `getDeclaredMethod(String name, Class<?>... parameterTypes)`: tên + chữ ký tham số
+## 3. `getDeclaredMethod(String name, Class<?>... parameterTypes)`: Name + Parameter Signature
 
-Để tìm một method cụ thể, truyền tên phương thức và các `Class<?>` biểu diễn **kiểu tham số khai báo theo đúng thứ tự**:
+To find a specific method, pass the method name and the `Class<?>` objects representing the **declared parameter types in exact order**:
 
 ~~~java
 type.getDeclaredMethod("save", String.class, int.class);
-type.getDeclaredMethod("refresh"); // Method không có tham số
+type.getDeclaredMethod("refresh"); // Method with no parameters
 ~~~
 
-Những quy tắc quan trọng:
+Important rules:
 
-- Phân biệt **số lượng và thứ tự tham số**: `save(String,int)` khác `save(int,String)`.
-- Phân biệt **primitive và wrapper**: `int.class` khác `Integer.class`.
-- Phân biệt **mảng và phần tử**: `String[].class` khác `String.class`.
-- Tham số `String... values` ở mã nguồn được biểu diễn là `String[]` ở chữ ký Reflection; khi tra cứu phải dùng `String[].class`, không truyền nhiều đối số `String.class`.
-- Không áp dụng tự động *autoboxing*, *widening* (`int` sang `long`), hay chuyển kiểu khi **tra cứu**. Những quy tắc này của lời gọi Java thông thường không dùng để dò ra method ở đây.
-- Với tham số generic như `List<String>`, chữ ký runtime chịu *type erasure*: tra cứu bằng `List.class`. Dùng `getGenericParameterTypes()` trên `Method` nếu cần phân tích metadata generic.
-- **Không truyền kiểu trả về** vào `getDeclaredMethod`. API nhận tên và kiểu tham số; sau khi lấy `Method`, đọc `method.getReturnType()` hoặc `getGenericReturnType()` để kiểm tra kiểu kết quả. Trong bytecode có thể tồn tại bridge/synthetic method; không nên suy đoán danh sách `getDeclaredMethods()` chỉ gồm các method tự viết trong mã nguồn.
+- Distinguish **parameter count and order**: `save(String,int)` differs from `save(int,String)`.
+- Distinguish **primitives and wrappers**: `int.class` differs from `Integer.class`.
+- Distinguish **arrays and elements**: `String[].class` differs from `String.class`.
+- A `String... values` parameter in source code is represented as `String[]` in the Reflection signature; during lookup you must use `String[].class`, not pass multiple `String.class` arguments.
+- Automatic *autoboxing*, *widening* (`int` to `long`), or type conversion is not applied during **lookup**. Those rules of normal Java calls are not used to search for methods here.
+- For generic parameters such as `List<String>`, the runtime signature undergoes *type erasure*: look up with `List.class`. Use `getGenericParameterTypes()` on `Method` if you need to analyze generic metadata.
+- **Do not pass the return type** to `getDeclaredMethod`. The API accepts the name and parameter types; after obtaining `Method`, read `method.getReturnType()` or `getGenericReturnType()` to inspect the result type. Bytecode may contain bridge/synthetic methods; you should not assume the `getDeclaredMethods()` list contains only methods hand-written in source code.
 
-Nếu hai overload là `parse(String)` và `parse(int)`, tên giống nhau nhưng đối số `String.class` và `int.class` giúp chọn đúng method. Method `static` vẫn tra cứu bằng cách tương tự, rồi có thể kiểm tra `Modifier.isStatic(method.getModifiers())`.
+If two overloads are `parse(String)` and `parse(int)`, the name is the same, but arguments `String.class` and `int.class` select the right method. `static` methods are looked up the same way, and you can then check `Modifier.isStatic(method.getModifiers())`.
 
-## 4. `getDeclaredConstructor(Class<?>... parameterTypes)`: tra cứu constructor
+## 4. `getDeclaredConstructor(Class<?>... parameterTypes)`: Constructor Lookup
 
-Constructor không có tên method riêng trong lời gọi này: chỉ cần truyền danh sách kiểu tham số của constructor.
+Constructors do not have a separate method name in this call: only the constructor's parameter type list needs to be passed.
 
 ~~~java
 Constructor<?> noArg = type.getDeclaredConstructor();
 Constructor<?> withName = type.getDeclaredConstructor(String.class);
 ~~~
 
-`getDeclaredConstructor()` không tham số yêu cầu **constructor thật sự không tham số**; nó không có nghĩa là "lấy constructor bất kỳ" hay "tạo constructor mặc định". Nếu lớp chỉ khai báo `Example(String)`, tra cứu `getDeclaredConstructor()` sẽ ném `NoSuchMethodException`. Nếu Java tự tạo constructor mặc định, constructor đó có thể tìm thấy khi chữ ký khớp.
+`getDeclaredConstructor()` with no arguments requires a **genuinely parameterless constructor**; it does not mean "get any constructor" or "generate a default constructor". If the class only declares `Example(String)`, calling `getDeclaredConstructor()` will throw `NoSuchMethodException`. If Java automatically generates a default constructor, that constructor can be found when the signature matches.
 
-Khác với method/field, constructor **không được kế thừa**. Vì vậy `getDeclaredConstructor` và `getConstructor` đều chỉ áp dụng cho constructor của chính lớp đang được xét; sự khác biệt lớn là `getConstructor` chỉ tìm constructor `public`, còn `getDeclaredConstructor` có thể tìm constructor không `public`.
+Unlike methods/fields, constructors **are not inherited**. Therefore both `getDeclaredConstructor` and `getConstructor` apply only to constructors of the class under inspection itself; the major difference is that `getConstructor` finds only `public` constructors, whereas `getDeclaredConstructor` can find non-`public` constructors.
 
-Một số trường hợp cần biết:
+Some cases to know:
 
-- Lớp `abstract` vẫn có constructor để lớp con gọi qua `super(...)`, nhưng không thể khởi tạo trực tiếp bằng `Constructor#newInstance`.
-- Lớp thành viên **không `static`** có thể có tham số ẩn biểu diễn đối tượng lớp bao ngoài. Ví dụ constructor mã nguồn `Outer.Inner(int)` thường xuất hiện trong Reflection dưới dạng tham số `Outer.class, int.class`. Khi không thấy chữ ký dự đoán, xem `getParameterTypes()` của các constructor được khai báo.
-- Enum và một số lớp do compiler sinh có chi tiết constructor đặc biệt; không giả định mọi chữ ký runtime giống hệt mã nguồn.
+- An `abstract` class still has constructors for subclasses to call via `super(...)`, but cannot be instantiated directly via `Constructor#newInstance`.
+- A **non-`static`** member class may have a hidden parameter representing the enclosing class instance. For example, source constructor `Outer.Inner(int)` often appears in Reflection with parameters `Outer.class, int.class`. When an expected signature is not found, inspect `getParameterTypes()` of the declared constructors.
+- Enums and some compiler-generated classes have special constructor details; do not assume every runtime signature matches source code identically.
 
-## 5. Ví dụ đầy đủ: declared khác inherited thế nào?
+## 5. Complete Example: How Does Declared Differ from Inherited?
 
-Tạo tệp **`DeclaredLookupDemo.java`**. Trong cùng tệp này, chỉ `DeclaredLookupDemo` là lớp `public`; hai lớp hỗ trợ dùng tên riêng để tránh phụ thuộc cấu trúc package:
+Create the file **`DeclaredLookupDemo.java`**. Within this same file, only `DeclaredLookupDemo` is a `public` class; the two helper classes use distinct names to avoid package structure dependencies:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -163,7 +163,7 @@ public class DeclaredLookupDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac DeclaredLookupDemo.java
@@ -183,25 +183,25 @@ Declared inheritedMethod: not found
 Public inherited method: LookupParent
 ~~~
 
-Vì sao kết quả như trên?
+Why are the results as shown above?
 
-1. `code`, hai overload `convert` và constructor `LookupChild(String)` đều **được khai báo trực tiếp** trong `LookupChild`, nên ba API `getDeclared...` tìm được chúng bất kể `private` hay `public`.
-2. `inheritedField` và `inheritedMethod` **chỉ khai báo tại `LookupParent`**; tìm bằng `getDeclared...` trên `LookupChild` thất bại.
-3. Cả hai thành viên kế thừa là `public`, nên `getField`/`getMethod` trên `LookupChild` trả về thành viên có `getDeclaringClass() == LookupParent.class`.
+1. `code`, the two `convert` overloads, and the constructor `LookupChild(String)` are all **declared directly** in `LookupChild`, so the three `getDeclared...` APIs find them whether `private` or `public`.
+2. `inheritedField` and `inheritedMethod` are **declared only in `LookupParent`**; looking them up with `getDeclared...` on `LookupChild` fails.
+3. Both inherited members are `public`, so `getField`/`getMethod` on `LookupChild` returns the member with `getDeclaringClass() == LookupParent.class`.
 
-Chú ý: ví dụ này **chỉ tra cứu và in metadata**, chưa đọc trực tiếp field `code`, chưa gọi `convert`, chưa tạo `LookupChild` từ private constructor. Đây là ranh giới quan trọng giữa *lookup* và *access*.
+Note: this example **only looks up and prints metadata**; it does not read field `code` directly, does not invoke `convert`, and does not create `LookupChild` from the private constructor. This is the important boundary between *lookup* and *access*.
 
-## 6. Tra cứu không đồng nghĩa quyền truy cập: `trySetAccessible()`
+## 6. Lookup Does Not Mean Access Permission: `trySetAccessible()`
 
-Một `Field`, `Method` hoặc `Constructor` được tìm bằng `getDeclared...` vẫn chịu quy tắc truy cập khi dùng `Field#get`/`set`, `Method#invoke` hoặc `Constructor#newInstance`. Với thành viên không thể truy cập từ mã gọi, một số thao tác có thể ném `IllegalAccessException` nếu không được cấp quyền thích hợp.
+A `Field`, `Method`, or `Constructor` found via `getDeclared...` is still subject to access rules when using `Field#get`/`set`, `Method#invoke`, or `Constructor#newInstance`. For members not accessible from the calling code, some operations may throw `IllegalAccessException` if appropriate permission has not been granted.
 
-Lớp cơ sở `AccessibleObject` hỗ trợ:
+The base class `AccessibleObject` provides:
 
-- `canAccess(target)`: kiểm tra quyền truy cập hiện tại đối với thành viên; truyền đối tượng đích cho thành viên instance, `null` cho thành viên static và constructor.
-- `trySetAccessible()`: thử bật quyền bỏ qua kiểm tra truy cập Java và trả `true` nếu thành công, `false` nếu không thể cấp. Việc thử này **không bảo đảm thành công**.
-- `setAccessible(true)`: yêu cầu bật quyền bỏ qua kiểm tra; có thể ném `InaccessibleObjectException` trong trường hợp Java modules không cho phép.
+- `canAccess(target)`: checks current access permission for the member; pass the target object for instance members, `null` for static members and constructors.
+- `trySetAccessible()`: attempts to enable bypassing Java access checks and returns `true` if successful, `false` if it cannot be granted. This attempt is **not guaranteed to succeed**.
+- `setAccessible(true)`: requests enabling bypassing checks; may throw `InaccessibleObjectException` in cases where Java modules do not permit it.
 
-Ví dụ sau chạy dưới dạng ứng dụng không khai báo `module-info.java` (unnamed module), nên mã ứng dụng trong ví dụ có thể truy cập sâu vào chính các lớp của nó. Tạo tệp **`DeclaredAccessDemo.java`**:
+The following example runs as an application without a `module-info.java` declaration (unnamed module), so the application code in the example can deep-access its own classes. Create the file **`DeclaredAccessDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -247,7 +247,7 @@ javac DeclaredAccessDemo.java
 java DeclaredAccessDemo
 ~~~
 
-**Stdout trong điều kiện chạy được nêu:**
+**Stdout under the stated running conditions:**
 
 ~~~text
 Constructor access: true
@@ -257,21 +257,21 @@ Method access: true
 Method result: data!
 ~~~
 
-**Giải thích luồng thực thi:**
+**Execution flow explanation:**
 
-1. Tìm private constructor theo đúng `String.class` rồi gọi `trySetAccessible()` trước khi `newInstance("data")`.
-2. Tìm private field `value`, thử cấp quyền, sau đó đọc bằng `field.get(box)`.
-3. Tìm private method `reveal(String)`, thử cấp quyền, rồi gọi `method.invoke(box, "!")`. Kết quả trả về kiểu `Object`; ở đây chuỗi kết quả là `data!`.
+1. Find the private constructor matching `String.class` and call `trySetAccessible()` before `newInstance("data")`.
+2. Find the private field `value`, attempt to grant access, then read using `field.get(box)`.
+3. Find the private method `reveal(String)`, attempt to grant access, then call `method.invoke(box, "!")`. The return type is `Object`; here the resulting string is `data!`.
 
-Trong chương trình thực tế, phải **kiểm tra** kết quả `trySetAccessible()` trước khi thao tác. Nếu trả `false`, không được giả định thao tác sẽ thành công. Tránh mở quyền phản chiếu cho dữ liệu không tin cậy và không cần thiết; ưu tiên API `public` nếu có thể.
+In real programs, you must **check** the result of `trySetAccessible()` before operating. If it returns `false`, do not assume the operation will succeed. Avoid opening reflective access for untrusted data and unnecessary cases; prefer `public` APIs whenever possible.
 
-### Java Platform Module System (JPMS) từ Java 9
+### Java Platform Module System (JPMS) Since Java 9
 
-Quyền truy cập Reflection còn bị giới hạn bởi ranh giới module. Một package được khai báo `exports` thường cho phép các module đọc thành viên `public` theo quy tắc truy cập thông thường; để thực hiện **deep reflection** tới thành viên không `public` ở module khác, package thường phải được `opens` phù hợp cho module thực hiện Reflection (hoặc có cơ chế cấp phép tương đương). `getDeclaredMethod()` vẫn có thể trả về metadata nhưng `trySetAccessible()` có thể trả `false`, còn `setAccessible(true)` có thể ném `InaccessibleObjectException`. Không dùng `--add-opens` như giải pháp mặc định cho mã ứng dụng; việc mở package cần quyết định rõ ràng ở ranh giới module.
+Reflection access is also restricted by module boundaries. A package declared with `exports` usually allows modules to read `public` members under normal access rules; to perform **deep reflection** on non-`public` members in another module, the package must usually be properly `opens` to the module performing Reflection (or have an equivalent permission mechanism). `getDeclaredMethod()` can still return metadata, while `trySetAccessible()` may return `false`, and `setAccessible(true)` may throw `InaccessibleObjectException`. Do not use `--add-opens` as a default workaround for application code; opening packages requires explicit decisions at module boundaries.
 
-## 7. Ví dụ chữ ký chính xác: varargs, primitive/wrapper, generic erasure
+## 7. Exact Signature Example: Varargs, Primitive/Wrapper, Generic Erasure
 
-Tạo tệp **`ExactSignatureDemo.java`**:
+Create the file **`ExactSignatureDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -321,82 +321,82 @@ Generic erased parameter: java.util.List
 Integer.class instead of int.class: not found
 ~~~
 
-Điều này cho thấy `String...` là `String[]` ở chữ ký Reflection; `int.class` không tương đương `Integer.class` khi **dò phương thức**; và `List<String>` dùng `List.class` sau type erasure. Nếu cần tham số `List<String>` ở mức khai báo, có thể tiếp tục đọc `accept.getGenericParameterTypes()`.
+This shows that `String...` is `String[]` in the Reflection signature; `int.class` is not equivalent to `Integer.class` when **looking up a method**; and `List<String>` uses `List.class` after type erasure. If the declared `List<String>` parameter is needed, you can continue reading `accept.getGenericParameterTypes()`.
 
-Các overload không được xét theo khả năng chuyển đổi ở lúc gọi. Chẳng hạn mã Java có thể chọn một overload nhờ chuyển `int` thành `long`, nhưng `getDeclaredMethod("run", long.class, ...)` **không** tìm được `run(int, ...)`.
+Overloads are not evaluated based on convertibility at the call site. For example, Java code may select an overload by converting `int` to `long`, yet `getDeclaredMethod("run", long.class, ...)` **does not** find `run(int, ...)`.
 
-## 8. Xác định đúng lớp khai báo khi cần đi lên phân cấp
+## 8. Identifying the Right Declaring Class When Walking Up the Hierarchy
 
-Khi `Child.class.getDeclaredField("id")` không tìm thấy field nằm ở `Parent`, việc đổi sang `getField("id")` chỉ giải quyết được nếu field ấy là `public`. Với field non-public, hãy tra cứu trên đúng kiểu khai báo như `Parent.class.getDeclaredField("id")` hoặc tự duyệt `getSuperclass()` theo chính sách nghiệp vụ. Phân biệt tương tự áp dụng cho method, trong khi constructor không được kế thừa.
+When `Child.class.getDeclaredField("id")` fails to find a field located in `Parent`, switching to `getField("id")` only solves it if that field is `public`. For non-public fields, look up on the exact declaring type such as `Parent.class.getDeclaredField("id")` or walk `getSuperclass()` manually according to business policy. The same distinction applies to methods, while constructors are not inherited.
 
-Nếu lớp con che field cùng tên của lớp cha, hai `Field` vẫn tồn tại riêng; dùng `getDeclaringClass()` để biết chủ sở hữu. Việc tìm thấy metadata vẫn chưa bảo đảm được phép đọc/ghi/gọi: hãy kiểm tra quyền truy cập như ở mục 6. Chủ đề duyệt nhiều tầng và giải quyết xung đột được phát triển ở bài xây dựng chính sách tìm kiếm xuyên phân cấp.
+If a subclass hides a field of the same name in a superclass, both `Field` objects exist separately; use `getDeclaringClass()` to identify the owner. Finding metadata still does not guarantee permission to read/write/invoke: check access permissions as in section 6. Multi-level traversal and conflict resolution are developed further in the lesson on building a cross-hierarchy lookup policy.
 
-## 9. Ngoại lệ và quy trình xử lý lỗi
+## 9. Exceptions and Error Handling Workflow
 
-| Thao tác | Tình huống | Cần xử lý |
+| Operation | Situation | What to Handle |
 | --- | --- | --- |
-| `getDeclaredField("x")` | Không có field tên `x` trực tiếp trên kiểu | `NoSuchFieldException` (checked) |
-| `getDeclaredMethod("m", ...)` | Sai tên hoặc sai kiểu/số lượng/thứ tự tham số | `NoSuchMethodException` (checked) |
-| `getDeclaredConstructor(...)` | Không có constructor đúng chữ ký | `NoSuchMethodException` (checked) |
-| `Field#get`, `Method#invoke`, `Constructor#newInstance` | Không có quyền truy cập thành viên | Có thể `IllegalAccessException` |
-| `Method#invoke` | Chính method được gọi ném ngoại lệ | `InvocationTargetException` bọc ngoại lệ gốc; dùng `getCause()` |
-| `Constructor#newInstance` | Constructor chạy và ném ngoại lệ | `InvocationTargetException` bọc ngoại lệ gốc |
-| `setAccessible(true)` | JPMS hoặc giới hạn khác từ chối mở quyền | Có thể `InaccessibleObjectException` (runtime) |
+| `getDeclaredField("x")` | No field named `x` directly on the type | `NoSuchFieldException` (checked) |
+| `getDeclaredMethod("m", ...)` | Wrong name or wrong parameter types/count/order | `NoSuchMethodException` (checked) |
+| `getDeclaredConstructor(...)` | No constructor with exact signature | `NoSuchMethodException` (checked) |
+| `Field#get`, `Method#invoke`, `Constructor#newInstance` | No access permission for member | Possibly `IllegalAccessException` |
+| `Method#invoke` | The invoked method itself throws an exception | `InvocationTargetException` wraps the original exception; use `getCause()` |
+| `Constructor#newInstance` | Constructor runs and throws an exception | `InvocationTargetException` wraps the original exception |
+| `setAccessible(true)` | JPMS or other restriction denies opening access | Possibly `InaccessibleObjectException` (runtime) |
 
-Lỗi sai chữ ký thường nên được xử lý ở **bước tra cứu**, thay vì chỉ bắt ngoại lệ chung sau khi gọi. Ví dụ:
+Signature mismatch errors should usually be handled at the **lookup step**, rather than only catching a generic exception after calling. For example:
 
 ~~~java
 try {
     Method method = type.getDeclaredMethod("process", String.class);
-    // Kiểm tra modifiers, quyền truy cập, kiểu trả về trước khi invoke.
+    // Check modifiers, access permissions, return type before invoking.
 } catch (NoSuchMethodException e) {
-    // Tên "process" hoặc chữ ký (String) không được khai báo tại type.
+    // Name "process" or signature (String) is not declared on type.
 }
 ~~~
 
-Đoạn trên giả sử biến `type` là một `Class<?>` hợp lệ. Trong chương trình lớn, nên ghi rõ tên lớp, tên thành viên và danh sách kiểu tham số trong thông báo lỗi (cẩn thận không log dữ liệu bí mật); điều này giúp phân biệt "không tìm thấy" với "tìm thấy nhưng không đủ quyền".
+The snippet above assumes `type` is a valid `Class<?>`. In large programs, error messages should clearly log the class name, member name, and parameter type list (carefully avoiding logging secret data); this helps distinguish "not found" from "found but insufficient permissions".
 
-### Checklist khi tra cứu thất bại
+### Checklist When Lookup Fails
 
-1. **Đúng `Class<?>` chưa?** `getDeclared...` không tự đi lên lớp cha.
-2. **Đúng chính tả và hoa/thường?** Tên thành viên phân biệt chữ hoa/chữ thường.
-3. **Đúng số lượng/thứ tự/loại tham số?** `int.class`, `Integer.class`, `String.class` và `String[].class` là các kiểu khác nhau.
-4. **Có constructor không tham số thật không?** `getDeclaredConstructor()` không tạo constructor mới.
-5. **Lớp lồng không `static` có tham số lớp bao ngoài không?** Khám phá `getDeclaredConstructors()` và `getParameterTypes()`.
-6. **Generic có bị xóa kiểu không?** `List<String>` trong tham số runtime tương ứng `List.class`.
-7. **Đã tìm thấy nhưng không sử dụng được?** Kiểm tra `canAccess`, `trySetAccessible`, ranh giới module và ngoại lệ khi invoke/newInstance.
+1. **Is it the right `Class<?>`?** `getDeclared...` does not automatically climb to the superclass.
+2. **Are spelling and case correct?** Member names are case-sensitive.
+3. **Are parameter count, order, and types exact?** `int.class`, `Integer.class`, `String.class`, and `String[].class` are different types.
+4. **Does a no-arg constructor actually exist?** `getDeclaredConstructor()` does not create a new constructor.
+5. **Does a non-`static` nested class have an enclosing-class parameter?** Inspect `getDeclaredConstructors()` and `getParameterTypes()`.
+6. **Is a generic type erased?** `List<String>` in runtime parameters corresponds to `List.class`.
+7. **Found but unusable?** Check `canAccess`, `trySetAccessible`, module boundaries, and exceptions during `invoke`/`newInstance`.
 
-## 10. Mở rộng: metadata và các thành viên compiler sinh
+## 10. Extension: Metadata and Compiler-Generated Members
 
-Các đối tượng tìm được tiếp tục cung cấp thông tin hữu ích:
+The found objects continue to provide useful information:
 
-- `Field#getDeclaringClass()`, `Method#getDeclaringClass()` và `Constructor#getDeclaringClass()` xác định lớp/interface khai báo.
-- `Method#getParameterTypes()` và `Constructor#getParameterTypes()` trả về dãy kiểu `Class<?>` theo chữ ký runtime. `getGenericParameterTypes()` cung cấp dạng `Type[]` để quan sát metadata generic.
-- `Method#isBridge()` nhận biết bridge method do compiler sinh cho một số trường hợp generic/override; `Member#isSynthetic()` có thể giúp nhận biết thành viên do compiler tạo. Không suy ra rằng mọi thành viên xuất hiện trong Reflection đều là một khai báo viết tay trong nguồn.
-- `Modifier.toString(member.getModifiers())` cho mô tả modifier. Ví dụ `private static`, `public final`; không nên đối chiếu modifier bằng phép so sánh chuỗi nếu chỉ cần kiểm tra một cờ cụ thể.
+- `Field#getDeclaringClass()`, `Method#getDeclaringClass()`, and `Constructor#getDeclaringClass()` identify the declaring class/interface.
+- `Method#getParameterTypes()` and `Constructor#getParameterTypes()` return the `Class<?>` sequence of the runtime signature. `getGenericParameterTypes()` provides `Type[]` to inspect generic metadata.
+- `Method#isBridge()` identifies compiler-generated bridge methods for certain generic/override cases; `Member#isSynthetic()` can help identify compiler-generated members. Do not infer that every member appearing in Reflection is a hand-written source declaration.
+- `Modifier.toString(member.getModifiers())` gives a modifier description. For example `private static`, `public final`; you should not check modifiers using string comparisons when you only need to test a specific flag.
 
-Đối với framework đọc metadata, một quy trình rõ ràng là: xác định `Class<?>` → lựa chọn `getDeclared...` hoặc `get...` theo phạm vi → dùng tên/chữ ký chính xác → kiểm tra loại và modifier → kiểm tra quyền truy cập → mới thao tác với giá trị hay gọi thành viên. Đừng mặc định thêm `setAccessible(true)` ở mọi nơi; thao tác này có thể thất bại hoặc không được phép theo ranh giới module.
+For metadata-reading frameworks, a clear workflow is: determine `Class<?>` → choose `getDeclared...` or `get...` by scope → use exact name/signature → check types and modifiers → check access permissions → only then operate on values or invoke the member. Do not add `setAccessible(true)` everywhere by default; this operation may fail or be disallowed by module boundaries.
 
-## 11. Tự kiểm tra hiểu bài
+## 11. Self-Check Comprehension
 
-**Câu hỏi 1.** Lớp `Child` kế thừa `public void ping()` từ `Parent` nhưng không override. `Child.class.getDeclaredMethod("ping")` thành công không?
+**Question 1.** Class `Child` inherits `public void ping()` from `Parent` without overriding it. Does `Child.class.getDeclaredMethod("ping")` succeed?
 
-**Đáp án:** Không; nó ném `NoSuchMethodException`. `Child.class.getMethod("ping")` có thể tìm phương thức `public` được kế thừa.
+**Answer:** No; it throws `NoSuchMethodException`. `Child.class.getMethod("ping")` can find the inherited `public` method.
 
-**Câu hỏi 2.** Vì sao `getDeclaredMethod("send", Integer.class)` không tìm được method khai báo `send(int)`?
+**Question 2.** Why does `getDeclaredMethod("send", Integer.class)` fail to find a method declared as `send(int)`?
 
-**Đáp án:** Lookup so khớp `Class<?>` tham số chính xác, không áp dụng autoboxing; phải truyền `int.class`.
+**Answer:** Lookup matches parameter `Class<?>` objects exactly without applying autoboxing; `int.class` must be passed.
 
-**Câu hỏi 3.** Nếu một class chỉ có constructor `private Item(String)`, phương thức nào tìm được constructor này?
+**Question 3.** If a class only has the constructor `private Item(String)`, which method finds this constructor?
 
-**Đáp án:** `Item.class.getDeclaredConstructor(String.class)`. `getConstructor(String.class)` yêu cầu constructor `public`; `getDeclaredConstructor()` lại yêu cầu không có tham số.
+**Answer:** `Item.class.getDeclaredConstructor(String.class)`. `getConstructor(String.class)` requires a `public` constructor; `getDeclaredConstructor()` requires no parameters.
 
-**Câu hỏi 4.** Tìm được `private Field` bằng `getDeclaredField` đã có thể đọc giá trị ngay chưa?
+**Question 4.** Once a `private Field` is found with `getDeclaredField`, can its value always be read immediately?
 
-**Đáp án:** Chưa chắc. Reflection lookup trả metadata; khi đọc field vẫn có quy tắc truy cập và JPMS. Chỉ thử `trySetAccessible()` khi thật sự cần và xử lý trường hợp bị từ chối.
+**Answer:** Not necessarily. Reflection lookup returns metadata; reading the field still involves access rules and JPMS. Only try `trySetAccessible()` when genuinely necessary and handle the case where it is denied.
 
-**Câu hỏi 5.** Phương thức khai báo `void add(String... tags)` được tra cứu bằng những tham số nào?
+**Question 5.** With what arguments is a method declared as `void add(String... tags)` looked up?
 
-**Đáp án:** `type.getDeclaredMethod("add", String[].class)` vì varargs được biểu diễn thành một tham số kiểu mảng ở chữ ký runtime.
+**Answer:** `type.getDeclaredMethod("add", String[].class)` because varargs is represented as one array-type parameter in the runtime signature.
 
-**Ghi nhớ:** ba API `getDeclared...` trả lời câu hỏi *"Thành viên được khai báo trực tiếp trên kiểu này là gì?"*. Độ chính xác nằm ở tên field, tên cộng danh sách kiểu tham số method, hoặc danh sách kiểu tham số constructor. Sau lookup, hãy kiểm tra metadata và quyền truy cập trước khi làm việc với giá trị hoặc thực thi thành viên.
+**Takeaway:** the three `getDeclared...` APIs answer the question *"What members are declared directly on this type?"*. Accuracy lies in the field name, the method name plus parameter type list, or the constructor parameter type list. After lookup, check metadata and access permissions before working with values or executing the member.

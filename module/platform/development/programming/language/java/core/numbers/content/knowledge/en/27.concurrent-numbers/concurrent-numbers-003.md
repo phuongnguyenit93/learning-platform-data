@@ -1,38 +1,38 @@
-# AtomicInteger và AtomicLong trong Java: cập nhật số an toàn giữa nhiều luồng
+# AtomicInteger and AtomicLong in Java: Thread-Safe Number Updates
 
-Trong chương trình có nhiều luồng, biểu thức `counter++` **không phải một thao tác nguyên tử** chỉ vì `counter` có kiểu nguyên thủy `int` hoặc được khai báo `volatile`. Khi hai luồng cùng đọc giá trị cũ rồi cùng ghi giá trị mới, một lần tăng có thể bị mất (*lost update*).
+In a multithreaded program, the expression `counter++` **is not an atomic operation** simply because `counter` has primitive type `int` or is declared `volatile`. When two threads both read the old value and both write the new value, one increment can be lost (*lost update*).
 
-`AtomicInteger` và `AtomicLong` trong package `java.util.concurrent.atomic` cung cấp các thao tác nguyên tử như tăng, cộng, đổi và cập nhật có điều kiện trên **một giá trị số nguyên**. Chúng phù hợp với bộ đếm, số thứ tự, cờ trạng thái số học hoặc một trạng thái được mã hóa bằng số cần cập nhật giữa nhiều luồng, khi không cần khóa bao quanh toàn bộ khối nghiệp vụ.
+`AtomicInteger` and `AtomicLong` in the `java.util.concurrent.atomic` package provide atomic operations such as incrementing, adding, swapping, and conditional updates on **a single integer value**. They suit counters, sequence numbers, numeric status flags, or a state encoded as a number updated across multiple threads when a lock wrapping an entire business block is unnecessary.
 
-Bài này giải thích ý nghĩa nguyên tử, cách sử dụng API, cơ chế CAS, bảo đảm bộ nhớ, giới hạn với nhiều biến, tràn số và trường hợp chọn cấu trúc khác.
+This lesson explains the meaning of atomicity, how to use the API, the CAS mechanism, memory guarantees, limitations with multiple variables, overflow, and when to choose another construct.
 
-## 1. Vì sao `counter++` có thể làm mất số lần tăng?
+## 1. Why Can `counter++` Lose Increments?
 
-Xét một trường được chia sẻ:
+Consider a shared field:
 
 ```java
 private int counter = 0;
 
 void increase() {
-    counter++; // Không bảo đảm nguyên tử khi có nhiều luồng cùng gọi
+    counter++; // Not guaranteed atomic when called concurrently by multiple threads
 }
 ```
 
-Ở mức logic, biểu thức tăng gồm ba việc: đọc `counter`, cộng 1, ghi lại kết quả. Một lịch xen kẽ có thể như sau:
+At a logical level, the increment expression involves three steps: reading `counter`, adding 1, and writing back the result. One possible interleaving is:
 
-| Thời điểm | Luồng A | Luồng B | Giá trị chung |
+| Step | Thread A | Thread B | Shared value |
 |---|---|---|---:|
-| Ban đầu | | | 10 |
-| 1 | Đọc 10 | | 10 |
-| 2 | | Đọc 10 | 10 |
-| 3 | Tính 11 và ghi 11 | | 11 |
-| 4 | | Tính 11 và ghi 11 | 11 |
+| Initial | | | 10 |
+| 1 | Reads 10 | | 10 |
+| 2 | | Reads 10 | 10 |
+| 3 | Computes 11 and writes 11 | | 11 |
+| 4 | | Computes 11 and writes 11 | 11 |
 
-Hai luồng đều đã thực hiện một lần tăng nhưng giá trị cuối là **11 thay vì 12**. Ví dụ này là một lịch có thể xảy ra; kết quả cụ thể của một chương trình chạy nhiều luồng còn phụ thuộc lịch thực thi.
+Both threads executed one increment, yet the final value is **11 instead of 12**. This example illustrates one possible schedule; the exact result of a multithreaded run depends on execution scheduling.
 
-Nếu thay trường bằng `volatile int counter`, thao tác đọc/ghi có bảo đảm visibility tương ứng với volatile, **nhưng tổ hợp đọc → cộng → ghi vẫn không thành một thao tác nguyên tử**. `volatile` không sửa được lost update này.
+Replacing the field with `volatile int counter` gives reads and writes volatile visibility guarantees, **but the sequence read → add → write still does not become one atomic operation**. `volatile` does not fix this lost update.
 
-Có thể bảo vệ phép tăng bằng khóa `synchronized`, hoặc dùng:
+You can guard the increment with a `synchronized` lock, or use:
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,21 +44,21 @@ void increase() {
 }
 ```
 
-`incrementAndGet()` là một phép cập nhật nguyên tử. Nếu các luồng chỉ thay đổi bộ đếm thông qua các phương thức nguyên tử trên cùng đối tượng, các lần tăng sẽ không bị mất vì thao tác đọc–sửa–ghi bị xen giữa.
+`incrementAndGet()` is an atomic update. As long as threads only mutate the counter through the atomic methods on the same object, increments will not be lost due to interleaved read–modify–write steps.
 
-## 2. AtomicInteger và AtomicLong khác nhau thế nào?
+## 2. How Do AtomicInteger and AtomicLong Differ?
 
-| Đặc điểm | `AtomicInteger` | `AtomicLong` |
+| Feature | `AtomicInteger` | `AtomicLong` |
 |---|---|---|
-| Giá trị lưu trữ | `int` có dấu, 32 bit | `long` có dấu, 64 bit |
-| Phạm vi | -2.147.483.648 đến 2.147.483.647 | -9.223.372.036.854.775.808 đến 9.223.372.036.854.775.807 |
-| Tạo với giá trị ban đầu | `new AtomicInteger(10)` | `new AtomicLong(10L)` |
-| Đọc và gán | `get()`, `set(...)` | `get()`, `set(...)` |
-| Tăng, giảm, cộng | `incrementAndGet()`, `addAndGet(...)`, ... | Các phương thức cùng tên với tham số/kết quả `long` |
-| Cập nhật có điều kiện | `compareAndSet(...)`, `compareAndExchange(...)` | Các phương thức tương ứng trên `long` |
-| Biểu thức ví dụ | `counter.incrementAndGet()` | `sequence.incrementAndGet()` |
+| Stored value | Signed 32-bit `int` | Signed 64-bit `long` |
+| Range | -2,147,483,648 to 2,147,483,647 | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 |
+| Constructing with initial value | `new AtomicInteger(10)` | `new AtomicLong(10L)` |
+| Reading and setting | `get()`, `set(...)` | `get()`, `set(...)` |
+| Increment, decrement, add | `incrementAndGet()`, `addAndGet(...)`, ... | Same-named methods with `long` arguments/results |
+| Conditional updates | `compareAndSet(...)`, `compareAndExchange(...)` | Corresponding methods on `long` |
+| Example expression | `counter.incrementAndGet()` | `sequence.incrementAndGet()` |
 
-Cả hai là **lớp đối tượng**, khác `int`/`long` nguyên thủy. Ví dụ `AtomicInteger counter = new AtomicInteger(5)` lưu trạng thái hiện tại bên trong đối tượng, còn biến `counter` là tham chiếu đến đối tượng đó. Cách dùng thường là giữ tham chiếu cố định bằng `final`, rồi thao tác trên giá trị nguyên tử:
+Both are **reference/object classes**, unlike primitive `int`/`long`. For example, `AtomicInteger counter = new AtomicInteger(5)` stores the current state inside the object, while the variable `counter` holds a reference to that object. The typical pattern is to keep the reference fixed with `final`, then operate on the atomic value:
 
 ```java
 private final AtomicLong sequence = new AtomicLong(100L);
@@ -68,43 +68,43 @@ long nextSequence() {
 }
 ```
 
-`final` ở đây ngăn gán lại tham chiếu `sequence`. Nó không làm giá trị bên trong đối tượng bất biến; `incrementAndGet()` vẫn cập nhật giá trị đó.
+Here `final` prevents reassigning the `sequence` reference. It does not make the value inside the object immutable; `incrementAndGet()` still updates that value.
 
-### Khởi tạo
+### Initialization
 
 ```java
-AtomicInteger zeroCounter = new AtomicInteger();     // ban đầu 0
-AtomicInteger withInitial = new AtomicInteger(42);  // ban đầu 42
+AtomicInteger zeroCounter = new AtomicInteger();     // initially 0
+AtomicInteger withInitial = new AtomicInteger(42);  // initially 42
 AtomicLong longCounter = new AtomicLong(1_000_000L);
 ```
 
-Các đoạn mã rời trong bài chỉ minh họa cú pháp trong một lớp/phương thức phù hợp; chương trình Java độc lập có `main` xuất hiện ở phần ví dụ thực hành.
+Standalone snippets in this lesson only illustrate syntax within an appropriate class/method; a complete standalone Java program with `main` appears in the hands-on section.
 
-## 3. Các thao tác cơ bản và giá trị trả về
+## 3. Basic Operations and Return Values
 
-Một ưu điểm của API này là tên phương thức cho biết rõ nó trả về **giá trị trước** hay **giá trị sau** cập nhật.
+One advantage of this API is that method names clearly indicate whether they return the **previous value** or the **updated value**.
 
-| Phương thức | Ý nghĩa | Kết quả trả về |
+| Method | Meaning | Return value |
 |---|---|---|
-| `get()` | Đọc trạng thái hiện tại | Giá trị đọc được |
-| `set(v)` | Gán trạng thái mới | `void` |
-| `getAndSet(v)` | Thay bằng `v` một cách nguyên tử | Giá trị cũ |
-| `getAndIncrement()` | Tăng 1 | Giá trị trước khi tăng |
-| `incrementAndGet()` | Tăng 1 | Giá trị sau khi tăng |
-| `getAndDecrement()` | Giảm 1 | Giá trị trước khi giảm |
-| `decrementAndGet()` | Giảm 1 | Giá trị sau khi giảm |
-| `getAndAdd(delta)` | Cộng `delta` | Giá trị cũ |
-| `addAndGet(delta)` | Cộng `delta` | Giá trị mới |
-| `compareAndSet(expected, update)` | Chỉ đổi khi giá trị hiện tại bằng `expected` | `boolean` báo thành công |
-| `compareAndExchange(expected, update)` | So sánh rồi có thể đổi | Giá trị quan sát được trước phép so sánh/đổi |
-| `getAndUpdate(fn)` | Cập nhật bằng hàm trên trạng thái hiện tại | Giá trị cũ |
-| `updateAndGet(fn)` | Cập nhật bằng hàm trên trạng thái hiện tại | Giá trị mới |
-| `getAndAccumulate(x, fn)` | Kết hợp giá trị hiện tại với `x` bằng hàm hai đối số | Giá trị cũ |
-| `accumulateAndGet(x, fn)` | Kết hợp hai giá trị rồi cập nhật | Giá trị mới |
+| `get()` | Reads current state | The value read |
+| `set(v)` | Assigns new state | `void` |
+| `getAndSet(v)` | Atomically replaces with `v` | Old value |
+| `getAndIncrement()` | Increments by 1 | Value before incrementing |
+| `incrementAndGet()` | Increments by 1 | Value after incrementing |
+| `getAndDecrement()` | Decrements by 1 | Value before decrementing |
+| `decrementAndGet()` | Decrements by 1 | Value after decrementing |
+| `getAndAdd(delta)` | Adds `delta` | Old value |
+| `addAndGet(delta)` | Adds `delta` | New value |
+| `compareAndSet(expected, update)` | Changes only if current value equals `expected` | `boolean` indicating success |
+| `compareAndExchange(expected, update)` | Compares and may swap | Value observed before the compare/exchange |
+| `getAndUpdate(fn)` | Updates using a function of current state | Old value |
+| `updateAndGet(fn)` | Updates using a function of current state | New value |
+| `getAndAccumulate(x, fn)` | Combines current value with `x` using a two-argument function | Old value |
+| `accumulateAndGet(x, fn)` | Combines both values and updates | New value |
 
-Các phương thức tương ứng đều có trên `AtomicInteger` và `AtomicLong`, với chữ ký sử dụng `int`/`IntUnaryOperator`/`IntBinaryOperator` hoặc `long`/`LongUnaryOperator`/`LongBinaryOperator` theo lớp.
+Corresponding methods exist on both `AtomicInteger` and `AtomicLong`, with signatures using `int`/`IntUnaryOperator`/`IntBinaryOperator` or `long`/`LongUnaryOperator`/`LongBinaryOperator` respectively.
 
-Ví dụ khác biệt “trước và sau”:
+Example of the "before and after" difference:
 
 ```java
 AtomicInteger x = new AtomicInteger(5);
@@ -115,11 +115,11 @@ int beforeAdd = x.getAndAdd(3);     // beforeAdd = 7, x = 10
 int afterAdd = x.addAndGet(2);      // afterAdd = 12, x = 12
 ```
 
-Không nên viết `get()` rồi `set(get() + 1)` để thay thế `incrementAndGet()`: hai lệnh riêng không hợp thành một thao tác nguyên tử.
+Do not write `get()` followed by `set(get() + 1)` as a substitute for `incrementAndGet()`: two separate calls do not combine into an atomic operation.
 
-## 4. Cơ chế CAS và điểm tuyến tính hóa
+## 4. The CAS Mechanism and Linearization Points
 
-**CAS** (*compare-and-set*, so sánh và gán có điều kiện) nhận ba yếu tố logic: giá trị đang lưu, giá trị mong đợi và giá trị mới. Chỉ khi giá trị hiện tại bằng giá trị mong đợi, phép thay đổi mới xảy ra.
+**CAS** (*compare-and-set*) takes three logical elements: the stored value, the expected value, and the new value. Only when the current value equals the expected value does the change occur.
 
 ```java
 AtomicInteger state = new AtomicInteger(10);
@@ -129,22 +129,22 @@ boolean second = state.compareAndSet(10, 30); // false
 int current = state.get();                  // 20
 ```
 
-Sau phép CAS đầu, trạng thái là 20, vì vậy phép thứ hai với `expected = 10` thất bại. Nó **không** ghi 30; trạng thái cuối vẫn là 20.
+After the first CAS, the state is 20, so the second call with `expected = 10` fails. It does **not** write 30; the final state remains 20.
 
-`compareAndExchange(expected, newValue)` cũng so sánh rồi có thể cập nhật nguyên tử, nhưng trả về **giá trị thực tế quan sát được** tại lúc thao tác thay vì `boolean`:
+`compareAndExchange(expected, newValue)` also compares and atomically updates conditionally, but returns the **actual value observed** at the time of the operation instead of a `boolean`:
 
 ```java
 AtomicLong slot = new AtomicLong(5L);
 
 long observed1 = slot.compareAndExchange(5L, 8L);  // 5; slot = 8
-long observed2 = slot.compareAndExchange(5L, 9L);  // 8; slot vẫn = 8
+long observed2 = slot.compareAndExchange(5L, 9L);  // 8; slot stays = 8
 ```
 
-Với những phép đọc–sửa–ghi nguyên tử, ta có thể lý luận như thể mỗi phép có một **điểm tuyến tính hóa** (linearization point): tại một thời điểm trừu tượng, cả thao tác trở nên có hiệu lực đối với các luồng cùng quan sát biến nguyên tử đó. Các thao tác có thể diễn ra đồng thời, nhưng tác động lên **một đối tượng atomic** có thứ tự tương thích với bảo đảm nguyên tử của API.
+For atomic read–modify–write operations, you can reason as if each operation has a **linearization point**: at one abstract instant, the entire operation takes effect for all threads observing that atomic variable. Operations may execute concurrently, yet their effects on **a single atomic object** have an order consistent with the API's atomicity guarantees.
 
-### Vòng lặp CAS để tăng có điều kiện
+### CAS Loop for Conditional Increment
 
-Giả sử chỉ muốn tăng bộ đếm khi giá trị còn dưới 100:
+Suppose you only want to increment a counter while its value is below 100:
 
 ```java
 static boolean incrementBelow100(AtomicInteger counter) {
@@ -156,42 +156,42 @@ static boolean incrementBelow100(AtomicInteger counter) {
         if (counter.compareAndSet(current, current + 1)) {
             return true;
         }
-        // Luồng khác đã cập nhật trước: đọc lại và thử lại.
+        // Another thread updated first: re-read and retry.
     }
 }
 ```
 
-Đây là **phương thức minh họa**, cần đặt trong một lớp và import `AtomicInteger`. Việc kiểm tra `current < 100` và việc ghi `current + 1` đi qua điều kiện CAS dựa trên cùng giá trị mong đợi; nếu một luồng khác đổi giá trị thì phép CAS thất bại và vòng lặp kiểm tra lại.
+This is an **illustrative method** to place inside a class with `AtomicInteger` imported. Checking `current < 100` and writing `current + 1` go through a CAS condition based on the same expected value; if another thread changes the value, CAS fails and the loop checks again.
 
-Trong ví dụ này điều kiện `current >= 100` còn bảo vệ trước nguy cơ tràn do cộng 1, vì mọi lần tăng thành công đều diễn ra khi `current < 100`. Nếu cho phép các thao tác khác làm bộ đếm giảm hoặc thay đổi tùy ý, cần định nghĩa rõ hợp đồng nghiệp vụ để bảo đảm giới hạn.
+In this example, the `current >= 100` check also protects against overflow from adding 1, because every successful increment occurs when `current < 100`. If other operations are allowed to decrement or arbitrarily change the counter, clearly define the business contract to preserve bounds.
 
-**Không khẳng định mọi phép CAS luôn thành công ở lần đầu:** dưới tranh chấp, nhiều luồng có thể phải thử lại. CAS tránh dùng một khóa ứng dụng cho thao tác đơn lẻ, nhưng vẫn tiêu tốn CPU nếu có tranh chấp cao.
+**Do not assume every CAS succeeds on the first try:** under contention, multiple threads may have to retry. CAS avoids an application lock for a single operation, yet still consumes CPU under high contention.
 
-### Hàm cập nhật có thể chạy nhiều lần
+### Update Functions May Execute Multiple Times
 
-`updateAndGet(fn)` và `getAndUpdate(fn)` thuận tiện để gói vòng lặp cập nhật trong API:
+`updateAndGet(fn)` and `getAndUpdate(fn)` conveniently wrap the update loop in the API:
 
 ```java
 AtomicInteger count = new AtomicInteger(7);
 int capped = count.updateAndGet(v -> Math.min(v + 1, 10)); // 8
 ```
 
-Khi có tranh chấp, hàm `fn` **có thể được gọi nhiều lần** trước khi cập nhật thành công. Hàm nên **không có tác dụng phụ** và cho kết quả ổn định theo tham số truyền vào. Tránh gọi API mạng, ghi cơ sở dữ liệu, tăng một bộ đếm khác, log nghiệp vụ một lần duy nhất hoặc sinh ngẫu nhiên không kiểm soát ngay bên trong lambda: hàm có thể chạy lại và gây tác dụng phụ trùng lặp.
+Under contention, `fn` **may be invoked multiple times** before the update succeeds. The function should be **side-effect-free** and produce a deterministic result from its argument. Avoid calling network APIs, writing to a database, incrementing another counter, logging a one-time business event, or generating uncontrolled random values inside the lambda: the function can re-run and cause duplicate side effects.
 
-Đối với cập nhật cần nhiều bước hoặc nhiều tài nguyên, nên xem xét khóa hoặc một cơ chế phối hợp khác.
+For updates requiring multiple steps or multiple resources, consider locks or another coordination mechanism.
 
-## 5. Bảo đảm visibility và quan hệ với volatile
+## 5. Visibility Guarantees and Relationship to volatile
 
-Các phương thức chuẩn `get()` và `set(v)` của `AtomicInteger`/`AtomicLong` có hiệu ứng bộ nhớ tương đương **volatile read** và **volatile write** đối với giá trị atomic. Các thao tác như `compareAndSet` cung cấp ngữ nghĩa nguyên tử cùng ràng buộc bộ nhớ tương ứng theo tài liệu JDK.
+The standard `get()` and `set(v)` methods of `AtomicInteger`/`AtomicLong` have memory effects equivalent to a **volatile read** and **volatile write** on the atomic value. Operations like `compareAndSet` provide atomic semantics along with corresponding memory constraints per the JDK documentation.
 
-Điều này giải quyết hai nhu cầu khác nhau:
+This addresses two distinct needs:
 
-1. **Visibility (khả năng quan sát):** cập nhật có thể được luồng khác quan sát thông qua những thao tác đọc phù hợp theo Java Memory Model.
-2. **Atomic read–modify–write:** hai luồng cùng tăng không thể làm mất một lần tăng nếu đều dùng `incrementAndGet()` trên cùng đối tượng.
+1. **Visibility:** updates can be observed by other threads through appropriate reads under the Java Memory Model.
+2. **Atomic read–modify–write:** two threads incrementing concurrently cannot lose an increment if both use `incrementAndGet()` on the same object.
 
-`volatile` đơn thuần hỗ trợ nhu cầu thứ nhất cho thao tác trên một trường, nhưng không tự làm phép `x++` nguyên tử. `AtomicInteger` bổ sung các phép cập nhật kết hợp nguyên tử.
+`volatile` alone supports the first need for single-field accesses, but does not automatically make `x++` atomic. `AtomicInteger` adds atomic compound updates.
 
-Ví dụ về thứ tự công bố dữ liệu:
+Example of data publication ordering:
 
 ```java
 class Holder {
@@ -212,13 +212,13 @@ class Holder {
 }
 ```
 
-Nếu một luồng thực hiện `publish()` và luồng khác nhìn thấy `ready.get() == 1` từ lần `set(1)` đó, quan hệ **happens-before** thông qua thao tác kiểu volatile khiến phép ghi `data = 42` trước khi phát cờ có thể được luồng đọc nhìn thấy, theo các giả định không có cập nhật cạnh tranh khác lên `data` và `ready`. Đây là **ví dụ giải thích memory ordering**, không phải khuyến nghị dùng vòng lặp bận trong ứng dụng thực tế; thường nên dùng `CountDownLatch`, `Future`, `BlockingQueue` hoặc công cụ đồng bộ phù hợp.
+If one thread executes `publish()` and another observes `ready.get() == 1` from that `set(1)`, the **happens-before** relationship through the volatile-like operation makes the write `data = 42` before raising the flag visible to the reading thread, assuming no other competing updates to `data` and `ready`. This is an **example explaining memory ordering**, not a recommendation to spin-wait in real applications; normally prefer `CountDownLatch`, `Future`, `BlockingQueue`, or appropriate synchronization tools.
 
-Một số API mở rộng có ngữ nghĩa bộ nhớ khác, như `lazySet` (release), `getAcquire`, `setRelease`, `getOpaque`, `setOpaque`, `getPlain` và `setPlain` ở các phiên bản Java hỗ trợ. **Không tùy tiện thay `get()/set()` bằng những biến thể yếu hơn** nếu chưa chứng minh được yêu cầu đồng bộ; các ví dụ và lý luận cơ bản ở đây dùng `get()`/`set()` và phép CAS chuẩn.
+Some extended APIs have different memory semantics, such as `lazySet` (release), `getAcquire`, `setRelease`, `getOpaque`, `setOpaque`, `getPlain`, and `setPlain` in supporting Java versions. **Do not arbitrarily replace `get()/set()` with weaker variants** without proving synchronization requirements; the basic examples and reasoning here use `get()`/`set()` and standard CAS.
 
-## 6. Chương trình Java 17+ hoàn chỉnh
+## 6. Complete Java 17+ Program
 
-Lưu vào tệp `AtomicNumbersDemo.java`:
+Save to `AtomicNumbersDemo.java`:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -283,14 +283,14 @@ public class AtomicNumbersDemo {
 }
 ```
 
-Biên dịch và chạy (JDK 17+):
+Compile and run (JDK 17+):
 
 ```bash
 javac AtomicNumbersDemo.java
 java AtomicNumbersDemo
 ```
 
-**Stdout khi các luồng hoàn tất bình thường, không bị ngắt:**
+**Stdout when threads complete normally without interruption:**
 
 ```text
 counter = 40000
@@ -307,17 +307,17 @@ int wrap = -2147483648
 long wrap = -9223372036854775808
 ```
 
-Bốn luồng cùng đếm, mỗi luồng tăng `counter` 10.000 lần và cộng `total` thêm 2L cho mỗi vòng. Vì mỗi thao tác trên từng atomic là nguyên tử, kết quả cuối sau khi toàn bộ vòng lặp chạy đủ lần là `4 × 10.000 = 40.000` và `4 × 10.000 × 2 = 80.000`. `CountDownLatch` bảo đảm `main` chờ các luồng hoàn thành trước khi in ra; nó không thay thế vai trò của `AtomicInteger`/`AtomicLong` đối với các cập nhật đồng thời.
+Four threads count concurrently, each incrementing `counter` 10,000 times and adding `2L` to `total` per iteration. Because each operation on each atomic object is atomic, the final results after all loops complete their iterations are `4 × 10,000 = 40,000` and `4 × 10,000 × 2 = 80,000`. `CountDownLatch` ensures `main` waits for the threads to finish before printing; it does not replace the role of `AtomicInteger`/`AtomicLong` for concurrent updates.
 
-Trong ví dụ, nếu một luồng bị interrupt trong khi chờ `start.await()`, nó sẽ thoát và có thể không thực hiện đủ số vòng. Dòng stdout trên phản ánh điều kiện chạy thông thường không bị ngắt; khi thiết kế hệ thống thật phải quyết định chính sách xử lý hủy tác vụ và kết quả một phần.
+In the example, if a thread is interrupted while waiting on `start.await()`, it will exit and may not run all iterations. The stdout above reflects a normal uninterrupted run; when designing real systems you must decide how to handle task cancellation and partial results.
 
-Các dòng thao tác trên `state` minh họa rõ giá trị trước/sau, CAS thành công và `compareAndExchange` trả giá trị đã quan sát. Hai dòng cuối nhắc rằng **atomic không có nghĩa kiểm tra tràn số**.
+The lines operating on `state` clearly illustrate before/after values, a successful CAS, and `compareAndExchange` returning the observed value. The last two lines are a reminder that **atomic does not mean overflow-checked**.
 
-## 7. Atomic không có nghĩa mọi thứ đều an toàn
+## 7. Atomic Does Not Mean Everything Is Safe
 
-### 7.1. Mỗi phép cập nhật riêng lẻ được bảo vệ, không phải một giao dịch nhiều biến
+### 7.1. Each Individual Update Is Protected, Not a Multi-Variable Transaction
 
-Ví dụ dùng hai atomic:
+Example using two atomics:
 
 ```java
 AtomicInteger stock = new AtomicInteger(10);
@@ -327,13 +327,13 @@ stock.decrementAndGet();
 sold.incrementAndGet();
 ```
 
-Mỗi dòng nguyên tử trên **một đối tượng riêng**, nhưng giữa hai dòng một luồng khác có thể đọc thấy `stock` đã giảm mà `sold` chưa tăng. Hai biến không tạo thành một **transaction** thống nhất.
+Each line is atomic on **its own single object**, but between the two lines another thread can observe that `stock` decreased while `sold` has not yet increased. Two variables do not form a unified **transaction**.
 
-Nếu yêu cầu bất biến `stock + sold == 10` tại mọi quan sát hợp lệ, cần một cơ chế đồng bộ điều phối cả hai trường, như `synchronized`/`Lock`, hoặc đóng gói toàn bộ trạng thái bất biến vào **một** đối tượng immutable và thay tham chiếu bằng `AtomicReference` với một thuật toán đúng. `AtomicInteger` và `AtomicLong` tự chúng không thể làm nguyên tử một cập nhật gồm nhiều biến.
+If the invariant `stock + sold == 10` is required at every valid observation, you need a synchronization mechanism coordinating both fields—such as `synchronized`/`Lock`—or encapsulate the entire invariant state in **one** immutable object and swap references using `AtomicReference` with a proper algorithm. `AtomicInteger` and `AtomicLong` by themselves cannot make a multi-variable update atomic.
 
-### 7.2. Đọc rồi hành động riêng lẻ vẫn có race
+### 7.2. Separate Read-Then-Act Still Races
 
-Sai lầm dễ gặp:
+A common mistake:
 
 ```java
 if (counter.get() < 100) {
@@ -341,11 +341,11 @@ if (counter.get() < 100) {
 }
 ```
 
-Hai luồng có thể đều quan sát 99 và cùng tăng: kết quả lên 101. Cả hai lần tăng đều nguyên tử, nhưng toàn bộ **kiểm tra → quyết định → tăng** chưa nguyên tử. Phải dùng vòng lặp CAS như ở phần 4 hoặc một cơ chế khóa thích hợp để kiểm tra và cập nhật theo cùng một trạng thái.
+Two threads can both observe 99 and both increment: the result reaches 101. Both increments are atomic, yet the overall **check → decide → increment** is not atomic. Use a CAS loop as in Section 4 or an appropriate locking mechanism to check and update against the same state.
 
-### 7.3. `AtomicLong` không ngăn tràn
+### 7.3. `AtomicLong` Does Not Prevent Overflow
 
-`AtomicInteger` dùng số nguyên `int`; `AtomicLong` dùng `long`. Các phép cộng/tăng theo ngữ nghĩa số nguyên Java vẫn **wrap around** khi vượt miền có dấu:
+`AtomicInteger` stores an `int`; `AtomicLong` stores a `long`. Addition/increment operations follow Java integer arithmetic and still **wrap around** when exceeding the signed range:
 
 ```java
 AtomicInteger a = new AtomicInteger(Integer.MAX_VALUE);
@@ -355,21 +355,21 @@ AtomicLong b = new AtomicLong(Long.MAX_VALUE);
 System.out.println(b.incrementAndGet()); // -9223372036854775808
 ```
 
-Nếu nghiệp vụ đòi **không bao giờ vượt giới hạn**, hãy xử lý điều kiện bằng CAS loop hoặc logic giới hạn phù hợp. Nếu cần đếm chính xác lớn hơn phạm vi `long`, phải dùng biểu diễn khác (ví dụ `BigInteger` với cơ chế đồng bộ/`AtomicReference`), không chỉ thay `AtomicInteger` bằng `AtomicLong` rồi giả định vô hạn.
+If business rules require **never exceeding a limit**, handle the condition with a CAS loop or appropriate bounding logic. If exact counts larger than the `long` range are needed, use another representation (e.g., `BigInteger` with synchronization/`AtomicReference`), rather than merely swapping `AtomicInteger` for `AtomicLong` and assuming unbounded range.
 
-### 7.4. CAS so sánh giá trị hiện tại, nhưng có thể gặp ABA
+### 7.4. CAS Compares the Current Value, but Can Encounter ABA
 
-Giả sử trạng thái biến đổi theo chuỗi `A → B → A`. Một luồng giữ giá trị cũ `A` rồi dùng CAS mong đợi `A` có thể thành công vì hiện tại lại là `A`, dù đã xảy ra các thay đổi trung gian. Đây là **ABA problem**. Đối với bộ đếm đơn giản, ABA có thể không ảnh hưởng đến tính đúng; với thuật toán lock-free dựa trên lịch sử trạng thái, cần xem xét phiên bản đi kèm (ví dụ đếm phiên bản hoặc `AtomicStampedReference` với tham chiếu), hoặc một thiết kế đồng bộ khác. `AtomicInteger` không tự phát hiện lịch sử `A → B → A`.
+Suppose state transitions along the sequence `A → B → A`. A thread holding the old value `A` and issuing a CAS expecting `A` may succeed because the current value is `A` again, even though intermediate changes occurred. This is the **ABA problem**. For simple counters, ABA may not affect correctness; for lock-free algorithms relying on state history, consider attaching a version (e.g., a version counter or `AtomicStampedReference` for object references) or using another synchronization design. `AtomicInteger` does not automatically detect `A → B → A` history.
 
-### 7.5. Atomic không bảo đảm công bằng thứ tự luồng
+### 7.5. Atomics Do Not Guarantee Thread Ordering Fairness
 
-Các phép CAS có thể thất bại và thử lại nhiều lần khi contention cao. Không nên suy ra tất cả luồng sẽ tiến triển công bằng, hay mọi thao tác đều thực thi với thời gian cố định trong mọi lịch chạy. Thiết kế cần phù hợp yêu cầu throughput, latency và khả năng tiến triển dưới tải.
+CAS operations may fail and retry many times under high contention. Do not assume all threads will make fair progress, or that every operation executes in bounded constant time under every schedule. Designs must match throughput, latency, and progress requirements under load.
 
-## 8. Khi nào chọn LongAdder, synchronized hoặc AtomicReference?
+## 8. When to Choose LongAdder, synchronized, or AtomicReference?
 
-**AtomicInteger/AtomicLong** phù hợp khi cần các thao tác **chính xác, riêng lẻ** như `getAndIncrement()`, `compareAndSet()` hoặc lấy một số thứ tự duy nhất.
+**AtomicInteger/AtomicLong** fits when you need **exact, individual** operations like `getAndIncrement()`, `compareAndSet()`, or obtaining a unique sequence number.
 
-Khi nhiều luồng cùng cập nhật một bộ đếm tích lũy và không cần CAS/số thứ tự duy nhất từ mỗi lần tăng, `LongAdder` có thể giảm tranh chấp bằng cách phân tán các cập nhật:
+When many threads concurrently update an accumulative counter and do not need CAS or a unique sequence number per increment, `LongAdder` can reduce contention by striping updates:
 
 ```java
 import java.util.concurrent.atomic.LongAdder;
@@ -378,59 +378,59 @@ LongAdder requests = new LongAdder();
 requests.increment();
 requests.add(5L);
 
-long approxAtMoment = requests.sum(); // sau hai cập nhật tuần tự: 6
+long approxAtMoment = requests.sum(); // after two sequential updates: 6
 ```
 
-**Cần phân biệt:** `LongAdder.sum()` không phải một snapshot nguyên tử đối với những cập nhật đồng thời đang diễn ra; không dùng `LongAdder` để gán ID duy nhất hoặc thực thi điều kiện CAS dựa trên một giá trị quan sát chính xác. So sánh hiệu năng bằng benchmark thực tế: `LongAdder` không mặc nhiên tốt hơn trong mọi tải hoặc khi tranh chấp thấp.
+**Important distinction:** `LongAdder.sum()` is not an atomic snapshot with respect to ongoing concurrent updates; do not use `LongAdder` to assign unique IDs or enforce CAS conditions based on an exact observed value. Compare performance with real benchmarks: `LongAdder` is not automatically faster under all workloads or low contention.
 
-| Nhu cầu | Cấu trúc phù hợp |
+| Need | Suitable construct |
 |---|---|
-| Sinh ID/số thứ tự tăng dần trong phạm vi kiểu | `AtomicLong.incrementAndGet()`; xử lý tràn theo yêu cầu |
-| Tăng bộ đếm chính xác và đọc giá trị hiện tại | `AtomicInteger` hoặc `AtomicLong` |
-| Thống kê lượng request có nhiều luồng cập nhật, chấp nhận `sum()` không là snapshot nguyên tử lúc đang ghi | `LongAdder` |
-| Nhiều trường phải đồng thời thỏa bất biến | `synchronized`, `Lock`, hoặc thiết kế trạng thái gộp |
-| Thay nguyên tử một đối tượng trạng thái bất biến | `AtomicReference<State>` |
-| Nhiều giá trị lớn hơn 64 bit | Mô hình `BigInteger` cộng đồng bộ hoặc tham chiếu atomic thích hợp |
+| Generating increasing IDs/sequence numbers within the type's range | `AtomicLong.incrementAndGet()`; handle overflow as required |
+| Accurately incrementing a counter and reading the current value | `AtomicInteger` or `AtomicLong` |
+| Gathering request statistics with many updating threads, where `sum()` need not be an atomic snapshot during writes | `LongAdder` |
+| Multiple fields must simultaneously satisfy an invariant | `synchronized`, `Lock`, or a combined state design |
+| Atomically replacing an immutable state object | `AtomicReference<State>` |
+| Many values larger than 64 bits | `BigInteger` model plus synchronization or an appropriate atomic reference |
 
-Lựa chọn công cụ phụ thuộc **bất biến cần bảo vệ**, chứ không chỉ việc dữ liệu có nhiều luồng truy cập.
+Tool selection depends on **the invariant to be protected**, not merely on whether multiple threads access the data.
 
-## 9. Lỗi thường gặp và cách tránh
+## 9. Common Mistakes and How to Avoid Them
 
-1. **Nghĩ `volatile int++` là nguyên tử.** `volatile` không gộp phép đọc, cộng và ghi. Dùng `incrementAndGet()` hoặc đồng bộ hóa.
-2. **Tách một phép cập nhật thành `get()` rồi `set()`.** Hai lệnh riêng có thể xen kẽ. Dùng `addAndGet`, `getAndUpdate` hoặc CAS.
-3. **Nhầm giá trị cũ và mới.** `getAndIncrement()` trả giá trị trước; `incrementAndGet()` trả giá trị sau. Chọn theo yêu cầu cấp số hay bộ đếm.
-4. **Cho rằng hai Atomic là một giao dịch.** Cập nhật `balanceA` rồi `balanceB` để lại một khoảng thời gian có trạng thái trung gian quan sát được.
-5. **Đặt tác dụng phụ trong hàm `updateAndGet`.** Lambda có thể chạy lại khi CAS thất bại; cần dùng hàm thuần, không gọi API có tác dụng ngoài.
-6. **Dùng `AtomicLong` và cho rằng không bao giờ tràn.** `long` vẫn có giới hạn, tăng qua `Long.MAX_VALUE` sẽ wrap.
-7. **Dựa vào `LongAdder.sum()` như snapshot nguyên tử đang đồng thời cập nhật.** `sum()` phục vụ thống kê, không cam kết snapshot tức thời dưới tranh chấp.
-8. **Dùng vòng `while (flag.get() == 0)` để chờ dài.** Bận chờ tiêu thụ CPU; chọn cơ chế chờ, thông báo hoặc blocking phù hợp.
-9. **Hiểu CAS là khóa toàn bộ đoạn code.** CAS bảo vệ việc so sánh/cập nhật một biến, không tự đồng bộ các hiệu ứng bên ngoài phép CAS.
-10. **Nghĩ có atomic là toàn bộ ứng dụng thread-safe.** Cần xét tham chiếu chia sẻ, thứ tự thao tác, dữ liệu khác và bất biến nghiệp vụ.
+1. **Thinking `volatile int++` is atomic.** `volatile` does not merge read, add, and write. Use `incrementAndGet()` or synchronization.
+2. **Splitting an update into `get()` then `set()`.** Two separate calls can interleave. Use `addAndGet`, `getAndUpdate`, or CAS.
+3. **Confusing old and new return values.** `getAndIncrement()` returns the previous value; `incrementAndGet()` returns the new value. Choose according to sequence generation vs. counter needs.
+4. **Assuming two Atomics form a transaction.** Updating `balanceA` then `balanceB` leaves a window with an observable intermediate state.
+5. **Putting side effects inside an `updateAndGet` function.** The lambda may re-run when CAS fails; use pure functions without calling APIs with external effects.
+6. **Using `AtomicLong` and assuming it never overflows.** `long` is still bounded; incrementing past `Long.MAX_VALUE` wraps around.
+7. **Relying on `LongAdder.sum()` as an atomic snapshot during concurrent updates.** `sum()` is meant for statistics, not instantaneous exact snapshots under contention.
+8. **Using `while (flag.get() == 0)` for long waits.** Busy-waiting burns CPU; choose an appropriate wait, notification, or blocking mechanism.
+9. **Treating CAS as locking an entire code block.** CAS guards comparing/updating one variable; it does not synchronize external effects outside the CAS.
+10. **Thinking having atomics makes the entire application thread-safe.** Consider shared references, operation ordering, other data, and business invariants.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Vì sao `volatile int count; count++;` vẫn mất lần tăng?  
-**Đáp án:** Phép `++` gồm nhiều bước và có thể xen kẽ. `volatile` cho hiệu ứng visibility của các lần đọc/ghi, không làm toàn bộ phép đọc–sửa–ghi nguyên tử.
+**Question 1.** Why can `volatile int count; count++;` still lose increments?  
+**Answer:** `++` involves multiple steps and can interleave. `volatile` provides visibility effects for individual reads/writes, not atomicity for the whole read–modify–write.
 
-**Câu 2.** `new AtomicInteger(3).getAndIncrement()` trả về gì? Giá trị cuối?  
-**Đáp án:** Trả 3 (giá trị cũ); đối tượng chứa 4.
+**Question 2.** What does `new AtomicInteger(3).getAndIncrement()` return? What is the final value?  
+**Answer:** Returns 3 (old value); the object holds 4.
 
-**Câu 3.** `new AtomicLong(7).incrementAndGet()` trả về gì?  
-**Đáp án:** 8, là giá trị mới sau cập nhật.
+**Question 3.** What does `new AtomicLong(7).incrementAndGet()` return?  
+**Answer:** 8, which is the new value after the update.
 
-**Câu 4.** Tại sao `if (a.get() < 100) a.incrementAndGet();` có thể vượt 100?  
-**Đáp án:** Điều kiện và lần tăng là hai thao tác riêng; nhiều luồng có thể cùng đọc 99 rồi cùng tăng. Dùng CAS loop để kiểm tra và cập nhật trên cùng giá trị quan sát.
+**Question 4.** Why can `if (a.get() < 100) a.incrementAndGet();` exceed 100?  
+**Answer:** The condition and increment are two separate operations; multiple threads can both read 99 and both increment. Use a CAS loop to check and update based on the same observed value.
 
-**Câu 5.** `compareAndSet(10, 20)` trả `false` nói lên điều gì?  
-**Đáp án:** Giá trị đang quan sát trong phép CAS không khớp 10 nên phép gán 20 không xảy ra. Nên đọc lại và quyết định thử tiếp nếu thuật toán yêu cầu.
+**Question 5.** What does `compareAndSet(10, 20)` returning `false` indicate?  
+**Answer:** The value observed during CAS did not match 10, so assigning 20 did not occur. Re-read and decide whether to retry if the algorithm requires it.
 
-**Câu 6.** Vì sao không nên gọi hệ thống ngoài trong lambda của `updateAndGet`?  
-**Đáp án:** Hàm có thể được gọi nhiều lần do tranh chấp và CAS retry; hiệu ứng ngoài có thể bị lặp.
+**Question 6.** Why shouldn't you call external systems inside the lambda of `updateAndGet`?  
+**Answer:** The function may be invoked multiple times due to contention and CAS retries; external effects could be duplicated.
 
-**Câu 7.** Khi nào dùng `LongAdder` thay `AtomicLong`?  
-**Đáp án:** Khi cần nhiều luồng tích lũy bộ đếm thống kê dưới tranh chấp và không đòi đọc snapshot nguyên tử hoặc cấp số/compare-and-set từ từng lần cập nhật.
+**Question 7.** When should you use `LongAdder` instead of `AtomicLong`?  
+**Answer:** When many threads need to accumulate a statistical counter under contention and you do not need atomic snapshot reads or per-update sequence numbers/compare-and-set.
 
-**Câu 8.** `AtomicLong.incrementAndGet()` trên `Long.MAX_VALUE` trả gì?  
-**Đáp án:** `Long.MIN_VALUE` do phép toán số nguyên wrap; atomicity không ngăn tràn.
+**Question 8.** What does `AtomicLong.incrementAndGet()` on `Long.MAX_VALUE` return?  
+**Answer:** `Long.MIN_VALUE` due to integer wraparound; atomicity does not prevent overflow.
 
-**Quy tắc ghi nhớ:** `AtomicInteger` và `AtomicLong` cung cấp các phép thao tác **nguyên tử trên một giá trị số nguyên**, cùng hiệu ứng bộ nhớ phù hợp của API. Chúng ngăn lost update khi dùng đúng phương thức, nhưng **không tự thay thế giao dịch nhiều biến, kiểm tra bất biến tổng hợp, xử lý tràn số hoặc chính sách tiến triển giữa các luồng**.
+**Rule to remember:** `AtomicInteger` and `AtomicLong` provide **atomic operations on a single integer value**, along with the API's corresponding memory effects. They prevent lost updates when the right methods are used, but **do not automatically substitute for multi-variable transactions, compound invariant checks, overflow handling, or thread progress policies**.

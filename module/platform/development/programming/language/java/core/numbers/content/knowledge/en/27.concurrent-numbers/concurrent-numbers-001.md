@@ -1,66 +1,66 @@
-# count++ là nhiều bước, không phải thao tác nguyên tử
+# count++ Is Multiple Steps, Not an Atomic Operation
 
-## 1. Vấn đề: tăng một biến đếm chia sẻ
+## 1. The Problem: Incrementing a Shared Counter
 
-Trong Java, `count++` là cách viết ngắn gọn của thao tác tăng biến thêm 1. Ở chương trình tuần tự, đây là một biểu thức quen thuộc. Tuy nhiên, khi **hai hoặc nhiều luồng cùng tăng một biến đếm chia sẻ**, `count++` **không bảo đảm** rằng mỗi lần gọi đều làm tăng kết quả cuối cùng thêm đúng 1.
+In Java, `count++` is shorthand for incrementing a variable by 1. In a sequential program, this is a familiar expression. However, when **two or more threads increment a shared counter concurrently**, `count++` **does not guarantee** that each call increases the final result by exactly 1.
 
-Nguyên nhân là **phép tăng gồm đọc giá trị cũ, tính giá trị mới và ghi lại** (*read–modify–write*). Những bước logic này không được bảo vệ như một thao tác nguyên tử (*atomic operation*). Hai luồng có thể cùng đọc một giá trị ban đầu rồi ghi đè kết quả của nhau. Hiện tượng ấy gọi là **lost update** (mất cập nhật).
+The reason is that **incrementing consists of reading the old value, computing the new value, and writing it back** (*read–modify–write*). These logical steps are not protected as an *atomic operation*. Two threads can read the same initial value and overwrite each other's result. This phenomenon is called a **lost update**.
 
-Ví dụ, nếu `count = 0` và hai luồng mỗi luồng thực hiện một lần `count++`, ta mong đợi `count = 2`. Nhưng nếu không có đồng bộ hóa phù hợp, chương trình có thể chỉ lưu `1`. Việc một lần chạy cho ra `2` **không chứng minh** mã đúng, vì lịch xen kẽ giữa các luồng có thể khác ở lần chạy tiếp theo.
+For example, if `count = 0` and two threads each execute `count++` once, we expect `count = 2`. However, without proper synchronization, the program might store only `1`. Observing `2` in a single run **does not prove** the code is correct, because thread interleaving can differ on the next run.
 
-Bài học này giúp bạn phân biệt **tính nguyên tử**, **khả năng quan sát giá trị giữa các luồng** và **thứ tự thực thi**; từ đó dùng đúng `synchronized`, `AtomicInteger` và `LongAdder`.
+This lesson helps you distinguish **atomicity**, **visibility across threads**, and **execution ordering**; from there, you will use `synchronized`, `AtomicInteger`, and `LongAdder` appropriately.
 
-## 2. Phân rã count++: đọc, tính, ghi
+## 2. Decomposing count++: Read, Compute, Write
 
-Xét biến `int count`, biểu thức:
+Consider an `int count` variable and the expression:
 
 ```java
 count++;
 ```
 
-Có thể hình dung về mặt ngữ nghĩa như sau:
+Semantically, it can be pictured as follows:
 
 ```java
-int oldValue = count;          // (1) Đọc giá trị hiện tại
-int nextValue = oldValue + 1;  // (2) Tính kết quả mới
-count = nextValue;              // (3) Ghi kết quả
+int oldValue = count;          // (1) Read current value
+int nextValue = oldValue + 1;  // (2) Compute new result
+count = nextValue;              // (3) Write result
 ```
 
-Đây là **mô hình giải thích**, không phải cam kết rằng mọi JVM thực thi đúng ba lệnh máy hoặc ba bytecode. JIT và CPU có thể tối ưu cách thực hiện; tuy vậy, Java **không cung cấp hợp đồng nguyên tử** cho thao tác tăng một field `int` chia sẻ bằng `count++`.
+This is an **explanatory model**, not a guarantee that every JVM executes exactly three machine instructions or three bytecodes. The JIT and CPU may optimize execution; nevertheless, Java **does not provide an atomicity contract** for incrementing a shared `int` field with `count++`.
 
-| Thời điểm | Luồng A | Luồng B | Giá trị chia sẻ |
+| Step | Thread A | Thread B | Shared value |
 |---|---|---|---|
-| 1 | Đọc `count = 0` | Chưa chạy | `0` |
-| 2 | Giữ bản sao `oldA = 0` | Đọc `count = 0` | `0` |
-| 3 | Tính `0 + 1 = 1` | Tính `0 + 1 = 1` | `0` |
-| 4 | Ghi `count = 1` | Chưa ghi | `1` |
-| 5 | Đã xong | Ghi `count = 1` | `1` |
+| 1 | Reads `count = 0` | Not yet running | `0` |
+| 2 | Holds copy `oldA = 0` | Reads `count = 0` | `0` |
+| 3 | Computes `0 + 1 = 1` | Computes `0 + 1 = 1` | `0` |
+| 4 | Writes `count = 1` | Has not written yet | `1` |
+| 5 | Finished | Writes `count = 1` | `1` |
 
-Hai lần tăng xảy ra, nhưng giá trị cuối chỉ là **1**. Luồng B đã ghi đè kết quả của A; đó chính là lost update.
+Two increments occurred, yet the final value is only **1**. Thread B overwrote Thread A's result; that is a lost update.
 
-Kịch bản khác cũng có thể xảy ra: A hoàn tất ghi `1` trước khi B đọc, nên B đọc `1` và ghi `2`. Vì vậy race condition có thể lúc đúng, lúc sai tùy lịch chạy.
+Another scenario can also happen: A finishes writing `1` before B reads, so B reads `1` and writes `2`. Therefore, a race condition can appear correct sometimes and wrong other times depending on scheduling.
 
-### Phân biệt postfix và prefix
+### Distinguishing Postfix and Prefix
 
-- `count++` (*postfix*) tăng biến rồi trả về **giá trị cũ** của biểu thức.
-- `++count` (*prefix*) tăng biến rồi trả về **giá trị mới** của biểu thức.
-- `count += 1` cũng cần đọc, tính rồi ghi.
+- `count++` (*postfix*) increments the variable and returns the **old value** of the expression.
+- `++count` (*prefix*) increments the variable and returns the **new value** of the expression.
+- `count += 1` also requires reading, computing, and writing.
 
-Ba cách viết đều **không tự tạo thao tác nguyên tử** khi nhiều luồng đồng thời cập nhật cùng một biến `int` chia sẻ. Sự khác biệt giữa prefix và postfix liên quan đến giá trị của biểu thức, không liên quan đến an toàn luồng.
+None of these three forms **automatically creates an atomic operation** when multiple threads concurrently update the same shared `int` variable. The difference between prefix and postfix concerns the value of the expression, not thread safety.
 
-### Khi nào count++ bình thường là đủ?
+### When Is Plain count++ Enough?
 
-Nếu `count` là **biến cục bộ của một luồng** và không bị chia sẻ cho luồng khác, không có hai luồng cùng sửa nó nên không có lost update do cạnh tranh. Nguy cơ thường nằm ở field của đối tượng chia sẻ, `static` field, hoặc một phần tử mảng được nhiều luồng đọc/ghi.
+If `count` is a **local variable confined to a single thread** and is not shared with other threads, two threads cannot modify it concurrently, so there is no lost update from contention. The risk typically lies in fields of shared objects, `static` fields, or an array element read and written by multiple threads.
 
-Ngay cả khi riêng lẻ các lần đọc và ghi một `int` được thực hiện nguyên tử, **tổ hợp đọc–tăng–ghi** vẫn không nguyên tử. Không nên lấy thuộc tính của một lần đọc/ghi riêng làm suy luận cho toàn biểu thức.
+Even if individual reads and writes of an `int` are performed atomically, the **read–increment–write combination** is still not atomic. Do not infer properties of the entire expression from the properties of a single read or write.
 
-## 3. Chương trình Java 17+ tái hiện vấn đề một cách xác định
+## 3. A Java 17+ Program to Deterministically Reproduce the Issue
 
-Thử chạy nhiều luồng cùng viết `count++` có thể cho kết quả thay đổi qua mỗi lần chạy; rất khó dự đoán stdout chính xác. Ví dụ dưới đây dùng `CountDownLatch` để **buộc cả hai luồng cùng đọc giá trị cũ trước khi ghi**, qua đó tái hiện được một lịch xen kẽ gây mất cập nhật.
+Trying to run multiple threads executing `count++` can produce varying results across runs; predicting the exact stdout is difficult. The example below uses `CountDownLatch` to **force both threads to read the old value before writing**, thereby reproducing an interleaving that causes a lost update.
 
-Phần không an toàn dùng hai câu `snapshot = count` và `count = snapshot + 1` để **phơi bày** các bước của phép tăng; nó mô phỏng thành phần read–modify–write của `count++`, chứ không khẳng định mỗi lần chạy `count++` luôn bị xen ngang theo cùng một cách. Phần thứ hai dùng hai phương án sửa lỗi với 100.000 lần tăng trên mỗi luồng.
+The unsafe part uses two statements, `snapshot = count` and `count = snapshot + 1`, to **expose** the steps of the increment; it models the read–modify–write nature of `count++` rather than claiming every execution of `count++` is always interleaved the exact same way. The second part uses two fixes with 100,000 increments per thread.
 
-Tạo file **`IncrementDemo.java`**:
+Create **`IncrementDemo.java`**:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -138,14 +138,14 @@ public class IncrementDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac IncrementDemo.java
 java IncrementDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 two increments, actual: 1
@@ -153,39 +153,39 @@ synchronized: 200000
 AtomicInteger: 200000
 ```
 
-**Giải thích chi tiết:**
+**Detailed explanation:**
 
-1. Hai luồng `a` và `b` cùng giữ `snapshot = 0`. `bothRead.await()` ở luồng main đợi cả hai đã đọc, rồi mới gọi `allowWrite.countDown()` cho phép ghi.
-2. Mỗi luồng ghi `snapshot + 1 = 1`. Hai lần ghi trùng nhau khiến kết quả cuối `count == 1`. Đây là minh họa quyết định một lịch gây lost update.
-3. Với `synchronized (LOCK)`, mỗi lần `guardedCount++` được bảo vệ bởi cùng đối tượng khóa. Chỉ một luồng được ở trong vùng khóa trong cùng thời điểm.
-4. `atomicCount.incrementAndGet()` thực hiện nguyên tử phép tăng trên `AtomicInteger`. Hai luồng cùng gọi 100.000 lần, nên kết quả `200000`.
-5. `a.join()` và `b.join()` đảm bảo main chỉ đọc kết quả **sau khi hai luồng hoàn tất**. `join()` không làm cho những phép `count++` bên trong luồng trở thành nguyên tử; nó chỉ tạo điểm chờ và bảo đảm về thứ tự quan sát sau khi luồng kết thúc.
+1. Both threads `a` and `b` hold `snapshot = 0`. `bothRead.await()` on the main thread waits until both have read, and only then calls `allowWrite.countDown()` to allow writing.
+2. Each thread writes `snapshot + 1 = 1`. Two overlapping writes leave the final result `count == 1`. This deterministically demonstrates a schedule causing a lost update.
+3. With `synchronized (LOCK)`, each `guardedCount++` is protected by the same lock object. Only one thread can be inside the locked region at a time.
+4. `atomicCount.incrementAndGet()` performs an atomic increment on `AtomicInteger`. Both threads call it 100,000 times, resulting in `200000`.
+5. `a.join()` and `b.join()` ensure main reads the results only **after both threads complete**. `join()` does not make the `count++` operations inside the threads atomic; it only creates a wait point and guarantees observation ordering after the threads terminate.
 
-Với code sửa lỗi, dù lịch chạy của hai luồng thay đổi, tổng cuối vẫn chính xác khi không có thao tác sửa thêm và không xảy ra tràn số. Bản mã sai cố tình trình bày các bước rời để bạn nhìn thấy nguyên nhân.
+With the fixed code, even when the execution schedule of the two threads varies, the final total remains accurate as long as there are no other modifications and no integer overflow occurs. The broken code intentionally spells out the separate steps so you can see the root cause.
 
-## 4. Atomicity, visibility và happens-before là ba vấn đề riêng
+## 4. Atomicity, Visibility, and Happens-Before Are Three Distinct Concerns
 
-### Tính nguyên tử (atomicity)
+### Atomicity
 
-Một phép tăng nguyên tử phải quan sát được như một cập nhật không thể bị phép tăng khác chen vào giữa làm mất kết quả. Nếu bộ đếm ban đầu 0 và có 200.000 lần tăng nguyên tử đã hoàn tất, kết quả là 200.000 (giả sử không có thao tác sửa khác và chưa tràn `int`).
+An atomic increment must be observable as a single update that cannot be interleaved with another increment in a way that loses an update. If a counter starts at 0 and 200,000 atomic increments have completed, the result is 200,000 (assuming no other modifications and no `int` overflow).
 
-`count++` trên field không đồng bộ không có bảo đảm ấy; `AtomicInteger.incrementAndGet()` có bảo đảm này. `synchronized` có thể biến một vùng đọc–tính–ghi thành vùng không bị luồng khác dùng **cùng khóa** xen vào.
+`count++` on an unsynchronized field lacks this guarantee; `AtomicInteger.incrementAndGet()` has it. `synchronized` can turn a read–compute–write section into a region that cannot be entered concurrently by another thread using **the same lock**.
 
-### Khả năng nhìn thấy (visibility)
+### Visibility
 
-Một luồng có thể ghi dữ liệu nhưng luồng khác không nhất thiết nhìn thấy hiệu ứng ấy đúng lúc mong đợi nếu không có đồng bộ hóa thích hợp. Java Memory Model (JMM) quy định khi nào thay đổi của một luồng phải nhìn thấy đối với luồng khác.
+One thread may write data, yet another thread does not necessarily see that effect at the expected time without proper synchronization. The Java Memory Model (JMM) specifies when changes by one thread must become visible to another thread.
 
-Từ khóa `volatile` thiết lập một số bảo đảm visibility và ordering cho truy cập field; `synchronized` và các API đồng bộ cũng có quy tắc bộ nhớ riêng. Nhưng visibility **không tự bảo đảm** rằng hai thao tác đọc/ghi riêng lẻ được ghép thành một thao tác tăng nguyên tử.
+The `volatile` keyword establishes certain visibility and ordering guarantees for field accesses; `synchronized` and synchronization APIs also have their own memory rules. However, visibility **does not by itself guarantee** that two separate read and write operations are combined into a single atomic increment.
 
-### Thứ tự và quan hệ happens-before
+### Ordering and Happens-Before
 
-Quan hệ **happens-before** của JMM diễn đạt bảo đảm thứ tự/khả năng quan sát giữa các thao tác. Ví dụ, sau khi `Thread.join()` hoàn tất thành công, luồng gọi `join()` có thể quan sát các hành động của luồng đã kết thúc theo hợp đồng JMM. Việc mở và giải phóng cùng monitor cũng tạo quan hệ đồng bộ hóa tương ứng.
+The JMM's **happens-before** relationship expresses ordering and visibility guarantees between operations. For example, after `Thread.join()` completes successfully, the thread calling `join()` can observe the actions of the terminated thread under the JMM contract. Acquiring and releasing the same monitor also establishes the corresponding synchronization relationship.
 
-Dùng `join()` để chờ các luồng là đúng khi đọc **kết quả cuối**, nhưng `join()` được gọi sau khi các lần tăng diễn ra **không thể khôi phục** những cập nhật đã mất trước đó.
+Using `join()` to wait for threads is appropriate when reading the **final result**, but calling `join()` after increments have executed **cannot recover** updates that were already lost earlier.
 
-## 5. Vì sao volatile không giải quyết count++?
+## 5. Why Doesn't volatile Solve count++?
 
-Đây là đoạn mã **vẫn sai** khi nhiều luồng gọi đồng thời:
+The following code is **still broken** when called concurrently by multiple threads:
 
 ```java
 private volatile int count = 0;
@@ -195,29 +195,29 @@ public void increment() {
 }
 ```
 
-`volatile` cho tính chất của **mỗi lần đọc và ghi riêng**, nhưng `count++` có thể được xen kẽ như sau:
+`volatile` provides guarantees for **each individual read and write**, but `count++` can be interleaved as follows:
 
 ```text
-A: đọc count -> 10
-B: đọc count -> 10
-A: tính 11 và ghi count = 11
-B: tính 11 và ghi count = 11
+A: reads count -> 10
+B: reads count -> 10
+A: computes 11 and writes count = 11
+B: computes 11 and writes count = 11
 ```
 
-Bộ đếm kết thúc ở `11` thay vì `12`. Hai luồng không có một thao tác “đọc+ghi” nguyên tử; cả hai chỉ dùng các lần đọc/ghi volatile riêng biệt. Vì vậy:
+The counter ends at `11` instead of `12`. The two threads do not have an atomic "read+write" operation; both only perform separate volatile reads and writes. Therefore:
 
-- `volatile int count; count++;` **không an toàn** như bộ đếm chia sẻ có nhiều updater.
-- `volatile long count; count++;` cũng **không an toàn**.
-- `count += 1` cũng không giải quyết được lỗi lost update.
-- `volatile` phù hợp cho những giao thức chia sẻ giá trị/cờ trạng thái mà cập nhật không đòi hỏi read–modify–write nguyên tử.
+- `volatile int count; count++;` is **unsafe** as a shared counter with multiple updaters.
+- `volatile long count; count++;` is also **unsafe**.
+- `count += 1` does not fix the lost update bug either.
+- `volatile` is suitable for protocols sharing state values/flags whose updates do not require an atomic read–modify–write.
 
-Không nên phát biểu rằng chỉ cần “tránh cache CPU” là đủ để giải quyết. Đây là vấn đề về hợp đồng **atomicity** của toàn thao tác, không chỉ việc đọc dữ liệu mới nhất.
+You should not claim that simply "avoiding the CPU cache" is enough to solve this. This is an issue about the **atomicity** contract of the entire operation, not merely reading the latest data.
 
-## 6. Cách sửa bằng synchronized
+## 6. Fixing with synchronized
 
-`synchronized` tạo một vùng được bảo vệ bởi **monitor**. Nếu tất cả đường đọc/ghi bộ đếm đều tuân thủ **cùng một khóa**, chỉ một luồng được thực thi phần được bảo vệ tại một thời điểm.
+`synchronized` creates a region guarded by a **monitor**. If all read/write paths to the counter follow **the same lock**, only one thread executes the guarded section at a time.
 
-Ví dụ lớp counter:
+Counter class example:
 
 ```java
 public final class SynchronizedCounter {
@@ -233,9 +233,9 @@ public final class SynchronizedCounter {
 }
 ```
 
-Hai phương thức instance `synchronized` trên **cùng đối tượng `SynchronizedCounter`** cùng khóa `this`. Khi `increment()` khóa monitor, luồng khác gọi `get()` hoặc `increment()` trên chính instance đó phải chờ. Với cùng giao thức khóa, phép tăng được bảo vệ và kết quả đọc có bảo đảm visibility phù hợp.
+Two `synchronized` instance methods on **the same `SynchronizedCounter` object** lock on `this`. When `increment()` holds the monitor, another thread calling `get()` or `increment()` on that same instance must wait. With a consistent locking protocol, the increment is protected and reads have proper visibility guarantees.
 
-Cũng có thể viết:
+You can also write:
 
 ```java
 private final Object lock = new Object();
@@ -248,52 +248,52 @@ public void increment() {
 }
 ```
 
-Hai đoạn này là **ví dụ thành phần lớp**, không phải chương trình chạy độc lập có `main()`. Nếu ghép vào một lớp, dùng một kiểu khóa thống nhất cho mọi truy cập liên quan.
+These two snippets are **class member examples**, not standalone runnable programs with `main()`. If combined into a class, use one consistent locking discipline for all related accesses.
 
-Những điều kiện để sửa đúng:
+Conditions for a correct fix:
 
-- **Mọi updater** đều sử dụng cùng khóa; không có đoạn khác tăng `count++` bên ngoài vùng khóa.
-- Nếu cần quan sát nhất quán, **mọi reader** cũng phải tuân thủ giao thức tương ứng.
-- Không tạo một đối tượng `new Object()` riêng trong mỗi lần gọi để khóa; khóa khác nhau không loại trừ lẫn nhau.
-- Giữ vùng khóa đủ nhỏ khi hợp lý, đặc biệt không chèn I/O kéo dài mà không cần thiết vào khối khóa.
+- **Every updater** uses the same lock; no other code increments `count++` outside the locked region.
+- If consistent observation is needed, **every reader** must also follow the corresponding protocol.
+- Do not create a new `new Object()` per call to lock on; different locks do not exclude each other.
+- Keep the locked section reasonably small; in particular, avoid placing long-running I/O inside the lock block unnecessarily.
 
-`synchronized` phù hợp khi cần bảo vệ **nhiều bước hoặc nhiều field** theo một bất biến chung, ví dụ cập nhật counter đồng thời cập nhật một cấu trúc dữ liệu khác mà cả hai phải nhất quán.
+`synchronized` is appropriate when protecting **multiple steps or multiple fields** under a shared invariant, such as updating a counter while simultaneously updating another data structure so that both remain consistent.
 
-## 7. Cách sửa bằng AtomicInteger
+## 7. Fixing with AtomicInteger
 
-`java.util.concurrent.atomic.AtomicInteger` cung cấp giá trị `int` cùng các API cập nhật nguyên tử:
+`java.util.concurrent.atomic.AtomicInteger` provides an `int` value along with atomic update APIs:
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
 
 AtomicInteger count = new AtomicInteger(0);
 
-int afterFirst = count.incrementAndGet(); // Tăng, trả giá trị mới: 1
-int beforeSecond = count.getAndIncrement(); // Tăng, trả giá trị cũ: 1
-int afterAdd = count.addAndGet(5);         // Tăng thêm 5, trả 7
-int current = count.get();                // Đọc 7
+int afterFirst = count.incrementAndGet(); // Increment, return new value: 1
+int beforeSecond = count.getAndIncrement(); // Increment, return old value: 1
+int afterAdd = count.addAndGet(5);         // Add 5, return 7
+int current = count.get();                // Read 7
 ```
 
-`incrementAndGet()` có ngữ nghĩa **trả về giá trị sau khi tăng**, tương tự `++count`; `getAndIncrement()` **trả về giá trị trước khi tăng**, tương tự `count++`. Điểm khác quyết định là cả hai phương thức `AtomicInteger` cung cấp **cập nhật nguyên tử** đối với instance đó.
+`incrementAndGet()` has the semantics of **returning the value after incrementing**, similar to `++count`; `getAndIncrement()` **returns the value before incrementing**, similar to `count++`. The crucial difference is that both `AtomicInteger` methods provide **atomic updates** on that instance.
 
-Ví dụ khi hai luồng cùng gọi `getAndIncrement()` và bộ đếm ban đầu 0: hai giá trị trả về tương ứng là `0` và `1` (không thể xác định trước luồng nào nhận giá trị nào); sau khi cả hai hoàn tất, `get()` là `2`.
+For example, when two threads concurrently call `getAndIncrement()` and the counter starts at 0: the two return values are `0` and `1` respectively (which thread gets which is nondeterministic); after both complete, `get()` is `2`.
 
-**Đừng tách cập nhật thành hai lời gọi:**
+**Do not split the update into two calls:**
 
 ```java
-count.set(count.get() + 1); // VẪN CÓ THỂ LOST UPDATE
-count.incrementAndGet();    // CẬP NHẬT NGUYÊN TỬ
+count.set(count.get() + 1); // CAN STILL LOSE UPDATES
+count.incrementAndGet();    // ATOMIC UPDATE
 ```
 
-`get()` và `set()` riêng lẻ có bảo đảm của API, nhưng ghép chúng bằng một biểu thức Java **không tạo thành một cập nhật nguyên tử**. Nếu logic phức tạp phụ thuộc giá trị cũ, xét `updateAndGet(...)`, `getAndUpdate(...)`, `compareAndSet(expected, update)` hoặc `accumulateAndGet(...)`.
+`get()` and `set()` individually have the API's guarantees, but combining them in a Java expression **does not form a single atomic update**. If complex logic depends on the old value, consider `updateAndGet(...)`, `getAndUpdate(...)`, `compareAndSet(expected, update)`, or `accumulateAndGet(...)`.
 
-Nhiều thuật toán atomic dựa trên compare-and-set (CAS) và có thể thử lại khi cạnh tranh. Vì vậy, hàm cập nhật truyền vào `updateAndGet`/`accumulateAndGet` nên không chứa side effect ngoài việc tính giá trị mới: hàm có thể được chạy lại khi cập nhật chưa thành công.
+Many atomic algorithms rely on compare-and-set (CAS) and may retry under contention. Therefore, update functions passed to `updateAndGet`/`accumulateAndGet` should have no side effects other than computing the new value: the function may be re-invoked if an update attempt fails.
 
-**Giới hạn:** `AtomicInteger` bảo vệ **một giá trị `int`**, không tự biến một chuỗi cập nhật nhiều field hoặc nhiều đối tượng thành một giao dịch nguyên tử. Nếu cần cấp số thứ tự duy nhất và tăng nguyên tử, `getAndIncrement()` thường phù hợp; nếu cần nhiều field đồng bộ, nên có giao thức khóa bao quát.
+**Limitation:** `AtomicInteger` protects **a single `int` value**; it does not automatically turn a sequence of updates across multiple fields or multiple objects into an atomic transaction. If you need unique sequential numbers with atomic increments, `getAndIncrement()` is usually suitable; if multiple fields must stay synchronized, use an overarching locking protocol.
 
-## 8. LongAdder dành cho bộ đếm thống kê có tranh chấp cao
+## 8. LongAdder for High-Contention Statistical Counters
 
-`java.util.concurrent.atomic.LongAdder` hữu ích khi **rất nhiều luồng cùng tăng bộ đếm thống kê**. Nó có thể phân tán cập nhật vào nhiều thành phần nội bộ để giảm tranh chấp, thay vì buộc tất cả tranh chấp một giá trị như `AtomicInteger`.
+`java.util.concurrent.atomic.LongAdder` is useful when **many threads concurrently increment a statistical counter**. It can stripe updates across multiple internal cells to reduce contention, instead of forcing all threads to contend on a single value like `AtomicInteger`.
 
 ```java
 import java.util.concurrent.atomic.LongAdder;
@@ -304,65 +304,65 @@ requests.add(5L);
 long currentEstimate = requests.sum();
 ```
 
-Điểm cần phân biệt:
+Key distinctions:
 
-- `LongAdder.increment()` cho phép tích lũy các lần tăng đồng thời.
-- **`sum()` không phải snapshot nguyên tử** khi các luồng khác vẫn đang cập nhật. Kết quả trong lúc chạy có thể không phản ánh một trạng thái tuyến tính duy nhất.
-- Sau khi các updater đã kết thúc và có đồng bộ hóa để đợi chúng hoàn tất, `sum()` có thể dùng để lấy tổng cuối.
-- `LongAdder` không cung cấp một kết quả `getAndIncrement()` để cấp ID tăng tuần tự; không dùng nó nếu mọi lần tăng phải trả về số thứ tự nguyên tử độc nhất.
+- `LongAdder.increment()` allows accumulating concurrent increments.
+- **`sum()` is not an atomic snapshot** while other threads are still updating. The result during execution may not reflect a single linearized state.
+- After updaters have finished and synchronization has waited for their completion, `sum()` can be used to obtain the final total.
+- `LongAdder` does not provide a `getAndIncrement()` result to issue sequential IDs; do not use it if every increment must return a unique atomic sequence number.
 
-`LongAdder` thích hợp với bộ đếm request, sự kiện, đo thống kê thông lượng cao. `AtomicInteger` phù hợp hơn khi cần một counter cập nhật nguyên tử với giá trị đọc/ghi theo từng thao tác. Không mặc định `LongAdder` luôn nhanh hơn: hiệu năng phụ thuộc mức cạnh tranh và khối lượng công việc; hãy đo khi tối ưu hóa thực tế.
+`LongAdder` fits request counters, event counters, and high-throughput metrics. `AtomicInteger` is a better fit when you need an atomically updated counter with per-operation read/write values. Do not assume `LongAdder` is always faster: performance depends on contention levels and workload; measure when optimizing in practice.
 
-## 9. Bảng lựa chọn và những lỗi thường gặp
+## 9. Decision Table and Common Mistakes
 
-| Cách viết | An toàn với nhiều luồng cùng tăng? | Lý do |
+| Approach | Safe for concurrent increments by multiple threads? | Reason |
 |---|---|---|
-| `int count; count++;` | Không, nếu cùng chia sẻ mà thiếu đồng bộ | Read–modify–write có thể xen kẽ |
-| `volatile int count; count++;` | Không | Visibility không tạo cập nhật nguyên tử |
-| `count += 1` hoặc `++count` | Không, khi biến chia sẻ không đồng bộ | Cùng nguyên nhân |
-| `synchronized (sameLock) { count++; }` | Có, nếu mọi truy cập tuân thủ khóa | Bảo vệ cả đoạn đọc–tính–ghi |
-| `AtomicInteger.incrementAndGet()` | Có | Phép tăng nguyên tử |
-| `AtomicInteger.set(get() + 1)` | Không | Hai lời gọi riêng lẻ, có thể bị xen ngang |
-| `LongAdder.increment()` | Có thể dùng để tích lũy đồng thời | `sum()` không là snapshot nguyên tử giữa các cập nhật |
-| Biến đếm cục bộ chỉ do một luồng sử dụng | Có với mục đích tăng thông thường | Không có race do chia sẻ |
+| `int count; count++;` | No, if shared without synchronization | Read–modify–write can interleave |
+| `volatile int count; count++;` | No | Visibility does not create an atomic update |
+| `count += 1` or `++count` | No, on an unsynchronized shared variable | Same reason |
+| `synchronized (sameLock) { count++; }` | Yes, if all accesses obey the lock | Protects the entire read–compute–write section |
+| `AtomicInteger.incrementAndGet()` | Yes | Atomic increment |
+| `AtomicInteger.set(get() + 1)` | No | Two separate calls; can be interleaved |
+| `LongAdder.increment()` | Can be used for concurrent accumulation | `sum()` is not an atomic snapshot between updates |
+| Local counter used by a single thread only | Yes for normal incrementing | No race due to sharing |
 
-### Sai lầm: “Chạy thử vẫn thấy đủ”
+### Mistake: "It Passed When I Tested It"
 
-Race phụ thuộc lịch luồng. Một lượt thực thi có kết quả đúng không đủ chứng minh an toàn. Hãy xây dựng phép thử cho các **lịch xen kẽ gây nguy cơ**, như ví dụ dùng latch. Với bộ đếm đúng, kiểm tra tổng sau khi tất cả tác vụ hoàn tất.
+Races depend on thread scheduling. One execution producing the right result does not prove thread safety. Write tests for **risky interleavings**, like the latch example. For a proper counter, verify the total after all tasks complete.
 
-### Sai lầm: khóa mỗi nơi một object
+### Mistake: Locking on Different Objects in Different Places
 
-`synchronized(lockA)` không bảo vệ khỏi luồng khác dùng `synchronized(lockB)` nếu `lockA != lockB`. Hai luồng sẽ chạy đồng thời trên hai monitor khác nhau. Khi một trạng thái dùng chung được bảo vệ bằng khóa, quy tắc khóa phải thống nhất trên mọi đường truy cập.
+`synchronized(lockA)` does not protect against another thread using `synchronized(lockB)` if `lockA != lockB`. The two threads will run concurrently on two different monitors. When shared state is guarded by a lock, the locking rule must be uniform across every access path.
 
-### Sai lầm: tưởng mọi hành động với AtomicInteger đều nguyên tử như một nhóm
+### Mistake: Assuming Every Sequence of AtomicInteger Calls Is Atomic as a Group
 
-`incrementAndGet()` là cập nhật nguyên tử, nhưng hai lời gọi liên tiếp, chẳng hạn `get()` rồi `set()` hoặc cập nhật hai đối tượng `AtomicInteger`, không tự tạo một giao dịch nguyên tử tổng thể. Nếu bất biến trải qua nhiều trạng thái, cần cơ chế thiết kế/khóa phù hợp.
+`incrementAndGet()` is an atomic update, but two consecutive calls—such as `get()` followed by `set()`, or updating two `AtomicInteger` objects—do not automatically form an overall atomic transaction. If an invariant spans multiple states, use an appropriate design or locking mechanism.
 
-### Sai lầm: đọc tổng trước khi nhiệm vụ hoàn tất
+### Mistake: Reading the Total Before Tasks Finish
 
-Ngay cả một counter nguyên tử vẫn đang tăng khi các worker đang chạy. `get()` giữa chừng không nhất thiết bằng kết quả cuối dự kiến. Đợi tất cả nhiệm vụ xong (`join()`, `Future.get()` hoặc primitive tương đương), rồi đọc.
+Even an atomic counter is still incrementing while workers are running. A mid-flight `get()` does not necessarily equal the expected final result. Wait for all tasks to finish (`join()`, `Future.get()`, or an equivalent primitive), then read.
 
-### Sai lầm: quên giới hạn miền int
+### Mistake: Forgetting int Range Limits
 
-`int` có phạm vi từ `-2_147_483_648` đến `2_147_483_647`. `count++` và `AtomicInteger.incrementAndGet()` đều tuân theo ngữ nghĩa tràn của số nguyên 32-bit; tăng quá `Integer.MAX_VALUE` sẽ quay về `Integer.MIN_VALUE`. Nếu tổng có thể lớn hơn, cân nhắc `AtomicLong`, `LongAdder` và chính sách kiểm tra ngưỡng nghiệp vụ. **Tính nguyên tử không đồng nghĩa chống tràn số**.
+`int` ranges from `-2_147_483_648` to `2_147_483_647`. Both `count++` and `AtomicInteger.incrementAndGet()` follow 32-bit integer overflow semantics; incrementing past `Integer.MAX_VALUE` wraps around to `Integer.MIN_VALUE`. If the total can exceed this, consider `AtomicLong`, `LongAdder`, and a business threshold check policy. **Atomicity does not prevent integer overflow**.
 
-### Sai lầm: đọc/ghi không tuân thủ cùng giao thức
+### Mistake: Reads/Writes Not Following the Same Protocol
 
-Nếu một method `synchronized` tăng `count` nhưng method khác trực tiếp gán `count = 0` mà không khóa, bộ đếm không còn có bảo đảm nhất quán. Giữ field ở mức `private` và tập trung các thao tác vào các method cùng giao thức khóa hoặc cùng đối tượng atomic.
+If a `synchronized` method increments `count` while another method directly assigns `count = 0` without locking, the counter no longer has consistency guarantees. Keep fields `private` and centralize operations into methods following the same locking protocol or using the same atomic object.
 
-## 10. Quy trình ứng dụng
+## 10. Practical Workflow
 
-1. **Xác định quyền sở hữu biến:** nó chỉ sống trong một thread hay được nhiều thread đọc/ghi?
-2. **Xác định yêu cầu:** chỉ cần tổng cuối cùng; cần trả ID tăng từng lần; hay cần giữ nhiều field đồng bộ?
-3. **Một bộ đếm chia sẻ với thao tác tăng đơn lẻ:** dùng `AtomicInteger` hoặc `AtomicLong` và các method cập nhật nguyên tử.
-4. **Đoạn cập nhật nhiều bước hoặc nhiều field:** dùng `synchronized` hoặc cơ chế khóa phù hợp, nhất quán ở mọi đường truy cập.
-5. **Thống kê có rất nhiều updater và không đòi snapshot nguyên tử khi chạy:** cân nhắc `LongAdder`.
-6. **Kiểm thử:** mô phỏng được tình huống race, xác nhận nguyên nhân; sau sửa, đợi worker hoàn tất và kiểm tra tổng cuối cùng cùng các bất biến liên quan.
+1. **Determine variable ownership:** does it live within a single thread, or is it read/written by multiple threads?
+2. **Identify requirements:** only need a final total; need to return an incremented ID per call; or need to keep multiple fields synchronized?
+3. **Single shared counter with standalone increments:** use `AtomicInteger` or `AtomicLong` and their atomic update methods.
+4. **Multi-step or multi-field updates:** use `synchronized` or an appropriate lock mechanism consistently across all access paths.
+5. **High-contention statistics without requiring an atomic snapshot mid-run:** consider `LongAdder`.
+6. **Testing:** reproduce race scenarios to confirm the cause; after fixing, wait for workers to complete and verify the final total along with related invariants.
 
-**Tự kiểm tra 1:** Hai luồng đều gọi `count++` trên `volatile int count = 0` đúng một lần. Có chắc `count == 2` không? **Không**, vì cả hai vẫn có thể đọc 0 trước khi ghi 1.
+**Self-check 1:** Two threads each call `count++` once on `volatile int count = 0`. Is `count == 2` guaranteed? **No**, because both can still read 0 before writing 1.
 
-**Tự kiểm tra 2:** Với `AtomicInteger` ban đầu bằng 0, hai lần `getAndIncrement()` trả giá trị nào? Theo một thứ tự cập nhật nguyên tử, chúng trả `0` rồi `1`; kết quả cuối là `2`. Không xác định trước **luồng nào** nhận từng giá trị.
+**Self-check 2:** With an `AtomicInteger` initialized to 0, what values do two `getAndIncrement()` calls return? Under an atomic update ordering, they return `0` and then `1`; the final result is `2`. You cannot predict in advance **which thread** receives which value.
 
-**Tự kiểm tra 3:** Main gọi `join()` sau khi hai worker tăng `int count` không đồng bộ. Điều đó tự sửa được lost update không? **Không**. `join()` giúp chờ và quan sát sau khi các luồng kết thúc; nó không bảo vệ phần tăng đã diễn ra.
+**Self-check 3:** Main calls `join()` after two workers increment an unsynchronized `int count`. Does that automatically fix lost updates? **No**. `join()` helps wait and observe after threads finish; it does not protect the increments that already occurred.
 
-**Ghi nhớ:** `count++` là biểu thức đọc – tính – ghi, **không phải cập nhật nguyên tử** khi nhiều luồng cùng sửa một biến chia sẻ. `volatile` xử lý vấn đề quan sát bộ nhớ, còn `synchronized` và `AtomicInteger` tạo bảo đảm cập nhật phù hợp; `LongAdder` dành cho bộ đếm thống kê tranh chấp cao với giới hạn khác về việc lấy tổng.
+**Takeaway:** `count++` is a read–compute–write expression, **not an atomic update** when multiple threads modify a shared variable. `volatile` addresses memory visibility, while `synchronized` and `AtomicInteger` provide the necessary update guarantees; `LongAdder` targets high-contention statistical counters with different semantics for reading the sum.

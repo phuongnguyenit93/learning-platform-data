@@ -1,30 +1,30 @@
-# BreakIterator: following, preceding, isBoundary và chỉ số UTF-16 trong Java
+# BreakIterator: following, preceding, isBoundary, and UTF-16 Indexes in Java
 
-Khi người dùng đặt con trỏ vào giữa một chuỗi, muốn chọn từ gần nhất, di chuyển một “ký tự nhìn thấy” hoặc cắt một đoạn văn bản, **chỉ số của Java `String` không nhất thiết là ranh giới mà người dùng mong muốn**. Java có `java.text.BreakIterator` để tìm các ranh giới văn bản (*text boundaries*) theo các quy tắc phù hợp từng loại: ký tự, từ, dòng và câu. Ba phương thức rất dễ nhầm là **`following(int)`**, **`preceding(int)`** và **`isBoundary(int)`**.
+When a user places the cursor in the middle of a string, wants to select the nearest word, move by one "visible character", or slice a text segment, **the index of a Java `String` is not necessarily the boundary the user expects**. Java provides `java.text.BreakIterator` to find text boundaries according to rules suited to each type: character, word, line, and sentence. Three methods that are very easy to confuse are **`following(int)`**, **`preceding(int)`**, and **`isBoundary(int)`**.
 
-Bài này giải thích chi tiết:
+This lesson explains in detail:
 
-- Ranh giới thực chất là **vị trí giữa các đơn vị mã UTF-16**, không phải số thứ tự từ.
-- `following(offset)` tìm biên **lớn hơn hẳn** `offset`; `preceding(offset)` tìm biên **nhỏ hơn hẳn** `offset`; `isBoundary(offset)` kiểm tra **chính offset**.
-- `BreakIterator.DONE`, trường hợp đầu/cuối chuỗi, offset không hợp lệ và trạng thái hiện hành của iterator.
-- Vì sao emoji, ký tự ngoài BMP và dấu kết hợp khiến `String.length()`, `codePointCount` và “ký tự người dùng nhìn thấy” khác nhau.
-- Cách dùng kết quả biên với `substring` và xử lý vùng chọn/di chuyển con trỏ.
-- Vì sao không thể lấy chỉ số theo code point, byte UTF-8 hoặc số từ rồi truyền thẳng cho `following`.
+- A boundary is actually a **position between UTF-16 code units**, not a word ordinal number.
+- `following(offset)` finds the boundary **strictly greater than** `offset`; `preceding(offset)` finds the boundary **strictly less than** `offset`; `isBoundary(offset)` checks **`offset` itself**.
+- `BreakIterator.DONE`, start/end-of-string cases, invalid offsets, and the iterator's current state.
+- Why emojis, non-BMP characters, and combining marks make `String.length()`, `codePointCount`, and "user-visible characters" differ.
+- How to use boundary results with `substring` and handle selection/cursor movement.
+- Why you cannot take code point indexes, UTF-8 byte offsets, or word counts and pass them directly to `following`.
 
-Ví dụ dành cho **Java 17+**, dùng `Locale.ROOT` hoặc locale tường minh và các đoạn đầu ra xác định được; với quy tắc phân tách từ/câu phụ thuộc dữ liệu locale của JDK, bài tập trung vào **bất biến API** thay vì khẳng định mọi bản JDK phải chia từ giống hệt nhau.
+The examples target **Java 17+**, using `Locale.ROOT` or an explicit locale and deterministic output snippets; for word/sentence segmentation rules that depend on JDK locale data, the lesson focuses on **API invariants** rather than asserting that every JDK version splits words identically.
 
-## 1. BreakIterator là gì?
+## 1. What Is BreakIterator?
 
-`BreakIterator` là một abstract class trong package `java.text`. Ta lấy triển khai từ factory:
+`BreakIterator` is an abstract class in the `java.text` package. You obtain an implementation from a factory:
 
-| Factory | Mục đích |
+| Factory | Purpose |
 | --- | --- |
-| `BreakIterator.getCharacterInstance(locale)` | Các ranh giới đơn vị văn bản được dùng cho dịch chuyển ký tự; không chỉ đơn giản là một UTF-16 `char` |
-| `BreakIterator.getWordInstance(locale)` | Ranh giới của các đoạn có thể gồm từ, khoảng trắng và dấu câu |
-| `BreakIterator.getLineInstance(locale)` | Các điểm có thể ngắt dòng theo quy tắc ngôn ngữ |
-| `BreakIterator.getSentenceInstance(locale)` | Ranh giới câu |
+| `BreakIterator.getCharacterInstance(locale)` | Text-unit boundaries used for character navigation; not simply a single UTF-16 `char` |
+| `BreakIterator.getWordInstance(locale)` | Boundaries of segments that may include words, whitespace, and punctuation |
+| `BreakIterator.getLineInstance(locale)` | Positions where lines may break according to language rules |
+| `BreakIterator.getSentenceInstance(locale)` | Sentence boundaries |
 
-Một instance chỉ làm việc với **văn bản đã được gán**:
+An instance works only on **the assigned text**:
 
 ```java
 import java.text.BreakIterator;
@@ -35,13 +35,13 @@ BreakIterator boundaries =
 boundaries.setText("Hello, Việt Nam!");
 ```
 
-Đây là **fragment**, cần nằm trong phương thức Java. Sau `setText`, iterator biết chuỗi cần quét. Các lời gọi `first()`, `last()`, `next()`, `previous()`, `following(...)`, `preceding(...)` có thể cập nhật **vị trí hiện hành**.
+This is a **fragment** and must be placed inside a Java method. After `setText`, the iterator knows which string to scan. Calls to `first()`, `last()`, `next()`, `previous()`, `following(...)`, and `preceding(...)` can update the **current position**.
 
-`BreakIterator` không tự cắt hoặc xóa chuỗi; nó trả về **offset**. Việc lấy nội dung tương ứng thường dùng `String.substring(start, end)` với hai chỉ số đã kiểm tra.
+`BreakIterator` does not slice or delete strings itself; it returns **offsets**. Extracting the corresponding content typically uses `String.substring(start, end)` with two validated indexes.
 
-### Một biên là một vị trí, không phải một ký tự
+### A Boundary Is a Position, Not a Character
 
-Chuỗi `"cat"` có ba đơn vị mã UTF-16, nhưng có **bốn vị trí biên** có thể có:
+The string `"cat"` has three UTF-16 code units, yet has **four possible boundary positions**:
 
 ```text
 String:            c   a   t
@@ -50,88 +50,88 @@ Boundary slots:   0 | 1 | 2 | 3
                  ^   ^   ^   ^
 ```
 
-Với `getCharacterInstance`, một chuỗi ASCII đơn giản như `"cat"` có các biên `0, 1, 2, 3`. Biên `3` là **cuối chuỗi** (`String.length()`), không phải chỉ số một ký tự tồn tại tại vị trí 3.
+With `getCharacterInstance`, a simple ASCII string like `"cat"` has boundaries `0, 1, 2, 3`. Boundary `3` is the **end of the string** (`String.length()`), not the index of a character existing at position 3.
 
-Các ranh giới từ hoặc câu thường **thưa hơn** ranh giới ký tự: khoảng từ `start` đến `end` có thể chứa nhiều UTF-16 code units. Bản chất “boundary” phụ thuộc loại iterator được chọn.
+Word or sentence boundaries are usually **sparser** than character boundaries: the interval from `start` to `end` can contain many UTF-16 code units. The exact meaning of "boundary" depends on the chosen iterator type.
 
-## 2. Tại sao offset là UTF-16, không phải code point?
+## 2. Why Are Offsets UTF-16, Not Code Points?
 
-Java `String` lưu chuỗi theo **các đơn vị mã UTF-16**. Một ký tự Unicode ở BMP thường chiếm một đơn vị mã `char`; nhiều code point ngoài BMP cần **hai** `char` tạo thành surrogate pair.
+Java `String` stores strings as **UTF-16 code units**. A Unicode character in the BMP typically occupies one `char` code unit; many non-BMP code points require **two** `char` values forming a surrogate pair.
 
-Ví dụ `"A😀B"`:
+Example `"A😀B"`:
 
 ```text
-Nội dung nhìn thấy:       A       😀       B
+Visible content:         A       😀       B
 Code point:             U+0041  U+1F600   U+0042
-Số code point:             1       1        1
-Số đơn vị mã UTF-16:       1       2        1
+Code point count:          1       1        1
+UTF-16 code units:         1       2        1
 UTF-16 offsets:         0   1   2   3   4
                         | A | hi  lo | B |
-Boundary ký tự:         0   1       3   4
+Character boundaries:   0   1       3   4
                                 ^^^^^
-                          hai đơn vị mã cho 😀
+                          two code units for 😀
 ```
 
-`String.length()` của chuỗi là **4**, còn `codePointCount(0, length())` là **3**. Chỉ số UTF-16 `2` nằm **giữa high surrogate và low surrogate**: nó không phải vị trí hợp lệ để tách đôi emoji như một ký tự hoàn chỉnh.
+The string's `String.length()` is **4**, while `codePointCount(0, length())` is **3**. UTF-16 index `2` lies **between the high surrogate and low surrogate**: it is not a valid position to split the emoji in half as a complete character.
 
-Các API sau trả hoặc nhận **UTF-16 index**:
+The following APIs return or accept **UTF-16 indexes**:
 
 - `String.length()`, `String.charAt(index)`, `String.substring(begin, end)`.
-- `String.offsetByCodePoints(index, count)`: **trả về** chỉ số UTF-16 sau khi dịch theo code points.
-- `BreakIterator.first()/next()/following()/preceding()/current()`, với văn bản được cấp bằng `setText(String)`.
-- `StringCharacterIterator` với range phù hợp, nhưng có thể có **beginIndex khác 0**, cần lưu ý khi chuyển offset.
+- `String.offsetByCodePoints(index, count)`: **returns** a UTF-16 index after advancing by code points.
+- `BreakIterator.first()/next()/following()/preceding()/current()`, when text is provided via `setText(String)`.
+- `StringCharacterIterator` with an appropriate range, though it may have a **non-zero `beginIndex`**, which must be accounted for when converting offsets.
 
-**Không truyền số thứ tự code point như offset UTF-16.** Muốn đổi vị trí “sau 2 code point kể từ đầu” thành UTF-16 offset, dùng `text.offsetByCodePoints(0, 2)`. Tuy nhiên, **biên code point vẫn chưa chắc là biên ký tự nhìn thấy**, vì một grapheme có thể chứa nhiều code points như chữ với dấu kết hợp.
+**Do not pass a code point ordinal as a UTF-16 offset.** To convert the position "after 2 code points from the start" into a UTF-16 offset, use `text.offsetByCodePoints(0, 2)`. Even so, **a code point boundary is still not guaranteed to be a visible character boundary**, because a grapheme can contain multiple code points such as a letter with combining marks.
 
-## 3. following(offset): biên đầu tiên *sau* một offset
+## 3. following(offset): The First Boundary *After* an Offset
 
-`following(int offset)` trả về **biên đầu tiên có vị trí lớn hơn hẳn offset**:
+`following(int offset)` returns **the first boundary at a position strictly greater than `offset`**:
 
 ```text
 following(offset) = min { b ∈ B | b > offset }
 ```
 
-Ở đây `B` là tập biên của iterator với văn bản đang xét. Nếu không còn biên nào sau offset, phương thức trả về `BreakIterator.DONE`.
+Here `B` is the iterator's set of boundaries for the given text. If no boundary exists after `offset`, the method returns `BreakIterator.DONE`.
 
-**Tính chất cần nhớ:**
+**Properties to remember:**
 
-- Nếu `offset` **đang là một boundary**, `following(offset)` **không** trả lại chính offset: nó tìm biên kế tiếp.
-- Nếu `offset` **nằm giữa hai boundary**, kết quả là biên ở phía sau.
-- Nếu `offset == lastBoundary`, kết quả là `DONE`.
-- `offset` nằm ngoài vùng văn bản cho phép khiến `following` ném `IllegalArgumentException`.
-- Khi thành công, iterator chuyển current position tới biên được trả về; khi offset đã ở last boundary và kết quả `DONE`, trạng thái current không bị đổi theo hợp đồng API.
+- If `offset` **is already a boundary**, `following(offset)` does **not** return `offset` itself: it finds the next boundary.
+- If `offset` **lies between two boundaries**, the result is the boundary after it.
+- If `offset == lastBoundary`, the result is `DONE`.
+- An `offset` outside the allowed text range causes `following` to throw `IllegalArgumentException`.
+- On success, the iterator moves its current position to the returned boundary; when `offset` is already at the last boundary and the result is `DONE`, the current state is not moved past the end per the API contract.
 
-Ví dụ có biên `0, 2, 5`:
+Example with boundaries `0, 2, 5`:
 
-| Gọi | Kết quả | Vì sao |
+| Call | Result | Why |
 | --- | --- | --- |
-| `following(0)` | `2` | Biên đầu tiên lớn hơn 0 |
-| `following(1)` | `2` | 1 nằm giữa 0 và 2 |
-| `following(2)` | `5` | Không trả về chính 2 |
-| `following(4)` | `5` | 4 nằm trong đoạn 2–5 |
-| `following(5)` | `DONE` | Đã ở biên cuối |
+| `following(0)` | `2` | First boundary greater than 0 |
+| `following(1)` | `2` | 1 lies between 0 and 2 |
+| `following(2)` | `5` | Does not return 2 itself |
+| `following(4)` | `5` | 4 lies inside segment 2–5 |
+| `following(5)` | `DONE` | Already at the last boundary |
 
-Bảng là **minh họa theo tập biên giả định**; không phải lời khẳng định một câu tiếng Việt nào đó nhất định có các boundary `0, 2, 5` ở mọi JDK.
+This table is an **illustration based on a hypothetical boundary set**; it is not an assertion that any given Vietnamese sentence must have boundaries `0, 2, 5` on every JDK.
 
-## 4. preceding(offset): biên cuối cùng *trước* một offset
+## 4. preceding(offset): The Last Boundary *Before* an Offset
 
-`preceding(int offset)` trả về **biên cuối cùng nhỏ hơn hẳn offset**:
+`preceding(int offset)` returns **the last boundary strictly less than `offset`**:
 
 ```text
 preceding(offset) = max { b ∈ B | b < offset }
 ```
 
-Đây là đối xứng về ý nghĩa với `following`:
+This is semantically symmetric to `following`:
 
-- Nếu `offset` đang là biên, `preceding(offset)` vẫn đi **lùi sang biên trước**, không trả lại chính offset.
-- Nếu offset ở bên trong đoạn, trả về biên bên trái.
-- Nếu `offset == firstBoundary`, trả `DONE`.
-- Ngoài phạm vi văn bản, ném `IllegalArgumentException`.
-- Khi thành công, current position được chuyển đến biên trả về; trường hợp ở first boundary, kết quả `DONE` không khiến current di chuyển ngoài phạm vi.
+- If `offset` is itself a boundary, `preceding(offset)` still steps **backward to the prior boundary**, not returning `offset` itself.
+- If `offset` is inside a segment, it returns the left-hand boundary.
+- If `offset == firstBoundary`, it returns `DONE`.
+- Out of text range, it throws `IllegalArgumentException`.
+- On success, the current position moves to the returned boundary; at the first boundary, returning `DONE` does not move `current` out of range.
 
-Với cùng tập biên `0, 2, 5`:
+With the same boundary set `0, 2, 5`:
 
-| Gọi | Kết quả |
+| Call | Result |
 | --- | --- |
 | `preceding(0)` | `DONE` |
 | `preceding(1)` | `0` |
@@ -139,13 +139,13 @@ Với cùng tập biên `0, 2, 5`:
 | `preceding(4)` | `2` |
 | `preceding(5)` | `2` |
 
-**Bẫy off-by-one:** người dùng click đúng ở biên giữa hai từ. Nếu muốn “từ chứa vị trí này”, ta phải xác định chính sách chọn **đoạn bên trái hay bên phải**, không đơn giản gọi cả `following(offset)` và `preceding(offset)` mà mặc định đó là hai đầu của một từ duy nhất.
+**Off-by-one trap:** the user clicks right on the boundary between two words. If you want "the word containing this position", you must define a policy choosing **the left segment or the right segment**, rather than simply calling both `following(offset)` and `preceding(offset)` and assuming they bracket a single word.
 
-## 5. isBoundary(offset): kiểm tra *chính vị trí đó*
+## 5. isBoundary(offset): Checking *That Exact Position*
 
-`isBoundary(int offset)` trả về `true` khi **chính offset** thuộc tập biên của iterator, ngược lại trả `false`. Nó không hỏi “offset có nằm trong một từ hay không”.
+`isBoundary(int offset)` returns `true` when **`offset` itself** belongs to the iterator's boundary set, and `false` otherwise. It does not ask "is `offset` inside a word".
 
-Ví dụ với `B = {0, 2, 5}`:
+Example with `B = {0, 2, 5}`:
 
 ```text
 isBoundary(0) = true
@@ -155,16 +155,16 @@ isBoundary(3) = false
 isBoundary(5) = true
 ```
 
-Các điểm cần lưu ý:
+Points to note:
 
-1. **Đầu và cuối văn bản** thường là boundary hợp lệ; đối với `setText(String)`, dải offset là `0..text.length()` (bao gồm hai đầu).
-2. `isBoundary(-1)` hay `isBoundary(text.length()+1)` ném `IllegalArgumentException`, không chỉ trả `false`.
-3. Không dùng `isBoundary` để kiểm tra xem UTF-16 `char` là một ký tự Unicode độc lập. Nó kiểm tra **boundary của loại BreakIterator đang dùng** (character/word/line/sentence).
-4. Nếu cần giữ state của iterator, đừng giả định mọi phương thức hỏi biên là phép toán **không có tác dụng lên con trỏ**. Có thể gọi `first()` hoặc định vị lại bằng `following/preceding` trước khi thực hiện vòng lặp tiếp theo. Tài liệu API có các hành vi current position riêng cho thao tác định vị.
+1. **The start and end of the text** are normally valid boundaries; for `setText(String)`, the offset range is `0..text.length()` (inclusive).
+2. `isBoundary(-1)` or `isBoundary(text.length()+1)` throws `IllegalArgumentException`, rather than merely returning `false`.
+3. Do not use `isBoundary` to check whether a UTF-16 `char` is an independent Unicode character. It checks **a boundary of the `BreakIterator` type in use** (character/word/line/sentence).
+4. If you need to preserve iterator state, do not assume every boundary-query method is an operation **with no effect on the cursor**. You can call `first()` or reposition with `following/preceding` before running a subsequent loop. The API documentation specifies distinct `current` position behaviors for positioning operations.
 
-### So ba phương thức tại một boundary
+### Comparing the Three Methods at a Boundary
 
-Với `B = {0, 2, 5}`, khi offset là `2`:
+With `B = {0, 2, 5}`, when `offset` is `2`:
 
 ```text
 isBoundary(2) == true
@@ -172,11 +172,11 @@ preceding(2) == 0
 following(2) == 5
 ```
 
-Điểm `2` thuộc tập biên, nhưng cả `following` và `preceding` **đều bỏ qua chính nó** do quan hệ lớn hơn/nhỏ hơn nghiêm ngặt. Đây là sự khác biệt quan trọng nhất trong đề bài.
+Point `2` belongs to the boundary set, yet both `following` and `preceding` **skip over it** due to the strict greater-than / less-than relation. This is the most important distinction in this topic.
 
-## 6. Ví dụ Java 17+ chạy độc lập: các biên ASCII chắc chắn
+## 6. Standalone Java 17+ Example: Deterministic ASCII Boundaries
 
-Tạo file **`BoundaryMethodsDemo.java`**:
+Create **`BoundaryMethodsDemo.java`**:
 
 ```java
 import java.text.BreakIterator;
@@ -210,7 +210,7 @@ public class BoundaryMethodsDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 BoundaryMethodsDemo.java
@@ -229,13 +229,13 @@ preceding(0): DONE
 All boundaries: 0 1 2 3
 ```
 
-Ví dụ dùng chuỗi ASCII đơn giản và `getCharacterInstance` để tránh sự khác nhau về việc tách từ của một văn bản có ngữ cảnh phức tạp. Vòng lặp `first()/next()` liệt kê **cả biên ở đầu và biên cuối**, chứ không đếm số ký tự bằng cách đếm trực tiếp số dòng output.
+The example uses a simple ASCII string and `getCharacterInstance` to avoid differences in word splitting on complex contextual text. The `first()/next()` loop lists **both the start and end boundaries**, rather than counting characters directly by counting output lines.
 
-**Chú ý:** Vòng lặp bắt đầu bằng `first()`, không dựa vào current position còn lại sau các lệnh `following/preceding/isBoundary` trước đó.
+**Note:** The loop starts with `first()`, not relying on whatever `current` position remained after the earlier `following/preceding/isBoundary` calls.
 
-## 7. Emoji là hai UTF-16 code units nhưng một code point
+## 7. An Emoji Is Two UTF-16 Code Units Yet One Code Point
 
-Tạo file **`SurrogateBoundaryDemo.java`**:
+Create **`SurrogateBoundaryDemo.java`**:
 
 ```java
 import java.text.BreakIterator;
@@ -276,7 +276,7 @@ javac -encoding UTF-8 SurrogateBoundaryDemo.java
 java SurrogateBoundaryDemo
 ```
 
-Stdout trong JDK 17:
+Stdout in JDK 17:
 
 ```text
 UTF-16 length: 4
@@ -289,26 +289,26 @@ Emoji length: 2
 Breaks: 0 1 3 4
 ```
 
-**Giải thích:** `\uD83D\uDE00` là một cặp surrogate trong chuỗi Java và cùng mã hóa code point `U+1F600`. Offset `1` nằm trước emoji, offset `3` ở sau nó; `2` nằm **giữa** hai code units nên không được xem là biên của ký tự này.
+**Explanation:** `\uD83D\uDE00` is a surrogate pair in the Java string and together encodes the code point `U+1F600`. Offset `1` is before the emoji, offset `3` is after it; `2` lies **between** the two code units, so it is not treated as a character boundary here.
 
-Nếu code vô tình gọi `text.substring(1, 2)`, kết quả chỉ chứa **high surrogate**; nó không phải một Unicode scalar value hoàn chỉnh và có thể hiển thị thành ký tự thay thế khi encode sang UTF-8. Đừng dùng `substring(index, index+1)` cho mọi ký tự người dùng nhập.
+If code accidentally calls `text.substring(1, 2)`, the result contains only a **high surrogate**; it is not a complete Unicode scalar value and may render as a replacement character when encoded to UTF-8. Do not use `substring(index, index+1)` for arbitrary user-entered characters.
 
-**Đặc biệt:** một *grapheme cluster* có thể chứa nhiều code points như `a` cộng dấu sắc hoặc chuỗi emoji có bộ nối ZWJ. Không thể suy luận rằng `BreakIterator.getCharacterInstance` của mọi JDK/version/provider sẽ xử lý mọi emoji sequence hiện đại theo cùng một quy tắc segmentation. Muốn bảo đảm UX cho các grapheme mới, hãy kiểm tra dữ liệu Unicode và phiên bản JDK mục tiêu, hoặc dùng thư viện hỗ trợ tiêu chuẩn segmentation phù hợp với ứng dụng.
+**Specifically:** a *grapheme cluster* can contain multiple code points, such as `a` plus an acute accent or an emoji sequence with ZWJ joiners. You cannot infer that `BreakIterator.getCharacterInstance` on every JDK/version/provider will handle every modern emoji sequence by the exact same segmentation rules. To guarantee UX for newer graphemes, check the target Unicode data and JDK version, or use a library supporting the segmentation standard appropriate for your application.
 
-## 8. Code point boundary khác grapheme boundary
+## 8. Code Point Boundaries Differ from Grapheme Boundaries
 
-Xét chữ `"e\u0301"` gồm `e` và **combining acute accent**:
+Consider the letter `"e\u0301"` consisting of `e` and a **combining acute accent**:
 
 ```text
 UTF-16 index:       0   1   2
 Text units:          e  ◌́
 Code points:         U+0065 U+0301
-Một chữ nhìn thấy:   é  (thường)
+One visible letter:  é  (typically)
 ```
 
-`text.offsetByCodePoints(0, 1)` trả về `1`, vì nó đi qua **một code point**. Nhưng đây nằm giữa base letter và combining mark, không phải biên tốt để di chuyển caret như một ký tự. `BreakIterator.getCharacterInstance` theo quy tắc character break có thể đặt biên ngoài cụm này ở `0` và `2` (với ví dụ đơn giản trên), giúp thao tác chọn chữ không tách dấu khỏi chữ cái.
+`text.offsetByCodePoints(0, 1)` returns `1` because it advances across **one code point**. However, that lies between the base letter and the combining mark, not a good boundary for moving a caret as a single character. `BreakIterator.getCharacterInstance` following character-break rules can place boundaries outside this cluster at `0` and `2` (in the simple example above), helping text selection avoid separating the accent from the letter.
 
-### Demo Java 17 — `CombiningMarkBoundaryDemo.java`
+### Java 17 Demo — `CombiningMarkBoundaryDemo.java`
 
 ```java
 import java.text.BreakIterator;
@@ -345,7 +345,7 @@ javac -encoding UTF-8 CombiningMarkBoundaryDemo.java
 java CombiningMarkBoundaryDemo
 ```
 
-Stdout cho cụm chữ+dấu cơ bản trên JDK 17:
+Stdout for a basic letter+accent cluster on JDK 17:
 
 ```text
 Length: 2
@@ -355,16 +355,16 @@ Break at code point index: false
 Breaks: 0 2
 ```
 
-**Bài học:** “di chuyển một Unicode code point” và “di chuyển một ký tự người dùng nhìn thấy” có thể là hai thao tác khác nhau. `offsetByCodePoints` chỉ giúp không cắt surrogate pair; nó không áp dụng quy tắc grapheme. `BreakIterator` giúp xác định các biên theo loại ngữ nghĩa mong muốn.
+**Lesson:** "moving by one Unicode code point" and "moving by one user-visible character" can be two different operations. `offsetByCodePoints` only prevents splitting surrogate pairs; it does not apply grapheme rules. `BreakIterator` helps identify boundaries according to the desired semantic type.
 
-## 9. Đầu/cuối, DONE và offset ngoài phạm vi
+## 9. Start/End, DONE, and Out-of-Range Offsets
 
-Với văn bản đặt bằng `setText(String)` dài `n` đơn vị mã UTF-16, chỉ các offset trong **`0..n`** (bao gồm hai đầu) mới nằm trong dải được phép.
+For text set via `setText(String)` of length `n` UTF-16 code units, only offsets in **`0..n`** (inclusive) are within the allowed range.
 
-| Trường hợp | Kết quả/hành vi |
+| Case | Result/Behavior |
 | --- | --- |
-| `first()` | Biên đầu tiên, thông thường `0` |
-| `last()` | Biên cuối cùng, thông thường `n` |
+| `first()` | First boundary, normally `0` |
+| `last()` | Last boundary, normally `n` |
 | `following(n)` | `BreakIterator.DONE` |
 | `preceding(0)` | `BreakIterator.DONE` |
 | `isBoundary(0)` | `true` |
@@ -373,7 +373,7 @@ Với văn bản đặt bằng `setText(String)` dài `n` đơn vị mã UTF-16,
 | `preceding(n + 1)` | `IllegalArgumentException` |
 | `isBoundary(-1)` | `IllegalArgumentException` |
 
-`BreakIterator.DONE` là sentinel integer bằng **`-1`**, không phải một vị trí hợp lệ trong chuỗi. Không truyền `DONE` vào `substring` hoặc `charAt`; phải kiểm tra trước.
+`BreakIterator.DONE` is an integer sentinel equal to **`-1`**, not a valid position inside a string. Do not pass `DONE` to `substring` or `charAt`; check it first.
 
 **File `BoundaryEdgesDemo.java`:**
 
@@ -421,32 +421,32 @@ End boundary: true
 Out-of-range rejected
 ```
 
-**Văn bản rỗng:** `setText("")` có thể có biên duy nhất tại `0`; `first()` và `last()` đều bằng `0`, `following(0)`/`preceding(0)` trả `DONE`. Khi thiết kế logic cắt đoạn, phải xử lý không có đoạn nội dung thay vì giả định luôn có ít nhất một segment.
+**Empty text:** `setText("")` can have a single boundary at `0`; both `first()` and `last()` equal `0`, and `following(0)`/`preceding(0)` return `DONE`. When designing slicing logic, handle the absence of content segments rather than assuming at least one segment always exists.
 
-## 10. current, next, previous: đừng làm mất vị trí đang duyệt
+## 10. current, next, previous: Don't Lose Your Traversal Position
 
-`BreakIterator` là một iterator có **trạng thái**. Phương thức `current()` cho biết vị trí biên hiện tại; `next()` đi đến biên tiếp, `previous()` đi về biên trước. Khi gọi `following(offset)` hoặc `preceding(offset)` thành công, current được đặt ở biên trả về.
+`BreakIterator` is a **stateful** iterator. The `current()` method reports the current boundary position; `next()` moves to the next boundary, and `previous()` moves to the prior boundary. When `following(offset)` or `preceding(offset)` succeeds, `current` is set to the returned boundary.
 
-Ví dụ với `"cat"`, đi từ trái qua phải:
+Example with `"cat"`, moving left to right:
 
 ```text
 first() -> 0; current() -> 0
 next()  -> 1; current() -> 1
 next()  -> 2; current() -> 2
 next()  -> 3; current() -> 3
-next()  -> DONE; current() vẫn là biên cuối
+next()  -> DONE; current() remains at the last boundary
 ```
 
-Phân biệt `following(offset)` và `next()`:
+Distinguish `following(offset)` from `next()`:
 
-- `following(offset)` định vị **tương đối với offset truyền vào**, không phụ thuộc việc current trước đó là gì.
-- `next()` định vị **tương đối với current position hiện có**.
-- `preceding(offset)` định vị **tương đối với offset**, còn `previous()` lùi từ current.
-- `isBoundary(offset)` là phép kiểm tra ranh giới; code không nên dựa vào current trước/sau phép kiểm tra nếu không muốn lệ thuộc chi tiết iterator/provider.
+- `following(offset)` positions **relative to the passed `offset`**, regardless of what `current` was before.
+- `next()` positions **relative to the existing `current` position**.
+- `preceding(offset)` positions **relative to `offset`**, whereas `previous()` steps back from `current`.
+- `isBoundary(offset)` is a boundary check; code should not rely on `current` before/after the check if it wants to avoid depending on iterator/provider details.
 
-Vì vậy, nếu bạn vừa gọi `following(1)` rồi gọi `next()`, `next()` sẽ đi tiếp từ **biên mà following đã tìm**, chứ không quay về biên đầu chuỗi. Để lặp lại toàn bộ từ đầu, hãy dùng `first()`.
+Therefore, if you just called `following(1)` and then call `next()`, `next()` advances from **the boundary `following` found**, rather than returning to the start of the string. To iterate everything from the beginning again, use `first()`.
 
-### Demo trạng thái — `IteratorStateDemo.java`
+### State Demo — `IteratorStateDemo.java`
 
 ```java
 import java.text.BreakIterator;
@@ -485,11 +485,11 @@ Previous: 1
 Current again: 1
 ```
 
-Đây là các phương thức định vị **có side effect** lên iterator; tránh chia sẻ cùng một instance đang duyệt giữa các luồng hoặc các thao tác UI không liên quan. `BreakIterator` là mutable; tạo instance cho mỗi tác vụ hoặc quản lý việc tái sử dụng/đồng bộ có chủ đích.
+These positioning methods **have side effects** on the iterator; avoid sharing a single actively iterating instance across threads or unrelated UI operations. `BreakIterator` is mutable; create an instance per task or manage reuse/synchronization intentionally.
 
-## 11. Cắt nội dung bằng ranh giới đúng
+## 11. Slicing Content with Proper Boundaries
 
-Một cách an toàn để duyệt từng đoạn là `start = first()`, sau đó `end = next()`. Trả về `substring(start, end)`, rồi chuyển `start = end`.
+A safe way to iterate segment by segment is `start = first()`, then `end = next()`. Yield `substring(start, end)`, then set `start = end`.
 
 **File `SafeSegmentsDemo.java`:**
 
@@ -520,7 +520,7 @@ javac -encoding UTF-8 SafeSegmentsDemo.java
 java SafeSegmentsDemo
 ```
 
-Stdout với console UTF-8:
+Stdout with a UTF-8 console:
 
 ```text
 [0,1): A
@@ -528,44 +528,44 @@ Stdout với console UTF-8:
 [3,4): B
 ```
 
-**Quan trọng:** `substring(begin, end)` dùng khoảng **nửa mở** `[begin,end)`, chính xác cùng kiểu biểu diễn segment bằng hai ranh giới. `end` không phải chỉ số của ký tự cuối, mà là vị trí **ngay sau** segment. Không cộng thêm 1 chỉ vì tư duy “end inclusive”.
+**Important:** `substring(begin, end)` uses a **half-open** interval `[begin,end)`, matching the exact way two boundaries represent a segment. `end` is not the index of the last character, but the position **immediately after** the segment. Do not add 1 out of an "end-inclusive" habit.
 
-Với `getWordInstance`, vòng lặp sẽ trả các **đoạn giữa các boundary** chứ không bảo đảm chỉ các từ chữ cái: có thể có khoảng trắng, dấu câu, số hoặc các đoạn mà sản phẩm không muốn coi là “từ”. Nếu đếm từ, cần phân loại segment theo chính sách (ví dụ kiểm tra có code point là chữ/số). Không dùng số segment == số từ theo ngữ nghĩa.
+With `getWordInstance`, the loop returns **segments between boundaries** rather than guaranteeing only alphabetic words: there may be whitespace, punctuation, numbers, or segments your product does not want to count as a "word". If counting words, classify segments according to policy (for example checking whether a code point is a letter/digit). Do not equate segment count with semantic word count.
 
-## 12. Dùng following và preceding để chọn đoạn chứa caret
+## 12. Using following and preceding to Select the Segment Containing the Caret
 
-Giả sử caret ở offset bất kỳ. Ta có thể tìm boundary bên trái và phải, nhưng phải xét **đúng trường hợp caret trùng boundary**.
+Suppose the caret is at an arbitrary offset. We can find the boundaries to the left and right, while carefully handling **the exact case where the caret lands on a boundary**.
 
-**Thuật toán chọn đoạn ở bên phải caret** (nếu caret trùng boundary thì chọn đoạn phía phải; nếu caret ở giữa đoạn thì chọn đoạn đang chứa caret):
+**Algorithm to select the segment to the right of the caret** (if the caret is on a boundary, pick the right-hand segment; if the caret is in the middle of a segment, pick the segment containing the caret):
 
 ```text
 Input: String text, BreakIterator it, int caret
 1. Validate 0 <= caret <= text.length()
-2. if caret == text.length(): không có đoạn bên phải
+2. if caret == text.length(): no segment to the right
 3. right = it.following(caret)
 4. if it.isBoundary(caret): left = caret
    else: left = it.preceding(caret)
-5. Nếu left / right hợp lệ: substring(left, right)
+5. If left / right are valid: substring(left, right)
 ```
 
-Đoạn trên là **pseudocode**; việc kiểm tra `isBoundary` có thể định vị current theo implementation, nên mọi bước định vị sử dụng **offset rõ ràng**, không sử dụng `next()` trên trạng thái ngầm.
+The above is **pseudocode**; checking `isBoundary` may position `current` depending on the implementation, so every positioning step uses an **explicit offset**, not `next()` on implicit state.
 
-Nếu muốn **đoạn bên trái** khi caret nằm ngay trên boundary, công thức khác:
+If you want **the left-hand segment** when the caret sits right on a boundary, the formula differs:
 
 ```text
-Nếu caret > 0 và isBoundary(caret):
+If caret > 0 and isBoundary(caret):
   left = preceding(caret)
   right = caret
-Nếu caret nằm giữa hai biên:
+If caret is between two boundaries:
   left = preceding(caret)
   right = following(caret)
 ```
 
-Chính sách lựa chọn bên trái/bên phải phải được thiết kế từ nhu cầu UI, không do `BreakIterator` tự quyết định. Trên biên giữa hai từ, **một caret không nằm bên trong duy nhất một từ** nếu không nói rõ bên nào được ưu tiên.
+The left/right selection policy must be designed from UI requirements, not decided automatically by `BreakIterator`. On the boundary between two words, **a caret is not inside a single unique word** unless you specify which side takes precedence.
 
-### Ví dụ chọn grapheme bên phải caret
+### Example: Selecting the Grapheme to the Right of the Caret
 
-Lưu **`SelectAtCaretDemo.java`**:
+Save **`SelectAtCaretDemo.java`**:
 
 ```java
 import java.text.BreakIterator;
@@ -624,47 +624,47 @@ At 3: B
 At 4 is empty: true
 ```
 
-Caret `1` nằm ngay trước emoji; `2` nằm giữa surrogate pair (một offset UTF-16 có thể xuất hiện trong dữ liệu/lệnh API dù UI thông thường tránh tạo caret như vậy). Với chính sách “lấy segment chứa offset, ưu tiên segment phía phải nếu đúng boundary”, cả `1` và `2` dẫn đến đoạn emoji dài 2 code units. Vị trí `4` là cuối chuỗi nên không còn đoạn phía phải.
+Caret `1` is right before the emoji; `2` lies inside the surrogate pair (a UTF-16 offset that can appear in data or API calls even though UIs normally avoid placing a caret there). Under the policy "take the segment containing the offset, preferring the right-hand segment if directly on a boundary", both `1` and `2` yield the 2-code-unit emoji segment. Position `4` is the end of the string, so there is no segment to the right.
 
-**Trong UI thật**, caret cũng có thể là một vị trí trong model riêng của framework, không mặc nhiên là UTF-16 index của `String` Java. Hãy xác định hệ tọa độ và chuyển đổi đúng trước khi gọi `BreakIterator`.
+**In a real UI**, the caret may also be a position in the framework's own model rather than implicitly a UTF-16 index of a Java `String`. Identify the coordinate system and convert properly before calling `BreakIterator`.
 
-## 13. getWordInstance, getLineInstance, getSentenceInstance: semantics khác nhau
+## 13. getWordInstance, getLineInstance, getSentenceInstance: Different Semantics
 
-Một offset như `5` có thể là:
+An offset like `5` can be:
 
-- Biên **character** (giữa hai ký tự).
-- Không phải biên **word** nếu ở giữa một từ.
-- Không phải điểm ngắt **line** nếu việc ngắt tại đó không hợp lệ.
-- Không phải biên **sentence** nếu ở giữa một câu.
+- A **character** boundary (between two characters).
+- Not a **word** boundary if it is in the middle of a word.
+- Not a **line** break point if breaking there is invalid.
+- Not a **sentence** boundary if it is in the middle of a sentence.
 
-Không có một tập boundary chung cho mọi chế độ. Ví dụ gọi `getWordInstance(Locale.forLanguageTag("vi-VN"))` rồi `isBoundary(offset)` kiểm tra **word boundary theo bộ quy tắc của runtime**, không phải “vị trí hợp lệ để cắt surrogate pair”. Trái lại, `getCharacterInstance` nhằm chia các đơn vị ký tự phù hợp, nhưng không có nghĩa là bộ tách từ/ngữ nghĩa của tiếng Việt.
+There is no single boundary set shared across all modes. For instance, calling `getWordInstance(Locale.forLanguageTag("vi-VN"))` and then `isBoundary(offset)` checks a **word boundary according to the runtime's ruleset**, not "a valid position to split a surrogate pair". Conversely, `getCharacterInstance` aims to split appropriate character units, yet does not act as a Vietnamese word/semantic segmenter.
 
-### Đếm đoạn văn bản không đồng nghĩa đếm “từ” theo ngôn ngữ
+### Counting Text Segments Does Not Equal Counting Linguistic "Words"
 
-Ví dụ văn bản `"Hello, world!"` có dấu phẩy, dấu cách, chấm than. Word break iterator cung cấp các vị trí tách giữa những vùng văn bản, gồm cả các vùng không phải từ. Do đó, vòng lặp:
+For example, the text `"Hello, world!"` has a comma, a space, and an exclamation mark. The word break iterator provides split positions between text regions, including non-word regions. Therefore, the loop:
 
 ```java
 for (int b = it.first(); b != BreakIterator.DONE; b = it.next()) {
-    // b là vị trí biên; chưa phải một token "word".
+    // b is a boundary position; not yet a "word" token.
 }
 ```
 
-là **fragment** minh họa, chưa phải chương trình độc lập. Để xác định token thật, dùng `text.substring(prev, next)` rồi phân loại. Quy tắc chữ viết không có khoảng trắng (một số ngôn ngữ Đông Á) và xử lý dấu câu phụ thuộc provider, Unicode/CLDR data hoặc thuật toán của JDK, vì thế không hard-code một danh sách “mọi word offsets” cho các runtime khác nhau.
+is an illustrative **fragment**, not a standalone program. To determine actual tokens, extract `text.substring(prev, next)` and classify them. Rules for spaceless scripts (some East Asian languages) and punctuation handling depend on the provider, Unicode/CLDR data, or JDK algorithm, so do not hardcode a list of "all word offsets" across different runtimes.
 
-### Khi nào chọn loại nào?
+### When to Choose Which Type?
 
-| Nhu cầu | Iterator | Lưu ý |
+| Need | Iterator | Note |
 | --- | --- | --- |
-| Chọn một ký tự/cụm chữ | `getCharacterInstance` | Không cắt đôi surrogate pair/combining sequence trong những trường hợp được hỗ trợ |
-| Di chuyển qua vùng từ | `getWordInstance` | Có cả ranh giới dấu câu/khoảng trắng |
-| Ngắt dòng cho layout văn bản | `getLineInstance` | Chỉ cho biết cơ hội ngắt; không đo độ rộng pixel |
-| Tách câu theo quy tắc chung | `getSentenceInstance` | Không hiểu hoàn toàn ngữ nghĩa, dấu viết tắt hay domain chuyên biệt |
+| Select a character/letter cluster | `getCharacterInstance` | Does not split surrogate pairs/combining sequences in supported cases |
+| Move across word regions | `getWordInstance` | Includes punctuation/whitespace boundaries |
+| Wrap lines for text layout | `getLineInstance` | Reports only break opportunities; does not measure pixel width |
+| Split sentences by general rules | `getSentenceInstance` | Does not fully understand semantics, abbreviations, or specialized domains |
 
-`BreakIterator` hỗ trợ text boundary, **không thay thế** parser ngôn ngữ, model từ vựng, hệ layout rich-text hoặc quy tắc kiểm tra hợp lệ dữ liệu nghiệp vụ.
+`BreakIterator` supports text boundaries; it **does not replace** a linguistic parser, lexical model, rich-text layout system, or business data validation rules.
 
-## 14. StringCharacterIterator và dải offset không bắt đầu từ 0
+## 14. StringCharacterIterator and Offset Ranges Not Starting at 0
 
-`BreakIterator.setText(String)` là trường hợp tiện lợi: begin = `0`, end = `text.length()`. Nhưng overload `setText(CharacterIterator)` có thể nhận `StringCharacterIterator` đại diện cho một **đoạn của chuỗi** với `beginIndex` và `endIndex` riêng.
+`BreakIterator.setText(String)` is a convenience case: begin = `0`, end = `text.length()`. However, the `setText(CharacterIterator)` overload can accept a `StringCharacterIterator` representing a **slice of a string** with its own `beginIndex` and `endIndex`.
 
 ```java
 String source = "abcdef";
@@ -676,21 +676,21 @@ BreakIterator it =
 it.setText(part);
 ```
 
-Đây là **fragment** cần `import java.text.BreakIterator;`, `java.text.StringCharacterIterator;` và `java.util.Locale;`. Theo `StringCharacterIterator` ở đây, vùng được chỉ định có **beginIndex = 2** và **endIndex = 5** (đoạn `"cde"`). Trong tình huống này:
+This is a **fragment** requiring `import java.text.BreakIterator;`, `import java.text.StringCharacterIterator;`, and `import java.util.Locale;`. With this `StringCharacterIterator`, the designated region has **beginIndex = 2** and **endIndex = 5** (the slice `"cde"`). In this situation:
 
-- `it.first()` ứng với boundary đầu của **vùng**, không buộc là 0.
-- `it.last()` ứng với boundary cuối của **vùng**, không buộc là `source.length()`.
-- Offset hợp lệ của `following/preceding/isBoundary` phải thuộc **dải index của CharacterIterator**, không dùng ngầm `0..partLength`.
+- `it.first()` corresponds to the first boundary of **the region**, not necessarily 0.
+- `it.last()` corresponds to the last boundary of **the region**, not necessarily `source.length()`.
+- Valid offsets for `following/preceding/isBoundary` must belong to **the `CharacterIterator` index range**, rather than implicitly using `0..partLength`.
 
-Không lấy offset `2` của vùng rồi coi đó là chỉ số tương đối `0` trong `source.substring(...)`. Nếu code API trả offset trên hệ chỉ số của `CharacterIterator`, phải xác định chúng tham chiếu tới chuỗi gốc hoặc phạm vi con nào trước khi cắt.
+Do not take region offset `2` and treat it as relative index `0` in `source.substring(...)`. If API code returns offsets in the `CharacterIterator`'s coordinate system, determine whether they refer to the original string or which subrange before slicing.
 
-### Khác biệt giữa “offset của text hiện hành” và “offset của toàn file”
+### Difference Between "Current Text Offset" and "Whole File Offset"
 
-Trong ứng dụng text editor, bộ đệm có thể chỉ đưa một đoạn văn/ô đang sửa cho BreakIterator. Một offset biên trả về khi ấy **không mặc nhiên là tọa độ toàn tài liệu**. Nếu bạn tách chuỗi `whole.substring(start,end)` rồi `setText` trên chuỗi mới, offset sẽ lại bắt đầu từ 0; muốn ánh xạ ngược ra tài liệu, cần cộng `start`. Ngược lại, khi dùng CharacterIterator với startIndex khác 0, offset có thể đã mang tọa độ gốc. **Đừng cộng offset hai lần**.
+In a text editor application, the buffer might pass only the paragraph or cell being edited to `BreakIterator`. A boundary offset returned then is **not implicitly a whole-document coordinate**. If you slice `whole.substring(start,end)` and call `setText` on the new string, offsets start from 0 again; to map back to the document, add `start`. Conversely, when using a `CharacterIterator` with a non-zero `startIndex`, offsets may already carry the original coordinates. **Do not add the offset twice**.
 
-## 15. Boundary index không phải UTF-8 byte offset
+## 15. Boundary Indexes Are Not UTF-8 Byte Offsets
 
-Một chuỗi Unicode có thể được lưu trong file dưới dạng UTF-8. Nhưng BreakIterator làm việc với **các vị trí ký tự của Java text**, không phải byte trong file. Với `"A😀B"`:
+A Unicode string may be stored in a file as UTF-8. Yet `BreakIterator` operates on **Java text character positions**, not bytes in a file. For `"A😀B"`:
 
 ```text
 Java UTF-16:
@@ -706,82 +706,82 @@ UTF-8 bytes:
   total = 6 bytes
 ```
 
-Biên UTF-16 ở vị trí `3` sau emoji **không** tương đương byte offset 3 trong UTF-8: vị trí byte sau emoji là `5`. Không dùng `fileBytes[boundary]` hay cắt mảng byte tại `boundary` khi offset xuất phát từ BreakIterator.
+The UTF-16 boundary at position `3` after the emoji does **not** correspond to byte offset 3 in UTF-8: the byte position after the emoji is `5`. Do not index `fileBytes[boundary]` or slice a byte array at `boundary` when the offset came from `BreakIterator`.
 
-Nếu cần tạo vị trí byte cho giao thức hoặc tệp, phải chuyển đổi một cách rõ ràng, chẳng hạn encode prefix `text.substring(0, boundary)` theo `StandardCharsets.UTF_8` rồi lấy độ dài byte (chỉ khi cần và có kiểm soát chi phí). Với nhiều vị trí, nên xây bảng ánh xạ byte↔UTF-16 bằng decoder/encoder phù hợp thay vì encode prefix liên tục.
+If you need byte positions for a protocol or file, convert explicitly—for example by encoding the prefix `text.substring(0, boundary)` in `StandardCharsets.UTF_8` and taking the byte length (only when necessary and with cost controlled). For many positions, build a byte↔UTF-16 mapping table with an appropriate decoder/encoder rather than repeatedly encoding prefixes.
 
-**UTF-16 offset khác số code point và khác grapheme index** — không chỉ khác byte offset. Khi tích hợp Java với JavaScript, Python, database và giao diện người dùng, cần ghi rõ hệ chỉ số của mỗi API.
+**UTF-16 offsets differ from code point counts and grapheme indexes** — not only from byte offsets. When integrating Java with JavaScript, Python, databases, and UIs, explicitly document each API's index system.
 
-## 16. Những lỗi lập trình phổ biến
+## 16. Common Programming Pitfalls
 
-| Sai lầm | Vấn đề | Cách sửa |
+| Mistake | Problem | Fix |
 | --- | --- | --- |
-| Nghĩ `following(x)` có thể trả `x` | Phương thức dùng quan hệ **>**, không phải **>=** | Muốn kiểm tra x là biên, dùng `isBoundary(x)` |
-| Nghĩ `preceding(x)` có thể trả `x` | Phương thức dùng quan hệ **<** | Chọn chính sách đoạn trái/phải tại boundary |
-| So `following(last) == last` | Kết quả phải là `DONE` | Kiểm tra sentinel |
-| Gọi `substring(DONE, end)` | `DONE = -1`, không là chỉ số hợp lệ | Rẽ nhánh khi `DONE` |
-| Dùng `isBoundary(-1)` để hỏi “không hợp lệ?” | Ném exception | Kiểm tra dải offset trước |
-| Lấy số code point làm UTF-16 offset | Sai sau ký tự ngoài BMP | Dùng `offsetByCodePoints` khi cần |
-| Cắt `substring(i, i + 1)` cho mọi glyph | Có thể tách surrogate pair/combining mark | Dùng biên character BreakIterator |
-| Hiểu `String.length()` là số chữ nhìn thấy | Là UTF-16 code units | Phân biệt code points/grapheme |
-| Dùng `next()` sau `following` và nghĩ vẫn bắt đầu tại 0 | Iterator đã định vị lại | Gọi `first()` nếu muốn duyệt từ đầu |
-| Lấy `isBoundary` làm phép check không side effect | Có thể ảnh hưởng vị trí dùng cho lần duyệt tiếp | Đặt lại current theo nhu cầu |
-| Dùng word segments và đếm tất cả là từ | Có dấu câu và khoảng trắng | Phân loại segment |
-| Hard-code word boundary cho mọi locale | Thuật toán/data khác nhau | Test trên locale/JDK mục tiêu |
-| Truyền offset từ `CharacterIterator` không biết beginIndex | Có thể lệch vùng | Kiểm tra begin/end và mapping |
-| Dùng offset UTF-16 làm byte offset UTF-8 | Sai vị trí trong file/API | Convert hệ tọa độ |
-| Tái sử dụng instance BreakIterator mutable giữa request | State rò, nguy cơ race | Tạo riêng/clone theo chiến lược phù hợp |
-| Tin character BreakIterator hiểu mọi emoji ZWJ mới nhất | Unicode segmentation phụ thuộc phiên bản | Kiểm thử/tận dụng thư viện phù hợp |
-| So chuỗi tiếng Việt bằng byte rồi kết luận cùng/khác glyph | Unicode có precomposed/decomposed | Normalization theo policy khi cần |
+| Thinking `following(x)` can return `x` | The method uses **>**, not **>=** | To check if `x` is a boundary, use `isBoundary(x)` |
+| Thinking `preceding(x)` can return `x` | The method uses **<** | Choose a left/right segment policy at boundaries |
+| Checking `following(last) == last` | The result must be `DONE` | Check the sentinel |
+| Calling `substring(DONE, end)` | `DONE = -1`, not a valid index | Branch on `DONE` |
+| Calling `isBoundary(-1)` to ask "is it invalid?" | Throws an exception | Validate the offset range first |
+| Using code point count as a UTF-16 offset | Wrong after non-BMP characters | Use `offsetByCodePoints` when needed |
+| Slicing `substring(i, i + 1)` for every glyph | Can split surrogate pairs/combining marks | Use character `BreakIterator` boundaries |
+| Assuming `String.length()` is visible character count | It is UTF-16 code units | Distinguish code points/graphemes |
+| Calling `next()` after `following` expecting to start at 0 | The iterator has repositioned | Call `first()` to iterate from the start |
+| Treating `isBoundary` as a side-effect-free check | Can affect the position used by subsequent traversal | Reset `current` as needed |
+| Taking word segments and counting all as words | Includes punctuation and whitespace | Classify segments |
+| Hardcoding word boundaries for all locales | Algorithms/data differ | Test on target locale/JDK |
+| Passing offsets from `CharacterIterator` without knowing `beginIndex` | Region can shift | Check begin/end and mapping |
+| Using UTF-16 offsets as UTF-8 byte offsets | Wrong position in files/APIs | Convert coordinate systems |
+| Reusing a mutable `BreakIterator` instance across requests | State leaks, race risk | Create separate instances/clones with an appropriate strategy |
+| Trusting character `BreakIterator` to understand every latest ZWJ emoji | Unicode segmentation depends on version | Test/use an appropriate library |
+| Comparing Vietnamese strings by bytes to conclude same/different glyphs | Unicode has precomposed/decomposed forms | Normalize per policy when needed |
 
-## 17. Kiểm thử hành vi ở ranh giới
+## 17. Testing Behavior at Boundaries
 
-Một bộ test nên có cả các trường hợp **đúng biên** và **bên trong segment**:
+A test suite should include both **exact-boundary** and **mid-segment** cases:
 
-1. **ASCII:** `"cat"`, biên `0,1,2,3`; `following(1)=2`, `preceding(2)=1`, `isBoundary(2)=true`.
-2. **Đầu/cuối:** `following(length)=DONE`, `preceding(0)=DONE`, `isBoundary(0/length)=true`.
-3. **Ngoài dải:** `-1` và `length+1` gây `IllegalArgumentException`.
+1. **ASCII:** `"cat"`, boundaries `0,1,2,3`; `following(1)=2`, `preceding(2)=1`, `isBoundary(2)=true`.
+2. **Start/end:** `following(length)=DONE`, `preceding(0)=DONE`, `isBoundary(0/length)=true`.
+3. **Out of range:** `-1` and `length+1` throw `IllegalArgumentException`.
 4. **Surrogate pair:** `"A😀B"`, `length=4`, `codePointCount=3`, `isBoundary(2)=false`, `following(1)=3`.
-5. **Combining mark:** `"e\u0301"` có hai code points nhưng là một cụm chữ cơ bản; biên character tránh tách dấu.
-6. **Caret đúng biên:** chọn đoạn trái hay phải có chính sách riêng, đặc biệt ở `0` và `length`.
-7. **Caret giữa segment:** `preceding`/`following` trả các biên bao quanh, không cắt đôi segment.
-8. **State:** kiểm tra `current()` sau `following/preceding`; vòng duyệt mới bắt đầu từ `first()`.
-9. **Vùng phụ:** `CharacterIterator` có `beginIndex` khác 0 và mapping chính xác tới chuỗi gốc.
-10. **Locale:** `getWordInstance(Locale)` và `getSentenceInstance(Locale)` với đoạn văn các ngôn ngữ khác nhau; chỉ snapshot chính xác khi runtime/provider được khóa.
-11. **Text rỗng:** không có segment; không gọi `substring` với `DONE`.
-12. **Data changes:** nếu thay văn bản, gọi `setText` trên instance thích hợp; không tái dùng biên cũ làm index cho chuỗi đã chỉnh sửa.
+5. **Combining mark:** `"e\u0301"` has two code points yet is one basic letter cluster; character boundaries avoid splitting the accent.
+6. **Caret on boundary:** left vs. right segment selection has an explicit policy, especially at `0` and `length`.
+7. **Caret mid-segment:** `preceding`/`following` return the surrounding boundaries without splitting the segment.
+8. **State:** verify `current()` after `following/preceding`; new iteration starts from `first()`.
+9. **Subregion:** `CharacterIterator` with non-zero `beginIndex` and accurate mapping to the original string.
+10. **Locale:** `getWordInstance(Locale)` and `getSentenceInstance(Locale)` on paragraphs in different languages; snapshot exact outputs only when runtime/provider are pinned.
+11. **Empty text:** no segments; never call `substring` with `DONE`.
+12. **Data changes:** if text changes, call `setText` on the appropriate instance; do not reuse old boundaries as indexes into the edited string.
 
-### Bài tập A — Dự đoán ba phương thức
+### Exercise A — Predict the Three Methods
 
-Cho tập boundary giả định `B = {0, 3, 7, 10}`. Tính `following(3)`, `preceding(3)`, `isBoundary(3)`, `following(10)`, `preceding(0)` và `isBoundary(6)`. Giải thích vì sao “đang đúng boundary” không có nghĩa `following`/`preceding` giữ nguyên vị trí.
+Given a hypothetical boundary set `B = {0, 3, 7, 10}`, compute `following(3)`, `preceding(3)`, `isBoundary(3)`, `following(10)`, `preceding(0)`, and `isBoundary(6)`. Explain why "currently on a boundary" does not mean `following`/`preceding` stay at that position.
 
-### Bài tập B — UTF-16 với emoji
+### Exercise B — UTF-16 with Emoji
 
-Lấy `"X😀Y"`. Dùng `String.length`, `codePointCount`, `offsetByCodePoints` để lập bảng index. Dùng `BreakIterator.getCharacterInstance` in các biên, rồi cắt đúng emoji bằng `substring`. Thử cắt `substring(1, 2)` và mô tả vì sao tạo surrogate đơn lẻ không hợp lệ.
+Take `"X😀Y"`. Use `String.length`, `codePointCount`, and `offsetByCodePoints` to build an index table. Use `BreakIterator.getCharacterInstance` to print the boundaries, then slice the exact emoji with `substring`. Try slicing `substring(1, 2)` and describe why producing an unpaired surrogate is invalid.
 
-### Bài tập C — Chữ có dấu
+### Exercise C — Accented Letters
 
-Lấy `"e\u0301"` và `"\u00E9"`. So sánh số code point và số đơn vị UTF-16. Tìm character boundaries; nếu sản phẩm cần so sánh nội dung, áp dụng `Normalizer.Form.NFC` riêng với segmentation. Vì sao normalization và BreakIterator phục vụ hai mục đích khác nhau?
+Take `"e\u0301"` and `"\u00E9"`. Compare their code point counts and UTF-16 unit counts. Find character boundaries; if the product needs to compare content, apply `Normalizer.Form.NFC` separately from segmentation. Why do normalization and `BreakIterator` serve two different purposes?
 
-### Bài tập D — Chọn từ theo caret
+### Exercise D — Selecting a Word by Caret
 
-Với chuỗi `"Hello world!"` và `BreakIterator.getWordInstance(Locale.US)`, xây hàm trả segment chứa caret, có chính sách rõ với caret ở boundary. Không tự xem khoảng trắng/dấu câu là từ; chỉ nhận những segment chứa chữ cái. Thử offset `0`, giữa `Hello`, sau dấu cách và `length`.
+With `"Hello world!"` and `BreakIterator.getWordInstance(Locale.US)`, write a function returning the segment containing the caret, with a clear policy when the caret is on a boundary. Do not automatically treat whitespace/punctuation as words; accept only segments containing letters. Test offset `0`, inside `Hello`, after the space, and `length`.
 
-### Bài tập E — Văn bản phân vùng
+### Exercise E — Partitioned Text
 
-Dùng `StringCharacterIterator(source, begin, end, begin)` cho chuỗi có prefix và suffix. Gọi `first/last`, thử `following(begin)`, `preceding(end)`, và ánh xạ kết quả về chuỗi gốc. So sánh với việc gọi `setText(source.substring(begin, end))` để nhận các offset bắt đầu từ 0.
+Use `StringCharacterIterator(source, begin, end, begin)` for a string with a prefix and suffix. Call `first/last`, try `following(begin)` and `preceding(end)`, and map the results back to the original string. Compare with calling `setText(source.substring(begin, end))` to receive 0-based offsets.
 
-## 18. Tài liệu chính thức
+## 18. Official References
 
 - [Java SE 21 — BreakIterator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/BreakIterator.html): `following`, `preceding`, `isBoundary`, `DONE`, `first`/`last`, `next`/`previous`.
-- [Java SE 21 — String](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): `length`, `substring`, `codePointCount`, `offsetByCodePoints` và UTF-16 indexing.
-- [Java SE 21 — CharacterIterator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/CharacterIterator.html): begin/end/current index của văn bản cần duyệt.
-- [Java SE 21 — StringCharacterIterator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/StringCharacterIterator.html): xử lý một dải có beginIndex/endIndex.
+- [Java SE 21 — String](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html): `length`, `substring`, `codePointCount`, `offsetByCodePoints`, and UTF-16 indexing.
+- [Java SE 21 — CharacterIterator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/CharacterIterator.html): begin/end/current indexes of text to traverse.
+- [Java SE 21 — StringCharacterIterator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/StringCharacterIterator.html): handling a range with `beginIndex`/`endIndex`.
 - [Unicode Standard Annex #29](https://www.unicode.org/reports/tr29/): Unicode text segmentation, grapheme/word/sentence boundaries.
-- [Unicode FAQ — UTF & BOM](https://www.unicode.org/faq/utf_bom.html): phân biệt UTF-16 code units, code points và encoding.
+- [Unicode FAQ — UTF & BOM](https://www.unicode.org/faq/utf_bom.html): distinguishing UTF-16 code units, code points, and encodings.
 
-## 19. Ghi nhớ
+## 19. Key Takeaways
 
-**`following(offset)` tìm biên kế tiếp có chỉ số **lớn hơn** offset; `preceding(offset)` tìm biên trước đó có chỉ số **nhỏ hơn** offset; `isBoundary(offset)` kiểm tra **ngay chính offset**.** Đúng tại một boundary không làm `following/preceding` trả lại boundary ấy. Ở đầu/cuối dải, các lệnh tìm biên ngoài phạm vi trả `BreakIterator.DONE`, còn offset không hợp lệ ném `IllegalArgumentException`.
+**`following(offset)` finds the next boundary whose index is **greater than** `offset`; `preceding(offset)` finds the prior boundary whose index is **less than** `offset`; `isBoundary(offset)` checks **`offset` itself**.** Standing directly on a boundary does not make `following/preceding` return that boundary. At the start/end of the range, searches outside the bounds return `BreakIterator.DONE`, while invalid offsets throw `IllegalArgumentException`.
 
-Với `setText(String)`, các index của BreakIterator là **UTF-16 code-unit offsets** tương thích `substring`: một emoji ngoài BMP có thể chiếm hai đơn vị mã và một chữ kèm dấu có thể gồm nhiều code points. Hãy dùng đúng loại BreakIterator, xử lý `DONE`, ranh giới đầu/cuối, trạng thái current và các quy tắc locale; **đừng nhầm UTF-16 offsets với byte UTF-8, code point index hoặc “số ký tự nhìn thấy”**.
+With `setText(String)`, `BreakIterator` indexes are **UTF-16 code-unit offsets** compatible with `substring`: a non-BMP emoji can take two code units and an accented letter can consist of multiple code points. Use the right `BreakIterator` type, handle `DONE`, start/end boundaries, `current` state, and locale rules; **do not confuse UTF-16 offsets with UTF-8 bytes, code point indexes, or "visible character counts"**.

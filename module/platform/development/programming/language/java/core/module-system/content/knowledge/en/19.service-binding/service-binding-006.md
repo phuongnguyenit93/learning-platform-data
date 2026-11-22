@@ -1,24 +1,24 @@
-# Giảm module thừa khi không dùng service
+# Reducing unnecessary modules when services are unused
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Java Platform Module System (JPMS) hỗ trợ Service Loader để một module sử dụng một service mà không phải phụ thuộc trực tiếp vào từng module cung cấp implementation. Cơ chế này rất linh hoạt, nhưng khi đóng gói ứng dụng thành custom runtime image bằng **jlink**, việc tự động liên kết service provider có thể làm image chứa nhiều module hơn mức ứng dụng cần.
+The Java Platform Module System (JPMS) supports Service Loader so that a module can use a service without depending directly on each module supplying an implementation. This mechanism is very flexible, but when packaging an application into a custom runtime image with **jlink**, automatically binding service providers can cause the image to contain more modules than the application needs.
 
-Bài này tập trung vào cách giữ runtime image gọn khi ứng dụng không cần service provider, hoặc chỉ cần một số provider đã chọn.
+This lesson focuses on keeping a runtime image lean when an application does not need service providers, or only needs selected providers.
 
-Các ý chính:
+Key points:
 
-- **jlink mặc định không thực hiện service binding** khi tạo image.
-- Tùy chọn **--bind-services** bật service binding, đưa các module cung cấp service được module đã resolve sử dụng vào image cùng dependencies của chúng.
-- **--add-modules** xác định root modules. jlink vẫn thêm các module được yêu cầu bằng requires và dependencies bắc cầu của chúng.
-- Nếu chỉ cần một provider cụ thể, có thể thêm chính module provider đó vào root modules thay vì liên kết tất cả provider tìm được.
-- Phải kiểm tra hành vi ServiceLoader sau khi tạo image: một provider bị loại khỏi image sẽ không thể được phát hiện từ image đó.
+- **By default, jlink does not perform service binding** when creating an image.
+- The **--bind-services** option enables service binding, bringing modules that provide services used by resolved modules into the image along with their dependencies.
+- **--add-modules** specifies root modules. `jlink` still adds modules required via `requires` and their transitive dependencies.
+- If only one specific provider is needed, you can add that provider module itself to the root modules instead of binding every provider found.
+- You must verify `ServiceLoader` behavior after creating the image: a provider excluded from the image cannot be discovered from that image.
 
-Không nên nhầm việc bỏ service binding với việc loại bỏ mọi module không dùng trực tiếp. Các module được yêu cầu qua requires vẫn phải có mặt để ứng dụng chạy.
+Do not confuse skipping service binding with removing all modules that are not directly used. Modules required via `requires` must still be present for the application to run.
 
-## 2. Service binding tạo thêm module như thế nào?
+## 2. How does service binding add extra modules?
 
-Một ứng dụng modular có thể khai báo service usage trong module-info.java:
+A modular application can declare service usage in `module-info.java`:
 
 ~~~java
 module com.acme.application {
@@ -27,7 +27,7 @@ module com.acme.application {
 }
 ~~~
 
-Module API định nghĩa service type:
+The API module defines the service type:
 
 ~~~java
 module com.acme.codec.api {
@@ -35,7 +35,7 @@ module com.acme.codec.api {
 }
 ~~~
 
-Một module khác cung cấp implementation:
+Another module provides an implementation:
 
 ~~~java
 module com.acme.codec.json {
@@ -46,7 +46,7 @@ module com.acme.codec.json {
 }
 ~~~
 
-Một provider khác có thể cung cấp cùng service:
+Another provider can supply the same service:
 
 ~~~java
 module com.acme.codec.xml {
@@ -57,7 +57,7 @@ module com.acme.codec.xml {
 }
 ~~~
 
-Ứng dụng có thể tìm provider bằng ServiceLoader:
+The application can discover providers with `ServiceLoader`:
 
 ~~~java
 ServiceLoader<Codec> codecs = ServiceLoader.load(Codec.class);
@@ -67,30 +67,30 @@ for (Codec codec : codecs) {
 }
 ~~~
 
-Module ứng dụng khai báo **uses** để nói rằng nó sử dụng service type. Module provider khai báo **provides ... with ...** để đăng ký implementation. Đây là quan hệ service-use riêng của module system; nó không tạo ra một chỉ thị requires trực tiếp từ application tới từng provider.
+The application module declares **uses** to state that it uses the service type. The provider module declares **provides ... with ...** to register an implementation. This is a service-use relationship internal to the module system; it does not create a direct `requires` directive from the application to each provider.
 
-Nếu module ứng dụng chỉ khai báo requires com.acme.codec.api, dependency thông thường này không tự kéo tất cả module provider vào graph. Provider được thêm thông qua một trong các cách sau:
+If the application module only declares `requires com.acme.codec.api`, this normal dependency does not automatically pull all provider modules into the graph. A provider is added through one of the following ways:
 
-1. Được thêm rõ ràng vào root modules, ví dụ qua --add-modules.
-2. Được thêm do một module khác yêu cầu bằng requires.
-3. Được tìm thấy và thêm trong quá trình service binding.
+1. Explicitly added to root modules, for example via `--add-modules`.
+2. Added because another module requires it via `requires`.
+3. Found and added during service binding.
 
-### resolve và resolveAndBind
+### resolve and resolveAndBind
 
-API Java biểu diễn hai kiểu giải quyết module graph:
+The Java API represents two styles of module graph resolution:
 
-- **Configuration.resolve(...)** giải quyết root modules cùng các dependency module thông thường.
-- **Configuration.resolveAndBind(...)** thực hiện resolve và bổ sung các module provider phát sinh từ service-use dependence.
+- **Configuration.resolve(...)** resolves root modules along with normal module dependencies.
+- **Configuration.resolveAndBind(...)** performs resolution and adds provider modules arising from service-use dependences.
 
-Với resolveAndBind, module system kiểm tra các module đã resolve có service dependence và các module trong parent configurations. Module nào cung cấp implementation cho service type được sử dụng có thể được thêm vào graph. Các module provider mới cũng được resolve; nếu chúng sử dụng service khác, quá trình tiếp tục cho đến khi không còn provider mới cần thêm.
+With `resolveAndBind`, the module system inspects resolved modules with service dependences and modules in parent configurations. Modules that provide implementations for used service types can be added to the graph. Newly added provider modules are also resolved; if they use other services, the process continues until no more new providers need to be added.
 
-Đây là lý do service binding có thể làm graph lớn lên theo nhiều tầng: một module provider được thêm vào có thể sử dụng service khác, từ đó kéo thêm provider và dependencies của provider đó.
+This is why service binding can grow the graph across multiple levels: a newly added provider module may use another service, which in turn pulls in more providers and those providers' dependencies.
 
-## 3. Hành vi mặc định của jlink
+## 3. Default behavior of jlink
 
-**jlink mặc định không service-bind** khi tạo custom runtime image. Nó liên kết root modules và dependencies thông thường của chúng. Các module provider chỉ được đưa vào nếu chúng được thêm rõ ràng, được yêu cầu qua requires, hoặc được bao gồm bởi một lựa chọn root rộng hơn.
+**By default, jlink does not service-bind** when building a custom runtime image. It links the root modules and their normal dependencies. Provider modules are included only if they are explicitly added, required via `requires`, or included by a broader root selection.
 
-Ví dụ:
+Example:
 
 ~~~text
 jlink
@@ -99,24 +99,24 @@ jlink
   --output image-minimal
 ~~~
 
-Image này chứa:
+This image contains:
 
-- com.acme.application và các module được khai báo requires trực tiếp hoặc bắc cầu;
-- các module provider đã được thêm bằng cách khác;
-- các module nền tảng cần thiết cho graph.
+- `com.acme.application` and modules declared directly or transitively via `requires`;
+- provider modules added by other means;
+- platform modules needed for the graph.
 
-Image không tự động thêm com.acme.codec.json và com.acme.codec.xml chỉ vì application có chỉ thị uses com.acme.codec.Codec.
+The image does not automatically add `com.acme.codec.json` and `com.acme.codec.xml` merely because `application` has a `uses com.acme.codec.Codec` directive.
 
-Đây là lựa chọn phù hợp khi:
+This is the right choice when:
 
-- Ứng dụng không gọi ServiceLoader cho service đó.
-- Service chỉ là extension point tùy chọn và không có provider nào cần triển khai trong image.
-- Provider được nạp từ một nguồn khác trong kiến trúc triển khai, thay vì từ các module được liên kết vào image.
-- Bạn muốn kiểm soát từng provider để giảm dung lượng runtime image.
+- The application does not call `ServiceLoader` for that service.
+- The service is only an optional extension point and no provider needs to be deployed in the image.
+- Providers are loaded from another source in the deployment architecture, rather than from modules linked into the image.
+- You want per-provider control to reduce the runtime image size.
 
-### --bind-services thay đổi điều gì?
+### What does --bind-services change?
 
-Khi bật tùy chọn:
+When the option is enabled:
 
 ~~~text
 jlink
@@ -126,17 +126,17 @@ jlink
   --bind-services
 ~~~
 
-jlink liên kết các module provider tìm được cho service mà các module đã resolve sử dụng, cùng dependencies của các provider đó.
+`jlink` links provider modules found for services used by resolved modules, together with those providers' dependencies.
 
-Trong ví dụ Codec, nếu cả hai provider đều observable trên module path và cung cấp com.acme.codec.Codec, service binding có thể đưa cả com.acme.codec.json và com.acme.codec.xml vào image.
+In the Codec example, if both providers are observable on the module path and provide `com.acme.codec.Codec`, service binding can put both `com.acme.codec.json` and `com.acme.codec.xml` into the image.
 
-Điều này thuận tiện khi ứng dụng cần toàn bộ provider có sẵn. Tuy nhiên, nếu chỉ cần một implementation hoặc không dùng service, tùy chọn này có thể làm image lớn hơn cần thiết.
+This is convenient when the application needs all available providers. However, if only one implementation is needed or the service is unused, this option can make the image larger than necessary.
 
-**--bind-services là lựa chọn tường minh.** Không thêm tùy chọn này khi mục tiêu là chỉ liên kết root modules và dependencies thông thường.
+**--bind-services is an explicit opt-in.** Do not add this option when the goal is only to link root modules and regular dependencies.
 
-## 4. Chọn một provider thay vì liên kết tất cả
+## 4. Selecting one provider instead of binding all
 
-Giả sử ứng dụng chỉ cần JsonCodec. Có thể thêm provider đó trực tiếp vào root modules:
+Suppose the application only needs `JsonCodec`. You can add that provider directly to the root modules:
 
 ~~~text
 jlink
@@ -145,50 +145,50 @@ jlink
   --output image-json
 ~~~
 
-Kết quả:
+Result:
 
-- com.acme.application và dependencies của nó được liên kết.
-- com.acme.codec.json được liên kết cùng dependencies.
-- com.acme.codec.xml không được thêm chỉ vì nó cũng cung cấp Codec.
-- Không có bước tự động liên kết mọi provider của các service được sử dụng.
+- `com.acme.application` and its dependencies are linked.
+- `com.acme.codec.json` is linked along with its dependencies.
+- `com.acme.codec.xml` is not added merely because it also provides `Codec`.
+- There is no automatic step binding all providers of used services.
 
-Cách này phù hợp khi deployment chọn một implementation cụ thể theo môi trường, ví dụ JSON ở production nhưng XML chỉ dùng trong một công cụ khác.
+This approach fits when a deployment selects a specific implementation per environment, such as JSON in production while XML is only used in another tool.
 
-Nếu ứng dụng thực sự cần nhiều provider, liệt kê các module provider cần thiết:
+If the application genuinely needs multiple providers, list the needed provider modules:
 
 ~~~text
 --add-modules com.acme.application,com.acme.codec.json,com.acme.codec.xml
 ~~~
 
-Không cần bật --bind-services nếu danh sách provider đã được xác định đầy đủ. Nếu dependencies của provider sử dụng service khác và ứng dụng cũng cần các provider cho service đó, hãy thêm các provider tương ứng hoặc cân nhắc bật service binding sau khi đánh giá số module được thêm.
+There is no need to enable `--bind-services` if the provider list is already completely determined. If a provider's dependencies use other services and the application also needs providers for those services, add the corresponding providers or consider enabling service binding after evaluating how many modules get added.
 
-## 5. Tránh mở rộng root modules quá mức
+## 5. Avoiding overly broad root modules
 
-Ngay cả khi không bật --bind-services, bạn vẫn có thể vô tình đưa nhiều module vào image bằng cách chọn root modules quá rộng.
+Even without `--bind-services`, you can still accidentally pull many modules into the image by choosing overly broad root modules.
 
-Ví dụ:
+Example:
 
 ~~~text
 --add-modules ALL-MODULE-PATH
 ~~~
 
-ALL-MODULE-PATH yêu cầu thêm mọi module quan sát được trên module path làm root. Nếu module path chứa nhiều provider, chúng có thể được liên kết do đã là root modules, dù service binding đang tắt.
+`ALL-MODULE-PATH` asks to add every observable module on the module path as a root. If the module path contains many providers, they can be linked because they have become root modules, even while service binding is off.
 
-Để tạo image nhỏ, hãy:
+To create a small image:
 
-1. Chọn module ứng dụng làm root chính.
-2. Để requires mô tả dependency module thực sự cần thiết.
-3. Chỉ thêm provider cần dùng.
-4. Không thêm toàn bộ module path chỉ để tránh thiếu một provider.
-5. Kiểm tra kết quả bằng danh sách module của image.
+1. Select the application module as the main root.
+2. Let `requires` describe truly necessary module dependencies.
+3. Add only the providers that are needed.
+4. Do not add the entire module path just to avoid missing one provider.
+5. Verify the result using the image's module list.
 
-Tùy chọn **--limit-modules** có thể giới hạn tập module observable cho quá trình resolve. Tập này gồm closure của các module được chỉ định, module chính nếu có, và các module được chỉ định qua --add-modules. Đây là công cụ kiểm soát nâng cao; nếu giới hạn quá chặt, jlink có thể không resolve được dependency hoặc provider mà ứng dụng cần. Chỉ dùng sau khi đã hiểu module graph và kiểm tra image sau khi build.
+The **--limit-modules** option can restrict the observable module set for resolution. This set consists of the closure of the specified modules, the main module if any, and modules specified via `--add-modules`. This is an advanced control tool; if restricted too tightly, `jlink` may fail to resolve dependencies or providers the application needs. Only use it after understanding the module graph and testing the image after building.
 
-## 6. Tìm provider trước khi quyết định đưa vào image
+## 6. Finding providers before deciding to include them in the image
 
-jlink có tùy chọn **--suggest-providers** để liệt kê các module cung cấp implementation cho service type được chỉ định.
+`jlink` has the **--suggest-providers** option to list modules supplying implementations for a specified service type.
 
-Ví dụ:
+Example:
 
 ~~~text
 jlink
@@ -196,7 +196,7 @@ jlink
   --suggest-providers com.acme.codec.Codec
 ~~~
 
-Kết quả có thể cho biết:
+The output might show:
 
 ~~~text
 Suggested providers:
@@ -204,17 +204,17 @@ Suggested providers:
   com.acme.codec.xml provides com.acme.codec.Codec
 ~~~
 
-Từ danh sách này, bạn có thể chọn module cần thiết để thêm vào --add-modules.
+From this list, you can pick the needed modules to add to `--add-modules`.
 
-Đây là bước hữu ích khi module path chứa nhiều provider hoặc khi service được cung cấp bởi module của JDK. Không nên đoán tên provider hoặc thêm tất cả provider trước khi biết ứng dụng thực sự cần implementation nào.
+This is a useful step when the module path contains many providers or when a service is provided by a JDK module. Do not guess provider names or add every provider before knowing which implementations the application actually needs.
 
-## 7. Ví dụ thực tế với charset provider của JDK
+## 7. Practical example with a JDK charset provider
 
-Một ví dụ trong JDK là service **java.nio.charset.spi.CharsetProvider**. Module java.base sử dụng service này; module jdk.charsets cung cấp một số charset bổ sung.
+One example in the JDK is the **java.nio.charset.spi.CharsetProvider** service. The `java.base` module uses this service; the `jdk.charsets` module supplies several additional charsets.
 
-Khi chạy trên một JDK đầy đủ, module resolution thông thường có thể thực hiện service binding và tìm provider jdk.charsets. Vì vậy, nhiều charset có thể sẵn sàng trong môi trường JDK đầy đủ.
+When running on a full JDK, normal module resolution can perform service binding and find the `jdk.charsets` provider. Consequently, many charsets are available in a full JDK environment.
 
-Khi tạo custom runtime image bằng jlink:
+When creating a custom runtime image with `jlink`:
 
 ~~~text
 jlink
@@ -222,7 +222,7 @@ jlink
   --output image-base-only
 ~~~
 
-jlink không tự động thêm mọi provider chỉ vì java.base khai báo sử dụng service. Nếu ứng dụng cần các charset bổ sung trong jdk.charsets, hãy thêm module đó rõ ràng:
+`jlink` does not automatically add every provider merely because `java.base` declares using the service. If the application needs the additional charsets in `jdk.charsets`, add that module explicitly:
 
 ~~~text
 jlink
@@ -230,7 +230,7 @@ jlink
   --output image-with-charsets
 ~~~
 
-Hoặc bật --bind-services nếu muốn jlink tự động thêm các provider phù hợp cho service được các module đã resolve sử dụng:
+Or enable `--bind-services` if you want `jlink` to automatically add matching providers for services used by resolved modules:
 
 ~~~text
 jlink
@@ -239,19 +239,19 @@ jlink
   --bind-services
 ~~~
 
-Ví dụ này cho thấy sự khác biệt giữa một JDK đầy đủ và custom runtime image. Khi tạo image, bạn chịu trách nhiệm chọn module và provider mà ứng dụng cần.
+This example illustrates the difference between a full JDK and a custom runtime image. When building an image, you are responsible for choosing the modules and providers your application needs.
 
-## 8. Điều gì xảy ra nếu provider không có trong image?
+## 8. What happens if a provider is not in the image?
 
-Nếu ứng dụng gọi:
+If the application calls:
 
 ~~~java
 ServiceLoader<Codec> codecs = ServiceLoader.load(Codec.class);
 ~~~
 
-nhưng không có provider phù hợp trong runtime image hoặc module layer mà ServiceLoader quan sát được, quá trình tìm kiếm không tự tải provider bị thiếu từ module path lúc build. ServiceLoader có thể trả về một kết quả rỗng.
+but there is no matching provider in the runtime image or module layer observable by `ServiceLoader`, the lookup does not automatically load missing providers from the build-time module path. `ServiceLoader` may return an empty result.
 
-Ví dụ:
+Example:
 
 ~~~java
 Optional<Codec> selected = ServiceLoader.load(Codec.class)
@@ -263,51 +263,51 @@ if (selected.isEmpty()) {
 }
 ~~~
 
-Nếu service là bắt buộc, ứng dụng nên xử lý rõ trường hợp không tìm thấy provider. Nếu service chỉ là tính năng tùy chọn, có thể dùng implementation mặc định hoặc tắt chức năng liên quan theo thiết kế.
+If the service is mandatory, the application should handle the missing-provider case explicitly. If the service is only an optional feature, it can use a default implementation or disable the related feature by design.
 
-Đối với named module, module gọi ServiceLoader cần khai báo uses cho service type. Module provider cần khai báo provides trong module descriptor. Kiểm tra cả hai phía khi provider không được tìm thấy.
+For named modules, the module calling `ServiceLoader` must declare `uses` for the service type. The provider module must declare `provides` in its module descriptor. Check both sides when a provider is not found.
 
-Không nên bỏ provider khỏi image chỉ dựa trên việc ứng dụng không tham chiếu trực tiếp tới class provider. ServiceLoader được thiết kế để tìm implementation thông qua service type, nên tên class provider có thể không xuất hiện trong code ứng dụng.
+Do not exclude a provider from the image solely based on the application not referencing the provider class directly. `ServiceLoader` is designed to find implementations through the service type, so the provider class name may never appear in application code.
 
-## 9. Phân biệt các lý do module xuất hiện trong image
+## 9. Distinguishing reasons a module appears in an image
 
-Khi một module xuất hiện trong custom runtime image, hãy xác định nó được đưa vào bằng đường nào:
+When a module appears in a custom runtime image, identify the path by which it was brought in:
 
-| Nguồn đưa module vào | Ví dụ | Cách kiểm soát |
+| Inclusion source | Example | How to control |
 |---|---|---|
-| Root module | --add-modules com.acme.application | Chỉ chọn root thực sự cần |
-| Dependency thông thường | application requires com.acme.api | Xem lại requires và dependency graph |
-| Provider được chọn tường minh | --add-modules com.acme.codec.json | Chỉ thêm provider cần thiết |
-| Service binding | --bind-services | Bỏ tùy chọn nếu không cần tự động liên kết provider |
-| Root quá rộng | --add-modules ALL-MODULE-PATH | Thu hẹp danh sách root |
+| Root module | `--add-modules com.acme.application` | Only select roots that are genuinely needed |
+| Normal dependency | `application requires com.acme.api` | Review `requires` and the dependency graph |
+| Explicitly selected provider | `--add-modules com.acme.codec.json` | Add only needed providers |
+| Service binding | `--bind-services` | Omit the option if automatic provider binding is not needed |
+| Overly broad root | `--add-modules ALL-MODULE-PATH` | Narrow the root list |
 
-Việc tắt service binding chỉ ngăn đường bổ sung module do service-use dependence. Nó không loại bỏ module đã được thêm bằng requires, root module hoặc một dependency khác.
+Turning off service binding only prevents adding modules due to service-use dependences. It does not remove modules added by `requires`, root modules, or another dependency.
 
-Một module provider có thể vẫn xuất hiện khi ứng dụng không dùng service nếu module đó được yêu cầu trực tiếp hoặc bắc cầu bằng requires, hoặc được chỉ định trong --add-modules. Muốn giảm thêm, phải xem lại dependency thực tế và kiến trúc module; không thể xóa an toàn một dependency chỉ bằng cách tắt service binding.
+A provider module can still appear even when the application does not use the service if that module is required directly or transitively via `requires`, or specified in `--add-modules`. To reduce further, you must review actual dependencies and module architecture; a dependency cannot be safely removed simply by disabling service binding.
 
-## 10. Quy trình tạo image gọn và có thể kiểm tra
+## 10. Process for creating a lean and verifiable image
 
-### Bước 1 — Xác định root module
+### Step 1 — Identify root modules
 
-Chọn module khởi chạy của ứng dụng. Với jlink, --add-modules là nơi chỉ định root modules.
+Select the application's entry module. With `jlink`, `--add-modules` is where root modules are specified.
 
 ~~~text
 --add-modules com.acme.application
 ~~~
 
-### Bước 2 — Kiểm tra service usage
+### Step 2 — Inspect service usage
 
-Tìm các chỉ thị uses trong module-info.java và các đoạn code gọi ServiceLoader. Kiểm tra cả dependencies, vì module thư viện cũng có thể khai báo uses.
+Find `uses` directives in `module-info.java` and code snippets calling `ServiceLoader`. Check dependencies as well, because library modules can also declare `uses`.
 
-Nếu ứng dụng không dùng service, loại bỏ chỉ thị uses không còn cần thiết và code ServiceLoader dư thừa. Nếu service là extension point tùy chọn, ghi rõ provider nào cần có trong từng môi trường triển khai.
+If the application does not use a service, remove no-longer-needed `uses` directives and redundant `ServiceLoader` code. If a service is an optional extension point, document which providers are required in each deployment environment.
 
-### Bước 3 — Quyết định chiến lược provider
+### Step 3 — Decide the provider strategy
 
-- Không dùng service: giữ mặc định, không bật --bind-services.
-- Chỉ dùng một vài provider: thêm đúng module provider vào --add-modules.
-- Cần mọi provider phù hợp trên module path: cân nhắc --bind-services.
+- Not using services: keep the default, do not enable `--bind-services`.
+- Using only a few providers: add the exact provider modules to `--add-modules`.
+- Needing every matching provider on the module path: consider `--bind-services`.
 
-### Bước 4 — Build image
+### Step 4 — Build the image
 
 ~~~text
 jlink
@@ -316,79 +316,79 @@ jlink
   --output image
 ~~~
 
-Thêm provider module hoặc --bind-services tùy quyết định ở bước trước.
+Add provider modules or `--bind-services` according to the decision in the previous step.
 
-### Bước 5 — Kiểm tra module thực tế
+### Step 5 — Verify actual modules
 
-Chạy Java trong image vừa tạo:
+Run `java` inside the newly created image:
 
 ~~~text
 image/bin/java --list-modules
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~text
 image\bin\java.exe --list-modules
 ~~~
 
-Đối chiếu danh sách với root modules, requires dependencies và provider modules dự kiến. Không chỉ dựa vào kích thước thư mục để kết luận image đã tối ưu.
+Compare the list against the expected root modules, `requires` dependencies, and provider modules. Do not rely solely on directory size to conclude an image is optimized.
 
-### Bước 6 — Kiểm tra chức năng service
+### Step 6 — Test service functionality
 
-Chạy integration test hoặc smoke test trên chính runtime image:
+Run integration tests or smoke tests on the runtime image itself:
 
-- ServiceLoader tìm thấy provider bắt buộc.
-- Provider được chọn đúng với cấu hình deployment.
-- Các chức năng tùy chọn xử lý trường hợp không có provider.
-- Không phụ thuộc vào JDK đầy đủ của máy phát triển.
+- `ServiceLoader` finds mandatory providers.
+- Selected providers match the deployment configuration.
+- Optional features handle the zero-provider case.
+- No reliance on the development machine's full JDK.
 
-Kiểm tra trên JDK đầy đủ có thể che giấu lỗi thiếu provider trong custom image. Hãy chạy test bằng executable trong image đầu ra.
+Testing on a full JDK can mask missing-provider errors in a custom image. Run tests using the executable inside the output image.
 
-## 11. Các hiểu nhầm thường gặp
+## 11. Common misconceptions
 
-### Nghĩ uses tự động kéo provider vào jlink image
+### Thinking `uses` automatically pulls providers into a jlink image
 
-Chỉ thị uses mô tả service dependence. jlink mặc định không thực hiện service binding, vì vậy provider chỉ xuất hiện nếu được thêm qua root, dependency hoặc lựa chọn khác.
+The `uses` directive describes a service dependence. `jlink` does not perform service binding by default, so providers only appear if added via roots, dependencies, or another option.
 
-### Nghĩ bỏ --bind-services sẽ loại mọi provider
+### Thinking omitting `--bind-services` excludes all providers
 
-Không đúng. Provider được thêm bằng --add-modules hoặc requires vẫn được liên kết. Tắt service binding chỉ ngăn bước tự động thêm provider theo service-use dependence.
+Incorrect. Providers added via `--add-modules` or `requires` are still linked. Disabling service binding only prevents the step that automatically adds providers for service-use dependences.
 
-### Nghĩ --bind-services chỉ thêm provider mà ứng dụng chính gọi
+### Thinking `--bind-services` only adds providers called by the main application
 
-Không nhất thiết. Các module đã resolve, bao gồm dependencies, có thể khai báo service usage. Provider cho các service đó cũng có thể được thêm; provider mới lại có thể tạo service dependence tiếp theo.
+Not necessarily. Any resolved module, including dependencies, can declare service usage. Providers for those services can also be added; newly added providers can create further service dependences.
 
-### Nghĩ provider không có trong image vẫn tự tìm được từ module path lúc chạy
+### Thinking a provider missing from the image can still be found from the module path at runtime
 
-Module path dùng khi chạy phải thực sự chứa provider và provider phải observable trong configuration phù hợp. Module path chỉ có ở máy build không tự trở thành module path của runtime image.
+The module path used at runtime must actually contain the provider and the provider must be observable in the appropriate configuration. A module path existing only on the build machine does not automatically become the runtime image's module path.
 
-### Nghĩ ALL-MODULE-PATH tương đương với bind-services
+### Thinking `ALL-MODULE-PATH` is equivalent to `bind-services`
 
-Hai cơ chế khác nhau. ALL-MODULE-PATH thêm mọi module quan sát được trên module path làm root; --bind-services bổ sung provider theo service-use dependence của các module đã resolve. Cả hai đều có thể làm image lớn hơn, nhưng nguyên nhân khác nhau.
+They are two different mechanisms. `ALL-MODULE-PATH` adds every observable module on the module path as a root; `--bind-services` adds providers for service-use dependences of already resolved modules. Both can enlarge the image, but for different reasons.
 
-### Nghĩ module không được ứng dụng import trực tiếp là module thừa
+### Thinking a module not directly imported by the application is unnecessary
 
-Một module có thể được cần đến qua requires bắc cầu, reflection, service provider hoặc chức năng runtime khác. Phải kiểm tra cách module được sử dụng trước khi loại bỏ.
+A module may be needed via transitive `requires`, reflection, service providers, or other runtime features. Verify how a module is used before removing it.
 
-## 12. Checklist quyết định có bật service binding không
+## 12. Checklist for deciding whether to enable service binding
 
-- Ứng dụng có gọi ServiceLoader hoặc dùng extension point dựa trên service không?
-- Những module dependency nào khai báo uses?
-- Service nào là bắt buộc, service nào chỉ là tùy chọn?
-- Provider nào thực sự cần có trong image?
-- Provider có được thêm do requires hoặc --add-modules trước khi xét service binding không?
-- Có đang dùng ALL-MODULE-PATH khiến mọi module trên module path trở thành root không?
-- Nếu không dùng --bind-services, các provider cần thiết đã được thêm tường minh chưa?
-- Image sau khi build đã được kiểm tra bằng --list-modules chưa?
-- Integration test có chạy bằng runtime image đầu ra không?
-- Khi thiếu provider, ứng dụng có thông báo lỗi rõ ràng hoặc xử lý fallback phù hợp không?
+- Does the application call `ServiceLoader` or use service-based extension points?
+- Which dependency modules declare `uses`?
+- Which services are mandatory and which are optional?
+- Which providers are genuinely needed in the image?
+- Are providers already added by `requires` or `--add-modules` before considering service binding?
+- Is `ALL-MODULE-PATH` being used, causing every module on the module path to become a root?
+- If not using `--bind-services`, have the necessary providers been added explicitly?
+- Has the built image been checked with `--list-modules`?
+- Do integration tests run against the output runtime image?
+- When a provider is missing, does the application report a clear error or handle fallback appropriately?
 
-**Ghi nhớ:** Muốn image nhỏ khi không cần service provider, hãy để jlink ở chế độ mặc định, chọn root modules chính xác và chỉ thêm provider cần thiết. Bật --bind-services khi bạn thực sự muốn module system tự động tìm và liên kết provider cho các service được dùng. Luôn xác minh danh sách module và chạy thử trên chính image được tạo.
+**Key takeaway:** To keep an image small when service providers are not needed, leave `jlink` in its default mode, pick exact root modules, and add only the needed providers. Enable `--bind-services` when you genuinely want the module system to automatically discover and link providers for used services. Always verify the module list and test using the generated image itself.
 
-## Tài liệu tham khảo
+## References
 
-- Oracle Java SE 21 — jlink Command, các tùy chọn --add-modules, --bind-services, --limit-modules và --suggest-providers: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jlink.html
-- Oracle Java SE 21 API — Configuration.resolve và Configuration.resolveAndBind: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/module/Configuration.html
-- Dev.java — Creating Runtime and Application Images with JLink, mục Including Services: https://dev.java/learn/jlink/
+- Oracle Java SE 21 — jlink Command, `--add-modules`, `--bind-services`, `--limit-modules`, and `--suggest-providers` options: https://docs.oracle.com/en/java/javase/21/docs/specs/man/jlink.html
+- Oracle Java SE 21 API — Configuration.resolve and Configuration.resolveAndBind: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/module/Configuration.html
+- Dev.java — Creating Runtime and Application Images with JLink, Including Services section: https://dev.java/learn/jlink/
 - Oracle Java SE 21 API — ServiceLoader: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ServiceLoader.html

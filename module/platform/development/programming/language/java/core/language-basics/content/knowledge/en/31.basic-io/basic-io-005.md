@@ -1,8 +1,8 @@
-# Đọc dữ liệu console bằng `Scanner` (Java 17+)
+# Reading Console Data with `Scanner` (Java 17+)
 
-## 1. `Scanner` là gì và dùng khi nào?
+## 1. What is `Scanner` and when is it used?
 
-`java.util.Scanner` là lớp tiện ích đọc đầu vào dưới dạng **token** hoặc **dòng**, có thể phân tích dữ liệu thành các kiểu như `int`, `long`, `double` và `boolean`. Trong bài nhập xuất console, ta thường gắn một `Scanner` với `System.in`:
+`java.util.Scanner` is a utility class that reads input as **tokens** or **lines**, and can parse data into types such as `int`, `long`, `double`, and `boolean`. In console I/O lessons, a `Scanner` is commonly attached to `System.in`:
 
 ```java
 import java.util.Scanner;
@@ -12,31 +12,31 @@ String name = scanner.nextLine();
 int age = scanner.nextInt();
 ```
 
-Đây là những câu lệnh minh họa cần đặt trong phương thức hay khối mã thích hợp. `System.in` là luồng đầu vào chuẩn; thường nhận ký tự từ bàn phím khi chương trình chạy trong terminal, nhưng cũng có thể lấy dữ liệu từ một file hoặc pipe. `Scanner` biến luồng này thành các giá trị có cấu trúc.
+These are illustrative statements that belong inside an appropriate method or code block. `System.in` is the standard input stream; it usually receives characters from the keyboard when running in a terminal, though it can also read data from a file or pipe. `Scanner` turns this stream into structured values.
 
-`Scanner` thích hợp với chương trình console nhỏ, bài tập và công cụ dòng lệnh đơn giản. Đối với khối lượng dữ liệu văn bản rất lớn, có thể xem xét `BufferedReader` để chủ động đọc từng dòng; `Scanner` thuận tiện hơn khi cần tách và parse token.
+`Scanner` is well suited for small console programs, exercises, and simple command-line tools. For very large volumes of text data, you may consider `BufferedReader` to explicitly read line by line; `Scanner` is more convenient when you need to split and parse tokens.
 
-## 2. Các phương thức quan trọng
+## 2. Key methods
 
-| Phương thức | Dữ liệu đọc | Đặc điểm |
+| Method | Data read | Characteristics |
 | --- | --- | --- |
-| `next()` | Token kế tiếp, trả `String` | Mặc định bỏ qua dấu phân cách khoảng trắng; chỉ lấy một token |
-| `nextLine()` | Phần còn lại của dòng hiện tại, trả `String` | Có thể gồm khoảng trắng; bỏ dấu kết thúc dòng khỏi giá trị trả về |
-| `nextInt()` / `nextLong()` | Token số nguyên | Parse theo radix/locale tương ứng; báo lỗi nếu token không hợp lệ hoặc ngoài miền giá trị |
-| `nextDouble()` / `nextFloat()` | Token số thực | Quy tắc dấu thập phân và phân nhóm chịu ảnh hưởng của `Locale` |
-| `nextBoolean()` | Token boolean | Nhận `true`/`false` theo cách so khớp không phân biệt hoa thường |
-| `hasNext()` / `hasNextLine()` | `boolean` | Kiểm tra còn token/dòng hay không, hữu ích ở cuối input |
-| `hasNextInt()` / `hasNextDouble()` | `boolean` | Kiểm tra token tiếp theo có parse được theo kiểu đó không |
-| `useLocale(locale)` | Cấu hình Scanner | Quy định cú pháp số theo locale |
-| `useDelimiter(regex)` | Cấu hình Scanner | Thay mẫu phân cách token mặc định bằng biểu thức chính quy |
+| `next()` | Next token, returns `String` | Skips whitespace delimiters by default; reads only one token |
+| `nextLine()` | Remainder of the current line, returns `String` | Can include spaces; strips the line terminator from the return value |
+| `nextInt()` / `nextLong()` | Integer token | Parses using the current radix/locale; throws an error if the token is invalid or out of range |
+| `nextDouble()` / `nextFloat()` | Floating-point token | Decimal separator and grouping rules are affected by `Locale` |
+| `nextBoolean()` | Boolean token | Accepts `true`/`false` using case-insensitive matching |
+| `hasNext()` / `hasNextLine()` | `boolean` | Checks whether another token/line remains, useful at end of input |
+| `hasNextInt()` / `hasNextDouble()` | `boolean` | Checks whether the next token can be parsed as that type |
+| `useLocale(locale)` | Configures Scanner | Sets number syntax rules according to locale |
+| `useDelimiter(regex)` | Configures Scanner | Replaces the default token delimiter pattern with a regular expression |
 
-**Token khác dòng:** với đầu vào `Nguyen Van An`, `next()` chỉ lấy `Nguyen`, còn `nextLine()` có thể lấy toàn bộ `Nguyen Van An` (nếu đang ở đầu dòng).
+**Tokens differ from lines:** given the input `Nguyen Van An`, `next()` only reads `Nguyen`, whereas `nextLine()` can read the entire `Nguyen Van An` (when starting at the beginning of the line).
 
-Mặc định, dấu phân cách token của `Scanner` là các ký tự khoảng trắng (space, tab, xuống dòng...). Những phương thức `nextInt()`, `nextDouble()`, `next()` đọc theo **token**; `nextLine()` đọc theo **ranh giới dòng**. Trộn hai cách đọc này cần cẩn thận.
+By default, `Scanner`'s token delimiters are whitespace characters (spaces, tabs, newlines, etc.). Methods like `nextInt()`, `nextDouble()`, and `next()` read by **token**; `nextLine()` reads by **line boundary**. Mixing these two styles requires care.
 
-## 3. Ví dụ đầy đủ: đọc tên, tuổi, điểm và ghi chú
+## 3. Complete example: reading name, age, score, and note
 
-Tạo file **`ScannerDemo.java`**:
+Create the file **`ScannerDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -68,7 +68,7 @@ public class ScannerDemo {
 }
 ```
 
-**Đầu vào** (gõ mỗi giá trị rồi nhấn Enter, hoặc tạo file `sample.txt` có chính xác bốn dòng này):
+**Input** (type each value and press Enter, or create a file `sample.txt` containing these exact four lines):
 
 ```text
 Nguyen Van An
@@ -77,21 +77,21 @@ Nguyen Van An
 Likes Java
 ```
 
-Biên dịch tại thư mục chứa `ScannerDemo.java` bằng **JDK 17+**:
+Compile in the directory containing `ScannerDemo.java` using **JDK 17+**:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out ScannerDemo.java
 java -cp out ScannerDemo
 ```
 
-Tạo sẵn thư mục `out` bằng `mkdir out` trước khi biên dịch nếu nó chưa tồn tại. Trong lần chạy tương tác, terminal có thể hiển thị lại các ký tự người dùng vừa gõ; các ký tự được terminal echo **không thuộc stdout do Java in**.
+Create the `out` directory beforehand with `mkdir out` if it does not already exist. In an interactive run, the terminal may echo back the characters the user types; characters echoed by the terminal **are not part of the stdout printed by Java**.
 
-Để kiểm tra output ổn định với `sample.txt`:
+To verify stable output with `sample.txt`:
 
-- **Linux/macOS hoặc Windows CMD:** `java -cp out ScannerDemo < sample.txt`
+- **Linux/macOS or Windows CMD:** `java -cp out ScannerDemo < sample.txt`
 - **Windows PowerShell 5.1+:** `Get-Content -LiteralPath sample.txt | java -cp out ScannerDemo`
 
-**Stdout chính xác của chương trình** với đầu vào đã nêu (không tính phần input được terminal tự echo):
+**Exact stdout of the program** with the input shown above (excluding input echoed by the terminal):
 
 ```text
 Enter full name:
@@ -101,27 +101,27 @@ Enter note:
 Result: Nguyen Van An | age=20 | score=8.5 | note=Likes Java
 ```
 
-Cần hiểu các bước sau:
+Key steps to understand:
 
-1. `nextLine()` lấy toàn bộ tên có dấu cách.
-2. `nextInt()` đọc token `20`; `nextDouble()` đọc token `8.5`.
-3. `scanner.useLocale(Locale.US)` quy định dấu chấm `.` làm dấu thập phân. Locale mặc định của máy có thể khác, vì vậy `8.5` không phải lúc nào cũng được đọc như mong đợi nếu bỏ cấu hình.
-4. `scanner.nextLine()` ngay sau `nextDouble()` chủ động đọc và bỏ phần còn lại của dòng điểm, để `nextLine()` kế tiếp nhận dòng ghi chú.
-5. `System.out.printf(Locale.US, ...)` cố định cách định dạng dấu thập phân trong kết quả.
+1. `nextLine()` reads the entire name including spaces.
+2. `nextInt()` reads the token `20`; `nextDouble()` reads the token `8.5`.
+3. `scanner.useLocale(Locale.US)` specifies `.` as the decimal separator. The machine's default locale may differ, so `8.5` might not always be parsed as expected if this configuration is omitted.
+4. `scanner.nextLine()` immediately after `nextDouble()` explicitly reads and discards the remainder of the score line so that the following `nextLine()` receives the note line.
+5. `System.out.printf(Locale.US, ...)` fixes how the decimal point is formatted in the output.
 
-Mã ví dụ giả định tuổi và điểm **đúng định dạng**. Nếu đầu vào sai hoặc bị cắt ngắn, các lệnh `nextInt()`, `nextDouble()`, `nextLine()` có thể ném ngoại lệ; phần 6–7 hướng dẫn xử lý.
+The example code assumes age and score are **properly formatted**. If the input is malformed or truncated, `nextInt()`, `nextDouble()`, and `nextLine()` may throw exceptions; sections 6–7 explain how to handle them.
 
-## 4. Chú ý khi chuyển từ đọc token sang đọc dòng
+## 4. Watch out when switching from token reading to line reading
 
-`nextInt()` và `nextDouble()` đọc một **token số**; `nextLine()` đọc **phần còn lại của dòng hiện tại**. Với input `21\nHello Java\n`, sau `nextInt()` lần `nextLine()` kế tiếp nhận `""` vì dòng số đã hết. Nếu còn văn bản sau số trên cùng dòng, `nextLine()` sẽ trả phần văn bản đó thay vì chuỗi rỗng.
+`nextInt()` and `nextDouble()` read a **numeric token**; `nextLine()` reads the **remainder of the current line**. Given the input `21\nHello Java\n`, after `nextInt()`, the next `nextLine()` receives `""` because the number's line has nothing left on it. If there is text after the number on the same line, `nextLine()` returns that text instead of an empty string.
 
-Khi hợp đồng yêu cầu **số ở một dòng, ghi chú ở dòng kế tiếp**, có thể gọi một `nextLine()` để tiêu thụ phần dư rồi gọi lần nữa để lấy ghi chú. Khi muốn nhập từng trường một dòng và dễ kiểm tra lỗi, dùng `Integer.parseInt(scanner.nextLine().strip())` sau khi kiểm tra còn dòng là lựa chọn khác. Đừng tự bỏ phần dư nếu nó chứa dữ liệu cần giữ.
+When the contract specifies **a number on one line and a note on the next line**, you can call `nextLine()` once to consume the remainder and then call it again to read the note. When you want one field per line with straightforward error checking, using `Integer.parseInt(scanner.nextLine().strip())` after checking that a line exists is another option. Do not blindly discard the remainder if it holds data you need to keep.
 
-Ví dụ `ScannerDemo` phía trên áp dụng cách đầu; bài xử lý phần xuống dòng còn lại trình bày tình huống có/không có văn bản cùng dòng, EOF và các phương án xử lý bằng chương trình tái hiện độc lập.
+`ScannerDemo` above applies the first approach; the lesson on handling leftover newlines covers cases with or without same-line text, EOF, and alternative strategies using standalone reproducible programs.
 
-## 5. Đọc token, dòng và dấu phân cách theo nhu cầu
+## 5. Reading tokens, lines, and custom delimiters as needed
 
-Một token được xác định bởi **delimiter** hiện tại. Ví dụ đọc những từ phân cách bằng khoảng trắng:
+A token is determined by the current **delimiter**. Example of reading words separated by whitespace:
 
 ```java
 import java.util.Scanner;
@@ -150,19 +150,19 @@ token=green
 token=blue
 ```
 
-Nếu muốn tách theo dấu phẩy, có thể thay delimiter:
+If you want to split on commas, you can change the delimiter:
 
 ```java
 scanner.useDelimiter(",");
 ```
 
-Đây là statement minh họa cần đặt trong khối có biến `scanner` phù hợp. `useDelimiter` nhận **regex**, không phải chuỗi văn bản đơn thuần cho mọi ký hiệu. Ví dụ muốn tách cả dấu phẩy lẫn khoảng trắng, sử dụng `scanner.useDelimiter("[,\\s]+");` trong Java source; Java biến `\\` trong string literal thành `\`, để biểu thức chính quy nhận `\s` là lớp ký tự trắng.
+This is an illustrative statement to place inside a block with a suitable `scanner` variable. `useDelimiter` accepts a **regex**, not a plain literal string for arbitrary symbols. For example, to split on both commas and whitespace, use `scanner.useDelimiter("[,\\s]+");` in Java source; Java turns `\\` in the string literal into `\`, so the regular expression receives `\s` as the whitespace character class.
 
-Dùng `nextLine()` khi cần giữ khoảng trắng giữa các từ (họ tên, câu nhập từ người dùng), và dùng `next()`/`nextInt()` khi input thực sự được thiết kế như một chuỗi token.
+Use `nextLine()` when you need to preserve spaces between words (full names, user-entered sentences), and use `next()`/`nextInt()` when the input is genuinely structured as a sequence of tokens.
 
-## 6. Kiểm tra dữ liệu trước khi parse
+## 6. Checking data before parsing
 
-Nếu `nextInt()` gặp `abc`, `Scanner` thường ném `InputMismatchException`. Nếu không còn token, `nextInt()` có thể ném `NoSuchElementException`. `hasNextInt()` giúp kiểm tra token tiếp theo trước khi đọc:
+If `nextInt()` encounters `abc`, `Scanner` typically throws `InputMismatchException`. If no tokens remain, `nextInt()` can throw `NoSuchElementException`. `hasNextInt()` checks the next token before reading:
 
 ```java
 if (scanner.hasNextInt()) {
@@ -173,11 +173,11 @@ if (scanner.hasNextInt()) {
 }
 ```
 
-Đoạn trên là minh họa phụ thuộc vào biến `scanner`. Khi `hasNextInt()` trả `false` do token sai, scanner **chưa tự loại token không hợp lệ**; nếu lặp mà không tiêu thụ hay bỏ token đó, vòng lặp có thể không tiến triển. Khi kiểm tra input theo dòng, nên đọc `nextLine()`, parse và phản hồi lại người dùng.
+The snippet above is illustrative and depends on a `scanner` variable. When `hasNextInt()` returns `false` because of a bad token, the scanner **has not automatically removed the invalid token**; if you loop without consuming or discarding it, the loop may fail to make progress. When validating line-based input, read `nextLine()`, parse it, and give feedback to the user.
 
-### Ví dụ đầy đủ: đọc dòng, xử lý sai số nguyên và EOF
+### Complete example: reading a line, handling invalid integers and EOF
 
-Tạo **`ValidatedScannerDemo.java`**:
+Create **`ValidatedScannerDemo.java`**:
 
 ```java
 import java.util.Scanner;
@@ -192,7 +192,7 @@ public class ValidatedScannerDemo {
                 return;
             }
 
-            String text = scanner.nextLine().trim();
+            String text = scanner.nextLine().strip();
             try {
                 int number = Integer.parseInt(text);
                 if (number < 0 || number > 100) {
@@ -208,86 +208,86 @@ public class ValidatedScannerDemo {
 }
 ```
 
-Biên dịch:
+Compile:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out ValidatedScannerDemo.java
 ```
 
-Chạy:
+Run:
 
 ```sh
 java -cp out ValidatedScannerDemo
 ```
 
-Với mỗi lần chạy, người dùng cung cấp **một dòng duy nhất**. Đầu ra tương ứng:
+For each run, the user provides **a single line**. Corresponding outputs:
 
-| Input | Stdout từ chương trình |
+| Input | Stdout from the program |
 | --- | --- |
-| `42` | `Enter an integer from 0 to 100:` rồi `Accepted: 42` |
-| `abc` | Dòng nhắc nhập rồi `Error: not an integer` |
-| `150` | Dòng nhắc nhập rồi `Error: out of range` |
-| EOF ngay lập tức | Dòng nhắc nhập rồi `Error: no input` |
+| `42` | `Enter an integer from 0 to 100:` then `Accepted: 42` |
+| `abc` | Prompt line then `Error: not an integer` |
+| `150` | Prompt line then `Error: out of range` |
+| Immediate EOF | Prompt line then `Error: no input` |
 
-Với input `42`, **stdout chính xác** là:
+With input `42`, the **exact stdout** is:
 
 ```text
 Enter an integer from 0 to 100:
 Accepted: 42
 ```
 
-Ví dụ đọc toàn bộ dòng nên xử lý được giá trị có khoảng trắng ở hai đầu thông qua `trim()`, không gặp lỗi newline sau `nextInt()`. Phép parse `Integer.parseInt` ở đây là API của `Integer`, nên lỗi định dạng là `NumberFormatException`, khác với `InputMismatchException` của `Scanner.nextInt()`.
+The example reads the entire line, so it handles values with leading/trailing whitespace via `trim()` without hitting the post-`nextInt()` newline pitfall. `Integer.parseInt` here is an `Integer` API, so a format error produces `NumberFormatException`, unlike `Scanner.nextInt()`'s `InputMismatchException`.
 
-**Khác biệt giữa kiểm tra và xử lý:** `hasNextLine()` giúp tránh gọi `nextLine()` khi đã EOF, nhưng nó không xác minh định dạng số. Ngược lại, `hasNextInt()` xác minh token số nguyên theo `Scanner` nhưng không thay thế kiểm tra miền giá trị nghiệp vụ, ví dụ 0 đến 100.
+**Difference between checking and validating:** `hasNextLine()` prevents calling `nextLine()` at EOF, yet it does not verify numeric format. Conversely, `hasNextInt()` verifies an integer token according to `Scanner`, yet it does not replace business range checks such as 0 to 100.
 
-## 7. Các ngoại lệ và vấn đề cần biết
+## 7. Exceptions and issues to know
 
-| Tình huống | Hậu quả có thể gặp | Cách phòng tránh |
+| Situation | Possible consequence | How to prevent |
 | --- | --- | --- |
-| `nextInt()` đọc `abc` hoặc số ngoài miền `int` | `InputMismatchException` | `hasNextInt()`, thông báo cho người dùng, bỏ token sai hoặc đọc cả dòng để parse |
-| `nextLine()` hoặc `next()` lúc không còn dòng/token | `NoSuchElementException` | Dùng `hasNextLine()` hoặc `hasNext()` phù hợp trước khi đọc |
-| Dùng scanner sau `scanner.close()` | `IllegalStateException` | Không tiếp tục sử dụng đối tượng đã đóng |
-| Quên dòng còn dư sau `nextInt()` | `nextLine()` trả chuỗi rỗng hoặc phần dư của dòng cũ | Dùng `nextLine()` để bỏ phần dư khi phù hợp, hoặc chỉ đọc cả dòng rồi parse |
-| `nextDouble()` không chấp nhận `8.5` như mong đợi | Locale số đang dùng khác | Đặt `useLocale(Locale.US)` nếu yêu cầu dấu thập phân là `.` |
-| Gõ số ngoài khoảng nghiệp vụ | Có thể parse thành công nhưng dữ liệu vẫn sai | Kiểm tra miền giá trị sau khi parse |
-| Dùng nhiều `Scanner(System.in)` cùng lúc | Đọc trước/buffer làm các scanner cạnh tranh và gây lỗi khó hiểu | Duy trì một scanner dùng chung cho input console |
+| `nextInt()` reads `abc` or a number outside `int` range | `InputMismatchException` | `hasNextInt()`, notify the user, discard the bad token, or read the full line and parse |
+| `nextLine()` or `next()` when no lines/tokens remain | `NoSuchElementException` | Use `hasNextLine()` or `hasNext()` appropriately before reading |
+| Using scanner after `scanner.close()` | `IllegalStateException` | Do not continue using a closed object |
+| Forgetting the leftover line after `nextInt()` | `nextLine()` returns an empty string or the rest of the old line | Use `nextLine()` to discard the remainder when appropriate, or read full lines and parse |
+| `nextDouble()` does not accept `8.5` as expected | Active numeric locale differs | Set `useLocale(Locale.US)` if `.` is required as the decimal separator |
+| Entering a number outside the business range | May parse successfully yet still be invalid data | Check the value domain after parsing |
+| Using multiple `Scanner(System.in)` instances simultaneously | Buffering/lookahead causes scanners to compete and produce confusing errors | Maintain one shared scanner for console input |
 
-Ngoài những lỗi trên, `Scanner` có thể phải chờ khi chương trình đang yêu cầu dữ liệu mà đầu vào chưa cung cấp token/dòng hoàn chỉnh. Với bài console tương tác, hãy nhìn dòng nhắc nhập và xác nhận mình đã nhấn Enter hoặc đã kết thúc input.
+In addition to these errors, `Scanner` may block waiting when the program requests data and the input has not yet supplied a complete token or line. For interactive console tasks, check the prompt and confirm you pressed Enter or closed the input stream.
 
-## 8. `Locale` và mã hóa của nguồn nhập
+## 8. `Locale` and input source encoding
 
-`scanner.useLocale(Locale.US)` giúp `nextDouble()` đọc dạng như `8.5` với dấu chấm thập phân. Locale khác có thể dùng dấu phẩy, vì vậy ví dụ cần đầu ra xác định nên chỉ rõ locale. `Scanner.nextLine()` trả chuỗi chưa parse; dùng `Double.parseDouble` với chuỗi dấu chấm là một hợp đồng khác với `Scanner.nextDouble()` theo locale.
+`scanner.useLocale(Locale.US)` makes `nextDouble()` parse forms like `8.5` with a dot decimal point. Other locales may use a comma, so examples needing deterministic output should specify the locale explicitly. `Scanner.nextLine()` returns an unparsed string; calling `Double.parseDouble` on a dot-formatted string follows a different contract from locale-sensitive `Scanner.nextDouble()`.
 
-Với nguồn byte cần giải mã UTF-8, có thể khởi tạo `new Scanner(System.in, StandardCharsets.UTF_8)` (sau khi import tương ứng). `javac -encoding UTF-8` chỉ điều khiển việc đọc **mã nguồn**, không cấu hình mặc định cho dữ liệu của `System.in`. Bài Locale và sở hữu nguồn nhập phân tích chi tiết từng trường hợp.
+For a byte source that needs UTF-8 decoding, you can construct `new Scanner(System.in, StandardCharsets.UTF_8)` (with the corresponding import). `javac -encoding UTF-8` only controls reading the **source code**; it does not configure the default encoding for `System.in` data. The lesson on `Locale` and input ownership analyzes each case in detail.
 
-## 9. Quyền sở hữu và việc đóng `Scanner`
+## 9. Ownership and closing `Scanner`
 
-`Scanner` triển khai `AutoCloseable`; khi đóng, nó cũng đóng nguồn bọc bên dưới nếu nguồn là `Closeable`. Vì vậy `try (Scanner s = new Scanner(System.in)) { ... }` phù hợp với chương trình nhỏ đã kết thúc mọi thao tác đọc khi rời khối. Nhưng `System.in` có thể được chia sẻ, nên không đóng scanner mượn nguồn này giữa chừng nếu phần khác còn cần đọc.
+`Scanner` implements `AutoCloseable`; when closed, it also closes the underlying source if that source implements `Closeable`. Therefore `try (Scanner s = new Scanner(System.in)) { ... }` fits small programs that finish all reading upon exiting the block. However, `System.in` may be shared, so do not close a scanner borrowing it mid-program if other parts still need to read.
 
-Nguồn do chính mã mở (như file) cần được đóng đúng lúc; scanner từ `String` không làm ảnh hưởng `System.in`. Hãy có một nơi chịu trách nhiệm vòng đời input và tránh tạo nhiều scanner tranh nhau đọc luồng console chung. Bài cuối chương có ví dụ riêng về đóng nguồn và cấu hình locale.
+Sources opened by your own code (such as files) should be closed promptly; a scanner created from a `String` does not affect `System.in`. Keep one place responsible for the input lifecycle and avoid creating multiple scanners competing over the shared console stream. The final lesson in the chapter provides dedicated examples on closing sources and configuring locale.
 
-## 10. Thói quen tốt khi viết chương trình console
+## 10. Good habits when writing console programs
 
-1. **Xác định input được tổ chức theo token hay theo dòng.** Họ tên/câu mô tả nên dùng `nextLine()`; danh sách số phân cách bởi khoảng trắng có thể phù hợp với `nextInt()`/`nextDouble()`.
-2. **Giữ nhất quán cách đọc.** Dùng đọc theo dòng rồi parse khi muốn validation và thông báo lỗi rõ ràng; khi trộn token với dòng, chú ý phần còn lại của dòng.
-3. **Kiểm tra EOF trước khi đọc** bằng các `hasNext...()` phù hợp nếu nguồn input có thể hết sớm.
-4. **Kiểm tra kiểu và miền giá trị độc lập.** `42` có thể là `int` hợp lệ nhưng không phải tuổi hợp lệ theo hợp đồng ứng dụng.
-5. **Đặt `Locale` rõ ràng** cho số thực và thống nhất quy tắc định dạng input/output.
-6. **Không dùng nhiều scanner trên cùng `System.in`** nếu không thật sự cần; truyền một scanner qua các phương thức.
-7. **Không hiển thị hoặc log dữ liệu bí mật** như mật khẩu nhập từ terminal. `Scanner(System.in)` không tắt tính năng echo của terminal nên không phù hợp để yêu cầu nhập mật khẩu mà cần che ký tự; xem `System.console().readPassword()` trong môi trường có console phù hợp.
+1. **Decide whether input is organized by token or by line.** Full names and descriptive sentences should use `nextLine()`; lists of whitespace-separated numbers may fit `nextInt()`/`nextDouble()`.
+2. **Keep reading consistent.** Use line reading plus parsing when you want clear validation and error messages; when mixing tokens and lines, watch out for the remainder of the line.
+3. **Check for EOF before reading** with the appropriate `hasNext...()` method if the input source can end early.
+4. **Validate type and range independently.** `42` may be a valid `int` yet not a valid age under the application's contract.
+5. **Set `Locale` explicitly** for floating-point numbers and keep input/output formatting rules consistent.
+6. **Do not use multiple scanners on the same `System.in`** unless genuinely necessary; pass a single scanner across methods.
+7. **Do not display or log sensitive data** such as passwords entered from the terminal. `Scanner(System.in)` does not disable terminal echo, so it is unsuitable for password prompts that need masked input; look at `System.console().readPassword()` in environments where a console is available.
 
-## 11. Tự kiểm tra
+## 11. Self-check
 
-**1. Với input `Tran Van Binh`, `next()` và `nextLine()` khác nhau thế nào?** `next()` đọc token `Tran`; `nextLine()` đọc phần còn lại của dòng hiện tại, tùy vị trí đọc. Nếu đang ở đầu dòng, nó lấy `Tran Van Binh`.
+**1. Given input `Tran Van Binh`, how do `next()` and `nextLine()` differ?** `next()` reads the token `Tran`; `nextLine()` reads the remainder of the current line depending on the read position. If at the start of the line, it reads `Tran Van Binh`.
 
-**2. Vì sao `nextLine()` ngay sau `nextInt()` thường trả chuỗi rỗng?** Vì `nextInt()` chỉ tiêu thụ token số, để lại dấu xuống dòng; `nextLine()` đọc phần còn lại của dòng đó.
+**2. Why does `nextLine()` immediately after `nextInt()` often return an empty string?** Because `nextInt()` consumes only the numeric token, leaving the newline behind; `nextLine()` reads the remainder of that line.
 
-**3. Đọc `abc` bằng `nextInt()` có trả về 0 không?** Không. Thường nó ném `InputMismatchException`. Dùng kiểm tra định dạng và xử lý lỗi.
+**3. Does reading `abc` with `nextInt()` return 0?** No. It typically throws `InputMismatchException`. Use format checks and error handling.
 
-**4. `hasNextInt()` trả `false` có tự bỏ token sai không?** Không. Nếu muốn tiếp tục, cần đọc/bỏ token không hợp lệ để tiến tới input kế tiếp.
+**4. When `hasNextInt()` returns `false`, does it discard the invalid token automatically?** No. To continue, you must read/discard the invalid token to advance to the next input.
 
-**5. `nextDouble()` có luôn hiểu `8.5` như số thực không?** Không; phụ thuộc `Locale`. Có thể dùng `scanner.useLocale(Locale.US)`.
+**5. Does `nextDouble()` always treat `8.5` as a valid floating-point number?** No; it depends on `Locale`. You can call `scanner.useLocale(Locale.US)`.
 
-**6. Đóng `Scanner(System.in)` giữa chương trình có vô hại không?** Không. Nó có thể đóng luôn `System.in` khiến các bước nhập sau không hoạt động.
+**6. Is closing `Scanner(System.in)` mid-program harmless?** No. It can close `System.in` itself, preventing subsequent input steps from working.
 
-**Ghi nhớ:** `Scanner` giúp đọc và parse dữ liệu console rất tiện, nhưng bạn phải lựa chọn ranh giới **token hay dòng**, quản lý **locale**, xử lý **dữ liệu không hợp lệ/EOF** và điều khiển vòng đời `System.in` có chủ đích.
+**Key takeaway:** `Scanner` makes reading and parsing console data convenient, yet you must choose **token vs. line** boundaries intentionally, manage **locale**, handle **invalid data/EOF**, and control the lifecycle of `System.in` deliberately.

@@ -1,38 +1,38 @@
-# SummaryStatistics và thu thập nhiều số đo trong Java
+# SummaryStatistics and Collecting Multiple Measurements in Java
 
-## 1. Mục tiêu: một lượt dữ liệu, nhiều thống kê
+## 1. Goal: One Data Pass, Many Statistics
 
-Trong một hệ thống thực tế, cùng một tập số đo thường cần trả lời nhiều câu hỏi: đã nhận **bao nhiêu** giá trị, **tổng** bao nhiêu, **nhỏ nhất/lớn nhất** là gì, và **trung bình** bao nhiêu? Nếu có nhiều thuộc tính đo (thời gian phản hồi, số byte, nhiệt độ), ta còn muốn tổng hợp tất cả trong một lượt duyệt và, khi cần, chia thống kê theo nhóm.
+In a real system, the same set of measurements often needs to answer multiple questions: **how many** values were received, what is the **sum**, what are the **min/max**, and what is the **average**? When there are multiple measured attributes (response latency, byte count, temperature), we also want to aggregate all of them in a single pass and, when needed, split statistics by group.
 
-Java cung cấp ba lớp tích lũy thống kê cơ bản trong gói `java.util`:
+Java provides three basic statistics accumulator classes in the `java.util` package:
 
-- `IntSummaryStatistics`: nhận các giá trị `int`.
-- `LongSummaryStatistics`: nhận các giá trị `long`.
-- `DoubleSummaryStatistics`: nhận các giá trị `double`.
+- `IntSummaryStatistics`: accepts `int` values.
+- `LongSummaryStatistics`: accepts `long` values.
+- `DoubleSummaryStatistics`: accepts `double` values.
 
-Cả ba cho các thống kê **count, sum, min, max, average**; hỗ trợ `accept(...)` để nhận thêm một giá trị và `combine(...)` để hợp nhất hai bộ thống kê. Chúng không tự tính phương sai, trung vị, phân vị hay số lượng giá trị phân biệt.
+All three provide **count, sum, min, max, and average**; they support `accept(...)` to ingest another value and `combine(...)` to merge two statistics accumulators. They do not automatically compute variance, median, percentiles, or distinct-value counts.
 
-Bài này trình bày hai mức sử dụng: (1) lấy nhiều chỉ số thống kê cho **một dãy số**, (2) thu thập đồng thời nhiều trường đo lường của **một dãy bản ghi**, kể cả khi có giá trị cần loại khỏi một chỉ số.
+This lesson covers two usage levels: (1) obtaining multiple statistical metrics for **a single sequence of numbers**, and (2) simultaneously collecting multiple measurement fields of **a sequence of records**, even when some values must be excluded from one metric.
 
-## 2. Chọn đúng kiểu và hiểu các kết quả
+## 2. Choosing the Right Type and Understanding the Results
 
-| Đầu vào | Bộ tích lũy | Cách tạo nhanh từ stream | Kiểu `getSum()` |
+| Input | Accumulator | Quick creation from stream | `getSum()` type |
 | --- | --- | --- | --- |
 | `int` | `IntSummaryStatistics` | `IntStream.summaryStatistics()` | `long` |
 | `long` | `LongSummaryStatistics` | `LongStream.summaryStatistics()` | `long` |
 | `double` | `DoubleSummaryStatistics` | `DoubleStream.summaryStatistics()` | `double` |
 
-Các getter đều có ý nghĩa tương tự:
+The getters all share analogous meanings:
 
-| Getter | Ý nghĩa |
+| Getter | Meaning |
 | --- | --- |
-| `getCount()` | Số phần tử được đưa vào bộ tích lũy, kiểu `long` |
-| `getSum()` | Tổng các phần tử đã nhận |
-| `getMin()` | Phần tử nhỏ nhất đã nhận |
-| `getMax()` | Phần tử lớn nhất đã nhận |
-| `getAverage()` | Trung bình cộng, kiểu `double` |
+| `getCount()` | Number of elements fed into the accumulator, type `long` |
+| `getSum()` | Sum of elements received |
+| `getMin()` | Minimum element received |
+| `getMax()` | Maximum element received |
+| `getAverage()` | Arithmetic mean, type `double` |
 
-Ví dụ tối thiểu:
+Minimal example:
 
 ~~~java
 import java.util.IntSummaryStatistics;
@@ -48,24 +48,24 @@ System.out.println(stats.getMax());     // 20
 System.out.println(stats.getAverage()); // 12.5
 ~~~
 
-Đây là **đoạn mã dùng được trong `jshell` hoặc trong một phương thức Java**; ví dụ chương trình độc lập có đủ lớp và `main` ở phần sau.
+This is a **snippet usable in `jshell` or inside a Java method**; a standalone program with a full class and `main` appears later.
 
-Không cần duyệt stream năm lần để gọi năm phép `count`, `sum`, `min`, `max`, `average`: chỉ cần một phép `summaryStatistics()`, sau đó đọc các getter trên **cùng một kết quả đã chốt**. Một `Stream` của Java không thể dùng lại sau thao tác kết thúc (terminal operation).
+You do not need to traverse a stream five times to call `count`, `sum`, `min`, `max`, and `average`: just call `summaryStatistics()` once, then read the getters on **the same finalized result**. A Java `Stream` cannot be reused after a terminal operation.
 
-Với `Stream<T>` chứa các đối tượng, dùng các collector của `java.util.stream.Collectors`:
+For `Stream<T>` containing objects, use the collectors from `java.util.stream.Collectors`:
 
 ~~~java
-// Giả sử đã có Stream<Order> orders và Order có phương thức units().
+// Assuming Stream<Order> orders and Order has a units() method.
 IntSummaryStatistics stats = orders.collect(
         java.util.stream.Collectors.summarizingInt(Order::units)
 );
 ~~~
 
-Ở đây `Order` là kiểu giả định của ứng dụng, không phải lớp Java chuẩn hay ví dụ chạy độc lập. Các collector tương ứng là `summarizingInt`, `summarizingLong`, `summarizingDouble`.
+Here `Order` is a hypothetical application type, not a standard Java class or standalone runnable example. The corresponding collectors are `summarizingInt`, `summarizingLong`, and `summarizingDouble`.
 
-## 3. Cơ chế hoạt động của bộ tích lũy
+## 3. How the Accumulator Works
 
-Một đối tượng `IntSummaryStatistics` bắt đầu ở trạng thái rỗng; mỗi lần gọi `accept(int)`, nó cập nhật count, sum, min, max. Trung bình được suy ra từ tổng và số lượng khi gọi getter. Nhờ vậy, số lượng ô nhớ bổ sung **không tăng theo số mẫu**: không cần lưu mọi giá trị để tính năm thống kê này.
+An `IntSummaryStatistics` object starts in an empty state; each call to `accept(int)` updates count, sum, min, and max. The average is derived from sum and count when its getter is called. Consequently, extra memory usage **does not grow with sample count**: there is no need to store every value to compute these five statistics.
 
 ~~~java
 import java.util.IntSummaryStatistics;
@@ -82,14 +82,14 @@ System.out.println(stats.getMax());     // 15
 System.out.println(stats.getAverage()); // 5.0
 ~~~
 
-Sau khi nhận thêm giá trị, các getter phản ánh **trạng thái mới**. Do đó, hãy phân biệt rõ:
+After accepting more values, the getters reflect the **new state**. Therefore, clearly distinguish:
 
-- **Accumulator**: đối tượng mutable, có thể tiếp tục nhận dữ liệu.
-- **Snapshot**: các con số đã sao chép vào DTO/record báo cáo để phát hành cho người tiêu dùng.
+- **Accumulator**: a mutable object that can continue receiving data.
+- **Snapshot**: numbers copied into a reporting DTO/record for publication to consumers.
 
-Nếu ứng dụng cần một báo cáo bất biến, đừng đưa đối tượng thống kê mutable đang còn được cập nhật cho những phần khác rồi giả định đó là snapshot.
+If your application needs an immutable report, do not hand a mutable statistics object still being updated elsewhere and assume it is a snapshot.
 
-### Hợp nhất các phần đã thu thập
+### Merging Collected Parts
 
 ~~~java
 IntSummaryStatistics first = new IntSummaryStatistics();
@@ -106,21 +106,21 @@ System.out.println(first.getSum());     // 20
 System.out.println(first.getAverage()); // 5.0
 ~~~
 
-`combine` cập nhật **đối tượng nhận** (`first`) bằng thông tin từ đối tượng còn lại. Nó hữu ích trong pipeline chia dữ liệu thành nhiều phần, nhất là stream song song. Không tự coi các lớp này là thread-safe để nhiều luồng đồng thời gọi `accept` trên **cùng một instance**.
+`combine` updates the **receiving object** (`first`) with data from the other object. It is useful in pipelines that split data into parts, especially parallel streams. Do not assume these classes are thread-safe for multiple threads concurrently calling `accept` on **the same instance**.
 
-Đối với phép tổng hợp số nguyên thông thường, thứ tự ghép các phần không đổi ý nghĩa toán học nếu không bị tràn. Với số dấu phẩy động `double`, thứ tự cộng có thể làm thay đổi các bit cuối của tổng và trung bình.
+For ordinary integer aggregation, the order of combining parts does not change the mathematical meaning if there is no overflow. For `double` floating-point numbers, addition order can change the lowest bits of sum and average.
 
-## 4. Trạng thái rỗng và cách tránh kết quả gây hiểu nhầm
+## 4. Empty State and How to Avoid Misleading Results
 
-Nếu không nhận giá trị nào, các getter vẫn trả số chứ không trả `Optional`:
+If no values have been accepted, the getters still return numbers rather than `Optional`:
 
-| Lớp | `count` | `sum` | `min` | `max` | `average` |
+| Class | `count` | `sum` | `min` | `max` | `average` |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `IntSummaryStatistics` | `0` | `0` | `Integer.MAX_VALUE` | `Integer.MIN_VALUE` | `0.0` |
 | `LongSummaryStatistics` | `0` | `0` | `Long.MAX_VALUE` | `Long.MIN_VALUE` | `0.0` |
 | `DoubleSummaryStatistics` | `0` | `0.0` | `Double.POSITIVE_INFINITY` | `Double.NEGATIVE_INFINITY` | `0.0` |
 
-Ví dụ:
+Example:
 
 ~~~java
 IntSummaryStatistics empty = new IntSummaryStatistics();
@@ -129,26 +129,26 @@ System.out.println(empty.getMin());   // 2147483647
 System.out.println(empty.getMax());   // -2147483648
 ~~~
 
-`getAverage() == 0.0` **không có nghĩa** tập dữ liệu có trung bình thực bằng 0 khi `count == 0`. Tương tự, `getMin()` hoặc `getMax()` của bộ rỗng là giá trị sentinel, **không phải phép đo thực**.
+`getAverage() == 0.0` **does not mean** the dataset's true average is 0 when `count == 0`. Likewise, `getMin()` or `getMax()` on an empty statistics object is a sentinel value, **not an actual measurement**.
 
-Khi xuất báo cáo, hãy luôn xét `getCount() > 0` trước khi trình bày min, max và average. Một API có thể trả `null`, bỏ trường, hoặc dùng một trạng thái `hasData` cho bộ rỗng; lựa chọn nào cũng cần được định nghĩa rõ.
+When producing reports, always check `getCount() > 0` before presenting min, max, and average. An API might return `null`, omit fields, or use a `hasData` flag for empty statistics; whichever choice you make must be defined clearly.
 
-## 5. Tập hợp nhiều số đo từ một bản ghi
+## 5. Gathering Multiple Measurements from One Record
 
-Giả sử mỗi bản ghi telemetry có bốn trường:
+Suppose each telemetry record has four fields:
 
-- `region`: nơi phát sinh mẫu.
-- `latencyMs`: độ trễ không âm dưới dạng `int`.
-- `bytes`: lượng dữ liệu không âm dưới dạng `long`.
-- `temperatureC`: nhiệt độ dưới dạng `double`; hệ thống dùng giá trị không hữu hạn (`NaN`, `±Infinity`) để chỉ mẫu nhiệt độ không hợp lệ.
+- `region`: where the sample originated.
+- `latencyMs`: non-negative latency as an `int`.
+- `bytes`: non-negative data volume as a `long`.
+- `temperatureC`: temperature as a `double`; the system uses non-finite values (`NaN`, `±Infinity`) to mark invalid temperature samples.
 
-Báo cáo yêu cầu tổng số dòng, độ trễ (count/min/max/average), tổng byte, nhiệt độ hợp lệ (count/average) và số mẫu nhiệt độ không hợp lệ. **Count của từng đại lượng có thể khác count số dòng** vì có chính sách lọc riêng.
+The report requires total row count, latency (count/min/max/average), total bytes, valid temperature (count/average), and invalid temperature sample count. **Each metric's count can differ from the row count** because metrics have separate filtering policies.
 
-Có thể gọi `stream()` nhiều lần trên cùng một `List` và tạo các báo cáo riêng, nhưng với nguồn chỉ có thể đọc một lần (file streaming, event stream), với dữ liệu lớn hoặc khi muốn kiểm soát chính sách nhất quán, một accumulator chung thuận tiện hơn.
+You could call `stream()` multiple times on the same `List` and build separate reports, but for single-read sources (streaming files, event streams), large datasets, or consistent policy enforcement, a shared accumulator is more convenient.
 
-### Chương trình Java 17+ hoàn chỉnh
+### Complete Java 17+ Program
 
-Lưu mã sau thành `MultiMeasureSummaryDemo.java`:
+Save the following as `MultiMeasureSummaryDemo.java`:
 
 ~~~java
 import java.util.DoubleSummaryStatistics;
@@ -262,14 +262,14 @@ public class MultiMeasureSummaryDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac MultiMeasureSummaryDemo.java
 java MultiMeasureSummaryDemo
 ~~~
 
-Kết quả stdout:
+Stdout output:
 
 ~~~text
 simple: count=3 sum=12 min=2 max=6 avg=4.0
@@ -278,23 +278,23 @@ North: rows=2, latency(count=2,min=10,max=20,avg=15.0), bytes=400, temp(count=2,
 South: rows=2, latency(count=2,min=30,max=40,avg=35.0), bytes=600, temp(count=1,avg=19.0), invalid=1
 ~~~
 
-### Đọc cấu trúc của collector
+### Reading the Collector Structure
 
-`Collector.of` được cung cấp ba thành phần:
+`Collector.of` is given three components:
 
-1. **Supplier `Metrics::new`**: tạo một accumulator mới.
-2. **Accumulator `Metrics::accept`**: cập nhật mọi số đo được giao cho một mẫu; một mẫu chỉ đi qua bộ tích lũy chung một lần.
-3. **Combiner `Metrics::merge`**: hợp nhất các phần, quan trọng khi collector được sử dụng với stream song song.
+1. **Supplier `Metrics::new`**: creates a new accumulator.
+2. **Accumulator `Metrics::accept`**: updates all assigned measurements for one sample; each sample passes through the shared accumulator once.
+3. **Combiner `Metrics::merge`**: merges partial accumulators, essential when the collector is used with parallel streams.
 
-Sau `collect`, `all` là kết quả tổng hợp toàn tập. `groupingBy(Reading::region, TreeMap::new, metricsCollector())` tạo **một accumulator theo từng region**, đưa mỗi bản ghi vào nhóm tương ứng, và dùng `TreeMap` để in nhóm theo thứ tự khóa ổn định trong ví dụ. Với k nhóm, bộ nhớ tích lũy phụ thuộc vào số nhóm k (ngoài nguồn dữ liệu), thay vì phải tạo danh sách mọi bản ghi của mỗi nhóm.
+After `collect`, `all` is the aggregate result for the whole dataset. `groupingBy(Reading::region, TreeMap::new, metricsCollector())` creates **one accumulator per region**, routes each record into its matching group, and uses `TreeMap` to print groups in deterministic key order in the example. With k groups, accumulated memory depends on the number of groups k (aside from the input source), instead of building a list of every record in each group.
 
-Vì `South` có một nhiệt độ `NaN`, tổng số dòng bằng 4 nhưng số mẫu nhiệt độ hợp lệ chỉ bằng 3. `latency` và `bytes` vẫn đếm cả bốn dòng. **Không được dùng `rows` làm mẫu số cho nhiệt độ** nếu đã loại mẫu nhiệt độ không hợp lệ.
+Because `South` has one `NaN` temperature, total rows equal 4 while valid temperature samples equal 3. `latency` and `bytes` still count all four rows. **Never use `rows` as the denominator for temperature** when invalid temperature samples have been excluded.
 
-Các trường `rows` và `invalidTemperatures` trong ví dụ cũng là bộ đếm `long`. Với luồng dữ liệu rất lớn, hãy có chính sách phát hiện tràn hoặc chia phiên tổng hợp; `rows++` không tự bảo vệ khỏi tràn số.
+The `rows` and `invalidTemperatures` fields in the example are also `long` counters. For very large data streams, have an overflow detection policy or partition aggregation sessions; `rows++` does not protect against overflow by itself.
 
-## 6. Tình huống chỉ cần tổng hợp một trường theo nhóm
+## 6. When You Only Need to Aggregate One Field by Group
 
-Nếu chỉ quan tâm độ trễ, không cần viết custom collector:
+If you only care about latency, there is no need to write a custom collector:
 
 ~~~java
 Map<String, IntSummaryStatistics> latencyByRegion =
@@ -306,11 +306,11 @@ Map<String, IntSummaryStatistics> latencyByRegion =
         );
 ~~~
 
-**Đây là đoạn trích trong phạm vi `main` của chương trình ở trên**, vì `readings` và `Reading` đã được định nghĩa ở đó.
+**This is an excerpt inside `main` of the program above**, since `readings` and `Reading` are already defined there.
 
-Tương ứng, `Collectors.summarizingLong(Reading::bytes)` trả `LongSummaryStatistics`; `Collectors.summarizingDouble(Reading::temperatureC)` trả `DoubleSummaryStatistics` (nhưng phải chủ động xử lý `NaN` nếu có trong dữ liệu).
+Correspondingly, `Collectors.summarizingLong(Reading::bytes)` returns `LongSummaryStatistics`; `Collectors.summarizingDouble(Reading::temperatureC)` returns `DoubleSummaryStatistics` (though you must actively handle `NaN` if present in the data).
 
-Ví dụ dùng `Collectors.filtering` (Java 9+) để loại bỏ mẫu nhiệt độ không hữu hạn **mà vẫn giữ nhóm**, kể cả nhóm không có nhiệt độ hợp lệ:
+An example using `Collectors.filtering` (Java 9+) to drop non-finite temperature samples **while still keeping groups**, even a group with no valid temperatures:
 
 ~~~java
 Map<String, DoubleSummaryStatistics> temperatureByRegion =
@@ -327,34 +327,34 @@ Map<String, DoubleSummaryStatistics> temperatureByRegion =
         );
 ~~~
 
-Cần phân biệt `stream().filter(...).collect(groupingBy(...))` với `groupingBy(..., filtering(...))`: cách đầu có thể **bỏ hẳn nhóm** không còn dòng sau lọc; cách sau có thể giữ nhóm với một downstream accumulator rỗng. Hành vi nào phù hợp phụ thuộc ý nghĩa báo cáo.
+Distinguish `stream().filter(...).collect(groupingBy(...))` from `groupingBy(..., filtering(...))`: the first can **drop an entire group** that has no rows left after filtering; the second keeps the group with an empty downstream accumulator. Which behavior is right depends on the report semantics.
 
-Nếu muốn gộp hai collector khác loại trong một lượt với Java 12+, `Collectors.teeing` có thể phối hợp hai downstream collector và một hàm kết hợp kết quả. Khi cần ba hoặc nhiều phép đo với điều kiện chấp nhận khác nhau, custom collector như `Metrics` thường rõ ràng hơn.
+If you want to combine two different collectors in one pass in Java 12+, `Collectors.teeing` can coordinate two downstream collectors and a merger function. When three or more measurements with distinct acceptance criteria are needed, a custom collector like `Metrics` is usually clearer.
 
-## 7. Tổng hợp nhiều số đo đúng cách khi chạy song song
+## 7. Aggregating Multiple Measurements Correctly in Parallel
 
-Khi sử dụng `parallelStream()` hay `stream().parallel()`, framework có thể tạo nhiều accumulator độc lập rồi gọi combiner để hợp nhất. Đối với custom collector, phải thỏa ba yêu cầu:
+When using `parallelStream()` or `stream().parallel()`, the framework can create multiple independent accumulators and call the combiner to merge them. For a custom collector, three requirements must hold:
 
-- **Accumulator đúng cho từng mẫu**: mỗi `accept` xử lý chính xác các chỉ số và điều kiện lọc của mẫu.
-- **Combine đúng về ngữ nghĩa**: `merge` cộng bộ đếm, gọi `combine` cho từng loại thống kê, và trả về trạng thái hợp nhất.
-- **Không phụ thuộc thứ tự** nếu muốn kết quả ổn định theo ngữ nghĩa trong parallel; các phép tính `double` vẫn có thể khác các chữ số cuối do thứ tự cộng.
+- **Correct accumulator per sample**: each `accept` properly updates the metrics and filtering rules for that sample.
+- **Semantically correct combine**: `merge` adds counters, calls `combine` on each statistics object, and returns the merged state.
+- **Order-independent** if you want semantically stable results in parallel; `double` calculations can still differ in the lowest digits due to addition order.
 
-Ví dụ với collector đã khai báo:
+Example with the declared collector:
 
 ~~~java
 Metrics parallel = readings.parallelStream()
         .collect(metricsCollector());
 ~~~
 
-Đây là đoạn trích cùng phạm vi `main` ví dụ hoàn chỉnh. `Collector.of` ở trên **không** khai báo `CONCURRENT`: framework có thể xử lý trên nhiều accumulator riêng rồi merge, thay vì cho nhiều thread cùng sửa một `Metrics`. Tuy nhiên, không được chia sẻ một `Metrics` và gọi `accept` đồng thời từ nhiều thread bên ngoài cơ chế collector nếu không có đồng bộ.
+This is an excerpt in the same `main` scope as the complete example. `Collector.of` above **does not** declare `CONCURRENT`: the framework can process across separate accumulators and merge them, rather than having multiple threads mutate one `Metrics`. Still, you must never share one `Metrics` instance and call `accept` concurrently from multiple threads outside the collector mechanism without synchronization.
 
-Không tự thêm đặc tính `Collector.Characteristics.CONCURRENT` vào collector mutable này. Với `groupingByConcurrent`, quy tắc container, tính kết hợp và thread safety của downstream cần được xem xét cẩn thận; không thể suy từ việc dùng parallel stream rằng mọi đối tượng thống kê đều thread-safe.
+Do not blindly add `Collector.Characteristics.CONCURRENT` to this mutable collector. With `groupingByConcurrent`, container rules, associativity, and thread safety of downstream accumulators must be carefully examined; you cannot assume from using a parallel stream that every statistics object is thread-safe.
 
-Một custom accumulator có các phép cộng không giao hoán hay phụ thuộc thứ tự (ví dụ ghép chuỗi theo thứ tự đến) sẽ cần thiết kế combiner chặt chẽ hơn. Với cộng số thực, ngay cả khi phép cộng có tính kết hợp trên số thực toán học, **cộng floating point hữu hạn không hoàn toàn kết hợp**; khác biệt nhỏ giữa execution plan có thể xuất hiện.
+A custom accumulator with non-commutative or order-dependent operations (such as concatenating strings in arrival order) will require a stricter combiner design. Even though real-number addition is mathematically associative, **finite floating-point addition is not strictly associative**; small differences between execution plans can appear.
 
-## 8. Độ chính xác, tràn số và dữ liệu bất thường
+## 8. Precision, Overflow, and Anomalous Data
 
-### `IntSummaryStatistics` dùng `long` cho tổng
+### `IntSummaryStatistics` Uses `long` for the Sum
 
 ~~~java
 IntSummaryStatistics stats = java.util.stream.IntStream
@@ -364,17 +364,17 @@ IntSummaryStatistics stats = java.util.stream.IntStream
 System.out.println(stats.getSum()); // 4294967294
 ~~~
 
-Tổng không bị giới hạn trong miền `int` ở trường hợp này vì `getSum()` của `IntSummaryStatistics` là `long`. Tuy nhiên, nếu nhận số lượng cực lớn hoặc tổng vượt `Long.MAX_VALUE`/`Long.MIN_VALUE`, kiểu `long` vẫn có thể tràn.
+The sum is not capped at `int` in this case because `IntSummaryStatistics.getSum()` returns `long`. However, with extremely high counts or sums exceeding `Long.MAX_VALUE`/`Long.MIN_VALUE`, `long` can still overflow.
 
-`LongSummaryStatistics` cũng trả tổng `long`, **không** tự nâng thành `BigInteger`. Nếu bài toán cần tổng chính xác không giới hạn miền `long`, hãy thiết kế bộ tích lũy `BigInteger` riêng. Khi tổng thập phân cần chính xác, dùng `BigDecimal` với một accumulator phù hợp, không đưa giá trị qua `double` chỉ để dùng `DoubleSummaryStatistics`.
+`LongSummaryStatistics` also returns a `long` sum and **does not** automatically widen to `BigInteger`. If the problem requires exact sums beyond `long` bounds, design a dedicated `BigInteger` accumulator. When decimal sums must be exact, use `BigDecimal` with an appropriate accumulator rather than converting values to `double` just to use `DoubleSummaryStatistics`.
 
-### `DoubleSummaryStatistics` và sai số dấu phẩy động
+### `DoubleSummaryStatistics` and Floating-Point Error
 
-`DoubleSummaryStatistics` tính tổng và trung bình từ giá trị `double`. Nó có biện pháp giảm sai số tích lũy trong tính tổng, nhưng vẫn chịu giới hạn binary64; thứ tự nhận/ghép có thể ảnh hưởng đến những chữ số cuối. Nếu dữ liệu tài chính yêu cầu chính xác từng đơn vị nhỏ nhất, đây không phải công cụ thay thế `BigDecimal`.
+`DoubleSummaryStatistics` computes sum and average from `double` values. It uses compensated summation to reduce accumulated error, yet remains subject to binary64 limits; acceptance/combination order can affect the lowest digits. If financial data requires exactness down to the smallest unit, this is not a substitute for `BigDecimal`.
 
-Nếu chuỗi số đo chứa `NaN`, `DoubleSummaryStatistics` có thể trả `NaN` cho min, max, sum và average. `+Infinity`, `-Infinity` có thể làm kết quả vô hạn hoặc `NaN` (ví dụ khi trộn vô cực trái dấu). Chỉ lọc giá trị không hữu hạn khi **hợp đồng của hệ thống cho phép loại mẫu**; với ứng dụng khác, invalid values nên dẫn đến lỗi hoặc được ghi thành metric lỗi riêng.
+If the measurement sequence contains `NaN`, `DoubleSummaryStatistics` can return `NaN` for min, max, sum, and average. `+Infinity` and `-Infinity` can produce infinite or `NaN` results (for example, when mixing infinities of opposite signs). Filter out non-finite values only when **the system contract permits dropping samples**; in other applications, invalid values should trigger an error or be recorded as a separate error metric.
 
-Ví dụ một phép lọc thận trọng:
+Example of careful filtering:
 
 ~~~java
 DoubleSummaryStatistics validTemperature =
@@ -388,17 +388,17 @@ System.out.println(validTemperature.getCount());   // 2
 System.out.println(validTemperature.getAverage()); // 22.0
 ~~~
 
-Ghi rõ rằng `getCount() == 2` ở đây là số phần tử **đã qua lọc**, không phải số sự kiện thô ban đầu (4).
+Note clearly that `getCount() == 2` here is the **filtered** element count, not the raw initial event count (4).
 
-### Không tính một số đo từ mẫu số không phù hợp
+### Do Not Compute One Metric Using Another Metric's Denominator
 
-Nếu nguồn có một số trường là tùy chọn hoặc có chính sách lọc riêng, ví dụ 100 bản ghi nhưng chỉ 72 bản ghi có giá trị nhiệt độ hữu hạn, trung bình nhiệt độ phải dùng **72 mẫu nhiệt độ**. Tổng số bản ghi 100 là một chỉ số khác.
+If a source has optional fields or field-specific filtering rules—for example 100 records where only 72 have finite temperature values—the temperature average must use **72 temperature samples**. The total record count of 100 is a separate metric.
 
-Với phân tích cần thêm percentile hoặc median, `SummaryStatistics` không đủ. Tính median/percentile chính xác thường cần giữ thông tin phân phối hoặc cấu trúc dữ liệu hỗ trợ; phương sai và độ lệch chuẩn cũng cần accumulator riêng (chẳng hạn thuật toán online có hỗ trợ merge). Không suy ra những đại lượng này chỉ từ count/sum/min/max/average.
+For analyses also needing percentiles or medians, `SummaryStatistics` is insufficient. Exact medians/percentiles generally require retaining distribution information or specialized data structures; variance and standard deviation also require a dedicated accumulator (such as a mergeable online algorithm). Do not infer these quantities solely from count/sum/min/max/average.
 
-## 9. Thiết kế API và kiểm thử cho báo cáo thống kê
+## 9. API Design and Testing for Statistical Reports
 
-Nên phân biệt dạng **trạng thái thu thập** với dạng **báo cáo đã chốt**. Một DTO có thể trả:
+Distinguish the **collection state** from the **finalized report**. A DTO might return:
 
 ~~~json
 {
@@ -422,40 +422,40 @@ Nên phân biệt dạng **trạng thái thu thập** với dạng **báo cáo �
 }
 ~~~
 
-Chỉ tạo các trường `min`, `max`, `average` khi `count > 0`, hoặc thống nhất biểu diễn null cho thống kê rỗng. Nếu JSON được dùng với client JavaScript, lưu ý tổng `long` có thể vượt giới hạn số nguyên an toàn của `Number`; với số tổng byte đặc biệt lớn và yêu cầu bảo toàn chính xác, có thể truyền dưới dạng chuỗi decimal kèm schema rõ ràng.
+Populate `min`, `max`, and `average` only when `count > 0`, or standardize `null` representation for empty statistics. If JSON is consumed by JavaScript clients, note that `long` sums can exceed `Number`'s safe integer limit; for especially large byte totals requiring exact preservation, consider transmitting them as decimal strings with a clear schema.
 
-### Bộ kiểm thử nên có
+### Recommended Test Suite
 
-1. **Luồng rỗng:** count = 0, không diễn giải sentinel min/max như phép đo.
-2. **Một mẫu:** min = max = giá trị; average tương ứng; sum đúng.
-3. **Giá trị âm và dương:** min/max vẫn chính xác.
-4. **Nhiều trường với missing/invalid:** mỗi trường có count riêng; tổng dòng vẫn đúng.
-5. **Hợp nhất hai accumulator:** tổng hợp từng phần sau `combine` tương đương thống kê của dữ liệu kết hợp, trong giới hạn độ chính xác số thực.
-6. **Một nhóm hoàn toàn invalid ở một trường:** nhóm còn tồn tại và thông báo count hợp lệ bằng 0 nếu chính sách downstream giữ nhóm.
-7. **Dữ liệu lớn và biên kiểu:** kiểm thử các số `int` lớn, số `long` gần giới hạn và giá trị `double` không hữu hạn.
+1. **Empty stream:** count = 0, do not interpret sentinel min/max as measurements.
+2. **Single sample:** min = max = value; average matches; sum is correct.
+3. **Negative and positive values:** min/max remain accurate.
+4. **Multiple fields with missing/invalid values:** each field tracks its own count; row total remains accurate.
+5. **Combining two accumulators:** merging partial stats via `combine` matches statistics of the combined dataset, within floating-point precision limits.
+6. **A group entirely invalid in one field:** the group still exists and reports valid count = 0 if downstream policy retains groups.
+7. **Large data and type boundaries:** test large `int` values, `long` values near limits, and non-finite `double` values.
 
-Mô hình kiểm chứng thủ công cho ví dụ chính: có 4 bản ghi, `latency` bằng 10, 20, 30, 40 nên tổng là 100 và trung bình là 25; byte là 100 + 300 + 200 + 400 = 1000. Ba nhiệt độ hợp lệ 21.5, 22.5, 19.0 có tổng 63.0 và trung bình 21.0; mẫu nhiệt độ thứ tư được báo vào `invalidTemperatures`, không được đưa vào tổng.
+Manual verification model for the main example: there are 4 records, `latency` values are 10, 20, 30, 40 so the sum is 100 and average is 25; bytes are 100 + 300 + 200 + 400 = 1000. Three valid temperatures 21.5, 22.5, 19.0 sum to 63.0 with average 21.0; the fourth temperature sample is counted in `invalidTemperatures` and excluded from the sum.
 
-## 10. Lỗi phổ biến và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-- **Duyệt một stream nhiều lần:** `IntStream.sum()` và sau đó `IntStream.average()` trên cùng instance sẽ không hoạt động. Gọi `summaryStatistics()` một lần hoặc tạo lại stream từ nguồn có thể lặp.
-- **Tưởng min/max của thống kê rỗng là giá trị thực:** luôn xét count trước.
-- **Trộn count dòng với count mẫu hợp lệ:** thu thập số mẫu được dùng của từng chỉ số và số mẫu bị loại.
-- **Tin rằng `DoubleSummaryStatistics` chính xác tuyệt đối:** nó xử lý `double`, có thể chịu sai số, `NaN`, vô cực và ảnh hưởng thứ tự cộng.
-- **Tin rằng `LongSummaryStatistics.getSum()` không thể tràn:** tổng vẫn là `long`.
-- **Dùng một instance mutable chung giữa các thread:** chỉ dùng collector có supplier/combiner đúng hợp đồng, hoặc tự đồng bộ trong kiến trúc concurrent phù hợp.
-- **Lọc rồi quên dữ liệu mất mát:** nếu bỏ `NaN`, nên có thêm chỉ số đếm mẫu lỗi/không hợp lệ.
-- **Lẫn lộn thống kê mô tả với phép đo phân phối:** bộ `SummaryStatistics` chỉ hỗ trợ các getter có sẵn, không suy ra chính xác median/percentile từ đó.
+- **Traversing a stream multiple times:** `IntStream.sum()` followed by `IntStream.average()` on the same instance will fail. Call `summaryStatistics()` once or recreate the stream from a repeatable source.
+- **Treating empty-statistics min/max as real values:** always check count first.
+- **Mixing row count with valid-sample count:** track the sample count used for each metric and the rejected-sample count.
+- **Believing `DoubleSummaryStatistics` is completely exact:** it operates on `double`, which can incur rounding error, `NaN`, infinity, and addition-order sensitivity.
+- **Believing `LongSummaryStatistics.getSum()` cannot overflow:** the sum is still `long`.
+- **Sharing one mutable instance across threads:** use a collector with proper supplier/combiner contracts, or synchronize explicitly in an appropriate concurrent architecture.
+- **Filtering and forgetting dropped data:** if skipping `NaN`, add a counter for invalid/error samples.
+- **Confusing descriptive summaries with distribution metrics:** `SummaryStatistics` only supports its built-in getters and cannot accurately derive medians or percentiles from them.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-1. Với `IntStream.of(4, 8, 12).summaryStatistics()`, năm getter trả gì?
-2. Một nhóm có 5 bản ghi nhưng chỉ 3 nhiệt độ hữu hạn. `getCount()` của `DoubleSummaryStatistics` sau khi lọc nên là bao nhiêu?
-3. Có thể gọi `getMin()` cho bộ rỗng không? Nếu có, tại sao không nên công bố nó như kết quả đo?
-4. Muốn thống kê độ trễ theo `region` mà không viết accumulator riêng, dùng cặp collector nào?
-5. Tại sao muốn tổng chính xác `BigDecimal` thì không nên chuyển tất cả giá trị sang `double` rồi dùng `DoubleSummaryStatistics`?
-6. Khi chuyển sang `parallelStream()`, phần nào của custom collector phải chính xác để không làm mất mẫu?
+1. For `IntStream.of(4, 8, 12).summaryStatistics()`, what do the five getters return?
+2. A group has 5 records, but only 3 have finite temperatures. What should `getCount()` of `DoubleSummaryStatistics` be after filtering?
+3. Can you call `getMin()` on an empty statistics object? If so, why should it not be published as a measured result?
+4. How can you summarize latency by `region` without writing a custom accumulator?
+5. Why should you not convert all values to `double` and use `DoubleSummaryStatistics` when you need an exact `BigDecimal` sum?
+6. When switching to `parallelStream()`, which part of a custom collector must be accurate so no samples are lost?
 
-**Đáp án:** (1) count = 3, sum = 24, min = 4, max = 12, average = 8.0. (2) count = 3. (3) Có, nhưng trả sentinel theo kiểu số; cần kiểm tra count = 0. (4) `Collectors.groupingBy(..., Collectors.summarizingInt(...))`. (5) `double` không giữ chính xác mọi số thập phân. (6) Supplier, accumulator và đặc biệt combiner cần bao phủ toàn bộ các trường thống kê và bộ đếm.
+**Answers:** (1) count = 3, sum = 24, min = 4, max = 12, average = 8.0. (2) count = 3. (3) Yes, but it returns a type-specific sentinel; check count = 0. (4) `Collectors.groupingBy(..., Collectors.summarizingInt(...))`. (5) `double` does not preserve all decimal fractions exactly. (6) Supplier, accumulator, and especially combiner must cover all statistics fields and counters.
 
-Điểm cần ghi nhớ: `SummaryStatistics` giúp **thu thập count/sum/min/max/average trong một lượt**, còn việc thu thập **nhiều trường đo trên cùng bản ghi** có thể xây dựng bằng một collector tổng hợp. Để báo cáo đáng tin, luôn ghi rõ cách lọc từng chỉ số, điều kiện dữ liệu rỗng, giới hạn kiểu số và cách hợp nhất kết quả.
+Key takeaway: `SummaryStatistics` lets you **collect count/sum/min/max/average in a single pass**, while collecting **multiple measurement fields per record** can be built with a composite collector. For trustworthy reports, always specify how each metric filters data, handles empty data, respects numeric bounds, and combines partial results.

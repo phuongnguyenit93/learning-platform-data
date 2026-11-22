@@ -1,10 +1,10 @@
-# `Object.wait()`, `notify()` và `notifyAll()` là phương thức `final` trong Java
+# `Object.wait()`, `notify()`, and `notifyAll()` Are `final` Methods in Java
 
-Ba phương thức `wait()`, `notify()` và `notifyAll()` thuộc lớp `java.lang.Object`. Chúng giúp các luồng phối hợp thông qua **monitor nội tại (intrinsic monitor)** của một đối tượng. Điểm quan trọng của hợp đồng API: cả ba đều được khai báo `final`, nên lớp con **không thể override** để thay đổi cách các lời gọi này được phân giải. Tuy nhiên, `final` không có nghĩa là không thể gọi, không thể dùng với `synchronized`, hay bản thân chương trình sẽ tự động an toàn đa luồng.
+The three methods `wait()`, `notify()`, and `notifyAll()` belong to the `java.lang.Object` class. They enable threads to coordinate through an object's **intrinsic monitor**. An important part of the API contract: all three are declared `final`, so subclasses **cannot override** them to change how these calls are resolved. However, `final` does not mean they cannot be called, cannot be used with `synchronized`, or that a program itself is automatically thread-safe.
 
-## 1. Chữ ký và phạm vi của `final`
+## 1. Signatures and scope of `final`
 
-Các chữ ký công khai liên quan trong Java 17+ (minh họa khai báo API, không phải một lớp Java độc lập để biên dịch):
+Relevant public signatures in Java 17+ (illustrating API declarations, not a standalone Java class to compile):
 
 ```java
 public final void wait() throws InterruptedException;
@@ -15,66 +15,66 @@ public final native void notify();
 public final native void notifyAll();
 ```
 
-- `wait()` đưa luồng hiện tại vào tập chờ (*wait set*) của đối tượng nhận lời gọi, đồng thời nhả monitor của chính đối tượng đó. Trước khi tiếp tục thực thi sau `wait`, luồng phải giành lại monitor.
-- `wait(long)` và `wait(long, int)` là các overload có thời gian chờ; `wait(0)` cũng có thể chờ vô thời hạn. Thời gian hết chỉ tạo cơ hội thức dậy, không bảo đảm điều kiện ứng dụng đã đúng.
-- `notify()` chọn **một** luồng đang chờ trên monitor của đối tượng để đánh thức; không bảo đảm chọn luồng nào.
-- `notifyAll()` đánh thức **tất cả** luồng đang chờ trên monitor đó. Các luồng vẫn phải lần lượt tranh chấp và giành lại monitor trước khi chạy tiếp.
-- Cả ba phương thức là **instance method** được mọi lớp tham chiếu kế thừa từ `Object`. Phải gọi trên **đúng đối tượng dùng làm monitor**, ví dụ `monitor.wait()` và `monitor.notifyAll()`.
+- `wait()` places the current thread into the *wait set* of the receiving object while releasing that object's monitor. Before resuming execution after `wait`, the thread must reacquire the monitor.
+- `wait(long)` and `wait(long, int)` are timed overloads; `wait(0)` can also wait indefinitely. Timeout expiration only provides an opportunity to wake up; it does not guarantee the application condition is true.
+- `notify()` selects **one** thread waiting on the object's monitor to wake up; there is no guarantee which thread is chosen.
+- `notifyAll()` wakes up **all** threads waiting on that monitor. The threads still must contend for and reacquire the monitor one by one before continuing.
+- All three methods are **instance methods** inherited by every reference class from `Object`. They must be invoked on **the exact object used as the monitor**, such as `monitor.wait()` and `monitor.notifyAll()`.
 
-Trong chữ ký, `final` là thuộc tính cấm override; `native` (ở một số overload) là chi tiết triển khai. Hai từ khóa có ý nghĩa khác nhau.
+In the signatures, `final` is a modifier forbidding overriding; `native` (on some overloads) is an implementation detail. The two keywords have different meanings.
 
-## 2. Tại sao các phương thức này là `final`?
+## 2. Why are these methods `final`?
 
-Một đối tượng Java có thể được dùng làm monitor bởi `synchronized (obj)`. `Object.wait` và `Object.notify/notifyAll` là giao diện chuẩn để tương tác với cơ chế chờ/đánh thức liên quan tới monitor đó. Không cho lớp con override các phương thức cùng chữ ký giúp hợp đồng gọi phương thức này ổn định ở mọi kiểu đối tượng, tránh việc một lớp con cung cấp hành vi có tên `wait`/`notify` nhưng phá vỡ kỳ vọng của mã đồng bộ.
+Any Java object can be used as a monitor by `synchronized (obj)`. `Object.wait` and `Object.notify/notifyAll` are the standard interface for interacting with the wait/wake mechanism associated with that monitor. Preventing subclasses from overriding methods with the same signatures keeps the invocation contract stable across all object types, avoiding a subclass providing behavior named `wait`/`notify` that breaks the expectations of synchronized code.
 
-Ví dụ dưới đây **cố ý không biên dịch được**, nhằm chứng minh giới hạn của `final`:
+The example below **intentionally does not compile**, to demonstrate the restriction of `final`:
 
 ```java
 class BadMonitor extends Object {
     @Override
-    public void notify() { // Lỗi biên dịch: không thể override Object.notify() vì final
+    public void notify() { // Compile error: cannot override Object.notify() because it is final
         System.out.println("fake notification");
     }
 }
 ```
 
-Tương tự, không thể override `notifyAll()` hoặc bất kỳ chữ ký `wait()` nào đã khai báo `final`. Viết thêm phương thức khác chữ ký, như `wait(String reason)`, về mặt ngôn ngữ là **overload**, không phải override; cách đặt tên này dễ gây nhầm lẫn và không mang ngữ nghĩa chờ monitor của `Object.wait()`.
+Similarly, you cannot override `notifyAll()` or any `wait()` signature declared `final`. Adding a method with a different signature, such as `wait(String reason)`, is at the language level an **overload**, not an override; this naming is confusing and does not carry the monitor-waiting semantics of `Object.wait()`.
 
-Cần phân biệt rõ: **`final` bảo vệ khả năng override ở mức ngôn ngữ/API**; tính nguyên tử của thao tác chờ với việc nhả monitor và các quy tắc sở hữu monitor là ngữ nghĩa của cơ chế đồng bộ Java. `final` không thay thế việc khóa và kiểm tra điều kiện đúng cách.
+A clear distinction is needed: **`final` protects against overriding at the language/API level**; the atomicity of waiting with releasing the monitor and the monitor ownership rules are part of the semantics of Java's synchronization mechanism. `final` is no substitute for proper locking and condition checking.
 
-## 3. Hợp đồng monitor khi gọi `wait` và `notify`
+## 3. Monitor contract when calling `wait` and `notify`
 
-Giả sử nhiều luồng dùng chung đối tượng `monitor` và một biến trạng thái `ready`. Mẫu chuẩn:
+Suppose multiple threads share a `monitor` object and a state variable `ready`. Standard pattern:
 
 ```java
 synchronized (monitor) {
     while (!ready) {
         monitor.wait();
     }
-    // Ở đây đã giữ lại monitor và ready được kiểm tra là true.
+    // Here the monitor is held again and ready has been verified to be true.
 }
 
-// Ở một luồng khác:
+// In another thread:
 synchronized (monitor) {
     ready = true;
     monitor.notifyAll();
 }
 ```
 
-Đây là **đoạn minh họa**, giả định `monitor` và `ready` là trạng thái chia sẻ được bảo vệ bằng cùng một monitor; ví dụ runnable đầy đủ có ở mục 4.
+This is an **illustrative snippet**, assuming `monitor` and `ready` are shared state protected by the same monitor; a complete runnable example is in section 4.
 
-Trình tự quan trọng:
+Important sequence:
 
-1. Luồng chờ vào `synchronized (monitor)` và giữ monitor. Không được gọi `monitor.wait()` nếu không đang giữ monitor của `monitor`.
-2. Nếu điều kiện chưa thỏa, `wait()` **nhả monitor của `monitor`** và chờ. Nhờ vậy luồng khác mới có thể vào khối `synchronized` để thay đổi trạng thái.
-3. Luồng phát tín hiệu vào cùng monitor, cập nhật trạng thái trước rồi gọi `notify()` hoặc `notifyAll()`. Lời gọi thông báo **không lập tức nhả monitor**; việc nhả diễn ra khi luồng phát tín hiệu rời khối đồng bộ (hoặc bằng cơ chế kết thúc giữ khóa tương ứng).
-4. Luồng được đánh thức phải giành lại monitor. Sau đó vòng `while` **kiểm tra lại điều kiện**, vì điều kiện có thể đã đổi, nhiều luồng có thể cùng thức dậy hoặc có *spurious wakeup* (thức dậy không do thông báo theo cách lập trình viên dự kiến).
+1. The waiting thread enters `synchronized (monitor)` and holds the monitor. `monitor.wait()` must not be called unless the monitor of `monitor` is currently held.
+2. If the condition is not met, `wait()` **releases `monitor`'s monitor** and waits. This allows another thread to enter the `synchronized` block to modify the state.
+3. The signaling thread enters the same monitor, updates the state first, and then calls `notify()` or `notifyAll()`. The notification call **does not immediately release the monitor**; release happens when the signaling thread exits the synchronized block (or via the corresponding lock-releasing mechanism).
+4. The woken thread must reacquire the monitor. Afterward, the `while` loop **rechecks the condition**, because the condition may have changed, multiple threads may have woken up together, or a *spurious wakeup* (waking up without an expected programmatic notification) may have occurred.
 
-**Lý do dùng `while` thay vì `if`:** trạng thái được chia sẻ mới quyết định có thể tiếp tục hay chưa; sự kiện thức dậy không phải lời cam kết trạng thái sẽ luôn đúng. Thông báo cũng **không được lưu lại** để dành cho một lần `wait()` trong tương lai.
+**Reason for using `while` instead of `if`:** shared state decides whether execution can proceed; the wakeup event is not a guarantee that the state will always be true. Notifications are also **not stored** for a future `wait()` call.
 
-Ngoài ra, `wait()` nhả **chỉ monitor của đối tượng nhận lời gọi**; nếu luồng đang đồng thời giữ monitor khác, những monitor khác không được `wait()` tự động nhả.
+Furthermore, `wait()` releases **only the monitor of the receiving object**; if the thread simultaneously holds other monitors, those other monitors are not automatically released by `wait()`.
 
-## 4. Ví dụ Java 17+ chạy được: đợi tín hiệu mở cổng
+## 4. Runnable Java 17+ example: waiting for a gate-open signal
 
 File: `ObjectMonitorFinalDemo.java`
 
@@ -109,7 +109,7 @@ public class ObjectMonitorFinalDemo {
         Thread worker = new Thread(() -> {
             try {
                 gate.awaitOpen(waiting);
-                System.out.println("Worker: tiếp tục");
+                System.out.println("Worker: continuing");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -119,12 +119,12 @@ public class ObjectMonitorFinalDemo {
         waiting.await();
         gate.open();
         worker.join();
-        System.out.println("Main: hoàn tất");
+        System.out.println("Main: finished");
     }
 }
 ```
 
-Biên dịch và chạy (terminal hỗ trợ UTF-8):
+Compile and run (UTF-8-capable terminal):
 
 ```bash
 javac -encoding UTF-8 --release 17 ObjectMonitorFinalDemo.java
@@ -134,38 +134,38 @@ java ObjectMonitorFinalDemo
 Stdout:
 
 ```text
-Worker: tiếp tục
-Main: hoàn tất
+Worker: continuing
+Main: finished
 ```
 
-Giải thích:
+Explanation:
 
-- `monitor` là đối tượng khóa riêng, còn `open` là **điều kiện chia sẻ** được đọc/ghi trong cùng khối `synchronized (monitor)`.
-- `awaitOpen` chờ khi `open == false`; lúc gọi `monitor.wait()`, luồng nhả monitor để `open()` có thể giành khóa, đặt `open = true` và `notifyAll()`.
-- `CountDownLatch waiting` chỉ làm bước phối hợp trong **bài demo**: buộc luồng chính đợi tới lúc worker chuẩn bị chờ. Vì worker giữ `monitor` đến khi gọi `wait()`, luồng chính không thể mở cổng trước khi worker nhả monitor. Đây không phải điều kiện bắt buộc để dùng `wait/notifyAll`.
-- `worker.join()` bảo đảm dòng `Worker: tiếp tục` xuất hiện trước `Main: hoàn tất`. Ví dụ đã được biên dịch và chạy bằng JDK 21 với mức tương thích `--release 17`.
+- `monitor` is a private lock object, while `open` is the **shared condition** read/written inside the same `synchronized (monitor)` block.
+- `awaitOpen` waits while `open == false`; when calling `monitor.wait()`, the thread releases the monitor so `open()` can acquire the lock, set `open = true`, and call `notifyAll()`.
+- `CountDownLatch waiting` only serves as a coordination step in the **demo**: it forces the main thread to wait until the worker is about to wait. Because the worker holds `monitor` until calling `wait()`, the main thread cannot open the gate before the worker releases the monitor. This is not a mandatory requirement for using `wait/notifyAll`.
+- `worker.join()` ensures the line `Worker: continuing` appears before `Main: finished`. The example was compiled and run with JDK 21 targeting `--release 17`.
 
-Ở ví dụ, `Gate` cũng kế thừa các phương thức `final` của `Object`, nhưng cách sử dụng tốt hơn là khai báo một đối tượng `monitor` riêng, không public, để tránh mã bên ngoài can thiệp vào cùng khóa.
+In the example, `Gate` also inherits the `final` methods of `Object`, but a better practice is to declare a private, non-public `monitor` object to avoid external code interfering with the same lock.
 
-## 5. Chọn `notify()` hay `notifyAll()`
+## 5. Choosing `notify()` vs `notifyAll()`
 
-| Phương thức | Hiệu lực | Khi dùng |
+| Method | Effect | When to use |
 | --- | --- | --- |
-| `notify()` | Đánh thức một luồng bất kỳ trong wait set của đối tượng | Khi đã **chứng minh được** một luồng bất kỳ đang chờ đều có thể xử lý trạng thái mới và không làm kẹt tiến độ |
-| `notifyAll()` | Đánh thức tất cả luồng đang chờ trên cùng đối tượng; từng luồng phải giành lại monitor | Lựa chọn dễ lập luận hơn khi có nhiều điều kiện hoặc nhiều loại luồng chờ; luôn kiểm tra điều kiện bằng `while` |
+| `notify()` | Wakes up an arbitrary thread in the object's wait set | When it has been **proven** that any waiting thread can handle the new state without stalling progress |
+| `notifyAll()` | Wakes up all threads waiting on the same object; each thread must reacquire the monitor | Easier-to-reason-about choice when there are multiple conditions or multiple kinds of waiting threads; always check the condition with `while` |
 
-`notifyAll()` có thể khiến nhiều luồng thức dậy rồi lại chờ, nên có chi phí tranh chấp khóa; nó **không** cho các luồng chạy đồng thời bên trong cùng monitor. `notify()` có thể gây kẹt nếu đánh thức một luồng không thể làm việc tiếp, trong khi luồng cần thức dậy vẫn đang đợi. Khi chưa chứng minh rõ điều kiện chọn người chờ, ưu tiên tính đúng đắn với `notifyAll()`.
+`notifyAll()` can cause many threads to wake up and then wait again, so it has lock contention overhead; it **does not** let threads run concurrently inside the same monitor. `notify()` can cause stalls if it wakes a thread that cannot proceed while a thread that needs to wake up remains waiting. When the waiter-selection condition has not been clearly proven, prioritize correctness with `notifyAll()`.
 
-## 6. Lỗi phổ biến và cách tránh
+## 6. Common errors and how to avoid them
 
-**Gọi mà không sở hữu đúng monitor.** Đoạn sau sẽ ném `IllegalMonitorStateException` khi thực thi:
+**Calling without owning the right monitor.** The following snippet will throw `IllegalMonitorStateException` at runtime:
 
 ```java
 Object lock = new Object();
-lock.notifyAll(); // Chưa synchronized(lock)
+lock.notifyAll(); // Not synchronized(lock)
 ```
 
-Đúng là:
+Correct is:
 
 ```java
 Object lock = new Object();
@@ -174,31 +174,31 @@ synchronized (lock) {
 }
 ```
 
-`wait()` cũng yêu cầu quyền sở hữu monitor tương ứng. `synchronized (this)` không cho phép gọi `other.wait()` nếu chưa giữ monitor của `other`.
+`wait()` also requires ownership of the corresponding monitor. `synchronized (this)` does not allow calling `other.wait()` unless `other`'s monitor is also held.
 
-**Dùng `if` để kiểm tra điều kiện trước khi chờ.** Có thể thức dậy không mong đợi hoặc điều kiện đã bị luồng khác thay đổi. Dùng vòng `while (!condition) lock.wait()`, với việc đọc/ghi `condition` dưới cùng khóa.
+**Using `if` to check the condition before waiting.** Spurious wakeups may occur or another thread may have changed the condition. Use a `while (!condition) lock.wait()` loop, reading/writing `condition` under the same lock.
 
-**Nhầm `Thread.sleep()` với `Object.wait()`.** `Thread.sleep(...)` tạm dừng luồng nhưng **không nhả** monitor mà luồng đang giữ; `Object.wait()` nhả monitor của đối tượng nhận lời gọi. `sleep` không phải cơ chế nhận `notify`.
+**Confusing `Thread.sleep()` with `Object.wait()`.** `Thread.sleep(...)` pauses the thread but **does not release** monitors held by the thread; `Object.wait()` releases the monitor of the receiving object. `sleep` is not a mechanism for receiving `notify`.
 
-**Cho rằng `notifyAll()` làm các luồng chạy ngay.** Luồng phát tín hiệu vẫn giữ monitor tới lúc ra khỏi khối đồng bộ; các luồng nhận tín hiệu sau đó mới có thể cạnh tranh để lấy lại khóa.
+**Assuming `notifyAll()` lets threads run immediately.** The signaling thread still holds the monitor until it exits the synchronized block; the notified threads can only contend afterward to reacquire the lock.
 
-**Nhầm tín hiệu với trạng thái.** Nếu gọi `notifyAll()` lúc chưa có ai chờ, không có thông báo nào được ghi nhớ. Luôn lưu trạng thái có ý nghĩa (`open`, số phần tử trong hàng đợi, cờ hủy…) và kiểm tra trạng thái ấy trong vòng lặp.
+**Confusing signals with state.** If `notifyAll()` is called when no one is waiting, no notification is remembered. Always store meaningful state (`open`, number of elements in a queue, cancellation flag...) and check that state in a loop.
 
-**Bỏ qua ngắt luồng.** `wait()` có thể ném `InterruptedException`. Khi bị ngắt trong lúc chờ, luồng phải giành lại monitor trước khi phương thức hoàn tất việc ném ngoại lệ. Nếu bắt ngoại lệ mà không thể xử lý tại đó, thường nên lan truyền nó hoặc phục hồi cờ ngắt bằng `Thread.currentThread().interrupt()` như trong ví dụ.
+**Ignoring thread interruption.** `wait()` can throw `InterruptedException`. When interrupted while waiting, the thread must reacquire the monitor before the method finishes throwing the exception. If you catch the exception and cannot handle it there, you should typically propagate it or restore the interrupt flag with `Thread.currentThread().interrupt()` as shown in the example.
 
-**Cho rằng `final` đồng nghĩa thread-safe.** Một lớp có thể gọi `wait()`/`notifyAll()` đúng chữ ký nhưng vẫn sai vì truy cập trạng thái thiếu đồng bộ, dùng không cùng monitor, chờ sai điều kiện hoặc khóa chéo. Cần thiết kế giao thức phối hợp luồng đúng.
+**Assuming `final` means thread-safe.** A class can call `wait()`/`notifyAll()` with the right signatures and still be wrong due to unsynchronized state access, using different monitors, waiting on the wrong condition, or cross-locking. A proper thread-coordination protocol must be designed.
 
-## 7. Cách ghi nhớ và áp dụng
+## 7. How to remember and apply
 
-- **`final`:** không override được `wait`, `notify`, `notifyAll` ở các chữ ký chuẩn của `Object`.
-- **Cùng monitor:** `synchronized(lock)`, `lock.wait()` và `lock.notifyAll()` phải liên quan đúng đối tượng `lock`.
-- **Điều kiện mới quan trọng:** cập nhật trạng thái dưới khóa, chờ bằng `while`; `notify/notifyAll` chỉ là tín hiệu yêu cầu kiểm tra lại.
-- **Không kỳ vọng thứ tự:** `notify()` không chọn người chờ theo thứ tự được bảo đảm; `notifyAll()` không bảo đảm lịch chạy.
+- **`final`:** cannot override `wait`, `notify`, `notifyAll` with `Object`'s standard signatures.
+- **Same monitor:** `synchronized(lock)`, `lock.wait()`, and `lock.notifyAll()` must refer to the exact same `lock` object.
+- **The condition is what matters:** update state under the lock, wait using `while`; `notify/notifyAll` is only a signal to recheck.
+- **No ordering expectations:** `notify()` does not pick a waiter in a guaranteed order; `notifyAll()` does not guarantee scheduling order.
 
-Trong ứng dụng có phối hợp phức tạp, API cấp cao như `BlockingQueue`, `CountDownLatch` hoặc `Lock`/`Condition` thường dễ kiểm soát hơn. Chúng không làm thay đổi sự thật cốt lõi: các phương thức monitor chuẩn được kế thừa từ `Object` vẫn là `final`.
+In applications with complex coordination, higher-level APIs like `BlockingQueue`, `CountDownLatch`, or `Lock`/`Condition` are often easier to control. They do not change the core fact: the standard monitor methods inherited from `Object` remain `final`.
 
-### Tự kiểm tra
+### Self-check
 
-1. Vì sao `@Override public void notify()` trong lớp con báo lỗi? — Vì `Object.notify()` là `final`.
-2. Luồng đang giữ `synchronized (a)` có được gọi `b.wait()` không? — Chỉ khi nó **cũng** đang sở hữu monitor của `b`; giữ monitor của `a` là chưa đủ.
-3. `notifyAll()` xong là mọi luồng chờ chạy qua `wait()` ngay? — Không. Mỗi luồng còn phải lấy lại monitor rồi kiểm tra lại điều kiện trong vòng `while`.
+1. Why does `@Override public void notify()` in a subclass produce an error? — Because `Object.notify()` is `final`.
+2. Can a thread holding `synchronized (a)` call `b.wait()`? — Only if it **also** owns `b`'s monitor; holding `a`'s monitor is not enough.
+3. Right after `notifyAll()`, do all waiting threads immediately continue past `wait()`? — No. Each thread must first reacquire the monitor and recheck the condition in a `while` loop.

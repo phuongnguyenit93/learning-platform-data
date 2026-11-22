@@ -1,85 +1,85 @@
-# Chẩn đoán ClassNotFoundException và NoClassDefFoundError trong Java Module System
+# Diagnosing ClassNotFoundException and NoClassDefFoundError in the Java Module System
 
-Khi một ứng dụng Java không thể sử dụng một class ở runtime, hai tên lỗi thường xuất hiện là **ClassNotFoundException** và **NoClassDefFoundError**. Chúng có thể cùng liên quan đến việc thiếu bytecode hoặc class loader không tìm thấy class, nhưng không có cùng ý nghĩa, không phát sinh ở cùng giai đoạn và không nên được xử lý bằng một giải pháp chung như "thêm mọi JAR vào classpath".
+When a Java application cannot use a class at runtime, two error names that frequently appear are **ClassNotFoundException** and **NoClassDefFoundError**. They may both relate to missing bytecode or a class loader failing to find a class, yet they do not have the same meaning, do not arise at the same stage, and should not be treated with a blanket fix like "put every JAR on the classpath."
 
-Với Java Platform Module System (JPMS), việc tìm và nạp class còn chịu ảnh hưởng của module path, module resolution, module layer, class loader gắn với module và sự tách biệt giữa **readability** với **exports/opens**. Một JAR có mặt trên ổ đĩa chưa chắc module của nó đã tham gia cấu hình runtime. Ngược lại, một module đã được phân giải không bảo đảm mọi dependency class cần thiết trong những đường thực thi muộn đều đã được tìm và liên kết thành công.
+With the Java Platform Module System (JPMS), locating and loading classes is also affected by the module path, module resolution, module layers, the class loader associated with a module, and the separation between **readability** and **exports/opens**. Having a JAR present on disk does not guarantee its module participates in the runtime configuration. Conversely, a resolved module does not guarantee that every dependency class needed on late execution paths has been located and linked successfully.
 
-Bài học này cung cấp quy trình chẩn đoán có thứ tự: xác định chính xác loại lỗi, đọc nguyên nhân gốc, kiểm tra tên class và artifact, quan sát class loader/module, phân biệt lỗi module resolution, kiểm tra dependency runtime và class initialization, sau đó khắc phục và kiểm thử lại.
+This lesson provides an ordered diagnostic workflow: accurately identify the error type, read the root cause, verify the class name and artifacts, inspect the class loader/module, distinguish module resolution errors, check runtime dependencies and class initialization, then apply the fix and retest.
 
-## 1. Khác biệt cốt lõi giữa hai loại lỗi
+## 1. Core Differences Between the Two Error Types
 
-**ClassNotFoundException** là checked exception. Nó thường xuất hiện khi ứng dụng hoặc một framework chủ động yêu cầu tìm class theo tên mà class loader tương ứng không tìm thấy.
+**ClassNotFoundException** is a checked exception. It typically occurs when an application or framework actively requests to look up a class by name and the corresponding class loader cannot find it.
 
-Ví dụ:
+Example:
 
 ~~~java
 Class<?> type = Class.forName("com.example.plugin.CsvPlugin");
 ~~~
 
-Nếu class không thể được tìm thấy bằng cơ chế nạp được dùng, lời gọi có thể ném ClassNotFoundException.
+If the class cannot be found by the loading mechanism used, the call can throw ClassNotFoundException.
 
-**NoClassDefFoundError** là một LinkageError, không phải checked exception. Nó thường xuất hiện khi JVM cần một định nghĩa class để liên kết hoặc sử dụng bytecode, nhưng định nghĩa đó không thể được tìm thấy tại thời điểm cần thiết. Nó cũng có thể xuất hiện sau khi quá trình khởi tạo một class đã thất bại trong lần sử dụng trước.
+**NoClassDefFoundError** is a LinkageError, not a checked exception. It typically occurs when the JVM needs a class definition to link or execute bytecode, yet that definition cannot be found at the time it is needed. It can also appear after initialization of a class failed on a previous usage.
 
-Ví dụ:
+Example:
 
 ~~~java
 Report report = new Report();
 ~~~
 
-Nếu mã đã biên dịch dựa trên Report nhưng khi chạy JVM không thể tìm định nghĩa class cần thiết, việc thực thi có thể gặp NoClassDefFoundError.
+If code compiled against Report but at runtime the JVM cannot find the required class definition, execution can encounter NoClassDefFoundError.
 
-Bảng so sánh:
+Comparison table:
 
-| Khía cạnh | ClassNotFoundException | NoClassDefFoundError |
+| Aspect | ClassNotFoundException | NoClassDefFoundError |
 | --- | --- | --- |
-| Phân loại | Checked exception | Error, kế thừa LinkageError |
-| Thường phát sinh khi | API hoặc framework yêu cầu load class theo tên | JVM cần class tại runtime nhưng không thể định nghĩa hoặc sử dụng |
-| Ví dụ phổ biến | Class.forName, ClassLoader.loadClass | new, gọi method, truy cập field, liên kết dependency |
-| Có thể liên quan class initialization? | Không phải dấu hiệu điển hình | Có, sau một lần initialization thất bại |
-| Có thể xử lý bằng catch? | Có thể được khai báo throws hoặc bắt có chủ đích | Thường là lỗi cấu hình/đóng gói cần sửa nguyên nhân, không nên catch như logic thường |
-| Hướng điều tra đầu tiên | Tên class và loader đang được yêu cầu | Root cause, thiếu class runtime hoặc class khởi tạo lỗi |
+| Classification | Checked exception | Error, subclass of LinkageError |
+| Typically occurs when | An API or framework requests loading a class by name | The JVM needs a class at runtime but cannot define or use it |
+| Common examples | Class.forName, ClassLoader.loadClass | `new`, method invocation, field access, dependency linking |
+| Can involve class initialization? | Not a typical symptom | Yes, after an earlier initialization failure |
+| Can it be handled with catch? | Can be declared with throws or caught intentionally | Usually a configuration/packaging error needing root-cause fix; should not be caught as normal logic |
+| First direction of investigation | The requested class name and loader being used | Root cause, missing runtime class, or failed class initialization |
 
-Không nên suy ra "ClassNotFoundException luôn do reflection" hoặc "NoClassDefFoundError luôn do thiếu JAR". Framework có thể bao bọc một lỗi trong lỗi khác; mỗi trường hợp cần đọc toàn bộ stack trace và chuỗi cause.
+Do not assume "ClassNotFoundException is always caused by reflection" or "NoClassDefFoundError is always caused by a missing JAR." Frameworks can wrap one error inside another; in every case, read the full stack trace and cause chain.
 
-## 2. Ba giai đoạn cần tách biệt: module, class và khởi tạo
+## 2. Three Stages to Separate: Module, Class, and Initialization
 
-Trong ứng dụng modular, có thể hình dung:
+In a modular application, you can visualize:
 
 ~~~text
 module path / classpath
          |
          v
-ModuleFinder tìm descriptor
+ModuleFinder locates descriptors
          |
          v
-Module resolution chọn module + dependency
+Module resolution selects modules + dependencies
          |
          v
-ModuleLayer định nghĩa các module runtime
+ModuleLayer defines runtime modules
          |
          v
-ClassLoader tìm và định nghĩa class theo nhu cầu
+ClassLoader locates and defines classes on demand
          |
          v
 Linking: verification, preparation, resolution
          |
          v
-Class initialization khi được kích hoạt
+Class initialization when triggered
 ~~~
 
-Mỗi tầng có thể thất bại theo cách khác nhau:
+Each layer can fail differently:
 
-- **Module discovery/resolution** có thể ném FindException hoặc ResolutionException trước khi chạy class main.
-- **Class loading** có thể gặp ClassNotFoundException khi một API tìm class theo tên.
-- **Class linking/sử dụng** có thể gặp NoClassDefFoundError nếu class cần thiết không khả dụng.
-- **Class initialization** có thể ném ExceptionInInitializerError hoặc một Error khác; những lần dùng sau có thể gặp NoClassDefFoundError với thông điệp liên quan đến việc class không khởi tạo được.
-- **Package access** có thể gây IllegalAccessError, IllegalAccessException hoặc InaccessibleObjectException; đây là các vấn đề khác với việc class hoàn toàn không tìm thấy.
+- **Module discovery/resolution** can throw FindException or ResolutionException before running the main class.
+- **Class loading** can hit ClassNotFoundException when an API looks up a class by name.
+- **Class linking/usage** can hit NoClassDefFoundError if a required class is unavailable.
+- **Class initialization** can throw ExceptionInInitializerError or another Error; subsequent uses can hit NoClassDefFoundError with a message indicating the class failed to initialize.
+- **Package access** can cause IllegalAccessError, IllegalAccessException, or InaccessibleObjectException; these are different issues from a class being completely missing.
 
-Bước đầu của chẩn đoán là xác định JVM đã đi đến tầng nào, chứ không sửa ngẫu nhiên nhiều tùy chọn module.
+The first step of diagnosis is identifying which stage the JVM reached, rather than randomly tweaking multiple module options.
 
-## 3. Đọc stack trace trước khi sửa dependency
+## 3. Read the Stack Trace Before Changing Dependencies
 
-Ví dụ ClassNotFoundException:
+Example ClassNotFoundException:
 
 ~~~text
 java.lang.ClassNotFoundException: com.example.plugin.CsvPlugin
@@ -88,14 +88,14 @@ java.lang.ClassNotFoundException: com.example.plugin.CsvPlugin
     at com.example.app/com.example.app.PluginLoader.load(...)
 ~~~
 
-Thông tin cần lấy:
+Information to extract:
 
-1. **Tên binary class**: com.example.plugin.CsvPlugin.
-2. **Lời gọi đầu tiên của ứng dụng**: PluginLoader.load.
-3. **Loader được sử dụng**: Class.forName overload nào, class loader nào.
-4. **Môi trường**: chạy trong IDE, test, JAR, container hay custom ModuleLayer.
+1. **Binary class name**: com.example.plugin.CsvPlugin.
+2. **First application call**: PluginLoader.load.
+3. **Loader used**: which Class.forName overload, which class loader.
+4. **Environment**: running in IDE, tests, JAR, container, or custom ModuleLayer.
 
-Ví dụ NoClassDefFoundError:
+Example NoClassDefFoundError:
 
 ~~~text
 java.lang.NoClassDefFoundError: com/example/codec/Codec
@@ -104,15 +104,15 @@ Caused by: java.lang.ClassNotFoundException: com.example.codec.Codec
     at ...
 ~~~
 
-Đừng chỉ nhìn dòng đầu. Phần **Caused by** có thể chỉ ra loader không tìm được một class dependency.
+Do not look only at the first line. The **Caused by** section may reveal that a loader could not find a dependency class.
 
-Tên class trong NoClassDefFoundError thường được biểu diễn với dấu gạch chéo (/), ví dụ com/example/codec/Codec, trong khi ClassNotFoundException thường hiển thị binary name dùng dấu chấm. Hai cách viết có thể cùng chỉ tới một class Java.
+The class name in NoClassDefFoundError is often represented with slashes (/), such as com/example/codec/Codec, whereas ClassNotFoundException typically displays a dot-separated binary name. Both notations may refer to the exact same Java class.
 
-Nếu stack trace có nhiều tầng wrapper của framework, hãy tìm cause sâu nhất có thông tin cụ thể. Không nên bỏ qua các lỗi đầu tiên xuất hiện trước đó trong log khởi động.
+If a stack trace has multiple framework wrapper layers, find the deepest cause with concrete information. Do not overlook earlier errors that appeared first in startup logs.
 
-## 4. Tái hiện ClassNotFoundException bằng Class.forName
+## 4. Reproducing ClassNotFoundException with `Class.forName`
 
-Tạo class:
+Create the class:
 
 ~~~java
 package com.example.app;
@@ -133,33 +133,33 @@ public final class DynamicLookup {
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac -d out src/com/example/app/DynamicLookup.java
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 java -cp out com.example.app.DynamicLookup
 ~~~
 
-Nếu không có class com.example.missing.OptionalFeature trên đường tìm class, lời gọi Class.forName không thành công. Mã ở ví dụ này chủ động bắt checked exception để thực hiện nhánh xử lý cho chức năng tùy chọn.
+If `com.example.missing.OptionalFeature` is absent from the class search path, the Class.forName call fails. The code in this example intentionally catches the checked exception to execute a fallback branch for an optional feature.
 
-Trong một ứng dụng thực tế, tên class có thể đến từ:
+In a real application, a class name can come from:
 
-- File cấu hình.
-- Tham số command line.
-- Plugin registry hoặc discovery của framework.
-- JDBC driver hoặc provider được nạp bằng tên.
-- Cơ chế reflection, dependency injection hoặc serialization.
+- Configuration files.
+- Command-line arguments.
+- Plugin registries or framework discovery.
+- JDBC drivers or providers loaded by name.
+- Reflection, dependency injection, or serialization mechanisms.
 
-Vì vậy, trước khi tìm kiếm JAR, hãy xác nhận tên class đúng package, đúng chữ hoa/chữ thường và không phải tên bị thay đổi sau refactor.
+Therefore, before hunting for JARs, confirm the class name has the right package, exact casing, and is not an old name changed after refactoring.
 
-## 5. Tái hiện NoClassDefFoundError do thiếu dependency runtime
+## 5. Reproducing NoClassDefFoundError from a Missing Runtime Dependency
 
-Giả sử có hai source:
+Suppose we have two sources:
 
 ~~~java
 // src/com/example/codec/Codec.java
@@ -185,7 +185,7 @@ public final class Main {
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac -d build/codec src/com/example/codec/Codec.java
@@ -197,43 +197,43 @@ javac -cp build/codec \
       src/com/example/app/Main.java
 ~~~
 
-Chạy với đủ dependency:
+Run with all dependencies:
 
 ~~~bash
 java -cp "build/app:build/codec" com.example.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 [hello]
 ~~~
 
-Chạy thiếu thư mục chứa Codec:
+Run without the directory containing Codec:
 
 ~~~bash
 java -cp build/app com.example.app.Main
 ~~~
 
-Khi JVM cần định nghĩa class Codec, nhưng bytecode Codec không có trên classpath runtime, ứng dụng có thể gặp:
+When the JVM needs to define class Codec, yet Codec bytecode is absent from the runtime classpath, the application can hit:
 
 ~~~text
 java.lang.NoClassDefFoundError: com/example/codec/Codec
 ~~~
 
-Ví dụ cho thấy **compile-time classpath và runtime classpath là hai cấu hình khác nhau**. Việc javac tìm được một class trong khi biên dịch không bảo đảm Java launcher sẽ tìm được class đó khi chạy.
+This example shows that **the compile-time classpath and the runtime classpath are two separate configurations**. The fact that `javac` found a class during compilation does not guarantee the Java launcher will find that class at runtime.
 
-Trên Windows, dùng dấu chấm phẩy trong classpath nhiều entry:
+On Windows, use a semicolon for multi-entry classpaths:
 
 ~~~powershell
 java -cp "build/app;build/codec" com.example.app.Main
 ~~~
 
-Không nên "sửa" ví dụ này bằng cách đổi tên class hoặc thêm --add-opens. Nguyên nhân thật sự là thiếu bytecode ở runtime.
+Do not "fix" this example by renaming the class or adding `--add-opens`. The actual cause is missing bytecode at runtime.
 
-## 6. Module path làm thay đổi cách phân giải dependency
+## 6. How the Module Path Changes Dependency Resolution
 
-Với explicit named module, dependency bắt buộc được khai báo bằng requires:
+With explicit named modules, mandatory dependencies are declared with `requires`:
 
 ~~~java
 module com.example.app {
@@ -241,14 +241,14 @@ module com.example.app {
 }
 ~~~
 
-Nếu com.example.codec không thể tìm thấy từ các module observable, việc khởi chạy bằng -m có thể thất bại trước khi Main.main được gọi:
+If `com.example.codec` cannot be found among observable modules, launching with `-m` can fail before `Main.main` is even called:
 
 ~~~bash
 java --module-path mods \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Thông báo có thể là:
+The message might look like:
 
 ~~~text
 Error occurred during initialization of boot layer
@@ -256,59 +256,59 @@ java.lang.module.FindException: Module com.example.codec not found,
 required by com.example.app
 ~~~
 
-Đây là lỗi **module resolution**, không phải cùng một lỗi với NoClassDefFoundError của ví dụ classpath.
+This is a **module resolution** error, not the same error as the NoClassDefFoundError from the classpath example.
 
-Điểm phân biệt:
+Points of distinction:
 
-- Missing module bắt buộc theo **requires** thường bị phát hiện ngay trong resolution.
-- Class không tìm thấy khi code dùng reflection có thể xuất hiện muộn hơn, tùy cách nạp.
-- Module đã được phân giải vẫn có thể gặp lỗi runtime khác nếu artifact không chứa class cần thiết, dependency không phải module bắt buộc hoặc class initialization thất bại.
+- A missing module required by **requires** is typically detected immediately during resolution.
+- A class not found when code uses reflection may appear later, depending on how loading occurs.
+- An already-resolved module can still suffer other runtime errors if the artifact lacks the needed class, a dependency is not a required module, or class initialization fails.
 
-Khi log có FindException, hãy kiểm tra tên module, descriptor, module path và dependency graph. Không nên chỉ tìm tên class bị thiếu hoặc thêm thư viện vào classpath rồi kỳ vọng requires sẽ tự được thỏa mãn.
+When logs show FindException, inspect module names, descriptors, the module path, and the dependency graph. Do not simply search for the missing class name or drop a library onto the classpath expecting `requires` to be satisfied automatically.
 
-## 7. Kiểm tra tên module và nội dung JAR
+## 7. Inspecting Module Names and JAR Contents
 
-Để biết một artifact có phải explicit named module hay automatic module, kiểm tra:
+To check whether an artifact is an explicit named module or an automatic module, run:
 
 ~~~bash
 jar --describe-module --file libs/com.example.codec.jar
 ~~~
 
-Một modular JAR explicit thường chứa module-info.class ở gốc JAR. Tên module được xác định bởi descriptor, không nhất thiết trùng tên file JAR.
+An explicit modular JAR normally contains `module-info.class` at the root of the JAR. The module name is determined by the descriptor and does not necessarily match the JAR filename.
 
-Để kiểm tra class có trong JAR không:
+To check whether a class is inside a JAR:
 
 ~~~bash
 jar --list --file libs/com.example.codec.jar
 ~~~
 
-Tìm entry:
+Look for the entry:
 
 ~~~text
 com/example/codec/Codec.class
 ~~~
 
-Nếu thiếu entry, có thể nguyên nhân là:
+If the entry is missing, possible causes include:
 
-- Build không đưa class vào JAR.
-- Artifact đã bị exclude/shade hoặc relocate.
-- Source set không chứa class mong đợi.
-- Đang triển khai JAR không đúng version.
-- JAR bị đổi cấu trúc package mà consumer vẫn tham chiếu tên cũ.
+- The build did not package the class into the JAR.
+- The artifact was excluded, shaded, or relocated.
+- The source set did not include the expected class.
+- The wrong version of the JAR is being deployed.
+- The JAR changed package structure while the consumer still references the old name.
 
-Nếu artifact nằm trong nhiều phiên bản, phải kiểm tra **đúng file JAR thực sự được runtime sử dụng**, không chỉ file trong thư mục source hoặc local Maven repository.
+If multiple versions of an artifact exist, check **the exact JAR file actually used at runtime**, not merely files in the source folder or local Maven repository.
 
-## 8. ClassLoader quyết định class được tìm ở đâu
+## 8. ClassLoader Determines Where Classes Are Found
 
-Trong JVM, class loading không chỉ dựa vào một danh sách JAR toàn cục. Mỗi class loader có phạm vi tìm kiếm và quan hệ delegation riêng.
+In the JVM, class loading does not rely solely on a single global list of JARs. Each class loader has its own search scope and delegation relationships.
 
-Các loader dựng sẵn thường gồm:
+Built-in loaders typically include:
 
-- **Bootstrap loader** cho nhiều class cốt lõi như java.lang.Object.
-- **Platform loader** cho các module nền tảng được giao cho nó.
-- **Application/system loader** cho class ứng dụng và nhiều module ứng dụng trong cấu hình launch thông thường.
+- **Bootstrap loader** for many core classes such as `java.lang.Object`.
+- **Platform loader** for platform modules assigned to it.
+- **Application/system loader** for application classes and many application modules in standard launch configurations.
 
-Ví dụ:
+Example:
 
 ~~~java
 System.out.println(
@@ -324,15 +324,15 @@ System.out.println(
 );
 ~~~
 
-Object.class.getClassLoader() thường trả về null để biểu diễn bootstrap loader.
+`Object.class.getClassLoader()` typically returns `null` to represent the bootstrap loader.
 
-Nếu một custom class loader chỉ biết thư mục plugins, nó có thể không tìm thấy class nằm trong thư mục khác dù class đó hiện diện trên ổ đĩa. Ngược lại, một class loader khác có thể đã nạp class cùng tên nhưng điều đó không làm class tự xuất hiện trong phạm vi của loader được yêu cầu.
+If a custom class loader only knows about a `plugins` directory, it may fail to find a class residing in another directory even though that class is present on disk. Conversely, another class loader may already have loaded a class with the same name, but that does not automatically make the class appear within the scope of the queried loader.
 
-Class identity trong JVM gồm tên class và **defining class loader**. Hai class cùng binary name được định nghĩa bởi hai loader khác nhau là hai kiểu khác nhau; lỗi phát sinh có thể là ClassCastException hoặc lỗi linkage, không nhất thiết là ClassNotFoundException.
+Class identity in the JVM consists of the class name and **defining class loader**. Two classes with the same binary name defined by two different loaders are two different types; the resulting error may be ClassCastException or a linkage error, not necessarily ClassNotFoundException.
 
-## 9. Class.forName, loadClass và tham số initialize
+## 9. `Class.forName`, `loadClass`, and the `initialize` Parameter
 
-Có thể chủ động chỉ định loader:
+You can specify a loader explicitly:
 
 ~~~java
 ClassLoader loader = ClassLoader.getSystemClassLoader();
@@ -344,14 +344,14 @@ Class<?> type = Class.forName(
 );
 ~~~
 
-Ở đây:
+Here:
 
-- Tên class phải là binary name với dấu chấm.
-- **false** yêu cầu không khởi tạo class chỉ vì lời gọi này.
-- Loader được truyền vào quyết định phạm vi tìm kiếm khi class cần được nạp.
-- JVM vẫn có thể thực hiện những bước loading/linking cần thiết; false không bảo đảm không đụng tới bất kỳ dependency nào.
+- The class name must be a binary name with dots.
+- **false** requests not initializing the class solely because of this call.
+- The passed-in loader determines the search scope when the class needs to be loaded.
+- The JVM may still perform necessary loading/linking steps; `false` does not guarantee avoiding every dependency.
 
-Đối với ClassLoader.loadClass:
+For `ClassLoader.loadClass`:
 
 ~~~java
 Class<?> type = loader.loadClass(
@@ -359,15 +359,15 @@ Class<?> type = loader.loadClass(
 );
 ~~~
 
-Cách gọi thường không khởi tạo class ngay. Nếu cần phân biệt lỗi loading với lỗi static initialization, hãy thử nạp class mà không yêu cầu initialize, rồi dùng đường code thực sự kích hoạt initialization.
+This call typically does not initialize the class immediately. If you need to distinguish a loading error from a static initialization error, try loading the class without requesting initialization first, then execute the code path that actually triggers initialization.
 
-Một lưu ý khi debug: việc **Class.forName(String)** dùng loader xác định theo caller khác với overload truyền loader cụ thể. Nếu ứng dụng/plugin chạy trong nhiều class loader, hãy luôn kiểm tra overload nào đang được framework gọi.
+A debugging note: **Class.forName(String)** uses a loader determined by the caller, which differs from the overload that takes an explicit loader. If an application/plugin runs across multiple class loaders, always check which overload the framework is calling.
 
-## 10. ClassNotFoundException trong custom ModuleLayer
+## 10. ClassNotFoundException in a Custom ModuleLayer
 
-JPMS cho phép ứng dụng tạo ModuleLayer riêng để nạp module động. Một module có thể thuộc layer con và được gắn với loader khác application/system loader.
+JPMS lets applications create separate `ModuleLayer` instances to load modules dynamically. A module can belong to a child layer and be attached to a loader other than the application/system loader.
 
-Ví dụ khái quát:
+General example:
 
 ~~~java
 ModuleLayer parent = ModuleLayer.boot();
@@ -394,7 +394,7 @@ ClassLoader pluginLoader =
     pluginLayer.findLoader("com.example.plugin");
 ~~~
 
-Nếu plugin class thuộc loader này, dùng đúng loader khi nạp:
+If the plugin class belongs to this loader, use the right loader when loading:
 
 ~~~java
 Class<?> type = Class.forName(
@@ -404,20 +404,20 @@ Class<?> type = Class.forName(
 );
 ~~~
 
-Dùng ClassLoader.getSystemClassLoader() để tìm class trong layer mới không nhất thiết thành công. Loader của module thuộc layer con có thể biết class mà loader ứng dụng cha không biết.
+Using `ClassLoader.getSystemClassLoader()` to look up a class in the new layer will not necessarily succeed. A module's loader in a child layer can know about classes that the parent application loader does not.
 
-Cần phân biệt hai vấn đề:
+Two questions must be separated:
 
-1. **Module có trong ModuleLayer không?** Kiểm tra findModule.
-2. **Class có được tìm bằng loader của module không?** Kiểm tra findLoader và Class.forName.
+1. **Is the module in the ModuleLayer?** Check `findModule`.
+2. **Can the class be found using the module's loader?** Check `findLoader` and `Class.forName`.
 
-Việc ModuleLayer tìm thấy module chưa có nghĩa một loader bất kỳ trong ứng dụng có thể nạp mọi class của module đó.
+A ModuleLayer finding a module does not mean an arbitrary loader in the application can load every class of that module.
 
-## 11. Thread context ClassLoader và framework
+## 11. Thread Context ClassLoader and Frameworks
 
-Nhiều framework, container và cơ chế plugin dùng **thread context class loader** (TCCL) để tìm provider hoặc tài nguyên.
+Many frameworks, containers, and plugin mechanisms use the **thread context class loader** (TCCL) to locate providers or resources.
 
-Quan sát loader:
+Inspecting the loader:
 
 ~~~java
 Thread thread = Thread.currentThread();
@@ -428,9 +428,9 @@ ClassLoader contextLoader =
 System.out.println(contextLoader);
 ~~~
 
-TCCL có thể khác defining loader của class đang chạy. Một service được gọi trong thread pool có thể dùng TCCL của thread, dẫn tới việc không tìm thấy provider mà một thread khác có thể tìm được.
+TCCL can differ from the defining loader of the currently executing class. A service invoked in a thread pool might use the thread's TCCL, leading to failing to find a provider that another thread can find.
 
-Nếu framework phụ thuộc vào TCCL, có thể đặt trong phạm vi tác vụ:
+If a framework depends on TCCL, you can set it within the scope of the task:
 
 ~~~java
 Thread thread = Thread.currentThread();
@@ -439,28 +439,28 @@ ClassLoader previous = thread.getContextClassLoader();
 try {
     thread.setContextClassLoader(pluginLoader);
 
-    // Gọi framework dựa vào context class loader.
+    // Call the framework that relies on the context class loader.
 } finally {
     thread.setContextClassLoader(previous);
 }
 ~~~
 
-Luôn khôi phục loader cũ trong finally để tránh ảnh hưởng tác vụ sau, đặc biệt với thread pool.
+Always restore the previous loader in `finally` to avoid affecting subsequent tasks, especially with thread pools.
 
-Với JPMS service provider, có thể chọn rõ ModuleLayer:
+For JPMS service providers, you can select the ModuleLayer explicitly:
 
 ~~~java
 ServiceLoader<MyService> services =
     ServiceLoader.load(pluginLayer, MyService.class);
 ~~~
 
-Khi ServiceLoader không tìm được provider, hãy kiểm tra **uses**, **provides ... with**, cấu hình resolution, loader/layer và cách framework nạp service. Một lỗi provider có thể bị wrapper của framework báo chung là "class not found", nên cần xem nguyên nhân thực tế.
+When ServiceLoader cannot find a provider, check **uses**, **provides ... with**, resolution configuration, loader/layer, and how the framework loads services. A provider error may be generically reported by a framework wrapper as "class not found," so inspect the actual underlying cause.
 
-## 12. NoClassDefFoundError sau khi class initialization thất bại
+## 12. NoClassDefFoundError After Class Initialization Fails
 
-Một nguyên nhân dễ bị bỏ qua là lỗi trong static initializer hoặc quá trình khởi tạo static field.
+An easily overlooked cause is an error inside a static initializer or static field initialization.
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.example.app;
@@ -478,37 +478,37 @@ public final class BrokenConfig {
 }
 ~~~
 
-Lần đầu một luồng thực sự kích hoạt initialization:
+The first time a thread actually triggers initialization:
 
 ~~~java
 System.out.println(BrokenConfig.value());
 ~~~
 
-Nếu property required.config vắng mặt, static initializer ném exception. JVM có thể bọc nguyên nhân trong **ExceptionInInitializerError**.
+If the `required.config` property is missing, the static initializer throws an exception. The JVM may wrap the cause in **ExceptionInInitializerError**.
 
-Class đã có trạng thái initialization thất bại. Lần sử dụng tiếp theo có thể báo:
+The class is now in an initialization-failed state. Subsequent uses may report:
 
 ~~~text
 java.lang.NoClassDefFoundError: Could not initialize class
 com.example.app.BrokenConfig
 ~~~
 
-Trong tình huống này, **class file có thể tồn tại đầy đủ trên classpath hoặc module path**. Vấn đề không phải JAR thiếu bytecode, mà là class initialization đã thất bại.
+In this situation, **the class file may be completely present on the classpath or module path**. The issue is not a JAR missing bytecode, but rather that class initialization failed.
 
-Cách chẩn đoán:
+How to diagnose:
 
-1. Tìm **exception đầu tiên trong log**, đặc biệt ExceptionInInitializerError.
-2. Xem phần Caused by để tìm lỗi config, permission, environment hoặc resource.
-3. Không giải quyết bằng cách thêm JAR không liên quan.
-4. Sửa điều kiện khởi tạo rồi chạy lại trong một JVM mới để kiểm tra.
+1. Find the **first exception in the log**, especially ExceptionInInitializerError.
+2. Check the `Caused by` section for config, permission, environment, or resource errors.
+3. Do not solve it by adding unrelated JARs.
+4. Fix the initialization condition and rerun in a fresh JVM to verify.
 
-Một số lỗi khởi tạo còn có thể xảy ra khi static field phụ thuộc class khác, kết nối tài nguyên hoặc native library. Đừng chỉ nhìn thông điệp NoClassDefFoundError cuối cùng.
+Some initialization failures can also occur when static fields depend on other classes, resource connections, or native libraries. Do not look only at the final NoClassDefFoundError message.
 
-## 13. Lỗi thiếu class gián tiếp
+## 13. Indirect Missing Class Errors
 
-Class được yêu cầu có thể tồn tại, nhưng một class mà nó phụ thuộc lại vắng mặt.
+The requested class may exist, while a class it depends on is absent.
 
-Ví dụ:
+Example:
 
 ~~~text
 application.jar
@@ -521,24 +521,24 @@ codec.jar
   └── com.example.codec.Codec
 ~~~
 
-Nếu Main dùng Service và Service lại cần Codec, một bản đóng gói thiếu codec.jar có thể làm lỗi chỉ xuất hiện khi code gọi một method nhất định.
+If Main uses Service and Service in turn needs Codec, a package missing `codec.jar` can cause an error to surface only when code calls a particular method.
 
-Thông báo lỗi có thể nhắc **Codec**, dù developer đang tập trung vào **Service**. Vì vậy không nên chỉ kiểm tra JAR chứa class trực tiếp được gọi.
+The error message may mention **Codec**, even though the developer is focused on **Service**. Therefore, do not inspect only the JAR containing the directly called class.
 
-Các nguyên nhân thường gặp:
+Common causes:
 
-- Dependency scope chỉ có lúc compile, không có lúc runtime.
-- Artifact bị exclude khỏi package hoặc container image.
-- Một dependency transitive bị phiên bản khác ghi đè.
-- Cấu hình production bỏ sót plugin hoặc module tùy chọn.
-- Một thư viện đổi binary name/package giữa các version.
-- Bytecode tham chiếu class chỉ xuất hiện trên một nhánh thực thi ít dùng.
+- Dependency scope is compile-only and absent at runtime.
+- Artifact was excluded from the package or container image.
+- A transitive dependency was overridden by another version.
+- Production configuration omits an optional plugin or module.
+- A library changed binary names/packages between versions.
+- Bytecode references a class that only appears on a rarely executed branch.
 
-Khi chẩn đoán, theo dõi dependency thực sự được báo trong stack trace rồi kiểm tra toàn bộ runtime dependency tree.
+When diagnosing, trace the dependency actually reported in the stack trace and inspect the entire runtime dependency tree.
 
-## 14. Maven: dependency có mặt lúc nào?
+## 14. Maven: When Is a Dependency Present?
 
-Trong Maven, một dependency có thể được khai báo với scope khác nhau. Ví dụ:
+In Maven, a dependency can be declared with different scopes. For example:
 
 ~~~xml
 <dependency>
@@ -548,33 +548,33 @@ Trong Maven, một dependency có thể được khai báo với scope khác nha
 </dependency>
 ~~~
 
-Với một ứng dụng thông thường, dependency compile không bị giới hạn bởi scope đặc biệt sẽ được xem xét cho compile và runtime theo mô hình Maven.
+For an ordinary application, a compile dependency not restricted by a special scope is included for both compile and runtime according to Maven's model.
 
-Nếu dependency bị đặt scope provided:
+If the dependency is placed in `provided` scope:
 
 ~~~xml
 <scope>provided</scope>
 ~~~
 
-thì build giả định môi trường triển khai sẽ cung cấp dependency. Nếu môi trường thực tế không có nó, runtime có thể không tìm thấy class.
+then the build assumes the deployment environment will supply the dependency. If the actual environment lacks it, runtime may fail to find the class.
 
-Tương tự, nếu một dependency chỉ có scope test, nó không được đưa vào runtime của ứng dụng production chỉ vì test biên dịch được.
+Similarly, if a dependency only has `test` scope, it is not included in the production application's runtime merely because tests compile.
 
-Dùng:
+Run:
 
 ~~~bash
 mvn dependency:tree
 ~~~
 
-để xem dependency và version được Maven chọn. Khi dùng modular application, còn phải kiểm tra plugin cấu hình module path hay classpath và lệnh java cuối cùng có nhận artifact hay không.
+to view the dependencies and versions selected by Maven. When using a modular application, you must also check whether plugins configure the module path or classpath and whether the final `java` command receives the artifact.
 
-Không nên chỉ nhìn dependency trong pom.xml rồi mặc định JAR có trong bản đóng gói cuối. Container, runtime launcher và distribution có thể dùng một tập artifact khác.
+Do not merely look at a dependency in `pom.xml` and assume the JAR is in the final package. Containers, runtime launchers, and distributions may use a different set of artifacts.
 
-## 15. Gradle: runtimeClasspath và compileClasspath
+## 15. Gradle: `runtimeClasspath` and `compileClasspath`
 
-Gradle tách nhiều configuration cho các giai đoạn. Một dependency có thể có trong compileClasspath nhưng không có trong runtimeClasspath nếu dùng cấu hình không phù hợp.
+Gradle separates multiple configurations for different phases. A dependency can exist in `compileClasspath` yet be absent from `runtimeClasspath` if an inappropriate configuration is used.
 
-Ví dụ khai báo thông thường:
+Example standard declaration:
 
 ~~~groovy
 dependencies {
@@ -582,15 +582,15 @@ dependencies {
 }
 ~~~
 
-Nếu chỉ cần API ở compile-time mà thư viện không có ở runtime, cấu hình có thể khác. Nhưng nếu class thực sự được dùng trong production, cần bảo đảm dependency xuất hiện ở **runtimeClasspath** hoặc module path theo cấu hình ứng dụng.
+If an API is only needed at compile-time and the library is absent at runtime, the configuration can differ. However, if the class is genuinely used in production, ensure the dependency appears on **runtimeClasspath** or the module path according to the application configuration.
 
-Có thể xem dependency tree:
+You can inspect the dependency tree:
 
 ~~~bash
 ./gradlew dependencies --configuration runtimeClasspath
 ~~~
 
-Và xem riêng dependency:
+And inspect a specific dependency:
 
 ~~~bash
 ./gradlew dependencyInsight \
@@ -598,13 +598,13 @@ Và xem riêng dependency:
   --configuration runtimeClasspath
 ~~~
 
-Các công cụ này giúp biết Gradle chọn version nào và có exclusion/conflict resolution hay không.
+These tools show which version Gradle selected and whether exclusions or conflict resolution occurred.
 
-Khi dùng application plugin hoặc custom JavaExec, cần đối chiếu task đang chạy với classpath/module path thực tế. Một test task dùng dependency đầy đủ chưa chắc distribution production cũng chứa đủ những dependency đó.
+When using the application plugin or a custom `JavaExec`, cross-check the running task against the actual classpath/module path. A test task with full dependencies does not guarantee the production distribution also includes all those dependencies.
 
-## 16. Quan sát class loading của JVM
+## 16. Observing JVM Class Loading
 
-Từ JDK 9, có thể dùng unified logging:
+Since JDK 9, you can use unified logging:
 
 ~~~bash
 java -Xlog:class+load=info \
@@ -612,14 +612,14 @@ java -Xlog:class+load=info \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Log cho thấy nhiều class được nạp và nguồn nạp tương ứng. Đây là cách hữu ích để kiểm tra:
+The log shows many loaded classes and their corresponding sources. This is a useful way to check:
 
-- Class được nạp từ JAR hoặc module nào.
-- Có version class khác kỳ vọng đang được dùng không.
-- Một class được nạp trước thời điểm lỗi hay chưa.
-- Các class cùng package được nạp từ những nguồn nào.
+- Which JAR or module a class was loaded from.
+- Whether an unexpected version of a class is being used.
+- Whether a class was loaded before the time of the error.
+- Which sources classes in the same package are loaded from.
 
-Có thể tăng mức chi tiết cho mục tiêu chẩn đoán:
+You can increase the detail level for diagnostic purposes:
 
 ~~~bash
 java -Xlog:class+load=debug \
@@ -627,13 +627,13 @@ java -Xlog:class+load=debug \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Logging class load có thể rất nhiều dòng. Hãy ghi vào file log nếu cần phân tích, thay vì trộn toàn bộ log với output ứng dụng trong production.
+Class load logging can produce very many lines. Write it to a log file when analysis is needed, rather than mixing all logs into production application output.
 
-Quan trọng: log các class đã nạp thành công không nhất thiết giải thích đầy đủ mọi class bị thiếu. Phải kết hợp stack trace, class loader và kiểm tra nội dung artifact.
+Important: logging successfully loaded classes does not necessarily explain every missing class. You must combine stack traces, class loaders, and artifact content inspection.
 
-## 17. Quan sát module resolution
+## 17. Observing Module Resolution
 
-Để xem module nào được chọn khi khởi chạy:
+To see which modules are selected at startup:
 
 ~~~bash
 java --show-module-resolution \
@@ -641,21 +641,21 @@ java --show-module-resolution \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Công cụ này hữu ích khi một module thiếu dependency requires hoặc bị phân giải theo cách khác dự kiến.
+This tool is helpful when a module is missing a `requires` dependency or is resolved differently than expected.
 
-Có thể liệt kê module observable:
+You can list observable modules:
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Sự khác nhau:
+The difference:
 
-- **--list-modules** giúp xem module có thể được tìm thấy.
-- **--show-module-resolution** giúp xem các module được đưa vào cấu hình của lệnh chạy.
-- **ModuleLayer.boot().findModule(name)** kiểm tra module có hiện diện trong boot layer của JVM đang chạy.
+- **--list-modules** shows modules that can be found.
+- **--show-module-resolution** shows modules included in the launch command's configuration.
+- **ModuleLayer.boot().findModule(name)** checks whether a module is present in the boot layer of the running JVM.
 
-Ví dụ:
+Example:
 
 ~~~java
 boolean available =
@@ -666,15 +666,15 @@ boolean available =
 System.out.println("Codec in boot layer: " + available);
 ~~~
 
-Một JAR có trong thư mục mods nhưng module của nó không được yêu cầu như root, dependency hoặc service provider cần phân giải thì có thể không nằm trong boot layer.
+A JAR present in the `mods` directory whose module is not requested as a root, dependency, or needed service provider may not end up in the boot layer.
 
-Nếu module không xuất hiện trong graph, cần kiểm tra requires, --add-modules, service binding và cấu hình custom layer. Đừng dùng --add-opens để cố đưa module vào graph.
+If a module does not appear in the graph, check `requires`, `--add-modules`, service binding, and custom layer configuration. Do not use `--add-opens` to try to bring a module into the graph.
 
-## 18. Module đã tìm thấy nhưng package không truy cập được
+## 18. Module Found, Yet Package Not Accessible
 
-Đây không phải lỗi class not found điển hình, dù thông báo từ framework có thể gây hiểu lầm.
+This is not a typical class-not-found error, even though framework messages can be misleading.
 
-Giả sử:
+Suppose:
 
 ~~~java
 module com.example.codec {
@@ -682,7 +682,7 @@ module com.example.codec {
 }
 ~~~
 
-Và:
+And:
 
 ~~~java
 module com.example.app {
@@ -690,36 +690,36 @@ module com.example.app {
 }
 ~~~
 
-App có thể dùng public API từ package com.example.codec.api. Nhưng nếu app cố import public class từ **com.example.codec.internal**, compiler có thể báo package is not visible.
+App can use public APIs from package `com.example.codec.api`. However, if app attempts to import a public class from **com.example.codec.internal**, the compiler may report `package is not visible`.
 
-Nếu framework dùng reflection vào private member của một package chưa mở, nó có thể báo InaccessibleObjectException.
+If a framework uses reflection on a private member of an unopened package, it may report `InaccessibleObjectException`.
 
-Cần phân biệt:
+Distinguish:
 
-| Hiện tượng | Hướng kiểm tra |
+| Symptom | Direction to check |
 | --- | --- |
-| Module not found | Module path, module name, requires và roots |
-| Package is not visible | requires/readability và exports |
-| IllegalAccessError | Quyền truy cập ở runtime và bytecode |
-| InaccessibleObjectException | opens và module identity của caller |
-| ClassNotFoundException | Loader và tên class được yêu cầu |
-| NoClassDefFoundError | Class runtime/linking hoặc initialization thất bại |
+| Module not found | Module path, module name, `requires`, and roots |
+| Package is not visible | `requires`/readability and `exports` |
+| IllegalAccessError | Runtime access permissions and bytecode |
+| InaccessibleObjectException | `opens` and caller's module identity |
+| ClassNotFoundException | Loader and requested class name |
+| NoClassDefFoundError | Runtime/linking class or failed initialization |
 
-Không nên thêm hàng loạt --add-reads, --add-exports và --add-opens cho mọi lỗi. Các cờ giải quyết cơ chế khác nhau và có thể làm suy yếu encapsulation nếu bị lạm dụng.
+Do not pile on `--add-reads`, `--add-exports`, and `--add-opens` for every error. Those flags address different mechanisms and can weaken encapsulation if overused.
 
-## 19. Class loading từ automatic và unnamed modules
+## 19. Class Loading from Automatic and Unnamed Modules
 
-**Automatic module** là JAR chưa có descriptor explicit nhưng được đặt trên module path và nhận một module name theo quy tắc JPMS.
+An **automatic module** is a JAR without an explicit descriptor that is placed on the module path and receives a module name per JPMS rules.
 
-**Unnamed module** thường chứa các class/JAR trên classpath của một class loader.
+An **unnamed module** typically holds classes/JARs on a class loader's classpath.
 
-Cùng một legacy JAR có thể được xử lý khác nhau khi di chuyển giữa hai đường:
+The same legacy JAR can be handled differently when moving between the two paths:
 
 ~~~bash
 java --class-path "libs/*" com.example.app.Main
 ~~~
 
-so với:
+versus:
 
 ~~~bash
 java --module-path libs \
@@ -727,22 +727,22 @@ java --module-path libs \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Tên **legacy.codec** trong ví dụ phải là module name thực tế của JAR, không được đoán từ tên file nếu chưa kiểm tra.
+The name **legacy.codec** in the example must be the actual module name of the JAR; do not guess it from the filename without checking.
 
-Khi chuyển sang module path:
+When moving to the module path:
 
-- JAR có thể trở thành automatic named module.
-- Consumer named module phải có quan hệ đọc phù hợp.
-- Module graph phải thỏa mãn các ràng buộc JPMS.
-- Split package hoặc module name collision có thể làm resolution thất bại.
+- The JAR may become an automatic named module.
+- Consumer named modules must have appropriate readability relationships.
+- The module graph must satisfy JPMS constraints.
+- Split packages or module name collisions can cause resolution to fail.
 
-Một lỗi sau chuyển đổi có thể là FindException hoặc ResolutionException, không nhất thiết là ClassNotFoundException. Vì vậy bước đầu tiên là xác định kiểu khởi chạy và giai đoạn thất bại.
+An error after migration may be FindException or ResolutionException, not necessarily ClassNotFoundException. Therefore, the first step is identifying the launch mode and the stage of failure.
 
-## 20. Chẩn đoán ServiceLoader khi provider không được tìm thấy
+## 20. Diagnosing ServiceLoader When a Provider Is Not Found
 
-Ứng dụng modular thường dùng ServiceLoader để khám phá implementation.
+Modular applications often use ServiceLoader to discover implementations.
 
-Ví dụ module consumer:
+Example consumer module:
 
 ~~~java
 module com.example.app {
@@ -751,7 +751,7 @@ module com.example.app {
 }
 ~~~
 
-Module provider:
+Provider module:
 
 ~~~java
 module com.example.provider.csv {
@@ -762,134 +762,134 @@ module com.example.provider.csv {
 }
 ~~~
 
-Các điểm cần kiểm tra:
+Points to verify:
 
-1. Service interface thuộc một module chung được các bên đọc.
-2. Consumer khai báo uses phù hợp.
-3. Provider khai báo provides ... with.
-4. Provider module thực sự tham gia configuration được sử dụng.
-5. ServiceLoader được gọi với đúng layer/loader.
-6. Constructor hoặc provider method có thể thực thi thành công.
-7. Dependency của provider có mặt và tương thích.
+1. The service interface belongs to a shared module read by all sides.
+2. The consumer declares `uses` appropriately.
+3. The provider declares `provides ... with`.
+4. The provider module actually participates in the configuration being used.
+5. ServiceLoader is called with the right layer/loader.
+6. The constructor or provider method can execute successfully.
+7. The provider's dependencies are present and compatible.
 
-Với custom layer:
+With a custom layer:
 
 ~~~java
 ServiceLoader<ReportProvider> services =
     ServiceLoader.load(pluginLayer, ReportProvider.class);
 ~~~
 
-Dùng đúng overload theo layer giảm nhầm lẫn so với dựa vào TCCL không đúng phạm vi.
+Using the layer-appropriate overload reduces confusion compared to relying on an out-of-scope TCCL.
 
-ServiceLoader có thể ném **ServiceConfigurationError** nếu provider không hợp lệ hoặc không thể được tạo. Nếu cause là ClassNotFoundException, NoClassDefFoundError hoặc lỗi initialization, hãy xử lý nguyên nhân gốc thay vì chỉ đổi service configuration.
+ServiceLoader can throw **ServiceConfigurationError** if a provider is invalid or cannot be created. If the cause is ClassNotFoundException, NoClassDefFoundError, or an initialization error, fix the root cause instead of merely changing service configuration.
 
-## 21. Công cụ kiểm tra artifact và dependency
+## 21. Tools for Inspecting Artifacts and Dependencies
 
-Một bộ lệnh thực hành:
+A practical command toolkit:
 
-Kiểm tra module descriptor:
+Inspect module descriptor:
 
 ~~~bash
 jar --describe-module --file libs/com.example.codec.jar
 ~~~
 
-Liệt kê class trong JAR:
+List classes in JAR:
 
 ~~~bash
 jar --list --file libs/com.example.codec.jar
 ~~~
 
-Xem dependency ở cấp bytecode:
+Inspect bytecode-level dependencies:
 
 ~~~bash
 jdeps --module-path mods \
       --module com.example.app
 ~~~
 
-Tìm tham chiếu đến API JDK nội bộ trong thư viện:
+Find references to internal JDK APIs in a library:
 
 ~~~bash
 jdeps --jdk-internals libs/legacy-library.jar
 ~~~
 
-Xem runtime module graph:
+Inspect runtime module graph:
 
 ~~~bash
 java --show-module-resolution -p mods \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Quan sát class load:
+Observe class loading:
 
 ~~~bash
 java -Xlog:class+load=info -p mods \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Các công cụ có điểm mù khác nhau. Ví dụ, jdeps phân tích dependency có thể nhận diện từ bytecode; tên class được tạo động từ string, reflection hoặc resource có thể không được suy ra đầy đủ. Vì vậy cần kết hợp runtime log và test theo đúng đường thực thi.
+Each tool has different blind spots. For instance, `jdeps` analyzes dependencies detectable from bytecode; class names constructed dynamically from strings, reflection, or resources may not be fully inferred. Therefore, combine runtime logs with tests along the actual execution paths.
 
-## 22. Quy trình chẩn đoán từng bước
+## 22. Step-by-Step Diagnostic Workflow
 
-Khi tiếp nhận một bug có thông báo "class not found" hoặc "no class definition", thực hiện theo thứ tự:
+When receiving a bug reporting "class not found" or "no class definition," follow this order:
 
-1. **Thu thập log đầu tiên**: stack trace đầy đủ, cause chain, thời điểm lỗi và version JDK.
-2. **Ghi lại tên class**: binary name, package, tên cũ/mới sau khi relocate và class nào đang được yêu cầu.
-3. **Xác định loại lỗi**: ClassNotFoundException, NoClassDefFoundError, FindException, ResolutionException, ServiceConfigurationError hay lỗi access.
-4. **Kiểm tra artifact**: JAR có class thật không? Đang chạy đúng version không?
-5. **Kiểm tra compile/runtime config**: classpath, module path, dependency scope và những exclusion.
-6. **Kiểm tra module graph**: root, requires, automatic module, custom layer và service binding.
-7. **Kiểm tra loader cụ thể**: system/application, platform, plugin loader hoặc TCCL.
-8. **Tìm lỗi initialization trước đó**: đặc biệt khi thông báo là "Could not initialize class".
-9. **Kiểm tra quyền truy cập riêng**: readability, exports, opens nếu log cho thấy access denied.
-10. **Sửa nguyên nhân tối thiểu**: thêm đúng runtime dependency, sửa tên class, điều chỉnh descriptor hoặc loader, sửa static initialization.
-11. **Chạy lại bằng cùng kiểu launcher**: IDE và CLI có thể khác đường classpath/module path.
-12. **Thêm test hồi quy**: chạy trên môi trường gần production và cả nhánh chức năng gây lỗi.
+1. **Collect the initial log**: full stack trace, cause chain, failure timestamp, and JDK version.
+2. **Record the class name**: binary name, package, old/new name after relocation, and which class is being requested.
+3. **Identify the error type**: ClassNotFoundException, NoClassDefFoundError, FindException, ResolutionException, ServiceConfigurationError, or an access error.
+4. **Inspect artifacts**: Does the JAR actually contain the class? Is the right version running?
+5. **Check compile/runtime config**: classpath, module path, dependency scopes, and exclusions.
+6. **Check the module graph**: root, `requires`, automatic modules, custom layers, and service binding.
+7. **Check the specific loader**: system/application, platform, plugin loader, or TCCL.
+8. **Look for earlier initialization errors**: especially when the message says "Could not initialize class."
+9. **Check access permissions separately**: readability, `exports`, `opens` if logs indicate access denied.
+10. **Apply the minimal root-cause fix**: add the right runtime dependency, fix the class name, adjust descriptors or loaders, or fix static initialization.
+11. **Rerun with the same launcher style**: IDE and CLI can differ in classpath/module path setup.
+12. **Add regression tests**: run in a production-like environment and cover the failing functional branch.
 
-Bảng quyết định nhanh:
+Quick decision table:
 
-| Dấu hiệu | Kiểm tra đầu tiên | Hướng khắc phục thường gặp |
+| Symptom | Check first | Common fix |
 | --- | --- | --- |
-| Class.forName ném ClassNotFoundException | Tên class, loader, classpath/plugin layer | Dùng loader đúng, sửa tên hoặc đóng gói class |
-| NoClassDefFoundError: com/.../Codec | Class runtime thực sự thiếu hoặc lỗi linkage | Bổ sung đúng dependency/version cho runtime |
-| NoClassDefFoundError: Could not initialize class | Lỗi khởi tạo trước đó | Tìm ExceptionInInitializerError và sửa nguyên nhân |
-| FindException: required module not found | Module name, module path và descriptor | Thêm module đúng vị trí hoặc sửa requires |
-| ResolutionException về package | Split package hoặc module graph | Tái cấu trúc package/dependency |
-| InaccessibleObjectException | Package chưa opens cho caller | Điều chỉnh reflection hoặc qualified opens |
-| ServiceConfigurationError | Service provider descriptor và cause | Sửa provider, dependency, loader/layer |
+| Class.forName throws ClassNotFoundException | Class name, loader, classpath/plugin layer | Use the right loader, fix the name, or package the class |
+| NoClassDefFoundError: com/.../Codec | Runtime class actually missing or linkage error | Add the right dependency/version for runtime |
+| NoClassDefFoundError: Could not initialize class | Earlier initialization failure | Locate ExceptionInInitializerError and fix its cause |
+| FindException: required module not found | Module name, module path, and descriptor | Place the module in the right location or fix `requires` |
+| ResolutionException involving packages | Split package or module graph | Restructure packages/dependencies |
+| InaccessibleObjectException | Package not `opens` to caller | Adjust reflection or qualified `opens` |
+| ServiceConfigurationError | Service provider descriptor and cause | Fix provider, dependencies, loader/layer |
 
-## 23. Ngăn ngừa lỗi trong CI/CD và triển khai
+## 23. Preventing Errors in CI/CD and Deployment
 
-Nhiều lỗi chỉ xuất hiện sau khi đóng gói hoặc triển khai. Để giảm nguy cơ:
+Many errors appear only after packaging or deployment. To reduce the risk:
 
-- Dùng cùng JDK major version trong build, test và production nếu không có lý do tương thích cụ thể.
-- Kiểm thử **artifact cuối cùng** thay vì chỉ chạy source qua IDE.
-- Ghi lại command line java thực tế, nhất là --module-path, --class-path, --add-modules và JVM args.
-- Kiểm soát version dependency và loại bỏ JAR trùng hoặc bản cũ còn sót trong distribution.
-- Đảm bảo runtime-only dependency cần thiết được đưa vào image hoặc deployment package.
-- Khi dùng plugin, có integration test nạp plugin từ thư mục và layer thực tế.
-- Kiểm tra cả dynamic loading, ServiceLoader và static initializer thay vì chỉ test khởi động.
-- Với optional dependency, thiết kế hành vi fallback và thông báo lỗi dễ hiểu nếu class không có.
-- Không catch rộng LinkageError để bỏ qua lỗi cấu hình nghiêm trọng rồi tiếp tục với trạng thái nửa hoạt động.
+- Use the same JDK major version in build, test, and production unless there is a specific compatibility reason.
+- Test the **final artifact** instead of only running source code through an IDE.
+- Record the actual `java` command line, especially `--module-path`, `--class-path`, `--add-modules`, and JVM args.
+- Control dependency versions and remove duplicate JARs or leftover old versions in the distribution.
+- Ensure required runtime-only dependencies are included in the image or deployment package.
+- When using plugins, have integration tests that load plugins from real directories and layers.
+- Test dynamic loading, ServiceLoader, and static initializers rather than testing startup alone.
+- For optional dependencies, design fallback behavior and clear error messages if the class is absent.
+- Do not broadly catch LinkageError to ignore serious configuration failures and continue in a half-working state.
 
-Một test có thể xác nhận packaging:
+A test can verify packaging:
 
 ~~~bash
 jar --list --file dist/com.example.app.jar
 ~~~
 
-Sau đó dùng lệnh khởi chạy production-like và chạy nhánh code cần class hay plugin được đóng gói.
+Then use the production-like launch command and execute the code path that needs the packaged class or plugin.
 
-## 24. Bài tập thực hành
+## 24. Practical Exercises
 
-1. Tạo ví dụ Codec ở phần 5, biên dịch thành công rồi bỏ build/codec khỏi runtime classpath. Ghi lại NoClassDefFoundError.
-2. Tạo DynamicLookup gọi Class.forName với class không tồn tại. Ghi lại ClassNotFoundException.
-3. So sánh hai stack trace và phần cause nếu có.
-4. Đưa Codec vào một explicit named module, khai báo requires rồi cố chạy khi module Codec vắng khỏi module path. Quan sát FindException.
-5. Đặt JAR Codec lên module path, chạy --list-modules và --show-module-resolution để phân biệt module observable với resolved.
-6. Tạo class có static initializer thất bại; quan sát lỗi lần đầu và NoClassDefFoundError ở lần sử dụng sau trong cùng JVM.
-7. Tạo plugin layer riêng và thử nạp plugin bằng system loader, sau đó bằng pluginLayer.findLoader.
-8. Dùng -Xlog:class+load=info để xem class được nạp từ nguồn nào.
-9. Thử thay đổi một dependency scope Maven/Gradle và so sánh compileClasspath/runtimeClasspath.
-10. Ghi lại một checklist debug ngắn có thể áp dụng khi production báo class missing.
+1. Create the Codec example in Section 5, compile successfully, then remove `build/codec` from the runtime classpath. Record the NoClassDefFoundError.
+2. Create DynamicLookup calling `Class.forName` with a nonexistent class. Record the ClassNotFoundException.
+3. Compare the two stack traces and their `cause` sections if present.
+4. Put Codec into an explicit named module, declare `requires`, then try running when the Codec module is absent from the module path. Observe FindException.
+5. Place the Codec JAR on the module path, and run `--list-modules` and `--show-module-resolution` to distinguish observable modules from resolved modules.
+6. Create a class with a failing static initializer; observe the first error and the NoClassDefFoundError on subsequent usage in the same JVM.
+7. Create a separate plugin layer and try loading the plugin with the system loader, then with `pluginLayer.findLoader`.
+8. Use `-Xlog:class+load=info` to see which sources classes are loaded from.
+9. Try changing a Maven/Gradle dependency scope and compare `compileClasspath`/`runtimeClasspath`.
+10. Write down a short debugging checklist that can be applied when production reports a missing class.
 
-**ClassNotFoundException và NoClassDefFoundError không chỉ khác tên.** Chúng giúp xác định bạn đang gặp vấn đề trong thao tác tìm class theo tên, JVM linking/sử dụng class hay class initialization sau một lỗi trước đó. Trong ứng dụng modular, việc phân biệt thêm module resolution, class loader/module layer và package access sẽ dẫn bạn tới nguyên nhân thực tế nhanh hơn, thay vì thêm tùy chọn hoặc JAR một cách thử-và-sai.
+**ClassNotFoundException and NoClassDefFoundError differ in more than just name.** They help pinpoint whether you have an issue in looking up a class by name, JVM class linking/usage, or class initialization after an earlier error. In modular applications, further separating module resolution, class loader/module layer, and package access will lead you to the real root cause faster than trial-and-error addition of flags or JARs.

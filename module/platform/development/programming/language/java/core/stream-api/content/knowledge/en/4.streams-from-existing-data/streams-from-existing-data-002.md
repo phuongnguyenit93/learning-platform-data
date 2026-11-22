@@ -1,14 +1,14 @@
-# Tạo Stream từ mảng bằng `Arrays.stream`
+# Creating a Stream from an Array with `Arrays.stream`
 
-Trong chương **Tạo Stream từ dữ liệu có sẵn** của **JAVA_STREAM_API**, `Arrays.stream` là cách trực tiếp để đưa dữ liệu đang nằm trong mảng Java vào một pipeline xử lý khai báo. Thay vì tự viết vòng lặp để lọc, biến đổi hoặc tổng hợp phần tử, ta có thể tạo Stream từ mảng rồi kết hợp các thao tác `filter`, `map`, `reduce`, `collect` và các terminal operation khác.
+In the **Streams from Existing Data** chapter of **JAVA_STREAM_API**, `Arrays.stream` is the direct way to bring data already stored in a Java array into a declarative processing pipeline. Instead of manually writing loops to filter, transform, or aggregate elements, you can create a Stream from an array and combine operations like `filter`, `map`, `reduce`, `collect`, and other terminal operations.
 
-Điểm cần hiểu rõ là **mảng là nguồn dữ liệu**, còn **Stream là đối tượng mô tả một lần xử lý dữ liệu đó**. `Arrays.stream` không biến mảng thành collection và không tạo bản sao toàn bộ mảng ngay khi được gọi. Stream tạo ra có cơ chế xử lý lazy, đồng thời tuân thủ quy tắc mỗi Stream chỉ được sử dụng cho một pipeline.
+The key point to understand clearly is that **the array is the data source**, whereas **the Stream is an object describing a single processing pass over that data**. `Arrays.stream` does not turn an array into a collection and does not create a copy of the entire array immediately when called. The created Stream uses lazy evaluation and follows the rule that each Stream may only be used for one pipeline.
 
-## 1. `Arrays.stream` hoạt động như thế nào?
+## 1. How Does `Arrays.stream` Work?
 
-`Arrays` là lớp tiện ích trong `java.util`. Các phương thức `stream` nhận một mảng hoặc một đoạn chỉ số của mảng và trả về Stream tuần tự (*sequential stream*) với phần tử đến từ mảng đó.
+`Arrays` is a utility class in `java.util`. Its `stream` methods take an array or an index range of an array and return a *sequential stream* whose elements come from that array.
 
-Ví dụ dưới đây là chương trình Java hoàn chỉnh:
+The example below is a complete Java program:
 
 ~~~java
 import java.util.Arrays;
@@ -29,7 +29,7 @@ public class ArraysStreamDemo {
 }
 ~~~
 
-Đường đi của dữ liệu:
+Data flow:
 
 ~~~text
 String[] names
@@ -50,22 +50,22 @@ sorted()              -> "LINH", "MINH"
 toList()              -> List<String>
 ~~~
 
-`filter`, `map` và `sorted` là các thao tác trung gian; `toList` là terminal operation kích hoạt xử lý và tạo kết quả. `Stream.toList()` có từ Java 16 và tạo danh sách không cho phép sửa đổi. Nếu học trên Java 8–15, có thể thay `.toList()` bằng `.collect(Collectors.toList())`; cần `import java.util.stream.Collectors;` và không nên mặc định kết quả collector này luôn có tính thay đổi được.
+`filter`, `map`, and `sorted` are intermediate operations; `toList` is the terminal operation that triggers processing and produces the result. `Stream.toList()` has been available since Java 16 and creates an unmodifiable list. If studying on Java 8–15, you can replace `.toList()` with `.collect(Collectors.toList())`; you need `import java.util.stream.Collectors;` and should not assume that this collector's result is always mutable.
 
-## 2. Các dạng `Arrays.stream` phổ biến
+## 2. Common Forms of `Arrays.stream`
 
-API hỗ trợ riêng mảng đối tượng và ba kiểu mảng nguyên thủy: `int[]`, `long[]`, `double[]`.
+The API specifically supports object arrays and three primitive array types: `int[]`, `long[]`, and `double[]`.
 
-| Dữ liệu đầu vào | Ví dụ | Kiểu Stream trả về |
+| Input data | Example | Returned Stream type |
 | --- | --- | --- |
-| Mảng tham chiếu `T[]` | `Arrays.stream(new String[]{"A", "B"})` | `Stream<String>` |
-| Mảng `int[]` | `Arrays.stream(new int[]{1, 2})` | `IntStream` |
-| Mảng `long[]` | `Arrays.stream(new long[]{1L, 2L})` | `LongStream` |
-| Mảng `double[]` | `Arrays.stream(new double[]{1.5, 2.5})` | `DoubleStream` |
-| Một đoạn của `T[]` | `Arrays.stream(items, from, to)` | `Stream<T>` |
-| Một đoạn của `int[]`, `long[]`, `double[]` | `Arrays.stream(numbers, from, to)` | `IntStream`, `LongStream`, `DoubleStream` tương ứng |
+| Reference array `T[]` | `Arrays.stream(new String[]{"A", "B"})` | `Stream<String>` |
+| `int[]` array | `Arrays.stream(new int[]{1, 2})` | `IntStream` |
+| `long[]` array | `Arrays.stream(new long[]{1L, 2L})` | `LongStream` |
+| `double[]` array | `Arrays.stream(new double[]{1.5, 2.5})` | `DoubleStream` |
+| A slice of `T[]` | `Arrays.stream(items, from, to)` | `Stream<T>` |
+| A slice of `int[]`, `long[]`, `double[]` | `Arrays.stream(numbers, from, to)` | `IntStream`, `LongStream`, `DoubleStream` respectively |
 
-Các chữ ký tiêu biểu:
+Representative signatures:
 
 ~~~java
 static <T> Stream<T> stream(T[] array)
@@ -81,19 +81,19 @@ static DoubleStream stream(double[] array)
 static DoubleStream stream(double[] array, int startInclusive, int endExclusive)
 ~~~
 
-Không có overload `Arrays.stream(byte[])`, `Arrays.stream(short[])`, `Arrays.stream(char[])`, `Arrays.stream(float[])` hoặc `Arrays.stream(boolean[])`. Cần dùng giải pháp khác nếu đầu vào có những kiểu này; xem mục 8.
+There are no overloads for `Arrays.stream(byte[])`, `Arrays.stream(short[])`, `Arrays.stream(char[])`, `Arrays.stream(float[])`, or `Arrays.stream(boolean[])`. You need to use alternative approaches if the input has those types; see section 8.
 
-## 3. Tạo `Stream<T>` từ mảng đối tượng
+## 3. Creating `Stream<T>` from an Object Array
 
-Mảng `String[]`, `Integer[]`, `Customer[]` hay bất kỳ mảng kiểu tham chiếu nào đều có thể tạo `Stream<T>`. Từ đây, các thao tác như `map`, `filter`, `distinct`, `sorted` và `collect` được ghép như với Stream từ Collection.
+`String[]`, `Integer[]`, `Customer[]`, or any reference-type array can create a `Stream<T>`. From there, operations like `map`, `filter`, `distinct`, `sorted`, and `collect` are chained just like with a Stream from a Collection.
 
-Giả sử mảng ghi nhận tên sản phẩm bán ra, có phần tử thừa khoảng trắng hoặc lặp lại:
+Suppose an array records sold product names, with elements having extra whitespace or duplicates:
 
 ~~~java
 import java.util.Arrays;
 import java.util.List;
 
-String[] soldProducts = {"  Bút", "Sổ", "Bút", " ", "Sách", "  Sổ"};
+String[] soldProducts = {"  Pen", "Notebook", "Pen", " ", "Book", "  Notebook"};
 
 List<String> uniqueNames = Arrays.stream(soldProducts)
         .map(String::trim)
@@ -102,12 +102,12 @@ List<String> uniqueNames = Arrays.stream(soldProducts)
         .sorted()
         .toList();
 
-System.out.println(uniqueNames); // [Bút, Sách, Sổ]
+System.out.println(uniqueNames); // [Book, Notebook, Pen]
 ~~~
 
-Trong pipeline này, `map` chuẩn hóa chuỗi, `filter` loại chuỗi rỗng, `distinct` loại phần tử trùng và `sorted` sắp xếp. Các thao tác trung gian không trả về một mảng mới; chúng mô tả cách dữ liệu sẽ được xử lý khi terminal operation `toList` chạy.
+In this pipeline, `map` normalizes strings, `filter` removes empty strings, `distinct` removes duplicate elements, and `sorted` sorts them. Intermediate operations do not return a new array; they describe how data will be processed when the terminal operation `toList` runs.
 
-Nếu mục tiêu là **đếm số lần xuất hiện** thay vì loại trùng, có thể đưa Stream từ mảng vào collector:
+If the goal is to **count occurrences** instead of deduplicating, you can feed the array Stream into a collector:
 
 ~~~java
 import java.util.Arrays;
@@ -128,11 +128,11 @@ System.out.println(counts.get("done"));    // 2
 System.out.println(counts.get("waiting")); // 1
 ~~~
 
-Đây là ví dụ nối `Arrays.stream` với `collect` và `groupingBy`. Không nên phụ thuộc vào thứ tự duyệt các khóa trong kết quả `Map` mặc định của `groupingBy`.
+This is an example of chaining `Arrays.stream` with `collect` and `groupingBy`. Do not rely on the iteration order of keys in the default `Map` returned by `groupingBy`.
 
-### Xử lý phần tử `null` trong mảng tham chiếu
+### Handling `null` Elements in a Reference Array
 
-Bản thân mảng có thể chứa phần tử `null`; điều đó không ngăn việc tạo Stream. Nhưng các phép như `String::trim` hoặc `String::length` sẽ lỗi nếu nhận giá trị `null`.
+An array itself can contain `null` elements; that does not prevent creating a Stream. However, operations like `String::trim` or `String::length` will fail if they receive a `null` value.
 
 ~~~java
 import java.util.Arrays;
@@ -149,53 +149,53 @@ List<String> upper = Arrays.stream(labels)
 System.out.println(upper); // [JAVA, STREAM]
 ~~~
 
-Phân biệt rõ **mảng có phần tử `null`** và **biến tham chiếu mảng chính là `null`**. Ví dụ `Arrays.stream((String[]) null)` ném `NullPointerException` ngay khi tạo Stream.
+Clearly distinguish between **an array containing `null` elements** and **the array reference variable itself being `null`**. For example, `Arrays.stream((String[]) null)` throws a `NullPointerException` immediately when creating the Stream.
 
-## 4. Chỉ Stream một phần mảng với `startInclusive` và `endExclusive`
+## 4. Streaming Only Part of an Array with `startInclusive` and `endExclusive`
 
-Khi chỉ cần một đoạn phần tử, có thể truyền hai chỉ số vào `Arrays.stream(array, startInclusive, endExclusive)`. Đoạn này có dạng **[startInclusive, endExclusive)**:
+When only a slice of elements is needed, you can pass two indices to `Arrays.stream(array, startInclusive, endExclusive)`. This range has the form **[startInclusive, endExclusive)**:
 
-- Bao gồm phần tử tại `startInclusive`.
-- Không bao gồm phần tử tại `endExclusive`.
-- Đếm số phần tử bằng `endExclusive - startInclusive` khi khoảng hợp lệ.
-- Chỉ số hợp lệ thỏa `0 <= startInclusive <= endExclusive <= array.length`.
+- Includes the element at `startInclusive`.
+- Excludes the element at `endExclusive`.
+- Element count equals `endExclusive - startInclusive` when the range is valid.
+- Valid indices satisfy `0 <= startInclusive <= endExclusive <= array.length`.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.Arrays;
 
 int[] dailyOrders = {4, 8, 3, 10, 5};
 
-// Chỉ lấy các phần tử ở index 1, 2, 3.
+// Take only elements at index 1, 2, 3.
 int subtotal = Arrays.stream(dailyOrders, 1, 4).sum();
 
 System.out.println(subtotal); // 21 = 8 + 3 + 10
 ~~~
 
-Bảng chỉ số:
+Index table:
 
 | Index | 0 | 1 | 2 | 3 | 4 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Giá trị | 4 | **8** | **3** | **10** | 5 |
-| `Arrays.stream(dailyOrders, 1, 4)` | Bỏ | Lấy | Lấy | Lấy | Bỏ |
+| Value | 4 | **8** | **3** | **10** | 5 |
+| `Arrays.stream(dailyOrders, 1, 4)` | Skip | Take | Take | Take | Skip |
 
-Hai trường hợp biên thường dùng:
+Two common boundary cases:
 
 ~~~java
 long emptyCount = Arrays.stream(dailyOrders, 2, 2).count(); // 0
 int allSum = Arrays.stream(dailyOrders, 0, dailyOrders.length).sum(); // 30
 ~~~
 
-Nếu chỉ số âm, vượt chiều dài mảng hoặc `startInclusive > endExclusive`, phương thức sẽ ném ngoại lệ kiểm tra phạm vi. **Không được hiểu tham số thứ ba là số phần tử cần lấy**: `Arrays.stream(array, 1, 4)` chọn đến trước chỉ số 4, không phải bốn phần tử tính từ vị trí 1.
+If an index is negative, exceeds the array length, or `startInclusive > endExclusive`, the method throws a range-check exception. **Do not misunderstand the third parameter as the number of elements to take**: `Arrays.stream(array, 1, 4)` selects up to before index 4, not four elements starting from position 1.
 
-Đoạn Stream phù hợp khi xử lý một cửa sổ đã biết chỉ số trong mảng. Nó khác `skip`/`limit` ở chỗ phạm vi được xác định ngay khi tạo Stream từ nguồn.
+A slice Stream is suitable when processing a window with known indices in an array. It differs from `skip`/`limit` in that the range is determined right when creating the Stream from the source.
 
-## 5. `IntStream`, `LongStream`, `DoubleStream` và lợi ích của primitive stream
+## 5. `IntStream`, `LongStream`, `DoubleStream`, and the Benefits of Primitive Streams
 
-Với mảng số nguyên thủy, `Arrays.stream` trả về **primitive stream** phù hợp; từng phần tử không phải tự động đóng gói thành `Integer`, `Long` hay `Double` chỉ để đi qua pipeline.
+For primitive numeric arrays, `Arrays.stream` returns the matching **primitive stream**; each element does not have to be auto-boxed into `Integer`, `Long`, or `Double` just to pass through the pipeline.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.Arrays;
@@ -203,7 +203,7 @@ import java.util.IntSummaryStatistics;
 
 int[] prices = {120, 80, 200, 100};
 
-// Chỉ tính giá >= 100, rồi lấy 10% giá trị mỗi phần tử.
+// Only include prices >= 100, then take 10% of each element's value.
 int discountedUnits = Arrays.stream(prices)
         .filter(price -> price >= 100)
         .map(price -> price / 10)
@@ -220,17 +220,17 @@ System.out.println(stats.getMax());   // 200
 System.out.println(stats.getAverage()); // 125.0
 ~~~
 
-Mỗi lời gọi `Arrays.stream(prices)` tạo **một Stream mới**, nên việc tính `discountedUnits` và `stats` thành hai pipeline riêng biệt là hợp lệ. Cùng một biến `IntStream` không được chạy hai terminal operation.
+Each call to `Arrays.stream(prices)` creates **a new Stream**, so computing `discountedUnits` and `stats` as two separate pipelines is valid. The same `IntStream` variable must not run two terminal operations.
 
-Các primitive stream cung cấp nhiều phép tổng hợp trực tiếp:
+Primitive streams provide several direct aggregation operations:
 
-| Kiểu Stream | Ví dụ terminal operation hữu ích |
+| Stream type | Useful terminal operation examples |
 | --- | --- |
 | `IntStream` | `sum()`, `average()`, `min()`, `max()`, `summaryStatistics()` |
 | `LongStream` | `sum()`, `average()`, `min()`, `max()`, `summaryStatistics()` |
 | `DoubleStream` | `sum()`, `average()`, `min()`, `max()`, `summaryStatistics()` |
 
-`average()` trả về `OptionalDouble` vì mảng rỗng không có giá trị trung bình:
+`average()` returns `OptionalDouble` because an empty array has no average value:
 
 ~~~java
 double average = Arrays.stream(new double[]{8.0, 9.5, 7.0})
@@ -242,11 +242,11 @@ double emptyAverage = Arrays.stream(new double[0])
         .orElse(Double.NaN);
 ~~~
 
-Chọn giá trị dự phòng như `0.0` hay `Double.NaN` là quyết định nghiệp vụ. Cũng cần chú ý `sum()` trên `int`/`long` có thể tràn số khi tổng vượt phạm vi kiểu, còn phép tính `double` chịu sai số dấu phẩy động.
+Choosing a fallback value like `0.0` or `Double.NaN` is a business decision. Also note that `sum()` on `int`/`long` can overflow when the sum exceeds the type's range, while `double` arithmetic is subject to floating-point rounding error.
 
-### Khi nào cần `boxed()`?
+### When Is `boxed()` Needed?
 
-Nếu muốn dùng một collector thao tác trên đối tượng, có thể chuyển `IntStream` thành `Stream<Integer>` qua `boxed()`:
+If you want to use a collector that operates on objects, you can convert an `IntStream` into `Stream<Integer>` via `boxed()`:
 
 ~~~java
 import java.util.Arrays;
@@ -266,11 +266,11 @@ System.out.println(adultCounts.get(true));  // 3
 System.out.println(adultCounts.get(false)); // 2
 ~~~
 
-Việc boxing tạo các đối tượng bọc cho giá trị nguyên thủy trong quá trình xử lý và có thể tăng chi phí phân bổ/bộ nhớ. Với bài toán chỉ cần tổng, min, max hoặc trung bình, nên ưu tiên trực tiếp `IntStream`/`LongStream`/`DoubleStream`.
+Boxing creates wrapper objects for primitive values during processing and can increase allocation/memory overhead. For problems that only need sum, min, max, or average, prefer `IntStream`/`LongStream`/`DoubleStream` directly.
 
-## 6. Mảng nhiều chiều: Stream của các hàng trước
+## 6. Multidimensional Arrays: A Stream of Rows First
 
-Với `int[][]`, kiểu dữ liệu ở mức phần tử của mảng ngoài là `int[]`. Vì vậy:
+With `int[][]`, the element-level data type of the outer array is `int[]`. Therefore:
 
 ~~~java
 import java.util.Arrays;
@@ -282,10 +282,10 @@ int[][] batches = {
         {6, 8}
 };
 
-Stream<int[]> rows = Arrays.stream(batches); // Stream của từng mảng con
+Stream<int[]> rows = Arrays.stream(batches); // Stream of each subarray
 ~~~
 
-Đoạn trên chưa phải `IntStream` gồm các số 2, 4, 5, 6, 8. Muốn trải phẳng (*flatten*) các hàng thành một dòng số, dùng `flatMapToInt`:
+The snippet above is not yet an `IntStream` containing the numbers 2, 4, 5, 6, 8. To *flatten* the rows into a single stream of numbers, use `flatMapToInt`:
 
 ~~~java
 int total = Arrays.stream(batches)
@@ -295,9 +295,9 @@ int total = Arrays.stream(batches)
 System.out.println(total); // 25
 ~~~
 
-`Arrays::stream` ở đây nhận từng `int[]` và tạo `IntStream` của hàng đó. `flatMapToInt` ghép các Stream con theo thứ tự encounter order, rồi `sum` thực hiện phép tổng hợp.
+Here `Arrays::stream` receives each `int[]` and creates an `IntStream` for that row. `flatMapToInt` concatenates the sub-Streams in encounter order, and then `sum` performs the aggregation.
 
-Với `String[][]`, các hàng tạo `Stream<String[]>` và có thể trải phẳng bằng `flatMap`:
+With `String[][]`, the rows form a `Stream<String[]>` and can be flattened using `flatMap`:
 
 ~~~java
 String[][] teams = {
@@ -312,11 +312,11 @@ long people = Arrays.stream(teams)
 System.out.println(people); // 4
 ~~~
 
-Nếu có hàng `null`, cần loại hoặc xử lý hàng đó trước khi gọi `Arrays.stream` trên từng hàng.
+If there are `null` rows, you need to filter out or handle those rows before calling `Arrays.stream` on each row.
 
-## 7. `Arrays.stream` và `Stream.of` khác nhau ở đâu?
+## 7. Where Do `Arrays.stream` and `Stream.of` Differ?
 
-Đối với mảng tham chiếu như `String[]`, cả hai cách dưới đây đều có thể tạo `Stream<String>` duyệt các phần tử mảng:
+For a reference array such as `String[]`, both approaches below can create a `Stream<String>` traversing the array elements:
 
 ~~~java
 import java.util.Arrays;
@@ -328,7 +328,7 @@ Stream<String> first = Arrays.stream(values);
 Stream<String> second = Stream.of(values);
 ~~~
 
-Nhưng **với mảng nguyên thủy**, kết quả khác biệt rất quan trọng:
+However, **with primitive arrays**, the result differs very importantly:
 
 ~~~java
 int[] numbers = {10, 20, 30};
@@ -338,23 +338,23 @@ int total = Arrays.stream(numbers).sum();    // IntStream -> 60
 long arrays = Stream.of(numbers).count();    // Stream<int[]> -> 1
 ~~~
 
-`Stream.of(numbers)` trong trường hợp này nhận **một đối tượng `int[]`** làm phần tử, không trải các số 10, 20, 30 thành ba phần tử riêng lẻ. Nếu muốn làm việc với từng số của `int[]`, dùng `Arrays.stream(numbers)` hoặc `IntStream.of(numbers)`.
+In this case, `Stream.of(numbers)` receives **a single `int[]` object** as an element rather than expanding the numbers 10, 20, 30 into three separate elements. If you want to work with each number of `int[]`, use `Arrays.stream(numbers)` or `IntStream.of(numbers)`.
 
-Một số điểm chọn API:
+Some API selection points:
 
-| Mục tiêu | Cách phù hợp |
+| Goal | Suitable approach |
 | --- | --- |
-| Có sẵn `String[]` và muốn `Stream<String>` | `Arrays.stream(strings)` |
-| Có sẵn `int[]` và muốn `IntStream` | `Arrays.stream(ints)` |
-| Chỉ lấy đoạn chỉ số của mảng | `Arrays.stream(array, from, to)` |
-| Muốn Stream từ vài phần tử rời (không có mảng nguồn) | `Stream.of(x, y, z)` |
-| Muốn một `Stream<int[]>` chứa nguyên mảng `int[]` | `Stream.of(ints)` |
+| Have `String[]` and want `Stream<String>` | `Arrays.stream(strings)` |
+| Have `int[]` and want `IntStream` | `Arrays.stream(ints)` |
+| Take only an index slice of an array | `Arrays.stream(array, from, to)` |
+| Want a Stream from a few loose elements (no source array) | `Stream.of(x, y, z)` |
+| Want a `Stream<int[]>` containing the whole `int[]` array | `Stream.of(ints)` |
 
-Việc giữ nguyên mảng thành một phần tử có thể có ích trong một số cấu trúc dữ liệu lồng nhau, nhưng không phù hợp nếu mục tiêu là xử lý từng số.
+Keeping the whole array as a single element can be useful in certain nested data structures, but it is inappropriate if the goal is to process individual numbers.
 
-## 8. Các kiểu mảng nguyên thủy không có overload
+## 8. Primitive Array Types Without Overloads
 
-`Arrays.stream` chỉ hỗ trợ trực tiếp `int[]`, `long[]` và `double[]` trong nhóm primitive. Đối với `byte[]`, `short[]` và `char[]`, có thể lấy các phần tử thông qua chỉ số bằng `IntStream.range`:
+`Arrays.stream` only directly supports `int[]`, `long[]`, and `double[]` among primitives. For `byte[]`, `short[]`, and `char[]`, you can access elements by index using `IntStream.range`:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -362,15 +362,15 @@ import java.util.stream.IntStream;
 byte[] bytes = {1, 2, 3};
 
 int byteSum = IntStream.range(0, bytes.length)
-        .map(index -> bytes[index])  // byte được nâng kiểu thành int
+        .map(index -> bytes[index])  // byte is widened to int
         .sum();
 
 System.out.println(byteSum); // 6
 ~~~
 
-Mẫu tương tự dùng được cho `short[]` và `char[]` khi muốn xử lý giá trị như số nguyên. Với `char[]`, cần nhớ `char` là đơn vị mã UTF-16; một ký tự Unicode ngoài Basic Multilingual Plane có thể gồm hai `char`. Nếu dữ liệu gốc là `String` và mục tiêu là xử lý Unicode code point, cân nhắc `String.codePoints()` thay vì duyệt từng `char`.
+A similar pattern works for `short[]` and `char[]` when you want to process values as integers. For `char[]`, remember that `char` is a UTF-16 code unit; a Unicode character outside the Basic Multilingual Plane can consist of two `char`s. If the original data is a `String` and the goal is to process Unicode code points, consider `String.codePoints()` instead of iterating over each `char`.
 
-`float[]` có thể chuyển từng phần tử sang `double`:
+`float[]` can convert each element to `double`:
 
 ~~~java
 float[] measures = {1.5f, 2.5f};
@@ -382,7 +382,7 @@ double sum = IntStream.range(0, measures.length)
 System.out.println(sum); // 4.0
 ~~~
 
-`boolean[]` không có primitive stream dành riêng cho boolean. Có thể duyệt bằng chỉ số để `filter`/`count`, hoặc ánh xạ thành kiểu phù hợp với nhu cầu:
+`boolean[]` does not have a dedicated primitive stream for booleans. You can iterate by index to `filter`/`count`, or map to a type suited to your needs:
 
 ~~~java
 boolean[] active = {true, false, true, true};
@@ -394,13 +394,13 @@ long activeCount = IntStream.range(0, active.length)
 System.out.println(activeCount); // 3
 ~~~
 
-Những cách trên là **chiến lược thay thế**, không phải overload được `Arrays.stream` cung cấp.
+The approaches above are **workaround strategies**, not overloads provided by `Arrays.stream`.
 
-## 9. Tính lazy, vòng đời và việc thay đổi mảng nguồn
+## 9. Laziness, Lifecycle, and Mutating the Source Array
 
-### Stream chỉ dùng một lần
+### Single-Use Streams
 
-Mảng vẫn tồn tại sau khi pipeline kết thúc; đối tượng Stream đã thực hiện terminal operation thì không sử dụng lại được.
+The array continues to exist after the pipeline finishes; a Stream object that has executed a terminal operation cannot be reused.
 
 ~~~java
 import java.util.Arrays;
@@ -411,14 +411,14 @@ int[] values = {3, 5, 7};
 IntStream first = Arrays.stream(values);
 long count = first.count(); // 3
 
-// Sai: first.sum(); // Có thể ném IllegalStateException
+// Wrong: first.sum(); // May throw IllegalStateException
 
-int sum = Arrays.stream(values).sum(); // Đúng: Stream mới, kết quả 15
+int sum = Arrays.stream(values).sum(); // Correct: new Stream, result 15
 ~~~
 
-Muốn tính nhiều chỉ số trong một lượt, `summaryStatistics` hoặc collector tổng hợp phù hợp có thể giảm việc duyệt lặp. Nếu nguồn là mảng đọc lại được, việc gọi lại `Arrays.stream(array)` để tạo pipeline khác là hợp lệ.
+To compute multiple metrics in a single pass, `summaryStatistics` or an appropriate aggregating collector can reduce repeated traversal. If the source is a re-readable array, calling `Arrays.stream(array)` again to create another pipeline is valid.
 
-### Tính lazy không có nghĩa là mảng được sao chép
+### Laziness Does Not Mean the Array Is Copied
 
 ~~~java
 int[] values = {1, 2, 3};
@@ -431,24 +431,24 @@ int answer = Arrays.stream(values)
 System.out.println(answer); // 50
 ~~~
 
-`filter` và `map` mô tả phép biến đổi; phần tử được xử lý khi `sum` kích hoạt pipeline. `Arrays.stream` sử dụng nguồn mảng có sẵn, không tự tạo một snapshot độc lập lúc khởi tạo.
+`filter` and `map` describe transformations; elements are processed when `sum` triggers the pipeline. `Arrays.stream` uses the existing array source and does not automatically create an independent snapshot upon creation.
 
-Do đó, **không sửa mảng nguồn trong khi pipeline đang thực thi**, đặc biệt khi chạy song song. Nguyên tắc *non-interference* của Stream yêu cầu các hàm trong pipeline không can thiệp vào nguồn dữ liệu. Việc mảng có thể bị sửa không tạo ra quyền thay đổi nó tùy ý trong lúc Stream đang duyệt.
+Therefore, **do not modify the source array while the pipeline is executing**, especially when running in parallel. The Stream *non-interference* principle requires that functions in the pipeline do not interfere with the data source. The fact that an array is mutable does not grant license to modify it arbitrarily while a Stream is traversing it.
 
-Nếu phải xử lý một trạng thái ổn định khi nơi khác có thể chỉnh sửa mảng, có thể tạo bản sao trước:
+If you must process a stable state while another place might edit the array, you can create a copy beforehand:
 
 ~~~java
 int[] snapshot = Arrays.copyOf(values, values.length);
 int stableSum = Arrays.stream(snapshot).sum();
 ~~~
 
-Đổi lại, việc sao chép tốn thêm bộ nhớ và thời gian tỉ lệ với chiều dài mảng.
+In return, copying costs extra memory and time proportional to the array length.
 
-### Đóng tài nguyên và xử lý song song
+### Resource Closing and Parallel Processing
 
-Stream từ mảng nằm trong bộ nhớ thông thường không nắm giữ tệp hay kết nối I/O nên không cần `try-with-resources` như `Files.lines`. Tuy nhiên, quy tắc **một Stream cho một pipeline** vẫn áp dụng.
+A Stream from an ordinary in-memory array does not hold files or I/O connections, so it does not require `try-with-resources` like `Files.lines`. However, the **one Stream per pipeline** rule still applies.
 
-Mảng có kích thước đã biết nên `Spliterator` tạo từ nó có thể hỗ trợ chia vùng duyệt hiệu quả; khi dữ liệu và phép tính đủ lớn, có thể thử `parallel()`:
+Because an array has a known size, the `Spliterator` created from it can support efficient range splitting; when data and computation are large enough, you can try `parallel()`:
 
 ~~~java
 long count = Arrays.stream(new int[]{1, 2, 3, 4, 5, 6})
@@ -459,42 +459,42 @@ long count = Arrays.stream(new int[]{1, 2, 3, 4, 5, 6})
 System.out.println(count); // 3
 ~~~
 
-`parallel()` không bảo đảm nhanh hơn: dữ liệu nhỏ có thể chậm hơn vì chi phí phân chia và phối hợp luồng. Các hàm trong pipeline cần không chia sẻ trạng thái thay đổi không an toàn; phép gộp kết quả phải tuân thủ điều kiện kết hợp thích hợp. Những thao tác nâng cao như collector tùy chỉnh hoặc Stream Gatherers ở JDK hỗ trợ chúng cũng tuân thủ vòng đời Stream và các ràng buộc về trạng thái, hiệu năng.
+`parallel()` does not guarantee faster execution: small data can be slower due to splitting and thread coordination overhead. Functions in the pipeline must not share unsafe mutable state; result combining operations must obey appropriate associativity conditions. Advanced operations such as custom collectors or Stream Gatherers in JDKs that support them also follow Stream lifecycle and state/performance constraints.
 
-## 10. Lỗi thường gặp và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-| Triệu chứng hoặc cách viết | Vấn đề | Cách xử lý |
+| Symptom or code pattern | Problem | Solution |
 | --- | --- | --- |
-| `Arrays.stream((int[]) null)` | Tham chiếu mảng là `null` | Kiểm tra đầu vào hoặc dùng quy ước mảng rỗng trước khi gọi. |
-| `Arrays.stream(new byte[]{1, 2})` | Không có overload cho `byte[]` | Dùng `IntStream.range` theo chỉ số hoặc chuyển dữ liệu sang kiểu phù hợp. |
-| `Stream.of(intArray).count() == 1` | Một phần tử của Stream là nguyên cả `int[]` | Dùng `Arrays.stream(intArray)` nếu muốn từng số. |
-| `Arrays.stream(arr, 2, 5)` rồi nghĩ sẽ lấy 5 phần tử | Nhầm chỉ số cuối với số lượng | Xác định khoảng [2, 5), chỉ có 3 phần tử. |
-| Gọi `count()` rồi `sum()` trên cùng `IntStream` | Tái sử dụng Stream đã kết thúc | Tạo Stream mới từ mảng hoặc tổng hợp chung trong một lượt. |
-| `Arrays.stream(matrix).count()` với `int[][]` | Đếm số hàng, không đếm tất cả số bên trong | `flatMapToInt(Arrays::stream).count()`. |
-| `map(String::length)` khi mảng có `null` | Gọi phương thức trên `null` | Dùng `filter(Objects::nonNull)` hoặc quy ước xử lý thiếu dữ liệu. |
-| Sửa phần tử mảng từ tác vụ khác khi duyệt song song | Can thiệp nguồn, có thể dẫn tới kết quả sai hoặc không ổn định | Không sửa nguồn khi duyệt; dùng bản sao nếu cần. |
+| `Arrays.stream((int[]) null)` | Array reference is `null` | Check input or use an empty-array convention before calling. |
+| `Arrays.stream(new byte[]{1, 2})` | No overload for `byte[]` | Use `IntStream.range` by index or convert data to an appropriate type. |
+| `Stream.of(intArray).count() == 1` | The single Stream element is the entire `int[]` | Use `Arrays.stream(intArray)` if you want individual numbers. |
+| `Arrays.stream(arr, 2, 5)` thinking it takes 5 elements | Confusing end index with count | Identify range [2, 5), which has only 3 elements. |
+| Calling `count()` then `sum()` on the same `IntStream` | Reusing a finished Stream | Create a new Stream from the array or aggregate together in one pass. |
+| `Arrays.stream(matrix).count()` on `int[][]` | Counts rows, not all inner numbers | `flatMapToInt(Arrays::stream).count()`. |
+| `map(String::length)` when array contains `null` | Calling a method on `null` | Use `filter(Objects::nonNull)` or define a missing-data handling convention. |
+| Modifying array elements from another task during parallel traversal | Source interference, which can lead to wrong or unstable results | Do not mutate the source while traversing; use a copy if needed. |
 
-Khi chọn Stream từ mảng trong ứng dụng thực tế, hãy xác định trước **kiểu mảng**, **cần xử lý toàn bộ hay một đoạn**, **terminal operation mong muốn** và **mức chi phí chấp nhận được**. Bốn yếu tố này thường đủ để chọn giữa `Arrays.stream`, `IntStream.range`, việc tổng hợp trong một lượt hay lưu snapshot.
+When choosing a Stream from an array in real applications, determine beforehand the **array type**, **whether to process the whole array or a slice**, the **desired terminal operation**, and the **acceptable cost**. These four factors are usually enough to choose between `Arrays.stream`, `IntStream.range`, single-pass aggregation, or storing a snapshot.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Bài 1.** Dự đoán kết quả và giải thích vì sao:
+**Exercise 1.** Predict the output and explain why:
 
 ~~~java
-String[] colors = {"đỏ", "xanh", "vàng", "tím"};
+String[] colors = {"red", "blue", "yellow", "purple"};
 long n = Arrays.stream(colors, 1, 3).count();
 System.out.println(n);
 ~~~
 
-**Đáp án:** `2`, vì khoảng chỉ số là [1, 3), tức phần tử ở vị trí 1 và 2: "xanh", "vàng".
+**Answer:** `2`, because the index range is [1, 3), meaning elements at positions 1 and 2: "blue", "yellow".
 
-**Bài 2.** Với mảng `int[]` sau, viết pipeline tính tổng các số chẵn lớn hơn 10:
+**Exercise 2.** Given the following `int[]` array, write a pipeline to compute the sum of even numbers greater than 10:
 
 ~~~java
 int[] nums = {8, 12, 15, 20, 24, 9};
 ~~~
 
-**Gợi ý lời giải:**
+**Suggested solution:**
 
 ~~~java
 int result = Arrays.stream(nums)
@@ -504,7 +504,7 @@ int result = Arrays.stream(nums)
 System.out.println(result); // 56 = 12 + 20 + 24
 ~~~
 
-**Bài 3.** Vì sao hai biểu thức dưới đây khác nhau?
+**Exercise 3.** Why do the two expressions below differ?
 
 ~~~java
 int[] values = {1, 2, 3};
@@ -513,15 +513,15 @@ long a = Arrays.stream(values).count();
 long b = java.util.stream.Stream.of(values).count();
 ~~~
 
-**Đáp án:** `a == 3` vì `Arrays.stream(values)` là `IntStream` của ba số; `b == 1` vì `Stream.of(values)` là Stream có duy nhất một phần tử kiểu `int[]`.
+**Answer:** `a == 3` because `Arrays.stream(values)` is an `IntStream` of three numbers; `b == 1` because `Stream.of(values)` is a Stream with a single element of type `int[]`.
 
-**Bài 4.** Cho mảng nhiều chiều; hãy tính tổng tất cả phần tử mà không viết vòng lặp lồng nhau:
+**Exercise 4.** Given a multidimensional array, compute the sum of all elements without writing nested loops:
 
 ~~~java
 int[][] matrix = {{1, 2}, {3, 4}, {5}};
 ~~~
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 int total = Arrays.stream(matrix)
@@ -531,4 +531,4 @@ int total = Arrays.stream(matrix)
 System.out.println(total); // 15
 ~~~
 
-**Ghi nhớ:** Dùng `Arrays.stream(array)` để bắt đầu một pipeline từ mảng có sẵn; mảng tham chiếu tạo `Stream<T>`, còn `int[]`/`long[]`/`double[]` tạo primitive stream tương ứng. Dùng overload [startInclusive, endExclusive) để chọn đoạn, `flatMapToInt` hoặc `flatMap` để trải mảng nhiều chiều, và tạo Stream mới từ mảng mỗi khi cần một lượt xử lý khác.
+**Key takeaway:** Use `Arrays.stream(array)` to start a pipeline from an existing array; reference arrays create `Stream<T>`, while `int[]`/`long[]`/`double[]` create the corresponding primitive stream. Use the [startInclusive, endExclusive) overload to select a slice, `flatMapToInt` or `flatMap` to flatten multidimensional arrays, and create a new Stream from the array whenever another processing pass is needed.

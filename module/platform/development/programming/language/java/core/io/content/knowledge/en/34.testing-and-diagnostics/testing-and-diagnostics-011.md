@@ -1,100 +1,100 @@
-# Kiểm tra event, callback và thao tác đồng thời theo cách xác định trong Java I/O
+# Testing Events, Callbacks, and Concurrent Operations Deterministically in Java I/O
 
-## 1. Vấn đề: I/O đúng nhưng bài test thất thường
+## 1. The Problem: Correct I/O Yet Flaky Tests
 
-Trong các chương trình Java I/O, nhiều sự kiện không xảy ra đúng một thời điểm cố định: `WatchService` nhận thay đổi thư mục, `CompletionHandler` báo hoàn tất đọc/ghi, thread pool chạy các thao tác tệp, hoặc callback tiếp tục công việc sau khi kênh hoàn thành một phần.
+In Java I/O programs, many events do not happen at a fixed instant: `WatchService` receives directory changes, `CompletionHandler` reports read/write completion, thread pools run file tasks, or callbacks resume work after a channel finishes a partial transfer.
 
-Một bài kiểm thử kiểu này dễ trở thành **flaky test**: cùng mã, cùng input nhưng có lúc pass, có lúc fail do tốc độ máy, lịch chạy thread, cache, hệ điều hành hay cơ chế của file system. Chẳng hạn:
+Tests like this easily turn into **flaky tests**: identical code and inputs sometimes pass and sometimes fail due to machine speed, thread scheduling, caches, OS differences, or filesystem mechanics. For example:
 
 ~~~java
 startAsyncCopy();
 Thread.sleep(100);
-assertOutputExists(); // Sai: 100 ms không chứng minh copy đã xong.
+assertOutputExists(); // Wrong: 100 ms does not prove the copy finished.
 ~~~
 
-Đây là **mã minh họa lỗi**, không phải chương trình độc lập. Máy phát triển có thể hoàn thành nhanh hơn 100 ms, trong khi máy CI đang tải nặng có thể cần nhiều thời gian. Tăng lên 2 giây chỉ làm test chậm hơn chứ không xây dựng được mối quan hệ đúng về mặt nhân quả.
+This is **broken illustrative code**, not a standalone program. A developer machine might finish in under 100 ms, while a heavily loaded CI runner may take longer. Raising the sleep to 2 seconds just slows tests down without establishing a real causal relationship.
 
-**Kiểm thử theo cách xác định (deterministic testing)** nghĩa là kiểm tra **trạng thái và điều kiện hoàn thành được xác định rõ**, điều khiển những điểm đồng bộ cần thiết, không lấy khoảng thời gian chờ làm bằng chứng công việc đã hoàn tất. Phải phân biệt:
+**Deterministic testing** means verifying **explicitly defined completion states and conditions**, controlling necessary synchronization points rather than using wait durations as proof that work finished. Distinguish:
 
-- **Thứ tự logic mà bài test có quyền kiểm soát:** tạo input trước, đăng ký callback, đợi một tín hiệu hoàn thành, sau đó kiểm tra kết quả.
-- **Thứ tự thực thi mà scheduler/OS quyết định:** thread nào chạy trước, callback vào lúc nào, số event được gộp ra sao. Đây thường **không** phải thứ tự nên assert cứng.
-- **Sự đúng đắn của trạng thái cuối:** dữ liệu đọc/ghi đúng byte, mỗi request báo một kết quả kết thúc, không có dữ liệu ngoài phạm vi.
-- **Tính chất cạnh tranh:** bài test có kiểm soát để tạo ra interleaving quan trọng và kiểm tra ứng dụng vẫn đúng khi các thao tác thực sự có thể chạy đồng thời.
+- **Logical order under the test's control:** prepare inputs first, register callbacks, await a completion signal, then assert results.
+- **Execution order chosen by the scheduler/OS:** which thread runs first, exact callback timing, how events coalesce. These should normally **not** be hardcoded in assertions.
+- **Final state correctness:** exact bytes read/written, each request reporting a single terminal result, no out-of-scope data.
+- **Concurrency properties:** controlled tests forcing critical interleavings to confirm correctness when operations genuinely run concurrently.
 
-Sau bài này, bạn sẽ dùng được `CountDownLatch`, `Future`, `CompletableFuture`, `CompletionHandler`, timeout hữu hạn, root tạm riêng và chiến lược kiểm tra sự kiện `WatchService` một cách đáng tin hơn.
+After this lesson, you will be able to use `CountDownLatch`, `Future`, `CompletableFuture`, `CompletionHandler`, bounded timeouts, isolated temp roots, and reliable `WatchService` testing strategies.
 
-## 2. Thế nào là một assertion xác định?
+## 2. What Makes an Assertion Deterministic?
 
-Câu hỏi đúng khi kiểm tra I/O bất đồng bộ không phải “Sau 100 ms có kết quả chưa?” mà là “**Điều kiện nào chứng minh thao tác đã hoàn thành?**”.
+The right question when testing async I/O is not "Is there a result after 100 ms?" but "**Which condition proves the operation finished?**".
 
-| Tình huống | Assertion dễ flaky | Cách kiểm tra vững hơn |
+| Scenario | Flaky-Prone Assertion | Stronger Verification |
 | --- | --- | --- |
-| Ghi file bất đồng bộ | Ngủ 100 ms rồi `Files.exists` | Đợi callback/`Future` báo hoàn tất, sau đó đọc kiểm chứng nội dung |
-| Nhận một callback | `sleep` rồi so bộ đếm | `CompletableFuture.get(timeout)` hoặc `CountDownLatch.await(timeout)` |
-| Hai worker cùng chạy | Đợi vài ms rồi tin là song song | Dùng latch/barrier xác nhận **cả hai đã sẵn sàng** trước khi cho tiếp tục |
-| `WatchService` báo tạo file | Cứng nhắc assert đúng 1 `ENTRY_CREATE` trên mọi OS | Test parser bằng event giả lập; integration test kết hợp snapshot trạng thái và quan sát event không bắt buộc |
-| Xử lý dữ liệu trên socket | Một lần `read` phải ra trọn message | Dùng framing, lặp đọc đến đủ byte và đợi completion |
-| Kiểm tra thứ tự hoàn thành | Callback A phải luôn trước B | Nếu yêu cầu nghiệp vụ có thứ tự, dùng sequence/id và điều phối; nếu không, assert tập kết quả |
-| Kiểm thử timeout | Đợi vô hạn để xem có treo không | Deadline hữu hạn, báo rõ thời điểm thất bại và cleanup |
-| Kiểm tra exception | Lỗi ở worker được tự ném vào thread test | Thu lỗi qua `Future.get`, completion hoặc bộ thu lỗi của test |
+| Async file write | Sleep 100 ms then `Files.exists` | Await callback/`Future` completion, then read and verify contents |
+| Receiving a callback | `sleep` then check counter | `CompletableFuture.get(timeout)` or `CountDownLatch.await(timeout)` |
+| Two workers running together | Wait a few ms and assume parallelism | Use latch/barrier proving **both are ready** before releasing them |
+| `WatchService` file creation event | Rigidly assert exactly 1 `ENTRY_CREATE` across all OSes | Test parser with fake events; integration test combines state snapshots with optional event observation |
+| Socket data processing | One `read` must yield a full message | Use framing, loop until enough bytes arrive, and await completion |
+| Checking completion order | Callback A must always precede B | If business contract requires order, enforce sequence/id; otherwise assert result set |
+| Timeout testing | Wait forever to see if it hangs | Bounded deadline, fail clearly with timestamp, and clean up |
+| Exception testing | Worker error thrown directly onto test thread | Propagate error via `Future.get`, completion, or test error collector |
 
-**Tính xác định không đồng nghĩa mọi thread chạy theo cùng lịch mỗi lần.** Ta cần làm cho điều kiện *pass/fail* không phụ thuộc sự may rủi của lịch chạy, hoặc chủ động điều khiển những điểm đua cần kiểm tra.
+**Determinism does not mean every thread follows the same schedule on every run.** We make *pass/fail* outcomes independent of scheduling luck, or explicitly control the race points under test.
 
-## 3. Nguyên tắc thiết kế để tránh flaky test
+## 3. Design Principles to Prevent Flaky Tests
 
-1. **Một scenario, một phạm vi tài nguyên riêng:** tạo thư mục tạm cho từng bài test; không dùng file chung cố định.
-2. **Thiết lập trạng thái đầu rõ ràng:** khởi tạo file/queue/buffer trước khi phát sự kiện hoặc khởi chạy tác vụ.
-3. **Sự kiện kết thúc có tên:** ví dụ `CompletableFuture<Void> saved` đại diện “đã lưu xong”, không phải “đã gọi phương thức lưu”.
-4. **Chờ có giới hạn:** `get(5, TimeUnit.SECONDS)` hoặc `await(5, TimeUnit.SECONDS)`; nếu hết hạn, test fail và dọn tài nguyên.
-5. **Chỉ dùng assertion trên dữ liệu đã đồng bộ:** không đọc `ByteBuffer` lúc I/O còn pending, không đọc file trước khi writer xác nhận xong nếu giao thức yêu cầu.
-6. **Kiểm tra số byte thực tế:** một callback `completed(n, ...)` chỉ có thể báo số byte của **một lần** đọc/ghi, không chắc đủ toàn bộ request.
-7. **Tách unit test logic event khỏi khả năng phát event native:** logic do ta kiểm soát có thể kiểm thử xác định; delivery từ `WatchService`/OS có giới hạn nền tảng.
-8. **Đảm bảo trạng thái kết thúc trên đường lỗi:** lỗi callback phải hoàn tất future theo kiểu thất bại, không chỉ ghi log rồi để caller đợi mãi.
-9. **Đóng thread pool, channel, WatchService và root tạm:** tránh tài nguyên tồn đọng làm sai kết quả test sau.
-10. **Quan sát đủ thông tin khi fail:** lưu request ID, offset, byte count, trạng thái barrier, cause và thời gian chờ; không chỉ viết “assert failed”.
+1. **One scenario, one isolated resource scope:** create a separate temp directory per test; never share hardcoded files.
+2. **Clear initial state:** initialize files/queues/buffers before emitting events or launching tasks.
+3. **Named completion signals:** e.g., `CompletableFuture<Void> saved` meaning "save completed", not "save method invoked".
+4. **Bounded waits:** `get(5, TimeUnit.SECONDS)` or `await(5, TimeUnit.SECONDS)`; on expiration, fail and clean up resources.
+5. **Assert only on synchronized data:** never read a `ByteBuffer` while I/O is pending, or read a file before the writer confirms completion when the protocol requires it.
+6. **Check actual byte counts:** a `completed(n, ...)` callback may report bytes for **one** read/write step, not necessarily the entire request.
+7. **Decouple event-logic unit tests from native event delivery:** logic you own can be tested deterministically; `WatchService`/OS delivery has platform limits.
+8. **Guarantee terminal state on error paths:** callback errors must complete futures exceptionally rather than only logging and leaving callers waiting forever.
+9. **Close thread pools, channels, `WatchService`, and temp roots:** prevent leftover resources from corrupting later tests.
+10. **Capture sufficient failure diagnostics:** record request ID, offset, byte count, barrier state, cause, and wait duration—not merely "assert failed".
 
-Không phải mọi lỗi race xuất hiện chỉ sau một lần chạy. Phối hợp test có thứ tự điều khiển, test stress, instrumentation và kiểm tra invariants cho các lịch chạy khác nhau.
+Not every race surfaces in a single run. Combine controlled-ordering tests, stress tests, instrumentation, and invariant checks across varied schedules.
 
-## 4. `CountDownLatch`: điều khiển “bắt đầu cùng pha” thay vì ngủ
+## 4. `CountDownLatch`: Controlling "Simultaneous Start" Instead of Sleeping
 
-`CountDownLatch` là bộ đếm giảm dần về 0; một hoặc nhiều thread có thể `await()` đến khi đủ số lần `countDown()`. Khi counter về 0, những thread đang chờ được cho tiếp tục.
+`CountDownLatch` is a countdown counter down to 0; one or more threads can `await()` until enough `countDown()` calls occur. Once the count hits 0, waiting threads proceed.
 
-Giả sử có hai worker:
+Suppose two workers run concurrently:
 
 ~~~java
 CountDownLatch ready = new CountDownLatch(2);
 CountDownLatch go = new CountDownLatch(1);
 
-// Mỗi worker:
+// Each worker:
 ready.countDown();
 if (!go.await(5, TimeUnit.SECONDS)) {
     throw new IllegalStateException("Start signal timed out");
 }
-// Bắt đầu phần I/O cần kiểm tra.
+// Begin the I/O under test.
 
-// Thread kiểm thử:
+// Test thread:
 if (!ready.await(5, TimeUnit.SECONDS)) {
     throw new AssertionError("Workers not ready");
 }
 go.countDown();
 ~~~
 
-Đây là **đoạn minh họa**, cần import `CountDownLatch` và `TimeUnit`; phải khởi chạy worker thật từ thread pool. `ready` cho biết hai worker đã tới điểm đồng bộ; `go` giải phóng chúng sau khi setup hoàn tất.
+This is an **illustrative snippet** requiring imports for `CountDownLatch` and `TimeUnit`; real workers must be launched from a thread pool. `ready` proves both workers reached the sync point; `go` releases them once setup completes.
 
-**Quan trọng:** một latch không ép CPU chạy hai worker đúng cùng một nanosecond. Nó tạo ra một ranh giới bắt đầu có chủ đích, giúp cả hai *có khả năng cạnh tranh* sau cùng một tín hiệu, và không phụ thuộc `Thread.sleep`.
+**Important:** a latch does not force CPUs to run both workers on the exact same nanosecond. It creates an intentional starting gate so both *can contend* right after the same signal, without `Thread.sleep`.
 
-Để tránh treo khi một worker không bao giờ tới barrier:
+To avoid hanging when a worker never reaches the barrier:
 
-- Mọi `await` của test nên có timeout.
-- Nếu `ready.await` thất bại, vẫn nên giải phóng `go` hoặc hủy worker để chúng không bị bỏ lại mãi.
-- Dùng thread pool có **đủ worker**: nếu pool chỉ có một thread nhưng yêu cầu hai task cùng tới latch, có thể tự tạo deadlock/starvation.
-- Thu tất cả kết quả qua `Future.get(timeout)`; exception bên worker không tự nổi lên ở luồng test.
+- Every test `await` should carry a timeout.
+- Even if `ready.await` fails, release `go` or cancel workers so they aren't stranded forever.
+- Use a thread pool with **enough workers**: a single-thread pool requiring two tasks at a latch deadlocks/starves itself.
+- Collect all outcomes via `Future.get(timeout)`; exceptions inside workers do not automatically surface on the test thread.
 
-`CountDownLatch` dùng một lần. Nếu cần các vòng đồng bộ lặp lại, cân nhắc `CyclicBarrier` hoặc `Phaser`; phải hiểu cách xử lý broken barrier và timeout.
+`CountDownLatch` is single-use. For repeated sync rounds, consider `CyclicBarrier` or `Phaser`, understanding broken-barrier handling and timeouts.
 
-## 5. `Future` và `CompletableFuture`: đợi kết quả, không đoán trạng thái
+## 5. `Future` and `CompletableFuture`: Awaiting Results Instead of Guessing State
 
-Một `Future<T>` cho phép lấy kết quả hoặc nguyên nhân lỗi:
+A `Future<T>` retrieves a result or failure cause:
 
 ~~~java
 Future<String> work = executor.submit(() -> "done");
@@ -104,32 +104,32 @@ if (!"done".equals(result)) {
 }
 ~~~
 
-Đây là **đoạn minh họa** dùng `ExecutorService executor` đã tạo; cần import `Future` và `TimeUnit`.
+This is an **illustrative snippet** using a created `ExecutorService executor`; import `Future` and `TimeUnit`.
 
-`get(timeout, unit)` tạo giới hạn thời gian cho thread test. `TimeoutException` báo rằng việc **chờ** đã hết thời gian, không nhất thiết worker đã dừng. `Future.cancel(true)` có thể yêu cầu hủy, nhưng thread bị interrupt không bắt buộc kết thúc ngay nếu tác vụ không hợp tác.
+`get(timeout, unit)` bounds how long the test thread waits. `TimeoutException` means the **wait** timed out, not necessarily that the worker stopped. `Future.cancel(true)` requests cancellation, yet interrupted threads need not exit immediately if the task ignores interruption.
 
-`CompletableFuture<T>` phù hợp khi cần kết nối callback vào một tín hiệu hoàn tất có thể đợi:
+`CompletableFuture<T>` fits bridging callbacks onto an awaitable completion signal:
 
 ~~~java
 CompletableFuture<Integer> finished = new CompletableFuture<>();
 
-// Callback thành công:
+// Success callback:
 finished.complete(actualBytes);
 
-// Callback thất bại:
+// Failure callback:
 finished.completeExceptionally(error);
 
-// Thread test:
+// Test thread:
 int actualBytes = finished.get(5, TimeUnit.SECONDS);
 ~~~
 
-Đây là **đoạn minh họa**, cần `CompletableFuture` và `TimeUnit`; biến `error` chỉ nguyên nhân lỗi. `CompletableFuture` có khả năng hoàn tất chỉ một lần: những lời gọi `complete` hoặc `completeExceptionally` đến sau không thay thế kết quả đã được công bố thành công.
+This is an **illustrative snippet** requiring `CompletableFuture` and `TimeUnit`; `error` holds the failure cause. `CompletableFuture` completes only once: later `complete` or `completeExceptionally` calls do not overwrite an already published result.
 
-**Lưu ý visibility:** việc nhận kết quả từ `Future.get`/`CompletableFuture.get` cung cấp điểm đồng bộ hữu ích để đọc trạng thái đã được tác vụ công bố. Nhưng nếu những thread khác vẫn còn sửa chung một buffer hoặc collection, không được suy ra rằng toàn bộ hệ thống đã yên; phải xác định ownership và phạm vi hoàn tất.
+**Visibility note:** receiving a result from `Future.get`/`CompletableFuture.get` provides a sound synchronization point for reading state published by the task. However, if other threads are still mutating a shared buffer or collection, you cannot assume the whole system is quiescent; verify ownership and completion scope.
 
-## 6. Kiểm tra `CompletionHandler` cho I/O bất đồng bộ
+## 6. Testing `CompletionHandler` for Asynchronous I/O
 
-Java NIO.2 dùng các callback:
+Java NIO.2 uses callbacks:
 
 ~~~java
 channel.read(buffer, fileOffset, attachment,
@@ -137,66 +137,66 @@ channel.read(buffer, fileOffset, attachment,
             @Override
             public void completed(
                     Integer n, RequestState state) {
-                // Một lần đọc hoàn tất: xử lý n và điều kiện đọc tiếp.
+                // One read finished: handle n and decide whether to read more.
             }
 
             @Override
             public void failed(
                     Throwable error, RequestState state) {
-                // Hoàn tất toàn bộ yêu cầu bằng lỗi.
+                // Fail the entire request.
             }
         });
 ~~~
 
-Đây là **đoạn minh họa API**, không phải chương trình độc lập. `channel` là `AsynchronousFileChannel`, `buffer` là `ByteBuffer`, `fileOffset` là `long`; `RequestState` là kiểu context của ứng dụng.
+This is an **API snippet**, not a standalone program. `channel` is an `AsynchronousFileChannel`, `buffer` is a `ByteBuffer`, `fileOffset` is a `long`, and `RequestState` is an application context type.
 
-### 6.1. Đừng đánh đồng một callback với toàn bộ request
+### 6.1. Do not equate one callback with the whole request
 
-Ví dụ mục tiêu là đọc đủ 5 byte từ file, nhưng callback đầu tiên trả 2 byte:
+Suppose the goal is reading 5 bytes from a file, and the first callback returns 2 bytes:
 
-- `n = 2` nghĩa là đã đọc được 2 byte trong lần gọi đó.
-- `ByteBuffer.position()` đã tăng 2, **không tự tăng lần thứ hai**.
-- Nếu buffer còn chỗ, khởi phát lần đọc tiếp với offset tệp tăng 2.
-- Chỉ hoàn tất future bao trùm cả request khi đã có đủ byte hoặc chính sách cho phép EOF sớm.
+- `n = 2` means 2 bytes were read in that single call.
+- `ByteBuffer.position()` already advanced by 2—**do not advance it a second time**.
+- If the buffer has space remaining, initiate the next read at `fileOffset + 2`.
+- Complete the request-level future only once all required bytes arrive or the policy permits early EOF.
 
-Khi `n == -1` trên thao tác đọc, đã gặp EOF. Nếu request yêu cầu đủ số byte còn thiếu, báo lỗi `EOFException`. Với `n == 0`, phân biệt buffer hết chỗ, provider đặc biệt hoặc điều kiện không tiến triển; ví dụ kiểm thử tệp ổn định có thể chủ động báo lỗi thay vì retry nóng.
+When `n == -1` on a read, EOF was reached. If more bytes were required, fail with `EOFException`. For `n == 0`, distinguish a full buffer, a special provider, or a no-progress condition; e.g., stable file tests may fail explicitly rather than spinning hot.
 
-### 6.2. Test cả đường thành công và thất bại
+### 6.2. Test both success and failure paths
 
-Với logic callback do bạn sở hữu, nên kiểm tra:
+For callback logic you own, verify:
 
-- Callback `completed` được xử lý khi có số byte dương.
-- Callback `failed` làm request kết thúc theo nhánh lỗi và vẫn có cleanup.
-- Khi hoàn thành một phần, code khởi phát thêm thao tác hoặc tích lũy byte đúng.
-- Một callback kết thúc muộn hoặc một sự kiện duplicate **không** gây xử lý nghiệp vụ lặp.
-- Callback lỗi không bị nuốt, và thread test đọc được nguyên nhân qua future.
+- `completed` processes positive byte counts accurately.
+- `failed` terminates the request cleanly on error and still runs cleanup.
+- On partial completion, code issues follow-up operations or accumulates bytes accurately.
+- A late completion callback or duplicate event **does not** trigger duplicate business processing.
+- Callback errors are never swallowed, and the test thread sees the cause via the future.
 
-**Không tự gọi callback thực của channel một cách thủ công rồi coi đó là kiểm chứng kernel async I/O.** Với unit test logic, bạn có thể tách riêng adapter `readAsync` hoặc inject một fake completion source rồi gọi handler một cách kiểm soát. Với integration test, dùng channel thật và đợi bằng future/latch, nhưng không assert thread name hoặc thời điểm callback tuyệt đối.
+**Never invoke a real channel's callback manually and claim it verifies kernel async I/O.** For logic unit tests, extract a `readAsync` adapter or inject a fake completion source to invoke the handler deterministically. For integration tests, use real channels and await futures/latches, without asserting thread names or exact callback timing.
 
-## 7. `WatchService`: event không phải trạng thái đích
+## 7. `WatchService`: Events Are Not Target State
 
-`WatchService` thông báo những thay đổi do provider phát hiện trên các thư mục đã đăng ký. Các event thường dùng là `ENTRY_CREATE`, `ENTRY_MODIFY` và `ENTRY_DELETE`. `OVERFLOW` báo có thể đã bỏ lỡ sự kiện.
+`WatchService` reports provider-detected changes on registered directories. Common events are `ENTRY_CREATE`, `ENTRY_MODIFY`, and `ENTRY_DELETE`. `OVERFLOW` warns that events may have been dropped.
 
-Một số hành vi **không nên assert giống nhau trên mọi hệ điều hành/file system**:
+Behaviors you **must not assert identically across all OSes/filesystems**:
 
-- Một lần ghi tạo đúng một event.
-- Event modify phải đến sau create với một số lượng/timing cố định.
-- Một thay đổi từ máy khác trên NFS/SMB phải luôn đến.
-- Một file vừa tạo đã được ghi hoàn tất khi nhận create.
-- Một event `ENTRY_MODIFY` luôn có nghĩa nội dung đã thay đổi có ý nghĩa nghiệp vụ.
+- One write produces exactly one event.
+- Modify events follow create events in fixed count or timing.
+- Remote changes over NFS/SMB always deliver events.
+- A newly created file is completely written when `ENTRY_CREATE` arrives.
+- Every `ENTRY_MODIFY` implies a meaningful business-content change.
 
-Do đó, chia kiểm thử thành hai loại:
+Therefore, split tests into two categories:
 
-| Loại kiểm thử | Mục tiêu | Assertion thích hợp |
+| Test Type | Goal | Appropriate Assertions |
 | --- | --- | --- |
-| **Unit test parser/reconciler** | Kiểm tra code xử lý một tập event đã biết | Cấp event giả lập có thứ tự, duplicate, `OVERFLOW`, key invalid; assert trạng thái/kết quả |
-| **Integration test trên file system thật** | Kiểm tra API/provider có thể đăng ký và phát hiện thay đổi trong môi trường mục tiêu | Dùng deadline hợp lý, ghi lại event có/không, luôn kiểm tra snapshot file; chỉ assert khả năng delivery nếu môi trường đã định nghĩa rõ là điều kiện bắt buộc |
-| **Test độ tin cậy NFS/SMB** | Đánh giá thay đổi do máy khác thực hiện | Thiết kế kịch bản từ hai máy, đo tỷ lệ phát hiện và latency, có đối chiếu quét directory |
-| **Test recovery khi OVERFLOW** | Kiểm tra chính sách full rescan khi mất event | Inject tín hiệu overflow vào thành phần ứng dụng; không cần cố gây quá tải native để có overflow thật |
+| **Parser/reconciler unit tests** | Test handling of known event streams | Feed scripted ordered, duplicate, `OVERFLOW`, and invalid-key events; assert final state/output |
+| **Real filesystem integration tests** | Verify API/provider registration and detection in target environment | Use reasonable deadlines, record whether events arrived, always verify file snapshot; assert delivery only if required by environment spec |
+| **NFS/SMB reliability tests** | Measure cross-machine change detection | Multi-host test scenarios measuring detection rate and latency against directory scans |
+| **`OVERFLOW` recovery tests** | Verify full-rescan policy when events drop | Inject an overflow signal into the app component; no need to overload the OS for a real overflow |
 
-Nếu bài học có một file `marker.txt` được tạo sau khi đăng ký watcher, test portable **có thể** xác nhận file thực sự tồn tại và đúng nội dung, còn việc nhận event chỉ là quan sát. Đó là một test xác định cho **snapshot correctness**, không phải chứng minh watcher đã giao sự kiện.
+If a test creates `marker.txt` after registering a watcher, portable tests **can** assert the file exists with exact content while treating event arrival as diagnostic observation. That deterministically tests **snapshot correctness**, rather than asserting watcher delivery guarantees.
 
-### 7.1. Một vòng lấy sự kiện có giới hạn
+### 7.1. A bounded event polling loop
 
 ~~~java
 WatchKey key = watchService.poll(1, TimeUnit.SECONDS);
@@ -206,50 +206,50 @@ if (key != null) {
             requestFullRescan();
             continue;
         }
-        // Đánh dấu đường dẫn dirty, sau đó kiểm tra trạng thái thật.
+        // Mark path dirty, then inspect real file state.
     }
     if (!key.reset()) {
-        // Registration đã invalid; chuyển sang recovery.
+        // Registration invalidated; trigger recovery.
     }
 }
 ~~~
 
-Đây là đoạn **minh họa** với `watchService` đang mở và `requestFullRescan()` do ứng dụng tự định nghĩa. `poll(timeout) == null` chỉ có nghĩa **chưa có key được báo** trong thời gian chờ; không kết luận directory không thay đổi. `event.context()` của sự kiện entry cần được xử lý như tên tương đối, xác thực trước khi truy cập path.
+This is an **illustrative snippet** with an open `watchService` and application-defined `requestFullRescan()`. `poll(timeout) == null` means only that **no key was signaled** within the wait window; never conclude the directory didn't change. Treat `event.context()` on entry events as a relative name and validate it before accessing paths.
 
-### 7.2. Giảm flaky bằng reconciliation
+### 7.2. Reducing flakiness via reconciliation
 
-Khi event đến, xử lý nó như một hint “path có thể dirty”. Reconciler sẽ quét và đọc trạng thái file thực tế. Khi test, assert dữ liệu có đúng phiên bản sau khi reconciler báo hoàn tất; đừng assert số event.
+When an event arrives, treat it as a hint that "this path may be dirty". The reconciler scans and reads actual file state. In tests, assert the data has the right version once the reconciler signals completion; never assert event counts.
 
-Để test idempotency, gửi cùng một event `ENTRY_MODIFY` hai lần và kiểm tra nghiệp vụ chỉ tạo một kết quả cuối hoặc dedup bằng version/id. Để test overflow, đưa vào một tín hiệu `OVERFLOW` rồi assert một lượt full scan được lên lịch, không khẳng định OS sẽ tự sinh overflow đúng thời điểm.
+To test idempotency, deliver the same `ENTRY_MODIFY` event twice and verify business logic produces one final outcome or deduplicates by version/id. To test overflow, inject an `OVERFLOW` signal and assert a full scan is scheduled, rather than trying to make the OS generate overflow on cue.
 
-## 8. Kiểm thử concurrency: invariant quan trọng hơn lịch chạy
+## 8. Concurrency Testing: Invariants Matter More Than Schedules
 
-Giả sử hai tác vụ ghi các file khác nhau trong thư mục riêng. Bài test có thể cần đảm bảo:
+Suppose two tasks write distinct files in separate directories. A test may need to ensure:
 
-1. Hai tác vụ đều **đã tới điểm sẵn sàng** trước khi bắt đầu giai đoạn cần kiểm tra.
-2. Cả hai được mở khóa bởi cùng một tín hiệu điều phối.
-3. Mỗi tác vụ ghi đúng file của nó; không ghi nhầm sang file của tác vụ kia.
-4. Mỗi kết quả nghiệp vụ chỉ được công bố sau khi tác vụ đó đã hoàn thành.
-5. Kết quả được lấy qua `Future.get`, để lỗi worker được chuyển về thread kiểm thử.
-6. Nếu có timeout hoặc failure, executor không bị bỏ chạy vô thời hạn.
+1. Both tasks **reached the ready point** before starting the phase under test.
+2. Both are released by the same coordination signal.
+3. Each task writes only its own file; neither touches the other's file.
+4. Business outcomes publish only after the task completes.
+5. Results are collected via `Future.get`, surfacing worker exceptions onto the test thread.
+6. On timeout or failure, the executor is not left running indefinitely.
 
-**Đừng assert “task A phải hoàn thành trước B”** trừ khi chương trình thật có hợp đồng yêu cầu điều đó. Sau `go.countDown()`, việc A hoặc B được OS chạy trước là không xác định.
+**Never assert "task A must finish before B"** unless the real program contract enforces that order. After `go.countDown()`, whether the OS runs A or B first is non-deterministic.
 
-### Cách so sánh kết quả không phụ thuộc thứ tự
+### Comparing results independent of completion order
 
-Nếu tác vụ có id, thu kết quả vào `Map<Id, Result>` rồi so theo id; không dựa vào thứ tự arrival. Nếu muốn kiểm tra “mỗi id xử lý đúng một lần”, dùng bảng trạng thái và điều kiện atomic/idempotent thay vì đọc một biến đếm `int` đang bị nhiều thread sửa mà không đồng bộ.
+If tasks carry IDs, collect outputs into `Map<Id, Result>` and assert by ID rather than arrival order. To test "each ID processed exactly once", use a state table and atomic/idempotent conditions instead of an unsynchronized `int` counter mutated by multiple threads.
 
-Khi kiểm thử data race thật sự, đôi khi cần ép interleaving hiếm bằng hook/barrier **đặt ở vị trí logic cụ thể**. Ví dụ, cả hai worker đọc version cũ trước khi cùng cố ghi, qua đó kiểm tra compare-and-set hoặc transaction. Chỉ tăng số thread/stress không đảm bảo kích hoạt đúng race.
+When testing genuine data races, you sometimes must force rare interleavings using hooks/barriers **placed at exact logic points**. For instance, both workers read an old version before both attempt to write, verifying compare-and-set or transaction semantics. Merely adding threads or load does not guarantee hitting the race.
 
-## 9. Ví dụ Java 17+ độc lập: event, callback và hai thao tác được điều phối
+## 9. Standalone Java 17+ Example: Events, Callbacks, and Two Coordinated Operations
 
-Ví dụ sau chạy ba kiểm tra trong một chương trình không cần thư viện ngoài:
+This example runs three checks in one program with no external libraries:
 
-- **Event:** đăng ký `WatchService` cho một thư mục tạm, tạo file `marker.txt`, chờ tối đa một khoảng ngắn để quan sát event. Event có thể đến hoặc không; kết quả pass của phần này xác nhận **snapshot nội dung**.
-- **Callback:** đọc đầy đủ 5 byte `ready` qua `AsynchronousFileChannel.read(..., CompletionHandler)` và nối việc hoàn tất vào `CompletableFuture`.
-- **Concurrency:** đưa hai tác vụ vào pool có 2 thread, dùng `ready` và `start` latch để chắc chắn cả hai đã đến điểm xuất phát trước khi phát tín hiệu. Mỗi tác vụ tạo một thư mục tạm riêng và ghi một file có cùng tên tương đối.
+- **Events:** registers a `WatchService` on a temp directory, creates `marker.txt`, waits briefly to observe an event. The event may or may not arrive; passing verifies the **content snapshot**.
+- **Callback:** reads all 5 bytes of `ready` via `AsynchronousFileChannel.read(..., CompletionHandler)` and bridges completion onto a `CompletableFuture`.
+- **Concurrency:** submits two tasks to a 2-thread pool, using `ready` and `start` latches so both reach the starting gate before signaling. Each task creates its own temp subdirectory and writes a file with the same relative name.
 
-**Tệp `DeterministicIoTestDemo.java`:**
+**File `DeterministicIoTestDemo.java`:**
 
 ~~~java
 import java.io.EOFException;
@@ -287,7 +287,7 @@ public class DeterministicIoTestDemo {
             Path watched = Files.createDirectory(root.resolve("watched"));
             Path marker = watched.resolve("marker.txt");
 
-            // Event được quan sát nhưng không quyết định test pass/fail.
+            // Event is observed but does not decide test pass/fail.
             try (WatchService watch =
                          FileSystems.getDefault().newWatchService()) {
                 watched.register(
@@ -313,10 +313,10 @@ public class DeterministicIoTestDemo {
                     key.reset();
                 }
 
-                // Biến được dùng trong logic diagnostic, không dùng làm
-                // tiêu chí pass: provider có thể không phát event.
+                // Variable used in diagnostics, not as a pass criterion:
+                // provider might not emit the event.
                 if (sawCreate) {
-                    // Ở ứng dụng thật có thể cập nhật metrics.
+                    // Real apps could update metrics here.
                 }
             }
 
@@ -341,13 +341,13 @@ public class DeterministicIoTestDemo {
 
             boolean bothReady = ready.await(
                     WAIT_SECONDS, TimeUnit.SECONDS);
-            start.countDown(); // Giải phóng cả hai kể cả khi lỗi setup.
+            start.countDown(); // Release both even if setup fails.
 
             if (!bothReady) {
                 throw new IllegalStateException("Workers did not get ready");
             }
 
-            // Đọc theo id cố định: không phụ thuộc task nào xong trước.
+            // Read by fixed ID: independent of which task finished first.
             System.out.println("alpha result: "
                     + alpha.get(WAIT_SECONDS, TimeUnit.SECONDS));
             System.out.println("beta result: "
@@ -355,7 +355,7 @@ public class DeterministicIoTestDemo {
             System.out.println("All checks passed");
         } finally {
             pool.shutdownNow();
-            // Đợi worker dừng trước khi xóa dữ liệu đang được dùng.
+            // Wait for workers to stop before deleting active data.
             boolean stopped =
                     pool.awaitTermination(WAIT_SECONDS, TimeUnit.SECONDS);
             if (stopped) {
@@ -470,14 +470,14 @@ public class DeterministicIoTestDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or newer:
 
 ~~~bash
 javac -encoding UTF-8 DeterministicIoTestDemo.java
 java DeterministicIoTestDemo
 ~~~
 
-**Stdout kỳ vọng khi provider hỗ trợ WatchService, file I/O hoạt động và các tác vụ hoàn tất trong deadline:**
+**Expected stdout when the provider supports `WatchService`, file I/O works, and tasks finish within the deadline:**
 
 ~~~text
 Snapshot verified: true
@@ -488,27 +488,27 @@ beta result: TWO
 All checks passed
 ~~~
 
-### Giải thích những điểm quyết định tính đúng
+### Explaining what guarantees correctness
 
-1. `Files.createTempDirectory` cấp vùng riêng cho toàn bộ ví dụ. Hai task `alpha` và `beta` còn tạo hai thư mục con riêng, nên cùng ghi tên `same-name.txt` mà không xung đột.
-2. Đăng ký watcher **trước** khi tạo `marker.txt`. `watch.poll(1, SECONDS)` là quan sát có deadline, không phải sự kiện bắt buộc để test snapshot pass. `key.pollEvents()` và `key.reset()` được gọi khi nhận key.
-3. `sawCreate` chỉ là dữ liệu diagnostic, không xuất hiện trong stdout để giữ kết quả kỳ vọng ổn định. Trong test theo môi trường cụ thể, bạn có thể ghi nó vào log hoặc metric để thống kê tỷ lệ delivery.
-4. Assertion về sự tồn tại/nội dung thật được thực hiện bằng `Files.readString`. Bài test không phụ thuộc vào số lần `ENTRY_MODIFY` hoặc lịch callback của OS.
-5. `AsynchronousFileChannel` đọc theo offset tường minh. Một callback nhận `n` byte thì `ByteBuffer.position()` đã tiến `n`; nếu còn chỗ, code tiếp tục ở offset `offset + n`. Chỉ khi đủ 5 byte mới `finished.complete(total)`.
-6. `CompletableFuture.get(5, SECONDS)` là điểm đồng bộ. Sau đó chương trình mới `flip` buffer và giải mã đúng chuỗi `ready`. Các lỗi I/O hoàn tất `finished` theo nhánh exception.
-7. `pool` có **hai worker**, phù hợp hai task cùng đợi ở điểm `start`. `ready.await` chứng minh cả hai đã đến mốc đồng bộ trước khi luồng chính giải phóng `start`.
-8. Nếu setup một worker không tới mốc đúng hạn, `start.countDown()` vẫn được gọi trước khi test báo lỗi. Điều này tránh để worker khác kẹt vô thời hạn ở latch.
-9. `alpha.get` và `beta.get` có timeout và được in theo **thứ tự định danh cố định**, không phải thứ tự thread thực tế hoàn thành.
-10. `finally` gọi `shutdownNow()` rồi `awaitTermination` để giảm nguy cơ xóa file khi worker còn truy cập. Nếu worker không dừng đúng hạn, ví dụ cố ý giữ root lại và báo lỗi thay vì xóa một cây đang được sử dụng.
-11. `Files.walkFileTree` xóa file trước thư mục, không theo symbolic link theo mặc định. Không dùng lệnh xóa đệ quy trên đường dẫn từ bên ngoài.
+1. `Files.createTempDirectory` provides an isolated area for the entire demo. Tasks `alpha` and `beta` also create separate subdirectories, allowing both to write `same-name.txt` without collision.
+2. The watcher is registered **before** creating `marker.txt`. `watch.poll(1, SECONDS)` is a bounded observation, not a mandatory event for snapshot verification to pass. `key.pollEvents()` and `key.reset()` run when a key arrives.
+3. `sawCreate` is strictly diagnostic data, omitted from stdout to keep expected output deterministic. In environment-specific tests, you can log or record it as a metric to track delivery rates.
+4. Assertions on existence and real content use `Files.readString`. The test does not depend on `ENTRY_MODIFY` counts or OS callback timing.
+5. `AsynchronousFileChannel` reads at explicit offsets. When a callback receives `n` bytes, `ByteBuffer.position()` has advanced by `n`; if space remains, code continues at `offset + n`. Only after 5 bytes arrive does `finished.complete(total)` run.
+6. `CompletableFuture.get(5, SECONDS)` acts as the synchronization point. Only afterward does the program `flip` the buffer and decode `"ready"`. I/O errors complete `finished` exceptionally.
+7. `pool` has **two workers**, matching the two tasks waiting at `start`. `ready.await` proves both reached the sync point before the main thread releases `start`.
+8. Even if a worker fails to reach setup in time, `start.countDown()` still fires before throwing. This prevents stranding the other worker on the latch forever.
+9. `alpha.get` and `beta.get` enforce timeouts and print in a **fixed identifier order**, independent of actual thread completion order.
+10. `finally` calls `shutdownNow()` then `awaitTermination` to reduce the risk of deleting files still in use by workers. If workers do not stop in time, the demo deliberately preserves `root` and throws rather than deleting an active tree.
+11. `Files.walkFileTree` deletes files before directories and does not follow symbolic links by default. Never run recursive deletion on untrusted external paths.
 
-**Giới hạn minh bạch:** đây là integration demo đơn giản, không phải một công cụ bảo đảm mọi race trong production đều được phát hiện. Timeout 5 giây là lựa chọn cho demo; máy CI tải nặng có thể vượt deadline và báo lỗi dù thuật toán không sai. Test suite thực tế cần deadline theo SLA môi trường, tài nguyên test phù hợp và quan sát rõ khi timeout. `finally` trong ví dụ có thể báo lỗi cleanup/termination thay thế lỗi trước đó; framework thực tế nên giữ lỗi gốc và gắn cleanup error làm suppressed exception.
+**Transparent limitations:** this is a simple integration demo, not a tool guaranteeing detection of all production races. A 5-second timeout suits a demo; heavily loaded CI runners may exceed deadlines and fail even when the algorithm is sound. Production test suites need SLA-appropriate deadlines, proper test resources, and clear timeout diagnostics. `finally` in this demo could throw a cleanup/termination error masking an earlier failure; real frameworks should preserve the primary error and attach cleanup errors as suppressed exceptions.
 
-## 10. Kiểm thử logic event/callback bằng fake để điều khiển thứ tự
+## 10. Testing Event/Callback Logic With Fakes to Control Order
 
-Để unit test có thể **chủ động sinh event A, B, A trùng lặp, rồi OVERFLOW**, đừng chờ OS tạo đúng lịch đó. Tách logic ứng dụng khỏi adapter nhận event.
+To unit test **deliberately injecting event A, B, duplicate A, and then `OVERFLOW`**, do not wait for the OS to produce that schedule. Decouple application logic from the event-receiving adapter.
 
-Ví dụ giao diện:
+Example interface:
 
 ~~~java
 interface EventSink {
@@ -518,170 +518,170 @@ interface EventSink {
 }
 ~~~
 
-Đây là **API minh họa**, với import `Path`. Production adapter `WatchService` chuyển `WatchEvent` thành lời gọi trên `EventSink`; unit test có thể tự gọi:
+This is an **illustrative API** importing `Path`. The production `WatchService` adapter translates `WatchEvent`s into calls on `EventSink`; unit tests can invoke them directly:
 
 ~~~java
 sink.onCreated(Path.of("input.txt"));
 sink.onModified(Path.of("input.txt"));
-sink.onModified(Path.of("input.txt")); // Event lặp.
+sink.onModified(Path.of("input.txt")); // Duplicate event.
 sink.onOverflow();
 ~~~
 
-Đây là **đoạn minh họa**, giả định `sink` là đối tượng test đã khởi tạo; không độc lập. Assertions nên kiểm tra:
+This is an **illustrative snippet** assuming `sink` is an initialized test instance; not standalone. Assertions should check:
 
-- `input.txt` chỉ được đưa vào danh sách “dirty” đúng một lần nếu ứng dụng có cơ chế dedup.
-- `onOverflow()` đánh dấu cần full reconciliation; các event sau đó không làm mất yêu cầu rescan.
-- Consumer thực thi parse/IO khi snapshot sẵn sàng; event giả không tự biến thành file vật lý.
-- Khi nội dung hiện tại không đổi, xử lý lại event không sinh tác dụng phụ ngoài ý muốn (idempotency).
+- `input.txt` is queued as "dirty" only once if the application deduplicates.
+- `onOverflow()` flags that full reconciliation is needed; subsequent events do not clear the rescan flag.
+- Consumers run parse/I/O only when snapshots are ready; fake events do not magically materialize physical files.
+- When current content hasn't changed, re-processing an event causes no unwanted side effects (idempotency).
 
-Tương tự với `CompletionHandler`, tách code xử lý kết quả sang thành phần có thể inject một completion source. Unit test có thể phát `completed(2)` rồi `completed(3)`, hoặc `failed(IOException)`, mà không cần ép file system thật luôn tạo partial read đúng hai lượt.
+Similarly with `CompletionHandler`, separate result handling into a component accepting an injected completion source. Unit tests can fire `completed(2)` then `completed(3)`, or `failed(IOException)`, without forcing a real filesystem to split reads into exact halves.
 
-**Không dùng fake để thay thế hoàn toàn integration test.** Fake kiểm tra đúng logic của bạn; bài kiểm thử riêng phải xác nhận adapter hoạt động với thư viện/JDK/provider thật trong môi trường triển khai.
+**Never use fakes to replace integration tests completely.** Fakes verify your own logic; separate tests must confirm adapters work with the real library, JDK, and provider in the target environment.
 
-## 11. Race và thứ tự sự kiện: kiểm thử điều thực sự phải đúng
+## 11. Races and Event Ordering: Testing What Actually Must Hold
 
-### 11.1. Race đọc/ghi chung một file
+### 11.1. Shared-file read/write races
 
-Hai thread cùng ghi vào một file hoặc một `ByteBuffer` mutable không được đồng bộ có thể tạo kết quả phụ thuộc lịch. Để kiểm thử một chiến lược đồng bộ, hãy định nghĩa invariant rõ:
+Two threads writing to the same file or unsynchronized mutable `ByteBuffer` can produce schedule-dependent corruption. To test a synchronization strategy, define clear invariants:
 
-- Mỗi record có một sequence ID duy nhất.
-- Nếu writer công bố version mới, reader không thấy record bị cắt nửa.
-- Không có duplicate commit với cùng request ID.
-- Không đọc buffer trước khi thao tác I/O đã hoàn tất.
-- Không có file tạm nào được công bố như bản hoàn chỉnh sau khi lỗi.
+- Each record carries a unique sequence ID.
+- When a writer publishes a new version, readers never observe a half-written record.
+- No duplicate commits for the same request ID.
+- Buffers are never read before the I/O operation completes.
+- No temporary file is ever published as final after an error.
 
-Đặt latch/barrier ngay quanh đoạn tranh chấp mà bạn muốn test; ví dụ hai worker cùng thấy phiên bản cũ rồi cùng thử compare-and-set. Sau khi barrier mở, chỉ một commit hợp lệ được chấp nhận. Không assert thread tên `pool-1-thread-1` phải thắng.
+Place latches/barriers right around the contended section under test; for example, both workers read the old version and then both attempt compare-and-set. Once the barrier opens, only one valid commit succeeds. Never assert that thread `pool-1-thread-1` must win.
 
-### 11.2. Lost update và visibility
+### 11.2. Lost updates and visibility
 
-Một biến `int count` được hai thread cùng thực hiện `count++` có thể bị **lost update** do thao tác không nguyên tử. Nếu test cần kiểm tra số lần callback, dùng `AtomicInteger` hoặc công cụ đồng bộ thích hợp thay vì đọc/ghi biến trần không an toàn.
+An `int count` incremented via `count++` by two threads suffers **lost updates** due to non-atomic read-modify-write. When tests count callbacks, use `AtomicInteger` or proper synchronization instead of reading/writing an unsynchronized plain field.
 
-Khi test chỉ chờ `CountDownLatch.await` thành công, các hành động trước `countDown` của worker có quan hệ happens-before với các hành động sau `await` thành công trong thread chờ theo hợp đồng concurrency. Tuy nhiên, các hành động **sau** khi worker gọi `countDown` chưa chắc đã hoàn tất khi waiter được mở khóa; hãy đặt tín hiệu sau khi trạng thái cần công bố thực sự xong.
+When a test awaits a successful `CountDownLatch.await`, worker actions *before* `countDown` have a happens-before relationship with actions *after* `await` succeeds in the waiting thread per the concurrency memory model. However, actions **after** the worker calls `countDown` are not guaranteed finished when the waiter wakes; place the signal strictly after publishing the required state.
 
-### 11.3. Callback được gọi lại nhiều lần
+### 11.3. Callbacks invoked multiple times
 
-Nếu một adapter hoặc tầng ứng dụng có khả năng phát tín hiệu duplicate, việc `CompletableFuture.complete` trả `false` khi future đã hoàn tất có thể là điểm bắt đầu để tránh công bố kết quả hai lần. Tuy vậy, **future hoàn tất một lần không tự bảo vệ side effect trước lời gọi `complete`**. Nếu callback đã ghi database hai lần rồi mới gọi `complete`, duplicate vẫn có thể xảy ra. Phải đặt idempotency/dedup trước side effect nghiệp vụ.
+If an adapter or layer can fire duplicate signals, `CompletableFuture.complete` returning `false` after completion helps prevent publishing a result twice. Nevertheless, **single-completion futures do not protect side effects executed before `complete`**. If a callback writes to a database twice before calling `complete`, duplicates still happen. Place idempotency/deduplication before business side effects.
 
-## 12. Trường hợp cần kiểm thử timeout, hủy và lỗi
+## 12. Cases Required for Testing Timeouts, Cancellation, and Failures
 
-Với mọi thao tác bất đồng bộ, test nên có đường lỗi độc lập:
+For every asynchronous operation, tests need independent failure paths:
 
-| Tình huống | Cách kích hoạt kiểm soát | Điều phải kiểm chứng |
+| Scenario | Controlled Trigger | What Must Be Verified |
 | --- | --- | --- |
-| Callback thành công | Fake handler phát `completed(n)` hoặc I/O file thật | Có kết quả đúng và đủ byte |
-| Callback thất bại | Fake handler gọi `failed(exception)` | Future của yêu cầu hoàn tất lỗi, không đợi mãi |
-| Partial read | Fake trả lần đầu 2 byte, lần sau phần dư | Offset/buffer được cập nhật đúng, không xử lý nội dung thiếu |
-| EOF sớm | Dùng file ngắn hơn kích thước yêu cầu | Báo lỗi thiếu dữ liệu, không coi thành công |
-| Timeout chờ | Delay có điều khiển bằng latch/future chưa hoàn tất | `get(timeout)` ném timeout, có chính sách hủy/cleanup |
-| Task failure | `Callable` chủ động ném exception | `Future.get` trả `ExecutionException` chứa cause |
-| Concurrent start | Hai worker cùng đến `ready` rồi nhận `go` | Không xung đột file và invariants đúng |
-| Watch event duplicate/overflow | Inject fake event source | Dedup và full rescan theo thiết kế |
-| Watch native không phát event | Kịch bản trên provider hỗ trợ bất định | Snapshot vẫn được reconcile hoặc fallback polling |
-| Worker không dừng | Fake task không hợp tác với interruption | Báo lỗi timeout, không báo “cleanup thành công” |
+| Callback success | Fake handler fires `completed(n)` or real file I/O | Exact result and full byte count |
+| Callback failure | Fake handler calls `failed(exception)` | Request future completes exceptionally; no endless wait |
+| Partial read | Fake returns 2 bytes first, remainder next | Offset/buffer updated properly; incomplete payload not processed |
+| Early EOF | File shorter than requested size | Reports missing-data error; never treats as success |
+| Wait timeout | Controlled delay via uncompleted latch/future | `get(timeout)` throws timeout; cancel/cleanup policy runs |
+| Task failure | `Callable` deliberately throws | `Future.get` throws `ExecutionException` wrapping cause |
+| Concurrent start | Two workers hit `ready` then receive `go` | No file collisions and invariants hold |
+| Watch duplicate/overflow | Inject fake event source | Deduplication and full rescan per design |
+| Native watch drops event | Scenario on provider with unreliable delivery | Snapshot still reconciled or fallback polling runs |
+| Non-responsive worker | Fake task ignores interruption | Reports timeout; does not report "cleanup succeeded" |
 
-**Thời gian trong test** nên có hai vai trò tách biệt: (1) **deadline bảo vệ** để không treo vô hạn; (2) **thời gian nghiệp vụ** cần điều khiển bằng fake clock/ticker nếu logic phụ thuộc vào “sau 10 phút”. Không dùng `Thread.sleep(10 * 60 * 1000)` để test thời gian nghiệp vụ.
+**Time in tests** serves two distinct roles: (1) a **guard deadline** preventing infinite hangs; (2) **business time**, controlled via a fake clock/ticker when logic depends on "after 10 minutes". Never call `Thread.sleep(10 * 60 * 1000)` to test business durations.
 
-Với `ScheduledExecutorService`, kiểm thử logic timer có thể inject scheduler/clock giả để chủ động chạy task đến hạn. Nếu chỉ có integration test scheduler thật, kiểm tra với khoảng dư và deadline hợp lý; không đòi scheduler chạy đúng mili giây.
+For `ScheduledExecutorService`, timer-logic tests can inject a fake scheduler/clock to trigger due tasks deterministically. When integration-testing a real scheduler, assert within generous tolerances and deadlines; never demand millisecond-exact timer firing.
 
-## 13. Tài nguyên và cleanup cũng là một phần của assertion
+## 13. Resources and Cleanup Are Part of the Assertion
 
-Kết quả dữ liệu đúng nhưng test để lại thread pool hoặc file handle có thể làm suite thất thường về sau. Do đó:
+Correct data output from a test that leaks thread pools or file handles still makes later tests in the suite flaky. Therefore:
 
-- Mỗi scenario tạo root tạm riêng; helper chỉ xóa root **do nó tạo và sở hữu**.
-- Mở stream, channel, watch service bằng `try-with-resources` khi phù hợp.
-- ExecutorService cần `shutdown`/`shutdownNow` và `awaitTermination`; trên Java 17 không nên dựa vào cú pháp `try (ExecutorService e = ...)`.
-- Không xóa thư mục nếu tác vụ còn đang sử dụng nó. Thực hiện shutdown và xác minh đã kết thúc trước cleanup khi có race đáng kể.
-- Nếu callback pending hoặc task timeout, cần quyết định hủy/đóng resource, đợi termination hoặc giữ artifact với cảnh báo rõ.
-- Khi cleanup thất bại, giữ nguyên lỗi gốc bằng suppressed exception hoặc cơ chế của framework.
-- Trên Windows, file/channel còn mở có thể khiến xóa file thất bại. Phải đóng chúng trước khi xóa.
-- `WatchService` có thể ném `ClosedWatchServiceException` khi đóng trong lúc thread đang chờ; coi đây là nhánh vòng đời cần được kiểm soát, không đơn giản nuốt mọi exception.
-- Khi root chứa symlink, `walkFileTree` mặc định không đi theo symlink; vẫn tránh cây bị tiến trình không tin cậy sửa đồng thời.
+- Each scenario creates its own temporary root; helpers delete only roots **they created and own**.
+- Open streams, channels, and watch services with `try-with-resources` where applicable.
+- `ExecutorService` requires `shutdown`/`shutdownNow` and `awaitTermination`; on Java 17, do not rely on `try (ExecutorService e = ...)` syntax.
+- Never delete directories while tasks are still using them. Shut down and confirm termination before cleanup whenever races are possible.
+- If callbacks remain pending or tasks time out, decide whether to cancel/close resources, wait for termination, or retain artifacts with an explicit warning.
+- When cleanup fails, preserve the original error via suppressed exceptions or framework mechanisms.
+- On Windows, open files/channels can block file deletion. Close them before deleting.
+- `WatchService` can throw `ClosedWatchServiceException` when closed while a thread waits; handle this as a controlled lifecycle path rather than swallowing all exceptions.
+- When a root contains symlinks, `walkFileTree` does not follow them by default; still avoid trees modified concurrently by untrusted processes.
 
-Test nên kết thúc với trạng thái rõ: mọi task hoàn thành/đã hủy, mọi future được quan sát, không còn handle bị bỏ quên, thư mục tạm đã dọn hoặc có cảnh báo vì lý do giữ lại.
+Tests should finish in a clean, known state: all tasks completed/cancelled, all futures observed, no forgotten handles, and temp directories deleted or flagged with why they were retained.
 
-## 14. Làm sao kiểm chứng tính ổn định?
+## 14. How to Verify Stability
 
-Một lần pass chỉ chứng minh bài test pass **trong lần đó**. Để tăng độ tin cậy:
+Passing once only proves a test passed **that one time**. To build confidence:
 
-1. Chạy lặp lại với nhiều mức tải CPU/I/O và nhiều mức concurrency; thu tỷ lệ fail.
-2. Kiểm tra cả Linux/Windows/macOS nếu ứng dụng cần portable; quan sát khác biệt `WatchService` trên file system cục bộ/NFS/SMB.
-3. Giữ các assertion **không phụ thuộc độ trễ cụ thể**: có thể dùng thời hạn chờ đủ cho môi trường, không dùng “callback phải về trong 20 ms” trừ khi kiểm thử SLA.
-4. Ghi trace có id, thread, offset, số byte thực tế và trạng thái barrier khi có lỗi.
-5. Không dùng test lặp/stress như lý do bỏ các test kiểm soát interleaving. Stress chỉ tăng cơ hội thấy race, không đảm bảo khám phá mọi lịch chạy.
-6. Xem xét test lỗi như overflow, duplicate, EOF sớm, failure callback và timeout bằng fake hoặc fault injection để không cần chờ lỗi hiếm tự xuất hiện.
-7. Không cho test ảnh hưởng hệ thống bên ngoài không kiểm soát (thư mục công cộng, cổng cố định, database thật) nếu không có cô lập.
+1. Run repeatedly under varying CPU/I/O load and concurrency levels; measure failure rates.
+2. Test across Linux/Windows/macOS if portability is required; observe `WatchService` differences across local filesystems and NFS/SMB.
+3. Keep assertions **independent of specific latencies**: use generous guard timeouts for the environment, never "callback must return within 20 ms" unless testing an explicit SLA.
+4. Log traces with IDs, thread, offset, actual byte count, and barrier state on failure.
+5. Never use repeat/stress runs as an excuse to skip controlled-interleaving tests. Stress raises the odds of hitting races, without guaranteeing full schedule coverage.
+6. Test faults like overflow, duplicates, early EOF, callback failures, and timeouts using fakes or fault injection instead of waiting for rare glitches naturally.
+7. Never let tests touch uncontrolled external systems (shared directories, fixed ports, live databases) without isolation.
 
-### Một ma trận QA ngắn cho dự án
+### A short project QA matrix
 
-| Kiểm thử | Có điều khiển? | Pass dựa trên |
+| Test | Controlled? | Passes Based On |
 | --- | --- | --- |
-| Unit: parser xử lý `ENTRY_MODIFY` lặp | Có, fake event source | Chỉ một trạng thái cập nhật hợp lệ |
-| Unit: callback đọc 2 + 3 byte | Có, fake completion | Buffer/offset đúng, hoàn tất đúng 5 byte |
-| Integration: `AsynchronousFileChannel` | Một phần; lịch callback do provider | Future hoàn tất, byte thực tế/nội dung đúng |
-| Integration: `WatchService` local | Giới hạn; delivery do provider | Snapshot đúng; event quan sát và ghi nhận |
-| Integration: hai worker có start barrier | Có ở điểm xuất phát; lịch tiếp theo do OS | Hai kết quả đúng, không collision |
-| Stress: nhiều worker đọc/ghi | Không cố định interleaving | Invariants và tỷ lệ lỗi qua nhiều lượt |
-| End-to-end: xử lý file từ NFS/SMB | Chỉ điều khiển khâu sinh file, khó kiểm soát remote delivery | Dữ liệu cuối đúng, watcher + reconciliation, giám sát độ trễ |
+| Unit: parser handles duplicate `ENTRY_MODIFY` | Yes, fake event source | Only one valid state update |
+| Unit: callback reads 2 + 3 bytes | Yes, fake completion | Buffer/offset correct, completes at 5 bytes |
+| Integration: `AsynchronousFileChannel` | Partial; callback schedule set by provider | Future completes, exact bytes/content match |
+| Integration: local `WatchService` | Limited; delivery set by provider | Snapshot matches; events observed and logged |
+| Integration: two workers with start barrier | Controlled start gate; OS schedules afterward | Both results accurate, no collision |
+| Stress: many workers reading/writing | Unfixed interleaving | Invariants and error rates across runs |
+| End-to-end: processing files over NFS/SMB | Controls file generation only, not remote delivery | Final data accurate, watcher + reconciliation, latency monitoring |
 
-## 15. Lỗi thường gặp và cách khắc phục
+## 15. Common Mistakes and Fixes
 
-| Sai lầm | Hậu quả | Cách đúng |
+| Mistake | Consequence | Proper Approach |
 | --- | --- | --- |
-| `Thread.sleep` rồi assert file tồn tại | Flaky trên máy nhanh/chậm | Chờ tín hiệu hoàn tất rồi kiểm tra |
-| `Future.get()` không timeout | Test có thể treo vĩnh viễn | `get(timeout, unit)` và cleanup |
-| `CountDownLatch.await()` không thời hạn | Kẹt nếu worker fail trước `countDown` | `await(timeout, unit)` |
-| Pool 1 thread nhưng barrier cần 2 task | Starvation/deadlock | Pool đủ worker hoặc đổi thiết kế đồng bộ |
-| Assertion số event WatchService chính xác | Khác nhau theo OS/provider | Assert trạng thái hoặc injection vào parser |
-| Giả định event tới nghĩa file đã ghi xong | Có thể đọc file dở | Await producer completion hoặc protocol publish |
-| Gọi callback rồi coi toàn bộ request hoàn tất | Sai khi partial I/O | Theo dõi tổng byte và offset |
-| Quên `failed(...)` của CompletionHandler | Test đợi future mãi | `completeExceptionally` |
-| Đọc buffer khi async read pending | Race/đọc dữ liệu thiếu | Chờ completion và kiểm soát ownership |
-| Assert callback chạy trên thread tên cố định | Provider/executor khác nhau | Chỉ assert kết quả, có thể test executor riêng nếu contract yêu cầu |
-| Chia sẻ một file path giữa các test parallel | Collision và false failure | Mỗi scenario có root riêng |
-| Dùng biến đếm thường cho callback đa thread | Lost update/visibility lỗi | `AtomicInteger`/lock và synchronization |
-| Assert thứ tự hoàn tất task không có contract | Kết quả thay đổi | So kết quả theo id hoặc tập hợp |
-| Hủy Future và nghĩ side effect đã rollback | File có thể ghi một phần | Cleanup/staging và trạng thái hủy rõ |
-| Cleanup trước khi worker dừng | Race, file deletion thất bại | Shutdown, await termination, sau đó xóa |
-| Chỉ kiểm tra success path | Lỗi/EOF/timeout không được xử lý | Test cả failure và recovery bằng fake/injection |
+| `Thread.sleep` then assert file exists | Flaky on fast/slow machines | Await completion signal, then verify |
+| `Future.get()` without timeout | Tests can hang forever | `get(timeout, unit)` and cleanup |
+| `CountDownLatch.await()` without timeout | Stuck if worker fails before `countDown` | `await(timeout, unit)` |
+| 1-thread pool with barrier needing 2 tasks | Starvation/deadlock | Pool with enough workers or different sync design |
+| Asserting exact `WatchService` event counts | Varies across OS/provider | Assert state or inject into parser |
+| Assuming event arrival means file write finished | Risk of reading partial file | Await producer completion or publish protocol |
+| Treating one callback as full request completion | Breaks on partial I/O | Track total bytes and offset |
+| Forgetting `failed(...)` in `CompletionHandler` | Test waits on future forever | `completeExceptionally` |
+| Reading buffer while async read is pending | Races / incomplete data reads | Await completion and enforce ownership |
+| Asserting callbacks run on a hardcoded thread name | Varies across providers/executors | Assert results only; test executor separately if contracted |
+| Sharing one file path across parallel tests | Collisions and false failures | Dedicated root per scenario |
+| Plain counter incremented in multi-threaded callbacks | Lost updates / visibility bugs | `AtomicInteger` / locks and synchronization |
+| Asserting uncontracted task completion order | Results fluctuate | Compare results by ID or set |
+| Cancelling `Future` and assuming side effects rolled back | Partially written file may remain | Cleanup/staging and explicit cancel states |
+| Cleaning up before workers stop | Races, file deletion failures | Shutdown, await termination, then delete |
+| Testing only the success path | Unhandled error/EOF/timeout paths | Test failures and recovery via fakes/injection |
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-Check Questions
 
-**Câu 1.** Một thread gọi `Thread.sleep(500)` trước khi kiểm tra file được writer bất đồng bộ tạo. Đây có phải bằng chứng writer đã hoàn tất?
+**Question 1.** A thread calls `Thread.sleep(500)` before checking a file created by an async writer. Is this proof the writer finished?
 
-**Đáp án:** Không. Sleep chỉ làm thread chờ thời gian, không xác nhận callback, channel hoặc writer đã hoàn tất. Hãy đợi tín hiệu do writer công bố.
+**Answer:** No. Sleeping only pauses the thread; it does not confirm the callback, channel, or writer finished. Wait for a writer-published completion signal.
 
-**Câu 2.** Vì sao cần hai latch `ready` và `start` khi chạy hai worker?
+**Question 2.** Why are both `ready` and `start` latches needed when running two workers?
 
-**Đáp án:** `ready` cho thread kiểm thử biết cả hai worker đã tới mốc setup; `start` cho phép giải phóng chúng sau khi mọi thứ sẵn sàng, giảm phụ thuộc scheduler trước thời điểm cạnh tranh.
+**Answer:** `ready` tells the test thread both workers reached setup completion; `start` releases them together once everything is ready, reducing scheduler skew before the contended moment.
 
-**Câu 3.** `CompletableFuture.get(5, SECONDS)` timeout. Có được lập tức tái sử dụng `ByteBuffer` đang được cấp cho I/O đó?
+**Question 3.** `CompletableFuture.get(5, SECONDS)` times out. Can you immediately reuse the `ByteBuffer` passed to that I/O operation?
 
-**Đáp án:** Không. Timeout chỉ kết thúc việc đợi; thao tác I/O có thể còn chạy và đang dùng buffer. Cần đóng/hủy/đợi kết thúc theo hợp đồng.
+**Answer:** No. Timing out only stops waiting; the I/O operation may still be running and accessing the buffer. Close/cancel/await termination per contract first.
 
-**Câu 4.** `WatchService` phát hai `ENTRY_MODIFY` cho một file. Test có nên thất bại vì mong đúng một event?
+**Question 4.** `WatchService` emits two `ENTRY_MODIFY` events for one file. Should the test fail because it expected one event?
 
-**Đáp án:** Không, trừ khi bạn đang kiểm thử hợp đồng provider cụ thể đã xác minh điều đó. Logic ứng dụng nên chấp nhận duplicate và đối chiếu trạng thái thực.
+**Answer:** No, unless you are testing a specific provider contract that guarantees it. Application logic should accept duplicates and reconcile real state.
 
-**Câu 5.** Cần chắc chắn parser gọi full rescan khi overflow, nhưng không dễ gây overflow thật trên máy CI. Nên làm gì?
+**Question 5.** You must verify the parser triggers a full rescan on overflow, yet real overflows are hard to trigger on CI. What should you do?
 
-**Đáp án:** Tách parser/reconciler ra thành API nhận event và unit test bằng cách inject event `OVERFLOW`. Giữ một integration test riêng cho adapter WatchService.
+**Answer:** Extract the parser/reconciler behind an event-accepting API and unit test it by injecting an `OVERFLOW` event. Keep a separate integration test for the `WatchService` adapter.
 
-**Câu 6.** Hai task chạy song song trả về đúng kết quả nhưng hoàn tất theo thứ tự khác nhau qua các lượt. Có phải test lỗi?
+**Question 6.** Two concurrent tasks return accurate results yet finish in different orders across runs. Is the test broken?
 
-**Đáp án:** Không nếu nghiệp vụ không yêu cầu thứ tự. Assert kết quả theo request ID, không theo thời điểm completion.
+**Answer:** No, if business logic does not require ordering. Assert results by request ID rather than completion timestamp.
 
-**Câu 7.** Callback đọc 2 byte, lần tiếp 3 byte. Có nên dùng offset cũ cho lần tiếp không?
+**Question 7.** A callback reads 2 bytes, then the next reads 3 bytes. Should the next read reuse the old offset?
 
-**Đáp án:** Không. Với `AsynchronousFileChannel`, phải đọc tại offset cũ + 2, đồng thời giữ `ByteBuffer.position()` đã được hệ thống cập nhật.
+**Answer:** No. With `AsynchronousFileChannel`, read at `oldOffset + 2` while keeping the system-updated `ByteBuffer.position()`.
 
-**Câu 8.** Một test đã pass nhưng executor không được shutdown và còn thread đang ghi file. Có thể coi test đã cô lập hoàn toàn?
+**Question 8.** A test passes, yet its executor was never shut down and a thread is still writing files. Is the test fully isolated?
 
-**Đáp án:** Chưa. Tác vụ còn chạy có thể ảnh hưởng test sau hoặc gây leak. Chờ termination và kiểm soát cleanup là một phần của bài test đáng tin.
+**Answer:** Not yet. Background tasks can interfere with subsequent tests or leak resources. Awaiting termination and controlled cleanup are part of a reliable test.
 
-## 17. Ghi nhớ
+## 17. Key Takeaways
 
-- **Kiểm tra theo tín hiệu hoàn tất và invariants**, không theo thời gian ngủ ngẫu nhiên.
-- **Event của WatchService là gợi ý thay đổi, không phải cam kết số lượng/thứ tự hay thời điểm file hoàn tất**; dùng fake để test logic và snapshot/reconciliation để test trạng thái.
-- **Callback của NIO.2 cần xử lý partial I/O, failure và ownership buffer**; nối trạng thái yêu cầu với `CompletableFuture`/`CountDownLatch` để đợi có timeout.
-- **Concurrency test cần barrier ở đúng điểm tranh chấp**, pool đủ thread và assertion không phụ thuộc scheduler.
-- **Cleanup cũng phải xác định:** giữ phạm vi tài nguyên riêng, shutdown/await worker trước khi dọn, không để exception bất đồng bộ bị thất lạc.
+- **Test against completion signals and invariants**, never arbitrary sleep durations.
+- **`WatchService` events are change hints, not guarantees of count, order, or write completion**; use fakes for logic tests and snapshots/reconciliation for state tests.
+- **NIO.2 callbacks must handle partial I/O, failures, and buffer ownership**; bridge request state to `CompletableFuture`/`CountDownLatch` for bounded waits.
+- **Concurrency tests need barriers right at contended points**, adequately sized pools, and scheduler-independent assertions.
+- **Cleanup must also be deterministic:** isolate resource scopes, shut down/await workers before deleting, and never let async exceptions get lost.

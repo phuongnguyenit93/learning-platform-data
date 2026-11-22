@@ -1,79 +1,79 @@
 # Manifest Automatic-Module-Name
 
-> Phạm vi: Java Platform Module System (JPMS, từ Java 9). **Automatic-Module-Name** là thuộc tính trong manifest của JAR, dùng để đặt tên ổn định cho JAR khi nó được đưa lên module path nhưng chưa có module descriptor tường minh.
+> Scope: Java Platform Module System (JPMS, since Java 9). **Automatic-Module-Name** is an attribute in a JAR manifest used to assign a stable name to a JAR when it is placed on the module path without an explicit module descriptor.
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Xác định đúng vị trí và cú pháp của thuộc tính **Automatic-Module-Name**.
-- Phân biệt explicit module, automatic module và JAR chạy trên class path.
-- Giải thích cách JVM đặt tên automatic module từ manifest hoặc tên file JAR.
-- Thêm thuộc tính này bằng Maven hoặc Gradle.
-- Kiểm tra tên module thực tế và dùng nó trong directive **requires**.
-- Hiểu giới hạn của automatic module trong quá trình chuyển thư viện cũ sang JPMS.
+- Identify the correct location and syntax of the **Automatic-Module-Name** attribute.
+- Distinguish between an explicit module, an automatic module, and a JAR running on the class path.
+- Explain how the JVM derives an automatic module name from the manifest or the JAR file name.
+- Add this attribute using Maven or Gradle.
+- Inspect the actual module name and use it in a **requires** directive.
+- Understand the limitations of automatic modules when migrating legacy libraries to JPMS.
 
-## 1. Automatic-Module-Name là gì?
+## 1. What is Automatic-Module-Name?
 
-Một JAR chưa có file **module-info.class** có thể được dùng như một **automatic module** nếu đặt trên module path. Java cần một tên module để các module khác tham chiếu đến nó bằng directive **requires**.
+A JAR without a **module-info.class** file can be used as an **automatic module** if placed on the module path. Java needs a module name so other modules can refer to it with a **requires** directive.
 
-Tên automatic module được xác định theo thứ tự:
+The automatic module name is determined in this order:
 
-1. Nếu manifest có thuộc tính **Automatic-Module-Name** hợp lệ, dùng giá trị đó.
-2. Nếu không có thuộc tính này, Java suy ra tên module từ tên file JAR.
+1. If the manifest has a valid **Automatic-Module-Name** attribute, use that value.
+2. If that attribute is absent, Java derives the module name from the JAR file name.
 
-Thuộc tính này giúp thư viện công bố tên module ổn định, không phụ thuộc vào tên artifact hoặc phiên bản trong tên file. Ví dụ, các bản phát hành **acme-logging-2.4.0.jar** và **acme-logging-2.5.0.jar** có thể cùng mang tên module **com.acme.logging**.
+This attribute allows a library to publish a stable module name that does not depend on the artifact name or version in the file name. For example, releases **acme-logging-2.4.0.jar** and **acme-logging-2.5.0.jar** can both carry the module name **com.acme.logging**.
 
-**Automatic-Module-Name không tạo ra module descriptor tường minh.** Nó chỉ cung cấp tên cho automatic module khi JAR được xử lý trên module path.
+**Automatic-Module-Name does not create an explicit module descriptor.** It only provides a name for the automatic module when the JAR is processed on the module path.
 
-## 2. Khai báo trong JAR manifest
+## 2. Declaring It in the JAR Manifest
 
-Manifest nằm tại đường dẫn:
+The manifest resides at the path:
 
 ~~~text
 META-INF/MANIFEST.MF
 ~~~
 
-Thêm thuộc tính vào phần main attributes của manifest:
+Add the attribute to the main attributes section of the manifest:
 
 ~~~text
 Manifest-Version: 1.0
 Automatic-Module-Name: com.acme.logging
 ~~~
 
-Một số nguyên tắc khi đặt giá trị:
+Some guidelines when choosing a value:
 
-- Giá trị phải là tên module hợp lệ theo quy tắc định danh module của Java.
-- Nên dùng tên dạng reverse-domain, chẳng hạn **com.acme.logging** hoặc **org.example.parser**.
-- Các thành phần tên được phân cách bằng dấu chấm; tránh dấu gạch ngang, khoảng trắng và ký tự không hợp lệ.
-- Không thêm đuôi **.jar**, đường dẫn, Maven group/artifact syntax hay phiên bản vào giá trị.
-- Tên module có phân biệt chữ hoa và chữ thường; nên chọn một cách viết ổn định và giữ nguyên qua các bản phát hành.
-- Thuộc tính phải nằm trong phần đầu của manifest, trước dòng trống phân cách các named sections.
+- The value must be a valid module name according to Java's module identifier rules.
+- Use reverse-domain naming, such as **com.acme.logging** or **org.example.parser**.
+- Name components are separated by dots; avoid hyphens, spaces, and invalid characters.
+- Do not include the **.jar** extension, paths, Maven group/artifact syntax, or versions in the value.
+- Module names are case-sensitive; choose a consistent casing and keep it unchanged across releases.
+- The attribute must appear in the main section of the manifest, before the blank line separating named sections.
 
-Ví dụ đúng:
+Valid example:
 
 ~~~text
 Manifest-Version: 1.0
 Automatic-Module-Name: org.example.image
 ~~~
 
-Ví dụ không nên dùng:
+Example to avoid:
 
 ~~~text
 Automatic-Module-Name: org-example-image
 ~~~
 
-Dấu gạch ngang trong ví dụ cuối không tạo thành một tên module Java hợp lệ. Hãy dùng **org.example.image**.
+The hyphens in the last example do not form a valid Java module name. Use **org.example.image** instead.
 
-Nếu manifest được tạo bởi build tool, hãy cấu hình thuộc tính trong phần manifest của plugin đóng gói JAR. Không cần tự tạo một file manifest thủ công nếu công cụ build đã quản lý nó.
+If the manifest is generated by a build tool, configure the attribute in the manifest section of the JAR packaging plugin. You do not need to create a manual manifest file if the build tool already manages it.
 
-## 3. Java chọn tên module như thế nào?
+## 3. How Does Java Choose the Module Name?
 
-Cần phân biệt ba trường hợp sau.
+Three cases need to be distinguished.
 
-### Trường hợp A: JAR có module-info.class
+### Case A: The JAR has module-info.class
 
-Nếu JAR có module descriptor tường minh, tên module được lấy từ khai báo **module** trong file **module-info.class**.
+If the JAR has an explicit module descriptor, the module name is taken from the **module** declaration in **module-info.class**.
 
 ~~~java
 module com.acme.logging {
@@ -81,52 +81,52 @@ module com.acme.logging {
 }
 ~~~
 
-Trong trường hợp này, tên trong module descriptor là nguồn xác định tên module. Thuộc tính **Automatic-Module-Name** trong manifest không thay thế hoặc ghi đè tên đã khai báo trong **module-info.class**.
+In this case, the name in the module descriptor is the source of truth for the module name. The **Automatic-Module-Name** attribute in the manifest does not replace or override the name declared in **module-info.class**.
 
-### Trường hợp B: JAR không có module-info.class và được đặt trên module path
+### Case B: The JAR has no module-info.class and is placed on the module path
 
-Java xem JAR là automatic module.
+Java treats the JAR as an automatic module.
 
-- Có **Automatic-Module-Name** hợp lệ: dùng chính giá trị trong manifest.
-- Không có thuộc tính: suy ra tên từ tên file JAR.
+- Has a valid **Automatic-Module-Name**: uses the exact value from the manifest.
+- Lacks the attribute: derives the name from the JAR file name.
 
-Ví dụ:
+Examples:
 
-| Tên file | Manifest | Tên automatic module |
+| File Name | Manifest | Automatic Module Name |
 |---|---|---|
 | **acme-logging-2.4.0.jar** | **com.acme.logging** | **com.acme.logging** |
-| **acme-parser-1.3.jar** | Không có | Tên được suy ra từ tên file, thường là **acme.parser** |
+| **acme-parser-1.3.jar** | None | Name derived from file name, typically **acme.parser** |
 | **image-tools.jar** | **org.example.image** | **org.example.image** |
 
-Quy tắc suy tên từ file có xử lý phần mở rộng và phần phiên bản theo quy tắc đặt tên automatic module. Ký tự không phù hợp được chuẩn hóa thành dấu chấm; vì vậy tên suy ra có thể thay đổi khi tên file, classifier hoặc cách đóng gói thay đổi.
+The file-name derivation rules handle the extension and version portion according to the automatic module naming rules. Non-identifier characters are normalized into dots; therefore, the derived name can change when the file name, classifier, or packaging changes.
 
-Không nên dựa vào tên suy ra cho một thư viện cần cung cấp module name ổn định. Hãy khai báo **Automatic-Module-Name** ngay cả khi hiện tại tên file đã tạo ra một tên có vẻ phù hợp.
+Do not rely on derived names for a library that needs to provide a stable module name. Declare **Automatic-Module-Name** even if the current file name happens to produce a seemingly suitable name.
 
-### Trường hợp C: JAR được đặt trên class path
+### Case C: The JAR is placed on the class path
 
-Thuộc tính **Automatic-Module-Name** không biến JAR thành named module khi chạy trên class path. Các lớp của JAR vẫn thuộc unnamed module theo cơ chế class path truyền thống.
+The **Automatic-Module-Name** attribute does not turn a JAR into a named module when running on the class path. The JAR's classes still belong to the unnamed module under the traditional class path mechanism.
 
-Do đó, cùng một JAR có thể:
+As a result, the same JAR can:
 
-- được dùng như thư viện class path trong ứng dụng cũ;
-- được nhận diện bằng tên automatic module khi đặt trên module path.
+- be used as a class path library in legacy applications;
+- be recognized by its automatic module name when placed on the module path.
 
-Đây là một lý do thuộc tính này hữu ích trong quá trình chuyển đổi thư viện sang JPMS.
+This is one reason the attribute is useful when transitioning a library to JPMS.
 
-## 4. Automatic module có đặc điểm gì?
+## 4. What Are the Characteristics of an Automatic Module?
 
-Khi JAR chưa có module descriptor được đặt trên module path, Java tạo descriptor tự động cho nó. Automatic module là một named module, vì vậy module khác có thể tham chiếu đến nó bằng tên trong **requires**.
+When a JAR without a module descriptor is placed on the module path, Java synthesizes a descriptor for it automatically. An automatic module is a named module, so other modules can reference it by name in **requires**.
 
-Automatic module có các đặc điểm đáng chú ý:
+Automatic modules have notable characteristics:
 
-- Nó đọc được các module khác trong module configuration theo quy tắc của automatic module.
-- Tất cả package của nó được export, nên module phụ thuộc có thể truy cập các public type trong những package đó.
-- Nó không có danh sách **requires**, **exports**, **opens**, **uses** và **provides** do tác giả thư viện thiết kế trong một module descriptor tường minh.
-- Tên module vẫn được quản lý trong module graph như tên của một named module.
+- It can read all other modules in the module configuration according to automatic module rules.
+- All of its packages are exported, so dependent modules can access public types in those packages.
+- It does not have explicit lists of **requires**, **exports**, **opens**, **uses**, and **provides** designed by the library author in an explicit module descriptor.
+- Its module name is still managed in the module graph just like any named module's name.
 
-Hệ quả là automatic module giúp thư viện cũ tham gia module graph nhanh chóng, nhưng không cung cấp mức đóng gói và khai báo phụ thuộc rõ ràng như explicit module.
+Consequently, automatic modules allow legacy libraries to participate in the module graph quickly, but they do not provide clear encapsulation and dependency declarations like explicit modules.
 
-Ví dụ, đặt JAR có tên module **com.acme.logging** trên module path cho phép module ứng dụng khai báo:
+For example, placing a JAR with module name **com.acme.logging** on the module path allows an application module to declare:
 
 ~~~java
 module com.acme.app {
@@ -134,11 +134,11 @@ module com.acme.app {
 }
 ~~~
 
-Ứng dụng có thể biên dịch và chạy với thư viện đó mà chưa cần thư viện có **module-info.java**.
+The application can compile and run with that library without requiring the library to have **module-info.java** yet.
 
-## 5. Cấu hình bằng Maven
+## 5. Configuring with Maven
 
-Với Maven, dùng **maven-jar-plugin** để thêm manifest entry vào JAR được đóng gói:
+With Maven, use **maven-jar-plugin** to add the manifest entry to the packaged JAR:
 
 ~~~xml
 <plugin>
@@ -155,19 +155,19 @@ Với Maven, dùng **maven-jar-plugin** để thêm manifest entry vào JAR đư
 </plugin>
 ~~~
 
-Đặt cấu hình này trong phần **build/plugins** của file **pom.xml**.
+Place this configuration in the **build/plugins** section of **pom.xml**.
 
-Sau khi chạy:
+After running:
 
 ~~~bash
 mvn clean package
 ~~~
 
-JAR đầu ra sẽ chứa manifest entry **Automatic-Module-Name: com.acme.logging** nếu plugin này thực sự tạo artifact mà bạn định phát hành.
+The output JAR will contain the manifest entry **Automatic-Module-Name: com.acme.logging** if this plugin actually creates the artifact you intend to release.
 
-Nếu dự án có nhiều loại JAR hoặc dùng plugin shade/assembly để tạo JAR cuối cùng, hãy kiểm tra đúng artifact được phân phối. Plugin đóng gói cuối có thể tạo lại manifest và làm mất entry đã khai báo ở bước trước.
+If the project produces multiple JAR types or uses a shade/assembly plugin to create the final JAR, verify the exact distributed artifact. The final packaging plugin may regenerate the manifest and drop the entry declared in an earlier step.
 
-## 6. Cấu hình bằng Gradle
+## 6. Configuring with Gradle
 
 ### Kotlin DSL — build.gradle.kts
 
@@ -193,60 +193,60 @@ tasks.named('jar') {
 }
 ~~~
 
-Sau đó đóng gói:
+Then package:
 
 ~~~bash
 ./gradlew clean jar
 ~~~
 
-Trên Windows có thể dùng **gradlew.bat clean jar**.
+On Windows you can use **gradlew.bat clean jar**.
 
-Tương tự Maven, hãy kiểm tra JAR cuối cùng được publish. Nếu task khác tạo shaded JAR, fat JAR hoặc artifact phân phối riêng, cần bảo đảm manifest của artifact cuối vẫn có thuộc tính này.
+As with Maven, inspect the final published JAR. If another task creates a shaded JAR, fat JAR, or separate distribution artifact, ensure the final artifact's manifest still has this attribute.
 
-## 7. Kiểm tra tên module trong JAR đã đóng gói
+## 7. Checking the Module Name in the Packaged JAR
 
-Không nên chỉ nhìn vào cấu hình build. Hãy kiểm tra artifact thực tế sau khi đóng gói.
+Do not rely solely on looking at the build configuration. Inspect the actual artifact after packaging.
 
-Dùng lệnh **jar --describe-module**:
+Use the **jar --describe-module** command:
 
 ~~~bash
 jar --describe-module --file build/libs/acme-logging-2.4.0.jar
 ~~~
 
-Với JAR không có **module-info.class** nhưng có **Automatic-Module-Name**, kết quả sẽ nhận diện tên module **com.acme.logging** là một automatic module. Nếu kết quả cho thấy tên được suy ra từ tên file, hãy kiểm tra manifest của artifact.
+For a JAR without **module-info.class** but with **Automatic-Module-Name**, the output will identify the module name **com.acme.logging** as an automatic module. If the output shows a name derived from the file name, inspect the artifact's manifest.
 
-Có thể trích manifest để đọc trực tiếp:
+You can extract the manifest to read it directly:
 
 ~~~bash
 jar --extract --file build/libs/acme-logging-2.4.0.jar META-INF/MANIFEST.MF
 ~~~
 
-Sau đó mở file **META-INF/MANIFEST.MF** và tìm dòng:
+Then open **META-INF/MANIFEST.MF** and look for the line:
 
 ~~~text
 Automatic-Module-Name: com.acme.logging
 ~~~
 
-Lệnh trích xuất ghi file vào thư mục hiện tại, vì vậy nên chạy trong một thư mục kiểm tra tạm thời.
+The extract command writes files into the current directory, so run it inside a temporary inspection directory.
 
-Nếu JAR có **module-info.class**, **jar --describe-module** sẽ hiển thị descriptor tường minh. Khi đó, hãy kiểm tra tên module trong descriptor thay vì kỳ vọng thuộc tính manifest quyết định tên.
+If the JAR has **module-info.class**, **jar --describe-module** will display the explicit descriptor. In that case, check the module name in the descriptor rather than expecting the manifest attribute to determine the name.
 
-## 8. Dùng automatic module trong ứng dụng modular
+## 8. Using an Automatic Module in a Modular Application
 
-Giả sử thư viện có file:
+Suppose the library has the file:
 
 ~~~text
 libs/
 └── acme-logging-2.4.0.jar
 ~~~
 
-Manifest của JAR chứa:
+The JAR's manifest contains:
 
 ~~~text
 Automatic-Module-Name: com.acme.logging
 ~~~
 
-Module ứng dụng khai báo:
+The application module declares:
 
 ~~~java
 module com.acme.app {
@@ -254,7 +254,7 @@ module com.acme.app {
 }
 ~~~
 
-Ví dụ cấu trúc source:
+Example source layout:
 
 ~~~text
 src/
@@ -263,7 +263,7 @@ src/
     └── com/acme/app/Main.java
 ~~~
 
-Biên dịch ứng dụng với thư viện trên module path:
+Compile the application with the library on the module path:
 
 ~~~bash
 javac --module-path libs \
@@ -272,65 +272,65 @@ javac --module-path libs \
       -m com.acme.app
 ~~~
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~bash
 java --module-path out:libs \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong ví dụ trên, **com.acme.logging** là tên module mà ứng dụng dùng trong **requires**. Nó không cần trùng với tên file **acme-logging-2.4.0.jar**.
+In the example above, **com.acme.logging** is the module name the application uses in **requires**. It does not need to match the file name **acme-logging-2.4.0.jar**.
 
-Trên Windows, dấu phân cách nhiều phần tử của module path là dấu chấm phẩy (**;**); trên macOS và Linux là dấu hai chấm (**:**).
+On Windows, the separator between multiple module path entries is a semicolon (**;**); on macOS and Linux it is a colon (**:**).
 
-## 9. Những giới hạn và lỗi thường gặp
+## 9. Limitations and Common Pitfalls
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common Cause | How to Fix |
 |---|---|---|
-| Không tìm thấy module khi biên dịch | JAR không nằm trên module path hoặc tên trong **requires** không khớp tên module thực tế | Kiểm tra đường dẫn và chạy **jar --describe-module** |
-| Tên module thay đổi theo phiên bản JAR | Manifest thiếu **Automatic-Module-Name**, Java phải suy tên từ filename | Thêm một tên module ổn định vào manifest |
-| Vẫn dùng tên cũ dù đã thêm manifest entry | JAR đang có **module-info.class**, nên tên lấy từ descriptor tường minh | Kiểm tra và cập nhật khai báo **module** trong descriptor |
-| Hai JAR có cùng tên module | Manifest của hai artifact khai báo cùng tên hoặc có nhiều phiên bản cùng xuất hiện trên module path | Chọn tên duy nhất và loại bỏ artifact trùng khỏi module path |
-| Không truy cập được package mong muốn như kỳ vọng | Đang nhầm automatic module với explicit module hoặc nhầm tên module với tên package | Kiểm tra package thực tế, public type và trạng thái module; nhớ rằng automatic module export toàn bộ package |
-| Ứng dụng vẫn chạy trên class path nhưng không resolve được bằng module path | Thuộc tính manifest chỉ đặt tên automatic module, không tự tạo module descriptor hoặc cấu hình phụ thuộc tường minh | Đưa JAR lên module path, dùng đúng tên trong **requires** và kiểm tra module graph |
+| Module not found during compilation | JAR is not on the module path or the name in **requires** does not match the actual module name | Check the path and run **jar --describe-module** |
+| Module name changes with JAR version | Manifest lacks **Automatic-Module-Name**, forcing Java to derive the name from the filename | Add a stable module name to the manifest |
+| Still using old name despite adding manifest entry | JAR has **module-info.class**, so the name comes from the explicit descriptor | Check and update the **module** declaration in the descriptor |
+| Two JARs have the same module name | Two artifacts' manifests declare the same name or multiple versions appear together on the module path | Choose unique names and remove duplicate artifacts from the module path |
+| Expected package access behavior is off | Confusing an automatic module with an explicit module or confusing module name with package name | Check actual packages, public types, and module status; remember automatic modules export all packages |
+| Application runs on class path but fails to resolve on module path | The manifest attribute only names the automatic module and does not create a module descriptor or explicit dependency configuration | Put the JAR on the module path, use the right name in **requires**, and check the module graph |
 
-Một rủi ro khác là **split package**: cùng một package xuất hiện trong nhiều module khác nhau trên module path. Automatic module export tất cả package của nó, nên việc đưa nhiều JAR cũ có cấu trúc package chồng lấn vào module graph có thể gây lỗi resolve hoặc làm kiến trúc khó quản lý. Hãy kiểm tra package của các JAR trước khi ghép chúng vào cùng một ứng dụng modular.
+Another risk is **split packages**: the same package appearing in multiple different modules on the module path. An automatic module exports all of its packages, so bringing multiple legacy JARs with overlapping package structures into the module graph can cause resolution failures or make the architecture difficult to manage. Inspect the packages of JARs before combining them into the same modular application.
 
-Cũng cần phân biệt:
+Also distinguish:
 
-- **Tên module**: định danh trong module graph, ví dụ **com.acme.logging**.
-- **Tên artifact**: tên sản phẩm/thư viện trong hệ thống build, ví dụ **acme-logging**.
-- **Phiên bản artifact**: ví dụ **2.4.0**.
-- **Tên package**: ví dụ **com.acme.logging.api**.
+- **Module name**: identifier in the module graph, e.g., **com.acme.logging**.
+- **Artifact name**: product/library name in the build system, e.g., **acme-logging**.
+- **Artifact version**: e.g., **2.4.0**.
+- **Package name**: e.g., **com.acme.logging.api**.
 
-Chúng có thể có quan hệ quy ước với nhau nhưng không phải cùng một khái niệm.
+They may follow related naming conventions, but they are not the same concept.
 
-## 10. Lộ trình chuyển thư viện cũ sang explicit module
+## 10. Roadmap for Migrating Legacy Libraries to Explicit Modules
 
-**Automatic-Module-Name** là bước chuyển tiếp hữu ích khi thư viện chưa sẵn sàng có **module-info.class**.
+**Automatic-Module-Name** is a useful transitional step when a library is not yet ready for **module-info.class**.
 
-Một lộ trình thường dùng:
+A common roadmap:
 
-1. Giữ thư viện tương thích với class path như hiện tại.
-2. Thêm **Automatic-Module-Name** ổn định vào manifest và phát hành artifact.
-3. Cho ứng dụng modular dùng thư viện qua **requires** với tên đã công bố.
-4. Phân tích package công khai, phụ thuộc và service của thư viện.
-5. Khi sẵn sàng, bổ sung **module-info.java** với các directive **requires**, **exports**, **opens**, **uses** và **provides** thực sự cần thiết.
-6. Kiểm tra module descriptor của JAR phát hành. Khi có descriptor tường minh, tên module trong descriptor là tên được sử dụng; manifest attribute không còn quyết định tên module.
+1. Keep the library compatible with the class path as it currently is.
+2. Add a stable **Automatic-Module-Name** to the manifest and release the artifact.
+3. Let modular applications consume the library via **requires** with the published name.
+4. Analyze the library's public packages, dependencies, and services.
+5. When ready, add **module-info.java** with only the **requires**, **exports**, **opens**, **uses**, and **provides** directives truly needed.
+6. Verify the released JAR's module descriptor. Once an explicit descriptor exists, the module name in the descriptor is used; the manifest attribute no longer determines the module name.
 
-Khi chuyển sang explicit module, hãy xem đây là thay đổi thiết kế API/module boundary: chỉ export package cần công bố, khai báo dependency rõ ràng và kiểm tra khả năng tương thích của người dùng thư viện. Việc chỉ thêm manifest attribute chưa tạo ra các ranh giới đóng gói đó.
+When moving to an explicit module, treat this as an API/module boundary design change: export only packages meant to be public, declare dependencies explicitly, and check compatibility for library consumers. Merely adding a manifest attribute does not create those encapsulation boundaries.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- **Automatic-Module-Name** là main attribute trong **META-INF/MANIFEST.MF**.
-- Nó đặt tên ổn định cho JAR chưa có **module-info.class** khi JAR nằm trên module path.
-- Nếu manifest không có thuộc tính, tên automatic module được suy ra từ tên file JAR.
-- Nếu JAR có module descriptor tường minh, tên trong descriptor được ưu tiên.
-- Đặt JAR trên class path vẫn dùng unnamed module; manifest attribute không thay đổi cơ chế class path.
-- Automatic module export tất cả package và đọc các module khác trong module configuration; nó là cầu nối tương thích, không thay thế một module descriptor được thiết kế đầy đủ.
-- Kiểm tra artifact cuối bằng **jar --describe-module** trước khi phát hành.
+- **Automatic-Module-Name** is a main attribute in **META-INF/MANIFEST.MF**.
+- It assigns a stable name to a JAR without **module-info.class** when the JAR is on the module path.
+- If the manifest lacks the attribute, the automatic module name is derived from the JAR file name.
+- If the JAR has an explicit module descriptor, the name in the descriptor takes precedence.
+- Placing the JAR on the class path still uses the unnamed module; the manifest attribute does not alter class path mechanics.
+- Automatic modules export all packages and read other modules in the module configuration; they are a compatibility bridge, not a replacement for a properly designed module descriptor.
+- Verify the final artifact with **jar --describe-module** before publishing.
 
-## Tài liệu tham khảo
+## References
 
 - [JEP 261 — Module System](https://openjdk.org/jeps/261)
 - [JAR File Specification — Manifest](https://docs.oracle.com/en/java/javase/21/docs/specs/jar/jar.html)

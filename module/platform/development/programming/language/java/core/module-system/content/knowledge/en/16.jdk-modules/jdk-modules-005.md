@@ -1,10 +1,10 @@
-# requires module JDK và runtime image
+# Requiring JDK Modules and Runtime Images
 
-## 1. Vai trò của requires trong Java Module System
+## 1. The Role of requires in the Java Module System
 
-Trong Java Platform Module System (JPMS), mỗi named module mô tả các phụ thuộc trực tiếp của nó trong file **module-info.java**. Chỉ thị **requires** khai báo rằng module hiện tại cần đọc một module khác để biên dịch và chạy.
+In the Java Platform Module System (JPMS), every named module describes its direct dependencies in a **module-info.java** file. The **requires** directive declares that the current module needs to read another module to compile and run.
 
-Ví dụ, một ứng dụng dùng JDBC và Java Logging có thể khai báo:
+For example, an application using JDBC and Java Logging can declare:
 
 ~~~java
 module com.example.app {
@@ -15,56 +15,56 @@ module com.example.app {
 }
 ~~~
 
-Ở đây, module **com.example.app** phụ thuộc vào hai module JDK là **java.sql** và **java.logging**. Khi biên dịch hoặc khởi chạy ứng dụng theo module path, hệ thống module phải phân giải được các module được yêu cầu cùng những phụ thuộc bắt buộc của chúng.
+Here, module **com.example.app** depends on two JDK modules: **java.sql** and **java.logging**. When compiling or launching the application via the module path, the module system must resolve the requested modules along with their required dependencies.
 
-**requires** tạo quan hệ readability giữa các module. Nhờ quan hệ này, mã trong module hiện tại có thể truy cập các kiểu được module phụ thuộc xuất ra bằng **exports**, đồng thời tuân theo quy tắc đóng gói và truy cập của JPMS.
+**requires** establishes a readability relationship between modules. Through this relationship, code in the current module can access types exported by the required module via **exports**, while obeying JPMS encapsulation and access rules.
 
-Cần phân biệt ba khái niệm:
+Distinguish three concepts:
 
-- **requires** khai báo phụ thuộc module và khả năng đọc module đó.
-- **exports** công khai một package để module khác có thể truy cập các kiểu public trong package.
-- **opens** cho phép truy cập phản chiếu sâu vào package, thường phục vụ framework hoặc thư viện cần reflection.
+- **requires** declares a module dependency and readability of that module.
+- **exports** exposes a package so other modules can access public types in that package.
+- **opens** permits deep reflective access to a package, typically for frameworks or libraries needing reflection.
 
-Một module có thể đọc module khác nhưng không tự động truy cập được mọi package bên trong module đó. Package phải được xuất hoặc mở phù hợp với cách truy cập.
+One module can read another without automatically gaining access to every package inside that module. Packages must be exported or opened appropriately for the type of access.
 
-## 2. Khai báo phụ thuộc vào module JDK
+## 2. Declaring Dependencies on JDK Modules
 
-JDK được tổ chức thành nhiều module có tên. Một số module thường gặp:
+The JDK is organized into many named modules. Some commonly encountered modules:
 
-| Module | Chức năng tiêu biểu |
+| Module | Typical functionality |
 |---|---|
-| **java.base** | Các kiểu nền tảng như Object, String, collections, I/O cơ bản và concurrency |
-| **java.logging** | API logging chuẩn của Java |
+| **java.base** | Foundational types such as Object, String, collections, basic I/O, and concurrency |
+| **java.logging** | Java's standard logging API |
 | **java.sql** | JDBC API |
-| **java.xml** | XML, DOM, SAX và các API XML liên quan |
+| **java.xml** | XML, DOM, SAX, and related XML APIs |
 | **java.net.http** | HTTP Client API |
-| **java.desktop** | AWT, Swing và một số API desktop |
+| **java.desktop** | AWT, Swing, and several desktop APIs |
 | **java.naming** | JNDI |
-| **java.management** | JMX và API quản lý JVM |
+| **java.management** | JMX and JVM management APIs |
 
-Có thể xem các module có sẵn trong JDK đang sử dụng bằng:
+You can view the modules available in the JDK in use with:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Để xem nội dung và các khai báo của một module:
+To view the contents and declarations of a module:
 
 ~~~bash
 java --describe-module java.sql
 ~~~
 
-Module **java.base** được hệ thống module đọc ngầm bởi mọi named module. Vì vậy, thông thường không cần viết **requires java.base** trong module descriptor.
+The **java.base** module is implicitly read by the module system for every named module. Therefore, you normally do not need to write **requires java.base** in a module descriptor.
 
-Ví dụ, nếu ứng dụng gọi JDBC, có thể khai báo **requires java.sql**. Nếu ứng dụng dùng HTTP Client chuẩn, khai báo **requires java.net.http**. Hãy khai báo theo API mà mã của module thực sự sử dụng, không thêm hàng loạt module JDK chỉ vì chúng có mặt trong một bản JDK đầy đủ.
+For instance, if an application calls JDBC, you can declare **requires java.sql**. If it uses the standard HTTP Client, declare **requires java.net.http**. Declare dependencies based on the APIs your module's code actually uses, rather than adding numerous JDK modules simply because they are present in a full JDK.
 
-Một module JDK có thể phụ thuộc vào module JDK khác. Khi hệ thống phân giải module graph, các phụ thuộc bắt buộc sẽ được đưa vào đồ thị. Do đó, runtime image cuối cùng có thể chứa nhiều module hơn các dòng **requires** được viết trực tiếp trong ứng dụng.
+One JDK module may depend on other JDK modules. When the system resolves the module graph, required dependencies are pulled into the graph. As a result, the final runtime image may contain more modules than the **requires** lines written directly in the application.
 
-## 3. Ba dạng requires cần phân biệt
+## 3. Three Forms of requires to Distinguish
 
-### requires thông thường
+### Standard requires
 
-Đây là dạng phổ biến nhất:
+This is the most common form:
 
 ~~~java
 module com.example.report {
@@ -72,11 +72,11 @@ module com.example.report {
 }
 ~~~
 
-Module **java.sql** phải có mặt và được phân giải khi biên dịch cũng như khi chạy module graph. Dùng dạng này khi mã cần API của module phụ thuộc trong hoạt động thông thường.
+Module **java.sql** must be present and resolved both at compile time and when resolving the runtime module graph. Use this form when code needs the dependent module's API during normal execution.
 
 ### requires transitive
 
-Dùng **requires transitive** khi module hiện tại công khai API có kiểu thuộc module phụ thuộc, và các module đọc API của bạn cũng cần đọc module đó.
+Use **requires transitive** when the current module exposes a public API containing types from a dependent module, and modules reading your API also need to read that module.
 
 ~~~java
 module com.example.data.api {
@@ -86,13 +86,13 @@ module com.example.data.api {
 }
 ~~~
 
-Giả sử một phương thức public của **com.example.data.api** trả về **java.sql.Connection**. Module tiêu thụ API này cần đọc **java.sql** để sử dụng kiểu trong chữ ký phương thức. Khai báo transitive truyền khả năng đọc module phụ thuộc đến các module đọc module hiện tại.
+Suppose a public method of **com.example.data.api** returns **java.sql.Connection**. A module consuming this API needs to read **java.sql** to use the type in the method signature. Declaring transitive propagates readability of the dependent module to modules reading the current module.
 
-Không nên dùng transitive cho mọi phụ thuộc. Nếu module chỉ dùng một thư viện bên trong implementation và không để kiểu của thư viện đó xuất hiện trong API công khai, **requires** thông thường thường phù hợp hơn. Khai báo transitive rộng quá mức làm tăng các phụ thuộc mà người dùng module phải đọc.
+Do not use transitive for every dependency. If a module only uses a library inside its implementation and does not expose that library's types in its public API, a regular **requires** is usually more appropriate. Overusing transitive declarations increases the dependencies consumers must read.
 
 ### requires static
 
-Dùng **requires static** khi module cần một phụ thuộc lúc biên dịch nhưng phụ thuộc đó là tùy chọn trong quá trình phân giải runtime:
+Use **requires static** when a module needs a dependency at compile time, yet that dependency is optional during runtime resolution:
 
 ~~~java
 module com.example.app {
@@ -100,23 +100,23 @@ module com.example.app {
 }
 ~~~
 
-Một trường hợp thường gặp là thư viện annotation chỉ cần trong quá trình biên dịch hoặc xử lý công cụ. Module được yêu cầu vẫn phải có mặt trên module path khi biên dịch. Ở runtime, module có thể không được cài đặt mà module hiện tại vẫn phân giải được.
+A common case is an annotations library needed only during compilation or tooling processing. The required module must still be present on the module path at compile time. At runtime, that module may be absent while the current module still resolves.
 
-Tuy nhiên, nếu ứng dụng thực sự gọi class hoặc method của module tùy chọn khi chạy, việc bỏ module đó khỏi runtime có thể dẫn đến lỗi khi đường chạy tương ứng được thực thi. **requires static** không tự tải thư viện và cũng không làm cho việc sử dụng API runtime trở nên an toàn khi thiếu module.
+However, if the application actually invokes classes or methods from the optional module at runtime, omitting that module from the runtime can cause errors when that execution path runs. **requires static** neither loads the library automatically nor makes runtime API usage safe when the module is absent.
 
-Có thể ghi nhớ:
+Summary to remember:
 
-| Cú pháp | Ý nghĩa chính |
+| Syntax | Primary meaning |
 |---|---|
-| **requires M** | Phụ thuộc bắt buộc khi biên dịch và khi phân giải runtime |
-| **requires transitive M** | Phụ thuộc bắt buộc, đồng thời truyền readability đến module đọc module hiện tại |
-| **requires static M** | Bắt buộc khi biên dịch, tùy chọn khi phân giải runtime |
+| **requires M** | Mandatory dependency at compile time and runtime resolution |
+| **requires transitive M** | Mandatory dependency, also propagating readability to modules reading the current module |
+| **requires static M** | Mandatory at compile time, optional during runtime resolution |
 
-## 4. Chọn phụ thuộc đúng cho module ứng dụng
+## 4. Choosing the Right Dependencies for Application Modules
 
-Trước khi tạo runtime image, hãy xác định module nào thực sự thuộc đồ thị ứng dụng.
+Before building a runtime image, identify which modules actually belong to the application graph.
 
-Ví dụ một ứng dụng có các package sau:
+For example, consider an application with the following packages:
 
 ~~~text
 com.example.app
@@ -125,7 +125,7 @@ com.example.app.db
 com.example.app.internal
 ~~~
 
-Ứng dụng dùng JDBC để truy cập cơ sở dữ liệu, ghi log và công khai một API không để kiểu JDBC xuất hiện trong chữ ký public. Descriptor có thể là:
+The application uses JDBC to access a database, writes logs, and exports an API without exposing JDBC types in public signatures. Its descriptor can be:
 
 ~~~java
 module com.example.app {
@@ -136,27 +136,27 @@ module com.example.app {
 }
 ~~~
 
-Nếu API public của ứng dụng trả về kiểu **java.sql.Connection** hoặc nhận kiểu này làm tham số, hãy cân nhắc **requires transitive java.sql** để các module tiêu thụ API đọc được kiểu đó. Nếu JDBC chỉ được dùng bên trong implementation, giữ **requires java.sql** thông thường.
+If the application's public API returns **java.sql.Connection** or accepts it as a parameter, consider **requires transitive java.sql** so modules consuming the API can read that type. If JDBC is only used internally in the implementation, keep a regular **requires java.sql**.
 
-Các package không được **exports** vẫn có thể được sử dụng bên trong module. Đây là cách giữ implementation nội bộ và giảm bề mặt API công khai.
+Packages that are not **exports**ed can still be used inside the module. This is how internal implementation is kept encapsulated and the public API surface is minimized.
 
-Nếu framework cần reflection sâu vào package nội bộ, cân nhắc **opens** hoặc **opens ... to** cho đúng module framework. Không thêm **opens** chỉ để giải quyết một lỗi readability do thiếu **requires**; hai chỉ thị xử lý hai khía cạnh khác nhau.
+If a framework needs deep reflection into an internal package, consider **opens** or **opens ... to** targeting the specific framework module. Do not add **opens** merely to resolve a readability error caused by a missing **requires**; the two directives address different aspects.
 
-## 5. Từ module descriptor đến module graph
+## 5. From Module Descriptors to the Module Graph
 
-Khi biên dịch hoặc khởi chạy named module, JPMS xây dựng module graph từ các module gốc và những phụ thuộc được khai báo. Các module phải được tìm thấy trên module path hoặc trong các module của runtime đang sử dụng.
+When compiling or launching a named module, JPMS constructs a module graph from the root modules and their declared dependencies. Modules must be found on the module path or among the modules of the runtime in use.
 
-Ví dụ, một module ứng dụng yêu cầu **java.sql**. Module **java.sql** lại có những phụ thuộc riêng. Hệ thống phân giải tiếp tục theo các quan hệ bắt buộc để tạo đồ thị nhất quán.
+For instance, an application module requires **java.sql**. The **java.sql** module in turn has its own dependencies. The resolver continues following required relationships to build a consistent graph.
 
-Có thể xem descriptor của module JDK để hiểu các phụ thuộc đó:
+You can inspect a JDK module's descriptor to understand those dependencies:
 
 ~~~bash
 java --describe-module java.sql
 ~~~
 
-Các phụ thuộc được hệ thống module đưa vào graph không đồng nghĩa ứng dụng phải viết tất cả chúng trong **module-info.java**. Mỗi module chỉ nên khai báo phụ thuộc trực tiếp mà mã hoặc API của chính nó cần.
+Dependencies brought into the graph by the module system do not mean the application must list all of them in **module-info.java**. Each module should only declare the direct dependencies required by its own code or API.
 
-Đối với module service, cần phân biệt khai báo **uses** và **provides** với **requires**:
+For service modules, distinguish **uses** and **provides** declarations from **requires**:
 
 ~~~java
 module com.example.app {
@@ -164,13 +164,13 @@ module com.example.app {
 }
 ~~~
 
-**uses** khai báo module sử dụng một service; **provides ... with ...** khai báo module cung cấp implementation. Nếu muốn runtime image chứa các provider được phát hiện trên module path, có thể dùng tùy chọn **--bind-services** của jlink ở bước tạo image.
+**uses** declares that the module consumes a service; **provides ... with ...** declares that the module provides an implementation. If you want the runtime image to include providers discovered on the module path, you can use jlink's **--bind-services** option during image creation.
 
-## 6. Chuẩn bị module để tạo runtime image
+## 6. Preparing Modules to Create a Runtime Image
 
-Công cụ **jlink** tạo một runtime image tùy chỉnh từ các module. Image bao gồm runtime Java và những module được chọn cùng phụ thuộc cần thiết. Việc tạo image thường có ý nghĩa khi ứng dụng đã được tổ chức thành named module.
+The **jlink** tool builds a custom runtime image from modules. The image includes the Java runtime and the selected modules along with their required dependencies. Building an image typically makes sense once an application has been organized into named modules.
 
-Một cấu trúc dự án minh họa:
+An illustrative project structure:
 
 ~~~text
 project/
@@ -185,7 +185,7 @@ project/
   mods/
 ~~~
 
-Ví dụ **module-info.java** của ứng dụng:
+Example **module-info.java** for the application:
 
 ~~~java
 module com.example.app {
@@ -194,7 +194,7 @@ module com.example.app {
 }
 ~~~
 
-Ví dụ class khởi chạy:
+Example launcher class:
 
 ~~~java
 package com.example.app;
@@ -206,25 +206,25 @@ public class Main {
 }
 ~~~
 
-Biên dịch module ứng dụng:
+Compile the application module:
 
 ~~~bash
 javac -d mods --module-source-path src -m com.example.app
 ~~~
 
-Sau khi biên dịch, thư mục **mods** chứa các module đã biên dịch. Nếu ứng dụng phụ thuộc vào module thư viện riêng, các module đó cũng phải được biên dịch hoặc đặt trên module path để jlink phân giải được.
+After compilation, the **mods** directory contains the compiled modules. If the application depends on separate library modules, those modules must also be compiled or placed on the module path so jlink can resolve them.
 
-Có thể kiểm tra module đã biên dịch bằng:
+You can verify the compiled modules with:
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Lệnh này cho biết những module quan sát được trên module path kết hợp với runtime hiện tại. Nó giúp xác nhận tên module và vị trí module trước khi tạo image.
+This command shows the modules observable on the module path combined with the current runtime. It helps confirm module names and locations before creating the image.
 
-## 7. Tạo runtime image bằng jlink
+## 7. Creating a Runtime Image with jlink
 
-Một lệnh cơ bản trên Linux hoặc macOS:
+A basic command on Linux or macOS:
 
 ~~~bash
 jlink \
@@ -233,21 +233,21 @@ jlink \
   --output runtime-image
 ~~~
 
-Trong đó:
+Where:
 
-- **--module-path** chỉ định nơi jlink tìm module. Thư mục **$JAVA_HOME/jmods** chứa các module của JDK; **mods** chứa module ứng dụng đã biên dịch.
-- **--add-modules** chỉ định module gốc cần đưa vào image. jlink sẽ phân giải các phụ thuộc bắt buộc của module gốc.
-- **--output** là thư mục runtime image được tạo ra.
+- **--module-path** specifies where jlink looks for modules. The **$JAVA_HOME/jmods** directory holds JDK modules; **mods** holds compiled application modules.
+- **--add-modules** specifies the root modules to include in the image. jlink resolves required dependencies of the root modules.
+- **--output** is the resulting runtime image directory.
 
-Trên Windows, dấu phân cách các phần tử module path là dấu chấm phẩy. Ví dụ trong PowerShell:
+On Windows, the separator between module path entries is a semicolon. For example, in PowerShell:
 
 ~~~powershell
 jlink --module-path "$env:JAVA_HOME\jmods;mods" --add-modules com.example.app --output runtime-image
 ~~~
 
-Thay **com.example.app** bằng tên module thực tế. Nếu ứng dụng phụ thuộc vào các module ứng dụng khác, jlink sẽ phân giải chúng khi chúng có mặt trên module path và được khai báo đúng.
+Replace **com.example.app** with the actual module name. If the application depends on other application modules, jlink will resolve them when they are present on the module path and properly declared.
 
-Không cần liệt kê từng module JDK phụ thuộc một cách thủ công nếu module graph đã được khai báo chính xác. Tuy vậy, có thể chỉ định nhiều module gốc bằng danh sách phân tách dấu phẩy khi image cần chứa thêm module độc lập:
+You do not need to list every dependent JDK module manually if the module graph is declared accurately. Still, you can specify multiple root modules as a comma-separated list when the image needs to include additional independent modules:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" \
@@ -255,11 +255,11 @@ jlink --module-path "$JAVA_HOME/jmods:mods" \
       --output runtime-image
 ~~~
 
-Chỉ thêm **java.xml** nếu ứng dụng hoặc yêu cầu triển khai thực sự cần module đó.
+Only add **java.xml** if the application or deployment requirements genuinely need that module.
 
-## 8. Tạo launcher và tối ưu runtime image
+## 8. Creating a Launcher and Optimizing the Runtime Image
 
-Có thể yêu cầu jlink tạo launcher cho module và class main:
+You can ask jlink to generate a launcher for a module and main class:
 
 ~~~bash
 jlink \
@@ -272,124 +272,124 @@ jlink \
   --output runtime-image
 ~~~
 
-Sau khi tạo image, launcher có thể được gọi bằng:
+After creating the image, the launcher can be invoked with:
 
 ~~~bash
 ./runtime-image/bin/app
 ~~~
 
-Nếu không tạo launcher riêng, có thể chạy module bằng Java executable nằm trong image:
+If you do not generate a custom launcher, you can run the module using the Java executable inside the image:
 
 ~~~bash
 ./runtime-image/bin/java -m com.example.app/com.example.app.Main
 ~~~
 
-Một số tùy chọn thường dùng:
+Some commonly used options:
 
-- **--strip-debug** loại bỏ thông tin debug khỏi runtime image.
-- **--no-header-files** bỏ các header native.
-- **--no-man-pages** bỏ trang hướng dẫn.
-- **--compress=2** bật mức nén tài nguyên trong image trên các JDK hỗ trợ tùy chọn này.
-- **--bind-services** liên kết các service provider phù hợp và các module phụ thuộc của chúng.
-- **--launcher** tạo lệnh khởi chạy tiện dụng cho module và main class đã chỉ định.
+- **--strip-debug** removes debug information from the runtime image.
+- **--no-header-files** omits native header files.
+- **--no-man-pages** omits manual pages.
+- **--compress=2** enables resource compression in the image on JDKs supporting this option.
+- **--bind-services** binds matching service providers and their dependent modules.
+- **--launcher** creates a convenient launch command for the specified module and main class.
 
-Tùy chọn tối ưu làm thay đổi nội dung hoặc kích thước image. Hãy kiểm tra danh sách tùy chọn bằng **jlink --help** trên đúng phiên bản JDK đang dùng. Với ứng dụng dựa vào ServiceLoader, hãy kiểm tra service provider được đưa vào image và cân nhắc **--bind-services**.
+Optimization options alter the contents or size of the image. Check the available options with **jlink --help** on the exact JDK version in use. For applications relying on ServiceLoader, check which service providers are included in the image and consider **--bind-services**.
 
-## 9. Kiểm tra runtime image sau khi tạo
+## 9. Verifying the Runtime Image After Creation
 
-Sau khi jlink hoàn tất, không nên xem việc tạo thư mục thành công là bằng chứng ứng dụng đã sẵn sàng. Hãy chạy ứng dụng bằng chính runtime image:
+Once jlink finishes, do not treat directory creation alone as proof that the application is ready. Run the application using the runtime image itself:
 
 ~~~bash
 ./runtime-image/bin/app
 ~~~
 
-Hoặc nếu không tạo launcher:
+Or if no launcher was created:
 
 ~~~bash
 ./runtime-image/bin/java -m com.example.app/com.example.app.Main
 ~~~
 
-Có thể liệt kê các module có trong image:
+You can list the modules included in the image:
 
 ~~~bash
 ./runtime-image/bin/java --list-modules
 ~~~
 
-Nên kiểm tra ít nhất:
+At a minimum, verify:
 
-1. Ứng dụng khởi động được bằng Java executable trong image.
-2. Các chức năng truy cập database, logging, XML, HTTP hoặc desktop hoạt động đúng nếu ứng dụng sử dụng chúng.
-3. Các service provider được tìm thấy nếu ứng dụng dùng ServiceLoader.
-4. Các class được nạp qua reflection hoặc cấu hình động hoạt động đúng.
-5. Tệp cấu hình, tài nguyên, native library và dữ liệu bên ngoài được phân phối cùng ứng dụng.
-6. Kết quả chạy trên môi trường triển khai mục tiêu tương thích với môi trường đã tạo image.
+1. The application starts with the Java executable inside the image.
+2. Database access, logging, XML, HTTP, or desktop features work properly if the application uses them.
+3. Service providers are discovered if the application uses ServiceLoader.
+4. Classes loaded via reflection or dynamic configuration work properly.
+5. Configuration files, resources, native libraries, and external data are distributed alongside the application.
+6. Execution results on the target deployment environment match the environment where the image was built.
 
-Runtime image được tạo cho nền tảng hệ điều hành và kiến trúc tương ứng. Thông thường, hãy tạo và kiểm thử image trên từng nền tảng đích bằng JDK phù hợp.
+A runtime image is built for a specific operating system and architecture. Typically, build and test the image on each target platform using the appropriate JDK.
 
-## 10. Trường hợp ứng dụng chưa modular
+## 10. When the Application Is Not Yet Modular
 
-Nếu ứng dụng vẫn chạy trên classpath và chưa có **module-info.java**, jlink không thể biến các JAR classpath tùy ý thành named module chỉ bằng cách đưa chúng vào **--add-modules**.
+If the application still runs on the classpath and does not yet have **module-info.java**, jlink cannot turn arbitrary classpath JARs into named modules simply by passing them to **--add-modules**.
 
-Có hai hướng phổ biến:
+There are two common approaches:
 
-- Chuyển ứng dụng và các thư viện phù hợp sang named module, bổ sung module descriptor và đặt chúng trên module path.
-- Tạo runtime image chỉ chứa các module JDK cần thiết, sau đó phân phối JAR ứng dụng riêng và khởi chạy bằng classpath của image.
+- Migrate the application and suitable libraries to named modules, add module descriptors, and place them on the module path.
+- Create a runtime image containing only the necessary JDK modules, then distribute application JARs separately and launch them on the image's classpath.
 
-Ví dụ cho hướng thứ hai, sau khi tạo image với các module JDK cần thiết, có thể chạy:
+As an example of the second approach, after creating an image with the required JDK modules, you can run:
 
 ~~~bash
 runtime-image/bin/java -cp "lib/*:app.jar" com.example.app.Main
 ~~~
 
-Trên Windows, classpath dùng dấu chấm phẩy thay cho dấu hai chấm. Cách này vẫn cho phép dùng runtime image gọn hơn, nhưng ứng dụng và các JAR classpath vẫn phải được phân phối riêng.
+On Windows, the classpath uses a semicolon instead of a colon. This still yields a smaller runtime image, though the application and classpath JARs must still be distributed separately.
 
-Nếu muốn jlink đưa chính module ứng dụng vào image, module đó cần có dạng module phù hợp trên module path. Các automatic module thường dùng để tương thích module path không phải đầu vào thay thế cho named module khi tạo image bằng jlink; cần kiểm tra yêu cầu module của JDK đang dùng.
+If you want jlink to bundle the application module itself into the image, that module needs to be in an appropriate module format on the module path. Automatic modules, commonly used for module path compatibility, are not a substitute input for named modules when building images with jlink; check the module requirements of the JDK in use.
 
-## 11. Các lỗi thường gặp
+## 11. Common Errors
 
 **Module not found**
 
-Tên module được yêu cầu không tìm thấy trên module path. Kiểm tra tên trong **module-info.java**, vị trí thư mục **mods**, module path và JDK được dùng để chạy lệnh.
+The requested module name was not found on the module path. Check the name in **module-info.java**, the location of the **mods** directory, the module path, and the JDK used to run the command.
 
 **Module does not read ...**
 
-Module hiện tại chưa khai báo quan hệ readability phù hợp. Kiểm tra **requires** trong descriptor của module gọi API. Nếu kiểu của module phụ thuộc xuất hiện trong API công khai, cân nhắc **requires transitive**.
+The current module has not declared the proper readability relationship. Check **requires** in the descriptor of the module calling the API. If types from the dependent module appear in a public API, consider **requires transitive**.
 
 **Package is not visible**
 
-Module có thể đã được đọc nhưng package cần dùng chưa được module sở hữu xuất ra. Kiểm tra **exports** của module đó. Nếu lỗi đến từ reflection sâu, kiểm tra chính sách **opens** và cấu hình truy cập phản chiếu.
+The module may be read, yet the required package is not exported by its owning module. Check that module's **exports**. If the error comes from deep reflection, check **opens** policies and reflective access configuration.
 
-**jlink không phân giải được module ứng dụng**
+**jlink fails to resolve the application module**
 
-Kiểm tra module path có chứa module đã biên dịch, module descriptor có tên đúng và tất cả phụ thuộc bắt buộc đều có thể phân giải. Dùng **java --describe-module** hoặc **java --module-path ... --list-modules** để hỗ trợ chẩn đoán.
+Verify the module path contains the compiled module, the module descriptor has the right name, and all mandatory dependencies can be resolved. Use **java --describe-module** or **java --module-path ... --list-modules** to help diagnose.
 
-**Ứng dụng chạy trên JDK đầy đủ nhưng lỗi trong image**
+**Application runs on full JDK but fails in the image**
 
-Image có thể thiếu module được tải động, service provider, tài nguyên, native library hoặc thành phần runtime chỉ dùng trong một cấu hình. Kiểm tra luồng thực thi thực tế, khai báo service và các module gốc truyền cho jlink. Có thể thêm module cần thiết vào **--add-modules**, rồi tạo lại và kiểm thử image.
+The image may be missing dynamically loaded modules, service providers, resources, native libraries, or runtime components used only under a specific configuration. Inspect actual execution paths, service declarations, and the root modules passed to jlink. You can add needed modules to **--add-modules**, then rebuild and test the image.
 
-## 12. Quy trình thực hành đề xuất
+## 12. Recommended Practical Workflow
 
-Khi chuyển một ứng dụng sang runtime image tối giản, hãy đi theo thứ tự:
+When migrating an application to a minimal runtime image, follow this order:
 
-1. Xác định module ứng dụng và các module thư viện cần thiết.
-2. Viết **module-info.java** với các khai báo **requires** trực tiếp phù hợp.
-3. Dùng **requires transitive** chỉ khi API công khai cần truyền readability đến module phụ thuộc.
-4. Dùng **requires static** cho phụ thuộc tùy chọn ở runtime nhưng cần có khi biên dịch.
-5. Kiểm tra module graph bằng công cụ của JDK và bảo đảm các module đều phân giải được.
-6. Biên dịch module ứng dụng và thư viện trên module path.
-7. Dùng **jlink --add-modules** để tạo image từ module gốc của ứng dụng.
-8. Thêm launcher hoặc các tùy chọn tối ưu khi có nhu cầu.
-9. Chạy và kiểm thử các chức năng thực tế bằng runtime image.
-10. Tạo image riêng cho từng nền tảng triển khai và lưu lại JDK, lệnh build cùng danh sách module đã chọn.
+1. Identify the application modules and required library modules.
+2. Write **module-info.java** with the appropriate direct **requires** declarations.
+3. Use **requires transitive** only when a public API needs to propagate readability to a dependent module.
+4. Use **requires static** for dependencies that are optional at runtime but required at compile time.
+5. Inspect the module graph with JDK tools and ensure all modules resolve.
+6. Compile application and library modules on the module path.
+7. Use **jlink --add-modules** to create the image from the application's root modules.
+8. Add a launcher or optimization flags as needed.
+9. Run and test real functionality using the runtime image.
+10. Build separate images for each deployment platform and record the JDK, build commands, and selected module list.
 
-## 13. Ghi nhớ
+## 13. Takeaways
 
-- **requires** khai báo module mà mã hiện tại cần đọc.
-- **requires transitive** truyền readability của phụ thuộc tới module tiêu thụ API.
-- **requires static** bắt buộc khi biên dịch nhưng có thể vắng mặt khi phân giải runtime.
-- **java.base** được mọi named module đọc ngầm.
-- **exports** điều khiển package nào được module khác truy cập; **opens** phục vụ truy cập phản chiếu sâu.
-- **jlink** tạo runtime image từ các module đã phân giải, bắt đầu từ những module được chọn qua **--add-modules**.
-- Module graph và runtime image phải được xác nhận bằng cách chạy ứng dụng trên image đã tạo.
+- **requires** declares modules that current code needs to read.
+- **requires transitive** propagates readability of a dependency to modules consuming the API.
+- **requires static** is required at compile time but may be absent during runtime resolution.
+- **java.base** is read implicitly by every named module.
+- **exports** controls which packages other modules can access; **opens** serves deep reflective access.
+- **jlink** creates a runtime image from resolved modules, starting from the modules selected via **--add-modules**.
+- Both the module graph and runtime image must be verified by running the application on the generated image.
 
-Một module descriptor chính xác giúp JPMS xây dựng đồ thị phụ thuộc rõ ràng. jlink dùng đồ thị đó để chọn các module cần thiết cho runtime image. Khi kiểm thử image trên đúng môi trường triển khai, ứng dụng có thể chạy với một runtime Java nhỏ hơn mà vẫn giữ đủ các thành phần mà chức năng thực tế yêu cầu.
+An accurate module descriptor lets JPMS build a clear dependency graph. jlink uses that graph to pick the modules needed for the runtime image. When tested on the exact deployment environment, the application can run on a smaller Java runtime while retaining all components required by its real functionality.

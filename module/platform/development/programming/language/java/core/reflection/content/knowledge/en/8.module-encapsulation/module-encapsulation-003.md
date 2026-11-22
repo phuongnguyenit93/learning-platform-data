@@ -1,61 +1,61 @@
-# Public reflection khác deep reflection như thế nào trong Java?
+# How Does Public Reflection Differ from Deep Reflection in Java?
 
-Trong Java Reflection, **tra cứu metadata** (`getMethod`, `getDeclaredMethod`) và **thực sự truy cập thành viên** (`invoke`, `Field.get`, `Constructor.newInstance`) là hai bước khác nhau. Bài này phân biệt **public reflection** — sử dụng API public mà caller vốn có quyền truy cập — và **deep reflection** — thao tác cần bỏ qua kiểm tra truy cập Java bằng `trySetAccessible()` hoặc `setAccessible(true)`.
+In Java Reflection, **looking up metadata** (`getMethod`, `getDeclaredMethod`) and **actually accessing a member** (`invoke`, `Field.get`, `Constructor.newInstance`) are two separate steps. This lesson distinguishes **public reflection**—using public APIs that the caller already has permission to access—from **deep reflection**—operations that need to bypass Java access checks using `trySetAccessible()` or `setAccessible(true)`.
 
-Với named modules, public API dùng xuyên module thường cần `exports`; truy cập private member của module khác thường cần package `opens` cho caller. Đây là hai cách sử dụng Reflection, không phải hai kiểu `Class` hay hai thư viện API riêng. Ví dụ Java 17+ sẽ cho thấy cùng một chương trình thay đổi kết quả như thế nào khi bổ sung quyền mở package.
+With named modules, public APIs used across modules typically require `exports`; accessing private members of another module typically requires the package to be `opens`-ed to the caller. These are two ways of using Reflection, not two `Class` types or two separate API libraries. A Java 17+ example will show how the same program's output changes when package-opening permission is added.
 
-## 1. Ba lớp câu hỏi cần tách rời
+## 1. Three Layers of Questions to Separate
 
-Khi một framework muốn gọi `Person.secret()` hoặc đọc `Person.name`, hãy trả lời theo đúng thứ tự:
+When a framework wants to invoke `Person.secret()` or read `Person.name`, answer in this exact order:
 
-1. **Có tìm được thành viên không?** `getMethod("name")` tìm public method; `getDeclaredMethod("secret")` tìm method khai báo trực tiếp, kể cả private.
-2. **Caller có được truy cập thành viên bằng Reflection không?** Quy tắc visibility `public`/`private`, quan hệ giữa class/package, và JPMS `exports`/`opens` quyết định điều này.
-3. **Việc sử dụng thực tế có thành công không?** `Method.invoke`, `Field.get`, `Field.set`, `Constructor.newInstance` còn có thể thất bại vì receiver, tham số, trạng thái đối tượng hoặc exception bên trong code được gọi.
+1. **Can the member be found?** `getMethod("name")` finds a public method; `getDeclaredMethod("secret")` finds a directly declared method, including private ones.
+2. **Is the caller permitted to access the member via Reflection?** `public`/`private` visibility rules, class/package relationships, and JPMS `exports`/`opens` determine this.
+3. **Does the actual usage succeed?** `Method.invoke`, `Field.get`, `Field.set`, and `Constructor.newInstance` can still fail due to the receiver, arguments, object state, or exceptions inside the invoked code.
 
-Ví dụ:
+Example:
 
 ```java
 Method method = type.getDeclaredMethod("secret");
 ```
 
-Lệnh trên chỉ tra cứu metadata. Nếu `secret` là private và caller ở module khác, `method.invoke(object)` chưa chắc được phép. Cần xét việc package đã được `opens` chưa và caller đã bật quyền reflective access hợp lệ hay chưa.
+The statement above only looks up metadata. If `secret` is private and the caller is in another module, `method.invoke(object)` is not necessarily permitted. You must check whether the package has been `opens`-ed and whether the caller has validly enabled reflective access.
 
-**Cần nhớ:** `public` là mức truy cập của class/member, còn `exports`/`opens` là quan hệ **package giữa các module**. Một method `public` nằm trong class `public` của package không được export vẫn có thể không gọi được từ module khác theo public reflection.
+**Remember:** `public` is the access level of the class/member, whereas `exports`/`opens` are **package relationships between modules**. A `public` method in a `public` class of an unexported package can still be uncallable from another module via public reflection.
 
-## 2. So sánh trực tiếp
+## 2. Direct Comparison
 
-| Khía cạnh | Public reflection | Deep reflection |
+| Aspect | Public reflection | Deep reflection |
 |---|---|---|
-| Mục đích | Sử dụng API công khai qua runtime metadata | Truy cập thành viên hoặc kiểu không được phép truy cập theo Java access checks thông thường |
-| API tra cứu điển hình | `getMethod`, `getField`, `getConstructor` | `getDeclaredMethod`, `getDeclaredField`, `getDeclaredConstructor` |
-| Có thể thấy metadata private? | Các API `get...` không trả về private member | Các API `getDeclared...` có thể trả metadata private; **chỉ tra cứu chưa đủ để truy cập** |
-| Bỏ qua kiểm tra Java access? | Không cần với API public hợp lệ và package được export | Cần yêu cầu qua `trySetAccessible()` hoặc `setAccessible(true)` khi access checks bình thường không cho phép |
-| Named module cung cấp package | Thường dùng `exports package.name` hoặc `exports package.name to caller.module` | Thường dùng `opens package.name` hoặc `opens package.name to caller.module` |
-| Cho phép import class từ module khác ở compile time? | `exports` cho phép sử dụng public types khi có module readability phù hợp | Chỉ `opens` không biến package thành API được import như `exports` |
-| Rủi ro thiết kế | Phụ thuộc vào hợp đồng API công khai | Phụ thuộc vào chi tiết nội bộ và có thể phá vỡ encapsulation |
+| Purpose | Use public APIs via runtime metadata | Access members or types not permitted under normal Java access checks |
+| Typical lookup APIs | `getMethod`, `getField`, `getConstructor` | `getDeclaredMethod`, `getDeclaredField`, `getDeclaredConstructor` |
+| Can it see private metadata? | `get...` APIs do not return private members | `getDeclared...` APIs can return private metadata; **lookup alone is not enough to access** |
+| Suppress Java access checks? | Not needed for valid public APIs and exported packages | Must request via `trySetAccessible()` or `setAccessible(true)` when normal access checks disallow it |
+| Named module providing the package | Typically uses `exports package.name` or `exports package.name to caller.module` | Typically uses `opens package.name` or `opens package.name to caller.module` |
+| Allows importing classes from another module at compile time? | `exports` allows using public types when appropriate module readability exists | `opens` alone does not turn a package into an importable API like `exports` |
+| Design risk | Depends on the public API contract | Depends on internal details and can break encapsulation |
 
-Bảng mô tả tình huống **giữa các named modules** thông thường. Có ngoại lệ trong quy tắc `AccessibleObject` cho cùng module, các package vốn mở, hoặc một số public/protected static member với quan hệ subclass phù hợp. Không suy ra rằng cứ thấy `private` là luôn cần sửa `module-info.java`: nếu caller và lớp đích **cùng module**, yêu cầu bật reflective access có thể hợp lệ dù package không `opens` ra ngoài.
+The table describes typical scenarios **between named modules**. There are exceptions in the `AccessibleObject` rules for the same module, already open packages, or certain public/protected static members with an appropriate subclass relationship. Do not assume that seeing `private` always means you must edit `module-info.java`: if the caller and target class are in the **same module**, requesting reflective access can be valid even if the package is not `opens`-ed externally.
 
-## 3. Tra cứu metadata không đồng nghĩa được gọi
+## 3. Metadata Lookup Does Not Mean Permission to Call
 
-Các API tra cứu trên đối tượng `Class<?>`:
+Lookup APIs on a `Class<?>` object:
 
 ```java
-// Các đoạn dưới là ví dụ ký hiệu, giả định Sample.class đã tồn tại.
+// The snippets below are illustrative examples, assuming Sample.class exists.
 Method publicMethod = Sample.class.getMethod("execute");
 Method declaredMethod = Sample.class.getDeclaredMethod("internal");
 Field declaredField = Sample.class.getDeclaredField("state");
 Constructor<Sample> ctor = Sample.class.getDeclaredConstructor();
 ```
 
-Phân biệt:
+Distinctions:
 
-- `getMethod`, `getField`, `getConstructor` chỉ tìm những thành viên **public** theo quy tắc tương ứng; với method/field có thể bao gồm thành viên được kế thừa, còn constructor thì không được kế thừa.
-- `getDeclaredMethod`, `getDeclaredField`, `getDeclaredConstructor` tra cứu các thành viên **khai báo trực tiếp** trên lớp, bao gồm public và non-public; không tự đi qua superclass.
-- `getDeclaredMethods()` hay `getDeclaredFields()` có thể liệt kê metadata của private members mà không thực hiện được quyền gọi/đọc chúng. **Không cần `opens` chỉ để dùng `getDeclaredMethod` tìm tên method** trong trường hợp minh họa thông thường.
-- `Method.invoke`, `Field.get`/`set`, `Constructor.newInstance` mới thực hiện hành động, áp dụng access rules và các điều kiện khác.
+- `getMethod`, `getField`, and `getConstructor` find only **public** members under their respective rules; for methods/fields this may include inherited members, whereas constructors are not inherited.
+- `getDeclaredMethod`, `getDeclaredField`, and `getDeclaredConstructor` look up members **declared directly** on the class, including both public and non-public ones; they do not automatically walk superclasses.
+- `getDeclaredMethods()` or `getDeclaredFields()` can list metadata of private members without granting permission to invoke/read them. **You do not need `opens` just to use `getDeclaredMethod` to find a method name** in typical illustrative cases.
+- `Method.invoke`, `Field.get`/`set`, and `Constructor.newInstance` perform the actual action, applying access rules and other conditions.
 
-Ví dụ đơn giản nếu toàn bộ code nằm trong một package ứng dụng thông thường:
+A simple example if all code resides in an ordinary application package:
 
 ```java
 class Example {
@@ -67,20 +67,20 @@ class Example {
 
 ```java
 Method m = Example.class.getDeclaredMethod("secret");
-// Đã có metadata của secret; chưa có quyền gọi method private từ nơi khác.
-// Có thể thử m.trySetAccessible(), nếu quan hệ class/module cho phép.
-// Chỉ sau khi quyền hợp lệ mới sử dụng m.invoke(instance).
+// Already have metadata for secret; no permission yet to call the private method from elsewhere.
+// You can try m.trySetAccessible(), if the class/module relationship permits it.
+// Only after permission is valid should you use m.invoke(instance).
 ```
 
-Hai đoạn code là **minh họa ngữ nghĩa**, chưa phải chương trình độc lập có `main` và import. Phần kế tiếp có ví dụ đầy đủ biên dịch và chạy được.
+These two snippets are **semantic illustrations**, not a standalone program with `main` and imports. The next section has a complete example that compiles and runs.
 
-## 4. JPMS: vì sao `exports` khác `opens`?
+## 4. JPMS: Why Does `exports` Differ from `opens`?
 
-Từ Java 9, `module-info.java` cho phép một named module công bố rõ package nào là API và package nào được mở cho reflective access.
+Since Java 9, `module-info.java` lets a named module explicitly declare which packages are APIs and which packages are opened for reflective access.
 
-Giả sử module `demo.target` sở hữu package `demo.api`, module `demo.client` chứa caller.
+Suppose module `demo.target` owns package `demo.api`, and module `demo.client` contains the caller.
 
-### `exports`: API được sử dụng từ module khác
+### `exports`: API Used from Another Module
 
 ```java
 module demo.target {
@@ -88,11 +88,11 @@ module demo.target {
 }
 ```
 
-Với khai báo này, `demo.api` được **export** đến mọi module đọc `demo.target`. Nếu `demo.api.Person` là public class và `displayName()` là public method, `demo.client` có thể import/sử dụng class đó và gọi method công khai. Reflection gọi `displayName()` theo access checks bình thường cũng hợp lệ.
+With this declaration, `demo.api` is **exported** to every module that reads `demo.target`. If `demo.api.Person` is a public class and `displayName()` is a public method, `demo.client` can import/use that class and call the public method. Reflection invoking `displayName()` under normal access checks is also valid.
 
-`exports` **không cho quyền** truy cập private field/method bằng `setAccessible(true)` từ một module khác. Export cũng không khiến các member package-private/protected tự trở thành public.
+`exports` **does not grant permission** to access private fields/methods with `setAccessible(true)` from another module. Exporting also does not make package-private/protected members automatically become public.
 
-Có thể giới hạn API chỉ cho một module:
+You can restrict the API to a single module:
 
 ```java
 module demo.target {
@@ -100,7 +100,7 @@ module demo.target {
 }
 ```
 
-### `opens`: cho phép deep reflection tại runtime
+### `opens`: Allowing Deep Reflection at Runtime
 
 ```java
 module demo.target {
@@ -109,9 +109,9 @@ module demo.target {
 }
 ```
 
-Khi đó `demo.client` có thể tiếp tục dùng API public, đồng thời có quyền **yêu cầu suppress Java language access checks qua Reflection** đối với members trong package `demo.api` theo cơ chế JPMS. Cách `opens ... to ...` giới hạn người nhận tốt hơn so với mở package cho mọi module.
+Then `demo.client` can continue using the public API while also having permission to **request suppressing Java language access checks via Reflection** for members in package `demo.api` under JPMS rules. Using `opens ... to ...` narrows the recipient better than opening the package to all modules.
 
-Nếu chỉ khai báo:
+If you declare only:
 
 ```java
 module demo.target {
@@ -119,26 +119,26 @@ module demo.target {
 }
 ```
 
-package được mở cho Reflection từ `demo.client`, nhưng **không được export** như API public để `demo.client` import `demo.api.Person` trong Java source một cách thông thường. Framework vẫn có thể sử dụng runtime metadata dựa trên tên lớp và reflective access khi có điều kiện phù hợp.
+the package is opened for Reflection from `demo.client`, yet **is not exported** as a public API for `demo.client` to import `demo.api.Person` in regular Java source. Frameworks can still use runtime metadata by class name and reflective access when appropriate conditions hold.
 
-Cũng có hai dạng rộng hơn:
+There are also two broader forms:
 
-- `opens demo.api;`: mở package cho deep reflection từ **mọi module**.
-- `open module demo.target { ... }`: mở **các package của cả module** cho Reflection. Không nên dùng chỉ để giải quyết nhu cầu của một package.
+- `opens demo.api;`: opens the package for deep reflection from **every module**.
+- `open module demo.target { ... }`: opens **all packages of the entire module** for Reflection. Avoid using this just to satisfy a single package's need.
 
-| Khai báo trong module đích | Public API cho caller ở module khác | Deep reflection từ caller ở module khác |
+| Declaration in Target Module | Public API for Caller in Another Module | Deep Reflection from Caller in Another Module |
 |---|---|---|
-| Không `exports`, không `opens` | Không được tiếp cận như exported public API | Bị giới hạn bởi encapsulation |
-| `exports demo.api;` | Có, với class/member public và readability phù hợp | Không cấp quyền vào private members |
-| `opens demo.api;` | Không tạo quyền import public API chỉ nhờ `opens` | Được phép yêu cầu suppress access checks |
-| `exports demo.api;` và `opens demo.api;` | Có | Có |
-| `exports demo.api to demo.client;` và `opens demo.api to demo.client;` | Có, cho `demo.client` | Có, cho `demo.client` |
+| Neither `exports` nor `opens` | Not accessible as an exported public API | Restricted by encapsulation |
+| `exports demo.api;` | Yes, with public class/members and proper readability | Does not grant permission into private members |
+| `opens demo.api;` | Does not create permission to import public API via `opens` alone | Permitted to request suppressing access checks |
+| `exports demo.api;` and `opens demo.api;` | Yes | Yes |
+| `exports demo.api to demo.client;` and `opens demo.api to demo.client;` | Yes, for `demo.client` | Yes, for `demo.client` |
 
-Trong bảng, “có deep reflection” là **mở khả năng đáp ứng yêu cầu suppress access checks** của core Reflection; code vẫn có thể bị ràng buộc bởi hành vi thành viên, kiểu đối tượng, các trường `final` không được ghi tùy trường hợp và exception lúc thực thi.
+In the table, "has deep reflection" means **opening the ability to satisfy requests to suppress access checks** in core Reflection; code can still be constrained by member behavior, object types, non-modifiable `final` fields depending on the case, and runtime exceptions.
 
-## 5. Thí nghiệm Java 17+: cùng source, hai kết quả theo quyền module
+## 5. Java 17+ Experiment: Same Source, Two Outcomes Based on Module Permissions
 
-Tạo cấu trúc tệp:
+Create the file layout:
 
 ```text
 reflection-demo/
@@ -151,7 +151,7 @@ reflection-demo/
         └── demo/app/Main.java
 ```
 
-**Tệp `src/demo.target/module-info.java`:**
+**File `src/demo.target/module-info.java`:**
 
 ```java
 module demo.target {
@@ -159,7 +159,7 @@ module demo.target {
 }
 ```
 
-**Tệp `src/demo.target/demo/api/Person.java`:**
+**File `src/demo.target/demo/api/Person.java`:**
 
 ```java
 package demo.api;
@@ -181,7 +181,7 @@ public class Person {
 }
 ```
 
-**Tệp `src/demo.client/module-info.java`:**
+**File `src/demo.client/module-info.java`:**
 
 ```java
 module demo.client {
@@ -189,7 +189,7 @@ module demo.client {
 }
 ```
 
-**Tệp `src/demo.client/demo/app/Main.java`:**
+**File `src/demo.client/demo/app/Main.java`:**
 
 ```java
 package demo.app;
@@ -223,19 +223,19 @@ public class Main {
 }
 ```
 
-**Biên dịch hai named modules bằng JDK 17+** (đứng trong thư mục `reflection-demo`):
+**Compile the two named modules with JDK 17+** (from inside `reflection-demo`):
 
 ```bash
 javac -d out --module-source-path src -m demo.target,demo.client
 ```
 
-### Lần 1: chỉ có `exports`, không có `opens`
+### Run 1: `exports` Only, No `opens`
 
 ```bash
 java --module-path out -m demo.client/demo.app.Main
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 exported: true
@@ -245,21 +245,21 @@ private metadata: internalId
 deep allowed: false
 ```
 
-Giải thích:
+Explanation:
 
-1. `demo.target` export `demo.api` cho `demo.client`; Java source import `Person` được và gọi public API qua `Method.invoke` thành công.
-2. `getDeclaredMethod("internalId")` **vẫn tìm ra metadata của private method**.
-3. `trySetAccessible()` trả `false` vì package không open cho module gọi, nên code không đi vào nhánh gọi `internalId()`. Đây là minh chứng cho khác biệt giữa metadata discovery và deep access.
+1. `demo.target` exports `demo.api` to `demo.client`; Java source can import `Person` and invoke the public API via `Method.invoke` successfully.
+2. `getDeclaredMethod("internalId")` **still finds the private method's metadata**.
+3. `trySetAccessible()` returns `false` because the package is not opened to the calling module, so the code does not enter the branch invoking `internalId()`. This demonstrates the difference between metadata discovery and deep access.
 
-### Lần 2: mở package tại runtime, không sửa source
+### Run 2: Open the Package at Runtime Without Editing Source
 
-Chạy với tham số JVM `--add-opens`:
+Run with the JVM argument `--add-opens`:
 
 ```bash
 java --module-path out --add-opens demo.target/demo.api=demo.client -m demo.client/demo.app.Main
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 exported: true
@@ -270,11 +270,11 @@ deep allowed: true
 private method: id-Lan
 ```
 
-Lệnh `--add-opens demo.target/demo.api=demo.client` cấp quyền mở package của **target module** cho **caller module** trong lần chạy này. Không cần thay code `Person`, `Main` hoặc biên dịch lại để quan sát khác biệt. Đây là **quyền truy cập runtime**, không phải quyền import thêm class trong quá trình biên dịch.
+The `--add-opens demo.target/demo.api=demo.client` flag grants permission to open the **target module**'s package to the **caller module** for this run. No changes to `Person`, `Main`, or recompilation are needed to observe the difference. This is a **runtime access permission**, not permission to import additional classes during compilation.
 
-### Cách làm tương đương bằng `module-info.java`
+### Equivalent Approach Using `module-info.java`
 
-Thay nội dung `src/demo.target/module-info.java` bằng:
+Replace the contents of `src/demo.target/module-info.java` with:
 
 ```java
 module demo.target {
@@ -283,20 +283,20 @@ module demo.target {
 }
 ```
 
-Biên dịch lại:
+Recompile:
 
 ```bash
 javac -d out --module-source-path src -m demo.target,demo.client
 java --module-path out -m demo.client/demo.app.Main
 ```
 
-Không cần `--add-opens` ở lần chạy này; stdout giống **lần 2**. Với ứng dụng có cấu trúc module rõ ràng, `opens ... to ...` cho framework cụ thể thường dễ kiểm toán hơn một quyền mở rộng áp dụng không cần thiết.
+No `--add-opens` is needed on this run; stdout matches **Run 2**. For applications with a clear module structure, `opens ... to ...` for a specific framework is usually easier to audit than overly broad permissions applied unnecessarily.
 
-**Lưu ý:** `--add-opens` phải được truyền cho JVM **trước** `-m` trong ví dụ. Phần `demo.target/demo.api` là `module/package`, bên phải dấu `=` là module được mở quyền. Đường dẫn thư mục `out` chứa các module đã biên dịch.
+**Note:** `--add-opens` must be passed to the JVM **before** `-m` in the example. The `demo.target/demo.api` part is `module/package`, and to the right of `=` is the module receiving the open permission. The `out` directory path holds the compiled modules.
 
-## 6. `trySetAccessible`, `setAccessible` và `canAccess`
+## 6. `trySetAccessible`, `setAccessible`, and `canAccess`
 
-Các đối tượng `Field`, `Method`, `Constructor` kế thừa từ `java.lang.reflect.AccessibleObject`; các API tiêu biểu là:
+`Field`, `Method`, and `Constructor` inherit from `java.lang.reflect.AccessibleObject`; typical APIs are:
 
 ```java
 boolean ok = member.trySetAccessible();
@@ -304,17 +304,17 @@ member.setAccessible(true);
 boolean canUse = member.canAccess(receiver);
 ```
 
-Các dòng trên là **các lựa chọn API minh họa**, không phải đoạn chương trình cần gọi liên tiếp. `member` là một `AccessibleObject` thực tế có kiểu `Field`, `Method` hoặc `Constructor`; receiver phụ thuộc loại member.
+These lines are **illustrative API options**, not a snippet meant to be called consecutively. `member` is an actual `AccessibleObject` of type `Field`, `Method`, or `Constructor`; the receiver depends on the member kind.
 
-- `trySetAccessible()`: thử bật quyền **suppress Java language access checks**. Trả `true` nếu cho phép; trả `false` nếu không thể mở theo các ràng buộc đó. Phù hợp với framework muốn hỗ trợ nhiều cấu hình module mà không ném exception khi deep access bị chặn.
-- `setAccessible(true)`: yêu cầu bật chế độ này; có thể ném **`InaccessibleObjectException`** nếu không thể bật do encapsulation của module. Với mô hình cũ hoặc access đã mở, lệnh có thể thành công.
-- `canAccess(receiver)`: kiểm tra quyền hiện có cho member đối với caller tại thời điểm gọi; đây là truy vấn, **không tự mở** quyền. Với instance field/method, `receiver` phải là đối tượng hợp lệ. Với static field/method và constructor, receiver phải là `null`.
+- `trySetAccessible()`: attempts to enable **suppress Java language access checks**. Returns `true` if allowed; returns `false` if it cannot be enabled under those constraints. Suitable for frameworks that want to support various module configurations without throwing an exception when deep access is blocked.
+- `setAccessible(true)`: requests enabling this mode; can throw **`InaccessibleObjectException`** if it cannot be enabled due to module encapsulation. In legacy setups or when access is open, the call can succeed.
+- `canAccess(receiver)`: checks current permission on the member for the caller at call time; this is a query and **does not open** permission by itself. For instance fields/methods, `receiver` must be a valid object instance. For static fields/methods and constructors, receiver must be `null`.
 
-Cụm “suppress Java language access checks” không có nghĩa tắt mọi cơ chế bảo vệ JVM. Một số trường `final` thuộc nhóm **non-modifiable final fields** (chẳng hạn record components hay hidden-class final fields) không thể ghi bằng core Reflection kể cả sau khi `setAccessible(true)` thành công; các ràng buộc runtime khác cũng vẫn tồn tại.
+The phrase "suppress Java language access checks" does not mean disabling every JVM safeguard. Some `final` fields belong to the **non-modifiable final fields** category (such as record components or hidden-class final fields) and cannot be written via core Reflection even after `setAccessible(true)` succeeds; other runtime constraints also remain.
 
-### Thực hành xử lý thất bại
+### Handling Failures in Practice
 
-Khi framework chủ động hỗ trợ private members:
+When a framework intentionally supports private members:
 
 ```java
 Method internal = Person.class.getDeclaredMethod("internalId");
@@ -325,13 +325,13 @@ if (!internal.trySetAccessible()) {
 Object result = internal.invoke(new Person("Lan"));
 ```
 
-Đây là **đoạn minh họa** nằm trong module `demo.client` của thí nghiệm, không phải tệp chạy độc lập. Cần cung cấp quyền `opens` hợp lệ trước khi gọi. Với một thư viện dùng thực tế, thông báo lỗi nên mô tả cả module đích, package và module caller được lấy từ `Class.getModule()`, tránh hard-code nếu thư viện hỗ trợ nhiều module.
+This is an **illustrative snippet** placed inside module `demo.client` of the experiment, not a standalone runnable file. Valid `opens` permission must be provided before calling. In a real-world library, the error message should describe the target module, package, and caller module obtained from `Class.getModule()`, avoiding hard-coding when the library supports multiple modules.
 
-Không dùng `setAccessible(true)` hàng loạt cho mọi field/method chỉ để “đề phòng”: việc yêu cầu truy cập chi tiết nội bộ nên có mục đích rõ, quyền hẹp và đường xử lý lỗi.
+Do not call `setAccessible(true)` in bulk on every field/method "just in case": requesting access to internal details should have a clear purpose, narrow permissions, and explicit error handling.
 
-## 7. Public member trong package không export vẫn có thể bị chặn
+## 7. Public Members in an Unexported Package Can Still Be Blocked
 
-Xét `demo.target` có thêm package `demo.hidden`, nhưng `module-info.java` chỉ export `demo.api`:
+Consider `demo.target` adding package `demo.hidden`, while `module-info.java` exports only `demo.api`:
 
 ```java
 module demo.target {
@@ -339,97 +339,97 @@ module demo.target {
 }
 ```
 
-Bên trong `demo.hidden` tồn tại `public class HiddenApi` với `public static String status()`. Dù class và method đều ghi `public`, module `demo.client` **không thể import `demo.hidden.HiddenApi` như một public API hợp lệ**, vì package không được export cho nó.
+Inside `demo.hidden` sits `public class HiddenApi` with `public static String status()`. Even though both the class and method are declared `public`, module `demo.client` **cannot import `demo.hidden.HiddenApi` as a valid public API**, because the package is not exported to it.
 
-Nếu chương trình có được đối tượng `Class` của `HiddenApi` bằng một đường runtime hợp lệ, việc tra cứu `getMethod("status")` có thể tìm ra metadata. Tuy nhiên, việc gọi qua `Method.invoke` với Java access checks bình thường **không tự động được phép**. Đây là lý do không được đánh đồng hai câu “method được khai báo public” và “module caller có quyền gọi method đó”.
+If the program obtains the `Class` object of `HiddenApi` through a valid runtime path, `getMethod("status")` can still find metadata. However, calling it via `Method.invoke` under normal Java access checks **is not automatically permitted**. This is why you must never equate "the method is declared public" with "the calling module has permission to call that method".
 
-Hai tùy chọn JVM hay bị nhầm:
+Two frequently confused JVM options:
 
 ```bash
-# Tăng quyền truy cập public của package chưa export cho demo.client:
+# Grant public access to the unexported package for demo.client:
 --add-exports demo.target/demo.hidden=demo.client
 
-# Mở package cho deep reflection từ demo.client:
+# Open the package for deep reflection from demo.client:
 --add-opens demo.target/demo.hidden=demo.client
 ```
 
-Hai dòng này là **các JVM options minh họa**, không phải lệnh shell chạy độc lập. `--add-exports` giải quyết quyền tiếp cận public API của package trong tình huống module đích chưa export; riêng nó không cấp quyền xâm nhập private members bằng deep reflection. `--add-opens` mở quyền reflective access sâu cho package. Hãy chọn đúng tùy mục tiêu, ưu tiên khai báo module rõ ràng hoặc API công khai thay vì nới rộng quyền tùy tiện.
+These two lines are **illustrative JVM options**, not standalone shell commands. `--add-exports` addresses access to a package's public API when the target module has not exported it; by itself it does not grant permission to access private members via deep reflection. `--add-opens` grants deep reflective access to the package. Choose the right one for the goal, preferring explicit module declarations or public APIs rather than broadening permissions arbitrarily.
 
-## 8. Ảnh hưởng của classpath, unnamed module và framework
+## 8. Impact of Classpath, Unnamed Modules, and Frameworks
 
-Ứng dụng Java có thể dùng cả **module path** và **classpath**:
+A Java application can use both the **module path** and the **classpath**:
 
-- Class được nạp từ classpath thông thường thuộc một **unnamed module**; các package của unnamed module được export và open theo cơ chế tương thích.
-- Một **open module** cho phép reflective access vào các package trong module của nó theo quy tắc JPMS.
-- Trong **named module thông thường**, các package không tự động export/open cho module khác. Việc di chuyển mã đang chạy trên classpath vào named module có thể làm framework từng truy cập private members gặp lỗi `InaccessibleObjectException`.
+- Classes loaded from the regular classpath belong to an **unnamed module**; packages of an unnamed module are exported and opened for compatibility.
+- An **open module** allows reflective access into packages within its module according to JPMS rules.
+- In a **regular named module**, packages are not automatically exported/opened to other modules. Moving code that was running on the classpath into a named module can cause frameworks that used to access private members to fail with `InaccessibleObjectException`.
 
-Ví dụ:
+Examples:
 
-- **JSON serialization / ORM**: framework thường tìm field hoặc constructor non-public và có thể cần quyền deep reflection. Nếu module `app.model` quản lý các class entity, có thể dùng `opens app.model.entity to some.framework.module;` theo module thực của framework.
-- **Dependency injection**: nếu container gọi constructor public từ package được export, public reflection có thể đủ. Nếu container cần private field injection hoặc truy cập non-public constructor, cần xét quyền mở package.
-- **Công cụ introspection**: nếu chỉ liệt kê tên method, parameter types hoặc annotation metadata, có thể không cần mở private access. Đừng mở package chỉ vì dùng `getDeclaredMethods()`.
-- **API client**: với public interface/service API, `exports` và `getMethod` là lựa chọn tự nhiên, giảm phụ thuộc vào chi tiết triển khai.
+- **JSON serialization / ORM**: frameworks often look up non-public fields or constructors and may need deep reflection permission. If module `app.model` manages entity classes, you can use `opens app.model.entity to some.framework.module;` naming the actual framework module.
+- **Dependency injection**: if the container calls a public constructor from an exported package, public reflection may suffice. If the container needs private field injection or access to non-public constructors, package-opening permission must be considered.
+- **Introspection tools**: if they only list method names, parameter types, or annotation metadata, opening private access may not be needed. Do not open a package merely because `getDeclaredMethods()` is used.
+- **API clients**: for public interfaces/service APIs, `exports` and `getMethod` are the natural choice, reducing reliance on implementation details.
 
-**Tên module của framework phải chính xác.** Qualified `opens ... to framework.module` chỉ có hiệu lực với module được nêu đúng tên. Với framework chạy trong unnamed module, một số cấu hình launcher cần dùng `ALL-UNNAMED`, ví dụ `--add-opens my.module/my.pkg=ALL-UNNAMED`; đây là lựa chọn runtime để phục vụ công cụ cũ, không phải mặc định nên áp dụng cho mọi module.
+**The framework's module name must be exact.** Qualified `opens ... to framework.module` takes effect only for the module named accurately. For frameworks running in the unnamed module, some launcher configurations need `ALL-UNNAMED`, such as `--add-opens my.module/my.pkg=ALL-UNNAMED`; this is a runtime choice for legacy tooling, not a default to apply to every module.
 
-Ngoài core Reflection, `MethodHandles.privateLookupIn` cũng là cơ chế truy cập sâu dưới các điều kiện module phù hợp; nó **không cho phép tự vượt** `opens` của module khác.
+Besides core Reflection, `MethodHandles.privateLookupIn` is also a deep-access mechanism under appropriate module conditions; it **does not let you bypass** another module's `opens` requirement.
 
-## 9. Những lỗi thường gặp
+## 9. Common Errors
 
-| Biểu hiện | Nguyên nhân điển hình | Hướng giải quyết |
+| Symptom | Typical Cause | Resolution |
 |---|---|---|
-| `NoSuchMethodException` khi gọi `getMethod` | Method không public, tên/chữ ký tham số sai, hoặc không tồn tại | Xác nhận đúng tên, parameter types; dùng `getDeclaredMethod` nếu cần metadata của method khai báo trực tiếp |
-| `NoSuchFieldException` khi `getField` | Field không public hoặc không tồn tại đúng tên | Kiểm tra field thực tế và cân nhắc `getDeclaredField` |
-| `IllegalAccessException` khi `Method.invoke` hoặc `Field.get` | Caller không có quyền access theo visibility và/hoặc module encapsulation | Kiểm tra class/member `public`, package export, hoặc quyền deep reflection hợp lệ |
-| `InaccessibleObjectException` ở `setAccessible(true)` | Module đích không open package cho caller | Dùng `opens ... to ...` hoặc `--add-opens` có chủ đích; ưu tiên API public khi có thể |
-| `trySetAccessible()` trả `false` | Không thể bật suppression theo quy tắc module/encapsulation | Chọn public API hoặc cấu hình `opens` đúng module; xử lý fallback minh bạch |
-| `InvocationTargetException` sau khi được phép invoke | **Code được gọi** ném exception | Xem `getCause()`; đây là lỗi khi thực thi method/constructor, không phải bằng chứng thiếu `opens` |
-| Compile báo package không visible | Thiếu `requires`, package chưa export hoặc module graph không phù hợp | Kiểm tra `requires` ở caller, `exports` ở target và module path |
-| Hoạt động trên classpath nhưng lỗi khi chuyển sang module path | Strong encapsulation của named modules | Xác định nhu cầu public/deep và khai báo export/open ở phạm vi tối thiểu |
+| `NoSuchMethodException` when calling `getMethod` | Method is not public, wrong name/parameter signature, or does not exist | Verify exact name and parameter types; use `getDeclaredMethod` if metadata for a directly declared method is needed |
+| `NoSuchFieldException` when calling `getField` | Field is not public or does not exist with that name | Check the actual field and consider `getDeclaredField` |
+| `IllegalAccessException` at `Method.invoke` or `Field.get` | Caller lacks access permission under visibility and/or module encapsulation | Check `public` class/member, package export, or valid deep reflection permission |
+| `InaccessibleObjectException` at `setAccessible(true)` | Target module does not open the package to the caller | Use `opens ... to ...` or targeted `--add-opens`; prefer a public API when possible |
+| `trySetAccessible()` returns `false` | Cannot enable suppression under module/encapsulation rules | Choose a public API or configure `opens` for the right module; handle fallbacks transparently |
+| `InvocationTargetException` after invoke is allowed | The **invoked code** threw an exception | Inspect `getCause()`; this is an error during method/constructor execution, not evidence of missing `opens` |
+| Compiler reports package is not visible | Missing `requires`, package not exported, or mismatched module graph | Check `requires` on caller, `exports` on target, and module path |
+| Works on classpath but fails when moved to module path | Strong encapsulation of named modules | Identify public/deep needs and declare minimal-scope exports/opens |
 
-Ở Java 17+, đừng dựa vào cơ chế truy cập trái phép tới JDK internals như trên một số runtime Java cũ. Quy tắc strong encapsulation được tăng cường; chuyển đổi framework cũ nên ưu tiên cập nhật thư viện và cấu hình module đúng phạm vi.
+In Java 17+, do not rely on unauthorized access mechanisms into JDK internals as in some older Java runtimes. Strong encapsulation rules are enforced; migrating older frameworks should prioritize updating libraries and configuring properly scoped modules.
 
-## 10. Những nhầm lẫn cần tránh
+## 10. Misconceptions to Avoid
 
-1. **“`getDeclaredMethod` đã là deep reflection.”** Chưa đúng: chỉ lấy metadata; deep access phải vượt qua ràng buộc quyền truy cập bằng cơ chế hợp lệ khi cần.
-2. **“Class public và method public thì module nào cũng gọi được.”** Sai nếu package không được export phù hợp giữa named modules.
-3. **“`exports` cho phép mở private members.”** Sai: export phục vụ public API; `opens` dành cho runtime reflective access sâu.
-4. **“`opens` và `exports` tương đương.”** Sai: `opens` không tự cho phép Java source ở module khác import public types như exported package.
-5. **“`setAccessible(true)` luôn thành công.”** Sai: có thể ném `InaccessibleObjectException` khi module/package không mở phù hợp.
-6. **“`trySetAccessible()` trả false nghĩa là member không tồn tại.”** Sai: metadata đã tìm thấy, nhưng không bật được quyền suppress access checks.
-7. **“Method.invoke gặp `InvocationTargetException` chứng tỏ bị module chặn.”** Sai: exception này gói lỗi bên trong method/constructor đã chạy.
-8. **“Một package open phải mở cho tất cả.”** Sai: qualified `opens pkg to specific.module` cho phép giới hạn quyền.
-9. **“Reflection chỉ đọc metadata cũng cần `--add-opens`.”** Không phải mặc định: hãy phân biệt introspection metadata với deep access trước khi cấp thêm quyền.
-10. **“Mở một package nghĩa là framework được ghi mọi field final.”** Sai: nhiều hạn chế của JVM vẫn còn hiệu lực.
+1. **"`getDeclaredMethod` is already deep reflection."** Incorrect: it only retrieves metadata; deep access must pass access permission constraints through valid mechanisms when needed.
+2. **"If a class and method are public, any module can call them."** False if the package is not appropriately exported between named modules.
+3. **"`exports` allows opening private members."** False: export serves public APIs; `opens` is for deep runtime reflective access.
+4. **"`opens` and `exports` are equivalent."** False: `opens` does not automatically allow Java source in another module to import public types like an exported package.
+5. **"`setAccessible(true)` always succeeds."** False: it can throw `InaccessibleObjectException` when the module/package is not appropriately opened.
+6. **"`trySetAccessible()` returning false means the member does not exist."** False: metadata was already found, but permission to suppress access checks could not be enabled.
+7. **"Method.invoke throwing `InvocationTargetException` proves it was blocked by modules."** False: this exception wraps an error thrown inside the method/constructor that ran.
+8. **"An open package must be opened to everyone."** False: qualified `opens pkg to specific.module` lets you restrict permission.
+9. **"Reflection that only reads metadata also needs `--add-opens`."** Not by default: distinguish metadata introspection from deep access before granting additional permissions.
+10. **"Opening a package means frameworks can write every final field."** False: many JVM restrictions remain in effect.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** Module `catalog.core` export `catalog.api` chứa `public class Item` và `public String code()`. Module `catalog.client` requires `catalog.core`. Public reflection gọi `code()` được không?
+**Question 1.** Module `catalog.core` exports `catalog.api`, which contains `public class Item` and `public String code()`. Module `catalog.client` requires `catalog.core`. Can public reflection invoke `code()`?
 
-**Trả lời:** Có trong điều kiện class/member public hợp lệ và package được export cho caller. `Item.class.getMethod("code")` trả `Method`; `invoke` với instance hợp lệ có thể chạy mà không cần mở package cho deep reflection.
+**Answer:** Yes, provided the class/member are validly public and the package is exported to the caller. `Item.class.getMethod("code")` returns the `Method`; `invoke` with a valid instance can run without opening the package for deep reflection.
 
-**Câu 2.** Cùng lớp `Item` có field `private String internalKey`. `getDeclaredField("internalKey")` thành công nhưng `trySetAccessible()` trả false. Điều đó nói gì?
+**Question 2.** The same `Item` class has field `private String internalKey`. `getDeclaredField("internalKey")` succeeds, yet `trySetAccessible()` returns false. What does that tell you?
 
-**Trả lời:** Chương trình đã tìm được metadata, nhưng không có quyền bật suppress access checks trong quan hệ class/module hiện tại. Với hai named modules, nên kiểm tra `opens catalog.api to catalog.client` nếu deep reflection thực sự cần thiết.
+**Answer:** The program found the metadata, yet lacks permission to enable suppressing access checks in the current class/module relationship. With two named modules, check `opens catalog.api to catalog.client` if deep reflection is genuinely required.
 
-**Câu 3.** Thêm `exports catalog.api;` có đủ để client đọc private field bằng `Field.get` sau `setAccessible(true)` không?
+**Question 3.** Is adding `exports catalog.api;` enough for the client to read a private field via `Field.get` after `setAccessible(true)`?
 
-**Trả lời:** Không. Với caller ở module khác, `exports` không thay `opens`; cần cấu hình mở package phù hợp hoặc thiết kế public API thay thế.
+**Answer:** No. For a caller in another module, `exports` does not replace `opens`; configure appropriate package opening or design an alternative public API.
 
-**Câu 4.** Nếu chỉ muốn liệt kê tên các method khai báo trực tiếp, cần gọi `setAccessible(true)` trên toàn bộ method không?
+**Question 4.** If you only want to list the names of directly declared methods, do you need to call `setAccessible(true)` on every method?
 
-**Trả lời:** Không. `getDeclaredMethods()` trả metadata; đọc tên qua `Method.getName()` không phải thực thi method hay bỏ access checks.
+**Answer:** No. `getDeclaredMethods()` returns metadata; reading names via `Method.getName()` is neither executing methods nor bypassing access checks.
 
-**Câu 5.** Tại sao `--add-opens target.module/p=caller.module` có thể giải quyết lỗi deep reflection trong lần chạy nhưng không làm source `import p.SomeType;` biên dịch được?
+**Question 5.** Why can `--add-opens target.module/p=caller.module` resolve a deep reflection error at runtime yet still not allow `import p.SomeType;` in source code to compile?
 
-**Trả lời:** `--add-opens` là quyền reflective access runtime, khác với xuất public API qua `exports`. Compile-time visibility cần cấu hình module graph và exported package tương ứng.
+**Answer:** `--add-opens` is a runtime reflective access permission, different from exposing a public API via `exports`. Compile-time visibility requires the corresponding module graph configuration and exported package.
 
-## Tài liệu chính thức
+## Official Documentation
 
-- Java SE API — `java.lang.reflect.AccessibleObject`: `trySetAccessible`, `setAccessible`, `canAccess`, quy tắc access giữa modules.
-- Java SE API — `java.lang.Class`: `getMethod`, `getDeclaredMethod`, `getField`, `getDeclaredField` và `getModule`.
-- Java SE API — `java.lang.Module`: `isExported`, `isOpen` và quan hệ quyền truy cập package.
-- Java Language Specification — Chương 7 và phần về modules, packages, access control.
-- Java Platform Module System (`java` launcher, `javac`) — các tùy chọn `--module-path`, `--module-source-path`, `--add-exports`, `--add-opens`.
+- Java SE API — `java.lang.reflect.AccessibleObject`: `trySetAccessible`, `setAccessible`, `canAccess`, inter-module access rules.
+- Java SE API — `java.lang.Class`: `getMethod`, `getDeclaredMethod`, `getField`, `getDeclaredField`, and `getModule`.
+- Java SE API — `java.lang.Module`: `isExported`, `isOpen`, and package access relationships.
+- Java Language Specification — Chapter 7 and sections on modules, packages, and access control.
+- Java Platform Module System (`java` launcher, `javac`) — `--module-path`, `--module-source-path`, `--add-exports`, `--add-opens` options.
 
-**Ghi nhớ:** Public reflection dùng **API công khai** mà caller được phép truy cập; deep reflection yêu cầu **truy cập sâu vào phần triển khai** và có thể cần suppress access checks. Trong JPMS, `exports` công bố public API, `opens` mở quyền runtime Reflection. Tìm ra `Method`/`Field` không có nghĩa đã được phép gọi hoặc đọc nó.
+**Takeaway:** Public reflection uses **public APIs** that the caller is permitted to access; deep reflection requires **deep access into implementation internals** and may need to suppress access checks. In JPMS, `exports` exposes public APIs, while `opens` grants runtime Reflection permission. Finding a `Method`/`Field` does not mean you are already permitted to invoke or read it.

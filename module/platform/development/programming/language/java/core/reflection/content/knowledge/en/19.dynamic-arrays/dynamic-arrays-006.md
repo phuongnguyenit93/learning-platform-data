@@ -1,23 +1,23 @@
-# Điều kiện widening và lỗi sai kiểu khi gán phần tử mảng bằng Java Reflection
+# Widening Conditions and Type Mismatch Errors When Assigning Array Elements with Java Reflection
 
-Trong Java Reflection, lớp `java.lang.reflect.Array` cho phép tạo mảng và đọc, ghi phần tử khi chỉ biết kiểu tại runtime. Điểm dễ nhầm là lời gọi `Array.set(array, index, value)` **không cho phép mọi phép chuyển đổi số**, cũng không hành xử hoàn toàn giống toán tử gán trực tiếp cho mảng tham chiếu. Một giá trị có thể được ghi vào phần tử khi **kiểu runtime của mảng, loại giá trị và các quy tắc chuyển đổi được phép** tương thích với nhau.
+In Java Reflection, the `java.lang.reflect.Array` class allows creating arrays and reading/writing elements when the type is only known at runtime. An easy point of confusion is that calling `Array.set(array, index, value)` **does not allow every numeric conversion**, nor does it behave identically to direct assignment on a reference array. A value can be written into an element when **the array's runtime type, the value's kind, and the permitted conversion rules** are compatible with each other.
 
-Ví dụ:
+Example:
 
 ```java
 int[] values = new int[2];
-Array.set(values, 0, Byte.valueOf((byte) 7)); // Được: byte -> int
-Array.set(values, 1, Character.valueOf('A')); // Được: char -> int (65)
+Array.set(values, 0, Byte.valueOf((byte) 7)); // Allowed: byte -> int
+Array.set(values, 1, Character.valueOf('A')); // Allowed: char -> int (65)
 Array.set(values, 0, Long.valueOf(7));        // IllegalArgumentException
 ```
 
-Đoạn trên minh họa API khi đã `import java.lang.reflect.Array;`. Ở lời gọi thứ ba, giá trị `long` dù bằng `7` vẫn không được tự động thu hẹp (*narrowing*) thành `int`. Các kiểm tra này dựa trên **kiểu**, không dựa vào việc số hiện tại có vừa giới hạn biểu diễn của kiểu đích hay không.
+The snippet above illustrates the API after `import java.lang.reflect.Array;`. In the third call, the `long` value, even though equal to `7`, is not automatically narrowed (*narrowing*) to `int`. These checks are based on **type**, not on whether the current number fits within the representation limits of the target type.
 
-Bài học nằm trong nhóm **Mảng động**; trọng tâm là `Array.set`, `Array.setXxx`, widening primitive, mảng tham chiếu, exception và các bước kiểm tra trước khi gán bằng Reflection.
+This lesson belongs to the **Dynamic Arrays** group; the focus is on `Array.set`, `Array.setXxx`, primitive widening, reference arrays, exceptions, and validation steps before assigning via Reflection.
 
-## 1. Mảng động và kiểu phần tử được xác định ở runtime
+## 1. Dynamic Arrays and Element Types Determined at Runtime
 
-Một mảng Java luôn có **kiểu thành phần (component type)** và chiều dài cố định sau khi tạo. «Mảng động» trong ngữ cảnh Reflection nghĩa là **chọn loại mảng/tạo mảng bằng metadata `Class<?>` lúc runtime**, không phải mảng tự đổi kích thước giống `ArrayList`.
+A Java array always has a **component type** and a fixed length after creation. "Dynamic array" in the context of Reflection means **choosing the array kind/creating an array using `Class<?>` metadata at runtime**, not a self-resizing array like `ArrayList`.
 
 ```java
 Class<?> componentType = int.class;
@@ -28,55 +28,55 @@ System.out.println(array.getClass().getComponentType());   // int
 System.out.println(Array.getLength(array));                // 3
 ```
 
-Đoạn trên cần `import java.lang.reflect.Array;`. `Array.newInstance(componentType, length)` trả về `Object` ở mặt API, nhưng đối tượng thực vẫn là **một mảng JVM đúng kiểu**, chẳng hạn `int[]`, `String[]` hoặc `Number[]`.
+The snippet above requires `import java.lang.reflect.Array;`. `Array.newInstance(componentType, length)` returns `Object` at the API surface, but the actual object is still **a properly typed JVM array**, such as `int[]`, `String[]`, or `Number[]`.
 
-Điều quyết định khi gọi `Array.set` là **kiểu phần tử của đối tượng mảng thực tế**, không đơn thuần là kiểu của biến đang giữ tham chiếu:
+What decides when calling `Array.set` is **the element type of the actual array object**, not merely the type of the variable holding the reference:
 
 ```java
 Number[] numbers = new Integer[1];
-// Kiểu khai báo của biến: Number[]
-// Kiểu runtime của mảng: Integer[]
+// Declared type of the variable: Number[]
+// Runtime type of the array: Integer[]
 ```
 
-Khi ghi, JVM vẫn bảo vệ kiểu runtime `Integer[]`. Giá trị `Long` không thể được cất vào phần tử của `Integer[]` chỉ vì biến tham chiếu có kiểu `Number[]`.
+When writing, the JVM still enforces the runtime type `Integer[]`. A `Long` value cannot be stored into an element of `Integer[]` merely because the reference variable has type `Number[]`.
 
-## 2. API ghi phần tử: `Array.set` và các phương thức chuyên biệt
+## 2. Element-Writing APIs: `Array.set` and Specialized Methods
 
-`java.lang.reflect.Array` có các API:
+`java.lang.reflect.Array` has the following APIs:
 
-| API | Giá trị truyền vào | Vai trò |
+| API | Passed-in Value | Role |
 | --- | --- | --- |
-| `Array.set(Object array, int index, Object value)` | `Object`, gồm đối tượng wrapper | Ghi vào mảng tham chiếu hoặc unbox/widen hợp lệ vào mảng primitive |
-| `Array.setBoolean(array, index, boolean)` | `boolean` | Ghi primitive boolean |
-| `Array.setByte(array, index, byte)` | `byte` | Ghi byte hoặc widening sang loại primitive tương thích |
-| `Array.setChar(array, index, char)` | `char` | Ghi char hoặc widening tương thích |
-| `Array.setShort(array, index, short)` | `short` | Ghi short hoặc widening tương thích |
-| `Array.setInt(array, index, int)` | `int` | Ghi int hoặc widening tương thích |
-| `Array.setLong(array, index, long)` | `long` | Ghi long hoặc widening tương thích |
-| `Array.setFloat(array, index, float)` | `float` | Ghi float hoặc widening tương thích |
-| `Array.setDouble(array, index, double)` | `double` | Ghi double |
+| `Array.set(Object array, int index, Object value)` | `Object`, including wrapper objects | Writes into a reference array or performs valid unbox/widen into a primitive array |
+| `Array.setBoolean(array, index, boolean)` | `boolean` | Writes primitive boolean |
+| `Array.setByte(array, index, byte)` | `byte` | Writes byte or widens to a compatible primitive type |
+| `Array.setChar(array, index, char)` | `char` | Writes char or compatible widening |
+| `Array.setShort(array, index, short)` | `short` | Writes short or compatible widening |
+| `Array.setInt(array, index, int)` | `int` | Writes int or compatible widening |
+| `Array.setLong(array, index, long)` | `long` | Writes long or compatible widening |
+| `Array.setFloat(array, index, float)` | `float` | Writes float or compatible widening |
+| `Array.setDouble(array, index, double)` | `double` | Writes double |
 
-`Array.setXxx` hỗ trợ giá trị primitive và chỉ hoạt động với **mảng primitive** có kiểu phần tử thích hợp. Nó không có mục đích tự boxing để ghi vào `Object[]`/`Number[]`. Muốn ghi wrapper vào mảng tham chiếu, dùng `Array.set` với đối tượng tương ứng.
+`Array.setXxx` supports primitive values and works only with **primitive arrays** that have an appropriate element type. It is not intended to auto-box in order to write into `Object[]`/`Number[]`. To write a wrapper into a reference array, use `Array.set` with the corresponding object.
 
-Với `Array.set`, primitive truyền ở mã Java sẽ **được boxing trước** vì tham số cuối của API có kiểu `Object`:
+With `Array.set`, a primitive passed in Java code will **be boxed first** because the last parameter of the API has type `Object`:
 
 ```java
 int[] ints = new int[1];
 
-Array.set(ints, 0, 5);                // Compiler boxing 5 thành Integer
-Array.set(ints, 0, Integer.valueOf(5)); // Tương đương kiểu đối số
-Array.setInt(ints, 0, 5);             // API ghi primitive trực tiếp
+Array.set(ints, 0, 5);                // Compiler boxes 5 into Integer
+Array.set(ints, 0, Integer.valueOf(5)); // Equivalent argument type
+Array.setInt(ints, 0, 5);             // Direct primitive-writing API
 ```
 
-Khi nhận `Integer` để ghi vào `int[]`, Reflection unbox thành `int`. Đối với mảng đích primitive khác, có thể có thêm bước **widening primitive**.
+When receiving `Integer` to write into `int[]`, Reflection unboxes it to `int`. For another target primitive array, there may also be a **primitive widening** step.
 
-## 3. Quy tắc widening primitive khi ghi mảng
+## 3. Primitive Widening Rules When Writing Arrays
 
-*Widening primitive conversion* là chuyển từ một primitive sang primitive khác theo quy tắc Java cho phép mà không cần phép ép tường minh. Chẳng hạn `byte -> int`, `int -> long`, `float -> double`. Ngược lại, `long -> int`, `double -> float` hoặc `short -> byte` là *narrowing* và không được Reflection tự thực hiện khi ghi.
+*Widening primitive conversion* is converting from one primitive to another according to Java's permitted rules without requiring an explicit cast. For example, `byte -> int`, `int -> long`, `float -> double`. Conversely, `long -> int`, `double -> float`, or `short -> byte` is *narrowing* and is not automatically performed by Reflection when writing.
 
-Bảng dưới mô tả **nguồn primitive** và các **kiểu phần tử mảng đích được phép** khi ghi bằng phương thức `Array.setXxx` thích hợp hoặc khi `Array.set` nhận đúng wrapper nguồn:
+The table below describes the **primitive source** and the **permitted target array element types** when writing via the appropriate `Array.setXxx` method or when `Array.set` receives the matching source wrapper:
 
-| Kiểu nguồn | Kiểu đích hợp lệ (gồm chính kiểu nguồn) |
+| Source Type | Valid Target Types (Including Source Type Itself) |
 | --- | --- |
 | `boolean` | `boolean` |
 | `byte` | `byte`, `short`, `int`, `long`, `float`, `double` |
@@ -87,27 +87,27 @@ Bảng dưới mô tả **nguồn primitive** và các **kiểu phần tử mả
 | `float` | `float`, `double` |
 | `double` | `double` |
 
-Một số hệ quả quan trọng:
+Several important consequences:
 
-- `byte -> char` **không** là widening primitive. `short -> char` và `char -> short` cũng không được phép tự động.
-- `boolean` không tự chuyển sang số và số không tự chuyển sang `boolean`.
-- `Integer -> long[]` hợp lệ với `Array.set`: unbox `Integer` thành `int`, rồi widening `int -> long`.
-- `Character -> int[]` hợp lệ vì `char -> int`, nên ký tự `'A'` trở thành số `65`.
-- `Long -> int[]` **không** hợp lệ, dù giá trị `Long.valueOf(7)` có thể biểu diễn bằng `int`.
-- Không có phép chuyển đổi wrapper-sang-wrapper tự động: `Integer` không tự biến thành đối tượng `Long` để cất vào `Long[]`.
+- `byte -> char` is **not** a primitive widening. `short -> char` and `char -> short` are also not permitted automatically.
+- `boolean` does not automatically convert to a number, and numbers do not automatically convert to `boolean`.
+- `Integer -> long[]` is valid with `Array.set`: unboxes `Integer` to `int`, then widens `int -> long`.
+- `Character -> int[]` is valid because `char -> int`, so the character `'A'` becomes the number `65`.
+- `Long -> int[]` is **not** valid, even though the value `Long.valueOf(7)` can be represented by `int`.
+- There is no automatic wrapper-to-wrapper conversion: `Integer` does not automatically turn into a `Long` object to be stored in `Long[]`.
 
-**Widening không luôn bảo toàn chính xác tất cả chữ số.** Chuyển `long -> float` hoặc `int -> float` có thể mất độ chính xác số học do giới hạn độ chính xác của số thực; quy tắc widening vẫn cho phép chuyển đổi. Vì vậy không nên đồng nhất «được ghi» với «không thể mất precision».
+**Widening does not always preserve all digits accurately.** Converting `long -> float` or `int -> float` can lose arithmetic precision due to floating-point precision limits; the widening rule still permits the conversion. Therefore, do not equate "writable" with "cannot lose precision".
 
-## 4. `Array.set` trên mảng primitive thực hiện hai bước chuyển đổi
+## 4. `Array.set` on Primitive Arrays Performs Two Conversion Steps
 
-Với API tổng quát `Array.set(array, index, value)`, giá trị truyền vào có kiểu `Object`. Nếu mảng đích có kiểu phần tử primitive:
+With the general API `Array.set(array, index, value)`, the passed-in value has type `Object`. If the target array has a primitive element type:
 
-1. `value` phải là đối tượng của **một wrapper primitive tương ứng**, ví dụ `Byte`, `Character`, `Integer`, `Long`, `Float`, `Double`, `Boolean`, `Short`.
-2. Reflection unbox wrapper thành primitive nguồn.
-3. Nếu primitive nguồn cùng kiểu với component type hoặc có **widening primitive** tới component type, phần tử được cập nhật.
-4. Nếu đòi hỏi narrowing, chuyển đổi không hợp lệ hoặc `value == null`, `Array.set` ném `IllegalArgumentException`.
+1. `value` must be an object of **a corresponding primitive wrapper**, e.g., `Byte`, `Character`, `Integer`, `Long`, `Float`, `Double`, `Boolean`, `Short`.
+2. Reflection unboxes the wrapper into the source primitive.
+3. If the source primitive has the same type as the component type or has a **primitive widening** to the component type, the element is updated.
+4. If narrowing is required, the conversion is invalid, or `value == null`, `Array.set` throws `IllegalArgumentException`.
 
-Ví dụ:
+Example:
 
 ```java
 int[] ints = new int[2];
@@ -117,20 +117,20 @@ Array.set(ints, 1, Character.valueOf('A')); // char -> int
 System.out.println(java.util.Arrays.toString(ints)); // [7, 65]
 ```
 
-Ngược lại:
+Conversely:
 
 ```java
 Array.set(ints, 0, Long.valueOf(7L)); // IllegalArgumentException
 Array.set(ints, 0, null);             // IllegalArgumentException
 ```
 
-Số `7L` không được tự thu hẹp dù nằm trong miền giá trị `int`; Reflection không áp dụng conversion tùy ý dựa trên nội dung số. Cũng không thể unbox `null` để ghi vào primitive.
+The number `7L` is not automatically narrowed even though it lies within the `int` value range; Reflection does not apply arbitrary conversions based on numeric content. Nor can `null` be unboxed to write into a primitive.
 
-Nếu một ứng dụng muốn chuyển `long -> int` theo chính sách riêng (ví dụ chỉ cho phép giá trị nằm trong phạm vi `int`), ứng dụng phải **tự kiểm tra miền giá trị, ép kiểu có chủ đích và truyền một `Integer`/`int` hợp lệ**. Không để `Array.set` tự đoán chính sách thu hẹp.
+If an application wants to convert `long -> int` under a custom policy (e.g., allowing only values within the `int` range), the application must **check the value range itself, perform an intentional cast, and pass a valid `Integer`/`int`**. Do not let `Array.set` guess a narrowing policy.
 
-## 5. `Array.setXxx` cũng cho phép widening thích hợp
+## 5. `Array.setXxx` Also Allows Appropriate Widening
 
-Một suy luận sai là `Array.setInt` chỉ ghi được `int[]`. Theo hợp đồng của Reflection, nó cũng có thể ghi sang mảng có component type chấp nhận widening của `int`:
+A false inference is that `Array.setInt` can only write to `int[]`. According to Reflection's contract, it can also write to arrays whose component type accepts widening from `int`:
 
 ```java
 long[] longs = new long[1];
@@ -143,78 +143,78 @@ System.out.println(longs[0]);   // 99
 System.out.println(doubles[0]); // 2.5
 ```
 
-Trong khi đó:
+Meanwhile:
 
 ```java
 int[] ints = new int[1];
 Array.setLong(ints, 0, 7L); // IllegalArgumentException
 ```
 
-`long -> int` là narrowing, không hợp lệ với setter chuyên biệt. `Array.setDouble(floatArray, i, value)` cũng bị từ chối vì `double -> float` là narrowing.
+`long -> int` is narrowing, invalid for a specialized setter. `Array.setDouble(floatArray, i, value)` is also rejected because `double -> float` is narrowing.
 
-Các hàm getter chuyên biệt như `Array.getInt(array, index)` có quy tắc chuyển đổi riêng khi **đọc**. Không nên suy ra quy tắc ghi chỉ từ tên hàm hoặc chỉ từ việc một cách đọc thành công. Ở bài này, ta quan tâm chính xác đến chiều **source value -> array component type** khi gán phần tử.
+Specialized getter functions like `Array.getInt(array, index)` have their own conversion rules when **reading**. You should not infer write rules solely from method names or from the fact that a read succeeds. In this lesson, we focus specifically on the **source value -> array component type** direction when assigning elements.
 
-## 6. Mảng tham chiếu: cần tương thích kiểu runtime của phần tử
+## 6. Reference Arrays: Requires Runtime Type Compatibility of the Element
 
-Nếu component type là **reference type**, `Array.set` không sử dụng widening primitive để tạo đối tượng reference mới. Giá trị phải:
+If the component type is a **reference type**, `Array.set` does not use primitive widening to create a new reference object. The value must:
 
-- Là `null`; hoặc
-- Là đối tượng có kiểu runtime tương thích với component type của mảng, theo quan hệ gán reference hợp lệ.
+- Be `null`; or
+- Be an object whose runtime type is compatible with the array's component type, under valid reference assignment rules.
 
-Ví dụ:
+Example:
 
 ```java
 Number[] values = new Number[3];
 
 Array.set(values, 0, Integer.valueOf(1)); // Integer extends Number
 Array.set(values, 1, Long.valueOf(2));    // Long extends Number
-Array.set(values, 2, null);               // Mảng reference nhận null
+Array.set(values, 2, null);               // Reference array accepts null
 ```
 
-`Integer` và `Long` đều là subtype của `Number` nên có thể đặt vào `Number[]`. Nhưng `Integer` không là subtype của `Long` và ngược lại:
+`Integer` and `Long` are both subtypes of `Number`, so they can be placed in `Number[]`. However, `Integer` is not a subtype of `Long` and vice versa:
 
 ```java
 Long[] longValues = new Long[1];
 Array.set(longValues, 0, Integer.valueOf(1)); // IllegalArgumentException
 ```
 
-Không có chuyện `Integer -> int -> long -> Long` được Reflection tự thực hiện để ghi vào `Long[]`.
+Reflection does not automatically perform `Integer -> int -> long -> Long` to write into `Long[]`.
 
-### Cẩn thận với covariance của mảng
+### Be Careful with Array Covariance
 
-Java cho phép:
+Java allows:
 
 ```java
 Number[] numbers = new Integer[1];
 ```
 
-Mảng **thực** vẫn là `Integer[]`. Vì vậy:
+The **actual** array is still `Integer[]`. Therefore:
 
 ```java
-Array.set(numbers, 0, Integer.valueOf(10)); // Thành công
+Array.set(numbers, 0, Integer.valueOf(10)); // Succeeds
 Array.set(numbers, 0, Long.valueOf(20));    // IllegalArgumentException
 ```
 
-Dù biến tham chiếu mang kiểu `Number[]`, thành phần runtime là `Integer`. Lời gọi qua `Array.set` với giá trị không tương thích báo `IllegalArgumentException`.
+Even though the reference variable has type `Number[]`, the runtime component is `Integer`. Calling `Array.set` with an incompatible value reports `IllegalArgumentException`.
 
-Phép gán mảng **trực tiếp** lại báo exception khác:
+**Direct** array assignment reports a different exception:
 
 ```java
-numbers[0] = Long.valueOf(20); // ArrayStoreException tại runtime
+numbers[0] = Long.valueOf(20); // ArrayStoreException at runtime
 ```
 
-Đây là một phân biệt hữu ích:
+This is a useful distinction:
 
-| Đường ghi | Mảng thực | Giá trị sai kiểu | Lỗi điển hình |
+| Write Path | Actual Array | Wrong-Type Value | Typical Error |
 | --- | --- | --- | --- |
 | `Array.set(numbers, 0, Long.valueOf(20))` | `Integer[]` | `Long` | `IllegalArgumentException` |
 | `numbers[0] = Long.valueOf(20)` | `Integer[]` | `Long` | `ArrayStoreException` |
 
-Đừng gom hai exception thành một loại khi bắt lỗi và hiển thị chẩn đoán. Thao tác reflection và phép gán mảng bytecode bình thường có hợp đồng báo lỗi khác nhau.
+Do not lump the two exceptions into one category when catching errors and displaying diagnostics. Reflective operations and ordinary bytecode array assignments have different error-reporting contracts.
 
-## 7. Ví dụ Java 17+ hoàn chỉnh, chạy độc lập
+## 7. Complete, Standalone Java 17+ Example
 
-Lưu toàn bộ mã dưới đây vào `ArrayWideningDemo.java`. Ví dụ có mảng được tạo động bằng `Array.newInstance`, widening hợp lệ, narrowing bị từ chối, mảng tham chiếu và lỗi truy cập ngoài chỉ số.
+Save all the code below into `ArrayWideningDemo.java`. The example includes dynamically created arrays via `Array.newInstance`, valid widening, rejected narrowing, reference arrays, and out-of-bounds access errors.
 
 ```java
 import java.lang.reflect.Array;
@@ -227,10 +227,10 @@ public class ArrayWideningDemo {
         // Byte -> byte -> int (unboxing, widening).
         Array.set(ints, 0, Byte.valueOf((byte) 7));
 
-        // Character -> char -> int. Ký tự 'A' có mã 65.
+        // Character -> char -> int. Character 'A' has code 65.
         Array.set(ints, 1, Character.valueOf('A'));
 
-        // Ghi primitive int bằng setter chuyên biệt.
+        // Write primitive int using specialized setter.
         Array.setInt(ints, 2, 42);
         System.out.println("int[]: " + Arrays.toString(ints));
 
@@ -243,7 +243,7 @@ public class ArrayWideningDemo {
         Array.set(doubles, 0, Float.valueOf(2.5f));
         System.out.println("double[] from float: " + doubles[0]);
 
-        // Narrowing long -> int không được tự động.
+        // Narrowing long -> int is not automatic.
         try {
             Array.set(ints, 0, Long.valueOf(6L));
         } catch (IllegalArgumentException e) {
@@ -251,7 +251,7 @@ public class ArrayWideningDemo {
                     "long -> int: IllegalArgumentException");
         }
 
-        // Primitive không thể chứa null.
+        // Primitives cannot hold null.
         try {
             Array.set(ints, 0, null);
         } catch (IllegalArgumentException e) {
@@ -259,7 +259,7 @@ public class ArrayWideningDemo {
                     "null -> int: IllegalArgumentException");
         }
 
-        // short -> char không phải widening primitive.
+        // short -> char is not primitive widening.
         try {
             Array.set(new char[1], 0, Short.valueOf((short) 1));
         } catch (IllegalArgumentException e) {
@@ -267,7 +267,7 @@ public class ArrayWideningDemo {
                     "short -> char: IllegalArgumentException");
         }
 
-        // Kiểu khai báo Number[] không đổi kiểu mảng runtime Integer[].
+        // Declared type Number[] does not change runtime array type Integer[].
         Number[] numbers = new Integer[1];
         Array.set(numbers, 0, Integer.valueOf(10));
         System.out.println("runtime array type: "
@@ -299,21 +299,21 @@ public class ArrayWideningDemo {
                     "out-of-bounds: ArrayIndexOutOfBoundsException");
         }
 
-        // API get tổng quát boxing giá trị primitive thành Integer.
+        // General get API boxes primitive value into Integer.
         System.out.println("Array.get(int[]): "
                 + Array.get(ints, 0).getClass().getSimpleName());
     }
 }
 ```
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac ArrayWideningDemo.java
 java ArrayWideningDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 int[]: [7, 65, 42]
@@ -330,26 +330,26 @@ out-of-bounds: ArrayIndexOutOfBoundsException
 Array.get(int[]): Integer
 ```
 
-Ba nhóm thông điệp đáng nhớ:
+Three groups of messages worth remembering:
 
-1. `byte -> int`, `char -> int`, `int -> long` và `float -> double` đều hợp lệ. Reflection áp dụng đúng đường widening primitive.
-2. `long -> int`, `short -> char` và `null -> int` thất bại bằng `IllegalArgumentException` vì loại chuyển đổi/giá trị không hợp lệ, dù chỉ số mảng vẫn đúng.
-3. Khi ghi `Long` vào mảng runtime `Integer[]`, `Array.set` báo `IllegalArgumentException` còn gán trực tiếp qua biến `Number[]` báo `ArrayStoreException`. Cả hai đều bảo vệ kiểu phần tử runtime.
+1. `byte -> int`, `char -> int`, `int -> long`, and `float -> double` are all valid. Reflection applies the proper primitive widening paths.
+2. `long -> int`, `short -> char`, and `null -> int` fail with `IllegalArgumentException` due to invalid conversion/value type, even though the array index is valid.
+3. When writing `Long` into a runtime `Integer[]` array, `Array.set` reports `IllegalArgumentException`, whereas direct assignment through a `Number[]` variable reports `ArrayStoreException`. Both protect the runtime element type.
 
-Cuối ví dụ, `Array.get(ints, 0)` có kiểu trả về `Object` nên primitive `int` được boxing thành đối tượng `Integer`. Điều này **không biến `int[]` thành `Integer[]`**.
+At the end of the example, `Array.get(ints, 0)` has return type `Object`, so the primitive `int` is boxed into an `Integer` object. This **does not turn `int[]` into `Integer[]`**.
 
-## 8. Kiểm tra trước khi gán bằng Reflection
+## 8. Validating Before Assigning with Reflection
 
-Nếu viết framework nhận danh sách đối tượng từ nguồn dữ liệu không biết trước, không nên chỉ nhìn kiểu của đối số và rồi gọi `Array.set` một cách ngẫu nhiên. Trình tự tốt hơn:
+If writing a framework that receives a list of objects from an unknown data source, you should not merely look at the argument type and blindly call `Array.set`. A better sequence:
 
-1. **Xác nhận đối tượng đích là mảng:** `array != null` và `array.getClass().isArray()`.
-2. **Xác định kiểu phần tử runtime:** `Class<?> component = array.getClass().getComponentType()`.
-3. **Xác định chỉ số:** `0 <= index < Array.getLength(array)`.
-4. **Nếu component là primitive:** `null` bị từ chối; lấy wrapper thực tế của `value`, ánh xạ sang primitive nguồn và kiểm tra widening primitive có hợp lệ.
-5. **Nếu component là reference:** `null` được chấp nhận; các đối tượng khác cần `component.isInstance(value)`.
-6. **Gọi `Array.set` một lần** sau khi chính sách đã rõ; vẫn xử lý exception đúng loại vì dữ liệu/đích có thể thay đổi trong môi trường concurrent.
+1. **Confirm the target object is an array:** `array != null` and `array.getClass().isArray()`.
+2. **Determine the runtime element type:** `Class<?> component = array.getClass().getComponentType()`.
+3. **Validate the index:** `0 <= index < Array.getLength(array)`.
+4. **If component is primitive:** `null` is rejected; obtain the actual wrapper of `value`, map to the source primitive, and check whether primitive widening is valid.
+5. **If component is reference:** `null` is accepted; other objects require `component.isInstance(value)`.
+6. **Call `Array.set` once** after the policy is clear; still handle exceptions of the appropriate types because data/targets can change in a concurrent environment.
 
-Một helper đơn giản cho mảng **reference** có thể viết:
+A simple helper for **reference** arrays can be written as:
 
 ```java
 import java.lang.reflect.Array;
@@ -378,42 +378,42 @@ public final class ReferenceArrayGuard {
 }
 ```
 
-Đây là class tiện ích **không chứa `main`**; có thể biên dịch độc lập, nhưng chỉ xử lý mảng reference theo mục tiêu đã ghi. Đối với mảng primitive, helper kiểu chung cần một **bảng widening** giống phần 3. Không được tự suy ra widening từ `component.isAssignableFrom(value.getClass())`: `Class.isAssignableFrom` kiểm tra quan hệ kiểu, **không** biểu diễn boxing/unboxing hay widening primitive.
+This is a utility class **without `main`**; it can be compiled standalone, but only handles reference arrays per its stated purpose. For primitive arrays, a general helper needs a **widening table** like section 3. Do not infer widening from `component.isAssignableFrom(value.getClass())`: `Class.isAssignableFrom` checks type relationships and does **not** represent boxing/unboxing or primitive widening.
 
-Ví dụ `int.class.isAssignableFrom(Byte.class)` là `false`, nhưng `Array.set(new int[1], 0, Byte.valueOf((byte) 1))` vẫn thành công.
+For example, `int.class.isAssignableFrom(Byte.class)` is `false`, yet `Array.set(new int[1], 0, Byte.valueOf((byte) 1))` still succeeds.
 
-## 9. Các lỗi cần phân biệt khi thao tác mảng
+## 9. Errors to Distinguish When Operating on Arrays
 
-| Exception | Tình huống thường gặp | Hướng xử lý |
+| Exception | Common Situation | Resolution |
 | --- | --- | --- |
-| `IllegalArgumentException` | `Array.set` nhận giá trị không tương thích với component type; hoặc đối tượng truyền vào không phải array | Kiểm tra component type, wrapper nguồn và bảng widening |
-| `NullPointerException` | Đối tượng `array` của API bằng `null` | Xác minh array trước lời gọi; khác với giá trị phần tử `null` |
-| `ArrayIndexOutOfBoundsException` | Chỉ số âm hoặc lớn hơn/bằng độ dài mảng | Kiểm tra `Array.getLength(array)` và miền chỉ số |
-| `ArrayStoreException` | Gán trực tiếp qua biến mảng tham chiếu nhưng phần tử không tương thích với kiểu mảng runtime | Xác định kiểu mảng thực tế, đặc biệt với array covariance |
+| `IllegalArgumentException` | `Array.set` receives a value incompatible with the component type; or the passed object is not an array | Check the component type, source wrapper, and widening table |
+| `NullPointerException` | The `array` argument of the API is `null` | Verify the array before the call; distinct from a `null` element value |
+| `ArrayIndexOutOfBoundsException` | Negative index or greater than/equal to array length | Check `Array.getLength(array)` and the index range |
+| `ArrayStoreException` | Direct assignment via a reference array variable where the element is incompatible with the runtime array type | Determine the actual array type, especially with array covariance |
 
-Ví dụ đối tượng mảng hoàn toàn hợp lệ mà chỉ số sai:
+Example where the array object is completely valid but the index is wrong:
 
 ```java
 int[] data = new int[2];
 Array.set(data, 2, Integer.valueOf(10)); // ArrayIndexOutOfBoundsException
 ```
 
-Đây là lỗi giới hạn chỉ số, không phải lỗi widening. Mặt khác:
+This is an index-bounds error, not a widening error. On the other hand:
 
 ```java
 int[] data = new int[2];
 Array.set(data, 0, Long.valueOf(10L)); // IllegalArgumentException
 ```
 
-Chỉ số 0 hợp lệ, nhưng `Long -> int` đòi narrowing nên lỗi nằm ở kiểu giá trị.
+Index 0 is valid, but `Long -> int` requires narrowing, so the error lies in the value type.
 
-**Không nên bắt mọi `RuntimeException` rồi gọi chung là «sai kiểu».** Việc phân loại đúng sẽ giúp báo lỗi có thể sửa được trong framework nhập dữ liệu, mapper, serializer hoặc plugin reflection.
+**Do not catch every `RuntimeException` and label them all generically as "type mismatch".** Accurate classification helps report actionable errors in data-import frameworks, mappers, serializers, or reflection plugins.
 
-## 10. Các trường hợp dễ suy luận nhầm
+## 10. Cases Prone to False Assumptions
 
-### 10.1. Giá trị nhỏ không làm narrowing trở thành widening
+### 10.1. Small Values Do Not Turn Narrowing into Widening
 
-`Long.valueOf(1L)` vẫn mang kiểu `Long`. Gán qua `Array.set` vào `int[]` không được, dù `1L` nằm trọn trong miền `int`. Nếu cố ý cho phép narrowing có kiểm tra phạm vi:
+`Long.valueOf(1L)` still carries type `Long`. Assigning it via `Array.set` into `int[]` fails, even though `1L` fits completely within the `int` range. If you deliberately allow range-checked narrowing:
 
 ```java
 long raw = 1L;
@@ -421,56 +421,56 @@ int converted = Math.toIntExact(raw);
 Array.setInt(new int[1], 0, converted);
 ```
 
-`Math.toIntExact` ném `ArithmeticException` nếu giá trị `long` nằm ngoài miền `int`. Đây là **chính sách chuyển đổi tường minh của ứng dụng**, không phải quy tắc mặc định của `Array.set`.
+`Math.toIntExact` throws `ArithmeticException` if the `long` value is outside the `int` range. This is an **explicit conversion policy of the application**, not the default rule of `Array.set`.
 
-### 10.2. Wrapper khác không có nghĩa là primitive compatible
+### 10.2. Different Wrappers Do Not Mean Primitive Compatibility
 
-`Array.set(new Long[1], 0, Integer.valueOf(1))` thất bại. Mặc dù `int -> long` widening được phép với **mảng primitive `long[]`**, mục tiêu `Long[]` là mảng **đối tượng**, cần một instance `Long` hoặc `null`. Muốn ghi thành `Long`, tự tạo đối tượng:
+`Array.set(new Long[1], 0, Integer.valueOf(1))` fails. Although `int -> long` widening is permitted for **primitive array `long[]`**, the target `Long[]` is an **object** array, requiring a `Long` instance or `null`. To write as `Long`, create the object yourself:
 
 ```java
 Long[] boxed = new Long[1];
 Array.set(boxed, 0, Long.valueOf(1L));
 ```
 
-### 10.3. Không ép kiểu cho `boolean`
+### 10.3. No Casting for `boolean`
 
-Không có widening giữa `boolean` và các kiểu số. `Array.set(new boolean[1], 0, Boolean.TRUE)` hợp lệ; `Array.set(new boolean[1], 0, Integer.valueOf(1))` không hợp lệ. Tương tự `Array.set(new int[1], 0, Boolean.TRUE)` không hợp lệ.
+There is no widening between `boolean` and numeric types. `Array.set(new boolean[1], 0, Boolean.TRUE)` is valid; `Array.set(new boolean[1], 0, Integer.valueOf(1))` is invalid. Similarly, `Array.set(new int[1], 0, Boolean.TRUE)` is invalid.
 
-### 10.4. Mảng nhiều chiều có component là một mảng
+### 10.4. Multidimensional Arrays Have an Array as Their Component
 
-Với:
+With:
 
 ```java
 int[][] matrix = new int[2][3];
 ```
 
-Kiểu thành phần của **mảng ngoài** là `int[]`, tức một **reference type**. `Array.set(matrix, 0, new int[] {1, 2, 3})` hợp lệ, còn `Array.set(matrix, 0, Integer.valueOf(1))` không hợp lệ vì phần tử mảng ngoài phải là `int[]`, không phải một số nguyên. Nếu muốn ghi một ô số, lấy mảng con hoặc dùng hai bước:
+The component type of the **outer array** is `int[]`, which is a **reference type**. `Array.set(matrix, 0, new int[] {1, 2, 3})` is valid, whereas `Array.set(matrix, 0, Integer.valueOf(1))` is invalid because an outer-array element must be `int[]`, not an integer. If you want to write a numeric slot, retrieve the subarray or use two steps:
 
 ```java
 Object row = Array.get(matrix, 0);
 Array.setInt(row, 1, 9);
 ```
 
-Lúc ghi `row[1]`, component type của **mảng con** mới là `int`. Luôn kiểm tra đúng cấp mảng mà bạn đang gán.
+Only when writing `row[1]` is the component type of the **subarray** `int`. Always check the exact array level you are assigning into.
 
-### 10.5. Widening có thể mất độ chính xác
+### 10.5. Widening Can Lose Precision
 
-`long -> float` được cho phép nhưng `float` không thể biểu diễn chính xác mọi số nguyên 64-bit. Widening ở đây có nghĩa conversion được ngôn ngữ chấp nhận mà không cần cast tường minh; nó **không bảo đảm giữ nguyên toàn bộ giá trị số học**. Nếu hệ thống cần độ chính xác tuyệt đối, phải đặt thêm quy tắc kiểm tra hoặc dùng kiểu dữ liệu thích hợp.
+`long -> float` is permitted, yet `float` cannot accurately represent every 64-bit integer. Widening here means a conversion accepted by the language without an explicit cast; it **does not guarantee preserving the entire arithmetic value**. If the system requires absolute precision, you must add validation rules or use an appropriate data type.
 
-## 11. Quy trình chẩn đoán khi `Array.set` thất bại
+## 11. Diagnostic Workflow When `Array.set` Fails
 
-Khi thấy exception trong reflection-driven array mapper, hãy kiểm tra theo thứ tự:
+When seeing an exception in a reflection-driven array mapper, check in order:
 
-1. **Array thật:** `array.getClass().getTypeName()` là gì? Có đúng là array không? Có phải `Integer[]` dù biến khai báo `Number[]`?
-2. **Component thật:** `getComponentType()` là `int.class` hay `Integer.class`? Hai tình huống có quy tắc ghi khác nhau.
-3. **Index:** có nằm trong `[0, Array.getLength(array))`?
-4. **Value:** có phải `null`? Nếu không, `value.getClass().getTypeName()` là gì?
-5. **Primitive target:** wrapper nguồn tương ứng primitive nào? Có đường widening trong bảng phần 3 không? Có lỡ yêu cầu narrowing không?
-6. **Reference target:** `component.isInstance(value)` có đúng không? Có gặp array covariance không?
-7. **Đường gọi nào:** đang dùng `Array.set`, setter chuyên biệt hay phép gán mảng Java trực tiếp? Exception báo ra tương ứng có thể khác.
-8. **Chuyển đổi có chủ đích:** nếu nghiệp vụ muốn parse chuỗi, chuẩn hóa JSON number hoặc thu hẹp số có kiểm soát, làm bước đó **trước** `Array.set`, với chính sách lỗi rõ ràng.
+1. **Actual array:** What is `array.getClass().getTypeName()`? Is it actually an array? Is it `Integer[]` even though the variable is declared `Number[]`?
+2. **Actual component:** Is `getComponentType()` `int.class` or `Integer.class`? The two cases have different write rules.
+3. **Index:** Is it within `[0, Array.getLength(array))`?
+4. **Value:** Is it `null`? If not, what is `value.getClass().getTypeName()`?
+5. **Primitive target:** Which primitive does the source wrapper correspond to? Is there a widening path in section 3's table? Did it accidentally require narrowing?
+6. **Reference target:** Does `component.isInstance(value)` hold? Are you encountering array covariance?
+7. **Call path:** Are you using `Array.set`, a specialized setter, or direct Java array assignment? The corresponding thrown exception can differ.
+8. **Intentional conversion:** If business logic needs to parse a string, normalize a JSON number, or perform controlled numeric narrowing, do that step **before** `Array.set`, with a clear error policy.
 
-Ví dụ ngắn giúp quan sát metadata:
+Short example to inspect metadata:
 
 ```java
 Object array = new int[2];
@@ -485,7 +485,7 @@ System.out.println("value type: "
         + value.getClass().getTypeName());
 ```
 
-Đầu ra:
+Output:
 
 ```text
 array type: int[]
@@ -493,34 +493,34 @@ component: int
 value type: java.lang.Long
 ```
 
-Từ đây suy ra cần `long -> int`, không được Reflection cho phép; phải sửa giá trị/kiểu mảng hoặc áp dụng chuyển đổi tường minh có kiểm tra.
+From this we deduce it requires `long -> int`, which Reflection does not permit; you must fix the value/array type or apply an explicit checked conversion.
 
-## 12. Tự kiểm tra nhanh
+## 12. Quick Self-Check
 
-**Câu 1.** `Array.set(new long[1], 0, Integer.valueOf(10))` có hợp lệ không?  
-Có. `Integer` được unbox thành `int`, sau đó widening thành `long`.
+**Question 1.** Is `Array.set(new long[1], 0, Integer.valueOf(10))` valid?  
+Yes. `Integer` is unboxed to `int`, then widened to `long`.
 
-**Câu 2.** `Array.set(new int[1], 0, Long.valueOf(10))` có hợp lệ không?  
-Không. `long -> int` là narrowing; `Array.set` ném `IllegalArgumentException`.
+**Question 2.** Is `Array.set(new int[1], 0, Long.valueOf(10))` valid?  
+No. `long -> int` is narrowing; `Array.set` throws `IllegalArgumentException`.
 
-**Câu 3.** `Array.set(new char[1], 0, Short.valueOf((short) 65))` có hợp lệ không?  
-Không. `short -> char` không phải widening primitive dù số 65 tương ứng ký tự `'A'`.
+**Question 3.** Is `Array.set(new char[1], 0, Short.valueOf((short) 65))` valid?  
+No. `short -> char` is not primitive widening even though the number 65 corresponds to the character `'A'`.
 
-**Câu 4.** `Array.set(new Number[1], 0, Integer.valueOf(1))` có hợp lệ không?  
-Có. `Integer` là subtype của `Number` nên tương thích với component type reference `Number`.
+**Question 4.** Is `Array.set(new Number[1], 0, Integer.valueOf(1))` valid?  
+Yes. `Integer` is a subtype of `Number`, so it is compatible with the reference component type `Number`.
 
-**Câu 5.** Với `Number[] x = new Integer[1]`, `Array.set(x, 0, Long.valueOf(1))` ném gì?  
-`IllegalArgumentException`, vì đối tượng mảng thực có component type `Integer`. Nếu thay bằng `x[0] = Long.valueOf(1)`, JVM gán mảng trực tiếp có thể ném `ArrayStoreException`.
+**Question 5.** With `Number[] x = new Integer[1]`, what does `Array.set(x, 0, Long.valueOf(1))` throw?  
+`IllegalArgumentException`, because the actual array object has component type `Integer`. If replaced with `x[0] = Long.valueOf(1)`, direct array assignment by the JVM may throw `ArrayStoreException`.
 
-**Câu 6.** Tại sao `Array.set(new Long[1], 0, Integer.valueOf(1))` không tương đương với `Array.set(new long[1], 0, Integer.valueOf(1))`?  
-Vì `Long[]` chứa **đối tượng `Long`** và cần reference compatibility; `long[]` chứa **primitive `long`** và cho phép unboxing `Integer` rồi widening `int -> long`.
+**Question 6.** Why is `Array.set(new Long[1], 0, Integer.valueOf(1))` not equivalent to `Array.set(new long[1], 0, Integer.valueOf(1))`?  
+Because `Long[]` holds **`Long` objects** and requires reference compatibility; `long[]` holds **primitive `long`** and allows unboxing `Integer` then widening `int -> long`.
 
-## Ghi nhớ
+## Key Takeaways
 
-- Với **mảng primitive**, `Array.set` nhận wrapper rồi **unbox và widening primitive** nếu đường chuyển đổi hợp lệ. Không tự narrowing và không nhận `null`.
-- Với **mảng tham chiếu**, `Array.set` yêu cầu giá trị là `null` hoặc instance tương thích với **component type runtime**; không tự biến wrapper này thành wrapper khác.
-- `Array.setXxx` có thể ghi sang mảng primitive rộng hơn theo bảng widening, không chỉ mảng cùng kiểu với `Xxx`.
-- **Sai kiểu trong `Array.set`** thường là `IllegalArgumentException`; gán trực tiếp vào mảng tham chiếu sai kiểu có thể là `ArrayStoreException`.
-- Luôn kiểm tra riêng **đối tượng mảng, component type, index và value** để phân biệt lỗi kiểu với lỗi truy cập ngoài phạm vi.
+- For **primitive arrays**, `Array.set` accepts a wrapper and then **unboxes and performs primitive widening** if the conversion path is valid. It does not automatically narrow and does not accept `null`.
+- For **reference arrays**, `Array.set` requires the value to be `null` or an instance compatible with **the runtime component type**; it does not automatically convert one wrapper into another wrapper.
+- `Array.setXxx` can write to wider primitive arrays according to the widening table, not only arrays of the exact same type as `Xxx`.
+- **Type mismatch in `Array.set`** is typically `IllegalArgumentException`; direct assignment into a reference array of the wrong type can be `ArrayStoreException`.
+- Always check **the array object, component type, index, and value** separately to distinguish type errors from out-of-bounds access errors.
 
-Nắm vững điều kiện **unboxing → widening primitive** và **reference assignability theo kiểu mảng thực** giúp ghi phần tử an toàn và chẩn đoán chính xác các lỗi khi sử dụng Java Reflection với mảng động.
+Mastering the conditions of **unboxing → primitive widening** and **reference assignability by the actual array type** enables safe element writes and accurate error diagnosis when using Java Reflection with dynamic arrays.

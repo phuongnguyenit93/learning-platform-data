@@ -1,20 +1,20 @@
-# Dùng jdeps để chuyển ứng dụng classpath sang module graph
+# Using jdeps to Migrate a Classpath Application to a Module Graph
 
-## 1. Mục tiêu của quá trình chuyển đổi
+## 1. Migration Objectives
 
-Ứng dụng Java chạy trên classpath thường phụ thuộc vào nhiều JAR, nhưng các dependency không được khai báo trong module descriptor. Khi chuyển sang Java Platform Module System (JPMS), cần xác định:
+Java applications running on the classpath often depend on many JARs, yet those dependencies are not declared in module descriptors. When migrating to the Java Platform Module System (JPMS), you need to identify:
 
-- Ứng dụng và từng thư viện phụ thuộc vào module/package nào.
-- JAR nào đã là explicit module, JAR nào là automatic module và JAR nào vẫn chưa modular.
-- Module descriptor cần những directive `requires`, `exports`, `uses` và `provides` nào.
-- Có split package, dependency thiếu hoặc sử dụng JDK internal API hay không.
-- Những dependency động nào không thể suy ra chỉ từ bytecode.
+- Which modules/packages the application and each library depend on.
+- Which JARs are already explicit modules, which are automatic modules, and which remain non-modular.
+- Which `requires`, `exports`, `uses`, and `provides` directives the module descriptors need.
+- Whether there are split packages, missing dependencies, or usage of JDK internal APIs.
+- Which dynamic dependencies cannot be inferred from bytecode alone.
 
-Công cụ `jdeps` phân tích dependency tĩnh của class files và JAR, giúp xây dựng bức tranh ban đầu về module graph. Nó không tự động chuyển toàn bộ ứng dụng thành một hệ thống modular hoàn chỉnh. Nhà phát triển vẫn phải thiết kế ranh giới module, xác nhận dependency runtime và kiểm thử ứng dụng sau khi chuyển đổi.
+The `jdeps` tool analyzes static dependencies of class files and JARs, helping build an initial picture of the module graph. It does not automatically convert the entire application into a complete modular system. Developers still must design module boundaries, verify runtime dependencies, and test the application after migration.
 
-## 2. Chuẩn bị đầu vào
+## 2. Preparing the input
 
-Giả sử ứng dụng cũ có cấu trúc:
+Suppose the legacy application has the structure:
 
 ```text
 legacy-app/
@@ -27,45 +27,45 @@ legacy-app/
     └── application.properties
 ```
 
-Ứng dụng được chạy bằng classpath:
+The application is run using the classpath:
 
 ```bash
 java -cp "app.jar:lib/*" com.acme.app.Main
 ```
 
-Trên Windows, dấu phân cách các phần tử classpath là dấu chấm phẩy:
+On Windows, the classpath entry separator is a semicolon:
 
 ```powershell
 java -cp "app.jar;lib/*" com.acme.app.Main
 ```
 
-Trước khi phân tích, cần thu thập đúng các JAR được triển khai trong môi trường thật. Không chỉ phân tích file app.jar nếu ứng dụng còn phụ thuộc vào thư viện được nạp từ thư mục plugin hoặc cấu hình bên ngoài.
+Before analyzing, gather the exact JARs deployed in the real environment. Do not analyze only `app.jar` if the application also depends on libraries loaded from a plugin directory or external configuration.
 
-Nên lưu lại:
+You should record:
 
-- JDK version dùng để build và chạy.
-- Danh sách JAR cùng phiên bản và checksum.
-- Lệnh khởi chạy hiện tại, bao gồm classpath và JVM options.
-- Các cấu hình plugin, reflection, service provider và class name được nạp động.
-- Những package mà ứng dụng công khai cho module hoặc thư viện khác.
+- The JDK version used to build and run.
+- The list of JARs along with versions and checksums.
+- The current launch command, including classpath and JVM options.
+- Plugin configurations, reflection, service providers, and dynamically loaded class names.
+- Packages that the application exposes to other modules or libraries.
 
-Đây là baseline để so sánh trước và sau khi modular hóa.
+This serves as the baseline for comparing before and after modularization.
 
-## 3. Bước 1: xem dependency tổng quan với jdeps
+## 3. Step 1: view an overview of dependencies with jdeps
 
-Chạy `jdeps --summary` để xem các dependency ở mức module/package tổng quát:
+Run `jdeps --summary` to view dependencies at a high-level module/package summary:
 
 ```bash
 jdeps --summary app.jar
 ```
 
-Nếu thư viện nằm trên classpath riêng, truyền chúng bằng `--class-path`:
+If libraries reside on a separate classpath, pass them using `--class-path`:
 
 ```bash
 jdeps --class-path "lib/*" --summary app.jar
 ```
 
-Output minh họa:
+Illustrative output:
 
 ```text
 app.jar -> java.base
@@ -74,25 +74,25 @@ app.jar -> customer.api
 app.jar -> json.engine
 ```
 
-Tên hiển thị phụ thuộc vào loại artifact và khả năng ánh xạ dependency của jdeps. Khi dependency chưa phải module, công cụ có thể hiển thị tên JAR hoặc package thay vì một named module đã được xác định.
+Displayed names depend on the artifact type and jdeps's dependency mapping capability. When a dependency is not yet a module, the tool may display a JAR name or package rather than a resolved named module.
 
-Cách đọc:
+How to read it:
 
-- `java.base`: module nền tảng mà hầu hết Java code đều phụ thuộc.
-- `java.logging`: ứng dụng tham chiếu API logging thuộc module này.
-- `customer.api`, `json.engine`: dependency ứng dụng cần được xác định artifact và module name cụ thể.
+- `java.base`: the foundational module that almost all Java code depends on.
+- `java.logging`: the application references logging APIs belonging to this module.
+- `customer.api`, `json.engine`: application dependencies whose concrete artifacts and module names need to be identified.
 
-`--summary` hữu ích để có cái nhìn nhanh. Khi cần biết class nào tạo ra dependency, dùng chế độ verbose ở các bước sau.
+`--summary` is useful for a quick overview. When you need to know which class creates a dependency, use verbose mode in subsequent steps.
 
-## 4. Bước 2: lần theo dependency bắc cầu
+## 4. Step 2: trace transitive dependencies
 
-Một thư viện có thể phụ thuộc vào nhiều thư viện khác. Dùng `--recursive` để phân tích dependency theo chiều sâu:
+One library may depend on several other libraries. Use `--recursive` to analyze dependencies in depth:
 
 ```bash
 jdeps --recursive --class-path "lib/*" --summary app.jar
 ```
 
-Ví dụ:
+Example:
 
 ```text
 app.jar -> java.base
@@ -102,17 +102,17 @@ customer-api.jar -> json-engine.jar
 json-engine.jar -> java.base
 ```
 
-Kết quả minh họa cho thấy dependency không chỉ nằm ở app.jar. Khi chuyển sang module path, các module dependency bắc cầu cũng cần được cung cấp và resolve.
+The illustrative result shows that dependencies do not reside solely in app.jar. When moving to the module path, transitive dependency modules must also be supplied and resolved.
 
-Không nên chỉ thêm module được ứng dụng import trực tiếp rồi bỏ qua dependency của thư viện. Module graph phải chứa toàn bộ dependency cần thiết để các module được resolve.
+Do not add only the modules the application imports directly and omit library dependencies. The module graph must contain all required dependencies for modules to be resolved.
 
-Nếu output không đủ rõ, xem dependency theo class:
+If the output is not clear enough, inspect class-level dependencies:
 
 ```bash
 jdeps --recursive -verbose:class --class-path "lib/*" app.jar
 ```
 
-Output minh họa:
+Illustrative output:
 
 ```text
 com.acme.app.Main -> com.acme.customer.Customer
@@ -120,13 +120,13 @@ com.acme.app.Main -> java.util.logging.Logger
 com.acme.customer.Repository -> com.acme.json.JsonReader
 ```
 
-Từ class nguồn và class đích, có thể xác định package nào cần được export, module nào cần được đọc và dependency nào đang được sử dụng thực tế.
+From the source and target classes, you can determine which packages need to be exported, which modules need to be read, and which dependencies are actually used.
 
-## 5. Bước 3: xác định module name của từng JAR
+## 5. Step 3: determine the module name of each JAR
 
-Trước khi viết `module-info.java`, cần biết tên module của các dependency.
+Before writing `module-info.java`, you need to know the module names of the dependencies.
 
-Dùng:
+Use:
 
 ```bash
 jar --describe-module --file lib/customer-api.jar
@@ -134,47 +134,47 @@ jar --describe-module --file lib/json-engine.jar
 jar --describe-module --file lib/logging.jar
 ```
 
-Có ba trường hợp phổ biến:
+There are three common cases:
 
-1. **Explicit named module:** JAR có `module-info.class`; tên module và directive được khai báo rõ.
-2. **Automatic module:** JAR không có descriptor nhưng được đặt trên module path; tên module được suy ra từ tên JAR hoặc khai báo bằng `Automatic-Module-Name` trong manifest.
-3. **Classpath library:** JAR nằm trên classpath và thuộc unnamed module của class loader tương ứng.
+1. **Explicit named module:** The JAR has `module-info.class`; the module name and directives are explicitly declared.
+2. **Automatic module:** The JAR has no descriptor but is placed on the module path; the module name is derived from the JAR file name or declared via `Automatic-Module-Name` in the manifest.
+3. **Classpath library:** The JAR sits on the classpath and belongs to the unnamed module of the corresponding class loader.
 
-Ví dụ manifest có thể chứa:
+For example, the manifest may contain:
 
 ```text
 Automatic-Module-Name: com.acme.customer
 ```
 
-Tên automatic module ổn định sẽ giúp các module khác khai báo `requires com.acme.customer` mà không phụ thuộc vào việc tên file JAR thay đổi nhẹ giữa các phiên bản.
+A stable automatic module name helps other modules declare `requires com.acme.customer` without depending on minor JAR filename changes across versions.
 
-Không được nhầm tên artifact Maven, tên file JAR, package name và module name. Hãy lấy module name từ descriptor hoặc kết quả `jar --describe-module`.
+Do not confuse Maven artifact names, JAR filenames, package names, and module names. Obtain the module name from the descriptor or `jar --describe-module` output.
 
-## 6. Bước 4: kiểm tra dependency tới JDK internal API
+## 6. Step 4: check dependencies on JDK internal APIs
 
-Ứng dụng cũ đôi khi sử dụng class thuộc package nội bộ của JDK, chẳng hạn `sun.*` hoặc `com.sun.*`. Những API này không phải public Java API ổn định và có thể bị chặn hoặc thay đổi giữa các phiên bản JDK.
+Legacy applications sometimes use classes in internal JDK packages, such as `sun.*` or `com.sun.*`. These APIs are not stable public Java APIs and may be encapsulated or changed across JDK versions.
 
-Kiểm tra bằng:
+Check with:
 
 ```bash
 jdeps --jdk-internals app.jar
 ```
 
-Nếu có dependency tới internal API, output sẽ chỉ ra class nguồn và API liên quan. Hãy tìm public API thay thế trước khi modular hóa.
+If there are dependencies on internal APIs, the output points out the source class and the relevant API. Find supported public API replacements before modularizing.
 
-Không nên dùng `--add-exports` như giải pháp dài hạn nếu dependency có thể được thay bằng API được hỗ trợ. Nếu cần giải pháp tạm thời để tương thích, phải ghi rõ module/package, giới hạn phạm vi và kế hoạch loại bỏ.
+Do not use `--add-exports` as a long-term solution if the dependency can be replaced with a supported API. If a temporary workaround is needed for compatibility, document the exact module/package, restrict scope, and plan for removal.
 
-## 7. Bước 5: tạo module descriptor cho thư viện cũ
+## 7. Step 5: generate module descriptors for legacy libraries
 
-Với JAR chưa có `module-info.class`, `jdeps` có thể đề xuất descriptor:
+For JARs without `module-info.class`, `jdeps` can suggest a descriptor:
 
 ```bash
 jdeps --generate-module-info generated-modules lib/customer-api.jar
 ```
 
-Với nhiều JAR, chạy lần lượt cho từng artifact để dễ xem và kiểm soát kết quả.
+With multiple JARs, run one by one for each artifact to easily review and control the results.
 
-Công cụ có thể tạo cấu trúc tương tự:
+The tool may generate a structure similar to:
 
 ```text
 generated-modules/
@@ -182,30 +182,30 @@ generated-modules/
     └── module-info.java
 ```
 
-Descriptor được sinh có thể chứa các directive `requires` và `exports` dựa trên dependency tĩnh mà công cụ phát hiện.
+The generated descriptor may contain `requires` and `exports` directives based on static dependencies detected by the tool.
 
-Đọc và chỉnh sửa descriptor trước khi sử dụng. `jdeps` không biết đầy đủ ý định thiết kế API của thư viện, và có thể không suy ra được:
+Read and edit the descriptor before using it. `jdeps` does not know the full API design intent of the library, and may fail to infer:
 
-- Package nào thực sự là API công khai.
-- Package nào chỉ là implementation nội bộ.
-- Service type mà module sử dụng qua `ServiceLoader`.
-- Provider được đăng ký qua `META-INF/services`.
-- Class được nạp qua reflection hoặc cấu hình.
-- Dependency chỉ xuất hiện ở một đường chạy động.
+- Which packages are truly public API.
+- Which packages are strictly internal implementation.
+- Service types the module uses via `ServiceLoader`.
+- Providers registered via `META-INF/services`.
+- Classes loaded via reflection or configuration.
+- Dependencies that only appear on a dynamic execution path.
 
-Không nên export tất cả package chỉ để làm cho compilation thành công. Chỉ export package cần thiết cho consumer.
+Do not export every package just to make compilation succeed. Export only packages needed by consumers.
 
-Nếu thư viện cần reflective access sâu cho framework, hãy xem xét `opens` riêng cho package và module đích thay vì export rộng toàn bộ implementation.
+If a library needs deep reflective access for a framework, consider `opens` specifically for the package and target module instead of broadly exporting all implementations.
 
-## 8. Bước 6: viết module-info.java cho ứng dụng
+## 8. Step 6: write module-info.java for the application
 
-Giả sử dependency đã được xác định:
+Suppose the dependencies have been identified:
 
-- `customer-api` cung cấp package `com.acme.customer`.
-- `json-engine` cung cấp package `com.acme.json`.
-- Ứng dụng dùng logging của JDK.
+- `customer-api` provides package `com.acme.customer`.
+- `json-engine` provides package `com.acme.json`.
+- The application uses JDK logging.
 
-Module descriptor của ứng dụng có thể bắt đầu như sau:
+The application's module descriptor can start like this:
 
 ```java
 module com.acme.app {
@@ -215,9 +215,9 @@ module com.acme.app {
 }
 ```
 
-Tên module trong `requires` phải khớp với tên module thực tế của dependency trên module path.
+Module names in `requires` must match the actual module names of dependencies on the module path.
 
-Nếu module khác cần truy cập public API của ứng dụng, hãy export package cần công khai:
+If another module needs to access the application's public API, export the packages to be exposed:
 
 ```java
 module com.acme.app {
@@ -229,29 +229,29 @@ module com.acme.app {
 }
 ```
 
-Không cần export package chứa main class hoặc implementation nếu không có module khác cần truy cập chúng.
+There is no need to export packages containing the main class or implementations if no other module needs to access them.
 
-### Phân biệt requires và exports
+### Distinguishing requires and exports
 
-- `requires X`: module hiện tại đọc module X.
-- `exports p`: module hiện tại cho phép module khác truy cập public API trong package p.
-- `exports p to X`: chỉ export package cho module X.
-- `requires transitive X`: truyền readability tới consumer của module hiện tại khi dependency là một phần public API.
-- `requires static X`: dependency cần khi compile nhưng có thể không bắt buộc ở runtime theo quy tắc của directive.
+- `requires X`: the current module reads module X.
+- `exports p`: the current module allows other modules to access public APIs in package p.
+- `exports p to X`: exports the package only to module X.
+- `requires transitive X`: propagates readability to consumers of the current module when the dependency is part of its public API.
+- `requires static X`: a dependency needed at compile time that may be optional at runtime per the directive's rules.
 
-Một lỗi thường gặp là thêm `exports` vào consumer trong khi dependency chưa export package của chính nó. Package phải được export bởi module sở hữu package đó.
+A common mistake is adding `exports` to the consumer while the dependency has not exported its own package. A package must be exported by the module that owns that package.
 
-## 9. Bước 7: chuyển ServiceLoader và META-INF/services
+## 9. Step 7: migrate ServiceLoader and META-INF/services
 
-Ứng dụng classpath có thể đăng ký provider bằng file:
+Classpath applications may register providers using a file:
 
 ```text
 META-INF/services/com.acme.spi.Formatter
 ```
 
-File chứa tên đầy đủ của provider class, mỗi dòng một tên.
+The file contains the fully qualified name of the provider class, one name per line.
 
-Khi chuyển provider thành named module, cần biểu diễn service bằng module descriptor:
+When converting a provider to a named module, the service must be expressed in the module descriptors:
 
 Consumer:
 
@@ -274,13 +274,13 @@ module com.acme.provider.json {
 }
 ```
 
-Đảm bảo service interface nằm trong package được SPI module export. Provider cần triển khai đúng service type và tuân thủ yêu cầu khởi tạo của ServiceLoader.
+Ensure the service interface resides in a package exported by the SPI module. The provider must implement the right service type and comply with ServiceLoader's instantiation requirements.
 
-Không giả định `jdeps` sẽ tự chuyển mọi file `META-INF/services` thành `uses`/`provides` chính xác. Hãy kiểm kê các file service và kiểm thử provider discovery sau khi chuyển đổi.
+Do not assume `jdeps` will automatically convert every `META-INF/services` file into accurate `uses`/`provides`. Inventory service files and test provider discovery after conversion.
 
-## 10. Bước 8: đặt dependency trên module path và biên dịch
+## 10. Step 8: place dependencies on the module path and compile
 
-Sau khi có descriptor, tổ chức source và dependency:
+Once you have descriptors, organize sources and dependencies:
 
 ```text
 project/
@@ -294,7 +294,7 @@ project/
     └── com.acme.spi.jar
 ```
 
-Biên dịch ứng dụng:
+Compile the application:
 
 ```bash
 javac --module-path mods \\
@@ -303,39 +303,39 @@ javac --module-path mods \\
   -m com.acme.app
 ```
 
-Nếu module descriptor của các thư viện được sinh riêng, cần đóng gói lại JAR với `module-info.class` hoặc biên dịch module source tương ứng trước khi đưa vào module path.
+If library module descriptors were generated separately, repackage the JARs with `module-info.class` or compile the corresponding module sources before placing them on the module path.
 
-Chạy ứng dụng:
+Run the application:
 
 ```bash
 java --module-path "mods:out" \\
   -m com.acme.app/com.acme.app.Main
 ```
 
-Trên Windows, dấu phân cách module path là dấu chấm phẩy:
+On Windows, the module path separator is a semicolon:
 
 ```powershell
 java --module-path "mods;out" -m com.acme.app/com.acme.app.Main
 ```
 
-Không đặt JAR chưa modular lên module path một cách tùy tiện rồi giả định nó hoạt động như trên classpath. Khi ở module path, JAR có thể trở thành automatic module và tham gia module resolution với các quy tắc khác.
+Do not place a non-modular JAR onto the module path arbitrarily and assume it behaves just like on the classpath. On the module path, a JAR may become an automatic module and participate in module resolution with different rules.
 
-## 11. Bước 9: kiểm tra module graph và dependency sau chuyển đổi
+## 11. Step 9: verify the module graph and dependencies after migration
 
-Dùng `jdeps` để kiểm tra descriptor:
+Use `jdeps` to verify the descriptor:
 
 ```bash
 jdeps --module-path mods --check com.acme.app
 ```
 
-In dependency module:
+Print module dependencies:
 
 ```bash
 jdeps --module-path mods \\
   --print-module-deps mods/com.acme.app.jar
 ```
 
-Kiểm tra module graph khi chạy:
+Verify the module graph at runtime:
 
 ```bash
 java --show-module-resolution \\
@@ -343,7 +343,7 @@ java --show-module-resolution \\
   -m com.acme.app/com.acme.app.Main
 ```
 
-Validate tập module trên module path:
+Validate the set of modules on the module path:
 
 ```bash
 java --validate-modules \\
@@ -351,71 +351,71 @@ java --validate-modules \\
   --add-modules ALL-MODULE-PATH
 ```
 
-Đọc output để xác nhận:
+Read the output to confirm:
 
-- Root module đúng với ứng dụng.
-- Dependency `requires` được resolve từ đúng artifact.
-- Không có module hoặc package xung đột.
-- Provider cần thiết được bind và có thể được ServiceLoader tìm thấy.
-- Không còn tham chiếu tới module/class bị thiếu.
+- The root module matches the application.
+- `requires` dependencies are resolved from the right artifacts.
+- There are no conflicting modules or packages.
+- Required providers are bound and discoverable by ServiceLoader.
+- There are no remaining references to missing modules/classes.
 
-`ALL-MODULE-PATH` hữu ích để validate toàn bộ module quan sát được trong thư mục kiểm tra. Không nhất thiết dùng nó làm root trong lệnh production nếu ứng dụng không cần resolve mọi module trên module path.
+`ALL-MODULE-PATH` is useful to validate all observable modules in a test directory. You do not necessarily use it as a root in production commands if the application does not need to resolve every module on the module path.
 
-## 12. Kiểm tra split package và dependency động
+## 12. Checking split packages and dynamic dependencies
 
-Classpath cũ có thể cho phép nhiều JAR cùng đóng góp class vào một package. Khi các JAR trở thành named hoặc automatic module, split package có thể khiến resolution thất bại.
+The legacy classpath may have allowed multiple JARs to contribute classes to the same package. When JARs become named or automatic modules, split packages can cause resolution to fail.
 
-Kiểm tra package trùng giữa các artifact trước khi modular hóa. Nếu có split package, cần gom package về một module sở hữu hoặc tách package theo trách nhiệm.
+Check for duplicate packages across artifacts before modularizing. If a split package exists, consolidate the package into one owning module or split packages by responsibility.
 
-Ngoài dependency tĩnh, kiểm tra thêm:
+In addition to static dependencies, also inspect:
 
-- `Class.forName` và tên class lấy từ cấu hình.
-- Reflection và framework scan annotation.
-- JNI và native library.
-- Plugin được tải từ thư mục ngoài module path.
-- `ServiceLoader` và các file `META-INF/services`.
-- Resource path, serialization và tên class được lưu trong dữ liệu.
+- `Class.forName` and class names read from configuration.
+- Reflection and annotation-scanning frameworks.
+- JNI and native libraries.
+- Plugins loaded from directories outside the module path.
+- `ServiceLoader` and `META-INF/services` files.
+- Resource paths, serialization, and class names stored in data.
 
-`jdeps` phân tích tham chiếu tĩnh; nó không thể bảo đảm phát hiện đầy đủ các dependency được quyết định khi runtime.
+`jdeps` analyzes static references; it cannot guarantee full detection of dependencies determined at runtime.
 
-## 13. Bảng lệnh jdeps thường dùng
+## 13. Common jdeps commands table
 
-| Mục tiêu | Lệnh |
+| Goal | Command |
 |---|---|
-| Tóm tắt dependency | `jdeps --summary app.jar` |
-| Xem dependency bắc cầu | `jdeps --recursive --summary app.jar` |
-| Xem class tạo dependency | `jdeps -verbose:class app.jar` |
-| Xem module dependency | `jdeps --list-deps app.jar` |
-| In danh sách module dependency | `jdeps --print-module-deps app.jar` |
-| Tìm dependency bị thiếu | `jdeps --missing-deps app.jar` |
-| Kiểm tra JDK internal API | `jdeps --jdk-internals app.jar` |
-| Kiểm tra module descriptor | `jdeps --check com.acme.app --module-path mods` |
-| Sinh module-info.java | `jdeps --generate-module-info generated-modules lib.jar` |
+| Summarize dependencies | `jdeps --summary app.jar` |
+| View transitive dependencies | `jdeps --recursive --summary app.jar` |
+| View classes creating dependencies | `jdeps -verbose:class app.jar` |
+| View module dependencies | `jdeps --list-deps app.jar` |
+| Print list of module dependencies | `jdeps --print-module-deps app.jar` |
+| Find missing dependencies | `jdeps --missing-deps app.jar` |
+| Check JDK internal APIs | `jdeps --jdk-internals app.jar` |
+| Check module descriptor | `jdeps --check com.acme.app --module-path mods` |
+| Generate module-info.java | `jdeps --generate-module-info generated-modules lib.jar` |
 
-Khi phân tích JAR cần dependency bên ngoài, bổ sung `--class-path` hoặc `--module-path` phù hợp. Đừng dùng `--ignore-missing-deps` để che lỗi trong quá trình xác minh migration; nếu phải dùng để tiếp tục phân tích, hãy ghi nhận và xử lý riêng từng dependency bị thiếu.
+When analyzing a JAR requiring external dependencies, add `--class-path` or `--module-path` as appropriate. Do not use `--ignore-missing-deps` to mask errors during migration verification; if you must use it to continue analysis, record and address each missing dependency separately.
 
-## 14. Lộ trình migration an toàn
+## 14. Safe migration roadmap
 
-Có thể chia quá trình chuyển đổi thành các giai đoạn:
+The conversion process can be divided into phases:
 
-1. **Inventory:** thu thập JAR, version, module name, package, service provider và dependency runtime.
-2. **Static analysis:** chạy `jdeps` ở mức summary, recursive và verbose; tìm JDK internal API và dependency thiếu.
-3. **Dependency classification:** phân loại explicit module, automatic module và thư viện chỉ có trên classpath.
-4. **Package ownership:** giải quyết split package và xác định package API/implementation.
-5. **Descriptor authoring:** tạo hoặc chỉnh sửa `module-info.java`; xác nhận `requires`, `exports`, `uses`, `provides` và `opens`.
-6. **Compile:** đưa dependency cần thiết lên module path và biên dịch các module.
-7. **Runtime verification:** chạy với `--show-module-resolution`, test ServiceLoader, reflection và các plugin.
-8. **Release validation:** chạy `jdeps --check`, `java --validate-modules` và integration test trên đúng tập artifact phát hành.
-9. **Rollout:** triển khai theo từng môi trường, theo dõi lỗi và giữ khả năng rollback.
+1. **Inventory:** collect JARs, versions, module names, packages, service providers, and runtime dependencies.
+2. **Static analysis:** run `jdeps` at summary, recursive, and verbose levels; find JDK internal APIs and missing dependencies.
+3. **Dependency classification:** classify explicit modules, automatic modules, and classpath-only libraries.
+4. **Package ownership:** resolve split packages and identify API/implementation packages.
+5. **Descriptor authoring:** create or edit `module-info.java`; verify `requires`, `exports`, `uses`, `provides`, and `opens`.
+6. **Compile:** place needed dependencies on the module path and compile the modules.
+7. **Runtime verification:** run with `--show-module-resolution`, test ServiceLoader, reflection, and plugins.
+8. **Release validation:** run `jdeps --check`, `java --validate-modules`, and integration tests on the exact release artifact set.
+9. **Rollout:** deploy per environment, monitor for errors, and preserve rollback capability.
 
-Không cần chuyển tất cả thư viện trong một lần. Có thể giữ một số thư viện legacy trên classpath trong giai đoạn chuyển tiếp, nhưng phải hiểu ranh giới unnamed module và named module; named module không đọc unnamed module theo mặc định.
+You do not have to migrate all libraries at once. You can keep some legacy libraries on the classpath during a transition period, provided you understand the boundary between the unnamed module and named modules; named modules do not read the unnamed module by default.
 
-## Ghi nhớ
+## Remember
 
-- `jdeps` giúp khám phá dependency tĩnh, không tự động thiết kế module graph hoàn chỉnh.
-- Dùng `--summary`, `--recursive`, `-verbose:class`, `--jdk-internals` và `--generate-module-info` theo từng bước.
-- Xác định module name bằng `jar --describe-module`; không nhầm tên JAR với tên module.
-- Review descriptor được sinh: đặc biệt `requires`, `exports`, `uses`, `provides` và `opens`.
-- Kiểm tra split package, reflection, service provider và plugin động trước khi bỏ classpath.
-- Biên dịch và chạy trên module path, sau đó kiểm tra bằng `jdeps --check`, `--show-module-resolution` và `--validate-modules`.
-- Chỉ chấp nhận migration khi integration test xác nhận hành vi runtime tương đương.
+- `jdeps` helps discover static dependencies; it does not automatically design a complete module graph.
+- Use `--summary`, `--recursive`, `-verbose:class`, `--jdk-internals`, and `--generate-module-info` step by step.
+- Determine module names using `jar --describe-module`; do not confuse JAR names with module names.
+- Review generated descriptors: especially `requires`, `exports`, `uses`, `provides`, and `opens`.
+- Check split packages, reflection, service providers, and dynamic plugins before dropping the classpath.
+- Compile and run on the module path, then verify with `jdeps --check`, `--show-module-resolution`, and `--validate-modules`.
+- Only accept the migration once integration tests confirm equivalent runtime behavior.

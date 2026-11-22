@@ -1,48 +1,48 @@
-# Vai trò chữ viết trong các locale có cùng ngôn ngữ
+# The Role of Script in Locales Sharing the Same Language
 
-## 1. Vấn đề cần hiểu
+## 1. The problem to understand
 
-Một **ngôn ngữ** có thể được viết bằng nhiều **hệ chữ viết** (*script*). Vì vậy, hai locale có cùng mã ngôn ngữ và thậm chí cùng vùng lãnh thổ vẫn có thể cần nội dung giao diện, tài nguyên dịch và cách hiển thị khác nhau.
+A **language** can be written in multiple **writing systems** (*scripts*). Therefore, two locales with the same language code and even the same region may still require different UI content, translation resources, and display behavior.
 
-Ví dụ:
+Examples:
 
-| Locale (BCP 47) | Ngôn ngữ | Chữ viết | Vùng | Ý nghĩa |
+| Locale (BCP 47) | Language | Script | Region | Meaning |
 | --- | --- | --- | --- | --- |
-| `sr-Latn-RS` | Tiếng Serbia (`sr`) | Latin (`Latn`) | Serbia (`RS`) | Tiếng Serbia viết bằng chữ Latin tại Serbia |
-| `sr-Cyrl-RS` | Tiếng Serbia (`sr`) | Cyrillic (`Cyrl`) | Serbia (`RS`) | Tiếng Serbia viết bằng chữ Cyrillic tại Serbia |
-| `zh-Hans-CN` | Tiếng Trung (`zh`) | Chữ Hán giản thể (`Hans`) | Trung Quốc (`CN`) | Lựa chọn phổ biến cho giao diện tiếng Trung giản thể |
-| `zh-Hant-TW` | Tiếng Trung (`zh`) | Chữ Hán phồn thể (`Hant`) | Đài Loan (`TW`) | Lựa chọn phổ biến cho giao diện tiếng Trung phồn thể |
+| `sr-Latn-RS` | Serbian (`sr`) | Latin (`Latn`) | Serbia (`RS`) | Serbian written in Latin script in Serbia |
+| `sr-Cyrl-RS` | Serbian (`sr`) | Cyrillic (`Cyrl`) | Serbia (`RS`) | Serbian written in Cyrillic script in Serbia |
+| `zh-Hans-CN` | Chinese (`zh`) | Simplified Han (`Hans`) | China (`CN`) | Common choice for Simplified Chinese UI |
+| `zh-Hant-TW` | Chinese (`zh`) | Traditional Han (`Hant`) | Taiwan (`TW`) | Common choice for Traditional Chinese UI |
 
-Cặp `sr-Latn-RS` / `sr-Cyrl-RS` đặc biệt hữu ích để phân tích: **language và region giống nhau, chỉ script khác nhau**. Nếu hệ thống chỉ so khớp theo `sr` hoặc `sr-RS`, nó có thể chọn sai bộ tài nguyên mà người dùng mong muốn.
+The pair `sr-Latn-RS` / `sr-Cyrl-RS` is especially useful to analyze: **language and region are identical, only the script differs**. If a system only matches on `sr` or `sr-RS`, it may select the wrong resource bundle for what the user wants.
 
-> **Phân biệt:** `script` là thông tin về hệ chữ viết; `language` mô tả ngôn ngữ, còn `region` mô tả quốc gia/vùng. Mã script **không** phải bảng mã ký tự, font chữ hay thao tác chuyển tự động từ chữ Latin sang chữ Cyrillic.
+> **Distinction:** `script` provides information about the writing system; `language` describes the language, and `region` describes the country/region. A script code is **not** a character encoding, a font, or an automatic transliteration operation from Latin to Cyrillic.
 
-## 2. Script nằm ở đâu trong mô hình Locale?
+## 2. Where does script fit in the `Locale` model?
 
-Thẻ ngôn ngữ theo chuẩn **BCP 47** thường có cấu trúc:
+A **BCP 47** language tag typically has the structure:
 
 `language-Script-REGION`
 
-Trong đó:
+Where:
 
-- `language` thường là mã ngôn ngữ ISO 639, ví dụ `sr`, `zh`, `az`.
-- `Script` là mã hệ chữ viết **ISO 15924** gồm bốn chữ cái, thường chuẩn hóa theo dạng chữ đầu viết hoa: `Latn`, `Cyrl`, `Hans`, `Hant`.
-- `REGION` là mã vùng, thường gồm hai chữ cái viết hoa, ví dụ `RS`, `CN`, `TW`.
-- BCP 47 còn cho phép variant, extension và private-use subtag trong các trường hợp cần thiết; ví dụ trên chỉ thể hiện ba thành phần liên quan trực tiếp đến bài này.
+- `language` is usually an ISO 639 language code, such as `sr`, `zh`, `az`.
+- `Script` is a four-letter **ISO 15924** writing system code, typically normalized to Title Case: `Latn`, `Cyrl`, `Hans`, `Hant`.
+- `REGION` is a region code, typically two uppercase letters, such as `RS`, `CN`, `TW`.
+- BCP 47 also permits variant, extension, and private-use subtags when needed; the example above only shows the three components directly relevant to this lesson.
 
-Không phải locale nào cũng khai báo script. `sr-RS` có ngôn ngữ và vùng nhưng **không ghi rõ hệ chữ viết**; đây không phải thẻ tương đương một cách tuyệt đối với `sr-Cyrl-RS`. Dữ liệu địa phương hóa hoặc hệ thống lựa chọn ngôn ngữ có thể suy luận chữ viết thường dùng dựa trên quy ước, nhưng giá trị script trong đối tượng `Locale` của Java vẫn để trống nếu thẻ đầu vào không chỉ rõ script.
+Not every locale declares a script. `sr-RS` has language and region, yet **does not specify a writing system**; it is not strictly equivalent to `sr-Cyrl-RS`. Localization data or language-selection systems may infer a commonly used script by convention, but the script value inside Java's `Locale` object remains empty if the input tag does not specify a script.
 
-**Vì sao script quan trọng?**
+**Why does script matter?**
 
-1. **Đúng bản dịch và dạng chữ:** hai bản dịch có thể dùng cùng ngôn ngữ nhưng được biên tập bằng hai hệ chữ viết khác nhau.
-2. **Lựa chọn tài nguyên:** ứng dụng có thể có các tập chuỗi, hướng dẫn hoặc hình ảnh chứa chữ phù hợp từng script.
-3. **Trải nghiệm người dùng:** nhãn chọn ngôn ngữ nên phân biệt được “Serbian (Latin)” và “Serbian (Cyrillic)” khi sản phẩm hỗ trợ cả hai.
-4. **Tìm kiếm, sắp xếp và hiển thị:** dữ liệu, font hỗ trợ glyph, phương pháp nhập và đôi khi quy tắc đối chiếu có thể khác nhau theo chữ viết. Kết quả cụ thể còn tùy thư viện, dữ liệu locale và môi trường chạy; mã script tự nó không thực thi các xử lý này.
-5. **Tính chính xác của ưu tiên người dùng:** không nên suy ra chữ viết chỉ từ quốc gia khi người dùng đã chọn script cụ thể.
+1. **Accurate translation and text form:** two translations may use the same language yet be authored in two different scripts.
+2. **Resource selection:** an application may have string sets, guides, or images containing text appropriate for each script.
+3. **User experience:** language selector labels should distinguish "Serbian (Latin)" and "Serbian (Cyrillic)" when the product supports both.
+4. **Search, sorting, and display:** data, fonts supporting the glyphs, input methods, and sometimes collation rules may differ by script. Concrete behavior still depends on libraries, locale data, and runtime environment; the script code itself does not execute these operations.
+5. **Accuracy of user preferences:** do not infer script solely from country when the user has explicitly selected a script.
 
-## 3. Biểu diễn script bằng `java.util.Locale` trong Java 17+
+## 3. Representing script with `java.util.Locale` in Java 17+
 
-Java hỗ trợ thành phần script qua `Locale.forLanguageTag`, `Locale.Builder` và `getScript`.
+Java supports the script component through `Locale.forLanguageTag`, `Locale.Builder`, and `getScript`.
 
 ~~~java
 import java.util.Locale;
@@ -67,14 +67,14 @@ public class ScriptParts {
 }
 ~~~
 
-Lưu thành `ScriptParts.java` rồi chạy:
+Save as `ScriptParts.java` and run:
 
 ~~~bash
 javac -encoding UTF-8 ScriptParts.java
 java ScriptParts
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 sr-Latn-RS
@@ -85,19 +85,19 @@ sr-Cyrl-RS
 true
 ~~~
 
-Giải thích:
+Explanation:
 
-- `toLanguageTag()` tạo lại thẻ BCP 47 với dấu gạch nối (`-`).
-- `getLanguage()` trả về `sr`; `getCountry()` trả về `RS`.
-- `getScript()` trả về `Latn` hoặc `Cyrl` khi có script, và chuỗi rỗng `""` khi không khai báo.
-- `Locale.Builder` giúp tạo locale có đủ language, script, region và kiểm tra subtag hợp lệ. Đối với thẻ từ nguồn ngoài, cần kiểm tra/chuẩn hóa dữ liệu đầu vào; `Locale.forLanguageTag` có thể xử lý thẻ không chuẩn theo cách bỏ qua phần không hợp lệ thay vì luôn ném lỗi.
-- Hai đối tượng `Locale` khác nhau về script không nên bị gộp làm một khi script là yêu cầu chức năng của ứng dụng.
+- `toLanguageTag()` reconstructs the BCP 47 tag with hyphens (`-`).
+- `getLanguage()` returns `sr`; `getCountry()` returns `RS`.
+- `getScript()` returns `Latn` or `Cyrl` when a script is present, and an empty string `""` when unspecified.
+- `Locale.Builder` helps construct a locale with language, script, and region while validating subtags. For tags from external sources, validate/normalize the input data; `Locale.forLanguageTag` may handle malformed tags by discarding invalid parts rather than always throwing an error.
+- Two `Locale` objects that differ in script should not be collapsed into one when script is a functional requirement of the application.
 
-**Lưu ý quan trọng:** Java `String` dùng Unicode, nên cùng một ứng dụng có thể chứa “Zdravo” và “Здраво”. Việc chọn `Locale.forLanguageTag("sr-Cyrl-RS")` **không tự biến** chuỗi “Zdravo” thành “Здраво”. Ứng dụng phải cung cấp tài nguyên tương ứng hoặc áp dụng bộ chuyển tự riêng nếu thật sự có yêu cầu chuyển tự.
+**Important note:** Java `String` uses Unicode, so the same application can hold both "Zdravo" and "Здраво". Selecting `Locale.forLanguageTag("sr-Cyrl-RS")` **does not automatically turn** the string "Zdravo" into "Здраво". The application must provide the corresponding resources or apply a separate transliterator if transliteration is truly required.
 
-## 4. Ứng dụng thực tế: chọn đúng `ResourceBundle` theo script
+## 4. Practical application: selecting the right `ResourceBundle` by script
 
-Giả sử một giao diện Java hỗ trợ tiếng Serbia bằng hai hệ chữ viết. Có thể tổ chức các tài nguyên sau trong cùng thư mục/classpath:
+Suppose a Java UI supports Serbian in two writing systems. The following resources can be organized in the same directory/classpath:
 
 ~~~text
 .
@@ -107,25 +107,25 @@ Giả sử một giao diện Java hỗ trợ tiếng Serbia bằng hai hệ ch�
 └── Messages_sr_Cyrl.properties
 ~~~
 
-Nội dung `Messages.properties` (bản dự phòng):
+Contents of `Messages.properties` (fallback version):
 
 ~~~properties
 hello=Hello
 ~~~
 
-Nội dung `Messages_sr_Latn.properties`:
+Contents of `Messages_sr_Latn.properties`:
 
 ~~~properties
 hello=Zdravo
 ~~~
 
-Nội dung `Messages_sr_Cyrl.properties` (lưu file UTF-8):
+Contents of `Messages_sr_Cyrl.properties` (save file as UTF-8):
 
 ~~~properties
 hello=Здраво
 ~~~
 
-Tạo `LocaleScriptDemo.java`:
+Create `LocaleScriptDemo.java`:
 
 ~~~java
 import java.util.Locale;
@@ -152,70 +152,70 @@ public class LocaleScriptDemo {
 }
 ~~~
 
-Từ thư mục chứa tất cả các file trên, chạy bằng JDK 17 trở lên:
+From the directory containing all the files above, run with JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 LocaleScriptDemo.java
 java -cp . LocaleScriptDemo
 ~~~
 
-Kết quả mong đợi:
+Expected output:
 
 ~~~text
 sr-Latn-RS | language=sr | script=Latn | region=RS | hello=Zdravo
 sr-Cyrl-RS | language=sr | script=Cyrl | region=RS | hello=Здраво
 ~~~
 
-**Điều gì xảy ra?**
+**What happens?**
 
-1. `Locale.forLanguageTag` đọc thẻ locale và giữ lại script.
-2. `ResourceBundle.getBundle("Messages", locale)` tìm tài nguyên tương ứng. Với các file có mặt ở ví dụ này, locale Latin chọn `Messages_sr_Latn.properties`, locale Cyrillic chọn `Messages_sr_Cyrl.properties`.
-3. `getString("hello")` trả về văn bản đã được chuẩn bị cho đúng chữ viết.
-4. Java 9+ hỗ trợ đọc tài nguyên `.properties` của `PropertyResourceBundle` theo UTF-8 mặc định (có cơ chế dự phòng cho một số byte không hợp lệ). Ví dụ dùng JDK 17+ và file được lưu UTF-8 để giữ nguyên chữ Cyrillic.
+1. `Locale.forLanguageTag` reads the locale tag and preserves the script.
+2. `ResourceBundle.getBundle("Messages", locale)` searches for the corresponding resource. Given the files present in this example, the Latin locale selects `Messages_sr_Latn.properties`, and the Cyrillic locale selects `Messages_sr_Cyrl.properties`.
+3. `getString("hello")` returns the text prepared for the right writing system.
+4. Java 9+ supports reading `.properties` resources in `PropertyResourceBundle` as UTF-8 by default (with a fallback mechanism for certain invalid byte sequences). The example uses JDK 17+ and files saved in UTF-8 to preserve Cyrillic characters.
 
-Tên thẻ BCP 47 dùng **dấu nối** như `sr-Latn-RS`, còn quy ước tên file `ResourceBundle` dùng **dấu gạch dưới** như `Messages_sr_Latn.properties`; không nhầm hai cú pháp này.
+BCP 47 tags use **hyphens** like `sr-Latn-RS`, whereas `ResourceBundle` file naming conventions use **underscores** like `Messages_sr_Latn.properties`; do not confuse the two syntaxes.
 
-### Nếu thiếu tài nguyên theo script thì sao?
+### What if a script-specific resource is missing?
 
-`ResourceBundle` có cơ chế tìm chuỗi ứng viên và fallback; ứng dụng có thể sử dụng tài nguyên mức khái quát hơn, bản gốc (`Messages.properties`), hoặc trong một số tình huống thử cả locale mặc định của JVM. Không nên cho rằng mọi trường hợp thiếu `Messages_sr_Latn.properties` đều tự động nhận một bản Latin đúng ý hoặc luôn rơi thẳng về file gốc. Hãy kiểm thử thực tế với tập tài nguyên và cấu hình fallback của ứng dụng.
+`ResourceBundle` has a candidate lookup and fallback mechanism; an application may end up using a more general resource, the root bundle (`Messages.properties`), or in some situations trying the JVM's default locale. Do not assume that every case where `Messages_sr_Latn.properties` is missing will automatically receive a suitable Latin version or always fall straight back to the root file. Test against the actual resource set and fallback configuration of your application.
 
-Đối với nội dung bắt buộc đúng script, nên **định nghĩa quy tắc fallback có chủ đích**: chọn ưu tiên cùng ngôn ngữ + script, cảnh báo nếu thiếu tài nguyên, rồi chọn phương án đã được sản phẩm chấp thuận. Dùng nhầm bản Cyrillic để phục vụ yêu cầu Latin (hoặc ngược lại) có thể làm giao diện khó đọc dù mã ngôn ngữ vẫn đúng.
+For content that requires a strict script match, **define an intentional fallback rule**: prefer matching language + script first, warn if resources are missing, and then pick a product-approved fallback option. Serving a Cyrillic bundle for a Latin request (or vice versa) can make the UI unreadable even though the language code is correct.
 
-## 5. Quy tắc thiết kế ứng dụng đa ngôn ngữ
+## 5. Design rules for multilingual applications
 
-### Khi chọn và lưu locale
+### When selecting and storing locales
 
-- Lưu đầy đủ thẻ `language-Script-REGION` khi script đã được người dùng chọn, ví dụ `sr-Latn-RS`; đừng rút gọn thành `sr` hoặc `sr-RS` làm mất ưu tiên chữ viết.
-- Chỉ yêu cầu chọn script khi cần phân biệt thực sự; không phải ngôn ngữ nào cũng có nhiều script thông dụng trong sản phẩm.
-- Với đầu vào không có script, giữ rõ trạng thái “chưa chỉ định”, rồi áp dụng chính sách mặc định dựa trên nhu cầu sản phẩm và dữ liệu locale. Không giả định `getScript()` sẽ tự điền.
-- Hiển thị lựa chọn bằng tên dễ hiểu cho người dùng, ví dụ “Srpski (latinica)” và “Српски (ћирилица)”, thay vì chỉ hiện hai mã `sr` giống nhau.
-- Xây dựng test với ít nhất hai locale có cùng language và region nhưng khác script để phát hiện việc bỏ sót thành phần script trong khóa cache, cơ chế matching hoặc định tuyến tài nguyên.
+- Store the full `language-Script-REGION` tag when the user has selected a script, such as `sr-Latn-RS`; do not shorten it to `sr` or `sr-RS` and lose the script preference.
+- Only require selecting a script when disambiguation is genuinely needed; not every language has multiple commonly used scripts in a product.
+- For input without a script, preserve the explicit "unspecified" state, then apply a default policy based on product needs and locale data. Do not assume `getScript()` will fill itself in.
+- Display choices with user-friendly names, such as "Srpski (latinica)" and "Српски (ћирилица)", instead of showing two identical `sr` codes.
+- Write tests with at least two locales sharing the same language and region but differing in script to catch dropped script components in cache keys, matching logic, or resource routing.
 
-### Khi xử lý văn bản
+### When processing text
 
-- **Địa phương hóa** (*localization*): cung cấp nội dung và định dạng phù hợp với locale mục tiêu.
-- **Chuyển tự** (*transliteration*): chuyển cách viết giữa các hệ chữ; đây là một quá trình xử lý văn bản riêng, có thể cần quy tắc ngôn ngữ và xử lý ngoại lệ.
-- **Dịch** (*translation*): chuyển ý nghĩa giữa các ngôn ngữ. Hai locale chỉ khác script vẫn có thể yêu cầu nội dung biên tập và từ ngữ khác, không nhất thiết giải quyết được bằng chuyển tự.
-- **Font/rendering**: vẫn phải có font hỗ trợ các ký tự cần hiển thị. `Locale` không tự cài font, đổi encoding hoặc bảo đảm glyph hiện đúng.
+- **Localization:** providing content and formatting suited to the target locale.
+- **Transliteration:** converting spelling between writing systems; this is a separate text-processing step that may require linguistic rules and exception handling.
+- **Translation:** conveying meaning between languages. Two locales differing only in script may still require different editorial content and wording, not necessarily solvable by transliteration alone.
+- **Fonts/rendering:** fonts supporting the characters to display are still required. `Locale` does not install fonts, change encodings, or guarantee glyphs render properly.
 
-Với `zh-Hans` và `zh-Hant`, giản thể/phồn thể có liên hệ với hệ chữ Hán, nhưng việc chuẩn bị nội dung phù hợp có thể gồm cả khác biệt về thuật ngữ và cách diễn đạt. Không xem bài toán này chỉ là thay thế ký tự một-một.
+With `zh-Hans` and `zh-Hant`, Simplified/Traditional relate to Chinese writing systems, yet preparing appropriate content may also involve differences in terminology and phrasing. Do not treat this problem as a one-to-one character substitution.
 
-## 6. Những nhầm lẫn thường gặp
+## 6. Common misconceptions
 
-| Nhầm lẫn | Cách hiểu và xử lý đúng |
+| Misconception | Correct understanding and handling |
 | --- | --- |
-| “Cùng `language` nghĩa là cùng nội dung giao diện.” | Phải xem thêm `script` và những khác biệt locale cần hỗ trợ. `sr-Latn-RS` và `sr-Cyrl-RS` không thay thế vô điều kiện cho nhau. |
-| “Có `region=RS` thì `getScript()` tự trả `Cyrl`.” | Nếu thẻ nguồn không khai báo script, `getScript()` trả chuỗi rỗng; suy luận thường dùng ở hệ thống khác không thay đổi đối tượng `Locale` này. |
-| “Thay `Locale` sẽ tự chuyển tự toàn bộ chuỗi.” | `Locale` giữ metadata để chọn cách xử lý/tài nguyên; cần bản dịch theo script hoặc thuật toán chuyển tự riêng. |
-| “`Script` là mã vùng hoặc encoding.” | `Latn`/`Cyrl` là mã ISO 15924; `RS` là mã vùng; UTF-8 là encoding, thuộc khái niệm khác. |
-| “Tên file bundle giống hệt thẻ BCP 47.” | Thẻ dùng `-`, hậu tố bundle dùng `_`. |
-| “Chỉ test `sr-RS` là đủ.” | Test từng script tường minh, cả trường hợp thiếu script hoặc thiếu bundle, và quan sát đường fallback. |
+| "Same `language` means same UI content." | You must also inspect `script` and other locale differences that need support. `sr-Latn-RS` and `sr-Cyrl-RS` are not unconditionally interchangeable. |
+| "Having `region=RS` makes `getScript()` return `Cyrl`." | If the source tag does not declare a script, `getScript()` returns an empty string; common inferences in other systems do not mutate this `Locale` object. |
+| "Changing `Locale` automatically transliterates all strings." | `Locale` holds metadata for choosing behavior/resources; you need script-specific translations or a dedicated transliteration algorithm. |
+| "`Script` is a region code or encoding." | `Latn`/`Cyrl` are ISO 15924 codes; `RS` is a region code; UTF-8 is an encoding, a different concept. |
+| "Bundle filenames look identical to BCP 47 tags." | Tags use `-`, bundle suffixes use `_`. |
+| "Testing only `sr-RS` is enough." | Test each script explicitly, including missing-script or missing-bundle cases, and observe fallback paths. |
 
-## 7. Cách tự kiểm tra kiến thức
+## 7. How to test your understanding
 
-1. Tạo ba locale `sr-Latn-RS`, `sr-Cyrl-RS`, `sr-RS`. So sánh `getLanguage()`, `getCountry()`, `getScript()`. Trường nào phân biệt hai locale đầu tiên?
-2. Chạy ví dụ `ResourceBundle`; đổi tên `Messages_sr_Latn.properties` tạm thời để quan sát thực tế fallback, sau đó khôi phục file. Vì sao kết quả đó cần được kiểm soát khi giao diện phải đúng script?
-3. Thiết kế khóa lưu bản dịch cho ngôn ngữ Serbia. Vì sao chỉ dùng `language + region` sẽ tạo nguy cơ va chạm?
-4. Giải thích vì sao “chọn `zh-Hant-TW`” không đồng nghĩa với “Java tự chuyển toàn bộ văn bản giản thể đang có thành phồn thể”.
+1. Create three locales `sr-Latn-RS`, `sr-Cyrl-RS`, and `sr-RS`. Compare `getLanguage()`, `getCountry()`, and `getScript()`. Which field distinguishes the first two locales?
+2. Run the `ResourceBundle` example; temporarily rename `Messages_sr_Latn.properties` to observe actual fallback behavior, then restore the file. Why must that behavior be controlled when the UI requires the right script?
+3. Design a storage key for Serbian translations. Why does using only `language + region` create a collision risk?
+4. Explain why "selecting `zh-Hant-TW`" does not mean "Java automatically converts all existing Simplified text into Traditional text".
 
-**Ghi nhớ:** Khi nhiều locale chia sẻ cùng một ngôn ngữ, **script là thành phần định danh quan trọng của lựa chọn hiển thị và tài nguyên**. Trong Java, hãy biểu diễn script tường minh bằng BCP 47/`Locale` khi cần, bảo toàn nó xuyên suốt quá trình chọn locale và kiểm thử fallback của tài nguyên.
+**Key takeaway:** When multiple locales share the same language, **script is an essential identifying component for display and resource selection**. In Java, represent script explicitly with BCP 47/`Locale` when needed, preserve it throughout locale selection, and test resource fallback.

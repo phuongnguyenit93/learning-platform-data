@@ -1,56 +1,56 @@
-# Không dùng `var` cho trường hoặc kiểu trả về phương thức — Java 17+
+# Do Not Use `var` for Fields or Method Return Types — Java 17+
 
-## 1. Mục tiêu và câu trả lời ngắn
+## 1. Goal and Short Answer
 
-Trong Java 17+, `var` hỗ trợ **suy luận kiểu biến cục bộ** (*local-variable type inference*), chứ không phải cú pháp thay thế kiểu khai báo ở mọi vị trí trong chương trình.
+In Java 17+, `var` supports **local-variable type inference**, not a syntax for replacing declared types everywhere in a program.
 
-**Hai quy tắc trọng tâm:**
+**Two core rules:**
 
-- **Không dùng `var` để khai báo field** (*trường dữ liệu*) của class, dù là field instance, `static` hay `final`.
-- **Không dùng `var` làm kiểu trả về của method**, dù method có `return` một biểu thức mà compiler có thể xác định kiểu.
+- **Do not use `var` to declare a class field**, whether it is an instance field, `static`, or `final`.
+- **Do not use `var` as a method's return type**, even if the method executes `return` on an expression whose type the compiler could determine.
 
 ~~~java
 public final class Counter {
-    private int value = 0; // Đúng: field có kiểu int tường minh
+    private int value = 0; // Valid: field has explicit int type
 
-    public int getValue() { // Đúng: kiểu trả về int tường minh
-        var snapshot = value; // Đúng: var khai báo biến cục bộ trong thân method
+    public int getValue() { // Valid: explicit int return type
+        var snapshot = value; // Valid: var declares a local variable in the method body
         return snapshot;
     }
 }
 ~~~
 
-Các dòng sau **không phải cú pháp Java hợp lệ**:
+The following lines are **not valid Java syntax**:
 
 ~~~java
-// private var value = 0;       // SAI: var không khai báo field
-// public var getValue() {      // SAI: var không là return type
+// private var value = 0;       // INVALID: var cannot declare a field
+// public var getValue() {      // INVALID: var cannot be a return type
 //     return 0;
 // }
 ~~~
 
-`var` không biến Java thành ngôn ngữ kiểu động. Compiler vẫn suy ra một **kiểu tĩnh cụ thể** cho biến cục bộ tại nơi khai báo và kiểm tra kiểu trong các câu lệnh sau.
+`var` does not turn Java into a dynamically typed language. The compiler still infers a **concrete static type** for the local variable at its declaration site and checks types in subsequent statements.
 
-## 2. Field, local variable và method return type khác nhau
+## 2. Fields, Local Variables, and Method Return Types Differ
 
-Ba khái niệm rất dễ nhầm khi học cú pháp:
+Three concepts that are easily confused when learning the syntax:
 
-| Thành phần | Nằm ở đâu? | Kiểu khai báo |
+| Construct | Where Is It Located? | How Is the Type Declared? |
 |---|---|---|
-| **Instance field** | Trong class, ngoài thân method/constructor/block cục bộ | Viết tên kiểu tường minh |
-| **Static field** | Trong class, có `static` | Viết tên kiểu tường minh |
-| **Local variable** | Trong method, constructor hoặc khối lệnh hợp lệ | Có thể dùng `var` nếu đủ điều kiện |
-| **Method return type** | Trước tên method trong chữ ký | Viết kiểu trả về, hoặc `void` |
-| **Method parameter** | Trong `(...)` của khai báo method | Viết kiểu tham số tường minh |
+| **Instance field** | Inside a class, outside method/constructor/local blocks | Write an explicit type name |
+| **Static field** | Inside a class, with `static` | Write an explicit type name |
+| **Local variable** | Inside a method, constructor, or valid statement block | Can use `var` if conditions are met |
+| **Method return type** | Before the method name in the signature | Write the return type, or `void` |
+| **Method parameter** | Inside `(...)` of the method declaration | Write an explicit parameter type |
 
-Ví dụ:
+Example:
 
 ~~~java
 final class Account {
     private final String owner;       // Field: String
     private static int nextId = 1;    // Static field: int
 
-    Account(String owner) {            // Tham số constructor: String
+    Account(String owner) {            // Constructor parameter: String
         var normalized = owner.trim(); // Local variable: String
         this.owner = normalized;
     }
@@ -62,16 +62,16 @@ final class Account {
 }
 ~~~
 
-Trong ví dụ, compiler tự xác định kiểu của `normalized` và `result` từ biểu thức khởi tạo. Nhưng cú pháp của **field** và **chữ ký method** vẫn bắt buộc nêu tên kiểu cụ thể.
+In this example, the compiler automatically determines the types of `normalized` and `result` from their initializer expressions. However, the syntax of **fields** and **method signatures** still requires stating a concrete type name.
 
-**Một class có thể chứa đồng thời khai báo kiểu tường minh và `var`**: mỗi thứ thuộc phạm vi hợp lệ riêng, không mâu thuẫn nhau.
+**A class can contain both explicit type declarations and `var`**: each belongs to its own valid scope, with no conflict between them.
 
-## 3. Sai ở field: initializer không làm `var` hợp lệ
+## 3. Invalid on Fields: An Initializer Does Not Make `var` Valid
 
-Kể cả field có giá trị khởi tạo hiển nhiên, cũng **không thể** viết:
+Even when a field has an obvious initial value, you still **cannot** write:
 
 ~~~java
-// KHÔNG ĐƯỢC CHÈN VÀO CLASS ĐỂ BIÊN DỊCH
+// DO NOT INSERT INTO A CLASS TO COMPILE
 // class Wrong {
 //     private var name = "Java";
 //     static var attempts = 0;
@@ -79,9 +79,9 @@ Kể cả field có giá trị khởi tạo hiển nhiên, cũng **không thể*
 // }
 ~~~
 
-Không hợp lệ vì `var` không được phép đứng tại vị trí tên kiểu của field. Tính từ `private`, `static` hoặc `final` không thay đổi giới hạn này.
+This is invalid because `var` is not permitted in the type position of a field. Modifiers like `private`, `static`, or `final` do not change this restriction.
 
-Cách đúng:
+The valid way:
 
 ~~~java
 final class Settings {
@@ -91,9 +91,9 @@ final class Settings {
 }
 ~~~
 
-**Không tự suy luận field từ giá trị khởi tạo** trong Java 17. Compiler biết `"Java"` có kiểu `String`, nhưng Java không định nghĩa cú pháp `var` cho field dựa trên thông tin ấy.
+**Fields are not inferred from their initial values** in Java 17. The compiler knows `"Java"` has type `String`, but Java does not define `var` syntax for fields based on that information.
 
-### Nếu field nhận object generic thì sao?
+### What If a Field Receives a Generic Object?
 
 ~~~java
 import java.util.ArrayList;
@@ -104,21 +104,21 @@ final class Group {
 }
 ~~~
 
-Ở đây Java cho phép **diamond `<>`** ở phía phải nhờ **kiểu đích tường minh** `List<String>` bên trái. Đây không phải khai báo field bằng `var`.
+Here Java allows the **diamond `<>`** on the right-hand side thanks to the **explicit target type** `List<String>` on the left-hand side. This is not a field declaration using `var`.
 
-Với code:
+With the code:
 
 ~~~java
-// private final var members = new ArrayList<String>(); // SAI
+// private final var members = new ArrayList<String>(); // INVALID
 ~~~
 
-vẫn sai cú pháp dù initializer đã nêu `ArrayList<String>`.
+it is still a syntax error even though the initializer specifies `ArrayList<String>`.
 
-**Lợi ích thiết kế:** khai báo `List<String>` làm field cho thấy code dựa vào abstraction `List`, thay vì khóa API vào lớp triển khai `ArrayList`.
+**Design benefit:** declaring `List<String>` as the field shows that the code relies on the `List` abstraction rather than locking the API to the `ArrayList` implementation class.
 
-## 4. Sai ở return type: `return` không thay thế khai báo kiểu
+## 4. Invalid on Return Types: `return` Does Not Replace the Type Declaration
 
-Java yêu cầu method khai báo kiểu trả về ở chữ ký:
+Java requires a method to declare its return type in its signature:
 
 ~~~java
 static int sum(int a, int b) {
@@ -126,7 +126,7 @@ static int sum(int a, int b) {
 }
 ~~~
 
-Không thể thay `int` bằng `var`:
+You cannot replace `int` with `var`:
 
 ~~~java
 // static var sum(int a, int b) {
@@ -134,9 +134,9 @@ Không thể thay `int` bằng `var`:
 // }
 ~~~
 
-Lý do: `var` là cơ chế suy luận cho **khai báo biến cục bộ ở những vị trí ngôn ngữ cho phép**, không phải cơ chế suy luận kiểu trả về của method từ tất cả nhánh `return`.
+Reason: `var` is an inference mechanism for **local variable declarations in allowed language positions**, not a mechanism for inferring a method's return type across all `return` branches.
 
-Một method không trả giá trị dùng `void`, **không dùng `var`**:
+A method that returns no value uses `void`, **not `var`**:
 
 ~~~java
 static void logMessage(String message) {
@@ -144,18 +144,18 @@ static void logMessage(String message) {
 }
 ~~~
 
-### Vẫn được dùng `var` bên trong method trả giá trị
+### `var` Can Still Be Used Inside a Value-Returning Method
 
 ~~~java
 static long square(int input) {
-    var result = (long) input * input; // Suy ra long
-    return result;                     // Kiểu trả về long tường minh
+    var result = (long) input * input; // Infers long
+    return result;                     // Explicit long return type
 }
 ~~~
 
-Ở đây `result` là biến cục bộ kiểu `long`; method `square` vẫn có chữ ký trả `long`.
+Here `result` is a local variable of type `long`; the `square` method still has a signature returning `long`.
 
-### Phân biệt return expression và method signature
+### Distinguishing the Return Expression from the Method Signature
 
 ~~~java
 static double average(int x, int y) {
@@ -164,11 +164,11 @@ static double average(int x, int y) {
 }
 ~~~
 
-Một method hoàn toàn có thể chứa nhiều biến cục bộ được suy luận kiểu. Nhưng **hợp đồng trả về** vẫn được định nghĩa bằng kiểu `double` ở đầu chữ ký.
+A method can certainly contain multiple type-inferred local variables. However, the **return contract** is still defined by the `double` type at the start of the signature.
 
-## 5. `var` trong thân constructor, instance initializer và static initializer
+## 5. `var` Inside Constructor Bodies, Instance Initializers, and Static Initializers
 
-Không được khai báo field bằng `var`, nhưng bạn **được khai báo biến cục bộ bằng `var` trong khối lệnh** của class, ví dụ constructor:
+You cannot declare a field with `var`, but you **can declare local variables with `var` inside code blocks** of a class, such as a constructor:
 
 ~~~java
 final class Product {
@@ -181,56 +181,56 @@ final class Product {
 }
 ~~~
 
-Và trong **khối khởi tạo instance**:
+And inside an **instance initializer block**:
 
 ~~~java
 final class Metrics {
     private int total = 0;
 
     {
-        var initialValue = 5; // Biến cục bộ trong initializer block
+        var initialValue = 5; // Local variable inside the initializer block
         total = initialValue;
     }
 }
 ~~~
 
-Tương tự trong **static initializer**:
+Similarly, inside a **static initializer**:
 
 ~~~java
 final class Configuration {
     private static final int DEFAULT_SIZE;
 
     static {
-        var computed = 16 * 2; // Local variable kiểu int
+        var computed = 16 * 2; // Local variable of type int
         DEFAULT_SIZE = computed;
     }
 }
 ~~~
 
-**Điểm phân biệt vị trí:**
+**Position distinction:**
 
-- `private var total = 0;` → sai vì đang khai báo field.
-- Trong `{ var temporary = 0; }` → đúng nếu là một khối lệnh hợp lệ và có initializer.
+- `private var total = 0;` → invalid because it is declaring a field.
+- Inside `{ var temporary = 0; }` → valid if it is inside a valid statement block and has an initializer.
 
-Khối lệnh **không biến local variable thành field**. Biến `temporary` chỉ tồn tại trong phạm vi lexical của khối, không thể truy cập từ bên ngoài.
+A statement block **does not turn a local variable into a field**. The variable `temporary` only exists within the lexical scope of the block and cannot be accessed from outside.
 
-## 6. Điều kiện để suy kiểu local không cho phép suy kiểu field
+## 6. Conditions for Local Inference Do Not Permit Field Inference
 
-Ở **vị trí local** hợp lệ, compiler suy kiểu từ initializer; ở **vị trí field** hay **chữ ký method**, dù có thể đoán kiểu từ biểu thức thì Java 17 vẫn đòi kiểu tường minh.
+In a valid **local position**, the compiler infers the type from the initializer; in a **field position** or **method signature**, even if the type could be guessed from an expression, Java 17 still demands an explicit type.
 
 ~~~java
 var count = 1;                   // local: int
 var list = new java.util.ArrayList<String>(); // local: ArrayList<String>
-String nullable = null;          // Kiểu tham chiếu tường minh
-// var absent = null;            // Local không suy được kiểu
-// var missing;                  // Local thiếu initializer
+String nullable = null;          // Explicit reference type
+// var absent = null;            // Local cannot infer type
+// var missing;                  // Local missing initializer
 ~~~
 
-Đừng trộn hai câu hỏi “**biểu thức có kiểu suy ra được không?**” và “**vị trí khai báo có cho dùng var không?**”. Biểu thức hợp lệ chưa đủ nếu đang khai báo field hoặc kiểu trả về.
+Do not conflate the two questions “**does the expression have an inferable type?**” and “**does the declaration position allow var?**”. A valid expression is not enough if you are declaring a field or a return type.
 
-## 7. `var` không thay đổi hợp đồng field hoặc method return
+## 7. `var` Does Not Change Field or Method Return Contracts
 
-Ví dụ một lớp có giao diện đơn giản:
+Consider a class with a simple interface:
 
 ~~~java
 final class Invoice {
@@ -255,33 +255,33 @@ final class Invoice {
 }
 ~~~
 
-Những phần **ổn định trong API**:
+Parts that stay **stable in the API**:
 
-- Field `cents` luôn khai báo `long`.
-- Constructor nhận tham số `long`.
-- `getCents()` khai báo trả `long`.
-- `describe()` khai báo trả `String`.
+- The `cents` field is always declared `long`.
+- The constructor takes a `long` parameter.
+- `getCents()` declares a `long` return type.
+- `describe()` declares a `String` return type.
 
-Những phần có thể **rút gọn tại chỗ**:
+Parts that can be **shortened locally**:
 
-- `snapshot`, `label` là biến cục bộ, có initializer phù hợp.
+- `snapshot` and `label` are local variables with suitable initializers.
 
-Đây là cách phối hợp `var` hợp lý: giữ kiểu rõ ở **biên class/API** và giảm lặp kiểu ở những điểm mà initializer cho thấy kiểu cụ thể.
+This is a sensible way to combine `var`: keep types clear at **class/API boundaries** and reduce type repetition where the initializer makes the concrete type obvious.
 
-### Tại sao kiểu trả về rõ lại quan trọng?
+### Why Is an Explicit Return Type Important?
 
-Caller có thể phụ thuộc vào chữ ký:
+Callers may depend on the signature:
 
 ~~~java
 long totalCents = invoice.getCents();
 String text = invoice.describe();
 ~~~
 
-Nếu tác giả method sửa biểu thức tính toán bên trong, chữ ký tường minh giúp compiler kiểm tra rằng giá trị trả về vẫn tương thích. Đây là một lớp bảo vệ hợp đồng API khi refactor.
+If the method author modifies the internal computation expression, the explicit signature lets the compiler verify that the returned value remains compatible. This serves as a layer of protection for the API contract during refactoring.
 
-## 8. Tham số phương thức, lambda và kiểu generic tại ranh giới API
+## 8. Method Parameters, Lambdas, and Generic Types at API Boundaries
 
-**Tham số method** vẫn cần kiểu rõ: `static String format(int n)` hợp lệ, còn `format(var n)` không hợp lệ. Riêng tham số **lambda** từ Java 11 có thể dùng `var` khi lambda đã có target type:
+**Method parameters** still require explicit types: `static String format(int n)` is valid, whereas `format(var n)` is invalid. For **lambda** parameters, since Java 11 `var` can be used when the lambda already has a target type:
 
 ~~~java
 java.util.function.IntBinaryOperator add =
@@ -289,73 +289,73 @@ java.util.function.IntBinaryOperator add =
 System.out.println(add.applyAsInt(2, 3)); // 5
 ~~~
 
-Một danh sách tham số lambda không được trộn `var` với tham số không ghi kiểu hoặc ghi kiểu tường minh. Ví dụ `var callback = x -> x + 1;` vẫn sai vì initializer là lambda thiếu functional target type.
+A lambda parameter list must not mix `var` with untyped parameters or explicitly typed parameters. For instance, `var callback = x -> x + 1;` is still invalid because the initializer is a lambda lacking a functional target type.
 
-Đối với generic, khai báo field/API nên thể hiện **mức abstraction mong muốn**:
+For generics, field/API declarations should express **the desired abstraction level**:
 
 ~~~java
 private final java.util.List<String> members =
         new java.util.ArrayList<>();
 ~~~
 
-Ở đây `List<String>` là kiểu field được công bố; diamond nhận kiểu đích. Nếu trong local dùng `var bag = new java.util.ArrayList<>();`, kiểu suy ra là `ArrayList<Object>` trong tình huống này, không tự suy thành `ArrayList<String>` từ các lần `add` viết sau. Nội dung về vị trí hợp lệ và suy luận generic được nhắc ở đây để **phân biệt ranh giới API với local**, không phải thay thế chủ đề chuyên sâu của các bài khác.
+Here `List<String>` is the published field type; the diamond receives the target type. If in local code you write `var bag = new java.util.ArrayList<>();`, the inferred type in this situation is `ArrayList<Object>`, and it does not automatically infer `ArrayList<String>` from later `add` calls. Allowed positions and generic inference are mentioned here to **distinguish API boundaries from local code**, not to replace the dedicated coverage in other lessons.
 
-## 9. Return type không tự đổi theo `var` trong method
+## 9. Return Type Does Not Automatically Change Based on `var` Inside the Method
 
-Giả sử method khai báo trả `long` nhưng biểu thức bên trong có kiểu `int`:
+Suppose a method is declared to return `long`, but the internal expression has type `int`:
 
 ~~~java
 static long twice(int input) {
-    var result = input * 2; // int; phép tính diễn ra ở int
-    return result;          // Widening int -> long khi return
+    var result = input * 2; // int; calculation happens in int
+    return result;          // Widening int -> long on return
 }
 ~~~
 
-**Bẫy:** nếu `input` quá lớn, phép nhân `int` có thể overflow **trước khi** chuyển thành `long`. `var` không tự dự đoán ý định muốn tính kiểu rộng hơn.
+**Pitfall:** if `input` is too large, the `int` multiplication can overflow **before** converting to `long`. `var` does not predict an intent to compute in a wider type.
 
 ~~~java
 static long twiceSafe(int input) {
-    var result = (long) input * 2; // long từ lúc nhân
+    var result = (long) input * 2; // long from the time of multiplication
     return result;
 }
 ~~~
 
-Với `input = 2_000_000_000`:
+With `input = 2_000_000_000`:
 
 ~~~java
 System.out.println(twice(2_000_000_000));     // -294967296
 System.out.println(twiceSafe(2_000_000_000)); // 4000000000
 ~~~
 
-Cả hai method đều **trả `long` theo chữ ký**, nhưng **kiểu của phép tính trung gian** khác nhau. Đây là lý do quan trọng để hiểu kiểu mà compiler suy ra, không phải chỉ đọc chữ `var`.
+Both methods **return `long` per their signatures**, yet the **types of the intermediate calculations** differ. This is an important reason to understand the type the compiler infers, rather than just reading the word `var`.
 
-### Compiler vẫn kiểm tra kiểu trả về
+### The Compiler Still Checks the Return Type
 
 ~~~java
 static int count() {
     var text = "not an int";
-    // return text; // Lỗi compile: String không chuyển thành int
+    // return text; // Compile error: String cannot be converted to int
     return 1;
 }
 ~~~
 
-`var` không cho phép “giấu” một giá trị trả về sai kiểu. Chữ ký method vẫn là hợp đồng được compiler kiểm tra.
+`var` does not let you “hide” a return value of the wrong type. The method signature remains a contract enforced by the compiler.
 
-## 10. Sửa đúng lỗi tại field và chữ ký method
+## 10. Fixing Errors in Fields and Method Signatures Properly
 
-| Vị trí viết sai | Vì sao sai? | Thay bằng |
+| Incorrect Usage | Why Is It Wrong? | Replace With |
 | --- | --- | --- |
-| `private var name = "Java";` | `var` không khai báo field | `private String name = "Java";` |
-| `static var count = 1;` | `static` không làm field được suy kiểu | `static int count = 1;` |
-| `public var name() { ... }` | Chữ ký method phải khai báo return type | `public String name() { ... }` |
-| `void set(var x)` | Method parameter phải có kiểu | `void set(int x)` |
-| `record Pair(var a, int b)` | Record component cần kiểu | `record Pair(int a, int b)` |
+| `private var name = "Java";` | `var` cannot declare a field | `private String name = "Java";` |
+| `static var count = 1;` | `static` does not make a field type-inferred | `static int count = 1;` |
+| `public var name() { ... }` | Method signature must declare a return type | `public String name() { ... }` |
+| `void set(var x)` | Method parameter must have a type | `void set(int x)` |
+| `record Pair(var a, int b)` | Record component requires a type | `record Pair(int a, int b)` |
 
-Nếu code **đã ở trong thân method/constructor/block**, `var local = expression;` có thể hợp lệ; đừng sửa field hoặc chữ ký method bằng cách di chuyển dữ liệu vào local mà làm mất hợp đồng bên ngoài.
+If the code is **already inside a method/constructor/block body**, `var local = expression;` can be valid; do not fix a field or method signature by moving data into a local variable and losing the external contract.
 
-## 11. Ví dụ Java 17 đầy đủ, độc lập
+## 11. Complete, Standalone Java 17 Example
 
-Lưu file đúng tên **`VarMemberReturnDemo.java`**:
+Save the file with the exact name **`VarMemberReturnDemo.java`**:
 
 ~~~java
 import java.io.StringReader;
@@ -366,21 +366,21 @@ import java.util.function.IntBinaryOperator;
 import java.util.function.IntUnaryOperator;
 
 public final class VarMemberReturnDemo {
-    private static final int DEFAULT_LIMIT = 5; // Field: kiểu tường minh
-    private static int created = 0;             // Static field: kiểu tường minh
+    private static final int DEFAULT_LIMIT = 5; // Field: explicit type
+    private static int created = 0;             // Static field: explicit type
 
     private final String label;                 // Instance field
     private final List<String> history = new ArrayList<>();
 
     static {
-        var marker = "class initialized";      // Local trong static block
+        var marker = "class initialized";      // Local in static block
         if (marker.isEmpty()) {
             throw new IllegalStateException("empty marker");
         }
     }
 
     {
-        var entry = "instance initialized";     // Local trong instance block
+        var entry = "instance initialized";     // Local in instance block
         history.add(entry);
     }
 
@@ -390,12 +390,12 @@ public final class VarMemberReturnDemo {
         created++;
     }
 
-    public String labelText() {                 // Return type tường minh
+    public String labelText() {                 // Explicit return type
         var prefix = "Label:";
         return prefix + label;
     }
 
-    public int sum(int left, int right) {        // Parameters/return rõ kiểu
+    public int sum(int left, int right) {        // Explicit parameters/return type
         var result = left + right;
         return result;
     }
@@ -404,12 +404,12 @@ public final class VarMemberReturnDemo {
         return List.copyOf(history);
     }
 
-    static long twice(int input) {               // Return long, tính int
+    static long twice(int input) {               // Return long, compute in int
         var result = input * 2;
         return result;
     }
 
-    static long twiceSafe(int input) {           // Return long, tính long
+    static long twiceSafe(int input) {           // Return long, compute in long
         var result = (long) input * 2;
         return result;
     }
@@ -465,7 +465,7 @@ public final class VarMemberReturnDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; terminal đứng trong thư mục có file `VarMemberReturnDemo.java`. Không cần Maven, Gradle hay thư viện ngoài JDK.
+**Requirements:** JDK 17 or later; terminal positioned in the directory containing `VarMemberReturnDemo.java`. No Maven, Gradle, or non-JDK libraries required.
 
 **Bash (Linux/macOS):**
 
@@ -504,22 +504,22 @@ same instance=true
 objects created=1
 ~~~
 
-### Tại sao code này đúng phạm vi `var`?
+### Why Does This Code Respect the Scope of `var`?
 
-1. Các field `DEFAULT_LIMIT`, `created`, `label`, `history` đều ghi **kiểu tường minh**.
-2. Method `labelText`, `sum`, `history`, `twice`, `twiceSafe`, `main` đều có **return type tường minh**, gồm cả `void`.
-3. Các biến `marker`, `entry`, `normalized`, `prefix`, `result` là **local** trong những khối lệnh hợp lệ.
-4. `IntBinaryOperator add = (var a, var b) -> ...` hợp lệ vì lambda có target type.
-5. `var nullable = (String) null` có kiểu `String` vì cast cung cấp kiểu cho initializer.
-6. `var inferredReturn = demo.history()` suy ra `List<String>` theo **kiểu trả về đã khai báo của method**, không phải do compiler nhìn vào runtime object.
-7. `twice` và `twiceSafe` cùng trả `long`, nhưng kiểu phép nhân trung gian khác nên kết quả khác — static typing vẫn kiểm soát.
-8. `same instance=true` vì gán biến `alias` sao chép tham chiếu, không tạo object mới.
+1. The fields `DEFAULT_LIMIT`, `created`, `label`, and `history` all state **explicit types**.
+2. The methods `labelText`, `sum`, `history`, `twice`, `twiceSafe`, and `main` all have **explicit return types**, including `void`.
+3. The variables `marker`, `entry`, `normalized`, `prefix`, and `result` are **local** inside valid statement blocks.
+4. `IntBinaryOperator add = (var a, var b) -> ...` is valid because the lambda has a target type.
+5. `var nullable = (String) null` has type `String` because the cast supplies a type for the initializer.
+6. `var inferredReturn = demo.history()` infers `List<String>` from the **declared return type of the method**, not because the compiler inspects the runtime object.
+7. `twice` and `twiceSafe` both return `long`, but the types of their intermediate multiplication differ, resulting in different outputs — static typing is still in control.
+8. `same instance=true` because assigning `alias` copies the reference without creating a new object.
 
-## 12. Bài tập có đáp án
+## 12. Exercises with Solutions
 
-### Bài A — sửa khai báo field
+### Exercise A — Fix Field Declaration
 
-Đoạn sai:
+Invalid snippet:
 
 ~~~java
 // final class Item {
@@ -527,7 +527,7 @@ objects created=1
 // }
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 final class Item {
@@ -535,9 +535,9 @@ final class Item {
 }
 ~~~
 
-### Bài B — sửa kiểu trả về method
+### Exercise B — Fix Method Return Type
 
-Đoạn sai:
+Invalid snippet:
 
 ~~~java
 // static var greeting() {
@@ -545,7 +545,7 @@ final class Item {
 // }
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 static String greeting() {
@@ -553,7 +553,7 @@ static String greeting() {
 }
 ~~~
 
-Có thể dùng local `var` trong thân method:
+You can use a local `var` inside the method body:
 
 ~~~java
 static String greeting() {
@@ -562,7 +562,7 @@ static String greeting() {
 }
 ~~~
 
-### Bài C — `var` trong constructor
+### Exercise C — `var` Inside a Constructor
 
 ~~~java
 final class User {
@@ -575,9 +575,9 @@ final class User {
 }
 ~~~
 
-**Đáp án:** hợp lệ. `trimmed` là biến cục bộ kiểu `String`; `name` là field khai báo tường minh. Nếu `input` có thể null, cần thêm validation theo hợp đồng.
+**Answer:** valid. `trimmed` is a local variable of type `String`; `name` is an explicitly declared field. If `input` can be null, validation should be added according to the contract.
 
-### Bài D — `var` có làm method trả về kiểu mới không?
+### Exercise D — Does `var` Make a Method Return a New Type?
 
 ~~~java
 static long compute(int x) {
@@ -586,11 +586,11 @@ static long compute(int x) {
 }
 ~~~
 
-**Đáp án:** kiểu trả về method vẫn **`long`**; `doubled` có kiểu **`int`**. Phép nhân diễn ra trong `int`, sau đó kết quả mới chuyển rộng sang long. Với đầu vào lớn, có nguy cơ int overflow trước khi trả. Cách sửa nếu cần phép nhân long: `var doubled = (long) x * 2;`.
+**Answer:** the method's return type is still **`long`**; `doubled` has type **`int`**. The multiplication happens in `int`, and only afterward is the result widened to `long`. For large inputs, there is a risk of `int` overflow before returning. How to fix if `long` multiplication is needed: `var doubled = (long) x * 2;`.
 
-### Bài E — vị trí hợp lệ hay không?
+### Exercise E — Valid Position or Not?
 
-Đánh giá:
+Evaluate:
 
 ~~~java
 // private final var names = new ArrayList<String>();
@@ -602,33 +602,33 @@ static List<String> names() {
 }
 ~~~
 
-**Đáp án:** hai dòng comment là **không hợp lệ** do field và return type. Method `names()` hợp lệ, khai báo trả `List<String>` rõ ràng; `result` là local variable suy ra kiểu từ `List.of("An")`.
+**Answer:** the two commented lines are **invalid** because they are a field and a return type. The `names()` method is valid, explicitly declaring a return type of `List<String>`; `result` is a local variable inferring its type from `List.of("An")`.
 
-### Bài F — generic với field
+### Exercise F — Generics with Fields
 
-Muốn field duy trì API `List<String>` nhưng tạo bằng `ArrayList`:
+You want a field to maintain the `List<String>` API while constructing it with `ArrayList`:
 
 ~~~java
 private final java.util.List<String> names =
         new java.util.ArrayList<>();
 ~~~
 
-**Đáp án:** hợp lệ và thể hiện abstraction. Không đổi thành `private final var names = ...` vì `var` không được khai báo field.
+**Answer:** valid and expresses abstraction. Do not change it to `private final var names = ...` because `var` cannot declare a field.
 
-## 13. Checklist và kết luận
+## 13. Checklist and Conclusion
 
-- [ ] Biết `var` chỉ là cú pháp suy luận kiểu ở **những khai báo cục bộ hợp lệ**.
-- [ ] Không dùng `var` cho instance field, static field hoặc final field.
-- [ ] Không dùng `var` ở vị trí return type của method.
-- [ ] Không dùng `var` cho tham số method thông thường hay record component.
-- [ ] Dùng kiểu tường minh để biểu diễn hợp đồng class/API.
-- [ ] Biết local `var` hợp lệ trong method, constructor, instance/static initializer block.
-- [ ] Biết `var` cần initializer có kiểu suy ra được; null literal trần không đủ.
-- [ ] Biết `var` trong for, enhanced for, try-with-resources và lambda parameter có điều kiện.
-- [ ] Hiểu cú pháp `var` không đổi kiểu khi gán lại.
-- [ ] Nhớ generic, overload, toán tử và access tới member vẫn được **kiểm tra tĩnh**.
-- [ ] Biết kiểu của initializer có thể gây overflow trước khi kết quả được return sang kiểu rộng.
-- [ ] Chọn khai báo kiểu tường minh khi mức abstraction hoặc hợp đồng dữ liệu quan trọng.
-- [ ] Biên dịch và chạy `VarMemberReturnDemo.java` bằng `javac`/`java`; so từng dòng expected output.
+- [ ] Know that `var` is only type-inference syntax in **valid local declarations**.
+- [ ] Do not use `var` for instance fields, static fields, or final fields.
+- [ ] Do not use `var` in the return type position of a method.
+- [ ] Do not use `var` for regular method parameters or record components.
+- [ ] Use explicit types to represent class/API contracts.
+- [ ] Know that local `var` is valid in methods, constructors, and instance/static initializer blocks.
+- [ ] Know that `var` requires an initializer with an inferable type; a bare null literal is not enough.
+- [ ] Know `var` in `for`, enhanced `for`, `try-with-resources`, and conditional lambda parameters.
+- [ ] Understand that `var` syntax does not change type upon reassignment.
+- [ ] Remember that generics, overloads, operators, and member access are still **checked statically**.
+- [ ] Know that the initializer's type can cause overflow before the result is returned as a wider type.
+- [ ] Choose explicit type declarations when the abstraction level or data contract matters.
+- [ ] Compile and run `VarMemberReturnDemo.java` with `javac`/`java`; compare every line of expected output.
 
-**Kết luận:** Trong Java 17+, `var` là tiện ích giảm lặp tên kiểu cho **biến cục bộ có initializer hợp lệ**. Nó **không phải kiểu dữ liệu**, nên không được dùng làm **kiểu field** hoặc **kiểu trả về method**. Hãy khai báo rõ kiểu ở biên class/API và dùng `var` trong thân khối lệnh khi initializer làm cho kiểu tĩnh dễ hiểu, dễ kiểm tra.
+**Conclusion:** In Java 17+, `var` is a convenience to reduce type-name repetition for **local variables with valid initializers**. It is **not a data type**, so it cannot be used as a **field type** or **method return type**. Declare types explicitly at class/API boundaries and use `var` inside statement bodies when the initializer makes the static type easy to understand and verify.

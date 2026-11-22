@@ -1,30 +1,30 @@
-# Quản lý khóa, phiên bản tài nguyên và hợp đồng tham số trong Java Localization
+# Managing Resource Keys, Resource Versions, and Parameter Contracts in Java Localization
 
-Ứng dụng Java đa ngôn ngữ không thể vận hành ổn định chỉ bằng cách chuyển câu tiếng Anh sang `messages_vi.properties`. Trong một hệ thống đang phát triển, cùng một thông báo có thể được gọi bởi nhiều màn hình, bản dịch có thể thay đổi trong lúc ứng dụng cũ vẫn đang chạy, và tham số có thể đổi từ số lượng thành số tiền hoặc thêm một mã vận đơn. Những thay đổi tưởng chừng chỉ liên quan văn bản có thể làm hỏng mã gọi, hiển thị nhầm dữ liệu hoặc tạo lỗi khó phát hiện khi triển khai.
+A multilingual Java application cannot run reliably simply by translating English sentences into `messages_vi.properties`. In an evolving system, the same message may be invoked by multiple screens, translations may change while older app versions are still running, and a parameter may change from a quantity to a monetary amount or gain a tracking code. Changes that appear to affect only text can break callers, display wrong data, or cause hard-to-detect deployment bugs.
 
-**Ba trụ cột thiết kế cần quản lý đồng thời:**
+**Three design pillars to manage together:**
 
-1. **Khóa tài nguyên (resource key):** tên định danh ổn định cho một *ý nghĩa*, không phải bản thân câu chữ.
-2. **Phiên bản tài nguyên (catalog version):** bản snapshot những khóa, bản dịch và hợp đồng đang được ứng dụng sử dụng.
-3. **Hợp đồng tham số (parameter contract):** định nghĩa mỗi biến chèn vào thông điệp có vị trí, kiểu, ý nghĩa, đơn vị, trạng thái bắt buộc và quy tắc format như thế nào.
+1. **Resource key:** a stable identifier for a *meaning*, not the wording itself.
+2. **Catalog version:** a snapshot of the keys, translations, and contracts used by the application.
+3. **Parameter contract:** defines each placeholder variable's position, type, meaning, unit, requiredness, and formatting rules.
 
-Bài học nằm trong nhóm **Thiết kế ứng dụng** của module **Java core - localization**, dùng **Java 17+**, `ResourceBundle`, `MessageFormat` và file `.properties`. Các ví dụ có thể chạy độc lập khi tạo đúng các file đã chỉ định. Java hỗ trợ cơ chế tải resource và format thông điệp, nhưng **không tự xây hệ thống versioning, kiểm tra hợp đồng kiểu dữ liệu hoặc quy trình phê duyệt bản dịch**; những phần đó phải được thiết kế ở cấp ứng dụng.
+This lesson belongs to the **Application Design** section of the **Java core - localization** module, using **Java 17+**, `ResourceBundle`, `MessageFormat`, and `.properties` files. The examples can run standalone when you create the specified files. Java provides resource loading and message formatting mechanisms, but **does not build versioning systems, argument-type contract checkers, or translation approval workflows out of the box**; those must be designed at the application level.
 
-## 1. Phân biệt message code, resource key và nội dung hiển thị
+## 1. Distinguishing Message Code, Resource Key, and Display Text
 
-Giả sử backend phát hiện thanh toán thất bại. Ba giá trị dưới đây có trách nhiệm khác nhau:
+Suppose the backend detects a payment failure. The three values below have different responsibilities:
 
-| Tầng | Ví dụ | Mục đích |
+| Layer | Example | Purpose |
 | --- | --- | --- |
-| Mã trạng thái nghiệp vụ | `PAYMENT_DECLINED` | Phục vụ API, phân loại lỗi, xử lý logic |
-| Khóa tài nguyên | `checkout.payment.declined` | Tìm mẫu thông điệp trong catalog |
-| Nội dung hiển thị | `Thanh toán không thành công.` | Hiển thị cho người dùng theo locale |
+| Business status code | `PAYMENT_DECLINED` | API communication, error classification, logic handling |
+| Resource key | `checkout.payment.declined` | Looking up the message pattern in the catalog |
+| Display text | `Thanh toán không thành công.` | Presenting to the user in their locale |
 
-Không lưu bản dịch `Thanh toán không thành công.` như giá trị ổn định của cột `payment_status`, vì chỉ một lần sửa câu chữ là bản ghi đã lưu không còn đồng nhất với phiên bản mới. Hãy lưu mã nghiệp vụ hoặc trạng thái có kiểu, rồi render câu thông báo tại lớp hiển thị.
+Do not store the translation `Thanh toán không thành công.` as the stable value of a `payment_status` column, because a single wording edit breaks consistency with previously stored records. Store the business code or typed status, then render the message in the presentation layer.
 
-**Khóa là một hợp đồng gọi nội bộ.** Khi lập trình viên đổi tên một key mà không sửa các callsite, `ResourceBundle.getString(key)` có thể ném `MissingResourceException`. Khi người dịch thay `{0}` bằng `{1}`, code có thể vẫn chạy nhưng đưa dữ liệu sai vào câu. Cả hai là lỗi hợp đồng, không phải lỗi chính tả đơn thuần.
+**A key is an internal calling contract.** When a developer renames a key without updating callsites, `ResourceBundle.getString(key)` can throw `MissingResourceException`. When a translator replaces `{0}` with `{1}`, the code may still run while inserting the wrong data into the sentence. Both are contract violations, not mere typos.
 
-### Sơ đồ luồng dữ liệu
+### Data Flow Diagram
 
 ```text
 Business event: ORDER_SUMMARY
@@ -36,18 +36,18 @@ Key: checkout.summary
 Contract: {0}:String orderId, {1}:Number itemCount
       |
       v
-ResourceBundle(locale) -> thông điệp/pattern
+ResourceBundle(locale) -> message/pattern
       |
       v
 MessageFormat(pattern, locale) + typed arguments
       |
       v
-Đơn A-7: 3 món (người dùng vi-VN)
+Đơn A-7: 3 món (vi-VN user)
 ```
 
-## 2. Đặt semantic key đúng mục đích
+## 2. Naming Semantic Keys for Their Purpose
 
-Các khóa nên bộc lộ *ngữ cảnh và ý định*:
+Keys should reveal *context and intent*:
 
 ```properties
 account.signIn.title=Sign in
@@ -58,23 +58,23 @@ checkout.payment.declined=Payment declined.
 profile.displayName.label=Display name
 ```
 
-Quy tắc đề xuất:
+Recommended rules:
 
-- Dùng tên như `feature.screen.intent` hoặc `domain.event.variant`; chọn một convention duy nhất cho toàn dự án.
-- Tách key theo **ngữ nghĩa**. Cùng từ “Open” trong tiếng Anh có thể là động từ mở file hoặc trạng thái đang mở; nhiều ngôn ngữ không dịch giống nhau.
-- Có thể tái sử dụng khi thực sự là cùng thông điệp, cùng vai ngữ pháp và cùng hợp đồng tham số.
-- Đặt key có chủ sở hữu: module/team chịu trách nhiệm khi sửa, xóa hoặc chuyển sang phiên bản mới.
-- Không dùng nguyên văn tiếng Anh `Payment failed` làm key, vì text biên tập sẽ thay đổi.
-- Không dùng `msg001` hoặc `error2` vì thiếu ngữ cảnh, khó tìm và dễ tái sử dụng sai.
-- Không tạo key động từ chuỗi không tin cậy khi không có danh sách key được phép.
-- Không đổi chữ hoa/thường của key tùy tiện: key lookup trong `ResourceBundle` có phân biệt case.
-- Không dùng resource key làm khóa database cho những giá trị nghiệp vụ không liên quan hiển thị.
+- Use names like `feature.screen.intent` or `domain.event.variant`; adopt one consistent convention across the project.
+- Split keys by **semantics**. The same English word "Open" can be a verb (open a file) or a status (currently open); many languages do not translate both the same way.
+- Reuse a key only when it truly shares the same message, grammatical role, and parameter contract.
+- Assign key ownership: the module/team responsible when editing, deleting, or migrating to a new version.
+- Never use verbatim English text like `Payment failed` as a key, because editorial copy changes.
+- Never use `msg001` or `error2`, which lack context, are hard to search, and invite accidental misuse.
+- Never construct dynamic keys from untrusted strings without an allowlist of allowed keys.
+- Never change key casing arbitrarily: `ResourceBundle` key lookups are case-sensitive.
+- Never use a resource key as a database key for business values unrelated to display.
 
-**Sửa câu chữ không đồng nghĩa đổi key:** bản dịch có thể sửa chính tả, dấu câu hoặc diễn đạt tự nhiên hơn mà vẫn giữ contract. **Đổi nghĩa/kiểu tham số là một thay đổi lớn hơn** và có thể đòi một key khác trong giai đoạn di trú.
+**Editing wording does not mean changing the key:** a translation can fix typos, punctuation, or phrasing while keeping the contract intact. **Changing parameter meaning or types is a larger change** and may require a separate key during migration.
 
-## 3. Định nghĩa catalog gốc và bản dịch theo locale
+## 3. Defining the Root Catalog and Locale Translations
 
-Tạo đúng cấu trúc sau cho ví dụ trên classpath:
+Create this exact structure on the classpath for the example:
 
 ```text
 example/
@@ -100,15 +100,15 @@ checkout.summary=Đơn {0}: {1,number,integer} món
 checkout.pay.cta=Thanh toán
 ```
 
-Tên bundle cơ sở ở ví dụ là `messages`. Với `vi-VN`, hệ thống có thể thử `messages_vi_VN.properties`, `messages_vi.properties` rồi `messages.properties` theo danh sách ứng viên. File root là fallback cuối trong chuỗi parent thích hợp.
+The base bundle name in this example is `messages`. For `vi-VN`, the runtime can try `messages_vi_VN.properties`, `messages_vi.properties`, and then `messages.properties` along the candidate list. The root file is the final fallback in the appropriate parent chain.
 
-**Lưu ý encoding Java 17:** từ Java 9, `PropertyResourceBundle` mặc định cố đọc file properties theo UTF-8, có fallback ISO-8859-1 khi gặp byte UTF-8 lỗi (nếu không ép encoding bằng system property phù hợp). Vì vậy file tiếng Việt UTF-8 phù hợp với cấu hình Java 17 phổ biến. Không nhầm API này với `Properties.load(InputStream)` vốn có quy tắc ISO-8859-1 truyền thống. Build và CI nên thống nhất UTF-8, kiểm tra nội dung đúng và tránh các file trộn encoding.
+**Java 17 encoding note:** since Java 9, `PropertyResourceBundle` reads `.properties` files as UTF-8 by default, falling back to ISO-8859-1 if invalid UTF-8 byte sequences are encountered (unless overridden via the relevant system property). Thus UTF-8 Vietnamese files match standard Java 17 configurations. Do not confuse this API with `Properties.load(InputStream)`, which follows traditional ISO-8859-1 rules. Builds and CI should standardize on UTF-8, validate file contents, and avoid mixed-encoding files.
 
-**`checkout.failed` cố ý thiếu trong file vi** để minh họa fallback ở ví dụ tiếp theo, không phải tiêu chuẩn chất lượng cho sản phẩm đã phát hành.
+**`checkout.failed` is intentionally omitted from the `vi` file** to demonstrate fallback in the next example—not as a quality standard for released products.
 
-## 4. Ví dụ Java 17: lookup và format từ ResourceBundle
+## 4. Java 17 Example: Looking Up and Formatting from `ResourceBundle`
 
-Lưu **`BundleLookupDemo.java`** cạnh hai file properties:
+Save **`BundleLookupDemo.java`** alongside the two `.properties` files:
 
 ```java
 import java.text.MessageFormat;
@@ -151,7 +151,7 @@ javac -encoding UTF-8 BundleLookupDemo.java
 java BundleLookupDemo
 ```
 
-Stdout (console hỗ trợ UTF-8):
+Stdout (with UTF-8 console support):
 
 ```text
 Xin chào, Lan!
@@ -160,35 +160,35 @@ Payment failed.
 Hello, Lan!
 ```
 
-**Cơ chế:**
+**How it works:**
 
-- `ResourceBundle` tìm pattern có key phù hợp; việc gọi `getString` **không tự thay thế** `{0}` hay `{1}`.
-- `MessageFormat` nhận pattern và `Locale` để format các tham số theo locale đó.
-- `getNoFallbackControl(FORMAT_PROPERTIES)` loại bỏ **fallback sang default locale của JVM** nhưng **không loại chuỗi parent/root resource**; vì vậy key `checkout.failed` lấy từ root.
-- `{0}` là mã đơn; `{1,number,integer}` định dạng số lượng nguyên trong câu.
-- Không phụ thuộc `Locale.getDefault()` của máy chủ khi render cho từng user.
+- `ResourceBundle` locates the pattern for the matching key; calling `getString` **does not automatically substitute** `{0}` or `{1}`.
+- `MessageFormat` takes the pattern and `Locale` to format arguments for that locale.
+- `getNoFallbackControl(FORMAT_PROPERTIES)` disables **falling back to the JVM's default locale** but **does not remove the parent/root resource chain**; hence `checkout.failed` comes from root.
+- `{0}` is the order ID; `{1,number,integer}` formats the integer item count in the sentence.
+- Nothing depends on the server's `Locale.getDefault()` when rendering per user.
 
-**Giới hạn JPMS:** overload `ResourceBundle.getBundle` có `ResourceBundle.Control` không hỗ trợ trong các **named modules** của Java 17 và có thể ném `UnsupportedOperationException`. Ví dụ trên chủ ý chạy qua **classpath/unnamed module**. Với ứng dụng named modules, dùng cơ chế provider/bundle lookup phù hợp JPMS, không copy ví dụ mà bỏ qua giới hạn.
+**JPMS limitation:** `ResourceBundle.getBundle` overloads accepting `ResourceBundle.Control` are not supported inside Java 17 **named modules** and can throw `UnsupportedOperationException`. This example intentionally runs on the **classpath/unnamed module**. For named-module applications, use a JPMS-compatible provider/bundle lookup mechanism rather than copying the example without heeding this restriction.
 
-## 5. Fallback không đồng nghĩa bản dịch đầy đủ
+## 5. Fallback Does Not Mean a Complete Translation
 
-Trong ví dụ, `bundle.containsKey("checkout.failed")` có thể là `true` vì thấy key được **thừa kế từ root**, dù `messages_vi.properties` không chứa key đó. Vì vậy:
+In the example, `bundle.containsKey("checkout.failed")` can return `true` because the key is **inherited from root**, even though `messages_vi.properties` does not contain it. Therefore:
 
-- **Runtime fallback** có thể giúp không hiển thị chỗ trống cho user.
-- **Translation coverage** phải kiểm tra **từng file ngôn ngữ** hoặc thông tin metadata của công cụ dịch, không chỉ nhìn kết quả `containsKey`.
-- **Localization acceptance** có thể yêu cầu mọi thông điệp pháp lý, thanh toán và an toàn có bản dịch đã phê duyệt; không chỉ tự động fallback sang tiếng Anh.
-- **Observability** nên ghi key, locale yêu cầu, catalog version và mức độ fallback, tránh đưa dữ liệu cá nhân trong argument vào log.
+- **Runtime fallback** can prevent blank UI text for users.
+- **Translation coverage** must inspect **each individual language file** or translation-tool metadata, not merely check `containsKey`.
+- **Localization acceptance** may require every legal, payment, and safety message to have an approved translation rather than silently falling back to English.
+- **Observability** should log the key, requested locale, catalog version, and fallback level while avoiding personal data from arguments in logs.
 
-Hai khái niệm khác nhau trong `ResourceBundle.Control`:
+Two distinct concepts in `ResourceBundle.Control`:
 
-1. **Candidate/parent chain** như `vi-VN -> vi -> root`.
-2. **Fallback sang default locale** khi không có bundle phù hợp, được điều khiển bởi `getFallbackLocale`. `getNoFallbackControl` có thể tắt trường hợp thứ hai.
+1. **Candidate/parent chain** such as `vi-VN -> vi -> root`.
+2. **Fallback to default locale** when no matching bundle exists, controlled by `getFallbackLocale`. `getNoFallbackControl` disables this second step.
 
-### Lỗi thiếu key
+### Missing-Key Failure
 
-Một key hoàn toàn không tồn tại trong cả chuỗi parent sẽ khiến `getString` ném `MissingResourceException`. Không mong đợi Java trả `null` hoặc tự trả tên key.
+A key completely absent across the entire parent chain causes `getString` to throw `MissingResourceException`. Do not expect Java to return `null` or echo the key name automatically.
 
-**`MissingKeyDemo.java`**, dùng cùng hai file properties:
+**`MissingKeyDemo.java`**, using the same two `.properties` files:
 
 ```java
 import java.util.Locale;
@@ -231,25 +231,25 @@ Unknown key: false
 Missing key detected
 ```
 
-Khi thiết kế lỗi runtime, hãy quyết định loại key nào được phép fallback, loại nào cần chặn release, và phản ứng nào khi một bản dịch vẫn thiếu. Không dùng `catch(Exception)` rồi trả `"?"` cho tất cả các lỗi: điều đó che giấu lỗi dữ liệu nghiêm trọng.
+When designing runtime error handling, decide which keys may fall back, which must block a release, and how to respond when a translation is still missing. Never write `catch(Exception)` and return `"?"` for all failures: that hides serious data bugs.
 
-## 6. Hợp đồng tham số là một phần của API message
+## 6. Parameter Contracts Are Part of the Message API
 
-Một message có placeholder là **một API nhỏ**. Với `checkout.summary`, nên ghi schema rõ:
+A message with placeholders is **a small API**. For `checkout.summary`, document the schema clearly:
 
-| Vị trí | Tên nghiệp vụ | Kiểu Java | Ý nghĩa | Ràng buộc |
+| Position | Business name | Java type | Meaning | Constraints |
 | --- | --- | --- | --- | --- |
-| `{0}` | `orderId` | `String` | Mã đơn hiển thị | Bắt buộc; không tự dịch |
-| `{1}` | `itemCount` | `Number`/`Integer` | Số mặt hàng | Số nguyên không âm |
-| Format style | `{1,number,integer}` | Number formatter | Trình bày số đếm | Locale do người xem quyết định |
+| `{0}` | `orderId` | `String` | Display order ID | Required; not translated |
+| `{1}` | `itemCount` | `Number`/`Integer` | Number of items | Non-negative integer |
+| Format style | `{1,number,integer}` | Number formatter | Count presentation | Locale chosen by viewer |
 
-Cần xác định **tên, vị trí, type, nullability, ý nghĩa, đơn vị, cách định dạng, tính nhạy cảm** và tình huống cần plural/gender. Chỉ ghi “hai tham số” là chưa đủ nếu một tham số là tiền tệ, một tham số là tỉ lệ hay ngày lịch.
+Specify **name, position, type, nullability, meaning, unit, formatting, sensitivity**, and whether plural/gender rules apply. Simply writing "two parameters" is insufficient when one is currency and another is a ratio or calendar date.
 
-**Tham số theo vị trí:** `MessageFormat` chuẩn Java 17 dùng index `0`, `1`, ...; không trực tiếp hiểu named placeholder `{orderId}`. Ứng dụng có thể xây typed facade cho caller, nhưng tên đối số của hàm Java không được Java MessageFormat tự ánh xạ vào bản dịch.
+**Positional parameters:** standard Java 17 `MessageFormat` uses indices `0`, `1`, ...; it does not directly understand named placeholders like `{orderId}`. Applications can build a typed facade for callers, but Java method parameter names are not automatically mapped into translations by `MessageFormat`.
 
-**Đảo vị trí được, đổi vai trò không được:** người dịch có thể đặt `{1}` trước `{0}` cho tự nhiên. Nhưng người dịch không được tự gán `{0}` thành số lượng nếu contract quy định đó là mã đơn.
+**Reordering is allowed; swapping roles is not:** translators may place `{1}` before `{0}` for natural phrasing. However, translators must never reassign `{0}` to mean quantity if the contract defines it as the order ID.
 
-## 7. Ví dụ: đổi thứ tự tham số giữa ngôn ngữ
+## 7. Example: Reordering Parameters Across Languages
 
 File **`ArgumentOrderDemo.java`**:
 
@@ -286,28 +286,28 @@ EN: Order A-7: 3 items
 VI: Có 3 món trong đơn A-7
 ```
 
-Cùng `values`, cùng index và ý nghĩa, nhưng trình tự xuất hiện có thể khác. Đây là ví dụ **số lượng 3**; pattern tiếng Anh `items` chưa xử lý đủ số ít/nhiều cho tất cả trường hợp. Trong sản phẩm thật, cần thiết kế pluralization phù hợp cho locale.
+The same `values`, same indices, and same meanings appear in a different order. This example uses **quantity 3**; the English pattern `items` does not cover singular/plural across all counts. In production products, design proper locale-aware pluralization.
 
-## 8. Kiểu tham số và những trường hợp MessageFormat không tự bảo vệ
+## 8. Parameter Types and Cases `MessageFormat` Does Not Automatically Guard
 
-Các subformats chính trong Java 17:
+Main subformats in Java 17:
 
-| Placeholder | Kiểu mong đợi / hiệu quả |
+| Placeholder | Expected type / effect |
 | --- | --- |
-| `{0}` | Chèn Object; với String thì dùng nội dung string |
-| `{1,number}` | Cần Number tương thích với NumberFormat |
-| `{1,number,integer}` | Number định dạng theo số nguyên cho trình bày |
-| `{1,number,currency}` | Number với currency subformat gắn locale |
-| `{1,number,percent}` | Number với percent subformat |
-| `{2,date,short}` | Thường cần `java.util.Date`/kiểu mà date subformat hỗ trợ |
-| `{2,time,short}` | Date/time theo locale |
-| `{0,choice,...}` | ChoiceFormat kiểu legacy, thường dựa trên Number |
+| `{0}` | Inserts `Object`; for `String`, uses string content |
+| `{1,number}` | Expects a `Number` compatible with `NumberFormat` |
+| `{1,number,integer}` | `Number` formatted as an integer for display |
+| `{1,number,currency}` | `Number` with locale-attached currency subformat |
+| `{1,number,percent}` | `Number` with percent subformat |
+| `{2,date,short}` | Usually requires `java.util.Date`/type supported by date subformat |
+| `{2,time,short}` | Locale-specific date/time |
+| `{0,choice,...}` | Legacy `ChoiceFormat`, typically `Number`-based |
 
-**Java Time khác java.util.Date:** `LocalDate`, `Instant` và `ZonedDateTime` không mặc nhiên là kiểu đầu vào cho các subformat date cũ của `MessageFormat`. Chọn kiểu dữ liệu theo nghiệp vụ, rồi chuyển/format qua `DateTimeFormatter` hoặc adapter có kiểm soát, có `ZoneId` khi cần.
+**`java.time` differs from `java.util.Date`:** `LocalDate`, `Instant`, and `ZonedDateTime` are not accepted by default by legacy `MessageFormat` date subformats. Pick types based on business semantics, then convert/format via `DateTimeFormatter` or a controlled adapter with `ZoneId` when needed.
 
-**Currency:** `{1,number,currency}` có thể chọn đơn vị tiền theo locale, trong khi giao dịch thực tế dùng mã tiền khác. Contract của giao dịch phải chứa amount và currencyCode nghiệp vụ; đừng coi locale người xem là đơn vị tiền thanh toán.
+**Currency:** `{1,number,currency}` may choose the currency unit from the locale, whereas the actual transaction uses a different currency code. The transaction contract must carry both `amount` and business `currencyCode`; never treat the viewer's locale as the payment currency.
 
-**Thiếu tham số không nhất thiết là exception:** `MessageFormat` có thể giữ literal `{1}` nếu caller không cung cấp index đó. Vì vậy chỉ test “không ném lỗi” là không đủ.
+**Missing arguments do not necessarily throw:** `MessageFormat` may leave literal `{1}` in place if the caller omits that index. Testing only "does not throw" is therefore insufficient.
 
 ### ParameterTypeDemo.java
 
@@ -358,11 +358,11 @@ Wrong type rejected
 Missing: Order A-7: {1} items
 ```
 
-**Cảnh báo về validator:** `getFormatsByArgumentIndex` giúp kiểm tra subformat có/không ở một index, nhưng các vị trí không dùng có thể cho `null` và mảng có thể có độ dài theo index lớn nhất. Không dùng **độ dài mảng đơn lẻ** để chứng minh mọi tham số được dùng, đúng kiểu và đúng ngữ nghĩa. Muốn có hợp đồng mạnh, cần schema/linter cùng các test render.
+**Validator warning:** `getFormatsByArgumentIndex` helps inspect whether a subformat exists at an index, yet unused slots can be `null` and the array length matches the highest index. Do not use **array length alone** to prove all parameters are used, correctly typed, and semantically valid. A strong contract requires a schema/linter plus render tests.
 
-## 9. Dấu nháy đơn và dấu ngoặc là cú pháp, không chỉ là văn bản
+## 9. Single Quotes and Braces Are Syntax, Not Just Text
 
-`MessageFormat` dùng dấu nháy đơn để quote literal. Để xuất một dấu `'` thật, pattern thường cần **hai dấu `''`**. Dịch giả có thể vô tình làm một placeholder không còn được thay khi viết dấu nháy đơn sai.
+`MessageFormat` uses single quotes to quote literals. To output a literal `'`, a pattern normally needs **two consecutive quotes `''`**. Translators can accidentally disable placeholder substitution by writing single quotes incorrectly.
 
 File **`ApostrophePatternDemo.java`**:
 
@@ -397,46 +397,46 @@ It's time for Lan.
 Click 'Save' to continue.
 ```
 
-Cú pháp của file `.properties` và của `MessageFormat` là **hai tầng khác nhau**: Java đọc escape của properties trước, sau đó MessageFormat phân tích `{index}`, kiểu format và quote. Một file properties hợp lệ vẫn có thể chứa **MessageFormat pattern sai**, hoặc pattern vẫn parse được nhưng không còn placeholder như mong muốn.
+`.properties` syntax and `MessageFormat` syntax are **two separate layers**: Java processes `.properties` escapes first, and then `MessageFormat` parses `{index}`, format types, and quotes. A valid `.properties` file can still hold an **invalid `MessageFormat` pattern**, or a pattern that parses without throwing while no longer substituting the intended placeholder.
 
-**Không parse MessageFormat phức tạp bằng regex sơ sài**. ChoiceFormat có thể chứa các pattern lồng nhau, còn dấu `'` làm thay đổi ý nghĩa của ngoặc. Validator thực tế cần parser phù hợp và metadata của message; `new MessageFormat(pattern, locale)` chỉ là bước kiểm tra cú pháp, chưa đủ biết `{1}` phải là `itemCount`.
+**Do not parse complex `MessageFormat` patterns with naive regexes.** `ChoiceFormat` can contain nested patterns, and `'` alters the meaning of braces. A real validator needs a proper parser and message metadata; `new MessageFormat(pattern, locale)` is only a syntax check and cannot know that `{1}` must mean `itemCount`.
 
-## 10. Plural, gender và ngữ cảnh văn bản phải được mô hình hóa
+## 10. Plurals, Gender, and Text Context Must Be Modeled
 
-Đừng ghép câu tiếng Anh bằng `count + " item" + (count == 1 ? "" : "s")` rồi cho rằng có thể bản địa hóa mọi ngôn ngữ. Nhiều ngôn ngữ có quy tắc số ít/nhiều khác nhau; còn giống ngữ pháp, kính ngữ hay vai trò từ cũng có thể cần biến thể.
+Do not build English sentences with `count + " item" + (count == 1 ? "" : "s")` and assume every language can be localized that way. Many languages have different singular/plural rules; grammatical gender, honorifics, or word roles may also require variants.
 
-`ChoiceFormat` trong Java có thể hỗ trợ một vài nhánh dựa trên số nhưng **không tự cung cấp bộ quy tắc plural CLDR đầy đủ**. Với yêu cầu đa ngôn ngữ phong phú, cân nhắc một hệ thống thông điệp có plural/select phù hợp (ví dụ ICU MessageFormat) và kiểm thử thực tế theo từng locale.
+Java's `ChoiceFormat` can handle a few numeric branches, **but it does not provide full CLDR plural rules out of the box**. For rich multilingual needs, consider a message system with proper plural/select support (such as ICU MessageFormat) and test across actual target locales.
 
-Cần cho translator biết **ngữ cảnh câu** và đặc tính tham số. Nếu thông báo có số lượng, có thể cần tách message thành các biến thể hoặc dùng công cụ plural hóa. Nếu thông báo có tên người, không được tự ý viết tên theo cách áp đặt giống ngữ pháp. Cùng một key có chuỗi giống nhau ở tiếng Anh chưa chắc có thể dùng ở mọi ngôn ngữ.
+Provide translators with **sentence context** and parameter specifications. If a message includes a count, split it into variants or use a pluralization tool. If a message includes a person's name, do not force grammatical gender onto names. Two contexts sharing the exact same English wording under one key may still require separate keys in other languages.
 
-## 11. Version resource: bản nào chứa những gì?
+## 11. Resource Versioning: Which Artifact Contains What?
 
-Có nhiều lớp phiên bản:
+There are multiple versioning layers:
 
-| Loại version | Chức năng |
+| Version type | Role |
 | --- | --- |
-| Application version | Mã Java/API callsite và UI |
-| Catalog version | Snapshot keys, patterns, translations |
-| Contract version | Semantics và schema tham số cho key |
-| API version | Dạng message code/data được client nhận |
-| JDK/CLDR version | Dữ liệu locale dùng định dạng ngày, số, currency |
-| Translation tooling version | Parser/linter, kiểm soát thay đổi bản dịch |
+| Application version | Java code/API callsites and UI |
+| Catalog version | Snapshot of keys, patterns, and translations |
+| Contract version | Semantics and parameter schema for a key |
+| API version | Shape of message codes/data received by clients |
+| JDK/CLDR version | Locale data used to format dates, numbers, and currency |
+| Translation tooling version | Parser/linter governing translation changes |
 
-Một ví dụ: build `2026.10.28` phát hành với `catalogVersion=3`, trong đó `checkout.summary` ở contract 1. Sau đó UI cần thêm `deliveryDate`, tức contract mới không còn tương thích với caller cũ. Không nên thay trực tiếp pattern hiện có để mọi client cũ bỗng cần `{2}`.
+Example: build `2026.10.28` ships with `catalogVersion=3`, where `checkout.summary` is on contract 1. Later the UI needs to add `deliveryDate`, making the new contract incompatible with older callers. Do not mutate the existing pattern directly so that older clients suddenly require `{2}`.
 
-**Snapshot bất biến:** lý tưởng mỗi bản build dùng một catalog đã validate và biết được version hoặc hash của nó. Khi bug report nói “sai bản dịch”, cần biết **app version, catalog version, requested locale, key** để tái hiện. Với translation service động, chỉ thay catalog atomically sau khi đã kiểm tra đầy đủ, không cập nhật từng key khiến hệ thống ở trạng thái nửa v1/nửa v2.
+**Immutable snapshots:** ideally every build uses a validated catalog with a known version or hash. When a bug report says "wrong translation", you need **app version, catalog version, requested locale, and key** to reproduce it. With dynamic translation services, swap catalogs atomically only after full validation—never update key by key, leaving the system half v1 / half v2.
 
-### Khi nào đổi key?
+### When Should a Key Change?
 
-- **Giữ key** nếu sửa typo, dấu câu, diễn đạt tự nhiên hơn nhưng ý nghĩa và tham số không đổi.
-- **Có thể giữ key** khi bản dịch đảo vị trí `{0}`/`{1}` mà hợp đồng vẫn giữ nguyên.
-- **Đổi key hoặc contract version** khi một tham số bắt buộc được thêm, bị bỏ, đổi kiểu hay đổi ý nghĩa.
-- **Đổi semantic key** khi thông báo không còn nói về cùng hành động/trạng thái.
-- **Không tăng hậu tố v2 ở mọi chỉnh sửa văn bản** vì làm phình catalog không cần thiết.
+- **Keep the key** when fixing typos, punctuation, or phrasing while meaning and parameters stay identical.
+- **You may keep the key** when a translation reorders `{0}`/`{1}` while preserving the contract.
+- **Change the key or contract version** when a required parameter is added, removed, changes type, or changes meaning.
+- **Change the semantic key** when the message no longer describes the same action or state.
+- **Do not bump a `v2` suffix for every copy edit**, as that bloats the catalog needlessly.
 
-## 12. Ví dụ hai contract cùng tồn tại trong rolling deployment
+## 12. Example: Two Contracts Coexisting During a Rolling Deployment
 
-Giả sử câu v1 chỉ cần mã đơn; câu v2 cần cả mã tracking bắt buộc. Trong giai đoạn hệ thống và client chưa nâng cấp đồng bộ, giữ cả hai mẫu:
+Suppose v1 only needs an order ID; v2 requires both an order ID and a tracking code. While servers and clients are not upgraded simultaneously, keep both patterns:
 
 ```properties
 purchase.confirmed.v1=Confirmed order {0}.
@@ -484,33 +484,33 @@ V1: Confirmed order A-7.
 V2: Confirmed order A-7 with tracking T-9.
 ```
 
-Hậu tố `v1/v2` ở đây diễn tả **hai hợp đồng không tương thích đang tồn tại đồng thời**, không phải quy tắc mọi key đều phải có version suffix. Dùng v2 cho caller mới; giữ v1 khi client cũ vẫn được hỗ trợ, rồi dọn sau khi quan sát không còn phụ thuộc.
+The `v1/v2` suffix here expresses **two incompatible contracts coexisting concurrently**, not a rule that every key needs a version suffix. Use v2 for new callers; keep v1 while legacy clients remain supported, then clean up once observability confirms zero remaining usage.
 
-## 13. Rollout: thêm trước, chuyển dần, xóa sau
+## 13. Rollout: Add First, Migrate Gradually, Remove Last
 
-Một chiến lược an toàn:
+A safe strategy:
 
-1. Xác định schema, kiểu và semantics của contract mới; nêu rõ catalog version tối thiểu mà caller mới yêu cầu.
-2. Thêm key/pattern mới vào **catalog gốc và các locale bắt buộc**, review ngữ pháp và tham số.
-3. Chạy CI lint và preview ở các locale trước khi phát hành.
-4. Deploy resource mới **trước hoặc đồng thời với caller mới** theo cơ chế atomic/compatible của sản phẩm.
-5. Giữ key cũ đủ lâu cho mobile offline, background jobs, notification queues và các phiên bản được hỗ trợ.
-6. Theo dõi tần suất key cũ được dùng và missing/failed render theo version/locale.
-7. Khi đã hết compatibility window, loại bỏ key cũ cùng code phụ thuộc và lập kế hoạch rollback.
+1. Define the schema, types, and semantics of the new contract; specify the minimum catalog version required by new callers.
+2. Add the new key/pattern to the **root catalog and required locales**, reviewing grammar and parameters.
+3. Run CI linting and preview across locales before release.
+4. Deploy new resources **before or together with new callers** using your product's atomic/compatible mechanism.
+5. Keep old keys long enough for offline mobile apps, background jobs, notification queues, and supported versions.
+6. Monitor usage frequency of old keys and missing/failed renders by version and locale.
+7. Once the compatibility window closes, remove old keys along with dependent code and keep a rollback plan.
 
-Khi gửi lỗi qua API, nên gửi **mã trạng thái và dữ liệu có kiểu** thay vì chỉ gửi thông báo đã bản địa hóa. Client có thể dùng catalog phù hợp với locale và phiên bản của nó. Nếu server trả luôn localizedMessage, phải quy định ai sở hữu việc dịch và xử lý khi người dùng đổi ngôn ngữ sau đó.
+When sending errors over an API, return **status codes and typed data** rather than only a localized message. Clients can then use the catalog matching their locale and version. If the server returns a `localizedMessage`, document clearly who owns translation and what happens if the user switches language afterward.
 
-### Caching và vòng đời của ResourceBundle
+### Caching and `ResourceBundle` Lifecycle
 
-`ResourceBundle` được **cache** theo cơ chế lookup; khi sửa file ngoài runtime, không mặc nhiên JVM đang chạy lập tức đọc lại. `ResourceBundle.Control.getTimeToLive`, `needsReload` và `ResourceBundle.clearCache` có những vai trò cụ thể, nhưng **clear cache không bảo đảm artifact/deployment đã có file mới**. Không đổi `System.setProperty` hoặc sửa file properties giữa các request rồi kỳ vọng tất cả client có catalog nhất quán. Với named modules, kiểm tra lại cơ chế control/provider của môi trường thật.
+`ResourceBundle` is **cached** by the lookup mechanism; editing a file outside runtime does not guarantee a running JVM immediately reloads it. `ResourceBundle.Control.getTimeToLive`, `needsReload`, and `ResourceBundle.clearCache` have specific roles, yet **clearing the cache does not guarantee the deployment artifact already contains the new file**. Do not change `System.setProperty` or edit `.properties` files between requests expecting all clients to see a consistent catalog. With named modules, verify the control/provider behavior in your actual environment.
 
-`MessageFormat` là một đối tượng **mutable**, nên không chia sẻ instance có thể bị `applyPattern`/`setFormat` bởi nhiều request mà không có cơ chế đồng bộ. Tạo formatter riêng cho mỗi lần render hoặc clone/copy có kiểm soát.
+`MessageFormat` is **mutable**, so never share an instance across threads calling `applyPattern`/`setFormat` without synchronization. Create a dedicated formatter per render or clone/copy in a controlled manner.
 
-## 14. Kiểm tra file nào thật sự thiếu bản dịch
+## 14. Checking Which File Actually Lacks Translations
 
-`ResourceBundle.containsKey` có thể thấy key inherited; muốn đo coverage **của chính file vi**, hãy đọc hai file và so tập khóa trực tiếp ở CI.
+`ResourceBundle.containsKey` sees inherited keys; to measure coverage **of the `vi` file itself**, read both files and compare key sets directly in CI.
 
-**BundleCoverageDemo.java** (dùng file properties của mục 3):
+**BundleCoverageDemo.java** (using the `.properties` files from Section 3):
 
 ```java
 import java.io.Reader;
@@ -561,17 +561,17 @@ Missing vi: [checkout.failed]
 Unexpected vi: []
 ```
 
-Kết quả này đúng với hai file ví dụ: file vi thiếu `checkout.failed`. Trong dự án thật, một số fallback được cho phép, một số bản dịch bắt buộc sẽ làm build fail. Chương trình trên **chỉ so key**: chưa kiểm tra nội dung được dịch đúng, có duplicate keys hay không, tham số và kiểu có đồng nhất không.
+This matches the two example files: the `vi` file lacks `checkout.failed`. In real projects, some fallbacks may be permitted while mandatory translations fail the build. The program above **only compares keys**: it does not verify translation accuracy, duplicate keys, or parameter/type consistency.
 
-**Chú ý:** `Properties.load(Reader)` nhận ký tự mà `Reader` đã decode; dùng `Files.newBufferedReader(..., UTF_8)` ở ví dụ để không phụ thuộc encoding ngầm. `Properties` có thể ghi đè duplicate key mà không cảnh báo, nên muốn phát hiện trùng key trong file gốc cần linter riêng.
+**Note:** `Properties.load(Reader)` reads characters already decoded by the `Reader`; the example uses `Files.newBufferedReader(..., UTF_8)` to avoid relying on an implicit encoding. `Properties` silently overwrites duplicate keys without warning, so catching duplicates in source files requires a dedicated linter.
 
-## 15. Lint pattern và hợp đồng kiểu dữ liệu
+## 15. Linting Patterns and Type Contracts
 
-Một bản catalog có thể kèm metadata:
+A catalog entry can be accompanied by metadata:
 
 ```yaml
 key: checkout.summary
-description: Tóm tắt số mặt hàng của một đơn mua
+description: Summary of item count in a purchase order
 contractVersion: 1
 arguments:
   - index: 0
@@ -585,28 +585,28 @@ arguments:
 localesRequired: [en, vi]
 ```
 
-Đây là **ví dụ schema do ứng dụng tự quy định**, không phải định dạng YAML mà `ResourceBundle` hay `MessageFormat` tự hiểu.
+This is an **application-defined example schema**, not a YAML format natively understood by `ResourceBundle` or `MessageFormat`.
 
-Một bộ CI đáng tin cần:
+A reliable CI suite should:
 
-- Kiểm tra key bắt buộc hiện diện ở catalog gốc và locale có yêu cầu đầy đủ.
-- Kiểm tra key trùng, không còn callsite, và chuỗi có kiểu dữ liệu không hợp lệ.
-- Parse `MessageFormat` pattern cho từng locale và phát hiện dấu quote/ngoặc sai.
-- Xác minh placeholder **required** thật sự được sử dụng, không có index lạ, format style đúng cho mỗi index.
-- Kiểm thử input `0`, `1`, `3`, số lớn, ngày, tên có dấu nháy đơn, Unicode và ngôn ngữ RTL khi liên quan.
-- Kiểm tra bản dịch dài gây tràn UI, thông báo sai ngữ cảnh và yêu cầu plural/gender.
-- Không log payload nhạy cảm; log key + locale + version khi cần debug.
-- Dùng cùng bộ dữ liệu/resource version thực sự được đóng gói trong ứng dụng.
-- Kiểm thử fallback, reload/cache, và kịch bản client cũ gọi key v1.
+- Verify required keys exist in the root catalog and all mandatory locales.
+- Detect duplicate keys, orphaned keys with no callsites, and invalid string/type definitions.
+- Parse `MessageFormat` patterns per locale and catch malformed quotes/braces.
+- Verify **required** placeholders are actually used, with no stray indices and proper format styles per index.
+- Test inputs `0`, `1`, `3`, large numbers, dates, names containing single quotes, Unicode, and RTL languages where relevant.
+- Check for long translations overflowing the UI, out-of-context messages, and plural/gender requirements.
+- Avoid logging sensitive payloads; log key + locale + version when debugging.
+- Run against the exact same resource version/data packaged in the application.
+- Test fallbacks, reload/cache behavior, and older clients calling v1 keys.
 
-**Giới hạn:** `new MessageFormat(pattern, locale)` kiểm tra cú pháp có ích, nhưng không biết `{0}` có nghĩa là `orderId` hay `username`. Regex `\\{(\\d+)\\}` không hiểu đủ subformat có quote/nested patterns. Vì vậy CI phải dựa vào schema và parser/validator phù hợp, không chỉ tìm chuỗi bằng regex.
+**Limitation:** `new MessageFormat(pattern, locale)` provides useful syntax validation, but it does not know whether `{0}` means `orderId` or `username`. A regex like `\\{(\\d+)\\}` cannot fully parse subformats with quotes or nested patterns. CI must therefore rely on schemas and proper parsers/validators rather than naive regex matching.
 
-## 16. Một typed facade giảm lỗi tại callsite
+## 16. A Typed Facade Reduces Callsite Mistakes
 
-Caller Java thường chỉ thấy `render(String key, Object... args)`, khiến thứ tự và kiểu tham số dễ bị nhầm. Một wrapper theo nghiệp vụ có thể làm hợp đồng rõ hơn:
+Java callers often only see `render(String key, Object... args)`, making parameter order and types easy to mix up. A business-level wrapper makes the contract explicit:
 
 ```java
-// Fragment trong class đã có render(key, Object... args).
+// Fragment inside a class that already defines render(key, Object... args).
 public String checkoutSummary(String orderId, int itemCount) {
     if (itemCount < 0) {
         throw new IllegalArgumentException(
@@ -616,88 +616,88 @@ public String checkoutSummary(String orderId, int itemCount) {
 }
 ```
 
-Đây là **fragment**, không phải chương trình độc lập. Nó giúp compiler kiểm tra `String` và `int` tại callsite, có tên nghiệp vụ và validation rõ. Nhưng **chưa bảo đảm translator giữ đúng placeholder**: một bản dịch có thể bỏ `{1}` mà không có lỗi biên dịch. Vì vậy kiểm thử typed facade và kiểm tra catalog phải được làm song song.
+This is a **fragment**, not a standalone program. It lets the compiler enforce `String` and `int` at callsites with a clear business name and validation. However, **it still does not guarantee translators keep placeholders intact**: a translation can drop `{1}` with no compile error. Typed-facade tests and catalog checks must therefore run side by side.
 
-Một tổ chức lớn có thể tạo code generation từ message schema để tự sinh methods typed, nhưng **Java Core không tự sinh hợp đồng từ properties**. Hãy coi đây là kiến trúc bổ sung, không mô tả nó như API built-in của `ResourceBundle`.
+Large organizations may generate typed methods from message schemas via code generation, though **core Java does not auto-generate contracts from `.properties` files**. Treat code generation as supplementary architecture, not as a built-in `ResourceBundle` feature.
 
-## 17. Phân biệt MessageFormat với escaping HTML và bảo mật
+## 17. Distinguishing `MessageFormat` from HTML Escaping and Security
 
-Các argument là **dữ liệu** dùng để format; `MessageFormat` **không phải bộ lọc XSS, HTML escaping hoặc SQL escaping**. Ví dụ tên người chứa `<script>` nếu được đưa thẳng vào HTML không escape ở output sink có thể gây lỗ hổng. Hãy dùng HTML templating/output encoding đúng ngữ cảnh, và chuẩn bị message từ các key/pattern **đáng tin**.
+Arguments are **data** to format; `MessageFormat` **is not an XSS filter, HTML escaper, or SQL escaper**. For example, a person's name containing `<script>` rendered unescaped into an HTML output sink can create a vulnerability. Use context-appropriate HTML templating/output encoding, and construct messages from **trusted** catalog keys/patterns.
 
-Không ghép trực tiếp input người dùng vào **pattern** rồi parse bằng `new MessageFormat(...)` vì ký tự `'`, `{`/`}` có thể làm đổi cú pháp template. Thay vào đó, dùng pattern từ catalog đã kiểm duyệt và đưa dữ liệu user vào argument.
+Never concatenate user input directly into a **pattern** passed to `new MessageFormat(...)`, because `'`, `{`, and `}` characters alter template syntax. Instead, use vetted catalog patterns and pass user data solely as arguments.
 
-Với email, notification và mã lỗi máy đọc, tách **ngữ nghĩa sự kiện** khỏi câu chữ. Nếu payload API có `"code": "PAYMENT_DECLINED"` và data typed, phía trình bày có thể render tùy ngôn ngữ mà không thay đổi code.
+For emails, notifications, and machine-readable errors, separate **event semantics** from phrasing. If an API payload carries `"code": "PAYMENT_DECLINED"` and typed data, the presentation layer can render in any language without changing logic.
 
-## 18. Quy trình của developer, translator và reviewer
+## 18. Workflow for Developers, Translators, and Reviewers
 
-Một workflow gọn nhưng đầy đủ:
+A lean yet complete workflow:
 
-1. Developer khai báo **semantic key**, owner, mô tả ngữ cảnh và tham số dự kiến.
-2. Contract reviewer xác nhận type, nullability, units, plural, gender, locale/timezone và phiên bản hợp đồng.
-3. Translator nhận pattern + ngữ cảnh; được phép đổi thứ tự placeholder, không được đổi index/kiểu.
-4. Tooling kiểm tra UTF-8, `.properties`, MessageFormat pattern, missing keys, coverage, duplicate keys, placeholder contract.
-5. Reviewer nhìn câu trong UI thực, kiểm tra layout và cách diễn đạt khi số lượng/ngữ cảnh khác nhau.
-6. CI test toàn bộ locale bắt buộc và các kịch bản v1/v2, fallback.
-7. Build gắn catalog snapshot/version với binary hoặc tài nguyên cập nhật atomically.
-8. Deployment giữ tương thích giữa web/mobile/backend/batch trong giai đoạn chuyển đổi.
-9. Monitoring có missing-key/fallback metrics theo key, locale, catalogVersion mà không log secret.
-10. Chỉ dọn key cũ khi không còn client hợp lệ sử dụng và có kế hoạch rollback.
+1. Developer declares a **semantic key**, owner, context description, and expected parameters.
+2. Contract reviewer confirms types, nullability, units, plural/gender needs, locale/timezone, and contract version.
+3. Translator receives the pattern + context; may reorder placeholders, but must not change indices or types.
+4. Tooling validates UTF-8, `.properties` syntax, `MessageFormat` patterns, missing keys, coverage, duplicate keys, and placeholder contracts.
+5. Reviewer inspects sentences in the actual UI, checking layout and phrasing across counts and contexts.
+6. CI tests all required locales plus v1/v2 and fallback scenarios.
+7. Build bundles an immutable catalog snapshot/version with the binary or updates resources atomically.
+8. Deployment preserves compatibility across web/mobile/backend/batch during transitions.
+9. Monitoring tracks missing-key/fallback metrics by key, locale, and `catalogVersion` without logging secrets.
+10. Old keys are removed only when no supported clients remain and a rollback plan exists.
 
-Nếu người dịch chỉ biết chuỗi `"Order {0}: {1} items"`, họ có thể hiểu sai tham số. Một mô tả tốt hơn là: `{0} là mã đơn hàng, không dịch; {1} là số món trong đơn, số nguyên không âm; xuất hiện ở màn hình giỏ hàng`.
+If translators only see `"Order {0}: {1} items"`, they can misinterpret parameters. A better note is: `{0} is the order ID, do not translate; {1} is the non-negative integer item count in the order; appears on the cart screen`.
 
-## 19. Lỗi phổ biến
+## 19. Common Pitfalls
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng câu tiếng Anh làm key | Đổi câu làm hỏng lookup | Dùng semantic key |
-| Tái dùng key cho nghĩa khác | Sai bản dịch/ngữ cảnh | Tách key theo intent |
-| Đổi tên key mà không cập nhật caller | `MissingResourceException` | Typed facade, static scan, test |
-| Tin `containsKey` = đã dịch | Root fallback che thiếu locale | So file locale trực tiếp |
-| Đổi `{0}` và `{1}` do hiểu nhầm | Sai dữ liệu trong UI | Schema/index QA |
-| Caller truyền `"3"` cho `number` | Runtime error | Number typed args |
-| Thiếu argument nhưng không lỗi | In `{1}` ra UI | Required-args validation |
-| Không escape dấu nháy đơn trong pattern | Placeholder có thể không format | Test `MessageFormat` |
-| Giả định MessageFormat có plural CLDR đầy đủ | Sai văn phạm | Công cụ plural phù hợp |
-| Thêm tham số bắt buộc trực tiếp vào key cũ | Client cũ không tương thích | Version contract/song song keys |
-| Xóa key ngay khi backend deploy | Mobile/job cũ vẫn dùng | Theo dõi compatibility |
-| Không gắn catalog version vào build | Khó tái hiện bug | Snapshot/version/hash |
-| Dùng default Locale của server | Hiển thị sai ngôn ngữ user | Truyền Locale tường minh |
-| Coi `getNoFallbackControl` chặn root | Hiểu sai candidate chain | Phân biệt default fallback và parent |
-| Dùng Control trong named module | `UnsupportedOperationException` | Thiết kế JPMS đúng |
-| Sửa file nhưng quên bundle caching | Runtime vẫn dùng text cũ | Cache/version lifecycle |
-| Chia sẻ mutable MessageFormat giữa thread | Race/mất nhất quán | Instance per render |
-| Dùng MessageFormat như HTML escaping | XSS ở output sink | Escape theo ngữ cảnh |
-| Chỉ test bản dịch tiếng Anh | Lỗi quote/locale khác bị bỏ qua | QA tất cả locale bắt buộc |
+| Using English sentences as keys | Changing copy breaks lookup | Use semantic keys |
+| Reusing a key for another meaning | Wrong translation/context | Split keys by intent |
+| Renaming a key without updating callers | `MissingResourceException` | Typed facade, static scan, tests |
+| Treating `containsKey` as "translated" | Root fallback hides missing locale keys | Compare locale files directly |
+| Swapping `{0}` and `{1}` by mistake | Wrong data shown in UI | Schema/index QA |
+| Caller passes `"3"` for a `number` slot | Runtime error | Pass typed `Number` args |
+| Missing argument fails silently | Literal `{1}` printed in UI | Required-args validation |
+| Unescaped single quote in pattern | Placeholders fail to format | Test `MessageFormat` |
+| Assuming `MessageFormat` has full CLDR plurals | Unnatural grammar | Use proper pluralization tooling |
+| Adding required parameter to existing key | Breaks older clients | Version contract / parallel keys |
+| Deleting old key immediately on backend deploy | Older mobile/jobs still use it | Track compatibility window |
+| Not attaching catalog version to builds | Hard to reproduce translation bugs | Track snapshot/version/hash |
+| Relying on server default `Locale` | Displays wrong user language | Pass `Locale` explicitly |
+| Assuming `getNoFallbackControl` blocks root | Misunderstands candidate chain | Distinguish default fallback vs parent |
+| Using `Control` inside a named module | `UnsupportedOperationException` | Use JPMS-compatible design |
+| Editing files while forgetting bundle caching | Runtime keeps stale text | Manage cache/version lifecycle |
+| Sharing mutable `MessageFormat` across threads | Races/inconsistency | Per-render instance |
+| Treating `MessageFormat` as HTML escaping | XSS at output sink | Context-aware escaping |
+| Testing only English translations | Quote/locale bugs slip through | QA all required locales |
 
-## 20. Bài tập thực hành
+## 20. Practice Exercises
 
-**Bài 1 — Khóa có nghĩa:** thiết kế semantic keys cho màn hình đăng nhập, lỗi tài khoản, giỏ hàng, thanh toán. Giải thích trường hợp nào cùng câu tiếng Anh vẫn cần hai key.
+**Exercise 1 — Meaningful keys:** design semantic keys for a sign-in screen, account errors, shopping cart, and checkout. Explain when the exact same English phrase still requires two separate keys.
 
-**Bài 2 — Tham số:** tạo schema cho `checkout.summary` với orderId/string và itemCount/number. Dịch sang hai ngôn ngữ với thứ tự tham số khác nhau, xác minh output từ `ArgumentOrderDemo`.
+**Exercise 2 — Parameters:** write a schema for `checkout.summary` with `orderId`/`string` and `itemCount`/`number`. Translate into two languages with different parameter orders, and verify the output using `ArgumentOrderDemo`.
 
-**Bài 3 — Fallback:** chạy `BundleLookupDemo` và `MissingKeyDemo`. Quan sát key `checkout.failed` lấy từ root, key `checkout.unknown` gây lỗi. Nêu lý do UI cần theo dõi missing translation dù fallback đã hoạt động.
+**Exercise 3 — Fallback:** run `BundleLookupDemo` and `MissingKeyDemo`. Observe `checkout.failed` coming from root and `checkout.unknown` throwing an error. Explain why the UI should still monitor missing translations even when fallback works.
 
-**Bài 4 — Kiểm tra coverage:** chạy `BundleCoverageDemo`, thêm bản dịch `checkout.failed` vào file vi và kiểm tra tập missing trở thành `[]`.
+**Exercise 4 — Coverage check:** run `BundleCoverageDemo`, add a translation for `checkout.failed` to the `vi` file, and verify the missing set becomes `[]`.
 
-**Bài 5 — Bẫy syntax:** chạy `ApostrophePatternDemo`; thay `It''s` thành `It's` và quan sát hành vi. Thiết kế linter bắt các chuỗi quote sai.
+**Exercise 5 — Syntax trap:** run `ApostrophePatternDemo`; replace `It''s` with `It's` and observe the behavior. Design a linter rule to catch improperly quoted strings.
 
-**Bài 6 — Sai kiểu/thiếu đối số:** dùng `ParameterTypeDemo`, thay `Integer 3` bằng `String "3"` và thử bỏ tham số. Vì sao chỉ bắt exception chưa đủ để xác nhận template đúng?
+**Exercise 6 — Wrong type / missing argument:** using `ParameterTypeDemo`, replace `Integer` `3` with `String` `"3"` and test omitting an argument. Why is catching exceptions insufficient to confirm a template is valid?
 
-**Bài 7 — Vòng đời version:** catalog v1 có `purchase.confirmed.v1`, v2 có thêm tracking. Lập kế hoạch triển khai cho mobile offline và backend, điều kiện xóa v1, test rollback.
+**Exercise 7 — Version lifecycle:** catalog v1 has `purchase.confirmed.v1`, and v2 adds tracking. Plan the rollout across offline mobile clients and backend, criteria for removing v1, and rollback testing.
 
-**Bài 8 — Security:** thử tên người chứa HTML markup và dấu nháy đơn. Phân biệt pattern parsing, argument formatting, HTML escaping và logging dữ liệu nhạy cảm.
+**Exercise 8 — Security:** test a person's name containing HTML markup and single quotes. Distinguish pattern parsing, argument formatting, HTML escaping, and sensitive-data logging.
 
-## 21. Tài liệu tham khảo
+## 21. References
 
-- [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html): lookup, fallback, keySet/containsKey, caching.
-- [Java SE 17 — ResourceBundle.Control](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html): `getNoFallbackControl`, candidate locales, TTL và named module limitation.
-- [Java SE 17 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html): UTF-8 và fallback ISO-8859-1.
-- [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html): placeholder, number/date subformats, quote, missing argument và `getFormatsByArgumentIndex`.
+- [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html): lookup, fallback, `keySet`/`containsKey`, caching.
+- [Java SE 17 — ResourceBundle.Control](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html): `getNoFallbackControl`, candidate locales, TTL, and named-module limitation.
+- [Java SE 17 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html): UTF-8 and ISO-8859-1 fallback.
+- [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html): placeholders, number/date subformats, quoting, missing arguments, and `getFormatsByArgumentIndex`.
 - [Java SE 17 — MissingResourceException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/MissingResourceException.html): missing bundle/key.
-- [Unicode CLDR](https://cldr.unicode.org/): dữ liệu ngôn ngữ và quy tắc plural để định hướng yêu cầu bản địa hóa nâng cao.
+- [Unicode CLDR](https://cldr.unicode.org/): locale data and plural rules guiding advanced localization requirements.
 
-## 22. Ghi nhớ
+## 22. Key Takeaways
 
-**Resource key là hợp đồng ngữ nghĩa; message catalog là một artifact có phiên bản; placeholder là một API có kiểu và ý nghĩa.** Đặt khóa theo chức năng thay vì câu chữ, giữ khi chỉ sửa bản dịch và tạo contract mới khi thay đổi không tương thích. Dùng `ResourceBundle` để chọn nội dung theo locale, `MessageFormat` để thay tham số, nhưng phải tự thiết kế versioning, typed schema, coverage và CI.
+**A resource key is a semantic contract; a message catalog is a versioned artifact; a placeholder is a typed, semantic API.** Name keys for function rather than wording, keep them during copy edits, and introduce a new contract for incompatible changes. Use `ResourceBundle` to select content by locale and `MessageFormat` to substitute parameters, while designing versioning, typed schemas, coverage checks, and CI validation yourself.
 
-Một release an toàn **thêm key mới trước, cho nhiều phiên bản cùng tồn tại, giám sát, rồi mới xóa key cũ**. Kiểm tra cả file locale thực tế lẫn fallback; không hiểu `containsKey` là bản dịch đã hoàn thiện. Luôn xác minh người dịch không thay sai index, kiểu, quote, plural và ngữ nghĩa của argument. Hệ thống đáng tin cậy phải giữ **dữ liệu nghiệp vụ và mã lỗi độc lập với câu hiển thị**, để thay đổi ngôn ngữ không làm thay đổi logic.
+A safe release **adds new keys first, lets versions coexist, monitors usage, and removes old keys last**. Inspect actual locale files alongside fallbacks; never mistake `containsKey` for a complete translation. Always verify translators have not broken indices, types, quotes, plurals, or argument semantics. Reliable systems keep **business data and error codes independent of display sentences**, so changing languages never alters logic.

@@ -1,14 +1,14 @@
-# module-info.java với chú thích API
+# module-info.java with API Annotations
 
-Trong Java Platform Module System (JPMS), file `module-info.java` là điểm khai báo hợp đồng của một named module: tên module, các dependency, package được công khai hoặc mở cho reflection, cùng các service mà module sử dụng hoặc cung cấp.
+In the Java Platform Module System (JPMS), the `module-info.java` file is the contract declaration point of a named module: the module name, dependencies, packages exposed or opened for reflection, as well as the services the module uses or provides.
 
-Khi xây dựng thư viện modular để người khác sử dụng, descriptor không nên chỉ “đủ để biên dịch”. Nó còn là nơi thích hợp để viết **Javadoc cấp module** — giải thích mục đích của module, API dành cho người dùng, dependency có ý nghĩa, cách sử dụng service và giới hạn tương thích. Những chú thích này giúp tài liệu API truyền đạt *vì sao* module tồn tại và *cách* dùng module, thay vì chỉ liệt kê cấu trúc kỹ thuật.
+When building a modular library for others to use, the descriptor should not just be “enough to compile”. It is also the right place to write **module-level Javadoc** — explaining the module's purpose, user-facing APIs, meaningful dependencies, service usage, and compatibility limits. These annotations help API documentation convey *why* the module exists and *how* to use it, rather than merely listing technical structure.
 
-Điểm cốt lõi: **Javadoc đặt ngay trước khai báo `module` trong `module-info.java` sẽ được công cụ `javadoc` sử dụng để tạo trang mô tả module.** Các directive `requires`, `exports`, `opens`, `uses`, `provides` vẫn được compiler phân tích theo ngữ nghĩa JPMS; chú thích không làm thay đổi các quyền này.
+Key point: **Javadoc placed immediately before the `module` declaration in `module-info.java` will be used by the `javadoc` tool to generate the module description page.** The `requires`, `exports`, `opens`, `uses`, and `provides` directives are still parsed by the compiler according to JPMS semantics; comments do not alter these permissions.
 
-## 1. Vai trò của module-info.java trong tài liệu công khai
+## 1. The role of module-info.java in public documentation
 
-Một module descriptor tối giản:
+A minimal module descriptor:
 
 ~~~java
 module com.acme.catalog {
@@ -17,37 +17,37 @@ module com.acme.catalog {
 }
 ~~~
 
-Từ descriptor này, công cụ có thể biết:
+From this descriptor, tools can determine:
 
-- Tên module là `com.acme.catalog`.
-- Module có dependency tới `java.logging`.
-- Package `com.acme.catalog.api` được export.
+- The module name is `com.acme.catalog`.
+- The module has a dependency on `java.logging`.
+- The `com.acme.catalog.api` package is exported.
 
-Nhưng compiler không thể suy ra những điều người dùng API cần biết:
+However, the compiler cannot infer what API users need to know:
 
-- Module cung cấp chức năng gì?
-- Consumer nên bắt đầu bằng kiểu nào?
-- Những package nào là public API ổn định?
-- Có service provider hoặc extension point không?
-- Sử dụng API có yêu cầu cấu hình hoặc quy ước vòng đời nào?
-- Những package implementation nào cố ý không công khai?
+- What functionality does the module provide?
+- Which type should consumers start with?
+- Which packages are stable public APIs?
+- Are there service providers or extension points?
+- Does using the API require any configuration or lifecycle conventions?
+- Which implementation packages are intentionally kept private?
 
-Javadoc cấp module là nơi trả lời các câu hỏi trên. Descriptor và tài liệu đóng vai trò bổ sung: descriptor ràng buộc khả năng truy cập, còn Javadoc trình bày ý nghĩa và hướng dẫn sử dụng.
+Module-level Javadoc is where these questions are answered. The descriptor and documentation serve complementary roles: the descriptor enforces accessibility, while Javadoc presents meaning and usage guidance.
 
-## 2. Viết Javadoc ngay trước module declaration
+## 2. Writing Javadoc immediately before the module declaration
 
-Cách viết thông dụng:
+Common style:
 
 ~~~java
 /**
- * Cung cấp API quản lý danh mục sản phẩm.
+ * Provides the product catalog management API.
  *
- * <p>Consumer sử dụng {@link com.acme.catalog.api.Catalog}
- * để tra cứu thông tin sản phẩm. Module công khai package
- * {@code com.acme.catalog.api}; các class implementation
- * được giữ trong package không export.
+ * <p>Consumers use {@link com.acme.catalog.api.Catalog}
+ * to look up product information. The module exposes the
+ * {@code com.acme.catalog.api} package; implementation classes
+ * are kept in unexported packages.
  *
- * <p>Ví dụ descriptor của consumer:
+ * <p>Example consumer descriptor:
  * <pre>{@code
  * module com.acme.shop {
  *     requires com.acme.catalog;
@@ -62,53 +62,53 @@ module com.acme.catalog {
 }
 ~~~
 
-Những điểm cần chú ý:
+Points to note:
 
-- Mở đầu bằng `/**` và kết thúc bằng `*/` để tạo **Javadoc comment**, không phải comment thông thường.
-- Đặt comment ngay trước `module com.acme.catalog { ... }`.
-- Tóm tắt mục đích module bằng một câu đầu tiên rõ ràng.
-- Dùng các đoạn HTML/Javadoc hợp lệ như `<p>`, `{@code ...}` và `{@link ...}`.
-- Có thể thêm `@since` để ghi lại mốc API được giới thiệu.
+- Start with `/**` and end with `*/` to create a **Javadoc comment**, not a regular comment.
+- Place the comment immediately before `module com.acme.catalog { ... }`.
+- Summarize the module's purpose in a clear first sentence.
+- Use valid HTML/Javadoc tags such as `<p>`, `{@code ...}`, and `{@link ...}`.
+- Optionally add `@since` to record the milestone when the API was introduced.
 
-Ví dụ chỉ dùng:
+For example, using only:
 
 ~~~java
-// Module quan ly danh muc
+// Catalog management module
 module com.acme.catalog { ... }
 ~~~
 
-thì comment này có ích cho người đọc source nhưng không được xem như Javadoc mô tả module trong trang tài liệu API được tạo ra.
+makes the comment helpful to source readers, but it is not treated as Javadoc describing the module in the generated API documentation page.
 
-Cũng không nên đặt Javadoc module ở một class bất kỳ rồi kỳ vọng `javadoc` tự gắn nó vào trang module summary.
+Nor should you put module Javadoc on an arbitrary class and expect `javadoc` to attach it to the module summary page.
 
-## 3. Chọn nội dung nào để viết ở cấp module?
+## 3. What content to write at the module level?
 
-Javadoc cấp module nên tập trung vào thông tin có phạm vi toàn module.
+Module-level Javadoc should focus on module-wide information.
 
-Một cấu trúc thực tế:
+A practical structure:
 
-1. **Một câu định nghĩa:** module cung cấp chức năng cốt lõi nào.
-2. **Public API:** package và entry point người dùng cần gọi.
-3. **Tích hợp:** service, dependency hoặc framework mà consumer cần biết.
-4. **Ví dụ sử dụng:** descriptor tối giản và đoạn code khởi đầu.
-5. **Giới hạn:** những phần chưa được hỗ trợ hoặc implementation detail không nên phụ thuộc.
-6. **Tương thích:** mốc `@since`, ghi chú migration hoặc thay đổi contract quan trọng.
+1. **A defining sentence:** what core functionality the module provides.
+2. **Public API:** packages and entry points users need to call.
+3. **Integration:** services, dependencies, or frameworks consumers need to know about.
+4. **Usage example:** minimal descriptor and starter code snippet.
+5. **Limitations:** unsupported parts or implementation details not to depend on.
+6. **Compatibility:** `@since` milestones, migration notes, or significant contract changes.
 
-Không cần lặp lại toàn bộ danh sách class ở trang module. Các class, method và package đã có trang Javadoc riêng. Tài liệu cấp module nên đóng vai trò bản đồ dẫn người đọc đến đúng API.
+There is no need to repeat the entire list of classes on the module page. Classes, methods, and packages already have their own Javadoc pages. Module-level documentation should serve as a map guiding readers to the right API.
 
-Ví dụ mở đầu hữu ích:
+A useful opening example:
 
 ~~~java
 /**
- * API đọc và tìm kiếm danh mục sản phẩm cho ứng dụng bán hàng.
+ * Product catalog reading and searching API for retail applications.
  *
- * <p>Bắt đầu với {@link com.acme.catalog.api.Catalog}.
- * Có thể mở rộng logic tìm kiếm bằng service
- * {@link com.acme.catalog.spi.CatalogPlugin}.
+ * <p>Start with {@link com.acme.catalog.api.Catalog}.
+ * Search logic can be extended via the
+ * {@link com.acme.catalog.spi.CatalogPlugin} service.
  *
- * <p>Module không công khai package
- * {@code com.acme.catalog.internal}; consumer không nên
- * tham chiếu vào implementation package.
+ * <p>The module does not expose the
+ * {@code com.acme.catalog.internal} package; consumers should not
+ * reference the implementation package.
  *
  * @since 1.0
  */
@@ -118,11 +118,11 @@ module com.acme.catalog {
 }
 ~~~
 
-Ở đây, nội dung giải thích ranh giới sử dụng công khai, còn directive `exports` hiện thực hóa ranh giới đó.
+Here, the prose explains the public usage boundary, while the `exports` directive enforces that boundary.
 
-## 4. Javadoc của module và Javadoc của package bổ sung cho nhau
+## 4. Module Javadoc and package Javadoc complement each other
 
-Một project modular thường có cấu trúc:
+A modular project typically has this structure:
 
 ~~~text
 src/
@@ -139,60 +139,60 @@ src/
             └── DefaultCatalogPlugin.java
 ~~~
 
-Các tài liệu nên được chia đúng cấp:
+Documentation should be split across the right levels:
 
-| Vị trí | Nội dung phù hợp |
+| Location | Appropriate content |
 | --- | --- |
-| `module-info.java` | Mục đích module, public surface, mô hình tích hợp, ví dụ tổng thể |
-| `package-info.java` | Vai trò và quy ước của package, phạm vi API trong package |
-| Javadoc của class/interface | Trách nhiệm của kiểu, lifecycle, thread-safety, ví dụ tạo instance |
-| Javadoc của method | Tham số, kết quả, exception, side effect, điều kiện tiền/hậu |
-| README ngoài source | Hướng dẫn build, vận hành, setup và chi tiết không phù hợp với API reference |
+| `module-info.java` | Module purpose, public surface, integration model, overall examples |
+| `package-info.java` | Role and conventions of the package, API scope within the package |
+| Class/interface Javadoc | Type responsibility, lifecycle, thread-safety, instantiation examples |
+| Method Javadoc | Parameters, return values, exceptions, side effects, pre/postconditions |
+| External README | Build instructions, operations, setup, and details unsuitable for API reference |
 
-Ví dụ package documentation:
+Package documentation example:
 
 ~~~java
 /**
- * Các entry point công khai cho việc truy vấn danh mục.
+ * Public entry points for querying the catalog.
  *
- * <p>Ứng dụng bên ngoài chỉ nên phụ thuộc vào những
- * interface và kiểu được mô tả trong package này.
+ * <p>External applications should depend only on the
+ * interfaces and types described in this package.
  *
  * @since 1.0
  */
 package com.acme.catalog.api;
 ~~~
 
-Và Javadoc của kiểu:
+And type Javadoc:
 
 ~~~java
 package com.acme.catalog.api;
 
 /**
- * Cổng truy vấn thông tin sản phẩm.
+ * Gateway for querying product information.
  *
- * <p>Implementation có thể đọc dữ liệu từ nhiều nguồn.
+ * <p>Implementations may read data from multiple sources.
  *
  * @since 1.0
  */
 public interface Catalog {
 
     /**
-     * Tìm sản phẩm theo mã định danh.
+     * Finds a product by identifier.
      *
-     * @param id mã sản phẩm, không được {@code null}
-     * @return sản phẩm nếu tồn tại
-     * @throws IllegalArgumentException nếu id không hợp lệ
+     * @param id product identifier, must not be {@code null}
+     * @return product if present
+     * @throws IllegalArgumentException if id is invalid
      */
     java.util.Optional<Product> findById(String id);
 }
 ~~~
 
-Việc tách cấp tài liệu giúp module summary ngắn gọn nhưng vẫn dẫn người dùng tới những chi tiết cần thiết.
+Separating documentation levels keeps the module summary concise while still leading users to the details they need.
 
-## 5. Mô tả requires: giải thích dependency, không chỉ liệt kê
+## 5. Describing requires: explain dependencies, don't just list them
 
-Một module có thể có các directive:
+A module may have directives:
 
 ~~~java
 module com.acme.reporting {
@@ -201,18 +201,18 @@ module com.acme.reporting {
 }
 ~~~
 
-Javadoc nên diễn giải các dependency đáng chú ý:
+Javadoc should explain notable dependencies:
 
 ~~~java
 /**
- * Tạo báo cáo tổng hợp từ dữ liệu danh mục.
+ * Generates summary reports from catalog data.
  *
- * <p>Module sử dụng {@code com.acme.catalog} làm nguồn
- * dữ liệu và {@code java.logging} để ghi nhận sự kiện.
+ * <p>The module uses {@code com.acme.catalog} as its data
+ * source and {@code java.logging} to record events.
  *
- * <p>Consumer chỉ cần phụ thuộc vào
- * {@code com.acme.reporting} nếu không trực tiếp
- * sử dụng kiểu từ các module dependency.
+ * <p>Consumers only need to depend on
+ * {@code com.acme.reporting} if they do not directly
+ * use types from the dependency modules.
  */
 module com.acme.reporting {
     requires java.logging;
@@ -221,19 +221,19 @@ module com.acme.reporting {
 }
 ~~~
 
-Cần phân biệt rõ:
+Distinguish clearly:
 
-- `requires x`: module hiện tại đọc module `x`.
-- `requires transitive x`: readability tới `x` có thể được truyền tới consumer đọc module hiện tại theo quy tắc JPMS.
-- `requires static x`: dependency bắt buộc ở compile-time nhưng không bắt buộc phải hiện diện lúc runtime.
+- `requires x`: the current module reads module `x`.
+- `requires transitive x`: readability to `x` can be passed on to consumers that read the current module under JPMS rules.
+- `requires static x`: dependency required at compile-time but not required to be present at runtime.
 
-Javadoc có thể giải thích lý do dùng `transitive` hoặc `static`, nhưng chỉ **directive thật trong descriptor** mới thay đổi module graph. Viết một câu “dependency này là optional” trong Javadoc không thay thế `requires static` hoặc logic xử lý optional dependency của ứng dụng.
+Javadoc can explain why `transitive` or `static` is used, but only the **actual directive in the descriptor** alters the module graph. Writing “this dependency is optional” in Javadoc does not substitute for `requires static` or the application's optional-dependency handling logic.
 
-Với public API trả về kiểu thuộc module khác, hãy cân nhắc `requires transitive` khi đó là một phần hợp đồng cần được consumer đọc. Đây là quyết định thiết kế module, không phải quyết định trình bày tài liệu.
+For public APIs returning types belonging to another module, consider `requires transitive` when that type is part of the contract consumers must read. This is a module design decision, not a documentation formatting choice.
 
-## 6. Mô tả exports: đâu là public API?
+## 6. Describing exports: what is the public API?
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.catalog {
@@ -242,16 +242,16 @@ module com.acme.catalog {
 }
 ~~~
 
-Đây là những package được export không giới hạn tới các module có readability phù hợp. Trong tài liệu cấp module, nên nói rõ mục đích của từng package:
+These are packages exported unconditionally to modules with appropriate readability. In module-level documentation, state the purpose of each package:
 
 ~~~java
 /**
- * Cung cấp API và extension point cho catalog.
+ * Provides the API and extension points for catalog.
  *
  * <ul>
- *   <li>{@code com.acme.catalog.api}: API dùng bởi ứng dụng.</li>
+ *   <li>{@code com.acme.catalog.api}: API used by applications.</li>
  *   <li>{@code com.acme.catalog.spi}: service contract
- *       dành cho module provider.</li>
+ *       for provider modules.</li>
  * </ul>
  */
 module com.acme.catalog {
@@ -260,19 +260,19 @@ module com.acme.catalog {
 }
 ~~~
 
-Nếu dùng qualified exports:
+If using qualified exports:
 
 ~~~java
 exports com.acme.catalog.maintenance to com.acme.admin;
 ~~~
 
-hãy ghi rõ đây là integration dành riêng cho module `com.acme.admin`, không phải API công khai cho mọi consumer. Nội dung và directive phải thống nhất: tài liệu không nên khuyên người dùng thông thường import package đã chỉ export cho một module cụ thể.
+explicitly note that this is an integration dedicated to module `com.acme.admin`, not a public API for general consumers. The prose and directive must align: documentation should not advise general users to import a package exported only to a specific module.
 
-Một package có class `public` nhưng không được export vẫn không trở thành public API dành cho module khác. Javadoc không nới lỏng ranh giới đó.
+A package containing `public` classes that is not exported still does not become a public API for other modules. Javadoc does not relax that boundary.
 
-## 7. Mô tả opens: quyền reflection có phạm vi
+## 7. Describing opens: scoped reflection permissions
 
-Framework như ORM hoặc serializer có thể cần deep reflection vào package implementation. Descriptor có thể khai báo:
+Frameworks such as ORMs or serializers may need deep reflection into implementation packages. The descriptor can declare:
 
 ~~~java
 module com.acme.catalog {
@@ -283,16 +283,16 @@ module com.acme.catalog {
 }
 ~~~
 
-Trong Javadoc module, mô tả lý do quyền đó tồn tại:
+In module Javadoc, describe why that permission exists:
 
 ~~~java
 /**
- * API danh mục sản phẩm.
+ * Product catalog API.
  *
  * <p>Package {@code com.acme.catalog.internal}
- * không phải API công khai. Nó chỉ được mở cho module
- * {@code com.acme.serializer} để đọc metadata của object
- * khi serialize.
+ * is not a public API. It is opened only to module
+ * {@code com.acme.serializer} to read object metadata
+ * during serialization.
  */
 module com.acme.catalog {
     exports com.acme.catalog.api;
@@ -300,38 +300,38 @@ module com.acme.catalog {
 }
 ~~~
 
-Phân biệt:
+Distinguish:
 
-- `exports p`: cho phép truy cập public type/member từ các module đọc module nguồn.
-- `opens p`: cho phép deep reflection vào package từ các module khác.
-- `opens p to m`: chỉ cấp deep reflection cho target module `m`.
-- `open module`: mở toàn bộ package của module cho reflection.
+- `exports p`: allows access to public types/members from modules that read the source module.
+- `opens p`: allows deep reflection into the package from other modules.
+- `opens p to m`: grants deep reflection only to target module `m`.
+- `open module`: opens all packages of the module for reflection.
 
-Không nên viết trong tài liệu rằng `opens p to m` làm package thành API compile-time của `m`. `opens` không thay thế `exports`; nếu consumer cần import kiểu từ package, phải thiết kế public API và export tương ứng.
+Documentation should not claim that `opens p to m` makes the package a compile-time API for `m`. `opens` does not replace `exports`; if consumers need to import types from a package, design a public API and export it accordingly.
 
-Nếu framework chưa có tên module và chạy trên classpath, cấu hình `--add-opens ...=ALL-UNNAMED` có thể được dùng làm bước migration. Đó là một lựa chọn vận hành cần ghi chú riêng, không phải tên module hợp lệ để viết sau `to` trong `module-info.java`.
+If a framework lacks a module name and runs on the classpath, configuring `--add-opens ...=ALL-UNNAMED` may be used as a migration step. That is an operational option to document separately, not a valid module name to write after `to` in `module-info.java`.
 
-## 8. Tài liệu cho uses và provides với @uses, @provides
+## 8. Documenting uses and provides with @uses, @provides
 
-ServiceLoader và service binding là phần quan trọng của JPMS. Javadoc có các block tag hỗ trợ documentation của service ở cấp module:
+ServiceLoader and service binding are key parts of JPMS. Javadoc has block tags supporting module-level service documentation:
 
-- `@uses service.type mô tả`: giải thích service mà module tiêu thụ.
-- `@provides service.type mô tả`: giải thích service mà module cung cấp implementation.
+- `@uses service.type description`: explains a service consumed by the module.
+- `@provides service.type description`: explains a service for which the module provides an implementation.
 
-Ví dụ:
+Example:
 
 ~~~java
 /**
- * Module mở rộng catalog thông qua service provider.
+ * Module extending catalog through service providers.
  *
- * <p>Ứng dụng có thể tích hợp plugin tùy biến qua
+ * <p>Applications can integrate custom plugins via
  * {@link com.acme.catalog.spi.CatalogPlugin}.
  *
  * @uses com.acme.catalog.spi.CatalogPlugin
- *       Tìm plugin dùng để bổ sung nguồn dữ liệu catalog.
+ *       Discovers plugins used to supplement catalog data sources.
  *
  * @provides com.acme.catalog.spi.CatalogPlugin
- *       Cung cấp implementation mặc định trong module.
+ *       Provides the default implementation inside the module.
  *
  * @since 1.0
  */
@@ -346,48 +346,48 @@ module com.acme.catalog {
 }
 ~~~
 
-Directive `uses` và `provides` là phần **máy đọc được** trong module descriptor. Hai Javadoc tag tương ứng chỉ cung cấp **mô tả cho con người**.
+The `uses` and `provides` directives are the **machine-readable** part of the module descriptor. The two corresponding Javadoc tags provide only **human-readable descriptions**.
 
-Nên giữ chúng đồng bộ:
+Keep them synchronized:
 
-- Đã khai báo `uses` thì mô tả mục đích tìm provider và thời điểm sử dụng.
-- Đã khai báo `provides` thì mô tả loại implementation hoặc tính năng được cung cấp.
-- Không viết tag cho service không còn tồn tại trong descriptor hoặc không còn là hợp đồng đã công bố.
-- Không đưa chi tiết implementation bí mật vào tài liệu public nếu nó không thuộc API contract.
+- Whenever `uses` is declared, describe the purpose of discovering providers and when they are used.
+- Whenever `provides` is declared, describe the type of implementation or feature supplied.
+- Do not write tags for services that no longer exist in the descriptor or are no longer part of the published contract.
+- Do not include confidential implementation details in public docs if they are not part of the API contract.
 
-Đối với module tiêu thụ service nhưng không cung cấp provider, chỉ cần `uses` và `@uses`. Ngược lại, module chuyên cung cấp provider thường có `provides` và `@provides`.
+For a module that consumes a service without supplying a provider, only `uses` and `@uses` are needed. Conversely, a dedicated provider module typically has `provides` and `@provides`.
 
-## 9. Ví dụ module-info.java hoàn chỉnh có chú thích API
+## 9. Complete module-info.java example with API annotations
 
-Một descriptor tham khảo:
+A reference descriptor:
 
 ~~~java
 /**
- * Cung cấp API, SPI và implementation mặc định
- * cho danh mục sản phẩm.
+ * Provides the API, SPI, and default implementation
+ * for the product catalog.
  *
- * <p>Ứng dụng bắt đầu từ
+ * <p>Applications start from
  * {@link com.acme.catalog.api.Catalog}.
- * Package {@code com.acme.catalog.api} là bề mặt sử dụng
- * dành cho client. Package {@code com.acme.catalog.spi}
- * chứa contract mở rộng qua ServiceLoader.
+ * Package {@code com.acme.catalog.api} is the usage surface
+ * intended for clients. Package {@code com.acme.catalog.spi}
+ * contains the extension contract via ServiceLoader.
  *
- * <p>Ví dụ module consumer:
+ * <p>Consumer module example:
  * <pre>{@code
  * module com.acme.shop {
  *     requires com.acme.catalog;
  * }
  * }</pre>
  *
- * <p>Không sử dụng class trong
- * {@code com.acme.catalog.internal} như API ổn định.
+ * <p>Do not use classes in
+ * {@code com.acme.catalog.internal} as a stable API.
  *
  * @uses com.acme.catalog.spi.CatalogPlugin
- *       Tìm provider mở rộng dữ liệu danh mục.
+ *       Discovers providers extending catalog data.
  *
  * @provides com.acme.catalog.spi.CatalogPlugin
- *       Cung cấp provider mặc định để ứng dụng có thể chạy
- *       khi chưa cài plugin bên ngoài.
+ *       Provides a default provider so the application can run
+ *       when no external plugin is installed.
  *
  * @since 1.0
  */
@@ -404,7 +404,7 @@ module com.acme.catalog {
 }
 ~~~
 
-Trong source tương ứng cần thực sự tồn tại:
+In the corresponding source tree, the following must actually exist:
 
 ~~~text
 com.acme.catalog/
@@ -418,13 +418,13 @@ com.acme.catalog/
         └── DefaultCatalogPlugin.java
 ~~~
 
-Implementation `DefaultCatalogPlugin` cần đáp ứng quy tắc của service provider, chẳng hạn triển khai interface `CatalogPlugin` và có constructor hoặc provider method hợp lệ theo cơ chế JPMS.
+The implementation `DefaultCatalogPlugin` must satisfy service provider rules, such as implementing the `CatalogPlugin` interface and having a valid constructor or provider method under JPMS rules.
 
-Đây là một ví dụ tài liệu hướng tới consumer: người đọc thấy mục đích module, điểm bắt đầu, API/SPI được export, service và phạm vi không được cam kết. Compiler chỉ sử dụng các directive để thực thi module semantics; `javadoc` sử dụng phần mô tả để tạo tài liệu.
+This is an example of consumer-oriented documentation: readers see the module purpose, entry point, exported API/SPI, services, and what is not guaranteed. The compiler uses only the directives to enforce module semantics; `javadoc` uses the descriptions to build documentation.
 
-## 10. Tạo module documentation bằng javadoc CLI
+## 10. Generating module documentation via the javadoc CLI
 
-Với source tree theo module:
+With a modular source tree:
 
 ~~~text
 project/
@@ -437,7 +437,7 @@ project/
         └── com/acme/shop/...
 ~~~
 
-Có thể sinh Javadoc cho một module:
+You can generate Javadoc for a single module:
 
 ~~~bash
 javadoc \
@@ -446,7 +446,7 @@ javadoc \
   -d docs
 ~~~
 
-Hoặc cho nhiều module:
+Or for multiple modules:
 
 ~~~bash
 javadoc \
@@ -455,17 +455,17 @@ javadoc \
   -d docs
 ~~~
 
-Sau khi công cụ hoàn tất, thư mục `docs` chứa các trang HTML được tạo cho module, package và các API được công bố theo cấu hình Javadoc. Trong tài liệu được sinh, tìm trang **Module com.acme.catalog** (thường có trang `module-summary.html` thuộc thư mục module) để xem phần mô tả từ `module-info.java`.
+After the tool finishes, the `docs` directory contains generated HTML pages for the modules, packages, and exposed APIs according to Javadoc configuration. In the generated docs, locate the **Module com.acme.catalog** page (usually a `module-summary.html` page in the module directory) to view the description from `module-info.java`.
 
-Các điểm vận hành:
+Operational points:
 
-- Sử dụng JDK có công cụ `javadoc` và hỗ trợ JPMS.
-- Tất cả type được tham chiếu trong `{@link ...}` cần có mặt trong phạm vi source/dependency mà Javadoc phân tích.
-- Với dependency bên ngoài, cung cấp `--module-path` phù hợp nếu nguồn không tự đủ.
-- Đường dẫn có dấu cách cần được quote theo shell.
-- Những dự án không dùng layout `src/<moduleName>/...` cần điều chỉnh `--module-source-path` tương ứng.
+- Use a JDK that includes the `javadoc` tool and supports JPMS.
+- All types referenced in `{@link ...}` must be present within the source/dependency scope analyzed by Javadoc.
+- For external dependencies, supply an appropriate `--module-path` if the sources are not self-contained.
+- Paths containing spaces must be quoted per shell rules.
+- Projects not using the `src/<moduleName>/...` layout need to adjust `--module-source-path` accordingly.
 
-Ví dụ có dependency ngoài source:
+Example with out-of-source dependencies:
 
 ~~~bash
 javadoc \
@@ -475,99 +475,99 @@ javadoc \
   -d docs
 ~~~
 
-Lệnh tạo docs không thay thế bước build modular JAR. Javadoc giúp phát hành tài liệu API; `javac` và `jar` chịu trách nhiệm biên dịch và đóng gói artifact chạy được.
+The doc-generation command does not replace the modular JAR build step. Javadoc publishes API documentation; `javac` and `jar` are responsible for compiling and packaging runnable artifacts.
 
-## 11. Tích hợp tạo Javadoc vào build tool
+## 11. Integrating Javadoc generation into build tools
 
-Trong dự án Maven có source đặt tại `src/main/java/module-info.java`, Javadoc thường được sinh bằng Maven Javadoc Plugin với cấu hình JDK/plugin phù hợp:
+In a Maven project with source placed at `src/main/java/module-info.java`, Javadoc is typically generated using the Maven Javadoc Plugin with appropriate JDK/plugin configuration:
 
 ~~~bash
 mvn javadoc:javadoc
 ~~~
 
-Output mặc định thường nằm trong thư mục site do Maven quản lý, ví dụ `target/site/apidocs`, tùy plugin configuration.
+The default output usually resides in the site directory managed by Maven, such as `target/site/apidocs`, depending on plugin configuration.
 
-Có thể phát hành Javadoc JAR để consumer tra cứu API:
+You can publish a Javadoc JAR for consumers to inspect the API:
 
 ~~~bash
 mvn javadoc:jar
 ~~~
 
-Trong Gradle Java Plugin, task `javadoc` tạo tài liệu API:
+In the Gradle Java Plugin, the `javadoc` task generates API documentation:
 
 ~~~bash
 ./gradlew javadoc
 ~~~
 
-Tài liệu thường được sinh vào `build/docs/javadoc`. Khi project có `module-info.java`, cần đảm bảo toolchain và cấu hình module path được truyền đúng cho JavaDoc task. Tên task và hành vi có thể phụ thuộc version plugin/build logic.
+Documentation is typically generated into `build/docs/javadoc`. When a project has `module-info.java`, ensure the toolchain and module path configuration are passed properly to the JavaDoc task. Task names and behavior may depend on the plugin version and build logic.
 
-Quy trình CI nên chạy docs trên cùng Java release đã dùng cho source. Nếu tài liệu gọi tới API chưa có ở Java target, Javadoc hoặc compiler có thể báo lỗi mặc dù mô tả bằng văn bản nhìn có vẻ hợp lệ.
+CI pipelines should run docs on the same Java release used for the source. If documentation references APIs unavailable on the target Java release, Javadoc or the compiler may report errors even though the prose looks valid.
 
-## 12. Javadoc không thay thế module descriptor
+## 12. Javadoc does not replace the module descriptor
 
-Một số hiểu nhầm phổ biến:
+Some common misconceptions:
 
-| Giả định sai | Cách hiểu đúng |
+| Wrong assumption | Correct understanding |
 | --- | --- |
-| Viết `@uses` sẽ tự tạo service dependency | Cần directive `uses ServiceType;` trong descriptor |
-| Viết `@provides` sẽ tự đăng ký provider | Cần `provides ServiceType with Impl;` |
-| Ghi package là public trong Javadoc thì consumer import được | Cần `exports package.name;` phù hợp |
-| Ghi “framework có thể phản chiếu” thì framework được quyền `setAccessible` | Cần `opens` hoặc runtime `--add-opens` phù hợp |
-| Ghi dependency trong text Javadoc thì module đọc được dependency | Cần `requires` hoặc quan hệ readability đúng |
-| `module-info.java` có comment là mọi class đều được document | Phải có source/type và cấu hình Javadoc để sinh trang API tương ứng |
-| Javadoc hiển thị module nghĩa là JAR packaging hợp lệ | Phải kiểm tra `module-info.class` trong artifact thực tế |
+| Writing `@uses` creates a service dependency | Requires the `uses ServiceType;` directive in the descriptor |
+| Writing `@provides` registers a provider | Requires `provides ServiceType with Impl;` |
+| Stating a package is public in Javadoc lets consumers import it | Requires an appropriate `exports package.name;` |
+| Stating “framework can reflect” grants `setAccessible` rights | Requires `opens` or appropriate runtime `--add-opens` |
+| Mentioning a dependency in Javadoc text lets the module read it | Requires `requires` or a valid readability relationship |
+| Having a comment in `module-info.java` documents every class | Requires sources/types and Javadoc config to generate corresponding API pages |
+| Javadoc showing a module means JAR packaging is valid | Must inspect `module-info.class` in the actual artifact |
 
-Javadoc là giao diện **mô tả**. JPMS áp dụng quyền theo **descriptor đã biên dịch** và cấu hình runtime. Hai lớp cần thống nhất nhưng không có quan hệ tự động thay thế cho nhau.
+Javadoc is the **descriptive** interface. JPMS enforces permissions based on the **compiled descriptor** and runtime configuration. Both layers must agree, but neither automatically substitutes for the other.
 
-## 13. Dùng liên kết Javadoc đúng phạm vi
+## 13. Using Javadoc links within the right scope
 
-Một trang module tốt nên liên kết đến entry point thay vì viết toàn bộ chi tiết ngay trong phần giới thiệu.
+A good module page should link to entry points rather than writing every detail right in the introduction.
 
-Ví dụ:
+Example:
 
 ~~~java
 /**
- * Module xử lý báo cáo.
+ * Report processing module.
  *
- * <p>Để tạo báo cáo, dùng
+ * <p>To generate reports, use
  * {@link com.acme.reporting.api.ReportGenerator}.
  *
- * <p>Tham khảo
+ * <p>Refer to
  * {@link com.acme.reporting.api.ReportOptions}
- * để biết các tùy chọn cấu hình.
+ * for configuration options.
  */
 module com.acme.reporting {
     exports com.acme.reporting.api;
 }
 ~~~
 
-`{@link ...}` tạo hyperlink tới type được Javadoc nhận diện. `{@code ...}` hiển thị đoạn code nhưng không tạo hyperlink. Nên chọn theo mục đích:
+`{@link ...}` creates a hyperlink to a type recognized by Javadoc. `{@code ...}` renders a code snippet without creating a hyperlink. Choose by intent:
 
-- Dùng `{@link Type}` cho type/method mà người đọc nên bấm vào.
-- Dùng `{@code identifier}` cho module name, package name và cú pháp cần hiển thị đơn thuần.
-- Dùng `<pre>{@code ...}</pre>` cho ví dụ đa dòng.
-- Dùng `@see` khi muốn tạo mục tham khảo bổ sung.
-- Dùng `@since` để ghi mốc API xuất hiện.
+- Use `{@link Type}` for types/methods readers should click into.
+- Use `{@code identifier}` for module names, package names, and syntax that should simply be displayed.
+- Use `<pre>{@code ...}</pre>` for multiline examples.
+- Use `@see` when adding a supplementary reference entry.
+- Use `@since` to record the milestone when an API appeared.
 
-Nếu tài liệu phụ thuộc Java SE API, có thể liên kết tới Javadoc nền tảng bằng cấu hình liên kết ngoài của công cụ `javadoc`. Với module của thư viện bên ngoài, cần đảm bảo tài liệu đích tồn tại và cấu hình liên kết đúng version để tránh link hỏng.
+If documentation depends on the Java SE API, you can link to the platform Javadoc via the `javadoc` tool's external link configuration. For external library modules, ensure target docs exist and link configurations match versions to avoid broken links.
 
-## 14. Ghi chú compatibility và evolution trong module docs
+## 14. Documenting compatibility and evolution in module docs
 
-Khi thay đổi module descriptor, hãy cập nhật Javadoc nếu thay đổi có ý nghĩa với consumer.
+When changing the module descriptor, update Javadoc if the change is meaningful to consumers.
 
-Ví dụ thay đổi:
+Change example:
 
 ~~~java
-// Version cũ:
+// Old version:
 module com.acme.catalog {
     exports com.acme.catalog.api;
 }
 ~~~
 
-Sang:
+To:
 
 ~~~java
-// Version mới:
+// New version:
 module com.acme.catalog {
     exports com.acme.catalog.api;
     exports com.acme.catalog.spi;
@@ -575,24 +575,24 @@ module com.acme.catalog {
 }
 ~~~
 
-Tài liệu cấp module nên nói rõ SPI mới, thời điểm consumer có thể dùng và cách cài provider. `@since` trên SPI type có thể ghi đúng version API xuất hiện.
+Module-level documentation should clarify the new SPI, when consumers can use it, and how to install providers. `@since` on the SPI type can record the exact API version it appeared in.
 
-Nếu chuyển public API từ package này sang package khác, tài liệu nên chỉ ra package thay thế, deprecation policy và hướng migration. Chỉ viết `@deprecated` trong source không tự tạo khả năng tương thích nhị phân với code đã build trên descriptor cũ.
+If moving a public API from one package to another, documentation should point out the replacement package, deprecation policy, and migration path. Simply writing `@deprecated` in source does not create binary compatibility with code built against the old descriptor.
 
-Những thay đổi cần đặc biệt chú ý trong public contract:
+Changes requiring special attention in the public contract:
 
-- Bỏ hoặc thu hẹp `exports`.
-- Đổi module name.
-- Đổi service interface trong `uses`/`provides`.
-- Chuyển package từ export sang chỉ open.
-- Đưa một kiểu của module khác vào public method signature, làm xuất hiện dependency mới.
-- Đổi yêu cầu Java release hoặc runtime module.
+- Removing or narrowing `exports`.
+- Renaming the module.
+- Changing the service interface in `uses`/`provides`.
+- Switching a package from exported to opened only.
+- Introducing a type from another module into a public method signature, creating a new dependency.
+- Changing Java release or runtime module requirements.
 
-Tài liệu có thể cảnh báo người dùng; còn migration thực tế vẫn cần release notes, build compatibility test và chiến lược versioning.
+Documentation can warn users; actual migration still requires release notes, build compatibility tests, and a versioning strategy.
 
-## 15. Kiểm tra nội dung tài liệu được sinh
+## 15. Inspecting generated documentation content
 
-Khi hoàn tất build tài liệu, nên kiểm tra bằng công cụ và bằng cách đọc đầu ra:
+Once documentation builds complete, inspect both via tooling and by reading the output:
 
 ~~~bash
 javadoc \
@@ -601,17 +601,17 @@ javadoc \
   -d docs
 ~~~
 
-Sau đó mở trang module summary trong `docs` để xem:
+Then open the module summary page in `docs` to check:
 
-- Câu mô tả đầu tiên có giúp nhận diện mục đích module không?
-- Liên kết tới public entry point có được tạo không?
-- Phần service usages/providers có đúng với descriptor thực tế không?
-- Package công khai có mô tả và package-info phù hợp không?
-- Ví dụ `requires` có sử dụng đúng module name không?
-- Tài liệu không vô tình giới thiệu package internal như API ổn định chứ?
-- Nội dung Javadoc có được cập nhật khi dependency hoặc service contract thay đổi không?
+- Does the first descriptive sentence help identify the module's purpose?
+- Are links to public entry points generated?
+- Do service usages/providers match the actual descriptor?
+- Do public packages have appropriate descriptions and package-info files?
+- Do `requires` examples use the exact module name?
+- Does the documentation avoid accidentally presenting an internal package as a stable API?
+- Was Javadoc content updated when dependencies or service contracts changed?
 
-Có thể bật cơ chế kiểm tra Javadoc tùy toolchain, ví dụ `-Xdoclint:all`, để phát hiện một số vấn đề tài liệu và markup:
+You can enable Javadoc checks depending on your toolchain, such as `-Xdoclint:all`, to catch certain documentation and markup issues:
 
 ~~~bash
 javadoc -Xdoclint:all \
@@ -620,39 +620,39 @@ javadoc -Xdoclint:all \
   -d docs
 ~~~
 
-Đây là kiểm tra chất lượng của quy trình build tài liệu tại dự án mẫu; nó không thay đổi module graph hoặc descriptor mà runtime sử dụng.
+This is a quality check of the documentation build process in the sample project; it does not alter the module graph or descriptor used at runtime.
 
-## 16. Những lỗi thường gặp khi viết Javadoc module
+## 16. Common mistakes when writing module Javadoc
 
-| Hiện tượng | Nguyên nhân có thể | Cách xử lý |
+| Symptom | Possible cause | Resolution |
 | --- | --- | --- |
-| Không thấy phần giới thiệu trong trang Module | Dùng `//` hoặc `/* ... */` thay vì Javadoc `/** ... */`, hoặc comment đặt sai vị trí | Đặt Javadoc ngay trước `module` declaration |
-| `javadoc` báo không tìm thấy type trong `{@link}` | Source/module path chưa chứa type tương ứng hoặc tên type sai | Kiểm tra fully qualified name và dependency khi sinh docs |
-| API class có trang nhưng module summary không có mô tả | Chỉ viết Javadoc ở class, chưa viết ở `module-info.java` | Thêm Javadoc cấp module |
-| Service được document nhưng không hoạt động | Có `@uses`/`@provides` mà thiếu directive tương ứng | Đồng bộ tag và descriptor |
-| Module docs khuyên import package nhưng `javac` từ chối | Package không export cho consumer | Sửa public API boundary hoặc tài liệu hướng dẫn |
-| Framework reflection thất bại dù module docs ghi “open” | Directive `opens` thiếu hoặc target module name sai | Kiểm tra descriptor, module thực thi reflection và runtime flags |
-| Docs có ví dụ compile nhưng không chạy đúng | Ví dụ dùng module name/dependency khác artifact thực tế | Kiểm tra ví dụ trên module path phù hợp |
-| Một module biến thành automatic module sau đóng gói | `module-info.class` không ở đúng vị trí hoặc bị build plugin bỏ sót | Dùng `jar --describe-module --file artifact.jar` kiểm tra |
+| No introduction appears on the Module page | Used `//` or `/* ... */` instead of Javadoc `/** ... */`, or comment misplaced | Place Javadoc immediately before the `module` declaration |
+| `javadoc` reports type not found in `{@link}` | Source/module path lacks the type or type name is wrong | Check fully qualified name and dependencies when generating docs |
+| API classes have pages, but module summary lacks description | Javadoc written only on classes, not on `module-info.java` | Add module-level Javadoc |
+| Service is documented but does not work | Has `@uses`/`@provides` without the corresponding directive | Synchronize tags and descriptor |
+| Module docs advise importing a package, but `javac` rejects it | Package is not exported to consumers | Fix the public API boundary or the documentation guide |
+| Framework reflection fails even though module docs say “open” | Missing `opens` directive or wrong target module name | Check descriptor, module performing reflection, and runtime flags |
+| Docs contain an example that compiles but fails to run properly | Example uses different module names/dependencies than actual artifact | Verify example on the appropriate module path |
+| Module turns into an automatic module after packaging | `module-info.class` is misplaced or omitted by a build plugin | Inspect with `jar --describe-module --file artifact.jar` |
 
-## 17. Quy trình viết module documentation đề xuất
+## 17. Recommended module documentation workflow
 
-Một quy trình nhất quán khi phát hành thư viện modular:
+A consistent workflow when releasing a modular library:
 
-1. **Chọn ranh giới module.** Xác định tên module, public packages, implementation packages và service contracts.
-2. **Viết descriptor.** Khai báo đúng `requires`, `exports`, `opens`, `uses`, `provides`.
-3. **Thêm Javadoc cấp module.** Mô tả purpose, entry point, public packages và integration.
-4. **Thêm package-info.java.** Giải thích contract của các package public, nhất là API và SPI.
-5. **Viết Javadoc cho public type.** Giải thích method contract, exception, nullability, lifecycle và thread-safety khi cần.
-6. **Liên kết giữa các cấp.** Dùng `{@link}` để điều hướng từ module đến class/method.
-7. **Tạo tài liệu.** Dùng `javadoc`, Maven Javadoc Plugin hoặc Gradle task tương ứng.
-8. **Kiểm tra artifact.** Đảm bảo modular JAR vẫn chứa `module-info.class` hợp lệ.
-9. **Cập nhật cùng thay đổi API.** Khi descriptor thay đổi, chỉnh module docs và release notes tương ứng.
+1. **Choose module boundaries.** Define module name, public packages, implementation packages, and service contracts.
+2. **Write the descriptor.** Correctly declare `requires`, `exports`, `opens`, `uses`, `provides`.
+3. **Add module-level Javadoc.** Describe purpose, entry points, public packages, and integration.
+4. **Add package-info.java.** Explain contracts of public packages, especially API and SPI.
+5. **Write Javadoc for public types.** Explain method contracts, exceptions, nullability, lifecycle, and thread-safety as needed.
+6. **Link across levels.** Use `{@link}` to navigate from module to classes/methods.
+7. **Generate documentation.** Use `javadoc`, Maven Javadoc Plugin, or the corresponding Gradle task.
+8. **Verify artifacts.** Ensure the modular JAR still contains a valid `module-info.class`.
+9. **Update alongside API changes.** When the descriptor changes, update module docs and release notes accordingly.
 
-Một nguyên tắc hữu ích: **mỗi directive quan trọng trong descriptor nên có lý do thiết kế mà người bảo trì hiểu được; mỗi lời hứa trong Javadoc cần được descriptor và public API hiện thực hóa.**
+A useful principle: **every major directive in the descriptor should have a design rationale maintainers can understand; every promise in Javadoc must be backed by the descriptor and public API.**
 
-## Kết luận
+## Conclusion
 
-`module-info.java` là hợp đồng kỹ thuật của named module; Javadoc ngay trước khai báo `module` là nơi giải thích hợp đồng đó cho người sử dụng. Nội dung tốt nên trình bày mục đích module, public API entry point, package export, giới hạn reflection, dependency đáng chú ý và service integration.
+`module-info.java` is the technical contract of a named module; Javadoc immediately before the `module` declaration is where that contract is explained to users. Good content should present the module's purpose, public API entry points, exported packages, reflection boundaries, notable dependencies, and service integration.
 
-Hãy kết hợp Javadoc cấp module với `package-info.java` và Javadoc class/method để cung cấp tài liệu theo đúng cấp độ. Sử dụng `@uses` và `@provides` để giải thích service, nhưng nhớ rằng các tag chỉ mô tả; directive thật mới quyết định service metadata. Khi phát hành, sinh trang module bằng `javadoc` và kiểm tra artifact modular JAR để bảo đảm tài liệu và ranh giới JPMS nhất quán.
+Combine module-level Javadoc with `package-info.java` and class/method Javadoc to provide documentation at the right level. Use `@uses` and `@provides` to explain services, but remember that tags only describe; actual directives determine service metadata. At release time, generate module pages with `javadoc` and inspect modular JAR artifacts to ensure documentation and JPMS boundaries stay consistent.

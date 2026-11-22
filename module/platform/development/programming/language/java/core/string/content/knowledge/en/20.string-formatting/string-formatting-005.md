@@ -1,100 +1,100 @@
-# `%%` và `%n` khi định dạng chuỗi trong Java
+# `%%` and `%n` in Java String Formatting
 
-## Mục tiêu
+## Objectives
 
-Khi sử dụng `String.format(... )`, `String.formatted(... )` hoặc `System.out.printf(... )`, bạn cần biết cách in dấu phần trăm thật và xuống dòng đúng nền tảng:
+When using `String.format(...)`, `String.formatted(...)`, or `System.out.printf(...)`, you need to know how to print a literal percent sign and insert platform-appropriate newlines:
 
-- `%%` biểu diễn **một dấu `%` trong kết quả**.
-- `%n` biểu diễn **một ký tự hoặc chuỗi ký tự kết thúc dòng theo hệ điều hành**.
-- Cả hai đều là **conversion đặc biệt của `java.util.Formatter`** và **không tiêu thụ đối số** trong danh sách tham số định dạng.
+- `%%` represents **a single `%` sign in the output**.
+- `%n` represents **an OS-specific line separator character or sequence**.
+- Both are **special conversions of `java.util.Formatter`** and **do not consume an argument** in the formatting parameter list.
 
-Hai ký hiệu này chỉ được diễn giải khi chuỗi đóng vai trò **format string**. Chúng không phải cú pháp đặc biệt của mọi đối tượng `String`.
+These two symbols are only interpreted when the string acts as a **format string**. They are not special syntax on every `String` object.
 
-## 1. Vì sao có hai ký hiệu này?
+## 1. Why Do These Two Symbols Exist?
 
-Trong họ API dựa trên `Formatter`, dấu `%` thông thường mở đầu một chỉ thị định dạng: `%s` để chèn chuỗi, `%d` để chèn số nguyên, `%.2f` để định dạng số thực với hai chữ số thập phân. Vì dấu `%` đã có ý nghĩa điều khiển, muốn hiển thị nó theo nghĩa thông thường cần viết `%%`.
+In the `Formatter`-based API family, a normal `%` begins a format specifier: `%s` inserts a string, `%d` inserts an integer, `%.2f` formats a floating-point number with two decimal digits. Because `%` already has control meaning, displaying it literally requires writing `%%`.
 
-Tương tự, `%n` yêu cầu bộ định dạng thêm dấu kết thúc dòng thích hợp với môi trường thực thi, tiện cho việc tạo báo cáo nhiều dòng và in ra console.
+Similarly, `%n` instructs the formatter to append the line separator appropriate for the runtime environment, which is convenient for generating multi-line reports and printing to the console.
 
-| Mẫu trong format string | Ý nghĩa | Đối số cần cung cấp |
+| Pattern in Format String | Meaning | Argument Required |
 | --- | --- | --- |
-| `%%` | Ghi ra một dấu `%` | Không |
-| `%n` | Ghi ra dấu kết thúc dòng theo nền tảng | Không |
-| `%d` | Chèn một số nguyên | Có |
-| `%s` | Chèn biểu diễn chuỗi của một giá trị | Có |
+| `%%` | Outputs a single `%` sign | No |
+| `%n` | Outputs a platform-specific line separator | No |
+| `%d` | Inserts an integer | Yes |
+| `%s` | Inserts the string representation of a value | Yes |
 
-Ví dụ: chuỗi mẫu `"Tiến độ: %d%%%n"` được đọc thành `%d` (giá trị số), `%%` (dấu phần trăm) và `%n` (kết thúc dòng). Ba dấu `%` liên tiếp trước chữ `n` ở đây là đúng cú pháp: hai dấu đầu thuộc `%%`, dấu thứ ba bắt đầu `%n`.
+For example: the template string `"Progress: %d%%%n"` is read as `%d` (numeric value), `%%` (percent sign), and `%n` (line separator). Three consecutive `%` signs before the letter `n` here are valid syntax: the first two belong to `%%`, and the third starts `%n`.
 
-## 2. `%%` — in dấu phần trăm
+## 2. `%%` — Printing a Percent Sign
 
-Với `Formatter`, `%%` cho ra đúng một dấu `%`:
+With `Formatter`, `%%` produces exactly one `%` sign:
 
 ```java
-String result = String.format("Đã xử lý 100%%");
+String result = String.format("Processed 100%%");
 System.out.println(result);
 ```
 
-Kết quả:
+Output:
 
 ```text
-Đã xử lý 100%
+Processed 100%
 ```
 
-Muốn ghép số phần trăm động, hãy đặt `%%` sau chỉ thị của số:
+To attach a dynamic percentage value, place `%%` after the number specifier:
 
 ```java
 int progress = 75;
-System.out.printf("Tiến độ: %d%%%n", progress);
+System.out.printf("Progress: %d%%%n", progress);
 ```
 
-Kết quả là dòng `Tiến độ: 75%` rồi xuống dòng. `%d` lấy đối số `progress`, còn `%%` không lấy đối số nào. Nếu chỉ muốn chuỗi kết quả mà chưa in ra màn hình, dùng `String.format("Tiến độ: %d%%", progress)`.
+The output is the line `Progress: 75%` followed by a newline. `%d` consumes the `progress` argument, while `%%` consumes no argument. If you only want the resulting string without printing it to the screen, use `String.format("Progress: %d%%", progress)`.
 
-**Phân biệt với chuỗi bình thường:** `System.out.print("50%%")` in nguyên hai dấu `%%`, vì `print` không phân tích format string. Trái lại, `System.out.printf("50%%")` in `50%`.
+**Distinguishing from ordinary strings:** `System.out.print("50%%")` prints both `%%` characters literally, because `print` does not parse a format string. Conversely, `System.out.printf("50%%")` prints `50%`.
 
-Đặc biệt, dấu `%` đơn lẻ trong format string thường gây lỗi định dạng vì `Formatter` đang chờ tên phép chuyển đổi tiếp theo. Cách viết `"100%"` vẫn hoàn toàn hợp lệ nếu chỉ đưa vào `print`/`println` như văn bản thuần.
+In particular, a lone `%` sign in a format string usually causes a formatting error because `Formatter` expects the next conversion name. Writing `"100%"` remains completely valid when passed to `print`/`println` as plain text.
 
-## 3. `%n` — kết thúc dòng theo nền tảng
+## 3. `%n` — Platform-Specific Line Separator
 
-`%n` không in hai ký tự `%` và `n`. Trong một format string, nó tạo dấu kết thúc dòng giống giá trị do `System.lineSeparator()` cung cấp tại môi trường chạy. Thông thường, Unix/Linux/macOS dùng LF (`\n`); Windows dùng CRLF (`\r\n`).
+`%n` does not print the two characters `%` and `n`. Inside a format string, it generates a line separator matching the value provided by `System.lineSeparator()` in the runtime environment. Typically, Unix/Linux/macOS use LF (`\n`); Windows uses CRLF (`\r\n`).
 
 ```java
-String report = String.format("Dòng thứ nhất%nDòng thứ hai");
+String report = String.format("First line%nSecond line");
 System.out.print(report);
 ```
 
-Kết quả hiển thị:
+Displayed output:
 
 ```text
-Dòng thứ nhất
-Dòng thứ hai
+First line
+Second line
 ```
 
-Có thể dùng nhiều `%n` liên tiếp khi **chủ ý** tạo dòng trống:
+Multiple `%n` tokens can be used consecutively when **intentionally** creating blank lines:
 
 ```java
-System.out.printf("Mục A%n%nMục B%n");
+System.out.printf("Item A%n%nItem B%n");
 ```
 
-Kết quả:
+Output:
 
 ```text
-Mục A
+Item A
 
-Mục B
+Item B
 ```
 
-**So sánh với `\n` và `println`:**
+**Comparison with `\n` and `println`:**
 
-- `\n` là escape sequence của *Java string literal*: trình biên dịch Java biến nó thành ký tự xuống dòng LF. Nó được hiểu ngay cả khi không dùng `Formatter`.
-- `%n` là chỉ thị của *format string*: chỉ được biến thành kết thúc dòng khi đi qua `Formatter`, thường là lựa chọn tốt cho định dạng văn bản theo nền tảng.
-- `println(... )` tự thêm kết thúc dòng sau giá trị được in. Nếu giá trị đã kết thúc bằng `%n` qua `String.format` rồi lại gọi `println`, sẽ có thêm một dòng trống ngoài ý muốn.
-- `System.out.print("%n")` in nguyên văn `%n`. Muốn nó xuống dòng, gọi `System.out.printf("%n")` hoặc dùng `println()`.
+- `\n` is a *Java string literal* escape sequence: the Java compiler turns it into an LF newline character. It is understood even without `Formatter`.
+- `%n` is a *format string* directive: it is only converted into a line separator when passed through `Formatter`, and is usually a good choice for platform-native text formatting.
+- `println(...)` automatically adds a line separator after the printed value. If a value already ends with `%n` from `String.format` and you call `println`, there will be an unintended extra blank line.
+- `System.out.print("%n")` prints `%n` verbatim. To output a newline with it, call `System.out.printf("%n")` or use `println()`.
 
-Không nên giả định kết quả `%n` luôn có đúng một ký tự: trên Windows dấu kết thúc dòng thường gồm hai ký tự `\r\n`. Điều này quan trọng nếu bạn so sánh chuỗi theo byte hoặc kiểm thử văn bản đa nền tảng.
+Do not assume `%n` always produces a single character: on Windows the line separator typically consists of two characters `\r\n`. This matters if you compare strings byte-by-byte or test text across platforms.
 
-## 4. Ví dụ Java 17+ chạy hoàn chỉnh
+## 4. Complete Runnable Java 17+ Example
 
-Tạo tệp `FormatTokensDemo.java`:
+Create a file `FormatTokensDemo.java`:
 
 ```java
 public class FormatTokensDemo {
@@ -103,83 +103,83 @@ public class FormatTokensDemo {
         int total = 10;
         int percentage = completed * 100 / total;
 
-        // %d nhận số; %% in dấu %; %n kết thúc dòng.
+        // %d takes a number; %% prints %; %n ends the line.
         System.out.printf(
-                "Hoàn thành: %d/%d (%d%%)%n",
+                "Completed: %d/%d (%d%%)%n",
                 completed, total, percentage
         );
 
-        // String.format tạo chuỗi; println thêm xuống dòng cuối cùng.
+        // String.format builds the string; println adds the final newline.
         String report = String.format(
-                "Giảm giá: 15%%%nĐơn hàng đã ghi nhận"
+                "Discount: 15%%%nOrder recorded"
         );
         System.out.println(report);
 
-        // print không diễn giải %% hoặc %n.
-        System.out.print("print thông thường: 50%% và %n");
+        // print does not interpret %% or %n.
+        System.out.print("regular print: 50%% and %n");
         System.out.println();
     }
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FormatTokensDemo.java
 java FormatTokensDemo
 ```
 
-Kết quả hiển thị (các dòng như nhau trên mọi nền tảng; byte kết thúc dòng có thể khác):
+Displayed output (lines look the same on every platform; line-ending bytes may differ):
 
 ```text
-Hoàn thành: 7/10 (70%)
-Giảm giá: 15%
-Đơn hàng đã ghi nhận
-print thông thường: 50%% và %n
+Completed: 7/10 (70%)
+Discount: 15%
+Order recorded
+regular print: 50%% and %n
 ```
 
-Giải thích: biểu thức `completed * 100 / total` cho `70` bằng phép tính số nguyên; `%d` đưa số đó vào chuỗi. Cặp `%%` sau `%d` tạo dấu phần trăm, `%n` khép dòng. Trong `report`, `15%%%n` tương ứng `15%` rồi xuống dòng trước câu tiếp theo. `print` ở cuối chỉ xuất các ký tự theo đúng giá trị chuỗi truyền vào.
+Explanation: the expression `completed * 100 / total` yields `70` via integer arithmetic; `%d` places that number into the string. The pair `%%` after `%d` produces the percent sign, and `%n` closes the line. In `report`, `15%%%n` corresponds to `15%` followed by a newline before the next sentence. `print` at the end simply outputs the exact characters of the passed string value.
 
-Khi đã có sẵn format string trong biến, bạn cũng có thể gọi `template.formatted(args)` (Java 15+); ký hiệu `%%` và `%n` vẫn có cùng ý nghĩa vì phương thức này dùng cơ chế định dạng kiểu `String.format`.
+When a format string is already stored in a variable, you can also call `template.formatted(args)` (Java 15+); `%%` and `%n` still carry the same meaning because this method uses `String.format`-style formatting.
 
-## 5. Quy tắc kết hợp và những nhầm lẫn thường gặp
+## 5. Combination Rules and Common Mistakes
 
-| Mong muốn | Mẫu khi dùng `printf`/`String.format` | Kết quả |
+| Desired Output | Pattern with `printf`/`String.format` | Result |
 | --- | --- | --- |
-| In `100%` | `"100%%"` | `100%` |
-| In `80%` từ số nguyên 80 | `"%d%%"` và đối số `80` | `80%` |
-| In `80%` rồi kết thúc dòng | `"%d%%%n"` và đối số `80` | `80%` rồi xuống dòng |
-| In hai dòng | `"A%nB"` | `A` và `B` trên hai dòng |
-| In chữ `%n` theo nghĩa đen qua Formatter | `"%%n"` | `%n` |
+| Print `100%` | `"100%%"` | `100%` |
+| Print `80%` from integer 80 | `"%d%%"` and argument `80` | `80%` |
+| Print `80%` then end the line | `"%d%%%n"` and argument `80` | `80%` followed by newline |
+| Print two lines | `"A%nB"` | `A` and `B` on two lines |
+| Print literal `%n` via Formatter | `"%%n"` | `%n` |
 
-Một số lỗi cần tránh:
+Mistakes to avoid:
 
-1. **Thiếu dấu `%` thứ hai:** `System.out.printf("Hoàn thành 100%")` có format string không hợp lệ; phải dùng `"Hoàn thành 100%%"`. Khi chỉ in văn bản cố định, `System.out.println("Hoàn thành 100%")` cũng đúng.
-2. **Nhầm với escape của Java:** `\%` không phải escape sequence hợp lệ trong Java string literal. Không dùng `"100\%"` để xử lý dấu phần trăm.
-3. **Quên ngữ cảnh định dạng:** `"A%nB"` truyền trực tiếp vào `print` vẫn chứa ký tự `%n`. Chỉ truyền qua `printf`, `format` hoặc `formatted` mới diễn giải nó.
-4. **Chèn xuống dòng hai lần:** `System.out.println(String.format("X%n"))` tạo một xuống dòng từ `%n` và một xuống dòng nữa từ `println`. Hãy chọn một trong hai khi chỉ muốn kết thúc một dòng.
-5. **Gắn tùy chọn định dạng vào `%n`:** `%n` không nhận flags, width hay precision. Với `%%`, có thể chỉ định width và flag căn trái `-` (ví dụ `%5%` in dấu `%` trong ô rộng 5 ký tự), nhưng không dùng precision như định dạng số hoặc chuỗi.
-6. **Cấp nhầm đối số:** `%%` và `%n` không lấy phần tử nào trong danh sách đối số; chỉ `%d`, `%s`… mới sử dụng đối số tương ứng. Ví dụ, `String.format("%s: 100%%%n", "Tải xuống")` chỉ cần một đối số là `"Tải xuống"`.
+1. **Missing the second `%` sign:** `System.out.printf("Completed 100%")` has an invalid format string; you must use `"Completed 100%%"`. When only printing fixed text, `System.out.println("Completed 100%")` is also valid.
+2. **Confusing with Java string escapes:** `\%` is not a valid escape sequence in a Java string literal. Do not use `"100\%"` to handle percent signs.
+3. **Forgetting the formatting context:** `"A%nB"` passed directly to `print` still contains the characters `%n`. Only passing it through `printf`, `format`, or `formatted` interprets it.
+4. **Inserting a newline twice:** `System.out.println(String.format("X%n"))` produces one newline from `%n` and another newline from `println`. Choose one or the other when you only want to end a single line.
+5. **Attaching formatting options to `%n`:** `%n` does not accept flags, width, or precision. For `%%`, width and the left-alignment flag `-` can be specified (for example, `%5%` prints `%` in a 5-character wide field), though precision like number or string formatting is not used.
+6. **Supplying an argument by mistake:** `%%` and `%n` do not consume any element from the argument list; only `%d`, `%s`, etc. consume corresponding arguments. For example, `String.format("%s: 100%%%n", "Download")` requires only one argument, `"Download"`.
 
-## 6. Tự kiểm tra
+## 6. Self-Check
 
-**Câu 1.** Đoạn mã sau hiển thị gì?
+**Question 1.** What does the following code display?
 
 ```java
 System.out.printf("CPU: %d%%%n", 80);
 ```
 
-Đáp án: in `CPU: 80%` rồi kết thúc dòng. `%d` nhận `80`; `%%` in dấu phần trăm; `%n` xuống dòng.
+Answer: prints `CPU: 80%` and ends the line. `%d` receives `80`; `%%` prints the percent sign; `%n` outputs a newline.
 
-**Câu 2.** Vì sao hai lời gọi dưới đây cho kết quả khác nhau?
+**Question 2.** Why do the two calls below produce different results?
 
 ```java
 System.out.print("X%nY");
 System.out.printf("X%nY");
 ```
 
-Đáp án: `print` hiển thị nguyên văn `X%nY`; `printf` diễn giải `%n` và hiển thị `X`, `Y` trên hai dòng. Do lời gọi `print` không tự xuống dòng, nếu chạy liên tiếp như trên thì ký tự `X` của `printf` nối ngay sau chữ `Y` đã được `print` in ra.
+Answer: `print` displays `X%nY` verbatim; `printf` interprets `%n` and displays `X` and `Y` on two lines. Because the `print` call does not add a newline, when run consecutively as above, the `X` from `printf` appears immediately after the `Y` printed by `print`.
 
-## Ghi nhớ
+## Key Takeaways
 
-Trong **format string**, dùng `%%` để tạo dấu phần trăm hiển thị và `%n` để tạo dấu kết thúc dòng tương thích nền tảng. Chúng không chiếm đối số định dạng. Trong chuỗi được đưa thẳng tới `print`/`println`, hai ký hiệu giữ nguyên vì không có bước phân tích định dạng.
+In a **format string**, use `%%` to produce a visible percent sign and `%n` to produce a platform-compatible line separator. They do not consume formatting arguments. In strings passed straight to `print`/`println`, both symbols remain unchanged because there is no format-parsing step.

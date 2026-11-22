@@ -1,60 +1,60 @@
-# Class loading trong one-loader và many-loader layer
+# Class Loading in One-Loader and Many-Loader Layers
 
-> Phạm vi: Java Platform Module System (JPMS) và **ModuleLayer**. Một module layer kết hợp module configuration đã resolve với cách các module được định nghĩa và nạp bởi class loader. Java cung cấp hai cách tạo layer phổ biến: dùng một class loader chung cho các module hoặc tạo một class loader riêng cho từng module.
+> Scope: Java Platform Module System (JPMS) and **ModuleLayer**. A module layer combines a resolved module configuration with how modules are defined and loaded by class loaders. Java provides two common ways to create a layer: using a single shared class loader for the modules, or creating a separate class loader for each module.
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích quan hệ giữa **ModuleLayer**, **Configuration**, **Module** và **ClassLoader**.
-- Phân biệt cách nạp class của **defineModulesWithOneLoader** và **defineModulesWithManyLoaders**.
-- Tạo child layer từ module path dành cho plugin.
-- Lấy class loader của một module bằng **ModuleLayer.findLoader**.
-- Hiểu class identity, parent delegation và ranh giới readability/exports.
-- Chọn chiến lược loader phù hợp với ứng dụng modular và plugin.
-- Xử lý lỗi class loading thường gặp khi dùng nhiều layer hoặc nhiều loader.
+- Explain the relationship between **ModuleLayer**, **Configuration**, **Module**, and **ClassLoader**.
+- Distinguish how classes are loaded by **defineModulesWithOneLoader** and **defineModulesWithManyLoaders**.
+- Create a child layer from a module path for plugins.
+- Retrieve a module's class loader using **ModuleLayer.findLoader**.
+- Understand class identity, parent delegation, and readability/exports boundaries.
+- Choose an appropriate loader strategy for modular applications and plugins.
+- Troubleshoot common class loading errors when using multiple layers or multiple loaders.
 
-## 1. ModuleLayer là gì?
+## 1. What Is ModuleLayer?
 
-**ModuleLayer** biểu diễn một lớp module đã được resolve và định nghĩa trong runtime. Một layer chứa các module thuộc một **Configuration** và có thể có một hoặc nhiều parent layer.
+**ModuleLayer** represents a layer of modules that have been resolved and defined at runtime. A layer contains the modules belonging to a **Configuration** and can have one or more parent layers.
 
-Khi JVM khởi động, Java tạo boot layer chứa các module nền tảng và các module được resolve cho ứng dụng. Có thể lấy layer này bằng:
+When the JVM starts, Java creates the boot layer containing the platform modules and the modules resolved for the application. You can obtain this layer with:
 
 ~~~java
 ModuleLayer bootLayer = ModuleLayer.boot();
 ~~~
 
-Ứng dụng có thể tạo thêm child layer để nạp plugin hoặc một nhóm module khác sau khi chương trình đã khởi động.
+An application can create additional child layers to load plugins or another group of modules after the program has started.
 
-Một layer không phải là class loader. Layer quản lý quan hệ module và ánh xạ module tới class loader. Cách ánh xạ đó phụ thuộc phương thức dùng để định nghĩa layer.
+A layer is not a class loader. A layer manages module relationships and maps modules to class loaders. How that mapping works depends on the method used to define the layer.
 
-Các thành phần chính:
+Key components:
 
-| Thành phần | Vai trò |
+| Component | Role |
 |---|---|
-| **Configuration** | Mô tả module graph đã resolve: module nào có mặt và dependency nào được thỏa mãn |
-| **ModuleLayer** | Đại diện cho một layer chứa các module được định nghĩa từ configuration |
-| **Module** | Đại diện runtime cho một module cụ thể |
-| **ClassLoader** | Nạp class/resource; một loader có thể định nghĩa class thuộc một hoặc nhiều module tùy cách tạo layer |
-| **ModuleLayer.Controller** | Cung cấp quyền điều chỉnh quan hệ module trong layer được tạo, ví dụ thêm reads, exports hoặc opens khi cần |
+| **Configuration** | Describes the resolved module graph: which modules are present and which dependencies are satisfied |
+| **ModuleLayer** | Represents a layer containing modules defined from a configuration |
+| **Module** | Runtime representation of a specific module |
+| **ClassLoader** | Loads classes/resources; a single loader can define classes belonging to one or more modules depending on how the layer is created |
+| **ModuleLayer.Controller** | Provides authority to adjust module relationships in the created layer, such as adding reads, exports, or opens when needed |
 
-Module system và class loading phối hợp với nhau. Class loader chịu trách nhiệm tìm và định nghĩa class; module system kiểm soát readability, exports và opens giữa các module.
+The module system and class loading work together. The class loader is responsible for finding and defining classes; the module system enforces readability, exports, and opens between modules.
 
-## 2. Configuration và ModuleLayer khác nhau thế nào?
+## 2. How Do Configuration and ModuleLayer Differ?
 
-**Configuration** trả lời câu hỏi: module graph nào đã được resolve? Nó chứa thông tin về các module và dependency, nhưng chưa tự tạo class loader hoặc nạp class.
+**Configuration** answers the question: which module graph has been resolved? It holds information about modules and dependencies, but does not itself create class loaders or load classes.
 
-**ModuleLayer** dùng configuration để định nghĩa module trong runtime và gắn chúng với class loader.
+**ModuleLayer** uses a configuration to define modules at runtime and associate them with class loaders.
 
-Quy trình tổng quát:
+General workflow:
 
-1. Tìm module bằng **ModuleFinder**.
-2. Resolve dependency để tạo **Configuration**.
-3. Chọn cách định nghĩa layer: one-loader, many-loaders hoặc mapping loader tùy chỉnh.
-4. Lấy layer từ **ModuleLayer.Controller**.
-5. Nạp class hoặc tìm service provider trong layer.
+1. Find modules using **ModuleFinder**.
+2. Resolve dependencies to create a **Configuration**.
+3. Choose how to define the layer: one-loader, many-loaders, or custom loader mapping.
+4. Obtain the layer from **ModuleLayer.Controller**.
+5. Load classes or locate service providers in the layer.
 
-Có thể hình dung:
+This can be visualized as:
 
 ~~~text
 ModuleFinder
@@ -63,14 +63,14 @@ ModuleFinder
 Configuration.resolve(...)
     |
     v
-Module graph đã resolve
+Resolved module graph
     |
     v
 ModuleLayer.defineModulesWith...
     |
-    +---- one-loader: một loader cho các module trong layer
+    +---- one-loader: one loader for the modules in the layer
     |
-    +---- many-loaders: một loader cho mỗi module
+    +---- many-loaders: one loader for each module
     |
     v
 ModuleLayer
@@ -79,13 +79,13 @@ ModuleLayer
 Class loading / ServiceLoader / reflection
 ~~~
 
-Điểm quan trọng: **resolve module graph** và **định nghĩa class loader** là hai bước riêng. Nếu configuration không resolve được dependency, chưa thể tạo layer hợp lệ.
+Key point: **resolving the module graph** and **defining class loaders** are two separate steps. If the configuration cannot resolve dependencies, a valid layer cannot be created yet.
 
-## 3. One-loader layer là gì?
+## 3. What Is a One-Loader Layer?
 
-Tạo layer bằng **ModuleLayer.defineModulesWithOneLoader** sẽ định nghĩa các module trong configuration vào cùng một class loader mới.
+Creating a layer with **ModuleLayer.defineModulesWithOneLoader** defines all modules in the configuration into a single new class loader.
 
-Ví dụ:
+Example:
 
 ~~~java
 ModuleLayer.Controller controller =
@@ -98,24 +98,24 @@ ModuleLayer.Controller controller =
 ModuleLayer layer = controller.layer();
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- **configuration** là configuration đã resolve cho các module cần nạp.
-- **List.of(ModuleLayer.boot())** chỉ định boot layer là parent.
-- **ClassLoader.getSystemClassLoader()** là parent loader của loader được tạo cho layer.
-- **controller.layer()** trả về layer mới.
+- **configuration** is the resolved configuration for the modules to load.
+- **List.of(ModuleLayer.boot())** specifies the boot layer as the parent.
+- **ClassLoader.getSystemClassLoader()** is the parent loader of the loader created for the layer.
+- **controller.layer()** returns the new layer.
 
-Trong one-loader layer, các module được định nghĩa bởi một loader chung. Điều đó có thể giảm số lượng class loader cần quản lý và làm đơn giản cấu trúc nạp class trong một nhóm module có liên quan.
+In a one-loader layer, modules are defined by a shared loader. This can reduce the number of class loaders to manage and simplify the class loading structure across a group of related modules.
 
-Tuy nhiên, **một loader chung không có nghĩa các module bị hợp nhất thành một module**. Mỗi module vẫn giữ descriptor, tên module, package ownership, readability và exports riêng. Việc class cùng được định nghĩa bởi một loader không tự cấp quyền truy cập package giữa các module.
+However, **a shared loader does not mean the modules are merged into a single module**. Each module still retains its own descriptor, module name, package ownership, readability, and exports. Having classes defined by the same loader does not automatically grant package access between modules.
 
-One-loader phù hợp khi các module tạo thành một nhóm triển khai gắn bó, cần chia sẻ một không gian class loading và không yêu cầu cách ly loader riêng cho từng module.
+One-loader is suitable when the modules form a cohesive deployment unit, need to share a class loading namespace, and do not require per-module loader isolation.
 
-## 4. Many-loader layer là gì?
+## 4. What Is a Many-Loader Layer?
 
-Tạo layer bằng **ModuleLayer.defineModulesWithManyLoaders** sẽ tạo một class loader riêng cho mỗi module trong configuration.
+Creating a layer with **ModuleLayer.defineModulesWithManyLoaders** creates a separate class loader for each module in the configuration.
 
-Ví dụ:
+Example:
 
 ~~~java
 ModuleLayer.Controller controller =
@@ -128,28 +128,28 @@ ModuleLayer.Controller controller =
 ModuleLayer layer = controller.layer();
 ~~~
 
-Mỗi module có loader riêng. Các loader được tạo với parent loader đã chỉ định; việc truy cập module khác vẫn phải tuân theo module graph và cơ chế delegation của loader do Java tạo.
+Each module has its own loader. The created loaders use the specified parent loader; accessing other modules must still follow the module graph and the loader delegation mechanism created by Java.
 
-Many-loader hữu ích khi ứng dụng muốn tách class loading theo module, ví dụ một hệ thống plugin có nhiều module độc lập. Nó tạo ranh giới loader rõ hơn, giúp phát hiện sớm các giả định sai về class identity và tránh việc tất cả class của layer dùng chung một defining loader.
+Many-loaders is useful when an application wants to separate class loading per module, such as a plugin system with many independent modules. It creates clearer loader boundaries, helps detect wrong assumptions about class identity early, and avoids having all classes in the layer share a single defining loader.
 
-Đổi lại, nhiều loader làm tăng số đối tượng cần quản lý và có thể làm việc debug, resource lookup, reflection hoặc chia sẻ API phức tạp hơn. Không nên giả định many-loader luôn nhanh hơn hoặc an toàn hơn; cần đo đạc theo ứng dụng thực tế.
+In return, multiple loaders increase the number of objects to manage and can make debugging, resource lookup, reflection, or API sharing more complex. You should not assume many-loaders is always faster or safer; measure against your actual application.
 
-## 5. So sánh one-loader và many-loaders
+## 5. Comparing One-Loader and Many-Loaders
 
-| Tiêu chí | One-loader | Many-loaders |
+| Criterion | One-loader | Many-loaders |
 |---|---|---|
-| Số loader cho module trong configuration | Một loader chung | Một loader cho mỗi module |
-| Ranh giới class loader | Chung trong layer | Tách theo module |
-| Module descriptor và exports | Vẫn được áp dụng riêng cho từng module | Vẫn được áp dụng riêng cho từng module |
-| Chi phí quản lý loader | Thường thấp hơn | Có thể cao hơn khi có nhiều module |
-| Cách ly class loading | Ít hơn giữa các module cùng layer | Rõ hơn theo module |
-| Tình huống thường dùng | Nhóm module triển khai gắn bó | Plugin hoặc module cần loader riêng |
+| Number of loaders for modules in configuration | One shared loader | One loader per module |
+| Class loader boundary | Shared within the layer | Separated per module |
+| Module descriptor and exports | Still enforced per module | Still enforced per module |
+| Loader management overhead | Usually lower | Can be higher with many modules |
+| Class loading isolation | Less between modules in the same layer | Clearer per module |
+| Common use cases | Cohesive deployment group of modules | Plugins or modules needing separate loaders |
 
-Lựa chọn loader không thay thế thiết kế module. Dù dùng one-loader hay many-loaders, module vẫn cần khai báo dependency bằng **requires**, công bố API bằng **exports** và mở package cho reflection bằng **opens** khi cần.
+Loader choice does not replace module design. Whether using one-loader or many-loaders, modules still need to declare dependencies with **requires**, publish APIs with **exports**, and open packages for reflection with **opens** when needed.
 
-## 6. Tạo Configuration và child layer từ plugin directory
+## 6. Creating a Configuration and Child Layer from a Plugin Directory
 
-Giả sử ứng dụng có thư mục **plugins** chứa các modular JAR:
+Suppose an application has a **plugins** directory containing modular JARs:
 
 ~~~text
 application/
@@ -159,7 +159,7 @@ application/
     └── com.acme.plugin.beta.jar
 ~~~
 
-Mỗi plugin là explicit module và có module descriptor. Ví dụ module alpha:
+Each plugin is an explicit module and has a module descriptor. For example, module alpha:
 
 ~~~java
 module com.acme.plugin.alpha {
@@ -167,9 +167,9 @@ module com.acme.plugin.alpha {
 }
 ~~~
 
-Module API nên nằm trong boot layer hoặc một parent layer mà plugin có thể đọc. Điều này giúp ứng dụng và plugin dùng chung một định nghĩa API thay vì nạp hai bản interface có class identity khác nhau.
+The API module should reside in the boot layer or a parent layer that plugins can read. This ensures the application and plugins share the same API definition rather than loading two copies of an interface with different class identities.
 
-Tạo configuration cho các plugin:
+Creating a configuration for the plugins:
 
 ~~~java
 Path pluginPath = Path.of("plugins");
@@ -187,20 +187,20 @@ Configuration pluginConfiguration =
         );
 ~~~
 
-Giải thích:
+Explanation:
 
-- **ModuleFinder.of(pluginPath)** tìm module trong thư mục plugin.
-- **ModuleLayer.boot().configuration()** lấy configuration của boot layer làm parent configuration.
-- **resolve** tạo configuration mới từ các module được tìm thấy và dependency cần thiết.
-- Tập roots chỉ định các module plugin muốn nạp.
+- **ModuleFinder.of(pluginPath)** finds modules in the plugin directory.
+- **ModuleLayer.boot().configuration()** retrieves the boot layer's configuration as the parent configuration.
+- **resolve** creates a new configuration from the discovered modules and required dependencies.
+- The roots set specifies the plugin modules to load.
 
-Nếu một plugin có dependency vào module khác trong cùng thư mục, resolver sẽ cố gắng resolve dependency đó từ module finder. Nếu thiếu dependency hoặc descriptor không hợp lệ, bước resolve sẽ thất bại trước khi tạo layer.
+If a plugin has a dependency on another module in the same directory, the resolver attempts to resolve that dependency from the module finder. If a dependency is missing or a descriptor is invalid, the resolve step fails before creating the layer.
 
-## 7. Tạo child layer với one-loader hoặc many-loaders
+## 7. Creating a Child Layer with One-Loader or Many-Loaders
 
-Sau khi có **pluginConfiguration**, chọn một trong hai cách.
+Once you have **pluginConfiguration**, choose one of the two approaches.
 
-### Dùng one-loader
+### Using One-Loader
 
 ~~~java
 ModuleLayer.Controller controller =
@@ -213,9 +213,9 @@ ModuleLayer.Controller controller =
 ModuleLayer pluginLayer = controller.layer();
 ~~~
 
-Các module plugin trong configuration được định nghĩa bằng cùng một loader. Có thể dùng khi các plugin cần chia sẻ class loading và được quản lý như một nhóm.
+Plugin modules in the configuration are defined by the same loader. This can be used when plugins need to share class loading and be managed as a group.
 
-### Dùng many-loaders
+### Using Many-Loaders
 
 ~~~java
 ModuleLayer.Controller controller =
@@ -228,20 +228,20 @@ ModuleLayer.Controller controller =
 ModuleLayer pluginLayer = controller.layer();
 ~~~
 
-Mỗi module plugin có loader riêng. Đây là lựa chọn phù hợp khi muốn tách class loading theo module.
+Each plugin module has its own loader. This is a suitable choice when you want to isolate class loading per module.
 
-Không tạo cả hai layer cho cùng một configuration trong ứng dụng thật chỉ để chọn ngẫu nhiên. Hãy quyết định chiến lược trước dựa trên quan hệ giữa plugin, cách chia sẻ API và yêu cầu cô lập.
+Do not create both layers for the same configuration in a real application just to pick arbitrarily. Decide the strategy upfront based on relationships between plugins, how APIs are shared, and isolation requirements.
 
-## 8. Tìm class loader của module trong layer
+## 8. Finding a Module's Class Loader in a Layer
 
-Sau khi tạo layer, dùng **findLoader** để lấy loader gắn với một module:
+After creating a layer, use **findLoader** to get the loader associated with a module:
 
 ~~~java
 ClassLoader loader =
         pluginLayer.findLoader("com.acme.plugin.alpha");
 ~~~
 
-Hoặc lấy từ đối tượng Module:
+Or obtain it from the Module object:
 
 ~~~java
 Module module =
@@ -251,9 +251,9 @@ Module module =
 ClassLoader loader = module.getClassLoader();
 ~~~
 
-Với module được định nghĩa bởi bootstrap loader, **Module.getClassLoader()** có thể trả về **null**. Đối với plugin module do loader của layer định nghĩa, thông thường nhận được loader tương ứng.
+For modules defined by the bootstrap loader, **Module.getClassLoader()** may return **null**. For plugin modules defined by a layer's loader, you normally receive the corresponding loader.
 
-Có thể nạp class theo tên bằng loader đã tìm:
+You can load a class by name using the retrieved loader:
 
 ~~~java
 Class<?> pluginClass =
@@ -264,63 +264,63 @@ Class<?> pluginClass =
         );
 ~~~
 
-Việc nạp class thành công không đồng nghĩa mọi thao tác truy cập đều được phép. Module readability, exports, opens, visibility của constructor và các quy tắc reflection vẫn được áp dụng.
+Successfully loading a class does not mean every access operation is allowed. Module readability, exports, opens, constructor visibility, and reflection rules still apply.
 
-Nếu ứng dụng cần gọi API plugin, nên dùng interface/service API được export từ module API chung. Tránh dựa vào tên class nội bộ hoặc reflection vào package không được mở.
+If the application needs to invoke plugin APIs, use interfaces/service APIs exported from a shared API module. Avoid relying on internal class names or reflecting into unopened packages.
 
-## 9. Class identity và lỗi ClassCastException
+## 9. Class Identity and ClassCastException Errors
 
-Trong JVM, class identity gắn với tên nhị phân của class và defining class loader. Vì vậy, hai class cùng tên nhưng được định nghĩa bởi hai loader khác nhau là hai kiểu runtime khác nhau.
+In the JVM, class identity is tied to the binary name of the class and its defining class loader. Therefore, two classes with the same name defined by two different loaders are two distinct runtime types.
 
-Ví dụ:
+Example:
 
-- Loader A định nghĩa **com.acme.api.Plugin**.
-- Loader B cũng định nghĩa một bản **com.acme.api.Plugin** khác.
-- Một object implement bản interface do Loader B định nghĩa không thể được cast sang bản interface do Loader A định nghĩa.
+- Loader A defines **com.acme.api.Plugin**.
+- Loader B also defines another copy of **com.acme.api.Plugin**.
+- An object implementing the interface version defined by Loader B cannot be cast to the interface version defined by Loader A.
 
-Điều này có thể gây lỗi:
+This can cause the error:
 
 ~~~text
 ClassCastException: com.acme.api.Plugin cannot be cast to com.acme.api.Plugin
 ~~~
 
-Tên class trong thông báo giống nhau nhưng defining loader khác nhau.
+The class name in the message is identical, but the defining loaders differ.
 
-Để tránh lỗi:
+To prevent this error:
 
-1. Đặt interface/API dùng chung trong boot layer hoặc một parent layer.
-2. Để plugin khai báo **requires** module API chung.
-3. Không đóng gói thêm bản sao API vào từng plugin nếu chúng cần tương tác với host.
-4. Dùng loader của layer để nạp implementation, nhưng giữ kiểu API ở parent layer.
-5. Kiểm tra defining loader khi debug.
+1. Place shared interfaces/APIs in the boot layer or a parent layer.
+2. Have plugins declare **requires** on the shared API module.
+3. Do not bundle duplicate copies of the API inside each plugin if they need to interact with the host.
+4. Use the layer's loader to load implementations, while keeping API types in the parent layer.
+5. Inspect defining loaders when debugging.
 
-Ví dụ kiểm tra:
+Inspection example:
 
 ~~~java
 System.out.println(type.getClassLoader());
 System.out.println(type.getModule());
 ~~~
 
-Với object:
+For an object:
 
 ~~~java
 System.out.println(plugin.getClass().getClassLoader());
 System.out.println(plugin.getClass().getModule());
 ~~~
 
-So sánh cả module và loader giúp xác định object thuộc layer/module nào.
+Comparing both the module and the loader helps determine which layer/module an object belongs to.
 
-## 10. Readability, exports và class loader là ba vấn đề khác nhau
+## 10. Readability, Exports, and Class Loader Are Three Distinct Concerns
 
-Khi một module cần dùng type của module khác, cần phân biệt:
+When one module needs to use a type from another module, distinguish:
 
-- **Class loading**: loader tìm và định nghĩa bytecode.
-- **Readability**: module nguồn có đọc được module chứa type hay không, thường được khai báo bằng **requires**.
-- **Exports**: module đích có export package chứa type cho module nguồn hay không.
+- **Class loading**: the loader finds and defines bytecode.
+- **Readability**: whether the source module can read the module containing the type, typically declared with **requires**.
+- **Exports**: whether the target module exports the package containing the type to the source module.
 
-Nếu class loader tìm thấy class nhưng module không đọc được module chứa class hoặc package không được export, truy cập vẫn có thể thất bại.
+If the class loader finds the class, yet the module cannot read the module containing the class or the package is not exported, access can still fail.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.plugin.api {
@@ -336,15 +336,15 @@ module com.acme.plugin.alpha {
 }
 ~~~
 
-Host hoặc module khác muốn gọi API phải có quan hệ readability phù hợp. Package nội bộ không export không trở thành public API chỉ vì dùng one-loader.
+The host or another module wanting to call the API must have the appropriate readability relationship. Internal unexported packages do not become public API simply by using one-loader.
 
-Đối với deep reflection, module đích có thể cần **opens** package cho module thực hiện reflection. **exports** chủ yếu cho truy cập kiểu public ở mức compile/runtime thông thường; **opens** phục vụ reflection sâu.
+For deep reflection, the target module may need to **opens** the package to the module performing reflection. **exports** is primarily for normal compile/runtime access to public types; **opens** serves deep reflection.
 
-## 11. Dùng ServiceLoader với ModuleLayer
+## 11. Using ServiceLoader with ModuleLayer
 
-Nếu plugin cung cấp implementation của một service, nên dùng **ServiceLoader** thay vì tự ghép tên class và gọi reflection.
+If plugins provide implementations of a service, use **ServiceLoader** instead of assembling class names manually and calling reflection.
 
-Module API:
+API module:
 
 ~~~java
 module com.acme.plugin.api {
@@ -352,7 +352,7 @@ module com.acme.plugin.api {
 }
 ~~~
 
-Interface service:
+Service interface:
 
 ~~~java
 package com.acme.plugin.api;
@@ -374,7 +374,7 @@ module com.acme.plugin.alpha {
 }
 ~~~
 
-Sau khi tạo plugin layer, tìm provider trong layer:
+After creating the plugin layer, locate providers in the layer:
 
 ~~~java
 ServiceLoader<Plugin> plugins =
@@ -386,87 +386,87 @@ for (Plugin plugin : plugins) {
 }
 ~~~
 
-Overload **ServiceLoader.load(layer, service)** tìm provider trong layer được chỉ định và các parent layer của nó. Module chứa lời gọi cũng cần khai báo **uses** cho service khi caller là explicit named module.
+The **ServiceLoader.load(layer, service)** overload locates providers in the specified layer and its parent layers. The module containing the call must also declare **uses** for the service when the caller is an explicit named module.
 
-Nếu plugin module được tạo trong child layer, provider phải được resolve vào layer đó hoặc một parent layer phù hợp. Chỉ đặt JAR trong thư mục plugin chưa đủ nếu module finder, configuration hoặc roots không đưa module vào layer.
+If plugin modules are created in a child layer, providers must be resolved into that layer or an appropriate parent layer. Simply placing a JAR in the plugin directory is not enough if the module finder, configuration, or roots do not include the module in the layer.
 
-## 12. Parent loader và parent layer
+## 12. Parent Loader and Parent Layer
 
-Khi tạo layer, cần phân biệt **parent layer** và **parent class loader**:
+When creating a layer, distinguish **parent layer** and **parent class loader**:
 
-- Parent layer xác định quan hệ module configuration và module graph kế thừa.
-- Parent class loader là loader mà loader mới dùng làm parent trong cấu trúc class loading.
+- The parent layer determines module configuration inheritance and the inherited module graph.
+- The parent class loader is the loader that the new loader uses as its parent in the class loading hierarchy.
 
-Hai khái niệm có liên quan nhưng không thay thế nhau. Một module có thể đọc module từ parent layer theo configuration, còn việc nạp class vẫn đi qua loader tương ứng.
+The two concepts are related, not interchangeable. A module can read modules from a parent layer according to the configuration, while class loading still goes through the corresponding loaders.
 
-Ví dụ dùng boot layer làm parent:
+Example using the boot layer as parent:
 
 ~~~java
 List<ModuleLayer> parents = List.of(ModuleLayer.boot());
 ClassLoader parentLoader = ClassLoader.getSystemClassLoader();
 ~~~
 
-Chọn parent loader phù hợp với môi trường chạy. Trong ứng dụng container hoặc môi trường plugin có custom class loader, không nên mặc định system class loader luôn là lựa chọn đúng. Hãy xác định loader nào nhìn thấy API chung và các thư viện nền tảng mà plugin cần.
+Choose a parent loader suited to the runtime environment. In container applications or plugin environments with custom class loaders, do not assume the system class loader is always the right choice. Identify which loader sees the shared API and platform libraries that plugins require.
 
-## 13. Khi nào nên chọn one-loader hoặc many-loaders?
+## 13. When Should You Choose One-Loader or Many-Loaders?
 
-Chọn **one-loader** khi:
+Choose **one-loader** when:
 
-- Các module trong layer tạo thành một đơn vị triển khai gắn bó.
-- Muốn giảm số lượng loader cần quản lý.
-- Không cần tách class loading theo từng module.
-- API và dependency giữa các module đã được thiết kế rõ.
+- Modules in the layer form a cohesive deployment unit.
+- You want to reduce the number of loaders to manage.
+- Per-module class loading separation is not needed.
+- APIs and dependencies among the modules are clearly designed.
 
-Chọn **many-loaders** khi:
+Choose **many-loaders** when:
 
-- Mỗi module/plugin cần loader riêng.
-- Muốn tách class loading để hạn chế xung đột giữa các module.
-- Cần quản lý nhiều plugin độc lập và có thể kiểm soát dependency.
-- Có thể chấp nhận chi phí quản lý loader và độ phức tạp tăng thêm.
+- Each module/plugin needs its own loader.
+- You want to separate class loading to limit conflicts between modules.
+- You need to manage multiple independent plugins and can control their dependencies.
+- You can accept the loader management overhead and added complexity.
 
-Cả hai cách đều không phải sandbox bảo mật. Class loader riêng không thay thế quy trình kiểm soát plugin, giới hạn quyền truy cập hệ thống, xác minh nguồn artifact hoặc cách ly tiến trình khi chạy mã không đáng tin cậy.
+Neither approach is a security sandbox. Separate class loaders do not replace plugin vetting processes, restricting system permissions, verifying artifact provenance, or process isolation when running untrusted code.
 
-Hiệu năng phụ thuộc số module, số class, kích thước dependency, tần suất nạp class và cách ứng dụng dùng reflection/service. Hãy đo trên workload thật thay vì kết luận một-loader hoặc many-loaders luôn nhanh hơn.
+Performance depends on module count, class count, dependency size, class loading frequency, and how the application uses reflection/services. Measure on a real workload instead of concluding that one-loader or many-loaders is always faster.
 
-## 14. Lỗi thường gặp và cách xử lý
+## 14. Common Errors and How to Handle Them
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common Cause | How to Handle |
 |---|---|---|
-| **FindException** khi resolve | Thiếu module hoặc dependency không resolve được | Kiểm tra ModuleFinder, module path, roots và các directive requires |
-| **ResolutionException** | Module graph không hợp lệ, có thể do split package hoặc xung đột khác | Đọc tên module/package trong lỗi; kiểm tra descriptor và package inventory |
-| **LayerInstantiationException** | Không thể định nghĩa module trong layer theo cách loader đã chọn | Kiểm tra configuration, parent layers và điều kiện package/loader |
-| **ClassNotFoundException** | Tìm sai tên class hoặc dùng loader không gắn với module cần nạp | Dùng đúng tên đầy đủ và lấy loader bằng findLoader |
-| **NoClassDefFoundError** | Dependency runtime không được tìm thấy hoặc class khởi tạo thất bại | Kiểm tra module graph, dependency và nguyên nhân gốc |
-| **ClassCastException** dù tên class giống nhau | Hai bản class được định nghĩa bởi hai loader khác nhau | Đặt API chung trong parent layer và tránh đóng gói trùng API |
-| **IllegalAccessError** | Thiếu readability hoặc package không được export | Kiểm tra requires, exports và module graph |
-| Reflection bị chặn | Package chưa mở cho module thực hiện deep reflection | Dùng opens trong descriptor hoặc cấu hình mở phù hợp |
-| Không tìm thấy provider bằng ServiceLoader | Provider chưa được resolve vào layer hoặc thiếu uses/provides | Kiểm tra module descriptor, roots, layer và dùng overload load(layer, service) |
+| **FindException** during resolve | Missing module or unresolvable dependency | Check ModuleFinder, module path, roots, and requires directives |
+| **ResolutionException** | Invalid module graph, possibly due to split packages or other conflicts | Read module/package names in the error; inspect descriptors and package inventory |
+| **LayerInstantiationException** | Cannot define modules in the layer with the chosen loader mode | Check configuration, parent layers, and package/loader conditions |
+| **ClassNotFoundException** | Wrong class name or using a loader not associated with the target module | Use the exact fully qualified name and retrieve the loader via findLoader |
+| **NoClassDefFoundError** | Runtime dependency not found or class initialization failed | Check module graph, dependencies, and root cause |
+| **ClassCastException** despite identical class names | Two copies of the class defined by two different loaders | Place shared API in a parent layer and avoid bundling duplicate APIs |
+| **IllegalAccessError** | Missing readability or package is not exported | Check requires, exports, and the module graph |
+| Reflection blocked | Package is not opened to the module performing deep reflection | Use opens in the descriptor or appropriate opening configuration |
+| Provider not found via ServiceLoader | Provider not resolved into the layer or missing uses/provides | Check module descriptors, roots, layer, and use the load(layer, service) overload |
 
-Quy trình debug:
+Debugging workflow:
 
-1. In tên module và configuration đang dùng.
-2. Kiểm tra module finder tìm thấy đúng plugin JAR.
-3. Xác nhận configuration resolve được với đúng roots.
-4. Xác định layer parent và cách tạo loader.
-5. Dùng **findLoader** để lấy loader của module.
-6. In **Class.getClassLoader()** và **Class.getModule()** của type gây lỗi.
-7. Kiểm tra requires, exports và opens.
-8. Nếu dùng service, kiểm tra uses/provides và tìm provider trong đúng layer.
+1. Print the module names and configuration being used.
+2. Verify that the module finder locates the right plugin JARs.
+3. Confirm the configuration resolves with the right roots.
+4. Identify the parent layer and how loaders are created.
+5. Use **findLoader** to obtain the module's loader.
+6. Print **Class.getClassLoader()** and **Class.getModule()** of the failing type.
+7. Check requires, exports, and opens.
+8. If using services, check uses/provides and look up providers in the right layer.
 
-## 15. Ghi nhớ
+## 15. Takeaways
 
-- **ModuleLayer** chứa các module đã được resolve và định nghĩa trong runtime.
-- **Configuration** mô tả module graph; nó chưa tự tạo class loader.
-- **defineModulesWithOneLoader** dùng một loader chung cho các module trong configuration.
-- **defineModulesWithManyLoaders** tạo một loader riêng cho mỗi module.
-- Một loader chung không hợp nhất module; readability, exports và opens vẫn được kiểm tra.
-- Class cùng tên nhưng khác defining loader là hai runtime type khác nhau.
-- Đặt API dùng chung trong parent layer giúp host và plugin chia sẻ cùng class identity.
-- Dùng **ModuleLayer.findLoader** để lấy loader của module.
-- Dùng **ServiceLoader.load(layer, service)** khi cần tìm provider trong plugin layer.
-- One-loader và many-loaders là lựa chọn kiến trúc; hãy đo hiệu năng và kiểm thử class identity theo workload thực tế.
+- **ModuleLayer** holds modules that have been resolved and defined at runtime.
+- **Configuration** describes the module graph; it does not create class loaders by itself.
+- **defineModulesWithOneLoader** uses a single shared loader for modules in the configuration.
+- **defineModulesWithManyLoaders** creates a separate loader for each module.
+- A shared loader does not merge modules; readability, exports, and opens are still checked.
+- Classes with the same name but different defining loaders are two distinct runtime types.
+- Placing shared APIs in a parent layer lets the host and plugins share the same class identity.
+- Use **ModuleLayer.findLoader** to retrieve a module's loader.
+- Use **ServiceLoader.load(layer, service)** when locating providers in a plugin layer.
+- One-loader and many-loaders are architectural choices; measure performance and test class identity on real workloads.
 
-## Tài liệu tham khảo
+## References
 
 - [ModuleLayer — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ModuleLayer.html)
 - [Configuration — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/module/Configuration.html)

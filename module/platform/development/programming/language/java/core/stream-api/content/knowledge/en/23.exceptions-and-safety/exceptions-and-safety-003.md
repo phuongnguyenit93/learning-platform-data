@@ -1,86 +1,86 @@
-# Thiết kế kết quả thành công hoặc lỗi cho từng phần tử
+# Designing Success or Failure Outcomes for Each Element
 
-> **Chương:** Ngoại lệ và tính an toàn  
-> **Module:** `JAVA_STREAM_API` — xử lý dữ liệu khai báo bằng Java Stream API qua pipeline lazy, `filter`, `map`, `reduce`, `collect`; thực hành grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers, đồng thời nhận diện các giới hạn về trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Exceptions and Safety  
+> **Module:** `JAVA_STREAM_API` — declarative data processing with the Java Stream API using lazy pipelines, `filter`, `map`, `reduce`, and `collect`; practicing grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers, while recognizing constraints around state, resources, and performance.
 
-Một pipeline xử lý hàng nghìn dòng dữ liệu thường gặp cả **bản ghi hợp lệ** lẫn **bản ghi không hợp lệ**. Ví dụ, khi nhập dữ liệu đơn hàng, một dòng có thể chứa số lượng không phải số nguyên, đơn giá âm hoặc thiếu mã sản phẩm. Nếu lambda trong `map` ném ngoại lệ không được xử lý, terminal operation có thể kết thúc bằng lỗi trước khi ta có báo cáo đầy đủ. Nhưng nếu chỉ bắt ngoại lệ rồi trả `null` hoặc bỏ qua dòng hỏng, dữ liệu sai lại biến mất không có dấu vết.
+A pipeline processing thousands of data lines frequently encounters both **valid records** and **invalid records**. For instance, when importing order data, a line might have a non-integer quantity, a negative unit price, or a missing product SKU. If the lambda in `map` throws an unhandled exception, the terminal operation can abort with an error before we obtain a full report. Yet if you simply catch the exception and return `null` or skip the broken line, bad data disappears without a trace.
 
-Một cách thiết kế hữu ích là: **mỗi phần tử đầu vào tạo ra một kết quả có kiểu rõ ràng: thành công hoặc thất bại**. Sau khi xử lý, ta có thể thu thập cả hai nhóm, tiếp tục tổng hợp phần thành công và báo cáo lỗi theo từng dòng. Đây là mô hình *result as data*: lỗi dự kiến của dữ liệu được thể hiện bằng giá trị, trong khi lỗi lập trình hay sự cố hệ thống vẫn được xử lý bằng cơ chế ngoại lệ thích hợp.
+A useful design is: **each input element produces a strongly typed outcome: success or failure**. Afterward, we can collect both groups, continue aggregating the valid items, and report errors line by line. This is the *result as data* model: expected data errors are represented as values, while programming bugs or system failures continue to be handled via appropriate exception mechanisms.
 
-Bài viết dùng **Java 17+**, với `sealed interface`, `record`, `Stream.map`, `filter`, `toList` và `BigDecimal`. Ví dụ độc lập có bộ kiểm tra cho dữ liệu hợp lệ, nhiều kiểu lỗi, nguồn rỗng, `null`, thứ tự và xử lý song song.
+This article uses **Java 17+**, with `sealed interface`, `record`, `Stream.map`, `filter`, `toList`, and `BigDecimal`. The standalone example includes tests covering valid data, multiple error kinds, empty sources, `null`, ordering, and parallel execution.
 
-## 1. Vấn đề: một dòng hỏng có thể làm hỏng cả đợt xử lý
+## 1. The Problem: One Broken Line Can Break the Whole Batch
 
-Giả sử file nhập có mỗi dòng theo định dạng đơn giản:
+Suppose an import file has each line in a simple format:
 
 ```text
 SKU,quantity,unitPrice
 ```
 
-Trong phạm vi ví dụ, mỗi dòng dữ liệu **không có dòng tiêu đề**, gồm đúng ba cột, không có dấu phẩy nằm bên trong một trường. Đây là định dạng nhỏ để học xử lý lỗi, **không phải parser CSV chuẩn** (CSV thật còn có dấu ngoặc kép, escape và nhiều quy tắc khác).
+Within this example's scope, data lines have **no header line**, consist of exactly three columns, and contain no commas inside a field. This is a small format for learning error handling, **not a standard CSV parser** (real CSV involves quotes, escapes, and additional rules).
 
-Nguồn mẫu:
+Sample source:
 
-| Dòng | Văn bản | Kết quả dự kiến |
+| Line | Text | Expected outcome |
 | ---: | --- | --- |
-| 1 | `PEN,2,12.50` | Thành công; thành tiền `25.00`. |
-| 2 | `NOTE,0,9.99` | Lỗi: số lượng phải dương. |
-| 3 | `BOOK,1,80.00` | Thành công; thành tiền `80.00`. |
-| 4 | `PEN,abc,1.20` | Lỗi: số lượng không phải số nguyên. |
-| 5 | `BAG,3,-10.00` | Lỗi: đơn giá âm. |
-| 6 | `BAD` | Lỗi: không đủ ba cột. |
-| 7 | `,5,4.00` | Lỗi: mã sản phẩm rỗng. |
-| 8 | `RULER,3,2.00` | Thành công; thành tiền `6.00`. |
+| 1 | `PEN,2,12.50` | Success; line total `25.00`. |
+| 2 | `NOTE,0,9.99` | Failure: quantity must be positive. |
+| 3 | `BOOK,1,80.00` | Success; line total `80.00`. |
+| 4 | `PEN,abc,1.20` | Failure: quantity is not an integer. |
+| 5 | `BAG,3,-10.00` | Failure: unit price is negative. |
+| 6 | `BAD` | Failure: fewer than three columns. |
+| 7 | `,5,4.00` | Failure: product SKU is empty. |
+| 8 | `RULER,3,2.00` | Success; line total `6.00`. |
 
-Kết quả nghiệp vụ cần nhận được:
+Expected business summary:
 
 ```text
-Tổng đầu vào:    8 dòng
-Thành công:      3 dòng (1, 3, 8)
-Thất bại:        5 dòng (2, 4, 5, 6, 7)
-Tổng tiền đúng:  111.00
+Total input:     8 lines
+Succeeded:       3 lines (1, 3, 8)
+Failed:          5 lines (2, 4, 5, 6, 7)
+Valid revenue:   111.00
 ```
 
-Tổng tiền chỉ tính trên dòng hợp lệ: `25.00 + 80.00 + 6.00 = 111.00`. Dòng không hợp lệ **không bị mất**; nó được đưa vào nhánh lỗi để sửa dữ liệu hoặc hiển thị cho người nhập.
+Total revenue sums only valid lines: `25.00 + 80.00 + 6.00 = 111.00`. Invalid lines **are not lost**; they go into the error branch for data correction or display to the uploader.
 
-### Ba cách làm và hệ quả
+### Three Approaches and Their Consequences
 
-| Thiết kế | Khi gặp một dòng sai | Hạn chế |
+| Design | On a bad line | Limitation |
 | --- | --- | --- |
-| `map(Integer::parseInt)` và để ngoại lệ thoát ra | Terminal operation thất bại nếu ngoại lệ không được xử lý. | Khó tạo báo cáo đầy đủ cho mọi dòng. |
-| `try/catch` rồi trả `null` / `Optional.empty()` | Pipeline có thể tiếp tục. | Nếu chỉ giữ giá trị thành công, thường mất nguyên nhân và vị trí lỗi. |
-| `map(line -> parse(line))` trả `Success` hoặc `Failure` | Mỗi dòng có kết quả tường minh; có thể tiếp tục xử lý. | Phải thiết kế kiểu dữ liệu và chính sách báo lỗi rõ ràng. |
+| `map(Integer::parseInt)` letting exceptions escape | Terminal operation fails if exception is unhandled. | Hard to produce a complete report for all lines. |
+| `try/catch` returning `null` / `Optional.empty()` | Pipeline can continue. | Keeping only valid values usually loses error cause and position. |
+| `map(line -> parse(line))` returning `Success` or `Failure` | Every line gets an explicit outcome; processing continues. | Must design result types and explicit error-reporting policy. |
 
-Mô hình thứ ba phù hợp khi lỗi **đã dự đoán được ở cấp từng dòng** và yêu cầu là *thu thập lỗi, không dừng toàn bộ lô*. Nó **không có nghĩa mọi ngoại lệ trong chương trình đều nên bị biến thành dữ liệu**.
+The third model fits when errors are **expected at the per-line level** and the requirement is to *collect errors rather than halt the entire batch*. It **does not mean every exception in the program should be turned into data**.
 
-## 2. Phân biệt lỗi dữ liệu dự kiến và sự cố bất thường
+## 2. Distinguishing Expected Data Errors from Unexpected Failures
 
-Trước khi viết `Result`, hãy xác định **ranh giới trách nhiệm**.
+Before writing `Result`, define the **responsibility boundary**.
 
-### Lỗi dự kiến có thể trả về theo từng phần tử
+### Expected Errors Returnable Per Element
 
-- Thiếu cột hoặc sai cấu trúc của một dòng đầu vào.
-- Số lượng không phải số nguyên, hoặc nhỏ hơn hoặc bằng 0.
-- Giá trị đơn giá không phân tích được thành số thập phân.
-- Mã sản phẩm rỗng hoặc không hợp lệ theo quy tắc nghiệp vụ.
-- Một điều kiện nghiệp vụ rõ ràng không được đáp ứng.
+- Missing columns or malformed structure in an input line.
+- Quantity that is not an integer, or is less than or equal to 0.
+- Unit price string that cannot be parsed into a decimal number.
+- Empty or invalid product SKU under business rules.
+- Any explicit business condition that is not satisfied.
 
-Các tình huống này nên tạo một đối tượng lỗi có **mã lỗi, vị trí và mô tả an toàn**, để những dòng khác có thể tiếp tục được xử lý.
+These situations should produce an error object with an **error code, location, and safe description**, allowing remaining lines to continue processing.
 
-### Lỗi không nên bị nuốt trong một `catch (Exception)` chung
+### Errors That Should Not Be Swallowed in a Broad `catch (Exception)`
 
-- `NullPointerException` do lập trình sai hoặc một invariant nội bộ bị vi phạm bất ngờ.
-- `OutOfMemoryError`, lỗi tài nguyên nghiêm trọng hoặc lỗi hệ thống không thể khôi phục bằng việc bỏ một dòng.
-- Lỗi kết nối đến dịch vụ dùng chung, hết quyền truy cập file hoặc cấu hình sai khiến **mọi dòng** đều không thể xử lý.
-- Hủy tác vụ, ngắt luồng, timeout hoặc các vấn đề lifecycle khác cần được truyền tới tầng điều phối.
+- `NullPointerException` from programming bugs or an unexpected internal invariant violation.
+- `OutOfMemoryError`, severe resource exhaustion, or system errors unrecoverable by dropping one line.
+- Connection failures to a shared service, file permission errors, or misconfigurations preventing **every line** from being processed.
+- Task cancellation, thread interruption, timeouts, or other lifecycle concerns that must reach the orchestrating layer.
 
-Với công việc có I/O, hãy phân biệt **lỗi dịch vụ cho một yêu cầu** (đôi khi có thể là `Failure` theo hợp đồng) với **sự cố hạ tầng** đòi hỏi retry, dừng lô hoặc báo lỗi cấp job. Khi bắt `InterruptedException` ở những API có thể ngắt, thông thường cần khôi phục cờ ngắt bằng `Thread.currentThread().interrupt()` và truyền trạng thái hủy theo chính sách của ứng dụng, không âm thầm chuyển thành một lỗi dữ liệu bình thường.
+For I/O-backed work, distinguish **per-request service errors** (sometimes representable as a `Failure` per contract) from **infrastructure failures** requiring retries, batch abortion, or job-level alerts. When catching `InterruptedException` in interruptible APIs, normally restore the interrupt flag via `Thread.currentThread().interrupt()` and propagate cancellation per application policy instead of silently converting it into a normal data error.
 
-**Nguyên tắc:** chỉ chuyển sang `Failure` những lỗi đã được định nghĩa trong hợp đồng của thao tác đó; không dùng `catch (Throwable)` để giữ pipeline bằng mọi giá.
+**Rule:** convert to `Failure` only errors defined in that operation's contract; never use `catch (Throwable)` to force a pipeline to keep running.
 
-## 3. Mô hình hóa kết quả bằng `sealed interface` và `record`
+## 3. Modeling Outcomes with `sealed interface` and `record`
 
-Trong Java 17, `sealed interface` cho phép giới hạn những kiểu triển khai hợp lệ. Ta dùng hai kiểu:
+In Java 17, `sealed interface` restricts valid implementations. We use two variants:
 
 ```java
 sealed interface RowOutcome permits Success, Failure {
@@ -96,9 +96,9 @@ record Failure(
 ) implements RowOutcome {}
 ```
 
-Với mỗi phần tử đầu vào, kết quả có thể là **`Success` hoặc `Failure`**, không phải một giá trị mơ hồ như `null`. `lineNo` xuất hiện ở cả hai nhánh, giúp ghép kết quả với vị trí ban đầu.
+For each input element, the outcome is either **`Success` or `Failure`**, never an ambiguous value like `null`. `lineNo` appears on both variants, linking each result back to its original position.
 
-`ErrorCode` là một enum có giá trị ổn định:
+`ErrorCode` is an enum with stable constants:
 
 ```java
 enum ErrorCode {
@@ -112,43 +112,43 @@ enum ErrorCode {
 }
 ```
 
-Tách `code` khỏi `message` giúp:
+Separating `code` from `message` helps:
 
-- Kiểm thử dựa trên **mã lỗi**, tránh phụ thuộc câu chữ mô tả.
-- Phân loại lỗi thống kê, ví dụ bao nhiêu dòng bị sai số lượng.
-- Thay đổi ngôn ngữ thông báo mà không phá logic.
-- Không phải lưu nguyên văn dữ liệu nhạy cảm trong thông báo.
+- Test against **error codes**, avoiding brittle assertions on message wording.
+- Aggregate error statistics, such as how many lines had an invalid quantity.
+- Localize or reword messages without breaking logic.
+- Avoid storing sensitive raw input verbatim inside messages.
 
-Mô hình kiểu này là một **domain-specific result** cho một bài toán nhập liệu. Trong thư viện tái sử dụng, có thể xây dựng kiểu tổng quát `Result<T, E>`, nhưng ở ví dụ học Stream, hai `record` cụ thể giúp trình bày rõ hơn.
+This design is a **domain-specific result** for an import problem. In a reusable library, you could build a generic `Result<T, E>`, whereas in a Stream learning example, two concrete `record`s keep the presentation clearer.
 
-### Khi nào chọn `Optional`?
+### When to Choose `Optional`?
 
-`Optional<T>` diễn tả **có hoặc không có giá trị**, nhưng tự nó không nêu lý do vì sao không có. Nếu nghiệp vụ chỉ cần “có tìm thấy sản phẩm không?”, `Optional<Product>` là phù hợp. Nếu cần “dòng số 4 sai vì số lượng `abc`”, dùng kiểu lỗi có cấu trúc sẽ hữu ích hơn.
+`Optional<T>` expresses **presence or absence of a value**, yet by itself gives no reason why it is absent. If business logic only asks “was a product found?”, `Optional<Product>` fits. If it needs “line 4 failed because quantity was `abc`”, a structured error type is much more useful.
 
 ```text
 Optional<Order>:
-  present → có Order
-  empty   → không có Order, không có mã lỗi
+  present → Order exists
+  empty   → no Order, no error code
 
 RowOutcome:
-  Success → có Order và số dòng
-  Failure → có số dòng, mã lỗi, thông báo
+  Success → Order and line number
+  Failure → line number, error code, message
 ```
 
-Không cần coi hai mô hình là đối thủ: một `Success` vẫn có thể chứa một trường `Optional` nếu **chính trường đó** thực sự tùy chọn theo nghiệp vụ.
+You do not have to treat both models as mutually exclusive: a `Success` can still hold an `Optional` field if **that specific field** is genuinely optional in the domain.
 
-## 4. Thiết kế hàm parse thuần: một đầu vào, một kết quả
+## 4. Designing a Pure Parse Function: One Input, One Outcome
 
-Hàm `parseLine(lineNo, raw)` có trách nhiệm:
+The `parseLine(lineNo, raw)` function is responsible for:
 
-1. Kiểm tra dòng rỗng hoặc `null`.
-2. Kiểm tra đúng ba cột.
-3. Đọc và kiểm tra `sku`.
-4. Phân tích `quantity`, trả lỗi tương ứng nếu sai hoặc không dương.
-5. Phân tích `unitPrice` bằng `BigDecimal`, trả lỗi nếu sai hoặc âm.
-6. Chỉ khi mọi điều kiện đều đạt mới tạo `Success`.
+1. Checking for a blank or `null` line.
+2. Checking for exactly three columns.
+3. Reading and validating `sku`.
+4. Parsing `quantity`, returning the corresponding failure if invalid or non-positive.
+5. Parsing `unitPrice` with `BigDecimal`, returning a failure if invalid or negative.
+6. Creating `Success` only when all conditions pass.
 
-Sơ đồ:
+Diagram:
 
 ```text
 Input(lineNo, raw)
@@ -156,37 +156,37 @@ Input(lineNo, raw)
           ▼
       parseLine
           │
-          ├── thiếu/sai cột ───► Failure(lineNo, code, message)
-          ├── SKU sai       ───► Failure(lineNo, code, message)
-          ├── số lượng sai  ───► Failure(lineNo, code, message)
-          ├── đơn giá sai   ───► Failure(lineNo, code, message)
+          ├── missing/bad columns ─► Failure(lineNo, code, message)
+          ├── bad SKU             ─► Failure(lineNo, code, message)
+          ├── bad quantity        ─► Failure(lineNo, code, message)
+          ├── bad unit price      ─► Failure(lineNo, code, message)
           │
-          └── hợp lệ ──────────► Success(lineNo, Order)
+          └── valid ───────────────► Success(lineNo, Order)
 ```
 
-Với thiết kế này, hàm parse **không in log, không sửa danh sách nguồn, không cộng vào biến bên ngoài**. Tất cả thông tin cần thiết nằm trong tham số và giá trị trả về. Vì vậy, việc gọi nó từ một `map` ở Stream tuần tự hoặc song song không phụ thuộc vào trạng thái mutable dùng chung.
+With this design, the parse function **does not log, mutate the source list, or update external counters**. Everything needed is in its parameters and return value. Calling it from `map` in a sequential or parallel Stream does not depend on shared mutable state.
 
-### Vì sao không để `NumberFormatException` lan ra?
+### Why Not Let `NumberFormatException` Escape?
 
-`Integer.parseInt("abc")` và `new BigDecimal("x")` có thể ném `NumberFormatException`. Trong bài toán nhập liệu, đây là **lỗi dữ liệu dự kiến**. Ta bắt chính ngoại lệ này ở nơi chuyển đổi cụ thể và trả mã `INVALID_QUANTITY` hoặc `INVALID_PRICE`.
+`Integer.parseInt("abc")` and `new BigDecimal("x")` can throw `NumberFormatException`. In an import workflow, this is an **expected data error**. We catch that exact exception at the specific conversion site and return `INVALID_QUANTITY` or `INVALID_PRICE`.
 
 ```java
 try {
     int quantity = Integer.parseInt(rawQuantity);
-    // Dùng quantity sau khi parse thành công.
+    // Use quantity after successful parse.
 } catch (NumberFormatException invalid) {
     return new Failure(
             lineNo,
             ErrorCode.INVALID_QUANTITY,
-            "Số lượng phải là số nguyên");
+            "Quantity must be an integer");
 }
 ```
 
-Không cần `catch (RuntimeException)` quanh **toàn bộ pipeline**: cách làm đó dễ che giấu lỗi lập trình, và một `catch` rộng không đủ để xác định dòng nào gây ra vấn đề nếu không bảo toàn metadata đầu vào.
+There is no need for `catch (RuntimeException)` around **the entire pipeline**: doing so risks hiding programming bugs, and a broad `catch` cannot identify which line failed without preserving input metadata.
 
-## 5. Chương trình Java 17+ hoàn chỉnh
+## 5. Complete Java 17+ Program
 
-Lưu chương trình sau vào `PerElementOutcomeDemo.java`. Nó gồm model bất biến, parser theo từng dòng, báo cáo chứa cả thành công lẫn lỗi, và các ca kiểm thử tự chạy trong `main`.
+Save the following program to `PerElementOutcomeDemo.java`. It includes immutable models, a per-line parser, a report containing both successes and failures, and self-running test cases in `main`.
 
 ```java
 import java.math.BigDecimal;
@@ -212,11 +212,11 @@ public class PerElementOutcomeDemo {
             Objects.requireNonNull(sku, "sku");
             Objects.requireNonNull(unitPrice, "unitPrice");
             if (sku.isBlank()) {
-                throw new IllegalArgumentException("SKU không được rỗng");
+                throw new IllegalArgumentException("SKU cannot be blank");
             }
             if (quantity <= 0 || unitPrice.signum() < 0) {
                 throw new IllegalArgumentException(
-                        "Số lượng và đơn giá phải hợp lệ");
+                        "Quantity and unit price must be valid");
             }
         }
 
@@ -232,7 +232,7 @@ public class PerElementOutcomeDemo {
     record Success(int lineNo, Order order) implements RowOutcome {
         Success {
             if (lineNo <= 0) {
-                throw new IllegalArgumentException("Số dòng phải dương");
+                throw new IllegalArgumentException("Line number must be positive");
             }
             Objects.requireNonNull(order, "order");
         }
@@ -245,7 +245,7 @@ public class PerElementOutcomeDemo {
     ) implements RowOutcome {
         Failure {
             if (lineNo <= 0) {
-                throw new IllegalArgumentException("Số dòng phải dương");
+                throw new IllegalArgumentException("Line number must be positive");
             }
             Objects.requireNonNull(code, "code");
             Objects.requireNonNull(message, "message");
@@ -259,8 +259,8 @@ public class PerElementOutcomeDemo {
             BigDecimal revenue
     ) {
         BatchReport {
-            // Công bố bản sao không sửa được; không giữ List mutable
-            // do phía gọi có thể thay đổi sau khi xây báo cáo.
+            // Expose unmodifiable copies; never retain mutable Lists
+            // that callers could mutate after building the report.
             outcomes = List.copyOf(outcomes);
             successes = List.copyOf(successes);
             failures = List.copyOf(failures);
@@ -270,22 +270,22 @@ public class PerElementOutcomeDemo {
 
     static RowOutcome parseLine(int lineNo, String raw) {
         if (lineNo <= 0) {
-            throw new IllegalArgumentException("lineNo phải dương");
+            throw new IllegalArgumentException("lineNo must be positive");
         }
         if (raw == null || raw.isBlank()) {
             return new Failure(
                     lineNo,
                     ErrorCode.EMPTY_RECORD,
-                    "Dòng nhập rỗng");
+                    "Input line is blank");
         }
 
-        // -1 giữ cột rỗng ở cuối, giúp phân biệt thiếu dữ liệu.
+        // -1 keeps trailing empty columns to detect missing fields.
         String[] fields = raw.split(",", -1);
         if (fields.length != 3) {
             return new Failure(
                     lineNo,
                     ErrorCode.WRONG_COLUMN_COUNT,
-                    "Mỗi dòng cần đúng 3 cột");
+                    "Each line must have exactly 3 columns");
         }
 
         String sku = fields[0].strip();
@@ -293,7 +293,7 @@ public class PerElementOutcomeDemo {
             return new Failure(
                     lineNo,
                     ErrorCode.EMPTY_SKU,
-                    "Mã sản phẩm không được rỗng");
+                    "Product SKU cannot be empty");
         }
 
         final int quantity;
@@ -303,13 +303,13 @@ public class PerElementOutcomeDemo {
             return new Failure(
                     lineNo,
                     ErrorCode.INVALID_QUANTITY,
-                    "Số lượng phải là số nguyên");
+                    "Quantity must be an integer");
         }
         if (quantity <= 0) {
             return new Failure(
                     lineNo,
                     ErrorCode.NON_POSITIVE_QUANTITY,
-                    "Số lượng phải lớn hơn 0");
+                    "Quantity must be greater than 0");
         }
 
         final BigDecimal unitPrice;
@@ -319,13 +319,13 @@ public class PerElementOutcomeDemo {
             return new Failure(
                     lineNo,
                     ErrorCode.INVALID_PRICE,
-                    "Đơn giá phải là số thập phân hợp lệ");
+                    "Unit price must be a valid decimal number");
         }
         if (unitPrice.signum() < 0) {
             return new Failure(
                     lineNo,
                     ErrorCode.NEGATIVE_PRICE,
-                    "Đơn giá không được âm");
+                    "Unit price cannot be negative");
         }
 
         return new Success(
@@ -336,7 +336,7 @@ public class PerElementOutcomeDemo {
     static BatchReport analyze(List<String> source, boolean parallel) {
         Objects.requireNonNull(source, "source");
 
-        // Chỉ số i xác định lineNo, không phụ thuộc thread.
+        // Index i determines lineNo independently of threads.
         IntStream indices = IntStream.range(0, source.size());
         if (parallel) {
             indices = indices.parallel();
@@ -346,8 +346,8 @@ public class PerElementOutcomeDemo {
                 .mapToObj(i -> parseLine(i + 1, source.get(i)))
                 .toList();
 
-        // toList() giữ encounter order của IntStream.range.
-        // Từ List đã vật hóa, mỗi lần stream() là một Stream mới.
+        // toList() preserves encounter order of IntStream.range.
+        // From a materialized List, each stream() call creates a fresh Stream.
         List<Success> successes = outcomes.stream()
                 .filter(Success.class::isInstance)
                 .map(Success.class::cast)
@@ -397,22 +397,22 @@ public class PerElementOutcomeDemo {
         BatchReport sequential = analyze(source, false);
 
         check(sequential.outcomes().size() == source.size(),
-                "Mất một số dòng đầu vào");
-        check(sequential.successes().size() == 3, "Số dòng thành công");
-        check(sequential.failures().size() == 5, "Số dòng thất bại");
+                "Lost some input lines");
+        check(sequential.successes().size() == 3, "Success count");
+        check(sequential.failures().size() == 5, "Failure count");
         check(sequential.successes().size()
                 + sequential.failures().size() == source.size(),
-                "Một dòng không có đúng một kết quả");
-        checkMoney(sequential.revenue(), "111.00", "Tổng doanh thu");
+                "A line did not produce exactly one outcome");
+        checkMoney(sequential.revenue(), "111.00", "Total revenue");
 
         check(sequential.successes().stream()
                 .map(Success::lineNo)
                 .toList().equals(List.of(1, 3, 8)),
-                "Vị trí các dòng thành công");
+                "Success line numbers");
         check(sequential.failures().stream()
                 .map(Failure::lineNo)
                 .toList().equals(List.of(2, 4, 5, 6, 7)),
-                "Vị trí các dòng thất bại");
+                "Failure line numbers");
         check(sequential.failures().stream()
                 .map(Failure::code)
                 .toList().equals(List.of(
@@ -421,55 +421,55 @@ public class PerElementOutcomeDemo {
                         ErrorCode.NEGATIVE_PRICE,
                         ErrorCode.WRONG_COLUMN_COUNT,
                         ErrorCode.EMPTY_SKU)),
-                "Phân loại mã lỗi");
+                "Error code classification");
 
-        // Cùng dữ liệu, kết quả phải tương đương ở hai chế độ.
+        // Given the same data, both modes must match.
         BatchReport parallel = analyze(source, true);
         check(sequential.equals(parallel),
-                "Kết quả song song khác tuần tự");
+                "Parallel result differs from sequential");
 
-        // Nguồn rỗng không phát Success/Failure, tiền bằng 0.
+        // Empty source yields no Success/Failure, revenue is 0.
         BatchReport empty = analyze(List.of(), true);
-        check(empty.outcomes().isEmpty(), "Kết quả nguồn rỗng");
-        check(empty.successes().isEmpty(), "Success nguồn rỗng");
-        check(empty.failures().isEmpty(), "Failure nguồn rỗng");
-        checkMoney(empty.revenue(), "0", "Tiền nguồn rỗng");
+        check(empty.outcomes().isEmpty(), "Empty source outcomes");
+        check(empty.successes().isEmpty(), "Empty source successes");
+        check(empty.failures().isEmpty(), "Empty source failures");
+        checkMoney(empty.revenue(), "0", "Empty source revenue");
 
-        // Một dòng sai vẫn tạo Failure thay vì mất dữ liệu.
+        // One bad line produces Failure instead of losing data.
         BatchReport invalidOnly =
                 analyze(List.of("A,0,1.00"), false);
-        check(invalidOnly.successes().isEmpty(), "Dòng sai đã lọt");
-        check(invalidOnly.failures().size() == 1, "Thiếu lỗi dòng sai");
-        checkMoney(invalidOnly.revenue(), "0", "Tiền khi toàn lỗi");
+        check(invalidOnly.successes().isEmpty(), "Invalid line slipped through");
+        check(invalidOnly.failures().size() == 1, "Missing failure for bad line");
+        checkMoney(invalidOnly.revenue(), "0", "Revenue when all fail");
 
-        // Số thập phân phải cộng chính xác bằng BigDecimal.
+        // Decimals must sum accurately with BigDecimal.
         BatchReport decimals = analyze(
                 List.of("A,1,0.10", "B,1,0.20"), false);
-        checkMoney(decimals.revenue(), "0.30", "Cộng thập phân");
+        checkMoney(decimals.revenue(), "0.30", "Decimal addition");
 
-        // null tại một dòng là lỗi dữ liệu nếu hợp đồng cho phép.
+        // null on a line is a data error if the contract allows it.
         RowOutcome missing = parseLine(42, null);
-        check(missing instanceof Failure, "Không bắt null");
+        check(missing instanceof Failure, "Failed to catch null");
         check(((Failure) missing).code() == ErrorCode.EMPTY_RECORD,
-                "Sai mã lỗi dòng null");
-        check(missing.lineNo() == 42, "Mất vị trí dòng null");
+                "Wrong error code for null line");
+        check(missing.lineNo() == 42, "Lost line number for null line");
 
-        // Tạo lại bằng vòng lặp để đối chiếu thứ tự mapToObj.
+        // Rebuild with a loop to verify mapToObj ordering.
         List<RowOutcome> expectedOrder = new ArrayList<>();
         for (int i = 0; i < source.size(); i++) {
             expectedOrder.add(parseLine(i + 1, source.get(i)));
         }
         check(sequential.outcomes().equals(expectedOrder),
-                "Sai thứ tự kết quả so với đầu vào");
+                "Outcome order differs from input");
 
-        // Danh sách được công bố từ report không thể sửa.
+        // Lists exposed by the report cannot be mutated.
         boolean rejectedMutation = false;
         try {
             sequential.failures().clear();
         } catch (UnsupportedOperationException expected) {
             rejectedMutation = true;
         }
-        check(rejectedMutation, "Danh sách lỗi phải bất biến");
+        check(rejectedMutation, "Failure list must be unmodifiable");
     }
 
     public static void main(String[] args) {
@@ -489,14 +489,14 @@ public class PerElementOutcomeDemo {
 }
 ```
 
-Chạy trên JDK 17 trở lên:
+Run on JDK 17 or later:
 
 ```text
 javac PerElementOutcomeDemo.java
 java PerElementOutcomeDemo
 ```
 
-Đầu ra kỳ vọng:
+Expected output:
 
 ```text
 Input: 8
@@ -511,11 +511,11 @@ line=7, code=EMPTY_SKU
 ALL ROW OUTCOME TESTS PASS
 ```
 
-Các phép `check(...)` ném `AssertionError` khi không đạt, không phụ thuộc tùy chọn `-ea`. Ví dụ được cung cấp để người học biên dịch và chạy; trong bước biên soạn Markdown này, mã chưa được thực thi.
+The `check(...)` helpers throw `AssertionError` on failure without relying on `-ea`. The example is provided for learners to compile and run; during authoring of this Markdown file, the code has not been executed.
 
-## 6. Vì sao phải giữ cả `Success` và `Failure`?
+## 6. Why Keep Both `Success` and `Failure`?
 
-Nếu chỉ viết:
+If you only write:
 
 ```java
 List<Order> accepted = input.stream()
@@ -524,11 +524,11 @@ List<Order> accepted = input.stream()
         .toList();
 ```
 
-đoạn này chỉ là **mã phác thảo**: `parseWithoutLineNumber` không được định nghĩa trong chương trình hoàn chỉnh. Nó minh họa một thiết kế thường gặp là chuyển bản ghi thành `Optional<Order>` rồi dùng `flatMap(Optional::stream)` để bỏ những bản ghi không có kết quả.
+this snippet is only a **sketch**: `parseWithoutLineNumber` is not defined in the complete program. It illustrates a common design that converts a record into `Optional<Order>` and uses `flatMap(Optional::stream)` to drop records without a value.
 
-Thiết kế đó có thể phù hợp cho yêu cầu **bỏ qua phần tử không đủ điều kiện**. Nhưng với import dữ liệu cần báo cáo lỗi, nó làm mất thông tin: có bao nhiêu dòng bị bỏ, chúng ở đâu, sai vì lý do gì?
+That design can fit requirements that **discard ineligible elements**. However, for data imports needing error reporting, it loses information: how many lines were dropped, where were they, and why did they fail?
 
-Với `RowOutcome`, giữ được hai nhánh:
+With `RowOutcome`, both branches are preserved:
 
 ```text
                    List<RowOutcome>
@@ -540,20 +540,20 @@ Với `RowOutcome`, giữ được hai nhánh:
      Order / amount               lineNo / code
           │                             │
           ▼                             ▼
-    Doanh thu hợp lệ             Báo cáo nhập liệu
+    Valid revenue                 Import error report
 ```
 
-Một chỉ số quan trọng để kiểm thử là:
+An important invariant to test is:
 
 ```text
 successCount + failureCount == inputCount
 ```
 
-Điều này đúng trong ví dụ vì **mỗi dòng được xử lý một lần và tạo đúng một `RowOutcome`**. Nếu nghiệp vụ cho phép *bỏ qua chủ đích* một số dòng (như dòng header hoặc comment), hãy mô hình hóa một trạng thái `Skipped` hoặc lọc chúng trước khi đếm, thay vì làm kiểm thử che khuất phần tử đã mất.
+This holds in the example because **each line is processed once and yields exactly one `RowOutcome`**. If business rules allow *intentionally skipping* certain lines (such as headers or comments), model a `Skipped` state or filter them out before counting, rather than letting tests mask missing elements.
 
-### Còn `Collectors.partitioningBy` thì sao?
+### What About `Collectors.partitioningBy`?
 
-Ta có thể phân vùng `RowOutcome` theo kiểu:
+You can partition `RowOutcome` by type:
 
 ```java
 import java.util.Map;
@@ -568,13 +568,13 @@ List<RowOutcome> successBranch = groups.get(true);
 List<RowOutcome> failureBranch = groups.get(false);
 ```
 
-Đây là một cách phân nhóm thuận tiện khi chỉ có hai loại kết quả; `report` là biến `BatchReport` từ chương trình ở mục 5. Giá trị trong hai nhánh vẫn có kiểu khai báo chung `RowOutcome`, nên cần kiểm tra hoặc cast nếu muốn truy cập các trường chỉ tồn tại trên `Success` hay `Failure`. Trong ví dụ hoàn chỉnh, `filter(Success.class::isInstance)` kết hợp `map(Success.class::cast)` giúp tạo ngay các danh sách có kiểu cụ thể.
+This is a convenient grouping when there are only two outcome types; `report` is the `BatchReport` variable from the program in section 5. Elements in both branches still have the common declared type `RowOutcome`, so checking or casting is needed to access fields exclusive to `Success` or `Failure`. In the complete example, `filter(Success.class::isInstance)` paired with `map(Success.class::cast)` directly yields concretely typed lists.
 
-## 7. Thứ tự và dòng lỗi: tuyệt đối không lấy thứ tự thread làm số dòng
+## 7. Ordering and Error Lines: Never Use Thread Order as Line Number
 
-Một câu hỏi thực tế: nếu dùng `parallelStream()` thì `lineNo` có còn đúng không?
+A practical question: if we use `parallelStream()`, will `lineNo` still be correct?
 
-Trong ví dụ, `lineNo` được gắn từ **chỉ số của danh sách nguồn**:
+In the example, `lineNo` is assigned from **the source list index**:
 
 ```java
 IntStream indices = IntStream.range(0, source.size());
@@ -586,48 +586,48 @@ List<RowOutcome> outcomes = indices
         .toList();
 ```
 
-`IntStream.range` có encounter order. `toList()` giữ thứ tự tương ứng khi nguồn và pipeline giữ thứ tự, ngay cả khi phép `mapToObj` được thực hiện bởi các worker khác nhau. Do `lineNo` lấy từ `i + 1`, mã dòng cũng không phụ thuộc vào thứ tự lập lịch.
+`IntStream.range` has an encounter order. `toList()` preserves that order when the source and pipeline preserve order, even when `mapToObj` executes across different workers. Because `lineNo` comes from `i + 1`, line numbers also do not depend on scheduling order.
 
-**Không làm như sau:**
+**Do not do this:**
 
 ```java
-// Không nên: biến count mutable dùng chung khi chạy song song.
+// Avoid: shared mutable counter during parallel execution.
 // int[] counter = {0};
 // source.parallelStream()
 //       .map(raw -> parseLine(++counter[0], raw))
 //       .toList();
 ```
 
-Mã trên có race condition và có thể gán số dòng sai. Ngay cả nếu dùng `AtomicInteger` để tránh race, số thứ tự được cấp theo **thời điểm callback chạy**, không nhất thiết là **vị trí dòng trong nguồn**. Một biến đếm thread-safe không tự biến lịch thực thi song song thành encounter order.
+The code above has a race condition and can assign wrong line numbers. Even if `AtomicInteger` were used to avoid races, numbers would be assigned by **when callbacks execute**, not necessarily by **source line position**. A thread-safe counter does not turn parallel scheduling into encounter order.
 
-### Nếu nguồn là file đọc tuần tự?
+### What If the Source Is a Sequential File?
 
-Với nguồn file được đọc có thứ tự, có thể gắn `lineNo` trong quá trình đọc, rồi chuyển thành các đối tượng `InputLine(lineNo, raw)` bất biến trước khi xử lý song song. Đừng tạo chỉ số sau khi `unordered()` hoặc sau khi biến đổi khiến không còn mối liên hệ ổn định với vị trí ban đầu.
+With an ordered file source, you can attach `lineNo` while reading and construct immutable `InputLine(lineNo, raw)` objects before parallel processing. Do not assign indices after `unordered()` or after transformations that break the stable link to the original position.
 
-Ví dụ chương trình dùng `List<String>` để tránh I/O trong bài tập. Trong ứng dụng thật, hãy sử dụng `try-with-resources` khi đọc file và quản lý chính sách lỗi đọc file **khác** với lỗi phân tích một dòng.
+The example program uses `List<String>` to avoid I/O in the exercise. In real applications, use `try-with-resources` when reading files and handle file-reading errors **separately** from per-line parsing errors.
 
-## 8. Lỗi từng phần tử và dừng cả pipeline: lựa chọn có chủ đích
+## 8. Per-Element Errors vs. Halting the Pipeline: A Deliberate Choice
 
-Không phải lúc nào cũng cần thu thập toàn bộ lỗi. Có ít nhất ba chiến lược:
+You do not always want to collect all errors. There are at least three strategies:
 
-| Chiến lược | Cách xử lý | Phù hợp khi |
+| Strategy | Handling approach | Best suited when |
 | --- | --- | --- |
-| **Fail-fast** | Ném ngoại lệ và dừng terminal operation nếu một lỗi không được xử lý. | Mọi phần tử đều phải hợp lệ trước khi tiếp tục, hoặc lỗi phản ánh vi phạm nghiêm trọng. |
-| **Collect all errors** | Mỗi phần tử trả `Success`/`Failure`, vẫn tiếp tục xử lý những dòng khác. | Import hàng loạt, form validation, kiểm toán, xử lý dữ liệu lỗi cần được tổng hợp. |
-| **Skip with metrics** | Bỏ một số phần tử theo chính sách nhưng vẫn ghi nhận số lượng/lý do. | Luồng dữ liệu có các bản ghi được phép bỏ, nhưng cần quan sát tỷ lệ và nguyên nhân bỏ. |
+| **Fail-fast** | Throw an exception and abort the terminal operation on an unhandled error. | Every element must be valid before continuing, or the error signals a severe violation. |
+| **Collect all errors** | Each element returns `Success`/`Failure`, continuing to process remaining lines. | Batch imports, form validation, auditing, or bad-data workflows needing aggregated error reports. |
+| **Skip with metrics** | Drop selected elements per policy while recording counts/reasons. | Streams with skippable records where drop rates and causes still need observability. |
 
-Với **fail-fast**, nếu một lambda ném ngoại lệ trong parallel stream, các tác vụ khác có thể đã bắt đầu hoặc đang chạy. Không được giả định rằng khi terminal operation ném ngoại lệ, mọi side effect ngoài hệ thống đều đã được rollback. Điều này là một lý do quan trọng để giữ các bước trong pipeline **thuần và không can thiệp nguồn**.
+With **fail-fast**, if a lambda throws in a parallel stream, other tasks may already have started or be running. Never assume that when the terminal throws, external side effects have been rolled back. This is a key reason to keep pipeline steps **pure and non-mutating on external state**.
 
-Với **collect-all**, một `Failure` ghi nhận sai dữ liệu **không đồng nghĩa** báo cáo phải được phép đưa vào sản xuất. Ứng dụng có thể xử lý hai pha:
+With **collect-all**, a `Failure` recording bad data **does not mean** the batch is safe to push to production. Applications can work in two phases:
 
-1. Parse và thu thập toàn bộ lỗi để hiển thị.
-2. Chỉ commit dữ liệu hoặc phát lệnh bên ngoài khi tỷ lệ lỗi đáp ứng chính sách hoặc toàn bộ lô đã được xác nhận.
+1. Parse and collect all errors for display.
+2. Commit data or trigger external commands only when error rates satisfy policy or the entire batch is approved.
 
-Như vậy, mô hình kết quả từng phần tử là một **công cụ thu thập thông tin**, còn quyết định chấp nhận cả lô nằm ở tầng nghiệp vụ.
+Thus, the per-element outcome model is an **information-gathering tool**, while the decision to accept the batch stays in the business layer.
 
-## 9. Tránh biến lỗi thành `null` và tránh ngoại lệ mất ngữ cảnh
+## 9. Avoid Turning Errors into `null` or Contextless Exceptions
 
-Một anti-pattern thường gặp:
+A common anti-pattern:
 
 ```java
 List<Order> orders = rawLines.stream()
@@ -642,85 +642,85 @@ List<Order> orders = rawLines.stream()
         .toList();
 ```
 
-Đây là **mã phác thảo mô tả thiết kế cần tránh**; `parseOrderOrThrow` không thuộc chương trình mẫu. Có ba vấn đề:
+This is a **sketch illustrating a design to avoid**; `parseOrderOrThrow` is not part of the sample program. There are three issues:
 
-1. `catch (Exception)` quá rộng, có thể biến cả lỗi lập trình hoặc sự cố hệ thống thành bản ghi bị bỏ.
-2. `null` không mang mã lỗi, vị trí hoặc thông tin sửa dữ liệu.
-3. Sau `filter(Objects::nonNull)`, không biết có bao nhiêu dòng lỗi và lỗi gì.
+1. `catch (Exception)` is overly broad and can turn programming bugs or system failures into silently dropped records.
+2. `null` carries no error code, position, or information to fix the data.
+3. After `filter(Objects::nonNull)`, you do not know how many lines failed or why.
 
-Nếu thật sự muốn bỏ dữ liệu không hợp lệ theo hợp đồng, vẫn nên **ghi nhận lý do** trước khi loại bỏ hoặc tạo một báo cáo đếm lỗi. Không sử dụng một biến `ArrayList<Failure> errors` rồi `errors.add(...) ` bên trong `parallelStream().map(...)` nếu chưa thiết kế đồng bộ và thứ tự: trạng thái mutable dùng chung có thể gây race và khiến kết quả không tái lập.
+If you genuinely want to drop invalid data per contract, still **record the reason** before discarding or build an error-counting report. Never mutate an external `ArrayList<Failure> errors` via `errors.add(...)` inside `parallelStream().map(...)` without proper synchronization and ordering guarantees: shared mutable state causes races and non-reproducible output.
 
-Một cách rõ hơn là **để `map` tạo giá trị, sau đó `collect` các giá trị** như ví dụ `BatchReport`. Việc tạo `List<RowOutcome>` còn giúp có một nguồn ổn định để tính nhiều chỉ số mà không dùng lại chính đối tượng Stream đã qua terminal operation.
+A cleaner approach is **having `map` return values and `collect`ing them**, as in the `BatchReport` example. Materializing `List<RowOutcome>` also provides a stable source to compute multiple metrics without reusing a consumed Stream.
 
-## 10. Kết quả lỗi có cấu trúc cần lưu thông tin gì?
+## 10. What Information Should Structured Error Outcomes Store?
 
-Đối với hệ thống có yêu cầu kiểm toán, các trường thường hữu ích gồm:
+For systems with audit requirements, useful fields typically include:
 
-| Trường | Vai trò | Lưu ý an toàn |
+| Field | Role | Safety note |
 | --- | --- | --- |
-| `lineNo` / `recordId` | Xác định vị trí bản ghi. | Gắn tại nguồn, không dựa vào thứ tự callback song song. |
-| `code` | Mã lỗi ổn định cho máy xử lý. | Không dùng toàn bộ text của ngoại lệ làm mã. |
-| `message` | Thông báo giúp người dùng sửa. | Không cần kèm nguyên văn dữ liệu bí mật hoặc stack trace. |
-| `field` (mở rộng) | Xác định trường lỗi như `quantity`. | Chuẩn hóa tên trường để thống kê. |
-| `severity` (mở rộng) | Phân biệt cảnh báo và lỗi chặn. | Quy tắc chấp nhận lô phải định nghĩa rõ. |
-| `sourceId` (mở rộng) | Phân biệt file, batch hoặc nguồn nhập. | Không đưa token, mật khẩu hoặc thông tin truy cập vào ID. |
+| `lineNo` / `recordId` | Identifies record location. | Attached at source, not from parallel callback order. |
+| `code` | Stable machine-readable error code. | Do not use full exception text as the code. |
+| `message` | Helpful message for users to fix input. | Omit raw secrets or stack traces. |
+| `field` (optional) | Identifies the failing field, e.g., `quantity`. | Normalize field names for aggregation. |
+| `severity` (optional) | Distinguishes warnings from blocking errors. | Batch acceptance rules must define these clearly. |
+| `sourceId` (optional) | Distinguishes file, batch, or input source. | Never put tokens, passwords, or credentials in IDs. |
 
-Trong ứng dụng thực tế, có thể cần báo **nhiều lỗi trên cùng một dòng**, không chỉ lỗi đầu tiên. Khi đó một `Failure` có thể chứa `List<ValidationIssue>` bất biến. Parser phải xác định rõ: **trả lỗi đầu tiên** hay **thu thập tất cả lỗi có thể xác minh độc lập**.
+In real applications, you may need to report **multiple errors on a single line**, not just the first one. A `Failure` can then hold an immutable `List<ValidationIssue>`. The parser must specify clearly whether it **returns the first error** or **collects all independently verifiable errors**.
 
-Ví dụ chương trình ở mục 5 cố ý trả **lỗi đầu tiên** theo thứ tự kiểm tra, để đầu ra dễ dự đoán. Điều đó không có nghĩa chỉ có một lỗi tồn tại trên một dòng.
+The example program in section 5 intentionally returns **the first error** in validation order so output stays predictable. That does not imply only one error exists on a line.
 
-### Bảo vệ dữ liệu nhạy cảm
+### Protecting Sensitive Data
 
-Không mặc định gắn toàn bộ `raw` vào mọi `Failure` hay log. Một dòng nhập có thể chứa tên khách hàng, email, định danh, địa chỉ hoặc token. Nên cân nhắc che bớt giá trị, giữ mã lỗi có cấu trúc, và quy định vòng đời lưu trữ dữ liệu lỗi.
+Do not attach the entire `raw` string to every `Failure` or log by default. An input line may contain customer names, emails, identifiers, addresses, or tokens. Consider masking values, keeping structured error codes, and defining retention lifecycles for stored error data.
 
-Khi báo cáo lỗi đến hệ thống giám sát, tránh đưa thông báo chi tiết có chứa dữ liệu người dùng vào **nhãn metrics** có tính phân biệt cao. Có thể dùng mã lỗi ổn định làm nhóm thống kê và lưu ngữ cảnh chi tiết ở kênh bảo mật phù hợp.
+When reporting errors to monitoring systems, avoid placing detailed user-data messages in high-cardinality **metrics labels**. Use stable error codes for metric dimensions and store detailed context in an appropriately secured channel.
 
-## 11. Trường hợp biên cần kiểm thử
+## 11. Edge Cases to Test
 
-| Ca kiểm thử | Dữ liệu | Kết quả cần xác nhận |
+| Test case | Input | Expected verification |
 | --- | --- | --- |
-| Dòng hợp lệ | `PEN,2,12.50` | `Success`, thành tiền `25.00`. |
-| Số lượng bằng 0 | `NOTE,0,9.99` | `NON_POSITIVE_QUANTITY`. |
-| Số lượng không phải số | `PEN,abc,1.20` | `INVALID_QUANTITY`. |
-| Đơn giá âm | `BAG,3,-10.00` | `NEGATIVE_PRICE`. |
-| Đơn giá không phải số | `PEN,1,x` | `INVALID_PRICE`. |
-| Thiếu cột | `BAD` | `WRONG_COLUMN_COUNT`. |
-| SKU rỗng | `,5,4.00` | `EMPTY_SKU`. |
-| Dòng `null` hoặc toàn khoảng trắng | `null`, `"  "` | `EMPTY_RECORD`. |
-| Nguồn rỗng | `List.of()` | Không có `Success` hay `Failure`; tiền là 0. |
-| Toàn bộ dòng hỏng | `["A,0,1.00"]` | `0` thành công, `1` thất bại, tiền `0`. |
-| Tiền thập phân | `0.10` và `0.20` | Tổng `0.30` theo giá trị số. |
-| Nguồn có cùng SKU nhiều lần | Hai dòng `PEN` hợp lệ | Hai `Success`; không tự `distinct()` nếu nghiệp vụ tính theo dòng. |
-| Song song | Cùng nguồn, `parallel=true` | Cùng các kết quả, lineNo và tổng như tuần tự. |
-| Thứ tự | Nguồn `List` có encounter order | `outcomes` và mỗi nhánh giữ thứ tự dòng trong nguồn. |
-| Thử thay đổi báo cáo | `report.failures().clear()` | Ném `UnsupportedOperationException`. |
+| Valid line | `PEN,2,12.50` | `Success`, amount `25.00`. |
+| Zero quantity | `NOTE,0,9.99` | `NON_POSITIVE_QUANTITY`. |
+| Non-numeric quantity | `PEN,abc,1.20` | `INVALID_QUANTITY`. |
+| Negative unit price | `BAG,3,-10.00` | `NEGATIVE_PRICE`. |
+| Non-numeric unit price | `PEN,1,x` | `INVALID_PRICE`. |
+| Missing columns | `BAD` | `WRONG_COLUMN_COUNT`. |
+| Empty SKU | `,5,4.00` | `EMPTY_SKU`. |
+| `null` or whitespace-only line | `null`, `"  "` | `EMPTY_RECORD`. |
+| Empty source | `List.of()` | No `Success` or `Failure`; revenue is 0. |
+| All lines invalid | `["A,0,1.00"]` | `0` successes, `1` failure, revenue `0`. |
+| Decimal amounts | `0.10` and `0.20` | Numeric sum `0.30`. |
+| Repeated SKU in source | Two valid `PEN` lines | Two `Success` items; do not auto-`distinct()` if domain counts per line. |
+| Parallel mode | Same source, `parallel=true` | Same outcomes, `lineNo`, and totals as sequential. |
+| Ordering | `List` source with encounter order | `outcomes` and each branch preserve source line order. |
+| Mutating report | `report.failures().clear()` | Throws `UnsupportedOperationException`. |
 
-**Mỗi dòng có đúng một kết quả** là một invariant mạnh của mô hình này. Kiểm thử nên so sánh danh sách kết quả theo đúng thứ tự, không chỉ đếm số lượng. Đặc biệt, phải có những trường hợp lỗi **thực sự kích hoạt nhánh lỗi**; nếu dữ liệu mẫu toàn hợp lệ, một parser bắt sai ngoại lệ vẫn có thể qua test.
+**Every line produces exactly one outcome** is a strong invariant of this model. Tests should compare result lists in exact order, not merely assert counts. In particular, include failing cases that **actually exercise the error branches**; if sample inputs are all valid, a parser catching the wrong exception can still pass tests.
 
-## 12. Chi phí bộ nhớ, hiệu năng và xử lý lượng dữ liệu lớn
+## 12. Memory Cost, Performance, and Large Datasets
 
-Ví dụ giữ ba danh sách: `outcomes`, `successes`, `failures`. Chúng chứa những tham chiếu đến các kết quả đã tạo và giúp truy cập, kiểm thử rõ ràng; đổi lại, bộ nhớ tăng theo số dòng đầu vào.
+The example retains three lists: `outcomes`, `successes`, and `failures`. They hold references to created outcomes and keep access and testing clear; in exchange, memory grows with input line count.
 
-Với dữ liệu rất lớn có thể:
+For very large datasets you can:
 
-- Dùng một **collector tùy chỉnh** giữ hai nhóm và các tổng một cách nhất quán; chú ý `supplier`, `accumulator`, `combiner` và tính kết hợp khi song song.
-- Xử lý dữ liệu theo **lô có kích thước giới hạn**, ghi kết quả vào storage và báo lỗi theo từng lô.
-- Thu thập thống kê lỗi bằng **mã lỗi**, thay vì giữ hàng triệu chuỗi thông báo nếu yêu cầu chỉ cần tổng số.
-- Dừng hoặc tạm ngừng đọc nguồn khi vượt ngưỡng lỗi được quy định, nhưng phải định nghĩa rõ chính sách và tránh báo rằng đã kiểm tra toàn bộ file nếu thực tế chưa đọc hết.
+- Use a **custom collector** maintaining both groups and totals consistently; pay attention to `supplier`, `accumulator`, `combiner`, and associativity in parallel runs.
+- Process data in **bounded batches**, writing results to storage and reporting errors per batch.
+- Aggregate error counts by **error code**, rather than retaining millions of message strings if only totals are needed.
+- Stop or pause reading the source when an error threshold is exceeded, while defining policy clearly and never claiming the entire file was checked if reading stopped early.
 
-Khi đọc dữ liệu từ file, cursor CSDL hoặc mạng, `Stream` có thể gắn với tài nguyên cần đóng. Hãy đóng nguồn theo hợp đồng API, thường qua `try-with-resources`; mô hình `Result` không tự giải quyết việc giải phóng tài nguyên.
+When reading from files, database cursors, or networks, a `Stream` may bind to closeable resources. Close the source per its API contract, typically with `try-with-resources`; the `Result` pattern itself does not handle resource cleanup.
 
-### Xử lý song song không tự tốt hơn
+### Parallel Processing Is Not Automatically Better
 
-Nếu mỗi phần tử chỉ cần `split`, `Integer.parseInt` và tạo `BigDecimal` nhỏ, phí lập lịch của `parallelStream()` có thể lớn hơn lợi ích. Nếu parser gọi HTTP hoặc database chặn, nên dùng cơ chế điều phối I/O có giới hạn, thay vì mặc định tận dụng common pool.
+If each element only performs `split`, `Integer.parseInt`, and small `BigDecimal` creation, `parallelStream()` scheduling overhead can outweigh gains. If the parser performs blocking HTTP or database calls, use bounded I/O orchestration rather than defaulting to the common pool.
 
-`BatchReport` trong ví dụ được tạo từ các giá trị bất biến, không có `ArrayList` mutable dùng chung được cập nhật trong lambda song song. Đây là **điều kiện thuận lợi cho tính đúng**, nhưng không phải lời hứa về tốc độ. Đo bằng dữ liệu đại diện và công cụ phù hợp trước khi tối ưu.
+`BatchReport` in the example is built from immutable values, with no shared mutable `ArrayList` updated inside parallel lambdas. This is a **favorable condition for correctness**, not a promise of speedup. Measure with representative data and proper tooling before optimizing.
 
-## 13. Bài tập mở rộng
+## 13. Extended Exercises
 
-**Bài 1 — Thêm mã lỗi đơn giá không phải số.** Cho dòng `"PEN,2,abc"`, gọi `parseLine(9, ...)`. Xác minh kết quả là `Failure` có `lineNo = 9` và `code == INVALID_PRICE`, không ném `NumberFormatException` ra ngoài.
+**Exercise 1 — Add non-numeric unit price check.** Given `"PEN,2,abc"`, call `parseLine(9, ...)`. Verify the result is a `Failure` with `lineNo = 9` and `code == INVALID_PRICE`, without throwing `NumberFormatException`.
 
-**Bài 2 — Thống kê lỗi theo mã.** Từ `report.failures()`, lập `Map<ErrorCode, Long>` đếm số lần xuất hiện mỗi mã lỗi:
+**Exercise 2 — Count errors by code.** From `report.failures()`, build a `Map<ErrorCode, Long>` counting occurrences of each error code:
 
 ```java
 import java.util.Map;
@@ -732,24 +732,24 @@ Map<ErrorCode, Long> errorCounts = report.failures().stream()
                 Collectors.counting()));
 ```
 
-Đoạn trên sử dụng kiểu và biến từ chương trình chính; kết quả chỉ có các mã lỗi **đã xuất hiện**, không tự tạo các mục đếm bằng 0.
+This snippet uses types and variables from the main program; the map includes only error codes **that actually appeared**, without creating zero-count entries automatically.
 
-**Bài 3 — Trả nhiều vấn đề trên một dòng.** Đổi `Failure(code, message)` thành `Failure(List<ValidationIssue>)` để có thể báo cùng lúc SKU rỗng và đơn giá âm. Phân tích những kiểm tra nào độc lập, những kiểm tra nào phải có giá trị parse thành công mới thực hiện được.
+**Exercise 3 — Return multiple issues per line.** Change `Failure(code, message)` to `Failure(List<ValidationIssue>)` so an empty SKU and a negative price can be reported together. Analyze which checks are independent and which require a prior parse step to succeed first.
 
-**Bài 4 — Chính sách fail-fast của lô.** Sau khi có `BatchReport`, chỉ cho phép thực hiện bước lưu dữ liệu khi `failures.isEmpty()`. Nếu có lỗi, trả toàn bộ báo cáo nhưng **không thực hiện side effect ghi dữ liệu**.
+**Exercise 4 — Batch fail-fast policy.** After producing `BatchReport`, allow the persistence step only when `failures.isEmpty()`. If any error exists, return the full report while **performing no data-writing side effects**.
 
-**Bài 5 — Giữ thứ tự sau khi xử lý song song.** Đảo dữ liệu mẫu, chạy `analyze(reversed, true)`. Xác minh các vị trí `lineNo` mới tương ứng với vị trí **trong nguồn đã đảo**, không phải chỉ số ban đầu của file trước khi đảo. Nếu muốn giữ số dòng từ file gốc khi đổi thứ tự, mô hình `InputLine(originalLineNo, raw)` cần được tạo **trước khi hoán vị**.
+**Exercise 5 — Preserving order after parallel processing.** Reverse the sample data and run `analyze(reversed, true)`. Verify that the new `lineNo` values correspond to positions **in the reversed source**, not the pre-reversal indices. To preserve original file line numbers across reordering, create `InputLine(originalLineNo, raw)` **before permuting**.
 
-**Bài 6 — Phân biệt lỗi hệ thống với lỗi dữ liệu.** Giả sử parser cần tra danh mục sản phẩm từ dịch vụ ngoài. Phân loại `SKU_NOT_FOUND`, `HTTP_TIMEOUT`, `AUTH_FAILED`, `SERVICE_UNAVAILABLE`: lỗi nào có thể coi là lỗi của một bản ghi, lỗi nào cần retry hoặc dừng cả lô? Giải thích tại sao `catch (Exception)` rồi gắn cùng một mã `INVALID_RECORD` có thể gây mất thông tin.
+**Exercise 6 — Distinguishing system errors from data errors.** Suppose the parser looks up a product catalog from an external service. Classify `SKU_NOT_FOUND`, `HTTP_TIMEOUT`, `AUTH_FAILED`, and `SERVICE_UNAVAILABLE`: which can be treated as a per-record failure, and which require retries or aborting the batch? Explain why `catch (Exception)` mapping everything to `INVALID_RECORD` loses critical information.
 
-**Bài 7 — Tiền tệ.** Bổ sung quy tắc đơn giá có tối đa hai chữ số thập phân, hoặc phải có đơn vị tiền. Phân biệt **sai cú pháp** với **sai ràng buộc nghiệp vụ** và bổ sung mã lỗi riêng. Đừng làm tròn âm thầm một giá trị `1.999` thành `2.00` nếu yêu cầu là từ chối dữ liệu vượt độ chính xác cho phép.
+**Exercise 7 — Currency rules.** Add a rule requiring unit prices to have at most two decimal places, or a currency unit. Distinguish **syntax errors** from **business constraint violations** and add dedicated error codes. Do not silently round `1.999` to `2.00` when the requirement is to reject excessive precision.
 
-**Bài 8 — Property-based test.** Sinh nhiều dòng hợp lệ và không hợp lệ, kiểm tra bất biến `outcomes.size() == input.size()`, `successes.size() + failures.size() == input.size()` và kết quả `analyze(source, false).equals(analyze(source, true))` khi không có can thiệp nguồn. Không dùng dữ liệu ngẫu nhiên **không có seed** nếu test phải tái lập được.
+**Exercise 8 — Property-based tests.** Generate many valid and invalid lines and check invariants `outcomes.size() == input.size()`, `successes.size() + failures.size() == input.size()`, and `analyze(source, false).equals(analyze(source, true))` when there is no source interference. Do not use **unseeded** random data if tests must be reproducible.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- Khi một dòng dữ liệu có thể sai nhưng cả lô vẫn cần được xử lý, hãy mô hình hóa **mỗi phần tử thành `Success` hoặc `Failure`** thay vì bỏ qua lỗi bằng `null` hay bắt rộng mọi ngoại lệ.
-- `sealed interface` và `record` trong Java 17 cho phép biểu diễn kết quả có kiểu rõ; giữ **số dòng, mã lỗi và thông báo an toàn** để kiểm thử và sửa dữ liệu.
-- Chỉ chuyển **lỗi dữ liệu dự kiến** thành kết quả `Failure`. Lỗi lập trình, hủy luồng và sự cố hạ tầng cần chính sách riêng; không dùng `catch (Throwable)` để ép pipeline tiếp tục.
-- Dùng `map` thuần để tạo `RowOutcome`, sau đó tách thành công/lỗi bằng `filter` và `map`; tính tổng tiền hợp lệ bằng `BigDecimal`. Tránh cập nhật danh sách dùng chung bên trong lambda song song.
-- Kiểm thử invariant **một đầu vào → một kết quả**, nguồn rỗng, toàn lỗi, mã lỗi, dữ liệu thập phân, thứ tự và kết quả tuần tự/song song. **Việc thu thập lỗi không đồng nghĩa tự động chấp nhận lô dữ liệu**.
+- When individual data lines can fail yet the whole batch must still be processed, model **each element as `Success` or `Failure`** instead of dropping errors with `null` or catching exceptions too broadly.
+- `sealed interface` and `record` in Java 17 allow strongly typed outcomes; keep **line number, error code, and safe message** for testing and remediation.
+- Convert only **expected data errors** into `Failure` values. Programming bugs, thread interruption, and infrastructure failures need separate policies; never use `catch (Throwable)` to force a pipeline onward.
+- Use pure `map` to produce `RowOutcome`, then separate successes and failures via `filter` and `map`; sum valid revenue with `BigDecimal`. Avoid mutating shared lists inside parallel lambdas.
+- Test the invariant **one input → one outcome**, empty sources, all-error batches, error codes, decimal arithmetic, ordering, and sequential/parallel equivalence. **Collecting errors does not mean automatically accepting the batch**.

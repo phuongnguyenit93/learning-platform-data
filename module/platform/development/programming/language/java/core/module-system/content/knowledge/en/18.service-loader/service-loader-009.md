@@ -1,22 +1,22 @@
-# Kiểm thử service khi provider nằm ở layer khác
+# Testing a service when the provider is in another layer
 
-Java Module System cho phép một ứng dụng tạo nhiều ModuleLayer độc lập. Một service interface có thể nằm trong layer cha, trong khi implementation được nạp vào một layer con hoặc một layer khác. Vì vậy, khi kiểm thử ServiceLoader, cần xác định rõ layer chứa provider và dùng đúng overload để tìm provider.
+The Java Module System allows an application to create multiple independent ModuleLayers. A service interface can reside in a parent layer, while an implementation is loaded into a child layer or another layer. Therefore, when testing ServiceLoader, it is necessary to clearly identify the layer containing the provider and use the right overload to locate the provider.
 
-Trường hợp điển hình là ứng dụng có API service ổn định trong boot layer, còn plugin/provider được nạp động từ một thư mục module riêng. Bài kiểm thử cần chứng minh rằng ứng dụng tìm được provider trong layer được chỉ định, provider thực sự thuộc layer đó, và các layer không có quan hệ cha-con không bị trộn lẫn.
+A typical case is an application having a stable service API in the boot layer, while plugins/providers are loaded dynamically from a separate module directory. Tests need to prove that the application finds the provider in the specified layer, that the provider actually belongs to that layer, and that layers without a parent-child relationship are not mixed together.
 
-## 1. Hai cách tải service và khác biệt quan trọng
+## 1. Two ways to load a service and the key difference
 
-ServiceLoader có các overload thường gặp:
+ServiceLoader has common overloads:
 
-| API | Cách tìm provider |
+| API | How providers are searched |
 |---|---|
-| ServiceLoader.load(Service.class) | Dùng thread context class loader |
-| ServiceLoader.load(Service.class, loader) | Dùng class loader được chỉ định |
-| ServiceLoader.load(layer, Service.class) | Tìm provider trong layer được chỉ định và các layer cha của nó |
+| ServiceLoader.load(Service.class) | Uses the thread context class loader |
+| ServiceLoader.load(Service.class, loader) | Uses the specified class loader |
+| ServiceLoader.load(layer, Service.class) | Searches providers in the specified layer and its parent layers |
 
-Khi provider được triển khai trong một ModuleLayer tùy chỉnh, nên dùng overload nhận ModuleLayer. Cách này thể hiện chính xác phạm vi tìm kiếm và tránh phụ thuộc vào thread context class loader.
+When a provider is deployed in a custom ModuleLayer, use the overload taking a ModuleLayer. This accurately expresses the search scope and avoids relying on the thread context class loader.
 
-Giả sử cấu trúc runtime như sau:
+Suppose the runtime structure is as follows:
 
 ~~~text
 ModuleLayer.boot()
@@ -35,15 +35,15 @@ ModuleLayer child
            provides GreetingService with FormalGreeting
 ~~~
 
-Service interface được chia sẻ từ layer cha. Provider được nạp vào layer con. Khi gọi ServiceLoader.load(childLayer, GreetingService.class), ServiceLoader tìm provider trong childLayer và các layer cha của nó.
+The service interface is shared from the parent layer. The provider is loaded into the child layer. When calling ServiceLoader.load(childLayer, GreetingService.class), ServiceLoader searches for providers in childLayer and its parent layers.
 
-Một layer anh em (sibling) không nằm trong phạm vi tìm kiếm. Ví dụ, nếu childA và childB đều được tạo trực tiếp từ boot layer, loader gắn với childA không tự tìm provider chỉ có trong childB.
+A sibling layer is not within the search scope. For example, if childA and childB are both created directly from the boot layer, a loader bound to childA does not automatically find providers that exist only in childB.
 
-## 2. Khai báo service và provider trong các module
+## 2. Declaring the service and provider in modules
 
-Ví dụ sử dụng một service đơn giản để kiểm tra.
+The example uses a simple service for testing.
 
-Module chứa service API:
+Module containing the service API:
 
 ~~~java
 module com.example.spi {
@@ -61,7 +61,7 @@ public interface GreetingService {
 }
 ~~~
 
-Module provider:
+Provider module:
 
 ~~~java
 module com.example.provider {
@@ -90,9 +90,9 @@ public final class FormalGreeting implements GreetingService {
 }
 ~~~
 
-Với cách khai báo provider bằng provides ... with ..., provider class trong ví dụ là public và có public constructor không tham số. Module provider phải đọc được module chứa service interface.
+With the provides ... with ... declaration, the provider class in the example is public and has a public no-argument constructor. The provider module must be able to read the module containing the service interface.
 
-Module ứng dụng hoặc module kiểm thử gọi ServiceLoader:
+Application or test module calling ServiceLoader:
 
 ~~~java
 module com.example.app {
@@ -102,13 +102,13 @@ module com.example.app {
 }
 ~~~
 
-Chỉ thị uses rất quan trọng. Module thực hiện lời gọi ServiceLoader phải khai báo service mà nó sử dụng. Nếu caller là một named module nhưng thiếu uses, thao tác tải service có thể ném ServiceConfigurationError.
+The uses directive is critical. The module making the ServiceLoader call must declare the service it uses. If the caller is a named module without uses, loading the service can throw ServiceConfigurationError.
 
-## 3. Tạo layer con chứa provider
+## 3. Creating a child layer containing the provider
 
-Để kiểm thử đúng tình huống provider ở layer khác, không đưa provider vào boot layer. Giả sử module SPI và module ứng dụng đã được nạp trong boot layer, còn module provider được đóng gói trong thư mục riêng, ví dụ plugins/.
+To properly test the scenario where the provider is in another layer, do not put the provider in the boot layer. Assume the SPI module and application module are already loaded in the boot layer, while the provider module is packaged in a separate directory, such as plugins/.
 
-Có thể tạo layer con bằng ModuleFinder, Configuration và ModuleLayer:
+A child layer can be created using ModuleFinder, Configuration, and ModuleLayer:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -142,27 +142,27 @@ public final class PluginLayers {
 }
 ~~~
 
-Ý nghĩa các bước:
+Meaning of the steps:
 
-1. ModuleFinder.of(pluginsDirectory) tìm các module provider trong thư mục plugin.
-2. configuration().resolve(...) giải quyết module graph bắt đầu từ module gốc com.example.provider. Các dependency có thể được tìm trong layer cha.
-3. ModuleLayer.defineModulesWithOneLoader(...) định nghĩa các module đã resolve thành layer mới. Các module trong layer mới dùng một class loader có parent là class loader được truyền vào.
-4. layer() lấy ModuleLayer vừa được tạo từ Controller.
+1. ModuleFinder.of(pluginsDirectory) locates provider modules in the plugin directory.
+2. configuration().resolve(...) resolves the module graph starting from the root module com.example.provider. Dependencies can be found in the parent layer.
+3. ModuleLayer.defineModulesWithOneLoader(...) defines the resolved modules into a new layer. Modules in the new layer use a single class loader whose parent is the passed class loader.
+4. layer() retrieves the newly created ModuleLayer from the Controller.
 
-Ở ví dụ này, provider được khai báo trực tiếp làm root nên resolve() là đủ để đưa nó vào configuration. Nếu mục tiêu là kiểm tra service binding tự động, có thể dùng resolveAndBind() với root module tiêu thụ service để thuật toán service binding tìm thêm provider phù hợp trong module finder.
+In this example, the provider is explicitly specified as a root so resolve() is sufficient to bring it into the configuration. If the goal is to test automatic service binding, you can use resolveAndBind() with a root module consuming the service so the service binding algorithm discovers additional matching providers in the module finder.
 
-Việc một JAR có mặt trong thư mục plugin không tự động có nghĩa module đó đã thuộc layer. Module phải được tìm thấy và resolve vào configuration trước khi được định nghĩa trong layer.
+Having a JAR present in the plugin directory does not automatically mean that module belongs to the layer. The module must be found and resolved into the configuration before being defined in the layer.
 
-## 4. Kiểm thử provider thực sự nằm trong layer con
+## 4. Testing that the provider actually resides in the child layer
 
-Test nên kiểm tra cả hai điều:
+The test should verify both conditions:
 
-- ServiceLoader tìm thấy provider.
-- Class của provider được định nghĩa trong đúng ModuleLayer con.
+- ServiceLoader finds the provider.
+- The provider's class is defined in the right child ModuleLayer.
 
-Có thể dùng ServiceLoader.stream() để lấy Provider trước khi khởi tạo implementation. Provider.type() cho phép kiểm tra class và module của provider.
+You can use ServiceLoader.stream() to retrieve Providers before instantiating the implementation. Provider.type() lets you check the provider's class and module.
 
-Ví dụ JUnit:
+JUnit example:
 
 ~~~java
 package com.example.app;
@@ -192,7 +192,7 @@ class ServiceLayerTest {
         assertTrue(
                 providers.stream().anyMatch(provider ->
                         provider.type().getModule().getLayer() == childLayer),
-                "Phải tìm thấy provider thuộc child layer");
+                "Must find provider belonging to child layer");
 
         List<String> messages = providers.stream()
                 .map(ServiceLoader.Provider::get)
@@ -204,21 +204,21 @@ class ServiceLayerTest {
 }
 ~~~
 
-Test đầu tiên xác minh provider type thuộc đúng layer con. Test thứ hai gọi provider và kiểm tra hành vi thực tế. Hai assertion này bắt được hai loại lỗi khác nhau: không tìm được provider và tìm được provider nhưng provider không hoạt động như mong đợi.
+The first check verifies that the provider type belongs to the right child layer. The second check invokes the provider and verifies actual behavior. These two assertions catch two different classes of bugs: failing to find the provider, and finding the provider but having it not behave as expected.
 
-Không nên chỉ kiểm tra số lượng provider. Một provider từ parent layer cũng có thể được ServiceLoader.load(childLayer, service) tìm thấy. Kiểm tra getModule().getLayer() giúp xác định chính xác provider đến từ đâu.
+Do not check only the provider count. A provider from a parent layer can also be found by ServiceLoader.load(childLayer, service). Checking getModule().getLayer() identifies exactly where the provider came from.
 
-Cũng không nên giả định provider đầu tiên trong danh sách là provider của child layer. Thứ tự provider không phải hợp đồng mà test nên phụ thuộc vào. Hãy lọc theo module layer, tên module hoặc kết quả nghiệp vụ.
+Also do not assume the first provider in the list is the child layer's provider. Provider order is not a contract that tests should depend on. Filter by module layer, module name, or business result.
 
-## 5. Kiểm tra phạm vi layer cha và layer anh em
+## 5. Testing parent layer and sibling layer scopes
 
-ServiceLoader.load(layer, service) tìm provider trong layer được chỉ định và các layer cha. Hành vi này có hai hệ quả cần đưa vào test.
+ServiceLoader.load(layer, service) searches for providers in the specified layer and its parent layers. This behavior has two consequences to include in tests.
 
-**Provider ở layer cha có thể được tìm thấy.** Nếu boot layer đã có provider cho cùng service, loader tạo từ child layer có thể nhìn thấy provider đó. Vì vậy, test chỉ kiểm tra providers.isEmpty() hoặc providers.size() có thể cho kết quả sai với mục tiêu kiểm tra child layer.
+**Providers in parent layers can be found.** If the boot layer already has a provider for the same service, a loader created from a child layer can see that provider. Therefore, a test checking only providers.isEmpty() or providers.size() may give misleading results for the goal of testing the child layer.
 
-**Provider ở layer anh em không tự động được tìm thấy.** Nếu childA và childB cùng có boot layer làm parent, provider chỉ nằm trong childB không thuộc phạm vi của loader tạo từ childA.
+**Providers in sibling layers are not automatically found.** If childA and childB both have the boot layer as their parent, a provider residing only in childB is not within the scope of a loader created from childA.
 
-Có thể biểu diễn phạm vi tìm kiếm:
+The search scope can be illustrated as:
 
 ~~~text
                  boot layer
@@ -228,48 +228,48 @@ Có thể biểu diễn phạm vi tìm kiếm:
            provider A    provider B
 
 ServiceLoader.load(childA, Service.class)
-    tìm trong childA và boot layer
-    không tìm provider chỉ nằm trong childB
+    searches in childA and boot layer
+    does not find providers located only in childB
 ~~~
 
-Khi kiểm thử sibling isolation, tạo hai layer độc lập từ cùng parent, đặt provider riêng vào mỗi layer, rồi xác minh loader của layer A không trả về provider có module thuộc layer B. Mỗi layer phải được tạo từ configuration phù hợp và service type phải là cùng một Class được chia sẻ từ parent layer.
+When testing sibling isolation, create two independent layers from the same parent, place a separate provider in each layer, and verify that layer A's loader does not return providers whose module belongs to layer B. Each layer must be created from an appropriate configuration and the service type must be the same Class shared from the parent layer.
 
-Không so sánh tên module đơn thuần để xác định layer. Cùng một tên module có thể xuất hiện trong các cấu hình runtime độc lập. So sánh đối tượng ModuleLayer từ Class.getModule().getLayer() sẽ thể hiện đúng nguồn của provider.
+Do not compare module names alone to identify a layer. The same module name can appear in independent runtime configurations. Comparing ModuleLayer objects from Class.getModule().getLayer() accurately indicates the provider's origin.
 
-## 6. Vì sao load(service) có thể bỏ sót provider?
+## 6. Why might load(service) miss the provider?
 
-ServiceLoader.load(GreetingService.class) sử dụng thread context class loader. Cách này phổ biến khi provider nằm trên classpath hoặc trong phạm vi class loader mà ứng dụng đang dùng.
+ServiceLoader.load(GreetingService.class) uses the thread context class loader. This approach is common when providers are on the classpath or within the class loader scope the application is using.
 
-Một custom ModuleLayer có thể được định nghĩa bằng class loader riêng. Nếu thread context class loader không nhìn thấy provider trong layer đó, overload class loader mặc định không đáp ứng mục tiêu kiểm thử.
+A custom ModuleLayer may be defined with its own class loader. If the thread context class loader cannot see the provider in that layer, the default class-loader overload fails the test's objective.
 
-Vì vậy:
+Therefore:
 
 ~~~java
-// Tìm provider theo thread context class loader
+// Search for providers via the thread context class loader
 ServiceLoader<GreetingService> defaultLoader =
         ServiceLoader.load(GreetingService.class);
 
-// Tìm provider theo ModuleLayer cụ thể
+// Search for providers in a specific ModuleLayer
 ServiceLoader<GreetingService> layerLoader =
         ServiceLoader.load(childLayer, GreetingService.class);
 ~~~
 
-Hai loader trên có phạm vi tìm kiếm khác nhau. Đừng dùng kết quả của defaultLoader để kết luận provider có tồn tại trong childLayer hay không. Khi test plugin theo ModuleLayer, hãy truyền layer tường minh.
+The two loaders above have different search scopes. Do not use the result of defaultLoader to conclude whether a provider exists in childLayer. When testing plugins by ModuleLayer, pass the layer explicitly.
 
-Nếu hệ thống chủ ý dùng class loader để quản lý plugin, có thể kiểm thử overload load(service, loader), nhưng test đó trả lời câu hỏi về khả năng nhìn thấy provider qua class loader. Nó không thay thế kiểm thử phạm vi của ModuleLayer.
+If the system intentionally uses class loaders to manage plugins, you can test the load(service, loader) overload, but that test answers questions about provider visibility via a class loader. It does not replace testing ModuleLayer scoping.
 
-## 7. Kiểm tra module descriptor và lỗi cấu hình
+## 7. Checking module descriptors and configuration errors
 
-Khi provider không được tìm thấy, kiểm tra cấu hình module theo thứ tự:
+When a provider is not found, check module configuration in order:
 
-1. Module provider có thực sự được đưa vào configuration của layer không?
-2. Module provider có khai báo requires tới module chứa service interface không?
-3. Provider module có provides Service with ProviderClass trong module-info.java không?
-4. Module gọi ServiceLoader có khai báo uses Service không?
-5. Provider class có thể được khởi tạo theo quy tắc của ServiceLoader không?
-6. Service interface có cùng Class identity giữa caller và provider không?
+1. Was the provider module actually included in the layer's configuration?
+2. Does the provider module declare requires on the module containing the service interface?
+3. Does the provider module have provides Service with ProviderClass in module-info.java?
+4. Does the module calling ServiceLoader declare uses Service?
+5. Can the provider class be instantiated according to ServiceLoader rules?
+6. Does the service interface have the same Class identity between the caller and the provider?
 
-Có thể kiểm tra descriptor trước khi tạo layer:
+You can inspect descriptors before creating the layer:
 
 ~~~java
 ModuleFinder finder = ModuleFinder.of(Path.of("plugins"));
@@ -284,37 +284,37 @@ finder.find("com.example.provider")
         });
 ~~~
 
-ModuleDescriptor.provides() cho biết các service mà module cung cấp. ModuleDescriptor.uses() cho biết các service mà module tiêu thụ. Đây là cách hữu ích để phát hiện lỗi khai báo trước khi chạy test tích hợp.
+ModuleDescriptor.provides() shows the services the module provides. ModuleDescriptor.uses() shows the services the module consumes. This is a useful way to catch declaration mistakes before running integration tests.
 
-ServiceConfigurationError thường biểu thị lỗi cấu hình hoặc lỗi khi tìm/khởi tạo provider. Khi gặp lỗi, giữ nguyên cause và thông tin module trong log để xác định provider class, constructor, module descriptor hoặc class loader có vấn đề.
+ServiceConfigurationError usually indicates a configuration error or a failure when locating/instantiating a provider. When encountering an error, preserve the cause and module information in logs to identify the problematic provider class, constructor, module descriptor, or class loader.
 
-Không nên bắt ServiceConfigurationError rồi trả về danh sách rỗng. Cách đó làm test biến lỗi cấu hình thành kết quả “không có provider”, khiến nguyên nhân thực sự khó tìm.
+Do not catch ServiceConfigurationError and return an empty list. Doing so turns a configuration error into a "no provider" test outcome, making the real root cause hard to find.
 
-## 8. Test matrix nên có
+## 8. Recommended test matrix
 
-| Tình huống | Kết quả mong đợi |
+| Scenario | Expected outcome |
 |---|---|
-| Provider được resolve vào child layer | load(childLayer, service) tìm thấy provider |
-| Provider ở parent layer | Loader của child layer có thể tìm thấy provider parent |
-| Provider chỉ ở sibling layer | Loader của child layer không tìm thấy provider sibling |
-| Provider JAR chỉ nằm trên đĩa, chưa resolve vào layer | Không được xem là provider của layer |
-| Provider module thiếu provides | ServiceLoader không tìm thấy provider theo khai báo module |
-| Caller module thiếu uses | Có thể nhận ServiceConfigurationError |
-| Provider không khởi tạo được | Nhận ServiceConfigurationError, test phải báo lỗi |
-| Dùng load(service) với context loader không nhìn thấy plugin | Không thể dùng kết quả này để kết luận về child layer |
+| Provider resolved into child layer | load(childLayer, service) finds the provider |
+| Provider in parent layer | Child layer loader can find the parent provider |
+| Provider only in sibling layer | Child layer loader does not find the sibling provider |
+| Provider JAR only on disk, not resolved into layer | Not treated as a provider of the layer |
+| Provider module missing provides | ServiceLoader does not find the provider by module declaration |
+| Caller module missing uses | May receive ServiceConfigurationError |
+| Provider fails to instantiate | Receives ServiceConfigurationError; test must fail |
+| Using load(service) with a context loader that cannot see the plugin | Cannot use this result to draw conclusions about childLayer |
 
-Với test tích hợp, nên có ít nhất một provider chỉ nằm trong child layer và một test xác nhận layer identity. Nếu hệ thống hỗ trợ nhiều plugin layer, thêm test sibling isolation để tránh vô tình chia sẻ provider giữa các plugin.
+For integration tests, include at least one provider residing only in the child layer and a test confirming layer identity. If the system supports multiple plugin layers, add a sibling isolation test to avoid accidentally sharing providers across plugins.
 
-## 9. Quy tắc thực hành
+## 9. Practical guidelines
 
-- Dùng ServiceLoader.load(layer, service) khi muốn kiểm tra provider trong một ModuleLayer cụ thể.
-- Đảm bảo module gọi ServiceLoader có uses directive cho service.
-- Đảm bảo provider module đã được resolve và định nghĩa trong layer.
-- Dùng provides ... with ... trong module descriptor của provider module.
-- Xác minh provider thuộc đúng layer bằng provider.type().getModule().getLayer().
-- Không phụ thuộc vào thứ tự provider.
-- Phân biệt provider ở layer cha với provider ở layer con.
-- Không kỳ vọng loader của một layer tìm thấy provider chỉ nằm trong layer anh em.
-- Giữ ServiceConfigurationError hiển thị trong test để lỗi module descriptor hoặc khởi tạo provider không bị che giấu.
+- Use ServiceLoader.load(layer, service) when you want to test providers in a specific ModuleLayer.
+- Ensure the module calling ServiceLoader has a uses directive for the service.
+- Ensure the provider module has been resolved and defined in the layer.
+- Use provides ... with ... in the provider module's module descriptor.
+- Verify the provider belongs to the right layer using provider.type().getModule().getLayer().
+- Do not rely on provider order.
+- Distinguish providers in a parent layer from providers in a child layer.
+- Do not expect a layer's loader to find providers located only in a sibling layer.
+- Keep ServiceConfigurationError visible in tests so module descriptor or provider instantiation errors are not hidden.
 
-Khi kiểm thử service theo nhiều ModuleLayer, điều cần xác nhận không chỉ là service trả về kết quả đúng. Test còn phải xác nhận provider được tìm thấy từ đúng layer, đúng quan hệ cha-con và đúng cấu hình module. Đây là cách phát hiện sớm lỗi thường gặp trong hệ thống plugin hoặc ứng dụng nạp module động.
+When testing services across multiple ModuleLayers, what must be verified is not just that the service returns the right result. Tests must also verify that the provider is discovered from the right layer, with the right parent-child relationship and the right module configuration. This is how to catch common bugs early in plugin systems or applications that load modules dynamically.

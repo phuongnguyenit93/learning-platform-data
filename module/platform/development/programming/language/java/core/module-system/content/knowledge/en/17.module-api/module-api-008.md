@@ -1,31 +1,31 @@
-# Module::canRead, isExported và isOpen
+# Module::canRead, isExported, and isOpen
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Trong Java Platform Module System (JPMS), mỗi module có thể đọc module khác, công khai một số package cho module khác, hoặc mở package để module khác truy cập sâu bằng reflection. Ba phương thức của lớp **java.lang.Module** giúp kiểm tra ba quan hệ này ở thời điểm chạy:
+In the Java Platform Module System (JPMS), each module can read other modules, expose certain packages to other modules, or open packages so other modules can perform deep access via reflection. Three methods on the **java.lang.Module** class help inspect these three relationships at runtime:
 
-- **canRead(Module other)**: module hiện tại có đọc được module khác không?
-- **isExported(String packageName)** và **isExported(String packageName, Module other)**: package có được export vô điều kiện hoặc export tới một module cụ thể không?
-- **isOpen(String packageName)** và **isOpen(String packageName, Module other)**: package có được mở vô điều kiện hoặc mở cho một module cụ thể để deep reflection không?
+- **canRead(Module other)**: can the current module read the other module?
+- **isExported(String packageName)** and **isExported(String packageName, Module other)**: is the package exported unconditionally or exported to a specific module?
+- **isOpen(String packageName)** and **isOpen(String packageName, Module other)**: is the package opened unconditionally or opened to a specific module for deep reflection?
 
-Điểm quan trọng là hướng gọi phương thức:
+The important point is the direction of the method call:
 
-- Gọi **consumer.canRead(provider)** để hỏi module sử dụng có đọc module cung cấp không.
-- Gọi **provider.isExported(packageName, consumer)** để hỏi module cung cấp có export package cho module sử dụng không.
-- Gọi **provider.isOpen(packageName, consumer)** để hỏi module cung cấp có mở package cho module sử dụng không.
+- Call **consumer.canRead(provider)** to ask whether the consuming module reads the providing module.
+- Call **provider.isExported(packageName, consumer)** to ask whether the providing module exports the package to the consuming module.
+- Call **provider.isOpen(packageName, consumer)** to ask whether the providing module opens the package to the consuming module.
 
-Các phương thức này thuộc lớp **Module** trong package **java.lang**, có từ Java 9. Không cần import riêng lớp Module.
+These methods belong to the **Module** class in the **java.lang** package, available since Java 9. No separate import of the Module class is needed.
 
-## 2. Module object đại diện cho điều gì?
+## 2. What does a Module object represent?
 
-**Module** là đối tượng runtime đại diện cho một module đã được JVM xác định. Mỗi class có thể cho biết module chứa nó bằng **Class.getModule()**:
+**Module** is a runtime object representing a module identified by the JVM. Every class can report the module that contains it via **Class.getModule()**:
 
 ~~~java
 Module moduleOfCurrentClass = MyApplication.class.getModule();
 Module moduleOfLibraryClass = LibraryApi.class.getModule();
 ~~~
 
-Nếu chỉ biết tên module, có thể tra module trong boot layer:
+If you only know the module name, you can look up the module in the boot layer:
 
 ~~~java
 Module library = ModuleLayer.boot()
@@ -35,21 +35,21 @@ Module library = ModuleLayer.boot()
 Module application = MyApplication.class.getModule();
 ~~~
 
-Một named module có tên và module descriptor. Unnamed module không có tên; mỗi class loader có một unnamed module riêng cho các class không thuộc named module. Phần lớn ứng dụng chạy trên classpath sử dụng unnamed module.
+A named module has a name and a module descriptor. An unnamed module has no name; each class loader has its own unnamed module for classes that do not belong to a named module. Most applications running on the classpath use an unnamed module.
 
-Ba phương thức đang học kiểm tra quan hệ runtime giữa các Module object. Chúng không nhận tên module dạng String ở tham số **other**; hãy truyền đối tượng Module lấy từ **Class.getModule()** hoặc **ModuleLayer**.
+The three methods under study inspect runtime relationships between Module objects. They do not take a String module name for the **other** parameter; pass a Module object obtained from **Class.getModule()** or **ModuleLayer**.
 
-## 3. canRead(Module other): kiểm tra readability
+## 3. canRead(Module other): checking readability
 
-Cú pháp:
+Syntax:
 
 ~~~java
 boolean canRead(Module other)
 ~~~
 
-Phương thức được gọi trên module cần kiểm tra. Kết quả là **true** khi module đó đọc module được truyền vào.
+The method is called on the module to be checked. The result is **true** when that module reads the passed-in module.
 
-Ví dụ:
+Example:
 
 ~~~java
 Module application = MyApplication.class.getModule();
@@ -58,11 +58,11 @@ Module library = LibraryApi.class.getModule();
 boolean readable = application.canRead(library);
 ~~~
 
-Nếu **readable** là true, module application có quan hệ readability tới module library trong module graph runtime. Nếu false, application chưa đọc library.
+If **readable** is true, the application module has a readability relationship to the library module in the runtime module graph. If false, application does not read library.
 
-### Readability hình thành như thế nào?
+### How is readability established?
 
-Với named module, quan hệ readability thường bắt đầu từ các chỉ thị **requires** trong module-info.java:
+For named modules, readability relationships usually start from **requires** directives in module-info.java:
 
 ~~~java
 module com.acme.application {
@@ -70,7 +70,7 @@ module com.acme.application {
 }
 ~~~
 
-Khi module graph được tạo, com.acme.application đọc com.acme.library. Chỉ thị **requires transitive** còn truyền readability tới các module phụ thuộc theo quy tắc của module system:
+When the module graph is constructed, com.acme.application reads com.acme.library. The **requires transitive** directive also propagates readability to dependent modules according to module system rules:
 
 ~~~java
 module com.acme.library {
@@ -78,21 +78,21 @@ module com.acme.library {
 }
 ~~~
 
-Module khác đọc com.acme.library cũng có thể đọc com.acme.model thông qua cạnh transitive đó, nếu các module liên quan nằm trong graph tương ứng.
+Another module that reads com.acme.library can also read com.acme.model through that transitive edge, provided the relevant modules are in the corresponding graph.
 
-Một module luôn đọc chính nó. Đặc biệt, gọi **canRead** trên unnamed module luôn trả về true vì unnamed module đọc tất cả module.
+A module always reads itself. In particular, calling **canRead** on an unnamed module always returns true because an unnamed module reads all modules.
 
-### canRead không có nghĩa là truy cập được mọi package
+### canRead does not mean every package is accessible
 
-Readability chỉ trả lời câu hỏi về quan hệ module. Nó không tự động công khai package của module đích.
+Readability only answers the question about module relationships. It does not automatically expose the target module's packages.
 
-Giả sử application đọc library, nhưng library không export package com.acme.internal cho application. Application vẫn không được sử dụng các public type trong package đó như API thông thường chỉ vì **application.canRead(library)** trả về true.
+Suppose application reads library, but library does not export the package com.acme.internal to application. Application still cannot use public types in that package as normal API just because **application.canRead(library)** returns true.
 
-Để truy cập API public của một package trong named module, cần xem thêm quy tắc export và khả năng truy cập của type/member theo Java language.
+To access the public API of a package in a named module, you must also check export rules and the accessibility of types/members according to the Java language.
 
-## 4. isExported: kiểm tra package được export
+## 4. isExported: checking whether a package is exported
 
-Có hai overload:
+There are two overloads:
 
 ~~~java
 boolean isExported(String packageName)
@@ -100,16 +100,16 @@ boolean isExported(String packageName)
 boolean isExported(String packageName, Module other)
 ~~~
 
-Tên package phải là tên đầy đủ theo dạng dấu chấm, ví dụ **com.acme.api**; không truyền đường dẫn thư mục với dấu gạch chéo.
+The package name must be a fully qualified dot-separated name, such as **com.acme.api**; do not pass a directory path with forward slashes.
 
-### Export vô điều kiện
+### Unconditional export
 
 ~~~java
 boolean exportedToEveryone =
         library.isExported("com.acme.api");
 ~~~
 
-Overload một tham số trả về true khi package được export vô điều kiện. Trong module-info.java, trường hợp điển hình là:
+The single-parameter overload returns true when the package is exported unconditionally. In module-info.java, the typical case is:
 
 ~~~java
 module com.acme.library {
@@ -117,16 +117,16 @@ module com.acme.library {
 }
 ~~~
 
-Package com.acme.api được export cho các module khác, thay vì chỉ một danh sách module được chỉ định.
+The package com.acme.api is exported to all other modules, rather than only a specified list of modules.
 
-### Export tới một module cụ thể
+### Export to a specific module
 
 ~~~java
 boolean exportedToApplication =
         library.isExported("com.acme.spi", application);
 ~~~
 
-Overload hai tham số trả về true nếu package được export tới ít nhất module được truyền vào. Một qualified export có dạng:
+The two-parameter overload returns true if the package is exported to at least the passed-in module. A qualified export has the form:
 
 ~~~java
 module com.acme.library {
@@ -134,21 +134,21 @@ module com.acme.library {
 }
 ~~~
 
-Trong ví dụ này, package com.acme.spi được export cho com.acme.plugin. Một module khác không tự động nhận quyền export đó.
+In this example, the package com.acme.spi is exported to com.acme.plugin. Another module does not automatically receive that export permission.
 
-Phương thức cũng trả về true khi kiểm tra package đối với chính module chứa package. Khi gọi trên unnamed module, các overload export luôn trả về true.
+The method also returns true when checking a package against the module containing the package itself. When called on an unnamed module, the export overloads always return true.
 
-### Lưu ý quan trọng về package được mở
+### Important note about opened packages
 
-Theo hợp đồng API runtime của **Module.isExported**, package được mở cho module đích cũng được xem là exported đối với module đó. Vì vậy, **isExported(packageName, other)** có thể trả về true do package đã được mở, kể cả khi module-info.java không có chỉ thị exports tương ứng.
+According to the runtime API contract of **Module.isExported**, a package opened to a target module is also considered exported to that module. Therefore, **isExported(packageName, other)** can return true because the package has been opened, even when module-info.java has no corresponding exports directive.
 
-Tương tự, overload một tham số trả về true nếu package được mở vô điều kiện. Vì thế, không nên dùng riêng kết quả **isExported** để suy luận chính xác module descriptor có khai báo chỉ thị **exports** hay không. Nếu cần đọc các khai báo tĩnh trong descriptor, xem **Module.getDescriptor()** và các tập **ModuleDescriptor.exports()** / **ModuleDescriptor.opens()**.
+Similarly, the single-parameter overload returns true if the package is opened unconditionally. Therefore, you should not use the **isExported** result alone to deduce with certainty whether the module descriptor declares an **exports** directive. If you need to read static declarations in the descriptor, inspect **Module.getDescriptor()** and the **ModuleDescriptor.exports()** / **ModuleDescriptor.opens()** sets.
 
-Các overload của **isExported** không kiểm tra xem module đích có đọc module hiện tại hay không. Hãy kiểm tra readability riêng bằng **canRead** khi câu hỏi cần cả hai quan hệ.
+The **isExported** overloads do not check whether the target module reads the current module. Check readability separately with **canRead** when your question requires both relationships.
 
-## 5. isOpen: kiểm tra package mở cho deep reflection
+## 5. isOpen: checking whether a package is open for deep reflection
 
-Có hai overload:
+There are two overloads:
 
 ~~~java
 boolean isOpen(String packageName)
@@ -156,16 +156,16 @@ boolean isOpen(String packageName)
 boolean isOpen(String packageName, Module other)
 ~~~
 
-**opens** cho phép module đích thực hiện deep reflection lên các type và member trong package, bao gồm member không public, thông qua những API hỗ trợ truy cập sâu như **AccessibleObject.setAccessible**, **trySetAccessible** hoặc **MethodHandles.privateLookupIn** khi các điều kiện liên quan được đáp ứng.
+**opens** allows the target module to perform deep reflection on types and members in the package, including non-public members, through APIs that support deep access such as **AccessibleObject.setAccessible**, **trySetAccessible**, or **MethodHandles.privateLookupIn** when relevant conditions are met.
 
-### Mở vô điều kiện
+### Unconditional open
 
 ~~~java
 boolean openToEveryone =
         library.isOpen("com.acme.model");
 ~~~
 
-Khai báo tương ứng trong module-info.java:
+Corresponding declaration in module-info.java:
 
 ~~~java
 module com.acme.library {
@@ -173,26 +173,26 @@ module com.acme.library {
 }
 ~~~
 
-Package com.acme.model được mở cho mọi module để deep reflection.
+The package com.acme.model is opened to all modules for deep reflection.
 
-Một cách khai báo rộng hơn là **open module**:
+A broader declaration is **open module**:
 
 ~~~java
 open module com.acme.library {
-    // Các package trong module được mở cho deep reflection.
+    // Packages in the module are open for deep reflection.
 }
 ~~~
 
-Với open module, **isOpen(packageName)** trả về true cho package thuộc module đó.
+For an open module, **isOpen(packageName)** returns true for packages belonging to that module.
 
-### Mở cho một module cụ thể
+### Open to a specific module
 
 ~~~java
 boolean openToJson =
         library.isOpen("com.acme.model", jsonFramework);
 ~~~
 
-Qualified opens chỉ cấp quyền mở package cho module được nêu:
+Qualified opens only grant package-opening permission to the named module:
 
 ~~~java
 module com.acme.library {
@@ -200,27 +200,27 @@ module com.acme.library {
 }
 ~~~
 
-Module com.acme.json có thể thực hiện deep reflection trên các type và member trong com.acme.model. Module khác không được hưởng quyền mở này chỉ vì cùng đọc com.acme.library.
+The module com.acme.json can perform deep reflection on types and members in com.acme.model. Other modules do not gain this open permission merely because they also read com.acme.library.
 
-Khi gọi **isOpen** để kiểm tra chính module chứa package, kết quả là true. Khi gọi trên unnamed module, các overload open luôn trả về true. Overload một tham số cũng trả về true cho package thuộc một open module.
+When calling **isOpen** to check the module containing the package itself, the result is true. When called on an unnamed module, the open overloads always return true. The single-parameter overload also returns true for packages belonging to an open module.
 
-### isOpen không kiểm tra readability
+### isOpen does not check readability
 
-**isOpen(packageName, other)** chỉ kiểm tra quan hệ mở package; nó không kiểm tra module other có đọc module hiện tại hay không.
+**isOpen(packageName, other)** only checks the package-opening relationship; it does not check whether the other module reads the current module.
 
-API Java ghi rõ một package mở cho module M cho phép code trong M deep reflection lên các type và member của package. Nếu M cần lấy một **Lookup** có quyền định nghĩa class trong package đó bằng **MethodHandles.privateLookupIn**, M còn phải đọc module chứa package.
+The Java API specifies that a package open to module M allows code in M to perform deep reflection on the package's types and members. If M needs to obtain a **Lookup** with permission to define classes in that package via **MethodHandles.privateLookupIn**, M must also read the module containing the package.
 
-Do đó, khi chẩn đoán lỗi reflection, cần xác định API reflection đang dùng, kiểm tra package có mở cho đúng module gọi hay không, và kiểm tra thêm readability nếu thao tác yêu cầu.
+Therefore, when diagnosing reflection errors, identify the reflection API being used, check whether the package is open to the calling module, and also check readability if the operation requires it.
 
-## 6. Phân biệt readability, exports và opens
+## 6. Distinguishing readability, exports, and opens
 
-| Quan hệ | Câu hỏi | Cấu hình thường gặp | API kiểm tra |
+| Relationship | Question | Typical configuration | Check API |
 |---|---|---|---|
-| Readability | Module A có đọc module B không? | A khai báo requires B | A.canRead(B) |
-| Export | Package của B có được công khai cho A để dùng API public không? | B khai báo exports package [to A] | B.isExported(package, A) |
-| Open | Package của B có mở cho A để deep reflection không? | B khai báo opens package [to A] hoặc là open module | B.isOpen(package, A) |
+| Readability | Does module A read module B? | A declares requires B | A.canRead(B) |
+| Export | Is B's package exposed to A for public API usage? | B declares exports package [to A] | B.isExported(package, A) |
+| Open | Is B's package open to A for deep reflection? | B declares opens package [to A] or is an open module | B.isOpen(package, A) |
 
-Ví dụ module descriptor:
+Example module descriptor:
 
 ~~~java
 module com.acme.library {
@@ -230,7 +230,7 @@ module com.acme.library {
 }
 ~~~
 
-Module sử dụng API thông thường cần khai báo dependency:
+A module using the regular API needs to declare the dependency:
 
 ~~~java
 module com.acme.application {
@@ -238,22 +238,22 @@ module com.acme.application {
 }
 ~~~
 
-Có thể diễn giải ba quan hệ theo hướng:
+The three relationships can be interpreted by direction:
 
-1. **application.canRead(library)** hỏi application có đọc library không.
-2. **library.isExported("com.acme.api", application)** hỏi package API có được export tới application không.
-3. **library.isOpen("com.acme.model", jsonFramework)** hỏi package model có mở cho framework JSON để deep reflection không.
+1. **application.canRead(library)** asks whether application reads library.
+2. **library.isExported("com.acme.api", application)** asks whether the API package is exported to application.
+3. **library.isOpen("com.acme.model", jsonFramework)** asks whether the model package is open to the JSON framework for deep reflection.
 
-### exports và opens không thay thế cho nhau
+### exports and opens do not substitute for each other
 
-- **exports** công khai API của package theo quy tắc truy cập thông thường: các public type và public member của chúng có thể được module đọc sử dụng khi các điều kiện Java khác cũng thỏa mãn.
-- **opens** cấp quyền deep reflection vào package. Chỉ thị opens không tự biến package thành API có thể được import và sử dụng trực tiếp khi biên dịch.
-- Một package có thể vừa được export vừa được mở, nhưng hai khai báo phục vụ hai mục đích khác nhau.
-- Ở runtime, **Module.isExported** có quy tắc đặc biệt coi package đã mở cho module đích là exported cho module đó. Hãy ghi nhớ điều này khi đọc kết quả API.
+- **exports** exposes the package's API under standard access rules: public types and their public members can be used by reading modules when other Java conditions are also satisfied.
+- **opens** grants deep reflection permission into the package. An opens directive does not by itself make the package an API that can be imported and used directly at compile time.
+- A package can be both exported and opened, but the two declarations serve two different purposes.
+- At runtime, **Module.isExported** has a special rule treating a package opened to a target module as exported to that module. Keep this in mind when reading API results.
 
-## 7. Ví dụ chạy được: kiểm tra module java.sql
+## 7. Runnable example: inspecting the java.sql module
 
-Ví dụ sau có thể chạy trên Java 9 trở lên. Khi chạy class này trên classpath, Module của ModuleApiDemo là unnamed module.
+The following example can run on Java 9 and later. When running this class on the classpath, ModuleApiDemo's Module is an unnamed module.
 
 ~~~java
 public class ModuleApiDemo {
@@ -268,7 +268,7 @@ public class ModuleApiDemo {
 }
 ~~~
 
-Kết quả khi chạy trên classpath với JDK tiêu chuẩn:
+Output when running on the classpath with a standard JDK:
 
 ~~~text
 true
@@ -276,17 +276,17 @@ true
 false
 ~~~
 
-Giải thích:
+Explanation:
 
-- Unnamed module đọc mọi module nên **application.canRead(sql)** là true.
-- Module java.sql export package java.sql, do đó **sql.isExported("java.sql", application)** là true.
-- Package java.sql không được mở cho deep reflection trong ví dụ này, do đó **sql.isOpen("java.sql", application)** là false.
+- An unnamed module reads all modules, so **application.canRead(sql)** is true.
+- The java.sql module exports the java.sql package, so **sql.isExported("java.sql", application)** is true.
+- The java.sql package is not opened for deep reflection in this example, so **sql.isOpen("java.sql", application)** is false.
 
-Nếu chạy ứng dụng trong named module, kết quả readability phụ thuộc module graph và các chỉ thị requires của ứng dụng.
+If running the application in a named module, the readability result depends on the module graph and the application's requires directives.
 
-## 8. Ví dụ kiểm tra một thư viện theo tên module
+## 8. Example inspecting a library by module name
 
-Khi cần kiểm tra một named module mà không tham chiếu trực tiếp tới class trong package đang kiểm tra, có thể lấy Module từ boot layer:
+When you need to inspect a named module without directly referencing a class in the package under inspection, you can obtain the Module from the boot layer:
 
 ~~~java
 import java.util.Optional;
@@ -312,13 +312,13 @@ public class InspectLibrary {
 }
 ~~~
 
-Tên module truyền cho **findModule** phải là tên module thực tế đã được định nghĩa trong module graph của layer. Nếu module không có trong boot layer, Optional sẽ rỗng; module có thể thuộc một layer khác được tạo riêng.
+The module name passed to **findModule** must be the actual module name defined in the layer's module graph. If the module is not in the boot layer, Optional will be empty; the module may belong to a separate custom layer.
 
-Kết quả **apiExported** ở đây là trạng thái export theo hợp đồng runtime của Module API. Nếu package được mở cho application, phương thức này cũng có thể trả về true. Muốn xác định chính xác các chỉ thị được khai báo trong descriptor, hãy kiểm tra descriptor riêng.
+The **apiExported** result here is the export status according to the runtime contract of the Module API. If the package is opened to application, this method can also return true. To determine the exact directives declared in the descriptor, inspect the descriptor separately.
 
-## 9. Kiểm tra khai báo trong ModuleDescriptor
+## 9. Checking declarations in ModuleDescriptor
 
-**Module.getDescriptor()** trả về descriptor của named module; với unnamed module, kết quả là null.
+**Module.getDescriptor()** returns the descriptor of a named module; for an unnamed module, the result is null.
 
 ~~~java
 var descriptor = library.getDescriptor();
@@ -334,105 +334,105 @@ if (descriptor != null) {
 }
 ~~~
 
-Cách này hữu ích khi cần phân biệt cấu hình khai báo trong module-info.java với trạng thái runtime đã chịu tác động của các thao tác điều chỉnh module graph. Descriptor mô tả metadata của module; các phương thức **canRead**, **isExported** và **isOpen** trả lời câu hỏi về quan hệ runtime.
+This approach is useful when distinguishing static configuration declared in module-info.java from runtime state affected by module-graph mutation operations. The descriptor describes module metadata; the **canRead**, **isExported**, and **isOpen** methods answer questions about runtime relationships.
 
-## 10. Quan hệ với addReads, addExports và addOpens
+## 10. Relationship with addReads, addExports, and addOpens
 
-Lớp **Module** còn có các phương thức thay đổi một số quan hệ runtime:
+The **Module** class also has methods that modify certain runtime relationships:
 
-- **addReads(other)** bổ sung cạnh readability từ module hiện tại tới other.
-- **addExports(packageName, other)** export package cho other.
-- **addOpens(packageName, other)** mở package cho other để deep reflection.
+- **addReads(other)** adds a readability edge from the current module to other.
+- **addExports(packageName, other)** exports the package to other.
+- **addOpens(packageName, other)** opens the package to other for deep reflection.
 
-Các phương thức này chịu giới hạn caller: với named module, module gọi phải đáp ứng điều kiện API để cập nhật chính module đó; nếu không, có thể nhận **IllegalCallerException**. **addOpens** còn yêu cầu package đã được mở cho module caller theo hợp đồng API.
+These methods enforce caller restrictions: for a named module, the calling module must satisfy API conditions to update that module itself; otherwise, it may receive **IllegalCallerException**. **addOpens** also requires the package to already be open to the caller module under the API contract.
 
-Đây là các thao tác runtime dành cho framework, container hoặc hạ tầng module có lý do cụ thể. Với ứng dụng thông thường, nên thiết kế dependency và module-info.java rõ ràng trước khi cân nhắc thay đổi quan hệ động.
+These are runtime operations intended for frameworks, containers, or module infrastructure with a specific reason. For typical applications, design dependencies and module-info.java cleanly before considering dynamic relationship changes.
 
-Sau khi một quan hệ runtime được cập nhật hợp lệ, các phương thức kiểm tra tương ứng phản ánh trạng thái runtime mới.
+Once a runtime relationship is validly updated, the corresponding inspection methods reflect the new runtime state.
 
-## 11. Các lỗi hiểu nhầm thường gặp
+## 11. Common misunderstandings
 
-### Gọi ngược chiều
+### Calling in the reverse direction
 
-Sai hướng:
+Wrong direction:
 
 ~~~java
 library.canRead(application);
 ~~~
 
-Dòng này hỏi library có đọc application hay không. Nếu muốn biết application có đọc library, phải gọi:
+This line asks whether library reads application. If you want to know whether application reads library, you must call:
 
 ~~~java
 application.canRead(library);
 ~~~
 
-Tương tự, export và open được kiểm tra trên module sở hữu package:
+Similarly, export and open are checked on the module that owns the package:
 
 ~~~java
 library.isExported("com.acme.api", application);
 library.isOpen("com.acme.model", application);
 ~~~
 
-### Nghĩ canRead đồng nghĩa với package đã public
+### Thinking canRead means packages are public
 
-**canRead** không thay thế **exports**. Một module có thể đọc module khác nhưng không được truy cập package nội bộ của module đó theo quy tắc thông thường.
+**canRead** does not replace **exports**. A module can read another module without being allowed to access internal packages of that module under standard rules.
 
-### Nghĩ exports cho phép reflection vào private member
+### Thinking exports permits reflection on private members
 
-Export package không đồng nghĩa với mở package để deep reflection. Nếu framework cần truy cập private field hoặc private constructor, hãy xem xét **opens** cho đúng module framework.
+Exporting a package is not the same as opening the package for deep reflection. If a framework needs to access private fields or private constructors, consider **opens** to the appropriate framework module.
 
-### Dùng isExported để xác nhận chắc chắn có khai báo exports
+### Using isExported to confirm an exports declaration for certain
 
-Một package được mở cho module đích cũng được xem là exported ở runtime theo hợp đồng **Module.isExported**. Muốn biết module descriptor khai báo exports hay opens, hãy đọc **ModuleDescriptor.exports()** và **ModuleDescriptor.opens()**.
+A package opened to a target module is also considered exported at runtime under the **Module.isExported** contract. To know whether the module descriptor declares exports or opens, read **ModuleDescriptor.exports()** and **ModuleDescriptor.opens()**.
 
-### Nghĩ isOpen tự động bao gồm mọi điều kiện reflection
+### Thinking isOpen automatically covers every reflection condition
 
-**isOpen** xác nhận quan hệ mở package với module đích. Từng thao tác reflection vẫn phải tuân theo hợp đồng API được sử dụng. Chẳng hạn, **privateLookupIn** còn có điều kiện về readability; hãy đọc thông báo lỗi và hợp đồng của API cụ thể.
+**isOpen** confirms the package-opening relationship with the target module. Each reflection operation must still adhere to the contract of the API being used. For example, **privateLookupIn** also has a readability requirement; read the error message and contract of the specific API.
 
-### Truyền sai tên package
+### Passing the wrong package name
 
-Tên package là tên Java đầy đủ, dùng dấu chấm:
+A package name is a full Java name using dots:
 
 ~~~java
 library.isOpen("com.acme.model", application);
 ~~~
 
-Không dùng **com/acme/model** hoặc tên class như **com.acme.model.User**.
+Do not use **com/acme/model** or a class name like **com.acme.model.User**.
 
-## 12. Quy tắc và trường hợp biên cần nhớ
+## 12. Rules and edge cases to remember
 
-1. Module luôn đọc chính nó; **module.canRead(module)** trả về true.
-2. Unnamed module đọc mọi module; **canRead** trên unnamed module luôn trả về true.
-3. Các overload **isExported** và **isOpen** trả về true khi được gọi trên unnamed module.
-4. Kiểm tra package đối với chính module chứa package cũng trả về true theo hợp đồng của các overload có tham số Module.
-5. Package được mở cho module đích cũng được xem là exported cho module đó ở runtime.
-6. **isExported** và **isOpen** không kiểm tra readability; kiểm tra riêng bằng **canRead** khi cần.
-7. **isOpen** trên open module trả về true với package thuộc module đó.
-8. Tên package truyền vào là tên đầy đủ, ví dụ **java.sql** hoặc **com.acme.model**.
-9. Truyền null vào tham số bắt buộc của các phương thức này gây **NullPointerException**.
-10. Các phương thức này kiểm tra trạng thái runtime; đừng nhầm kết quả với việc đọc nguyên văn chỉ thị trong module-info.java.
+1. A module always reads itself; **module.canRead(module)** returns true.
+2. An unnamed module reads every module; **canRead** on an unnamed module always returns true.
+3. The **isExported** and **isOpen** overloads return true when called on an unnamed module.
+4. Checking a package against the module containing the package itself also returns true under the contract of overloads taking a Module parameter.
+5. A package opened to a target module is also considered exported to that module at runtime.
+6. **isExported** and **isOpen** do not check readability; check separately with **canRead** when needed.
+7. **isOpen** on an open module returns true for packages belonging to that module.
+8. The passed-in package name is the fully qualified name, such as **java.sql** or **com.acme.model**.
+9. Passing null to a required parameter of these methods throws **NullPointerException**.
+10. These methods inspect runtime state; do not confuse the results with reading the literal directives in module-info.java.
 
-## 13. Bài tập tự kiểm tra và đáp án
+## 13. Self-check exercises and answers
 
-### Bài 1 — Chọn đúng chiều gọi
+### Exercise 1 — Choose the right call direction
 
-Module app muốn biết mình có đọc module lib không. Nên gọi biểu thức nào?
+Module app wants to know whether it reads module lib. Which expression should be called?
 
 A. **lib.canRead(app)**
 
 B. **app.canRead(lib)**
 
-**Đáp án:** B. Phương thức được gọi trên module cần kiểm tra readability.
+**Answer:** B. The method is called on the module whose readability is being checked.
 
-### Bài 2 — Readability và export
+### Exercise 2 — Readability and export
 
-Nếu **app.canRead(lib)** trả về true, app có chắc chắn sử dụng được mọi public class trong mọi package của lib không?
+If **app.canRead(lib)** returns true, can app definitely use every public class in every package of lib?
 
-**Đáp án:** Không. Package vẫn phải được export cho app và type/member phải thỏa các quy tắc truy cập Java. Readability không công khai toàn bộ package.
+**Answer:** No. The package must still be exported to app, and the types/members must satisfy Java access rules. Readability does not expose all packages.
 
-### Bài 3 — Qualified export
+### Exercise 3 — Qualified export
 
-Module lib khai báo:
+Module lib declares:
 
 ~~~java
 module com.acme.library {
@@ -440,25 +440,25 @@ module com.acme.library {
 }
 ~~~
 
-Giả sử không có khai báo opens liên quan. Khi kiểm tra từ module plugin, overload nào phù hợp để hỏi package có được export tới plugin không?
+Assuming no related opens declarations, when checking from the plugin module, which overload is suitable to ask whether the package is exported to plugin?
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 lib.isExported("com.acme.spi", plugin);
 ~~~
 
-Overload hai tham số kiểm tra quan hệ với module đích cụ thể.
+The two-parameter overload checks the relationship with a specific target module.
 
-### Bài 4 — Export hay open?
+### Exercise 4 — Export or open?
 
-Một framework cần đọc private field của class trong package com.acme.model. Chỉ khai báo **exports com.acme.model** đã đủ để cấp deep reflection chưa?
+A framework needs to read private fields of classes in the com.acme.model package. Is declaring **exports com.acme.model** alone enough to grant deep reflection?
 
-**Đáp án:** Chưa. Cần mở package cho module framework bằng opens hoặc một cơ chế runtime hợp lệ tương ứng. Export phục vụ truy cập API thông thường.
+**Answer:** No. You need to open the package to the framework module using opens or an appropriate valid runtime mechanism. Export serves standard API access.
 
-### Bài 5 — Vì sao isExported trả về true?
+### Exercise 5 — Why does isExported return true?
 
-Module lib có khai báo:
+Module lib declares:
 
 ~~~java
 module com.acme.library {
@@ -466,44 +466,44 @@ module com.acme.library {
 }
 ~~~
 
-Vì sao **lib.isExported("com.acme.model", json)** có thể trả về true dù module-info.java không có dòng exports cho package này?
+Why can **lib.isExported("com.acme.model", json)** return true even though module-info.java has no exports line for this package?
 
-**Đáp án:** Module API quy định package được mở cho module đích cũng được xem là exported đối với module đó ở runtime.
+**Answer:** The Module API specifies that a package opened to a target module is also considered exported to that module at runtime.
 
-### Bài 6 — isOpen có kiểm tra canRead không?
+### Exercise 6 — Does isOpen check canRead?
 
-Nếu **lib.isOpen("com.acme.model", app)** trả về true, kết quả này có chứng minh app đọc lib không?
+If **lib.isOpen("com.acme.model", app)** returns true, does this result prove that app reads lib?
 
-**Đáp án:** Không. isOpen không kiểm tra readability. Dùng **app.canRead(lib)** để kiểm tra riêng. Một số thao tác như privateLookupIn còn yêu cầu caller đọc target module.
+**Answer:** No. isOpen does not check readability. Use **app.canRead(lib)** to check separately. Some operations such as privateLookupIn also require the caller to read the target module.
 
-### Bài 7 — Unnamed module
+### Exercise 7 — Unnamed module
 
-Một ứng dụng chạy trên classpath lấy được Module của chính nó. Kết quả **app.canRead(anyNamedModule)** có thể là false không?
+An application running on the classpath obtains its own Module. Can the result of **app.canRead(anyNamedModule)** be false?
 
-**Đáp án:** Không. Unnamed module đọc tất cả module, nên canRead trả về true.
+**Answer:** No. An unnamed module reads all modules, so canRead returns true.
 
-### Bài 8 — Kiểm tra descriptor
+### Exercise 8 — Checking the descriptor
 
-Muốn biết module-info.java khai báo package trong exports hay opens, chỉ gọi **isExported** có đủ không?
+To know whether module-info.java declares a package in exports or opens, is calling **isExported** alone enough?
 
-**Đáp án:** Không. isExported có thể trả true do package được mở ở runtime. Hãy kiểm tra **module.getDescriptor().exports()** và **module.getDescriptor().opens()** để xem các khai báo trong descriptor.
+**Answer:** No. isExported can return true because the package is opened at runtime. Inspect **module.getDescriptor().exports()** and **module.getDescriptor().opens()** to view the declarations in the descriptor.
 
-## 14. Checklist khi sử dụng ba phương thức
+## 14. Checklist when using the three methods
 
-- Đã xác định đúng module sở hữu package và module cần truy cập chưa?
-- Đã gọi **canRead** trên module consumer và truyền module provider chưa?
-- Đã gọi **isExported** / **isOpen** trên module provider và truyền module consumer chưa?
-- Mục tiêu là truy cập API public hay deep reflection?
-- Đã phân biệt exports với opens trong module-info.java chưa?
-- Có nhớ **isExported** coi package mở cho module đích là exported ở runtime không?
-- Có cần đọc descriptor để biết chính xác khai báo tĩnh không?
-- Có kiểm tra readability riêng khi thao tác cần nó không?
-- Có truyền đúng tên package đầy đủ và Module object hợp lệ không?
-- Có xét trường hợp unnamed module và open module khi diễn giải kết quả không?
+- Have you accurately identified the module owning the package and the module needing access?
+- Did you call **canRead** on the consumer module and pass the provider module?
+- Did you call **isExported** / **isOpen** on the provider module and pass the consumer module?
+- Is the goal public API access or deep reflection?
+- Have you distinguished exports from opens in module-info.java?
+- Did you remember that **isExported** treats a package opened to the target module as exported at runtime?
+- Do you need to read the descriptor to know the exact static declarations?
+- Did you check readability separately when the operation requires it?
+- Did you pass the exact full package name and valid Module objects?
+- Did you account for unnamed modules and open modules when interpreting results?
 
-**Ghi nhớ:** **canRead** kiểm tra cạnh readability từ consumer tới provider; **isExported** kiểm tra trạng thái export runtime của package; **isOpen** kiểm tra quyền deep reflection. Hãy xác định đúng hướng quan hệ trước khi gọi phương thức và đừng coi ba kết quả này là một loại quyền duy nhất.
+**Remember:** **canRead** checks the readability edge from consumer to provider; **isExported** checks the runtime export status of a package; **isOpen** checks deep reflection permission. Identify the relationship direction properly before calling the methods, and do not treat these three results as a single kind of permission.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle Java SE 21 API — **java.lang.Module**: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Module.html
 - Oracle Java SE 21 API — **java.lang.module.ModuleDescriptor**: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/module/ModuleDescriptor.html

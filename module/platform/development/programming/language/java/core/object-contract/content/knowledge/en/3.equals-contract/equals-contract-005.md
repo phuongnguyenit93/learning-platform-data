@@ -1,51 +1,51 @@
-# Hợp đồng equals: tính nhất quán khi dữ liệu dùng để so sánh không thay đổi
+# The `equals` Contract: Consistency When Comparison Data Does Not Change
 
-## 1. Tính nhất quán nghĩa là gì?
+## 1. What Does Consistency Mean?
 
-Trong Java, phương thức **Object.equals(Object)** có một yêu cầu về *consistency* (tính nhất quán):
+In Java, the **Object.equals(Object)** method has a requirement for *consistency*:
 
-> Với hai tham chiếu đối tượng không null là x và y, những lần gọi liên tiếp x.equals(y) phải nhất quán trả về true hoặc nhất quán trả về false, **miễn là không có thông tin nào được dùng để so sánh bằng equals trên các đối tượng bị thay đổi**.
+> For any two non-null object references x and y, multiple invocations of x.equals(y) must consistently return true or consistently return false, **provided no information used in equals comparisons on the objects is modified**.
 
-Đây là một điều kiện có tiền đề, không phải lời hứa rằng kết quả equals không bao giờ thay đổi trong suốt vòng đời đối tượng. Nếu trạng thái thực sự được dùng để so sánh thay đổi, một kết quả khác ở lần gọi sau có thể hoàn toàn hợp lệ.
+This is a conditional requirement, not a promise that the result of equals can never change over an object's lifetime. If the state actually used for comparison changes, a different result on a subsequent call can be completely valid.
 
-Xét hai đối tượng cùng đại diện cho mã sách và số phiên bản:
+Consider two objects both representing a book code and a revision number:
 
-- Lần 1: x.equals(y) trả về true.
-- Không thay đổi mã sách, phiên bản hoặc bất kỳ thông tin so sánh nào của x và y.
-- Lần 2, lần 3, ...: x.equals(y) vẫn phải trả về true.
+- Call 1: x.equals(y) returns true.
+- Do not modify the book code, revision, or any comparison information on x or y.
+- Call 2, call 3, ...: x.equals(y) must still return true.
 
-Nếu lúc đầu x.equals(y) là false và mọi thông tin so sánh giữ nguyên, các lần gọi tiếp theo cũng phải là false. Không có quy định rằng kết quả phải là true; yêu cầu là **ổn định với cùng dữ liệu so sánh**.
+If x.equals(y) was initially false and all comparison information remains unchanged, subsequent calls must also return false. There is no rule that the result must be true; the requirement is **stability given the same comparison data**.
 
-Tính nhất quán là một trong các điều kiện của hợp đồng equals, bên cạnh phản xạ (reflexive), đối xứng (symmetric), bắc cầu (transitive) và x.equals(null) luôn bằng false. Bài này tập trung vào điều kiện nhất quán.
+Consistency is one of the conditions of the equals contract, alongside reflexivity, symmetry, transitivity, and x.equals(null) always returning false. This lesson focuses on the consistency condition.
 
-## 2. “Dữ liệu dùng để so sánh” bao gồm những gì?
+## 2. What Does "Information Used in Comparisons" Include?
 
-Giả sử equals dùng các trường code và revision:
+Suppose equals uses the code and revision fields:
 
 ~~~java
 return revision == other.revision
         && Objects.equals(code, other.code);
 ~~~
 
-Khi code và revision ở **cả hai đối tượng** không thay đổi, kết quả so sánh phải giữ nguyên. Khi một trong hai trường đó thay đổi, điều kiện “không có thông tin so sánh nào thay đổi” không còn đúng.
+When code and revision on **both objects** do not change, the comparison result must remain the same. When either of those fields changes, the condition "no comparison information is modified" no longer holds.
 
-Cần phân biệt:
+Note these distinctions:
 
-| Tình huống | Có thay đổi thông tin dùng bởi equals? | Kết quả equals có được phép thay đổi? |
+| Scenario | Modifies information used by equals? | Is equals result allowed to change? |
 | --- | --- | --- |
-| Gọi x.equals(y) nhiều lần, mọi dữ liệu so sánh giữ nguyên | Không | Không; phải nhất quán |
-| Sửa một trường mà equals có so sánh trong x hoặc y | Có | Có thể thay đổi |
-| Sửa trường mô tả/ghi chú không hề được equals sử dụng | Không | Không được đổi chỉ vì trường đó |
-| Đối tượng giữ nguyên tham chiếu tới một List, nhưng phần tử của List dùng trong equals bị sửa | Có | Có thể thay đổi |
-| Không sửa dữ liệu mà equals lại dùng thời gian, ngẫu nhiên hoặc biến đếm tự tăng để cho kết quả khác nhau | Kết quả phụ thuộc yếu tố không ổn định | Thiết kế vi phạm kỳ vọng nhất quán |
+| Calling x.equals(y) multiple times with all comparison data unchanged | No | No; must be consistent |
+| Modifying a field that equals compares in x or y | Yes | May change |
+| Modifying a description/notes field not used by equals at all | No | Must not change solely due to that field |
+| Object keeps the same reference to a List, but a List element used in equals is modified | Yes | May change |
+| No data modified, yet equals uses time, randomness, or an incrementing counter to return different results | Result depends on unstable factors | Design violates consistency expectations |
 
-Cụm “không thay đổi” liên quan tới **giá trị/thông tin đem so sánh**, không chỉ việc biến tham chiếu x và y vẫn trỏ tới hai đối tượng cũ. Một đối tượng mutable có thể giữ cùng địa chỉ nhưng dữ liệu bên trong đã thay đổi. Ngược lại, thay đổi một trường hoàn toàn không liên quan tới equals không phải lý do hợp lệ để kết quả equals đổi khác.
+The phrase "not modified" pertains to the **values/information being compared**, not merely whether reference variables x and y still point to the same two objects. A mutable object can keep the same address while its internal data has changed. Conversely, modifying a field completely unrelated to equals is not a valid reason for the equals result to differ.
 
-Với trường là đối tượng lồng nhau, phải xét trạng thái mà phép equals của trường đó sử dụng. Ví dụ, nếu equals so sánh một List bằng List.equals, việc thay đổi phần tử có thể thay đổi kết quả dù tham chiếu List vẫn là một.
+For nested object fields, you must consider the state used by that field's equals method. For example, if equals compares a List using List.equals, modifying an element can change the result even though the List reference itself remains the same.
 
-## 3. Ví dụ Java 17+ chạy được: dữ liệu ổn định và dữ liệu bị sửa
+## 3. Runnable Java 17+ Example: Stable Data vs. Modified Data
 
-Tạo tệp **EqualsConsistencyDemo.java**:
+Create the file **EqualsConsistencyDemo.java**:
 
 ~~~java
 import java.util.Objects;
@@ -125,14 +125,14 @@ public class EqualsConsistencyDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac EqualsConsistencyDemo.java
 java EqualsConsistencyDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 fixed #1: true
@@ -142,19 +142,19 @@ after edit: false
 after restore: true
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-1. BookCode có các trường final và đối tượng String bất biến; sau khi khởi tạo, code và revision không bị sửa. So sánh cùng cặp fixedA, fixedB lặp lại luôn trả true.
-2. Trước khi sửa, left và right đều có text = "ready", nên equals trả true.
-3. Sau lệnh right.setText("busy"), dữ liệu so sánh của right thay đổi. Kết quả false **không vi phạm** tính nhất quán.
-4. Sau khi đặt lại "ready", dữ liệu lại bằng nhau, kết quả true cũng hợp lệ.
-5. Cả hai lớp ghi đè hashCode tương thích với các trường đang dùng trong equals. Điều này phục vụ một điều kiện quan trọng khác khi đối tượng được dùng trong cấu trúc băm.
+1. BookCode has final fields and an immutable String object; after initialization, code and revision are not modified. Repeated comparisons of the same pair fixedA, fixedB always return true.
+2. Before editing, left and right both have text = "ready", so equals returns true.
+3. After right.setText("busy"), right's comparison data changes. Returning false **does not violate** consistency.
+4. After restoring "ready", the data matches again, so returning true is also valid.
+5. Both classes override hashCode compatibly with the fields used in equals. This satisfies another important condition when objects are used in hash structures.
 
-Không nên diễn giải ví dụ rằng mutable luôn sai hoặc final tự động khiến equals đúng. Một lớp mutable vẫn có thể thực hiện hợp đồng nhất quán: mỗi lần kiểm tra phải dựa trên dữ liệu đang có, không tự đổi kết quả khi dữ liệu so sánh đứng yên. final giúp việc giữ trạng thái so sánh ổn định dễ hơn, nhưng chất lượng triển khai equals vẫn cần được kiểm tra.
+Do not interpret this example as saying mutable is always wrong or final automatically makes equals correct. A mutable class can still uphold the consistency contract: each check must rely on the current data and never alter its result on its own while comparison data stands still. Using final makes keeping comparison state stable easier, but the quality of the equals implementation still needs verification.
 
-## 4. Ví dụ sai: kết quả tự đổi dù không sửa dữ liệu đối tượng
+## 4. Faulty Example: Result Changes Without Modifying Object Data
 
-Đoạn mã sau **chỉ minh họa cách triển khai sai**, không phải một chương trình độc lập; phương thức còn vi phạm các điều kiện khác của equals trong một số tình huống:
+The following snippet **only illustrates an incorrect implementation**, not a standalone program; the method also violates other equals conditions in certain scenarios:
 
 ~~~java
 final class BadKey {
@@ -174,80 +174,80 @@ final class BadKey {
 }
 ~~~
 
-Với hai đối tượng BadKey khác tham chiếu, những lần so sánh liên tiếp có thể luân phiên true và false dù không thay đổi thông tin đại diện cho hai đối tượng. Biến flip là trạng thái dùng để làm kết quả dao động, không phải thuộc tính giá trị của đối tượng được so sánh. Đây là cách thiết kế không phù hợp cho equals.
+With two BadKey objects having different references, consecutive comparisons can alternate between true and false even without changing any information representing the two objects. The flip variable is state used to make the result oscillate, not a value property of the compared objects. This is an unsuitable design for equals.
 
-Các dấu hiệu lỗi cùng bản chất:
+Error patterns of the same nature:
 
-- Đọc giá trị ngẫu nhiên, đồng hồ hệ thống hoặc dữ liệu ngoài thường xuyên thay đổi để quyết định bằng nhau khi bản chất giá trị đối tượng không đổi.
-- Tăng bộ đếm, đổi cờ hoặc sửa trường so sánh bên trong equals, khiến chính lần kiểm tra trước làm kết quả lần kiểm tra sau thay đổi.
-- So sánh các trường được tính toán với logic không ổn định hoặc phụ thuộc trạng thái toàn cục không được kiểm soát.
-- Gọi getter có tác dụng phụ làm thay đổi dữ liệu so sánh; tên getter không bảo đảm rằng nó chỉ đọc dữ liệu.
+- Reading random values, the system clock, or frequently changing external data to decide equality when the object's intrinsic value has not changed.
+- Incrementing counters, toggling flags, or mutating comparison fields inside equals, causing an earlier check to alter the result of the next check.
+- Comparing fields computed with unstable logic or depending on uncontrolled global state.
+- Calling getters with side effects that mutate comparison data; the name getter does not guarantee it is read-only.
 
-Ngược lại, tính toán một giá trị suy ra theo cách **thuần túy và xác định** từ các trường ổn định, rồi dùng giá trị đó trong equals, vẫn có thể nhất quán. Ví dụ chuẩn hóa mã bằng một quy tắc cố định sẽ ổn định nếu dữ liệu đầu vào và quy tắc không đổi.
+Conversely, computing a derived value in a **pure and deterministic** way from stable fields, and using that value in equals, can still be consistent. For example, normalizing a code with a fixed rule remains stable if the input data and rule do not change.
 
-## 5. Vì sao tính nhất quán quan trọng khi dùng hashCode và HashSet/HashMap?
+## 5. Why Consistency Matters When Using hashCode and HashSet/HashMap
 
-Hai hợp đồng liên quan nhưng không đồng nhất:
+Two related but distinct contracts:
 
-- **equals:** Nếu không sửa thông tin dùng để so sánh, lặp lại phép so sánh trên cùng đối tượng phải cho cùng kết quả.
-- **hashCode:** Trong một lần chạy Java, nếu không sửa thông tin được dùng trong equals, gọi hashCode nhiều lần trên cùng đối tượng phải cho cùng số nguyên. Hai đối tượng bằng nhau theo equals **bắt buộc** có cùng hashCode; hai đối tượng khác nhau vẫn có thể trùng hashCode.
+- **equals:** If information used in comparisons is not modified, repeating the comparison on the same objects must yield the same result.
+- **hashCode:** During a single Java execution, if information used in equals is not modified, calling hashCode multiple times on the same object must return the same integer. Two objects equal according to equals **must** have the same hashCode; two unequal objects may still collide on hashCode.
 
-Trong ví dụ BookCode, equals xét code và revision nên hashCode cũng dựa trên hai trường đó. Nếu chỉ override equals mà bỏ qua hashCode, các collection dựa trên băm như HashSet và HashMap có thể hoạt động sai với kỳ vọng “hai khóa bằng nhau là một khóa”.
+In the BookCode example, equals examines code and revision, so hashCode is also based on those two fields. If you only override equals and omit hashCode, hash-based collections like HashSet and HashMap can fail the expectation that "two equal keys are one key".
 
-Ngay cả khi equals và hashCode được viết đúng, **sửa trường dùng trong equals/hashCode của một đối tượng đã làm khóa trong HashMap hoặc đã thêm vào HashSet** có thể phá vỡ khả năng tìm lại phần tử vì bucket/giá trị băm lúc lưu không còn phù hợp. Đây là vấn đề khi sử dụng khóa mutable, không có nghĩa mọi thay đổi kết quả equals sau mutation đều vi phạm tính nhất quán.
+Even when equals and hashCode are written properly, **mutating a field used in equals/hashCode on an object already acting as a HashMap key or added to a HashSet** can break retrieval because its stored bucket/hash value no longer matches. This is an issue with using mutable keys, not that every change in equals result after mutation violates consistency.
 
-Quy tắc thực hành: ưu tiên khóa bất biến; nếu bắt buộc sửa thuộc tính định danh của một mục đã nằm trong tập băm, thường cần gỡ mục theo khóa/trạng thái cũ trước, sửa, rồi đưa lại vào tập. Không nên kỳ vọng collection tự định vị lại phần tử sau khi trạng thái khóa đổi.
+Practical rule: prefer immutable keys; if you must modify an identifying property of an entry already inside a hash collection, typically remove the entry using the old key/state first, modify it, and then re-insert it. Do not expect the collection to relocate an element automatically after its key state changes.
 
-## 6. Những hiểu lầm dễ gặp
+## 6. Common Misconceptions
 
-**Hiểu lầm 1: “equals từng trả true thì mãi mãi phải true.”**
+**Misconception 1: "If equals once returned true, it must return true forever."**
 
-Sai. Tiền đề của hợp đồng là dữ liệu dùng để so sánh không bị thay đổi. Nếu y đổi từ "ready" sang "busy", phép so sánh sau có thể là false.
+False. The premise of the contract is that the information used for comparison has not been modified. If y changes from "ready" to "busy", a later comparison may return false.
 
-**Hiểu lầm 2: “Không gán lại biến x, y nên dữ liệu không đổi.”**
+**Misconception 2: "Variables x and y were not reassigned, so the data did not change."**
 
-Sai. Các biến vẫn tham chiếu cùng đối tượng nhưng trường mutable, phần tử mảng, phần tử List hoặc đối tượng con được dùng trong equals có thể đã đổi.
+False. The variables still reference the same objects, yet mutable fields, array elements, List elements, or sub-objects used in equals may have changed.
 
-**Hiểu lầm 3: “Chỉ sửa một trường không được so sánh thì equals có thể đổi.”**
+**Misconception 3: "Modifying an uncompared field allows equals to change."**
 
-Sai. Nếu equals thực sự chỉ dựa trên code và revision, sửa description không được làm kết quả thay đổi. Nếu kết quả đổi, hãy kiểm tra triển khai có vô tình dựa vào description, trạng thái ngoài hay getter có tác dụng phụ hay không.
+False. If equals truly depends only on code and revision, modifying description must not change the result. If the result changes, inspect whether the implementation accidentally depends on description, external state, or a getter with side effects.
 
-**Hiểu lầm 4: “Dùng final cho biến tham chiếu là đủ.”**
+**Misconception 4: "Making reference fields final is enough."**
 
-Sai. final ngăn gán tham chiếu trường sang đối tượng khác, nhưng nếu trường trỏ tới đối tượng mutable (chẳng hạn ArrayList), nội dung đối tượng đó vẫn có thể đổi. Muốn dữ liệu so sánh bất biến phải xét cả những đối tượng con có liên quan.
+False. final prevents reassigning the field reference to another object, but if the field points to a mutable object (such as an ArrayList), that object's contents can still change. To keep comparison data immutable, you must account for any relevant sub-objects as well.
 
-**Hiểu lầm 5: “equals nhất quán thì tự động an toàn khi nhiều luồng cùng truy cập.”**
+**Misconception 5: "A consistent equals is automatically thread-safe under concurrent access."**
 
-Sai. Hợp đồng equals không thay thế cơ chế đồng bộ. Nếu một luồng sửa dữ liệu so sánh trong khi luồng khác gọi equals, việc đọc có thể quan sát trạng thái thay đổi/không đồng bộ. Hãy dùng dữ liệu bất biến hoặc thiết kế đồng bộ phù hợp khi cần truy cập đồng thời.
+False. The equals contract does not replace synchronization mechanisms. If one thread mutates comparison data while another thread calls equals, reads may observe mutated/unsynchronized state. Use immutable data or appropriate synchronization when concurrent access is required.
 
-**Hiểu lầm 6: “Chỉ cần equals đúng, hashCode không quan trọng.”**
+**Misconception 6: "Only equals needs to be right; hashCode does not matter."**
 
-Sai với đối tượng làm khóa băm. Khi override equals, phải override hashCode tương thích. Việc làm này không tự động giải quyết vấn đề khóa mutable sau khi chèn vào HashSet/HashMap.
+False for objects used as hash keys. When overriding equals, you must override a compatible hashCode. Doing so does not automatically solve mutable-key issues after insertion into HashSet/HashMap.
 
-## 7. Cách kiểm tra một equals có nhất quán
+## 7. How to Verify That an equals Method Is Consistent
 
-Khi review hoặc viết kiểm thử, hãy trả lời lần lượt:
+When reviewing or writing tests, answer in order:
 
-1. Phương thức quyết định bằng nhau dựa trên trường và giá trị dẫn xuất nào của **cả hai** đối tượng?
-2. Những lần gọi lại với cùng giá trị của toàn bộ dữ liệu đó có cho cùng kết quả không? Thử cả cặp bằng nhau (true) lẫn khác nhau (false).
-3. Có sự phụ thuộc không cần thiết vào thời gian, random, dữ liệu toàn cục, thứ tự gọi hoặc thao tác có tác dụng phụ không?
-4. Nếu các đối tượng được phép thay đổi, khi **chỉ** sửa trường liên quan, kết quả mới có được giải thích bằng thay đổi dữ liệu không? Khi chỉ sửa trường không liên quan, kết quả có được giữ nguyên không?
-5. Nếu lớp dùng làm khóa HashMap/HashSet, các trường tham gia equals có được giữ ổn định trong lúc khóa ở trong collection và hashCode có dùng thông tin tương ứng không?
+1. Which fields and derived values on **both** objects does the method use to decide equality?
+2. Do repeated calls with the same values across all of that data produce the same result? Test both equal (true) and unequal (false) pairs.
+3. Is there any unnecessary dependency on time, randomness, global data, call order, or operations with side effects?
+4. If the objects are mutable, when modifying **only** relevant fields, is the new result explained by the data change? When modifying only unrelated fields, does the result stay unchanged?
+5. If the class is used as a HashMap/HashSet key, are the fields participating in equals kept stable while the key is in the collection, and does hashCode use the corresponding information?
 
-Một phép kiểm tra nhanh cho đối tượng không bị sửa trong khoảng thử:
+A quick check for objects not modified during the test interval:
 
 ~~~java
 boolean first = x.equals(y);
 boolean second = x.equals(y);
 if (first != second) {
-    throw new AssertionError("equals không nhất quán khi dữ liệu so sánh giữ nguyên");
+    throw new AssertionError("equals is inconsistent when comparison data remains unchanged");
 }
 ~~~
 
-Đây là đoạn minh họa đặt trong ngữ cảnh đã có x và y; nó không chứng minh toàn bộ hợp đồng equals, và chỉ có ý nghĩa khi dữ liệu so sánh thực sự không thay đổi trong khoảng giữa hai lời gọi. Kiểm thử tốt nên lặp lại với nhiều cặp trạng thái, đồng thời kiểm tra phản xạ, đối xứng, bắc cầu, null và quan hệ equals/hashCode.
+This is an illustrative snippet placed in a context where x and y already exist; it does not prove the entire equals contract, and is meaningful only when comparison data truly does not change between the two calls. Good testing should repeat across multiple state pairs while also checking reflexivity, symmetry, transitivity, null handling, and the equals/hashCode relationship.
 
-## 8. Ghi nhớ
+## 8. Key Takeaways
 
-**Điều kiện chính xác:** *Cùng hai đối tượng + không đổi thông tin mà equals dùng để so sánh → kết quả equals lặp lại phải giữ nguyên.*
+**Exact condition:** *Same two objects + no change to information used by equals → repeated equals results must stay the same.*
 
-Thay đổi dữ liệu so sánh có thể làm đổi kết quả một cách hợp lệ. Điều cần tránh là để equals cho kết quả thất thường khi dữ liệu giá trị vẫn nguyên vẹn. Ưu tiên cách so sánh xác định, không có tác dụng phụ; với khóa của cấu trúc băm, giữ các thuộc tính định danh ổn định trong suốt thời gian lưu khóa.
+Changing comparison data can legitimately change the result. What must be avoided is letting equals return erratic results while value data remains intact. Prefer deterministic, side-effect-free comparisons; for keys in hash structures, keep identifying properties stable for the entire time the key is stored.

@@ -1,21 +1,21 @@
-# Kích thước bit và miền giá trị của từng kiểu số nguyên trong Java
+# Bit Size and Value Range of Each Integer Type in Java
 
-## 1. Vì sao phải biết độ rộng bit và miền giá trị?
+## 1. Why Must You Know Bit Width and Value Range?
 
-Mỗi kiểu số nguyên nguyên thủy (*primitive integral type*) trong Java có **độ rộng bit cố định**. Độ rộng đó quyết định có bao nhiêu mẫu bit khác nhau, và cách Java diễn giải các bit quyết định **giá trị nhỏ nhất/lớn nhất** có thể lưu.
+Each primitive integral type in Java has a **fixed bit width**. That width determines how many distinct bit patterns exist, and how Java interprets those bits determines the **minimum and maximum values** that can be stored.
 
-Ví dụ, 8 bit có \(2^8 = 256\) tổ hợp. Nếu dùng kiểu có dấu `byte`, Java dành các tổ hợp ấy cho các giá trị từ **-128 đến 127**, chứ không phải từ 0 đến 255. Hiểu quy tắc này giúp:
+For example, 8 bits have \(2^8 = 256\) combinations. With the signed `byte` type, Java assigns those combinations to the values from **-128 to 127**, rather than from 0 to 255. Understanding this rule helps you:
 
-- Chọn kiểu phù hợp cho dữ liệu, tránh vô tình vượt miền.
-- Giải thích vì sao phép toán có thể **tràn số** (*overflow*) và cho kết quả bất ngờ.
-- Hiểu chuyển kiểu (*casting*), phép toán bit và dữ liệu nhị phân.
-- Phân biệt một **kiểu nguyên thủy** với đối tượng lớp bao (*wrapper*).
+- Choose the right type for your data and avoid accidentally going out of range.
+- Explain why arithmetic operations can **overflow** and produce unexpected results.
+- Understand **casting**, bitwise operations, and binary data.
+- Distinguish a **primitive type** from a **wrapper** class object.
 
-Bài học này xét các kiểu nguyên thủy tích phân `byte`, `short`, `int`, `long` và `char`. Bốn kiểu đầu là số nguyên **có dấu**; `char` là một giá trị tích phân **không dấu** dùng làm đơn vị mã UTF-16. `boolean` chỉ nhận `true/false` nên không thuộc bảng số nguyên.
+This lesson covers the primitive integral types `byte`, `short`, `int`, `long`, and `char`. The first four are **signed** integers; `char` is an **unsigned** integral value used as a UTF-16 code unit. `boolean` only accepts `true/false` and does not belong to the integer table.
 
-## 2. Bảng độ rộng và miền giá trị
+## 2. Table of Bit Widths and Value Ranges
 
-| Kiểu | Số bit | Số byte | Giá trị nhỏ nhất | Giá trị lớn nhất | Số giá trị khác nhau |
+| Type | Bits | Bytes | Minimum Value | Maximum Value | Distinct Values |
 |---|---:|---:|---:|---:|---:|
 | `byte` | 8 | 1 | -128 | 127 | \(2^8 = 256\) |
 | `short` | 16 | 2 | -32_768 | 32_767 | \(2^{16} = 65\,536\) |
@@ -23,41 +23,41 @@ Bài học này xét các kiểu nguyên thủy tích phân `byte`, `short`, `in
 | `long` | 64 | 8 | -9_223_372_036_854_775_808 | 9_223_372_036_854_775_807 | \(2^{64}\) |
 | `char` | 16 | 2 | 0 (U+0000) | 65_535 (U+FFFF) | \(2^{16} = 65\,536\) |
 
-**Đây là độ rộng được đặc tả bởi Java**, giống nhau trên JVM 32 bit hoặc 64 bit. Một `int` của Java luôn có 32 bit, không phụ thuộc kích thước `int` trong ngôn ngữ C trên nền tảng khác.
+**These are widths specified by Java**, identical on both 32-bit and 64-bit JVMs. A Java `int` is always 32 bits, independent of the size of `int` in C on different platforms.
 
-Độ rộng tính theo bit của kiểu nguyên thủy cũng **không đồng nghĩa** với kích thước một đối tượng `Integer` hoặc `Long` trên heap. Đối tượng có header, căn chỉnh và overhead khác; không thể lấy 32 bit để kết luận đối tượng `Integer` dùng 4 byte bộ nhớ.
+The bit width of a primitive type is also **not synonymous** with the size of an `Integer` or `Long` object on the heap. Objects have headers, alignment, and other overhead; you cannot take 32 bits and conclude that an `Integer` object uses 4 bytes of memory.
 
-Trong Java, 1 byte gồm 8 bit. Các lớp bao công bố hằng số tương ứng: `Byte.SIZE/BYTES`, `Short.SIZE/BYTES`, `Integer.SIZE/BYTES`, `Long.SIZE/BYTES`, `Character.SIZE/BYTES`; miền giá trị nằm ở `MIN_VALUE` và `MAX_VALUE`. Các hằng số này hữu ích để tra cứu, nhưng điều cốt lõi là hiểu **cách tính và ý nghĩa** của chúng.
+In Java, 1 byte consists of 8 bits. The wrapper classes expose corresponding constants: `Byte.SIZE/BYTES`, `Short.SIZE/BYTES`, `Integer.SIZE/BYTES`, `Long.SIZE/BYTES`, `Character.SIZE/BYTES`; the value ranges are in `MIN_VALUE` and `MAX_VALUE`. These constants are useful for reference, but the key is understanding **how they are calculated and what they mean**.
 
-## 3. Suy ra miền giá trị từ số bit
+## 3. Deriving the Value Range from Bit Width
 
-### 3.1. Kiểu có dấu: số bù hai (*two's complement*)
+### 3.1. Signed Types: Two's Complement
 
-Với kiểu có dấu rộng **n bit** (`byte`, `short`, `int`, `long`), Java dùng biểu diễn số bù hai. Miền giá trị là:
+For a signed type that is **n bits** wide (`byte`, `short`, `int`, `long`), Java uses two's complement representation. The value range is:
 
 \[
 \boxed{-2^{n-1} \le x \le 2^{n-1}-1}
 \]
 
-- **Giới hạn dưới**: \(-2^{n-1}\).
-- **Giới hạn trên**: \(2^{n-1}-1\).
-- **Số giá trị biểu diễn được**: \(2^n\), kể cả số 0.
+- **Lower bound**: \(-2^{n-1}\).
+- **Upper bound**: \(2^{n-1}-1\).
+- **Number of representable values**: \(2^n\), including 0.
 
-Áp dụng cho `byte` (\(n=8\)): \(-2^7=-128\) tới \(2^7-1=127\).
+Applied to `byte` (\(n=8\)): \(-2^7=-128\) to \(2^7-1=127\).
 
-Áp dụng cho `short` (\(n=16\)): \(-2^{15}=-32\,768\) tới \(2^{15}-1=32\,767\).
+Applied to `short` (\(n=16\)): \(-2^{15}=-32\,768\) to \(2^{15}-1=32\,767\).
 
-Áp dụng cho `int` (\(n=32\)): \(-2^{31}\) tới \(2^{31}-1\).
+Applied to `int` (\(n=32\)): \(-2^{31}\) to \(2^{31}-1\).
 
-Áp dụng cho `long` (\(n=64\)): \(-2^{63}\) tới \(2^{63}-1\).
+Applied to `long` (\(n=64\)): \(-2^{63}\) to \(2^{63}-1\).
 
-**Tại sao trị tuyệt đối giới hạn âm lớn hơn giới hạn dương một đơn vị?** Vì 0 chiếm một giá trị trong tập không âm. Ví dụ với `byte` có 128 giá trị âm (-128 đến -1) và 128 giá trị không âm (0 đến 127). Do đó không có giá trị `byte` dương +128 để đối xứng với -128.
+**Why is the absolute value of the negative bound one greater than the positive bound?** Because 0 occupies one value in the non-negative set. For example, `byte` has 128 negative values (-128 to -1) and 128 non-negative values (0 to 127). Therefore, there is no positive `byte` value +128 to mirror -128.
 
-### 3.2. Nhìn mẫu bit 8 bit
+### 3.2. Looking at 8-Bit Patterns
 
-Với `byte`, một số ví dụ:
+For `byte`, some examples:
 
-| Mẫu bit (8 bit) | Cách hiểu `byte` có dấu |
+| Bit pattern (8-bit) | Signed `byte` interpretation |
 |---|---:|
 | `0000 0000` | 0 |
 | `0000 0001` | 1 |
@@ -65,30 +65,30 @@ Với `byte`, một số ví dụ:
 | `1000 0000` | -128 |
 | `1111 1111` | -1 |
 
-Bit cao nhất có trọng số \(-2^7\) trong biểu diễn bù hai 8 bit, các bit còn lại có trọng số \(2^6,\ldots,2^0\). Vì vậy `1000 0000` là -128; `1111 1111` là \(-128+64+32+16+8+4+2+1=-1\).
+The highest bit has weight \(-2^7\) in 8-bit two's complement representation, and the remaining bits have weights \(2^6,\ldots,2^0\). Thus `1000 0000` is -128; `1111 1111` is \(-128+64+32+16+8+4+2+1=-1\).
 
-Cách nhớ thực hành: đổi dấu theo bù hai bằng **đảo các bit rồi cộng 1, trong đúng độ rộng n bit**. Ví dụ, 8 bit của +1 là `0000 0001`; đảo bit thành `1111 1110`, cộng 1 được `1111 1111` tức -1.
+Practical rule of thumb: negate a number in two's complement by **inverting all bits and adding 1, within the exact n-bit width**. For example, the 8 bits of +1 are `0000 0001`; inverting the bits gives `1111 1110`, and adding 1 yields `1111 1111`, which is -1.
 
-Trong Java, kết quả của các biểu thức bit trên `byte` thường được **thăng cấp lên `int`**, nên khi thực hành đảo bit `~` phải xét độ rộng và phép ép kiểu. Không suy diễn `~((byte)1)` sẽ tự giữ đúng 8 bit: biểu thức đó có kiểu `int`.
+In Java, the results of bitwise expressions on `byte` are usually **promoted to `int`**, so when practicing bitwise inversion `~`, you must account for bit width and casting. Do not assume `~((byte)1)` automatically stays 8 bits: that expression has type `int`.
 
-### 3.3. `char`: 16 bit nhưng không có dấu
+### 3.3. `char`: 16 Bits, but Unsigned
 
-`char` có 16 bit, nhưng miền giá trị là:
+`char` is 16 bits, but its value range is:
 
 \[
 0 \le \texttt{char} \le 2^{16}-1 = 65535
 \]
 
-Nó đại diện một **UTF-16 code unit**, không phải số nguyên có dấu 16 bit như `short`. Do đó hai kiểu cùng rộng 16 bit nhưng có miền khác nhau:
+It represents a **UTF-16 code unit**, not a 16-bit signed integer like `short`. Thus the two types are both 16 bits wide yet have different ranges:
 
-- `short`: -32_768 tới 32_767.
-- `char`: 0 tới 65_535.
+- `short`: -32_768 to 32_767.
+- `char`: 0 to 65_535.
 
-Một ký tự Unicode nằm ngoài Basic Multilingual Plane (BMP), chẳng hạn emoji, cần **cặp surrogate gồm hai `char`**. Vì vậy một Unicode code point không nhất thiết khớp một `char`. Đếm ký tự theo code point có thể dùng `String.codePointCount(...)` hoặc `String.codePoints()`, thay vì mặc định `String.length()` là số ký tự hiển thị.
+A Unicode character outside the Basic Multilingual Plane (BMP), such as an emoji, requires a **surrogate pair of two `char`s**. Therefore, one Unicode code point does not necessarily match one `char`. To count characters by code point, use `String.codePointCount(...)` or `String.codePoints()`, instead of assuming `String.length()` is the number of visible characters.
 
-## 4. Chạy Java để quan sát
+## 4. Running Java to Observe
 
-Tạo file `PrimitiveRangeDemo.java`:
+Create the file `PrimitiveRangeDemo.java`:
 
 ```java
 public class PrimitiveRangeDemo {
@@ -111,14 +111,14 @@ public class PrimitiveRangeDemo {
 }
 ```
 
-Biên dịch và chạy với Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac PrimitiveRangeDemo.java
 java PrimitiveRangeDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 byte: -128..127 (8 bits)
@@ -130,28 +130,28 @@ int bytes: 4
 char bytes: 2
 ```
 
-Hai phép ép `(int)` ở dòng `char` nhằm in **giá trị số** của code unit. Nếu in `Character.MIN_VALUE` trực tiếp như ký tự, bạn có thể nhận một ký tự điều khiển không nhìn thấy.
+The two `(int)` casts on the `char` line are used to print the **numeric value** of the code unit. If you print `Character.MIN_VALUE` directly as a character, you may get an invisible control character.
 
-## 5. Khi vượt miền giá trị: tràn và ép kiểu
+## 5. Going Out of Range: Overflow and Casting
 
-### 5.1. Tràn số trong phép tính
+### 5.1. Arithmetic Overflow
 
-Một `int` chỉ lưu được đến 2_147_483_647. Khi cộng thêm 1 bằng phép cộng `int`, kết quả quay về -2_147_483_648 theo số học modulo \(2^{32}\). Phép cộng số nguyên thông thường **không tự ném ngoại lệ**.
+An `int` can only store up to 2_147_483_647. When you add 1 using `int` addition, the result wraps around to -2_147_483_648 under modulo \(2^{32}\) arithmetic. Ordinary integer addition **does not automatically throw an exception**.
 
-Cần phân biệt hai thời điểm mở rộng sang `long`:
+Distinguish between two points in time when widening to `long`:
 
-- `(long) (max + 1)`: phép cộng **đã chạy bằng `int` và tràn** trước khi đổi kiểu.
-- `(long) max + 1`: `max` được đổi thành `long` **trước phép cộng**, nên đủ miền biểu diễn.
+- `(long) (max + 1)`: the addition **already ran in `int` and overflowed** before the type conversion.
+- `(long) max + 1`: `max` is converted to `long` **before the addition**, so there is enough range to represent the result.
 
-### 5.2. Thu hẹp kiểu (*narrowing conversion*)
+### 5.2. Narrowing Conversion
 
-Ép `int` 128 sang `byte` giữ 8 bit thấp của giá trị, diễn giải lại theo miền có dấu 8 bit và cho **-128**. Ép kiểu trực tiếp không kiểm tra miền để ném lỗi.
+Casting `int` 128 to `byte` keeps the low 8 bits of the value, reinterprets them in the 8-bit signed range, and yields **-128**. Direct casting does not check the range to throw an error.
 
-Với gán hằng số, trình biên dịch có thể cho phép gán trực tiếp `byte b = 127;` vì 127 nằm trong miền `byte`; nhưng `byte b = 128;` là lỗi biên dịch vì vượt miền, trừ khi bạn chủ động ép kiểu.
+For constant assignment, the compiler allows direct assignment `byte b = 127;` because 127 is within the `byte` range; however, `byte b = 128;` is a compile error because it exceeds the range, unless you explicitly cast it.
 
-### 5.3. Ví dụ có thể chạy
+### 5.3. Runnable Example
 
-Tạo file `BoundaryDemo.java`:
+Create the file `BoundaryDemo.java`:
 
 ```java
 public class BoundaryDemo {
@@ -180,14 +180,14 @@ public class BoundaryDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac BoundaryDemo.java
 java BoundaryDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 int max + 1 = -2147483648
@@ -199,15 +199,15 @@ addExact: overflow
 toIntExact: out of int range
 ```
 
-`Byte.MAX_VALUE + 1` in ra 128 vì toán tử cộng **thăng cấp `byte` thành `int`**, nên kết quả phép cộng có kiểu `int`. Tràn 8 bit chỉ xuất hiện nếu ép kết quả về `byte` hoặc tính trực tiếp trong một kiểu bị thu hẹp.
+`Byte.MAX_VALUE + 1` prints 128 because the addition operator **promotes `byte` to `int`**, so the addition result has type `int`. 8-bit overflow only happens if you cast the result back to `byte` or compute directly in a narrowed type.
 
-Các phương thức `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, `Math.negateExact` và `Math.toIntExact` giúp phát hiện trường hợp tràn/ngoài miền liên quan. Chúng ném `ArithmeticException` ở trường hợp không biểu diễn được.
+The methods `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, `Math.negateExact`, and `Math.toIntExact` help detect the corresponding overflow/out-of-range cases. They throw `ArithmeticException` when the result cannot be represented.
 
-## 6. Ký hiệu số nguyên và các giới hạn cần nhớ
+## 6. Integer Notation and Limits to Remember
 
-### 6.1. Literal `int` và `long`
+### 6.1. `int` and `long` Literals
 
-Mặc định, literal số nguyên thập phân không có hậu tố là `int` khi hợp lệ; thêm `L` để viết `long`:
+By default, an unsuffixed decimal integer literal is `int` when valid; add `L` to write a `long`:
 
 ```java
 int population = 2_000_000_000;
@@ -215,52 +215,52 @@ long bigger = 3_000_000_000L;
 long maximum = Long.MAX_VALUE;
 ```
 
-Viết `3_000_000_000` không có hậu tố `L` gây lỗi vì vượt phạm vi literal `int`, ngay cả khi vế trái khai báo `long`. Gạch dưới trong số chỉ giúp dễ đọc; không đổi giá trị hay kiểu.
+Writing `3_000_000_000` without the `L` suffix causes an error because it exceeds the `int` literal range, even if the left-hand side is declared as `long`. Underscores in numbers only aid readability; they do not change the value or type.
 
-Hai trị âm thấp nhất `-2147483648` và `-9223372036854775808L` có quy tắc từ vựng đặc biệt trong Java cho toán tử trừ đơn ngôi; để tránh nhầm lẫn, ưu tiên `Integer.MIN_VALUE` và `Long.MIN_VALUE` trong mã ứng dụng.
+The two minimum negative values `-2147483648` and `-9223372036854775808L` have special lexical rules in Java for the unary minus operator; to avoid confusion, prefer `Integer.MIN_VALUE` and `Long.MIN_VALUE` in application code.
 
-### 6.2. Một số bẫy ở biên
+### 6.2. Some Boundary Pitfalls
 
-- `Math.abs(Integer.MIN_VALUE)` vẫn bằng `Integer.MIN_VALUE`, tức số âm, vì +2_147_483_648 vượt miền `int`. Tương tự cho `Long.MIN_VALUE`.
-- `-Integer.MIN_VALUE` vẫn bằng `Integer.MIN_VALUE` do tràn khi đổi dấu.
-- `Integer.MIN_VALUE / -1` trả lại `Integer.MIN_VALUE` vì thương dương không thể biểu diễn trong `int`.
-- Chuyển biểu thức sang `long` **sau khi phép tính tràn** không khôi phục được kết quả ban đầu.
-- `SIZE/BYTES` thể hiện độ rộng **giá trị nguyên thủy**, không cho biết tổng bộ nhớ mảng, wrapper object hay cấu trúc dữ liệu (còn phụ thuộc overhead, căn chỉnh và VM).
+- `Math.abs(Integer.MIN_VALUE)` still equals `Integer.MIN_VALUE`, which is negative, because +2_147_483_648 exceeds the `int` range. The same applies to `Long.MIN_VALUE`.
+- `-Integer.MIN_VALUE` still equals `Integer.MIN_VALUE` due to overflow when negating.
+- `Integer.MIN_VALUE / -1` returns `Integer.MIN_VALUE` because the positive quotient cannot be represented in `int`.
+- Converting an expression to `long` **after the calculation has overflowed** does not recover the original result.
+- `SIZE/BYTES` represent the width of the **primitive value**, not the total memory of an array, wrapper object, or data structure (which also depends on overhead, alignment, and the VM).
 
-Nếu số nguyên có thể vượt miền `long`, dùng `java.math.BigInteger`. Nó không có một độ rộng cố định kiểu 64 bit, nên không có miền MIN/MAX cố định tương tự các kiểu nguyên thủy.
+If an integer can exceed the `long` range, use `java.math.BigInteger`. It does not have a fixed 64-bit width, so it does not have fixed MIN/MAX bounds like primitive types.
 
-## 7. Có kiểu `unsigned int` và `unsigned long` không?
+## 7. Are There `unsigned int` and `unsigned long` Types?
 
-Java **không có kiểu nguyên thủy riêng tên `unsigned int` hay `unsigned long`**. Tuy vậy, Java hỗ trợ các phép toán *diễn giải mẫu bit* dưới góc nhìn không dấu:
+Java **does not have separate primitive types named `unsigned int` or `unsigned long`**. However, Java supports operations that *interpret bit patterns* from an unsigned perspective:
 
-- 32 bit không dấu có miền **0 đến 4_294_967_295**, tức \(0\) đến \(2^{32}-1\).
-- 64 bit không dấu có miền **0 đến 18_446_744_073_709_551_615**, tức \(0\) đến \(2^{64}-1\); giá trị cao nhất này vượt miền `long` có dấu.
-- Các API hỗ trợ gồm `Integer.compareUnsigned`, `Integer.divideUnsigned`, `Integer.toUnsignedLong`, `Integer.toUnsignedString`, cùng các phương thức `Long.compareUnsigned`, `Long.divideUnsigned`, `Long.toUnsignedString`.
+- Unsigned 32-bit has the range **0 to 4_294_967_295**, i.e., \(0\) to \(2^{32}-1\).
+- Unsigned 64-bit has the range **0 to 18_446_744_073_709_551_615**, i.e., \(0\) to \(2^{64}-1\); this highest value exceeds the signed `long` range.
+- Supporting APIs include `Integer.compareUnsigned`, `Integer.divideUnsigned`, `Integer.toUnsignedLong`, `Integer.toUnsignedString`, along with `Long.compareUnsigned`, `Long.divideUnsigned`, and `Long.toUnsignedString`.
 
-Ví dụ:
+Example:
 
 ```java
 System.out.println(Integer.toUnsignedLong(-1));
 System.out.println(Integer.toUnsignedString(-1));
 ```
 
-Cả hai dòng in ra `4294967295`. Mẫu bit `0xFFFF_FFFF` có thể hiểu là -1 nếu diễn giải theo `int` có dấu, hoặc 4_294_967_295 nếu diễn giải theo 32 bit không dấu. Các API unsigned **không thay đổi độ rộng 32 bit hoặc 64 bit** của giá trị lưu trong biến.
+Both lines print `4294967295`. The bit pattern `0xFFFF_FFFF` can be understood as -1 if interpreted as a signed `int`, or 4_294_967_295 if interpreted as an unsigned 32-bit value. The unsigned APIs **do not change the 32-bit or 64-bit width** of the value stored in the variable.
 
-Riêng `char` vốn là kiểu không dấu 16 bit, dùng cho code unit UTF-16; đừng dùng `char` để thay thế số nguyên không dấu thông thường chỉ vì cùng độ rộng `short`.
+As for `char`, it is inherently an unsigned 16-bit type used for UTF-16 code units; do not use `char` as a substitute for general unsigned integers just because it shares the same width as `short`.
 
-## 8. Chọn kiểu cho dữ liệu và kiểm tra đầu vào
+## 8. Choosing Data Types and Validating Input
 
-**`byte`** phù hợp khi cần biểu diễn các giá trị trong -128..127 hoặc thao tác byte nhị phân. Khi muốn giá trị 0..255 từ một byte nhị phân, xem `Byte.toUnsignedInt(...)` hoặc `b & 0xFF`.
+**`byte`** is suitable when you need to represent values in -128..127 or manipulate binary bytes. When you want a 0..255 value from a binary byte, look at `Byte.toUnsignedInt(...)` or `b & 0xFF`.
 
-**`short`** phù hợp khi một API, định dạng tệp hoặc giao thức quy định chính xác 16 bit có dấu; trong tính toán nghiệp vụ thông thường, `int` đơn giản và phổ biến hơn.
+**`short`** is suitable when an API, file format, or protocol specifies exact 16-bit signed integers; in ordinary business calculations, `int` is simpler and more common.
 
-**`int`** là lựa chọn thường gặp cho chỉ số, biến đếm và số nguyên 32 bit có giới hạn rõ ràng. Với chỉ số mảng Java, `int` là kiểu cơ bản hay dùng; kích thước mảng còn bị giới hạn bởi JVM/bộ nhớ, không chỉ bởi `Integer.MAX_VALUE`.
+**`int`** is the usual choice for indices, counters, and 32-bit integers with clear bounds. For Java array indices, `int` is the standard type used; array size is also limited by the JVM/memory, not solely by `Integer.MAX_VALUE`.
 
-**`long`** dùng khi cần miền lớn hơn, như số đếm lớn, mili giây từ mốc thời gian hoặc lượng dữ liệu có thể vượt 32 bit. Dù vậy, `long` cũng hữu hạn: nếu phép tính có nguy cơ vượt 64 bit, cân nhắc `BigInteger` hoặc quy tắc kiểm tra tràn.
+**`long`** is used when a larger range is needed, such as large counts, milliseconds from an epoch, or data quantities that might exceed 32 bits. Even so, `long` is still finite: if calculations risk exceeding 64 bits, consider `BigInteger` or overflow checks.
 
-**`char`** dùng khi làm việc ở mức đơn vị mã UTF-16; nếu yêu cầu xử lý **Unicode code point**, chọn API duyệt code point để tránh chia đôi surrogate pair.
+**`char`** is used when working at the UTF-16 code unit level; if you need to handle **Unicode code points**, choose code-point traversal APIs to avoid splitting surrogate pairs.
 
-Khi nhận dữ liệu từ bên ngoài rồi ép sang kiểu hẹp, kiểm tra giá trị trước khi đổi kiểu:
+When receiving external data and casting to a narrower type, validate the value before converting:
 
 ```java
 static byte requireByteRange(int value) {
@@ -271,16 +271,16 @@ static byte requireByteRange(int value) {
 }
 ```
 
-Đây là **đoạn phương thức minh họa** (đặt trong một class để dùng), không phải chương trình có `main` độc lập. Điểm chính là phải kiểm tra **trước** khi ép kiểu: nếu ép trước, dữ liệu có thể đã mất bit quan trọng.
+This is an **illustrative method snippet** (placed inside a class to use), not a standalone program with `main`. The key point is to check **before** casting: if you cast first, important bits of data may already be lost.
 
-## 9. Tự kiểm tra kiến thức
+## 9. Self-Check Knowledge Quiz
 
-1. **8 bit có bao nhiêu mẫu bit?** — \(2^8=256\) mẫu.
-2. **Vì sao `byte` có miền -128..127 thay vì -127..127?** — Theo số bù hai, 8 bit mã hóa 128 giá trị âm và 128 giá trị không âm; số 0 đã chiếm một mẫu.
-3. **`short` và `char` cùng 16 bit, miền có giống nhau không?** — Không. `short` có dấu: -32_768..32_767; `char` không dấu: 0..65_535.
-4. **`int` 32 bit có thể chứa giá trị 3_000_000_000 không?** — Không dưới cách diễn giải có dấu. Có thể dùng `long` hoặc diễn giải mẫu bit unsigned bằng API tương ứng.
-5. **Vì sao `long result = Integer.MAX_VALUE + 1;` vẫn nhận kết quả âm?** — Hai toán hạng được cộng bằng `int` trước, gây tràn; kết quả âm sau đó mới được mở rộng sang `long`. Dùng `long result = (long) Integer.MAX_VALUE + 1;`.
-6. **Một emoji có bắt buộc chỉ chiếm 1 `char` vì `char` là 16 bit?** — Không. Unicode code point ngoài BMP thường cần hai code unit UTF-16, tức hai `char`.
-7. **`long` có bảo đảm mọi số nguyên đều lưu được?** — Không. Miền của `long` có dấu chỉ từ \(-2^{63}\) đến \(2^{63}-1\); số lớn hơn cần cách biểu diễn khác như `BigInteger`.
+1. **How many bit patterns do 8 bits have?** — \(2^8=256\) patterns.
+2. **Why does `byte` have the range -128..127 instead of -127..127?** — Under two's complement, 8 bits encode 128 negative values and 128 non-negative values; 0 already occupies one pattern.
+3. **`short` and `char` are both 16 bits; are their ranges the same?** — No. `short` is signed: -32_768..32_767; `char` is unsigned: 0..65_535.
+4. **Can a 32-bit `int` hold the value 3_000_000_000?** — Not under signed interpretation. You can use `long` or interpret the bit pattern as unsigned using the corresponding API.
+5. **Why does `long result = Integer.MAX_VALUE + 1;` still yield a negative result?** — Both operands are added as `int` first, causing overflow; the negative result is only then widened to `long`. Use `long result = (long) Integer.MAX_VALUE + 1;`.
+6. **Does an emoji necessarily take only 1 `char` because `char` is 16 bits?** — No. Unicode code points outside the BMP usually require two UTF-16 code units, i.e., two `char`s.
+7. **Does `long` guarantee that every integer can be stored?** — No. The signed `long` range is only from \(-2^{63}\) to \(2^{63}-1\); larger numbers require another representation such as `BigInteger`.
 
-**Cốt lõi:** Độ rộng **n bit** cho \(2^n\) mẫu bit; với kiểu **có dấu**, miền là \([-2^{n-1},2^{n-1}-1]\); với `char` **không dấu 16 bit**, miền là \([0,2^{16}-1]\). Luôn xác định **kiểu thực sự tham gia phép tính** trước khi suy luận về tràn số hoặc chuyển kiểu.
+**Core takeaway:** An **n-bit** width gives \(2^n\) bit patterns; for **signed** types, the range is \([-2^{n-1},2^{n-1}-1]\); for **16-bit unsigned** `char`, the range is \([0,2^{16}-1]\). Always identify **the types actually participating in the operation** before reasoning about overflow or type conversion.

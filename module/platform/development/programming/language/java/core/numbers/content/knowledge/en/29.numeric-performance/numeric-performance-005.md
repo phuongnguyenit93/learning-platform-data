@@ -1,35 +1,35 @@
-# Tránh tăng precision hoặc scale không cần thiết với BigDecimal
+# Avoiding Unnecessary Precision or Scale Growth with BigDecimal
 
-## 1. Vấn đề và mục tiêu học tập
+## 1. Problem and Learning Objectives
 
-`BigDecimal` là lựa chọn quan trọng khi Java phải xử lý số thập phân chính xác, chẳng hạn tiền tệ, tỷ lệ hoặc giá trị đo có yêu cầu làm tròn cụ thể. Nhưng “chính xác” không đồng nghĩa với việc luôn giữ **càng nhiều chữ số càng tốt**. Một pipeline cứ kéo dài phần thập phân, nhân nhiều giá trị có scale lớn, hoặc chuyển sang chuỗi thập phân quá dài có thể tăng chi phí bộ nhớ, CPU, lưu trữ và truyền dữ liệu.
+`BigDecimal` is an important choice when Java must process exact decimal numbers, such as currency, rates, or measurements with explicit rounding requirements. However, "exact" does not mean always keeping **as many digits as possible**. A pipeline that keeps extending the fractional part, multiplies many values with large scales, or converts to overly long decimal strings can increase memory, CPU, storage, and data transfer costs.
 
-Cần phân biệt hai điều:
+You need to distinguish two things:
 
-- **Không đánh mất độ chính xác cần thiết:** không làm tròn tùy tiện, không âm thầm chuyển qua `double`, không xóa scale nếu scale mang ý nghĩa nghiệp vụ.
-- **Không tạo độ lớn biểu diễn không cần thiết:** không tự thêm hàng nghìn chữ số 0, không để scale tăng qua nhiều phép nhân mà không có kế hoạch, không yêu cầu precision hoặc cách hiển thị quá mức.
+- **Do not lose required precision:** do not round arbitrarily, do not silently switch to `double`, and do not strip scale if scale carries business meaning.
+- **Do not create unnecessary representation size:** do not add thousands of trailing zeros, do not let scale grow unchecked across many multiplications, and do not request excessive precision or display formats.
 
-Mục tiêu của bài học là hiểu quan hệ giữa `precision`, `scale` và kích thước biểu diễn; nhận ra những phép toán có thể làm tăng chúng; thiết kế giới hạn hợp lý tại ranh giới tính toán, lưu trữ và hiển thị; kiểm chứng tính đúng đắn trước khi tối ưu.
+The objective of this lesson is to understand the relationship between `precision`, `scale`, and representation size; recognize operations that can make them grow; design reasonable bounds at calculation, storage, and display boundaries; and verify correctness before optimizing.
 
-Điều kiện tiên quyết: **hiệu năng không được đánh đổi âm thầm bằng kết quả sai**. Một phép chuẩn hóa, làm tròn hay cắt precision chỉ hợp lệ khi hợp đồng dữ liệu cho phép.
+Prerequisite: **performance must never be silently traded for wrong results**. A normalization, rounding, or precision truncation step is only valid when the data contract permits it.
 
-## 2. Precision và scale không phải một thứ
+## 2. Precision and Scale Are Not the Same Thing
 
-Một giá trị `BigDecimal` được mô hình hóa như sau:
+A `BigDecimal` value is modeled as:
 
 \[
 \text{value} = \text{unscaledValue} \times 10^{-\text{scale}}
 \]
 
-Trong đó:
+Where:
 
-- `unscaledValue()` trả số nguyên không giới hạn kiểu `BigInteger` biểu diễn các chữ số.
-- `scale()` chỉ vị trí dấu thập phân theo cơ số 10; có thể dương, bằng 0 hoặc âm.
-- `precision()` là số chữ số thập phân trong unscaled value của biểu diễn hiện tại, không tính dấu. Số 0 có precision bằng 1.
+- `unscaledValue()` returns an unbounded `BigInteger` representing the digits.
+- `scale()` indicates the position of the decimal point in base 10; it can be positive, zero, or negative.
+- `precision()` is the number of decimal digits in the unscaled value of the current representation, excluding the sign. Zero has precision 1.
 
-Ví dụ:
+Examples:
 
-| Giá trị được tạo | `unscaledValue` | `precision` | `scale` | Giá trị số học |
+| Created value | `unscaledValue` | `precision` | `scale` | Arithmetic value |
 | --- | ---: | ---: | ---: | --- |
 | `new BigDecimal("1.2300")` | `12300` | `5` | `4` | `1.23` |
 | `new BigDecimal("1.23")` | `123` | `3` | `2` | `1.23` |
@@ -37,29 +37,29 @@ Ví dụ:
 | `new BigDecimal("1E+3")` | `1` | `1` | `-3` | `1000` |
 | `new BigDecimal("1E-100000")` | `1` | `1` | `100000` | `10^-100000` |
 
-Hai số có cùng giá trị theo `compareTo` vẫn có thể khác `equals` vì `equals` xét thêm `scale`. Chẳng hạn `1.2300` và `1.23` có cùng giá trị nhưng khác scale.
+Two numbers that are equal under `compareTo` can still differ under `equals` because `equals` also checks `scale`. For example, `1.2300` and `1.23` have the same value but different scales.
 
-Ví dụ cuối trong bảng là một bẫy quan trọng: `1E-100000` có **precision bằng 1** nhưng **scale bằng 100000**. Scale lớn không tự chứng minh rằng đối tượng đang chứa 100000 chữ số của unscaled value; ngược lại, tạo chuỗi plain hoặc ép về scale khác có thể khiến bộ nhớ tăng mạnh.
+The last example in the table is an important trap: `1E-100000` has **precision 1** yet **scale 100000**. A large scale does not prove that the object holds 100000 digits in its unscaled value; conversely, producing a plain string or forcing another scale can cause memory to spike sharply.
 
-## 3. Vì sao precision hoặc scale có thể ảnh hưởng hiệu năng?
+## 3. Why Can Precision or Scale Affect Performance?
 
-`BigDecimal` là kiểu **bất biến** (*immutable*). Mỗi phép toán tạo ra kết quả mới (dù implementation đôi khi có thể tái sử dụng object nội bộ hoặc giá trị cache). Số chữ số lớn hơn thường dẫn tới biểu diễn số nguyên lớn hơn, nhiều công việc số học và nhiều dữ liệu phải sao chép hoặc chuyển đổi.
+`BigDecimal` is an **immutable** type. Each operation produces a new result (though the implementation may occasionally reuse internal objects or cached values). Larger digit counts typically lead to larger integer representations, more arithmetic work, and more data to copy or convert.
 
-Các tình huống dễ có chi phí không cần thiết:
+Scenarios prone to unnecessary cost:
 
-1. **Scale bị cộng dồn trong phép nhân chính xác**: kết quả giữ cả chữ số 0 cuối, dù các số 0 đó không làm thay đổi giá trị toán học.
-2. **`setScale` lên một giá trị quá lớn**: để tăng scale từ 0 lên hàng chục nghìn, có thể phải tạo unscaled value chứa rất nhiều chữ số 0.
-3. **Ép chuỗi không có ký pháp mũ**: `toPlainString()` có thể mở rộng một số rất nhỏ hoặc rất lớn thành một chuỗi khổng lồ.
-4. **Phép chia với precision/scale quá cao**: tính và giữ nhiều chữ số hơn yêu cầu có thể tốn chi phí đáng kể.
-5. **Chuỗi phép toán không có ranh giới**: precision, scale và độ dài khi serialize có thể tăng theo các đầu vào hoặc lặp không được kiểm soát.
+1. **Scale accumulating in exact multiplication**: the result keeps trailing zeros even when those zeros do not change the mathematical value.
+2. **`setScale` to an excessively large value**: increasing scale from 0 to tens of thousands may require creating an unscaled value containing huge numbers of zeros.
+3. **Forcing non-exponential strings**: `toPlainString()` can expand a very small or very large number into an enormous string.
+4. **Division with overly high precision/scale**: computing and retaining more digits than required can incur substantial cost.
+5. **Unbounded chains of operations**: precision, scale, and serialized length can grow across uncontrolled inputs or iterations.
 
-Đây là các **nguy cơ phụ thuộc dữ liệu và thuật toán**, không phải khẳng định cứ tăng một đơn vị precision hoặc scale thì hiệu năng giảm theo một tỷ lệ cố định. Cần đo đạc bằng benchmark phù hợp và theo dõi đầu vào thực tế trước khi đưa ra kết luận tối ưu.
+These are **data- and algorithm-dependent risks**, not a claim that increasing precision or scale by one unit degrades performance by a fixed ratio. You must measure with proper benchmarks and monitor real inputs before drawing optimization conclusions.
 
-## 4. Scale tăng tự nhiên qua phép toán nào?
+## 4. Which Operations Naturally Increase Scale?
 
-### Phép cộng và phép trừ
+### Addition and subtraction
 
-Trong phép cộng/trừ chính xác thông thường, kết quả có scale bằng **scale lớn nhất của hai toán hạng** (trong trường hợp các phép toán hợp lệ và biểu diễn được):
+In ordinary exact addition/subtraction, the result has a scale equal to **the larger scale of the two operands** (when operations are valid and representable):
 
 ~~~java
 BigDecimal a = new BigDecimal("1.2");    // scale 1
@@ -70,11 +70,11 @@ System.out.println(sum.toPlainString()); // 4.6500
 System.out.println(sum.scale());         // 4
 ~~~
 
-Vì phải căn theo phần thập phân, một toán hạng có scale lớn có thể tác động tới scale kết quả. Nếu số chữ số 0 cuối không có ý nghĩa trong hợp đồng, chúng có thể là nguồn tăng kích thước biểu diễn qua nhiều bước.
+Because the fractional parts must align, an operand with a large scale can affect the result's scale. If trailing zeros carry no meaning in the contract, they can become a source of representation growth over many steps.
 
-### Phép nhân
+### Multiplication
 
-Với `multiply(BigDecimal)` **không dùng MathContext**, scale kết quả bằng tổng scale của hai toán hạng:
+With `multiply(BigDecimal)` **without `MathContext`**, the result scale equals the sum of the two operands' scales:
 
 \[
 \text{result.scale} = \text{left.scale} + \text{right.scale}
@@ -90,9 +90,9 @@ System.out.println(product.scale());         // 6
 System.out.println(product.precision());     // 7
 ~~~
 
-Giá trị số học chỉ là `2.46`, nhưng kết quả giữ scale 6. Điều này có thể **cần thiết** để bảo toàn một chính sách biểu diễn; nếu không cần, số 0 tận cùng có thể làm tăng precision/scale ở các bước tiếp theo.
+The arithmetic value is only `2.46`, yet the result retains scale 6. This may be **necessary** to preserve a representation policy; if unnecessary, trailing zeros can inflate precision/scale in subsequent steps.
 
-Ví dụ nhân `1.000000` năm lần, bắt đầu từ `BigDecimal.ONE`:
+Example of multiplying `1.000000` five times, starting from `BigDecimal.ONE`:
 
 ~~~java
 BigDecimal value = BigDecimal.ONE;
@@ -108,25 +108,25 @@ System.out.println(value.precision()); // 31
 System.out.println(value.scale());     // 30
 ~~~
 
-**Giá trị luôn là 1**, nhưng precision của biểu diễn tăng lên 31, scale lên 30. Khi quy mô vòng lặp tăng và đầu vào có scale lớn, kích thước biểu diễn có thể trở thành vấn đề.
+**The value is always 1**, yet the representation's precision grows to 31 and scale to 30. As loop scale grows and inputs have large scales, representation size can become problematic.
 
-### Phép chia
+### Division
 
-`divide(BigDecimal)` không có chế độ làm tròn chỉ trả kết quả thập phân **chính xác**, hoặc ném `ArithmeticException` nếu kết quả thập phân không kết thúc (ví dụ `1 / 3`).
+`divide(BigDecimal)` without a rounding mode only returns an **exact** decimal result, or throws `ArithmeticException` if the decimal expansion does not terminate (e.g., `1 / 3`).
 
 ~~~java
 BigDecimal one = BigDecimal.ONE;
 System.out.println(one.divide(new BigDecimal("8"))); // 0.125
 
 // one.divide(new BigDecimal("3"))
-// -> ArithmeticException: decimal expansion không kết thúc
+// -> ArithmeticException: non-terminating decimal expansion
 ~~~
 
-Khi chia để lấy số gần đúng có kiểm soát, cần cung cấp **scale** hoặc **MathContext** theo yêu cầu đầu ra. Không đặt precision tùy ý quá lớn “cho chắc” nếu pipeline không có lý do sử dụng các chữ số đó.
+When dividing for a controlled approximation, supply a **scale** or **`MathContext`** matching the output requirements. Do not pick an arbitrarily huge precision "just to be safe" if the pipeline has no reason to use those digits.
 
-## 5. `stripTrailingZeros()`: giảm phần biểu diễn dư thừa, nhưng có điều kiện
+## 5. `stripTrailingZeros()`: Reducing Redundant Representation, with Conditions
 
-`stripTrailingZeros()` trả một `BigDecimal` có giá trị số học tương đương, loại bỏ các thừa số 10 cuối của unscaled value và điều chỉnh scale. Đây không phải phép làm tròn.
+`stripTrailingZeros()` returns an arithmetically equivalent `BigDecimal` by removing trailing factors of 10 from the unscaled value and adjusting the scale. This is not rounding.
 
 ~~~java
 BigDecimal original = new BigDecimal("1.2300");
@@ -139,7 +139,7 @@ System.out.println(compact.scale());      // 2
 System.out.println(compact);              // 1.23
 ~~~
 
-Sau chuẩn hóa, các phép toán tiếp theo có thể giữ biểu diễn ngắn hơn:
+After normalization, subsequent operations can keep shorter representations:
 
 ~~~java
 BigDecimal rawProduct = original.multiply(new BigDecimal("2.00"));
@@ -149,18 +149,18 @@ System.out.println(rawProduct.toPlainString());     // 2.460000
 System.out.println(compactProduct.toPlainString()); // 2.46
 ~~~
 
-**Không dùng phương thức này một cách mù quáng.** Những khác biệt sau có thể quan trọng:
+**Do not use this method blindly.** The following differences can matter:
 
-- `new BigDecimal("1.2300").equals(new BigDecimal("1.23"))` là `false` vì scale khác.
-- `new BigDecimal("1000").stripTrailingZeros()` thường thành biểu diễn `1E+3` với **scale âm** (`-3`), không phải `scale = 0`.
-- `new BigDecimal("0.000").stripTrailingZeros()` trả giá trị zero với `scale = 0`.
-- Nếu đơn vị nghiệp vụ hoặc schema yêu cầu “giữ đúng hai chữ số thập phân”, giảm scale từ 2 về 0 có thể không phù hợp.
+- `new BigDecimal("1.2300").equals(new BigDecimal("1.23"))` is `false` because the scales differ.
+- `new BigDecimal("1000").stripTrailingZeros()` typically produces `1E+3` with a **negative scale** (`-3`), not `scale = 0`.
+- `new BigDecimal("0.000").stripTrailingZeros()` returns zero with `scale = 0`.
+- If business units or schemas require "keeping exactly two decimal places", reducing scale from 2 to 0 may be inappropriate.
 
-Phép chuẩn hóa chỉ nên được áp dụng khi **khác biệt scale không mang ý nghĩa**. Dù `stripTrailingZeros` có thể giúp giảm kích thước biểu diễn, bản thân nó cũng có chi phí xử lý, nên không tự động gọi sau **mọi phép toán** nếu chưa có lý do hoặc bằng chứng đo đạc.
+Normalization should only be applied when **scale differences carry no meaning**. Although `stripTrailingZeros` can shrink representation size, it has processing cost itself, so do not automatically invoke it after **every operation** without reason or measurement evidence.
 
-## 6. `setScale`: chọn scale có chủ đích, tránh phình biểu diễn
+## 6. `setScale`: Choosing Scale Deliberately, Avoiding Representation Bloat
 
-`setScale(newScale, roundingMode)` tạo biểu diễn ở scale được yêu cầu. Tăng scale thường thêm chữ số 0 vào unscaled value, không đổi giá trị số học. Giảm scale có thể làm mất chữ số khác 0, lúc đó phải có `RoundingMode` hoặc dùng `UNNECESSARY` để yêu cầu chính xác.
+`setScale(newScale, roundingMode)` creates a representation at the requested scale. Increasing scale usually appends zeros to the unscaled value without changing arithmetic value. Decreasing scale can drop nonzero digits, requiring a `RoundingMode` or `UNNECESSARY` to demand exactness.
 
 ~~~java
 BigDecimal number = new BigDecimal("123");
@@ -174,9 +174,9 @@ BigDecimal exact = new BigDecimal("123.4500")
 System.out.println(exact.toPlainString()); // 123.45
 ~~~
 
-Ở ví dụ đầu, thêm 6 chữ số 0 để biểu diễn 123 chính xác dưới scale 6; nếu định dạng đích chỉ cần số nguyên, phần biểu diễn phát sinh là không cần thiết. Ở ví dụ thứ hai, giảm scale vẫn chính xác vì phần bị bỏ toàn số 0.
+In the first example, six zeros are added to represent 123 exactly at scale 6; if the target format only needs an integer, the added representation is unnecessary. In the second example, reducing scale stays exact because the dropped part consists solely of zeros.
 
-Khi giảm scale của `123.456` xuống 2, phải quyết định có làm tròn hay không:
+When reducing the scale of `123.456` to 2, you must decide whether rounding is allowed:
 
 ~~~java
 BigDecimal x = new BigDecimal("123.456");
@@ -185,16 +185,16 @@ BigDecimal rounded = x.setScale(2, RoundingMode.HALF_EVEN);
 System.out.println(rounded.toPlainString()); // 123.46
 
 // x.setScale(2, RoundingMode.UNNECESSARY)
-// -> ArithmeticException vì phải bỏ chữ số khác 0
+// -> ArithmeticException because nonzero digits must be dropped
 ~~~
 
-Đối với tiền tệ hoặc đo lường, không tự chọn `HALF_EVEN`, `HALF_UP` hay mode khác chỉ để giảm kích thước. Quy tắc, vị trí và thời điểm làm tròn phải đến từ đặc tả nghiệp vụ.
+For currency or measurements, never pick `HALF_EVEN`, `HALF_UP`, or another mode merely to reduce size. The rule, place, and timing of rounding must come from business specifications.
 
-Một thiết kế thực tế thường lưu giá trị ở độ chính xác nội bộ đủ cho phép toán và chỉ áp dụng format/scale đầu ra **tại ranh giới được quy định**, chẳng hạn khi ghi sổ hoặc xuất hóa đơn. Tuy nhiên, với một số hệ thống, luật định yêu cầu làm tròn **từng dòng** trước khi cộng tổng; làm tròn một lần ở cuối sẽ cho kết quả khác. Phải tuân theo ranh giới nghiệp vụ thay vì coi “round cuối” là quy tắc phổ quát.
+A practical design often stores values at an internal precision sufficient for calculations and applies output formatting/scale **at defined boundaries**, such as posting to a ledger or issuing an invoice. However, in some systems, regulations require rounding **each line item** before summing; rounding once at the end yields a different result. You must follow business boundaries instead of treating "round at the end" as a universal rule.
 
-## 7. `MathContext` giới hạn precision khi bài toán cho phép làm tròn
+## 7. `MathContext` Limits Precision When the Problem Permits Rounding
 
-`MathContext` chứa precision (số chữ số có nghĩa mong muốn) và `RoundingMode`. Ví dụ:
+`MathContext` holds precision (desired significant digits) and `RoundingMode`. For example:
 
 ~~~java
 MathContext mc = new MathContext(8, RoundingMode.HALF_EVEN);
@@ -204,18 +204,18 @@ System.out.println(third.toPlainString()); // 0.33333333
 System.out.println(third.precision());     // 8
 ~~~
 
-Có thể truyền `MathContext` cho các phép toán hỗ trợ, ví dụ `add`, `multiply`, `divide` hoặc `pow`, nhằm giới hạn **precision của kết quả phép toán đó**.
+You can pass `MathContext` to supporting operations such as `add`, `multiply`, `divide`, or `pow` to cap the **precision of that operation's result**.
 
-Không được nhầm:
+Do not confuse them:
 
-| API | Giới hạn điều gì? | Ví dụ |
+| API | What does it limit? | Example |
 | --- | --- | --- |
-| `setScale(2, HALF_EVEN)` | Hai chữ số sau dấu thập phân | `123.456 → 123.46` |
-| `round(new MathContext(4, HALF_EVEN))` | Bốn chữ số có nghĩa | `123.456 → 123.5` |
-| `divide(divisor, 2, HALF_EVEN)` | Scale của thương bằng 2 | `1 / 3 → 0.33` |
-| `divide(divisor, new MathContext(8, HALF_EVEN))` | Precision của thương tối đa 8 | `1 / 3 → 0.33333333` |
+| `setScale(2, HALF_EVEN)` | Two digits after the decimal point | `123.456 → 123.46` |
+| `round(new MathContext(4, HALF_EVEN))` | Four significant digits | `123.456 → 123.5` |
+| `divide(divisor, 2, HALF_EVEN)` | Quotient scale equal to 2 | `1 / 3 → 0.33` |
+| `divide(divisor, new MathContext(8, HALF_EVEN))` | Quotient precision at most 8 | `1 / 3 → 0.33333333` |
 
-Đặc biệt, **MathContext không đồng nghĩa với giới hạn scale tuyệt đối**:
+In particular, **`MathContext` is not synonymous with an absolute scale bound**:
 
 ~~~java
 BigDecimal tiny = new BigDecimal("1E-100000");
@@ -226,13 +226,13 @@ System.out.println(tiny.scale());     // 100000
 System.out.println(tiny.round(mc).scale()); // 100000
 ~~~
 
-Precision đã nhỏ hơn 8 nên không cần làm tròn; scale vẫn cực lớn. Một API nhận dữ liệu từ bên ngoài phải kiểm soát **cả precision và scale**, nếu có thể gặp số mũ rất lớn.
+Precision is already under 8, so no rounding is needed; scale remains huge. An API accepting external data must check **both precision and scale** if extreme exponents can occur.
 
-### Không “làm tròn để tối ưu” qua từng bước khi chưa chứng minh đúng
+### Do not "round to optimize" step-by-step without proving correctness
 
-Làm tròn ở các bước trung gian có thể làm sai kết quả so với thực hiện phép toán chính xác rồi làm tròn tại ranh giới được yêu cầu.
+Rounding at intermediate steps can yield a wrong result compared to performing exact operations and rounding at the required boundary.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal first = new BigDecimal("0.125")
@@ -249,13 +249,13 @@ System.out.println(
 ); // 0.25
 ~~~
 
-Cả hai phép tính đều làm tròn theo `HALF_UP`, nhưng **thời điểm làm tròn** khác nhau. Một phương án tối ưu chỉ hợp lệ nếu giữ đúng ngữ nghĩa đã thỏa thuận.
+Both calculations round with `HALF_UP`, yet the **rounding timing** differs. An optimization is valid only if it preserves the agreed-upon semantics.
 
-Khi cần tính toán nhiều bước ở precision hữu hạn, hãy thiết kế độ chính xác nội bộ, số chữ số bảo vệ (*guard digits*) nếu cần, và kiểm chứng sai số chấp nhận được. Không dùng một `MathContext` quá nhỏ xuyên suốt pipeline chỉ vì nó có thể làm giảm kích thước object.
+When multi-step computation with finite precision is needed, design internal precision, guard digits (*guard digits*) if necessary, and verify acceptable error bounds. Do not pass an overly small `MathContext` throughout a pipeline merely because it can shrink object size.
 
-## 8. Ví dụ Java 17+ chạy độc lập
+## 8. Standalone Runnable Java 17+ Example
 
-Tạo tệp `BigDecimalPrecisionScaleDemo.java`:
+Create the file `BigDecimalPrecisionScaleDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -322,14 +322,14 @@ public class BigDecimalPrecisionScaleDemo {
 }
 ~~~
 
-Lệnh chạy trong thư mục chứa tệp:
+Command to run in the file's directory:
 
 ~~~bash
 javac BigDecimalPrecisionScaleDemo.java
 java BigDecimalPrecisionScaleDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 original: 1.2300, precision=5, scale=4
@@ -343,31 +343,31 @@ exponent scale: -3
 exponent plain: 1000
 ~~~
 
-Điều có thể kết luận từ chương trình là **biểu diễn thực sự khác nhau** và scale/precision tăng theo các phép toán đã chỉ ra. Chương trình này không đo thời gian, số lần cấp phát hoặc thông lượng, nên **không phải một benchmark hiệu năng** và không chứng minh mức tăng tốc cụ thể của chuẩn hóa.
+What can be concluded from the program is that **representations genuinely differ** and scale/precision grow according to the demonstrated operations. This program does not measure time, allocation counts, or throughput, so **it is not a performance benchmark** and does not prove any specific speedup from normalization.
 
-Lưu ý scale âm trong dòng cuối: `1E+3` có precision 1, scale -3 và `toPlainString()` hiển thị `1000`. Nếu lấy chuỗi plain đó tạo lại bằng `new BigDecimal("1000")`, đối tượng mới có scale 0. Điều này quan trọng nếu muốn vừa tối ưu vừa giữ round-trip biểu diễn.
+Note the negative scale in the last line: `1E+3` has precision 1, scale -3, and `toPlainString()` displays `1000`. If you recreate it from that plain string with `new BigDecimal("1000")`, the new object has scale 0. This matters if you want both optimization and representation round-tripping.
 
-## 9. Giới hạn tài nguyên khi nhận decimal từ bên ngoài
+## 9. Resource Bounds When Accepting External Decimals
 
-Một dịch vụ có thể nhận giá trị quá dài hoặc exponent cực lớn. Dù việc parse và lưu một số như `1E-100000` có thể khá gọn vì unscaled chỉ là 1, gọi `toPlainString()` sẽ phải tạo một chuỗi gồm rất nhiều ký tự 0.
+A service can receive overly long values or extreme exponents. Even though parsing and storing a number like `1E-100000` can be quite compact since its unscaled value is 1, calling `toPlainString()` will have to build a string consisting of vast numbers of `0` characters.
 
-Ví dụ **không nên chạy với exponent không được kiểm soát**:
+Example **not to run with untrusted exponents**:
 
 ~~~java
 BigDecimal externallySupplied = new BigDecimal("1E-100000");
-// Chuỗi plain sẽ rất dài dù precision chỉ bằng 1.
+// Plain string will be very long even though precision is only 1.
 String huge = externallySupplied.toPlainString();
 ~~~
 
-Thiết kế ranh giới:
+Boundary design:
 
-1. Hạn chế độ dài chuỗi đầu vào trước khi parse, đồng thời không cho phép định dạng ngoài schema.
-2. Parse trực tiếp từ `String` thành `BigDecimal`, không đi qua `double`.
-3. Kiểm tra `precision()`, `scale()` và miền giá trị tùy hợp đồng; sử dụng phép chuyển sang `long` khi cần để lấy trị tuyệt đối scale an toàn, tránh `Math.abs(Integer.MIN_VALUE)` vẫn cho số âm.
-4. Không tạo chuỗi plain, ép scale lớn, nhân lặp quá nhiều hay lưu database trước khi kiểm soát ranh giới.
-5. Khi xuất JSON, biết rõ consumer cần chuỗi decimal hay numeric token, có chấp nhận ký pháp số mũ không, và có phải giữ scale hay không.
+1. Limit input string length before parsing, and disallow formats outside the schema.
+2. Parse directly from `String` into `BigDecimal`, without going through `double`.
+3. Check `precision()`, `scale()`, and value range per the contract; convert to `long` when needed to safely take the absolute scale, avoiding `Math.abs(Integer.MIN_VALUE)` remaining negative.
+4. Do not generate plain strings, force huge scales, repeat multiplications excessively, or persist to the database before checking bounds.
+5. When outputting JSON, know clearly whether the consumer expects a decimal string or a numeric token, whether exponential notation is accepted, and whether scale must be preserved.
 
-Ví dụ phương thức validation minh họa:
+Illustrative validation method example:
 
 ~~~java
 static BigDecimal parseBounded(String raw) {
@@ -390,17 +390,17 @@ static BigDecimal parseBounded(String raw) {
 }
 ~~~
 
-Đây là **phương thức minh họa** để đặt vào lớp Java, không phải một ứng dụng đầy đủ. Các giới hạn 128/40/12 chỉ là ví dụ; schema nghiệp vụ phải quyết định chúng. Trường hợp exponent khổng lồ, cách xử lý parse cũng có thể ném `NumberFormatException` vì scale vượt miền `int`, nên cần bắt lỗi hợp lý.
+This is an **illustrative method** to place inside a Java class, not a complete application. The limits 128/40/12 are merely examples; the business schema must decide them. For gigantic exponents, parsing can also throw `NumberFormatException` because scale exceeds the `int` range, so handle errors appropriately.
 
-Một giới hạn `precision <= 40` không thay thế giới hạn scale, và giới hạn scale không thay thế giới hạn **giá trị số học**. Số `999999999999` có thể quá lớn so với miền nghiệp vụ dù precision và scale đều nằm trong ngưỡng.
+A `precision <= 40` limit does not replace a scale limit, and a scale limit does not replace an **arithmetic value limit**. The number `999999999999` may exceed the business range even though both precision and scale are within bounds.
 
-## 10. Lưu trữ và truyền dữ liệu đúng độ chính xác
+## 10. Storing and Transmitting Data at the Right Precision
 
-### Database `DECIMAL(p,s)` hoặc `NUMERIC(p,s)`
+### Database `DECIMAL(p,s)` or `NUMERIC(p,s)`
 
-Schema database thường quy định độ rộng số có nghĩa và scale. Nếu cột yêu cầu `DECIMAL(18,2)`, không có lý do chung để thường xuyên mở rộng giá trị thành 100 chữ số thập phân trước khi ghi. Nhưng cũng không được tự làm tròn để vừa cột mà không có chính sách.
+Database schemas usually specify significant digit width and scale. If a column requires `DECIMAL(18,2)`, there is no general reason to routinely expand values to 100 decimal places before writing. Nor should you round automatically just to fit the column without a policy.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal amount = new BigDecimal("19.9900");
@@ -409,13 +409,13 @@ BigDecimal valueForColumn =
 System.out.println(valueForColumn.toPlainString()); // 19.99
 ~~~
 
-`UNNECESSARY` chấp nhận vì chỉ bỏ số 0 thừa. Với `19.995`, nó ném `ArithmeticException`; cần quyết định có cho phép làm tròn và dùng mode nào. Không gọi `setScale(2)` mặc định nếu trường hợp cần làm tròn mà chưa nêu mode rõ ràng.
+`UNNECESSARY` succeeds because only redundant zeros are dropped. For `19.995`, it throws `ArithmeticException`; you must decide whether rounding is permitted and which mode to use. Do not call `setScale(2)` by default when rounding may be needed without specifying the mode explicitly.
 
-Khi dùng JDBC, truyền bằng `PreparedStatement.setBigDecimal` và đọc bằng `ResultSet.getBigDecimal`; tránh chuyển sang `Double` trung gian. Driver/database có thể áp đặt quy tắc về precision/scale, nên cần kiểm thử round-trip với schema thật.
+When using JDBC, pass via `PreparedStatement.setBigDecimal` and read via `ResultSet.getBigDecimal`; avoid converting through an intermediate `Double`. Drivers/databases may enforce rules on precision/scale, so test round-trips against the real schema.
 
-### JSON và client JavaScript
+### JSON and JavaScript clients
 
-Một API phải trao đổi các decimal lớn hoặc chính xác cao với JavaScript thường có thể chọn biểu diễn **JSON string**:
+An API exchanging large or high-precision decimals with JavaScript can typically choose a **JSON string** representation:
 
 ~~~json
 {
@@ -423,55 +423,55 @@ Một API phải trao đổi các decimal lớn hoặc chính xác cao với Jav
 }
 ~~~
 
-Nếu dùng JSON number và một client gọi `JSON.parse` thông thường, giá trị có thể bị chuyển thành binary64 và mất chính xác. Chuỗi giữ nguyên ký tự và cho consumer lựa chọn thư viện decimal phù hợp. Khi bảo toàn **scale**, nên xác định có dùng `BigDecimal.toString()` (round-trip cả scale) hay một wire format gồm `unscaledValue + scale`. `toPlainString()` có thể gây mất scale âm khi parse lại; không tự biến mọi giá trị thành plain string nếu ràng buộc biểu diễn quan trọng.
+If a JSON number is used and a client calls standard `JSON.parse`, the value can be converted to binary64 and lose exactness. Strings preserve the characters and let consumers pick an appropriate decimal library. When preserving **scale**, decide whether to use `BigDecimal.toString()` (which round-trips scale) or a wire format containing `unscaledValue + scale`. `toPlainString()` can lose negative scale upon re-parsing; do not blindly convert every value to a plain string if representation constraints matter.
 
-### Log và hiển thị
+### Logging and display
 
-Thường không cần hiển thị toàn bộ chữ số mà `BigDecimal` đang chứa nếu UI có hợp đồng số chữ số riêng. Hãy áp dụng format tại UI hoặc tầng presenter theo chính sách, không đổi dữ liệu nguồn chỉ để ghi log đẹp. Tránh ghi chuỗi plain cho giá trị có scale cực lớn khi không có giới hạn đầu vào; ký pháp số mũ có thể phù hợp hơn nếu bên nhận hỗ trợ.
+There is usually no need to display every digit a `BigDecimal` holds if the UI has its own digit-count contract. Apply formatting at the UI or presenter layer according to policy, without mutating source data just for prettier logs. Avoid logging plain strings for values with huge scales when inputs are unbounded; scientific notation may be more suitable if readers support it.
 
-## 11. Chọn chiến lược tối ưu theo bài toán
+## 11. Choosing an Optimization Strategy by Problem
 
-| Bài toán | Cách tiếp cận | Ràng buộc |
+| Problem | Approach | Constraints |
 | --- | --- | --- |
-| Phép nhân liên tiếp khiến scale tăng | Xem xét loại số 0 thừa ở đầu vào hoặc điểm kiểm soát bằng `stripTrailingZeros()` | Chỉ khi không cần giữ scale gốc |
-| Kết quả cần đúng hai chữ số sau dấu thập phân | Dùng `setScale(2, mode)` ở ranh giới nghiệp vụ | Mode và thời điểm phải được quy định |
-| Phép chia không kết thúc | Chỉ định scale hoặc `MathContext` vừa đủ | Có thể thay đổi kết quả do làm tròn |
-| Payload có exponent không tin cậy | Giới hạn text length, precision, scale trước chuyển đổi tốn bộ nhớ | Chặn tài nguyên quá mức |
-| Dữ liệu tính toán tài chính cần decimal chính xác | Giữ `BigDecimal` và decimal string/kiểu decimal chuẩn | Không đưa qua `double` |
-| Tính toán khoa học cho phép sai số xác định | Chọn precision theo ngân sách sai số đã phân tích | Không cắt precision tùy tiện |
-| Kết quả dùng để so sánh theo giá trị số học | `compareTo`, có thể chuẩn hóa nếu hợp đồng cho phép | `equals` và hash vẫn nhạy scale |
-| Cần giữ nguyên biểu diễn/scale trên đường truyền | Dùng `toString()` hoặc cặp unscaled/scale | Không bỏ trailing zeros tùy tiện |
+| Repeated multiplications inflating scale | Consider stripping redundant zeros on inputs or checkpoints with `stripTrailingZeros()` | Only when original scale does not need to be kept |
+| Result needs exactly two decimal places | Use `setScale(2, mode)` at business boundaries | Mode and timing must be specified |
+| Non-terminating division | Specify sufficient scale or `MathContext` | May alter result due to rounding |
+| Payload with untrusted exponent | Bound text length, precision, and scale before memory-heavy conversions | Prevent resource exhaustion |
+| Financial data requiring exact decimals | Keep `BigDecimal` and decimal string / standard decimal types | Do not convert through `double` |
+| Scientific calculation allowing bounded error | Choose precision per analyzed error budget | Do not truncate precision arbitrarily |
+| Results compared by arithmetic value | `compareTo`, optionally normalized if contract allows | `equals` and hash remain scale-sensitive |
+| Representation/scale must be preserved over the wire | Use `toString()` or unscaled/scale pair | Do not strip trailing zeros arbitrarily |
 
-Không có một cấu hình `MathContext` hoặc một lời gọi `stripTrailingZeros` “nhanh nhất” cho mọi ứng dụng. Việc quyết định cần xem xét **độ lớn thực tế, số lượng phép toán, ngữ nghĩa scale, tần suất serialize, chi phí lưu trữ và mức sai số cho phép**.
+There is no single "fastest" `MathContext` configuration or `stripTrailingZeros` call for every application. Decisions require examining **actual magnitudes, operation counts, scale semantics, serialization frequency, storage costs, and permissible error**.
 
-## 12. Đo hiệu năng mà không làm sai kết luận
+## 12. Measuring Performance Without Drawing False Conclusions
 
-Một phép thử đơn lẻ dùng `System.nanoTime()` thường bị ảnh hưởng bởi JIT compilation, warmup, garbage collector và tối ưu hóa của JVM. Với một tối ưu quan trọng, nên dùng framework microbenchmark phù hợp như **JMH**, đo trên dữ liệu gần thực tế và kiểm soát kết quả không bị loại bỏ bởi tối ưu hóa.
+A single test using `System.nanoTime()` is often distorted by JIT compilation, warmup, garbage collection, and JVM optimizations. For a meaningful optimization, use a proper microbenchmark framework such as **JMH**, measure on realistic data, and ensure results are not eliminated by optimizations.
 
-Có thể thiết kế các nhóm thử:
+Test groups can be designed around:
 
-- **Scale thấp vs scale cao**: cùng giá trị toán học nhưng khác số 0 tận cùng.
-- **Phép nhân lặp**: giữ scale chính xác so với một pipeline đã được phép chuẩn hóa.
-- **Serialize**: `toString()` so với `toPlainString()` trên dữ liệu có exponent khác nhau.
-- **Giới hạn precision**: đúng precision nghiệp vụ so với precision cao hơn nhiều.
-- **Allocation và GC**: số object, byte được cấp phát và độ trễ, ngoài throughput.
+- **Low scale vs. high scale**: identical mathematical value but differing trailing-zero counts.
+- **Repeated multiplication**: keeping exact scale versus a pipeline permitted to normalize.
+- **Serialization**: `toString()` vs. `toPlainString()` across differing exponents.
+- **Precision bounds**: exact business precision versus much higher precision.
+- **Allocation and GC**: object counts, allocated bytes, and latency, in addition to throughput.
 
-Một benchmark phải xác nhận hai bên thực hiện **cùng nhiệm vụ nghiệp vụ**. Chẳng hạn so sánh phép tính exact với phép tính bị cắt precision không phải so sánh công bằng nếu đầu ra yêu cầu exact. Đừng coi việc giảm chữ số là chiến thắng khi kết quả đã sai.
+A benchmark must confirm that both sides perform **the same business task**. For example, comparing an exact calculation with a precision-truncated calculation is not a fair comparison if the output requires exactness. Do not treat shrinking digit counts as a win when the result is wrong.
 
-## 13. Lỗi phổ biến
+## 13. Common Mistakes
 
-1. **Nhầm scale với precision:** `1E-100000` có precision 1, scale 100000; kiểm tra một trong hai không bảo vệ toàn bộ.
-2. **Tăng `setScale` “cho an toàn” ở mọi bước:** có thể chỉ thêm số 0, làm tăng kích thước biểu diễn mà không tăng thông tin.
-3. **Chỉ dùng `MathContext` để bảo vệ scale:** một giá trị có precision nhỏ vẫn có scale rất lớn.
-4. **Gọi `stripTrailingZeros` khi cần giữ scale:** kết quả có thể khác `equals` và thậm chí có scale âm.
-5. **Làm tròn trung gian quá sớm:** nhiều lần làm tròn có thể đổi tổng cuối; thiết kế ranh giới rõ ràng.
-6. **Chuyển qua `double` để “tăng tốc” số tiền:** có thể gây mất chính xác, không thể khôi phục khi chuyển lại sang `BigDecimal`.
-7. **Dùng `toPlainString` với exponent cực lớn không tin cậy:** có thể tạo chuỗi rất dài và gây áp lực bộ nhớ.
-8. **Benchmark thiếu warmup/kiểm tra đúng kết quả:** chênh lệch do môi trường hoặc bỏ công việc có thể làm kết luận sai.
+1. **Confusing scale with precision:** `1E-100000` has precision 1, scale 100000; checking only one does not fully protect you.
+2. **Increasing `setScale` "to be safe" at every step:** may just pad zeros, growing representation size without adding information.
+3. **Relying solely on `MathContext` to guard scale:** a value with small precision can still have a gigantic scale.
+4. **Calling `stripTrailingZeros` when scale must be preserved:** the result can differ in `equals` and even have a negative scale.
+5. **Rounding intermediates too early:** multiple roundings can change the final total; design clear boundaries.
+6. **Converting via `double` to "speed up" money:** can lose exactness, which cannot be recovered when converting back to `BigDecimal`.
+7. **Calling `toPlainString` on untrusted huge exponents:** can generate enormous strings and cause memory pressure.
+8. **Benchmarking without warmup or result correctness checks:** environmental noise or skipped work can produce false conclusions.
 
-## 14. Tự kiểm tra
+## 14. Self-Check
 
-Xét đoạn mã:
+Consider the code snippet:
 
 ~~~java
 BigDecimal a = new BigDecimal("2.5000");
@@ -481,22 +481,22 @@ BigDecimal d = a.stripTrailingZeros()
         .multiply(b.stripTrailingZeros());
 ~~~
 
-Trả lời trước khi chạy:
+Answer before running:
 
-1. `a.precision()` và `a.scale()` là bao nhiêu?
-2. `c` in bằng `toPlainString()` là gì? Precision và scale của `c`?
-3. `d` in bằng `toPlainString()` là gì? Precision và scale của `d`?
-4. `c.compareTo(d)` và `c.equals(d)` cho kết quả nào?
-5. Tại sao dùng `new MathContext(4, RoundingMode.HALF_EVEN)` **không** thay thế được kiểm soát scale trên mọi đầu vào?
-6. Nếu cần lưu chính xác `"2.5000"` với scale 4, có nên thay nó bằng `stripTrailingZeros()` không?
+1. What are `a.precision()` and `a.scale()`?
+2. What does `c` print via `toPlainString()`? What are `c`'s precision and scale?
+3. What does `d` print via `toPlainString()`? What are `d`'s precision and scale?
+4. What do `c.compareTo(d)` and `c.equals(d)` return?
+5. Why does using `new MathContext(4, RoundingMode.HALF_EVEN)` **not** replace scale checks on all inputs?
+6. If `"2.5000"` must be stored accurately with scale 4, should it be replaced with `stripTrailingZeros()`?
 
-**Đáp án:**
+**Answers:**
 
-1. `a` có unscaled value `25000`, precision 5 và scale 4.
-2. `c` là `7.500000`, precision 7, scale 6 (4 + 2).
-3. `d` là `7.5`, precision 2, scale 1.
-4. `compareTo` trả `0` vì cùng giá trị số học; `equals` trả `false` vì scale khác.
-5. MathContext giới hạn **số chữ số có nghĩa** của kết quả phép toán, nhưng một số như `1E-100000` vẫn có precision nhỏ và scale cực lớn.
-6. Không, nếu scale gốc là một phần yêu cầu trao đổi hoặc lưu trữ.
+1. `a` has unscaled value `25000`, precision 5, and scale 4.
+2. `c` is `7.500000`, precision 7, scale 6 (4 + 2).
+3. `d` is `7.5`, precision 2, scale 1.
+4. `compareTo` returns `0` because the arithmetic values are equal; `equals` returns `false` because the scales differ.
+5. `MathContext` limits **the number of significant digits** of an operation's result, yet a number like `1E-100000` still has small precision and an enormous scale.
+6. No, if the original scale is part of the exchange or storage requirement.
 
-Cần ghi nhớ: muốn tối ưu số thập phân phải xác định **độ chính xác cần giữ, scale có ý nghĩa gì và khi nào được phép làm tròn**. Giảm biểu diễn dư thừa có thể hữu ích, nhưng tính đúng đắn, hợp đồng dữ liệu và phép đo thực tế luôn là điều kiện trước mọi tối ưu.
+Remember: optimizing decimal numbers requires defining **what precision must be kept, what scale means, and when rounding is allowed**. Reducing redundant representation can help, yet correctness, data contracts, and real measurements always come before every optimization.

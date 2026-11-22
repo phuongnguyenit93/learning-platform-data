@@ -1,70 +1,70 @@
-# Thực hành: So sánh HashSet và TreeSet với BigDecimal hoặc Comparator theo một khóa
+# Practice: Comparing HashSet and TreeSet with BigDecimal or a Single-Key Comparator
 
-## 1. Mục tiêu của bài thực hành
+## 1. Objective of the Practice
 
-Hai tập hợp `HashSet` và `TreeSet` đều triển khai giao diện `Set`: không chứa hai phần tử được coi là trùng nhau theo **quy tắc xác định tính duy nhất** của từng triển khai. Tuy nhiên, chúng có thể cho kết quả khác nhau khi dữ liệu có nhiều cách định nghĩa “bằng nhau”.
+Both `HashSet` and `TreeSet` implement the `Set` interface: neither stores two elements considered duplicates according to **each implementation's uniqueness rules**. However, they can yield different results when data has multiple ways of defining "equal."
 
-Sau bài này, bạn cần có thể:
+After this lesson, you should be able to:
 
-- Giải thích vì sao `HashSet<BigDecimal>` và `TreeSet<BigDecimal>` có thể giữ **số lượng phần tử khác nhau** với cùng dữ liệu đầu vào.
-- Dự đoán `add()`, `contains()` và số lượng phần tử từ `equals()/hashCode()` hoặc `compareTo()/Comparator`.
-- Thực hành với `Comparator` chỉ so sánh **một khóa** của đối tượng: hai object khác nhau về các thuộc tính còn lại vẫn có thể bị `TreeSet` coi là một phần tử.
-- Phân biệt **định danh theo toàn bộ giá trị đối tượng** và **định danh theo khóa nghiệp vụ**; chọn chiến lược nhất quán cho bài toán thực tế.
-- Tránh các lỗi do bất nhất giữa cách sắp xếp và `equals()`, do thay đổi khóa trong tập hợp và do giả định thứ tự của `HashSet`.
+- Explain why `HashSet<BigDecimal>` and `TreeSet<BigDecimal>` can hold **different element counts** given the same input data.
+- Predict `add()`, `contains()`, and element count from `equals()/hashCode()` or `compareTo()/Comparator`.
+- Practice with a `Comparator` comparing only **one key** of an object: two objects differing in other attributes can still be treated as a single element by `TreeSet`.
+- Distinguish **identity by full object value** from **identity by business key**; choose a consistent strategy for real-world problems.
+- Avoid bugs caused by inconsistency between ordering and `equals()`, by mutating keys inside a set, and by assuming ordering in `HashSet`.
 
-Bài tập thuộc chủ đề **Java core – object-contract**, nhấn mạnh hợp đồng `equals`/`hashCode` và quan hệ của chúng với thứ tự so sánh. Không cần hệ cơ sở dữ liệu, framework hay thư viện bên ngoài.
+This exercise belongs to **Java core – object-contract**, emphasizing the `equals`/`hashCode` contract and its relationship with comparison ordering. No database, framework, or external library is required.
 
-## 2. Điểm khác biệt cốt lõi: “trùng nhau” được quyết định ở đâu?
+## 2. The Core Difference: Where Is "Duplicate" Decided?
 
-| Thuộc tính | `HashSet<E>` | `TreeSet<E>` |
+| Property | `HashSet<E>` | `TreeSet<E>` |
 | --- | --- | --- |
-| Cấu trúc bên dưới | `HashMap` dựa trên hash | Cấu trúc cây có thứ tự dựa trên `TreeMap` |
-| Cách xác định phần tử trùng | `equals()`, với `hashCode()` phù hợp để tìm vị trí | Kết quả `compareTo() == 0` hoặc `Comparator.compare(a, b) == 0` |
-| Thứ tự duyệt | Không bảo đảm thứ tự | Theo natural ordering hoặc comparator |
-| Chi phí tìm/thêm/xóa điển hình | Trung bình O(1) nếu băm tốt; trường hợp xấu có thể cao hơn | O(log n) |
-| Cho phép `null` | Có thể lưu một `null` | Natural ordering không nhận `null`; comparator tùy định nghĩa |
-| Ràng buộc quan trọng | Hai object `equals()==true` phải có `hashCode()` bằng nhau | Thứ tự so sánh nên nhất quán với `equals()` nếu muốn tuân thủ đầy đủ hợp đồng `Set` |
+| Underlying structure | Hash-based `HashMap` | Ordered tree structure backed by `TreeMap` |
+| How duplicates are determined | `equals()`, with matching `hashCode()` to locate slots | `compareTo() == 0` or `Comparator.compare(a, b) == 0` |
+| Iteration order | No ordering guaranteed | By natural ordering or comparator |
+| Typical find/add/remove cost | Average O(1) with good hashing; worst case can be higher | O(log n) |
+| Allows `null` | Can store one `null` | Natural ordering rejects `null`; comparator depends on definition |
+| Key constraint | Two objects with `equals()==true` must have equal `hashCode()` | Ordering comparison should be consistent with `equals()` to fully obey the `Set` contract |
 
-**`HashSet`:** về ý nghĩa, trước hết một phần tử mới phải có `hashCode()` giúp tìm vị trí thích hợp; nếu có phần tử khác bằng nhau theo `equals()`, thao tác `add()` không đưa thêm một phần tử duy nhất mới vào tập hợp. Không nên hiểu là “chỉ cần cùng hash là trùng”: **hash collision không đồng nghĩa equals**.
+**`HashSet`:** conceptually, a new element first uses `hashCode()` to locate the appropriate slot; if another element exists that is equal per `equals()`, `add()` does not insert a new unique element into the set. Do not think "same hash alone means duplicate": **a hash collision does not mean equals**.
 
-**`TreeSet`:** việc thêm, tìm kiếm và xóa dựa vào phép so sánh. Kết quả **0** là “tương đương cho tập hợp có thứ tự” dù `equals()` của hai object trả về `false`. Comparator làm việc theo một khóa có thể biến nhiều đối tượng khác nhau thành cùng một lớp tương đương.
+**`TreeSet`:** insertion, lookup, and removal rely on comparison. A result of **0** means "equivalent for the ordered set" even when the two objects' `equals()` returns `false`. A comparator operating on a single key can collapse many distinct objects into the same equivalence class.
 
-Trong ví dụ bất kỳ: nếu `compare(a,b) == 0` nhưng `!a.equals(b)`, `TreeSet` có thể giữ một trong hai, còn `HashSet` vẫn giữ cả hai (giả sử hashCode/equals của chúng đúng hợp đồng).
+In any example: if `compare(a,b) == 0` while `!a.equals(b)`, `TreeSet` keeps only one of the two, whereas `HashSet` keeps both (assuming their hashCode/equals obey the contract).
 
-### Kết quả boolean của `add()` có ý nghĩa gì?
+### What does the boolean return value of `add()` mean?
 
-`set.add(element)` trả về `true` nếu tập hợp thay đổi do thêm phần tử mới, hoặc `false` nếu phần tử đã được coi là tồn tại. Với `TreeSet`, `false` có thể có nghĩa “**đã có phần tử cùng khóa so sánh**”, không phải “đã có đúng object có mọi thuộc tính giống nhau”.
+`set.add(element)` returns `true` if the set changed by adding the new element, or `false` if the element is already considered present. With `TreeSet`, `false` may mean "**an element with the same comparison key is already present**," not "an identical object matching all attributes is already present."
 
-`TreeSet` không tự ghi đè object cũ bằng object mới khi comparator trả về 0. Theo luồng thêm lần lượt, phần tử được giữ là phần tử của lần thêm thành công trước đó, trừ khi bạn chủ động xóa/thay thế.
+`TreeSet` does not automatically overwrite the old object with the new object when the comparator returns 0. Under sequential additions, the retained element is the one from the earlier successful insertion, unless you explicitly remove/replace it.
 
-## 3. BigDecimal: bằng nhau về số học khác bằng nhau theo equals()
+## 3. BigDecimal: Arithmetic Equality Differs from equals() Equality
 
-`BigDecimal` vừa triển khai `Comparable<BigDecimal>` vừa có `equals()` và `hashCode()` của riêng nó. Với `BigDecimal`, phần **scale** (số chữ số thập phân biểu diễn) là yếu tố quan trọng.
+`BigDecimal` both implements `Comparable<BigDecimal>` and defines its own `equals()` and `hashCode()`. For `BigDecimal`, the **scale** (number of decimal digits represented) is a significant factor.
 
-Hai số sau có giá trị số học bằng nhau:
+The following two numbers have equal arithmetic values:
 
 ~~~java
 BigDecimal a = new BigDecimal("2.0");  // unscaled=20, scale=1
 BigDecimal b = new BigDecimal("2.00"); // unscaled=200, scale=2
 ~~~
 
-Tuy nhiên:
+However:
 
-- `a.equals(b)` là **false** vì cả giá trị và scale phải phù hợp theo quy tắc `BigDecimal.equals()`.
-- `a.compareTo(b)` là **0** vì thứ tự tự nhiên của `BigDecimal` so sánh **giá trị số học**; hai dạng biểu diễn cùng một giá trị có thể tương đương.
-- `HashSet` coi hai đối tượng trên **khác nhau** theo `equals()`.
-- `TreeSet` dùng natural ordering của `BigDecimal` nên coi hai đối tượng là **cùng một phần tử theo thứ tự so sánh**.
+- `a.equals(b)` is **false** because both value and scale must match under `BigDecimal.equals()` rules.
+- `a.compareTo(b)` is **0** because `BigDecimal`'s natural ordering compares **numerical value**; two representations of the same numerical value are equivalent.
+- `HashSet` treats the two objects as **distinct** according to `equals()`.
+- `TreeSet` uses `BigDecimal`'s natural ordering and treats both objects as **the same element in comparison order**.
 
-Đây là một ngoại lệ được công bố trong tài liệu Java: natural ordering của `BigDecimal` **không nhất quán với equals**. Không có lỗi trong Java hay trong hai tập hợp; vấn đề là hai định nghĩa tính duy nhất khác nhau.
+This is a documented exception in Java's API docs: `BigDecimal`'s natural ordering is **inconsistent with equals**. There is no bug in Java or in either set; the issue is simply two different definitions of uniqueness.
 
-## 4. Chương trình Java 17 chạy được: so sánh cả hai tình huống
+## 4. Runnable Java 17 Program: Comparing Both Scenarios
 
-Chương trình dưới đây gồm hai phần:
+The program below has two parts:
 
-1. Thêm `BigDecimal("2.0")` và `BigDecimal("2.00")` vào cả `HashSet` và `TreeSet`.
-2. Thêm hai `Product` cùng `sku` nhưng khác `name`; thử `TreeSet` chỉ so sánh `sku` và một comparator có khóa phụ `name`.
+1. Add `BigDecimal("2.0")` and `BigDecimal("2.00")` to both `HashSet` and `TreeSet`.
+2. Add two `Product` instances with the same `sku` but different `name`; test a `TreeSet` comparing only `sku` and a comparator with `name` as a secondary key.
 
-Lưu **toàn bộ** chương trình vào file **SetComparisonDemo.java**:
+Save the **entire** program into **SetComparisonDemo.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -137,14 +137,14 @@ public class SetComparisonDemo {
 }
 ~~~
 
-Biên dịch và chạy trên JDK 17+:
+Compile and run on JDK 17+:
 
 ~~~bash
 javac -encoding UTF-8 SetComparisonDemo.java
 java SetComparisonDemo
 ~~~
 
-Đầu ra dự kiến (không in trực tiếp `HashSet` vì thứ tự duyệt của nó không được bảo đảm):
+Expected output (avoiding printing `HashSet` directly because its iteration order is not guaranteed):
 
 ~~~text
 === BigDecimal ===
@@ -168,28 +168,28 @@ TreeSet by SKU contains(b): true
 TreeSet by SKU+name size: 2
 ~~~
 
-### Đọc kết quả `BigDecimal`
+### Interpreting the `BigDecimal` Results
 
-- `HashSet add(b): true`: hai số khác scale nên không bằng nhau theo `BigDecimal.equals()`. `HashSet` tăng lên 2 phần tử.
-- `TreeSet add(b): false`: `b.compareTo(a) == 0`; cây đã có một phần tử tương đương theo thứ tự tự nhiên.
-- `TreeSet values: [2.0]`: tập giữ object đầu tiên (`a`) đã thêm thành công. Nếu đảo thứ tự thêm `b` rồi `a`, phần tử đại diện có thể hiển thị `2.00`.
-- Không dùng khác biệt kích thước trên để kết luận một tập hợp “đúng” còn tập hợp kia “sai”. Phải xem yêu cầu nghiệp vụ coi scale có quan trọng hay không.
+- `HashSet add(b): true`: the two numbers differ in scale, so they are not equal under `BigDecimal.equals()`. `HashSet` grows to 2 elements.
+- `TreeSet add(b): false`: `b.compareTo(a) == 0`; the tree already holds an equivalent element under natural ordering.
+- `TreeSet values: [2.0]`: the set retains the first object (`a`) that was successfully added. If you reverse the insertion order to `b` then `a`, the representative element displays `2.00`.
+- Do not use this size difference to claim one set is "right" and the other is "wrong." You must check whether business requirements treat scale as significant.
 
-### Đọc kết quả `Product`
+### Interpreting the `Product` Results
 
-`record Product(String sku, String name)` tự sinh `equals()` và `hashCode()` xét **cả hai thành phần**. Vì `name` khác nhau, `a.equals(b) == false`, nên `HashSet` giữ cả hai.
+`record Product(String sku, String name)` automatically generates `equals()` and `hashCode()` examining **both components**. Since `name` differs, `a.equals(b) == false`, so `HashSet` keeps both.
 
-Comparator `Comparator.comparing(Product::sku)` lại chỉ xem `sku`. Hai sản phẩm cùng SKU có `compare(a,b) == 0` dù tên khác. Vì vậy `TreeSet` theo SKU chỉ giữ bản ghi thêm trước; `contains(b)` có thể trả về **true** ngay cả khi object `b` chưa từng được giữ làm phần tử trong cây. `contains()` hỏi có **phần tử cùng lớp so sánh** hay không.
+Comparator `Comparator.comparing(Product::sku)` looks only at `sku`. Two products with the same SKU have `compare(a,b) == 0` despite different names. Consequently, the SKU-based `TreeSet` retains only the record added first; `contains(b)` returns **true** even though object `b` was never stored as an element in the tree. `contains()` asks whether there is **an element in the same comparison equivalence class**.
 
-Khi thêm `thenComparing(Product::name)`, tên trở thành khóa phụ; hai sản phẩm có cùng SKU nhưng tên khác sẽ được sắp thành hai vị trí, nên kích thước là 2.
+When adding `thenComparing(Product::name)`, name becomes the secondary key; two products sharing an SKU with different names sort into two distinct positions, so the size is 2.
 
-**Lưu ý phạm vi:** Comparator theo SKU+name phù hợp với `equals()` do record này chỉ gồm hai trường `String` không null và hai kiểu chuỗi dùng thứ tự tự nhiên nhất quán với equals. Nếu record có thêm trường thuộc hợp đồng equals, comparator chỉ theo SKU+name **không còn chắc** nhất quán với equals.
+**Scope note:** The SKU+name comparator matches `equals()` because this record has only two non-null `String` fields and both string fields use natural ordering consistent with equals. If the record gains another field participating in the equals contract, a comparator using only SKU+name **is no longer guaranteed** to be consistent with equals.
 
-## 5. Thực hành có chủ đích: dự đoán trước khi chạy
+## 5. Deliberate Practice: Predict Before Running
 
-### Bài 1 — nhiều cách biểu diễn của cùng một số
+### Exercise 1 — Multiple representations of the same number
 
-Cho:
+Given:
 
 ~~~java
 BigDecimal x = new BigDecimal("10.0");
@@ -197,21 +197,21 @@ BigDecimal y = new BigDecimal("10.00");
 BigDecimal z = new BigDecimal("9.0");
 ~~~
 
-Nếu thêm lần lượt `x, y, z` vào hai tập hợp trống:
+If `x, y, z` are added sequentially into two empty sets:
 
-| Kiểm tra | `HashSet<BigDecimal>` | `TreeSet<BigDecimal>` |
+| Check | `HashSet<BigDecimal>` | `TreeSet<BigDecimal>` |
 | --- | --- | --- |
-| Thêm `x` | `true` | `true` |
-| Thêm `y` | `true` | `false` |
-| Thêm `z` | `true` | `true` |
-| Kích thước | 3 | 2 |
-| Thứ tự duyệt | Không cam kết | Tăng dần về giá trị số học |
+| Add `x` | `true` | `true` |
+| Add `y` | `true` | `false` |
+| Add `z` | `true` | `true` |
+| Size | 3 | 2 |
+| Iteration order | No guarantee | Ascending by numerical value |
 
-**Tại sao?** `x.equals(y) == false` nhưng `x.compareTo(y) == 0`; còn `z` có giá trị nhỏ hơn và khác cả hai theo mọi tiêu chí trên.
+**Why?** `x.equals(y) == false` yet `x.compareTo(y) == 0`; meanwhile `z` has a smaller numerical value and differs from both under every criterion above.
 
-### Bài 2 — comparator chỉ xét một khóa
+### Exercise 2 — Comparator inspecting only a single key
 
-Xét các bản ghi:
+Consider these records:
 
 ~~~java
 record Employee(String departmentId, String fullName) { }
@@ -223,32 +223,32 @@ Set<Employee> staff = new TreeSet<>(
         Comparator.comparing(Employee::departmentId));
 ~~~
 
-Nếu thêm `first` rồi `second`:
+If `first` is added and then `second`:
 
-- `staff.size()` là **1**, vì comparator chỉ xét `departmentId`.
-- Phần tử còn lại mang tên **An**, vì `first` được thêm trước.
-- `staff.contains(second)` trả về **true** theo comparator, mặc dù `second` không được lưu làm object đại diện.
+- `staff.size()` is **1**, because the comparator checks only `departmentId`.
+- The remaining element has the name **An**, because `first` was added first.
+- `staff.contains(second)` returns **true** per the comparator, even though `second` is not stored as the representative object.
 
-**Câu hỏi:** Nếu yêu cầu là “không có hai nhân viên cùng phòng ban”, đã đủ chưa?
+**Question:** If the requirement is "no two employees in the same department," is this sufficient?
 
-Về tập khóa, comparator đáp ứng phép loại trùng theo department ID. Nhưng về **mô hình nghiệp vụ**, giữ chỉ một nhân viên cho mỗi phòng có thể làm mất dữ liệu và không mô tả đúng quan hệ giữa phòng ban và nhân viên. Nên cân nhắc `Map<String, Employee>` nếu thật sự chỉ có một người đại diện cho mỗi mã phòng, hoặc `Map<String, List<Employee>>` nếu mỗi phòng có nhiều người. Comparator không thể tự quyết định chính sách mất dữ liệu là đúng.
+In terms of the key set, the comparator enforces deduplication by department ID. However, in terms of **business modeling**, keeping only one employee per department can drop data and misrepresent the relationship between departments and employees. Consider `Map<String, Employee>` if there is genuinely only one representative per department code, or `Map<String, List<Employee>>` if each department has multiple people. A comparator cannot by itself decide whether dropping data is valid policy.
 
-## 6. Chọn tiêu chí đồng nhất theo mục đích nghiệp vụ
+## 6. Choosing Equivalence Criteria Based on Business Purpose
 
-Trước khi chọn `HashSet`, `TreeSet` hay `Map`, cần xác định **đơn vị duy nhất**.
+Before choosing `HashSet`, `TreeSet`, or `Map`, define the **unit of uniqueness**.
 
-### Trường hợp A — phân biệt cả biểu diễn thập phân
+### Case A — Distinguish decimal representations as well
 
-Ví dụ hệ thống kiểm tra dữ liệu đầu vào muốn phân biệt người dùng nhập `2.0` với `2.00` để giữ độ chính xác hiển thị hoặc scale theo quy tắc dữ liệu. `HashSet<BigDecimal>` phù hợp hơn nếu muốn phản ánh trực tiếp `equals` của `BigDecimal`; nhớ rằng “phù hợp” ở đây là vì **định nghĩa danh tính bao gồm scale**.
+For example, an input validation system wants to distinguish a user entering `2.0` from `2.00` to preserve display precision or scale per data rules. `HashSet<BigDecimal>` fits better if you want to directly reflect `BigDecimal.equals`; remember it "fits" here because **the definition of identity includes scale**.
 
-### Trường hợp B — cùng giá trị số học phải được coi là trùng
+### Case B — Identical numerical values must be treated as duplicates
 
-Nếu `2.0` và `2.00` phải đại diện cho cùng một giá trị:
+If `2.0` and `2.00` must represent the same value:
 
-- `TreeSet<BigDecimal>` theo natural ordering loại trùng dựa trên `compareTo() == 0` và đồng thời sắp xếp số học.
-- Nếu cần cấu trúc hash, có thể **chuẩn hóa** giá trị trước khi thêm, ví dụ `value.stripTrailingZeros()` (với chính sách chuẩn hóa được áp dụng thống nhất). Các biểu diễn `2.0` và `2.00` sau chuẩn hóa trở nên `equals() == true`.
+- `TreeSet<BigDecimal>` with natural ordering deduplicates based on `compareTo() == 0` while also sorting numerically.
+- If a hash structure is needed, you can **normalize** values before insertion, such as `value.stripTrailingZeros()` (with a consistently applied normalization policy). After normalization, `2.0` and `2.00` become `equals() == true`.
 
-Đoạn minh họa trong phương thức Java có `import java.math.BigDecimal`, `import java.util.Set` và `import java.util.HashSet`:
+Illustrative snippet inside a Java method with `import java.math.BigDecimal`, `import java.util.Set`, and `import java.util.HashSet`:
 
 ~~~java
 Set<BigDecimal> canonical = new HashSet<>();
@@ -257,11 +257,11 @@ canonical.add(new BigDecimal("2.00").stripTrailingZeros());
 System.out.println(canonical.size()); // 1
 ~~~
 
-Cẩn thận: `stripTrailingZeros()` có thể đổi scale thành **số âm** và đổi cách hiển thị của một số, ví dụ một số nguyên lớn có các chữ số 0 cuối. Nếu định dạng xuất dữ liệu là yêu cầu nghiệp vụ, không được chỉ dựa vào `toString()` của bản đã chuẩn hóa; cần tách giá trị số học và định dạng hiển thị.
+Be careful: `stripTrailingZeros()` can turn the scale **negative** and alter how a number displays, such as a large integer with trailing zeros. If output formatting is a business requirement, do not rely solely on `toString()` of the normalized value; separate numerical value from display formatting.
 
-### Trường hợp C — tiền tệ có scale cố định
+### Case C — Currency with fixed scale
 
-Nếu dữ liệu tiền luôn phải có đúng hai chữ số thập phân, có thể định nghĩa chính sách chuyển về scale 2:
+If monetary data must always have exactly two decimal places, you can define a policy converting to scale 2:
 
 ~~~java
 BigDecimal amount = new BigDecimal("2.0")
@@ -269,13 +269,13 @@ BigDecimal amount = new BigDecimal("2.0")
 System.out.println(amount.toPlainString()); // 2.00
 ~~~
 
-Dùng `RoundingMode.UNNECESSARY` sẽ ném `ArithmeticException` nếu phải làm tròn để đạt scale yêu cầu. Trong ứng dụng thật, chính sách làm tròn cần được xác định theo loại tiền, quy tắc nghiệp vụ và nguồn dữ liệu. **Không tự làm tròn im lặng** chỉ để khớp khóa.
+Using `RoundingMode.UNNECESSARY` throws `ArithmeticException` if rounding would be required to reach the target scale. In real applications, rounding policies must be specified by currency type, business rules, and data source. **Never silently round** just to make keys match.
 
-### Trường hợp D — chỉ duy nhất theo mã nghiệp vụ
+### Case D — Unique solely by business code
 
-Nếu dữ liệu có `id` hoặc `sku` làm khóa duy nhất, `TreeSet<>(Comparator.comparing(Entity::id))` có thể đảm bảo một đại diện cho mỗi khóa, đồng thời sắp tăng theo khóa. Nhưng quan hệ này có thể **không nhất quán với `equals()` của Entity**.
+If records have `id` or `sku` as the unique key, `TreeSet<>(Comparator.comparing(Entity::id))` can guarantee one representative per key while sorting ascending by key. However, this relation may be **inconsistent with `Entity.equals()`**.
 
-Một `Map<Key, Value>` thường thể hiện ý nghĩa “mỗi khóa có một giá trị” rõ ràng hơn. Ví dụ:
+A `Map<Key, Value>` usually expresses "each key has one value" more clearly. For example:
 
 ~~~java
 Map<String, String> latestNameBySku = new java.util.HashMap<>();
@@ -284,24 +284,24 @@ latestNameBySku.put("SKU-1", "Notebook Pro");
 System.out.println(latestNameBySku.get("SKU-1")); // Notebook Pro
 ~~~
 
-Trong một phương thức Java, đoạn này cần `import java.util.Map`; `put` đã chủ động chọn chính sách ghi đè giá trị trước bằng giá trị sau. Nếu **không** muốn ghi đè, dùng `putIfAbsent` hoặc xử lý xung đột một cách tường minh.
+Inside a Java method, this snippet requires `import java.util.Map`; `put` intentionally chooses the policy of overwriting the earlier value with the later one. If you do **not** want overwriting, use `putIfAbsent` or handle conflicts explicitly.
 
-## 7. “Comparator nhất quán với equals” nghĩa là gì?
+## 7. What Does "Comparator Consistent with equals" Mean?
 
-Một thứ tự được gọi là **consistent with equals** khi với mọi `a, b` hợp lệ, điều kiện `compare(a,b) == 0` tương đương với `a.equals(b) == true`.
+An ordering is called **consistent with equals** when for all valid `a, b`, the condition `compare(a,b) == 0` is equivalent to `a.equals(b) == true`.
 
-Trong bài này có hai ví dụ **không** thỏa mãn:
+In this lesson there are two examples that **do not** satisfy this:
 
-- `BigDecimal("2.0")` và `BigDecimal("2.00")`: `compareTo == 0` nhưng `equals == false`.
-- Hai `Product` cùng SKU, khác tên: comparator theo SKU trả 0 nhưng record equals trả false.
+- `BigDecimal("2.0")` and `BigDecimal("2.00")`: `compareTo == 0` yet `equals == false`.
+- Two `Product` instances with the same SKU and different names: the SKU comparator returns 0 yet record equals returns false.
 
-Theo hợp đồng `SortedSet`/`Set`, thứ tự của sorted set nên nhất quán với equals nếu muốn sorted set tuân thủ **đầy đủ** hợp đồng chung của `Set`. `TreeSet` vẫn hoạt động xác định khi comparator không nhất quán; nhưng một số thao tác kiểm tra bằng nhau giữa các tập hợp, `contains` hay luồng xử lý kết hợp `HashSet` và `TreeSet` có thể khiến người dùng bất ngờ. Đừng giả định hai tập hợp trên có thể thay thế cho nhau ở mọi vị trí chỉ vì cả hai đều là `Set`.
+According to the `SortedSet`/`Set` contract, a sorted set's ordering should be consistent with equals if you want the sorted set to **fully** obey the general `Set` contract. `TreeSet` still behaves deterministically when the comparator is inconsistent; however, certain set equality checks, `contains`, or flows combining `HashSet` and `TreeSet` can surprise users. Do not assume the two sets are interchangeable everywhere just because both are `Set`.
 
-Không cố sửa `BigDecimal.equals()` (đây là kiểu thư viện bất biến). Nếu cần chính sách so sánh khác, áp dụng chiến lược chuẩn hóa, wrapper/domain value object hoặc collection phù hợp.
+Do not try to modify `BigDecimal.equals()` (it is an immutable library type). If a different comparison policy is needed, apply a normalization strategy, a wrapper/domain value object, or an appropriate collection.
 
-### Comparator có khóa phụ để tránh mất dữ liệu ngoài ý muốn
+### Comparator with a secondary key to avoid unintended data loss
 
-Khi muốn tất cả bản ghi được giữ nếu khác nhau ở các trường có ý nghĩa, hãy bổ sung khóa phụ bằng `thenComparing()`:
+When you want all records retained if they differ in meaningful fields, add a secondary key with `thenComparing()`:
 
 ~~~java
 Comparator<Product> bySkuThenName =
@@ -309,93 +309,93 @@ Comparator<Product> bySkuThenName =
                 .thenComparing(Product::name);
 ~~~
 
-Đoạn này sử dụng `Product` đã định nghĩa ở chương trình chính và `import java.util.Comparator`.
+This snippet uses `Product` defined in the main program and `import java.util.Comparator`.
 
-Nhưng tránh bổ sung khóa phụ chỉ để “không còn trùng” một cách máy móc: nếu chính sách muốn **một sản phẩm trên một SKU**, khóa phụ `name` sẽ làm thay đổi quy tắc nghiệp vụ và có thể không còn đáp ứng yêu cầu.
+However, avoid adding secondary keys mechanically just to "stop duplicates": if policy requires **one product per SKU**, adding `name` as a secondary key changes the business rule and may no longer satisfy requirements.
 
-## 8. Tác động của equals/hashCode tới HashSet
+## 8. Impact of equals/hashCode on HashSet
 
-Đối tượng đưa vào `HashSet` phải tuân thủ hợp đồng:
+Objects placed into a `HashSet` must obey the contract:
 
-1. `equals` phản xạ, đối xứng, bắc cầu và nhất quán trong lúc các thuộc tính dùng để so sánh không đổi.
-2. Nếu `a.equals(b)` là `true`, `a.hashCode() == b.hashCode()` bắt buộc đúng.
-3. Hai đối tượng **không bằng nhau** vẫn có thể trùng mã hash; `HashSet` tiếp tục dùng `equals()` khi cần.
-4. Khi override `equals()`, hầu như luôn cần override `hashCode()` để duy trì hợp đồng.
+1. `equals` is reflexive, symmetric, transitive, and consistent while attributes used in comparison do not change.
+2. If `a.equals(b)` is `true`, `a.hashCode() == b.hashCode()` must hold.
+3. Two **unequal** objects can still share a hash code; `HashSet` falls back on `equals()` as needed.
+4. When overriding `equals()`, you almost always need to override `hashCode()` to maintain the contract.
 
-Record tạo `equals()/hashCode()` theo các thành phần một cách tự động, nên ví dụ `Product` đã có hợp đồng đồng nhất theo `sku` **và** `name`. Tuy nhiên record có thể chứa thành phần mutable; đừng tự động cho rằng mọi record đều bất biến sâu.
+Records automatically generate `equals()/hashCode()` from their components, so the `Product` example already has a contract consistent on both `sku` **and** `name`. Nevertheless, a record can contain mutable components; do not automatically assume every record is deeply immutable.
 
-Nếu muốn danh tính của `Product` chỉ dựa vào SKU trong **mọi** cấu trúc, hãy thiết kế một lớp/value object có `equals/hashCode` phù hợp với chính sách đó; không chỉ thay `Comparator` ở một điểm dùng `TreeSet`.
+If you want `Product`'s identity to depend solely on SKU across **all** structures, design a class/value object whose `equals/hashCode` matches that policy, rather than only swapping a `Comparator` at one `TreeSet` usage site.
 
-## 9. Tránh thay đổi khóa khi phần tử đang nằm trong Set
+## 9. Avoid Mutating Keys While Elements Are Inside a Set
 
-Đây là lỗi nguy hiểm với cả hai triển khai, đặc biệt khi đối tượng có trường mutable:
+This is a dangerous bug for both implementations, especially when objects have mutable fields:
 
-- Với `HashSet`, thay đổi trường tham gia `hashCode()/equals()` có thể làm đối tượng rơi vào bucket không khớp khi tra cứu, khiến `contains()/remove()` không hoạt động như mong đợi.
-- Với `TreeSet`, thay đổi trường mà comparator dùng để xếp thứ tự có thể phá cấu trúc thứ tự của cây; tìm kiếm hoặc thêm mới có thể cho kết quả khó hiểu.
-- Sửa trường không ảnh hưởng đến equality/comparator có thể vẫn an toàn về tính duy nhất và thứ tự, nhưng cần xét bất biến nghiệp vụ và đồng thời.
+- With `HashSet`, mutating a field participating in `hashCode()/equals()` can make the object fall into a mismatched bucket during lookup, causing `contains()/remove()` to fail to behave as expected.
+- With `TreeSet`, mutating a field used by the comparator for ordering can corrupt the tree's ordering invariant; lookups or insertions can yield confusing results.
+- Modifying fields that do not affect equality/comparator may remain safe for uniqueness and ordering, though business invariants and concurrency must still be considered.
 
-**Nguyên tắc:** dùng khóa bất biến cho phần tử trong tập hợp; nếu bắt buộc đổi khóa, nên **remove trước khi sửa, rồi add lại** theo một luồng xử lý có kiểm soát, hoặc sử dụng mô hình dữ liệu khác phù hợp. Không nên thay đổi khóa lén lút qua tham chiếu bên ngoài khi phần tử vẫn đang nằm trong collection.
+**Principle:** use immutable keys for elements in a set; if a key must change, **remove before mutating, then re-add** in a controlled flow, or use a more suitable data model. Never silently mutate a key via an external reference while the element remains inside the collection.
 
-## 10. Một số khác biệt và giới hạn cần quan sát
+## 10. Other Differences and Limitations to Observe
 
-### Thứ tự và hiệu năng
+### Ordering and performance
 
-`HashSet` không đảm bảo thứ tự duyệt, kể cả khi chạy chương trình nhiều lần có vẻ cho ra một thứ tự ổn định. Không viết test kiểm tra chuỗi in trực tiếp của `HashSet` theo một thứ tự cụ thể.
+`HashSet` makes no guarantee on iteration order, even if running a program multiple times appears to yield a stable order. Never write tests asserting a specific printed string order directly from a `HashSet`.
 
-`TreeSet` cung cấp các thao tác có thứ tự từ `NavigableSet` như `first()`, `last()`, `lower()`, `floor()`, `ceiling()`, `higher()`. Chúng dựa trên comparator hoặc natural ordering; nếu comparator chỉ xét SKU, tất cả hành vi tìm phần tử gần nhất cũng là theo SKU.
+`TreeSet` provides ordered operations from `NavigableSet` such as `first()`, `last()`, `lower()`, `floor()`, `ceiling()`, and `higher()`. These rely on the comparator or natural ordering; if the comparator checks only SKU, all nearest-element queries also operate by SKU.
 
-`HashSet` thường có thao tác cơ bản trung bình O(1) khi phân phối hash tốt; `TreeSet` là O(log n). Tính duy nhất đúng với yêu cầu và độ ổn định của khóa quan trọng hơn chọn cấu trúc chỉ theo tốc độ.
+`HashSet` typically has average O(1) basic operations with good hash distribution; `TreeSet` is O(log n). Having uniqueness match requirements and key stability matters more than picking a structure on speed alone.
 
-### Comparator và null
+### Comparator and null
 
-`TreeSet` với natural ordering thường không chấp nhận `null`. Comparator tự định nghĩa có thể xử lý null bằng `Comparator.nullsFirst(...)` hoặc `nullsLast(...)` theo chính sách; tuy nhiên dữ liệu nullable cũng cần được kiểm soát để tránh comparator không xác định. `HashSet` có thể chứa đúng một giá trị `null`.
+`TreeSet` with natural ordering normally rejects `null`. A custom comparator can handle null via `Comparator.nullsFirst(...)` or `nullsLast(...)` per policy; however, nullable data must still be controlled to avoid an undefined comparator. `HashSet` can hold exactly one `null` value.
 
-### Lỗi ClassCastException, so sánh thiếu tính bắc cầu
+### ClassCastException and non-transitive comparisons
 
-Nếu đối tượng không triển khai `Comparable` và bạn tạo `new TreeSet<>()` không truyền comparator, thao tác thêm phần tử có thể ném `ClassCastException`. Tương tự, comparator không chấp nhận kiểu được cung cấp cũng gây lỗi so sánh.
+If an object does not implement `Comparable` and you construct `new TreeSet<>()` without passing a comparator, adding an element can throw `ClassCastException`. Similarly, a comparator that rejects the supplied type also triggers comparison errors.
 
-Comparator nên xác định thứ tự hợp lệ, nhất quán, đặc biệt về phản xạ, đối xứng dấu và tính bắc cầu theo hợp đồng `Comparator`. Một comparator không bắc cầu có thể làm cấu trúc sắp xếp vận hành không đúng kỳ vọng. Tránh comparator kiểu `return a.someInt - b.someInt;` vì có nguy cơ tràn số nguyên; ưu tiên `Comparator.comparingInt(...)` hoặc `Integer.compare(...)`.
+A comparator must define a valid, consistent total ordering—especially reflexivity, antisymmetry of sign, and transitivity per the `Comparator` contract. A non-transitive comparator can cause sorted structures to behave unexpectedly. Avoid comparators like `return a.someInt - b.someInt;` because of integer overflow risk; prefer `Comparator.comparingInt(...)` or `Integer.compare(...)`.
 
-### BigDecimal và giá trị double
+### BigDecimal and double values
 
-Để nhập giá trị thập phân chính xác theo chuỗi, dùng `new BigDecimal("0.1")` hoặc `BigDecimal.valueOf(0.1)` theo nhu cầu; cẩn thận với `new BigDecimal(0.1)` vì chuyển trực tiếp từ biểu diễn nhị phân của `double` có thể tạo giá trị thập phân dài không như người nhập kỳ vọng. Điều này là vấn đề biểu diễn số, **khác** vấn đề equals/compareTo và scale nhưng dễ khiến bài thực hành thêm khó hiểu nếu nhập sai dữ liệu.
+To input exact decimal values from strings, use `new BigDecimal("0.1")` or `BigDecimal.valueOf(0.1)` as appropriate; be careful with `new BigDecimal(0.1)` because converting directly from `double`'s binary representation can produce a long decimal value unlike what the author expected. That is a numeric representation issue, **distinct** from equals/compareTo and scale, yet it easily makes exercises harder to interpret if wrong inputs are used.
 
-## 11. Bảng lỗi thực hành và cách sửa
+## 11. Troubleshooting Table for Practical Exercises
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách giải quyết |
+| Symptom | Common cause | Resolution |
 | --- | --- | --- |
-| `HashSet<BigDecimal>` có 2, `TreeSet<BigDecimal>` có 1 | `equals` xét scale, `compareTo` xét giá trị số học | Chọn rõ định nghĩa trùng và áp dụng nhất quán |
-| `TreeSet<Product>` mất phần tử khác tên | Comparator chỉ xét SKU | Nếu cần giữ cả hai, thêm khóa phụ; nếu cần duy nhất theo SKU, mô tả chính sách rõ |
-| `tree.contains(b) == true` dù object `b` không được lưu | Có phần tử khác được comparator coi tương đương | Hiểu `contains` theo lớp so sánh, không theo object identity |
-| So sánh kết quả in `HashSet` bị fail ngẫu nhiên | Không có thứ tự duyệt cam kết | Chỉ assert kích thước/membership hoặc chủ động sắp trước khi in |
-| `HashSet` không tìm được object sau khi đổi ID | Thay đổi trường dùng trong equals/hashCode | Khóa bất biến hoặc remove-sửa-add có kiểm soát |
-| `TreeSet` tìm sai sau khi đổi khóa sắp xếp | Cây không tự tái sắp xếp sau đột biến | Tránh sửa khóa khi object còn trong tập |
-| `TreeSet` ném `ClassCastException` | Thiếu natural ordering/comparator phù hợp | Cung cấp Comparator đúng kiểu |
-| Chuẩn hóa `BigDecimal` làm hiển thị khác | `stripTrailingZeros` có thể đổi scale | Tách chính sách giá trị và định dạng hiển thị |
+| `HashSet<BigDecimal>` has 2, `TreeSet<BigDecimal>` has 1 | `equals` checks scale, `compareTo` checks numerical value | Choose the duplicate definition explicitly and apply consistently |
+| `TreeSet<Product>` drops elements with different names | Comparator checks only SKU | To keep both, add a secondary key; to deduplicate by SKU, state the policy clearly |
+| `tree.contains(b) == true` even though object `b` is not stored | Another element is considered equivalent by the comparator | Interpret `contains` by comparison equivalence class, not object identity |
+| Asserting printed `HashSet` output fails intermittently | No iteration order guarantee | Assert only size/membership or explicitly sort before printing |
+| `HashSet` cannot find an object after changing its ID | Field used in equals/hashCode was mutated | Immutable keys or controlled remove-mutate-add |
+| `TreeSet` lookups fail after changing sort key | Tree does not re-sort itself after mutation | Avoid mutating keys while objects are in the set |
+| `TreeSet` throws `ClassCastException` | Missing natural ordering/appropriate comparator | Supply a properly typed Comparator |
+| Normalizing `BigDecimal` changes display | `stripTrailingZeros` can alter scale | Separate value policy from display formatting |
 
-## 12. Checklist kiểm tra một bài toán Set
+## 12. Checklist for Reviewing a Set Problem
 
-Khi cần loại phần tử trùng, hãy trả lời theo đúng thứ tự:
+When deduplicating elements, answer in exact order:
 
-1. **“Trùng” có nghĩa gì?** Trùng mọi trường, trùng ID, trùng giá trị số học hay trùng biểu diễn thập phân?
-2. **Hợp đồng equals/hashCode là gì?** Hai phần tử nào được coi là bằng nhau theo object?
-3. **Comparator hoặc compareTo xét gì?** Khi nào so sánh trả về 0?
-4. **Hai quy tắc có nhất quán không?** Nếu không, liệu ứng dụng có chấp nhận sự khác biệt ở `add()`/`contains()`/kết hợp collection?
-5. **Có cần thứ tự sắp xếp không?** Nếu không, `HashSet` có thể đơn giản hơn; nếu có, `TreeSet` là lựa chọn nhưng phải chốt comparator.
-6. **Khóa có bất biến trong thời gian nằm trong Set không?** Nếu không, cần thiết kế lại cách cập nhật.
-7. **Cần một đại diện cho mỗi khóa hay cần giữ toàn bộ bản ghi?** Với một giá trị trên một khóa, `Map<K,V>` thường diễn đạt ý định rõ hơn.
+1. **What does "duplicate" mean?** Identical across all fields, identical ID, identical numerical value, or identical decimal representation?
+2. **What is the equals/hashCode contract?** Which two elements are considered equal as objects?
+3. **What does Comparator or compareTo inspect?** When does comparison return 0?
+4. **Are the two rules consistent?** If not, can the application tolerate differences in `add()`/`contains()`/combined collections?
+5. **Is sorted order needed?** If not, `HashSet` may be simpler; if yes, `TreeSet` is an option, provided the comparator is finalized.
+6. **Is the key immutable while inside the Set?** If not, redesign how updates occur.
+7. **Do you need one representative per key or all records?** For one value per key, `Map<K,V>` usually expresses intent more clearly.
 
-### Tự trả lời
+### Self-check answers
 
-- `HashSet` có dùng `compareTo()` của `BigDecimal` để quyết định trùng không? **Không**.
-- `TreeSet` có luôn gọi `equals()` để quyết định trùng không? **Không**; nó dựa vào phép so sánh.
-- `BigDecimal("2.0").compareTo(BigDecimal("2.00")) == 0` có suy ra `equals() == true` không? **Không**.
-- Nếu comparator chỉ xét `sku`, thêm hai bản ghi cùng SKU nhưng khác tên có giữ cả hai không? **Không**; phần tử được thêm sau bị coi là trùng.
-- Nếu thêm khóa phụ `name` thì đã luôn nhất quán với `equals()` chưa? **Chỉ khi** các trường so sánh đủ bao quát hợp đồng `equals` và comparator của từng thành phần nhất quán với equals.
+- Does `HashSet` use `BigDecimal`'s `compareTo()` to decide duplicates? **No**.
+- Does `TreeSet` always call `equals()` to decide duplicates? **No**; it relies on comparison.
+- Does `BigDecimal("2.0").compareTo(BigDecimal("2.00")) == 0` imply `equals() == true`? **No**.
+- If a comparator checks only `sku`, does adding two records with the same SKU and different names keep both? **No**; the second element added is treated as a duplicate.
+- If a secondary key `name` is added, is it always consistent with `equals()`? **Only when** the compared fields sufficiently cover the `equals` contract and each component's comparator is consistent with equals.
 
-**Kết luận kiến thức:** `HashSet` và `TreeSet` khác nhau ở **hợp đồng xác định tính duy nhất**, không chỉ ở thứ tự hay hiệu năng. Với `BigDecimal` hoặc comparator theo một khóa, hãy xác định trước “bằng nhau” là theo biểu diễn, giá trị số học hay khóa nghiệp vụ. Khi chính sách ấy rõ ràng, thao tác `add()`, `contains()`, kích thước và cách bảo toàn dữ liệu sẽ dự đoán được.
+**Knowledge takeaway:** `HashSet` and `TreeSet` differ in **the contract defining uniqueness**, not only in ordering or performance. With `BigDecimal` or a single-key comparator, decide upfront whether "equal" means by representation, by numerical value, or by business key. Once that policy is clear, `add()`, `contains()`, sizes, and data retention become predictable.
 
-## Tài liệu chính thức để tra cứu
+## Official References
 
 - [Java SE 21 — HashSet](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashSet.html)
 - [Java SE 21 — TreeSet](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/TreeSet.html)

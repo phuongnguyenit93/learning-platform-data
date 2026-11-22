@@ -1,125 +1,125 @@
-# Giới hạn phụ thuộc quy ước của hệ điều hành trong dữ liệu locale JDK
+# Limits of OS Convention Dependency in JDK Locale Data
 
-Khi một chương trình Java chạy trên Windows, macOS, Linux, máy chủ cloud hoặc trong container, nhiều người kỳ vọng đổi **ngôn ngữ, vùng và cách hiển thị số/ngày của hệ điều hành** thì mọi lời gọi `NumberFormat`, `DateFormat`, `Locale` và `java.time` sẽ tự thay theo. Kỳ vọng này **chỉ đúng trong những phạm vi nhất định**: hệ điều hành có thể ảnh hưởng tới **locale và múi giờ mặc định ban đầu** mà JVM nhận lúc khởi động, nhưng **bộ quy tắc định dạng được dùng thực tế còn phụ thuộc dữ liệu locale và provider của JDK**.
+When a Java program runs on Windows, macOS, Linux, cloud servers, or inside containers, many people expect that changing the **operating system's language, region, and number/date display settings** will automatically cause every call to `NumberFormat`, `DateFormat`, `Locale`, and `java.time` to follow suit. That expectation **holds only within specific limits**: the operating system can influence the **initial default locale and timezone** the JVM receives at startup, yet **the formatting rules actually used also depend on the JDK's locale data and providers**.
 
-Bài Knowledge thuộc nhóm **Dữ liệu locale JDK**, tập trung vào giới hạn của việc trông đợi Java phản chiếu quy ước hệ điều hành. Cần phân biệt:
+This Knowledge lesson belongs to the **JDK Locale Data** group and focuses on the limits of expecting Java to mirror OS conventions. Distinguish:
 
-1. **Cấu hình host**: ngôn ngữ, vùng, múi giờ, ký hiệu tùy chỉnh và môi trường của tiến trình.
-2. **`Locale` Java**: ngữ cảnh ngôn ngữ/vùng được truyền vào API hoặc chọn làm mặc định.
-3. **Locale data provider**: nguồn dữ liệu như `CLDR`, `HOST`, `SPI` hoặc `COMPAT` trong các phiên bản JDK còn hỗ trợ.
-4. **Các API riêng**: định dạng số, ngày, tiền tệ, thứ tự sắp xếp, ngắt từ, timezone, charset và định dạng máy đọc không có cùng một hợp đồng phụ thuộc OS.
+1. **Host configuration**: language, region, timezone, custom symbols, and process environment.
+2. **Java `Locale`**: the language/region context passed into APIs or chosen as the default.
+3. **Locale data provider**: data sources such as `CLDR`, `HOST`, `SPI`, or `COMPAT` in JDK versions that still support it.
+4. **Individual APIs**: number formatting, date formatting, currency, sorting order, word breaking, timezones, charsets, and machine-readable formats do not share the same OS-dependency contract.
 
-Ví dụ ưu tiên **Java 17+**, có lệnh `javac`/`java` và đầu ra xác định ở những đoạn độc lập với OS. Với thông tin vốn phụ thuộc môi trường, bài **không bịa ra một stdout cố định** mà chỉ rõ giá trị nào cần quan sát tại nơi chạy.
+Examples favor **Java 17+**, providing `javac`/`java` commands and deterministic outputs for OS-independent parts. For inherently environment-dependent values, this lesson **does not fabricate fixed stdout**, instead specifying which values to inspect where the code runs.
 
-## 1. Hai điều khác nhau: default locale và quy tắc định dạng
+## 1. Two different things: default locale vs. formatting rules
 
 ### Default locale
 
-`Locale.getDefault()` cho biết locale mặc định đang được JVM dùng; `Locale.getDefault(Locale.Category.FORMAT)` và `Locale.getDefault(Locale.Category.DISPLAY)` cho hai nhóm chức năng có thể tách nhau. Giá trị ban đầu thường được xác lập khi runtime khởi động bằng cách đọc thông tin môi trường/host và những tùy chọn khởi chạy Java.
+`Locale.getDefault()` reports the default locale currently used by the JVM; `Locale.getDefault(Locale.Category.FORMAT)` and `Locale.getDefault(Locale.Category.DISPLAY)` cover two functional categories that can be set independently. Initial values are normally established at runtime startup by reading host/environment information and Java launch flags.
 
-Ví dụ: một JVM có thể bắt đầu với locale định dạng `en-US`, một JVM khác với `de-DE`. Nếu code gọi `NumberFormat.getNumberInstance()` không truyền `Locale`, locale định dạng mặc định sẽ ảnh hưởng đầu ra. Nhưng **không được suy luận** rằng mọi quy ước tùy chỉnh trong Control Panel, System Settings hay locale của một shell đều được chuyển nguyên vẹn vào formatter.
+For example, one JVM might start with a format locale of `en-US` and another with `de-DE`. If code calls `NumberFormat.getNumberInstance()` without passing a `Locale`, the default format locale affects output. However, **you must not infer** that every custom setting in Control Panel, System Settings, or a shell's locale is transferred verbatim into formatters.
 
-### Quy tắc locale từ JDK/provider
+### Locale rules from the JDK/provider
 
-Ngay khi đã chọn `Locale.US`, formatter còn cần biết **dấu thập phân, dấu grouping, mẫu ngày, tên tháng, cách viết currency** và nhiều dữ liệu khác. Trên Oracle JDK 17 và JDK 21, **CLDR** (Common Locale Data Repository) là nguồn locale data mặc định ưu tiên; bộ dữ liệu này được **đóng gói với JDK**, không đơn giản là một lệnh hỏi toàn bộ cấu hình format của OS ở mỗi lần gọi.
+Even after `Locale.US` is selected, a formatter still needs **decimal separators, grouping separators, date patterns, month names, currency styles**, and more. On Oracle JDK 17 and JDK 21, **CLDR** (Common Locale Data Repository) is the default prioritized locale data source; this dataset is **bundled with the JDK**, rather than querying all OS formatting settings on every call.
 
-Nói cách khác:
+In other words:
 
 ```text
-Quyết định của ứng dụng            Nguồn có thể ảnh hưởng
-----------------------------------------------------------
-Locale mặc định của JVM            Host lúc khởi động và tùy chọn JVM
-Locale được truyền vào API         Code, request hợp lệ, cấu hình người dùng
-Dấu số và mẫu ngày                 Locale data provider đang được chọn
-Tên tháng/đơn vị tiền              CLDR / HOST / SPI / legacy provider
-Múi giờ mặc định                   Host/JVM/user.timezone và cấu hình thời gian
-Bản dịch thông báo ứng dụng         ResourceBundle và tài nguyên ứng dụng
-Charset dùng ghi file              Hợp đồng I/O, không suy ra từ Locale
+Application decision               Potentially influencing source
+----------------------------------------------------------------------
+JVM default locale                 Host at startup and JVM options
+Locale passed to API               Code, validated request, user prefs
+Number marks and date patterns     Selected locale data provider
+Month names / currency units       CLDR / HOST / SPI / legacy provider
+Default timezone                   Host/JVM/user.timezone and time config
+App message translations           ResourceBundle and app resources
+Charset used to write files        I/O contract, not inferred from Locale
 ```
 
-Một ứng dụng có thể dùng `Locale.GERMANY` trên máy đặt vùng Hoa Kỳ; đồng thời nó có thể vẫn xuất ngày API ở ISO `2026-10-28` không phụ thuộc bất kỳ locale nào. Đó là **thiết kế đúng**, không phải dấu hiệu localization thất bại.
+An application can use `Locale.GERMANY` on a machine configured for the United States while simultaneously outputting API dates in ISO `2026-10-28` independent of any locale. That is **proper design**, not a localization failure.
 
-## 2. Trình tự suy nghĩ đúng khi kết quả khác giữa hai máy
+## 2. The right diagnostic sequence when results differ across two machines
 
-Khi cùng mã Java in hai dạng ngày hoặc số khác nhau, hãy hỏi theo thứ tự:
+When identical Java code prints two different date or number formats, ask in order:
 
-1. API có **truyền `Locale` tường minh** không, hay nhận default JVM?
-2. Runtime là Java phiên bản nào, vendor nào, module locale data nào có sẵn?
-3. `java.locale.providers` có được thiết lập lúc **khởi động** không? Provider nào có thể được ưu tiên?
-4. Các máy có dùng **cùng phiên bản dữ liệu CLDR** hoặc cùng provider không?
-5. Dùng `Locale.Category.FORMAT` hay `DISPLAY`? Có khác nhau không?
-6. Có lấy múi giờ mặc định `ZoneId.systemDefault()`/`TimeZone.getDefault()` không?
-7. Vấn đề có phải ở charset/console/UI/CSV/HTTP client, thay vì thực sự ở locale data?
-8. Phần mềm muốn **định dạng cho người xem** hay **biểu diễn máy đọc cần ổn định**?
+1. Does the API **pass `Locale` explicitly**, or fall back to the JVM default?
+2. Which Java version, vendor, and locale data modules are available in the runtime?
+3. Was `java.locale.providers` set at **startup**? Which provider may take precedence?
+4. Do the machines use **the same CLDR data version** or the same provider?
+5. Is `Locale.Category.FORMAT` or `DISPLAY` being used? Do they differ?
+6. Is the code reading the default timezone `ZoneId.systemDefault()`/`TimeZone.getDefault()`?
+7. Is the issue actually in charset/console/UI/CSV/HTTP clients rather than locale data?
+8. Does the software want **human-readable formatting** or **stable machine-readable representation**?
 
-Nếu không xác định được tầng nào quyết định kết quả, không nên thử sửa bằng cách đổi locale JVM toàn cục, thay dấu phân cách bằng `replace` hoặc hard-code mẫu ngày cho cả hệ thống.
+Until you identify which layer determines the output, avoid trying to fix it by changing the global JVM locale, rewriting separators with `replace`, or hardcoding a date pattern system-wide.
 
-## 3. Các locale data provider trong JDK 17 và JDK 21
+## 3. Locale data providers in JDK 17 and JDK 21
 
-JDK dùng cơ chế **locale-sensitive service providers**. Với Oracle JDK 17/21, các nguồn thường gặp:
+The JDK uses the **locale-sensitive service providers** mechanism. For Oracle JDK 17/21, common sources include:
 
-| Provider | Nguồn dữ liệu/chức năng | Giới hạn |
+| Provider | Data source / capability | Limitations |
 | --- | --- | --- |
-| `CLDR` | Dữ liệu Common Locale Data Repository do Unicode Consortium duy trì, được tích hợp vào JDK | Phiên bản CLDR đi cùng phiên bản JDK; không tự cập nhật mỗi khi OS đổi cấu hình |
-| `HOST` | Một phần quy ước tùy chỉnh của **hệ điều hành** cho locale mặc định | Phụ thuộc nền tảng/JDK; không bảo đảm mọi locale hoặc mọi dịch vụ đều được hỗ trợ |
-| `SPI` | Các provider do ứng dụng/thư viện triển khai qua service provider interfaces | Chỉ có tác dụng với dịch vụ/locale được provider hỗ trợ và khi cơ chế lựa chọn cho phép |
-| `COMPAT` | Dữ liệu locale tương thích các JDK trước đây, đặc biệt hành vi cũ trước JDK 9 | Nguồn legacy của JDK 17/21; đã bị loại khỏi các bản JDK hiện đại hơn |
-| `JRE` | Tên alias legacy của `COMPAT` trong các JDK cũ | Không nên dùng làm kế hoạch tương thích lâu dài |
+| `CLDR` | Common Locale Data Repository data maintained by Unicode Consortium, bundled in the JDK | CLDR version tracks the JDK release; does not auto-update whenever OS settings change |
+| `HOST` | A subset of **operating system** customizations for default locales | Platform/JDK dependent; no guarantee every locale or every service is supported |
+| `SPI` | Providers implemented by apps/libraries via service provider interfaces | Applies only to services/locales supported by the provider when lookup order allows |
+| `COMPAT` | Locale data compatible with prior JDKs, especially pre-JDK 9 behavior | Legacy source in JDK 17/21; removed from more modern JDK releases |
+| `JRE` | Legacy alias for `COMPAT` in older JDKs | Should not be used as a long-term compatibility plan |
 
-**Quan trọng theo phiên bản:**
+**Important version notes:**
 
-- Oracle **JDK 17** dựa vào CLDR 39 cho provider CLDR; Oracle **JDK 21** dùng CLDR 43.
-- Trong JDK 17/21, thứ tự mặc định về cơ bản ưu tiên `CLDR`, với `COMPAT` phục vụ khả năng tương thích còn được hỗ trợ; nếu muốn ưu tiên `HOST`, phải cấu hình provider tường minh.
-- `COMPAT`/`JRE` về sau bị loại bỏ khỏi các JDK mới. **Không hướng dẫn ứng dụng Java nhiều phiên bản phụ thuộc vĩnh viễn vào `COMPAT`**.
-- `HOST` có thể không tồn tại ở một nền tảng hoặc bản phân phối JDK cụ thể. Trong **Oracle JDK 17/21**, tài liệu công bố provider này có trên **Windows và macOS**; đừng suy rộng kết luận đó sang mọi Linux, container hay mọi vendor.
-- Riêng dữ liệu `BreakIterator` và `Collator` không được đồng nhất hoàn toàn với dữ liệu CLDR ở các JDK 17/21: tài liệu Supported Locales nói rõ các dịch vụ này **không lấy bộ dữ liệu tương ứng từ CLDR** theo cách các dịch vụ khác dùng. Không lấy danh sách locale của `NumberFormat` để suy luận chính xác quy tắc tách từ hay collation.
+- Oracle **JDK 17** bases its CLDR provider on CLDR 39; Oracle **JDK 21** uses CLDR 43.
+- In JDK 17/21, the default order essentially prioritizes `CLDR`, with `COMPAT` retained for supported compatibility; to prioritize `HOST`, configure the provider explicitly.
+- `COMPAT`/`JRE` was subsequently removed in newer JDKs. **Never instruct multi-version Java apps to depend permanently on `COMPAT`.**
+- `HOST` may not exist on a given platform or JDK distribution. In **Oracle JDK 17/21**, documentation states this provider is available on **Windows and macOS**; do not generalize that to all Linux distros, containers, or vendors.
+- Specifically, `BreakIterator` and `Collator` data are not fully aligned with CLDR data in JDK 17/21: Supported Locales documentation states these services **do not pull corresponding datasets from CLDR** the way other services do. Never use `NumberFormat`'s locale list to deduce word-breaking or collation rules.
 
-**Hệ quả thực tế:** người dùng chọn một mẫu ngày trong hệ điều hành không đồng nghĩa `DateTimeFormatter.ofLocalizedDate(...)` với `CLDR` sẽ tuân thủ chính xác mẫu đã sửa đó. Provider và dịch vụ phải thực sự hỗ trợ tùy chỉnh ấy.
+**Practical consequence:** a user picking a custom date pattern in their OS does not guarantee `DateTimeFormatter.ofLocalizedDate(...)` under `CLDR` will follow that edited pattern. Both the provider and the service must actually support that customization.
 
-## 4. HOST provider không phải “đọc toàn bộ thiết lập hệ điều hành”
+## 4. The HOST provider is not "read every OS setting"
 
-`HOST` thường là tên dễ gây hiểu lầm nhất. Hãy hiểu đúng phạm vi:
+`HOST` is often the most misunderstood name. Understand its exact scope:
 
-- Nó nhằm phản ánh **một phần các tùy chỉnh của host** phục vụ các locale **mặc định của người dùng**, đặc biệt nhóm `Locale.Category.FORMAT` và/hoặc `DISPLAY`.
-- Trong các JDK hỗ trợ, chức năng thực tế còn tùy **OS và implementation**. Tài liệu JDK 17 nêu chủ yếu là định dạng **ngày, giờ, số, tiền tệ**; không hứa cung cấp mọi biến thể của mọi dịch vụ text.
-- Nó có thể fallback sang provider khác khi không có dữ liệu hoặc dịch vụ thích hợp.
-- Nó không phải giải pháp tự động lấy mọi preference riêng của từng **người dùng web** vào một JVM server chung. Host là môi trường chạy **server**, không phải điện thoại/trình duyệt của từng khách hàng.
-- Nó không chuyển một `Locale` tùy ý thành tập quy tắc tùy chỉnh của một OS không có hỗ trợ tương ứng.
-- Nó không biến encoding text, quy tắc ký số, nội dung `ResourceBundle` hay timezone database thành các dữ liệu luôn đồng bộ với OS.
+- It aims to reflect **a subset of host customizations** for **the user's default locales**, particularly `Locale.Category.FORMAT` and/or `DISPLAY`.
+- On supporting JDKs, actual behavior depends on the **OS and implementation**. JDK 17 documentation mainly covers **date, time, number, and currency** formatting; it does not promise every variant of every text service.
+- It can fall back to another provider when suitable data or service support is absent.
+- It is not a way to automatically bring every preference of individual **web users** into a shared server JVM. The host is the **server** environment, not each customer's phone or browser.
+- It does not turn an arbitrary `Locale` into custom OS rules on an OS lacking corresponding support.
+- It does not force text encodings, digital signing rules, `ResourceBundle` contents, or the timezone database to stay perpetually synced with the OS.
 
-Ví dụ người dùng Windows tùy chỉnh dấu phân nhóm, mẫu ngày hoặc vùng định dạng trong Settings. Với `HOST` được chọn, **một số** API có thể phản ánh những lựa chọn ấy. Nhưng với provider `CLDR`, cùng một `Locale` vẫn có thể theo mẫu CLDR chứ không theo mẫu riêng của người dùng Windows.
+For example, a Windows user may customize grouping symbols, date patterns, or regional formats in Settings. With `HOST` selected, **some** APIs may reflect those choices. Under `CLDR`, however, the same `Locale` can still follow CLDR patterns rather than the Windows user's custom pattern.
 
-**Không có bảo đảm “Windows dùng dấu phẩy → Java nào cũng dùng dấu phẩy”, cũng không có bảo đảm “HOST đặt lên đầu → mọi formatter nhất định từ HOST”.** Câu hỏi đúng là: **provider nào được chọn cho loại dịch vụ này, trên locale này, dưới runtime này?**
+**There is no guarantee that "Windows uses a comma → every Java process uses a comma," nor that "HOST first → every formatter definitely comes from HOST."** The right question is: **which provider was chosen for this service type, on this locale, under this runtime?**
 
-## 5. Cấu hình lựa chọn provider đúng thời điểm
+## 5. Configuring provider selection at the right time
 
-Java cho phép thiết lập thứ tự qua system property **`java.locale.providers`**. Trong môi trường **JDK 17/21** ví dụ:
+Java allows setting priority order via the **`java.locale.providers`** system property. For **JDK 17/21**, examples:
 
 ```bash
 java -Djava.locale.providers=CLDR,COMPAT LocaleProviderDemo
 java -Djava.locale.providers=HOST,CLDR,COMPAT LocaleProviderDemo
 ```
 
-Mỗi lệnh khởi động **một JVM riêng**. `HOST` đứng trước để JVM có thể ưu tiên dữ liệu host khi provider và dịch vụ tương ứng được hỗ trợ. Khi HOST không hỗ trợ yêu cầu, cơ chế tìm kiếm có thể chuyển tới CLDR/COMPAT theo thứ tự; không được suy diễn sự ưu tiên bảo đảm mọi kết quả sẽ khác.
+Each command starts **a separate JVM**. Placing `HOST` first allows the JVM to prioritize host data where the provider and service are supported. When HOST does not support the request, lookup proceeds to CLDR/COMPAT in order; do not assume prioritizing it guarantees every output changes.
 
-`LocaleServiceProvider` đọc và cache cấu hình provider lúc khởi tạo. Vì vậy:
+`LocaleServiceProvider` reads and caches the provider configuration at initialization. Therefore:
 
 ```java
-// KHÔNG dùng cách này để kỳ vọng tái cấu hình provider giữa request:
+// DO NOT use this expecting to reconfigure providers mid-request:
 System.setProperty("java.locale.providers", "HOST,CLDR");
 ```
 
-Thay đổi property sau khi runtime đã dùng dịch vụ locale **không có bảo đảm cập nhật provider đang chạy**. Chọn property trên dòng lệnh `java`/cấu hình JVM **trước** khi dùng locale service, rồi khởi động lại khi cần thay đổi.
+Changing the property after the runtime has used locale services **has no guarantee of updating active providers**. Specify the property on the `java` command line / JVM configuration **before** locale services are used, and restart when changes are needed.
 
-**Lưu ý tương thích:** ví dụ có `COMPAT` nhắm đến **JDK 17/21**. Với JDK mới đã loại `COMPAT`, danh sách provider hợp lệ và cách fallback phải dựa theo tài liệu **đúng version**, chẳng hạn `HOST,CLDR`. Đây là một lý do không copy cấu hình JVM cũ vô hạn qua các bản nâng cấp.
+**Compatibility note:** examples including `COMPAT` target **JDK 17/21**. On newer JDKs where `COMPAT` was removed, valid provider lists and fallbacks must follow **that version's documentation**, such as `HOST,CLDR`. This is one reason not to blindly copy legacy JVM flags across major upgrades.
 
-### Khi nào nên dùng HOST?
+### When should HOST be used?
 
-Dùng `HOST` khi **yêu cầu sản phẩm thực sự là theo các tùy chỉnh hệ điều hành của người đang chạy ứng dụng desktop**, và bạn đã kiểm chứng OS + JDK + locale + từng formatter. Với ứng dụng server đa người dùng, giải pháp ưu tiên thường là **Locale tường minh theo người dùng** và **CLDR/provider kiểm soát**, không lấy cấu hình OS của máy chủ làm đại diện cho người dùng.
+Use `HOST` when **the product genuinely needs to follow OS customizations of the person running a desktop application**, and you have verified the OS + JDK + locale + every formatter. For multi-user server apps, the preferred approach is usually **explicit per-user `Locale`** and **controlled CLDR/providers**, never letting the server's OS configuration stand in for user preferences.
 
-## 6. Chương trình chẩn đoán: default, provider và host
+## 6. Diagnostic program: default, provider, and host
 
-Tạo file **`LocaleProviderDemo.java`**:
+Create **`LocaleProviderDemo.java`**:
 
 ```java
 import java.nio.charset.Charset;
@@ -162,38 +162,38 @@ java -Duser.language=de -Duser.country=DE LocaleProviderDemo
 java -Djava.locale.providers=HOST,CLDR,COMPAT LocaleProviderDemo
 ```
 
-**Không có stdout giống nhau trên mọi máy.** Đây là chương trình **in chẩn đoán runtime**, không phải một bài kiểm tra mà `OS`, `TimeZone ID`, `FORMAT`, `Charset` phải có giá trị cố định.
+**There is no single identical stdout across all machines.** This is a **runtime diagnostic printer**, not a test asserting fixed values for `OS`, `TimeZone ID`, `FORMAT`, or `Charset`.
 
-Các điểm cần quan sát:
+Points to observe:
 
-1. `Default`, `FORMAT`, `DISPLAY` có thể không giống nhau.
-2. JVM có thể đã chọn default từ host khi khởi động; `-Duser.language`/`-Duser.country` cho phép thử một default khác theo cấu hình hỗ trợ.
-3. `Providers: (not set)` **không có nghĩa không dùng CLDR**; nó có nghĩa chưa khai báo property và JVM áp dụng **thứ tự mặc định** của phiên bản đó.
-4. In `java.locale.providers` không cho biết provider **thực sự được chọn cho từng lời gọi**. Để nhận biết ảnh hưởng, thử cùng formatter với các tiến trình khởi động bằng provider order khác nhau.
-5. `Charset` và `ZoneId` được ghi để đối chiếu môi trường; không coi chúng là một phần duy nhất của locale data.
+1. `Default`, `FORMAT`, and `DISPLAY` need not be identical.
+2. The JVM may have picked defaults from the host at startup; `-Duser.language`/`-Duser.country` lets you test another default under supported configurations.
+3. `Providers: (not set)` **does not mean CLDR is unused**; it means the property was unset and the JVM applies **that version's default order**.
+4. Printing `java.locale.providers` does not reveal which provider **was actually selected for each call**. To observe impact, test the same formatter across processes launched with different provider orders.
+5. `Charset` and `ZoneId` are printed for environment comparison; do not treat them as a single unified part of locale data.
 
-Đây là đoạn mã **Java 17** chạy được. Không gọi `Locale.setDefault` hoặc `TimeZone.setDefault` trong chương trình để tránh làm thay đổi trạng thái toàn cục và khiến kết quả chẩn đoán bị sai lệch.
+This is runnable **Java 17** code. Avoid calling `Locale.setDefault` or `TimeZone.setDefault` in the program so global state is not mutated and diagnostic outputs are not skewed.
 
-## 7. Hai nhóm default locale: DISPLAY và FORMAT
+## 7. Two default locale categories: DISPLAY and FORMAT
 
-`Locale.Category.DISPLAY` và `Locale.Category.FORMAT` giúp tách **ngôn ngữ nhãn** khỏi **quy ước hiển thị số/ngày**. Ví dụ một người làm việc ở Việt Nam có thể chọn giao diện tiếng Anh nhưng muốn đọc số theo kiểu Đức; một JVM hoặc ứng dụng có thể biểu diễn hai preference khác nhau.
+`Locale.Category.DISPLAY` and `Locale.Category.FORMAT` separate **label language** from **number/date formatting conventions**. For instance, someone working in Vietnam may choose an English UI while wanting German-style number formatting; a JVM or app can represent these two preferences independently.
 
-| API/trường hợp | Ngữ cảnh nên xem xét |
+| API/case | Context to consider |
 | --- | --- |
-| `Locale.getDefault(Locale.Category.DISPLAY)` | Locale dùng cho tên hiển thị của locale, ngôn ngữ/khu vực theo nhu cầu |
-| `Locale.getDefault(Locale.Category.FORMAT)` | Locale định dạng số, ngày, giờ khi không được truyền tường minh |
-| `NumberFormat.getNumberInstance()` | Có thể dùng default FORMAT locale |
-| `DateFormat.getDateInstance()` | Có thể dùng default FORMAT locale |
-| `Locale.getDisplayName(displayLocale)` | Nên chỉ định locale muốn dùng để hiển thị tên |
-| `ResourceBundle.getBundle(baseName, userLocale)` | Locale tìm bản dịch của ứng dụng, **không phải chọn theo format locale một cách máy móc** |
+| `Locale.getDefault(Locale.Category.DISPLAY)` | Locale for display names of locales and languages/regions as needed |
+| `Locale.getDefault(Locale.Category.FORMAT)` | Locale for formatting numbers, dates, and times when none is passed explicitly |
+| `NumberFormat.getNumberInstance()` | May use the default FORMAT locale |
+| `DateFormat.getDateInstance()` | May use the default FORMAT locale |
+| `Locale.getDisplayName(displayLocale)` | Should specify the locale desired for rendering the name |
+| `ResourceBundle.getBundle(baseName, userLocale)` | Locale for looking up app translations, **not mechanically chosen from format locale** |
 
-Một hạn chế quan trọng: hệ điều hành của người dùng có thể có nhiều danh mục preference, còn **Java không bảo đảm ánh xạ đầy đủ từng tùy chỉnh OS vào từng API**. `DISPLAY` không nhất thiết là locale của tất cả resource translations, và `FORMAT` không nhất thiết khiến mọi mẫu ngày giống hệt ảnh chụp của OS.
+An important limitation: a user's operating system may have many preference categories, while **Java does not guarantee a one-to-one mapping of every OS customization into every API**. `DISPLAY` is not necessarily the locale of all resource translations, and `FORMAT` does not necessarily make every date pattern match OS screenshots verbatim.
 
-### Vì sao server càng không được coi default là ý định người dùng?
+### Why servers especially must never treat default as user intent
 
-Một JVM server có hàng nghìn request đến từ nhiều locale. Default locale chỉ là **cấu hình của tiến trình**. Nó không tự thay theo `Accept-Language` của từng request và không tự biết region người dùng.
+A server JVM handles thousands of requests from many locales. The default locale is strictly a **process-level setting**. It does not adapt automatically to each request's `Accept-Language` nor know each user's region.
 
-Nên lưu locale được người dùng chọn trong profile hoặc xác định từ request theo chính sách của sản phẩm; sau đó truyền locale tường minh:
+Store the user-chosen locale in their profile or resolve it from the request per product policy; then pass the locale explicitly:
 
 ```java
 NumberFormat nf = NumberFormat.getNumberInstance(userLocale);
@@ -202,11 +202,11 @@ DateTimeFormatter df = DateTimeFormatter
         .withLocale(userLocale);
 ```
 
-Đây là **fragment** với biến `userLocale` là `Locale` đã xác thực, imports `java.text.NumberFormat`, `java.time.format.DateTimeFormatter` và `FormatStyle`.
+This is a **fragment** assuming a validated `Locale` variable `userLocale`, with imports `java.text.NumberFormat`, `java.time.format.DateTimeFormatter`, and `FormatStyle`.
 
-Không gọi `Locale.setDefault(...)` trên mỗi request. Đổi default là thay đổi trạng thái dùng chung, dễ gây nhiễu giữa các luồng và request đồng thời.
+Do not call `Locale.setDefault(...)` per request. Changing the default mutates shared state, easily causing cross-talk across concurrent threads and requests.
 
-## 8. Ví dụ runnable: cùng ngày/số, chọn locale tường minh
+## 8. Runnable example: same date/number, explicit locale selection
 
 File **`ExplicitLocaleDemo.java`**:
 
@@ -256,34 +256,34 @@ javac -encoding UTF-8 ExplicitLocaleDemo.java
 java ExplicitLocaleDemo
 ```
 
-**Lưu ý rất quan trọng về stdout của ví dụ:** bốn dòng định dạng đầu được **cố ý để cho chương trình tự hiển thị**, không gắn với một chuỗi bất biến vì chúng có thể phụ thuộc provider/JDK. Hai dòng kiểm tra cuối phải cho biết giá trị dữ liệu Java vẫn giữ nguyên:
+**Crucial note on the example's stdout:** the first four formatted lines are **intentionally left to display dynamically**, without pinning immutable strings because they can depend on provider/JDK. The final two check lines must confirm the underlying Java data remains unchanged:
 
 ```text
 Date unchanged: true
 Amount unchanged: true
 ```
 
-Với Oracle JDK 17 dùng CLDR thông thường, định dạng số en-US và de-DE thường có nhóm/thập phân khác nhau, nhưng **đó không chứng minh mọi biến thể OS sẽ ảnh hưởng đến output**. Khi thay provider order hoặc nâng cấp JDK, hãy quan sát thực tế thay vì ép so toàn bộ chuỗi với một ví dụ lấy từ một máy.
+On Oracle JDK 17 with standard CLDR, en-US and de-DE number formats normally differ in grouping/decimal marks, yet **that does not prove every OS variation will alter the output**. When switching provider orders or upgrading JDKs, observe real behavior instead of forcing full string equality against one machine's output.
 
-**Lỗi dễ mắc:** coi việc truyền `Locale.GERMANY` là lệnh “hãy lấy tất cả custom settings của Windows ở Đức”. Nó yêu cầu **locale Đức**; provider JDK đang chọn mới quyết định dữ liệu được cung cấp.
+**Common pitfall:** treating passing `Locale.GERMANY` as a command to "fetch all of Windows's custom settings for Germany." It requests the **German locale**; the active JDK provider determines what data is supplied.
 
-## 9. CLDR là dữ liệu của JDK, không phải một bản sao sống của OS
+## 9. CLDR is JDK data, not a live copy of the OS
 
-CLDR gồm các quy tắc địa phương hóa dùng chung ở nhiều nền tảng: mẫu ngày, dấu phân cách, tên tháng, kiểu tiền tệ, danh sách tên locale và nhiều mục khác. JDK tích hợp một **phiên bản CLDR cụ thể** thay vì luôn tải bản mới nhất từ OS.
+CLDR holds cross-platform localization rules: date patterns, separators, month names, currency styles, locale name lists, and more. The JDK bundles a **specific CLDR version** instead of always reading the latest from the OS.
 
-Hệ quả:
+Consequences:
 
-- Hai máy có OS khác nhau nhưng **cùng JDK, cùng provider, cùng locale** thường nhận các kết quả tương đồng hơn so với việc để default locale thay đổi; tuy nhiên vẫn cần xem timezone và các provider khác.
-- Hai bản JDK khác nhau, ngay cả trên cùng OS, có thể dùng **CLDR khác phiên bản**, khiến những tên, dấu, mẫu ngày hoặc quy ước định dạng thay đổi.
-- Đổi **regional format** của OS không nhất thiết làm CLDR trong JVM thay đổi.
-- Một **custom JDK runtime image** có thể không chứa tất cả locale data ban đầu, làm khác khả năng hỗ trợ/fallback.
-- Những locale cụ thể và các Unicode locale extensions có thể thay đổi cách định dạng; không đoán từ hai chữ cái ngôn ngữ mà bỏ qua region/script/extensions.
+- Two machines on different OSes running **the same JDK, same provider, and same locale** typically produce more consistent results than letting default locales drift; still verify timezones and other providers.
+- Two different JDK releases, even on the exact same OS, may ship **different CLDR versions**, altering names, symbols, date patterns, or formatting conventions.
+- Changing the OS's **regional format** does not necessarily alter CLDR inside the JVM.
+- A **custom JDK runtime image** might omit some of the original locale data, changing support/fallback behavior.
+- Specific locales and Unicode locale extensions can alter formatting; do not guess from two language letters while ignoring region, script, or extensions.
 
-Trong các tài liệu Oracle, `jdk.localedata` chứa phần lớn dữ liệu locale ngoài `java.base` cho JDK 17/21, trong khi `java.base` cung cấp dữ liệu nền tảng hạn chế. Một ứng dụng đóng gói bằng `jlink` có thể **cố ý chọn một tập locale nhỏ hơn** so với JDK đầy đủ.
+In Oracle documentation, `jdk.localedata` holds most locale data outside `java.base` in JDK 17/21, while `java.base` provides limited baseline data. An app packaged with `jlink` can **intentionally include a smaller set of locales** than a full JDK.
 
-### Module locale data và jlink
+### Locale data module and jlink
 
-Ví dụ một lệnh `jlink` (minh họa, không phải lệnh duy nhất để đóng gói sản phẩm):
+Example `jlink` command (illustrative, not the sole way to package products):
 
 ```bash
 jlink --add-modules java.base,jdk.localedata \
@@ -291,25 +291,25 @@ jlink --add-modules java.base,jdk.localedata \
   --output runtime-locales
 ```
 
-Cú pháp chia dòng trên phù hợp shell hỗ trợ dấu `\` tiếp dòng như Bash. Trên PowerShell cần điều chỉnh cách xuống dòng hoặc viết trên một dòng. Khi phân phối runtime tối giản, hãy kiểm tra JDK/jlink version và tập locale cần giữ cho cả **số, ngày, tên tháng, bản dịch provider**.
+The line-continuation syntax above fits shells supporting `\` continuations such as Bash. On PowerShell, adjust line continuations or write it on one line. When shipping minimal runtimes, check the JDK/jlink version and the locale set required for **numbers, dates, month names, and provider data**.
 
-**Không suy luận “Locale.forLanguageTag trả object nên runtime có đủ dữ liệu locale đó”.** Tạo một object `Locale` không phải phép kiểm tra tính đầy đủ của dữ liệu định dạng. Nếu service cụ thể thiếu một locale, nó có thể dùng fallback hoặc biểu diễn khác; hãy kiểm tra trên runtime đã đóng gói.
+**Never deduce "Locale.forLanguageTag returns an object so the runtime has full data for that locale."** Constructing a `Locale` object does not test formatting data completeness. If a specific service lacks a locale, it may fall back or render differently; verify on the packaged runtime.
 
-## 10. Hạn chế phụ thuộc hệ điều hành với timezone
+## 10. Limiting OS dependency for timezones
 
-`Locale` **không phải** `ZoneId`. Một locale như `en-US` không cho biết người dùng đang ở New York, Los Angeles hay Honolulu. Hệ điều hành có thể ảnh hưởng **múi giờ mặc định ban đầu** của JVM; JDK cũng có **dữ liệu quy tắc timezone (tzdb)** để tính offset lịch sử và DST.
+`Locale` is **not** `ZoneId`. A locale like `en-US` does not tell you whether the user is in New York, Los Angeles, or Honolulu. The OS can influence the JVM's **initial default timezone**; the JDK also carries **timezone rule data (tzdb)** to compute historical offsets and DST.
 
-| Khái niệm | Ví dụ | Công dụng |
+| Concept | Example | Purpose |
 | --- | --- | --- |
-| Locale | `vi-VN` | Ngôn ngữ/region để định dạng |
-| Offset | `+07:00` | Chênh lệch so với UTC tại một thời điểm |
-| Zone ID | `Asia/Ho_Chi_Minh` | Quy tắc offset theo thời gian cho một khu vực |
-| Instant | `2026-10-28T03:30:00Z` | Thời điểm tuyệt đối |
-| LocalDate | `2026-10-28` | Ngày trên lịch, không có timezone |
+| Locale | `vi-VN` | Language/region for formatting |
+| Offset | `+07:00` | Difference from UTC at a given instant |
+| Zone ID | `Asia/Ho_Chi_Minh` | Time-varying offset rules for a region |
+| Instant | `2026-10-28T03:30:00Z` | Absolute point in time |
+| LocalDate | `2026-10-28` | Calendar date without timezone |
 
-Nếu code gọi `ZoneId.systemDefault()` trong hai container khác nhau, local datetime kết quả có thể khác. Đây không hẳn là khác dữ liệu locale. Với tính toán thời điểm, **nên giữ `Instant`**, khi cần hiển thị theo region người dùng mới chọn một `ZoneId` tường minh.
+If code calls `ZoneId.systemDefault()` in two different containers, resulting local datetimes can differ. This is not necessarily a locale data difference. For point-in-time calculations, **store `Instant`**, and select an explicit `ZoneId` only when rendering for a user's region.
 
-### Demo Java 17+ không phụ thuộc zone mặc định
+### Java 17+ demo independent of default zone
 
 **`ExplicitZoneDemo.java`**:
 
@@ -342,7 +342,7 @@ javac -encoding UTF-8 ExplicitZoneDemo.java
 java ExplicitZoneDemo
 ```
 
-Stdout trên JDK có tzdb hỗ trợ vùng đã chọn:
+Stdout on a JDK whose tzdb supports the chosen zones:
 
 ```text
 Instant: 2026-10-28T03:30:00Z
@@ -351,15 +351,15 @@ Vietnam: 2026-10-28T10:30
 ISO: 2026-10-28T03:30:00Z
 ```
 
-Dữ liệu nguồn `Instant` không đổi khi hiển thị tại các vùng khác nhau. **Chọn `Locale` không tự chọn múi giờ**. Đừng dùng `LocalDateTime.now()` mà không chỉ định clock/zone cho bài test cần kết quả xác định.
+The source `Instant` remains unchanged when displayed across different zones. **Choosing a `Locale` does not automatically pick a timezone.** Avoid `LocalDateTime.now()` without an explicit clock/zone in tests requiring deterministic outcomes.
 
-Với lịch sử timezone và vùng có DST, **phiên bản tzdb** cũng có thể ảnh hưởng phép quy đổi, nên test nghiệp vụ nhiều năm cần kiểm soát phiên bản runtime và vùng.
+For historical timezones and DST-observing regions, **tzdb versions** can also affect conversions, so multi-year business tests need controlled runtime versions and zones.
 
-## 11. Calendar, tuần đầu năm và thứ tự ngày: provider có ý nghĩa
+## 11. Calendars, first week of the year, and date ordering: providers matter
 
-Dữ liệu locale không chỉ quyết định dấu phân cách; nó còn ảnh hưởng **định nghĩa tuần**: thứ nào bắt đầu tuần, tuần đầu của năm phải có bao nhiêu ngày, nhãn AM/PM, format lịch và đôi khi chronology.
+Locale data governs more than separators; it also affects **week definitions**: which day starts the week, how many days the first week of the year must have, AM/PM labels, calendar formats, and sometimes chronology.
 
-Trong Java Time, `WeekFields.of(locale)` cho các quy tắc tuần theo locale; `WeekFields.ISO` đại diện cho **quy tắc ISO**: thứ Hai là đầu tuần và tuần đầu năm có ít nhất bốn ngày.
+In Java Time, `WeekFields.of(locale)` returns week rules per locale; `WeekFields.ISO` represents the **ISO rule**: Monday starts the week, and the first week has at least four days.
 
 **File `WeekRulesDemo.java`**:
 
@@ -391,37 +391,37 @@ javac -encoding UTF-8 WeekRulesDemo.java
 java WeekRulesDemo
 ```
 
-Hai dòng có kết quả cố định:
+Two lines have fixed outputs:
 
 ```text
 ISO starts Monday: true
 ISO minimal days: 4
 ```
 
-Các dòng `US first day` và `DE first day` **phụ thuộc dữ liệu locale/provider**; thông thường khác nhau, nhưng không phải lệnh đọc trực tiếp “ngày đầu tuần hiện được người dùng OS chọn” trong mọi cấu hình JDK.
+The `US first day` and `DE first day` lines **depend on locale/provider data**; they usually differ, yet this does not mean it directly reads "the OS user's currently selected start-of-week" under every JDK configuration.
 
-Nếu nghiệp vụ định nghĩa tuần theo **ISO**, dùng `WeekFields.ISO`, không dùng `WeekFields.of(Locale.getDefault())` rồi kỳ vọng cả thế giới dùng cùng một năm-tuần. Đặc biệt tránh dùng pattern `YYYY` (week-based-year) để biểu diễn năm lịch `yyyy`/`uuuu`; tuần-năm có thể khác năm lịch quanh ngày cuối năm.
+If business rules define weeks by **ISO**, use `WeekFields.ISO`—never `WeekFields.of(Locale.getDefault())` expecting the whole world to share one week-year. Especially avoid pattern `YYYY` (week-based-year) to represent calendar year `yyyy`/`uuuu`; week-year can diverge from calendar year around year boundaries.
 
-## 12. Collator và BreakIterator: không thể khái quát cùng một nguồn
+## 12. Collator and BreakIterator: cannot generalize from a single source
 
-Các API văn bản:
+Text APIs:
 
-- `Collator.getInstance(locale)` để sắp xếp/so sánh chuỗi theo quy ước ngôn ngữ.
-- `BreakIterator.getWordInstance(locale)`, `getCharacterInstance(locale)`, v.v. để xác định ranh giới từ/ký tự/câu.
+- `Collator.getInstance(locale)` for language-sensitive string sorting/comparison.
+- `BreakIterator.getWordInstance(locale)`, `getCharacterInstance(locale)`, etc. for word/character/sentence boundaries.
 
-Chúng **không chỉ là cài đặt Windows/Linux**. Thuật toán, dữ liệu Unicode và provider từng loại có thể khác nhau. Trong Oracle JDK 17/21, ghi chú supported locales nói dữ liệu **BreakIterator và Collator không được adopt từ CLDR** theo cùng cách với nhiều locale service khác.
+They **are not simply Windows/Linux settings**. Algorithms, Unicode data, and per-type providers can differ. In Oracle JDK 17/21, the supported locales notes state that **BreakIterator and Collator data are not adopted from CLDR** in the same way as many other locale services.
 
-Vì vậy, việc thấy `NumberFormat` đổi dấu thập phân sau khi thay provider **không đủ chứng minh** `BreakIterator` sẽ đổi cách tách từ tiếng Việt hoặc `Collator` sẽ sao chép quy tắc sort của OS.
+Consequently, seeing `NumberFormat` change its decimal separator after switching providers **is insufficient proof** that `BreakIterator` will change Vietnamese word segmentation or `Collator` will copy OS sorting rules.
 
-**Không dùng locale data làm hợp đồng khóa duy nhất của database:** nếu username/order ID cần uniqueness ổn định, `Collator` phụ thuộc locale/provider/version không phải lựa chọn mặc định cho identity. Nên dùng khóa canonical theo chính sách dữ liệu và kiểm tra collation thực tế của DB.
+**Never use locale data as a database unique-key contract:** if usernames or order IDs require stable uniqueness, `Collator`—which depends on locale/provider/version—is not a suitable default for identity. Use canonical keys per data policy and inspect the database's actual collation.
 
-## 13. Tiền tệ: locale hiển thị không xác định đơn vị giao dịch
+## 13. Currency: display locale does not define transaction unit
 
-`NumberFormat.getCurrencyInstance(Locale.US)` lấy một formatter tiền tệ phục vụ ngữ cảnh Hoa Kỳ. Không thể chỉ từ đó suy luận **giao dịch thực sự bằng USD** nếu sản phẩm có thể thanh toán bằng EUR hoặc VND. Locale là ngữ cảnh **hiển thị**, còn tiền tệ là thuộc tính **nghiệp vụ**.
+`NumberFormat.getCurrencyInstance(Locale.US)` obtains a currency formatter for a US context. From that alone you cannot infer **the transaction is actually in USD** if the product supports paying in EUR or VND. Locale is the **display** context, while currency is a **business** attribute.
 
-`Currency.getInstance(locale)` có thể xác định một currency liên hệ với territory ở nhiều locale, nhưng không phải mọi locale đều có country hoặc chỉ có đúng một kết quả thích hợp cho mọi tình huống. Các quy tắc hệ điều hành, CLDR và dữ liệu tiền tệ theo thời gian có thể thay đổi.
+`Currency.getInstance(locale)` can resolve a territory-associated currency for many locales, yet not every locale has a country or a single appropriate result for all scenarios. OS rules, CLDR, and currency datasets can evolve over time.
 
-**Chương trình `CurrencyLocaleDemo.java`**:
+**Program `CurrencyLocaleDemo.java`**:
 
 ```java
 import java.util.Currency;
@@ -447,38 +447,38 @@ javac -encoding UTF-8 CurrencyLocaleDemo.java
 java CurrencyLocaleDemo
 ```
 
-Stdout cho hai dòng đầu:
+Stdout for the first two lines:
 
 ```text
 Display locale: de-DE
 Transaction currency: USD
 ```
 
-Dòng `Same currency as locale?` phản ánh quy ước currency tương ứng với locale Đức của bộ dữ liệu JDK; trong môi trường thông dụng là `false`, nhưng bài không dựa vào nó để xác định tiền tệ giao dịch. Code cố tình giữ `actual = USD` do **nghiệp vụ chọn**, thay vì suy từ locale.
+The `Same currency as locale?` line reflects the German locale's currency convention in the JDK dataset; in common environments it is `false`, yet this lesson does not rely on it to determine transaction currency. The code intentionally keeps `actual = USD` as a **business choice**, rather than inferring it from the locale.
 
-Khi thiết kế API, lưu mã tiền tệ chuẩn (ví dụ `USD`) cùng số tiền có kiểu `BigDecimal`; sử dụng formatter theo `Locale` của người xem và mã tiền thực tế.
+When designing APIs, store standard currency codes (e.g., `USD`) alongside `BigDecimal` amounts; apply formatters using the viewer's `Locale` and the actual currency code.
 
-## 14. Default charset và dòng mới là ảnh hưởng OS khác, không phải locale data
+## 14. Default charset and line endings are separate OS influences, not locale data
 
-Một nguyên nhân khác tạo output khác trên các máy là **charset** hoặc **line separator**:
+Other causes of differing output across machines are **charset** or **line separators**:
 
-- Trong **JDK 17**, default charset của một số API cũ có thể phụ thuộc hệ điều hành, locale môi trường và cấu hình JVM.
-- Từ **JDK 18** (JEP 400), nhiều API Java SE dùng **UTF-8 default**, nhưng không phải mọi API legacy đều thay hợp đồng encoding.
-- `StandardCharsets.UTF_8` luôn có sẵn, nên dùng tường minh khi file/API yêu cầu UTF-8.
-- `System.lineSeparator()` có thể là `"\n"` hoặc `"\r\n"` tùy môi trường. Một file máy đọc có yêu cầu LF phải ghi `"\n"` rõ.
-- `Files.readString(path)`/`Files.writeString(path,text)` đã dùng **UTF-8 theo tài liệu Java 17**. Không hiểu mọi overload thiếu charset đều dùng default theo OS.
+- In **JDK 17**, the default charset of certain older APIs can depend on OS, environment locale, and JVM flags.
+- Starting in **JDK 18** (JEP 400), many Java SE APIs use **UTF-8 by default**, though not every legacy API changed its encoding contract.
+- `StandardCharsets.UTF_8` is always available; pass it explicitly when files/APIs require UTF-8.
+- `System.lineSeparator()` may be `"\n"` or `"\r\n"` depending on the environment. Machine-readable files requiring LF must write `"\n"` explicitly.
+- `Files.readString(path)`/`Files.writeString(path,text)` already use **UTF-8 per Java 17 docs**. Do not assume every charset-less overload uses the OS default.
 
-**Không nhầm ba quyết định:**
+**Do not confuse three separate decisions:**
 
 ```text
-Locale       -> cách hiển thị số/ngày/ngôn ngữ
-Charset      -> cách mã hóa ký tự thành byte
-Line ending  -> các ký tự phân tách dòng trong file
+Locale       -> how numbers/dates/languages are displayed
+Charset      -> how characters are encoded into bytes
+Line ending  -> characters separating lines in a file
 ```
 
-Hệ điều hành có thể ảnh hưởng cả ba theo những đường khác nhau, nhưng việc truyền `Locale.GERMANY` không tự chuyển UTF-8 thành Latin-1, và bật `HOST` cũng không làm mọi file CSV tự có CRLF.
+The OS can influence all three via different paths, yet passing `Locale.GERMANY` does not convert UTF-8 into Latin-1, and enabling `HOST` does not give every CSV file CRLF line endings.
 
-### Ví dụ Java 17+ tách ba yếu tố
+### Java 17+ example separating the three factors
 
 **`IndependentSettingsDemo.java`**:
 
@@ -521,77 +521,77 @@ Wire date: 2026-10-28
 LF constant length: 1
 ```
 
-Bài này không hỏi dòng xuống dòng của hệ điều hành là gì; nó chọn **LF literal** làm hợp đồng. Cùng cách, ISO `LocalDate.toString()` không lấy mẫu ngày đã sửa trong OS.
+This program does not ask what the OS line separator is; it chooses an **LF literal** as its contract. Similarly, ISO `LocalDate.toString()` does not pick up customized OS date patterns.
 
-## 15. Ứng dụng server: ranh giới của host locale
+## 15. Server applications: boundaries of host locale
 
-Trên server hoặc trong container, **host là máy chủ/container runtime**. Nó có thể chạy ở UTC, locale `C`/`en-US` hoặc một vùng không liên hệ gì với người dùng. Nếu lấy `Locale.getDefault()` để trả UI cho mọi request, người ở Việt Nam và Đức có thể cùng nhìn thấy định dạng máy chủ, bất kể họ chọn gì.
+On a server or inside a container, **the host is the server/container runtime**. It may run in UTC, with locale `C`/`en-US`, or in a region unrelated to end users. If `Locale.getDefault()` is used to render UI for every request, users in Vietnam and Germany will both see server formatting regardless of their preferences.
 
-Luồng được khuyến nghị:
+Recommended flow:
 
 ```text
-Người dùng / request
+User / request
     |
-    +-- uiLocale được xác thực (vi-VN, en-US, ...)
-    +-- userZoneId được xác thực (Asia/Ho_Chi_Minh, ...)
+    +-- validated uiLocale (vi-VN, en-US, ...)
+    +-- validated userZoneId (Asia/Ho_Chi_Minh, ...)
     |
     v
-Dữ liệu có kiểu: BigDecimal, LocalDate, Instant
+Typed data: BigDecimal, LocalDate, Instant
     |
-    +-- UI: format theo uiLocale + userZoneId
+    +-- UI: format using uiLocale + userZoneId
     |
-    +-- API/file/DB: serialize theo schema ổn định
+    +-- API/file/DB: serialize with a stable schema
                        (decimal, ISO 8601, UTC/offset, UTF-8)
 ```
 
-Cần phân biệt `Accept-Language` là **gợi ý** mà trình duyệt gửi, không phải bảo đảm ý định cuối cùng của user hoặc locale hợp lệ/sẵn tài nguyên. Nhiều ứng dụng nên ưu tiên preference lưu trong tài khoản và có fallback rõ ràng. Với locale không được hỗ trợ, trả một locale có tài nguyên ứng dụng đã chọn, không ném các chuỗi mặc định của OS một cách ngẫu nhiên.
+Recognize that `Accept-Language` is a **hint** sent by the browser, not a guarantee of final user intent or a valid/resource-backed locale. Many apps should prefer account-stored preferences with clear fallbacks. For unsupported locales, fall back to a chosen app-supported locale rather than leaking random OS default strings.
 
-`Locale.setDefault(...)`/`TimeZone.setDefault(...)` thay đổi cấu hình **JVM-wide**; không dùng để mô phỏng “mỗi HTTP request có môi trường riêng”. Ngoài lỗi concurrency, những thay đổi này có thể ảnh hưởng logic của thư viện không liên quan.
+`Locale.setDefault(...)`/`TimeZone.setDefault(...)` alters **JVM-wide** state; never use it to simulate "a per-HTTP-request environment." Beyond concurrency bugs, such changes can impact unrelated library logic.
 
-## 16. Java API không cam kết đồng nhất với hệ điều hành mọi mặt
+## 16. Java APIs do not promise OS parity in every respect
 
-Bảng giới hạn thiết kế:
+Design boundary table:
 
-| Mong đợi | Điều Java/JDK có thể thực sự bảo đảm | Cách làm phù hợp |
+| Expectation | What Java/JDK can actually guarantee | Appropriate practice |
 | --- | --- | --- |
-| Đổi region của OS thì mọi formatter Java đổi ngay | Không; default ban đầu, provider và runtime có vai trò khác nhau | Truyền Locale rõ, cấu hình provider ở startup nếu cần |
-| Tùy chỉnh dấu thập phân Windows luôn được CLDR dùng | Không; CLDR là dữ liệu JDK | HOST khi hỗ trợ và đã kiểm thử, hoặc cấu hình `DecimalFormatSymbols` cho yêu cầu đặc biệt |
-| Locale `vi-VN` thì timezone là Asia/Ho_Chi_Minh | Không; Locale không mang timezone | Truyền `ZoneId` |
-| Có `Locale` thì chắc có mọi bản dịch UI | Không; ứng dụng quản lý resource bundle riêng | ResourceBundle/translation fallback riêng |
-| Java 17 và Java 21 luôn in mọi số/ngày giống nhau | Không; dữ liệu CLDR/version có thể đổi | Kiểm thử/cố định runtime hoặc contract format |
-| HOST được chọn thì mọi OS đều có provider | Không; còn tùy implementation/platform | Kiểm tra nơi chạy, có fallback |
-| Java Locale phản chiếu sở thích của từng user web | Không; default JVM là cho tiến trình | Lưu/đọc preference theo user |
-| Locale quyết định encoding file | Không | `StandardCharsets.UTF_8` theo contract |
-| Locale quyết định thứ tự sắp xếp DB | Không | DB collation/identifier policy rõ |
-| Múi giờ OS quyết định instant đã lưu | Instant là thời điểm tuyệt đối, zone dùng hiển thị | Lưu Instant, chuyển zone khi cần |
-| Số/ngày gửi API nên theo dấu của OS | Sai với hợp đồng máy đọc | JSON typed number / ISO date / UTC tường minh |
-| Nâng cấp JDK không ảnh hưởng localization | Không chắc; CLDR/tzdb/provider thay đổi | Regression test theo version/JDK |
+| Changing OS region immediately updates all Java formatters | No; startup defaults, providers, and runtime each play distinct roles | Pass Locale explicitly, configure providers at startup if needed |
+| Windows custom decimal separator is always used by CLDR | No; CLDR is JDK data | Use HOST where supported and tested, or configure `DecimalFormatSymbols` for special needs |
+| Locale `vi-VN` implies timezone Asia/Ho_Chi_Minh | No; Locale carries no timezone | Pass `ZoneId` |
+| Having a `Locale` guarantees all UI translations exist | No; the app manages resource bundles separately | Dedicated ResourceBundle/translation fallback |
+| Java 17 and Java 21 always print identical numbers/dates | No; CLDR/data versions can change | Test/pin runtimes or format contracts |
+| Selecting HOST means every OS has the provider | No; depends on implementation/platform | Verify target environments and provide fallbacks |
+| Java Locale reflects each web user's preferences | No; JVM default is process-wide | Store/read per-user preferences |
+| Locale governs file encoding | No | `StandardCharsets.UTF_8` per contract |
+| Locale governs DB sort order | No | Explicit DB collation/identifier policy |
+| OS timezone determines stored instants | Instant is an absolute point in time; zone is for display | Store Instant, convert zone when needed |
+| Numbers/dates sent over APIs should use OS punctuation | Wrong for machine-readable contracts | JSON typed numbers / ISO dates / explicit UTC |
+| Upgrading JDK does not affect localization | Not guaranteed; CLDR/tzdb/providers change | Regression test per JDK version |
 
-Đừng coi hiện tượng khác dấu/chữ tên tháng sau khi đổi hệ điều hành là bằng chứng duy nhất “Java phụ thuộc Windows”. Có thể đó là **default locale**, provider được chọn, data version hoặc timezone, không phải OS luôn quyết định mọi thứ.
+Do not treat differing punctuation or month names after switching OSes as sole proof that "Java depends on Windows." It may stem from **default locale**, selected providers, data versions, or timezones rather than the OS dictating everything.
 
-## 17. Kiểm thử portable: so giá trị có kiểu, không khóa toàn bộ UI vào snapshot một máy
+## 17. Portable testing: compare typed values, do not lock all UI to one machine's snapshot
 
-Một test localization tốt tách:
+A good localization test separates:
 
-**Nhóm A — bất biến dữ liệu:**
+**Group A — data invariants:**
 
-- `LocalDate.of(2026,10,28)` là ngày 28/10/2026 dù định dạng UI khác.
-- `BigDecimal("1234.50")` giữ giá trị decimal và scale theo Java BigDecimal.
-- `Instant.parse("2026-10-28T03:30:00Z")` có cùng instant trên mọi zone.
-- UTF-8 round-trip bảo toàn text hợp lệ khi hai đầu cùng dùng UTF-8.
-- Thẻ `Locale.forLanguageTag("vi-VN").toLanguageTag()` là BCP 47 độc lập OS.
+- `LocalDate.of(2026,10,28)` is October 28, 2026 regardless of UI format.
+- `BigDecimal("1234.50")` preserves decimal value and scale per Java BigDecimal semantics.
+- `Instant.parse("2026-10-28T03:30:00Z")` represents the same instant across all zones.
+- UTF-8 round-trips preserve valid text when both ends use UTF-8.
+- `Locale.forLanguageTag("vi-VN").toLanguageTag()` is OS-independent BCP 47.
 
-**Nhóm B — đầu ra localized:**
+**Group B — localized outputs:**
 
-- Dấu decimal/grouping của `NumberFormat` cho `Locale.US`/`Locale.GERMANY`.
-- Mẫu `DateTimeFormatter.ofLocalizedDate` theo locale/provider.
-- Thứ đầu tuần qua `WeekFields.of(locale)`.
-- Tên tháng, weekday, tên timezone hoặc currency symbol.
-- Các ví dụ đặc thù `HOST` trên Windows/macOS.
+- Decimal/grouping marks from `NumberFormat` for `Locale.US`/`Locale.GERMANY`.
+- `DateTimeFormatter.ofLocalizedDate` patterns per locale/provider.
+- First day of week via `WeekFields.of(locale)`.
+- Month names, weekdays, timezone names, or currency symbols.
+- `HOST`-specific behavior on Windows/macOS.
 
-Nhóm B nên được kiểm tra trên **JDK/provider đã chỉ rõ**, không tuyên bố mọi phiên bản, mọi platform đều phải có chuỗi tương tự. Các chuỗi localized là dữ liệu giao diện có thể được cải tiến theo CLDR.
+Group B should be tested on **explicitly specified JDKs/providers**, without asserting every version and platform must emit identical strings. Localized strings are UI presentation data that can improve with CLDR.
 
-### Lệnh kiểm thử khác nhau theo startup
+### Startup test commands across configurations
 
 ```bash
 javac -encoding UTF-8 ExplicitLocaleDemo.java LocaleProviderDemo.java
@@ -601,61 +601,61 @@ java -Djava.locale.providers=CLDR,COMPAT ExplicitLocaleDemo
 java -Djava.locale.providers=HOST,CLDR,COMPAT ExplicitLocaleDemo
 ```
 
-Với Windows PowerShell, một lệnh `java` trên mỗi dòng cũng dùng được; không cần viết script Linux riêng. Nếu đang trên JDK mới không còn COMPAT, đổi provider order thành `CLDR` hoặc `HOST,CLDR` theo tài liệu bản đó.
+In Windows PowerShell, one `java` command per line works directly without needing a separate Linux script. On newer JDKs without COMPAT, change the provider order to `CLDR` or `HOST,CLDR` per that release's documentation.
 
-Ghi lại trong bug report: **JDK vendor/feature/update**, OS/platform, locale FORMAT/DISPLAY, provider property, timezone, API format đang dùng, locale truyền vào và kết quả được quan sát. Không log thông tin nhạy cảm của người dùng chỉ để debug localization.
+In bug reports, record: **JDK vendor/feature/update**, OS/platform, FORMAT/DISPLAY locales, provider property, timezone, formatting API used, passed locale, and observed output. Never log sensitive user information solely for localization debugging.
 
-## 18. Những bẫy khác: fallback, SPI, cache và khả năng hỗ trợ locale
+## 18. Other traps: fallback, SPI, caching, and locale coverage
 
-### Fallback không bảo đảm độ bao phủ đầy đủ
+### Fallback does not guarantee full coverage
 
-Một locale có thể được chấp nhận về cú pháp, nhưng một formatter cụ thể không có dữ liệu riêng cho đúng locale đó. Java/provider có thể dùng danh sách locale ứng viên/fallback. Vì thế, **không kết luận hỗ trợ đầy đủ** chỉ vì `Locale.forLanguageTag("xx-YY")` tạo object thành công.
+A locale may be syntactically valid while a specific formatter lacks dedicated data for that exact locale. Java/providers may consult candidate/fallback locale lists. Therefore, **do not conclude full support exists** just because `Locale.forLanguageTag("xx-YY")` constructs an object.
 
-### SPI không tự bật khi ứng dụng không cấu hình
+### SPI does not activate without app configuration
 
-`SPI` là nguồn provider do các thư viện triển khai. Việc thư viện có mặt trên classpath/module path không tự đảm bảo mọi locale-sensitive API sẽ lựa chọn nó; phải đáp ứng cơ chế service lookup và **provider order** được cấu hình phù hợp.
+`SPI` is a library-implemented provider source. Having a library on the classpath/module path does not automatically ensure every locale-sensitive API selects it; service lookup mechanisms and **provider order** must be properly configured.
 
-### Caching và lifecycle
+### Caching and lifecycle
 
-Một số locale data/provider hoặc formatter cache thông tin. Vì thế, việc thay `System.setProperty("java.locale.providers", ...)` hoặc thay OS regional settings **sau khi JVM chạy** không là hợp đồng bắt buộc mọi formatter sẵn có refresh ngay. Tạo một JVM mới và test lại là cách chắc chắn hơn khi so sánh các chế độ provider.
+Some locale data/providers or formatters cache state. Hence, changing `System.setProperty("java.locale.providers", ...)` or changing OS regional settings **after the JVM starts** is not contracted to refresh existing formatters immediately. Launching a new JVM and retesting is more reliable when comparing provider modes.
 
-### Sự tương thích của runtime image
+### Runtime image compatibility
 
-Một image `jlink` giới hạn modules/locales, hoặc một môi trường triển khai không mang `jdk.localedata` như full JDK, có thể có tập locale khả dụng khác. Kiểm tra runtime **thực tế được đưa lên production**, không chỉ JDK developer cài ở máy cá nhân.
+A `jlink` image restricting modules/locales, or a deployment environment lacking `jdk.localedata` compared to a full JDK, can expose a different set of available locales. Test on the **actual production runtime**, not just a developer's local JDK installation.
 
-### Locale extensions không phải bản sao cấu hình OS
+### Locale extensions are not copies of OS configuration
 
-Thẻ Unicode locale có thể mang các extension như numbering system hoặc region override. Những extension được hỗ trợ theo Java/JDK và provider tương ứng, không đồng nghĩa sao chép tất cả preference của host. Nếu sản phẩm cần chữ số Latin hoặc lịch cụ thể, hãy thiết kế locale/chronology/decimal symbols theo API, kiểm thử support thực tế.
+Unicode locale tags can carry extensions such as numbering systems or region overrides. Extensions are supported per Java/JDK and provider capabilities, not by mirroring all host preferences. If the product requires Latin digits or a specific calendar, design locale/chronology/decimal symbols via API and verify real support.
 
-## 19. Bài tập ứng dụng
+## 19. Applied exercises
 
-**Bài 1 — Tách hai nguồn ảnh hưởng.** Trên hai máy khác OS, chạy `LocaleProviderDemo`. So sánh `Locale.getDefault(FORMAT)` với `Locale.getDefault(DISPLAY)`, `ZoneId.systemDefault` và `Charset.defaultCharset`. Sau đó chạy `ExplicitLocaleDemo` với `Locale.US`/`Locale.GERMANY`. Chỉ ra khác biệt nào đến từ default và khác biệt nào còn có thể đến từ provider.
+**Exercise 1 — Separate two sources of influence.** On two machines with different OSes, run `LocaleProviderDemo`. Compare `Locale.getDefault(FORMAT)` with `Locale.getDefault(DISPLAY)`, `ZoneId.systemDefault`, and `Charset.defaultCharset`. Then run `ExplicitLocaleDemo` with `Locale.US`/`Locale.GERMANY`. Identify which differences stem from defaults and which may still come from providers.
 
-**Bài 2 — Thử HOST nếu hệ thống hỗ trợ.** Chạy `ExplicitLocaleDemo` trong hai JVM riêng: `-Djava.locale.providers=CLDR,COMPAT` và `-Djava.locale.providers=HOST,CLDR,COMPAT` trên JDK 17/21. Thử tùy chỉnh định dạng số/ngày của OS nếu môi trường hỗ trợ; ghi nhận **dịch vụ nào đổi** và dịch vụ nào không. Không kết luận HOST không hoạt động chỉ vì một locale không được HOST hỗ trợ.
+**Exercise 2 — Test HOST if the system supports it.** Run `ExplicitLocaleDemo` in two separate JVMs: `-Djava.locale.providers=CLDR,COMPAT` and `-Djava.locale.providers=HOST,CLDR,COMPAT` on JDK 17/21. Customize OS number/date formats if supported; record **which services change** and which do not. Do not conclude HOST is broken merely because one locale lacks HOST support.
 
-**Bài 3 — Múi giờ là tầng riêng.** Chạy `ExplicitZoneDemo` rồi thử đổi system timezone. Vì ví dụ có `ZoneId` tường minh, kết quả cùng một instant phải vẫn nhất quán theo dữ liệu tzdb. Sau đó viết biến thể cố ý dùng `ZoneId.systemDefault()` để quan sát phụ thuộc host.
+**Exercise 3 — Timezones are a separate layer.** Run `ExplicitZoneDemo` and then change the system timezone. Because the example sets `ZoneId` explicitly, outputs for the same instant must remain consistent per tzdb data. Next, write a variant intentionally using `ZoneId.systemDefault()` to observe host dependency.
 
-**Bài 4 — Tuần theo locale và theo ISO.** So sánh `WeekFields.ISO`, `WeekFields.of(Locale.US)` và `WeekFields.of(Locale.GERMANY)`. Vì sao ứng dụng tính số tuần ISO của chứng từ nên dùng `WeekFields.ISO` thay vì locale mặc định của server?
+**Exercise 4 — Locale weeks vs. ISO weeks.** Compare `WeekFields.ISO`, `WeekFields.of(Locale.US)`, and `WeekFields.of(Locale.GERMANY)`. Why should an application computing ISO week numbers for documents use `WeekFields.ISO` instead of the server's default locale?
 
-**Bài 5 — Container tối giản.** Thiết kế test cho runtime `jlink` có/không có `jdk.localedata`, kết quả tên tháng/định dạng số của locale `vi-VN`, `de-DE`. Chỉ ra vì sao cùng một `Locale` object không đảm bảo mọi provider/data đều tồn tại.
+**Exercise 5 — Minimal container.** Design a test for a `jlink` runtime with and without `jdk.localedata`, inspecting month names and number formatting for `vi-VN` and `de-DE`. Show why having the same `Locale` object does not guarantee all providers/data are present.
 
-**Bài 6 — API máy đọc và giao diện bản địa hóa.** Với `amount=1234.50` và `date=2026-10-28`, trả một payload JSON theo quy tắc máy đọc, đồng thời hiển thị nhãn UI cho locale/zone người dùng. Giải thích vì sao không lưu chuỗi `"1.234,50"` thay cho `BigDecimal` và không parse ngày từ snapshot của OS.
+**Exercise 6 — Machine-readable APIs and localized UI.** Given `amount=1234.50` and `date=2026-10-28`, return a machine-readable JSON payload while displaying UI labels for the user's locale/zone. Explain why `"1.234,50"` must not be stored instead of `BigDecimal` and why dates should not be parsed from OS snapshots.
 
-## 20. Tài liệu tham khảo chính thức
+## 20. Official references
 
-- [Oracle — JDK 17 Supported Locales](https://www.oracle.com/java/technologies/javase/jdk17-suported-locales.html): CLDR 39, HOST trên Windows/macOS, các provider của JDK 17, dữ liệu được đóng gói.
-- [Oracle — JDK 21 Supported Locales](https://www.oracle.com/java/technologies/javase/jdk21-supported-locales.html): CLDR 43, cấu hình `java.locale.providers` và giới hạn locale data.
-- [Java SE 17 — LocaleServiceProvider](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/LocaleServiceProvider.html): thứ tự tìm kiếm provider, fallback và property phải đặt khi khởi động.
-- [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): default locale, `DISPLAY`/`FORMAT`, language tag và categories.
-- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): factory locale-aware và grouping/decimal symbols.
-- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): `withLocale`, `ofLocalizedDate`, định dạng ISO.
-- [Java SE 17 — WeekFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/WeekFields.html): ISO và week fields theo locale.
-- [JEP 252 — Use CLDR Locale Data by Default](https://openjdk.org/jeps/252): lý do chuyển sang dữ liệu CLDR.
-- [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400): default charset Java 18+, không phải locale formatting.
-- [JDK 26 Supported Locales](https://www.oracle.com/java/technologies/javase/jdk26-supported-locales.html): ví dụ minh họa COMPAT/JRE không còn là lựa chọn cho các JDK hiện đại.
+- [Oracle — JDK 17 Supported Locales](https://www.oracle.com/java/technologies/javase/jdk17-suported-locales.html): CLDR 39, HOST on Windows/macOS, JDK 17 providers, packaged data.
+- [Oracle — JDK 21 Supported Locales](https://www.oracle.com/java/technologies/javase/jdk21-supported-locales.html): CLDR 43, `java.locale.providers` configuration, and locale data limits.
+- [Java SE 17 — LocaleServiceProvider](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/LocaleServiceProvider.html): provider lookup order, fallback, and startup property requirement.
+- [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): default locale, `DISPLAY`/`FORMAT`, language tags, and categories.
+- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): locale-aware factories and grouping/decimal symbols.
+- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): `withLocale`, `ofLocalizedDate`, ISO formats.
+- [Java SE 17 — WeekFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/WeekFields.html): ISO and locale-specific week fields.
+- [JEP 252 — Use CLDR Locale Data by Default](https://openjdk.org/jeps/252): rationale for switching to CLDR data.
+- [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400): Java 18+ default charset, distinct from locale formatting.
+- [JDK 26 Supported Locales](https://www.oracle.com/java/technologies/javase/jdk26-supported-locales.html): illustration that COMPAT/JRE is no longer an option on modern JDKs.
 
-## 21. Ghi nhớ
+## 21. Takeaways
 
-**Hệ điều hành có thể giúp JVM chọn locale và timezone mặc định ban đầu, nhưng không quyết định toàn bộ dữ liệu locale JDK.** Trên JDK 17/21, CLDR thường là nguồn mặc định ưu tiên; HOST chỉ phản ánh những tùy chỉnh OS trong phạm vi platform, locale và dịch vụ được hỗ trợ. `java.locale.providers` được chọn ở **thời điểm khởi động**, không phải đổi một property giữa các request.
+**The operating system can help the JVM choose initial default locale and timezone values, yet it does not determine all JDK locale data.** On JDK 17/21, CLDR is normally the default prioritized source; HOST reflects OS customizations only within supported platforms, locales, and services. `java.locale.providers` is selected at **startup time**, not by toggling a property between requests.
 
-Với code đáng tin cậy: dùng **`Locale` tường minh cho giao diện từng người dùng**, **`ZoneId` tường minh khi quy đổi thời điểm**, **`StandardCharsets.UTF_8` cho byte/text theo hợp đồng** và **định dạng ISO/giá trị có kiểu cho API, file, database**. Đừng trông chờ `Locale.getDefault()` của một server thay mặt sở thích của người dùng, đừng coi `HOST` tương đương “mọi cài đặt OS”, và đừng khóa chính sách định danh/kiểm toán vào snapshot format của một JDK không cố định.
+For reliable code: use **explicit `Locale` for each user's UI**, **explicit `ZoneId` when converting instants**, **`StandardCharsets.UTF_8` for bytes/text per contract**, and **ISO formats/typed values for APIs, files, and databases**. Never rely on a server's `Locale.getDefault()` to represent user preferences, never equate `HOST` with "every OS setting," and never anchor identity or auditing policies to a variable JDK formatting snapshot.

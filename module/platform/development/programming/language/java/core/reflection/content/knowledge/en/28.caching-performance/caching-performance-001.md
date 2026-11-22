@@ -1,19 +1,19 @@
-# Chi phí tra cứu metadata khác chi phí invoke trong Java Reflection
+# Metadata Lookup Cost Differs from Invoke Cost in Java Reflection
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Khi ứng dụng dùng reflection, có ít nhất hai công việc rất khác nhau:
+When an application uses reflection, there are at least two very different tasks:
 
-1. **Tìm và diễn giải metadata**: xác định một `Class`, tìm `Method`/`Field`/`Constructor` hoặc đọc chữ ký generic, annotation, modifier.
-2. **Thực thi phương thức**: đã có `Method` rồi, gọi `method.invoke(receiver, arguments...)` để chạy logic trên một đối tượng hoặc gọi phương thức static.
+1. **Finding and interpreting metadata**: identifying a `Class`, looking up a `Method`/`Field`/`Constructor`, or reading generic signatures, annotations, and modifiers.
+2. **Executing the method**: once a `Method` is obtained, calling `method.invoke(receiver, arguments...)` to run logic on an object or invoke a static method.
 
-Hai công việc có tính chất chi phí khác nhau. Một đoạn code chậm do **tìm lại method trên mỗi request** không có nghĩa bản thân `Method.invoke` phải chịu toàn bộ chi phí đó. Ngược lại, cache `Method` chỉ loại bỏ việc tra cứu lặp; nó **không biến lời gọi reflection thành lời gọi Java trực tiếp**.
+These two tasks have different cost characteristics. Code that is slow because it **looks up a method again on every request** does not mean `Method.invoke` itself bears all of that cost. Conversely, caching a `Method` only eliminates repeated lookups; it **does not turn a reflective call into a direct Java call**.
 
-Sau bài này, bạn sẽ phân tách được các bước khi đo hiệu năng, hiểu lúc nào cache metadata giúp ích, phân biệt chi phí khởi tạo với chi phí lặp lại và thiết kế benchmark đủ đáng tin.
+After this lesson, you will be able to separate the steps when measuring performance, understand when metadata caching helps, distinguish initialization cost from per-call cost, and design reasonably reliable benchmarks.
 
-## 1. Hai công đoạn và phạm vi công việc
+## 1. Two Stages and Scope of Work
 
-Ví dụ có một class:
+Consider an example class:
 
 ~~~java
 public class Calculator {
@@ -23,80 +23,80 @@ public class Calculator {
 }
 ~~~
 
-Đây là **đoạn minh họa khai báo class**, không phải chương trình độc lập chứa `main`.
+This is an **illustrative class declaration snippet**, not a standalone program containing `main`.
 
-Cùng một phương thức có thể được tìm rồi gọi như sau:
+The same method can be looked up and then invoked as follows:
 
 ~~~java
 Method method = Calculator.class.getMethod(
-        "add", int.class, int.class);    // Bước A: tìm metadata
+        "add", int.class, int.class);    // Step A: look up metadata
 Object result = method.invoke(
-        new Calculator(), 2, 5);        // Bước B: thực thi
+        new Calculator(), 2, 5);        // Step B: execute
 ~~~
 
-Đây cũng là **đoạn trích**, cần `import java.lang.reflect.Method` và khai báo/ xử lý checked exceptions. Giá trị `result` là `Integer` tương ứng số `7`, vì giá trị primitive trả qua `Method.invoke` được boxing.
+This is also a **snippet**; it requires `import java.lang.reflect.Method` and declaring/handling checked exceptions. The value of `result` is an `Integer` representing `7`, because primitive values returned through `Method.invoke` are boxed.
 
-| Công đoạn | Ví dụ API | Loại công việc | Kết quả |
+| Stage | API Examples | Type of Work | Result |
 | --- | --- | --- | --- |
-| Lấy handle class | `Calculator.class`, `obj.getClass()` | Có/nhận diện đối tượng `Class` của kiểu | `Class<?>` |
-| Tìm thành viên | `getMethod`, `getDeclaredMethod`, `getDeclaredFields` | Tra cứu tên/chữ ký/phạm vi khai báo, có thể tạo wrapper và mảng kết quả | `Method`, `Field`, `Constructor`, mảng |
-| Đọc metadata chuyên sâu | `getGenericReturnType`, `getAnnotations` | Có thể phải phân tích `Signature`/annotation và phân giải kiểu | `Type`, annotation, metadata |
-| Chuẩn bị sử dụng thành viên | `canAccess`, `trySetAccessible`, tạo `MethodHandle` | Kiểm tra/thiết lập cách truy cập, ràng buộc vào handle | Khả năng truy cập hoặc handle |
-| Thực thi | `Method.invoke(target, args)` | Kiểm tra receiver/đối số/quyền phù hợp, chuyển đổi, dispatch và chạy thân method | Kết quả `Object` hoặc ngoại lệ |
+| Obtain class handle | `Calculator.class`, `obj.getClass()` | Obtain/identify the `Class` object of a type | `Class<?>` |
+| Look up member | `getMethod`, `getDeclaredMethod`, `getDeclaredFields` | Look up name/signature/declaration scope, may allocate wrappers and result arrays | `Method`, `Field`, `Constructor`, arrays |
+| Read deep metadata | `getGenericReturnType`, `getAnnotations` | May parse `Signature`/annotations and resolve types | `Type`, annotations, metadata |
+| Prepare member for use | `canAccess`, `trySetAccessible`, create `MethodHandle` | Check/configure accessibility, bind into a handle | Accessibility status or handle |
+| Execute | `Method.invoke(target, args)` | Validate receiver/arguments/access permissions, convert, dispatch, and run the method body | `Object` result or exception |
 
-**Không đánh đồng** việc lấy `Class` từ `Calculator.class` với việc phải tìm lại `Method` bằng tên. `Class.forName(...)` còn liên quan tải/khởi tạo class tùy cách gọi nên chi phí cold-start của nó cũng không đại diện cho lookup thông thường.
+**Do not equate** obtaining a `Class` from `Calculator.class` with looking up a `Method` by name repeatedly. `Class.forName(...)` can also involve class loading/initialization depending on how it is called, so its cold-start cost is not representative of normal lookup either.
 
-### 1.1. Tra cứu metadata tốn gì?
+### 1.1. What Does Metadata Lookup Cost?
 
-Với `clazz.getMethod("add", int.class, int.class)`, runtime phải tìm thành viên `public` phù hợp tên và danh sách tham số, có xét các thành viên được thừa hưởng theo quy tắc API. `getDeclaredMethod` chỉ tra phương thức **khai báo trực tiếp** trên class đang xét và có thể tìm cả non-public member. Đổi từ phương thức này sang phương thức kia chỉ để chạy nhanh hơn có thể làm **sai tập kết quả**, nên chọn API trước theo ngữ nghĩa.
+With `clazz.getMethod("add", int.class, int.class)`, the runtime must find a `public` member matching the name and parameter list, taking inherited members into account according to the API rules. `getDeclaredMethod` only searches methods **declared directly** on the target class and can find non-public members as well. Switching from one method to the other solely for speed can produce the **wrong set of results**, so choose the API based on semantics first.
 
-Các yếu tố ảnh hưởng đến chi phí lookup:
+Factors affecting lookup cost:
 
-- Số lượng và hình thái thành viên, overload và cây kế thừa/interface cần xử lý.
-- Việc dùng `getMethods()` / `getDeclaredMethods()` để liệt kê mảng toàn bộ rồi lọc, so với tra một phương thức có tên và parameter types rõ ràng.
-- Allocation cho wrapper `Method` và các mảng metadata; JVM/JDK có thể cache nội bộ nhưng **không có hợp đồng hiệu năng cố định** để dựa vào.
-- Phân tích annotation và generic metadata có thể phát sinh thêm công việc riêng, gồm phân giải type; không nên gộp chi phí này vào một chỉ số tên chung là “reflection lookup”.
-- Lookup thực hiện một lần lúc ứng dụng khởi động khác lookup lặp hàng nghìn lần trong vòng xử lý request.
+- The number and shape of members, overloads, and the inheritance/interface hierarchy to traverse.
+- Calling `getMethods()` / `getDeclaredMethods()` to enumerate an array of all members and then filtering, versus looking up a single method with an explicit name and parameter types.
+- Allocation for `Method` wrappers and metadata arrays; the JVM/JDK may cache internally, but there is **no fixed performance contract** to rely on.
+- Parsing annotations and generic metadata can incur separate additional work, including type resolution; this cost should not be lumped into a single generic metric named “reflection lookup”.
+- A lookup performed once at application startup differs from lookups repeated thousands of times inside a request-processing loop.
 
-Khi có metadata rồi, các lệnh như `method.getName()` và `method.getReturnType()` đọc dữ liệu từ `Method`; chúng không đồng nghĩa với việc phải gọi lại `Class.getMethod(...)`. Tuy vậy, một số API metadata có thể cấp phát đối tượng/mảng hoặc phân giải thông tin bổ sung; không khẳng định mọi getter đều miễn phí.
+Once you have the metadata, calls such as `method.getName()` and `method.getReturnType()` read data from the `Method`; they are not equivalent to calling `Class.getMethod(...)` again. However, some metadata APIs may allocate objects/arrays or resolve additional information; do not assume every getter is free.
 
-### 1.2. Một lần `Method.invoke` tốn gì?
+### 1.2. What Does a Single `Method.invoke` Cost?
 
-Khi đã có `Method`, `invoke` **không tự chạy lại câu lệnh `getMethod` mà ứng dụng đã dùng**. Nó phải thực hiện ngữ nghĩa của lời gọi reflection, trong đó có:
+Once a `Method` is already available, `invoke` **does not re-run the `getMethod` call that the application used**. It must perform the semantics of a reflective invocation, including:
 
-- Xác nhận receiver hợp lệ cho instance method và kiểm tra điều kiện truy cập theo quy tắc reflection/JPMS (cách tối ưu phụ thuộc JDK và trạng thái member).
-- Kiểm tra số lượng, kiểu đối số, boxing/unboxing hoặc widening primitive hợp lệ; varargs không tự tiện được trải phẳng từ mảng bất kỳ.
-- Đi tới phương thức thực cần gọi, gồm **dynamic dispatch** với instance method override; static method dùng phương thức được chỉ định.
-- Thực thi **thân phương thức đích**. Công việc SQL, I/O, mạng hoặc xử lý dữ liệu trong thân method có thể áp đảo overhead của reflection.
-- Boxing giá trị trả về primitive hoặc trả `null` cho `void`; lỗi phát sinh từ thân method được bọc trong `InvocationTargetException`.
+- Verifying a valid receiver for an instance method and checking access conditions under reflection/JPMS rules (how this is optimized depends on the JDK and member state).
+- Checking argument count and types, and performing valid boxing/unboxing or primitive widening; varargs are not automatically flattened from an arbitrary array.
+- Resolving the actual method to call, including **dynamic dispatch** for overridden instance methods; static methods use the specified method.
+- Executing the **target method body**. SQL, I/O, networking, or data processing inside the method body can completely dominate reflection overhead.
+- Boxing a primitive return value or returning `null` for `void`; exceptions thrown by the method body are wrapped in `InvocationTargetException`.
 
-Chi phí invoke thay đổi theo method, kiểu tham số, JIT warmup, khả năng tối ưu và phiên bản JVM. Không có quy luật như “invoke luôn chậm hơn lookup” hoặc “reflection luôn chậm X lần so với direct call” dùng được cho mọi Java/JVM.
+Invocation cost varies with the method, parameter types, JIT warmup, optimization eligibility, and JVM version. There is no universal rule like “invoke is always slower than lookup” or “reflection is always X times slower than a direct call” that holds across all Java/JVM setups.
 
-## 2. Mô hình chi phí: tìm lại mỗi lần hay cache Method?
+## 2. Cost Model: Look Up Every Time vs. Cache Method?
 
-Gọi:
+Let:
 
-- `L`: chi phí **một lần** tìm `Method` theo tên/chữ ký.
-- `I`: chi phí **một lời gọi reflection**, gồm overhead invoke và công việc của target.
-- `n`: số lần cần gọi cùng một phương thức.
+- `L`: cost of **one** `Method` lookup by name/signature.
+- `I`: cost of **one reflective invocation**, including invoke overhead and the target's work.
+- `n`: number of times the same method needs to be called.
 
-Một mô hình đơn giản, chưa tính tối ưu JVM/caching/allocation và thời gian tạo cache:
+A simplified model, excluding JVM optimizations/caching/allocation and cache creation time:
 
-| Cách viết | Tổng chi phí gần đúng |
+| Approach | Approximate Total Cost |
 | --- | --- |
-| Mỗi lần tìm rồi gọi | `n × (L + I)` |
-| Tìm một lần rồi tái dùng | `L + n × I` |
-| Tiết kiệm phần lookup (mô hình) | `(n - 1) × L` |
+| Look up then invoke every time | `n × (L + I)` |
+| Look up once then reuse | `L + n × I` |
+| Lookup savings (model) | `(n - 1) × L` |
 
-Ví dụ: với 10.000 request đều gọi cùng một method, bản **lookup mỗi request** có 10.000 lần tìm; bản cache có một lần tìm và 10.000 lần invoke. Hai bản vẫn thực thi 10.000 lần phương thức nghiệp vụ.
+For example: with 10,000 requests all calling the same method, the **lookup-per-request** version performs 10,000 lookups; the cached version performs one lookup and 10,000 invocations. Both versions still execute the business method 10,000 times.
 
-Đây là mô hình để thấy rõ nguồn chi phí, **không phải** khẳng định mỗi `L` hoặc `I` là một hằng số có thể đo độc lập hoàn toàn trên JVM thực. Nếu method chỉ dùng một lần, cache có thể không có ý nghĩa; nếu target làm I/O kéo dài, phần tiết kiệm lookup có thể quá nhỏ so với thời gian end-to-end.
+This is a model to clarify where costs come from, **not** a claim that `L` or `I` is a constant that can be measured completely independently on a real JVM. If a method is only used once, caching may make no sense; if the target performs lengthy I/O, the lookup savings may be negligible compared to end-to-end latency.
 
-## 3. Ví dụ Java 17+ chạy được: đếm lookup và invoke
+## 3. Runnable Java 17+ Example: Counting Lookups and Invokes
 
-Ví dụ này cố ý **không in nanosecond** vì timing cực ngắn từ một lượt chạy dễ gây kết luận sai. Thay vào đó, mã dùng kết quả xác định để chứng minh cache `Method` giảm **số lần tra cứu metadata**, trong khi số lần invoke không đổi.
+This example intentionally **does not print nanoseconds** because ultra-short timings from a single run easily lead to wrong conclusions. Instead, the code uses deterministic counts to demonstrate that caching `Method` reduces **the number of metadata lookups**, while the number of invocations stays the same.
 
-Lưu tệp **ReflectionCostDemo.java**:
+Save the file as **ReflectionCostDemo.java**:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -112,7 +112,7 @@ public class ReflectionCostDemo {
         Calculator target = new Calculator();
         final int calls = 4;
 
-        // Cách 1: mỗi lời gọi đều lookup lại Method.
+        // Approach 1: look up Method again on every call.
         int repeatedSum = 0;
         int repeatedLookups = 0;
         for (int i = 1; i <= calls; i++) {
@@ -122,7 +122,7 @@ public class ReflectionCostDemo {
             repeatedSum += (Integer) method.invoke(target, i, 10);
         }
 
-        // Cách 2: lookup một lần rồi invoke nhiều lần.
+        // Approach 2: look up once, then invoke multiple times.
         Method cached = Calculator.class.getMethod(
                 "add", int.class, int.class);
         int cachedSum = 0;
@@ -130,7 +130,7 @@ public class ReflectionCostDemo {
             cachedSum += (Integer) cached.invoke(target, i, 10);
         }
 
-        // Đối chứng: gọi Java trực tiếp, không dùng reflection.
+        // Control: direct Java call without reflection.
         int directSum = 0;
         for (int i = 1; i <= calls; i++) {
             directSum += target.add(i, 10);
@@ -148,7 +148,7 @@ public class ReflectionCostDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 ReflectionCostDemo.java
@@ -164,108 +164,108 @@ direct: lookups=0, invokes=0, sum=50
 metadata: name=add, parameters=2, return=int
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Ba đường đi đều thực thi phép cộng với `i` từ 1 đến 4 và `10`, cho tổng `11 + 12 + 13 + 14 = 50`.
-2. Cách thứ nhất gọi `Class.getMethod(...)` **bốn lần**; cách thứ hai chỉ gọi **một lần**. Cả hai đều dùng `Method.invoke(...)` bốn lần.
-3. `cached.getName()`, `getParameterCount()` và `getReturnType()` cho thấy có thể đọc metadata từ `Method` đã lưu mà không thực hiện lại `getMethod(...)`.
-4. Đây là **thử nghiệm về cấu trúc công việc**, không phải microbenchmark về thời gian thực. Chỉ số lookup/invoke và stdout trên đây là cố định; latency giữa máy, JDK và từng lần chạy thì không.
+1. All three paths execute the addition for `i` from 1 to 4 and `10`, yielding the sum `11 + 12 + 13 + 14 = 50`.
+2. The first approach calls `Class.getMethod(...)` **four times**; the second calls it **only once**. Both use `Method.invoke(...)` four times.
+3. `cached.getName()`, `getParameterCount()`, and `getReturnType()` show that metadata can be read from the saved `Method` without running `getMethod(...)` again.
+4. This is a **work-structure experiment**, not a wall-clock microbenchmark. The lookup/invoke counts and stdout above are deterministic; actual latency varies across machines, JDKs, and individual runs.
 
-## 4. Thiết kế cache đúng phạm vi
+## 4. Designing Caches at the Right Scope
 
-### 4.1. Cache ở đâu?
+### 4.1. Where Should You Cache?
 
-- **Một phương thức cố định trong thành phần dùng lâu dài:** resolve `Method` lúc khởi tạo và giữ trong một field; tái dùng trên nhiều request.
-- **Một class có nhiều method:** xây index theo tên + parameter types hoặc annotation một lần khi đăng ký route/serializer/DI bean. Đừng mỗi request quét `getDeclaredMethods()` rồi lọc.
-- **Nhiều class động:** dùng cấu trúc cache có key phân biệt đúng `Class<?>` và signature, xử lý đồng thời nếu dùng nhiều thread; cân nhắc `ClassValue<T>` để liên kết dữ liệu với vòng đời class.
-- **Plugin/hot reload/classloader có thể thay đổi:** tránh `static Map<Class<?>, Method>` mạnh, tồn tại mãi không giới hạn. Key và value giữ tham chiếu đến class/classloader có thể cản việc unload; dùng vòng đời rõ ràng hoặc cơ chế cache phù hợp.
+- **A fixed method in a long-lived component:** resolve the `Method` during initialization and store it in a field; reuse it across requests.
+- **One class with many methods:** build an index by name + parameter types or annotations once when registering routes/serializers/DI beans. Do not scan `getDeclaredMethods()` and filter on every request.
+- **Many dynamic classes:** use a cache structure with keys that properly distinguish `Class<?>` and signature, handling concurrency if multiple threads use it; consider `ClassValue<T>` to tie data to class lifetime.
+- **Plugins/hot reload/changing classloaders:** avoid unbounded strong `static Map<Class<?>, Method>` caches. Keys and values holding references to classes/classloaders can prevent unloading; use explicit lifecycles or an appropriate cache mechanism.
 
-Một lỗi thường gặp là cache `Method` chỉ bằng tên chuỗi `"save"`. Hai class hoặc hai overload có thể có cùng tên nhưng khác tham số và khai báo. Cache key thường cần bao gồm **class identity (và ngữ cảnh class loader), tên phương thức, kiểu tham số, cách lookup**; đừng chỉ dựa vào tên class dưới dạng String.
+A common mistake is caching a `Method` only by the string name `"save"`. Two classes or two overloads can share the same name while differing in parameters and declarations. Cache keys typically need to include **class identity (and classloader context), method name, parameter types, and lookup mode**; do not rely solely on class name as a String.
 
-`Method` có thể được tái dùng giữa các thread cho mục đích invocation thông thường, miễn chính đối tượng target và dữ liệu nghiệp vụ được quản lý thread-safety đúng cách. Cache không làm `target` trở thành thread-safe. Ngoài ra, việc gọi `trySetAccessible()`/`setAccessible(true)` bị giới hạn bởi quyền và module access; cache kết quả tra cứu không tự vượt qua JPMS.
+A `Method` can be reused across threads for normal invocation, provided the target object itself and business data are properly managed for thread safety. Caching does not make `target` thread-safe. In addition, calls to `trySetAccessible()`/`setAccessible(true)` are governed by permissions and module access; caching a lookup result does not bypass JPMS.
 
-### 4.2. Cache loại bỏ lookup nào, và không loại bỏ phần nào?
+### 4.2. Which Lookups Does Caching Eliminate, and What Does It Not?
 
-| Quyết định | Có thể giảm | Không tự giảm |
+| Decision | Can Reduce | Does Not Automatically Reduce |
 | --- | --- | --- |
-| Tái dùng `Method` | Lặp lại `getMethod` / `getDeclaredMethod` | Overhead invoke, thân method |
-| Cache kết quả quét annotation/generic hợp lệ | Phân tích/lọc metadata lặp đi lặp lại | Công việc dùng kết quả đó ở mỗi request |
-| Chuẩn bị `MethodHandle` một lần | Lặp lại bước lookup/tạo handle | Chi phí thân method; mức lợi từ JIT phải đo |
-| Đổi reflection sang gọi Java trực tiếp | Có thể loại bỏ nhiều lớp overhead động | Không thay đổi I/O/CPU nghiệp vụ của method |
-| Cache cả **kết quả nghiệp vụ** | Có thể tránh gọi method nếu kết quả được phép tái sử dụng | Tính đúng đắn về dữ liệu mới, invalidation và đồng thời |
+| Reuse `Method` | Repeated `getMethod` / `getDeclaredMethod` | Invoke overhead, method body |
+| Cache valid annotation/generic scan results | Repeated metadata parsing/filtering | Work that uses those results on each request |
+| Prepare `MethodHandle` once | Repeated lookup/handle creation step | Method body cost; JIT gains must be measured |
+| Replace reflection with direct Java calls | Can eliminate multiple layers of dynamic overhead | Does not change I/O or business CPU work in the method |
+| Cache **business results** as well | Can avoid calling the method if results may be reused | Freshness correctness, invalidation, and concurrency |
 
-Không nhầm **cache metadata** với **cache kết quả nghiệp vụ**. Cache `Method` không trả lại giá trị cũ của lần invoke, còn cache kết quả method phải có quy tắc key/TTL/invalidation riêng.
+Do not confuse **metadata caching** with **business result caching**. Caching a `Method` does not return an old value from a previous invocation, whereas caching method results requires its own key/TTL/invalidation rules.
 
-### 4.3. Khi nào cần MethodHandle hoặc VarHandle?
+### 4.3. When Do You Need `MethodHandle` or `VarHandle`?
 
-`java.lang.invoke.MethodHandle` đại diện một đường gọi được chuẩn bị qua `MethodHandles.Lookup` và có thể dùng `invokeExact`/`invoke` theo các quy tắc kiểu riêng. Với đường gọi rất nóng và handle ổn định, JIT có thể tối ưu tốt, nhưng lookup/setup handle cũng có chi phí và không có bảo đảm mọi benchmark đều nhanh hơn reflection.
+`java.lang.invoke.MethodHandle` represents a call path prepared through `MethodHandles.Lookup` and can be used with `invokeExact`/`invoke` under specific typing rules. For very hot call paths with a stable handle, the JIT can optimize well, but handle lookup/setup also has a cost and there is no guarantee every benchmark will be faster than reflection.
 
-- Với method hot path, so sánh **cached `Method.invoke`** và **cached `MethodHandle`**, thay vì so handle đã chuẩn bị với `getMethod + invoke` trong mỗi vòng rồi quy chênh lệch hoàn toàn cho invoke.
-- `VarHandle` là cơ chế truy cập biến/field có ngữ nghĩa memory-order rõ ràng, khác với phương thức; dùng đúng API theo nhiệm vụ.
-- Đừng bỏ qua quyền truy cập, module openness, chữ ký kiểu chính xác và chi phí adaptation của method handle.
+- For hot-path methods, compare **cached `Method.invoke`** against **cached `MethodHandle`**, rather than comparing a pre-built handle against `getMethod + invoke` inside every iteration and attributing the entire difference to invoke.
+- `VarHandle` is a mechanism for accessing variables/fields with explicit memory-order semantics, distinct from methods; use the right API for the job.
+- Do not ignore access permissions, module openness, exact type signatures, and method handle adaptation costs.
 
-## 5. Đo hiệu năng đúng: tách lookup, invoke và tổng đường đi
+## 5. Measuring Performance Properly: Separating Lookup, Invoke, and Total Path
 
-`System.nanoTime()` là đồng hồ đo khoảng thời gian, nhưng đọc vài lần trong một hàm `main` **không đủ** để kết luận chi phí đơn lẻ của reflection: JIT chưa warm up, khởi tạo class, dead-code elimination, constant folding, GC, CPU scheduling và cache của chính JVM đều có thể ảnh hưởng.
+`System.nanoTime()` is an interval timer, but taking a few readings in a `main` method is **not enough** to determine the isolated cost of reflection: an un-warmed JIT, class initialization, dead-code elimination, constant folding, GC, CPU scheduling, and the JVM's own caches can all skew the result.
 
-Nên dùng **JMH (Java Microbenchmark Harness)** khi mục tiêu thật sự là so sánh nanosecond/op hoặc throughput trong tình huống nhỏ. Tạo các benchmark tách biệt và chạy trên cùng môi trường:
+Use **JMH (Java Microbenchmark Harness)** when the real goal is comparing nanoseconds/op or throughput in small scenarios. Create separate benchmarks and run them in the same environment:
 
-| Benchmark | Công việc trong mỗi operation | Câu hỏi trả lời |
+| Benchmark | Work Per Operation | Question Answered |
 | --- | --- | --- |
-| `lookupOnly` | `clazz.getMethod(name, parameterTypes...)`, consume `Method` | Chi phí tra cứu ở điều kiện đã warm up là bao nhiêu? |
-| `invokeCached` | `cachedMethod.invoke(target, ...)`, consume kết quả | Chi phí invoke với `Method` đã có là bao nhiêu? |
-| `lookupThenInvoke` | Lookup và invoke trong cùng operation | Tổng chi phí khi code thật tìm lại mỗi lần là bao nhiêu? |
-| `directCall` | `target.add(...)`, consume kết quả | Đường gọi Java bình thường cùng logic đích tốn bao nhiêu? |
-| `cachedHandleCall` (tùy chọn) | Dùng `MethodHandle` tạo ở setup | Có cơ hội tối ưu khác khi chuẩn bị handle không? |
+| `lookupOnly` | `clazz.getMethod(name, parameterTypes...)`, consume `Method` | What is the lookup cost under warmed-up conditions? |
+| `invokeCached` | `cachedMethod.invoke(target, ...)`, consume result | What is the invocation cost when the `Method` is already obtained? |
+| `lookupThenInvoke` | Lookup and invoke in the same operation | What is the total cost when real code looks it up every time? |
+| `directCall` | `target.add(...)`, consume result | How much does a normal Java call with the same target logic cost? |
+| `cachedHandleCall` (optional) | Use a `MethodHandle` created during setup | Are there different optimization opportunities with a prepared handle? |
 
-Một thiết kế thử nghiệm có ý nghĩa phải:
+A meaningful experimental design should:
 
-1. Chuẩn bị `target` và `Method` trong `@Setup` cho nhánh cached; **không đưa setup vào thời gian của `invokeCached`**.
-2. Có warmup, measurement iterations, nhiều fork/JVM độc lập; ghi phiên bản JDK, máy, JMH, flags và trạng thái compiler.
-3. Dùng giá trị đầu vào/kết quả đúng để trình biên dịch không loại bỏ phép tính; trong JMH có thể trả kết quả hoặc dùng `Blackhole`. Chọn target method phản ánh nhiệm vụ thực, không chỉ một phép cộng vô nghĩa nếu muốn suy luận tới ứng dụng.
-4. Đo allocation và GC cùng latency/throughput khi cần; phân biệt **cold startup** với **steady state**.
-5. Phân biệt `getMethod` tìm một tên với `getMethods` quét tất cả, và phân biệt signature đơn giản với generic/annotation phức tạp.
-6. So kết quả tương đối qua nhiều lần thử và khoảng dao động; không gán một con số “reflection chậm gấp N lần” làm thuộc tính cố định của Java.
+1. Prepare `target` and `Method` in `@Setup` for the cached branch; **do not include setup in the timing of `invokeCached`**.
+2. Include warmup, measurement iterations, and multiple independent forks/JVMs; record JDK version, hardware, JMH version, flags, and compiler state.
+3. Use inputs/outputs properly so the compiler cannot eliminate the computation; in JMH, return results or use `Blackhole`. Choose a target method that reflects real work, not just a trivial addition if you want to extrapolate to an application.
+4. Measure allocation and GC alongside latency/throughput when needed; distinguish **cold startup** from **steady state**.
+5. Distinguish `getMethod` looking up one name from `getMethods` scanning all methods, and distinguish simple signatures from complex generics/annotations.
+6. Compare relative results across multiple trials and variance ranges; do not treat a single “reflection is N times slower” number as a fixed property of Java.
 
-**Quan trọng:** trong benchmark lookup, JVM có thể tối ưu các giá trị đầu vào không đổi; điều này vẫn phản ánh một trạng thái sử dụng nhất định nhưng chưa đại diện cho lookup theo tên class/method thay đổi liên tục. Hãy đo workload phù hợp: cố định một signature, nhiều overload, hoặc nhiều kiểu được tải động, tùy ứng dụng.
+**Important:** in a lookup benchmark, the JVM may optimize constant input values; while this still reflects a particular usage pattern, it does not represent lookups with continuously changing class/method names. Measure the workload that fits your application: a fixed signature, many overloads, or many dynamically loaded types.
 
-### Phân tích kết quả đo theo nguồn chi phí
+### Analyzing Measurement Results by Cost Source
 
-Giả sử profiler cho thấy phần lớn thời gian request nằm trong phương thức đích truy vấn cơ sở dữ liệu; tiết kiệm vài lần lookup hầu như không đổi latency end-to-end. Ngược lại, framework ánh xạ hàng triệu object nhỏ, mỗi object lại `getDeclaredFields()` rồi duyệt annotation, có thể tốn allocation và CPU đáng kể; cache schema/metadata một lần thường đáng thử.
+Suppose a profiler shows that most request time is spent inside a target method executing database queries; saving a few lookups will barely change end-to-end latency. Conversely, a framework mapping millions of small objects—calling `getDeclaredFields()` and iterating annotations for each object—can incur substantial allocation and CPU cost; caching the schema/metadata once is usually worth testing.
 
-Nếu `lookupOnly` chiếm tỷ trọng đáng kể, ưu tiên tái dùng metadata. Nếu `invokeCached` vẫn là nút thắt trên hot path, cân nhắc API tĩnh, method handle ổn định hoặc code generation, nhưng chỉ chọn sau khi đã đo và kiểm tra tính đúng.
+If `lookupOnly` accounts for a significant share, prioritize reusing metadata. If `invokeCached` remains a bottleneck on a hot path, consider static APIs, stable method handles, or code generation, but only after measuring and verifying correctness.
 
-## 6. Rủi ro correctness và bẫy tối ưu
+## 6. Correctness Risks and Optimization Traps
 
-### 6.1. Lookup đúng ngữ nghĩa trước khi tối ưu
+### 6.1. Get Lookup Semantics Right Before Optimizing
 
-`getMethod` chỉ lấy method `public` phù hợp (có xét thừa hưởng); `getDeclaredMethod` chỉ lấy member khai báo trên chính class, kể cả non-public. Chúng không thể hoán đổi chỉ vì benchmark thấy khác nhau. Nếu method bị overload, phải dùng đúng `Class<?>` của từng tham số; `Integer.class` không thể thay tùy tiện cho `int.class` khi lookup chữ ký `add(int,int)`.
+`getMethod` only retrieves matching `public` methods (including inherited ones); `getDeclaredMethod` only retrieves members declared on the class itself, including non-public ones. They cannot be swapped just because a benchmark shows a difference. If a method is overloaded, you must pass the exact `Class<?>` of each parameter; `Integer.class` cannot arbitrarily substitute for `int.class` when looking up `add(int,int)`.
 
-### 6.2. Reflection invoke có hợp đồng runtime riêng
+### 6.2. Reflective Invoke Has Its Own Runtime Contract
 
-- `Method.invoke` có thể ném `IllegalAccessException`, `IllegalArgumentException` hoặc `InvocationTargetException`; exception do method đích ném được bọc trong `InvocationTargetException`.
-- Với instance method, receiver phải phù hợp; static method không cần instance receiver.
-- Tham số primitive được boxing trong mảng đối số, kết quả primitive được boxing trong `Object`; `void` trả `null`.
-- Cache sai `Method` theo class/loader hoặc chữ ký dễ dẫn đến lỗi runtime, dù benchmark cache có vẻ nhanh.
-- Truy cập non-public trong JPMS có thể bị chặn. Không tự động dùng `setAccessible(true)` như một mẹo hiệu năng; nó thay đổi khả năng truy cập trong phạm vi pháp luật module của JVM.
+- `Method.invoke` can throw `IllegalAccessException`, `IllegalArgumentException`, or `InvocationTargetException`; exceptions thrown by the target method are wrapped in `InvocationTargetException`.
+- For instance methods, the receiver must be compatible; static methods do not require an instance receiver.
+- Primitive arguments are boxed in the argument array, and primitive results are boxed in `Object`; `void` returns `null`.
+- Caching a `Method` under the wrong class/loader or signature easily leads to runtime errors, even if a benchmark of the cache looks fast.
+- Non-public access in JPMS may be blocked. Do not automatically use `setAccessible(true)` as a performance trick; it alters accessibility within the JVM's module rules.
 
-### 6.3. Đừng tối ưu trước khi biết vòng đời
+### 6.3. Do Not Optimize Before Knowing the Lifecycle
 
-Một công cụ khởi động, scan annotation một lần rồi lưu router/mapper có thể chấp nhận chi phí startup để giảm chi phí request. Một thư viện plugin sống lâu phải cân nhắc reload và unloading để không giữ class loader cũ. Và một ứng dụng hiếm dùng reflection có thể để code lookup trực tiếp cho đơn giản nếu profiler chưa thấy vấn đề.
+A startup tool that scans annotations once and stores a router/mapper can accept startup cost to reduce request cost. A long-lived plugin library must account for reload and unloading so it does not retain old classloaders. And an application that rarely uses reflection can keep direct lookup code for simplicity if the profiler has not shown an issue.
 
-## 7. Tổng hợp và câu hỏi tự kiểm tra
+## 7. Summary and Self-Check Questions
 
-Điểm cần nhớ là **thời gian tra cứu metadata** và **thời gian thực thi lời gọi phản xạ** thuộc hai công đoạn. Bản cache `Method` giúp tránh công đoạn tìm `Method` lặp lại; không loại bỏ chi phí `Method.invoke` hoặc công việc của phương thức nghiệp vụ. Metadata chuyên sâu (generic, annotation) cũng có chi phí phân tích riêng cần đo đúng chỗ. Mức lợi luôn phụ thuộc workload/JDK/JIT, nên dùng profiler và JMH thay cho số liệu phỏng đoán.
+The key takeaway is that **metadata lookup time** and **reflective invocation execution time** belong to two separate stages. Caching a `Method` avoids repeating the `Method` lookup stage; it does not eliminate `Method.invoke` overhead or the business method's work. Deep metadata (generics, annotations) also has its own parsing cost that needs to be measured in the right place. Actual gains always depend on workload/JDK/JIT, so use a profiler and JMH instead of guessed numbers.
 
-Tự kiểm tra:
+Self-check:
 
-1. Cùng một `Method` gọi 1000 lần, tại sao nên thử cache thay cho 1000 lần `getMethod`? Chi phí nào vẫn tồn tại?
-2. `getMethods()` và `getMethod("add", int.class, int.class)` khác nhau về ý nghĩa và lượng công việc như thế nào?
-3. Vì sao output `sum=50` của ví dụ chỉ chứng minh tính tương đương chức năng, không chứng minh tốc độ?
-4. Khi benchmark `cachedHandleCall` và `lookupThenInvoke`, vì sao kết luận “MethodHandle invoke nhanh hơn” là chưa được kiểm chứng?
-5. Khi dùng cache trong plugin có class loader riêng, làm sao tránh nhầm type identity và giữ class loader đã không còn dùng?
+1. When the same `Method` is called 1,000 times, why should you consider caching instead of calling `getMethod` 1,000 times? Which costs still remain?
+2. How do `getMethods()` and `getMethod("add", int.class, int.class)` differ in semantics and amount of work?
+3. Why does the `sum=50` output in the example only prove functional equivalence, not speed?
+4. When benchmarking `cachedHandleCall` against `lookupThenInvoke`, why is the conclusion “MethodHandle invoke is faster” unverified?
+5. When using a cache in a plugin with its own classloader, how do you avoid confusing type identity and retaining a classloader that is no longer used?
 
-### Tài liệu API chính thức
+### Official API References
 
 - Java SE 21 — `Class`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html
 - Java SE 21 — `Method`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html

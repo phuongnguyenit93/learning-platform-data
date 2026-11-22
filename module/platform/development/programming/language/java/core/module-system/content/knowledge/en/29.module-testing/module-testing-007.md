@@ -1,14 +1,14 @@
-# Test custom ModuleLayer
+# Testing Custom ModuleLayer
 
-Trong Java Platform Module System (JPMS), `ModuleLayer` cho phép ứng dụng tạo một nhóm named module ở runtime, tách khỏi boot layer nhưng liên kết với một hoặc nhiều parent layer. Cơ chế này thường dùng cho plugin, extension, hệ thống nạp nhiều phiên bản thư viện hoặc môi trường cần kiểm soát class loader.
+In the Java Platform Module System (JPMS), `ModuleLayer` allows an application to create a group of named modules at runtime, separate from the boot layer while linked to one or more parent layers. This mechanism is commonly used for plugins, extensions, systems loading multiple library versions, or environments requiring class loader control.
 
-Kiểm thử custom `ModuleLayer` không chỉ là xác nhận `defineModulesWithOneLoader(...)` chạy không ném exception. Một bộ test đáng tin cậy phải chứng minh **module nào đã được resolve, module nào thực sự thuộc layer mới, module nào được tìm qua parent, class loader nào định nghĩa lớp, service provider có được tìm đúng layer và các trường hợp lỗi có thất bại đúng nguyên nhân**.
+Testing a custom `ModuleLayer` is not just confirming `defineModulesWithOneLoader(...)` runs without throwing an exception. A reliable test suite must prove **which modules were resolved, which modules actually belong to the new layer, which modules are found via the parent, which class loader defines the classes, whether service providers are discovered in the right layer, and whether failure cases fail for the right reason**.
 
-Bài này xây dựng một fixture nhỏ gồm host, service API và plugin; thực hiện smoke test chạy được từ dòng lệnh; sau đó mở rộng thành checklist kiểm thử tích hợp, isolation và compatibility.
+This lesson builds a small fixture with a host, a service API, and a plugin; performs a command-line runnable smoke test; and then expands into a checklist for integration, isolation, and compatibility testing.
 
-## 1. Ba giai đoạn cần kiểm thử riêng
+## 1. Three Stages to Test Separately
 
-Một custom layer được tạo theo luồng:
+A custom layer is created following this flow:
 
 ~~~text
 Plugin JARs / exploded modules
@@ -18,7 +18,7 @@ Plugin JARs / exploded modules
             |
             v
  Configuration.resolve(...)
- hoặc resolveAndBind(...)
+ or resolveAndBind(...)
             |
             v
  ModuleLayer.defineModules...
@@ -31,17 +31,17 @@ Plugin JARs / exploded modules
             +--> ServiceLoader discovery
 ~~~
 
-Mỗi giai đoạn có câu hỏi kiểm thử riêng:
+Each stage has distinct test questions:
 
-1. **Discovery:** `ModuleFinder` có nhìn thấy module JAR hoặc exploded module trong đúng thư mục?
-2. **Resolution:** `Configuration` có chứa các module root, dependency và service provider mong đợi?
-3. **Definition:** `ModuleLayer` có định nghĩa các module đó với parent/class loader đúng và cho phép ứng dụng sử dụng chúng?
+1. **Discovery:** Does `ModuleFinder` see the module JARs or exploded modules in the right directory?
+2. **Resolution:** Does `Configuration` contain the expected root modules, dependencies, and service providers?
+3. **Definition:** Does `ModuleLayer` define those modules with the right parents/class loaders and allow the application to use them?
 
-Một lỗi `FindException` xảy ra trước khi layer được tạo khác với lỗi `LayerInstantiationException` trong lúc định nghĩa layer. Một layer tạo thành công nhưng không tìm được provider lại thuộc nhóm vấn đề service registration hoặc phạm vi discovery.
+A `FindException` before the layer is created differs from a `LayerInstantiationException` while defining the layer. A layer created successfully that fails to locate a provider belongs to service registration or discovery scope issues.
 
-## 2. Thiết kế fixture: API và host ở parent, plugin ở layer con
+## 2. Designing the Fixture: API and Host in Parent, Plugin in Child Layer
 
-Để kiểm thử rõ ràng, xây dựng ba module:
+For clear testing, build three modules:
 
 ~~~text
 Boot layer
@@ -54,7 +54,7 @@ Custom plugin layer
        └── parent: Boot layer
 ~~~
 
-API service:
+Service API:
 
 ~~~java
 // src/host/com.acme.spi/module-info.java
@@ -72,7 +72,7 @@ public interface Greeter {
 }
 ~~~
 
-Module host:
+Host module:
 
 ~~~java
 // src/host/com.acme.host/module-info.java
@@ -82,7 +82,7 @@ module com.acme.host {
 }
 ~~~
 
-Module plugin:
+Plugin module:
 
 ~~~java
 // src/plugins/com.acme.plugin.hello/module-info.java
@@ -113,13 +113,13 @@ public final class HelloGreeter implements Greeter {
 }
 ~~~
 
-Chủ ý **không export** `com.acme.plugin.hello`. Host chỉ cần service type `Greeter` từ module API ở parent; provider được `ServiceLoader` tạo theo `provides` mà không cần host import lớp implementation.
+Intentionally **do not export** `com.acme.plugin.hello`. The host only needs the `Greeter` service type from the API module in the parent; the provider is instantiated by `ServiceLoader` per `provides` without the host importing the implementation class.
 
-Đây là fixture phù hợp để kiểm thử: API dùng chung có cùng class identity, trong khi implementation được định nghĩa trong custom layer.
+This fixture is ideal for testing: the shared API retains identical class identity, while the implementation is defined in a custom layer.
 
-## 3. Biên dịch fixture với module output tách biệt
+## 3. Compiling the Fixture with Separate Module Outputs
 
-Cấu trúc thư mục:
+Directory layout:
 
 ~~~text
 src/
@@ -136,7 +136,7 @@ src/
         └── com/acme/plugin/hello/HelloGreeter.java
 ~~~
 
-Sau khi tạo mã host ở phần tiếp theo, biên dịch:
+After writing the host code in the next section, compile:
 
 ~~~bash
 javac --module-source-path src/host \
@@ -144,7 +144,7 @@ javac --module-source-path src/host \
       -m com.acme.spi,com.acme.host
 ~~~
 
-Biên dịch plugin với API host trên module path:
+Compile the plugin with the host API on the module path:
 
 ~~~bash
 javac --module-path out/host \
@@ -153,7 +153,7 @@ javac --module-path out/host \
       -m com.acme.plugin.hello
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 out/
@@ -164,13 +164,13 @@ out/
     └── com.acme.plugin.hello/
 ~~~
 
-Khi chạy host, **chỉ đưa `out/host` vào boot module path**. Plugin sẽ được tìm qua `ModuleFinder.of(Path.of("out/plugins"))` và định nghĩa sau trong layer con. Nếu vô tình thêm cả `out/plugins` vào boot module path rồi làm nó trở thành root, test có thể không còn kiểm tra đúng hành vi nạp plugin động.
+When running the host, **put only `out/host` on the boot module path**. The plugin will be located via `ModuleFinder.of(Path.of("out/plugins"))` and defined afterward in a child layer. Accidentally adding `out/plugins` to the boot module path and making it a root would prevent the test from verifying dynamic plugin loading.
 
-Trên Windows PowerShell có thể viết từng lệnh trên một dòng. Nếu dùng dấu phân cách nhiều module path entries, Windows dùng dấu `;`, Linux/macOS dùng dấu `:`.
+On Windows PowerShell, each command can be written on one line. When separating multiple module path entries, Windows uses `;`, while Linux/macOS uses `:`.
 
-## 4. Tạo custom layer và xác nhận cấu hình
+## 4. Creating the Custom Layer and Verifying Configuration
 
-Lớp smoke test nằm trong named module `com.acme.host`:
+The smoke test class resides in named module `com.acme.host`:
 
 ~~~java
 // src/host/com.acme.host/com/acme/host/LayerSmokeTest.java
@@ -278,13 +278,13 @@ public final class LayerSmokeTest {
 }
 ~~~
 
-Ví dụ kiểm tra đúng các ranh giới: plugin thuộc layer con, API vẫn thuộc boot layer, plugin đọc được API, và provider thực sự đến từ custom layer.
+The example verifies the exact boundaries: the plugin belongs to the child layer, the API remains in the boot layer, the plugin reads the API, and the provider genuinely comes from the custom layer.
 
-**Quan trọng:** `ServiceLoader.load(layer, Greeter.class)` có thể tìm provider ở layer được truyền và các parent theo quy tắc API. Vì vậy, ví dụ lọc instance theo `getModule().getLayer() == layer` trước khi khẳng định chỉ có một provider plugin. Nếu không lọc, một provider được host cài ở parent có thể khiến test đếm sai.
+**Important:** `ServiceLoader.load(layer, Greeter.class)` can discover providers in the passed layer and its parents per API rules. Therefore, the example filters instances by `getModule().getLayer() == layer` before asserting there is only one plugin provider. Without filtering, a host-installed provider in the parent could cause the test to miscount.
 
-## 5. Chạy smoke test
+## 5. Running the Smoke Test
 
-Chạy lệnh sau từ thư mục dự án, sau khi đã biên dịch host và plugin:
+Run the following command from the project directory after compiling host and plugin:
 
 ~~~bash
 java --module-path out/host \
@@ -292,29 +292,29 @@ java --module-path out/host \
      out/plugins
 ~~~
 
-Kết quả mong đợi:
+Expected result:
 
 ~~~text
 CUSTOM LAYER TEST PASS
 ~~~
 
-Ở đây:
+Here:
 
-- Host và service API là named modules được khởi chạy từ `out/host`.
-- Plugin module tồn tại dưới `out/plugins`, chưa được khởi tạo như root của boot layer.
-- Host chủ động dùng finder để resolve plugin rồi tạo custom layer.
-- Service provider được định nghĩa trong layer con và được khám phá bằng `ServiceLoader.load(layer, Greeter.class)`.
+- The host and service API are named modules launched from `out/host`.
+- The plugin module sits under `out/plugins`, not initialized as a boot layer root.
+- The host actively uses a finder to resolve the plugin and create a custom layer.
+- The service provider is defined in the child layer and discovered via `ServiceLoader.load(layer, Greeter.class)`.
 
-Nếu gặp lỗi trước khi tới dòng PASS, hãy xem **giai đoạn lỗi**: finder, resolution, definition, discovery hay provider execution. Không thêm bừa mọi module vào `--add-modules ALL-MODULE-PATH`, vì điều đó có thể làm sai cấu hình test nạp động.
+If an error occurs before reaching the PASS line, inspect the **failing stage**: finder, resolution, definition, discovery, or provider execution. Do not blindly add all modules to `--add-modules ALL-MODULE-PATH`, as that can invalidate the dynamic loading test configuration.
 
-## 6. modules() khác findModule() trong test
+## 6. modules() vs. findModule() in Tests
 
-Có hai API dễ bị nhầm:
+Two APIs are easily confused:
 
-- `layer.modules()` trả về các module **được định nghĩa trực tiếp** trong layer đó.
-- `layer.findModule(name)` có thể tìm module từ layer hiện tại **và các parent layer**.
+- `layer.modules()` returns the modules **directly defined** in that layer.
+- `layer.findModule(name)` searches the current layer **and its parent layers**.
 
-Với fixture:
+With our fixture:
 
 ~~~java
 boolean pluginHere = layer.modules().stream()
@@ -326,7 +326,7 @@ boolean apiHere = layer.modules().stream()
 boolean apiVisible = layer.findModule("com.acme.spi").isPresent();
 ~~~
 
-Kết quả mong đợi:
+Expected results:
 
 ~~~text
 pluginHere = true
@@ -334,15 +334,15 @@ apiHere    = false
 apiVisible = true
 ~~~
 
-Một test chỉ gọi `findModule` rồi kết luận module thuộc child layer là **chưa đủ**. Cần kiểm tra `getLayer()` hoặc `modules()` để khẳng định ownership.
+A test that only calls `findModule` and concludes a module belongs to the child layer is **insufficient**. Check `getLayer()` or `modules()` to confirm ownership.
 
-Tương tự, `configuration.modules()` trả về các `ResolvedModule` thuộc configuration mới, còn `layer.modules()` là các đối tượng `Module` đã được định nghĩa ở runtime. Nên dùng cả hai khi test cần phân biệt resolution với definition.
+Similarly, `configuration.modules()` returns the `ResolvedModule`s belonging to the new configuration, whereas `layer.modules()` are the `Module` objects defined at runtime. Use both when a test needs to distinguish resolution from definition.
 
-## 7. Kiểm tra parent layer và API identity
+## 7. Checking Parent Layers and API Identity
 
-ModuleLayer có thể có nhiều parent, vì vậy `parents()` là danh sách chứ không phải một parent duy nhất.
+A ModuleLayer can have multiple parents, so `parents()` is a list rather than a single parent.
 
-Với ví dụ chỉ dùng boot parent:
+For the example using only the boot parent:
 
 ~~~java
 if (!layer.parents().equals(List.of(ModuleLayer.boot()))) {
@@ -350,7 +350,7 @@ if (!layer.parents().equals(List.of(ModuleLayer.boot()))) {
 }
 ~~~
 
-Để tránh vô tình định nghĩa lại API dùng chung, kiểm tra object identity:
+To avoid accidentally redefining the shared API, verify object identity:
 
 ~~~java
 Module bootApi = ModuleLayer.boot()
@@ -366,15 +366,15 @@ if (bootApi != childView) {
 }
 ~~~
 
-Đây là kiểm tra quan trọng trong plugin architecture. Nếu mỗi plugin mang bản sao API `Greeter` trong loader khác, đối tượng có cùng tên class vẫn có thể là kiểu khác ở runtime, gây lỗi ép kiểu hoặc không tương thích giữa host và provider.
+This is a critical check in plugin architectures. If each plugin carried its own copy of the `Greeter` API in a different loader, objects with the same class name could still be distinct runtime types, causing cast errors or incompatibility between host and provider.
 
-Cách tổ chức hợp lý là đặt shared contract ở parent layer, còn plugin chỉ `requires` shared API.
+The sound design is placing the shared contract in the parent layer while plugins simply `requires` the shared API.
 
-## 8. Kiểm tra class loader strategy
+## 8. Checking the Class Loader Strategy
 
-Tùy API định nghĩa layer, các module trong child layer có thể dùng một class loader, nhiều loader, hoặc loader do ứng dụng chỉ định.
+Depending on the layer definition API, modules in a child layer can use one class loader, multiple loaders, or application-provided loaders.
 
-Các lựa chọn tiêu biểu:
+Typical options:
 
 ~~~java
 ModuleLayer.defineModulesWithOneLoader(
@@ -392,9 +392,9 @@ ModuleLayer.defineModulesWithManyLoaders(
 );
 ~~~
 
-Cùng một configuration, hai chiến lược loader có thể cho class identity và mức cô lập khác nhau. Không nên mặc định “một layer luôn có một class loader”.
+For the same configuration, the two loader strategies can yield different class identities and isolation levels. Never assume "one layer always has one class loader".
 
-Kiểm tra loader thực tế:
+Verify the actual loader:
 
 ~~~java
 ClassLoader pluginLoader =
@@ -415,11 +415,11 @@ if (impl.getClassLoader() != pluginLoader) {
 }
 ~~~
 
-Lưu ý: `loadClass` chỉ giúp kiểm tra class loading và identity. Nó không chứng minh class thuộc package chưa export có thể được gọi tùy ý bằng reflection. Với provider plugin, nên sử dụng `ServiceLoader` qua service interface để giữ encapsulation.
+Note: `loadClass` only verifies class loading and identity. It does not prove a class in a non-exported package can be freely invoked via reflection. For plugin providers, use `ServiceLoader` through the service interface to preserve encapsulation.
 
-## 9. Hai custom layers độc lập để kiểm tra isolation
+## 9. Two Independent Custom Layers to Verify Isolation
 
-Một bài test nâng cao là tạo **hai layer từ cùng plugin artifact**:
+An advanced test creates **two layers from the same plugin artifact**:
 
 ~~~java
 ModuleLayer first = createPluginLayer(pluginDir);
@@ -436,19 +436,19 @@ if (p1.getClassLoader() == p2.getClassLoader()) {
 }
 ~~~
 
-Hàm `createPluginLayer` trong ví dụ phải **thực sự tạo layer mới ở mỗi lần gọi** bằng `defineModulesWithOneLoader` hoặc chiến lược tương đương; không trả lại layer đã cache.
+The `createPluginLayer` helper in this example must **genuinely create a new layer on every call** using `defineModulesWithOneLoader` or an equivalent strategy; never return a cached layer.
 
-Mục tiêu của test:
+Test goals:
 
-- Hai runtime `Module` có thể mang cùng tên nhưng là instance khác khi ở hai layer độc lập.
-- Những class plugin có cùng fully qualified name nhưng loader khác sẽ là những kiểu runtime khác nhau.
-- Shared API ở boot parent vẫn giữ class identity chung, nên service interface được host dùng để gọi plugin không bị nhân bản.
+- Two runtime `Module`s can have the same name yet be distinct instances when in two independent layers.
+- Plugin classes with the same fully qualified name in different loaders are distinct runtime types.
+- The shared API in the boot parent retains a shared class identity, so the service interface used by the host to call the plugin is not duplicated.
 
-Không lấy việc dùng loader khác làm bằng chứng cách ly bảo mật. Custom layer không phải sandbox, không cung cấp giới hạn CPU, filesystem hoặc network cho code plugin.
+Do not treat different loaders as proof of security isolation. A custom layer is not a sandbox and provides no CPU, filesystem, or network limits on plugin code.
 
-## 10. Test ServiceLoader đúng phạm vi
+## 10. Testing ServiceLoader with the Right Scope
 
-Phân biệt ba overload:
+Distinguish three overloads:
 
 ~~~java
 ServiceLoader.load(Greeter.class);
@@ -458,21 +458,21 @@ ServiceLoader.load(Greeter.class, loader);
 ServiceLoader.load(layer, Greeter.class);
 ~~~
 
-Overload thứ nhất dùng thread context class loader (TCCL), thứ hai dùng class loader được chỉ định, và thứ ba tìm provider theo phạm vi ModuleLayer.
+The first overload uses the thread context class loader (TCCL), the second uses the specified class loader, and the third locates providers scoped to a ModuleLayer.
 
-Với test custom layer, overload `load(layer, service)` thường thể hiện đúng ý định hơn vì nó gắn trực tiếp với layer cần kiểm tra. Không nên vô tình dùng `load(service)` rồi coi việc không tìm thấy provider là lỗi của `ModuleLayer` — TCCL có thể không nhìn thấy child layer mới.
+For custom layer tests, `load(layer, service)` usually expresses intent more accurately because it binds directly to the layer under test. Avoid accidentally calling `load(service)` and mistaking a missing provider for a `ModuleLayer` failure — TCCL may not see the new child layer.
 
-**Caller module phải khai báo `uses`** nếu caller là named module. Trong ví dụ, phương thức `verifyServices` nằm ở `com.acme.host` nên descriptor host có:
+**The caller module must declare `uses`** if the caller is a named module. In the example, `verifyServices` lives in `com.acme.host`, so the host descriptor has:
 
 ~~~java
 uses com.acme.spi.Greeter;
 ~~~
 
-Nếu chuyển logic gọi `ServiceLoader` vào một named helper module khác, module helper đó mới là caller và cần khai báo `uses`. Đây là nguyên nhân thường gặp của `ServiceConfigurationError` trong test.
+If you move the `ServiceLoader` call into another named helper module, that helper module becomes the caller and must declare `uses`. That is a common cause of `ServiceConfigurationError` in tests.
 
-## 11. Test resolve và resolveAndBind
+## 11. Testing resolve and resolveAndBind
 
-Để tạo configuration từ finder:
+To build a configuration from a finder:
 
 ~~~java
 Configuration cfg = boot.configuration().resolve(
@@ -482,9 +482,9 @@ Configuration cfg = boot.configuration().resolve(
 );
 ~~~
 
-`resolve` đi từ root module và dependency được yêu cầu. Vì `com.acme.plugin.hello` là root tường minh, nó sẽ có mặt nếu tìm thấy và graph hợp lệ.
+`resolve` starts from root modules and required dependencies. Because `com.acme.plugin.hello` is an explicit root, it will be present if found and the graph is valid.
 
-Nếu host cần tự tìm các provider được kéo vào dựa trên `uses`, có thể cân nhắc `resolveAndBind`:
+If the host needs to discover providers pulled in via `uses`, consider `resolveAndBind`:
 
 ~~~java
 Configuration cfg = boot.configuration().resolveAndBind(
@@ -494,15 +494,15 @@ Configuration cfg = boot.configuration().resolveAndBind(
 );
 ~~~
 
-`resolveAndBind` thực hiện service binding cho các service được module trong cấu hình sử dụng. Bài test cần phân biệt: provider được đưa vào vì nó là **root** hay được kéo vào bởi **service binding**.
+`resolveAndBind` performs service binding for services used by modules in the configuration. Tests should distinguish whether a provider entered because it was a **root** or was pulled in by **service binding**.
 
-Để kiểm chứng service binding thực sự, hãy tạo fixture có một module consumer trong configuration mới khai báo `uses`, còn provider module khác không nằm trong root/dependency trực tiếp. Sau đó so sánh `configuration.modules()` giữa `resolve` và `resolveAndBind`. Tránh kết luận binding hoạt động chỉ vì một provider vốn đã được chọn làm root xuất hiện.
+To genuinely verify service binding, build a fixture with a consumer module in the new configuration declaring `uses` and another provider module outside direct roots/dependencies. Then compare `configuration.modules()` between `resolve` and `resolveAndBind`. Avoid concluding binding works just because a provider already named as a root appears.
 
-Ngoài ra, mọi provider cần phải nằm trong phạm vi module finder quan sát được. Service binding không tự tìm JAR nằm ngoài những nguồn module được cấu hình.
+Additionally, every provider must be within the observable scope of the module finder. Service binding does not automatically locate JARs outside the configured module sources.
 
-## 12. Test lỗi: module không tồn tại
+## 12. Failure Test: Non-Existent Module
 
-Một negative test quan trọng là yêu cầu một root không thể tìm thấy:
+An important negative test requests a root that cannot be found:
 
 ~~~java
 ModuleFinder plugins = ModuleFinder.of(Path.of("out/plugins"));
@@ -520,31 +520,31 @@ try {
 }
 ~~~
 
-Lỗi `FindException` xảy ra ở giai đoạn resolution, **trước** khi tạo layer. Không nên khẳng định sẽ nhận `LayerInstantiationException` cho một module hoàn toàn không tìm thấy.
+The `FindException` happens during resolution, **before** layer creation. Do not assert `LayerInstantiationException` for a module that cannot be found at all.
 
-Có thể mở rộng bằng các tình huống:
+You can expand with scenarios:
 
-- Plugin khai báo `requires` tới module không tồn tại.
-- Plugin và dependency có version/classification không phù hợp.
-- Một module có tên sai trong `ModuleFinder` do đóng gói JAR hoặc directory layout.
-- Provider module được đặt sai module path nên không được finder phát hiện.
+- Plugin declares `requires` on a non-existent module.
+- Plugin and dependency have incompatible versions/classifications.
+- A module has the wrong name in `ModuleFinder` due to JAR packaging or directory layout.
+- Provider module is placed on the wrong module path so the finder does not discover it.
 
-Các negative test nên kiểm tra **loại failure và nội dung chẩn đoán chính**, tránh phụ thuộc cứng vào toàn bộ chuỗi exception message có thể khác giữa JDK versions.
+Negative tests should verify the **failure type and key diagnostic details**, avoiding brittle assertions on full exception message strings that may vary across JDK versions.
 
-## 13. Test lỗi: xung đột package, module và layer definition
+## 13. Failure Test: Package, Module, and Layer Definition Conflicts
 
-Bên cạnh module thiếu, module graph có thể không hợp lệ do package hoặc loader conflicts.
+Besides missing modules, a module graph can be invalid due to package or loader conflicts.
 
-Những tình huống nên có fixture riêng:
+Scenarios that warrant dedicated fixtures:
 
-1. Hai module trong cùng configuration gây xung đột package theo quy tắc JPMS.
-2. Module được resolve thành công nhưng không thể định nghĩa vào layer với loader strategy đã chọn.
-3. Một class loader được yêu cầu định nghĩa các module có layout/package không hợp lệ.
-4. Module descriptor khai báo dependency/readability mâu thuẫn với cấu hình parent.
+1. Two modules in the same configuration cause a package conflict under JPMS rules.
+2. Modules resolve successfully yet cannot be defined in the layer under the chosen loader strategy.
+3. A class loader is asked to define modules with invalid layout/packages.
+4. A module descriptor declares dependency/readability conflicting with the parent configuration.
 
-Các lỗi có thể là `ResolutionException` ở resolution hoặc `LayerInstantiationException` ở definition, tùy tình huống. Không nên đặt cùng một expected exception cho tất cả các trường hợp.
+Errors may be `ResolutionException` during resolution or `LayerInstantiationException` during definition, depending on the scenario. Do not expect the same exception for all cases.
 
-Ví dụ mẫu tách hai pha:
+Sample splitting the two phases:
 
 ~~~java
 Configuration configuration = boot.configuration().resolve(
@@ -553,7 +553,7 @@ Configuration configuration = boot.configuration().resolve(
     Set.of("com.acme.plugin.hello")
 );
 
-// Lỗi phát sinh ở bước này là lỗi definition/layer setup.
+// Errors thrown at this step are definition/layer setup errors.
 ModuleLayer.Controller controller =
     ModuleLayer.defineModulesWithOneLoader(
         configuration,
@@ -562,13 +562,13 @@ ModuleLayer.Controller controller =
     );
 ~~~
 
-Khi báo lỗi, giữ riêng stack trace của resolver và của layer definition để chẩn đoán đúng nguyên nhân. Không sửa tắt bằng cách đưa toàn bộ JAR vào classpath nếu bài test có mục tiêu kiểm tra ranh giới JPMS.
+When reporting failures, keep stack traces from the resolver and from layer definition separate to diagnose the true cause. Do not bypass errors by dumping all JARs onto the classpath if the test aims to verify JPMS boundaries.
 
-## 14. Kiểm tra readability, exports và opens
+## 14. Checking Readability, exports, and opens
 
-Một plugin ở child layer có thể nhìn thấy API từ parent nhưng vẫn không dùng được package do thiếu readability hoặc exports.
+A plugin in a child layer might see an API from the parent yet still be unable to use a package due to missing readability or exports.
 
-Các kiểm tra runtime:
+Runtime checks:
 
 ~~~java
 Module plugin = layer.findModule("com.acme.plugin.hello")
@@ -584,9 +584,9 @@ System.out.println("canRead=" + readable);
 System.out.println("exported=" + exported);
 ~~~
 
-Với fixture, cả hai phải đúng. Tuy nhiên, `canRead` và `isExported` không thay thế kiểm thử hành vi provider thật sự. Nếu provider method ném exception trong constructor hoặc thiếu resource, layer vẫn có thể được định nghĩa và quyền module vẫn hợp lệ.
+With the fixture, both must be true. However, `canRead` and `isExported` do not replace testing actual provider behavior. If a provider throws in its constructor or misses a resource, the layer can still be defined and module permissions remain valid.
 
-Khi framework cần deep reflection vào package plugin, phải kiểm tra `opens` theo module thực hiện reflection. Với module do custom layer định nghĩa, cấu hình runtime có thể được điều chỉnh có chủ đích qua `ModuleLayer.Controller.addOpens(...)`, nếu chủ sở hữu layer cho phép:
+When a framework needs deep reflection into a plugin package, verify `opens` for the module performing reflection. For modules defined by a custom layer, runtime configuration can be intentionally adjusted via `ModuleLayer.Controller.addOpens(...)` if the layer owner permits it:
 
 ~~~java
 controller.addOpens(
@@ -596,13 +596,13 @@ controller.addOpens(
 );
 ~~~
 
-Lệnh minh họa đòi hỏi `pluginModule` thuộc layer do `controller` quản lý và package thực sự tồn tại trong module đó. Chỉ mở package khi framework có nhu cầu reflection rõ ràng. Không tự động mở tất cả package chỉ để test tiện hơn.
+This illustrative call requires `pluginModule` to belong to the layer managed by `controller` and the package to actually exist in that module. Open packages only when a framework has an explicit reflection need. Never automatically open all packages just for test convenience.
 
-## 15. Test resource loading
+## 15. Testing Resource Loading
 
-Không phải mọi plugin chỉ chứa class. Một số còn có template, JSON, text, cấu hình hoặc certificate.
+Not all plugins contain only classes. Some also include templates, JSON, text, configuration, or certificates.
 
-Ví dụ resource:
+Example resource:
 
 ~~~text
 src/plugins/com.acme.plugin.hello/
@@ -611,21 +611,21 @@ src/plugins/com.acme.plugin.hello/
     └── greeting.txt
 ~~~
 
-Khi biên dịch bằng `javac`, resource phi Java có thể cần bước copy riêng sang output module. Hãy xác nhận file nằm trong artifact/plugin directory được dùng ở runtime.
+When compiling with `javac`, non-Java resources may require a separate copy step into the module output. Confirm the file exists in the artifact/plugin directory used at runtime.
 
-Một test có thể yêu cầu provider tự đọc resource thuộc module của nó và trả về một kết quả đã biết. Cách này kiểm tra đầy đủ:
+A test can ask the provider to read a resource belonging to its own module and return a known result. This thoroughly checks:
 
-- Resource có được đóng gói không.
-- Class loader/module resource lookup có tìm đúng file.
-- Encoding được thống nhất, ví dụ UTF-8.
-- Module encapsulation không cản trở một truy cập ngoài dự kiến.
-- Plugin chạy đúng với cách đóng gói thực tế, không chỉ trong IDE.
+- Whether the resource was packaged.
+- Whether class loader/module resource lookup finds the right file.
+- Consistent encoding, e.g., UTF-8.
+- That module encapsulation does not block an unexpected access.
+- That the plugin runs properly with real packaging, not only inside the IDE.
 
-Đừng chỉ kiểm tra resource tồn tại ở source directory; bản runtime thường chạy từ exploded module output hoặc modular JAR, nơi resource có thể bị bỏ sót.
+Do not merely check that the resource exists in the source directory; runtime usually executes from exploded module output or modular JARs, where resources can be omitted.
 
-## 16. Test nhiều plugin và danh sách provider
+## 16. Testing Multiple Plugins and Provider Lists
 
-Nếu cấu hình chứa nhiều provider:
+If the configuration contains multiple providers:
 
 ~~~text
 com.acme.plugin.hello
@@ -633,9 +633,9 @@ com.acme.plugin.goodbye
 com.acme.plugin.echo
 ~~~
 
-Bộ test cần kiểm tra **tập provider mong đợi**, không dựa vào thứ tự iteration.
+The test suite must verify the **expected set of providers**, without relying on iteration order.
 
-Ví dụ:
+Example:
 
 ~~~java
 Set<String> providerModules = ServiceLoader
@@ -657,20 +657,20 @@ if (!providerModules.equals(expected)) {
 }
 ~~~
 
-Không nên assert “provider đầu tiên là X” nếu hợp đồng nghiệp vụ không định nghĩa thứ tự. Thứ tự provider discovery không phải cơ chế xếp ưu tiên plugin đáng tin cậy để dùng thay cho cấu hình rõ ràng.
+Do not assert "the first provider is X" if the business contract defines no ordering. Provider discovery order is not a reliable plugin prioritization mechanism to use instead of explicit configuration.
 
-Khi một module có nhiều implementation cho cùng service, việc chỉ kiểm tra tên module có thể chưa đủ. Khi đó nên so sánh class name hoặc metadata provider cụ thể.
+When a single module provides multiple implementations for the same service, checking only the module name may be insufficient. In that case, compare class names or specific provider metadata.
 
-## 17. JUnit 5: tổ chức test harness
+## 17. JUnit 5: Organizing the Test Harness
 
-Fixture có thể được gọi bằng một test runner, JUnit hoặc lệnh smoke test trong CI. Nếu dùng JUnit với project modular, cần quan tâm module chứa code gọi `ServiceLoader.load` và các quyền reflection của test engine.
+The fixture can be invoked by a test runner, JUnit, or a smoke test command in CI. When using JUnit with a modular project, pay attention to which module calls `ServiceLoader.load` and the test engine's reflection permissions.
 
-Hai hướng thực hành:
+Two practical approaches:
 
-- **Integration test như consumer bên ngoài:** test/module host gọi một entry point public và kiểm tra kết quả. Mô hình này phản ánh hệ thống thực tế và giảm nhu cầu mở package.
-- **Test được patch vào host module:** dùng `--patch-module` ở compile/test nếu cần truy cập helper package-private bên trong host. Khi dùng framework trên classpath, có thể cần `--add-reads` và `--add-opens` phù hợp để framework gọi test.
+- **Integration test as an external consumer:** test/host module calls a public entry point and verifies the result. This reflects the real system and reduces the need to open packages.
+- **Tests patched into the host module:** use `--patch-module` at compile/test time if access to package-private helpers inside the host is needed. With a framework on the classpath, appropriate `--add-reads` and `--add-opens` may be needed for the framework to invoke tests.
 
-Ví dụ phương thức test ở mức ý tưởng:
+Conceptual test method example:
 
 ~~~java
 @Test
@@ -687,13 +687,13 @@ void pluginProviderIsLoadedFromChildLayer() {
 }
 ~~~
 
-Đây là mẫu cấu trúc assertion; cần thêm import JUnit, setup fixture và module/test-runner options của dự án. Nếu test class nằm trong một named module khác host và gọi trực tiếp `ServiceLoader`, module test ấy phải khai báo `uses com.acme.spi.Greeter`.
+This is an assertion structure template; add JUnit imports, fixture setup, and your project's module/test-runner options. If the test class lives in a different named module than the host and calls `ServiceLoader` directly, that test module must declare `uses com.acme.spi.Greeter`.
 
-Giữ test fixtures và nguồn plugin tách khỏi artifact sản phẩm. Không export package nội bộ trong production descriptor chỉ để test tiện hơn.
+Keep test fixtures and plugin sources separate from production artifacts. Never export internal packages in production descriptors just to make testing easier.
 
-## 18. CI: chạy trên đúng artifact, đúng JDK
+## 18. CI: Running on the Right Artifacts and JDK
 
-Một pipeline kiểm thử nên gồm:
+A test pipeline should include:
 
 ~~~text
 compile host and SPI modules
@@ -713,7 +713,7 @@ package modular JARs
 run smoke test on packaged artifacts
 ~~~
 
-Các bước chẩn đoán hữu ích:
+Helpful diagnostic commands:
 
 ~~~bash
 jar --describe-module --file plugins/com.acme.plugin.hello.jar
@@ -725,68 +725,68 @@ jdeps --module-path out/host:out/plugins \
       plugins/com.acme.plugin.hello.jar
 ~~~
 
-Trên Windows, `--module-path` với nhiều entry dùng dấu `;`, không phải dấu `:`.
+On Windows, `--module-path` with multiple entries uses `;`, not `:`.
 
-Chú ý so sánh hai trường hợp: chạy từ exploded module output và chạy từ modular JAR. Nếu chỉ test từ output directory, có thể bỏ sót lỗi đóng gói như resource thiếu, descriptor không đi vào JAR hoặc filename/module name không đúng.
+Be sure to compare two cases: running from exploded module output and running from modular JARs. Testing only from output directories can miss packaging bugs such as missing resources, descriptors omitted from JARs, or mismatched filenames/module names.
 
-Không cần đánh giá chất lượng toàn bộ README trong workflow thực thi test này; mục tiêu ở đây là kiểm chứng kỹ thuật ModuleLayer mà ứng dụng xây dựng.
+There is no need to evaluate the entire README quality within this test execution workflow; the goal here is to validate the ModuleLayer technique built by the application.
 
-## 19. Cleanup, caching và lifecycle
+## 19. Cleanup, Caching, and Lifecycle
 
-Một `ModuleLayer` không có API đóng như `AutoCloseable.close()`. Nếu test tạo nhiều layer mới, cần quản lý các tham chiếu tới:
+A `ModuleLayer` has no closing API like `AutoCloseable.close()`. When tests create many new layers, manage references to:
 
-- `ModuleLayer` và `Module`.
-- `ClassLoader` tùy biến.
-- `ServiceLoader` và provider instance được cache.
-- Thread, executor, timer hoặc callback do plugin tạo.
-- Static registry, listener hoặc context giữ class loader.
+- `ModuleLayer` and `Module`.
+- Custom `ClassLoader` instances.
+- `ServiceLoader` and cached provider instances.
+- Threads, executors, timers, or callbacks spawned by plugins.
+- Static registries, listeners, or contexts holding class loaders.
 
-`ServiceLoader.reload()` chỉ xóa cache provider của loader đó; nó không thay đổi module graph hoặc nạp lại bytecode trong layer cũ. Muốn thử phiên bản plugin mới, thường phải tạo configuration/layer mới với class loader phù hợp.
+`ServiceLoader.reload()` only clears that loader's provider cache; it does not modify the module graph or reload bytecode in an existing layer. To test a new plugin version, you usually must create a new configuration/layer with an appropriate class loader.
 
-Việc giải phóng tham chiếu có thể tạo điều kiện cho garbage collection, nhưng không nên viết test giả định lớp/plugin chắc chắn được unload ngay tại một thời điểm cụ thể. Dừng thread và đóng các tài nguyên do plugin sở hữu trước khi kết thúc fixture.
+Releasing references facilitates garbage collection, yet never write tests assuming classes/plugins are guaranteed to be unloaded at a specific moment. Stop threads and close plugin-owned resources before ending the fixture.
 
-Khi chạy nhiều test song song, dùng thư mục output/fixture độc lập để tránh test này sửa JAR hoặc xóa resource khi test khác đang tạo layer.
+When running multiple tests in parallel, use isolated output/fixture directories so one test does not overwrite JARs or delete resources while another test builds a layer.
 
-## 20. Ma trận kiểm thử đề xuất
+## 20. Recommended Test Matrix
 
-| Test case | Kiểm tra chính | Kết quả kỳ vọng |
+| Test Case | Primary Check | Expected Outcome |
 |---|---|---|
-| Load plugin hợp lệ | Finder, resolution, definition | Child layer được tạo |
-| Module ownership | `layer.modules()` và `getLayer()` | Plugin thuộc child layer |
-| Parent visibility | `findModule` và `parents()` | Shared API tìm thấy từ parent |
-| API identity | Đối chiếu object `Module` | API parent không bị nhân bản |
-| Readability/export | `canRead` và `isExported` | Quyền truy cập contract đúng |
-| Provider discovery | `ServiceLoader.load(layer, service)` | Provider đúng layer, hành vi đúng |
-| Class loader mapping | `findLoader` và `Class.getClassLoader` | Loader đúng chiến lược |
-| Missing module | `resolve` với tên không tồn tại | `FindException` |
-| Invalid graph | Fixture xung đột | Resolution/definition thất bại đúng giai đoạn |
-| Multiple providers | So sánh tập provider | Đủ provider, không phụ thuộc thứ tự |
-| Resource loading | Template/config trong plugin artifact | Resource đọc được |
-| Two independent layers | Hai lần định nghĩa plugin | Module/loader identity tách biệt |
-| Packaged modular JAR | Chạy với artifact đóng gói | Cùng kết quả như exploded module |
-| Plugin lifecycle | Dọn thread/registry/service | Không để lại resource giữ test process |
+| Load valid plugin | Finder, resolution, definition | Child layer is created |
+| Module ownership | `layer.modules()` and `getLayer()` | Plugin belongs to child layer |
+| Parent visibility | `findModule` and `parents()` | Shared API found via parent |
+| API identity | Compare `Module` objects | Parent API is not duplicated |
+| Readability/export | `canRead` and `isExported` | Contract access rights are accurate |
+| Provider discovery | `ServiceLoader.load(layer, service)` | Provider in right layer, right behavior |
+| Class loader mapping | `findLoader` and `Class.getClassLoader` | Loader matches strategy |
+| Missing module | `resolve` with non-existent name | `FindException` |
+| Invalid graph | Conflicting fixture | Resolution/definition fails at right stage |
+| Multiple providers | Compare provider set | All expected providers, order-independent |
+| Resource loading | Templates/configs in plugin artifact | Resources are readable |
+| Two independent layers | Define plugin twice | Module/loader identities are separate |
+| Packaged modular JAR | Run with packaged artifacts | Same results as exploded modules |
+| Plugin lifecycle | Clean up threads/registries/services | No leaked resources pinning the test process |
 
-## 21. Quy trình chẩn đoán khi test thất bại
+## 21. Diagnostic Workflow When Tests Fail
 
-Khi test không đạt, xử lý theo thứ tự:
+When a test fails, investigate in order:
 
-1. **Kiểm tra module path:** API và host có ở boot path; plugin có đúng trong plugin finder path không?
-2. **Kiểm tra descriptor:** dùng `jar --describe-module`; đúng tên module, `requires`, `provides` và service type?
-3. **Kiểm tra resolution:** `configuration.findModule(name)` có kết quả; có dependency thiếu không?
-4. **Kiểm tra definition:** `defineModulesWithOneLoader` hoặc chiến lược khác có lỗi loader/package conflict không?
-5. **Kiểm tra parent:** shared API module có phải cùng instance với boot layer không?
-6. **Kiểm tra quyền:** plugin có đọc API và API có export package cho plugin không?
-7. **Kiểm tra service discovery:** caller named module có `uses`; provider có `provides` và đúng layer không?
-8. **Kiểm tra class loader:** TCCL, `findLoader` và class identity có đúng với thiết kế không?
-9. **Kiểm tra resource:** plugin JAR/output có đủ resource và dependency runtime không?
-10. **Kiểm tra lifecycle:** cache/provider/thread từ test trước có ảnh hưởng test sau không?
+1. **Check module path:** are API and host on the boot path; is the plugin in the plugin finder path?
+2. **Check descriptor:** use `jar --describe-module`; are module name, `requires`, `provides`, and service type right?
+3. **Check resolution:** does `configuration.findModule(name)` return a match; are any dependencies missing?
+4. **Check definition:** did `defineModulesWithOneLoader` or another strategy hit loader/package conflicts?
+5. **Check parent:** is the shared API module the exact same instance as in the boot layer?
+6. **Check permissions:** can the plugin read the API and does the API export the package to the plugin?
+7. **Check service discovery:** does the caller named module have `uses`; does the provider have `provides` in the right layer?
+8. **Check class loader:** do TCCL, `findLoader`, and class identity match the design?
+9. **Check resources:** does the plugin JAR/output contain all resources and runtime dependencies?
+10. **Check lifecycle:** are caches/providers/threads from a prior test affecting the current test?
 
-Một lỗi provider không được tìm thấy chưa chắc là lỗi `ModuleFinder`: module có thể đã được định nghĩa đúng nhưng `ServiceLoader` được gọi sai overload hoặc metadata service không khớp. Tương tự, một plugin class có thể nạp được nhưng việc truy cập từ host vẫn bị cản bởi package không export; điều đó có thể là hành vi encapsulation đúng.
+A provider-not-found error is not necessarily a `ModuleFinder` error: the module may have been defined properly while `ServiceLoader` was called with the wrong overload or mismatched service metadata. Similarly, a plugin class might load yet remain inaccessible from the host due to an unexported package; that may be intended encapsulation behavior.
 
-## 22. Ghi nhớ
+## 22. Takeaways
 
-Để test custom `ModuleLayer` đáng tin cậy, hãy kiểm tra **cả ba giai đoạn discovery → resolution → definition**, sau đó xác nhận runtime ownership, parent visibility, module identity, class loader mapping và service provider behavior. Đặt service API dùng chung ở parent layer; giữ implementation trong module plugin ở child layer và khám phá qua `ServiceLoader.load(layer, service)`.
+To test a custom `ModuleLayer` reliably, verify **all three stages: discovery → resolution → definition**, then confirm runtime ownership, parent visibility, module identity, class loader mapping, and service provider behavior. Keep the shared service API in the parent layer, keep implementations in plugin modules in child layers, and discover them via `ServiceLoader.load(layer, service)`.
 
-`layer.modules()` chỉ kể module trực tiếp thuộc layer, còn `findModule()` tìm cả parent. Test `resolve` khác `resolveAndBind`, đừng nhầm provider đã là root với provider được service binding kéo vào. Dùng negative fixture cho module thiếu và graph xung đột; chạy test trên cả exploded output và modular JAR thật.
+`layer.modules()` counts only modules directly belonging to the layer, whereas `findModule()` also searches parents. Test `resolve` separately from `resolveAndBind`, and do not confuse a root provider with a provider pulled in via service binding. Use negative fixtures for missing modules and conflicting graphs; run tests on both exploded outputs and real modular JARs.
 
-Custom layer không phải sandbox bảo mật, không tự reload/unload plugin và không tự sửa các ranh giới readability, exports hoặc opens. Một bộ kiểm thử có giá trị là bộ test xác nhận rõ **module nào được định nghĩa ở đâu, provider nào được chạy, lỗi nào được phát hiện ở giai đoạn nào và cấu hình triển khai có thể tái tạo được**.
+A custom layer is not a security sandbox, does not automatically reload/unload plugins, and does not override readability, exports, or opens boundaries. A valuable test suite clearly confirms **which module is defined where, which provider runs, which error is caught at which stage, and that the deployment configuration is reproducible**.

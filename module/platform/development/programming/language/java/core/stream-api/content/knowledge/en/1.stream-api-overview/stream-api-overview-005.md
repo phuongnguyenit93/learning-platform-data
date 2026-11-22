@@ -1,14 +1,14 @@
-# Lựa chọn giữa vòng lặp và Stream theo bài toán
+# Choosing Between Loops and Streams Based on the Problem
 
-Java Stream API giúp mô tả cách **biến đổi, lọc và tổng hợp dữ liệu** theo một pipeline khai báo. Vòng lặp `for` hoặc `while` cho phép điều khiển trực tiếp từng bước thực thi. Cả hai đều là công cụ phù hợp trong Java; cách chọn tốt nhất phụ thuộc vào **bài toán, mức độ thay đổi trạng thái, yêu cầu về thứ tự và cách đo hiệu năng**.
+The Java Stream API helps describe how to **transform, filter, and aggregate data** in a declarative pipeline. A `for` or `while` loop allows direct control over every execution step. Both are appropriate tools in Java; the best choice depends on **the problem, the extent of state mutation, ordering requirements, and performance measurement**.
 
-Trong chủ đề tổng quan Stream API này, mục tiêu là biết khi nào nên viết pipeline `filter → map → reduce/collect`, khi nào nên giữ vòng lặp và cách đánh giá lựa chọn bằng các tiêu chí cụ thể. Các kỹ thuật như `groupingBy`, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers mở rộng khả năng của Stream nhưng không khiến Stream mặc nhiên tốt hơn vòng lặp.
+In this Stream API overview topic, the goal is to know when to write a `filter → map → reduce/collect` pipeline, when to keep a loop, and how to evaluate the choice using concrete criteria. Techniques such as `groupingBy`, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers expand what Streams can do, yet do not make Streams inherently better than loops.
 
-## 1. Hai cách diễn đạt cùng một phép xử lý
+## 1. Two ways to express the same processing
 
-Giả sử ứng dụng thương mại điện tử cần lấy mã của các đơn hàng **đã thanh toán** và có giá trị **từ 1.000.000 VND** trở lên, giữ nguyên thứ tự trong danh sách gốc.
+Suppose an e-commerce application needs the IDs of orders that are **paid** and have a value of **1,000,000 VND or more**, preserving their original order in the list.
 
-Ví dụ hoàn chỉnh dưới đây dùng Java 17 trở lên (vì có `record` và `Stream.toList()`):
+The complete example below uses Java 17 or later (because of `record` and `Stream.toList()`):
 
 ```java
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class LoopVsStream {
             new Order("O-04", "C-03", 1_200_000, true)
         );
 
-        // Cách 1: vòng lặp - mô tả từng bước xử lý.
+        // Approach 1: loop - describe each processing step.
         List<String> idsByLoop = new ArrayList<>();
         for (Order order : orders) {
             if (order.paid() && order.totalVnd() >= 1_000_000) {
@@ -33,7 +33,7 @@ public class LoopVsStream {
             }
         }
 
-        // Cách 2: Stream - mô tả chuỗi phép biến đổi.
+        // Approach 2: Stream - describe the chain of transformations.
         List<String> idsByStream = orders.stream()
             .filter(Order::paid)
             .filter(order -> order.totalVnd() >= 1_000_000)
@@ -47,59 +47,59 @@ public class LoopVsStream {
 }
 ```
 
-Ở cách dùng vòng lặp, lập trình viên chủ động kiểm tra điều kiện và thêm từng phần tử vào danh sách kết quả. Ở cách dùng Stream, các thao tác diễn đạt ý định: **lọc đơn phù hợp → lấy mã đơn → tạo danh sách**. Với nguồn `List` có thứ tự và pipeline tuần tự như ví dụ, hai cách cho kết quả có cùng thứ tự.
+In the loop approach, the developer actively checks the condition and adds each element to a result list. In the Stream approach, the operations express the intent: **filter matching orders → extract order IDs → build a list**. With an ordered `List` source and a sequential pipeline as shown, both approaches produce results in the same order.
 
-Điểm khác biệt quan trọng nằm ở **mô hình xử lý**, không phải khả năng giải bài toán. Vòng lặp phù hợp với luồng điều khiển phức tạp; Stream thường rõ nghĩa hơn khi công việc là chuỗi thao tác trên dữ liệu.
+The important difference lies in the **processing model**, not the ability to solve the problem. Loops suit complex control flow; Streams are often clearer when the task is a chain of operations over data.
 
-## 2. Hiểu pipeline trước khi quyết định
+## 2. Understand the pipeline before deciding
 
-Một pipeline Stream gồm ba phần:
+A Stream pipeline consists of three parts:
 
-1. **Nguồn dữ liệu**: `list.stream()`, `Arrays.stream(array)`, `Files.lines(path)`,…
-2. **Thao tác trung gian**: `filter`, `map`, `flatMap`, `distinct`, `sorted`,… trả về một Stream mới; phần lớn được đánh giá *lazy*.
-3. **Thao tác kết thúc**: `toList`, `collect`, `count`, `sum` (trên primitive stream), `reduce`, `findFirst`, `anyMatch`, `forEach`,… kích hoạt quá trình xử lý.
+1. **Data source**: `list.stream()`, `Arrays.stream(array)`, `Files.lines(path)`, ...
+2. **Intermediate operations**: `filter`, `map`, `flatMap`, `distinct`, `sorted`, ... return a new Stream; most are evaluated *lazy*.
+3. **Terminal operation**: `toList`, `collect`, `count`, `sum` (on primitive streams), `reduce`, `findFirst`, `anyMatch`, `forEach`, ... triggers the processing.
 
 ```text
-Nguồn                 Trung gian (lazy)                   Kết thúc
+Source                Intermediate (lazy)                 Terminal
 List<Order>  ──>  filter(paid) ──> mapToLong(totalVnd)  ──>  sum()
                          │                │                  │
-                   chọn phần tử      đổi kiểu dữ liệu    tính kết quả
+                  select elements   change data type   compute result
 ```
 
-Ví dụ chỉ tạo pipeline mà **chưa chạy phép lọc**:
+Example of only constructing a pipeline without **running the filter yet**:
 
 ```java
 var pipeline = orders.stream()
     .filter(Order::paid)
     .map(Order::id);
 
-// Chưa có terminal operation nên các phần tử chưa được xử lý bởi filter/map.
-List<String> paidIds = pipeline.toList(); // Bây giờ pipeline được tiêu thụ.
+// No terminal operation yet, so elements have not been processed by filter/map.
+List<String> paidIds = pipeline.toList(); // Now the pipeline is consumed.
 ```
 
-Mỗi Stream chỉ được sử dụng cho một lần tiêu thụ; muốn chạy một phép xử lý khác, hãy tạo Stream mới từ nguồn. Với các thao tác như `sorted` hoặc `distinct`, Stream có thể cần lưu trạng thái/buffer nội bộ. “Lazy” không có nghĩa là luôn dùng bộ nhớ hằng số hoặc lúc nào cũng xử lý một phần tử trọn vẹn rồi mới đến phần tử kế tiếp.
+Each Stream can be used for only a single consumption; to run another operation, create a new Stream from the source. With operations such as `sorted` or `distinct`, a Stream may need to store internal state/buffers. "Lazy" does not mean always using constant memory or always finishing one element completely before moving to the next.
 
-## 3. Ma trận lựa chọn theo bài toán
+## 3. Problem-based decision matrix
 
-| Dấu hiệu của bài toán | Thường ưu tiên | Lý do |
+| Problem indicator | Usually preferred | Reason |
 | --- | --- | --- |
-| Lọc, ánh xạ, chuyển đổi một tập phần tử thành kết quả mới | **Stream** | Pipeline thể hiện rõ `filter`, `map`, `collect` hoặc `toList`. |
-| Đếm, tìm giá trị phù hợp, tổng hợp theo một phép toán có sẵn | **Stream hoặc vòng lặp** | `count`, `anyMatch`, `mapToLong().sum()` và `reduce` diễn đạt ngắn gọn; vòng lặp cũng rất rõ với phép tính đơn giản. |
-| Nhóm dữ liệu, thống kê theo khóa | **Stream** khi `groupingBy` rõ nghĩa | Collector gói phép gom nhóm; nếu chính sách cập nhật trạng thái phức tạp, vòng lặp có thể dễ hiểu hơn. |
-| Cần chỉ số phần tử, chỉnh sửa trực tiếp mảng/danh sách, hoặc phối hợp nhiều phép gán | **Vòng lặp** | Điều khiển chỉ số và các bước thay đổi trạng thái là phần chính của bài toán. |
-| Cần `break` / `continue` / `return` ở nhiều nhánh hoặc dừng sau nhiều hành động | **Vòng lặp** | Luồng điều khiển tường minh; nếu chỉ “có tồn tại?” hay “lấy phần tử đầu tiên?”, `anyMatch`/`findFirst` cũng phù hợp. |
-| Tính toán phụ thuộc vào kết quả của phần tử trước (số dư chạy, máy trạng thái) | **Vòng lặp** trong trường hợp cơ bản | Trạng thái tuần tự có thể rõ ràng hơn vòng lặp; các cách xử lý Stream nâng cao cần được cân nhắc riêng. |
-| Xử lý nguồn có tài nguyên cần đóng, như `Files.lines` | **Cả hai**, quản lý tài nguyên đúng cách | Khi dùng Stream gắn với tệp, phải đóng bằng `try-with-resources`. |
-| Đường chạy rất nóng, dữ liệu cực lớn, nhạy với cấp phát/boxing | **Đo đạc trước khi quyết định** | Overhead Stream có thể đáng kể, nhưng tối ưu thực tế còn tùy JVM, nguồn dữ liệu, phép tính và cách viết. |
-| Tính toán CPU độc lập trên lượng dữ liệu đủ lớn | **Cân nhắc parallel Stream** sau đo đạc | Parallelism có overhead và ràng buộc về trạng thái, thứ tự, môi trường thực thi. |
+| Filtering, mapping, transforming a set of elements into a new result | **Stream** | The pipeline clearly expresses `filter`, `map`, `collect`, or `toList`. |
+| Counting, finding matching values, aggregating with a built-in operation | **Stream or loop** | `count`, `anyMatch`, `mapToLong().sum()`, and `reduce` are concise; a loop is also very clear for simple math. |
+| Grouping data, computing statistics by key | **Stream** when `groupingBy` is clear | Collectors encapsulate grouping; if state-update policies are complex, a loop can be easier to read. |
+| Needing element indices, mutating an array/list in place, or coordinating multiple assignments | **Loop** | Index control and state-mutating steps are the core of the problem. |
+| Needing `break` / `continue` / `return` across multiple branches or stopping after multiple actions | **Loop** | Explicit control flow; if only checking "does one exist?" or "get the first one?", `anyMatch`/`findFirst` also fit well. |
+| Computation depending on previous elements' results (running balance, state machine) | **Loop** in basic cases | Sequential state can be clearer in a loop; advanced Stream approaches must be evaluated separately. |
+| Processing a source with resources that must be closed, such as `Files.lines` | **Both**, with proper resource management | When using a file-backed Stream, it must be closed with `try-with-resources`. |
+| Very hot paths, huge datasets, sensitive to allocation/boxing | **Measure before deciding** | Stream overhead can matter, though real optimization also depends on JVM, data source, operations, and style. |
+| Independent CPU-bound computation on sufficiently large data | **Consider parallel Stream** after benchmarking | Parallelism carries overhead and constraints on state, ordering, and execution environment. |
 
-Ma trận là điểm khởi đầu, không phải quy tắc bắt buộc. Nếu một pipeline Stream phải dùng nhiều thủ thuật để mô phỏng `break` hoặc cập nhật biến ngoài, vòng lặp thường diễn đạt ý định tốt hơn.
+The matrix is a starting point, not a rigid rule. If a Stream pipeline has to rely on tricks to simulate `break` or update external variables, a loop usually expresses the intent better.
 
-## 4. Các tình huống điển hình
+## 4. Typical scenarios
 
-### 4.1. Lọc, biến đổi và trả về một tập kết quả: Stream thường dễ đọc
+### 4.1. Filter, transform, and return a result set: Streams are often readable
 
-Từ danh sách `orders` ở ví dụ đầu, tính tổng tiền của các đơn đã thanh toán:
+From the `orders` list in the first example, compute the total amount of paid orders:
 
 ```java
 long totalPaidVnd = orders.stream()
@@ -108,7 +108,7 @@ long totalPaidVnd = orders.stream()
     .sum();
 ```
 
-Ở đây `mapToLong` tạo `LongStream` để tính tổng trực tiếp với kiểu nguyên thủy `long`, tránh tạo nhiều đối tượng `Long` như khi đưa dữ liệu qua `Stream<Long>`. Vòng lặp vẫn là lựa chọn tốt nếu phép tổng hợp chỉ có một điều kiện ngắn:
+Here `mapToLong` creates a `LongStream` to sum directly with primitive `long`, avoiding allocating many `Long` objects as would happen through `Stream<Long>`. A loop is still a good choice if the aggregation has only one short condition:
 
 ```java
 long totalPaidVnd = 0L;
@@ -119,26 +119,26 @@ for (Order order : orders) {
 }
 ```
 
-Hai đoạn cùng mô tả một phép cộng các giá trị thỏa điều kiện. Hãy chọn cách mà nhóm phát triển đọc nhanh và sửa ít sai sót hơn. Nếu dữ liệu tiền tệ yêu cầu phần thập phân hoặc giá trị có thể vượt giới hạn `long`, cần chọn mô hình số phù hợp (ví dụ `BigDecimal`) thay vì phụ thuộc vào cú pháp Stream.
+Both snippets describe the same conditional sum. Choose the style your team reads faster and modifies with fewer bugs. If monetary data requires decimal fractions or values that could exceed `long` limits, choose an appropriate numeric model (such as `BigDecimal`) rather than relying on Stream syntax.
 
-### 4.2. Tìm kiếm và dừng sớm: xét rõ điều kiện dừng
+### 4.2. Searching and short-circuiting: examine stopping conditions clearly
 
-Nếu chỉ cần biết **có đơn chưa thanh toán hay không**, `anyMatch` vừa ngắn vừa có thể dừng ngay khi gặp phần tử phù hợp:
+If you only need to know **whether there is any unpaid order**, `anyMatch` is both short and able to stop immediately upon finding a match:
 
 ```java
 boolean hasUnpaidOrder = orders.stream()
     .anyMatch(order -> !order.paid());
 ```
 
-Nếu cần lấy **đơn chưa thanh toán đầu tiên theo thứ tự danh sách**:
+If you need **the first unpaid order according to list order**:
 
 ```java
 var firstUnpaid = orders.stream()
     .filter(order -> !order.paid())
-    .findFirst(); // Optional<Order>; có thể rỗng.
+    .findFirst(); // Optional<Order>; may be empty.
 ```
 
-Vòng lặp cũng hỗ trợ dừng sớm:
+A loop also supports early stopping:
 
 ```java
 Order firstUnpaid = null;
@@ -150,13 +150,13 @@ for (Order order : orders) {
 }
 ```
 
-Khi việc dừng sớm còn phải cập nhật nhiều biến, gọi nhiều thao tác có điều kiện hoặc báo lỗi tùy vị trí, vòng lặp thường dễ kiểm tra hơn. Đừng thay `break` bằng `forEach` rồi dựa vào cờ thay đổi bên ngoài lambda; `forEach` không cung cấp cơ chế `break` như vòng lặp.
+When early stopping also involves updating multiple variables, calling multiple conditional actions, or reporting errors depending on position, a loop is usually easier to reason about. Do not replace `break` with `forEach` relying on a mutable flag outside the lambda; `forEach` does not provide a `break` mechanism like a loop.
 
-Với nguồn Stream **có thứ tự**, `findFirst` tôn trọng phần tử đầu tiên theo thứ tự gặp. `findAny` không cam kết chọn phần tử đầu tiên, đặc biệt khi chạy song song.
+For an **ordered** Stream source, `findFirst` respects the first element in encounter order. `findAny` does not commit to picking the first element, especially when running in parallel.
 
-### 4.3. Gom nhóm và thống kê: Stream giúp tập trung vào kết quả
+### 4.3. Grouping and statistics: Streams keep focus on the result
 
-Ví dụ đếm số đơn hàng theo khách hàng:
+Example of counting orders by customer:
 
 ```java
 import java.util.Map;
@@ -169,7 +169,7 @@ Map<String, Long> numberOfOrdersByCustomer = orders.stream()
     ));
 ```
 
-Nếu chỉ cần nhóm phần tử, `groupingBy(Order::customerId)` tạo map từ mã khách hàng đến danh sách đơn. Nếu cần cách gom đặc biệt, có thể cân nhắc các collector tích hợp khác hoặc **collector tùy chỉnh**. Tuy nhiên, một vòng lặp với `Map.merge` đôi khi ngắn và rõ hơn khi chỉ đếm:
+If you only need to group elements, `groupingBy(Order::customerId)` builds a map from customer ID to list of orders. For specialized aggregations, you can consider other built-in collectors or a **custom collector**. However, a loop with `Map.merge` is sometimes shorter and clearer when only counting:
 
 ```java
 Map<String, Long> counts = new java.util.HashMap<>();
@@ -178,11 +178,11 @@ for (Order order : orders) {
 }
 ```
 
-Thứ tự duyệt các khóa của `HashMap` và map do `groupingBy` mặc định trả về **không được bảo đảm**. Nếu kết quả có ràng buộc thứ tự, phải thể hiện ràng buộc đó một cách tường minh.
+Key iteration order for `HashMap` and the map returned by `groupingBy` by default is **not guaranteed**. If the output has ordering constraints, express those constraints explicitly.
 
-### 4.4. Trạng thái phụ thuộc phần tử trước: vòng lặp thường tự nhiên hơn
+### 4.4. State depending on previous elements: loops are usually more natural
 
-Hệ thống ví điện tử nhận các biến động số dư `[+100, -25, +40]` và cần trả về **số dư sau từng giao dịch**, lần lượt là `[100, 75, 115]`.
+An e-wallet system receives balance changes `[+100, -25, +40]` and must return **the running balance after each transaction**, yielding `[100, 75, 115]`.
 
 ```java
 List<Integer> changes = List.of(100, -25, 40);
@@ -197,13 +197,13 @@ for (int change : changes) {
 System.out.println(runningBalances); // [100, 75, 115]
 ```
 
-`reduce(0, Integer::sum)` chỉ cho ra **tổng cuối cùng** (`115`), không tạo ra các số dư trung gian. Cố ép phép quét có trạng thái này vào `map` bằng biến có thể thay đổi bên ngoài lambda dễ gây khó đọc và làm pipeline mất tính an toàn khi song song.
+`reduce(0, Integer::sum)` produces only the **final total** (`115`), not the intermediate balances. Forcing this stateful scan into `map` using a mutable variable outside the lambda harms readability and breaks parallel safety.
 
-Nếu dự án thực sự cần một pipeline quét trạng thái, có thể tìm hiểu Stream Gatherers (trên các phiên bản JDK hỗ trợ) và đánh giá độ phức tạp so với vòng lặp. Với bài toán nhỏ như trên, vòng lặp có lợi thế rõ rệt.
+If the project genuinely needs a stateful scan pipeline, you can explore Stream Gatherers (on supported JDK versions) and weigh the complexity against a loop. For a small problem like the one above, a loop has a clear advantage.
 
-### 4.5. Làm việc với chỉ số và sửa dữ liệu tại chỗ: ưu tiên vòng lặp
+### 4.5. Working with indices and mutating data in place: prefer loops
 
-Một ví dụ tính toán tại chỗ trên mảng, trong đó **vị trí** là một phần của yêu cầu:
+An example of in-place computation on an array, where **index position** is part of the requirement:
 
 ```java
 int[] scores = {10, 20, 30};
@@ -212,7 +212,7 @@ for (int i = 0; i < scores.length; i++) {
 }
 ```
 
-`IntStream.range(0, scores.length)` cũng có thể biểu diễn chỉ số, nhưng nếu toàn bộ mục tiêu là sửa từng vị trí của cùng mảng thì vòng lặp thường ngắn và trực tiếp hơn. Với dữ liệu cần biến đổi thành **mảng mới**, Stream có thể phù hợp:
+`IntStream.range(0, scores.length)` can also represent indices, but if the entire goal is to modify each position of the same array, a loop is usually shorter and more direct. When transforming data into a **new array**, a Stream can fit well:
 
 ```java
 int[] doubled = java.util.Arrays.stream(scores)
@@ -220,9 +220,9 @@ int[] doubled = java.util.Arrays.stream(scores)
     .toArray();
 ```
 
-### 4.6. Dữ liệu từ tệp: cân nhắc quản lý tài nguyên và bộ nhớ
+### 4.6. Data from files: consider resource management and memory
 
-`Files.lines` cung cấp Stream đọc các dòng tệp. Nó có tài nguyên I/O nên cần được đóng, kể cả khi pipeline ném ngoại lệ:
+`Files.lines` provides a Stream that reads file lines. It holds an I/O resource and therefore must be closed, even if the pipeline throws an exception:
 
 ```java
 import java.io.IOException;
@@ -239,12 +239,12 @@ try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
 
     System.out.println(nonEmptyLineCount);
 }
-// Bối cảnh chứa đoạn mã cần xử lý hoặc khai báo throws IOException.
+// Context containing this snippet must handle or declare throws IOException.
 ```
 
-Chỉ nên `toList()` khi thật sự cần giữ các dòng trong bộ nhớ. Nếu cần xử lý từng dòng và ghi kết quả dần ra ngoài, vòng lặp với `BufferedReader` có thể giúp diễn đạt việc đọc, ghi, xử lý lỗi và dừng sớm rõ ràng hơn.
+Only call `toList()` when you actually need to retain the lines in memory. If you need to process line by line and stream output progressively elsewhere, a loop with `BufferedReader` can express reading, writing, error handling, and early stopping more clearly.
 
-Lưu ý: `Stream.toList()` tạo danh sách **không cho phép sửa** (gọi `add` sẽ ném `UnsupportedOperationException`). Khi cần danh sách có thể thay đổi, hãy thể hiện yêu cầu đó tường minh:
+Note: `Stream.toList()` creates an **unmodifiable** list (calling `add` throws `UnsupportedOperationException`). When a mutable list is needed, state that requirement explicitly:
 
 ```java
 List<String> mutableIds = orders.stream()
@@ -252,26 +252,26 @@ List<String> mutableIds = orders.stream()
     .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
 ```
 
-## 5. Hiệu năng: đánh giá chi phí thật, không suy đoán từ cú pháp
+## 5. Performance: evaluate real cost, do not guess from syntax
 
-Không thể kết luận “Stream luôn chậm” hoặc “Stream luôn nhanh”. Cùng một phép toán, kết quả phụ thuộc dữ liệu đầu vào, JDK/JVM, độ nóng của đoạn mã, tối ưu JIT, số lần cấp phát, kiểu phần tử và cấu trúc pipeline.
+You cannot conclude "Streams are always slow" or "Streams are always fast". For the same operation, results depend on input data, JDK/JVM, code hotness, JIT optimizations, allocations, element types, and pipeline structure.
 
-Khi hiệu năng quan trọng, hãy xem xét:
+When performance matters, consider:
 
-- **Chi phí tạo pipeline và lời gọi lambda:** có thể đáng kể với phép tính rất nhỏ được lặp đi lặp lại trong đường chạy nóng.
-- **Boxing/unboxing:** `Stream<Integer>` có thể tạo chi phí đối tượng; với các phép tính số học, cân nhắc `IntStream`, `LongStream`, `DoubleStream`.
-- **Thao tác có trạng thái:** `sorted` hoặc `distinct` có thể cần thêm bộ nhớ; `sorted` thường phải thu thập nhiều phần tử trước khi tạo kết quả.
-- **Thu thập dữ liệu:** `toList` lưu kết quả vào bộ nhớ, trong khi vòng lặp hoặc pipeline xử lý từng kết quả có thể giảm bộ nhớ lưu trữ tùy bài toán.
-- **Dừng sớm:** `findFirst`, `anyMatch`, `limit` có thể giảm phần tử phải đọc; hiệu quả còn tùy thứ tự thao tác và nguồn.
-- **I/O, mạng và cơ sở dữ liệu:** thời gian chờ bên ngoài thường lớn hơn chênh lệch cú pháp giữa vòng lặp và Stream.
+- **Pipeline creation and lambda invocation overhead:** can be noticeable for tiny operations repeated inside a hot path.
+- **Boxing/unboxing:** `Stream<Integer>` can incur object allocation overhead; for numeric computations, consider `IntStream`, `LongStream`, `DoubleStream`.
+- **Stateful operations:** `sorted` or `distinct` may require extra memory; `sorted` typically has to collect many elements before producing output.
+- **Collecting data:** `toList` retains results in memory, whereas a loop or streaming output can reduce stored memory depending on the problem.
+- **Short-circuiting:** `findFirst`, `anyMatch`, `limit` can reduce elements read; actual effectiveness also depends on operation order and source.
+- **I/O, network, and database:** external wait times usually dwarf syntactic differences between a loop and a Stream.
 
-Khi cần quyết định cho đường chạy quan trọng, hãy viết hai phiên bản **cùng ngữ nghĩa**, dùng dữ liệu đại diện và đo bằng công cụ thích hợp như **JMH** sau khi JVM đã warm-up. Không đo bằng một lần gọi `System.nanoTime()` rồi khái quát cho mọi trường hợp. Đặc biệt, xác minh hai phiên bản cùng xử lý dữ liệu, cùng thứ tự nếu thứ tự là yêu cầu, và không bỏ qua công việc để làm benchmark trông nhanh hơn.
+When deciding for a critical path, write two **semantically equivalent** versions, use representative data, and benchmark with a proper tool like **JMH** after JVM warm-up. Do not measure with a single `System.nanoTime()` call and generalize to all cases. In particular, verify that both versions process the same data, preserve the same order if order is required, and do not skip work that makes a benchmark look artificially fast.
 
-### Có nên gọi `parallelStream()`?
+### Should you call `parallelStream()`?
 
-Parallel Stream có thể có lợi khi số phần tử đủ lớn, mỗi phép xử lý tương đối nặng, độc lập, không có tác dụng phụ và có khả năng chia việc hiệu quả. Nó **không tự động nhanh hơn** Stream tuần tự hoặc vòng lặp. Chi phí chia/ghép, đồng bộ, tính thứ tự và việc dùng tài nguyên CPU chung có thể khiến kết quả tệ hơn.
+Parallel Streams can help when the element count is large enough, per-element work is relatively heavy, independent, side-effect-free, and the source splits efficiently. They are **not automatically faster** than sequential Streams or loops. Splitting/merging, synchronization, ordering overhead, and shared CPU contention can make results worse.
 
-Ví dụ sau chỉ minh họa một phép tổng hợp có thể song song hóa về mặt ngữ nghĩa:
+The following example only illustrates an aggregation that is semantically parallelizable:
 
 ```java
 long totalPaid = orders.parallelStream()
@@ -280,56 +280,56 @@ long totalPaid = orders.parallelStream()
     .sum();
 ```
 
-Với vài đơn hàng như ví dụ, không có lý do thực tiễn để dùng song song. Không sử dụng `parallelStream().forEach(...)` để cùng thêm phần tử vào một `ArrayList` được chia sẻ: hành vi cập nhật đồng thời đó không an toàn. Nếu phải xử lý song song, hãy ưu tiên các phép giảm/collector phù hợp và kiểm tra yêu cầu về thứ tự. Khi cần kiểm soát tách dữ liệu, `Spliterator` là một khái niệm liên quan nhưng không phải giải pháp mặc định cho các pipeline thông thường.
+With just a few orders like in the example, there is no practical reason to use parallelism. Never use `parallelStream().forEach(...)` to concurrently add elements to a shared `ArrayList`: that concurrent mutation is unsafe. If you must run in parallel, prefer proper reductions/collectors and verify ordering requirements. When fine control over data splitting is needed, `Spliterator` is a related concept, though not the default solution for ordinary pipelines.
 
-## 6. Các lỗi dễ xảy ra khi đổi vòng lặp sang Stream
+## 6. Common mistakes when converting loops to Streams
 
-| Biểu hiện | Vì sao có vấn đề | Cách làm phù hợp |
+| Symptom | Why it is a problem | Better approach |
 | --- | --- | --- |
-| `stream().filter(...).map(...);` mà không có terminal operation | Pipeline trung gian chưa được tiêu thụ | Thêm `toList`, `collect`, `count`, `forEach` hoặc terminal phù hợp. |
-| `stream.forEach(x -> result.add(transform(x)))` | Thay đổi danh sách ngoài lambda che giấu ý định; không an toàn nếu chạy song song | Dùng `map(...).toList()` khi cần tập kết quả mới. |
-| Thay mọi vòng lặp bằng Stream dù cần `break` và nhiều bước cập nhật | Luồng điều khiển trở nên vòng vèo | Giữ vòng lặp nếu thao tác điều khiển là yêu cầu chính. |
-| Dùng `peek` để thực hiện nghiệp vụ | `peek` thiên về quan sát/debug; một số tối ưu có thể bỏ qua việc gọi ở pipeline nhất định | Đưa biến đổi vào `map`, dùng terminal phù hợp hoặc vòng lặp có tác dụng phụ tường minh. |
-| Gọi hai terminal operation trên cùng một Stream | Stream chỉ tiêu thụ một lần | Tạo lại Stream từ nguồn cho phép tính kế tiếp. |
-| Giả định `toList()` trả về danh sách sửa được | Kết quả của `Stream.toList()` không thể thêm/xóa phần tử | Dùng `Collectors.toCollection(ArrayList::new)` nếu cần danh sách mutable. |
-| Bật song song rồi ghi vào biến/tập hợp dùng chung | Có thể xảy ra race condition hoặc kết quả sai | Tránh trạng thái chia sẻ; dùng phép gom/giảm an toàn và đo hiệu năng. |
+| `stream().filter(...).map(...);` with no terminal operation | Intermediate pipeline is never consumed | Add `toList`, `collect`, `count`, `forEach`, or a suitable terminal operation. |
+| `stream.forEach(x -> result.add(transform(x)))` | Mutating an external list inside a lambda obscures intent; unsafe in parallel | Use `map(...).toList()` when a new result collection is needed. |
+| Replacing every loop with a Stream even when `break` and multi-step updates are needed | Control flow becomes convoluted | Keep a loop if imperative control is the main requirement. |
+| Using `peek` to execute business logic | `peek` is intended for observation/debugging; certain optimizations may skip invoking it | Move transformations to `map`, use an appropriate terminal operation, or use a loop with explicit side effects. |
+| Calling two terminal operations on the same Stream | A Stream is consumed once | Recreate a fresh Stream from the source for the next calculation. |
+| Assuming `toList()` returns a mutable list | The list returned by `Stream.toList()` cannot add/remove elements | Use `Collectors.toCollection(ArrayList::new)` if a mutable list is needed. |
+| Enabling parallelism and writing to shared variables/collections | Can cause race conditions or wrong results | Avoid shared state; use safe collect/reduce operations and measure performance. |
 
-Ví dụ về **tác dụng phụ không cần thiết** và cách thay thế:
+Example of **unnecessary side effects** and its replacement:
 
 ```java
-// Khó mở rộng sang xử lý song song, vì cập nhật list ở ngoài pipeline.
+// Hard to scale to parallel processing, because it updates a list outside the pipeline.
 List<String> ids = new ArrayList<>();
 orders.stream()
     .filter(Order::paid)
     .forEach(order -> ids.add(order.id()));
 
-// Biểu diễn đúng dữ liệu đầu ra, không cần thay đổi trạng thái ngoài.
+// Directly expresses the output data, without mutating external state.
 List<String> paidIds = orders.stream()
     .filter(Order::paid)
     .map(Order::id)
     .toList();
 ```
 
-`forEach` không sai khi mục tiêu thực sự là **hành động trên từng phần tử** (chẳng hạn in thông tin); vấn đề là dùng nó để giả lập một phép `map + collect` với trạng thái ngoài. Khi thứ tự hành động là yêu cầu, cần chú ý `forEach` của parallel Stream không bảo đảm thứ tự gặp; `forEachOrdered` có ngữ nghĩa thứ tự khác và có thể làm mất lợi thế song song.
+`forEach` is not wrong when the actual goal is **performing an action per element** (such as printing); the problem is using it to emulate `map + collect` via external state. When action order is required, note that parallel Stream `forEach` does not guarantee encounter order; `forEachOrdered` has different ordering semantics and can negate parallel gains.
 
-## 7. Quy trình quyết định thực tế
+## 7. Practical decision workflow
 
-Để chọn nhanh trong một bài toán mới, đi theo trình tự sau:
+To choose quickly on a new problem, follow this sequence:
 
-1. **Viết rõ đầu vào và đầu ra.** Nếu kết quả là “lọc → biến đổi → trả về tập giá trị” hoặc một phép tổng hợp có sẵn, thử Stream trước.
-2. **Xác định sự phụ thuộc trạng thái và luồng điều khiển.** Nếu phải quản lý chỉ số, trạng thái từ phần tử trước, nhiều nhánh `break`/`continue` hoặc cập nhật tại chỗ, thử vòng lặp trước.
-3. **Kiểm tra ràng buộc thứ tự và tính dừng sớm.** Chọn `findFirst` thay vì `findAny` khi thật sự cần phần tử đầu tiên; dùng `anyMatch` nếu chỉ cần câu trả lời có/không.
-4. **Nhận diện tài nguyên và kích thước dữ liệu.** Đóng Stream có nguồn I/O; tránh thu thập mọi phần tử nếu không cần giữ kết quả.
-5. **So sánh khả năng đọc, tính đúng và hiệu năng tại chỗ.** Chọn cách có ý nghĩa rõ nhất cho nhóm phát triển; chỉ tối ưu đường nóng sau khi đo.
+1. **Write down inputs and outputs clearly.** If the result is "filter → transform → return a set of values" or a standard aggregation, try a Stream first.
+2. **Identify state dependencies and control flow.** If you must manage indices, previous-element state, multiple `break`/`continue` branches, or in-place updates, try a loop first.
+3. **Check ordering and short-circuit constraints.** Choose `findFirst` instead of `findAny` when you genuinely need the first element; use `anyMatch` if you only need a yes/no answer.
+4. **Identify resources and data size.** Close I/O-backed Streams; avoid collecting every element if you do not need to retain them.
+5. **Compare readability, correctness, and local performance.** Pick whichever is clearest for the team; optimize hot paths only after measuring.
 
-Một quy tắc kiểm tra hữu ích: hãy thử mô tả bài toán bằng động từ. Nếu câu mô tả tự nhiên là “**lọc** bản ghi, **ánh xạ** trường, **nhóm** theo khóa, **tính tổng**”, Stream là ứng viên tốt. Nếu câu mô tả là “**duyệt đến khi**, **cập nhật trạng thái**, **quay lại vị trí trước**, **dừng ở nhánh này**”, vòng lặp thường phù hợp hơn.
+A helpful rule of thumb: try describing the problem with verbs. If the natural description is "**filter** records, **map** fields, **group** by key, **sum** totals", Stream is a strong candidate. If the description is "**iterate until**, **update state**, **step back to a prior index**, **stop on this branch**", a loop is usually more fitting.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-check exercises
 
-1. Cho danh sách sinh viên, cần lọc sinh viên đạt điểm từ 8 trở lên rồi lấy danh sách email. Hãy viết cả vòng lặp và Stream, giải thích cách nào thể hiện kết quả rõ hơn.
-2. Cho mảng các giao dịch đã sắp theo thời gian, cần tìm giao dịch lỗi đầu tiên. Hãy so sánh `for + break` với `filter + findFirst`. Điều gì xảy ra khi không có giao dịch lỗi?
-3. Cho dãy thay đổi nhiệt độ, cần tạo dãy **nhiệt độ tích lũy sau mỗi bước**. Vì sao `reduce` không đủ để trả về toàn bộ các giá trị trung gian?
-4. Cho 10 triệu số nguyên, cần tính tổng các số chẵn. Hãy thử vòng lặp, `IntStream` tuần tự và song song bằng một benchmark hợp lý; ghi nhận cả độ đúng, bộ nhớ và chi phí chạy.
-5. Cho tệp log lớn, cần đếm dòng chứa từ khóa. Hãy viết xử lý đóng tài nguyên đúng cách và giải thích tại sao tạo một `List<String>` cho toàn bộ tệp có thể không cần thiết.
+1. Given a list of students, filter students with a score of 8 or higher and extract their email list. Write both a loop and a Stream, and explain which expresses the result more clearly.
+2. Given an array of transactions sorted by time, find the first failed transaction. Compare `for + break` with `filter + findFirst`. What happens when there is no failed transaction?
+3. Given a sequence of temperature changes, produce the sequence of **cumulative temperatures after each step**. Why is `reduce` insufficient to return all intermediate values?
+4. Given 10 million integers, compute the sum of even numbers. Test a loop, sequential `IntStream`, and parallel `IntStream` with a sound benchmark; record correctness, memory, and execution cost.
+5. Given a large log file, count lines containing a keyword. Write proper resource-closing code and explain why creating a `List<String>` of the entire file may be unnecessary.
 
-**Ghi nhớ:** Stream mạnh khi bài toán là **chuỗi biến đổi dữ liệu có thể biểu diễn bằng các phép toán khai báo**. Vòng lặp mạnh khi bài toán đòi hỏi **điều khiển và trạng thái tường minh**. Biết cách chuyển đổi giữa hai cách giúp tận dụng Java Stream API mà vẫn giữ mã nguồn rõ ràng, đúng và dễ bảo trì.
+**Remember:** Streams excel when a problem is **a chain of data transformations expressible with declarative operations**. Loops excel when a problem demands **explicit control flow and state**. Knowing how to switch between the two lets you leverage the Java Stream API while keeping code clear, correct, and maintainable.

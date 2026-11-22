@@ -1,51 +1,51 @@
-# Thực hành: Parse và format cùng một giá trị số theo nhiều Locale trong Java
+# Practice: Parsing and Formatting the Same Numeric Value Across Multiple Locales in Java
 
-Trong hệ thống có người dùng ở nhiều quốc gia, **một giá trị số học có thể được viết thành những chuỗi rất khác nhau**. Ví dụ cùng giá trị một triệu hai trăm ba mươi tư nghìn năm trăm sáu mươi bảy phẩy tám mươi chín:
+In systems with users across multiple countries, **one numeric value can be written as very different strings**. For example, the same value one million two hundred thirty-four thousand five hundred sixty-seven point eight nine:
 
-| Locale | Ví dụ chuỗi hiển thị | Dấu nhóm hàng nghìn | Dấu thập phân |
+| Locale | Example display string | Thousands grouping separator | Decimal separator |
 |---|---|---|---|
-| `en-US` (Mỹ) | `1,234,567.89` | `,` | `.` |
-| `de-DE` (Đức) | `1.234.567,89` | `.` | `,` |
-| `fr-FR` (Pháp) | `1 234 567,89` | khoảng trắng hẹp không ngắt (`U+202F`) trong cấu hình CLDR thông dụng | `,` |
-| `vi-VN` (Việt Nam) | `1.234.567,89` | `.` | `,` |
+| `en-US` (US) | `1,234,567.89` | `,` | `.` |
+| `de-DE` (Germany) | `1.234.567,89` | `.` | `,` |
+| `fr-FR` (France) | `1 234 567,89` | narrow no-break space (`U+202F`) in common CLDR configurations | `,` |
+| `vi-VN` (Vietnam) | `1.234.567,89` | `.` | `,` |
 
-Trong đó, dấu cách của ví dụ Pháp có thể rất khó phân biệt bằng mắt với dấu cách thường. Quy ước locale của nền tảng có thể được cập nhật theo phiên bản dữ liệu CLDR/JDK và cấu hình nhà cung cấp locale. Không nên sao chép cứng một chuỗi được format rồi giả định nó bất biến giữa mọi môi trường.
+Notice that the space in the French example can be very hard to distinguish visually from a regular space. Platform locale conventions can be updated across CLDR/JDK data versions and locale provider configurations. Do not hardcode a formatted string and assume it is invariant across all environments.
 
-**Mục tiêu thực hành:** bắt đầu từ **một** `BigDecimal`, format theo bốn locale, parse ngược bằng đúng locale, so sánh giá trị số học, đồng thời nhận biết vì sao parse với sai locale, parse một phần hoặc format đã làm tròn có thể làm thay đổi nghĩa của dữ liệu.
+**Practice goal:** start from **one** `BigDecimal`, format it in four locales, parse it back using the matching locale, compare numeric values, and recognize why parsing with the wrong locale, partial parsing, or formatting with rounding can alter data meaning.
 
-## 1. Phân biệt giá trị số học và chuỗi trình bày
+## 1. Distinguishing Numeric Value from Presentation String
 
-`BigDecimal` mang giá trị thập phân; `Locale` quyết định quy ước trình bày và phân tích chuỗi theo ngôn ngữ/vùng. `Locale` không biến `1234567.89` thành một số học khác.
+`BigDecimal` holds the decimal value; `Locale` determines string presentation and parsing conventions by language/region. `Locale` does not turn `1234567.89` into a different numeric value.
 
 ```java
 BigDecimal amount = new BigDecimal("1234567.89");
 ```
 
-Giá trị trên có thể format ra `1,234,567.89` trong `en-US`, `1.234.567,89` trong `de-DE`. Hai chuỗi không giống nhau, nhưng khi được parse theo đúng quy ước chúng đều có thể cho lại cùng giá trị số học.
+The value above can be formatted as `1,234,567.89` in `en-US` and `1.234.567,89` in `de-DE`. The two strings look different, yet when parsed according to their respective conventions they can both recover the same numeric value.
 
-Chuỗi hiển thị dành cho **con người** khác biểu diễn trao đổi giữa máy với máy. Với một trường decimal truyền bằng chuỗi trong giao thức, nếu giao thức yêu cầu định dạng trung lập như `1234567.89`, hãy dùng `toPlainString()` và `new BigDecimal(String)` theo đúng hợp đồng thay vì dựa vào locale đang cài ở hệ điều hành.
+Display strings meant for **humans** differ from machine-to-machine interchange representations. For a decimal field transmitted as a string in a protocol, if the protocol requires a neutral format like `1234567.89`, use `toPlainString()` and `new BigDecimal(String)` per the contract instead of relying on the OS default locale.
 
-**Quan trọng:** `BigDecimal.toString()` hay `toPlainString()` không tự thay dấu thập phân thành dấu phẩy theo ngôn ngữ. Muốn format/parse theo locale, dùng công cụ tương ứng trong `java.text` hoặc một API khác có quy tắc được thiết kế tường minh.
+**Important:** `BigDecimal.toString()` and `toPlainString()` do not automatically replace the decimal point with a comma per language. To format/parse by locale, use the appropriate tools in `java.text` or another API with explicitly designed rules.
 
-## 2. Bộ API cần dùng trong Java 17+
+## 2. Required APIs in Java 17+
 
-Những lớp chính:
+Key classes:
 
-- `Locale` (`java.util.Locale`): định danh quy tắc ngôn ngữ/vùng như `Locale.US`, `Locale.GERMANY`, `Locale.FRANCE` và `Locale.forLanguageTag("vi-VN")`.
-- `NumberFormat` (`java.text.NumberFormat`): factory cho việc format và parse giá trị số theo locale. `getNumberInstance(locale)` dành cho số thông thường; `getCurrencyInstance(locale)` phục vụ định dạng tiền tệ với các quy tắc khác.
-- `DecimalFormat` (`java.text.DecimalFormat`): cung cấp cấu hình scale hiển thị, dấu nhóm, `RoundingMode` và đặc biệt `setParseBigDecimal(true)` để parse thành `BigDecimal` khi thích hợp.
-- `DecimalFormatSymbols`: các ký hiệu như dấu thập phân, dấu nhóm, chữ số và ký hiệu số âm của một locale.
-- `ParsePosition`: vị trí bắt đầu và kết thúc parse. Dùng để biết parser đã **tiêu thụ hết chuỗi** hay chỉ đọc một tiền tố hợp lệ.
-- `BigDecimal`: đại diện chính xác cho giá trị decimal, thuận tiện cho các phép tính thập phân cần kiểm soát làm tròn.
+- `Locale` (`java.util.Locale`): identifies language/region rules such as `Locale.US`, `Locale.GERMANY`, `Locale.FRANCE`, and `Locale.forLanguageTag("vi-VN")`.
+- `NumberFormat` (`java.text.NumberFormat`): factory for locale-aware number formatting and parsing. `getNumberInstance(locale)` is for general numbers; `getCurrencyInstance(locale)` is for currency formatting with different rules.
+- `DecimalFormat` (`java.text.DecimalFormat`): provides configuration for display scale, grouping separators, `RoundingMode`, and notably `setParseBigDecimal(true)` to parse into `BigDecimal` when appropriate.
+- `DecimalFormatSymbols`: symbols such as decimal separator, grouping separator, digits, and negative sign of a locale.
+- `ParsePosition`: starting and ending parse position. Used to check whether the parser **consumed the entire string** or only read a valid prefix.
+- `BigDecimal`: exact representation for decimal values, convenient for decimal calculations requiring rounding control.
 
-Ví dụ lấy bộ formatter:
+Example obtaining a formatter:
 
 ```java
 Locale locale = Locale.GERMANY;
 NumberFormat generic = NumberFormat.getNumberInstance(locale);
 ```
 
-`NumberFormat` có kiểu trừu tượng. Các locale JDK phổ biến thường trả về `DecimalFormat` từ `getNumberInstance`; muốn dùng `setParseBigDecimal(true)`, chương trình nên kiểm tra kiểu trả về thay vì ép kiểu mà không nêu giả định.
+`NumberFormat` is an abstract type. Common JDK locales usually return `DecimalFormat` from `getNumberInstance`; to use `setParseBigDecimal(true)`, the program should check the returned type instead of casting without stating assumptions.
 
 ```java
 NumberFormat generic = NumberFormat.getNumberInstance(locale);
@@ -56,11 +56,11 @@ if (!(generic instanceof DecimalFormat format)) {
 format.setParseBigDecimal(true);
 ```
 
-Đây là ví dụ về cú pháp pattern matching cho `instanceof`, dùng được từ Java 17.
+This is an example of pattern matching for `instanceof`, available since Java 17.
 
-## 3. Format một BigDecimal theo từng Locale
+## 3. Formatting a BigDecimal per Locale
 
-Đối với bài thực hành có đúng hai vị trí thập phân, có thể cấu hình:
+For a practice requiring exactly two decimal places, you can configure:
 
 ```java
 DecimalFormat f =
@@ -72,26 +72,26 @@ f.setMaximumFractionDigits(2);
 f.setRoundingMode(RoundingMode.HALF_UP);
 
 String display = f.format(new BigDecimal("1234567.89"));
-// "1,234,567.89" với quy ước en-US phổ biến
+// "1,234,567.89" under common en-US conventions
 ```
 
-Các lệnh có ý nghĩa khác nhau:
+Each setting has a distinct meaning:
 
-| Cấu hình | Ý nghĩa |
+| Configuration | Meaning |
 |---|---|
-| `setGroupingUsed(true)` | Cho phép dấu phân nhóm chữ số như nghìn/triệu |
-| `setMinimumFractionDigits(2)` | Hiển thị ít nhất hai chữ số phần thập phân; có thể thêm số 0 |
-| `setMaximumFractionDigits(2)` | Không hiển thị quá hai chữ số phần thập phân; có thể **làm tròn** |
-| `setRoundingMode(HALF_UP)` | Chọn cách làm tròn tại giới hạn phần thập phân |
-| `setParseBigDecimal(true)` | Khi parse qua `DecimalFormat`, ưu tiên kết quả `BigDecimal` thay vì `Double`/`Long` |
+| `setGroupingUsed(true)` | Enables digit grouping separators such as thousands/millions |
+| `setMinimumFractionDigits(2)` | Displays at least two fractional digits; may pad with 0 |
+| `setMaximumFractionDigits(2)` | Displays at most two fractional digits; may **round** |
+| `setRoundingMode(HALF_UP)` | Chooses the rounding rule at the fractional digit limit |
+| `setParseBigDecimal(true)` | When parsing via `DecimalFormat`, prefers a `BigDecimal` result instead of `Double`/`Long` |
 
-**Cảnh báo:** định dạng để hiển thị có thể thay đổi giá trị số học khi giới hạn chữ số. Chẳng hạn `1.005` sẽ hiển thị thành `1.01` với cấu hình hai chữ số và `HALF_UP`. Không được suy ngược rằng chuỗi hiển thị luôn tái tạo đầy đủ giá trị số học gốc.
+**Warning:** formatting for display can change the numeric value when capping digits. For instance, `1.005` displays as `1.01` with two digits and `HALF_UP`. Never infer backward that a display string always reconstructs the full original numeric value.
 
-Nên xác định scale/mode theo quy tắc hiển thị hoặc nghiệp vụ đã phê duyệt. Đừng mặc định mọi số trong mọi miền đều cần hai chữ số.
+Determine scale/mode according to approved display or business rules. Do not assume every number in every domain needs two decimal places.
 
-### Locale khác nhau có dấu phân cách khác nhau
+### Different locales have different separators
 
-Giả sử sử dụng bốn formatter:
+Suppose we use four formatters:
 
 ```java
 NumberFormat us =
@@ -104,11 +104,11 @@ NumberFormat vi =
         NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
 ```
 
-Không nên tự thay dấu trong một chuỗi `en-US` bằng `String.replace(",", ".")` rồi tiếp tục thay `"."` thành `","`. Dễ thay nhầm cả dấu nhóm và dấu thập phân, xử lý sai ký hiệu âm, khoảng trắng đặc biệt và chữ số của các hệ viết khác. Hãy để `NumberFormat` sử dụng ký hiệu của đúng locale.
+Do not manually swap characters in an `en-US` string using `String.replace(",", ".")` followed by replacing `"."` with `","`. That easily mixes up grouping and decimal separators and mishandles minus signs, special whitespace, and digits of other scripts. Let `NumberFormat` use the symbols of the proper locale.
 
-## 4. Parse đúng Locale và giữ độ chính xác BigDecimal
+## 4. Parsing with the Right Locale and Preserving BigDecimal Precision
 
-Để parse chuỗi có dấu nhóm theo một locale, hãy dùng formatter được tạo từ **locale của nguồn dữ liệu**. Ví dụ:
+To parse a string with grouping separators for a locale, use a formatter created from the **data source's locale**. For example:
 
 ```java
 DecimalFormat german =
@@ -116,18 +116,18 @@ DecimalFormat german =
 german.setParseBigDecimal(true);
 
 Number value = german.parse("1.234.567,89");
-// Với cấu hình này, value là BigDecimal mang giá trị 1234567.89
+// With this setup, value is a BigDecimal holding 1234567.89
 ```
 
-Đoạn trên có thể ném `ParseException` và phải đặt trong phương thức khai báo/ứng xử với ngoại lệ. Chương trình hoàn chỉnh ở phần sau dùng `ParsePosition` để kiểm tra hết chuỗi.
+The snippet above can throw `ParseException` and must be placed in a method declaring or handling the exception. The complete program in a later section uses `ParsePosition` to check the entire string.
 
-**Vì sao `setParseBigDecimal(true)` quan trọng?** Nếu không cấu hình, `NumberFormat.parse` trả về `Number` và một triển khai có thể trả `Long` hoặc `Double` tùy dữ liệu. `Double` là kiểu nhị phân gần đúng, có thể mất độ chính xác decimal. `DecimalFormat#setParseBigDecimal(true)` giúp giữ số decimal từ chuỗi được parse thành `BigDecimal` phù hợp với yêu cầu thực hành.
+**Why does `setParseBigDecimal(true)` matter?** Without it, `NumberFormat.parse` returns `Number`, and an implementation may return `Long` or `Double` depending on the input. `Double` is an approximate binary type and can lose decimal precision. `DecimalFormat#setParseBigDecimal(true)` preserves the decimal number from the parsed string as a `BigDecimal`, fitting our practice requirement.
 
-Ngay cả khi formatter đang được cấu hình hiển thị tối đa hai chữ số, thao tác parse là **một hoạt động riêng**: cần kiểm tra chuỗi đầu vào, các ký hiệu được nhận diện và giới hạn của API, không được đồng nhất tính hợp lệ của chuỗi với cấu hình hiển thị.
+Even when a formatter is configured to display at most two fractional digits, parsing is **a separate operation**: you must validate the input string, recognized symbols, and API limits, rather than equating string validity with display settings.
 
-### Parse một phần là một bẫy rất phổ biến
+### Partial parsing is a very common trap
 
-Ví dụ chuỗi `"1,234.50foo"` trong `en-US`:
+For example, the string `"1,234.50foo"` in `en-US`:
 
 ```java
 DecimalFormat us =
@@ -137,11 +137,11 @@ us.setParseBigDecimal(true);
 ParsePosition pos = new ParsePosition(0);
 Number parsed = us.parse("1,234.50foo", pos);
 
-// parsed = 1234.50 nhưng pos.getIndex() = 8,
-// trong khi chiều dài chuỗi đầu vào là 11.
+// parsed = 1234.50 but pos.getIndex() = 8,
+// whereas the input string length is 11.
 ```
 
-Nếu chỉ kiểm tra `parsed != null`, dữ liệu dư `foo` có thể bị bỏ qua. Do đó, để kiểm tra chuỗi đã được parse **hết**, cần:
+If you only check `parsed != null`, trailing garbage `foo` can be silently ignored. Therefore, to check that the string was parsed **completely**, you need:
 
 ```java
 if (parsed == null || pos.getIndex() != input.length()) {
@@ -149,36 +149,36 @@ if (parsed == null || pos.getIndex() != input.length()) {
 }
 ```
 
-Kiểm tra hết chuỗi **không làm NumberFormat trở thành trình phân tích nghiêm ngặt mọi cú pháp**. Một số formatter khá dễ dãi về vị trí nhóm chữ số; tùy yêu cầu, ứng dụng có thể cần kiểm tra pattern được phép, các ký tự Unicode, số chữ số, khoảng giá trị và quy tắc nghiệp vụ. Khi cần chuỗi **đúng một dạng trình bày chuẩn**, có thể format lại giá trị đã parse rồi so sánh với đầu vào sau khi áp dụng chính sách chuẩn hóa được định nghĩa rõ.
+Checking full consumption **does not turn NumberFormat into a strict parser for every syntax rule**. Some formatters are fairly lenient about grouping separator positions; depending on requirements, the application may need to check allowed patterns, Unicode characters, digit counts, value ranges, and business rules. When a string must match **one canonical presentation**, you can re-format the parsed value and compare it against the input after applying a well-defined normalization policy.
 
-## 5. Không tự đoán Locale từ dấu phẩy/dấu chấm
+## 5. Do Not Guess Locale from Commas/Dots
 
-Chuỗi `"1,234"` rất dễ gây nhầm:
+The string `"1,234"` is very easy to misinterpret:
 
-| Locale parse | Cách hiểu hợp lệ theo quy ước phổ biến | Giá trị |
+| Parsing locale | Valid interpretation under common conventions | Value |
 |---|---|---:|
-| `en-US` | Dấu phẩy là dấu nhóm | 1234 |
-| `de-DE` | Dấu phẩy là dấu thập phân | 1.234 |
+| `en-US` | Comma is grouping separator | 1234 |
+| `de-DE` | Comma is decimal separator | 1.234 |
 
-Cả hai lần parse có thể tiêu thụ **toàn bộ** chuỗi và không báo lỗi, nhưng cho hai giá trị khác nhau! Vì vậy, điều kiện “parse hết chuỗi” là cần thiết cho dữ liệu chặt chẽ, nhưng **không chứng minh locale được chọn là đúng**.
+Both parses can consume the **entire** string without error, yet yield two completely different values! Thus, the "consumed entire string" check is necessary for strict input handling, yet **does not prove the chosen locale is right**.
 
-Một số lời khuyên:
+Some recommendations:
 
-1. **Biết locale của nguồn**: từ lựa chọn của người dùng, hồ sơ locale của form, định dạng file nhập, hợp đồng API hoặc cột metadata.
-2. **Không tự đoán chỉ từ IP/quốc gia của máy chủ**: ngôn ngữ trình bày và nguồn dữ liệu có thể khác nhau.
-3. **Dữ liệu trao đổi giữa hệ thống nên có định dạng chuẩn**: ví dụ giá trị decimal ASCII không có dấu nhóm và dùng dấu chấm, theo hợp đồng rõ ràng.
-4. Nếu nhập dữ liệu từ nhiều locale trong cùng một đợt, **lưu thông tin locale theo nguồn**, hoặc dùng bước xác nhận/cấu hình nhập rõ ràng.
-5. Nếu dữ liệu mơ hồ, **không silently chọn** một locale để “thành công bằng mọi giá”; yêu cầu xác nhận hoặc dùng định dạng được đặc tả.
+1. **Know the source locale:** from user selection, form locale profile, import file format, API contract, or metadata column.
+2. **Do not guess solely from server IP/country:** presentation language and data source can differ.
+3. **Inter-system exchange data should use a standard format:** for example, ASCII decimal values without grouping separators and using a dot, per an explicit contract.
+4. If importing data from multiple locales in one batch, **store locale metadata per source**, or use an explicit confirmation/import configuration step.
+5. If data is ambiguous, **do not silently pick** a locale to "succeed at all costs"; ask for confirmation or enforce a specified format.
 
-### Chuỗi Pháp và dấu cách Unicode
+### French strings and Unicode spaces
 
-`fr-FR` có thể dùng khoảng trắng hẹp không ngắt `U+202F` để nhóm nghìn. Nó khác `U+0020` (dấu cách thường) và `U+00A0` (khoảng trắng không ngắt). Một đầu vào nhìn giống `"1 234 567,89"` chưa chắc chứa đúng code point mà formatter mong đợi.
+`fr-FR` may use the narrow no-break space `U+202F` for thousands grouping. It differs from `U+0020` (regular space) and `U+00A0` (no-break space). An input looking like `"1 234 567,89"` may not contain the exact code point the formatter expects.
 
-Nếu parse thất bại hoặc chỉ parse tiền tố, kiểm tra code point thực tế thay vì chỉ nhìn trên màn hình. Đừng tùy tiện xóa **mọi** khoảng trắng trước khi parse: bạn có thể làm cho dữ liệu sai cú pháp trở nên hợp lệ hoặc vô tình xóa những ký tự mang nghĩa.
+If parsing fails or only parses a prefix, inspect the actual code points instead of just looking at the screen. Do not arbitrarily strip **all** whitespace before parsing: you could make syntactically invalid data appear valid or accidentally remove meaningful characters.
 
-## 6. Chương trình Java 17+ độc lập: format và parse qua bốn locale
+## 6. Standalone Java 17+ Program: Formatting and Parsing Across Four Locales
 
-Tạo tệp `LocaleNumberDemo.java`. Chương trình dùng **một** `BigDecimal` chính xác, format theo `en-US`, `de-DE`, `fr-FR`, `vi-VN` rồi parse ngược. Các khoảng trắng Unicode đặc biệt được chuyển thành nhãn hiển thị để kết quả trong terminal dễ phân biệt.
+Create the file `LocaleNumberDemo.java`. The program uses **one** exact `BigDecimal`, formats it in `en-US`, `de-DE`, `fr-FR`, and `vi-VN`, then parses it back. Special Unicode spaces are converted to visible labels so terminal output is easy to distinguish.
 
 ```java
 import java.math.BigDecimal;
@@ -283,14 +283,14 @@ public class LocaleNumberDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac LocaleNumberDemo.java
 java LocaleNumberDemo
 ```
 
-Một kết quả tham chiếu theo dữ liệu locale CLDR phổ biến của JDK:
+A reference output under common JDK CLDR locale data:
 
 ```text
 Original: 1234567.89
@@ -308,25 +308,25 @@ Parsed after format: 1.01
 Same after rounding: false
 ```
 
-`<NNBSP>` trong stdout là **nhãn do phương thức `visible` tạo**, không phải chuỗi format thực tế. Thực tế `fr-FR` thường dùng ký tự Unicode `U+202F` ở vị trí đó; một môi trường dùng ký hiệu nhóm khác có thể in nhãn/chuỗi khác. Bảng kết quả cần được đối chiếu với locale provider/JDK đang chạy, còn các nguyên tắc về chọn locale, parse hết chuỗi và làm tròn vẫn không đổi.
+`<NNBSP>` in stdout is a **label created by the `visible` method**, not the actual formatted string. In practice `fr-FR` commonly uses Unicode character `U+202F` at that position; an environment using a different grouping symbol may print different labels/strings. Output tables should be verified against the active locale provider/JDK, while principles on choosing locale, full-string parsing, and rounding remain unchanged.
 
-**Phân tích kết quả:**
+**Result analysis:**
 
-- Trong bốn vòng lặp, cùng `BigDecimal("1234567.89")` tạo các chuỗi địa phương hóa khác nhau. Parse bằng **đúng locale** cho lại giá trị decimal bằng nhau về số học.
-- Parse `"1.234,50"` theo `en-US` chỉ đọc được một tiền tố theo cách hiểu của Mỹ; `parseFully` phát hiện chưa đọc hết và từ chối.
-- `"1,234.50foo"` có một tiền tố số hợp lệ nhưng phần đuôi `foo` không hợp lệ, cũng bị từ chối.
-- `"1,234"` được parse hoàn toàn theo cả Mỹ và Đức mà thành **hai số khác nhau**. Hệ thống phải biết đúng locale của input.
-- Với `1.005`, formatter giới hạn **hai chữ số sau dấu** và dùng `HALF_UP` nên phát ra `1.01`. Parse chuỗi hiển thị không thể khôi phục chữ số thứ ba đã bị bỏ.
+- Across the four loop iterations, the same `BigDecimal("1234567.89")` produces different localized strings. Parsing with the **matching locale** recovers numerically equal decimal values.
+- Parsing `"1.234,50"` under `en-US` only reads a prefix under US conventions; `parseFully` detects incomplete consumption and rejects it.
+- `"1,234.50foo"` has a valid numeric prefix yet invalid trailing `foo`, so it is also rejected.
+- `"1,234"` parses completely under both US and German locales into **two different numbers**. The system must know the input's actual locale.
+- For `1.005`, the formatter caps at **two digits after the decimal** and uses `HALF_UP`, emitting `1.01`. Parsing the display string cannot recover the discarded third digit.
 
-## 7. Phân biệt round-trip về giá trị, về scale và về chuỗi
+## 7. Distinguishing Round-Trip by Value, by Scale, and by String
 
-Một “round-trip” có thể nhắm đến ba mục tiêu:
+A "round-trip" can target three goals:
 
-1. **Giá trị toán học bằng nhau**: `original.compareTo(parsed) == 0` với `BigDecimal`. Hữu ích khi scale không mang nghĩa nghiệp vụ.
-2. **Giá trị và scale trùng nhau**: `original.equals(parsed)`. Hữu ích khi cách biểu diễn thập phân cũng quan trọng.
-3. **Chuỗi nhập và chuỗi format lại giống nhau**: `input.equals(formatter.format(parsed))`. Đây là điều kiện kiểm tra **dạng biểu diễn chuẩn** theo formatter, mạnh hơn việc parse hết chuỗi nhưng cũng có thể từ chối các cách nhập hợp lệ khác như không có dấu nhóm.
+1. **Equal mathematical value**: `original.compareTo(parsed) == 0` with `BigDecimal`. Useful when scale carries no business meaning.
+2. **Matching value and scale**: `original.equals(parsed)`. Useful when the decimal representation itself also matters.
+3. **Input string matches re-formatted string**: `input.equals(formatter.format(parsed))`. This checks **canonical presentation** per the formatter, stricter than full-string parsing, though it may reject valid alternate inputs such as omitting grouping separators.
 
-Ví dụ:
+Example:
 
 ```java
 BigDecimal a = new BigDecimal("1.0");
@@ -336,91 +336,91 @@ System.out.println(a.compareTo(b) == 0); // true
 System.out.println(a.equals(b));         // false
 ```
 
-Phần scale không chỉ là kiểu trình bày: với `BigDecimal.equals()`, scale có tham gia so sánh. Nếu chương trình chỉ cần số học bằng nhau, dùng `compareTo() == 0`; nếu scale là một phần của hợp đồng, hãy kiểm tra scale.
+Scale is not merely presentation styling: in `BigDecimal.equals()`, scale participates in comparison. If a program only needs numerical equality, use `compareTo() == 0`; if scale is part of the contract, check scale as well.
 
-**Chú ý với validation canonical:** formatter có thể chủ động thêm số 0, thêm dấu nhóm hoặc chuyển dấu/kiểu chữ số, vì vậy so sánh chuỗi raw với chuỗi chuẩn phải là quyết định được nêu trong UX/API. Không ép người nhập phải dùng đúng mọi dấu nhóm và khoảng trắng nếu yêu cầu thực tế cho phép nhiều cách nhập hợp lệ.
+**Note on canonical validation:** a formatter may actively pad zeros, insert grouping separators, or transform signs/numeral styles, so comparing raw input against canonical formatted strings must be an explicit UX/API decision. Do not force users to type every grouping symbol and space identically if real requirements permit multiple valid input styles.
 
-## 8. Khi nào parse là đủ, khi nào cần thêm validation?
+## 8. When Is Parsing Enough, and When Is Extra Validation Needed?
 
-`DecimalFormat.parse` là bộ phân tích số địa phương hóa, **không phải bộ kiểm tra toàn bộ quy tắc nghiệp vụ của form**. Một giá trị parse thành công vẫn có thể không hợp lệ vì những lý do khác.
+`DecimalFormat.parse` is a localized number parser, **not a validator for every business rule on a form**. A successfully parsed value can still be invalid for other reasons.
 
-Một pipeline đáng tin cậy thường có:
+A reliable pipeline typically has:
 
-1. **Nguồn locale xác định rõ:** lấy từ ngữ cảnh input; không dùng `Locale.getDefault()` một cách ngầm nếu xử lý dữ liệu từ nhiều người dùng.
-2. **Parse theo locale:** dùng đúng formatter và `setParseBigDecimal(true)` khi cần decimal exact.
-3. **Kiểm tra cú pháp:** parse phải tiêu thụ hết chuỗi, sau đó áp dụng yêu cầu về ký hiệu, dấu nhóm, số chữ số, ký tự được phép hoặc format canonical tùy trường hợp.
-4. **Kiểm tra miền giá trị:** không âm, lớn hơn 0, không vượt giới hạn, không có phần thập phân nếu là số lượng nguyên, v.v.
-5. **Chính sách lượng hóa:** nếu cần làm tròn đến đơn vị nào, phải quy định scale/mode và thời điểm áp dụng. Formatter giao diện **không tự quyết định** quy tắc lưu trữ.
-6. **Lưu/trao đổi dạng trung lập:** lưu giá trị decimal hoặc chuỗi máy theo hợp đồng, giữ thông tin locale/đơn vị nếu cần tái hiện input hay audit.
+1. **Explicit locale source:** taken from input context; never use `Locale.getDefault()` implicitly when handling multi-user data.
+2. **Locale-aware parsing:** use the matching formatter and `setParseBigDecimal(true)` when exact decimals are needed.
+3. **Syntax checks:** parsing must consume the whole string, then apply rules for symbols, grouping separators, digit counts, allowed characters, or canonical format as needed.
+4. **Value range checks:** non-negative, greater than 0, within bounds, no fractional part if expecting an integer quantity, etc.
+5. **Quantization policy:** if rounding to a unit is required, specify scale/mode and when it applies. A UI formatter **does not decide** storage rules on its own.
+6. **Neutral storage/interchange:** store decimal values or machine-readable strings per contract, retaining locale/unit metadata if input reconstruction or auditing is needed.
 
-### Ví dụ validation số lượng nguyên
+### Example: validating an integer quantity
 
 ```java
 BigDecimal parsed = parseFully("1.234", Locale.GERMANY);
-// Với de-DE, đây là 1234 theo dấu nhóm.
+// In de-DE, this is 1234 due to grouping separator.
 
 int quantity = parsed.intValueExact();
-// Thành công nếu giá trị nguyên và vừa miền int.
+// Succeeds if integer-valued and within int range.
 ```
 
-Nếu một người nhập `"1,234"` theo `de-DE`, kết quả lại là `1.234` và `intValueExact()` sẽ ném `ArithmeticException` do phần lẻ. Cả hai hành vi đều hợp lý theo định dạng Đức nhưng cần đúng mục đích trường nhập.
+If someone enters `"1,234"` under `de-DE`, the result is `1.234` and `intValueExact()` throws `ArithmeticException` due to the fractional part. Both behaviors make sense under German formatting, provided they match the input field's intent.
 
-Khi parse tiền tệ, `getCurrencyInstance(locale)` có thể format kèm ký hiệu tiền nhưng **locale trình bày không phải mã tiền tệ đáng tin cậy để tự suy ra nghĩa của khoản tiền**; ví dụ đơn vị ISO 4217 hoặc mã tiền thực tế nên nằm trong dữ liệu theo hợp đồng.
+When parsing currency, `getCurrencyInstance(locale)` can format with currency symbols, yet **display locale is not a reliable currency code for inferring the meaning of a monetary amount**; for example, an ISO 4217 code or actual currency identifier should live in data per contract.
 
-### Format dữ liệu với vai trò trình bày
+### Formatting data strictly for presentation
 
-Một phép tính thập phân có thể giữ nhiều chữ số để tính toán và chỉ định dạng ít chữ số trên UI. Nếu sau đó lấy chuỗi UI đã làm tròn đem parse lại rồi dùng cho phép tính tiếp, bạn đã làm mất thông tin. Tránh coi chuỗi được format là **bản gốc** cho luồng tính toán nếu không có quyết định nghiệp vụ rõ ràng.
+A decimal calculation may retain many digits internally while formatting fewer digits in the UI. If you later take that rounded UI display string, parse it back, and use it in further calculations, you have lost information. Avoid treating formatted strings as the **source of truth** for computational flows unless explicitly mandated by business rules.
 
-## 9. Thread safety, hiệu năng và lựa chọn API
+## 9. Thread Safety, Performance, and API Choices
 
-`NumberFormat`/`DecimalFormat` là những lớp **có trạng thái, mutable và nói chung không an toàn để chia sẻ giữa nhiều luồng mà không đồng bộ hóa**. Khi xử lý nhiều request song song:
+`NumberFormat`/`DecimalFormat` are **stateful, mutable classes and generally not thread-safe to share across threads without synchronization**. When handling concurrent requests:
 
-- Không giữ một `static DecimalFormat` dùng chung cho toàn bộ yêu cầu rồi liên tục thay locale, pattern, rounding và parse flags trên nó.
-- Có thể tạo một formatter riêng theo lượt dùng, theo luồng hoặc áp dụng kỹ thuật cache an toàn với trạng thái bất biến/copy phù hợp.
-- `Locale` là mô tả quy ước; bản thân lựa chọn `Locale` không thay thế việc quản lý formatter.
-- Cấu hình formatter rõ ràng và kiểm thử hành vi với JDK/locale provider của môi trường triển khai.
+- Do not keep a single shared `static DecimalFormat` across all requests while mutating its locale, pattern, rounding, and parse flags.
+- Create a dedicated formatter per use, per thread, or apply safe caching strategies with appropriate immutability/copying.
+- `Locale` describes conventions; choosing a `Locale` alone does not replace managing formatter instances.
+- Configure formatters explicitly and test behavior against the deployment environment's JDK/locale provider.
 
-Nếu chỉ cần trao đổi số decimal giữa các dịch vụ, `BigDecimal.toPlainString()`/`new BigDecimal(String)` hoặc định dạng JSON numeric theo hợp đồng thường đơn giản hơn việc tạo formatter địa phương hóa ở tầng transport. Chỉ dùng parsing locale tại ranh giới **nhập chuỗi dành cho con người**.
+If you only need to exchange decimal numbers between services, `BigDecimal.toPlainString()`/`new BigDecimal(String)` or a contract-defined JSON numeric format is usually simpler than localized formatters at the transport layer. Reserve locale parsing for boundaries accepting **human-oriented strings**.
 
-## 10. Lỗi thường gặp
+## 10. Common Mistakes
 
-1. **Dùng `Double.parseDouble("1.234,56")` để đọc số Đức.** API này không hiểu dấu nhóm/thập phân theo locale đó; cần parse theo locale hoặc định dạng máy chuẩn.
-2. **Dùng `NumberFormat.getInstance()` không truyền locale.** Kết quả phụ thuộc default locale của tiến trình, dễ thay đổi giữa máy dev, máy test và production.
-3. **Dựa vào `NumberFormat.parse` mà không kiểm tra phần dư.** Parser có thể chỉ đọc tiền tố hợp lệ và bỏ qua ký tự phía sau.
-4. **Parse bằng sai locale nhưng vẫn ra số.** Chuỗi `"1,234"` là ví dụ nguy hiểm: hai locale hiểu thành hai giá trị hoàn toàn khác nhau.
-5. **Cho rằng parse hết chuỗi tương đương validation nghiêm ngặt.** Vẫn cần kiểm tra pattern/miền dữ liệu nếu nghiệp vụ yêu cầu.
-6. **Không bật `setParseBigDecimal(true)` khi cần decimal exact.** Kết quả `Number` có thể là kiểu khác, gây mất độ chính xác trong phép tính tiếp.
-7. **Format rồi parse lại mà kỳ vọng mọi chữ số được bảo toàn.** Formatter có thể làm tròn bằng `setMaximumFractionDigits`.
-8. **Dùng chuỗi `fr-FR` với dấu cách thường thay vì dấu Unicode đúng.** Bằng mắt khó phân biệt; cần kiểm tra code point thực tế.
-9. **Cố tự thay dấu chấm/phẩy thủ công.** Có thể thay cả dấu nhóm và dấu thập phân, hoặc không xử lý âm/Unicode.
-10. **Chia sẻ `DecimalFormat` mutable giữa các luồng.** Cấu hình và kết quả có thể bị can thiệp đồng thời.
-11. **Hiểu locale là đơn vị tiền.** Cần quản lý currency code, đơn vị và chính sách số học độc lập với định dạng hiển thị.
-12. **Không kiểm thử với nhiều JDK/provider.** Ký hiệu locale thay đổi theo dữ liệu chuẩn, nên tránh hard-code những ký tự không được hợp đồng đảm bảo.
+1. **Using `Double.parseDouble("1.234,56")` to read German numbers.** That API does not understand locale-specific grouping/decimal separators; use locale-aware parsing or a standard machine format.
+2. **Using `NumberFormat.getInstance()` without passing a locale.** Results depend on the process default locale, easily shifting across dev, test, and production machines.
+3. **Relying on `NumberFormat.parse` without checking unparsed leftovers.** The parser may read a valid prefix and ignore trailing characters.
+4. **Parsing with the wrong locale yet still getting a number.** `"1,234"` is a dangerous example: two locales interpret it as two completely different values.
+5. **Assuming full-string parsing equals strict validation.** Pattern/range checks are still needed if business rules require them.
+6. **Failing to enable `setParseBigDecimal(true)` when exact decimals are needed.** The `Number` result may be another type, losing precision in subsequent calculations.
+7. **Formatting and then parsing back while expecting all digits to be preserved.** The formatter may round via `setMaximumFractionDigits`.
+8. **Using `fr-FR` strings with regular spaces instead of the right Unicode space.** Visually hard to tell apart; inspect actual code points.
+9. **Trying to replace dots/commas manually.** You may accidentally alter both grouping and decimal separators, or mishandle negatives/Unicode.
+10. **Sharing mutable `DecimalFormat` instances across threads.** Configurations and results can suffer concurrent interference.
+11. **Treating locale as a currency unit.** Manage currency codes, units, and arithmetic policies independently from display formatting.
+12. **Failing to test across multiple JDKs/providers.** Locale symbols change with standard data updates, so avoid hardcoding characters not guaranteed by contract.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** Cùng giá trị `1234.5` hiển thị khác nhau như thế nào trong `en-US` và `de-DE`?  
-**Đáp án:** Ví dụ phổ biến: `1,234.50` và `1.234,50` nếu bật grouping và buộc hiển thị hai vị trí thập phân.
+**Question 1.** How does the same value `1234.5` display differently in `en-US` and `de-DE`?  
+**Answer:** Common example: `1,234.50` and `1.234,50` if grouping is enabled and two fractional digits are enforced.
 
-**Câu 2.** `"1,234"` được hiểu giống nhau trong Mỹ và Đức không?  
-**Đáp án:** Không. `en-US` thường parse thành `1234`, `de-DE` thành `1.234`. Cần biết locale của input, không thể suy ra chỉ từ kết quả parse thành công.
+**Question 2.** Is `"1,234"` interpreted the same way in the US and Germany?  
+**Answer:** No. `en-US` typically parses it as `1234`, `de-DE` as `1.234`. You must know the input's locale; it cannot be inferred solely from a successful parse.
 
-**Câu 3.** Vì sao cần `ParsePosition` thay vì chỉ kiểm tra `NumberFormat.parse` không ném lỗi?  
-**Đáp án:** Parser có thể đọc một tiền tố hợp lệ rồi bỏ qua phần đuôi. `position.getIndex() == input.length()` giúp xác nhận đã tiêu thụ hết chuỗi.
+**Question 3.** Why is `ParsePosition` needed instead of only checking that `NumberFormat.parse` does not throw?  
+**Answer:** The parser can read a valid prefix and ignore the tail. `position.getIndex() == input.length()` confirms the entire string was consumed.
 
-**Câu 4.** Parse hết chuỗi có bảo đảm người dùng viết dấu nhóm theo đúng mẫu mong muốn không?  
-**Đáp án:** Không hoàn toàn; `NumberFormat` có thể tương đối dễ dãi. Nếu hợp đồng cần cú pháp canonical, phải có kiểm tra bổ sung.
+**Question 4.** Does full-string parsing guarantee the user wrote grouping separators in the exact expected pattern?  
+**Answer:** Not completely; `NumberFormat` can be relatively lenient. If the contract requires canonical syntax, additional checks are needed.
 
-**Câu 5.** Vì sao nên bật `DecimalFormat#setParseBigDecimal(true)` trong bài toán tính toán decimal chính xác?  
-**Đáp án:** Để parse thành `BigDecimal` thay vì phải chấp nhận một kết quả `Double` gần đúng hoặc `Long` tùy giá trị.
+**Question 5.** Why enable `DecimalFormat#setParseBigDecimal(true)` in exact decimal calculations?  
+**Answer:** To parse into `BigDecimal` instead of accepting an approximate `Double` or `Long` depending on the value.
 
-**Câu 6.** Format `1.005` bằng `HALF_UP` và tối đa hai chữ số, sau đó parse lại, có được giá trị gốc không?  
-**Đáp án:** Không. Chuỗi hiển thị là `1.01`; chữ số đã bị làm tròn không thể được phục hồi.
+**Question 6.** If you format `1.005` with `HALF_UP` and at most two fractional digits, then parse it back, do you get the original value?  
+**Answer:** No. The display string is `1.01`; the rounded digit cannot be recovered.
 
-**Câu 7.** Vì sao dấu cách trong số kiểu Pháp đôi khi không parse được dù trông giống mẫu?  
-**Đáp án:** Có các ký tự khoảng trắng Unicode khác nhau như `U+0020`, `U+00A0` và `U+202F`. Phải dùng đúng quy ước của formatter hoặc một bước chuẩn hóa được đặc tả.
+**Question 7.** Why do spaces in French-style numbers sometimes fail to parse even though they look identical to the sample?  
+**Answer:** There are distinct Unicode whitespace characters such as `U+0020`, `U+00A0`, and `U+202F`. You must use the formatter's expected convention or a specified normalization step.
 
-**Câu 8.** Khi truyền giá trị decimal giữa hai microservice, nên dùng locale của máy chủ để format chuỗi giao thức không?  
-**Đáp án:** Không, trừ khi giao thức quy định như vậy. Nên dùng định dạng số trung lập, không có dấu nhóm, với dấu thập phân/mã đơn vị đã được xác định rõ.
+**Question 8.** When sending decimal values between two microservices, should you use the server's locale to format protocol strings?  
+**Answer:** No, unless the protocol specifies it. Use a neutral numeric format without grouping separators, with an explicitly defined decimal separator and unit code.
 
-**Ghi nhớ:** `format(value, locale)` tạo cách **trình bày**; `parse(text, locale)` diễn giải chuỗi theo **locale của nguồn**. Để tránh sai dữ liệu, hãy giữ `BigDecimal` làm giá trị gốc, chọn đúng locale, kiểm tra parse tiêu thụ hết chuỗi và xác định rõ khi nào được phép làm tròn.
+**Remember:** `format(value, locale)` produces a **presentation**; `parse(text, locale)` interprets a string according to the **source locale**. To prevent data corruption, keep `BigDecimal` as the source value, choose the right locale, verify full-string consumption during parsing, and clearly define when rounding is permitted.

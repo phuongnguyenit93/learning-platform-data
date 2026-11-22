@@ -1,20 +1,20 @@
-# Named module, automatic module và unnamed module
+# Named Module, Automatic Module, and Unnamed Module
 
-## 1. Ba cách một thư viện Java tham gia vào ứng dụng
+## 1. Three Ways a Java Library Participates in an Application
 
-Khi một ứng dụng Java dùng nhiều thư viện JAR, vị trí đặt JAR quyết định cách Java phân loại chúng. Với JPMS (Java Platform Module System, từ Java 9), một thư viện có thể được xử lý theo ba dạng thường gặp:
+When a Java application uses multiple JAR libraries, where the JARs are placed determines how Java classifies them. Under JPMS (Java Platform Module System, since Java 9), a library can be handled in three common forms:
 
-- **Explicit named module**: module có descriptor `module-info.java` (được biên dịch thành `module-info.class`). Tên module và các quan hệ phụ thuộc, package công bố được khai báo tường minh.
-- **Automatic module**: JAR chưa có module descriptor nhưng được đặt trên module path. Module system tạo một descriptor tổng hợp cho JAR đó.
-- **Unnamed module**: các lớp được nạp từ classpath thuộc unnamed module của class loader tương ứng. Module này không có tên và không có descriptor.
+- **Explicit named module**: a module with a `module-info.java` descriptor (compiled into `module-info.class`). Its module name, dependencies, and exported packages are declared explicitly.
+- **Automatic module**: a JAR without a module descriptor that is placed on the module path. The module system synthesizes a descriptor for that JAR.
+- **Unnamed module**: classes loaded from the classpath belong to the unnamed module of the corresponding class loader. This module has no name and no descriptor.
 
-Automatic module cũng là một named module vì nó có tên trong module graph. Điểm khác biệt là descriptor của nó được suy ra tự động, trong khi explicit named module có descriptor do tác giả thư viện khai báo. Unnamed module không có tên để một module khác khai báo `requires`.
+An automatic module is also a named module because it has a name in the module graph. The difference is that its descriptor is derived automatically, whereas an explicit named module has a descriptor authored by the library maintainer. An unnamed module has no name for another module to declare in `requires`.
 
-## 2. Explicit named module: hợp đồng module được khai báo rõ
+## 2. Explicit Named Module: An Explicitly Declared Module Contract
 
-Một explicit named module thường được đóng gói trong modular JAR, có `module-info.class` ở thư mục gốc JAR, hoặc tồn tại dưới dạng exploded module trong thư mục đầu ra.
+An explicit named module is typically packaged in a modular JAR with `module-info.class` at the JAR root, or exists as an exploded module in an output directory.
 
-Ví dụ:
+For example:
 
 ~~~java
 module com.acme.customer {
@@ -26,99 +26,99 @@ module com.acme.customer {
 }
 ~~~
 
-Descriptor trên thể hiện các phần chính:
+The descriptor above shows the main parts:
 
-- Tên module là `com.acme.customer`.
-- Module đọc `java.sql` và `com.acme.logging` thông qua `requires`.
-- Package `com.acme.customer.api` được công bố cho các module đọc module này.
-- Package `com.acme.customer.model` được mở cho reflection sâu từ module `com.acme.persistence`.
+- The module name is `com.acme.customer`.
+- The module reads `java.sql` and `com.acme.logging` via `requires`.
+- Package `com.acme.customer.api` is exposed to modules that read this module.
+- Package `com.acme.customer.model` is opened for deep reflection from module `com.acme.persistence`.
 
-Mặc định, một package trong explicit named module không được export chỉ vì nó chứa lớp `public`. Module khác cần đọc module cung cấp và package cần dùng phải được export phù hợp. Quy tắc truy cập Java như `public`, `protected`, package-private và `private` vẫn được áp dụng sau các kiểm tra ở cấp module.
+By default, a package in an explicit named module is not exported merely because it contains `public` classes. Other modules must read the providing module, and the package being used must be appropriately exported. Java access rules such as `public`, `protected`, package-private, and `private` still apply after module-level checks.
 
-Explicit named module cho phép chủ thư viện kiểm soát API công khai và giữ package triển khai ở bên trong module. Đây là dạng nên hướng tới khi thư viện đã sẵn sàng tham gia JPMS đầy đủ.
+Explicit named modules let library authors control the public API and keep implementation packages internal to the module. This is the target form when a library is ready to fully participate in JPMS.
 
-## 3. Automatic module: cầu nối cho JAR chưa có module-info
+## 3. Automatic Module: A Bridge for JARs Without module-info
 
-Một JAR không chứa `module-info.class`, khi được đặt trên **module path**, có thể được module system coi là automatic module. Java tạo một module descriptor tổng hợp cho JAR đó, vì vậy một named module khác có thể khai báo `requires` tới nó.
+A JAR that does not contain `module-info.class`, when placed on the **module path**, can be treated by the module system as an automatic module. Java generates a synthetic module descriptor for that JAR, allowing another named module to declare `requires` on it.
 
-### Tên automatic module được xác định như thế nào?
+### How Is an Automatic Module Name Determined?
 
-Có hai trường hợp:
+There are two cases:
 
-1. Nếu manifest của JAR có thuộc tính `Automatic-Module-Name`, giá trị đó được dùng làm tên module.
-2. Nếu không có thuộc tính này, tên module được suy ra từ tên file JAR theo quy tắc đặt tên của module system, bao gồm việc xử lý phần phiên bản và các dấu phân cách.
+1. If the JAR's manifest has the `Automatic-Module-Name` attribute, that value is used as the module name.
+2. If this attribute is absent, the module name is derived from the JAR filename according to the module system's naming rules, including handling version parts and separators.
 
-Ví dụ, manifest của một thư viện có thể chứa:
+For example, a library's manifest might contain:
 
 ~~~text
 Manifest-Version: 1.0
 Automatic-Module-Name: com.acme.legacy
 ~~~
 
-Một module ứng dụng có thể khai báo:
+An application module can then declare:
 
 ~~~java
-module com.acme.app {
+module com.example.app {
     requires com.acme.legacy;
 }
 ~~~
 
-Khi tên module được suy ra từ tên file, đổi tên file JAR có thể làm thay đổi tên module mà ứng dụng phải yêu cầu. Với thư viện do nhóm phát triển kiểm soát, nên đặt `Automatic-Module-Name` ổn định trước khi phát hành để người dùng không phụ thuộc vào tên file cụ thể.
+When the module name is derived from the filename, renaming the JAR file can change the module name the application must require. For libraries controlled by your team, set a stable `Automatic-Module-Name` before releasing so consumers do not depend on specific filenames.
 
-Có thể xem tên module mà JAR cung cấp bằng lệnh:
+You can check the module name provided by a JAR with the command:
 
 ~~~bash
 jar --describe-module --file libs/legacy.jar
 ~~~
 
-### Automatic module có những quyền gì?
+### What Permissions Does an Automatic Module Have?
 
-Automatic module được thiết kế để thư viện cũ có thể tham gia module path với ít thay đổi:
+Automatic modules are designed so legacy libraries can participate on the module path with minimal changes:
 
-- Tất cả package của automatic module được export.
-- Automatic module đọc tất cả các module khác trong cấu hình, kể cả các unnamed module.
-- Named module có thể khai báo `requires` tới tên automatic module.
-- JAR vẫn chưa có hợp đồng phụ thuộc và ranh giới package do tác giả khai báo đầy đủ như explicit named module.
+- All packages of an automatic module are exported.
+- An automatic module reads all other modules in the configuration, including unnamed modules.
+- Named modules can declare `requires` on the automatic module name.
+- The JAR still lacks an author-declared dependency contract and package boundaries like an explicit named module.
 
-Việc đọc và export rộng giúp migration dễ hơn, nhưng cũng làm giảm lợi ích đóng gói của JPMS. Một module có thể vô tình phụ thuộc vào package của thư viện khác mà nó chưa khai báo trực tiếp trong descriptor. Vì vậy, automatic module phù hợp như bước chuyển tiếp; không nên xem nó là kết quả thiết kế module cuối cùng.
+Broad reading and exporting makes migration easier, but also reduces the encapsulation benefits of JPMS. A module might accidentally depend on packages of another library that it has not directly declared in its descriptor. Therefore, automatic modules serve well as a transitional step; they should not be viewed as the final module design.
 
-## 4. Unnamed module: thế giới classpath truyền thống
+## 4. Unnamed Module: The Traditional Classpath World
 
-Các lớp được nạp từ classpath thuộc unnamed module gắn với class loader tương ứng. Mỗi class loader có unnamed module của riêng nó. Unnamed module không có tên và không có `module-info.java`.
+Classes loaded from the classpath belong to the unnamed module associated with the corresponding class loader. Each class loader has its own unnamed module. The unnamed module has no name and no `module-info.java`.
 
-Ví dụ chạy ứng dụng theo classpath:
+Example of running an application on the classpath:
 
 ~~~bash
 java -cp "app.jar:lib/*" com.acme.app.Main
 ~~~
 
-Các lớp trong `app.jar` và những thư viện trên classpath được nạp vào unnamed module của class loader tương ứng. Mô hình này giữ cách sử dụng thư viện truyền thống: không cần từng JAR khai báo `requires` hoặc `exports`.
+Classes in `app.jar` and the libraries on the classpath are loaded into the unnamed module of the corresponding class loader. This model preserves traditional library usage: individual JARs do not need to declare `requires` or `exports`.
 
-Unnamed module có các đặc điểm quan trọng:
+The unnamed module has important characteristics:
 
-- Nó đọc tất cả named module trong cùng module layer.
-- Tất cả package của nó được export và open.
-- Nó không có tên để ghi trong một chỉ thị `requires` của explicit named module.
-- Các ranh giới package và dependency không được kiểm soát chặt ở cấp module như với explicit named module.
+- It reads all named modules in the same module layer.
+- All of its packages are exported and opened.
+- It has no name to write in a `requires` directive of an explicit named module.
+- Package boundaries and dependencies are not strictly enforced at the module level as with explicit named modules.
 
-Điều này giải thích vì sao mã chạy trên classpath thường vẫn truy cập được nhiều thư viện theo cách cũ. Tuy nhiên, một explicit named module không tự động đọc unnamed module. Nếu cần tích hợp tạm thời mã classpath với mã module, có thể bổ sung quan hệ đọc từ dòng lệnh:
+This explains why code running on the classpath can still access many libraries in the traditional way. However, an explicit named module does not automatically read the unnamed module. If you need to temporarily integrate classpath code with modular code, you can add a read relationship from the command line:
 
 ~~~bash
 java --add-reads com.acme.app=ALL-UNNAMED --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-`ALL-UNNAMED` là tên đích đặc biệt của tùy chọn dòng lệnh, đại diện cho các unnamed module. Đây là cơ chế tương thích khi chuyển đổi; nó không phải tên module có thể dùng trong `module-info.java`.
+`ALL-UNNAMED` is a special target name for the command-line option representing unnamed modules. It is a migration compatibility mechanism; it is not a module name that can be used inside `module-info.java`.
 
-## 5. Vị trí JAR quyết định cách module system xử lý
+## 5. JAR Placement Determines How the Module System Handles It
 
-Cùng một JAR có thể được xử lý khác nhau tùy vị trí đặt:
+The same JAR can be handled differently depending on where it is placed:
 
-| Loại JAR | Đặt trên classpath | Đặt trên module path |
+| JAR type | Placed on classpath | Placed on module path |
 |---|---|---|
-| JAR có `module-info.class` | Descriptor module không được dùng; lớp được nạp như mã classpath trong unnamed module | Được xử lý như explicit named module |
-| JAR không có `module-info.class` | Lớp thuộc unnamed module | Có thể được xử lý như automatic module |
+| JAR with `module-info.class` | Module descriptor is ignored; classes load as classpath code in the unnamed module | Handled as an explicit named module |
+| JAR without `module-info.class` | Classes belong to the unnamed module | Can be handled as an automatic module |
 
-Ví dụ:
+For example:
 
 ~~~text
 app.jar
@@ -127,104 +127,104 @@ mods/
   legacy-library.jar
 ~~~
 
-Giả sử `com.acme.domain.jar` có `module-info.class`, còn `legacy-library.jar` chưa có descriptor:
+Suppose `com.acme.domain.jar` has `module-info.class`, while `legacy-library.jar` has no descriptor:
 
-- Đặt cả hai trên module path: domain là explicit named module; legacy-library là automatic module.
-- Đặt `legacy-library.jar` trên classpath: các lớp của nó thuộc unnamed module.
-- Đặt một modular JAR trên classpath: module descriptor của nó không tạo ranh giới JPMS trong lần chạy đó; JAR được dùng theo cách classpath.
+- Place both on the module path: `domain` is an explicit named module; `legacy-library` is an automatic module.
+- Place `legacy-library.jar` on the classpath: its classes belong to the unnamed module.
+- Place a modular JAR on the classpath: its module descriptor does not enforce JPMS boundaries during that run; the JAR is used in classpath mode.
 
-Vì vậy, khi gặp lỗi về tên module, readability hoặc package visibility, hãy kiểm tra cả nội dung JAR lẫn vị trí JAR được đưa vào lúc biên dịch và lúc chạy.
+Therefore, when encountering errors regarding module names, readability, or package visibility, check both the JAR contents and where the JAR is placed at compile time and runtime.
 
-## 6. So sánh ba dạng module
+## 6. Comparing the Three Module Forms
 
-| Tiêu chí | Explicit named module | Automatic module | Unnamed module |
+| Criterion | Explicit named module | Automatic module | Unnamed module |
 |---|---|---|---|
-| Nguồn tạo descriptor | Tác giả khai báo `module-info.java` | Module system suy ra descriptor từ JAR | Không có descriptor |
-| Có tên module | Có, khai báo tường minh | Có, lấy từ manifest hoặc tên JAR | Không |
-| Vị trí sử dụng điển hình | Module path | Module path | Classpath |
-| Quan hệ đọc | Theo các chỉ thị `requires` và quy tắc JPMS | Đọc tất cả module trong cấu hình | Đọc tất cả named module trong layer |
-| Package export | Theo `exports` | Tất cả package | Tất cả package |
-| Package mở cho reflection | Theo `opens` hoặc `open module` | Không nên suy ra quyền reflection chỉ từ việc package được export; kiểm tra descriptor/runtime khi tích hợp framework | Tất cả package được open |
-| Có thể được named module yêu cầu bằng `requires` | Có | Có | Không |
-| Mức độ đóng gói | Rõ ràng, có kiểm soát | Rộng, thuận tiện cho chuyển đổi | Theo mô hình classpath |
+| Source of descriptor | Author declares `module-info.java` | Module system derives descriptor from JAR | No descriptor |
+| Has module name | Yes, explicitly declared | Yes, taken from manifest or JAR filename | No |
+| Typical usage location | Module path | Module path | Classpath |
+| Read relationships | Per `requires` directives and JPMS rules | Reads all modules in configuration | Reads all named modules in layer |
+| Exported packages | Per `exports` | All packages | All packages |
+| Packages opened for reflection | Per `opens` or `open module` | Do not infer reflection rights solely from packages being exported; check descriptor/runtime when integrating frameworks | All packages opened |
+| Can be required by a named module via `requires` | Yes | Yes | No |
+| Encapsulation level | Clear, controlled | Broad, convenient for migration | Follows classpath model |
 
-Cần phân biệt hai khái niệm: **export** cho phép mã module khác truy cập các kiểu công khai trong package theo quy tắc Java; **open** cho phép reflection sâu. Một package được export không đồng nghĩa package đó được mở cho reflection.
+Distinguish two concepts: **export** allows code in other modules to access public types in a package under Java rules; **open** allows deep reflection. An exported package does not imply that the package is opened for reflection.
 
-## 7. Dùng lẫn classpath và module path trong giai đoạn chuyển đổi
+## 7. Mixing Classpath and Module Path During Migration
 
-JPMS cho phép ứng dụng giữ lại một số thư viện trên classpath trong khi các module mới đã chuyển sang module path. Đây là cách migration từng phần, nhưng cần hiểu chiều của quan hệ đọc:
+JPMS allows an application to keep some libraries on the classpath while newer modules have already moved to the module path. This enables incremental migration, though you need to understand the direction of read relationships:
 
-- Unnamed module có thể đọc các named module trong layer của nó.
-- Automatic module đọc các named module và unnamed module trong cấu hình.
-- Explicit named module chỉ đọc dependency theo các quan hệ module được thiết lập; nó không tự động đọc unnamed module.
-- Muốn explicit named module đọc mã classpath trong giai đoạn chuyển tiếp, có thể dùng `--add-reads module=ALL-UNNAMED` ở lệnh chạy. Sau đó nên chuyển dependency đó thành module có tên và khai báo `requires` rõ ràng.
+- The unnamed module can read named modules in its layer.
+- An automatic module reads named modules and unnamed modules in the configuration.
+- An explicit named module only reads dependencies per established module relationships; it does not automatically read the unnamed module.
+- To allow an explicit named module to read classpath code during transition, `--add-reads module=ALL-UNNAMED` can be used on the launch command. Afterward, convert that dependency into a named module and declare `requires` explicitly.
 
-Ví dụ một ứng dụng đã có module descriptor nhưng vẫn cần một thư viện cũ trên classpath:
+Example of an application that already has a module descriptor but still needs an older library on the classpath:
 
 ~~~bash
 java --add-reads com.acme.app=ALL-UNNAMED --class-path "legacy/*" --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Lệnh trên bổ sung khả năng đọc từ module `com.acme.app` tới các unnamed module. Nó chỉ giải quyết readability; các vấn đề khác như thiếu lớp, xung đột package hoặc API không tương thích vẫn cần được xử lý riêng.
+The command above adds read access from `com.acme.app` to unnamed modules. It only solves readability; other issues such as missing classes, split packages, or incompatible APIs still need to be handled separately.
 
-## 8. Lộ trình chuyển JAR cũ thành module
+## 8. Roadmap to Migrate Legacy JARs to Modules
 
-Có thể chuyển dần theo các bước sau:
+You can migrate incrementally with the following steps:
 
-1. **Kiểm kê dependency**: xác định JAR nào đã có `module-info.class`, JAR nào có `Automatic-Module-Name`, và JAR nào chỉ dùng classpath.
-2. **Kiểm tra tên module**: dùng `jar --describe-module --file <jar>` để xem tên và descriptor mà Java nhận diện.
-3. **Ổn định tên cho thư viện cũ**: nếu có quyền phát hành lại JAR, thêm `Automatic-Module-Name` vào manifest để người dùng có tên module ổn định.
-4. **Đưa JAR tương thích lên module path**: khai báo `requires` tới automatic module và kiểm tra ứng dụng ở cả compile time lẫn runtime.
-5. **Tạo descriptor tường minh**: khi có thể sửa thư viện, thêm `module-info.java`, chọn dependency cần thiết và chỉ export các package thuộc API.
-6. **Loại bỏ cầu nối tạm thời**: khi dependency đã là explicit named module, bỏ các tùy chọn `--add-reads ...=ALL-UNNAMED` và các cấu hình tương thích không còn cần thiết.
+1. **Inventory dependencies**: identify which JARs already have `module-info.class`, which have `Automatic-Module-Name`, and which only use the classpath.
+2. **Check module names**: use `jar --describe-module --file <jar>` to see the name and descriptor Java recognizes.
+3. **Stabilize names for legacy libraries**: if you have permission to re-release the JAR, add `Automatic-Module-Name` to the manifest so consumers have a stable module name.
+4. **Move compatible JARs onto the module path**: declare `requires` on the automatic modules and test the application at both compile time and runtime.
+5. **Create explicit descriptors**: when the library can be modified, add `module-info.java`, select required dependencies, and export only API packages.
+6. **Remove temporary bridges**: once a dependency is an explicit named module, drop `--add-reads ...=ALL-UNNAMED` options and compatibility workarounds that are no longer needed.
 
-Không nên đưa mọi JAR lên module path mà không kiểm tra tên module. Hai JAR có tên module xung đột hoặc các package trùng lặp có thể làm quá trình phân giải module thất bại hoặc khiến cấu hình khó bảo trì.
+Do not put every JAR onto the module path without checking module names. Two JARs with conflicting module names or duplicate packages can cause module resolution to fail or make the configuration hard to maintain.
 
-## 9. Chẩn đoán module mà một JAR cung cấp
+## 9. Diagnosing Which Module a JAR Provides
 
-Các lệnh sau giúp xác định JAR đang được Java nhận diện như thế nào:
+The following commands help identify how Java recognizes a JAR:
 
 ~~~bash
 jar --describe-module --file libs/legacy.jar
 jar --describe-module --file libs/domain.jar
 ~~~
 
-Để quan sát các module được phân giải khi chạy:
+To observe resolved modules at runtime:
 
 ~~~bash
 java --show-module-resolution --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Để xem dependency module mà công cụ `jdeps` phát hiện:
+To inspect module dependencies detected by `jdeps`:
 
 ~~~bash
 jdeps --print-module-deps --module-path mods app.jar
 ~~~
 
-Khi kết quả không như mong đợi, kiểm tra lần lượt:
+When results are unexpected, check in order:
 
-- JAR có thực sự nằm trên classpath hay module path?
-- JAR có `module-info.class` hay chỉ có manifest?
-- Tên module được khai báo có khớp với tên mà `jar --describe-module` hiển thị không?
-- Explicit named module đã khai báo `requires` tới dependency chưa?
-- Package cần dùng đã được export chưa?
-- Dependency có xuất hiện trong cấu hình runtime giống như cấu hình compile time không?
+- Is the JAR actually on the classpath or module path?
+- Does the JAR contain `module-info.class` or only a manifest?
+- Does the declared module name match what `jar --describe-module` displays?
+- Has the explicit named module declared `requires` on the dependency?
+- Is the needed package exported?
+- Does the dependency appear in the runtime configuration just as in the compile-time configuration?
 
-## 10. Lỗi thường gặp khi nhầm ba dạng module
+## 10. Common Errors When Confusing the Three Module Forms
 
-- **`module not found`**: JAR chưa nằm trên module path, tên module yêu cầu không khớp, hoặc module không được phân giải.
-- **`module A does not read module B`**: module A thiếu quan hệ readability; kiểm tra `requires`, `requires transitive` hoặc cấu hình chuyển tiếp phù hợp.
-- **Không thể viết `requires` tới thư viện trên classpath**: thư viện đó thuộc unnamed module và không có tên module. Có thể tạm dùng `--add-reads A=ALL-UNNAMED`, hoặc đưa JAR cũ lên module path để nó trở thành automatic module.
-- **Package không được export**: module đã được đọc nhưng package của explicit named module chưa được công bố cho module gọi.
-- **Lỗi reflection trong framework**: kiểm tra `opens` hoặc `open module`; `exports` không thay thế `opens`.
-- **Tên module thay đổi sau khi đổi tên JAR**: JAR không khai báo `Automatic-Module-Name`, nên tên được suy ra từ filename có thể thay đổi.
+- **`module not found`**: the JAR is not on the module path, the requested module name does not match, or the module was not resolved.
+- **`module A does not read module B`**: module A lacks a readability relationship; check `requires`, `requires transitive`, or appropriate transition configuration.
+- **Cannot write `requires` to a classpath library**: that library belongs to the unnamed module and has no module name. You can temporarily use `--add-reads A=ALL-UNNAMED`, or move the old JAR onto the module path so it becomes an automatic module.
+- **Package is not exported**: the module is read, but the explicit named module's package has not been exported to the calling module.
+- **Reflection error in a framework**: check `opens` or `open module`; `exports` does not replace `opens`.
+- **Module name changes after renaming a JAR**: the JAR does not declare `Automatic-Module-Name`, so the name derived from the filename can change.
 
-## Kết luận
+## Conclusion
 
-Explicit named module, automatic module và unnamed module là ba cách mã Java tham gia vào cấu hình chạy:
+Explicit named modules, automatic modules, and unnamed modules are the three ways Java code participates in a runtime configuration:
 
-- Explicit named module có descriptor tường minh, kiểm soát dependency và package API.
-- Automatic module giúp JAR cũ tham gia module path với tên module và khả năng đọc rộng, phù hợp cho giai đoạn migration.
-- Unnamed module giữ cách tổ chức classpath truyền thống, không có tên và không thể được yêu cầu trực tiếp bằng `requires`.
+- Explicit named modules have explicit descriptors controlling dependencies and package APIs.
+- Automatic modules allow legacy JARs to join the module path with a module name and broad readability, suitable for migration phases.
+- Unnamed modules preserve traditional classpath organization, have no name, and cannot be required directly with `requires`.
 
-Khi kiểm tra một dependency, hãy xác định JAR nằm ở đâu, Java nhận diện nó thành module nào, rồi mới kiểm tra quan hệ readability và package export. Nắm rõ ba dạng này giúp chuyển ứng dụng sang JPMS từng bước mà vẫn hiểu được ranh giới truy cập ở cả compile time và runtime.
+When inspecting a dependency, identify where the JAR is located, which module form Java recognizes it as, and only then verify readability relationships and package exports. Understanding these three forms helps migrate applications to JPMS step by step while keeping access boundaries clear at both compile time and runtime.

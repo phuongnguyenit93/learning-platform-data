@@ -1,50 +1,50 @@
-# Đo startup, memory và class loading
+# Measuring Startup, Memory, and Class Loading
 
-Hiệu năng của một ứng dụng Java không chỉ là thời gian xử lý một request. Với ứng dụng modular, đặc biệt là command-line tool, service nhỏ hoặc runtime image được tạo bằng `jlink`, cần quan sát ít nhất ba khía cạnh: **startup latency**, **memory footprint** và **class loading**.
+The performance of a Java application is not only the time taken to handle a request. For modular applications—especially command-line tools, small services, or runtime images built with `jlink`—you should observe at least three dimensions: **startup latency**, **memory footprint**, and **class loading**.
 
-Ba khía cạnh này có liên quan nhưng không thể thay thế cho nhau. Startup time đo thời gian tiến trình đi từ lúc khởi chạy đến một mốc sẵn sàng đã định nghĩa. Memory cần phân biệt heap với bộ nhớ toàn tiến trình. Class-loading log cho biết class nào được nạp, từ đâu và vào thời điểm nào; nó hỗ trợ giải thích startup và footprint nhưng bản thân số lượng class không phải thước đo hiệu năng đầy đủ.
+These three dimensions are related but not interchangeable. Startup time measures how long a process takes from launch to a defined readiness milestone. Memory must distinguish heap from total process memory. Class-loading logs show which classes are loaded, from where, and when; they help explain startup and footprint, though class count alone is not a complete performance metric.
 
-Bài này dùng JDK 21 và các công cụ có sẵn trong JDK như `time`, `Measure-Command`, `jcmd`, `jstat`, Java Flight Recorder (JFR) và Unified Logging.
+This lesson uses JDK 21 and built-in JDK tools such as `time`, `Measure-Command`, `jcmd`, `jstat`, Java Flight Recorder (JFR), and Unified Logging.
 
-## 1. Xác định chính xác điều cần đo
+## 1. Define Exactly What to Measure
 
-Trước khi chạy benchmark, hãy định nghĩa mốc đo:
+Before running benchmarks, define the measurement milestone:
 
-- **Process startup**: từ lúc hệ điều hành tạo tiến trình Java đến khi tiến trình kết thúc hoặc ghi kết quả đầu tiên.
-- **Application ready**: thời điểm ứng dụng thật sự sẵn sàng nhận công việc, ví dụ HTTP health endpoint báo ready hoặc ứng dụng ghi log `READY`.
-- **First operation**: thời gian đến khi thao tác đầu tiên hoàn tất. Mốc này có thể bao gồm lazy initialization sau startup.
-- **Steady-state latency/throughput**: hiệu năng sau khi JVM đã warm up, JIT compiler và cache đã hoạt động ổn định.
+- **Process startup**: from when the operating system creates the Java process until the process exits or writes its first output.
+- **Application ready**: the point when the application is genuinely ready to accept work, such as an HTTP health endpoint reporting ready or the application logging `READY`.
+- **First operation**: time until the first operation completes. This milestone may include post-startup lazy initialization.
+- **Steady-state latency/throughput**: performance after the JVM has warmed up and the JIT compiler and caches have stabilized.
 
-Không nên dùng thời gian process exit làm đại diện cho thời gian ready nếu ứng dụng tiếp tục chạy nền. Với server, hãy đo đến readiness signal; với CLI, có thể đo đến khi lệnh hoàn tất nếu đó là trải nghiệm người dùng cần tối ưu.
+Do not use process exit time as a proxy for ready time if the application continues running in the background. For a server, measure until the readiness signal; for a CLI, you can measure until the command finishes if that is the user experience to optimize.
 
-Một kết quả đo nên ghi kèm:
+A measurement result should be recorded along with:
 
-- JDK vendor và version.
-- OS, CPU architecture và số core.
-- Cấu hình JVM như `-Xms`, `-Xmx`, GC và các system property quan trọng.
-- Classpath/module path hoặc runtime image đang dùng.
-- Root module và các module được resolve.
-- Số lần chạy, cách tính median/p95 và điều kiện cold/warm.
-- Mốc bắt đầu/kết thúc được sử dụng.
+- JDK vendor and version.
+- OS, CPU architecture, and core count.
+- JVM configuration such as `-Xms`, `-Xmx`, GC, and key system properties.
+- Classpath/module path or runtime image being used.
+- Root modules and resolved modules.
+- Number of runs, how median/p95 are calculated, and cold/warm conditions.
+- Start/end milestones used.
 
-## 2. Đo startup của một tiến trình Java
+## 2. Measuring Startup of a Java Process
 
-### Đo thời gian bằng time trên Linux/macOS
+### Measuring Time with time on Linux/macOS
 
-Với ứng dụng modular:
+For a modular application:
 
 ~~~bash
 /usr/bin/time -f "elapsed=%e sec max_rss=%M KB"   java --module-path mods        --module com.acme.app/com.acme.app.Main
 ~~~
 
-- `elapsed` là thời gian thực tế từ lúc chạy lệnh đến khi tiến trình kết thúc.
-- `max_rss` là maximum resident set size mà hệ điều hành ghi nhận, tính bằng KB trên các hệ thống GNU time phổ biến.
+- `elapsed` is the wall-clock time from running the command until the process exits.
+- `max_rss` is the maximum resident set size recorded by the OS, in KB on common GNU time systems.
 
-Nếu ứng dụng là server chạy liên tục, lệnh trên chỉ in kết quả sau khi tiến trình kết thúc. Khi đó hãy dùng công cụ đo bên ngoài để ghi thời điểm start và readiness, hoặc để ứng dụng phát ra một mốc `READY` có timestamp.
+If the application is a long-running server, the command above only prints results after the process exits. In that case, use an external measurement tool to record start and readiness times, or have the application emit a timestamped `READY` milestone.
 
-### Đo bằng PowerShell trên Windows
+### Measuring with PowerShell on Windows
 
-Với CLI kết thúc sau khi chạy:
+For a CLI that exits after running:
 
 ~~~powershell
 Measure-Command {
@@ -52,103 +52,103 @@ Measure-Command {
 }
 ~~~
 
-Đối tượng trả về chứa `TotalMilliseconds` và các thành phần thời gian. Với server chạy lâu, `Measure-Command` chờ tiến trình kết thúc; cần đo readiness bằng script hoặc health check riêng thay vì chờ server dừng.
+The returned object contains `TotalMilliseconds` and time components. For a long-running server, `Measure-Command` waits for the process to exit; measure readiness with a separate script or health check instead of waiting for the server to stop.
 
-### Đo nhiều lần
+### Running Multiple Iterations
 
-Một lần chạy không đủ để kết luận. Thời gian có thể thay đổi do:
+A single run is not enough to draw conclusions. Timings can vary due to:
 
-- OS file cache và disk cache.
-- CPU frequency scaling, tải nền và scheduling.
-- JIT compilation hoặc cache do ứng dụng tự tạo.
-- DNS, database, network hoặc các dependency ngoài JVM.
-- Antivirus hoặc filesystem scan trên một số hệ thống.
+- OS file cache and disk cache.
+- CPU frequency scaling, background load, and scheduling.
+- JIT compilation or caches created by the application itself.
+- DNS, database, network, or dependencies outside the JVM.
+- Antivirus or filesystem scans on certain systems.
 
-Hãy chạy nhiều lần trong điều kiện tương đương, ghi từng kết quả và báo cáo median cùng p95 nếu có đủ mẫu. Phân biệt:
+Run multiple times under equivalent conditions, record each result, and report the median along with p95 if there are enough samples. Distinguish:
 
-- **Cold process**: mỗi lần tạo một tiến trình JVM mới.
-- **Warm environment**: JVM mới nhưng OS/file cache đã được làm nóng bởi các lần chạy trước.
-- **Warm JVM**: cùng một tiến trình đã xử lý nhiều công việc. Đây là trạng thái khác với startup của một tiến trình mới.
+- **Cold process**: each run spawns a new JVM process.
+- **Warm environment**: new JVM, yet OS/file caches have been warmed by previous runs.
+- **Warm JVM**: the same process has already processed substantial work. This is a different state from the startup of a fresh process.
 
-Nếu mục tiêu là startup của ứng dụng sau deploy/restart, cần đo cold process theo quy trình thực tế. Nếu mục tiêu là request latency sau khi service ổn định, hãy benchmark steady state riêng.
+If the goal is application startup after deploy/restart, measure cold processes following a realistic workflow. If the goal is request latency after the service stabilizes, benchmark steady state separately.
 
-### Không nhầm startup với module resolution
+### Do Not Confuse Startup with Module Resolution
 
-Có thể thêm:
+You can add:
 
 ~~~bash
 java --show-module-resolution   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Tùy chọn này cho biết root và dependency module được resolve. Nó hữu ích khi kiểm tra graph có kéo theo module không cần thiết hay không, nhưng không phải bộ đo thời gian startup chi tiết. Để phân tích thời gian khởi tạo, class loading, GC và JIT, dùng log/JFR.
+This option shows root and dependency modules being resolved. It is useful for checking whether the graph pulls in unnecessary modules, but it is not a detailed startup timer. To analyze initialization time, class loading, GC, and JIT, use logs/JFR.
 
-## 3. Đo memory: heap và process memory
+## 3. Measuring Memory: Heap and Process Memory
 
-Một ứng dụng Java sử dụng nhiều vùng nhớ. Không thể kết luận tổng memory chỉ từ heap.
+A Java application uses multiple memory regions. You cannot determine total memory from the heap alone.
 
-### Heap memory
+### Heap Memory
 
-Heap là vùng bộ nhớ JVM dùng cho object Java. Hai tùy chọn thường gặp:
+The heap is the JVM memory region used for Java objects. Two common options are:
 
-- `-Xms`: kích thước heap ban đầu.
-- `-Xmx`: giới hạn heap tối đa.
+- `-Xms`: initial heap size.
+- `-Xmx`: maximum heap limit.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java -Xms256m -Xmx1g   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-`-Xmx1g` không có nghĩa tiến trình luôn dùng 1 GB RAM. Đây là giới hạn heap tối đa. Heap committed và heap used thay đổi theo allocation, GC và cấu hình JVM.
+`-Xmx1g` does not mean the process always uses 1 GB of RAM. It is the maximum heap limit. Committed heap and used heap vary with allocation, GC, and JVM configuration.
 
-### Process memory / RSS
+### Process Memory / RSS
 
-Bộ nhớ tiến trình có thể bao gồm:
+Process memory can include:
 
-- Heap đã commit.
-- Metaspace lưu metadata class.
-- Code cache chứa mã máy do JIT compiler tạo.
-- Thread stack của các thread.
-- Direct byte buffer và native allocation.
-- Native library, memory mapping và cấu trúc nội bộ của JVM.
+- Committed heap.
+- Metaspace storing class metadata.
+- Code cache holding machine code generated by the JIT compiler.
+- Thread stacks of threads.
+- Direct byte buffers and native allocations.
+- Native libraries, memory mappings, and internal JVM structures.
 
-Vì vậy, RSS có thể lớn hơn heap used đáng kể. Ngược lại, heap max lớn không có nghĩa toàn bộ dung lượng đó đã được cấp phát vật lý.
+Therefore, RSS can be significantly larger than heap used. Conversely, a large heap max does not mean all of that capacity has been physically allocated.
 
-| Chỉ số | Ý nghĩa | Công cụ gợi ý |
+| Metric | Meaning | Suggested Tool |
 |---|---|---|
-| Heap used | Object đang chiếm heap | `jcmd GC.heap_info`, GC log |
-| Heap committed | Heap JVM đã commit | `jcmd GC.heap_info` |
-| Heap max | Giới hạn heap | `-Xmx`, `Runtime.maxMemory()` |
-| Process RSS | Bộ nhớ resident toàn tiến trình | `/usr/bin/time -v`, OS process monitor |
-| Native memory categories | Các nhóm native memory JVM theo dõi | Native Memory Tracking |
-| Metaspace | Metadata class | `jcmd GC.heap_info`, NMT |
-| Class count | Số class đã được nạp | Class-loading log, `jcmd` |
+| Heap used | Objects currently occupying the heap | `jcmd GC.heap_info`, GC logs |
+| Heap committed | Heap committed by the JVM | `jcmd GC.heap_info` |
+| Heap max | Heap limit | `-Xmx`, `Runtime.maxMemory()` |
+| Process RSS | Total process resident memory | `/usr/bin/time -v`, OS process monitor |
+| Native memory categories | Native memory groups tracked by the JVM | Native Memory Tracking |
+| Metaspace | Class metadata | `jcmd GC.heap_info`, NMT |
+| Class count | Number of loaded classes | Class-loading logs, `jcmd` |
 
-## 4. Kiểm tra heap bằng jcmd và jstat
+## 4. Inspecting Heap with jcmd and jstat
 
-Để inspect một JVM đang chạy, tìm PID của tiến trình:
+To inspect a running JVM, find the process PID:
 
 ~~~bash
 jcmd -l
 ~~~
 
-Sau đó xem heap:
+Then view heap info:
 
 ~~~bash
 jcmd <pid> GC.heap_info
 ~~~
 
-Output cho biết thông tin heap của JVM tại thời điểm lấy mẫu. Đây là snapshot, không phải mức sử dụng cao nhất trong suốt vòng đời ứng dụng.
+The output shows the JVM's heap information at the sampling moment. This is a snapshot, not the peak usage across the application's entire lifetime.
 
-Có thể lấy số liệu GC định kỳ bằng `jstat`:
+You can sample GC metrics periodically with `jstat`:
 
 ~~~bash
 jstat -gc <pid> 1000
 ~~~
 
-Tham số `1000` yêu cầu lấy mẫu mỗi 1000 ms. Các cột hiển thị dung lượng/cách sử dụng các vùng heap và bộ đếm GC tùy JVM. Dùng `jstat -options` hoặc tài liệu JDK để xem các mode khác.
+The `1000` argument requests sampling every 1000 ms. The columns display capacities/usage of heap regions and GC counters depending on the JVM. Use `jstat -options` or JDK documentation to see other modes.
 
-Một số lệnh hữu ích:
+Useful commands:
 
 ~~~bash
 jcmd <pid> VM.version
@@ -157,217 +157,217 @@ jcmd <pid> GC.heap_info
 jcmd <pid> VM.classloader_stats
 ~~~
 
-- `VM.version`: version JVM đang chạy.
-- `VM.command_line`: command line và JVM options.
-- `GC.heap_info`: thông tin heap.
-- `VM.classloader_stats`: thống kê class loader.
+- `VM.version`: running JVM version.
+- `VM.command_line`: command line and JVM options.
+- `GC.heap_info`: heap information.
+- `VM.classloader_stats`: class loader statistics.
 
-Các lệnh `jcmd` thường cần chạy với cùng user và môi trường có quyền attach tới JVM mục tiêu. Một số môi trường container hoặc cấu hình bảo mật có thể hạn chế attach.
+`jcmd` commands typically need to run under the same user and environment with permission to attach to the target JVM. Some container environments or security configurations may restrict attach.
 
 ## 5. Native Memory Tracking
 
-Heap không bao gồm toàn bộ native memory. JVM có Native Memory Tracking (NMT) để theo dõi một số nhóm native allocation do JVM quản lý.
+The heap does not include all native memory. The JVM has Native Memory Tracking (NMT) to monitor certain native allocation categories managed by the JVM.
 
-Bật NMT khi khởi chạy:
+Enable NMT at launch:
 
 ~~~bash
 java -XX:NativeMemoryTracking=summary   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Có thể chọn `detail` để lấy thông tin chi tiết hơn, nhưng overhead và lượng dữ liệu tăng. NMT phải được bật từ lúc JVM khởi động; không thể bật hồi tố cho một tiến trình đã chạy.
+You can choose `detail` for more granular information, though overhead and data volume increase. NMT must be enabled at JVM startup; it cannot be enabled retroactively on an already running process.
 
-Lấy báo cáo:
+Retrieve the report:
 
 ~~~bash
 jcmd <pid> VM.native_memory summary
 ~~~
 
-Có thể xem chênh lệch giữa hai mốc bằng baseline:
+You can view differences between two points using a baseline:
 
 ~~~bash
 jcmd <pid> VM.native_memory baseline
 jcmd <pid> VM.native_memory summary.diff
 ~~~
 
-Baseline/diff giúp quan sát native memory thay đổi theo thời gian. NMT không đo mọi allocation của native code bên ngoài JVM và không thay thế RSS của hệ điều hành. Dùng NMT cùng process monitor để có góc nhìn đầy đủ hơn.
+Baseline/diff helps observe how native memory changes over time. NMT does not measure every native allocation outside the JVM and does not replace OS RSS. Use NMT together with a process monitor for a more complete view.
 
-## 6. Đo class loading bằng Unified Logging
+## 6. Measuring Class Loading with Unified Logging
 
-Java cung cấp Unified Logging để ghi các sự kiện class loading và unloading.
+Java provides Unified Logging to record class loading and unloading events.
 
-Ghi class loading ra console:
+Log class loading to console:
 
 ~~~bash
 java -Xlog:class+load=info   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Ghi ra file với timestamp và uptime:
+Log to a file with timestamp and uptime:
 
 ~~~bash
 java -Xlog:class+load=info:file=class-load.log:time,uptime,level,tags   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Mỗi sự kiện cho biết class được nạp và nguồn class tương ứng, tùy loại class và JVM. Có thể dùng log để trả lời:
+Each event shows the loaded class and its corresponding source, depending on the class type and JVM. You can use the log to answer:
 
-- Class nào được nạp trong startup?
-- Class đến từ module/JAR hoặc runtime image nào?
-- Một thư viện có kéo theo nhiều class không cần thiết?
-- Có class được nạp từ vị trí ngoài dự kiến không?
+- Which classes are loaded during startup?
+- Which module/JAR or runtime image do classes come from?
+- Does a library pull in many unnecessary classes?
+- Are any classes loaded from an unexpected location?
 
-Có thể ghi cả load và unload:
+You can log both load and unload:
 
 ~~~bash
 java -Xlog:class+load=info,class+unload=info   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Class unloading xảy ra khi classloader và class liên quan đủ điều kiện được thu hồi; không phải mọi class đều được unload trong vòng đời ứng dụng. Class trong loader nền tảng hoặc loader sống lâu thường tồn tại đến khi JVM kết thúc.
+Class unloading occurs when a class loader and its associated classes become eligible for collection; not every class is unloaded during an application's lifetime. Classes in platform loaders or long-lived loaders typically remain until the JVM exits.
 
-### Đếm số dòng class loading
+### Counting Class Loading Log Lines
 
-Trên Linux/macOS, sau khi có file log:
+On Linux/macOS, once you have the log file:
 
 ~~~bash
 grep -c "class,load" class-load.log
 ~~~
 
-Trên PowerShell:
+On PowerShell:
 
 ~~~powershell
 (Select-String -Path class-load.log -Pattern "class,load").Count
 ~~~
 
-Số dòng log là số sự kiện được ghi theo cấu hình logging, không phải số class đang còn sống tại thời điểm đo. Một class có thể được load rồi unload; class loader khác nhau cũng có thể nạp cùng tên class trong những trường hợp đặc biệt. Vì vậy, hãy kết hợp số lượng với nguồn class và classloader stats.
+The number of log lines is the number of events recorded under the logging configuration, not the number of classes currently alive at the time of measurement. A class can be loaded and later unloaded; different class loaders can also load the same class name in special cases. Therefore, combine counts with class sources and classloader stats.
 
-## 7. Dùng Java Flight Recorder để xem startup và class loading
+## 7. Using Java Flight Recorder to Inspect Startup and Class Loading
 
-Java Flight Recorder (JFR) thu thập sự kiện JVM trong một recording, có thể phân tích bằng Java Mission Control (JMC) hoặc công cụ `jfr`.
+Java Flight Recorder (JFR) collects JVM events into a recording, which can be analyzed with Java Mission Control (JMC) or the `jfr` tool.
 
-Bắt đầu recording từ lúc JVM khởi chạy:
+Start a recording from JVM launch:
 
 ~~~bash
 java   -XX:StartFlightRecording=filename=startup.jfr,settings=profile,dumponexit=true   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Với server chạy lâu, có thể attach và bắt đầu recording bằng `jcmd`:
+For a long-running server, you can attach and start a recording with `jcmd`:
 
 ~~~bash
 jcmd <pid> JFR.start name=StartupProfile settings=profile filename=startup.jfr
 ~~~
 
-Khi đã thu đủ dữ liệu:
+Once enough data is collected:
 
 ~~~bash
 jcmd <pid> JFR.stop name=StartupProfile
 ~~~
 
-In một số sự kiện ra text:
+Print selected events as text:
 
 ~~~bash
 jfr summary startup.jfr
 jfr print --events jdk.ClassLoad startup.jfr
 ~~~
 
-Tên event và trường dữ liệu phụ thuộc JDK recording configuration. Trong JMC, có thể xem timeline, class loading, allocation, GC, thread activity và các event liên quan startup.
+Event names and fields depend on the JDK recording configuration. In JMC, you can view the timeline, class loading, allocations, GC, thread activity, and startup-related events.
 
-JFR phù hợp để tìm nguyên nhân tốn thời gian hoặc allocation. Recording `profile` có overhead nhất định; hãy dùng cấu hình nhất quán và tránh so sánh trực tiếp một lần chạy có profiling với lần chạy baseline không instrumentation mà không ghi chú.
+JFR is suited for identifying time-consuming or allocation-heavy activities. A `profile` recording carries some overhead; use a consistent configuration and avoid directly comparing a profiled run against an uninstrumented baseline run without noting it.
 
-## 8. Đo class loading không đồng nghĩa đo startup
+## 8. Measuring Class Loading Does Not Equal Measuring Startup
 
-Số lượng class được nạp chỉ là một phần của startup. Thời gian startup còn phụ thuộc:
+The number of loaded classes is only one part of startup. Startup time also depends on:
 
-- Bytecode verification và linking.
-- Class initialization (static initializer).
-- Reflection, service discovery và dependency injection.
+- Bytecode verification and linking.
+- Class initialization (static initializers).
+- Reflection, service discovery, and dependency injection.
 - JIT compilation.
-- Đọc file JAR/module image và filesystem cache.
-- Kết nối network, database hoặc secret/config provider.
-- Công việc khởi tạo riêng của framework.
+- Reading JAR/module image files and filesystem cache.
+- Connecting to networks, databases, or secret/config providers.
+- Framework-specific initialization work.
 
-Một ứng dụng có ít class hơn vẫn có thể startup chậm hơn nếu static initializer thực hiện I/O hoặc chờ network. Ngược lại, nhiều class có thể được nạp nhanh nếu phần lớn chỉ là metadata và code nhỏ.
+An application with fewer classes can still start more slowly if static initializers perform I/O or wait on the network. Conversely, many classes can be loaded quickly if most are metadata and small code.
 
-Hãy dùng class-loading log để xác định class nào được nạp và khi nào; dùng JFR để tìm hoạt động chiếm thời gian; dùng timestamp readiness để đo kết quả startup cuối cùng.
+Use class-loading logs to determine which classes are loaded and when; use JFR to find time-consuming activities; use readiness timestamps to measure the final startup outcome.
 
-## 9. Đo riêng runtime image và module graph
+## 9. Measuring Runtime Images and Module Graphs Separately
 
-Nếu đang so sánh runtime image được tạo bằng `jlink` với một JDK đầy đủ, cần giữ điều kiện đo giống nhau:
+If comparing a runtime image created with `jlink` against a full JDK, keep measurement conditions identical:
 
-- Cùng ứng dụng và cùng phiên bản bytecode.
-- Cùng OS, CPU, JDK release và JVM flags.
-- Cùng root module và service-binding policy.
-- Cùng dữ liệu đầu vào và cấu hình môi trường.
-- Cùng định nghĩa readiness và cách warm/cold.
+- Same application and same bytecode version.
+- Same OS, CPU, JDK release, and JVM flags.
+- Same root modules and service-binding policy.
+- Same input data and environment configuration.
+- Same readiness definition and warm/cold procedure.
 
-Có thể xem graph module lúc launch:
+You can inspect the module graph at launch:
 
 ~~~bash
 runtime/bin/java --show-module-resolution   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Để xem danh sách module trong runtime image:
+To view the list of modules in the runtime image:
 
 ~~~bash
 runtime/bin/java --list-modules
 ~~~
 
-Runtime image nhỏ hơn không đảm bảo startup luôn nhanh hơn hoặc RSS luôn thấp hơn. Kích thước image trên disk, số module được resolve, số class được load và memory process là các đại lượng khác nhau. Hãy đo từng chỉ số thay vì suy luận từ kích thước thư mục runtime.
+A smaller runtime image does not guarantee faster startup or lower RSS. Image size on disk, number of resolved modules, number of loaded classes, and process memory are different quantities. Measure each metric rather than inferring from the runtime directory size.
 
-## 10. Quy trình đo lặp lại có thể so sánh
+## 10. A Repeatable, Comparable Measurement Workflow
 
-Một quy trình thực tế:
+A practical workflow:
 
-1. Chốt JDK, OS, CPU, JVM flags, module path và phiên bản ứng dụng.
-2. Xác định mốc startup, ví dụ log `READY` hoặc thời điểm CLI kết thúc.
-3. Chạy nhiều lần với tiến trình JVM mới; lưu thời gian từng lần.
-4. Ghi process RSS từ hệ điều hành và heap snapshot bằng `jcmd`.
-5. Chạy một lượt có `-Xlog:class+load=info` để thu class-loading log.
-6. Chạy một lượt JFR để tìm hoạt động tốn thời gian hoặc allocation.
-7. Nếu cần phân tích native memory, chạy với NMT đã bật từ đầu.
-8. So sánh median/p95 và ghi rõ các lượt có instrumentation.
-9. Thay đổi một yếu tố mỗi lần, ví dụ root set, module path, runtime image hoặc JVM flags.
-10. Lặp lại đủ số lần trong cùng điều kiện và lưu log cùng metadata môi trường.
+1. Lock down JDK, OS, CPU, JVM flags, module path, and application version.
+2. Define the startup milestone, such as a `READY` log line or CLI exit time.
+3. Run multiple times with fresh JVM processes; record the time of each run.
+4. Record OS process RSS and take a heap snapshot with `jcmd`.
+5. Run one pass with `-Xlog:class+load=info` to collect class-loading logs.
+6. Run one JFR pass to identify time-consuming or allocation-heavy work.
+7. If native memory analysis is needed, run with NMT enabled from the start.
+8. Compare median/p95 and clearly note instrumented runs.
+9. Change one factor at a time, such as root set, module path, runtime image, or JVM flags.
+10. Repeat enough times under identical conditions and archive logs alongside environment metadata.
 
-Không nên cộng heap used, RSS và NMT thành một con số memory tổng. Các chỉ số có phạm vi đo khác nhau và có thể chồng lấp. Hãy trình bày chúng riêng.
+Do not add heap used, RSS, and NMT into a single total memory figure. These metrics have different measurement scopes and can overlap. Present them separately.
 
-## 11. Bảng chọn công cụ
+## 11. Tool Selection Table
 
-| Câu hỏi | Công cụ |
+| Question | Tool |
 |---|---|
-| Tiến trình CLI chạy mất bao lâu? | `/usr/bin/time`, PowerShell `Measure-Command` |
-| Server sẵn sàng sau bao lâu? | Readiness timestamp/health check và external timer |
-| Heap đang dùng bao nhiêu? | `jcmd GC.heap_info`, `jstat -gc` |
-| Tổng process memory/RSS là bao nhiêu? | OS process monitor, `/usr/bin/time -v` |
-| JVM native memory chia theo nhóm ra sao? | `-XX:NativeMemoryTracking=summary`, `jcmd VM.native_memory` |
-| Class nào được load từ đâu? | `-Xlog:class+load=info` |
-| Class loader giữ bao nhiêu class? | `jcmd VM.classloader_stats` |
-| Điều gì chiếm thời gian hoặc allocation? | JFR và JMC |
-| Module nào được resolve? | `--show-module-resolution` |
-| Runtime image có module nào? | `--list-modules` |
+| How long does the CLI process take to run? | `/usr/bin/time`, PowerShell `Measure-Command` |
+| How long until the server is ready? | Readiness timestamp/health check and external timer |
+| How much heap is in use? | `jcmd GC.heap_info`, `jstat -gc` |
+| What is the total process memory/RSS? | OS process monitor, `/usr/bin/time -v` |
+| How is JVM native memory broken down by category? | `-XX:NativeMemoryTracking=summary`, `jcmd VM.native_memory` |
+| Which classes are loaded and from where? | `-Xlog:class+load=info` |
+| How many classes does each class loader hold? | `jcmd VM.classloader_stats` |
+| What is consuming time or allocations? | JFR and JMC |
+| Which modules are resolved? | `--show-module-resolution` |
+| Which modules are inside the runtime image? | `--list-modules` |
 
-## 12. Lỗi thường gặp khi đo
+## 12. Common Measurement Mistakes
 
-**Dùng `-Xmx` làm số memory thực tế.** `-Xmx` là giới hạn heap, không phải RSS hoặc heap used. Lấy snapshot bằng `jcmd GC.heap_info` và đo RSS từ hệ điều hành.
+**Using `-Xmx` as actual memory usage.** `-Xmx` is the heap limit, not RSS or heap used. Take snapshots with `jcmd GC.heap_info` and measure RSS from the OS.
 
-**Đo server bằng thời gian command trả về.** Server không kết thúc nên timer chờ mãi. Hãy đo đến readiness signal hoặc health endpoint.
+**Measuring a server by when the launch command returns.** A server does not exit, so the timer waits forever. Measure until the readiness signal or health endpoint.
 
-**So sánh một lần chạy cold với một lần warm.** OS cache và JIT có thể làm kết quả khác đáng kể. Ghi rõ loại run và lặp lại nhiều lần.
+**Comparing a cold run with a warm run.** OS cache and JIT can significantly change results. Record the run type and repeat multiple times.
 
-**Bật mọi log trong lượt benchmark chính.** Class-loading log, GC log, JFR và NMT có overhead. Dùng một baseline ít instrumentation và các lượt diagnostic riêng.
+**Enabling all logs during the primary benchmark run.** Class-loading logs, GC logs, JFR, and NMT add overhead. Use a minimally instrumented baseline and separate diagnostic runs.
 
-**Coi class count là hiệu năng.** Số class không cho biết class initialization có chặn I/O hay không. Dùng JFR và timestamp để tìm phần việc thực sự tốn thời gian.
+**Treating class count as performance.** Class count does not reveal whether class initialization blocks on I/O. Use JFR and timestamps to find what actually consumes time.
 
-**NMT thấp hơn RSS nên kết luận process monitor sai.** NMT chỉ theo dõi các nhóm native allocation JVM hỗ trợ; RSS còn có thể chứa memory mapping, native allocation ngoài phạm vi NMT và các vùng khác.
+**Concluding the process monitor is wrong because NMT is lower than RSS.** NMT only tracks JVM-supported native allocation categories; RSS can also include memory mappings, native allocations outside NMT's scope, and other regions.
 
-**Không tìm thấy PID bằng jcmd.** Kiểm tra user, container namespace, attach permission và JVM có bật cơ chế attach phù hợp hay không.
+**Unable to find PID with jcmd.** Check user, container namespace, attach permissions, and whether the JVM enables the appropriate attach mechanism.
 
-## 13. Thực hành
+## 13. Practice Exercises
 
-1. Chạy một ứng dụng modular CLI bằng `/usr/bin/time` hoặc `Measure-Command`; ghi thời gian thực tế.
-2. Chạy lại ít nhất năm lần với JVM process mới, ghi từng kết quả và tính median.
-3. Khởi chạy một service và đo từ process start đến readiness endpoint.
-4. Thêm `-Xms256m -Xmx1g`; quan sát heap bằng `jcmd GC.heap_info` và so sánh với RSS.
-5. Bật `-XX:NativeMemoryTracking=summary`, lấy baseline và `summary.diff` sau một khoảng hoạt động.
-6. Bật `-Xlog:class+load=info`, đếm class load event và kiểm tra nguồn của các class quan trọng.
-7. Tạo JFR recording từ lúc startup; dùng `jfr summary` và JMC để tìm event chiếm thời gian.
-8. So sánh JDK đầy đủ và runtime image `jlink` trong cùng điều kiện; ghi riêng startup, heap, RSS, class count và module graph.
+1. Run a modular CLI application with `/usr/bin/time` or `Measure-Command`; record wall-clock time.
+2. Re-run at least five times with fresh JVM processes, record each result, and compute the median.
+3. Launch a service and measure from process start to the readiness endpoint.
+4. Add `-Xms256m -Xmx1g`; observe the heap with `jcmd GC.heap_info` and compare with RSS.
+5. Enable `-XX:NativeMemoryTracking=summary`, take a baseline, and check `summary.diff` after a period of activity.
+6. Enable `-Xlog:class+load=info`, count class load events, and inspect the sources of key classes.
+7. Create a JFR recording from startup; use `jfr summary` and JMC to find time-consuming events.
+8. Compare a full JDK and a `jlink` runtime image under identical conditions; separately record startup, heap, RSS, class count, and the module graph.
 
-Để đánh giá ứng dụng Java modular, hãy đo đúng đại lượng và đúng mốc. Startup cần readiness hoặc process timing; memory cần tách heap, native memory và RSS; class loading cần log hoặc JFR để hiểu class nào được nạp và tác động của nó. Khi kết hợp các nguồn này với module resolution, bạn có thể xác định module/dependency nào ảnh hưởng startup và footprint thay vì suy luận chỉ từ số lượng module hoặc kích thước runtime image.
+To evaluate a modular Java application, measure the right quantities at the right milestones. Startup needs readiness or process timing; memory requires separating heap, native memory, and RSS; class loading needs logs or JFR to understand which classes are loaded and their impact. Combining these sources with module resolution lets you pinpoint which modules or dependencies affect startup and footprint rather than guessing solely from module count or runtime image size.

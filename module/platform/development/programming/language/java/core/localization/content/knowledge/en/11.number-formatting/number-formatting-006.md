@@ -1,36 +1,36 @@
-# Định dạng BigInteger, BigDecimal và giới hạn chuyển đổi qua double
+# Formatting BigInteger, BigDecimal, and the Pitfalls of Converting Through double
 
-## 1. Tại sao định dạng số lớn cần chú ý đến kiểu dữ liệu?
+## 1. Why Does Formatting Large Numbers Require Attention to Data Types?
 
-Ứng dụng Java thường cần hiển thị những con số vượt quá phạm vi `long` hoặc những giá trị thập phân đòi hỏi độ chính xác cao. Ví dụ:
+Java applications frequently need to display numbers exceeding `long` range or decimal values demanding high precision. For example:
 
-- Một mã định danh dạng số có giá trị `9007199254740993`.
-- Một phép tính số học có kết quả `12345678901234567890.123456789`.
-- Một khoản tiền `1.005` cần làm tròn theo quy tắc kinh doanh.
-- Cùng một giá trị nhưng hiển thị theo quy ước `en-US` hoặc `de-DE` với dấu nhóm nghìn, dấu thập phân khác nhau.
+- A numeric identifier with value `9007199254740993`.
+- An arithmetic calculation producing `12345678901234567890.123456789`.
+- A monetary amount `1.005` that must be rounded according to business rules.
+- The same value displayed under `en-US` or `de-DE` conventions with different thousands and decimal separators.
 
-Java cung cấp `BigInteger` và `BigDecimal` để **lưu trữ và tính toán chính xác**, còn `NumberFormat` và `DecimalFormat` để **trình bày số theo locale**. Lỗi thường gặp là chuyển giá trị sang `double` trước khi định dạng:
+Java provides `BigInteger` and `BigDecimal` for **exact storage and arithmetic**, and `NumberFormat` and `DecimalFormat` for **locale-aware presentation**. A common mistake is converting the value to `double` before formatting:
 
 ```java
 BigInteger value = new BigInteger("9007199254740993");
-double converted = value.doubleValue(); // Mất 1 đơn vị.
+double converted = value.doubleValue(); // Loses 1 unit.
 ```
 
-`double` chỉ có 53 bit độ chính xác của significand (kể cả bit ẩn); không thể biểu diễn chính xác mọi số nguyên lớn và phần lớn số thập phân hữu hạn theo hệ cơ số 10. Nếu một bước định dạng dựa trên giá trị `double` đã bị làm tròn, thay đổi `Locale` hay thêm chữ số thập phân **không khôi phục được dữ liệu đã mất**.
+`double` has only 53 bits of significand precision (including the implicit bit); it cannot accurately represent all large integers or most finite base-10 decimals. If a formatting step relies on a `double` that has already been rounded, changing the `Locale` or adding fractional digits **cannot recover the lost data**.
 
-Mục tiêu của bài: dùng đúng đường định dạng `BigInteger`/`BigDecimal` mà không chuyển qua `double`, kiểm soát số chữ số và cách làm tròn, phân biệt dữ liệu gốc với chuỗi hiển thị, parse giá trị theo locale và nhận diện các giới hạn thực tế của formatter.
+Lesson goals: use the direct formatting path for `BigInteger`/`BigDecimal` without going through `double`, control digit counts and rounding, distinguish raw data from display strings, parse values by locale, and recognize practical formatter limitations.
 
-## 2. Ba kiểu số và độ chính xác khác nhau
+## 2. Three Numeric Types and Their Precision Differences
 
-| Kiểu | Đặc điểm | Điểm phải lưu ý |
+| Type | Characteristics | Key points to remember |
 | --- | --- | --- |
-| `BigInteger` | Số nguyên có độ lớn tùy ý, chính xác | Không có phần thập phân; chuyển qua `long`/`double` có thể mất thông tin |
-| `BigDecimal` | Số thập phân chính xác dựa trên unscaled integer và scale | Không tự giới hạn số chữ số; cần quy tắc làm tròn và scale phù hợp nghiệp vụ |
-| `double` | Số thực nhị phân IEEE 754, độ chính xác hữu hạn | Thường khoảng 15–17 chữ số thập phân có nghĩa; không biểu diễn chính xác đa số phân số thập phân |
+| `BigInteger` | Arbitrary-magnitude exact integer | No fractional part; converting to `long`/`double` can lose information |
+| `BigDecimal` | Exact decimal based on an unscaled integer and scale | Does not automatically cap digits; requires rounding rules and scale suited to the domain |
+| `double` | IEEE 754 binary floating-point, finite precision | Roughly 15–17 significant decimal digits; cannot represent most decimal fractions exactly |
 
 ### 2.1. BigInteger
 
-`java.math.BigInteger` biểu diễn số nguyên có độ lớn tùy ý, giới hạn chủ yếu bởi tài nguyên hệ thống và giới hạn triển khai. Nó lý tưởng cho số nguyên lớn cần giữ chính xác; `new BigInteger(String)` đọc giá trị từ chuỗi mà không thông qua `double`.
+`java.math.BigInteger` represents integers of arbitrary size, bounded primarily by system resources and implementation limits. It is ideal for large integers requiring exactness; `new BigInteger(String)` reads the value from a string without going through `double`.
 
 ```java
 BigInteger exact = new BigInteger("9007199254740993");
@@ -38,17 +38,17 @@ System.out.println(exact);                    // 9007199254740993
 System.out.println(exact.doubleValue());      // 9.007199254740992E15
 ```
 
-Con số `9007199254740993 = 2^53 + 1` không thể biểu diễn chính xác dưới dạng `double`. Khi đổi sang `double` theo làm tròn IEEE 754, giá trị trở thành `9007199254740992`. Các số nguyên liên tiếp từ `-2^53` đến `2^53` có thể được biểu diễn chính xác; vượt khoảng đó **không phải mọi số nguyên** còn biểu diễn được (một số bội của bước biểu diễn vẫn có thể chính xác).
+The number `9007199254740993 = 2^53 + 1` cannot be represented exactly as a `double`. When converted to `double` via IEEE 754 rounding, the value becomes `9007199254740992`. Consecutive integers from `-2^53` to `2^53` can be represented exactly; beyond that range, **not every integer** is representable (some multiples of the representation step remain exact).
 
 ### 2.2. BigDecimal
 
-`java.math.BigDecimal` lưu số ở dạng:
+`java.math.BigDecimal` stores a number in the form:
 
 \[
 \text{value} = \text{unscaledValue} \times 10^{-\text{scale}}
 \]
 
-Ví dụ `new BigDecimal("123.4500")` có giá trị số học 123.4500, unscaled value là 1234500 và scale là 4. Hai giá trị có thể bằng nhau về số học nhưng khác scale:
+For example, `new BigDecimal("123.4500")` has numeric value 123.4500, unscaled value 1234500, and scale 4. Two values can be numerically equal while having different scales:
 
 ```java
 BigDecimal a = new BigDecimal("1.0");
@@ -58,9 +58,9 @@ System.out.println(a.compareTo(b) == 0); // true
 System.out.println(a.equals(b));         // false
 ```
 
-Sự khác nhau này quan trọng khi kiểm soát cách biểu diễn như số chữ số sau dấu thập phân. `BigDecimal.toPlainString()` hiển thị dạng thập phân thông thường mà không cần locale; `DecimalFormat` có thể thêm dấu phân tách và lựa chọn số chữ số khi hiển thị.
+This distinction matters when controlling presentation such as digits after the decimal separator. `BigDecimal.toPlainString()` outputs standard decimal form without a locale; `DecimalFormat` can add separators and select displayed digit counts.
 
-**Tạo từ chuỗi khi cần chính xác:**
+**Construct from strings when exactness is needed:**
 
 ```java
 BigDecimal precise = new BigDecimal("0.1");
@@ -68,20 +68,20 @@ BigDecimal fromDouble = new BigDecimal(0.1);
 BigDecimal fromValueOf = BigDecimal.valueOf(0.1);
 ```
 
-- `precise` là giá trị thập phân chính xác `0.1`.
-- `fromDouble` nhận giá trị nhị phân thực tế của literal `0.1` và tạo biểu diễn thập phân chính xác của **giá trị double ấy**, nên không bằng `0.1` về số học.
-- `BigDecimal.valueOf(0.1)` dựa trên dạng biểu diễn chuỗi chuẩn của `double` (thông qua `Double.toString`), thường cho `0.1` với trường hợp này. Nó hữu ích hơn `new BigDecimal(double)` trong nhiều tình huống, nhưng **không thể khôi phục độ chính xác đã mất trước đó**: nếu một số lớn đã bị ép sang `double`, `valueOf` chỉ nhận giá trị double bị làm tròn.
+- `precise` is the exact decimal value `0.1`.
+- `fromDouble` takes the actual binary value of the `0.1` literal and creates an exact decimal representation of **that `double` value**, so it is not numerically equal to `0.1`.
+- `BigDecimal.valueOf(0.1)` uses the canonical string form of `double` (via `Double.toString`), which yields `0.1` in this case. It is safer than `new BigDecimal(double)` in many situations, yet **cannot restore precision lost earlier**: if a large number was already coerced to `double`, `valueOf` only receives the rounded `double`.
 
-## 3. Định dạng số theo Locale với NumberFormat và DecimalFormat
+## 3. Formatting by Locale with NumberFormat and DecimalFormat
 
-`NumberFormat` là API ở mức khái quát để trình bày số theo locale:
+`NumberFormat` is the high-level API for presenting numbers by locale:
 
 ```java
 NumberFormat us = NumberFormat.getNumberInstance(Locale.US);
 NumberFormat germany = NumberFormat.getNumberInstance(Locale.GERMANY);
 ```
 
-`DecimalFormat` là lớp triển khai rất thường gặp cho hệ số thập phân, hỗ trợ pattern, dấu phân nhóm, giới hạn số chữ số và rounding mode:
+`DecimalFormat` is the very common implementation for decimal numbers, supporting patterns, grouping separators, digit bounds, and rounding modes:
 
 ```java
 DecimalFormatSymbols symbols =
@@ -89,39 +89,39 @@ DecimalFormatSymbols symbols =
 DecimalFormat formatter = new DecimalFormat("#,##0.00", symbols);
 ```
 
-Ở hai dòng trên, dấu phẩy và dấu chấm trong **pattern** là ký hiệu cú pháp phi địa phương hóa; `DecimalFormatSymbols` quy định các ký tự xuất ra cho locale thực tế. Không nên tự ghép chuỗi `","`/`"."` vào số để giả lập định dạng.
+In those two lines, the comma and period in the **pattern** are non-localized syntax tokens; `DecimalFormatSymbols` defines the actual output characters for the locale. Do not concatenate `","`/`"."` onto numbers manually to simulate formatting.
 
-Các API liên quan:
+Related APIs:
 
-| API | Chức năng |
+| API | Function |
 | --- | --- |
-| `NumberFormat.getNumberInstance(locale)` | Nhận formatter số tổng quát theo locale |
-| `NumberFormat.getIntegerInstance(locale)` | Nhận formatter số nguyên; thường làm tròn phần lẻ khi định dạng |
-| `NumberFormat.getCurrencyInstance(locale)` | Nhận formatter tiền tệ theo quy ước mặc định của locale |
-| `DecimalFormat(pattern, symbols)` | Tạo formatter theo pattern và bộ ký hiệu |
-| `setGroupingUsed(boolean)` | Bật/tắt phân nhóm chữ số |
-| `setMinimumFractionDigits(int)` | Số chữ số sau dấu thập phân ít nhất |
-| `setMaximumFractionDigits(int)` | Số chữ số sau dấu thập phân nhiều nhất |
-| `setMinimumIntegerDigits(int)` | Số chữ số phần nguyên tối thiểu |
-| `setMaximumIntegerDigits(int)` | Giới hạn phần nguyên hiển thị theo formatter |
-| `setRoundingMode(RoundingMode)` | Chính sách làm tròn khi định dạng |
-| `format(Object)` | Định dạng đối tượng số; `DecimalFormat` hỗ trợ `BigInteger`/`BigDecimal` |
-| `DecimalFormat.setParseBigDecimal(true)` | Đọc số thập phân theo locale thành `BigDecimal` thay vì chủ yếu `Long`/`Double` |
+| `NumberFormat.getNumberInstance(locale)` | Obtain a general number formatter for the locale |
+| `NumberFormat.getIntegerInstance(locale)` | Obtain an integer formatter; typically rounds fractions when formatting |
+| `NumberFormat.getCurrencyInstance(locale)` | Obtain a currency formatter using the locale's default conventions |
+| `DecimalFormat(pattern, symbols)` | Create a formatter from a pattern and symbol set |
+| `setGroupingUsed(boolean)` | Enable/disable digit grouping |
+| `setMinimumFractionDigits(int)` | Minimum digits after the decimal separator |
+| `setMaximumFractionDigits(int)` | Maximum digits after the decimal separator |
+| `setMinimumIntegerDigits(int)` | Minimum integer digits |
+| `setMaximumIntegerDigits(int)` | Limit on displayed integer digits per formatter |
+| `setRoundingMode(RoundingMode)` | Rounding policy during formatting |
+| `format(Object)` | Format a number object; `DecimalFormat` supports `BigInteger`/`BigDecimal` |
+| `DecimalFormat.setParseBigDecimal(true)` | Parse locale decimals into `BigDecimal` instead of mostly `Long`/`Double` |
 
-**Điểm then chốt:** `DecimalFormat` hỗ trợ định dạng trực tiếp đối tượng `BigInteger` và `BigDecimal`, không buộc phải gọi `doubleValue()`. Khi viết:
+**Key takeaway:** `DecimalFormat` supports formatting `BigInteger` and `BigDecimal` objects directly, without forcing a call to `doubleValue()`. When you write:
 
 ```java
 BigDecimal amount = new BigDecimal("12345678901234567890.123456789");
 String display = formatter.format(amount);
 ```
 
-lời gọi có thể dùng đường `format(Object)` để xử lý giá trị `BigDecimal` trực tiếp. Tránh cố chuyển sang `double` chỉ vì nghĩ formatter chỉ nhận primitive `double` hoặc `long`.
+the call can take the `format(Object)` path to process the `BigDecimal` value directly. Avoid converting to `double` merely out of a belief that formatters only accept primitive `double` or `long`.
 
-Tuy nhiên, **định dạng không có nghĩa in vô hạn chữ số**. Pattern và các mức minimum/maximum digits quyết định độ dài hiển thị; formatter có thể làm tròn hoặc cắt bớt phần hiển thị theo quy tắc của nó. “Hỗ trợ BigDecimal không mất precision do ép sang double” **không đồng nghĩa** “mặc định in mọi chữ số thập phân gốc”.
+However, **direct formatting does not mean printing infinite digits**. Patterns and minimum/maximum digit bounds determine display length; the formatter may round or truncate display digits according to its rules. "Supporting `BigDecimal` without precision loss from casting to `double`" does **not** mean "printing every original fractional digit by default."
 
-### 3.1. Cẩn thận khi ép NumberFormat sang DecimalFormat
+### 3.1. Be Careful When Casting NumberFormat to DecimalFormat
 
-Trong các runtime với provider định dạng mặc định của JDK, `NumberFormat.getNumberInstance(Locale.US)` thường trả một `DecimalFormat`. Nhưng API `NumberFormat` chỉ hứa đối tượng triển khai `NumberFormat`; môi trường có provider riêng có thể thay thế. Nếu cần chắc chắn có các API dành riêng cho `DecimalFormat`, tạo trực tiếp:
+On runtimes with the JDK's default formatting provider, `NumberFormat.getNumberInstance(Locale.US)` usually returns a `DecimalFormat`. However, the `NumberFormat` API only promises an object implementing `NumberFormat`; environments with custom providers may substitute another class. If you explicitly need `DecimalFormat`-specific APIs, instantiate it directly:
 
 ```java
 DecimalFormat f = new DecimalFormat(
@@ -129,13 +129,13 @@ DecimalFormat f = new DecimalFormat(
 );
 ```
 
-Để chọn pattern chuẩn của một locale rồi tùy chỉnh, có thể kiểm tra kiểu trước khi cast thay vì mặc định mọi formatter đều là `DecimalFormat`.
+To start from a locale's standard pattern and customize it, check the runtime type before casting rather than assuming every formatter is a `DecimalFormat`.
 
-## 4. Vì sao chuyển BigInteger sang double làm sai giá trị?
+## 4. Why Converting BigInteger to double Corrupts the Value
 
-`double` là dạng floating-point nhị phân có 53 bit significand. Ở độ lớn gần `2^53`, các giá trị double liên tiếp cách nhau 2 đơn vị. Vì vậy giá trị nguyên lẻ `9007199254740993` sẽ được làm tròn thành `9007199254740992` khi chuyển đổi.
+`double` is a binary floating-point format with a 53-bit significand. Around `2^53`, consecutive `double` values are 2 units apart. Thus the odd integer `9007199254740993` rounds to `9007199254740992` upon conversion.
 
-Tạo file **`BigNumberFormattingDemo.java`** — chương trình đầy đủ dùng Java 17+:
+Create **`BigNumberFormattingDemo.java`** — a complete program using Java 17+:
 
 ```java
 import java.math.BigDecimal;
@@ -188,14 +188,14 @@ public class BigNumberFormattingDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 BigNumberFormattingDemo.java
 java BigNumberFormattingDemo
 ```
 
-**Stdout với Java 17+ và các ký hiệu `Locale.US`:**
+**Stdout on Java 17+ with `Locale.US` symbols:**
 
 ```text
 BigInteger direct: 9007199254740993
@@ -207,32 +207,32 @@ HALF_UP: 1.01
 Original: 1.005
 ```
 
-Quan sát:
+Observations:
 
-1. `DecimalFormat.format(hugeInteger)` giữ số nguyên chính xác. Chỉ việc gọi `hugeInteger.doubleValue()` mới làm giá trị đổi thành `9007199254740992`.
-2. `DecimalFormat` có thể định dạng trực tiếp `BigDecimal` với 9 chữ số sau dấu thập phân. Khi ép giá trị lớn ấy qua `double`, phần nguyên và phần lẻ đều mất thông tin; thêm đuôi `.000000000` chỉ làm **đầu ra trông có 9 chữ số**, không làm dữ liệu chính xác hơn.
-3. Hai cách làm tròn `HALF_EVEN` và `HALF_UP` khác nhau ở giá trị `1.005` khi hiển thị hai chữ số thập phân.
-4. `amount` vẫn là `1.005` sau cả hai lời gọi `format`. Định dạng chỉ sinh ra **chuỗi mới**, không sửa đối tượng `BigDecimal` gốc.
+1. `DecimalFormat.format(hugeInteger)` preserves the exact integer. Simply calling `hugeInteger.doubleValue()` alters the value to `9007199254740992`.
+2. `DecimalFormat` can directly format `BigDecimal` with 9 fractional digits. Casting that large value through `double` loses information in both the integer and fractional parts; appending `.000000000` only makes the **output look 9 digits wide**, without making the data any more accurate.
+3. `HALF_EVEN` and `HALF_UP` differ on `1.005` when displaying two fractional digits.
+4. `amount` remains `1.005` after both `format` calls. Formatting only creates **new strings**; it does not mutate the original `BigDecimal` object.
 
-Kết quả của ví dụ được thiết kế để không phụ thuộc dấu phân nhóm hoặc định dạng dấu thập phân của máy: formatter sử dụng `DecimalFormatSymbols` lấy theo `Locale.US` và pattern không phân nhóm.
+The example's output is designed not to depend on the machine's grouping or decimal separator defaults: the formatter uses `DecimalFormatSymbols` from `Locale.US` and an ungrouped pattern.
 
-## 5. Giới hạn của double: phải hiểu chính xác điều bị mất
+## 5. Limits of double: Understand Exactly What Is Lost
 
-### 5.1. Đối với số nguyên
+### 5.1. For Integers
 
-Khoảng nguyên liên tiếp mà `double` có thể biểu diễn chính xác là:
+The contiguous integer range that `double` can represent exactly is:
 
 \[
 -2^{53} \le n \le 2^{53}
 \]
 
-Ở ngoài khoảng này, vẫn có **một số** số nguyên biểu diễn được (ví dụ số chẵn gần `2^53`), nhưng không phải mọi số. Nếu một `BigInteger` vượt khoảng ấy được chuyển thành `double`, nên coi đây là phép chuyển **có thể mất độ chính xác**, không dùng nó cho ID, khóa số, tiền hoặc dữ liệu đòi hỏi chính xác tuyệt đối.
+Outside this range, **some** integers remain representable (such as even numbers near `2^53`), but not all. Whenever a `BigInteger` exceeding this range is converted to `double`, treat it as a **potentially lossy** conversion—never use it for IDs, numeric keys, money, or data requiring absolute exactness.
 
-Ngoài precision, `BigInteger.doubleValue()` cũng có thể cho `Double.POSITIVE_INFINITY` hoặc `Double.NEGATIVE_INFINITY` khi giá trị vượt phạm vi hữu hạn của `double`. Formatter không thể tái tạo giá trị nguyên từ infinity.
+Beyond precision loss, `BigInteger.doubleValue()` can also yield `Double.POSITIVE_INFINITY` or `Double.NEGATIVE_INFINITY` when the value exceeds `double`'s finite range. A formatter cannot reconstruct the original integer from infinity.
 
-### 5.2. Đối với số thập phân
+### 5.2. For Decimal Numbers
 
-Trong hệ nhị phân, những số như `0.1` không có biểu diễn hữu hạn chính xác. Để thấy rõ:
+In binary, numbers like `0.1` have no exact finite representation. To see this clearly:
 
 ```java
 System.out.println(new BigDecimal("0.1").toPlainString());
@@ -242,41 +242,41 @@ System.out.println(new BigDecimal(0.1).toPlainString());
 // 0.1000000000000000055511151231257827021181583404541015625
 ```
 
-Đoạn trên là **snippet** đặt trong phương thức với `import java.math.BigDecimal;`. Vấn đề không nằm ở locale, mà ở việc giá trị literal `0.1` đã là `double` trước khi tạo `BigDecimal`.
+This is a **snippet** inside a method with `import java.math.BigDecimal;`. The issue has nothing to do with locale; it happens because the literal `0.1` is already a `double` before constructing the `BigDecimal`.
 
-Nếu kết quả tính toán của ứng dụng cần 20–30 chữ số thập phân đúng, chuyển sang `double` ở bất kỳ bước trung gian nào đều có thể phá hỏng giả định đó. Hãy giữ các phép tính trong `BigDecimal` với `MathContext`/`RoundingMode` đã được định nghĩa, chỉ format ở ranh giới xuất dữ liệu.
+If your application's calculations require 20–30 exact decimal digits, converting to `double` at any intermediate step can break that guarantee. Keep computations in `BigDecimal` with a well-defined `MathContext`/`RoundingMode`, and format only at the output boundary.
 
-### 5.3. Đừng nhầm giới hạn double và giới hạn formatter
+### 5.3. Do Not Confuse double Limits with Formatter Limits
 
-Có ba loại giới hạn khác nhau:
+There are three distinct layers of limits:
 
-| Tầng | Giới hạn / chính sách | Ví dụ |
+| Layer | Limit / policy | Example |
 | --- | --- | --- |
-| Kiểu lưu trữ | `double` chỉ có hữu hạn bit precision | `9007199254740993` bị làm tròn qua `double` |
-| Quy tắc làm tròn số học | `BigDecimal` có scale và `MathContext` tùy thao tác | `divide` có thể cần rounding mode |
-| Quy tắc hiển thị | `DecimalFormat` giới hạn chữ số phần nguyên/lẻ, grouping, rounding mode | `1.005` hiển thị `1.00` hoặc `1.01` |
+| Storage type | `double` has finite bit precision | `9007199254740993` gets rounded through `double` |
+| Arithmetic rounding rules | `BigDecimal` has scale and `MathContext` per operation | `divide` may require a rounding mode |
+| Display rules | `DecimalFormat` limits integer/fraction digits, grouping, rounding mode | `1.005` displays as `1.00` or `1.01` |
 
-Khi chỉ định `setMaximumFractionDigits(2)`, bạn đang hạn chế **chuỗi hiển thị**, không trực tiếp chuyển đổi `BigDecimal` thành một đối tượng mới có scale 2. Nếu cần lưu tiền với scale cụ thể, phải dùng phép toán như `setScale(2, roundingMode)` theo chính sách nghiệp vụ.
+When specifying `setMaximumFractionDigits(2)`, you are constraining the **display string**, not converting the `BigDecimal` into a new object with scale 2. If you need to persist money with a specific scale, use an operation like `setScale(2, roundingMode)` per business policy.
 
-## 6. RoundingMode khi format BigDecimal
+## 6. RoundingMode When Formatting BigDecimal
 
-`DecimalFormat` có thể làm tròn giá trị khi số chữ số lẻ cần hiển thị ít hơn số chữ số thực tế. Hai mode rất thường gặp:
+`DecimalFormat` can round a value when fewer fractional digits are displayed than exist in the number. Two very common modes:
 
-- `RoundingMode.HALF_EVEN`: khi đúng giữa hai kết quả có thể biểu diễn, chọn kết quả có chữ số cuối là chẵn (banker's rounding).
-- `RoundingMode.HALF_UP`: khi đúng giữa, làm tròn theo hướng ra xa 0.
+- `RoundingMode.HALF_EVEN`: when equidistant between two representable outcomes, chooses the one whose final digit is even (banker's rounding).
+- `RoundingMode.HALF_UP`: when equidistant, rounds away from 0.
 
-Với dữ liệu thập phân **chính xác**:
+With **exact** decimal data:
 
-| Giá trị | Hai số lẻ, HALF_EVEN | Hai số lẻ, HALF_UP |
+| Value | Two decimals, HALF_EVEN | Two decimals, HALF_UP |
 | ---: | ---: | ---: |
 | `1.005` | `1.00` | `1.01` |
 | `1.015` | `1.02` | `1.02` |
 | `2.225` | `2.22` | `2.23` |
 | `-1.005` | `-1.00` | `-1.01` |
 
-Đây là kết quả số học chính xác khi đầu vào là `BigDecimal` tạo từ chuỗi. Nếu trước đó giá trị đã qua `double`, điều kiện “đúng giữa” có thể không còn đúng như kỳ vọng.
+These are exact arithmetic results when the input is a string-constructed `BigDecimal`. If the value previously went through `double`, the "exact midpoint" condition may no longer hold as expected.
 
-Để cấu hình:
+To configure:
 
 ```java
 DecimalFormat decimal = new DecimalFormat(
@@ -284,24 +284,24 @@ DecimalFormat decimal = new DecimalFormat(
 );
 decimal.setRoundingMode(RoundingMode.HALF_UP);
 String result = decimal.format(new BigDecimal("1.005"));
-// result là "1.01"
+// result is "1.01"
 ```
 
-Đoạn này là **snippet**, không phải một chương trình Java độc lập; cần `import java.text.DecimalFormat;`, `DecimalFormatSymbols`, `java.math.BigDecimal;`, `RoundingMode;`, và `java.util.Locale;`.
+This is a **snippet**, not a standalone Java program; it requires `import java.text.DecimalFormat;`, `DecimalFormatSymbols`, `java.math.BigDecimal;`, `RoundingMode;`, and `java.util.Locale;`.
 
-**Không sử dụng số đã được format để tính toán tiếp.** Ví dụ hai số tiền 1.005 và 1.005 nếu làm tròn mỗi dòng trước rồi cộng có thể cho kết quả khác với cộng chính xác rồi làm tròn tổng. Thứ tự làm tròn phải theo nghiệp vụ và quy định pháp lý liên quan, không do formatter ngầm quyết định.
+**Never use formatted strings for further calculations.** For instance, rounding two amounts of `1.005` and `1.005` per line before summing can produce a different result than summing accurately first and rounding the total. Rounding order must follow business and regulatory rules, not be implicitly dictated by a formatter.
 
-### Giới hạn số chữ số tối thiểu và tối đa
+### Minimum and Maximum Digit Bounds
 
-`setMinimumFractionDigits(2)` buộc hiển thị đủ hai chữ số lẻ, có thể thêm số 0. `setMaximumFractionDigits(2)` đặt giới hạn trên hai chữ số lẻ và có thể làm tròn. Khi cả hai đều là 2, `1.2` hiển thị `1.20`, còn `1.234` hiển thị giá trị đã làm tròn với hai chữ số lẻ.
+`setMinimumFractionDigits(2)` forces at least two fractional digits, padding zeros if needed. `setMaximumFractionDigits(2)` caps fractional digits at two and may round. When both are 2, `1.2` displays as `1.20`, while `1.234` displays rounded to two fractional digits.
 
-`setMaximumIntegerDigits(...)` có tác động trực tiếp tới số chữ số phần nguyên được in; đừng đặt một giới hạn tùy tiện đối với mã ID hoặc số nguyên chính xác rất lớn. Các giới hạn nội bộ áp dụng cho format `double`/`long` khác với khả năng định dạng trực tiếp `BigInteger`/`BigDecimal` của `DecimalFormat`. Để bảo toàn mọi chữ số cần hiển thị, phải kiểm tra mẫu, các giới hạn và toàn bộ giá trị thực tế.
+`setMaximumIntegerDigits(...)` directly affects how many integer digits are printed; never set an arbitrary limit on IDs or very large exact integers. Internal bounds applying to `double`/`long` formatting differ from `DecimalFormat`'s direct `BigInteger`/`BigDecimal` formatting path. To preserve all required digits in output, verify your patterns, bounds, and realistic input values.
 
-Đặc biệt, nếu bạn cần một định dạng **tối đa chín chữ số lẻ** nhưng không bắt buộc có đủ chín số 0, có thể dùng pattern như `0.#########`. Nếu cần giữ đủ đúng chín chữ số cho một giao diện cố định, dùng `0.000000000` như demo.
+Specifically, if you need a format with **at most nine fractional digits** without forcing all nine trailing zeros, use a pattern like `0.#########`. If you need to keep all nine digits for a fixed-layout UI, use `0.000000000` as in the demo.
 
-## 7. Định dạng BigInteger theo ngôn ngữ/vùng
+## 7. Formatting BigInteger by Language/Region
 
-`BigInteger.toString()` cho biểu diễn số nguyên không có dấu phân nhóm theo locale. Trên giao diện người dùng, có thể dùng `NumberFormat`:
+`BigInteger.toString()` returns an ungrouped integer representation without locale separators. In a user interface, you can use `NumberFormat`:
 
 ```java
 BigInteger population = new BigInteger("12345678901234567890");
@@ -313,15 +313,15 @@ String a = english.format(population);
 String b = german.format(population);
 ```
 
-Đây là **snippet**. Với dữ liệu locale chuẩn, hai formatter có thể dùng dấu phân nhóm khác nhau, ví dụ dấu phẩy tại `en-US`, dấu chấm tại `de-DE`. Tuy nhiên, việc định dạng tùy thuộc dữ liệu locale và provider của JDK. Không hardcode ví dụ output từng vùng khi không cố định môi trường chạy.
+This is a **snippet**. With standard locale data, the two formatters can use different grouping separators—for example, a comma in `en-US` and a period in `de-DE`. However, formatting depends on the JDK's locale data and provider. Do not hardcode per-region output expectations when the runtime environment is not pinned.
 
-**Cần chú ý:** `NumberFormat.getIntegerInstance(...)` thường cấu hình định dạng số nguyên. Nếu đầu vào là `BigDecimal` có phần lẻ, formatter này có thể **làm tròn phần lẻ**; nó không phải phương thức ép kiểu `toBigIntegerExact()` và không chứng minh giá trị ban đầu là số nguyên. Nếu cần bảo đảm dữ liệu không có phần lẻ, hãy kiểm tra bằng `toBigIntegerExact()` trước khi định dạng hoặc so sánh phần lẻ một cách rõ ràng.
+**Watch out:** `NumberFormat.getIntegerInstance(...)` configures integer-style formatting. If the input is a `BigDecimal` with a fractional part, this formatter can **round the fractional part**; it is not `toBigIntegerExact()` and does not prove the original value is an integer. To guarantee data has no fractional part, verify with `toBigIntegerExact()` before formatting or check the fractional part explicitly.
 
-Khi formatter mặc định là `DecimalFormat` của JDK, nó xử lý trực tiếp `BigInteger`. Nếu dùng một provider `NumberFormat` tùy chỉnh, cần kiểm tra hợp đồng của implementation; không nên suy ra mọi implementation đều hỗ trợ mọi đường định dạng độ chính xác tùy ý.
+When the default formatter is the JDK's `DecimalFormat`, it handles `BigInteger` directly. If using a custom `NumberFormat` provider, verify the implementation's contract; do not assume every implementation supports every arbitrary-precision path.
 
-## 8. Định dạng BigDecimal theo locale mà vẫn giữ nghiệp vụ
+## 8. Formatting BigDecimal by Locale While Preserving Business Semantics
 
-Đối với số thập phân:
+For decimal numbers:
 
 ```java
 BigDecimal value = new BigDecimal("12345.6789");
@@ -334,11 +334,11 @@ localeNumber.setMaximumFractionDigits(4);
 String formatted = localeNumber.format(value);
 ```
 
-Đoạn là **snippet**; các cài đặt phần lẻ thể hiện mong muốn hiển thị bốn chữ số, nhưng việc hiển thị thực tế (separator, grouping) phụ thuộc locale và implementation. Nếu đã phải chọn format chi tiết, dùng `DecimalFormat` và `DecimalFormatSymbols` tường minh.
+This is a **snippet**; the fraction settings express the desire to show four digits, while the actual rendering (separators, grouping) depends on the locale and implementation. When precise format control is needed, use `DecimalFormat` and `DecimalFormatSymbols` explicitly.
 
-### Khi định dạng tiền
+### When Formatting Currency
 
-`NumberFormat.getCurrencyInstance(locale)` chọn **cách hiển thị tiền tệ theo vùng**, không quyết định tiền tệ của giao dịch. Ví dụ đơn hàng bằng USD phục vụ người dùng ở Đức thì locale có thể là `Locale.GERMANY` nhưng currency vẫn là `USD`.
+`NumberFormat.getCurrencyInstance(locale)` selects **regional currency display conventions**, not the transaction currency. For example, a USD order for a user in Germany may use `Locale.GERMANY` while the currency remains `USD`.
 
 ```java
 NumberFormat money = NumberFormat.getCurrencyInstance(Locale.GERMANY);
@@ -346,13 +346,13 @@ money.setCurrency(Currency.getInstance("USD"));
 String label = money.format(new BigDecimal("1234.50"));
 ```
 
-Đoạn này minh họa việc định dạng trực tiếp `BigDecimal` mà **không gọi `doubleValue()`**. Kiểu hiển thị mã tiền, vị trí ký hiệu, dấu phân nhóm và chữ số lẻ do formatter/currency quyết định. Một số quy định kế toán, đơn vị tiền hay nghiệp vụ thanh toán có chính sách làm tròn riêng: cần thiết lập rõ thay vì chỉ tin vào mặc định.
+This snippet illustrates formatting a `BigDecimal` directly **without calling `doubleValue()`**. Currency code/symbol rendering, symbol placement, grouping separators, and fractional digits are governed by the formatter and currency. Certain accounting rules, currency units, or payment workflows have dedicated rounding policies: set them explicitly rather than relying on defaults.
 
-Lưu ý việc gọi `setCurrency` không phải trong mọi implementation đều tự thay đổi tất cả giới hạn fraction digits đã thiết lập trước đó; hãy kiểm tra `getMinimumFractionDigits()`, `getMaximumFractionDigits()` và rounding mode nếu nghiệp vụ yêu cầu đúng số chữ số.
+Note that calling `setCurrency` does not automatically update previously configured fraction digit bounds in every implementation; check `getMinimumFractionDigits()`, `getMaximumFractionDigits()`, and the rounding mode if the business requires an exact digit count.
 
-## 9. Parse số theo locale: tránh mất precision khi đọc đầu vào
+## 9. Locale-Aware Parsing: Avoiding Precision Loss on Input
 
-Từ chuỗi hiển thị, `NumberFormat.parse(...)` thường trả `Long` hoặc `Double` tùy giá trị và implementation. Nếu cần giữ phần thập phân chính xác trong ứng dụng tài chính, một `DecimalFormat` có thể được cấu hình:
+From a display string, `NumberFormat.parse(...)` typically returns `Long` or `Double` depending on the value and implementation. When exact decimals must be preserved in financial applications, a `DecimalFormat` can be configured as follows:
 
 ```java
 DecimalFormat parser = (DecimalFormat)
@@ -360,11 +360,11 @@ DecimalFormat parser = (DecimalFormat)
 parser.setParseBigDecimal(true);
 ```
 
-Khi đó `parse` trả về `BigDecimal` cho giá trị hữu hạn thông thường, thay vì buộc đi qua `double`. Tuy nhiên, vì có thể có provider khác, nên kiểm tra kiểu formatter trước khi cast hoặc tạo một `DecimalFormat` tường minh với `DecimalFormatSymbols`.
+`parse` then returns a `BigDecimal` for normal finite values instead of forcing the value through `double`. However, because alternative providers may exist, check the formatter's type before casting or construct an explicit `DecimalFormat` with `DecimalFormatSymbols`.
 
-**Để tránh chấp nhận một chuỗi chỉ được parse một phần**, dùng `ParsePosition`:
+**To avoid accepting a string that was only partially parsed**, use `ParsePosition`:
 
-Tạo file **`ParsePreciseDecimalDemo.java`**:
+Create **`ParsePreciseDecimalDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -398,14 +398,14 @@ public class ParsePreciseDecimalDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 ParsePreciseDecimalDemo.java
 java ParsePreciseDecimalDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Type: BigDecimal
@@ -413,75 +413,75 @@ Value: 12345.678
 Complete: true
 ```
 
-`setParseBigDecimal(true)` phù hợp cho những giá trị hữu hạn thông thường; các trường hợp đặc biệt như NaN/vô cực có thể dẫn đến kiểu trả về khác. Bên cạnh kiểm tra parse hết chuỗi, ứng dụng vẫn phải quyết định quy tắc chấp nhận grouping, ký tự dấu, giới hạn scale, kích thước input và khoảng giá trị. **Parse thành công không đồng nghĩa input hợp lệ theo nghiệp vụ.**
+`setParseBigDecimal(true)` is appropriate for ordinary finite values; special cases like NaN/Infinity can produce other return types. Beyond verifying full string consumption, the application must still enforce rules for grouping acceptance, signs, scale limits, input length, and value range. **Successful parsing does not mean the input is valid under business rules.**
 
-Ngoài ra, không sử dụng `new BigDecimal("12,345.678")` để đọc chuỗi đã định dạng theo locale: constructor này không phải parser locale và sẽ báo lỗi định dạng. Nếu dữ liệu trao đổi giữa dịch vụ theo giao thức máy, tốt hơn dùng biểu diễn chuẩn không phụ thuộc locale (ví dụ chuỗi decimal dạng `12345.678`) thay vì parse chuỗi đã hiển thị cho người dùng.
+Additionally, never use `new BigDecimal("12,345.678")` to read locale-formatted strings: that constructor is not a locale-aware parser and will throw a format exception. When exchanging data between services over machine protocols, prefer a locale-independent canonical representation (such as decimal string `12345.678`) rather than parsing user-facing formatted strings.
 
-## 10. Bảo toàn precision và giới hạn hiển thị: cách chọn API
+## 10. Preserving Precision and Display Limits: Choosing the Right API
 
-| Yêu cầu | Giải pháp ưu tiên | Tránh |
+| Requirement | Preferred solution | Avoid |
 | --- | --- | --- |
-| Lưu và tính số nguyên vượt `long` | `BigInteger` | Ép sang `long`/`double` rồi tính |
-| Lưu tiền hoặc số thập phân cần chính xác | `BigDecimal(String)` hoặc nguồn decimal chính xác | `new BigDecimal(double)` cho dữ liệu nghiệp vụ thập phân |
-| Hiển thị `BigInteger` theo locale | Đưa trực tiếp vào formatter hỗ trợ `BigInteger` | `format(bigInteger.doubleValue())` |
-| Hiển thị `BigDecimal` với số chữ số cố định | `DecimalFormat` với locale symbols, pattern/rounding rõ ràng | Chuyển `BigDecimal` qua `double` trước |
-| Làm tròn số học để ghi nhận kết quả | `setScale`/`MathContext` theo chính sách | Lấy chuỗi `format` rồi parse lại để tính |
-| Đọc số thập phân giao diện theo locale | `DecimalFormat.setParseBigDecimal(true)`, kiểm tra parse hết chuỗi | `Double.parseDouble(...)` sau khi tự xóa dấu phân nhóm tùy tiện |
-| Dữ liệu máy-máy, cần biểu diễn trung lập | `BigDecimal.toPlainString()` hoặc dạng canonical thống nhất | Dùng formatter locale như một serialization format |
-| Hiển thị tiền cho người dùng vùng khác | `NumberFormat.getCurrencyInstance(locale)`, currency giao dịch tường minh | Dùng locale để suy ra loại tiền thật của giao dịch |
+| Store and compute integers beyond `long` | `BigInteger` | Casting to `long`/`double` before computing |
+| Store money or decimals requiring exactness | `BigDecimal(String)` or exact decimal source | `new BigDecimal(double)` for decimal business data |
+| Display `BigInteger` by locale | Pass directly to a formatter supporting `BigInteger` | `format(bigInteger.doubleValue())` |
+| Display `BigDecimal` with fixed digits | `DecimalFormat` with locale symbols, clear pattern/rounding | Converting `BigDecimal` through `double` first |
+| Perform arithmetic rounding for persistence | `setScale`/`MathContext` per policy | Formatting to string and parsing back to compute |
+| Read locale-formatted UI decimals | `DecimalFormat.setParseBigDecimal(true)`, check full consumption | `Double.parseDouble(...)` after ad-hoc grouping removal |
+| Machine-to-machine data needing neutral format | `BigDecimal.toPlainString()` or agreed canonical form | Using a locale formatter as a serialization format |
+| Display money to users in another region | `NumberFormat.getCurrencyInstance(locale)`, explicit transaction currency | Inferring transaction currency solely from locale |
 
-### Những lỗi thường gặp
+### Common Mistakes
 
-1. **Chuyển `BigInteger` sang `double` chỉ để gọi `format(double)`.** Kết quả có thể sai từ chữ số đơn vị. `DecimalFormat` có đường format đối tượng lớn trực tiếp.
-2. **Dùng `new BigDecimal(0.1)` và nghĩ giá trị chính xác là một phần mười.** Literal `0.1` là `double` đã xấp xỉ; hãy dùng `new BigDecimal("0.1")` cho giá trị thập phân do nghiệp vụ cung cấp.
-3. **Tăng `maximumFractionDigits` sau khi đã mất precision.** Formatter không thể tái tạo dữ liệu bị làm tròn ở bước ép kiểu trước.
-4. **Tin rằng mặc định `NumberFormat` in hết mọi chữ số.** Mặc định thường giới hạn số lẻ và dùng grouping; cần cấu hình theo yêu cầu hiển thị.
-5. **Nhầm rounding của formatter với rounding của dữ liệu nghiệp vụ.** `format` trả chuỗi, không sửa `BigDecimal`.
-6. **Định dạng tiền bằng một locale rồi dùng số đã được format để tính.** Chuỗi hiển thị phụ thuộc dấu nhóm/decimal và có thể làm tròn; giữ giá trị số trong model.
-7. **Parse bằng `Double.parseDouble` một chuỗi của locale khác.** Thường không hiểu grouping separator hoặc decimal separator theo người dùng; dùng parser theo locale.
-8. **Dùng `Double.toString` như bằng chứng mọi chữ số của nguồn đã được giữ nguyên.** Chuỗi đó là dạng round-trip của giá trị `double` hiện có, không phải nguồn thập phân ban đầu.
-9. **Chia sẻ một `DecimalFormat` mutable giữa nhiều request và thay đổi cài đặt.** `NumberFormat`/`DecimalFormat` không được bảo đảm thread-safe; tạo formatter riêng hoặc đồng bộ hóa khi chia sẻ.
-10. **Coi mã định danh lớn là số cần định dạng.** ID thường là token, có thể có số 0 đầu hoặc yêu cầu biểu diễn ổn định; không tự thêm grouping hay đổi dạng. Chỉ định dạng số nếu dữ liệu thực sự có ngữ nghĩa số lượng.
+1. **Converting `BigInteger` to `double` just to call `format(double)`.** Output can already be wrong in the ones digit. `DecimalFormat` has a direct object-formatting path for large numbers.
+2. **Using `new BigDecimal(0.1)` thinking the value is exactly one-tenth.** The `0.1` literal is an approximated `double`; use `new BigDecimal("0.1")` for decimal values supplied by business logic.
+3. **Increasing `maximumFractionDigits` after precision has already been lost.** The formatter cannot reconstruct digits lost in an earlier type cast.
+4. **Assuming default `NumberFormat` prints all digits.** Defaults usually cap fractional digits and enable grouping; configure per display requirements.
+5. **Confusing formatter rounding with business data rounding.** `format` returns a string and does not mutate the `BigDecimal`.
+6. **Formatting money in one locale and using the formatted string in calculations.** Display strings depend on grouping/decimal marks and may be rounded; keep numeric values in the model.
+7. **Parsing another locale's string with `Double.parseDouble`.** It does not understand user grouping or decimal separators; use a locale-aware parser.
+8. **Treating `Double.toString` as proof that all source digits were preserved.** That string is the round-trip representation of the current `double`, not the original decimal source.
+9. **Sharing a mutable `DecimalFormat` across requests while changing settings.** `NumberFormat`/`DecimalFormat` are not guaranteed thread-safe; create separate instances or synchronize when sharing.
+10. **Treating large identifiers as numbers to format.** IDs are typically tokens that may have leading zeros or require stable representation; never insert grouping separators or alter their form. Format as numbers only when the data truly has numeric quantity semantics.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Câu 1.** Vì sao `new BigInteger("9007199254740993").doubleValue()` khác giá trị gốc?
+**Question 1.** Why does `new BigInteger("9007199254740993").doubleValue()` differ from the original value?
 
-**Đáp án:** `double` có 53 bit precision; số nguyên `2^53+1` không biểu diễn được chính xác nên làm tròn thành `2^53`. Số nguyên dạng `BigInteger` không bị lỗi đó.
+**Answer:** `double` has 53 bits of precision; the integer `2^53+1` cannot be represented exactly and rounds to `2^53`. `BigInteger` does not suffer from this loss.
 
-**Câu 2.** Cho `new BigDecimal("12345678901234567890.123456789")`. Muốn in chín số lẻ mà không mất precision, nên dùng API nào?
+**Question 2.** Given `new BigDecimal("12345678901234567890.123456789")`, which API should you use to print nine fractional digits without losing precision?
 
-**Đáp án:** `DecimalFormat` có pattern hay cấu hình 9 chữ số lẻ, truyền trực tiếp `BigDecimal` vào `format(Object)`. Không ép `double`.
+**Answer:** `DecimalFormat` with a pattern or configuration for 9 fractional digits, passing the `BigDecimal` directly into `format(Object)`. Do not cast to `double`.
 
-**Câu 3.** `DecimalFormat("0.00")` với `HALF_EVEN` và `HALF_UP` định dạng `BigDecimal("1.005")` ra sao?
+**Question 3.** How does `DecimalFormat("0.00")` format `BigDecimal("1.005")` under `HALF_EVEN` vs. `HALF_UP`?
 
-**Đáp án:** `HALF_EVEN` → `1.00`; `HALF_UP` → `1.01`. Trong cả hai trường hợp, giá trị `BigDecimal` đầu vào vẫn là `1.005`.
+**Answer:** `HALF_EVEN` → `1.00`; `HALF_UP` → `1.01`. In both cases, the input `BigDecimal` remains `1.005`.
 
-**Câu 4.** Tại sao `new BigDecimal(0.1)` và `new BigDecimal("0.1")` khác nhau?
+**Question 4.** Why do `new BigDecimal(0.1)` and `new BigDecimal("0.1")` differ?
 
-**Đáp án:** Constructor nhận `double` lấy giá trị nhị phân đã xấp xỉ, trong khi constructor chuỗi đọc các chữ số thập phân được chỉ định chính xác.
+**Answer:** The `double` constructor captures the approximated binary value, whereas the `String` constructor parses the exact specified decimal digits.
 
-**Câu 5.** Khi parse `"12,345.678"` với `Locale.US` và cần giữ kiểu thập phân chính xác, làm gì?
+**Question 5.** When parsing `"12,345.678"` with `Locale.US` and needing to preserve exact decimal type, what should you do?
 
-**Đáp án:** Dùng `DecimalFormat` với symbols của `Locale.US`, bật `setParseBigDecimal(true)` và xác nhận `ParsePosition` đã tiêu thụ toàn bộ chuỗi; sau đó kiểm tra ràng buộc nghiệp vụ.
+**Answer:** Use `DecimalFormat` with `Locale.US` symbols, enable `setParseBigDecimal(true)`, and verify `ParsePosition` consumed the entire string; then validate business constraints.
 
-**Câu 6.** Nếu formatter in `1.20` từ `BigDecimal("1.2")`, đối tượng gốc có bị đổi scale không?
+**Question 6.** If a formatter prints `1.20` from `BigDecimal("1.2")`, does the original object's scale change?
 
-**Đáp án:** Không. Formatter tạo chuỗi hiển thị; muốn đổi scale của số dùng `setScale(...)` theo chính sách.
+**Answer:** No. The formatter produces a display string; to change a number's scale, use `setScale(...)` per policy.
 
-**Câu 7.** Formatter in một số lớn dưới dạng `12345678901234567000.000000000`. Có nên coi phần chín chữ số 0 là bằng chứng dữ liệu thập phân chính xác?
+**Question 7.** A formatter prints a large number as `12345678901234567000.000000000`. Should those nine trailing zeros be taken as proof of exact decimal data?
 
-**Đáp án:** Không. Đây có thể là đầu ra từ `double` đã làm tròn; chữ số 0 do pattern thêm vào chỉ là trình bày.
+**Answer:** No. That can be output from a rounded `double`; the zeros added by the pattern are purely cosmetic presentation.
 
-## 12. Kết luận và tài liệu tham khảo
+## 12. Conclusion and References
 
-- `BigInteger` bảo toàn số nguyên lớn; `BigDecimal` bảo toàn thập phân chính xác nếu được tạo và thao tác đúng. `double` là xấp xỉ nhị phân có phạm vi/precision hữu hạn.
-- `DecimalFormat` có thể định dạng trực tiếp `BigInteger` và `BigDecimal`; **không cần và không nên ép sang `double`** chỉ vì muốn trình bày.
-- Kiểm soát `Locale`, `DecimalFormatSymbols`, grouping, minimum/maximum digits và `RoundingMode`. Mỗi quyết định này liên quan đến **chuỗi hiển thị**, không tự sửa dữ liệu gốc.
-- Giữ phép tính trong kiểu chính xác, làm tròn số học theo quy tắc nghiệp vụ và chỉ định dạng ở lớp giao diện/xuất báo cáo.
-- Khi parse số do người dùng nhập theo locale, dùng `DecimalFormat.setParseBigDecimal(true)` và xác thực rằng đã parse toàn bộ chuỗi.
+- `BigInteger` preserves large integers; `BigDecimal` preserves exact decimals when constructed and manipulated properly. `double` is a binary approximation with finite range and precision.
+- `DecimalFormat` can format `BigInteger` and `BigDecimal` directly; **you do not need to and should not cast to `double`** just for display.
+- Control `Locale`, `DecimalFormatSymbols`, grouping, minimum/maximum digits, and `RoundingMode`. Each of these decisions affects the **display string**, not the underlying source data.
+- Keep calculations in exact types, perform arithmetic rounding according to business rules, and format only at the UI/report output layer.
+- When parsing locale-formatted user numbers, use `DecimalFormat.setParseBigDecimal(true)` and verify the entire string was consumed.
 
-Tài liệu chính thức:
+Official documentation:
 
 - [Java SE 21 — DecimalFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormat.html)
 - [Java SE 21 — NumberFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/NumberFormat.html)

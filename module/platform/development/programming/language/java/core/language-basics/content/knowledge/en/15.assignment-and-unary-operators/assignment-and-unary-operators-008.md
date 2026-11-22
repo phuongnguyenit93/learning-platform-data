@@ -1,8 +1,8 @@
-# Tránh nhiều phép tăng giảm trên cùng biến trong một biểu thức — Java 17+
+# Avoiding Multiple Increments or Decrements on the Same Variable in One Expression — Java 17+
 
-## 1. Mục tiêu
+## 1. Objective
 
-Trong Java, toán tử `++` tăng biến số lên 1, `--` giảm biến số đi 1. Cả hai **vừa trả một giá trị biểu thức, vừa thay đổi biến**. Khi cùng một biến bị tăng/giảm và đọc nhiều lần trong một biểu thức, chương trình có thể có kết quả hợp lệ nhưng rất khó đọc và dễ sửa sai.
+In Java, the `++` operator increases a numeric variable by 1, and `--` decreases it by 1. Both **return an expression value and modify the variable**. When the same variable is incremented/decremented and read multiple times in a single expression, the program can produce a valid result yet become very hard to read and easy to modify incorrectly.
 
 ~~~java
 int i = 1;
@@ -11,34 +11,34 @@ System.out.println(result); // 4
 System.out.println(i);      // 3
 ~~~
 
-**Java 17 xác định rõ kết quả này**, không phải “undefined behavior”. Tuy nhiên, người đọc phải theo dõi nhiều trạng thái trung gian của `i` trong cùng một dòng; vì thế **không nên dùng kiểu biểu thức này trong code nghiệp vụ**.
+**Java 17 clearly defines this result**; it is not “undefined behavior”. However, the reader must track multiple intermediate states of `i` within a single line; therefore, **this style of expression should not be used in business code**.
 
-Sau bài, bạn cần: phân biệt hậu tố/tiền tố; dự đoán thứ tự đánh giá trong Java; nhận diện bẫy với gán, lời gọi phương thức, mảng và điều kiện; viết lại biểu thức có nhiều side effect thành các bước dễ kiểm tra.
+After this lesson, you should be able to: distinguish postfix/prefix; predict evaluation order in Java; recognize pitfalls with assignment, method calls, arrays, and conditions; and rewrite expressions with multiple side effects into easy-to-inspect steps.
 
-## 2. Nhắc nhanh ngữ nghĩa cần dùng để nhận diện mã khó đọc
+## 2. Quick Recap of Semantics Needed to Spot Hard-to-Read Code
 
-Hậu tố `i++`/`i--` cung cấp **giá trị cũ** và cập nhật biến; tiền tố `++i`/`--i` cung cấp **giá trị mới** sau cập nhật. Tất cả diễn ra trong lần đánh giá hiện tại. Đây là phần kiến thức nền của bài “Tăng giảm tiền tố và hậu tố”; kỹ năng theo dõi riêng hai giá trị cũng đã được luyện ở bài ngay trước.
+Postfix `i++`/`i--` supplies the **old value** and updates the variable; prefix `++i`/`--i` supplies the **new value** after updating. All of this happens during the current evaluation. This is the foundational material from the lesson “Prefix and Postfix Increment and Decrement in Java”; the skill of tracking both values separately was also practiced in the immediately preceding lesson.
 
-Bài này tập trung vào **vấn đề phát sinh khi một biến bị cập nhật nhiều lần trong cùng biểu thức**: thứ tự đánh giá, các đối số phương thức, truy cập mảng, short-circuit, exception và cách refactor mà không đổi hành vi. Riêng `i++` trong phần cập nhật vòng `for` hoặc câu lệnh `i++;` đơn giản vẫn thường rõ nghĩa, không cần né tránh.
+This lesson focuses on **problems that arise when one variable is updated multiple times in the same expression**: evaluation order, method arguments, array access, short-circuiting, exceptions, and how to refactor without changing behavior. Simple `i++` in a `for` loop update or a standalone `i++;` statement remains clear and does not need to be avoided.
 
-## 3. Vì sao `i++ + ++i` cho kết quả 4?
+## 3. Why Does `i++ + ++i` Produce 4?
 
 ~~~java
 int i = 1;
 int result = i++ + ++i;
 ~~~
 
-Java đánh giá các toán hạng của `+` **từ trái sang phải**:
+Java evaluates the operands of `+` **from left to right**:
 
-| Bước | Thao tác | Giá trị của toán hạng | `i` sau bước |
+| Step | Operation | Operand Value | `i` After Step |
 |---|---|---:|---:|
-| 1 | `i++` | 1 (giá trị cũ) | 2 |
-| 2 | `++i` | 3 (giá trị mới) | 3 |
-| 3 | Cộng `1 + 3` | 4 | 3 |
+| 1 | `i++` | 1 (old value) | 2 |
+| 2 | `++i` | 3 (new value) | 3 |
+| 3 | Add `1 + 3` | 4 | 3 |
 
-Vì vậy `result == 4` và `i == 3`.
+Thus `result == 4` and `i == 3`.
 
-Một ví dụ cũng dễ nhầm:
+Another easily confused example:
 
 ~~~java
 int j = 1;
@@ -47,13 +47,13 @@ System.out.println(sum); // 3 = 1 + 2
 System.out.println(j);   // 3
 ~~~
 
-**Không kết luận đây là kết quả không xác định.** Java quy định thứ tự đánh giá; rủi ro thực tế là phép tính nhiều tác dụng phụ **khó dự đoán bằng mắt, khó review và khó bảo trì**. Đặc biệt, đừng áp dụng trực giác từ ngôn ngữ khác để giải thích Java.
+**Do not conclude this result is undefined.** Java specifies the evaluation order; the real risk is that calculations with multiple side effects are **hard to predict by eye, hard to review, and hard to maintain**. In particular, do not apply intuition from other languages to explain Java.
 
-### Thứ tự ưu tiên không đồng nghĩa thứ tự thực hiện mọi toán hạng
+### Precedence Does Not Mean Everything Evaluates Out of Order
 
-Ví dụ `a++ + b++ * c++`: phép nhân được **nhóm** trước phép cộng theo precedence, nhưng Java vẫn đánh giá các toán hạng theo quy tắc xác định từ trái sang phải. Để tránh phải suy luận dài, hãy **tách các lần tăng thành câu lệnh rõ ràng**.
+For example, in `a++ + b++ * c++`: multiplication is **grouped** before addition by precedence, yet Java still evaluates operands according to its deterministic left-to-right rules. To avoid lengthy reasoning, **separate the increments into clear statements**.
 
-## 4. Bẫy `i = i++`: tăng rồi gán đè bằng giá trị cũ
+## 4. The `i = i++` Trap: Increment Then Overwrite with the Old Value
 
 ~~~java
 int i = 5;
@@ -61,25 +61,25 @@ i = i++;
 System.out.println(i); // 5
 ~~~
 
-Diễn biến:
+Execution flow:
 
-1. Biểu thức hậu tố `i++` trả về **5**, đồng thời tăng `i` lên **6**.
-2. Phép gán `i = ...` bên ngoài lại gán **5** trở lại `i`.
-3. Cuối cùng `i` vẫn bằng **5**.
+1. The postfix expression `i++` returns **5**, while incrementing `i` to **6**.
+2. The outer assignment `i = ...` writes **5** back into `i`.
+3. Finally `i` remains **5**.
 
-So sánh:
+Compare:
 
 ~~~java
 int a = 5;
 a++;           // a=6
 
 int b = 5;
-b = ++b;       // b=6, nhưng cách viết dư thừa
+b = ++b;       // b=6, though redundant
 ~~~
 
-**Cách đúng:** nếu mục đích là tăng, hãy viết `i++;` hoặc `i += 1;`. Nếu mục đích là gán, hãy tính giá trị mong muốn rồi `i = value;`. Đừng kết hợp hai hành động lên cùng biến mà không cần thiết.
+**Correct approach:** if the intent is to increment, write `i++;` or `i += 1;`. If the intent is to assign, compute the desired value first and then `i = value;`. Do not unnecessarily combine both actions on the same variable.
 
-## 5. Đọc lại biến sau khi tăng trong cùng biểu thức
+## 5. Re-Reading a Variable After Incrementing in the Same Expression
 
 ~~~java
 int i = 3;
@@ -89,9 +89,9 @@ System.out.println(value); // 7 = 3 + 4
 System.out.println(i);     // 4
 ~~~
 
-Vế trái cung cấp giá trị cũ `3` rồi `i` thành `4`; vế phải đọc `4`.
+The left operand supplies the old value `3` and `i` becomes `4`; the right operand reads `4`.
 
-Mặc dù đoạn code có quy tắc rõ, có thể viết:
+Although the code follows clear rules, it can be written as:
 
 ~~~java
 int i = 3;
@@ -101,29 +101,29 @@ int currentValue = i;
 int value = oldValue + currentValue;
 ~~~
 
-Phiên bản tách bước dài hơn một chút nhưng **thể hiện chính xác biến nào là giá trị cũ và biến nào là giá trị mới**. Nếu nghiệp vụ không yêu cầu cả hai, hãy đơn giản hóa thêm.
+The step-by-step version is slightly longer, yet **explicitly shows which variable holds the old value and which holds the new value**. If the business logic does not require both, simplify further.
 
-## 6. Nhiều `++` trong đối số phương thức
+## 6. Multiple `++` Operators in Method Arguments
 
-Java đánh giá các **đối số của lời gọi phương thức từ trái sang phải**, trước khi thực hiện thân phương thức:
+Java evaluates **method call arguments from left to right**, before executing the method body:
 
 ~~~java
 static void show(int left, int right) {
     System.out.println(left + "," + right);
 }
 
-// Trong main:
+// Inside main:
 int i = 1;
-show(i++, ++i); // In "1,3"; i kết thúc bằng 3
+show(i++, ++i); // Prints "1,3"; i ends at 3
 ~~~
 
-Thứ tự:
+Order:
 
-1. Đối số đầu `i++`: truyền `1`, `i` thành 2.
-2. Đối số hai `++i`: `i` thành 3, truyền `3`.
-3. Method nhận `(1, 3)`.
+1. First argument `i++`: passes `1`, `i` becomes 2.
+2. Second argument `++i`: `i` becomes 3, passes `3`.
+3. The method receives `(1, 3)`.
 
-**Nên viết:**
+**Better written as:**
 
 ~~~java
 int i = 1;
@@ -134,11 +134,11 @@ int second = i;
 show(first, second);
 ~~~
 
-Điều này giữ nguyên giá trị truyền vào và thứ tự thay đổi trạng thái trong ví dụ, đồng thời giúp người đọc không phải tính nhẩm thứ tự của các đối số.
+This preserves the passed values and state update order in the example, while sparing the reader from mentally tracing argument order.
 
-Nếu method nhận nhiều biểu thức phức tạp chứa I/O hoặc sửa trạng thái, tách chúng thành biến tạm còn giúp xác định **thao tác nào được thực hiện trước**.
+If a method takes multiple complex expressions involving I/O or state mutations, separating them into temporary variables also makes it explicit **which operation happens first**.
 
-## 7. Chỉ số mảng thay đổi ở những vị trí nào?
+## 7. Where Are Array Indices Being Modified?
 
 ~~~java
 int[] items = {10, 20, 30};
@@ -149,9 +149,9 @@ System.out.println(total); // 30 = items[0] + items[1]
 System.out.println(index); // 2
 ~~~
 
-Với hai lần `index++`, Java lần lượt dùng chỉ số **0**, rồi **1**. Không nên làm người đọc nhầm rằng biểu thức đang đọc cùng một phần tử hai lần.
+With two `index++` operations, Java uses index **0** and then **1**. Do not mislead the reader into thinking the expression reads the same element twice.
 
-Phiên bản dễ bảo trì:
+Maintainable version:
 
 ~~~java
 int first = items[index];
@@ -161,17 +161,17 @@ index++;
 int total = first + second;
 ~~~
 
-Dạng `array[index++]` đơn lẻ có thể phù hợp trong thuật toán tuần tự rõ ràng; **nguy cơ tăng mạnh khi dùng cùng biến chỉ số nhiều lần trong một biểu thức**.
+A single `array[index++]` may fit cleanly in a straightforward sequential algorithm; **the risk rises sharply when the same index variable is used multiple times in one expression**.
 
-Đặc biệt:
+Notably:
 
 ~~~java
 int[] values = {10, 20};
 int index = 0;
-values[index++]++;  // values[0] thành 11, index thành 1
+values[index++]++;  // values[0] becomes 11, index becomes 1
 ~~~
 
-Ở đây có **hai tác dụng phụ khác nhau**: tăng `index` để chọn phần tử và tăng chính **phần tử mảng**. Nếu cần giải thích logic cho đồng đội, cách tách bước thường sáng sủa hơn:
+Here there are **two distinct side effects**: incrementing `index` to select an element and incrementing the **array element** itself. If you need to explain the logic to teammates, separating the steps is usually much clearer:
 
 ~~~java
 int selectedIndex = index;
@@ -179,19 +179,19 @@ index++;
 values[selectedIndex]++;
 ~~~
 
-## 8. Short-circuit khiến một phép tăng có thể không chạy
+## 8. Short-Circuiting Can Prevent an Increment from Running
 
-Với `&&`, khi vế trái là `false`, Java **không đánh giá** vế phải. Với `||`, khi vế trái là `true`, Java cũng bỏ qua vế phải:
+With `&&`, when the left-hand side is `false`, Java **does not evaluate** the right-hand side. With `||`, when the left-hand side is `true`, Java likewise skips the right-hand side:
 
 ~~~java
 int i = 0;
 boolean result = false && (i++ > 0);
 
 System.out.println(result); // false
-System.out.println(i);      // 0: i++ không chạy
+System.out.println(i);      // 0: i++ does not run
 ~~~
 
-Nếu điều kiện đầu true:
+If the first condition is true:
 
 ~~~java
 int i = 0;
@@ -201,7 +201,7 @@ System.out.println(result); // true
 System.out.println(i);      // 1
 ~~~
 
-Phân biệt với `&` trên `boolean`: `&` **đánh giá cả hai toán hạng**, nên:
+Contrast with `&` on `boolean`: `&` **evaluates both operands**, so:
 
 ~~~java
 int i = 0;
@@ -211,16 +211,16 @@ System.out.println(result); // false
 System.out.println(i);      // 1
 ~~~
 
-| Toán tử | Vế phải có thể bị bỏ qua? | Tác động đến `i++` trong vế phải |
+| Operator | Can Right-Hand Side Be Skipped? | Effect on `i++` on the Right-Hand Side |
 |---|---|---|
-| `&&` | Có, khi vế trái false | Có thể không tăng |
-| `||` | Có, khi vế trái true | Có thể không tăng |
-| `&` trên boolean | Không | Luôn đánh giá vế phải khi tới biểu thức |
-| `|` trên boolean | Không | Luôn đánh giá vế phải khi tới biểu thức |
+| `&&` | Yes, when left-hand side is false | May not increment |
+| `||` | Yes, when left-hand side is true | May not increment |
+| `&` on boolean | No | Always evaluates right-hand side when reached |
+| `|` on boolean | No | Always evaluates right-hand side when reached |
 
-**Khuyến nghị:** điều kiện boolean nên diễn đạt **điều kiện**, còn cập nhật trạng thái nên ở câu lệnh riêng, trừ những trường hợp thuật toán thực sự yêu cầu side effect và đã được diễn giải rõ.
+**Recommendation:** boolean conditions should express **conditions**, while state updates belong in separate statements, except in algorithmic cases that genuinely require the side effect and are clearly explained.
 
-## 9. Exception có thể để lại trạng thái đã thay đổi một phần
+## 9. Exceptions Can Leave Partially Modified State
 
 ~~~java
 int count = 0;
@@ -234,13 +234,13 @@ try {
 }
 ~~~
 
-`count++` đã được đánh giá, nên `count` tăng từ 0 lên 1 **trước khi** phép chia nguyên cho 0 ném `ArithmeticException`. Bắt ngoại lệ không tự hoàn tác phép tăng.
+`count++` has already been evaluated, so `count` increments from 0 to 1 **before** integer division by 0 throws `ArithmeticException`. Catching the exception does not automatically undo the increment.
 
-Nếu toàn bộ thao tác phải hoặc **cùng thành công hoặc cùng thất bại**, hãy **validate trước khi thay đổi trạng thái** hoặc dùng cơ chế transaction/rollback theo yêu cầu; dấu ngoặc và `try/catch` không tạo ra tính nguyên tử.
+If the entire operation must either **all succeed or all fail**, **validate before mutating state** or use an appropriate transaction/rollback mechanism; parentheses and `try/catch` do not provide atomicity.
 
-## 10. Dùng `++`/`--` đúng chỗ; không né quá mức
+## 10. Use `++`/`--` in the Right Places; Do Not Over-Avoid Them
 
-**Có thể dùng** khi ý định cập nhật hiển nhiên:
+**Appropriate to use** when the update intent is obvious:
 
 ~~~java
 int count = 0;
@@ -248,7 +248,7 @@ count++;
 count--;
 ~~~
 
-Vòng lặp đơn giản:
+Simple loops:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -256,78 +256,78 @@ for (int i = 0; i < 3; i++) {
 }
 ~~~
 
-Tuy nhiên, tránh:
+However, avoid:
 
 ~~~java
-// Khó đọc: nhiều lần tác động vào cùng biến trong một biểu thức
+// Hard to read: multiple operations on the same variable in one expression
 // int result = i++ + ++i - i--;
 
-// Khó audit: vừa sửa biến vừa tạo đối số
+// Hard to audit: mutating variable while building arguments
 // send(i++, ++i);
 ~~~
 
-Dấu ngoặc như `(i++) + (++i)` có thể làm rõ **cách nhóm** nhưng **không loại bỏ tác dụng phụ**. Việc thêm ngoặc không giải quyết vấn đề “có quá nhiều thay đổi trạng thái trong một biểu thức”.
+Parentheses like `(i++) + (++i)` can clarify **grouping** but **do not eliminate side effects**. Adding parentheses does not solve the problem of “too many state mutations in one expression”.
 
-## 11. Cách refactor mà không đổi hành vi
+## 11. How to Refactor Without Changing Behavior
 
-Ví dụ trước:
+Before:
 
 ~~~java
 int i = 1;
 int result = i++ + ++i;
 ~~~
 
-Sau:
+After:
 
 ~~~java
 int i = 1;
 
-int left = i;  // Lấy giá trị mà i++ sẽ trả
-i++;          // Thực hiện tăng hậu tố
+int left = i;  // Capture the value that i++ would return
+i++;          // Perform postfix increment
 
-i++;          // Thực hiện tăng của ++i
-int right = i; // Lấy giá trị mới
+i++;          // Perform the increment of ++i
+int right = i; // Capture the new value
 
 int result = left + right;
 ~~~
 
-Hai phiên bản đều cho `result = 4`, `i = 3`. Phiên bản sau cho phép đặt breakpoint giữa các lần cập nhật.
+Both versions yield `result = 4`, `i = 3`. The second version allows setting breakpoints between updates.
 
-Khi thay code thật, cần giữ các bất biến:
+When changing real code, preserve these invariants:
 
-1. **Giữ thứ tự đánh giá** các method/toán hạng có side effect.
-2. **Giữ số lần cập nhật** nếu chưa chủ động thay đổi thuật toán.
-3. Phân biệt **giá trị cũ** và **giá trị mới** của tiền tố/hậu tố.
-4. Không tự dời câu lệnh qua các nhánh `&&`, `||`, `?:`, `if` hoặc vị trí có thể ném exception.
-5. Viết test kiểm tra **kết quả biểu thức lẫn trạng thái biến sau biểu thức**.
+1. **Preserve the evaluation order** of methods/operands with side effects.
+2. **Preserve the number of updates** unless intentionally changing the algorithm.
+3. Distinguish the **old value** and **new value** of prefix/postfix.
+4. Do not arbitrarily move statements across `&&`, `||`, `?:`, `if` branches, or locations that may throw exceptions.
+5. Write tests verifying **both the expression result and the post-expression variable state**.
 
-Nếu nhiều lần tăng giảm không thực sự cần thiết, phương án tốt nhất là **giảm số side effect** chứ không chỉ sao chép chúng sang nhiều dòng.
+If multiple increments/decrements are not truly necessary, the best approach is to **reduce the number of side effects** rather than merely copying them across multiple lines.
 
-## 12. Một số bẫy kỹ thuật liên quan
+## 12. Related Technical Pitfalls
 
-| Trường hợp | Nguy cơ | Hướng xử lý |
+| Case | Risk | How to Handle |
 |---|---|---|
-| `i++ + ++i` | Khó theo dõi giá trị cũ/mới | Tách lần đọc và lần tăng |
-| `i++ + i++` | Đọc và cập nhật cùng biến hai lần | Tách biến trung gian |
-| `i = i++` | Gán đè giá trị sau tăng | Chỉ dùng `i++` nếu muốn tăng |
-| `show(i++, ++i)` | Đối số thứ hai đọc trạng thái đã đổi | Tính đối số từng bước |
-| `array[i++] + array[i++]` | Khó kiểm soát chỉ số/giới hạn mảng | Tách chỉ số, kiểm tra miền |
-| `false && (i++ > 0)` | `i++` không chạy | Đừng dựa vào side effect bị điều kiện chi phối |
-| `false & (i++ > 0)` | `i++` vẫn chạy | Hiểu `&` không short-circuit |
-| `byte b = 127; b++;` | Overflow/narrowing khiến b thành -128 | Chọn kiểu đủ rộng hoặc kiểm tra miền |
-| `Integer n = null; n++;` | Unboxing null gây `NullPointerException` | Kiểm tra null hoặc dùng primitive |
-| `final int n = 1; n++;` | Không được gán lại biến `final` | Thiết kế biến thay đổi riêng |
-| `sharedCount++` trong nhiều thread | Đọc–tính–ghi không nguyên tử | Đồng bộ hoặc `AtomicInteger` |
+| `i++ + ++i` | Hard to track old/new values | Separate reads and increments |
+| `i++ + i++` | Reads and updates the same variable twice | Use intermediate variables |
+| `i = i++` | Overwrites the post-increment value | Use `i++;` alone if you want to increment |
+| `show(i++, ++i)` | Second argument reads updated state | Compute arguments step by step |
+| `array[i++] + array[i++]` | Hard to track indices/array bounds | Separate indices and check bounds |
+| `false && (i++ > 0)` | `i++` does not run | Do not rely on conditionally skipped side effects |
+| `false & (i++ > 0)` | `i++` still runs | Understand `&` does not short-circuit |
+| `byte b = 127; b++;` | Overflow/narrowing turns `b` into -128 | Choose a wider type or check range |
+| `Integer n = null; n++;` | Null unboxing causes `NullPointerException` | Check for null or use primitive |
+| `final int n = 1; n++;` | Cannot reassign a `final` variable | Design a separate mutable variable |
+| `sharedCount++` across threads | Read-compute-write is not atomic | Synchronize or use `AtomicInteger` |
 
-**Overflow:** `int i = Integer.MAX_VALUE; i++;` cho `Integer.MIN_VALUE` theo quy tắc Java, không ném exception mặc định. Nếu nghiệp vụ không chấp nhận tràn, có thể dùng `Math.incrementExact(i)` để kiểm tra.
+**Overflow:** `int i = Integer.MAX_VALUE; i++;` produces `Integer.MIN_VALUE` per Java rules, without throwing an exception by default. If business logic cannot accept overflow, use `Math.incrementExact(i)` to check.
 
-**Wrapper:** `Integer n = 1; n++;` thực hiện unboxing, cộng rồi boxing/gán lại tham chiếu; không sửa nội dung của object `Integer` bất biến.
+**Wrappers:** `Integer n = 1; n++;` performs unboxing, addition, then boxing/reference reassignment; it does not mutate the contents of the immutable `Integer` object.
 
-**Đa luồng:** Java có thứ tự đánh giá rõ trong một thread, nhưng `i++` **không tự nguyên tử** khi nhiều thread cùng cập nhật. Đây là vấn đề đồng bộ độc lập với việc biểu thức dài hay ngắn.
+**Multithreading:** Java has a well-defined evaluation order within a single thread, but `i++` is **not atomic** when multiple threads update concurrently. This is a synchronization concern independent of whether the expression is long or short.
 
-## 13. Chương trình Java 17 chạy độc lập
+## 13. Standalone Runnable Java 17 Program
 
-Tạo file đúng tên **`IncrementDecrementClarityDemo.java`**:
+Create a file named **`IncrementDecrementClarityDemo.java`**:
 
 ~~~java
 public final class IncrementDecrementClarityDemo {
@@ -417,7 +417,7 @@ public final class IncrementDecrementClarityDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; terminal mở ở thư mục chứa file. Không dùng thư viện bên ngoài JDK.
+**Requirements:** JDK 17 or later; terminal opened in the directory containing the file. No libraries outside the JDK.
 
 **Bash (Linux/macOS):**
 
@@ -454,20 +454,20 @@ overflow: -2147483648
 separated: value=4, final=3
 ~~~
 
-### Đọc kết quả quan trọng
+### Key Result Takeaways
 
-- `post=4` và `pre=6` chứng minh hậu tố dùng giá trị cũ, tiền tố dùng giá trị mới.
-- `mixed=4`, `a=3`: Java đánh giá từ trái sang phải, không có hành vi không xác định.
-- `twice post=3`: hai lần tăng nối tiếp lấy các giá trị 1 và 2.
-- `c = c++` ghi đè việc tăng; `d = ++d` cho 6 nhưng là cách viết dư thừa.
-- `array` và `show`: chỉ số mảng/đối số lần sau nhìn thấy trạng thái đã cập nhật.
-- `false && ...` bỏ qua `j++`; `false & ...` vẫn thực hiện `j++`.
-- Phép chia cho 0 xảy ra sau `k++`; bắt exception không hoàn tác `k`.
-- Dòng `separated` là phương án tách bước dễ đọc nhưng giữ cùng kết quả và trạng thái như `a++ + ++a`.
+- `post=4` and `pre=6` prove postfix uses the old value and prefix uses the new value.
+- `mixed=4`, `a=3`: Java evaluates left-to-right, with no undefined behavior.
+- `twice post=3`: two consecutive postfix increments yield 1 and 2.
+- `c = c++` overwrites the increment; `d = ++d` yields 6 but is redundant.
+- `array` and `show`: later array indices/arguments see the already-updated state.
+- `false && ...` skips `j++`; `false & ...` still executes `j++`.
+- Division by 0 happens after `k++`; catching the exception does not roll back `k`.
+- The `separated` lines provide a readable step-by-step alternative that preserves the exact same result and state as `a++ + ++a`.
 
-## 14. Bài tập có đáp án
+## 14. Exercises with Answers
 
-### Bài A — hai lần hậu tố
+### Exercise A — Two Postfix Increments
 
 ~~~java
 int i = 2;
@@ -476,16 +476,16 @@ System.out.println(sum);
 System.out.println(i);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 5
 4
 ~~~
 
-Các toán hạng trả lần lượt 2 và 3, còn i tăng lên 4.
+The operands return 2 and 3 respectively, while `i` increments to 4.
 
-### Bài B — trộn giảm hậu tố và tiền tố
+### Exercise B — Mixing Postfix and Prefix Decrements
 
 ~~~java
 int n = 5;
@@ -494,16 +494,16 @@ System.out.println(value);
 System.out.println(n);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 8
 3
 ~~~
 
-`n--` trả 5 rồi n thành 4; `--n` giảm n thành 3 rồi trả 3.
+`n--` returns 5 then `n` becomes 4; `--n` decrements `n` to 3 and returns 3.
 
-### Bài C — gán chồng lên tăng
+### Exercise C — Assignment Overwriting Increment
 
 ~~~java
 int x = 9;
@@ -511,9 +511,9 @@ x = x++;
 System.out.println(x);
 ~~~
 
-**Đáp án:** `9`. Phép gán ngoài ghi đè giá trị mới bằng giá trị cũ của `x++`.
+**Answer:** `9`. The outer assignment overwrites the new value with the old value returned by `x++`.
 
-### Bài D — chỉ số mảng
+### Exercise D — Array Indices
 
 ~~~java
 int[] a = {4, 8, 12};
@@ -523,14 +523,14 @@ System.out.println(sum);
 System.out.println(i);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 12
 2
 ~~~
 
-### Bài E — short-circuit
+### Exercise E — Short-Circuiting
 
 ~~~java
 int n = 0;
@@ -539,25 +539,25 @@ System.out.println(result);
 System.out.println(n);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 true
 0
 ~~~
 
-Vế trái `true` khiến `||` bỏ qua toàn bộ vế phải.
+The left-hand side `true` causes `||` to skip the entire right-hand side.
 
-### Bài F — viết lại để tránh nhiều side effect
+### Exercise F — Rewriting to Avoid Multiple Side Effects
 
-Cho:
+Given:
 
 ~~~java
 int i = 1;
 int result = i++ + ++i;
 ~~~
 
-**Một đáp án giữ đúng ngữ nghĩa:**
+**One semantics-preserving answer:**
 
 ~~~java
 int i = 1;
@@ -568,21 +568,21 @@ int right = i;
 int result = left + right;
 ~~~
 
-Sau cùng `result = 4` và `i = 3`. Nếu không thật cần tăng hai lần, hãy thiết kế lại công thức thay vì giữ một chuỗi side effect vô ích.
+In the end `result = 4` and `i = 3`. If incrementing twice is not actually needed, redesign the formula rather than preserving a pointless chain of side effects.
 
-## 15. Checklist và kết luận
+## 15. Checklist and Conclusion
 
-- [ ] Biết `i++` trả giá trị cũ, `++i` trả giá trị mới; `--` có quy tắc tương tự.
-- [ ] Phân biệt **giá trị biểu thức** với **trạng thái sau side effect**.
-- [ ] Biết Java 17 có thứ tự đánh giá xác định trong một thread.
-- [ ] Tự giải thích được `i++ + ++i` và `i++ + i++` mà không gọi chúng là undefined.
-- [ ] Nhận ra `i = i++` là một bẫy gán đè.
-- [ ] Không lồng nhiều lần cập nhật cùng biến vào phép tính, đối số hay truy cập mảng khi không cần.
-- [ ] Biết `&&`, `||` có thể bỏ qua phép tăng ở vế phải.
-- [ ] Biết tác dụng phụ đã xảy ra không được rollback tự động khi exception phát sinh.
-- [ ] Biết `++` có thể overflow hoặc gây NPE với wrapper nullable.
-- [ ] Không coi `++` là atomic khi nhiều thread cùng ghi.
-- [ ] Biết tách biến tạm, giữ thứ tự thao tác và kiểm thử cả kết quả lẫn trạng thái.
-- [ ] Chạy `IncrementDecrementClarityDemo.java` bằng `javac`/`java` với JDK 17+, đối chiếu stdout chính xác.
+- [ ] Know that `i++` returns the old value and `++i` returns the new value; `--` follows the same rule.
+- [ ] Distinguish **expression value** from **post-side-effect state**.
+- [ ] Know that Java 17 has deterministic evaluation order within a thread.
+- [ ] Can explain `i++ + ++i` and `i++ + i++` without calling them undefined.
+- [ ] Recognize `i = i++` as an overwrite trap.
+- [ ] Avoid nesting multiple updates to the same variable inside arithmetic, arguments, or array accesses unnecessarily.
+- [ ] Know that `&&` and `||` can skip increments on the right-hand side.
+- [ ] Know that side effects that already occurred are not automatically rolled back when an exception is thrown.
+- [ ] Know that `++` can overflow or cause an NPE with nullable wrappers.
+- [ ] Do not treat `++` as atomic when multiple threads write concurrently.
+- [ ] Know how to extract temporary variables, preserve operation order, and test both the result and the state.
+- [ ] Run `IncrementDecrementClarityDemo.java` with `javac`/`java` on JDK 17+, matching stdout exactly.
 
-**Kết luận:** Nhiều phép `++`/`--` trên cùng biến trong một biểu thức **không làm Java mất tính xác định**, nhưng khiến người đọc phải mô phỏng nhiều trạng thái giữa chừng, dễ dẫn đến bug và refactor sai. Hãy dành `++`/`--` cho các thao tác cập nhật rõ ràng, **tách side effect ra khỏi phép tính** khi có nhiều lần đọc/ghi cùng biến, và dùng test để xác nhận cả giá trị tính được lẫn trạng thái cuối.
+**Conclusion:** Multiple `++`/`--` operations on the same variable in one expression **do not make Java non-deterministic**, yet they force readers to mentally simulate multiple intermediate states, easily leading to bugs and faulty refactoring. Reserve `++`/`--` for clear update operations, **separate side effects out of calculations** when a variable is read/written multiple times, and use tests to verify both the computed value and the final state.

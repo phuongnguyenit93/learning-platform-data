@@ -1,21 +1,21 @@
-# Enum giữ danh tính từng hằng và không cho ghi đè `equals()` hoặc `hashCode()`
+# Enums preserve constant identity and disallow overriding `equals()` or `hashCode()`
 
-## 1. Kết quả cần hiểu
+## 1. Outcome to understand
 
-Trong Java, mỗi **hằng enum** đại diện cho một đối tượng riêng biệt do Java tạo và quản lý. Trong phạm vi một lớp enum đã được nạp, cùng một tên hằng luôn cho lại **chính đối tượng hằng đó**. Vì thế quan hệ bằng nhau của enum là **bằng nhau theo danh tính** (identity equality), không phải tự động so các trường dữ liệu mà hằng mang theo.
+In Java, each **enum constant** represents a distinct object created and managed by Java. Within the scope of a loaded enum class, the same constant name always yields **that exact same constant object**. Therefore, enum equality is **identity equality**, rather than automatically comparing the data fields carried by a constant.
 
-Hai điểm cốt lõi:
+Two key points:
 
-1. `java.lang.Enum.equals(Object)` được khai báo `final` và chỉ trả `true` khi hai tham chiếu trỏ đến cùng một hằng.
-2. `java.lang.Enum.hashCode()` cũng là `final`, cho mã hash gắn với danh tính hằng. Lớp enum do ta khai báo **không thể override** một trong hai phương thức này.
+1. `java.lang.Enum.equals(Object)` is declared `final` and returns `true` only when two references point to the exact same constant.
+2. `java.lang.Enum.hashCode()` is also `final`, producing a hash code tied to the constant's identity. An enum class you declare **cannot override** either of these two methods.
 
-Chính vì vậy, so sánh hai giá trị của **cùng một kiểu enum** bằng `==` là cách thể hiện đơn giản, rõ nghĩa và an toàn về mặt kiểu; `equals()` cũng đúng với hai hằng vì nó dùng cùng nguyên tắc danh tính.
+Because of this, comparing two values of **the same enum type** with `==` is a simple, clear, and type-safe expression; `equals()` is also true for two constants because it uses the same identity principle.
 
-**Phạm vi:** Bài này nói về `enum` của Java, không phải một lớp Java thông thường chỉ định nghĩa các hằng `static final`. Một lớp thường có thể tự override `equals`/`hashCode` theo giá trị; lớp enum thì không thể thay đổi hai phương thức đó.
+**Scope:** This lesson discusses Java's `enum`, not a regular Java class that merely defines `static final` constants. A regular class can override `equals`/`hashCode` by value; an enum class cannot change those two methods.
 
-## 2. Mỗi tên hằng là một thể hiện cố định
+## 2. Each constant name is a fixed instance
 
-Ví dụ:
+Example:
 
 ```java
 enum State {
@@ -23,30 +23,30 @@ enum State {
 }
 ```
 
-`State.NEW`, `State.RUNNING` và `State.DONE` là ba đối tượng hằng khác nhau của `State`. Không có cơ chế tạo thêm một hằng `State.NEW` mới bằng `new State()` ở mã ứng dụng. Mỗi lần truy cập `State.NEW`, gọi `State.valueOf("NEW")` hoặc tìm được phần tử `NEW` từ `State.values()`, bạn nhận về cùng tham chiếu hằng trong enum tương ứng.
+`State.NEW`, `State.RUNNING`, and `State.DONE` are three distinct constant objects of `State`. There is no mechanism to create an extra `State.NEW` constant via `new State()` in application code. Every time you access `State.NEW`, call `State.valueOf("NEW")`, or obtain the `NEW` element from `State.values()`, you receive the exact same constant reference in the corresponding enum.
 
-Các phương thức liên quan:
+Related methods:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `State.NEW` | Truy cập trực tiếp đối tượng hằng `NEW`. |
-| `State.valueOf("NEW")` | Trả về đối tượng hằng có **tên khai báo** chính xác `NEW`. |
-| `State.values()` | Trả một **mảng mới** chứa tham chiếu tới các đối tượng hằng theo thứ tự khai báo; không tạo đối tượng hằng mới. |
-| `state.name()` | Trả tên hằng được khai báo; đây là phương thức `final` của `Enum`. |
-| `state.ordinal()` | Vị trí khai báo, bắt đầu từ 0; không phải mã định danh nghiệp vụ bền vững. |
-| `state.getDeclaringClass()` | Trả lớp enum khai báo hằng, kể cả với hằng có thân lớp riêng. |
+| `State.NEW` | Directly accesses the `NEW` constant object. |
+| `State.valueOf("NEW")` | Returns the constant object with the exact **declared name** `NEW`. |
+| `State.values()` | Returns a **new array** containing references to the constant objects in declaration order; does not create new constant objects. |
+| `state.name()` | Returns the declared constant name; this is a `final` method of `Enum`. |
+| `state.ordinal()` | Declaration position, starting at 0; not a durable business identifier. |
+| `state.getDeclaringClass()` | Returns the enum class declaring the constant, even for constants with their own class body. |
 
-`valueOf` phân biệt chính xác tên, bao gồm chữ hoa và chữ thường; tên không tồn tại gây `IllegalArgumentException`. `name()` và `ordinal()` không thay thế cho danh tính: tên chỉ có ý nghĩa trong **phạm vi kiểu enum**, và thay đổi thứ tự khai báo sẽ thay đổi `ordinal()`.
+`valueOf` matches the name strictly, including uppercase and lowercase; a non-existent name throws `IllegalArgumentException`. `name()` and `ordinal()` do not replace identity: the name is only meaningful within **the enum type's scope**, and changing declaration order changes `ordinal()`.
 
-### “Một thể hiện” trong phạm vi nào?
+### "One instance" within what scope?
 
-Mỗi hằng là thể hiện cố định của **kiểu enum ở lần nạp lớp tương ứng**. Không nên diễn giải điều này thành “chỉ có một đối tượng hằng duy nhất trên mọi JVM, mọi tiến trình hoặc mọi class loader”. Java xác định danh tính kiểu theo cả lớp và bộ nạp lớp; các môi trường nạp lớp độc lập không chia sẻ cùng đối tượng hằng trong bộ nhớ.
+Each constant is a fixed instance of **the enum type in the corresponding class load**. Do not interpret this as "only a single constant object across every JVM, every process, or every class loader." Java identifies a type by both its class and its class loader; independent class-loading environments do not share the same constant object in memory.
 
-Trong chương trình Java thông thường, bạn không cần trực tiếp quản lý chi tiết này: `MyEnum.X` và `MyEnum.valueOf("X")` trong cùng kiểu đang dùng trả về cùng hằng.
+In ordinary Java programs, you do not need to manage this detail directly: `MyEnum.X` and `MyEnum.valueOf("X")` within the same type in use return the same constant.
 
-## 3. `Enum.equals()` là phép so danh tính và có `final`
+## 3. `Enum.equals()` is an identity comparison and is `final`
 
-Logic của `Enum.equals(Object)` tương đương:
+The logic of `Enum.equals(Object)` is equivalent to:
 
 ```java
 public final boolean equals(Object other) {
@@ -54,11 +54,11 @@ public final boolean equals(Object other) {
 }
 ```
 
-Đây là **mô tả logic** của phương thức có trong `java.lang.Enum`, không phải đoạn mã có thể chép vào một `enum` để override. Từ khóa `final` ngăn override ở tất cả enum cụ thể. Không thể thay đổi nghĩa của `equals()` chỉ vì hằng có thêm thuộc tính hoặc có thân lớp riêng.
+This is a **logical description** of the method in `java.lang.Enum`, not code you can copy into an `enum` to override it. The `final` keyword prevents overriding in all concrete enums. You cannot change the meaning of `equals()` just because constants have extra fields or their own class bodies.
 
-So với `Object.equals()` mặc định, tiêu chí danh tính giống nhau; khác biệt thiết kế cần nhớ là `Enum` **chủ động khóa hành vi bằng `final`**. Với lớp thông thường, lập trình viên có thể định nghĩa so giá trị; còn với enum, người dùng chỉ có thể định nghĩa **phương thức so sánh theo ngữ nghĩa khác với tên riêng**, nếu bài toán cần.
+Compared with the default `Object.equals()`, the identity criterion is the same; the design difference to remember is that `Enum` **deliberately locks the behavior with `final`**. For a regular class, developers can define value-based comparison; for an enum, users can only define **comparison methods with different semantics under distinct names**, if the problem requires them.
 
-Giả sử:
+Suppose:
 
 ```java
 enum Priority {
@@ -76,19 +76,19 @@ enum Priority {
 }
 ```
 
-`Priority.LOW.weight()` và `Priority.MEDIUM.weight()` cùng bằng `1`, nhưng:
+`Priority.LOW.weight()` and `Priority.MEDIUM.weight()` are both `1`, yet:
 
-- `Priority.LOW == Priority.MEDIUM` là `false`;
-- `Priority.LOW.equals(Priority.MEDIUM)` cũng là `false`;
-- `Priority.LOW.weight() == Priority.MEDIUM.weight()` là `true`.
+- `Priority.LOW == Priority.MEDIUM` is `false`;
+- `Priority.LOW.equals(Priority.MEDIUM)` is also `false`;
+- `Priority.LOW.weight() == Priority.MEDIUM.weight()` is `true`.
 
-Hai hằng có cùng thuộc tính không trở thành cùng hằng. **Không được suy từ “cùng dữ liệu” ra “cùng enum”**.
+Two constants with the same attribute do not become the same constant. **Do not infer "same enum" from "same data."**
 
-## 4. Vì sao không thể override `equals` và `hashCode`?
+## 4. Why can't `equals` and `hashCode` be overridden?
 
-Theo định nghĩa của `java.lang.Enum`, cả hai phương thức đều `final`. Java kiểm tra điều này **khi biên dịch**, nên không phải một cảnh báo về phong cách lập trình.
+By the definition of `java.lang.Enum`, both methods are `final`. Java enforces this **at compile time**, so it is not a coding-style warning.
 
-Ví dụ **cố ý sai, không biên dịch**:
+**Deliberately invalid example, does not compile**:
 
 ```java
 enum InvalidStatus {
@@ -106,35 +106,35 @@ enum InvalidStatus {
 }
 ```
 
-Trình biên dịch sẽ từ chối các phương thức override vì `Enum.equals(Object)` và `Enum.hashCode()` đã là `final`. Ngay cả khi cố thay đổi tên tham số, dùng thân lớp riêng cho hằng, hoặc bỏ `@Override`, ta vẫn không được override một phương thức `final` với cùng chữ ký.
+The compiler rejects the overriding methods because `Enum.equals(Object)` and `Enum.hashCode()` are already `final`. Even if you try changing parameter names, using a constant-specific class body, or omitting `@Override`, you still cannot override a `final` method with the same signature.
 
-Nguyên nhân thiết kế: **danh tính hằng phải là bất biến của kiểu enum**. Nếu lập trình viên tự biến `LOW` và `MEDIUM` thành “bằng nhau” khi cùng `weight`, một phép so sánh kiểu enum sẽ không còn xác định duy nhất hằng nào đang được nói tới. Java giữ một quy tắc nhất quán, được hỗ trợ trong `switch`, `EnumSet`, `EnumMap` và các cơ chế làm việc với hằng enum.
+Design reason: **constant identity must be an invariant of the enum type**. If developers turned `LOW` and `MEDIUM` into "equal" whenever they share the same `weight`, comparing values of the enum type would no longer uniquely identify which constant is being referred to. Java keeps a consistent rule, supported across `switch`, `EnumSet`, `EnumMap`, and mechanisms that work with enum constants.
 
-Một enum vẫn có thể cài đặt các phương thức riêng, chẳng hạn `sameWeight(Priority other)`, `hasCode(int code)` hoặc `matches(String input)` để biểu diễn **quan hệ nghiệp vụ bổ sung**. Những phương thức ấy không thay đổi `equals()` của enum.
+An enum can still implement custom methods, such as `sameWeight(Priority other)`, `hasCode(int code)`, or `matches(String input)` to express **additional business relations**. Those methods do not alter the enum's `equals()`.
 
-## 5. `Enum.hashCode()` cũng gắn với danh tính
+## 5. `Enum.hashCode()` is also tied to identity
 
-Hợp đồng chung giữa `equals()` và `hashCode()` trong Java yêu cầu:
+The general contract between `equals()` and `hashCode()` in Java requires:
 
 ```text
 a.equals(b) == true  ⇒  a.hashCode() == b.hashCode()
 ```
 
-Vì hai biến trỏ tới cùng hằng enum luôn trỏ đúng **một đối tượng**, chúng có cùng mã hash. Hai hằng khác nhau luôn không bằng nhau qua `equals`, nhưng **mã hash của chúng vẫn có thể trùng**; mã hash chỉ là một `int` và không phải khóa duy nhất.
+Because two variables pointing to the same enum constant always point to **the exact same object**, they have the same hash code. Two distinct constants are never equal via `equals`, yet **their hash codes can still collide**; a hash code is just an `int` and not a unique key.
 
-Đặc điểm cần nhớ:
+Points to remember:
 
-- Không thể override `hashCode()` của enum, kể cả khi cần hash theo `weight`, `code` hoặc `name`.
-- Giá trị `hashCode()` **không được bảo đảm bằng `ordinal()`, tên hằng, mã nghiệp vụ hoặc địa chỉ bộ nhớ**.
-- Không dựa vào con số hash cụ thể để lưu bền vững, truyền giữa tiến trình hay làm ID cố định. Java không cam kết cùng con số hash giữa các lần chạy.
-- `System.identityHashCode(enumValue)` cũng dựa trên cơ chế identity; đây không phải cách tạo ID duy nhất tuyệt đối và không thay đổi phép so sánh enum.
-- Muốn lấy mã nghiệp vụ ổn định? Định nghĩa trường riêng như `code` và phương thức `code()`, rồi lưu hoặc truyền **mã đã thiết kế**, thay vì `hashCode()`.
+- You cannot override an enum's `hashCode()`, even when you want to hash by `weight`, `code`, or `name`.
+- The `hashCode()` value is **not guaranteed to equal `ordinal()`, the constant name, a business code, or a memory address**.
+- Do not rely on the concrete hash number for persistent storage, cross-process transmission, or as a fixed ID. Java does not promise the same hash number across runs.
+- `System.identityHashCode(enumValue)` is also based on the identity mechanism; it is not a way to generate an absolutely unique ID and does not change enum comparisons.
+- Need a stable business code? Define an explicit field such as `code` and a `code()` method, then store or transmit **the designed code** instead of `hashCode()`.
 
-Một câu dễ nhầm là “hai hằng enum khác nhau nên hash của chúng chắc chắn khác nhau”. **Sai**: khác danh tính không bảo đảm khác hash. `HashMap` và `HashSet` vẫn cần xử lý collision.
+A common misconception is "two distinct enum constants must have distinct hashes." **False**: different identities do not guarantee different hashes. `HashMap` and `HashSet` still need to handle collisions.
 
-## 6. Ví dụ Java 17+ chạy được
+## 6. Runnable Java 17+ example
 
-Tạo tệp **`EnumIdentityDemo.java`**:
+Create the file **`EnumIdentityDemo.java`**:
 
 ```java
 import java.util.EnumMap;
@@ -204,14 +204,14 @@ public class EnumIdentityDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac EnumIdentityDemo.java
 java EnumIdentityDemo
 ```
 
-Kết quả:
+Result:
 
 ```text
 a == alias: true
@@ -229,41 +229,41 @@ null == a: false
 Objects.equals(null, null): true
 ```
 
-**Giải thích theo nhóm:**
+**Group-by-group explanation:**
 
-1. `a` và `alias` là đúng hằng `Priority.LOW`. Lời gọi `valueOf("LOW")` tra hằng hiện hữu chứ không tạo đối tượng mới. Vì thế `==`, `equals` và kết quả `hashCode()` đều nhất quán.
-2. `different` là `Priority.MEDIUM`, một hằng khác. Dù `weight` của `LOW` và `MEDIUM` đều bằng `1`, cả `a == different` và `a.equals(different)` đều là `false`.
-3. Hai enum `Priority` và `Other` đều có hằng tên `LOW`, nên `name()` của chúng bằng nhau theo chuỗi. Tuy nhiên `a.equals(Other.LOW)` là `false`, vì đó là hai đối tượng hằng từ hai kiểu enum khác nhau.
-4. `HashSet` thêm ba tham chiếu `a`, `alias` và `different` nhưng chỉ có **hai đối tượng enum khác nhau**, nên kích thước bằng `2`.
-5. `EnumMap` cho phép truy vấn lại giá trị bằng tham chiếu `alias`. `EnumSet` chứa cùng hằng `LOW` nên `contains(alias)` là `true`.
-6. `absent == a` kiểm tra an toàn khi `absent` là null. `Objects.equals(null, null)` trả `true` theo quy tắc của tiện ích null-safe; đây không phải phép so sánh hai hằng enum.
+1. `a` and `alias` are the exact constant `Priority.LOW`. Calling `valueOf("LOW")` looks up the existing constant rather than creating a new object. Thus `==`, `equals`, and `hashCode()` results are all consistent.
+2. `different` is `Priority.MEDIUM`, another constant. Even though `weight` of both `LOW` and `MEDIUM` is `1`, both `a == different` and `a.equals(different)` are `false`.
+3. Both enums `Priority` and `Other` have a constant named `LOW`, so their `name()` strings are equal. However, `a.equals(Other.LOW)` is `false`, because they are two constant objects from two different enum types.
+4. `HashSet` adds three references `a`, `alias`, and `different` yet contains only **two distinct enum objects**, so its size is `2`.
+5. `EnumMap` allows looking up the value using the `alias` reference. `EnumSet` contains the same `LOW` constant, so `contains(alias)` is `true`.
+6. `absent == a` checks safely when `absent` is null. `Objects.equals(null, null)` returns `true` per the null-safe utility's rule; this is not a comparison of two enum constants.
 
-Không in hoặc dự đoán con số `a.hashCode()` trong kết quả vì con số này không phải dữ liệu nghiệp vụ ổn định.
+Do not print or predict the numeric value of `a.hashCode()` in the output because this number is not stable business data.
 
-## 7. Chọn `==` hay `equals()` khi làm việc với enum
+## 7. Choosing `==` or `equals()` when working with enums
 
-Với hai tham chiếu enum của cùng một kiểu, cả `==` và `equals()` đều trả lời đúng câu hỏi “có phải cùng một hằng hay không?”.
+For two enum references of the same type, both `==` and `equals()` correctly answer the question "are these the same constant?"
 
-| Tình huống | Khuyến nghị | Lý do |
+| Scenario | Recommendation | Reason |
 | --- | --- | --- |
-| Hai biến kiểu `Priority` | `a == b` | Diễn đạt trực tiếp identity, an toàn khi một biến null. |
-| So với một hằng cụ thể | `status == Priority.LOW` | Ngắn gọn, không có rủi ro `NullPointerException`. |
-| Biến có thể null | `status == null` hoặc `status == Priority.LOW` | `==` hỗ trợ null mà không gọi phương thức. |
-| Gọi `status.equals(Priority.LOW)` khi status null | Tránh | Gọi phương thức trên null sẽ ném `NullPointerException`. |
-| So enum với tham chiếu `Object` bất kỳ | `status.equals(obj)` nếu status khác null, hoặc `Objects.equals(status, obj)` | `equals` nhận `Object` và giữ quy tắc identity. |
-| So trường dữ liệu của hai hằng | `a.weight() == b.weight()` hoặc phương thức nghiệp vụ có tên rõ | Đây là quan hệ khác với “cùng hằng”. |
+| Two variables of type `Priority` | `a == b` | Expresses identity directly, safe when either variable is null. |
+| Comparing against a specific constant | `status == Priority.LOW` | Concise, no risk of `NullPointerException`. |
+| Potentially null variable | `status == null` or `status == Priority.LOW` | `==` supports null without calling a method. |
+| Calling `status.equals(Priority.LOW)` when status is null | Avoid | Calling a method on null throws `NullPointerException`. |
+| Comparing an enum with an arbitrary `Object` reference | `status.equals(obj)` if status is non-null, or `Objects.equals(status, obj)` | `equals` accepts `Object` and preserves identity rules. |
+| Comparing data fields of two constants | `a.weight() == b.weight()` or a clearly named business method | This is a different relation from "same constant." |
 
-Một lợi ích bổ sung của `==`: khi so hai biểu thức có **kiểu enum cụ thể không tương thích** (ví dụ `Priority.LOW == Other.LOW`), trình biên dịch Java từ chối phép so sánh đó. Trong khi đó `Priority.LOW.equals(Other.LOW)` vẫn biên dịch vì `equals` nhận `Object`, rồi trả `false` khi chạy.
+An additional benefit of `==`: when comparing two expressions of **incompatible concrete enum types** (for example, `Priority.LOW == Other.LOW`), the Java compiler rejects that comparison. Meanwhile, `Priority.LOW.equals(Other.LOW)` still compiles because `equals` accepts `Object`, and then returns `false` at runtime.
 
-Cũng có thể viết `Priority.LOW.equals(status)` để tránh null ở phía nhận lời gọi; tuy nhiên với enum, `status == Priority.LOW` thường dễ đọc hơn.
+You can also write `Priority.LOW.equals(status)` to avoid null on the receiver side; however, for enums, `status == Priority.LOW` is usually more readable.
 
-### Trường hợp null và `switch`
+### Null case and `switch`
 
-Một biến enum có thể null vì **biến tham chiếu** có thể null; bản thân hằng enum không phải null. Trong Java 17, dùng `switch` thông thường trên một biến enum null sẽ ném `NullPointerException`. Nếu null mang ý nghĩa nghiệp vụ, kiểm tra null trước khi switch hoặc quy định không chấp nhận null ở biên đầu vào.
+An enum variable can be null because a **reference variable** can be null; the enum constant itself is never null. In Java 17, using a standard `switch` on a null enum variable throws `NullPointerException`. If null carries business meaning, check for null before switching or disallow null at the input boundary.
 
-## 8. Hằng có trạng thái và thân lớp riêng vẫn giữ identity
+## 8. Constants with state and custom class bodies still preserve identity
 
-Enum có thể khai báo constructor, trường và phương thức:
+An enum can declare constructors, fields, and methods:
 
 ```java
 enum Mode {
@@ -284,53 +284,53 @@ enum Mode {
 }
 ```
 
-Đây là đoạn khai báo enum độc lập có thể biên dịch ở cấp package (nếu đặt trong tệp phù hợp, không cần `public`). Hai hằng có thể mang **thân lớp riêng** để override một phương thức do bạn định nghĩa như `description()`. Tuy nhiên, không thể override `Enum.equals()` hoặc `Enum.hashCode()` dù viết code trong thân `FAST` hay `SAFE`, bởi chúng là `final`.
+This is a standalone enum declaration that compiles at package level (if placed in an appropriate file, without needing `public`). The two constants can carry **constant-specific class bodies** to override a method you define, such as `description()`. However, you cannot override `Enum.equals()` or `Enum.hashCode()` even inside the body of `FAST` or `SAFE`, because they are `final`.
 
-Với enum có thân lớp riêng cho từng hằng, `getClass()` trên hằng có thể trả lớp triển khai riêng cho hằng đó. `getDeclaringClass()` mới là API thích hợp để lấy lớp enum mà hằng thuộc về. Đây là một lý do không tự suy đoán quan hệ bằng nhau từ `getClass()` hay các trường; Java đã khóa identity của enum.
+For an enum with constant-specific class bodies, calling `getClass()` on a constant can return the implementation class specific to that constant. `getDeclaringClass()` is the proper API to obtain the enum class to which the constant belongs. This is one reason not to infer equality from `getClass()` or fields; Java has already locked enum identity.
 
-Các trường enum có thể tham chiếu tới cấu trúc mutable nếu lập trình viên thiết kế như vậy. Khi trạng thái nội bộ thay đổi, **danh tính hằng, `equals()` và `hashCode()` vẫn không đổi theo trạng thái ấy**. Dù vậy, vì enum thường được chia sẻ toàn ứng dụng, nên ưu tiên thuộc tính bất biến (`final`, không lộ đối tượng mutable) để tránh lỗi trạng thái và vấn đề luồng.
+Enum fields can reference mutable structures if a developer designs them that way. When internal state mutates, **constant identity, `equals()`, and `hashCode()` still do not change with that state**. Even so, because enums are typically shared application-wide, prefer immutable attributes (`final`, not exposing mutable objects) to avoid state bugs and threading issues.
 
-## 9. Sử dụng enum trong collection và lưu dữ liệu
+## 9. Using enums in collections and data persistence
 
 ### `HashSet` / `HashMap`
 
-Enum có `equals`/`hashCode` hợp lệ ngay từ đầu. Dùng enum làm key hoặc phần tử trong các collection dựa trên hash không cần override thêm. Thêm cùng hằng hai lần vào một `HashSet` chỉ tạo một phần tử; hai hằng khác nhau vẫn là các phần tử khác nhau, kể cả khi chúng có cùng thuộc tính.
+Enums have valid `equals`/`hashCode` out of the box. Using an enum as a key or element in hash-based collections requires no extra overrides. Adding the same constant twice to a `HashSet` produces only one element; two distinct constants remain distinct elements, even if they share identical attributes.
 
-### `EnumSet` và `EnumMap`
+### `EnumSet` and `EnumMap`
 
-Nếu phần tử/key luôn thuộc **một kiểu enum**, cân nhắc:
+If elements/keys always belong to **a single enum type**, consider:
 
-- `EnumSet<Priority>`: tập hợp chuyên biệt cho các hằng `Priority`; có thể dùng `EnumSet.of(...)`, `EnumSet.noneOf(Priority.class)`.
-- `EnumMap<Priority, V>`: ánh xạ key là các hằng `Priority`; tạo bằng `new EnumMap<>(Priority.class)`.
+- `EnumSet<Priority>`: a specialized set for `Priority` constants; you can use `EnumSet.of(...)`, `EnumSet.noneOf(Priority.class)`.
+- `EnumMap<Priority, V>`: a map whose keys are `Priority` constants; created via `new EnumMap<>(Priority.class)`.
 
-Hai cấu trúc này tối ưu cho miền hằng enum hữu hạn, sử dụng cấu trúc nội bộ dựa trên các giá trị enum/ordinal. Không cần và không thể định nghĩa hash tùy chỉnh để chúng nhận diện hai hằng có cùng thuộc tính là một.
+These two structures are optimized for a finite enum constant domain, using internal structures based on enum values/ordinals. There is no need—and no way—to define a custom hash so that they treat two constants with identical attributes as one.
 
-### Lưu trữ và giao tiếp giữa các hệ thống
+### Persistence and inter-system communication
 
-Khi cần lưu/truyền giá trị enum, không lưu `hashCode()` hoặc mặc định xem `ordinal()` là ID nghiệp vụ lâu dài. `ordinal()` phụ thuộc thứ tự khai báo, nên thêm hoặc sắp lại hằng có thể thay đổi số thứ tự.
+When storing/transmitting enum values, never persist `hashCode()` or assume `ordinal()` is a long-lived business ID. `ordinal()` depends on declaration order, so adding or reordering constants can change the ordinal numbers.
 
-Có thể lưu `name()` nếu hệ thống quy định tên enum là hợp đồng dữ liệu ổn định và quản lý việc đổi tên; hoặc tốt hơn, định nghĩa mã nghiệp vụ tường minh như `"LOW"`, `"MEDIUM"` và phương thức chuyển đổi có kiểm soát. Dù một hằng có mã nghiệp vụ trùng với hằng khác, **identity của chúng vẫn không trùng**.
+You can store `name()` if the system defines enum names as a stable data contract and manages renames; or better, define an explicit business code such as `"LOW"`, `"MEDIUM"` and controlled conversion methods. Even if one constant has a business code matching another constant, **their identities still do not collide**.
 
-Khi Java serialize/deserialize enum theo cơ chế chuẩn, giá trị enum được xử lý đặc biệt để khôi phục **hằng được khai báo** theo tên và kiểu, thay vì tạo một bản sao đối tượng enum mới theo cách thông thường. Tuy nhiên, việc hằng có tồn tại và tên có khớp giữa các phiên bản ứng dụng hay không vẫn cần được quản lý.
+When Java serializes/deserializes an enum using standard mechanisms, the enum value is handled specially to restore **the declared constant** by name and type, rather than creating a new enum object copy in the ordinary way. Still, whether a constant exists and whether names match across application versions must be managed.
 
-## 10. Các hiểu nhầm thường gặp
+## 10. Common misconceptions
 
-| Hiểu nhầm | Thực tế |
+| Misconception | Reality |
 | --- | --- |
-| “Hai hằng có các trường bằng nhau thì `equals()` bằng nhau.” | Sai; `equals()` của enum chỉ dựa trên cùng đối tượng hằng. |
-| “Có thể override `equals` hoặc `hashCode` trong enum nếu cần.” | Sai; cả hai phương thức của `Enum` là `final`. |
-| “`values()` tạo lại tất cả đối tượng hằng.” | Sai; nó trả mảng mới gồm tham chiếu các hằng sẵn có. |
-| “Hai enum khác kiểu nhưng cùng `name()` là bằng nhau.” | Sai; tên giống nhau không biến hai đối tượng thành một. |
-| “`ordinal()` chính là `hashCode()`.” | Sai; chúng có mục đích và hợp đồng khác nhau. |
-| “Hai hằng khác nhau thì mã hash bắt buộc khác nhau.” | Sai; collision hợp lệ. |
-| “Mọi enum chỉ có thể chứa tên hằng, không có dữ liệu hoặc phương thức.” | Sai; enum có constructor, trường, phương thức và thân lớp riêng cho hằng. |
-| “Enum không thể được dùng trong `HashMap` khi không override hash.” | Sai; `Enum` đã cung cấp `equals/hashCode` final hợp lệ. |
-| “`status.equals(X)` an toàn nếu status null.” | Sai; lời gọi ném `NullPointerException`. Dùng `status == X`. |
-| “Nên dùng `hashCode()` của enum làm ID trong database.” | Sai; hash không là định danh nghiệp vụ và không được bảo đảm ổn định qua lần chạy. |
+| "Two constants with equal fields have equal `equals()`." | False; enum `equals()` is based solely on being the same constant object. |
+| "You can override `equals` or `hashCode` in an enum if needed." | False; both methods on `Enum` are `final`. |
+| "`values()` recreates all constant objects." | False; it returns a new array containing references to the existing constants. |
+| "Two different enum types with the same `name()` are equal." | False; identical names do not turn two objects into one. |
+| "`ordinal()` is `hashCode()`." | False; they have different purposes and contracts. |
+| "Two distinct constants must have distinct hash codes." | False; collisions are allowed. |
+| "Every enum can only hold constant names, with no data or methods." | False; enums can have constructors, fields, methods, and constant-specific class bodies. |
+| "Enums cannot be used in `HashMap` without overriding hash." | False; `Enum` already provides valid `final` `equals/hashCode`. |
+| "`status.equals(X)` is safe if status is null." | False; the call throws `NullPointerException`. Use `status == X`. |
+| "You should use an enum's `hashCode()` as a database ID." | False; hash is not a business identifier and is not guaranteed stable across runs. |
 
-## 11. Khi nào cần so theo giá trị thay vì hằng enum?
+## 11. When do you need value-based comparison instead of enum constant comparison?
 
-Ví dụ, `Priority.LOW` và `Priority.MEDIUM` cùng `weight = 1` nhưng là hai lựa chọn riêng. Nếu chương trình cần gom nhóm theo trọng số, hãy biểu đạt điều ấy **bằng một phép so riêng**:
+For example, `Priority.LOW` and `Priority.MEDIUM` both have `weight = 1`, yet are two separate choices. If the program needs to group by weight, express that **with a dedicated comparison method**:
 
 ```java
 static boolean hasSameWeight(Priority a, Priority b) {
@@ -341,34 +341,34 @@ static boolean hasSameWeight(Priority a, Priority b) {
 }
 ```
 
-Đây là phương thức minh họa cần đặt trong lớp có truy cập tới enum `Priority` và phương thức `weight()`. Nó cố ý định nghĩa quan hệ **cùng trọng số**, khác với quan hệ **cùng hằng**. Với `a == b == null` về mặt diễn đạt, trường hợp cả hai null được hàm trên coi bằng nhau; tùy nghiệp vụ có thể quy định khác.
+This is an illustrative method that should be placed in a class with access to the `Priority` enum and the `weight()` method. It intentionally defines a **same-weight** relation, distinct from the **same-constant** relation. In terms of `a == b` when null, the case where both are null is treated as equal by the function above; business rules may specify otherwise.
 
-Nếu mô hình dữ liệu cần **mỗi giá trị khác nhau là một đối tượng có equality theo dữ liệu**, và các giá trị có thể phát sinh lúc chạy, enum thường không phù hợp. Dùng lớp bất biến hoặc `record` với hợp đồng `equals()`/`hashCode()` theo thành phần, hoặc thiết kế một khóa giá trị riêng. Không cố làm hai hằng enum khác nhau trở thành bằng nhau qua `equals()`.
+If the data model requires **each distinct value to be an object with data-based equality**, and values can arise at runtime, an enum is usually unsuitable. Use an immutable class or a `record` with a component-based `equals()`/`hashCode()` contract, or design a dedicated value key. Never try to make two distinct enum constants equal via `equals()`.
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-**Câu 1.** Trong enum `Priority { LOW(1), MEDIUM(1) }`, hai hằng có cùng trọng số. `LOW.equals(MEDIUM)` có trả `true` không?
+**Question 1.** In enum `Priority { LOW(1), MEDIUM(1) }`, two constants have the same weight. Does `LOW.equals(MEDIUM)` return `true`?
 
-**Đáp án:** Không. Chúng là hai đối tượng hằng riêng, bất kể trường dữ liệu bằng nhau.
+**Answer:** No. They are two separate constant objects, regardless of equal data fields.
 
-**Câu 2.** `Priority.valueOf("LOW") == Priority.LOW` trả gì?
+**Question 2.** What does `Priority.valueOf("LOW") == Priority.LOW` return?
 
-**Đáp án:** `true`. `valueOf` trả hằng enum được khai báo, không tạo bản sao.
+**Answer:** `true`. `valueOf` returns the declared enum constant, without creating a copy.
 
-**Câu 3.** Vì sao không viết `@Override public int hashCode()` trong enum?
+**Question 3.** Why can't you write `@Override public int hashCode()` in an enum?
 
-**Đáp án:** `Enum.hashCode()` là `final`; trình biên dịch cấm override.
+**Answer:** `Enum.hashCode()` is `final`; the compiler forbids overriding it.
 
-**Câu 4.** Hai hằng của hai kiểu enum khác nhau đều tên `READY` có bằng nhau qua `equals` không?
+**Question 4.** Are two constants from two different enum types both named `READY` equal via `equals`?
 
-**Đáp án:** Không. `name()` có thể giống nhau nhưng đối tượng enum không phải cùng hằng.
+**Answer:** No. Their `name()` may be the same, but the enum objects are not the same constant.
 
-**Câu 5.** Khi `status` có thể null, nên dùng `status == State.NEW` hay `status.equals(State.NEW)`?
+**Question 5.** When `status` may be null, should you use `status == State.NEW` or `status.equals(State.NEW)`?
 
-**Đáp án:** `status == State.NEW`; nó an toàn với null và thể hiện trực tiếp so danh tính enum.
+**Answer:** `status == State.NEW`; it is null-safe and directly expresses enum identity comparison.
 
-**Câu 6.** Có thể tin rằng `Priority.LOW.hashCode()` luôn giữ một số cố định trên mọi lần chạy JVM không?
+**Question 6.** Can you rely on `Priority.LOW.hashCode()` always keeping a fixed number across all JVM runs?
 
-**Đáp án:** Không. Chỉ nên dựa vào hợp đồng equality/hash trong quá trình sử dụng bình thường; không coi hash là mã định danh ổn định.
+**Answer:** No. You should only rely on the equality/hash contract during normal execution; never treat the hash as a stable identifier.
 
-**Ghi nhớ:** Enum có tập hợp hằng hữu hạn và mỗi hằng có **danh tính riêng**. `Enum.equals()` và `Enum.hashCode()` được khai báo **`final`**, nên không thể đổi thành so giá trị. Dùng `==` để nhận diện hằng; khi cần so các thuộc tính, hãy định nghĩa một phép so nghiệp vụ riêng.
+**Remember:** An enum has a finite set of constants and each constant has a **unique identity**. `Enum.equals()` and `Enum.hashCode()` are declared **`final`**, so they cannot be changed to value-based comparison. Use `==` to identify constants; when you need to compare attributes, define a dedicated business comparison method.

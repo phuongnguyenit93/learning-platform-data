@@ -1,23 +1,23 @@
-# AccessFlag, accessFlags() và khác biệt theo phiên bản JDK trong Java Reflection
+# AccessFlag, accessFlags(), and JDK Version Differences in Java Reflection
 
-## 1. Từ modifier của Java đến access flag của JVM
+## 1. From Java modifiers to JVM access flags
 
-Một khai báo Java có thể có các từ khóa như `public`, `private`, `static`, `final`, `abstract`, `synchronized`, `volatile`. Khi biên dịch, JVM class file lưu nhiều đặc tính của class, field, method và các cấu trúc khác dưới dạng **bit flag**. Tuy nhiên, không phải mọi khái niệm trong cú pháp Java đều ứng với một bit flag, và có flag chỉ xuất hiện ở cấp JVM.
+A Java declaration can have keywords such as `public`, `private`, `static`, `final`, `abstract`, `synchronized`, and `volatile`. When compiled, the JVM class file stores many properties of classes, fields, methods, and other structures as **bit flags**. However, not every concept in Java syntax corresponds to a bit flag, and some flags appear only at the JVM level.
 
-Cần tách hai góc nhìn:
+Two perspectives must be separated:
 
-- **Java language modifier**: điều mà `java.lang.reflect.Modifier` và `getModifiers()` chủ yếu mô hình hóa, phù hợp khi cần đọc quyền truy cập, `static`, `final`, `volatile`, v.v. theo ngôn ngữ Java.
-- **JVM access/module flag**: các cờ tại vị trí cụ thể của class file, gồm cả `SYNTHETIC`, `BRIDGE`, `VARARGS`, `ANNOTATION`, `ENUM`, `MANDATED`, `MODULE` và các cờ liên quan module. Từ **JDK 20**, API `java.lang.reflect.AccessFlag` cùng `accessFlags()` đưa cách nhìn này vào core reflection.
+- **Java language modifiers**: what `java.lang.reflect.Modifier` and `getModifiers()` primarily model, suitable when reading access rights, `static`, `final`, `volatile`, etc. per Java language rules.
+- **JVM access/module flags**: flags at specific locations in the class file, including `SYNTHETIC`, `BRIDGE`, `VARARGS`, `ANNOTATION`, `ENUM`, `MANDATED`, `MODULE`, and module-related flags. Starting in **JDK 20**, the `java.lang.reflect.AccessFlag` API along with `accessFlags()` brings this perspective into core reflection.
 
-Ví dụ, phương thức bridge do compiler tạo có cờ `ACC_BRIDGE` mà từ khóa Java không tương ứng trực tiếp; trong khi `sealed` được biểu diễn bằng metadata `PermittedSubclasses` của class file, **không có** cờ `ACC_SEALED`.
+For example, a compiler-generated bridge method has the `ACC_BRIDGE` flag without a directly corresponding Java keyword; meanwhile `sealed` is represented by the class file's `PermittedSubclasses` metadata, with **no** `ACC_SEALED` flag.
 
-Không được hiểu mọi flag chỉ là “modifier viết trước khai báo”. Một class, field, method, method parameter hoặc mục trong module có **tập cờ hợp lệ khác nhau**.
+You must not treat every flag simply as a "modifier written before a declaration." A class, field, method, method parameter, or module entry has **different sets of valid flags**.
 
-## 2. Hai API: getModifiers() và accessFlags()
+## 2. Two APIs: getModifiers() and accessFlags()
 
-### Cách cũ và vẫn hữu ích: getModifiers() + Modifier
+### The older and still useful way: getModifiers() + Modifier
 
-`Class.getModifiers()`, `Field.getModifiers()`, `Method.getModifiers()`, `Constructor.getModifiers()` và `Parameter.getModifiers()` trả về một `int` dạng bit mask. Các phương thức tĩnh trong `Modifier` giải mã theo mục đích của ngôn ngữ:
+`Class.getModifiers()`, `Field.getModifiers()`, `Method.getModifiers()`, `Constructor.getModifiers()`, and `Parameter.getModifiers()` return a bit-mask `int`. Static methods in `Modifier` decode them according to language intent:
 
 ```java
 import java.lang.reflect.Field;
@@ -36,38 +36,38 @@ boolean isFinal = Modifier.isFinal(modifiers);
 String readable = Modifier.toString(modifiers);
 ```
 
-Đoạn trên là **mảnh mã minh họa** để đặt trong một phương thức có khai báo `throws ReflectiveOperationException`; riêng tệp này chưa phải chương trình chạy độc lập. `Modifier.toString(modifiers)` có ích khi hiển thị modifier nguồn, nhưng `getModifiers()` không phải trình đọc toàn bộ flag trong class file.
+The snippet above is an **illustrative code fragment** to place inside a method declaring `throws ReflectiveOperationException`; this file alone is not a standalone runnable program. `Modifier.toString(modifiers)` is useful when displaying source modifiers, yet `getModifiers()` is not a reader for all flags in a class file.
 
-Ưu điểm của `getModifiers()`: có từ các bản JDK cũ, dễ kiểm tra các modifier thông dụng, tương thích thư viện chạy trên JDK 8/11/17. Nếu chỉ cần `public/static/final` cho một field, nó thường là lựa chọn hợp lý.
+Advantages of `getModifiers()`: available since older JDKs, easy to check common modifiers, compatible with libraries running on JDK 8/11/17. If you only need `public/static/final` for a field, it is often a sensible choice.
 
-### Từ JDK 20: accessFlags()
+### Since JDK 20: accessFlags()
 
-`accessFlags()` trả về `Set<AccessFlag>` không thể thay đổi, ví dụ kiểm tra:
+`accessFlags()` returns an unmodifiable `Set<AccessFlag>`, for example checking:
 
 ```java
 Set<AccessFlag> flags = field.accessFlags(); // JDK 20+
 boolean isVolatile = flags.contains(AccessFlag.VOLATILE);
 ```
 
-Tập có thể rỗng; đừng suy luận rằng phần tử xuất hiện theo thứ tự cố định khi in `Set`. So sánh bằng `contains`/`containsAll` thay vì chuyển sang chuỗi. `AccessFlag` là `enum` nên tên cờ phân biệt rõ `VOLATILE` (field) với `BRIDGE` (method) dù trùng bit mask.
+The set may be empty; do not assume elements appear in a fixed order when printing the `Set`. Compare using `contains`/`containsAll` rather than converting to strings. Because `AccessFlag` is an `enum`, flag names clearly distinguish `VOLATILE` (field) from `BRIDGE` (method) even when their bit masks collide.
 
-Các điểm gọi thông dụng từ JDK 20:
+Common call sites since JDK 20:
 
-| Đối tượng Reflection | Cách đọc cờ | Chú ý |
+| Reflection object | How to read flags | Notes |
 | --- | --- | --- |
-| `Class<?>` | `clazz.accessFlags()` | Cờ của class/interface; xử lý riêng array, primitive, `void` theo quy tắc `Class`. |
-| `Field` | `field.accessFlags()` | Ví dụ `PUBLIC`, `STATIC`, `FINAL`, `VOLATILE`, `TRANSIENT`, `ENUM`, `SYNTHETIC` tùy field. |
-| `Method` | `method.accessFlags()` | Ví dụ `SYNCHRONIZED`, `NATIVE`, `ABSTRACT`, `BRIDGE`, `VARARGS`, `SYNTHETIC`. |
-| `Constructor<?>` | `constructor.accessFlags()` | Thừa kế triển khai từ `Executable`; áp dụng các cờ hợp lệ với constructor. |
-| `Parameter` | `parameter.accessFlags()` | Metadata tham số; cần xem xét khả năng dữ liệu tham số hiện diện trong class file. |
+| `Class<?>` | `clazz.accessFlags()` | Class/interface flags; arrays, primitives, and `void` are handled per `Class` rules. |
+| `Field` | `field.accessFlags()` | E.g., `PUBLIC`, `STATIC`, `FINAL`, `VOLATILE`, `TRANSIENT`, `ENUM`, `SYNTHETIC` depending on the field. |
+| `Method` | `method.accessFlags()` | E.g., `SYNCHRONIZED`, `NATIVE`, `ABSTRACT`, `BRIDGE`, `VARARGS`, `SYNTHETIC`. |
+| `Constructor<?>` | `constructor.accessFlags()` | Inherits implementation from `Executable`; applies flags valid for constructors. |
+| `Parameter` | `parameter.accessFlags()` | Parameter metadata; must consider whether parameter data is present in the class file. |
 
-`Member` định nghĩa `default accessFlags()` để hỗ trợ tương thích API, nhưng triển khai mặc định ném `UnsupportedOperationException`. Các implementation core reflection tiêu chuẩn của `Field`/`Method`/`Constructor` cung cấp phương thức này; không suy đoán mọi implementation `Member` tự viết đều hỗ trợ.
+`Member` defines `default accessFlags()` for API compatibility, yet the default implementation throws `UnsupportedOperationException`. The standard core reflection implementations of `Field`/`Method`/`Constructor` provide this method; do not assume every custom `Member` implementation supports it.
 
-**Nhớ:** `accessFlags()` không trả về modifier nguồn dưới dạng chuỗi, không tự kiểm tra bạn có quyền `setAccessible`, và không thay thế mọi API đặc trưng như `Method.isBridge()`, `Class.isRecord()` hoặc `Class.isSealed()`.
+**Remember:** `accessFlags()` does not return source modifiers as strings, does not automatically check whether you have `setAccessible` permission, and does not replace every specialized API such as `Method.isBridge()`, `Class.isRecord()`, or `Class.isSealed()`.
 
-## 3. Chương trình Java 20+ có thể chạy để đối chiếu hai API
+## 3. Runnable Java 20+ program comparing the two APIs
 
-Lưu vào tệp `AccessFlagLessonDemo.java`:
+Save to `AccessFlagLessonDemo.java`:
 
 ```java
 import java.lang.reflect.AccessFlag;
@@ -114,14 +114,14 @@ public class AccessFlagLessonDemo {
 }
 ```
 
-Biên dịch/chạy với JDK 20 trở lên; ví dụ đã được biên dịch và chạy thành công bằng JDK 24:
+Compile/run with JDK 20 or later; the example was compiled and run successfully with JDK 24:
 
 ```bash
 javac AccessFlagLessonDemo.java
 java AccessFlagLessonDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 field Modifier.isVolatile = true
@@ -133,44 +133,44 @@ field mask 0x0040 = [VOLATILE]
 method mask 0x0040 = [BRIDGE]
 ```
 
-Vì `Sample.state` được khai báo `volatile`, cả `Modifier.isVolatile` và tập `AccessFlag` đều nhận diện thuộc tính này. Method `log(String... values)` là method varargs đồng thời `synchronized`. Generic interface `Formatter<T>` khi bị type erasure yêu cầu một adapter `format(Object)`: compiler sinh **bridge method** trong `TextFormatter`. `Method.isBridge()` và `accessFlags().contains(AccessFlag.BRIDGE)` xác nhận nó. Đây là cờ JVM mà người viết Java thông thường không gõ thành modifier trong nguồn.
+Because `Sample.state` is declared `volatile`, both `Modifier.isVolatile` and the `AccessFlag` set recognize this property. Method `log(String... values)` is both a varargs method and `synchronized`. When the generic interface `Formatter<T>` undergoes type erasure, it requires a `format(Object)` adapter: the compiler generates a **bridge method** in `TextFormatter`. Both `Method.isBridge()` and `accessFlags().contains(AccessFlag.BRIDGE)` confirm it. This is a JVM flag that Java authors do not normally type as a modifier in source.
 
-Hai dòng cuối đặc biệt quan trọng: cùng bit `0x0040` nhưng ở vị trí `FIELD` nó nghĩa là `VOLATILE`, còn ở vị trí `METHOD` nó nghĩa là `BRIDGE`. Việc decode mà bỏ qua ngữ cảnh có thể tạo kết quả sai nghiêm trọng.
+The last two lines are especially important: the same bit `0x0040` at location `FIELD` means `VOLATILE`, whereas at location `METHOD` it means `BRIDGE`. Decoding without context can produce seriously wrong results.
 
-## 4. AccessFlag enum và cách diễn giải theo Location
+## 4. AccessFlag enum and interpreting by Location
 
-`AccessFlag` biểu diễn các cờ như `PUBLIC` (`0x0001`), `STATIC` (`0x0008`), `FINAL` (`0x0010`), `VOLATILE` (`0x0040`), `BRIDGE` (`0x0040`), `TRANSIENT` (`0x0080`), `VARARGS` (`0x0080`), `SYNTHETIC` (`0x1000`), `ANNOTATION` (`0x2000`), `ENUM` (`0x4000`).
+`AccessFlag` represents flags such as `PUBLIC` (`0x0001`), `STATIC` (`0x0008`), `FINAL` (`0x0010`), `VOLATILE` (`0x0040`), `BRIDGE` (`0x0040`), `TRANSIENT` (`0x0080`), `VARARGS` (`0x0080`), `SYNTHETIC` (`0x1000`), `ANNOTATION` (`0x2000`), and `ENUM` (`0x4000`).
 
-Các nhóm điển hình:
+Typical groups:
 
-| Vị trí trong class file | Một số flag có thể gặp | Giải thích |
+| Location in class file | Some flags you may see | Explanation |
 | --- | --- | --- |
-| `CLASS` / `INNER_CLASS` | `PUBLIC`, `FINAL`, `INTERFACE`, `ABSTRACT`, `ANNOTATION`, `ENUM`, `SYNTHETIC`; `STATIC` ở thông tin nested class | Class metadata và thông tin về kiểu lồng nhau có quy tắc khác nhau. |
-| `FIELD` | `PUBLIC`, `PRIVATE`, `STATIC`, `FINAL`, `VOLATILE`, `TRANSIENT`, `SYNTHETIC`, `ENUM` | `VOLATILE` và `TRANSIENT` chỉ có ý nghĩa tương ứng ở field. |
-| `METHOD` | `PUBLIC`, `PRIVATE`, `STATIC`, `FINAL`, `SYNCHRONIZED`, `BRIDGE`, `VARARGS`, `NATIVE`, `ABSTRACT`, `STRICT`, `SYNTHETIC` | `STRICT` phụ thuộc đời class file. |
-| `METHOD_PARAMETER` | `FINAL`, `SYNTHETIC`, `MANDATED` | Mô hình cờ trong mục `MethodParameters`, không đồng nhất với `METHOD`. |
-| `MODULE`, `MODULE_REQUIRES`, `MODULE_EXPORTS`, `MODULE_OPENS` | `OPEN`, `TRANSITIVE`, `STATIC_PHASE`, `SYNTHETIC`, `MANDATED` tùy chỗ | Các cờ của module descriptor; không phải `public/private` của Java field. |
+| `CLASS` / `INNER_CLASS` | `PUBLIC`, `FINAL`, `INTERFACE`, `ABSTRACT`, `ANNOTATION`, `ENUM`, `SYNTHETIC`; `STATIC` in nested class info | Class metadata and nested-type info have different rules. |
+| `FIELD` | `PUBLIC`, `PRIVATE`, `STATIC`, `FINAL`, `VOLATILE`, `TRANSIENT`, `SYNTHETIC`, `ENUM` | `VOLATILE` and `TRANSIENT` are only meaningful on fields respectively. |
+| `METHOD` | `PUBLIC`, `PRIVATE`, `STATIC`, `FINAL`, `SYNCHRONIZED`, `BRIDGE`, `VARARGS`, `NATIVE`, `ABSTRACT`, `STRICT`, `SYNTHETIC` | `STRICT` depends on class-file generation. |
+| `METHOD_PARAMETER` | `FINAL`, `SYNTHETIC`, `MANDATED` | Flag model in the `MethodParameters` entry, not identical to `METHOD`. |
+| `MODULE`, `MODULE_REQUIRES`, `MODULE_EXPORTS`, `MODULE_OPENS` | `OPEN`, `TRANSITIVE`, `STATIC_PHASE`, `SYNTHETIC`, `MANDATED` depending on entry | Module descriptor flags; not Java field `public/private`. |
 
-**Không phải mọi tổ hợp trên bảng đều hợp lệ.** Đây là các ví dụ cờ theo nhóm, còn JVMS quyết định vị trí, tổ hợp và đời class file cụ thể.
+**Not every combination in the table is valid.** These are example flags by group, while the JVMS dictates exact locations, combinations, and class-file versions.
 
-Dùng `AccessFlag.Location` để nêu **vị trí** khi giải mã bit:
+Use `AccessFlag.Location` to specify the **location** when decoding bits:
 
 ```java
 AccessFlag.maskToAccessFlags(0x0040, AccessFlag.Location.FIELD);
 AccessFlag.maskToAccessFlags(0x0040, AccessFlag.Location.METHOD);
 ```
 
-Hai lời gọi lần lượt trả tập chỉ gồm `VOLATILE` và tập chỉ gồm `BRIDGE`. Đối với mask chứa bit không được định nghĩa ở vị trí yêu cầu, `maskToAccessFlags` có thể ném `IllegalArgumentException`. Không nên tự viết vòng lặp trên mọi enum constant để đoán ý nghĩa từ `(mask & flag.mask()) != 0` mà không kiểm tra location.
+The two calls return a set containing only `VOLATILE` and a set containing only `BRIDGE`, respectively. For a mask containing bits undefined at the requested location, `maskToAccessFlags` may throw `IllegalArgumentException`. Do not write your own loop over all enum constants to guess meaning from `(mask & flag.mask()) != 0` without checking location.
 
-Các phương thức cốt lõi:
+Core methods:
 
-- `flag.mask()`: trả int mask, **không phải định danh duy nhất** của flag.
-- `flag.sourceModifier()`: cho biết cờ có modifier tương ứng trực tiếp trong ngôn ngữ Java hay không. Điều này không nói cờ đang có trên một đối tượng cụ thể.
-- `flag.locations()`: tập các vị trí hợp lệ trong phiên bản class file hiện hành mà API đang mô hình hóa. Tập có thể rỗng với cờ đã hết hiệu lực.
-- `flag.locations(ClassFileFormatVersion version)`: xác định vị trí hợp lệ theo đời class file được chọn.
-- `AccessFlag.maskToAccessFlags(mask, location)`: diễn giải bit đúng ngữ cảnh theo phiên bản hiện hành; từ JDK 25 có overload nhận thêm `ClassFileFormatVersion`.
+- `flag.mask()`: returns the int mask, **not a unique identifier** for the flag.
+- `flag.sourceModifier()`: indicates whether the flag has a direct corresponding modifier in the Java language. This does not say the flag is present on a specific object.
+- `flag.locations()`: set of valid locations in the current class-file version modeled by the API. The set may be empty for obsolete flags.
+- `flag.locations(ClassFileFormatVersion version)`: determines valid locations for the chosen class-file generation.
+- `AccessFlag.maskToAccessFlags(mask, location)`: interprets bits in context for the current version; since JDK 25 there is an overload accepting an additional `ClassFileFormatVersion`.
 
-Ví dụ tại sao không thể coi `mask` là danh tính:
+Example of why `mask` cannot be treated as identity:
 
 ```java
 System.out.println(AccessFlag.VOLATILE.mask() == AccessFlag.BRIDGE.mask());
@@ -180,27 +180,27 @@ System.out.println(AccessFlag.TRANSIENT.mask() == AccessFlag.VARARGS.mask());
 // true
 ```
 
-Đây là hai dòng minh họa độc lập về biểu thức, không phải tệp Java hoàn chỉnh.
+These are two standalone illustrative expression lines, not a complete Java file.
 
-## 5. Khác biệt theo các phiên bản JDK
+## 5. Differences across JDK versions
 
-| Dòng JDK | API và hệ quả |
+| JDK line | APIs and consequences |
 | --- | --- |
-| **JDK 8, 11, 17, 19 và cũ hơn 20** | **Không có** `java.lang.reflect.AccessFlag` và `accessFlags()`. Dùng `getModifiers()` + `Modifier`, các hàm `isBridge()`/`isSynthetic()`/`isVarArgs()`, và công cụ đọc class file khi cần cờ JVM đầy đủ. |
-| **JDK 20** | Bổ sung `AccessFlag`, `AccessFlag.Location`, `Class.accessFlags()`, `Member.accessFlags()` và `Parameter.accessFlags()`. Có `mask()`, `sourceModifier()`, `locations()`, `locations(ClassFileFormatVersion)`, `maskToAccessFlags(mask, location)`. |
-| **JDK 21** | Các API trên sẵn có ở bản LTS; ví dụ code trong bài chạy bằng JDK 21. Phù hợp nếu dự án cần LTS và muốn truy cập cờ dạng enum. |
-| **JDK 24** | Bổ sung **Class-File API** chuẩn ở package `java.lang.classfile` (JEP 484), trong đó có giao diện `AccessFlags` để đọc/biến đổi file class. Giao diện `java.lang.classfile.AccessFlags` và enum `java.lang.reflect.AccessFlag` là **hai loại API khác mục đích**. |
-| **JDK 25** | Thêm overload `AccessFlag.maskToAccessFlags(int, AccessFlag.Location, ClassFileFormatVersion)` để diễn giải mask theo một phiên bản class-file được chỉ định. API có thể còn phát triển ở các bản JDK mới; xem Javadoc đúng phiên bản bạn chạy. |
+| **JDK 8, 11, 17, 19, and older than 20** | **No** `java.lang.reflect.AccessFlag` or `accessFlags()`. Use `getModifiers()` + `Modifier`, `isBridge()`/`isSynthetic()`/`isVarArgs()`, and class-file reading tools when full JVM flags are needed. |
+| **JDK 20** | Added `AccessFlag`, `AccessFlag.Location`, `Class.accessFlags()`, `Member.accessFlags()`, and `Parameter.accessFlags()`. Includes `mask()`, `sourceModifier()`, `locations()`, `locations(ClassFileFormatVersion)`, `maskToAccessFlags(mask, location)`. |
+| **JDK 21** | The APIs above are available in an LTS release; the code example in this lesson runs on JDK 21. Suitable if your project requires LTS and wants enum-based flag access. |
+| **JDK 24** | Added the standard **Class-File API** in package `java.lang.classfile` (JEP 484), including the `AccessFlags` interface for reading/transforming class files. `java.lang.classfile.AccessFlags` and enum `java.lang.reflect.AccessFlag` are **two APIs with different purposes**. |
+| **JDK 25** | Added overload `AccessFlag.maskToAccessFlags(int, AccessFlag.Location, ClassFileFormatVersion)` to interpret a mask for a specified class-file version. APIs may continue evolving in newer JDKs; check the Javadoc for the exact version you run. |
 
-**Đọc đúng chữ “Since”:** `AccessFlag` có `Since: 20`. Khi trang Javadoc JDK 25 trình bày một overload có `Since: 25`, đó là năm xuất hiện của **overload ấy**, không phải thời điểm toàn bộ enum mới được tạo. Tránh kết luận rằng API chỉ có từ JDK 21 vì đang đọc tài liệu Java 21.
+**Read "Since" accurately:** `AccessFlag` has `Since: 20`. When a JDK 25 Javadoc page shows an overload with `Since: 25`, that is when **that overload** appeared, not when the entire new enum was created. Avoid concluding the API only existed since JDK 21 just because you are reading Java 21 documentation.
 
-**Phiên bản của JDK đang chạy không đồng nghĩa phiên bản mọi class file được nạp.** Chẳng hạn, có thể chạy JDK 21 để nạp class được biên dịch với `javac --release 17`. Cần xem **class file major version** nếu muốn phân tích flag đã tồn tại vào thời điểm class file được tạo. `AccessFlag.locations(cffv)` mô tả quy tắc của đời class file được hỏi, không tự đổi phiên bản của bytecode đang được xem.
+**The running JDK version does not equal the version of every loaded class file.** For example, you can run JDK 21 to load a class compiled with `javac --release 17`. You need to check the **class file major version** if you want to analyze flags that existed at the time the class file was built. `AccessFlag.locations(cffv)` describes the rules of the queried class-file generation; it does not change the version of the bytecode being inspected.
 
-### Trường hợp lịch sử: ACC_STRICT và strictfp
+### Historical case: ACC_STRICT and strictfp
 
-Cờ `AccessFlag.STRICT` (mask `0x0800`) tương ứng `ACC_STRICT` trên **method** và chỉ được JVMS định nghĩa cho class file major version **46–60**, tương ứng Java SE 1.2–16. Từ Java 17, ngữ nghĩa phép toán dấu phẩy động đã luôn strict theo JEP 306; đừng suy rằng method compiled trên JDK hiện đại vẫn phải có `ACC_STRICT` khi có ý tưởng tương tự `strictfp`.
+The `AccessFlag.STRICT` flag (mask `0x0800`) corresponds to `ACC_STRICT` on **methods** and is only defined by the JVMS for class-file major versions **46–60**, corresponding to Java SE 1.2–16. Since Java 17, floating-point arithmetic semantics are always strict per JEP 306; do not assume a method compiled on modern JDKs still must carry `ACC_STRICT` when expressing `strictfp`-like intent.
 
-Để phân tích định dạng cũ trên JDK 20+, tra:
+To analyze the legacy format on JDK 20+, query:
 
 ```java
 import java.lang.reflect.AccessFlag;
@@ -215,91 +215,91 @@ boolean newVersionAllowsStrict =
                 .contains(AccessFlag.Location.METHOD);
 ```
 
-Đây là **mảnh mã minh họa** trong một class/method. `oldVersionAllowsStrict` là `true`, `newVersionAllowsStrict` là `false`. Điều này mô tả **định dạng class file**; không nên dùng nó để kết luận hành vi số học của ứng dụng hiện tại.
+This is an **illustrative code snippet** inside a class/method. `oldVersionAllowsStrict` is `true`, `newVersionAllowsStrict` is `false`. This describes the **class-file format**; do not use it to draw conclusions about arithmetic behavior of a current application.
 
-### Biên dịch và tương thích nhị phân
+### Compilation and binary compatibility
 
-Một ứng dụng target JDK 17 **không thể biên dịch source** có import `java.lang.reflect.AccessFlag` bằng `javac --release 17`, kể cả bạn đang cài JDK 24. API này chưa tồn tại trong Java 17. Nếu mục tiêu runtime là Java 17, hãy giữ `Modifier` và các API tương thích hoặc dùng build/module đặc thù để đọc class file.
+An application targeting JDK 17 **cannot compile source** importing `java.lang.reflect.AccessFlag` with `javac --release 17`, even if you have JDK 24 installed. This API did not exist in Java 17. If the runtime target is Java 17, stick to `Modifier` and compatible APIs or use a dedicated build/module approach to read class files.
 
-Nếu code được biên dịch với JDK 21 và có gọi `accessFlags()`, việc sao chép class đã biên dịch sang JRE 17 không trở thành tương thích: JRE 17 thiếu API (và bytecode class target mới có thể bị từ chối trước với `UnsupportedClassVersionError`). Đừng chỉ thử “bỏ import” để chữa lỗi tương thích.
+If code is compiled with JDK 21 and calls `accessFlags()`, copying the compiled class to JRE 17 does not make it compatible: JRE 17 lacks the API (and newer target class bytecode may be rejected earlier with `UnsupportedClassVersionError`). Do not try merely "removing the import" to fix compatibility errors.
 
-## 6. AccessFlag, Modifier và các API kiểm tra trạng thái khác không đồng nghĩa
+## 6. AccessFlag, Modifier, and other state-checking APIs are not synonymous
 
-### Synthetic, bridge và varargs
+### Synthetic, bridge, and varargs
 
-- `Class.isSynthetic()`, `Field.isSynthetic()`, `Method.isSynthetic()` hoặc `Member.isSynthetic()` trả lời câu hỏi tổng quát về synthetic; `AccessFlag.SYNTHETIC` phản ánh access flag ở vị trí tương ứng. Synthetic không phải một modifier người dùng gõ trước khai báo Java.
-- `Method.isBridge()` là cách lâu đời để nhận diện bridge method; `method.accessFlags().contains(AccessFlag.BRIDGE)` là cách biểu diễn enum trên JDK 20+.
-- `Executable.isVarArgs()` cho biết method/constructor dùng variable arity; `AccessFlag.VARARGS` là cờ class file tương ứng. **Một `String[]` tham số cuối không tự động biến method thành varargs**; phải có khai báo `String...` hoặc cờ từ class file.
-- `Parameter.isImplicit()`, `Parameter.isSynthetic()` và `Parameter.accessFlags()` phục vụ metadata tham số. Một phần thông tin tên/cờ tham số phụ thuộc `MethodParameters` attribute do compiler phát ra, nên đừng giả định mọi class file cũ đều lưu đủ.
+- `Class.isSynthetic()`, `Field.isSynthetic()`, `Method.isSynthetic()`, or `Member.isSynthetic()` answers the general question about synthetic; `AccessFlag.SYNTHETIC` reflects the access flag at the corresponding location. Synthetic is not a modifier a user types before a Java declaration.
+- `Method.isBridge()` is the longstanding way to identify bridge methods; `method.accessFlags().contains(AccessFlag.BRIDGE)` is the enum representation on JDK 20+.
+- `Executable.isVarArgs()` indicates a method/constructor uses variable arity; `AccessFlag.VARARGS` is the corresponding class-file flag. **A trailing `String[]` parameter does not automatically make a method varargs**; it must have a `String...` declaration or the flag from the class file.
+- `Parameter.isImplicit()`, `Parameter.isSynthetic()`, and `Parameter.accessFlags()` serve parameter metadata. Part of parameter name/flag info depends on the `MethodParameters` attribute emitted by the compiler, so do not assume every older class file stores all of it.
 
-### Sealed và record không có cờ AccessFlag tương ứng
+### Sealed and record have no corresponding AccessFlag
 
-Với Java 17+:
+For Java 17+:
 
 ```java
 boolean isSealed = SomeType.class.isSealed();
 boolean isRecord = SomeType.class.isRecord();
 ```
 
-Đây là mảnh mã minh họa: `SomeType` đại diện class mà dự án định nghĩa. Không có `AccessFlag.SEALED` hay `AccessFlag.RECORD` tương ứng. `sealed` dùng metadata `PermittedSubclasses`, còn record dùng `Record` attribute và các quy ước biên dịch. Đừng kết luận kiểu record dựa vào `FINAL`, hay kiểu sealed dựa vào `ABSTRACT`.
+This is an illustrative snippet: `SomeType` represents a project-defined class. There is no corresponding `AccessFlag.SEALED` or `AccessFlag.RECORD`. `sealed` uses `PermittedSubclasses` metadata, while record uses the `Record` attribute and compilation conventions. Do not deduce record types from `FINAL`, or sealed types from `ABSTRACT`.
 
-### Access flag khác với quyền truy cập reflection đang được phép
+### Access flags differ from currently permitted reflective access
 
-`AccessFlag.PRIVATE` cho biết member là private về mặt metadata. Nó không tự cấp quyền đọc/ghi field private, gọi method private hay mở module. `AccessibleObject.canAccess`, `trySetAccessible()` và các quy tắc module/JPMS vẫn quyết định có truy cập phản chiếu sâu được hay không. Tương tự, cờ `OPEN` trong module là metadata module chứ không tương đương `private` trên field.
+`AccessFlag.PRIVATE` indicates a member is private at the metadata level. It does not grant permission to read/write private fields, call private methods, or open modules. `AccessibleObject.canAccess`, `trySetAccessible()`, and module/JPMS rules still determine whether deep reflective access succeeds. Likewise, `OPEN` in a module is module metadata rather than equivalent to `private` on a field.
 
-### Class, nested class, primitive và array có ngoại lệ
+### Classes, nested classes, primitives, and arrays have exceptions
 
-`Class.accessFlags()` của array và primitive/`void` có quy tắc suy diễn riêng theo Javadoc; không giả định lúc nào cũng đọc trực tiếp danh sách bit thô từ `ClassFile` tương ứng (primitive/void và array không có class file độc lập giống class thông thường). Với nested type, `STATIC` có thể được ghi trong `InnerClasses` attribute; cần phân biệt `CLASS` và `INNER_CLASS` khi tự giải mã class file.
+`Class.accessFlags()` for arrays and primitives/`void` has its own inferred rules per the Javadoc; do not assume it always reads a raw bit list directly from a corresponding `ClassFile` (primitives/void and arrays have no standalone class file like ordinary classes). For nested types, `STATIC` may be recorded in the `InnerClasses` attribute; distinguish `CLASS` and `INNER_CLASS` when decoding class files manually.
 
-Ví dụ, `String[].class.accessFlags()` không có cùng ý nghĩa kiểm tra cấu trúc file với việc đọc thô một `String[].class` trên đĩa: không tồn tại file `String[].class` như một khai báo class riêng để mở.
+For example, `String[].class.accessFlags()` does not have the same file-structure inspection meaning as raw-reading a `String[].class` on disk: no `String[].class` file exists as a separate class declaration to open.
 
-## 7. Khi cần xem class file thật: công cụ và API phù hợp
+## 7. When you need to inspect the real class file: right tools and APIs
 
-Reflection làm việc trên `Class`/`Field`/`Method` **đã được load**; nó trình bày cái nhìn đã chuẩn hóa theo API Java. Nếu nhiệm vụ là phân tích bytecode, byte-level flags, version hoặc attributes, lựa chọn phù hợp hơn là:
+Reflection works on **already loaded** `Class`/`Field`/`Method` objects; it presents a view normalized by Java APIs. If the task is analyzing bytecode, byte-level flags, versions, or attributes, better choices are:
 
-1. `javap -v SomeType`: nhìn major version, `flags: (0x...)`, phương thức synthetic/bridge và các attributes. Với ví dụ `AccessFlagLessonDemo`, có thể chạy `javap -v AccessFlagLessonDemo$TextFormatter`; trong shell có quy tắc escape ký tự `$`, vì vậy phải quote tên class phù hợp. Kết quả có thể dài, chủ động tìm các dòng `flags`.
-2. Từ **JDK 24**, dùng `java.lang.classfile` và `AccessFlags` khi cần phân tích/biến đổi class file có cấu trúc bằng mã Java. Đây là Class-File API, không phải method `accessFlags()` trên đối tượng reflection.
-3. Với hệ thống vẫn chạy JDK 17, có thể dùng `javap` hoặc thư viện bytecode tương thích (ví dụ ASM đúng phiên bản class file) khi thật sự cần bridge/synthetic flags và attributes ngoài khả năng `Modifier`.
+1. `javap -v SomeType`: inspect major version, `flags: (0x...)`, synthetic/bridge methods, and attributes. For the `AccessFlagLessonDemo` example, you can run `javap -v AccessFlagLessonDemo$TextFormatter`; shells have `$` escaping rules, so quote the class name appropriately. Output can be long—actively look for `flags` lines.
+2. Starting in **JDK 24**, use `java.lang.classfile` and `AccessFlags` when you need structured parsing/transformation of class files in Java code. This is the Class-File API, not the `accessFlags()` method on reflection objects.
+3. For systems still running JDK 17, you can use `javap` or a compatible bytecode library (e.g., ASM supporting the class-file version) when you genuinely need bridge/synthetic flags and attributes beyond `Modifier`'s scope.
 
-Không dùng `getModifiers()` làm raw flag mask cho mọi `AccessFlag.Location`. Trường hợp có bit trùng nghĩa khác nhau, hoặc method của JVM có bridge/synthetic, chuyển đổi “chung” như vậy không bảo đảm chuẩn xác. Cũng không coi `AccessFlag.maskToAccessFlags` như một API kiểm tra quyền theo `SecurityManager` hay module access.
+Do not treat `getModifiers()` as a raw flag mask for every `AccessFlag.Location`. Where bits collide with different meanings, or JVM methods have bridge/synthetic, such a "generic" conversion is not guaranteed accurate. Nor should `AccessFlag.maskToAccessFlags` be treated as a permission check under `SecurityManager` or module access.
 
-## 8. Quy trình chọn cách đọc flag
+## 8. Workflow for choosing how to read flags
 
-**Nếu chỉ kiểm tra modifier quen thuộc và còn hỗ trợ JDK 17:** dùng `Modifier.isPublic(field.getModifiers())`, `Modifier.isStatic(...)`, `Modifier.isFinal(...)`. Với bridge/varargs/synthetic, dùng API riêng như `isBridge()`/`isVarArgs()`/`isSynthetic()`.
+**If checking familiar modifiers and still supporting JDK 17:** use `Modifier.isPublic(field.getModifiers())`, `Modifier.isStatic(...)`, `Modifier.isFinal(...)`. For bridge/varargs/synthetic, use dedicated APIs such as `isBridge()`/`isVarArgs()`/`isSynthetic()`.
 
-**Nếu chạy JDK 20+ và muốn tên cờ rõ ràng:** dùng `field.accessFlags().contains(AccessFlag.VOLATILE)`, `method.accessFlags().contains(AccessFlag.BRIDGE)`. Đây là cách dễ tránh lỗi trùng mask.
+**If running JDK 20+ and wanting clear flag names:** use `field.accessFlags().contains(AccessFlag.VOLATILE)`, `method.accessFlags().contains(AccessFlag.BRIDGE)`. This easily avoids mask-collision bugs.
 
-**Nếu có số bit thô:** trước hết xác định `AccessFlag.Location` chính xác; tiếp theo xác định đời class file. Với JDK 25+ có thể dùng overload ba tham số để decode đúng phiên bản; ở các JDK trước đó cần kiểm tra giới hạn API đang có, cùng tài liệu JVMS nếu phân tích class file khác đời.
+**If given a raw bit number:** first identify the exact `AccessFlag.Location`; next determine the class-file generation. On JDK 25+ you can use the three-argument overload to decode accurately for a version; on earlier JDKs check existing API limits along with JVMS documentation if analyzing class files from another generation.
 
-**Nếu cần cấu trúc record/sealed hoặc metadata không phải access flags:** hỏi API chuyên biệt (`isRecord()`, `isSealed()`) hoặc đọc class file đầy đủ. Đừng cố “sáng tạo” cờ không được định nghĩa.
+**If needing record/sealed structure or non-access-flag metadata:** query specialized APIs (`isRecord()`, `isSealed()`) or read the full class file. Do not try to "invent" undefined flags.
 
-**Nếu đọc field/method từ framework:** phân biệt “đã khai báo flag gì” với “có thể phản chiếu truy cập được không”. Chúng là hai câu hỏi độc lập.
+**If reading fields/methods from a framework:** separate "what flags are declared" from "can it be reflectively accessed." They are two independent questions.
 
-## 9. Lỗi phổ biến và bài tập tự kiểm tra
+## 9. Common mistakes and self-check exercises
 
-1. **Gọi `accessFlags()` ở JDK 17:** không biên dịch; API được giới thiệu ở JDK 20.
-2. **Đảo nghĩa `0x0040`:** field dùng `VOLATILE`, method dùng `BRIDGE`.
-3. **Tin vào `getModifiers()` như toàn bộ raw class flags:** API thiên về modifier Java và không thay các API cờ/attribute đặc thù.
-4. **Tưởng `sealed`, `record` là `AccessFlag`:** thực tế phải dùng metadata/API khác.
-5. **Đoán flag chỉ từ JDK runtime:** class file đang xét có thể được build bằng `--release` cho đời cũ.
-6. **Phụ thuộc thứ tự in `Set`:** đọc bằng `contains` hoặc so sánh tập, không so thứ tự.
-7. **Hiểu `SYNTHETIC` là “bất kỳ thứ gì compiler tạo ra”:** JVMS đặt cờ/attribute với quy tắc cụ thể; chỉ dùng metadata được đọc từ class file/API, không đoán qua tên `$` hoặc pattern sinh mã.
-8. **Quên sai khác giữa đọc metadata và truy cập private:** flag không mở quyền Reflection và không vượt quy tắc module.
+1. **Calling `accessFlags()` on JDK 17:** does not compile; the API was introduced in JDK 20.
+2. **Swapping meanings of `0x0040`:** fields use `VOLATILE`, methods use `BRIDGE`.
+3. **Trusting `getModifiers()` as all raw class flags:** the API leans toward Java modifiers and does not replace specialized flag/attribute APIs.
+4. **Assuming `sealed` and `record` are `AccessFlag` values:** in fact other metadata/APIs must be used.
+5. **Guessing flags solely from the runtime JDK:** the inspected class file may have been built with `--release` for an older generation.
+6. **Depending on `Set` print order:** check with `contains` or set equality, not ordering.
+7. **Understanding `SYNTHETIC` as "anything the compiler creates":** the JVMS sets flags/attributes under specific rules; rely only on metadata read from class files/APIs, not guessing via `$` names or code-generation patterns.
+8. **Forgetting the difference between reading metadata and accessing private members:** flags do not unlock Reflection access or bypass module rules.
 
-Tự kiểm tra:
+Self-check:
 
-- `AccessFlag.TRANSIENT.mask() == AccessFlag.VARARGS.mask()` là `true`, vậy chỉ từ một số mask ta có kết luận được flag không? **Không**, cần location.
-- `AccessFlag.STRICT.locations(ClassFileFormatVersion.RELEASE_17)` có chứa `METHOD` không? **Không**, vì `ACC_STRICT` chỉ áp dụng đến major version 60.
-- `method.accessFlags().contains(AccessFlag.BRIDGE)` và `method.isBridge()` đều có thể sử dụng trên JDK 17? **Không**: `isBridge()` có từ trước, `accessFlags()` chỉ từ JDK 20.
-- Class là `record` nhưng không có cờ `AccessFlag.RECORD` thì có mâu thuẫn không? **Không**: đặc tính record được biểu diễn ngoài tập access flags.
+- `AccessFlag.TRANSIENT.mask() == AccessFlag.VARARGS.mask()` is `true`, so from a mask number alone can we conclude the flag? **No**, location is required.
+- Does `AccessFlag.STRICT.locations(ClassFileFormatVersion.RELEASE_17)` contain `METHOD`? **No**, because `ACC_STRICT` only applies up to major version 60.
+- Can both `method.accessFlags().contains(AccessFlag.BRIDGE)` and `method.isBridge()` be used on JDK 17? **No**: `isBridge()` existed earlier, while `accessFlags()` is only from JDK 20.
+- If a class is a `record` yet has no `AccessFlag.RECORD` flag, is that a contradiction? **No**: record characteristics are represented outside the access flags set.
 
-## 10. Tài liệu tham khảo chính thức
+## 10. Official references
 
 - [Oracle Javadoc Java 20 — AccessFlag (Since: 20)](https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/lang/reflect/AccessFlag.html)
-- [Oracle Javadoc Java 21 — AccessFlag và Location](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessFlag.html)
+- [Oracle Javadoc Java 21 — AccessFlag and Location](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessFlag.html)
 - [Oracle Javadoc Java 21 — Class.accessFlags()](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#accessFlags())
 - [Oracle Javadoc Java 21 — Modifier](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Modifier.html)
-- [Oracle Javadoc Java 25 — AccessFlag và overload theo ClassFileFormatVersion](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/reflect/AccessFlag.html)
+- [Oracle Javadoc Java 25 — AccessFlag and ClassFileFormatVersion overload](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/reflect/AccessFlag.html)
 - [Dev.java — Reading Modifiers](https://dev.java/learn/api/reflection-method-handles/reflection/modifiers/)
 - [JEP 484 — Class-File API (JDK 24)](https://openjdk.org/jeps/484)
 - [JEP 306 — Restore Always-Strict Floating-Point Semantics (JDK 17)](https://openjdk.org/jeps/306)

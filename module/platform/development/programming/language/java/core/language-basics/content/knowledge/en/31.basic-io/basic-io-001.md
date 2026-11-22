@@ -1,14 +1,14 @@
-# `System.out.print()`, `println()` và `printf()` trong Java
+# `System.out.print()`, `println()` and `printf()` in Java
 
-## 1. Ba cách xuất dữ liệu ra màn hình console
+## 1. Three ways to output data to the console
 
-Trong Java, `System.out` là một đối tượng `java.io.PrintStream` đại diện cho **luồng xuất chuẩn** (*standard output*, thường gọi là stdout). Ba nhóm phương thức quen thuộc nhất là:
+In Java, `System.out` is a `java.io.PrintStream` object representing the **standard output** stream (commonly called stdout). The three most familiar method groups are:
 
-- **`System.out.print(value)`**: in giá trị nhưng **không chủ động thêm ký tự xuống dòng**.
-- **`System.out.println(value)`**: in giá trị rồi **kết thúc dòng**; `println()` không đối số chỉ in một dấu kết thúc dòng, thường dùng tạo dòng trống.
-- **`System.out.printf(format, args...)`**: in một chuỗi **theo mẫu định dạng**, sử dụng những ký hiệu như `%s`, `%d`, `%.2f`. `printf()` **không tự thêm dấu kết thúc dòng** nếu chuỗi định dạng không yêu cầu.
+- **`System.out.print(value)`**: prints the value without **automatically adding a newline character**.
+- **`System.out.println(value)`**: prints the value and then **terminates the line**; `println()` with no arguments prints only a line terminator, often used to create a blank line.
+- **`System.out.printf(format, args...)`**: prints a string **according to a format template**, using specifiers such as `%s`, `%d`, `%.2f`. `printf()` **does not automatically add a line terminator** if the format string does not request one.
 
-Ví dụ đặt trong phương thức:
+Example placed inside a method:
 
 ```java
 System.out.print("Xin ");
@@ -19,7 +19,7 @@ System.out.println();
 System.out.println("Sau mot dong trong");
 ```
 
-Kết quả:
+Result:
 
 ```text
 Xin chao Java
@@ -28,13 +28,13 @@ Dong moi
 Sau mot dong trong
 ```
 
-Hai lần `print` đầu tiên viết tiếp trên **cùng dòng**. `println(" Java")` bổ sung nội dung và kết thúc dòng. `println()` không có đối số tạo một **dòng trống** trước nội dung tiếp theo.
+The first two `print` calls continue writing on the **same line**. `println(" Java")` appends the content and terminates the line. `println()` with no arguments creates a **blank line** before the next content.
 
-**Đừng nhầm `print()` với `println()`:** `print("A")` không tự xuống dòng, còn `println("A")` có xuống dòng. Tương tự, `printf("A")` không tự thêm xuống dòng.
+**Do not confuse `print()` with `println()`:** `print("A")` does not automatically move to a new line, whereas `println("A")` does. Similarly, `printf("A")` does not automatically add a newline.
 
-## 2. `print()`: in tiếp mà không tự xuống dòng
+## 2. `print()`: continue printing without automatically moving to a new line
 
-`print` hữu ích để ghép nội dung của một dòng từ nhiều phần nhỏ, chẳng hạn nhãn và giá trị.
+`print` is useful for assembling the content of a single line from multiple smaller parts, such as a label and a value.
 
 ```java
 int count = 4;
@@ -49,11 +49,11 @@ Stdout:
 So luong: 4 san pham
 ```
 
-Nếu chỉ gọi `print` mà không có ký tự xuống dòng trong giá trị truyền vào, lần in tiếp theo sẽ tiếp tục tại dòng hiện tại. Ví dụ `print("A\nB")` **có thể tạo xuống dòng** vì chính chuỗi chứa ký tự `\n`; việc không *tự động* thêm newline không có nghĩa giá trị được in không thể chứa newline.
+If you only call `print` without a newline character in the passed value, the next print call will continue on the current line. For example, `print("A\nB")` **can create a line break** because the string itself contains the `\n` character; not *automatically* adding a newline does not mean the printed value cannot contain a newline.
 
-`print` có các overload cho những kiểu như `boolean`, `char`, `char[]`, `int`, `long`, `float`, `double`, `String` và `Object`. Với giá trị nguyên thủy, Java chuyển thành dạng văn bản phù hợp. Với nhiều đối tượng, việc in sử dụng biểu diễn dạng chuỗi (`String.valueOf`/`toString()`). Cần nhớ `toString()` của đối tượng tự định nghĩa có thể không diễn tả các trường theo cách mình muốn.
+`print` has overloads for types such as `boolean`, `char`, `char[]`, `int`, `long`, `float`, `double`, `String`, and `Object`. For primitive values, Java converts them to an appropriate text representation. For many objects, printing uses their string representation (`String.valueOf`/`toString()`). Keep in mind that `toString()` on a custom object might not describe its fields the way you want.
 
-Ví dụ:
+Example:
 
 ```java
 System.out.print(25);
@@ -61,11 +61,11 @@ System.out.print(" tuoi");
 System.out.println();
 ```
 
-Kết quả là một dòng `25 tuoi`.
+The result is a single line `25 tuoi`.
 
-## 3. `println()`: in và kết thúc dòng
+## 3. `println()`: print and terminate the line
 
-`println` phù hợp với thông báo, ghi giá trị theo từng dòng và in kết quả sau mỗi bước.
+`println` is suited for messages, logging values line by line, and printing results after each step.
 
 ```java
 System.out.println("Java");
@@ -81,11 +81,11 @@ Java
 true
 ```
 
-`println()` không đối số chỉ kết thúc dòng hiện tại. Khác với một dấu cách, ký tự kết thúc dòng ảnh hưởng cách terminal hiển thị dữ liệu.
+`println()` with no arguments only terminates the current line. Unlike a space character, a line terminator affects how the terminal displays data.
 
-### Nối chuỗi bằng toán tử `+`
+### String concatenation with the `+` operator
 
-Khi một toán hạng là `String`, toán tử `+` có thể dùng để nối chuỗi:
+When one operand is a `String`, the `+` operator can be used for string concatenation:
 
 ```java
 int a = 2, b = 3;
@@ -94,39 +94,39 @@ System.out.println("Ket qua: " + a + b); // Ket qua: 23
 System.out.println(a + b + " la tong"); // 5 la tong
 ```
 
-**Vì sao khác nhau?** Trong `"Ket qua: " + a + b`, phép toán được đánh giá từ trái sang phải: sau khi nối chuỗi với `a`, phép `+ b` tiếp tục nối văn bản. Muốn tính toán trước khi nối, đặt phép tính trong ngoặc `(a + b)`.
+**Why are they different?** In `"Ket qua: " + a + b`, the operations are evaluated from left to right: after concatenating the string with `a`, the `+ b` operation continues concatenating text. To perform arithmetic before concatenating, place the expression in parentheses `(a + b)`.
 
-### In mảng và đối tượng
+### Printing arrays and objects
 
 ```java
 int[] numbers = {4, 6};
 System.out.println(java.util.Arrays.toString(numbers)); // [4, 6]
 ```
 
-Với mảng, **đừng kỳ vọng** `System.out.println(numbers)` tự in mọi phần tử. Mảng không ghi đè `toString()` theo dạng danh sách phần tử; kết quả thường có dạng thông tin kiểu và mã định danh, không phải `[4, 6]`. Dùng `Arrays.toString` cho mảng một chiều hoặc `Arrays.deepToString` cho mảng lồng thích hợp.
+For arrays, **do not expect** `System.out.println(numbers)` to automatically print every element. Arrays do not override `toString()` as a list of elements; the result usually has a form containing type information and an identity hash code, not `[4, 6]`. Use `Arrays.toString` for one-dimensional arrays or `Arrays.deepToString` for nested arrays as appropriate.
 
-## 4. `printf()`: in theo mẫu thay vì nối chuỗi thủ công
+## 4. `printf()`: template-based printing instead of manual string concatenation
 
-`printf(format, args...)` nhận chuỗi mẫu có các ký hiệu bắt đầu bằng `%` và những đối số tương ứng. Ví dụ `System.out.printf("Ten: %s; Tuoi: %d%n", "An", 18);` in `Ten: An; Tuoi: 18` rồi xuống dòng. Khác `println()`, `printf()` **không tự thêm** ký tự kết thúc dòng.
+`printf(format, args...)` accepts a template string containing specifiers starting with `%` and the corresponding arguments. For example, `System.out.printf("Ten: %s; Tuoi: %d%n", "An", 18);` prints `Ten: An; Tuoi: 18` and then moves to a new line. Unlike `println()`, `printf()` **does not automatically add** a line terminator.
 
-| Ký hiệu | Ý nghĩa trong ví dụ cơ bản |
+| Specifier | Meaning in basic examples |
 | --- | --- |
-| `%s` / `%d` | Văn bản / số nguyên thập phân |
-| `%.2f` | Số thực với hai chữ số thập phân |
-| `%04d` / `%-6s` | Đệm số bằng 0 đến độ rộng 4 / căn trái chuỗi trong vùng rộng 6 |
-| `%%` / `%n` | Một dấu phần trăm / ký tự kết thúc dòng của nền tảng |
+| `%s` / `%d` | Text / decimal integer |
+| `%.2f` | Floating-point number with two decimal places |
+| `%04d` / `%-6s` | Zero-pad number to width 4 / left-align string in a 6-character field |
+| `%%` / `%n` | A literal percent sign / platform-specific line terminator |
 
-Định dạng số thực chịu ảnh hưởng của `Locale`. Các cờ, độ rộng, precision, chỉ số đối số và ngoại lệ của `Formatter` được thực hành chi tiết ở bài về định dạng `printf()`; ví dụ chạy độc lập ngay dưới đây minh họa sự khác biệt giữa ba phương thức in.
+Floating-point formatting is affected by `Locale`. Flags, width, precision, argument indices, and `Formatter` exceptions are covered in detail in the lesson on `printf()` formatting; the standalone runnable example directly below illustrates the difference between the three print methods.
 
-## 5. Chọn `Locale` để đầu ra có thể đối chiếu
+## 5. Choosing a `Locale` for comparable output
 
-`System.out.printf(Locale.US, "Gia: %.2f%n", 12.5);` in `Gia: 12.50` rồi kết thúc dòng. Nếu bỏ `Locale.US`, dấu thập phân của `%.2f` có thể theo locale mặc định và khác giữa các máy. Chọn locale phù hợp với người đọc hoặc định dạng trao đổi; `Locale.US` chỉ cố định ví dụ đang dùng dấu chấm.
+`System.out.printf(Locale.US, "Gia: %.2f%n", 12.5);` prints `Gia: 12.50` and then terminates the line. If `Locale.US` is omitted, the decimal separator of `%.2f` may follow the default locale and differ across machines. Choose a locale appropriate for the reader or exchange format; `Locale.US` merely fixes the example to use a dot.
 
-`%n` yêu cầu dấu kết thúc dòng của nền tảng, còn escape `\n` trong Java string biểu diễn ký tự LF. Bài định dạng `printf()` giải thích thêm sự khác biệt này khi chạy đa hệ điều hành.
+`%n` requests the platform's line terminator, whereas the `\n` escape in a Java string represents the LF character. The dedicated `printf()` formatting lesson further explains this difference when running across different operating systems.
 
-## 6. Ví dụ Java 17+ chạy độc lập và kết quả chính xác
+## 6. Standalone runnable Java 17+ example and exact output
 
-Tạo tệp **`ConsoleOutputDemo.java`**:
+Create the file **`ConsoleOutputDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -159,14 +159,14 @@ public class ConsoleOutputDemo {
 }
 ```
 
-Mở terminal tại thư mục chứa tệp, dùng **JDK 17 trở lên** trên Windows (PowerShell/CMD) hoặc Linux/macOS:
+Open a terminal in the directory containing the file, using **JDK 17 or later** on Windows (PowerShell/CMD) or Linux/macOS:
 
 ```bash
 javac -encoding UTF-8 ConsoleOutputDemo.java
 java ConsoleOutputDemo
 ```
 
-Stdout chính xác (có **một dòng trống** sau `Dong trong`; lệnh `javac` thành công không in gì):
+Exact stdout (there is **one blank line** after `Dong trong`; a successful `javac` command prints nothing):
 
 ```text
 Xin chao Java
@@ -183,48 +183,48 @@ Chuoi: Ma=005
 Mang: [4, 6]
 ```
 
-Phân tích:
+Breakdown:
 
-1. Hai `print()` đầu nối tiếp trên cùng dòng; `println(" Java")` kết thúc dòng ấy.
-2. `println()` không đối số tạo dòng trắng.
-3. `println(2 + 3)` in kết quả phép cộng số học là `5`.
-4. `printf` xuất đúng kiểu và độ rộng của `%d`, `%.2f`, `%-6s`, `%04d`, `%.1f`, `%x`, `%c`, `%b`; `%%` là dấu phần trăm.
-5. `String.format` **trả về `String`**, không tự in; sau đó `println` mới ghi chuỗi ấy ra console.
-6. `Arrays.toString` biến nội dung mảng thành chuỗi dễ đọc.
+1. The first two `print()` calls continue on the same line; `println(" Java")` ends that line.
+2. `println()` with no arguments produces a blank line.
+3. `println(2 + 3)` prints the result of the arithmetic addition, `5`.
+4. `printf` outputs the exact types and widths for `%d`, `%.2f`, `%-6s`, `%04d`, `%.1f`, `%x`, `%c`, `%b`; `%%` is a literal percent sign.
+5. `String.format` **returns a `String`** without printing it; `println` then writes that string to the console.
+6. `Arrays.toString` turns the array contents into a readable string.
 
-## 7. Khi `printf()` báo lỗi hoặc dính dòng
+## 7. When `printf()` throws an error or merges lines
 
-Các định dạng sai có thể **biên dịch được nhưng ném ngoại lệ lúc chạy**: `printf("%d", "7")` dùng `String` thay cho số nguyên và gây `IllegalFormatConversionException`; `printf("%d %s", 3)` thiếu một đối số và gây `MissingFormatArgumentException`.
+Invalid format strings can **compile successfully but throw an exception at runtime**: `printf("%d", "7")` passes a `String` instead of an integer and causes `IllegalFormatConversionException`; `printf("%d %s", 3)` is missing an argument and causes `MissingFormatArgumentException`.
 
-`%f` không tự chuyển `String` thành số thực; khi cần, hãy parse và validate dữ liệu trước. `printf("Ti le: %d%%%n", 80);` in `Ti le: 80%` rồi xuống dòng: `%%` in phần trăm, `%n` kết thúc dòng. Đừng viết một dấu `%` trần trong mẫu, và đừng trông chờ `printf()` tự xuống dòng. Bài định dạng chuyên sâu có bảng đầy đủ các lỗi về conversion, flag và precision.
+`%f` does not automatically convert a `String` to a floating-point number; when needed, parse and validate the data first. `printf("Ti le: %d%%%n", 80);` prints `Ti le: 80%` and moves to a new line: `%%` prints the percent sign, and `%n` terminates the line. Do not write a bare `%` sign in a format template, and do not expect `printf()` to automatically add a newline. The in-depth formatting lesson provides a complete table of conversion, flag, and precision errors.
 
-## 8. Khi nào nên chọn phương thức nào?
+## 8. When should you choose which method?
 
-| Nhu cầu | Phương thức phù hợp |
+| Need | Suitable method |
 | --- | --- |
-| In một thông báo đơn giản và xuống dòng | `println("Da xong")` |
-| In nhiều phần của cùng một dòng | `print(...)`, rồi `println(...)` khi muốn kết thúc |
-| In nhiều giá trị cần độ rộng, số chữ số thập phân, padding | `printf(...)` |
-| Tạo chuỗi được định dạng để lưu hoặc trả về, **không in ngay** | `String.format(...)` |
-| Xuất lỗi/chẩn đoán riêng luồng stdout | `System.err.println(...)` nếu phù hợp |
+| Print a simple message and move to a new line | `println("Da xong")` |
+| Print multiple parts of the same line | `print(...)`, then `println(...)` when you want to end the line |
+| Print multiple values needing width, decimal places, or padding | `printf(...)` |
+| Build a formatted string to store or return, **without printing immediately** | `String.format(...)` |
+| Output errors/diagnostics separately from the stdout stream | `System.err.println(...)` when appropriate |
 
-`System.out` là **standard output**; `System.err` là **standard error**, thường dùng cho thông báo lỗi. Terminal có thể hiển thị cả hai trên cùng màn hình, nhưng chúng là hai luồng riêng và có thể được chuyển hướng riêng.
+`System.out` is **standard output**; `System.err` is **standard error**, typically used for error messages. A terminal may display both on the same screen, but they are two separate streams and can be redirected independently.
 
-Ví dụ:
+Example:
 
 ```bash
 java ConsoleOutputDemo > output.txt
 ```
 
-Lệnh này chuyển hướng stdout vào tệp `output.txt` theo cú pháp shell thường gặp. Cách mã hóa tệp từ việc chuyển hướng có thể khác theo môi trường shell; khi ứng dụng cần định dạng/ký tự đầu ra chuẩn xác trong tệp, nên dùng API ghi file với charset rõ ràng thay vì phụ thuộc ngầm vào cấu hình terminal.
+This command redirects stdout into the file `output.txt` using common shell syntax. File encoding resulting from redirection may vary by shell environment; when an application needs exact formatting and characters in an output file, use a file-writing API with an explicit charset rather than relying implicitly on terminal configuration.
 
-## 9. Kiểm tra nhanh trước khi chạy
+## 9. Quick pre-run checklist
 
-- Nếu các phần bị dính nhau: xem có dùng nhầm `print` thay vì `println` hoặc quên `%n` trong `printf` không.
-- Nếu kết quả toán học bị nối thành chuỗi: thêm ngoặc quanh phép tính trước khi dùng `+` với `String`.
-- Nếu hiển thị số thập phân không như mong muốn: kiểm tra `%.nf`, kiểu đối số và `Locale`.
-- Nếu định dạng ném ngoại lệ: so khớp từng ký hiệu `%d`, `%f`, `%s` với số lượng và kiểu đối số thực tế.
-- Nếu mảng in ra dạng khó đọc: dùng `Arrays.toString` hoặc `Arrays.deepToString` khi phù hợp.
-- Nếu thấy thông báo lỗi cùng chỗ với kết quả: nhớ phân biệt `System.err` và `System.out`; các luồng có thể được hiển thị cùng một terminal.
+- If parts run together on one line: check whether you accidentally used `print` instead of `println` or forgot `%n` in `printf`.
+- If math results are concatenated as text: wrap the arithmetic expression in parentheses before using `+` with a `String`.
+- If decimal numbers do not display as expected: check `%.nf`, the argument type, and the `Locale`.
+- If formatting throws an exception: match each specifier (`%d`, `%f`, `%s`) against the actual argument count and types.
+- If an array prints in an unreadable form: use `Arrays.toString` or `Arrays.deepToString` as appropriate.
+- If error messages appear in the same place as results: remember to distinguish `System.err` from `System.out`; both streams may be displayed in the same terminal.
 
-**Ghi nhớ:** `print` in tiếp, `println` in rồi xuống dòng, còn `printf` in theo mẫu và chỉ xuống dòng khi mẫu có ký tự kết thúc dòng. Chọn đúng phương thức giúp kết quả console dễ đọc và có thể kiểm tra chính xác.
+**Key takeaway:** `print` continues on the same line, `println` prints and moves to a new line, and `printf` prints using a template and only moves to a new line when the template includes a line terminator. Choosing the right method keeps console output readable and accurately verifiable.

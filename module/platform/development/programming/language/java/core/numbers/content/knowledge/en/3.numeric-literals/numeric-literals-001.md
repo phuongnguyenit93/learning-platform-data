@@ -1,17 +1,17 @@
-# Literal số nguyên và kiểu `int` mặc định trong Java
+# Integer Literals and the Default `int` Type in Java
 
-**Literal số nguyên** (*integer literal*) là số nguyên được viết trực tiếp trong mã nguồn Java: `42`, `0b101010`, `052`, `0x2A`. Các cách viết này có cơ số khác nhau nhưng cùng biểu diễn giá trị thập phân 42. **Theo mặc định literal số nguyên không có hậu tố `L` có kiểu `int`; có hậu tố `L` (hoặc `l`) thì có kiểu `long`.** Cơ số không quyết định kiểu. Phạm vi và ý nghĩa của literal thập phân và phi thập phân có vài điểm khác nhau mà người học cần nắm vững.
+**Integer literals** are whole numbers written directly in Java source code: `42`, `0b101010`, `052`, `0x2A`. These notations use different radixes (bases) but represent the same decimal value 42. **By default, an integer literal without an `L` suffix has type `int`; with an `L` (or `l`) suffix, it has type `long`.** The base does not determine the type. The range and meaning of decimal and non-decimal literals have several differences that learners must master.
 
-Bài học nói về *literal và kiểu của biểu thức lúc biên dịch*, không phải *giá trị mặc định của field* hay *phân tích chuỗi số lúc chạy*.
+This lesson covers *literals and compile-time expression types*, not *default field values* or *runtime string parsing*.
 
-## 1. Bốn hệ cơ số của literal số nguyên
+## 1. The Four Bases of Integer Literals
 
-| Dạng | Ký hiệu đầu | Chữ số hợp lệ | Ví dụ | Giá trị thập phân |
+| Form | Leading Notation | Valid Digits | Example | Decimal Value |
 | --- | --- | --- | --- | --- |
-| Decimal (thập phân, cơ số 10) | Không có tiền tố đặc biệt; số thông thường | `0` đến `9` | `42` | 42 |
-| Binary (nhị phân, cơ số 2) | `0b` hoặc `0B` | `0`, `1` | `0b101010` | 42 |
-| Octal (bát phân, cơ số 8) | Số `0` ở đầu một literal có nhiều chữ số | `0` đến `7` | `052` | 42 |
-| Hexadecimal (thập lục phân, cơ số 16) | `0x` hoặc `0X` | `0`–`9` và `A`–`F` (không phân biệt hoa/thường) | `0x2A` | 42 |
+| Decimal (base 10) | No special prefix; ordinary numbers | `0` to `9` | `42` | 42 |
+| Binary (base 2) | `0b` or `0B` | `0`, `1` | `0b101010` | 42 |
+| Octal (base 8) | A `0` at the start of a multi-digit literal | `0` to `7` | `052` | 42 |
+| Hexadecimal (base 16) | `0x` or `0X` | `0`–`9` and `A`–`F` (case-insensitive) | `0x2A` | 42 |
 
 ```java
 int decimal = 42;      // 42
@@ -20,35 +20,35 @@ int octal = 052;       // 5 * 8 + 2 = 42
 int hex = 0x2A;        // 2 * 16 + 10 = 42
 ```
 
-Đây là **đoạn minh họa phép gán**, không phải một class độc lập. Sau khi biên dịch, các biến đều có giá trị nguyên 42. Chương trình không giữ lại “cơ số đã gõ” trong giá trị `int`. Vì vậy `System.out.println(0x2A)` sẽ in `42` theo mặc định, không tự in `0x2A`.
+This is an **assignment illustration snippet**, not a standalone class. After compilation, all variables hold the integer value 42. The program does not retain the "typed base" inside the `int` value. Therefore, `System.out.println(0x2A)` prints `42` by default, rather than automatically printing `0x2A`.
 
-Cơ số 2 hữu ích khi nhìn mặt nạ bit, cơ số 16 giúp nhóm bit cho byte và cờ trạng thái; cơ số 10 thuận tiện cho số lượng thông thường. Cơ số 8 ít dùng hơn vì `0` đứng đầu dễ tạo bẫy.
+Base 2 is useful when inspecting bitmasks, base 16 helps group bits for bytes and status flags, and base 10 is convenient for ordinary quantities. Base 8 is used less often because a leading `0` easily creates a pitfall.
 
-## 2. Kiểu `int` mặc định và hậu tố `L` cho `long`
+## 2. Default `int` Type and the `L` Suffix for `long`
 
-Cả bốn cách viết `7`, `0b111`, `07`, `0x7` đều có **kiểu `int`**. Thêm `L` vào cuối tạo literal **kiểu `long`**: `7L`, `0b111L`, `07L`, `0x7L`.
+All four notations `7`, `0b111`, `07`, and `0x7` have **type `int`**. Appending `L` creates a literal of **type `long`**: `7L`, `0b111L`, `07L`, `0x7L`.
 
-| Literal | Kiểu | Giá trị |
+| Literal | Type | Value |
 | --- | --- | --- |
 | `100`, `0b1100100`, `0144`, `0x64` | `int` | 100 |
 | `100L`, `0b1100100L`, `0144L`, `0x64L` | `long` | 100 |
 | `0xFFFF_FFFF` | `int` | -1 |
 | `0xFFFF_FFFFL` | `long` | 4294967295 |
 
-`l` chữ thường cũng hợp lệ, nhưng nên dùng **`L` hoa** để tránh nhầm với `1`.
+Lowercase `l` is also valid, but you should use **uppercase `L`** to avoid confusing it with `1`.
 
-Một literal `int` có thể được *mở rộng* để gán vào `long` khi giá trị của nó hợp lệ:
+An `int` literal can be *widened* when assigned to a `long` as long as its value is valid:
 
 ```java
-long a = 100;              // literal int rồi mở rộng thành long
-long b = 100L;             // literal long ngay từ đầu
-long c = 2_147_483_648L;   // cần hậu tố L vì lớn hơn int tối đa
-// long bad = 2_147_483_648; // lỗi biên dịch: literal decimal int quá lớn
+long a = 100;              // int literal then widened to long
+long b = 100L;             // long literal from the start
+long c = 2_147_483_648L;   // requires L suffix because it exceeds max int
+// long bad = 2_147_483_648; // compile error: decimal int literal too large
 ```
 
-**Kiểu của biến đích không thay đổi quá trình phân tích literal.** `long bad = 3000000000;` không hợp lệ, dù biến `bad` có kiểu `long`. Phải viết `3_000_000_000L`. Hậu tố `L` thuộc chính literal, không tự áp dụng cho một phép cộng hay phép nhân đã thực hiện trước đó.
+**The target variable's type does not change how the literal is parsed.** `long bad = 3000000000;` is invalid, even though variable `bad` has type `long`. You must write `3_000_000_000L`. The `L` suffix belongs to the literal itself and does not retroactively apply to an addition or multiplication already performed earlier.
 
-Một cách chứng minh kiểu literal là dùng method overload:
+One way to demonstrate literal types is by using method overloading:
 
 ```java
 static String category(int value) {
@@ -61,13 +61,13 @@ static String category(long value) {
 // category(42L) -> "long"
 ```
 
-Hai method là **đoạn khai báo bên trong class**, không độc lập. `42` chọn overload `int`; `42L` chọn overload `long`.
+These two methods are **declarations inside a class**, not standalone code. `42` selects the `int` overload; `42L` selects the `long` overload.
 
-## 3. Phạm vi của literal thập phân và dấu âm đơn ngôi
+## 3. Range of Decimal Literals and the Unary Minus Sign
 
-Primitive `int` có phạm vi `-2_147_483_648` đến `2_147_483_647`; primitive `long` có phạm vi `-9_223_372_036_854_775_808L` đến `9_223_372_036_854_775_807L`.
+The `int` primitive has a range from `-2_147_483_648` to `2_147_483_647`; the `long` primitive has a range from `-9_223_372_036_854_775_808L` to `9_223_372_036_854_775_807L`.
 
-Literal **thập phân** không hậu tố thông thường nhận các trị từ `0` đến `2_147_483_647`. Java dành ngoại lệ cho token `2147483648` khi nó là toán hạng của phép âm đơn ngôi `-`, để cho phép viết `-2147483648`, tức `Integer.MIN_VALUE`. Ngoại lệ tương tự cho `9223372036854775808L` trong `-9223372036854775808L`.
+Ordinary unsuffixed **decimal** literals accept values from `0` to `2_147_483_647`. Java makes an exception for the token `2147483648` when it is the operand of the unary minus operator `-`, allowing you to write `-2147483648`, which is `Integer.MIN_VALUE`. A similar exception applies to `9223372036854775808L` in `-9223372036854775808L`.
 
 ```java
 int max = 2_147_483_647;
@@ -75,17 +75,17 @@ int min = -2_147_483_648;
 long maxLong = 9_223_372_036_854_775_807L;
 long minLong = -9_223_372_036_854_775_808L;
 
-// int badInt = 2_147_483_648;  // lỗi nếu không là toán hạng của dấu âm
-// long badLong = 9_223_372_036_854_775_808L; // lỗi nếu không là toán hạng của dấu âm
+// int badInt = 2_147_483_648;  // error if not the operand of a unary minus
+// long badLong = 9_223_372_036_854_775_808L; // error if not the operand of a unary minus
 ```
 
-Về cú pháp, `-42` gồm **toán tử `-`** và **literal `42`**, chứ dấu âm không nằm trong token literal. Đây là lý do trường hợp tối thiểu của kiểu nguyên cần một ngoại lệ ngôn ngữ. Nếu mục tiêu là ghi rõ giới hạn, có thể dùng `Integer.MIN_VALUE`, `Integer.MAX_VALUE`, `Long.MIN_VALUE` và `Long.MAX_VALUE`.
+Syntactically, `-42` consists of **operator `-`** and **literal `42`**; the minus sign is not part of the literal token. This is why the minimum value of an integer type requires a language exception. If the goal is to state the bounds explicitly, you can use `Integer.MIN_VALUE`, `Integer.MAX_VALUE`, `Long.MIN_VALUE`, and `Long.MAX_VALUE`.
 
-## 4. Literal hex/nhị phân được diễn giải như mẫu bit có dấu
+## 4. Hex/Binary Literals Are Interpreted as Signed Bit Patterns
 
-Các literal phi thập phân (nhị phân, bát phân, hex) thể hiện **mẫu bit**. Literal không `L` phải vừa trong độ rộng 32 bit cho `int`; có `L` là độ rộng 64 bit cho `long`. Khi bit dấu bật, diễn giải bù hai (*two's complement*) cho một giá trị âm.
+Non-decimal literals (binary, octal, hex) represent **bit patterns**. A literal without `L` must fit within 32 bits for `int`; with `L`, it has a 64-bit width for `long`. When the sign bit is set, *two's complement* interpretation produces a negative value.
 
-| Literal | Kiểu | Giá trị |
+| Literal | Type | Value |
 | --- | --- | --- |
 | `0x7FFF_FFFF` | `int` | 2147483647 |
 | `0x8000_0000` | `int` | -2147483648 |
@@ -94,22 +94,22 @@ Các literal phi thập phân (nhị phân, bát phân, hex) thể hiện **mẫ
 | `0xFFFF_FFFFL` | `long` | 4294967295 |
 | `0x1_0000_0000L` | `long` | 4294967296 |
 
-Ví dụ:
+Example:
 
 ```java
-int allBitsOne = 0xFFFF_FFFF;   // -1: cả 32 bit bằng 1
+int allBitsOne = 0xFFFF_FFFF;   // -1: all 32 bits are 1
 int signBit = 0x8000_0000;     // -2147483648
-long positive = 0xFFFF_FFFFL;  // 4294967295 (trong 64 bit)
-// int invalid = 0x1_0000_0000; // lỗi: cần 33 bit
+long positive = 0xFFFF_FFFFL;  // 4294967295 (in 64 bits)
+// int invalid = 0x1_0000_0000; // error: requires 33 bits
 ```
 
-**Đừng coi `0xFFFF_FFFF` là một số `int` dương bằng 4294967295.** Nó là mẫu bit 32 bit có dấu nên có giá trị `-1`. Nếu cần dùng giá trị dương tương ứng, thêm `L` vào literal trước khi tính.
+**Do not treat `0xFFFF_FFFF` as a positive `int` equal to 4294967295.** It is a signed 32-bit pattern and therefore has value `-1`. If you need the corresponding positive value, add `L` to the literal before performing calculations.
 
-Một trường hợp khác: `-0x8000_0000` vẫn bằng `-2147483648` khi biểu thức mang kiểu `int`, do phép đổi dấu giá trị nhỏ nhất của `int` tràn và quay lại chính nó. Viết `0x8000_0000L` nếu muốn giá trị dương 2147483648L.
+Another case: `-0x8000_0000` still equals `-2147483648` when the expression has type `int`, because negating the minimum `int` value overflows and wraps back to itself. Write `0x8000_0000L` if you want the positive value 2147483648L.
 
-## 5. Tách chữ số bằng gạch dưới
+## 5. Separating Digits with Underscores
 
-Từ Java 7, có thể đặt `_` **giữa các chữ số** của literal số nguyên để đọc dễ hơn. Gạch dưới không thay đổi giá trị, cơ số hay kiểu.
+Since Java 7, you can place `_` **between digits** of an integer literal for readability. Underscores do not change the value, base, or type.
 
 ```java
 int count = 1_000_000;
@@ -118,83 +118,83 @@ int rgb = 0x00FF_80A0;
 long distance = 9_000_000_000L;
 ```
 
-Các ví dụ dưới đây là **minh họa lỗi biên dịch khi bỏ dấu chú thích**:
+The examples below **illustrate compile errors when uncommented**:
 
 ```java
-// int a = _100;   // '_' không đứng trước chữ số đầu
-// int b = 100_;   // '_' không đứng sau chữ số cuối
-// int c = 0x_FF;  // '_' không đứng sát tiền tố 0x
-// int d = 0b_101; // '_' không đứng sát tiền tố 0b
-// long e = 123_L; // '_' không đứng trước hậu tố L
+// int a = _100;   // '_' cannot precede the first digit
+// int b = 100_;   // '_' cannot follow the last digit
+// int c = 0x_FF;  // '_' cannot be adjacent to the 0x prefix
+// int d = 0b_101; // '_' cannot be adjacent to the 0b prefix
+// long e = 123_L; // '_' cannot precede the L suffix
 ```
 
-Cách nhóm hữu ích: nhóm ba chữ số thập phân (`1_000_000`), nhóm bốn bit (`0b1100_1010`), nhóm hai hoặc bốn chữ số hex (`0xCA_FE`). Ký tự `_` trong tên biến là quy tắc khác; ở đây chỉ nói về ký tự nằm trong token số.
+Useful groupings: groups of three decimal digits (`1_000_000`), groups of four bits (`0b1100_1010`), groups of two or four hex digits (`0xCA_FE`). The `_` character in variable names follows different rules; here we only discuss characters inside numeric tokens.
 
-## 6. Bẫy số 0 đứng đầu: bát phân, không phải số đệm
+## 6. Leading-Zero Pitfall: Octal, Not Zero-Padding
 
-Trong Java, `010` là literal **cơ số 8**, nên bằng `8` thập phân. `077` bằng `63`. Các chữ số `8` và `9` không hợp lệ sau số 0 dẫn vào một literal bát phân.
+In Java, `010` is a **base-8** literal, so it equals `8` in decimal. `077` equals `63`. The digits `8` and `9` are invalid after a leading `0` that starts an octal literal.
 
 ```java
 int a = 010; // 8
 int b = 077; // 63
 int c = 10;  // 10
-// int invalid08 = 08; // lỗi biên dịch
-// int invalid09 = 09; // lỗi biên dịch
+// int invalid08 = 08; // compile error
+// int invalid09 = 09; // compile error
 ```
 
-Phân biệt số viết trong **mã nguồn** với chuỗi được **parse lúc runtime**:
+Distinguish numbers written in **source code** from strings **parsed at runtime**:
 
-| Biểu thức | Kết quả | Vì sao |
+| Expression | Result | Why |
 | --- | --- | --- |
-| `010` | `8` | Literal bát phân |
-| `Integer.parseInt("010")` | `10` | `parseInt` mặc định dùng cơ số 10 |
-| `Integer.parseInt("010", 8)` | `8` | Truyền cơ số 8 tường minh |
-| `Integer.parseInt("2A", 16)` | `42` | Parse hai chữ số hex |
-| `Integer.decode("010")` | `8` | `decode` hiểu tiền tố 0 là bát phân |
-| `Integer.decode("0x2A")` | `42` | `decode` hiểu tiền tố 0x là hex |
+| `010` | `8` | Octal literal |
+| `Integer.parseInt("010")` | `10` | `parseInt` defaults to base 10 |
+| `Integer.parseInt("010", 8)` | `8` | Base 8 passed explicitly |
+| `Integer.parseInt("2A", 16)` | `42` | Parses two hex digits |
+| `Integer.decode("010")` | `8` | `decode` interprets a leading 0 as octal |
+| `Integer.decode("0x2A")` | `42` | `decode` interprets the 0x prefix as hex |
 
-Lưu ý: `Integer.parseInt("0x2A", 16)` không chấp nhận tiền tố `0x`; `Integer.decode("0x2A")` phù hợp hơn nếu chuỗi đã chứa tiền tố cơ số. Không nhầm lẫn các hàm phân tích chuỗi này với ngữ pháp literal của trình biên dịch.
+Note: `Integer.parseInt("0x2A", 16)` does not accept the `0x` prefix; `Integer.decode("0x2A")` is more suitable if the string already contains a base prefix. Do not confuse these string-parsing methods with the compiler's literal syntax.
 
-## 7. Phép toán, tràn số và chuyển kiểu
+## 7. Operations, Overflow, and Type Conversion
 
-Với hai toán hạng `int`, phép cộng số nguyên thường được thực hiện **bằng kiểu `int`**; chuyển kết quả vào biến `long` chỉ diễn ra sau đó:
+With two `int` operands, integer addition is normally performed **in type `int`**; converting the result into a `long` variable only happens afterward:
 
 ```java
-long overflowed = 2_147_483_647 + 1; // int tràn trước -> -2147483648L
+long overflowed = 2_147_483_647 + 1; // int overflows first -> -2147483648L
 long correct = 2_147_483_647L + 1;  // long + int -> 2147483648L
 ```
 
-Tương tự, `long product = 100_000 * 100_000;` thực hiện phép nhân `int` trước khi mở rộng, có thể tràn; nên dùng `100_000L * 100_000` nếu cần tích chính xác kiểu `long`.
+Similarly, `long product = 100_000 * 100_000;` performs `int` multiplication before widening, which can overflow; use `100_000L * 100_000` if you need an accurate `long` product.
 
-“Literal mặc định là `int`” **không ngăn** gán một hằng `int` nằm trong miền giá trị cho `byte`, `short` hay `char`. Java cho phép chuyển hẹp trong ngữ cảnh gán một số **biểu thức hằng tại thời điểm biên dịch**:
+"Literals default to `int`" **does not prevent** assigning an `int` constant within range to `byte`, `short`, or `char`. Java allows narrowing conversion in assignment contexts for certain **compile-time constant expressions**:
 
 ```java
-byte small = 127;      // hợp lệ: giá trị int 127 vừa byte
-short sh = 30_000;     // hợp lệ: vừa short
-char letter = 65;      // hợp lệ: ký tự 'A'
-byte sum = 1 + 2;      // hợp lệ: constant expression bằng 3
-long widened = 100;    // hợp lệ: mở rộng int -> long
+byte small = 127;      // valid: int value 127 fits in byte
+short sh = 30_000;     // valid: fits in short
+char letter = 65;      // valid: character 'A'
+byte sum = 1 + 2;      // valid: constant expression equals 3
+long widened = 100;    // valid: widening int -> long
 
-// byte tooBig = 128;  // lỗi: không vừa byte
-// short tooBigShort = 40_000; // lỗi: không vừa short
+// byte tooBig = 128;  // error: does not fit in byte
+// short tooBigShort = 40_000; // error: does not fit in short
 ```
 
-Biến `int` thông thường khác với biểu thức hằng:
+An ordinary `int` variable differs from a constant expression:
 
 ```java
 int local = 10;
-// byte wrong = local; // lỗi: không tự chuyển hẹp từ biến int
+// byte wrong = local; // error: no automatic narrowing from an int variable
 
-final int fixed = 10; // constant variable, initializer là hằng biểu thức
-byte ok = fixed;       // hợp lệ vì giá trị nằm trong phạm vi byte
-byte narrowed = (byte) 0xFF; // -1: ép kiểu tường minh cắt bớt bit
+final int fixed = 10; // constant variable, initializer is a constant expression
+byte ok = fixed;       // valid because the value is within byte range
+byte narrowed = (byte) 0xFF; // -1: explicit cast truncates bits
 ```
 
-Với `byte`, nếu cần diễn giải bit như số **không dấu** từ 0 đến 255, `Byte.toUnsignedInt(narrowed)` cho `255`. Đây là thao tác đọc giá trị bit, không tạo ra kiểu primitive `unsigned byte` trong Java.
+For `byte`, if you need to interpret the bits as an **unsigned** number from 0 to 255, `Byte.toUnsignedInt(narrowed)` gives `255`. This is an operation that reads the bit value; it does not create an `unsigned byte` primitive type in Java.
 
-## 8. Ví dụ Java 17+ chạy được hoàn chỉnh
+## 8. Complete Runnable Java 17+ Example
 
-Tạo tệp **`IntegerLiteralDemo.java`**:
+Create the file **`IntegerLiteralDemo.java`**:
 
 ```java
 public class IntegerLiteralDemo {
@@ -236,14 +236,14 @@ public class IntegerLiteralDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac IntegerLiteralDemo.java
 java IntegerLiteralDemo
 ```
 
-Đầu ra chính xác:
+Exact output:
 
 ```text
 decimal=42
@@ -263,27 +263,27 @@ correct=2147483648
 narrow=-1
 ```
 
-Nhận xét từ output: các tiền tố cơ số khác nhau không đổi giá trị 42; hậu tố `L` đổi kiểu literal và ảnh hưởng overload; toàn bộ bit 1 của `int` được diễn giải thành -1; phép cộng `int` có thể tràn trước khi gán cho `long`.
+Observations from the output: different base prefixes do not change the value 42; the `L` suffix changes the literal type and affects overloading; all-1 bits in `int` are interpreted as -1; `int` addition can overflow before being assigned to `long`.
 
-## 9. Tình huống sai thường gặp và quy trình đọc literal
+## 9. Common Mistakes and How to Read a Literal
 
-| Viết sai hoặc hiểu sai | Vấn đề | Cách sửa |
+| Mistake or Misconception | Issue | Fix |
 | --- | --- | --- |
-| `long x = 3000000000;` | Literal thập phân không `L` vượt `int` | `long x = 3_000_000_000L;` |
-| `int x = 09;` | 9 không thuộc hệ bát phân | `int x = 9;` |
-| `int mask = 0x1_0000_0000;` | Cần hơn 32 bit để biểu diễn | Dùng `long mask = 0x1_0000_0000L;` |
-| Mong `0xFFFF_FFFF` bằng 4294967295 | Đây là mẫu `int` 32 bit có dấu | Dùng `0xFFFF_FFFFL` nếu cần giá trị dương |
-| `long n = 2_147_483_647 + 1;` cho âm | Tràn trong phép cộng `int` trước khi mở rộng | `long n = 2_147_483_647L + 1;` |
-| `byte b = 128;` | Hằng `int` vượt miền kiểu `byte` | Chọn kiểu phù hợp hoặc kiểm tra lại dữ liệu |
-| `0x_FF` báo lỗi | Gạch dưới đứng sát tiền tố | `0xFF` hoặc `0xF_F` |
-| Nhầm `"010"` với `010` | Chuỗi dùng API parse, literal do compiler phân tích | Chỉ rõ cơ số khi parse chuỗi |
+| `long x = 3000000000;` | Unsuffixed decimal literal exceeds `int` | `long x = 3_000_000_000L;` |
+| `int x = 09;` | 9 is not a valid octal digit | `int x = 9;` |
+| `int mask = 0x1_0000_0000;` | Requires more than 32 bits to represent | Use `long mask = 0x1_0000_0000L;` |
+| Expecting `0xFFFF_FFFF` to equal 4294967295 | It is a signed 32-bit `int` pattern | Use `0xFFFF_FFFFL` if a positive value is needed |
+| `long n = 2_147_483_647 + 1;` gives a negative number | Overflow in `int` addition before widening | `long n = 2_147_483_647L + 1;` |
+| `byte b = 128;` | `int` constant exceeds `byte` range | Choose a suitable type or recheck the data |
+| `0x_FF` causes an error | Underscore placed right after prefix | `0xFF` or `0xF_F` |
+| Confusing `"010"` with `010` | Strings use parsing APIs; literals are parsed by the compiler | Specify the radix explicitly when parsing strings |
 
-Khi gặp một literal, hãy kiểm tra theo thứ tự:
+When encountering a literal, inspect it in this order:
 
-1. **Tiền tố:** `0b` → nhị phân, `0x` → hex, `0` dẫn trước các chữ số → bát phân, dạng còn lại → thập phân.
-2. **Hậu tố:** có `L` → `long`; không → `int`, lưu ý giới hạn và ngoại lệ `-2147483648`.
-3. **Giá trị bit:** literal phi thập phân có bit dấu bật sẽ biểu diễn số âm trong `int`/`long`.
-4. **Ngữ cảnh biểu thức:** phép tính `int` có thể tràn trước khi giá trị được gán vào `long`.
-5. **Kiểu đích:** hằng có thể chuyển hẹp có điều kiện sang `byte`/`short`/`char`, còn biến `int` không đương nhiên làm được.
+1. **Prefix:** `0b` → binary, `0x` → hex, leading `0` before digits → octal, otherwise → decimal.
+2. **Suffix:** has `L` → `long`; no suffix → `int`, keeping in mind the limits and the `-2147483648` exception.
+3. **Bit value:** non-decimal literals with the sign bit set represent negative numbers in `int`/`long`.
+4. **Expression context:** `int` arithmetic can overflow before the value is assigned to `long`.
+5. **Target type:** constants can conditionally narrow to `byte`/`short`/`char`, whereas `int` variables cannot automatically do so.
 
-**Cốt lõi:** `42`, `0b101010`, `052` và `0x2A` đều là literal `int` mang giá trị 42. Cần `L` để tạo literal `long`; tiền tố cơ số quy định cách đọc chữ số, còn bit dấu, quy tắc kiểu và biểu thức quyết định kết quả cuối cùng.
+**Key takeaway:** `42`, `0b101010`, `052`, and `0x2A` are all `int` literals with value 42. You need `L` to create a `long` literal; the base prefix governs how digits are read, while the sign bit, type rules, and expression determine the final result.

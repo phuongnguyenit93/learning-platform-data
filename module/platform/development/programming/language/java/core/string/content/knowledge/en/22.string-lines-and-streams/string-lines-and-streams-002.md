@@ -1,34 +1,34 @@
-# Chuỗi rỗng và ký tự xuống dòng ở cuối khi dùng String.lines() trong Java
+# Empty Strings and Trailing Line Endings with String.lines() in Java
 
 
 
-## 1. Vì sao kết quả số dòng dễ gây nhầm lẫn?
+## 1. Why Are Line Counts Easy to Misunderstand?
 
-Trong Java, `String.lines()` (có từ Java 11) tạo một `Stream<String>` chứa các **dòng văn bản** của chuỗi. Mỗi phần tử là nội dung một dòng **không bao gồm ký tự kết thúc dòng**. Tuy nhiên, **chuỗi rỗng**, **dòng rỗng**, và **chuỗi có ký tự xuống dòng ở cuối** không phải ba trường hợp giống nhau.
+In Java, `String.lines()` (available since Java 11) creates a `Stream<String>` containing the **text lines** of a string. Each element is the content of a line **without the line terminator**. However, an **empty string**, an **empty line**, and a **string with a trailing newline character** are not the same three cases.
 
-Xét ba đầu vào:
+Consider three inputs:
 
 ```text
-""          chuỗi có 0 ký tự
-"Java\n"    chữ Java, rồi một ký tự xuống dòng LF
-"Java\n\n"  chữ Java, rồi hai ký tự LF liên tiếp
+""          string with 0 characters
+"Java\n"    word Java, followed by one LF newline character
+"Java\n\n"  word Java, followed by two consecutive LF characters
 ```
 
-Trong đoạn trên, `\n` là cách biểu diễn ký tự xuống dòng trong Java string literal, không phải hai ký tự dấu gạch chéo ngược và chữ `n`.
+In the snippet above, `\n` is the representation of a newline character in a Java string literal, not the two characters backslash and letter `n`.
 
-Kết quả khác nhau:
+Different results:
 
-- `"".lines()` tạo **0 phần tử**: không có dòng nào.
-- `"Java\n".lines()` tạo **1 phần tử** `"Java"`: dấu kết thúc dòng cuối cùng không tự tạo thêm dòng rỗng.
-- `"Java\n\n".lines()` tạo **2 phần tử**: `"Java"` và `""`; dấu LF thứ hai kết thúc một dòng rỗng sau `Java`.
+- `"".lines()` produces **0 elements**: there are no lines.
+- `"Java\n".lines()` produces **1 element** `"Java"`: the final line terminator does not create an extra empty line on its own.
+- `"Java\n\n".lines()` produces **2 elements**: `"Java"` and `""`; the second LF terminates an empty line after `Java`.
 
-Điều quan trọng nhất của bài: **`String.lines()` không tự thêm một chuỗi rỗng chỉ vì đầu vào kết thúc bằng dấu xuống dòng.** Nhưng khi có **nhiều dấu kết thúc dòng liên tiếp**, chúng vẫn biểu thị những dòng rỗng có thật.
+The most important takeaway of this lesson: **`String.lines()` does not automatically append an empty string just because the input ends with a newline.** However, when there are **multiple consecutive line terminators**, they still represent real empty lines.
 
-## 2. Bảng trường hợp biên
+## 2. Edge-Case Table
 
-Để nhìn rõ, mỗi giá trị dòng bên dưới được đặt trong dấu nháy đôi. Ký hiệu `[]` nghĩa là **không có phần tử**, còn `[""]` nghĩa là **có một phần tử là chuỗi rỗng**.
+To see clearly, each line value below is placed in double quotes. The notation `[]` means **no elements**, while `[""]` means **one element that is the empty string**.
 
-| Chuỗi đầu vào (Java literal) | Các phần tử từ `lines().toList()` | Số dòng |
+| Input string (Java literal) | Elements from `lines().toList()` | Line count |
 | --- | --- | ---: |
 | `""` | `[]` | 0 |
 | `"Java"` | `["Java"]` | 1 |
@@ -41,16 +41,16 @@ Kết quả khác nhau:
 | `"one\r\ntwo\r\n"` | `["one", "two"]` | 2 |
 | `"first\nsecond"` | `["first", "second"]` | 2 |
 
-Giải thích hai trường hợp đặc biệt:
+Explanation of two special cases:
 
-- `"\n"` là một **dòng rỗng có dấu kết thúc**: stream chứa một phần tử `""`. Còn `""` không chứa dòng nào, nên stream rỗng.
-- `"Java\n\n"` gồm dòng `Java` kết thúc bởi dấu LF thứ nhất, sau đó một **dòng rỗng** kết thúc bởi dấu LF thứ hai. Dấu LF thứ hai cũng là ký tự kết thúc cuối cùng nên không phát sinh dòng rỗng thứ ba.
+- `"\n"` is an **empty line with a terminator**: the stream contains one element `""`. Meanwhile, `""` contains no lines, so the stream is empty.
+- `"Java\n\n"` consists of the line `Java` terminated by the first LF, followed by an **empty line** terminated by the second LF. The second LF is also the final terminator, so no third empty line is produced.
 
-**Số ký tự xuống dòng không luôn bằng số dòng.** Với `"Java\n"` có một LF và một dòng; với `"Java"` không có LF nhưng vẫn có một dòng. Với chuỗi rỗng thì có 0 dòng.
+**The number of newline characters does not always equal the number of lines.** With `"Java\n"` there is one LF and one line; with `"Java"` there is no LF yet still one line. With an empty string there are 0 lines.
 
-## 3. Chương trình Java 17+ hoàn chỉnh
+## 3. Complete Java 17+ Program
 
-Lưu đoạn mã sau thành tệp `StringLinesEdgeCases.java`:
+Save the following code as `StringLinesEdgeCases.java`:
 
 ```java
 import java.util.Arrays;
@@ -95,14 +95,14 @@ public class StringLinesEdgeCases {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac StringLinesEdgeCases.java
 java StringLinesEdgeCases
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 empty => count=0, lines=[]
@@ -121,23 +121,23 @@ empty split count: 1
 reconstructed equals original: false
 ```
 
-Hàm `show` bọc nội dung mỗi dòng trong dấu nháy đôi để ta phân biệt được `[]` với `[""]`. Đây chỉ là cách hiển thị dễ quan sát khi học; bản thân `String.lines()` trả về dòng gốc, không tự thêm dấu nháy.
+The `show` method wraps each line's content in double quotes so we can distinguish `[]` from `[""]`. This is just a visual aid for learning; `String.lines()` itself returns the raw lines without adding quotes.
 
-`toList()` là phương thức `Stream.toList()` có trong Java 16+, vì vậy chương trình dùng Java 17 chạy được. Trước Java 16, có thể thu thập thành danh sách bằng `collect(Collectors.toList())`. Phần quan trọng của bài, `String.lines()`, đã có từ Java 11.
+`toList()` is the `Stream.toList()` method available in Java 16+, so the program runs on Java 17. Prior to Java 16, you can collect into a list with `collect(Collectors.toList())`. The core API of this lesson, `String.lines()`, has been available since Java 11.
 
-### Từ dòng sang trường tách
+### From Lines to Split Fields
 
-Ở đây chỉ cần biết `lines()` không tạo thêm dòng sau newline cuối, trong khi `split("\\R", -1)` có thể giữ trường rỗng phía sau dấu phân cách. `split("\\R")` mặc định bỏ các trường rỗng cuối; với chính chuỗi `""`, `split` vẫn trả một phần tử rỗng, còn `lines()` trả stream rỗng. Cách `limit` dương và tập ngắt dòng Unicode thuộc bài **Khác biệt giữa lines và split với limit**.
+Here you only need to know that `lines()` does not create an extra line after a trailing newline, whereas `split("\\R", -1)` can retain an empty field after the delimiter. `split("\\R")` discards trailing empty fields by default; for the empty string `""` itself, `split` still returns one empty element, whereas `lines()` returns an empty stream. Positive `limit` behavior and the Unicode linebreak set belong to the lesson **Differences Between lines and split with limit**.
 
-## 4. Phân biệt chuỗi rỗng, dòng rỗng và dòng chỉ có khoảng trắng
+## 4. Distinguishing Empty Strings, Empty Lines, and Whitespace-Only Lines
 
-Ba khái niệm thường được kiểm tra bằng những API khác nhau:
+These three concepts are commonly checked with different APIs:
 
-- **Chuỗi đầu vào rỗng:** `input.isEmpty()` trả về `true` khi độ dài chuỗi bằng 0.
-- **Dòng rỗng:** với từng `line` từ `input.lines()`, `line.isEmpty()` trả về `true` nếu dòng có 0 ký tự.
-- **Dòng trắng:** `line.isBlank()` trả về `true` nếu dòng chỉ gồm khoảng trắng theo định nghĩa của Java, hoặc rỗng.
+- **Empty input string:** `input.isEmpty()` returns `true` when the string length is 0.
+- **Empty line:** for each `line` from `input.lines()`, `line.isEmpty()` returns `true` if the line has 0 characters.
+- **Blank line:** `line.isBlank()` returns `true` if the line consists only of whitespace according to Java's definition, or is empty.
 
-Ví dụ:
+Example:
 
 ```java
 String text = "first\n \n\nlast\n";
@@ -155,15 +155,15 @@ System.out.println(emptyLines); // 1
 System.out.println(blankLines); // 2
 ```
 
-Giải thích: các dòng lần lượt là `"first"`, `" "` (một dấu cách), `""` và `"last"`. Dòng `" "` là **blank** nhưng không **empty**. Dấu `\n` cuối cùng không tạo ra dòng rỗng thứ năm.
+Explanation: the lines are `"first"`, `" "` (a single space), `""`, and `"last"`. The line `" "` is **blank** but not **empty**. The final `\n` does not create a fifth empty line.
 
-**Lưu ý:** mỗi lần gọi `text.lines()` ở ví dụ tạo một stream mới. Một `Stream` đã dùng terminal operation như `count()` sẽ bị tiêu thụ; không gọi tiếp `count()` trên cùng đối tượng stream.
+**Note:** each call to `text.lines()` in the example creates a new stream. A `Stream` that has already run a terminal operation such as `count()` is consumed; do not call `count()` again on the same stream object.
 
-## 5. Muốn giữ chính xác ký tự xuống dòng cuối phải làm gì?
+## 5. What If You Need to Preserve the Exact Trailing Newline?
 
-`String.lines()` trả lại **nội dung dòng** và loại bỏ dấu kết thúc của từng dòng. Sau khi tách, ta không còn biết từ danh sách dòng rằng đầu vào ban đầu dùng `\n`, `\r`, hay `\r\n`, cũng không luôn biết có ký tự xuống dòng ở cuối hay không.
+`String.lines()` returns the **line contents** and strips each line's terminator. After splitting, you can no longer tell from the list of lines whether the original input used `\n`, `\r`, or `\r\n`, nor can you always tell whether there was a trailing newline at the end.
 
-Ví dụ:
+Example:
 
 ```java
 String original = "one\r\ntwo\r\n";
@@ -173,16 +173,16 @@ String reconstructed = String.join("\n",
 System.out.println(reconstructed.equals(original)); // false
 ```
 
-`reconstructed` là `"one\ntwo"`; nó không còn CRLF và không còn terminator sau `two`. Vì vậy, **không dùng `String.join("\n", text.lines().toList())` để khẳng định khôi phục nguyên trạng văn bản**.
+`reconstructed` is `"one\ntwo"`; it no longer has CRLF and no longer has a terminator after `two`. Therefore, **do not use `String.join("\n", text.lines().toList())` assuming it restores the exact original text**.
 
-Nếu chỉ muốn biết chuỗi gốc có kết thúc bằng một trong ba loại terminator được `String.lines()` nhận biết, kiểm tra trực tiếp chuỗi gốc **trước khi duyệt dòng**:
+If you only want to know whether the original string ends with one of the three terminator types recognized by `String.lines()`, check the original string directly **before iterating over lines**:
 
 ```java
 boolean endsWithLineTerminator =
         text.endsWith("\n") || text.endsWith("\r");
 ```
 
-Biểu thức đó cũng trả về `true` cho CRLF, vì `"\r\n"` kết thúc bằng `"\n"`. Nếu muốn phân biệt chính xác ba kiểu để ghi lại:
+That expression also returns `true` for CRLF, because `"\r\n"` ends with `"\n"`. If you want to distinguish all three types accurately to record them:
 
 ```java
 String terminal;
@@ -197,23 +197,23 @@ if (text.endsWith("\r\n")) {
 }
 ```
 
-Đây chỉ là phép kiểm tra **terminator cuối**, không lưu được toàn bộ dấu kết thúc khác nhau bên trong chuỗi. Nếu yêu cầu giữ nguyên byte, giữ nguyên định dạng xuống dòng hỗn hợp hoặc tái tạo văn bản không sai một ký tự, hãy giữ nguyên nguồn ban đầu hoặc dùng bộ phân tích có bảo toàn delimiter; không chỉ dựa vào `lines()`.
+This only checks the **trailing terminator**; it does not store all the different terminators inside the string. If you must preserve exact bytes, preserve mixed line-ending formats, or reconstruct text without losing a single character, keep the original source or use a delimiter-preserving parser; do not rely solely on `lines()`.
 
-### 9.1. Trường hợp nhập liệu hoặc xử lý bản ghi
+### 9.1. Input Parsing or Record-Processing Cases
 
-Với tài liệu văn bản thông thường, newline cuối thường chỉ khép lại dòng cuối. Với một giao thức hay định dạng mà **phần sau delimiter cuối** được coi là một bản ghi/trường rỗng, nghiệp vụ có thể cần giữ phần tử rỗng này; khi đó cách chia dùng `split("\\R", -1)` (sau khi xác nhận phạm vi terminator phù hợp) sẽ gần với mô hình “các trường được ngăn bằng delimiter” hơn.
+For ordinary text documents, a trailing newline usually just closes the last line. For a protocol or format where **the part after the final delimiter** is considered an empty record/field, the business logic may need to keep this empty element; in that case, splitting with `split("\\R", -1)` (after confirming the terminator set is appropriate) fits the “delimiter-separated fields” model better.
 
-Ví dụ, đầu vào `"A\nB\n"` có:
-- Hai dòng theo `String.lines()`: `A` và `B`.
-- Ba phần tử theo `split("\\R", -1)`: `A`, `B` và `""`.
+For example, the input `"A\nB\n"` has:
+- Two lines according to `String.lines()`: `A` and `B`.
+- Three elements according to `split("\\R", -1)`: `A`, `B`, and `""`.
 
-Hai kết quả đều có lý do riêng. Hãy quyết định trước dấu kết thúc cuối đại diện cho **kết thúc dòng** hay **dấu phân cách tạo trường rỗng** trong định dạng dữ liệu cụ thể.
+Both results have their own rationale. Decide in advance whether the final terminator represents a **line ending** or a **delimiter creating an empty field** in your specific data format.
 
-## 6. Bài tập tự kiểm tra
+## 6. Self-Check Exercises
 
-Trước khi chạy mã, đoán kết quả các biểu thức:
+Before running the code, predict the results of the expressions:
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 | --- | ---: |
 | `"".lines().count()` | `0` |
 | `"\r".lines().count()` | `1` |
@@ -224,13 +224,13 @@ Trước khi chạy mã, đoán kết quả các biểu thức:
 | `" x \n".lines().findFirst().orElse("?")` | `" x "` |
 | `"x\n".split("\\R", -1).length` | `2` |
 
-Thực hành thêm: viết một hàm nhận chuỗi đầu vào, báo số dòng tất cả, số dòng rỗng, số dòng chỉ có khoảng trắng và một boolean cho biết đầu vào có kết thúc bằng LF hoặc CR hay không. Hãy thử cả `""`, `"\n"`, `"a\n"`, `"a\n\n"`, `"a\r\nb\r\n"`.
+Extra practice: write a method that takes an input string and reports the total number of lines, the number of empty lines, the number of whitespace-only lines, and a boolean indicating whether the input ends with LF or CR. Test it with `""`, `"\n"`, `"a\n"`, `"a\n\n"`, and `"a\r\nb\r\n"`.
 
-## 7. Ghi nhớ
+## 7. Key Takeaways
 
-- **`String.lines()` với chuỗi rỗng cho 0 dòng**, còn chuỗi gồm duy nhất một LF cho 1 dòng rỗng.
-- Một **terminator duy nhất ở cuối** không sinh thêm phần tử rỗng; **hai terminator liên tiếp** vẫn giữ dòng rỗng nằm giữa chúng.
-- `String.lines()` nhận `\n`, `\r`, `\r\n`; regex `\R` nhận tập linebreak rộng hơn.
-- **`split("\\R", -1)` giữ phần tử rỗng cuối**, khác với cách chia dòng của `String.lines()`; với chuỗi rỗng, `split` cho một phần tử rỗng.
-- `isEmpty()` và `isBlank()` phục vụ hai cách hiểu khác nhau về dòng rỗng và dòng trắng.
-- `String.lines()` loại các dấu kết thúc dòng; nếu cần biết hoặc bảo toàn newline cuối và kiểu CR/LF/CRLF, phải giữ thông tin từ đầu vào gốc.
+- **`String.lines()` on an empty string yields 0 lines**, whereas a string consisting solely of one LF yields 1 empty line.
+- A **single trailing terminator** does not produce an extra empty element; **two consecutive terminators** preserve the empty line between them.
+- `String.lines()` recognizes `\n`, `\r`, and `\r\n`; the regex `\R` recognizes a broader set of linebreaks.
+- **`split("\\R", -1)` keeps the trailing empty element**, unlike `String.lines()`'s line-splitting behavior; on an empty string, `split` produces one empty element.
+- `isEmpty()` and `isBlank()` serve two different definitions of empty lines and blank lines.
+- `String.lines()` strips line terminators; if you need to know or preserve the trailing newline and CR/LF/CRLF style, you must retain that information from the original input.

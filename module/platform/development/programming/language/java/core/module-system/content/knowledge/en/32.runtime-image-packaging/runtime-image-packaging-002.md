@@ -1,40 +1,40 @@
-# Chọn module bằng --add-modules
+# Selecting Modules with --add-modules
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể giải thích vai trò của tùy chọn --add-modules trong JPMS, phân biệt module path với tập module được phân giải, sử dụng các giá trị ALL-DEFAULT, ALL-SYSTEM và ALL-MODULE-PATH, đồng thời áp dụng tùy chọn này khi biên dịch, chạy ứng dụng và tạo runtime image bằng jlink.
+After this lesson, you will be able to explain the role of the --add-modules option in JPMS, distinguish between the module path and the set of resolved modules, use the special values ALL-DEFAULT, ALL-SYSTEM, and ALL-MODULE-PATH, and apply this option when compiling, running applications, and creating runtime images with jlink.
 
-## 1. --add-modules dùng để làm gì?
+## 1. What Is --add-modules Used For?
 
-Trong Java Platform Module System (JPMS), Java không tự động đưa mọi module có thể tìm thấy vào runtime. Hệ thống bắt đầu từ một tập module gốc (root modules), sau đó phân giải các dependency được khai báo bằng requires để tạo module graph.
+In the Java Platform Module System (JPMS), Java does not automatically bring every discoverable module into the runtime. The system starts from a set of root modules, then resolves dependencies declared via requires to build the module graph.
 
-Tùy chọn --add-modules cho phép bổ sung một hoặc nhiều module vào tập root modules ban đầu. Khi một module được thêm làm root, module đó được đưa vào quá trình phân giải cùng các dependency mà nó yêu cầu.
+The --add-modules option allows adding one or more modules to the initial set of root modules. When a module is added as a root, it is included in the resolution process along with the dependencies it requires.
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~bash
 --add-modules module-name[,module-name...]
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-modules java.sql -cp app.jar com.acme.Main
 ~~~
 
-Lệnh trên yêu cầu launcher đưa module java.sql vào tập root modules khi khởi động ứng dụng. Nếu module này yêu cầu các module khác, các dependency đó cũng được phân giải theo module graph.
+The command above instructs the launcher to add the java.sql module to the set of root modules when starting the application. If this module requires other modules, those dependencies are also resolved according to the module graph.
 
-Điều cần nhớ là --add-modules chọn module cần được phân giải. Nó không tự động thêm package vào exports, không tạo quan hệ đọc giữa hai named module và cũng không tải hoặc khởi tạo mọi class trong module ngay lập tức.
+The key point to remember is that --add-modules selects modules to be resolved. It does not automatically add packages to exports, does not establish a read relationship between two named modules, and does not load or initialize every class in the module immediately.
 
-## 2. Module path và root modules khác nhau thế nào?
+## 2. How Do Module Path and Root Modules Differ?
 
-Hai khái niệm này thường bị nhầm:
+These two concepts are often confused:
 
-- Module path là nơi công cụ tìm các module có thể quan sát được. Nó có thể chứa modular JAR, exploded module và automatic module.
-- Root modules là các module được chọn làm điểm bắt đầu để phân giải module graph.
-- Dependency graph được hình thành từ các root và những module mà chúng yêu cầu.
+- The module path is where the tool looks for observable modules. It can contain modular JARs, exploded modules, and automatic modules.
+- Root modules are the modules chosen as starting points for resolving the module graph.
+- The dependency graph is formed from the roots and the modules they require.
 
-Ví dụ, thư mục mods có ba JAR:
+For example, the mods directory has three JARs:
 
 ~~~text
 mods/
@@ -43,7 +43,7 @@ mods/
   com.acme.metrics.jar
 ~~~
 
-Module ứng dụng khai báo:
+The application module declares:
 
 ~~~java
 module com.acme.app {
@@ -51,16 +51,16 @@ module com.acme.app {
 }
 ~~~
 
-Khi chạy:
+When running:
 
 ~~~bash
 java --module-path mods \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Launcher phân giải com.acme.app và dependency com.acme.logging. Module com.acme.metrics có mặt trên module path nhưng không tự động được phân giải chỉ vì JAR của nó tồn tại ở đó.
+The launcher resolves com.acme.app and its dependency com.acme.logging. The com.acme.metrics module is present on the module path, but it is not automatically resolved just because its JAR exists there.
 
-Nếu muốn thêm metrics như một root module độc lập, có thể chạy:
+If you want to add metrics as an independent root module, you can run:
 
 ~~~bash
 java --module-path mods \
@@ -68,11 +68,11 @@ java --module-path mods \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Lúc này com.acme.metrics được thêm vào module graph cùng ứng dụng và các dependency của nó. Tuy nhiên, nếu mã trong com.acme.app cần truy cập trực tiếp kiểu public của com.acme.metrics, ứng dụng vẫn phải có quan hệ đọc phù hợp, thường được khai báo bằng requires trong module-info.java.
+At this point, com.acme.metrics is added to the module graph alongside the application and its dependencies. However, if code in com.acme.app needs to directly access public types of com.acme.metrics, the application must still have an appropriate read relationship, usually declared via requires in module-info.java.
 
-## 3. --add-modules không thay thế requires
+## 3. --add-modules Does Not Replace requires
 
-Giả sử module ứng dụng muốn gọi trực tiếp API của module thư viện:
+Suppose the application module wants to call the library module's API directly:
 
 ~~~java
 package com.acme.app;
@@ -87,7 +87,7 @@ public class Main {
 }
 ~~~
 
-Module descriptor cần khai báo dependency:
+The module descriptor needs to declare the dependency:
 
 ~~~java
 module com.acme.app {
@@ -95,9 +95,9 @@ module com.acme.app {
 }
 ~~~
 
-Khai báo requires vừa tạo dependency trong module graph, vừa thiết lập quan hệ readability giữa module ứng dụng và module metrics.
+The requires declaration both creates a dependency in the module graph and establishes a readability relationship between the application module and the metrics module.
 
-Nếu chỉ chạy với:
+If you only run with:
 
 ~~~bash
 java --module-path mods \
@@ -105,32 +105,32 @@ java --module-path mods \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-thì com.acme.metrics được phân giải, nhưng điều đó không tự tạo readability edge từ com.acme.app tới com.acme.metrics. Nếu source cần tham chiếu kiểu của metrics, hãy khai báo requires.
+then com.acme.metrics is resolved, but that does not automatically create a readability edge from com.acme.app to com.acme.metrics. If the source needs to reference types from metrics, declare requires.
 
-Có thể tóm tắt:
+This can be summarized as:
 
-| Cơ chế | Tác dụng |
+| Mechanism | Effect |
 |---|---|
-| --module-path | Tìm vị trí các module |
-| --add-modules | Bổ sung module vào tập root để phân giải |
-| requires | Khai báo dependency và quan hệ đọc giữa named modules |
-| --add-reads | Thêm quan hệ đọc ở thời điểm chạy hoặc biên dịch theo cấu hình công cụ |
-| exports | Cho phép module khác truy cập các kiểu public trong package |
-| --add-exports | Mở quyền truy cập một package cho module đích qua tùy chọn công cụ |
+| --module-path | Locates modules |
+| --add-modules | Adds modules to the root set for resolution |
+| requires | Declares a dependency and readability between named modules |
+| --add-reads | Adds a read relationship at runtime or compile time via tool option |
+| exports | Allows other modules to access public types in a package |
+| --add-exports | Opens access to a package for a target module via tool option |
 
-Vì vậy, khi lỗi là module không được phân giải, hãy kiểm tra module path và root modules. Khi lỗi là module không đọc được package hoặc kiểu, hãy kiểm tra requires, exports hoặc tùy chọn truy cập tương ứng.
+Therefore, when the error is that a module is not resolved, check the module path and root modules. When the error is that a module cannot read a package or type, check requires, exports, or the corresponding access options.
 
-## 4. Các giá trị đặc biệt của --add-modules
+## 4. Special Values of --add-modules
 
-Ngoài tên module cụ thể, tùy chọn này hỗ trợ một số giá trị đặc biệt:
+Besides specific module names, this option supports several special values:
 
-| Giá trị | Ý nghĩa |
+| Value | Meaning |
 |---|---|
-| ALL-DEFAULT | Bổ sung toàn bộ các default root modules |
-| ALL-SYSTEM | Bổ sung tất cả system modules có thể quan sát được |
-| ALL-MODULE-PATH | Bổ sung tất cả module có thể quan sát được trên module path |
+| ALL-DEFAULT | Adds all default root modules |
+| ALL-SYSTEM | Adds all observable system modules |
+| ALL-MODULE-PATH | Adds all observable modules on the module path |
 
-Ví dụ:
+Examples:
 
 ~~~bash
 java --add-modules ALL-DEFAULT -cp app.jar com.acme.Main
@@ -146,18 +146,18 @@ java --module-path mods \
 java --add-modules ALL-SYSTEM -cp app.jar com.acme.Main
 ~~~
 
-Một số lưu ý:
+A few notes:
 
-- ALL-DEFAULT dùng tập root mặc định của công cụ trong cấu hình hiện tại.
-- ALL-SYSTEM có thể làm module graph chứa nhiều module nền tảng hơn mức ứng dụng cần.
-- ALL-MODULE-PATH có thể kéo tất cả module quan sát được từ module path vào graph, kể cả các module không cần thiết cho chức năng chính.
-- Các giá trị đặc biệt được viết đúng chữ hoa và dùng như một phần tử trong danh sách module phân tách bằng dấu phẩy.
+- ALL-DEFAULT uses the tool's default root set in the current configuration.
+- ALL-SYSTEM can cause the module graph to contain more platform modules than the application needs.
+- ALL-MODULE-PATH can pull all observable modules from the module path into the graph, including modules unnecessary for the main functionality.
+- The special values are written in uppercase and used as an element in the comma-separated module list.
 
-Không nên chọn ALL-MODULE-PATH chỉ vì muốn chắc chắn module cần thiết được tìm thấy. Trong build và runtime có kiểm soát, khai báo rõ tên module cần thêm thường giúp đồ thị module dễ hiểu và gọn hơn.
+You should not choose ALL-MODULE-PATH just because you want to make sure a needed module is found. In controlled builds and runtimes, explicitly specifying the names of the modules to add usually keeps the module graph easier to understand and leaner.
 
-## 5. Dùng --add-modules với java launcher
+## 5. Using --add-modules with the java Launcher
 
-Khi chạy ứng dụng trên classpath, --add-modules có thể bổ sung một system module mà ứng dụng cần sử dụng. Ví dụ, một chương trình dùng Vector API của JDK:
+When running an application on the classpath, --add-modules can add a system module that the application needs to use. For example, a program using the JDK's Vector API:
 
 ~~~java
 import jdk.incubator.vector.IntVector;
@@ -175,27 +175,27 @@ public class VectorDemo {
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac --add-modules jdk.incubator.vector VectorDemo.java
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 java --add-modules jdk.incubator.vector VectorDemo
 ~~~
 
-Module jdk.incubator.vector là incubator module nên cần được thêm rõ ràng trong các lệnh sử dụng API này. Tùy chọn phải được áp dụng ở cả bước biên dịch và bước chạy để module có mặt trong module graph của từng tiến trình.
+The jdk.incubator.vector module is an incubator module, so it must be explicitly added in commands that use this API. The option must be applied at both the compile step and the run step so the module is present in each process's module graph.
 
-Ví dụ trên dùng unnamed module vì source được biên dịch và chạy theo classpath mặc định. Với ứng dụng modular, cần thêm quan hệ requires phù hợp trong module descriptor nếu mã nguồn tham chiếu trực tiếp API của module đó.
+The example above uses the unnamed module because the source is compiled and run on the default classpath. For modular applications, an appropriate requires declaration must be added in the module descriptor if the source code directly references that module's API.
 
-## 6. Dùng --add-modules khi biên dịch bằng javac
+## 6. Using --add-modules When Compiling with javac
 
-Javac cũng hỗ trợ --add-modules để bổ sung module vào tập root khi phân giải các module phục vụ biên dịch.
+Javac also supports --add-modules to add modules to the root set when resolving modules for compilation.
 
-Ví dụ:
+Example:
 
 ~~~bash
 javac \
@@ -203,12 +203,12 @@ javac \
     --add-modules com.acme.annotation.api \
     -d out \
     src/com/acme.tool/com.acme.tool/module-info.java \
-    src/com.acme.tool/com.acme.tool/Main.java
+    src/com/acme.tool/com.acme.tool/Main.java
 ~~~
 
-Trong ví dụ, module com.acme.annotation.api nằm trên module path và được thêm vào tập root. Module nguồn đang biên dịch vẫn cần khai báo requires nếu nó trực tiếp đọc API của module đó.
+In the example, the com.acme.annotation.api module resides on the module path and is added to the root set. The source module being compiled still needs to declare requires if it directly reads that module's API.
 
-Với source theo module, có thể dùng module source path:
+For sources organized by module, you can use the module source path:
 
 ~~~bash
 javac \
@@ -219,20 +219,20 @@ javac \
     -m com.acme.tool
 ~~~
 
-Các điểm cần phân biệt:
+Points to distinguish:
 
-- --module-source-path chỉ vị trí mã nguồn của các module đang biên dịch.
-- --module-path chỉ vị trí các module dependency đã được biên dịch hoặc đóng gói.
-- --add-modules bổ sung root modules cho quá trình phân giải.
-- -m hoặc --module chọn module nguồn cần biên dịch.
+- --module-source-path points to the location of the source code of the modules being compiled.
+- --module-path points to the location of compiled or packaged dependency modules.
+- --add-modules adds root modules for the resolution process.
+- -m or --module selects the source module to compile.
 
-Nếu module dependency đã được kéo vào graph qua requires của module nguồn, việc thêm nó một lần nữa bằng --add-modules thường không cần thiết. Tùy chọn này hữu ích khi cần đưa thêm module độc lập vào graph hoặc khi công cụ cần quan sát module đó trong quá trình biên dịch.
+If a dependency module is already pulled into the graph through a requires declaration of the source module, adding it again with --add-modules is usually unnecessary. This option is useful when you need to bring an independent module into the graph or when the tool needs to observe that module during compilation.
 
-## 7. Dùng --add-modules với jlink
+## 7. Using --add-modules with jlink
 
-jlink tạo runtime image tùy chỉnh từ một tập module gốc và các dependency của chúng. Tùy chọn --add-modules của jlink xác định các root modules cần đưa vào image.
+jlink creates a custom runtime image from a set of root modules and their dependencies. jlink's --add-modules option specifies the root modules to include in the image.
 
-Ví dụ, ứng dụng có module com.acme.app và phụ thuộc vào java.sql:
+For example, an application has the module com.acme.app and depends on java.sql:
 
 ~~~bash
 jlink \
@@ -241,9 +241,9 @@ jlink \
     --output runtime-image
 ~~~
 
-jlink phân giải module com.acme.app và các dependency cần thiết, sau đó tạo runtime image tại runtime-image.
+jlink resolves the com.acme.app module and its required dependencies, then creates the runtime image at runtime-image.
 
-Có thể thêm nhiều root module:
+You can add multiple root modules:
 
 ~~~bash
 jlink \
@@ -252,7 +252,7 @@ jlink \
     --output runtime-image
 ~~~
 
-Hoặc thêm mọi module quan sát được trên module path:
+Or add all observable modules on the module path:
 
 ~~~bash
 jlink \
@@ -261,25 +261,25 @@ jlink \
     --output runtime-image
 ~~~
 
-Lựa chọn ALL-MODULE-PATH có thể tạo image lớn hơn đáng kể, vì nhiều module không liên quan cũng được đưa vào graph. Khi tạo runtime image cho sản phẩm, nên bắt đầu từ module ứng dụng và các root module thực sự cần thiết.
+Choosing ALL-MODULE-PATH can produce a significantly larger image, because many unrelated modules are also pulled into the graph. When creating a runtime image for production, start from the application module and the root modules that are truly needed.
 
-Sau khi tạo image, có thể chạy ứng dụng bằng launcher trong image:
+After creating the image, you can run the application using the launcher inside the image:
 
 ~~~bash
 runtime-image/bin/java \
     --module com.acme.app/com.acme.app.Main
 ~~~
 
-Trên Windows, launcher nằm ở runtime-image\\bin\\java.exe.
+On Windows, the launcher is located at runtime-image\\bin\\java.exe.
 
-## 8. Phân biệt --add-modules với --bind-services
+## 8. Distinguishing --add-modules from --bind-services
 
-Khi đóng gói ứng dụng modular, đặc biệt ứng dụng sử dụng ServiceLoader, cần phân biệt việc thêm module gốc với việc liên kết service provider.
+When packaging modular applications, especially applications using ServiceLoader, you need to distinguish adding root modules from binding service providers.
 
-- --add-modules chỉ định các root module cần phân giải.
-- --bind-services yêu cầu jlink liên kết các service provider cho các service được sử dụng trong module graph, đưa provider module phù hợp vào runtime image.
+- --add-modules specifies the root modules to resolve.
+- --bind-services tells jlink to bind service providers for services used in the module graph, bringing matching provider modules into the runtime image.
 
-Ví dụ:
+Example:
 
 ~~~bash
 jlink \
@@ -289,17 +289,17 @@ jlink \
     --output runtime-image
 ~~~
 
-Giả sử com.acme.app khai báo uses com.acme.spi.Formatter và một module khác khai báo provides com.acme.spi.Formatter with com.acme.impl.HtmlFormatter. Với --bind-services, jlink có thể tìm và liên kết provider phù hợp trong tập module quan sát được.
+Suppose com.acme.app declares uses com.acme.spi.Formatter and another module declares provides com.acme.spi.Formatter with com.acme.impl.HtmlFormatter. With --bind-services, jlink can find and link matching providers in the set of observable modules.
 
-Nếu biết chính xác provider module và muốn đưa nó vào image như một root độc lập, có thể nêu tên provider trong --add-modules. --bind-services hữu ích khi muốn jlink tự xử lý quan hệ service dựa trên uses/provides.
+If you know the exact provider module and want to include it in the image as an independent root, you can name the provider in --add-modules. --bind-services is useful when you want jlink to handle service relationships automatically based on uses/provides.
 
-Điều kiện quan trọng vẫn là các module provider phải có thể quan sát được trên module path, có descriptor hợp lệ và khai báo provides đúng service type.
+The important condition remains that provider modules must be observable on the module path, have a valid descriptor, and declare provides with the correct service type.
 
-## 9. Kết hợp với --limit-modules
+## 9. Combining with --limit-modules
 
---limit-modules giới hạn tập module mà công cụ có thể quan sát khi phân giải module graph. Nó thường được dùng để mô phỏng một môi trường runtime nhỏ hơn hoặc giới hạn các module được phép tham gia phân giải.
+--limit-modules restricts the set of modules that the tool can observe when resolving the module graph. It is often used to simulate a smaller runtime environment or restrict which modules are allowed to participate in resolution.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java \
@@ -309,44 +309,44 @@ java \
     --module com.acme.app/com.acme.app.Main
 ~~~
 
-Trong trường hợp này, tập module quan sát được bị giới hạn theo danh sách được nêu. Nếu dependency cần thiết không nằm trong tập có thể quan sát, quá trình phân giải sẽ thất bại.
+In this case, the set of observable modules is restricted according to the specified list. If a required dependency is not in the observable set, resolution will fail.
 
-Hai tùy chọn có vai trò khác nhau:
+The two options have different roles:
 
-| Tùy chọn | Vai trò |
+| Option | Role |
 |---|---|
-| --limit-modules | Giới hạn module nào có thể được quan sát và tham gia phân giải |
-| --add-modules | Chọn module gốc từ tập module có thể quan sát |
+| --limit-modules | Restricts which modules can be observed and participate in resolution |
+| --add-modules | Selects root modules from the set of observable modules |
 
-Nếu một module được thêm bằng --add-modules nhưng không thể quan sát được do giới hạn module, công cụ không thể phân giải nó. Vì vậy cần kiểm tra cả hai tùy chọn khi xử lý lỗi module not found.
+If a module is added with --add-modules but cannot be observed due to module limits, the tool cannot resolve it. Therefore, check both options when troubleshooting module not found errors.
 
-## 10. Khi nào nên dùng tên module cụ thể và khi nào dùng ALL-*
+## 10. When to Use Specific Module Names and When to Use ALL-*
 
-Ưu tiên tên module cụ thể khi:
+Prefer specific module names when:
 
-- Ứng dụng cần một module JDK tùy chọn hoặc incubator module.
-- Cần thêm một module độc lập vào graph mà không muốn đưa toàn bộ module path vào.
-- Đang tạo runtime image có kích thước cần kiểm soát.
-- Muốn lệnh build dễ đọc và có thể tái lập giữa các môi trường.
+- The application needs an optional JDK module or incubator module.
+- You need to add an independent module to the graph without pulling in the entire module path.
+- You are creating a runtime image whose size needs to be controlled.
+- You want the build command to be readable and reproducible across environments.
 
-Dùng ALL-DEFAULT khi cần bổ sung tập root mặc định theo chính sách của công cụ. Dùng ALL-SYSTEM khi có chủ đích đưa toàn bộ system modules có thể quan sát vào graph. Dùng ALL-MODULE-PATH khi muốn tất cả module trên module path đều tham gia phân giải, chẳng hạn một môi trường thử nghiệm hoặc image tổng hợp.
+Use ALL-DEFAULT when you need to add the default root set according to the tool's policy. Use ALL-SYSTEM when intentionally bringing all observable system modules into the graph. Use ALL-MODULE-PATH when you want all modules on the module path to participate in resolution, such as in a test environment or a composite image.
 
-Không nên dùng các giá trị ALL-* như biện pháp sửa lỗi chung. Chúng có thể che khuất dependency chưa khai báo, khiến module graph phình to và làm runtime image lớn hơn.
+Do not use ALL-* values as a general bug-fixing measure. They can hide undeclared dependencies, bloat the module graph, and make the runtime image larger.
 
-## 11. Những lỗi thường gặp
+## 11. Common Errors
 
-| Hiện tượng | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common Cause | Resolution |
 |---|---|---|
-| FindException: Module ... not found | Tên module sai hoặc module không nằm trên module path | Kiểm tra tên bằng jar --describe-module và kiểm tra --module-path |
-| Module có trên module path nhưng không được phân giải | Module không phải root và không phải dependency của root nào | Thêm tên module vào --add-modules hoặc khai báo requires nếu là dependency trực tiếp |
-| Module đã được phân giải nhưng ứng dụng không truy cập được API | Chưa có quan hệ readability hoặc package chưa export | Khai báo requires, kiểm tra exports; chỉ dùng --add-reads/--add-exports khi thật sự cần |
-| javac không tìm thấy module khi biên dịch | Module path sai hoặc module bị giới hạn bởi --limit-modules | Kiểm tra module path và tập module có thể quan sát |
-| Runtime image thiếu provider | Chưa liên kết service provider hoặc provider không thể quan sát | Kiểm tra uses/provides, module path và cân nhắc --bind-services hoặc thêm provider vào --add-modules |
-| Runtime image quá lớn | Dùng ALL-SYSTEM hoặc ALL-MODULE-PATH không cần thiết | Chỉ chọn root modules ứng dụng thực sự cần |
-| Incubator API không khả dụng | Chưa thêm incubator module ở bước compile hoặc runtime | Thêm module tương ứng bằng --add-modules ở cả hai bước |
+| FindException: Module ... not found | Wrong module name or module is not on the module path | Check the name with jar --describe-module and check --module-path |
+| Module is on the module path but not resolved | Module is neither a root nor a dependency of any root | Add the module name to --add-modules or declare requires if it is a direct dependency |
+| Module is resolved but application cannot access API | Missing readability relationship or package is not exported | Declare requires, check exports; only use --add-reads/--add-exports when truly needed |
+| javac cannot find module when compiling | Wrong module path or module is restricted by --limit-modules | Check the module path and the set of observable modules |
+| Runtime image is missing a provider | Service provider is not bound or provider is not observable | Check uses/provides, module path, and consider --bind-services or adding the provider to --add-modules |
+| Runtime image is too large | Unnecessary use of ALL-SYSTEM or ALL-MODULE-PATH | Select only the root modules the application truly needs |
+| Incubator API is unavailable | Incubator module was not added at compile or runtime step | Add the corresponding module with --add-modules at both steps |
 
-Khi gặp lỗi, hãy xác định lỗi thuộc một trong ba lớp: module không thể tìm thấy, module không được phân giải, hay module đã phân giải nhưng không có quyền truy cập API. Ba trường hợp này cần cách xử lý khác nhau.
+When encountering an error, determine whether it belongs to one of three categories: module cannot be found, module is not resolved, or module is resolved but lacks API access permission. These three cases require different handling.
 
-## Ghi nhớ
+## Key Takeaways
 
---add-modules bổ sung module vào tập root modules để JPMS phân giải module graph. --module-path chỉ nơi tìm module; requires khai báo dependency và readability giữa named modules; exports điều khiển package nào được truy cập. Các giá trị ALL-DEFAULT, ALL-SYSTEM và ALL-MODULE-PATH lần lượt chọn tập root mặc định, tất cả system modules có thể quan sát và tất cả module trên module path. Khi dùng jlink, --add-modules chọn module gốc cho runtime image, còn --bind-services xử lý việc liên kết service provider.
+--add-modules adds modules to the set of root modules for JPMS to resolve the module graph. --module-path specifies where to find modules; requires declares dependencies and readability between named modules; exports controls which packages are accessible. The values ALL-DEFAULT, ALL-SYSTEM, and ALL-MODULE-PATH respectively select the default root set, all observable system modules, and all modules on the module path. When using jlink, --add-modules selects root modules for the runtime image, while --bind-services handles binding service providers.

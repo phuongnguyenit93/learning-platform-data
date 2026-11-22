@@ -1,59 +1,59 @@
-# Khuyến nghị nhất quán giữa `compareTo() == 0` và `equals()`
+# Recommended Consistency Between `compareTo() == 0` and `equals()`
 
-## 1. Hiểu đúng hai khái niệm “bằng nhau”
+## 1. Understanding the two concepts of "equality" properly
 
-Trong Java, một đối tượng có thể tham gia **hai cơ chế so sánh độc lập**:
+In Java, an object can participate in **two independent comparison mechanisms**:
 
-- **`equals(Object)`** trả về `boolean` để xác định hai đối tượng có bằng nhau về mặt logic hay không. Đây là hợp đồng chung của `Object`; các collection như `HashSet` và `HashMap` dùng nó cùng `hashCode()` để nhận diện phần tử/khóa.
-- **`compareTo(T)`** trả về `int` âm, 0 hoặc dương để xác định thứ tự tự nhiên của các đối tượng triển khai `Comparable<T>`. Các collection có thứ tự như `TreeSet` và `TreeMap` dùng phép so sánh này, hoặc một `Comparator` được cung cấp.
+- **`equals(Object)`** returns a `boolean` to determine whether two objects are logically equal. This is the general `Object` contract; collections such as `HashSet` and `HashMap` use it alongside `hashCode()` to identify elements/keys.
+- **`compareTo(T)`** returns a negative, 0, or positive `int` to define the natural ordering of objects implementing `Comparable<T>`. Ordered collections such as `TreeSet` and `TreeMap` use this comparison, or a provided `Comparator`.
 
-Hợp đồng `Comparable` **khuyến nghị mạnh** thứ tự tự nhiên nhất quán với `equals`, nghĩa là:
+The `Comparable` contract **strongly recommends** that natural ordering be consistent with `equals`, meaning:
 
 ```java
-x.compareTo(y) == 0   // nên tương đương với
+x.compareTo(y) == 0   // should be equivalent to
 x.equals(y)           // true
 ```
 
-Đây là đoạn biểu thức minh họa, giả sử `x` và `y` cùng kiểu thích hợp và khác `null`.
+This is an illustrative expression snippet, assuming `x` and `y` have the appropriate same type and are non-`null`.
 
-Viết chính xác bằng logic:
+Written precisely in logic:
 
 ```text
 x.compareTo(y) == 0  ⇔  x.equals(y) == true
 ```
 
-Dấu `⇔` có nghĩa **cả hai chiều đều đúng**:
+The `⇔` symbol means **both directions hold**:
 
-1. Nếu `compareTo` trả 0 thì `equals` phải trả `true`.
-2. Nếu `equals` trả `true` thì `compareTo` phải trả 0.
+1. If `compareTo` returns 0 then `equals` should return `true`.
+2. If `equals` returns `true` then `compareTo` should return 0.
 
-Điều này nói về **cặp đối tượng có giá trị so sánh**, không có nghĩa `compareTo` phải trả chính xác `-1` hoặc `1` khi chúng khác nhau. Giá trị âm/dương bất kỳ là hợp lệ.
+This speaks of **pairs of objects with comparable values**; it does not mean `compareTo` must return exactly `-1` or `1` when they differ. Any negative/positive value is valid.
 
-**Mấu chốt:** Đây là **khuyến nghị**, không phải điều kiện bắt buộc để một lớp triển khai `Comparable`. Một số lớp chuẩn, nổi bật là `BigDecimal`, cố ý có thứ tự tự nhiên **không nhất quán** với `equals`; JavaDoc yêu cầu trường hợp này nên được ghi rõ để người sử dụng hiểu hậu quả.
+**Key point:** This is a **recommendation**, not a mandatory condition for a class to implement `Comparable`. Some standard classes, notably `BigDecimal`, intentionally have a natural ordering **inconsistent** with `equals`; JavaDoc requires such cases to be clearly documented so users understand the consequences.
 
-## 2. Vì sao Java khuyến nghị sự nhất quán?
+## 2. Why does Java recommend consistency?
 
-Giả sử một hệ thống định nghĩa hai sản phẩm có cùng mã `sku` là cùng một đối tượng logic. Nếu `equals` dùng `sku` nhưng `compareTo` lại chỉ so giá bán, ta có thể gặp hai tình huống:
+Suppose a system defines two products with the same `sku` code as the same logical object. If `equals` uses `sku` yet `compareTo` compares only selling price, we can encounter two situations:
 
-- Hai sản phẩm khác mã nhưng cùng giá: `compareTo == 0` dù `equals == false`. Một `TreeSet` có thể bỏ sản phẩm thứ hai vì coi là trùng, trong khi `HashSet` giữ cả hai.
-- Hai sản phẩm cùng mã nhưng giá khác: `equals == true` dù `compareTo != 0`. Một `HashSet` coi là trùng, nhưng `TreeSet` có thể giữ hai phần tử mà `equals` lại cho là bằng nhau.
+- Two products with different codes but the same price: `compareTo == 0` even though `equals == false`. A `TreeSet` may drop the second product as a duplicate, while `HashSet` keeps both.
+- Two products with the same code but different prices: `equals == true` even though `compareTo != 0`. A `HashSet` treats them as duplicates, yet `TreeSet` may keep two elements that `equals` considers equal.
 
-Sự khác biệt này đặc biệt gây khó hiểu nếu cùng đối tượng được truyền lần lượt qua các API nhận `Set`, hoặc khi thay `HashMap` bằng `TreeMap` để sắp xếp khóa.
+This discrepancy is especially confusing if the same objects are passed sequentially through APIs accepting `Set`, or when replacing `HashMap` with `TreeMap` to sort keys.
 
-| Collection | Cơ chế nhận diện hai phần tử/khóa tương đương | Hệ quả khi tiêu chí khác nhau |
+| Collection | Mechanism to identify equivalent elements/keys | Consequence when criteria differ |
 | --- | --- | --- |
-| `HashSet` | `equals(Object)` và `hashCode()` | Gộp các phần tử bằng nhau theo `equals` |
-| `HashMap` | `equals(Object)` và `hashCode()` của khóa | Cập nhật giá trị khi gặp khóa bằng nhau |
-| `TreeSet` | `compareTo(T) == 0` hoặc `Comparator.compare(...) == 0` | Coi các phần tử có cùng thứ tự so sánh là một |
-| `TreeMap` | `compareTo(T) == 0` hoặc `Comparator.compare(...) == 0` | Coi các khóa so sánh bằng 0 là một khóa |
+| `HashSet` | `equals(Object)` and `hashCode()` | Merges elements equal under `equals` |
+| `HashMap` | `equals(Object)` and `hashCode()` of key | Updates value when encountering an equal key |
+| `TreeSet` | `compareTo(T) == 0` or `Comparator.compare(...) == 0` | Treats elements with equal comparison order as one |
+| `TreeMap` | `compareTo(T) == 0` or `Comparator.compare(...) == 0` | Treats keys comparing to 0 as one key |
 
-`TreeSet` và `TreeMap` vẫn vận hành theo **thứ tự so sánh đã cung cấp**, kể cả khi không nhất quán với `equals`. Nhưng khi đó chúng không đáp ứng trọn vẹn ý nghĩa equality mà giao diện `Set`/`Map` thông thường mô tả. API gọi cần hiểu rõ quy tắc này.
+`TreeSet` and `TreeMap` still operate according to **the supplied comparison order**, even when inconsistent with `equals`. However, they then do not fully satisfy the equality semantics normally described by the `Set`/`Map` interfaces. Calling APIs must clearly understand this rule.
 
-Ngoài tính đúng đắn, sự nhất quán còn giúp mã dễ đọc: “hai khóa trùng nhau” có cùng nghĩa dù dữ liệu đang nằm trong map theo băm, map theo thứ tự hay được so sánh trực tiếp.
+Beyond correctness, consistency makes code more readable: "two duplicate keys" shares the same meaning whether data resides in a hash map, an ordered map, or is compared directly.
 
-## 3. Ví dụ sai: compareTo chỉ xét mức ưu tiên, equals xét toàn bộ record
+## 3. Bad example: compareTo checks only priority, equals checks the whole record
 
-Tạo tệp `InconsistentComparisonDemo.java`:
+Create file `InconsistentComparisonDemo.java`:
 
 ```java
 import java.util.HashSet;
@@ -91,14 +91,14 @@ public class InconsistentComparisonDemo {
 }
 ```
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or newer:
 
 ```bash
 javac InconsistentComparisonDemo.java
 java InconsistentComparisonDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 false
@@ -108,22 +108,22 @@ true
 true
 ```
 
-Diễn giải:
+Interpretation:
 
-1. Record `Event` tự sinh `equals(Object)` theo **cả `code` và `priority`**. `a` và `b` khác mã nên `equals` là `false`.
-2. `compareTo` chỉ so `priority`. Hai sự kiện đều ưu tiên 5 nên `compareTo == 0`.
-3. `HashSet` giữ **2 phần tử** theo equality của record.
-4. `TreeSet` chỉ giữ **1 phần tử**, vì thứ tự tự nhiên coi hai sự kiện bằng nhau. `contains(b)` vẫn trả `true` theo tiêu chí của cây, dù đối tượng `b` chưa được thêm thành một phần tử riêng.
+1. Record `Event` auto-generates `equals(Object)` using **both `code` and `priority`**. `a` and `b` have different codes, so `equals` is `false`.
+2. `compareTo` compares only `priority`. Both events have priority 5, so `compareTo == 0`.
+3. `HashSet` keeps **2 elements** according to record equality.
+4. `TreeSet` keeps only **1 element**, because natural ordering considers the two events equal. `contains(b)` still returns `true` under the tree's criterion, even though object `b` was not added as a separate element.
 
-`TreeSet.contains(b)` ở đây không chứng minh `a.equals(b)`. Nó chỉ chứng minh cây có phần tử tương đương với `b` theo cách so sánh đang sử dụng.
+`TreeSet.contains(b)` here does not prove `a.equals(b)`. It only proves the tree contains an element equivalent to `b` under the comparison currently in use.
 
-**Vấn đề thiết kế:** Nếu yêu cầu nghiệp vụ là một sự kiện phân biệt bởi cả mã và mức ưu tiên, `compareTo` thiếu tiêu chí phá hòa (`code`). Nếu mục đích thực sự là gộp sự kiện cùng mức ưu tiên, hãy chủ động diễn đạt quy tắc đó trong cấu trúc dữ liệu hoặc `Comparator`, thay vì giả định equality thông thường đã đổi theo.
+**Design issue:** If business requirements state an event is distinguished by both code and priority, `compareTo` is missing a tie-breaking criterion (`code`). If the real goal is merging events of the same priority level, explicitly express that rule in the data structure or a `Comparator`, rather than assuming normal equality changed accordingly.
 
-## 4. Thiết kế đúng: cùng định nghĩa về “trùng” trong equals và compareTo
+## 4. Correct design: same definition of "duplicate" in equals and compareTo
 
-Ví dụ dưới đây mô hình hóa một mã sản phẩm `sku` duy nhất. Giá hiển thị chỉ là thuộc tính mô tả, **không quyết định danh tính**. Vì thế, cả `equals` và `compareTo` đều dựa trên `sku`.
+The example below models a unique product code `sku`. Display price is purely a descriptive attribute, **not determining identity**. Therefore, both `equals` and `compareTo` rely on `sku`.
 
-Tạo tệp `ConsistentComparisonDemo.java`:
+Create file `ConsistentComparisonDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -199,7 +199,7 @@ public class ConsistentComparisonDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac ConsistentComparisonDemo.java
@@ -222,20 +222,20 @@ updated
 updated
 ```
 
-Giải thích:
+Explanation:
 
-- `a` và `sameSku` khác tham chiếu (`== false`) nhưng có cùng `sku`; vì vậy `equals == true` và `compareTo == 0`.
-- `a` và `b` khác mã; `equals == false`, còn `compareTo` cho đúng thứ tự từ điển của mã (`"A-01"` trước `"B-01"`).
-- Cả `HashSet` lẫn `TreeSet` có đúng **2 sản phẩm logic**.
-- Cả `HashMap` lẫn `TreeMap` đều chỉ có **1 khóa logic** sau khi cập nhật mã `A-01`; `get(a)` trả `"updated"`.
+- `a` and `sameSku` have different references (`== false`) yet share the same `sku`; hence `equals == true` and `compareTo == 0`.
+- `a` and `b` have different codes; `equals == false`, while `compareTo` produces the proper lexicographical order of codes (`"A-01"` before `"B-01"`).
+- Both `HashSet` and `TreeSet` contain exactly **2 logical products**.
+- Both `HashMap` and `TreeMap` have only **1 logical key** after updating code `A-01`; `get(a)` returns `"updated"`.
 
-Ở đây `displayPrice` không tham gia equality và thứ tự tự nhiên, nên hai sản phẩm cùng SKU nhưng giá hiển thị khác vẫn biểu thị cùng đối tượng nghiệp vụ. **Đây là quyết định có chủ ý của ví dụ**, không phải quy tắc rằng mọi kiểu `Product` đều nên bỏ qua giá.
+Here `displayPrice` does not participate in equality or natural ordering, so two products with the same SKU yet different display prices still represent the same business object. **This is an intentional decision of the example**, not a rule that every `Product` type should ignore price.
 
-`Product` là `final`, `sku` là `final` và `String` bất biến; điều này giúp duy trì tính nhất quán khi khóa/phần tử đang nằm trong collection. Với kiểu có kế thừa hoặc thuộc tính mutable, cần kiểm tra thêm hợp đồng bình đẳng của toàn hierarchy và nguy cơ thay đổi khóa.
+`Product` is `final`, `sku` is `final`, and `String` is immutable; this helps maintain consistency while keys/elements reside in collections. For types with inheritance or mutable attributes, you must additionally check the equality contract across the entire hierarchy and the risk of key mutation.
 
-## 5. Sửa ví dụ Event bằng tiêu chí phá hòa
+## 5. Fixing the Event example with a tie-breaking criterion
 
-Với record `Event(String code, int priority)`, `equals` được tạo dựa vào **cả hai thành phần**. Có thể làm natural ordering nhất quán bằng cách so mức ưu tiên trước rồi dùng mã để phân biệt những sự kiện có cùng ưu tiên:
+For record `Event(String code, int priority)`, `equals` is generated based on **both components**. Natural ordering can be made consistent by comparing priority first and then using code to distinguish events with the same priority:
 
 ```java
 @Override
@@ -248,11 +248,11 @@ public int compareTo(Event other) {
 }
 ```
 
-Đây là **đoạn mã đặt bên trong record `Event` ở ví dụ trước**, giả sử `code` không phải `null`. Với các chuỗi hợp lệ, phép so sánh chỉ trả 0 khi **`priority` bằng nhau và `code` bằng nhau**, phù hợp với `equals` được sinh tự động.
+This is **a snippet placed inside record `Event` from the previous example**, assuming `code` is not `null`. With valid strings, the comparison returns 0 only when **`priority` is equal and `code` is equal**, aligning with the auto-generated `equals`.
 
-Nếu thứ tự chỉ là nhu cầu tạm thời của một màn hình hay báo cáo, không cần thay đổi natural ordering của kiểu. Thay vào đó, dùng `Comparator` tại nơi tạo collection. Cần nhớ comparator đó sẽ quyết định ý nghĩa trùng khóa/phần tử của `TreeSet`/`TreeMap` sử dụng nó.
+If an ordering is only a temporary need for a screen or report, there is no need to change the type's natural ordering. Instead, use a `Comparator` where the collection is created. Keep in mind that the comparator will govern duplicate key/element meaning for any `TreeSet`/`TreeMap` using it.
 
-Ví dụ comparator so cả hai tiêu chí:
+Example comparator comparing both criteria:
 
 ```java
 Comparator<Event> byPriorityThenCode =
@@ -260,31 +260,31 @@ Comparator<Event> byPriorityThenCode =
                 .thenComparing(Event::code);
 ```
 
-Đoạn này cũng là **mã minh họa**, cần `import java.util.Comparator;` và record `Event` có accessor `priority()`, `code()`. Nếu `code` có thể là `null`, phải quy định cách xử lý `null` (ví dụ `Comparator.nullsFirst`).
+This snippet is also **illustrative code**, requiring `import java.util.Comparator;` and record `Event` having accessors `priority()`, `code()`. If `code` can be `null`, you must define how `null` is handled (for instance `Comparator.nullsFirst`).
 
-## 6. Ba hợp đồng riêng phải cùng đúng
+## 6. Three separate contracts must all hold
 
-Một lớp định nghĩa cả equality và natural ordering nên đáp ứng **ba lớp cam kết**:
+A class defining both equality and natural ordering should satisfy **three layers of commitments**:
 
-### Hợp đồng equals(Object)
+### The equals(Object) contract
 
-`equals` phải phản xạ, đối xứng, bắc cầu, nhất quán khi dữ liệu liên quan không đổi, và `x.equals(null) == false` với `x` khác `null`.
+`equals` must be reflexive, symmetric, transitive, consistent when relevant data does not change, and `x.equals(null) == false` for non-`null` `x`.
 
-### Hợp đồng hashCode()
+### The hashCode() contract
 
-Nếu `x.equals(y)` là `true`, thì `x.hashCode() == y.hashCode()` bắt buộc là `true`. Khóa trong `HashMap` hoặc phần tử trong `HashSet` nên có dữ liệu tham gia bình đẳng **ổn định trong thời gian được lưu**.
+If `x.equals(y)` is `true`, then `x.hashCode() == y.hashCode()` must be `true`. Keys in `HashMap` or elements in `HashSet` should keep data participating in equality **stable while stored**.
 
-`compareTo` **không thay thế** `hashCode`. Hai object có `compareTo == 0` nhưng `equals == false` không có nghĩa chúng bắt buộc cùng mã băm. Quy tắc hash xuất phát từ `equals`.
+`compareTo` **does not replace** `hashCode`. Two objects with `compareTo == 0` yet `equals == false` do not mean they must share the same hash code. The hash rule stems from `equals`.
 
-### Hợp đồng compareTo(T)
+### The compareTo(T) contract
 
-Phép so sánh tự nhiên phải có thứ tự nhất quán: kết quả theo chiều đối ngược nhau phải có dấu ngược, quan hệ lớn hơn phải bắc cầu, và khi `x.compareTo(y) == 0` thì `x` với `y` phải được so như nhau khi đứng trước một đối tượng thứ ba thích hợp. Nói cách khác, comparator không được tạo ra thứ tự mâu thuẫn.
+Natural comparison must produce a consistent order: results in opposite directions must have opposite signs, the greater-than relation must be transitive, and when `x.compareTo(y) == 0`, `x` and `y` must compare identically when placed before a third compatible object. In other words, the comparator must not create contradictory ordering.
 
-**Nhất quán giữa compareTo và equals là khuyến nghị bổ sung**, không thay thế các điều kiện nội tại của hai phương thức. Một lớp có thể có `compareTo` bắc cầu nhưng vẫn không nhất quán với `equals`, như ví dụ `Event`.
+**Consistency between compareTo and equals is an additional recommendation**, not a replacement for the intrinsic conditions of either method. A class can have a transitive `compareTo` yet still be inconsistent with `equals`, as in the `Event` example.
 
-## 7. Ngoại lệ có chủ đích: BigDecimal
+## 7. Intentional exception: BigDecimal
 
-`BigDecimal` là ví dụ Java chuẩn được tài liệu ghi rõ: hai số có thể bằng nhau theo giá trị số học nhưng khác **scale**.
+`BigDecimal` is a well-documented standard Java example: two numbers can be equal in numerical value yet differ in **scale**.
 
 ```java
 BigDecimal x = new BigDecimal("2.0");
@@ -294,43 +294,43 @@ System.out.println(x.compareTo(y) == 0); // true
 System.out.println(x.equals(y));         // false
 ```
 
-Đây là đoạn minh họa cần `import java.math.BigDecimal;`. `compareTo` coi hai số bằng nhau về số học; `equals` còn yêu cầu cùng scale. Kết quả là `HashSet<BigDecimal>` có thể giữ `2.0` và `2.00` làm hai phần tử, trong khi `TreeSet<BigDecimal>` với natural ordering chỉ giữ một.
+This is an illustrative snippet requiring `import java.math.BigDecimal;`. `compareTo` considers both numerically equal; `equals` additionally requires the same scale. Consequently `HashSet<BigDecimal>` can keep `2.0` and `2.00` as two elements, while `TreeSet<BigDecimal>` with natural ordering keeps only one.
 
-Điều đó **không làm BigDecimal trở thành một kiểu Java sai**: nó cố ý thể hiện hai khái niệm bình đẳng khác nhau. Nhưng người dùng API phải xác định rõ “trùng” nghĩa là cùng giá trị số học hay cùng giá trị và scale, đặc biệt trước khi dùng làm khóa hoặc phần tử set.
+That **does not make BigDecimal a broken Java type**: it intentionally expresses two different equality concepts. However, API users must clearly decide whether "duplicate" means equal numerical value or equal value and scale, especially before using them as map keys or set elements.
 
-Nếu nghiệp vụ muốn gộp tất cả dạng biểu diễn của cùng một số decimal, có thể chuẩn hóa có chủ đích bằng `stripTrailingZeros()` ở cả bước thêm lẫn tra cứu; nhớ rằng phương thức này có thể cho scale âm hoặc dạng ký pháp khoa học. Nếu nghiệp vụ cần scale cố định (ví dụ hai chữ số thập phân), có thể `setScale(2, roundingMode)` theo quy tắc làm tròn rõ ràng. Không áp dụng việc chuẩn hóa tùy tiện khi scale mang ý nghĩa nghiệp vụ.
+If business logic wants to merge all representations of the same decimal number, you can deliberately normalize with `stripTrailingZeros()` at both insertion and lookup; remember that this method can produce negative scale or scientific notation form. If business logic needs a fixed scale (e.g., two decimal places), you can call `setScale(2, roundingMode)` with an explicit rounding rule. Do not apply normalization arbitrarily when scale carries business meaning.
 
-## 8. Những lỗi cài đặt thường gặp
+## 8. Common implementation mistakes
 
-| Lỗi | Hệ quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| `compareTo` chỉ so một trường trong khi `equals` so nhiều trường | Các phần tử khác nhau theo `equals` có thể bị TreeSet gộp | Thêm tiêu chí phá hòa phù hợp hoặc định nghĩa lại equality theo nghiệp vụ |
-| `compareTo` so nhiều trường trong khi `equals` chỉ so một trường | TreeSet có thể giữ hai phần tử mà `equals` coi là bằng nhau | Thống nhất định nghĩa trùng nhau |
-| Dùng `return a - b;` để so `int` | Tràn số có thể làm đảo thứ tự, phá quy tắc so sánh | Dùng `Integer.compare(a, b)` |
-| Mặc định `compareTo` luôn trả `-1`, `0`, `1` | Kiểm tra sai điều kiện, ví dụ `compareTo(x) == 1` | Chỉ kiểm tra âm / 0 / dương |
-| Ghi đè `equals` nhưng quên `hashCode` | HashSet/HashMap không nhận diện đúng đối tượng bằng nhau | Ghi đè cả hai bằng cùng những thành phần |
-| Đưa khóa mutable vào collection rồi đổi trường so sánh | Tra cứu trong HashMap hoặc thứ tự của TreeSet/TreeMap có thể hỏng | Ưu tiên kiểu bất biến; xóa trước, cập nhật rồi thêm lại khi cần |
-| Gọi `compareTo(null)` và trông chờ kết quả so với `null` | `Comparable` thông thường không coi `null` là giá trị so sánh hợp lệ | Xử lý `null` riêng hoặc dùng comparator có chính sách null |
-| Dùng `Comparator` theo cột hiển thị rồi tưởng TreeSet vẫn phân biệt phần tử theo `equals` | TreeSet gộp khi comparator trả 0 | Dùng tiêu chí phá hòa hoặc một cấu trúc cho phép phần tử trùng khóa sắp xếp |
+| `compareTo` checks one field while `equals` checks multiple fields | Elements distinct under `equals` may be merged by TreeSet | Add appropriate tie-breaking criteria or redefine equality per business logic |
+| `compareTo` checks multiple fields while `equals` checks one field | TreeSet may hold two elements that `equals` considers equal | Unify the definition of duplicate |
+| Using `return a - b;` to compare `int` | Overflow can flip order, breaking comparison rules | Use `Integer.compare(a, b)` |
+| Assuming `compareTo` always returns `-1`, `0`, `1` | Faulty condition checks, such as `compareTo(x) == 1` | Check only negative / 0 / positive |
+| Overriding `equals` while forgetting `hashCode` | HashSet/HashMap fails to recognize equal objects | Override both using the same components |
+| Putting mutable keys into a collection then mutating compared fields | HashMap lookup or TreeSet/TreeMap ordering can break | Prefer immutable types; remove first, update, and re-insert when needed |
+| Calling `compareTo(null)` expecting a comparison result with `null` | Standard `Comparable` does not treat `null` as a valid comparison value | Handle `null` separately or use a comparator with a null policy |
+| Using a `Comparator` on a display column assuming TreeSet still distinguishes elements via `equals` | TreeSet merges whenever comparator returns 0 | Use tie-breaking criteria or a data structure allowing duplicate sort keys |
 
-Một nguyên tắc thực tế: **natural ordering nên đại diện cho thứ tự ổn định và có ý nghĩa lâu dài của kiểu**, còn những kiểu sắp xếp theo yêu cầu màn hình (theo giá, ngày, mức ưu tiên) nên được biểu diễn bằng comparator riêng. Tuy nhiên, ngay cả comparator riêng cũng phải được xem xét nếu dùng nó làm cơ chế nhận diện khóa trong sorted set/map.
+One practical rule: **natural ordering should represent a type's stable, long-term meaningful order**, whereas screen-driven sorting styles (by price, date, priority) should be expressed via separate comparators. Still, even a separate comparator must be examined carefully if used as the key-identification mechanism in a sorted set/map.
 
-## 9. Checklist thiết kế và kiểm thử
+## 9. Design and testing checklist
 
-1. **Viết trước định nghĩa bình đẳng:** hai object nào thực sự là một giá trị logic? Chọn trường tham gia `equals` và `hashCode`.
-2. **Chọn thứ tự tự nhiên:** tiêu chí nào tạo được thứ tự đầy đủ, bắc cầu và ổn định? Phải phá hòa đủ để `compareTo == 0` biểu thị đúng một giá trị logic nếu muốn nhất quán với `equals`.
-3. **Dùng helper so sánh đúng:** `Integer.compare`, `Long.compare`, `String.compareTo`, `Comparator.comparing(...).thenComparing(...)` thay vì phép trừ dễ tràn số.
-4. **Kiểm thử cả hai chiều:** với các object khác nhau `a`, `b`, xác minh `(a.compareTo(b) == 0) == a.equals(b)` và `b.compareTo(a)` có dấu ngược khi cần.
-5. **Kiểm thử ba phần tử:** nếu `a < b` và `b < c` thì `a < c`; các giá trị so sánh 0 không làm thay đổi kết quả khi so với phần tử thứ ba.
-6. **Kiểm thử Set/Map thực tế:** đưa các đối tượng bằng nhau và khác nhau vào `HashSet`/ `TreeSet`, dùng làm khóa `HashMap`/`TreeMap`, so kích thước và kết quả `contains/get`.
-7. **Kiểm tra null, kế thừa, mutable state:** xác định rõ tiền điều kiện so sánh và tránh thay đổi trường quyết định thứ tự khi object nằm trong sorted collection.
-8. **Nếu cố ý không nhất quán, ghi tài liệu rõ:** giải thích tiêu chí `compareTo`, tiêu chí `equals`, và ảnh hưởng đến sorted set/map; người dùng phải chọn collection phù hợp.
+1. **Write the equality definition first:** which two objects are genuinely one logical value? Choose fields participating in `equals` and `hashCode`.
+2. **Choose natural ordering:** which criteria yield a complete, transitive, and stable order? Break ties thoroughly enough so `compareTo == 0` denotes exactly one logical value if consistency with `equals` is desired.
+3. **Use proper comparison helpers:** `Integer.compare`, `Long.compare`, `String.compareTo`, `Comparator.comparing(...).thenComparing(...)` instead of subtraction prone to overflow.
+4. **Test both directions:** for distinct objects `a`, `b`, verify `(a.compareTo(b) == 0) == a.equals(b)` and that `b.compareTo(a)` has the opposite sign when appropriate.
+5. **Test three elements:** if `a < b` and `b < c` then `a < c`; values comparing to 0 do not alter the outcome when compared against a third element.
+6. **Test real Sets/Maps:** place equal and distinct objects into `HashSet`/`TreeSet`, use as `HashMap`/`TreeMap` keys, compare sizes and `contains/get` results.
+7. **Check null, inheritance, mutable state:** define comparison preconditions clearly and avoid mutating ordering-determining fields while the object resides in a sorted collection.
+8. **If intentionally inconsistent, document clearly:** explain `compareTo` criteria, `equals` criteria, and the impact on sorted sets/maps; users must select the appropriate collection.
 
-**Tự kiểm tra:**
+**Self-check:**
 
-- Nếu `a.compareTo(b) == 0` nhưng `a.equals(b) == false`, natural ordering có nhất quán với equals không? **Không.**
-- Nếu một `TreeSet` chỉ lưu một phần tử trong khi `HashSet` lưu hai phần tử cùng cặp object, nguyên nhân thường là gì? **Hai tiêu chí “trùng” khác nhau giữa so thứ tự và equality.**
-- Nhất quán giữa `compareTo` và `equals` có bắt buộc với mọi lớp `Comparable` không? **Không, nhưng được khuyến nghị mạnh; khi không nhất quán cần tài liệu hóa.**
-- Khi dùng `Comparator` để sort theo điểm số, nếu nhiều người cùng điểm nhưng phải giữ tất cả, cần làm gì? **Thêm một tiêu chí phá hòa hoặc dùng cấu trúc dữ liệu thích hợp, thay vì dùng TreeSet chỉ so điểm.**
+- If `a.compareTo(b) == 0` yet `a.equals(b) == false`, is natural ordering consistent with equals? **No.**
+- If a `TreeSet` stores only one element while a `HashSet` stores two elements for the same pair of objects, what is the usual cause? **Two different definitions of "duplicate" between ordering comparison and equality.**
+- Is consistency between `compareTo` and `equals` mandatory for every `Comparable` class? **No, yet strongly recommended; when inconsistent, it must be documented.**
+- When using a `Comparator` to sort by score, if multiple people share the same score and all must be kept, what should you do? **Add a tie-breaking criterion or use an appropriate data structure, instead of using a TreeSet that compares only by score.**
 
-**Ghi nhớ:** Nên định nghĩa `compareTo(a, b) == 0` đúng khi `a.equals(b)` là `true`, để mọi collection hiểu thống nhất ý nghĩa “cùng phần tử/khóa”. Trường hợp cố ý khác như `BigDecimal` là hợp lệ, nhưng phải hiểu và tài liệu hóa hành vi khi dùng cấu trúc dữ liệu có thứ tự.
+**Remember:** You should define `compareTo(a, b) == 0` true precisely when `a.equals(b)` is `true`, so every collection shares a unified meaning of "same element/key". Intentional exceptions like `BigDecimal` are valid, yet their behavior must be understood and documented when using ordered data structures.

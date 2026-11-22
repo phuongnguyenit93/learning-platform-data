@@ -1,15 +1,15 @@
-# Readability kết hợp với exports
+# Readability Combined with Exports
 
-## 1. Vì sao chỉ requires là chưa đủ?
+## 1. Why requires Alone Is Not Enough
 
-Trong Java Platform Module System (JPMS), một named module không được tự động sử dụng mọi public class nằm trong những JAR khác. Để code ở module A truy cập một public type thuộc module B theo cách thông thường, ít nhất hai điều kiện độc lập phải được thỏa mãn:
+In the Java Platform Module System (JPMS), a named module cannot automatically use every public class located in other JARs. For code in module A to access a public type belonging to module B through normal access, at least two independent conditions must be satisfied:
 
-1. **Readability**: A phải **đọc được** B trong module graph.
-2. **Exports**: B phải **export package chứa type đó** cho A.
+1. **Readability**: A must **read** B in the module graph.
+2. **Exports**: B must **export the package containing that type** to A.
 
-Sau đó Java vẫn áp dụng các quy tắc access modifier như public, protected, package-private và private. Một class không public sẽ không trở thành public chỉ vì package được export.
+Afterward, Java still applies access modifier rules such as public, protected, package-private, and private. A non-public class does not become public just because its package is exported.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.app {
@@ -23,9 +23,9 @@ module com.acme.catalog {
 }
 ~~~
 
-App có thể tham chiếu public type trong com.acme.catalog.api nếu mã và môi trường biên dịch phù hợp. Nhưng app **không thể** import public type trong com.acme.catalog.internal khi package internal không được export. Ngược lại, nếu catalog đã export api mà app **không đọc được** catalog, app cũng không thể dùng type đó.
+App can reference public types in com.acme.catalog.api if the code and compilation environment are properly configured. However, app **cannot** import public types in com.acme.catalog.internal when the internal package is not exported. Conversely, if catalog exports api yet app **cannot read** catalog, app still cannot use that type.
 
-Có thể hình dung:
+You can visualize this as:
 
 ~~~text
        module com.acme.app
@@ -36,24 +36,24 @@ Có thể hình dung:
                  |
                  |  exports com.acme.catalog.api
                  v
-       public API của catalog
+       catalog's public API
 
-Điều kiện cần: có đường đọc module + package được export
+Necessary conditions: module read edge + exported package
 ~~~
 
-**Điểm cốt lõi:** Readability kiểm soát quan hệ giữa các **module**; exports kiểm soát quyền truy cập các **package** qua ranh giới module. Hai cơ chế bổ sung cho nhau để thực thi strong encapsulation.
+**Core point:** Readability controls relationships between **modules**; exports controls access to **packages** across module boundaries. The two mechanisms complement each other to enforce strong encapsulation.
 
-## 2. Ba tầng kiểm soát truy cập
+## 2. Three Layers of Access Control
 
-JPMS không thay thế access modifier của Java; nó thêm tầng kiểm soát ở cấp module.
+JPMS does not replace Java's access modifiers; it adds module-level control layers.
 
-| Tầng | Câu hỏi | Cơ chế |
+| Layer | Question | Mechanism |
 |---|---|---|
-| Module | Module consumer có đọc được module provider không? | requires, requires transitive, quan hệ reads |
-| Package | Package của provider có được export tới consumer không? | exports, exports ... to |
-| Type/member | Type hoặc thành viên có mức truy cập hợp lệ không? | public, protected, package-private, private |
+| Module | Does the consumer module read the provider module? | requires, requires transitive, reads relationship |
+| Package | Is the provider's package exported to the consumer? | exports, exports ... to |
+| Type/member | Does the type or member have a valid access level? | public, protected, package-private, private |
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.acme.catalog.api;
@@ -75,17 +75,17 @@ public class Product {
 }
 ~~~
 
-Nếu module catalog export com.acme.catalog.api và app đọc catalog:
+If module catalog exports com.acme.catalog.api and app reads catalog:
 
-- App có thể tạo new Product("P-1") và gọi code().
-- App không thể gọi resetForTesting() vì phương thức là package-private.
-- App không thể trực tiếp truy cập field code vì field private.
+- App can instantiate new Product("P-1") and call code().
+- App cannot call resetForTesting() because the method is package-private.
+- App cannot directly access the code field because the field is private.
 
-Không nên gọi exports là cơ chế “mở toàn bộ class”. Nó chỉ cho phép các truy cập Java thông thường mà access modifier đã cho phép.
+You should not think of exports as a mechanism that "opens an entire class". It only permits normal Java access that access modifiers already allow.
 
-## 3. Đặt vấn đề với một module API và một module ứng dụng
+## 3. Setting Up an API Module and an Application Module
 
-Giả sử source tree gồm:
+Suppose the source tree consists of:
 
 ~~~text
 project/
@@ -101,7 +101,7 @@ project/
 └── mods/
 ~~~
 
-Descriptor của catalog:
+Catalog descriptor:
 
 ~~~java
 module com.acme.catalog {
@@ -109,7 +109,7 @@ module com.acme.catalog {
 }
 ~~~
 
-Class API:
+API class:
 
 ~~~java
 package com.acme.catalog.api;
@@ -118,7 +118,7 @@ public record Product(String sku, String name) {
 }
 ~~~
 
-Class nội bộ:
+Internal class:
 
 ~~~java
 package com.acme.catalog.internal;
@@ -134,9 +134,9 @@ public final class ProductRepository {
 }
 ~~~
 
-Dù ProductRepository được khai báo public, package com.acme.catalog.internal **không được export**. Đây là chủ đích: implementation chi tiết tồn tại bên trong module, không thuộc public API.
+Even though ProductRepository is declared public, package com.acme.catalog.internal is **not exported**. This is intentional: implementation details live inside the module and do not belong to the public API.
 
-Descriptor app:
+App descriptor:
 
 ~~~java
 module com.acme.app {
@@ -144,7 +144,7 @@ module com.acme.app {
 }
 ~~~
 
-Mã Main:
+Main code:
 
 ~~~java
 package com.acme.app;
@@ -159,11 +159,11 @@ public class Main {
 }
 ~~~
 
-Khi biên dịch và chạy đúng module path, app có quyền đọc catalog, package api được export, và Product là public. Cả ba điều kiện đều đúng.
+When compiled and run with the proper module path, app can read catalog, the api package is exported, and Product is public. All three conditions hold.
 
-## 4. Biên dịch và chạy ví dụ đúng
+## 4. Compiling and Running the Valid Example
 
-Với cấu trúc source trên:
+With the source structure above:
 
 ~~~bash
 javac --module-source-path src \
@@ -171,7 +171,7 @@ javac --module-source-path src \
       -m com.acme.catalog,com.acme.app
 ~~~
 
-Thư mục output:
+Output directory:
 
 ~~~text
 mods/
@@ -185,26 +185,26 @@ mods/
     └── com/acme/app/Main.class
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Keyboard
 ~~~
 
-Lệnh javac dùng module-info.java để kiểm tra module readability và package accessibility ngay khi compile. Khi chạy, launcher tiếp tục tạo module graph từ module roots và dependency thực tế.
+The javac command uses module-info.java to verify module readability and package accessibility at compile time. At runtime, the launcher builds the module graph from module roots and actual dependencies.
 
---module-path chỉ xác định nơi tìm module đã biên dịch; nó **không tự thêm cạnh đọc giữa mọi cặp module có mặt trên path**.
+--module-path only specifies where to find compiled modules; it **does not automatically add reads edges between every pair of modules on the path**.
 
-## 5. Thiếu requires: package export vẫn không đủ
+## 5. Missing requires: Exported Package Is Still Not Enough
 
-Giữ nguyên catalog:
+Keep catalog unchanged:
 
 ~~~java
 module com.acme.catalog {
@@ -212,24 +212,24 @@ module com.acme.catalog {
 }
 ~~~
 
-Bây giờ thay descriptor app thành:
+Now change the app descriptor to:
 
 ~~~java
 module com.acme.app {
 }
 ~~~
 
-App vẫn import:
+App still imports:
 
 ~~~java
 import com.acme.catalog.api.Product;
 ~~~
 
-Với module source compilation, compiler có thể báo package không visible vì com.acme.app không đọc được com.acme.catalog. Nếu module catalog còn chưa được đưa vào cấu hình phân giải, thông báo cũng có thể nói module không nằm trong module graph.
+With module source compilation, the compiler may report that the package is not visible because com.acme.app does not read com.acme.catalog. If module catalog is not even included in the resolution configuration, the message may also say the module is not in the module graph.
 
-Nguyên nhân không phải Product thiếu public, cũng không phải catalog quên exports. Vấn đề là app **chưa có readability** tới catalog.
+The root cause is neither Product lacking public nor catalog forgetting exports. The problem is that app **does not yet have readability** to catalog.
 
-Cách sửa thông thường:
+Standard fix:
 
 ~~~java
 module com.acme.app {
@@ -237,13 +237,13 @@ module com.acme.app {
 }
 ~~~
 
-Khi một ứng dụng thật sự phụ thuộc API của catalog, khai báo requires trong descriptor là hợp đồng dependency rõ ràng và bền vững.
+When an application genuinely depends on catalog's API, declaring requires in the descriptor establishes a clear and sustainable dependency contract.
 
-Không nên chỉ thêm catalog.jar vào module path rồi kỳ vọng lỗi sẽ biến mất. Module path cho biết module **có thể được tìm thấy**; requires xác lập quan hệ đọc của consumer.
+Do not simply add catalog.jar to the module path and expect the error to disappear. The module path indicates where modules **can be found**; requires establishes the consumer's reads relationship.
 
-## 6. Có requires nhưng thiếu exports: module readable vẫn chưa đủ
+## 6. Having requires Without exports: A Readable Module Is Still Not Enough
 
-Giả sử app muốn gọi ProductRepository:
+Suppose app wants to call ProductRepository:
 
 ~~~java
 package com.acme.app;
@@ -258,7 +258,7 @@ public class InvalidMain {
 }
 ~~~
 
-App đã requires catalog, nhưng catalog chỉ export api:
+App already requires catalog, but catalog only exports api:
 
 ~~~java
 module com.acme.catalog {
@@ -266,7 +266,7 @@ module com.acme.catalog {
 }
 ~~~
 
-Javac có thể báo:
+Javac may report:
 
 ~~~text
 package com.acme.catalog.internal is not visible
@@ -274,35 +274,35 @@ package com.acme.catalog.internal is not visible
  which does not export it)
 ~~~
 
-Đây là lỗi **package accessibility**, không phải lỗi module readability. Thêm một dòng requires nữa hoặc đổi vị trí JAR không giải quyết đúng nguyên nhân.
+This is a **package accessibility** error, not a module readability error. Adding another requires line or changing JAR locations will not fix the real cause.
 
-Các hướng xử lý:
+Possible resolutions:
 
-1. **Ưu tiên gọi public API** thay vì truy cập internal package.
-2. Nếu package thực sự là API dành cho mọi consumer, cân nhắc exports package đó.
-3. Nếu chỉ một module integration được phép truy cập, dùng qualified exports.
-4. Nếu nhu cầu là deep reflection, xem opens thay vì exports.
+1. **Prefer calling the public API** instead of accessing the internal package.
+2. If the package is genuinely an API meant for all consumers, consider exporting that package.
+3. If only one integration module should be allowed access, use qualified exports.
+4. If the need is deep reflection, consider opens rather than exports.
 
-Không nên export com.acme.catalog.internal chỉ để sửa một lỗi compile mà chưa xác định quyền truy cập đó có phù hợp với thiết kế module hay không.
+Do not export com.acme.catalog.internal merely to silence a compile error without verifying whether that access fits the module design.
 
-## 7. Ma trận readability và exports
+## 7. Readability and Exports Matrix
 
-Xét module A muốn import public class từ package p thuộc module B:
+Consider module A wanting to import a public class from package p belonging to module B:
 
-| A đọc B? | B export p tới A? | Kết quả truy cập Java thông thường |
+| A reads B? | B exports p to A? | Result of normal Java access |
 |---|---|---|
-| Không | Không | Không truy cập được |
-| Không | Có | Không truy cập được vì thiếu readability |
-| Có | Không | Không truy cập được vì package chưa export |
-| Có | Có | Có thể truy cập public type/member theo access modifier |
+| No | No | Not accessible |
+| No | Yes | Not accessible due to missing readability |
+| Yes | No | Not accessible because the package is not exported |
+| Yes | Yes | Can access public types/members according to access modifiers |
 
-Ma trận này là điểm ghi nhớ quan trọng nhất của bài học.
+This matrix is the most important takeaway of the lesson.
 
-Cần lưu ý: “có thể truy cập” còn giả định module đã được phân giải, class tồn tại và type/member có mức truy cập hợp lệ. Chỉ thị exports không sửa lỗi ClassNotFoundException do thiếu bytecode, và chỉ thị requires không biến private field thành public.
+Note: "accessible" also assumes the module has been resolved, the class exists, and the type/member has a valid access level. An exports directive does not fix ClassNotFoundException from missing bytecode, and a requires directive does not turn a private field into public.
 
-## 8. Unqualified exports và qualified exports
+## 8. Unqualified Exports and Qualified Exports
 
-**Unqualified export** công khai một package cho mọi module đọc module nguồn:
+An **unqualified export** exposes a package to every module that reads the source module:
 
 ~~~java
 module com.acme.catalog {
@@ -310,9 +310,9 @@ module com.acme.catalog {
 }
 ~~~
 
-Bất kỳ named module nào có quan hệ đọc phù hợp tới com.acme.catalog đều có thể truy cập public type trong com.acme.catalog.api.
+Any named module with a suitable reads relationship to com.acme.catalog can access public types in com.acme.catalog.api.
 
-**Qualified export** chỉ cho phép một số named module có tên cụ thể:
+A **qualified export** permits only specifically named modules:
 
 ~~~java
 module com.acme.catalog {
@@ -323,7 +323,7 @@ module com.acme.catalog {
 }
 ~~~
 
-Module com.acme.erp.bridge có thể dùng public type trong com.acme.catalog.integration **nếu nó đọc được com.acme.catalog**:
+Module com.acme.erp.bridge can use public types in com.acme.catalog.integration **if it reads com.acme.catalog**:
 
 ~~~java
 module com.acme.erp.bridge {
@@ -331,9 +331,9 @@ module com.acme.erp.bridge {
 }
 ~~~
 
-Module com.acme.app dù cũng có requires com.acme.catalog vẫn không được hưởng qualified export dành cho bridge.
+Even though module com.acme.app also has requires com.acme.catalog, it does not receive the qualified export meant for bridge.
 
-Có thể liệt kê nhiều module đích:
+Multiple target modules can be listed:
 
 ~~~java
 module com.acme.catalog {
@@ -343,27 +343,27 @@ module com.acme.catalog {
 }
 ~~~
 
-Tên sau to là **tên JPMS module**, không phải tên package, tên thư mục hay tên Maven artifact.
+The names after to are **JPMS module names**, not package names, directory names, or Maven artifact names.
 
-Qualified export giúp mở rộng khả năng tích hợp mà không biến toàn bộ implementation package thành API công khai.
+Qualified exports help extend integration capabilities without turning an entire implementation package into a public API.
 
-## 9. Exports được áp dụng cho package, không phải từng class
+## 9. Exports Applies to Packages, Not Individual Classes
 
-JPMS không có cú pháp export riêng một class cụ thể:
+JPMS has no syntax to export a single specific class:
 
 ~~~text
 exports com.acme.catalog.api.Product;
 ~~~
 
-Đây không phải chỉ thị module descriptor hợp lệ. Exports nhận **tên package**:
+This is not a valid module descriptor directive. Exports accepts a **package name**:
 
 ~~~java
 exports com.acme.catalog.api;
 ~~~
 
-Khi package được export, các public top-level type và public member có quyền truy cập hợp lệ trong package có thể được consumer sử dụng.
+When a package is exported, public top-level types and public members with valid access permissions in that package can be used by consumers.
 
-Nếu chỉ một số class cần trở thành API, hãy thiết kế package phù hợp:
+If only certain classes should become API, organize the packages appropriately:
 
 ~~~text
 com.acme.catalog.api
@@ -375,11 +375,11 @@ com.acme.catalog.internal
     CacheIndex
 ~~~
 
-Sau đó chỉ export com.acme.catalog.api. Việc tổ chức package là một phần của thiết kế encapsulation; module descriptor không thay thế bước phân tách code theo trách nhiệm.
+Then export only com.acme.catalog.api. Package organization is part of encapsulation design; module descriptors do not replace separating code by responsibility.
 
-## 10. Readability không tự bắc cầu qua requires thông thường
+## 10. Readability Is Not Automatically Transitive via Regular requires
 
-Xét ba module:
+Consider three modules:
 
 ~~~text
 com.acme.app
@@ -393,7 +393,7 @@ com.acme.order
 com.acme.model
 ~~~
 
-Descriptor:
+Descriptors:
 
 ~~~java
 module com.acme.model {
@@ -414,23 +414,23 @@ module com.acme.app {
 }
 ~~~
 
-Order đọc model, app đọc order. Nhưng app **không tự động đọc model** chỉ vì order đọc model bằng requires thông thường.
+Order reads model, and app reads order. However, app **does not automatically read model** just because order reads model with a regular requires.
 
-Nếu app import:
+If app imports:
 
 ~~~java
 import com.acme.model.api.Customer;
 ~~~
 
-compiler có thể báo app không đọc model. Package api của model đã export nhưng thiếu readability từ app đến model.
+the compiler may report that app does not read model. The model's api package is exported, yet readability from app to model is missing.
 
-Cách sửa có thể là app khai báo requires com.acme.model trực tiếp. Nếu model là một phần của public API do order cung cấp, một lựa chọn có ý nghĩa hơn là requires transitive.
+One fix is for app to declare requires com.acme.model directly. If model is part of the public API exposed by order, a more meaningful option is requires transitive.
 
-## 11. requires transitive và API của dependency
+## 11. requires transitive and Dependency APIs
 
-Một module nên cân nhắc **requires transitive** khi public API của nó chứa type từ module dependency.
+A module should consider **requires transitive** when its public API contains types from a dependency module.
 
-Ví dụ type:
+Example type:
 
 ~~~java
 package com.acme.model.api;
@@ -439,7 +439,7 @@ public record Customer(String id) {
 }
 ~~~
 
-OrderService công khai Customer trong chữ ký:
+OrderService exposes Customer in its signature:
 
 ~~~java
 package com.acme.order.api;
@@ -453,7 +453,7 @@ public final class OrderService {
 }
 ~~~
 
-Descriptor order có thể viết:
+The order descriptor can be written:
 
 ~~~java
 module com.acme.order {
@@ -462,7 +462,7 @@ module com.acme.order {
 }
 ~~~
 
-Descriptor app:
+App descriptor:
 
 ~~~java
 module com.acme.app {
@@ -470,20 +470,20 @@ module com.acme.app {
 }
 ~~~
 
-Khi app đọc order, quy tắc requires transitive giúp app đồng thời đọc được model. Nếu model export com.acme.model.api, app có thể sử dụng type Customer trong public API của OrderService.
+When app reads order, the requires transitive rule lets app read model as well. If model exports com.acme.model.api, app can use the Customer type in OrderService's public API.
 
-Hai điều vẫn cần tách riêng:
+Two things still need to be kept separate:
 
-- requires transitive cung cấp readability tới model.
-- exports com.acme.model.api của module model cung cấp accessibility tới package Customer.
+- requires transitive provides readability to model.
+- exports com.acme.model.api in module model provides accessibility to Customer's package.
 
-Nếu model không export com.acme.model.api, requires transitive **không tự mở package đó**.
+If model does not export com.acme.model.api, requires transitive **does not automatically open that package**.
 
-Chỉ dùng requires transitive khi phù hợp với contract API; không nên biến mọi dependency nội bộ thành transitive dependency vì sẽ làm module graph của consumer phụ thuộc rộng hơn cần thiết.
+Use requires transitive only when appropriate for the API contract; do not turn every internal dependency into a transitive dependency, as that broadens the consumer's module graph unnecessarily.
 
-## 12. requires static và thời điểm biên dịch/chạy
+## 12. requires static and Compile/Run Time
 
-Một module có thể khai báo:
+A module can declare:
 
 ~~~java
 module com.acme.feature {
@@ -491,26 +491,26 @@ module com.acme.feature {
 }
 ~~~
 
-requires static biểu thị dependency cần cho compilation nhưng có thể vắng mặt ở runtime. Đây là trường hợp thường gặp với annotation chỉ được xử lý ở compile-time.
+requires static represents a dependency required for compilation that may be absent at runtime. This is common for annotations processed only at compile time.
 
-Tuy nhiên, khi dependency có mặt trong module graph, quyền truy cập public type của nó vẫn cần package exports phù hợp. Readability và exports không biến mất chỉ vì dependency là static.
+However, when the dependency is present in the module graph, access to its public types still requires appropriate package exports. Readability and exports do not vanish just because a dependency is static.
 
-Nếu code runtime thực sự nạp hoặc gọi type từ module optional nhưng module đó không tồn tại, ứng dụng vẫn có nguy cơ lỗi class loading/linkage. requires static không bảo đảm mọi sử dụng dependency đều an toàn khi module vắng mặt.
+If runtime code actually loads or calls types from the optional module when that module does not exist, the application still risks class loading/linkage errors. requires static does not guarantee that every use of the dependency is safe when the module is absent.
 
-Nên phân biệt:
+Distinguish between:
 
-- requires: dependency bắt buộc khi phân giải module.
-- requires static: dependency ở compilation, có thể vắng mặt runtime.
-- requires transitive: readability lan truyền đến consumer đọc module nguồn.
-- requires static transitive: kết hợp ý nghĩa static và transitive khi hợp đồng API yêu cầu.
+- requires: mandatory dependency during module resolution.
+- requires static: compile-time dependency, optional at runtime.
+- requires transitive: readability propagated to consumers reading the source module.
+- requires static transitive: combines static and transitive semantics when required by the API contract.
 
-Dùng đúng modifier giúp biểu diễn chính xác contract dependency thay vì xem mọi requires đều như nhau.
+Using the right modifier expresses the dependency contract accurately instead of treating all requires identically.
 
-## 13. Package public nhưng không export vẫn được đóng gói kín
+## 13. Public Classes in Unexported Packages Remain Encapsulated
 
-Một điểm dễ nhầm: **public** trong class declaration không có nghĩa class đó là public API cho toàn bộ module graph.
+A common point of confusion: **public** on a class declaration does not mean that class is a public API for the entire module graph.
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.acme.catalog.internal;
@@ -521,11 +521,11 @@ public final class CacheManager {
 }
 ~~~
 
-Class là public vì code thuộc các package khác **trong cùng module** có thể cần sử dụng nó. Nhưng nếu module-info.java không export com.acme.catalog.internal, module khác không thể sử dụng CacheManager qua truy cập Java thông thường.
+The class is public because code in other packages **within the same module** may need to use it. Yet if module-info.java does not export com.acme.catalog.internal, other modules cannot use CacheManager via normal Java access.
 
-Đây là lợi ích quan trọng của JPMS: một module có thể có nhiều package nội bộ trao đổi với nhau thông qua public type mà không bắt buộc công khai các type đó cho bên ngoài.
+This is a major benefit of JPMS: a module can have multiple internal packages collaborating via public types without being forced to expose those types externally.
 
-Ví dụ:
+Example:
 
 ~~~text
 com.acme.catalog
@@ -535,11 +535,11 @@ com.acme.catalog
     com.acme.catalog.cache        not exported
 ~~~
 
-Các package service, repository và cache có thể dùng public type của nhau **bên trong cùng module**. External consumer chỉ nhìn thấy API được export.
+The service, repository, and cache packages can use each other's public types **inside the same module**. External consumers only see the exported API.
 
-## 14. Qualified exports không tự tạo requires
+## 14. Qualified Exports Do Not Create requires Automatically
 
-Giả sử catalog viết:
+Suppose catalog writes:
 
 ~~~java
 module com.acme.catalog {
@@ -548,7 +548,7 @@ module com.acme.catalog {
 }
 ~~~
 
-Dòng này không làm bridge tự động đọc catalog. Bridge vẫn cần descriptor:
+This line does not make bridge automatically read catalog. Bridge still needs the descriptor:
 
 ~~~java
 module com.acme.erp.bridge {
@@ -556,24 +556,24 @@ module com.acme.erp.bridge {
 }
 ~~~
 
-Nếu bridge không có requires catalog, việc bridge được nêu sau to không đủ để import type thuộc package integration.
+If bridge lacks requires catalog, merely naming bridge after to is not enough to import types from the integration package.
 
-Đây là một lỗi thiết kế khá phổ biến: chỉ thấy module đích trong exports ... to rồi nhầm rằng dependency đã được thiết lập cả hai chiều.
+This is a fairly common design mistake: seeing the target module in exports ... to and assuming the dependency has been established in both directions.
 
-Trong thực tế:
+In practice:
 
-- **requires** xuất hiện ở module consumer, hướng tới module được dùng.
-- **exports ... to** xuất hiện ở module provider, hướng quyền truy cập package tới consumer được chỉ định.
+- **requires** appears in the consumer module, pointing toward the used module.
+- **exports ... to** appears in the provider module, granting package access to the designated consumer.
 
-Hai chỉ thị nhìn từ hai phía của cùng một quan hệ API, nhưng không thay thế nhau.
+The two directives look at the same API relationship from opposite sides, and they do not replace each other.
 
-## 15. Exports và opens giải quyết nhu cầu khác nhau
+## 15. Exports and Opens Solve Different Needs
 
-Có những trường hợp module consumer không import một type trực tiếp mà framework dùng reflection để gọi constructor hoặc truy cập private field.
+In some cases, a consumer module does not import a type directly; instead, a framework uses reflection to invoke a constructor or access private fields.
 
-Cần phân biệt:
+Distinguish:
 
-**exports** hỗ trợ truy cập Java thông thường tới public type và public/protected member phù hợp.
+**exports** supports normal Java access to public types and appropriate public/protected members.
 
 ~~~java
 module com.acme.catalog {
@@ -581,7 +581,7 @@ module com.acme.catalog {
 }
 ~~~
 
-**opens** cho phép deep reflection tới một package theo quy tắc JPMS.
+**opens** allows deep reflection on a package according to JPMS rules.
 
 ~~~java
 module com.acme.catalog {
@@ -589,7 +589,7 @@ module com.acme.catalog {
 }
 ~~~
 
-**Qualified opens** giới hạn module được phép deep reflection:
+**Qualified opens** restricts which modules are permitted deep reflection:
 
 ~~~java
 module com.acme.catalog {
@@ -598,27 +598,27 @@ module com.acme.catalog {
 }
 ~~~
 
-Ví dụ framework serialization cần setAccessible(true) để đọc private field trong entity. Nếu package chưa được open phù hợp, reflection có thể gặp InaccessibleObjectException.
+For example, a serialization framework may need setAccessible(true) to read private fields in an entity. If the package is not properly opened, reflection may fail with InaccessibleObjectException.
 
-Điểm cần nhớ:
+Key points to remember:
 
-- exports không tự cho phép deep reflection vào private member.
-- opens không tương đương việc export package để consumer import type trực tiếp trong source.
-- Quy tắc package accessibility đối với public API không thể được sửa chỉ bằng cách mở package cho deep reflection.
-- open module mở các package của module cho deep reflection rộng hơn; không dùng nếu chỉ một package/framework cần truy cập.
+- exports does not automatically allow deep reflection on private members.
+- opens is not equivalent to exporting a package so consumers can import types directly in source code.
+- Package accessibility rules for public APIs cannot be fixed simply by opening a package for deep reflection.
+- open module opens the module's packages more broadly for deep reflection; do not use it if only one package/framework needs access.
 
-Readability và quyền truy cập reflective có các quy tắc riêng. Hãy xác định lỗi xuất hiện ở compile-time access, runtime method invocation hay deep reflection trước khi chọn cách cấu hình.
+Readability and reflective access permissions have separate rules. Identify whether the error occurs at compile-time access, runtime method invocation, or deep reflection before choosing a configuration approach.
 
-## 16. Phân biệt module path, resolution, reads và exports
+## 16. Distinguishing Module Path, Resolution, Reads, and Exports
 
-Bốn khái niệm thường bị trộn lẫn:
+Four concepts are frequently mixed up:
 
-1. **Observable**: module có thể được tìm qua module finder hoặc module path.
-2. **Resolved**: module đã được chọn vào Configuration theo roots, requires hoặc service binding.
-3. **Readable**: một module cụ thể có quan hệ reads tới module khác.
-4. **Accessible**: package được export thích hợp và type/member có quyền truy cập hợp lệ.
+1. **Observable**: the module can be found via a module finder or module path.
+2. **Resolved**: the module was selected into a Configuration via roots, requires, or service binding.
+3. **Readable**: a specific module has a reads relationship to another module.
+4. **Accessible**: the package is appropriately exported and the type/member has valid access permissions.
 
-Ví dụ module path:
+Example module path:
 
 ~~~text
 mods/
@@ -627,16 +627,16 @@ mods/
 └── com.acme.experiment/
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Không có nghĩa app đọc com.acme.experiment. Module experiment có thể chỉ observable chứ chưa resolved; ngay cả khi được resolved, app vẫn không có reads edge tới experiment nếu không có quan hệ JPMS phù hợp.
+This does not mean app reads com.acme.experiment. Module experiment may only be observable and not yet resolved; even if resolved, app still has no reads edge to experiment without an appropriate JPMS relationship.
 
-Có thể đưa module experiment vào root set:
+You can add module experiment to the root set:
 
 ~~~bash
 java --module-path mods \
@@ -644,58 +644,58 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nhưng --add-modules **không tự thêm requires từ app tới experiment**.
+However, --add-modules **does not automatically add a requires from app to experiment**.
 
-Việc tách các khái niệm này giúp tránh sửa sai: lỗi module not found cần kiểm tra module path và roots, còn lỗi does not read cần kiểm tra readability graph.
+Separating these concepts prevents wrong fixes: a module not found error requires checking the module path and roots, while a does not read error requires checking the readability graph.
 
-## 17. So sánh classpath truyền thống
+## 17. Comparing with the Traditional Classpath
 
-Trên classpath, class loader thường tìm class từ các JAR được cấu hình, các class đó thuộc unnamed module tương ứng. Những ranh giới module như requires/exports không được khai báo cho từng JAR.
+On the classpath, the class loader typically locates classes from configured JARs, and those classes belong to the corresponding unnamed module. Module boundaries like requires/exports are not declared per JAR.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java -cp "app.jar:lib/*" com.acme.app.Main
 ~~~
 
-Trên module path:
+On the module path:
 
 ~~~bash
 java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Named module cần phụ thuộc tường minh và package được export. Không nên coi --module-path chỉ là một cách viết khác của --class-path.
+Named modules require explicit dependencies and exported packages. Do not treat --module-path as just another spelling of --class-path.
 
-Một thư viện có thể chạy tốt khi ở classpath nhưng không biên dịch được khi đưa thành named module, vì:
+A library may run fine on the classpath yet fail to compile when turned into a named module because:
 
-- Thiếu requires tới dependency.
-- Dùng public type trong package mà dependency không export.
-- Có split package giữa các modular JAR.
-- Module name hoặc module descriptor không khớp artifact.
-- Framework reflection cần opens mà descriptor chưa khai báo.
+- Missing requires for a dependency.
+- Using a public type in a package that the dependency does not export.
+- Having split packages across modular JARs.
+- Module name or module descriptor does not match the artifact.
+- Framework reflection needs opens that the descriptor does not yet declare.
 
-JPMS làm rõ những dependency đang bị ẩn trong cấu hình classpath chung.
+JPMS makes explicit the dependencies that were previously hidden in a shared classpath configuration.
 
-## 18. Unnamed module và automatic module
+## 18. The Unnamed Module and Automatic Modules
 
-**Unnamed module** chứa các class được nạp từ classpath truyền thống. Nó có các quy tắc readability rộng để hỗ trợ compatibility, nhưng không vì thế mà mọi package nội bộ của named module đều được export.
+The **unnamed module** contains classes loaded from the traditional classpath. It has broad readability rules to support compatibility, yet that does not mean every internal package of a named module is exported to it.
 
-**Automatic module** xuất hiện khi một JAR chưa có module-info.class được đặt trên module path. Nó có module name tự động hoặc qua Automatic-Module-Name, và thường export tất cả package của mình theo quy tắc compatibility.
+An **automatic module** appears when a JAR without module-info.class is placed on the module path. It gets an automatic module name or one via Automatic-Module-Name, and generally exports all of its packages under compatibility rules.
 
-Automatic module có cơ chế đọc rộng hơn explicit named module, vì vậy nó là cầu nối khi modular hóa thư viện cũ. Tuy nhiên, nó vẫn tham gia module resolution và có thể gặp split package conflict nếu nhiều artifact cùng chứa package trùng nhau.
+Automatic modules have broader reading mechanics than explicit named modules, making them a bridge when modularizing legacy libraries. Still, they participate in module resolution and can hit split package conflicts if multiple artifacts contain the same package.
 
-Điểm quan trọng: một thư viện nằm trên module path không phải lúc nào cũng là explicit named module với descriptor do tác giả viết. Cần xác định nó là explicit named module, automatic module hay code classpath để giải thích đúng quyền truy cập.
+Important point: a library on the module path is not always an explicit named module with an author-written descriptor. You must identify whether it is an explicit named module, an automatic module, or classpath code to explain its access rules accurately.
 
-## 19. --add-reads có thể bổ sung readability tạm thời
+## 19. --add-reads Can Supplement Readability Temporarily
 
-Với ứng dụng cần tương thích, JDK hỗ trợ:
+For applications needing compatibility, the JDK supports:
 
 ~~~text
 --add-reads source.module=target.module
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --module-path mods \
@@ -704,27 +704,27 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Tùy chọn này bổ sung một quan hệ reads ở runtime. Nếu module đích có public API export cho app, app có thể truy cập API đó theo quy tắc bình thường.
+This option adds a reads relationship at runtime. If the target module has a public API exported to app, app can access that API under normal rules.
 
-Tuy nhiên:
+However:
 
-- --add-reads không tự export package.
-- --add-reads không tạo module mới hoặc tự đảm bảo module đích được resolved.
-- --add-reads không chỉnh sửa module-info.class.
-- Nếu cần dùng type lúc biên dịch, build có thể cần tùy chọn tương ứng ở compile-time.
-- Đây là giải pháp cấu hình hoặc migration, không nên thay cho requires trong descriptor chính thức nếu dependency ổn định.
+- --add-reads does not automatically export packages.
+- --add-reads does not create a new module or ensure the target module is resolved.
+- --add-reads does not modify module-info.class.
+- If the type is needed at compile time, the build may need the corresponding compile-time option.
+- This is a configuration or migration solution and should not replace requires in the official descriptor for stable dependencies.
 
-Có thể dùng đích đặc biệt ALL-UNNAMED trong một số tình huống interoperability để một named module đọc classpath, nhưng đây là lựa chọn tương thích cần quản lý cẩn thận.
+The special target ALL-UNNAMED can be used in certain interoperability scenarios so a named module can read the classpath, but this compatibility option should be managed carefully.
 
-## 20. --add-exports có thể mở package tạm thời
+## 20. --add-exports Can Open a Package Temporarily
 
-Cú pháp:
+Syntax:
 
 ~~~text
 --add-exports source.module/package=target.module
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --module-path mods \
@@ -732,22 +732,22 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Lệnh trên bổ sung export package internal cho app trong runtime. Nó không tự thêm reads edge.
+The command above adds an export of the internal package for app at runtime. It does not automatically add a reads edge.
 
-Muốn code app import internal type tại compile-time khi descriptor gốc chưa export, có thể cần cung cấp tùy chọn --add-exports tương ứng cho javac. Muốn package được mở cho deep reflection, xem --add-opens thay vì chỉ --add-exports.
+If app code needs to import an internal type at compile time when the original descriptor does not export it, you may need to pass the corresponding --add-exports option to javac. If the package needs to be opened for deep reflection, use --add-opens rather than only --add-exports.
 
-Dùng --add-exports có thể hữu ích với thư viện cũ hoặc kiểm thử đặc thù, nhưng việc export package internal rộng rãi làm tăng coupling và phụ thuộc vào chi tiết implementation.
+Using --add-exports can help with legacy libraries or specialized tests, yet broadly exporting internal packages increases coupling and dependence on implementation details.
 
-Nếu module API thực sự cần công khai cho consumer ổn định, hãy cân nhắc cập nhật module-info.java thay vì cố duy trì một bộ tùy chọn startup rời rạc.
+If a module API truly needs to be exposed to stable consumers, consider updating module-info.java rather than maintaining scattered startup flags.
 
-## 21. Kết hợp --add-reads và --add-exports
+## 21. Combining --add-reads and --add-exports
 
-Một tình huống migration có thể cần cả hai:
+A migration scenario may need both:
 
-- App chưa đọc dependency module.
-- Dependency module chưa export package được dùng.
+- App does not yet read the dependency module.
+- The dependency module does not yet export the used package.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ~~~bash
 java --module-path mods \
@@ -757,9 +757,9 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Bộ tùy chọn trên không thay đổi module descriptor trong JAR; nó điều chỉnh cấu hình runtime. Nếu source app được biên dịch dựa trên quan hệ này, cần cấu hình javac phù hợp từ trước.
+These options do not modify the module descriptors inside JARs; they adjust the runtime configuration. If app source was compiled relying on this relationship, javac had to be configured accordingly beforehand.
 
-Tuy nhiên, khi app thực sự có dependency trực tiếp và lâu dài, giải pháp kiến trúc thường là:
+However, when app genuinely has a direct, long-term dependency, the architectural solution is usually:
 
 ~~~java
 module com.acme.app {
@@ -767,7 +767,7 @@ module com.acme.app {
 }
 ~~~
 
-và module provider export package API theo chính sách thiết kế:
+and the provider module exports its API package according to design policy:
 
 ~~~java
 module com.acme.experiment {
@@ -775,11 +775,11 @@ module com.acme.experiment {
 }
 ~~~
 
-Điều này rõ ràng hơn, dễ bảo trì hơn và dễ phân tích bằng jdeps hoặc jar --describe-module.
+This is clearer, easier to maintain, and easier to analyze with jdeps or jar --describe-module.
 
-## 22. ServiceLoader và provider module không cần exports implementation
+## 22. ServiceLoader and Provider Modules That Need Not Export Implementations
 
-Trong kiến trúc plugin, consumer thường cần một service contract nhưng không cần import implementation class.
+In plugin architectures, consumers often need a service contract without needing to import the implementation class.
 
 Service API:
 
@@ -809,29 +809,29 @@ module com.acme.payment.card {
 }
 ~~~
 
-Provider module không cần exports com.acme.payment.card chỉ để ServiceLoader tạo instance. Consumer làm việc với type PaymentGateway từ API module, nên accessibility cần thiết nằm ở API package đã export.
+The provider module does not need to export com.acme.payment.card just for ServiceLoader to instantiate it. The consumer works with the PaymentGateway type from the API module, so the required accessibility is on the exported API package.
 
-Đây là ví dụ quan trọng về cách module readability và exports kết hợp với dependency inversion. App chỉ phụ thuộc vào hợp đồng service; provider có thể được đưa vào module layer qua resolution/service binding mà không cần app import class provider.
+This is an important example of how module readability and exports combine with dependency inversion. The app depends only on the service contract; the provider can be brought into the module layer via resolution/service binding without the app importing the provider class.
 
-Nếu app cố import CardGateway trực tiếp từ package không export, nó sẽ bị từ chối theo quy tắc package accessibility — dù ServiceLoader vẫn có thể khởi tạo provider phù hợp.
+If the app tries to import CardGateway directly from the unexported package, it will be rejected by package accessibility rules — even though ServiceLoader can still instantiate the matching provider.
 
-## 23. Cách quan sát module access
+## 23. How to Inspect Module Access
 
-Khi gặp lỗi, hãy đọc descriptor và quan sát resolution.
+When encountering an error, read the descriptors and observe resolution.
 
-Xem named module trong modular JAR:
+Inspect a named module in a modular JAR:
 
 ~~~bash
 jar --describe-module --file dist/com.acme.catalog.jar
 ~~~
 
-Xem descriptor đã biên dịch:
+Inspect a compiled descriptor:
 
 ~~~bash
 javap -v -p mods/com.acme.catalog/module-info.class
 ~~~
 
-Quan sát module resolution khi chạy:
+Observe module resolution when running:
 
 ~~~bash
 java --show-module-resolution \
@@ -839,7 +839,7 @@ java --show-module-resolution \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Có thể phân tích dependency tĩnh bằng jdeps:
+Static dependencies can be analyzed with jdeps:
 
 ~~~bash
 jdeps --list-deps \
@@ -847,135 +847,135 @@ jdeps --list-deps \
       --module com.acme.app
 ~~~
 
-Những công cụ này giúp trả lời:
+These tools help answer:
 
-- Module app có được phân giải không?
-- Module catalog có được phân giải không?
-- Descriptor app có requires catalog hay không?
-- Có cạnh requires transitive nào cung cấp readability gián tiếp?
-- Catalog export package nào và export cho những module nào?
-- App đang import đúng package API hay nhầm package internal?
+- Is the app module resolved?
+- Is the catalog module resolved?
+- Does the app descriptor have requires catalog?
+- Is there a requires transitive edge providing indirect readability?
+- Which packages does catalog export, and to which modules?
+- Is app importing the right API package or mistakenly importing an internal package?
 
-jdeps là phân tích tĩnh theo bytecode; nó không thay thế việc xem mọi service provider hoặc reflective dependency được nạp động lúc runtime.
+jdeps performs static bytecode analysis; it does not replace checking service providers or reflective dependencies loaded dynamically at runtime.
 
-## 24. Các lỗi thường gặp
+## 24. Common Errors
 
 ### module not found
 
-Ví dụ:
+Example:
 
 ~~~text
 module not found: com.acme.catalog
 ~~~
 
-Đây thường là lỗi module resolution hoặc compiler không tìm module dependency. Kiểm tra module path, tên module, modular JAR và output directory.
+This is usually a module resolution failure or the compiler cannot find the dependency module. Check the module path, module name, modular JAR, and output directory.
 
 ### module does not read
 
-Ví dụ:
+Example:
 
 ~~~text
 package com.acme.catalog.api is not visible
 (module com.acme.app does not read com.acme.catalog)
 ~~~
 
-Đây là lỗi readability. Kiểm tra requires của app, khả năng requires transitive phù hợp và các relation được bổ sung bởi runtime config.
+This is a readability error. Check app's requires declarations, possible appropriate requires transitive edges, and relations added by runtime config.
 
 ### package is not exported
 
-Ví dụ:
+Example:
 
 ~~~text
 package com.acme.catalog.internal is not visible
 (module com.acme.catalog does not export it)
 ~~~
 
-Đây là lỗi exports/accessibility. Kiểm tra chính sách public API và có nên sử dụng internal type không.
+This is an exports/accessibility error. Check the public API policy and whether the internal type should be used at all.
 
-### public class vẫn không truy cập được
+### Public class is still inaccessible
 
-Class public nằm trong package không export, hoặc module consumer không có readability. Kiểm tra đủ hai điều kiện JPMS; public đơn lẻ không đủ.
+The public class is in an unexported package, or the consumer module lacks readability. Check both JPMS conditions; public alone is not enough.
 
-### Package đã opens nhưng import vẫn lỗi
+### Package is opened yet import still fails
 
-opens phục vụ deep reflection, không phải cách thay thế exports để cho phép Java source import public type từ một module khác.
+opens serves deep reflection, not a replacement for exports to let Java source import public types from another module.
 
-### Framework báo InaccessibleObjectException
+### Framework reports InaccessibleObjectException
 
-Framework đang muốn deep reflection vào package chưa được open tới module framework. Cân nhắc qualified opens hoặc --add-opens với đúng package/module đích.
+The framework is attempting deep reflection on a package not yet opened to the framework module. Consider qualified opens or --add-opens with the exact target package and module.
 
-### ClassNotFoundException và NoClassDefFoundError
+### ClassNotFoundException and NoClassDefFoundError
 
-Đây thường là vấn đề class loading/linkage hoặc dependency runtime. Cần kiểm tra artifact có chứa class, module layer, class loader, version tương thích và module graph.
+These are typically class loading/linkage or runtime dependency issues. Check whether the artifact contains the class, module layer, class loader, compatible version, and module graph.
 
-### Tưởng --add-modules đã tạo readability
+### Assuming --add-modules creates readability
 
---add-modules bổ sung root module nhưng không tự thêm reads edge từ consumer tới module đó. Nếu import của consumer thiếu readability, cần chỉnh requires hoặc --add-reads đúng mục đích.
+--add-modules adds a root module but does not automatically add a reads edge from the consumer to that module. If the consumer's import lacks readability, adjust requires or --add-reads as appropriate.
 
-### Exports package sai tên
+### Exporting the wrong package name
 
-Exports phải chỉ định tên package thực sự nằm trong module. Tên module và tên package là hai định danh khác nhau; không export class theo tên đầy đủ.
+Exports must specify an actual package name inside the module. Module names and package names are distinct identifiers; do not export classes by fully qualified class name.
 
-## 25. Lộ trình thiết kế module access
+## 25. Roadmap for Designing Module Access
 
-Một quy trình thực tế:
+A practical workflow:
 
-1. Xác định **module sở hữu** mỗi API package.
-2. Đặt public API ổn định vào package riêng, không trộn với implementation.
-3. Export những package thật sự là hợp đồng cho consumer.
-4. Trong consumer, khai báo requires tới module được dùng trực tiếp.
-5. Dùng requires transitive khi public API của một module làm lộ type từ dependency.
-6. Dùng qualified exports cho integration có số lượng module đích kiểm soát được.
-7. Giữ package internal không export khi không có consumer hợp lệ.
-8. Dùng opens riêng cho framework deep reflection, không thay thế exports một cách tùy tiện.
-9. Kiểm tra output compiler và module path thực tế khi chạy.
-10. Dùng --show-module-resolution để phân biệt module chỉ observable với module đã resolved.
-11. Tránh duy trì --add-reads và --add-exports như cấu hình mặc định nếu có thể biểu diễn quan hệ bằng descriptor.
-12. Khi mở rộng service/provider, dùng SPI/ServiceLoader để tránh phụ thuộc trực tiếp vào implementation class.
+1. Identify the **owning module** of each API package.
+2. Place stable public APIs in dedicated packages, not mixed with implementation.
+3. Export only packages that genuinely form a contract for consumers.
+4. In consumers, declare requires to directly used modules.
+5. Use requires transitive when a module's public API exposes types from a dependency.
+6. Use qualified exports for integrations with a controlled set of target modules.
+7. Keep internal packages unexported when there is no valid external consumer.
+8. Use opens separately for framework deep reflection; do not casually substitute it for exports.
+9. Verify compiler output and the actual runtime module path.
+10. Use --show-module-resolution to distinguish merely observable modules from resolved modules.
+11. Avoid keeping --add-reads and --add-exports as permanent default configuration if relationships can be expressed in descriptors.
+12. When extending services/providers, use SPI/ServiceLoader to avoid direct dependence on implementation classes.
 
-Cách tiếp cận này giúp module graph phản ánh đúng hướng phụ thuộc, đồng thời package exports thể hiện chính xác API surface của từng module.
+This approach keeps the module graph accurately reflecting dependency direction while package exports accurately express each module's API surface.
 
-## 26. Bài tập thực hành
+## 26. Hands-on Exercises
 
-**Bài 1 — Thiếu requires**
+**Exercise 1 — Missing requires**
 
-Giữ catalog export api nhưng xóa requires com.acme.catalog trong app. Thử biên dịch app rồi giải thích vì sao package được export vẫn chưa đủ để import Product.
+Keep catalog exporting api, but remove requires com.acme.catalog in app. Try compiling app and explain why an exported package alone is still not enough to import Product.
 
-**Bài 2 — Thiếu exports**
+**Exercise 2 — Missing exports**
 
-Giữ app requires catalog, thử import ProductRepository từ package internal chưa export. Xác định lỗi nằm ở module readability hay package exports.
+Keep app requiring catalog, and try importing ProductRepository from the unexported internal package. Determine whether the error lies in module readability or package exports.
 
-**Bài 3 — Qualified exports**
+**Exercise 3 — Qualified exports**
 
-Tạo module com.acme.erp.bridge, thêm exports com.acme.catalog.integration to com.acme.erp.bridge và requires tương ứng. Kiểm tra bridge truy cập được public type trong package integration nhưng app thường không truy cập được.
+Create module com.acme.erp.bridge, add exports com.acme.catalog.integration to com.acme.erp.bridge and the corresponding requires. Verify that bridge can access public types in the integration package while regular app cannot.
 
-**Bài 4 — requires transitive**
+**Exercise 4 — requires transitive**
 
-Tạo module model và service, trong đó public API của service trả về type Customer của model. Đổi requires thành requires transitive ở service và xem app có thể sử dụng Customer khi chỉ requires service hay không.
+Create modules model and service where service's public API returns model's Customer type. Change requires to requires transitive in service and see whether app can use Customer when it only requires service.
 
-**Bài 5 — Reflection**
+**Exercise 5 — Reflection**
 
-Tạo entity với private field trong package không export. Thử dùng reflection qua một named module khác; quan sát sự khác nhau giữa exports, opens và --add-opens.
+Create an entity with a private field in an unexported package. Try using reflection from another named module; observe the difference between exports, opens, and --add-opens.
 
-**Bài 6 — Module có trên path**
+**Exercise 6 — Module present on path**
 
-Đặt thêm module com.acme.experiment vào mods nhưng không requires. Dùng --show-module-resolution để xác định nó đã được phân giải hay chưa; dùng --add-modules và đánh giá liệu app có tự đọc được experiment không.
+Place an extra module com.acme.experiment in mods without requiring it. Use --show-module-resolution to determine whether it is resolved; use --add-modules and evaluate whether app automatically reads experiment.
 
-Mục tiêu của các bài tập là nhận diện chính xác từng tầng: module resolution, readability, package exports và Java access modifier.
+The goal of these exercises is to identify each layer accurately: module resolution, readability, package exports, and Java access modifiers.
 
-## 27. Ghi nhớ
+## 27. Key Takeaways
 
-- Một named module muốn truy cập public type ở module khác cần **readability** tới module nguồn và **exports** phù hợp cho package chứa type.
-- requires là cạnh dependency/readability; exports là quyền truy cập package. Chúng **không thay thế nhau**.
-- Dù class public, nó vẫn không phải public API bên ngoài module nếu package không được export.
-- exports package áp dụng cho toàn package; không có cú pháp export riêng một class.
-- exports ... to giới hạn package cho những named module đích đã liệt kê; module đích vẫn cần đọc module nguồn.
-- requires transitive làm readability lan truyền khi một module cung cấp public API sử dụng type từ dependency.
-- requires static cho phép dependency compile-time có thể vắng mặt ở runtime, nhưng không bỏ qua quy tắc access và linkage.
-- opens/opens ... to phục vụ deep reflection, không phải cách thay requires hay exports trong source-level access.
-- Module xuất hiện trên module path chưa chắc đã được resolved hoặc readable từ một consumer.
-- --add-reads bổ sung quan hệ đọc tạm thời; --add-exports bổ sung quyền export package; --add-opens phục vụ deep reflection.
-- ServiceLoader có thể tạo provider mà package implementation không export, miễn service contract và metadata provider hợp lệ.
-- Khi chẩn đoán lỗi, hãy phân biệt module not found, module does not read, package not exported và reflection denied.
+- For a named module to access a public type in another module, it needs **readability** to the source module and an appropriate **exports** for the package containing the type.
+- requires is a dependency/readability edge; exports is package accessibility. They **do not replace each other**.
+- Even if a class is public, it is not a public API outside the module unless its package is exported.
+- exports package applies to the entire package; there is no syntax to export a single class.
+- exports ... to restricts the package to the listed target named modules; target modules must still read the source module.
+- requires transitive propagates readability when a module provides a public API that uses types from a dependency.
+- requires static allows a compile-time dependency to be absent at runtime, but does not bypass access and linkage rules.
+- opens/opens ... to serves deep reflection, not as a substitute for requires or exports in source-level access.
+- A module appearing on the module path is not necessarily resolved or readable by a consumer.
+- --add-reads adds a temporary reads relationship; --add-exports adds package export access; --add-opens serves deep reflection.
+- ServiceLoader can instantiate providers whose implementation packages are not exported, provided the service contract and provider metadata are valid.
+- When diagnosing errors, distinguish module not found, module does not read, package not exported, and reflection denied.
 
-**Kết luận:** Trong JPMS, tính truy cập không còn chỉ là câu hỏi class có public và có nằm trên classpath hay không. Module consumer phải đọc được module nguồn, package chứa type phải được export phù hợp, rồi access modifier Java tiếp tục áp dụng. Sự phối hợp giữa **readability và exports** tạo nên ranh giới API rõ ràng, cho phép module công khai những gì thực sự cần thiết trong khi vẫn giữ phần triển khai nội bộ được đóng gói kín.
+**Conclusion:** In JPMS, accessibility is no longer just a question of whether a class is public and on the classpath. The consumer module must read the source module, the package containing the type must be appropriately exported, and Java access modifiers continue to apply. The combination of **readability and exports** establishes clear API boundaries, allowing modules to expose what is genuinely needed while keeping internal implementations tightly encapsulated.

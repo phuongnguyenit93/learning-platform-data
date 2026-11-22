@@ -1,40 +1,40 @@
-# Khởi tạo record qua constructor thay vì sửa field final
+# Instantiating records via constructor instead of modifying final fields
 
-## 1. Record được hoàn thành ngay khi tạo
+## 1. A record is complete upon creation
 
-Một record mô tả dữ liệu bằng các **thành phần record (record component)** trong phần đầu khai báo. Mỗi thành phần tương ứng với một field instance `private final` và một phương thức truy cập.
+A record describes data using **record components** in its declaration header. Each component corresponds to a `private final` instance field and an accessor method.
 
-Ví dụ:
+Example:
 
 ~~~java
 record Member(String name, int level) {
 }
 ~~~
 
-Đây là một khai báo record, chưa phải chương trình có `main`. Constructor chuẩn của nó nhận lần lượt `String name` và `int level`.
+This is a record declaration, not a program with `main`. Its canonical constructor takes `String name` and `int level` in order.
 
-Một cách tạo đối tượng thường gặp với JavaBean là tạo trước rồi gán các thuộc tính. Cách suy nghĩ ấy không phù hợp với các component của record: dữ liệu phải được đưa qua constructor để đối tượng được khởi tạo đầy đủ.
+A common object-creation pattern with JavaBeans is creating an object first and assigning properties afterward. That mindset does not fit record components: data must be passed through the constructor so the object is fully initialized.
 
-Khi chỉ biết lớp record lúc chạy, Reflection vẫn thực hiện cùng mô hình:
+When the record class is only known at runtime, Reflection still follows the same model:
 
-1. Đọc các component theo thứ tự khai báo.
-2. Xác định constructor chuẩn.
-3. Chuẩn bị đầy đủ đối số.
-4. Gọi constructor để nhận một record mới.
+1. Read the components in declaration order.
+2. Identify the canonical constructor.
+3. Prepare all arguments.
+4. Invoke the constructor to obtain a new record.
 
-Đừng dùng ghi field final như bước “hoàn thiện” một record đã được tạo. Ngoài giới hạn của API Reflection, cách đó còn bỏ qua nơi tập trung các quy tắc kiểm tra và chuẩn hóa dữ liệu.
+Do not use writing to a `final` field as a step to "finish" an already-created record. Beyond Reflection API restrictions, that approach also bypasses the place where data validation and normalization rules are concentrated.
 
-## 2. Constructor chuẩn và compact constructor
+## 2. Canonical constructor and compact constructor
 
-**Constructor chuẩn (canonical constructor)** có các kiểu tham số tương ứng với component, giữ nguyên thứ tự trong phần đầu record.
+The **canonical constructor** has parameter types corresponding to the components, preserving the order in the record header.
 
-Với `record Member(String name, int level)`, danh sách kiểu là:
+For `record Member(String name, int level)`, the type list is:
 
 ~~~text
 String.class, int.class
 ~~~
 
-Record có thể khai báo constructor chuẩn bằng dạng đầy đủ hoặc dạng rút gọn, gọi là **compact constructor**. Dạng rút gọn thích hợp cho kiểm tra và chuẩn hóa tham số:
+A record can declare its canonical constructor in full form or in a shorthand form called a **compact constructor**. The compact form is suitable for parameter validation and normalization:
 
 ~~~java
 public record Member(String name, int level) {
@@ -50,19 +50,19 @@ public record Member(String name, int level) {
 }
 ~~~
 
-Đây là một khai báo minh họa độc lập với khai báo ngắn ở phần trước; không đặt cả hai cùng tên trong một phạm vi.
+This is a standalone illustrative declaration separate from the short declaration in the previous section; do not place both with the same name in the same scope.
 
-Trong phần thân compact constructor, `name` và `level` là các tham số ngầm định. Có thể gán lại tham số để chuẩn hóa. Sau khi phần thân kết thúc bình thường, mã do compiler cung cấp sẽ khởi tạo các field từ các tham số tương ứng.
+Inside the compact constructor body, `name` and `level` are implicit parameters. You can reassign the parameters to normalize them. After the body completes normally, compiler-provided code initializes the fields from the corresponding parameters.
 
-Không viết `this.name = ...` trong compact constructor để tự gán component field. Nếu dùng dạng constructor chuẩn đầy đủ, quy tắc viết phần gán có khác; không trộn hai cách khai báo.
+Do not write `this.name = ...` in a compact constructor to assign component fields manually. If you use the full canonical constructor form, the assignment rules differ; do not mix the two declaration styles.
 
-Reflection tìm thấy constructor chuẩn với cùng danh sách kiểu dù nó được khai báo dưới dạng compact. Gọi constructor này vẫn chạy toàn bộ kiểm tra và chuẩn hóa.
+Reflection finds the canonical constructor with the same parameter type list even when it is declared in compact form. Invoking this constructor still runs all validation and normalization checks.
 
-Record không tự được cấp một constructor mặc định không tham số theo quy tắc của lớp thông thường. Nếu có constructor khác do tác giả viết, nó phải đi qua chuỗi constructor hợp lệ của record. Vì thế, không giả định mọi record đều có thể được tạo bằng một lời gọi không đối số rồi điền dữ liệu sau.
+Records are not automatically given a default no-argument constructor according to the rules for ordinary classes. If another author-written constructor exists, it must delegate through a valid record constructor chain. Therefore, do not assume every record can be instantiated with a no-argument call and populated later.
 
-## 3. Ví dụ chạy được: tìm và gọi constructor chuẩn
+## 3. Runnable example: finding and invoking the canonical constructor
 
-Lưu thành `RecordConstructorDemo.java`:
+Save as `RecordConstructorDemo.java`:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -130,14 +130,14 @@ public class RecordConstructorDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 RecordConstructorDemo.java
 java RecordConstructorDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 components=name,level
@@ -149,23 +149,23 @@ constructorCause=IllegalArgumentException:name is blank
 arguments=IllegalArgumentException
 ~~~
 
-Các điểm cần quan sát:
+Points to observe:
 
-- `getRecordComponents()` trả component theo thứ tự phần đầu record. Không cần đoán từ thứ tự field.
-- `getType()` cung cấp kiểu để tìm đúng constructor: component `int` cần `int.class`, không phải `Integer.class`.
-- `newInstance(" Lan ", 3)` chạy compact constructor, nên tên nhận được là `Lan`.
-- Chuỗi chỉ có khoảng trắng bị constructor từ chối. Lỗi từ phần thân constructor được bọc trong `InvocationTargetException`.
-- Chuỗi `"3"` không tự chuyển thành số `int`. Đây là lỗi đối số Reflection, được báo bằng `IllegalArgumentException` trước khi có một lời gọi constructor hợp lệ.
+- `getRecordComponents()` returns components in the order of the record header. No need to guess from field order.
+- `getType()` provides the types to find the right constructor: an `int` component needs `int.class`, not `Integer.class`.
+- `newInstance(" Lan ", 3)` executes the compact constructor, so the resulting name is `Lan`.
+- A whitespace-only string is rejected by the constructor. Errors from the constructor body are wrapped in `InvocationTargetException`.
+- The string `"3"` is not automatically converted to an `int` number. This is a Reflection argument error, reported with `IllegalArgumentException` before a valid constructor call occurs.
 
-Tìm constructor và truyền đối số là hai bước có quy tắc khác nhau. Tìm kiếm dùng các đối tượng `Class` của kiểu khai báo chính xác; lúc gọi, Reflection có thể mở hộp giá trị `Integer` để truyền cho tham số `int`, như số `3` trong ví dụ.
+Looking up the constructor and passing arguments are two steps with different rules. Lookup uses the `Class` objects of the exact declared types; at invocation time, Reflection can unbox an `Integer` value to pass to an `int` parameter, such as the number `3` in the example.
 
-## 4. Tên component quyết định vị trí đối số khi đầu vào là Map
+## 4. Component names determine argument positions when input is a Map
 
-Constructor chuẩn gắn với thứ tự component trong header. Nếu có `record Address(String city, String street) {}`, đảo hai chuỗi vẫn đúng kiểu nhưng lại tạo địa chỉ sai nghĩa. Với dữ liệu đầu vào có tên thuộc tính, hãy chọn giá trị theo **tên component**, rồi đặt vào đúng chỉ số:
+The canonical constructor is tied to component order in the header. If you have `record Address(String city, String street) {}`, swapping the two strings is still type-valid yet produces an address with the wrong meaning. With input data that has property names, pick values by **component name**, then place them at the exact index:
 
 ~~~java
-// Mảnh mã trong một phương thức: type là Class<?> của record,
-// source là Map<String, ?>; đã kiểm tra type.isRecord().
+// Code snippet inside a method: type is the record's Class<?>,
+// source is a Map<String, ?>; type.isRecord() has already been checked.
 RecordComponent[] components = type.getRecordComponents();
 Object[] arguments = new Object[components.length];
 for (int i = 0; i < components.length; i++) {
@@ -177,17 +177,17 @@ for (int i = 0; i < components.length; i++) {
 }
 ~~~
 
-Đoạn này chỉ chuẩn bị đối số. Phần tìm và gọi canonical constructor theo `RecordComponent.getType()` đã được minh họa ở phần 3; một mapper hoàn chỉnh còn phải kiểm tra khóa lạ và chuyển đổi giá trị cho đúng kiểu trước khi gọi.
+This snippet only prepares the arguments. Looking up and invoking the canonical constructor using `RecordComponent.getType()` was illustrated in section 3; a complete mapper must also check for unknown keys and convert values to the right types before invoking.
 
-Không lấy `source.values().toArray()` làm đối số: thứ tự duyệt Map không phải hợp đồng thứ tự của header record. `containsKey` cũng giúp phân biệt thiếu tên với một khóa có mặt nhưng mang giá trị `null`. Nếu component có kiểu primitive thì `null` không thể làm đối số hợp lệ; còn `null` ở kiểu tham chiếu có thể bị chính constructor từ chối.
+Do not take `source.values().toArray()` as arguments: Map iteration order is not the ordering contract of a record header. `containsKey` also distinguishes a missing name from a key that is present with a `null` value. If a component has a primitive type, `null` cannot be a valid argument; whereas `null` for a reference type may be rejected by the constructor itself.
 
-## 5. Vì sao setAccessible(true) không giải quyết field final của record?
+## 5. Why does setAccessible(true) not resolve record final fields?
 
-Field final được khai báo trong record thuộc nhóm **final không thể sửa bằng Field.set** theo hợp đồng Reflection. `setAccessible(true)` không biến chúng thành field ghi được.
+Final fields declared in a record belong to the group of **final fields that cannot be modified by Field.set** according to the Reflection contract. `setAccessible(true)` does not turn them into writable fields.
 
-Cờ accessible liên quan đến kiểm tra quyền truy cập Java. Quyền truy cập và khả năng sửa một field final của record là hai điều kiện khác nhau.
+The accessible flag relates to Java access control checks. Access permission and modifiability of a record's final field are two different conditions.
 
-Lưu thành `RecordFinalFieldDemo.java`:
+Save as `RecordFinalFieldDemo.java`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -215,14 +215,14 @@ public class RecordFinalFieldDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 RecordFinalFieldDemo.java
 java RecordFinalFieldDemo
 ~~~
 
-Kết quả trên JDK 17:
+Output on JDK 17:
 
 ~~~text
 read=before
@@ -230,15 +230,15 @@ write=IllegalAccessException
 value=before
 ~~~
 
-Ví dụ được đặt trong cùng lớp ngoài để việc bật truy cập không bị vướng ranh giới module của thư viện khác. Dù bật thành công và đọc được field, thao tác ghi vẫn bị từ chối.
+The example is placed in the same outer class so enabling accessibility does not hit another library's module boundaries. Even when accessibility is enabled and the field can be read, the write operation is still rejected.
 
-Không diễn giải lỗi này là “cần gọi setAccessible thêm lần nữa”. Với record, hướng khởi tạo đúng là tìm và gọi constructor phù hợp. Nếu cần dữ liệu khác, tạo một record mới qua constructor để các quy tắc của record tiếp tục được áp dụng.
+Do not interpret this error as "needing to call setAccessible one more time." With records, the right initialization path is finding and invoking the appropriate constructor. If different data is needed, create a new record through the constructor so the record's rules continue to be enforced.
 
-## 6. Cập nhật dữ liệu bằng cách tạo giá trị mới
+## 6. Updating data by creating a new value
 
-Một record biểu diễn một tập dữ liệu đã được khởi tạo. Nếu muốn đổi một component, hãy tạo giá trị mới, giữ lại các component còn lại cần thiết.
+A record represents an already-initialized set of data. If you want to change a component, create a new value, keeping the remaining components as needed.
 
-Đoạn sau là một phương thức đặt trong phạm vi `RecordConstructorDemo`, sử dụng record `Member` của ví dụ đầu:
+The following snippet is a method placed in the scope of `RecordConstructorDemo`, using the `Member` record from the first example:
 
 ~~~java
 static Member withLevel(Member current, int nextLevel) {
@@ -246,50 +246,50 @@ static Member withLevel(Member current, int nextLevel) {
 }
 ~~~
 
-Lời gọi vẫn đi qua constructor, nên `nextLevel < 1` bị từ chối. Đối tượng `current` giữ giá trị cũ.
+The call still goes through the constructor, so `nextLevel < 1` is rejected. The `current` object keeps its old value.
 
-Nếu kiểu chỉ được biết lúc chạy, nguyên tắc vẫn như vậy: lấy dữ liệu hiện có bằng accessor phù hợp, thay giá trị đầu vào cần đổi, sắp theo component và gọi constructor chuẩn để tạo đối tượng mới. Không sửa trực tiếp field của đối tượng cũ.
+If the type is only known at runtime, the principle is the same: retrieve existing data using the appropriate accessors, replace the input value to be changed, order by components, and invoke the canonical constructor to create a new object. Do not directly mutate fields of the old object.
 
-Điểm này có ý nghĩa với các **điều kiện luôn phải đúng (invariant)**. Ví dụ record của một khoảng thời gian có thể yêu cầu thời điểm bắt đầu không sau thời điểm kết thúc. Đưa toàn bộ dữ liệu qua constructor cho phép kiểm tra quan hệ giữa các component trước khi trả về một đối tượng hợp lệ.
+This matters for **invariants**. For example, a time-range record might require the start instant not to be after the end instant. Passing all data through the constructor allows checking relationships between components before returning a valid object.
 
-Constructor không tự tạo ra các quy tắc nghiệp vụ: tác giả record phải viết chúng nếu cần. Reflection chỉ bảo đảm lời gọi đi qua phần constructor được chọn, không tự biết dữ liệu nào có ý nghĩa trong ứng dụng.
+Constructors do not automatically create business rules: the record's author must write them if needed. Reflection only guarantees the call goes through the chosen constructor; it does not know on its own what data makes sense in the application.
 
-## 7. Các chi tiết dễ gây lỗi khi gọi constructor
+## 7. Details that easily cause errors when calling constructors
 
-### 7.1. Tìm đúng kiểu khai báo
+### 7.1. Finding the exact declared type
 
-`getDeclaredConstructor` và `getConstructor` tìm theo danh sách kiểu tham số, không tìm “gần đúng”. Với component `int level`, tìm bằng `Integer.class` sẽ không tìm thấy constructor chuẩn ấy.
+`getDeclaredConstructor` and `getConstructor` search by the parameter type list, not by "close match." For an `int level` component, searching with `Integer.class` will not find that canonical constructor.
 
-Khi gọi `Constructor.newInstance`, giá trị primitive được biểu diễn trong `Object[]` bằng đối tượng đóng hộp. Reflection hỗ trợ các chuyển đổi lời gọi phù hợp, nhưng không phải một bộ chuyển đổi tùy ý từ chuỗi hoặc mọi loại số.
+When invoking `Constructor.newInstance`, primitive values are represented in `Object[]` by boxed objects. Reflection supports appropriate invocation conversions, but it is not an arbitrary converter from strings or every numeric type.
 
-Ví dụ `Integer` có thể được mở hộp cho `int`; `null` không thể cung cấp giá trị cho tham số `int`. Không dựa vào Reflection để tự phân tích `"42"` thành số.
+For example, `Integer` can be unboxed for `int`; `null` cannot provide a value for an `int` parameter. Do not rely on Reflection to automatically parse `"42"` into a number.
 
-### 7.2. Một component kiểu mảng vẫn là một đối số
+### 7.2. An array-typed component is still one argument
 
-`Constructor.newInstance` nhận `Object...`. Nếu record có một component `String[]`, cần tránh vô tình truyền các phần tử của mảng thành nhiều đối số.
+`Constructor.newInstance` takes `Object...`. If a record has a `String[]` component, avoid accidentally passing the array's elements as multiple arguments.
 
-Ví dụ minh họa trong một phương thức có constructor phù hợp:
+Illustrative example inside a method that has a matching constructor:
 
 ~~~java
 Object[] arguments = {new String[] {"A", "B"}};
 Object record = constructor.newInstance(arguments);
 ~~~
 
-Biến `constructor` ở đây là `Constructor<?>` của record có đúng một component `String[]`. Mảng ngoài có một ô, nên lời gọi nhận đúng một đối số là mảng chuỗi.
+The `constructor` variable here is a `Constructor<?>` of a record with a single `String[]` component. The outer array has one slot, so the call receives exactly one argument, which is the string array.
 
-Cách xây `Object[] arguments` theo component ở ví dụ ánh xạ Map cũng giữ đúng cấu trúc này. Với component varargs trong phần đầu record, constructor chuẩn vẫn có tham số kiểu mảng tương ứng; chuẩn bị một giá trị mảng ở vị trí đối số ấy.
+Building `Object[] arguments` by component in the Map-mapping example also preserves this structure. For a varargs component in the record header, the canonical constructor still has the corresponding array-typed parameter; prepare one array value at that argument position.
 
-### 7.3. Tìm thấy constructor chưa đồng nghĩa với được phép gọi
+### 7.3. Finding a constructor does not mean permission to invoke it
 
-`getDeclaredConstructor` có thể tìm constructor không public, nhưng lời gọi vẫn chịu kiểm tra truy cập. Record và constructor trong ví dụ đầu đều public, nên không cần tắt kiểm tra truy cập.
+`getDeclaredConstructor` can find non-public constructors, yet the call is still subject to access checks. The record and constructor in the first example are both public, so disabling access checks is unnecessary.
 
-Với kiểu không public hoặc ranh giới module khác, cần thiết kế đường truy cập hợp lệ của thư viện hoặc dùng API tạo đối tượng được cung cấp. Không lấy việc nhìn thấy metadata làm bằng chứng rằng mọi nơi gọi đều có quyền khởi tạo.
+With non-public types or different module boundaries, design a valid access path for the library or use a provided factory API. Do not treat seeing metadata as proof that every call site has permission to instantiate.
 
-### 7.4. Final của component không phải bất biến sâu
+### 7.4. Component finality is not deep immutability
 
-Nếu một component giữ tham chiếu đến một collection có thể thay đổi, `final` không tự làm collection ấy bất biến. Constructor có thể tạo bản sao phù hợp nếu hợp đồng record cần giữ dữ liệu ổn định.
+If a component holds a reference to a mutable collection, `final` does not automatically make that collection immutable. The constructor can make an appropriate copy if the record contract needs to keep data stable.
 
-Ví dụ khai báo, với import `java.util.List`:
+Illustrative declaration, with `import java.util.List`:
 
 ~~~java
 record Team(List<String> members) {
@@ -299,43 +299,43 @@ record Team(List<String> members) {
 }
 ~~~
 
-Bước sao chép được thực hiện khi đi qua constructor, kể cả khi gọi bằng Reflection. Đây là một lý do nữa để đặt việc chuẩn hóa dữ liệu tại đường khởi tạo, thay vì tìm cách gán field sau đó. `List.copyOf` không phải phép sao chép sâu mọi đối tượng có thể nằm trong một cấu trúc dữ liệu.
+The copying step runs when going through the constructor, including when called via Reflection. This is another reason to place data normalization on the initialization path rather than trying to assign fields afterward. `List.copyOf` is not a deep copy of every object that might reside inside a data structure.
 
-## 8. Phân biệt các nhóm lỗi
+## 8. Distinguishing error categories
 
-| Lỗi | Ý nghĩa thường gặp trong luồng này |
+| Error | Common meaning in this flow |
 | --- | --- |
-| `NoSuchMethodException` | Danh sách kiểu không khớp constructor, hoặc tìm public constructor nhưng không có constructor public tương ứng |
-| `IllegalAccessException` khi gọi constructor | Không được phép truy cập constructor từ nơi gọi |
-| `IllegalArgumentException` từ Reflection | Sai số đối số hoặc giá trị không chuyển được sang kiểu tham số |
-| `InvocationTargetException` | Constructor đã được gọi và phần thân ném ngoại lệ; xem `getCause()` |
-| `IllegalAccessException` từ `Field.set` trên component final | Đang dùng đường ghi field không được hỗ trợ cho record |
+| `NoSuchMethodException` | The type list does not match a constructor, or searching for a public constructor when no matching public constructor exists |
+| `IllegalAccessException` when invoking a constructor | Not permitted to access the constructor from the call site |
+| `IllegalArgumentException` from Reflection | Wrong argument count or a value cannot be converted to the parameter type |
+| `InvocationTargetException` | The constructor was invoked and its body threw an exception; inspect `getCause()` |
+| `IllegalAccessException` from `Field.set` on a final component | Using a field-write path unsupported for records |
 
-Nếu constructor từ chối dữ liệu, không nên bỏ qua lỗi rồi cố tạo đối tượng bằng ghi field. Điều đó làm mất chính điều kiện mà record đang bảo vệ.
+If the constructor rejects data, do not ignore the error and attempt to create the object by writing fields. That defeats the exact constraint the record is protecting.
 
-Khi báo lỗi trong một bộ ánh xạ dữ liệu, nên giữ được tên record, tên component liên quan khi xác định được và nguyên nhân gốc từ constructor. Không thay mọi lỗi bằng một thông báo chung khiến người dùng không biết đang sai kiểu hay sai quy tắc dữ liệu.
+When reporting errors in a data mapper, preserve the record name, the relevant component name when identifiable, and the root cause from the constructor. Do not replace every error with a single generic message that leaves users unsure whether a type or a data rule failed.
 
-## 9. Tự kiểm tra
+## 9. Self-check
 
-1. Vì sao dùng `getRecordComponents()` để xây danh sách tham số constructor chuẩn thay vì dùng thứ tự `getDeclaredFields()`?
-2. Với component `int`, tìm constructor bằng `Integer.class` có đúng không?
-3. Nếu compact constructor loại bỏ khoảng trắng trong tên, lời gọi bằng Reflection có thực hiện bước đó không?
-4. `InvocationTargetException` khác gì với `IllegalArgumentException` do sai kiểu đối số?
-5. Bật `setAccessible(true)` thành công có cho phép sửa field final của record không?
-6. Muốn một component có giá trị mới, nên sửa đối tượng cũ hay tạo đối tượng mới?
+1. Why use `getRecordComponents()` to build the canonical constructor parameter list instead of using `getDeclaredFields()` order?
+2. For an `int` component, is looking up the constructor with `Integer.class` right?
+3. If a compact constructor strips whitespace from a name, does calling via Reflection execute that step?
+4. How does `InvocationTargetException` differ from `IllegalArgumentException` caused by wrong argument types?
+5. Does successfully enabling `setAccessible(true)` allow modifying a record's `final` field?
+6. When wanting a component to have a new value, should you mutate the old object or create a new object?
 
-Đáp án:
+Answers:
 
-1. Component có hợp đồng thứ tự theo phần đầu record; thứ tự field Reflection không phải nguồn để suy ra thứ tự constructor.
-2. Không; tìm theo `int.class`. Việc mở hộp giá trị lúc gọi là quy tắc khác.
-3. Có; `Constructor.newInstance` thực sự gọi constructor.
-4. Ngoại lệ thứ nhất bọc lỗi từ phần thân constructor; lỗi đối số có thể ngăn lời gọi hợp lệ diễn ra ngay từ đầu.
-5. Không; component field final của record không trở thành field ghi được qua `Field.set`.
-6. Tạo đối tượng mới qua constructor, giữ lại các component khác và áp dụng lại kiểm tra cần thiết.
+1. Components have an ordering contract from the record header; Reflection field order is not a source for inferring constructor order.
+2. No; search by `int.class`. Unboxing values at invocation time is a different rule.
+3. Yes; `Constructor.newInstance` actually invokes the constructor.
+4. The first exception wraps an error from the constructor body; an argument error can prevent a valid invocation from taking place at all.
+5. No; a record's `final` component field does not become writable through `Field.set`.
+6. Create a new object through the constructor, keeping the other components and reapplying necessary checks.
 
-## Tài liệu đối chiếu
+## References
 
-- [JLS 17 — Constructor của record và compact constructor](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10.4).
-- [Java 17 — Class.getRecordComponents và tìm constructor chuẩn](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getRecordComponents()).
+- [JLS 17 — Record Constructors and Compact Constructors](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10.4).
+- [Java 17 — Class.getRecordComponents and finding the canonical constructor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getRecordComponents()).
 - [Java 17 — Constructor.newInstance](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)).
-- [Java 17 — AccessibleObject và final field không thể sửa](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html#setAccessible(boolean)).
+- [Java 17 — AccessibleObject and unmodifiable final fields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html#setAccessible(boolean)).

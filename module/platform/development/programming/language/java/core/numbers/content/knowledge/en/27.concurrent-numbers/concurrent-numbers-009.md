@@ -1,10 +1,10 @@
-# Atomic không có nghĩa tự phát hiện tràn số trong Java
+# Atomic Does Not Mean Automatic Overflow Detection in Java
 
-## 1. Vấn đề: thao tác nguyên tử vẫn có thể trả về giá trị sai về mặt nghiệp vụ
+## 1. The Problem: An Atomic Operation Can Still Return a Business-Invalid Value
 
-Trong môi trường nhiều luồng, chúng ta dùng `AtomicInteger` hoặc `AtomicLong` để cập nhật bộ đếm mà không bị mất lượt tăng do các phép đọc–sửa–ghi xen kẽ. Nhưng **atomic (nguyên tử) chỉ mô tả cách các luồng quan sát một thao tác cập nhật; nó không đảm bảo phép toán số học có kiểm tra tràn**.
+In a multithreaded environment, we use `AtomicInteger` or `AtomicLong` to update counters without losing increments to interleaved read–modify–write operations. However, **atomic only describes how threads observe an update operation; it does not guarantee checked arithmetic against overflow**.
 
-Ví dụ, bộ đếm `AtomicInteger` ở giá trị lớn nhất:
+For example, an `AtomicInteger` counter at its maximum value:
 
 ~~~java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,26 +13,26 @@ AtomicInteger counter = new AtomicInteger(Integer.MAX_VALUE);
 System.out.println(counter.incrementAndGet()); // -2147483648
 ~~~
 
-Không có `ArithmeticException` nào được tự động ném. Giá trị `int` vượt giới hạn đã **quấn vòng** (*wrap around*) về `Integer.MIN_VALUE`, và thao tác tăng vẫn được thực hiện theo cơ chế nguyên tử. Một bộ đếm số yêu cầu không âm có thể bất ngờ thành số âm mặc dù hoàn toàn không gặp *lost update*.
+No `ArithmeticException` is automatically thrown. The out-of-range `int` value **wraps around** to `Integer.MIN_VALUE`, and the increment still executes atomically. A counter required to stay non-negative can unexpectedly turn negative even though no *lost update* occurred at all.
 
-Sau bài này, bạn cần phân biệt ba yêu cầu:
+After this lesson, you should distinguish three requirements:
 
-1. **Atomicity**: không để hai luồng giẫm lên cùng một cập nhật.
-2. **Overflow detection**: phát hiện kết quả không biểu diễn được trong kiểu `int`/`long`.
-3. **Business policy**: sau khi phát hiện tràn, hệ thống phải báo lỗi, từ chối cập nhật, bão hòa tại giới hạn hay chuyển sang miền số lớn hơn.
+1. **Atomicity**: preventing two threads from clobbering the same update.
+2. **Overflow detection**: detecting when a result cannot be represented in `int`/`long`.
+3. **Business policy**: after detecting overflow, whether the system should fail with an error, reject the update, saturate at the limit, or move to a larger numeric range.
 
-Một cấu trúc `Atomic*` mặc định chỉ giải quyết yêu cầu thứ nhất. Hai yêu cầu còn lại là trách nhiệm thiết kế của ứng dụng.
+By default, an `Atomic*` construct addresses only the first requirement. The remaining two are application design responsibilities.
 
-## 2. Cơ chế tràn số nguyên của Java
+## 2. Java's Integer Overflow Mechanism
 
-Kiểu nguyên có dấu trong Java có giới hạn cố định:
+Signed integer types in Java have fixed bounds:
 
-| Kiểu | Độ rộng | Giá trị nhỏ nhất | Giá trị lớn nhất |
+| Type | Width | Minimum value | Maximum value |
 | --- | ---: | ---: | ---: |
-| `int` | 32 bit | `-2_147_483_648` | `2_147_483_647` |
-| `long` | 64 bit | `-9_223_372_036_854_775_808` | `9_223_372_036_854_775_807` |
+| `int` | 32-bit | `-2_147_483_648` | `2_147_483_647` |
+| `long` | 64-bit | `-9_223_372_036_854_775_808` | `9_223_372_036_854_775_807` |
 
-Với phép cộng/trừ số nguyên thông thường, khi kết quả toán học nằm ngoài miền biểu diễn, phần bit kết quả được giữ theo phép toán số nguyên Java và diễn giải lại theo kiểu có dấu. Ví dụ:
+With ordinary integer addition/subtraction, when the mathematical result falls outside the representable range, the resulting low-order bits are kept per Java integer arithmetic and reinterpreted as signed. For example:
 
 ~~~java
 int x = Integer.MAX_VALUE;
@@ -42,9 +42,9 @@ long y = Long.MIN_VALUE;
 System.out.println(y - 1L); // 9223372036854775807
 ~~~
 
-Đây là **kết quả quy định của ngôn ngữ**, không phải hành vi bất định và không phải ngoại lệ tự động.
+This is **language-specified behavior**, not undefined behavior and not an automatic exception.
 
-Các method atomic dùng cùng miền giá trị và không làm cho số nguyên trở thành vô hạn:
+Atomic methods use the same value range and do not make integers unbounded:
 
 ~~~java
 AtomicInteger a = new AtomicInteger(Integer.MAX_VALUE);
@@ -52,41 +52,41 @@ int old = a.getAndIncrement();  // old = 2147483647
 int now = a.get();              // now = -2147483648
 ~~~
 
-Điểm dễ gây nhầm: `getAndIncrement()` trả **giá trị trước khi tăng**, nên lần gọi làm tràn có thể trả về một số trông vẫn hợp lệ trong khi **trạng thái đã bị thay đổi thành số âm**. Ngược lại, `incrementAndGet()` trả ngay giá trị mới đã tràn.
+A subtle point of confusion: `getAndIncrement()` returns **the pre-increment value**, so the call that causes overflow can return a seemingly valid number while **the stored state has already turned negative**. By contrast, `incrementAndGet()` immediately returns the newly overflowed value.
 
-Tương tự, `AtomicLong.addAndGet(1L)`, `getAndAdd(...)`, `decrementAndGet()` và các biến thể khác vẫn có thể làm tràn tại biên của `long` nếu sử dụng phép toán số nguyên thông thường.
+Similarly, `AtomicLong.addAndGet(1L)`, `getAndAdd(...)`, `decrementAndGet()`, and other variants can still overflow at `long` boundaries because they use ordinary integer arithmetic.
 
-## 3. Atomicity bảo đảm điều gì, và không bảo đảm điều gì?
+## 3. What Does Atomicity Guarantee, and What Does It Not Guarantee?
 
-Đối với `AtomicInteger` hoặc `AtomicLong`, các phương thức cập nhật nguyên tử bảo đảm mỗi cập nhật quan sát được theo cơ chế nhất quán của biến atomic: một phép `incrementAndGet` không bị tách thành thao tác đọc và ghi độc lập mà luồng khác có thể xen vào làm mất một increment.
+For `AtomicInteger` or `AtomicLong`, atomic update methods ensure each update is observed under the atomic variable's consistency mechanism: an `incrementAndGet` is not split into independent read and write operations where another thread can interleave and lose an increment.
 
-Nếu 4 luồng, mỗi luồng gọi `incrementAndGet()` 10.000 lần trên cùng một bộ đếm khởi đầu ở 0, tổng cuối cùng là 40.000 **nếu không có ngoại lệ hoặc tràn** và tất cả cập nhật hoàn thành.
+If 4 threads each call `incrementAndGet()` 10,000 times on the same counter starting at 0, the final total is 40,000 **provided no exception or overflow occurs** and all updates complete.
 
-Tuy nhiên, atomicity **không cung cấp**:
+However, atomicity **does not provide**:
 
-- Tự phát hiện tràn `int`/`long`.
-- Tự chứng minh giá trị luôn không âm hoặc luôn nằm trong một miền nghiệp vụ.
-- Tự chặn việc ai đó sử dụng `set(...)` để gán giá trị ngoài chính sách.
-- Một giao dịch nguyên tử xuyên nhiều biến atomic độc lập, nhiều bảng database hoặc nhiều service.
-- Bất kỳ bảo đảm nào rằng giá trị đọc được giữa các lần cập nhật vẫn là snapshot bất biến.
+- Automatic `int`/`long` overflow detection.
+- Automatic proof that the value stays non-negative or within a business range.
+- Automatic prevention of someone calling `set(...)` with an out-of-policy value.
+- An atomic transaction spanning multiple independent atomic variables, multiple database tables, or multiple services.
+- Any guarantee that a value read between updates remains an immutable snapshot.
 
-Nói cách khác, `AtomicInteger` có thể thực hiện một cách hoàn hảo phép cộng 1 theo kiểu `int`, nhưng **kết quả kiểu `int`** có thể khác kết quả số nguyên toán học bạn mong muốn.
+In other words, `AtomicInteger` can flawlessly perform `int` addition by 1, yet **the `int` result** can differ from the mathematical integer result you intended.
 
-## 4. Cách phát hiện tràn: `Math.addExact` và các hàm *Exact*
+## 4. How to Detect Overflow: `Math.addExact` and the *Exact* Functions
 
-Java cung cấp các hàm kiểm tra tràn trong `java.lang.Math`:
+Java provides overflow-checking functions in `java.lang.Math`:
 
-| Hàm | Mục đích | Khi ngoài miền |
+| Function | Purpose | When out of range |
 | --- | --- | --- |
-| `Math.addExact(a, b)` | Cộng `int` hoặc `long` có kiểm tra | `ArithmeticException` |
-| `Math.subtractExact(a, b)` | Trừ có kiểm tra | `ArithmeticException` |
-| `Math.multiplyExact(a, b)` | Nhân có kiểm tra | `ArithmeticException` |
-| `Math.incrementExact(x)` | Tăng 1 có kiểm tra | `ArithmeticException` |
-| `Math.decrementExact(x)` | Giảm 1 có kiểm tra | `ArithmeticException` |
-| `Math.negateExact(x)` | Đổi dấu có kiểm tra | `ArithmeticException` |
-| `Math.toIntExact(longValue)` | Chuyển `long` sang `int` có kiểm tra miền | `ArithmeticException` |
+| `Math.addExact(a, b)` | Checked `int` or `long` addition | `ArithmeticException` |
+| `Math.subtractExact(a, b)` | Checked subtraction | `ArithmeticException` |
+| `Math.multiplyExact(a, b)` | Checked multiplication | `ArithmeticException` |
+| `Math.incrementExact(x)` | Checked increment by 1 | `ArithmeticException` |
+| `Math.decrementExact(x)` | Checked decrement by 1 | `ArithmeticException` |
+| `Math.negateExact(x)` | Checked negation | `ArithmeticException` |
+| `Math.toIntExact(longValue)` | Checked conversion from `long` to `int` | `ArithmeticException` |
 
-Ví dụ:
+Example:
 
 ~~~java
 System.out.println(Math.addExact(10, 20)); // 30
@@ -107,32 +107,32 @@ Stdout:
 overflow detected
 ~~~
 
-`Math.addExact` giúp phát hiện tràn **bên trong một phép toán**, nhưng chỉ gọi `Math.addExact` ở ngoài biến atomic chưa tạo ra cập nhật đồng thời an toàn.
+`Math.addExact` detects overflow **inside a single calculation**, but merely calling `Math.addExact` outside an atomic variable does not create a safe concurrent update.
 
-Sai lầm phổ biến:
+Common mistake:
 
 ~~~java
 AtomicInteger counter = new AtomicInteger(0);
 
-// SAI trong môi trường nhiều luồng:
+// WRONG in a multithreaded environment:
 int proposed = Math.addExact(counter.get(), 1);
 counter.set(proposed);
 ~~~
 
-Hai luồng có thể cùng đọc 0, cùng tính 1, rồi cùng set 1. Không có overflow, nhưng vẫn bị **lost update**. Cần kết hợp phép tính Exact và một **cập nhật nguyên tử**.
+Two threads can both read 0, both compute 1, and both set 1. No overflow occurred, yet a **lost update** happened. You must combine the Exact calculation with an **atomic update**.
 
-## 5. Kết hợp kiểm tra tràn và cập nhật nguyên tử bằng `updateAndGet`
+## 5. Combining Overflow Checking and Atomic Updates with `updateAndGet`
 
-Cách ngắn gọn cho `AtomicInteger` là:
+A concise approach for `AtomicInteger` is:
 
 ~~~java
 AtomicInteger counter = new AtomicInteger(0);
 int next = counter.updateAndGet(current -> Math.addExact(current, 1));
 ~~~
 
-Phương thức `updateAndGet(IntUnaryOperator)` đọc trạng thái, áp dụng hàm và cập nhật bằng một cơ chế nguyên tử; khi có tranh chấp, hàm có thể bị gọi lại với giá trị mới. Kết quả trả về là giá trị đã cập nhật thành công.
+`updateAndGet(IntUnaryOperator)` reads the state, applies the function, and updates atomically; under contention, the function may be called again with the new value. The return value is the successfully updated value.
 
-Ví dụ cộng thêm một bước `delta`:
+Example adding a `delta` step:
 
 ~~~java
 static int checkedAdd(AtomicInteger counter, int delta) {
@@ -140,7 +140,7 @@ static int checkedAdd(AtomicInteger counter, int delta) {
 }
 ~~~
 
-Với `AtomicLong`:
+With `AtomicLong`:
 
 ~~~java
 static long checkedAdd(AtomicLong counter, long delta) {
@@ -148,59 +148,59 @@ static long checkedAdd(AtomicLong counter, long delta) {
 }
 ~~~
 
-Hai đoạn trên là các **phương thức minh họa**, cần đặt vào lớp Java với imports tương ứng. Một ví dụ chương trình chạy độc lập có đầy đủ imports và main nằm ở mục 8.
+The two snippets above are **illustrative methods** to place inside a Java class with appropriate imports. A standalone runnable program with full imports and `main` appears in Section 8.
 
-### Điều gì xảy ra khi tính toán ném ngoại lệ?
+### What Happens When the Computation Throws an Exception?
 
-Nếu `Math.addExact(current, delta)` phát hiện tràn, nó ném `ArithmeticException` trước khi lần thử đó thực hiện bước cập nhật atomic thành công. Vì vậy, **lần gọi bị lỗi không áp dụng giá trị bị tràn**.
+If `Math.addExact(current, delta)` detects overflow, it throws `ArithmeticException` before that attempt performs a successful atomic commit. Therefore, **the failing call does not apply the overflowed value**.
 
-Tuy nhiên, trong chương trình nhiều luồng, các luồng **khác** vẫn có thể cập nhật bộ đếm trước hoặc sau khi phương thức ném lỗi. Không được diễn giải ngoại lệ thành khẳng định rằng “giá trị hiện tại của biến vẫn đúng bằng giá trị tôi vừa đọc” trong mọi hoàn cảnh.
+However, in a multithreaded program, **other** threads can still update the counter before or after the method throws. Do not interpret the exception as asserting "the variable's current value is still equal to the value I just read" under all circumstances.
 
-Khi code khác vẫn được phép gọi `incrementAndGet()`, `set(...)` hoặc `getAndAdd(...)` trực tiếp lên cùng bộ đếm, bảo đảm “luôn phát hiện tràn” cũng bị phá vỡ. Hãy bọc counter trong một API duy nhất áp dụng chính sách kiểm tra, không công khai mutable reference cho caller tùy ý ghi.
+If other code is still allowed to call `incrementAndGet()`, `set(...)`, or `getAndAdd(...)` directly on the same counter, the "always detect overflow" guarantee breaks as well. Encapsulate the counter behind a single API enforcing the checked policy, instead of exposing the mutable reference for callers to write arbitrarily.
 
-### Vì sao callback phải thuần?
+### Why Must the Callback Be Pure?
 
-`updateAndGet` và `getAndUpdate` **có thể gọi lại hàm cập nhật** khi có luồng khác sửa giá trị giữa bước đọc và so sánh/ghi (CAS). Do đó:
+`updateAndGet` and `getAndUpdate` **can re-invoke the update function** when another thread modifies the value between reading and comparing/writing (CAS). Therefore:
 
 ~~~java
-// KHÔNG nên: side effect có thể xảy ra nhiều lần khi CAS phải retry.
+// AVOID: side effects can occur multiple times when CAS retries.
 counter.updateAndGet(current -> {
-    sendNotification(); // Không được đặt tác vụ gửi bên trong callback.
+    sendNotification(); // Do not place sending actions inside the callback.
     return Math.addExact(current, 1);
 });
 ~~~
 
-Thông báo, ghi log nghiệp vụ có chi phí, chuyển tiền, phát sự kiện hoặc ghi database không được thực hiện như side effect không idempotent bên trong hàm update. Hàm nên chỉ biến đổi giá trị đầu vào thành giá trị mới theo cách xác định; thực hiện tác vụ phụ ở tầng khác theo hợp đồng xử lý thành công và lỗi. Chú ý ngay cả tác vụ sau khi update thành công cũng không tự trở thành một transaction nguyên tử xuyên atomic counter và hệ thống ngoài.
+Notifications, costly business logging, money transfers, event emissions, or database writes must not be executed as non-idempotent side effects inside an update function. The function should only deterministically transform the input value into the new value; perform secondary actions at another layer according to your success/failure contract. Note that even actions after a successful update do not automatically form an atomic transaction across the atomic counter and external systems.
 
-## 6. Vì sao kiểm tra trước bằng `get()` không đủ?
+## 6. Why Is Pre-Checking with `get()` Not Enough?
 
-Đoạn sau trông hợp lý nhưng bị race:
+The following snippet looks reasonable yet has a race:
 
 ~~~java
-// SAI: kiểm tra và increment là hai thao tác riêng biệt.
+// WRONG: checking and incrementing are two separate operations.
 if (counter.get() < Integer.MAX_VALUE) {
     counter.incrementAndGet();
 }
 ~~~
 
-Giả sử giá trị lúc đầu bằng `Integer.MAX_VALUE - 1`:
+Suppose the initial value is `Integer.MAX_VALUE - 1`:
 
-1. Luồng A đọc và xác nhận nhỏ hơn `Integer.MAX_VALUE`.
-2. Luồng B cũng đọc và xác nhận nhỏ hơn `Integer.MAX_VALUE`.
-3. A tăng bộ đếm đến `Integer.MAX_VALUE`.
-4. B tăng tiếp: tràn về `Integer.MIN_VALUE`.
+1. Thread A reads and confirms it is less than `Integer.MAX_VALUE`.
+2. Thread B also reads and confirms it is less than `Integer.MAX_VALUE`.
+3. A increments the counter to `Integer.MAX_VALUE`.
+4. B increments again: wraps to `Integer.MIN_VALUE`.
 
-Cả hai phép `get` và `incrementAndGet` riêng lẻ đều atomic. Nhưng **cặp kiểm tra–cập nhật không phải một thao tác nguyên tử**.
+Both `get` and `incrementAndGet` are individually atomic. Yet **the check–update pair is not one atomic operation**.
 
-Thay bằng:
+Replace it with:
 
 ~~~java
 counter.updateAndGet(current -> Math.incrementExact(current));
 ~~~
 
-Nếu hai luồng cùng cập nhật gần biên, một trong các lần thử có thể thành công đưa giá trị tới `Integer.MAX_VALUE`, còn lần thử cập nhật vượt biên bị từ chối bằng ngoại lệ. Điều kiện kiểm tra và kết quả số học được gắn vào cùng giá trị dùng cho cập nhật nguyên tử thành công.
+If two threads update near the boundary concurrently, one attempt can succeed in bringing the value to `Integer.MAX_VALUE`, while the attempt that would cross the boundary is rejected with an exception. The check condition and arithmetic result are bound to the exact same value used for the successful atomic update.
 
-Một cách khác khi cần kiểm soát hành vi đặc biệt là vòng lặp `compareAndSet`:
+Another option when custom behavior control is needed is a `compareAndSet` loop:
 
 ~~~java
 static int incrementChecked(AtomicInteger counter) {
@@ -214,25 +214,25 @@ static int incrementChecked(AtomicInteger counter) {
 }
 ~~~
 
-Khi CAS thất bại, vòng lặp đọc lại và tính lại dựa trên trạng thái mới. `compareAndSet` chỉ ghi nếu giá trị hiện hành vẫn bằng giá trị được mong đợi. Đây là khuôn mẫu cơ bản để gắn kiểm tra điều kiện vào cập nhật một biến atomic; cần chú ý tiến trình có thể lặp nhiều lần nếu tranh chấp cao.
+When CAS fails, the loop re-reads and recomputes from the new state. `compareAndSet` writes only if the current value still equals the expected value. This is the fundamental template for attaching a condition check to updating one atomic variable; note that execution may iterate multiple times under high contention.
 
-**Quan trọng:** đoạn CAS trên kiểm tra tràn theo **giá trị quan sát được ở mỗi lần thử**. Nó không kết hợp nguyên tử với một bất biến nằm ở biến khác hoặc database.
+**Important:** the CAS snippet above checks overflow against **the value observed on each attempt**. It does not atomically combine with an invariant living in another variable or a database.
 
-## 7. Chọn chính sách khi tiến sát giới hạn
+## 7. Choosing a Policy When Approaching Limits
 
-Chỉ phát hiện tràn chưa quyết định ứng dụng sẽ làm gì. Hợp đồng phải chỉ rõ một trong các hành vi thích hợp:
+Detecting overflow alone does not decide what the application should do. The contract must specify one of the appropriate behaviors:
 
-### A. Từ chối cập nhật và báo lỗi
+### A. Reject the Update and Signal an Error
 
-Dùng `Math.addExact` trong `updateAndGet`, để ngoại lệ được chuyển thành lỗi nghiệp vụ hoặc kết quả rõ ràng ở ranh giới API.
+Use `Math.addExact` inside `updateAndGet`, letting the exception translate into a business error or explicit failure at the API boundary.
 
-- Phù hợp với bộ đếm không được mất thông tin.
-- Giúp giám sát phát hiện sự cố cấu hình hoặc ước lượng kích thước sai.
-- Cần xử lý retry: nếu client tự gửi lại cùng yêu cầu, đừng để tạo hiệu ứng trùng lặp ở nơi khác.
+- Fits counters that must never lose information.
+- Helps monitoring catch configuration bugs or bad capacity estimates.
+- Requires retry handling: if the client retries the same request, prevent duplicate side effects elsewhere.
 
-### B. Bão hòa tại ngưỡng (*saturating counter*)
+### B. Saturate at the Threshold (*saturating counter*)
 
-Nếu hợp đồng cho phép “tối đa là MAX”, có thể dùng:
+If the contract allows "at most MAX," you can use:
 
 ~~~java
 static int saturatingIncrement(AtomicInteger counter) {
@@ -241,15 +241,15 @@ static int saturatingIncrement(AtomicInteger counter) {
 }
 ~~~
 
-Đây là chính sách **bão hòa**, không phải “tăng chính xác số lần gọi”. Khi đã đạt MAX, các lần tăng tiếp theo bị mất về mặt đếm. Với trường hợp chỉ cộng số không âm và counter luôn trong miền đã xác thực, quy tắc trên dễ hiểu; với `delta` dương/âm tổng quát, phải định nghĩa cả biên dưới lẫn biên trên và tránh overflow ngay trong phép so sánh ngưỡng.
+This is a **saturation** policy, not "accurately counting every call." Once MAX is reached, subsequent increments are dropped from the count. For adding only non-negative increments where the counter stays in a validated range, the rule above is straightforward; for arbitrary positive/negative `delta`, you must define both lower and upper bounds and avoid overflow within the threshold comparison itself.
 
-### C. Chuyển sang miền biểu diễn lớn hơn
+### C. Move to a Larger Numeric Representation
 
-- `AtomicLong` có miền lớn hơn `AtomicInteger`, nhưng **vẫn tràn**.
-- `BigInteger` có precision tùy ý, có thể kết hợp `AtomicReference<BigInteger>` và cập nhật bằng `updateAndGet`.
-- `BigDecimal` cần dùng khi có phần thập phân chính xác; chọn kiểu số và cơ chế đồng thời dựa trên miền thực tế.
+- `AtomicLong` has a wider range than `AtomicInteger`, yet **still overflows**.
+- `BigInteger` has arbitrary precision and can be paired with `AtomicReference<BigInteger>` updated via `updateAndGet`.
+- `BigDecimal` is needed for exact fractional decimals; choose numeric type and concurrency mechanism based on the actual domain.
 
-Ví dụ dùng số nguyên lớn:
+Example using large integers:
 
 ~~~java
 import java.math.BigInteger;
@@ -265,17 +265,17 @@ BigInteger next = counter.updateAndGet(
 System.out.println(next); // 9223372036854775808
 ~~~
 
-`BigInteger` không bị giới hạn 64 bit như `long`, nhưng kích thước số và chi phí cấp phát/tính toán tăng theo độ lớn. `AtomicReference<BigInteger>` tạo/cập nhật object mới, có thể chịu chi phí CAS retry khi nhiều luồng tranh chấp; điều này khác bản chất với một atomic primitive đơn giản.
+`BigInteger` is not limited to 64 bits like `long`, though number size and allocation/computation costs grow with magnitude. `AtomicReference<BigInteger>` allocates and swaps a new object, which may incur CAS retry overhead when many threads contend; this differs fundamentally from a simple atomic primitive.
 
-### D. Phân đoạn số đo hoặc thay đổi mô hình
+### D. Partition Measurements or Change the Model
 
-Với tổng số sự kiện trong hàng thập kỷ, một bộ đếm duy nhất có thể không phải mô hình tốt. Có thể lưu các bộ đếm theo khoảng thời gian hoặc partition rồi tổng hợp bằng kiểu số đủ lớn. Tuy nhiên, phân đoạn không tự giải quyết tràn nếu sau đó cộng dồn bằng kiểu `long` quá nhỏ.
+For event totals spanning decades, a single counter may not be the right model. You can store counters per time bucket or partition and aggregate using a sufficiently large numeric type. However, partitioning does not solve overflow if you later sum them into a `long` that is too small.
 
-Không nên âm thầm chọn chính sách wrap-around nếu người sử dụng hiểu counter là một tổng luôn tăng, không âm và chính xác.
+Do not silently adopt wrap-around semantics if consumers understand the counter to be a monotonically increasing, non-negative, exact total.
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone Java 17+ Program
 
-Tạo tệp `AtomicOverflowDemo.java`:
+Create `AtomicOverflowDemo.java`:
 
 ~~~java
 import java.math.BigInteger;
@@ -337,14 +337,14 @@ public class AtomicOverflowDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac AtomicOverflowDemo.java
 java AtomicOverflowDemo
 ~~~
 
-Stdout mong đợi:
+Expected stdout:
 
 ~~~text
 wrapped int: -2147483648
@@ -356,19 +356,19 @@ concurrent count: 40000
 beyond long: 9223372036854775808
 ~~~
 
-Giải thích kết quả:
+Output explanation:
 
-1. Hai lệnh đầu chứng minh phép cộng atomic vẫn tràn theo giới hạn kiểu nguyên.
-2. `checkedAdd(checked, 1)` ở ngưỡng MAX bị `Math.addExact` từ chối trước khi ghi giá trị mới, nên khi **không có luồng khác can thiệp**, `checked.get()` vẫn ở MAX.
-3. Cộng `-1` hợp lệ và được thực hiện nguyên tử, đưa counter về `2147483646`.
-4. Bốn luồng, mỗi luồng cập nhật 10.000 lần, cho đúng 40.000. Tất cả cập nhật đều hoàn tất trước khi đọc kết quả nhờ `Thread.join()`; số này nằm rất xa giới hạn `int`.
-5. Bộ đếm `AtomicReference<BigInteger>` vượt giới hạn `long` mà không wrap.
+1. The first two statements prove atomic addition still overflows at primitive integer limits.
+2. `checkedAdd(checked, 1)` at MAX is rejected by `Math.addExact` before writing the new value, so with **no other threads interfering**, `checked.get()` stays at MAX.
+3. Adding `-1` is valid and executes atomically, bringing the counter to `2147483646`.
+4. Four threads each updating 10,000 times yield exactly 40,000. All updates complete before reading thanks to `Thread.join()`; this number is far from `int` limits.
+5. The `AtomicReference<BigInteger>` counter crosses the `long` boundary without wrapping.
 
-Đây là ví dụ nhỏ minh họa ngữ nghĩa; phép kiểm tra nhiều luồng ở giá trị 40.000 **không phải bằng chứng rằng ứng dụng không bao giờ tràn**. Phải kiểm tra riêng tại các giá trị biên và giới hạn miền dữ liệu thực tế.
+This is a small example illustrating semantics; testing multithreading at 40,000 **is not proof that an application can never overflow**. You must test specifically at boundary values and real data domain limits.
 
-## 9. Khi nào nên dùng `LongAdder` hoặc `LongAccumulator`?
+## 9. When Should You Use `LongAdder` or `LongAccumulator`?
 
-Java còn cung cấp `LongAdder` và `LongAccumulator` trong `java.util.concurrent.atomic`, thường hữu ích cho thống kê cập nhật với tranh chấp cao.
+Java also provides `LongAdder` and `LongAccumulator` in `java.util.concurrent.atomic`, often useful for statistics updated under high contention.
 
 ~~~java
 import java.util.concurrent.atomic.LongAdder;
@@ -380,55 +380,55 @@ events.add(5L);
 System.out.println(events.sum()); // 6
 ~~~
 
-Nhưng **`LongAdder` không tự kiểm tra tràn**: nó sử dụng các giá trị kiểu `long`, tổng có thể vượt miền và wrap. Hơn nữa, khi có cập nhật đồng thời, `sum()` không phải snapshot nguyên tử của tất cả phần đang được cập nhật; nó không phù hợp để làm một lần kiểm tra giới hạn chính xác rồi quyết định cho phép tăng tiếp.
+However, **`LongAdder` does not automatically check for overflow**: it uses `long` values, and the sum can exceed the range and wrap. Moreover, during concurrent updates, `sum()` is not an atomic snapshot of all parts being updated; it is unsuitable for checking an exact limit and then deciding whether to allow another increment.
 
-Không giải quyết vấn đề bằng cách:
+Do not solve this with:
 
 ~~~java
-// SAI nếu cần giới hạn cứng trong môi trường có cập nhật đồng thời.
+// WRONG if a hard limit is required under concurrent updates.
 if (events.sum() < LIMIT) {
     events.increment();
 }
 ~~~
 
-`LongAccumulator` cho phép khai báo hàm tích lũy, nhưng việc cung cấp toán tử cộng không tự tạo cơ chế tràn có kiểm soát hoặc transaction xuyên dữ liệu. Một hàm tích lũy tùy biến cũng phải được thiết kế về tính kết hợp, retry, tranh chấp và chính sách khi vượt miền. Nếu cần một giới hạn cứng trên một counter riêng lẻ, `AtomicInteger`/`AtomicLong` với cập nhật có kiểm tra là điểm khởi đầu dễ kiểm chứng hơn.
+`LongAccumulator` lets you supply an accumulation function, yet providing an addition operator does not automatically create checked overflow or cross-data transactions. A custom accumulator function must also be designed for associativity, retries, contention, and out-of-range policies. When you need a hard limit on a single counter, `AtomicInteger`/`AtomicLong` with checked updates is an easier-to-verify starting point.
 
-## 10. Các bẫy liên quan khi thiết kế counter
+## 10. Related Pitfalls in Counter Design
 
-### A. Không kiểm tra bằng biểu thức đã tràn
+### A. Do Not Check Using the Already-Overflowed Expression
 
 ~~~java
 int next = counter.incrementAndGet();
 if (next < 0) {
-    // Trễ: bộ đếm đã được cập nhật thành giá trị âm.
+    // Too late: the counter was already updated to a negative value.
 }
 ~~~
 
-Cách này có thể giúp phát hiện bất thường **sau khi xảy ra**, nhưng không đảm bảo bất biến “counter không bao giờ âm”. Nếu số âm vốn là giá trị hợp lệ, kiểm tra như vậy còn gây báo động giả.
+This approach may help detect an anomaly **after it happened**, but does not uphold the invariant "the counter is never negative." If negative numbers are normally valid, such a check even causes false alarms.
 
-### B. Đừng kỳ vọng `volatile` tự cộng nguyên tử
+### B. Do Not Expect `volatile` to Add Atomically
 
 ~~~java
 volatile int total = 0;
 ~~~
 
-Trong một trường của lớp, `volatile` giúp bảo đảm khả năng nhìn thấy giá trị và các quan hệ về thứ tự bộ nhớ theo Java Memory Model, nhưng biểu thức `total++` vẫn là tổ hợp đọc–cộng–ghi và có thể bị mất lượt cập nhật. `volatile` cũng không kiểm tra overflow. Nếu yêu cầu cập nhật nguyên tử, dùng phương án đồng bộ/atomic thích hợp.
+In a class field, `volatile` guarantees visibility and memory ordering relationships per the Java Memory Model, yet `total++` remains a read–add–write sequence and can lose updates. `volatile` does not check for overflow either. When atomic updates are required, use an appropriate synchronization/atomic mechanism.
 
-### C. Nhiều biến atomic không tạo một giao dịch
+### C. Multiple Atomic Variables Do Not Form a Transaction
 
-Nếu cần trừ số dư ở một tài khoản và cộng số dư ở tài khoản khác, hai `AtomicLong` riêng lẻ không tự tạo giao dịch nguyên tử. Một phép trừ có kiểm tra và một phép cộng có kiểm tra vẫn có thể để trạng thái nửa chừng nếu bước sau thất bại. Hãy chọn transactional database, khóa đồng bộ thích hợp, hoặc cập nhật một object trạng thái bất biến được bọc trong một `AtomicReference` với CAS, tùy kiến trúc.
+If you need to debit one account balance and credit another, two separate `AtomicLong` fields do not form an atomic transaction. One checked subtraction and one checked addition can still leave a half-done state if the second step fails. Choose a transactional database, appropriate synchronization locks, or update one immutable state object wrapped in a single `AtomicReference` with CAS, depending on architecture.
 
-### D. Chính sách lỗi phải có ở mọi lối ghi
+### D. Failure Policies Must Cover Every Write Path
 
-Một API `checkedIncrement()` không hữu ích nếu nơi khác vẫn có thể gọi trực tiếp `atomicCounter.getAndIncrement()`. Đóng gói reference trong lớp, chỉ mở các phương thức cập nhật đúng quy tắc và có kiểm thử biên.
+A `checkedIncrement()` API is useless if code elsewhere can still call `atomicCounter.getAndIncrement()` directly. Encapsulate the reference inside a class, expose only policy-enforcing update methods, and write boundary tests.
 
-### E. Overflow có thể đến từ chuyển kiểu
+### E. Overflow Can Come from Type Casting
 
-Một tổng `long` vẫn có thể bị cắt còn `int`:
+A `long` total can still be truncated to `int`:
 
 ~~~java
 long count = 3_000_000_000L;
-int unsafe = (int) count; // giá trị sai nếu mong giữ nguyên count
+int unsafe = (int) count; // wrong value if intending to preserve count
 
 try {
     int safe = Math.toIntExact(count);
@@ -437,35 +437,35 @@ try {
 }
 ~~~
 
-`Math.toIntExact` hữu ích ở ranh giới API khi dữ liệu được thu thập bằng `long` nhưng caller đòi `int`. Cast thường không tự phát hiện mất dữ liệu.
+`Math.toIntExact` is useful at API boundaries when data is collected as `long` but a caller requires `int`. Plain casts do not detect data loss automatically.
 
-## 11. Kiểm thử đúng trọng tâm
+## 11. Focused Testing
 
-Bộ kiểm thử nên có cả **biên số học** lẫn **tranh chấp đồng thời**. Một bộ chỉ kiểm tra 10.000 lần tăng sẽ không phát hiện lỗi wrap tại MAX.
+A test suite should include both **arithmetic boundaries** and **concurrent contention**. A test running only 10,000 increments will never catch wrap bugs at MAX.
 
-| Trạng thái ban đầu | Cập nhật | Hành vi atomic thông thường | Hành vi checked `Math.addExact` |
+| Initial state | Update | Ordinary atomic behavior | Checked `Math.addExact` behavior |
 | --- | --- | --- | --- |
 | `0` | `+1` | `1` | `1` |
 | `Integer.MAX_VALUE - 1` | `+1` | `Integer.MAX_VALUE` | `Integer.MAX_VALUE` |
-| `Integer.MAX_VALUE` | `+1` | `Integer.MIN_VALUE` | Ném `ArithmeticException` |
-| `Integer.MIN_VALUE` | `-1` | `Integer.MAX_VALUE` | Ném `ArithmeticException` |
+| `Integer.MAX_VALUE` | `+1` | `Integer.MIN_VALUE` | Throws `ArithmeticException` |
+| `Integer.MIN_VALUE` | `-1` | `Integer.MAX_VALUE` | Throws `ArithmeticException` |
 | `Integer.MIN_VALUE` | `+1` | `Integer.MIN_VALUE + 1` | `Integer.MIN_VALUE + 1` |
-| `Long.MAX_VALUE` (kiểu `long`) | `+1L` | `Long.MIN_VALUE` | Ném `ArithmeticException` |
+| `Long.MAX_VALUE` (`long` type) | `+1L` | `Long.MIN_VALUE` | Throws `ArithmeticException` |
 
-Cần đặc biệt xét:
+Pay special attention to:
 
-- **Giá trị trả về:** `getAndIncrement` trả giá trị cũ; `incrementAndGet` trả giá trị mới.
-- **Trạng thái khi lỗi:** với test một luồng, kiểm tra giá trị không bị thay đổi sau ngoại lệ `addExact`.
-- **Tranh chấp gần MAX:** hai luồng cùng tăng từ `MAX - 1`; với checked update, đúng một cập nhật có thể đưa lên MAX, cập nhật vượt MAX phải bị từ chối. Test cần đồng bộ điểm bắt đầu và bắt kết quả/ngoại lệ của từng thread để tránh bỏ sót lỗi.
-- **Callback có side effect:** kiểm tra logic không phụ thuộc số lần gọi của hàm update khi CAS retry.
-- **Điều kiện nghiệp vụ:** nếu counter phải không âm, trường hợp `delta < 0` còn cần kiểm tra miền không âm riêng; `Math.addExact` chỉ ngăn overflow, không ngăn kết quả âm hợp lệ về mặt `int`.
-- **Các đường ghi khác:** kiểm tra không có caller dùng phương thức bypass chính sách checked.
+- **Return values:** `getAndIncrement` returns the old value; `incrementAndGet` returns the new value.
+- **State on failure:** in single-threaded tests, verify the value remains unchanged after an `addExact` exception.
+- **Contention near MAX:** two threads concurrently incrementing from `MAX - 1`; with checked updates, exactly one update may reach MAX, and the update exceeding MAX must be rejected. Tests should synchronize the start point and capture each thread's result/exception so failures are not missed.
+- **Side-effecting callbacks:** verify logic does not depend on how many times the update function runs during CAS retries.
+- **Business constraints:** if the counter must stay non-negative, `delta < 0` also needs a separate non-negativity check; `Math.addExact` only prevents overflow, not valid negative `int` results.
+- **Other write paths:** verify no caller uses methods bypassing the checked policy.
 
-Trong một test chạy nhiều luồng, phải chờ tất cả futures/threads hoàn tất và thu thập exception, nếu không lỗi ở worker thread có thể bị bỏ qua và test chính vẫn pass.
+In a multithreaded test, wait for all futures/threads to finish and collect exceptions; otherwise errors in worker threads can be silently ignored while the main test still passes.
 
-## 12. Bài tập vận dụng
+## 12. Practice Exercises
 
-**Bài 1.** Với:
+**Exercise 1.** Given:
 
 ~~~java
 AtomicInteger a = new AtomicInteger(Integer.MAX_VALUE);
@@ -473,9 +473,9 @@ System.out.println(a.getAndIncrement());
 System.out.println(a.get());
 ~~~
 
-Đầu ra là gì? `getAndIncrement()` có ném exception không?
+What is the output? Does `getAndIncrement()` throw an exception?
 
-**Bài 2.** Một API dùng:
+**Exercise 2.** An API uses:
 
 ~~~java
 if (counter.get() != Integer.MAX_VALUE) {
@@ -483,20 +483,20 @@ if (counter.get() != Integer.MAX_VALUE) {
 }
 ~~~
 
-Tại sao đoạn này vẫn có thể tràn khi có hai luồng? Hãy thay bằng một câu lệnh dùng `updateAndGet` và `Math.incrementExact`.
+Why can this snippet still overflow with two threads? Replace it with a single statement using `updateAndGet` and `Math.incrementExact`.
 
-**Bài 3.** Với `AtomicLong` đang ở `Long.MIN_VALUE`, `decrementAndGet()` trả gì? Còn `updateAndGet(Math::decrementExact)` sẽ thế nào?
+**Exercise 3.** With `AtomicLong` currently at `Long.MIN_VALUE`, what does `decrementAndGet()` return? What happens with `updateAndGet(Math::decrementExact)`?
 
-**Bài 4.** Counter phải nằm trong khoảng 0–100. Sử dụng `Math.addExact` có đủ để bảo đảm điều kiện này không? Nếu không, cần kiểm tra gì **bên trong cùng callback**?
+**Exercise 4.** A counter must stay in the range 0–100. Is `Math.addExact` sufficient to guarantee this constraint? If not, what check is needed **inside the same callback**?
 
-**Bài 5.** Vì sao không nên gọi `sendEmail()` trong callback của `updateAndGet`? Nếu gọi bên ngoài callback sau khi update thành công thì những bảo đảm nào vẫn chưa có?
+**Exercise 5.** Why shouldn't `sendEmail()` be called inside an `updateAndGet` callback? If called outside the callback after the update succeeds, what guarantees are still missing?
 
-### Đáp án
+### Answers
 
-1. Lần in đầu trả `2147483647` (giá trị cũ); lần in sau trả `-2147483648` (đã wrap). Không có exception tự động.
-2. Hai luồng cùng có thể đọc `MAX - 1`, cả hai vượt qua kiểm tra; sau hai cập nhật trạng thái wrap. Dùng `counter.updateAndGet(Math::incrementExact)` hoặc `counter.updateAndGet(v -> Math.addExact(v, 1))`.
-3. `decrementAndGet()` wrap thành `Long.MAX_VALUE`. `Math.decrementExact` ném `ArithmeticException` trước khi lần thử cập nhật quá biên được commit.
-4. Không đủ: ví dụ tăng từ 100 lên 101 không overflow kiểu `int`. Trong callback, kiểm tra `next` nằm trong `[0, 100]` và báo lỗi hoặc bão hòa theo hợp đồng nghiệp vụ; kết hợp kiểm tra và cập nhật thành một thao tác atomic.
-5. Callback có thể chạy nhiều lần do CAS retry, khiến email gửi trùng. Đưa email ra ngoài callback tránh side effect khi tính lại, nhưng việc cập nhật bộ đếm và gửi email vẫn không phải transaction nguyên tử, nên cần thiết kế giao tiếp/đảm bảo gửi phù hợp.
+1. The first print returns `2147483647` (old value); the second print returns `-2147483648` (wrapped). No automatic exception is thrown.
+2. Two threads can both read `MAX - 1`, and both pass the check; after two updates, the state wraps. Use `counter.updateAndGet(Math::incrementExact)` or `counter.updateAndGet(v -> Math.addExact(v, 1))`.
+3. `decrementAndGet()` wraps to `Long.MAX_VALUE`. `Math.decrementExact` throws `ArithmeticException` before an out-of-bounds update attempt commits.
+4. Insufficient: for example, incrementing from 100 to 101 does not overflow `int`. Inside the callback, check that `next` lies within `[0, 100]` and fail or saturate per the business contract; combine the check and update into one atomic operation.
+5. The callback may run multiple times due to CAS retries, causing duplicate emails. Moving the email outside avoids side effects on recomputation, yet updating the counter and sending the email still do not form an atomic transaction, so design communication/delivery guarantees accordingly.
 
-**Điểm cần nhớ:** `AtomicInteger` và `AtomicLong` giúp các luồng cập nhật đúng theo phép toán kiểu số nguyên Java; chúng **không** biến phép toán thành arithmetic có kiểm tra. Khi muốn từ chối tràn, kết hợp `Math.*Exact` với `updateAndGet` hoặc một vòng CAS đúng, đồng thời đóng gói mọi lối ghi và kiểm thử tại giới hạn.
+**Key takeaway:** `AtomicInteger` and `AtomicLong` let threads update accurately per Java integer arithmetic; they **do not** turn operations into overflow-checked arithmetic. When overflow must be rejected, combine `Math.*Exact` with `updateAndGet` or a proper CAS loop, encapsulate all write paths, and test at the limits.

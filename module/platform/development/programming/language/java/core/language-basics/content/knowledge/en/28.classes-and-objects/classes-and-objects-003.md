@@ -1,57 +1,57 @@
-# Tạo đối tượng và gọi phương thức bằng dấu chấm trong Java
+# Creating Objects and Calling Methods with Dot Notation in Java
 
-> **Java core — language-basics / Lớp và đối tượng**  
-> **Môi trường:** JDK 17+, một file Java tự chứa.  
-> **Mục tiêu:** Tạo đối tượng bằng `new`, giữ tham chiếu trong biến, gọi phương thức bằng cú pháp `object.method(arguments)`, hiểu kết quả/`void`, trạng thái riêng từng đối tượng, alias, `null` và khác biệt giữa phương thức instance với `static`.
+> **Java core — language-basics / Classes and Objects**  
+> **Environment:** JDK 17+, single self-contained Java file.  
+> **Goal:** Create objects with `new`, hold references in variables, invoke methods with `object.method(arguments)` syntax, understand return values/`void`, per-object state, aliases, `null`, and differences between instance and `static` methods.
 
-## 1. Từ lớp đến đối tượng
+## 1. From Class to Object
 
-**Lớp** (*class*) khai báo trạng thái (trường) và hành vi (phương thức). **Đối tượng** (*object*) là một thực thể được tạo từ lớp đó. Câu lệnh `new Type(...)` thường cấp phát đối tượng và gọi **constructor** phù hợp để khởi tạo nó:
+A **class** declares state (fields) and behavior (methods). An **object** is an entity created from that class. The expression `new Type(...)` typically allocates an object and calls a matching **constructor** to initialize it:
 
 ~~~java
 class Lamp {
     private boolean on;
 
-    Lamp(boolean initiallyOn) { // Constructor: tên giống lớp, không có kiểu trả về.
+    Lamp(boolean initiallyOn) { // Constructor: same name as class, no return type.
         this.on = initiallyOn;
     }
 
-    void turnOn() {              // Phương thức instance.
+    void turnOn() {              // Instance method.
         this.on = true;
     }
 
-    boolean isOn() {             // Trả về trạng thái hiện tại.
+    boolean isOn() {             // Returns current state.
         return this.on;
     }
 }
 
-// Sử dụng từ một phương thức phù hợp:
+// Usage from an appropriate method:
 // Lamp deskLamp = new Lamp(false);
 // deskLamp.turnOn();
 // System.out.println(deskLamp.isOn()); // true.
 ~~~
 
-Trong `Lamp deskLamp = new Lamp(false);`:
+In `Lamp deskLamp = new Lamp(false);`:
 
-| Phần | Ý nghĩa |
+| Part | Meaning |
 | --- | --- |
-| `Lamp` bên trái | Kiểu của biến tham chiếu |
-| `deskLamp` | Tên biến giữ tham chiếu đến đối tượng |
-| `new Lamp(false)` | Tạo đối tượng và gọi constructor nhận `boolean` |
-| `deskLamp.turnOn()` | Gọi phương thức instance qua tham chiếu và dấu chấm |
-| `deskLamp.isOn()` | Gọi phương thức rồi nhận giá trị `boolean` |
+| `Lamp` on the left | Type of the reference variable |
+| `deskLamp` | Name of the variable holding a reference to the object |
+| `new Lamp(false)` | Creates an object and calls the constructor taking `boolean` |
+| `deskLamp.turnOn()` | Calls an instance method via a reference and the dot operator |
+| `deskLamp.isOn()` | Calls a method and receives a `boolean` value |
 
-Constructor **không phải phương thức `void`**. Tên constructor trùng tên lớp và không khai báo kiểu trả về; không thể gọi lại nó bằng cú pháp `deskLamp.Lamp(...)`.
+A constructor is **not a `void` method**. A constructor shares the class name and declares no return type; it cannot be called again using `deskLamp.Lamp(...)` syntax.
 
-## 2. Dấu chấm `.` để gọi phương thức
+## 2. The Dot Operator `.` to Call Methods
 
-Cú pháp thường gặp:
+Common syntax:
 
 ~~~java
 receiver.methodName(argument1, argument2);
 ~~~
 
-`receiver` là biểu thức tham chiếu tới đối tượng (như tên biến `deskLamp`). Dấu `.` chọn thành viên có thể truy cập; dấu ngoặc `(...)` và đối số thể hiện **lời gọi phương thức**.
+`receiver` is an expression referencing an object (such as the variable name `deskLamp`). The dot `.` selects an accessible member; parentheses `(...)` and arguments represent a **method call**.
 
 ~~~java
 String text = " java ";
@@ -60,16 +60,16 @@ int size = clean.length();  // 4.
 boolean empty = clean.isEmpty(); // false.
 ~~~
 
-Các phương thức này là instance method của `String`: mỗi lời gọi xác định đối tượng nhận lời gọi qua `text` hoặc `clean`. Trong khi đó, `text.length` (thiếu ngoặc) **không phải lời gọi hợp lệ** vì `String` cung cấp phương thức `length()` chứ không phải trường công khai `length`.
+These methods are instance methods of `String`: each call identifies the receiving object via `text` or `clean`. Meanwhile, `text.length` (missing parentheses) is **not a valid call** because `String` provides a `length()` method rather than a public `length` field.
 
-- `object.field`: truy cập **trường** nếu quyền truy cập cho phép.
-- `object.method()`: gọi **phương thức không tham số**.
-- `object.method(arg)`: gọi phương thức có tham số tương ứng.
-- `method()` trong cùng lớp có thể là cách viết rút gọn trong ngữ cảnh phù hợp, nhưng viết `object.method()` giúp chỉ rõ **đối tượng nhận lời gọi**.
+- `object.field`: accesses a **field** if access permissions allow.
+- `object.method()`: calls a **zero-parameter method**.
+- `object.method(arg)`: calls a method with matching parameters.
+- `method()` within the same class can be shorthand in an appropriate context, but writing `object.method()` clearly specifies the **receiving object**.
 
-Nếu trường là `private`, mã ở một lớp không được cấp quyền không thể đọc/ghi trực tiếp `object.field`; hãy dùng phương thức công khai thích hợp thay vì tùy tiện làm trường `public`.
+If a field is `private`, code in an unauthorized class cannot directly read/write `object.field`; use an appropriate public method instead of making fields `public` arbitrarily.
 
-## 3. Phương thức có tham số, kiểu trả về và `void`
+## 3. Methods with Parameters, Return Types, and `void`
 
 ~~~java
 class Counter {
@@ -89,23 +89,23 @@ class Counter {
 }
 
 // Counter counter = new Counter(2);
-// counter.add(3);          // Cập nhật giá trị, không trả giá trị.
+// counter.add(3);          // Updates value, returns no value.
 // int now = counter.current(); // now == 5.
 ~~~
 
-Khi gọi `counter.add(3)`, `3` là **đối số**, còn `amount` là **tham số** của phương thức `add`. `counter.current()` trả một giá trị `int` để gán, in hoặc dùng trong biểu thức:
+When calling `counter.add(3)`, `3` is the **argument**, while `amount` is the **parameter** of the `add` method. `counter.current()` returns an `int` value to assign, print, or use in an expression:
 
 ~~~java
 // System.out.println("now=" + counter.current());
 // int doubleValue = counter.current() * 2;
 ~~~
 
-`void` nghĩa là phương thức **không cung cấp giá trị trả về**; không thể viết `int x = counter.add(3);`. Ngược lại, kiểu trả về `int` cho phép lấy giá trị từ `current()`.
+`void` means the method **provides no return value**; you cannot write `int x = counter.add(3);`. Conversely, a return type of `int` allows obtaining a value from `current()`.
 
-Trong thân phương thức instance, `this` chỉ **đối tượng hiện tại** đang nhận lời gọi. `this.value` rõ ràng là trường của đối tượng, không phải biến cục bộ cùng tên. Các đối số Java được truyền **theo giá trị**, kể cả khi giá trị là tham chiếu tới đối tượng.
+Inside an instance method body, `this` refers to the **current object** receiving the call. `this.value` clearly refers to the object's field, not a local variable of the same name. Java arguments are passed **by value**, even when the value is a reference to an object.
 
 
-## 4. Lời gọi qua dấu chấm chọn đúng receiver
+## 4. Dot Calls Select the Right Receiver
 
 ~~~java
 Counter first = new Counter(2);
@@ -115,31 +115,31 @@ second.add(-2);
 // first.current() == 5; second.current() == 3.
 ~~~
 
-Dấu chấm trong `first.add(3)` chọn object do `first` tham chiếu, còn `second.add(-2)` tác động trên object thứ hai. Hai lời gọi cùng method nhưng có **receiver** khác nhau nên thay đổi hai field `value` độc lập.
+The dot in `first.add(3)` selects the object referenced by `first`, while `second.add(-2)` acts on the second object. Both calls invoke the same method but have different **receivers**, so they modify two independent `value` fields.
 
-## 5. Alias và null ảnh hưởng thế nào đến lời gọi?
+## 5. How Do Aliases and `null` Affect Calls?
 
 ~~~java
 Counter alias = first;
 alias.add(1);                 // first.current() == 6.
-alias = new Counter(1);       // Chỉ thay tham chiếu alias.
+alias = new Counter(1);       // Changes only the alias reference.
 Counter missing = null;
-// missing.add(1);            // NullPointerException nếu chạy.
+// missing.add(1);            // NullPointerException if executed.
 ~~~
 
-`alias = first` sao chép giá trị tham chiếu, **không** gọi constructor. Khi hai tên chỉ cùng object, lời gọi qua tên nào cũng đến cùng trạng thái; gán lại `alias` không làm `first` đổi tham chiếu. Với `null`, không có object làm receiver để gọi instance method, nên phải kiểm tra hoặc bảo đảm tham chiếu khác null.
+`alias = first` copies the reference value; it does **not** call the constructor. When two names point to the same object, a call through either name reaches the same state; reassigning `alias` does not change `first`'s reference. With `null`, there is no object to serve as receiver for an instance method call, so you must check or ensure the reference is non-null.
 
-Để so xem hai tham chiếu có cùng object, dùng `==`; so sánh **nội dung nghiệp vụ** của hai object cần hợp đồng `equals` thích hợp. Bài đầu chương giải thích sâu hơn về object identity và alias; ở đây hãy tập trung vào receiver của từng lời gọi.
+To compare whether two references refer to the same object, use `==`; comparing **business contents** of two objects requires an appropriate `equals` contract. The first lesson of the chapter explains object identity and aliasing in greater depth; here, focus on each call's receiver.
 
-## 6. Gọi nối tiếp và biểu thức tạo đối tượng tạm
+## 6. Method Chaining and Temporary Object Expressions
 
-Vì `new Counter(...)` là biểu thức cho ra tham chiếu, có thể gọi phương thức ngay trên đối tượng mới:
+Since `new Counter(...)` is an expression that yields a reference, you can call a method directly on the new object:
 
 ~~~java
-// new Counter(4).current()  // Trả 4.
+// new Counter(4).current()  // Returns 4.
 ~~~
 
-Nếu một phương thức trả lại đối tượng hoặc một tham chiếu thích hợp, có thể **gọi nối tiếp** (*method chaining*):
+If a method returns the object or a suitable reference, you can use **method chaining**:
 
 ~~~java
 class Accumulator {
@@ -159,24 +159,24 @@ class Accumulator {
 // result == 5.
 ~~~
 
-Phân giải từ trái sang phải theo chuỗi nhận kết quả: `new Accumulator()` tạo đối tượng, `add(2)` trả về `this`, `add(3)` cập nhật cùng đối tượng, rồi `value()` trả kết quả.
+Evaluated left-to-right along the receiver chain: `new Accumulator()` creates the object, `add(2)` returns `this`, `add(3)` updates the same object, and `value()` returns the result.
 
-Nếu phương thức trả `void`, không thể nối tiếp bằng cách gọi một phương thức khác **trên giá trị trả về** của lời gọi `void`. Dùng tên biến đối tượng và gọi các lệnh riêng để rõ ràng khi cần.
+If a method returns `void`, you cannot chain by calling another method **on the return value** of the `void` call. Use an object variable name and separate statements for clarity when needed.
 
 
-## 7. Dấu chấm cũng xuất hiện ở lời gọi static
+## 7. The Dot Operator Also Appears in `static` Calls
 
 ~~~java
 Counter counter = new Counter(2);
-int current = counter.current();       // Instance: có receiver Counter.
-int maximum = Math.max(4, 9);        // Static: Math là tên lớp.
+int current = counter.current();       // Instance: has a Counter receiver.
+int maximum = Math.max(4, 9);        // Static: Math is a class name.
 ~~~
 
-Cùng dấu `.`, nhưng `counter.current()` gọi hành vi trên instance, còn `Math.max(...)` gọi static method qua **tên lớp**, không cần object `Math`. Hãy ưu tiên `Type.staticMethod(...)` để tránh hiểu nhầm một biến object là receiver của phương thức static; bài chuyên đề `static` phân tích đầy đủ sự khác biệt.
+Same `.` symbol, yet `counter.current()` invokes behavior on an instance, while `Math.max(...)` invokes a static method through the **class name**, needing no `Math` object. Prefer `Type.staticMethod(...)` to avoid mistaking an object variable for the receiver of a static method; the dedicated `static` lesson analyzes the difference in full.
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone Java 17+ Program
 
-Tạo file **DotInvocationDemo.java**:
+Create file **DotInvocationDemo.java**:
 
 ~~~java
 public final class DotInvocationDemo {
@@ -265,14 +265,14 @@ public final class DotInvocationDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 DotInvocationDemo.java
 java DotInvocationDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 createdA=A:2
@@ -295,32 +295,32 @@ missingIsNull=true
 nullCall=NullPointerException
 ~~~
 
-Hai đối tượng `first`/`second` có trạng thái độc lập. `aliasSame=true` nhưng `sameStateDifferentObject=false` chứng minh **alias khác với đối tượng mới có cùng trạng thái**. `afterChain` minh họa các phương thức trả về `this` cho phép gọi nối tiếp; `nullCall` chỉ lỗi khi gọi instance method qua tham chiếu `null`.
+The two objects `first`/`second` have independent state. `aliasSame=true` while `sameStateDifferentObject=false` proves that **an alias is different from a new object with the same state**. `afterChain` illustrates methods returning `this` to enable chaining; `nullCall` only fails when calling an instance method through a `null` reference.
 
-## 9. Lỗi thường gặp và bài tập
+## 9. Common Mistakes and Exercises
 
-| Lỗi / hiểu nhầm | Cách hiểu hoặc sửa |
+| Mistake / Misunderstanding | How to understand or fix |
 | --- | --- |
-| Viết `Counter c; c.increment();` với local chưa khởi tạo | Tạo `new Counter(...)` hoặc gán tham chiếu hợp lệ trước khi dùng |
-| Viết `Counter c = null; c.increment();` | Đối tượng chưa tồn tại; có thể gây `NullPointerException` |
-| Gọi `c.current` thay vì `c.current()` | Phương thức phải có `(...)` kể cả khi không có đối số |
-| Viết `int n = c.increment();` khi phương thức trả `void` | Không thể dùng lời gọi `void` làm giá trị |
-| Tưởng `Counter alias = c` tạo object mới | Chỉ sao chép tham chiếu; dùng `new` khi cần đối tượng mới |
-| Tưởng hai đối tượng cùng lớp luôn có chung trường instance | Mỗi đối tượng có giá trị trường instance riêng |
-| Tưởng constructor được gọi bằng `c.Counter()` | Constructor chạy khi `new Counter(...)`, không phải method bình thường |
-| Dùng `Math.max` như instance method | Gọi static bằng `Math.max(...)` |
-| Truy cập trường `private` từ lớp khác | Dùng phương thức được cấp quyền, thiết kế getter/setter nếu cần |
+| Writing `Counter c; c.increment();` with an uninitialized local | Create `new Counter(...)` or assign a valid reference before using |
+| Writing `Counter c = null; c.increment();` | No object exists yet; can cause `NullPointerException` |
+| Calling `c.current` instead of `c.current()` | Methods must include `(...)` even with no arguments |
+| Writing `int n = c.increment();` when the method returns `void` | Cannot use a `void` call as a value |
+| Thinking `Counter alias = c` creates a new object | Only copies the reference; use `new` when a new object is needed |
+| Thinking two objects of the same class always share instance fields | Each object has its own instance field values |
+| Thinking the constructor is called via `c.Counter()` | Constructors run on `new Counter(...)`, not as normal methods |
+| Treating `Math.max` like an instance method | Call static methods with `Math.max(...)` |
+| Accessing a `private` field from another class | Use permitted methods; design getters/setters if needed |
 
-**Bài 1.** Tạo lớp `Rectangle` có constructor nhận chiều rộng và chiều cao, phương thức `area()` trả diện tích; gọi qua `rectangle.area()`.
+**Exercise 1.** Create a `Rectangle` class with a constructor accepting width and height, and an `area()` method returning the area; call it via `rectangle.area()`.
 
-**Bài 2.** Tạo hai đối tượng `Counter` khác nhau, gọi `add` với các đối số khác nhau và giải thích vì sao trạng thái không tự đồng bộ.
+**Exercise 2.** Create two different `Counter` objects, call `add` with different arguments, and explain why their states do not automatically synchronize.
 
-**Bài 3.** Tạo `Counter alias = first` rồi gọi `alias.increment()`. Sau đó gán `alias = new Counter(...)` và dự đoán `first.current()`.
+**Exercise 3.** Create `Counter alias = first` and call `alias.increment()`. Then assign `alias = new Counter(...)` and predict `first.current()`.
 
-**Bài 4.** Viết phương thức trả `this` để hỗ trợ `counter.addAndReturn(2).addAndReturn(3)`. Thử thay kiểu trả về thành `void` rồi quan sát lỗi khi chaining.
+**Exercise 4.** Write a method returning `this` to support `counter.addAndReturn(2).addAndReturn(3)`. Try changing the return type to `void` and observe the error when chaining.
 
-**Bài 5.** Phân biệt lời gọi `object.instanceMethod()` và `ClassName.staticMethod()`. Nêu lý do gọi instance method qua null thất bại.
+**Exercise 5.** Distinguish `object.instanceMethod()` calls from `ClassName.staticMethod()` calls. State why calling an instance method through `null` fails.
 
-### Ghi nhớ
+### Takeaways
 
-**`new Type(args)` tạo đối tượng và gọi constructor; biến kiểu lớp thường giữ tham chiếu tới đối tượng.** Dùng `object.method(args)` để gọi hành vi của **đối tượng nhận lời gọi**, kèm `(...)` cho phương thức. Hai biến có thể dùng chung đối tượng qua alias; hai lần `new` tạo đối tượng riêng. `static` thuộc lớp và nên gọi theo `Type.method(...)`; tham chiếu `null` không thể nhận lời gọi instance method.
+**`new Type(args)` creates an object and calls a constructor; class-typed variables normally hold references to objects.** Use `object.method(args)` to invoke behavior on the **receiving object**, including `(...)` for methods. Two variables can share an object through an alias; two `new` calls create separate objects. `static` belongs to the class and should be called as `Type.method(...)`; a `null` reference cannot receive an instance method call.

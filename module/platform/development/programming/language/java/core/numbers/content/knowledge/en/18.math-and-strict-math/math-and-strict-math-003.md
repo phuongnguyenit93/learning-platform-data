@@ -1,30 +1,30 @@
-# `exp`, `log`, `log10`, `expm1` và `log1p` trong Java
+# `exp`, `log`, `log10`, `expm1`, and `log1p` in Java
 
-Java cung cấp năm hàm số mũ/logarit thường gặp trong `java.lang.Math` và `java.lang.StrictMath`. Chúng có quan hệ toán học gần nhau, nhưng **không thể dùng thay thế máy móc** trong tính toán dấu phẩy động:
+Java provides five common exponential/logarithmic functions in `java.lang.Math` and `java.lang.StrictMath`. They are closely related mathematically, but **cannot be substituted mechanically** in floating-point calculations:
 
-- `Math.exp(x)` tính \(e^x\).
-- `Math.log(x)` tính \(\ln(x)\), logarit tự nhiên cơ số \(e\).
-- `Math.log10(x)` tính \(\log_{10}(x)\), logarit cơ số 10.
-- `Math.expm1(x)` tính \(e^x-1\) **trực tiếp với độ chính xác tốt hơn** khi \(x\) rất gần 0.
-- `Math.log1p(x)` tính \(\ln(1+x)\) **trực tiếp với độ chính xác tốt hơn** khi \(x\) rất gần 0.
+- `Math.exp(x)` computes \(e^x\).
+- `Math.log(x)` computes \(\ln(x)\), the natural logarithm base \(e\).
+- `Math.log10(x)` computes \(\log_{10}(x)\), the base-10 logarithm.
+- `Math.expm1(x)` computes \(e^x-1\) **directly with better precision** when \(x\) is very close to 0.
+- `Math.log1p(x)` computes \(\ln(1+x)\) **directly with better precision** when \(x\) is very close to 0.
 
-Cả năm đều nhận một tham số `double` và trả `double`. Nếu truyền `int` hoặc `float`, Java có thể widening sang `double` trước lời gọi. Các hàm không trả giá trị số nguyên chính xác tùy ý; chúng làm việc trong giới hạn IEEE 754 của `double`.
+All five take one `double` parameter and return `double`. If an `int` or `float` is passed, Java widens it to `double` before the call. These functions do not return arbitrary-precision exact integer values; they operate within the IEEE 754 limits of `double`.
 
-**Mục tiêu học tập:** chọn đúng hàm, hiểu miền xác định và các trường hợp `NaN`/`Infinity`/`-0.0`, tránh mất độ chính xác khi tự viết `exp(x)-1` hoặc `log(1+x)`, và biết lúc nào cần `StrictMath` thay cho `Math`.
+**Learning goal:** choose the right function, understand the domain and `NaN`/`Infinity`/`-0.0` cases, avoid precision loss from writing `exp(x)-1` or `log(1+x)` manually, and know when `StrictMath` is needed instead of `Math`.
 
-## 1. Bảng tổng quan và quan hệ toán học
+## 1. Overview Table and Mathematical Relationships
 
-| Java API | Biểu thức toán học | Điều kiện để kết quả thực hữu hạn thông thường | Trường hợp dễ nhớ |
+| Java API | Mathematical Expression | Condition for Ordinary Finite Real Result | Memorable Case |
 | --- | --- | --- | --- |
-| `Math.exp(x)` | \(e^x\) | \(x\) hữu hạn và không vượt/underflow miền biểu diễn đầu ra | `exp(0.0) = 1.0` |
-| `Math.log(x)` | \(\ln(x)\) | \(x > 0\), hữu hạn | `log(1.0) = 0.0` |
-| `Math.log10(x)` | \(\log_{10}(x)\) | \(x > 0\), hữu hạn | `log10(1000.0) = 3.0` |
-| `Math.expm1(x)` | \(e^x - 1\) | \(x\) hữu hạn, kết quả trong phạm vi | `expm1(0.0) = 0.0` |
-| `Math.log1p(x)` | \(\ln(1+x)\) | \(x > -1\), hữu hạn | `log1p(0.0) = 0.0` |
+| `Math.exp(x)` | \(e^x\) | \(x\) finite and does not overflow/underflow output range | `exp(0.0) = 1.0` |
+| `Math.log(x)` | \(\ln(x)\) | \(x > 0\), finite | `log(1.0) = 0.0` |
+| `Math.log10(x)` | \(\log_{10}(x)\) | \(x > 0\), finite | `log10(1000.0) = 3.0` |
+| `Math.expm1(x)` | \(e^x - 1\) | \(x\) finite, result within range | `expm1(0.0) = 0.0` |
+| `Math.log1p(x)` | \(\ln(1+x)\) | \(x > -1\), finite | `log1p(0.0) = 0.0` |
 
-Các điều kiện hữu hạn nêu ở bảng là tình huống **thường có kết quả hữu hạn**; `exp` và `expm1` vẫn có thể tràn hoặc underflow ngay cả khi tham số `double` hữu hạn. `log`, `log10` và `log1p` cũng định nghĩa cách xử lý đầu vào ở **ranh giới miền**, không đơn giản ném exception như phép tính số nguyên.
+The finiteness conditions listed in the table describe scenarios that **normally yield a finite result**; `exp` and `expm1` can still overflow or underflow even when the `double` argument is finite. `log`, `log10`, and `log1p` also define how to handle inputs at **domain boundaries**, rather than simply throwing exceptions like integer arithmetic.
 
-Cơ số \(e\) xấp xỉ `2.718281828459045`, có hằng `Math.E`:
+The base \(e\) is approximately `2.718281828459045`, available as the constant `Math.E`:
 
 ```java
 System.out.println(Math.E);                  // 2.718281828459045
@@ -33,41 +33,41 @@ System.out.println(Math.log(1.0));           // 0.0
 System.out.println(Math.log10(1000.0));      // 3.0
 ```
 
-Dùng các ví dụ số học quen thuộc để nắm ý nghĩa, nhưng **đừng suy ra mọi phép ghép hàm sẽ cho chính xác tuyệt đối** vì phần lớn phép tính đều làm tròn theo `double`.
+Use familiar numerical examples to grasp the meaning, but **do not assume every function composition will be completely exact** since most calculations round to `double`.
 
-## 2. `Math.exp(x)`: hàm mũ cơ số `e`
+## 2. `Math.exp(x)`: Base-`e` Exponential Function
 
-`Math.exp(x)` tính \(e^x\); kết quả toán học luôn **dương** đối với mọi \(x\) thực hữu hạn. Các tính chất:
+`Math.exp(x)` computes \(e^x\); the mathematical result is always **positive** for any finite real \(x\). Properties:
 
-- `Math.exp(0.0)` và `Math.exp(-0.0)` đều bằng `1.0`.
-- `Math.exp(1.0)` xấp xỉ \(e\).
-- `Math.exp(Math.log(a))` xấp xỉ `a` khi `a > 0` và không gặp giới hạn làm tròn/miền.
-- `Math.exp(x + y)` tương ứng \(e^x e^y\) về mặt toán học, nhưng hai cách tính trên `double` **có thể khác do sai số hoặc overflow**.
+- `Math.exp(0.0)` and `Math.exp(-0.0)` both equal `1.0`.
+- `Math.exp(1.0)` approximates \(e\).
+- `Math.exp(Math.log(a))` approximates `a` when `a > 0` and no rounding/domain limits are hit.
+- `Math.exp(x + y)` corresponds to \(e^x e^y\) mathematically, but the two computations in `double` **can differ due to rounding error or overflow**.
 
 ```java
 double rate = 0.05;
 double years = 10.0;
-double growthFactor = Math.exp(rate * years); // e^0.5, hệ số tăng trưởng
+double growthFactor = Math.exp(rate * years); // e^0.5, growth factor
 ```
 
-Đây là đoạn minh họa trong một method, không phải chương trình Java độc lập. Mô hình \(e^{rt}\) thường dùng cho tăng trưởng liên tục; ứng dụng phải xác định rõ đơn vị thời gian và ý nghĩa của `rate`.
+This is an illustrative snippet inside a method, not a standalone Java program. The \(e^{rt}\) model is commonly used for continuous growth; the application must clearly define the time unit and the meaning of `rate`.
 
-### Overflow và underflow của `exp`
+### Overflow and Underflow of `exp`
 
-`double` không chứa được mọi giá trị của \(e^x\). Ví dụ:
+`double` cannot hold all values of \(e^x\). Example:
 
 ```java
 System.out.println(Math.exp(800.0));  // Infinity
 System.out.println(Math.exp(-800.0)); // 0.0
 ```
 
-`Math.exp(800.0)` vượt độ lớn hữu hạn của `double` nên cho dương vô cực. `Math.exp(-800.0)` là giá trị toán học dương nhưng quá nhỏ để thể hiện, nên làm tròn thành dương zero.
+`Math.exp(800.0)` exceeds the finite magnitude of `double`, yielding positive infinity. `Math.exp(-800.0)` is mathematically positive but too small to represent, so it rounds to positive zero.
 
-Vì thế **`Math.exp(x) == 0.0` không nhất thiết nói \(e^x=0\) về toán học**. Với phép tính xác suất cực nhỏ, log-likelihood hoặc số liệu có nhiều bậc độ lớn, đôi khi nên giữ dữ liệu ở **miền logarit** thay vì chuyển sang số mũ quá sớm.
+Therefore, **`Math.exp(x) == 0.0` does not necessarily mean \(e^x=0\) mathematically**. For extremely small probability calculations, log-likelihoods, or data spanning many orders of magnitude, you should sometimes keep data in the **logarithmic domain** instead of exponentiating too early.
 
-## 3. `Math.log(x)`: logarit tự nhiên
+## 3. `Math.log(x)`: Natural Logarithm
 
-`Math.log(x)` tính \(\ln(x)\), hàm ngược của \(e^x\) trên miền số thực dương:
+`Math.log(x)` computes \(\ln(x)\), the inverse of \(e^x\) over the positive real domain:
 
 ```java
 double x = 3.0;
@@ -75,16 +75,16 @@ double logX = Math.log(x);
 double approximatelyOriginal = Math.exp(logX);
 ```
 
-Do làm tròn, `approximatelyOriginal` không được bảo đảm có bit giống hoàn toàn `x`. Không nên viết test khẳng định `Math.exp(Math.log(x)) == x` cho mọi `double`.
+Due to rounding, `approximatelyOriginal` is not guaranteed to be bit-identical to `x`. You should not write tests asserting `Math.exp(Math.log(x)) == x` for every `double`.
 
-Một số quy tắc:
+Some rules:
 
-- `Math.log(1.0)` trả `0.0`.
-- Nếu `0 < x < 1`, \(\ln(x)\) âm.
-- Nếu `x > 1`, \(\ln(x)\) dương.
-- `Math.log(+0.0)` và `Math.log(-0.0)` đều trả `-Infinity`.
-- `Math.log(x)` với `x < 0` trả `NaN`, vì không có logarit thực.
-- `Math.log(Double.POSITIVE_INFINITY)` trả `Infinity`.
+- `Math.log(1.0)` returns `0.0`.
+- If `0 < x < 1`, \(\ln(x)\) is negative.
+- If `x > 1`, \(\ln(x)\) is positive.
+- `Math.log(+0.0)` and `Math.log(-0.0)` both return `-Infinity`.
+- `Math.log(x)` with `x < 0` returns `NaN`, because there is no real logarithm.
+- `Math.log(Double.POSITIVE_INFINITY)` returns `Infinity`.
 
 ```java
 System.out.println(Math.log(1.0));           // 0.0
@@ -93,13 +93,13 @@ System.out.println(Math.log(-1.0));          // NaN
 System.out.println(Math.log(Double.POSITIVE_INFINITY)); // Infinity
 ```
 
-**Không ném `ArithmeticException` cho các đầu vào miền sai thông thường.** Đây là hàm dấu phẩy động; ứng dụng cần kiểm tra kết quả hoặc đầu vào nếu không cho phép NaN/vô cực.
+**Does not throw `ArithmeticException` for typical out-of-domain inputs.** This is a floating-point function; the application needs to check the result or input if NaN/infinity is not allowed.
 
-Logarit còn giúp biến tích thành tổng về mặt toán học: \(\ln(ab)=\ln(a)+\ln(b)\) với \(a,b>0\). Điều này hữu ích khi tích của nhiều giá trị dương quá lớn hoặc quá nhỏ, nhưng cần cân nhắc sai số khi lấy log và khi quy đổi lại.
+Logarithms also turn products into sums mathematically: \(\ln(ab)=\ln(a)+\ln(b)\) for \(a,b>0\). This is useful when the product of many positive values is too large or too small, though rounding errors when taking logs and converting back must be considered.
 
-## 4. `Math.log10(x)`: logarit cơ số 10
+## 4. `Math.log10(x)`: Base-10 Logarithm
 
-`Math.log10(x)` trả \(\log_{10}(x)\). Nó có cùng miền số thực dương với `log`, nhưng **cơ số khác nhau**:
+`Math.log10(x)` returns \(\log_{10}(x)\). It shares the same positive real domain as `log`, but with a **different base**:
 
 ```java
 System.out.println(Math.log10(1.0));    // 0.0
@@ -107,17 +107,17 @@ System.out.println(Math.log10(10.0));   // 1.0
 System.out.println(Math.log10(1000.0)); // 3.0
 ```
 
-Dùng `log10` khi vấn đề liên quan số bậc độ lớn thập phân, thang đo cơ số 10 hoặc tỷ lệ theo lũy thừa của 10. Dùng `log` khi công thức cần logarit tự nhiên, ví dụ liên tục, giải tích và nhiều mô hình xác suất.
+Use `log10` when the problem involves decimal orders of magnitude, base-10 scales, or ratios in powers of 10. Use `log` when the formula requires the natural logarithm, such as continuous processes, calculus, and many probability models.
 
-Quan hệ toán học:
+Mathematical relationship:
 
 \[
 \log_{10}(x)=\frac{\ln(x)}{\ln(10)}.
 \]
 
-Đừng nhất thiết triển khai `Math.log(x) / Math.log(10.0)` thay cho `Math.log10(x)`: Java đã có API trực tiếp, và các cách tính dấu phẩy động khác nhau có thể khác ở chữ số cuối.
+Do not unnecessarily implement `Math.log(x) / Math.log(10.0)` instead of `Math.log10(x)`: Java already has a direct API, and different floating-point calculations can differ in the last digit.
 
-**Đổi cơ số tổng quát:** \(\log_b(x)=\ln(x)/\ln(b)\), với `x > 0`, `b > 0` và `b != 1`:
+**General change of base:** \(\log_b(x)=\ln(x)/\ln(b)\), with `x > 0`, `b > 0`, and `b != 1`:
 
 ```java
 double base = 2.0;
@@ -125,13 +125,13 @@ double value = 8.0;
 double logBase2 = Math.log(value) / Math.log(base);
 ```
 
-Đây là công thức tính logarit cơ số 2 từ hai lời gọi `log`; kết quả là xấp xỉ. Khi `base` cực gần 1, mẫu số \(\ln(base)\) nhỏ nên bài toán có thể nhạy với sai số; cần đánh giá độ ổn định thay vì chỉ thay bằng một phép chia.
+This is the formula for computing base-2 logarithm from two `log` calls; the result is an approximation. When `base` is extremely close to 1, the denominator \(\ln(base)\) is small so the problem can be sensitive to error; evaluate stability rather than just substituting a division.
 
-## 5. Vì sao `Math.exp(x) - 1.0` có thể mất precision?
+## 5. Why Can `Math.exp(x) - 1.0` Lose Precision?
 
-Với \(x\) gần 0, \(e^x\) gần 1. Nếu gọi `Math.exp(x)`, kết quả bị làm tròn sang lưới `double` quanh 1. Sau đó trừ 1 có thể làm **mất toàn bộ tín hiệu rất nhỏ**.
+For \(x\) near 0, \(e^x\) is near 1. If you call `Math.exp(x)`, the result is rounded to the `double` grid around 1. Subtracting 1 afterward can **lose the entire tiny signal**.
 
-Chọn:
+Consider:
 
 ```java
 double x = 1e-16;
@@ -142,26 +142,26 @@ System.out.println(naive);  // 0.0
 System.out.println(stable); // 1.0E-16
 ```
 
-Về toán học, \(e^{10^{-16}}-1\) xấp xỉ \(10^{-16}\), nhưng `Math.exp(1e-16)` được làm tròn thành `1.0` ở độ chính xác `double`, khiến `1.0-1.0` bằng 0. Đây là **cancellation** (mất thông tin khi trừ hai số gần nhau).
+Mathematically, \(e^{10^{-16}}-1\) is approximately \(10^{-16}\), but `Math.exp(1e-16)` rounds to `1.0` at `double` precision, making `1.0-1.0` equal to 0. This is **cancellation** (loss of information when subtracting two nearly equal numbers).
 
-`Math.expm1(x)` tính \(e^x-1\) bằng thuật toán đặc thù, **không đơn thuần thực hiện phép Java `Math.exp(x) - 1` theo cùng các bước**. Nhờ đó hàm giữ được độ chính xác cao khi x rất nhỏ.
+`Math.expm1(x)` computes \(e^x-1\) using a specialized algorithm, **not simply executing Java's `Math.exp(x) - 1` in the same steps**. Thus, the function maintains high precision when x is very small.
 
-### Chọn `expm1` theo ý nghĩa công thức
+### Choosing `expm1` Based on Formula Intent
 
-Nếu công thức cần **hệ số tăng trưởng** \(e^r\), dùng `exp(r)`. Nếu cần **mức tăng so với 1** \(e^r-1\), dùng `expm1(r)`:
+If the formula needs the **growth factor** \(e^r\), use `exp(r)`. If it needs the **increase relative to 1** \(e^r-1\), use `expm1(r)`:
 
 ```java
 double continuousRate = 1e-12;
 double relativeIncrease = Math.expm1(continuousRate);
 ```
 
-Với lãi suất rất nhỏ hoặc biến đổi phần trăm, `relativeIncrease` là đại lượng cần thiết. Dùng `exp` rồi trừ 1 có thể mất chữ số có nghĩa.
+For very small interest rates or percentage changes, `relativeIncrease` is the needed quantity. Using `exp` and subtracting 1 can lose significant digits.
 
-Ở đầu vào rất âm, `Math.expm1(-1000.0)` trả `-1.0` vì \(e^{-1000}-1\) làm tròn thành -1. Trái lại `Math.exp(-1000.0)` làm tròn thành zero. Đây không phải mâu thuẫn, vì **hai hàm trả hai đại lượng khác nhau**.
+For very negative inputs, `Math.expm1(-1000.0)` returns `-1.0` because \(e^{-1000}-1\) rounds to -1. Conversely, `Math.exp(-1000.0)` rounds to zero. This is not a contradiction, because **the two functions return two different quantities**.
 
-## 6. Vì sao `Math.log(1.0 + x)` có thể mất precision?
+## 6. Why Can `Math.log(1.0 + x)` Lose Precision?
 
-Cơ chế tương tự xảy ra khi \(x\) rất gần 0. Phép `1.0 + x` có thể được làm tròn thành đúng `1.0` **trước khi** `Math.log` được gọi:
+A similar mechanism occurs when \(x\) is very close to 0. The operation `1.0 + x` can round to exact `1.0` **before** `Math.log` is even called:
 
 ```java
 double x = 1e-16;
@@ -172,34 +172,34 @@ System.out.println(naive);  // 0.0
 System.out.println(stable); // 1.0E-16
 ```
 
-Về toán học, \(\ln(1+x) \approx x\) khi \(x\) nhỏ. `Math.log(1.0 + x)` không biết rằng giá trị đầu vào `1.0` là kết quả làm tròn của tổng `1.0 + 1e-16`; thông tin đã mất **trước khi gọi log**.
+Mathematically, \(\ln(1+x) \approx x\) when \(x\) is small. `Math.log(1.0 + x)` has no way of knowing that the input `1.0` was the rounded result of the sum `1.0 + 1e-16`; the information was already lost **before calling log**.
 
-`Math.log1p(x)` tính \(\ln(1+x)\) bằng thuật toán giữ precision cho x nhỏ. Nó thích hợp trong:
+`Math.log1p(x)` computes \(\ln(1+x)\) with an algorithm that preserves precision for small x. It is suitable for:
 
-- Công thức lợi suất logarit \(\ln(1+r)\) với tỷ lệ biến động `r` rất nhỏ.
-- Xử lý xác suất và các biến đổi được biểu diễn theo phần thay đổi quanh 1.
-- Thuật toán cần logarit của tổng `1+x` mà `x` là một đầu vào độc lập nhỏ.
+- Log-return formulas \(\ln(1+r)\) with very small return rate `r`.
+- Handling probabilities and transformations expressed as relative changes around 1.
+- Algorithms needing the logarithm of the sum `1+x` where `x` is a small independent input.
 
-Ví dụ tính *log-return*:
+Example computing *log-return*:
 
 ```java
 double smallReturn = 1e-12;
 double logReturn = Math.log1p(smallReturn);
 ```
 
-Không nên dùng `log1p` chỉ vì muốn lấy logarit thông thường: `Math.log1p(100.0)` là \(\ln(101)\), **khác** `Math.log(100.0)` là \(\ln(100)\).
+You should not use `log1p` just to take an ordinary logarithm: `Math.log1p(100.0)` is \(\ln(101)\), **different** from `Math.log(100.0)` which is \(\ln(100)\).
 
-## 7. Miền xác định: `log(x)` khác `log1p(x)`
+## 7. Domain: `log(x)` Differs from `log1p(x)`
 
-Hai hàm logarit có miền số thực khác nhau:
+The logarithm functions have different real-valued domains:
 
-| Hàm | Đầu vào cho giá trị thực thông thường | Điểm ranh giới | Phía không hợp lệ |
+| Function | Inputs Yielding Ordinary Real Values | Boundary Point | Invalid Side |
 | --- | --- | --- | --- |
 | `Math.log(x)` | `x > 0.0` | `x == ±0.0` → `-Infinity` | `x < 0.0` → `NaN` |
 | `Math.log10(x)` | `x > 0.0` | `x == ±0.0` → `-Infinity` | `x < 0.0` → `NaN` |
 | `Math.log1p(x)` | `x > -1.0` | `x == -1.0` → `-Infinity` | `x < -1.0` → `NaN` |
 
-`Math.log1p(-0.5)` là giá trị hữu hạn âm vì `1-0.5 = 0.5 > 0`, còn `Math.log(-0.5)` trả NaN.
+`Math.log1p(-0.5)` is a finite negative value because `1-0.5 = 0.5 > 0`, whereas `Math.log(-0.5)` returns NaN.
 
 ```java
 System.out.println(Math.log1p(-1.0)); // -Infinity
@@ -207,7 +207,7 @@ System.out.println(Math.log1p(-2.0)); // NaN
 System.out.println(Math.log(-1.0));   // NaN
 ```
 
-Dấu zero là một trường hợp đặc biệt:
+Signed zero is a special case:
 
 ```java
 System.out.println(Math.log1p(-0.0)); // -0.0
@@ -215,30 +215,30 @@ System.out.println(Math.expm1(-0.0)); // -0.0
 System.out.println(Math.log(-0.0));   // -Infinity
 ```
 
-`log1p(-0.0)` và `expm1(-0.0)` **giữ âm zero**. Trong khi đó `log(-0.0)` trả âm vô cực, vì logarit tại giá trị zero ở ranh giới miền. Không được suy luận rằng hai hàm có thể dùng thay nhau chỉ vì x gần 0.
+`log1p(-0.0)` and `expm1(-0.0)` **preserve negative zero**. Meanwhile, `log(-0.0)` returns negative infinity, because the logarithm at zero is on the domain boundary. Do not infer that the two functions are interchangeable just because x is near 0.
 
-Nếu kết quả phải hữu hạn, hãy kiểm tra miền đầu vào **và** kiểm tra đầu ra; các quy tắc đặc biệt có thể cho `Infinity`/`NaN` mà không phát sinh exception.
+If the result must be finite, check the input domain **and** check the output; special rules can yield `Infinity`/`NaN` without raising an exception.
 
-## 8. Các trường hợp `Infinity`, `NaN` và overflow/underflow
+## 8. `Infinity`, `NaN`, and Overflow/Underflow Cases
 
-Với `double`, năm hàm có hành vi số thực đặc biệt. Bảng sau nêu các kết quả đáng nhớ:
+With `double`, the five functions have special real-number behaviors. The following table lists notable results:
 
-| Đầu vào | `exp(x)` | `log(x)` | `log10(x)` | `expm1(x)` | `log1p(x)` |
+| Input | `exp(x)` | `log(x)` | `log10(x)` | `expm1(x)` | `log1p(x)` |
 | --- | --- | --- | --- | --- | --- |
 | `+0.0` | `1.0` | `-Infinity` | `-Infinity` | `+0.0` | `+0.0` |
 | `-0.0` | `1.0` | `-Infinity` | `-Infinity` | `-0.0` | `-0.0` |
 | `+Infinity` | `+Infinity` | `+Infinity` | `+Infinity` | `+Infinity` | `+Infinity` |
 | `-Infinity` | `+0.0` | `NaN` | `NaN` | `-1.0` | `NaN` |
 | `NaN` | `NaN` | `NaN` | `NaN` | `NaN` | `NaN` |
-| `-1.0` | Dương hữu hạn | `NaN` | `NaN` | Âm hữu hạn | `-Infinity` |
+| `-1.0` | Positive finite | `NaN` | `NaN` | Negative finite | `-Infinity` |
 
-Lưu ý: `Math.exp(-Infinity)` là **dương zero**, không phải âm zero. `Math.expm1(-Infinity)` là -1.0. `Math.log1p(-Infinity)` là NaN vì \(1+(-\infty)\) không thuộc miền logarit thực dương.
+Note: `Math.exp(-Infinity)` is **positive zero**, not negative zero. `Math.expm1(-Infinity)` is -1.0. `Math.log1p(-Infinity)` is NaN because \(1+(-\infty)\) is not in the positive real logarithm domain.
 
-### Không có exception tự động cho log âm và exp overflow
+### No Automatic Exceptions for Negative Log or Exp Overflow
 
-`Math.log(-2.0)` không ném `IllegalArgumentException`; nó trả `NaN`. `Math.exp(800.0)` không ném `ArithmeticException`; nó trả `Infinity`. Đó là giá trị dấu phẩy động đặc biệt theo quy tắc API.
+`Math.log(-2.0)` does not throw `IllegalArgumentException`; it returns `NaN`. `Math.exp(800.0)` does not throw `ArithmeticException`; it returns `Infinity`. These are special floating-point values per the API rules.
 
-Để phân loại:
+To classify:
 
 ```java
 double result = Math.exp(800.0);
@@ -246,17 +246,17 @@ System.out.println(Double.isInfinite(result)); // true
 System.out.println(Double.isFinite(result));   // false
 ```
 
-`Double.isFinite` chỉ nói kết quả có hữu hạn hay không. Nó không bảo đảm **không mất precision**, và `0.0` do underflow vẫn được coi là hữu hạn. Nếu cần ngăn underflow hoặc kiểm soát độ chính xác tương đối, phải phân tích miền đầu vào và thuật toán cụ thể.
+`Double.isFinite` only tells whether the result is finite. It does not guarantee **no loss of precision**, and `0.0` from underflow is still considered finite. If you need to prevent underflow or control relative precision, you must analyze the input domain and the specific algorithm.
 
-## 9. Độ chính xác: `Math` và `StrictMath`
+## 9. Accuracy: `Math` vs. `StrictMath`
 
-Cả `Math` và `StrictMath` cung cấp `exp`, `log`, `log10`, `expm1`, `log1p` với ý nghĩa và các trường hợp đặc biệt tương ứng.
+Both `Math` and `StrictMath` provide `exp`, `log`, `log10`, `expm1`, and `log1p` with corresponding semantics and special cases.
 
-- **`Math`:** API chuẩn cho tính toán thông thường; những hàm này có các yêu cầu về độ chính xác như sai số tối đa khoảng **1 ulp** và tính chất *semi-monotonic* theo đặc tả từng phương thức. JVM có thể sử dụng triển khai tối ưu.
-- **`StrictMath`:** thiết kế nhằm đem lại kết quả có tính tái lập giữa các nền tảng cho các hàm được chỉ định, dựa trên quy tắc/thuật toán được chuẩn hóa. Nó không có nghĩa luôn gần kết quả toán học hơn `Math` ở mọi đầu vào.
-- Từ Java 17, biểu thức dấu phẩy động Java đã có ngữ nghĩa luôn nghiêm ngặt theo thay đổi ngôn ngữ; điều này **không làm `Math` và `StrictMath` trở thành cùng một API hoặc bắt buộc trả cùng mọi bit**.
+- **`Math`:** standard API for general computation; these functions have accuracy requirements such as a maximum error around **1 ulp** and *semi-monotonicity* as specified per method. The JVM may use optimized implementations.
+- **`StrictMath`:** designed to deliver reproducible results across platforms for specified functions, based on standardized rules/algorithms. It does not mean it is always closer to the exact mathematical result than `Math` for every input.
+- Since Java 17, Java floating-point expressions have always-strict semantics per language changes; this **does not make `Math` and `StrictMath` the same API or force them to return identical bits everywhere**.
 
-Ví dụ:
+Example:
 
 ```java
 double fastOrDefault = Math.exp(1.0);
@@ -266,68 +266,68 @@ String first = String.format(java.util.Locale.ROOT,
         "%.6f", fastOrDefault);
 String second = String.format(java.util.Locale.ROOT,
         "%.6f", reproducible);
-// Cả hai có thể hiển thị "2.718282" khi format 6 số sau dấu chấm.
+// Both may display "2.718282" when formatted to 6 decimal places.
 ```
 
-**Không nên khẳng định `Math.exp(x) == StrictMath.exp(x)` luôn true**, cũng không tuyên bố `StrictMath` luôn nhanh/chậm hơn trên mọi JVM; đánh giá độ chính xác, tính tái lập và hiệu năng theo hợp đồng và môi trường.
+**You should not claim `Math.exp(x) == StrictMath.exp(x)` is always true**, nor claim `StrictMath` is always faster/slower on every JVM; evaluate accuracy, reproducibility, and performance according to the contract and environment.
 
-`StrictMath.expm1`/`StrictMath.log1p` vẫn hữu ích cho mục đích **ổn định phép tính gần 0**. Yếu tố chọn `expm1` thay `exp-1`, hoặc `log1p` thay `log(1+x)`, là công thức số học cần tính, không chỉ tên class.
+`StrictMath.expm1`/`StrictMath.log1p` remain useful for **stabilizing calculations near 0**. The deciding factor for choosing `expm1` over `exp-1`, or `log1p` over `log(1+x)`, is the numerical formula to compute, not just the class name.
 
-## 10. Những công thức thường áp dụng và giới hạn
+## 10. Commonly Applied Formulas and Limits
 
-### Tính tăng trưởng nhỏ
+### Computing Small Growth
 
-Nếu cần phần tăng \(e^{rt}-1\):
+If you need the growth portion \(e^{rt}-1\):
 
 ```java
 double rateTimesTime = 1e-12;
 double relativeGrowth = Math.expm1(rateTimesTime);
 ```
 
-`relativeGrowth` giữ được tín hiệu nhỏ tốt hơn `Math.exp(rateTimesTime)-1.0`. Nếu chỉ cần hệ số nhân \(e^{rt}\), dùng `Math.exp(rateTimesTime)`.
+`relativeGrowth` preserves tiny signals better than `Math.exp(rateTimesTime)-1.0`. If you only need the multiplier \(e^{rt}\), use `Math.exp(rateTimesTime)`.
 
-### Lợi suất logarit
+### Log-Return
 
-Nếu có phần thay đổi tương đối `r`, với `r > -1`:
+Given a relative change `r`, with `r > -1`:
 
 ```java
 double r = 1e-12;
 double logReturn = Math.log1p(r);
 ```
 
-Nếu `r == -1`, kết quả là `-Infinity`. Nếu `r < -1`, kết quả là `NaN`. Hợp đồng nghiệp vụ có thể yêu cầu từ chối dữ liệu không phù hợp trước khi gọi hàm.
+If `r == -1`, the result is `-Infinity`. If `r < -1`, the result is `NaN`. Business contracts may require rejecting invalid data before calling the function.
 
-### Ghép hai hàm là phép đảo gần đúng, không bảo đảm chính xác từng bit
+### Function Composition Is an Approximate Inverse, Not Bit-Exact
 
-Về toán học, với điều kiện phù hợp:
+Mathematically, under appropriate conditions:
 
 \[
 \ln(e^x)=x,\qquad e^{\ln(x)}=x \quad(x>0).
 \]
 
-Tuy nhiên với số học dấu phẩy động:
+However, with floating-point arithmetic:
 
-- `Math.log(Math.exp(800.0))` trả `Infinity` vì `exp(800)` đã overflow.
-- `Math.log(Math.exp(-800.0))` trả `-Infinity` vì `exp(-800)` đã underflow về 0.
-- Với `x` nhỏ, `Math.log(Math.exp(x))` có thể trả 0 thay vì x; `Math.log1p(Math.expm1(x))` có thể giữ x tốt hơn gần 0.
-- Với x dương bình thường, `Math.exp(Math.log(x))` vẫn là xấp xỉ; không dùng so sánh `==` làm bảo đảm toán học tuyệt đối.
+- `Math.log(Math.exp(800.0))` returns `Infinity` because `exp(800)` overflowed.
+- `Math.log(Math.exp(-800.0))` returns `-Infinity` because `exp(-800)` underflowed to 0.
+- With small `x`, `Math.log(Math.exp(x))` may return 0 instead of x; `Math.log1p(Math.expm1(x))` can preserve x better near 0.
+- With normal positive x, `Math.exp(Math.log(x))` is still an approximation; do not use `==` comparison as an absolute mathematical guarantee.
 
-### Tính trên miền log tránh tràn tích số
+### Computing in Log Space to Avoid Product Overflow/Underflow
 
-Nếu nhiều hệ số dương rất nhỏ, có thể cộng `Math.log(p)` thay vì nhân tất cả trực tiếp:
+If multiplying many very small positive factors, you can add `Math.log(p)` instead of multiplying them all directly:
 
 ```java
 double p = 1e-200;
 double q = 1e-200;
 double directProduct = p * q;      // underflow: 0.0
-double logProduct = Math.log(p) + Math.log(q); // hữu hạn
+double logProduct = Math.log(p) + Math.log(q); // finite
 ```
 
-Đây là chiến lược lưu **log của tích**, không tự động khôi phục được tích ban đầu dưới dạng `double` nếu nó vẫn nhỏ hơn miền biểu diễn. Với mô hình xác suất và các thuật toán thống kê, đây thường là lợi ích thực tế.
+This is a strategy of storing the **log of the product**, which cannot automatically recover the original product as a `double` if it remains smaller than the representable range. For probability models and statistical algorithms, this is often a practical benefit.
 
-## 11. Chương trình Java 17+ chạy độc lập
+## 11. Standalone Java 17+ Program
 
-Tạo file **`ExpLogDemo.java`**:
+Create file **`ExpLogDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -391,14 +391,14 @@ public class ExpLogDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac ExpLogDemo.java
 java ExpLogDemo
 ```
 
-**Kết quả mong đợi** trên JDK 17 khi sử dụng đúng ví dụ này:
+**Expected output** on JDK 17 when using this exact example:
 
 ```text
 expZero=1.0
@@ -436,34 +436,34 @@ logOneHalfSixDecimals=-0.693147
 logBaseTwoEightSixDecimals=3.000000
 ```
 
-Bốn dòng `naive...` và `stable...` chứng minh sự khác biệt thiết yếu: những bước `exp(x)-1` và `log(1+x)` có thể đánh mất tín hiệu gần 0; `expm1` và `log1p` giữ precision tốt hơn. Các dòng `Infinity`/`NaN` chứng minh lý do phải xét miền đầu vào và đầu ra. Hai dòng `Math`/`StrictMath` dùng **định dạng sáu chữ số**, không khẳng định mọi chữ số nhị phân của hai kết quả đều giống nhau.
+The four `naive...` and `stable...` lines demonstrate the essential difference: `exp(x)-1` and `log(1+x)` can lose signals near 0; `expm1` and `log1p` preserve precision better. The `Infinity`/`NaN` lines demonstrate why input and output domains must be checked. The two `Math`/`StrictMath` lines use **six-digit formatting**, without claiming every binary digit of the two results is identical.
 
-## 12. Sai lầm thường gặp
+## 12. Common Mistakes
 
-| Nhận định | Cách hiểu đúng |
+| Claim | Correct Understanding |
 | --- | --- |
-| “`Math.log` trong Java mặc định cơ số 10.” | Sai: `Math.log` là logarit tự nhiên; `Math.log10` mới là cơ số 10. |
-| “`Math.exp(x) - 1` và `Math.expm1(x)` luôn có cùng độ chính xác.” | Sai: `expm1` tốt hơn gần x = 0 do tránh cancellation. |
-| “`Math.log(1+x)` giống `Math.log1p(x)` trong máy tính ở mọi x.” | Sai: bước `1+x` có thể làm tròn thành 1. |
-| “`Math.log1p(x)` có nghĩa log của x cộng thêm 1 sau phép log.” | Sai: nó tính \(\ln(1+x)\), không phải \(\ln(x)+1\). |
-| “`Math.expm1(x)` tính \(e^{x-1}\).” | Sai: nó tính \(e^x-1\). |
-| “`Math.log(-1)` phải ném exception.” | Với số thực `double`, kết quả là `NaN`, không phải exception tự động. |
-| “`Math.log1p(-1)` cho NaN.” | Sai: đúng ranh giới -1 trả `-Infinity`; nhỏ hơn -1 mới NaN. |
-| “`Math.exp(800)` sẽ luôn cho một số `double` hữu hạn.” | Sai: overflow thành `Infinity`. |
-| “`Math.exp(-800)` bằng 0 trong toán học.” | Sai: đó là underflow về zero trong biểu diễn `double`. |
-| “`Math.log1p(-0.0)` sẽ đổi dấu thành dương zero.” | Sai: API giữ `-0.0`. |
-| “`StrictMath` luôn cho nhiều chữ số chính xác hơn `Math`.” | Không có bảo đảm chung như vậy; mục tiêu quan trọng của `StrictMath` là tái lập kết quả. |
-| “`exp(log(x)) == x` luôn true.” | Là hệ thức toán học trong miền phù hợp, nhưng triển khai dấu phẩy động có làm tròn và trường hợp đặc biệt. |
+| "`Math.log` in Java defaults to base 10." | False: `Math.log` is natural logarithm; `Math.log10` is base 10. |
+| "`Math.exp(x) - 1` and `Math.expm1(x)` always have the same precision." | False: `expm1` is better near x = 0 by avoiding cancellation. |
+| "`Math.log(1+x)` is identical to `Math.log1p(x)` on a computer for all x." | False: the `1+x` step can round to 1. |
+| "`Math.log1p(x)` means the log of x plus 1 after taking the log." | False: it computes \(\ln(1+x)\), not \(\ln(x)+1\). |
+| "`Math.expm1(x)` computes \(e^{x-1}\)." | False: it computes \(e^x-1\). |
+| "`Math.log(-1)` must throw an exception." | For `double` floating-point, the result is `NaN`, not an automatic exception. |
+| "`Math.log1p(-1)` gives NaN." | False: exactly at boundary -1 it returns `-Infinity`; only below -1 gives NaN. |
+| "`Math.exp(800)` will always give a finite `double`." | False: it overflows to `Infinity`. |
+| "`Math.exp(-800)` equals 0 mathematically." | False: it is underflow to zero in `double` representation. |
+| "`Math.log1p(-0.0)` changes sign to positive zero." | False: the API preserves `-0.0`. |
+| "`StrictMath` always gives more accurate digits than `Math`." | There is no such general guarantee; a key goal of `StrictMath` is result reproducibility. |
+| "`exp(log(x)) == x` is always true." | It is a mathematical identity in the proper domain, but floating-point implementations have rounding and special cases. |
 
-## 13. Checklist chọn hàm
+## 13. Function Selection Checklist
 
-1. **Bạn cần hàm mũ hay logarit?** `exp(x)` tính \(e^x\); `log(x)` tính \(\ln x\); `log10(x)` tính \(\log_{10}x\).
-2. **Bài toán cần trừ 1 sau hàm mũ?** Nếu công thức là \(e^x-1\), ưu tiên `expm1(x)`, đặc biệt khi `x` gần 0.
-3. **Bài toán cần log của 1 cộng x?** Nếu công thức là \(\ln(1+x)\), ưu tiên `log1p(x)`, đặc biệt khi `x` gần 0.
-4. **Miền xác định có hợp lệ không?** `log`/`log10` cần x dương; `log1p` cần x lớn hơn -1 để có kết quả hữu hạn thông thường.
-5. **Có nguy cơ overflow hoặc underflow không?** `exp` có thể thành vô cực/zero. Xem xét miền log và xử lý `Double.isFinite` phù hợp.
-6. **Có quan tâm `NaN`, Infinity và signed zero không?** Đừng dựa vào exception số nguyên; dùng kiểm tra miền, `Double.isNaN`/`isInfinite`/`isFinite`.
-7. **Bạn cần tính tái lập xuyên JVM không?** Cân nhắc `StrictMath` theo yêu cầu; không mặc định nó luôn nhanh hơn hoặc chính xác hơn.
-8. **Bạn cần kết quả bit giống hệt sau ghép hàm không?** Nếu không có bảo đảm, dùng sai số tuyệt đối/tương đối phù hợp thay vì `==` cho các kết quả số thực xấp xỉ.
+1. **Do you need exponential or logarithmic?** `exp(x)` computes \(e^x\); `log(x)` computes \(\ln x\); `log10(x)` computes \(\log_{10}x\).
+2. **Does the problem subtract 1 after the exponential?** If the formula is \(e^x-1\), prefer `expm1(x)`, especially when `x` is near 0.
+3. **Does the problem take the log of 1 plus x?** If the formula is \(\ln(1+x)\), prefer `log1p(x)`, especially when `x` is near 0.
+4. **Is the domain valid?** `log`/`log10` require positive x; `log1p` requires x greater than -1 for ordinary finite results.
+5. **Is there a risk of overflow or underflow?** `exp` can become infinity/zero. Consider log space and handle `Double.isFinite` appropriately.
+6. **Do `NaN`, Infinity, and signed zero matter?** Do not rely on integer exceptions; use domain checks and `Double.isNaN`/`isInfinite`/`isFinite`.
+7. **Do you need cross-JVM reproducibility?** Consider `StrictMath` as required; do not assume it is always faster or more accurate.
+8. **Do you need bit-identical results after function composition?** Unless guaranteed, use appropriate absolute/relative tolerances instead of `==` for approximate floating-point results.
 
-**Ghi nhớ:** `exp` và `log` là hai hàm cơ bản theo cơ số \(e\), `log10` theo cơ số 10; hai hàm `expm1` và `log1p` dành cho những biểu thức **rất gần 0 dễ mất chữ số có nghĩa**. Chọn đúng hàm thường quan trọng hơn việc tìm cách làm tròn kết quả sau mỗi bước.
+**Key takeaway:** `exp` and `log` are the two fundamental base-\(e\) functions, `log10` is base 10; `expm1` and `log1p` are for expressions **very close to 0 that easily lose significant digits**. Choosing the right function is often more important than trying to round results after each step.

@@ -1,79 +1,79 @@
-# Chuyển kiểu ngầm định trong phép gán kết hợp — Java 17+
+# Implicit Type Conversion in Compound Assignment — Java 17+
 
-## 1. Bài toán: vì sao `b += 10` được mà `b = b + 10` không được?
+## 1. The Problem: Why Does `b += 10` Work While `b = b + 10` Does Not?
 
-Trong Java, các toán tử gán kết hợp (*compound assignment*) như `+=`, `-=`, `*=`, `/=` vừa tính toán vừa cập nhật biến ở vế trái. Với kiểu số nguyên nhỏ, chúng thực hiện **chuyển đổi về kiểu đích một cách ngầm định**, kể cả khi phép tính trung gian được nâng lên kiểu lớn hơn.
+In Java, compound assignment operators such as `+=`, `-=`, `*=`, `/=` both compute a value and update the variable on the left-hand side. For small integer types, they perform an **implicit conversion to the target type**, even when the intermediate calculation is promoted to a larger type.
 
 ~~~java
 byte b = 120;
-b += 10; // Biên dịch được
+b += 10; // Compiles
 System.out.println(b); // -126
 ~~~
 
-Trong khi đó:
+Meanwhile:
 
 ~~~java
 byte b = 120;
-// b = b + 10; // Lỗi compile: byte + int tạo int, không tự gán vào byte
+// b = b + 10; // Compile error: byte + int produces int, cannot auto-assign to byte
 ~~~
 
-**Vì sao `-126`?** Java nâng `b` thành `int`, tính `120 + 10 = 130`, rồi thu hẹp về `byte` 8 bit. Giá trị 130 vượt `Byte.MAX_VALUE` (127) nên kết quả lưu thành -126. Compiler **không** tự từ chối mất dữ liệu ở phép `+=` này.
+**Why `-126`?** Java promotes `b` to `int`, computes `120 + 10 = 130`, and then narrows it to an 8-bit `byte`. The value 130 exceeds `Byte.MAX_VALUE` (127), so the stored result wraps to -126. The compiler **does not** automatically reject data loss in this `+=` operation.
 
-Bài học cốt lõi: **cú pháp gán kết hợp có quy tắc chuyển kiểu khác phép gán `=` thông thường**. Dùng ngắn hơn không có nghĩa an toàn hơn.
+Core lesson: **compound assignment syntax has different type conversion rules than ordinary `=` assignment**. Being shorter does not mean being safer.
 
-## 2. Công thức ngữ nghĩa của phép gán kết hợp
+## 2. Semantic Formula for Compound Assignment
 
-Với một biến số nguyên thủy `x` có kiểu `T`, có thể hình dung:
+For a primitive numeric variable `x` of type `T`, you can picture:
 
 ~~~java
 x op= y;
 ~~~
 
-gần tương đương:
+as roughly equivalent to:
 
 ~~~java
 x = (T) (x op y);
 ~~~
 
-**Ngoại lệ quan trọng:** vế trái của `op=` **chỉ được đánh giá một lần**; thay máy móc bằng biểu thức dài `x = (T)(x op y)` có thể thay đổi side effect nếu `x` là field hoặc phần tử mảng truy cập qua biểu thức.
+**Important exception:** the left-hand side of `op=` **is evaluated only once**; mechanically substituting the long form `x = (T)(x op y)` can change side effects if `x` is a field or an array element accessed through an expression.
 
-Với toán hạng số học nguyên thủy, thứ tự ý nghĩa cơ bản là:
+For primitive arithmetic operands, the basic semantic order is:
 
-1. Xác định nơi chứa giá trị ở vế trái, lấy giá trị hiện tại.
-2. Đánh giá toán hạng phải theo quy tắc thứ tự của Java.
-3. Thực hiện phép toán `op` với **numeric promotion** khi cần.
-4. Chuyển kết quả về **kiểu của vế trái**, kể cả narrowing.
-5. Gán lại giá trị đã chuyển; biểu thức gán kết hợp cho giá trị sau cập nhật.
+1. Determine the storage location on the left-hand side and fetch its current value.
+2. Evaluate the right-hand operand according to Java's evaluation order rules.
+3. Perform the operation `op` with **numeric promotion** when needed.
+4. Convert the result to **the type of the left-hand side**, including narrowing.
+5. Assign the converted value back; the compound assignment expression yields the updated value.
 
 ~~~mermaid
 flowchart TD
     A["byte b = 120"] --> B["b += 10"]
-    B --> C["Nâng byte thành int"]
-    C --> D["120 + 10 = 130, kiểu int"]
-    D --> E["Thu hẹp int về byte"]
-    E --> F["b trở thành -126"]
+    B --> C["Promote byte to int"]
+    C --> D["120 + 10 = 130, type int"]
+    D --> E["Narrow int to byte"]
+    E --> F["b becomes -126"]
 ~~~
 
-Công thức trên minh họa tốt cho **kiểu nguyên thủy số**. Với `String +=`, toán tử bitwise boolean hoặc wrapper, có thêm quy tắc nối chuỗi, unboxing/boxing hoặc phép toán tương ứng; không diễn giải chúng như một phép cast số duy nhất.
+The formula above illustrates **numeric primitive types** well. For `String +=`, boolean/bitwise operators, or wrappers, there are additional rules for string concatenation, unboxing/boxing, or the respective operations; do not interpret them as a single numeric cast.
 
-## 3. So sánh gán thường và gán kết hợp
+## 3. Comparing Simple Assignment and Compound Assignment
 
-| Cú pháp | Hành vi | Ví dụ |
+| Syntax | Behavior | Example |
 |---|---|---|
-| `x = y` | Vế phải phải tương thích qua *assignment conversion* | `int x = 3;` |
-| `x += y` | Cộng/nối rồi cập nhật; với primitive số có narrowing ngầm về kiểu đích | `byte b = 120; b += 10;` |
-| `x -= y` | Trừ rồi cập nhật, có thể narrowing | `short s = 5; s -= 2;` |
-| `x *= y` | Nhân rồi cập nhật, có thể overflow/narrowing | `int n = 5; n *= 3;` |
-| `x /= y` | Chia rồi cập nhật; với số nguyên vẫn cắt thương về 0 | `int n = 7; n /= 2;` |
-| `x %= y` | Lấy dư rồi cập nhật | `int n = 7; n %= 2;` |
-| `x <<= y`, `>>=`, `>>>=` | Dịch bit rồi gán | `int bits = 1; bits <<= 2;` |
-| `x &= y`, `^=`, `|=` | Phép bitwise hoặc boolean phù hợp kiểu | `int mask = 7; mask &= 3;` |
+| `x = y` | Right-hand side must be compatible via *assignment conversion* | `int x = 3;` |
+| `x += y` | Add/concatenate then update; for numeric primitives, implicit narrowing to target type | `byte b = 120; b += 10;` |
+| `x -= y` | Subtract then update, may narrow | `short s = 5; s -= 2;` |
+| `x *= y` | Multiply then update, may overflow/narrow | `int n = 5; n *= 3;` |
+| `x /= y` | Divide then update; for integers still truncates quotient toward 0 | `int n = 7; n /= 2;` |
+| `x %= y` | Compute remainder then update | `int n = 7; n %= 2;` |
+| `x <<= y`, `>>=`, `>>>=` | Shift bits then assign | `int bits = 1; bits <<= 2;` |
+| `x &= y`, `^=`, `|=` | Bitwise or boolean operation depending on type | `int mask = 7; mask &= 3;` |
 
-**Không** có toán tử `&&=` hoặc `||=` trong Java. Với boolean, `&=` và `|=` **không áp dụng short-circuit như `&&`/`||`**; vế phải vẫn được đánh giá.
+There is **no** `&&=` or `||=` operator in Java. For booleans, `&=` and `|=` **do not short-circuit like `&&`/`||`**; the right-hand side is always evaluated.
 
-## 4. Binary numeric promotion và narrowing tự động
+## 4. Binary Numeric Promotion and Automatic Narrowing
 
-Một phép cộng giữa `byte` và `int` thông thường tạo **`int`**:
+An ordinary addition between `byte` and `int` produces **`int`**:
 
 ~~~java
 byte b = 100;
@@ -81,45 +81,45 @@ int promoted = b + 1;
 System.out.println(promoted); // 101
 ~~~
 
-Nhưng:
+However:
 
 ~~~java
 byte b = 100;
-b += 1;           // Hợp lệ, kết quả lưu vào byte
-// b = b + 1;     // Lỗi compile: int không tự thu hẹp về byte
-b = (byte) (b + 1); // Hợp lệ, ép kiểu tường minh
+b += 1;           // Valid, result stored into byte
+// b = b + 1;     // Compile error: int does not auto-narrow to byte
+b = (byte) (b + 1); // Valid, explicit cast
 ~~~
 
-| Vế trái | Phép tính trung gian | Kiểu lưu sau `op=` |
+| Left-Hand Side | Intermediate Operation | Stored Type After `op=` |
 |---|---|---|
-| `byte` | Thường nâng lên `int` hoặc rộng hơn | `byte` |
-| `short` | Thường nâng lên `int` hoặc rộng hơn | `short` |
-| `char` | Thường nâng lên `int` hoặc rộng hơn | `char` |
-| `int` | `int`, `long`, `float` hoặc `double` tùy toán hạng | `int` |
-| `long` | `long`, `float` hoặc `double` tùy toán hạng | `long` |
-| `float` | `float` hoặc `double` | `float` |
+| `byte` | Usually promoted to `int` or wider | `byte` |
+| `short` | Usually promoted to `int` or wider | `short` |
+| `char` | Usually promoted to `int` or wider | `char` |
+| `int` | `int`, `long`, `float`, or `double` depending on operand | `int` |
+| `long` | `long`, `float`, or `double` depending on operand | `long` |
+| `float` | `float` or `double` | `float` |
 | `double` | `double` | `double` |
 
-Ví dụ thu hẹp từ `long` ngay trong phép `+=`:
+Example of narrowing directly from `long` inside `+=`:
 
 ~~~java
 byte n = 1;
-n += 255L; // int/long arithmetic, sau đó về byte
-System.out.println(n); // 0: 1 + 255 = 256, byte chỉ giữ 8 bit thấp
+n += 255L; // int/long arithmetic, then converted to byte
+System.out.println(n); // 0: 1 + 255 = 256, byte keeps only the low 8 bits
 ~~~
 
-Còn phép gán thường:
+Whereas with ordinary assignment:
 
 ~~~java
 byte n = 1;
-// n = n + 255L; // Lỗi compile: kết quả long không tự gán vào byte
+// n = n + 255L; // Compile error: long result does not auto-assign to byte
 ~~~
 
-**Cảnh báo:** trình biên dịch cho phép nhiều compound assignment làm mất dữ liệu **dù vế phải không phải hằng và không vừa miền**. Đừng coi khả năng compile là chứng nhận an toàn số học.
+**Warning:** the compiler allows many lossy compound assignments **even when the right-hand side is not a constant and does not fit in range**. Do not treat successful compilation as a guarantee of arithmetic safety.
 
-## 5. Ví dụ `short`, `char`, `int`, `long`
+## 5. Examples with `short`, `char`, `int`, `long`
 
-### `short` bị tràn
+### `short` Overflow
 
 ~~~java
 short s = 32767;
@@ -127,9 +127,9 @@ s += 1;
 System.out.println(s); // -32768
 ~~~
 
-Phép cộng có kết quả `int` 32768, thu hẹp về `short` 16 bit có dấu thành -32768.
+The addition produces `int` 32768, which narrows to a 16-bit signed `short` as -32768.
 
-### `char` tăng mã UTF-16
+### `char` Incrementing UTF-16 Code Unit
 
 ~~~java
 char letter = 'A';
@@ -137,9 +137,9 @@ letter += 1;
 System.out.println(letter); // B
 ~~~
 
-`char + int` được tính qua `int`, sau đó gán trở lại `char`. Vì `char` là một UTF-16 code unit (0..65535), nó không phải kiểu biểu diễn mọi ký tự Unicode độc lập, nhất là các ký tự cần surrogate pair.
+`char + int` is computed via `int` and then assigned back to `char`. Because `char` is a UTF-16 code unit (0..65535), it is not a type representing every Unicode character independently, especially characters requiring a surrogate pair.
 
-### `int` thu hẹp kết quả `double`
+### `int` Narrowing a `double` Result
 
 ~~~java
 int count = 5;
@@ -147,17 +147,17 @@ count += 2.9;
 System.out.println(count); // 7
 ~~~
 
-Phép cộng tạo `double` 7.9, sau đó chuyển về `int` theo quy tắc thu hẹp số thực: **cắt phần lẻ về 0** đối với giá trị hữu hạn trong miền.
+The addition produces `double` 7.9, which is then converted to `int` according to floating-point narrowing rules: **truncating the fractional part toward 0** for finite values in range.
 
-Đoạn tương đương về ý nghĩa số với vế trái đơn giản:
+Numerically equivalent code for a simple left-hand side:
 
 ~~~java
 count = (int) (count + 2.9);
 ~~~
 
-Không thể thay bằng `count = count + 2.9;` vì `double` không tự gán vào `int`.
+You cannot replace it with `count = count + 2.9;` because `double` does not auto-assign to `int`.
 
-### `long` nhận phép cộng với `double`
+### `long` Receiving Addition with `double`
 
 ~~~java
 long total = 10L;
@@ -165,11 +165,11 @@ total += 2.9;
 System.out.println(total); // 12
 ~~~
 
-Kiểu kết quả cuối vẫn là `long`; phần lẻ bị loại khi thu hẹp từ `double`.
+The final result type remains `long`; the fractional part is discarded when narrowing from `double`.
 
-**Nguyên tắc nghiệp vụ:** nếu độ chính xác của số thực có ý nghĩa, việc tự động cắt phần lẻ trong `+=` có thể là bug. Tốt hơn hãy chuyển đổi tường minh kèm kiểm tra hoặc giữ loại dữ liệu đáp ứng yêu cầu.
+**Business rule:** if floating-point precision matters, automatic truncation in `+=` can be a bug. It is better to convert explicitly with checks or keep a data type that meets the requirements.
 
-## 6. Overflow và mất dữ liệu không phát sinh exception mặc định
+## 6. Overflow and Data Loss Do Not Throw an Exception by Default
 
 ~~~java
 int count = Integer.MAX_VALUE;
@@ -177,9 +177,9 @@ count += 1;
 System.out.println(count); // -2147483648
 ~~~
 
-Với `int`, kết quả tràn được tính theo quy tắc số học integer của Java; **không tự ném ngoại lệ overflow**.
+For `int`, overflowed results are computed according to Java's integer arithmetic rules; **no overflow exception is thrown automatically**.
 
-Nếu phải phát hiện tràn:
+If overflow must be detected:
 
 ~~~java
 int count = Integer.MAX_VALUE;
@@ -196,26 +196,26 @@ try {
 overflow detected
 ~~~
 
-`Math.addExact` phát hiện tràn `int`/`long` phù hợp overload. Đừng dùng `+=` với giả định nó sẽ tự ngăn overflow hoặc mất thông tin.
+`Math.addExact` detects `int`/`long` overflow via the matching overload. Do not use `+=` assuming it will prevent overflow or loss of information.
 
-Một trường hợp khác là thu hẹp từ `double` sang `int`: nếu giá trị quá lớn, Java có quy tắc bão hòa theo miền số nguyên khi narrowing floating-to-integral (và các quy tắc với NaN). **Không tự coi kết quả ép kiểu này là một phép validate miền.**
+Another case is narrowing from `double` to `int`: if the value is too large, Java applies saturation rules at the integer range bounds during floating-to-integral narrowing (along with rules for NaN). **Do not treat this cast behavior as range validation.**
 
-## 7. Giới hạn của quy tắc narrowing
+## 7. Limits of the Narrowing Rule
 
-Phần **cộng, trừ, nhân, chia, lấy dư, nối `String`** và hành vi vế trái chỉ đánh giá một lần đã được trình bày cùng các ví dụ có thể chạy trong bài “Phép gán kết hợp `+=`, `-=`, `*=`, `/=` và `%=`”. Ở đây ta phân tích thêm **kiểu đích** và những giá trị biên mà bước chuyển đổi âm thầm tạo ra.
+**Addition, subtraction, multiplication, division, remainder, `String` concatenation**, and single evaluation of the left-hand side were covered with runnable examples in the lesson “Compound Assignment `+=`, `-=`, `*=`, `/=`, and `%=` — Java 17+”. Here we further analyze the **target type** and the boundary values silently produced by the conversion step.
 
-| Biểu thức | Phép toán trung gian | Giá trị cuối sau gán |
+| Expression | Intermediate Operation | Final Value After Assignment |
 |---|---|---|
 | `byte b = 1; b += 255L;` | `long` 256 | `byte` 0 |
 | `int n = 5; n += 2.9;` | `double` 7.9 | `int` 7 |
 | `long n = 10L; n += 2.9;` | `double` 12.9 | `long` 12 |
 | `short s = 32767; s += 1;` | `int` 32768 | `short` -32768 |
 
-Điểm chung của bốn trường hợp là **kiểu tính toán trung gian không nhất thiết trùng kiểu lưu trữ**. Biến sau phép gán vẫn giữ kiểu đã khai báo, nhưng giá trị có thể thay đổi vì narrowing.
+What these four cases share is that **the intermediate computation type does not necessarily match the storage type**. After the assignment, the variable keeps its declared type, but the value may change due to narrowing.
 
-## 8. Trường hợp đặc biệt khi thu hẹp `double` thành `int`
+## 8. Special Cases When Narrowing `double` to `int`
 
-Java có quy tắc cụ thể cho NaN và infinity khi chuyển `double` sang `int`: NaN thành `0`; infinity dương bị chặn tại `Integer.MAX_VALUE`; infinity âm tại `Integer.MIN_VALUE`. Điều này cũng xuất hiện trong compound assignment:
+Java has specific rules for NaN and infinity when converting `double` to `int`: NaN becomes `0`; positive infinity is clamped at `Integer.MAX_VALUE`; negative infinity at `Integer.MIN_VALUE`. This also appears in compound assignment:
 
 ~~~java
 int a = 5;
@@ -228,15 +228,15 @@ int c = 0;
 c += Double.NEGATIVE_INFINITY; // c = -2147483648
 ~~~
 
-Không nhầm việc **chặn giá trị khi narrowing** với kiểm tra hợp lệ nghiệp vụ. Nếu không chấp nhận NaN, infinity hay mất phần thập phân, cần kiểm tra bằng `Double.isFinite` và kiểm tra miền trước khi chuyển.
+Do not confuse **clamping values during narrowing** with business validation. If NaN, infinity, or fractional truncation is unacceptable, validate with `Double.isFinite` and check bounds before converting.
 
-## 9. Bitwise, boolean và `String` nằm ngoài công thức cast số giản lược
+## 9. Bitwise, Boolean, and `String` Fall Outside the Simplified Numeric Cast Formula
 
-`<<=`, `>>=` và `>>>=` dùng quy tắc dịch bit của Java; `int` chỉ dùng 5 bit thấp của lượng dịch và `long` dùng 6 bit thấp. `&=`, `|=`, `^=` có thể là phép bitwise hoặc boolean tùy kiểu; trên boolean, `&` và `|` **không short-circuit**. `String +=` dùng nối chuỗi chứ không dùng cast số.
+`<<=`, `>>=`, and `>>>=` follow Java's bit-shift rules; `int` uses only the low 5 bits of the shift distance and `long` uses the low 6 bits. `&=`, `|=`, `^=` can be bitwise or boolean operations depending on type; on booleans, `&` and `|` **do not short-circuit**. `String +=` uses string concatenation rather than a numeric cast.
 
 ~~~java
 int bit = 1;
-bit <<= 33; // 2, vì lượng dịch được lấy modulo 32
+bit <<= 33; // 2, because the shift distance is taken modulo 32
 
 boolean active = false;
 active |= true; // true
@@ -245,15 +245,15 @@ String label = "item=";
 label += 7; // "item=7"
 ~~~
 
-Các phép này giúp xác định **ranh giới áp dụng** của giải thích “tính số rồi cast về `T`”, không phải là những phép chuyển kiểu số tương tự byte/short.
+These operations define the **applicability boundary** of the “compute number then cast to `T`” explanation—they are not numeric narrowing conversions like byte/short.
 
-## 10. Đừng bỏ qua vị trí chứa giá trị ở vế trái
+## 10. Do Not Overlook the Left-Hand Side Storage Location
 
-`numbers[index++] += 5` đánh giá vị trí phần tử một lần, lưu giá trị cũ, tính với `5` và gán trở lại phần tử đã chọn. Không được khai triển thành `numbers[index++] = numbers[index++] + 5`: cách viết sau tăng chỉ số **hai lần**. Đây là khác biệt độc lập với narrowing; khi kiểm tra một phép gán kết hợp, cần xem **cả kiểu kết quả lẫn số lần đánh giá vế trái**.
+`numbers[index++] += 5` evaluates the element location once, saves the old value, computes with `5`, and assigns back to the selected element. It must not be expanded to `numbers[index++] = numbers[index++] + 5`: the latter increments the index **twice**. This is a separate distinction from narrowing; when inspecting a compound assignment, check **both the result type and how many times the left-hand side is evaluated**.
 
-## 11. Wrapper và auto-unboxing/boxing
+## 11. Wrappers and Auto-Unboxing/Boxing
 
-Với lớp bao như `Integer`, gán kết hợp có thể thực hiện **unboxing → phép tính → boxing**:
+With wrapper classes such as `Integer`, compound assignment can perform **unboxing → operation → boxing**:
 
 ~~~java
 Integer boxed = 10;
@@ -261,9 +261,9 @@ boxed += 5;
 System.out.println(boxed); // 15
 ~~~
 
-Không nên coi việc này là cập nhật giá trị bên trong một object `Integer`; wrapper là immutable. Biến `boxed` được gán lại một giá trị tham chiếu wrapper đại diện cho số mới.
+Do not think of this as mutating the value inside an `Integer` object; wrappers are immutable. The variable `boxed` is reassigned a wrapper reference representing the new number.
 
-Nếu wrapper là null, phép tính cần unbox sẽ ném `NullPointerException`:
+If the wrapper is null, an operation requiring unboxing throws `NullPointerException`:
 
 ~~~java
 Integer boxed = null;
@@ -280,29 +280,29 @@ try {
 null unboxing
 ~~~
 
-So với primitive, wrapper cho phép null và được dùng trong generic; `+=` không xóa đi rủi ro null. Kiểm tra dữ liệu trước khi thực hiện phép toán hoặc sử dụng primitive khi trạng thái nullable không cần thiết.
+Compared to primitives, wrappers allow null and are used in generics; `+=` does not remove the null risk. Validate data before performing arithmetic, or use primitives when nullable state is unnecessary.
 
-## 12. Biểu thức gán kết hợp cũng trả giá trị
+## 12. Compound Assignment Expressions Also Return a Value
 
 ~~~java
 int count = 2;
 int result = (count += 3) * 4; // count=5, result=20
 ~~~
 
-`count += 3` có kiểu của biến đích và cung cấp giá trị sau cập nhật. Khi không cần giá trị trung gian, nên viết `count += 3; int result = count * 4;` để giảm side effect bên trong biểu thức.
+`count += 3` has the type of the target variable and provides the post-update value. When the intermediate value is not needed, write `count += 3; int result = count * 4;` to reduce side effects inside expressions.
 
-## 13. `final` không cho phép phép gán kết hợp
+## 13. `final` Disallows Compound Assignment
 
 ~~~java
 final int fixed = 3;
-// fixed += 1; // Lỗi compile: vẫn là gán lại biến final
+// fixed += 1; // Compile error: still reassigning a final variable
 ~~~
 
-Không có ngoại lệ dành riêng cho `op=`: dù được phép narrowing ngầm, toán tử vẫn phải tuân thủ khả năng gán của biến đích.
+There is no exception made for `op=`: even though implicit narrowing is allowed, the operator must still respect the assignability of the target variable.
 
-## 14. Chương trình Java 17 — kiểm tra chuyển đổi kiểu và giá trị biên
+## 14. Java 17 Program — Testing Type Conversion and Boundary Values
 
-Lưu thành `CompoundAssignmentConversionDemo.java` và chạy với JDK 17+:
+Save as `CompoundAssignmentConversionDemo.java` and run with JDK 17+:
 
 ~~~java
 public final class CompoundAssignmentConversionDemo {
@@ -369,34 +369,34 @@ nullWrapper=NullPointerException
 array=15,index=1
 ~~~
 
-Các dòng `nan` và `positiveInfinity` cho thấy narrowing không tự báo lỗi; `boxed` và `nullWrapper` cho thấy wrapper cần unboxing/boxing; dòng `array` xác nhận phép gán kết hợp chỉ đánh giá vị trí phần tử một lần.
+The `nan` and `positiveInfinity` lines show that narrowing does not automatically raise an error; `boxed` and `nullWrapper` show that wrappers require unboxing/boxing; the `array` line confirms compound assignment evaluates the element location only once.
 
-## 15. Sai lầm dễ gây mất dữ liệu
+## 15. Mistakes That Easily Cause Data Loss
 
-| Suy đoán sai | Cách kiểm chứng |
+| False Assumption | How to Verify |
 |---|---|
-| “`b += 10` luôn giống `b = b + 10`.” | Kiểm tra numeric promotion và cast ngầm; `byte` có thể compile ở `+=` nhưng không ở `= b + ...`. |
-| “Compile được nghĩa là không mất dữ liệu.” | Thử biên `byte`, `short` và `int += double`; kiểm tra miền/precision trước. |
-| “NaN và infinity sẽ gây ngoại lệ khi cộng vào `int`.” | Narrowing `double` sang `int` theo các giá trị định nghĩa của Java, không mặc định ném lỗi. |
-| “`Integer` luôn xử lý như `int`.” | `Integer` nullable, việc unbox null có thể ném `NullPointerException`. |
-| “Có thể sao chép biểu thức vế trái khi thay `op=`.” | Với mảng/field chứa lời gọi hoặc `index++`, số lần đánh giá thay đổi. |
-| “`+=` là thao tác nguyên tử giữa nhiều thread.” | Đọc–tính–ghi không tự đồng bộ; cần cơ chế đồng bộ/atomic tương ứng. |
+| “`b += 10` is always the same as `b = b + 10`.” | Check numeric promotion and implicit cast; `byte` compiles with `+=` but not with `= b + ...`. |
+| “If it compiles, no data is lost.” | Test `byte`, `short` boundaries and `int += double`; check range/precision first. |
+| “NaN and infinity will throw an exception when added to `int`.” | Narrowing `double` to `int` follows Java's defined values, without throwing an error by default. |
+| “`Integer` always behaves like `int`.” | `Integer` is nullable; unboxing null can throw `NullPointerException`. |
+| “You can duplicate the left-hand side expression when replacing `op=`.” | With arrays/fields containing calls or `index++`, the evaluation count changes. |
+| “`+=` is an atomic operation across multiple threads.” | Read-compute-write is not automatically synchronized; appropriate synchronization/atomic mechanisms are needed. |
 
-## 16. Bài tập phân tích kiểu và miền
+## 16. Type and Range Analysis Exercises
 
-1. Với `byte x = 127; x += 1;`, dự đoán `x`. **Đáp án:** -128 sau narrowing từ `int` 128.
-2. Với `int n = 10; n += -2.8;`, dự đoán `n`. **Đáp án:** 7; phép cộng trung gian cho `double` 7.2 rồi cắt phần lẻ.
-3. Với `int n = 8; n += Double.NaN;`, dự đoán `n`. **Đáp án:** 0 do quy tắc narrowing từ NaN sang `int`.
-4. Với `Integer n = null; n += 1;`, điều gì xảy ra? **Đáp án:** `NullPointerException` khi unboxing trước phép cộng.
-5. Với `int[] a = {5}; int i = 0; a[i++] += 2;`, giá trị cuối là gì? **Đáp án:** `a[0] == 7`, `i == 1`; vị trí được đánh giá một lần.
+1. Given `byte x = 127; x += 1;`, predict `x`. **Answer:** -128 after narrowing from `int` 128.
+2. Given `int n = 10; n += -2.8;`, predict `n`. **Answer:** 7; intermediate addition yields `double` 7.2, then truncates the fractional part.
+3. Given `int n = 8; n += Double.NaN;`, predict `n`. **Answer:** 0 due to the narrowing rule from NaN to `int`.
+4. Given `Integer n = null; n += 1;`, what happens? **Answer:** `NullPointerException` during unboxing before addition.
+5. Given `int[] a = {5}; int i = 0; a[i++] += 2;`, what are the final values? **Answer:** `a[0] == 7`, `i == 1`; the location is evaluated once.
 
-## 17. Checklist và kết luận
+## 17. Checklist and Conclusion
 
-- [ ] Biết phân biệt kiểu **tính toán trung gian** với kiểu **đích** của compound assignment.
-- [ ] Có thể giải thích byte/short overflow và cắt phần lẻ khi `int += double`.
-- [ ] Nắm quy tắc Java với NaN, infinity và giá trị ngoài miền khi narrowing từ số thực sang số nguyên.
-- [ ] Biết wrapper nullable có thể gây NPE khi unbox.
-- [ ] Không thay máy móc `op=` bằng hai lần đánh giá vế trái.
-- [ ] Chạy ví dụ và đối chiếu kết quả, kiểm tra miền và precision nếu bài toán cần dữ liệu chính xác.
+- [ ] Know how to distinguish the **intermediate computation type** from the **target type** of compound assignment.
+- [ ] Can explain byte/short overflow and fractional truncation in `int += double`.
+- [ ] Know Java's rules for NaN, infinity, and out-of-range values when narrowing floating-point to integer.
+- [ ] Know that nullable wrappers can cause NPE on unboxing.
+- [ ] Do not mechanically replace `op=` with evaluating the left-hand side twice.
+- [ ] Run the examples and verify outputs; check bounds and precision if the problem requires exact data.
 
-**Kết luận:** Compound assignment thuận tiện nhưng cho phép **chuyển kiểu hẹp ngầm**, có thể mất bit, phần thập phân hoặc nhận giá trị chặn ở miền số nguyên mà không báo lỗi. Hãy xác định kiểu trung gian, kiểu đích và điều kiện hợp lệ của dữ liệu trước khi chọn `op=`.
+**Conclusion:** Compound assignment is convenient, but it allows **implicit narrowing conversions** that can discard bits, fractional parts, or clamp to integer range bounds without raising an error. Determine the intermediate type, target type, and data validity conditions before choosing `op=`.

@@ -1,52 +1,52 @@
-# Chẩn đoán dữ liệu chưa flush, file handle còn mở và buffer sai trạng thái trong Java IO/NIO.2
+# Diagnosing Unflushed Data, Open File Handles, and Misconfigured Buffers in Java I/O / NIO.2
 
-Một ứng dụng có thể gọi `write()` mà file vẫn rỗng; file không xóa hoặc đổi tên được vì tài nguyên còn mở; hoặc `FileChannel` ghi ra 0 byte dù `ByteBuffer` đã có dữ liệu. Ba triệu chứng này thường bị gộp chung thành “IO chưa ghi xong”, nhưng chúng đến từ **ba lớp trạng thái khác nhau**:
+An application may call `write()` while the file remains empty; fail to delete or rename a file because a resource is still open; or have `FileChannel` write 0 bytes even though `ByteBuffer` holds data. These three symptoms are often lumped together as "I/O hasn't finished writing yet", yet they stem from **three different state layers**:
 
-1. **Bộ đệm đầu ra chưa flush**: dữ liệu còn nằm trong `BufferedWriter`, `BufferedOutputStream` hoặc tầng mã hóa ký tự, chưa được chuyển hết xuống tầng IO bên dưới.
-2. **Tài nguyên hệ điều hành chưa close**: `InputStream`, `OutputStream`, `Reader`, `Writer`, `FileChannel`, `DirectoryStream` hoặc `Stream` dựa trên tệp còn giữ tài nguyên; có thể tích lũy file descriptor/handle hoặc file lock.
-3. **`Buffer` sai `position`/`limit`**: dữ liệu đã có trong vùng nhớ nhưng API NIO không còn byte “remaining” để đọc/ghi, hoặc dữ liệu cũ bị ghi lặp/lẫn với dữ liệu chưa hợp lệ.
+1. **Unflushed output buffers**: data is still sitting inside `BufferedWriter`, `BufferedOutputStream`, or the character-encoding layer, not yet pushed down to the underlying I/O layer.
+2. **Unclosed OS resources**: an `InputStream`, `OutputStream`, `Reader`, `Writer`, `FileChannel`, `DirectoryStream`, or file-backed `Stream` is still holding a resource; file descriptors/handles or file locks can accumulate.
+3. **`Buffer` with wrong `position`/`limit`**: data sits in memory, yet the NIO API sees zero "remaining" bytes to read/write, or stale data gets written repeatedly or mixed with invalid bytes.
 
-Để sửa đúng, trước hết phải xác định dữ liệu đã đi qua những tầng nào, tài nguyên do ai sở hữu, và trạng thái của buffer tại thời điểm gọi API.
+To fix the issue properly, determine which layers the data has passed through, who owns the resource, and what state the buffer holds at the API call site.
 
-## 1. Chuỗi truyền dữ liệu: write, flush, close và độ bền trên đĩa
+## 1. Data Transfer Chain: `write`, `flush`, `close`, and Disk Durability
 
-Một đường ghi phổ biến có các tầng:
+A typical write path has several layers:
 
 ```text
-Dữ liệu ứng dụng
-   └─ BufferedWriter (buffer ký tự)
-        └─ OutputStreamWriter (mã hóa ký tự thành byte)
-             └─ BufferedOutputStream (buffer byte, nếu có)
+Application data
+   └─ BufferedWriter (character buffer)
+        └─ OutputStreamWriter (encodes chars to bytes)
+             └─ BufferedOutputStream (byte buffer, if present)
                   └─ FileOutputStream / FileChannel
-                       └─ bộ đệm của hệ điều hành / filesystem
-                            └─ thiết bị lưu trữ
+                       └─ OS / filesystem page cache
+                            └─ storage device
 ```
 
-Không phải chương trình nào cũng có đầy đủ mọi tầng. Ví dụ `Files.newBufferedWriter(path, UTF_8)` trả về một writer có buffering; `Files.writeString` là API ghi tiện ích, không để lại writer cho code gọi tự đóng.
+Not every program uses all layers. For example, `Files.newBufferedWriter(path, UTF_8)` returns a buffered writer; `Files.writeString` is a convenience write API that leaves no writer for the caller to close.
 
-| Hành động | Điều được bảo đảm trong phạm vi hợp đồng thông thường | Điều **không** được bảo đảm |
+| Action | Guaranteed Under Standard Contract | **Not** Guaranteed |
 | --- | --- | --- |
-| `writer.write(...)` | Đẩy dữ liệu vào trạng thái của writer; có thể vẫn chỉ nằm trong bộ đệm | File lập tức quan sát được toàn bộ dữ liệu |
-| `writer.flush()` | Yêu cầu đẩy dữ liệu đang buffer xuống destination bên dưới, và flush các tầng writer/stream trong chuỗi theo hợp đồng | Byte đã được lưu bền vững trên thiết bị vật lý |
-| `writer.close()` | Với writer chuẩn như `BufferedWriter`, flush trước khi close và giải phóng tài nguyên; có thể ném lỗi IO | Một giao dịch nghiệp vụ hoàn tất hay file được `fsync` tuyệt đối |
-| `FileChannel.force(true)` | Yêu cầu buộc thay đổi nội dung và metadata qua channel xuống thiết bị theo bảo đảm cụ thể của provider | Biến mọi filesystem, NFS/remote mount, hardware cache thành giao dịch bền vững |
-| `FileDescriptor.sync()` | Yêu cầu hệ điều hành đồng bộ dữ liệu liên quan tới descriptor | Thay thế cho việc flush bộ đệm ở tầng Java còn chưa chuyển byte xuống descriptor |
+| `writer.write(...)` | Places data into writer state; may still sit solely in a buffer | File immediately reflects all data |
+| `writer.flush()` | Pushes buffered data to the underlying destination and flushes nested writers/streams per contract | Bytes are durably persisted on physical storage |
+| `writer.close()` | On standard writers like `BufferedWriter`, flushes before closing and releasing resources; may throw I/O errors | Business transaction completion or absolute `fsync` |
+| `FileChannel.force(true)` | Requests forcing content and metadata changes through the channel to the device per provider guarantees | Turning every filesystem, NFS/remote mount, or hardware cache into durable transactions |
+| `FileDescriptor.sync()` | Requests OS synchronization of data associated with the descriptor | Replacing flushing of Java-layer buffers that haven't pushed bytes to the descriptor |
 
-**Phân biệt ba câu hỏi:** “Đã `write`?” khác “Đã `flush` xuống hệ điều hành?” và khác “Đã `force/sync` để giảm nguy cơ mất dữ liệu do crash?”. Nếu writer còn giữ ký tự trong RAM, gọi `force` trên file channel bên dưới mà chưa flush writer **không thể đồng bộ các byte chưa đến channel**.
+**Distinguish three questions:** "Did `write` run?" differs from "Was it `flush`ed to the OS?" and from "Was `force`/`sync` called to reduce crash data-loss risk?". If a writer still buffers characters in RAM, calling `force` on the underlying file channel without flushing the writer **cannot sync bytes that never reached the channel**.
 
-Với xử lý file thông thường, `try-with-resources` và việc kiểm tra exception từ close thường đủ để đảm bảo dữ liệu ở tầng Java được xả và tài nguyên được giải phóng. Với yêu cầu độ bền cao (nhật ký giao dịch, checkpoint), cần thêm hợp đồng đồng bộ cụ thể, file tạm, đổi tên đúng cách và kiểm tra hỗ trợ của filesystem.
+For everyday file handling, `try-with-resources` and checking `close` exceptions suffice to drain Java buffers and release resources. For high-durability requirements (transaction logs, checkpoints), add explicit sync contracts, temp files, safe atomic renames, and filesystem support verification.
 
-## 2. Dấu hiệu của dữ liệu chưa được flush
+## 2. Signs of Unflushed Data
 
-Các tình huống quen thuộc:
+Familiar scenarios:
 
-- Gọi `write("hello")` vào `BufferedWriter`, sau đó một tiến trình khác đọc file và chưa thấy `"hello"`. Writer có thể vẫn giữ chuỗi đó trong buffer.
-- Dùng `PrintWriter.print(...)` và chờ dữ liệu xuất hiện ngay. Cờ `autoFlush=true` của `PrintWriter` tự flush khi gọi `println`, `printf` hoặc `format`, **không** phải sau mọi `print`/`write`.
-- Có nhiều tầng buffering nhưng chỉ xử lý một tầng thủ công không đúng chủ sở hữu. Trong thiết kế bình thường, flush ở **wrapper ngoài cùng** cho dữ liệu đi xuống các tầng bên dưới.
-- Tiến trình kết thúc bất thường trước khi đóng writer. `try-with-resources` xử lý luồng điều khiển Java thông thường và exception, nhưng không chạy khi tiến trình bị kill ngay lập tức hoặc JVM/crash ở cấp hệ điều hành.
-- Ghi dữ liệu sau khi đã log “saved” nhưng thực tế đoạn code ghi/flush/close có thể ném exception. Nên chỉ công bố thành công sau khi toàn bộ đường ghi trả về bình thường.
+- Calling `write("hello")` on `BufferedWriter`, after which another process reads the file and does not see `"hello"` yet. The writer may still hold the string in its buffer.
+- Calling `PrintWriter.print(...)` and expecting output immediately. `PrintWriter`'s `autoFlush=true` flag flushes automatically on `println`, `printf`, or `format`, **not** after every `print`/`write`.
+- Multiple buffering layers where only an inner layer is flushed manually by a non-owner. In standard designs, flushing the **outermost wrapper** pushes data through the underlying layers.
+- The process terminates abnormally before closing the writer. `try-with-resources` handles normal Java control flow and exceptions, but does not run on immediate process kill or OS-level JVM crashes.
+- Logging "saved" before the write/flush/close path actually finishes, when those steps can still throw exceptions. Publish success only after the entire write path returns normally.
 
-Mẫu đúng:
+Correct pattern:
 
 ```java
 import java.io.BufferedWriter;
@@ -59,30 +59,30 @@ try (BufferedWriter writer =
          Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
     writer.write("hello");
     writer.newLine();
-    writer.flush(); // Chỉ cần nếu phải thấy dữ liệu trước khi đóng.
-} // close sẽ flush và đóng trong đường thực thi bình thường.
+    writer.flush(); // Needed only if data must be visible before closing.
+} // close flushes and closes on the normal execution path.
 ```
 
-Đoạn trên là **mã minh họa trong một phương thức**; thiếu lớp và `main`. Nếu không có nhu cầu quan sát file trước khi đóng, thường không cần gọi `flush()` thủ công ngay trước `close()`. Nhưng nếu output là một giao thức tương tác như socket, phải flush tại các điểm cần gửi phản hồi, không đợi đóng kết nối.
+This is **illustrative code inside a method**; class and `main` are omitted. If nothing needs to observe the file before closing, calling `flush()` right before `close()` is usually unnecessary. On interactive protocols such as sockets, however, flush whenever a response must be sent rather than waiting for connection close.
 
-**Không dùng `Thread.sleep(...)` làm giải pháp flush.** Chờ đợi không cam kết `BufferedWriter` tự xả bộ đệm. Cũng không nên dùng `flush` sau *mỗi byte* khi ghi file lớn, vì nhiều syscall nhỏ làm giảm hiệu năng.
+**Never use `Thread.sleep(...)` as a flush workaround.** Waiting does not make `BufferedWriter` drain its buffer. Conversely, avoid calling `flush` after *every single byte* on large files, as excessive small syscalls degrade performance.
 
-### PrintWriter che giấu lỗi IO
+### `PrintWriter` hides I/O errors
 
-Khác nhiều writer, `PrintWriter` không ném `IOException` trực tiếp từ các lệnh ghi thường dùng; `checkError()` cung cấp trạng thái lỗi và có thể flush nếu stream chưa đóng. Vì vậy việc gọi `println` mà không có exception **không đủ** để kết luận file đã ghi thành công. Với code cần báo lỗi rõ ràng, ưu tiên `BufferedWriter` hoặc API có exception minh bạch; nếu dùng `PrintWriter`, kiểm tra lỗi tại điểm kết thúc thích hợp.
+Unlike most writers, `PrintWriter` does not throw `IOException` directly from common write methods; `checkError()` reports error status and flushes if the stream is still open. Thus calling `println` without an exception **does not prove** the file write succeeded. When explicit error reporting is needed, prefer `BufferedWriter` or APIs with transparent exceptions; if using `PrintWriter`, check errors at an appropriate boundary.
 
-## 3. File handle còn mở: ai có trách nhiệm close?
+## 3. Open File Handles: Who Owns Closing Them?
 
-“File handle” trên Windows và “file descriptor” trên Unix-like là tài nguyên hệ điều hành. Một đối tượng Java giữ stream/channel mở có thể tiếp tục giữ tài nguyên này, trực tiếp hoặc qua wrapper. Những biểu hiện phổ biến:
+A "file handle" on Windows and a "file descriptor" on Unix-like systems are OS resources. Any Java object holding an open stream or channel keeps this resource alive, directly or through a wrapper. Common symptoms:
 
-- `Too many open files` / `EMFILE` khi mở nhiều tài nguyên mà không đóng, đặc biệt trong server xử lý liên tục.
-- Trên Windows, `AccessDeniedException`, lỗi move/delete hoặc ứng dụng khác không đổi tên được file khi một process còn giữ handle có chế độ chia sẻ không phù hợp. Trên Unix, thường có thể unlink tên file đang mở; dữ liệu/tài nguyên vẫn tồn tại cho tới khi handle cuối đóng. Hành vi cụ thể phụ thuộc filesystem và quyền OS.
-- File lock giữ lâu hơn cần thiết, worker khác không lấy được lock hoặc thao tác cần quyền độc quyền bị chặn.
-- Sau một số request, bộ đếm descriptor tăng theo thời gian; một restart tạm “chữa” triệu chứng rồi lỗi lặp lại.
+- `Too many open files` / `EMFILE` when opening resources repeatedly without closing, especially in long-running servers.
+- On Windows, `AccessDeniedException`, move/delete failures, or external apps unable to rename a file while a process holds a handle with incompatible share modes. On Unix, unlinking an open filename generally succeeds, while data/resources persist until the last handle closes. Exact behavior depends on filesystem and OS permissions.
+- File locks held longer than needed, blocking other workers or exclusive operations.
+- Descriptor counts creeping upward over requests; restarting temporarily "cures" the symptom before the failure returns.
 
-**Nguyên tắc sở hữu:** nơi tạo stream/channel thường chịu trách nhiệm đóng nó. Trả một stream ra khỏi hàm mà không định nghĩa caller phải đóng là nguồn gây leak. Nếu API trả một `Stream<String>` đọc file lazily, cần dùng try-with-resources tại nơi thực sự tiêu thụ.
+**Ownership principle:** whoever creates a stream/channel normally owns closing it. Returning a stream from a method without documenting that the caller must close it invites leaks. When an API returns a lazy file-reading `Stream<String>`, wrap it in `try-with-resources` at the consumption site.
 
-Ví dụ đọc file và tự đóng nguồn:
+Example reading a file and closing the source automatically:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -98,9 +98,9 @@ try (Stream<String> lines =
 }
 ```
 
-Đây là **đoạn trong phương thức `throws IOException` hoặc tự xử lý lỗi**, không phải chương trình Java độc lập. `Files.lines`, `Files.list`, `Files.walk` và `Files.find` có thể giữ nguồn filesystem mở; cần đóng `Stream` trả về. Lệnh terminal `cat` hay `grep` không kiểm soát vòng đời của Java stream.
+This is a **snippet inside a method that `throws IOException` or handles errors**, not a standalone Java program. `Files.lines`, `Files.list`, `Files.walk`, and `Files.find` can hold filesystem handles open; always close the returned `Stream`. Terminal commands like `cat` or `grep` do not manage Java stream lifecycles.
 
-Với channel hoặc khóa file, dùng đúng kiểu close:
+For channels or file locks, close in proper order:
 
 ```java
 import java.nio.channels.FileChannel;
@@ -112,37 +112,37 @@ try (FileChannel channel = FileChannel.open(
          Path.of("state.bin"), StandardOpenOption.CREATE,
          StandardOpenOption.READ, StandardOpenOption.WRITE);
      FileLock lock = channel.lock()) {
-    // Tác vụ cần khóa, thực hiện trong phạm vi try này.
-} // Khóa được giải phóng, sau đó channel được đóng (đảo thứ tự tạo).
+    // Work requiring the lock executes inside this try block.
+} // Lock releases, then channel closes (reverse creation order).
 ```
 
-Đây là đoạn minh họa. `FileLock` còn phụ thuộc khả năng hỗ trợ/semantics của OS và filesystem. Việc đóng một wrapper có thể đóng luôn stream/channel bên dưới; đừng dùng tiếp tài nguyên ấy sau khi wrapper sở hữu nó đã close. Ngược lại, `ByteArrayOutputStream` là buffer trong RAM, không mở file descriptor; không nên đánh đồng mọi `close()` với thao tác giải phóng file.
+This is an illustrative snippet. `FileLock` also depends on OS and filesystem support/semantics. Closing a wrapper can close the underlying stream/channel; never keep using that resource after its owning wrapper has closed. Conversely, `ByteArrayOutputStream` is an in-memory buffer with no file descriptor; do not equate every `close()` with releasing an OS file.
 
-### Cách tìm file descriptor bị leak
+### How to hunt down leaked file descriptors
 
-| Môi trường | Công cụ quan sát hữu ích | Lưu ý |
+| Environment | Useful Observation Tools | Notes |
 | --- | --- | --- |
-| Linux | `lsof -p <PID>`; `ls -l /proc/<PID>/fd` | `lsof` có thể cần cài riêng/quyền phù hợp; đường dẫn `/proc` có thể bị hạn chế trong container |
-| Windows | Resource Monitor → CPU → Associated Handles; Sysinternals Process Explorer/Handle | Tìm theo tên file/process, chú ý việc chia sẻ handle và quyền truy cập |
-| JVM trên Unix | `com.sun.management.UnixOperatingSystemMXBean.getOpenFileDescriptorCount()` | API mở rộng phụ thuộc nền tảng; chỉ cho **tổng số**, không chỉ ra file nào leak |
-| Trong ứng dụng | Metric số lượng descriptor/handle; log đường dẫn, vị trí tạo, sự kiện close; stress test lặp lại | Không log toàn bộ tên file nhạy cảm, thông tin user hay nội dung file vào hệ thống giám sát công khai |
+| Linux | `lsof -p <PID>`; `ls -l /proc/<PID>/fd` | `lsof` may require separate install/permissions; `/proc` may be restricted in containers |
+| Windows | Resource Monitor → CPU → Associated Handles; Sysinternals Process Explorer/Handle | Search by filename/process; watch share modes and access rights |
+| JVM on Unix | `com.sun.management.UnixOperatingSystemMXBean.getOpenFileDescriptorCount()` | Platform-specific extension API; gives **total count** only, not which file leaked |
+| In-application | Descriptor/handle metrics; log creation site, path, close events; repeated stress tests | Never log sensitive filenames, user info, or file contents to public monitoring |
 
-Với leak, hãy quan sát **xu hướng dưới tải rồi sau khi workload hoàn tất**. Con số đang tăng trong lúc có nhiều kết nối hoạt động chưa chắc là leak; đáng nghi khi vẫn tăng sau mỗi vòng tải tương đương và không quay về baseline phù hợp.
+For leaks, observe **trends under load and after workload completion**. Rising counts during active connections are not necessarily a leak; suspect a leak when counts keep climbing across identical load cycles without returning to baseline.
 
-Đừng suy từ một JVM thread dump rằng mọi file đang mở đã được phát hiện: thread dump cho biết stack/thread, không liệt kê đầy đủ descriptor. GC hay `System.gc()` cũng **không phải** cơ chế giải phóng file handle đáng tin cậy; hãy close rõ ràng.
+Never assume a JVM thread dump shows every open file: thread dumps show stacks/threads, not full descriptor tables. Nor are GC or `System.gc()` reliable handle-release mechanisms; always close explicitly.
 
-## 4. ByteBuffer: capacity, position, limit và remaining
+## 4. `ByteBuffer`: `capacity`, `position`, `limit`, and `remaining`
 
-`ByteBuffer` là buffer có trạng thái. Bốn con số quan trọng:
+`ByteBuffer` is a stateful buffer. Four key numbers:
 
-- `capacity`: dung lượng cố định tính theo byte.
-- `position`: chỉ số của phần tử kế tiếp sẽ đọc hoặc ghi theo thao tác tương đối.
-- `limit`: ranh giới *exclusive* của phần còn được phép đọc/ghi.
-- `remaining() = limit - position`: số byte các phương thức tương đối còn có thể xử lý.
+- `capacity`: fixed capacity in bytes.
+- `position`: index of the next element to read or write via relative operations.
+- `limit`: *exclusive* boundary of the region currently readable/writable.
+- `remaining() = limit - position`: bytes left for relative methods to process.
 
-Bất biến là `0 <= position <= limit <= capacity`.
+The invariant is `0 <= position <= limit <= capacity`.
 
-Ví dụ `ByteBuffer.allocate(8)` sau khi ghi các byte `A B C` bằng `put`:
+Example `ByteBuffer.allocate(8)` after putting bytes `A B C` with `put`:
 
 ```text
 Index:       0  1  2  3  4  5  6  7
@@ -150,7 +150,7 @@ Bytes:       A  B  C  ?  ?  ?  ?  ?
 State:       position=3, limit=8, capacity=8
 ```
 
-Dấu `?` tượng trưng phần không thuộc dữ liệu hợp lệ của ví dụ. Sau `flip()`:
+The `?` marks bytes outside valid example data. After `flip()`:
 
 ```text
 Index:       0  1  2  3  4  5  6  7
@@ -159,26 +159,26 @@ State:       position=0, limit=3, capacity=8
 Remaining:   A  B  C
 ```
 
-Nếu gọi `FileChannel.write(buffer)` **trước `flip`**, channel sẽ đọc từ `position=3` đến `limit=8`, tức không phải 3 byte vừa đưa vào. Một trường hợp khác, nếu buffer đã `position==limit`, `write` có thể trả 0 vì `!hasRemaining()`, dù mảng bên trong vẫn giữ dữ liệu cũ.
+Calling `FileChannel.write(buffer)` **before `flip`** makes the channel read from `position=3` to `limit=8`—not the 3 bytes just inserted. In another case, if `position == limit`, `write` returns 0 because `!hasRemaining()`, even though the backing array still holds old data.
 
-### Bốn phép chuyển trạng thái cần nhớ
+### Four essential state transitions
 
-| API | Thay đổi trạng thái | Dùng lúc nào | Hiểu sai thường gặp |
+| API | State Change | When to Use | Common Misuse |
 | --- | --- | --- | --- |
-| `flip()` | `limit = position; position = 0` | Kết thúc **ghi dữ liệu vào buffer**, chuẩn bị đọc từ buffer | Không gọi trước ghi channel; hoặc gọi hai lần khiến limit thành 0 |
-| `clear()` | `position = 0; limit = capacity` | Chuẩn bị ghi đè buffer khi dữ liệu cũ đã được xử lý hết | **Không xóa byte vật lý**; làm mất dấu vùng dữ liệu còn chờ đọc |
-| `rewind()` | `position = 0`, giữ `limit` | Đọc lại cùng vùng byte hợp lệ | Nhầm với `clear` và đọc cả byte không hợp lệ |
-| `compact()` | Chuyển byte còn `remaining` về đầu; position đặt sau chúng; limit về capacity | Đã tiêu thụ **một phần**, giữ byte chưa xử lý để nhận thêm | Nhầm với clear làm mất dữ liệu chưa dùng |
+| `flip()` | `limit = position; position = 0` | Finished **writing into buffer**, preparing to read from buffer | Omitting before channel write; or calling twice, setting limit to 0 |
+| `clear()` | `position = 0; limit = capacity` | Preparing to overwrite buffer once old data is fully consumed | **Does not erase physical bytes**; loses track of unread bytes |
+| `rewind()` | `position = 0`, keeps `limit` | Re-reading the same valid byte region | Confusing with `clear` and reading invalid bytes |
+| `compact()` | Copies `remaining` bytes to start; sets `position` after them; `limit = capacity` | Consumed **part** of buffer, keeping unread bytes to receive more | Confusing with `clear` and losing unused data |
 
-`mark/reset` cũng là trạng thái; các thao tác `flip/clear/rewind/compact` thường hủy mark theo hợp đồng của `Buffer`. Khi debug, in `position`, `limit`, `capacity` và `remaining()` trước/sau mỗi lần channel read/write sẽ nhanh hơn việc chỉ in địa chỉ của buffer.
+`mark`/`reset` are also buffer state; `flip`/`clear`/`rewind`/`compact` discard marks per `Buffer` contract. When debugging, printing `position`, `limit`, `capacity`, and `remaining()` before and after each channel read/write reveals issues faster than printing the buffer object reference.
 
-**`buffer.array()` không đồng nghĩa với “dữ liệu hợp lệ trong buffer”.** Với heap buffer, nó có thể bao gồm byte đã dùng, byte trống hoặc byte không nằm giữa `position`/`limit`; với direct/read-only buffer có thể không truy cập được backing array. Để đọc đúng phần còn lại, dùng `byte[] result = new byte[buffer.remaining()]; buffer.get(result);` hoặc dùng view `slice()` theo nhu cầu.
+**`buffer.array()` is not synonymous with "valid data in the buffer".** On heap buffers, it includes already-consumed bytes, empty slots, or bytes outside `[position, limit)`; on direct/read-only buffers, the backing array may be inaccessible. To extract exact remaining bytes, use `byte[] result = new byte[buffer.remaining()]; buffer.get(result);` or use `slice()`.
 
-## 5. Ví dụ Java 17+ có stdout xác định
+## 5. Java 17+ Example With Deterministic Stdout
 
-Ví dụ dùng một file text có `BufferedWriter` và một file nhị phân có `ByteBuffer/FileChannel`. Tệp được tạo trong thư mục tạm để không phụ thuộc tên file bên ngoài. Không có tác vụ cùng lúc thay đổi chúng.
+This example uses a text file with `BufferedWriter` and a binary file with `ByteBuffer`/`FileChannel`. Files are created in a temporary directory to avoid external filename dependencies, with no concurrent modifiers.
 
-Tạo `IoDiagnosticsDemo.java`:
+Create `IoDiagnosticsDemo.java`:
 
 ```java
 import java.io.BufferedWriter;
@@ -194,7 +194,7 @@ public class IoDiagnosticsDemo {
         Path dir = Files.createTempDirectory("io-diagnostics-");
         Path text = dir.resolve("notes.txt");
 
-        // 1) Xả bộ đệm, đọc lại trong khi writer vẫn mở.
+        // 1) Flush buffer, read back while writer is still open.
         try (BufferedWriter writer =
                 Files.newBufferedWriter(text, StandardCharsets.UTF_8)) {
             writer.write("hello");
@@ -205,7 +205,7 @@ public class IoDiagnosticsDemo {
         System.out.println("after close="
                 + Files.readString(text, StandardCharsets.UTF_8));
 
-        // 2) Chuyển ByteBuffer từ chế độ put sang channel.write.
+        // 2) Switch ByteBuffer from put mode to channel.write.
         Path binary = dir.resolve("data.bin");
         try (FileChannel out = FileChannel.open(binary,
                 StandardOpenOption.CREATE_NEW,
@@ -226,7 +226,7 @@ public class IoDiagnosticsDemo {
         System.out.println("saved="
                 + Files.readString(binary, StandardCharsets.UTF_8));
 
-        // 3) Chiều ngược lại: channel.read rồi flip mới get.
+        // 3) Reverse direction: channel.read then flip before get.
         try (FileChannel in = FileChannel.open(binary,
                 StandardOpenOption.READ)) {
             ByteBuffer buffer = ByteBuffer.allocate(8);
@@ -244,14 +244,14 @@ public class IoDiagnosticsDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 IoDiagnosticsDemo.java
 java IoDiagnosticsDemo
 ```
 
-Stdout trên JDK 17+ khi chạy với filesystem thông thường, không có tác vụ khác can thiệp:
+Stdout on JDK 17+ on a standard filesystem with no interfering tasks:
 
 ```text
 after flush=hello
@@ -263,30 +263,30 @@ after read: n=3 pos=3 limit=8
 decoded=ABC
 ```
 
-Mỗi `try-with-resources` quản lý tài nguyên cụ thể, đồng thời làm lộ lỗi close thành exception nếu có. Lệnh `flush()` ở ví dụ cho phép kiểm tra `notes.txt` **trước khi writer đóng**; không phải yêu cầu phải flush hai lần ở mọi chương trình.
+Each `try-with-resources` manages its specific resource and surfaces close exceptions if any occur. The `flush()` in the example allows inspecting `notes.txt` **before the writer closes**; it does not mean every program must flush twice.
 
-File `data.bin` có đúng ba byte `ABC` vì `flip` giới hạn vùng được write thành `[0,3)`; vòng `while (buffer.hasRemaining())` xử lý khả năng channel ghi ít hơn số byte remaining trong một lần gọi. Với nonblocking channel, nếu `write` trả 0 lặp lại, phải dùng `Selector` hoặc chiến lược chờ phù hợp, không spin vô hạn; ví dụ này dùng `FileChannel` mở để ghi file thông thường.
+File `data.bin` holds exactly the three bytes `ABC` because `flip` bounds the write region to `[0, 3)`; the `while (buffer.hasRemaining())` loop handles the possibility of a channel writing fewer bytes than remain in a single call. On non-blocking channels, if `write` repeatedly returns 0, use `Selector` or an appropriate wait strategy instead of spinning; this example uses `FileChannel` opened for standard file writes.
 
-## 6. Quy trình debug khi file rỗng, thiếu byte hoặc dữ liệu xuất hiện muộn
+## 6. Debugging Workflow When a File Is Empty, Short, or Updates Late
 
-Khi gặp một file “đã write nhưng chưa có dữ liệu”, nên kiểm tra theo thứ tự sau:
+When facing a file that "was written yet has no data", check in order:
 
-1. **Đúng file và đúng đường dẫn?** In/log đường dẫn đã chuẩn hóa và nơi chạy thực tế (working directory, file path, mount/container). Nhầm file tương đối là nguyên nhân rất thường gặp. Không đưa đường dẫn nhạy cảm vào log công khai.
-2. **Mở file bằng option nào?** `TRUNCATE_EXISTING` xóa nội dung cũ; `APPEND` thêm vào cuối; `CREATE_NEW` từ chối ghi đè file tồn tại. Nếu thread khác mở file với truncate, có thể thấy file trống dù writer trước đã thành công.
-3. **Có wrapper buffer không?** `BufferedWriter`, `BufferedOutputStream`, `OutputStreamWriter` có thể giữ dữ liệu; flush/close đúng lớp sở hữu. Dùng phép đọc lại chỉ *sau flush* để xác minh visibility, không kết luận từ kích thước đọc được khi buffer chưa xả.
-4. **Exception có bị nuốt không?** Kiểm tra `IOException` ở write, flush, close; với `PrintWriter`, chú ý `checkError()`.
-5. **ByteBuffer có còn remaining không?** Ghi log `position/limit/capacity`, `n=channel.write(buffer)` và cập nhật sau mỗi lần gọi. Phân biệt byte count trả về với số byte đã intended.
-6. **Có gọi force/sync theo yêu cầu durability không?** Chỉ xét sau khi Java buffer đã flush; nhớ `force` và `flush` giải quyết hai tầng khác nhau.
-7. **Ai còn ghi vào file?** Đồng bộ các worker, không cho phép đối tượng khác thay dữ liệu giữa kiểm tra và đọc lại. Tránh khẳng định “flush thất bại” khi nguyên nhân là race hoặc ứng dụng đang đọc file khác.
+1. **Right file and right path?** Print/log the normalized path and actual runtime location (working directory, file path, mount/container). Confusing relative paths is very common. Never expose sensitive paths in public logs.
+2. **Which open options were used?** `TRUNCATE_EXISTING` wipes existing content; `APPEND` appends at the end; `CREATE_NEW` refuses to overwrite existing files. If another thread opens with truncate, a reader can see an empty file even after an earlier writer succeeded.
+3. **Is there a buffering wrapper?** `BufferedWriter`, `BufferedOutputStream`, or `OutputStreamWriter` may still hold bytes; flush/close the owning layer. Only verify visibility *after flushing*, rather than concluding from file size while buffers are unflushed.
+4. **Were exceptions swallowed?** Check `IOException` on write, flush, and close; with `PrintWriter`, check `checkError()`.
+5. **Does `ByteBuffer` still have `remaining`?** Log `position`/`limit`/`capacity`, `n = channel.write(buffer)`, and updates after each call. Distinguish the returned byte count from intended bytes.
+6. **Is `force`/`sync` needed for durability?** Consider only after Java buffers are flushed; remember `force` and `flush` solve different layers.
+7. **Who else writes to the file?** Coordinate workers so nothing mutates data between check and re-read. Avoid blaming "flush failed" when the real cause is a race or reading a different file.
 
-Thay vì ghi `System.out.println("saved")` ngay sau khi đưa dữ liệu vào buffer, hãy quan sát các mốc `write completed`, `flush completed`, `close completed`, `file published` theo nhu cầu. Không ghi log từng byte trong hot path production; dùng metric/các điểm trace khi tái hiện lỗi.
+Instead of printing `System.out.println("saved")` right after pushing bytes into a buffer, observe milestones like `write completed`, `flush completed`, `close completed`, and `file published` as needed. Do not log every byte on production hot paths; use metrics/targeted traces during reproduction.
 
-## 7. Quy trình debug khi file handle tăng liên tục
+## 7. Debugging Workflow When File Handles Climb Continuously
 
-Một kịch bản rò rỉ:
+A leak scenario:
 
 ```java
-// Sai: mỗi lần gọi đều mở một Stream từ filesystem nhưng không close.
+// Bug: every call opens a filesystem Stream without closing it.
 long countErrors(Path file) throws java.io.IOException {
     return java.nio.file.Files.lines(file)
             .filter(s -> s.contains("ERROR"))
@@ -294,7 +294,7 @@ long countErrors(Path file) throws java.io.IOException {
 }
 ```
 
-Vì `Files.lines` trả lazy Stream, việc `count()` kết thúc **không tự động gọi `close()` cho stream**. Sửa:
+Because `Files.lines` returns a lazy `Stream`, finishing `count()` **does not automatically call `close()` on the stream**. Fix:
 
 ```java
 long countErrors(Path file) throws java.io.IOException {
@@ -305,112 +305,112 @@ long countErrors(Path file) throws java.io.IOException {
 }
 ```
 
-Đây là hai **phương thức minh họa độc lập** đặt bên trong lớp, không biên dịch như một file chứa cả hai phương thức cùng chữ ký. Trong dự án thật, chỉ giữ phiên bản đã sửa.
+These are two **standalone illustrative methods** inside a class; they won't compile together in one file with identical signatures. In a real project, keep only the fixed version.
 
-Cách tái hiện/leak-test:
+How to reproduce/leak-test:
 
-1. Đo số descriptor/handle trước khi chạy một vòng workload có đủ request tương đương.
-2. Chạy lặp những nhánh **thành công, exception, cancellation, timeout**. Chính nhánh lỗi thường bỏ qua `close()` nếu code đóng thủ công cuối phương thức.
-3. Sau khi workload dừng, so sánh baseline, liệt kê handle/path bằng công cụ OS rồi đối chiếu code tạo stream/channel/reader/writer.
-4. Chuyển về `try-with-resources`; nếu nhiều resource, khai báo tài nguyên theo đúng thứ tự sở hữu. Đảm bảo các nhánh `return`, `throw` đều đóng đúng tài nguyên.
-5. Chạy lại cùng workload; xác nhận số descriptor không tăng vô hạn và các thao tác file move/delete/lock cần thiết hoạt động bình thường.
+1. Measure descriptor/handle count before running a workload covering representative requests.
+2. Loop over **success, exception, cancellation, and timeout** paths. Error paths are exactly where manual end-of-method `close()` calls get skipped.
+3. After the workload stops, compare against baseline, inspect open handles/paths with OS tools, and trace back to stream/channel/reader/writer creation sites.
+4. Refactor to `try-with-resources`; for multiple resources, declare them in ownership order. Verify `return` and `throw` paths close everything properly.
+5. Re-run the same workload; confirm descriptor counts stay bounded and required move/delete/lock operations succeed normally.
 
-Nếu tài nguyên được chuyển cho caller hoặc một async job, phải chuyển rõ ownership và bảo đảm close **sau khi** task hoàn thành. Đóng channel quá sớm trong khi worker còn IO có thể gây `ClosedChannelException` hoặc `AsynchronousCloseException`; đóng quá muộn lại giữ handle không cần thiết. Hủy `Future` không chứng minh IO đã dừng tức thời.
+If ownership transfers to a caller or async job, transfer it explicitly and ensure `close` runs **after** the task finishes. Closing a channel too early while workers still perform I/O triggers `ClosedChannelException` or `AsynchronousCloseException`; closing too late leaks handles. Cancelling a `Future` does not guarantee I/O stopped immediately.
 
-## 8. Các lỗi ByteBuffer thường gặp và phép thử
+## 8. Common `ByteBuffer` Bugs and Tests
 
-### Quên flip trước khi ghi ra channel
+### Forgetting `flip` before writing to a channel
 
 ```java
 ByteBuffer buffer = ByteBuffer.allocate(8);
 buffer.put(new byte[] {65, 66, 67});
-// Sai: chưa flip; remaining là 5, không phải 3 byte "ABC".
+// Bug: not flipped; remaining is 5, not the 3 bytes "ABC".
 channel.write(buffer);
 ```
 
-Đoạn minh họa nằm trong phương thức có `WritableByteChannel channel`. Sửa bằng `buffer.flip()` trước khi chuyển sang đọc dữ liệu từ buffer. Khi dùng `ByteBuffer.wrap(byte[])`, vị trí ban đầu là 0 và limit bằng độ dài mảng, nên **không gọi flip vô điều kiện** ngay sau `wrap` nếu chưa có thao tác `put`; nếu không có thể biến limit thành 0.
+This snippet sits in a method with a `WritableByteChannel channel`. Fix by calling `buffer.flip()` before reading data out of the buffer. When using `ByteBuffer.wrap(byte[])`, initial `position` is 0 and `limit` equals array length, so **do not blindly call `flip` right after `wrap`** unless `put` occurred; otherwise `limit` becomes 0.
 
-### Quên flip sau channel.read
+### Forgetting `flip` after `channel.read`
 
 ```java
 ByteBuffer dst = ByteBuffer.allocate(1024);
 int n = channel.read(dst);
 if (n > 0) {
     dst.flip();
-    // Xử lý chính xác dst.remaining() byte, không phải capacity.
+    // Process exact dst.remaining() bytes, not capacity.
 }
 ```
 
-Nếu quên `flip`, lời gọi `get` có thể đọc phần chưa được điền hoặc không đọc được vùng vừa nhận, tùy `position/limit`. Nếu đọc tới cuối stream, `read()` thường trả `-1`; với channel không blocking, `0` có thể có nghĩa tạm chưa có dữ liệu, **không** phải EOF.
+Omitting `flip` causes `get` to read unfilled slots or miss the newly received bytes depending on `position`/`limit`. At end-of-stream, `read()` typically returns `-1`; on non-blocking channels, `0` means no data right now—**not** EOF.
 
-### Dùng clear dù vẫn còn frame chưa xử lý
+### Calling `clear` while an incomplete frame remains
 
-Trong parser protocol, một lần `read` có thể chỉ nhận nửa thông điệp. Sau khi `flip` và tiêu thụ các frame hoàn chỉnh, dùng `compact()` để dồn byte của frame chưa đủ về đầu buffer rồi đọc thêm:
+In protocol parsers, one `read` may deliver only half a message. After `flip` and consuming complete frames, call `compact()` to shift incomplete frame bytes to the front before reading more:
 
 ```java
-// Mã minh họa trong vòng xử lý protocol, không phải main độc lập.
+// Illustrative code inside a protocol loop, not a standalone main.
 buffer.flip();
-consumeCompleteFrames(buffer); // Nâng position qua những byte đã xử lý.
-buffer.compact();              // Giữ byte còn lại để lần đọc tiếp tục.
+consumeCompleteFrames(buffer); // Advances position past processed bytes.
+buffer.compact();              // Keeps remaining bytes for next read.
 ```
 
-Nếu dùng `clear()` ở đây, dữ liệu còn lại bị xem như không tồn tại dù byte vật lý có thể vẫn nằm trong mảng. Nếu dùng `rewind()` sau khi đã xử lý nửa buffer, phần đầu đã xử lý có thể bị tiêu thụ lại.
+Calling `clear()` here treats remaining data as gone even though physical bytes still sit in the array. Calling `rewind()` after processing half the buffer re-processes the already consumed prefix.
 
-### Shared buffer giữa nhiều luồng
+### Sharing a buffer across multiple threads
 
-`ByteBuffer` không thread-safe cho việc cùng thay đổi `position/limit` trên một instance. Nếu nhiều worker cùng thao tác relative `get/put` vào một buffer, có thể mất byte/đảo thứ tự dù `FileChannel` có hỗ trợ dùng giữa nhiều luồng. Dùng buffer riêng theo task, hoặc đồng bộ và chia slice rõ ràng; đừng chia sẻ một `ByteBuffer` mutable mà không quy định ownership.
+`ByteBuffer` is not thread-safe for concurrent mutations of `position`/`limit` on one instance. If multiple workers invoke relative `get`/`put` on one buffer, bytes get dropped or reordered even though `FileChannel` supports concurrent positional use. Give each task its own buffer, or synchronize and slice explicitly; never share a mutable `ByteBuffer` without clear ownership.
 
-### Partial write và trạng thái sau ghi
+### Partial writes and post-write state
 
-`FileChannel.write(buffer)` trả số byte thực sự ghi. Chỉ đóng/công bố file khi buffer không còn remaining hoặc có xử lý lỗi thích hợp. `write` không làm buffer tự `clear` hay tự `flip`; nó tăng `position` theo số byte đã chuyển. Với thao tác ghi file có nhiều buffer, cần xem cả số byte ghi thực tế và vị trí ghi tệp, tránh dùng `buffer.array().length` như số byte đã xuất.
+`FileChannel.write(buffer)` returns the actual bytes written. Only close/publish the file when the buffer has no remaining bytes or errors are handled. `write` does not auto-`clear` or auto-`flip` the buffer; it advances `position` by bytes transferred. For multi-buffer file writes, track actual bytes written and file position, avoiding `buffer.array().length` as bytes emitted.
 
-## 9. Kiểm thử và chẩn đoán tự động
+## 9. Automated Testing and Diagnostics
 
-Nên xây test riêng cho ba lớp vấn đề để biết lỗi thuộc về đâu.
+Build separate tests for the three failure layers so you know which layer broke.
 
-| Tình huống test | Bằng chứng cần có | Lỗi được phát hiện |
+| Test Scenario | Required Evidence | Bug Caught |
 | --- | --- | --- |
-| Ghi vài ký tự vào `BufferedWriter`, gọi `flush`, đọc ngay khi writer còn mở | Nội dung đọc lại đúng | Thiếu flush ở điểm cần visibility |
-| Kết thúc `try-with-resources` rồi đọc lại | Dữ liệu đầy đủ; exception close được xử lý | Quên close/nuốt lỗi cuối đường ghi |
-| Thao tác nhiều lần lên `Files.lines`, `Files.walk`, `FileChannel` | Descriptor không tăng mất kiểm soát sau workload | Leak tài nguyên |
-| Chạy nhánh exception, cancellation, early return | Tài nguyên vẫn được đóng, không còn file lock vô ý | Chỉ đóng ở happy path |
-| `ByteBuffer.put` → `flip` → ghi channel | Số byte ghi bằng số byte hợp lệ | Sai position/limit |
-| Đọc file bằng buffer nhỏ hơn file | Lặp đọc cho tới EOF, không mất byte | Giả định một lần read lấy hết dữ liệu |
-| Parser nhận nửa frame ở một lần đọc | `compact` giữ byte chưa tiêu thụ | Mất frame ở biên buffer |
-| Output có yêu cầu bền vững khi crash | Trình tự flush → force/sync → commit được định nghĩa và đo kiểm theo filesystem | Nhầm visibility với durability |
+| Write a few chars to `BufferedWriter`, call `flush`, read while writer stays open | Read-back matches content | Missing `flush` where visibility is needed |
+| Exit `try-with-resources` and read back | Complete data; `close` exceptions handled | Missing `close` / swallowed end-of-write error |
+| Repeatedly invoke `Files.lines`, `Files.walk`, `FileChannel` | Descriptor count stays bounded after workload | Resource leak |
+| Exercise exception, cancellation, early return paths | Resources still closed, no lingering file locks | Closing only on happy path |
+| `ByteBuffer.put` → `flip` → channel write | Bytes written equals valid byte count | Wrong `position`/`limit` |
+| Read file with buffer smaller than file | Loops until EOF, zero lost bytes | Assuming one `read` captures all data |
+| Parser receives half a frame in one read | `compact` preserves unconsumed bytes | Dropping frames across buffer boundaries |
+| Output requires crash durability | `flush` → `force`/`sync` → commit sequence defined and verified per filesystem | Confusing visibility with durability |
 
-**Không dùng test “file size vẫn bằng 0 ngay sau write chưa flush” làm bảo đảm tuyệt đối**: tùy kích thước dữ liệu, buffer và implementation, writer có thể tự flush khi đầy. Test nên chứng minh kết quả sau explicit flush/close, không đòi hỏi dữ liệu trước flush luôn vô hình.
+**Never write a test asserting "file size must stay 0 before `flush`" as an absolute guarantee**: depending on data size, buffer capacity, and implementation, writers may auto-flush when full. Tests should prove visibility after explicit flush/close, not demand pre-flush invisibility.
 
-Với unit test parser, có thể dùng `ByteBuffer.allocate(4)` để ép chia frame qua nhiều lần đọc. Với integration test resource, dùng tệp tạm và đo descriptor ở nơi có thể; tránh dựa duy nhất vào việc xóa file thành công trên Unix vì file còn mở có thể vẫn unlink được.
+For parser unit tests, `ByteBuffer.allocate(4)` forces frames to split across multiple reads. For resource integration tests, use temp files and measure descriptors where possible; avoid relying solely on file deletion succeeding on Unix since open files can still be unlinked.
 
-## 10. Phân biệt ba loại triệu chứng trong thực tế
+## 10. Distinguishing the Three Symptom Classes in Practice
 
-| Triệu chứng | Khả năng cần kiểm tra đầu tiên | Hướng xử lý |
+| Symptom | First Suspect to Check | Resolution |
 | --- | --- | --- |
-| File rỗng trong khi writer còn mở, nhưng đúng sau close | Buffered output chưa flush | Flush tại ranh giới cần visibility |
-| File đúng sau flush nhưng không sống sót qua sự cố điện/OS | Thiếu yêu cầu durability hoặc giới hạn filesystem/storage | Xem `FileChannel.force`/`FileDescriptor.sync` và protocol lưu bền vững |
-| `Too many open files` | Stream/channel không close; worker ownership không rõ | Try-with-resources, kiểm tra nhánh lỗi, đo descriptor |
-| Trên Windows không rename/delete được file | Handle/lock còn mở hoặc quyền chia sẻ/OS | Tìm process giữ handle; đảm bảo close/giải phóng lock |
-| NIO `write` ghi 0 byte | `!buffer.hasRemaining()` hoặc nonblocking output chưa writable | In `position/limit`, kiểm tra channel và readiness |
-| File chứa byte rác hoặc số byte sai | Thiếu flip, dùng cả `array()` hoặc không xử lý partial write | Giữ state buffer và lặp ghi đúng |
-| Parser thiếu dữ liệu ở cuối block | Dùng clear thay vì compact, xử lý từng khối như frame độc lập | Giữ byte pending, kiểm thử split input |
-| File đúng một lần nhưng sai dưới tải | Đọc/ghi đồng thời không điều phối, shared mutable buffer, close sai thời điểm | Tách buffer theo task, khóa/sắp thứ tự, quy định ownership |
+| File empty while writer open, valid after close | Buffered output not flushed | Flush at required visibility boundaries |
+| File intact after flush, lost on power/OS crash | Missing durability requirement or storage/filesystem limits | Check `FileChannel.force`/`FileDescriptor.sync` and durable save protocol |
+| `Too many open files` | Unclosed stream/channel; unclear worker ownership | `try-with-resources`, test error paths, monitor descriptors |
+| Cannot rename/delete file on Windows | Open handle/lock or OS share permissions | Find handle-holding process; ensure `close`/lock release |
+| NIO `write` writes 0 bytes | `!buffer.hasRemaining()` or non-blocking output not writable | Print `position`/`limit`, check channel and readiness |
+| File has garbage bytes or wrong length | Missing `flip`, reading whole `array()`, or unhandled partial write | Maintain buffer state and write-loop properly |
+| Parser loses data at block ends | Calling `clear` instead of `compact`, treating chunks as whole frames | Retain pending bytes, test split inputs |
+| File succeeds once, corrupts under load | Uncoordinated concurrent read/write, shared mutable buffer, premature close | Per-task buffers, locking/ordering, clear ownership |
 
-## 11. Checklist áp dụng khi review code IO
+## 11. Code Review Checklist for I/O
 
-1. Tìm tất cả nơi mở tài nguyên: `Files.newBufferedWriter`, `Files.newInputStream`, `FileChannel.open`, `Files.lines/list/walk/find`, `ZipFile`, `RandomAccessFile`. Xác định ai close trên mọi đường đi.
-2. Với output có buffer, xác định **khi nào bên ngoài được phép nhìn thấy dữ liệu**. Nếu trước close, đặt flush có chủ đích; nếu cần durability, thiết kế bước force/sync sau khi dữ liệu đã xuống tầng file.
-3. Không tuyên bố success trước khi thao tác ghi và đóng/commit hoàn thành; thu thập lỗi write/flush/close. Với `PrintWriter`, kiểm tra `checkError()` hoặc dùng API báo exception.
-4. Với NIO, ghi rõ trạng thái buffer trước/sau `put/read/flip/write/clear/compact`. Dùng `remaining` cho byte hợp lệ, lặp khi channel có partial read/write.
-5. Đặt thử nghiệm chạy lặp và nhánh lỗi để bắt handle leak; test trên nền tảng sẽ triển khai, đặc biệt nếu kết quả phụ thuộc Windows file sharing, filesystem từ xa hoặc lưu trữ đám mây.
-6. Giữ resource scope tối thiểu: không giữ channel/stream xuyên qua lời gọi mạng hay task bất đồng bộ không cần thiết. Với worker bất đồng bộ, không đóng nguồn khi công việc còn cần dùng.
+1. Locate every resource acquisition: `Files.newBufferedWriter`, `Files.newInputStream`, `FileChannel.open`, `Files.lines/list/walk/find`, `ZipFile`, `RandomAccessFile`. Verify who closes it on every path.
+2. For buffered outputs, define **when external readers are allowed to see the data**. If before `close`, insert intentional `flush` calls; if durability is required, add `force`/`sync` after data reaches the file layer.
+3. Never report success before writing and closing/committing complete; capture write/flush/close errors. For `PrintWriter`, call `checkError()` or switch to exception-throwing APIs.
+4. For NIO, track buffer state before/after `put`/`read`/`flip`/`write`/`clear`/`compact`. Use `remaining` for valid bytes and loop on partial channel reads/writes.
+5. Add repeated-load and failure-path tests to catch handle leaks; test on the target deployment platform, especially when behavior depends on Windows file sharing, remote filesystems, or cloud storage.
+6. Minimize resource scope: avoid holding channels/streams across unrelated network calls or async tasks. For async workers, never close sources while work still needs them.
 
-Điều cần nhớ: **`flush` xử lý byte đang đệm ở lớp Java; `close` kết thúc quyền sở hữu tài nguyên; `ByteBuffer.flip/clear/compact` xử lý trạng thái vị trí đọc/ghi; `force/sync` giải quyết yêu cầu đồng bộ xuống storage.** Chúng không thay thế nhau.
+Key distinction: **`flush` drains bytes buffered in the Java layer; `close` ends resource ownership; `ByteBuffer.flip/clear/compact` manages read/write cursor state; `force/sync` addresses syncing to storage.** None substitutes for another.
 
-### Tài liệu tham khảo chính thức
+### Official Documentation
 
 - Java SE 17 `BufferedWriter`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/BufferedWriter.html
-- Java SE 17 `Writer` và `OutputStream` (flush/close): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Writer.html
+- Java SE 17 `Writer` and `OutputStream` (flush/close): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Writer.html
 - Java SE 17 `ByteBuffer` / `Buffer`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html
 - Java SE 17 `FileChannel` (write/force/close): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/FileChannel.html
 - Java SE 17 `Files` (resource management): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html

@@ -1,22 +1,22 @@
-# Phương thức biến đổi trả kết quả thay vì sửa chuỗi nguồn trong Java
+# Transformation Methods Return Results Instead of Modifying the Source String in Java
 
-## 1. Mục tiêu và ý tưởng cốt lõi
+## 1. Objectives and Core Idea
 
-Trong Java, `String` là **immutable** (*bất biến*): nội dung của một đối tượng `String` không thể bị sửa sau khi tạo. Khi cần viết hoa, viết thường, bỏ khoảng trắng, thay văn bản, nối hoặc cắt chuỗi, các phương thức tương ứng **trả về giá trị kết quả** để người gọi sử dụng; chúng không sửa nội dung đối tượng nguồn.
+In Java, `String` is **immutable**: the content of a `String` object cannot be modified after creation. When you need to convert to uppercase, lowercase, remove whitespace, replace text, concatenate, or extract substrings, the corresponding methods **return a result value** for the caller to use; they do not modify the content of the source object.
 
-Sau bài này, bạn cần giải thích và thực hành được:
+After this lesson, you should be able to explain and practice:
 
-1. Phân biệt **biến tham chiếu**, **đối tượng String** và **giá trị trả về** của phương thức.
-2. Phát hiện lỗi gọi `strip()`, `replace()`, `toUpperCase()`… nhưng bỏ kết quả.
-3. Biết khi nào **gán lại biến**, khi nào **giữ bản gốc và tạo biến kết quả**, khi nào **trả kết quả** từ phương thức của mình.
-4. Áp dụng *method chaining* đúng thứ tự.
-5. Đối chiếu `String` với `StringBuilder` và xử lý các trường hợp `null`, regex, Unicode, `Locale`, hiệu năng.
+1. Distinguishing a **reference variable**, a **`String` object**, and a method's **return value**.
+2. Spotting bugs where `strip()`, `replace()`, `toUpperCase()`, etc. are called while discarding the result.
+3. Knowing when to **reassign a variable**, when to **keep the original and create a result variable**, and when to **return a result** from your own method.
+4. Applying *method chaining* in the right order.
+5. Contrasting `String` with `StringBuilder` and handling `null`, regex, Unicode, `Locale`, and performance cases.
 
-Ví dụ trong bài dùng Java 17+; cần biết biến, phép gán, đối tượng, lời gọi phương thức và kiểu giá trị trả về.
+Examples in this lesson use Java 17+; you should know variables, assignment, objects, method calls, and return value types.
 
-## 2. Bất biến không có nghĩa biến không thể gán lại
+## 2. Immutability Does Not Mean a Variable Cannot Be Reassigned
 
-Xem đoạn mã:
+Look at this code snippet:
 
 ~~~java
 String source = "java";
@@ -26,34 +26,34 @@ System.out.println(source); // java
 System.out.println(upper);  // JAVA
 ~~~
 
-Đối tượng biểu diễn `"java"` **không đổi**. `toUpperCase()` trả kết quả `"JAVA"` và biến `upper` nhận kết quả này. Hai biến chứa các **giá trị** khác nhau, trong khi việc đọc lại `source` vẫn nhận `"java"`.
+The object representing `"java"` **does not change**. `toUpperCase()` returns the result `"JAVA"` and the variable `upper` receives this result. The two variables hold different **values**, while reading `source` again still yields `"java"`.
 
-Ba khái niệm dễ nhầm:
+Three easily confused concepts:
 
-- **Đối tượng String:** mang nội dung bất biến.
-- **Biến tham chiếu:** có thể trỏ sang một đối tượng chuỗi khác bằng phép gán, trừ khi biến được khai báo `final`.
-- **Giá trị trả về:** kết quả của thao tác. Nếu bỏ qua, hiệu ứng biến đổi mong đợi thường không xuất hiện ở biến nguồn.
+- **String object:** carries immutable content.
+- **Reference variable:** can point to a different string object through assignment, unless the variable is declared `final`.
+- **Return value:** the result of the operation. If ignored, the expected transformation effect will usually not appear in the source variable.
 
-Ví dụ minh họa:
+Illustrative diagram:
 
 ~~~text
-Ban đầu:
+Initially:
 source ───────► "java"
 
-source.toUpperCase() trả về:
+source.toUpperCase() returns:
                  "JAVA"
 
-Không gán kết quả:
+Without assigning the result:
 source ───────► "java"
 
-Gán source = source.toUpperCase():
+Assigning source = source.toUpperCase():
 source ───────► "JAVA"
-               (đối tượng "java" gốc không bị sửa)
+               (the original "java" object is not modified)
 ~~~
 
-**Điểm tinh tế:** trả kết quả `String` **không đồng nghĩa luôn tạo đối tượng mới**. Khi giá trị không cần thay đổi, một số phương thức có thể trả lại cùng tham chiếu. Tính bất biến bảo đảm **nội dung nguồn không đổi**; không bảo đảm số lần cấp phát. Vì thế, dùng `equals()` khi cần kiểm tra hai chuỗi có cùng nội dung; `==` dùng để so sánh danh tính tham chiếu, không phù hợp với phần lớn phép so sánh văn bản.
+**Subtle point:** returning a `String` result **does not mean a new object is always created**. When the value does not need to change, some methods may return the same reference. Immutability guarantees **unchanged source content**; it does not guarantee allocation counts. Therefore, use `equals()` when checking whether two strings have the same content; `==` compares reference identity and is unsuitable for most text comparisons.
 
-## 3. Lỗi điển hình: gọi phương thức rồi bỏ giá trị trả về
+## 3. Classic Bug: Calling a Method and Discarding the Return Value
 
 ~~~java
 String text = "  java string  ";
@@ -65,9 +65,9 @@ System.out.println("[" + text + "]");
 // [  java string  ]
 ~~~
 
-Đoạn mã biên dịch bình thường, không ném lỗi, nhưng `text` không đổi. Mỗi phép biến đổi đã trả về kết quả **không được sử dụng**.
+The code compiles cleanly and throws no errors, yet `text` does not change. Each transformation returned a result that **was never used**.
 
-Sửa bằng cách nhận kết quả:
+Fix it by capturing the result:
 
 ~~~java
 String text = "  java string  ";
@@ -79,9 +79,9 @@ System.out.println("[" + text + "]");
 // [Java STRING]
 ~~~
 
-Ở đây `text = ...` cập nhật **tham chiếu lưu trong biến**, không làm sửa một đối tượng `String` tại chỗ.
+Here `text = ...` updates **the reference stored in the variable**; it does not modify a `String` object in place.
 
-Nếu muốn giữ dữ liệu nhập nguyên bản:
+If you want to preserve the original input:
 
 ~~~java
 String raw = "  java string  ";
@@ -93,25 +93,25 @@ System.out.println("display=[" + display + "]");
 // display=[JAVA STRING]
 ~~~
 
-Đặt tên `raw`/`display` giúp phân biệt bản gốc và bản xử lý. Việc giữ nguồn đặc biệt hữu ích khi cần giải thích, đối chiếu hoặc kiểm thử quy tắc biến đổi.
+Naming variables `raw`/`display` helps distinguish the original copy from the processed copy. Preserving the source is especially useful when you need to explain, compare, or test transformation rules.
 
-## 4. Các phương thức biến đổi trả về String
+## 4. Transformation Methods Returning `String`
 
-| Phương thức | Mục đích | Ví dụ kết quả |
+| Method | Purpose | Example result |
 | --- | --- | --- |
-| `toUpperCase()`, `toLowerCase()` | Đổi chữ hoa/thường | `"Java".toUpperCase()` → `"JAVA"` |
-| `strip()`, `stripLeading()`, `stripTrailing()` | Bỏ whitespace ở hai đầu / đầu / cuối | `" a ".strip()` → `"a"` |
-| `trim()` | Bỏ ký tự đầu/cuối có mã `<= U+0020` theo đặc tả | `" a ".trim()` → `"a"` |
-| `replace(old, new)` | Thay **literal** | `"a-b".replace("-", ":")` → `"a:b"` |
-| `replaceAll(regex, replacement)` | Thay tất cả đoạn khớp **regex** | `"a1b2".replaceAll("\\d", "#")` → `"a#b#"` |
-| `replaceFirst(regex, replacement)` | Thay phần khớp regex đầu tiên | `"a1b2".replaceFirst("\\d", "#")` → `"a#b2"` |
-| `substring(begin, end)` | Trích đoạn, cận cuối không lấy | `"Java".substring(1, 3)` → `"av"` |
-| `concat(other)` và phép `+` | Nối chuỗi | `"Java".concat(" 17")` → `"Java 17"` |
-| `repeat(count)` | Lặp nội dung | `"ab".repeat(2)` → `"abab"` |
-| `formatted(args...)`, `String.format(...)` | Dựng chuỗi từ định dạng | `"%s-%d".formatted("A", 2)` → `"A-2"` |
-| `indent(n)`, `stripIndent()` | Biến đổi cách thụt lề của văn bản đa dòng | Kết quả có thể khác cả khoảng trắng lẫn dấu xuống dòng |
+| `toUpperCase()`, `toLowerCase()` | Change letter case | `"Java".toUpperCase()` → `"JAVA"` |
+| `strip()`, `stripLeading()`, `stripTrailing()` | Remove whitespace at both ends / start / end | `" a ".strip()` → `"a"` |
+| `trim()` | Remove leading/trailing characters with code `<= U+0020` per spec | `" a ".trim()` → `"a"` |
+| `replace(old, new)` | Replace **literal** substrings | `"a-b".replace("-", ":")` → `"a:b"` |
+| `replaceAll(regex, replacement)` | Replace all **regex** matches | `"a1b2".replaceAll("\\d", "#")` → `"a#b#"` |
+| `replaceFirst(regex, replacement)` | Replace first regex match | `"a1b2".replaceFirst("\\d", "#")` → `"a#b2"` |
+| `substring(begin, end)` | Extract slice, end index exclusive | `"Java".substring(1, 3)` → `"av"` |
+| `concat(other)` and `+` operator | Concatenate strings | `"Java".concat(" 17")` → `"Java 17"` |
+| `repeat(count)` | Repeat content | `"ab".repeat(2)` → `"abab"` |
+| `formatted(args...)`, `String.format(...)` | Build string from format | `"%s-%d".formatted("A", 2)` → `"A-2"` |
+| `indent(n)`, `stripIndent()` | Transform indentation of multiline text | Result may differ in both spaces and line terminators |
 
-**Không phải mọi phương thức được gọi trên String đều trả String.** Ví dụ:
+**Not every method called on `String` returns `String`.** For example:
 
 ~~~java
 String data = "a,b,c";
@@ -120,22 +120,22 @@ boolean exists = data.contains("a");
 String[] pieces = data.split(",");
 ~~~
 
-`length()` trả `int`, `contains()` trả `boolean` và `split()` trả `String[]`. Tất cả đều **không sửa** `data` nhưng có kiểu trả về khác nhau. Các phương thức như `indexOf()`, `isBlank()`, `matches()` hoặc `codePoints()` cũng có kiểu trả về riêng. Hãy đọc chữ ký trong Javadoc trước khi viết code.
+`length()` returns `int`, `contains()` returns `boolean`, and `split()` returns `String[]`. None of them **modify** `data`, yet they have different return types. Methods such as `indexOf()`, `isBlank()`, `matches()`, or `codePoints()` also have their own return types. Read the signatures in the Javadoc before writing code.
 
-## 5. Ba cách nhận kết quả đúng
+## 5. Three Ways to Capture Results Properly
 
-### 5.1. Gán lại khi không còn cần biến chứa bản cũ
+### 5.1. Reassign When You No Longer Need the Variable to Hold the Old Version
 
 ~~~java
 String name = "  alice  ";
 name = name.strip();
 name = name.replace("alice", "Alice");
-// name giờ chứa "Alice"
+// name now holds "Alice"
 ~~~
 
-Giá trị chuỗi ban đầu không bị sửa. Điều thay đổi là **giá trị tham chiếu của biến** `name`.
+The original string value is not modified. What changes is **the reference value of the variable** `name`.
 
-### 5.2. Dùng biến mới để giữ cả dữ liệu thô và đã xử lý
+### 5.2. Use a New Variable to Keep Both Raw and Processed Data
 
 ~~~java
 String input = "  alice  ";
@@ -145,21 +145,21 @@ String normalized = input.strip().replace("alice", "Alice");
 // normalized: "Alice"
 ~~~
 
-Cách này hữu ích khi mỗi phiên bản có vai trò khác nhau. Không tự động bỏ dấu, đổi case hoặc cắt chuỗi nếu nghiệp vụ chưa quy định vì có thể mất thông tin.
+This approach is useful when each version serves a distinct role. Do not strip diacritics, change case, or trim strings automatically unless business rules specify it, because doing so can lose information.
 
-### 5.3. Trả kết quả khi viết phương thức của mình
+### 5.3. Return the Result When Writing Your Own Method
 
-**Sai:**
+**Wrong:**
 
 ~~~java
 static String normalizeWrong(String input) {
     input.strip();
     input.toLowerCase(java.util.Locale.ROOT);
-    return input; // Trả về nguồn, không phải kết quả đã xử lý
+    return input; // Returns the source, not the processed result
 }
 ~~~
 
-**Đúng:**
+**Right:**
 
 ~~~java
 static String normalizeCorrect(String input) {
@@ -167,9 +167,9 @@ static String normalizeCorrect(String input) {
 }
 ~~~
 
-Ở ví dụ đúng, tham số `input` phải khác `null`. Quy tắc xử lý `null` nên được viết rõ trong hợp đồng hàm.
+In the correct example, the parameter `input` must be non-`null`. Rules for handling `null` should be clearly stated in the method's contract.
 
-## 6. Method chaining: kết quả trước là đầu vào của bước sau
+## 6. Method Chaining: Previous Result Is the Next Step's Input
 
 ~~~java
 String result = "  java core  "
@@ -180,7 +180,7 @@ String result = "  java core  "
 System.out.println(result); // JAVA CORE
 ~~~
 
-Quá trình:
+Process:
 
 ~~~text
 "  java core  "
@@ -195,7 +195,7 @@ Quá trình:
 "JAVA CORE"
 ~~~
 
-**Thứ tự của phép biến đổi có thể làm thay đổi kết quả**:
+**The order of transformations can change the result**:
 
 ~~~java
 String text = "Java";
@@ -207,57 +207,57 @@ System.out.println(first);  // core
 System.out.println(second); // java
 ~~~
 
-`replace("java", "core")` phân biệt chữ hoa/chữ thường; khi áp dụng trực tiếp trên `"Java"` nó không thay gì. Khi đổi thành chữ thường trước rồi thay mới tìm thấy đoạn cần thay.
+`replace("java", "core")` is case-sensitive; when applied directly to `"Java"` it replaces nothing. When converted to lowercase first, the segment to replace is found.
 
-**Quy tắc chaining:**
+**Chaining rules:**
 
-- Lời gọi kế tiếp phải tương thích **kiểu trả về** của lời gọi trước: `text.strip().replace(...)` đúng, nhưng `text.length().strip()` sai vì `length()` trả `int`.
-- Dùng biến trung gian khi cần debug từng bước hoặc pipeline quá dài.
-- Lệnh cuối phải được sử dụng (gán, `return`, truyền làm đối số…) nếu kết quả xử lý là mục tiêu của chương trình.
-- Chaining là cách diễn đạt xử lý tuần tự, **không phải** cách làm cho đối tượng `String` trở nên mutable.
+- The next call must be compatible with the **return type** of the previous call: `text.strip().replace(...)` is valid, whereas `text.length().strip()` is invalid because `length()` returns `int`.
+- Use intermediate variables when you need to debug step by step or when a pipeline gets too long.
+- The final expression must be used (assigned, returned via `return`, passed as an argument, etc.) if the processed result is the goal of the program.
+- Chaining is a way to express sequential processing, **not** a way to make a `String` object mutable.
 
-## 7. Đối chiếu với StringBuilder: mutable thật sự
+## 7. Contrasting with `StringBuilder`: Truly Mutable
 
-`StringBuilder` khác `String` ở chỗ nó **thay đổi trạng thái bên trong** khi gọi `append()`, `insert()`, `delete()` hoặc `replace()`.
+`StringBuilder` differs from `String` in that it **modifies internal state** when calling `append()`, `insert()`, `delete()`, or `replace()`.
 
 ~~~java
 String text = "A";
-text.concat("B");                // Giá trị trả về bị bỏ
+text.concat("B");                // Return value is discarded
 System.out.println(text);        // A
 
 StringBuilder builder = new StringBuilder("A");
-builder.append("B");             // Chính builder thay đổi
+builder.append("B");             // The builder itself changes
 System.out.println(builder);     // AB
 ~~~
 
-Với `StringBuilder`, `append()` vừa thay builder, vừa trả lại tham chiếu đến builder để gọi tiếp. Với `String`, `concat()` trả về kết quả nối, còn giá trị nguồn giữ nguyên.
+With `StringBuilder`, `append()` both mutates the builder and returns a reference to the builder for further calls. With `String`, `concat()` returns the concatenated result while the source value stays intact.
 
-Hai cách sau đều tạo ra giá trị `"ab"`, nhưng cơ chế khác nhau:
+Both approaches below produce the value `"ab"`, but through different mechanisms:
 
 ~~~java
 String s = "a";
-s = s + "b"; // Gán lại biến s bằng kết quả String
+s = s + "b"; // Reassigns variable s to the String result
 
 StringBuilder b = new StringBuilder("a");
-b.append("b"); // Sửa nội dung đối tượng b
+b.append("b"); // Modifies the content of object b
 ~~~
 
-**`final` khác immutable:**
+**`final` vs. immutable:**
 
 ~~~java
 final String fixed = "a";
-String changed = fixed.replace("a", "b"); // Hợp lệ
-// fixed = changed; // Lỗi biên dịch: không được gán lại fixed
+String changed = fixed.replace("a", "b"); // Valid
+// fixed = changed; // Compile error: cannot reassign fixed
 
 final StringBuilder editable = new StringBuilder("a");
-editable.append("b"); // Hợp lệ: đối tượng builder vẫn mutable
+editable.append("b"); // Valid: the builder object is still mutable
 ~~~
 
-`final` ngăn **gán lại một biến tham chiếu**; không tự làm cho đối tượng mà biến trỏ tới trở thành bất biến.
+`final` prevents **reassigning a reference variable**; it does not automatically make the object the variable points to immutable.
 
-## 8. Trường hợp biên và lỗi thực tế
+## 8. Edge Cases and Real-World Pitfalls
 
-### 8.1. Rỗng, trắng và null
+### 8.1. Empty, Blank, and Null
 
 ~~~java
 String empty = "";
@@ -269,7 +269,7 @@ System.out.println(blank.isBlank()); // true
 System.out.println(blank.strip().isEmpty()); // true
 ~~~
 
-`null` không phải chuỗi rỗng: `null.strip()` ném `NullPointerException`. Hai chính sách ví dụ:
+`null` is not an empty string: `null.strip()` throws `NullPointerException`. Two example policies:
 
 ~~~java
 static String normalizeNullable(String text) {
@@ -282,9 +282,9 @@ static String normalizeRequired(String text) {
 }
 ~~~
 
-Chọn một hợp đồng theo nhu cầu: trả `null`, chuyển dữ liệu thiếu thành `""` hoặc từ chối `null`. Đừng thay đổi ý nghĩa dữ liệu một cách ngầm định.
+Choose a contract according to your needs: return `null`, convert missing data to `""`, or reject `null`. Do not change the meaning of data implicitly.
 
-### 8.2. Không thay được thì kết quả vẫn bằng nội dung cũ
+### 8.2. When Nothing Is Replaced, the Result Still Equals the Old Content
 
 ~~~java
 String original = "Hello";
@@ -292,9 +292,9 @@ String after = original.replace("x", "y");
 System.out.println(original.equals(after)); // true
 ~~~
 
-Không tìm thấy `"x"` nên nội dung kết quả bằng nguồn. Điều này không chứng tỏ hai biến chắc chắn cùng một tham chiếu; quy tắc ổn định là **nguồn không đổi**, không phải **mỗi lần luôn có đối tượng mới**.
+`"x"` is not found, so the result's content equals the source. This does not prove the two variables definitely hold the same reference; the stable rule is **the source does not change**, not **every call always produces a new object**.
 
-### 8.3. Replace literal khác replaceAll regex
+### 8.3. Literal `replace` vs. Regex `replaceAll`
 
 ~~~java
 String path = "a.b.c";
@@ -303,13 +303,13 @@ String a = path.replace(".", "-");        // a-b-c
 String b = path.replaceAll("\\.", "-");   // a-b-c
 ~~~
 
-`replace(".", "-")` tìm dấu chấm literal. `replaceAll` nhận biểu thức chính quy; ký hiệu `.` trong regex đại diện cho hầu hết ký tự, nên muốn khớp dấu chấm thật phải dùng `\.`, được viết trong mã nguồn Java là `"\\."`.
+`replace(".", "-")` searches for a literal dot. `replaceAll` takes a regular expression; the symbol `.` in regex matches almost any character, so to match a real dot you must use `\.`, written in Java source code as `"\\."`.
 
-Chú ý giá trị `replacement` của `replaceAll` còn có cú pháp cho `$` và `\`; khi muốn sử dụng chuỗi thay thế literal đến từ dữ liệu bên ngoài, dùng `java.util.regex.Matcher.quoteReplacement(replacement)` phù hợp.
+Note that the `replacement` argument of `replaceAll` also has special syntax for `$` and `\`; when using a literal replacement string coming from external data, using `java.util.regex.Matcher.quoteReplacement(replacement)` is appropriate.
 
-### 8.4. Locale và chuyển chữ hoa/thường
+### 8.4. Locale and Case Conversion
 
-`toLowerCase()` và `toUpperCase()` không có tham số sử dụng **locale mặc định**. Khi xử lý mã kỹ thuật cố định, truyền `Locale.ROOT` để không phụ thuộc locale người dùng:
+Parameterless `toLowerCase()` and `toUpperCase()` use the **default locale**. When handling fixed technical identifiers, pass `Locale.ROOT` so behavior does not depend on the user's locale:
 
 ~~~java
 String key = "CONTENT-TYPE";
@@ -317,11 +317,11 @@ String lower = key.toLowerCase(java.util.Locale.ROOT);
 System.out.println(lower); // content-type
 ~~~
 
-Với ngôn ngữ tự nhiên, dùng locale phù hợp quy tắc nghiệp vụ. Một số chuyển đổi case có thể **thay đổi độ dài**, vì vậy không giả định một ký tự đầu vào luôn cho một `char` đầu ra.
+For natural language, use the locale matching the business rule. Some case conversions can **change string length**, so do not assume one input character always produces one output `char`.
 
-### 8.5. Unicode khi cắt chuỗi
+### 8.5. Unicode When Slicing Strings
 
-`length()` đếm **đơn vị UTF-16**, không phải số ký tự người dùng nhìn thấy:
+`length()` counts **UTF-16 code units**, not user-perceived characters:
 
 ~~~java
 String value = "A😀B";
@@ -329,15 +329,15 @@ System.out.println(value.length()); // 4
 System.out.println(value.codePointCount(0, value.length())); // 3
 ~~~
 
-Một emoji có thể chiếm hai `char`. `substring()` cắt theo chỉ số UTF-16; nếu cắt giữa một surrogate pair, kết quả có thể không biểu diễn một ký tự Unicode hoàn chỉnh. Khi cần xử lý code points, sử dụng API như `codePoints()` và `offsetByCodePoints()`. Ký tự *grapheme* người dùng nhìn thấy còn có thể gồm nhiều code point. Bất biến **không** thay cho xử lý Unicode đúng.
+An emoji can take two `char`s. `substring()` slices by UTF-16 indices; slicing in the middle of a surrogate pair can produce a result that does not represent a complete Unicode character. When you need to handle code points, use APIs like `codePoints()` and `offsetByCodePoints()`. A user-perceived *grapheme* can also consist of multiple code points. Immutability is **not** a substitute for proper Unicode handling.
 
-### 8.6. Phương thức có thể ném ngoại lệ
+### 8.6. Methods Can Throw Exceptions
 
-`substring(begin, end)` có thể ném `StringIndexOutOfBoundsException` khi chỉ số sai; `repeat(n)` với `n < 0` ném `IllegalArgumentException`. Một phép biến đổi thất bại không làm sửa chuỗi nguồn, nhưng bạn vẫn phải xác minh đầu vào.
+`substring(begin, end)` can throw `StringIndexOutOfBoundsException` when indices are invalid; `repeat(n)` with `n < 0` throws `IllegalArgumentException`. A failed transformation does not modify the source string, but you still must validate inputs.
 
-## 9. Chương trình hoàn chỉnh có thể biên dịch và chạy (Java 17+)
+## 9. Complete Compilable and Runnable Program (Java 17+)
 
-Tạo file **`ImmutableStringDemo.java`**:
+Create file **`ImmutableStringDemo.java`**:
 
 ~~~java
 import java.util.Locale;
@@ -373,14 +373,14 @@ public class ImmutableStringDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac ImmutableStringDemo.java
 java ImmutableStringDemo
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 raw=[  java-core  ]
@@ -392,21 +392,21 @@ token=[a1b2]
 builder=AB
 ~~~
 
-Giải thích output:
+Output explanation:
 
-1. Hai lời gọi trên `raw` không gán kết quả nên chuỗi nguồn giữ khoảng trắng đầu/cuối và chữ thường.
-2. `output` nhận kết quả của `strip()` → `replace("-", " ")` → `toUpperCase(Locale.ROOT)`, thành `"JAVA CORE"`. Lời in `raw again` chứng minh nguồn vẫn giữ nguyên.
-3. `title` được **gán lại** hai lần nên biến giữ bản cuối là `"Hello"`.
-4. `replaceAll("\\d", "#")` thay các chữ số trong kết quả `redacted`, trong khi `token` vẫn `"a1b2"`.
-5. `append("B")` thay nội dung `builder`, chứng minh đối tượng mutable hoạt động khác `String`.
+1. The two calls on `raw` do not assign the result, so the source string retains leading/trailing spaces and lowercase letters.
+2. `output` receives the result of `strip()` → `replace("-", " ")` → `toUpperCase(Locale.ROOT)`, becoming `"JAVA CORE"`. Printing `raw again` proves the source remained unchanged.
+3. `title` is **reassigned** twice, so the variable holds the final copy `"Hello"`.
+4. `replaceAll("\\d", "#")` replaces digits in the result `redacted`, while `token` remains `"a1b2"`.
+5. `append("B")` mutates the content of `builder`, demonstrating that a mutable object behaves differently from `String`.
 
-Hãy tự thay đầu vào, dự đoán toàn bộ stdout rồi chạy để kiểm chứng. Sự nhất quán giữa dự đoán và chạy thật quan trọng hơn thuộc tên phương thức.
+Try changing the inputs yourself, predicting the entire stdout, and then running to verify. Consistency between prediction and actual execution matters more than memorizing method names.
 
-## 10. Ảnh hưởng đến hiệu năng và thiết kế
+## 10. Impact on Performance and Design
 
-Bất biến có thể khiến việc xây dựng chuỗi qua nhiều thao tác tạo ra các giá trị trung gian; cấp phát và tối ưu cụ thể phụ thuộc phương thức và compiler/JVM. Không suy luận rằng **mọi** lời gọi trả về một đối tượng mới, hoặc rằng dùng `String` luôn chậm.
+Immutability can cause building a string across many operations to produce intermediate values; specific allocations and optimizations depend on the method and compiler/JVM. Do not infer that **every** call returns a new object, or that using `String` is always slow.
 
-Ví dụ nối chuỗi trong vòng lặp:
+Example concatenating strings in a loop:
 
 ~~~java
 String result = "";
@@ -415,7 +415,7 @@ for (int i = 0; i < 1000; i++) {
 }
 ~~~
 
-Mã chạy đúng về logic nhưng phép nối tích lũy có thể tạo nhiều giá trị trung gian. Thay vào đó, thường thích hợp dùng:
+The code is logically correct, yet cumulative concatenation can create many intermediate values. Instead, it is often appropriate to use:
 
 ~~~java
 StringBuilder builder = new StringBuilder();
@@ -425,13 +425,13 @@ for (int i = 0; i < 1000; i++) {
 String result = builder.toString();
 ~~~
 
-Nguyên tắc chọn công cụ: dùng `String` để **lưu và trao đổi giá trị văn bản**, dùng `StringBuilder` khi **xây dựng văn bản qua nhiều lần bổ sung**, rồi chuyển về `String` bằng `toString()`. Đo hiệu năng nếu đây là điểm nghẽn thực tế; phép nối `+` ngắn không cần chuyển sang builder một cách máy móc.
+Tool selection rule: use `String` to **store and exchange text values**, use `StringBuilder` when **building text over many additions**, then convert back to `String` with `toString()`. Measure performance if this is an actual bottleneck; short `+` concatenations do not need to be mechanically converted to a builder.
 
-Vì một đối tượng `String` không thể bị sửa nội dung, việc cùng đọc một chuỗi qua nhiều tham chiếu trở nên an toàn về mặt nội dung. Nhưng **biến tham chiếu có thể gán lại** dùng chung giữa các luồng vẫn cần quy tắc công bố và đồng bộ thích hợp; immutable không tự giải quyết mọi vấn đề concurrency.
+Because a `String` object cannot have its content modified, concurrently reading a string across multiple references is safe with respect to content. However, a **reassignable reference variable** shared between threads still needs proper publication and synchronization rules; immutability does not solve every concurrency issue on its own.
 
-## 11. Bài tập và cách tự kiểm tra
+## 11. Exercises and How to Self-Check
 
-### Bài tập 1 — Dự đoán rồi chạy
+### Exercise 1 — Predict Then Run
 
 ~~~java
 String a = "Hello";
@@ -441,55 +441,55 @@ System.out.println(a);
 System.out.println(b);
 ~~~
 
-Kết quả: `Hello` và `hello`. Chữ `H` không thay vì kết quả `replace()` bị bỏ. `b` nhận kết quả viết thường nên có nội dung khác `a`.
+Result: `Hello` and `hello`. The letter `H` does not change because the result of `replace()` was discarded. `b` receives the lowercase result, so its content differs from `a`.
 
-### Bài tập 2 — Sửa lỗi
+### Exercise 2 — Fix the Bug
 
-Viết hàm trả `"java core"` từ `"  Java CORE  "` bằng `strip()` và `toLowerCase(Locale.ROOT)`. Viết thử phiên bản **sai do bỏ giá trị trả về**, sau đó sửa bằng `return input.strip().toLowerCase(Locale.ROOT);`.
+Write a method returning `"java core"` from `"  Java CORE  "` using `strip()` and `toLowerCase(Locale.ROOT)`. Try writing a **wrong version that discards the return value**, then fix it with `return input.strip().toLowerCase(Locale.ROOT);`.
 
-### Bài tập 3 — Thứ tự khác, kết quả khác
+### Exercise 3 — Different Order, Different Result
 
-Cho `String x = "JAVA";`. So sánh:
+Given `String x = "JAVA";`. Compare:
 
 ~~~java
 x.toLowerCase(java.util.Locale.ROOT).replace("java", "core");
 x.replace("java", "core").toLowerCase(java.util.Locale.ROOT);
 ~~~
 
-Kết quả lần lượt là `"core"` và `"java"`. Giải thích việc `replace()` phân biệt chữ hoa/chữ thường.
+The results are `"core"` and `"java"`, respectively. Explain that `replace()` is case-sensitive.
 
-### Bài tập 4 — Hợp đồng null
+### Exercise 4 — Null Contract
 
-Tạo hàm `normalize(String s)` nhận chuỗi có thể `null`. Chọn **một** quy tắc được công bố rõ: trả `null`, trả `""` hoặc ném ngoại lệ. Thử `null`, `""`, `" "`, `" A "`.
+Create a method `normalize(String s)` accepting a nullable string. Pick **one** clearly documented rule: return `null`, return `""`, or throw an exception. Test with `null`, `""`, `" "`, `" A "`.
 
-### Bài tập 5 — Giữ đầu vào nguyên bản
+### Exercise 5 — Preserve the Original Input
 
-Với `String raw = "  Cà phê Đắk Lắk  ";`, tạo biến `display` bằng `strip()`. Chứng minh `raw` vẫn chứa khoảng trắng. Không tự ý xóa dấu hay chuyển chữ thường vì đó là thay đổi ý nghĩa văn bản ngoài yêu cầu.
+With `String raw = "  Cà phê Đắk Lắk  ";`, create variable `display` using `strip()`. Prove `raw` still contains spaces. Do not arbitrarily remove diacritics or change case, as that alters text meaning beyond the requirement.
 
-### Bài tập 6 — Mutable và immutable
+### Exercise 6 — Mutable vs. Immutable
 
-Dùng `StringBuilder` ghép các số `1`, `2`, `3` với dấu phẩy; gọi `toString()` để giữ bản hoàn chỉnh. Sau đó thêm `4` vào builder, in cả hai để chứng minh bản `String` vừa tạo vẫn không thay đổi.
+Use `StringBuilder` to join numbers `1`, `2`, `3` with commas; call `toString()` to keep the completed copy. Then append `4` to the builder and print both to prove the newly created `String` copy remained unchanged.
 
-### Checklist khi review code
+### Code Review Checklist
 
-- Lời gọi trên `String` trả về kiểu gì: `String`, mảng, số, boolean hay stream?
-- Giá trị kết quả đã được **gán, return, truyền tiếp hoặc sử dụng** chưa?
-- Có muốn giữ bản gốc không? Nếu có, đặt tên riêng cho bản xử lý.
-- Có điều kiện nào phụ thuộc thứ tự các bước hoặc phân biệt chữ hoa/thường?
-- Có yêu cầu xử lý `null`, chuỗi trắng, Unicode hay `Locale` đặc biệt?
-- Phương thức `replaceAll()` đang nhận **regex** hay người viết nhầm với chuỗi literal?
-- Biến `final` có bị hiểu sai là làm cho mọi đối tượng mutable trở nên bất biến?
-- Khi nối nhiều lần, có cần `StringBuilder` không?
+- What type does the call on `String` return: `String`, array, number, boolean, or stream?
+- Has the result value been **assigned, returned, passed onward, or used**?
+- Should the original copy be preserved? If so, give the processed copy a separate name.
+- Are there conditions depending on step order or case sensitivity?
+- Are there special requirements for `null`, blank strings, Unicode, or `Locale`?
+- Is `replaceAll()` receiving a **regex** when the author mistook it for a literal string?
+- Is a `final` variable being misunderstood as making any mutable object immutable?
+- When concatenating many times, is `StringBuilder` needed?
 
-**Quy tắc nhớ lâu:**
+**Rule to remember long-term:**
 
-> Phương thức biến đổi trên `String` không sửa chuỗi nguồn. Hãy sử dụng giá trị trả về. Gán lại biến là thay **tham chiếu** mà biến giữ; không phải thay nội dung của đối tượng `String` gốc.
+> Transformation methods on `String` do not modify the source string. Use the return value. Reassigning a variable changes **the reference** the variable holds; it does not change the content of the original `String` object.
 
-Hoàn thành bài khi bạn dự đoán được giá trị biến trước/sau lời gọi, phát hiện được thao tác bị bỏ kết quả, viết được hàm biến đổi giữ nguồn và phân biệt rõ `String` với `StringBuilder`.
+You have mastered this lesson when you can predict variable values before and after calls, spot operations whose results are discarded, write transformation methods that preserve the source, and clearly distinguish `String` from `StringBuilder`.
 
-## 12. Tài liệu chuẩn để tra cứu
+## 12. Standard References
 
-- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): chữ ký và hợp đồng `strip()`, `replace()`, `substring()`, `toLowerCase()`, `concat()`, `repeat()`, `formatted()`…
-- [Java SE 17 — StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): các thao tác thay đổi nội dung builder và `toString()`.
-- [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): ý nghĩa locale khi xử lý văn bản.
-- [Java SE 17 — Matcher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Matcher.html): quy tắc replacement của regex và `quoteReplacement()`.
+- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): signatures and contracts for `strip()`, `replace()`, `substring()`, `toLowerCase()`, `concat()`, `repeat()`, `formatted()`, etc.
+- [Java SE 17 — StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): operations that mutate builder content and `toString()`.
+- [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): the role of locale when processing text.
+- [Java SE 17 — Matcher](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Matcher.html): regex replacement rules and `quoteReplacement()`.

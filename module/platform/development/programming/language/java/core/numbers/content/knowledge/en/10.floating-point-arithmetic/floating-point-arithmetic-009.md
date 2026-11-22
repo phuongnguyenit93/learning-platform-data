@@ -1,16 +1,16 @@
-# Triệt tiêu chữ số khi trừ hai số gần bằng nhau trong Java
+# Digit Cancellation When Subtracting Two Nearly Equal Numbers in Java
 
-## 1. Hiện tượng cần hiểu
+## 1. The Phenomenon to Understand
 
-Trong tính toán dấu phẩy động, **triệt tiêu chữ số** (*cancellation*) xảy ra khi trừ hai số có giá trị gần nhau. Các chữ số đầu giống nhau bị triệt tiêu, phần hiệu rất nhỏ trở thành kết quả. Nếu hai toán hạng đã chứa sai số làm tròn, sai số ấy có thể chiếm tỷ lệ rất lớn so với hiệu. Trường hợp làm mất nghiêm trọng độ chính xác tương đối thường gọi là **catastrophic cancellation**.
+In floating-point computation, **digit cancellation** (*cancellation*) occurs when subtracting two numbers that are close in value. Matching leading digits cancel out, leaving a very small difference as the result. If both operands already contain rounding error, that error can account for a huge proportion of the difference. Cases that severely degrade relative precision are often called **catastrophic cancellation**.
 
-Ví dụ, trong số thực toán học:
+For example, in mathematical real numbers:
 
 \[
 (10^{16}+1)-10^{16}=1.
 \]
 
-Nhưng với `double` Java:
+However, with Java `double`:
 
 ```java
 double base = 1e16;
@@ -20,58 +20,58 @@ double difference = plusOne - base;
 System.out.println(difference);  // 0.0
 ```
 
-Lý do: `1e16` là một giá trị `double` biểu diễn được, nhưng số nguyên `10^16 + 1` nằm giữa hai giá trị `double` liền kề ở vùng đó. Biểu thức `base + 1.0` được làm tròn trở về `base`. Đến lúc thực hiện phép trừ, chương trình đang trừ **hai giá trị `double` bằng nhau**, vì vậy nhận `0.0`. Giá trị thực cần tìm là `1`, tức sai số tuyệt đối bằng `1` và sai số tương đối của kết quả bằng **100%**.
+Reason: `1e16` is a representable `double` value, whereas the integer `10^16 + 1` lies between two adjacent `double` values in that region. The expression `base + 1.0` rounds back to `base`. By the time subtraction runs, the program is subtracting **two equal `double` values**, so it gets `0.0`. The true value sought is `1`, meaning an absolute error of `1` and a relative error of **100%**.
 
-Điểm cốt lõi: phép trừ có thể thực hiện hoàn toàn chính xác trên **hai số `double` đã được lưu**, nhưng vẫn khác xa hiệu của **hai giá trị toán học ban đầu**. Không nên quy mọi sai số cho riêng toán tử `-`; nguồn sai số thường xuất hiện từ bước tạo toán hạng hoặc phép tính trước đó.
+The core point: subtraction can execute completely accurately on the **two stored `double` values**, yet still differ widely from the difference of the **two original mathematical values**. Do not blame every error on the `-` operator alone; the source of error often arises during operand creation or an earlier operation.
 
-## 2. Vì sao dấu phẩy động dễ gặp triệt tiêu chữ số?
+## 2. Why Is Floating-Point Arithmetic Prone to Digit Cancellation?
 
-`float` và `double` biểu diễn tập hữu hạn các số nhị phân, với độ chính xác phần trị lần lượt khoảng **24 bit** và **53 bit**. Không phải mọi số thực hay mọi số nguyên lớn đều biểu diễn được chính xác. Khi kết quả nằm giữa hai giá trị đại diện được, Java phải làm tròn theo quy tắc IEEE 754.
+`float` and `double` represent a finite set of binary numbers, with significand precision of about **24 bits** and **53 bits** respectively. Not every real number or large integer can be represented exactly. When a result falls between two representable values, Java must round according to IEEE 754 rules.
 
-Một mô hình sai số đơn giản:
+A simple error model:
 
 \[
 \widehat a=a+\delta_a,\qquad
 \widehat b=b+\delta_b
 \]
 
-trong đó `a`, `b` là các giá trị toán học dự định, còn `â`, `b̂` là hai giá trị đã lưu. Khi trừ:
+where `a` and `b` are the intended mathematical values, while `â` and `b̂` are the two stored values. When subtracting:
 
 \[
 \widehat a-\widehat b
 =(a-b)+(\delta_a-\delta_b).
 \]
 
-Nếu `a` và `b` gần bằng nhau thì `|a-b|` rất nhỏ, trong khi `δa` và `δb` có thể tương đối lớn **so với hiệu**. Ví dụ:
+If `a` and `b` are close to each other, then `|a-b|` is very small, whereas `δa` and `δb` can be relatively large **compared to the difference**. Example:
 
-- Giá trị thật: `a = 1_000_000_001`, `b = 1_000_000_000`, hiệu bằng `1`.
-- Giả sử hai toán hạng sau làm tròn lần lượt thành `1_000_000_000` và `1_000_000_000`. Hiệu tính được bằng `0`, dù sai số của từng toán hạng chỉ khoảng một phần tỷ so với độ lớn của chúng.
+- True values: `a = 1_000_000_001`, `b = 1_000_000_000`, difference equals `1`.
+- Suppose the two operands after rounding become `1_000_000_000` and `1_000_000_000` respectively. The computed difference is `0`, even though each operand's error was only about one part per billion relative to its magnitude.
 
-Sai số tuyệt đối của phép trừ có thể nhỏ khi so với toán hạng, nhưng sai số tương đối của kết quả có thể rất lớn. Với `float`, hiện tượng xuất hiện ở mức độ lớn thấp hơn `double` vì số bit chính xác ít hơn.
+The absolute error of subtraction may look small compared to the operands, yet the relative error of the result can be enormous. With `float`, the phenomenon appears at lower magnitudes than `double` because there are fewer precision bits.
 
-### Chỉ số nhạy cảm của phép trừ
+### Sensitivity Metric of Subtraction
 
-Với `a != b`, một thước đo độ nhạy đối với sai số tương đối của hai toán hạng là:
+For `a != b`, a measure of sensitivity to relative errors in the two operands is:
 
 \[
 \kappa_{\mathrm{sub}}=\frac{|a|+|b|}{|a-b|}.
 \]
 
-Khi `a` và `b` gần nhau nhưng có độ lớn đáng kể, mẫu số tiến gần 0 nên `κ` rất lớn. Điều này báo rằng **sai số tương đối nhỏ ở đầu vào có thể bị khuếch đại** khi tính hiệu.
+When `a` and `b` are close yet have substantial magnitude, the denominator approaches 0 so `κ` becomes very large. This signals that **small relative errors in the inputs can be amplified** when computing the difference.
 
-Ví dụ `a ≈ 1_000_000`, `b ≈ 999_999`, thì `|a-b| ≈ 1` và `κ` khoảng hai triệu. Đây là đặc tính độ nhạy của bài toán, không phải bằng chứng một thuật toán cụ thể đã sai. Nếu đầu vào là số chính xác tuyệt đối và hiệu vẫn biểu diễn được, phép trừ có thể không gây thêm sai số.
+For instance, if `a ≈ 1_000_000` and `b ≈ 999_999`, then `|a-b| ≈ 1` and `κ` is about two million. This is a sensitivity property of the problem itself, not proof that a particular algorithm is wrong. If the inputs are exact numbers and the difference is representable, subtraction may introduce no additional error.
 
-## 3. Triệt tiêu chữ số không đồng nghĩa “phép trừ luôn thiếu chính xác”
+## 3. Digit Cancellation Does Not Mean "Subtraction Is Always Inaccurate"
 
-Có một kết quả quan trọng trong số học dấu phẩy động: **bổ đề Sterbenz (Sterbenz's lemma)**. Với hai số dấu phẩy động hữu hạn dương `x`, `y` đã biểu diễn được, nếu
+There is an important theorem in floating-point arithmetic: **Sterbenz's lemma**. For two representable positive finite floating-point numbers `x` and `y`, if
 
 \[
 \frac{x}{2}\le y\le 2x,
 \]
 
-thì trong số học nhị phân tuân thủ làm tròn và xử lý số dưới chuẩn phù hợp, phép trừ `x - y` có thể được biểu diễn **chính xác**. Java dùng IEEE 754 với số dưới chuẩn, nên đây là một cách giải thích hữu ích cho nhiều phép trừ số gần nhau.
+then in binary arithmetic with proper rounding and subnormal handling, the subtraction `x - y` can be represented **exactly**. Java uses IEEE 754 with subnormals, so this is a useful explanation for many subtractions of close numbers.
 
-Ví dụ:
+Example:
 
 ```java
 double a = Math.nextUp(1.0);  // 1.0000000000000002
@@ -79,19 +79,19 @@ double b = 1.0;
 double delta = a - b;         // 2.220446049250313E-16
 ```
 
-Cả `a`, `b` là những giá trị `double` xác định và hiệu của chúng được biểu diễn chính xác. Nếu ta **định nghĩa bài toán trên đúng hai giá trị `double` này**, phép trừ không mất thêm chữ số.
+Both `a` and `b` are exact `double` values and their difference is represented exactly. If we **define the problem on those exact two `double` values**, subtraction loses no further digits.
 
-Nhưng nếu `a` và `b` là kết quả của những bước tính gần đúng trước đó, hiệu đúng của **dữ liệu ban đầu** vẫn có thể khác nhiều. Do đó:
+However, if `a` and `b` are results of earlier approximate steps, the true difference of the **original data** can still differ significantly. Therefore:
 
-1. **Cancellation** mô tả các chữ số đầu triệt tiêu khi lấy hiệu.
-2. **Catastrophic cancellation** nhấn mạnh việc sai số có trước bị phóng đại tương đối đến mức làm kết quả kém tin cậy.
-3. **Làm tròn của phép trừ** là vấn đề riêng; đôi khi phép trừ giữa hai số `double` gần nhau được thực hiện chính xác.
+1. **Cancellation** describes leading digits canceling out when taking a difference.
+2. **Catastrophic cancellation** emphasizes prior error getting relatively amplified to the point of making the result unreliable.
+3. **Rounding of subtraction itself** is a separate issue; sometimes subtraction between two close `double` numbers is performed exactly.
 
-Nhận ra khác biệt này giúp chọn đúng biện pháp: chỉnh công thức để tránh làm mất thông tin **trước phép trừ**, thay đổi cách lưu đầu vào, hoặc dùng độ chính xác cao hơn khi thực sự cần.
+Recognizing this distinction helps pick the right remedy: reformulate to avoid losing information **before subtraction**, change how inputs are stored, or use higher precision when truly necessary.
 
-## 4. ULP và ví dụ mất hẳn phần chênh lệch
+## 4. ULP and an Example of Losing the Entire Difference
 
-**ULP** (*unit in the last place*) là đơn vị khoảng cách giữa các giá trị biểu diễn ở một vùng. Java cung cấp `Math.ulp(float)` và `Math.ulp(double)` để quan sát độ lớn ULP tại giá trị cụ thể.
+**ULP** (*unit in the last place*) is the spacing unit between representable values in a region. Java provides `Math.ulp(float)` and `Math.ulp(double)` to observe the ULP size at a given value.
 
 ```java
 double x = 1e16;
@@ -102,25 +102,25 @@ System.out.println((x + 1) - x);       // 0.0
 System.out.println((x + 2) - x);       // 2.0
 ```
 
-Ở `1e16`, khoảng cách giữa các số `double` liền kề là `2`. Do đó:
+At `1e16`, the gap between adjacent `double` numbers is `2`. Therefore:
 
-- `x + 1` nằm đúng giữa hai số biểu diễn; quy tắc hòa về phần trị chẵn làm tròn về `x`.
-- `x + 2` nằm ở số `double` kế tiếp, nên hiệu là `2`.
-- Không có ngoại lệ nào được ném; `0.0` là một kết quả `double` hợp lệ.
+- `x + 1` lies right halfway between two representable numbers; the ties-to-even rule rounds it to `x`.
+- `x + 2` lands on the next `double`, so the difference is `2`.
+- No exception is thrown; `0.0` is a valid `double` result.
 
-Nếu thay `double` bằng `float`, khoảng cách nhảy lên `2` ngay tại `2^24 = 16_777_216`, khiến các số nguyên gần nhau bị nhập thành cùng một giá trị sớm hơn nhiều.
+If `double` is replaced by `float`, the spacing jumps to `2` right at `2^24 = 16_777_216`, causing nearby integers to collapse into the same value much sooner.
 
-Tránh suy luận rằng `double` có “15–16 chữ số thập phân” thì mọi hiệu của hai số có cỡ 15 chữ số đều có chừng ấy chữ số đáng tin. Độ chính xác đáng tin của **hiệu** còn phụ thuộc vào sai số từng toán hạng và khoảng cách giữa chúng.
+Avoid concluding that because `double` has "15–16 decimal digits", every difference of two 15-digit numbers has that many reliable digits. The reliable precision of a **difference** also depends on each operand's error and the distance between them.
 
-## 5. Dạng công thức dễ gặp: hiệu của hai căn bậc hai
+## 5. Common Formula Pattern: Difference of Two Square Roots
 
-Xét biểu thức:
+Consider the expression:
 
 \[
 d(x)=\sqrt{x+1}-\sqrt{x},\qquad x\ge 0.
 \]
 
-Khi `x` lớn, hai căn rất gần nhau. Nếu tính trực tiếp, sự khác biệt nhỏ có thể bị làm tròn đến 0. Nhân với biểu thức liên hợp:
+When `x` is large, the two square roots are very close. If computed directly, the small difference can round down to 0. Multiply by the conjugate expression:
 
 \[
 \begin{aligned}
@@ -132,7 +132,7 @@ d(x)
 \end{aligned}
 \]
 
-Công thức cuối **tránh trừ trực tiếp hai số gần bằng nhau**. Với `x = 1e16`:
+The final formula **avoids directly subtracting two nearly equal numbers**. With `x = 1e16`:
 
 ```java
 double x = 1e16;
@@ -143,25 +143,25 @@ System.out.println(naive);  // 0.0
 System.out.println(stable); // 5.0E-9
 ```
 
-Giá trị toán học đúng xấp xỉ `5 × 10^-9`. Công thức liên hợp cho kết quả hợp lý ở đây ngay cả khi `x + 1.0` đã làm tròn thành `x`; mẫu số chủ yếu phụ thuộc vào `sqrt(x)`.
+The true mathematical value is approximately `5 × 10^-9`. The conjugate formula gives a reasonable result here even when `x + 1.0` already rounded to `x`; the denominator mainly depends on `sqrt(x)`.
 
-**Giới hạn cần biết:** biến đổi đại số làm phép tính ổn định hơn trong nhiều miền, không bảo đảm tránh mọi overflow/underflow hoặc làm tròn. Khi `x` gần `Double.MAX_VALUE`, riêng `x + 1` có thể vẫn bằng `x`; khi `x` quá lớn, tổng các căn có thể gây vấn đề trong những biến thể công thức khác. Phải xét miền đầu vào và yêu cầu chính xác của bài toán, nhất là với các công thức tổng quát như `sqrt(a) - sqrt(b)`, nơi `(a - b)` cũng có thể đã mất thông tin.
+**Limitation to know:** algebraic transformation stabilizes calculations across many domains, but does not guarantee avoiding all overflow/underflow or rounding. When `x` is near `Double.MAX_VALUE`, `x + 1` itself can still equal `x`; when `x` is huge, the sum of roots can cause issues in other formula variants. Consider the input domain and accuracy requirements, especially for general formulas like `sqrt(a) - sqrt(b)`, where `(a - b)` may also have already lost information.
 
-Một trường hợp tổng quát hữu ích, khi mẫu số khác 0:
+A useful general identity, when the denominator is non-zero:
 
 \[
 \sqrt{a}-\sqrt{b}=\frac{a-b}{\sqrt{a}+\sqrt{b}}.
 \]
 
-Nếu `a` và `b` đều là số đã làm tròn đến cùng một giá trị thì biến đổi này **không** phục hồi chênh lệch đã bị mất; cần giữ hoặc tính `a-b` theo cách chính xác hơn từ dữ liệu ban đầu.
+If `a` and `b` are both numbers already rounded to the same value, this transformation **does not** recover the lost difference; `a-b` must be preserved or computed more accurately from the original data.
 
-## 6. Dùng API chuyên dụng: `Math.expm1` và `Math.log1p`
+## 6. Using Dedicated APIs: `Math.expm1` and `Math.log1p`
 
-Một số hàm thư viện được thiết kế riêng cho hiệu nhỏ để tránh triệt tiêu chữ số.
+Certain library functions are specifically designed for small differences to avoid digit cancellation.
 
-### `Math.expm1(x)` thay cho `Math.exp(x) - 1`
+### `Math.expm1(x)` Instead of `Math.exp(x) - 1`
 
-Khi `x` gần 0, giá trị `e^x` rất gần `1`. Nếu `Math.exp(x)` được làm tròn thành `1.0`, trừ `1.0` cho `0` dù kết quả toán học gần `x`.
+When `x` is near 0, `e^x` is very close to `1`. If `Math.exp(x)` rounds to `1.0`, subtracting `1.0` yields `0` even though the mathematical result is close to `x`.
 
 ```java
 double tiny = 1e-16;
@@ -170,11 +170,11 @@ System.out.println(Math.exp(tiny) - 1.0); // 0.0
 System.out.println(Math.expm1(tiny));     // 1.0E-16
 ```
 
-`Math.expm1(x)` được định nghĩa là `e^x - 1` và được triển khai để có độ chính xác cao hơn với `x` gần 0. Trong bài toán tích lũy lãi nhỏ, hàm phân phối xác suất hoặc các phép biến đổi mũ, đây thường là cách thay thế trực tiếp có ý nghĩa.
+`Math.expm1(x)` is defined as `e^x - 1` and implemented for higher accuracy when `x` is near 0. In small compound-interest accumulation, probability distribution functions, or exponential transformations, this is usually a direct, meaningful replacement.
 
-### `Math.log1p(x)` thay cho `Math.log(1 + x)`
+### `Math.log1p(x)` Instead of `Math.log(1 + x)`
 
-Tương tự, khi `x` quá nhỏ, biểu thức `1.0 + x` có thể được làm tròn thành `1.0` trước khi gọi `Math.log`:
+Similarly, when `x` is too small, the expression `1.0 + x` can round to `1.0` before calling `Math.log`:
 
 ```java
 double tiny = 1e-16;
@@ -183,30 +183,30 @@ System.out.println(Math.log(1.0 + tiny)); // 0.0
 System.out.println(Math.log1p(tiny));     // 1.0E-16
 ```
 
-`Math.log1p(x)` tính `ln(1 + x)` với độ chính xác tốt hơn gần 0. Miền số thực của `log1p(x)` là `x >= -1` (`x = -1` cho âm vô cực, `x < -1` cho `NaN`). Không thay đổi mù quáng các biểu thức đại số khác thành `log1p` nếu không có cùng ý nghĩa toán học.
+`Math.log1p(x)` computes `ln(1 + x)` with better accuracy near 0. The real domain of `log1p(x)` is `x >= -1` (`x = -1` gives negative infinity, `x < -1` gives `NaN`). Do not blindly convert other algebraic expressions into `log1p` if they do not share the same mathematical meaning.
 
-Điểm chung: các API này nhận **số chênh nhỏ `x` từ đầu**, không cần dựng giá trị gần `1` rồi trừ hoặc lấy log. Nhờ vậy, phần chênh không bị đánh mất tại bước trung gian.
+Common thread: these APIs accept the **small offset `x` upfront**, avoiding constructing a value near `1` and then subtracting or taking a logarithm. As a result, the offset is not lost at an intermediate step.
 
-## 7. Nghiệm phương trình bậc hai: cách tính tránh trừ hai số gần nhau
+## 7. Roots of a Quadratic Equation: Computing Without Subtracting Nearly Equal Numbers
 
-Xét `a*x^2 + b*x + c = 0` với `a != 0`, biệt thức `D = b*b - 4*a*c >= 0`. Công thức quen thuộc:
+Consider `a*x^2 + b*x + c = 0` with `a != 0` and discriminant `D = b*b - 4*a*c >= 0`. The familiar formula:
 
 \[
 x_{1,2}=\frac{-b\pm\sqrt D}{2a}.
 \]
 
-Nếu `-b` và `sqrt(D)` gần bằng nhau, một nghiệm có thể bị sai số nghiêm trọng khi dùng dấu trừ. Ví dụ `a = 1`, `b = -10^8`, `c = 1`: nghiệm nhỏ xấp xỉ `10^-8`, còn hai số bị trừ đều cỡ `10^8`.
+If `-b` and `sqrt(D)` are close in value, one root can suffer severe error when subtracting. For example, `a = 1`, `b = -10^8`, `c = 1`: the smaller root is around `10^-8`, while the two subtracted terms are both around `10^8`.
 
-Một công thức thay thế khi `q != 0`:
+An alternative formula when `q != 0`:
 
 \[
 q=-\frac12\left(b+\operatorname{copySign}(\sqrt D,b)\right),
 \qquad x_1=\frac qa,\quad x_2=\frac cq.
 \]
 
-Trong `Math.copySign(magnitude, sign)`, dấu của tham số thứ hai được áp lên độ lớn của tham số thứ nhất. Cách tính `q` chọn phép **cộng hai lượng cùng dấu** để tránh triệt tiêu ở nghiệm lớn; nghiệm còn lại dùng tích hai nghiệm `x1*x2 = c/a`.
+In `Math.copySign(magnitude, sign)`, the sign of the second parameter is applied to the magnitude of the first parameter. Computing `q` chooses **adding two quantities of the same sign** to avoid cancellation in the large root; the remaining root uses Vieta's product of roots `x1*x2 = c/a`.
 
-Ví dụ minh họa từng phép tính:
+Step-by-step illustrative example:
 
 ```java
 double a = 1.0;
@@ -225,13 +225,13 @@ System.out.println(stableSmall); // 1.0E-8
 System.out.println(stableLarge); // 1.0E8
 ```
 
-Hiệu trừ để tính nghiệm nhỏ bằng công thức trực tiếp có sai số đáng kể; dùng `c/q` cho kết quả gần hơn. Đây là ví dụ về **đổi cấu trúc phép toán**, thay vì chỉ tăng kiểu từ `float` sang `double`.
+Subtracting to compute the small root with the direct formula introduces significant error; using `c/q` gives a much closer result. This is an example of **restructuring the operations**, rather than merely widening from `float` to `double`.
 
-Đây **chưa phải bộ giải phương trình bậc hai hoàn chỉnh**. Trong chương trình thực tế phải xử lý `a == 0`, `D < 0`, `q == 0`, nghiệm kép, số vô cực/`NaN`, overflow/underflow khi tính biệt thức, và miền giá trị rất lớn hoặc rất nhỏ. Không dùng đoạn code minh họa này như bộ giải đầu vào tùy ý.
+This is **not yet a complete quadratic equation solver**. In production code you must handle `a == 0`, `D < 0`, `q == 0`, repeated roots, infinities/`NaN`, overflow/underflow when computing the discriminant, and very large or very small value ranges. Do not use this illustrative snippet as a general solver for arbitrary inputs.
 
-## 8. Demo Java 17 đầy đủ, chạy được
+## 8. Complete, Runnable Java 17 Demo
 
-Lưu chương trình dưới tên `CancellationDemo.java`:
+Save the program as `CancellationDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -276,14 +276,14 @@ public class CancellationDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac CancellationDemo.java
 java CancellationDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 ulp = 2.0
@@ -300,26 +300,26 @@ quadratic naive small = 7.450580596923828E-9
 quadratic stable small = 1.0E-8
 ```
 
-Ví dụ dùng `BigDecimal` từ hai chuỗi thập phân **chưa bị làm tròn**. Vì vậy phép trừ `10000000000000001 - 10000000000000000` giữ đúng hiệu `1`. Trái lại, tạo `BigDecimal.valueOf(plusOne)` và `BigDecimal.valueOf(base)` ở đây chỉ nhìn thấy cùng giá trị `double` là `1e16`; lớp `BigDecimal` không thể phục hồi số `+1` đã mất.
+The example uses `BigDecimal` from two **unrounded** decimal strings. Therefore, subtracting `10000000000000001 - 10000000000000000` preserves the exact difference `1`. Conversely, calling `BigDecimal.valueOf(plusOne)` and `BigDecimal.valueOf(base)` here would only see the same `double` value `1e16`; `BigDecimal` cannot recover the `+1` already lost.
 
-Đầu ra của các phép dấu phẩy động trong ví dụ phản ánh hành vi Java với những giá trị đã chọn; khi sửa tham số, kết quả và mức sai số có thể thay đổi.
+The outputs of the floating-point operations in the example reflect Java's behavior for the chosen values; when modifying parameters, results and error levels can change.
 
-## 9. Các cách giảm rủi ro triệt tiêu chữ số
+## 9. Ways to Reduce Digit Cancellation Risk
 
-### Chuyển đổi công thức trước khi tính
+### Reformulate Before Computing
 
-Khi hiệu của hai giá trị gần nhau là mục tiêu, thử tìm một biểu thức toán học tương đương ít phép trừ hơn. Các ví dụ điển hình:
+When the difference of two close values is the target, look for an equivalent mathematical expression with fewer subtractions. Classic examples:
 
-- `sqrt(x+1) - sqrt(x)` → `1 / (sqrt(x+1) + sqrt(x))` với `x >= 0`.
-- `exp(x) - 1` → `Math.expm1(x)` khi `x` nhỏ.
-- `log(1+x)` → `Math.log1p(x)` khi `x` nhỏ.
-- Nghiệm nhỏ của phương trình bậc hai → phương pháp dùng `q` và hệ thức tích hai nghiệm, với các kiểm tra miền hợp lệ.
+- `sqrt(x+1) - sqrt(x)` → `1 / (sqrt(x+1) + sqrt(x))` for `x >= 0`.
+- `exp(x) - 1` → `Math.expm1(x)` when `x` is small.
+- `log(1+x)` → `Math.log1p(x)` when `x` is small.
+- Small root of a quadratic equation → method using `q` and the product-of-roots relation, with valid domain checks.
 
-Mục tiêu là tránh tạo ra rồi trừ hai giá trị đã bị làm tròn thành gần như bằng nhau.
+The goal is to avoid generating and then subtracting two values that were rounded to nearly equal values.
 
-### Giữ biểu diễn chính xác từ nguồn khi nghiệp vụ cần
+### Preserve Exact Representation From the Source When Business Logic Requires It
 
-Nếu đầu vào là decimal chính xác, hãy giữ dạng chuỗi hoặc `BigDecimal` và thực hiện phép tính trong hệ thập phân:
+If inputs are exact decimals, keep them as strings or `BigDecimal` and perform calculations in base 10:
 
 ```java
 BigDecimal a = new BigDecimal("10000000000000001");
@@ -327,63 +327,63 @@ BigDecimal b = new BigDecimal("10000000000000000");
 BigDecimal diff = a.subtract(b); // 1
 ```
 
-Không viết `new BigDecimal(0.1)` với kỳ vọng nó khôi phục số thập phân `0.1` chính xác; constructor nhận `double` chuyển **giá trị nhị phân đã có**. Dùng `new BigDecimal("0.1")` khi dữ liệu nguồn là số thập phân đúng. `BigDecimal.valueOf(double)` thường hữu ích khi muốn biểu diễn thập phân ngắn theo `Double.toString`, nhưng vẫn không thể phục hồi thông tin đã mất do phép tính trước đó.
+Do not write `new BigDecimal(0.1)` expecting it to recover the exact decimal `0.1`; the `double` constructor converts the **existing binary value**. Use `new BigDecimal("0.1")` when the source data is an exact decimal. `BigDecimal.valueOf(double)` is often handy when you want the short decimal representation per `Double.toString`, yet it still cannot recover information lost in an earlier calculation.
 
-`BigDecimal` không phải lựa chọn mặc định cho mọi tính toán khoa học: cần cân nhắc hiệu năng, quy tắc chia/làm tròn (`MathContext` khi cần) và tính đúng đắn của mô hình số.
+`BigDecimal` is not the default choice for all scientific computations: you must weigh performance, division/rounding rules (`MathContext` when needed), and correctness of the numerical model.
 
-### Chọn độ chính xác phù hợp
+### Choose Appropriate Precision
 
-`double` thường giảm rủi ro so với `float` vì có 53 bit phần trị so với 24 bit. Tuy nhiên, `double` **không** tự chữa được các biểu thức nhạy cảm. Nếu kết quả cần phân biệt các số nguyên lớn liên tiếp, dùng `long` hoặc `BigInteger` thay vì lưu chúng trong `double`; nếu dữ liệu decimal cần chính xác, cân nhắc `BigDecimal` từ nguồn chính xác.
+`double` generally lowers risk compared to `float` because it has 53 significand bits versus 24 bits. However, `double` **does not** automatically cure sensitive expressions. If results must distinguish large consecutive integers, use `long` or `BigInteger` instead of storing them in `double`; if decimal data must be exact, consider `BigDecimal` from an exact source.
 
-### Đánh giá sai số bằng dữ liệu kiểm thử có chủ đích
+### Evaluate Error With Purposeful Test Data
 
-Nên kiểm tra các đầu vào:
+You should test inputs such as:
 
-- Hai toán hạng bằng nhau hoặc chỉ khác nhau khoảng một ULP.
-- Hai toán hạng rất lớn nhưng hiệu mong đợi rất nhỏ.
-- Giá trị ở gần 0, giá trị âm, `+0.0`/`-0.0`, và biên có thể gây overflow/underflow.
-- Trường hợp có nghiệm gần bằng 0 trong công thức bậc hai hoặc hiệu của các căn.
-- Một bộ giá trị tham chiếu có độ chính xác cao hơn (chẳng hạn `BigDecimal` từ chuỗi, tính số học ký hiệu hoặc phần mềm chuyên dụng), khi việc so sánh là có ý nghĩa.
+- Two operands that are equal or differ by only about one ULP.
+- Two very large operands with a very small expected difference.
+- Values near 0, negative values, `+0.0`/`-0.0`, and boundaries prone to overflow/underflow.
+- Cases with a root near 0 in quadratic formulas or differences of roots.
+- A higher-precision reference dataset (such as `BigDecimal` from strings, symbolic arithmetic, or specialized software), when comparison is meaningful.
 
-So sánh với mốc tham chiếu có thể dùng sai số tuyệt đối `|computed - expected|` và sai số tương đối `|computed - expected|/|expected|` khi `expected != 0`. Nếu giá trị đúng gần hoặc bằng 0, chỉ dùng sai số tương đối có thể gây hiểu nhầm; nên kết hợp ngưỡng tuyệt đối dựa trên đơn vị nghiệp vụ.
+Comparing against a reference can use absolute error `|computed - expected|` and relative error `|computed - expected|/|expected|` when `expected != 0`. If the true value is near or equal to 0, using relative error alone can be misleading; combine it with an absolute threshold based on business units.
 
-### Đừng dùng biện pháp không giải quyết gốc vấn đề
+### Do Not Use Measures That Fail to Address the Root Cause
 
-- **`Math.abs(a - b) < epsilon` chỉ kiểm tra gần bằng nhau**, không phục hồi một hiệu đã mất độ chính xác. Một ngưỡng `epsilon` cố định cũng có thể vô nghĩa ở các thang số rất khác nhau.
-- **Định dạng thêm chữ số khi in** (`printf`, `DecimalFormat`) không tạo lại chữ số đã mất.
-- **Ép kiểu rồi ép ngược** không khôi phục thông tin bị bỏ khi chuyển `long` sang `double` hay khi cộng `1` vào một `double` quá lớn.
-- **Kahan summation** có thể giảm sai số khi cộng dồn nhiều số, nhưng không sửa được hai toán hạng vốn đã trùng nhau trước phép trừ. Đây là bài toán khác.
-- **Dùng `BigDecimal` sau khi đã tính sai bằng `double`** chỉ chuyển giá trị sai sang một biểu diễn khác, không tự tái tạo dữ liệu gốc.
+- **`Math.abs(a - b) < epsilon` only tests approximate equality**; it does not restore a difference that lost precision. A fixed `epsilon` threshold can also be meaningless across vastly different scales.
+- **Formatting extra digits when printing** (`printf`, `DecimalFormat`) does not recreate lost digits.
+- **Casting and casting back** does not recover information discarded when converting `long` to `double` or when adding `1` to an overly large `double`.
+- **Kahan summation** can reduce error when accumulating many numbers, but cannot fix two operands that already collapsed to the same value prior to subtraction. That is a different problem.
+- **Using `BigDecimal` after computing inaccurately with `double`** merely moves an inaccurate value into another representation; it does not recreate original data.
 
-## 10. Bài tập và đáp án
+## 10. Exercises and Solutions
 
-**Bài 1.** Giải thích tại sao chương trình sau in `true`:
+**Exercise 1.** Explain why the following program prints `true`:
 
 ```java
 double n = 1e16;
 System.out.println(n == n + 1.0);
 ```
 
-**Đáp án:** `Math.ulp(1e16) == 2.0`. Khoảng cách giữa hai số `double` đại diện được là `2` ở vùng này; `n + 1` nằm đúng giữa hai giá trị, và quy tắc hòa về chẵn đưa kết quả về `n`.
+**Answer:** `Math.ulp(1e16) == 2.0`. The spacing between representable `double` numbers is `2` in this region; `n + 1` lies right halfway between two values, and the ties-to-even rule sends the result back to `n`.
 
-**Bài 2.** Hai cách tính `sqrt(1e16+1) - sqrt(1e16)` trực tiếp và qua liên hợp cho kết quả nào?
+**Exercise 2.** What results do the direct and conjugate computations of `sqrt(1e16+1) - sqrt(1e16)` produce?
 
-**Đáp án:** Trực tiếp: `0.0`. Qua công thức `1 / (sqrt(1e16+1) + sqrt(1e16))`: `5.0E-9` trong Java với các giá trị đã chọn. Trong số học thực, giá trị đúng gần `5 × 10^-9`.
+**Answer:** Direct: `0.0`. Via `1 / (sqrt(1e16+1) + sqrt(1e16))`: `5.0E-9` in Java for the chosen values. In exact real arithmetic, the true value is close to `5 × 10^-9`.
 
-**Bài 3.** `Math.exp(1e-16) - 1` có thể thành `0.0`. Cần dùng hàm nào nếu mục tiêu là `e^x - 1` với `x` rất nhỏ?
+**Exercise 3.** `Math.exp(1e-16) - 1` can become `0.0`. Which function should be used if the goal is `e^x - 1` for very small `x`?
 
-**Đáp án:** `Math.expm1(x)`. Tương tự, với `ln(1+x)` và `x` nhỏ, dùng `Math.log1p(x)`.
+**Answer:** `Math.expm1(x)`. Similarly, for `ln(1+x)` with small `x`, use `Math.log1p(x)`.
 
-**Bài 4.** “Trừ hai `double` rất gần nhau luôn làm mất chữ số trong chính phép trừ.” Đúng hay sai?
+**Exercise 4.** "Subtracting two very close `double` numbers always loses digits during the subtraction itself." True or false?
 
-**Đáp án:** Sai. Bổ đề Sterbenz cho thấy nhiều phép trừ của hai giá trị floating đã đại diện được và đủ gần nhau được thực hiện chính xác. Sai số nghiêm trọng thường do **hai toán hạng đã gần đúng** hoặc do một công thức khiến sai số tương đối của hiệu tăng mạnh.
+**Answer:** False. Sterbenz's lemma shows that many subtractions of two representable floating-point values that are close enough are computed exactly. Severe error typically comes from **operands that were already approximate** or from a formula that causes the relative error of the difference to blow up.
 
-**Bài 5.** Vì sao `BigDecimal.valueOf(base + 1.0).subtract(BigDecimal.valueOf(base))` không trả `1` với `base = 1e16`?
+**Exercise 5.** Why does `BigDecimal.valueOf(base + 1.0).subtract(BigDecimal.valueOf(base))` not return `1` when `base = 1e16`?
 
-**Đáp án:** Phép cộng `base + 1.0` đã được làm tròn thành `base` ở kiểu `double` trước khi gọi `BigDecimal.valueOf`; phép trừ chính xác của hai giá trị bằng nhau cho `0`.
+**Answer:** The addition `base + 1.0` already rounded to `base` in type `double` before `BigDecimal.valueOf` was called; exact subtraction of two equal values yields `0`.
 
-**Bài 6.** Một người muốn đo chênh lệch của hai phép đo `1000000.001` và `1000000.000`. Nên chú ý điều gì?
+**Exercise 6.** Someone wants to measure the difference between two measurements `1000000.001` and `1000000.000`. What should they pay attention to?
 
-**Đáp án:** Mức chính xác của từng phép đo và cách lưu đầu vào quyết định hiệu `0.001` đáng tin đến đâu. Cần biết đơn vị, độ phân giải đo, sai số thiết bị và yêu cầu nghiệp vụ; phép trừ trong `double` không thể làm hiệu chính xác hơn thông tin nguồn. Nếu đầu vào là decimal cần giữ nguyên các chữ số đã công bố, có thể dùng `BigDecimal` từ chuỗi.
+**Answer:** The accuracy of each measurement and how inputs are stored determine how reliable the `0.001` difference is. You need to know the units, measurement resolution, instrument error, and business requirements; subtraction in `double` cannot make a difference more accurate than the source information. If inputs are decimals whose published digits must be preserved verbatim, `BigDecimal` from strings can be used.
 
-**Ghi nhớ:** Triệt tiêu chữ số khiến hiệu của hai số gần nhau đặc biệt nhạy với sai số của từng toán hạng. Hãy kiểm tra nguồn sai số, quan sát ULP, ưu tiên công thức ổn định (`expm1`, `log1p`, liên hợp, phương pháp tính nghiệm thích hợp), và giữ dữ liệu ở dạng chính xác từ trước khi thông tin bị làm tròn mất.
+**Remember:** Digit cancellation makes the difference of two close numbers especially sensitive to errors in each operand. Check the source of errors, observe ULP, prefer stable formulations (`expm1`, `log1p`, conjugates, appropriate root-finding formulas), and keep data in an exact representation before information is rounded away.

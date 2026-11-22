@@ -1,47 +1,47 @@
-# BigDecimal.compareTo(): so sánh giá trị số trong Java
+# BigDecimal.compareTo(): comparing numeric values in Java
 
-## 1. Vấn đề cần giải quyết
+## 1. The problem to solve
 
-Trong Java, `BigDecimal` lưu giá trị thập phân có độ chính xác tùy ý bằng một **số nguyên không có scale** (`unscaledValue`) và một **scale** (số mũ thập phân âm). Giá trị toán học có thể hình dung là `unscaledValue × 10^(-scale)`. Cùng một số có thể mang những cách biểu diễn khác nhau:
+In Java, `BigDecimal` stores an arbitrary-precision decimal value using an **unscaled integer** (`unscaledValue`) and a **scale** (a negative base-10 exponent). The mathematical value can be thought of as `unscaledValue × 10^(-scale)`. The same number can have different representations:
 
-- `new BigDecimal("2.0")`: giá trị số 2; unscaled value 20; scale 1.
-- `new BigDecimal("2.00")`: giá trị số 2; unscaled value 200; scale 2.
-- `new BigDecimal("2")`: giá trị số 2; unscaled value 2; scale 0.
+- `new BigDecimal("2.0")`: numeric value 2; unscaled value 20; scale 1.
+- `new BigDecimal("2.00")`: numeric value 2; unscaled value 200; scale 2.
+- `new BigDecimal("2")`: numeric value 2; unscaled value 2; scale 0.
 
-Khi cần trả lời “giá trị nào lớn hơn?”, “có bằng nhau về **giá trị số** không?” hoặc “số này đã vượt ngưỡng chưa?”, dùng **`BigDecimal.compareTo(BigDecimal other)`**. Phương thức so sánh **giá trị số**, nên coi `2.0`, `2.00` và `2` ngang nhau về thứ tự, dù scale khác nhau.
+When you need to answer "which value is larger?", "are they equal in **numeric value**?", or "has this number reached the threshold?", use **`BigDecimal.compareTo(BigDecimal other)`**. This method compares **numeric value**, so it treats `2.0`, `2.00`, and `2` as equal in ordering, even though their scales differ.
 
-Đây là điểm khác biệt quan trọng so với `equals(Object)`, vốn xét cả giá trị số lẫn scale. Chọn đúng phép so sánh giúp tránh lỗi khi dữ liệu đến từ những nguồn có định dạng thập phân không đồng nhất.
+This is an important difference compared to `equals(Object)`, which considers both numeric value and scale. Choosing the right comparison prevents bugs when data comes from sources with inconsistent decimal formatting.
 
-## 2. Cách đọc kết quả compareTo
+## 2. How to read compareTo results
 
-Cú pháp:
+Syntax:
 
 ~~~java
 int result = left.compareTo(right);
 ~~~
 
-Kết quả có ba nhóm ý nghĩa:
+The result falls into three groups of meaning:
 
-| Điều kiện | Ý nghĩa | Ví dụ |
+| Condition | Meaning | Example |
 | --- | --- | --- |
-| `result < 0` | `left` nhỏ hơn `right` | `1.25` so với `1.30` |
-| `result == 0` | Hai đối tượng có **cùng giá trị số** | `2.0` so với `2.00` |
-| `result > 0` | `left` lớn hơn `right` | `9.5` so với `9.05` |
+| `result < 0` | `left` is less than `right` | `1.25` vs `1.30` |
+| `result == 0` | Both objects have the **same numeric value** | `2.0` vs `2.00` |
+| `result > 0` | `left` is greater than `right` | `9.5` vs `9.05` |
 
-Hợp đồng của `Comparable.compareTo` yêu cầu kết quả **âm, 0 hoặc dương**; khi kiểm tra điều kiện, viết `< 0` hoặc `> 0`, không phụ thuộc vào việc phương thức trả chính xác `-1` hay `1`.
+The `Comparable.compareTo` contract requires a **negative, 0, or positive** result; when checking conditions, write `< 0` or `> 0`, without depending on whether the method returns exactly `-1` or `1`.
 
-Hướng so sánh theo **trục số có dấu**:
+Comparison direction follows the **signed number line**:
 
-- `-8.0 < -2.00` vì -8 nằm bên trái -2.
-- `-0.001 < 0` dù giá trị tuyệt đối rất nhỏ.
-- `0.000` và `0` bằng nhau về giá trị số.
-- `10.00 > 9.999` dù số phía phải có nhiều chữ số thập phân hơn.
+- `-8.0 < -2.00` because -8 is to the left of -2.
+- `-0.001 < 0` even though the absolute value is very small.
+- `0.000` and `0` are equal in numeric value.
+- `10.00 > 9.999` even though the number on the right has more decimal digits.
 
-**Scale không quyết định số lớn hay nhỏ.** Không thể so sánh hai `BigDecimal` bằng cách lấy scale, độ dài chuỗi, số chữ số thập phân hay lexicographical ordering.
+**Scale does not determine whether a number is larger or smaller.** You cannot compare two `BigDecimal` values by comparing scale, string length, number of decimal digits, or lexicographical ordering.
 
-## 3. Ví dụ Java 17 chạy được
+## 3. Runnable Java 17 example
 
-Lưu đoạn sau thành tệp `BigDecimalCompareDemo.java`:
+Save the following code as `BigDecimalCompareDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -93,14 +93,14 @@ public class BigDecimalCompareDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac BigDecimalCompareDemo.java
 java BigDecimalCompareDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 compareTo = 0
@@ -116,26 +116,26 @@ numeric zero = true
 normalized b = 2
 ~~~
 
-Giải thích theo từng nhóm:
+Explanation by group:
 
-1. `a.compareTo(b) == 0`: `2.0` và `2.00` có cùng **giá trị số**.
-2. `a.equals(b) == false`: hai đối tượng biểu diễn cùng số 2 nhưng có scale lần lượt là 1 và 2.
-3. Các so sánh âm/dương dùng `< 0` hoặc `> 0`, không cần đổi sang `double`.
-4. `values.sort(BigDecimal::compareTo)` sắp xếp tăng theo số. Hai phần tử `2.00` và `2.0` có thứ tự bằng nhau theo comparator; `List.sort` ổn định nên giữ thứ tự tương đối ban đầu của chúng.
-5. `HashSet` coi `2.0` và `2.00` là hai phần tử khác nhau dựa trên `equals` và `hashCode`; `TreeSet` dùng thứ tự tự nhiên do `compareTo` và coi chúng trùng nhau.
-6. `stripTrailingZeros()` đưa `2.00` về biểu diễn không có số 0 thừa; `toPlainString()` in thành `2`. Thao tác này không sửa `b` vì `BigDecimal` là immutable.
+1. `a.compareTo(b) == 0`: `2.0` and `2.00` have the same **numeric value**.
+2. `a.equals(b) == false`: the two objects represent the same number 2, but have scales 1 and 2 respectively.
+3. Negative/positive comparisons use `< 0` or `> 0`, with no need to convert to `double`.
+4. `values.sort(BigDecimal::compareTo)` sorts in ascending numeric order. The two elements `2.00` and `2.0` have equal ordering under the comparator; `List.sort` is stable so it preserves their original relative order.
+5. `HashSet` treats `2.0` and `2.00` as two distinct elements based on `equals` and `hashCode`; `TreeSet` uses natural ordering via `compareTo` and treats them as duplicates.
+6. `stripTrailingZeros()` reduces `2.00` to a representation without trailing zeros; `toPlainString()` prints it as `2`. This operation does not modify `b` because `BigDecimal` is immutable.
 
-## 4. compareTo và equals: khác nhau ở đâu?
+## 4. compareTo and equals: where do they differ?
 
-Hai phương thức giải quyết hai câu hỏi khác nhau:
+The two methods answer two different questions:
 
-| Phương thức | Câu hỏi | `2.0` và `2.00` |
+| Method | Question | `2.0` and `2.00` |
 | --- | --- | --- |
-| `compareTo` | Hai số lớn, nhỏ hay **bằng nhau về mặt số học**? | `compareTo(...) == 0` |
-| `equals` | Hai `BigDecimal` có cùng giá trị và cùng **scale** không? | `equals(...) == false` |
-| `hashCode` | Mã băm tuân theo quy ước bằng nhau của `equals`? | Có thể khác; không dùng mã băm để so sánh số |
+| `compareTo` | Are two numbers greater, smaller, or **numerically equal**? | `compareTo(...) == 0` |
+| `equals` | Do two `BigDecimal` objects have the same value and the same **scale**? | `equals(...) == false` |
+| `hashCode` | Does the hash code follow the equality contract of `equals`? | May differ; do not use hash codes to compare numbers |
 
-Với `BigDecimal`, `equals` chỉ trả true nếu số được biểu diễn có giá trị bằng nhau **và scale bằng nhau**; `compareTo` không yêu cầu cùng scale. Điều này được Java ghi rõ: natural ordering của `BigDecimal` **không nhất quán với `equals`** (`inconsistent with equals`).
+For `BigDecimal`, `equals` returns true only if the represented numbers have equal value **and equal scale**; `compareTo` does not require the same scale. Java explicitly documents this: the natural ordering of `BigDecimal` is **inconsistent with `equals`**.
 
 ~~~java
 BigDecimal priceA = new BigDecimal("19.9");
@@ -145,15 +145,15 @@ boolean sameNumericValue = priceA.compareTo(priceB) == 0; // true
 boolean sameRepresentation = priceA.equals(priceB);         // false
 ~~~
 
-Đừng thay `compareTo` bằng `equals` chỉ vì đang cần kiểm tra hai **số** có bằng nhau hay không. Ngược lại, khi yêu cầu của chương trình coi scale là một phần quan trọng của thông tin (ví dụ kiểm tra đối tượng có đúng biểu diễn cần lưu hay không), `equals` có thể là lựa chọn chủ ý.
+Do not replace `compareTo` with `equals` when you only need to check whether two **numbers** are equal. Conversely, when program requirements treat scale as an important part of the information (for example, checking whether an object has the exact representation to be stored), `equals` may be an intentional choice.
 
-### Một trường hợp dễ ngạc nhiên khi thao tác
+### A surprising case during operations
 
-Cùng một số có thể cho kết quả `divideToIntegralValue` hay các phép toán dựa vào biểu diễn với scale đầu ra khác nhau tùy scale toán hạng. Thế nên “`compareTo == 0`” **không đảm bảo mọi thao tác trên hai đối tượng sẽ tạo ra kết quả có cùng scale**. Không suy diễn từ bằng nhau về giá trị số thành đồng nhất về biểu diễn.
+The same number can produce results from `divideToIntegralValue` or representation-dependent operations with different output scales depending on the operand scales. Therefore, "`compareTo == 0`" **does not guarantee that every operation on the two objects will produce results with the same scale**. Do not infer identical representation from numeric equality.
 
-## 5. So sánh với 0, ngưỡng và khoảng
+## 5. Comparing with 0, thresholds, and ranges
 
-`BigDecimal.ZERO` là hằng số biểu diễn số 0; so sánh với nó rõ ràng và tránh tạo đối tượng không cần thiết.
+`BigDecimal.ZERO` is a constant representing the number 0; comparing against it is clear and avoids creating unnecessary objects.
 
 ~~~java
 BigDecimal balance = new BigDecimal("-0.01");
@@ -163,40 +163,40 @@ boolean isZero = balance.compareTo(BigDecimal.ZERO) == 0;
 boolean isPositive = balance.compareTo(BigDecimal.ZERO) > 0;
 ~~~
 
-Các phép so sánh thường gặp:
+Common comparisons:
 
-| Yêu cầu | Biểu thức |
+| Requirement | Expression |
 | --- | --- |
 | `x < y` | `x.compareTo(y) < 0` |
 | `x <= y` | `x.compareTo(y) <= 0` |
-| `x == y` theo giá trị số | `x.compareTo(y) == 0` |
+| `x == y` in numeric value | `x.compareTo(y) == 0` |
 | `x >= y` | `x.compareTo(y) >= 0` |
 | `x > y` | `x.compareTo(y) > 0` |
-| `x != y` theo giá trị số | `x.compareTo(y) != 0` |
+| `x != y` in numeric value | `x.compareTo(y) != 0` |
 
-Ví dụ chấp nhận đơn hàng nếu số tiền đạt tối thiểu `100.00`:
+Example accepting an order if the amount reaches a minimum of `100.00`:
 
 ~~~java
 BigDecimal amount = new BigDecimal("100.0");
 BigDecimal minimum = new BigDecimal("100.00");
 
 if (amount.compareTo(minimum) >= 0) {
-    System.out.println("Đạt ngưỡng");
+    System.out.println("Threshold reached");
 }
 ~~~
 
-Kết quả là `Đạt ngưỡng` vì giá trị số bằng nhau, dù scale khác nhau. Nếu cần kiểm tra khoảng đóng `[min, max]`, dùng:
+The result is `Threshold reached` because the numeric values are equal, even though the scales differ. If you need to check a closed range `[min, max]`, use:
 
 ~~~java
 boolean inRange = value.compareTo(min) >= 0
         && value.compareTo(max) <= 0;
 ~~~
 
-Đây là các **mảnh code minh họa**, với biến `value`, `min`, `max` được giả định đã là `BigDecimal` không null và khoảng `min <= max`. Để thực sự chạy, đặt các mảnh này vào phương thức hoặc chương trình khai báo đủ biến.
+These are **illustrative code snippets**, where the variables `value`, `min`, and `max` are assumed to be non-null `BigDecimal` values with the range `min <= max`. To actually run them, place these snippets inside a method or program with all variables declared.
 
-## 6. Sắp xếp và collection: hậu quả của sự khác biệt
+## 6. Sorting and collections: consequences of the difference
 
-`BigDecimal` triển khai `Comparable<BigDecimal>`, vì thế Java dùng `compareTo` làm **thứ tự tự nhiên**:
+`BigDecimal` implements `Comparable<BigDecimal>`, so Java uses `compareTo` as its **natural ordering**:
 
 ~~~java
 List<BigDecimal> values = new ArrayList<>(List.of(
@@ -207,20 +207,20 @@ List<BigDecimal> values = new ArrayList<>(List.of(
 values.sort(BigDecimal::compareTo);
 ~~~
 
-Kết quả được sắp tăng theo giá trị số: `[1.1, 1.10, 9.00]`. Hai giá trị `1.1` và `1.10` có `compareTo == 0` nên không có thứ tự số học khác nhau; một sort ổn định giữ thứ tự của chúng như trước khi sắp.
+The result is sorted in ascending numeric order: `[1.1, 1.10, 9.00]`. The two values `1.1` and `1.10` have `compareTo == 0`, so they do not differ in numeric order; a stable sort keeps their order as it was before sorting.
 
-Tuy nhiên, **collection nào quyết định “trùng” theo cách nào** rất quan trọng:
+However, **how each collection determines "duplicates"** matters a great deal:
 
-- `HashSet<BigDecimal>` và `HashMap<BigDecimal, ...>` dựa vào `equals` và `hashCode` của khóa. `new BigDecimal("2.0")` khác `new BigDecimal("2.00")` theo tiêu chí này, nên hai khóa có thể cùng tồn tại.
-- `TreeSet<BigDecimal>` và `TreeMap<BigDecimal, ...>` theo thứ tự tự nhiên dùng `compareTo` (hoặc comparator được cung cấp) để nhận diện hai khóa có cùng vị trí so sánh. `2.0` và `2.00` được xem là cùng một khóa, vì `compareTo == 0`.
-- Nếu `TreeMap` được đưa khóa `2.00` sau khi đã chứa `2.0`, giá trị được ghi vào mục khóa có sẵn theo tiêu chí comparator; đừng mong tự động giữ hai mục độc lập.
-- `Stream.distinct()` dùng `equals`, nên riêng thao tác này vẫn có thể giữ cả hai cách biểu diễn `2.0` và `2.00`. Sắp xếp bằng `compareTo` trước đó không tự đổi quy tắc `distinct()`.
+- `HashSet<BigDecimal>` and `HashMap<BigDecimal, ...>` rely on the key's `equals` and `hashCode`. `new BigDecimal("2.0")` differs from `new BigDecimal("2.00")` by this criterion, so both keys can coexist.
+- `TreeSet<BigDecimal>` and `TreeMap<BigDecimal, ...>` under natural ordering use `compareTo` (or the supplied comparator) to identify two keys at the same comparison position. `2.0` and `2.00` are treated as the same key because `compareTo == 0`.
+- If a `TreeMap` is given key `2.00` after already containing `2.0`, the value is written to the existing key entry according to the comparator's criteria; do not expect two independent entries to be kept automatically.
+- `Stream.distinct()` uses `equals`, so this operation alone can still retain both representations `2.0` and `2.00`. Sorting with `compareTo` beforehand does not automatically change the rule of `distinct()`.
 
-Nếu nghiệp vụ coi các số thập phân cùng giá trị là cùng một danh tính, hãy xác định cách **chuẩn hóa** khóa trước khi dùng collection theo `equals`, hoặc chọn `TreeMap`/`TreeSet` theo comparator phù hợp. Tránh trộn lẫn nhiều quy tắc định danh mà không mô tả rõ.
+If the business logic considers decimal numbers with the same value to have the same identity, define how to **normalize** keys before using collections based on `equals`, or choose `TreeMap`/`TreeSet` with an appropriate comparator. Avoid mixing multiple identity rules without clear documentation.
 
-### Chuẩn hóa số 0 cuối
+### Stripping trailing zeros
 
-`stripTrailingZeros()` trả về một `BigDecimal` tương đương về số học với các chữ số 0 cuối trong phần unscaled value đã được lược bỏ:
+`stripTrailingZeros()` returns a numerically equivalent `BigDecimal` with any trailing zeros removed from the unscaled value:
 
 ~~~java
 BigDecimal first = new BigDecimal("2.0").stripTrailingZeros();
@@ -229,16 +229,16 @@ BigDecimal second = new BigDecimal("2.00").stripTrailingZeros();
 System.out.println(first.equals(second)); // true
 ~~~
 
-Lưu ý:
+Notes:
 
-- Chuẩn hóa không mất **giá trị số**, nhưng có thể làm đổi **scale** và dạng hiển thị.
-- Ví dụ `new BigDecimal("600.0").stripTrailingZeros()` có thể biểu diễn thành `6E+2` với scale âm, thay vì chuỗi `600.0`. `toPlainString()` dùng khi cần cách in không có số mũ.
-- `stripTrailingZeros()` của giá trị số 0 trả về biểu diễn zero chuẩn, có thể làm mất scale ban đầu của `0.000`.
-- Nếu scale cố định là điều kiện nghiệp vụ hoặc hợp đồng dữ liệu, không tự chuẩn hóa mọi số mà chưa đánh giá tác động. Khi dữ liệu bắt buộc có scale 2, `setScale(2)` chỉ thành công không cần rounding mode nếu có thể đạt scale 2 mà **không làm tròn**; các giá trị khác có thể cần quy tắc làm tròn rõ ràng.
+- Normalization does not lose **numeric value**, but it can change the **scale** and display form.
+- For example, `new BigDecimal("600.0").stripTrailingZeros()` may be represented as `6E+2` with a negative scale, instead of the string `600.0`. Use `toPlainString()` when you need printing without scientific notation.
+- `stripTrailingZeros()` on numeric value 0 returns the canonical zero representation, which can lose the original scale of `0.000`.
+- If a fixed scale is a business requirement or data contract, do not automatically normalize every number without evaluating the impact. When data is required to have scale 2, `setScale(2)` succeeds without a rounding mode only if scale 2 can be achieved **without rounding**; other values may require an explicit rounding rule.
 
-## 7. Dữ liệu đầu vào và tính chính xác
+## 7. Input data and accuracy
 
-Hãy tạo `BigDecimal` từ dữ liệu thập phân chính xác như chuỗi JSON hoặc chuỗi nhập vào:
+Construct `BigDecimal` from exact decimal data such as JSON strings or input strings:
 
 ~~~java
 BigDecimal expected = new BigDecimal("0.3");
@@ -248,72 +248,72 @@ BigDecimal actual = new BigDecimal("0.1")
 System.out.println(actual.compareTo(expected) == 0); // true
 ~~~
 
-Nếu thay bằng `double` trước, các giá trị thập phân như `0.1` và `0.2` thường không biểu diễn chính xác được ở nhị phân dấu phẩy động. `BigDecimal.valueOf(double)` chuyển từ chuỗi thập phân chuẩn của giá trị `double`, hữu ích khi đầu vào đã ở dạng đó; nhưng không thể khôi phục độ chính xác đã mất do tính toán trước đó trong `double`.
+If you go through `double` first, decimal values such as `0.1` and `0.2` often cannot be represented exactly in binary floating point. `BigDecimal.valueOf(double)` converts from the canonical decimal string representation of the `double` value, which is useful when the input is already in that form; however, it cannot recover precision already lost in prior `double` arithmetic.
 
-Không nên dùng:
+Avoid using:
 
 ~~~java
 double x = 0.1 + 0.2;
 double y = 0.3;
-boolean equal = (x == y); // Thường là false do biểu diễn nhị phân.
+boolean equal = (x == y); // Often false due to binary representation.
 ~~~
 
-Trường hợp này minh họa riêng cho `double`. Với `BigDecimal` xây từ chuỗi và phép cộng chính xác không có `MathContext`, phép so sánh số học cho kết quả đúng như ví dụ ở trên.
+This case illustrates the issue specifically for `double`. With `BigDecimal` constructed from strings and exact addition without `MathContext`, the numeric comparison produces the accurate result shown in the example above.
 
-Về nguyên tắc, `compareTo` **không làm tròn** hai số để so sánh và không yêu cầu hai bên có cùng scale. Nếu muốn so sánh các số *sau* khi đã được làm tròn theo quy tắc nghiệp vụ, phải làm tròn từng giá trị trước, rồi gọi `compareTo`; đó là một yêu cầu khác với so sánh giá trị gốc.
+In principle, `compareTo` **does not round** the two numbers to compare them and does not require both sides to have the same scale. If you want to compare numbers *after* rounding them according to business rules, you must round each value first, then call `compareTo`; that is a different requirement from comparing the original values.
 
-## 8. Các lưu ý khi thiết kế API
+## 8. API design considerations
 
-### Null không phải giá trị số
+### Null is not a numeric value
 
-`BigDecimal` là lớp tham chiếu. Nếu đối tượng gọi phương thức là `null`, biểu thức `amount.compareTo(other)` gây `NullPointerException`; truyền `null` làm đối số so sánh cũng gây `NullPointerException`. Xử lý null theo hợp đồng dữ liệu trước khi so sánh:
+`BigDecimal` is a reference type. If the receiving object is `null`, the expression `amount.compareTo(other)` throws `NullPointerException`; passing `null` as the comparison argument also throws `NullPointerException`. Handle null according to your data contract before comparing:
 
 ~~~java
 if (amount == null || minimum == null) {
-    throw new IllegalArgumentException("Thiếu giá trị tiền");
+    throw new IllegalArgumentException("Missing monetary amount");
 }
 boolean accepted = amount.compareTo(minimum) >= 0;
 ~~~
 
-Đoạn trên là ví dụ kiểm tra đầu vào, với `amount` và `minimum` được cung cấp từ nơi khác.
+The snippet above is an input validation example, where `amount` and `minimum` are supplied from elsewhere.
 
-### BigDecimal là immutable
+### BigDecimal is immutable
 
-`compareTo` chỉ **quan sát thứ tự** giữa hai giá trị, không sửa `BigDecimal` nào. Các phương thức như `stripTrailingZeros`, `setScale`, `add` cũng trả đối tượng kết quả mới (hoặc đối tượng có thể tái dùng) mà không thay đổi giá trị của đối tượng nhận.
+`compareTo` only **observes the ordering** between two values; it does not modify either `BigDecimal`. Methods like `stripTrailingZeros`, `setScale`, and `add` also return a new result object (or a reusable object) without changing the value of the receiver.
 
-### Không dùng toán tử < hoặc >
+### Do not use < or > operators
 
-Toán tử `<`, `>`, `<=`, `>=` hoạt động trên kiểu số nguyên thủy và các phép chuyển kiểu thích hợp; chúng **không** được overload cho `BigDecimal`. Viết `a > b` với hai tham chiếu `BigDecimal` là lỗi biên dịch. Dùng `a.compareTo(b) > 0`.
+The operators `<`, `>`, `<=`, and `>=` work on primitive numeric types and applicable conversions; they are **not** overloaded for `BigDecimal`. Writing `a > b` with two `BigDecimal` references is a compile error. Use `a.compareTo(b) > 0`.
 
-### Không lấy chênh lệch rồi chuyển sang int để so sánh
+### Do not subtract and convert to int to compare
 
-Biểu thức kiểu `a.subtract(b).intValue()` có thể trả 0 dù hai số không bằng nhau hoặc làm mất thông tin do cắt phần thập phân/vượt khoảng kiểu int. `compareTo` diễn đạt trực tiếp mục đích, tránh phép tính trung gian không cần thiết.
+An expression like `a.subtract(b).intValue()` can return 0 even when two numbers are not equal, or lose information due to truncating the fractional part or overflowing the `int` range. `compareTo` expresses the intent directly and avoids unnecessary intermediate calculations.
 
-### Thứ tự có tính bắc cầu
+### Ordering is transitive
 
-Nếu `a.compareTo(b) < 0` và `b.compareTo(c) < 0` thì `a.compareTo(c) < 0`. Đây là phần thiết yếu của hợp đồng so sánh, cho phép dùng với sắp xếp và cấu trúc dữ liệu có thứ tự. Khi viết comparator riêng để thay thế, hãy giữ tính đối xứng về dấu và bắc cầu; tránh comparator dựa trên `doubleValue()` nếu điều đó làm mất phân biệt giữa hai giá trị `BigDecimal` rất gần hoặc rất lớn.
+If `a.compareTo(b) < 0` and `b.compareTo(c) < 0`, then `a.compareTo(c) < 0`. This is an essential part of the comparison contract, allowing use with sorting and ordered data structures. When writing a custom comparator instead, preserve sign symmetry and transitivity; avoid comparators based on `doubleValue()` if doing so loses the distinction between very close or very large `BigDecimal` values.
 
-## 9. Lỗi phổ biến và cách sửa
+## 9. Common mistakes and how to fix them
 
-**Lỗi: dùng `equals` cho hai số nhập với scale không đồng nhất.** `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` là false. Nếu chỉ muốn biết hai số bằng nhau, dùng `compareTo(...) == 0`.
+**Mistake: using `equals` for numbers entered with inconsistent scales.** `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` is false. If you only want to know whether two numbers are equal, use `compareTo(...) == 0`.
 
-**Lỗi: so sánh qua `toString()`.** `"10.0".compareTo("2.0") < 0` do so chuỗi theo ký tự, dù 10.0 lớn hơn 2.0. Luôn dùng `BigDecimal.compareTo` cho thứ tự số học.
+**Mistake: comparing via `toString()`.** `"10.0".compareTo("2.0") < 0` because strings are compared character-by-character, even though 10.0 is greater than 2.0. Always use `BigDecimal.compareTo` for numeric ordering.
 
-**Lỗi: tưởng `compareTo == 0` có nghĩa là `equals == true`.** Đây là nguyên nhân kết quả khác nhau giữa `HashSet` và `TreeSet`. Hãy chọn tiêu chí định danh, tập hợp và chuẩn hóa cho nhất quán.
+**Mistake: assuming `compareTo == 0` implies `equals == true`.** This is why `HashSet` and `TreeSet` behave differently. Choose identity criteria, collections, and normalization consistently.
 
-**Lỗi: viết `compareTo(...) == 1`.** Tốt nhất so `> 0` hoặc `< 0` theo hợp đồng của `Comparable`; điều này cũng đúng với comparator tùy chỉnh.
+**Mistake: writing `compareTo(...) == 1`.** It is best to compare with `> 0` or `< 0` per the `Comparable` contract; this also applies to custom comparators.
 
-**Lỗi: đổi sang `double` hoặc `long` để so sánh.** Việc chuyển kiểu có thể gây mất độ chính xác, cắt phần thập phân hoặc vượt phạm vi. `BigDecimal.compareTo` giữ nguyên miền số thập phân có độ chính xác tùy ý.
+**Mistake: converting to `double` or `long` to compare.** Type conversion can cause precision loss, fractional truncation, or range overflow. `BigDecimal.compareTo` preserves the arbitrary-precision decimal domain.
 
-**Lỗi: mặc định null bằng 0.** Null là trạng thái không có dữ liệu, khác với `BigDecimal.ZERO`. Chỉ chuyển null thành 0 nếu đặc tả ứng dụng cho phép.
+**Mistake: defaulting null to 0.** Null represents missing data, which is different from `BigDecimal.ZERO`. Convert null to 0 only if the application specification permits it.
 
-**Lỗi: sắp xếp rồi dùng `distinct()` để gộp các số bằng nhau.** `distinct()` vẫn dựa trên `equals`; `2.0` và `2.00` có thể cùng tồn tại sau thao tác đó.
+**Mistake: sorting and then calling `distinct()` to merge equal numbers.** `distinct()` still relies on `equals`; `2.0` and `2.00` can still coexist after that operation.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-check questions
 
-Trước khi chạy thử, hãy xác định dấu của `left.compareTo(right)`:
+Before running the code, determine the sign of `left.compareTo(right)`:
 
-| left | right | Dấu của kết quả | `left.equals(right)` |
+| left | right | Sign of result | `left.equals(right)` |
 | --- | --- | --- | --- |
 | `3.0` | `3.00` | `0` | `false` |
 | `-3.00` | `-2.99` | `< 0` | `false` |
@@ -322,6 +322,6 @@ Trước khi chạy thử, hãy xác định dấu của `left.compareTo(right)`
 | `100.01` | `100.001` | `> 0` | `false` |
 | `7.00` | `7.00` | `0` | `true` |
 
-Để thực hành, tự viết biểu thức xác định “âm”, “dương”, “bằng 0”, “ít nhất bằng ngưỡng” và thử nhập các chuỗi có khác biệt ở số 0 cuối. Sau đó đưa hai số `2.0`, `2.00` vào `HashSet` và `TreeSet` để tự quan sát khác biệt.
+To practice, write expressions yourself to check "negative", "positive", "equal to 0", and "at least equal to threshold", and try inputs with differing trailing zeros. Then insert `2.0` and `2.00` into `HashSet` and `TreeSet` to observe the difference firsthand.
 
-**Ghi nhớ:** `BigDecimal.compareTo` là phép so sánh **theo giá trị số**; kết quả âm/0/dương biểu thị nhỏ hơn/bằng/lớn hơn. Khi cần bằng nhau về số học, dùng `compareTo(other) == 0`. `equals` còn quan tâm đến scale, vì vậy lựa chọn giữa hai phương thức ảnh hưởng trực tiếp đến collection, khóa và logic ứng dụng.
+**Key takeaway:** `BigDecimal.compareTo` compares **by numeric value**; a negative/0/positive result indicates less than/equal/greater than. When you need numeric equality, use `compareTo(other) == 0`. `equals` also considers scale, so choosing between the two methods directly affects collections, keys, and application logic.

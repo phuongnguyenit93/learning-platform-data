@@ -1,27 +1,27 @@
-# Xây dựng chỉ mục tra cứu từ danh sách đối tượng
+# Building Lookup Indexes from a List of Objects
 
-> **Chương:** Thu thập thành Map  
+> **Chapter:** Collecting to Maps  
 > **Module:** JAVA_STREAM_API  
-> **Trọng tâm:** Dùng pipeline `filter`, `map` và `collect` của Java Stream API để chuyển danh sách đối tượng thành các chỉ mục tra cứu theo ID, email, danh mục hoặc nhiều khóa. Hiểu cách chọn `toMap`, `groupingBy`, merge function, loại Map, tính bất biến và cách kiểm tra chỉ mục khi dữ liệu hoặc cách chạy pipeline thay đổi.
+> **Focus:** Use the `filter`, `map`, and `collect` pipeline of the Java Stream API to transform object lists into lookup indexes by ID, email, category, or composite keys. Understand how to choose `toMap`, `groupingBy`, merge functions, Map types, immutability, and how to verify indexes when data or pipeline execution changes.
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt danh sách dữ liệu gốc với **chỉ mục tra cứu** dưới dạng `Map<K, V>` hoặc `Map<K, List<V>>`.
-2. Xây dựng chỉ mục theo khóa duy nhất bằng `Collectors.toMap`, xử lý khóa trùng có chủ đích.
-3. Dùng `Collectors.groupingBy` cho quan hệ **một khóa – nhiều đối tượng**, hoặc `toMap` với merge function khi thích hợp.
-4. Tạo chỉ mục theo nhiều tiêu chí, chỉ mục lồng nhau và khóa đã chuẩn hóa.
-5. Chọn `HashMap`, `LinkedHashMap`, `TreeMap` hoặc `ConcurrentMap` dựa trên yêu cầu thực tế.
-6. Kiểm soát khóa `null`, giá trị `null`, đối tượng mutable, bản sao bất biến và tính nhất quán khi danh sách gốc thay đổi.
-7. Kiểm tra đúng số lượng bản ghi, thứ tự, chính sách trùng khóa và tính đúng khi chạy song song.
-8. Biết khi nào nên xây Map trước để tra cứu nhiều lần và khi nào chỉ cần `findFirst` hoặc `anyMatch`.
+1. Distinguish a raw source list from a **lookup index** in the form `Map<K, V>` or `Map<K, List<V>>`.
+2. Build a unique-key index with `Collectors.toMap` and handle duplicate keys intentionally.
+3. Use `Collectors.groupingBy` for **one-key–many-objects** relationships, or `toMap` with a merge function when appropriate.
+4. Create multi-criteria indexes, nested indexes, and normalized-key indexes.
+5. Choose `HashMap`, `LinkedHashMap`, `TreeMap`, or `ConcurrentMap` based on real requirements.
+6. Control `null` keys, `null` values, mutable objects, unmodifiable copies, and consistency when the source list changes.
+7. Verify exact record counts, ordering, duplicate-key policies, and correctness under parallel execution.
+8. Know when to pre-build a Map for repeated lookups and when `findFirst` or `anyMatch` is enough.
 
-Các ví dụ dùng **Java 17+**. `Collectors.toMap` và `groupingBy` có từ Java 8; `record` cần Java 16+, `Stream.toList()` có từ Java 16. Những đoạn mã rời được hiểu là phần thân của một phương thức có các `import` tương ứng; các ví dụ hoàn chỉnh có khai báo lớp riêng.
+The examples use **Java 17+**. `Collectors.toMap` and `groupingBy` have existed since Java 8; `record` requires Java 16+, and `Stream.toList()` has existed since Java 16. Standalone snippets represent the body of a method with the corresponding `import` statements; complete examples declare their own class.
 
-## 1. Chỉ mục tra cứu là gì?
+## 1. What Is a Lookup Index?
 
-Giả sử ứng dụng có danh sách khách hàng:
+Suppose an application has a list of customers:
 
 ~~~java
 import java.util.List;
@@ -29,14 +29,14 @@ import java.util.List;
 record Customer(long id, String email, String city, boolean active) {}
 
 List<Customer> customers = List.of(
-        new Customer(101L, "an@example.vn", "Hà Nội", true),
-        new Customer(102L, "binh@example.vn", "Hồ Chí Minh", true),
-        new Customer(103L, "chi@example.vn", "Hà Nội", false),
-        new Customer(104L, "dung@example.vn", "Hồ Chí Minh", true)
+        new Customer(101L, "an@example.vn", "Hanoi", true),
+        new Customer(102L, "binh@example.vn", "Ho Chi Minh City", true),
+        new Customer(103L, "chi@example.vn", "Hanoi", false),
+        new Customer(104L, "dung@example.vn", "Ho Chi Minh City", true)
 );
 ~~~
 
-Muốn tìm khách hàng có ID `103`, một cách là duyệt danh sách:
+To find the customer with ID `103`, one way is scanning the list:
 
 ~~~java
 import java.util.Optional;
@@ -45,18 +45,18 @@ Optional<Customer> found = customers.stream()
         .filter(c -> c.id() == 103L)
         .findFirst();
 
-System.out.println(found.map(Customer::email).orElse("Không có"));
+System.out.println(found.map(Customer::email).orElse("Not found"));
 // chi@example.vn
 ~~~
 
-Mỗi lần tìm kiếm theo cách này có thể phải xem xét tới `n` phần tử, tức chi phí tuyến tính **O(n)** trong trường hợp xấu nhất. Nếu ứng dụng phải tra cứu cùng danh sách rất nhiều lần, có thể tạo chỉ mục:
+Each search this way may inspect up to `n` elements, costing linear **O(n)** time in the worst case. If the application must look up the same list many times, you can build an index:
 
 ~~~text
 List<Customer>
-    ├── Customer(id=101, email="an@example.vn",   city="Hà Nội")
-    ├── Customer(id=102, email="binh@example.vn", city="Hồ Chí Minh")
-    ├── Customer(id=103, email="chi@example.vn",  city="Hà Nội")
-    └── Customer(id=104, email="dung@example.vn", city="Hồ Chí Minh")
+    ├── Customer(id=101, email="an@example.vn",   city="Hanoi")
+    ├── Customer(id=102, email="binh@example.vn", city="Ho Chi Minh City")
+    ├── Customer(id=103, email="chi@example.vn",  city="Hanoi")
+    └── Customer(id=104, email="dung@example.vn", city="Ho Chi Minh City")
                   │
                   │ collect(toMap(Customer::id, identity()))
                   ▼
@@ -69,13 +69,13 @@ Map<Long, Customer>
 index.get(103L) ──> Customer(103, ...)
 ~~~
 
-Với Map băm thông thường và khóa có `hashCode` phân bố tốt, tra cứu `get` **thường O(1) trung bình**. Tuy nhiên không có bảo đảm O(1) cho mọi tình huống. Xây chỉ mục có chi phí ban đầu, tốn thêm bộ nhớ và đặt ra yêu cầu đồng bộ khi dữ liệu gốc thay đổi.
+With a standard hash-based Map and keys having a well-distributed `hashCode`, a `get` lookup is **typically O(1) on average**. However, there is no O(1) guarantee in all scenarios. Building an index has an upfront cost, consumes extra memory, and introduces synchronization requirements when source data changes.
 
-**Chỉ mục trong bài này là cấu trúc dữ liệu trong bộ nhớ Java**. Nó khác với index của cơ sở dữ liệu: sau khi tạo Map, Java không tự động theo dõi mọi lần sửa danh sách nguồn.
+**An index in this lesson is an in-memory Java data structure.** It differs from a database index: after building the Map, Java does not automatically track subsequent edits to the source list.
 
-## 2. Tạo chỉ mục một khóa duy nhất với toMap
+## 2. Creating a Unique Single-Key Index with toMap
 
-`Collectors.toMap` có dạng cơ bản:
+`Collectors.toMap` has the basic form:
 
 ~~~java
 static <T, K, U> Collector<T, ?, Map<K, U>> toMap(
@@ -84,11 +84,11 @@ static <T, K, U> Collector<T, ?, Map<K, U>> toMap(
 );
 ~~~
 
-- `keyMapper` lấy khóa chỉ mục từ mỗi đối tượng.
-- `valueMapper` chọn giá trị lưu trong Map.
-- Mỗi khóa chỉ được ánh xạ tới một giá trị theo chính sách hiện tại; overload hai tham số **ném ngoại lệ khi có khóa trùng**.
+- `keyMapper` extracts the index key from each object.
+- `valueMapper` selects the value stored in the Map.
+- Each key may map to only one value under the current policy; the two-argument overload **throws an exception on duplicate keys**.
 
-### 2.1. Chỉ mục ID → đối tượng
+### 2.1. ID → object index
 
 ~~~java
 import java.util.Map;
@@ -106,24 +106,24 @@ Customer customer = byId.get(103L);
 System.out.println(customer.email()); // chi@example.vn
 ~~~
 
-`Function.identity()` nghĩa là **giữ nguyên đối tượng đầu vào** làm giá trị. Map chứa tham chiếu tới đối tượng `Customer`; không phải cơ chế tạo bản sao sâu (*deep copy*).
+`Function.identity()` means **keeping the input object itself** as the value. The Map holds references to the `Customer` objects; it is not a *deep copy* mechanism.
 
-Pipeline trên có cách đọc rõ ràng:
+The pipeline above reads clearly:
 
 ~~~text
 customers.stream()
   └── collect(toMap(Customer::id, identity()))
-          ├── khóa  : c.id()
-          └── giá trị: chính c
+          ├── key  : c.id()
+          └── value: c itself
                   ↓
           Map<Long, Customer>
 ~~~
 
-`toMap` là collector được truyền vào thao tác kết thúc `collect`. Dữ liệu được duyệt khi gọi `collect`, sau đó có một Map tra cứu.
+`toMap` is the collector passed to the terminal operation `collect`. Data is traversed when `collect` is called, yielding a lookup Map.
 
-### 2.2. Chỉ lưu trường cần tra cứu
+### 2.2. Storing only the field needed for lookup
 
-Nếu nghiệp vụ chỉ cần tìm email theo ID:
+If business logic only needs to look up email by ID:
 
 ~~~java
 Map<Long, String> emailById = customers.stream()
@@ -135,27 +135,27 @@ Map<Long, String> emailById = customers.stream()
 System.out.println(emailById.get(102L)); // binh@example.vn
 ~~~
 
-Điều này có thể giảm lượng dữ liệu mà chỉ mục tham chiếu, nhưng sẽ mất khả năng truy cập các trường khác qua chỉ mục đó. Giá trị của `valueMapper` có thể là một đối tượng, một chuỗi, một số hoặc một DTO đã chuyển đổi.
+This can reduce the amount of data referenced by the index, at the cost of losing access to other fields through that index. The result of `valueMapper` can be an object, a string, a number, or a transformed DTO.
 
-**Không phải cứ có khóa là dùng được `toMap` hai tham số**: cần xác nhận tính duy nhất của khóa trong nguồn và giá trị do mapper trả về phù hợp hợp đồng collector.
+**Having a key alone is not enough to use two-argument `toMap`**: you must verify key uniqueness in the source and ensure the values returned by the mapper comply with the collector contract.
 
-## 3. Khóa trùng: quyết định rõ chính sách trước khi collect
+## 3. Duplicate Keys: Decide the Policy Explicitly Before Collecting
 
-Hai bản ghi có cùng khóa có thể xuất hiện do dữ liệu lỗi, dữ liệu lịch sử, phiên bản mới hơn hoặc vì khóa được chọn vốn không duy nhất.
+Two records with the same key can arise from dirty data, historical records, newer revisions, or because the chosen key is inherently non-unique.
 
 ~~~java
 import java.util.List;
 
 List<Customer> duplicates = List.of(
-        new Customer(101L, "an@example.vn", "Hà Nội", true),
-        new Customer(101L, "an.new@example.vn", "Hà Nội", true)
+        new Customer(101L, "an@example.vn", "Hanoi", true),
+        new Customer(101L, "an.new@example.vn", "Hanoi", true)
 );
 ~~~
 
-Câu lệnh sau **không tạo ra một Map hợp lệ**:
+The following statement **does not produce a valid Map**:
 
 ~~~java
-// Runtime: IllegalStateException do khóa 101 xuất hiện hai lần.
+// Runtime: IllegalStateException because key 101 appears twice.
 Map<Long, Customer> invalid = duplicates.stream()
         .collect(Collectors.toMap(
                 Customer::id,
@@ -163,11 +163,11 @@ Map<Long, Customer> invalid = duplicates.stream()
         ));
 ~~~
 
-Đây là hành vi hữu ích khi **ID buộc phải duy nhất**. Không nên lặng lẽ bỏ bản ghi chỉ để làm chương trình chạy tiếp nếu vi phạm tính duy nhất là lỗi dữ liệu.
+This is helpful behavior when **IDs must be unique**. Do not silently drop a record just to keep the program running if violating uniqueness indicates a data error.
 
-### 3.1. Báo lỗi trùng khóa có thông điệp nghiệp vụ
+### 3.1. Failing on duplicate keys with a business message
 
-Overload ba tham số:
+Three-argument overload:
 
 ~~~java
 import java.util.function.Function;
@@ -179,17 +179,17 @@ Map<Long, Customer> strictIndex = duplicates.stream()
                 Function.identity(),
                 (previous, incoming) -> {
                     throw new IllegalStateException(
-                            "Trùng ID khách hàng: " + previous.id()
+                            "Duplicate customer ID: " + previous.id()
                     );
                 }
         ));
 ~~~
 
-Ở đây, merge function quyết định cách xử lý khi hai giá trị có **cùng khóa**. Vì dữ liệu trùng bị coi là không hợp lệ, hàm cố ý ném ngoại lệ.
+Here, the merge function decides how to handle two values sharing the **same key**. Because duplicate data is considered invalid, the function intentionally throws an exception.
 
-Trên Stream song song, thời điểm phát hiện và đối tượng nào được đưa vào merge có thể khác; thông báo lỗi **không nên phụ thuộc vào thứ tự xử lý** để diễn đạt nguyên nhân.
+On a parallel Stream, when detection occurs and which objects reach the merge function may vary; error messages **should not depend on processing order** to explain the cause.
 
-### 3.2. Giữ bản ghi đầu hoặc cuối khi nghiệp vụ cho phép
+### 3.2. Keeping the first or last record when business logic permits
 
 ~~~java
 Map<Long, Customer> keepFirst = duplicates.stream()
@@ -207,11 +207,11 @@ Map<Long, Customer> keepLast = duplicates.stream()
         ));
 ~~~
 
-Với nguồn `List` có thứ tự và pipeline tuần tự, hai ví dụ cho hai chính sách rõ ràng. Nhưng **“bản ghi cuối cùng” không đồng nghĩa “bản ghi mới nhất”**: vị trí trong List không cho biết timestamp hoặc version nếu không có quy định dữ liệu đầu vào.
+With an ordered `List` source and a sequential pipeline, the two examples represent two clear policies. However, **"last record" does not mean "newest record"**: position in the List tells you nothing about timestamp or version unless specified by the input contract.
 
-Nếu ý nghĩa là **chọn phiên bản mới nhất**, tốt hơn nên so sánh trường version/timestamp trực tiếp, với quy tắc xử lý khi hai bản ghi cùng phiên bản. Những phép chọn phụ thuộc thứ tự gặp phần tử không thích hợp để tùy tiện chuyển sang collector `UNORDERED` hoặc concurrent mà không xem lại hợp đồng.
+If the intent is **picking the latest version**, it is better to compare the version/timestamp field directly, with a rule for when two records share the same version. Selections depending on element encounter order are unsuitable for switching casually to an `UNORDERED` or concurrent collector without reviewing the contract.
 
-### 3.3. Chọn bản ghi có revision lớn nhất với tie-break rõ ràng
+### 3.3. Selecting the record with the highest revision and a clear tie-breaker
 
 ~~~java
 import java.util.Comparator;
@@ -224,13 +224,13 @@ import java.util.stream.Collectors;
 record Product(long id, int revision, String name) {}
 
 List<Product> revisions = List.of(
-        new Product(7L, 1, "Bút xanh"),
-        new Product(7L, 3, "Bút xanh mới"),
-        new Product(9L, 2, "Sổ tay")
+        new Product(7L, 1, "Blue pen"),
+        new Product(7L, 3, "New blue pen"),
+        new Product(9L, 2, "Notebook")
 );
 
-// Quy tắc đã định: revision cao hơn được ưu tiên;
-// nếu revision bằng nhau, tên lớn hơn theo String.compareTo được chọn.
+// Defined rule: higher revision takes priority;
+// if revisions are equal, the greater name by String.compareTo is chosen.
 Comparator<Product> priority =
         Comparator.comparingInt(Product::revision)
                   .thenComparing(Product::name);
@@ -247,15 +247,15 @@ Map<Long, Product> latestById = revisions.parallelStream()
 System.out.println(latestById.get(7L).revision()); // 3
 ~~~
 
-`maxBy` trên thứ tự so sánh nhất quán này giúp phép chọn không phụ thuộc việc ghép trái/phải khi các giá trị khác nhau đều phân biệt được bằng comparator. Vì `id` là khóa giống nhau trong một nhóm, `revision` và `name` xác định thứ tự ưu tiên cho dữ liệu trong ví dụ.
+`maxBy` over this consistent comparison order makes selection independent of left/right combination order whenever distinct values can be distinguished by the comparator. Since `id` is the shared key within a group, `revision` and `name` establish priority order for the data in the example.
 
-**Giới hạn nghiệp vụ:** Nếu hai bản ghi cùng ID và cùng revision nhưng khác nội dung, việc chọn theo tên chỉ đúng nếu đó **thật sự là quy tắc được chấp thuận**. Trong nhiều hệ thống, tốt hơn là báo xung đột version. Không nên tự đặt quy tắc ưu tiên chỉ để giải quyết lỗi dữ liệu.
+**Business limitation:** If two records share the same ID and revision yet have different contents, picking by name is valid only if that is **truly an approved rule**. In many systems, reporting a version conflict is better. Do not invent an arbitrary tie-breaking rule merely to paper over data errors.
 
-## 4. Khóa không duy nhất: groupingBy tạo chỉ mục một – nhiều
+## 4. Non-Unique Keys: groupingBy Builds a One-to-Many Index
 
-Nếu muốn tra cứu **mọi khách hàng của một thành phố**, thành phố rõ ràng không phải khóa duy nhất. `toMap(Customer::city, identity())` hai tham số sẽ ném ngoại lệ khi gặp người thứ hai trong cùng thành phố.
+If you want to look up **all customers in a city**, city is obviously not a unique key. Two-argument `toMap(Customer::city, identity())` will throw an exception upon encountering the second person in the same city.
 
-Dùng `groupingBy`:
+Use `groupingBy`:
 
 ~~~java
 import java.util.List;
@@ -265,39 +265,39 @@ import java.util.stream.Collectors;
 Map<String, List<Customer>> byCity = customers.stream()
         .collect(Collectors.groupingBy(Customer::city));
 
-System.out.println(byCity.get("Hà Nội").size()); // 2
-System.out.println(byCity.get("Hồ Chí Minh").size()); // 2
+System.out.println(byCity.get("Hanoi").size()); // 2
+System.out.println(byCity.get("Ho Chi Minh City").size()); // 2
 ~~~
 
-Đây là chỉ mục **một khóa → nhiều phần tử**:
+This is a **one key → many elements** index:
 
 ~~~text
-"Hà Nội"        ──> [Customer(101), Customer(103)]
-"Hồ Chí Minh"   ──> [Customer(102), Customer(104)]
+"Hanoi"              ──> [Customer(101), Customer(103)]
+"Ho Chi Minh City"   ──> [Customer(102), Customer(104)]
 ~~~
 
-Một số điểm cần lưu ý:
+Points to keep in mind:
 
-- `groupingBy` có thể cho một `Map<K, List<T>>`, giữ nhiều bản ghi trùng khóa phân loại.
-- Map trả về **không có bảo đảm kiểu cài đặt, tính mutable hoặc thread-safety** trừ khi chọn overload và điều kiện cụ thể.
-- `List` trong mỗi nhóm là kết quả thu thập, không nhất thiết là cấu trúc đồng bộ; đừng sửa chúng đồng thời mà không có cơ chế phù hợp.
-- Khi dùng groupingBy chuẩn, **khóa phân loại phải khác null**; nếu classifier trả null, thao tác có thể ném `NullPointerException`.
+- `groupingBy` can produce a `Map<K, List<T>>`, preserving multiple records sharing a classification key.
+- The returned Map **has no guarantee of implementation class, mutability, or thread-safety** unless specific overloads and conditions are chosen.
+- Each group's `List` is a collected result, not necessarily a synchronized structure; do not mutate them concurrently without proper synchronization.
+- With standard `groupingBy`, **classification keys must be non-null**; if the classifier returns null, the operation can throw `NullPointerException`.
 
-### 4.1. Trả danh sách rỗng nếu không có khóa
+### 4.1. Returning an empty list when the key is absent
 
 ~~~java
 List<Customer> inDaNang = byCity.getOrDefault(
-        "Đà Nẵng", List.of()
+        "Da Nang", List.of()
 );
 
 System.out.println(inDaNang.size()); // 0
 ~~~
 
-`Map.get` trả `null` nếu không tìm thấy khóa (trong các Map có thể chứa null, `get` còn có thể trả null vì giá trị là null). Với chỉ mục chỉ chứa giá trị không null, `getOrDefault` rõ ràng khi muốn trả một danh sách rỗng.
+`Map.get` returns `null` when a key is not found (in Maps that permit null values, `get` can also return null because the stored value is null). For indexes containing only non-null values, `getOrDefault` clearly expresses returning an empty list.
 
-### 4.2. Chỉ lưu thông tin cần dùng theo từng nhóm
+### 4.2. Storing only the information needed per group
 
-Ví dụ thành phố → danh sách email:
+Example of city → list of emails:
 
 ~~~java
 import java.util.List;
@@ -313,13 +313,13 @@ Map<String, List<String>> emailsByCity = customers.stream()
                 )
         ));
 
-System.out.println(emailsByCity.get("Hà Nội"));
+System.out.println(emailsByCity.get("Hanoi"));
 // [an@example.vn, chi@example.vn]
 ~~~
 
-`Collectors.mapping` là downstream collector: nó biến từng `Customer` thành `String` rồi thu thập trong nhóm tương ứng.
+`Collectors.mapping` is a downstream collector: it maps each `Customer` to a `String` and collects them within the corresponding group.
 
-Nếu chỉ cần **số lượng khách hàng theo thành phố**, không cần tạo các list:
+If you only need the **customer count per city**, there is no need to allocate lists:
 
 ~~~java
 Map<String, Long> countByCity = customers.stream()
@@ -328,18 +328,18 @@ Map<String, Long> countByCity = customers.stream()
                 Collectors.counting()
         ));
 
-System.out.println(countByCity.get("Hà Nội")); // 2
+System.out.println(countByCity.get("Hanoi")); // 2
 ~~~
 
-Lựa chọn kiểu giá trị `V` của chỉ mục là quyết định thiết kế: lưu toàn bộ đối tượng, lưu một trường, lưu danh sách hoặc lưu giá trị tổng hợp.
+Choosing the index value type `V` is a design decision: store the whole object, store a single field, store a list, or store an aggregated value.
 
-## 5. Nhiều chỉ mục trên cùng một tập dữ liệu
+## 5. Multiple Indexes Over the Same Dataset
 
-Một ứng dụng có thể cần ba đường tra cứu:
+An application may need three lookup paths:
 
-- Theo ID: `Map<Long, Customer>`.
-- Theo email: `Map<String, Customer>`.
-- Theo thành phố: `Map<String, List<Customer>>`.
+- By ID: `Map<Long, Customer>`.
+- By email: `Map<String, Customer>`.
+- By city: `Map<String, List<Customer>>`.
 
 ~~~java
 import java.util.List;
@@ -363,31 +363,31 @@ Map<String, List<Customer>> cityIndex = snapshot.stream()
         .collect(Collectors.groupingBy(Customer::city));
 ~~~
 
-`List.copyOf` cho danh sách có cấu trúc không thể thay đổi và từ chối phần tử null; ở đây `Customer` là record chứa các kiểu nguyên thủy và `String` nên các trường đang dùng cũng ổn định. Với record chứa field mutable, bản sao này **không** sao chép sâu từng object.
+`List.copyOf` returns a structurally unmodifiable list and rejects null elements; here `Customer` is a record containing primitives and `String`, so the fields in use are also stable. For records containing mutable fields, this copy does **not** deep-copy each object.
 
-**Quan trọng:** Ba Map được tạo từ cùng một snapshot, nhưng vẫn là **ba chỉ mục độc lập**. Khi có bản ghi mới, sửa email hoặc chuyển thành phố, các Map **không tự cập nhật**.
+**Important:** The three Maps are built from the same snapshot, yet they remain **three independent indexes**. When a new record arrives, an email changes, or a city changes, the Maps **do not update automatically**.
 
-### 5.1. Cùng một đối tượng có thể xuất hiện trong nhiều Map
+### 5.1. The same object can appear in multiple Maps
 
-Các Map ở trên thường cùng tham chiếu đến những đối tượng `Customer` trong snapshot. Chỉ mục không nhất thiết tạo bản sao đối tượng; việc tạo thêm chỉ mục chủ yếu tăng chi phí cho cấu trúc khóa, bucket, entry và danh sách nhóm.
+The Maps above typically share references to the same `Customer` objects in the snapshot. An index does not necessarily copy objects; adding another index mainly adds overhead for key structures, buckets, entries, and group lists.
 
-Nếu đối tượng là mutable, thay đổi field của đối tượng có thể làm giá trị mà Map trả về thay đổi nhưng **khóa Map cũ vẫn giữ nguyên**, dẫn đến chỉ mục email/thành phố không nhất quán. Ví dụ:
+If objects are mutable, changing an object's field can alter the value returned by a Map while **the old Map key remains unchanged**, making the email/city index inconsistent. For example:
 
 ~~~text
-Chỉ mục tạo lúc đầu:
+Initially built index:
    emailIndex["old@example.vn"] -> Customer(email="old@example.vn")
 
-Sau khi sửa field email của Customer:
+After mutating Customer's email field:
    emailIndex["old@example.vn"] -> Customer(email="new@example.vn")
 
-   emailIndex["new@example.vn"] -> null   (chưa rebuild)
+   emailIndex["new@example.vn"] -> null   (not yet rebuilt)
 ~~~
 
-Đó là lý do nên ưu tiên mô hình dữ liệu bất biến cho snapshot và có chiến lược cập nhật chỉ mục rõ ràng.
+That is why immutable data models for snapshots and explicit index-update strategies should be preferred.
 
-## 6. Chuẩn hóa khóa để tránh tra cứu hụt
+## 6. Normalizing Keys to Avoid Lookup Misses
 
-Email hoặc mã đối tác có thể được nhập với khoảng trắng và cách viết hoa khác nhau. Nếu yêu cầu nghiệp vụ cho phép so khớp không phân biệt hoa/thường, nên chuẩn hóa **cả lúc lập chỉ mục lẫn lúc tra cứu**.
+Emails or partner codes may be entered with extra whitespace and varying letter cases. If business rules allow case-insensitive matching, normalize **at both indexing time and lookup time**.
 
 ~~~java
 import java.util.List;
@@ -401,7 +401,7 @@ static String normalizedEmail(String raw) {
 }
 ~~~
 
-Đặt `normalizedEmail` trong một lớp tiện ích hoặc phương thức static của lớp đang chạy. Cách dùng:
+Place `normalizedEmail` in a utility class or as a static method of the enclosing class. Usage:
 
 ~~~java
 Map<String, Customer> byNormalizedEmail = customers.stream()
@@ -417,19 +417,19 @@ Customer found = byNormalizedEmail.get(
 System.out.println(found.id()); // 101
 ~~~
 
-Dùng `Locale.ROOT` giúp phép chuyển chữ thường nhất quán theo locale chung, tránh phụ thuộc locale máy chạy.
+Using `Locale.ROOT` keeps lowercasing consistent across environments instead of depending on the host machine's default locale.
 
-**Chuẩn hóa làm thay đổi quan hệ trùng khóa.** Ví dụ `"AN@EXAMPLE.VN"` và `"an@example.vn"` có thể về cùng một khóa; `toMap` hai tham số sẽ phát hiện trùng. Cần chính sách dữ liệu khi điều đó xảy ra.
+**Normalization changes duplicate-key relationships.** For instance, `"AN@EXAMPLE.VN"` and `"an@example.vn"` can map to the same key; two-argument `toMap` will detect a collision. You need a data policy for when that happens.
 
-Đối với địa chỉ email thực tế, quy tắc phân biệt hoa/thường của local part, Unicode, IDN và cách chuẩn hóa hợp lệ có thể phức tạp. Đoạn trên chỉ là **quy ước tìm kiếm của ứng dụng minh họa**; không nên áp nó thành quy tắc xác thực/định danh email toàn cầu.
+For real-world email addresses, case sensitivity of the local part, Unicode, IDN, and valid normalization rules can be complex. The snippet above is merely an **illustrative application lookup convention**; do not apply it as a global email validation/identity rule.
 
-Với mã hàng hoặc số giấy tờ, cũng cần cân nhắc việc bỏ ký tự, bỏ số 0 đầu hoặc đổi định dạng có thể làm **hai giá trị khác nhau bị nhập thành một khóa**. Chuẩn hóa chỉ đúng khi nó phù hợp định nghĩa khóa nghiệp vụ.
+For product codes or document IDs, also consider whether stripping characters, removing leading zeros, or changing formatting could cause **two distinct values to collapse into one key**. Normalization is valid only when it matches the business key definition.
 
-## 7. Chọn loại Map và kiểm soát thứ tự
+## 7. Choosing the Map Type and Controlling Order
 
-Overload mặc định của `Collectors.toMap` và `groupingBy` không bảo đảm kiểu Map kết quả. Nếu cần đặc tính cụ thể, dùng overload có `mapFactory`.
+The default overloads of `Collectors.toMap` and `groupingBy` do not guarantee the returned Map implementation. If specific characteristics are needed, use the overload with `mapFactory`.
 
-### 7.1. HashMap cho tra cứu thông thường
+### 7.1. HashMap for standard lookups
 
 ~~~java
 import java.util.HashMap;
@@ -448,9 +448,9 @@ Map<Long, Customer> index = customers.stream()
         ));
 ~~~
 
-`HashMap` cho tra cứu theo băm với hiệu năng trung bình tốt nếu thiết kế `equals`/`hashCode` của khóa phù hợp; nó **không cam kết thứ tự duyệt**.
+`HashMap` provides hash-based lookups with good average performance if the key's `equals`/`hashCode` are well designed; it **makes no guarantees on iteration order**.
 
-### 7.2. LinkedHashMap khi cần thứ tự chèn
+### 7.2. LinkedHashMap when insertion order is needed
 
 ~~~java
 import java.util.LinkedHashMap;
@@ -464,12 +464,12 @@ Map<Long, Customer> indexInEncounterOrder = customers.stream()
         ));
 
 System.out.println(indexInEncounterOrder.keySet());
-// [101, 102, 103, 104] với nguồn List và pipeline tuần tự này
+// [101, 102, 103, 104] with this List source and sequential pipeline
 ~~~
 
-`LinkedHashMap` mặc định giữ thứ tự chèn. Ví dụ dùng **Stream tuần tự có thứ tự** để diễn đạt thứ tự chèn theo danh sách. Nếu hợp đồng yêu cầu thứ tự kết quả nghiêm ngặt trong mọi phương thức sử dụng, hãy thiết kế và kiểm tra riêng khi chuyển sang xử lý song song; đừng suy ra thứ tự từ `HashMap`.
+`LinkedHashMap` preserves insertion order by default. The example uses an **ordered sequential Stream** to express insertion order matching the list. If the contract requires strict result ordering across all usage modes, design and test separately before switching to parallel processing; do not infer order from `HashMap`.
 
-### 7.3. TreeMap khi cần thứ tự khóa
+### 7.3. TreeMap when key ordering is needed
 
 ~~~java
 import java.util.TreeMap;
@@ -485,23 +485,23 @@ TreeMap<Long, Customer> sortedIndex = customers.stream()
 System.out.println(sortedIndex.firstKey()); // 101
 ~~~
 
-`TreeMap` duyệt theo **thứ tự của khóa** (natural order hoặc comparator), thường có chi phí tra cứu/chèn **O(log n)**. Comparator phải được thiết kế thận trọng: nếu coi hai khóa khác nhau là bằng nhau theo `compare(a,b) == 0`, TreeMap sẽ xử lý chúng như một khóa duy nhất.
+`TreeMap` iterates in **key order** (natural order or comparator), typically with **O(log n)** lookup/insertion cost. The comparator must be designed carefully: if it treats two distinct keys as equal with `compare(a,b) == 0`, `TreeMap` will treat them as a single key.
 
-### 7.4. Map theo yêu cầu nghiệp vụ
+### 7.4. Maps by business requirement
 
-| Nhu cầu | Lựa chọn điển hình | Điều cần kiểm tra |
+| Requirement | Typical choice | What to verify |
 |---|---|---|
-| Tra cứu ID, không cần thứ tự | `HashMap` | `equals`/`hashCode` và khóa ổn định |
-| Duyệt kết quả theo thứ tự chèn | `LinkedHashMap` | Nguồn, pipeline và chính sách trùng khóa |
-| Cần range query/sắp thứ tự khóa | `TreeMap` | Comparator, hiệu năng và ý nghĩa thứ tự |
-| Tích lũy đồng thời theo khóa | `ConcurrentHashMap` hoặc collector concurrent chuẩn | Thread-safety, khả năng trùng khóa, thứ tự không được bảo đảm |
-| Không cho sửa cấu trúc chỉ mục sau khi tạo | `toUnmodifiableMap` hoặc `Map.copyOf` | Null, duplicate, bất biến nông |
+| ID lookup, no ordering needed | `HashMap` | `equals`/`hashCode` and stable keys |
+| Iterate results in insertion order | `LinkedHashMap` | Source, pipeline, and duplicate-key policy |
+| Need range queries / sorted key order | `TreeMap` | Comparator, performance, and ordering semantics |
+| Concurrent per-key accumulation | `ConcurrentHashMap` or standard concurrent collector | Thread-safety, duplicate-key handling, no order guarantee |
+| Forbid modifying index structure after creation | `toUnmodifiableMap` or `Map.copyOf` | Nulls, duplicates, shallow immutability |
 
-Không có loại Map nào mặc định đúng cho mọi bài toán. Chọn cấu trúc theo **đường truy cập và ràng buộc của người dùng**, rồi kiểm tra dữ liệu.
+No single Map type is right by default for every problem. Choose the structure based on **access paths and consumer constraints**, then verify with data.
 
-## 8. Chỉ mục lồng nhau: thành phố → ID → khách hàng
+## 8. Nested Indexes: City → ID → Customer
 
-Khi cần tra cứu theo cả thành phố lẫn ID:
+When lookups are needed by both city and ID:
 
 ~~~java
 import java.util.Map;
@@ -518,33 +518,33 @@ Map<String, Map<Long, Customer>> byCityThenId = customers.stream()
         ));
 
 Customer result = byCityThenId
-        .getOrDefault("Hà Nội", Map.of())
+        .getOrDefault("Hanoi", Map.of())
         .get(103L);
 
 System.out.println(result.email()); // chi@example.vn
 ~~~
 
-Đây là chỉ mục hai cấp:
+This is a two-level index:
 
 ~~~text
-"Hà Nội"
+"Hanoi"
     ├── 101 -> Customer(101)
     └── 103 -> Customer(103)
 
-"Hồ Chí Minh"
+"Ho Chi Minh City"
     ├── 102 -> Customer(102)
     └── 104 -> Customer(104)
 ~~~
 
-Chỉ mục hai cấp hữu ích khi:
+A two-level index is useful when:
 
-- Ứng dụng thường **lọc trước theo thành phố** rồi tìm ID trong nhóm.
-- ID chỉ cần duy nhất **bên trong mỗi nhóm** (nếu miền dữ liệu cho phép).
-- Cần lưu cấu trúc nhóm phục vụ truy cập nhiều lần.
+- The application frequently **filters by city first**, then looks up an ID within that group.
+- IDs only need to be unique **within each group** (if the domain permits).
+- The grouped structure must be kept for repeated queries.
 
-Nếu ID đã duy nhất toàn hệ thống, tra cứu theo `idIndex.get(id)` có thể đơn giản hơn. Khi ID **không** duy nhất theo toàn hệ thống, định nghĩa rõ khóa ghép như `(tenantId, id)` hay chỉ mục lồng nhau để tránh ghi đè ngẫu nhiên.
+If IDs are already globally unique across the system, looking up via `idIndex.get(id)` can be simpler. When IDs are **not** globally unique, explicitly define a composite key such as `(tenantId, id)` or a nested index to prevent accidental overwrites.
 
-### 8.1. Dùng record làm khóa ghép
+### 8.1. Using a record as a composite key
 
 ~~~java
 import java.util.Map;
@@ -560,17 +560,17 @@ Map<CityCustomerKey, Customer> byCityAndId = customers.stream()
         ));
 
 Customer found = byCityAndId.get(
-        new CityCustomerKey("Hà Nội", 103L)
+        new CityCustomerKey("Hanoi", 103L)
 );
 
 System.out.println(found.email()); // chi@example.vn
 ~~~
 
-`record` tự sinh `equals` và `hashCode` dựa trên các component, phù hợp để tạo khóa **giá trị**. Các thành phần khóa vẫn cần bất biến về hành vi: với ví dụ này, `String` và `long` đáp ứng tốt.
+`record` auto-generates `equals` and `hashCode` from its components, making it well suited for **value** keys. Key components must still behave immutably: in this example, `String` and `long` satisfy this well.
 
-## 9. Chỉ mục bất biến và vòng đời dữ liệu
+## 9. Unmodifiable Indexes and Data Lifecycle
 
-Nếu Map được xây một lần để các thành phần khác **chỉ đọc**, trả chỉ mục không thể thay đổi cấu trúc giúp giảm nhầm lẫn về quyền cập nhật.
+If a Map is built once for other components to **read only**, returning a structurally unmodifiable index prevents confusion about update ownership.
 
 ### 9.1. toUnmodifiableMap (Java 10+)
 
@@ -586,12 +586,12 @@ Map<Long, Customer> immutableById = customers.stream()
         ));
 
 // immutableById.put(105L, anotherCustomer);
-// Ném UnsupportedOperationException nếu gọi.
+// Throws UnsupportedOperationException if called.
 ~~~
 
-`toUnmodifiableMap` không chấp nhận khóa hoặc giá trị null và cũng ném ngoại lệ khi khóa trùng nếu dùng overload hai tham số.
+`toUnmodifiableMap` rejects null keys and null values, and also throws on duplicate keys when using the two-argument overload.
 
-### 9.2. Map.copyOf là bản sao cấu trúc nông
+### 9.2. Map.copyOf is a structurally shallow copy
 
 ~~~java
 import java.util.Map;
@@ -599,23 +599,23 @@ import java.util.Map;
 Map<Long, Customer> readOnlyIndex = Map.copyOf(byId);
 ~~~
 
-`Map.copyOf` trả về Map không cho thay đổi cấu trúc. Nó **không tự sao chép sâu** các object làm giá trị: nếu đối tượng đích mutable, nó vẫn có thể bị thay đổi qua tham chiếu khác. `Map.copyOf` cũng không chấp nhận khóa hoặc giá trị null; thứ tự duyệt của kết quả không được bảo đảm.
+`Map.copyOf` returns a Map that forbids structural changes. It **does not deep-copy** value objects: if a target object is mutable, it can still be modified through another reference. `Map.copyOf` also rejects null keys and values; iteration order of the result is not guaranteed.
 
-So sánh ba cách:
+Comparing three options:
 
-| API | Có cho sửa Map trả về? | Có tự sao chép sâu các giá trị? |
+| API | Allows modifying returned Map? | Deep-copies values automatically? |
 |---|---|---|
-| `Collectors.toMap` | Không có bảo đảm bất biến; thường dùng Map mutable | Không |
-| `Collectors.toUnmodifiableMap` | Không | Không |
-| `Map.copyOf(existingMap)` | Không | Không |
+| `Collectors.toMap` | No immutability guarantee; usually returns a mutable Map | No |
+| `Collectors.toUnmodifiableMap` | No | No |
+| `Map.copyOf(existingMap)` | No | No |
 
-`Collections.unmodifiableMap(existing)` cũng tạo một **view** không cho sửa qua chính view đó; nếu `existing` vẫn bị sửa từ nơi khác, view có thể phản ánh thay đổi. Cách này khác với việc tạo snapshot Map theo giá trị.
+`Collections.unmodifiableMap(existing)` creates a **view** that blocks modifications through the view itself; if `existing` is still modified elsewhere, the view reflects those changes. This differs from creating a value-level Map snapshot.
 
-## 10. Null, dữ liệu lỗi và hợp đồng khóa
+## 10. Nulls, Malformed Data, and Key Contracts
 
-Một chỉ mục tốt phải xác định rõ liệu các trường định danh có được phép null, rỗng, sai định dạng hay không.
+A well-designed index must explicitly specify whether identifier fields may be null, blank, or malformed.
 
-Ví dụ yêu cầu tất cả email đều có giá trị:
+Example requiring all emails to be present:
 
 ~~~java
 import java.util.List;
@@ -627,13 +627,13 @@ import java.util.stream.Collectors;
 Map<String, Customer> safeEmailIndex = customers.stream()
         .collect(Collectors.toMap(
                 c -> Objects.requireNonNull(
-                        c.email(), "Email không được null, id=" + c.id()
+                        c.email(), "Email must not be null, id=" + c.id()
                 ),
                 Function.identity()
         ));
 ~~~
 
-Nếu nghiệp vụ cho phép email `null`, thường **không** nên dùng null như một khóa duy nhất gom nhiều người. Có thể chọn lọc những người có email:
+If business logic allows `null` emails, you should generally **not** use null as a single key grouping many people. You can filter for those who have an email:
 
 ~~~java
 Map<String, Customer> knownEmails = customers.stream()
@@ -644,27 +644,27 @@ Map<String, Customer> knownEmails = customers.stream()
         ));
 ~~~
 
-Kết quả này **không bao gồm** khách hàng thiếu email. Nếu cần báo lỗi dữ liệu thiếu, hãy kiểm tra đầu vào và trả thông tin lỗi theo chính sách nghiệp vụ.
+This result **excludes** customers without an email. If missing data must be reported as an error, validate input and return error details according to business policy.
 
-**Lưu ý về null:**
+**Notes on null:**
 
-- `Collectors.toUnmodifiableMap` và `Map.copyOf` từ chối null.
-- Với `Collectors.toMap`, không nên dựa vào khả năng dùng giá trị null; các JDK thông dụng ném `NullPointerException` khi value mapper trả null và hợp đồng không hứa hỗ trợ null.
-- `Collectors.groupingBy` yêu cầu classifier cho khóa không null trong cách dùng chuẩn; muốn nhóm “không rõ thành phố”, hãy tạo một khóa đại diện rõ ràng, ví dụ `"CHƯA_XÁC_ĐỊNH"`, nếu giá trị này không xung đột với khóa thật.
-- Dùng `Objects.requireNonNull` để chặn dữ liệu sai tại biên xử lý, kèm thông tin nhận diện bản ghi.
+- `Collectors.toUnmodifiableMap` and `Map.copyOf` reject nulls.
+- With `Collectors.toMap`, do not rely on storing null values; standard JDKs throw `NullPointerException` when the value mapper returns null, and the contract does not promise null support.
+- `Collectors.groupingBy` requires the classifier to produce non-null keys in standard usage; to group "unknown city", create an explicit representative key such as `"UNKNOWN"`, provided it cannot collide with real keys.
+- Use `Objects.requireNonNull` to catch bad data at the processing boundary, including identifying record details.
 
 ~~~java
 Map<String, List<Customer>> byKnownCity = customers.stream()
         .collect(Collectors.groupingBy(
-                c -> c.city() == null ? "CHƯA_XÁC_ĐỊNH" : c.city()
+                c -> c.city() == null ? "UNKNOWN" : c.city()
         ));
 ~~~
 
-Với hệ thống có dữ liệu phức tạp, mô hình `Optional` hoặc một kiểu khóa đại diện trạng thái thiếu thông tin có thể rõ nghĩa hơn chuỗi sentinel.
+In systems with complex data, an `Optional` model or a dedicated key type representing missingness can be clearer than a sentinel string.
 
-## 11. Khóa phải ổn định: equals, hashCode và đối tượng mutable
+## 11. Keys Must Be Stable: equals, hashCode, and Mutable Objects
 
-`HashMap` sử dụng `hashCode` và `equals` của khóa để định vị entry. Nếu **trạng thái dùng để tính hashCode/equals thay đổi sau khi chèn**, lookup có thể thất bại dù vẫn đang dùng đúng tham chiếu object.
+`HashMap` uses the key's `hashCode` and `equals` to locate entries. If **state used to compute `hashCode`/`equals` changes after insertion**, lookups can fail even when holding the exact same object reference.
 
 ~~~java
 import java.util.HashMap;
@@ -689,35 +689,35 @@ final class MutableKey {
 
 MutableKey key = new MutableKey("A");
 Map<MutableKey, String> index = new HashMap<>();
-index.put(key, "Sản phẩm A");
+index.put(key, "Product A");
 
-key.code = "B"; // Làm thay đổi hashCode của khóa đã được chèn.
+key.code = "B"; // Changes hashCode of an already-inserted key.
 
-// Có thể không tìm được kết quả mong muốn:
+// May fail to find the expected result:
 System.out.println(index.get(new MutableKey("B")));
 ~~~
 
-Trong ví dụ, việc sửa `code` phá vỡ giả định khóa được giữ ổn định ở vị trí bucket đã chèn. Không dựa vào kết quả của `get` sau khi đã sửa khóa như một hợp đồng tin cậy.
+In the example, mutating `code` breaks the assumption that the key remains stable in the bucket where it was inserted. Do not rely on `get` after mutating a key as a dependable contract.
 
-Giải pháp:
+Solutions:
 
-- Dùng `String`, `Long` hoặc một `record` gồm các trường bất biến làm khóa.
-- Không dùng một entity mutable làm khóa nếu các field tham gia `equals`/`hashCode` có thể thay đổi.
-- Khi khóa nghiệp vụ thay đổi, **xóa entry cũ và thêm entry mới** bằng một quy trình cập nhật được kiểm soát, hoặc xây lại snapshot chỉ mục.
-- Với `TreeMap`, cũng cần giữ ổn định những trường ảnh hưởng comparator.
+- Use `String`, `Long`, or a `record` composed of immutable fields as keys.
+- Do not use a mutable entity as a key if fields participating in `equals`/`hashCode` can change.
+- When a business key changes, **remove the old entry and insert the new entry** through a controlled update procedure, or rebuild the index snapshot.
+- With `TreeMap`, also keep fields affecting the comparator stable.
 
-**Phân biệt:** Sửa giá trị `Customer` của một entry không nhất thiết phá hỏng bảng băm nếu **khóa Long** không thay đổi. Nhưng việc sửa email hoặc thành phố trong `Customer` có thể làm **chỉ mục phụ** tương ứng bị lỗi thời.
+**Distinction:** Mutating a `Customer` value inside an entry does not necessarily corrupt the hash table if the **`Long` key** does not change. However, modifying `email` or `city` on `Customer` can make the corresponding **secondary indexes** stale.
 
-## 12. Xây lại chỉ mục khi dữ liệu thay đổi
+## 12. Rebuilding Indexes When Data Changes
 
-Chỉ mục trong bộ nhớ nên có vòng đời rõ ràng:
+An in-memory index should have a clear lifecycle:
 
-1. Nhận hoặc tải **snapshot** dữ liệu đầu vào đã được kiểm tra.
-2. Tạo các Map cần thiết trên snapshot đó.
-3. Công bố các Map cho bên đọc khi chúng đã xây xong.
-4. Khi dữ liệu nguồn cập nhật, quyết định **xây lại toàn bộ** hoặc cập nhật từng entry theo một giao thức nhất quán.
+1. Receive or load a validated **snapshot** of the input data.
+2. Build the required Maps from that snapshot.
+3. Publish the Maps to readers once construction is complete.
+4. When source data updates, decide whether to **rebuild completely** or update individual entries under a consistent protocol.
 
-Ví dụ xây lại immutable index từ danh sách mới:
+Example rebuilding an immutable index from a new list:
 
 ~~~java
 import java.util.List;
@@ -734,13 +734,13 @@ static Map<Long, Customer> buildIdIndex(List<Customer> source) {
 }
 ~~~
 
-Khi danh sách nguồn có thể thay đổi do thread khác ghi, **không** chạy stream trên một collection mutable đang bị sửa đồng thời nếu collection không hỗ trợ. Nên chụp snapshot nhất quán dưới cơ chế đồng bộ phù hợp hoặc lấy snapshot bất biến từ tầng dữ liệu.
+When the source list may be modified by another writing thread, **do not** run a stream over a mutable collection while it is concurrently mutated unless the collection supports it. Take a consistent snapshot under proper synchronization or obtain an immutable snapshot from the data layer.
 
-### 12.1. Nhiều chỉ mục phải nhất quán với nhau
+### 12.1. Multiple indexes must stay consistent with one another
 
-Giả sử cần cập nhật email cho khách hàng `101`. Nếu hệ thống vừa thay email trong `byId` vừa chưa cập nhật `byEmail`, một yêu cầu đọc giữa chừng có thể thấy hai phiên bản dữ liệu.
+Suppose email must be updated for customer `101`. If the system updates the email in `byId` before updating `byEmail`, an in-flight read request may observe two different versions of the data.
 
-Một giải pháp là xây **một bundle chỉ mục bất biến** rồi thay toàn bộ tham chiếu tới bundle:
+One solution is to build **an immutable index bundle** and swap the entire bundle reference atomically:
 
 ~~~java
 import java.util.List;
@@ -768,13 +768,13 @@ static CustomerIndexes buildIndexes(List<Customer> snapshot) {
 }
 ~~~
 
-Nếu hệ thống có nhiều thread đọc/ghi, việc công bố bundle mới cần cơ chế visibility/thread-safety thích hợp (ví dụ một `volatile` reference hoặc `AtomicReference<CustomerIndexes>`). Mỗi yêu cầu đọc nên chụp **một** reference bundle và dùng xuyên suốt yêu cầu đó. Điều này tránh việc đọc từng Map từ hai phiên bản khác nhau.
+If the system has multiple reader/writer threads, publishing the new bundle requires an appropriate visibility/thread-safety mechanism (such as a `volatile` reference or `AtomicReference<CustomerIndexes>`). Each read request should capture **one** bundle reference and use it throughout that request. This prevents reading individual Maps from two different versions.
 
-Không nên xem một vài Map mutable là “đã đồng bộ” chỉ vì từng Map dùng cấu trúc concurrent: **tính nhất quán giữa các chỉ mục** là một yêu cầu cao hơn thread-safety của từng thao tác Map.
+Do not regard multiple mutable Maps as "synchronized" merely because each Map uses a concurrent structure: **cross-index consistency** is a stronger requirement than thread-safety of individual Map operations.
 
-## 13. Tạo chỉ mục bằng Collector song song
+## 13. Building Indexes with Parallel Collectors
 
-`parallelStream` có thể chia nguồn, tạo Map trung gian rồi ghép kết quả. Hợp đồng merge function trở nên đặc biệt quan trọng khi có khóa trùng.
+`parallelStream` can split the source, create intermediate Maps, and combine results. The merge-function contract becomes especially critical when keys collide.
 
 ~~~java
 import java.util.Map;
@@ -790,7 +790,7 @@ Map<Long, Customer> parallelById = customers.parallelStream()
 System.out.println(parallelById.get(101L).email()); // an@example.vn
 ~~~
 
-Với ID duy nhất và dữ liệu không thay đổi trong lúc chạy, đây là cách sử dụng đúng. Nhưng **parallel không bảo đảm nhanh hơn** với một danh sách nhỏ: chi phí phân chia và ghép Map trung gian có thể lớn hơn thời gian dựng Map tuần tự.
+With unique IDs and data that does not mutate during execution, this usage is valid. However, **parallel is not guaranteed to be faster** on a small list: splitting and merging intermediate Maps can cost more than building a Map sequentially.
 
 ### 13.1. toConcurrentMap
 
@@ -806,9 +806,9 @@ ConcurrentMap<Long, Customer> concurrentById = customers.parallelStream()
         ));
 ~~~
 
-`toConcurrentMap` tạo một collector concurrent/unordered theo hợp đồng của overload tương ứng. Dùng khi không cần encounter order và tình huống thực sự hưởng lợi từ thu thập đồng thời. **ConcurrentMap không cam kết thứ tự duyệt theo thứ tự đầu vào**.
+`toConcurrentMap` creates a concurrent/unordered collector per the contract of its overload. Use it when encounter order is not needed and the workload genuinely benefits from concurrent collection. **`ConcurrentMap` does not guarantee iteration order matching input order**.
 
-Nếu có khóa trùng, phải chỉ định chính sách merge phù hợp, tương tự `toMap`:
+If duplicate keys occur, specify an appropriate merge policy, just like `toMap`:
 
 ~~~java
 ConcurrentMap<Long, Product> latestConcurrent = revisions.parallelStream()
@@ -819,7 +819,7 @@ ConcurrentMap<Long, Product> latestConcurrent = revisions.parallelStream()
         ));
 ~~~
 
-Trong ví dụ này, `choosePreferred` là phép chọn đã khai báo ở mục 3, dựa trên thứ tự ưu tiên rõ ràng; không cần giả định thứ tự thread quyết định bản ghi nào thắng.
+In this example, `choosePreferred` is the selector declared in Section 3, based on an explicit priority order; there is no need to rely on thread scheduling to decide which record wins.
 
 ### 13.2. groupingByConcurrent
 
@@ -832,34 +832,34 @@ ConcurrentMap<String, List<Customer>> concurrentByCity =
         customers.parallelStream()
                 .collect(Collectors.groupingByConcurrent(Customer::city));
 
-System.out.println(concurrentByCity.get("Hà Nội").size()); // 2
+System.out.println(concurrentByCity.get("Hanoi").size()); // 2
 ~~~
 
-Collector này cho phép nhóm đồng thời và **không bảo đảm thứ tự encounter order của các phần tử trong nhóm**. `ConcurrentMap` có thể là thread-safe đối với các thao tác Map, nhưng **các List giá trị không được bảo đảm an toàn cho sửa đổi đồng thời sau khi thu thập**. Nếu cần thứ tự ổn định trong mỗi nhóm, có thể chọn `groupingBy` phù hợp trên nguồn có thứ tự, hoặc sắp xếp kết quả bằng khóa sắp xếp nghiệp vụ.
+This collector enables concurrent grouping and **does not guarantee encounter order of elements within groups**. `ConcurrentMap` may be thread-safe for Map operations, yet **the value Lists are not guaranteed to be safe for concurrent modification after collection**. If deterministic ordering inside each group is needed, choose an appropriate `groupingBy` on an ordered source, or sort results by a business sort key.
 
-### 13.3. Merge function cần hợp đồng phù hợp
+### 13.3. Merge functions need an appropriate contract
 
-Khi có nhiều kết quả trung gian cho cùng khóa, merge function nên bảo đảm dữ liệu không mất và cho kết quả đúng theo yêu cầu:
+When multiple intermediate results share the same key, the merge function should ensure no data is lost and the result satisfies requirements:
 
-- **Cộng số nguyên chính xác:** dùng `BigInteger::add` hoặc kiểu số đủ lớn.
-- **Gộp theo version:** dùng phép chọn có thứ tự ưu tiên xác định đầy đủ.
-- **Gộp nhiều giá trị:** thường dùng `groupingBy`; không tự sửa một `ArrayList` chia sẻ trong parallel stream.
-- **Giữ first/last:** phải xác định “first/last” theo encounter order hay theo một trường nghiệp vụ; không để thứ tự thread làm tiêu chí ngoài ý muốn.
+- **Exact integer addition:** use `BigInteger::add` or a sufficiently large numeric type.
+- **Merging by version:** use a selector with a fully deterministic priority order.
+- **Collecting multiple values:** usually use `groupingBy`; do not manually mutate a shared `ArrayList` in a parallel stream.
+- **Keeping first/last:** define whether "first/last" is by encounter order or by a business field; do not let thread order become an unintended criterion.
 
-Muốn kiểm chứng, đối chiếu Map tuần tự, Map song song và oracle độc lập, gồm trường hợp duplicate, nguồn rỗng và nhiều thứ tự dữ liệu. Với `Map<K, V>`, `Map.equals` so ánh xạ theo nội dung, không phụ thuộc thứ tự duyệt Map.
+To verify, compare sequential Map, parallel Map, and an independent oracle, covering duplicates, empty sources, and multiple data orderings. For `Map<K, V>`, `Map.equals` compares mappings by content regardless of Map iteration order.
 
-## 14. Kiểm chứng chỉ mục bằng oracle và bất biến
+## 14. Verifying Indexes with Oracles and Invariants
 
-Đối với chỉ mục **ID duy nhất**, các bất biến cơ bản:
+For a **unique-ID** index, basic invariants are:
 
-1. Số entry bằng số đối tượng nguồn (nếu ID thật sự duy nhất).
-2. Với mỗi đối tượng nguồn `c`, `index.get(c.id())` là đối tượng có dữ liệu tương đương `c`.
-3. Không tồn tại khóa ngoài nguồn.
-4. Chính sách khóa trùng được kiểm tra bằng một bộ dữ liệu cố tình trùng.
-5. Kết quả truy vấn của index khớp kết quả tra cứu trực tiếp từ danh sách.
-6. Khi xây trên snapshot mới, chỉ mục phản ánh đúng snapshot mới.
+1. Entry count equals source object count (if IDs are truly unique).
+2. For each source object `c`, `index.get(c.id())` is an object with data equivalent to `c`.
+3. No keys exist outside the source.
+4. Duplicate-key policy is tested with an intentionally duplicated dataset.
+5. Index query results match direct lookups from the list.
+6. When rebuilt on a new snapshot, the index accurately reflects the new snapshot.
 
-Ví dụ helper kiểm tra:
+Example verification helper:
 
 ~~~java
 import java.util.List;
@@ -872,7 +872,7 @@ static void verifyIdIndex(
 
     if (index.size() != source.size()) {
         throw new AssertionError(
-                "Số khóa không khớp số khách hàng"
+                "Key count does not match customer count"
         );
     }
 
@@ -880,18 +880,18 @@ static void verifyIdIndex(
         Customer actual = index.get(expected.id());
         if (!Objects.equals(expected, actual)) {
             throw new AssertionError(
-                    "Sai lookup cho ID " + expected.id()
+                    "Lookup mismatch for ID " + expected.id()
             );
         }
     }
 }
 ~~~
 
-Hàm này giả định `Customer` là record có `equals` theo nội dung. Nếu `Customer` là class mutable không có `equals` theo dữ liệu, phải thiết kế comparator/kiểm tra từng trường hoặc so một DTO bất biến chuẩn hóa.
+This helper assumes `Customer` is a record with value-based `equals`. If `Customer` is a mutable class without data-based `equals`, design a comparator/field-by-field check or compare normalized immutable DTOs.
 
-**Bổ sung phép thử khóa trùng** là bắt buộc nếu tính duy nhất đến từ dữ liệu bên ngoài; helper trên chỉ phát hiện sự không nhất quán với tập nguồn đã được xem là hợp lệ.
+**Adding a duplicate-key test** is mandatory if uniqueness comes from external data; the helper above only detects inconsistency against a source already assumed valid.
 
-### 14.1. Kiểm tra nhóm mà không mất/nhân đôi bản ghi
+### 14.1. Checking groups without losing or duplicating records
 
 ~~~java
 import java.util.List;
@@ -906,13 +906,13 @@ long totalMembers = groups.values().stream()
         .sum();
 
 if (totalMembers != customers.size()) {
-    throw new AssertionError("Nhóm bị mất hoặc nhân đôi khách hàng");
+    throw new AssertionError("Groups lost or duplicated customers");
 }
 ~~~
 
-Đây là một bất biến cần thiết, nhưng **chưa đủ**: một bản ghi có thể bị gán nhầm nhóm dù tổng số vẫn bằng nhau. Hãy kiểm tra thêm mọi đối tượng trong mỗi list thực sự có `city` tương ứng với khóa và số lần xuất hiện khớp nguồn.
+This is a necessary invariant, yet **not sufficient**: a record could be placed in the wrong group while the total count still matches. Also verify that every object in each list actually has the `city` matching its key and that occurrence counts match the source.
 
-### 14.2. So với phép tìm trực tiếp
+### 14.2. Comparing against direct search
 
 ~~~java
 import java.util.Objects;
@@ -928,48 +928,48 @@ Optional<Customer> fromIndex =
         Optional.ofNullable(byId.get(targetId));
 
 if (!Objects.equals(fromList, fromIndex)) {
-    throw new AssertionError("Chỉ mục không khớp nguồn");
+    throw new AssertionError("Index does not match source");
 }
 ~~~
 
-Chỉ mục giúp tối ưu các lần tìm kiếm sau khi đã xây xong; phép tìm trực tiếp vẫn có ích làm oracle trên bộ dữ liệu kiểm tra nhỏ. Nếu nguồn cho phép ID trùng, hai đường tra cứu phải dùng **cùng chính sách chọn** thì phép so sánh mới có ý nghĩa.
+An index optimizes subsequent searches once built; direct search remains useful as an oracle on small test datasets. If the source permits duplicate IDs, both lookup paths must apply the **same selection policy** for the comparison to be meaningful.
 
-## 15. Khi nào Map có lợi hơn quét Stream mỗi lần?
+## 15. When Is a Map Better Than Scanning a Stream Every Time?
 
-Giả sử có `n` khách hàng và cần thực hiện `q` lượt tra cứu ID.
+Suppose there are `n` customers and `q` ID lookups must be performed.
 
-| Cách làm | Công việc điển hình | Đánh đổi |
+| Approach | Typical work | Trade-off |
 |---|---|---|
-| Mỗi lần gọi `stream().filter(...).findFirst()` | Có thể O(n) cho mỗi lượt, tổng tới O(qn) | Không tốn cấu trúc chỉ mục; luôn đọc nguồn tại thời điểm truy vấn |
-| Xây `HashMap` một lần rồi `get` | Xây thường O(n), mỗi `get` trung bình O(1) | Tốn O(n) bộ nhớ bổ sung và công bảo trì chỉ mục |
-| Xây `TreeMap` | Xây khoảng O(n log n), tra cứu O(log n) | Hỗ trợ thứ tự/range query theo khóa |
-| `groupingBy` theo khóa không duy nhất | Duyệt nguồn để nhóm, lưu các list theo khóa | Hữu ích cho truy vấn theo nhóm; tốn bộ nhớ tham chiếu |
-| Cập nhật từng bản ghi vào Map đã có | Có thể tránh xây lại toàn bộ | Phải bảo đảm đồng bộ nhiều chỉ mục và chính sách khóa |
+| Calling `stream().filter(...).findFirst()` each time | Up to O(n) per lookup, up to O(qn) total | No index structure cost; always reads source at query time |
+| Building a `HashMap` once, then calling `get` | Typically O(n) build, O(1) average per `get` | Costs O(n) extra memory and index maintenance effort |
+| Building a `TreeMap` | Roughly O(n log n) build, O(log n) lookup | Supports key ordering and range queries |
+| `groupingBy` on a non-unique key | Scans source to group, stores lists per key | Useful for per-group queries; costs reference memory |
+| Updating individual records in an existing Map | Can avoid full rebuild | Must keep multiple indexes and key policies in sync |
 
-Đây là mô hình chi phí định tính: hiệu năng thực tế phụ thuộc phân bố khóa, triển khai Map, GC, lượng dữ liệu, tần suất cập nhật và cache locality. Đừng bật `parallelStream` chỉ vì đang xây một chỉ mục; trước tiên hãy kiểm tra tính đúng và đo với dữ liệu thật.
+This is a qualitative cost model: actual performance depends on key distribution, Map implementation, GC, data volume, update frequency, and cache locality. Do not enable `parallelStream` just because you are building an index; verify correctness first and benchmark with real data.
 
-**Khi chỉ tìm đúng một lần**, cách quét `findFirst` thường đủ rõ và có thể rẻ hơn tổng chi phí dựng Map. **Khi cần hàng nghìn lượt tra cứu trên cùng snapshot**, chỉ mục Map thường đáng cân nhắc.
+**When searching only once**, scanning with `findFirst` is usually clear enough and can be cheaper than the total cost of building a Map. **When thousands of lookups are needed against the same snapshot**, a Map index is usually worth considering.
 
-## 16. Các lỗi thường gặp
+## 16. Common Errors
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Error | Consequence | Resolution |
 |---|---|---|
-| Chọn email/thành phố làm khóa duy nhất khi dữ liệu có trùng | `toMap` ném `IllegalStateException` | Xác định uniqueness; dùng merge có chính sách hoặc `groupingBy` |
-| Merge bằng `(old, next) -> next` mà không biết thứ tự dữ liệu | “Bản ghi thắng” không phản ánh phiên bản đúng | Dùng version/timestamp và tie-break rõ ràng |
-| Chuẩn hóa khóa chỉ lúc lập chỉ mục | `get` trả null dù dữ liệu có | Cùng hàm chuẩn hóa cho cả ghi và đọc |
-| Giá trị `null` trong `toMap` | Có thể ném `NullPointerException` | Kiểm tra/chuẩn hóa dữ liệu trước |
-| Sửa object dùng làm khóa HashMap | Lookup không còn đáng tin cậy | Khóa bất biến, stable `equals`/`hashCode` |
-| Sửa Customer sau khi tạo index theo email | Map phụ giữ khóa email cũ | Rebuild hoặc cập nhật đồng bộ |
-| Coi `toUnmodifiableMap` là deep copy | Giá trị mutable vẫn có thể đổi | DTO bất biến hoặc defensive copy sâu theo nhu cầu |
-| Dựa vào thứ tự duyệt của `HashMap` | Kết quả hiển thị thiếu ổn định | `LinkedHashMap` tuần tự hoặc sắp xếp theo khóa |
-| `groupingByConcurrent` rồi sửa các List từ nhiều thread | Race condition | Không sửa List chia sẻ; chọn cấu trúc/phương thức đồng bộ phù hợp |
-| Cùng một Stream thực hiện hai terminal operation | `IllegalStateException` | Tạo Stream mới từ snapshot có thể duyệt lại |
-| Quên xử lý khóa không tồn tại | `NullPointerException` khi gọi method trên kết quả `get` | `Optional.ofNullable`, `getOrDefault` hoặc kiểm tra null |
-| Chỉ so số entry trong index | Có thể vẫn gán sai khóa | Kiểm tra từng cặp khóa/giá trị và oracle |
+| Choosing email/city as a unique key when duplicates exist | `toMap` throws `IllegalStateException` | Check uniqueness; use a policy-driven merge or `groupingBy` |
+| Merging with `(old, next) -> next` without knowing data order | "Winning record" may not reflect the right version | Use explicit version/timestamp and tie-breaker |
+| Normalizing keys only during indexing | `get` returns null even though data exists | Use the same normalization function for both writes and reads |
+| `null` values in `toMap` | May throw `NullPointerException` | Validate/normalize data beforehand |
+| Mutating an object used as a HashMap key | Lookups become unreliable | Immutable keys with stable `equals`/`hashCode` |
+| Mutating Customer after building an email index | Secondary Map retains the stale email key | Rebuild or update atomically/in sync |
+| Treating `toUnmodifiableMap` as a deep copy | Mutable values can still change | Immutable DTOs or defensive deep copies as needed |
+| Relying on `HashMap` iteration order | Display order becomes unstable | Sequential `LinkedHashMap` or sort by key |
+| `groupingByConcurrent` followed by mutating Lists from multiple threads | Race condition | Do not mutate shared Lists; choose an appropriate concurrent structure/method |
+| Running two terminal operations on the same Stream | `IllegalStateException` | Create a new Stream from a re-traversable snapshot |
+| Forgetting to handle missing keys | `NullPointerException` when calling methods on `get` result | `Optional.ofNullable`, `getOrDefault`, or null checks |
+| Checking only entry count in an index | Wrong key mappings can slip through | Verify every key/value pair and compare against an oracle |
 
-## 17. Ví dụ hoàn chỉnh: tạo hai chỉ mục và kiểm tra
+## 17. Complete Example: Building and Verifying Two Indexes
 
-Chương trình độc lập dưới đây tạo chỉ mục duy nhất theo ID, chỉ mục nhiều giá trị theo thành phố, rồi kiểm tra kết quả đầu ra. Các đối tượng `Customer` được mô hình hóa bằng `record` bất biến theo các trường đang sử dụng.
+The standalone program below builds a unique index by ID, a multi-value index by city, and then verifies the output. `Customer` objects are modeled as immutable `record`s for the fields used.
 
 ~~~java
 import java.util.List;
@@ -1005,7 +1005,7 @@ public class CustomerIndexDemo {
                         )
                 ));
 
-        // Tạo một Map snapshot không cho sửa cấu trúc.
+        // Create a structurally unmodifiable Map snapshot.
         Map<String, List<Customer>> byCity = Map.copyOf(grouped);
 
         return new Indexes(byId, byCity);
@@ -1013,7 +1013,7 @@ public class CustomerIndexDemo {
 
     static void check(List<Customer> source, Indexes indexes) {
         if (indexes.byId().size() != source.size()) {
-            throw new AssertionError("ID phải duy nhất");
+            throw new AssertionError("IDs must be unique");
         }
 
         for (Customer customer : source) {
@@ -1021,7 +1021,7 @@ public class CustomerIndexDemo {
                     customer,
                     indexes.byId().get(customer.id()))) {
                 throw new AssertionError(
-                        "Tra cứu sai cho ID " + customer.id()
+                        "Lookup mismatch for ID " + customer.id()
                 );
             }
         }
@@ -1031,15 +1031,15 @@ public class CustomerIndexDemo {
                 .sum();
 
         if (groupedCount != source.size()) {
-            throw new AssertionError("Sai số khách hàng theo nhóm");
+            throw new AssertionError("Grouped customer count mismatch");
         }
     }
 
     public static void main(String[] args) {
         List<Customer> customers = List.of(
-                new Customer(101L, "an@example.vn", "Hà Nội", true),
-                new Customer(102L, "binh@example.vn", "Hồ Chí Minh", true),
-                new Customer(103L, "chi@example.vn", "Hà Nội", false)
+                new Customer(101L, "an@example.vn", "Hanoi", true),
+                new Customer(102L, "binh@example.vn", "Ho Chi Minh City", true),
+                new Customer(103L, "chi@example.vn", "Hanoi", false)
         );
 
         Indexes indexes = build(customers);
@@ -1048,7 +1048,7 @@ public class CustomerIndexDemo {
         System.out.println(indexes.byId().get(102L).email());
         // binh@example.vn
 
-        System.out.println(indexes.byCity().get("Hà Nội").size());
+        System.out.println(indexes.byCity().get("Hanoi").size());
         // 2
 
         System.out.println("INDEX_OK");
@@ -1056,17 +1056,17 @@ public class CustomerIndexDemo {
 }
 ~~~
 
-Ở đây, `collectingAndThen(toList(), List::copyOf)` tạo list nhóm không thể thay đổi cấu trúc. `Map.copyOf` tạo Map nhóm không cho thêm/bớt entry, phù hợp với mục đích snapshot chỉ đọc.
+Here, `collectingAndThen(toList(), List::copyOf)` makes each group list structurally unmodifiable. `Map.copyOf` makes the group Map disallow adding or removing entries, fitting a read-only snapshot.
 
-**Giới hạn cần hiểu:** Đây là kiểm tra cơ bản minh họa, chưa kiểm tra từng membership của nhóm theo thành phố. Với dữ liệu thực, cần bổ sung kiểm tra khóa email, khóa trùng, các ca null, số lượng lớn và quy tắc cập nhật từ nguồn. Nếu dùng kiểu đối tượng mutable trong giá trị Map, bản sao của Map không tự bảo vệ trạng thái bên trong.
+**Limitation to understand:** This is a basic illustrative check and does not yet verify individual city group memberships. For real data, add checks for email keys, duplicate keys, null cases, large volumes, and source update rules. If mutable object types are used as Map values, copying the Map does not automatically protect their internal state.
 
-## 18. Bài tập tự kiểm tra (có đáp án)
+## 18. Self-Check Exercises (with Answers)
 
-### Bài 1. Tạo chỉ mục ID
+### Exercise 1. Building an ID index
 
-**Đề:** Cho `List<Product> products`, trong đó `record Product(long id, String name) {}` và ID duy nhất. Xây dựng `Map<Long, Product>` để tra cứu sản phẩm theo ID.
+**Prompt:** Given `List<Product> products`, where `record Product(long id, String name) {}` and IDs are unique, build a `Map<Long, Product>` to look up products by ID.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 Map<Long, Product> byId = products.stream()
@@ -1076,63 +1076,62 @@ Map<Long, Product> byId = products.stream()
         ));
 ~~~
 
-`Function.identity()` giữ đối tượng làm giá trị. Nếu nguồn có ID trùng, collector hai tham số ném `IllegalStateException`.
+`Function.identity()` keeps the object as the value. If the source contains duplicate IDs, the two-argument collector throws `IllegalStateException`.
 
-### Bài 2. Một thành phố có nhiều khách hàng
+### Exercise 2. Multiple customers in one city
 
-**Đề:** Nếu có hai khách hàng ở `"Hà Nội"`, có dùng `toMap(Customer::city, identity())` được không?
+**Prompt:** If two customers live in `"Hanoi"`, can you use `toMap(Customer::city, identity())`?
 
-**Đáp án:** Không dùng overload hai tham số cho quan hệ này vì khóa trùng. Chọn `groupingBy(Customer::city)` để tạo `Map<String, List<Customer>>`.
+**Answer:** Do not use the two-argument overload for this relationship because keys collide. Choose `groupingBy(Customer::city)` to produce `Map<String, List<Customer>>`.
 
-### Bài 3. Trùng khóa do chuẩn hóa
+### Exercise 3. Duplicate keys caused by normalization
 
-**Đề:** `" AN@EXAMPLE.VN "` và `"an@example.vn"` sau chuẩn hóa trở thành cùng khóa. Điều gì xảy ra với `toMap` hai tham số?
+**Prompt:** `" AN@EXAMPLE.VN "` and `"an@example.vn"` become the same key after normalization. What happens with two-argument `toMap`?
 
-**Đáp án:** Nó phát hiện khóa trùng và ném `IllegalStateException`. Cần xem hai bản ghi có thật sự cùng định danh theo quy ước nghiệp vụ không và quyết định báo lỗi, gộp hay chọn bản ghi theo tiêu chí rõ ràng.
+**Answer:** It detects a duplicate key and throws `IllegalStateException`. You must determine whether the two records truly represent the same identifier under business rules and decide to throw an error, merge, or pick a record by explicit criteria.
 
-### Bài 4. Chọn theo revision
+### Exercise 4. Choosing by revision
 
-**Đề:** Hai bản ghi cùng ID có revision 3 và 5. Cách chọn nào an toàn về mặt ý nghĩa hơn `(old, next) -> next`?
+**Prompt:** Two records share the same ID with revisions 3 and 5. Which selection approach is semantically safer than `(old, next) -> next`?
 
-**Đáp án:** Chọn bản ghi revision cao hơn bằng comparator hoặc merge function có quy tắc rõ ràng. Nếu revision bằng nhau nhưng dữ liệu mâu thuẫn, cần chính sách tie-break hoặc báo lỗi; đừng lấy thứ tự thực thi thread làm chính sách.
+**Answer:** Select the record with the higher revision using a comparator or merge function with explicit rules. If revisions match yet data conflicts, define a tie-breaking policy or throw an error; do not let thread execution order act as a policy.
 
-### Bài 5. Kiểm tra khóa thiếu
+### Exercise 5. Checking missing keys
 
-**Đề:** `byId.get(999L)` có thể trả gì? Làm sao không bị `NullPointerException`?
+**Prompt:** What can `byId.get(999L)` return? How do you avoid `NullPointerException`?
 
-**Đáp án:** Khi không có ID này, nó trả `null`. Dùng điều kiện kiểm tra, `Optional.ofNullable(byId.get(999L))` hoặc một giá trị mặc định phù hợp.
+**Answer:** When that ID is absent, it returns `null`. Use a conditional check, `Optional.ofNullable(byId.get(999L))`, or an appropriate default value.
 
-### Bài 6. Chỉ mục không tự cập nhật
+### Exercise 6. Indexes do not auto-update
 
-**Đề:** Sau khi tạo `emailIndex`, email của khách hàng thay đổi từ `a@example.vn` sang `b@example.vn`. Gọi `emailIndex.get("b@example.vn")` có tự tìm thấy người đó không?
+**Prompt:** After building `emailIndex`, a customer's email changes from `a@example.vn` to `b@example.vn`. Will `emailIndex.get("b@example.vn")` automatically find that person?
 
-**Đáp án:** Không. Map không tự cập nhật khóa. Cần xây lại chỉ mục hoặc thực hiện cập nhật khóa bằng quy trình nhất quán, và bảo đảm các chỉ mục liên quan cùng dùng phiên bản dữ liệu phù hợp.
+**Answer:** No. Maps do not automatically update keys. You must rebuild the index or update the key via a consistent procedure, ensuring related indexes stay on the same data version.
 
-### Bài 7. Thứ tự
+### Exercise 7. Ordering
 
-**Đề:** Ứng dụng phải hiển thị các ID theo thứ tự xuất hiện trong List. Nên dùng Map nào?
+**Prompt:** The application must display IDs in the order they appear in the List. Which Map should be used?
 
-**Đáp án:** Có thể dùng `LinkedHashMap` qua overload `toMap(..., LinkedHashMap::new)` với Stream tuần tự có encounter order. Nếu cần thứ tự ID tăng dần, dùng `TreeMap` hoặc sắp xếp rõ ràng.
+**Answer:** You can use `LinkedHashMap` via `toMap(..., LinkedHashMap::new)` with an ordered sequential Stream. If ascending ID order is needed, use `TreeMap` or sort explicitly.
 
-### Bài 8. Bất biến của nhóm
+### Exercise 8. Group invariant
 
-**Đề:** Tổng kích thước các List trong `Map<String, List<Customer>> byCity` có bằng số khách hàng nguồn không?
+**Prompt:** Does the sum of sizes of the Lists in `Map<String, List<Customer>> byCity` equal the number of source customers?
 
-**Đáp án:** Nếu mỗi khách hàng được phân vào đúng một nhóm và không bị lọc/bị nhân đôi, **có**. Cần kiểm tra thêm từng khách hàng có nằm đúng thành phố để tránh PASS giả khi bản ghi bị gán sai nhóm.
+**Answer:** If every customer is placed into exactly one group without being filtered out or duplicated, **yes**. Also check that each customer actually belongs to the right city to avoid false passes when records are assigned to the wrong group.
 
-### Bài 9. Nguồn có khóa null
+### Exercise 9. Sources with null keys
 
-**Đề:** Nếu `Customer.city() == null`, có nên gọi trực tiếp `groupingBy(Customer::city)` không?
+**Prompt:** If `Customer.city() == null`, should you call `groupingBy(Customer::city)` directly?
 
-**Đáp án:** Không. Nên xác nhận dữ liệu hoặc ánh xạ null thành một khóa biểu diễn trạng thái thiếu thông tin theo quy tắc ứng dụng. `groupingBy` không nhận classifier trả null trong cách dùng thông thường.
+**Answer:** No. Validate the data or map null to a key representing missing information according to application rules. `groupingBy` does not accept a classifier returning null in standard usage.
 
-### Bài 10. Khi nào không cần Map?
+### Exercise 10. When is a Map unnecessary?
 
-**Đề:** Có 10 khách hàng và chương trình chỉ tìm một ID đúng một lần. Có nên xây `Map<Long, Customer>` không?
+**Prompt:** There are 10 customers and the program looks up one ID exactly once. Should you build `Map<Long, Customer>`?
 
-**Đáp án:** Không bắt buộc. `stream().filter(c -> c.id() == target).findFirst()` đơn giản và có thể đủ nhanh. Xây chỉ mục thường có lợi khi cùng tập dữ liệu phải phục vụ **nhiều** lượt lookup hoặc các thao tác truy cập theo khóa.
+**Answer:** Not necessarily. `stream().filter(c -> c.id() == target).findFirst()` is simple and likely fast enough. Building an index usually pays off when the same dataset must serve **many** lookups or key-based access operations.
 
 ---
 
-**Ghi nhớ:** Xây chỉ mục từ danh sách bằng Java Stream API là việc xác định rõ **khóa nào duy nhất, khóa nào lặp, cần lưu giá trị gì và Map được dùng trong bao lâu**. Dùng `toMap` cho lookup theo khóa duy nhất với chính sách trùng rõ ràng, `groupingBy` cho một khóa có nhiều đối tượng, và `mapFactory` khi cần cấu trúc Map cụ thể. Chuẩn hóa khóa nhất quán, giữ khóa ổn định, xử lý null, xem Map như snapshot cần bảo trì, và kiểm chứng chỉ mục bằng dữ liệu nguồn cùng các ca biên trước khi tối ưu hoặc chuyển sang song song.
-
+**Takeaway:** Building indexes from a list with the Java Stream API means clearly establishing **which keys are unique, which keys repeat, what values to store, and how long the Map is used**. Use `toMap` for unique-key lookups with explicit collision policies, `groupingBy` for one key with many objects, and `mapFactory` when a specific Map structure is needed. Normalize keys consistently, keep keys stable, handle nulls, treat Maps as snapshots requiring maintenance, and verify indexes against source data and edge cases before optimizing or switching to parallel execution.

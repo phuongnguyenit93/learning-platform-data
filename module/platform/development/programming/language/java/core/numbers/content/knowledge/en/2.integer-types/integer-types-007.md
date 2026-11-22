@@ -1,41 +1,41 @@
-# Giá trị mặc định của field và yêu cầu gán biến cục bộ trong Java
+# Default Values of Fields and Definite Assignment of Local Variables in Java
 
-Trong Java, **field của đối tượng và field `static` luôn có giá trị ban đầu**, dù người viết chưa gán tường minh. Ngược lại, **biến cục bộ phải được gán chắc chắn trước khi đọc** (*definite assignment*). Hai quy tắc này cùng tồn tại nhưng áp dụng ở hai phạm vi khác nhau. Hiểu đúng chúng giúp phân biệt lỗi biên dịch với giá trị xuất hiện lúc chương trình chạy, đặc biệt khi làm việc với kiểu số nguyên.
+In Java, **instance fields and `static` fields always have an initial value**, even if the author has not explicitly assigned one. Conversely, **local variables must be definitely assigned before being read** (*definite assignment*). Both rules coexist, yet apply to two different scopes. Understanding them properly helps distinguish compile-time errors from runtime values, especially when working with integer types.
 
-## 1. Phân biệt field, biến cục bộ, tham số và phần tử mảng
+## 1. Distinguishing Fields, Local Variables, Parameters, and Array Elements
 
-| Vị trí khai báo | Ví dụ | Có giá trị mặc định khi không gán tường minh? | Quy tắc khi đọc |
+| Declaration Location | Example | Has Default Value When Not Explicitly Assigned? | Rule When Reading |
 | --- | --- | --- | --- |
-| Field của đối tượng (*instance field*) | `class A { int count; }` | Có: `0` | Đọc được sau khi tạo đối tượng; giá trị có thể bị thay bởi initializer/constructor |
-| Field của lớp (*static field*) | `static long total;` | Có: `0L` | Đọc được; dùng chung theo lớp, không riêng cho từng đối tượng |
-| Biến cục bộ trong method, constructor hoặc block | `void run() { int n; }` | **Không** | Trình biên dịch phải chứng minh biến được gán trước mọi lần đọc |
-| Tham số method/constructor | `void run(int n)` | Không áp dụng mặc định tại nơi khai báo | Giá trị đến từ lời gọi; có thể đọc ngay trong thân method |
-| Phần tử của mảng mới tạo | `new int[3]` | Có: từng phần tử là `0` | Có thể đọc phần tử ngay sau khi tạo mảng |
-| Biến cục bộ tham chiếu tới mảng | `int[] a;` | **Không** | Phải gán cho `a` trước khi dùng, dù phần tử của mảng được mặc định nếu mảng đã được tạo |
+| Instance field | `class A { int count; }` | Yes: `0` | Readable after object creation; the value may be changed by initializers/constructors |
+| Class (`static`) field | `static long total;` | Yes: `0L` | Readable; shared across the class, not per object |
+| Local variable in a method, constructor, or block | `void run() { int n; }` | **No** | The compiler must prove the variable is assigned before every read |
+| Method/constructor parameter | `void run(int n)` | Not applicable as a declaration-site default | Value comes from the caller; can be read immediately in the method body |
+| Element of a newly created array | `new int[3]` | Yes: each element is `0` | Elements can be read immediately after creating the array |
+| Local variable referencing an array | `int[] a;` | **No** | Must assign `a` before use, even though array elements get defaults once an array is created |
 
-Một biến chỉ được coi là *local* vì nó được khai báo trong thân method, constructor hoặc block; không phải vì nó mang tên `int` hay được khai báo bằng `final`. Kiểu dữ liệu không quyết định quy tắc gán trước khi đọc: vị trí khai báo mới là yếu tố then chốt.
+A variable is considered *local* solely because it is declared inside a method body, constructor, or block; not because it is of type `int` or declared with `final`. The data type does not determine the assign-before-reading rule: the declaration location is the deciding factor.
 
-## 2. Giá trị mặc định của mọi loại field
+## 2. Default Values of All Field Types
 
-Khi một đối tượng được tạo, các instance field của nó nhận giá trị mặc định trước khi chạy các phần khởi tạo tường minh. Khi một lớp được chuẩn bị khởi tạo, các static field có giá trị mặc định trước khi chạy static initializer. Phần tử của mảng mới tạo cũng được khởi tạo mặc định.
+When an object is created, its instance fields receive default values before explicit initializers run. When a class is prepared for initialization, its static fields receive default values before static initializers run. Elements of a newly created array are also initialized to defaults.
 
-| Kiểu | Giá trị mặc định | Lưu ý |
+| Type | Default Value | Notes |
 | --- | --- | --- |
-| `byte` | `0` | Số nguyên 8 bit có dấu |
-| `short` | `0` | Số nguyên 16 bit có dấu |
-| `int` | `0` | Số nguyên 32 bit có dấu |
-| `long` | `0L` | Số nguyên 64 bit có dấu; cách viết `0L` cho thấy rõ kiểu `long` |
-| `float` | `0.0f` | Số thực 32 bit |
-| `double` | `0.0d` | Số thực 64 bit |
-| `char` | `'\u0000'` | Ký tự NUL (mã số 0), khác `'0'` và dấu cách |
-| `boolean` | `false` | Không phải `0` |
-| Mọi kiểu tham chiếu, gồm `String`, `Integer`, object, array | `null` | Chưa tham chiếu tới đối tượng nào; **không phải** chuỗi rỗng hay mảng rỗng |
+| `byte` | `0` | 8-bit signed integer |
+| `short` | `0` | 16-bit signed integer |
+| `int` | `0` | 32-bit signed integer |
+| `long` | `0L` | 64-bit signed integer; writing `0L` makes the `long` type explicit |
+| `float` | `0.0f` | 32-bit floating-point number |
+| `double` | `0.0d` | 64-bit floating-point number |
+| `char` | `'\u0000'` | NUL character (numeric code 0), distinct from `'0'` and space |
+| `boolean` | `false` | Not `0` |
+| Any reference type, including `String`, `Integer`, objects, arrays | `null` | References no object yet; **not** an empty string or empty array |
 
-Các giá trị trong bảng áp dụng cho field **chưa được khởi tạo tường minh**, không phải cam kết field sẽ giữ giá trị đó mãi. Ví dụ `int quantity = 15;` có giá trị sử dụng là `15` sau khi phần khởi tạo field hoàn tất.
+The values in the table apply to fields **not yet explicitly initialized**, not a guarantee that the field will keep that value forever. For example, `int quantity = 15;` has an effective value of `15` after field initialization completes.
 
-### Ví dụ đầy đủ: field, biến cục bộ đã gán và phần tử mảng
+### Complete Example: Fields, Assigned Local Variable, and Array Elements
 
-Tạo tệp `DefaultValuesDemo.java`:
+Create the file `DefaultValuesDemo.java`:
 
 ```java
 public class DefaultValuesDemo {
@@ -47,8 +47,8 @@ public class DefaultValuesDemo {
 
     public static void main(String[] args) {
         DefaultValuesDemo demo = new DefaultValuesDemo();
-        int localCount = 7;       // local: được gán trước khi đọc
-        int[] scores = new int[2]; // phần tử mảng tự nhận 0
+        int localCount = 7;       // local: assigned before reading
+        int[] scores = new int[2]; // array elements automatically receive 0
 
         System.out.println("total=" + total);
         System.out.println("count=" + demo.count);
@@ -61,14 +61,14 @@ public class DefaultValuesDemo {
 }
 ```
 
-Biên dịch và chạy (JDK 17 trở lên):
+Compile and run (JDK 17 or later):
 
 ```bash
 javac DefaultValuesDemo.java
 java DefaultValuesDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 total=0
@@ -80,24 +80,24 @@ localCount=7
 scores=0,0
 ```
 
-Phép ép `(int) demo.marker` hiển thị mã số `0`, vì ký tự NUL thường không nhìn thấy nếu in trực tiếp. Phép nối chuỗi với tham chiếu `null` tạo ra chữ `null`; **gọi method trên `null` thì khác** và có thể gây `NullPointerException`.
+The cast `(int) demo.marker` displays the numeric code `0`, because the NUL character is normally invisible if printed directly. String concatenation with a `null` reference produces the text `null`; **calling a method on `null` is different** and can throw `NullPointerException`.
 
-## 3. Biến cục bộ: khai báo không đồng nghĩa đã gán
+## 3. Local Variables: Declaration Does Not Mean Assigned
 
-Java cho phép **khai báo** biến cục bộ trước rồi **gán** sau, nhưng không cho đọc trước khi biến được gán chắc chắn trên mọi đường đi dẫn tới lệnh đọc.
+Java allows **declaring** a local variable first and **assigning** it later, but does not allow reading it before it is definitely assigned along every path reaching the read.
 
 ```java
 class InvalidLocal {
     static void show() {
         int value;
-        System.out.println(value); // LỖI BIÊN DỊCH
+        System.out.println(value); // COMPILE ERROR
     }
 }
 ```
 
-Đây là đoạn **minh họa lỗi**, không phải chương trình để chạy. `javac` thường báo `variable value might not have been initialized`. Không có bước nào ở đây in `0`: trình biên dịch từ chối mã trước khi chạy.
+This snippet is an **error illustration**, not a program to run. `javac` typically reports `variable value might not have been initialized`. Nothing here prints `0`: the compiler rejects the code before execution.
 
-Cách đúng là gán trước lần đọc:
+The right way is to assign before the first read:
 
 ```java
 class ValidLocal {
@@ -109,30 +109,30 @@ class ValidLocal {
 }
 ```
 
-`int value = 42;` là cách gộp khai báo và gán vào một dòng, nhưng **không bắt buộc phải viết cùng dòng**. Đọc cũng xảy ra ngầm trong biểu thức:
+`int value = 42;` combines declaration and assignment on one line, though **writing them on the same line is not mandatory**. Reading also happens implicitly inside expressions:
 
 ```java
 class InvalidIncrement {
     static void show() {
         int count;
-        // count++;      // sai: cần đọc count trước khi cộng
-        // count += 1;    // sai: cũng cần đọc giá trị cũ
-        // count = count + 1; // sai: vế phải đọc count
-        count = 0;        // gán lần đầu, hợp lệ
-        count++;          // đọc và tăng sau khi đã gán, hợp lệ
+        // count++;      // invalid: must read count before incrementing
+        // count += 1;    // invalid: also needs to read the old value
+        // count = count + 1; // invalid: right-hand side reads count
+        count = 0;        // initial assignment, valid
+        count++;          // read and increment after assignment, valid
     }
 }
 ```
 
-Một biến cục bộ `Integer number;` cũng **không tự nhận `null`**; muốn cho phép nó mang giá trị `null` lúc đầu thì phải viết `Integer number = null;`. Tương tự, `int[] values;` không tạo mảng và cũng không khởi tạo biến tham chiếu đó.
+A local variable `Integer number;` also **does not automatically become `null`**; to allow it to hold `null` initially, you must write `Integer number = null;`. Similarly, `int[] values;` neither creates an array nor initializes that reference variable.
 
-## 4. Definite assignment phụ thuộc đường đi của chương trình
+## 4. Definite Assignment Depends on Program Control Flow
 
-Trình biên dịch phân tích các luồng điều khiển có thể đi đến chỗ đọc biến, không chỉ kiểm tra có dấu `=` ở một dòng đứng trước hay không.
+The compiler analyzes all control-flow paths that can reach a variable read, rather than just checking whether `=` appears on a preceding line.
 
-### Có `if` / `else`: mọi nhánh dẫn tới chỗ đọc đều gán
+### With `if` / `else`: Every Path Reaching the Read Assigns It
 
-Tệp `DefiniteAssignmentDemo.java`:
+File `DefiniteAssignmentDemo.java`:
 
 ```java
 public class DefiniteAssignmentDemo {
@@ -143,7 +143,7 @@ public class DefiniteAssignmentDemo {
         } else {
             result = 0;
         }
-        return result; // cả hai nhánh đều đã gán
+        return result; // both branches have assigned it
     }
 
     public static void main(String[] args) {
@@ -163,7 +163,7 @@ passed=100
 failed=0
 ```
 
-Nếu bỏ `else`, biến có thể chưa được gán khi điều kiện sai:
+If you omit `else`, the variable may remain unassigned when the condition is false:
 
 ```java
 class MissingBranch {
@@ -172,14 +172,14 @@ class MissingBranch {
         if (passed) {
             result = 100;
         }
-        return result; // LỖI BIÊN DỊCH: có đường đi chưa gán
+        return result; // COMPILE ERROR: an unassigned path exists
     }
 }
 ```
 
-Có thể sửa bằng cách gán ban đầu (`int result = 0;`), gán ở nhánh `else`, hoặc `return` sớm tại nhánh không gán. Chỉ cần bảo đảm **mọi đường đi thực sự tới chỗ đọc** đều đã gán; không nhất thiết mọi nhánh phải gán nếu nhánh đó kết thúc method trước khi đọc.
+You can fix this by giving an initial assignment (`int result = 0;`), assigning in the `else` branch, or returning early in the unassigned branch. You only need to ensure **every path that actually reaches the read** has assigned the variable; not every branch must assign it if that branch exits the method before the read.
 
-### Vòng lặp: thân vòng có thể không chạy
+### Loops: The Loop Body Might Not Execute
 
 ```java
 class LoopCase {
@@ -189,52 +189,52 @@ class LoopCase {
             last = 10;
             break;
         }
-        // System.out.println(last); // sai: vòng while có thể không chạy
+        // System.out.println(last); // invalid: while loop might not execute
     }
 }
 ```
 
-Nếu cần dùng `last` sau vòng lặp, hãy cấp một giá trị ban đầu hợp lý hoặc tổ chức lại luồng điều khiển. Việc người lập trình “biết” điều kiện thường đúng không thay thế được chứng minh *definite assignment* của trình biên dịch.
+If you need to use `last` after the loop, give it a sensible initial value or restructure the control flow. The programmer “knowing” a condition is usually true does not replace the compiler's *definite assignment* proof.
 
-### Tham số và biến cục bộ được gán `null`
+### Parameters and Local Variables Assigned `null`
 
 ```java
 class AssignedDoesNotMeanNonNull {
     static void inspect(String text) {
-        String local = text; // đã được gán, kể cả khi text là null
-        // local.length() sẽ ném NullPointerException nếu local == null
+        String local = text; // assigned, even when text is null
+        // local.length() will throw NullPointerException if local == null
         System.out.println(local == null ? "missing" : local.length());
     }
 }
 ```
 
-*Definite assignment* kiểm tra “đã có phép gán hợp lệ chưa”, **không** chứng minh một tham chiếu khác `null` hay một giá trị đáp ứng ràng buộc nghiệp vụ. Điều đó cần kiểm tra riêng, chẳng hạn `if (local != null)` hoặc `Objects.requireNonNull(...)` khi phù hợp.
+*Definite assignment* checks “has a valid assignment occurred?”, **not** whether a reference is non-`null` or whether a value satisfies business constraints. Those require separate checks, such as `if (local != null)` or `Objects.requireNonNull(...)` when appropriate.
 
-## 5. Field có mặc định nhưng có thể được gán sau đó
+## 5. Fields Have Defaults but Can Be Assigned Later
 
-Với một instance field kiểu `int`:
+For an instance field of type `int`:
 
 ```java
 class Counter {
-    int count; // mặc định là 0
+    int count; // default is 0
 
     Counter() {
-        count = 5; // constructor đổi giá trị thành 5
+        count = 5; // constructor changes value to 5
     }
 }
 ```
 
-Một đối tượng `new Counter()` bình thường sẽ có `count == 5` sau khi constructor hoàn tất. Default `0` là trạng thái khởi tạo ban đầu; initializer và constructor có thể thay nó.
+A normal `new Counter()` object will have `count == 5` after the constructor finishes. The default `0` is the initial starting state; initializers and constructors can change it.
 
-Ở mức khái quát, thứ tự liên quan là:
+At a high level, the relevant order is:
 
-1. Static field nhận mặc định, rồi static initializer/khởi tạo tường minh của lớp chạy theo thứ tự mã nguồn khi lớp được khởi tạo.
-2. Mỗi đối tượng mới nhận mặc định cho instance field; initializer/instance initialization block và phần thân constructor sau đó có thể gán giá trị khác theo thứ tự khởi tạo Java.
-3. Phần tử mảng mới tạo nhận mặc định theo kiểu phần tử, rồi chương trình có thể sửa từng phần tử.
+1. Static fields receive defaults, then static initializers / explicit class initializers run in source order when the class is initialized.
+2. Each new object receives defaults for its instance fields; field initializers / instance initialization blocks and the constructor body can then assign other values following Java's initialization order.
+3. Elements of a newly created array receive defaults according to the element type, and the program can then modify individual elements.
 
-**Chú ý về thứ tự initializer:** một phương thức được gọi trong initializer có thể quan sát field khai báo phía sau trước khi initializer tường minh của field ấy chạy.
+**Note on initializer order:** a method called inside an initializer can observe a field declared later before that field's explicit initializer runs.
 
-Tệp `InitializationOrderDemo.java`:
+File `InitializationOrderDemo.java`:
 
 ```java
 public class InitializationOrderDemo {
@@ -263,11 +263,11 @@ observed=0
 later=5
 ```
 
-Ở thời điểm `readLater()` được gọi, `later` mới giữ mặc định `0`; lệnh `private int later = 5;` được thực thi sau đó. Ví dụ này **không** nói rằng mọi field sẽ vẫn bằng `0` sau khi constructor hoàn tất.
+At the moment `readLater()` is called, `later` still holds the default `0`; `private int later = 5;` executes afterward. This example does **not** mean every field stays `0` after the constructor finishes.
 
-## 6. Trường hợp `final`: giá trị mặc định không bỏ qua nghĩa vụ gán
+## 6. The `final` Case: Default Values Do Not Waive the Assignment Requirement
 
-Một `final` field được gán ngay khi khai báo thì không cần gán thêm:
+A `final` field assigned at declaration needs no further assignment:
 
 ```java
 class Config {
@@ -275,9 +275,9 @@ class Config {
 }
 ```
 
-Nếu `final` field không có initializer (*blank final field*), chương trình phải bảo đảm gán theo đúng quy tắc Java: instance blank final được gán đúng một lần trên mỗi đường khởi tạo constructor hoàn tất bình thường; static blank final được gán khi lớp khởi tạo, ví dụ qua static initializer. Không được coi mặc định `0` là phép gán thay thế nghĩa vụ này.
+If a `final` field has no initializer (*blank final field*), the program must ensure it is assigned according to Java's rules: an instance blank final must be assigned exactly once along every constructor initialization path that completes normally; a static blank final must be assigned during class initialization, e.g., via a static initializer. The default `0` cannot be treated as an assignment satisfying this obligation.
 
-Tệp `FinalFieldDemo.java`:
+File `FinalFieldDemo.java`:
 
 ```java
 public class FinalFieldDemo {
@@ -310,25 +310,25 @@ id=7
 limit=10
 ```
 
-Một biến cục bộ `final` có thể khai báo rồi gán một lần: `final int n; n = 4;` là hợp lệ, nhưng `n = 5;` tiếp theo là lỗi biên dịch. Trong `if`/`else`, mỗi nhánh có thể gán cho cùng một biến `final` nếu mỗi đường chạy tới điểm dùng chỉ gán đúng một lần. `final` không có nghĩa “tự có mặc định”.
+A `final` local variable can be declared and assigned once later: `final int n; n = 4;` is valid, but a subsequent `n = 5;` is a compile error. Inside an `if`/`else`, each branch can assign to the same `final` variable as long as every execution path to the point of use assigns it at most once (and definitely once before reading). `final` does not mean “automatically has a default”.
 
-## 7. Mối liên hệ với `var` và kiểu tham chiếu bao số
+## 7. Relationship with `var` and Boxed Numeric Reference Types
 
-Từ Java 10, `var` suy luận kiểu của **biến cục bộ có initializer**:
+Since Java 10, `var` infers the type of **a local variable with an initializer**:
 
 ```java
 class InferredLocal {
     static void show() {
-        var count = 10;              // suy luận int
-        var numbers = new int[2];    // suy luận int[]
+        var count = 10;              // inferred as int
+        var numbers = new int[2];    // inferred as int[]
         System.out.println(count + numbers[0]); // 10
     }
 }
 ```
 
-Không thể viết `var count;` (không có initializer để suy luận kiểu), `var unknown = null;` (không suy luận được kiểu từ `null`) hay `var` để khai báo field thông thường. Đây là yêu cầu riêng của `var`, bổ sung cho quy tắc gán chắc chắn của mọi biến cục bộ.
+You cannot write `var count;` (no initializer to infer the type), `var unknown = null;` (cannot infer a type from `null`), or use `var` to declare ordinary fields. This is a specific requirement of `var`, in addition to the definite assignment rule for all local variables.
 
-Phân biệt primitive field với wrapper field:
+Distinguish primitive fields from wrapper fields:
 
 ```java
 class BoxedValues {
@@ -336,32 +336,32 @@ class BoxedValues {
     Integer boxed;        // null
 
     int unsafe() {
-        return boxed;     // biên dịch được nhưng unboxing null gây NPE khi chạy
+        return boxed;     // compiles, but unboxing null throws NPE at runtime
     }
 }
 ```
 
-`Integer` là kiểu tham chiếu nên mặc định là `null`, dù nó biểu diễn số nguyên. Không nên coi default của `Integer` là `0`; kiểm tra `null` hoặc gán giá trị trước khi unboxing nếu cần.
+`Integer` is a reference type, so its default is `null`, even though it represents an integer. Do not assume the default of `Integer` is `0`; check for `null` or assign a value before unboxing if needed.
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common Misconceptions
 
-| Nhận định | Đúng hay sai? | Giải thích |
+| Statement | True or False? | Explanation |
 | --- | --- | --- |
-| “Mọi biến `int` đều mặc định bằng `0`.” | Sai | Chỉ field/phần tử mảng thuộc diện khởi tạo mặc định; biến cục bộ chưa gán không được đọc |
-| “`int x;` trong method rồi `print(x)` sẽ in `0`.” | Sai | Đây là lỗi biên dịch vì `x` chưa được gán chắc chắn |
-| “`static int total;` có thể đọc ngay với giá trị `0`.” | Đúng | Static field có khởi tạo mặc định; initializer khác có thể thay đổi sau đó |
-| “`String title;` là field thì tự thành chuỗi rỗng.” | Sai | Mặc định là `null`, không phải `""` |
-| “`new int[4]` có bốn phần tử bằng `0`.” | Đúng | Phần tử mảng được khởi tạo mặc định |
-| “`int[] numbers;` trong method là mảng rỗng.” | Sai | Đây chỉ là biến cục bộ chưa được gán tham chiếu mảng |
-| “Đã gán `null` tức là chưa qua definite assignment.” | Sai | `null` cũng là một giá trị được gán hợp lệ cho kiểu tham chiếu |
-| “Dùng `++` hoặc `+=` là cách gán đầu tiên cho local.” | Sai | Toán tử phải đọc giá trị cũ trước, nên local phải được gán từ trước |
+| “Every `int` variable defaults to `0`.” | False | Only fields/array elements undergo default initialization; unassigned local variables cannot be read |
+| “`int x;` in a method followed by `print(x)` prints `0`.” | False | This is a compile error because `x` is not definitely assigned |
+| “`static int total;` can be read immediately with value `0`.” | True | Static fields get default initialization; other initializers may change it later |
+| “A `String title;` field automatically becomes an empty string.” | False | Its default is `null`, not `""` |
+| “`new int[4]` has four elements equal to `0`.” | True | Array elements are initialized to defaults |
+| “`int[] numbers;` in a method is an empty array.” | False | It is only a local variable not yet assigned an array reference |
+| “Assigned `null` means it failed definite assignment.” | False | `null` is a valid assigned value for a reference type |
+| “Using `++` or `+=` is a way to initially assign a local.” | False | These operators must read the old value first, so the local must already be assigned |
 
-### Cách quyết định nhanh khi đọc code
+### Quick Decision Checklist When Reading Code
 
-1. Xác định biến được khai báo **ở đâu**: field, local, tham số hay phần tử mảng.
-2. Nếu là field/phần tử mảng mới, tìm giá trị mặc định theo kiểu; sau đó kiểm tra initializer/constructor/những lệnh gán có thể thay đổi nó.
-3. Nếu là biến cục bộ, tìm mọi đường đi đến **lần đọc đầu tiên** và xác minh mỗi đường đã có phép gán.
-4. Nếu có `final`, kiểm tra thêm ràng buộc chỉ được gán theo quy tắc một lần và mọi đường khởi tạo bắt buộc.
-5. Nếu là kiểu tham chiếu, phân biệt **đã được gán** với **khác `null`**; nếu là wrapper như `Integer`, lưu ý unboxing.
+1. Identify **where** the variable is declared: field, local, parameter, or array element.
+2. If it is a field or newly created array element, look up the type's default value; then check initializers/constructors/assignments that may change it.
+3. If it is a local variable, trace every path to its **first read** and verify each path has an assignment.
+4. If `final` is present, also check the single-assignment constraint and every required initialization path.
+5. If it is a reference type, distinguish **assigned** from **non-`null`**; if it is a wrapper like `Integer`, watch out for unboxing.
 
-Điểm cần ghi nhớ là: **giá trị mặc định của field và phần tử mảng là hành vi khởi tạo của Java; yêu cầu gán biến cục bộ trước khi đọc là quy tắc kiểm tra của trình biên dịch**. Vì vậy, cùng câu lệnh `int x;` có thể hợp lệ để đọc `x` khi `x` là field, nhưng chưa đủ để đọc `x` nếu `x` là biến cục bộ.
+The key point to remember is: **default values of fields and array elements are Java's initialization behavior; requiring local variables to be assigned before reading is a compiler check rule**. Therefore, the same declaration `int x;` can allow reading `x` when `x` is a field, yet is not enough to read `x` if `x` is a local variable.

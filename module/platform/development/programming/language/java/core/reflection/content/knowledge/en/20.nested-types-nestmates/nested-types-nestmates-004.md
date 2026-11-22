@@ -1,12 +1,12 @@
-# isMemberClass(), isLocalClass() và isAnonymousClass() trong Java Reflection
+# `isMemberClass()`, `isLocalClass()`, and `isAnonymousClass()` in Java Reflection
 
-Trong Java, không phải mọi lớp đều được khai báo trực tiếp ở cấp tệp. Một lớp có thể là thành viên của một lớp khác, được khai báo bên trong một khối lệnh, hoặc được tạo bằng biểu thức lớp vô danh. Bộ ba phương thức `Class.isMemberClass()`, `Class.isLocalClass()` và `Class.isAnonymousClass()` giúp nhận diện **kiểu khai báo** của một `Class<?>` lúc chạy.
+In Java, not every class is declared directly at the file level. A class can be a member of another class, declared inside a block, or created with an anonymous class expression. The trio of methods `Class.isMemberClass()`, `Class.isLocalClass()`, and `Class.isAnonymousClass()` helps identify the **declaration kind** of a `Class<?>` at runtime.
 
-Mục tiêu của bài học: phân biệt chính xác ba loại lớp, dùng các phương thức Reflection để truy tìm ngữ cảnh bao quanh, và tránh suy luận sai từ tên lớp hoặc quan hệ nestmate.
+Lesson goal: accurately distinguish the three kinds of classes, use Reflection methods to trace the enclosing context, and avoid making false inferences from class names or nestmate relationships.
 
-## 1. Ba phương thức trả lời ba câu hỏi khác nhau
+## 1. Three methods answering three different questions
 
-Cả ba đều là phương thức instance của `java.lang.Class`, không nhận đối số và trả về `boolean`:
+All three are instance methods on `java.lang.Class`, take no arguments, and return `boolean`:
 
 ```java
 boolean member = type.isMemberClass();
@@ -14,28 +14,28 @@ boolean local = type.isLocalClass();
 boolean anonymous = type.isAnonymousClass();
 ```
 
-| Phương thức | Trả về `true` khi | Ví dụ điển hình |
+| Method | Returns `true` when | Typical example |
 | --- | --- | --- |
-| `isMemberClass()` | Lớp được khai báo là **thành viên** trong phần thân một lớp hoặc kiểu bao ngoài | `Outer.StaticNested`, `Outer.Inner` |
-| `isLocalClass()` | Lớp có tên được khai báo **cục bộ trong một khối**, chẳng hạn trong phương thức hoặc constructor | `class Local {}` bên trong `main` |
-| `isAnonymousClass()` | Lớp được khai báo qua **biểu thức tạo lớp vô danh**, không có tên khai báo riêng | `new Runnable() { ... }` |
+| `isMemberClass()` | The class is declared as a **member** in the body of another class or enclosing type | `Outer.StaticNested`, `Outer.Inner` |
+| `isLocalClass()` | A named class is declared **locally inside a block**, such as in a method or constructor | `class Local {}` inside `main` |
+| `isAnonymousClass()` | The class is declared via an **anonymous class creation expression**, without its own declared name | `new Runnable() { ... }` |
 
-Đây là ba cách phân loại khác nhau và không chồng lên nhau đối với một lớp cụ thể. Nếu cả ba trả về `false`, **không đủ kết luận đó là lớp top-level**: đối tượng `Class` còn có thể đại diện cho primitive, mảng và nhiều kiểu khác.
+These are three distinct, non-overlapping classifications for a specific class. If all three return `false`, **that is not enough to conclude it is a top-level class**: the `Class` object could also represent a primitive, an array, and many other types.
 
-### 1.1. Member class: lớp thành viên
+### 1.1. Member class
 
 ```java
 class Outer {
-    static class StaticNested {}  // Member class, đồng thời là static nested class
-    class Inner {}                // Member class, đồng thời là non-static inner class
+    static class StaticNested {}  // Member class, and also a static nested class
+    class Inner {}                // Member class, and also a non-static inner class
 }
 ```
 
-Cả `Outer.StaticNested.class.isMemberClass()` lẫn `Outer.Inner.class.isMemberClass()` đều là `true`. Từ khóa `static` quyết định lớp lồng có cần tham chiếu đến thể hiện của `Outer` hay không; nó **không** quyết định giá trị của `isMemberClass()`.
+Both `Outer.StaticNested.class.isMemberClass()` and `Outer.Inner.class.isMemberClass()` are `true`. The `static` keyword determines whether the nested class needs a reference to an instance of `Outer`; it **does not** determine the value of `isMemberClass()`.
 
-Lưu ý thuật ngữ: mọi inner class là một nested class, nhưng static nested class không phải inner class theo nghĩa của Java Language Specification. Trong ví dụ trên, cả hai vẫn là member classes.
+Terminology note: every inner class is a nested class, but a static nested class is not an inner class in the sense of the Java Language Specification. In the example above, both are still member classes.
 
-### 1.2. Local class: lớp cục bộ có tên
+### 1.2. Local class: named local class
 
 ```java
 void process() {
@@ -47,11 +47,11 @@ void process() {
 }
 ```
 
-`Result` có tên trong mã nguồn và phạm vi nhìn thấy cục bộ trong khối chứa khai báo. Local class có thể xuất hiện trong phương thức, constructor hoặc khối khởi tạo; không nhất thiết phải được định nghĩa trong một phương thức instance. Phạm vi tên và khả năng bắt biến cục bộ của lớp này tuân theo các quy tắc của ngôn ngữ Java. Khi dùng biến cục bộ từ khối bao ngoài, biến đó phải là `final` hoặc *effectively final*.
+`Result` has a name in source code and visibility local to the block containing the declaration. A local class can appear in a method, constructor, or initializer block; it does not have to be defined inside an instance method. Its name scope and ability to capture local variables follow Java language rules. When using a local variable from an enclosing block, that variable must be `final` or *effectively final*.
 
-Một local class **không trở thành member class** chỉ vì bytecode có tên chứa dấu `$` hoặc vì `getEnclosingClass()` trả về một lớp bao ngoài.
+A local class **does not become a member class** merely because its bytecode name contains `$` or because `getEnclosingClass()` returns an enclosing class.
 
-### 1.3. Anonymous class: lớp vô danh
+### 1.3. Anonymous class
 
 ```java
 Runnable job = new Runnable() {
@@ -63,19 +63,19 @@ Runnable job = new Runnable() {
 System.out.println(job.getClass().isAnonymousClass()); // true
 ```
 
-Biểu thức `new Runnable() { ... }` khai báo và khởi tạo một lớp không có tên khai báo riêng. `job.getClass()` trỏ đến lớp vô danh do biểu thức đó tạo ra; nó không phải `Runnable.class`.
+The expression `new Runnable() { ... }` declares and instantiates a class without its own declared name. `job.getClass()` points to the anonymous class generated by that expression; it is not `Runnable.class`.
 
-Đừng nhầm anonymous class với biểu thức lambda:
+Do not confuse anonymous classes with lambda expressions:
 
 ```java
 Runnable lambda = () -> System.out.println("Running");
 ```
 
-Lambda được triển khai theo cơ chế riêng của JVM; không dùng `isAnonymousClass()` để xác định một đối tượng có được tạo từ lambda hay không. Hình dạng lớp runtime của lambda là chi tiết triển khai, không phải hợp đồng nhận diện bằng ba phương thức này.
+Lambdas are implemented via a separate JVM mechanism; do not use `isAnonymousClass()` to determine whether an object was created from a lambda. The runtime class shape of a lambda is an implementation detail, not a contract for identification via these three methods.
 
-## 2. Ví dụ đầy đủ, chạy được trên Java 17+
+## 2. Complete example, runnable on Java 17+
 
-Tạo tệp `ClassKindsDemo.java`:
+Create the file `ClassKindsDemo.java`:
 
 ```java
 public class ClassKindsDemo {
@@ -110,14 +110,14 @@ public class ClassKindsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ClassKindsDemo.java
 java ClassKindsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 TopLevel -> member=false, local=false, anonymous=false
@@ -131,26 +131,26 @@ Local enclosing method: main
 Anonymous simple name empty: true
 ```
 
-Hai lớp `StaticMember` và `InnerMember` khác nhau ở ngữ nghĩa `static`/instance nhưng giống nhau về phân loại `member`. `Local` có tên riêng và được khai báo trong `main` nên `local=true`. Đối tượng `anonymous` có một lớp thực thi `Runnable` không được đặt tên trong mã nguồn nên `anonymous=true`.
+The two classes `StaticMember` and `InnerMember` differ in `static`/instance semantics but are identical in the `member` classification. `Local` has its own name and is declared in `main`, so `local=true`. The `anonymous` object has a class implementing `Runnable` that is unnamed in source code, so `anonymous=true`.
 
-Lưu ý rằng `ClassKindsDemo.class` đại diện cho lớp top-level của ví dụ. Ba kết quả `false` chỉ có ý nghĩa top-level trong bối cảnh ta **đã biết** đối tượng đó là lớp thường được khai báo ở cấp tệp.
+Note that `ClassKindsDemo.class` represents the top-level class of the example. The three `false` results mean top-level only in the context where we **already know** the object is a regular class declared at the file level.
 
-## 3. Phân biệt declaring class và enclosing context
+## 3. Distinguishing declaring class and enclosing context
 
-Để tìm hiểu một lớp nằm ở đâu trong mã nguồn, kết hợp bộ ba phân loại với các API khác của `Class<?>`:
+To find out where a class is located in source code, combine the classification trio with other `Class<?>` APIs:
 
-| API | Ý nghĩa chính | Member class | Local class trong `main` | Anonymous class trong `main` |
+| API | Main meaning | Member class | Local class in `main` | Anonymous class in `main` |
 | --- | --- | --- | --- | --- |
-| `getDeclaringClass()` | Lớp trực tiếp khai báo kiểu **thành viên** | `Outer.class` | `null` | `null` |
-| `getEnclosingClass()` | Lớp bao quanh khai báo | `Outer.class` | Lớp chứa `main` | Lớp chứa `main` |
-| `getEnclosingMethod()` | Phương thức trực tiếp chứa khai báo, nếu có | Thường `null` | `main` | `main` |
-| `getEnclosingConstructor()` | Constructor trực tiếp chứa khai báo, nếu có | Thường `null` | `null` trong ví dụ | `null` trong ví dụ |
-| `getSimpleName()` | Tên đơn giản | Tên lớp thành viên | Tên lớp cục bộ | Chuỗi rỗng |
-| `getCanonicalName()` | Tên chuẩn nếu có | Thường khác `null` | `null` | `null` |
+| `getDeclaringClass()` | The class directly declaring the **member** type | `Outer.class` | `null` | `null` |
+| `getEnclosingClass()` | The class enclosing the declaration | `Outer.class` | Class containing `main` | Class containing `main` |
+| `getEnclosingMethod()` | The method directly containing the declaration, if any | Usually `null` | `main` | `main` |
+| `getEnclosingConstructor()` | The constructor directly containing the declaration, if any | Usually `null` | `null` in example | `null` in example |
+| `getSimpleName()` | Simple name | Member class name | Local class name | Empty string |
+| `getCanonicalName()` | Canonical name if any | Usually non-`null` | `null` | `null` |
 
-Các cột cuối giả định chính ngữ cảnh khai báo của ví dụ ở mục 2. Với lớp cục bộ hay vô danh được khai báo trong constructor, `getEnclosingConstructor()` có thể trả về constructor đó. Nếu chúng được khai báo trong khối khởi tạo hoặc khởi tạo trường, `getEnclosingMethod()` và `getEnclosingConstructor()` có thể đều trả về `null` dù `getEnclosingClass()` không phải `null`.
+The last columns assume the exact declaration context of the example in section 2. For a local or anonymous class declared inside a constructor, `getEnclosingConstructor()` can return that constructor. If they are declared in an initializer block or field initializer, `getEnclosingMethod()` and `getEnclosingConstructor()` can both return `null` even though `getEnclosingClass()` is not `null`.
 
-Ví dụ đối chiếu:
+Comparison example:
 
 ```java
 Class<?> member = ClassKindsDemo.StaticMember.class;
@@ -158,25 +158,25 @@ System.out.println(member.getDeclaringClass() == ClassKindsDemo.class); // true
 System.out.println(member.getEnclosingMethod() == null);                 // true
 ```
 
-Đây là đoạn minh họa bổ sung, có thể đặt trong `main` của ví dụ trước. Trong đó `getDeclaringClass()` trả về đối tượng `Class` đại diện cho lớp khai báo thành viên, còn `getEnclosingMethod()` trả về `null` bởi `StaticMember` không được khai báo bên trong một phương thức.
+This is an additional illustrative snippet that can be placed inside `main` of the previous example. Here `getDeclaringClass()` returns the `Class` object representing the class declaring the member, while `getEnclosingMethod()` returns `null` because `StaticMember` is not declared inside a method.
 
-**Quy tắc sử dụng:** `getDeclaringClass()` hữu ích để tìm chủ thể khai báo một member class; `getEnclosingClass()` thích hợp hơn khi quan tâm đến lớp bao quanh của cả member, local và anonymous class.
+**Usage rule:** `getDeclaringClass()` is useful for finding the owner that declared a member class; `getEnclosingClass()` is better suited when you care about the enclosing class of member, local, and anonymous classes alike.
 
-## 4. Liên hệ với kiểu lồng và nestmate
+## 4. Relation to nested types and nestmates
 
-Từ Java 11, khái niệm **nest** hỗ trợ các lớp thuộc cùng một nhóm truy cập thành viên private ở mức JVM. `Class` có các API như `getNestHost()`, `getNestMembers()` và `isNestmateOf(...)`.
+Since Java 11, the **nest** concept supports classes belonging to the same private-member access group at the JVM level. `Class` has APIs such as `getNestHost()`, `getNestMembers()`, and `isNestmateOf(...)`.
 
-Điểm cần phân biệt:
+Points to distinguish:
 
-- `isMemberClass()`, `isLocalClass()`, `isAnonymousClass()` mô tả **hình thức khai báo** của chính lớp được phản chiếu.
-- `getNestHost()` và `isNestmateOf(...)` mô tả **quan hệ nest** phục vụ quy tắc truy cập ở mức JVM.
-- Một lớp local hoặc anonymous có thể thuộc cùng nest với lớp bao quanh mà vẫn có `isMemberClass() == false`. Vì thế không dùng quan hệ nestmate để suy ra member class.
+- `isMemberClass()`, `isLocalClass()`, and `isAnonymousClass()` describe **the declaration form** of the reflected class itself.
+- `getNestHost()` and `isNestmateOf(...)` describe **the nest relationship** serving JVM-level access rules.
+- A local or anonymous class can belong to the same nest as its enclosing class while still having `isMemberClass() == false`. Therefore, do not use the nestmate relationship to infer a member class.
 
-Tương tự, tên nhị phân thường có dấu `$` cho nhiều loại lớp lồng, nhưng đây **không phải tiêu chí Reflection đáng tin** để phân biệt member, local và anonymous. Những thành phần số trong tên lớp được compiler sinh ra là chi tiết triển khai, không nên hard-code hoặc dùng làm hợp đồng API.
+Similarly, binary names often contain `$` for many kinds of nested classes, but this **is not a reliable Reflection criterion** for distinguishing member, local, and anonymous classes. Numeric components in compiler-generated class names are implementation details and should not be hard-coded or used as an API contract.
 
-## 5. Áp dụng khi kiểm tra Class<?> động
+## 5. Applying when inspecting Class<?> dynamically
 
-Khi một framework hoặc công cụ nhận `Class<?>` từ bên ngoài, có thể phân nhánh theo loại khai báo:
+When a framework or tool receives a `Class<?>` from outside, it can branch by declaration kind:
 
 ```java
 static String declaredKind(Class<?> type) {
@@ -193,25 +193,25 @@ static String declaredKind(Class<?> type) {
 }
 ```
 
-Đây là một **phương thức trợ giúp**, không phải chương trình độc lập. Có thể đặt nó trong bất kỳ lớp Java thích hợp nào. Nhánh `other` được đặt cố ý để tránh mặc định mọi kiểu còn lại đều là top-level.
+This is a **helper method**, not a standalone program. It can be placed in any suitable Java class. The `other` branch is placed deliberately to avoid assuming every remaining type is top-level.
 
-Các tình huống thực tế:
+Practical scenarios:
 
-1. **Logging và diagnostics:** ghi loại khai báo bằng các cờ Reflection, thay vì trông chờ `getSimpleName()` luôn có giá trị (lớp vô danh có tên đơn giản rỗng).
-2. **Công cụ quét metadata:** xử lý member classes theo quan hệ `getDeclaringClass()`; local/anonymous classes cần kiểm tra `getEnclosingClass()` hoặc ngữ cảnh phương thức/constructor.
-3. **Sinh tài liệu hay tên hiển thị:** ưu tiên một nhãn có ý nghĩa do ứng dụng đặt nếu gặp anonymous class; tránh hiển thị trực tiếp tên nhị phân có số compiler sinh.
+1. **Logging and diagnostics:** record the declaration kind using the Reflection flags, instead of expecting `getSimpleName()` to always have a value (anonymous classes have an empty simple name).
+2. **Metadata scanning tools:** process member classes according to the `getDeclaringClass()` relationship; local/anonymous classes need to check `getEnclosingClass()` or method/constructor context.
+3. **Generating documentation or display names:** prefer a meaningful application-provided label when encountering an anonymous class; avoid directly displaying binary names with compiler-generated numbers.
 
-Nếu thực sự muốn kiểm tra một lớp có phải kiểu lồng hay không, hãy xác định rõ khái niệm cần dùng: **member**, **enclosed**, hay **nestmate**. Mỗi khái niệm cần API và điều kiện riêng.
+If you actually want to check whether a class is a nested type, clearly define the concept you need: **member**, **enclosed**, or **nestmate**. Each concept requires its own API and conditions.
 
-## 6. Lỗi thường gặp và cách tự kiểm tra
+## 6. Common mistakes and self-check
 
-- **Cho rằng static nested class không phải member class.** Sai: `static` không làm `isMemberClass()` thành `false`.
-- **Đồng nhất local class và anonymous class.** Local class có tên khai báo (`class Local`); anonymous class dùng biểu thức tạo lớp không đặt tên (`new Interface() { ... }`).
-- **Dùng `getDeclaringClass() == null` để khẳng định top-level.** Sai: local và anonymous class cũng thường trả về `null`.
-- **Dựa vào `getName()` hoặc dấu `$` để phân loại.** Không cần thiết và dễ phụ thuộc compiler; hãy dùng trực tiếp ba phương thức `is...Class()`.
-- **Xem lambda là anonymous class.** Không có bảo đảm đó; lambda và anonymous class khác nhau về ngữ nghĩa.
-- **Coi ba cờ đều `false` là đủ để kết luận top-level.** Mảng và primitive cũng nằm ngoài ba loại; các `Class<?>` khác cũng có thể như vậy.
+- **Assuming a static nested class is not a member class.** Wrong: `static` does not make `isMemberClass()` become `false`.
+- **Equating local classes and anonymous classes.** A local class has a declared name (`class Local`); an anonymous class uses an unnamed class creation expression (`new Interface() { ... }`).
+- **Using `getDeclaringClass() == null` to assert top-level.** Wrong: local and anonymous classes also typically return `null`.
+- **Relying on `getName()` or `$` to classify.** Unnecessary and compiler-dependent; use the three `is...Class()` methods directly.
+- **Treating lambdas as anonymous classes.** There is no such guarantee; lambdas and anonymous classes differ semantically.
+- **Treating all three flags being `false` as sufficient to conclude top-level.** Arrays and primitives also fall outside the three kinds; other `Class<?>` objects can as well.
 
-Tự kiểm tra: Với `new Thread() { }`, `isAnonymousClass()` của **đối tượng mới tạo** là gì? **`true`**. Với một lớp `static class Helper` nằm trong thân lớp khác, `isMemberClass()` là gì? **`true`**. Với `class Temp {}` được khai báo trong `main`, `getDeclaringClass()` thường là gì? **`null`**, còn `getEnclosingMethod()` là `main`.
+Self-check: For `new Thread() { }`, what is `isAnonymousClass()` of **the newly created object**? **`true`**. For a class `static class Helper` inside another class's body, what is `isMemberClass()`? **`true`**. For `class Temp {}` declared inside `main`, what is `getDeclaringClass()` typically? **`null`**, while `getEnclosingMethod()` is `main`.
 
-Tài liệu tham khảo: [Javadoc `java.lang.Class` (Java 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html).
+Reference: [Javadoc `java.lang.Class` (Java 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html).

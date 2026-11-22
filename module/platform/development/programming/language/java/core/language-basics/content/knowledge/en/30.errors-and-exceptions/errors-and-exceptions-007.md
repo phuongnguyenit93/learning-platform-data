@@ -1,31 +1,31 @@
-# `finally` và giới thiệu `try-with-resources` trong Java
+# `finally` and Introduction to `try-with-resources` in Java
 
-## 1. Vì sao cần dọn dẹp khi thao tác có thể thất bại?
+## 1. Why Is Cleanup Needed When Operations Can Fail?
 
-Một chương trình Java có thể mở tệp, kết nối mạng, sử dụng stream hoặc tài nguyên khác. Các thao tác ấy có thể hoàn tất bình thường, ném ngoại lệ hoặc thoát sớm bằng `return`. Nếu việc dọn dẹp chỉ đặt ở cuối nhánh thành công, một nhánh thất bại có thể bỏ qua nó.
+A Java program can open files, network connections, streams, or other resources. Those operations may complete normally, throw an exception, or exit early via `return`. If cleanup is only placed at the end of the success path, a failure path can skip it.
 
-Java cung cấp hai cơ chế liên quan:
+Java provides two related mechanisms:
 
-- **`finally`**: khối mã có thể được dùng để thực hiện công việc khi rời cấu trúc `try`/`catch`, kể cả khi `try` gặp ngoại lệ hoặc `return`.
-- **`try-with-resources`**: dạng `try` chuyên quản lý tài nguyên triển khai `AutoCloseable`; Java tự gọi `close()` khi rời khối, xử lý cả tình huống có ngoại lệ.
+- **`finally`**: a code block that can be used to perform work when exiting a `try`/`catch` construct, even if `try` encounters an exception or `return`.
+- **`try-with-resources`**: a specialized form of `try` for managing resources that implement `AutoCloseable`; Java automatically calls `close()` upon exiting the block, handling exception cases as well.
 
-Đừng đồng nhất chúng: `finally` là cơ chế tổng quát; `try-with-resources` là lựa chọn nên ưu tiên để **đóng tài nguyên** có API `close()`.
+Do not equate the two: `finally` is a general-purpose mechanism; `try-with-resources` is the preferred choice for **closing resources** that expose a `close()` API.
 
-## 2. Cấu trúc và luồng chạy của `finally`
+## 2. Structure and Control Flow of `finally`
 
-Cú pháp:
+Syntax:
 
 ```java
 try {
-    // Thao tác có thể thất bại
+    // Operations that may fail
 } catch (SomeException ex) {
-    // Xử lý ngoại lệ phù hợp
+    // Handle matching exception
 } finally {
-    // Công việc khi rời try/catch
+    // Work performed when exiting try/catch
 }
 ```
 
-Có thể viết `try-finally` không có `catch`:
+You can write `try-finally` without `catch`:
 
 ```java
 try {
@@ -35,18 +35,18 @@ try {
 }
 ```
 
-Hai tên `doWork()` và `cleanUp()` ở đoạn trên chỉ là **phương thức minh họa**, không phải chương trình độc lập. Với dạng `try` thông thường (không có khai báo tài nguyên), Java yêu cầu ít nhất một `catch` hoặc `finally`.
+The names `doWork()` and `cleanUp()` above are **illustrative methods**, not a standalone program. For a standard `try` (without a resource declaration), Java requires at least one `catch` or `finally`.
 
-### Những đường đi phổ biến
+### Common Execution Paths
 
-| Điều xảy ra trong `try` | `catch` | `finally` |
+| What Happens in `try` | `catch` | `finally` |
 | --- | --- | --- |
-| Hoàn tất bình thường | Bỏ qua `catch` | Chạy trước khi đi tiếp |
-| Ném ngoại lệ được `catch` phù hợp xử lý | Chạy khối `catch` đó | Chạy sau `catch` |
-| Ném ngoại lệ không được bắt tại đây | Không có khối phù hợp | Thông thường vẫn chạy trước khi ngoại lệ lan ra ngoài |
-| `return`, `break` hoặc `continue` làm rời cấu trúc | Tùy tình huống | Thông thường chạy trước khi thực hiện việc rời khối |
+| Completes normally | `catch` is skipped | Runs before continuing |
+| Throws an exception handled by a matching `catch` | That `catch` block runs | Runs after `catch` |
+| Throws an exception not caught here | No matching block | Normally still runs before the exception propagates out |
+| `return`, `break`, or `continue` exits the construct | Depends on context | Normally runs before completing the exit |
 
-Ví dụ có `return`:
+Example with `return`:
 
 ```java
 static int calculate() {
@@ -59,35 +59,35 @@ static int calculate() {
 }
 ```
 
-Khi gọi `calculate()`, chương trình in `Trong try`, sau đó `Trong finally`, rồi mới trả giá trị `7` về nơi gọi. Trong `finally`, ta vẫn có thể dùng biến đang nằm trong scope; tuy nhiên **không nên đổi luồng điều khiển bằng `return` ở `finally`**.
+When `calculate()` is called, the program prints `Trong try`, then `Trong finally`, and only then returns `7` to the caller. Inside `finally`, variables still in scope can be accessed; however, **you should not alter control flow with `return` inside `finally`**.
 
-### `finally` không phải bảo đảm tuyệt đối
+### `finally` Is Not an Absolute Guarantee
 
-Trong điều kiện thực thi Java thông thường, `finally` được thực hiện khi rời `try` hoặc `catch`. Nhưng không thể cam kết nó chạy trong **mọi** trường hợp: ví dụ khi tiến trình/JVM bị chấm dứt đột ngột, có lời gọi `System.exit(...)` dẫn tới chấm dứt VM, hoặc luồng không bao giờ rời khỏi đoạn mã đang chạy.
+Under normal Java execution conditions, `finally` runs when exiting `try` or `catch`. However, it cannot be guaranteed to run in **every** case: for example, if the process/JVM is terminated abruptly, `System.exit(...)` terminates the VM, or a thread never exits the running code block.
 
-Vì vậy, không nên dùng `finally` để bảo đảm độ bền dữ liệu khi tiến trình có thể mất nguồn điện hay bị kill. Tùy bài toán, cần thiết kế lưu trữ, transaction và cơ chế khôi phục riêng.
+Therefore, do not rely on `finally` to guarantee data durability when a process might lose power or be killed. Depending on the problem, design dedicated persistence, transactions, and recovery mechanisms.
 
-## 3. `finally` có thể che mất nguyên nhân lỗi nếu viết sai
+## 3. `finally` Can Mask Root Causes If Written Improperly
 
-Đây là lỗi đáng chú ý:
+Here is a notable pitfall:
 
 ```java
 static int misleading() {
     try {
         return 10;
     } finally {
-        return 99; // KHÔNG NÊN: che giá trị return trước
+        return 99; // AVOID: masks the previous return value
     }
 }
 ```
 
-Dù `try` có `return 10`, kết quả khi gọi `misleading()` lại là `99`. Nếu `try` ném ngoại lệ mà `finally` thực hiện `return`, ngoại lệ ban đầu cũng có thể bị che mất. Tương tự, nếu `finally` ném một ngoại lệ mới, ngoại lệ đó có thể thay thế ngoại lệ đang lan từ `try`.
+Even though `try` has `return 10`, calling `misleading()` returns `99`. If `try` throws an exception and `finally` executes `return`, the original exception can also be lost. Similarly, if `finally` throws a new exception, that exception can replace the one propagating out of `try`.
 
-Khi cần đóng một tài nguyên và cả thao tác chính lẫn `close()` đều có thể thất bại, tự gọi `close()` trong `finally` dễ làm khó việc giữ lại **ngoại lệ gốc**. Đây là một lý do quan trọng để dùng `try-with-resources`.
+When closing a resource where both the main operation and `close()` can fail, calling `close()` manually inside `finally` makes it harder to preserve the **original exception**. This is an important reason to use `try-with-resources`.
 
-## 4. `try-with-resources` là gì?
+## 4. What Is `try-with-resources`?
 
-Từ Java 7, có thể khai báo các tài nguyên trong phần ngoặc của `try`:
+Since Java 7, resources can be declared in parentheses after `try`:
 
 ```java
 try (Resource resource = acquireResource()) {
@@ -95,15 +95,15 @@ try (Resource resource = acquireResource()) {
 }
 ```
 
-Các tên `Resource`, `acquireResource()` và `use(...)` ở đây biểu diễn **mẫu cú pháp**, không phải API có sẵn. Trong mã chạy thực tế, kiểu tài nguyên phải triển khai `java.lang.AutoCloseable` (hoặc interface con phù hợp như `java.io.Closeable`).
+The names `Resource`, `acquireResource()`, and `use(...)` here represent a **syntax pattern**, not built-in APIs. In real runnable code, the resource type must implement `java.lang.AutoCloseable` (or a suitable subinterface such as `java.io.Closeable`).
 
-Khi rời khối, Java sẽ gọi `close()` trên tài nguyên đã được khởi tạo thành công và không phải `null`, ngay cả khi:
+When exiting the block, Java calls `close()` on each resource that was successfully initialized and is non-`null`, even when:
 
-- Khối `try` thực thi thành công.
-- Khối `try` ném ngoại lệ.
-- Luồng điều khiển dùng `return` hoặc đi ra ngoài khối theo cơ chế bình thường của ngôn ngữ.
+- The `try` block completes normally.
+- The `try` block throws an exception.
+- Control flow uses `return` or exits the block via normal language rules.
 
-Ví dụ với API chuẩn:
+Example with standard APIs:
 
 ```java
 import java.io.BufferedReader;
@@ -120,26 +120,26 @@ class FirstLineReader {
 }
 ```
 
-Đây là **lớp minh họa** không có `main`. `BufferedReader` triển khai `Closeable`, nên được tự đóng sau khi đọc, kể cả lúc `readLine()` ném `IOException` hoặc có `return`. Phương thức vẫn khai báo `throws IOException`: tự đóng tài nguyên **không có nghĩa lỗi I/O được tự động xử lý và biến mất**.
+This is an **illustrative class** without `main`. `BufferedReader` implements `Closeable`, so it is automatically closed after reading, even if `readLine()` throws `IOException` or hits `return`. The method still declares `throws IOException`: automatic resource closing **does not mean I/O errors are automatically handled and vanish**.
 
-Không nên nhầm cơ chế đóng này với Garbage Collector. GC quản lý đối tượng Java có thể thu gom, nhưng thường không phải giải pháp để đóng file, socket hoặc kết nối đúng thời điểm.
+Do not confuse this closing mechanism with the Garbage Collector. GC manages collectible Java objects, but is generally not a solution for closing files, sockets, or connections in a timely manner.
 
-## 5. Nhiều tài nguyên: đóng theo thứ tự ngược
+## 5. Multiple Resources: Closed in Reverse Order
 
-Có thể khai báo nhiều tài nguyên, ngăn cách bằng dấu chấm phẩy:
+Multiple resources can be declared, separated by semicolons:
 
 ```java
 try (First first = new First();
      Second second = new Second()) {
-    // Sử dụng cả hai tài nguyên
+    // Use both resources
 }
 ```
 
-Các lớp `First` và `Second` trong ví dụ trên chưa được định nghĩa; đây là cú pháp minh họa. Nếu cả hai tài nguyên được tạo thành công, chúng được **đóng ngược với thứ tự khởi tạo**: `second.close()` trước, `first.close()` sau. Nếu tài nguyên thứ hai khởi tạo thất bại, các tài nguyên đã được tạo trước đó vẫn được đóng theo quy tắc try-with-resources.
+Classes `First` and `Second` above are undefined; this is a syntax illustration. If both resources are created successfully, they are **closed in reverse order of initialization**: `second.close()` first, then `first.close()`. If creating the second resource fails, previously created resources are still closed according to try-with-resources rules.
 
-Thứ tự này tương tự cách dọn dẹp một ngăn xếp tài nguyên. Nó hữu ích khi tài nguyên tạo sau phụ thuộc tài nguyên tạo trước.
+This order works like cleaning up a resource stack. It is useful when a later-created resource depends on an earlier-created one.
 
-Từ **Java 9**, có thể đưa một biến tài nguyên đã tồn tại vào phần ngoặc nếu đó là biến `final` hoặc *effectively final*:
+Since **Java 9**, an existing resource variable can be placed in the parentheses if it is `final` or *effectively final*:
 
 ```java
 BufferedReader reader = Files.newBufferedReader(path);
@@ -148,31 +148,31 @@ try (reader) {
 }
 ```
 
-Đây là đoạn minh họa trong phương thức có thể xử lý/khai báo `IOException` và có các import tương ứng. `reader` không được gán lại sau khi khởi tạo trong trường hợp này. Việc đưa biến vào `try (reader)` không tự tạo bản sao tài nguyên hay một đối tượng reader mới: nó quản lý chính đối tượng đó để đóng khi rời khối.
+This is an illustrative snippet inside a method that handles/declares `IOException` and has the corresponding imports. `reader` is not reassigned after initialization in this case. Passing the variable into `try (reader)` does not duplicate the resource or create a new reader object: it manages that same object for closing when exiting the block.
 
-## 6. Ngoại lệ phát sinh lúc đóng và `getSuppressed()`
+## 6. Exceptions Thrown During Closing and `getSuppressed()`
 
-`AutoCloseable.close()` **có thể ném ngoại lệ**. Có hai tình huống cần phân biệt.
+`AutoCloseable.close()` **can throw exceptions**. Two scenarios must be distinguished.
 
-### Chỉ thao tác đóng thất bại
+### Only Closing Fails
 
-Nếu thân `try` hoàn thành bình thường nhưng `close()` ném ngoại lệ, ngoại lệ từ việc đóng có thể lan ra ngoài hoặc được bắt bởi `catch` tương ứng.
+If the `try` body completes normally but `close()` throws an exception, the close exception propagates out or is caught by a matching `catch`.
 
-### Cả thân `try` lẫn thao tác đóng đều thất bại
+### Both the `try` Body and Closing Fail
 
-Java ưu tiên giữ **ngoại lệ chính từ thân `try`** làm ngoại lệ được ném ra. Ngoại lệ xảy ra khi tự động đóng tài nguyên được gắn vào ngoại lệ chính dưới dạng **suppressed exception**, có thể đọc bằng:
+Java prioritizes keeping the **primary exception from the `try` body** as the thrown exception. The exception from automatically closing the resource is attached to the primary exception as a **suppressed exception**, which can be read via:
 
 ```java
 Throwable[] otherFailures = ex.getSuppressed();
 ```
 
-Điều này tránh tình huống ngoại lệ phát sinh khi `close()` vô tình xóa mất nguyên nhân ban đầu. Với nhiều tài nguyên, có thể có nhiều suppressed exceptions; số lượng và thứ tự phụ thuộc những tài nguyên nào thực sự ném lỗi lúc đóng.
+This prevents a failure during `close()` from accidentally erasing the original cause. With multiple resources, there can be multiple suppressed exceptions; the count and order depend on which resources actually threw during closing.
 
-Lưu ý: `getSuppressed()` trả về mảng và có thể **rỗng**; không truy cập `getSuppressed()[0]` nếu chưa kiểm tra độ dài. Chương trình ở mục tiếp theo dùng tình huống cố định để biết chắc có một ngoại lệ phụ.
+Note: `getSuppressed()` returns an array that may be **empty**; do not access `getSuppressed()[0]` without checking the length. The program in the next section uses a fixed scenario to guarantee there is one secondary exception.
 
-## 7. Ví dụ Java 17+ độc lập: `finally`, thứ tự đóng và suppressed exception
+## 7. Standalone Java 17+ Example: `finally`, Close Order, and Suppressed Exceptions
 
-Tạo tệp **`FinallyResourcesDemo.java`**:
+Create a file named **`FinallyResourcesDemo.java`**:
 
 ```java
 public class FinallyResourcesDemo {
@@ -251,14 +251,14 @@ public class FinallyResourcesDemo {
 }
 ```
 
-Mở terminal tại thư mục chứa tệp, dùng **JDK 17 trở lên**. Chạy trên PowerShell/CMD (Windows) hoặc bash/zsh (Linux/macOS):
+Open a terminal in the directory containing the file, using **JDK 17 or later**. Run on PowerShell/CMD (Windows) or bash/zsh (Linux/macOS):
 
 ```bash
 javac -encoding UTF-8 FinallyResourcesDemo.java
 java FinallyResourcesDemo
 ```
 
-**Stdout chính xác** (lệnh `javac` biên dịch thành công không in thông báo):
+**Exact stdout** (successful `javac` compilation prints no message):
 
 ```text
 try normal
@@ -284,20 +284,20 @@ caught close: close failed D
 done
 ```
 
-**Giải thích theo trình tự:**
+**Step-by-step explanation:**
 
-1. `try normal` hoàn tất bình thường nên `finally normal` chạy tiếp.
-2. `returnWithFinally()` có `return 7` trong `try`; `finally` in thông báo trước khi `result: 7` xuất hiện ở nơi gọi.
-3. Hai tài nguyên `A` và `B` được mở theo thứ tự `A`, `B`, nhưng đóng ngược lại: `B`, `A`.
-4. Tài nguyên `C` ném lỗi trong `close()`; đồng thời thân `try` ném `IllegalStateException("body failed")`. Ngoại lệ chính được bắt với thông điệp `body failed`; ngoại lệ `close failed C` được lưu là một suppressed exception.
-5. Với tài nguyên `D`, thân `try` bình thường; **chỉ `close()` thất bại**, nên `catch` nhận trực tiếp ngoại lệ `close failed D`.
-6. Chương trình vẫn in `done` vì cả hai tình huống thất bại có `catch` xử lý; không có `catch` rỗng hoặc việc bỏ qua lỗi một cách âm thầm.
+1. `try normal` finishes normally, so `finally normal` runs next.
+2. `returnWithFinally()` has `return 7` inside `try`; `finally` prints its message before `result: 7` appears at the caller.
+3. Two resources `A` and `B` are opened in order `A`, `B`, and closed in reverse order: `B`, `A`.
+4. Resource `C` throws inside `close()`, while the `try` body throws `IllegalStateException("body failed")`. The primary exception is caught with message `body failed`; `close failed C` is stored as a suppressed exception.
+5. For resource `D`, the `try` body succeeds normally; **only `close()` fails**, so `catch` directly receives `close failed D`.
+6. The program still prints `done` because both failure cases have `catch` handling; there is no empty `catch` or silent ignoring of errors.
 
-Với tài nguyên `Tracked`, chữ ký `close() throws Exception` là hợp lệ vì `AutoCloseable.close()` cho phép khai báo `Exception`. Do vậy `reverseCloseOrder()` khai báo `throws Exception`, còn `main` cũng khai báo `throws Exception` để chuyển tiếp nếu có thất bại không được xử lý ở đường đi đó. Trong ví dụ, `A` và `B` không ném lỗi nên stdout đã nêu là xác định.
+For `Tracked`, the signature `close() throws Exception` is valid because `AutoCloseable.close()` permits declaring `Exception`. Thus `reverseCloseOrder()` declares `throws Exception`, and `main` also declares `throws Exception` to propagate any unhandled failure on that path. In this example, `A` and `B` do not throw, so the stdout shown above is deterministic.
 
-## 8. `try-with-resources` và `catch`/`finally` có thể kết hợp
+## 8. `try-with-resources` Can Combine with `catch` and `finally`
 
-Cú pháp hợp lệ:
+Valid syntax:
 
 ```java
 try (Resource resource = open()) {
@@ -309,44 +309,44 @@ try (Resource resource = open()) {
 }
 ```
 
-Đây là sơ đồ minh họa với các tên giả `Resource`, `open`, `use`, `report`, `finish`, không phải chương trình độc lập.
+This is an illustrative diagram with placeholder names `Resource`, `open`, `use`, `report`, and `finish`, not a standalone program.
 
-Thứ tự về bản chất là:
+The effective execution order is:
 
-1. Khởi tạo các tài nguyên từ trái sang phải.
-2. Thực thi phần thân `try`.
-3. Tự động đóng tài nguyên đã khởi tạo theo thứ tự ngược.
-4. Nếu có ngoại lệ cần xử lý, thực hiện `catch` phù hợp gắn với cấu trúc đó.
-5. Thực hiện `finally` nếu có, theo quy tắc ngôn ngữ.
+1. Initialize resources from left to right.
+2. Execute the `try` body.
+3. Automatically close initialized resources in reverse order.
+4. If an exception needs handling, execute the matching `catch` attached to that construct.
+5. Execute `finally` if present, per language rules.
 
-Như vậy, **tài nguyên đã được tự đóng trước khi code trong `catch` và `finally` gắn với `try-with-resources` thực thi**. Nếu muốn dùng tài nguyên để ghi thêm dữ liệu trong `catch`, phải thiết kế lại phạm vi/lifecycle; không thể giả định tài nguyên của `try (...)` vẫn đang mở.
+Thus, **resources are already closed before code in `catch` and `finally` attached to the `try-with-resources` executes**. If you want to use a resource to write more data inside `catch`, you must redesign its scope/lifecycle; you cannot assume the `try (...)` resource is still open.
 
-Một `try-with-resources` có thể đứng riêng không cần `catch` hay `finally`. Ngược lại, `try` thông thường (không có resource specification) phải có ít nhất `catch` hoặc `finally`.
+A `try-with-resources` block can stand alone without `catch` or `finally`. In contrast, a regular `try` (with no resource specification) must have at least `catch` or `finally`.
 
-## 9. Khi nào nên dùng cơ chế nào?
+## 9. When Should Each Mechanism Be Used?
 
-| Nhu cầu | Cách ưu tiên |
+| Need | Preferred Approach |
 | --- | --- |
-| Đọc/ghi file qua `BufferedReader`, `InputStream`, `Writer` | `try-with-resources` vì các tài nguyên hỗ trợ đóng |
-| Quản lý `java.sql.Connection`, `Statement`, `ResultSet` | `try-with-resources` nếu cần đóng đúng phạm vi |
-| Giải phóng tài nguyên tự định nghĩa có `close()` | Triển khai `AutoCloseable` cẩn thận rồi dùng `try-with-resources` |
-| Ghi log/điểm đo sau một nhánh `try`/`catch` | Cân nhắc `finally` hoặc cấu trúc rõ ràng tương đương |
-| Cần kiểm tra và xử lý lỗi đầu vào | `catch` đúng loại ngoại lệ; `finally` không thay thế `catch` |
-| Cần trả kết quả từ phương thức | Dùng `return` đúng chỗ; không đặt `return` trong `finally` để che đường đi khác |
+| Reading/writing files via `BufferedReader`, `InputStream`, `Writer` | `try-with-resources` because these resources support closing |
+| Managing `java.sql.Connection`, `Statement`, `ResultSet` | `try-with-resources` when scoped closing is needed |
+| Releasing a custom resource with `close()` | Implement `AutoCloseable` carefully, then use `try-with-resources` |
+| Logging/recording metrics after a `try`/`catch` branch | Consider `finally` or an equivalently clear structure |
+| Checking and handling input errors | `catch` the right exception type; `finally` does not replace `catch` |
+| Returning a value from a method | Use `return` in the right place; do not place `return` in `finally` to override other paths |
 
-`AutoCloseable` chỉ cung cấp hợp đồng có phương thức `close()`; nó **không mặc nhiên bảo đảm** tài nguyên an toàn khi chia sẻ giữa nhiều luồng hoặc có thể sử dụng lại sau khi đóng. Những điều đó phụ thuộc API thực tế.
+`AutoCloseable` only provides the contract for a `close()` method; it **does not inherently guarantee** that a resource is thread-safe across threads or reusable after closing. Those properties depend on the actual API.
 
-## 10. Lỗi thường gặp và cách tự kiểm tra
+## 10. Common Mistakes and Self-Check
 
-1. **Cho rằng `finally` sẽ bắt ngoại lệ.** `finally` chỉ chạy công việc khi rời cấu trúc; muốn xử lý ngoại lệ phải có `catch` phù hợp hoặc cho lan đến tầng khác.
-2. **Đặt `return` trong `finally`.** Có thể ghi đè giá trị trả về hoặc che ngoại lệ; tránh cách viết này.
-3. **Tự đóng tài nguyên trong `finally` nhưng bỏ qua ngoại lệ ở `close()`.** Có thể mất thông tin lỗi gốc; dùng `try-with-resources` khi được hỗ trợ.
-4. **Cho rằng `try-with-resources` tự nuốt `IOException`.** Ngoại lệ vẫn cần bắt hoặc khai báo `throws` thích hợp.
-5. **Dùng đối tượng không triển khai `AutoCloseable` trong `try (...)`.** Đây là lỗi biên dịch; cần kiểu tài nguyên hợp lệ.
-6. **Đọc `getSuppressed()[0]` mà không kiểm tra độ dài.** Có thể gây `ArrayIndexOutOfBoundsException` nếu không có ngoại lệ phụ.
-7. **Giả định đóng tài nguyên theo thứ tự khai báo.** Với nhiều tài nguyên, thứ tự đóng là **ngược lại**.
-8. **Dùng tài nguyên đã đóng sau khi rời `try-with-resources`.** Nhiều API sẽ ném ngoại lệ hoặc không còn cho phép thao tác; cần tránh phụ thuộc vào trạng thái đã đóng.
-9. **Dựa vào `finally` khi VM bị kill hoặc máy tắt.** Không có bảo đảm dọn dẹp trong các tình huống mất khả năng thực thi Java.
-10. **Nhầm tài nguyên hệ điều hành với bộ nhớ Java.** Garbage Collector không phải một cơ chế đóng file/socket đúng thời điểm.
+1. **Assuming `finally` catches exceptions.** `finally` only runs cleanup when exiting the construct; to handle exceptions, use a matching `catch` or let them propagate to another layer.
+2. **Putting `return` in `finally`.** It can overwrite the return value or mask an exception; avoid this pattern.
+3. **Closing resources manually in `finally` while ignoring `close()` exceptions.** This can lose original error details; use `try-with-resources` when supported.
+4. **Assuming `try-with-resources` swallows `IOException`.** Checked exceptions must still be caught or declared with `throws`.
+5. **Using an object that does not implement `AutoCloseable` in `try (...)`.** That is a compile-time error; a valid resource type is required.
+6. **Reading `getSuppressed()[0]` without checking length.** Can throw `ArrayIndexOutOfBoundsException` if there are no suppressed exceptions.
+7. **Assuming resources close in declaration order.** With multiple resources, closing happens in **reverse** order.
+8. **Using a closed resource after leaving `try-with-resources`.** Many APIs will throw an exception or disallow operations; avoid relying on closed state.
+9. **Relying on `finally` when the VM is killed or the machine shuts down.** There is no cleanup guarantee when Java execution stops abruptly.
+10. **Confusing OS resources with Java memory.** The Garbage Collector is not a mechanism for timely closing of files or sockets.
 
-**Ghi nhớ:** `finally` dành cho các bước phải thực hiện khi rời đường thực thi bình thường của `try`/`catch`; `try-with-resources` là công cụ chuyên biệt để đóng `AutoCloseable` an toàn hơn, kể cả khi `try` ném ngoại lệ. Khi cả thao tác chính và `close()` thất bại, xem `getSuppressed()` để không bỏ sót lỗi phụ.
+**Remember:** `finally` is for steps that must run when leaving normal `try`/`catch` execution paths; `try-with-resources` is the specialized tool for closing `AutoCloseable` resources more safely, even when `try` throws. When both the main operation and `close()` fail, inspect `getSuppressed()` so secondary failures are not missed.

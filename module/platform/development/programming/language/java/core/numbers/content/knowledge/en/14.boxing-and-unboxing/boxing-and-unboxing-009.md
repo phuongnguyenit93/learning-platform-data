@@ -1,25 +1,25 @@
-# Toán tử ?: có thể unbox nhánh wrapper trong Java
+# The ?: Operator Can Unbox Wrapper Branches in Java
 
-> **Java core – numbers · Boxing và unboxing**  
-> **Mục tiêu:** Hiểu vì sao biểu thức điều kiện `condition ? expression1 : expression2` đôi khi tự động chuyển `Integer`, `Long`, `Double`… thành primitive; biết lúc nào giá trị `null` gây `NullPointerException`, lúc nào nhánh không chọn không được đánh giá, và cách thiết kế xử lý giá trị tùy chọn an toàn trong Java 17+.
+> **Java core – numbers · Boxing and unboxing**  
+> **Goal:** Understand why the conditional expression `condition ? expression1 : expression2` sometimes automatically converts `Integer`, `Long`, `Double`… into primitives; know when a `null` value throws `NullPointerException`, when an unselected branch is not evaluated, and how to design safe handling for optional values in Java 17+.
 
-## 1. Một dòng Java có thể ném NullPointerException dù không gọi .intValue()
+## 1. A single line of Java can throw NullPointerException without calling .intValue()
 
-Xét đoạn mã:
+Consider the code:
 
 ```java
 Integer boxed = null;
 boolean chooseBoxed = true;
 
 Integer result = chooseBoxed ? boxed : 0;
-// NullPointerException khi chạy!
+// NullPointerException at runtime!
 ```
 
-Thoạt nhìn, biến nhận có kiểu `Integer` nên ta dễ nghĩ nhánh `boxed` sẽ được giữ nguyên là `null`. Nhưng trong ví dụ này, một nhánh là **`Integer`** và nhánh còn lại là **`int`** (literal `0`). Theo quy tắc kiểu của **numeric conditional expression**, toán tử `?:` có thể xác định kiểu kết quả là **primitive `int`**.
+At first glance, the receiving variable has type `Integer`, so it is easy to assume the `boxed` branch will remain `null`. Yet in this example, one branch is **`Integer`** and the other branch is **`int`** (the literal `0`). Under the typing rules for a **numeric conditional expression**, the `?:` operator can determine the result type to be **primitive `int`**.
 
-Khi điều kiện là `true`, Java phải **unbox** nhánh `boxed` thành `int` để tạo giá trị của biểu thức `?:`. Vì `boxed == null`, thao tác này ném `NullPointerException`. Phép boxing để gán vào biến `Integer result` sẽ **không xảy ra**, bởi quá trình đánh giá biểu thức đã thất bại.
+When the condition is `true`, Java must **unbox** the `boxed` branch to `int` to produce the value of the `?:` expression. Since `boxed == null`, this operation throws `NullPointerException`. The boxing step to assign into the `Integer result` variable will **not happen**, because expression evaluation has already failed.
 
-Cùng một nhánh wrapper nhưng điều kiện `false`:
+Same wrapper branch, but condition `false`:
 
 ```java
 Integer boxed = null;
@@ -27,15 +27,15 @@ Integer result = false ? boxed : 0;
 System.out.println(result); // 0
 ```
 
-Lúc này Java chọn nhánh primitive `0`, nên không đọc giá trị `boxed` và không xảy ra lỗi.
+Here Java selects the primitive branch `0`, so it does not read `boxed`'s value and no error occurs.
 
-**Điểm cốt lõi:** kiểu của **toàn bộ biểu thức điều kiện** được xác định **khi biên dịch** dựa trên quy tắc của Java; khi chạy, chỉ nhánh được chọn được đánh giá. Nếu nhánh được chọn là wrapper cần chuyển sang primitive, việc **unboxing có thể xảy ra ngay trong toán tử `?:`**, trước bước gán cuối.
+**Core point:** the type of **the entire conditional expression** is determined **at compile time** based on Java's rules; at runtime, only the selected branch is evaluated. If the selected branch is a wrapper that must be converted to a primitive, **unboxing can occur right inside the `?:` operator**, before the final assignment step.
 
-## 2. Ôn tập: boxing, unboxing, primitive và wrapper
+## 2. Review: boxing, unboxing, primitives, and wrappers
 
-**Boxing** chuyển giá trị primitive sang đối tượng wrapper; **unboxing** lấy giá trị primitive từ wrapper.
+**Boxing** converts a primitive value into a wrapper object; **unboxing** retrieves the primitive value from a wrapper.
 
-| Primitive | Wrapper | Ví dụ unbox |
+| Primitive | Wrapper | Unboxing example |
 | --- | --- | --- |
 | `byte` | `Byte` | `Byte.byteValue()` |
 | `short` | `Short` | `Short.shortValue()` |
@@ -46,76 +46,76 @@ Lúc này Java chọn nhánh primitive `0`, nên không đọc giá trị `boxed
 | `char` | `Character` | `Character.charValue()` |
 | `boolean` | `Boolean` | `Boolean.booleanValue()` |
 
-Ví dụ:
+Example:
 
 ```java
 int n = 7;
-Integer boxed = n;            // boxing, gần với Integer.valueOf(n)
-int original = boxed;         // unboxing, gần với boxed.intValue()
+Integer boxed = n;            // boxing, close to Integer.valueOf(n)
+int original = boxed;         // unboxing, close to boxed.intValue()
 
 Integer nullable = null;
-// int failed = nullable;     // biên dịch được nhưng ném NPE khi chạy
+// int failed = nullable;     // compiles, yet throws NPE at runtime
 ```
 
-Wrapper là kiểu **tham chiếu**, nên `Integer` có thể là `null`. Primitive `int` không chứa được `null`. Mỗi khi ngữ cảnh đòi chuyển wrapper đang bằng `null` về primitive, Java ném `NullPointerException`.
+Wrappers are **reference** types, so `Integer` can be `null`. Primitive `int` cannot hold `null`. Whenever a context requires converting a wrapper holding `null` to a primitive, Java throws `NullPointerException`.
 
-Trong thực tế unboxing có thể bị ẩn trong:
+In practice, unboxing can be hidden in:
 
-- phép cộng/trừ/nhân/chia như `boxed + 1`;
-- so sánh wrapper với primitive, ví dụ `boxed == 5`;
-- gán wrapper sang primitive, ví dụ `int x = boxed;`;
-- điều kiện `if (boxedBoolean)` nếu `boxedBoolean` có kiểu `Boolean`;
-- **toán tử `?:`**, khi quy tắc chọn kiểu cần primitive.
+- addition/subtraction/multiplication/division such as `boxed + 1`;
+- comparing a wrapper with a primitive, e.g., `boxed == 5`;
+- assigning a wrapper to a primitive, e.g., `int x = boxed;`;
+- an `if (boxedBoolean)` condition if `boxedBoolean` has type `Boolean`;
+- **the `?:` operator**, when type selection rules require a primitive.
 
-Bài này tập trung vào trường hợp cuối, đặc biệt những biểu thức nhìn có vẻ đang “chọn một đối tượng”.
+This lesson focuses on the last case, especially expressions that appear to be “selecting an object”.
 
-## 3. Quy tắc nền tảng của toán tử điều kiện ?:
+## 3. Fundamental rules of the ?: conditional operator
 
-Cú pháp:
+Syntax:
 
 ```java
 condition ? whenTrue : whenFalse
 ```
 
-Trình tự:
+Sequence:
 
-1. Đánh giá biểu thức `condition`.
-2. Nếu điều kiện đúng, **chỉ đánh giá `whenTrue`**.
-3. Nếu điều kiện sai, **chỉ đánh giá `whenFalse`**.
-4. Chuyển giá trị nhánh được chọn thành **kiểu mà toán tử điều kiện yêu cầu**, nếu cần, rồi tạo kết quả biểu thức.
+1. Evaluate the `condition` expression.
+2. If the condition is true, **only evaluate `whenTrue`**.
+3. If the condition is false, **only evaluate `whenFalse`**.
+4. Convert the selected branch's value to **the type required by the conditional operator**, if needed, and produce the expression result.
 
-Hai nhánh **không chạy cả hai**. Nhưng compiler phải xác định được **kiểu chung/kiểu kết quả của biểu thức** theo ngữ pháp và quy tắc type system của Java trước khi chương trình chạy.
+The two branches **do not both execute**. However, the compiler must determine the **common/result type of the expression** according to Java's grammar and type-system rules before the program runs.
 
-Một ví dụ không có wrapper:
+An example without wrappers:
 
 ```java
 int x = true ? 10 : 20;    // 10
 int y = false ? 10 : 20;   // 20
 ```
 
-Toán tử `?:` cũng có thể lồng nhau; nó được nhóm theo hướng **phải sang trái**:
+The `?:` operator can also be nested; it groups from **right to left**:
 
 ```java
 int result = a ? 1 : b ? 2 : 3;
-// Nhóm: a ? 1 : (b ? 2 : 3)
+// Grouping: a ? 1 : (b ? 2 : 3)
 ```
 
-Ở đây `a` và `b` là các biến `boolean` đã có sẵn; đây là ví dụ **cú pháp minh họa**, không phải chương trình hoàn chỉnh. Khi lồng nhiều biểu thức, từng toán tử `?:` có quy tắc chọn kiểu riêng, vì vậy càng dễ xảy ra chuyển kiểu ngầm khó nhìn.
+Here `a` and `b` are pre-existing `boolean` variables; this is an **illustrative syntax** example, not a complete program. When nesting multiple expressions, each `?:` operator has its own type selection rules, making subtle implicit conversions even easier to miss.
 
-### Điều kiện boolean cũng có thể unbox
+### A boolean condition can also unbox
 
-Ngay **condition** cũng có thể gây NPE:
+Even the **condition** itself can cause an NPE:
 
 ```java
 Boolean enabled = null;
-// int status = enabled ? 1 : 0; // NPE khi unbox enabled để lấy boolean
+// int status = enabled ? 1 : 0; // NPE when unboxing enabled to obtain boolean
 ```
 
-Trường hợp này **khác** lỗi do nhánh wrapper được chọn: lỗi xảy ra **trước khi chọn nhánh**. Cần nhận biết đúng vị trí unboxing khi đọc stack trace hoặc kiểm thử.
+This case is **distinct** from an error caused by a selected wrapper branch: the error occurs **before choosing a branch**. You need to recognize the exact unboxing site when reading stack traces or writing tests.
 
-## 4. Vì sao Integer và int có thể tạo kết quả primitive int?
+## 4. Why can Integer and int produce a primitive int result?
 
-Xét:
+Consider:
 
 ```java
 Integer nullable = null;
@@ -124,67 +124,67 @@ int fallback = 0;
 Integer value = choose ? nullable : fallback;
 ```
 
-Đây là **numeric conditional expression** do hai nhánh có kiểu liên quan đến số. Với cặp nhánh `Integer` và `int`, kiểu của biểu thức điều kiện là `int`. Nếu chọn `nullable`, nó cần được **unbox**.
+This is a **numeric conditional expression** because both branches have numeric-related types. With the branch pair `Integer` and `int`, the type of the conditional expression is `int`. If `nullable` is chosen, it must be **unboxed**.
 
-Diễn giải ý nghĩa của dòng mã trên theo các bước:
+Interpreting the meaning of that line step by step:
 
 ```text
 condition ? Integer : int
-          └── kiểu biểu thức theo quy tắc: int
+          └── expression type per rules: int
 
-Khi condition == true:
-1. Lấy nullable (Integer).
-2. Chuyển Integer -> int (unboxing).
-3. Nếu nullable == null: ném NullPointerException.
-4. Nếu thành công, kết quả int có thể được boxing khi
-   gán vào biến Integer value.
+When condition == true:
+1. Retrieve nullable (Integer).
+2. Convert Integer -> int (unboxing).
+3. If nullable == null: throw NullPointerException.
+4. If successful, the int result can be boxed when
+   assigned to the Integer value variable.
 
-Khi condition == false:
-1. Lấy fallback (int).
-2. Kết quả có kiểu int.
-3. Boxing nếu đích gán có kiểu Integer.
+When condition == false:
+1. Retrieve fallback (int).
+2. Result has type int.
+3. Box if the assignment target has type Integer.
 ```
 
-Trong biểu thức có `Integer` và `long`, Java có thể cần mở rộng số sang `long`:
+In an expression with `Integer` and `long`, Java may also need to widen the number to `long`:
 
 ```java
 Integer maybe = null;
-// long value = true ? maybe : 0L; // NPE: nhánh Integer cần unbox rồi widen
+// long value = true ? maybe : 0L; // NPE: Integer branch needs unboxing then widening
 ```
 
-**Không** suy diễn quy tắc tổng quát quá đơn giản như “hễ có một wrapper và một primitive, kết quả luôn là primitive có tên giống wrapper”. Các bảng chọn kiểu của toán tử `?:` có những trường hợp đặc biệt cho constant expression kiểu `int`, `byte`/`short`/`char` và các kiểu numeric khác. Cần xác định **cặp kiểu thực tế** của hai nhánh và kiểu của biểu thức lồng, không đoán từ kiểu biến đích.
+**Do not** infer an overly simplistic general rule like “whenever there is one wrapper and one primitive, the result is always the primitive sharing the wrapper's name”. The type-selection tables for `?:` have special cases for constant expressions of type `int`, `byte`/`short`/`char`, and other numeric types. You must determine the **actual type pair** of the two branches and any nested expressions, rather than guessing from the target variable's type.
 
-Tuy nhiên, ví dụ nền tảng `Integer ? int` gây unboxing là đủ để thấy rủi ro.
+Nevertheless, the foundational `Integer ? int` example causing unboxing is enough to illustrate the risk.
 
-## 5. Kiểu biến nhận không nhất thiết ngăn unboxing
+## 5. The receiving variable's type does not necessarily prevent unboxing
 
-So sánh:
+Compare:
 
 ```java
 Integer boxed = null;
 boolean c = true;
 
-// Cả hai có thể ném NPE khi chọn boxed:
+// Both can throw NPE when selecting boxed:
  // int primitiveResult = c ? boxed : 0;
  // Integer wrapperResult = c ? boxed : 0;
 ```
 
-Vì trong cả hai biểu thức, chính nhánh `boxed` và literal `0` đã quyết định kiểu numeric conditional là `int`. Việc khai báo biến nhận là `Integer` **không tự biến nhánh `0` thành `Integer` trước khi toán tử tính xong**.
+Because in both expressions, the `boxed` branch and the `0` literal already determine the numeric conditional's type to be `int`. Declaring the receiving variable as `Integer` **does not automatically turn the `0` branch into `Integer` before the operator finishes evaluating**.
 
-Tương tự, khi gán vào `Object`:
+Similarly, when assigning to `Object`:
 
 ```java
 Integer boxed = null;
-// Object objectResult = true ? boxed : 0; // vẫn có thể NPE
+// Object objectResult = true ? boxed : 0; // can still NPE
 ```
 
-Ngữ cảnh này không bảo đảm giữ nguyên tham chiếu `boxed`. Biểu thức điều kiện vẫn được xác định kiểu theo hai nhánh; giá trị `int` chỉ được boxing thành đối tượng **sau** khi đã đánh giá thành công.
+This context does not guarantee preserving the `boxed` reference. The conditional expression is still typed by its two branches; the `int` value is only boxed into an object **after** evaluating successfully.
 
-Để tránh suy luận sai, hãy kiểm tra biểu thức từ **bên trong ra bên ngoài**: kiểu của từng nhánh → kiểu của `?:` → kiểu của phép gán. Đừng đi ngược bằng cách xem biến đích rồi suy ra mọi chuyển kiểu trung gian.
+To avoid misreasoning, inspect expressions **from the inside out**: branch types → type of `?:` → type of assignment. Do not work backward by looking at the target variable and assuming all intermediate conversions match it.
 
-## 6. Cả hai nhánh đều Integer: khác biệt quan trọng
+## 6. Both branches are Integer: an important difference
 
-Bây giờ thay literal primitive `0` bằng một wrapper `Integer`:
+Now replace the primitive literal `0` with an `Integer` wrapper:
 
 ```java
 Integer nullable = null;
@@ -194,29 +194,29 @@ Integer chosen = true ? nullable : zeroBox;
 System.out.println(chosen == null); // true
 ```
 
-Khi **cả hai nhánh đều có cùng kiểu `Integer`**, quy tắc chọn kiểu của biểu thức giữ kết quả kiểu `Integer`. Nếu chọn nhánh `nullable`, kết quả là tham chiếu `null`; không có lý do phải unbox tại toán tử này.
+When **both branches have the same `Integer` type**, the expression's type selection rules keep the result type as `Integer`. If the `nullable` branch is selected, the result is the `null` reference; there is no reason to unbox at this operator.
 
-Một cách viết dễ đọc khác:
+Another readable way to write it:
 
 ```java
 Integer chosen = true
         ? nullable
-        : Integer.valueOf(0); // cùng kiểu Integer với nhánh kia
+        : Integer.valueOf(0); // same Integer type as the other branch
 ```
 
-Lúc này có thể giữ `null` trong biến nhận kiểu `Integer`. Tuy nhiên, nếu chuyển giá trị được chọn sang **primitive sau đó**, NPE vẫn xảy ra:
+At this point `null` can be preserved in the receiving `Integer` variable. However, if the chosen value is converted to a **primitive afterward**, an NPE will still happen:
 
 ```java
 Integer nullable = null;
 Integer other = Integer.valueOf(0);
 
-// Toán tử ?: trả Integer có thể null, nhưng phép gán sang int cần unbox.
-// int number = true ? nullable : other; // NPE tại unboxing để gán
+// The ?: operator returns a potentially null Integer, yet assigning to int requires unboxing.
+// int number = true ? nullable : other; // NPE on unboxing for assignment
 ```
 
-Câu hỏi cần trả lời không chỉ là “`?:` có unbox hay không”, mà còn là **bước dùng kết quả tiếp theo có yêu cầu unbox không**.
+The question to answer is not merely “does `?:` unbox?”, but also **whether subsequent steps using the result require unboxing**.
 
-### Cùng kiểu wrapper nhưng có giá trị null ở một nhánh
+### Same wrapper type but with a null value in one branch
 
 ```java
 Integer a = null;
@@ -225,25 +225,25 @@ Integer selectedA = true ? a : b;  // null
 Integer selectedB = false ? a : b; // 7
 ```
 
-Hai dòng đều an toàn **ở bước chọn nhánh và gán cho `Integer`**. Việc truy cập `selectedA.intValue()` hoặc cộng `selectedA + 1` sau đó mới phát sinh NPE.
+Both lines are safe **at the branch-selection and `Integer`-assignment steps**. Accessing `selectedA.intValue()` or adding `selectedA + 1` afterward is what triggers an NPE.
 
-**Cảnh báo:** `Integer` là một kiểu numeric wrapper; chỉ vì cả hai nhánh được viết trông giống đối tượng không có nghĩa mọi trường hợp trộn với kiểu numeric khác đều bảo toàn tham chiếu. Những trường hợp trên an toàn vì **cả hai nhánh có cùng kiểu `Integer`** và đích nhận cũng là `Integer`.
+**Warning:** `Integer` is a numeric wrapper type; just because both branches look like objects does not mean every case mixing different numeric types preserves references. The cases above are safe because **both branches share the exact same `Integer` type** and the target is also `Integer`.
 
-## 7. Điều kiện true/false quyết định có xảy ra unboxing lúc chạy
+## 7. The true/false condition decides whether unboxing happens at runtime
 
-Một biểu thức có thể **có chuyển kiểu ngầm trong quy tắc kiểu** nhưng không ném lỗi ở mọi lần thực thi.
+An expression can **have an implicit conversion in its typing rules** yet not throw an error on every execution.
 
 ```java
 Integer maybe = null;
 
-int a = false ? maybe : 10; // 10; nhánh maybe không được đánh giá
+int a = false ? maybe : 10; // 10; the maybe branch is not evaluated
 
-// int b = true ? maybe : 10; // NPE; chọn nhánh maybe
+// int b = true ? maybe : 10; // NPE; selects the maybe branch
 ```
 
-Cơ chế **chỉ đánh giá nhánh được chọn** rất quan trọng: Java không chạy cả hai biểu thức rồi chọn giá trị. Nếu nhánh không được chọn có gọi hàm gây tác dụng phụ, ném ngoại lệ hoặc chứa một wrapper null, nó không bị đánh giá.
+The mechanism of **evaluating only the selected branch** is crucial: Java does not run both expressions and then pick a value. If the unselected branch calls a side-effecting function, throws an exception, or contains a null wrapper, it is never evaluated.
 
-Ví dụ:
+Example:
 
 ```java
 static Integer loadNullable() {
@@ -251,32 +251,32 @@ static Integer loadNullable() {
     return null;
 }
 
-// Không in "called", không NPE:
+// Does not print "called", no NPE:
 int safe = false ? loadNullable() : 100;
 
-// In "called" rồi NPE:
+// Prints "called" then NPE:
 // int failed = true ? loadNullable() : 100;
 ```
 
-Đây là mã minh họa; phương thức `loadNullable` phải được đặt trong một class, các câu lệnh khác trong phương thức có ngữ cảnh phù hợp.
+This is illustrative code; the `loadNullable` method must be placed inside a class, and the other statements in a method with appropriate context.
 
-Đồng thời, compiler vẫn **type-check cả hai nhánh**. Nhánh không chọn không có nghĩa bạn được phép viết mã không hợp lệ cú pháp/kiểu tại đó.
+At the same time, the compiler still **type-checks both branches**. An unselected branch does not mean you are allowed to write syntactically or type-wise invalid code there.
 
-## 8. Boolean wrapper là một trường hợp riêng
+## 8. Boolean wrapper is a special case
 
-Với wrapper `Boolean` có thể `null`, có ít nhất **hai điểm** cần cảnh giác.
+With a nullable `Boolean` wrapper, there are at least **two spots** to watch out for.
 
-### 8.1. Unbox để dùng làm điều kiện
+### 8.1. Unboxing to use as the condition
 
 ```java
 Boolean condition = null;
 
-// String text = condition ? "yes" : "no"; // NPE khi dùng condition
+// String text = condition ? "yes" : "no"; // NPE when evaluating condition
 ```
 
-Phần điều kiện phải có giá trị `boolean` (hoặc `Boolean` được unbox). Nếu `condition` là `null` thì không thể chọn nhánh.
+The condition part must have a `boolean` value (or an unboxed `Boolean`). If `condition` is `null`, no branch can be chosen.
 
-Nếu ý nghĩa nghiệp vụ là **chỉ `Boolean.TRUE` được coi là đúng**, có thể viết:
+If the business meaning is that **only `Boolean.TRUE` counts as true**, you can write:
 
 ```java
 Boolean condition = null;
@@ -284,18 +284,18 @@ String text = Boolean.TRUE.equals(condition) ? "yes" : "no";
 System.out.println(text); // no
 ```
 
-Đây là **quy tắc nghiệp vụ được chọn**, không phải định nghĩa tự nhiên cho `null`. Hệ thống có trạng thái ba giá trị `true`/`false`/`unknown` có thể cần giữ nguyên trạng thái unknown, không âm thầm biến thành false.
+This is an **explicitly chosen business rule**, not a natural definition for `null`. A system with three-state logic `true`/`false`/`unknown` may need to preserve the unknown state rather than silently turning it into false.
 
-### 8.2. Một nhánh Boolean, một nhánh boolean
+### 8.2. One Boolean branch, one boolean branch
 
 ```java
 Boolean nullable = null;
-// boolean selected = true ? nullable : false; // NPE khi chọn nullable
+// boolean selected = true ? nullable : false; // NPE when nullable is selected
 ```
 
-Tương tự numeric wrapper, trong trường hợp trộn `Boolean` với primitive `boolean`, chuyển kiểu có thể yêu cầu unboxing nhánh wrapper.
+Like numeric wrappers, when mixing `Boolean` with primitive `boolean`, type conversion can require unboxing the wrapper branch.
 
-Nếu muốn giữ kết quả kiểu `Boolean` cho phép `null`:
+If you want to keep a nullable `Boolean` result:
 
 ```java
 Boolean nullable = null;
@@ -304,11 +304,11 @@ Boolean selected = true ? nullable : fallback;
 System.out.println(selected == null); // true
 ```
 
-Đừng dùng wrapper chứa null ở điều kiện `if`/`while` hoặc các toán tử `&&`, `||` mà không có quy tắc rõ ràng; việc unbox null sẽ ném NPE khi tới lượt đánh giá toán hạng đó.
+Do not use a potentially null wrapper in `if`/`while` conditions or `&&`, `||` operators without explicit rules; unboxing null will throw an NPE when that operand's turn to evaluate arrives.
 
-## 9. Ví dụ với Long, Double và các wrapper số khác
+## 9. Examples with Long, Double, and other numeric wrappers
 
-Rủi ro không chỉ xảy ra với `Integer`. Ví dụ:
+The risk does not happen only with `Integer`. For example:
 
 ```java
 Long nullableLong = null;
@@ -321,9 +321,9 @@ Float nullableFloat = null;
 // float z = true ? nullableFloat : 0.0f; // NPE
 ```
 
-Ở những ví dụ này, hai nhánh tương ứng trộn wrapper với primitive cùng loại numeric, dẫn tới kết quả primitive và unboxing nếu chọn nhánh null.
+In these examples, the respective branches mix a wrapper with a primitive of the same numeric kind, leading to a primitive result and unboxing if the null branch is chosen.
 
-Với hai wrapper cùng loại, có thể trả một tham chiếu null:
+With two wrappers of the same type, a null reference can be returned:
 
 ```java
 Long a = null;
@@ -332,9 +332,9 @@ Long x = true ? a : b;
 System.out.println(x == null); // true
 ```
 
-### Trộn numeric wrapper khác loại
+### Mixing numeric wrappers of different types
 
-Ví dụ `Integer` và `Double` là các kiểu wrapper khác nhau:
+For example, `Integer` and `Double` are different wrapper types:
 
 ```java
 Integer count = Integer.valueOf(2);
@@ -344,13 +344,13 @@ double result = true ? count : ratio;
 System.out.println(result); // 2.0
 ```
 
-Trong ví dụ numeric conditional này, Java dùng quy tắc chuyển đổi số để cho kết quả `double`; khi chọn `count` cần unbox `Integer` rồi mở rộng số sang `double`. Nếu `count` là `null`, nhánh được chọn sẽ ném NPE.
+In this numeric conditional example, Java uses numeric conversion rules to yield a `double` result; selecting `count` requires unboxing `Integer` and widening to `double`. If `count` is `null`, the selected branch will throw an NPE.
 
-**Không dựa vào “cả hai nhánh đều là object nên không unbox”.** Với numeric conditional expression, quy tắc kiểu numeric có thể yêu cầu giá trị primitive ngay cả khi mỗi nhánh bắt đầu từ wrapper.
+**Do not rely on “both branches are objects so no unboxing occurs”.** With numeric conditional expressions, numeric typing rules can demand primitive values even when each branch starts as a wrapper.
 
-## 10. Autoboxing lại ở bước cuối có thể che giấu bước unboxing trước đó
+## 10. Re-autoboxing at the final step can hide an earlier unboxing step
 
-Xét chuỗi các bước:
+Consider the chain of steps:
 
 ```java
 Integer maybe = Integer.valueOf(5);
@@ -358,29 +358,29 @@ Integer answer = true ? maybe : 0;
 System.out.println(answer); // 5
 ```
 
-Trong trường hợp này:
+In this case:
 
-1. `maybe` có kiểu `Integer`;
-2. nhánh kia là `int 0`;
-3. conditional expression có kiểu `int`;
-4. khi chọn `maybe`, Java unbox nó thành 5;
-5. phép gán tới `Integer answer` có thể boxing lại 5.
+1. `maybe` has type `Integer`;
+2. the other branch is `int 0`;
+3. the conditional expression has type `int`;
+4. when `maybe` is selected, Java unboxes it to 5;
+5. assigning to `Integer answer` can box 5 back.
 
-Khi `maybe` khác null, chương trình vẫn chạy và người đọc có thể không nhận thấy **unboxing → boxing** đã diễn ra. Chỉ khi giá trị `null` xuất hiện mới bộc lộ NPE.
+When `maybe` is non-null, the program still runs and readers might not notice that **unboxing → boxing** took place. Only when a `null` value appears does the NPE surface.
 
-Vì vậy các bộ test chỉ sử dụng wrapper khác null **không đủ** để chứng minh một biểu thức chọn giá trị là null-safe. Cần test cả nhánh chứa null và các điều kiện true/false tương ứng.
+Therefore test suites that only use non-null wrappers are **not enough** to prove a value-selecting expression is null-safe. You must test both the null branch and the corresponding true/false conditions.
 
-## 11. Cách sửa: định nghĩa rõ hợp đồng null trước khi chọn giá trị
+## 11. How to fix: clearly define the null contract before choosing values
 
-Không có một “bản sửa” duy nhất cho mọi bài toán. Cần xác định một trong ba yêu cầu:
+There is no single “fix” for every problem. You must decide on one of three requirements:
 
-1. **Giữ `null`** để thể hiện “không có giá trị”.
-2. **Dùng một fallback** như 0 hoặc 1 khi wrapper null.
-3. **Từ chối null** bằng ngoại lệ có thông điệp rõ ràng.
+1. **Preserve `null`** to signify “no value”.
+2. **Use a fallback** such as 0 or 1 when the wrapper is null.
+3. **Reject null** with an exception bearing a clear message.
 
-### 11.1. Muốn giữ nguyên null
+### 11.1. When preserving null
 
-Sử dụng hai nhánh cùng kiểu wrapper và đích nhận wrapper:
+Use two branches of the same wrapper type and a wrapper target:
 
 ```java
 Integer nullable = null;
@@ -390,7 +390,7 @@ Integer result = true ? nullable : fallbackBoxed;
 System.out.println(result == null); // true
 ```
 
-Hoặc viết `if/else` để thể hiện rõ:
+Or write `if/else` to make it explicit:
 
 ```java
 Integer result;
@@ -401,11 +401,11 @@ if (true) {
 }
 ```
 
-Đoạn `if (true)` chỉ để minh họa luồng điều khiển; trong chương trình thực tế thay bằng điều kiện nghiệp vụ. **Không unbox `result` về sau nếu null vẫn hợp lệ.**
+The `if (true)` snippet only illustrates control flow; in a real program, replace it with a business condition. **Do not unbox `result` later if null remains valid.**
 
-### 11.2. Muốn fallback khi wrapper null
+### 11.2. When falling back on wrapper null
 
-Nếu cần số nguyên primitive khác null:
+If a non-null primitive integer is required:
 
 ```java
 Integer maybe = null;
@@ -413,9 +413,9 @@ int count = maybe != null ? maybe.intValue() : 0;
 System.out.println(count); // 0
 ```
 
-Ở đây **điều kiện kiểm tra chính giá trị wrapper**; khi `maybe == null`, nhánh gọi `intValue()` không được đánh giá. Cách viết rất rõ rằng `null` sẽ biến thành `0` theo quy tắc đã chọn.
+Here **the condition checks the wrapper value itself**; when `maybe == null`, the branch calling `intValue()` is not evaluated. This makes it very clear that `null` turns into `0` per the chosen rule.
 
-Nếu còn một điều kiện nghiệp vụ `choose` nữa:
+If there is also a business condition `choose`:
 
 ```java
 Integer maybe = null;
@@ -423,9 +423,9 @@ boolean choose = true;
 int result = choose && maybe != null ? maybe.intValue() : 0;
 ```
 
-Cần xác định liệu “không chọn” và “chọn nhưng không có giá trị” có thực sự cùng được quy về 0 hay không. Nếu hai trạng thái có ý nghĩa khác nhau, đừng nhập chúng bằng một fallback.
+Verify whether “not chosen” and “chosen but has no value” truly map to the same 0. If the two states mean different things, do not collapse them with a single fallback.
 
-Cũng có thể dùng `Objects.requireNonNullElse` khi cần một wrapper có fallback **khác null**, nhưng vẫn phải hiểu nó là lựa chọn thay thế null theo quy ước, không phải Java tự động áp dụng cho `?:`:
+You can also use `Objects.requireNonNullElse` when you need a wrapper with a **non-null** fallback, while still remembering it is a convention-based null replacement, not something Java automatically applies to `?:`:
 
 ```java
 import java.util.Objects;
@@ -436,25 +436,25 @@ Integer result = Objects.requireNonNullElse(
 System.out.println(result); // 0
 ```
 
-### 11.3. Muốn từ chối null
+### 11.3. When rejecting null
 
 ```java
 import java.util.Objects;
 
 Integer maybe = null;
-// int x = Objects.requireNonNull(maybe, "Missing count"); // ném NPE rõ thông điệp
+// int x = Objects.requireNonNull(maybe, "Missing count"); // throws NPE with clear message
 ```
 
-Hoặc chủ động ném `IllegalArgumentException` ở ranh giới API nếu null là dữ liệu đầu vào không hợp lệ. Không nên che giấu lỗi bằng catch `NullPointerException` bao trùm một biểu thức lớn rồi âm thầm thay 0: cách đó dễ nuốt các lỗi lập trình khác.
+Or proactively throw `IllegalArgumentException` at the API boundary if null is invalid input data. Do not mask bugs by wrapping a large expression in a `NullPointerException` catch block and silently substituting 0: that easily swallows unrelated programming errors.
 
-## 12. Khi nào nên viết if/else thay cho ?:
+## 12. When to write if/else instead of ?:
 
-Toán tử `?:` phù hợp khi hai nhánh ngắn, dễ đọc và kiểu kết quả rõ ràng. Khi có nhiều kiểu wrapper, nullability hoặc logic điều kiện phức tạp, `if/else` thường làm **bước unboxing** lộ rõ hơn:
+The `?:` operator fits when both branches are short, readable, and have clear result types. When multiple wrapper types, nullability, or complex conditional logic are involved, `if/else` usually makes **the unboxing step** much more visible:
 
 ```java
 static Integer chooseNullable(boolean choose, Integer input) {
     if (choose) {
-        return input;     // có thể trả null
+        return input;     // may return null
     }
     return Integer.valueOf(0);
 }
@@ -470,12 +470,12 @@ static int choosePrimitive(boolean choose, Integer input) {
 }
 ```
 
-Hai phương thức này có **hợp đồng khác nhau**:
+These two methods have **different contracts**:
 
-- `chooseNullable` có thể trả `null`, cần người gọi xử lý.
-- `choosePrimitive` luôn trả `int` hoặc ném một ngoại lệ chủ động nếu không có số cần dùng.
+- `chooseNullable` can return `null`, which the caller must handle.
+- `choosePrimitive` always returns `int` or throws an explicit exception if the needed number is absent.
 
-So sánh với phương thức dễ gây hiểu lầm:
+Compare with a misleading method:
 
 ```java
 static Integer subtle(boolean choose, Integer input) {
@@ -483,13 +483,13 @@ static Integer subtle(boolean choose, Integer input) {
 }
 ```
 
-Mặc dù chữ ký trả `Integer`, nhánh `input` vẫn có thể được unbox bởi numeric conditional expression. **Kiểu trả về của phương thức không tự sửa cách xác định kiểu của `?:` bên trong.**
+Even though the signature returns `Integer`, the `input` branch can still be unboxed by the numeric conditional expression. **The method's return type does not automatically fix how `?:` inside determines its type.**
 
-Một thiết kế API tốt nên công bố rõ: tham số/giá trị trả về có cho phép null không, và có fallback nào được áp dụng.
+A good API design should explicitly state: are parameters/return values allowed to be null, and is any fallback applied?
 
-## 13. Không ép kiểu tùy tiện để né NullPointerException
+## 13. Do not cast arbitrarily to dodge NullPointerException
 
-Có thể thấy cách “ép thành Object để Java không unbox”:
+You might encounter the trick “cast to Object so Java does not unbox”:
 
 ```java
 Integer nullable = null;
@@ -497,17 +497,17 @@ Object selected = true ? (Object) nullable : 0;
 System.out.println(selected == null); // true
 ```
 
-Vì một nhánh có kiểu `Object`, biểu thức này thuộc nhóm **reference conditional expression** và có thể giữ tham chiếu null. Nhưng đó **không phải giải pháp mặc định** cho biến cần kiểu `Integer` hay `int`, vì trả về `Object` làm yếu type safety và có thể yêu cầu cast về sau.
+Because one branch has type `Object`, this expression falls under **reference conditional expression** and can retain a null reference. Yet that is **not a default solution** for variables needing type `Integer` or `int`, because returning `Object` weakens type safety and may require casts later.
 
-Tương tự, đổi toàn bộ nhánh sang kiểu reference khác mà không nắm quy tắc conditional typing có thể che lỗi tại chỗ này rồi dời sang chỗ khác. Ưu tiên:
+Similarly, changing all branches to another reference type without understanding conditional typing rules can hide a bug here only to move it elsewhere. Prefer:
 
-- cùng kiểu wrapper khi thật sự muốn giữ null;
-- kiểm tra null rõ ràng khi cần primitive;
-- `if/else` khi cần nhiều bước xử lý hoặc thông điệp lỗi tốt.
+- matching wrapper types when you genuinely want to preserve null;
+- explicit null checks when primitives are needed;
+- `if/else` when multiple processing steps or good error messages are required.
 
-### Cẩn thận với Optional
+### Be careful with Optional
 
-`Optional<Integer>` biểu diễn việc có hoặc không có số nguyên:
+`Optional<Integer>` represents the presence or absence of an integer:
 
 ```java
 import java.util.Optional;
@@ -517,11 +517,11 @@ int count = Optional.ofNullable(maybe).orElse(0);
 System.out.println(count); // 0
 ```
 
-Đây là lựa chọn cho **một số ranh giới API**, không cần thiết cho mọi phép cộng đơn giản. `Optional` cũng không “trị” mọi lỗi null: vẫn cần chọn fallback, ném lỗi hoặc xử lý trường hợp vắng mặt một cách có chủ đích.
+This is an option for **certain API boundaries**, unnecessary for every simple addition. `Optional` does not “cure” every null bug either: you still need to intentionally choose a fallback, throw an error, or handle the absent case.
 
-## 14. Java 17+ demo chạy độc lập
+## 14. Standalone runnable Java 17+ demo
 
-Tạo tệp **`ConditionalUnboxingDemo.java`**:
+Create file **`ConditionalUnboxingDemo.java`**:
 
 ```java
 import java.util.Objects;
@@ -606,14 +606,14 @@ public class ConditionalUnboxingDemo {
 }
 ```
 
-Chạy từ thư mục chứa tệp:
+Run from the directory containing the file:
 
 ```bash
 javac ConditionalUnboxingDemo.java
 java ConditionalUnboxingDemo
 ```
 
-**Đầu ra dự kiến trên Java 17+:**
+**Expected output on Java 17+:**
 
 ```text
 selected Integer+int: NullPointerException
@@ -630,95 +630,95 @@ mixed numeric = 2.0
 Object branch null = true
 ```
 
-**Giải thích:**
+**Explanation:**
 
-1. `true ? missing : 0` tạo numeric conditional type `int`, nên phải unbox `missing` và ném NPE.
-2. `false ? missing : 0` không đánh giá nhánh null; kết quả 0.
-3. Hai nhánh `Integer` tạo giá trị tham chiếu, vì vậy có thể giữ null; nhưng gán kết quả vào `int` vẫn yêu cầu unbox.
-4. Phương thức trả `Integer` không tự ngăn unboxing nếu biểu thức bên trong trộn `Integer` và `int`.
-5. Kiểm tra `missing != null`, `Objects.requireNonNullElse` là hai cách định nghĩa fallback 0 rõ ràng.
-6. `Boolean` null ở phần điều kiện và `Long` null được chọn trong numeric conditional đều có thể ném NPE.
-7. Trộn `Integer` và `Double` tạo numeric result có thể được xử lý bằng chuyển kiểu số; chọn nhánh `Integer 2` cho kết quả `double 2.0`.
-8. Ép nhánh sang `Object` minh họa reference conditional expression có thể giữ null, nhưng phải cân nhắc type safety.
+1. `true ? missing : 0` produces numeric conditional type `int`, so `missing` must be unboxed and throws NPE.
+2. `false ? missing : 0` does not evaluate the null branch; result is 0.
+3. Two `Integer` branches produce a reference value, thus null can be preserved; yet assigning the result to `int` still requires unboxing.
+4. A method returning `Integer` does not automatically prevent unboxing if the expression inside mixes `Integer` and `int`.
+5. Checking `missing != null` and `Objects.requireNonNullElse` are two explicit ways to define a fallback of 0.
+6. A null `Boolean` in the condition and a selected null `Long` in a numeric conditional can both throw NPE.
+7. Mixing `Integer` and `Double` produces a numeric result handled via numeric type conversion; selecting branch `Integer 2` yields `double 2.0`.
+8. Casting a branch to `Object` illustrates a reference conditional expression that can preserve null, though type safety must be weighed.
 
-## 15. Bảng phân biệt các tình huống thường gặp
+## 15. Comparison table of common scenarios
 
-Trong bảng này, `n` là biến `Integer n = null;`; `zero` là `Integer zero = Integer.valueOf(0);`.
+In this table, `n` is the variable `Integer n = null;`; `zero` is `Integer zero = Integer.valueOf(0);`.
 
-| Biểu thức / hoàn cảnh | Kiểu hoặc chuyển đổi cốt lõi | Khi chạy |
+| Expression / situation | Core type or conversion | At runtime |
 | --- | --- | --- |
-| `Integer x = true ? n : 0;` | `Integer` + `int` → kết quả `int` rồi boxing khi gán | **NPE** |
-| `Integer x = false ? n : 0;` | Chọn nhánh primitive `int` | `x = 0` |
-| `int x = true ? n : 0;` | Chọn `n` rồi unbox | **NPE** |
-| `Object x = true ? n : 0;` | Toán tử numeric trước khi boxing sang Object | **NPE** |
-| `Integer x = true ? n : zero;` | Hai nhánh cùng `Integer` | `x = null` |
-| `int x = true ? n : zero;` | Toán tử giữ `Integer` nhưng gán sang primitive | **NPE tại gán** |
-| `Integer x = n != null ? n : zero;` | Có kiểm tra null và nhánh được chọn cùng `Integer` | `x = 0` |
-| `int x = n != null ? n.intValue() : 0;` | Unbox chỉ trong nhánh đã kiểm tra | `x = 0` |
-| `boolean x = ((Boolean) null) ? true : false;` | Điều kiện phải unbox Boolean | **NPE trước chọn nhánh** |
-| `Object x = true ? (Object)n : 0;` | Một nhánh ép Object → reference conditional | `x = null` |
+| `Integer x = true ? n : 0;` | `Integer` + `int` → `int` result then boxed on assignment | **NPE** |
+| `Integer x = false ? n : 0;` | Selects primitive `int` branch | `x = 0` |
+| `int x = true ? n : 0;` | Selects `n` then unboxes | **NPE** |
+| `Object x = true ? n : 0;` | Numeric operator before boxing to Object | **NPE** |
+| `Integer x = true ? n : zero;` | Both branches are `Integer` | `x = null` |
+| `int x = true ? n : zero;` | Operator keeps `Integer`, yet assignment is to primitive | **NPE on assignment** |
+| `Integer x = n != null ? n : zero;` | Has null check and selected branches are both `Integer` | `x = 0` |
+| `int x = n != null ? n.intValue() : 0;` | Unboxes only in the checked branch | `x = 0` |
+| `boolean x = ((Boolean) null) ? true : false;` | Condition must unbox Boolean | **NPE before branch selection** |
+| `Object x = true ? (Object)n : 0;` | One branch cast to Object → reference conditional | `x = null` |
 
-**Độ chính xác về thời điểm:** cùng là NPE nhưng có thể xảy ra ở **điều kiện**, ở **nhánh được chọn** trong biểu thức `?:`, hoặc ở **bước chuyển kiểu sau khi toán tử trả giá trị**. Sửa lỗi nên bắt đầu bằng xác định đúng bước ấy.
+**Precision about timing:** even though all are NPEs, they can happen at **the condition**, at **the selected branch** inside `?:`, or at **the conversion step after the operator returns a value**. Fixing the bug should start by identifying that exact step.
 
-## 16. Những hiểu lầm dễ dẫn đến lỗi
+## 16. Misconceptions that easily lead to bugs
 
-| Hiểu lầm | Giải thích đúng |
+| Misconception | Accurate explanation |
 | --- | --- |
-| “Biến nhận kiểu `Integer` nghĩa là không unbox” | Kiểu `?:` có thể là `int` trước khi boxing vào biến nhận |
-| “Nhánh `null` không bao giờ gây NPE vì null là reference” | Nếu nhánh wrapper được chọn cần unbox, null gây NPE |
-| “Toán tử `?:` luôn đánh giá cả hai nhánh” | Chỉ một nhánh được đánh giá; nhánh không chọn không gây tác dụng phụ runtime |
-| “Cả hai nhánh đều wrapper thì luôn trả wrapper” | Với **cùng kiểu wrapper**, có thể giữ reference; nhưng khác loại numeric wrapper có thể bị numeric promotion |
-| “Đổi `0` thành `Integer.valueOf(0)` luôn xóa mọi NPE” | Chỉ ngăn unboxing tại `?:` trong trường hợp hai nhánh cùng Integer; nếu đích là `int` vẫn có thể NPE |
-| “`Objects.equals(n, 0)` giống `n == 0` khi n null” | `Objects.equals` null-safe, còn `n == 0` có thể unbox null |
-| “Cứ cast Object thì kiểu nào cũng an toàn” | Có thể giữ null tại bước chọn, nhưng mất type safety và còn lỗi khi cast/unbox sau |
-| “Boolean null tự được coi là false” | Không; dùng làm điều kiện cần unbox và có thể ném NPE |
-| “Nếu code chạy với các giá trị khác null thì ?: an toàn” | Phải kiểm thử nhánh wrapper null và nhánh đối diện |
-| “Compiler sẽ chọn loại nhánh dựa trên giá trị true/false đang biết” | Type-checking xác định kiểu từ hai operand theo quy tắc ngôn ngữ, bất kể nhánh nào được chọn khi chạy |
-| “Chỉ cần catch NPE ở cuối là được” | NPE có thể phản ánh lỗi khác; cần kiểm tra null và nêu hợp đồng tại chỗ dùng dữ liệu |
+| “Receiving variable type `Integer` means no unboxing.” | The type of `?:` can be `int` before boxing into the receiving variable. |
+| “A `null` branch never causes NPE because null is a reference.” | If the selected wrapper branch needs unboxing, null causes NPE. |
+| “The `?:` operator always evaluates both branches.” | Only one branch is evaluated; the unselected branch causes no runtime side effects. |
+| “When both branches are wrappers, it always returns a wrapper.” | With the **same wrapper type**, the reference can be preserved; different numeric wrapper types can undergo numeric promotion. |
+| “Changing `0` to `Integer.valueOf(0)` always eliminates all NPEs.” | It only prevents unboxing at `?:` when both branches are Integer; if the target is `int`, an NPE can still occur. |
+| “`Objects.equals(n, 0)` is the same as `n == 0` when n is null.” | `Objects.equals` is null-safe, whereas `n == 0` can unbox null. |
+| “Casting to Object makes any type safe.” | It may preserve null at selection, yet loses type safety and still risks errors on later casts/unboxing. |
+| “A null Boolean is automatically treated as false.” | No; using it as a condition requires unboxing and can throw NPE. |
+| “If code runs with non-null values, ?: is safe.” | You must test both the null wrapper branch and the opposite branch. |
+| “The compiler picks branch types based on known true/false values.” | Type-checking determines types from both operands per language rules, regardless of which branch executes at runtime. |
+| “Just catching NPE at the end is enough.” | NPEs can reflect other bugs; check null and specify contracts where data is used. |
 
-## 17. Bài tập tự kiểm tra và lời giải
+## 17. Self-check exercises and solutions
 
-**Bài 1.** Với `Integer n = null;`, đánh giá `Integer r = true ? n : 0;`. Vì sao không chỉ nhận null?  
-**Đáp án:** Hai nhánh `Integer` và `int` tạo numeric conditional type `int`. Chọn `n` cần unbox null, ném `NullPointerException` trước khi có thể boxing kết quả để gán.
+**Exercise 1.** With `Integer n = null;`, evaluate `Integer r = true ? n : 0;`. Why does it not simply receive null?  
+**Answer:** The two branches `Integer` and `int` create a numeric conditional of type `int`. Selecting `n` requires unboxing null, throwing `NullPointerException` before the result can be boxed for assignment.
 
-**Bài 2.** `Integer r = false ? n : 0;` (với `n=null`) có NPE không?  
-**Đáp án:** Không. Java chỉ đánh giá nhánh `0` vì điều kiện false; kết quả sau boxing là `Integer 0`.
+**Exercise 2.** Does `Integer r = false ? n : 0;` (with `n=null`) throw NPE?  
+**Answer:** No. Java only evaluates the `0` branch because the condition is false; after boxing, the result is `Integer 0`.
 
-**Bài 3.** `Integer z = Integer.valueOf(0); Integer r = true ? n : z;` có NPE khi `n=null` không?  
-**Đáp án:** Không tại bước chọn/gán: cả hai nhánh đều là `Integer`, biểu thức trả tham chiếu `null`, `r=null`. Nhưng nếu dùng `int x=r;` sau đó sẽ NPE.
+**Exercise 3.** Does `Integer z = Integer.valueOf(0); Integer r = true ? n : z;` throw NPE when `n=null`?  
+**Answer:** Not at the selection/assignment step: both branches are `Integer`, the expression returns a `null` reference, and `r=null`. However, using `int x=r;` afterward will throw NPE.
 
-**Bài 4.** Vì sao `int x = true ? n : z;` vẫn có NPE, dù hai nhánh cùng Integer?  
-**Đáp án:** Toán tử `?:` có thể trả `Integer null`, nhưng phép gán vào `int` buộc unbox tham chiếu null.
+**Exercise 4.** Why does `int x = true ? n : z;` still throw NPE even though both branches are Integer?  
+**Answer:** The `?:` operator can return `Integer null`, yet assigning to `int` forces unboxing the null reference.
 
-**Bài 5.** Với `Boolean b=null;`, `int x=b ? 1:0;` báo lỗi ở bước nào?  
-**Đáp án:** Tại unboxing của **điều kiện** `b` để lấy primitive `boolean`, trước khi chọn một trong hai nhánh số.
+**Exercise 5.** With `Boolean b=null;`, at which step does `int x=b ? 1:0;` fail?  
+**Answer:** During unboxing of **condition** `b` to obtain a primitive `boolean`, before selecting either numeric branch.
 
-**Bài 6.** Sửa `int r = choose ? nullable : 0;` theo yêu cầu: null được coi là 0.  
-**Đáp án:** `int r = choose && nullable != null ? nullable.intValue() : 0;`, với `choose` là boolean và `nullable` có kiểu `Integer`. Điều kiện kiểm tra null trước khi gọi `intValue()`.
+**Exercise 6.** Fix `int r = choose ? nullable : 0;` per the requirement: null is treated as 0.  
+**Answer:** `int r = choose && nullable != null ? nullable.intValue() : 0;`, where `choose` is boolean and `nullable` has type `Integer`. The condition checks null before calling `intValue()`.
 
-**Bài 7.** Sửa cùng biểu thức theo yêu cầu: khi choose=true và nullable=null, **phải trả null**.  
-**Đáp án:** Kết quả phải là `Integer` và hai nhánh cùng wrapper: `Integer r = choose ? nullable : Integer.valueOf(0);`. Người gọi tiếp tục chịu trách nhiệm xử lý null.
+**Exercise 7.** Fix the same expression per the requirement: when choose=true and nullable=null, **must return null**.  
+**Answer:** The result must be `Integer` and both branches must be wrappers: `Integer r = choose ? nullable : Integer.valueOf(0);`. The caller remains responsible for handling null.
 
-**Bài 8.** `Object o = true ? nullable : 0;` có luôn tránh NPE không?  
-**Đáp án:** Không. Kiểu của numeric conditional được xác định từ nhánh `Integer`/`int` trước, có thể unbox null. Việc gán vào `Object` không sửa lại bước đã xảy ra.
+**Exercise 8.** Does `Object o = true ? nullable : 0;` always avoid NPE?  
+**Answer:** No. The numeric conditional's type is determined from the `Integer`/`int` branches first, which can unbox null. Assigning to `Object` does not undo the step that already happened.
 
-**Bài 9.** Nếu nhánh không được chọn chứa `Integer null` hoặc một phương thức ném lỗi, nó có chạy không?  
-**Đáp án:** Không. Toán tử chỉ đánh giá một nhánh đã chọn; nhưng hai nhánh vẫn phải hợp lệ về cú pháp và kiểu khi biên dịch.
+**Exercise 9.** If the unselected branch contains `Integer null` or a method that throws an error, does it run?  
+**Answer:** No. The operator only evaluates the one selected branch; however, both branches must still be syntactically and type-wise valid at compile time.
 
-**Bài 10.** Khi review PR, thấy `return condition ? boxed : 0;` trong phương thức trả `Integer`. Cần kiểm tra điều gì?  
-**Đáp án:** Kiểm tra `boxed` có thể null không, vì `?:` có thể là kiểu `int` và unbox trước khi boxing trả về. Nếu null được phép, dùng `Integer.valueOf(0)` làm nhánh còn lại hoặc viết `if/else` để giữ kiểu wrapper; nếu null không hợp lệ, kiểm tra và báo lỗi rõ ràng.
+**Exercise 10.** During a PR review, you see `return condition ? boxed : 0;` in a method returning `Integer`. What should you check?  
+**Answer:** Check whether `boxed` can be null, because `?:` can have type `int` and unbox before boxing the return value. If null is allowed, use `Integer.valueOf(0)` for the other branch or write `if/else` to preserve the wrapper type; if null is invalid, validate and report a clear error.
 
-## 18. Checklist khi dùng ? với wrapper
+## 18. Checklist when using ?: with wrappers
 
-1. Xác định kiểu của **condition**: `boolean` hay `Boolean` có thể null?
-2. Xác định kiểu **từng nhánh**, không chỉ nhìn biến nhận: primitive, wrapper cùng loại hay wrapper numeric khác loại?
-3. Xác định kiểu kết quả **của chính `?:`** theo quy tắc Java; không giả định vế gán `Integer` đồng nghĩa kết quả trước đó là wrapper.
-4. Hỏi nhánh wrapper có thể `null` không; nếu được chọn, có cần unbox không?
-5. Hỏi **đích sử dụng kết quả** có unbox tiếp không, ngay cả nếu `?:` giữ reference?
-6. Nếu muốn null được giữ, dùng **hai nhánh cùng kiểu wrapper** và đích wrapper, đồng thời ghi rõ hợp đồng nullability.
-7. Nếu muốn primitive bắt buộc, **kiểm tra null trước** hoặc từ chối dữ liệu với ngoại lệ có chủ đích.
-8. Nếu cần fallback, ghi rõ đó là **quy tắc nghiệp vụ**; 0 không tự đồng nghĩa “không có giá trị”.
-9. Viết kiểm thử đủ các trường hợp **condition true/false**, nhánh wrapper null/non-null, giá trị đã boxing và nested ternary.
-10. Khi biểu thức phức tạp hoặc gây tranh luận về kiểu, **dùng `if/else`** để làm rõ ý định.
+1. Check the type of **condition**: `boolean` or potentially null `Boolean`?
+2. Check the type of **each branch**, not just the receiving variable: primitive, same wrapper type, or different numeric wrapper types?
+3. Determine the result type **of `?:` itself** per Java rules; do not assume an `Integer` assignment target means the prior expression result is a wrapper.
+4. Ask if a wrapper branch can be `null`; if selected, does it require unboxing?
+5. Ask if **the consumer of the result** will unbox afterward, even if `?:` preserves a reference?
+6. If null must be preserved, use **two branches of the same wrapper type** and a wrapper target, and document the nullability contract.
+7. If a primitive is mandatory, **check for null beforehand** or reject the data with an intentional exception.
+8. If a fallback is needed, document it as a **business rule**; 0 does not automatically equate to “no value”.
+9. Write tests covering **condition true/false**, null/non-null wrapper branches, boxed values, and nested ternaries.
+10. When an expression is complex or invites type confusion, **use `if/else`** to clarify intent.
 
-**Ghi nhớ:** `?:` chỉ đánh giá **một nhánh**, nhưng kiểu kết quả đã được chọn theo quy tắc khi biên dịch. Nếu kiểu ấy yêu cầu **primitive**, nhánh wrapper được chọn có thể bị **unbox tự động** và ném `NullPointerException` khi mang `null`—ngay cả khi biến nhận hoặc kiểu trả về cuối là wrapper. Muốn viết an toàn, hãy kiểm tra null và làm rõ kiểu của cả **biểu thức `?:`** lẫn nơi tiêu thụ kết quả.
+**Key takeaway:** `?:` evaluates only **one branch**, yet its result type is chosen at compile time by Java's rules. If that type demands a **primitive**, a selected wrapper branch can be **automatically unboxed** and throw `NullPointerException` when holding `null`—even when the receiving variable or final return type is a wrapper. To write safe code, check for null and clarify the types of both the **`?:` expression** and where its result is consumed.

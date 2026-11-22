@@ -1,27 +1,27 @@
-# toString() của String và của đối tượng khác trong Java
+# toString() of String and Other Objects in Java
 
-Trong Java, **toString()** là phương thức dùng để lấy cách biểu diễn một đối tượng dưới dạng **String**. Mọi lớp đều thừa hưởng phương thức này từ **java.lang.Object**, nhưng từng kiểu có thể định nghĩa lại cách biểu diễn của mình. Điểm đặc biệt là **String đã là chuỗi văn bản**, vì vậy **String.toString() trả về chính đối tượng String hiện tại**, trong khi nhiều đối tượng khác phải tạo hoặc trả về một biểu diễn chuỗi phù hợp.
+In Java, **toString()** is the method used to obtain a **String** representation of an object. Every class inherits this method from **java.lang.Object**, though each type can redefine its own representation. What makes **String** special is that it **is already a text string**, so **String.toString() returns the current String object itself**, whereas many other objects must construct or return an appropriate string representation.
 
-Hiểu rõ sự khác nhau giúp đọc kết quả println, nối chuỗi, log, debug; tránh hiểu nhầm dấu @ trong biểu diễn mặc định; xử lý null đúng cách; và nhận ra tại sao toString() của mảng không in các phần tử như mong đợi.
+Understanding this difference helps you read `println` output, string concatenation, logs, and debug info; avoid misinterpreting the `@` symbol in default representations; handle `null` properly; and recognize why an array's `toString()` does not print its elements as expected.
 
-## 1. toString() được khai báo ở đâu và có ý nghĩa gì?
+## 1. Where is toString() Declared and What Does It Mean?
 
-Lớp **Object** định nghĩa phương thức public String toString(). Vì mọi lớp Java đều kế thừa Object (trực tiếp hoặc gián tiếp), các lớp như String, Integer, ArrayList, các lớp nghiệp vụ tự viết và cả đối tượng mảng đều có thể được chuyển sang cách biểu diễn dạng String thông qua toString().
+The **Object** class defines the method `public String toString()`. Because every Java class inherits from `Object` (directly or indirectly), classes such as `String`, `Integer`, `ArrayList`, custom domain classes, and even array objects can all be converted to a `String` representation via `toString()`.
 
-Cách hoạt động cụ thể phụ thuộc vào lớp thực tế của đối tượng:
+The specific behavior depends on the actual runtime class of the object:
 
-- **Object không ghi đè toString():** phương thức mặc định trả về chuỗi gồm tên lớp, dấu @ và giá trị hash code ở dạng thập lục phân.
-- **Lớp ghi đè toString():** phương thức có thể trả về tên, thuộc tính, trạng thái hay thông tin dễ đọc, tùy định nghĩa của lớp.
-- **String:** ghi đè toString() để **return this**, tức trả lại chính tham chiếu đến chuỗi ban đầu; không tạo thêm chuỗi nội dung tương đương.
-- **Kiểu nguyên thủy** như int, long, boolean không phải Object và **không có phương thức thể hiện intVariable.toString()**; muốn tạo chuỗi có thể dùng String.valueOf(value) hoặc Integer.toString(value) cho kiểu phù hợp.
+- **Object not overriding toString():** the default method returns a string consisting of the class name, the `@` symbol, and the hash code value in hexadecimal.
+- **Class overriding toString():** the method may return a name, properties, state, or human-readable information, depending on the class definition.
+- **String:** overrides `toString()` to **return this**, i.e., returning the exact reference to the original string; it does not create another string with equivalent content.
+- **Primitive types** such as `int`, `long`, and `boolean` are not `Object`s and **do not have an instance method `intVariable.toString()`**; to create a string, you can use `String.valueOf(value)` or `Integer.toString(value)` for the appropriate type.
 
-toString() được dùng để trình bày hoặc quan sát đối tượng. Nó **không phải phương thức tự động tuần tự hóa** dữ liệu thành JSON, XML hoặc dạng dữ liệu đủ để tái tạo đối tượng. Một kết quả toString() cũng không bảo đảm tính duy nhất, tính bất biến về định dạng, hoặc tính phù hợp để gửi cho máy khác phân tích.
+`toString()` is used to present or inspect an object. It is **not an automatic serialization method** to convert data into JSON, XML, or a format sufficient to reconstruct the object. Nor does a `toString()` result guarantee uniqueness, format immutability, or suitability for machine parsing.
 
-## 2. String.toString(): trả về chính String đó
+## 2. String.toString(): Returning the String Itself
 
-Trong Java, String là lớp final, không thể có lớp con sửa hành vi toString(). Phương thức **String.toString() trả về this**; vì vậy nếu biến s đang tham chiếu một String khác null, biểu thức s.toString() có cùng tham chiếu và cùng nội dung với s.
+In Java, `String` is a `final` class, so no subclass can alter the behavior of `toString()`. The method **String.toString() returns `this`**; therefore, if variable `s` references a non-null `String`, the expression `s.toString()` has the same reference and the same content as `s`.
 
-Ví dụ tệp **StringToStringDemo.java** (chạy với Java 17+):
+Example file **StringToStringDemo.java** (runs on Java 17+):
 
 ~~~java
 public class StringToStringDemo {
@@ -40,14 +40,14 @@ public class StringToStringDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 StringToStringDemo.java
 java StringToStringDemo
 ~~~
 
-Kết quả:
+Result:
 
 ~~~text
 content: Java
@@ -57,34 +57,34 @@ via Object: Java
 same via Object: true
 ~~~
 
-**Vì sao đều đúng?**
+**Why are they all true?**
 
-1. **new String("Java")** cố ý tạo một đối tượng String mới để ví dụ không dựa vào cơ chế String pool.
-2. **text.toString()** trả lại chính text; vì vậy toán tử **==** cho kết quả true giữa hai tham chiếu.
-3. **equals()** so sánh nội dung chuỗi và cũng cho true, nhưng đây là phép kiểm tra khác với ==.
-4. Dù biến **objectRef** có kiểu khai báo là Object, đối tượng thực tế vẫn là String. Java dùng **dynamic dispatch** để gọi String.toString() đã ghi đè, nên nhận lại đúng chuỗi "Java".
+1. **new String("Java")** intentionally creates a new `String` object so the example does not rely on the String pool mechanism.
+2. **text.toString()** returns `text` itself; therefore the **==** operator evaluates to `true` between the two references.
+3. **equals()** compares string content and also yields `true`, though this is a different check from `==`.
+4. Even though variable **objectRef** is declared with type `Object`, the actual object is still a `String`. Java uses **dynamic dispatch** to call the overridden `String.toString()`, returning the exact string `"Java"`.
 
-Không cần gọi toString() mỗi lần đã có String. Ví dụ, viết **String result = text;** thường diễn đạt ý định rõ hơn **String result = text.toString();**. Việc gọi toString() trên String không làm sạch, chuyển đổi mã hóa, chuẩn hóa Unicode, bỏ khoảng trắng hay tạo bản sao.
+There is no need to call `toString()` whenever you already have a `String`. For example, writing **String result = text;** usually expresses intent more clearly than **String result = text.toString();**. Calling `toString()` on a `String` does not sanitize it, change encoding, normalize Unicode, trim whitespace, or create a copy.
 
-**Chú ý null:** kết luận trả về this chỉ áp dụng khi tham chiếu String **khác null**. Nếu **String s = null**, gọi **s.toString()** sẽ ném NullPointerException trước khi có một chuỗi nào được trả về.
+**Null warning:** the conclusion that it returns `this` applies only when the `String` reference is **non-null**. If **String s = null**, calling **s.toString()** throws a `NullPointerException` before any string can be returned.
 
-## 3. Object.toString() mặc định: tên lớp, @ và hash
+## 3. Default Object.toString(): Class Name, @, and Hash
 
-Nếu một lớp không ghi đè toString(), nó sử dụng cách triển khai kế thừa của **Object**. Mẫu kết quả về mặt khái niệm:
+If a class does not override `toString()`, it uses the implementation inherited from **Object**. The conceptual result pattern is:
 
 ~~~text
-ten.goi.Lop@maHashHe16
+package.name.ClassName@hexHash
 ~~~
 
-Theo hợp đồng của Object.toString(), giá trị được tạo như khi ghép:
+By the contract of `Object.toString()`, the value is produced as if by concatenating:
 
 ~~~java
 getClass().getName() + "@" + Integer.toHexString(hashCode())
 ~~~
 
-Chẳng hạn, một phiên chạy có thể hiển thị **java.lang.Object@5acf9800**. Phần sau dấu @ phụ thuộc hashCode của đối tượng, nên **không được cố định chuỗi này trong kỳ vọng output**.
+For example, a run might display **java.lang.Object@5acf9800**. The part after the `@` depends on the object's `hashCode`, so **do not hardcode this string in expected output assertions**.
 
-Tệp **ObjectToStringDemo.java**:
+File **ObjectToStringDemo.java**:
 
 ~~~java
 public class ObjectToStringDemo {
@@ -101,31 +101,31 @@ public class ObjectToStringDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 ObjectToStringDemo.java
 java ObjectToStringDemo
 ~~~
 
-Output chính xác:
+Exact output:
 
 ~~~text
 true
 true
 ~~~
 
-Ở đây tránh in trực tiếp mã hash thay đổi giữa các đối tượng/lần chạy; thay vào đó kiểm tra hai thuộc tính bảo đảm bởi triển khai mặc định.
+Here we avoid printing the hash code directly since it changes across objects/runs; instead, we verify the two properties guaranteed by the default implementation.
 
-**Hash code không phải địa chỉ bộ nhớ đáng tin cậy.** Dấu @ và đoạn hex của Object.toString() không chứng minh đối tượng đang ở vị trí nào trong RAM; giá trị hashCode không được thiết kế làm ID nghiệp vụ duy nhất. Hai đối tượng khác nhau cũng có thể có cùng hash code.
+**Hash codes are not reliable memory addresses.** The `@` and hex segment of `Object.toString()` do not prove where an object resides in RAM; the `hashCode` value is not designed as a unique business ID. Two distinct objects can also share the same hash code.
 
-Ngoài ra, một lớp có thể ghi đè **hashCode()** nhưng không ghi đè **toString()**; khi đó Object.toString() sẽ sử dụng kết quả hashCode của lớp đó, nên không nên suy luận rằng phần hex nhất thiết là mã định danh mặc định của JVM.
+Additionally, a class might override **hashCode()** without overriding **toString()**; in that case `Object.toString()` uses that class's `hashCode` result, so you should not infer that the hex segment is necessarily a JVM default identifier.
 
-## 4. Lớp tự viết: ghi đè toString() để nội dung dễ đọc
+## 4. Custom Classes: Overriding toString() for Readable Content
 
-Phần lớn các lớp nghiệp vụ cần cách hiển thị có ý nghĩa hơn tên lớp và mã hash. Ta có thể ghi đè toString() bằng **@Override** và trả về String mô tả những thuộc tính hữu ích.
+Most domain classes need a more meaningful display than class name and hash code. We can override `toString()` with **@Override** and return a `String` describing useful properties.
 
-Tạo tệp **OrderToStringDemo.java**:
+Create file **OrderToStringDemo.java**:
 
 ~~~java
 public class OrderToStringDemo {
@@ -165,35 +165,35 @@ Order{id=42, status='PAID'}
 Current: Order{id=42, status='PAID'}
 ~~~
 
-Trong ví dụ:
+In the example:
 
-- **@Override** giúp trình biên dịch kiểm tra chữ ký phương thức đang ghi đè một phương thức của lớp cha.
-- Phương thức ghi đè là **public String toString()**, không nhận tham số và trả về String.
-- **System.out.println(order)** có thể sử dụng cách biểu diễn chuỗi của order; phần nối chuỗi trong **"Current: " + order** cũng sử dụng cách biểu diễn này.
-- toString() ở đây **tạo ra cách biểu diễn văn bản** của Order. Đừng dựa vào việc nó luôn tạo đối tượng String mới hay luôn dùng đúng format này khi lớp được sửa ở phiên bản khác.
+- **@Override** helps the compiler verify that the method signature overrides a superclass method.
+- The overridden method is **public String toString()**, taking no parameters and returning a `String`.
+- **System.out.println(order)** can use `order`'s string representation; the concatenation in **"Current: " + order** also uses this representation.
+- `toString()` here **produces a textual representation** of `Order`. Do not rely on it always creating a new `String` object or always keeping this exact format if the class is updated in another version.
 
-Nếu lớp chứa thông tin nhạy cảm như mật khẩu, token, khóa API, số định danh riêng tư, **không đưa những giá trị đó vào toString()** vì phương thức dễ được gọi ngầm khi ghi log hoặc xử lý lỗi. Với đối tượng phức tạp, nên ưu tiên nội dung ngắn, dễ hiểu và tránh gọi dịch vụ ngoài hay tính toán tốn kém bên trong toString().
+If a class holds sensitive information such as passwords, tokens, API keys, or private identifiers, **do not include those values in `toString()`**, because the method is easily invoked implicitly during logging or error handling. For complex objects, prefer concise, readable content and avoid external service calls or expensive computations inside `toString()`.
 
-### Phương thức được chọn theo lớp thực tế
+### Method selection by actual runtime class
 
-Nếu một biến khai báo kiểu Object đang trỏ tới Order, gọi biến.toString() vẫn chạy **Order.toString()**. Cơ chế này gọi là **đa hình**, không phụ thuộc việc biến được khai báo kiểu Object hay Order. Java không cần ép kiểu về Order để tìm phương thức ghi đè phù hợp.
+If a variable declared with type `Object` points to an `Order`, calling `variable.toString()` still executes **Order.toString()**. This mechanism is called **polymorphism**, independent of whether the variable is declared as `Object` or `Order`. Java does not require casting to `Order` to find the appropriate overridden method.
 
-**Lưu ý với record:** trong Java 17, một record chưa tự định nghĩa toString() được compiler cung cấp cách biểu diễn dựa trên tên record và các thành phần của nó. Ví dụ **record Point(int x, int y)** có thể in **Point[x=2, y=3]**. Điều này tiện khi debug, nhưng vẫn không biến toString() thành định dạng trao đổi dữ liệu ổn định.
+**Note on records:** in Java 17, a `record` that does not define its own `toString()` is given a compiler-generated representation based on the record name and its components. For example, **record Point(int x, int y)** may print **Point[x=2, y=3]**. This is convenient for debugging, though it still does not turn `toString()` into a stable data interchange format.
 
-## 5. String.valueOf(Object), Objects.toString và xử lý null
+## 5. String.valueOf(Object), Objects.toString, and Null Handling
 
-Dễ nhầm **x.toString()** với **String.valueOf(x)**. Cả hai có thể tạo cách biểu diễn chuỗi, nhưng khác nhau đáng kể khi tham chiếu **null**:
+It is easy to confuse **x.toString()** with **String.valueOf(x)**. Both can produce a string representation, but they differ significantly when the reference is **null**:
 
-| Cách viết | x khác null | x là null |
+| Form | When `x` is non-null | When `x` is null |
 | --- | --- | --- |
-| x.toString() | Gọi toString() của lớp thực tế. | **NullPointerException**. |
-| String.valueOf((Object) x) | Gọi x.toString(). | Trả về chuỗi **"null"**. |
-| Objects.toString(x) | Gọi x.toString(). | Trả về chuỗi **"null"**. |
-| Objects.toString(x, "không có") | Gọi x.toString(). | Trả về chuỗi dự phòng **"không có"**. |
+| `x.toString()` | Calls `toString()` of the actual class. | **NullPointerException**. |
+| `String.valueOf((Object) x)` | Calls `x.toString()`. | Returns the string **"null"**. |
+| `Objects.toString(x)` | Calls `x.toString()`. | Returns the string **"null"**. |
+| `Objects.toString(x, "none")` | Calls `x.toString()`. | Returns the fallback string **"none"**. |
 
-Lý do viết **(Object)** trong bảng: String.valueOf có nhiều overload như nhận Object, char[] và kiểu nguyên thủy; ép kiểu Object làm rõ ta đang nói đến **String.valueOf(Object)**.
+Why **(Object)** is written in the table: `String.valueOf` has multiple overloads accepting `Object`, `char[]`, and primitive types; casting to `Object` makes it clear we are referring to **String.valueOf(Object)**.
 
-Tệp **NullToStringDemo.java**:
+File **NullToStringDemo.java**:
 
 ~~~java
 import java.util.Objects;
@@ -228,23 +228,23 @@ null
 toString on null: NullPointerException
 ~~~
 
-Đây là output gồm **bốn dòng**. Dòng thứ hai có nội dung văn bản "null", không có nghĩa biến missing đã biến thành một String.
+This output has **four lines**. The second line has the text content `"null"`, which does not mean the variable `missing` turned into a `String`.
 
-**Cẩn thận với lời gọi String.valueOf(null) không ép kiểu:** do Java chọn overload phù hợp nhất, biểu thức với literal null có thể chọn overload **char[]** thay vì Object, dẫn đến lỗi khi chạy. Khi muốn đúng hành vi tạo chuỗi "null", hãy chỉ rõ **String.valueOf((Object) null)** hoặc sử dụng **Objects.toString(null)**.
+**Beware of uncast `String.valueOf(null)` calls:** because Java selects the most specific overload, an expression with a `null` literal may select the **char[]** overload instead of `Object`, leading to a runtime error. When you want the exact behavior of producing the string `"null"`, specify **String.valueOf((Object) null)** or use **Objects.toString(null)**.
 
-String.valueOf còn có overload riêng cho boolean, char, int, long, float, double...; với kiểu nguyên thủy, nó tạo cách biểu diễn của giá trị nguyên thủy mà không cần tạo trước một wrapper object một cách tường minh. Với đối tượng, hành vi phụ thuộc vào toString() của lớp thực tế.
+`String.valueOf` also has dedicated overloads for `boolean`, `char`, `int`, `long`, `float`, `double`, etc.; for primitives, it produces the representation of the primitive value without explicitly creating a wrapper object first. For objects, behavior depends on the actual class's `toString()`.
 
-## 6. toString() của mảng khác với in nội dung phần tử
+## 6. Array toString() vs. Printing Element Contents
 
-Trong Java, **mảng là đối tượng**, nhưng các lớp mảng không cung cấp kiểu toString liệt kê phần tử như người mới học thường kỳ vọng. Gọi **numbers.toString()** với một int[] dùng cách biểu diễn mặc định, thường bắt đầu bằng **[I@** (tên lớp mảng int ở dạng JVM) và thêm hash code.
+In Java, **arrays are objects**, yet array classes do not provide an element-listing `toString()` as beginners often expect. Calling **numbers.toString()** on an `int[]` uses the default representation, typically starting with **[I@** (the JVM class name for an `int` array) followed by a hash code.
 
-Muốn quan sát nội dung mảng, dùng các tiện ích trong **java.util.Arrays**:
+To inspect array contents, use the utilities in **java.util.Arrays**:
 
-- **Arrays.toString(array)** cho mảng một chiều.
-- **Arrays.deepToString(objectArray)** cho mảng nhiều chiều hoặc chứa các mảng con, chẳng hạn int[][].
-- Với mảng **char[]**, overload **String.valueOf(char[])** đặc biệt tạo String từ các ký tự; nó khác String.valueOf((Object) charArray).
+- **Arrays.toString(array)** for one-dimensional arrays.
+- **Arrays.deepToString(objectArray)** for multidimensional arrays or arrays containing nested arrays, such as `int[][]`.
+- For **char[]** arrays, the special **String.valueOf(char[])** overload creates a `String` from the characters; it differs from `String.valueOf((Object) charArray)`.
 
-Ví dụ tệp **ArrayToStringDemo.java**:
+Example file **ArrayToStringDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -278,15 +278,15 @@ Java
 true
 ~~~
 
-Dòng đầu xác nhận kiểu tên mảng int mà không đoán mã hash. Dòng cuối chứng minh sự khác nhau giữa hai overload của String.valueOf: truyền trực tiếp char[] tạo String từ ký tự, còn ép sang Object buộc gọi toString() của đối tượng mảng.
+The first line verifies the `int` array type name without guessing the hash code. The last line demonstrates the difference between two overloads of `String.valueOf`: passing `char[]` directly creates a `String` from the characters, whereas casting to `Object` forces a call to the array object's `toString()`.
 
-Nếu có **Object[]** chứa mảng con, Arrays.toString có thể vẫn cho cách biểu diễn dạng tên lớp và hash của mảng con; Arrays.deepToString mới hiển thị các phần tử lồng nhau phù hợp. Với mảng tự tham chiếu, deepToString có cách xử lý chống đệ quy vô hạn theo hợp đồng API.
+If you have an **Object[]** containing nested arrays, `Arrays.toString` may still show the class-name-and-hash representation of the inner arrays; `Arrays.deepToString` is needed to display nested elements properly. For self-referential arrays, `deepToString` has handling to prevent infinite recursion per the API contract.
 
-## 7. toString() của đối tượng có thể thay đổi trạng thái khác gì String?
+## 7. How Does toString() of Mutable Objects Differ from String?
 
-Đối tượng có thể **mutable**, ví dụ StringBuilder. Gọi StringBuilder.toString() tạo một String biểu diễn **nội dung tại thời điểm gọi**; chuỗi kết quả là bất biến, nên những lần sửa StringBuilder sau đó không thay đổi snapshot đã lấy.
+Objects can be **mutable**, such as `StringBuilder`. Calling `StringBuilder.toString()` creates a `String` representing **the content at the time of the call**; the resulting string is immutable, so subsequent edits to the `StringBuilder` do not alter the captured snapshot.
 
-Tệp **BuilderToStringDemo.java**:
+File **BuilderToStringDemo.java**:
 
 ~~~java
 public class BuilderToStringDemo {
@@ -314,46 +314,46 @@ snapshot: v1
 snapshot type: String
 ~~~
 
-**So sánh hai trường hợp:** String.toString() trả lại **cùng đối tượng String**, vì String đã bất biến và chính là dạng chuỗi mong muốn. StringBuilder.toString() trả về **String chứa nội dung hiện tại** của bộ dựng chuỗi; snapshot không tiếp tục cập nhật khi builder thay đổi. Không nên viết logic dựa vào việc đối tượng String do StringBuilder tạo ra có tham chiếu mới trong mọi hoàn cảnh; điều quan trọng theo API là **giá trị chuỗi được bảo toàn sau khi builder thay đổi**.
+**Comparing the two cases:** `String.toString()` returns **the exact same `String` object**, because `String` is already immutable and is already the desired string form. `StringBuilder.toString()` returns a **`String` containing the current content** of the builder; the snapshot does not continue updating when the builder changes. Do not write logic that assumes the `String` object returned by `StringBuilder` always has a fresh reference in every circumstance; what matters by the API contract is that **the string value is preserved after the builder changes**.
 
-Nhiều lớp thư viện khác cũng cung cấp toString() dễ đọc, ví dụ các lớp số như Integer và các collection. Tuy vậy, định dạng chính xác phụ thuộc từng lớp; một collection có thể sử dụng toString() của các phần tử, nên phần tử hiển thị thế nào vẫn do lớp của chúng quyết định.
+Many other library classes also provide readable `toString()` implementations, such as numeric wrapper classes like `Integer` and collections. However, the exact format depends on each class; a collection may use the `toString()` of its elements, so how elements appear is still determined by their own classes.
 
-## 8. toString() được gọi ngầm ở đâu?
+## 8. Where is toString() Called Implicitly?
 
-Java và các thư viện thường chuyển đối tượng sang văn bản mà ta không gọi trực tiếp phương thức toString():
+Java and libraries often convert objects to text without us calling the `toString()` method directly:
 
-- **System.out.println(object)**: các overload in ra có cơ chế chuyển đối tượng thành văn bản. Nếu object là null, println(Object) in **null** thay vì gọi phương thức trên tham chiếu null.
-- **"value = " + object**: toán tử nối chuỗi chuyển toán hạng đối tượng sang cách biểu diễn String; null trở thành văn bản **"null"**.
-- **String.valueOf(object)** và **Objects.toString(object)**: gọi toString() nếu đối tượng không null.
-- **StringBuilder.append(Object)**: thường dùng String.valueOf(Object) rồi nối văn bản vào builder.
-- Một số cách định dạng hay logger có thể sử dụng toString(), nhưng cơ chế riêng của từng thư viện có thể khác; không khẳng định mọi logger luôn gọi toString() theo cùng cách.
+- **System.out.println(object)**: print overloads have mechanisms to convert objects to text. If `object` is `null`, `println(Object)` prints **null** instead of calling a method on a null reference.
+- **"value = " + object**: the string concatenation operator converts the object operand to a `String` representation; `null` becomes the text **"null"**.
+- **String.valueOf(object)** and **Objects.toString(object)**: call `toString()` if the object is non-null.
+- **StringBuilder.append(Object)**: typically uses `String.valueOf(Object)` and appends the text to the builder.
+- Some formatters or loggers may use `toString()`, though each library's specific mechanism can differ; do not assume every logger always calls `toString()` in the exact same way.
 
-Do đó, override toString() hợp lý giúp debug, nhưng cũng có thể khiến việc in đối tượng **tốn kém**, phát sinh ngoại lệ hoặc vô tình lộ dữ liệu. Tránh đưa mật khẩu, access token, dữ liệu cá nhân và khối văn bản quá dài vào giá trị toString() mặc định của mô hình nghiệp vụ.
+Consequently, a sensible `toString()` override aids debugging, yet can also make printing objects **expensive**, raise exceptions, or inadvertently leak data. Avoid putting passwords, access tokens, personal data, and overly large text blocks into the default `toString()` of domain models.
 
-Nếu cần **format dành cho người dùng**, **dữ liệu lưu trữ**, hoặc **dữ liệu truyền qua API**, nên viết phương thức/serializer dành riêng cho mục đích đó. toString() chủ yếu là cách biểu diễn văn bản của đối tượng, không bảo đảm hợp đồng serialize ổn định.
+If you need **user-facing formatting**, **persisted data**, or **API payload data**, write a dedicated method or serializer for that purpose. `toString()` is primarily a textual representation of an object, not a guaranteed stable serialization contract.
 
-## 9. Những nhầm lẫn thường gặp
+## 9. Common Confusions
 
-| Nhầm lẫn | Giải thích đúng |
+| Misconception | Accurate explanation |
 | --- | --- |
-| String.toString() tạo một bản sao String mới. | String.toString() trả về **this**, tức cùng đối tượng. |
-| Mọi đối tượng dùng Object.toString() mặc định. | Lớp có thể ghi đè toString(); Java gọi theo **kiểu đối tượng thực tế**. |
-| Phần hex trong ClassName@hex là địa chỉ bộ nhớ. | Nó là biểu diễn hex của **hashCode()**, không phải địa chỉ RAM được bảo đảm. |
-| Gọi toString() trên tham chiếu null trả về "null". | Gọi phương thức trên null gây **NullPointerException**; muốn null-safe hãy dùng String.valueOf((Object) x) hoặc Objects.toString(x). |
-| String.valueOf(null) luôn tương đương String.valueOf((Object) null). | Có overload char[]; cần ép kiểu để tránh chọn sai overload khi truyền literal null. |
-| array.toString() in tất cả phần tử. | Mảng thường dùng biểu diễn kiểu và hash; sử dụng Arrays.toString/deepToString. |
-| Nối đối tượng vào String chỉ gọi Object.toString(). | Phương thức được chọn theo **lớp thực tế**, có thể là override của lớp con. |
-| toString() luôn phải trả về tên lớp và các trường. | Đó là **thiết kế** của lớp; API chỉ yêu cầu trả về một String, nội dung có thể khác. |
-| toString() là định dạng chuẩn cho JSON hay lưu trữ. | Không có bảo đảm đó; dùng serializer hoặc định dạng được định nghĩa riêng. |
-| Override toString() có thể in cả secret cho dễ debug. | Lời gọi ngầm rất phổ biến; phải tránh để lộ thông tin nhạy cảm trong log. |
+| `String.toString()` creates a new `String` copy. | `String.toString()` returns **`this`**, i.e., the same object. |
+| Every object uses the default `Object.toString()`. | A class may override `toString()`; Java dispatches based on the **actual runtime type**. |
+| The hex part in `ClassName@hex` is a memory address. | It is the hex representation of **`hashCode()`**, not a guaranteed RAM address. |
+| Calling `toString()` on a null reference returns `"null"`. | Calling a method on null throws **NullPointerException**; for null-safety use `String.valueOf((Object) x)` or `Objects.toString(x)`. |
+| `String.valueOf(null)` is always equivalent to `String.valueOf((Object) null)`. | There is a `char[]` overload; casting is needed to avoid choosing the wrong overload when passing a `null` literal. |
+| `array.toString()` prints all elements. | Arrays normally use a type-and-hash representation; use `Arrays.toString`/`deepToString`. |
+| Concatenating an object to a `String` only calls `Object.toString()`. | The method is selected by the **actual class**, which may be a subclass override. |
+| `toString()` must always return the class name and fields. | That is a class **design** choice; the API only requires returning a `String`, whose content may differ. |
+| `toString()` is a standard format for JSON or storage. | There is no such guarantee; use a serializer or a dedicated format. |
+| An overridden `toString()` can print secrets for easier debugging. | Implicit calls are very common; avoid leaking sensitive information in logs. |
 
-## 10. Checklist khi thiết kế và sử dụng toString()
+## 10. Checklist When Designing and Using toString()
 
-1. **Đã có String?** Có thể sử dụng trực tiếp, vì gọi toString() không thay đổi tham chiếu hay nội dung.
-2. **Đối tượng tùy biến cần dễ đọc?** Cân nhắc ghi đè public String toString(), thêm @Override và chọn các trường ngắn gọn, không nhạy cảm.
-3. **Biến có thể null?** Dùng String.valueOf((Object) value), Objects.toString(value) hoặc Objects.toString(value, fallback) khi phù hợp.
-4. **Đang xử lý array?** Xem Arrays.toString, Arrays.deepToString hoặc String.valueOf(char[]) tùy loại mảng.
-5. **Đang chuyển StringBuilder hay đối tượng mutable?** Xem String trả về là biểu diễn/snapshot tại thời điểm gọi.
-6. **Cần dữ liệu để so sánh, định danh hay lưu trữ?** Không mặc định toString() là hợp đồng dữ liệu; dùng equals/hashCode, khóa định danh hoặc serializer riêng tùy mục tiêu.
+1. **Already have a `String`?** You can use it directly, because calling `toString()` does not change the reference or content.
+2. **Custom object needs to be readable?** Consider overriding `public String toString()`, adding `@Override`, and choosing concise, non-sensitive fields.
+3. **Variable might be `null`?** Use `String.valueOf((Object) value)`, `Objects.toString(value)`, or `Objects.toString(value, fallback)` as appropriate.
+4. **Working with an array?** Look at `Arrays.toString`, `Arrays.deepToString`, or `String.valueOf(char[])` depending on the array type.
+5. **Converting `StringBuilder` or a mutable object?** Treat the returned `String` as a representation/snapshot at the moment of the call.
+6. **Need data for comparison, identification, or storage?** Do not rely on `toString()` as a data contract; use `equals`/`hashCode`, identifier keys, or a dedicated serializer depending on the goal.
 
-Quy tắc nhớ nhanh: **String.toString() giữ nguyên chính String; Object.toString() mặc định mô tả lớp và hash; các lớp khác có thể ghi đè để tạo biểu diễn có ý nghĩa.** Khi Java cần hiển thị đối tượng, hành vi phụ thuộc lớp thực tế và chính sách xử lý null của API gọi đến.
+Quick rule of thumb: **String.toString() preserves the String itself; default Object.toString() describes the class and hash; other classes may override it to provide a meaningful representation.** When Java needs to display an object, the behavior depends on the actual runtime class and the null-handling policy of the calling API.

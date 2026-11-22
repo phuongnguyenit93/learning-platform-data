@@ -1,33 +1,33 @@
-# writeReplace, readResolve và thay thế đối tượng trong Java Serialization
+# writeReplace, readResolve, and Object Replacement in Java Serialization
 
-## 1. Mục tiêu và phạm vi
+## 1. Objectives and Scope
 
-Khi tuần tự hóa một object graph bằng `ObjectOutputStream` và khôi phục nó bằng `ObjectInputStream`, Java cho phép đối tượng **tự chỉ định một đối tượng khác thay thế nó**. Hai hook quan trọng là:
+When serializing an object graph with `ObjectOutputStream` and restoring it with `ObjectInputStream`, Java allows an object to **designate another object to replace itself**. The two key hooks are:
 
-- `writeReplace()`: được xét **trước khi ghi đối tượng**; đối tượng có thể đề xuất một đại diện khác để lưu vào stream.
-- `readResolve()`: được xét **sau khi đọc và khôi phục đối tượng**; đối tượng đã đọc có thể đề xuất một đối tượng khác để trả về cho nơi sử dụng.
+- `writeReplace()`: evaluated **before writing the object**; the object can propose another representation to store in the stream.
+- `readResolve()`: evaluated **after reading and restoring the object**; the read object can propose another object to return to the caller.
 
-Hai cơ chế này giúp thiết kế **serialization proxy**, bảo vệ bất biến dữ liệu, xây dựng lại tài nguyên chỉ tồn tại lúc chạy và giữ identity của các đối tượng chuẩn hóa (canonical object), chẳng hạn singleton. Cần hiểu rõ giới hạn: thay thế diễn ra trong **quá trình serialization/deserialization**, không có nghĩa biến tham chiếu trong ứng dụng tự đổi ngay khi gọi `writeObject`.
+These two mechanisms help design a **serialization proxy**, protect data invariants, rebuild runtime-only resources, and preserve the identity of canonical objects, such as singletons. Be clear about the boundary: replacement occurs during the **serialization/deserialization process**, and does not mean an application's reference variable automatically changes the moment `writeObject` is called.
 
-Bài học áp dụng cho Java Object Serialization trong `java.io`, ưu tiên **Java 17+**; các thư viện JSON/XML có quy tắc riêng, không tự động gọi hai hook này.
+This lesson applies to Java Object Serialization in `java.io`, prioritizing **Java 17+**; JSON/XML libraries have their own rules and do not automatically invoke these two hooks.
 
-## 2. Cơ sở: Java ghi một object graph như thế nào?
+## 2. Foundation: How Does Java Write an Object Graph?
 
-`ObjectOutputStream.writeObject(obj)` xử lý đối tượng gốc và các đối tượng mà nó tham chiếu tới. Mỗi đối tượng có thể được gán một **handle** trong stream để các tham chiếu lặp lại trỏ về cùng một thực thể đã ghi. Khi đọc, `ObjectInputStream` dùng handle để bảo toàn quan hệ chia sẻ tham chiếu phù hợp với quy tắc giao thức.
+`ObjectOutputStream.writeObject(obj)` processes the root object and the objects it references. Each object can be assigned a **handle** in the stream so repeated references point back to the same written entity. When reading, `ObjectInputStream` uses handles to preserve reference-sharing relationships according to the protocol rules.
 
-Ở cơ chế thông thường:
+In the standard mechanism:
 
-1. Bên ghi xác định đối tượng cần serialization và kiểm tra có phương thức `writeReplace` thích hợp hay không.
-2. Nếu `writeReplace` trả về đại diện khác, Java tiếp tục xử lý **đại diện đó** để ghi. Đối tượng đại diện phải hợp lệ cho serialization (hoặc là một trường hợp đặc biệt được định dạng hỗ trợ, như `null`).
-3. Bên đọc khôi phục đối tượng theo mô tả trong stream; đây có thể là **lớp đại diện** chứ không phải lớp gốc.
-4. Nếu lớp được khôi phục có `readResolve` thích hợp, giá trị trả về từ phương thức đó thay thế đối tượng đang đọc trong kết quả và bảng tham chiếu tương ứng, với một số giới hạn về chu trình đối tượng.
-5. `readObject()` của ứng dụng nhận kết quả cuối cùng và thường cần ép kiểu về hợp đồng mà nó mong đợi.
+1. The writer identifies the object to serialize and checks whether an appropriate `writeReplace` method exists.
+2. If `writeReplace` returns a different representation, Java proceeds to process **that representation** for writing. The replacement object must be valid for serialization (or a special case supported by the format, such as `null`).
+3. The reader restores the object according to the descriptor in the stream; this may be the **proxy class** rather than the original class.
+4. If the restored class has an appropriate `readResolve`, the return value from that method replaces the object being read in the result and the corresponding reference table, with certain limitations regarding object cycles.
+5. The application's `readObject()` receives the final result and typically needs to cast it to the expected contract.
 
-Sơ đồ cho mẫu proxy:
+Diagram for the proxy pattern:
 
 ~~~text
-Ứng dụng ghi                         Object stream                  Ứng dụng đọc
-Original o                          dạng của Proxy p                Original mới
+Writer Application                   Object stream                  Reader Application
+Original o                          form of Proxy p                 New Original
     |                                      ^                             ^
     | writeReplace()                       |                             |
     +------------------> Proxy p ---------+                             |
@@ -35,56 +35,56 @@ Original o                          dạng của Proxy p                Original
                          ObjectInputStream -> Proxy p' -> readResolve() --+
 ~~~
 
-Dấu `'` trong sơ đồ chỉ đại diện mới được khôi phục, không phải cùng identity với proxy đã tạo ở bên ghi.
+The `'` mark in the diagram denotes a newly restored representation, not the same identity as the proxy created on the writer side.
 
-### 2.1. Chữ ký hook chuẩn
+### 2.1. Standard Hook Signatures
 
-Một class triển khai `Serializable` (hoặc `Externalizable` khi phù hợp) có thể khai báo:
+A class implementing `Serializable` (or `Externalizable` when appropriate) can declare:
 
 ~~~java
 @Serial
 private Object writeReplace() throws ObjectStreamException {
-    // Trả về đối tượng có thể lưu vào stream.
+    // Return an object that can be stored in the stream.
     return this;
 }
 
 @Serial
 private Object readResolve() throws ObjectStreamException {
-    // Trả về đối tượng ứng dụng sẽ sử dụng sau khi đọc.
+    // Return the object the application will use after reading.
     return this;
 }
 ~~~
 
-Đây là **mã minh họa đặt trong thân một class serializable**, không phải chương trình Java độc lập. `ObjectStreamException` thuộc `java.io`, annotation `@Serial` cũng thuộc `java.io` và được hỗ trợ từ Java 14; có thể bỏ phần `throws` khi phương thức không ném ngoại lệ checked.
+This is an **illustrative snippet placed inside the body of a serializable class**, not a standalone Java program. `ObjectStreamException` belongs to `java.io`, and the `@Serial` annotation also belongs to `java.io` and is supported from Java 14; the `throws` clause may be omitted when the method throws no checked exceptions.
 
-Những yêu cầu quan trọng:
+Important requirements:
 
-- Tên phải chính xác `writeReplace` / `readResolve`, **không có tham số**, kiểu trả về là `Object` trong chữ ký serialization quy định. Có thể dùng modifier truy cập phù hợp: `private`, package-private, `protected` hoặc `public`. Việc kế thừa và khả năng truy cập tuân theo quy tắc Java; hook `private` của superclass không được subclass kế thừa.
-- Phương thức không phải API bạn gọi thủ công để điều khiển luồng; `ObjectOutputStream` / `ObjectInputStream` tự phát hiện và gọi chúng khi xử lý đối tượng.
-- Vì không phải override một phương thức của `Serializable`, **không ghi `@Override`**. Dùng `@Serial` khi thích hợp để compiler hỗ trợ kiểm tra khai báo.
-- Một class serializable có thể chỉ có `writeReplace`, chỉ có `readResolve` hoặc cả hai. Hook ở **class đang thực sự được ghi/đọc**, không nhất thiết ở class được truyền ban đầu.
+- The name must be exactly `writeReplace` / `readResolve`, **with no parameters**, and a return type of `Object` in the specified serialization signature. An appropriate access modifier may be used: `private`, package-private, `protected`, or `public`. Inheritance and accessibility follow Java rules; a `private` hook on a superclass is not inherited by subclasses.
+- These methods are not APIs you call manually to control the stream; `ObjectOutputStream` / `ObjectInputStream` automatically detect and invoke them when processing an object.
+- Because they do not override a method on `Serializable`, **do not annotate them with `@Override`**. Use `@Serial` when appropriate so the compiler can help verify the declaration.
+- A serializable class may have only `writeReplace`, only `readResolve`, or both. The hook belongs to **the class actually being written/read**, not necessarily the class initially passed in.
 
-## 3. `writeReplace()`: thay dạng lưu trước khi ghi
+## 3. `writeReplace()`: Replacing the Stored Form Before Writing
 
-### 3.1. Dùng khi nào?
+### 3.1. When to Use It?
 
-`writeReplace` thường phù hợp khi model runtime có những thứ không nên/không thể lưu trực tiếp, ví dụ `Thread`, connection, executor, tài nguyên tạm thời, hoặc cấu trúc nội bộ mà bạn không muốn đóng băng thành hợp đồng tương thích lâu dài.
+`writeReplace` is often suitable when the runtime model contains things that should not or cannot be persisted directly, such as a `Thread`, connection, executor, temporary resource, or internal structure that you do not want to freeze into a long-term compatibility contract.
 
-Thay vì ghi mọi field của object thật, hook trả về một **serialization proxy** gồm các trường dữ liệu thiết yếu và đã được chọn lọc. Proxy này tự triển khai `Serializable` và có thể dùng `readResolve` để tái tạo đối tượng hợp lệ.
+Instead of writing every field of the real object, the hook returns a **serialization proxy** consisting of essential, curated data fields. This proxy itself implements `Serializable` and can use `readResolve` to reconstruct a valid object.
 
-Cần phân biệt `writeReplace` với `writeObject`:
+Distinguish `writeReplace` from `writeObject`:
 
-| Cơ chế | Tác động | Kết quả |
+| Mechanism | Effect | Result |
 | --- | --- | --- |
-| `writeObject(ObjectOutputStream)` (hook của class) | Tùy biến cách lưu field/dữ liệu của chính class | Class vẫn là class của đối tượng được ghi |
-| `writeReplace()` | Đề xuất **đối tượng khác** làm dạng biểu diễn trong stream | Class ghi thực tế có thể là class proxy khác |
-| `transient` | Bỏ qua field trong cơ chế lưu field mặc định | Không tự tạo proxy, không đổi class của bản ghi |
+| `writeObject(ObjectOutputStream)` (class hook) | Customizes how the class's own fields/data are saved | The class remains the class of the written object |
+| `writeReplace()` | Proposes **another object** as the stream representation | The class actually written may be a different proxy class |
+| `transient` | Skips the field in the default field-saving mechanism | Does not automatically create a proxy, does not change the recorded class |
 
-Đánh dấu `transient` có ích khi field đơn giản chỉ là cache; serialization proxy hữu ích khi cần **kiểm soát toàn bộ dạng lưu** hoặc phải khôi phục bất biến của đối tượng.
+Marking `transient` is useful when a field is simply a cache; a serialization proxy is useful when you need **full control over the stored representation** or must restore object invariants.
 
-### 3.2. Ví dụ chạy được: proxy thay đối tượng chứa `Thread`
+### 3.2. Runnable Example: Proxy Replacing an Object Containing a `Thread`
 
-Tạo file `ReplacementProxyDemo.java`:
+Create the file `ReplacementProxyDemo.java`:
 
 ~~~java
 import java.io.*;
@@ -142,14 +142,14 @@ public class ReplacementProxyDemo {
 }
 ~~~
 
-Biên dịch/chạy từ thư mục có file:
+Compile/run from the directory containing the file:
 
 ~~~bash
 javac ReplacementProxyDemo.java
 java ReplacementProxyDemo
 ~~~
 
-Kết quả chuẩn:
+Standard output:
 
 ~~~text
 T-17
@@ -157,42 +157,42 @@ true
 true
 ~~~
 
-Giải thích theo từng bước:
+Step-by-step explanation:
 
-1. `TaskSession` triển khai `Serializable` nhưng có `Thread runtimeThread`, và `Thread` không được thiết kế để serialized như trạng thái thực thi.
-2. Trước khi ghi trường của `TaskSession`, `writeReplace()` trả về `SessionProxy`. Dạng lưu chỉ có `taskId`, không chứa thread đang chạy.
-3. Khi đọc, Java khôi phục `SessionProxy`, sau đó gọi `SessionProxy.readResolve()`.
-4. `readResolve` tạo một `TaskSession` mới bằng constructor, nên `runtimeThread` được khởi tạo mới và kết quả ép kiểu về `TaskSession` hợp lệ.
+1. `TaskSession` implements `Serializable` but has `Thread runtimeThread`, and `Thread` is not designed to be serialized as execution state.
+2. Before writing the fields of `TaskSession`, `writeReplace()` returns `SessionProxy`. The stored form contains only `taskId`, without the running thread.
+3. On read, Java restores `SessionProxy`, then calls `SessionProxy.readResolve()`.
+4. `readResolve` creates a new `TaskSession` via its constructor, so `runtimeThread` is freshly initialized and casting the result to `TaskSession` succeeds.
 
-Nếu bỏ `writeReplace` mà vẫn giữ field `runtimeThread` không `transient`, việc ghi `TaskSession` sẽ gặp `NotSerializableException` khi duyệt trường này. Ví dụ trên chủ động giữ field đó **không transient** để chỉ ra vai trò của proxy.
+If you remove `writeReplace` while keeping the `runtimeThread` field non-`transient`, writing `TaskSession` will encounter a `NotSerializableException` when traversing that field. The example above intentionally keeps that field **non-transient** to highlight the role of the proxy.
 
-**Điểm đặc biệt:** `TaskSession.readResolve` không bắt buộc phải có trong ví dụ; đối tượng `TaskSession` không phải loại bản ghi được khôi phục từ stream. Hook cần thiết nằm ở **`SessionProxy`** — lớp thực sự được đọc.
+**Notable detail:** `TaskSession.readResolve` is not required in this example; `TaskSession` is not the record type restored from the stream. The required hook lives on **`SessionProxy`** — the class actually being read.
 
-### 3.3. Hợp đồng kiểu và khả năng tương thích
+### 3.3. Type Contract and Compatibility
 
-Khi `writeReplace` trả về một proxy có kiểu khác, lời gọi đọc cuối cùng phải nhận một kiểu phù hợp với nơi sử dụng. Proxy được khôi phục rồi `readResolve` trả về `TaskSession`, vì thế biến `TaskSession after` nhận đúng kiểu.
+When `writeReplace` returns a proxy of a different type, the final read call must receive a type compatible with its usage site. The proxy is restored and then `readResolve` returns `TaskSession`, so the `TaskSession after` variable receives the right type.
 
-Một thiết kế sai có thể gây `ClassCastException` khi đối tượng thay thế không phù hợp với nơi được tham chiếu, ví dụ một field mong đợi `TaskSession` nhưng kết quả đọc cuối là `String`. Cần kiểm thử khi original object nằm **bên trong collection hoặc field có kiểu cụ thể**, không chỉ khi nó là root được ghi bởi `writeObject`.
+A flawed design can cause `ClassCastException` when the replacement object does not fit the reference site, for example a field expecting `TaskSession` while the final read result is a `String`. You should test when the original object resides **inside a collection or a specifically typed field**, not only when it is the root passed to `writeObject`.
 
-Không dựa vào việc proxy che giấu type để coi đó là mã hóa hoặc bảo mật: đối tượng trong stream vẫn có cấu trúc nhị phân có thể phân tích, và code khôi phục vẫn cần kiểm tra dữ liệu.
+Do not treat the proxy's hiding of the type as encryption or security: the object in the stream still has an inspectable binary structure, and restoration code must still validate data.
 
-## 4. `readResolve()`: chuẩn hóa đối tượng sau khi đọc
+## 4. `readResolve()`: Canonicalizing Objects After Reading
 
-### 4.1. Phục hồi identity và invariant
+### 4.1. Restoring Identity and Invariants
 
-Mặc định, đọc một đối tượng serializable thường tạo ra một instance mới khác identity với instance gốc. Với **singleton**, mô hình này làm sai ràng buộc “trong JVM chỉ có một instance”. `readResolve` cho phép thay instance tạm được dựng từ stream bằng instance chuẩn đang tồn tại.
+By default, reading a serializable object typically creates a new instance with a different identity from the original instance. For a **singleton**, this model violates the constraint "there is only one instance in the JVM." `readResolve` allows replacing the temporary instance constructed from the stream with the existing canonical instance.
 
-Các tình huống thường gặp:
+Common scenarios:
 
-- Singleton dùng class có constructor riêng; `readResolve` trả về `INSTANCE`.
-- Value object được intern/canonicalize theo key; `readResolve` tra registry để trả về instance chuẩn.
-- Serialization proxy cần gọi factory/constructor có validation để khôi phục đối tượng thật.
+- A singleton using a class with a private constructor; `readResolve` returns `INSTANCE`.
+- Value objects interned/canonicalized by key; `readResolve` looks up a registry to return the canonical instance.
+- A serialization proxy needing to call a validating factory/constructor to restore the real object.
 
-Với dữ liệu phải được xác minh, validation nên nằm ở constructor/factory được gọi khi khôi phục. Nếu dữ liệu không hợp lệ, có thể ném một `InvalidObjectException` (nhánh `ObjectStreamException`), thay vì chấp nhận object sai trạng thái.
+For data that must be verified, validation should reside in the constructor/factory called during restoration. If the data is invalid, you can throw an `InvalidObjectException` (a subclass of `ObjectStreamException`), rather than accepting an object in an invalid state.
 
-### 4.2. Ví dụ chạy được: singleton sau deserialization
+### 4.2. Runnable Example: Singleton After Deserialization
 
-Tạo file `ReadResolveSingletonDemo.java`:
+Create the file `ReadResolveSingletonDemo.java`:
 
 ~~~java
 import java.io.*;
@@ -238,7 +238,7 @@ javac ReadResolveSingletonDemo.java
 java ReadResolveSingletonDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 true
@@ -246,13 +246,13 @@ true
 true
 ~~~
 
-Lần `readObject()` đầu tiên khôi phục một instance tạm, nhưng `readResolve` trả `AppConfig.INSTANCE`. Lần đọc tiếp theo cũng tham chiếu cùng instance singleton; object stream còn có cơ chế handle đối với các tham chiếu lặp lại.
+The first `readObject()` restores a temporary instance, but `readResolve` returns `AppConfig.INSTANCE`. The next read also references the same singleton instance; the object stream also has a handle mechanism for repeated references.
 
-**Giới hạn của ví dụ:** việc `first == second` khi ghi lặp lại cùng object vào **một stream** có thể đúng nhờ cơ chế handle, ngay cả khi không có `readResolve`. Phép so sánh quyết định ở đây là `first == AppConfig.INSTANCE`. Để kiểm chứng kỹ, có thể thử ghi và đọc ở **hai stream độc lập**; canonical singleton vẫn là cùng `INSTANCE` trong một JVM nhờ `readResolve`.
+**Limitation of the example:** `first == second` when writing the same object repeatedly into **one stream** can hold thanks to the handle mechanism, even without `readResolve`. The decisive comparison here is `first == AppConfig.INSTANCE`. To verify thoroughly, try writing and reading across **two independent streams**; the canonical singleton remains the same `INSTANCE` within a JVM thanks to `readResolve`.
 
-### 4.3. Có nên dùng singleton class như vậy?
+### 4.3. Should You Use a Singleton Class Like This?
 
-Nếu không cần hành vi tạo instance đặc biệt và chỉ muốn singleton an toàn trước các trường hợp Java Serialization phổ biến, Java `enum` với một constant thường đơn giản và mạnh hơn:
+If you do not need special instantiation behavior and only want a singleton safe against common Java Serialization cases, a Java `enum` with a single constant is usually simpler and stronger:
 
 ~~~java
 enum AppConfig {
@@ -260,19 +260,19 @@ enum AppConfig {
 }
 ~~~
 
-Đây là **định nghĩa enum minh họa**, chưa phải chương trình có `main`. Serialization của enum dùng cơ chế đặc biệt: khi đọc, JVM khôi phục constant đã khai báo theo tên; `writeReplace` và `readResolve` tự khai báo trong enum **không được gọi**. Với các singleton cần giữ dữ liệu runtime riêng, cần cân nhắc lifecycle và thread safety thay vì chỉ dựa vào hook.
+This is an **illustrative enum definition**, not a program with `main`. Enum serialization uses a special mechanism: on read, the JVM restores the declared constant by name; user-declared `writeReplace` and `readResolve` on an enum **are not invoked**. For singletons that need to hold separate runtime data, consider lifecycle and thread safety instead of relying solely on hooks.
 
-## 5. Kết hợp `writeReplace` + `readResolve` theo Serialization Proxy Pattern
+## 5. Combining `writeReplace` + `readResolve` in the Serialization Proxy Pattern
 
-Mẫu thường dùng:
+Common pattern:
 
-1. **Original:** class có invariant mạnh, API nghiệp vụ và trạng thái runtime; implements `Serializable` để hook hoạt động.
-2. **Proxy:** class `private static final` hoặc class tách riêng; implements `Serializable`; chỉ giữ dạng dữ liệu ổn định như id, giá trị đơn giản, danh sách key.
-3. **Original.writeReplace():** tạo proxy từ trạng thái hợp lệ của original.
-4. **Proxy.readResolve():** gọi constructor/factory của original để kiểm tra invariant và khôi phục lại đối tượng.
-5. **Original.readObject():** nếu muốn ép mọi quá trình đọc phải đi qua proxy, có thể chặn dạng serialization trực tiếp của original bằng hook ném `InvalidObjectException`.
+1. **Original:** a class with strong invariants, business APIs, and runtime state; implements `Serializable` so the hook operates.
+2. **Proxy:** a `private static final` class or a separate class; implements `Serializable`; holds only stable data representations such as an id, simple values, or a key list.
+3. **Original.writeReplace():** creates a proxy from the valid state of the original.
+4. **Proxy.readResolve():** invokes the original's constructor/factory to check invariants and restore the object.
+5. **Original.readObject():** if you want to force every read path through the proxy, you can block direct serialization of the original with a hook that throws `InvalidObjectException`.
 
-Đoạn mã sau là **phần được thêm bên trong class Original implements Serializable**, minh họa việc từ chối đọc trực tiếp original mà không đi qua proxy:
+The following snippet is **code added inside class Original implements Serializable**, illustrating rejection of reading the original directly without going through the proxy:
 
 ~~~java
 @Serial
@@ -282,17 +282,17 @@ private void readObject(ObjectInputStream in)
 }
 ~~~
 
-Đây không phải chương trình độc lập. Một phiên bản hoàn chỉnh cần có `writeReplace` trên original, proxy serializable và `readResolve` trên proxy như ví dụ ở mục 3. Trong ứng dụng dùng lâu dài, version của **proxy** mới chính là hợp đồng serialized cần bảo trì; tránh thay đổi cấu trúc proxy tùy tiện, hãy đặt `serialVersionUID` và kế hoạch migration rõ ràng.
+This is not a standalone program. A complete version needs `writeReplace` on the original, a serializable proxy, and `readResolve` on the proxy as in the example in Section 3. In long-lived applications, the version of the **proxy** is the serialized contract that must be maintained; avoid changing the proxy's structure arbitrarily, set `serialVersionUID`, and maintain a clear migration plan.
 
-### 5.1. Ví dụ ngắn về invariant
+### 5.1. Short Invariant Example
 
-Giả sử đối tượng nghiệp vụ `Range` yêu cầu `min <= max`. Không nên tin rằng bytes serialized được đưa vào JVM luôn tạo ra trạng thái hợp lệ. Trong proxy, `readResolve` có thể gọi `new Range(min, max)`; constructor kiểm tra invariant và từ chối dữ liệu vô lý. Nếu cần chuyển lỗi sang ngoại lệ I/O nhất quán:
+Suppose a domain object `Range` requires `min <= max`. Never assume serialized bytes entering the JVM always produce valid state. In the proxy, `readResolve` can call `new Range(min, max)`; the constructor checks the invariant and rejects nonsensical data. If you need to translate the error into a consistent I/O exception:
 
 ~~~java
 @Serial
 private Object readResolve() throws ObjectStreamException {
     try {
-        return new Range(min, max);  // Constructor kiểm tra min <= max.
+        return new Range(min, max);  // Constructor checks min <= max.
     } catch (IllegalArgumentException ex) {
         InvalidObjectException invalid =
                 new InvalidObjectException("Invalid range");
@@ -302,125 +302,125 @@ private Object readResolve() throws ObjectStreamException {
 }
 ~~~
 
-Đây là **mã trong lớp proxy của mô hình Range**, với constructor `Range(int, int)` có sẵn; không phải file độc lập. Việc ném `InvalidObjectException` thông báo rõ dữ liệu đọc vi phạm hợp đồng, tránh để đối tượng lỗi đi vào nghiệp vụ.
+This is **code inside the proxy class of the Range model**, assuming a `Range(int, int)` constructor exists; it is not a standalone file. Throwing `InvalidObjectException` clearly signals that the read data violates the contract, preventing an invalid object from entering business logic.
 
-## 6. Identity, handle và các giới hạn khó nhận ra
+## 6. Identity, Handles, and Subtle Limitations
 
-### 6.1. Một object được tham chiếu nhiều lần
+### 6.1. An Object Referenced Multiple Times
 
-`ObjectOutputStream` quản lý identity bằng handle. Nếu hai field trỏ đến **cùng một original object**, Java cố gắng bảo toàn quan hệ chia sẻ khi thay thế và đọc lại: cùng handle đối tượng đã ghi sẽ liên kết với cùng kết quả thay thế thích hợp. `writeReplace` không có nghĩa mỗi tham chiếu trong graph gọi hook để tạo một proxy độc lập vô hạn lần.
+`ObjectOutputStream` manages identity using handles. If two fields point to **the same original object**, Java attempts to preserve the sharing relationship during replacement and re-reading: the same written object handle links to the same corresponding replacement result. `writeReplace` does not mean every reference in the graph invokes the hook to create an independent proxy infinitely many times.
 
-Tuy nhiên, không được đồng nhất những khái niệm sau:
+However, do not conflate the following concepts:
 
-- **Identity**: `a == b` là cùng instance trong JVM.
-- **Equality**: `a.equals(b)` có thể đúng khi hai instance khác nhau.
-- **Canonicalization**: nhiều đối tượng tương đương theo key được ánh xạ về một instance chuẩn khi `readResolve` dùng registry/factory.
+- **Identity**: `a == b` means the exact same instance in the JVM.
+- **Equality**: `a.equals(b)` can be true for two distinct instances.
+- **Canonicalization**: multiple objects that are equivalent by key are mapped to one canonical instance when `readResolve` uses a registry/factory.
 
-`readResolve` có thể chủ động gom **nhiều object trong stream** về cùng một instance, làm thay đổi identity theo chính sách ứng dụng; đó là hành vi có chủ đích, không phải mặc định của mọi lần đọc.
+`readResolve` can intentionally collapse **multiple objects in the stream** into the same instance, altering identity per application policy; that is deliberate behavior, not the default for every read.
 
-### 6.2. Chu trình tham chiếu khi `readResolve` trả đối tượng mới
+### 6.2. Reference Cycles When `readResolve` Returns a New Object
 
-`readResolve` được gọi sau khi đối tượng đã đọc được dựng xong, do đó **các tham chiếu tới chính object tạm bên trong graph của nó có thể không được sửa thành object thay thế**. Đặc tả serialization cảnh báo đây là vấn đề với chu trình (`cycle`) hoặc self-reference. Mẫu proxy thường an toàn hơn khi proxy chứa **giá trị bất biến đơn giản**, tránh tham chiếu vòng về original.
+`readResolve` is invoked after the read object has already been constructed, so **references to the temporary object itself inside its own graph may not be updated to the replacement object**. The serialization specification warns that this is an issue with cycles (`cycle`) or self-references. The proxy pattern is generally safer when the proxy contains **simple immutable values**, avoiding circular references back to the original.
 
-Tương tự, nếu `writeReplace` trả proxy có graph lại trỏ về original, việc thay thế và phục hồi tham chiếu có thể tạo ra cấu trúc không như mong đợi. Không nên dùng graph proxy chứa back-reference tùy ý nếu chưa có kiểm thử round-trip.
+Similarly, if `writeReplace` returns a proxy whose graph points back to the original, replacement and reference restoration can produce unexpected structures. Do not use proxy graphs containing arbitrary back-references without round-trip testing.
 
-### 6.3. `readUnshared` không phải biện pháp chống canonicalization
+### 6.3. `readUnshared` Is Not a Defense Against Canonicalization
 
-`ObjectInputStream.readUnshared()` kiểm soát cách dùng handle đọc lại. Nhưng đối tượng có `readResolve` vẫn có thể trả về singleton/instance từ registry vốn được chia sẻ bên ngoài stream. Vì vậy, `readUnshared` **không bảo đảm** kết quả là một instance mới duy nhất trong JVM.
+`ObjectInputStream.readUnshared()` controls how read handles are reused. However, an object with `readResolve` can still return a singleton/instance from a registry that is shared outside the stream. Therefore, `readUnshared` **does not guarantee** the result is a unique new instance in the JVM.
 
-### 6.4. `null` và kiểu thay thế
+### 6.4. `null` and Replacement Types
 
-Một hook có thể trả về `null`, nhưng nếu caller hoặc field mong đợi một object cụ thể, hậu quả có thể là `NullPointerException` hoặc vi phạm invariant. Cần thiết kế rõ hợp đồng “được phép null” và kiểm thử. Nếu hook trả instance có kiểu khác, phải phù hợp với tất cả nơi sử dụng trong graph; nếu không, `ClassCastException` hoặc lỗi phục hồi khác có thể xảy ra.
+A hook can return `null`, but if the caller or a field expects a specific object, the result can be a `NullPointerException` or an invariant violation. Explicitly design and test a "nullable allowed" contract. If a hook returns an instance of a different type, it must be compatible with every usage site in the graph; otherwise, `ClassCastException` or another restoration failure may occur.
 
-## 7. So sánh với các hook và API liên quan
+## 7. Comparison with Related Hooks and APIs
 
-| Cơ chế | Nơi khai báo | Thời điểm / mục đích |
+| Mechanism | Where Declared | Timing / Purpose |
 | --- | --- | --- |
-| `writeReplace()` | Class serializable | Trước khi ghi object, đề xuất object thay thế |
-| `readResolve()` | Class serializable | Sau khi khôi phục object, đề xuất giá trị cuối cùng |
-| `private void writeObject(ObjectOutputStream)` | Class serializable | Tùy chỉnh phần dữ liệu của class được ghi |
-| `private void readObject(ObjectInputStream)` | Class serializable | Tùy chỉnh phần dữ liệu của class được đọc |
-| `ObjectOutputStream.replaceObject(Object)` | Subclass của stream | Hook mức **stream** (cần bật `enableReplaceObject`) để thay đối tượng theo chính sách riêng |
-| `ObjectInputStream.resolveObject(Object)` | Subclass của stream | Hook mức **stream** (cần bật `enableResolveObject`) để thay đối tượng sau bước `readResolve` của class |
+| `writeReplace()` | Serializable class | Before writing the object, proposes a replacement object |
+| `readResolve()` | Serializable class | After restoring the object, proposes the final value |
+| `private void writeObject(ObjectOutputStream)` | Serializable class | Customizes the class's own data section when writing |
+| `private void readObject(ObjectInputStream)` | Serializable class | Customizes the class's own data section when reading |
+| `ObjectOutputStream.replaceObject(Object)` | Stream subclass | **Stream-level** hook (requires `enableReplaceObject`) to replace objects per custom policy |
+| `ObjectInputStream.resolveObject(Object)` | Stream subclass | **Stream-level** hook (requires `enableResolveObject`) to replace objects after the class's `readResolve` step |
 
-Các hook mức stream là cơ chế nâng cao và có hệ quả đối với toàn bộ dữ liệu đi qua stream; chúng khác về ownership và phạm vi so với hai hook mức class. Không cần subclass stream chỉ để tạo proxy hoặc singleton thông thường.
+Stream-level hooks are an advanced mechanism that affect all data passing through the stream; they differ in ownership and scope from the two class-level hooks. There is no need to subclass the stream just to implement an ordinary proxy or singleton.
 
-**Lưu ý về type:**
+**Notes on types:**
 
-- `Serializable` và `Externalizable` có hỗ trợ hook thay thế theo đặc tả.
-- Enum có serialization riêng; các hook thay thế khai báo trên enum bị bỏ qua.
-- Record triển khai `Serializable` có thể dùng `writeReplace` / `readResolve`, dù cơ chế ghi/đọc field thông thường của record khác với class serializable truyền thống.
-- `serialVersionUID` vẫn liên quan tới class thực sự được lưu/đọc. Proxy không loại bỏ nhu cầu quản lý version hoặc tương thích.
+- `Serializable` and `Externalizable` support replacement hooks per the specification.
+- Enums have dedicated serialization; replacement hooks declared on an enum are ignored.
+- A record implementing `Serializable` can use `writeReplace` / `readResolve`, even though normal record field writing/reading differs from traditional serializable classes.
+- `serialVersionUID` still pertains to the class actually stored/read. A proxy does not eliminate the need for version management or compatibility.
 
-## 8. Lỗi phổ biến và cách xử lý
+## 8. Common Mistakes and How to Handle Them
 
-### 8.1. Hook không chạy
+### 8.1. The Hook Does Not Run
 
-Kiểm tra lớp có thực sự triển khai `Serializable`/`Externalizable` không, tên và chữ ký có đúng không, có vô tình thêm tham số hay dùng `static` không. Với phương thức kế thừa, xét phạm vi truy cập theo quy tắc Java; một hook `private` của lớp cha không tự kế thừa cho lớp con. Kiểm tra object thực tế là enum hoặc record nếu hành vi khác dự đoán. Có thể tạm log ở hook khi làm thí nghiệm, rồi xóa log trước môi trường production.
+Check whether the class actually implements `Serializable`/`Externalizable`, whether the name and signature are exact, and whether you accidentally added parameters or used `static`. For inherited methods, check accessibility under Java rules; a `private` hook on a superclass is not automatically inherited by subclasses. Check whether the actual object is an enum or record if behavior differs from expectations. You may temporarily log in the hook during experiments, then remove the logs before production.
 
-### 8.2. `NotSerializableException` vẫn xuất hiện
+### 8.2. `NotSerializableException` Still Occurs
 
-Nếu `writeReplace` trả về **proxy không serializable** hoặc proxy vẫn chứa field không serializable, việc ghi vẫn lỗi. Chỉ nói rằng class gốc đã có `writeReplace` là chưa đủ; phải kiểm tra **đồ thị đối tượng của kết quả thay thế**.
+If `writeReplace` returns a **non-serializable proxy** or the proxy still holds a non-serializable field, writing still fails. Simply noting that the original class has `writeReplace` is not enough; you must inspect the **object graph of the replacement result**.
 
-### 8.3. `ClassCastException` khi đọc
+### 8.3. `ClassCastException` on Read
 
-Một proxy chỉ có `writeReplace` mà không có `readResolve` phù hợp có thể làm `readObject()` trả về proxy thay vì original. Hoặc `readResolve` trả sai kiểu. Kiểm tra cả kiểu root và kiểu field có tham chiếu đến original; đừng chỉ ép kiểu rồi bỏ qua vấn đề thiết kế.
+A proxy with only `writeReplace` and no matching `readResolve` can cause `readObject()` to return the proxy instead of the original. Or `readResolve` returns the wrong type. Check both the root type and any field types referencing the original; do not just force casts and ignore the design issue.
 
-### 8.4. Singleton bị nhân bản
+### 8.4. Singleton Gets Duplicated
 
-Nếu class singleton được deserialize mà thiếu hook `readResolve` thích hợp, reader có thể trả một instance mới. Giữ `INSTANCE` ở mức `static final`, constructor không public và triển khai đúng hook; với singleton đơn giản, cân nhắc enum. Nhớ kiểm tra cả inheritance/subclass nếu singleton class không phải `final`.
+If a singleton class is deserialized without an appropriate `readResolve` hook, the reader can return a new instance. Keep `INSTANCE` as `static final`, make the constructor non-public, and implement the hook properly; for simple singletons, consider an enum. Remember to check inheritance/subclasses as well if the singleton class is not `final`.
 
-### 8.5. Trạng thái bị mất hoặc khác trước khi lưu
+### 8.5. State Is Lost or Differs from Before Saving
 
-Proxy chỉ lưu những gì nó chứa. Nếu nó chỉ có id nhưng model nghiệp vụ cần timestamp, owner hoặc trạng thái khác, bản khôi phục có thể thiếu thông tin. Cần xác định **bất biến và dữ liệu phải được bảo toàn** trước khi thiết kế proxy, thay vì lược field để tránh lỗi.
+A proxy only saves what it holds. If it only holds an id while the domain model needs a timestamp, owner, or other state, the restored copy may be missing information. Identify the **invariants and data that must be preserved** before designing the proxy, rather than dropping fields just to avoid errors.
 
-### 8.6. Phiên bản cũ không đọc được
+### 8.6. Old Versions Cannot Be Read
 
-Đổi tên class proxy, xóa field cần thiết, đổi `serialVersionUID` hoặc logic khôi phục có thể khiến bản ghi cũ không tương thích. Hãy dùng fixture serialized của phiên bản cũ và kiểm thử migration. Không thay đổi UID tùy tiện nhằm che `InvalidClassException`.
+Renaming the proxy class, removing a required field, or changing `serialVersionUID` or restoration logic can break compatibility with old records. Use serialized fixtures from previous versions and test migration. Do not change the UID arbitrarily just to suppress `InvalidClassException`.
 
-### 8.7. Deserialization dữ liệu không tin cậy
+### 8.7. Deserializing Untrusted Data
 
-Serialization proxy và `readResolve` **không tự làm Java deserialization an toàn**. Không tạo `ObjectInputStream` trên dữ liệu không tin cậy nếu có thể tránh; khi cần thiết, đặt `ObjectInputFilter` / quy tắc allowlist, giới hạn kích thước, độ sâu, số tham chiếu và validate dữ liệu. Hook có thể gọi constructor/factory và logic ứng dụng; tuyệt đối không coi hook là lớp kiểm tra bảo mật duy nhất.
+Serialization proxies and `readResolve` **do not make Java deserialization inherently safe**. Do not construct an `ObjectInputStream` on untrusted data if it can be avoided; when necessary, set an `ObjectInputFilter` / allowlist rules, limit size, depth, reference count, and validate data. Hooks can invoke constructors/factories and application logic; never treat hooks as the sole security boundary.
 
-## 9. Checklist thiết kế và kiểm thử
+## 9. Design and Testing Checklist
 
-1. Đối tượng gốc cần bảo toàn **giá trị** hay **identity**? Nếu chỉ cần các trường đơn giản, có thể không cần hook thay thế.
-2. Nếu dùng proxy, đã chọn đủ field cho việc khôi phục, tránh lưu tài nguyên runtime và back-reference tạo chu trình?
-3. Proxy có `Serializable`, UID ổn định, và `readResolve` trả kiểu phù hợp với mọi field/caller?
-4. Đã kiểm tra input trong constructor/factory hoặc hook, và ném exception thích hợp nếu invalid?
-5. Đã kiểm thử round-trip một object, nhiều tham chiếu đến cùng object, giá trị null, collection, dữ liệu lịch sử và trường hợp dữ liệu hỏng?
-6. Nếu yêu cầu singleton/canonicalization, đã kiểm tra identity so với instance chuẩn, kể cả qua các stream độc lập?
-7. Đã có chiến lược version/migration và kiểm soát dữ liệu không tin cậy?
+1. Does the original object need to preserve **value** or **identity**? If only simple fields are needed, replacement hooks may be unnecessary.
+2. If using a proxy, have you selected enough fields for restoration while avoiding runtime resources and cycle-forming back-references?
+3. Is the proxy `Serializable`, with a stable UID, and does `readResolve` return a type compatible with every field/caller?
+4. Is input validated in the constructor/factory or hook, throwing an appropriate exception if invalid?
+5. Have you tested round-trip for a single object, multiple references to the same object, null values, collections, historical data, and corrupted data cases?
+6. If singleton/canonicalization is required, have you verified identity against the canonical instance, including across independent streams?
+7. Is there a versioning/migration strategy and controls for untrusted data?
 
-Khi kiểm thử, nên tách **khả năng ghi được stream**, **khả năng khôi phục giá trị đúng** và **tính đúng đắn của identity/invariant** thành các mục riêng; việc `readObject` không ném exception chưa bảo đảm ba điều đó.
+When testing, separate **ability to write the stream**, **ability to restore accurate values**, and **correctness of identity/invariants** into distinct checks; `readObject` not throwing an exception does not guarantee those three properties.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Câu 1.** `writeReplace` được gọi ở phía đọc hay phía ghi? Nó có làm biến `original` ngoài ứng dụng trỏ sang proxy sau `writeObject(original)` không?
+**Question 1.** Is `writeReplace` called on the reader side or the writer side? Does it make an application's `original` variable point to the proxy after `writeObject(original)`?
 
-**Đáp án:** Phía ghi, trước khi ghi đối tượng. Nó không thay đổi biến tham chiếu `original` trong bộ nhớ ứng dụng; chỉ chi phối dạng dữ liệu và ánh xạ tham chiếu được ghi vào stream.
+**Answer:** On the writer side, before writing the object. It does not change the `original` reference variable in application memory; it only governs the data form and reference mapping written into the stream.
 
-**Câu 2.** Class `Employee` có `writeReplace` trả về `EmployeeProxy`. Khi đọc lại, hook `readResolve` nên đặt ở đâu để trả về `Employee`?
+**Question 2.** Class `Employee` has `writeReplace` returning `EmployeeProxy`. When reading back, where should the `readResolve` hook be placed to return `Employee`?
 
-**Đáp án:** Thường ở `EmployeeProxy`, vì stream chứa bản biểu diễn của proxy. `EmployeeProxy.readResolve()` có thể tạo/tra cứu `Employee` hợp lệ và trả về nó.
+**Answer:** Typically on `EmployeeProxy`, because the stream contains the proxy's representation. `EmployeeProxy.readResolve()` can construct/look up a valid `Employee` and return it.
 
-**Câu 3.** Hai lần đọc cùng singleton từ một stream trả object bằng nhau theo `==`. Điều đó một mình có chứng minh `readResolve` hoạt động?
+**Question 3.** Reading the same singleton twice from one stream returns objects equal by `==`. Does that alone prove `readResolve` works?
 
-**Đáp án:** Không. Stream có cơ chế handle để tham chiếu lặp lại. Cần so với singleton chuẩn, hoặc kiểm thử qua nhiều stream độc lập.
+**Answer:** No. The stream has a handle mechanism for repeated references. You need to compare against the canonical singleton, or test across multiple independent streams.
 
-**Câu 4.** `readResolve` trả một `String` cho field có kiểu `Employee`. Có rủi ro gì?
+**Question 4.** `readResolve` returns a `String` for a field typed as `Employee`. What is the risk?
 
-**Đáp án:** Kiểu không tương thích; quá trình phục hồi hoặc sử dụng có thể phát sinh `ClassCastException`. Phải bảo toàn hợp đồng kiểu của mọi nơi tham chiếu.
+**Answer:** Type incompatibility; restoration or usage may throw `ClassCastException`. You must preserve the type contract at all reference sites.
 
-**Câu 5.** Vì sao không nên để proxy trỏ vòng về original?
+**Question 5.** Why should you avoid having a proxy point circularly back to the original?
 
-**Đáp án:** Cơ chế thay thế kết hợp handle và chu trình có thể khiến graph khôi phục khác graph mong đợi; riêng `readResolve` xảy ra sau khi object tạm đã hoàn tất, nên self-reference có thể không được cập nhật. Proxy thuần giá trị giảm rủi ro này.
+**Answer:** Replacement combined with handles and cycles can cause the restored graph to differ from the expected graph; specifically, `readResolve` runs after the temporary object is complete, so self-references may not be updated. A value-only proxy reduces this risk.
 
-## 11. Nguồn kỹ thuật để tra cứu sâu
+## 11. Technical Sources for Deeper Reference
 
-- [Java SE 17 — Serializable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Serializable.html): chữ ký, phạm vi truy cập và các hook thay thế.
-- [Java Object Serialization Specification — Object Output Classes, mục 2.5](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/output.html): `writeReplace`, ánh xạ đối tượng khi ghi.
-- [Java Object Serialization Specification — Object Input Classes, mục 3.7](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/input.html): `readResolve`, xử lý handle và giới hạn đối với graph vòng.
-- [Java Object Serialization Specification — System Architecture](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/serial-arch.html): serialization graph, enum, record và thay thế.
+- [Java SE 17 — Serializable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Serializable.html): signatures, access scope, and replacement hooks.
+- [Java Object Serialization Specification — Object Output Classes, Section 2.5](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/output.html): `writeReplace`, object mapping during writing.
+- [Java Object Serialization Specification — Object Input Classes, Section 3.7](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/input.html): `readResolve`, handle processing, and limitations with cyclic graphs.
+- [Java Object Serialization Specification — System Architecture](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/serial-arch.html): serialization graph, enum, record, and replacement.
 
-Hai hook đều là cơ chế **thay thế object ở ranh giới stream**. `writeReplace` chọn dạng lưu, `readResolve` chọn giá trị sử dụng sau khi đọc; khi kết hợp thành serialization proxy, chúng giúp duy trì hợp đồng dữ liệu và bất biến của đối tượng một cách có chủ đích.
+Both hooks are **object replacement mechanisms at the stream boundary**. `writeReplace` chooses the stored form, and `readResolve` chooses the value used after reading; when combined into a serialization proxy, they help maintain an object's data contract and invariants deliberately.

@@ -1,8 +1,8 @@
-# Gán lại biến enhanced `for` không thay phần tử mảng — Java 17+
+# Reassigning the Enhanced `for` Variable Does Not Change Array Elements — Java 17+
 
-## 1. Quy tắc cốt lõi
+## 1. Core Rule
 
-Với vòng lặp **enhanced `for`** (còn gọi là *for-each*), Java lấy lần lượt giá trị từ mảng rồi **gán giá trị đó cho biến lặp cục bộ**. Gán lại biến lặp **không ghi ngược** vào phần tử mảng đang duyệt.
+With the **enhanced `for`** loop (also known as *for-each*), Java takes each value from the array in turn and **assigns that value to a local loop variable**. Reassigning the loop variable **does not write back** to the array element being iterated over.
 
 ~~~java
 import java.util.Arrays;
@@ -26,9 +26,9 @@ public class FirstExample {
 [1, 2, 3]
 ~~~
 
-Mặc dù mỗi lần lặp `number` nhận giá trị từ mảng, biểu thức `number = number * 10` **chỉ đổi biến cục bộ `number`**, không thay đổi `numbers[0]`, `numbers[1]` hoặc `numbers[2]`.
+Although on every iteration `number` receives a value from the array, the expression `number = number * 10` **only changes the local variable `number`**, without modifying `numbers[0]`, `numbers[1]`, or `numbers[2]`.
 
-**Muốn thay chính các phần tử mảng**, dùng vị trí chỉ số để gán:
+**To change the array elements themselves**, use the index position to assign:
 
 ~~~java
 for (int i = 0; i < numbers.length; i++) {
@@ -37,52 +37,52 @@ for (int i = 0; i < numbers.length; i++) {
 System.out.println(Arrays.toString(numbers));
 ~~~
 
-**Exact expected stdout (tiếp nối ví dụ trên):**
+**Exact expected stdout (continuing the example above):**
 
 ~~~text
 [10, 20, 30]
 ~~~
 
-Đây là điểm phân biệt quan trọng nhất của bài học: **biến trong `for (T value : array)` không phải một “ô tham chiếu” cho phép thay trực tiếp `array[index]` bằng phép gán vào `value`**.
+This is the most important distinction of the lesson: **the variable in `for (T value : array)` is not a "reference slot" that lets you directly replace `array[index]` by assigning to `value`**.
 
-## 2. Vì sao gán lại biến lặp không ghi ngược mảng?
+## 2. Why Doesn't Reassigning the Loop Variable Write Back to the Array?
 
-Với một **mảng**, Java xử lý enhanced for gần tương đương về ý nghĩa với dạng dùng chỉ số ẩn:
+For an **array**, Java processes enhanced for in a way semantically equivalent to using a hidden index:
 
 ~~~java
 int[] data = {4, 5};
 
-// Ý nghĩa tương đương về việc lấy giá trị từ mảng:
+// Equivalent semantics for retrieving values from the array:
 for (int index = 0; index < data.length; index++) {
     int element = data[index];
-    element = 100; // Chỉ đổi element.
+    element = 100; // Only changes element.
 }
 ~~~
 
-Ở mỗi lượt:
+On each iteration:
 
-1. Java lấy giá trị `data[index]`.
-2. Gán giá trị đó cho biến cục bộ `element`.
-3. Thực thi thân vòng lặp.
-4. Khi tới lượt kế, lấy một phần tử tiếp theo.
+1. Java retrieves the value `data[index]`.
+2. Assigns that value to the local variable `element`.
+3. Executes the loop body.
+4. When moving to the next iteration, retrieves the next element.
 
-**Không có bước tự động kiểu `data[index] = element;` sau thân vòng lặp**. Phép gán vào biến và phép gán vào phần tử mảng là hai thao tác khác nhau.
+**There is no automatic `data[index] = element;` step after the loop body**. Assigning to the variable and assigning to the array element are two separate operations.
 
-Một cách dễ nhớ:
+An easy way to remember this:
 
 ~~~text
-data[0] ----giá trị----> element
-  4                          4
+data[0] ----value------> element
+  4                        4
 
 element = 100;
 
-data[0]                      element
-  4                             100
+data[0]                  element
+  4                        100
 ~~~
 
-Sơ đồ này dùng cho **giá trị nguyên thủy**. Với mảng đối tượng, giá trị được sao chép vào biến cục bộ là **giá trị tham chiếu**; cần phân biệt tiếp ở phần sau.
+This diagram applies to **primitive values**. For object arrays, the value copied into the local variable is a **reference value**; this distinction will be addressed further in the following sections.
 
-## 3. Kiểu nguyên thủy: tăng, giảm hay gán lại đều không sửa phần tử
+## 3. Primitive Types: Incrementing, Decrementing, or Reassigning Does Not Modify Elements
 
 ~~~java
 int[] values = {5, 6, 7};
@@ -102,13 +102,13 @@ System.out.println(Arrays.toString(values));
 [5, 6, 7]
 ~~~
 
-Các phép toán `++`, `--`, `+=`, `*=` và `=` đều chỉ thay **biến lặp**:
+The operations `++`, `--`, `+=`, `*=`, and `=` all modify only the **loop variable**:
 
-- `value++` không tương đương `values[i]++`.
-- `value += 10` không tương đương `values[i] += 10`.
-- `value = -1` không tương đương `values[i] = -1`.
+- `value++` is not equivalent to `values[i]++`.
+- `value += 10` is not equivalent to `values[i] += 10`.
+- `value = -1` is not equivalent to `values[i] = -1`.
 
-**Cách đúng khi cần thay cả mảng:**
+**The right approach when you need to modify the entire array:**
 
 ~~~java
 for (int i = 0; i < values.length; i++) {
@@ -117,15 +117,15 @@ for (int i = 0; i < values.length; i++) {
 System.out.println(Arrays.toString(values));
 ~~~
 
-**Exact expected stdout (tiếp nối):**
+**Exact expected stdout (continued):**
 
 ~~~text
 [6, 7, 8]
 ~~~
 
-## 4. Mảng `String`: gán lại biến cũng không thay phần tử
+## 4. `String` Arrays: Reassigning the Variable Also Does Not Change Elements
 
-`String` là kiểu tham chiếu nhưng **bất biến** (*immutable*): method như `toUpperCase` trả một String, không sửa nội dung String gốc.
+`String` is a reference type, yet it is **immutable**: methods like `toUpperCase` return a String without modifying the original String's content.
 
 ~~~java
 import java.util.Locale;
@@ -144,9 +144,9 @@ System.out.println(Arrays.toString(names));
 [an, binh]
 ~~~
 
-`name = name.toUpperCase(...)` chỉ cho biến `name` tham chiếu một String khác, còn các phần tử của `names` giữ nguyên.
+`name = name.toUpperCase(...)` only makes the variable `name` reference another String, while the elements of `names` remain unchanged.
 
-**Cách đúng khi muốn thay String trong mảng:**
+**The right approach when you want to replace Strings in the array:**
 
 ~~~java
 for (int i = 0; i < names.length; i++) {
@@ -155,25 +155,25 @@ for (int i = 0; i < names.length; i++) {
 System.out.println(Arrays.toString(names));
 ~~~
 
-**Exact expected stdout (tiếp nối):**
+**Exact expected stdout (continued):**
 
 ~~~text
 [AN, BINH]
 ~~~
 
-Đừng nhầm giữa **tạo giá trị mới rồi gán cho biến lặp** và **gán giá trị mới vào ô mảng**.
+Do not confuse **creating a new value and assigning it to the loop variable** with **assigning a new value into the array slot**.
 
-## 5. Giới hạn: đối tượng, mảng con và List
+## 5. Boundaries: Objects, Subarrays, and Lists
 
-**Gán lại phần tử** và **sửa đối tượng mà phần tử trỏ tới** là hai thao tác khác nhau. Với `StringBuilder[] builders`, `builder.append("!")` làm thay đổi nội dung đối tượng chung; `builder = new StringBuilder("NEW")` chỉ đổi biến local, còn `builders[i] = ...` mới thay tham chiếu ở vị trí mảng.
+**Reassigning an element** and **mutating the object an element points to** are two different operations. With `StringBuilder[] builders`, `builder.append("!")` modifies the shared object's contents; `builder = new StringBuilder("NEW")` only changes the local variable, whereas `builders[i] = ...` actually replaces the reference at the array position.
 
-Với `int[][] matrix`, biến `row` trong `for (int[] row : matrix)` là bản sao tham chiếu tới mảng con. `row[0]++` sửa dữ liệu mảng con; `row = new int[]{99}` không thay `matrix[i]`. Khi cần thay cả hàng, dùng chỉ số của mảng ngoài.
+With `int[][] matrix`, the variable `row` in `for (int[] row : matrix)` is a copied reference to the subarray. `row[0]++` modifies the subarray's data; `row = new int[]{99}` does not replace `matrix[i]`. When you need to replace an entire row, use the outer array's index.
 
-Enhanced `for` trên `List<Integer>` cũng không tự gọi `set`: `number++` chỉ gán lại biến cục bộ (unboxing/boxing). Với List sửa được, dùng `set(i, value)` hoặc `replaceAll`. `List.of(...)` không hỗ trợ các thao tác cập nhật phần tử. Các cơ chế aliasing và `ListIterator.set` được bàn sâu hơn trong bài riêng về tham chiếu đối tượng.
+Enhanced `for` on `List<Integer>` also does not automatically call `set`: `number++` only reassigns the local variable (unboxing/boxing). With mutable Lists, use `set(i, value)` or `replaceAll`. `List.of(...)` does not support element update operations. Aliasing mechanics and `ListIterator.set` are discussed in greater depth in a dedicated lesson on object references.
 
-## 6. Chương trình Java 17 độc lập và có đầu ra chính xác
+## 6. Standalone Java 17 Program with Exact Output
 
-Tạo đúng file **`EnhancedForAssignmentDemo.java`**:
+Create the exact file **`EnhancedForAssignmentDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -290,7 +290,7 @@ public final class EnhancedForAssignmentDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; mở terminal tại thư mục chứa file. Code chỉ dùng thư viện tiêu chuẩn JDK, không có tính năng preview.
+**Requirements:** JDK 17 or higher; open a terminal in the directory containing the file. The code uses only the standard JDK library, with no preview features.
 
 **Bash (Linux/macOS):**
 
@@ -322,18 +322,18 @@ list after set=[2, 3, 4]
 final reference object=[A!]
 ~~~
 
-**Đối chiếu:**
+**Comparison:**
 
-1. `score *= 10` không sửa `scores`; `scores[i] *= 10` sửa trực tiếp phần tử.
-2. `name = name.toUpperCase(...)` không thay String trong mảng; `names[i] = ...` có thay.
-3. `builder.append("!")` đổi nội dung object chung; `builder = new ...` không thay object được mảng tham chiếu.
-4. `row[0] += 10` sửa mảng con; `row = new int[] {...}` không thay mảng con trong `matrix`.
-5. `Integer number++` chỉ cập nhật biến cục bộ; `numbers.set(...)` mới thay phần tử List.
-6. `final` ngăn biến tham chiếu đổi sang object khác nhưng không làm object mutable trở thành immutable.
+1. `score *= 10` does not modify `scores`; `scores[i] *= 10` modifies the element directly.
+2. `name = name.toUpperCase(...)` does not replace the String in the array; `names[i] = ...` does.
+3. `builder.append("!")` changes the shared object's contents; `builder = new ...` does not replace the object referenced by the array.
+4. `row[0] += 10` modifies the subarray; `row = new int[] {...}` does not replace the subarray in `matrix`.
+5. `Integer number++` only updates the local variable; `numbers.set(...)` actually replaces the List element.
+6. `final` prevents the reference variable from switching to another object, but does not make a mutable object immutable.
 
-## 7. Bài tập có đáp án
+## 7. Exercises with Answers
 
-### Bài A — dự đoán mảng sau vòng lặp
+### Exercise A — predict the array after the loop
 
 ~~~java
 int[] a = {2, 4};
@@ -343,17 +343,17 @@ for (int x : a) {
 System.out.println(Arrays.toString(a));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 [2, 4]
 ~~~
 
-Phép gán chỉ tác động lên `x` của mỗi lượt.
+The assignment only affects `x` on each iteration.
 
-### Bài B — sửa đúng cách
+### Exercise B — fix it the right way
 
-Yêu cầu nhân mọi phần tử `a` với 3.
+Requirement: multiply every element of `a` by 3.
 
 ~~~java
 for (int i = 0; i < a.length; i++) {
@@ -361,9 +361,9 @@ for (int i = 0; i < a.length; i++) {
 }
 ~~~
 
-Với mảng ban đầu `{2, 4}`, kết quả `[6, 12]`.
+With initial array `{2, 4}`, the result is `[6, 12]`.
 
-### Bài C — object mutable
+### Exercise C — mutable object
 
 ~~~java
 StringBuilder[] a = {new StringBuilder("X")};
@@ -374,15 +374,15 @@ for (StringBuilder x : a) {
 System.out.println(Arrays.toString(a));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 [XY]
 ~~~
 
-`append` đổi object đang nằm trong mảng; gán lại `x` không thay phần tử `a[0]`.
+`append` changes the object residing in the array; reassigning `x` does not replace element `a[0]`.
 
-### Bài D — mảng hai chiều
+### Exercise D — two-dimensional array
 
 ~~~java
 int[][] m = {{1, 2}};
@@ -393,37 +393,37 @@ for (int[] row : m) {
 System.out.println(Arrays.deepToString(m));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 [[1, 9]]
 ~~~
 
-`row[1] = 9` sửa phần tử của mảng con; gán lại `row` không thay phần tử mảng ngoài.
+`row[1] = 9` modifies an element of the subarray; reassigning `row` does not replace the outer array element.
 
-### Bài E — biến `final`
+### Exercise E — `final` variable
 
 ~~~java
 StringBuilder[] items = {new StringBuilder("A")};
 for (final StringBuilder item : items) {
     item.append("B");
-    // item = new StringBuilder("C"); // Không biên dịch.
+    // item = new StringBuilder("C"); // Does not compile.
 }
 ~~~
 
-**Đáp án:** object đầu tiên thành `"AB"`; phép gán lại `item` bị cấm vì `final`, nhưng `append` vẫn hợp lệ.
+**Answer:** the first object becomes `"AB"`; reassigning `item` is forbidden because of `final`, yet `append` is still valid.
 
-## 8. Checklist và kết luận
+## 8. Checklist and Conclusion
 
-- [ ] Hiểu enhanced `for` duyệt từng **giá trị phần tử**, không cung cấp ô mảng để gán ngược.
-- [ ] Biết gán `value = ...`, `value++`, `value += ...` không sửa mảng primitive.
-- [ ] Biết `String` immutable và gán lại biến String không thay phần tử trong mảng.
-- [ ] Phân biệt **gán lại biến tham chiếu** với **thay trạng thái object mutable** được tham chiếu.
-- [ ] Biết `row[0]` có thể sửa mảng con, còn `row = new int[]` không thay hàng của mảng ngoài.
-- [ ] Biết gán `numbers.set(i, ...)` với List sửa được mới thay phần tử List.
-- [ ] Biết `final` ngăn gán lại biến, không làm nội dung object thành bất biến.
-- [ ] Chọn for theo chỉ số khi cần thay thế phần tử, enhanced for khi duyệt/đọc dữ liệu.
-- [ ] Không nhầm thay đổi cấu trúc collection với gán lại biến lặp.
-- [ ] Chạy `EnhancedForAssignmentDemo.java` trên Java 17+, đối chiếu exact stdout.
+- [ ] Understand that enhanced `for` iterates over each **element value**, without providing an array slot for write-back.
+- [ ] Know that assigning `value = ...`, `value++`, `value += ...` does not modify a primitive array.
+- [ ] Know that `String` is immutable and reassigning a String variable does not replace elements in the array.
+- [ ] Distinguish **reassigning a reference variable** from **mutating the state of a referenced mutable object**.
+- [ ] Know that `row[0]` can modify a subarray, whereas `row = new int[]` does not replace the row of the outer array.
+- [ ] Know that calling `numbers.set(i, ...)` on a mutable List is what replaces a List element.
+- [ ] Know that `final` prevents variable reassignment, without making an object's contents immutable.
+- [ ] Choose an indexed for loop when element replacement is needed, and enhanced for when iterating/reading data.
+- [ ] Do not confuse modifying a collection's structure with reassigning the loop variable.
+- [ ] Run `EnhancedForAssignmentDemo.java` on Java 17+ and verify the exact stdout.
 
-**Kết luận:** Enhanced `for` trao cho bạn **một biến cục bộ chứa giá trị phần tử ở lượt hiện tại**. Vì Java sao chép **giá trị** (kể cả giá trị tham chiếu), phép gán lại biến ấy **không ghi ngược vào mảng hay List**. Muốn thay phần tử, hãy cập nhật đúng vị trí bằng chỉ số hoặc API collection; nếu biến đang tham chiếu object mutable, có thể thay **trạng thái object** bằng method, nhưng đó là hành động khác với thay phần tử.
+**Conclusion:** Enhanced `for` gives you **a local variable holding the element's value in the current iteration**. Because Java copies **values** (including reference values), reassigning that variable **does not write back to the array or List**. To replace elements, update the exact position via index or collection API; if the variable references a mutable object, you can change the **object's state** with a method, though that is a different action from replacing the element.

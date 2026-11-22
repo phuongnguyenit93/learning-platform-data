@@ -1,48 +1,48 @@
-# `Set.equals()` xét cùng các phần tử, không phụ thuộc thứ tự duyệt
+# `Set.equals()` Compares the Same Elements, Independent of Iteration Order
 
-## 1. Quy tắc cốt lõi của `Set.equals()`
+## 1. Core Rule of `Set.equals()`
 
-Trong Java, `java.util.Set` biểu diễn một tập hợp **không chứa các phần tử trùng nhau theo quan hệ bằng nhau mà cấu trúc sử dụng**. Hợp đồng `Set.equals(Object)` xác định hai tập hợp bằng nhau khi:
+In Java, `java.util.Set` represents a collection containing **no duplicate elements under the equality relation used by the structure**. The `Set.equals(Object)` contract defines two sets as equal when:
 
-1. Đối tượng được so sánh cũng là một `Set`.
-2. Hai tập hợp có **cùng số phần tử** (`size()`).
-3. **Mọi phần tử** của tập hợp này đều xuất hiện trong tập hợp kia, theo cách xác định quan hệ phần tử của các tập hợp hợp lệ.
+1. The object being compared is also a `Set`.
+2. Both sets have the **same number of elements** (`size()`).
+3. **Every element** of one set is contained in the other set, according to how valid sets determine element membership.
 
-Thứ tự thêm phần tử, thứ tự duyệt bằng `iterator()` và kiểu triển khai cụ thể **không phải tiêu chí** của hợp đồng này.
+Insertion order, `iterator()` traversal order, and the specific implementation type are **not criteria** of this contract.
 
-Ví dụ về mặt ý nghĩa:
+Conceptual example:
 
 ```text
 { "Java", "Kotlin", "Scala" }
 { "Scala", "Java", "Kotlin" }
-→ Set.equals(): true (cùng 3 phần tử, dù thứ tự liệt kê khác nhau)
+→ Set.equals(): true (same 3 elements, even though listed in a different order)
 
 { "Java", "Kotlin", "Scala" }
 { "Java", "Kotlin" }
-→ Set.equals(): false (khác số phần tử)
+→ Set.equals(): false (different number of elements)
 ```
 
-Ký hiệu trong khối trên là **minh họa tập hợp**, không phải cú pháp khởi tạo `Set` của Java.
+The notation in the block above is a **set illustration**, not Java `Set` initialization syntax.
 
-**Phân biệt với `List`:** `List.equals()` yêu cầu cùng kích thước và các phần tử tương ứng **đúng cùng vị trí** phải bằng nhau. Vì vậy, hai danh sách có cùng phần tử nhưng hoán đổi vị trí thường không bằng nhau, trong khi hai `Set` chứa cùng phần tử sẽ bằng nhau.
+**Distinction from `List`:** `List.equals()` requires the same size and that corresponding elements at **the exact same position** are equal. Therefore, two lists with the same elements in swapped positions are usually not equal, whereas two `Set` instances containing the same elements will be equal.
 
-## 2. `HashSet`, `LinkedHashSet` và `TreeSet` khác thứ tự duyệt nhưng vẫn có thể bằng nhau
+## 2. `HashSet`, `LinkedHashSet`, and `TreeSet` Have Different Iteration Orders but Can Still Be Equal
 
-Ba triển khai thường gặp:
+Three common implementations:
 
-| Triển khai | Đặc điểm duyệt | Khi so sánh bằng `equals()` |
+| Implementation | Iteration Behavior | When Compared with `equals()` |
 | --- | --- | --- |
-| `HashSet` | **Không cam kết** thứ tự duyệt | So sánh tính thành viên và kích thước, không dựa vào thứ tự duyệt |
-| `LinkedHashSet` | Thường duyệt theo **thứ tự chèn** | Vẫn áp dụng hợp đồng `Set.equals()` không xét vị trí |
-| `TreeSet` | Duyệt theo **thứ tự sắp xếp** (natural order hoặc `Comparator`) | Vẫn phải tuân hợp đồng `Set` khi cách sắp xếp **nhất quán với `equals`** |
+| `HashSet` | **No guarantee** on iteration order | Compares membership and size, without relying on iteration order |
+| `LinkedHashSet` | Typically iterates in **insertion order** | Still applies the position-independent `Set.equals()` contract |
+| `TreeSet` | Iterates in **sorted order** (natural order or `Comparator`) | Must still obey the `Set` contract when the ordering is **consistent with `equals`** |
 
-Với các phần tử `String` khác `null` và cách sắp xếp tự nhiên thông thường, một `HashSet`, một `LinkedHashSet` và một `TreeSet` có thể bằng nhau nếu chứa cùng các chuỗi. Ví dụ, thứ tự duyệt thấy ở ba tập hợp có thể khác mà `equals()` vẫn trả về `true`.
+With non-`null` `String` elements and standard natural ordering, a `HashSet`, a `LinkedHashSet`, and a `TreeSet` can be equal if they contain the same strings. For example, the iteration order observed across the three sets may differ while `equals()` still returns `true`.
 
-Không suy ra thứ tự duyệt của `HashSet` từ kết quả chạy máy hoặc nội dung hàm băm. Java không cam kết `HashSet` duyệt theo thứ tự chèn, thứ tự từ điển hay thứ tự ổn định sau các thao tác thay đổi tập hợp.
+Do not infer the iteration order of `HashSet` from machine output or hash function details. Java does not guarantee that `HashSet` iterates in insertion order, lexicographical order, or a stable order after operations that modify the set.
 
-## 3. Chương trình Java 17+ chạy được
+## 3. Runnable Java 17+ Program
 
-Lưu mã sau vào tệp `SetEqualityDemo.java`:
+Save the following code to `SetEqualityDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -101,14 +101,14 @@ public class SetEqualityDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac SetEqualityDemo.java
 java SetEqualityDemo
 ```
 
-Kết quả dự kiến, không phụ thuộc thứ tự duyệt các `Set`:
+Expected output, independent of `Set` iteration order:
 
 ```text
 hash.equals(linked): true
@@ -124,65 +124,65 @@ record member equality: true
 Objects.equals(null, null): true
 ```
 
-Giải thích:
+Explanation:
 
-- `hash`, `linked`, `sorted` có cùng ba giá trị chuỗi, nên bằng nhau bất kể thứ tự thêm hoặc duyệt.
-- Hai `List` chứa `"Java"` và `"Kotlin"` theo thứ tự trái ngược nên **không bằng nhau**.
-- `Set` không bằng `List`, ngay cả khi các giá trị xuất hiện giống hệt: điều kiện đối tượng kia phải là một `Set` không thỏa.
-- `new HashSet<>(Arrays.asList(1, 2, 2, 3))` loại phần tử `2` lặp; kết quả chỉ có ba phần tử khác nhau.
-- `HashSet` và `LinkedHashSet` cho phép một phần tử `null`; vị trí thêm `null` không làm thay đổi sự bằng nhau. Không suy rộng khả năng chứa `null` cho mọi triển khai `Set`.
-- `Tag` là Java `record`, tự cung cấp `equals()`/`hashCode()` theo trường `code`. Hai đối tượng `new Tag("A")` khác nhau vẫn **bằng nhau theo giá trị**; hai tập hợp chứa các thẻ tương đương được coi là bằng nhau.
+- `hash`, `linked`, and `sorted` contain the same three string values, so they are equal regardless of insertion or iteration order.
+- Two `List` instances containing `"Java"` and `"Kotlin"` in opposite orders are **not equal**.
+- A `Set` is not equal to a `List`, even when the exact same values appear: the condition that the other object must be a `Set` is not satisfied.
+- `new HashSet<>(Arrays.asList(1, 2, 2, 3))` drops the duplicate `2`; the result has only three distinct elements.
+- `HashSet` and `LinkedHashSet` allow a single `null` element; the position at which `null` is added does not change equality. Do not generalize `null` support to all `Set` implementations.
+- `Tag` is a Java `record`, automatically providing `equals()`/`hashCode()` based on the `code` field. Two distinct `new Tag("A")` objects are still **equal by value**; two sets containing equivalent tags are considered equal.
 
-## 4. Hình dung thuật toán so sánh tập hợp
+## 4. Visualizing the Set Comparison Algorithm
 
-Về mặt quy tắc, có thể diễn giải việc so sánh hai `Set` hợp lệ bằng giả mã:
+In terms of rules, comparing two valid `Set` instances can be expressed as pseudocode:
 
 ```text
 if (this == other)                 return true
 if (!(other instanceof Set))      return false
 if (this.size() != other.size())   return false
-return this chứa mọi phần tử của other
+return this contains every element of other
 ```
 
-Đây là **giả mã mô tả hợp đồng**, không phải mã nguồn bắt buộc của mọi bản triển khai. Trong Java, kiểm tra thành viên thường dùng `contains(...)`; `HashSet` dựa vào giá trị `hashCode()` và `equals()` của phần tử, còn `TreeSet` tìm theo quan hệ thứ tự do `compareTo`/`Comparator` cung cấp.
+This is **contract-illustrating pseudocode**, not mandatory source code for every implementation. In Java, membership checking typically uses `contains(...)`; `HashSet` relies on the element's `hashCode()` and `equals()` values, while `TreeSet` searches using the ordering relation provided by `compareTo`/`Comparator`.
 
-Điều kiện **cùng kích thước** là cần thiết: chỉ kiểm tra `containsAll(...)` một chiều sẽ cho kết quả sai với tập lớn chứa toàn bộ tập nhỏ. Và việc duyệt các phần tử để ghép vào `List`, rồi so sánh hai danh sách bằng `equals`, cũng sai vì vô tình đưa thứ tự vào tiêu chí tập hợp.
+The **same size** condition is necessary: checking `containsAll(...)` in only one direction would give the wrong result when a larger set contains an entire smaller set. Likewise, iterating over elements to put them into a `List` and then comparing the two lists with `equals` is also wrong because it accidentally introduces order into set criteria.
 
-## 5. `Set.hashCode()` cũng không phụ thuộc thứ tự duyệt
+## 5. `Set.hashCode()` Is Also Independent of Iteration Order
 
-Hợp đồng `Set.hashCode()` được định nghĩa là **tổng `hashCode()` của mọi phần tử trong tập hợp**; phần tử `null` đóng góp `0` nếu được phép tồn tại. Phép cộng diễn ra theo kiểu `int`, có thể tràn số. Vì phép cộng không phụ thuộc thứ tự nên các tập hợp chứa cùng phần tử cho cùng mã băm, dù thứ tự duyệt khác nhau.
+The `Set.hashCode()` contract is defined as the **sum of `hashCode()` of all elements in the set**; a `null` element contributes `0` if allowed to exist. Addition happens in `int` arithmetic and may overflow. Because addition is order-independent, sets containing the same elements produce the same hash code, even if their iteration orders differ.
 
-Ví dụ `Set.of(1, 2, 3).hashCode()` trả về `1 + 2 + 3 = 6`, vì `Integer.hashCode(int)` trả lại chính giá trị `int`.
+For example, `Set.of(1, 2, 3).hashCode()` returns `1 + 2 + 3 = 6`, because `Integer.hashCode(int)` returns the `int` value itself.
 
-Quy tắc bắt buộc vẫn là:
+The mandatory rule remains:
 
 ```text
 s1.equals(s2) == true  =>  s1.hashCode() == s2.hashCode()
 s1.hashCode() == s2.hashCode()  =/=>  s1.equals(s2) == true
 ```
 
-Chiều thứ hai không đúng vì va chạm mã băm có thể xảy ra. Chẳng hạn hai tập hợp số nguyên khác nhau `{1, 4}` và `{2, 3}` đều có mã băm bằng `5`, nhưng **không bằng nhau** vì không cùng phần tử.
+The reverse direction does not hold because hash code collisions can occur. For instance, two different integer sets `{1, 4}` and `{2, 3}` both have a hash code of `5`, yet they are **not equal** because they do not contain the same elements.
 
-Không được viết phép so sánh tập hợp bằng cách **chỉ** so `hashCode()`. Hash code hỗ trợ tra cứu; nó không thay thế kiểm tra thành viên.
+You must never write a set comparison by **only** comparing `hashCode()`. Hash codes assist lookup; they do not replace membership checking.
 
-## 6. Sự bằng nhau của `Set` phụ thuộc sự bằng nhau của phần tử
+## 6. `Set` Equality Depends on Element Equality
 
-Hai `Set` có thể chứa các đối tượng thuộc hai vùng nhớ khác nhau nhưng vẫn bằng nhau nếu các phần tử tương ứng **bằng nhau theo `equals()`** và các hàm băm nhất quán.
+Two `Set` instances can contain objects from two different memory regions and still be equal if the corresponding elements are **equal according to `equals()`** and their hash functions are consistent.
 
-Ví dụ dùng `record` trong chương trình ở trên. Với lớp tự tạo thông thường, cần ghi đè `equals()` và `hashCode()` nhất quán theo đúng dữ liệu định danh phần tử. Nếu không, `Object.equals()` mặc định kiểm tra danh tính đối tượng, dẫn đến hai phần tử trông giống nhau nhưng không được nhận là bằng nhau.
+See the `record` example in the program above. For a regular custom class, you must override `equals()` and `hashCode()` consistently according to the exact data that identifies an element. Otherwise, the default `Object.equals()` checks object identity, causing two elements that look identical not to be recognized as equal.
 
-Các trường hợp cần phân biệt:
+Cases to distinguish:
 
-- `Set.of(1).equals(Set.of(1L))` trả `false`: `Integer(1)` và `Long(1)` không bằng nhau theo `equals()`, dù có cùng trị số toán học.
-- Hai tập hợp có cùng số phần tử nhưng chứa giá trị khác nhau trả `false`.
-- Các triển khai có hợp đồng `Set` đúng không đòi hai bên dùng cùng loại cụ thể, ví dụ `HashSet` vẫn so sánh được với `LinkedHashSet`.
-- Đưa phần tử có `equals()`/`hashCode()` **phụ thuộc thuộc tính có thể thay đổi** vào `HashSet`, rồi sửa thuộc tính ấy, có thể khiến `contains()`/`remove()` không tìm lại được phần tử. Nên ưu tiên phần tử bất biến khi dùng trong cấu trúc băm.
+- `Set.of(1).equals(Set.of(1L))` returns `false`: `Integer(1)` and `Long(1)` are not equal according to `equals()`, even though they have the same mathematical value.
+- Two sets with the same number of elements but containing different values return `false`.
+- Implementations with a valid `Set` contract do not require both sides to use the same concrete type; for example, a `HashSet` can still be compared with a `LinkedHashSet`.
+- Placing an element whose `equals()`/`hashCode()` **depends on a mutable property** into a `HashSet`, and then modifying that property, can cause `contains()`/`remove()` to fail to find the element again. Prefer immutable elements when using hash structures.
 
-## 7. Ngoại lệ thiết kế cần biết: `TreeSet` và `Comparator`
+## 7. Important Design Exception: `TreeSet` and `Comparator`
 
-`TreeSet` dùng `compareTo()` hoặc `Comparator.compare()` để xác định vị trí sắp xếp và nhận diện phần tử trùng trong cây. Để đáp ứng đầy đủ hợp đồng `Set`, **quan hệ so sánh cho kết quả `0` phải nhất quán với `equals()`** của phần tử.
+`TreeSet` uses `compareTo()` or `Comparator.compare()` to determine sorting position and detect duplicate elements in the tree. To fully satisfy the `Set` contract, **the comparison relation returning `0` must be consistent with `equals()`** of the element.
 
-Ví dụ `String.CASE_INSENSITIVE_ORDER` coi `"java"` và `"JAVA"` bằng nhau theo thứ tự (`compare(...) == 0`), trong khi `"java".equals("JAVA")` là `false`. Một `TreeSet<String>` dùng comparator này có thể chỉ giữ một trong hai chuỗi, khác với `HashSet` thông thường.
+For example, `String.CASE_INSENSITIVE_ORDER` treats `"java"` and `"JAVA"` as equal in ordering (`compare(...) == 0`), whereas `"java".equals("JAVA")` is `false`. A `TreeSet<String>` using this comparator will retain only one of the two strings, unlike a standard `HashSet`.
 
 ```java
 TreeSet<String> insensitive = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
@@ -191,31 +191,31 @@ insensitive.add("JAVA");
 System.out.println(insensitive.size()); // 1
 ```
 
-Đoạn mã trên là **minh họa trong một phương thức Java**, cần import `java.util.TreeSet` hoặc dùng tên đầy đủ. Dùng comparator không nhất quán với `equals` có thể khiến kết quả so sánh giữa các kiểu `Set` trở nên bất ngờ, thậm chí vi phạm tính đối xứng kỳ vọng của `Set.equals`. Do đó, không nên áp dụng một cách máy móc kết luận “cùng phần tử” khi mỗi cấu trúc đang dùng **một quan hệ nhận diện phần tử khác nhau**.
+The code snippet above is an **illustration inside a Java method**, requiring `import java.util.TreeSet` or the fully qualified name. Using a comparator inconsistent with `equals` can make comparison results between different `Set` types unexpected, and even violate the expected symmetry of `Set.equals`. Therefore, do not mechanically apply the conclusion "same elements" when each structure is using **a different element identity relation**.
 
-Với `TreeSet` dùng thứ tự tự nhiên của `String` như ví dụ chạy đầy đủ, `compareTo()` nhất quán với `String.equals()`, nên không gặp vấn đề này.
+With `TreeSet` using the natural ordering of `String` as in the complete runnable example, `compareTo()` is consistent with `String.equals()`, so this issue does not occur.
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common Misconceptions
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| Hai tập hợp được duyệt khác thứ tự thì `equals()` phải là `false` | `Set.equals()` không xét thứ tự duyệt |
-| `LinkedHashSet` giữ thứ tự chèn nên `equals()` cũng xét thứ tự chèn | Thứ tự chỉ là đặc tính duyệt; hợp đồng bằng nhau vẫn là hợp đồng `Set` |
-| `HashSet` không giữ thứ tự nên kết quả `equals()` ngẫu nhiên | `equals()` có quy tắc rõ ràng, độc lập thứ tự duyệt khi phần tử và hợp đồng được cài đặt đúng |
-| Hai tập hợp cùng kích thước thì bằng nhau | Cần **cùng các phần tử**, không chỉ cùng số lượng |
-| Hai tập hợp có cùng `hashCode()` thì bằng nhau | Mã băm có thể va chạm; cần `equals()`/kiểm tra thành viên |
-| Dùng `List.equals()` sau khi đổi `Set` thành `List` | Sai nếu thứ tự duyệt khác nhau, đặc biệt với `HashSet` |
-| Bất kỳ hai `TreeSet` và `HashSet` nào chứa chuỗi “gần giống” cũng bằng nhau | Comparator trong `TreeSet` phải nhất quán với `equals()` để giữ đúng hợp đồng tập hợp |
-| `Set` nào cũng chấp nhận `null` | `HashSet` cho phép, nhưng `Set.of(...)` và `TreeSet` với thứ tự tự nhiên thường từ chối `null` |
+| If two sets are iterated in different orders, `equals()` must be `false` | `Set.equals()` ignores iteration order |
+| `LinkedHashSet` preserves insertion order, so `equals()` also checks insertion order | Order is only an iteration property; the equality contract is still the `Set` contract |
+| `HashSet` does not preserve order, so the `equals()` result is random | `equals()` has clear rules, independent of iteration order when elements and contracts are implemented properly |
+| Two sets of the same size are equal | They need the **same elements**, not just the same count |
+| Two sets with the same `hashCode()` are equal | Hash codes can collide; `equals()`/membership checking is required |
+| Using `List.equals()` after converting a `Set` to a `List` | Wrong if iteration orders differ, especially with `HashSet` |
+| Any `TreeSet` and `HashSet` containing "similar" strings are equal | The comparator in `TreeSet` must be consistent with `equals()` to preserve the set contract |
+| Every `Set` accepts `null` | `HashSet` allows it, whereas `Set.of(...)` and `TreeSet` with natural ordering usually reject `null` |
 
-Đừng nhầm hai thao tác: **so sánh nội dung `Set`** và **so sánh thứ tự duyệt**. Nếu bài toán cần giữ vị trí, dùng `List`; nếu cần xét cùng các phần tử mà không xét vị trí, dùng `Set` và quan hệ bằng nhau đúng với miền dữ liệu.
+Do not confuse two operations: **comparing `Set` contents** and **comparing iteration order**. If the problem needs to preserve positions, use a `List`; if it needs to check the same elements without caring about position, use a `Set` and an equality relation that matches the data domain.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-1. `new HashSet<>(List.of("A", "B")).equals(new LinkedHashSet<>(List.of("B", "A")))` trả gì? **`true`**, vì cùng các phần tử.
-2. Hai `Set` cùng kích thước 3 có chắc bằng nhau? **Không**, còn phải kiểm tra từng thành viên.
-3. Hai `Set` bằng nhau có được phép có mã băm khác nhau? **Không**, phải thỏa hợp đồng `hashCode()`.
-4. Hai `Set` khác nhau có được phép cùng mã băm? **Có**, đó là va chạm.
-5. Một `TreeSet` bỏ qua chữ hoa/chữ thường có thể có ngữ nghĩa thành viên khác `HashSet<String>` không? **Có**, vì comparator có thể không nhất quán với `String.equals()`.
+1. What does `new HashSet<>(List.of("A", "B")).equals(new LinkedHashSet<>(List.of("B", "A")))` return? **`true`**, because they have the same elements.
+2. Are two `Set` instances both of size 3 guaranteed to be equal? **No**, membership of each element must still be checked.
+3. Are two equal `Set` instances allowed to have different hash codes? **No**, they must satisfy the `hashCode()` contract.
+4. Are two unequal `Set` instances allowed to have the same hash code? **Yes**, that is a collision.
+5. Can a case-insensitive `TreeSet` have different membership semantics from `HashSet<String>`? **Yes**, because the comparator may be inconsistent with `String.equals()`.
 
-**Ghi nhớ:** Hai `Set` bằng nhau khi **cùng kích thước và cùng các phần tử theo hợp đồng `Set`**, không phụ thuộc vào thứ tự chèn hay duyệt. Hãy bảo đảm `equals()`/`hashCode()` của phần tử và `Comparator` (nếu dùng `TreeSet`) nhất quán với quan hệ bằng nhau mong muốn.
+**Takeaway:** Two `Set` instances are equal when they have **the same size and the same elements under the `Set` contract**, independent of insertion or iteration order. Ensure element `equals()`/`hashCode()` and any `Comparator` (if using `TreeSet`) are consistent with the intended equality relation.

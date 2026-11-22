@@ -1,15 +1,15 @@
-# `Comparator.equals()` khác với `compare() == 0` cho hai phần tử
+# `Comparator.equals()` Differs from `compare() == 0` for Two Elements
 
-## 1. Hai lời gọi có ý nghĩa khác nhau
+## 1. Two Calls with Different Meanings
 
-Trong Java, `Comparator<T>` biểu diễn **một quy tắc so sánh và sắp xếp các đối tượng kiểu `T`**. Interface này khai báo phương thức cốt lõi `int compare(T a, T b)` và có phương thức `boolean equals(Object obj)` kế thừa từ `Object`; một lớp comparator **có thể** ghi đè `equals` để định nghĩa khi nào hai **comparator** tương đương.
+In Java, `Comparator<T>` represents **a rule for comparing and ordering objects of type `T`**. This interface declares the core method `int compare(T a, T b)` and has the `boolean equals(Object obj)` method inherited from `Object`; a comparator class **may** override `equals` to define when two **comparators** are equivalent.
 
-Điểm quan trọng là **đối tượng đang được so sánh khác nhau**:
+The crucial point is that **the objects being compared are different**:
 
-- `comparator.compare(a, b) == 0`: hỏi **hai phần tử `a` và `b` có ngang nhau theo thứ tự mà comparator định nghĩa hay không**. Kết quả không trực tiếp nói rằng `a.equals(b)` là `true`.
-- `comparator.equals(otherComparator)`: hỏi **đối tượng comparator hiện tại có bằng một đối tượng comparator khác hay không**. Đây là một lời gọi `equals(Object)` trên chính comparator, không phải phép kiểm tra bằng nhau của hai phần tử dữ liệu.
+- `comparator.compare(a, b) == 0`: asks **whether two elements `a` and `b` tie in the order defined by the comparator**. The result does not directly state that `a.equals(b)` is `true`.
+- `comparator.equals(otherComparator)`: asks **whether the current comparator object equals another comparator object**. This is an `equals(Object)` call on the comparator itself, not an equality check between two data elements.
 
-Ví dụ sơ lược:
+Brief example:
 
 ~~~java
 Comparator<String> comparator = String.CASE_INSENSITIVE_ORDER;
@@ -17,31 +17,31 @@ boolean samePosition = comparator.compare("Java", "JAVA") == 0;
 boolean sameValue = "Java".equals("JAVA");
 ~~~
 
-`samePosition` là `true` vì comparator không phân biệt chữ hoa/thường; `sameValue` là `false` vì `String.equals` có phân biệt chữ hoa/thường. Trong khi đó, `comparator.equals(anotherComparator)` là câu hỏi về **hai chiến lược sắp xếp**.
+`samePosition` is `true` because the comparator is case-insensitive; `sameValue` is `false` because `String.equals` is case-sensitive. Meanwhile, `comparator.equals(anotherComparator)` is a question about **two sorting strategies**.
 
-**Không đánh đồng ba biểu thức**:
+**Do not conflate these expressions**:
 
-| Biểu thức | Chủ thể được so sánh | Ý nghĩa |
+| Expression | Subjects compared | Meaning |
 | --- | --- | --- |
-| `a == b` | Hai tham chiếu phần tử | Có cùng đối tượng hay không |
-| `a.equals(b)` | Hai phần tử | Có bằng nhau theo hợp đồng `equals` của phần tử hay không |
-| `c.compare(a, b) == 0` | Hai phần tử qua bộ so sánh `c` | Có tương đương trong **thứ tự do `c` định nghĩa** hay không |
-| `c.equals(d)` | Hai comparator `c` và `d` | Có được comparator coi là hai bộ so sánh bằng nhau hay không |
+| `a == b` | Two element references | Whether they are the exact same object |
+| `a.equals(b)` | Two elements | Whether they are equal under the element's `equals` contract |
+| `c.compare(a, b) == 0` | Two elements via comparator `c` | Whether they are equivalent in the **order defined by `c`** |
+| `c.equals(d)` | Two comparators `c` and `d` | Whether the comparators consider themselves equal comparators |
 
-## 2. Giá trị âm, bằng 0, dương của `compare(a, b)`
+## 2. Negative, Zero, and Positive Values of `compare(a, b)`
 
-`compare(a,b)` trả số âm nếu a đứng trước b, số dương nếu đứng sau, và `0` nếu hai phần tử thuộc cùng nhóm tương đương theo **quy tắc đang chọn**. Không bắt buộc trả chính xác `-1` hoặc `1`, và cũng không có nghĩa `a.equals(b)` phải là `true` khi kết quả so sánh bằng 0.
+`compare(a,b)` returns a negative number if `a` comes before `b`, a positive number if `a` comes after `b`, and `0` if the two elements belong to the same equivalence group under the **chosen rule**. Returning exact `-1` or `1` is not required, nor does a comparison result of 0 mean `a.equals(b)` must be `true`.
 
 ~~~text
 a ~ b  ⇔  comparator.compare(a, b) == 0
 ~~~
 
-Ví dụ, một comparator theo độ dài sẽ trả `0` cho `"cat"` và `"dog"`, dù `String.equals` trả `false`. Hợp đồng vẫn yêu cầu đối dấu khi đảo đối số, tính bắc cầu và quan hệ nhất quán với mọi phần tử thứ ba; chi tiết toán học nằm ở bài về hợp đồng dấu và nhóm 0.
+For example, a comparator by length returns `0` for `"cat"` and `"dog"`, even though `String.equals` returns `false`. The contract still requires flipping sign when swapping arguments, transitivity, and a consistent relation with every third element; the mathematical details are in the lesson on the sign contract and 0-groups.
 
-Điểm đặc biệt cần nhớ trong **bài này** là `comparatorA.equals(comparatorB)` hoàn toàn không sử dụng `compare(a,b)` để kiểm tra bằng nhau của **hai phần tử**. Nó hỏi hai *đối tượng bộ so sánh* có bằng nhau không; ý nghĩa chính xác được phân tích ở mục tiếp theo.
-## 3. Ví dụ chạy được: bằng nhau trong thứ tự khác bằng nhau của `String`
+The special point to remember in **this lesson** is that `comparatorA.equals(comparatorB)` does not use `compare(a,b)` at all to check equality of **two elements**. It asks whether two *comparator objects* are equal; its exact meaning is analyzed in the next section.
+## 3. Runnable Example: Order Equivalence Differs from `String` Equality
 
-Tạo tệp `ComparatorZeroDemo.java`:
+Create the file `ComparatorZeroDemo.java`:
 
 ~~~java
 import java.util.Comparator;
@@ -63,7 +63,7 @@ public class ComparatorZeroDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 ComparatorZeroDemo.java
@@ -80,30 +80,30 @@ compare(a,c)<0: true
 compare(c,a)>0: true
 ~~~
 
-Phân tích:
+Analysis:
 
-1. `new String("Java")` và `new String("JAVA")` tạo hai đối tượng String riêng.
-2. `String.equals` phân biệt hoa/thường nên trả `false`.
-3. `String.CASE_INSENSITIVE_ORDER` bỏ qua khác biệt hoa/thường khi so, nên `compare(a,b)` trả `0`.
-4. Với `"Java"` và `"Spring"`, thứ tự không phân biệt hoa/thường vẫn đặt `Java` trước `Spring`.
+1. `new String("Java")` and `new String("JAVA")` create two separate String objects.
+2. `String.equals` is case-sensitive and therefore returns `false`.
+3. `String.CASE_INSENSITIVE_ORDER` ignores case differences when comparing, so `compare(a,b)` returns `0`.
+4. For `"Java"` and `"Spring"`, case-insensitive order still places `Java` before `Spring`.
 
-Kết quả trên chứng minh rằng **tương đương trong comparator không đồng nghĩa bằng nhau theo `equals` của phần tử**.
+The results above demonstrate that **equivalence in a comparator does not imply equality under an element's `equals`**.
 
-## 4. `Comparator.equals(Object)` thực sự so sánh điều gì?
+## 4. What Does `Comparator.equals(Object)` Actually Compare?
 
-`Comparator.equals(Object)` mang hợp đồng của `Object.equals` (phản xạ, đối xứng, bắc cầu, nhất quán và không bằng `null`). Tài liệu `Comparator` còn nêu ý nghĩa đặc biệt nếu comparator **tự định nghĩa** sự bằng nhau: hai comparator được coi bằng nhau phải tạo ra **cùng thứ tự**, tức dấu của kết quả `compare` tương ứng giống nhau đối với mọi cặp phần tử trong miền so sánh.
+`Comparator.equals(Object)` carries the contract of `Object.equals` (reflexive, symmetric, transitive, consistent, and never equal to `null`). The `Comparator` documentation further states a special meaning if a comparator **explicitly defines** equality: two comparators considered equal must impose **the same ordering**, meaning the signs of corresponding `compare` results are identical for every pair of elements in the comparison domain.
 
-Có hai trường hợp quan trọng:
+There are two important cases:
 
-**Trường hợp 1: comparator không ghi đè `equals`.** Phương thức kế thừa `Object.equals` thường chỉ trả `true` khi đang so **chính cùng một instance comparator**. Hai instance khác nhau có cùng thuật toán so sánh vẫn có thể `equals` trả `false`. Điều này hợp lệ: không bắt buộc comparator phải so bằng nhau theo “mã thuật toán giống nhau”.
+**Case 1: the comparator does not override `equals`.** The inherited `Object.equals` method usually returns `true` only when comparing **the exact same comparator instance**. Two distinct instances implementing the exact same comparison algorithm can still return `false` from `equals`. That is valid: a comparator is not required to compare equal based on "having the same algorithm code."
 
-**Trường hợp 2: lớp comparator chủ động ghi đè `equals`.** Lớp có thể cho hai comparator bằng nhau nếu chúng giữ cùng cấu hình và chắc chắn tạo cùng quy tắc thứ tự. Nếu ghi đè `equals` thì phải ghi đè `hashCode` tương ứng theo hợp đồng đối tượng. Kết quả `equals` là `true` phải đủ để bảo đảm chúng có cùng thứ tự; ngược lại, **hai comparator cùng hành vi so sánh chưa bắt buộc `equals` trả `true`**.
+**Case 2: the comparator class explicitly overrides `equals`.** A class may treat two comparators as equal if they hold the same configuration and are guaranteed to produce the same ordering rule. If `equals` is overridden, `hashCode` must be overridden correspondingly per the object contract. An `equals` result of `true` must suffice to guarantee they impose the same order; conversely, **two comparators with identical comparison behavior are not required to return `true` from `equals`**.
 
-Không thể chỉ thử vài cặp dữ liệu rồi tuyên bố hai comparator tương đương với mọi giá trị. Hợp đồng về thứ tự là yêu cầu trên **toàn bộ miền giá trị mà chúng hỗ trợ**.
+You cannot merely test a few pairs of data and declare two comparators equivalent for all values. The ordering contract is a requirement over **the entire domain of values they support**.
 
-### Ví dụ chạy được: hai comparator cùng thuật toán nhưng không `equals`
+### Runnable example: two comparators with the same algorithm yet not `equals`
 
-Tạo tệp `ComparatorIdentityDemo.java`:
+Create the file `ComparatorIdentityDemo.java`:
 
 ~~~java
 import java.util.Comparator;
@@ -114,7 +114,7 @@ public class ComparatorIdentityDemo {
         public int compare(String a, String b) {
             return Integer.compare(a.length(), b.length());
         }
-        // Không override equals(Object): kế thừa Object.equals.
+        // Does not override equals(Object): inherits Object.equals.
     }
 
     public static void main(String[] args) {
@@ -145,13 +145,13 @@ second compares: 0
 element objects equal: false
 ~~~
 
-Hai `ByLength` là hai object comparator riêng, vì vậy `first.equals(second)` là `false`. Cả hai đều cho `"dog"` và `"cat"` cùng độ dài, nên `compare(...)` trả `0`. Điều đó **không cho phép kết luận** rằng `first.equals(second)` phải là `true`; nó còn cho thấy `compare == 0` không liên quan trực tiếp đến `String.equals`.
+The two `ByLength` instances are separate comparator objects, so `first.equals(second)` is `false`. Both see `"dog"` and `"cat"` as having the same length, so `compare(...)` returns `0`. That **does not allow concluding** that `first.equals(second)` must be `true`; it also shows that `compare == 0` has no direct link to `String.equals`.
 
-## 5. Ví dụ ghi đè `Comparator.equals` theo cấu hình thứ tự
+## 5. Example Overriding `Comparator.equals` Based on Ordering Configuration
 
-Khi ứng dụng có một loại comparator rõ ràng với tham số cấu hình xác định thứ tự, có thể tự định nghĩa `equals/hashCode` cho **đối tượng comparator**.
+When an application has a well-defined comparator kind with configuration parameters determining the order, you can define `equals/hashCode` for **the comparator object**.
 
-Tạo tệp `ConfiguredComparatorDemo.java`:
+Create the file `ConfiguredComparatorDemo.java`:
 
 ~~~java
 import java.util.Comparator;
@@ -221,34 +221,34 @@ different configuration: false
 12.equals(22): false
 ~~~
 
-Trong ví dụ này, hai comparator có cùng `divisor` luôn áp dụng cùng công thức nên `equals` có thể trả `true`, và `hashCode` dựa trên cùng trường đó. Tuy nhiên hai số `12` và `22` vẫn là **hai Integer không bằng nhau**, dù kết quả chia lấy dư cho 10 đều bằng 2 và comparator trả 0.
+In this example, two comparators with the same `divisor` always apply the exact same formula so `equals` can return `true`, and `hashCode` is based on that same field. Yet the two numbers `12` and `22` remain **two unequal Integers**, even though both have remainder 2 modulo 10 and the comparator returns 0.
 
-`ByRemainder` cố ý chỉ xét phần dư nên **không nhất quán với `Integer.equals`**. Đây là một thứ tự theo nhóm/phần dư, không phải thứ tự số nguyên tự nhiên. Không áp dụng kiểu comparator này cho `TreeSet<Integer>` nếu muốn tập chứa **mọi số nguyên khác nhau**.
+`ByRemainder` intentionally inspects only the remainder and is therefore **inconsistent with `Integer.equals`**. This is a group/remainder ordering, not natural integer order. Do not apply this kind of comparator to a `TreeSet<Integer>` if you want the set to hold **every distinct integer**.
 
-Lưu ý `compare` trong ví dụ yêu cầu các đối số `Integer` không `null` (unboxing vào `Math.floorMod` có thể ném `NullPointerException` nếu nhận null). Nếu cần hỗ trợ null, có thể bao comparator bằng `Comparator.nullsFirst` hoặc `Comparator.nullsLast` với chính sách phù hợp.
+Note that `compare` in the example requires non-`null` `Integer` arguments (unboxing into `Math.floorMod` can throw `NullPointerException` if passed null). If null support is needed, wrap the comparator with `Comparator.nullsFirst` or `Comparator.nullsLast` with an appropriate policy.
 
-## 6. “Consistent with equals” là thuộc tính của quan hệ sắp xếp
+## 6. "Consistent with equals" Is a Property of the Ordering Relation
 
-Một thứ tự do `Comparator` định nghĩa được gọi là **nhất quán với `equals` của phần tử** khi, với mọi `a`, `b` thuộc miền so sánh:
+An ordering defined by a `Comparator` is said to be **consistent with the elements' `equals`** when, for all `a`, `b` in the comparison domain:
 
 ~~~text
 comparator.compare(a, b) == 0  ⇔  a.equals(b)
 ~~~
 
-Đây là quan hệ giữa **`compare` và `equals` của phần tử**, hoàn toàn khác với `comparator.equals(otherComparator)`.
+This is a relation between **`compare` and the elements' `equals`**, completely separate from `comparator.equals(otherComparator)`.
 
-Ví dụ:
+Examples:
 
-- `Comparator.naturalOrder()` trên `Integer` có quan hệ `compare(a,b)==0` phù hợp với `Integer.equals`.
-- `String.CASE_INSENSITIVE_ORDER` **không** nhất quán với `String.equals` vì `"Java"` và `"JAVA"` có thứ tự bằng nhau nhưng `equals` là `false`.
-- Comparator `Comparator.comparingInt(String::length)` không nhất quán với `String.equals` vì hai chuỗi khác nhau vẫn có thể cùng độ dài.
-- Một comparator chỉ so `Person.id` chỉ nhất quán với `Person.equals` nếu `equals` của Person cũng định nghĩa bằng nhau đúng theo `id` trong toàn bộ miền đối tượng.
+- `Comparator.naturalOrder()` on `Integer` has a `compare(a,b)==0` relation matching `Integer.equals`.
+- `String.CASE_INSENSITIVE_ORDER` is **not** consistent with `String.equals` because `"Java"` and `"JAVA"` have equal ordering yet `equals` is `false`.
+- `Comparator.comparingInt(String::length)` is not consistent with `String.equals` because two distinct strings can still have the same length.
+- A comparator checking only `Person.id` is consistent with `Person.equals` only if Person's `equals` also defines equality strictly by `id` across the entire object domain.
 
-Comparator không nhất quán với `equals` không phải lúc nào cũng là lỗi. Nó phù hợp cho **sắp xếp theo nhóm, so không phân biệt hoa/thường, gom các giá trị cùng khóa**. Nhưng khi dùng trong những collection xác định tính duy nhất dựa trên so sánh thứ tự, sự khác biệt có hệ quả lớn.
+A comparator inconsistent with `equals` is not always a bug. It fits **grouping sorts, case-insensitive comparison, or bucketing values with the same key**. Yet when used in collections that determine uniqueness via order comparison, the difference has major consequences.
 
-### Phân biệt quan hệ bằng nhau với việc ưu tiên sắp xếp
+### Separating equality relations from sort precedence
 
-Nếu muốn sắp theo độ dài nhưng **không** coi hai chuỗi cùng độ dài là một giá trị duy nhất, có thể thêm tiêu chí phụ:
+If you want to sort by length yet **not** treat two equal-length strings as a single unique value, you can add a secondary criterion:
 
 ~~~java
 Comparator<String> byLengthThenNatural =
@@ -256,13 +256,13 @@ Comparator<String> byLengthThenNatural =
                   .thenComparing(Comparator.naturalOrder());
 ~~~
 
-Đoạn mã này là **mảnh minh họa trong ngữ cảnh đã `import java.util.Comparator;`**, không phải một tệp chương trình độc lập. `thenComparing` chỉ áp dụng so thứ hai khi tiêu chí độ dài trả 0. Với hai chuỗi khác nhau `"dog"` và `"cat"`, tiêu chí phụ phân biệt được chúng. Trên String, cách so tổng hợp này nhất quán với `String.equals`: trả 0 chỉ khi nội dung chuỗi giống nhau (trong miền không null). Đối với loại phần tử khác, phải chọn tiêu chí phụ thực sự phân biệt các đối tượng mà `equals` xem là khác.
+This snippet is an **illustrative fragment in a context that already has `import java.util.Comparator;`**, not a standalone program file. `thenComparing` applies the second comparison only when the length criterion returns 0. For two different strings `"dog"` and `"cat"`, the secondary criterion distinguishes them. On String, this combined comparison is consistent with `String.equals`: returning 0 only when string contents match (over the non-null domain). For other element types, choose a secondary criterion that genuinely distinguishes objects that `equals` treats as different.
 
-## 7. Hệ quả đối với `TreeSet`
+## 7. Consequences for `TreeSet`
 
-`TreeSet` là tập có sắp xếp. Khi được tạo với một comparator, nó dùng kết quả so sánh thứ tự để quyết định vị trí và **tính trùng nhau** của phần tử: nếu `compare(a,b)==0`, tập xem chúng như cùng một phần tử theo cấu trúc cây.
+`TreeSet` is a sorted set. When constructed with a comparator, it uses order comparison results to decide element placement and **duplication**: if `compare(a,b)==0`, the set treats them as the same element in the tree structure.
 
-Tạo tệp `TreeSetComparatorDemo.java`:
+Create the file `TreeSetComparatorDemo.java`:
 
 ~~~java
 import java.util.Comparator;
@@ -305,22 +305,22 @@ tree first element: Java
 hash size: 2
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `TreeSet` đưa `"Java"` vào tập.
-2. Khi thêm `"JAVA"`, comparator không phân biệt hoa/thường trả 0 so với `"Java"`, nên `TreeSet` coi đây là phần tử đã có và `add` trả `false`.
-3. Tập vẫn chứa phần tử đầu tiên `"Java"`; `contains("java")` trả `true` theo comparator.
-4. `HashSet` dùng `hashCode` và `equals` của `String`, hai chuỗi khác nội dung về chữ hoa/thường nên cả hai được lưu.
+1. `TreeSet` inserts `"Java"` into the set.
+2. When adding `"JAVA"`, the case-insensitive comparator returns 0 against `"Java"`, so `TreeSet` treats it as already present and `add` returns `false`.
+3. The set still holds the first element `"Java"`; `contains("java")` returns `true` according to the comparator.
+4. `HashSet` uses `String`'s `hashCode` and `equals`; the two strings differ in letter case, so both are stored.
 
-**Điểm thiết kế quan trọng:** Các lớp sorted set hoạt động đúng theo **quy tắc comparator**, nhưng để đáp ứng trọn hợp đồng `Set` về tính bằng nhau giữa phần tử, thứ tự phải **nhất quán với `equals`**. Khi comparator không nhất quán, hành vi của sorted set vẫn được xác định theo cấu trúc cây nhưng khác trực giác về `Set` thông thường và có thể vi phạm hợp đồng chung của `Set` đối với tập dựa trên `equals`.
+**Key design point:** Sorted set classes operate faithfully according to the **comparator's rules**, but to fully satisfy the `Set` contract regarding element equality, the ordering must be **consistent with `equals`**. When a comparator is inconsistent, the sorted set's behavior remains well-defined by tree structure yet diverges from typical `Set` intuition and can violate the general `Set` contract for `equals`-based sets.
 
-Dùng `TreeSet` với comparator không nhất quán là hợp lý khi bạn **thật sự muốn gộp những phần tử thuộc cùng lớp thứ tự**. Nếu muốn chỉ sắp xếp theo một trường nhưng vẫn giữ tất cả các đối tượng khác nhau, hãy bổ sung tiêu chí phụ nhất quán.
+Using `TreeSet` with an inconsistent comparator makes sense when you **genuinely want to merge elements belonging to the same order class**. If you want to sort by one field while keeping all distinct objects, add a consistent tie-breaking criterion.
 
-## 8. Hệ quả tương tự với `TreeMap`
+## 8. Similar Consequences for `TreeMap`
 
-`TreeMap` sử dụng comparator để sắp xếp **khóa** và xác định khi nào hai khóa được coi tương đương. Nếu comparator trả 0, thao tác `put` cho khóa mới có thể **ghi đè giá trị** của entry đã có, dù `key1.equals(key2)` là `false`.
+`TreeMap` uses a comparator to order **keys** and decide when two keys are treated as equivalent. If the comparator returns 0, a `put` operation for a new key can **overwrite the value** of an existing entry, even though `key1.equals(key2)` is `false`.
 
-Tạo tệp `TreeMapComparatorDemo.java`:
+Create the file `TreeMapComparatorDemo.java`:
 
 ~~~java
 import java.util.Map;
@@ -357,28 +357,28 @@ original key kept: Java
 key equals: false
 ~~~
 
-Lần `put("JAVA", "second")` tìm thấy một khóa tương đương thứ tự với `"Java"`, nên cập nhật **value** của entry đó thay vì thêm entry mới. Tên khóa lưu ban đầu trong cây vẫn là `"Java"` trong ví dụ. Vì thế:
+The `put("JAVA", "second")` call finds a key order-equivalent to `"Java"`, so it updates the **value** of that entry instead of inserting a new entry. The original key stored in the tree remains `"Java"` in the example. Consequently:
 
-- `TreeMap` có một entry thay vì hai.
-- `get("java")` tìm được giá trị mới `"second"`.
-- `String.equals("Java","JAVA")` vẫn là `false`.
+- `TreeMap` has one entry instead of two.
+- `get("java")` retrieves the new value `"second"`.
+- `String.equals("Java","JAVA")` is still `false`.
 
-Giống `TreeSet`, `TreeMap` hoạt động theo comparator được cung cấp; muốn tuân trọn hợp đồng chung của `Map` dựa trên `equals` của khóa thì comparator cần nhất quán với `equals`.
+Like `TreeSet`, `TreeMap` obeys the supplied comparator; to fully adhere to the general `Map` contract based on key `equals`, the comparator must be consistent with `equals`.
 
-## 9. Điều gì xảy ra khi dùng `sort`, `min/max` hoặc `binarySearch`?
+## 9. What Happens with `sort`, `min/max`, or `binarySearch`?
 
-Ở phép **sắp xếp** (`List.sort`, `Arrays.sort`, `Collections.sort`), comparator chỉ quyết định thứ tự. Hai phần tử được `compare` trả 0 có thể vẫn là hai đối tượng riêng và vẫn có mặt trong danh sách sau khi sort. Sắp xếp không tự gộp các phần tử.
+In **sorting** (`List.sort`, `Arrays.sort`, `Collections.sort`), the comparator determines order only. Two elements for which `compare` returns 0 can still be two separate objects and both remain present in the list after sorting. Sorting does not merge elements.
 
-Ví dụ một danh sách chứa `"Java"` và `"JAVA"` sau khi `sort(String.CASE_INSENSITIVE_ORDER)` vẫn có **hai phần tử**. Tính ổn định của phương thức sắp xếp được công bố cho những API cụ thể, ví dụ `List.sort` đảm bảo không đảo thứ tự của các phần tử mà comparator coi là bằng nhau.
+For instance, a list containing `"Java"` and `"JAVA"` after `sort(String.CASE_INSENSITIVE_ORDER)` still has **two elements**. Sorting stability is documented for specific APIs—for example, `List.sort` guarantees not to reorder elements that the comparator considers equal.
 
-Tương tự:
+Similarly:
 
-- `Collections.min/max` với comparator chọn cực trị **theo thứ tự của comparator**; một phần tử cực trị không nhất thiết bằng phần tử khác đang cùng lớp thứ tự theo `equals`.
-- `Collections.binarySearch(list, key, comparator)` có thể tìm một phần tử mà `compare(found,key)==0`, không cần `found.equals(key)`; danh sách phải được sắp theo comparator phù hợp trước. Nếu có nhiều kết quả tương đương thứ tự, không bảo đảm chọn vị trí cụ thể nào.
+- `Collections.min/max` with a comparator picks an extremum **under the comparator's order**; an extreme element does not necessarily equal another element in the same order class under `equals`.
+- `Collections.binarySearch(list, key, comparator)` can match an element where `compare(found,key)==0`, without needing `found.equals(key)`; the list must already be sorted by a matching comparator. If multiple order-equivalent matches exist, no specific index is guaranteed.
 
-### Ví dụ chạy được: danh sách không tự gộp phần tử
+### Runnable example: a list does not merge elements
 
-Tạo tệp `SortKeepsElementsDemo.java`:
+Create the file `SortKeepsElementsDemo.java`:
 
 ~~~java
 import java.util.ArrayList;
@@ -417,19 +417,19 @@ dog vs cat: 0
 dog equals cat: false
 ~~~
 
-Hai chuỗi cùng độ dài vẫn được giữ. `List.sort` là phép **sắp xếp**, còn `TreeSet` áp dụng quy tắc tương đương thứ tự vào **tính duy nhất** phần tử.
+Both equal-length strings are retained. `List.sort` is **sorting**, whereas `TreeSet` applies order equivalence to element **uniqueness**.
 
-## 10. Cách tạo comparator thích hợp với ý định nghiệp vụ
+## 10. How to Build a Comparator Matching Business Intent
 
-### Nếu cần gom phần tử theo một khóa
+### When you need to group elements by a key
 
-Nếu miền nghiệp vụ coi tên không phân biệt hoa/thường là cùng một khóa, `String.CASE_INSENSITIVE_ORDER` với `TreeMap` hoặc `TreeSet` có thể phù hợp. Hãy mô tả rõ rằng tính duy nhất là theo **khóa chuẩn hóa** hoặc **lớp tương đương do comparator quy định**; đừng nhầm đây là `String.equals`.
+If the business domain treats case-insensitive names as the same key, `String.CASE_INSENSITIVE_ORDER` with `TreeMap` or `TreeSet` may fit. Document clearly that uniqueness is by **normalized key** or **comparator-defined equivalence class**; do not confuse this with `String.equals`.
 
-Nếu muốn quản lý chính xác cách chuẩn hóa, cân nhắc chuyển dữ liệu sang một kiểu khóa riêng có `equals/hashCode` phản ánh quan hệ đó, ví dụ cấu trúc chứa tên đã chuẩn hóa một cách nhất quán. Với ngôn ngữ tự nhiên và đa ngôn ngữ, so sánh/chuẩn hóa Unicode, locale và quy tắc chữ hoa/thường cần được thiết kế cụ thể; không nên mặc định mọi cách so chuỗi đều có cùng hợp đồng.
+If you want precise control over normalization, consider converting data into a dedicated key type whose `equals/hashCode` reflect that relation, such as a wrapper holding a consistently normalized name. With natural and multilingual text, Unicode normalization/comparison, locale, and casing rules must be explicitly designed; never assume every string comparison shares the same contract.
 
-### Nếu cần bảo tồn mọi phần tử khác nhau
+### When you need to preserve every distinct element
 
-Comparator nên có **tie-breaker** để phân biệt các phần tử khác nhau theo `equals`. Với String:
+The comparator should have a **tie-breaker** to distinguish elements that differ under `equals`. For String:
 
 ~~~java
 Comparator<String> byLengthThenText =
@@ -437,41 +437,41 @@ Comparator<String> byLengthThenText =
                   .thenComparing(Comparator.naturalOrder());
 ~~~
 
-Với lớp tùy biến, nếu `equals` dựa trên `id`, có thể thêm so sánh `id` làm tie-breaker (miễn là `id` có ngữ nghĩa phù hợp). Nhưng **đừng dùng `System.identityHashCode` như một tie-breaker duy nhất** để bảo đảm phân biệt mọi đối tượng: hash có thể trùng nhau. Cũng không thể chỉ thêm tiêu chí phụ tùy ý rồi mặc định comparator đã nhất quán với mọi định nghĩa `equals`.
+For custom classes, if `equals` is based on `id`, you can append `id` comparison as a tie-breaker (provided `id` carries suitable semantics). However, **do not use `System.identityHashCode` as a sole tie-breaker** to guarantee distinguishing every object: hashes can collide. Nor can you blindly tack on arbitrary secondary criteria and assume the comparator is consistent with every `equals` definition.
 
-### Nếu muốn so hai comparator có bằng nhau hay không
+### When you want to check whether two comparators are equal
 
-Hãy dùng `comparatorA.equals(comparatorB)` khi mục tiêu **thật sự là đối tượng comparator**; kết quả `false` có thể chỉ do chúng là hai instance khác nhau. Trong nhiều ứng dụng, không cần kiểm tra sự bằng nhau của hai comparator: chỉ cần chọn đúng một comparator và truyền dùng lại.
+Use `comparatorA.equals(comparatorB)` when the target is **genuinely the comparator objects**; a `false` result may simply mean they are two different instances. In many applications, there is no need to test equality of two comparators: simply choose one comparator and reuse it.
 
-Nếu xây dựng một **lớp comparator có cấu hình** và muốn dùng nó làm khóa cache/configuration, có thể triển khai `equals` và `hashCode` dựa trên các tham số xác định thứ tự. Điều này là lựa chọn thiết kế **độc lập** với quy tắc `compare(a,b)==0` trên dữ liệu.
+If building a **configurable comparator class** and wanting to use it as a cache/configuration key, you can implement `equals` and `hashCode` based on the parameters that define the ordering. This is a design choice **independent** of the `compare(a,b)==0` rule on data elements.
 
-## 11. Những nhầm lẫn thường gặp
+## 11. Common Confusions
 
-| Nhầm lẫn | Sự thật |
+| Confusion | Reality |
 | --- | --- |
-| `c.equals(d)` tương đương `c.compare(a,b)==0`. | Hai vế có **đối tượng so sánh khác nhau**: comparator với comparator, phần tử với phần tử. |
-| `compare(a,b)==0` thì `a.equals(b)` luôn `true`. | Chỉ đúng khi comparator **nhất quán với equals** trên miền phần tử liên quan. |
-| Hai comparator dùng cùng thuật toán thì `c.equals(d)` luôn `true`. | Không nhất thiết: `equals` có thể kế thừa từ `Object` và so danh tính instance. |
-| `c.equals(d)==false` nghĩa là tồn tại cặp phần tử mà hai comparator sắp khác nhau. | Sai: equals trả false **không chứng minh** hai comparator tạo thứ tự khác. |
-| Comparator phải trả đúng `-1`, `0`, `1`. | Hợp đồng chỉ quy định dấu âm/0/dương. |
-| `TreeSet` quyết định phần tử trùng bằng `a.equals(b)`. | Với comparator cung cấp, cây dùng `compare(a,b)==0` để quyết định tương đương thứ tự. |
-| `TreeMap.put` hai khóa có `equals` khác nhau luôn tạo hai entry. | Có thể chỉ còn một entry nếu comparator coi chúng tương đương (`compare==0`). |
-| `sort` loại bớt phần tử có `compare==0`. | Sắp xếp không gộp phần tử; danh sách giữ nguyên số lượng. |
-| Chỉ cần thêm tie-breaker theo một hash là luôn có total order đúng. | Hash có thể trùng; cần tiêu chí phụ phù hợp với ngữ nghĩa đối tượng. |
-| `Comparator.equals` phải được ghi đè trong mọi comparator. | Không bắt buộc; kế thừa `Object.equals` là hợp lệ. |
+| `c.equals(d)` is equivalent to `c.compare(a,b)==0`. | Both sides have **different comparison subjects**: comparator vs comparator, element vs element. |
+| `compare(a,b)==0` implies `a.equals(b)` is always `true`. | Only true when the comparator is **consistent with equals** over the relevant element domain. |
+| Two comparators using the same algorithm always have `c.equals(d) == true`. | Not necessarily: `equals` may be inherited from `Object` and check instance identity. |
+| `c.equals(d)==false` means there exists a pair of elements ordered differently by the two comparators. | False: `equals` returning false **does not prove** the two comparators produce different orderings. |
+| A comparator must return exact `-1`, `0`, `1`. | The contract only specifies negative/0/positive signs. |
+| `TreeSet` checks duplicates using `a.equals(b)`. | With a supplied comparator, the tree uses `compare(a,b)==0` to determine order equivalence. |
+| `TreeMap.put` with two keys having different `equals` always creates two entries. | There can be only one entry if the comparator considers them equivalent (`compare==0`). |
+| `sort` drops elements with `compare==0`. | Sorting does not merge elements; the list keeps its count. |
+| Adding a hash-based tie-breaker always yields a valid total order. | Hashes can collide; a secondary criterion aligned with object semantics is needed. |
+| `Comparator.equals` must be overridden in every comparator. | Not required; inheriting `Object.equals` is valid. |
 
-## 12. Checklist kiểm tra thiết kế
+## 12. Design Review Checklist
 
-Khi viết hoặc sử dụng một `Comparator<T>`:
+When writing or using a `Comparator<T>`:
 
-1. Xác định **quy tắc sắp xếp** của `compare(a,b)` và những trường nào tham gia.
-2. Hỏi rõ: hai phần tử được `compare` trả 0 có cần coi như **cùng khóa** không, hay chỉ cùng mức ưu tiên/nhóm?
-3. So đối chiếu với `a.equals(b)`: comparator có **consistent with equals** trong miền sử dụng không?
-4. Nếu dùng `TreeSet`/`TreeMap`, kiểm tra kỹ trường hợp `compare(a,b)==0` nhưng `a.equals(b)==false` để tránh vô tình gộp phần tử hoặc ghi đè giá trị.
-5. Nếu chỉ cần sắp xếp List, đừng cho rằng hai phần tử `compare==0` sẽ bị xóa hay trộn.
-6. Với nhiều tiêu chí, dùng `Comparator.comparing(...).thenComparing(...)` và chọn tie-breaker theo ngữ nghĩa mong muốn.
-7. Đảm bảo comparator tuân quy tắc về dấu, bắc cầu, và sự nhất quán của các phần tử tương đương; tránh viết `return a - b` cho `int` vì tràn số có thể tạo kết quả sai, dùng `Integer.compare(a,b)`.
-8. Nếu comparator có trạng thái hoặc cấu hình thay đổi trong lúc đang dùng bởi một `TreeSet`/`TreeMap`, thứ tự cây có thể không còn hợp lệ; nên giữ cấu hình so sánh **ổn định** suốt vòng đời sử dụng.
-9. Chỉ đánh giá `comparatorA.equals(comparatorB)` khi thực sự cần so **hai comparator**. Nếu tự override phương thức này, phải đảm bảo kết quả `true` suy ra cùng thứ tự và giữ hợp đồng với `hashCode()`.
+1. Identify the **sorting rule** of `compare(a,b)` and which fields participate.
+2. Ask explicitly: should two elements for which `compare` returns 0 be treated as **the same key**, or merely the same priority/group?
+3. Cross-check against `a.equals(b)`: is the comparator **consistent with equals** over its usage domain?
+4. If using `TreeSet`/`TreeMap`, carefully verify the case `compare(a,b)==0` yet `a.equals(b)==false` to avoid accidentally merging elements or overwriting values.
+5. If only sorting a List, do not assume two elements with `compare==0` will be removed or merged.
+6. With multiple criteria, use `Comparator.comparing(...).thenComparing(...)` and select tie-breakers matching intended semantics.
+7. Ensure the comparator obeys sign rules, transitivity, and consistency of equivalent elements; avoid writing `return a - b` for `int` since overflow can yield wrong results, and use `Integer.compare(a,b)`.
+8. If a comparator has state or configuration that changes while used by a `TreeSet`/`TreeMap`, the tree's ordering can become invalid; keep comparison configuration **stable** throughout its usage lifecycle.
+9. Evaluate `comparatorA.equals(comparatorB)` only when genuinely comparing **two comparators**. If overriding this method yourself, ensure a `true` result implies the same ordering and preserve the contract with `hashCode()`.
 
-**Ghi nhớ:** `Comparator.equals(Object)` trả lời liệu **hai đối tượng bộ so sánh** có được coi bằng nhau hay không; `Comparator.compare(a,b)==0` trả lời liệu **hai phần tử** có tương đương theo một quy tắc thứ tự hay không. Quan hệ thứ hai chỉ trùng `a.equals(b)` khi comparator nhất quán với equals. Phân biệt ba quan hệ này giúp tránh các lỗi khó phát hiện với `TreeSet`, `TreeMap` và việc định nghĩa tính duy nhất của dữ liệu.
+**Takeaway:** `Comparator.equals(Object)` answers whether **two comparator objects** are considered equal; `Comparator.compare(a,b)==0` answers whether **two elements** are equivalent under an ordering rule. The latter coincides with `a.equals(b)` only when the comparator is consistent with equals. Distinguishing these relations helps avoid subtle bugs with `TreeSet`, `TreeMap`, and defining data uniqueness.

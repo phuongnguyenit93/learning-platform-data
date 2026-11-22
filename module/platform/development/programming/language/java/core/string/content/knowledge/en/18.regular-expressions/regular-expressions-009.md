@@ -1,83 +1,83 @@
-# Lựa chọn mẫu regex tránh khớp quá rộng hoặc quay lui quá nhiều trong Java
+# Choosing Regex Patterns to Avoid Overmatching or Excessive Backtracking in Java
 
-## 1. Mục tiêu
+## 1. Objective
 
-Biểu thức chính quy (regex) giúp kiểm tra, tìm kiếm và trích xuất văn bản, nhưng một mẫu “trông có vẻ chạy đúng” vẫn có thể gặp hai loại vấn đề khác nhau:
+Regular expressions (regex) help validate, search, and extract text, yet a pattern that "appears to work" can still suffer from two distinct problems:
 
-1. **Khớp quá rộng (overmatching):** regex chấp nhận hoặc nuốt những ký tự/đoạn văn bản nằm ngoài ý định. Đây trước hết là vấn đề **tính đúng đắn**.
-2. **Quay lui quá nhiều (excessive backtracking):** regex engine thử quá nhiều cách ghép nhóm, lặp hoặc nhánh khi tìm kết quả; trường hợp xấu có thể tiêu tốn rất nhiều CPU. Đây là vấn đề **hiệu năng và an toàn**, đặc biệt khi input do người dùng kiểm soát.
+1. **Overmatching:** the regex accepts or consumes unintended characters or text segments. This is primarily a **correctness** issue.
+2. **Excessive backtracking:** the regex engine tries too many combinations of grouping, repetition, or alternation while searching for a match; in bad cases, this can consume huge amounts of CPU. This is a **performance and security** issue, especially when the input is user-controlled.
 
-Hai vấn đề có thể cùng xuất hiện nhưng không đồng nghĩa: một regex ngắn, ít quay lui vẫn có thể khớp sai phạm vi; một regex chỉ chấp nhận đúng tập chuỗi mong muốn vẫn có thể rất chậm trên đầu vào gần đúng nhưng thất bại.
+The two problems can co-occur, though they are not synonymous: a short regex with little backtracking can still match the wrong scope; a regex that accepts only the exact desired set of strings can still be very slow on near-matching inputs that ultimately fail.
 
-Trong Java, **java.util.regex.Pattern** biên dịch regex và **Matcher** thực hiện phép khớp. Pattern dùng kiểu engine NFA có thứ tự thử nhánh và khả năng backtracking. Vì vậy, thiết kế regex cần xét **ngôn ngữ được chấp nhận, phạm vi tìm kiếm và đường đi khi thất bại**, không chỉ ví dụ thành công.
+In Java, **java.util.regex.Pattern** compiles a regex and **Matcher** performs the match. Pattern uses an NFA-style engine with ordered branch evaluation and backtracking. Therefore, regex design must consider **the accepted language, search scope, and failure paths**, not just successful examples.
 
-## 2. Bắt đầu từ điều kiện dữ liệu thật sự
+## 2. Start from Real Data Constraints
 
-Trước khi viết regex, trả lời bốn câu hỏi:
+Before writing a regex, answer four questions:
 
-- **Muốn xác thực toàn bộ hay chỉ tìm một phần?** Dùng **matcher.matches()** để khớp toàn bộ region; **find()** để tìm đoạn con; **lookingAt()** để kiểm tra tiền tố. Một regex tốt vẫn cho kết quả sai nếu chọn nhầm phương thức.
-- **Tập ký tự hợp lệ là gì?** Khi biết cấu trúc đầu vào, ưu tiên **[0-9]**, **[A-Za-z]**, **[^,]** hoặc lớp ký tự chính xác thay vì **.**.
-- **Độ dài hợp lệ là bao nhiêu?** Dùng lượng từ có biên, ví dụ **{1,8}**, và kiểm tra giới hạn kích thước input tại ranh giới ứng dụng.
-- **Dấu phân cách và ranh giới token ở đâu?** Chốt rõ đầu/cuối, dấu phẩy, dấu **>**, dấu xuống dòng hoặc ranh giới từ thay vì trông chờ **.* ** tự dừng ở vị trí hợp lý.
+- **Do you want to validate the entire input or only find a part?** Use **matcher.matches()** to match the entire region; **find()** to locate substrings; **lookingAt()** to check a prefix. Even a good regex produces wrong results if the wrong method is chosen.
+- **What is the valid character set?** When input structure is known, prefer **[0-9]**, **[A-Za-z]**, **[^,]**, or an exact character class instead of **.**.
+- **What is the valid length?** Use bounded quantifiers, such as **{1,8}**, and enforce input size limits at the application boundary.
+- **Where are the delimiters and token boundaries?** Pin down start/end, commas, **>**, newlines, or word boundaries instead of relying on **.* ** to stop at a sensible spot on its own.
 
-Ví dụ một mã tài khoản chỉ gồm 3–16 ký tự, ký tự đầu phải là chữ in hoa ASCII, các ký tự sau có thể là chữ in hoa, chữ số hoặc dấu gạch dưới:
+For example, an account code consisting of 3–16 characters where the first character must be an uppercase ASCII letter and subsequent characters can be uppercase letters, digits, or underscores:
 
 ~~~java
 Pattern accountCode = Pattern.compile("[A-Z][A-Z0-9_]{2,15}");
 boolean valid = accountCode.matcher("AB_7").matches();
 ~~~
 
-Dùng **matches()** bảo đảm toàn bộ chuỗi phải thỏa mẫu. Dùng **find()** với cùng regex trên **"xAB_7!"** có thể tìm được một đoạn con hợp lệ, nhưng điều đó **không** làm cả mã đầu vào hợp lệ.
+Using **matches()** ensures the entire string satisfies the pattern. Using **find()** with the same regex on **"xAB_7!"** can find a valid substring, yet that **does not** make the overall input code valid.
 
-**Một nguyên tắc quan trọng:** regex nên mô tả ngữ pháp tối thiểu cần thiết, thay vì mô tả “mọi thứ có thể xuất hiện” rồi hy vọng kết quả đúng.
+**An important principle:** a regex should describe the minimal grammar required, rather than describing "everything that might appear" and hoping the result is right.
 
-## 3. Dấu chấm và lượng từ tham lam: nguồn gốc overmatching
+## 3. Dot and Greedy Quantifiers: The Source of Overmatching
 
-Trong Java regex:
+In Java regex:
 
-- **.** khớp một ký tự bất kỳ, ngoại trừ ký tự kết thúc dòng theo chế độ mặc định.
-- **.*** khớp từ 0 ký tự trở lên và là **greedy**: ban đầu cố tiêu thụ nhiều ký tự nhất có thể; nếu phần sau không khớp, engine có thể quay lui để trả lại ký tự.
-- **.+** khớp ít nhất một ký tự, cũng greedy.
-- **Pattern.DOTALL** cho phép **.** khớp cả ký tự xuống dòng; nó có thể làm phạm vi khớp rộng thêm.
+- **.** matches any single character, except line terminators by default.
+- **.*** matches 0 or more characters and is **greedy**: initially it tries to consume as many characters as possible; if the remainder fails to match, the engine can backtrack and give characters back.
+- **.+** matches at least one character, also greedy.
+- **Pattern.DOTALL** allows **.** to match newline characters as well; it can widen the match scope further.
 
-Ví dụ, muốn tìm từng đoạn có dạng thẻ trong chuỗi:
+For example, suppose you want to find each tag-like segment in the string:
 
 ~~~text
 <b>Hi</b><i>ok</i>
 ~~~
 
-Mẫu quá rộng:
+Overly broad pattern:
 
 ~~~regex
 <.*>
 ~~~
 
-Khi gọi **find()**, mẫu này có thể lấy từ dấu **<** đầu tiên đến dấu **>** cuối cùng:
+When calling **find()**, this pattern can span from the first **<** to the last **>**:
 
 ~~~text
 <b>Hi</b><i>ok</i>
 ~~~
 
-Nếu chỉ muốn đoạn bắt đầu bằng **<** và kết thúc ở dấu **>** đầu tiên, hai cách thường gặp là:
+If you only want a segment starting with **<** and ending at the first **>**, two common options are:
 
 ~~~regex
 <.*?>
 <[^>]*>
 ~~~
 
-**.*?** là lượng từ **reluctant/lazy**, thử ngắn trước; nó sẽ mở rộng nếu cần để phần sau khớp. **[^>]* ** mô tả chính xác hơn “không chứa dấu >” và không cần thử vượt qua dấu phân cách **>**. Với ngữ pháp token đơn giản, mẫu có lớp ký tự phủ định thường dễ suy luận hơn.
+**.*?** is a **reluctant/lazy** quantifier that tries short matches first; it expands if needed for the rest to match. **[^>]* ** more accurately expresses "does not contain >" and never needs to probe past the **>** delimiter. For simple token grammars, a negated character class pattern is usually easier to reason about.
 
-Các mẫu trên chỉ thích hợp để minh họa **token dấu ngoặc nhọn đơn giản**. Chúng **không** phải trình phân tích HTML/XML hoàn chỉnh: thuộc tính có dấu **>** trong chuỗi trích dẫn, phần comment hoặc cú pháp lồng nhau đòi hỏi parser chuyên dụng.
+The patterns above are only suited to illustrate **simple angle-bracket tokens**. They are **not** a complete HTML/XML parser: attributes containing **>** in quoted strings, comments, or nested syntax require a dedicated parser.
 
-### 3.1. Vì sao đổi sang lazy chưa giải quyết được mọi vấn đề?
+### 3.1. Why Switching to Lazy Doesn't Solve Everything
 
-Lượng từ **greedy** như `a+` thử lấy nhiều nhất trước rồi có thể quay lui; **lazy** như `a+?` thử lấy ít nhất trước nhưng vẫn có thể mở rộng và quay lui. Cả hai đều cần được kiểm tra với dữ liệu gần khớp nhưng thất bại: thay `.*` bằng `.*?` không tự loại bỏ sự mơ hồ trong ngữ pháp hoặc bảo đảm hiệu năng.
+A **greedy** quantifier like `a+` tries taking the most first and can backtrack; a **lazy** one like `a+?` tries taking the least first, yet can still expand and backtrack. Both must be tested against near-matching inputs that fail: replacing `.*` with `.*?` does not automatically eliminate grammar ambiguity or guarantee performance.
 
-Lượng từ **possessive** như `a++` không trả lại ký tự; nó có thể giảm một số đường quay lui nhưng cũng đổi tập chuỗi được chấp nhận. Phần 7 đi sâu vào cách chứng minh khi nào possessive hoặc atomic group bảo toàn ngữ nghĩa. Với token có dấu phân cách rõ, thử một lớp ký tự cụ thể như `[^>]*` trước khi tối ưu chiến lược lượng từ.
+A **possessive** quantifier like `a++` never gives characters back; it can reduce certain backtracking paths, yet also changes the set of accepted strings. Section 7 goes deeper into how to prove when possessive quantifiers or atomic groups preserve semantics. For tokens with a clear delimiter, try a specific character class like `[^>]*` before tuning quantifier strategies.
 
-## 4. Ví dụ Java 17+ chạy được
+## 4. Runnable Java 17+ Example
 
-Tạo tệp **RegexSelectionDemo.java**:
+Create the file **RegexSelectionDemo.java**:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -113,14 +113,14 @@ public class RegexSelectionDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac RegexSelectionDemo.java
 java RegexSelectionDemo
 ~~~
 
-Output chính xác:
+Exact output:
 
 ~~~text
 broad: <b>Hi</b><i>ok</i>
@@ -135,35 +135,35 @@ possessive: false
 linear rewrite: false
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-1. **<.*>** lấy toàn bộ từ dấu mở đầu tiên đến dấu đóng cuối cùng, quá rộng nếu muốn từng token.
-2. **<[^>]*>** dừng tại dấu **>** gần nhất theo đúng tập ký tự cho phép.
-3. **accountCode.matches()** chỉ chấp nhận toàn bộ mã hợp lệ, không chấp nhận ký tự **!** ở cuối.
-4. Lượng từ possessive đổi kết quả vì không nhường ký tự.
-5. Mẫu đơn giản **a+$** không chấp nhận chuỗi có **b** cuối; đây là phiên bản gọn của tình huống xử lý ký tự **a** liên tiếp được đề cập dưới đây.
+1. **<.*>** grabs everything from the first opening bracket to the last closing bracket, too broad if individual tokens are desired.
+2. **<[^>]*>** stops at the nearest **>** according to the exact allowed character set.
+3. **accountCode.matches()** accepts only fully valid codes, rejecting the trailing **!** character.
+4. The possessive quantifier changes the result because it does not yield characters back.
+5. The simple pattern **a+$** rejects strings ending with **b**; this is a compact version of the consecutive **a** scenario discussed below.
 
-## 5. Catastrophic backtracking là gì?
+## 5. What Is Catastrophic Backtracking?
 
-**Backtracking** là cơ chế thông thường: khi một nhánh khớp chưa đưa tới kết quả cuối cùng, engine có thể thử phân chia hoặc nhánh khác. Điều này giúp regex hỗ trợ các cấu trúc phong phú, nhưng có thể trở nên đắt đỏ nếu **một đoạn input có quá nhiều cách được các phần regex khác nhau cùng tiêu thụ**.
+**Backtracking** is a normal mechanism: when one matching branch does not lead to a complete match, the engine can try another split or branch. This allows regex to support rich constructs, yet can become expensive if **a slice of input can be consumed in too many ways by different parts of the regex**.
 
-Mẫu cảnh báo kinh điển:
+Classic warning pattern:
 
 ~~~regex
 (a+)+$
 ~~~
 
-Với input gồm nhiều ký tự **a** rồi thêm **b** ở cuối:
+With an input consisting of many **a** characters followed by **b** at the end:
 
 ~~~text
 aaaaaaaaaaaaaaaaab
 ~~~
 
-Về logic, mẫu cần “một hoặc nhiều nhóm, mỗi nhóm chứa một hoặc nhiều a”, sau đó đến cuối. Trên một chuỗi toàn **a**, nhiều cách chia nhóm cùng cho kết quả khớp. Khi ký tự **b** làm toàn biểu thức thất bại, engine có thể phải thử một lượng rất lớn những cách phân chia đó.
+Logically, the pattern asks for "one or more groups, each containing one or more a's", followed by the end. On a string of all **a**'s, many ways of splitting the groups match. When the character **b** causes the overall expression to fail, the engine may have to try an enormous number of those splits.
 
-Ở các họ input và triển khai cụ thể, mức tăng thời gian có thể rất lớn, thậm chí theo hàm mũ. **Không nên dựa vào một con số độ phức tạp cứng cho mọi regex và mọi phiên bản JVM**, vì engine có thể tối ưu một số cấu trúc; vấn đề cần nhận diện là **số đường quay lui tăng rất nhanh khi độ dài input tăng**.
+For specific input families and implementations, runtime growth can be huge, even exponential. **Do not rely on a fixed complexity number across all regexes and all JVM versions**, because the engine may optimize certain constructs; what to recognize is **the number of backtracking paths growing rapidly as input length increases**.
 
-Ví dụ khác đáng nghi:
+Other suspicious examples:
 
 ~~~regex
 (a|aa)+$
@@ -171,53 +171,53 @@ Ví dụ khác đáng nghi:
 (.*)+$
 ~~~
 
-Ở mẫu đầu, **a** và **aa** chồng lấn; ở mẫu thứ hai và thứ ba, các lớp lặp lồng nhau có nhiều cách chia chuỗi. Một input rất dài chỉ khác ở ký tự cuối thường là phép thử phơi bày vấn đề tốt hơn input khớp hoàn toàn.
+In the first pattern, **a** and **aa** overlap; in the second and third, nested repetition layers create many ways to partition the string. A very long input differing only in its final character is typically a better probe to expose the issue than a fully matching input.
 
-**Đây là nền tảng của ReDoS (Regular Expression Denial of Service):** kẻ tấn công cung cấp input gây quá nhiều công việc cho regex engine, khiến thread xử lý yêu cầu bị chiếm CPU lâu bất thường. Kích thước input không cần cực lớn nếu cấu trúc mẫu đủ mơ hồ.
+**This is the basis of ReDoS (Regular Expression Denial of Service):** an attacker supplies input causing excessive work in the regex engine, tying up the request-handling thread on CPU for an abnormally long time. Input size does not need to be huge if the pattern structure is sufficiently ambiguous.
 
-## 6. Sửa từ ngữ pháp: loại bỏ đường phân tích dư thừa
+## 6. Fixing from the Grammar: Eliminating Redundant Parse Paths
 
-Với mục tiêu “chuỗi chỉ gồm ít nhất một a”, mẫu:
+For the goal "a string consisting only of at least one a", the pattern:
 
 ~~~regex
 (a+)+$
 ~~~
 
-không cần hai lớp lặp. Có thể viết:
+does not need two nested repetitions. You can write:
 
 ~~~regex
 a+
 ~~~
 
-và dùng **matches()** để kiểm tra toàn chuỗi. Một mẫu ngắn hơn, không có vòng lặp lồng nhau, thường dễ kiểm chứng hơn về cả tính đúng đắn lẫn hiệu năng.
+and use **matches()** to check the whole string. A shorter pattern without nested loops is generally easier to verify for both correctness and performance.
 
-Tương tự, nếu chỉ muốn ít nhất một chữ cái ASCII, thay vì:
+Similarly, if you only want at least one ASCII letter, instead of:
 
 ~~~regex
 ([A-Za-z]+)*$
 ~~~
 
-hãy viết:
+write:
 
 ~~~regex
 [A-Za-z]+
 ~~~
 
-và gọi **matches()**. Hai mẫu ở trên còn **không hoàn toàn tương đương**: mẫu có **\*** bên ngoài có thể chấp nhận chuỗi rỗng, còn **+** thì không. Vì vậy, cần xác định rõ **chuỗi rỗng có hợp lệ không** trước khi thay thế.
+and call **matches()**. The two patterns above are also **not strictly equivalent**: the pattern with an outer **\*** accepts the empty string, whereas **+** does not. Therefore, explicitly decide **whether the empty string is valid** before substituting.
 
-Đối với alternation chồng lấn:
+For overlapping alternation:
 
 ~~~regex
 (a|aa)+
 ~~~
 
-nếu mục tiêu chỉ là một dãy **a**, thay bằng **a+**. Nếu hai nhánh có ý nghĩa thật sự khác nhau, cần diễn đạt dấu phân cách/ràng buộc sao cho phân tách được rõ ràng, thay vì cắt nhánh một cách tùy tiện.
+if the goal is simply a sequence of **a**'s, replace it with **a+**. If the two branches genuinely have distinct meanings, express delimiters/constraints so they separate cleanly rather than cutting branches arbitrarily.
 
-**Quy tắc sửa:** trước tiên xác định ngôn ngữ hợp lệ; sau đó tạo một biểu thức càng ít cách phân tích cùng một input càng tốt. Tránh sửa hiệu năng bằng cách vô tình đổi tập chuỗi được chấp nhận.
+**Rule for fixing:** first define the valid language; then construct an expression with as few ways as possible to parse the same input. Avoid "optimizing" performance by accidentally changing the set of accepted strings.
 
-## 7. Khi nào dùng possessive quantifier và atomic group?
+## 7. When to Use Possessive Quantifiers and Atomic Groups?
 
-Java hỗ trợ lượng từ **possessive**:
+Java supports **possessive** quantifiers:
 
 ~~~regex
 X*+
@@ -226,15 +226,15 @@ X?+
 X{m,n}+
 ~~~
 
-và **atomic/independent group**:
+and **atomic/independent groups**:
 
 ~~~regex
 (?>X)
 ~~~
 
-Cả hai giới hạn đường quay lui: một khi đoạn được tiêu thụ trong phần possessive hoặc atomic đã được chốt, engine không thử các phương án nội bộ khác để cứu phép khớp sau đó.
+Both restrict backtracking paths: once the span consumed inside a possessive quantifier or atomic group is locked in, the engine does not try alternative internal choices to rescue a later match.
 
-Ví dụ:
+Example:
 
 ~~~java
 Pattern greedy = Pattern.compile("a+a");
@@ -244,32 +244,32 @@ System.out.println(greedy.matcher("aaa").matches());     // true
 System.out.println(possessive.matcher("aaa").matches()); // false
 ~~~
 
-Đây là chứng cứ rằng phép thay đổi **có thể ảnh hưởng kết quả**. Chỉ dùng possessive khi chắc chắn phần sau không cần các ký tự được phần trước tiêu thụ.
+This proves that the change **can affect the outcome**. Only use possessive quantifiers when you are certain the subsequent part never needs characters consumed by the preceding part.
 
-Một trường hợp tương đối tự nhiên: chuỗi gồm **một hoặc nhiều chữ số rồi đến dấu chấm phẩy**. Nếu chữ số là **[0-9]** và dấu tiếp theo bắt buộc là **;**, hai phần không tranh giành ký tự:
+A fairly natural case: a string consisting of **one or more digits followed by a semicolon**. If digits are **[0-9]** and the next character must be **;**, the two parts do not compete for characters:
 
 ~~~regex
 [0-9]++[;]
 ~~~
 
-So với **[0-9]+[;]**, việc không hoàn lại chữ số là an toàn cho ngữ pháp này vì dấu **;** không thuộc lớp chữ số. Nhưng điều đó không có nghĩa possessive luôn nhanh hơn có thể đo được; chỉ là đã loại đi một loại quay lui không cần thiết.
+Compared to **[0-9]+[;]**, not yielding digits back is safe for this grammar because **;** is not in the digit class. Still, that does not mean possessive is always measurably faster; it simply eliminates one kind of unnecessary backtracking.
 
-Atomic group có thể được dùng để cô lập một nhánh hoặc một cụm lặp khi bạn chứng minh được engine không cần xem xét lại lựa chọn bên trong nó. Ví dụ **(?>a+)a** cũng thất bại trên **aaa**, giống **a++a**.
+An atomic group can isolate a branch or repetition block when you can prove the engine never needs to reconsider choices inside it. For example, **(?>a+)a** also fails on **aaa**, just like **a++a**.
 
-Với bài toán đơn giản, **sửa cấu trúc mẫu và dùng lớp ký tự cụ thể là ưu tiên đầu tiên**. Possessive/atomic chỉ là công cụ khi cần khống chế backtracking có chủ đích; chúng không cứu được tất cả regex mơ hồ và có thể loại bỏ kết quả hợp lệ nếu dùng sai.
+For straightforward tasks, **fixing the pattern structure and using specific character classes comes first**. Possessive quantifiers and atomic groups are tools for intentionally curbing backtracking; they cannot rescue every ambiguous regex and can reject valid matches if misused.
 
-## 8. Giới hạn phạm vi tìm kiếm để tránh quét lan rộng
+## 8. Limiting Search Scope to Avoid Wide Scanning
 
-### 8.1. Chọn đúng phương thức
+### 8.1. Choose the Right Method
 
-**matches()** phù hợp khi xác thực cả vùng đầu vào:
+**matches()** fits when validating the entire input region:
 
 ~~~java
 Pattern p = Pattern.compile("[A-Z0-9_]{3,16}");
 boolean ok = p.matcher("AB_12").matches();
 ~~~
 
-**find()** phù hợp khi cần trích các đoạn con, ví dụ tìm tất cả số:
+**find()** fits when extracting substrings, such as finding all numbers:
 
 ~~~java
 Matcher m = Pattern.compile("[0-9]+").matcher("x12 y345");
@@ -278,16 +278,16 @@ while (m.find()) {
 }
 ~~~
 
-Nếu xác thực dữ liệu mà vô tình dùng **find()**, mã độc hại có thể mang theo một đoạn con hợp lệ nhưng cả chuỗi vẫn sai. Nếu chỉ cần tìm một đoạn con, ép **matches()** bằng cách bao quanh **.*...*** thường làm mẫu rộng và khó đoán hơn.
+If you accidentally use **find()** for data validation, malicious input can carry a valid substring while the full string is invalid. If you only want to find a substring, forcing **matches()** by wrapping with **.*...*** usually makes the pattern broader and harder to predict.
 
-### 8.2. Dùng anchor khi cần rõ ràng về vị trí
+### 8.2. Use Anchors When Positions Must Be Explicit
 
-- **\A**: đầu toàn bộ input của Matcher.
-- **\z**: cuối tuyệt đối của input.
-- **^** và **$**: chịu ảnh hưởng của **MULTILINE** và cách xử lý ranh giới dòng.
-- **\b**: ranh giới từ, phụ thuộc quy tắc ký tự từ; không thay thế cho việc xác định rõ dấu phân cách theo nghiệp vụ.
+- **\A**: start of the Matcher's entire input.
+- **\z**: absolute end of the input.
+- **^** and **$**: affected by **MULTILINE** and line-boundary handling.
+- **\b**: word boundary, dependent on word-character rules; does not replace explicitly defining business delimiters.
 
-Ví dụ khi tìm một dòng log bắt đầu bằng **ID=** và tối đa tám chữ số:
+For example, when finding a log line starting with **ID=** and up to eight digits:
 
 ~~~java
 Pattern line = Pattern.compile("^ID=([0-9]{1,8})$", Pattern.MULTILINE);
@@ -296,112 +296,112 @@ System.out.println(m.find());    // true
 System.out.println(m.group(1)); // 42
 ~~~
 
-Nếu cần kiểm tra cả input là **ID=42** và không có dữ liệu thừa, dùng **matches()** với **ID=[0-9]{1,8}** hoặc anchor phù hợp. Với mọi lựa chọn, đừng quên giới hạn độ dài ngoài regex.
+If you need to check that the entire input is **ID=42** with no extra data, use **matches()** with **ID=[0-9]{1,8}** or appropriate anchors. Regardless of choice, remember to enforce length limits outside the regex.
 
-### 8.3. Dùng lớp ký tự phủ định đến dấu phân cách
+### 8.3. Use Negated Character Classes Up to the Delimiter
 
-Nếu yêu cầu một trường không chứa dấu phẩy:
+If a field must not contain a comma:
 
 ~~~regex
 [^,]{1,40}
 ~~~
 
-mô tả trực tiếp quy tắc tốt hơn:
+expresses the rule more directly than:
 
 ~~~regex
 .{1,40}
 ~~~
 
-vì dấu chấm vẫn cho phép dấu phẩy. Nếu trường được xác thực toàn bộ bằng **matches()**, cả hai mẫu đều kiểm tra độ dài, nhưng chỉ mẫu thứ nhất cấm dấu phẩy.
+because the dot still allows commas. If the field is validated in full with **matches()**, both patterns check length, yet only the first forbids commas.
 
-Khi dùng **[^,]**, nhớ rằng lớp phủ định này vẫn có thể chứa xuống dòng. Nếu dữ liệu bắt buộc nằm trên một dòng, loại trừ thêm **\r**, **\n** bằng lớp ký tự tương ứng (trong Java String literal phải escape dấu gạch chéo ngược đúng cách).
+When using **[^,]**, remember this negated class can still match newlines. If data must stay on a single line, exclude **\r** and **\n** via the character class as well (escaping backslashes properly in a Java String literal).
 
-### 8.4. Tách parsing có cấu trúc khỏi regex
+### 8.4. Separate Structured Parsing from Regex
 
-Regex rất hữu ích để nhận dạng đoạn tuyến tính đơn giản, nhưng không nên cố xử lý hoàn chỉnh HTML, XML, JSON hoặc cú pháp lồng sâu bằng một mẫu **<.*?>** hay cấu trúc tương tự. Trong trường hợp đó, parser chuyên dụng sẽ kiểm soát cấu trúc tốt hơn và thường cho thông báo lỗi rõ hơn.
+Regex is great for recognizing simple linear segments, but you should not try to fully parse HTML, XML, JSON, or deeply nested syntax with a pattern like **<.*?>** or similar constructs. In such cases, a dedicated parser controls structure much better and typically gives clearer error messages.
 
-Với bài toán tìm một chuỗi cố định, API **String.contains()**, **indexOf()**, **startsWith()**, **endsWith()** có thể đơn giản và dễ dự đoán hơn regex. Với dữ liệu giới hạn rõ bằng một delimiter, cân nhắc parser hoặc thao tác chuỗi thay vì tạo regex có nhiều nhánh chồng lấn.
+For finding a fixed string, **String.contains()**, **indexOf()**, **startsWith()**, and **endsWith()** can be simpler and more predictable than regex. For data cleanly bounded by a delimiter, consider a parser or string operations instead of crafting a regex with many overlapping branches.
 
-## 9. Đầu vào không tin cậy và giới hạn tài nguyên
+## 9. Untrusted Inputs and Resource Limits
 
-Ngay cả regex đã được xem xét vẫn cần giới hạn input khi chạy trong dịch vụ:
+Even a reviewed regex still needs input limits when running inside a service:
 
-1. **Đặt giới hạn chiều dài input trước khi match.** Giới hạn phải xuất phát từ nghiệp vụ: chẳng hạn mã tài khoản không nên dài hàng nghìn ký tự. **String.length()** đo đơn vị UTF-16; nếu chính sách yêu cầu số Unicode code point hoặc byte, phải đo theo đúng đơn vị đó.
-2. **Không cho phép người dùng cung cấp regex tùy ý** nếu chỉ cần tìm chuỗi văn bản. Nếu input người dùng là **literal**, dùng **Pattern.quote(userText)**, hoặc thao tác chuỗi không qua regex. Regex do người dùng tự thiết kế cần kiểm soát riêng về độ phức tạp.
-3. **Tạo bộ test input gần khớp nhưng thất bại ở cuối**, các đoạn lặp dài, dấu phân cách bị thiếu, dữ liệu nhiều dòng và dữ liệu dài tới giới hạn hợp lệ. Test đúng ở input ngắn chưa chứng minh được an toàn.
-4. **Quan sát thời gian, CPU, tỉ lệ timeout của request** và hạn chế số tác vụ xử lý đồng thời nếu regex nằm trên đường xử lý truy cập từ bên ngoài.
-5. **Đừng nhầm giới hạn thời gian request với khả năng cắt ngang regex ngay lập tức.** Java **Matcher** không có tham số timeout riêng cho từng phép match; **Thread.interrupt()** hoặc **Future.cancel(true)** không phải bảo đảm chung rằng một phép regex đang chạy sẽ dừng đúng thời điểm. Nếu xử lý regex tùy ý không tin cậy, cần ranh giới cô lập và cơ chế kiểm soát tài nguyên thực sự, ngoài việc tối ưu mẫu.
+1. **Enforce input length limits before matching.** Limits should come from business rules: for instance, an account code should not be thousands of characters long. **String.length()** measures UTF-16 units; if policy requires Unicode code points or bytes, measure in that exact unit.
+2. **Do not allow users to supply arbitrary regexes** when only plain-text searching is needed. If user input is **literal**, use **Pattern.quote(userText)** or non-regex string operations. User-authored regexes require dedicated complexity controls.
+3. **Create test suites with near-matching inputs that fail at the end**, long repeated runs, missing delimiters, multiline inputs, and inputs right at the valid size limit. Passing tests on short inputs does not prove safety.
+4. **Monitor latency, CPU, and request timeout rates**, and cap concurrency if regex sits on an externally reachable execution path.
+5. **Do not confuse request timeouts with immediate regex interruption.** Java **Matcher** has no built-in per-match timeout parameter; **Thread.interrupt()** or **Future.cancel(true)** is not a general guarantee that a running regex match will stop on time. If processing untrusted arbitrary regexes, true isolation boundaries and resource controls are required in addition to pattern tuning.
 
-**Biên độ an toàn phải tính bằng dữ liệu xấu nhất dự kiến**, chứ không chỉ dựa trên tốc độ trên vài chuỗi thử nghiệm ngắn. Độ dài input có giới hạn là một lớp bảo vệ quan trọng, nhưng không biến mọi regex thành an toàn.
+**Safety margins must be calculated against the expected worst-case data**, not just speed on a few short test strings. Bounded input length is an important layer of defense, though it does not make every regex safe.
 
-### 9.1. Pattern.quote dùng cho literal
+### 9.1. Pattern.quote for Literals
 
 ~~~java
-String requested = "a.b"; // Người dùng muốn tìm chính xác dấu chấm
+String requested = "a.b"; // User wants to match a literal dot
 Pattern literal = Pattern.compile(Pattern.quote(requested));
 
 System.out.println(literal.matcher("x a.b y").find()); // true
 System.out.println(literal.matcher("x acb y").find()); // false
 ~~~
 
-Nếu không quote, dấu **.** trong regex mang nghĩa wildcard và có thể khiến **acb** được nhận nhầm. **Pattern.quote** giúp biểu diễn đúng literal; không phải giải pháp cho một regex phức tạp do lập trình viên tự viết.
+Without quoting, **.** in regex acts as a wildcard and can cause **acb** to match erroneously. **Pattern.quote** expresses literals accurately; it is not a fix for a complex developer-authored regex.
 
-### 9.2. Biên dịch lại Pattern không giải quyết backtracking
+### 9.2. Precompiling Pattern Does Not Solve Backtracking
 
-**Pattern** là đối tượng immutable, an toàn để nhiều luồng dùng chung; **Matcher** giữ trạng thái và không an toàn khi chia sẻ đồng thời. Biên dịch **Pattern** một lần rồi tạo Matcher mới cho từng input giúp tránh chi phí biên dịch lại, nhưng **không làm mất rủi ro backtracking của biểu thức**.
+**Pattern** is immutable and safe to share across multiple threads; **Matcher** holds state and is not safe to share concurrently. Compiling **Pattern** once and creating a new Matcher per input avoids recompilation cost, yet **does not eliminate an expression's backtracking risk**.
 
 ~~~java
 private static final Pattern CODE =
         Pattern.compile("[A-Z][A-Z0-9_]{2,15}");
 
-// Trong một phương thức xử lý từng yêu cầu:
+// Inside a method handling each request:
 boolean accepted = CODE.matcher(candidate).matches();
 ~~~
 
-Đoạn trên chỉ minh họa cách tái sử dụng Pattern; **candidate** cần là String đầu vào thực tế và lớp xử lý vẫn phải đặt giới hạn theo nghiệp vụ.
+The snippet above only illustrates Pattern reuse; **candidate** must be an actual input String and the handler layer must still enforce business limits.
 
-## 10. Đánh giá và kiểm thử hiệu năng có kiểm soát
+## 10. Controlled Performance Evaluation and Testing
 
-Đo thời gian là công cụ hỗ trợ, không nên dùng một con số đơn lẻ để khẳng định một regex không có ReDoS.
+Timing measurements are a supporting tool; never rely on a single timing number to claim a regex is free of ReDoS.
 
-Một quy trình kiểm tra hợp lý:
+A sound testing workflow:
 
-- Soạn nhóm **positive cases** (phải khớp) và **negative cases** (không được khớp) để bảo vệ ngữ nghĩa.
-- Xây các **near-miss cases** dài dần, nhất là chuỗi lặp nhiều lần rồi có ký tự phá hỏng tại cuối. Kiểm tra trên input nhỏ trước để tránh vô tình treo tiến trình thử nghiệm.
-- Theo dõi xu hướng thời gian khi tăng độ dài; nếu thời gian tăng đột biến trong khi input chỉ tăng nhẹ, xem lại các lượng từ lồng nhau, alternation chồng lấn hoặc lookaround phức tạp.
-- Chạy benchmark trong môi trường kiểm soát với giới hạn tài nguyên, warm-up JVM và nhiều lần đo; **System.nanoTime()** chỉ là phép đo thời gian, không có khả năng cắt phép match đang kẹt.
-- So sánh đồng thời **tập kết quả** của mẫu cũ và mẫu mới: tối ưu thành công khi vừa đúng nghiệp vụ vừa có đặc tính hiệu năng tốt hơn trên nhóm input đáng quan tâm.
+- Prepare **positive cases** (must match) and **negative cases** (must not match) to protect semantics.
+- Build **near-miss cases** of increasing length, especially long repeated sequences with a breaking character at the end. Test on small inputs first to avoid accidentally hanging the test runner.
+- Watch the timing trend as length grows; if time spikes sharply while input grows only slightly, inspect nested quantifiers, overlapping alternation, or complex lookarounds.
+- Run benchmarks in a controlled environment with resource caps, JVM warm-up, and multiple iterations; **System.nanoTime()** only measures elapsed time and cannot abort a stuck match.
+- Compare the **result sets** of old and new patterns side by side: an optimization succeeds only when it is both semantically faithful and exhibits better performance across inputs of interest.
 
-Không đưa mẫu khả nghi vào endpoint công khai để đo trực tiếp và không sử dụng input dài nguy hiểm trong ví dụ học cơ bản. Một regex gây treo một thread trên dữ liệu thử không chứng minh được JVM “lỗi”; nó cho thấy cần thiết kế lại mẫu và giới hạn tài nguyên.
+Do not deploy suspicious patterns straight to public endpoints to test live, and do not use dangerously long inputs in basic learning examples. A regex hanging a thread on test data does not prove a JVM "bug"; it shows the pattern needs redesign and resource limits.
 
-## 11. Các lỗi phổ biến
+## 11. Common Mistakes
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng **.*** để “bắt mọi thứ” | Nuốt qua nhiều dấu phân cách hoặc phần không mong muốn | Dùng lớp ký tự cụ thể như **[^,]* **, giới hạn độ dài |
-| Dùng **find()** để xác thực toàn chuỗi | Chấp nhận input có đoạn con hợp lệ nhưng toàn bộ không hợp lệ | Dùng **matches()** |
-| Cho rằng **.*?** luôn nhanh | Vẫn có thể mở rộng và backtrack | Thu hẹp lớp ký tự và loại bỏ nhánh mơ hồ |
-| Lặp chồng **(a+)+** hoặc alternation chồng **(a|aa)+** | Nhiều đường phân tích khi near-miss | Viết lại thành **a+** khi cùng ngữ nghĩa |
-| Chuyển toàn bộ **+** sang **++** | Loại bỏ các kết quả vốn hợp lệ | Chỉ dùng possessive khi chứng minh không cần trả ký tự |
-| Quên dấu phân cách/độ dài | Regex khớp rộng, dữ liệu vượt kỳ vọng | Ràng buộc biên và kiểm tra chiều dài input |
-| Ghép thẳng input người dùng vào regex | Metacharacter làm đổi ý nghĩa mẫu | Dùng **Pattern.quote** nếu input là literal |
-| Dựa vào timeout request để chặn regex đang chạy | Có thể vẫn chiếm tài nguyên sau khi request hết hạn | Thiết kế regex an toàn và có giới hạn tài nguyên phù hợp |
-| Chỉ test các chuỗi khớp | Không phát hiện tình huống quay lui khi thất bại | Test input near-miss và chiều dài tăng dần |
+| Using **.*** to "match anything" | Swallows across multiple delimiters or unintended parts | Use a specific character class like **[^,]* ** and length bounds |
+| Using **find()** to validate a full string | Accepts inputs with a valid substring even when the whole string is invalid | Use **matches()** |
+| Assuming **.*?** is always fast | Can still expand and backtrack | Narrow character classes and eliminate ambiguous branches |
+| Nested loops **(a+)+** or overlapping alternation **(a|aa)+** | Many parse paths on near-misses | Rewrite as **a+** when semantically equivalent |
+| Converting all **+** to **++** | Rejects matches that were actually valid | Only use possessive when proven no character return is needed |
+| Forgetting delimiters/length bounds | Regex overmatches and data exceeds expectations | Constrain boundaries and check input length |
+| Concatenating user input directly into regex | Metacharacters alter pattern meaning | Use **Pattern.quote** if the input is literal |
+| Relying on request timeouts to stop running regexes | May keep consuming CPU after request expiration | Design safe regexes and apply appropriate resource limits |
+| Testing only matching strings | Misses backtracking on failure paths | Test near-miss inputs with increasing lengths |
 
-## 12. Checklist chọn mẫu trước khi đưa vào chương trình
+## 12. Checklist Before Putting a Pattern into Production
 
-- [ ] Mình đã định nghĩa rõ đầu vào hợp lệ, bao gồm chuỗi rỗng và ký tự Unicode nếu liên quan?
-- [ ] Mình dùng **matches()**, **lookingAt()** hay **find()** phù hợp phạm vi yêu cầu?
-- [ ] Có thể thay **.*** hoặc **.+** bằng lớp ký tự cụ thể, dấu phân cách và độ dài có biên?
-- [ ] Các nhánh alternation có chồng lấn không? Có lượng từ lồng nhau cùng ăn một loại ký tự không?
-- [ ] Nếu dùng possessive hoặc atomic group, đã kiểm tra không làm mất trường hợp khớp hợp lệ?
-- [ ] Đã test input gần đúng nhưng thất bại tại cuối và input sát giới hạn kích thước?
-- [ ] Đã đặt giới hạn đầu vào và xem xét cách bảo vệ CPU/thread khi input không tin cậy?
-- [ ] Nếu dữ liệu có cấu trúc lồng nhau, parser chuyên dụng có phù hợp hơn?
+- [ ] Have I clearly defined valid inputs, including empty strings and Unicode characters if relevant?
+- [ ] Am I using **matches()**, **lookingAt()**, or **find()** appropriately for the scope?
+- [ ] Can **.*** or **.+** be replaced by specific character classes, delimiters, and bounded lengths?
+- [ ] Do alternation branches overlap? Are there nested quantifiers consuming the same character type?
+- [ ] If using possessive quantifiers or atomic groups, have I verified they do not break valid matches?
+- [ ] Have I tested near-matching inputs that fail at the end and inputs at the size limit?
+- [ ] Have I enforced input bounds and considered CPU/thread protection for untrusted inputs?
+- [ ] If the data has nested structure, is a dedicated parser more appropriate?
 
-**Ghi nhớ:** chọn mẫu **cụ thể về ký tự, giới hạn, dấu phân cách và điểm bắt đầu/kết thúc**. Hạn chế nhiều cách phân tích cùng một chuỗi; khi cần hiệu năng tốt, **đơn giản hóa ngữ pháp trước, dùng possessive/atomic đúng chỗ sau, rồi kiểm chứng trên dữ liệu đúng và dữ liệu xấu**.
+**Takeaway:** choose patterns that are **specific about characters, bounds, delimiters, and start/end points**. Minimize multiple ways to parse the same string; when high performance is needed, **simplify the grammar first, apply possessive/atomic constructs carefully second, and verify on both valid and adversarial data**.
 
-### Tài liệu tham khảo
+### References
 
 - Java SE 21 API, **java.util.regex.Pattern**: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html
 - OWASP, **Regular expression Denial of Service (ReDoS)**: https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS

@@ -1,39 +1,39 @@
-# Lập danh sách package và dependency hiện tại
+# Inventorying Current Packages and Dependencies
 
-Trước khi chuyển một ứng dụng Java từ classpath sang Java Platform Module System (JPMS), việc quan trọng nhất không phải viết ngay `module-info.java`, mà là **biết chính xác ứng dụng đang có những package, artifact và dependency nào**. Nếu thiếu bước kiểm kê này, quá trình migration dễ vướng split package, thư viện không tương thích với module path, dependency xuất hiện chỉ tại runtime hoặc truy cập API nội bộ JDK.
+Before migrating a Java application from the classpath to the Java Platform Module System (JPMS), the most important step is not immediately writing `module-info.java`, but **knowing exactly which packages, artifacts, and dependencies the application currently has**. Without this inventory step, migration easily runs into split packages, libraries incompatible with the module path, dependencies that only surface at runtime, or access to JDK internal APIs.
 
-Bài học này hướng dẫn tạo một **baseline inventory** cho ứng dụng hiện tại: danh sách package, nguồn sở hữu package, dependency trực tiếp/bắc cầu, module name dự kiến, phạm vi sử dụng, dependency động và rủi ro cần xử lý. Sau khi kiểm kê, nhóm phát triển mới có đủ dữ liệu để quyết định ranh giới module và thứ tự chuyển đổi.
+This lesson guides you through creating a **baseline inventory** for the current application: a list of packages, package ownership, direct/transitive dependencies, expected module names, usage scopes, dynamic dependencies, and risks to address. Only after completing the inventory will the development team have enough data to decide module boundaries and migration order.
 
-## 1. Mục tiêu của bước kiểm kê
+## 1. Goals of the Inventory Step
 
-Kết quả nên trả lời được các câu hỏi sau:
+The results should answer the following questions:
 
-1. Ứng dụng hiện có những package Java nào?
-2. Mỗi package thuộc source set, module logic, JAR hay dependency nào?
-3. Những JAR nào đang nằm trên compile classpath, runtime classpath và test classpath?
-4. Artifact nào là modular JAR, automatic module hay thư viện chỉ dành cho classpath?
-5. Mã của ứng dụng đang phụ thuộc vào package/lớp của thư viện nào?
-6. Có package cùng tên nằm trong nhiều artifact không?
-7. Có dependency vào package nội bộ của JDK, ví dụ `sun.*` hoặc `jdk.internal.*`, không?
-8. Có reflection, `ServiceLoader`, JNI, serialization hoặc class loading động không?
-9. Dependency nào thuộc API công khai, dependency nào chỉ dùng trong implementation?
-10. Nếu chia module, ranh giới package/module và quan hệ `requires` dự kiến là gì?
+1. Which Java packages does the application currently contain?
+2. Which source set, logical module, JAR, or dependency does each package belong to?
+3. Which JARs are on the compile classpath, runtime classpath, and test classpath?
+4. Which artifacts are modular JARs, automatic modules, or classpath-only libraries?
+5. Which library packages/classes does the application code depend on?
+6. Are there packages with the same name located in multiple artifacts?
+7. Are there dependencies on JDK internal packages, such as `sun.*` or `jdk.internal.*`?
+8. Is there reflection, `ServiceLoader`, JNI, serialization, or dynamic class loading?
+9. Which dependencies belong to the public API, and which are used only in the implementation?
+10. If split into modules, what are the expected package/module boundaries and `requires` relationships?
 
-Không nên xem inventory chỉ là danh sách file `.jar`. Một JAR có thể chứa nhiều package, một package có thể bị chia giữa nhiều JAR và một dependency có thể chỉ xuất hiện qua cấu hình runtime, service provider hoặc reflection.
+Do not treat the inventory as merely a list of `.jar` files. A single JAR can contain many packages, a single package can be split across multiple JARs, and a dependency can appear only via runtime configuration, service providers, or reflection.
 
-## 2. Xác định phạm vi dự án và phiên bản Java
+## 2. Defining Project Scope and Java Version
 
-Trước tiên, ghi nhận thông tin nền:
+First, record background information:
 
-- Tên ứng dụng hoặc repository, nhánh/commit đang kiểm kê.
-- JDK dùng để build và JDK dùng để chạy trong môi trường thực tế.
-- Build tool và phiên bản, ví dụ Maven hoặc Gradle.
-- Danh sách subproject/submodule của build.
-- Các source set: main, test, integrationTest, generated sources.
-- Các môi trường chạy: development, CI, container, server, desktop.
-- Kiến trúc đóng gói: runnable JAR, WAR, EAR, thư mục `lib/`, fat/uber JAR hay native launcher.
+- Application or repository name, and the branch/commit being inventoried.
+- JDK used to build and JDK used to run in the actual environment.
+- Build tool and version, such as Maven or Gradle.
+- List of build subprojects/submodules.
+- Source sets: main, test, integrationTest, generated sources.
+- Execution environments: development, CI, container, server, desktop.
+- Packaging architecture: runnable JAR, WAR, EAR, `lib/` directory, fat/uber JAR, or native launcher.
 
-Ví dụ ghi nhận:
+Example record:
 
 ```text
 Project: inventory-service
@@ -46,24 +46,24 @@ Execution: java -cp ... com.example.Main
 Target: migrate to named modules
 ```
 
-Thông tin này giúp các lần chạy công cụ có thể lặp lại. Nếu một máy dùng JDK 17 nhưng CI dùng JDK 21, kết quả phân tích dependency vào JDK modules hoặc multi-release JAR có thể khác nhau.
+This information makes tool runs repeatable. If one machine uses JDK 17 while CI uses JDK 21, the analysis of dependencies on JDK modules or multi-release JARs can differ.
 
-**Chỉ kiểm kê trong đúng cấu hình đang sử dụng:** với một hệ thống phức tạp, có thể cần bản inventory riêng cho runtime production và test runtime.
+**Inventory in the exact configuration actually in use:** for a complex system, separate inventories may be needed for the production runtime and the test runtime.
 
-## 3. Phân biệt artifact, package, class và module
+## 3. Distinguishing Artifacts, Packages, Classes, and Modules
 
-Bốn khái niệm không đồng nghĩa:
+These four concepts are not synonymous:
 
-| Đơn vị | Ví dụ | Cần ghi nhận |
+| Unit | Example | What to record |
 |---|---|---|
-| Artifact | `logging-core-2.0.jar` | File, tọa độ Maven, phiên bản, nơi lấy |
-| Package | `com.example.logging.api` | Tập lớp cùng package, chủ sở hữu |
-| Class | `com.example.logging.api.Logger` | Tham chiếu thực tế từ bytecode |
-| Module | `com.example.logging` | Tên trong descriptor hoặc automatic module name |
+| Artifact | `logging-core-2.0.jar` | File, Maven coordinates, version, origin |
+| Package | `com.example.logging.api` | Set of classes in the same package, owner |
+| Class | `com.example.logging.api.Logger` | Actual references from bytecode |
+| Module | `com.example.logging` | Name in descriptor or automatic module name |
 
-Một artifact có thể chứa nhiều package. Một module có thể được đóng gói thành modular JAR, hoặc tồn tại dạng thư mục exploded module. Package Java không tự biến thành module; quá trình migration cần chủ động thiết kế đơn vị module chứa các package đó.
+One artifact can contain multiple packages. One module can be packaged as a modular JAR or exist as an exploded module directory. Java packages do not automatically become modules; migration requires intentionally designing the module units that hold those packages.
 
-Ví dụ:
+Example:
 
 ```text
 src/main/java/
@@ -75,53 +75,53 @@ src/main/java/
     └── util/
 ```
 
-Không thể kết luận rằng `com.example.catalog` là module chỉ vì các package cùng prefix. Cần xác định dependency giữa các package, tính độc lập và API được công khai trước khi chọn ranh giới module.
+You cannot conclude that `com.example.catalog` is a module just because packages share a prefix. You must determine inter-package dependencies, independence, and exposed APIs before choosing module boundaries.
 
-## 4. Liệt kê package từ source code
+## 4. Listing Packages from Source Code
 
-Với source Java, có thể tìm khai báo package:
+For Java source, you can search for package declarations:
 
 ```java
 package com.example.catalog.api;
 ```
 
-Tùy hệ điều hành, dùng IDE, lệnh tìm kiếm hoặc script để thu thập các dòng `package` từ những file `.java`. Ví dụ trên hệ thống có `grep`:
+Depending on the OS, use an IDE, search command, or script to collect `package` lines from `.java` files. For example, on a system with `grep`:
 
 ```shell
 grep -R "^package " src/main/java --include="*.java"
 ```
 
-Nếu dùng PowerShell:
+If using PowerShell:
 
 ```powershell
 Get-ChildItem src/main/java -Recurse -Filter *.java |
   Select-String -Pattern '^\s*package\s+'
 ```
 
-Kết quả thô cần được chuẩn hóa: bỏ dấu chấm phẩy, bỏ trùng, tách package với đường dẫn file và source set.
+The raw output should be normalized: strip semicolons, deduplicate, and separate packages by file path and source set.
 
-Một bảng hữu ích:
+A helpful table:
 
-| Package | Source set | Thư mục | Nhóm chức năng | API/implementation |
+| Package | Source set | Directory | Functional group | API/implementation |
 |---|---|---|---|---|
 | `com.example.catalog.api` | main | `src/main/java` | Catalog contract | API |
 | `com.example.catalog.internal` | main | `src/main/java` | Catalog implementation | Internal |
 | `com.example.persistence` | main | `src/main/java` | Database adapter | Implementation |
 | `com.example.catalog.test` | test | `src/test/java` | Unit tests | Test-only |
 
-Không gộp package từ main và test mà không đánh dấu source set. Nhiều dự án có test class nằm trong cùng package với mã production để truy cập các thành viên package-private; khi chuyển sang JPMS, đây là một điểm thiết kế cần chú ý.
+Do not merge packages from main and test without marking the source set. Many projects place test classes in the same package as production code to access package-private members; when migrating to JPMS, this is a design point that needs attention.
 
-## 5. Liệt kê package từ JAR và bytecode
+## 5. Listing Packages from JARs and Bytecode
 
-Đối với dependency bên thứ ba, package không nằm trong source repository mà nằm trong artifact đã biên dịch.
+For third-party dependencies, packages do not live in your source repository but in compiled artifacts.
 
-Xem nội dung JAR:
+Inspect JAR contents:
 
 ```shell
 jar --list --file libs/catalog-library.jar
 ```
 
-Đầu ra có thể chứa:
+The output might contain:
 
 ```text
 META-INF/
@@ -130,50 +130,50 @@ com/vendor/catalog/Api.class
 com/vendor/catalog/internal/Impl.class
 ```
 
-Từ đường dẫn class có thể suy ra:
+From the class paths, you can derive:
 
 ```text
 com.vendor.catalog
 com.vendor.catalog.internal
 ```
 
-Lưu ý khi kiểm kê:
+Notes when inventorying:
 
-- Không tính `module-info.class` là class thuộc package thông thường.
-- Một JAR có thể có default-package classes (không có khai báo package), vốn không phù hợp với explicit named module.
-- Các tệp trong `META-INF/services` thể hiện service configuration truyền thống, cần ghi riêng.
-- Multi-release JAR có thể có lớp ở `META-INF/versions/<n>/`, nên cần xét phiên bản JDK mục tiêu.
-- Fat JAR hoặc shaded JAR có thể chứa nhiều thư viện đã gộp; cần nhận diện package theo nội dung thực tế, không chỉ tên artifact.
-- Resource folder không đồng nghĩa với package Java; danh sách package nên dựa chủ yếu trên class metadata và cấu trúc bytecode.
+- Do not count `module-info.class` as a class belonging to a regular package.
+- A JAR might contain default-package classes (no package declaration), which are incompatible with explicit named modules.
+- Files in `META-INF/services` represent traditional service configuration and should be recorded separately.
+- Multi-release JARs may have classes under `META-INF/versions/<n>/`, so consider the target JDK version.
+- Fat JARs or shaded JARs may contain multiple merged libraries; identify packages by actual contents, not just artifact name.
+- Resource folders are not synonymous with Java packages; the package list should primarily rely on class metadata and bytecode structure.
 
-Nếu có thể, xuất một danh sách unique `package → artifact`, rồi đánh dấu package xuất hiện trong nhiều artifact để phát hiện split package sớm.
+If possible, export a unique `package → artifact` list, and flag packages that appear in multiple artifacts to catch split packages early.
 
-## 6. Lấy dependency graph từ Maven
+## 6. Obtaining the Dependency Graph from Maven
 
-Với dự án Maven, dependency được khai báo trong `pom.xml`, nhưng kết quả thực tế còn chịu dependency bắc cầu, scope và dependency management.
+In Maven projects, dependencies are declared in `pom.xml`, but the actual result is also governed by transitive dependencies, scopes, and dependency management.
 
-Xem dependency tree:
+View the dependency tree:
 
 ```shell
 mvn dependency:tree
 ```
 
-Xuất ra file để lưu cùng inventory:
+Export to a file to store alongside the inventory:
 
 ```shell
 mvn dependency:tree -DoutputFile=dependency-tree.txt
 ```
 
-Cần ghi ít nhất:
+Record at least:
 
 - `groupId:artifactId:version`.
-- Scope: `compile`, `runtime`, `provided`, `test` hoặc scope khác.
-- Dependency trực tiếp hay bắc cầu.
-- Đường dẫn parent dependency đã kéo artifact vào build.
-- Có conflict/omission theo mediation hay không.
-- Phiên bản thực sự được chọn.
+- Scope: `compile`, `runtime`, `provided`, `test`, or other scopes.
+- Whether the dependency is direct or transitive.
+- The parent dependency path that pulled the artifact into the build.
+- Whether there are conflicts/omissions due to mediation.
+- The version actually selected.
 
-Ví dụ:
+Example:
 
 ```text
 com.example:inventory-service:1.0
@@ -183,15 +183,15 @@ com.example:inventory-service:1.0
 \- org.junit.jupiter:junit-jupiter:5.10:test
 ```
 
-Ví dụ chỉ minh họa. Tên và phiên bản thật phải lấy từ output của dự án.
+The example is illustrative only. Actual names and versions must come from your project's output.
 
-Trong JPMS, không phải dependency Maven nào cũng trở thành một `requires`. Ví dụ dependency chỉ phục vụ test không nhất thiết thuộc module descriptor production. Vì vậy, scope phải được giữ trong bảng inventory.
+In JPMS, not every Maven dependency becomes a `requires`. For example, test-only dependencies do not necessarily belong in the production module descriptor. Therefore, scopes must be preserved in the inventory table.
 
-## 7. Lấy dependency graph từ Gradle
+## 7. Obtaining the Dependency Graph from Gradle
 
-Gradle có thể đưa dependency khác nhau vào từng configuration, ví dụ `compileClasspath`, `runtimeClasspath`, `testRuntimeClasspath`.
+Gradle can place different dependencies into each configuration, such as `compileClasspath`, `runtimeClasspath`, and `testRuntimeClasspath`.
 
-Các lệnh hữu ích:
+Useful commands:
 
 ```shell
 ./gradlew dependencies --configuration compileClasspath
@@ -199,129 +199,129 @@ Các lệnh hữu ích:
 ./gradlew dependencies --configuration testRuntimeClasspath
 ```
 
-Trên Windows, dùng `gradlew.bat` nếu dự án có Gradle Wrapper.
+On Windows, use `gradlew.bat` if the project has a Gradle Wrapper.
 
-Khi cần giải thích một dependency xuất phát từ đâu:
+When you need to explain where a dependency comes from:
 
 ```shell
 ./gradlew dependencyInsight --dependency json-codec --configuration runtimeClasspath
 ```
 
-Lệnh `dependencyInsight` giúp hiểu phiên bản được chọn và nguyên nhân một artifact có mặt trong configuration.
+The `dependencyInsight` command helps explain the selected version and why an artifact is present in the configuration.
 
-Nên ghi inventory cho cả compile và runtime:
+Record the inventory for both compile and runtime:
 
 | Artifact | Compile | Runtime | Test | Direct/Transitive |
 |---|---|---|---|---|
-| `catalog-api.jar` | Có | Có | Có | Direct |
-| `jdbc-driver.jar` | Không/tuỳ cấu hình | Có | Có | Runtime |
-| `junit-jupiter.jar` | Không | Không | Có | Test |
-| `legacy-core.jar` | Có | Có | Có | Transitive |
+| `catalog-api.jar` | Yes | Yes | Yes | Direct |
+| `jdbc-driver.jar` | No/depends on config | Yes | Yes | Runtime |
+| `junit-jupiter.jar` | No | No | Yes | Test |
+| `legacy-core.jar` | Yes | Yes | Yes | Transitive |
 
-Một thư viện chỉ có ở runtime, ví dụ JDBC driver hoặc service provider, rất dễ bị bỏ sót nếu chỉ xem `compileClasspath`.
+A runtime-only library, such as a JDBC driver or service provider, is easily missed if you only inspect `compileClasspath`.
 
-## 8. Dùng jdeps để phân tích dependency từ bytecode
+## 8. Using jdeps to Analyze Dependencies from Bytecode
 
-`jdeps` là công cụ JDK đọc class/JAR và phân tích dependency tĩnh. Đây là nguồn dữ liệu khác với dependency tree của build tool:
+`jdeps` is a JDK tool that reads classes/JARs and analyzes static dependencies. It provides a different data source from the build tool's dependency tree:
 
-- Build tool cho biết artifact được cấu hình hoặc phân giải vào build.
-- `jdeps` cho biết bytecode thực sự tham chiếu tới các lớp/package/module nào mà công cụ có thể nhận diện.
+- The build tool tells you which artifacts are configured or resolved into the build.
+- `jdeps` tells you which classes/packages/modules the bytecode actually references that the tool can detect.
 
-Xem dependency theo package:
+View package-level dependencies:
 
 ```shell
 jdeps -verbose:package --class-path "libs/*" build/libs/inventory-service.jar
 ```
 
-Trên Windows, các dấu quote và wildcard cần phù hợp với shell; `--class-path` nhận đường dẫn phù hợp cho các dependency dạng classpath.
+On Windows, quotes and wildcards must suit the shell; `--class-path` accepts an appropriate path for classpath dependencies.
 
-Xem dependency ở mức module JDK:
+View JDK module-level dependencies:
 
 ```shell
 jdeps --list-deps build/libs/inventory-service.jar
 ```
 
-Ước lượng các module cần cho runtime image:
+Estimate modules needed for a runtime image:
 
 ```shell
 jdeps --print-module-deps build/libs/inventory-service.jar
 ```
 
-Nếu ứng dụng đã có explicit module và các dependency trên module path:
+If the application already has explicit modules and dependencies on the module path:
 
 ```shell
 jdeps --module-path mods --list-deps dist/com.example.app.jar
 ```
 
-Đối với multi-release JAR:
+For multi-release JARs:
 
 ```shell
 jdeps --multi-release 21 --class-path "libs/*" --list-deps build/libs/inventory-service.jar
 ```
 
-Phiên bản `21` chỉ là ví dụ; dùng phiên bản tương ứng với JDK mục tiêu.
+Version `21` is only an example; use the version matching your target JDK.
 
-**Không suy ra rằng jdeps phân tích đầy đủ runtime behavior.** Reflection, tên lớp lấy từ cấu hình, code generation, JNI và service loading có thể không để lại dependency tĩnh rõ ràng trong bytecode.
+**Do not assume jdeps fully analyzes runtime behavior.** Reflection, class names read from configuration, code generation, JNI, and service loading may leave no clear static dependency in bytecode.
 
-## 9. Kiểm tra dependency vào JDK internal API
+## 9. Checking Dependencies on JDK Internal APIs
 
-Một bước migration quan trọng là phát hiện việc dùng API nội bộ JDK.
+An important migration step is detecting usage of JDK internal APIs.
 
-Lệnh:
+Command:
 
 ```shell
 jdeps --jdk-internals --class-path "libs/*" build/libs/inventory-service.jar
 ```
 
-Kết quả giúp nhận diện một số tham chiếu tới `sun.*`, `jdk.internal.*` hoặc API JDK nội bộ khác.
+The output helps identify references to `sun.*`, `jdk.internal.*`, or other internal JDK APIs.
 
-Nên ghi lại:
+You should record:
 
-- Class nào phụ thuộc API nội bộ.
-- Internal class/package nào được tham chiếu.
-- Mục đích sử dụng.
-- API chuẩn hoặc API JDK được tài liệu hóa có thể thay thế.
-- Thư viện hiện tại có phiên bản mới đã loại dependency nội bộ hay chưa.
+- Which class depends on the internal API.
+- Which internal class/package is referenced.
+- Purpose of usage.
+- Standard or documented JDK API that can replace it.
+- Whether the current library has a newer version that removes the internal dependency.
 
-Ví dụ một bảng:
+Example table:
 
-| Thành phần | Internal API | Nguyên nhân | Hướng xử lý |
+| Component | Internal API | Reason | Remediation |
 |---|---|---|---|
-| Legacy serializer | `sun.misc.Unsafe` | Truy cập bộ nhớ cấp thấp | Nâng thư viện hoặc chuyển sang `VarHandle`/API phù hợp |
-| Custom reflection | `java.lang` private fields | Cấu hình framework | Dùng public API, chỉnh framework hoặc `opens` có phạm vi |
-| Legacy encoding | API nội bộ | Base64 | `java.util.Base64` |
+| Legacy serializer | `sun.misc.Unsafe` | Low-level memory access | Upgrade library or switch to `VarHandle`/appropriate API |
+| Custom reflection | `java.lang` private fields | Framework configuration | Use public API, adjust framework, or scoped `opens` |
+| Legacy encoding | Internal API | Base64 | `java.util.Base64` |
 
-Không nên chỉ thêm `--add-exports` hoặc `--add-opens` để bỏ qua vấn đề mà không ghi nhận dependency rủi ro.
+Do not simply add `--add-exports` or `--add-opens` to ignore the issue without documenting the risky dependency.
 
-## 10. Xác định module name của các dependency
+## 10. Determining Module Names of Dependencies
 
-Một thư viện có thể thuộc một trong ba nhóm chính:
+A library can fall into one of three main groups:
 
-1. **Explicit named module:** chứa `module-info.class` và khai báo tên module rõ ràng.
-2. **Automatic module:** không có descriptor explicit nhưng được đặt trên module path, có tên từ `Automatic-Module-Name` hoặc từ tên JAR.
-3. **Classpath library:** hiện được nạp vào unnamed module từ classpath; có thể cần chiến lược migration riêng.
+1. **Explicit named module:** contains `module-info.class` and declares an explicit module name.
+2. **Automatic module:** has no explicit descriptor but is placed on the module path, getting its name from `Automatic-Module-Name` or the JAR filename.
+3. **Classpath library:** currently loaded into the unnamed module from the classpath; may require a separate migration strategy.
 
-Với từng JAR, dùng:
+For each JAR, run:
 
 ```shell
 jar --describe-module --file libs/catalog-library.jar
 ```
 
-Lệnh này giúp xem module name và thông tin descriptor mà công cụ JAR nhận diện được.
+This command displays the module name and descriptor details recognized by the `jar` tool.
 
-Ví dụ inventory:
+Example inventory:
 
-| Artifact | Module name | Loại | Package chính | Ghi chú |
+| Artifact | Module name | Type | Main packages | Notes |
 |---|---|---|---|---|
-| `catalog-api.jar` | `com.example.catalog.api` | Explicit | `com.example.catalog.api` | Có `module-info.class` |
-| `legacy-codec.jar` | `com.vendor.legacycodec` | Automatic | `com.vendor.codec` | Tên từ manifest |
-| `old-orm.jar` | Cần xác định | Classpath | `org.example.orm` | Có thể chưa chuyển được |
+| `catalog-api.jar` | `com.example.catalog.api` | Explicit | `com.example.catalog.api` | Has `module-info.class` |
+| `legacy-codec.jar` | `com.vendor.legacycodec` | Automatic | `com.vendor.codec` | Name from manifest |
+| `old-orm.jar` | TBD | Classpath | `org.example.orm` | May not be ready to migrate yet |
 
-Không đoán module name theo tọa độ Maven hoặc tên file. Với automatic module được suy ra từ filename, việc đổi tên JAR khi phát hành có thể làm tên module thay đổi; vì vậy cần kiểm tra cụ thể.
+Do not guess module names from Maven coordinates or filenames. For automatic modules whose names are derived from filenames, renaming the JAR at release time can change the module name; therefore, explicit verification is required.
 
-## 11. Phát hiện split package từ inventory
+## 11. Detecting Split Packages from the Inventory
 
-Split package là một tên package xuất hiện trong nhiều module/artifact. Ví dụ:
+A split package is a package name appearing in multiple modules/artifacts. Example:
 
 ```text
 first.jar:
@@ -331,50 +331,50 @@ second.jar:
     com/example/shared/Second.class
 ```
 
-Dù hai JAR không chứa cùng class, cả hai đều chứa package `com.example.shared`.
+Even though the two JARs do not contain the same class, both contain the `com.example.shared` package.
 
-Trên classpath, ứng dụng có thể vẫn chạy tùy cách class loader tìm class. Khi cả hai JAR trở thành named modules, module resolution hoặc layer definition có thể từ chối cấu hình.
+On the classpath, the application might still run depending on how the class loader locates classes. When both JARs become named modules, module resolution or layer definition may reject the configuration.
 
-Một bảng phát hiện:
+A detection table:
 
-| Package | Artifact A | Artifact B | Trạng thái |
+| Package | Artifact A | Artifact B | Status |
 |---|---|---|---|
 | `com.example.shared` | `first.jar` | `second.jar` | Split package |
-| `org.vendor.util` | `util-old.jar` | `util-new.jar` | Có thể là dependency trùng phiên bản |
-| `com.example.api` | `api.jar` | `impl.jar` | Cần xác định ownership |
+| `org.vendor.util` | `util-old.jar` | `util-new.jar` | Possibly duplicate dependency versions |
+| `com.example.api` | `api.jar` | `impl.jar` | Need to clarify ownership |
 
-Sau khi tìm bằng danh sách package, có thể kiểm tra module path:
+After searching via the package list, you can validate the module path:
 
 ```shell
 java --module-path mods --validate-modules
 ```
 
-Và quan sát quá trình resolution của ứng dụng:
+And observe the application's resolution process:
 
 ```shell
 java --show-module-resolution --dry-run --module-path mods -m com.example.app/com.example.app.Main
 ```
 
-Hai lệnh này hỗ trợ đánh giá module graph thực tế. Chúng không thay thế việc kiểm kê package trong mọi JAR vì một module có thể nằm trên path nhưng chưa được phân giải trong một lần chạy cụ thể.
+These two commands help evaluate the actual module graph. They do not replace inventorying packages across all JARs because a module might sit on the path without being resolved in a specific run.
 
-## 12. Lập dependency matrix giữa các package
+## 12. Building a Package Dependency Matrix
 
-Artifact dependency tree và module descriptor chưa đủ để quyết định ranh giới module. Cần biết package nào đang dùng package nào.
+An artifact dependency tree and module descriptors are not enough to decide module boundaries. You need to know which packages use which packages.
 
-Ví dụ:
+Example:
 
-| Package nguồn | Package đích | Mức sử dụng | Dự kiến |
+| Source package | Target package | Usage level | Plan |
 |---|---|---|---|
-| `com.example.app` | `com.example.catalog.api` | API công khai | `requires com.example.catalog` |
-| `com.example.catalog.internal` | `com.example.persistence` | Implementation | Cân nhắc tái cấu trúc |
+| `com.example.app` | `com.example.catalog.api` | Public API | `requires com.example.catalog` |
+| `com.example.catalog.internal` | `com.example.persistence` | Implementation | Consider refactoring |
 | `com.example.app` | `java.sql` | JDBC | `requires java.sql` |
-| `com.example.app` | `org.slf4j` | Logging | Xác định module name chính xác |
+| `com.example.app` | `org.slf4j` | Logging | Verify exact module name |
 
-Khi chuyển sang named module, một import Java không đồng nghĩa một `requires` mới, vì `requires` là quan hệ module → module. Nhiều package cùng thuộc một module chỉ cần một dependency ở mức module.
+When converting to named modules, one Java import does not mean one new `requires`, because `requires` is a module → module relationship. Multiple packages belonging to the same module only need a single module-level dependency.
 
-Tuy nhiên, dependency lộ trong API public có thể cần `requires transitive` nếu consumer đọc module hiện tại cũng cần đọc module chứa kiểu đó.
+However, a dependency exposed in a public API may need `requires transitive` if consumers reading the current module also need to read the module containing that type.
 
-Ví dụ:
+Example:
 
 ```java
 module com.example.catalog {
@@ -383,25 +383,25 @@ module com.example.catalog {
 }
 ```
 
-Nếu API catalog công khai dùng kiểu của money module, quan hệ transitive có thể phù hợp. Nếu money chỉ dùng trong implementation nội bộ, `requires` thông thường thường là lựa chọn tốt hơn.
+If the public catalog API uses types from the money module, a transitive dependency may be appropriate. If money is only used in the internal implementation, a regular `requires` is usually the better choice.
 
-## 13. Kiểm kê dependency động và reflection
+## 13. Inventorying Dynamic Dependencies and Reflection
 
-Phân tích dependency từ source hoặc bytecode không phát hiện hết mọi nhu cầu runtime. Cần tìm riêng các cơ chế nạp động:
+Dependency analysis from source or bytecode does not uncover all runtime needs. Dynamic loading mechanisms must be searched for separately:
 
-- `Class.forName("...")` với tên class dạng chuỗi.
+- `Class.forName("...")` with string-based class names.
 - `ClassLoader.loadClass(...)`.
 - Reflection: `getDeclaredField`, `getDeclaredMethod`, `setAccessible`.
 - `ServiceLoader.load(...)`.
-- Java SPI cũ qua `META-INF/services`.
-- JNI hoặc native library loading.
-- ORM, JSON serializer, dependency injection framework.
-- Dynamic proxy và bytecode generation.
-- Plugin nạp từ thư mục ngoài.
-- Resource lookup dựa trên class loader.
-- Java serialization có tên class trong dữ liệu persisted.
+- Legacy Java SPI via `META-INF/services`.
+- JNI or native library loading.
+- ORMs, JSON serializers, dependency injection frameworks.
+- Dynamic proxies and bytecode generation.
+- Plugins loaded from external directories.
+- Class loader–based resource lookups.
+- Java serialization with class names in persisted data.
 
-Ví dụ:
+Example:
 
 ```java
 Class<?> type = Class.forName(
@@ -409,24 +409,24 @@ Class<?> type = Class.forName(
 );
 ```
 
-Tên lớp dạng chuỗi có thể không được `jdeps` nhận diện là dependency tĩnh như import trực tiếp.
+String-based class names may not be detected by `jdeps` as static dependencies the way direct imports are.
 
-Một bảng nên có:
+A table should contain:
 
-| Cơ chế | Vị trí | Dependency runtime | Rủi ro JPMS |
+| Mechanism | Location | Runtime dependency | JPMS risk |
 |---|---|---|---|
-| Reflection | `JsonMapper` | Domain model private fields | Có thể cần `opens` |
+| Reflection | `JsonMapper` | Domain model private fields | May need `opens` |
 | ServiceLoader | `CodecFactory` | Provider modules | `uses`/`provides` |
-| JNI | `NativeBridge` | Native library | Packaging và môi trường |
+| JNI | `NativeBridge` | Native library | Packaging and environment |
 | Class.forName | `DriverFactory` | JDBC driver | Dynamic discovery |
 
-Điều này giúp team tránh tình huống app biên dịch thành công nhưng thất bại khi runtime framework cố truy cập private member hoặc load provider.
+This helps the team avoid scenarios where the app compiles successfully but fails at runtime when a framework tries to access private members or load providers.
 
-## 14. Phân biệt compile, runtime và test dependency
+## 14. Distinguishing Compile, Runtime, and Test Dependencies
 
-Một phần quan trọng của inventory là **scope**. Không phải dependency nào có trong test cũng cần được export hoặc đưa vào module graph production.
+An important part of the inventory is **scope**. Not every dependency present in tests needs to be exported or brought into the production module graph.
 
-Ví dụ:
+Example:
 
 ```text
 compile:
@@ -444,49 +444,49 @@ test:
   testcontainers.jar
 ```
 
-Khi tạo `module-info.java`, module production nên phản ánh dependency production. Các thư viện test có thể cần chiến lược riêng: module test riêng, test trên module path, `--patch-module` hoặc cấu hình `--add-opens` phù hợp.
+When creating `module-info.java`, the production module should reflect production dependencies. Test libraries may need a separate strategy: separate test modules, tests on the module path, `--patch-module`, or appropriate `--add-opens` configuration.
 
-Nếu không ghi scope, việc thêm tất cả dependency vào module descriptor có thể làm module graph phình to và tăng độ ghép nối.
+If scope is not recorded, adding all dependencies into the module descriptor can bloat the module graph and increase coupling.
 
-## 15. Phân loại dependency theo mức rủi ro migration
+## 15. Classifying Dependencies by Migration Risk
 
-Không phải mọi dependency đều khó chuyển sang JPMS như nhau. Có thể phân nhóm:
+Not all dependencies are equally difficult to migrate to JPMS. They can be grouped as:
 
-| Nhóm | Dấu hiệu | Độ ưu tiên |
+| Group | Signs | Priority |
 |---|---|---|
-| Thấp | Explicit named module, API export rõ | Dễ kiểm tra và chuyển |
-| Trung bình | Automatic module, tên ổn định, không split package | Cần xác nhận module graph |
-| Cao | Split package, classpath-only dependency | Cần thiết kế lại hoặc nâng thư viện |
-| Cao | JDK internal API, deep reflection | Cần thay API hoặc cấu hình access |
-| Cao | Plugin loading động, nhiều class loader | Cần thử nghiệm ModuleLayer/ServiceLoader |
+| Low | Explicit named module, clear API exports | Easy to verify and migrate |
+| Medium | Automatic module, stable name, no split packages | Need to verify module graph |
+| High | Split packages, classpath-only dependency | Need redesign or library upgrade |
+| High | JDK internal API, deep reflection | Need API replacement or access configuration |
+| High | Dynamic plugin loading, multiple class loaders | Need ModuleLayer/ServiceLoader testing |
 
-Mức rủi ro còn phụ thuộc ứng dụng sử dụng thư viện như thế nào. Một thư viện automatic module có thể hoạt động ổn định trong môi trường cụ thể; một explicit module vẫn có thể gây vấn đề nếu dependency/API không phù hợp.
+Risk levels also depend on how the application uses the library. An automatic module library may run reliably in a specific environment; an explicit module can still cause problems if its dependencies/API are unsuitable.
 
-Đây là bảng để hoạch định công việc, không phải kết luận tương thích chỉ dựa vào tên hoặc định dạng artifact.
+This table is for planning work, not a compatibility verdict based solely on artifact names or formats.
 
-## 16. Mẫu bảng inventory tổng hợp
+## 16. Consolidated Inventory Table Template
 
-Một bảng tối thiểu có thể gồm các cột:
+A minimal table can include the following columns:
 
-| Cột | Mục đích |
+| Column | Purpose |
 |---|---|
-| `artifact` | Tên file hoặc tọa độ Maven/Gradle |
-| `version` | Phiên bản thực tế được resolve |
+| `artifact` | Filename or Maven/Gradle coordinates |
+| `version` | Actual resolved version |
 | `scope` | Compile, runtime, test... |
-| `module_name` | Tên module xác minh từ descriptor |
+| `module_name` | Module name verified from descriptor |
 | `module_type` | Explicit, automatic, classpath-only |
-| `packages` | Danh sách package artifact sở hữu |
-| `depends_on` | Artifact/module khác được tham chiếu |
-| `exports_needed` | Package cần công khai cho module khác |
-| `reflection` | Có truy cập reflection hay không |
-| `services` | `uses`, `provides`, SPI file |
-| `jdk_internals` | Có phụ thuộc nội bộ JDK hay không |
-| `split_package` | Package trùng với artifact khác |
-| `migration_action` | Giữ, nâng version, tách/gộp, relocate |
-| `owner` | Nhóm hoặc người chịu trách nhiệm |
-| `evidence` | Lệnh/file đã xác nhận thông tin |
+| `packages` | List of packages owned by the artifact |
+| `depends_on` | Other artifacts/modules referenced |
+| `exports_needed` | Packages that need to be exposed to other modules |
+| `reflection` | Whether reflection access exists |
+| `services` | `uses`, `provides`, SPI files |
+| `jdk_internals` | Whether there are dependencies on JDK internals |
+| `split_package` | Packages overlapping with another artifact |
+| `migration_action` | Keep, upgrade version, split/merge, relocate |
+| `owner` | Team or person responsible |
+| `evidence` | Commands/files that confirmed the information |
 
-Ví dụ vài dòng dữ liệu:
+Example data rows:
 
 ```text
 artifact,scope,module_name,module_type,migration_action
@@ -495,36 +495,36 @@ legacy-codec.jar,runtime,com.vendor.codec,automatic,verify
 legacy-orm.jar,runtime,unknown,classpath-only,upgrade
 ```
 
-Đây là dữ liệu minh họa, không phải kết quả của một dự án cụ thể.
+This is illustrative data, not the output of a specific project.
 
-Tài liệu inventory nên lưu cả bằng chứng: command line dùng để tạo dữ liệu, đầu ra `jdeps`, dependency tree và JDK version. Khi dependency thay đổi, team có thể chạy lại và so sánh với baseline cũ.
+The inventory document should also save evidence: command lines used to generate data, `jdeps` output, dependency trees, and JDK versions. When dependencies change, the team can re-run and compare against the old baseline.
 
-## 17. Từ package inventory sang module boundaries
+## 17. From Package Inventory to Module Boundaries
 
-Sau khi có inventory, có thể thiết kế module theo từng bước:
+Once the inventory is ready, you can design modules step by step:
 
-1. Nhóm các package thuộc cùng chức năng và có ownership rõ.
-2. Xác định package API sẽ được `exports`.
-3. Giữ implementation package không export trừ khi có lý do hợp lệ.
-4. Xác định dependency giữa các nhóm package để chuyển thành `requires`.
-5. Phát hiện dependency vòng giữa các module dự kiến.
-6. Đánh dấu dependency xuất hiện trong public API có thể cần `requires transitive`.
-7. Thiết kế service interface và `uses`/`provides` cho implementation thay thế được.
-8. Ghi lại các package cần `opens` cho framework reflection.
-9. Xử lý split package trước khi phân chia thành các named modules.
-10. Chuyển đổi theo từng module, kiểm tra compile, runtime và test sau mỗi bước.
+1. Group packages belonging to the same functionality with clear ownership.
+2. Identify API packages that will be in `exports`.
+3. Keep implementation packages unexported unless there is a valid reason.
+4. Identify dependencies between package groups to translate into `requires`.
+5. Detect circular dependencies between planned modules.
+6. Mark dependencies appearing in public APIs that may need `requires transitive`.
+7. Design service interfaces and `uses`/`provides` for replaceable implementations.
+8. Record packages needing `opens` for framework reflection.
+9. Resolve split packages before splitting into named modules.
+10. Migrate module by module, verifying compile, runtime, and tests after each step.
 
-Không cần module hóa mọi package thành một module riêng. Module boundary nên phản ánh hợp đồng và khả năng tiến hóa độc lập của các thành phần, không chỉ cấu trúc thư mục.
+There is no need to modularize every single package into its own module. Module boundaries should reflect contracts and independent evolution capability of components, not merely directory layout.
 
-## 18. Ví dụ phân tích từ hệ thống classpath
+## 18. Example Analysis from a Classpath System
 
-Giả sử một ứng dụng hiện chạy bằng:
+Suppose an application currently runs via:
 
 ```shell
 java -cp "app.jar:lib/*" com.example.app.Main
 ```
 
-Các thư viện gồm:
+The libraries consist of:
 
 ```text
 app.jar
@@ -534,16 +534,16 @@ lib/json-codec.jar
 lib/jdbc-driver.jar
 ```
 
-Bước kiểm kê cho thấy:
+The inventory step reveals:
 
-- `app.jar` chứa `com.example.app`.
-- `catalog-api.jar` chứa `com.example.catalog.api`.
-- `catalog-impl.jar` chứa `com.example.catalog.internal`.
-- `json-codec.jar` chứa JSON provider và metadata SPI.
-- `jdbc-driver.jar` chỉ cần ở runtime.
-- Một số domain model bị framework truy cập qua reflection.
+- `app.jar` contains `com.example.app`.
+- `catalog-api.jar` contains `com.example.catalog.api`.
+- `catalog-impl.jar` contains `com.example.catalog.internal`.
+- `json-codec.jar` contains JSON providers and SPI metadata.
+- `jdbc-driver.jar` is only needed at runtime.
+- Some domain models are accessed by a framework via reflection.
 
-Từ đó, kế hoạch module hóa ban đầu có thể là:
+From there, an initial modularization plan might be:
 
 ```java
 module com.example.catalog {
@@ -556,67 +556,67 @@ module com.example.app {
     requires com.example.catalog;
     requires java.sql;
 
-    // Các service dependency cần được xem xét riêng.
+    // Service dependencies need to be considered separately.
 }
 ```
 
-Tuy nhiên, hai JAR catalog có thực sự hợp thành một module hay không cần quyết định theo package ownership, cách build và dependency. Không nên viết descriptor trên chỉ vì hai artifact có tên giống nhau.
+However, whether the two catalog JARs truly combine into one module must be decided based on package ownership, build setup, and dependencies. Do not write the descriptors above solely because two artifacts share similar names.
 
-Nếu JSON provider nằm trong automatic module, tên module thực tế phải được kiểm tra trước khi khai báo dependency hoặc tổ chức service binding.
+If the JSON provider resides in an automatic module, the actual module name must be verified before declaring dependencies or organizing service bindings.
 
-## 19. Những sai lầm thường gặp
+## 19. Common Mistakes
 
-**Chỉ đọc pom.xml hoặc build.gradle mà không xem dependency được resolve.**
+**Reading only pom.xml or build.gradle without checking resolved dependencies.**
 
-Build tool có dependency bắc cầu, dependency management và version mediation. Dùng `mvn dependency:tree` hoặc Gradle dependency reports để xác nhận bản thực tế.
+Build tools have transitive dependencies, dependency management, and version mediation. Use `mvn dependency:tree` or Gradle dependency reports to confirm the actual resolved versions.
 
-**Chỉ xem import trong source code.**
+**Looking only at imports in source code.**
 
-Code động, reflection, `ServiceLoader` hoặc thư viện runtime có thể không xuất hiện dưới dạng import. Cần ghi riêng dependency động.
+Dynamic code, reflection, `ServiceLoader`, or runtime libraries may not appear as imports. Record dynamic dependencies separately.
 
-**Dựa hoàn toàn vào jdeps.**
+**Relying solely on jdeps.**
 
-`jdeps` phân tích bytecode và không phát hiện đầy đủ reflection/dynamic loading. Cần đối chiếu dữ liệu build, runtime và kiểm thử.
+`jdeps` analyzes bytecode and does not fully detect reflection/dynamic loading. Cross-check with build, runtime, and test data.
 
-**Không kiểm kê package nội bộ của JAR.**
+**Failing to inventory internal packages of JARs.**
 
-Hai JAR có tên khác nhau vẫn có thể chứa cùng package. Split package chỉ lộ ra khi đếm package theo artifact.
+Two JARs with different names can still contain the same package. Split packages only surface when counting packages per artifact.
 
-**Nhầm tên package với module name.**
+**Confusing package names with module names.**
 
-Tên module có thể khác package, tên JAR và tọa độ Maven. Hãy kiểm tra descriptor.
+A module name can differ from packages, JAR names, and Maven coordinates. Check the descriptor.
 
-**Gộp test dependency vào production.**
+**Mixing test dependencies into production.**
 
-Khi chuyển sang JPMS, test setup có thể cần cấu hình riêng; không nên biến mọi dependency của test thành `requires` production.
+When migrating to JPMS, test setups may need separate configuration; do not turn every test dependency into a production `requires`.
 
-**Bỏ qua JDK version.**
+**Ignoring the JDK version.**
 
-Multi-release JAR, module JDK có sẵn và API nội bộ có thể thay đổi giữa các phiên bản Java. Inventory phải có JDK target.
+Multi-release JARs, built-in JDK modules, and internal APIs can change across Java versions. The inventory must specify the target JDK.
 
-## 20. Quy trình kiểm kê đề xuất
+## 20. Recommended Inventory Workflow
 
-Có thể thực hiện theo checklist:
+You can follow this checklist:
 
-1. **Chốt baseline:** commit, toolchain, JDK, môi trường và tập artifact.
-2. **Trích xuất build graph:** Maven dependency tree hoặc Gradle configurations.
-3. **Kiểm kê source packages:** tìm package declaration theo từng source set.
-4. **Kiểm kê JAR packages:** dùng `jar --list`, tính package → artifact.
-5. **Xác định module name:** dùng `jar --describe-module` cho từng JAR.
-6. **Phân tích bytecode:** chạy `jdeps` để lấy package/module dependencies.
-7. **Quét JDK internals:** chạy `jdeps --jdk-internals`.
-8. **Tìm dependency động:** reflection, JNI, service files, plugin registry, generated code.
-9. **Tìm split package:** so sánh danh sách package và kiểm tra module path.
-10. **Tách scope:** compile, runtime, test và những môi trường đặc biệt.
-11. **Lập migration matrix:** module dự kiến, dependency, exports, opens, services và rủi ro.
-12. **Lưu bằng chứng:** command line, output công cụ, phiên bản toolchain và ngày kiểm kê.
+1. **Lock the baseline:** commit, toolchain, JDK, environment, and artifact set.
+2. **Extract the build graph:** Maven dependency tree or Gradle configurations.
+3. **Inventory source packages:** search for package declarations per source set.
+4. **Inventory JAR packages:** use `jar --list`, compute package → artifact.
+5. **Determine module names:** run `jar --describe-module` for each JAR.
+6. **Analyze bytecode:** run `jdeps` to get package/module dependencies.
+7. **Scan JDK internals:** run `jdeps --jdk-internals`.
+8. **Find dynamic dependencies:** reflection, JNI, service files, plugin registries, generated code.
+9. **Find split packages:** compare package lists and inspect the module path.
+10. **Separate scopes:** compile, runtime, test, and special environments.
+11. **Build the migration matrix:** planned modules, dependencies, exports, opens, services, and risks.
+12. **Save evidence:** command lines, tool outputs, toolchain versions, and inventory date.
 
-Sau bước này, nhóm phát triển có thể xem xét module boundaries và chuyển từng phần sang `module-info.java` trên dữ liệu thực tế thay vì phỏng đoán.
+After this step, the development team can review module boundaries and incrementally migrate to `module-info.java` based on real data rather than guesswork.
 
-## Kết luận
+## Conclusion
 
-Lập danh sách package và dependency hiện tại là bước nền tảng khi migration sang JPMS. Cần kiểm kê ở nhiều cấp độ: source package, JAR package, dependency graph của build tool, dependency từ bytecode, module name và các cơ chế runtime động.
+Inventorying current packages and dependencies is the foundational step in migrating to JPMS. You need to inventory across multiple levels: source packages, JAR packages, the build tool's dependency graph, bytecode dependencies, module names, and dynamic runtime mechanisms.
 
-`mvn dependency:tree`, Gradle dependency reports, `jar --list`, `jar --describe-module`, `jdeps`, `java --validate-modules` và `--show-module-resolution` là những công cụ bổ trợ cho nhau. Không công cụ nào đơn lẻ cho thấy đầy đủ cấu trúc runtime của một ứng dụng lớn.
+`mvn dependency:tree`, Gradle dependency reports, `jar --list`, `jar --describe-module`, `jdeps`, `java --validate-modules`, and `--show-module-resolution` complement one another. No single tool alone reveals the complete runtime structure of a large application.
 
-Một inventory tốt phải cho biết package thuộc artifact nào, dependency đến từ đâu, scope nào sử dụng nó, module name có thật là gì, rủi ro split package/JDK internal API ra sao và lựa chọn migration tiếp theo. Khi có baseline đáng tin cậy, việc thiết kế `requires`, `exports`, `opens` và service binding sẽ có cơ sở rõ ràng, giảm rủi ro khi chuyển từ classpath sang module path.
+A good inventory must show which artifact owns which package, where each dependency comes from, which scope uses it, what the real module name is, what split package/JDK internal API risks exist, and what the next migration options are. With a reliable baseline, designing `requires`, `exports`, `opens`, and service bindings will have a clear foundation, reducing risks when transitioning from the classpath to the module path.

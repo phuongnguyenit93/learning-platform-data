@@ -1,10 +1,10 @@
-# Duplicate module name và lỗi resolution
+# Duplicate module names and resolution errors
 
-## 1. Tên module là định danh trong JPMS
+## 1. Module names as identifiers in JPMS
 
-Trong Java Platform Module System (JPMS), mỗi named module có một tên được khai báo trong module descriptor. Tên này được dùng để liên kết các chỉ thị requires, exports có giới hạn, opens, uses và provides giữa các module.
+In the Java Platform Module System (JPMS), each named module has a name declared in its module descriptor. This name is used to link requires, qualified exports, opens, uses, and provides directives across modules.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.orders {
@@ -12,31 +12,31 @@ module com.acme.orders {
 }
 ~~~
 
-Trong đó com.acme.orders và com.acme.customer.api là tên module. Tên module phải ổn định và duy nhất trong một cấu hình module đã được phân giải.
+Here, com.acme.orders and com.acme.customer.api are module names. Module names must be stable and unique within a resolved module configuration.
 
-Tên module khác với:
+A module name is distinct from:
 
-- Tên file JAR, ví dụ customer-api-2.1.jar.
-- Tọa độ dependency của Maven hoặc Gradle.
-- Tên package Java, ví dụ com.acme.customer.api.
-- Phiên bản thư viện, ví dụ 2.1.0.
+- A JAR filename, such as customer-api-2.1.jar.
+- Maven or Gradle dependency coordinates.
+- A Java package name, such as com.acme.customer.api.
+- A library version, such as 2.1.0.
 
-Một module có thể khai báo phiên bản trong descriptor, nhưng chỉ thị requires liên kết theo tên module; nó không phải cú pháp chọn một phiên bản dependency như Maven hoặc Gradle.
+A module can record a version in its descriptor, yet the requires directive links by module name; it is not syntax for selecting a dependency version like Maven or Gradle.
 
-Vì vậy, nếu hai artifact cùng khai báo tên module com.acme.customer.api, module system xem chúng là hai ứng viên cho cùng một định danh module, dù tên file hoặc phiên bản artifact khác nhau.
+Therefore, if two artifacts both declare the module name com.acme.customer.api, the module system treats them as two candidates for the same module identifier, even if their filenames or artifact versions differ.
 
-## 2. Duplicate module name xuất hiện từ đâu?
+## 2. Where do duplicate module names come from?
 
-Xung đột tên module thường xuất hiện trong các tình huống sau:
+Module name conflicts commonly arise in the following situations:
 
-- Hai phiên bản của cùng một thư viện cùng được đưa lên module path.
-- Hai JAR khác nhau khai báo cùng thuộc tính Automatic-Module-Name.
-- Hai JAR cũ có tên file sau chuẩn hóa tạo ra cùng tên automatic module.
-- Một thư viện được đóng gói thành cả modular JAR và exploded module, rồi cả hai cùng xuất hiện trong đường dẫn tìm kiếm.
-- Một dependency được đưa vào module path qua nhiều nhánh dependency hoặc qua cả thư mục ứng dụng và thư mục plugin.
-- Một bản JAR được copy vào nhiều thư mục cấu hình khác nhau, khiến module finder nhìn thấy nhiều candidate cùng tên.
+- Two versions of the same library are both placed on the module path.
+- Two different JARs declare the same Automatic-Module-Name attribute.
+- Two legacy JARs have filenames that normalize to the same automatic module name.
+- A library is packaged as both a modular JAR and an exploded module, and both appear on the search path.
+- A dependency is brought onto the module path via multiple dependency branches or via both the application directory and a plugin directory.
+- A JAR is copied into multiple configuration directories, causing the module finder to see multiple candidates with the same name.
 
-Ví dụ:
+Example:
 
 ~~~text
 project/
@@ -46,7 +46,7 @@ project/
 └── app/
 ~~~
 
-Nếu cả hai JAR khai báo:
+If both JARs declare:
 
 ~~~java
 module com.acme.customer.api {
@@ -54,13 +54,13 @@ module com.acme.customer.api {
 }
 ~~~
 
-thì tên module của chúng giống nhau dù version hoặc tên file khác nhau.
+then their module names are identical despite differing versions or filenames.
 
-Đối với JAR chưa có module-info.class, Java có thể dùng thuộc tính Automatic-Module-Name trong manifest. Nếu thuộc tính này không tồn tại, tên automatic module được suy ra từ tên file JAR sau khi chuẩn hóa. Do đó, đổi tên file hoặc đưa hai JAR có tên suy ra giống nhau vào module path có thể tạo va chạm.
+For JARs without module-info.class, Java can use the Automatic-Module-Name attribute in the manifest. If this attribute does not exist, the automatic module name is derived from the normalized JAR filename. Consequently, renaming files or placing two JARs with the same derived name onto the module path can cause a collision.
 
-## 3. Vì sao hai module cùng tên gây vấn đề?
+## 3. Why do two modules with the same name cause problems?
 
-Tên module là khóa để module system tìm dependency. Khi một module khai báo:
+The module name is the key the module system uses to locate dependencies. When a module declares:
 
 ~~~java
 module com.acme.application {
@@ -68,72 +68,72 @@ module com.acme.application {
 }
 ~~~
 
-bộ phân giải cần tìm một định nghĩa module mang tên com.acme.customer.api. Chỉ thị requires không nói rằng ứng dụng muốn phiên bản 1.8 hay 2.1.
+the resolver needs to find one module definition named com.acme.customer.api. The requires directive does not state whether the application wants version 1.8 or 2.1.
 
-Một cấu hình module không thể chứa hai định nghĩa độc lập cùng tên như thể chúng là hai dependency khác nhau. Nếu hai bản cùng tên được phát hiện trong các vị trí tìm kiếm, một bản có thể che khuất bản còn lại theo quy tắc tìm kiếm của module finder; với đầu vào không hợp lệ hoặc không thể phân biệt, quá trình tìm kiếm có thể phát sinh FindException.
+A module configuration cannot contain two independent definitions with the same name as if they were two different dependencies. If two copies with the same name are discovered in search locations, one copy can shadow the other according to the module finder's lookup rules; with invalid or indistinguishable inputs, discovery can raise a FindException.
 
-Điểm nguy hiểm là ứng dụng có thể phân giải thành công nhưng sử dụng nhầm artifact so với bản mà developer dự định. Khi API giữa các phiên bản khác nhau, lỗi có thể chỉ xuất hiện lúc biên dịch hoặc lúc chạy, chẳng hạn thiếu method, thay đổi kiểu dữ liệu hoặc hành vi không tương thích.
+The danger is that the application may resolve successfully yet use the wrong artifact compared to what the developer intended. When APIs differ across versions, errors may appear only at compile time or runtime, such as missing methods, changed data types, or incompatible behavior.
 
-Vì vậy, duplicate module name không chỉ là vấn đề đặt tên. Nó là vấn đề xác định chính xác artifact nào đại diện cho một định danh module trong cấu hình.
+Therefore, a duplicate module name is not merely a naming issue. It is an issue of determining exactly which artifact represents a module identifier in the configuration.
 
-## 4. Thứ tự module path và hiện tượng shadowing
+## 4. Module path order and shadowing
 
-Module path có thể chứa nhiều entry: modular JAR, exploded module hoặc thư mục chứa các module. Các entry được cung cấp cho module finder theo thứ tự.
+The module path can contain multiple entries: modular JARs, exploded modules, or directories containing modules. Entries are supplied to the module finder in order.
 
-Với module finder chuẩn, khi cùng một tên module xuất hiện ở nhiều entry trên module path, candidate được tìm thấy trước có thể được dùng và che khuất candidate ở entry sau. Vì vậy, thứ tự module path có thể ảnh hưởng module nào được chọn.
+With standard module finders, when the same module name appears in multiple entries on the module path, the candidate found first can be used and shadow candidates in later entries. Thus, module path order can affect which module is selected.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --module-path "mods-v1:mods-v2" --module com.acme.application/com.acme.application.Main
 ~~~
 
-Nếu cả mods-v1 và mods-v2 đều chứa module com.acme.customer.api, kết quả tìm kiếm có thể phụ thuộc vào thứ tự entry. Trên Windows, dấu phân cách path là dấu chấm phẩy:
+If both mods-v1 and mods-v2 contain module com.acme.customer.api, the lookup result may depend on entry order. On Windows, the path separator is a semicolon:
 
 ~~~powershell
 java --module-path "mods-v1;mods-v2" --module com.acme.application/com.acme.application.Main
 ~~~
 
-Không nên dùng thứ tự module path như một cơ chế quản lý version. Cách an toàn là đảm bảo mỗi tên module chỉ có một artifact dự kiến trong tập module có thể quan sát, và để Maven/Gradle quản lý dependency graph cùng phiên bản thư viện.
+Do not use module path order as a version management mechanism. The safe approach is to ensure each module name has only one intended artifact in the observable module set, and let Maven/Gradle manage the dependency graph and library versions.
 
-Nếu một custom ModuleFinder được dùng, hành vi tìm kiếm còn phụ thuộc implementation của finder đó. Đừng giả định mọi finder đều áp dụng chính sách giống finder mặc định của Java launcher.
+If a custom ModuleFinder is used, lookup behavior also depends on that finder's implementation. Do not assume every finder follows the same policy as the Java launcher's default finder.
 
-## 5. Automatic module có thể tạo va chạm tên
+## 5. Automatic modules can cause name collisions
 
-JAR cũ không có module descriptor vẫn có thể được đưa lên module path. Java xem nó là automatic module.
+Legacy JARs without a module descriptor can still be placed on the module path. Java treats them as automatic modules.
 
-Tên automatic module được xác định theo thứ tự:
+An automatic module's name is determined in order:
 
-1. Nếu manifest có Automatic-Module-Name hợp lệ, dùng tên đó.
-2. Nếu không có, Java suy ra tên từ tên file JAR theo quy tắc chuẩn hóa.
+1. If the manifest has a valid Automatic-Module-Name, use that name.
+2. Otherwise, Java derives the name from the JAR filename according to normalization rules.
 
-Ví dụ manifest:
+Example manifest:
 
 ~~~text
 Manifest-Version: 1.0
 Automatic-Module-Name: com.acme.legacy.logging
 ~~~
 
-Hai JAR có thể có tên file khác nhau nhưng cùng khai báo Automatic-Module-Name:
+Two JARs can have different filenames yet declare the same Automatic-Module-Name:
 
 ~~~text
 legacy-logging-1.0.jar
 legacy-logging-2.0.jar
 ~~~
 
-Nếu cả hai đều khai báo com.acme.legacy.logging, chúng tạo candidate cùng tên module.
+If both declare com.acme.legacy.logging, they produce candidates with the same module name.
 
-Với thư viện đang chuyển tiếp sang JPMS, nên đặt Automatic-Module-Name ổn định ngay từ các bản phát hành chưa có module-info.class. Khi phát hành modular JAR chính thức, giữ tên module nhất quán để consumer không phải đổi requires.
+For libraries transitioning to JPMS, set a stable Automatic-Module-Name starting with releases that do not yet have module-info.class. When releasing an official modular JAR, keep the module name consistent so consumers do not need to change requires.
 
-Không nên tự sửa tên file dependency để che một va chạm nếu dependency graph vẫn chứa nhiều phiên bản không tương thích. Hãy loại bỏ phiên bản dư thừa hoặc chọn một phiên bản được quản lý thống nhất.
+Do not manually rename dependency files to mask a collision if the dependency graph still contains multiple incompatible versions. Remove redundant versions or choose one uniformly managed version.
 
-## 6. Phân biệt duplicate module name và split package
+## 6. Distinguishing duplicate module names from split packages
 
-Hai khái niệm này dễ bị nhầm vì đều liên quan đến nhiều artifact, nhưng nguyên nhân khác nhau.
+These two concepts are easily confused because both involve multiple artifacts, yet their causes differ.
 
-**Duplicate module name**: nhiều candidate cùng khai báo một tên module, ví dụ hai JAR đều có tên com.acme.customer.api.
+**Duplicate module name**: multiple candidates declare the same module name, for example two JARs both named com.acme.customer.api.
 
-**Split package**: hai module khác tên cùng chứa hoặc export một package có cùng tên, ví dụ:
+**Split package**: two differently named modules both contain or export a package with the same name, for example:
 
 ~~~text
 com.acme.customer.api
@@ -143,9 +143,9 @@ com.acme.order.api
     package com.acme.shared.model
 ~~~
 
-Khi một module đọc cả hai module và cả hai cùng export package com.acme.shared.model, module graph không nhất quán. Resolution có thể thất bại với ResolutionException do split package.
+When a module reads both modules and both export package com.acme.shared.model, the module graph is inconsistent. Resolution can fail with a ResolutionException due to a split package.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.customer.api {
@@ -162,32 +162,32 @@ module com.acme.application {
 }
 ~~~
 
-Module com.acme.application đọc cả hai module và nhìn thấy cùng package từ hai nguồn. Đây là xung đột package, không phải duplicate module name.
+Module com.acme.application reads both modules and sees the same package from two sources. This is a package conflict, not a duplicate module name.
 
-Cách xử lý thường là:
+Typical resolutions include:
 
-- Đưa package dùng chung vào một module sở hữu duy nhất.
-- Chuyển các type về package riêng theo module sở hữu.
-- Điều chỉnh ranh giới API để hai module không export cùng package cho một consumer.
-- Loại bỏ class trùng khỏi artifact nếu chúng là bản sao ngoài ý muốn.
+- Moving the shared package into a single owning module.
+- Moving types into distinct packages per owning module.
+- Adjusting API boundaries so two modules do not export the same package to a single consumer.
+- Removing duplicate classes from artifacts if they are unintended copies.
 
-Đổi tên module không tự giải quyết split package nếu package vẫn bị chia sẻ và cùng được đọc.
+Renaming a module does not solve a split package if the package remains shared and read together.
 
-## 7. Module graph và các bước resolution
+## 7. The module graph and resolution steps
 
-Module resolution xây dựng cấu hình module dựa trên tập module gốc và các phụ thuộc bắt buộc.
+Module resolution builds a module configuration based on the root module set and required dependencies.
 
-Có thể mô tả quy trình:
+The process can be described as:
 
-1. **Tìm module có thể quan sát**: module finder tìm module theo tên từ module path, system modules hoặc nguồn được cấu hình.
-2. **Chọn module gốc**: launcher xác định root modules từ module được chạy, --add-modules hoặc quy tắc khởi chạy tương ứng.
-3. **Đọc requires**: với mỗi root, bộ phân giải đọc module descriptor và lấy các dependency trực tiếp.
-4. **Tìm dependency đệ quy**: mỗi module được phân giải tiếp tục kéo theo các module mà nó requires.
-5. **Kiểm tra tính nhất quán**: bộ phân giải kiểm tra tên module, dependency bắt buộc, package xung đột và các ràng buộc của module graph.
-6. **Tạo configuration**: nếu graph hợp lệ, Java tạo Configuration chứa các module đã phân giải và quan hệ đọc giữa chúng.
-7. **Định nghĩa module trong runtime layer**: module layer gắn các module đã phân giải với class loader theo cách khởi chạy hoặc cách ứng dụng tạo layer.
+1. **Find observable modules**: module finders locate modules by name from the module path, system modules, or configured sources.
+2. **Select root modules**: the launcher determines root modules from the launched module, --add-modules, or corresponding launch rules.
+3. **Read requires**: for each root, the resolver reads the module descriptor and gathers direct dependencies.
+4. **Find dependencies recursively**: each resolved module continues pulling in the modules it requires.
+5. **Check consistency**: the resolver verifies module names, required dependencies, conflicting packages, and module graph constraints.
+6. **Create configuration**: if the graph is valid, Java creates a Configuration containing the resolved modules and readability relationships among them.
+7. **Define modules in a runtime layer**: the module layer associates resolved modules with class loaders according to how the app launches or creates layers.
 
-Ví dụ:
+Example:
 
 ~~~text
 Root: com.acme.application
@@ -201,36 +201,36 @@ Root: com.acme.application
                 +-- requires com.acme.model
 ~~~
 
-Module com.acme.model được dùng chung bởi hai nhánh. Đây là graph hợp lệ nếu chỉ có một định nghĩa module cùng tên và các package/dependency không xung đột.
+Module com.acme.model is shared by two branches. This is a valid graph as long as there is only one module definition with that name and packages/dependencies do not conflict.
 
-Nếu một dependency bắt buộc không tìm thấy, graph không thể được phân giải hoàn chỉnh. Nếu graph chứa hai module cùng export một package cho một consumer đọc cả hai, graph cũng không hợp lệ.
+If a required dependency cannot be found, the graph cannot be completely resolved. If the graph contains two modules exporting the same package to a consumer that reads both, the graph is also invalid.
 
-## 8. Các lỗi resolution thường gặp
+## 8. Common resolution errors
 
 ### FindException
 
-FindException thuộc giai đoạn tìm module. Nó có thể xuất hiện khi:
+FindException belongs to the module discovery stage. It can appear when:
 
-- Không tìm thấy module được requires.
-- Module finder không thể đọc hoặc diễn giải module descriptor.
-- Modular JAR bị hỏng hoặc descriptor không hợp lệ.
-- Đầu vào tìm kiếm chứa candidate module không thể xử lý theo quy tắc finder.
+- A required module is not found.
+- The module finder cannot read or parse the module descriptor.
+- A modular JAR is corrupted or its descriptor is invalid.
+- Search inputs contain a module candidate that cannot be processed under finder rules.
 
-Ví dụ thông báo thường gặp:
+Common example message:
 
 ~~~text
 java.lang.module.FindException: Module com.acme.customer.api not found
 ~~~
 
-Hãy kiểm tra module path, tên module thực tế, file JAR có tồn tại và descriptor có đọc được không.
+Check the module path, actual module name, whether the JAR file exists, and whether the descriptor is readable.
 
 ### ResolutionException
 
-ResolutionException xuất hiện khi các module tìm được nhưng cấu hình phụ thuộc không thể tạo thành một module graph hợp lệ.
+ResolutionException occurs when modules are found, yet the dependency configuration cannot form a valid module graph.
 
-Một ví dụ điển hình là split package: hai module mà consumer cùng đọc export package trùng tên.
+A classic example is a split package: two modules read by a consumer both export an identically named package.
 
-Ví dụ thông báo có thể chỉ ra package bị export từ nhiều module:
+An example message may indicate a package exported from multiple modules:
 
 ~~~text
 java.lang.module.ResolutionException:
@@ -238,19 +238,19 @@ Modules com.acme.customer.api and com.acme.order.api
 export package com.acme.shared.model to module com.acme.application
 ~~~
 
-Hãy xác định hai module liên quan, package xung đột và module consumer đọc cả hai. Sau đó sửa ranh giới package hoặc dependency graph.
+Identify the two involved modules, the conflicting package, and the consumer module reading both. Then fix package boundaries or the dependency graph.
 
 ### InvalidModuleDescriptorException
 
-Lỗi này liên quan đến module descriptor không hợp lệ hoặc không thể diễn giải. Kiểm tra module-info.java và artifact được đóng gói: tên module, cú pháp requires/exports, package được khai báo và cấu trúc JAR.
+This error relates to an invalid or unparseable module descriptor. Check module-info.java and the packaged artifact: module name, requires/exports syntax, declared packages, and JAR structure.
 
 ### LayerInstantiationException
 
-Lỗi này có thể xuất hiện khi runtime không thể định nghĩa module layer từ configuration đã phân giải. Nguyên nhân có thể liên quan đến cách gắn module vào class loader, package hoặc trạng thái runtime. Nếu resolution đã thành công nhưng tạo layer thất bại, hãy xem stack trace ở bước defineModules thay vì chỉ kiểm tra requires.
+This error can appear when the runtime cannot define a module layer from the resolved configuration. Causes may relate to how modules are mapped to class loaders, packages, or runtime state. If resolution succeeded yet layer creation failed, examine the stack trace at the defineModules step rather than only checking requires.
 
-## 9. Module version không tự giải quyết duplicate name
+## 9. Module versions do not automatically resolve duplicate names
 
-Module descriptor có thể mang metadata version:
+A module descriptor can carry version metadata:
 
 ~~~java
 module com.acme.customer.api {
@@ -258,7 +258,7 @@ module com.acme.customer.api {
 }
 ~~~
 
-Version của module, nếu được ghi vào descriptor khi đóng gói, là metadata. Cú pháp requires thông thường chỉ chỉ định tên module:
+A module's version, if recorded into the descriptor during packaging, is metadata. Standard requires syntax only specifies the module name:
 
 ~~~java
 module com.acme.application {
@@ -266,37 +266,37 @@ module com.acme.application {
 }
 ~~~
 
-Nó không có biểu thức như requires com.acme.customer.api version 2.1.
+There is no expression such as requires com.acme.customer.api version 2.1.
 
-Vì vậy, JPMS không thay thế dependency manager. Maven hoặc Gradle chịu trách nhiệm chọn artifact/version theo dependency graph của dự án; module system dùng tên module trong artifact để liên kết các module ở compile/runtime.
+Therefore, JPMS does not replace a dependency manager. Maven or Gradle is responsible for selecting artifacts/versions according to the project's dependency graph; the module system uses module names in artifacts to link modules at compile/runtime.
 
-Một dự án có thể chọn đúng Maven coordinate nhưng vẫn gặp va chạm module name nếu hai artifact khác nhau khai báo cùng module name. Ngược lại, hai artifact có tên file khác nhau không đảm bảo chúng có module name khác nhau.
+A project can choose the right Maven coordinates and still hit a module name collision if two different artifacts declare the same module name. Conversely, two artifacts having different filenames does not guarantee they have different module names.
 
-Hãy kiểm tra cả hai lớp thông tin:
+Check both layers of information:
 
-- Dependency manager: artifact nào và phiên bản nào được đưa vào runtime.
-- Module descriptor: mỗi artifact được nhận diện bằng tên module nào.
+- Dependency manager: which artifacts and versions are brought into runtime.
+- Module descriptor: by which module name each artifact is identified.
 
-## 10. Cách phát hiện duplicate module name và artifact không mong muốn
+## 10. How to detect duplicate module names and unwanted artifacts
 
-Trước tiên, liệt kê nội dung và descriptor của các JAR nghi ngờ:
+First, list the contents and descriptors of suspect JARs:
 
 ~~~bash
 jar --describe-module --file libs/customer-api-1.8.jar
 jar --describe-module --file libs/customer-api-2.1.jar
 ~~~
 
-Nếu cả hai đều báo tên com.acme.customer.api, dependency graph đang chứa hai artifact cùng module name.
+If both report the name com.acme.customer.api, the dependency graph contains two artifacts with the same module name.
 
-Để xem các module hệ thống của JDK:
+To view JDK system modules:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Lệnh này liệt kê module của runtime image; nó không thay thế việc kiểm tra mọi dependency ngoài JDK trong module path ứng dụng.
+This command lists modules of the runtime image; it does not replace checking all non-JDK dependencies on the application's module path.
 
-Để quan sát module được phân giải khi chạy:
+To observe modules resolved at runtime:
 
 ~~~bash
 java --show-module-resolution \
@@ -304,27 +304,27 @@ java --show-module-resolution \
      --module com.acme.application/com.acme.application.Main
 ~~~
 
-Log resolution giúp biết module nào được tìm thấy và dependency nào được đưa vào cấu hình. Kết hợp với jar --describe-module để đối chiếu tên module với artifact cụ thể.
+The resolution log shows which modules are found and which dependencies are included in the configuration. Combine this with jar --describe-module to cross-reference module names against specific artifacts.
 
-Nếu dùng Maven hoặc Gradle, kiểm tra runtime dependency report để tìm nhiều phiên bản hoặc nhiều đường dẫn kéo cùng một thư viện vào. Sau khi loại bỏ dependency dư thừa, chạy lại với --show-module-resolution để xác nhận cấu hình mới.
+If using Maven or Gradle, inspect the runtime dependency report to find multiple versions or multiple paths pulling in the same library. After removing redundant dependencies, re-run with --show-module-resolution to verify the new configuration.
 
-## 11. Quy trình xử lý lỗi resolution
+## 11. Resolution error handling workflow
 
-Khi ứng dụng không khởi động vì module resolution, hãy xử lý theo thứ tự:
+When an application fails to start due to module resolution, handle it in order:
 
-1. **Đọc lỗi đầu tiên**: xác định đây là lỗi tìm module, descriptor, graph hay tạo layer.
-2. **Xác định tên module liên quan**: lấy tên từ thông báo lỗi hoặc module-info.java.
-3. **Kiểm tra artifact**: dùng jar --describe-module cho từng JAR nghi ngờ.
-4. **Kiểm tra dependency graph**: xác định module nào đưa artifact vào runtime và có nhiều phiên bản hay không.
-5. **Kiểm tra package export**: nếu lỗi là split package, tìm package bị export từ nhiều module và consumer đọc các module đó.
-6. **Sửa dependency hoặc module boundary**: chọn một artifact cho mỗi module name, gom package dùng chung về một module, hoặc điều chỉnh requires/exports theo API thực tế.
-7. **Chạy lại và quan sát**: dùng --show-module-resolution để xác nhận module graph được tạo đúng.
+1. **Read the initial error**: determine whether it is a module discovery, descriptor, graph, or layer creation error.
+2. **Identify the involved module names**: take the names from the error message or module-info.java.
+3. **Inspect artifacts**: run jar --describe-module on each suspect JAR.
+4. **Inspect the dependency graph**: determine which modules pull the artifact into runtime and whether multiple versions exist.
+5. **Check package exports**: if the error is a split package, find the package exported from multiple modules and the consumer reading those modules.
+6. **Fix dependencies or module boundaries**: choose one artifact per module name, consolidate shared packages into one module, or adjust requires/exports to match the actual API.
+7. **Re-run and observe**: use --show-module-resolution to confirm the module graph is constructed properly.
 
-Không nên sửa bằng cách thêm hàng loạt --add-reads, --add-exports hoặc --add-opens khi lỗi gốc là duplicate module hoặc split package. Những tùy chọn đó không loại bỏ candidate trùng tên và cũng không hợp nhất package bị chia tách.
+Do not fix by adding a slew of --add-reads, --add-exports, or --add-opens when the root error is a duplicate module or split package. Those options neither remove duplicate-named candidates nor merge split packages.
 
-## 12. Ví dụ minh họa một lỗi do dependency trùng
+## 12. Example illustrating an error from duplicate dependencies
 
-Giả sử ứng dụng có hai nhánh dependency:
+Suppose an application has two dependency branches:
 
 ~~~text
 com.acme.application
@@ -338,23 +338,23 @@ com.acme.application
             +-- com.acme.customer.api 2.x
 ~~~
 
-Nếu hai phiên bản customer API đều được đóng gói thành module có tên com.acme.customer.api, module path có nhiều candidate cho cùng tên.
+If both versions of the customer API are packaged as modules named com.acme.customer.api, the module path has multiple candidates for the same name.
 
-Cách giải quyết là đồng bộ dependency version để cả com.acme.order và com.acme.reporting dùng một phiên bản tương thích, hoặc nâng cấp một module trung gian để loại bỏ dependency cũ.
+The solution is to align dependency versions so both com.acme.order and com.acme.reporting use one compatible version, or upgrade an intermediate module to eliminate the old dependency.
 
-Không nên đổi tên file JAR rồi cho rằng đã giải quyết vấn đề: module name bên trong descriptor vẫn là định danh mà JPMS sử dụng.
+Do not rename the JAR file and assume the problem is solved: the module name inside the descriptor remains the identifier JPMS uses.
 
-Nếu hai phiên bản thật sự cần tồn tại độc lập, cần thiết kế cách cô lập bằng class loader hoặc module layer riêng và xử lý tương thích API một cách tường minh. Đưa cả hai vào cùng một module configuration dưới cùng tên module không tạo ra hai phiên bản độc lập.
+If two versions genuinely must coexist independently, isolate them using separate class loaders or module layers and handle API compatibility explicitly. Putting both into the same module configuration under the same module name does not create two independent versions.
 
-## 13. Ghi nhớ
+## 13. Key takeaways
 
-- Tên module là định danh được dùng trong requires và module resolution; tên file JAR và version dependency không thay thế tên đó.
-- Hai artifact có thể khác tên file nhưng vẫn khai báo cùng module name.
-- Automatic module có thể bị trùng tên qua Automatic-Module-Name hoặc tên file sau chuẩn hóa.
-- Module path order và hành vi của module finder có thể ảnh hưởng candidate được tìm thấy; không dùng shadowing để quản lý version.
-- Duplicate module name khác split package: một lỗi là trùng định danh module, lỗi kia là trùng package giữa các module được đọc.
-- FindException thường liên quan đến tìm hoặc đọc module; ResolutionException thường liên quan đến module graph không nhất quán.
-- Module version metadata không phải cơ chế chọn phiên bản trong requires; dùng Maven/Gradle để quản lý dependency.
-- Dùng jar --describe-module, dependency report và java --show-module-resolution để xác định artifact và module thực sự được phân giải.
+- The module name is the identifier used in requires and module resolution; JAR filenames and dependency versions do not replace that name.
+- Two artifacts can have different filenames yet still declare the same module name.
+- Automatic modules can collide in name via Automatic-Module-Name or normalized filenames.
+- Module path order and module finder behavior can affect which candidate is found; do not use shadowing to manage versions.
+- Duplicate module names differ from split packages: one error is colliding module identifiers, the other is overlapping packages among read modules.
+- FindException usually relates to finding or reading modules; ResolutionException usually relates to an inconsistent module graph.
+- Module version metadata is not a version selection mechanism in requires; use Maven/Gradle to manage dependencies.
+- Use jar --describe-module, dependency reports, and java --show-module-resolution to identify which artifacts and modules are actually resolved.
 
-Khi xử lý lỗi resolution, hãy lần từ tên module trong thông báo tới descriptor và artifact tương ứng. Xác định đúng candidate trùng, dependency kéo nó vào hoặc package bị chia sẻ sẽ giúp sửa graph một cách có kiểm soát.
+When troubleshooting resolution errors, trace from the module name in the message to the corresponding descriptor and artifact. Correctly identifying duplicate candidates, the dependency pulling them in, or shared packages lets you fix the graph in a controlled way.

@@ -1,8 +1,8 @@
-# Kiểm thử `==`, `equals`, `intern` và biểu thức hằng trong Java String
+# Testing `==`, `equals`, `intern`, and Constant Expressions in Java String
 
-Hai biến `String` có thể **chứa cùng văn bản** nhưng **trỏ tới hai đối tượng khác nhau**. Ngược lại, nhiều biến có thể cùng trỏ tới một đối tượng nhờ quy tắc chia sẻ string literal và cơ chế `intern()`. Khi kiểm thử, cần phân biệt đúng **nội dung chuỗi**, **định danh đối tượng**, **biểu thức hằng lúc biên dịch** và **kết quả được tạo ở runtime**.
+Two `String` variables can **hold the exact same text** yet **point to two different objects**. Conversely, multiple variables can point to the same object thanks to string literal sharing and `intern()`. When testing, you must properly distinguish **string content**, **object identity**, **compile-time constant expressions**, and **results created at runtime**.
 
-Ví dụ cốt lõi:
+Core example:
 
 ```java
 String literal = "java";
@@ -15,29 +15,29 @@ System.out.println(literal.equals(fresh));     // true
 System.out.println(literal == fresh.intern());  // true
 ```
 
-Cả bốn kết quả đều có lý do cụ thể. Một bộ kiểm thử tốt phải xác nhận **đúng điều mà API cam kết**, thay vì đoán kết quả `==` chỉ dựa trên việc văn bản giống nhau.
+All four outcomes have specific reasons. A good test suite must verify **precisely what the API promises**, rather than guessing `==` results merely because text looks the same.
 
-## 1. Bốn khái niệm cần phân biệt
+## 1. Four Concepts to Distinguish
 
-| Cách kiểm tra | Thực chất kiểm tra | Nên dùng khi |
+| Check | What it actually checks | When to use |
 | --- | --- | --- |
-| `a == b` | Hai biến tham chiếu có trỏ tới **cùng một đối tượng** (hoặc cùng `null`) không | Kiểm tra định danh hoặc quy tắc pooling một cách có chủ đích |
-| `a.equals(b)` | `a` và `b` có **cùng nội dung** theo `String.equals` không | Hầu hết bài toán so sánh giá trị văn bản |
-| `a.intern()` | Trả về chuỗi **canonical** đại diện cho nội dung của `a` | Khi thực sự cần chuẩn hóa tham chiếu chuỗi |
-| Biểu thức hằng `"ab" + "cd"` | Kết quả được tính ở **compile time**; chuỗi tương ứng được intern như literal | Kiểm thử quy tắc hằng của ngôn ngữ |
+| `a == b` | Whether two reference variables point to the **same object** (or both are `null`) | Intentionally testing object identity or pooling rules |
+| `a.equals(b)` | Whether `a` and `b` have the **same content** per `String.equals` | Nearly all text-value comparisons |
+| `a.intern()` | Returns the **canonical** string representing `a`'s content | When canonicalizing string references is genuinely needed |
+| Constant expression `"ab" + "cd"` | Evaluated at **compile time**; resulting string is interned like a literal | Testing Java language constant-folding rules |
 
-Với `String`:
+For `String`:
 
-- `equals` so sánh chuỗi ký tự theo đúng thứ tự và giá trị (phân biệt chữ hoa/chữ thường); không dựa trên tham chiếu.
-- `==` trên hai biến kiểu `String` so sánh tham chiếu; không đọc từng ký tự.
-- `intern()` không thay đổi nội dung hay “biến đổi” đối tượng gốc; nó trả về một **tham chiếu** đến đại diện canonical có cùng nội dung.
-- Không phải mọi chuỗi có nội dung giống literal đều **tự động** được intern khi được tạo ở runtime.
+- `equals` compares character sequences in exact order and value (case-sensitive); it does not rely on reference identity.
+- `==` on two `String` variables compares references; it does not inspect characters.
+- `intern()` does not mutate content or “transform” the original object; it returns a **reference** to the canonical representative with the same content.
+- Not every string matching a literal's content is **automatically** interned when created at runtime.
 
-`String` là immutable, nhưng **immutable không có nghĩa mọi instance cùng nội dung đều là một instance**.
+`String` is immutable, yet **immutable does not mean every equal-content instance is the same instance**.
 
-## 2. Tại sao hai string literal thường có `==` bằng `true`?
+## 2. Why Do Two String Literals Usually Have `==` Evaluate to `true`?
 
-Theo Java Language Specification, string literal có cùng nội dung biểu diễn cùng một instance `String`. Vì vậy:
+Per the Java Language Specification, string literals with identical content represent the same `String` instance. Therefore:
 
 ```java
 String first = "coffee";
@@ -45,9 +45,9 @@ String second = "coffee";
 System.out.println(first == second); // true
 ```
 
-Đây là hành vi **được đặc tả**, phù hợp để viết một bài kiểm thử giải thích cơ chế literal.
+This is **specified behavior**, suitable for writing a test that demonstrates how literals work.
 
-Một biểu thức gồm các hằng `String`, toán tử `+` và các thành phần là *constant expression* cũng được tính ở **compile time**. Kết quả chuỗi của biểu thức hằng được intern:
+An expression composed of `String` constants, the `+` operator, and operands that are *constant expressions* is also evaluated at **compile time**. The string result of a constant expression is interned:
 
 ```java
 String word = "coffee";
@@ -55,13 +55,13 @@ String folded = "co" + "ffee";
 System.out.println(word == folded); // true
 ```
 
-Trình biên dịch có thể lưu literal `"coffee"` dùng chung trong class file; không cần tạo một đối tượng mới chỉ để ghép hai đoạn `"co"` và `"ffee"` khi chương trình chạy.
+The compiler can store the shared `"coffee"` literal in the class file; no new object needs to be allocated at runtime just to join `"co"` and `"ffee"`.
 
-**Điểm quan trọng:** `==` bằng `true` ở đây không chứng minh rằng **mọi** phép nối chuỗi đều dùng chung đối tượng. Ta phải kiểm tra xem biểu thức có thật sự là **biểu thức hằng theo ngôn ngữ Java** hay không.
+**Key point:** `==` returning `true` here does not prove that **all** string concatenations share objects. You must verify whether an expression is genuinely a **constant expression in the Java language**.
 
-## 3. Biểu thức hằng, biến `final` và phép nối runtime
+## 3. Constant Expressions, `final` Variables, and Runtime Concatenation
 
-### Trường hợp A — tất cả phần của phép nối là hằng
+### Case A — all parts of the concatenation are constants
 
 ```java
 String a = "coffee";
@@ -70,9 +70,9 @@ String b = "co" + "ffee";
 System.out.println(a == b); // true
 ```
 
-`"co" + "ffee"` là biểu thức hằng kiểu `String`. Trình biên dịch gộp nội dung thành `"coffee"`; `b` dùng tham chiếu canonical.
+`"co" + "ffee"` is a `String` constant expression. The compiler folds the content into `"coffee"`; `b` uses the canonical reference.
 
-### Trường hợp B — biến hằng `final String`
+### Case B — `final String` constant variable
 
 ```java
 final String PREFIX = "co";
@@ -82,9 +82,9 @@ String b = PREFIX + "ffee";
 System.out.println(a == b); // true
 ```
 
-Một biến `final` kiểu nguyên thủy hoặc kiểu `String` được khởi tạo bằng **constant expression** là *constant variable*. `PREFIX` trong ví dụ là constant variable, vì vậy `PREFIX + "ffee"` vẫn là constant expression và có thể gộp khi biên dịch.
+A `final` variable of primitive or `String` type initialized with a **constant expression** is a *constant variable*. `PREFIX` in this example is a constant variable, so `PREFIX + "ffee"` remains a constant expression and can be folded at compile time.
 
-### Trường hợp C — biến không phải hằng
+### Case C — non-constant variable
 
 ```java
 String prefix = "co";
@@ -95,9 +95,9 @@ System.out.println(a == b);      // false
 System.out.println(a.equals(b)); // true
 ```
 
-`prefix` không phải constant variable vì nó không khai báo `final`. Phép nối là thao tác runtime, tạo kết quả với cùng nội dung nhưng khác tham chiếu với literal. Trình biên dịch và JVM có thể chọn kỹ thuật nối chuỗi khác nhau, song **không nên viết chương trình dựa vào `==` để kiểm tra nội dung của phép nối runtime**.
+`prefix` is not a constant variable because it is not declared `final`. Concatenation is a runtime operation, producing a result with the same content but a different reference from the literal. Compilers and JVMs may choose different concatenation mechanisms, yet **you should never rely on `==` to test the content of runtime concatenation**.
 
-### Trường hợp D — `final` nhưng giá trị khởi tạo không phải biểu thức hằng
+### Case D — `final`, but initializer is not a constant expression
 
 ```java
 final String prefix = new String("co");
@@ -108,22 +108,22 @@ System.out.println(a == b);      // false
 System.out.println(a.equals(b)); // true
 ```
 
-Từ khóa `final` chỉ cấm gán lại biến `prefix`. Nó **không khiến `new String("co")` trở thành compile-time constant**. Bởi vậy `prefix + "ffee"` vẫn được đánh giá ở runtime.
+The `final` keyword only forbids reassigning `prefix`. It **does not make `new String("co")` a compile-time constant**. Hence `prefix + "ffee"` is still evaluated at runtime.
 
-| Biểu thức tạo `b` | Là compile-time constant expression? | `"coffee" == b` |
+| Expression creating `b` | Compile-time constant expression? | `"coffee" == b` |
 | --- | --- | --- |
-| `"co" + "ffee"` | Có | `true` |
-| `final String p = "co"; b = p + "ffee";` | Có | `true` |
-| `String p = "co"; b = p + "ffee";` | Không | `false` |
-| `final String p = new String("co"); b = p + "ffee";` | Không | `false` |
-| `new String("coffee")` | Không | `false` |
-| `new StringBuilder().append("co").append("ffee").toString()` | Không | `false` |
+| `"co" + "ffee"` | Yes | `true` |
+| `final String p = "co"; b = p + "ffee";` | Yes | `true` |
+| `String p = "co"; b = p + "ffee";` | No | `false` |
+| `final String p = new String("co"); b = p + "ffee";` | No | `false` |
+| `new String("coffee")` | No | `false` |
+| `new StringBuilder().append("co").append("ffee").toString()` | No | `false` |
 
-Bảng này nói về những **đoạn mã cụ thể** có giá trị bằng `"coffee"` và cách tạo đối tượng được mô tả. Đối với dữ liệu thực tế, hãy xác nhận nội dung bằng `equals`.
+This table describes **specific code expressions** evaluating to `"coffee"` and the described object creation. For real-world data, always verify content using `equals`.
 
-## 4. `new String(...)` và `StringBuilder.toString()`: cùng nội dung, khác đối tượng
+## 4. `new String(...)` and `StringBuilder.toString()`: Same Content, Different Object
 
-`new String("coffee")` biểu thị yêu cầu tạo một đối tượng `String` mới; dù nó nhận giá trị từ literal đã intern, kết quả vẫn là một instance riêng:
+`new String("coffee")` explicitly requests creating a new `String` object; even though it takes its value from an interned literal, the result is still a distinct instance:
 
 ```java
 String literal = "coffee";
@@ -133,7 +133,7 @@ System.out.println(literal == fresh);      // false
 System.out.println(literal.equals(fresh)); // true
 ```
 
-Tương tự, chuyển nội dung từ một `StringBuilder` thành `String` cho kết quả văn bản hợp lệ; không nên giả định rằng chuỗi này được intern:
+Likewise, converting a `StringBuilder`'s contents to a `String` yields valid text; do not assume this string is interned:
 
 ```java
 String literal = "coffee";
@@ -146,13 +146,13 @@ System.out.println(literal == built);      // false
 System.out.println(literal.equals(built)); // true
 ```
 
-**Quy tắc kiểm thử:** nếu chức năng của hệ thống chỉ yêu cầu cùng văn bản, một test như `assertEquals("coffee", actual)` có giá trị; một test như `assertSame("coffee", actual)` có thể áp đặt thêm ràng buộc **về định danh đối tượng** mà chức năng không hề yêu cầu.
+**Testing rule:** if system functionality only requires matching text, a test like `assertEquals("coffee", actual)` is meaningful; a test like `assertSame("coffee", actual)` may impose an **object-identity constraint** that the functionality never promised.
 
-## 5. `intern()` bảo đảm điều gì?
+## 5. What Does `intern()` Guarantee?
 
-`String.intern()` trả về tham chiếu đến **đối tượng chuỗi canonical** có nội dung bằng chuỗi được gọi. Nếu một chuỗi có nội dung tương đương đã ở trong bảng intern, tham chiếu tương ứng được trả về; nếu chưa có, cơ chế intern thiết lập một đại diện canonical theo hợp đồng của API.
+`String.intern()` returns a reference to the **canonical string object** whose content equals the receiver string. If an equal-content string already resides in the intern table, that reference is returned; otherwise, interning establishes a canonical representative per the API contract.
 
-Bảo đảm hữu ích nhất:
+The most useful guarantee:
 
 ```java
 String x = new String("coffee");
@@ -166,7 +166,7 @@ System.out.println(x.equals(y));            // true
 System.out.println(x.intern() == y.intern()); // true
 ```
 
-Vì `x` và `y` có cùng nội dung, kết quả `intern()` của chúng là **cùng tham chiếu**. Với literal đã biết:
+Because `x` and `y` have the same content, their `intern()` results are the **same reference**. With a known literal:
 
 ```java
 String literal = "coffee";
@@ -177,21 +177,21 @@ System.out.println(fresh.intern() == literal); // true
 System.out.println(fresh == literal);          // false
 ```
 
-Lời gọi `fresh.intern()` **không làm biến `fresh` tự đổi sang tham chiếu canonical**. Nếu muốn sử dụng kết quả intern về sau, phải gán hoặc dùng trực tiếp tham chiếu trả về:
+Calling `fresh.intern()` **does not change `fresh` itself to point to the canonical reference**. To use the interned result later, you must assign or directly use the returned reference:
 
 ```java
 String canonical = fresh.intern();
 ```
 
-### Không kiểm tra chi tiết triển khai bằng `==`
+### Do Not Test Implementation Details with `==`
 
-Một số ví dụ ngoài thực tế dựa trên giả định “lần đầu gọi `intern()` trên một chuỗi tạo ở runtime sẽ luôn trả về chính instance đó”. Bảo đảm mà code ứng dụng nên dùng là **những chuỗi bằng nội dung sẽ có kết quả `intern()` trùng tham chiếu**; không xây dựng logic quanh chi tiết đối tượng nào được lưu trước hay thời điểm JVM khởi tạo pool.
+Some examples in the wild rely on an assumption like “the first `intern()` call on a runtime string always returns that exact instance.” The guarantee application code should rely on is that **strings with equal content produce identical `intern()` references**; do not build logic around which object was stored first or when the JVM initializes its pool.
 
-Việc interning còn có chi phí quản lý tài nguyên. Không cần gọi `intern()` chỉ để so sánh nội dung: `equals` thường trực tiếp, dễ hiểu và đúng mục đích hơn.
+Interning also carries resource-management overhead. There is no need to call `intern()` just to compare content: `equals` is usually more direct, clearer, and purpose-built.
 
-## 6. Bài kiểm thử Java 17+ chạy độc lập
+## 6. Standalone Java 17+ Test Program
 
-Tạo file `StringComparisonDemo.java`. Chương trình tự kiểm tra 16 điều kiện và **ném `AssertionError` khi bất kỳ điều kiện nào sai**; vì vậy nó có thể chạy như một test độc lập mà không cần JUnit hoặc bật JVM assertion.
+Create `StringComparisonDemo.java`. The program self-checks 16 conditions and **throws `AssertionError` if any fails**; thus it runs as a standalone test without JUnit or enabling JVM assertions.
 
 ```java
 import java.util.Objects;
@@ -260,34 +260,34 @@ public class StringComparisonDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac StringComparisonDemo.java
 java StringComparisonDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 PASS: 16 checks
 ```
 
-Đây là test tự kiểm tra hành vi thực, không chỉ in giá trị rồi yêu cầu người đọc tự so sánh. Mỗi lời gọi `check` có một kỳ vọng minh bạch; thất bại sẽ cho biết trường hợp kiểm thử nào sai. Chương trình **không dùng câu lệnh `assert` của Java**, vì `assert` bị tắt mặc định nếu không bật tùy chọn `-ea`.
+This is a self-verifying test of actual behavior, rather than just printing values and asking the reader to compare by eye. Each `check` call states an explicit expectation; failures report which test case failed. The program **does not use Java's `assert` statement**, because `assert` is disabled by default unless `-ea` is enabled.
 
-Nếu muốn kiểm tra nhanh một trường hợp, có thể in biểu thức như ở các mục trước; khi tự động hóa, nên dùng điều kiện kiểm thử gây thất bại thật nếu kết quả khác kỳ vọng.
+To quickly inspect a single expression, you can print it as in earlier sections; for automation, use test conditions that genuinely fail when output differs from expectations.
 
-## 7. Viết kiểm thử bằng JUnit 5
+## 7. Writing Tests with JUnit 5
 
-Trong dự án đã có JUnit Jupiter, có thể dùng các assertion diễn đạt rõ mục đích:
+In a project that already has JUnit Jupiter, you can use assertions that clearly express intent:
 
-- `assertEquals(expected, actual)`: kiểm tra **giá trị/nội dung** bằng logic `equals`.
-- `assertSame(expected, actual)`: kiểm tra **cùng một tham chiếu**.
-- `assertNotSame(unexpected, actual)`: kiểm tra **khác tham chiếu**.
-- `assertTrue`, `assertFalse`: kiểm tra một điều kiện có mục đích rõ ràng.
-- `assertNull` và `assertNotNull`: kiểm tra tham chiếu null.
+- `assertEquals(expected, actual)`: checks **value/content** via `equals` logic.
+- `assertSame(expected, actual)`: checks **same reference**.
+- `assertNotSame(unexpected, actual)`: checks **different reference**.
+- `assertTrue`, `assertFalse`: check a condition with clear intent.
+- `assertNull` and `assertNotNull`: check null references.
 
-Ví dụ file kiểm thử trong dự án dùng JUnit 5 (đoạn này **không chạy độc lập nếu chưa có dependency JUnit Jupiter**):
+Example test file in a JUnit 5 project (this snippet **will not run standalone without the JUnit Jupiter dependency**):
 
 ```java
 import static org.junit.jupiter.api.Assertions.*;
@@ -335,13 +335,13 @@ class StringComparisonTest {
 }
 ```
 
-Những assertion dùng `assertSame` trong ví dụ chỉ kiểm tra **hành vi được đặc tả**: literal/constant expression được intern và kết quả từ `intern()` có cùng tham chiếu canonical. Khi kiểm thử một hàm chỉ có hợp đồng “trả văn bản chính xác”, hãy dùng `assertEquals`.
+Assertions using `assertSame` in this example only test **specified behavior**: literals/constant expressions are interned and `intern()` results share the canonical reference. When testing a function whose contract is solely “return the right text,” use `assertEquals`.
 
-**Tránh:** dùng `assertSame("OK", service.getStatus())` nếu service không hứa trả về instance interned; dù giá trị đúng, test có thể thất bại do một instance mới hoàn toàn hợp lệ.
+**Avoid:** using `assertSame("OK", service.getStatus())` if the service does not promise an interned instance; even with the right value, the test can fail on a completely valid new instance.
 
-## 8. Kiểm thử với `null`: `equals` không tự bảo vệ biến nhận lời gọi
+## 8. Testing with `null`: `equals` Does Not Protect the Receiver
 
-`==` so sánh tham chiếu và không ném `NullPointerException` chỉ vì một hoặc cả hai toán hạng là `null`:
+`==` compares references and does not throw `NullPointerException` merely because one or both operands are `null`:
 
 ```java
 String a = null;
@@ -350,45 +350,45 @@ String b = null;
 System.out.println(a == b); // true
 ```
 
-Nhưng gọi phương thức instance qua tham chiếu `null` sẽ gây lỗi:
+However, calling an instance method on a `null` reference causes an error:
 
 ```java
 String value = null;
 
-// value.equals("ready") sẽ ném NullPointerException.
+// value.equals("ready") will throw NullPointerException.
 boolean safe1 = "ready".equals(value);  // false
 boolean safe2 = Objects.equals(value, "ready"); // false
 ```
 
-`"ready".equals(value)` phù hợp khi vế trái là literal chắc chắn khác null. `Objects.equals(a, b)` phù hợp khi **cả hai biến đều có thể null**: hai null được coi là bằng nhau, một null và một giá trị khác null là không bằng.
+`"ready".equals(value)` works well when the left-hand side is a literal guaranteed non-null. `Objects.equals(a, b)` fits when **both variables can be null**: two nulls are treated as equal, one null and one non-null as not equal.
 
-### `equals` và `equalsIgnoreCase` không có cùng tiêu chí
+### `equals` and `equalsIgnoreCase` Have Different Criteria
 
-`String.equals` phân biệt chữ hoa/thường:
+`String.equals` is case-sensitive:
 
 ```java
 System.out.println("Java".equals("java"));           // false
 System.out.println("Java".equalsIgnoreCase("java")); // true
 ```
 
-Nếu yêu cầu là so sánh không phân biệt chữ hoa/thường, viết test trực tiếp cho hành vi đó. Không nên dùng `==` như một cách “tối ưu hóa” thay cho bất kỳ kiểu so sánh nội dung nào.
+If the requirement is case-insensitive comparison, write tests directly for that behavior. Never use `==` as an “optimization” in place of any content comparison.
 
-## 9. Các lỗi kiểm thử thường gặp
+## 9. Common Testing Mistakes
 
-1. **Dùng `==` để kiểm tra đầu ra nghiệp vụ của một hàm xử lý chuỗi.** Kết quả có thể cùng nội dung nhưng là instance khác; dùng `equals` hoặc `assertEquals` nếu hợp đồng chỉ nói về văn bản.
-2. **Cho rằng `final` luôn tạo constant expression.** `final String p = new String("co")` không phải constant variable; `p + "ffee"` vẫn tính ở runtime.
-3. **Không phân biệt nối hằng và nối runtime.** `"co" + "ffee"` là biểu thức hằng; `String prefix = "co"; prefix + "ffee"` thì không.
-4. **Cho rằng `new String(literal)` được intern tự động.** Constructor tạo đối tượng mới; nội dung vẫn có thể bằng literal, nhưng tham chiếu khác.
-5. **Cho rằng gọi `intern()` làm thay đổi biến gốc.** Nó trả về tham chiếu; `fresh` vẫn trỏ tới instance ban đầu nếu không gán lại.
-6. **Phụ thuộc vào “lần intern đầu tiên trả chính object này”.** Không nên viết test buộc JVM dùng một chiến lược intern cụ thể vượt quá hợp đồng canonical hóa.
-7. **Quên `null` khi gọi `equals`.** `nullable.equals(...)` có thể ném exception; dùng literal ở vế trái hoặc `Objects.equals` khi phù hợp.
-8. **Nhầm `assertEquals` với `assertSame` của JUnit.** Assertion trước kiểm tra nội dung; assertion sau kiểm tra tham chiếu.
-9. **Dùng `assert` rồi chạy Java không có `-ea`.** Một chương trình in “test passed” dù `assert` bị tắt là kết quả gây hiểu nhầm; JUnit hoặc bộ kiểm tra ném `AssertionError` tường minh phù hợp hơn.
-10. **Kiểm tra identity ở mọi nơi vì nghĩ rằng pool tiết kiệm bộ nhớ.** Quy tắc tối ưu bộ nhớ không tự biến thành hợp đồng chức năng của hệ thống. Chỉ kiểm tra identity khi thật sự muốn kiểm chứng literal, constant expression hoặc `intern()`.
+1. **Using `==` to verify business output of a string-processing function.** The result may have identical content yet be a different instance; use `equals` or `assertEquals` if the contract only specifies text.
+2. **Assuming `final` always creates a constant expression.** `final String p = new String("co")` is not a constant variable; `p + "ffee"` is still computed at runtime.
+3. **Failing to distinguish constant concatenation from runtime concatenation.** `"co" + "ffee"` is a constant expression; `String prefix = "co"; prefix + "ffee"` is not.
+4. **Assuming `new String(literal)` is automatically interned.** The constructor creates a new object; its content equals the literal, but its reference differs.
+5. **Assuming calling `intern()` mutates the original variable.** It returns a reference; `fresh` still points to the original instance unless reassigned.
+6. **Depending on “the first `intern()` returns this exact object.”** Do not write tests forcing the JVM to use a specific intern strategy beyond the canonicalization contract.
+7. **Forgetting `null` when calling `equals`.** `nullable.equals(...)` can throw an exception; put a literal on the left or use `Objects.equals` where appropriate.
+8. **Confusing JUnit's `assertEquals` and `assertSame`.** The former checks content; the latter checks reference identity.
+9. **Using `assert` and running Java without `-ea`.** A program printing “test passed” while `assert` is disabled is misleading; JUnit or checks explicitly throwing `AssertionError` are better.
+10. **Testing identity everywhere thinking pooling saves memory.** Memory-optimization rules do not automatically become functional system contracts. Only test identity when specifically verifying literals, constant expressions, or `intern()`.
 
-## 10. Tự luyện tập
+## 10. Practice Exercises
 
-**Câu 1.** Dự đoán hai kết quả:
+**Question 1.** Predict both outputs:
 
 ```java
 String a = "cat";
@@ -397,9 +397,9 @@ System.out.println(a == b);
 System.out.println(a.equals(b));
 ```
 
-Đáp án: `true`, `true`. Biểu thức ghép hai literal được tính lúc biên dịch.
+Answer: `true`, `true`. The expression joining two literals is evaluated at compile time.
 
-**Câu 2.** Dự đoán với biến không `final`:
+**Question 2.** Predict with a non-`final` variable:
 
 ```java
 String prefix = "c";
@@ -409,13 +409,13 @@ System.out.println(a == b);
 System.out.println(a.equals(b));
 ```
 
-Đáp án: `false`, `true`. Đây là phép nối ở runtime, nhưng nội dung vẫn bằng `cat`.
+Answer: `false`, `true`. This is runtime concatenation, yet content still equals `cat`.
 
-**Câu 3.** `final` có đủ để phép nối trở thành constant expression không?
+**Question 3.** Is `final` alone enough for concatenation to become a constant expression?
 
-Không. Cần biến `final` có kiểu nguyên thủy hoặc `String` và **được khởi tạo bằng constant expression**. Ví dụ `final String p = "c";` có thể được gộp; `final String p = new String("c");` thì không.
+No. You need a `final` variable of primitive or `String` type **initialized with a constant expression**. For example, `final String p = "c";` can be folded; `final String p = new String("c");` cannot.
 
-**Câu 4.** Phân biệt hai phép thử:
+**Question 4.** Contrast the two checks:
 
 ```java
 String x = new String("cat");
@@ -424,30 +424,30 @@ System.out.println(x == y);
 System.out.println(x.intern() == y.intern());
 ```
 
-Đáp án: `false` rồi `true`. Hai đối tượng tạo riêng, nhưng kết quả intern cùng nội dung là một tham chiếu canonical.
+Answer: `false` then `true`. Two separate objects are created, yet interning equal content returns one canonical reference.
 
-**Câu 5.** Một hàm trả `new String("OK")` khi thành công. Nên kiểm tra `assertEquals("OK", actual)` hay `assertSame("OK", actual)`?
+**Question 5.** A function returns `new String("OK")` on success. Should you assert `assertEquals("OK", actual)` or `assertSame("OK", actual)`?
 
-Nếu hợp đồng chỉ yêu cầu giá trị `OK` thì dùng `assertEquals`. `assertSame` sẽ đòi hỏi cùng một tham chiếu và không phản ánh đúng yêu cầu.
+If the contract only requires the value `OK`, use `assertEquals`. `assertSame` would demand the exact same reference and misrepresent the requirement.
 
-**Câu 6.** Khi cả hai biến `String` có thể `null`, cách so sánh nội dung an toàn là gì?
+**Question 6.** When both `String` variables may be `null`, what is the safe way to compare content?
 
-`Objects.equals(a, b)`. Nó cho `true` nếu cả hai `null`, `false` nếu chỉ một bên `null`, và dùng `equals` nếu cả hai khác null.
+`Objects.equals(a, b)`. It yields `true` if both are `null`, `false` if only one is `null`, and delegates to `equals` if both are non-null.
 
-## 11. Checklist trước khi kết luận test
+## 11. Pre-Conclusion Test Checklist
 
-- **Bạn đang kiểm tra văn bản hay identity?** Văn bản dùng `equals`/`assertEquals`; identity dùng `==`/`assertSame`.
-- **Biểu thức có thực sự là hằng ở compile time?** Kiểm tra xem mỗi biến tham gia có phải constant variable hay không.
-- **Có `new String`, `StringBuilder` hoặc nối runtime không?** Khi đó không tự coi kết quả là interned.
-- **Có dùng `intern()` không?** So sánh **tham chiếu trả về** và đừng nhầm với biến ban đầu.
-- **Có khả năng null không?** Dùng `Objects.equals` hoặc literal ở bên trái lời gọi `equals`.
-- **Kiểm thử có thật sự thất bại khi sai không?** Dùng JUnit, điều kiện ném `AssertionError` hoặc chạy Java assertion với `-ea` đúng cách.
+- **Are you testing text or identity?** Use `equals`/`assertEquals` for text; `==`/`assertSame` for identity.
+- **Is the expression truly a compile-time constant?** Check whether every participating variable is a constant variable.
+- **Is there `new String`, `StringBuilder`, or runtime concatenation?** If so, never assume the result is interned.
+- **Are you using `intern()`?** Compare the **returned reference** and do not confuse it with the original variable.
+- **Is `null` possible?** Use `Objects.equals` or place a literal on the left side of `equals`.
+- **Does the test genuinely fail when wrong?** Use JUnit, checks throwing `AssertionError`, or run Java assertions properly with `-ea`.
 
-**Ghi nhớ:** `==` và `assertSame` nói về **đối tượng**; `equals` và `assertEquals` nói về **nội dung**; `intern()` chuẩn hóa tham chiếu; *constant expression* quyết định trường hợp chuỗi được tính và intern ở compile time. Viết kiểm thử theo hợp đồng hành vi, sau đó mới quan tâm đến cơ chế pool nếu đó thực sự là mục tiêu kiểm thử.
+**Takeaway:** `==` and `assertSame` are about **objects**; `equals` and `assertEquals` are about **content**; `intern()` canonicalizes references; *constant expressions* determine when strings are evaluated and interned at compile time. Write tests against behavioral contracts first, and test pooling mechanics only when that is actually your target.
 
-## Tài liệu chính thức
+## Official Documentation
 
 - [`String.equals`, `String.intern` — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html)
-- [Java Language Specification, 3.10.5 — String Literals](https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html#jls-3.10.5)
-- [Java Language Specification, 15.29 — Constant Expressions](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.29)
-- [Java Language Specification, 4.12.4 — final Variables](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.12.4)
+- [Java Language Specification, 3.10.5 — String Literals](https://docs.oracle.com/en/java/javase/specs/jls/se21/html/jls-3.html#jls-3.10.5)
+- [Java Language Specification, 15.29 — Constant Expressions](https://docs.oracle.com/en/java/javase/specs/jls/se21/html/jls-15.html#jls-15.29)
+- [Java Language Specification, 4.12.4 — final Variables](https://docs.oracle.com/en/java/javase/specs/jls/se21/html/jls-4.html#jls-4.12.4)

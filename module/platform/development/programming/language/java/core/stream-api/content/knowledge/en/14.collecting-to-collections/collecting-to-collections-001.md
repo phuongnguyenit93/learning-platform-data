@@ -1,23 +1,23 @@
-# Thu thập thành List bằng Collectors.toList
+# Collecting into a List with Collectors.toList
 
-Trong Java Stream API, các phép toán trung gian như `filter`, `map`, `sorted` và `distinct` mô tả cách xử lý dữ liệu. Khi cần **lấy toàn bộ phần tử đầu ra của pipeline thành một `List`**, ta sử dụng phép toán kết thúc `collect(Collectors.toList())`.
+In the Java Stream API, intermediate operations such as `filter`, `map`, `sorted`, and `distinct` describe how data is processed. When you need to **collect all output elements of a pipeline into a `List`**, you use the terminal operation `collect(Collectors.toList())`.
 
-Bài học thuộc chương **Thu thập thành Collection** của module **JAVA_STREAM_API**. Đây là bước chuyển từ pipeline lười sang kết quả có thể sử dụng tiếp: sau khi lọc, biến đổi hoặc sắp xếp dữ liệu, chúng ta cần thu thập các phần tử. Ngoài cú pháp, cần hiểu chính xác hợp đồng về **thứ tự, giá trị trùng, kiểu List, khả năng sửa đổi, chạy song song và chi phí bộ nhớ**. Những hiểu biết này cũng là nền tảng để học grouping, collector tùy chỉnh và các phép rút gọn khác.
+This lesson belongs to the **Collecting into Collections** chapter of the **JAVA_STREAM_API** module. It is the transition step from a lazy pipeline to a usable result: after filtering, transforming, or sorting data, we need to collect the elements. Beyond syntax, it is essential to understand the exact contract regarding **order, duplicate values, List type, mutability, parallel execution, and memory cost**. This understanding also serves as the foundation for learning grouping, custom collectors, and other reduction operations.
 
-## 1. Cú pháp và thời điểm thu thập
+## 1. Syntax and When Collection Happens
 
-`Collectors.toList()` là phương thức tĩnh của `java.util.stream.Collectors`. Nó tạo một `Collector` dùng với terminal operation `Stream.collect(...)`:
+`Collectors.toList()` is a static method of `java.util.stream.Collectors`. It creates a `Collector` used with the terminal operation `Stream.collect(...)`:
 
 ```java
 List<R> result = source.stream()
-    .filter(/* điều kiện */)
-    .map(/* biến đổi sang R */)
+    .filter(/* condition */)
+    .map(/* transform to R */)
     .collect(Collectors.toList());
 ```
 
-Chữ `R` chỉ kiểu phần tử sau các phép biến đổi; kết quả có kiểu `List<R>`. Chẳng hạn, nguồn `Stream<String>` có thể được ánh xạ thành `Stream<Integer>` rồi thu về `List<Integer>`.
+The letter `R` denotes the element type after the transformations; the result has type `List<R>`. For example, a `Stream<String>` source can be mapped to `Stream<Integer>` and then collected into a `List<Integer>`.
 
-### Ví dụ Java 8 hoàn chỉnh
+### Complete Java 8 Example
 
 ```java
 import java.util.Arrays;
@@ -40,26 +40,26 @@ public class CollectToListDemo {
             .collect(Collectors.toList());
 
         System.out.println(names);    // [BINH, BINH, CHI]
-        System.out.println(rawNames); // Nguồn vẫn chứa các giá trị ban đầu.
+        System.out.println(rawNames); // The source still contains the original values.
     }
 }
 ```
 
-Diễn giải từng bước:
+Step-by-step explanation:
 
-1. `rawNames.stream()` tạo một Stream có thứ tự theo `List` nguồn.
-2. `filter(Objects::nonNull)` bỏ giá trị `null` để `String::trim` không gây `NullPointerException`.
-3. `map(String::trim)` bỏ khoảng trắng đầu/cuối; `filter` chỉ giữ tên dài ít nhất ba ký tự.
-4. `map(...toUpperCase...)` tạo chuỗi viết hoa, sử dụng `Locale.ROOT` để tránh phụ thuộc locale mặc định.
-5. `collect(Collectors.toList())` yêu cầu pipeline thực thi và thu các phần tử còn lại vào một `List<String>`.
+1. `rawNames.stream()` creates an ordered Stream based on the source `List`.
+2. `filter(Objects::nonNull)` removes `null` values so that `String::trim` does not cause a `NullPointerException`.
+3. `map(String::trim)` strips leading/trailing whitespace; `filter` keeps only names with at least three characters.
+4. `map(...toUpperCase...)` produces uppercase strings, using `Locale.ROOT` to avoid depending on the default locale.
+5. `collect(Collectors.toList())` triggers the pipeline execution and collects the remaining elements into a `List<String>`.
 
-**`collect` là phép toán kết thúc.** Trước khi gọi nó, `filter` và `map` thông thường chưa duyệt toàn bộ nguồn: các bước trung gian được đánh giá lười. Sau khi hoàn tất, `names` là một List chứa kết quả đã thu thập, có thể được truyền sang phương thức khác hoặc đọc nhiều lần như một Collection.
+**`collect` is a terminal operation.** Before it is called, `filter` and `map` normally have not traversed the entire source: intermediate steps are evaluated lazily. Once complete, `names` is a List containing the collected results, which can be passed to other methods or read multiple times as a Collection.
 
-Ví dụ trên không cần tạo List tạm giữa các bước `filter` và `map`. Stream xử lý phần tử qua pipeline theo nhu cầu của terminal operation.
+The example above does not need to create temporary Lists between `filter` and `map` steps. The Stream processes elements through the pipeline on demand as requested by the terminal operation.
 
-## 2. Kết quả giữ những phần tử nào?
+## 2. Which Elements Does the Result Keep?
 
-`Collectors.toList()` thu thập **mọi phần tử được pipeline chuyển tới nó**. Bản thân collector không lọc, loại trùng hoặc sắp xếp. Những việc đó do các phép toán trung gian quyết định.
+`Collectors.toList()` collects **every element passed to it by the pipeline**. The collector itself does not filter, deduplicate, or sort. Those responsibilities belong to the intermediate operations.
 
 ```java
 List<String> input = Arrays.asList("B", "A", "B", "C", "A");
@@ -86,13 +86,13 @@ List<String> firstTwoUniqueSorted = input.stream()
 // [A, B]
 ```
 
-Với `Stream` có encounter order, `distinct()` giữ lần xuất hiện đầu tiên của từng giá trị. `sorted()` tạo thứ tự sắp xếp, còn `limit(2)` giới hạn số phần tử tiếp tục được chuyển đến collector.
+For a `Stream` with an encounter order, `distinct()` keeps the first occurrence of each value. `sorted()` produces a sorted order, and `limit(2)` caps the number of elements forwarded to the collector.
 
-Nếu chỉ cần kiểm tra **có một phần tử phù hợp hay không**, `anyMatch(predicate)` thường đúng mục đích và có khả năng dừng sớm hơn việc thu toàn bộ List. Nếu chỉ cần **số lượng**, dùng `count()` để tránh tạo List không cần thiết.
+If you only need to check **whether any element matches**, `anyMatch(predicate)` is usually more appropriate and can short-circuit earlier than collecting an entire List. If you only need the **count**, use `count()` to avoid creating an unnecessary List.
 
-### List có thể chứa phần tử lặp và null
+### A List Can Contain Duplicate and null Elements
 
-`List` cho phép giá trị lặp. `Collectors.toList()` cũng không có bước tự động loại `null`:
+`List` allows duplicate values. `Collectors.toList()` also has no step that automatically removes `null`:
 
 ```java
 List<String> withNull = Stream.of("A", null, "B")
@@ -101,24 +101,24 @@ List<String> withNull = Stream.of("A", null, "B")
 System.out.println(withNull); // [A, null, B]
 ```
 
-Tuy nhiên, một phép toán trung gian như `map(String::length)` sẽ ném lỗi khi gặp `null`. Vì vậy, hãy xác định chính sách xử lý dữ liệu null trước các phép biến đổi có thể không chấp nhận null.
+However, an intermediate operation such as `map(String::length)` will throw an exception when encountering `null`. Therefore, define a null-handling policy before transformations that may not accept null.
 
-`distinct()` sử dụng ngữ nghĩa bằng nhau của phần tử (thông thường là `equals`); với kiểu đối tượng tự định nghĩa, việc triển khai `equals`/`hashCode` có thể ảnh hưởng kết quả loại trùng.
+`distinct()` uses element equality semantics (typically `equals`); for custom object types, the `equals`/`hashCode` implementation can affect deduplication results.
 
-## 3. Encounter order và thứ tự phần tử trong List
+## 3. Encounter Order and Element Order in the List
 
-Điểm quan trọng của `toList` là **giữ encounter order nếu Stream có thứ tự**. Encounter order là thứ tự phần tử do nguồn hoặc một phép toán trong pipeline xác định.
+An important property of `toList` is that it **preserves encounter order if the Stream is ordered**. Encounter order is the order of elements defined by the source or an operation in the pipeline.
 
-| Nguồn hoặc pipeline | Có encounter order không? | Hệ quả khi dùng `Collectors.toList()` |
+| Source or pipeline | Has encounter order? | Consequence when using `Collectors.toList()` |
 | --- | --- | --- |
-| `ArrayList.stream()` | Có, theo thứ tự List | List kết quả giữ thứ tự sau các bước pipeline |
-| `LinkedHashSet.stream()` | Có, theo thứ tự chèn | Giữ thứ tự chèn của các phần tử còn lại |
-| `TreeSet.stream()` | Có, theo thứ tự sắp xếp | Giữ thứ tự của Set |
-| `HashSet.stream()` | Không bảo đảm | Không được giả định thứ tự List kết quả cố định |
-| `stream.sorted()` | Có thứ tự sắp xếp xác định | List kết quả phản ánh thứ tự đã sắp xếp |
-| `stream.unordered()` | Bỏ ràng buộc encounter order | Không được dựa vào thứ tự phần tử cụ thể |
+| `ArrayList.stream()` | Yes, by List order | Resulting List preserves order after pipeline steps |
+| `LinkedHashSet.stream()` | Yes, by insertion order | Preserves insertion order of remaining elements |
+| `TreeSet.stream()` | Yes, by sorted order | Preserves the Set's order |
+| `HashSet.stream()` | Not guaranteed | Must not assume a fixed order for the resulting List |
+| `stream.sorted()` | Has defined sorted order | Resulting List reflects the sorted order |
+| `stream.unordered()` | Drops encounter order constraint | Must not rely on a specific element order |
 
-Ví dụ thu thập từ `HashSet`:
+Example collecting from a `HashSet`:
 
 ```java
 Set<Integer> values = new HashSet<>(
@@ -127,7 +127,7 @@ Set<Integer> values = new HashSet<>(
 
 List<Integer> withoutOrderGuarantee = values.stream()
     .collect(Collectors.toList());
-// Không giả định danh sách là [10, 20, 30].
+// Do not assume the list is [10, 20, 30].
 
 List<Integer> stableOrder = values.stream()
     .sorted()
@@ -135,30 +135,30 @@ List<Integer> stableOrder = values.stream()
 // [10, 20, 30]
 ```
 
-**Collector không tự tạo thứ tự nghiệp vụ.** Nếu muốn hiển thị danh sách người dùng theo ngày đăng ký, cần sắp xếp theo ngày đăng ký, và nếu có thể trùng ngày thì bổ sung một khóa phân biệt như ID. Việc thu thành List chỉ bảo toàn thứ tự được pipeline cung cấp.
+**A collector does not invent business ordering.** If you want to display a list of users by registration date, you must sort by registration date, and if dates can tie, add a tie-breaker key such as ID. Collecting into a List only preserves the order provided by the pipeline.
 
-## 4. Hợp đồng không bảo đảm List cụ thể hoặc có thể sửa đổi
+## 4. The Contract Does Not Guarantee a Specific or Mutable List
 
-Một sai lầm phổ biến là cho rằng `Collectors.toList()` **luôn trả về `ArrayList` có thể `add`/`remove`**. Đó không phải hợp đồng API.
+A common mistake is assuming that `Collectors.toList()` **always returns an `ArrayList` that supports `add`/`remove`**. That is not the API contract.
 
-Theo hợp đồng `Collectors.toList()`, **không có bảo đảm** về:
+Under the `Collectors.toList()` contract, there is **no guarantee** regarding:
 
-- Lớp triển khai List cụ thể, ví dụ `ArrayList` hay một lớp khác.
-- Khả năng sửa đổi (mutability) sau khi thu thập.
-- Khả năng tuần tự hóa (serializability).
-- Tính an toàn luồng (thread safety) của List trả về.
+- The concrete List implementation class, such as `ArrayList` or another class.
+- Mutability after collection.
+- Serializability.
+- Thread safety of the returned List.
 
-Trên các JDK thông dụng, kết quả thực tế có thể là `ArrayList` sửa đổi được, nhưng mã ứng dụng **không nên phụ thuộc** vào chi tiết triển khai này:
+On common JDKs, the actual result may be a mutable `ArrayList`, but application code **should not depend** on this implementation detail:
 
 ```java
 List<String> result = Stream.of("A", "B")
     .collect(Collectors.toList());
 
-// Không viết logic bắt buộc thao tác sau phải được hỗ trợ:
+// Do not write logic that requires the following operation to be supported:
 // result.add("C");
 ```
 
-Nếu muốn **chắc chắn nhận một `ArrayList` có thể thay đổi**, chỉ rõ loại Collection cần tạo bằng `Collectors.toCollection`:
+If you want to **guarantee receiving a mutable `ArrayList`**, explicitly specify the Collection type to create using `Collectors.toCollection`:
 
 ```java
 ArrayList<String> mutable = Stream.of("A", "B")
@@ -168,20 +168,20 @@ mutable.add("C");
 System.out.println(mutable); // [A, B, C]
 ```
 
-Việc chỉ định `ArrayList::new` giúp mục đích của code rõ ràng và bám hợp đồng của lớp List cụ thể. Ngược lại, nếu chỉ cần đọc danh sách, có thể giữ kiểu biến là `List<T>` và không giả định kết quả có thể sửa.
+Specifying `ArrayList::new` makes the code's intent clear and adheres to the concrete List class contract. Conversely, if you only need to read the list, you can keep the variable type as `List<T>` and not assume the result is mutable.
 
-## 5. Phân biệt ba cách thu thập List thường gặp
+## 5. Distinguishing Three Common Ways to Collect a List
 
-Từ các phiên bản Java khác nhau, có nhiều API cùng trả về `List` nhưng hợp đồng không giống nhau.
+Across different Java versions, multiple APIs return a `List` but have different contracts.
 
-| Cách viết | Phiên bản có từ | Có thể sửa danh sách? | Giá trị `null` |
+| Syntax | Available since | Can the list be modified? | `null` values |
 | --- | --- | --- | --- |
-| `stream.collect(Collectors.toList())` | Java 8 | **Không được bảo đảm** | Có thể thu các phần tử `null` |
-| `stream.collect(Collectors.toCollection(ArrayList::new))` | Java 8 | Có, vì trả về `ArrayList` | `ArrayList` chấp nhận `null` |
-| `stream.collect(Collectors.toUnmodifiableList())` | Java 10 | Không | Không chấp nhận `null`; có thể ném `NullPointerException` |
-| `stream.toList()` | Java 16 | Không | Có thể chứa `null` |
+| `stream.collect(Collectors.toList())` | Java 8 | **Not guaranteed** | Can collect `null` elements |
+| `stream.collect(Collectors.toCollection(ArrayList::new))` | Java 8 | Yes, because it returns `ArrayList` | `ArrayList` accepts `null` |
+| `stream.collect(Collectors.toUnmodifiableList())` | Java 10 | No | Does not accept `null`; may throw `NullPointerException` |
+| `stream.toList()` | Java 16 | No | Can contain `null` |
 
-Mỗi lựa chọn đều có tình huống phù hợp:
+Each option fits specific situations:
 
 ```java
 List<String> names = Stream.of("An", "Binh", "Chi")
@@ -197,27 +197,27 @@ List<String> unmodifiable = Stream.of("An", "Binh", "Chi")
     .toList(); // Java 16+
 ```
 
-Ở ví dụ này, `immutableView` và `unmodifiable` đều không cho phép `add`, `remove` hoặc `set`, nhưng chúng là những **List kết quả**, không phải một cách đóng băng sâu nội dung của từng đối tượng phần tử.
+In this example, `immutableView` and `unmodifiable` both disallow `add`, `remove`, or `set`, but they are **result Lists**, not a way to deeply freeze the contents of each element object.
 
-### Đặc biệt: Collectors.toList và Stream.toList không tương đương
+### Specifically: Collectors.toList and Stream.toList Are Not Equivalent
 
-`Collectors.toList()` là một **Collector** truyền vào `collect(...)`. `Stream.toList()` là một **terminal operation trực tiếp trên Stream**, được thêm từ Java 16. Dù đều trả về `List`, sự khác biệt về mutability là một phần của hợp đồng:
+`Collectors.toList()` is a **Collector** passed into `collect(...)`. `Stream.toList()` is a **terminal operation directly on Stream**, added in Java 16. Although both return a `List`, the difference in mutability is part of the contract:
 
 ```java
 // Java 16+:
 List<String> result = Stream.of("A", "B").toList();
 
-// Luôn ném UnsupportedOperationException:
+// Always throws UnsupportedOperationException:
 // result.add("C");
 ```
 
-Không tự động đổi `collect(Collectors.toList())` thành `toList()` trong code cũ nếu đoạn code còn sửa danh sách kết quả; đồng thời code Java 8 không biên dịch được lời gọi `Stream.toList()`.
+Do not automatically replace `collect(Collectors.toList())` with `toList()` in legacy code if that code still modifies the resulting list; also, Java 8 code cannot compile calls to `Stream.toList()`.
 
-`Collectors.toUnmodifiableList()` và `Stream.toList()` cũng khác nhau về xử lý `null`. Ví dụ `Stream.of("A", null).toList()` có thể chứa `null`, còn `collect(Collectors.toUnmodifiableList())` từ chối `null`.
+`Collectors.toUnmodifiableList()` and `Stream.toList()` also differ in `null` handling. For example, `Stream.of("A", null).toList()` can contain `null`, whereas `collect(Collectors.toUnmodifiableList())` rejects `null`.
 
-## 6. Kết quả List là một tập hợp tham chiếu, không phải bản sao sâu
+## 6. The Resulting List Is a Collection of References, Not a Deep Copy
 
-Khi Stream chứa đối tượng có thể thay đổi, `Collectors.toList()` tạo một List chứa **các tham chiếu tới phần tử được pipeline phát ra**. Nếu không dùng `map` để tạo đối tượng mới, không có quá trình sao chép sâu từng phần tử.
+When a Stream contains mutable objects, `Collectors.toList()` creates a List containing **references to the elements emitted by the pipeline**. Without using `map` to create new objects, no deep copying of individual elements occurs.
 
 ```java
 List<StringBuilder> source = Arrays.asList(
@@ -232,7 +232,7 @@ source.get(0).append("!");
 System.out.println(result.get(0)); // A!
 ```
 
-List kết quả và List nguồn là hai cấu trúc chứa phần tử, nhưng cả hai đang tham chiếu đến cùng đối tượng `StringBuilder` đầu tiên. Để có bản sao độc lập của phần tử, cần chủ động ánh xạ sang đối tượng mới:
+The resulting List and the source List are two structures holding elements, but both reference the exact same first `StringBuilder` object. To obtain independent copies of elements, proactively map to new objects:
 
 ```java
 List<StringBuilder> copies = source.stream()
@@ -240,15 +240,15 @@ List<StringBuilder> copies = source.stream()
     .collect(Collectors.toList());
 ```
 
-Nếu mục đích chỉ là thu chuỗi bất biến `String`, việc chia sẻ tham chiếu thông thường không gây vấn đề thay đổi nội dung chuỗi.
+If the goal is only to collect immutable `String`s, sharing references normally causes no issue with content mutation.
 
-Một điểm khác: `Stream` **không tự chụp snapshot của Collection tại lúc gọi `stream()`**. Với Collection không hỗ trợ thay đổi đồng thời, sửa cấu trúc nguồn trong lúc pipeline tiêu thụ có thể gây `ConcurrentModificationException` hoặc hành vi không được bảo đảm. Đừng cập nhật nguồn bên trong `filter` hay `forEach` rồi mong `collect` xử lý an toàn.
+Another point: a `Stream` **does not take a snapshot of a Collection when `stream()` is called**. For a Collection that does not support concurrent modification, mutating the source structure while the pipeline is consuming it can cause `ConcurrentModificationException` or undefined behavior. Do not update the source inside `filter` or `forEach` and expect `collect` to handle it safely.
 
-## 7. Thu thập trong parallel stream
+## 7. Collecting in a Parallel Stream
 
-`collect(Collectors.toList())` sử dụng cơ chế **mutable reduction**. Về mặt khái niệm, một Collector có các thành phần: `supplier` tạo container, `accumulator` thêm phần tử, `combiner` gộp các container từng phần và `finisher` hoàn thiện kết quả.
+`collect(Collectors.toList())` uses a **mutable reduction** mechanism. Conceptually, a Collector has components: `supplier` creates a container, `accumulator` adds an element, `combiner` merges partial containers, and `finisher` produces the final result.
 
-Khi chạy song song, Stream có thể chia dữ liệu thành các nhánh, tích lũy vào **container từng phần** rồi gộp chúng. Bạn không phải tự giữ một `ArrayList` chung để nhiều luồng cùng `add`.
+When running in parallel, the Stream can split data into branches, accumulate into **partial containers**, and merge them. You do not have to maintain a shared `ArrayList` for multiple threads to call `add` on concurrently.
 
 ```java
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
@@ -261,14 +261,14 @@ List<Integer> squares = numbers.parallelStream()
 System.out.println(squares); // [4, 16, 36]
 ```
 
-Vì `numbers` có encounter order và phép thu thập tôn trọng thứ tự ấy, List kết quả vẫn là `[4, 16, 36]`. Điều đó **không có nghĩa** các lời gọi `filter`/`map` đã chạy lần lượt theo thứ tự `1, 2, 3, 4, 5, 6`.
+Because `numbers` has an encounter order and collection respects that order, the resulting List is still `[4, 16, 36]`. That **does not mean** the `filter`/`map` calls executed sequentially in the order `1, 2, 3, 4, 5, 6`.
 
-Đối chiếu với kiểu viết nguy hiểm:
+Contrast this with the dangerous style:
 
 ```java
 List<Integer> unsafe = new ArrayList<>();
 
-// Không sử dụng: nhiều luồng cùng thay đổi một ArrayList.
+// Do not use: multiple threads mutating the same ArrayList concurrently.
 // numbers.parallelStream().forEach(n -> unsafe.add(n * n));
 
 List<Integer> safe = numbers.parallelStream()
@@ -276,23 +276,23 @@ List<Integer> safe = numbers.parallelStream()
     .collect(Collectors.toList());
 ```
 
-Trong ví dụ sai, `ArrayList` có thể bị ghi đồng thời dẫn đến kết quả thiếu/sai hoặc ngoại lệ. Trong ví dụ đúng, hệ thống thu thập gộp các kết quả theo hợp đồng Collector.
+In the wrong example, `ArrayList` may experience concurrent writes leading to missing/corrupted results or exceptions. In the correct example, the collection framework merges results according to the Collector contract.
 
-**Phân biệt:** quá trình `collect` từ một parallel stream có thể an toàn nhờ cách tổ chức các container, nhưng **List sau khi trả về không mặc nhiên an toàn cho nhiều luồng cùng sửa**. Nếu thật sự cần đồng bộ khi sử dụng kết quả, hãy thiết kế lớp bảo vệ phù hợp với ứng dụng.
+**Distinction:** the `collect` process from a parallel stream can be safe thanks to how containers are managed, but **the returned List is not thread-safe by default for concurrent modification**. If you truly need synchronization when using the result, design an appropriate protection layer for your application.
 
-`Collectors.toList()` không phải concurrent collector. Với nguồn có thứ tự, việc giữ encounter order còn có chi phí kết hợp và bảo toàn vị trí. Do đó, `parallelStream()` không hứa thu List nhanh hơn: hãy đo trên khối lượng và phép biến đổi thực tế.
+`Collectors.toList()` is not a concurrent collector. For ordered sources, preserving encounter order also incurs combining and positional-preservation costs. Therefore, `parallelStream()` does not promise faster List collection: measure on realistic workloads and transformations.
 
-## 8. Tính lười, bộ nhớ và nguồn vô hạn
+## 8. Laziness, Memory, and Infinite Sources
 
-`Collectors.toList()` cần có khả năng thu **tất cả phần tử của pipeline đầu ra** trước khi trả List. Với một nguồn vô hạn mà không có điều kiện dừng, terminal này không thể hoàn tất theo cách đánh giá thông thường:
+`Collectors.toList()` must be able to collect **all output elements of the pipeline** before returning the List. With an infinite source that has no stopping condition, this terminal operation cannot complete under normal evaluation:
 
 ```java
-// KHÔNG chạy: nguồn không có giới hạn.
+// DO NOT run: unbounded source.
 // List<Integer> infinite = Stream.iterate(1, n -> n + 1)
 //     .collect(Collectors.toList());
 ```
 
-Hãy giới hạn nguồn bằng các phép toán trung gian phù hợp:
+Limit the source with appropriate intermediate operations:
 
 ```java
 List<Integer> firstFiveEven = Stream.iterate(1, n -> n + 1)
@@ -303,42 +303,42 @@ List<Integer> firstFiveEven = Stream.iterate(1, n -> n + 1)
 System.out.println(firstFiveEven); // [2, 4, 6, 8, 10]
 ```
 
-`limit(5)` giới hạn **số phần tử đã vượt qua bộ lọc**. Nếu bộ lọc không bao giờ cho phần tử đi tiếp, `limit` phía sau cũng không giúp hoàn tất. Từ Java 9, `takeWhile` có thể đặt điều kiện dừng theo đoạn đầu liên tiếp của một nguồn có encounter order.
+`limit(5)` caps the **number of elements that have passed the filter**. If the filter never lets any element through, a downstream `limit` will not help it terminate either. Since Java 9, `takeWhile` can set a stopping condition based on a contiguous prefix of a source with encounter order.
 
-Về bộ nhớ, List phải giữ các phần tử đã thu thập: mức sử dụng bộ nhớ tăng theo số phần tử đầu ra, chưa kể các đối tượng phần tử và dữ liệu tạm của pipeline. Với dữ liệu lớn, cần cân nhắc:
+In terms of memory, the List must retain the collected elements: memory usage grows with the number of output elements, not counting the element objects themselves and temporary pipeline data. For large datasets, consider:
 
-- Có thật sự cần giữ **toàn bộ** phần tử trong RAM không? Nếu chỉ cần đếm, dùng `count`; nếu cần tổng, dùng `sum`/`reduce`.
-- Có thể lọc, giới hạn hoặc chọn những trường cần thiết bằng `map` **trước** khi thu thập không?
-- Nếu nguồn dữ liệu tới từ cơ sở dữ liệu hoặc dịch vụ, có nên phân trang/tải theo lô tại nguồn không?
-- Khi cần ghi ra một đích ở bên ngoài, có thể xử lý theo lô với quản lý tài nguyên và lỗi rõ ràng thay vì gom tất cả vào một List lớn không?
+- Do you really need to hold **all** elements in RAM? If you only need the count, use `count`; if you need the sum, use `sum`/`reduce`.
+- Can you filter, limit, or select only needed fields with `map` **before** collecting?
+- If the data source comes from a database or service, should you paginate or load in batches at the source?
+- When writing to an external destination, can you process in batches with explicit resource and error handling instead of gathering everything into one large List?
 
-Một Stream gắn với tài nguyên ngoài như `Files.lines(path)` cần được đóng bằng `try-with-resources`. Việc `collect` hoàn tất **không tự động đóng** mọi nguồn tài nguyên:
+A Stream backed by an external resource such as `Files.lines(path)` needs to be closed with `try-with-resources`. Completing `collect` **does not automatically close** all resource-backed streams:
 
 ```java
 try (Stream<String> lines = Files.lines(path)) {
     List<String> nonBlank = lines
         .filter(s -> !s.trim().isEmpty())
         .collect(Collectors.toList());
-    // Dùng nonBlank khi cần.
+    // Use nonBlank when needed.
 }
 ```
 
-Đây là ví dụ sử dụng `path` kiểu `Path` và các import `Files`, `Stream`, `List`, `Collectors` phù hợp. `Files.lines` có thể ném `IOException` nên mã gọi phải xử lý hoặc khai báo ngoại lệ.
+This example uses `path` of type `Path` along with appropriate `Files`, `Stream`, `List`, and `Collectors` imports. `Files.lines` can throw `IOException`, so calling code must handle or declare the exception.
 
-## 9. Kết hợp với các Collector khác khi bài toán thay đổi
+## 9. Combining with Other Collectors When Requirements Change
 
-`Collectors.toList()` phù hợp với yêu cầu “cho tôi một danh sách các phần tử sau pipeline”. Khi yêu cầu đầu ra thay đổi, chọn Collector khác có thể chính xác và hiệu quả hơn.
+`Collectors.toList()` fits the requirement "give me a list of elements after the pipeline". When output requirements change, choosing another Collector can be more accurate and efficient.
 
-| Yêu cầu đầu ra | Gợi ý |
+| Output requirement | Suggestion |
 | --- | --- |
-| Danh sách các phần tử | `collect(Collectors.toList())` |
-| Danh sách với lớp triển khai xác định | `collect(Collectors.toCollection(ArrayList::new))` |
-| Tập giá trị duy nhất | `collect(Collectors.toSet())`; không giả định thứ tự |
-| List theo từng nhóm khóa | `collect(Collectors.groupingBy(keyFn))` |
-| Nối chuỗi bằng dấu phân cách | `collect(Collectors.joining(", "))` |
-| Đếm số phần tử | `count()` hoặc `Collectors.counting()` khi lồng Collector |
+| List of elements | `collect(Collectors.toList())` |
+| List with a specific implementation class | `collect(Collectors.toCollection(ArrayList::new))` |
+| Set of unique values | `collect(Collectors.toSet())`; do not assume order |
+| List per key group | `collect(Collectors.groupingBy(keyFn))` |
+| Join strings with a delimiter | `collect(Collectors.joining(", "))` |
+| Count elements | `count()` or `Collectors.counting()` when nesting Collectors |
 
-Ví dụ lấy **các List được nhóm theo chữ cái đầu**:
+Example getting **Lists grouped by initial letter**:
 
 ```java
 List<String> words = Arrays.asList("apple", "ant", "banana", "boat");
@@ -346,11 +346,11 @@ List<String> words = Arrays.asList("apple", "ant", "banana", "boat");
 Map<Character, List<String>> byInitial = words.stream()
     .collect(Collectors.groupingBy(word -> word.charAt(0)));
 
-// Khóa 'a' ứng với [apple, ant]; khóa 'b' ứng với [banana, boat].
-// Không phụ thuộc thứ tự duyệt các khóa của Map kết quả.
+// Key 'a' maps to [apple, ant]; key 'b' maps to [banana, boat].
+// Do not rely on the iteration order of the resulting Map's keys.
 ```
 
-`groupingBy` mặc định thu các phần tử trong từng nhóm vào List. Khi muốn chỉ định rõ downstream collector:
+`groupingBy` collects elements within each group into a List by default. When you want to explicitly specify the downstream collector:
 
 ```java
 Map<Character, List<String>> explicit = words.stream()
@@ -360,28 +360,28 @@ Map<Character, List<String>> explicit = words.stream()
     ));
 ```
 
-Đây là ví dụ cho thấy `Collectors.toList()` còn có thể được dùng **bên trong một Collector phức hợp**. Từ mục tiêu thu List cơ bản, người học có thể phát triển sang grouping, partitioning và collector tùy chỉnh.
+This example shows that `Collectors.toList()` can also be used **inside a composite Collector**. From the basic goal of collecting a List, learners can progress to grouping, partitioning, and custom collectors.
 
-## 10. Các lỗi thường gặp
+## 10. Common Mistakes
 
-| Cách hiểu hoặc cách viết sai | Hệ quả | Cách xử lý |
+| Mistake or misconception | Consequence | How to fix |
 | --- | --- | --- |
-| Dùng `Collectors.toList()` và mặc định kết quả là `ArrayList` | Phụ thuộc chi tiết triển khai | Khi cần `ArrayList`, dùng `toCollection(ArrayList::new)` |
-| Coi `Collectors.toList()` và `Stream.toList()` là giống nhau | Khác hợp đồng sửa đổi List và yêu cầu phiên bản Java | Xem rõ phiên bản Java và loại List cần |
-| Thu List rồi gọi `size()` chỉ để đếm | Tạo List không cần thiết | Dùng terminal `count()` |
-| Thu List từ `HashSet` rồi dựa vào thứ tự | Không có cam kết encounter order | Sắp xếp trước hoặc dùng nguồn có thứ tự |
-| Muốn loại trùng nhưng chỉ gọi `toList()` | Giá trị lặp vẫn được giữ | Thêm `distinct()` trước terminal |
-| Nguồn chứa null rồi gọi `String::trim` | Có thể ném `NullPointerException` | `filter(Objects::nonNull)` trước phép biến đổi |
-| Dùng `forEach(list::add)` lên List ngoài trong `parallelStream()` | Trạng thái chia sẻ có thể bị race condition | Dùng `collect(Collectors.toList())` |
-| Tưởng List kết quả sao chép sâu đối tượng | Thay đổi phần tử mutable được thấy qua nhiều tham chiếu | Tạo bản sao phần tử bằng `map` khi cần |
-| Thu tất cả từ Stream vô hạn | Không kết thúc hoặc cạn tài nguyên | Đặt giới hạn có thể đạt, ví dụ `limit(n)` |
-| Dùng lại một Stream sau `collect` | Stream đã bị tiêu thụ | Tạo Stream mới từ nguồn cho truy vấn tiếp theo |
+| Using `Collectors.toList()` and assuming the result is `ArrayList` | Depends on implementation details | When `ArrayList` is needed, use `toCollection(ArrayList::new)` |
+| Treating `Collectors.toList()` and `Stream.toList()` as identical | Different List mutability contracts and Java version requirements | Check Java version and the required List type |
+| Collecting a List then calling `size()` just to count | Creates an unnecessary List | Use terminal `count()` |
+| Collecting a List from `HashSet` and relying on order | No encounter order guarantee | Sort first or use an ordered source |
+| Wanting deduplication but only calling `toList()` | Duplicate values are still kept | Add `distinct()` before the terminal operation |
+| Source contains null and `String::trim` is called | Can throw `NullPointerException` | `filter(Objects::nonNull)` before transformation |
+| Using `forEach(list::add)` on an external List in `parallelStream()` | Shared state can suffer race conditions | Use `collect(Collectors.toList())` |
+| Assuming the resulting List deep-copies objects | Mutable element changes are visible across references | Create element copies with `map` when needed |
+| Collecting all elements from an infinite Stream | Does not terminate or exhausts resources | Set a reachable limit, e.g., `limit(n)` |
+| Reusing a Stream after `collect` | The Stream has already been consumed | Create a new Stream from the source for the next query |
 
-## 11. Bài tập có đáp án
+## 11. Exercises with Answers
 
-### Bài 1 — Lọc và thu đúng thứ tự
+### Exercise 1 — Filter and Collect in Order
 
-Cho một danh sách điểm `[5, 9, 7, 9, 3]`, lấy tất cả điểm từ `7` trở lên, giữ nguyên thứ tự và giá trị trùng.
+Given a list of scores `[5, 9, 7, 9, 3]`, get all scores of `7` or higher, preserving original order and duplicate values.
 
 ```java
 List<Integer> points = Arrays.asList(5, 9, 7, 9, 3);
@@ -392,11 +392,11 @@ List<Integer> selected = points.stream()
 // [9, 7, 9]
 ```
 
-**Đáp án:** `[9, 7, 9]`. `Collectors.toList()` không tự loại phần tử lặp và giữ encounter order của List.
+**Answer:** `[9, 7, 9]`. `Collectors.toList()` does not automatically remove duplicates and preserves the List's encounter order.
 
-### Bài 2 — Chuyển kiểu phần tử trước khi thu
+### Exercise 2 — Transform Element Type Before Collecting
 
-Cho `["An", "Binh", "Chi"]`, tạo `List<Integer>` chứa độ dài mỗi tên.
+Given `["An", "Binh", "Chi"]`, create a `List<Integer>` containing the length of each name.
 
 ```java
 List<Integer> lengths = Arrays.asList("An", "Binh", "Chi")
@@ -406,19 +406,19 @@ List<Integer> lengths = Arrays.asList("An", "Binh", "Chi")
 // [2, 4, 3]
 ```
 
-**Đáp án:** `map` chuyển `Stream<String>` thành `Stream<Integer>`, vì vậy kết quả của `collect(Collectors.toList())` là `List<Integer>`.
+**Answer:** `map` converts `Stream<String>` to `Stream<Integer>`, so the result of `collect(Collectors.toList())` is `List<Integer>`.
 
-### Bài 3 — Cần danh sách có thể add
+### Exercise 3 — Needing a List That Supports add
 
-Đoạn code sau có bảo đảm hoạt động trên mọi triển khai tuân thủ Java API không?
+Is the following code guaranteed to work on every Java API-compliant implementation?
 
 ```java
 List<String> names = Stream.of("A", "B")
     .collect(Collectors.toList());
-// names.add("C"); // Không được API bảo đảm.
+// names.add("C"); // Not guaranteed by the API.
 ```
 
-**Đáp án:** Không. Nếu cần thêm phần tử sau khi thu, hãy chỉ rõ `ArrayList`:
+**Answer:** No. If you need to add elements after collecting, explicitly specify `ArrayList`:
 
 ```java
 ArrayList<String> names = Stream.of("A", "B")
@@ -426,7 +426,7 @@ ArrayList<String> names = Stream.of("A", "B")
 names.add("C");
 ```
 
-### Bài 4 — Song song có làm thay đổi thứ tự kết quả?
+### Exercise 4 — Does Parallel Execution Change Result Order?
 
 ```java
 List<Integer> input = Arrays.asList(1, 2, 3, 4, 5);
@@ -437,20 +437,20 @@ List<Integer> values = input.parallelStream()
     .collect(Collectors.toList());
 ```
 
-**Đáp án:** `[10, 30, 50]`. Với nguồn List có thứ tự, collector giữ encounter order của các phần tử đầu ra; thứ tự **thực thi** lambda vẫn có thể khác.
+**Answer:** `[10, 30, 50]`. With an ordered List source, the collector preserves the encounter order of output elements; the lambda **execution** order may still differ.
 
-### Bài 5 — Chọn terminal theo yêu cầu
+### Exercise 5 — Choosing a Terminal Operation by Requirement
 
-Cho `List<String> words` lớn, chỉ cần biết có tên nào rỗng sau `trim` không. Có nên gọi `collect(Collectors.toList())`?
+Given a large `List<String> words`, you only need to know whether any name is empty after `trim`. Should you call `collect(Collectors.toList())`?
 
 ```java
 boolean hasBlank = words.stream()
     .anyMatch(word -> word.trim().isEmpty());
 ```
 
-**Đáp án:** Nên dùng `anyMatch` vì kết quả cần là `boolean`; terminal này có thể dừng sớm khi gặp chuỗi rỗng đầu tiên. Nếu dữ liệu có thể chứa `null`, cần xác định quy tắc xử lý null riêng, chẳng hạn `word == null || word.trim().isEmpty()`.
+**Answer:** Use `anyMatch` because the required result is a `boolean`; this terminal operation can short-circuit as soon as it finds the first blank string. If the data can contain `null`, define a separate null-handling rule, such as `word == null || word.trim().isEmpty()`.
 
-### Bài 6 — List rỗng
+### Exercise 6 — Empty List
 
 ```java
 List<Integer> empty = Stream.of(1, 3, 5)
@@ -458,8 +458,8 @@ List<Integer> empty = Stream.of(1, 3, 5)
     .collect(Collectors.toList());
 ```
 
-**Đáp án:** `empty` là một List rỗng, không phải `null`. `collect(Collectors.toList())` thu thành List dù không có phần tử nào đi qua pipeline.
+**Answer:** `empty` is an empty List, not `null`. `collect(Collectors.toList())` collects into a List even when no elements pass through the pipeline.
 
-## Ghi nhớ
+## Key Takeaways
 
-Trong **JAVA_STREAM_API**, `collect(Collectors.toList())` là cách thông dụng từ Java 8 để biến các phần tử còn lại của Stream thành `List`. Nó là **terminal operation**, giữ các giá trị trùng và tôn trọng encounter order của nguồn có thứ tự, nhưng **không cam kết** lớp triển khai hay khả năng sửa đổi của List được trả về. Nếu cần `ArrayList` có thể chỉnh sửa, dùng `Collectors.toCollection(ArrayList::new)`; nếu cần List không thể sửa đổi, cân nhắc `Stream.toList()` (Java 16+) hoặc `Collectors.toUnmodifiableList()` (Java 10+) với chính sách null phù hợp. Khi thu thập song song, hãy để Collector quản lý các kết quả từng phần; khi dữ liệu lớn hoặc vô hạn, phải tính đến bộ nhớ và điểm dừng của pipeline.
+In **JAVA_STREAM_API**, `collect(Collectors.toList())` is the standard way since Java 8 to turn remaining Stream elements into a `List`. It is a **terminal operation**, preserves duplicate values, and respects the encounter order of ordered sources, but **does not guarantee** the implementation class or mutability of the returned List. If you need a modifiable `ArrayList`, use `Collectors.toCollection(ArrayList::new)`; if you need an unmodifiable List, consider `Stream.toList()` (Java 16+) or `Collectors.toUnmodifiableList()` (Java 10+) with the appropriate null policy. When collecting in parallel, let the Collector manage partial results; when data is large or infinite, account for memory usage and pipeline termination.

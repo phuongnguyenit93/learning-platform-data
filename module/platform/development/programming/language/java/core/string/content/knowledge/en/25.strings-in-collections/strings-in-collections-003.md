@@ -1,8 +1,8 @@
-# So sánh `String` theo nội dung thay vì dựa vào `intern()` trong collection Java
+# Comparing `String` by Content Instead of Relying on `intern()` in Java Collections
 
-## 1. Vấn đề thực tế
+## 1. The Practical Problem
 
-Hãy tưởng tượng ứng dụng nhận tên khóa `"java"` từ hai nguồn: một nơi viết trực tiếp trong source code, nơi khác đọc từ dữ liệu hoặc tạo chuỗi mới. Hai giá trị có nội dung giống hệt nhau, nhưng không nhất thiết là cùng **đối tượng `String`**.
+Suppose an application receives the key name `"java"` from two sources: one written directly in source code, and another read from external data or constructed as a new string. Both values have identical content, but they are not necessarily the same **`String` object**.
 
 ~~~java
 String a = "java";
@@ -12,29 +12,29 @@ System.out.println(a == b);      // false
 System.out.println(a.equals(b)); // true
 ~~~
 
-Cả hai đều biểu thị bốn chữ cái `j`, `a`, `v`, `a`. Biểu thức `a == b` cho kết quả `false` vì hai biến tham chiếu đến **hai đối tượng khác nhau**. Biểu thức `a.equals(b)` cho kết quả `true` vì `String.equals` so sánh **nội dung chuỗi**.
+Both represent the four letters `j`, `a`, `v`, `a`. The expression `a == b` evaluates to `false` because the two variables reference **two different objects**. The expression `a.equals(b)` evaluates to `true` because `String.equals` compares **string content**.
 
-Trong `Set<String>`, `Map<String, ...>` hay các phép loại bỏ giá trị trùng lặp, quy tắc nghiệp vụ thường là: **cùng nội dung thì được coi là cùng khóa hoặc cùng phần tử**. Vì thế cần dựa vào `equals()` và `hashCode()`, thay vì cố làm cho mọi chuỗi đều trỏ tới một đối tượng được `intern()`.
+In `Set<String>`, `Map<String, ...>`, or deduplication operations, the business rule is usually: **identical content is treated as the same key or the same element**. Therefore, you should rely on `equals()` and `hashCode()`, rather than trying to make every string point to a single `intern()`ed object.
 
-Một chương trình có thể "tình cờ chạy đúng" với `==` khi các giá trị đều là string literal, rồi thất bại khi dữ liệu đến từ file, mạng, cơ sở dữ liệu hoặc phép nối chuỗi ở runtime.
+A program might "work by accident" with `==` when all values are string literals, and then fail when data comes from files, networks, databases, or runtime string concatenation.
 
-## 2. Phân biệt `==`, `equals()` và `intern()`
+## 2. Distinguishing `==`, `equals()`, and `intern()`
 
-| Biểu thức / API | Điều nó kiểm tra hoặc thực hiện | Thích hợp khi |
+| Expression / API | What it checks or does | Appropriate when |
 | --- | --- | --- |
-| `a == b` | Hai tham chiếu có trỏ tới cùng đối tượng hay không | Chủ ý kiểm tra **định danh đối tượng** |
-| `a.equals(b)` | Hai `String` có cùng dãy UTF-16 code unit hay không | Kiểm tra **nội dung** chính xác, phân biệt chữ hoa/thường |
-| `Objects.equals(a, b)` | So sánh nội dung an toàn khi một hoặc cả hai biến có thể `null` | So sánh giá trị nullable |
-| `a.equalsIgnoreCase(b)` | So sánh không phân biệt hoa/thường theo quy tắc của Java | Khi nghiệp vụ xác định rõ cách so sánh này phù hợp |
-| `a.intern()` | Trả về tham chiếu đại diện chuẩn (canonical) trong string pool cho nội dung của `a` | Trường hợp tối ưu hoặc kỹ thuật riêng có chủ đích |
-| `a.hashCode()` | Tạo giá trị băm ổn định theo nội dung `String` | Collections dựa trên hash, như `HashSet` và `HashMap` |
-| `a.compareTo(b)` | So sánh thứ tự từ điển theo các code unit UTF-16 | Sắp xếp theo **natural order** của `String` |
+| `a == b` | Whether two references point to the same object | Intentionally checking **object identity** |
+| `a.equals(b)` | Whether two `String`s have the same sequence of UTF-16 code units | Checking exact, case-sensitive **content** |
+| `Objects.equals(a, b)` | Content comparison that is safe when one or both variables may be `null` | Comparing nullable values |
+| `a.equalsIgnoreCase(b)` | Case-insensitive comparison using Java's rules | When business logic explicitly defines this comparison as appropriate |
+| `a.intern()` | Returns a canonical reference from the string pool for the content of `a` | Intentional optimization or specialized technical cases |
+| `a.hashCode()` | Produces a stable hash value based on `String` content | Hash-based collections, such as `HashSet` and `HashMap` |
+| `a.compareTo(b)` | Lexicographical comparison by UTF-16 code units | Sorting by `String`'s **natural order** |
 
-Điểm cần nhớ: `String.intern()` **không phải** phép kiểm tra hai chuỗi có bằng nhau hay không. Nó trả về một tham chiếu đại diện chuẩn, cho phép những chuỗi có nội dung bằng nhau chia sẻ một đối tượng sau khi intern. Nếu mục đích là **so sánh giá trị**, dùng `equals()` trực tiếp vừa rõ nghĩa vừa không phụ thuộc vào bước chuẩn hóa tham chiếu.
+Key point to remember: `String.intern()` is **not** a check for whether two strings are equal. It returns a canonical representative reference, allowing strings with equal content to share one object once interned. If the goal is **value comparison**, calling `equals()` directly is both clearer in intent and independent of any reference-canonicalization step.
 
-### `intern()` hoạt động như thế nào?
+### How does `intern()` work?
 
-JVM duy trì một **string pool** cho các chuỗi được intern. String literal như `"java"` được intern. Khi gọi `someString.intern()`, kết quả là đối tượng đại diện chuẩn đang có cùng nội dung trong pool, hoặc một đối tượng trở thành đại diện cho nội dung đó nếu trước đó chưa tồn tại.
+The JVM maintains a **string pool** for interned strings. String literals such as `"java"` are interned. When calling `someString.intern()`, the result is the canonical representative object with the same content already in the pool, or an object becomes the representative for that content if none existed beforehand.
 
 ~~~java
 String literal = "java";
@@ -45,13 +45,13 @@ System.out.println(literal == created.intern()); // true
 System.out.println(created == created.intern()); // false
 ~~~
 
-`created.intern()` **trả về một tham chiếu**; nó không thay nội dung và không biến chính đối tượng `created` thành string literal. Việc dùng `intern()` ở đây chỉ giải thích cơ chế, không phải giải pháp cần dùng cho so sánh trong collection.
+`created.intern()` **returns a reference**; it does not change the content and does not turn the `created` object itself into the string literal. Using `intern()` here only explains the mechanism, not a solution to use for collection comparisons.
 
-Trường hợp `new String("java")` được tạo riêng là minh họa rõ ràng; với chuỗi được tối ưu hóa hoặc hằng biểu thức tại thời điểm biên dịch, không được suy luận máy móc rằng mọi biểu thức ghép chuỗi đều tạo đối tượng mới.
+The explicitly constructed `new String("java")` case is a clear illustration; for compiler-optimized strings or compile-time constant expressions, do not mechanically assume that every concatenation expression creates a new object.
 
-## 3. Kiểm chứng `intern()` không cần thiết cho hash collection
+## 3. Verifying That `intern()` Is Unnecessary for Hash Collections
 
-Hai instance mới chứa cùng chữ vẫn là **một** phần tử `HashSet` và **một** khóa `HashMap`. Không cần chuẩn hóa tham chiếu trước bằng `intern`:
+Two newly created instances containing the same characters are still **one** `HashSet` element and **one** `HashMap` key. There is no need to pre-canonicalize references with `intern`:
 
 ~~~java
 String a = new String("id-42");
@@ -69,13 +69,13 @@ System.out.println(map.size()); // 1
 System.out.println(map.get("id-42")); // 20
 ~~~
 
-`intern` chỉ trả về tham chiếu chuẩn trong string pool; nếu sau `intern` ta so sánh bằng `==` thì đang kiểm tra identity của **những tham chiếu đã intern**, chứ không thay đổi hợp đồng của `HashMap` hay `HashSet`. Hai nội dung khác nhau vẫn khác nhau; hai nội dung bằng nhau vẫn bằng nhau kể cả trước khi intern. Nếu cần bản đồ dùng **identity** thật sự, phải lựa chọn cấu trúc đặc biệt như `IdentityHashMap`, vốn có ngữ nghĩa khác `HashMap` (phần 6).
+`intern` only returns a canonical reference from the string pool; comparing with `==` after `intern` checks the identity of **the interned references**, rather than changing the contract of `HashMap` or `HashSet`. Two different contents remain different; two equal contents are already equal even before interning. If a map using true **identity** is needed, a specialized structure like `IdentityHashMap` must be chosen, which has different semantics from `HashMap` (section 6).
 
-**Hash collision là vấn đề riêng**: `"Aa".hashCode() == "BB".hashCode()` nhưng `"Aa".equals("BB")` là `false`. Không so hai nội dung chỉ bằng hash; chi tiết hợp đồng được trình bày trong bài về va chạm băm.
+**Hash collisions are a separate issue**: `"Aa".hashCode() == "BB".hashCode()`, yet `"Aa".equals("BB")` is `false`. Never compare two contents by hash alone; details of the contract are covered in the lesson on hash collisions.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh, có thể chạy
+## 5. Complete, Runnable Java 17+ Example
 
-Lưu chương trình dưới tên `StringCollectionEqualityDemo.java`:
+Save the program as `StringCollectionEqualityDemo.java`:
 
 ~~~java
 import java.text.Normalizer;
@@ -121,7 +121,7 @@ public class StringCollectionEqualityDemo {
         System.out.println("hashMapValue=" +
                 scores.get(new String("id-42")));
 
-        // Trường hợp chủ ý dùng identity thay vì content.
+        // Case intentionally using identity instead of content.
         Set<String> identities = Collections.newSetFromMap(
                 new IdentityHashMap<String, Boolean>()
         );
@@ -129,7 +129,7 @@ public class StringCollectionEqualityDemo {
         identities.add(new String("key"));
         System.out.println("identitySetSize=" + identities.size());
 
-        // Sorted Set có thể dựa trên Comparator.
+        // Sorted Set can be based on a Comparator.
         Set<String> sorted = new TreeSet<>(
                 String.CASE_INSENSITIVE_ORDER
         );
@@ -160,7 +160,7 @@ public class StringCollectionEqualityDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên (lưu tệp bằng UTF-8):
+Compile and run with JDK 17 or later (save the file as UTF-8):
 
 ~~~bash
 javac -encoding UTF-8 StringCollectionEqualityDemo.java
@@ -189,22 +189,22 @@ collisionHashes=true
 collisionEquals=false
 ~~~
 
-Giải thích kết quả quan trọng:
+Key output explanations:
 
-1. Ba chuỗi `pooled`, `separate`, `rebuilt` có cùng nội dung `java`; `==` chỉ phản ánh định danh, còn `equals` phản ánh giá trị.
-2. `HashSet` chỉ lưu một phần tử; `HashMap` chỉ lưu một entry và giá trị cuối là `20`, dù các đối tượng khóa được tạo riêng.
-3. `IdentityHashMap` cố ý dùng **`==`** để phân biệt các khóa. Hai đối tượng `new String("key")` khác nhau làm số phần tử trong set được xây từ identity map là **2**. Đây là hành vi theo thiết kế của collection đặc biệt này.
-4. `TreeSet` dùng `String.CASE_INSENSITIVE_ORDER` nên coi `"Lan"` và `"lan"` tương đương theo comparator, dù `"Lan".equals("lan")` là `false`.
-5. Hai cách biểu diễn chữ `é` không `equals` trước khi chuẩn hóa; chuẩn hóa `NFC` đưa chúng về cùng dạng.
-6. Hai chuỗi `Aa` và `BB` cho cùng hash code, nhưng nội dung không giống nhau, minh họa lý do vẫn phải xét `equals`.
+1. The three strings `pooled`, `separate`, and `rebuilt` have the same content `java`; `==` reflects only identity, while `equals` reflects value.
+2. `HashSet` stores only one element; `HashMap` stores only one entry with the final value `20`, even though the key objects were created separately.
+3. `IdentityHashMap` intentionally uses **`==`** to distinguish keys. Two distinct `new String("key")` objects result in **2** elements in the set backed by the identity map. This is the designed behavior of this specialized collection.
+4. `TreeSet` uses `String.CASE_INSENSITIVE_ORDER`, so it treats `"Lan"` and `"lan"` as equivalent under the comparator, even though `"Lan".equals("lan")` is `false`.
+5. The two representations of the letter `é` are not `equals` before normalization; `NFC` normalization brings them to the same form.
+6. The two strings `Aa` and `BB` produce the same hash code, yet their content is not identical, illustrating why `equals` must still be checked.
 
-## 6. Ngoại lệ quan trọng: không phải collection nào cũng dùng `String.equals()`
+## 6. Important Exception: Not Every Collection Uses `String.equals()`
 
-### 6.1. `IdentityHashMap` dùng định danh đối tượng
+### 6.1. `IdentityHashMap` Uses Object Identity
 
-`IdentityHashMap` được thiết kế để coi hai khóa là bằng nhau khi chúng cùng tham chiếu đến **một đối tượng**. Đó là cấu trúc phù hợp cho một số bài toán theo dõi đối tượng hoặc đồ thị định danh, nhưng **không phù hợp** nếu nghiệp vụ cần nhóm các khóa `String` theo nội dung.
+`IdentityHashMap` is designed to treat two keys as equal only when they reference **the same object**. It is an appropriate structure for certain object-tracking or identity-graph problems, but **inappropriate** when business logic needs to group `String` keys by content.
 
-Ví dụ:
+Example:
 
 ~~~java
 IdentityHashMap<String, Integer> map = new IdentityHashMap<>();
@@ -214,13 +214,13 @@ map.put(new String("user"), 2);
 System.out.println(map.size()); // 2
 ~~~
 
-Dùng `intern()` để làm cho `IdentityHashMap` hoạt động giống `HashMap` là cách thiết kế sai hướng: ta đã chọn một collection có **quan hệ bằng nhau khác**, sau đó cố can thiệp tham chiếu để ép nó cho kết quả mong muốn. Hãy chọn `HashMap` nếu cần content equality.
+Using `intern()` to force `IdentityHashMap` to behave like `HashMap` is the wrong design direction: you chose a collection with a **different equality relation** and then tried to manipulate references to force the desired result. Choose `HashMap` when content equality is needed.
 
-### 6.2. `TreeSet` và `TreeMap` dùng thứ tự so sánh
+### 6.2. `TreeSet` and `TreeMap` Use Comparison Order
 
-Các collection có sắp xếp dùng `Comparator.compare(a, b) == 0` hoặc `Comparable.compareTo` trả về `0` để quyết định hai khóa có tương đương trong tập thứ tự hay không.
+Sorted collections use `Comparator.compare(a, b) == 0` or `Comparable.compareTo` returning `0` to decide whether two keys are equivalent in the ordered set/map.
 
-Với thứ tự tự nhiên của `String`, `a.compareTo(b) == 0` có quan hệ nhất quán với `a.equals(b)`. Tuy nhiên, khi truyền một comparator không phân biệt chữ hoa/chữ thường:
+With the natural order of `String`, `a.compareTo(b) == 0` is consistent with `a.equals(b)`. However, when passing a case-insensitive comparator:
 
 ~~~java
 Set<String> names = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
@@ -231,26 +231,26 @@ System.out.println(names.size()); // 1
 System.out.println("Admin".equals("admin")); // false
 ~~~
 
-Ở đây, `TreeSet` gom hai chuỗi theo **comparator**, khác với `HashSet` phân biệt chúng theo `equals/hashCode`. `String.CASE_INSENSITIVE_ORDER` không nhất quán với `String.equals` đối với những chuỗi khác nhau chỉ ở chữ hoa/thường; vì vậy cần cân nhắc hợp đồng `Set` khi chọn comparator và không giả định hai loại tập có cùng quy tắc trùng lặp.
+Here, `TreeSet` merges the two strings according to the **comparator**, unlike `HashSet`, which distinguishes them using `equals/hashCode`. `String.CASE_INSENSITIVE_ORDER` is inconsistent with `String.equals` for strings differing only in case; therefore, you must consider the `Set` contract when selecting a comparator and not assume both set types share the same duplicate rule.
 
-Nếu hệ thống yêu cầu so sánh khóa không phân biệt chữ hoa/thường, nên xác định chiến lược nhất quán toàn hệ thống (ví dụ chuẩn hóa khóa trước khi đưa vào hash collection) và hiểu các quy tắc Unicode/locale liên quan.
+If a system requires case-insensitive key comparison, define a consistent system-wide strategy (for example, normalizing keys before inserting into a hash collection) and understand the relevant Unicode/locale rules.
 
-## 7. `intern` không thay cho chuẩn hóa nội dung
+## 7. `intern` Is Not a Substitute for Content Normalization
 
-`intern` **không** đổi chữ hoa/thường, bỏ khoảng trắng hay ghép Unicode về NFC. Do đó, hai giá trị `"Java"` và `"java"`, hoặc `"\u00E9"` với `"e\u0301"`, vẫn có thể là hai giá trị khác nhau dù mỗi bên đã `intern`. String pool gom tham chiếu khi **nội dung đã bằng nhau**, không biến nhiều cách viết thành một định danh nghiệp vụ.
+`intern` does **not** change letter case, strip whitespace, or compose Unicode into NFC. Consequently, `"Java"` and `"java"`, or `"\u00E9"` and `"e\u0301"`, remain two distinct values even after each side is `intern`ed. The string pool consolidates references when **content is already equal**; it does not turn different spellings into a single business identifier.
 
-Nếu sản phẩm muốn các cách viết được coi là một key, phải định nghĩa một hàm canonicalization phù hợp và dùng nó ở cả thao tác lưu/tìm; việc bảo toàn nhãn gốc cho hiển thị là trách nhiệm khác. `equalsIgnoreCase` cũng không làm `HashMap` tự đổi hợp đồng khóa. Bài chuyên về chuẩn hóa khóa trình bày chính sách, Unicode normalization và xử lý các biến thể va chạm.
+If a product wants multiple spellings to count as one key, define an appropriate canonicalization function and use it for both storage and lookup operations; preserving the original label for display is a separate responsibility. `equalsIgnoreCase` also does not cause `HashMap` to change its key contract. The dedicated lesson on key normalization covers policy selection, Unicode normalization, and handling colliding variants.
 
-## 8. `null` và chọn chiều gọi `equals()`
+## 8. `null` and Choosing Which Side Calls `equals()`
 
-Khi giá trị có thể `null`, lời gọi như sau không an toàn:
+When a value may be `null`, a call like the following is unsafe:
 
 ~~~java
 String input = null;
-// input.equals("ok"); // Ném NullPointerException.
+// input.equals("ok"); // Throws NullPointerException.
 ~~~
 
-Các cách so sánh an toàn:
+Safe comparison approaches:
 
 ~~~java
 import java.util.Objects;
@@ -261,31 +261,31 @@ System.out.println(Objects.equals(input, "ok")); // false
 System.out.println(Objects.equals(null, null));  // true
 ~~~
 
-`Objects.equals(a, b)` kiểm tra đồng nhất tham chiếu hoặc `equals` theo cách null-safe: hai giá trị `null` được coi là bằng nhau; một giá trị `null` còn giá trị kia không `null` là không bằng nhau.
+`Objects.equals(a, b)` checks reference equality or `equals` in a null-safe manner: two `null` values are considered equal; one `null` value and one non-`null` value are not equal.
 
-`HashMap` và `HashSet` của Java cho phép `null` theo quy tắc riêng của chúng, nhưng điều đó không có nghĩa rằng ta có thể gọi phương thức `equals()` trên tham chiếu `null`. Đây là hai vấn đề khác nhau.
+Java's `HashMap` and `HashSet` permit `null` under their own rules, but that does not mean you can invoke `equals()` on a `null` reference. Those are two separate concerns.
 
-## 9. Các sai lầm thường gặp
+## 9. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách đúng |
+| Mistake | Consequence | Correct approach |
 | --- | --- | --- |
-| `if (input == "admin")` để xét nội dung | Dữ liệu tạo ở runtime có thể bị nhận diện sai | `"admin".equals(input)` |
-| Dùng `intern()` trước mọi thao tác `HashMap` | Thêm xử lý pool không cần cho content equality | Tin vào `String.equals/hashCode` và chọn collection đúng |
-| So sánh chỉ bằng `hashCode()` | Hash collision gây kết luận bằng nhau sai | Dùng `equals()` |
-| Dùng `IdentityHashMap` cho khóa chuỗi nghiệp vụ | Hai đối tượng cùng nội dung có thể thành hai khóa | Dùng `HashMap` |
-| Nghĩ `HashSet` và `TreeSet` luôn xử lý trùng giống nhau | `TreeSet` có thể dùng comparator quy định quan hệ khác | Chọn và kiểm tra comparator rõ ràng |
-| Nghĩ `equals` tự trim, không phân biệt hoa/thường, chuẩn hóa Unicode | Những khác biệt này được giữ nguyên | Chuẩn hóa theo yêu cầu nghiệp vụ trước khi lưu/tra |
-| Gọi `nullable.equals(other)` | Có thể ném `NullPointerException` | `Objects.equals(nullable, other)` hoặc gọi `equals` trên literal |
-| Dựa vào kết quả `==` của hai string literal để suy ra mọi chuỗi cùng nội dung là cùng đối tượng | Code chỉ đúng ngẫu nhiên do pooling | Dùng `equals` ở mọi nguồn dữ liệu |
+| `if (input == "admin")` to check content | Runtime-created data may be misidentified | `"admin".equals(input)` |
+| Calling `intern()` before every `HashMap` operation | Adds pool management unnecessary for content equality | Trust `String.equals/hashCode` and pick the right collection |
+| Comparing only by `hashCode()` | Hash collisions cause false equality conclusions | Use `equals()` |
+| Using `IdentityHashMap` for business string keys | Two objects with identical content can become two keys | Use `HashMap` |
+| Assuming `HashSet` and `TreeSet` always handle duplicates identically | `TreeSet` may use a comparator defining a different relation | Choose and verify the comparator explicitly |
+| Assuming `equals` auto-trims, ignores case, or normalizes Unicode | Those differences are preserved | Normalize per business rules before storing/looking up |
+| Calling `nullable.equals(other)` | May throw `NullPointerException` | `Objects.equals(nullable, other)` or call `equals` on a literal |
+| Relying on `==` between two string literals to infer all equal-content strings are the same object | Code only works by chance due to pooling | Use `equals` across all data sources |
 
-### Checklist khi dùng `String` làm khóa collection
+### Checklist When Using `String` as a Collection Key
 
-- Mục tiêu là **content equality** hay **reference identity**?
-- Nếu là content equality, collection đã dùng `equals/hashCode` đúng chưa?
-- Quy tắc phân biệt chữ hoa/thường, khoảng trắng, Unicode normalization đã được định nghĩa chưa?
-- Input từ nhiều nguồn có được chuẩn hóa **cùng cách** trước khi `put`, `add`, `get`, `contains` không?
-- Nếu dùng `TreeMap`/`TreeSet`, comparator có quan hệ bằng nhau mong muốn không?
-- Các chuỗi nullable có được xử lý an toàn không?
-- Test có dùng `new String(...)` hoặc chuỗi tạo lúc runtime để tránh phụ thuộc vô tình vào intern pool không?
+- Is the goal **content equality** or **reference identity**?
+- If content equality, does the collection use `equals/hashCode` properly?
+- Are rules for case sensitivity, whitespace, and Unicode normalization clearly defined?
+- Are inputs from all sources normalized the **same way** before `put`, `add`, `get`, and `contains`?
+- If using `TreeMap`/`TreeSet`, does the comparator establish the intended equivalence relation?
+- Are nullable strings handled safely?
+- Do tests use `new String(...)` or runtime-constructed strings to avoid accidental dependence on the intern pool?
 
-**Kết luận:** Với `String` trong `HashSet`, `HashMap` và đa số tình huống so sánh giá trị, **hãy so sánh bằng `equals()`** và dựa vào `hashCode()` được cài đặt sẵn. `intern()` quản lý đối tượng đại diện trong string pool, không phải điều kiện để biết hai chuỗi có cùng nội dung. Dùng `==` chỉ khi thực sự cần **định danh tham chiếu**, và kiểm tra quy tắc comparator nếu collection có thứ tự.
+**Conclusion:** For `String` in `HashSet`, `HashMap`, and most value-comparison scenarios, **compare with `equals()`** and rely on the built-in `hashCode()`. `intern()` manages representative objects in the string pool, not the condition for knowing whether two strings share the same content. Use `==` only when **reference identity** is genuinely required, and verify comparator rules when a collection is ordered.

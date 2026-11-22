@@ -1,20 +1,20 @@
-# Phân biệt package, classpath và module ở mức định hướng — Java 17+
+# Distinguishing Packages, Classpath, and Modules at an Introductory Level — Java 17+
 
-## 1. Ba khái niệm giải quyết ba câu hỏi khác nhau
+## 1. Three concepts answering three different questions
 
-Một dự án Java có nhiều lớp và thư viện cần tổ chức tên, tìm được mã đã biên dịch, đồng thời có thể xác định những phần nào được phép phụ thuộc vào nhau. Ba khái niệm thường gặp là:
+A Java project with many classes and libraries needs to organize names, locate compiled code, and optionally define which parts are allowed to depend on one another. Three common concepts are:
 
-| Khái niệm | Câu hỏi được giải quyết | Minh họa |
+| Concept | Question solved | Example |
 |---|---|---|
-| **Package** | Kiểu này **mang tên gì**, thuộc nhóm tên nào? | `package com.example.library;`, kiểu `com.example.library.Greeter` |
-| **Classpath** | JVM/trình biên dịch tìm các lớp và JAR kiểu truyền thống **ở đâu**? | `java -cp out-cp com.example.app.Main` |
-| **Module** | Một đơn vị mã được đặt tên **phụ thuộc vào module nào và công khai package nào**? | `module com.example.app { requires com.example.library; }` |
+| **Package** | What **name** does this type have, and which name group does it belong to? | `package com.example.library;`, type `com.example.library.Greeter` |
+| **Classpath** | **Where** do the JVM/compiler find traditional classes and JARs? | `java -cp out-cp com.example.app.Main` |
+| **Module** | **Which modules** does a named code unit **depend on, and which packages does it expose**? | `module com.example.app { requires com.example.library; }` |
 
-**Tóm lại:** package là **không gian tên**; classpath là **đường dẫn tìm lớp/thư viện**; module là **đơn vị tổ chức phụ thuộc và ranh giới API** trong Java Platform Module System (JPMS, có từ Java 9).
+**In summary:** a package is a **namespace**; the classpath is a **search path for classes/libraries**; a module is a **unit of dependency organization and API boundary** in the Java Platform Module System (JPMS, introduced in Java 9).
 
-Chúng không thay thế nhau: một chương trình dùng classpath vẫn có package; một named module cũng chứa các package; và file `.class` của module vẫn phải được JVM tìm thấy qua cơ chế thích hợp (thường là **module path**).
+They do not replace one another: a program using the classpath still has packages; a named module also contains packages; and a module's `.class` files must still be found by the JVM through an appropriate mechanism (typically the **module path**).
 
-## 2. Package: tổ chức tên kiểu
+## 2. Package: organizing type names
 
 ~~~java
 package com.example.library;
@@ -28,31 +28,31 @@ public final class Greeter {
 }
 ~~~
 
-- `Greeter` là tên đơn giản của lớp.
-- `com.example.library` là package.
-- `com.example.library.Greeter` là **tên đầy đủ** của top-level class.
-- Một lớp khác trong package `com.example.other` vẫn có thể có tên đơn giản `Greeter` mà không cùng tên đầy đủ.
+- `Greeter` is the class's simple name.
+- `com.example.library` is the package.
+- `com.example.library.Greeter` is the **fully qualified name** of the top-level class.
+- Another class in package `com.example.other` can still have the simple name `Greeter` without sharing the same fully qualified name.
 
-Trong một file ở package khác, có thể dùng:
+In a file in another package, you can write:
 
 ~~~java
 import com.example.library.Greeter;
 
-// Sau đó:
+// Then:
 String message = Greeter.hello("Lan");
 ~~~
 
-Hoặc không import mà viết `com.example.library.Greeter.hello("Lan")`.
+Or omit the import and write `com.example.library.Greeter.hello("Lan")`.
 
-**Import chỉ giúp tra cứu tên trong mã nguồn**. Dòng `import` không nói JVM phải tìm thư viện ở ổ đĩa nào, không làm classpath xuất hiện và không tự tạo object. Trình biên dịch vẫn cần tìm được lớp bằng những đường dẫn và cấu hình build phù hợp.
+**Imports only assist name lookup in source code**. An `import` line does not tell the JVM which disk location to search for a library, does not create a classpath, and does not instantiate objects. The compiler still needs to locate the class via appropriate paths and build configuration.
 
-Package cũng liên quan đến quyền truy cập `package-private`: hai tên `com.example` và `com.example.library` **không phải cùng một package**, dù nhìn như quan hệ cha/con. `import com.example.*;` không tự import kiểu của `com.example.library`.
+Packages are also tied to `package-private` access: the two names `com.example` and `com.example.library` are **not the same package**, even though they look like a parent/child hierarchy. `import com.example.*;` does not automatically import types from `com.example.library`.
 
-## 3. Classpath: chỉ nơi tìm lớp và JAR
+## 3. Classpath: specifying where to find classes and JARs
 
-Sau khi biên dịch, Java tạo ra file `.class`. Khi sử dụng cách chạy **không modular**, classpath mô tả các **thư mục gốc** và/hoặc **JAR** để công cụ tìm những lớp đó.
+After compiling, Java produces `.class` files. When running in a **non-modular** setup, the classpath specifies the **root directories** and/or **JARs** where tools look for those classes.
 
-Ví dụ bố cục kết quả biên dịch:
+Example compiled output layout:
 
 ~~~text
 out-cp/
@@ -64,54 +64,54 @@ out-cp/
             └── Main.class
 ~~~
 
-Lệnh:
+The command:
 
 ~~~bash
 java -cp out-cp com.example.app.Main
 ~~~
 
-được hiểu là:
+is interpreted as:
 
-1. Tìm lớp chính có tên đầy đủ `com.example.app.Main`.
-2. Tra từ **classpath root `out-cp`**, ghép các thành phần package thành đường dẫn `com/example/app/Main.class`.
-3. Khi cần `Greeter`, tìm lớp `com/example/library/Greeter.class` từ classpath thích hợp.
+1. Find the main class with the fully qualified name `com.example.app.Main`.
+2. Search from the **classpath root `out-cp`**, mapping package segments to the path `com/example/app/Main.class`.
+3. When `Greeter` is needed, locate `com/example/library/Greeter.class` from the appropriate classpath.
 
-**Không** chọn `-cp out-cp/com/example/app` cho một main class có package `com.example.app`: đó không phải root tương ứng với tên lớp đầy đủ.
+**Do not** choose `-cp out-cp/com/example/app` for a main class in package `com.example.app`: that is not the root corresponding to the fully qualified class name.
 
-Classpath có thể gồm nhiều mục. Dấu phân tách giữa các mục khác nhau theo hệ điều hành:
+A classpath can contain multiple entries. The separator between entries varies by operating system:
 
-| Môi trường | Ví dụ classpath gồm thư mục và JAR | Dấu phân tách |
+| Environment | Example classpath with directory and JAR | Separator |
 |---|---|---|
 | Linux/macOS | `out-cp:lib/tools.jar` | `:` |
 | Windows | `out-cp;lib\\tools.jar` | `;` |
 
-Các mục trên chỉ minh họa cú pháp: `lib/tools.jar` không phải thư viện bắt buộc hay file được tạo trong bài này. Đối với ví dụ thực hành chỉ dùng `-cp out-cp`.
+The entries above only illustrate syntax: `lib/tools.jar` is not a required library or a file created in this lesson. For the hands-on example, only `-cp out-cp` is used.
 
-**Phân biệt:** `classpath` không phải tên package, và đặt một JAR vào classpath không tự khai báo một named module trong mã ứng dụng.
+**Distinction:** `classpath` is not a package name, and placing a JAR on the classpath does not declare a named module in your application code.
 
-## 4. Classpath và unnamed module
+## 4. Classpath and the unnamed module
 
-Trong hệ thống module Java 9+, các lớp được nạp bằng application class loader từ classpath theo kiểu truyền thống thuộc **unnamed module** của class loader đó.
+In the Java 9+ module system, classes loaded by the application class loader from the traditional classpath belong to that class loader's **unnamed module**.
 
-Đối với một class như `Main` chạy bằng `java -cp out-cp ...`, biểu thức:
+For a class like `Main` run with `java -cp out-cp ...`, the expression:
 
 ~~~java
 Main.class.getModule().getName()
 ~~~
 
-trả về `null` (tên module của unnamed module không có giá trị). Điều này **không có nghĩa lớp không có package**: `Main.class.getPackageName()` vẫn có thể là `com.example.app`.
+returns `null` (an unnamed module has no module name). This **does not mean the class has no package**: `Main.class.getPackageName()` can still be `com.example.app`.
 
-| Biểu thức | Trong bản chạy classpath của ví dụ |
+| Expression | In the example's classpath run |
 |---|---|
 | `Main.class.getName()` | `com.example.app.Main` |
 | `Main.class.getPackageName()` | `com.example.app` |
 | `Main.class.getModule().getName()` | `null` |
 
-Một chương trình đơn giản **không bắt buộc tạo module-info.java**. Package và classpath vẫn hoạt động với Java 17+ mà không cần biến toàn bộ dự án thành named modules.
+A simple program **does not require creating `module-info.java`**. Packages and the classpath still work in Java 17+ without turning an entire project into named modules.
 
-## 5. Module: đơn vị có tên, phụ thuộc và ranh giới API
+## 5. Module: named unit, dependencies, and API boundaries
 
-Java Platform Module System (JPMS) cho phép tạo một **named module**, mô tả trong file `module-info.java`.
+The Java Platform Module System (JPMS) lets you create a **named module**, described in a `module-info.java` file.
 
 ~~~java
 module com.example.library {
@@ -119,7 +119,7 @@ module com.example.library {
 }
 ~~~
 
-và module sử dụng:
+and the consuming module:
 
 ~~~java
 module com.example.app {
@@ -127,45 +127,45 @@ module com.example.app {
 }
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `module com.example.library` đặt **tên module** là `com.example.library`. Tên module có thể giống tiền tố package, nhưng **module name và package name là hai khái niệm riêng**.
-- `exports com.example.library;` cho các module đọc được module thư viện **truy cập những public types và public members được phép** trong package API đó.
-- `requires com.example.library;` khai báo module ứng dụng **phụ thuộc vào/đọc được** module thư viện.
-- `module-info.java` là **module declaration**, không phải class `Main` và cũng không thay cho khai báo `package` trong các file lớp.
+- `module com.example.library` sets the **module name** to `com.example.library`. A module name can resemble a package prefix, but **module name and package name are two separate concepts**.
+- `exports com.example.library;` allows modules that read the library module to **access eligible public types and public members** in that API package.
+- `requires com.example.library;` declares that the app module **depends on / reads** the library module.
+- `module-info.java` is a **module declaration**, not the `Main` class and not a replacement for `package` declarations in class files.
 
-Một module có thể chứa **nhiều package**. Mỗi package không buộc phải trở thành một module riêng. Một module chỉ công khai các package đã `exports` (hoặc công khai có điều kiện bằng cú pháp khác), nên **`public class` trong package không được export chưa đủ để module khác truy cập theo quy tắc JPMS**.
+A module can contain **multiple packages**. Every package does not have to become its own module. A module only exposes packages it has `exports`-ed (or conditionally exposed via other syntax), so **a `public class` in an unexported package is not enough for another module to access it under JPMS rules**.
 
-**Lưu ý:** `exports` là công khai API ở mức Java; `opens` phục vụ truy cập phản chiếu sâu trong các trường hợp thích hợp, không tương đương `exports`. Bài nhập môn này chỉ dùng `requires` và `exports`.
+**Note:** `exports` exposes API at the Java level; `opens` enables deep reflective access in appropriate cases and is not equivalent to `exports`. This introductory lesson uses only `requires` and `exports`.
 
-## 6. Module path khác classpath ra sao?
+## 6. How does the module path differ from the classpath?
 
-**Module path** chứa các vị trí để hệ thống module tìm **named modules**, ví dụ các thư mục module đã biên dịch hoặc modular JAR.
+The **module path** specifies locations for the module system to find **named modules**, such as compiled module directories or modular JARs.
 
 ~~~bash
 java --module-path out-mod --module com.example.app/com.example.app.Main
 ~~~
 
-- `out-mod`: vị trí các named modules được biên dịch.
-- `com.example.app` trước dấu `/`: **tên module** chứa điểm vào.
-- `com.example.app.Main` sau dấu `/`: **tên lớp main**, vẫn có package riêng.
-- JPMS dùng các module descriptors để kiểm tra quan hệ `requires` và `exports`.
+- `out-mod`: location of compiled named modules.
+- `com.example.app` before `/`: the **module name** containing the entry point.
+- `com.example.app.Main` after `/`: the **main class name**, which still has its own package.
+- JPMS uses module descriptors to check `requires` and `exports` relationships.
 
-Bảng so sánh:
+Comparison table:
 
-| Khía cạnh | Classpath | Module path |
+| Aspect | Classpath | Module path |
 |---|---|---|
-| Mục đích cơ bản | Tìm class/JAR của ứng dụng kiểu truyền thống | Tìm named modules |
-| Lệnh chạy | `java -cp out-cp com.example.app.Main` | `java --module-path out-mod --module com.example.app/com.example.app.Main` |
-| File mô tả module bắt buộc trong ví dụ? | Không; bỏ qua `module-info.java` khi biên dịch các lớp | Có `module-info.java` cho hai named modules |
-| Kiểm tra `requires`/`exports` | Không dùng ranh giới named module cho các lớp trên classpath | Có, trong JPMS |
-| Package tồn tại không? | Có | Có |
+| Primary purpose | Locate classes/JARs of traditional applications | Locate named modules |
+| Run command | `java -cp out-cp com.example.app.Main` | `java --module-path out-mod --module com.example.app/com.example.app.Main` |
+| Module descriptor file required in the example? | No; `module-info.java` is omitted when compiling the classes | Yes, `module-info.java` for both named modules |
+| Checks `requires`/`exports` | Does not enforce named module boundaries for classes on the classpath | Yes, under JPMS |
+| Do packages exist? | Yes | Yes |
 
-Module path **không chỉ là cách viết khác của classpath**: đặt mã trên module path với descriptor hợp lệ có thể làm thay đổi khả năng đọc và truy cập giữa các module.
+The module path **is not merely another way of writing the classpath**: placing code on the module path with a valid descriptor can change readability and accessibility between modules.
 
-## 7. Cấu trúc nguồn dùng chung cho hai cách chạy
+## 7. Shared source structure for both execution modes
 
-Để phân biệt chính xác, ta sử dụng **cùng một bộ file nguồn**, rồi biên dịch theo hai chế độ. Cấu trúc:
+To distinguish them accurately, we use **the same set of source files**, then compile in two modes. Structure:
 
 ~~~text
 project/
@@ -184,18 +184,18 @@ project/
                     └── Main.java
 ~~~
 
-Trong ví dụ:
+In the example:
 
-- Có **hai named modules** để thử chế độ module.
-- Có **hai packages** chứa class: `com.example.library` và `com.example.app`.
-- Khi chạy chế độ classpath, ta chỉ biên dịch hai file `Greeter.java` và `Main.java`, **không biên dịch hai file `module-info.java`**.
-- Khi chạy chế độ module path, ta biên dịch cả descriptors theo `--module-source-path src`.
+- There are **two named modules** to test module mode.
+- There are **two packages** containing classes: `com.example.library` and `com.example.app`.
+- When running in classpath mode, we compile only the two files `Greeter.java` and `Main.java`, **without compiling the two `module-info.java` files**.
+- When running in module path mode, we compile the descriptors as well using `--module-source-path src`.
 
-Điều này giúp thấy rõ package vẫn tồn tại trong cả hai trường hợp; sự khác nhau thể hiện ở **cách khai báo/giải quyết module** và **cách gọi chương trình**.
+This makes it clear that packages still exist in both cases; the difference shows up in **how modules are declared/resolved** and **how the program is invoked**.
 
-## 8. Cú pháp mã nguồn Java 17+ đầy đủ
+## 8. Complete Java 17+ source syntax
 
-Tạo đúng **bốn file** theo cấu trúc tại mục 7.
+Create the exact **four files** following the structure in section 7.
 
 **File 1 — `src/com.example.library/module-info.java`:**
 
@@ -247,11 +247,11 @@ public final class Main {
 }
 ~~~
 
-Ở cả hai chế độ chạy, hai dòng tên class vẫn giữ package như nhau. Hai dòng `module=...` giúp nhận diện sự khác biệt: **unnamed module** khi chạy classpath và **named modules** khi chạy module path.
+In both run modes, the two class-name lines keep the exact same packages. The two `module=...` lines highlight the difference: **unnamed module** when running via classpath and **named modules** when running via module path.
 
-## 9. Cách 1 — biên dịch/chạy theo classpath
+## 9. Approach 1 — compiling/running via classpath
 
-Đứng trong thư mục `project` có chứa `src`. Dùng **JDK 17 trở lên**, không cần Maven/Gradle, thư viện ngoài hoặc preview features.
+Run from the `project` directory containing `src`. Use **JDK 17 or later**; no Maven/Gradle, external libraries, or preview features are needed.
 
 **Bash (Linux/macOS):**
 
@@ -269,7 +269,7 @@ javac --release 17 -encoding UTF-8 -d out-cp .\src\com.example.library\com\examp
 java -cp out-cp com.example.app.Main
 ~~~
 
-Lệnh `javac` chỉ nêu **hai source files có class**, không nêu bất kỳ `module-info.java` nào. `out-cp` là thư mục đích chứa các class theo tên package và là **classpath root** lúc chạy.
+The `javac` command lists only the **two source files with classes**, without any `module-info.java`. `out-cp` is the target directory holding classes by package name and serves as the **classpath root** at runtime.
 
 ### Exact expected stdout — classpath
 
@@ -281,11 +281,11 @@ app module=null
 library module=null
 ~~~
 
-`Main.class.getModule()` và `Greeter.class.getModule()` đều trả module descriptor runtime của **unnamed module** tương ứng; `getName()` trả `null`. Hai class vẫn có package và tên đầy đủ như in ở hai dòng đầu.
+`Main.class.getModule()` and `Greeter.class.getModule()` both return the runtime module descriptor of their respective **unnamed module**; `getName()` returns `null`. Both classes still have their packages and fully qualified names as printed in the first two lines.
 
-## 10. Cách 2 — biên dịch/chạy theo named modules
+## 10. Approach 2 — compiling/running via named modules
 
-Vẫn đứng trong thư mục `project`, dùng nguyên bốn file nguồn phía trên.
+Still from the `project` directory, using the exact same four source files above.
 
 **Bash (Linux/macOS):**
 
@@ -303,9 +303,9 @@ javac --release 17 -encoding UTF-8 --module-source-path src -d out-mod -m com.ex
 java --module-path out-mod --module com.example.app/com.example.app.Main
 ~~~
 
-`--module-source-path src` chỉ đường dẫn nguồn chứa các thư mục tên module; `-m` chọn những module cần biên dịch; `-d out-mod` xuất các class đã biên dịch theo các module.
+`--module-source-path src` specifies the source path containing module-named directories; `-m` selects which modules to compile; `-d out-mod` outputs compiled classes organized by module.
 
-Kết quả có dạng:
+The output layout looks like:
 
 ~~~text
 out-mod/
@@ -317,7 +317,7 @@ out-mod/
     └── com/example/app/Main.class
 ~~~
 
-JPMS giải quyết `requires com.example.library` từ app và kiểm tra `exports com.example.library` từ thư viện.
+JPMS resolves `requires com.example.library` from the app and checks `exports com.example.library` from the library.
 
 ### Exact expected stdout — module path
 
@@ -329,46 +329,46 @@ app module=com.example.app
 library module=com.example.library
 ~~~
 
-So với cách 1, **ba dòng đầu giữ nguyên**, chỉ khác thông tin module của các class. Điều này minh họa rằng cùng source code với package có thể biên dịch và chạy theo hai mô hình triển khai khác nhau.
+Compared to Approach 1, the **first three lines stay the same**, differing only in the module information of the classes. This illustrates that the same packaged source code can be compiled and run under two different deployment models.
 
-## 11. Những hiểu lầm thường gặp
+## 11. Common misconceptions
 
-| Nhầm lẫn | Hiểu đúng |
+| Misconception | Correct understanding |
 |---|---|
-| Package chính là thư mục | Package là namespace; thư mục là cách tổ chức file thường khớp tên package |
-| Chỉ khai báo `package` là JVM tự tìm được class | Phải biên dịch và cung cấp vị trí class/JAR thích hợp |
-| `import` thay thế classpath | Import giải quyết tên tại compile time, không cung cấp file thư viện |
-| `-cp out-cp/com/example/app` với `com.example.app.Main` | Classpath phải là root chứa đường dẫn `com/example/app`, tức `out-cp` |
-| Module là một class | Module là đơn vị có tên bao gồm các package và descriptor |
-| Module bắt buộc có đúng một package | Một module có thể chứa nhiều package |
-| Package tên `com.example.app` thì module cũng phải tên ấy | Hai tên là hai khái niệm độc lập; ví dụ trùng nhau chỉ để dễ hiểu |
-| `public class` ở một package trong named module là luôn nhìn thấy từ mọi module | Module còn cần export package và điều kiện readability |
-| `requires` tự import class vào mã nguồn | Vẫn cần import hoặc tên đầy đủ khi dùng kiểu trong package khác |
-| `exports` biến package thành classpath directory | Exports khai báo API của module, không thay thế đường dẫn tìm module |
-| Chạy classpath nhưng vẫn mong `getModule().getName()` in tên module khai báo trong các file `module-info.java` bị bỏ qua | Các class được biên dịch/đặt trên classpath trong ví dụ thuộc unnamed module |
-| Nhầm `--module-path` với `--module-source-path` | Module path dùng tìm named modules đã có; module source path định vị mã nguồn modules cho compiler |
+| A package is just a directory | A package is a namespace; directories are a file organization convention that usually matches package names |
+| Just declaring `package` lets the JVM find the class automatically | You must compile and provide the appropriate class/JAR locations |
+| `import` replaces classpath | Imports resolve names at compile time and do not supply library files |
+| Using `-cp out-cp/com/example/app` with `com.example.app.Main` | The classpath must be the root containing `com/example/app`, i.e., `out-cp` |
+| A module is a class | A module is a named unit containing packages and a descriptor |
+| A module must have exactly one package | One module can contain multiple packages |
+| If the package is `com.example.app`, the module must have the same name | The two names are independent concepts; matching names in the example is only for clarity |
+| A `public class` in a package inside a named module is always visible from any module | The module must also export the package and satisfy readability rules |
+| `requires` automatically imports classes into source code | You still need `import` or fully qualified names when using types from another package |
+| `exports` turns a package into a classpath directory | `exports` declares a module's API and does not replace paths for locating modules |
+| Running via classpath yet expecting `getModule().getName()` to print the module name declared in ignored `module-info.java` files | Classes compiled/placed on the classpath in the example belong to the unnamed module |
+| Confusing `--module-path` with `--module-source-path` | Module path locates compiled named modules; module source path locates module source code for the compiler |
 
-## 12. Chọn cách nào khi bắt đầu học Java?
+## 12. Which approach should you choose when starting Java?
 
-- Bài Java nhỏ và ứng dụng chưa chia module: **dùng package rõ ràng và classpath**, học `javac -d out`, `java -cp out package.Main` trước.
-- Khi đọc dự án có `module-info.java`: nhận diện **tên module**, những `requires` và `exports` cơ bản; biết cách tìm module path và điểm vào.
-- Khi dùng IDE/Maven/Gradle: build tool có thể cấu hình classpath/module path tự động, nhưng ba khái niệm vẫn **khác nhau**.
-- Khi gặp lỗi “cannot find symbol”, “ClassNotFoundException”, “NoClassDefFoundError” hoặc lỗi truy cập module: kiểm tra lần lượt **tên package/import**, việc biên dịch/tìm class, và nếu có JPMS thì **module descriptor/readability/exports**. Không kết luận chỉ từ một thông báo lỗi rằng package, classpath và module là cùng một thứ.
+- Small Java lessons and non-modular apps: **use clear packages and the classpath**, learning `javac -d out` and `java -cp out package.Main` first.
+- When reading a project with `module-info.java`: identify the **module name**, basic `requires` and `exports`; know how to locate the module path and entry point.
+- When using an IDE/Maven/Gradle: build tools may configure the classpath/module path automatically, yet the three concepts remain **distinct**.
+- When encountering "cannot find symbol", "ClassNotFoundException", "NoClassDefFoundError", or module access errors: check in order **package/import names**, compilation/class lookup, and if using JPMS, **module descriptors/readability/exports**. Do not conclude from a single error message that package, classpath, and module are the same thing.
 
-**Hạn chế của bài:** JPMS còn có `opens`, `uses`, `provides ... with`, automatic modules, strong encapsulation và nhiều tình huống kết hợp classpath/module path. Ở mức định hướng, cần hiểu vai trò chính của `requires` và `exports`, chưa cần tự xây hệ thống module phức tạp.
+**Scope limits of this lesson:** JPMS also includes `opens`, `uses`, `provides ... with`, automatic modules, strong encapsulation, and mixed classpath/module path scenarios. At an introductory level, focus on the core roles of `requires` and `exports` without building complex module systems prematurely.
 
-## 13. Bài tập có đáp án
+## 13. Exercises with answers
 
-**A.** `com.example.data.User` gồm simple name và package gì?  
-**Đáp án:** simple name `User`, package `com.example.data`.
+**A.** What are the simple name and package of `com.example.data.User`?  
+**Answer:** simple name `User`, package `com.example.data`.
 
-**B.** Có `Greeter.class` ở `out-cp/com/example/library/Greeter.class`, classpath root nên là gì?  
-**Đáp án:** `out-cp`, không phải `out-cp/com/example/library`.
+**B.** Given `Greeter.class` at `out-cp/com/example/library/Greeter.class`, what should the classpath root be?  
+**Answer:** `out-cp`, not `out-cp/com/example/library`.
 
-**C.** Hai package `com.example.app` và `com.example.library` nhất thiết phải nằm trong hai module riêng không?  
-**Đáp án:** **Không**; một module có thể chứa nhiều package. Ví dụ này chọn hai module để minh họa `requires` và `exports`.
+**C.** Must the two packages `com.example.app` and `com.example.library` reside in two separate modules?  
+**Answer:** **No**; one module can contain multiple packages. This example uses two modules to illustrate `requires` and `exports`.
 
-**D.** File `module-info.java` nào khai báo module ứng dụng phụ thuộc thư viện?
+**D.** Which `module-info.java` declares that the application module depends on the library?
 
 ~~~java
 module com.example.app {
@@ -376,27 +376,27 @@ module com.example.app {
 }
 ~~~
 
-**E.** Nếu thư viện bỏ dòng `exports com.example.library;` mà app vẫn cần tham chiếu công khai `Greeter` theo mô hình named modules, có vấn đề gì?  
-**Đáp án:** **Có**. App không được truy cập trực tiếp API thuộc package không được export theo quy tắc JPMS, dù lớp `Greeter` có khai báo `public`.
+**E.** If the library removes the line `exports com.example.library;` while the app still needs to publicly reference `Greeter` under the named-module model, is there a problem?  
+**Answer:** **Yes**. The app cannot directly access APIs in an unexported package under JPMS rules, even though `Greeter` is declared `public`.
 
-**F.** Trong cách chạy classpath của ví dụ, `Main.class.getModule().getName()` trả gì?  
-**Đáp án:** `null`, vì class thuộc unnamed module.
+**F.** In the example's classpath run, what does `Main.class.getModule().getName()` return?  
+**Answer:** `null`, because the class belongs to the unnamed module.
 
-**G.** Vì sao `import com.example.library.Greeter;` không tự thay thế `requires com.example.library;` trong named module `com.example.app`?  
-**Đáp án:** `import` giúp viết tên ngắn trong mã nguồn; `requires` khai báo quan hệ đọc/phụ thuộc ở mức module. Hai nhiệm vụ khác nhau.
+**G.** Why doesn't `import com.example.library.Greeter;` replace `requires com.example.library;` in the named module `com.example.app`?  
+**Answer:** `import` lets you write short names in source code; `requires` declares readability/dependency at the module level. They serve two different responsibilities.
 
-## 14. Checklist và kết luận
+## 14. Checklist and conclusion
 
-- [ ] Phân biệt `package`, `classpath` và `module` theo chức năng.
-- [ ] Hiểu tên kiểu đầy đủ gồm package + simple name.
-- [ ] Biết classpath root của class đã biên dịch theo cấu trúc package.
-- [ ] Biết `import` không tự cung cấp class/JAR còn thiếu.
-- [ ] Nhận diện `module-info.java`, `module`, `requires` và `exports`.
-- [ ] Hiểu named module có thể bao gồm nhiều package.
-- [ ] Phân biệt unnamed module của classpath với named module chạy qua module path.
-- [ ] Biết công dụng của `--module-source-path` khi biên dịch nguồn module.
-- [ ] Biết điểm vào `java --module-path ... --module name/package.Main`.
-- [ ] Chạy được cùng hai source classes ở chế độ classpath và bộ bốn file ở chế độ module path, đối chiếu stdout.
-- [ ] Không coi package, classpath và module là ba từ gọi cho một tính năng duy nhất.
+- [ ] Distinguish `package`, `classpath`, and `module` by function.
+- [ ] Understand that a fully qualified type name consists of package + simple name.
+- [ ] Know the classpath root of classes compiled into a package directory structure.
+- [ ] Know that `import` does not supply missing classes/JARs.
+- [ ] Recognize `module-info.java`, `module`, `requires`, and `exports`.
+- [ ] Understand that a named module can include multiple packages.
+- [ ] Distinguish the classpath's unnamed module from named modules run via the module path.
+- [ ] Know the purpose of `--module-source-path` when compiling module sources.
+- [ ] Know the entry point syntax `java --module-path ... --module name/package.Main`.
+- [ ] Run the same two source classes in classpath mode and the four-file set in module path mode, and verify stdout.
+- [ ] Avoid treating package, classpath, and module as three names for a single feature.
 
-**Kết luận:** **Package đặt tên và nhóm kiểu**, **classpath chỉ nơi tìm lớp/JAR**, còn **module khai báo đơn vị phụ thuộc và các package API được công khai**. Trong Java 17+, có thể bắt đầu từ package + classpath rồi học `module-info.java` khi gặp ứng dụng modular; hiểu đúng trách nhiệm từng khái niệm giúp đọc lỗi biên dịch/khởi chạy và tổ chức dự án rõ ràng.
+**Conclusion:** **Packages name and group types**, the **classpath specifies where to find classes/JARs**, and **modules declare dependency units and exposed API packages**. In Java 17+, you can start with packages + classpath and learn `module-info.java` when encountering modular applications; understanding each concept's exact responsibility makes compiler/runtime errors clearer and project organization cleaner.

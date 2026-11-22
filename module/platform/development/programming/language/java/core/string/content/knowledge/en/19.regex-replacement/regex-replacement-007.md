@@ -1,37 +1,37 @@
-# Thay thế nhiều lần và giới hạn của việc dùng regex thay bộ phân tích
+# Repeated Replacement and the Limits of Using Regex Instead of a Parser
 
-## 1. Hai kiểu thay thế “nhiều lần”
+## 1. Two Kinds of "Multiple" Replacement
 
-Trong Java, `String.replaceAll(String regex, String replacement)` tìm các đoạn văn bản **khớp regex và không chồng lấn** trong chuỗi đầu vào, rồi thay tất cả các đoạn đó trong **một lượt**. Nó không tự tiếp tục tìm trong chính phần văn bản vừa được thay.
+In Java, `String.replaceAll(String regex, String replacement)` finds **regex-matching and non-overlapping** segments in the input string, then replaces all of those segments in **a single pass**. It does not automatically continue searching inside the newly replaced text itself.
 
-Điều này khác với việc chương trình **gọi thay thế lặp nhiều lượt**, ví dụ lặp cho đến khi kết quả ổn định, hoặc lần lượt áp dụng nhiều quy tắc thay thế.
+This differs from a program **calling replacement repeatedly over multiple passes**, such as looping until the result stabilizes, or applying multiple replacement rules in sequence.
 
 ```java
-String once = "aaaa".replaceAll("aa", "a"); // "aa", không phải "a"
+String once = "aaaa".replaceAll("aa", "a"); // "aa", not "a"
 
 String twice = once.replaceAll("aa", "a");  // "a"
 ```
 
-Trong lượt đầu, hai phần `"aa"` của `"aaaa"` được thay bằng hai chữ `a`, tạo `"aa"`. Lượt thứ hai mới tạo `"a"`. Một lần gọi `replaceAll` thay **tất cả match của lượt hiện tại**, không có nghĩa là “lặp đến khi không còn match”.
+In the first pass, the two `"aa"` parts of `"aaaa"` are replaced with two `a` characters, yielding `"aa"`. Only the second pass produces `"a"`. One call to `replaceAll` replaces **all matches of the current pass**, not "loop until no matches remain".
 
-`String` là kiểu bất biến: mỗi phương thức trả về một chuỗi mới hoặc chuỗi hiện tại khi không đổi; muốn dùng kết quả tiếp thì phải gán lại biến.
+`String` is an immutable type: each method returns a new string or the current string when unchanged; to use the result further, you must reassign the variable.
 
-## 2. Chọn quy tắc phù hợp trước khi lặp
+## 2. Choosing the Right Rule Before Looping
 
-**String.replace** thay văn bản cố định theo nghĩa literal; **String.replaceFirst** và **String.replaceAll** tìm theo regex, lần lượt thay match đầu tiên hoặc mọi match không chồng lấn của một lượt. Nếu dùng cùng regex trên nhiều đầu vào, biên dịch một **Pattern** rồi tạo **Matcher** riêng cho mỗi đầu vào.
+**String.replace** replaces fixed text literally; **String.replaceFirst** and **String.replaceAll** search by regex, replacing either the first match or every non-overlapping match in a single pass. If using the same regex across multiple inputs, compile one **Pattern** and create a separate **Matcher** for each input.
 
-Một replacement template cố định có thể tham chiếu nhóm bằng **$1** hoặc **${name}**; giá trị nguyên văn chứa dấu đô la hoặc gạch chéo ngược cần **Matcher.quoteReplacement**. Nếu replacement phụ thuộc từng match, Java 9+ có **Matcher.replaceAll(Function<MatchResult,String>)**, còn **appendReplacement/appendTail** hỗ trợ khi muốn kiểm soát quá trình ghép văn bản. Việc chọn API đúng không thay thế yêu cầu phân tích khả năng hội tụ và giới hạn của dữ liệu cấu trúc ở các mục sau.
+A fixed replacement template can reference groups using **$1** or **${name}**; literal values containing dollar signs or backslashes require **Matcher.quoteReplacement**. If the replacement depends on each match, Java 9+ provides **Matcher.replaceAll(Function<MatchResult,String>)**, while **appendReplacement/appendTail** helps when you want control over assembling the text. Choosing the right API does not replace the need to analyze convergence and the limits of structured data in the sections below.
 
-## 3. Ví dụ Java 17+ biên dịch và chạy được
+## 3. Compilable and Runnable Java 17+ Example
 
-Tạo file `RepeatedRegexReplacementDemo.java`:
+Create the file `RepeatedRegexReplacementDemo.java`:
 
 ```java
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RepeatedRegexReplacementDemo {
-    // Chỉ dùng khi quy tắc có cơ sở để hội tụ.
+    // Only use when the rule has a basis for convergence.
     private static String replaceUntilStable(
             String input, Pattern pattern, String replacement, int maxPasses) {
         if (maxPasses < 1) {
@@ -50,32 +50,32 @@ public class RepeatedRegexReplacementDemo {
     }
 
     public static void main(String[] args) {
-        // Một lượt gộp các nhóm khoảng trắng liên tiếp.
+        // One pass collapses consecutive whitespace groups.
         String text = "red  green\tblue";
         System.out.println("Normalize: "
                 + text.replaceAll("\\s+", " ").trim());
 
-        // Một lượt khác với lặp nhiều lượt đến khi ổn định.
+        // Single pass differs from looping multiple passes until stable.
         System.out.println("Single pass: " + "aaaa".replaceAll("aa", "a"));
         System.out.println("Until stable: "
                 + replaceUntilStable("aaaa", Pattern.compile("aa"), "a", 10));
 
-        // replace nguyên văn khác replaceAll nhận regex.
+        // Literal replace differs from replaceAll which takes a regex.
         System.out.println("Literal dot: " + "a.b".replace(".", "|"));
         System.out.println("Regex dot: " + "a.b".replaceAll(".", "|"));
 
-        // match đầu tiên khác tất cả match.
+        // First match differs from all matches.
         System.out.println("First: " + "foo foo".replaceFirst("foo", "bar"));
         System.out.println("All: " + "foo foo".replaceAll("foo", "bar"));
 
-        // Replacement nguyên văn có ký tự đặc biệt của cú pháp replacement.
+        // Literal replacement containing special characters of replacement syntax.
         String price = "$5\\item";
         String safe = Pattern.compile("\\{\\{price\\}\\}")
                 .matcher("cost={{price}}")
                 .replaceAll(Matcher.quoteReplacement(price));
         System.out.println("Safe literal: " + safe);
 
-        // Tính riêng replacement cho mỗi match (Java 9+).
+        // Compute a separate replacement for each match (Java 9+).
         String calculated = Pattern.compile("(\\w+)=(\\d+)")
                 .matcher("a=3;b=42")
                 .replaceAll(match ->
@@ -83,24 +83,24 @@ public class RepeatedRegexReplacementDemo {
                                 + "=" + (Integer.parseInt(match.group(2)) + 1));
         System.out.println("Calculated: " + calculated);
 
-        // Regex không hiểu quy tắc dấu nháy kép của CSV.
+        // Regex does not understand CSV double-quote rules.
         String csv = "a,\"b,c\",d";
         System.out.println("Naive CSV: " + csv.replaceAll(",", "|"));
 
-        // Mẫu zero-width có thể dẫn tới chèn ký tự.
+        // A zero-width pattern can lead to inserting characters.
         System.out.println("Zero width: " + "aa".replaceAll("(?=a)", "X"));
     }
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac RepeatedRegexReplacementDemo.java
 java RepeatedRegexReplacementDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 Normalize: red green blue
@@ -116,25 +116,25 @@ Naive CSV: a|"b|c"|d
 Zero width: XaXa
 ```
 
-Ở phần `Until stable`, dữ liệu đi qua `"aaaa" → "aa" → "a"`: cần **hai lượt có thay đổi** và một lượt kiểm tra thấy không còn thay đổi. Phần `Calculated` tính kết quả riêng cho từng match: `a=3` thành `A=4`, còn `b=42` thành `B=43`. Phần `Naive CSV` cho thấy regex thay cả dấu phẩy nằm **bên trong trường được nháy kép**, vốn không phải dấu phân cách giữa các trường theo quy tắc CSV.
+In the `Until stable` section, the data goes through `"aaaa" → "aa" → "a"`: it takes **two passes with changes** and one check pass that sees no further change. The `Calculated` section computes a separate result for each match: `a=3` becomes `A=4`, and `b=42` becomes `B=43`. The `Naive CSV` section shows that regex replaces even a comma **inside a double-quoted field**, which is not a field delimiter according to CSV rules.
 
-## 4. Thay thế theo nhiều quy tắc: thứ tự quan trọng
+## 4. Replacing by Multiple Rules: Order Matters
 
-Có thể ghép nhiều quy tắc để xử lý văn bản đơn giản:
+Multiple rules can be chained for simple text processing:
 
 ```java
 String input = "  Hello,\tJava!!  ";
 String result = input
-        .replaceAll("\\s+", " ")  // Gom các nhóm khoảng trắng.
-        .replaceAll("!+", "!")    // Gom nhiều dấu ! liên tiếp.
-        .trim();                  // Bỏ khoảng trắng hai đầu.
+        .replaceAll("\\s+", " ")  // Collapse whitespace groups.
+        .replaceAll("!+", "!")    // Collapse consecutive ! marks.
+        .trim();                  // Remove leading and trailing whitespace.
 
 System.out.println(result);      // Hello, Java!
 ```
 
-Đây là **đoạn minh họa trong phương thức hoặc khối lệnh**, không phải một lớp Java độc lập. Mỗi lời gọi dùng kết quả của lời gọi trước, nên đổi thứ tự có thể đổi kết quả. Ví dụ, nếu quy tắc thứ nhất đổi `"ab"` thành `"b"`, và quy tắc thứ hai đổi `"b"` thành `"c"`, chuỗi `"ab"` có thể đi tới `"c"` khi dùng đúng thứ tự; nếu đảo thứ tự sẽ còn `"b"`.
+This is an **illustrative snippet inside a method or block**, not a standalone Java class. Each call uses the result of the previous call, so changing the order can change the result. For example, if the first rule changes `"ab"` to `"b"`, and the second rule changes `"b"` to `"c"`, the string `"ab"` can reach `"c"` when used in the right order; reversing the order leaves `"b"`.
 
-Khi dùng một regex nhiều lần, biên dịch `Pattern` một lần:
+When using a regex many times, compile `Pattern` once:
 
 ```java
 Pattern whitespace = Pattern.compile("\\s+");
@@ -142,9 +142,9 @@ String first = whitespace.matcher("a   b").replaceAll(" ");
 String second = whitespace.matcher("c\t d").replaceAll(" ");
 ```
 
-`Pattern` được thiết kế để tái sử dụng. `Matcher` giữ trạng thái tìm kiếm, nên tạo `Matcher` mới cho từng chuỗi hoặc quản lý trạng thái bằng API phù hợp; đừng chia sẻ một `Matcher` đồng thời giữa nhiều luồng.
+`Pattern` is designed for reuse. `Matcher` holds search state, so create a new `Matcher` for each string or manage state with appropriate APIs; do not share a single `Matcher` concurrently across multiple threads.
 
-Nếu cần thay thế theo nhóm bắt, có thể dùng cú pháp replacement:
+If you need to replace using capturing groups, you can use replacement syntax:
 
 ```java
 String result = "2026-10-23".replaceAll(
@@ -152,71 +152,71 @@ String result = "2026-10-23".replaceAll(
 // result = "23/10/2026"
 ```
 
-Nhóm bắt giúp đổi thứ tự dữ liệu có cấu trúc **đơn giản, đã kiểm soát**. Chuỗi replacement lấy từ bên ngoài cần `Matcher.quoteReplacement` nếu muốn chèn nguyên văn. Ngay cả hàm `Matcher.replaceAll(match -> ...)` cũng trả về một **replacement string** có cú pháp `$`/`\\`; bọc kết quả bằng `Matcher.quoteReplacement` nếu nó có thể chứa các ký tự đặc biệt và phải được chèn nguyên văn.
+Capturing groups help reorder data with **simple, controlled** structure. Replacement strings obtained from external sources require `Matcher.quoteReplacement` if they are to be inserted literally. Even `Matcher.replaceAll(match -> ...)` returns a **replacement string** with `$`/`\\` syntax; wrap the result in `Matcher.quoteReplacement` if it may contain special characters and must be inserted literally.
 
-## 5. Lặp đến khi ổn định: không phải lúc nào cũng kết thúc
+## 5. Looping Until Stable: It Does Not Always Terminate
 
-Quy tắc `"aa" → "a"` có số chữ `a` giảm qua mỗi lượt, vì vậy có cơ sở hội tụ. Nhưng không phải phép thay thế nào cũng có tính chất này:
+The rule `"aa" → "a"` reduces the number of `a` characters on each pass, so it has a basis for convergence. But not every replacement has this property:
 
-- `"a" → "aa"`: mỗi lượt làm chuỗi dài thêm, không ổn định nếu đầu vào vẫn chứa `a`.
-- Quy tắc luân phiên `"a" → "b"` và `"b" → "a"`: có thể quay lại trạng thái cũ, tạo chu trình.
-- Có quy tắc tạo ra thêm nhiều mẫu mới, khiến kích thước đầu ra tăng nhanh và chi phí xử lý tăng theo.
+- `"a" → "aa"`: each pass makes the string longer, never stabilizing if the input still contains `a`.
+- Alternating rules `"a" → "b"` and `"b" → "a"`: can return to a previous state, creating a cycle.
+- Some rules generate many new patterns, causing output size to grow rapidly and processing cost to rise accordingly.
 
-Vòng lặp `replaceUntilStable` trong ví dụ dùng giới hạn `maxPasses` và **ném lỗi** khi chưa hội tụ, giúp tránh vòng lặp vô hạn do chỉ chờ hai chuỗi liên tiếp bằng nhau. Tuy nhiên, giới hạn số lượt **không tự giới hạn kích thước chuỗi**: trong thực tế có thể cần thêm giới hạn kích thước đầu ra, thời gian thực thi và kiểm tra chu trình dài hơn một trạng thái.
+The `replaceUntilStable` loop in the example uses a `maxPasses` limit and **throws an error** when it has not converged, avoiding infinite loops from merely waiting for two consecutive strings to be equal. However, limiting the number of passes **does not automatically limit string size**: in practice you may also need limits on output size, execution time, and detection of cycles longer than one state.
 
-Khi thiết kế một pipeline lặp, nên xác định:
+When designing an iterative pipeline, you should define:
 
-1. **Điều kiện dừng:** không đổi so với lượt trước, không còn token cần thay, hoặc đã đạt số lượt quy định.
-2. **Lý do hội tụ:** ví dụ có đại lượng không âm giảm nghiêm ngặt qua mỗi lượt. Nếu chưa chứng minh được, phải xử lý trường hợp không hội tụ.
-3. **Giới hạn tài nguyên:** số lượt, kích thước đầu vào/đầu ra và bộ nhớ cần cấp phát.
-4. **Quy tắc khi thất bại:** báo lỗi rõ ràng, không âm thầm trả một kết quả chưa hoàn tất nếu caller chờ kết quả ổn định.
+1. **Stopping condition:** unchanged from the previous pass, no remaining tokens to replace, or reaching the specified pass limit.
+2. **Reason for convergence:** for example, a non-negative quantity that strictly decreases on every pass. If unproven, you must handle the non-convergence case.
+3. **Resource limits:** pass count, input/output size, and memory to allocate.
+4. **Failure rule:** report an explicit error rather than silently returning an incomplete result if the caller expects a stabilized result.
 
-Một lần `replaceAll` không tìm tất cả **match chồng lấn**. Chẳng hạn, `"aaa"` có hai vị trí bắt đầu cho mẫu `"aa"` nếu xét chồng lấn, nhưng `replaceAll("aa", "X")` chỉ lấy match đầu tiên và cho `"Xa"`. Nếu bài toán thật sự cần xử lý match chồng lấn, hãy thiết kế lookahead một cách có chủ đích hoặc viết bộ quét chỉ số ký tự; lặp `replaceAll` một cách tùy tiện không phải lời giải tổng quát.
+A single `replaceAll` does not find all **overlapping matches**. For instance, `"aaa"` has two starting positions for the pattern `"aa"` if overlaps are considered, yet `replaceAll("aa", "X")` takes only the first match and produces `"Xa"`. If the problem truly requires handling overlapping matches, design a lookahead deliberately or write a character-index scanner; arbitrarily looping `replaceAll` is not a general solution.
 
-Mẫu có **độ rộng 0** (zero-width), như `(?=a)`, có thể chèn thay vì xóa ký tự: `"aa".replaceAll("(?=a)", "X")` tạo `"XaXa"`. Engine quản lý việc tiến qua các match zero-width trong một lượt, nhưng đầu ra vẫn cần được kiểm thử kỹ ở đầu/cuối chuỗi, chuỗi rỗng và khi có Unicode.
+**Zero-width** patterns, such as `(?=a)`, can insert rather than delete characters: `"aa".replaceAll("(?=a)", "X")` produces `"XaXa"`. The engine manages advancing past zero-width matches within one pass, though the output still needs thorough testing at start/end of string, empty strings, and with Unicode.
 
-## 6. Giới hạn của việc dùng regex thay bộ phân tích
+## 6. Limits of Using Regex Instead of a Parser
 
-Regex mô tả **mẫu văn bản** và phù hợp với các phép biến đổi cục bộ, như chuẩn hóa khoảng trắng, che một chuỗi ID có định dạng đơn giản, đổi một tiền tố có ranh giới rõ ràng hoặc thay một token cố định. Một **bộ phân tích cú pháp** (parser) hiểu vai trò các thành phần trong ngữ pháp, chẳng hạn “ký tự này nằm trong chuỗi được nháy kép”, “đây là thuộc tính của thẻ nào” hoặc “dấu ngoặc này thuộc cấp lồng nào”.
+Regex describes **text patterns** and is suitable for local transformations, such as normalizing whitespace, masking an ID string with a simple format, changing a well-delimited prefix, or replacing a fixed token. A **parser** understands the roles of components in a grammar, such as "this character is inside a double-quoted string", "which tag does this attribute belong to", or "which nesting level does this parenthesis belong to".
 
-| Dữ liệu | Vì sao regex thay thế đơn giản dễ sai? | Cách tiếp cận phù hợp |
+| Data | Why simple regex replacement easily fails | Appropriate approach |
 | --- | --- | --- |
-| CSV | Dấu phẩy bên trong trường có dấu nháy kép không ngăn cách cột; còn có escape dấu nháy và xuống dòng trong trường. | Dùng parser CSV để nhận từng trường rồi ghi dữ liệu theo quy tắc CSV. |
-| JSON | Dấu phẩy, dấu hai chấm, ngoặc và dấu nháy có vai trò khác nhau theo trạng thái; object/array lồng nhau, chuỗi có escape. | Parse JSON thành cây/đối tượng, sửa đúng node, rồi serialize. |
-| HTML/XML | Thẻ, thuộc tính, entity, bình luận, text node và cấu trúc cây; `>` có thể xuất hiện trong giá trị thuộc tính được quote. | Dùng parser HTML/XML để thao tác node hoặc attribute. |
-| SQL và mã nguồn | Dấu câu trong string literal, comment và cấu trúc lồng nhau không có cùng ý nghĩa với token cú pháp. | Dùng lexer/parser/AST hoặc API chuyên biệt. |
-| Ngoặc lồng nhau tùy độ sâu | Mẫu cần nhớ các cấp cấu trúc; regex Java thông thường không phải parser tổng quát cho ngữ pháp lồng vô hạn. | Dùng parser hoặc bộ quét có stack/trạng thái rõ ràng. |
+| CSV | Commas inside double-quoted fields do not separate columns; there are also quote escapes and newlines inside fields. | Use a CSV parser to read each field and then write data according to CSV rules. |
+| JSON | Commas, colons, brackets, and quotes play different roles depending on state; nested objects/arrays, escaped strings. | Parse JSON into a tree/object, modify the right node, then serialize. |
+| HTML/XML | Tags, attributes, entities, comments, text nodes, and tree structure; `>` can appear inside a quoted attribute value. | Use an HTML/XML parser to manipulate nodes or attributes. |
+| SQL and source code | Punctuation inside string literals, comments, and nested structures do not share the same meaning as syntax tokens. | Use a lexer/parser/AST or specialized API. |
+| Arbitrarily deep nested brackets | Patterns need to remember structural levels; standard Java regex is not a general parser for unbounded nesting grammars. | Use a parser or a scanner with an explicit stack/state. |
 
-Ví dụ, đoạn CSV `a,"b,c",d` có **3 trường**. Thay tất cả dấu phẩy bằng `|` theo regex tạo `a|"b|c"|d`, đặt một dấu `|` vào giữa trường `"b,c"`; sau đó không thể mặc nhiên coi mỗi `|` là dấu phân cách mới của ba trường. Một parser CSV phân biệt dấu phẩy **ở ngoài** và **ở trong** cặp nháy kép, kể cả nháy được escape.
+For example, the CSV snippet `a,"b,c",d` has **3 fields**. Replacing all commas with `|` via regex produces `a|"b|c"|d`, putting a `|` inside the `"b,c"` field; afterward one cannot assume every `|` is a new separator of three fields. A CSV parser distinguishes commas **outside** and **inside** double quotes, including escaped quotes.
 
-Tương tự, một biểu thức như `<[^>]*>` không tạo ra parser HTML hoàn chỉnh: dấu `>` có thể nằm trong thuộc tính được nháy, và ngữ cảnh thẻ/comment/text có thể khác nhau. Thêm các regex để vá từng trường hợp dễ làm giải pháp khó hiểu và dễ phá dữ liệu hợp lệ.
+Similarly, an expression like `<[^>]*>` does not make a complete HTML parser: `>` can appear inside a quoted attribute, and tag/comment/text contexts can differ. Adding regexes to patch individual cases easily makes the solution hard to understand and prone to corrupting valid data.
 
-**Tiêu chí quyết định:** Nếu cách thay thế phụ thuộc vào ngữ cảnh quote, escape, cấu trúc cây, phạm vi lồng nhau hoặc ngữ pháp tài liệu, dùng mô hình **parse → sửa cấu trúc → serialize**. Nếu mẫu khớp chỉ phụ thuộc vào một đoạn văn bản cục bộ đã biết, regex có thể phù hợp.
+**Decision criterion:** If how to replace depends on quote context, escaping, tree structure, nesting scope, or document grammar, use the **parse → modify structure → serialize** model. If the match depends only on a known local text fragment, regex may be appropriate.
 
-Không phải mọi thay đổi trong JSON, HTML hay CSV đều tuyệt đối cấm dùng regex: chẳng hạn có thể thay một đoạn text độc lập đã được lấy ra bởi parser. Điều cần tránh là dùng regex để **đoán ranh giới cấu trúc** của cả tài liệu phức tạp.
+Not every change in JSON, HTML, or CSV strictly forbids regex: for example, you can replace an independent text segment already extracted by a parser. What to avoid is using regex to **guess structural boundaries** of an entire complex document.
 
-## 7. Hiệu năng và các lỗi thường gặp
+## 7. Performance and Common Mistakes
 
-**Backtracking quá mức.** Một số regex có lượng từ lồng hoặc nhánh mơ hồ như `(a+)+$` có thể rất chậm với chuỗi dài gồm nhiều `a` rồi một ký tự không khớp. Java `Pattern` dùng cơ chế có backtracking; với đầu vào hoặc pattern không đáng tin, cần giới hạn kích thước dữ liệu, tránh các mẫu mơ hồ và kiểm tra trường hợp xấu. Không ghép chuỗi do người dùng nhập trực tiếp thành regex nếu yêu cầu chỉ là khớp nguyên văn.
+**Excessive backtracking.** Some regexes with nested quantifiers or ambiguous branches like `(a+)+$` can be very slow on long strings consisting of many `a`s followed by a non-matching character. Java `Pattern` uses a backtracking engine; for untrusted inputs or patterns, limit data size, avoid ambiguous patterns, and test worst-case inputs. Do not concatenate user-entered strings directly into a regex if the requirement is only literal matching.
 
-**Quét lặp lại và cấp phát nhiều chuỗi.** Mỗi lượt regex có thể quét lại một chuỗi lớn và tạo kết quả mới. Nếu thuật toán cần lặp rất nhiều lượt, hãy cân nhắc một bộ quét trạng thái qua dữ liệu một lần hoặc một parser phù hợp.
+**Repeated scanning and excessive string allocation.** Each regex pass may rescan a large string and allocate a new result. If the algorithm needs very many passes, consider a single-pass state scanner over the data or an appropriate parser.
 
-**Nhầm `replaceAll` với `replace`.** `.`, `|`, `*`, `[` và `\\` có cú pháp riêng trong regex. Thay văn bản cố định thì `String.replace` dễ đọc và ít gây nhầm hơn. Nếu vẫn dùng regex với dấu phân cách nguyên văn, hãy áp `Pattern.quote` cho pattern.
+**Confusing `replaceAll` with `replace`.** `.`, `|`, `*`, `[`, and `\\` have special syntax in regex. When replacing fixed text, `String.replace` is easier to read and less error-prone. If you still use regex with literal delimiters, apply `Pattern.quote` to the pattern.
 
-**Nhầm ký tự `$` và `\\` trong replacement.** Nếu muốn chèn nguyên văn `"$5\item"`, hãy dùng `Matcher.quoteReplacement`. Nếu định dùng nhóm bắt, cú pháp `$1` hoặc `${name}` cần nhóm bắt tồn tại, nếu không có thể phát sinh lỗi.
+**Confusing `$` and `\\` in the replacement.** If you want to insert the literal `"$5\item"`, use `Matcher.quoteReplacement`. If you intend to use capturing groups, `$1` or `${name}` syntax requires the capturing group to exist; otherwise an error may occur.
 
-**Quy tắc tưởng như vô hại nhưng làm hỏng cú pháp.** Thay dấu phẩy toàn cục trong CSV, thay từ trong string literal của mã nguồn, hoặc đổi key JSON bằng regex quét nguyên tài liệu có thể làm thay sai vị trí. Với cấu trúc dữ liệu, dùng parser.
+**Seemingly harmless rules that break syntax.** Globally replacing commas in CSV, replacing words inside source-code string literals, or renaming JSON keys by running regex over the whole document can replace the wrong locations. For structured data, use a parser.
 
-**Thiếu kiểm thử biên.** Kiểm thử đầu/cuối chuỗi, không có match, nhiều match liên tiếp, chuỗi rỗng, zero-width, `$`, gạch chéo ngược, Unicode, xuống dòng và dữ liệu lớn. Các cờ regex `DOTALL`, `MULTILINE`, `CASE_INSENSITIVE` có thể thay đổi ý nghĩa của mẫu; cần dùng có chủ đích và có ca kiểm thử phù hợp.
+**Missing boundary tests.** Test start/end of string, no match, consecutive matches, empty strings, zero-width matches, `$`, backslashes, Unicode, line breaks, and large data. Regex flags `DOTALL`, `MULTILINE`, `CASE_INSENSITIVE` can change the meaning of a pattern; use them deliberately with appropriate test cases.
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-**Câu 1.** Vì sao `"aaaa".replaceAll("aa", "a")` trả `"aa"`, còn gọi thêm một lần trả `"a"`? Hãy giải thích theo khái niệm match không chồng lấn và không tự quét lại đầu ra.
+**Question 1.** Why does `"aaaa".replaceAll("aa", "a")` return `"aa"`, while calling it one more time returns `"a"`? Explain using the concepts of non-overlapping matches and not rescanning the output.
 
-**Câu 2.** Nếu người dùng gửi văn bản thay thế `"$5\item"`, vì sao đưa trực tiếp vào `replaceAll` có thể làm lỗi hoặc đổi dữ liệu? Hãy chỉ ra API dùng để quote phần replacement và API dùng để quote phần pattern.
+**Question 2.** If a user submits the replacement text `"$5\item"`, why can passing it directly into `replaceAll` cause an error or alter the data? Point out the API used to quote the replacement part and the API used to quote the pattern part.
 
-**Câu 3.** Muốn thay dấu phân cách giữa các trường CSV `a,"b,c",d` nhưng giữ dấu phẩy trong `"b,c"`, vì sao một `replaceAll(",", "|")` không đủ? Mô tả các bước với parser CSV.
+**Question 3.** To replace the field separator in the CSV `a,"b,c",d` while keeping the comma inside `"b,c"`, why is a single `replaceAll(",", "|")` insufficient? Describe the steps using a CSV parser.
 
-**Câu 4.** Một quy tắc thay `"a"` thành `"aa"` có hội tụ khi lặp đến lúc không đổi hay không? Nếu không, vòng lặp phải kiểm soát những giới hạn nào?
+**Question 4.** Does a rule replacing `"a"` with `"aa"` converge when looped until unchanged? If not, what limits must the loop enforce?
 
-**Ghi nhớ:** `replaceAll` thay mọi match không chồng lấn **trong một lượt**. Khi lặp nhiều lượt cần kiểm soát điều kiện dừng và tài nguyên; khi việc thay phụ thuộc vào cấu trúc/ngữ pháp của dữ liệu, dùng parser để thay đúng thành phần.
+**Key takeaway:** `replaceAll` replaces all non-overlapping matches **in one pass**. When looping multiple passes, control stopping conditions and resources; when replacement depends on the structure/grammar of the data, use a parser to modify the right components.

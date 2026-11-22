@@ -1,23 +1,23 @@
-# `Collator` trong Java: so sánh chuỗi theo quy tắc ngôn ngữ
+# `Collator` in Java: Comparing Strings by Language Rules
 
-Khi người dùng xem danh sách tên người, từ ngữ hoặc nhãn sản phẩm, họ thường mong **thứ tự bảng chữ cái theo ngôn ngữ**. Thứ tự này có thể khác thứ tự UTF-16 mà `String.compareTo()` sử dụng. Java cung cấp **`java.text.Collator`** để so sánh và sắp xếp chuỗi theo những quy tắc *collation* phụ thuộc `Locale`, như tiếng Việt, tiếng Đức hay tiếng Thụy Điển.
+When users view a list of names, words, or product labels, they usually expect **alphabetical order according to their language**. That order can differ from the UTF-16 order used by `String.compareTo()`. Java provides **`java.text.Collator`** to compare and sort strings according to `Locale`-dependent *collation* rules, such as Vietnamese, German, or Swedish.
 
-**Ý chính:** `String.equals()` kiểm tra cùng nội dung; `String.compareTo()` so theo thứ tự code unit của chuỗi; còn **`Collator.compare(a, b)`** xác định thứ tự (và mức độ tương đương khi so sánh) theo ngôn ngữ và cấu hình. `Collator` rất hữu ích cho giao diện hoặc danh sách hướng tới người đọc, nhưng không tự động là công cụ phù hợp để kiểm tra token, mã định danh hoặc quyền truy cập.
+**Main idea:** `String.equals()` checks identical content; `String.compareTo()` compares by string code unit order; **`Collator.compare(a, b)`** determines order (and equivalence level during comparison) according to language and configuration. `Collator` is very useful for user-facing UIs or lists, but is not automatically the right tool for validating tokens, identifiers, or access permissions.
 
-## 1. Vì sao cần `Collator`?
+## 1. Why do we need `Collator`?
 
-Các bảng chữ cái không luôn xử lý chữ có dấu theo cùng một cách. Ví dụ, trong cách sắp xếp phổ biến của tiếng Đức, `ä` thường được xếp gần `a`; còn trong tiếng Thụy Điển, `ä` đứng sau `z`. Vì vậy một thứ tự dựa trên giá trị UTF-16 không thể đại diện cho mọi ngôn ngữ.
+Alphabets do not always treat accented letters the same way. For example, in common German sorting, `ä` is typically sorted near `a`; whereas in Swedish, `ä` comes after `z`. Therefore, an ordering based on UTF-16 values cannot represent every language.
 
-Java có ba cách quen thuộc:
+Java has four familiar comparison approaches:
 
-| API | Quy tắc cơ bản | Nhu cầu phù hợp |
+| API | Basic rule | Appropriate use case |
 | --- | --- | --- |
-| `a.equals(b)` | So sánh **toàn bộ nội dung `String`**; phân biệt hoa/thường và code unit | Kiểm tra mã, chuỗi chính xác |
-| `a.compareTo(b)` | So thứ tự từ điển dựa trên **UTF-16 code unit**, không phụ thuộc `Locale` | Quy ước sắp xếp kỹ thuật cố định |
-| `collator.compare(a, b)` | So theo **quy tắc collation của `Locale` và cấu hình** | Sắp xếp tên, từ và nhãn hiển thị |
-| `a.compareToIgnoreCase(b)` | So không phân biệt hoa/thường theo cách của `String`, **không phải collation theo `Locale`** | So sánh đơn giản khi không cần quy tắc ngôn ngữ |
+| `a.equals(b)` | Compares **entire `String` content**; sensitive to case and code units | Checking codes, exact strings |
+| `a.compareTo(b)` | Lexicographical order based on **UTF-16 code units**, `Locale`-independent | Fixed technical sorting conventions |
+| `collator.compare(a, b)` | Compares by **`Locale` collation rules and configuration** | Sorting names, words, and display labels |
+| `a.compareToIgnoreCase(b)` | Case-insensitive comparison per `String`'s rules, **not `Locale`-based collation** | Simple comparisons when linguistic rules are unnecessary |
 
-Ví dụ sử dụng `Collator`:
+Example of using `Collator`:
 
 ```java
 import java.text.Collator;
@@ -27,17 +27,17 @@ Collator collator = Collator.getInstance(Locale.forLanguageTag("vi-VN"));
 int result = collator.compare("An", "Bình");
 ```
 
-Đây là **đoạn mã minh họa đặt trong phương thức**. `Locale.forLanguageTag("vi-VN")` mô tả ngôn ngữ và vùng mong muốn. Nhà cung cấp dữ liệu locale của JDK quyết định những quy tắc thực tế được áp dụng; khi thiếu dữ liệu chuyên biệt, môi trường có thể sử dụng quy tắc dự phòng. Vì vậy nên thử trên JDK và locale đang triển khai, đặc biệt với tên có dấu.
+This is an **illustrative code snippet placed inside a method**. `Locale.forLanguageTag("vi-VN")` specifies the desired language and region. The JDK's locale data provider determines the actual rules applied; when specialized data is missing, the runtime may fall back to default rules. Therefore, test on your target JDK and deployment locale, especially for accented names.
 
-## 2. Lấy `Collator` theo `Locale` và đọc kết quả so sánh
+## 2. Obtaining a `Collator` by `Locale` and interpreting results
 
-`Collator` là lớp trừu tượng. Thông thường không gọi `new Collator()` mà tạo đối tượng qua:
+`Collator` is an abstract class. Typically you do not call `new Collator()` directly, but obtain an instance via:
 
 ```java
 Collator collator = Collator.getInstance(Locale.US);
 ```
 
-Một số cách tạo `Locale`:
+Several ways to create a `Locale`:
 
 ```java
 Locale vietnamese = Locale.forLanguageTag("vi-VN");
@@ -45,19 +45,19 @@ Locale swedish = Locale.forLanguageTag("sv-SE");
 Locale german = Locale.GERMAN;
 ```
 
-Ví dụ trên là các khai báo dùng trong phạm vi có `import java.util.Locale;`.
+The examples above are declarations used within scope of `import java.util.Locale;`.
 
-Kết quả `collator.compare(a, b)` là một số nguyên:
+The return value of `collator.compare(a, b)` is an integer:
 
-- **Âm**: `a` đứng trước `b` theo collator.
-- **Bằng 0**: `a` và `b` được xem là **tương đương ở mức so sánh đang cấu hình**.
-- **Dương**: `a` đứng sau `b`.
+- **Negative**: `a` comes before `b` according to the collator.
+- **Zero**: `a` and `b` are considered **equivalent at the configured comparison level**.
+- **Positive**: `a` comes after `b`.
 
-Không dựa vào giá trị cụ thể như `-1` hay `1` trong mọi trường hợp. Dùng `< 0`, `== 0` và `> 0`; với phần minh họa muốn in dấu so sánh, có thể dùng `Integer.signum(...)` để chuyển kết quả về `-1`, `0` hoặc `1`.
+Do not rely on exact values like `-1` or `1` in all cases. Check `< 0`, `== 0`, and `> 0`; for demonstrations that want to print the comparison sign, you can use `Integer.signum(...)` to normalize the result to `-1`, `0`, or `1`.
 
-### Ví dụ: cùng ký tự, thứ tự khác nhau giữa các locale
+### Example: same characters, different order across locales
 
-Lưu tệp `LocaleOrderDemo.java`:
+Save as `LocaleOrderDemo.java`:
 
 ```java
 import java.text.Collator;
@@ -79,38 +79,38 @@ public class LocaleOrderDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac -encoding UTF-8 LocaleOrderDemo.java
 java LocaleOrderDemo
 ```
 
-Với dữ liệu locale của OpenJDK sử dụng trong ví dụ, kết quả:
+With the OpenJDK locale data used in the example, output:
 
 ```text
 -1
 1
 ```
 
-`-1` ở dòng đầu cho biết `ä` được xếp trước `z` trong ví dụ tiếng Đức; `1` ở dòng sau cho biết `ä` được xếp sau `z` trong ví dụ tiếng Thụy Điển. **Bộ quy tắc có thể biến đổi theo phiên bản JDK, cấu hình locale provider và dữ liệu ngôn ngữ**, do đó không nên dùng một danh sách ví dụ làm bảng xếp hạng bất biến cho mọi môi trường. Khi cần tái lập dữ liệu giữa hệ thống, cố định môi trường/phiên bản collation.
+`-1` on the first line indicates `ä` sorts before `z` in the German example; `1` on the second line indicates `ä` sorts after `z` in the Swedish example. **Rule sets can vary by JDK version, locale provider configuration, and linguistic data**, so do not treat one example output as an immutable ranking across every environment. When reproducibility across systems is required, pin the runtime environment and collation version.
 
-## 3. Điều chỉnh mức độ phân biệt bằng `setStrength()`
+## 3. Adjusting sensitivity with `setStrength()`
 
-`Collator` cho phép xác định **độ mạnh (strength)** khi so sánh. Mức càng cao càng xét thêm những khác biệt nhỏ giữa các chuỗi.
+`Collator` lets you set the comparison **strength**. Higher levels examine finer differences between strings.
 
-| Strength | Ý tưởng chính | Khác biệt thường có tác dụng |
+| Strength | Main idea | Differences that typically take effect |
 | --- | --- | --- |
-| `Collator.PRIMARY` | So những khác biệt cơ bản của chữ | Trong nhiều locale, có thể coi chữ có/không dấu và hoa/thường là tương đương |
-| `Collator.SECONDARY` | Xét thêm khác biệt thứ cấp | Thường thêm sự khác biệt dấu hoặc biến thể chữ |
-| `Collator.TERTIARY` | Xét thêm khác biệt thứ ba | Thường thêm khác biệt hoa/thường và các biến thể khác |
-| `Collator.IDENTICAL` | Mức nhận biết khác biệt tinh hơn | Hữu ích khi cần phân biệt ở mức gần với dạng biểu diễn, chịu ảnh hưởng chế độ decomposition |
+| `Collator.PRIMARY` | Compares primary base-letter differences | In many locales, accented vs. unaccented and uppercase vs. lowercase may be treated as equivalent |
+| `Collator.SECONDARY` | Also considers secondary differences | Usually adds differences in accents or character variants |
+| `Collator.TERTIARY` | Also considers tertiary differences | Usually adds uppercase/lowercase differences and other variants |
+| `Collator.IDENTICAL` | Recognizes even finer distinctions | Useful when distinguishing nearly at the representation level; affected by decomposition mode |
 
-**Lưu ý:** Đây là mô tả định hướng; cách một dấu, biến thể chữ hoặc quy tắc chữ ghép được xét cụ thể còn phụ thuộc **`Locale` và dữ liệu collation**. Chẳng hạn không nên khẳng định mọi locale đều bỏ qua mọi dấu tại `PRIMARY`. Nếu cần lọc “không dấu” hoặc tìm kiếm tiếng Việt theo quy tắc đặc biệt, phải kiểm thử đúng tập dữ liệu.
+**Note:** These are directional descriptions; exactly how an accent, letter variant, or ligature rule is weighed depends on **`Locale` and collation data**. For instance, do not assert that every locale ignores every accent at `PRIMARY`. If you need "accent-free" filtering or Vietnamese search with special rules, test against the actual dataset.
 
-### Ví dụ: chữ hoa/thường và dấu
+### Example: case and accents
 
-Lưu tệp `CollatorStrengthDemo.java`:
+Save as `CollatorStrengthDemo.java`:
 
 ```java
 import java.text.Collator;
@@ -139,14 +139,14 @@ public class CollatorStrengthDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 CollatorStrengthDemo.java
 java CollatorStrengthDemo
 ```
 
-Kết quả với dữ liệu locale đã kiểm tra:
+Output with the tested locale data:
 
 ```text
 true
@@ -156,38 +156,38 @@ true
 false
 ```
 
-Giải thích:
+Explanation:
 
-1. Ở `PRIMARY` với `Locale.US`, `resume` và `résumé` được xem là tương đương; `Java` và `java` cũng tương đương.
-2. Ở `SECONDARY`, sự khác biệt dấu sắc khiến `resume` và `résumé` không còn tương đương; khác biệt chữ hoa/thường giữa `Java` và `java` vẫn được bỏ qua trong ví dụ.
-3. Ở `TERTIARY`, `Java` và `java` không còn tương đương trong ví dụ.
+1. At `PRIMARY` with `Locale.US`, `resume` and `résumé` are treated as equivalent; `Java` and `java` are also equivalent.
+2. At `SECONDARY`, the acute accent difference makes `resume` and `résumé` no longer equivalent; the case difference between `Java` and `java` is still ignored in this example.
+3. At `TERTIARY`, `Java` and `java` are no longer equivalent in this example.
 
-Vì `setStrength()` thay đổi chính sách so sánh, **không thay đổi cấu hình collator trong lúc một bộ sưu tập đã được sắp xếp hoặc đánh chỉ mục bằng collator đó đang hoạt động**; thứ tự so sánh phải nhất quán trong suốt thao tác.
+Because `setStrength()` changes the comparison policy, **do not mutate a collator's configuration while a collection sorted or indexed by that collator is in active use**; comparison order must stay consistent throughout operations.
 
-### `compare(a, b) == 0` khác `a.equals(b)`
+### `compare(a, b) == 0` differs from `a.equals(b)`
 
-`String.equals()` chỉ trả `true` khi nội dung chuỗi giống nhau theo quy tắc của `String`. `Collator.compare(a, b) == 0` chỉ cho biết hai chuỗi không khác nhau **theo strength/locale/decomposition hiện tại**. Với strength thấp, các chuỗi khác nhau có thể được coi là tương đương.
+`String.equals()` returns `true` only when string contents match according to `String`'s rules. `Collator.compare(a, b) == 0` only reports that two strings do not differ **under the current strength/locale/decomposition**. At lower strength, distinct strings can be treated as equivalent.
 
-Điều này còn ảnh hưởng tới `TreeSet` hoặc `TreeMap`: nếu dùng collator làm comparator, hai khóa có `compare() == 0` được bộ sưu tập xem như cùng một khóa về thứ tự, dù `String.equals()` trả `false`. Không dùng collator strength thấp để lưu tập khóa cần phân biệt chính xác từng ký tự.
+This also affects `TreeSet` or `TreeMap`: if a collator is used as the comparator, two keys with `compare() == 0` are treated by the collection as the same key for ordering, even though `String.equals()` returns `false`. Do not use a low-strength collator to store a key set that must distinguish every character exactly.
 
-## 4. `setDecomposition()`: chữ dựng sẵn và dấu kết hợp
+## 4. `setDecomposition()`: precomposed characters and combining marks
 
-Unicode cho phép một số văn bản được biểu diễn bằng nhiều dãy code point khác nhau nhưng **tương đương chuẩn (canonical equivalence)**:
+Unicode allows certain text to be represented by different yet **canonically equivalent** code point sequences:
 
-- `"\u00E9"`: chữ `é` dựng sẵn (U+00E9).
-- `"e\u0301"`: chữ `e` và dấu sắc kết hợp U+0301.
+- `"\u00E9"`: precomposed `é` (U+00E9).
+- `"e\u0301"`: letter `e` and combining acute accent U+0301.
 
-`String.equals()` so nội dung code unit nên thường trả `false` cho hai biểu diễn trên. Trong khi đó, bài toán so sánh ngôn ngữ có thể muốn coi chúng tương đương.
+`String.equals()` compares code unit contents and therefore usually returns `false` for these two representations. Meanwhile, linguistic comparison often wants to treat them as equivalent.
 
-`Collator` có chế độ decomposition:
+`Collator` provides decomposition modes:
 
-- `Collator.NO_DECOMPOSITION`: không yêu cầu bước decomposition chuẩn trước khi so sánh; thường tiết kiệm xử lý hơn nhưng cần thận trọng với các dạng Unicode tương đương.
-- `Collator.CANONICAL_DECOMPOSITION`: xét sự phân rã tương đương chuẩn; thích hợp khi cần xử lý các chuỗi chữ dựng sẵn và tổ hợp dấu một cách nhất quán.
-- `Collator.FULL_DECOMPOSITION`: phân rã tương thích rộng hơn, có thể coi thêm những biểu diễn khác là tương đương theo collation; **không tự chọn mức này nếu nghiệp vụ yêu cầu phân biệt các ký tự tương thích**.
+- `Collator.NO_DECOMPOSITION`: does not require canonical decomposition before comparing; usually faster, but requires care with equivalent Unicode forms.
+- `Collator.CANONICAL_DECOMPOSITION`: accounts for canonically equivalent decompositions; appropriate when handling precomposed letters and combining marks consistently.
+- `Collator.FULL_DECOMPOSITION`: broader compatibility decomposition, which can treat additional representations as collation-equivalent; **do not pick this level if business rules require distinguishing compatibility characters**.
 
-### Ví dụ hoàn chỉnh về dạng Unicode
+### Complete example for Unicode forms
 
-Lưu tệp `CanonicalDemo.java`:
+Save as `CanonicalDemo.java`:
 
 ```java
 import java.text.Collator;
@@ -210,27 +210,27 @@ public class CanonicalDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 CanonicalDemo.java
 java CanonicalDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 false
 true
 ```
 
-Cả hai chuỗi hiển thị tương tự `Café`. Tuy nhiên, `equals()` so dãy mã khác nhau; `Collator` với decomposition chuẩn xem chúng tương đương trong cấu hình ví dụ.
+Both strings render similarly as `Café`. However, `equals()` compares differing code sequences; `Collator` with canonical decomposition treats them as equivalent in this example configuration.
 
-**Phân biệt:** `Normalizer.normalize(text, Normalizer.Form.NFC)` là thao tác *biến đổi nội dung* về dạng chuẩn. Ngược lại, `collator.compare(...)` là thao tác *so sánh* theo quy tắc; nó không thay thế hoặc chỉnh sửa hai `String` đầu vào.
+**Distinction:** `Normalizer.normalize(text, Normalizer.Form.NFC)` is an operation that *transforms content* into a canonical form. In contrast, `collator.compare(...)` is a rule-based *comparison*; it neither replaces nor modifies the two input `String`s.
 
-## 5. Dùng `Collator` để sắp xếp danh sách
+## 5. Using `Collator` to sort lists
 
-`Collator` triển khai `Comparator`, có thể truyền trực tiếp cho `List.sort(...)` hoặc `Collections.sort(...)`. Ví dụ độc lập `CollatorSortDemo.java`:
+`Collator` implements `Comparator`, so it can be passed directly to `List.sort(...)` or `Collections.sort(...)`. Standalone example `CollatorSortDemo.java`:
 
 ```java
 import java.text.CollationKey;
@@ -265,14 +265,14 @@ public class CollatorSortDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 CollatorSortDemo.java
 java CollatorSortDemo
 ```
 
-Kết quả với cấu hình `Locale.US` đã kiểm tra:
+Output with the tested `Locale.US` configuration:
 
 ```text
 [Alice, Bob, Zoe]
@@ -280,78 +280,78 @@ Kết quả với cấu hình `Locale.US` đã kiểm tra:
 1
 ```
 
-Hai dòng đầu minh họa sắp xếp trực tiếp bằng `Collator` và dùng khóa `CollationKey`. Dòng cuối cho thấy `TreeSet` tại `PRIMARY` chỉ giữ **một khóa theo quan hệ so sánh**, vì `resume` và `résumé` được xem là tương đương theo collator. Nó **không** chứng minh hai `String` có nội dung như nhau theo `equals()`.
+The first two lines demonstrate sorting directly with `Collator` and using `CollationKey` keys. The last line shows that `TreeSet` at `PRIMARY` retains only **one key under the comparison relation**, because `resume` and `résumé` are treated as equivalent by the collator. It does **not** prove the two `String`s have identical content under `equals()`.
 
-### Khi nào dùng `CollationKey`?
+### When to use `CollationKey`?
 
-`CollationKey` lưu khóa so sánh rút ra từ `Collator`. Với một tập chuỗi phải so sánh nhiều lần (chẳng hạn sắp xếp lặp lại cùng dữ liệu), tạo khóa một lần có thể giảm công việc phân tích từng chuỗi mỗi lần so sánh.
+`CollationKey` stores a comparison key derived from a `Collator`. For a set of strings compared repeatedly (such as sorting the same data multiple times), computing keys once can reduce the work of analyzing each string on every comparison.
 
-Quy tắc sử dụng:
+Usage rules:
 
-1. Tạo các khóa bằng **cùng collator với cùng cấu hình `Locale`, strength và decomposition**.
-2. So sánh/sắp xếp các khóa bằng `CollationKey.compareTo(...)`.
-3. Dùng `getSourceString()` để lấy lại chuỗi ban đầu nếu cần.
-4. Cân nhắc chi phí tạo/lưu khóa so với việc chỉ so sánh vài chuỗi; không mặc định dùng `CollationKey` cho mọi trường hợp.
+1. Generate keys using the **same collator with the same `Locale`, strength, and decomposition settings**.
+2. Compare/sort keys with `CollationKey.compareTo(...)`.
+3. Use `getSourceString()` to retrieve the original string when needed.
+4. Weigh key creation/storage overhead against comparing just a few strings; do not default to `CollationKey` in every case.
 
-Không so sánh khóa được tạo bằng các collator có quy tắc khác nhau, vì thứ tự của chúng có thể không tương thích. Khi thay đổi strength/decomposition, hãy **tạo lại khóa** nếu cần tiếp tục so sánh nhất quán.
+Do not compare keys created by collators with different rules, because their orderings may be incompatible. When changing strength or decomposition, **regenerate the keys** if consistent comparison must continue.
 
-## 6. Các quy tắc an toàn và giới hạn thực tế
+## 6. Safety rules and practical limitations
 
-### 6.1. Locale cố định hay locale của người dùng?
+### 6.1. Fixed locale or user locale?
 
-- **Sắp xếp dữ liệu để hiển thị:** chọn `Locale` ứng với ngôn ngữ/môi trường mà người dùng muốn xem. Ví dụ `Locale.forLanguageTag("vi-VN")` khi yêu cầu sắp xếp tên tiếng Việt.
-- **Cần kết quả đồng nhất giữa máy chủ:** cố định locale, phiên bản JDK, dữ liệu collation và cấu hình; ghi nhận thay đổi khi nâng cấp runtime. Ngay cả cùng thẻ locale, dữ liệu collation của các hệ thống khác nhau có thể khác.
-- **Không dùng mặc định một cách vô thức:** `Collator.getInstance()` dùng locale mặc định của máy chạy, nên kết quả có thể phụ thuộc môi trường. Khi quy tắc nghiệp vụ đã xác định, truyền `Locale` tường minh.
+- **Sorting data for display:** choose the `Locale` matching the language/environment the user wants to view. For instance, `Locale.forLanguageTag("vi-VN")` when sorting Vietnamese names.
+- **Need consistent results across servers:** pin the locale, JDK version, collation data, and configuration; document changes during runtime upgrades. Even with the same locale tag, collation data across different systems can differ.
+- **Do not use the default blindly:** `Collator.getInstance()` uses the host's default locale, so results can depend on the environment. Once business rules are defined, pass `Locale` explicitly.
 
-### 6.2. Không dùng collation ngôn ngữ để xác minh danh tính hoặc bảo mật
+### 6.2. Do not use linguistic collation to verify identity or security
 
-Các mức strength có thể xem hai chuỗi khác nhau là tương đương; điều này hữu ích cho **sắp xếp hiển thị** nhưng có thể không phù hợp cho:
+Lower strength levels can treat distinct strings as equivalent; this is helpful for **display sorting** but inappropriate for:
 
-- Token, API key, mã phiên, mật khẩu.
-- Mã định danh phân biệt hoa/thường.
-- Khóa phải so chính xác theo byte/code unit.
-- Quy tắc phân quyền hoặc chữ ký dữ liệu.
+- Tokens, API keys, session IDs, passwords.
+- Case-sensitive identifiers.
+- Keys that must match strictly by byte/code unit.
+- Authorization rules or data signatures.
 
-Với những trường hợp trên, áp dụng phép so sánh đúng theo đặc tả của dữ liệu. `String.equals()` so nội dung chính xác của `String`, nhưng với bí mật nhạy cảm có thể cần cơ chế so sánh thời gian ổn định và bảo vệ dữ liệu chuyên biệt theo giao thức.
+For those cases, apply comparisons matching the data specification. `String.equals()` compares exact `String` content, while sensitive secrets may require constant-time comparison and protocol-specific data protection.
 
-### 6.3. `Collator` có trạng thái cấu hình
+### 6.3. `Collator` holds mutable configuration state
 
-`setStrength()` và `setDecomposition()` thay đổi cách đối tượng so sánh. Nếu nhiều luồng dùng chung và một luồng thay đổi cấu hình trong khi luồng khác đang so sánh, kết quả có thể không nhất quán. Cách đơn giản là tạo/cấu hình collator riêng cho mỗi công việc hoặc mỗi luồng, hoặc quản lý đồng bộ hóa phù hợp.
+`setStrength()` and `setDecomposition()` modify how the instance compares. If multiple threads share an instance and one mutates configuration while another compares, results can be inconsistent. A simple approach is to create/configure a separate collator per task or per thread, or manage synchronization appropriately.
 
-`Collator` hỗ trợ `clone()` để tạo bản sao có thể cấu hình độc lập trong những trường hợp cần tránh sửa trực tiếp một đối tượng dùng chung. Đừng thay đổi cấu hình comparator trong lúc đang sắp xếp hoặc lưu phần tử trong bộ sưu tập dựa trên comparator đó.
+`Collator` supports `clone()` to create an independently configurable copy when you need to avoid modifying a shared instance directly. Never change a comparator's configuration while sorting or storing elements in a collection backed by that comparator.
 
-### 6.4. Chỉ so sánh chuỗi có dữ liệu hợp lệ
+### 6.4. Only compare strings with valid data
 
-Ví dụ API `compare(String, String)` thông thường yêu cầu cả hai chuỗi không `null`. Nếu muốn sắp xếp danh sách có thể chứa null, quyết định quy tắc rõ ràng như `Comparator.nullsFirst(collator)` hoặc `Comparator.nullsLast(collator)`. Đây là chính sách của ứng dụng; bản thân collation không định nghĩa null là một từ hoặc ký tự.
+For example, the standard `compare(String, String)` API requires both strings to be non-`null`. If you want to sort a list that may contain `null`, specify an explicit rule such as `Comparator.nullsFirst(collator)` or `Comparator.nullsLast(collator)`. That is an application policy; collation itself does not define `null` as a word or character.
 
-Với Unicode, việc dùng decomposition/strength phù hợp giúp so sánh chữ có dấu, nhưng **không tự thay thế** mọi bài toán tách từ, tìm kiếm gần đúng, bỏ dấu, phiên âm hoặc hỗ trợ quy tắc riêng của sản phẩm.
+With Unicode, proper decomposition/strength helps compare accented letters, yet it **does not automatically solve** tokenization, fuzzy matching, accent stripping, transliteration, or product-specific rules.
 
-## 7. Lỗi phổ biến cần tránh
+## 7. Common mistakes to avoid
 
-1. **Dùng `String.compareTo()` cho danh sách tên người rồi xem đó là thứ tự bảng chữ cái chuẩn mọi ngôn ngữ.** Nó so theo UTF-16 code unit, không dùng quy tắc collation địa phương.
-2. **Gọi `Collator.getInstance()` mà không chủ động chọn `Locale`.** Dùng locale mặc định chỉ khi đó là yêu cầu thực tế.
-3. **Tin rằng `compare()` luôn trả chính xác `-1`, `0` hoặc `1`.** Chỉ kiểm tra dấu âm/0/dương; `Integer.signum` khi cần chuẩn hóa.
-4. **Cho rằng `compare(a, b) == 0` đồng nghĩa `a.equals(b)`.** Sự tương đương theo strength có thể rộng hơn sự bằng nhau về nội dung.
-5. **Dùng `PRIMARY` cho `TreeSet` khóa định danh** mà không lường trước việc khóa khác nội dung có thể bị gộp thành một phần tử.
-6. **Hiểu `PRIMARY`/`SECONDARY`/`TERTIARY` như quy tắc bỏ dấu giống nhau ở mọi locale.** Quy tắc phụ thuộc ngôn ngữ và provider.
-7. **Quên normalization/decomposition** khi dữ liệu có cả chữ dựng sẵn lẫn chữ + dấu kết hợp.
-8. **Thay đổi strength sau khi đã tạo `CollationKey` hoặc đưa comparator vào cấu trúc sắp xếp** mà không tái lập các khóa/cấu trúc tương ứng.
-9. **Dùng khóa collation khác cấu hình để so sánh.** Các khóa chỉ có nghĩa nhất quán khi xuất phát từ cùng bộ quy tắc.
-10. **Dùng thứ tự collation để thay cho phân tích Unicode, tìm từ, search ranking hoặc phân quyền.** `Collator` giải quyết bài toán so sánh/sắp xếp theo ngôn ngữ, không bao trùm những chức năng khác.
+1. **Using `String.compareTo()` on a list of names and assuming it is standard alphabetical order for all languages.** It compares UTF-16 code units without using local collation rules.
+2. **Calling `Collator.getInstance()` without actively choosing a `Locale`.** Use the default locale only when that is the actual requirement.
+3. **Believing `compare()` always returns exactly `-1`, `0`, or `1`.** Check only negative/0/positive sign; use `Integer.signum` when normalizing.
+4. **Assuming `compare(a, b) == 0` implies `a.equals(b)`.** Strength-based equivalence can be broader than content equality.
+5. **Using `PRIMARY` in a `TreeSet` of identifier keys** without anticipating that keys with different contents can merge into a single entry.
+6. **Interpreting `PRIMARY`/`SECONDARY`/`TERTIARY` as identical accent-stripping rules across all locales.** Rules depend on language and provider.
+7. **Forgetting normalization/decomposition** when data contains both precomposed characters and base-letter + combining-mark sequences.
+8. **Changing strength after creating `CollationKey`s or inserting the comparator into a sorted structure** without rebuilding the corresponding keys/structures.
+9. **Comparing collation keys created under different configurations.** Keys have consistent meaning only when produced from the same rule set.
+10. **Using collation order in place of Unicode analysis, word matching, search ranking, or authorization.** `Collator` solves language-based comparison/sorting, not those other concerns.
 
-## 8. Tự kiểm tra hiểu biết
+## 8. Self-check
 
-- **Câu 1:** Muốn hiển thị danh sách tên tiếng Việt theo quy tắc ngôn ngữ, nên dùng gì?  
-  **Đáp án:** `Collator.getInstance(Locale.forLanguageTag("vi-VN"))` rồi dùng làm comparator; kiểm tra quy tắc và dữ liệu JDK của môi trường triển khai.
-- **Câu 2:** `collator.compare(a, b) < 0` nghĩa là gì?  
-  **Đáp án:** `a` đứng trước `b` theo cấu hình collator hiện tại.
-- **Câu 3:** `PRIMARY` có bảo đảm mọi dấu ở mọi ngôn ngữ đều bị bỏ qua?  
-  **Đáp án:** Không. Hiệu lực từng dấu phụ thuộc locale và dữ liệu collation.
-- **Câu 4:** Hai chuỗi khác `String.equals()` có thể bằng nhau theo `Collator.compare()` không?  
-  **Đáp án:** Có, nếu quy tắc strength/decomposition coi chúng tương đương.
-- **Câu 5:** Khi nào nên tạo `CollationKey`?  
-  **Đáp án:** Khi so sánh lặp lại cùng tập chuỗi và lợi ích lớn hơn chi phí lưu/tạo khóa; các khóa cần chung cấu hình.
-- **Câu 6:** Nên dùng `Collator` để xác minh API key không?  
-  **Đáp án:** Không. Hãy dùng quy tắc so khớp chính xác và cơ chế bảo mật phù hợp với giao thức.
+- **Question 1:** To display a list of Vietnamese names following linguistic rules, what should you use?  
+  **Answer:** `Collator.getInstance(Locale.forLanguageTag("vi-VN"))` as the comparator; verify the rules and JDK data in the deployment environment.
+- **Question 2:** What does `collator.compare(a, b) < 0` mean?  
+  **Answer:** `a` comes before `b` under the current collator configuration.
+- **Question 3:** Does `PRIMARY` guarantee that all accents in every language are ignored?  
+  **Answer:** No. The weight of each accent depends on the locale and collation data.
+- **Question 4:** Can two strings that differ under `String.equals()` be equal under `Collator.compare()`?  
+  **Answer:** Yes, if strength/decomposition rules treat them as equivalent.
+- **Question 5:** When should you create `CollationKey`s?  
+  **Answer:** When comparing the same set of strings repeatedly and the benefit outweighs key creation/storage cost; all keys must share the same configuration.
+- **Question 6:** Should `Collator` be used to verify an API key?  
+  **Answer:** No. Use exact matching rules and security mechanisms appropriate to the protocol.
 
-**Ghi nhớ:** `Collator` phục vụ **so sánh và sắp xếp theo `Locale`**. Chọn strength/decomposition dựa trên cách ứng dụng muốn xem những khác biệt chữ, dấu và biểu diễn Unicode; kiểm tra `compare` theo dấu âm/0/dương; và tách biệt **tương đương ngôn ngữ** khỏi **bằng nhau chính xác** của chuỗi hoặc khóa nghiệp vụ.
+**Key takeaway:** `Collator` is for **`Locale`-aware comparison and sorting**. Choose strength and decomposition based on how the application wants to treat letter, accent, and Unicode representation differences; check `compare` by negative/0/positive sign; and keep **linguistic equivalence** separate from **exact equality** of strings or business keys.

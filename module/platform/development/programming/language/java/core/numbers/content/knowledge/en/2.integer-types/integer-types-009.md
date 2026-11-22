@@ -1,51 +1,51 @@
-# Chọn `int` hay `long` cho số đếm, chỉ số và kích thước trong Java
+# Choosing `int` or `long` for Counts, Indices, and Sizes in Java
 
-Trong Java, khi làm việc với **số lượng phần tử**, **chỉ số truy cập** hoặc **kích thước dữ liệu**, câu hỏi cần trả lời không chỉ là “số này có lớn không?”. Cần biết **miền giá trị lớn nhất có thể xảy ra**, **phép tính trung gian**, và **kiểu mà API Java yêu cầu**. Một mảng luôn được đánh chỉ số bằng `int`, nhưng tổng số phần tử xử lý qua nhiều mảng hoặc kích thước tệp có thể cần `long`. Chọn đúng kiểu giúp kết quả chính xác, giới hạn được kiểm tra rõ ràng và API dễ sử dụng.
+In Java, when working with **element counts**, **access indices**, or **data sizes**, the question to answer is not merely “is this number big?”. You need to know **the maximum possible value range**, **intermediate calculations**, and **the types required by Java APIs**. An array is always indexed with `int`, whereas the total number of elements processed across many arrays or a file's size may require `long`. Choosing the right type keeps results accurate, bounds explicitly checked, and APIs easy to use.
 
-## 1. Giới hạn thực tế của hai kiểu
+## 1. Practical Limits of Both Types
 
-| Thuộc tính | `int` | `long` |
+| Property | `int` | `long` |
 | --- | --- | --- |
-| Số bit biểu diễn | 32 bit, có dấu | 64 bit, có dấu |
-| Giá trị nhỏ nhất | −2.147.483.648 | −9.223.372.036.854.775.808 |
-| Giá trị lớn nhất | 2.147.483.647 | 9.223.372.036.854.775.807 |
-| Hằng giới hạn | `Integer.MIN_VALUE`, `Integer.MAX_VALUE` | `Long.MIN_VALUE`, `Long.MAX_VALUE` |
-| Literal | `100` (mặc định `int`) | `100L` (hậu tố `L`) |
-| Ví dụ phù hợp | Chỉ số mảng/list, số lượng có cận trên vừa 32 bit | Tổng tích lũy lớn, byte offset, file size, thời gian/độ dài lớn khi API dùng `long` |
+| Bit width | 32-bit, signed | 64-bit, signed |
+| Minimum value | −2,147,483,648 | −9,223,372,036,854,775,808 |
+| Maximum value | 2,147,483,647 | 9,223,372,036,854,775,807 |
+| Bound constants | `Integer.MIN_VALUE`, `Integer.MAX_VALUE` | `Long.MIN_VALUE`, `Long.MAX_VALUE` |
+| Literal | `100` (defaults to `int`) | `100L` (`L` suffix) |
+| Suitable examples | Array/list indices, counts with a moderate 32-bit upper bound | Large cumulative sums, byte offsets, file sizes, large durations/lengths when APIs use `long` |
 
-Cả hai đều là kiểu nguyên thủy **có dấu**. Trong bài toán số đếm và kích thước, thường chỉ cho phép giá trị không âm, nhưng việc miền âm không được dùng **không tự chuyển `int` thành kiểu 32 bit không dấu**. Giới hạn số đếm `int` vẫn là `2_147_483_647`, không phải `4_294_967_295`.
+Both are **signed** primitive types. In counting and sizing problems, usually only non-negative values are allowed, but not using the negative range **does not automatically turn `int` into an unsigned 32-bit type**. The positive limit of `int` remains `2_147_483_647`, not `4_294_967_295`.
 
-`long` có miền lớn hơn `int`, nhưng **vẫn hữu hạn**. Trong cả hai kiểu, phép `+`, `-`, `*` thông thường có thể tràn mà không ném ngoại lệ. `long` không tự giải quyết các phép tính vượt `Long.MAX_VALUE`.
+`long` has a larger range than `int`, yet is **still finite**. In both types, ordinary `+`, `-`, and `*` operations can overflow without throwing an exception. `long` does not magically solve calculations exceeding `Long.MAX_VALUE`.
 
-**Nguyên tắc đầu tiên:** xác định giá trị lớn nhất **của từng biến và kết quả trung gian**, rồi chọn kiểu vừa miền; khi phụ thuộc một API cụ thể, phải tôn trọng kiểu tham số/giá trị trả về của API đó.
+**First principle:** determine the maximum value **of each variable and intermediate result**, then pick a type that fits the range; when depending on a specific API, respect the parameter/return types of that API.
 
-## 2. Chọn theo ý nghĩa của số: index, count, size, offset
+## 2. Choosing by Meaning: index, count, size, offset
 
-Bốn từ thường gặp không hoàn toàn đồng nghĩa:
+Four common terms are not completely synonymous:
 
-- **Index (chỉ số):** vị trí truy cập trong một cấu trúc, thường nằm trong `0..size-1`.
-- **Count (số đếm):** số lần xảy ra/số bản ghi/số đối tượng đã xử lý; có thể tăng dần qua nhiều batch hoặc nhiều nguồn.
-- **Size/length (kích thước/độ dài):** số phần tử của tập hợp, số byte của tệp, hay số đơn vị đo khác; phải xác định **đơn vị**.
-- **Offset (độ dời):** vị trí tương đối so với đầu dữ liệu; một offset trong một mảng có thể là `int`, còn offset trong một tệp hàng chục GB cần `long`.
+- **Index:** an access position within a structure, usually in `0..size-1`.
+- **Count:** the number of occurrences, records, or objects processed; may accumulate across multiple batches or sources.
+- **Size/length:** the number of elements in a collection, bytes in a file, or other measurement units; the **unit** must be specified.
+- **Offset:** a relative position from the start of data; an offset within an array can be `int`, whereas an offset within a multi-gigabyte file requires `long`.
 
-Ví dụ xử lý tuần tự 500 tệp, mỗi tệp chứa 10 triệu bản ghi: mỗi tệp có thể đọc từng phần tử bằng `int`, nhưng **tổng 5 tỷ bản ghi** vượt `Integer.MAX_VALUE` và nên tích lũy trong `long`.
+For example, when sequentially processing 500 files, each containing 10 million records: each file can read individual elements with `int`, but the **total of 5 billion records** exceeds `Integer.MAX_VALUE` and should be accumulated in `long`.
 
-### Bảng quyết định theo API và miền giá trị
+### Decision Table by API and Value Range
 
-| Tình huống | Kiểu nên dùng | Vì sao |
+| Situation | Type to Use | Why |
 | --- | --- | --- |
-| `array[index]`, vòng `for` trên mảng | `int` cho `index` | Java yêu cầu chỉ số mảng kiểu tương thích `int`; `array.length` trả `int` |
-| `List.get(index)`, `List.size()` | `int` cho index/size API | Chữ ký API `get(int)` và `size()` |
-| Số phần tử của cấu trúc nhỏ, có cận trên rõ và vừa `int` | `int` | Ngắn gọn, đúng miền yêu cầu |
-| Tổng số phần tử qua nhiều list, batch, tệp | `long` | Tổng có thể vượt kích thước của từng list |
-| `Stream.count()`, `Files.size(path)` | `long` | API trả `long` |
-| Offset byte trong tệp lớn, số byte đã đọc/ghi | `long` | Byte offset có thể vượt 2 GiB |
-| Số lượng quá `Long.MAX_VALUE` hoặc phép tính tổ hợp cực lớn | `BigInteger` | Vượt khả năng `long` |
-| Bộ đếm cập nhật đồng thời từ nhiều luồng | `AtomicInteger`/`AtomicLong` hoặc `LongAdder` theo miền và yêu cầu | Cần xử lý concurrency riêng; chỉ đổi kiểu không tạo tính nguyên tử |
+| `array[index]`, `for` loop over an array | `int` for `index` | Java requires an `int`-compatible array index; `array.length` returns `int` |
+| `List.get(index)`, `List.size()` | `int` for API index/size | API signatures `get(int)` and `size()` |
+| Element count of a small structure with a clear upper bound fitting `int` | `int` | Concise, matches the required range |
+| Total element count across multiple lists, batches, or files | `long` | The total can exceed the size of any single list |
+| `Stream.count()`, `Files.size(path)` | `long` | API returns `long` |
+| Byte offset in a large file, number of bytes read/written | `long` | Byte offsets can exceed 2 GiB |
+| Quantities beyond `Long.MAX_VALUE` or huge combinatorial calculations | `BigInteger` | Exceeds `long` capacity |
+| Counter updated concurrently by multiple threads | `AtomicInteger`/`AtomicLong` or `LongAdder` per range and requirements | Concurrency must be handled separately; changing the type alone does not create atomicity |
 
-Lưu ý `Collection.size()` có kiểu trả về `int`. Hợp đồng `Collection` cho phép trả `Integer.MAX_VALUE` khi chứa nhiều hơn giới hạn đó; do vậy `size()` **không phải một API tổng quát để đo chính xác mọi tập hợp siêu lớn**. Hầu hết mảng và collection Java phổ thông đã có ràng buộc dung lượng riêng theo triển khai hoặc bộ nhớ.
+Note that `Collection.size()` has return type `int`. The `Collection` contract permits returning `Integer.MAX_VALUE` when it contains more than that limit; thus `size()` **is not a general-purpose API for accurately measuring arbitrarily huge collections**. Most standard Java arrays and collections already have their own capacity constraints based on implementation or memory.
 
-## 3. Chỉ số mảng và `List`: dùng `int` vì hợp đồng API
+## 3. Array and `List` Indices: Use `int` Because of the API Contract
 
 ```java
 int[] prices = {120, 240, 360};
@@ -55,50 +55,50 @@ for (int i = 0; i < prices.length; i++) {
 }
 ```
 
-Biến `i` là `int` vì `prices.length` có kiểu `int` và phép truy cập mảng sử dụng chỉ số nguyên tương thích với `int`. `List.get(int index)` cũng sử dụng `int`.
+The variable `i` is `int` because `prices.length` has type `int` and array access uses an integer index compatible with `int`. `List.get(int index)` also uses `int`.
 
-Không thể dùng `long` trực tiếp làm chỉ số mảng:
+You cannot use `long` directly as an array index:
 
 ```java
 int[] values = {5, 10};
 long index = 1L;
-// int value = values[index]; // Không biên dịch: long không phải kiểu chỉ số mảng hợp lệ.
-int value = values[Math.toIntExact(index)]; // Hợp lệ khi index nằm trong miền int.
+// int value = values[index]; // Does not compile: long is not a valid array index type.
+int value = values[Math.toIntExact(index)]; // Valid when index fits within the int range.
 ```
 
-`Math.toIntExact` chỉ kiểm tra `long` có vừa miền `int` hay không; **chưa kiểm tra index hợp lệ với mảng**. Vẫn cần `0 <= index && index < values.length` trước khi truy cập. Nếu index bằng 100 nhưng mảng có 2 phần tử, chuyển kiểu thành công nhưng truy cập vẫn ném `ArrayIndexOutOfBoundsException`.
+`Math.toIntExact` only checks whether `long` fits in the `int` range; **it does not check whether the index is valid for the array**. You still need `0 <= index && index < values.length` before accessing. If `index` is 100 while the array has 2 elements, the type conversion succeeds but the access still throws `ArrayIndexOutOfBoundsException`.
 
-Một mảng Java không trở thành mảng có hơn 2 tỷ chỉ số chỉ vì biến chỉ số được đổi thành `long`. `array.length` có kiểu `int`; kích thước mảng khả dụng còn bị giới hạn bởi triển khai JVM, bộ nhớ và overhead. Nếu dữ liệu cần nhiều phần tử hơn mức có thể lưu trong một mảng, hãy cân nhắc **chia đoạn (segmentation)**, xử lý bằng luồng/batch, lưu trữ trên đĩa hoặc cấu trúc chuyên biệt có API chỉ số `long`.
+A Java array does not gain more than 2 billion indices just because an index variable is changed to `long`. `array.length` has type `int`; usable array size is further bounded by the JVM implementation, memory, and overhead. If data needs more elements than can fit in one array, consider **segmentation**, streaming/batch processing, disk storage, or a specialized structure with a `long`-indexed API.
 
-### Vòng lặp và biên an toàn
+### Loops and Safe Bounds
 
-Dạng thông thường sau đúng cho mảng, kể cả khi rỗng:
+The following standard form is valid for arrays, even when empty:
 
 ```java
 for (int i = 0; i < array.length; i++) {
-    use(array[i]); // use(...) chỉ là lời gọi minh họa, không phải chương trình độc lập.
+    use(array[i]); // use(...) is only an illustrative call, not a standalone program.
 }
 ```
 
-Điều kiện `i < array.length` kết thúc trước khi index vượt biên. Tránh `i <= array.length` vì phần tử cuối có index `length - 1`. Khi `array.length == 0`, không có index hợp lệ; `length - 1` bằng `-1` và không nên dùng để truy cập.
+The condition `i < array.length` terminates before the index goes out of bounds. Avoid `i <= array.length` because the last element has index `length - 1`. When `array.length == 0`, there is no valid index; `length - 1` is `-1` and must not be used for access.
 
-Không viết các vòng lặp kết thúc bằng ngưỡng `Integer.MAX_VALUE` với điều kiện `i <= Integer.MAX_VALUE` mà tăng `i++`: sau giá trị lớn nhất, `int` tràn về số âm và có thể khiến vòng lặp chạy mãi. Nếu thực sự cần duyệt bộ đếm dài hơn miền `int`, hãy dùng `long` và xác định rõ điều kiện dừng.
+Do not write loops ending at `Integer.MAX_VALUE` with the condition `i <= Integer.MAX_VALUE` and `i++`: after the maximum value, `int` overflows to a negative number and can make the loop run forever. If you genuinely need to iterate a counter beyond the `int` range, use `long` and define the stopping condition clearly.
 
-## 4. Tổng số đếm và kích thước có thể cần `long` dù đầu vào là `int`
+## 4. Total Counts and Sizes May Need `long` Even When Inputs Are `int`
 
-Một batch có 10.000 phần tử có thể dùng `int batchSize`. Nhưng cộng số phần tử qua 500.000 batch có thể vượt `int`. Hãy xác định kiểu **của phép cộng**, không chỉ kiểu biến nhận kết quả.
+A batch of 10,000 elements can use `int batchSize`. Yet summing element counts across 500,000 batches can exceed `int`. Check the type **of the addition itself**, not just the type of the receiving variable.
 
-### Sai lầm: gán sang `long` sau khi đã tràn
+### Mistake: Assigning to `long` After Overflow Has Already Occurred
 
 ```java
 int previous = 2_000_000_000;
 int incoming = 500_000_000;
 
-long wrong = previous + incoming;         // -1794967296: cộng int trước.
-long correct = (long) previous + incoming; // 2500000000: cộng long.
+long wrong = previous + incoming;         // -1794967296: int addition first.
+long correct = (long) previous + incoming; // 2500000000: long addition.
 ```
 
-Biểu thức `previous + incoming` có kiểu `int`, nên phép cộng tràn **trước khi** được gán cho `long`. Ép ít nhất một toán hạng sang `long` từ đầu; khi bộ đếm cần tăng nhiều lần, khai báo biến tích lũy là `long` và cộng trực tiếp:
+The expression `previous + incoming` has type `int`, so the addition overflows **before** being assigned to `long`. Cast at least one operand to `long` upfront; when a counter needs to accumulate repeatedly, declare the accumulator variable as `long` and add directly:
 
 ```java
 long totalRecords = 0;
@@ -108,31 +108,31 @@ for (int batchRecords : new int[] {1_500_000_000, 1_500_000_000}) {
 // totalRecords = 3000000000
 ```
 
-`totalRecords += batchRecords` dùng phép cộng `long` vì toán hạng trái là `long`. Để phát hiện tràn của chính `long` thay vì chấp nhận vòng số, dùng `Math.addExact(totalRecords, batchRecords)`.
+`totalRecords += batchRecords` uses `long` addition because the left-hand operand is `long`. To detect overflow of `long` itself rather than accepting wraparound, use `Math.addExact(totalRecords, batchRecords)`.
 
-### Sai lầm tương tự với phép nhân kích thước
+### Similar Mistake When Multiplying Sizes
 
 ```java
 int rows = 70_000;
 int columns = 70_000;
 
-long wrongCells = rows * columns;             // 605032704: int đã tràn.
+long wrongCells = rows * columns;             // 605032704: int overflowed.
 long correctCells = (long) rows * columns;    // 4900000000.
 long checkedCells = Math.multiplyExact((long) rows, columns);
 ```
 
-Trong tính dung lượng, `rows * columns`, `itemCount * bytesPerItem`, `width * height * channels` đều cần kiểm tra **kết quả trung gian**. Chẳng hạn nếu `width`, `height` là `int`, biểu thức `(long) (width * height)` vẫn quá muộn. Nếu kết quả tính bằng `long` vẫn có nguy cơ vượt giới hạn, dùng `Math.multiplyExact(long, long)` hoặc mô hình `BigInteger` phù hợp.
+When computing capacities, `rows * columns`, `itemCount * bytesPerItem`, and `width * height * channels` all require checking **intermediate results**. For instance, if `width` and `height` are `int`, the expression `(long) (width * height)` is still too late. If a result computed in `long` still risks exceeding bounds, use `Math.multiplyExact(long, long)` or an appropriate `BigInteger` model.
 
-## 5. Chuyển đổi giữa `long` và `int` tại ranh giới API
+## 5. Converting Between `long` and `int` at API Boundaries
 
-Chuyển đổi mở rộng `int -> long` bảo toàn mọi giá trị `int`. Java thực hiện ngầm:
+The widening conversion `int -> long` preserves every `int` value. Java performs it implicitly:
 
 ```java
 int count = 1_000_000;
-long total = count; // Không mất dữ liệu.
+long total = count; // No data loss.
 ```
 
-Ngược lại, chuyển hẹp `long -> int` **có thể mất dữ liệu**. Java yêu cầu cast tường minh và chỉ giữ 32 bit thấp của giá trị `long`; kết quả có thể âm hoặc nhỏ hơn rất nhiều:
+Conversely, the narrowing conversion `long -> int` **can lose data**. Java requires an explicit cast and keeps only the low 32 bits of the `long` value; the result can be negative or much smaller:
 
 ```java
 long size = 3_000_000_000L;
@@ -140,7 +140,7 @@ int silentlyWrong = (int) size;
 System.out.println(silentlyWrong); // -1294967296
 ```
 
-Dùng `Math.toIntExact(long)` khi một API yêu cầu `int` và kết quả phải được kiểm tra:
+Use `Math.toIntExact(long)` when an API requires `int` and the value must be checked:
 
 ```java
 long fileBytes = 3_000_000_000L;
@@ -152,56 +152,56 @@ try {
 }
 ```
 
-`Math.toIntExact` ném `ArithmeticException` nếu nằm ngoài miền `int`. Hàm này **không kiểm tra** liệu kích thước có không âm, có phù hợp giới hạn bộ nhớ, hay có nằm trong biên của một mảng/list cụ thể.
+`Math.toIntExact` throws `ArithmeticException` if outside the `int` range. This method **does not check** whether the size is non-negative, fits in available memory, or lies within the bounds of a specific array/list.
 
-Nếu nguồn là kích thước tệp lớn nhưng thao tác yêu cầu `int` phần tử mỗi lần, cách đúng thường là **chia thành nhiều chunk** kích thước `int` hợp lệ, thay vì ép cả kích thước xuống `int`. Ví dụ dùng biến `long remainingBytes` để theo dõi tổng số byte còn lại, nhưng mỗi lần đọc một buffer với `int chunkSize`.
+If the source is a large file size while an operation processes `int` elements at a time, the right approach is usually to **split into multiple chunks** of a valid `int` size rather than forcing the entire size down to `int`. For example, use a `long remainingBytes` variable to track total remaining bytes, while reading one buffer at a time with `int chunkSize`.
 
-## 6. Kiểu trả về của Java API giúp định hướng quyết định
+## 6. Java API Return Types Help Guide the Decision
 
-### Các API thường trả `int`
+### APIs That Usually Return `int`
 
-- `array.length`: số phần tử mảng.
-- `String.length()`: số **đơn vị mã UTF-16**, không đồng nhất với số ký tự người dùng nhìn thấy.
-- `List.size()`, `Collection.size()`, `Map.size()`: số lượng theo hợp đồng của API, kiểu `int`.
-- `List.get(int)`, `String.charAt(int)`: tham số chỉ số `int`.
+- `array.length`: number of array elements.
+- `String.length()`: number of **UTF-16 code units**, not identical to user-perceived characters.
+- `List.size()`, `Collection.size()`, `Map.size()`: count per API contract, type `int`.
+- `List.get(int)`, `String.charAt(int)`: `int` index parameter.
 
-### Các API thường trả `long`
+### APIs That Usually Return `long`
 
-- `java.nio.file.Files.size(Path)`: kích thước tệp tính bằng byte.
-- `java.io.File.length()`: độ dài bằng byte theo hợp đồng `File`.
-- `java.util.stream.Stream.count()`: số phần tử của stream; giá trị trả về là `long`.
-- `java.nio.channels.SeekableByteChannel.position()` và `size()`: vị trí/kích thước theo byte dưới dạng `long`.
+- `java.nio.file.Files.size(Path)`: file size in bytes.
+- `java.io.File.length()`: length in bytes per `File` contract.
+- `java.util.stream.Stream.count()`: number of elements in the stream; return type is `long`.
+- `java.nio.channels.SeekableByteChannel.position()` and `size()`: position/size in bytes as `long`.
 
-Không đổi kiểu trả về của API chỉ vì “thường dữ liệu nhỏ”. Nếu `Files.size(path)` trả `long`, hãy giữ giá trị trong `long` cho đến khi có một ranh giới API thật sự yêu cầu kiểu khác.
+Do not change an API's return type just because “data is usually small”. If `Files.size(path)` returns `long`, keep the value in `long` until a real API boundary requires another type.
 
-Ví dụ:
+Example:
 
 ```java
-// Ví dụ sử dụng API (không phải chương trình độc lập):
-long bytes = java.nio.file.Files.size(path); // path là Path đã được tạo.
+// API usage example (not a standalone program):
+long bytes = java.nio.file.Files.size(path); // path is an already-created Path.
 long matches = records.stream().filter(record -> matchesRule(record)).count();
-// records/matchesRule được định nghĩa trong ứng dụng.
+// records/matchesRule are defined in the application.
 ```
 
-Dòng `Files.size` có thể ném `IOException` và cần xử lý phù hợp. `Stream.count()` trả `long` ngay cả khi stream chỉ có vài phần tử. Đừng nhầm số **phần tử** trong stream với tổng **byte** hoặc tổng **kích thước** của các phần tử.
+The `Files.size` line can throw `IOException` and needs appropriate handling. `Stream.count()` returns `long` even when the stream has only a few elements. Do not confuse the number of **elements** in a stream with the total **bytes** or total **size** of those elements.
 
-## 7. Hiệu năng và bộ nhớ: không mặc định dùng `long` cho mọi thứ
+## 7. Performance and Memory: Do Not Default to `long` for Everything
 
-Với mảng các giá trị primitive, mỗi phần tử `int` mang 32 bit còn `long` mang 64 bit; mảng `long[]` thường cần khoảng gấp đôi phần lưu **phần tử** so với `int[]` có cùng độ dài. Bố cục đối tượng, padding, header và tổ chức bộ nhớ thực tế do JVM quyết định nên không suy ra tổng RAM chỉ bằng phép nhân 4 hoặc 8 byte.
+For arrays of primitive values, each `int` element holds 32 bits while `long` holds 64 bits; a `long[]` array usually requires roughly twice as much storage for **elements** as an `int[]` of the same length. Object layout, padding, headers, and actual memory organization are decided by the JVM, so do not deduce total RAM simply by multiplying by 4 or 8 bytes.
 
-Chọn `int` cho chỉ số mảng/list giữ đúng API, tránh cast liên tục và rõ ràng về miền giá trị. Chọn `long` cho tổng số lượng/dung lượng lớn giúp tránh tràn. Không nên vì tiết kiệm vài byte mà chọn `int` khi cận trên có thể vượt 2,1 tỷ; cũng không nên dùng `long` để làm chỉ số cho API vốn chỉ hỗ trợ `int`.
+Choosing `int` for array/list indices matches the APIs, avoids constant casting, and makes the range clear. Choosing `long` for large totals/capacities prevents overflow. Do not pick `int` just to save a few bytes when the upper bound can exceed 2.1 billion; nor should you use `long` to index APIs that only support `int`.
 
-Với `Integer` và `Long` (wrapper), ngoài phạm vi giá trị còn có **boxing, unboxing, null và danh tính đối tượng**. Không so sánh hai wrapper bằng `==` để suy ra chúng có cùng giá trị số học; khi kiểm tra giá trị dùng `equals` hoặc chuyển về primitive có kiểm soát null.
+With `Integer` and `Long` (wrappers), beyond the value range there are also **boxing, unboxing, `null`, and object identity**. Do not compare two wrappers with `==` to check whether they have the same numeric value; when comparing values, use `equals` or convert to primitives with `null` handling.
 
-### Bộ đếm trong môi trường đa luồng
+### Counters in Multithreaded Environments
 
-Hai câu lệnh `count++` trên `int` và `long` đều không tự bảo đảm phép tăng nguyên tử khi nhiều luồng cùng sửa. Theo tình huống, dùng `AtomicInteger`, `AtomicLong`, `LongAdder` hoặc đồng bộ hóa. Chọn `AtomicLong` khi miền giá trị cần `long` và cần các thao tác nguyên tử rõ ràng; `LongAdder` thường phù hợp bộ đếm cập nhật tần suất cao nhưng `sum()` không phải snapshot nguyên tử trong lúc có cập nhật đồng thời. Chúng **không tự phát hiện overflow**: vẫn phải có chính sách giới hạn.
+Both `count++` on `int` and `long` fail to guarantee atomic increments when multiple threads modify them concurrently. Depending on the case, use `AtomicInteger`, `AtomicLong`, `LongAdder`, or synchronization. Choose `AtomicLong` when the value range needs `long` and clear atomic operations are required; `LongAdder` often suits high-frequency contended counters, though `sum()` is not an atomic snapshot during concurrent updates. They **do not automatically detect overflow**: you still need a bounds policy.
 
-## 8. Ví dụ hoàn chỉnh Java 17+
+## 8. Complete Java 17+ Example
 
-Chương trình sau cho thấy việc phối hợp `int` cho chỉ số và `long` cho tổng số đếm, cùng cách phát hiện chuyển hẹp không an toàn.
+The following program shows combining `int` for indices and `long` for total counts, along with detecting unsafe narrowing conversions.
 
-Tạo tệp `IntOrLongDemo.java`:
+Create the file `IntOrLongDemo.java`:
 
 ```java
 import java.util.List;
@@ -249,14 +249,14 @@ public class IntOrLongDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac IntOrLongDemo.java
 java IntOrLongDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 Array length: 3
@@ -270,36 +270,36 @@ Sample at index 2: 15
 Long value does not fit int
 ```
 
-Giải thích: `samples.length` và `index` dùng `int` để truy cập mảng; `total` là `long` để tích lũy an toàn hơn khi tổng tăng lớn. `wrong` cho thấy việc gán kết quả tràn sang `long` không sửa được lỗi. `Math.multiplyExact` giúp phát hiện tràn phép nhân nếu kết quả vượt khả năng `long`; `Math.toIntExact` ngăn chuyển hẹp âm thầm.
+Explanation: `samples.length` and `index` use `int` to access the array; `total` is `long` to accumulate more safely as the sum grows large. `wrong` shows that assigning an overflowed result to `long` does not fix the bug. `Math.multiplyExact` detects multiplication overflow if the result exceeds `long` capacity; `Math.toIntExact` prevents silent narrowing.
 
-## 9. Quy trình lựa chọn trong dự án
+## 9. Selection Workflow in Projects
 
-1. **Xác định đại lượng và đơn vị:** số phần tử, số bản ghi tích lũy, số byte, thời lượng hay index? Không dùng tên biến mơ hồ như `size` nếu đang đo nhiều đơn vị khác nhau; chọn `fileSizeBytes`, `totalRecords`, `recordIndex`.
-2. **Tính cận trên của giá trị lẫn biểu thức trung gian:** số lượng theo batch có thể nhỏ nhưng tổng hoặc tích có thể lớn. Với đầu vào ngoài hệ thống, phải xác thực cận trên, không mặc định “sẽ không bao giờ lớn”.
-3. **Xác nhận hợp đồng API:** chỉ số mảng và `List.get` cần `int`; `Files.size` và `Stream.count` trả `long`. Hãy giữ đúng kiểu gốc của API khi có thể.
-4. **Chọn kiểu lưu và kiểu tính:** `int` cho chỉ số trong cấu trúc hỗ trợ index `int`; `long` cho tổng hoặc offset có thể vượt `int`. Ép toán hạng sang `long` **trước** phép cộng/nhân nếu cần.
-5. **Đặt ranh giới chuyển đổi có kiểm tra:** dùng `Math.toIntExact`, kiểm tra không âm, kiểm tra `index < length` hoặc chia thành chunk; dùng `Math.addExact`/`multiplyExact` nếu tràn là lỗi nghiệp vụ.
-6. **Kiểm tra khi dữ liệu tăng hoặc đa luồng:** chọn primitive, atomic counter hay `BigInteger` dựa vào yêu cầu về miền, concurrency và tính nguyên tử; kiểm thử các giá trị gần `Integer.MAX_VALUE` và `Long.MAX_VALUE`.
+1. **Identify the quantity and unit:** number of elements, cumulative record count, byte count, duration, or index? Do not use vague variable names like `size` when measuring different units; choose `fileSizeBytes`, `totalRecords`, `recordIndex`.
+2. **Estimate upper bounds of values and intermediate expressions:** per-batch counts may be small, yet sums or products can be huge. For external input, validate upper bounds rather than assuming “it will never be big”.
+3. **Confirm the API contract:** array indices and `List.get` require `int`; `Files.size` and `Stream.count` return `long`. Keep the API's native type whenever possible.
+4. **Choose storage and computation types:** `int` for indices in structures supporting `int` indexing; `long` for totals or offsets that can exceed `int`. Cast an operand to `long` **before** addition/multiplication when needed.
+5. **Place checked conversion boundaries:** use `Math.toIntExact`, non-negative checks, `index < length` checks, or chunking; use `Math.addExact`/`multiplyExact` if overflow is a business error.
+6. **Verify under data growth or multithreading:** choose primitives, atomic counters, or `BigInteger` based on range, concurrency, and atomicity requirements; test values near `Integer.MAX_VALUE` and `Long.MAX_VALUE`.
 
-### Những lỗi thường gặp
+### Common Mistakes
 
-| Lỗi | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| `long total = intA + intB;` | Phép cộng đã tràn trước khi gán | `long total = (long) intA + intB;` |
-| `long bytes = intCount * intBytesPerItem;` | Phép nhân chạy với `int` | `Math.multiplyExact((long) intCount, intBytesPerItem)` |
-| `(int) fileSizeBytes` | Cắt bit, kết quả có thể âm | Giữ `long`, chia chunk; chỉ dùng `Math.toIntExact` khi chắc vừa |
-| Dùng `long` trực tiếp cho `array[index]` | Không biên dịch | Dùng `int` và kiểm tra miền index |
-| Xem `array.length` là dung lượng RAM hoặc byte | Nhầm số phần tử với byte | Ghi rõ đơn vị; tính byte có kiểm tra tràn và overhead |
-| Dùng `<= array.length` | Truy cập index bằng độ dài, vượt biên | Dùng `< array.length` |
-| Dùng `int` cho tổng bản ghi qua thời gian dài | Có thể overflow dù từng batch nhỏ | Dùng `long`/kiểm tra với `addExact` |
-| Dùng `long` để mong mảng/list thông thường chứa tùy ý dữ liệu lớn | API và bộ nhớ vẫn giới hạn | Phân đoạn, streaming, lưu trữ ngoài bộ nhớ |
+| `long total = intA + intB;` | Addition already overflowed before assignment | `long total = (long) intA + intB;` |
+| `long bytes = intCount * intBytesPerItem;` | Multiplication runs in `int` | `Math.multiplyExact((long) intCount, intBytesPerItem)` |
+| `(int) fileSizeBytes` | Truncates bits, result can be negative | Keep `long`, split into chunks; only use `Math.toIntExact` when sure it fits |
+| Using `long` directly for `array[index]` | Does not compile | Use `int` and check index bounds |
+| Treating `array.length` as RAM or byte size | Confuses element count with bytes | Specify unit clearly; compute bytes checking overflow and overhead |
+| Using `<= array.length` | Accesses index equal to length, out of bounds | Use `< array.length` |
+| Using `int` for cumulative records over a long period | Can overflow even if each batch is small | Use `long`/check with `addExact` |
+| Using `long` expecting normal arrays/lists to hold arbitrarily huge data | APIs and memory still impose limits | Segment, stream, or store off-heap/on-disk |
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-- Một `List` hiện có 500.000 phần tử, nhưng cần tính tổng số phần tử được xử lý trong nhiều năm. Kiểu nào nên dùng cho `listIndex` và `totalProcessed`? Vì sao?
-- Với `int rows = 70_000`, `int cols = 70_000`, khác biệt giữa `long total = rows * cols` và `long total = (long) rows * cols` là gì?
-- Vì sao `Math.toIntExact(longIndex)` chưa bảo đảm `array[index]` an toàn?
-- Khi `Files.size(path)` trả 5.000.000.000 byte, có nên ép sang `int` để tạo một buffer không? Nếu không, làm thế nào để xử lý từng phần?
-- Trong tác vụ nhiều luồng, đổi `int` thành `long` có ngăn được race condition không? Khi nào nên dùng `AtomicLong` hoặc `LongAdder`?
+- A `List` currently has 500,000 elements, yet you need to compute the total number of elements processed over several years. Which types should be used for `listIndex` and `totalProcessed`? Why?
+- With `int rows = 70_000`, `int cols = 70_000`, what is the difference between `long total = rows * cols` and `long total = (long) rows * cols`?
+- Why does `Math.toIntExact(longIndex)` not yet guarantee `array[index]` is safe?
+- When `Files.size(path)` returns 5,000,000,000 bytes, should you cast it to `int` to allocate a single buffer? If not, how should you process it incrementally?
+- In a multithreaded task, does changing `int` to `long` prevent race conditions? When should you use `AtomicLong` or `LongAdder`?
 
-**Kết luận áp dụng:** dùng `int` khi miền giá trị đã được giới hạn và API truy cập yêu cầu `int`; dùng `long` khi tổng, kích thước hay offset có thể vượt miền `int`. Luôn kiểm tra **kiểu của phép toán trước khi gán**, giới hạn dữ liệu, và chuyển đổi giữa hai kiểu tại ranh giới API.
+**Practical conclusion:** use `int` when the value range is bounded and access APIs require `int`; use `long` when totals, sizes, or offsets can exceed the `int` range. Always check **the type of the operation before assignment**, validate data bounds, and convert safely between the two types at API boundaries.

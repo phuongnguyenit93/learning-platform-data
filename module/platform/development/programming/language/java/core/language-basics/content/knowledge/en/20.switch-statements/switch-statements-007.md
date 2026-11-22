@@ -1,8 +1,8 @@
-# `yield` trong khối nhánh của switch expression — Java 17+
+# `yield` in Switch Expression Branch Blocks — Java 17+
 
-## 1. Mục tiêu: nhánh switch tạo ra một giá trị
+## 1. Goal: A Switch Branch Produces a Value
 
-Từ Java 14, **switch expression** là tính năng ổn định, nên Java 17 sử dụng trực tiếp, **không cần `--enable-preview`**. Khác với switch statement, switch expression **tạo ra một kết quả** để gán, trả về hoặc dùng trong biểu thức khác.
+Since Java 14, **switch expressions** have been a stable feature, so Java 17 supports them directly **without `--enable-preview`**. Unlike a switch statement, a switch expression **produces a result** to assign, return, or use inside another expression.
 
 ~~~java
 int code = 2;
@@ -17,19 +17,19 @@ String label = switch (code) {
 System.out.println(label); // TWO
 ~~~
 
-Ở `case 2 -> { ... }`, khối chứa nhiều câu lệnh. Lệnh **`yield message;` cung cấp giá trị `"TWO"` của toàn bộ switch expression** và kết thúc nhánh đó. Đây là mục đích chính của `yield`.
+In `case 2 -> { ... }`, the block contains multiple statements. The **`yield message;` statement supplies the value `"TWO"` for the entire switch expression** and finishes that branch. This is the primary purpose of `yield`.
 
-Mục tiêu bài học:
+Lesson goals:
 
-- Phân biệt nhánh `-> value` với `-> { ... yield value; }`.
-- Hiểu `yield` khác `break` và `return`.
-- Biết dùng `yield` khi nhánh cần tính toán, kiểm tra điều kiện hoặc tạo biến tạm.
-- Đảm bảo các đường đi hợp lệ **tạo được giá trị** hoặc **ném ngoại lệ**.
-- Biết cú pháp switch expression với nhãn `case:` và cách xử lý kiểu kết quả, `default`, enum.
+- Distinguish `-> value` branches from `-> { ... yield value; }`.
+- Understand how `yield` differs from `break` and `return`.
+- Know how to use `yield` when a branch needs computation, condition checks, or temporary variables.
+- Ensure valid paths **produce a value** or **throw an exception**.
+- Know switch expression syntax with `case:` labels and how result types, `default`, and enums work.
 
-## 2. Khi nào không cần `yield`?
+## 2. When Is `yield` Not Needed?
 
-Một nhánh mũi tên chỉ cần **một biểu thức** thì viết trực tiếp kết quả:
+An arrow branch that only needs **a single expression** writes the result directly:
 
 ~~~java
 int number = 1;
@@ -40,7 +40,7 @@ String name = switch (number) {
 };
 ~~~
 
-Nếu muốn vừa ghi log vừa tính kết quả, dùng **khối nhánh** và `yield`:
+If you want to both log and compute a result, use a **branch block** and `yield`:
 
 ~~~java
 String name = switch (number) {
@@ -53,42 +53,42 @@ String name = switch (number) {
 };
 ~~~
 
-**Exact stdout với `number = 1`:**
+**Exact stdout with `number = 1`:**
 
 ~~~text
 Matched one
 ~~~
 
-Giá trị cuối của biểu thức switch là `"ONE"`; chương trình trên chưa in biến `name`.
+The final value of the switch expression is `"ONE"`; the snippet above does not print `name` yet.
 
-**Không phải cú pháp đúng:**
+**Invalid syntax:**
 
 ~~~java
 // String s = switch (number) {
 //     case 1 -> {
-//         "ONE"; // Không thay yield; string literal không phải statement expression hợp lệ.
+//         "ONE"; // Does not replace yield; a string literal is not a valid statement expression.
 //     }
 //     default -> "OTHER";
 // };
 ~~~
 
-Khối `{ ... }` của switch expression **không tự lấy giá trị của biểu thức cuối** như một số ngôn ngữ khác. Khi cần kết quả từ khối, dùng `yield result;` rõ ràng.
+A `{ ... }` block in a switch expression **does not implicitly return the value of its last expression** as in some other languages. When returning a result from a block, use `yield result;` explicitly.
 
-## 3. Vai trò chính xác của `yield`
+## 3. Exact Role of `yield`
 
-Cú pháp:
+Syntax:
 
 ~~~java
 yield expression;
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-1. Đánh giá `expression` sau từ khóa `yield`.
-2. Dùng giá trị thu được làm kết quả của **switch expression chứa nó**.
-3. Chuyển điều khiển ra khỏi switch expression để tiếp tục phần chương trình xung quanh.
+1. Evaluates `expression` after the `yield` keyword.
+2. Uses the resulting value as the result of the **enclosing switch expression**.
+3. Transfers control out of the switch expression to continue the surrounding program.
 
-Ví dụ:
+Example:
 
 ~~~java
 int base = 6;
@@ -103,56 +103,56 @@ int computed = switch (base) {
 System.out.println(computed); // 15
 ~~~
 
-`yield` không phải khai báo biến và **không gán trực tiếp** vào `computed`; phép gán xảy ra vì switch expression đã trả giá trị 15.
+`yield` is not a variable declaration and **does not assign directly** to `computed`; the assignment happens because the switch expression returned the value 15.
 
-**Một `yield` kết thúc đường đi được thực thi.** Các câu lệnh nằm sau `yield` trong cùng một đường đi không thể được thực thi; nếu compiler xác định câu lệnh sau là unreachable, chương trình sẽ không biên dịch.
+**A `yield` terminates the executed path.** Statements placed after `yield` on the same execution path cannot execute; if the compiler determines a following statement is unreachable, the program will not compile.
 
-## 4. `yield`, `break`, `return`, `throw`: không hoán đổi cho nhau
+## 4. `yield`, `break`, `return`, `throw`: Not Interchangeable
 
-| Cấu trúc | Mục đích | Tác động |
+| Construct | Purpose | Effect |
 |---|---|---|
-| `yield value;` | Cung cấp kết quả của **switch expression** | Rời switch expression, tiếp tục biểu thức/câu lệnh bao ngoài |
-| `break;` | Thoát switch **statement** hoặc vòng lặp | Không tạo ra giá trị cho switch expression |
-| `return value;` | Trả kết quả của **phương thức** | Rời phương thức, không chỉ rời switch |
-| `throw exception;` | Báo lỗi qua ngoại lệ | Không trả giá trị bình thường; switch expression có thể dùng một nhánh `throw` |
+| `yield value;` | Supplies the result of a **switch expression** | Exits the switch expression, continuing the enclosing expression/statement |
+| `break;` | Exits a switch **statement** or loop | Produces no value for a switch expression |
+| `return value;` | Returns the result of a **method** | Exits the method, not just the switch |
+| `throw exception;` | Reports an error via an exception | Does not return normally; a switch expression may have a `throw` branch |
 
-Trong switch statement truyền thống:
+In a traditional switch statement:
 
 ~~~java
 switch (code) {
     case 1:
         System.out.println("one");
-        break; // Kết thúc switch statement, không trả giá trị.
+        break; // Ends the switch statement; does not return a value.
     default:
         System.out.println("other");
 }
 ~~~
 
-Trong switch expression:
+In a switch expression:
 
 ~~~java
 String result = switch (code) {
     case 1 -> {
-        yield "ONE"; // Giá trị của switch expression.
+        yield "ONE"; // Value of the switch expression.
     }
     default -> "OTHER";
 };
 ~~~
 
-**Sai:**
+**Wrong:**
 
 ~~~java
 // String result = switch (code) {
-//     case 1 -> { break; } // Không dùng break để kết thúc switch expression.
+//     case 1 -> { break; } // Do not use break to exit a switch expression.
 //     default -> "OTHER";
 // };
 // String result = switch (code) {
-//     case 1 -> { break "ONE"; } // Java 17 không có cú pháp break value.
+//     case 1 -> { break "ONE"; } // Java 17 has no break value syntax.
 //     default -> "OTHER";
 // };
 ~~~
 
-Muốn rời toàn bộ phương thức sớm, đặt lệnh `return` bên ngoài switch expression hoặc thiết kế các nhánh trả giá trị rồi `return switch (...)`:
+To exit the entire method early, place `return` outside the switch expression or design branches to return values and write `return switch (...)`:
 
 ~~~java
 static String describe(int code) {
@@ -163,9 +163,9 @@ static String describe(int code) {
 }
 ~~~
 
-## 5. `yield` trong `if/else` bên trong khối nhánh
+## 5. `yield` Inside `if/else` Within a Branch Block
 
-Không phải nhánh nào cũng tính giá trị theo một công thức đơn giản. Có thể dùng điều kiện phụ:
+Not every branch computes its value with a single simple formula. Sub-conditions can be used:
 
 ~~~java
 static String sign(int value) {
@@ -181,7 +181,7 @@ static String sign(int value) {
 }
 ~~~
 
-Hoặc sử dụng nhiều `yield` ở những đường đi loại trừ nhau:
+Or use multiple `yield` statements along mutually exclusive paths:
 
 ~~~java
 static int normalize(int input) {
@@ -197,13 +197,13 @@ static int normalize(int input) {
 }
 ~~~
 
-Khi `input < 0`, `yield -1;` kết thúc switch expression; câu `yield 1;` chỉ thực thi khi điều kiện trước false.
+When `input < 0`, `yield -1;` ends the switch expression; `yield 1;` runs only when the preceding condition is false.
 
-**Không cần** biến kết quả trung gian chỉ để lưu sau mỗi nhánh nếu một `yield` ở cuối khối diễn đạt rõ hơn. Nhưng với nhánh dài, nên cân nhắc tách logic thành một method giúp dễ kiểm thử.
+**You do not need** an intermediate result variable after each sub-branch if a `yield` at the end of the block is clearer. However, for long branches, consider extracting the logic into a helper method for easier testing.
 
-## 6. Mỗi đường đi phải tạo ra kết quả hoặc ném ngoại lệ
+## 6. Every Path Must Produce a Result or Throw an Exception
 
-Switch expression phải có cách cho ra giá trị trên mọi đường đi có thể **hoàn thành bình thường**. Ví dụ sau thiếu `yield` khi `value <= 0`:
+A switch expression must provide a value on every path that can **complete normally**. The following example is missing a `yield` when `value <= 0`:
 
 ~~~java
 // int result = switch (code) {
@@ -211,13 +211,13 @@ Switch expression phải có cách cho ra giá trị trên mọi đường đi c
 //         if (value > 0) {
 //             yield value;
 //         }
-//         // LỖI: có đường đi hết khối mà không tạo giá trị.
+//         // ERROR: there is a path reaching the end of the block without producing a value.
 //     }
 //     default -> 0;
 // };
 ~~~
 
-Cách sửa:
+Fix:
 
 ~~~java
 int result = switch (code) {
@@ -231,7 +231,7 @@ int result = switch (code) {
 };
 ~~~
 
-Một nhánh **có thể ném ngoại lệ** thay vì trả giá trị:
+A branch **may throw an exception** instead of returning a value:
 
 ~~~java
 int result = switch (code) {
@@ -246,13 +246,13 @@ int result = switch (code) {
 };
 ~~~
 
-Đây là hợp lệ: đường đi có `throw` không hoàn thành bình thường, còn đường đi hợp lệ có `yield`.
+This is valid: the path with `throw` does not complete normally, while the valid path has `yield`.
 
-**Lỗi cần tránh:** viết `yield;` (không có giá trị). Switch expression cần một biểu thức sau `yield`; không có cú pháp `yield;` đơn lẻ.
+**Mistake to avoid:** writing `yield;` (without a value). A switch expression requires an expression after `yield`; there is no standalone `yield;` syntax.
 
-## 7. Cú pháp dấu hai chấm `case:` trong switch expression
+## 7. Colon Syntax `case:` in a Switch Expression
 
-Switch expression vẫn có thể dùng dạng nhóm câu lệnh `case VALUE:`, nhưng khi nhánh tính ra giá trị cần **`yield`**:
+A switch expression can still use `case VALUE:` statement groups, and when a branch computes a value it uses **`yield`**:
 
 ~~~java
 static String word(int code) {
@@ -269,21 +269,21 @@ static String word(int code) {
 }
 ~~~
 
-Với `code=2`, chương trình trả `"TWO_OR_THREE"`.
+With `code=2`, the program returns `"TWO_OR_THREE"`.
 
-**Khác dạng mũi tên:**
+**Differences from arrow form:**
 
-- `case 2 -> "TWO";`: kết quả viết ngay sau `->`.
-- `case 2 -> { yield "TWO"; }`: phải `yield` từ khối.
-- `case 2: yield "TWO";`: nhóm câu lệnh kiểu truyền thống, dùng `yield`.
+- `case 2 -> "TWO";`: the result is written right after `->`.
+- `case 2 -> { yield "TWO"; }`: must `yield` from the block.
+- `case 2: yield "TWO";`: traditional statement group using `yield`.
 
-Trong dạng `case:`, **fall-through vẫn là điều cần xét** nếu một đường đi không kết thúc bằng `yield`/`throw` trước nhãn tiếp theo. Với switch expression, nên viết rõ ràng để không có fall-through khó hiểu.
+In the `case:` form, **fall-through still matters** if a path does not end with `yield`/`throw` before the next label. In a switch expression, write clearly so there is no confusing fall-through.
 
-**Không trộn `case:` và `case ->` trong cùng một switch block.**
+**Do not mix `case:` and `case ->` in the same switch block.**
 
-## 8. `yield` phải trả giá trị tương thích kiểu đích
+## 8. `yield` Must Return a Value Compatible with the Target Type
 
-Compiler kiểm tra mọi nhánh có tạo giá trị tương thích ngữ cảnh kết quả. Đích `double` có thể nhận `int` trong một nhánh:
+The compiler checks that every branch produces a value compatible with the result context. A `double` target can accept an `int` in one branch:
 
 ~~~java
 double amount = switch (code) {
@@ -292,15 +292,15 @@ double amount = switch (code) {
 };
 ~~~
 
-Với `code == 1`, `amount` là `10.0`. `yield` không bỏ qua kiểm tra kiểu; nên chọn kiểu kết quả tường minh khi nghiệp vụ cần thống nhất. Bài tiếp theo đi sâu vào target typing và chuyển kiểu số.
+With `code == 1`, `amount` is `10.0`. `yield` does not bypass type checking; choose an explicit result type when business logic requires consistency. The next lesson goes deeper into target typing and numeric conversions.
 
-## 9. Bao phủ trường hợp và `default`
+## 9. Case Coverage and `default`
 
-Switch expression phải exhaustive: với `int`/`String` thường có `default`; với enum có thể liệt kê đủ các hằng. Điều kiện này **độc lập** với việc từng block cần `yield` hoặc `throw` trên mọi đường đi phù hợp. `default` không tự xử lý selector `null` trong Java 17 tiêu chuẩn. Bài kế tiếp tập trung vào chứng minh độ bao phủ và kiểu kết quả.
+A switch expression must be exhaustive: for `int`/`String`, `default` is usually present; for an enum, all constants can be listed. This requirement is **independent** of each block needing `yield` or `throw` on every applicable path. `default` does not automatically handle a `null` selector in standard Java 17. The next lesson focuses on proving exhaustiveness and result types.
 
-## 10. `break` trong vòng lặp lồng ở nhánh không thay `yield`
+## 10. `break` Inside a Nested Loop in a Branch Does Not Replace `yield`
 
-Một nhánh mũi tên có thể chứa **vòng lặp**, và `break;` bên trong vòng lặp đó chỉ kết thúc **vòng lặp gần nhất**. Sau vòng lặp vẫn cần cung cấp kết quả cho switch expression:
+An arrow branch can contain a **loop**, and `break;` inside that loop exits only the **innermost loop**. After the loop, you still need to supply a result for the switch expression:
 
 ~~~java
 int count = switch (code) {
@@ -308,7 +308,7 @@ int count = switch (code) {
         int sum = 0;
         for (int i = 1; i <= 5; i++) {
             if (i == 3) {
-                break; // Thoát for, không trả giá trị switch.
+                break; // Exits for, does not return a switch value.
             }
             sum += i;
         }
@@ -318,13 +318,13 @@ int count = switch (code) {
 };
 ~~~
 
-Khi `code == 1`, vòng lặp cộng `1 + 2` rồi dừng, `yield sum;` trả **3**.
+When `code == 1`, the loop sums `1 + 2` and stops, and `yield sum;` returns **3**.
 
-**Nguyên tắc:** mỗi cấu trúc điều khiển có mục đích riêng; `break` của vòng lặp không thay thế `yield` của switch expression.
+**Principle:** each control construct has its own purpose; a loop's `break` does not replace a switch expression's `yield`.
 
-## 11. Phạm vi biến và tác dụng phụ trong nhánh
+## 11. Variable Scope and Side Effects in Branches
 
-Biến khai báo trong block rule `case -> { ... }` có phạm vi ở block đó:
+Variables declared inside a rule block `case -> { ... }` are scoped to that block:
 
 ~~~java
 String result = switch (code) {
@@ -333,15 +333,15 @@ String result = switch (code) {
         yield message;
     }
     default -> {
-        String message = "other"; // Hợp lệ: block khác.
+        String message = "other"; // Valid: different block.
         yield message;
     }
 };
 ~~~
 
-Đặt biến tạm trong khối giúp tránh xung đột tên và dễ bảo trì.
+Placing temporary variables inside the block avoids name collisions and improves maintainability.
 
-Chỉ nhánh được chọn mới được đánh giá runtime:
+Only the selected branch is evaluated at runtime:
 
 ~~~java
 static int trace(String name, int value) {
@@ -359,13 +359,13 @@ int n = switch (code) {
 };
 ~~~
 
-Với `code == 1`, chỉ in `evaluated one`, không gọi nhánh default.
+With `code == 1`, only `evaluated one` is printed; the default branch is not called.
 
-Tuy nhiên, **không nên dựa vào side effect để xác định kết quả nghiệp vụ** nếu có thể tách việc ghi log/validation khỏi phép tính. `yield` làm rõ giá trị được trả, không tự làm thao tác bên trong nhánh thành atomic hoặc thread-safe.
+However, **do not rely on side effects to determine business results** when logging/validation can be separated from calculation. `yield` makes the returned value clear; it does not make operations inside the branch atomic or thread-safe.
 
-## 12. Chương trình Java 17 hoàn chỉnh
+## 12. Complete Java 17 Program
 
-Lưu file đúng tên **`SwitchYieldDemo.java`**:
+Save the file as **`SwitchYieldDemo.java`**:
 
 ~~~java
 public final class SwitchYieldDemo {
@@ -446,7 +446,7 @@ public final class SwitchYieldDemo {
     static double promoted(int code) {
         return switch (code) {
             case 1 -> {
-                yield 10;  // int: chuyển thành double.
+                yield 10;  // int: converted to double.
             }
             default -> 2.5;
         };
@@ -526,7 +526,7 @@ public final class SwitchYieldDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, mở terminal tại thư mục chứa `SwitchYieldDemo.java`; không cần Maven/Gradle, thư viện ngoài JDK hay cờ preview.
+**Requirements:** JDK 17 or higher, open terminal in the directory containing `SwitchYieldDemo.java`; no Maven/Gradle, external libraries beyond the JDK, or preview flags needed.
 
 **Bash (Linux/macOS):**
 
@@ -573,41 +573,41 @@ statement:one
 statement:other
 ~~~
 
-**Giải thích nhanh:**
+**Quick explanation:**
 
-1. `channelName` xử lý đầy đủ enum; nhánh MOBILE tạo biến rồi `yield`, nhưng không cần `default`.
-2. `grade` kiểm tra miền 0–100 trước khi switch, nên `grade(100)` là A và `grade(-1)` là INVALID.
-3. `fromColon` minh họa dạng `case:` của switch expression vẫn dùng được `yield`.
-4. `sign(0)` in `zero branch` **trước** dòng `sign 0=0` vì lời gọi được đánh giá trước khi in toàn biểu thức nối chuỗi.
-5. `sumUntilThree(1)` cộng 1 và 2; `break` chỉ rời `for`, `yield` trả tổng 3.
-6. `promoted(1)` trả 10.0 theo kiểu double của switch expression trong ngữ cảnh này.
-7. `checkedDouble(-2)` ném ngoại lệ, không phải `yield` từ đường đi lỗi.
-8. Chỉ có `evaluated one`: nhánh default của `traceChoice(1)` không được đánh giá.
-9. `statementExample` dùng `case ->` nhưng **không tạo giá trị**, khác với các phương thức trả `switch`.
+1. `channelName` handles the enum exhaustively; the MOBILE branch creates a variable and uses `yield`, without needing `default`.
+2. `grade` validates the 0–100 range before switching, so `grade(100)` is A and `grade(-1)` is INVALID.
+3. `fromColon` illustrates that the `case:` form of a switch expression can also use `yield`.
+4. `sign(0)` prints `zero branch` **before** `sign 0=0` because the call is evaluated before printing the full concatenated string.
+5. `sumUntilThree(1)` adds 1 and 2; `break` exits only `for`, and `yield` returns the sum 3.
+6. `promoted(1)` returns 10.0 according to the switch expression's `double` type in this context.
+7. `checkedDouble(-2)` throws an exception rather than `yield`ing from the error path.
+8. Only `evaluated one` appears: the default branch of `traceChoice(1)` is not evaluated.
+9. `statementExample` uses `case ->` but **produces no value**, unlike the methods returning `switch`.
 
-## 13. Lỗi thường gặp
+## 13. Common Mistakes
 
-| Lỗi hoặc nhầm lẫn | Vấn đề | Cách sửa |
+| Mistake or confusion | Issue | Fix |
 |---|---|---|
-| `case 1 -> { "ONE"; }` | Không tạo giá trị; literal không là statement hợp lệ | `yield "ONE";` |
-| `case 1 -> { break; }` | Không dùng `break` để kết thúc switch expression | `yield value;` |
-| `break "ONE";` | Java 17 không có break-with-value | `yield "ONE";` |
-| Quên `yield` ở một đường đi trong block | Switch expression có thể hoàn thành mà không có kết quả | Bảo đảm mọi đường đi yield/throw |
-| `yield;` | Thiếu biểu thức giá trị | `yield expression;` |
-| Nghĩ `return` và `yield` giống nhau | `return` rời method, `yield` rời switch expression | Chọn đúng mức điều khiển |
-| Nhánh `->` luôn phải dùng `yield` | Biểu thức đơn giản đã trả kết quả trực tiếp | `case 1 -> "ONE";` |
-| Nghĩ nhánh `->` có fall-through | Rule `->` không fall-through | Dùng nhánh riêng hoặc gộp `case 1, 2` |
-| Dùng `case:` mà quên tác động fall-through | Có thể chạy tới nhóm sau | Thiết kế đường đi yield/throw rõ |
-| Thiếu `default` cho switch expression trên `int` | Không bao phủ mọi giá trị | Thêm `default` |
-| Cố ép các nhánh trả kiểu không tương thích | Không compile | Chọn kiểu chung hợp lệ/target type |
-| Dùng `break` trong vòng lặp rồi tưởng đã trả switch | Chỉ rời vòng lặp | `yield` sau vòng lặp |
-| Đưa `case null` của pattern switch mới vào code Java 17 thường | Khác chế độ/tính năng | Kiểm tra null trước khi switch |
+| `case 1 -> { "ONE"; }` | Does not produce a value; literal is not a valid statement | `yield "ONE";` |
+| `case 1 -> { break; }` | Cannot use `break` to exit a switch expression | `yield value;` |
+| `break "ONE";` | Java 17 has no break-with-value | `yield "ONE";` |
+| Forgetting `yield` on one path in a block | Switch expression may complete without a result | Ensure every path yields/throws |
+| `yield;` | Missing value expression | `yield expression;` |
+| Thinking `return` and `yield` are the same | `return` exits method, `yield` exits switch expression | Pick the right control level |
+| Thinking `->` branches always need `yield` | Simple expressions return directly | `case 1 -> "ONE";` |
+| Thinking `->` branches fall through | `->` rules do not fall through | Use separate branches or group `case 1, 2` |
+| Using `case:` and forgetting fall-through effects | Can run into the next group | Design `yield`/`throw` paths clearly |
+| Missing `default` for a switch expression on `int` | Does not cover all values | Add `default` |
+| Trying to force branches to return incompatible types | Does not compile | Choose a valid common/target type |
+| Using `break` in a loop and thinking it returned from switch | Only exits the loop | `yield` after the loop |
+| Putting new pattern switch `case null` into regular Java 17 code | Different mode/feature | Check for null before switching |
 
-## 14. Bài tập có đáp án
+## 14. Exercises with Solutions
 
-### Bài A — thêm `yield`
+### Exercise A — Adding `yield`
 
-Điền phần còn thiếu để nhánh tính toán trả tổng:
+Fill in the missing part so the computation branch returns the sum:
 
 ~~~java
 int n = 3;
@@ -621,13 +621,13 @@ int value = switch (n) {
 System.out.println(value);
 ~~~
 
-**Đáp án:** dùng `yield sum;`, stdout:
+**Solution:** use `yield sum;`, stdout:
 
 ~~~text
 6
 ~~~
 
-### Bài B — dự đoán thứ tự in
+### Exercise B — Predicting print order
 
 ~~~java
 int n = 1;
@@ -641,16 +641,16 @@ String value = switch (n) {
 System.out.println(value);
 ~~~
 
-**Đáp án:**
+**Solution:**
 
 ~~~text
 inside
 ONE
 ~~~
 
-### Bài C — hai đường đi trong cùng block
+### Exercise C — Two paths in the same block
 
-Yêu cầu: `n > 0` trả 1, còn lại trả -1:
+Requirement: `n > 0` returns 1, otherwise returns -1:
 
 ~~~java
 int result = switch (code) {
@@ -664,9 +664,9 @@ int result = switch (code) {
 };
 ~~~
 
-**Đáp án:** cả hai đường đi của case 1 đều trả giá trị qua `yield`.
+**Solution:** both paths of case 1 return a value via `yield`.
 
-### Bài D — phân biệt switch statement và expression
+### Exercise D — Distinguishing switch statement and expression
 
 ~~~java
 switch (code) {
@@ -675,17 +675,17 @@ switch (code) {
 }
 ~~~
 
-**Đáp án:** đây là **switch statement** vì được dùng để thực hiện câu lệnh; không cần yield. Để tạo giá trị, viết `String result = switch (code) { case 1 -> "ONE"; default -> "OTHER"; };`.
+**Solution:** this is a **switch statement** because it is used to execute statements; no yield is needed. To produce a value, write `String result = switch (code) { case 1 -> "ONE"; default -> "OTHER"; };`.
 
-### Bài E — `break` trong vòng lặp
+### Exercise E — `break` inside a loop
 
-Vì sao `break;` của vòng `for` nằm trong block case không thay thế `yield`?
+Why does `break;` of a `for` loop inside a case block not replace `yield`?
 
-**Đáp án:** `break` không nhãn thoát **vòng lặp gần nhất**. Sau đó, block case vẫn phải dùng `yield` hoặc một đường đi ném ngoại lệ để switch expression tạo kết quả.
+**Solution:** An unlabeled `break` exits the **innermost loop**. Afterward, the case block still needs `yield` or an exception-throwing path so the switch expression produces a result.
 
-### Bài F — nhãn kiểu dấu hai chấm
+### Exercise F — Colon-style labels
 
-Hoàn thành switch expression dùng nhãn `case:`:
+Complete the switch expression using `case:` labels:
 
 ~~~java
 String result = switch (code) {
@@ -698,22 +698,22 @@ String result = switch (code) {
 };
 ~~~
 
-**Đáp án:** dạng `case:` được dùng trong switch expression Java 17, nhưng thay `break` bằng `yield` khi cần trả kết quả.
+**Solution:** the `case:` form can be used in Java 17 switch expressions, replacing `break` with `yield` when returning a result.
 
-## 15. Checklist và kết luận
+## 15. Checklist and Conclusion
 
-- [ ] Biết switch expression tạo giá trị và có thể dùng trong phép gán/`return`.
-- [ ] Biết nhánh `case x -> expression` trả giá trị trực tiếp.
-- [ ] Biết dùng `case x -> { ... yield expression; }` khi nhánh có nhiều câu lệnh.
-- [ ] Hiểu `yield` kết thúc switch expression và truyền giá trị ra ngoài.
-- [ ] Không thay `yield` bằng `break`, `return` hay `break value`.
-- [ ] Bảo đảm mọi đường đi có thể hoàn thành bình thường đều trả kết quả hoặc ném ngoại lệ.
-- [ ] Hiểu `yield` có thể nằm trong `if/else` ở block nhánh.
-- [ ] Biết switch expression dạng `case:` cũng dùng `yield`.
-- [ ] Nhớ rule mũi tên `->` không fall-through, còn dạng `case:` cần xét fall-through.
-- [ ] Hiểu quy tắc kiểu kết quả, numeric conversion, target typing và các lỗi kiểu.
-- [ ] Biết switch expression phải bao phủ selector; enum đầy đủ có thể không cần default.
-- [ ] Phân biệt `break` của vòng lặp lồng trong nhánh với `yield` của switch.
-- [ ] Biên dịch và chạy `SwitchYieldDemo.java` bằng Java 17+; đối chiếu từng dòng exact stdout.
+- [ ] Know that a switch expression produces a value and can be used in assignments/`return`.
+- [ ] Know that `case x -> expression` returns a value directly.
+- [ ] Know how to use `case x -> { ... yield expression; }` when a branch has multiple statements.
+- [ ] Understand that `yield` ends the switch expression and passes the value outward.
+- [ ] Do not replace `yield` with `break`, `return`, or `break value`.
+- [ ] Ensure every path that can complete normally returns a result or throws an exception.
+- [ ] Understand that `yield` can appear inside `if/else` within a branch block.
+- [ ] Know that `case:`-style switch expressions also use `yield`.
+- [ ] Remember arrow rules `->` do not fall through, while `case:` form requires considering fall-through.
+- [ ] Understand result type rules, numeric conversion, target typing, and type errors.
+- [ ] Know that switch expressions must cover the selector; an exhaustive enum may omit default.
+- [ ] Distinguish `break` of a nested loop inside a branch from `yield` of the switch.
+- [ ] Compile and run `SwitchYieldDemo.java` with Java 17+; verify every line of exact stdout.
 
-**Kết luận:** Trong Java 17, khi một nhánh của **switch expression** là khối `{ ... }`, dùng **`yield value;`** để trả giá trị cho toàn switch expression. Một nhánh đơn giản có thể viết `case ... -> value` không cần yield. Hãy phân biệt rõ `yield` (trả giá trị của switch expression), `break` (thoát statement/vòng lặp) và `return` (thoát phương thức), đồng thời bảo đảm đủ đường đi và đúng kiểu kết quả.
+**Conclusion:** In Java 17, when a **switch expression** branch is a `{ ... }` block, use **`yield value;`** to return a value for the entire switch expression. A simple branch can be written `case ... -> value` without yield. Clearly distinguish `yield` (returns the switch expression's value), `break` (exits a statement/loop), and `return` (exits a method), while ensuring complete paths and compatible result types.

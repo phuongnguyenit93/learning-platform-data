@@ -1,8 +1,8 @@
-# Escape khoảng trắng bằng \s và nối dòng bằng gạch chéo ngược trong Java Text Block
+# Escaping Spaces with `\s` and Line Continuation with Backslash in Java Text Blocks
 
-## 1. Bài toán
+## 1. The problem
 
-`Text block` là cú pháp chuỗi nhiều dòng của Java, giới hạn bằng `"""`. Đây là tính năng chính thức từ **Java 15**, nên Java 17 trở lên sử dụng bình thường mà không cần bật preview. Giá trị tạo ra vẫn là một đối tượng `String`. Ví dụ:
+A `Text block` is Java's multiline string syntax, delimited by `"""`. It has been an official feature since **Java 15**, so Java 17 and later can use it directly without enabling preview features. The resulting value is still a `String` object. Example:
 
 ~~~java
 String s = """
@@ -12,45 +12,45 @@ String s = """
 System.out.println(s.equals("red\nblue\n")); // true
 ~~~
 
-Ở đây, xuống dòng vật lý trong text block trở thành LF (`\n`) trong giá trị chuỗi. Dấu đóng `"""` nằm trên dòng riêng nên LF sau `blue` vẫn thuộc kết quả.
+Here, physical newlines inside the text block become LF (`\n`) in the string value. Because the closing `"""` sits on its own line, the LF after `blue` remains part of the result.
 
-Có hai yêu cầu thường gặp khi soạn văn bản nhiều dòng:
+Two requirements come up frequently when authoring multiline text:
 
-1. **Giữ khoảng trắng cuối dòng**: một hoặc nhiều dấu cách ở sau ký tự cuối dòng có thể là dữ liệu quan trọng (chẳng hạn định dạng Markdown).
-2. **Trình bày source code thành nhiều dòng nhưng kết quả một dòng**: một câu dài hoặc một phần SQL không nên chứa LF tại điểm tách mã.
+1. **Preserving trailing spaces on a line**: one or more spaces after the last character on a line can be significant data (for instance, Markdown formatting).
+2. **Wrapping source code across multiple lines while producing a single-line result**: a long sentence or part of an SQL statement should not contain an LF where the source code wraps.
 
-Java giải quyết bằng hai escape: **`\s` tạo một dấu cách (U+0020)** và **`\` ở ngay cuối dòng vật lý loại bỏ dấu xuống dòng đó** (line continuation).
+Java solves these with two escapes: **`\s` produces a space (`U+0020`)** and **`\` right at the end of a physical line removes that newline** (line continuation).
 
-## 2. Tại sao các escape này hoạt động?
+## 2. Why do these escapes work?
 
-Java xử lý nội dung text block theo thứ tự:
+Java processes text block content in this order:
 
-1. Kết thúc dấu mở `"""` bằng một line terminator bắt buộc; nội dung bắt đầu ở dòng sau. Chuẩn hóa line terminator trong source thành LF.
-2. Loại bỏ khoảng trắng thụt lề phụ (`incidental indentation`) để cho phép căn lề đẹp trong file Java. Các dấu cách cuối dòng nguồn không được bảo vệ cũng bị loại (`trailing incidental whitespace`).
-3. **Cuối cùng mới** diễn giải escape sequence như `\s`, `\n`, `\t` và dấu `\` nối dòng.
+1. End the opening `"""` with a mandatory line terminator; content begins on the following line. Normalize source line terminators to LF.
+2. Strip incidental indentation (`incidental indentation`) to allow clean alignment in the Java file. Unprotected spaces at the end of source lines are also removed (`trailing incidental whitespace`).
+3. **Only at the end** interpret escape sequences such as `\s`, `\n`, `\t`, and the line-continuation `\`.
 
-Thứ tự 2 trước 3 là điểm mấu chốt: trong source, `\s` là ký hiệu gồm gạch chéo và chữ `s`, không phải một dấu cách thật để bước xóa trailing whitespace loại bỏ. Sau đó nó trở thành một dấu cách.
+Step 2 occurring before step 3 is the key: in source code, `\s` is a notation consisting of a backslash and the letter `s`, not an actual space for the trailing-whitespace removal step to strip. Afterward, it becomes a space.
 
-### Vị trí dấu đóng quyết định LF cuối
+### Closing delimiter position determines the trailing LF
 
 ~~~java
 String withFinalLf = """
     done
     """;
-// Bằng "done\n"
+// Equals "done\n"
 
 String withoutFinalLf = """
     done""";
-// Bằng "done"
+// Equals "done"
 ~~~
 
-Dấu đóng cùng dòng nội dung cuối không tự tạo LF. Đây là quyết định độc lập với việc dùng `\s` hoặc dấu `\` nối dòng.
+Closing on the same line as the last content does not automatically produce an LF. This decision is independent of using `\s` or the line-continuation `\`.
 
-## 3. `\s`: giữ dấu cách cuối dòng
+## 3. `\s`: preserving trailing spaces on a line
 
-### Một dấu cách, không phải mọi whitespace
+### A single space, not all whitespace
 
-Trong Java string literal, `\s` tạo **đúng một ASCII space U+0020**, không phải tab, LF hay toàn bộ lớp Unicode whitespace:
+In a Java string literal, `\s` produces **exactly one ASCII space U+0020**, not a tab, LF, or the entire Unicode whitespace class:
 
 ~~~java
 String a = "Hello\sWorld";
@@ -58,7 +58,7 @@ String b = "Hello World";
 System.out.println(a.equals(b)); // true
 ~~~
 
-Escape này sử dụng được trong string literal một dòng và text block. Với text block, nó đặc biệt hữu ích để xác định trailing spaces một cách rõ ràng:
+This escape works in both single-line string literals and text blocks. With text blocks, it is especially useful for specifying trailing spaces explicitly:
 
 ~~~java
 String text = """
@@ -67,7 +67,7 @@ String text = """
     """;
 ~~~
 
-Giá trị `text` chính xác là `"A \nB  \n"`: sau `A` có một dấu cách trước LF; sau `B` có hai dấu cách trước LF. Tổng độ dài là **7** đơn vị UTF-16: A + space + LF + B + space + space + LF.
+The exact value of `text` is `"A \nB  \n"`: after `A` there is one space before LF; after `B` there are two spaces before LF. The total length is **7** UTF-16 units: A + space + LF + B + space + space + LF.
 
 ~~~java
 System.out.println(text.equals("A \nB  \n")); // true
@@ -76,9 +76,9 @@ System.out.println(text.replace(" ", "<SP>").replace("\n", "\\n"));
 // A<SP>\nB<SP><SP>\n
 ~~~
 
-Ở dòng minh họa cuối, `<SP>` là ký hiệu để **nhìn thấy** dấu cách thật; `\n` được in thành hai ký tự có thể quan sát là `\` và `n`. Cách này chắc chắn hơn việc nhìn kết quả `println` vốn không hiện rõ trailing spaces.
+In the final illustrative line, `<SP>` is a marker to make actual spaces **visible**; `\n` is printed as the two observable characters `\` and `n`. This approach is much more reliable than glancing at `println` output, which does not clearly display trailing spaces.
 
-### Vì sao không gõ dấu cách thật ở cuối dòng?
+### Why not type literal spaces at the end of the line?
 
 ~~~java
 String invisibleSpaces = """
@@ -90,126 +90,126 @@ String explicitSpaces = """
     """;
 ~~~
 
-Ba dấu cách thật nằm sau `A` ở `invisibleSpaces` bị bước xử lý trailing incidental whitespace loại bỏ. Ở `explicitSpaces`, ba escape `\s` tạo ba dấu cách sau khi bước đó đã diễn ra. Đồng thời, editor tự động xóa trailing whitespace sẽ không phá ý đồ của `explicitSpaces`.
+The three literal spaces after `A` in `invisibleSpaces` are stripped by the trailing incidental whitespace step. In `explicitSpaces`, the three `\s` escapes produce three spaces after that step has already run. Furthermore, editors configured to trim trailing whitespace on save will not break the intent of `explicitSpaces`.
 
-Không nên dùng `\s` cho mọi khoảng trắng thông thường giữa các từ. Dùng nó ở nơi cần nhấn mạnh rằng **dấu cách là một phần có chủ đích của dữ liệu**, nhất là ở cuối dòng hoặc trước điểm nối dòng.
+Do not use `\s` for every ordinary space between words. Use it where you want to emphasize that **a space is an intentional part of the data**, especially at the end of a line or right before a line continuation.
 
-### Đừng nhầm với `\s` trong regex
+### Do not confuse with `\s` in regex
 
-Hai ký hiệu cùng tên nhưng do **hai bộ phân tích cú pháp khác nhau** xử lý:
+Two notations share the same spelling but are handled by **two different parsers**:
 
-| Viết trong mã Java | Chuỗi thật đưa vào regex engine | Ý nghĩa |
+| Written in Java code | Actual string passed to the regex engine | Meaning |
 | --- | --- | --- |
-| `Pattern.compile("\s+")` | ` +` | Một hoặc nhiều **ASCII space**; Java đã chuyển `\s` thành space. |
-| `Pattern.compile("\\s+")` | `\s+` | Một hoặc nhiều ký tự thuộc **whitespace class của regex**. |
+| `Pattern.compile("\s+")` | ` +` | One or more **ASCII spaces**; Java already converted `\s` into a space. |
+| `Pattern.compile("\\s+")` | `\s+` | One or more characters in the **regex whitespace class**. |
 
-Ở ví dụ thứ hai, `\\` trong Java source cho ra dấu `\` thật để `Pattern` tiếp tục diễn giải `\s`. Khi xây regex bên trong text block cũng phải phân biệt hai tầng escape như vậy.
+In the second example, `\\` in Java source produces an actual `\` so that `Pattern` can then interpret `\s`. When building a regex inside a text block, you must distinguish those two escape layers in the same way.
 
-## 4. `\` cuối dòng: nối hai dòng mà không có LF ở giữa
+## 4. `\` at the end of a line: joining two lines without an LF between them
 
-### Bỏ line terminator
+### Omitting the line terminator
 
-Một dấu `\` đứng **liền trước line terminator của dòng source** yêu cầu trình biên dịch bỏ line terminator đó khỏi giá trị `String`:
+A `\` placed **immediately before a source line's terminator** instructs the compiler to omit that line terminator from the `String` value:
 
 ~~~java
 String normal = """
     red
     blue
     """;
-// Bằng "red\nblue\n"
+// Equals "red\nblue\n"
 
 String joined = """
     red\
     blue
     """;
-// Bằng "redblue\n"
+// Equals "redblue\n"
 ~~~
 
-Trong `joined`, gạch chéo ngược cuối dòng `red` cũng không nằm trong kết quả. Dòng thứ hai `blue` nối sát với `red`. LF sau `blue` vẫn còn, vì dòng thứ hai không có dấu nối.
+In `joined`, the backslash at the end of the `red` line does not appear in the result either. The second line `blue` is joined directly onto `red`. The LF after `blue` remains because the second line has no continuation backslash.
 
-Một chuỗi chia thành ba dòng có thể nối tiếp nhiều lần:
+A string split across three lines can be continued multiple times:
 
 ~~~java
 String word = """
     con\
     tin\
     ued""";
-// Bằng "continued"
+// Equals "continued"
 ~~~
 
-Dùng kỹ thuật này khi muốn xuống dòng trong **mã nguồn** để dễ đọc, nhưng không muốn đưa các LF tương ứng vào **dữ liệu**.
+Use this technique when you want line breaks in **source code** for readability without introducing corresponding LFs into **the data**.
 
-### Nối dòng không chèn dấu cách tự động
+### Line continuation does not automatically insert a space
 
 ~~~java
 String sentence = """
     Hello\
     World
     """;
-// Bằng "HelloWorld\n"
+// Equals "HelloWorld\n"
 ~~~
 
-Nhiều người tưởng Java tự chèn space giữa `Hello` và `World`, nhưng kết quả là một chuỗi dính liền. Nếu cần đúng một dấu cách, phối hợp `\s` và dấu `\`:
+Many people assume Java automatically inserts a space between `Hello` and `World`, yet the result is a single joined word. If you need exactly one space, combine `\s` and `\`:
 
 ~~~java
 String sentence = """
     Hello\s\
     World
     """;
-// Bằng "Hello World\n"
+// Equals "Hello World\n"
 ~~~
 
-Cụm `\s\` ở cuối dòng có hai hành động khác nhau: `\s` tạo một space; `\` loại LF. Đặt `"""` đóng cùng dòng `World` nếu không muốn LF cuối:
+The `\s\` sequence at the end of the line performs two distinct actions: `\s` produces a space; `\` removes the LF. Place the closing `"""` on the same line as `World` if you do not want a trailing LF:
 
 ~~~java
 String sentence = """
     Hello\s\
     World""";
-// Bằng "Hello World"
+// Equals "Hello World"
 ~~~
 
-### Dấu `\` phải đứng sát line terminator
+### `\` must stand immediately before the line terminator
 
-Không để dấu cách hoặc tab **sau** gạch chéo ngược dùng để nối dòng. Nếu có ký tự chen giữa dấu `\` và line terminator, đó không còn là escape nối dòng hợp lệ và có thể gây lỗi biên dịch. Đây cũng là lý do nên tránh editor tự thêm trailing whitespace vào các dòng kết thúc bằng `\`.
+Do not leave spaces or tabs **after** a backslash used for line continuation. If characters appear between `\` and the line terminator, it is no longer a valid line-continuation escape and can cause a compile error. This is also why you should avoid editors automatically appending trailing whitespace to lines ending with `\`.
 
-Dấu `\\` có ý nghĩa **khác**: nó tạo một gạch chéo ngược **trong kết quả**.
+`\\` has a **different** meaning: it produces a literal backslash **in the result**.
 
 ~~~java
 String path = """
     C:\\temp\\
     next
     """;
-// Giá trị: "C:\\temp\\\nnext\n"
-// Dòng đầu kết thúc bằng một dấu \ thật, rồi mới LF.
+// Value: "C:\\temp\\\nnext\n"
+// The first line ends with an actual \ character, followed by LF.
 ~~~
 
-Muốn thật sự nối dòng thì dùng dấu `\` đơn độc ở cuối dòng, không dùng `\\`.
+To actually join lines, use a single `\` at the end of the line, not `\\`.
 
-## 5. Tác động của thụt lề khi nối dòng
+## 5. Effect of indentation when continuing lines
 
-Dấu `\` loại ký tự xuống dòng, nhưng **không đồng nghĩa loại toàn bộ khoảng trắng** ở đầu dòng kế tiếp. Java chỉ loại thụt lề phụ chung:
+`\` removes the newline character, yet **does not automatically strip all spaces** at the start of the next line. Java removes only common incidental indentation:
 
 ~~~java
 String a = """
     head\
       next
     """;
-// Bằng "head  next\n": còn hai dấu cách giữa head và next.
+// Equals "head  next\n": two spaces remain between head and next.
 
 String b = """
     head\
     next
     """;
-// Bằng "headnext\n".
+// Equals "headnext\n".
 ~~~
 
-Ví dụ `a` có thêm hai dấu cách ở đầu `next` so với mức thụt lề chung. Chúng được giữ lại và, sau khi bỏ LF bằng `\`, trở thành hai space ở giữa. Để kết quả ổn định, **canh lề phần nối tiếp theo mức chung** nếu không muốn khoảng trắng dư, hoặc dùng `\s\` khi muốn kiểm soát chính xác một space.
+Example `a` has two extra spaces before `next` relative to the common indentation level. They are preserved and, after removing the LF with `\`, become two spaces in the middle. For predictable results, **align the continued line with the common indentation** if you do not want extra spaces, or use `\s\` when you want exact control over a single space.
 
-Cũng cần phân biệt `\n` trong source (escape **chủ động thêm** LF) với dấu `\` cuối dòng (escape **chủ động bỏ** LF). Chúng là hai thao tác đối nghịch, dù đều thao tác với xuống dòng.
+Also distinguish `\n` in source (an escape that **explicitly adds** an LF) from `\` at the end of a line (an escape that **explicitly removes** an LF). They are opposite operations, even though both deal with newlines.
 
-## 6. Chương trình Java 17+ độc lập
+## 6. Standalone Java 17+ program
 
-Lưu mã nguồn sau dưới tên **`TextBlockWhitespaceDemo.java`**:
+Save the following source code as **`TextBlockWhitespaceDemo.java`**:
 
 ~~~java
 public class TextBlockWhitespaceDemo {
@@ -230,8 +230,8 @@ public class TextBlockWhitespaceDemo {
             """;
 
         String withSpace = """
-            Xin\s\
-            chao
+            Hi\s\
+            there
             """;
 
         String noFinalNewline = """
@@ -259,61 +259,61 @@ public class TextBlockWhitespaceDemo {
 }
 ~~~
 
-Biên dịch và chạy ở thư mục chứa file bằng JDK 17+:
+Compile and run in the folder containing the file using JDK 17+:
 
 ~~~bash
 javac --release 17 TextBlockWhitespaceDemo.java
 java TextBlockWhitespaceDemo
 ~~~
 
-**Kết quả stdout chính xác:**
+**Exact stdout output:**
 
 ~~~text
 normal=red\nblue\n
 preserved=A<SP>\nB<SP><SP>\n
 joined=redblue\n
-withSpace=Xin<SP>chao\n
+withSpace=Hi<SP>there\n
 noFinalNewline=done
 relativeIndent=head<SP><SP>next\n
 preserved.length=7
 preserved.equals=true
 ~~~
 
-Các dòng này dùng hàm `visible` để biến LF thành chữ `\n` và dấu cách thành chữ `<SP>`. Điều đó cho phép xác minh cả **LF ở giữa**, **LF ở cuối**, **số dấu cách** và **khoảng trắng do thụt lề có chủ đích**. Giá trị `preserved.equals=true` kiểm tra trực tiếp nội dung, không dựa vào giao diện terminal.
+These lines use the `visible` method to turn LF into the text `\n` and spaces into `<SP>`. That allows verifying **embedded LFs**, **trailing LFs**, **space counts**, and **spaces from intentional indentation**. The `preserved.equals=true` check verifies the content directly rather than relying on terminal rendering.
 
-## 7. So sánh và cách chọn đúng
+## 7. Comparison and choosing the right form
 
-| Mục đích | Cú pháp nguồn | Giá trị chuỗi |
+| Goal | Source syntax | String value |
 | --- | --- | --- |
-| Giữ LF giữa hai dòng | `red` rồi xuống dòng `blue` trong text block | `red\nblue` |
-| Bỏ LF giữa hai dòng | `red\` rồi xuống dòng `blue` | `redblue` |
-| Bỏ LF nhưng thêm một dấu cách | `red\s\` rồi xuống dòng `blue` | `red blue` |
-| Giữ một space ở cuối dòng | `red\s` rồi xuống dòng | `red \n` |
-| Giữ hai space ở cuối dòng | `red\s\s` rồi xuống dòng | `red  \n` |
-| Không có LF cuối chuỗi | Đặt `"""` đóng ngay sau nội dung cuối | Không có `\n` cuối |
-| Lưu ký tự gạch chéo ngược thật | Dùng `\\` trong source | Một dấu `\` thật |
+| Keep LF between two lines | `red` then newline `blue` in text block | `red\nblue` |
+| Omit LF between two lines | `red\` then newline `blue` | `redblue` |
+| Omit LF while adding one space | `red\s\` then newline `blue` | `red blue` |
+| Keep one space at end of line | `red\s` then newline | `red \n` |
+| Keep two spaces at end of line | `red\s\s` then newline | `red  \n` |
+| No trailing LF in string | Place closing `"""` directly after last content | No trailing `\n` |
+| Store a literal backslash character | Use `\\` in source | One actual `\` |
 
-**Tình huống thực tế:**
+**Practical scenarios:**
 
-- Với **Markdown**, hai dấu cách cuối dòng có thể là ký hiệu xuống dòng cứng (*hard line break*). `\s\s` làm rõ rằng hai space ấy cố ý nằm trước LF.
-- Với **SQL hoặc câu văn dài**, nối dòng làm đoạn mã dễ đọc nhưng có thể làm dính token; ví dụ `SELECT\s\` nối với `FROM` tạo `SELECT FROM`, còn chỉ `SELECT\` sẽ tạo `SELECTFROM`.
-- Với **giao thức hoặc dữ liệu byte-exact**, cần nhớ LF của text block là `\n`. Nếu tiêu chuẩn yêu cầu CRLF, hãy tạo `\r\n` đúng nơi cần và kiểm tra dữ liệu đã mã hóa, không giả định source xuống dòng theo hệ điều hành sẽ quyết định output.
+- With **Markdown**, two spaces at the end of a line can signify a *hard line break*. `\s\s` makes it clear that those two spaces are intentionally placed before the LF.
+- With **SQL or long prose**, line continuation improves code readability but can merge tokens; for example, `SELECT\s\` followed by `FROM` yields `SELECT FROM`, whereas `SELECT\` alone yields `SELECTFROM`.
+- With **protocols or byte-exact data**, remember a text block's LF is `\n`. If a standard requires CRLF, produce `\r\n` explicitly where needed and verify the encoded bytes rather than assuming OS source line endings control the output.
 
-## 8. Lỗi phổ biến
+## 8. Common mistakes
 
-1. **Đếm khoảng trắng bằng mắt:** terminal khó thể hiện trailing spaces. Dùng `equals(...)`, `length()` hoặc hàm `visible`.
-2. **Gõ trailing spaces thật thay vì `\s`:** bước xử lý text block có thể loại chúng. Dùng `\s` để diễn đạt rõ.
-3. **Đặt space sau dấu `\` nối dòng:** dấu nối không còn sát line terminator; dễ gây lỗi biên dịch.
-4. **Quên dấu cách khi nối:** `\` chỉ loại LF, không tự thêm space. Dùng `\s\` khi cần.
-5. **Nhầm regex `\s` và Java `\s`:** nếu muốn mẫu regex trắng khoảng, phải escape thành `"\\s"` trong Java source.
-6. **Nhầm `\\` với nối dòng:** `\\` tạo backslash thật và không bỏ LF kế tiếp.
-7. **Bỏ qua indentation còn lại sau nối:** phần thụt lề vượt mức chung được giữ, có thể xuất hiện ở giữa câu đã nối.
-8. **Quên LF cuối khi dấu đóng đứng trên dòng riêng:** dùng `equals(...)` để xác định chuỗi đích.
-9. **Thêm `strip()` hoặc `trim()` để chữa cháy:** hai hàm này có thể xóa whitespace vốn là dữ liệu có chủ đích; xác định nội dung đúng từ source sẽ rõ ràng hơn.
+1. **Counting whitespace by eye:** terminals poorly display trailing spaces. Use `equals(...)`, `length()`, or a `visible` helper.
+2. **Typing literal trailing spaces instead of `\s`:** text block processing can strip them. Use `\s` to express intent clearly.
+3. **Leaving a space after the line-continuation `\`:** the backslash is no longer adjacent to the line terminator, which easily causes a compile error.
+4. **Forgetting a space when continuing a line:** `\` only removes the LF; it does not add a space. Use `\s\` when needed.
+5. **Confusing regex `\s` with Java `\s`:** if you want a regex whitespace pattern, escape it as `"\\s"` in Java source.
+6. **Confusing `\\` with line continuation:** `\\` creates a literal backslash and does not remove the following LF.
+7. **Ignoring remaining indentation after continuation:** indentation beyond the common level is kept and can show up in the middle of the joined sentence.
+8. **Forgetting the trailing LF when the closing delimiter is on its own line:** use `equals(...)` to confirm the target string.
+9. **Adding `strip()` or `trim()` as a quick fix:** those methods can delete whitespace that was intentional data; specifying the exact content in source is much clearer.
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-check exercises
 
-Đoán kết quả trước khi thử chạy:
+Predict the output before running:
 
 ~~~java
 String a = """
@@ -334,12 +334,12 @@ String c = """
 // c.equals("AB  \nCD\n") == true
 ~~~
 
-Tự sửa ví dụ thứ hai để tạo `"AB  CD"` (hai space và không có LF cuối). Đáp án là dùng `AB\s\s\` ở dòng đầu và dấu đóng `"""` cùng dòng `CD`.
+Modify the second example yourself to produce `"AB  CD"` (two spaces and no trailing LF). The answer is to use `AB\s\s\` on the first line and place the closing `"""` on the same line as `CD`.
 
-**Ghi nhớ:** `\s` tạo đúng **một space U+0020**; `\` ở cuối dòng **xóa đúng line terminator sau nó**. Các dấu cách do thụt lề tương đối và LF cuối text block vẫn phải xét riêng.
+**Remember:** `\s` produces **exactly one space U+0020**; `\` at the end of a line **removes the exact line terminator after it**. Spaces from relative indentation and the text block's trailing LF must still be considered separately.
 
-## Tài liệu tham khảo
+## References
 
-- [Java Language Specification 17 — §3.10.6 Text Blocks](https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.10.6): cú pháp và thứ tự xử lý.
-- [Java Language Specification 17 — §3.10.7 Escape Sequences](https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.10.7): escape `\s` và line continuation.
-- [OpenJDK JEP 378 — Text Blocks](https://openjdk.org/jeps/378): ví dụ về trailing spaces, line terminator, và mục tiêu thiết kế.
+- [Java Language Specification 17 — §3.10.6 Text Blocks](https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.10.6): syntax and processing order.
+- [Java Language Specification 17 — §3.10.7 Escape Sequences](https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.10.7): the `\s` escape and line continuation.
+- [OpenJDK JEP 378 — Text Blocks](https://openjdk.org/jeps/378): examples of trailing spaces, line terminators, and design goals.

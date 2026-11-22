@@ -1,67 +1,67 @@
-# Xử lý danh sách sinh viên với nhiều tiêu chí sắp xếp
+# Processing a Student List with Multiple Sorting Criteria
 
-Trong một hệ thống quản lý đào tạo, danh sách sinh viên hiếm khi chỉ được sắp xếp theo một thuộc tính. Ví dụ, khi xét học bổng, nhà trường muốn ưu tiên **điểm trung bình (GPA) cao nhất**, nếu bằng điểm thì ưu tiên **số tín chỉ tích lũy nhiều hơn**, tiếp theo là **tên sinh viên**, và cuối cùng là **mã sinh viên** để tránh kết quả phụ thuộc vào thứ tự nhập dữ liệu.
+In an academic management system, a student list is rarely sorted by a single attribute. For example, when reviewing scholarships, a school wants to prioritize the **highest grade point average (GPA)**, break ties by **more accumulated credits**, then by **student name**, and finally by **student code** so results never depend on data entry order.
 
-Bài thực hành **“Xử lý danh sách sinh viên với nhiều tiêu chí sắp xếp”** thuộc chương **Bài tập nền tảng và trung cấp** của module **JAVA_STREAM_API**. Ta sử dụng pipeline khai báo `filter`, `map`, `sorted`, `limit` và `collect`, kết hợp `Comparator` để giải bài toán thật. Đồng thời, bài tập giúp nhận diện giới hạn của Stream về **thứ tự gặp (encounter order)**, tính lazy, trạng thái, tính bất biến của kết quả, độ phức tạp, xử lý song song và khả năng bảo trì.
+The practice lesson **"Processing a Student List with Multiple Sorting Criteria"** belongs to the **Beginner and Intermediate Exercises** chapter of the **JAVA_STREAM_API** module. We use declarative pipelines with `filter`, `map`, `sorted`, `limit`, and `collect`, combined with `Comparator`, to solve a realistic problem. At the same time, this exercise highlights Stream limits regarding **encounter order**, laziness, statefulness, result immutability, complexity, parallel processing, and maintainability.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Xây `Comparator<Student>` gồm nhiều tiêu chí tăng/giảm độc lập.
-- Đọc và sửa lỗi thường gặp khi gọi `reversed()` sai vị trí.
-- Lọc và sắp xếp dữ liệu sinh viên mà không sửa danh sách nguồn.
-- Lấy top N, sắp xếp trong từng khoa và kiểm tra kết quả bằng dữ liệu kỳ vọng.
-- Phân biệt thứ tự ổn định, quy tắc phá hòa và chính sách xếp hạng đồng hạng.
-- Xử lý đầu vào rỗng, `null`, GPA không hợp lệ và chi phí `sorted` trên dữ liệu lớn.
+- Build a `Comparator<Student>` with multiple independent ascending/descending criteria.
+- Identify and fix the common bug of placing `reversed()` in the wrong position.
+- Filter and sort student data without mutating the source list.
+- Extract the top N, sort within each department, and verify results against expected data.
+- Distinguish stable sorting, tie-breaking rules, and tied-rank policies.
+- Handle empty inputs, `null`, invalid GPAs, and the cost of `sorted` on large datasets.
 
-Các ví dụ chính chạy với **Java 17 trở lên** để dùng `record`, `List.of` và `Stream.toList()`. Bản thân `Stream.sorted` và các hàm xây `Comparator` đã có từ Java 8.
+The main examples run on **Java 17 or later** to use `record`, `List.of`, and `Stream.toList()`. `Stream.sorted` and the `Comparator` factory methods themselves have been available since Java 8.
 
-## 1. Đọc đề bài và xác định chính sách sắp xếp
+## 1. Reading the Problem and Defining the Sorting Policy
 
-Một bản ghi sinh viên có những trường:
+A student record has the following fields:
 
-| Trường | Kiểu | Ý nghĩa |
+| Field | Type | Meaning |
 |---|---|---|
-| `code` | `String` | Mã sinh viên, dùng làm khóa định danh |
-| `name` | `String` | Tên hiển thị |
-| `major` | `String` | Khoa/ngành học |
-| `gpa` | `double` | Điểm trung bình trên thang 4 |
-| `credits` | `int` | Số tín chỉ tích lũy |
+| `code` | `String` | Student code, used as the identifying key |
+| `name` | `String` | Display name |
+| `major` | `String` | Department/major |
+| `gpa` | `double` | Grade point average on a 4-point scale |
+| `credits` | `int` | Accumulated credits |
 
-**Chính sách ưu tiên** cho danh sách xét học bổng:
+**Priority policy** for the scholarship review list:
 
-1. `gpa` **giảm dần**: điểm cao đứng trước.
-2. Nếu `gpa` bằng nhau, `credits` **giảm dần**: nhiều tín chỉ đứng trước.
-3. Nếu hai giá trị trên bằng nhau, `name` **tăng dần**, không phân biệt chữ hoa/thường.
-4. Nếu vẫn bằng nhau, `code` **tăng dần** để tạo kết quả xác định.
+1. `gpa` **descending**: higher GPA comes first.
+2. If `gpa` is equal, `credits` **descending**: more credits comes first.
+3. If both above are equal, `name` **ascending**, case-insensitive.
+4. If still equal, `code` **ascending** to produce a deterministic order.
 
-Ta viết gọn:
+Written concisely:
 
 ~~~text
-GPA ↓  →  Tín chỉ ↓  →  Tên ↑  →  Mã ↑
+GPA ↓  →  Credits ↓  →  Name ↑  →  Code ↑
 ~~~
 
-Ký hiệu mũi tên chỉ chiều sắp xếp của từng tiêu chí, **không** có nghĩa mọi tiêu chí đều phải đảo cùng lúc.
+The arrows indicate the sort direction of each individual criterion; they do **not** mean all criteria are reversed together.
 
-### Dữ liệu mẫu
+### Sample Data
 
-| Mã | Tên | Khoa/ngành | GPA | Tín chỉ |
+| Code | Name | Major | GPA | Credits |
 |---|---|---|---:|---:|
-| S01 | An | CNTT | 3.80 | 60 |
-| S02 | Bình | Kinh tế | 3.90 | 58 |
-| S03 | Chi | CNTT | 3.80 | 65 |
-| S04 | Dũng | Ngôn ngữ | 3.90 | 58 |
-| S05 | Hà | CNTT | 3.50 | 90 |
-| S06 | Bình | CNTT | 3.90 | 58 |
-| S07 | An | Kinh tế | 3.80 | 65 |
-| S08 | Bình | CNTT | 3.90 | 58 |
-| S09 | Lan | CNTT | 4.00 | 40 |
-| S10 | Giang | CNTT | 3.20 | 95 |
+| S01 | An | IT | 3.80 | 60 |
+| S02 | Bình | Economics | 3.90 | 58 |
+| S03 | Chi | IT | 3.80 | 65 |
+| S04 | Dũng | Languages | 3.90 | 58 |
+| S05 | Hà | IT | 3.50 | 90 |
+| S06 | Bình | IT | 3.90 | 58 |
+| S07 | An | Economics | 3.80 | 65 |
+| S08 | Bình | IT | 3.90 | 58 |
+| S09 | Lan | IT | 4.00 | 40 |
+| S10 | Giang | IT | 3.20 | 95 |
 
-Dữ liệu cố tình có các trường hợp **đồng điểm**, **đồng tín chỉ** và **trùng tên**. Nếu kết quả chỉ đúng với danh sách có điểm khác nhau hoàn toàn, comparator nhiều tiêu chí vẫn chưa được kiểm tra đủ.
+The dataset intentionally includes cases with **tied GPAs**, **tied credits**, and **identical names**. If a solution only works when every student has a distinct GPA, the multi-criteria comparator has not been sufficiently tested.
 
-## 2. Vì sao chọn Stream.sorted?
+## 2. Why Choose `Stream.sorted`?
 
-`Stream.sorted(...)` là **intermediate operation** tạo một Stream có thứ tự sắp xếp. Có hai overload quen thuộc:
+`Stream.sorted(...)` is an **intermediate operation** that produces a Stream in sorted order. There are two familiar overloads:
 
 ~~~java
 Stream<T> sorted()
@@ -69,9 +69,9 @@ Stream<T> sorted()
 Stream<T> sorted(Comparator<? super T> comparator)
 ~~~
 
-`sorted()` không tham số dựa vào **thứ tự tự nhiên** của phần tử, tức phần tử phải so sánh được theo `Comparable`. Record `Student` của chúng ta **không tự triển khai `Comparable`**, nên cần dùng `sorted(comparator)`.
+The no-argument `sorted()` relies on the **natural order** of elements, meaning elements must be comparable via `Comparable`. Our `Student` record **does not implement `Comparable`**, so we must use `sorted(comparator)`.
 
-Ví dụ nhỏ:
+A small example:
 
 ~~~java
 import java.util.List;
@@ -86,27 +86,27 @@ System.out.println(ascending); // [5, 5, 7, 9]
 System.out.println(scores);    // [9, 5, 7, 5]
 ~~~
 
-`sorted` **không loại phần tử trùng**: cả hai số 5 vẫn còn. `Stream.toList()` (Java 16+) trả danh sách không thể sửa bằng các thao tác như `add` hay `sort`. Danh sách `scores` ban đầu cũng không bị thay đổi.
+`sorted` **does not remove duplicates**: both 5s remain. `Stream.toList()` (Java 16+) returns a list that cannot be modified by operations like `add` or `sort`. The original `scores` list is also untouched.
 
-So sánh hai cách:
+Comparing approaches:
 
-| Cách xử lý | Thay đổi nguồn? | Đầu ra |
+| Approach | Mutates Source? | Output |
 |---|---|---|
-| `students.stream().sorted(c).toList()` | Không sửa collection nguồn | Danh sách mới theo comparator |
-| `students.sort(c)` | **Có**, sắp xếp trực tiếp List | Không trả List, thay đổi thứ tự phần tử trong nguồn |
-| `students.stream().sorted(c).collect(toList())` | Không sửa collection nguồn | Danh sách do collector tạo, không cam kết cụ thể khả năng sửa |
+| `students.stream().sorted(c).toList()` | Does not modify source collection | New list ordered by comparator |
+| `students.sort(c)` | **Yes**, sorts the List in place | Does not return a List; changes element order in source |
+| `students.stream().sorted(c).collect(toList())` | Does not modify source collection | List created by collector; mutability is not specifically guaranteed |
 
-Dùng `Stream.sorted` khi muốn tạo góc nhìn kết quả sắp xếp mà vẫn giữ dữ liệu đầu vào, hoặc khi sắp xếp là một bước trong pipeline nhiều thao tác.
+Use `Stream.sorted` when you want a sorted view of the data while preserving the original input, or when sorting is one stage in a multi-step pipeline.
 
-## 3. Comparator: giá trị âm, 0 và dương
+## 3. Comparator: Negative, Zero, and Positive Values
 
-`Comparator<T>` so sánh hai giá trị `a` và `b`, trả:
+`Comparator<T>` compares two values `a` and `b` and returns:
 
-- Số **âm** khi `a` được xếp trước `b`.
-- **0** khi chúng được xem là cùng vị trí theo comparator.
-- Số **dương** khi `a` được xếp sau `b`.
+- A **negative** integer when `a` comes before `b`.
+- **0** when they are considered equal in order by the comparator.
+- A **positive** integer when `a` comes after `b`.
 
-Không nên kiểm tra kết quả `compare(a, b) == -1`: hợp đồng chỉ yêu cầu **dấu** của số nguyên trả về, không yêu cầu đúng `-1` hoặc `1`.
+Do not test `compare(a, b) == -1`: the contract only requires the **sign** of the returned integer, not specifically `-1` or `1`.
 
 ~~~java
 import java.util.Comparator;
@@ -118,18 +118,18 @@ System.out.println(ascending.compare(8, 2) > 0); // true
 System.out.println(ascending.compare(5, 5) == 0); // true
 ~~~
 
-Comparator phải tuân thủ quan hệ so sánh hợp lệ: phản đối xứng về dấu, bắc cầu và nhất quán trong lúc sắp xếp. Comparator phụ thuộc đồng hồ, số ngẫu nhiên hay biến ngoài thay đổi có thể tạo kết quả khó đoán, thậm chí gây lỗi do vi phạm hợp đồng so sánh.
+A comparator must obey a valid ordering relation: antisymmetric in sign, transitive, and consistent during sorting. A comparator that depends on the clock, random numbers, or mutable external variables can yield unpredictable results or even throw exceptions by violating the comparator contract.
 
-### 3.1. Đừng viết comparator bằng phép trừ có nguy cơ tràn
+### 3.1. Do Not Write Comparators Using Subtraction That Can Overflow
 
 ~~~java
-// Không nên khi số nguyên có thể lớn:
+// Avoid when integers may be large:
 // Comparator<Student> wrong = (a, b) -> b.credits() - a.credits();
 ~~~
 
-Với số nguyên tổng quát, phép trừ có thể tràn khiến thứ tự sai. Đối với số thực, phép trừ cũng có vấn đề với `NaN`, vô cực và các giá trị gần nhau.
+For arbitrary integers, subtraction can overflow and produce the wrong order. For floating-point numbers, subtraction also suffers from `NaN`, infinity, and values very close together.
 
-Hãy sử dụng các hàm so sánh đã có:
+Use the built-in comparison helpers instead:
 
 ~~~java
 Comparator<Student> byCreditsAscending =
@@ -139,11 +139,11 @@ Comparator<Student> byGpaAscending =
     Comparator.comparingDouble(Student::gpa);
 ~~~
 
-`comparingInt` và `comparingDouble` diễn đạt ý định rõ và tránh boxing chỉ để so sánh khóa nguyên thủy.
+`comparingInt` and `comparingDouble` express intent clearly and avoid boxing just to compare primitive keys.
 
-## 4. Xây từng tiêu chí tăng dần và giảm dần
+## 4. Building Ascending and Descending Criteria Individually
 
-Các phương thức quan trọng:
+Key methods:
 
 ~~~java
 Comparator.comparing(...)
@@ -153,9 +153,9 @@ Comparator.reversed()
 Comparator.thenComparing(...)
 ~~~
 
-Giả sử kiểu `Student` đã được khai báo như mục 7.
+Assume the `Student` type is declared as shown in Section 7.
 
-### 4.1. GPA giảm dần
+### 4.1. GPA Descending
 
 ~~~java
 Comparator<Student> byGpaDesc =
@@ -163,9 +163,9 @@ Comparator<Student> byGpaDesc =
         .reversed();
 ~~~
 
-Nếu `a.gpa() = 3.9` và `b.gpa() = 3.8`, comparator xem `a` đứng trước `b`.
+If `a.gpa() = 3.9` and `b.gpa() = 3.8`, the comparator places `a` before `b`.
 
-### 4.2. Số tín chỉ giảm dần
+### 4.2. Credits Descending
 
 ~~~java
 Comparator<Student> byCreditsDesc =
@@ -173,9 +173,9 @@ Comparator<Student> byCreditsDesc =
         .reversed();
 ~~~
 
-Phép so sánh này **chỉ** xét `credits`. Nó có thể dùng làm tiêu chí phụ sau GPA.
+This comparison inspects **only** `credits`. It can serve as a secondary criterion after GPA.
 
-### 4.3. Tên tăng dần, không phân biệt hoa/thường
+### 4.3. Name Ascending, Case-Insensitive
 
 ~~~java
 Comparator<Student> byNameAsc =
@@ -185,20 +185,20 @@ Comparator<Student> byNameAsc =
     );
 ~~~
 
-`String.CASE_INSENSITIVE_ORDER` không phân biệt hoa/thường theo quy tắc so sánh của Java, nhưng **không phải bộ sắp xếp ngôn ngữ tiếng Việt hoàn chỉnh**. Nếu giao diện phải sắp xếp tên theo quy tắc ngôn ngữ hoặc locale cụ thể, cần chọn cơ chế collation phù hợp và kiểm thử bằng dữ liệu thực tế. Bài tập này chủ động dùng quy tắc đơn giản, xác định được mà không phụ thuộc locale mặc định của máy.
+`String.CASE_INSENSITIVE_ORDER` ignores case according to Java's comparison rules, but it is **not a complete Vietnamese linguistic collator**. If a UI must sort names according to specific language or locale rules, choose an appropriate collation mechanism and test with real data. This exercise intentionally uses a simple, deterministic rule that does not depend on the machine's default locale.
 
-### 4.4. Mã tăng dần
+### 4.4. Code Ascending
 
 ~~~java
 Comparator<Student> byCodeAsc =
     Comparator.comparing(Student::code);
 ~~~
 
-`String.compareTo` sắp theo thứ tự tự nhiên của chuỗi. Ví dụ dùng mã có độ dài thống nhất (`S01`, `S02`, …), nên thứ tự chữ phù hợp với mong đợi của dữ liệu mẫu. Với mã độ dài khác nhau như `S2` và `S10`, thứ tự từ điển không nhất thiết trùng thứ tự số; cần quy tắc tách số nếu nghiệp vụ yêu cầu.
+`String.compareTo` sorts by natural string order. Our examples use fixed-width codes (`S01`, `S02`, …), so alphabetical order matches what the sample data expects. For variable-length codes like `S2` and `S10`, lexicographical order does not necessarily match numeric order; parse or separate numeric parts if business rules require it.
 
-## 5. Ghép nhiều tiêu chí với thenComparing
+## 5. Chaining Multiple Criteria with `thenComparing`
 
-`thenComparing` chỉ so sánh tiêu chí tiếp theo **khi comparator trước trả 0**.
+`thenComparing` evaluates the next criterion **only when the preceding comparator returns 0**.
 
 ~~~java
 Comparator<Student> priorityOrder =
@@ -215,37 +215,37 @@ Comparator<Student> priorityOrder =
         .thenComparing(Student::code);
 ~~~
 
-Có thể đọc câu lệnh từ trên xuống:
+You can read this statement from top to bottom:
 
 ~~~text
-So GPA, cao hơn trước.
-    Nếu bằng → so tín chỉ, nhiều hơn trước.
-        Nếu bằng → so tên, tên nhỏ hơn trước.
-            Nếu bằng → so mã, mã nhỏ hơn trước.
+Compare GPA, higher first.
+    If tied → compare credits, more first.
+        If tied → compare name, smaller first.
+            If tied → compare code, smaller first.
 ~~~
 
-Đây là một **comparator tổng hợp**. Không cần tự viết nhiều `if` và `return` để so từng trường.
+This is a **composite comparator**. There is no need to write nested `if` and `return` statements manually for every field.
 
-### 5.1. Sơ đồ quyết định
+### 5.1. Decision Flowchart
 
 ~~~mermaid
 flowchart TD
-    A["So sánh hai sinh viên"] --> B{"GPA khác nhau?"}
-    B -->|Có| C["GPA cao đứng trước"]
-    B -->|Không| D{"Tín chỉ khác nhau?"}
-    D -->|Có| E["Tín chỉ nhiều đứng trước"]
-    D -->|Không| F{"Tên khác nhau?"}
-    F -->|Có| G["Tên tăng dần"]
-    F -->|Không| H["Mã tăng dần"]
+    A["Compare two students"] --> B{"Different GPA?"}
+    B -->|Yes| C["Higher GPA comes first"]
+    B -->|No| D{"Different credits?"}
+    D -->|Yes| E["More credits comes first"]
+    D -->|No| F{"Different name?"}
+    F -->|Yes| G["Name ascending"]
+    F -->|No| H["Code ascending"]
 ~~~
 
-Sơ đồ áp dụng đúng chính sách đã xác định; nếu tổ chức thay tiêu chí ưu tiên, phải đổi thứ tự các bước `thenComparing` tương ứng.
+The diagram mirrors the exact policy defined above; if the organization changes priority criteria, you must change the order of the `thenComparing` steps accordingly.
 
-## 6. Lỗi kinh điển: reversed() đặt sai vị trí
+## 6. Classic Bug: Placing `reversed()` in the Wrong Position
 
-Hai đoạn code sau **không tương đương**.
+The following two snippets are **not equivalent**.
 
-**Đúng: đảo riêng tiêu chí GPA và tín chỉ.**
+**Correct: reverse only the GPA and credits criteria.**
 
 ~~~java
 Comparator<Student> correct =
@@ -259,7 +259,7 @@ Comparator<Student> correct =
         .thenComparing(Student::code);
 ~~~
 
-**Sai với đề bài: đảo toàn bộ comparator đã ghép.**
+**Wrong for the requirement: reverses the entire chained comparator.**
 
 ~~~java
 Comparator<Student> wrong =
@@ -270,9 +270,9 @@ Comparator<Student> wrong =
         .reversed();
 ~~~
 
-Trong đoạn `wrong`, phương thức `reversed()` áp dụng cho **toàn bộ chuỗi so sánh**. Kết quả: GPA giảm dần **nhưng tín chỉ, tên và mã cũng đảo chiều**, trái yêu cầu “tên/mã tăng dần”.
+In `wrong`, calling `reversed()` applies to the **entire comparison chain**. As a result, GPA is descending **but credits, name, and code are also reversed**, violating the "name/code ascending" requirement.
 
-Một lỗi tinh vi khác:
+Another subtle bug:
 
 ~~~java
 Comparator<Student> alsoWrong =
@@ -282,13 +282,13 @@ Comparator<Student> alsoWrong =
         .reversed();
 ~~~
 
-`reversed()` cuối cùng lại đảo **toàn bộ comparator tích lũy**, khiến GPA chuyển thành tăng dần và tín chỉ thành giảm dần.
+The final `reversed()` flips the **entire accumulated comparator**, turning GPA into ascending and credits into descending.
 
-**Quy tắc:** khi tiêu chí phụ có chiều ngược tiêu chí chính, hãy tạo comparator phụ riêng rồi truyền vào `thenComparing(...)`. Cách này giúp reviewer dễ thấy và ít sửa nhầm hơn.
+**Rule:** when a secondary criterion has the opposite direction of the primary criterion, build the secondary comparator separately and pass it into `thenComparing(...)`. This makes code reviews clearer and reduces accidental flips.
 
-## 7. Chương trình hoàn chỉnh: sắp xếp danh sách sinh viên
+## 7. Complete Program: Sorting the Student List
 
-Lưu mã dưới đây vào `StudentSortingExercise.java` và chạy bằng **Java 17+**. Chương trình tự chứa bộ dữ liệu, quy tắc kiểm tra đầu vào, comparator nhiều cấp và phần đối chiếu kết quả.
+Save the code below into `StudentSortingExercise.java` and run it on **Java 17+**. The program is self-contained with sample data, input validation rules, a multi-level comparator, and result verification.
 
 ~~~java
 import java.util.Comparator;
@@ -307,19 +307,19 @@ public class StudentSortingExercise {
     ) {
         Student {
             if (code == null || code.isBlank()) {
-                throw new IllegalArgumentException("Mã sinh viên không hợp lệ");
+                throw new IllegalArgumentException("Invalid student code");
             }
             if (name == null || name.isBlank()) {
-                throw new IllegalArgumentException("Tên sinh viên không hợp lệ");
+                throw new IllegalArgumentException("Invalid student name");
             }
             if (major == null || major.isBlank()) {
-                throw new IllegalArgumentException("Khoa/ngành không hợp lệ");
+                throw new IllegalArgumentException("Invalid major");
             }
             if (!Double.isFinite(gpa) || gpa < 0.0 || gpa > 4.0) {
-                throw new IllegalArgumentException("GPA phải trong [0, 4]");
+                throw new IllegalArgumentException("GPA must be in [0, 4]");
             }
             if (credits < 0) {
-                throw new IllegalArgumentException("Tín chỉ không được âm");
+                throw new IllegalArgumentException("Credits must not be negative");
             }
         }
     }
@@ -339,16 +339,16 @@ public class StudentSortingExercise {
 
     static List<Student> sampleStudents() {
         return List.of(
-            new Student("S01", "An",    "CNTT",      3.80, 60),
-            new Student("S02", "Bình",  "Kinh tế",   3.90, 58),
-            new Student("S03", "Chi",   "CNTT",      3.80, 65),
-            new Student("S04", "Dũng",  "Ngôn ngữ",  3.90, 58),
-            new Student("S05", "Hà",    "CNTT",      3.50, 90),
-            new Student("S06", "Bình",  "CNTT",      3.90, 58),
-            new Student("S07", "An",    "Kinh tế",   3.80, 65),
-            new Student("S08", "Bình",  "CNTT",      3.90, 58),
-            new Student("S09", "Lan",   "CNTT",      4.00, 40),
-            new Student("S10", "Giang", "CNTT",      3.20, 95)
+            new Student("S01", "An",    "IT",        3.80, 60),
+            new Student("S02", "Bình",  "Economics", 3.90, 58),
+            new Student("S03", "Chi",   "IT",        3.80, 65),
+            new Student("S04", "Dũng",  "Languages", 3.90, 58),
+            new Student("S05", "Hà",    "IT",        3.50, 90),
+            new Student("S06", "Bình",  "IT",        3.90, 58),
+            new Student("S07", "An",    "Economics", 3.80, 65),
+            new Student("S08", "Bình",  "IT",        3.90, 58),
+            new Student("S09", "Lan",   "IT",        4.00, 40),
+            new Student("S10", "Giang", "IT",        3.20, 95)
         );
     }
 
@@ -370,13 +370,13 @@ public class StudentSortingExercise {
 
         if (!actualCodes.equals(expectedCodes)) {
             throw new AssertionError(
-                "Thứ tự không đúng: " + actualCodes
+                "Incorrect order: " + actualCodes
             );
         }
 
-        System.out.println("Thứ tự ưu tiên: " + actualCodes);
+        System.out.println("Priority order: " + actualCodes);
 
-        // Chỉ lấy sinh viên đạt GPA từ 3.8, sau đó chọn 3 người đầu.
+        // Select students with GPA >= 3.8, then pick the top 3.
         List<Student> topThree = students.stream()
             .filter(s -> s.gpa() >= 3.8)
             .sorted(PRIORITY_ORDER)
@@ -389,57 +389,57 @@ public class StudentSortingExercise {
                 .collect(Collectors.joining(", "))
         );
 
-        // In có Locale.ROOT để dấu thập phân ổn định giữa các máy.
+        // Print using Locale.ROOT so decimal formatting is consistent across machines.
         sorted.forEach(s -> System.out.printf(
             Locale.ROOT,
-            "%s | %-7s | GPA %.2f | %d tín chỉ%n",
+            "%s | %-7s | GPA %.2f | %d credits%n",
             s.code(), s.name(), s.gpa(), s.credits()
         ));
 
-        // Danh sách nguồn vẫn giữ thứ tự đầu vào.
+        // Source list preserves its original input order.
         System.out.println(
-            "Phần tử đầu nguồn: " + students.get(0).code()
+            "First element of source: " + students.get(0).code()
         ); // S01
     }
 }
 ~~~
 
-### 7.1. Kết quả quan trọng
+### 7.1. Key Output
 
 ~~~text
-Thứ tự ưu tiên: [S09, S02, S06, S08, S04, S07, S03, S01, S05, S10]
+Priority order: [S09, S02, S06, S08, S04, S07, S03, S01, S05, S10]
 Top 3: S09, S02, S06
-Phần tử đầu nguồn: S01
+First element of source: S01
 ~~~
 
-Bảng kiểm tra chi tiết:
+Detailed verification table:
 
-| Thứ tự | Mã | GPA | Tín chỉ | Vì sao ở vị trí này? |
+| Rank | Code | GPA | Credits | Why at This Position? |
 |---:|---|---:|---:|---|
-| 1 | S09 | 4.00 | 40 | GPA cao nhất |
-| 2 | S02 | 3.90 | 58 | Đồng GPA/tín chỉ/tên với S06, S08; mã nhỏ nhất |
-| 3 | S06 | 3.90 | 58 | Mã sau S02 |
-| 4 | S08 | 3.90 | 58 | Mã sau S06 |
-| 5 | S04 | 3.90 | 58 | Tên Dũng xếp sau Bình |
-| 6 | S07 | 3.80 | 65 | Cùng GPA/tín chỉ với S03; tên An trước Chi |
-| 7 | S03 | 3.80 | 65 | Tên Chi sau An |
-| 8 | S01 | 3.80 | 60 | Tín chỉ ít hơn S07 và S03 |
-| 9 | S05 | 3.50 | 90 | GPA thấp hơn dù tín chỉ nhiều |
-| 10 | S10 | 3.20 | 95 | GPA thấp nhất, tín chỉ cao không đảo ưu tiên |
+| 1 | S09 | 4.00 | 40 | Highest GPA |
+| 2 | S02 | 3.90 | 58 | Tied GPA/credits/name with S06, S08; smallest code |
+| 3 | S06 | 3.90 | 58 | Code comes after S02 |
+| 4 | S08 | 3.90 | 58 | Code comes after S06 |
+| 5 | S04 | 3.90 | 58 | Name Dũng comes after Bình |
+| 6 | S07 | 3.80 | 65 | Tied GPA/credits with S03; name An before Chi |
+| 7 | S03 | 3.80 | 65 | Name Chi after An |
+| 8 | S01 | 3.80 | 60 | Fewer credits than S07 and S03 |
+| 9 | S05 | 3.50 | 90 | Lower GPA despite high credits |
+| 10 | S10 | 3.20 | 95 | Lowest GPA; high credits do not override priority |
 
-Dòng cuối của chương trình giúp chứng minh **nguồn không bị sắp xếp tại chỗ**: `List.of` ban đầu vẫn bắt đầu bằng `S01`, dù danh sách `sorted` đã bắt đầu bằng `S09`.
+The last line of the program demonstrates that **the source is not sorted in place**: the original `List.of` still starts with `S01`, even though `sorted` starts with `S09`.
 
-### 7.2. Vì sao phải có mã làm tiêu chí cuối?
+### 7.2. Why Must Code Be the Final Criterion?
 
-Nếu chỉ so GPA, tín chỉ và tên, các sinh viên `S02`, `S06`, `S08` bằng nhau theo comparator. Với nguồn `List` có thứ tự, `Stream.sorted` ổn định (*stable*) và giữ thứ tự ban đầu giữa các phần tử comparator xem là ngang nhau.
+If we only compare GPA, credits, and name, students `S02`, `S06`, and `S08` tie under the comparator. With an ordered `List` source, `Stream.sorted` is *stable* and preserves the initial relative order among elements considered equal by the comparator.
 
-Tuy nhiên, nếu đầu vào được thu từ nguồn không có encounter order hoặc thay đổi thứ tự nạp dữ liệu, thứ tự của nhóm đồng hạng có thể khác. Thêm `code` làm tie-breaker giúp **quy tắc hiển thị không phụ thuộc vào lịch sử chèn** khi mã sinh viên là duy nhất.
+However, if the input comes from a source without encounter order or its loading order changes, the order within a tied group can vary. Adding `code` as a tie-breaker ensures the **display order does not depend on insertion history** when student codes are unique.
 
-## 8. Bài tập 1 — sắp xếp theo một tiêu chí
+## 8. Exercise 1 — Sorting by a Single Primary Criterion
 
-Trước khi ghép nhiều điều kiện, hãy kiểm tra từng comparator riêng.
+Before combining many conditions, check each comparator individually.
 
-**Yêu cầu A:** sắp xếp GPA **tăng dần**, nếu bằng điểm thì mã tăng dần.
+**Requirement A:** sort by GPA **ascending**, breaking ties by code ascending.
 
 ~~~java
 Comparator<Student> gpaAscCodeAsc =
@@ -455,9 +455,9 @@ System.out.println(codes);
 // [S10, S05, S01, S03, S07, S02, S04, S06, S08, S09]
 ~~~
 
-Ở nhóm GPA 3.80, ta dùng mã tăng dần, **không** xét tín chỉ, nên thứ tự S01 → S03 → S07. Kết quả này khác chương trình chính là điều hoàn toàn đúng vì **chính sách sắp xếp đã thay đổi**.
+In the 3.80 GPA group, we use code ascending **without** considering credits, so the order is S01 → S03 → S07. Differing from the main program is completely expected because the **sorting policy changed**.
 
-**Yêu cầu B:** sắp xếp số tín chỉ **giảm dần**; nếu bằng thì mã tăng dần.
+**Requirement B:** sort by credits **descending**; break ties by code ascending.
 
 ~~~java
 Comparator<Student> creditsDescCodeAsc =
@@ -474,17 +474,17 @@ System.out.println(orderedCodes);
 // [S10, S05, S03, S07, S01, S02, S04, S06, S08, S09]
 ~~~
 
-Kiểm tra: S10 có 95 tín chỉ, S05 có 90, S03/S07 có 65, S01 có 60, nhóm S02/S04/S06/S08 có 58, S09 có 40. Đây là ví dụ giúp nhận ra rằng **tiêu chí chính thay đổi thì phần tử đầu cũng thay đổi**.
+Check: S10 has 95 credits, S05 has 90, S03/S07 have 65, S01 has 60, group S02/S04/S06/S08 has 58, and S09 has 40. This example shows that **when the primary criterion changes, the first element also changes**.
 
-## 9. Bài tập 2 — lọc, sắp xếp và lấy top N
+## 9. Exercise 2 — Filtering, Sorting, and Taking Top N
 
-Yêu cầu: chọn tối đa năm sinh viên thuộc ngành `CNTT` có GPA ít nhất 3.5, rồi sắp xếp theo chính sách xét học bổng.
+Requirement: select up to five students in the `IT` major with a GPA of at least 3.5, then sort according to the scholarship policy.
 
 ~~~java
 int topN = 5;
 
 List<Student> topCntt = students.stream()
-    .filter(s -> s.major().equals("CNTT"))
+    .filter(s -> s.major().equals("IT"))
     .filter(s -> s.gpa() >= 3.5)
     .sorted(PRIORITY_ORDER)
     .limit(topN)
@@ -496,32 +496,32 @@ System.out.println(
 // [S09, S06, S08, S03, S01]
 ~~~
 
-Vì CNTT có S09, S06, S08, S03, S01, S05, S10 nhưng S10 không đạt 3.5; sau khi sắp, top 5 không chứa S05.
+IT has S09, S06, S08, S03, S01, S05, and S10, but S10 does not meet 3.5; after sorting, the top 5 excludes S05.
 
-**Đặt `filter` trước `sorted`** thường có lợi vì giảm số phần tử cần sắp xếp. Pipeline vẫn mang đúng ý nghĩa “chọn sinh viên đủ điều kiện, rồi xếp thứ tự”.
+**Placing `filter` before `sorted`** is usually beneficial because it reduces the number of elements that must be sorted. The pipeline also directly expresses "select eligible students, then rank them".
 
-### 9.1. Đổi thứ tự thao tác có thể đổi nghĩa bài toán
+### 9.1. Changing Operation Order Can Change Problem Semantics
 
 ~~~java
 List<Student> wrongForThisRequirement = students.stream()
     .sorted(PRIORITY_ORDER)
     .limit(5)
-    .filter(s -> s.major().equals("CNTT"))
+    .filter(s -> s.major().equals("IT"))
     .toList();
 ~~~
 
-Đoạn này chọn **năm sinh viên đứng đầu toàn trường**, rồi mới giữ người thuộc CNTT. Nó **không bảo đảm** lấy đủ năm người CNTT ưu tiên cao nhất.
+This snippet picks the **top five students across the entire school**, and then keeps only those in IT. It **does not guarantee** returning the top five highest-priority IT students.
 
-| Pipeline | Ý nghĩa |
+| Pipeline | Meaning |
 |---|---|
-| `filter(CNTT).sorted(priority).limit(5)` | Top 5 **trong CNTT** |
-| `sorted(priority).limit(5).filter(CNTT)` | Sinh viên CNTT **nằm trong top 5 toàn trường** |
+| `filter(IT).sorted(priority).limit(5)` | Top 5 **within IT** |
+| `sorted(priority).limit(5).filter(IT)` | IT students **among the school-wide top 5** |
 
-Hai mục tiêu đều có thể hợp lệ, nhưng không thể thay thế cho nhau. Khi code review, hãy đối chiếu thứ tự thao tác với câu chữ của yêu cầu.
+Both goals can be valid, but they are not interchangeable. During code review, match the operation order against the exact wording of the requirement.
 
-### 9.2. Trường hợp N bằng 0 hoặc âm
+### 9.2. When N Is Zero or Negative
 
-`limit(0)` trả Stream không có phần tử; `limit(n)` với `n < 0` ném `IllegalArgumentException`. API nghiệp vụ nên xác thực tham số:
+`limit(0)` returns an empty Stream; `limit(n)` with `n < 0` throws `IllegalArgumentException`. Business APIs should validate arguments:
 
 ~~~java
 static List<Student> topStudents(
@@ -529,7 +529,7 @@ static List<Student> topStudents(
         Comparator<Student> order,
         int limit) {
     if (limit < 0) {
-        throw new IllegalArgumentException("limit không được âm");
+        throw new IllegalArgumentException("limit must not be negative");
     }
     return source.stream()
         .sorted(order)
@@ -538,11 +538,11 @@ static List<Student> topStudents(
 }
 ~~~
 
-Phương thức trên không chỉnh sửa `source`. Nó giả định `source` và `order` khác null; API production có thể thêm `Objects.requireNonNull` để báo lỗi sớm.
+This method does not modify `source`. It assumes `source` and `order` are non-null; production APIs may add `Objects.requireNonNull` to fail fast.
 
-## 10. Bài tập 3 — sắp xếp trong từng khoa
+## 10. Exercise 3 — Sorting Within Each Major
 
-Yêu cầu: tạo một `Map`, trong đó mỗi khoa có **danh sách sinh viên đã sắp xếp theo cùng chính sách ưu tiên**.
+Requirement: build a `Map` where each major maps to a **list of students sorted by the same priority policy**.
 
 ~~~java
 import java.util.Map;
@@ -563,51 +563,51 @@ Map<String, List<Student>> byMajor =
         ));
 
 System.out.println(
-    byMajor.get("CNTT").stream()
+    byMajor.get("IT").stream()
         .map(Student::code)
         .toList()
 );
 // [S09, S06, S08, S03, S01, S05, S10]
 
 System.out.println(
-    byMajor.get("Kinh tế").stream()
+    byMajor.get("Economics").stream()
         .map(Student::code)
         .toList()
 );
 // [S02, S07]
 ~~~
 
-Có ba cơ chế khác nhau trong ví dụ:
+There are three distinct mechanisms in this example:
 
-1. `groupingBy(Student::major, ...)` phân loại sinh viên theo khoa.
-2. `TreeMap::new` yêu cầu khóa khoa được duyệt theo thứ tự tự nhiên của `String`.
-3. `collectingAndThen(toList(), ...)` nhận danh sách của **từng nhóm**, sau đó sắp xếp danh sách nhóm theo `PRIORITY_ORDER`.
+1. `groupingBy(Student::major, ...)` classifies students by major.
+2. `TreeMap::new` ensures major keys are traversed in natural `String` order.
+3. `collectingAndThen(toList(), ...)` receives **each group's** list and sorts that group according to `PRIORITY_ORDER`.
 
-**Lưu ý về khả năng sửa:** `group.stream().sorted(...).toList()` trả danh sách không thể sửa, nhưng **Map bên ngoài** do collector tạo vẫn có thể sửa trừ khi được bao/sao chép theo chính sách. Nếu cần kết quả Map không thể sửa, cân nhắc `Map.copyOf(byMajor)` sau khi thu thập; thao tác này không bảo đảm giữ thứ tự khóa như `TreeMap`, nên cần lựa chọn API theo đúng nhu cầu.
+**Mutability note:** `group.stream().sorted(...).toList()` returns an unmodifiable list, but the **outer Map** created by the collector remains modifiable unless wrapped or copied according to policy. If you need an unmodifiable Map result, consider `Map.copyOf(byMajor)` after collecting; note that `Map.copyOf` does not preserve `TreeMap` key ordering, so choose the API based on exact requirements.
 
-### 10.1. Không nhầm sắp xếp khóa Map với sắp xếp sinh viên
+### 10.1. Do Not Confuse Sorting Map Keys with Sorting Students
 
-`TreeMap::new` chỉ sắp xếp **tên khoa**, không tự sắp xếp sinh viên **bên trong mỗi nhóm**. Nếu bỏ `collectingAndThen(...sorted...)`, mỗi nhóm được thu theo encounter order của nguồn (với `List` tuần tự), không nhất thiết theo GPA.
+`TreeMap::new` only sorts **major names**; it does not sort students **inside each group**. If you omit `collectingAndThen(...sorted...)`, each group is collected in source encounter order (for sequential `List`), not necessarily by GPA.
 
-Ngược lại, `sorted(PRIORITY_ORDER)` trong downstream không làm thay đổi cách `Map` duyệt các khóa khoa.
+Conversely, `sorted(PRIORITY_ORDER)` in the downstream collector does not affect how the outer `Map` iterates over major keys.
 
-### 10.2. Khi số lượng khoa rất lớn
+### 10.2. When the Number of Majors Is Very Large
 
-`groupingBy` giữ nhiều bộ chứa trung gian; sắp xếp từng nhóm có thêm chi phí. Nếu chỉ cần top 3 trong mỗi khoa, xây toàn bộ danh sách rồi sắp xếp vẫn có thể tốn bộ nhớ. Với dữ liệu rất lớn, có thể cần collector tùy chỉnh dùng hàng đợi ưu tiên kích thước giới hạn, nhưng phải bảo đảm quy tắc gộp đúng khi chạy song song.
+`groupingBy` maintains many intermediate containers; sorting each group adds further cost. If you only need the top 3 per major, building and sorting full lists can still consume significant memory. For very large datasets, a custom collector using a bounded priority queue may be appropriate, provided the combiner merges correctly in parallel.
 
-Ở mức nền tảng/trung cấp, ưu tiên một bản đúng, dễ kiểm thử trước; chỉ đổi thuật toán sau khi có bằng chứng về vấn đề hiệu năng.
+At the beginner/intermediate level, prioritize a correct, easily testable version first; change algorithms only with evidence of a performance issue.
 
-## 11. Bài tập 4 — thay đổi bộ quy tắc cho từng màn hình
+## 11. Exercise 4 — Switching Rule Sets for Different Screens
 
-Không phải màn hình nào cũng có cùng định nghĩa “đứng đầu”.
+Not every screen shares the same definition of "first".
 
-**Màn hình học bổng:** GPA ↓, tín chỉ ↓, tên ↑, mã ↑.
+**Scholarship screen:** GPA ↓, credits ↓, name ↑, code ↑.
 
-**Danh sách hành chính:** Khoa ↑, tên ↑, mã ↑.
+**Administrative roster:** Major ↑, name ↑, code ↑.
 
-**Danh sách theo tiến độ học tập:** Tín chỉ ↓, GPA ↓, mã ↑.
+**Academic progress list:** Credits ↓, GPA ↓, code ↑.
 
-Có thể xây các comparator riêng, đặt tên theo mục tiêu:
+You can build separate, meaningfully named comparators:
 
 ~~~java
 Comparator<Student> administrativeOrder =
@@ -628,19 +628,19 @@ Comparator<Student> progressOrder =
         .thenComparing(Student::code);
 ~~~
 
-Việc dùng hai biến có tên rõ nghĩa thường dễ bảo trì hơn một hàm nhận hàng loạt cờ boolean như `sort(students, true, false, true)`. Nếu yêu cầu tạo tiêu chí động từ UI, có thể dùng enum hoặc cấu hình biểu diễn **trường**, **chiều**, **tie-breaker**; nhưng phải giới hạn các trường được phép sắp xếp và có kiểm thử cho từng tổ hợp.
+Using well-named variables is usually easier to maintain than a method accepting a string of boolean flags such as `sort(students, true, false, true)`. If criteria must be built dynamically from a UI, use enums or config objects representing **field**, **direction**, and **tie-breaker**, while restricting sortable fields and testing each combination.
 
-### 11.1. Không dùng chung Comparator với quy tắc đang thay đổi
+### 11.1. Never Share a Comparator Whose Rules Mutate Mid-Sort
 
-Một comparator không nên đọc biến global mutable rồi thay đổi chiều so sánh giữa lúc `sorted` đang chạy. Việc cùng cặp đối tượng trả hai kết quả khác nhau có thể vi phạm hợp đồng comparator.
+A comparator must not read a mutable global variable and change comparison direction while `sorted` is running. Returning inconsistent results for the same pair of objects violates the comparator contract.
 
-Cách an toàn là **tạo comparator hoàn chỉnh trước pipeline** và giữ nó ổn định trong suốt quá trình sắp xếp.
+The safe pattern is to **construct the complete comparator before the pipeline** and keep it immutable throughout sorting.
 
-## 12. Tính ổn định (stable sort) và quy tắc đồng hạng
+## 12. Sort Stability (Stable Sort) and Tie-Breaking Rules
 
-Với một Stream **có encounter order**, `sorted` ổn định: những phần tử được comparator xem là ngang nhau giữ thứ tự xuất hiện tương đối.
+On a Stream **with encounter order**, `sorted` is stable: elements considered equal by the comparator preserve their relative input order.
 
-Ví dụ:
+Example:
 
 ~~~java
 record Score(String code, int points) {}
@@ -659,13 +659,13 @@ List<String> codes = input.stream()
 System.out.println(codes); // [A, C, B]
 ~~~
 
-A và C đều 90 điểm, comparator trả 0 nên A vẫn trước C theo danh sách nguồn. Với Stream **không có thứ tự**, tính ổn định của `sorted` không được bảo đảm theo cách đó.
+A and C both have 90 points, so the comparator returns 0 and A remains before C as in the source list. On an **unordered** Stream, stability of `sorted` is not guaranteed in that way.
 
-### 12.1. Stable sort không thay thế tie-breaker
+### 12.1. Stable Sort Does Not Replace a Tie-Breaker
 
-Nếu nguồn là một `HashSet` hoặc dữ liệu được nạp với trình tự không cam kết, thứ tự của các phần tử đồng hạng có thể thay đổi. Nếu ứng dụng cần hiển thị ổn định giữa các lần chạy, thêm mã định danh duy nhất làm tiêu chí cuối, thay vì chỉ dựa vào tính stable của sort.
+If the source is a `HashSet` or data loaded without a guaranteed sequence, the order of tied elements can vary. If the application requires consistent display order across runs, append a unique identifier as the final criterion instead of relying solely on sort stability.
 
-### 12.2. Số thứ tự dòng không phải thứ hạng đồng hạng
+### 12.2. Row Numbers Are Not Tied Ranks
 
 ~~~java
 List<Student> sorted = students.stream()
@@ -677,19 +677,19 @@ for (int i = 0; i < sorted.size(); i++) {
 }
 ~~~
 
-Đoạn trên in **vị trí** 1, 2, 3... trong kết quả, không tự động cho ra chính sách **xếp hạng đồng hạng**. Nếu nhà trường quy định “cùng GPA thì cùng hạng”, S02, S06, S08 và S04 đều có GPA 3.90; việc in số thứ tự khác nhau không có nghĩa các em có hạng học lực khác nhau.
+This prints **positions** 1, 2, 3... in the output, which does not automatically implement **tied ranking**. If the school defines "same GPA means same rank", S02, S06, S08, and S04 all have GPA 3.90; printing different row numbers does not mean they hold different academic ranks.
 
-Một bài toán xếp hạng phải quyết định rõ:
+A ranking requirement must explicitly specify:
 
-- **Ordinal position:** mọi dòng có số thứ tự riêng.
-- **Competition rank:** đồng hạng cùng số, hạng sau bỏ số (1, 2, 2, 4).
-- **Dense rank:** đồng hạng cùng số, hạng sau tăng đúng một (1, 2, 2, 3).
+- **Ordinal position:** every row gets a distinct sequential number.
+- **Competition rank:** tied entries share a rank, leaving a gap after ties (1, 2, 2, 4).
+- **Dense rank:** tied entries share a rank, and the next rank increments by one (1, 2, 2, 3).
 
-Đừng tự suy ra chính sách rank từ comparator. Khi đã xác định khóa dùng để **xét đồng hạng** (chỉ GPA hay cả tín chỉ), mới viết thuật toán gán rank tương ứng.
+Do not infer a ranking policy from the comparator alone. Once the **tie-equality key** (GPA only, or GPA plus credits) is specified, write the rank-assignment logic accordingly.
 
-## 13. Đầu vào rỗng, null và GPA không hợp lệ
+## 13. Empty Inputs, `null`, and Invalid GPAs
 
-### 13.1. Danh sách rỗng
+### 13.1. Empty List
 
 ~~~java
 List<Student> empty = List.of();
@@ -701,13 +701,13 @@ List<Student> sortedEmpty = empty.stream()
 System.out.println(sortedEmpty.isEmpty()); // true
 ~~~
 
-`sorted` không tự báo lỗi vì nguồn rỗng. Nhưng `findFirst()`/`min()`/`max()` trên danh sách rỗng trả `Optional.empty()`; không gọi `get()` mà chưa xử lý trường hợp thiếu dữ liệu.
+`sorted` does not throw on an empty source. However, `findFirst()`/`min()`/`max()` on an empty list return `Optional.empty()`; do not call `get()` without handling missing data.
 
-### 13.2. Một đối tượng Student hoặc trường khóa bằng null
+### 13.2. A `null` Student Object or `null` Key Field
 
-Record `Student` trong ví dụ chính **từ chối `null`** ở những trường dùng trong so sánh. Điều này giúp comparator đơn giản, tránh `NullPointerException` giữa quá trình sort.
+The `Student` record in our main example **rejects `null`** in the fields used for comparison. This keeps the comparator simple and prevents `NullPointerException` during sorting.
 
-Nếu nghiệp vụ cho phép tên thiếu, có thể thiết kế comparator riêng:
+If business rules allow a missing name, you can design a dedicated comparator:
 
 ~~~java
 Comparator<Student> nullableNameOrder =
@@ -717,37 +717,37 @@ Comparator<Student> nullableNameOrder =
     );
 ~~~
 
-Nhưng đoạn này chỉ có ý nghĩa nếu **mô hình Student cho phép name null**; record `Student` ở mục 7 cố ý không cho phép. Không thêm `nullsLast` để che một dữ liệu đầu vào vốn phải được coi là lỗi.
+However, this only makes sense if the **Student model permits null names**; the `Student` record in Section 7 intentionally forbids them. Do not add `nullsLast` just to mask invalid input that should fail validation.
 
-### 13.3. NaN, vô cực và điểm ngoài thang
+### 13.3. `NaN`, Infinity, and Out-of-Range Scores
 
-`Double.compare` có quy tắc so sánh cho `NaN`, `Infinity` và các trường hợp dấu của số 0. Nếu không kiểm tra đầu vào, `Comparator.comparingDouble(Student::gpa)` có thể đặt các giá trị đặc biệt vào thứ tự hợp lệ về mặt Java nhưng vô nghĩa với học vụ.
+`Double.compare` defines ordering rules for `NaN`, `Infinity`, and signed zeros. Without input validation, `Comparator.comparingDouble(Student::gpa)` could place special values into a Java-valid but academically meaningless order.
 
-Bởi vậy constructor kiểm tra:
+That is why the constructor checks:
 
 ~~~java
 if (!Double.isFinite(gpa) || gpa < 0.0 || gpa > 4.0) {
-    throw new IllegalArgumentException("GPA phải trong [0, 4]");
+    throw new IllegalArgumentException("GPA must be in [0, 4]");
 }
 ~~~
 
-Nếu dữ liệu điểm cần chính xác tới phần trăm hoặc theo quy tắc làm tròn đặc thù, hãy cân nhắc lưu GPA bằng **số nguyên đã nhân hệ số** hoặc `BigDecimal` với chính sách rõ ràng. Không dựa vào `==` của `double` để quyết định “điểm bằng nhau sau làm tròn” nếu nghiệp vụ yêu cầu làm tròn.
+If scores require exact decimal precision or specific rounding rules, consider storing GPA as a **scaled integer** or `BigDecimal` with an explicit policy. Do not rely on `double` `==` to decide "equal after rounding" if business rules require rounding.
 
-### 13.4. Chuẩn hóa tên trước khi so
+### 13.4. Normalizing Names Before Comparing
 
-`"An"` và `" An "` không bằng nhau theo `String` thông thường; khoảng trắng có thể làm lệch thứ tự. Với dữ liệu nhập từ người dùng, có thể chuẩn hóa khi parse:
+`"An"` and `" An "` are not equal under standard `String` comparison; whitespace can skew ordering. For user-entered data, you can normalize when parsing:
 
 ~~~java
 String cleaned = rawName == null ? null : rawName.trim();
 ~~~
 
-Nếu cần chuẩn hóa Unicode, khoảng trắng nhiều loại hoặc ký tự tiếng Việt theo chuẩn cụ thể, hãy tạo một quy tắc chuẩn hóa có kiểm thử. Không dựa vào locale mặc định của máy, và không tự động đổi cách viết tên thật của người dùng khi chưa có yêu cầu.
+If you need Unicode normalization, whitespace collapsing, or specific Vietnamese character handling, define a tested normalization rule. Do not rely on the machine's default locale, and do not silently alter real user name spellings unless required.
 
-## 14. Sắp xếp tên tiếng Việt: cân nhắc Collator
+## 14. Sorting Vietnamese Names: Considering `Collator`
 
-`String.compareTo` và `String.CASE_INSENSITIVE_ORDER` không thực hiện đầy đủ quy tắc **collation** theo ngôn ngữ. Khi sản phẩm yêu cầu danh sách sinh viên hiển thị theo thứ tự tên tiếng Việt, có thể xem xét `java.text.Collator`.
+`String.compareTo` and `String.CASE_INSENSITIVE_ORDER` do not implement full linguistic **collation** rules. When a product requires displaying students sorted by Vietnamese alphabetical rules, consider `java.text.Collator`.
 
-Ví dụ minh họa cho pipeline **tuần tự**:
+Illustrative example for a **sequential** pipeline:
 
 ~~~java
 import java.text.Collator;
@@ -767,17 +767,17 @@ List<Student> ordered = students.stream()
     .toList();
 ~~~
 
-Ở đây cần hiểu:
+Important things to understand here:
 
-- `Collator` sử dụng quy tắc so sánh ngôn ngữ từ runtime; quy tắc và kết quả có thể phụ thuộc dữ liệu locale/JDK.
-- `PRIMARY` thường bỏ qua một số khác biệt như dấu hoặc chữ hoa/thường theo quy tắc collator, nên phải quyết định chính sách **đồng hạng** và thêm mã làm tie-breaker.
-- `Collator` là đối tượng có cấu hình thay đổi được; không chia sẻ để nhiều thread vừa đọc vừa sửa `setStrength`. Nếu dùng trong xử lý đồng thời, hãy bảo đảm comparator có trạng thái được sử dụng an toàn hoặc tạo/clone collator phù hợp cho từng ngữ cảnh.
+- `Collator` uses linguistic comparison rules from the runtime; rules and results can depend on locale/JDK data.
+- `PRIMARY` typically ignores certain differences such as diacritics or case according to collator rules, so you must decide the **tie-breaking** policy and append the student code.
+- `Collator` has mutable configuration; do not share an instance across threads while reading and calling `setStrength`. In concurrent code, ensure stateful comparators are used safely or create/clone a collator per context.
 
-Ví dụ này là **biến thể theo yêu cầu locale**, không phải lý do thay thế mặc định comparator ở bài chính. Hãy kiểm thử với những tên có dấu thực tế theo chính sách của trường.
+This example is a **locale-specific variation**, not a reason to replace the main lesson's default comparator. Test with real accented names according to the school's policy.
 
-## 15. distinct(), Set và so sánh theo mã sinh viên
+## 15. `distinct()`, `Set`, and Deduplicating by Student Code
 
-Sắp xếp khác loại trùng. `sorted` giữ mọi phần tử; `distinct` loại trùng theo `equals`/`hashCode` của đối tượng.
+Sorting is different from deduplicating. `sorted` keeps all elements; `distinct` removes duplicates based on `equals`/`hashCode`.
 
 ~~~java
 List<Student> distinctStudents = students.stream()
@@ -786,17 +786,17 @@ List<Student> distinctStudents = students.stream()
     .toList();
 ~~~
 
-Vì record `Student` tạo `equals` dựa trên **tất cả thành phần**, hai record cùng `code` nhưng khác `gpa` có thể được xem là **khác nhau**. Đoạn trên không tự bảo đảm mỗi mã chỉ xuất hiện một lần.
+Because the `Student` record generates `equals` from **all components**, two records with the same `code` but different `gpa` are considered **different**. The snippet above does not guarantee each code appears only once.
 
-Nếu yêu cầu “mỗi mã sinh viên là duy nhất”, review nên xác định một trong các chính sách:
+If the requirement says "each student code is unique", code review should settle on one of these policies:
 
-1. **Từ chối** dữ liệu đầu vào có mã trùng.
-2. **Giữ** bản ghi mới nhất theo thời gian cập nhật.
-3. **Gộp** dữ liệu theo một quy tắc đã được chấp thuận.
+1. **Reject** input data containing duplicate codes.
+2. **Keep** the most recent record by update timestamp.
+3. **Merge** records according to an approved rule.
 
-Không dùng `TreeSet` với comparator chỉ theo GPA để “khử trùng theo mã”; nó có thể loại mất những sinh viên khác mã nhưng cùng GPA.
+Do not use a `TreeSet` with a GPA-only comparator to "deduplicate by code"; it would drop different students who happen to share the same GPA.
 
-### 15.1. Phát hiện mã trùng bằng groupingBy
+### 15.1. Detecting Duplicate Codes with `groupingBy`
 
 ~~~java
 import java.util.Map;
@@ -814,16 +814,16 @@ List<String> duplicateCodes = countByCode.entrySet().stream()
     .sorted()
     .toList();
 
-System.out.println(duplicateCodes); // [] với dữ liệu mẫu
+System.out.println(duplicateCodes); // [] on sample data
 ~~~
 
-Cách này **phát hiện** mã trùng, không tự quyết định bản ghi nào được giữ. Nếu API nghiệp vụ bắt buộc khóa duy nhất, có thể từ chối dữ liệu có `duplicateCodes` khác rỗng trước khi sắp xếp.
+This approach **detects** duplicate codes without silently choosing which record to keep. If a business API requires unique keys, reject inputs whenever `duplicateCodes` is non-empty before sorting.
 
-## 16. Chi phí sorted(), limit() và Stream song song
+## 16. Cost of `sorted()`, `limit()`, and Parallel Streams
 
-### 16.1. sorted là stateful intermediate operation
+### 16.1. `sorted` Is a Stateful Intermediate Operation
 
-Để sắp xếp chính xác một nguồn hữu hạn, `sorted` thường phải **thu thập và tổ chức các phần tử cần so sánh** trước khi phát kết quả. Độ phức tạp sắp xếp so sánh thường được nhìn ở mức `O(n log n)`; bộ nhớ và chi phí cụ thể phụ thuộc nguồn và cách thực thi.
+To sort a finite source accurately, `sorted` generally must **collect and organize the elements to compare** before emitting results. Comparison-based sorting typically has `O(n log n)` time complexity; exact memory and runtime costs depend on the source and execution strategy.
 
 ~~~java
 List<Student> topTen = students.stream()
@@ -832,11 +832,11 @@ List<Student> topTen = students.stream()
     .toList();
 ~~~
 
-Đừng hiểu `limit(10)` là chắc chắn chỉ cần nhìn 10 sinh viên. Vì `sorted` ở trước `limit`, pipeline thường phải xem **toàn bộ nguồn phù hợp** để xác định đúng top 10.
+Do not assume `limit(10)` means only 10 students are inspected. Because `sorted` precedes `limit`, the pipeline generally must inspect **all qualifying elements** to determine the true top 10.
 
-Nếu nguồn có hàng triệu sinh viên nhưng chỉ cần top 10, có thể cân nhắc thuật toán **heap/top-k** với chi phí khoảng `O(n log k)` và bộ nhớ khoảng `O(k)`. Đó là bài toán tối ưu nâng cao; nên làm đúng trước, đo sau.
+If the source has millions of students and you only need the top 10, consider a **heap/top-k** algorithm with roughly `O(n log k)` time and `O(k)` memory. That is an advanced optimization; get it right first, then measure.
 
-### 16.2. Vì sao filter trước sorted thường có ích?
+### 16.2. Why `filter` Before `sorted` Usually Helps
 
 ~~~java
 List<Student> qualified = students.stream()
@@ -845,9 +845,9 @@ List<Student> qualified = students.stream()
     .toList();
 ~~~
 
-Với nguồn lớn, lọc trước có thể giảm số phần tử phải sắp xếp. Nhưng **chỉ chuyển `filter` đi chỗ khác khi nghĩa nghiệp vụ không đổi**. Ví dụ ở mục 9 cho thấy `limit` và `filter` không thể tùy tiện đổi chỗ.
+On large sources, filtering early reduces the number of elements to sort. However, **only move `filter` when business semantics do not change**. Section 9 showed that `limit` and `filter` cannot be swapped arbitrarily.
 
-### 16.3. Parallel Stream không phải mặc định nhanh hơn
+### 16.3. Parallel Streams Are Not Faster by Default
 
 ~~~java
 List<Student> parallelSorted = students.parallelStream()
@@ -855,67 +855,67 @@ List<Student> parallelSorted = students.parallelStream()
     .toList();
 ~~~
 
-Đây là cách viết hợp lệ khi comparator thuần, không can thiệp nguồn và dữ liệu nguồn được sử dụng đúng hợp đồng. Tuy nhiên, `sorted` có thể cần nhiều phối hợp, phân vùng, cấp phát và gộp kết quả. Với danh sách nhỏ như dữ liệu mẫu, parallel thường không có lý do rõ ràng để có lợi.
+This is valid when the comparator is pure, non-interfering, and the source satisfies Stream contracts. However, `sorted` can require substantial coordination, partitioning, allocation, and merging. For small lists like our sample dataset, parallel execution has no clear performance benefit.
 
-Ngoài ra, **không ghi vào một ArrayList dùng chung** bên trong `parallelStream().forEach(list::add)` để tự tạo danh sách sắp xếp. Hãy dùng collector hoặc `toList()` của Stream.
+Also, **never write into a shared `ArrayList`** inside `parallelStream().forEach(list::add)` to build a sorted list manually. Use a collector or Stream's `toList()`.
 
-Muốn quyết định có bật parallel trong sản phẩm hay không, hãy đo trên dữ liệu đại diện, kiểm tra tính đúng sequential/parallel, và cân nhắc tài nguyên CPU, bộ nhớ, băng thông cùng chi phí comparator. Không kết luận từ một lần chạy.
+To decide whether to enable parallel execution in production, benchmark on representative data, verify sequential/parallel equivalence, and consider CPU, memory, bandwidth, and comparator cost. Never draw conclusions from a single run.
 
-## 17. Kiểm thử comparator, không chỉ kiểm tra đầu ra một lần
+## 17. Testing the Comparator, Not Just One Output
 
-Một bài thực hành sắp xếp tốt nên có **kiểm thử mức đơn vị** cho từng tiêu chí và một bộ dữ liệu chứa trường hợp hòa nhau.
+A solid sorting exercise should include **unit-level checks** for every criterion and a dataset containing ties.
 
-### 17.1. Kiểm tra cặp có GPA khác nhau
+### 17.1. Testing a Pair with Different GPAs
 
 ~~~java
-Student higher = new Student("A", "An", "CNTT", 3.9, 40);
-Student lower = new Student("B", "Bình", "CNTT", 3.8, 100);
+Student higher = new Student("A", "An", "IT", 3.9, 40);
+Student lower = new Student("B", "Bình", "IT", 3.8, 100);
 
 if (PRIORITY_ORDER.compare(higher, lower) >= 0) {
-    throw new AssertionError("GPA cao phải đứng trước");
+    throw new AssertionError("Higher GPA must come first");
 }
 ~~~
 
-Mặc dù `lower` có 100 tín chỉ, GPA thấp hơn nên vẫn phải đứng sau.
+Even though `lower` has 100 credits, its lower GPA still places it after `higher`.
 
-### 17.2. Kiểm tra cặp cùng GPA nhưng khác tín chỉ
+### 17.2. Testing a Pair with Equal GPA but Different Credits
 
 ~~~java
 Student moreCredits =
-    new Student("A", "An", "CNTT", 3.8, 70);
+    new Student("A", "An", "IT", 3.8, 70);
 Student fewerCredits =
-    new Student("B", "Bình", "CNTT", 3.8, 60);
+    new Student("B", "Bình", "IT", 3.8, 60);
 
 if (PRIORITY_ORDER.compare(moreCredits, fewerCredits) >= 0) {
-    throw new AssertionError("Tín chỉ nhiều phải đứng trước");
+    throw new AssertionError("More credits must come first");
 }
 ~~~
 
-### 17.3. Kiểm tra tên và mã ở nhóm hòa nhau
+### 17.3. Testing Name and Code in Tied Groups
 
 ~~~java
-Student an = new Student("S09", "An", "CNTT", 3.8, 60);
-Student chi = new Student("S01", "Chi", "CNTT", 3.8, 60);
+Student an = new Student("S09", "An", "IT", 3.8, 60);
+Student chi = new Student("S01", "Chi", "IT", 3.8, 60);
 
 if (PRIORITY_ORDER.compare(an, chi) >= 0) {
-    throw new AssertionError("Tên An phải đứng trước Chi");
+    throw new AssertionError("Name An must come before Chi");
 }
 
 Student binh2 =
-    new Student("S02", "Bình", "CNTT", 3.9, 58);
+    new Student("S02", "Bình", "IT", 3.9, 58);
 Student binh8 =
-    new Student("S08", "Bình", "CNTT", 3.9, 58);
+    new Student("S08", "Bình", "IT", 3.9, 58);
 
 if (PRIORITY_ORDER.compare(binh2, binh8) >= 0) {
-    throw new AssertionError("Mã S02 phải đứng trước S08");
+    throw new AssertionError("Code S02 must come before S08");
 }
 ~~~
 
-Các đoạn trên sử dụng record và `PRIORITY_ORDER` trong lớp `StudentSortingExercise`, không phải các chương trình độc lập. Có thể đưa chúng vào một phương thức `verifyComparator()` và gọi từ `main`; trong dự án thật nên dùng framework unit test như JUnit.
+These snippets rely on the `Student` record and `PRIORITY_ORDER` inside `StudentSortingExercise`, rather than being standalone programs. You can put them into a `verifyComparator()` method called from `main`; in real projects, use a unit testing framework like JUnit.
 
-### 17.4. Kiểm tra tính chất so sánh trên dữ liệu mẫu
+### 17.4. Checking Comparator Properties on Sample Data
 
-Với mọi cặp sinh viên `a`, `b` trong danh sách mẫu:
+For every pair of students `a`, `b` in the sample list:
 
 ~~~java
 for (Student a : students) {
@@ -924,15 +924,15 @@ for (Student a : students) {
         int ba = Integer.signum(PRIORITY_ORDER.compare(b, a));
 
         if (ab != -ba) {
-            throw new AssertionError("Sai phản đối xứng của comparator");
+            throw new AssertionError("Comparator antisymmetry violated");
         }
     }
 }
 ~~~
 
-Đây là kiểm thử đơn giản cho **dấu** kết quả comparator. Để kiểm tra tính bắc cầu, cần xét các bộ ba `a`, `b`, `c` và xác minh quan hệ so sánh; với dữ liệu mẫu nhỏ có thể làm, nhưng việc duyệt mọi bộ ba có chi phí `O(n³)`. Bộ kiểm thử không thể thay thế thiết kế comparator đúng theo hợp đồng.
+This is a simple check on the **sign** of the comparator result. To test transitivity, check triples `a`, `b`, `c` and verify the ordering relation; for small sample data this is feasible, though checking all triples costs `O(n³)`. Tests cannot replace designing a contract-compliant comparator.
 
-### 17.5. Kiểm tra danh sách sau sorted tăng theo comparator
+### 17.5. Checking That the Sorted List Is Non-Decreasing Under the Comparator
 
 ~~~java
 List<Student> ordered = students.stream()
@@ -942,18 +942,18 @@ List<Student> ordered = students.stream()
 for (int i = 1; i < ordered.size(); i++) {
     if (PRIORITY_ORDER.compare(
             ordered.get(i - 1), ordered.get(i)) > 0) {
-        throw new AssertionError("Kết quả không đúng thứ tự");
+        throw new AssertionError("Result is out of order");
     }
 }
 ~~~
 
-Điều kiện quan trọng là cặp kề nhau **không nghịch chiều** theo comparator. Test này phát hiện kết quả chưa được sắp, nhưng phải đi kèm test chính sách GPA/tín chỉ/tên/mã; một comparator sai chiều hoàn toàn vẫn có thể tạo một danh sách “đã sắp” theo comparator sai.
+The invariant is that adjacent pairs are **not inverted** under the comparator. This test catches unsorted output, but it must be paired with GPA/credits/name/code policy tests; a completely backwards comparator would still produce a list that is "sorted" according to the wrong comparator.
 
-## 18. Bài tập mở rộng có lời giải gợi ý
+## 18. Extension Exercises with Suggested Solutions
 
-### Bài A — sinh viên đạt học bổng
+### Exercise A — Scholarship-Eligible Students
 
-**Đề:** chỉ lấy sinh viên GPA từ 3.75 trở lên, ít nhất 55 tín chỉ, sắp theo chính sách ưu tiên và lấy tối đa bốn người.
+**Prompt:** select students with GPA at least 3.75 and at least 55 credits, sort by priority policy, and take at most four students.
 
 ~~~java
 List<String> scholarshipCodes = students.stream()
@@ -968,29 +968,29 @@ System.out.println(scholarshipCodes);
 // [S02, S06, S08, S04]
 ~~~
 
-S09 có GPA 4.00 nhưng **chỉ 40 tín chỉ**, nên bị loại theo điều kiện học bổng. Các sinh viên 3.9 với 58 tín chỉ được xét trước nhóm 3.8. Đây là ví dụ nhắc rằng **điều kiện lọc không phải tiêu chí sắp xếp**.
+S09 has a 4.00 GPA but **only 40 credits**, so S09 is filtered out by the scholarship rule. The 3.9 GPA students with 58 credits come before the 3.8 group. This reminds us that **filter conditions are not sorting criteria**.
 
-### Bài B — tìm sinh viên ưu tiên cao nhất của khoa
+### Exercise B — Finding the Highest-Priority Student in a Major
 
-**Đề:** tìm một sinh viên đứng đầu khoa CNTT theo `PRIORITY_ORDER`. Không được gọi `get()` trực tiếp khi không tìm thấy.
+**Prompt:** find the top-ranked student in the IT major according to `PRIORITY_ORDER`. Do not call `get()` directly if none is found.
 
 ~~~java
 import java.util.Optional;
 
 Optional<Student> bestCntt = students.stream()
-    .filter(s -> s.major().equals("CNTT"))
+    .filter(s -> s.major().equals("IT"))
     .min(PRIORITY_ORDER);
 
 System.out.println(
-    bestCntt.map(Student::code).orElse("Không có")
+    bestCntt.map(Student::code).orElse("None")
 ); // S09
 ~~~
 
-Vì `PRIORITY_ORDER` đặt sinh viên **ưu tiên cao hơn** ở phía **nhỏ hơn** theo dấu comparator, `min(PRIORITY_ORDER)` trả người đứng đầu. Đây là điều dễ bị nhầm khi comparator đã đảo chiều.
+Because `PRIORITY_ORDER` places **higher-priority** students **earlier** (smaller in comparator sign), `min(PRIORITY_ORDER)` returns the top student. This is easy to get backwards when comparators are reversed.
 
-### Bài C — thống kê số sinh viên theo khoa
+### Exercise C — Student Count Statistics by Major
 
-**Đề:** đếm số sinh viên theo khoa, rồi sắp xếp các dòng thống kê theo **số lượng giảm dần**, nếu bằng nhau thì **tên khoa tăng dần**.
+**Prompt:** count students by major, then sort summary lines by **count descending**, breaking ties by **major name ascending**.
 
 ~~~java
 Map<String, Long> counts = students.stream()
@@ -1013,19 +1013,19 @@ sortedCounts.forEach(entry ->
 );
 ~~~
 
-Kết quả dữ liệu mẫu:
+Sample data output:
 
 ~~~text
-CNTT: 7
-Kinh tế: 2
-Ngôn ngữ: 1
+IT: 7
+Economics: 2
+Languages: 1
 ~~~
 
-Ví dụ này chuyển từ `Stream<Student>` sang `Stream<Map.Entry<String, Long>>`. Comparator vẫn ghép nhiều tiêu chí như bài chính, nhưng **trường so sánh đã thay đổi**: số lượng và tên khoa.
+This example switches from `Stream<Student>` to `Stream<Map.Entry<String, Long>>`. The comparator still chains multiple criteria like the main lesson, but the **compared fields changed**: count and major name.
 
-### Bài D — tìm người nhiều tín chỉ nhất
+### Exercise D — Finding the Student with the Most Credits
 
-**Đề:** không cần sắp xếp cả danh sách; chỉ tìm sinh viên có số tín chỉ cao nhất.
+**Prompt:** without sorting the whole list, find only the student with the highest credit count.
 
 ~~~java
 Optional<Student> mostCredits = students.stream()
@@ -1033,18 +1033,18 @@ Optional<Student> mostCredits = students.stream()
         .thenComparing(Student::code));
 
 System.out.println(
-    mostCredits.map(Student::code).orElse("Không có")
+    mostCredits.map(Student::code).orElse("None")
 ); // S10
 ~~~
 
-`max` tìm giá trị lớn nhất theo comparator đã cung cấp. Khi chỉ cần một phần tử cực trị, nó thường phù hợp hơn việc `sorted(...).findFirst()` để sắp xếp cả nguồn.
+`max` finds the greatest element under the supplied comparator. When only a single extremum is needed, it is usually preferable to sorting the entire source with `sorted(...).findFirst()`.
 
-## 19. Review code: tìm lỗi trước khi giao bài
+## 19. Code Review: Spot the Bugs Before Shipping
 
-Đoạn code sau **cố ý chứa sai sót**:
+The snippet below **intentionally contains flaws**:
 
 ~~~java
-// Đoạn code để phân tích, không phải lời giải đúng.
+// Code for analysis, not a correct solution.
 List<Student> result = students.parallelStream()
     .sorted(
         Comparator.comparingDouble(Student::gpa)
@@ -1056,17 +1056,17 @@ List<Student> result = students.parallelStream()
     .toList();
 ~~~
 
-Hãy tìm các vấn đề:
+Identify the issues:
 
-1. `reversed()` áp dụng lên **toàn comparator**, khiến các tiêu chí phụ cũng giảm dần.
-2. Không có tiêu chí mã sinh viên để phá hòa sau tên, nên thứ tự các sinh viên trùng các tiêu chí có thể phụ thuộc encounter order.
-3. Không có kiểm tra GPA hợp lệ nếu mô hình dữ liệu cho phép `NaN` hoặc vô cực.
-4. `parallelStream()` chưa có lý do hiệu năng; `sorted` là thao tác có trạng thái cần tổ chức dữ liệu toàn cục.
-5. Nếu mục tiêu là top 3 sinh viên của **một khoa**, đoạn này còn thiếu `filter` trước `sorted`.
-6. Dùng `String.compareTo` có thể không phù hợp yêu cầu tên tiếng Việt theo locale cụ thể.
-7. `limit(3)` không tự bảo đảm `sorted` chỉ kiểm tra ba phần tử.
+1. `reversed()` applies to the **entire comparator**, causing secondary criteria to become descending as well.
+2. There is no student code tie-breaker after name, so tied students may depend on encounter order.
+3. No GPA validation if the data model allows `NaN` or infinity.
+4. `parallelStream()` lacks performance justification; `sorted` is stateful and must organize elements globally.
+5. If the goal is the top 3 students of **one major**, a `filter` before `sorted` is missing.
+6. Using `String.compareTo` may not match locale-specific Vietnamese name sorting rules.
+7. `limit(3)` does not guarantee `sorted` inspects only three elements.
 
-Bản sửa cho chính sách **top 3 toàn trường**:
+Fixed version for the **school-wide top 3** policy:
 
 ~~~java
 List<Student> corrected = students.stream()
@@ -1079,51 +1079,51 @@ System.out.println(
 ); // [S09, S02, S06]
 ~~~
 
-Code dễ review hơn vì **quy tắc sắp xếp được đặt tên** và dùng chung trong các màn hình, thay vì lặp một biểu thức comparator dài có nguy cơ sai chỗ đảo chiều.
+The code is easier to review because **the sorting policy is named** and reused across screens, rather than repeating a long comparator expression prone to misplaced reversals.
 
-## 20. Checklist hoàn thành bài thực hành
+## 20. Completion Checklist
 
-| Câu hỏi kiểm tra | Dấu hiệu đạt |
+| Check Question | Sign of Readiness |
 |---|---|
-| Đã định nghĩa **thứ tự ưu tiên các trường**? | GPA ↓, tín chỉ ↓, tên ↑, mã ↑ |
-| Mỗi chiều sắp xếp được đảo **đúng phạm vi**? | Không có `reversed()` vô tình đảo cả chuỗi |
-| Comparator có nhất quán và không phụ thuộc trạng thái ngoài? | Hàm chỉ đọc trường đã xác thực |
-| Đầu vào có xử lý GPA `NaN` và vô cực? | Có chính sách từ chối/chuẩn hóa |
-| Tên và mã có thể `null`? | Mô hình hoặc comparator xử lý rõ ràng |
-| Danh sách nguồn có bị sửa ngoài ý muốn không? | Dùng `stream().sorted(...).toList()` |
-| Top N có lọc đúng **trước khi** lấy giới hạn? | Pipeline phản ánh nghiệp vụ |
-| Có test cho các trường hợp đồng GPA, đồng tín chỉ, đồng tên? | Test thứ tự S02/S06/S08 và S07/S03 |
-| Có phân biệt **vị trí dòng** với **hạng đồng hạng**? | Chính sách rank được xác nhận riêng |
-| Có cần sắp xếp tên theo tiếng Việt thực sự? | Chọn và kiểm thử collation theo yêu cầu |
-| Có xử lý danh sách rỗng hoặc khoa không có người? | Trả List rỗng/Optional rỗng đúng nghĩa |
-| Dữ liệu lớn có làm `sorted` tốn tài nguyên? | Đo trước khi tối ưu; cân nhắc top-k |
-| Bật parallel có đủ lý do và kết quả vẫn đúng? | Test và benchmark trên workload đại diện |
-| API kết quả có cam kết khả năng sửa List không? | Chọn `toList`/`toCollection` đúng yêu cầu |
+| Have you defined the **field priority order**? | GPA ↓, credits ↓, name ↑, code ↑ |
+| Is each sort direction reversed in the **right scope**? | No `reversed()` accidentally flipping the whole chain |
+| Is the comparator consistent and independent of external state? | Only reads validated fields |
+| Does input handling guard against `NaN` and infinite GPAs? | Rejection or normalization policy exists |
+| Can name and code be `null`? | Model or comparator handles nulls explicitly |
+| Is the source list protected from unintended mutation? | Uses `stream().sorted(...).toList()` |
+| Does Top N filter properly **before** limiting? | Pipeline matches business wording |
+| Are there tests for tied GPA, tied credits, and tied names? | Tests order of S02/S06/S08 and S07/S03 |
+| Are **row positions** distinguished from **tied ranks**? | Ranking policy confirmed separately |
+| Is linguistic Vietnamese name sorting required? | Collation chosen and tested against requirements |
+| Are empty lists or majors with zero students handled? | Returns empty List/Optional meaningfully |
+| Does large data make `sorted` expensive? | Measure before optimizing; consider top-k |
+| If parallel is enabled, is it justified and still accurate? | Tested and benchmarked on representative workload |
+| Does the result API specify list mutability? | Chooses `toList`/`toCollection` appropriately |
 
-## 21. Câu hỏi tự kiểm tra
+## 21. Self-Check Questions
 
-1. `Stream.sorted(comparator)` có sửa List đầu vào không? — **Không**, nó tạo pipeline kết quả sắp xếp; List gốc không bị đổi thứ tự.
-2. `Comparator.comparingDouble(Student::gpa).reversed()` ưu tiên điểm nào? — **GPA cao hơn**.
-3. Vì sao nên dùng `thenComparing(Comparator.comparingInt(Student::credits).reversed())`? — Để đảo **riêng tiêu chí tín chỉ** mà không đảo lại GPA hoặc tiêu chí phía trước.
-4. `thenComparing` chạy lúc nào? — Khi các tiêu chí trước so sánh bằng 0.
-5. `Comparator.compare(a, b)` có buộc trả đúng `-1`, `0` hoặc `1` không? — **Không**, chỉ có dấu âm/0/dương là quan trọng.
-6. Record `Student` có tự hỗ trợ `sorted()` không comparator không? — **Không**, record không mặc định triển khai `Comparable`.
-7. `String.CASE_INSENSITIVE_ORDER` có bảo đảm xếp đúng theo ngôn ngữ tiếng Việt không? — **Không**; có thể cần collator theo locale.
-8. `sorted().limit(3)` có chắc chỉ nhìn ba phần tử không? — **Không**, sắp xếp thường cần xem toàn bộ nguồn hữu hạn.
-9. `filter(...).sorted().limit(5)` có cùng nghĩa `sorted().limit(5).filter(...)` không? — **Không**.
-10. `Stream.toList()` trả List có thể gọi `add` không? — **Không**, danh sách kết quả không thể sửa.
-11. `sorted` có loại trùng không? — **Không**, hai phần tử trùng vẫn được giữ.
-12. `distinct` có mặc nhiên loại bản ghi trùng `code` không? — **Không**, nó dùng `equals`/`hashCode` của phần tử.
-13. `min(PRIORITY_ORDER)` trả người ưu tiên thấp nhất hay cao nhất? — **Cao nhất**, vì comparator đưa người ưu tiên hơn về phía nhỏ hơn.
-14. Một `HashSet` không có encounter order có bảo đảm thứ tự phần tử đồng hạng sau `sorted` không? — **Không** nếu comparator không phân biệt họ.
-15. Có nên bật `parallelStream` cho 10 sinh viên mẫu để chắc chắn nhanh hơn không? — **Không**, chi phí phối hợp có thể vượt lợi ích.
-16. Vì sao thêm mã sinh viên làm tiêu chí cuối? — Giúp kết quả hiển thị **xác định** giữa các bản ghi khác nhau nếu mã là duy nhất.
+1. Does `Stream.sorted(comparator)` mutate the input List? — **No**, it produces a sorted result pipeline; the original List order is unchanged.
+2. Which score does `Comparator.comparingDouble(Student::gpa).reversed()` prioritize? — **Higher GPA**.
+3. Why use `thenComparing(Comparator.comparingInt(Student::credits).reversed())`? — To reverse **only the credits criterion** without flipping GPA or prior criteria.
+4. When does `thenComparing` execute? — When all preceding comparisons return 0.
+5. Must `Comparator.compare(a, b)` return exactly `-1`, `0`, or `1`? — **No**, only negative/0/positive sign matters.
+6. Does the `Student` record automatically support no-arg `sorted()`? — **No**, records do not implement `Comparable` by default.
+7. Does `String.CASE_INSENSITIVE_ORDER` guarantee linguistically accurate Vietnamese sorting? — **No**; a locale-aware `Collator` may be needed.
+8. Does `sorted().limit(3)` inspect only three elements? — **No**, sorting generally must inspect the entire finite source.
+9. Does `filter(...).sorted().limit(5)` mean the same thing as `sorted().limit(5).filter(...)`? — **No**.
+10. Can you call `add` on the List returned by `Stream.toList()`? — **No**, the returned list is unmodifiable.
+11. Does `sorted` remove duplicates? — **No**, duplicate elements are retained.
+12. Does `distinct` automatically deduplicate records by `code`? — **No**, it uses element `equals`/`hashCode`.
+13. Does `min(PRIORITY_ORDER)` return the lowest-priority or highest-priority student? — **Highest-priority**, because the comparator orders higher-priority students as smaller.
+14. Does an unordered `HashSet` guarantee the order of tied elements after `sorted`? — **No** if the comparator does not distinguish them.
+15. Should you enable `parallelStream` on 10 sample students expecting it to be faster? — **No**, coordination overhead can outweigh any gain.
+16. Why add student code as the final criterion? — It makes display order **deterministic** among distinct records when codes are unique.
 
-## 22. Tổng kết: ưu tiên quy tắc rõ hơn biểu thức ngắn
+## 22. Summary: Prefer Explicit Policies Over Clever One-Liners
 
-Bài toán sắp xếp danh sách sinh viên có nhiều tiêu chí không chỉ kiểm tra cú pháp `sorted`. Phần quan trọng là **chuyển quy tắc nghiệp vụ thành Comparator có thứ tự ưu tiên rõ ràng**, rồi bảo đảm dữ liệu và thao tác Stream thực sự tuân theo quy tắc đó.
+Sorting a student list by multiple criteria tests more than `sorted` syntax. The crucial skill is **translating business rules into a Comparator with a clear priority hierarchy**, then ensuring both the data and Stream operations truly honor those rules.
 
-Công thức cần nhớ:
+Formula to remember:
 
 ~~~java
 Comparator<Student> order =
@@ -1142,6 +1142,6 @@ List<Student> result = students.stream()
     .toList();
 ~~~
 
-Khi mở rộng ứng dụng, hãy kiểm tra **tie-breaker**, **null/GPA không hợp lệ**, **thứ tự lọc và giới hạn**, **định nghĩa rank**, **khả năng sửa đầu ra** và **chi phí của sắp xếp toàn cục**. Nếu cần nhóm theo khoa, dùng `groupingBy` với downstream sắp xếp; nếu chỉ cần một phần tử tốt nhất, cân nhắc `min` hoặc `max` thay vì sort toàn bộ.
+As applications grow, check **tie-breakers**, **null/invalid GPAs**, **filter and limit ordering**, **rank definitions**, **output mutability**, and **global sorting cost**. When grouping by major, use `groupingBy` with a sorting downstream; when only one best element is needed, prefer `min` or `max` over sorting everything.
 
-Giữ các quy tắc này minh bạch giúp bạn xây pipeline Java Stream API chính xác, dễ bảo trì và dễ kiểm thử, đồng thời chuẩn bị cho các bài toán nâng cao về `collect`, collector tùy chỉnh, `Spliterator`, parallel Stream và Stream Gatherers.
+Keeping these rules explicit helps you write Java Stream API pipelines that are accurate, maintainable, and testable, preparing you for advanced topics like `collect`, custom collectors, `Spliterator`, parallel Streams, and Stream Gatherers.

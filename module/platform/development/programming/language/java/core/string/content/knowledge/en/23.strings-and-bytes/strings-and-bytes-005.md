@@ -1,40 +1,40 @@
-# Charset mặc định và ảnh hưởng của môi trường, phiên bản JDK
+# Default Charset and the Impact of Environment and JDK Version
 
-## 1. Vì sao charset mặc định quan trọng?
+## 1. Why Does the Default Charset Matter?
 
-Trong Java, `String` chứa các ký tự Unicode; còn file, socket, thông điệp và nhiều API I/O trao đổi **byte**. **Encoding** biến ký tự thành byte; **decoding** biến byte thành ký tự. Một dãy byte chỉ có thể được giải mã đúng khi phía đọc dùng đúng charset mà phía ghi đã dùng.
+In Java, `String` holds Unicode characters; files, sockets, messages, and many I/O APIs exchange **bytes**. **Encoding** turns characters into bytes; **decoding** turns bytes into characters. A byte sequence can only be decoded accurately when the reader uses the same charset that the writer used.
 
-**Charset mặc định** (*default charset*) của một JVM được lấy bằng `Charset.defaultCharset()`. Một số API tự sử dụng charset này khi lập trình viên không truyền đối số `Charset` hay tên encoding. Vì vậy, cùng một mã nguồn có thể ghi ra những byte khác nhau, hoặc đọc cùng một file ra kết quả khác nhau, khi đổi máy chạy hay phiên bản JDK.
+The **default charset** of a JVM is obtained via `Charset.defaultCharset()`. Certain APIs automatically use this charset when the developer omits a `Charset` argument or encoding name. Consequently, the exact same source code can write different bytes, or read the same file with different results, when moving across machines or JDK versions.
 
-Ví dụ, chữ `é` trong UTF-8 có hai byte hex `C3 A9`; trong ISO-8859-1 chỉ có một byte `E9`. Đọc hai byte UTF-8 `C3 A9` dưới ISO-8859-1 sẽ tạo ra hai ký tự `Ã©` thay vì một ký tự `é` — một dạng **mojibake** (chữ bị lỗi mã hóa). Nếu charset không thể biểu diễn một ký tự khi ghi, tùy API/cấu hình bộ mã hóa, ký tự có thể bị thay thế hoặc thao tác có thể phát sinh lỗi; không nên mặc định rằng mọi chuyển đổi đều bảo toàn dữ liệu.
+For example, the letter `é` in UTF-8 has two hex bytes `C3 A9`; in ISO-8859-1 it has only one byte `E9`. Reading the two UTF-8 bytes `C3 A9` as ISO-8859-1 produces two characters `Ã©` instead of one character `é` — a form of **mojibake** (garbled text due to encoding mismatch). If a charset cannot represent a character during writing, depending on the API or encoder configuration, the character may be replaced or the operation may fail; never assume every conversion preserves data.
 
-Phân biệt ba điều:
+Distinguish three things:
 
-- `String.length()` đếm số *UTF-16 code unit*, không đếm byte UTF-8 và cũng không nhất thiết bằng số ký tự người dùng nhìn thấy.
-- `s.getBytes(charset).length` là số byte thực tế sau khi mã hóa bằng charset được chỉ định.
-- Charset mặc định chỉ có ý nghĩa với những API **thực sự sử dụng** nó. Một API đã quy định UTF-8 hoặc đã nhận charset tường minh thì không phụ thuộc vào default charset.
+- `String.length()` counts *UTF-16 code units*, not UTF-8 bytes and not necessarily the number of user-perceived characters.
+- `s.getBytes(charset).length` is the actual byte count after encoding with the specified charset.
+- The default charset only matters for APIs that **actually use** it. An API that specifies UTF-8 or takes an explicit charset does not depend on the default charset.
 
-## 2. Quy tắc theo phiên bản JDK
+## 2. Rules by JDK Version
 
-| Phiên bản | Charset mặc định thông thường | Hệ quả |
+| Version | Typical Default Charset | Consequence |
 | --- | --- | --- |
-| JDK 17 trở xuống | Phụ thuộc hệ điều hành, locale, cấu hình môi trường tại lúc JVM khởi động; nhiều máy Linux/macOS thường dùng UTF-8, một số môi trường Windows dùng mã trang như `windows-1252` | Ứng dụng bỏ qua đối số charset có thể chạy khác nhau giữa các máy. |
-| JDK 18 trở lên (JEP 400) | **UTF-8** là mặc định cho Java SE APIs có sử dụng default charset, ngoại trừ trường hợp cấu hình tương thích được hỗ trợ | Kết quả có tính nhất quán cao hơn giữa hệ điều hành; nhưng dữ liệu cũ ở charset khác có thể bị đọc sai. |
+| JDK 17 and earlier | Depends on OS, locale, and environment configuration at JVM startup; many Linux/macOS machines use UTF-8, while some Windows environments use code pages like `windows-1252` | Applications omitting the charset argument can behave differently across machines. |
+| JDK 18 and later (JEP 400) | **UTF-8** is the default for Java SE APIs that use the default charset, unless a supported compatibility configuration is set | Higher consistency across operating systems; however, legacy data in other charsets may be misread. |
 
-JEP 400 (**UTF-8 by Default**) có hiệu lực từ **JDK 18**. Sự thay đổi này liên quan đến **charset mặc định của JVM**, không có nghĩa là mọi file trên hệ thống tự đổi sang UTF-8, mọi thư viện đều mặc định UTF-8, hay mọi byte tùy ý đều là UTF-8 hợp lệ.
+JEP 400 (**UTF-8 by Default**) took effect in **JDK 18**. This change affects the **JVM's default charset**; it does not mean every file on disk automatically converts to UTF-8, every third-party library defaults to UTF-8, or arbitrary bytes are valid UTF-8.
 
-Trên JDK 18+, các lựa chọn được hỗ trợ khi khởi động JVM gồm:
+On JDK 18+, supported options when launching the JVM include:
 
-- `-Dfile.encoding=UTF-8`: dùng UTF-8 làm default charset.
-- `-Dfile.encoding=COMPAT`: chọn default charset theo cách tương thích với JDK 17 trở xuống, thường lấy encoding của môi trường hệ thống.
+- `-Dfile.encoding=UTF-8`: use UTF-8 as the default charset.
+- `-Dfile.encoding=COMPAT`: select the default charset in a way compatible with JDK 17 and earlier, typically picking up the host environment's encoding.
 
-`COMPAT` được giới thiệu để hỗ trợ chuyển đổi sang JDK 18+, **không nên coi là tùy chọn tương đương trên JDK 17**. Những giá trị `file.encoding` khác `UTF-8` và `COMPAT` không được hỗ trợ theo đặc tả của JDK mới; tránh dựa vào hành vi riêng của một bản JDK.
+`COMPAT` was introduced to ease migration to JDK 18+; **do not assume it behaves identically on JDK 17**. `file.encoding` values other than `UTF-8` and `COMPAT` are unsupported under the newer JDK specification; avoid relying on behavior specific to one JDK build.
 
-JDK 17 đưa vào thuộc tính `native.encoding` để quan sát encoding của môi trường host. Trên JDK 18+, `Charset.defaultCharset()` có thể là UTF-8 dù `native.encoding` cho biết một charset khác. `file.encoding` là tùy chọn cấu hình lúc khởi động; **đừng gọi `System.setProperty("file.encoding", "...")` giữa chừng rồi kỳ vọng mọi bộ đọc/ghi và default charset đổi đồng bộ**.
+JDK 17 introduced the `native.encoding` property to observe the host environment's encoding. On JDK 18+, `Charset.defaultCharset()` can be UTF-8 even when `native.encoding` reports a different charset. `file.encoding` is a startup configuration property; **do not call `System.setProperty("file.encoding", "...")` mid-execution and expect readers, writers, and the default charset to switch consistently**.
 
-## 3. API nào chịu ảnh hưởng, API nào không?
+## 3. Which APIs Are Affected and Which Are Not?
 
-| Viết theo charset mặc định (phụ thuộc JDK/môi trường) | Phiên bản tường minh, ổn định |
+| Written with Default Charset (JDK/Environment Dependent) | Explicit, Stable Version |
 | --- | --- |
 | `text.getBytes()` | `text.getBytes(StandardCharsets.UTF_8)` |
 | `new String(bytes)` | `new String(bytes, StandardCharsets.UTF_8)` |
@@ -43,21 +43,21 @@ JDK 17 đưa vào thuộc tính `native.encoding` để quan sát encoding của
 | `new FileReader(file)` | `new FileReader(file, StandardCharsets.UTF_8)` |
 | `new FileWriter(file)` | `new FileWriter(file, StandardCharsets.UTF_8)` |
 
-`StandardCharsets.UTF_8` là hằng số trong `java.nio.charset` và luôn biểu diễn UTF-8. Khi tài liệu hoặc giao thức yêu cầu charset khác (ví dụ file lịch sử dùng `windows-1252`), hãy chỉ định **đúng charset đó** ở cả hai phía thay vì cố ép mọi dữ liệu thành UTF-8.
+`StandardCharsets.UTF_8` is a constant in `java.nio.charset` and always represents UTF-8. When a document or protocol requires a different charset (such as legacy files in `windows-1252`), specify **that exact charset** on both sides instead of forcing everything to UTF-8.
 
-Một số phương thức `java.nio.file.Files` đã chọn UTF-8 **ngay cả trước JDK 18** khi không truyền charset, chẳng hạn:
+Several `java.nio.file.Files` methods already chose UTF-8 **even before JDK 18** when no charset was passed, such as:
 
 - `Files.readString(path)`, `Files.writeString(path, text)`;
 - `Files.newBufferedReader(path)`, `Files.newBufferedWriter(path)`;
 - `Files.readAllLines(path)`.
 
-Do đó, đừng suy luận rằng mọi overload thiếu đối số charset đều dùng `Charset.defaultCharset()`. Cần đọc hợp đồng của **chính overload đang gọi**. Với dữ liệu nhị phân, `Files.readAllBytes(path)` chỉ trả về byte, không giải mã và không sử dụng charset.
+Therefore, do not assume every overload lacking a charset parameter uses `Charset.defaultCharset()`. Read the contract of the **exact overload being called**. For binary data, `Files.readAllBytes(path)` simply returns bytes without decoding or using a charset.
 
-**Ngoại lệ quan trọng:** `System.out` và `System.err` có thể dùng encoding gắn với console/standard streams, khác với `Charset.defaultCharset()`. Trên JDK mới, `Console.charset()` và các thuộc tính liên quan đến stdout/stderr hỗ trợ quan sát cấu hình này. Việc chữ hiển thị sai trong terminal chưa đủ để kết luận byte trong file sai; hãy kiểm tra riêng encoding của file, luồng và terminal.
+**Important exception:** `System.out` and `System.err` may use an encoding tied to the console/standard streams, differing from `Charset.defaultCharset()`. On newer JDKs, `Console.charset()` and properties related to stdout/stderr help inspect this setup. Garbled text in a terminal alone does not prove the bytes in a file are wrong; inspect file, stream, and terminal encodings separately.
 
-## 4. Ví dụ Java 17+: byte cố định, charset mặc định thay đổi theo JVM
+## 4. Java 17+ Example: Fixed Bytes vs. JVM-Dependent Default Charset
 
-Tạo file **`DefaultCharsetDemo.java`** (lưu mã nguồn bằng UTF-8):
+Create **`DefaultCharsetDemo.java`** (save the source file as UTF-8):
 
 ```java
 import java.nio.charset.Charset;
@@ -89,14 +89,14 @@ public class DefaultCharsetDemo {
 }
 ```
 
-Biên dịch/chạy từ terminal tại thư mục chứa file:
+Compile and run from the terminal in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 DefaultCharsetDemo.java
 java DefaultCharsetDemo
 ```
 
-**Năm dòng đầu có kết quả xác định** trên Java 17+:
+**The first five lines have deterministic output** on Java 17+:
 
 ```text
 String.length(): 2
@@ -106,83 +106,83 @@ UTF-8 round trip correct: true
 ISO-8859-1 decode same text: false
 ```
 
-Các dòng phía sau **phụ thuộc phiên bản JDK, môi trường và tham số khởi động**. Chẳng hạn với JDK 18+ ở chế độ mặc định, `Default charset: UTF-8` và `Default bytes match UTF-8: true`; `native.encoding` có thể giống hoặc khác UTF-8 tùy máy. Không có một stdout chính xác chung cho `file.encoding` và `native.encoding` trên mọi hệ điều hành.
+The remaining lines **depend on the JDK version, environment, and startup flags**. For example, on JDK 18+ with default settings, `Default charset: UTF-8` and `Default bytes match UTF-8: true`; `native.encoding` may match or differ from UTF-8 depending on the machine. There is no single exact stdout for `file.encoding` and `native.encoding` across all operating systems.
 
-Với JDK 18+ có thể chạy thêm:
+With JDK 18+, you can also run:
 
 ```bash
 java -Dfile.encoding=UTF-8 DefaultCharsetDemo
 java -Dfile.encoding=COMPAT DefaultCharsetDemo
 ```
 
-Ở máy có native encoding khác UTF-8, lần chạy `COMPAT` giúp quan sát khác biệt. Nếu native encoding vốn đã là UTF-8 thì hai lần chạy có thể cho cùng kết quả `Default bytes match UTF-8: true`. Với JDK 17, có thể thử `java -Dfile.encoding=UTF-8 DefaultCharsetDemo` để kiểm tra ứng dụng trước khi nâng cấp, nhưng chỉ dùng `COMPAT` trên JDK 18+.
+On a machine whose native encoding is not UTF-8, the `COMPAT` run reveals the difference. If the native encoding is already UTF-8, both runs may produce `Default bytes match UTF-8: true`. On JDK 17, you can test `java -Dfile.encoding=UTF-8 DefaultCharsetDemo` to evaluate an application before upgrading, but only use `COMPAT` on JDK 18+.
 
-**Giải thích:** `"Aé"` có hai UTF-16 code unit nhưng thành ba byte UTF-8 (`41 C3 A9`). Giải mã cùng byte UTF-8 bằng ISO-8859-1 tạo ra chuỗi khác; ghi và đọc phải thống nhất charset. `text.getBytes()` ở cuối ví dụ cố ý dùng overload mặc định để thấy điểm rủi ro; trong mã ứng dụng nên ưu tiên overload truyền charset.
+**Explanation:** `"Aé"` has two UTF-16 code units yet becomes three UTF-8 bytes (`41 C3 A9`). Decoding the same UTF-8 bytes as ISO-8859-1 produces a different string; writing and reading must agree on the charset. `text.getBytes()` at the end of the example intentionally uses the default overload to highlight the risk; in application code, prefer the overload taking an explicit charset.
 
-## 5. Ghi/đọc file với charset được chỉ định
+## 5. Writing and Reading Files with a Specified Charset
 
-Đoạn sau là **mã minh họa đặt bên trong một phương thức có `throws IOException`**, với các import `java.nio.file.Files`, `java.nio.file.Path` và `java.nio.charset.StandardCharsets`:
+The snippet below is **illustrative code placed inside a method declaring `throws IOException`**, with imports `java.nio.file.Files`, `java.nio.file.Path`, and `java.nio.charset.StandardCharsets`:
 
 ```java
 Path path = Path.of("message.txt");
-String message = "Xin chào Việt Nam";
+String message = "Hello, Java";
 
 Files.writeString(path, message, StandardCharsets.UTF_8);
 String restored = Files.readString(path, StandardCharsets.UTF_8);
 System.out.println(message.equals(restored)); // true
 ```
 
-`Files.writeString` ghi ký tự thành byte UTF-8, còn `Files.readString` đọc chúng bằng UTF-8, không phụ thuộc vào default charset của JVM. Nếu thiếu đối số charset ở **hai phương thức cụ thể này**, mặc định của chúng vẫn là UTF-8. Khi file đến từ hệ thống ngoài, trước tiên phải biết charset thật của nguồn: chọn UTF-8 cho dữ liệu UTF-8; dùng charset khác nếu đặc tả nguồn quy định khác. Không tự động chuyển một file cũ sang UTF-8 chỉ bằng cách thay đổi tham số JVM.
+`Files.writeString` writes characters as UTF-8 bytes, and `Files.readString` reads them as UTF-8, independent of the JVM's default charset. If the charset argument is omitted in **these two specific methods**, their default is still UTF-8. When a file comes from an external system, first determine the actual source charset: choose UTF-8 for UTF-8 data, or another charset if the source specification dictates it. Do not automatically treat a legacy file as UTF-8 merely by changing JVM flags.
 
-Một luồng byte cũng có thể được khai báo encoding rõ ràng:
+A byte stream can also declare its encoding explicitly:
 
 ```java
-// Hai dòng minh họa độc lập về ý tưởng, cần có in/out phù hợp.
+// Two standalone conceptual lines; valid in/out streams are required.
 var reader = new java.io.InputStreamReader(in, StandardCharsets.UTF_8);
 var writer = new java.io.OutputStreamWriter(out, StandardCharsets.UTF_8);
 ```
 
-Trong ứng dụng thực, `in` và `out` là các `InputStream`/`OutputStream` đang được quản lý vòng đời (thường dùng `try-with-resources`); charset phải tương ứng với giao thức và dữ liệu nguồn.
+In real applications, `in` and `out` are managed `InputStream`/`OutputStream` instances (typically using `try-with-resources`); the charset must match the protocol and source data.
 
-## 6. Khi nâng cấp JDK hoặc chuyển môi trường, lỗi nào dễ xuất hiện?
+## 6. When Upgrading JDK or Changing Environments, Which Bugs Surface Easily?
 
-**Tình huống 1 — file cũ dùng charset của Windows.** Một ứng dụng chạy trên JDK 17 ghi file bằng `new FileWriter(file)` khi default charset là `windows-1252`. Sang JDK 21, `new FileReader(file)` thường giải mã với UTF-8. Nếu file chứa byte không phải UTF-8 hợp lệ, tùy API có thể gặp ký tự thay thế hoặc lỗi đọc; nếu dãy byte hợp lệ nhưng mang nghĩa khác, có thể thấy chữ sai. Cách xử lý đúng là xác định encoding gốc của file, đọc bằng charset đó rồi, nếu cần, **chuyển mã có kiểm tra** sang UTF-8.
+**Scenario 1 — legacy files using a Windows charset.** An application running on JDK 17 writes files with `new FileWriter(file)` when the default charset is `windows-1252`. After moving to JDK 21, `new FileReader(file)` typically decodes with UTF-8. If the file contains bytes that are not valid UTF-8, depending on the API, replacement characters or read errors may occur; if the bytes happen to be valid UTF-8 with a different meaning, wrong text appears. The right fix is to identify the file's original encoding, read it with that charset, and if needed, **perform a checked conversion** to UTF-8.
 
-**Tình huống 2 — trao đổi byte giữa dịch vụ.** Dịch vụ A dùng `getBytes()` để gửi bản tin, dịch vụ B dùng `new String(bytes)` để nhận. Nếu default charset khác nhau, bản tin có thể sai hoặc mất dữ liệu. Hãy định nghĩa charset trong hợp đồng giao tiếp (thường UTF-8) và dùng rõ ràng ở cả bên gửi lẫn nhận.
+**Scenario 2 — byte exchange between services.** Service A uses `getBytes()` to send a message, and Service B uses `new String(bytes)` to receive it. If their default charsets differ, messages can be corrupted or lose data. Define the charset in the communication contract (usually UTF-8) and pass it explicitly on both sender and receiver.
 
-**Tình huống 3 — test chạy ổn trên máy lập trình nhưng lỗi tại CI/container.** Image hệ điều hành, locale hoặc bản JDK khác làm thay đổi default charset (đặc biệt với JDK 17 trở xuống). Test chỉ có ASCII có thể vẫn xanh vì nhiều charset mã hóa ASCII giống nhau. Bổ sung dữ liệu có dấu tiếng Việt, ký tự ngoài ASCII và kiểm tra **byte đầu ra** cùng kết quả giải mã.
+**Scenario 3 — tests pass on a developer machine but fail in CI/containers.** Different OS images, locales, or JDK versions change the default charset (especially on JDK 17 and earlier). ASCII-only tests can stay green because many charsets encode ASCII identically. Add data with Vietnamese diacritics and non-ASCII characters, and verify both **output bytes** and decoded results.
 
-**Tình huống 4 — nguồn Java và terminal.** File `.java` được lưu theo mã cũ có thể bị `javac` giải mã không đúng nếu encoding biên dịch đổi. Dùng `javac -encoding UTF-8` khi source ở UTF-8; kiểm tra encoding của IDE/build tool. Terminal có thể hiển thị sai dù bytes được mã hóa đúng, nên không lấy vẻ ngoài của console làm phép thử duy nhất.
+**Scenario 4 — Java source files and terminal.** `.java` files saved in a legacy encoding may be misdecoded by `javac` if the compiler encoding changes. Pass `javac -encoding UTF-8` when source files are UTF-8; check IDE/build tool encoding settings. A terminal can display characters incorrectly even when bytes are properly encoded, so never use console appearance as the sole test.
 
-## 7. Chẩn đoán và chuyển đổi an toàn
+## 7. Diagnosis and Safe Migration
 
-Có thể xem cấu hình của JVM bằng:
+You can inspect the JVM configuration with:
 
 ```bash
 java -XshowSettings:properties -version
 ```
 
-Trong kết quả, chú ý `file.encoding` và (khi có) `native.encoding`. Trong ứng dụng, in `Charset.defaultCharset().name()` như ví dụ trên để biết charset mặc định **thực tế**. Với JDK 18+, so sánh lần chạy mặc định với `-Dfile.encoding=COMPAT` để phát hiện chỗ phụ thuộc vào mã trang cũ. Với JDK 17, thử `-Dfile.encoding=UTF-8` để chuẩn bị nâng cấp.
+In the output, pay attention to `file.encoding` and (when available) `native.encoding`. Inside the application, print `Charset.defaultCharset().name()` as shown above to see the **actual** default charset. On JDK 18+, compare a default run against `-Dfile.encoding=COMPAT` to uncover dependencies on legacy code pages. On JDK 17, test with `-Dfile.encoding=UTF-8` to prepare for upgrading.
 
-Quy trình xử lý một lỗi mojibake:
+Steps to investigate and fix a mojibake bug:
 
-1. Xác định byte **gốc** ở nguồn (đọc hex hoặc log byte); giữ lại bản gốc trước khi sửa.
-2. Xác định charset do format, giao thức, header hoặc hệ thống tạo file quy định. Nếu không có hợp đồng, cần điều tra thay vì tin rằng mặc định của JVM có thể “đoán” đúng.
-3. Giải mã bằng charset gốc **một lần**, kiểm tra các ký tự đặc trưng và trường hợp dữ liệu không hợp lệ.
-4. Khi cần chuẩn hóa, mã hóa lại sang UTF-8, cập nhật metadata/giao thức và test luồng đọc–ghi xuyên môi trường.
-5. Thay các điểm dùng `getBytes()`, `new String(bytes)`, `InputStreamReader`, `OutputStreamWriter`, `FileReader`, `FileWriter` không khai báo charset bằng phiên bản phù hợp với hợp đồng dữ liệu; rà cả thư viện ngoài và tùy chọn build.
+1. Capture the **original** bytes at the source (inspect hex or log raw bytes); preserve the original before making changes.
+2. Identify the charset mandated by the format, protocol, headers, or producing system. If no contract exists, investigate rather than trusting the JVM default to "guess" correctly.
+3. Decode using the source charset **once**, checking characteristic characters and invalid-data cases.
+4. When standardization is needed, re-encode to UTF-8, update metadata/protocols, and test the read–write flow across environments.
+5. Replace uses of `getBytes()`, `new String(bytes)`, `InputStreamReader`, `OutputStreamWriter`, `FileReader`, and `FileWriter` that omit a charset with overloads matching the data contract; audit third-party libraries and build options as well.
 
-**Không** “sửa” chữ lỗi bằng cách liên tục đổi giữa các charset hoặc thay `file.encoding` toàn hệ thống mà không hiểu byte nguồn. Đổi cấu hình có thể che lỗi ở một luồng nhưng làm hỏng luồng khác. Nếu dữ liệu đã bị thay thế mất thông tin trong bước giải mã trước đó, chỉ thay charset ở bước sau không khôi phục được byte gốc.
+**Do not** "fix" garbled text by repeatedly converting between charsets or changing `file.encoding` globally without understanding the source bytes. Changing configuration can mask a bug in one stream while breaking another. If data already suffered lossy replacement during an earlier decode, changing the charset downstream cannot recover the original bytes.
 
-## 8. Checklist khi viết Java bền vững
+## 8. Checklist for Writing Resilient Java
 
-- Có hợp đồng encoding rõ ràng cho file, HTTP body, CSV, log hoặc dữ liệu trao đổi; ưu tiên UTF-8 khi tự thiết kế format mới.
-- Dùng `StandardCharsets.UTF_8` hoặc charset do định dạng quy định khi chuyển `String` ⇄ `byte[]` và khi khởi tạo reader/writer.
-- Không đồng nhất default charset với `native.encoding`, encoding của nguồn `.java`, charset console, locale hoặc encoding thật của một file cũ.
-- Test ký tự ngoài ASCII trên JDK/môi trường triển khai; xác thực cả bytes lẫn chuỗi đã giải mã.
-- Coi `-Dfile.encoding=COMPAT` là công cụ kiểm thử/chuyển tiếp trên JDK 18+, còn việc truyền charset tường minh là hướng giải quyết lâu dài.
+- Have an explicit encoding contract for files, HTTP bodies, CSVs, logs, or exchanged data; prefer UTF-8 when designing new formats.
+- Use `StandardCharsets.UTF_8` or the format-specified charset when converting `String` ⇄ `byte[]` and when constructing readers/writers.
+- Do not equate the default charset with `native.encoding`, `.java` source encoding, console charset, locale, or the actual encoding of an existing file.
+- Test non-ASCII characters on the target JDK/deployment environment; validate both bytes and decoded strings.
+- Treat `-Dfile.encoding=COMPAT` as a testing/transition tool on JDK 18+, while passing explicit charsets is the long-term solution.
 
-## Tài liệu chính thức
+## Official Documentation
 
 - [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400).
 - [Oracle JDK 18 Release Notes — JEP 400](https://www.oracle.com/java/technologies/javase/18-relnote-issues.html).

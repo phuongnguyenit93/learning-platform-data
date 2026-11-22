@@ -1,66 +1,66 @@
-# Chọn dữ liệu cốt lõi, dữ liệu suy ra và dữ liệu ghi nhớ tạm khi thiết kế `equals()` và `hashCode()`
+# Choosing Core, Derived, and Cached Data When Designing `equals()` and `hashCode()`
 
-## 1. Vì sao phải phân loại dữ liệu trước khi định nghĩa “bằng nhau”?
+## 1. Why Must Data Be Classified Before Defining "Equality"?
 
-Hai đối tượng Java có thể lưu rất nhiều trường, nhưng **không phải mọi trường đều quyết định hai đối tượng có được coi là cùng một giá trị hoặc cùng một thực thể hay không**. Khi override `equals(Object)`, việc đầu tiên là trả lời câu hỏi nghiệp vụ:
+Two Java objects can store many fields, yet **not every field determines whether the two objects are considered the same value or the same entity**. When overriding `equals(Object)`, the first step is to answer the business question:
 
-> Trong ngữ cảnh này, thay đổi thông tin nào sẽ khiến hai đối tượng **không còn được coi là bằng nhau**?
+> In this context, changing which information will cause two objects to **no longer be considered equal**?
 
-Chỉ sau khi trả lời, ta mới chọn những trường cần so sánh. Không thể suy ra câu trả lời một cách máy móc từ số lượng trường, từ tên biến `id` hay từ việc trường được khai báo `final`.
+Only after answering do we choose which fields to compare. The answer cannot be deduced mechanically from the number of fields, from a variable named `id`, or from whether a field is declared `final`.
 
-Một mô hình thường có ba loại dữ liệu:
+A model typically has three kinds of data:
 
-1. **Dữ liệu cốt lõi cho quan hệ bằng nhau** (*equality-defining state*): thông tin trực tiếp xác định tiêu chí equality đã chọn. Nếu thông tin này khác nhau, hai đối tượng có thể không còn bằng nhau.
-2. **Dữ liệu suy ra** (*derived/computed data*): kết quả có thể tính lại từ dữ liệu khác, chẳng hạn tên hiển thị ghép từ họ và tên, nhãn ghép từ mã sản phẩm và mô tả, hoặc tổng tiền tính từ số lượng và đơn giá. Giá trị suy ra có thể có ý nghĩa với ứng dụng, nhưng thường **không cần so sánh lặp lại** nếu những đầu vào đầy đủ của nó đã được so sánh.
-3. **Dữ liệu ghi nhớ tạm** (*cached/memoized data*): kết quả tính toán được lưu lại nhằm tránh làm việc lặp lại, như nhãn đã tạo, kết quả phân tích cú pháp, mã băm đã tính hoặc dữ liệu truy xuất đã tải. Cache phải phản ánh trạng thái gốc; bản thân việc cache đã có hay chưa thường **không làm đổi ý nghĩa equality**.
+1. **Core data for equality** (*equality-defining state*): information that directly defines the chosen equality criterion. If this information differs, two objects may no longer be equal.
+2. **Derived data** (*derived/computed data*): results that can be recomputed from other data, such as a display name concatenated from first and last name, a label combined from product code and description, or a total price computed from quantity and unit price. Derived values may be meaningful to the application, yet usually **do not need to be compared redundantly** if all of their inputs are already compared.
+3. **Cached data** (*cached/memoized data*): computed results stored to avoid repeated work, such as a generated label, parsed result, precomputed hash code, or lazily loaded lookup data. A cache must reflect the source state; whether the cache is populated or not usually **does not change equality semantics**.
 
-“Cốt lõi” ở đây có nghĩa là **cốt lõi đối với quan hệ bằng nhau đang thiết kế**, không có nghĩa mọi dữ liệu khác đều vô ích. Một trường có thể quan trọng để hiển thị, tính hóa đơn hoặc kiểm toán mà vẫn không được dùng trong `equals`.
+"Core" here means **core to the equality relation being designed**, not that all other data is useless. A field can be essential for display, invoicing, or auditing while still being excluded from `equals`.
 
-## 2. Quyết định ngữ nghĩa: cùng thực thể hay cùng giá trị?
+## 2. Deciding the Semantics: Same Entity or Same Value?
 
-Không có một danh sách trường `equals` dùng chung cho mọi class. Hai lối thiết kế thường gặp là:
+There is no single `equals` field list shared across all classes. Two common design styles are:
 
-| Quan hệ bằng nhau | Câu hỏi | Trường thường xét | Ví dụ |
+| Equality relation | Question | Typical fields considered | Example |
 | --- | --- | --- | --- |
-| **Entity identity** – cùng thực thể | Đây có phải cùng một thực thể trong miền nghiệp vụ không? | Định danh ổn định, duy nhất trong phạm vi phù hợp | Hai đối tượng `Customer` cùng `customerId` được xem là một khách hàng, dù tên hiển thị thay đổi. |
-| **Value equality** – cùng giá trị | Hai đối tượng có biểu diễn cùng giá trị đã được định nghĩa không? | Các thành phần quyết định toàn bộ giá trị | Hai `Money` bằng nhau khi cùng số tiền và cùng đơn vị tiền tệ theo quy ước của miền nghiệp vụ. |
+| **Entity identity** – same entity | Is this the same entity in the business domain? | Stable identifier, unique within the appropriate scope | Two `Customer` objects with the same `customerId` are considered one customer, even if the display name changes. |
+| **Value equality** – same value | Do two objects represent the same defined value? | Components that determine the entire value | Two `Money` objects are equal when they have the same amount and currency according to domain conventions. |
 
-Ví dụ, hai bản ghi sản phẩm có cùng SKU nhưng mô tả khác nhau **có thể** được coi là cùng thực thể nếu SKU là định danh ổn định. Ngược lại, nếu lớp đang biểu diễn một *bản chụp mô tả sản phẩm* và yêu cầu tất cả thuộc tính cấu thành bản chụp giống nhau, việc bỏ qua mô tả sẽ không phù hợp.
+For example, two product records with the same SKU but different descriptions **can** be considered the same entity if SKU is the stable identifier. Conversely, if the class represents a *snapshot of a product description* and requires all attributes constituting the snapshot to match, ignoring the description would be inappropriate.
 
-Điều kiện quyết định là **ngữ nghĩa miền nghiệp vụ**, không phải “mọi class có ID thì chỉ so sánh ID”. Với thực thể chưa được gán ID (ví dụ entity do ORM tạo trước khi lưu), ID có thể còn `null` hoặc thay đổi theo vòng đời; dùng nó trong equality đòi hỏi chính sách rõ ràng để tránh hai thực thể mới bị coi bằng nhau chỉ vì đều có `null`.
+The deciding condition is **business domain semantics**, not “every class with an ID only compares the ID”. For an entity not yet assigned an ID (such as an ORM entity before persistence), the ID may still be `null` or change across its lifecycle; using it in equality requires an explicit policy to avoid treating two new entities as equal merely because both have `null`.
 
-### Bốn câu hỏi trước khi chọn trường
+### Four Questions Before Choosing Fields
 
-1. Người dùng hoặc API coi hai đối tượng là **cùng cái gì**: cùng người dùng, cùng số tiền, cùng bản ghi, hay cùng trạng thái hiện tại?
-2. Có trường nào là **định danh ổn định** không? Định danh ấy có được bảo đảm duy nhất trong phạm vi đối tượng đang xét không?
-3. Trường nào chỉ là **hàm của trường khác**, hoặc chỉ khác vì chưa tính/chưa lưu cache?
-4. Trường nào **có thể thay đổi sau khi đối tượng được dùng làm khóa** trong `HashMap` hoặc phần tử trong `HashSet`?
+1. What do users or APIs consider two objects to be **the same thing**: same user, same monetary amount, same record, or same current state?
+2. Is there a **stable identifier** field? Is that identifier guaranteed unique within the scope under consideration?
+3. Which fields are merely **functions of other fields**, or differ only because they have not been computed/cached yet?
+4. Which fields **can change after the object is used as a key** in a `HashMap` or an element in a `HashSet`?
 
-Nếu chưa xác định được ngữ nghĩa, không nên viết `equals` bằng cách tự động so sánh mọi field được IDE liệt kê.
+If the semantics have not been determined yet, do not write `equals` by automatically comparing every field listed by the IDE.
 
-## 3. Bảng phân loại trường trong một mô hình cụ thể
+## 3. Field Classification Table in a Concrete Model
 
-Giả sử hệ thống có lớp `InventoryItem` và quy tắc nghiệp vụ là: **SKU chuẩn hóa xác định duy nhất một mặt hàng**. Những trường sau có vai trò khác nhau:
+Suppose a system has an `InventoryItem` class and the business rule is: **a normalized SKU uniquely identifies an item**. The following fields play different roles:
 
-| Trường | Ví dụ | Vai trò | Có tham gia equality theo SKU? |
+| Field | Example | Role | Participates in SKU-based equality? |
 | --- | --- | --- | --- |
-| `sku` | `"AB-12"` | Định danh cốt lõi đã chuẩn hóa | **Có** |
-| `description` | `"Bút màu xanh"` | Thông tin mô tả có thể sửa | **Không**, theo quy tắc cùng SKU là cùng mặt hàng |
-| `displayLabel` | `"AB-12 - Bút màu xanh"` | Dữ liệu suy ra từ SKU và mô tả | **Không** |
-| `cachedLabel` | Chuỗi `displayLabel` đã tính trước | Cache của dữ liệu suy ra | **Không** |
-| `lastViewedAt` | Thời điểm UI đọc thông tin | Metadata hoạt động hoặc quan sát | **Không** |
+| `sku` | `"AB-12"` | Normalized core identifier | **Yes** |
+| `description` | `"Bút màu xanh"` | Editable descriptive information | **No**, under the rule that same SKU means same item |
+| `displayLabel` | `"AB-12 - Bút màu xanh"` | Data derived from SKU and description | **No** |
+| `cachedLabel` | Precomputed `displayLabel` string | Cache of derived data | **No** |
+| `lastViewedAt` | Timestamp when UI read the info | Operational or observational metadata | **No** |
 
-Bảng chỉ đúng **với hợp đồng SKU đã nêu**. Nếu một class `ItemSnapshot` lại định nghĩa “bằng nhau khi mọi thuộc tính của snapshot giống nhau”, thì `description` có thể là một thành phần cốt lõi và cần được xét. Điều quan trọng là mô hình hóa chính sách trước khi viết code.
+This table holds **only under the stated SKU contract**. If an `ItemSnapshot` class instead defines “equal when all attributes of the snapshot are identical”, then `description` could be a core component and must be included. What matters is modeling the policy before writing code.
 
-Đặc biệt:
+Specifically:
 
-- Dữ liệu suy ra **không tự động là dữ liệu vô nghĩa**: một giá trị tổng hợp có thể là dạng chuẩn duy nhất lưu trong hệ thống, khi đó nó cũng có thể là dữ liệu cốt lõi.
-- Dữ liệu lưu cache có thể chứa chính kết quả của một hàm thuộc equality, ví dụ mã băm đã tính. Tuy nhiên **trạng thái “cache còn trống hay đã có kết quả”** không tạo ra một sự khác biệt về giá trị.
-- Từ khóa Java `transient` chỉ liên quan đến cơ chế Java serialization mặc định của trường; nó **không tự động loại trường khỏi `equals`**. Ngược lại, một trường không khai báo `transient` cũng chưa chắc phải tham gia equality.
+- Derived data **is not automatically meaningless data**: an aggregated value might be the canonical form stored exclusively in the system, in which case it can also be core data.
+- Cached data may store the result of a function belonging to equality itself, such as a precomputed hash code. However, **whether the “cache is empty or populated”** does not create a difference in value.
+- The Java keyword `transient` relates only to Java's default serialization mechanism for the field; it **does not automatically exclude a field from `equals`**. Conversely, a field not declared `transient` does not necessarily have to participate in equality.
 
-## 4. Ví dụ Java 17: mô tả và cache thay đổi, identity không đổi
+## 4. Java 17 Example: Description and Cache Change, Identity Does Not
 
-Ví dụ sau định nghĩa `InventoryItem` có SKU ổn định. Chuỗi nhãn được tính từ SKU và mô tả, sau đó cache lại. Khi mô tả cập nhật, cache được xóa để tính lại. Vì quan hệ bằng nhau của mô hình này chỉ xét SKU, `equals` và `hashCode` không phụ thuộc vào mô tả hoặc cache.
+The following example defines `InventoryItem` with a stable SKU. The label string is computed from SKU and description, then cached. When the description updates, the cache is cleared for recomputation. Because this model's equality considers only SKU, `equals` and `hashCode` do not depend on description or cache.
 
 ```java
 import java.util.HashSet;
@@ -70,13 +70,13 @@ import java.util.Set;
 
 public class EqualityStateDemo {
     static final class InventoryItem {
-        // Dữ liệu cốt lõi của equality: SKU chuẩn hóa, bất biến.
+        // Core data for equality: normalized, immutable SKU.
         private final String sku;
 
-        // Dữ liệu mô tả: có ích nhưng không xác định identity theo SKU.
+        // Descriptive data: useful, but does not determine SKU-based identity.
         private String description;
 
-        // Dữ liệu ghi nhớ tạm: có thể bỏ đi và tính lại.
+        // Memoized/cached data: can be discarded and recomputed.
         private String cachedLabel;
 
         InventoryItem(String rawSku, String description) {
@@ -99,7 +99,7 @@ public class EqualityStateDemo {
 
         void updateDescription(String description) {
             this.description = Objects.requireNonNull(description, "description");
-            cachedLabel = null; // Làm mới cache khi đầu vào thay đổi.
+            cachedLabel = null; // Invalidate cache when input changes.
         }
 
         @Override
@@ -140,14 +140,14 @@ public class EqualityStateDemo {
 }
 ```
 
-Lưu tệp `EqualityStateDemo.java` bằng UTF-8 rồi chạy:
+Save the file `EqualityStateDemo.java` as UTF-8 and run:
 
 ```bash
 javac -encoding UTF-8 EqualityStateDemo.java
 java EqualityStateDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 false
@@ -160,38 +160,38 @@ true
 true
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `first == second` là `false` vì hai lần `new` tạo hai đối tượng khác nhau.
-- `first.equals(second)` là `true` vì đầu vào `" ab-12 "` được chuẩn hóa thành `"AB-12"` và cùng SKU với đối tượng thứ hai.
-- Hai đối tượng bằng nhau cho cùng `hashCode`, nên `HashSet` có thể tra cứu `second` sau khi thêm `first`.
-- Lần gọi `displayLabel()` đầu tiên sinh và lưu `"AB-12 - Tên cũ"`. Sau `updateDescription`, giá trị cache cũ bị hủy, nhãn mới là `"AB-12 - Tên mới"`.
-- Kết quả `contains` vẫn đúng vì **không có thay đổi nào ở SKU**, là trường duy nhất xác định equality và hash.
+- `first == second` is `false` because two `new` calls create two distinct objects.
+- `first.equals(second)` is `true` because the input `" ab-12 "` is normalized to `"AB-12"` and shares the same SKU as the second object.
+- Two equal objects produce the same `hashCode`, so `HashSet` can look up `second` after adding `first`.
+- The first `displayLabel()` call generates and stores `"AB-12 - Tên cũ"`. After `updateDescription`, the old cached value is invalidated, and the new label is `"AB-12 - Tên mới"`.
+- `contains` results remain accurate because **there is no change to `sku`**, the sole field determining equality and hash.
 
-Đây là ví dụ chạy một luồng. Vì `description` và `cachedLabel` thay đổi mà không có đồng bộ hóa, **không được suy ra** rằng cách cache này an toàn nếu dùng chung đối tượng giữa nhiều luồng. Nếu cần truy cập đồng thời, phải thiết kế cơ chế đồng bộ/hiển thị bộ nhớ riêng; yêu cầu đó độc lập với việc chọn trường cho equality.
+This is a single-threaded example. Because `description` and `cachedLabel` mutate without synchronization, **do not infer** that this caching approach is safe if the object is shared across multiple threads. If concurrent access is needed, a separate synchronization/memory-visibility mechanism must be designed; that requirement is independent of field selection for equality.
 
-## 5. Dữ liệu suy ra: so sánh nguồn hay so sánh kết quả?
+## 5. Derived Data: Compare the Source or Compare the Result?
 
-Giả sử một người dùng có `firstName` và `lastName`, còn `fullName` chỉ là chuỗi ghép từ hai trường. Nếu quan hệ bằng nhau là “cùng cặp tên theo cách lưu dữ liệu hiện tại”, thì so sánh `firstName` và `lastName` đã đủ. So sánh thêm `fullName` là dư thừa, và có thể tạo lỗi nếu một cache chưa được làm mới.
+Suppose a user has `firstName` and `lastName`, while `fullName` is simply a string concatenated from those two fields. If the equality relation is “same name pair as currently stored”, comparing `firstName` and `lastName` is sufficient. Comparing `fullName` as well is redundant, and can cause bugs if a cache has not been refreshed.
 
-Tuy nhiên, **không phải mọi dữ liệu suy ra đều có thể thay thế cho nguồn**:
+However, **not every piece of derived data can substitute for its source**:
 
-- Hai cặp `("An", "Binh")` và `("An Binh", "")` có thể tạo cùng chuỗi hiển thị sau một cách nối, nhưng không nhất thiết đại diện cùng giá trị cặp tên. Nếu equality dựa vào **cặp thành phần**, chỉ so sánh `fullName` là sai về ngữ nghĩa.
-- Tổng tiền có thể tính từ đơn giá × số lượng nhưng cũng chịu quy tắc làm tròn, thuế, thời điểm áp dụng tỷ giá. Nếu các đầu vào hoặc chính sách tính toán khác nhau, cùng tổng đã làm tròn chưa chắc đồng nghĩa cùng đối tượng nghiệp vụ.
-- Một dữ liệu suy ra phụ thuộc đồng hồ hiện tại, cấu hình hoặc dịch vụ ngoài có thể thay đổi **dù dữ liệu gốc của object không đổi**. Ví dụ, tuổi tính từ ngày sinh thay đổi theo thời gian; không nên dùng “tuổi hôm nay” làm thành phần hash của một khóa lâu dài.
+- Two pairs `("An", "Binh")` and `("An Binh", "")` can produce the same display string under one concatenation scheme, yet do not necessarily represent the same name-pair value. If equality is based on **the component pair**, comparing only `fullName` is semantically wrong.
+- A total price may be computed from unit price × quantity, yet also depend on rounding rules, taxes, and exchange rate timing. If inputs or calculation policies differ, having the same rounded total does not necessarily mean the same business object.
+- Derived data that depends on the current clock, configuration, or external services can change **even when the object's underlying data does not**. For instance, age calculated from birth date changes over time; “today's age” should not be used as a hash component of a long-lived key.
 
-Một quy tắc thực tế: **so sánh tập dữ liệu ổn định, đủ phân biệt theo ngữ nghĩa đã định nghĩa**. Nếu hai thành phần bằng nhau luôn cho cùng kết quả suy ra, không cần dùng thêm kết quả suy ra để chứng minh equality. Nếu kết quả suy ra chứa thông tin hoặc ràng buộc riêng, cần đưa thông tin ấy vào đặc tả của mô hình và cân nhắc trực tiếp.
+A practical rule: **compare a stable dataset that is sufficient to distinguish according to the defined semantics**. If two equal components always yield the same derived result, there is no need to additionally use the derived result to prove equality. If the derived result carries separate information or constraints, bring that information into the model specification and evaluate it directly.
 
-## 6. Cache là cơ chế hiệu năng, không phải sự thật nghiệp vụ
+## 6. Cache Is a Performance Mechanism, Not Business Truth
 
-Cache là bản sao hoặc kết quả trung gian; nó có thể xuất hiện sau lần đọc đầu tiên, bị xóa khi cập nhật, hoặc được dựng lại sau khi deserialization.
+A cache is a copy or intermediate result; it may appear after the first read, be cleared on update, or be rebuilt after deserialization.
 
-### Sai lầm: đưa trạng thái cache vào `equals`
+### Mistake: Including Cache State in `equals`
 
-Đoạn dưới đây chỉ minh họa **cách thiết kế sai** bên trong một class có `sku` và `cachedLabel`:
+The snippet below illustrates **an incorrect design** inside a class having `sku` and `cachedLabel`:
 
 ```java
-// Sai nếu cachedLabel chỉ là kết quả ghi nhớ tạm.
+// Wrong if cachedLabel is only a memoized result.
 @Override
 public boolean equals(Object other) {
     return other instanceof InventoryItem that
@@ -200,116 +200,116 @@ public boolean equals(Object other) {
 }
 ```
 
-Hai đối tượng cùng SKU có thể khác nhau chỉ vì một bên đã gọi `displayLabel()` còn bên kia chưa gọi. Khi ấy việc **đọc nhãn hiển thị** có thể làm thay đổi kết quả equality, dù không có thay đổi thực chất nào về định danh. Nếu `hashCode` cũng đưa cache vào, mã băm có thể đổi sau lần tính nhãn đầu tiên, khiến việc dùng đối tượng làm hash key trở nên không ổn định.
+Two objects with the same SKU could differ solely because one has called `displayLabel()` and the other has not. Then **reading the display label** can alter equality results, even though no real change in identity occurred. If `hashCode` also includes the cache, the hash code can change after the first label computation, making use of the object as a hash key unstable.
 
-Để tránh lỗi này, chọn trường gốc cho `equals` và `hashCode`; nếu cần cache chính kết quả `hashCode`, chỉ làm điều đó khi toàn bộ dữ liệu mà hash phụ thuộc vào được bảo đảm không đổi, và xử lý cả vấn đề đồng thời khi có nhiều luồng.
+To avoid this bug, choose the source fields for `equals` and `hashCode`; if you need to cache the `hashCode` result itself, do so only when all data the hash depends on is guaranteed immutable, and also address concurrency when multiple threads are involved.
 
-### Khi nào cache có thể là một phần của equality?
+### When Can a Cache Be Part of Equality?
 
-Khi một trường tưởng như “cache” thực chất chứa trạng thái được **cam kết là một phần giá trị** và không thể suy ra từ trường còn lại, cần xem lại tên gọi và mô hình. Đó không còn thuần túy là cache theo nghĩa “bỏ đi rồi tính lại mà không mất thông tin”. Phân loại theo **vai trò và ngữ nghĩa**, không theo tên biến.
+When a field that appears to be a “cache” actually holds state **committed as part of the value** and cannot be derived from the remaining fields, revisit its name and the model. It is no longer purely a cache in the sense of “discard and recompute without losing information”. Classify by **role and semantics**, not by variable name.
 
-## 7. Hệ quả của trạng thái thay đổi với `HashSet` và `HashMap`
+## 7. Consequences of Mutable State for `HashSet` and `HashMap`
 
-Hợp đồng của `Object` yêu cầu:
+The `Object` contract requires:
 
-- `equals` phải phản xạ, đối xứng, bắc cầu, nhất quán khi thông tin dùng để so sánh không đổi, và trả `false` với `null`.
-- Nếu `a.equals(b)` là `true` thì `a.hashCode() == b.hashCode()` phải đúng.
-- Không có yêu cầu hai đối tượng **khác nhau** phải có mã băm khác nhau; hash collision được phép.
+- `equals` must be reflexive, symmetric, transitive, consistent when the information used for comparison does not change, and return `false` for `null`.
+- If `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()` must hold.
+- There is no requirement that two **unequal** objects have different hash codes; hash collisions are permitted.
 
-Điều này làm nảy sinh vấn đề: nếu thay đổi một trường **tham gia equality** sau khi đối tượng đã nằm trong `HashSet` hoặc được dùng làm khóa `HashMap`, phép tra cứu có thể không còn tìm được phần tử theo cách mong đợi.
+This raises an issue: if a field **participating in equality** is modified after the object is already inside a `HashSet` or used as a `HashMap` key, lookups may no longer find the element as expected.
 
-Ví dụ minh họa trường hợp nguy hiểm (đoạn code không phải chương trình độc lập):
+Illustrative example of the hazardous case (code snippet is not a standalone program):
 
 ```java
-// Giả sử class MutableKey có equals/hashCode dựa trên code.
+// Suppose class MutableKey has equals/hashCode based on code.
 MutableKey key = new MutableKey("A");
 Set<MutableKey> set = new HashSet<>();
 set.add(key);
-key.setCode("B"); // Đổi thông tin định vị theo hash của khóa đã lưu.
-// set.contains(key) lúc này có thể không còn đúng kỳ vọng.
+key.setCode("B"); // Changes hash-based lookup information of the stored key.
+// set.contains(key) may no longer behave as expected at this point.
 ```
 
-Không nên biến kết quả ví dụ thành khẳng định `contains` *luôn* trả `false`: hành vi quan sát được còn tùy mã băm trước/sau, bucket và triển khai. Vấn đề là **không còn cơ sở để dựa vào hoạt động tra cứu đúng như khi khóa không đổi**.
+Do not turn the example result into a claim that `contains` *always* returns `false`: observed behavior also depends on before/after hash codes, buckets, and implementation. The issue is that **there is no longer any basis to rely on lookup working correctly as with an immutable key**.
 
-Đối với `InventoryItem` trong ví dụ chạy ở trên, thay đổi `description` không ảnh hưởng hợp đồng vì trường ấy không tham gia equality. Trái lại, nếu thay `sku` được, rủi ro sẽ xuất hiện. Vì vậy `sku` được khai báo `final` và chuẩn hóa ngay trong constructor.
+For `InventoryItem` in the runnable example above, changing `description` does not affect the contract because that field does not participate in equality. Conversely, if `sku` could be changed, the risk would arise. That is why `sku` is declared `final` and normalized right in the constructor.
 
-**Bất biến theo nghĩa của equality không đòi hỏi mọi thuộc tính của object đều bất biến.** Chỉ cần dữ liệu quyết định equality và hash ổn định trong suốt vòng đời cần thiết; trong thực tế, immutable value objects thường đơn giản và an toàn hơn.
+**Immutability in the sense of equality does not require every attribute of an object to be immutable.** Only the data determining equality and hash needs to remain stable throughout the required lifecycle; in practice, immutable value objects are usually simpler and safer.
 
-## 8. Chú ý với chuẩn hóa, cấu trúc lồng nhau và `record`
+## 8. Notes on Normalization, Nested Structures, and `record`
 
-### 8.1. Chuẩn hóa đầu vào
+### 8.1. Input Normalization
 
-Hai chuỗi `"ab-12"` và `"AB-12"` chỉ được coi là cùng SKU nếu quy tắc nghiệp vụ công nhận không phân biệt chữ hoa/thường. Ví dụ đã chọn `trim()` và `toUpperCase(Locale.ROOT)`; đây là **chính sách của mô hình**, không phải quy tắc Java áp cho mọi mã định danh.
+Two strings `"ab-12"` and `"AB-12"` are considered the same SKU only if business rules recognize case-insensitivity. The example chose `trim()` and `toUpperCase(Locale.ROOT)`; this is **a model policy**, not a Java rule applying to every identifier.
 
-Đừng tự động chuẩn hóa với mọi trường: username có thể phân biệt chữ hoa, mã sản phẩm có thể giữ dấu cách có nghĩa, còn các quy tắc Unicode hoặc ngôn ngữ tự nhiên có thể cần xử lý chuyên biệt. Nếu chuẩn hóa quyết định equality, hãy thực hiện ổn định tại ranh giới tạo đối tượng hoặc sử dụng cùng quy tắc nhất quán trong `equals` và `hashCode`.
+Do not automatically normalize every field: usernames might be case-sensitive, product codes might preserve meaningful spaces, and Unicode or natural-language rules may need specialized handling. If normalization determines equality, perform it consistently at the object creation boundary or apply the same consistent rule in both `equals` and `hashCode`.
 
-### 8.2. Đối tượng lồng nhau và mảng
+### 8.2. Nested Objects and Arrays
 
-Nếu equality của một value object phụ thuộc vào một danh sách hay mảng, cần quyết định so sánh theo **nội dung**, thứ tự, hay identity của container. Với mảng Java, `Object.equals` kế thừa theo tham chiếu; có thể cần `Arrays.equals`, `Arrays.deepEquals` và hàm hash tương ứng. Nếu lưu một mảng mutable trong field `final`, từ khóa `final` chỉ ngăn gán lại tham chiếu; **phần tử mảng vẫn có thể bị sửa**. Cân nhắc defensive copy hoặc cấu trúc immutable nếu mảng tham gia equality.
+If a value object's equality depends on a list or array, decide whether to compare by **contents**, order, or container identity. For Java arrays, inherited `Object.equals` compares by reference; `Arrays.equals`, `Arrays.deepEquals`, and the corresponding hash functions may be needed. If a mutable array is stored in a `final` field, the `final` keyword only prevents reassigning the reference; **array elements can still be modified**. Consider a defensive copy or immutable structure if the array participates in equality.
 
-Tương tự, nếu `equals` xét các trường bên trong một đối tượng con mutable, việc đối tượng cha có tất cả field `final` vẫn chưa chắc đảm bảo equality ổn định.
+Similarly, if `equals` inspects fields inside a mutable child object, having all `final` fields on the parent object still does not guarantee stable equality.
 
 ### 8.3. Java `record`
 
-Một `record` Java 17 tự sinh `equals`, `hashCode` và `toString` dựa trên các record components. Điều đó thích hợp khi mọi component được chọn đều thuộc giá trị cần so sánh.
+A Java 17 `record` automatically generates `equals`, `hashCode`, and `toString` based on its record components. That is suitable when every chosen component belongs to the value to be compared.
 
 ```java
 record Money(long cents, String currency) {}
 ```
 
-Đoạn này minh họa khai báo kiểu; có thể đặt ở mức top-level trong tệp Java phù hợp. Với chính sách “số xu và đơn vị tiền tệ cùng nhau xác định giá trị”, hai component đều có ý nghĩa với equality. Tránh thêm `cachedDisplayText` làm component chỉ để lưu cache: nó mặc nhiên sẽ tham gia các phương thức tự sinh, trừ khi định nghĩa lại hành vi theo thiết kế riêng. Việc dùng `record` cũng không tự động khiến các object mutable được truyền vào component trở nên bất biến sâu.
+This snippet illustrates a type declaration; it can be placed at the top level in an appropriate Java file. Under the policy “cents and currency together determine the value”, both components are meaningful for equality. Avoid adding `cachedDisplayText` as a component merely to hold a cache: it will by default participate in the auto-generated methods unless behavior is explicitly overridden by design. Using `record` also does not automatically make mutable objects passed into components deeply immutable.
 
-### 8.4. ORM và entity lifecycle
+### 8.4. ORM and Entity Lifecycle
 
-Ở các mô hình entity lưu cơ sở dữ liệu, ID phát sinh sau khi lưu, proxy, cùng entity ở các phiên làm việc khác nhau và trạng thái chuyển tiếp đều có thể ảnh hưởng cách chọn `equals`/`hashCode`. Không áp dụng máy móc ví dụ “dùng ID trong `equals`” cho entity chưa được gán ID hoặc ID có thể thay đổi. Cần xác định rõ thời điểm ID ổn định, ngữ nghĩa khi ID còn `null` và yêu cầu của framework đang dùng.
+In database-persisted entity models, IDs generated after saving, proxies, the same entity across different sessions, and transient states can all affect how `equals`/`hashCode` should be chosen. Do not mechanically apply the “use ID in `equals`” example to an entity without an assigned ID or whose ID can change. You must clearly determine when the ID stabilizes, the semantics while the ID is still `null`, and the requirements of the framework in use.
 
-## 9. Quy trình thực hành để chọn đúng dữ liệu equality
+## 9. Practical Workflow for Choosing the Right Equality Data
 
-Trước khi viết `equals` và `hashCode`, hãy làm rõ lần lượt:
+Before writing `equals` and `hashCode`, clarify step by step:
 
-1. **Phát biểu bằng một câu:** “Hai đối tượng kiểu X bằng nhau khi …”. Câu này phải dùng ngôn ngữ nghiệp vụ, không dựa vào tên trường cụ thể khi chưa cần.
-2. **Lập danh sách trường:** đánh dấu trường nào trực tiếp quyết định equality, trường nào được suy ra, trường nào là cache hoặc metadata vận hành.
-3. **Kiểm tra tính đủ và tính tối thiểu:** hai trạng thái khác nhau về dữ liệu cốt lõi có khi nào bị xem nhầm là bằng nhau? Có đang so sánh thêm kết quả có thể suy ra hoàn toàn từ trường đã xét không?
-4. **Kiểm tra khả năng thay đổi:** dữ liệu tham gia equality có thể biến đổi không? Nếu có, class có được dùng làm key trong hash collection không?
-5. **Đảm bảo `hashCode` tương thích:** mọi cặp bằng nhau phải có cùng mã băm; đồng thời chọn phân bố hash phù hợp để hạn chế va chạm không cần thiết.
-6. **Đánh giá vùng biên:** `null`, đối tượng khác kiểu, kế thừa, proxy, mảng, giá trị Unicode/chuẩn hóa, trạng thái chưa có ID và concurrency nếu có.
-7. **Thử các tình huống đọc và cache:** tạo hai đối tượng cùng core nhưng khác cache; gọi hàm tính dữ liệu suy ra, xóa/tái tạo cache và thay đổi dữ liệu không thuộc equality. Kết quả `equals`/`hashCode` phải giữ theo ngữ nghĩa đã công bố.
+1. **State it in one sentence:** “Two objects of type X are equal when …”. This sentence must use business language, without relying on specific field names unnecessarily.
+2. **List the fields:** mark which fields directly determine equality, which are derived, and which are caches or operational metadata.
+3. **Check sufficiency and minimality:** could two states differing in core data ever be mistaken as equal? Are you redundantly comparing results completely derivable from already-checked fields?
+4. **Check mutability:** can the data participating in equality mutate? If so, is the class used as a key in hash collections?
+5. **Ensure `hashCode` compatibility:** every equal pair must share the same hash code; also choose an appropriate hash distribution to avoid unnecessary collisions.
+6. **Evaluate edge cases:** `null`, objects of different types, inheritance, proxies, arrays, Unicode/normalization values, unassigned-ID states, and concurrency if applicable.
+7. **Test read and cache scenarios:** create two objects with the same core but different caches; invoke methods that compute derived data, clear/rebuild the cache, and mutate non-equality data. `equals`/`hashCode` results must hold according to the declared semantics.
 
-### Ma trận kiểm thử cho mô hình dùng SKU làm định danh
+### Test Matrix for the SKU-Identifier Model
 
-| Tình huống | Kỳ vọng |
+| Scenario | Expectation |
 | --- | --- |
-| Hai đối tượng có cùng SKU sau chuẩn hóa, mô tả khác | `equals == true`; hash bằng nhau |
-| Hai đối tượng có SKU khác | `equals == false`; hash **có thể** bằng nhau do va chạm |
-| Một bên chưa tạo cache nhãn, bên kia đã tạo | Equality không đổi |
-| Cập nhật mô tả và làm mới cache | Equality/hash không đổi |
-| So sánh với chính đối tượng | `true` |
-| So sánh với `null` | `false` |
-| So sánh với đối tượng kiểu khác | `false` |
+| Two objects with the same SKU after normalization, different descriptions | `equals == true`; equal hashes |
+| Two objects with different SKUs | `equals == false`; hashes **may** collide |
+| One has not populated the label cache, the other has | Equality unchanged |
+| Update description and invalidate cache | Equality/hash unchanged |
+| Compare with the object itself | `true` |
+| Compare with `null` | `false` |
+| Compare with an object of a different type | `false` |
 
-Các kiểm thử phải khẳng định **hành vi contract**, không khẳng định hai hash của mọi SKU khác nhau hay cấu trúc bucket của `HashSet`.
+Tests must assert **contract behavior**, not assert that hashes of any two different SKUs differ or inspect the bucket structure of `HashSet`.
 
-## 10. Tình huống tự luyện
+## 10. Practice Scenarios
 
-**Tình huống A:** Một `OrderLine` có `productId`, `quantity`, `unitPrice`, `totalPrice = quantity × unitPrice` và `cachedFormattedTotal`. Yêu cầu là so sánh **giá trị của dòng đơn hàng** theo sản phẩm, số lượng và đơn giá. Chọn dữ liệu equality thế nào?
+**Scenario A:** An `OrderLine` has `productId`, `quantity`, `unitPrice`, `totalPrice = quantity × unitPrice`, and `cachedFormattedTotal`. The requirement is to compare **the value of an order line** by product, quantity, and unit price. How should equality data be selected?
 
-**Gợi ý đáp án:** Xét `productId`, `quantity` và `unitPrice` theo biểu diễn/ngữ nghĩa giá trị đã xác định. `totalPrice` là dữ liệu suy ra từ hai số đã xét nên không cần lặp lại; `cachedFormattedTotal` chỉ là cache hiển thị, không tham gia. Nếu đơn giá hoặc số lượng có thể sửa, nên tránh dùng đối tượng mutable này trực tiếp làm hash key lâu dài hoặc thiết kế immutable snapshot.
+**Suggested answer:** Consider `productId`, `quantity`, and `unitPrice` according to the defined value representation/semantics. `totalPrice` is derived from the two already-considered numbers so it needs no repetition; `cachedFormattedTotal` is only a display cache and does not participate. If unit price or quantity can be edited, avoid using this mutable object directly as a long-term hash key or design an immutable snapshot.
 
-**Tình huống B:** Một `Session` có `sessionId`, `lastAccessedAt` và `cachedPermissions`. Hệ thống quy định cùng `sessionId` là cùng phiên. Một lần truy cập cập nhật `lastAccessedAt` và nạp lại quyền. `equals` có nên thay đổi?
+**Scenario B:** A `Session` has `sessionId`, `lastAccessedAt`, and `cachedPermissions`. The system specifies that the same `sessionId` means the same session. An access updates `lastAccessedAt` and reloads permissions. Should `equals` change?
 
-**Gợi ý đáp án:** Không, nếu `sessionId` thực sự là định danh bất biến trong phạm vi so sánh. Hai trường còn lại là metadata vận hành/cache theo mô hình này. Dĩ nhiên, việc có cùng session ID không tự xác nhận hai cache quyền đều còn hiệu lực; tính hợp lệ của phiên là một bài toán khác equality.
+**Suggested answer:** No, if `sessionId` is truly an immutable identifier within the comparison scope. The other two fields are operational metadata/cache under this model. Of course, having the same session ID does not by itself confirm that both permission caches are still valid; session validity is a separate problem from equality.
 
-**Tình huống C:** Một `Point` lưu `x`, `y` và cache `distanceFromOrigin`. Hai điểm được xem bằng nhau khi tọa độ giống nhau. Có nên so sánh cache khoảng cách?
+**Scenario C:** A `Point` stores `x`, `y`, and caches `distanceFromOrigin`. Two points are considered equal when their coordinates match. Should the cached distance be compared?
 
-**Gợi ý đáp án:** Không. Hai điểm khác tọa độ có thể cùng khoảng cách đến gốc; còn cache có thể chưa tính. `x` và `y` mới là dữ liệu đủ để quyết định equality. Nếu tọa độ có thể sửa thì phải làm mới cache và cân nhắc rủi ro khi dùng `Point` làm khóa.
+**Suggested answer:** No. Two points with different coordinates can have the same distance to the origin; moreover, the cache might not yet be computed. `x` and `y` are the sufficient data to determine equality. If coordinates can be modified, the cache must be invalidated and the risks of using `Point` as a key must be considered.
 
-## 11. Ghi nhớ
+## 11. Takeaways
 
-- **Chọn ngữ nghĩa trước, chọn trường sau.** “Dữ liệu cốt lõi” là tập trường quyết định quan hệ bằng nhau, và phụ thuộc vào việc so sánh thực thể hay giá trị.
-- **Dữ liệu suy ra** thường không cần so sánh nếu được xác định hoàn toàn từ tập dữ liệu cốt lõi đã xét; tránh dùng riêng biểu diễn bị mất thông tin để thay nguồn.
-- **Cache** thường được bỏ qua trong equality vì trạng thái đã tính/chưa tính không thay đổi bản chất object. Cache phải có chính sách invalidation khi nguồn thay đổi.
-- **`equals` và `hashCode` phải cùng tuân theo một quan hệ bằng nhau**: bằng nhau ⇒ cùng hash; chiều ngược lại không bắt buộc.
-- **Ổn định khi dùng hash collection**: hạn chế sửa dữ liệu tham gia equality/hash sau khi chèn đối tượng vào `HashSet` hoặc làm khóa `HashMap`.
-- **Không đánh đồng từ khóa `final`, `transient`, tên `id` hay `record` với quyết định equality**: phải hiểu ý nghĩa và vòng đời thực tế của dữ liệu.
+- **Choose semantics first, fields second.** “Core data” is the set of fields determining the equality relation, depending on whether entities or values are being compared.
+- **Derived data** usually does not need to be compared if it is completely determined by the core dataset already examined; avoid using a lossy representation alone in place of the source.
+- **Caches** are usually omitted from equality because computed/uncomputed state does not change the object's essence. Caches must have an invalidation policy when sources change.
+- **`equals` and `hashCode` must follow the same equality relation**: equal ⇒ same hash; the converse is not required.
+- **Stability in hash collections**: avoid mutating data participating in equality/hash after inserting the object into a `HashSet` or using it as a `HashMap` key.
+- **Do not equate keywords `final`, `transient`, field name `id`, or `record` with the equality decision**: you must understand the actual meaning and lifecycle of the data.
 
-Đối chiếu đặc tả chính thức: [`Object.equals` và `Object.hashCode` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html), [`HashSet`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashSet.html), [`Record`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Record.html).
+Official specification references: [`Object.equals` and `Object.hashCode` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html), [`HashSet`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashSet.html), [`Record`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Record.html).

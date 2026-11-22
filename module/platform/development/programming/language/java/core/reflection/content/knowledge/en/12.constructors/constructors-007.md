@@ -1,10 +1,10 @@
-# Constructor của non-static inner class và tham số đối tượng bao ngoài
+# Non-Static Inner Class Constructors and the Enclosing Instance Parameter
 
-## 1. Bản chất vấn đề
+## 1. Nature of the Problem
 
-Trong Java, một **non-static member class** (lớp thành viên không có `static`), còn gọi là *non-static inner class*, gắn mỗi đối tượng của nó với một **immediately enclosing instance**: một đối tượng của lớp bao ngoài trực tiếp. Đối tượng bao ngoài cho phép inner class dùng `Outer.this` và truy cập các thành viên instance của outer class, kể cả `private` theo các quy tắc ngôn ngữ.
+In Java, a **non-static member class** (a member class without `static`), also called a *non-static inner class*, binds each of its objects to an **immediately enclosing instance**: an object of the directly enclosing class. The enclosing instance allows the inner class to use `Outer.this` and access instance members of the outer class, including `private` ones according to language rules.
 
-Ví dụ nguồn:
+Source example:
 
 ```java
 class Outer {
@@ -28,14 +28,14 @@ class Outer {
 }
 ```
 
-Cách tạo thông thường:
+Normal creation:
 
 ```java
 Outer outer = new Outer("A");
 Outer.Inner inner = outer.new Inner(5);
 ```
 
-Constructor trong mã nguồn viết `Inner(int id)` và lời gọi Java dùng `outer.new Inner(5)`. Nhưng khi Reflection tìm constructor tương ứng, danh sách kiểu tham số còn có **tham số đứng đầu đại diện cho `Outer`**:
+The constructor in source code writes `Inner(int id)` and the Java call uses `outer.new Inner(5)`. Yet when Reflection looks up the corresponding constructor, the parameter type list also includes **a leading parameter representing `Outer`**:
 
 ```java
 Constructor<Outer.Inner> constructor =
@@ -43,36 +43,36 @@ Constructor<Outer.Inner> constructor =
 Outer.Inner reflected = constructor.newInstance(outer, 5);
 ```
 
-Những đoạn code trên là **mã minh họa**: cần `import java.lang.reflect.Constructor;` và khai báo checked exceptions cho lời gọi Reflection. Ví dụ hoàn chỉnh có lệnh biên dịch ở mục 4.
+The snippets above are **illustrative code**: they require `import java.lang.reflect.Constructor;` and declaring checked exceptions for Reflection calls. A complete example with compile commands is in section 4.
 
-Ý chính: **mã nguồn chỉ viết một tham số `int`, nhưng Reflection nhận diện constructor của inner class này có hai tham số runtime: `Outer` trước, rồi `int`**. `outer` phải là một instance phù hợp, không phải `Outer.class` hay tên class dưới dạng chuỗi.
+Key point: **the source writes only one `int` parameter, yet Reflection sees this inner class's constructor as having two runtime parameters: `Outer` first, then `int`**. `outer` must be a valid instance, not `Outer.class` or a class name as a string.
 
-## 2. Hai cách viết tương ứng
+## 2. Two Corresponding Ways of Writing It
 
-| Góc nhìn | Ví dụ | Enclosing instance đi đâu? |
+| Perspective | Example | Where does the enclosing instance go? |
 | --- | --- | --- |
-| Java source | `outer.new Inner(5)` | Gắn với biểu thức `outer` đứng trước `.new` |
-| Reflection — tra cứu | `getDeclaredConstructor(Outer.class, int.class)` | Kiểu `Outer` trở thành kiểu tham số thứ nhất |
-| Reflection — tạo đối tượng | `constructor.newInstance(outer, 5)` | Giá trị `outer` trở thành đối số thứ nhất |
-| Reflection — lấy danh sách kiểu | `constructor.getParameterTypes()` | Trả kiểu `Outer` rồi `int` |
-| Reflection — đếm tham số | `constructor.getParameterCount()` | Trả `2` trong ví dụ |
+| Java source | `outer.new Inner(5)` | Attached to the `outer` expression before `.new` |
+| Reflection — lookup | `getDeclaredConstructor(Outer.class, int.class)` | Type `Outer` becomes the first parameter type |
+| Reflection — object creation | `constructor.newInstance(outer, 5)` | Value `outer` becomes the first argument |
+| Reflection — getting type list | `constructor.getParameterTypes()` | Returns type `Outer` then `int` |
+| Reflection — counting parameters | `constructor.getParameterCount()` | Returns `2` in the example |
 
-**Đừng nhầm hai tham số của hai API:**
+**Do not confuse the parameters of the two APIs:**
 
-- `getDeclaredConstructor(Outer.class, int.class)` nhận **kiểu của các tham số** (đối tượng `Class<?>`) để tìm đúng constructor.
-- `newInstance(outer, 5)` nhận **giá trị của các đối số** (object reference `outer` và giá trị `int` được boxing khi truyền vào `Object...`).
+- `getDeclaredConstructor(Outer.class, int.class)` takes **parameter types** (`Class<?>` objects) to find the right constructor.
+- `newInstance(outer, 5)` takes **argument values** (object reference `outer` and an `int` value boxed when passed to `Object...`).
 
-`getDeclaredConstructor(int.class)` sẽ **không tìm được** constructor này, dù nguồn ghi `Inner(int)`. Reflection không tự thêm đối tượng bao ngoài khi tìm constructor hoặc gọi `newInstance`.
+`getDeclaredConstructor(int.class)` will **fail to find** this constructor, even though source writes `Inner(int)`. Reflection does not automatically add the enclosing object when looking up a constructor or calling `newInstance`.
 
-### Vì sao compiler cần tham số bổ sung?
+### Why Does the Compiler Need an Extra Parameter?
 
-Cú pháp `outer.new Inner(5)` đã chỉ rõ đối tượng bao ngoài. Ở biểu diễn runtime, cần cách để chuyển tham chiếu này vào lúc khởi tạo. Constructor của non-static inner class nhận tham chiếu outer như đối số bổ sung ở đầu danh sách, rồi mới tới những tham số được khai báo trong nguồn. Cơ chế này được định nghĩa bởi hợp đồng Reflection và ngữ nghĩa inner-class của Java.
+The syntax `outer.new Inner(5)` already specifies the enclosing object. In the runtime representation, a mechanism is needed to pass this reference during initialization. A non-static inner class constructor receives the outer reference as an extra argument at the start of the list, followed by the parameters declared in source. This mechanism is defined by the Reflection contract and Java's inner-class semantics.
 
-Một Java compiler thường dùng field ẩn, chẳng hạn `this$0`, để giữ tham chiếu outer. Tuy nhiên, **`this$0` là chi tiết biên dịch không được bảo đảm là tên field ổn định**. Compiler/version/việc inner class có thực sự dùng outer state hay không có thể ảnh hưởng bytecode. Khi tra cứu và gọi constructor bằng Reflection, dựa trên **constructor signature và hành vi chuẩn**, không tự phụ thuộc tên field mà compiler sinh ra.
+A Java compiler typically uses a hidden field, such as `this$0`, to store the outer reference. However, **`this$0` is a compilation detail not guaranteed to be a stable field name**. The compiler/version/whether the inner class actually uses outer state can affect bytecode. When looking up and invoking constructors via Reflection, rely on the **constructor signature and standard behavior**, rather than depending on compiler-generated field names.
 
-## 3. Phân biệt non-static inner với static nested class
+## 3. Distinguishing Non-Static Inner Classes from Static Nested Classes
 
-`static nested class` cũng được khai báo bên trong một class nhưng **không cần enclosing instance**. Nó không có tham số constructor ẩn chỉ để mang object của outer.
+A `static nested class` is also declared inside a class, yet **does not need an enclosing instance**. It has no hidden constructor parameter solely to carry an outer object.
 
 ```java
 class Outer {
@@ -86,7 +86,7 @@ class Outer {
 }
 ```
 
-Cách gọi thông thường:
+Normal invocation:
 
 ```java
 Outer outer = new Outer();
@@ -94,7 +94,7 @@ Outer.Inner inner = outer.new Inner(10);
 Outer.Nested nested = new Outer.Nested(10);
 ```
 
-Cách tra cứu bằng Reflection:
+Reflection lookup:
 
 ```java
 Constructor<?> innerCtor =
@@ -103,22 +103,22 @@ Constructor<?> nestedCtor =
         Outer.Nested.class.getDeclaredConstructor(int.class);
 ```
 
-| Khía cạnh | `Outer.Inner` | `Outer.Nested` |
+| Aspect | `Outer.Inner` | `Outer.Nested` |
 | --- | --- | --- |
-| Có modifier `static`? | Không | Có |
-| Liên kết với `Outer` instance? | Có | Không |
-| Cách tạo bằng Java | `outer.new Inner(10)` | `new Outer.Nested(10)` |
-| Tham số khai báo nguồn | `int` | `int` |
-| Tham số constructor qua Reflection | `Outer, int` | `int` |
-| Có cần truyền object `Outer` vào `newInstance`? | Có | Không |
+| Has `static` modifier? | No | Yes |
+| Bound to an `Outer` instance? | Yes | No |
+| Creation syntax in Java | `outer.new Inner(10)` | `new Outer.Nested(10)` |
+| Source-declared parameter | `int` | `int` |
+| Constructor parameters via Reflection | `Outer, int` | `int` |
+| Needs an `Outer` object passed to `newInstance`? | Yes | No |
 
-**Cả hai đều là nested member classes.** `Class.getEnclosingClass()` và `Class.getDeclaringClass()` có thể trả `Outer.class` cho cả `Inner` lẫn `Nested`; chỉ dựa vào hai API đó **không đủ** để suy luận constructor cần tham số outer. Với member class, kết hợp `Class.isMemberClass()` và `Modifier.isStatic(clazz.getModifiers())`. Sau đó luôn kiểm tra signature constructor thực tế.
+**Both are nested member classes.** `Class.getEnclosingClass()` and `Class.getDeclaringClass()` can return `Outer.class` for both `Inner` and `Nested`; relying solely on those two APIs **is not enough** to infer whether a constructor needs an outer parameter. For a member class, combine `Class.isMemberClass()` and `Modifier.isStatic(clazz.getModifiers())`. Afterward, always inspect the actual constructor signature.
 
-Một lớp top-level không có enclosing class/member relationship; một local/anonymous class có quy tắc compiler-generated parameter riêng. Không đồng nhất tất cả dạng nested class thành một kiểu constructor.
+A top-level class has no enclosing class/member relationship; a local/anonymous class has its own compiler-generated parameter rules. Do not treat all forms of nested classes as having the same constructor shape.
 
-## 4. Chương trình Java 17+ chạy được
+## 4. Runnable Java 17+ Program
 
-Tạo tệp **`InnerConstructorDemo.java`** với nội dung:
+Create the file **`InnerConstructorDemo.java`** with the contents:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -202,7 +202,7 @@ public class InnerConstructorDemo {
 }
 ```
 
-Biên dịch, chạy từ thư mục chứa file bằng JDK 17 trở lên:
+Compile and run from the directory containing the file using JDK 17 or later:
 
 ```bash
 javac InnerConstructorDemo.java
@@ -226,19 +226,19 @@ nested parameter count: 1
 nested: N-4
 ```
 
-**Đọc kết quả:**
+**Reading the output:**
 
-1. `outerA.new Inner(5)` sử dụng implicit enclosing instance `outerA`, do đó trả `A-5`.
-2. `Outer.Inner.class` là member class, không có modifier `static`; lớp khai báo bao ngoài là `Outer`.
-3. Constructor mà Reflection thấy là `(Outer, int)`, nên `getParameterCount()` bằng `2`. `getDeclaredConstructor(int.class)` ném `NoSuchMethodException`; đây là lỗi **tra cứu chữ ký**, chưa phải lỗi gọi constructor.
-4. `innerCtor.newInstance(outerB, 9)` tạo inner object mới gắn với `outerB`. Method `label()` sử dụng `prefix` của `outerB` và in `B-9`, chứng minh tham số đầu là **giá trị enclosing instance**, không phải chỉ một marker trong signature.
-5. `Outer.Nested` có `static`, không cần enclosing instance. Reflection tìm constructor với duy nhất `int.class` và gọi `newInstance(4)`.
+1. `outerA.new Inner(5)` uses the implicit enclosing instance `outerA`, hence returning `A-5`.
+2. `Outer.Inner.class` is a member class without the `static` modifier; the enclosing declaring class is `Outer`.
+3. The constructor seen by Reflection is `(Outer, int)`, so `getParameterCount()` equals `2`. `getDeclaredConstructor(int.class)` throws `NoSuchMethodException`; this is a **signature lookup** error, not yet a constructor invocation error.
+4. `innerCtor.newInstance(outerB, 9)` creates a new inner object bound to `outerB`. The `label()` method uses `outerB`'s `prefix` and prints `B-9`, proving the first parameter is an **enclosing instance value**, not merely a marker in the signature.
+5. `Outer.Nested` has `static` and needs no enclosing instance. Reflection finds the constructor with only `int.class` and invokes `newInstance(4)`.
 
-Không cần `setAccessible(true)` trong ví dụ vì các nested types và constructors được khai báo `public` trong ngữ cảnh truy cập này. Cũng không cần dựng một `Outer` object chỉ để tạo `Outer.Nested`.
+`setAccessible(true)` is unnecessary in the example because the nested types and constructors are declared `public` in this access context. There is also no need to construct an `Outer` object just to create `Outer.Nested`.
 
-## 5. Constructor không có tham số tường minh vẫn cần outer
+## 5. Constructors Without Explicit Parameters Still Need Outer
 
-Một hiểu nhầm phổ biến là inner class có constructor không đối số trong nguồn thì Reflection dùng `getDeclaredConstructor()` trống.
+A common misconception is that if an inner class has a no-arg constructor in source, Reflection uses an empty `getDeclaredConstructor()`.
 
 ```java
 class Book {
@@ -248,7 +248,7 @@ class Book {
 }
 ```
 
-Để tra cứu constructor của `Page`:
+To look up `Page`'s constructor:
 
 ```java
 Constructor<Book.Page> constructor =
@@ -257,11 +257,11 @@ Book book = new Book();
 Book.Page page = constructor.newInstance(book);
 ```
 
-Đây là **đoạn minh họa** phải đặt trong scope có quyền truy cập package-private constructor và có xử lý checked exceptions. Dù mã nguồn viết `Page()`, Reflective constructor vẫn có tham số đầu `Book`.
+This is an **illustrative snippet** that must be placed in a scope with access to the package-private constructor and handle checked exceptions. Even though source writes `Page()`, the reflective constructor still has `Book` as its first parameter.
 
-Nếu gọi `Book.Page.class.getDeclaredConstructor()`, bạn sẽ gặp `NoSuchMethodException` đối với chương trình này. Nếu tìm đúng constructor nhưng gọi `constructor.newInstance()` thiếu đối số outer, kết quả là `IllegalArgumentException` vì không đủ argument. Hai lỗi xảy ra ở **hai bước khác nhau**.
+If you call `Book.Page.class.getDeclaredConstructor()`, you will hit `NoSuchMethodException` for this program. If you find the right constructor yet call `constructor.newInstance()` omitting the outer argument, the result is `IllegalArgumentException` due to insufficient arguments. The two errors happen at **two different steps**.
 
-### Ví dụ inner class với nhiều tham số
+### Example of an Inner Class with Multiple Parameters
 
 ```java
 class Server {
@@ -271,51 +271,51 @@ class Server {
 }
 ```
 
-Chữ ký constructor qua Reflection có dạng:
+The constructor signature via Reflection takes the form:
 
 ```java
 Server.Connection.class.getDeclaredConstructor(
         Server.class, String.class, int.class);
 ```
 
-Đầu tiên là **lớp bao ngoài trực tiếp**, tiếp đó là `String` và `int` được khai báo trong nguồn, giữ đúng thứ tự. Bên gọi phải truyền `Server` instance, `String` và `int`.
+First is the **immediately enclosing class**, followed by `String` and `int` declared in source, keeping exact order. The caller must pass a `Server` instance, a `String`, and an `int`.
 
-## 6. Enclosing instance khác gì `Class` metadata?
+## 6. How Does Enclosing Instance Differ from `Class` Metadata?
 
-Ba cặp thông tin rất dễ bị lẫn:
+Three pieces of information are easily mixed up:
 
-- `Inner.class.getEnclosingClass()` cho biết **kiểu lớp bao quanh về mặt cấu trúc**. Nó trả đối tượng `Class<Outer>`, không phải một instance cụ thể của `Outer`.
-- `Inner.class.getDeclaringClass()` cho biết **lớp khai báo member class** (đối với member class); cũng là metadata `Class`.
-- Đối tượng outer thật mà inner object gắn vào là **giá trị tại runtime**, ví dụ `outerB`; có thể có vô số `Outer` instances và mỗi inner object gắn với một instance phù hợp.
+- `Inner.class.getEnclosingClass()` reports **the structurally enclosing class type**. It returns a `Class<Outer>` object, not a specific instance of `Outer`.
+- `Inner.class.getDeclaringClass()` reports **the class declaring the member class** (for member classes); also `Class` metadata.
+- The actual outer object that an inner object attaches to is a **runtime value**, e.g. `outerB`; there can be countless `Outer` instances and each inner object binds to one matching instance.
 
-`getEnclosingClass() == Outer.class` **không có nghĩa** Reflection có thể tự chọn instance outer. Bạn phải cung cấp đúng object để `Constructor.newInstance` tạo inner object. Hai `Outer` instance có thể cùng kiểu `Outer.class` nhưng mang trạng thái khác nhau, vì vậy không thể lấy `Outer.class` để thay cho reference thật.
+`getEnclosingClass() == Outer.class` **does not mean** Reflection can automatically pick an outer instance. You must supply the exact object for `Constructor.newInstance` to create the inner object. Two `Outer` instances can share the same `Outer.class` type yet hold different state, so `Outer.class` cannot substitute for a real reference.
 
-**Không truyền `null` để giả lập outer object hợp lệ.** Hợp đồng constructor của non-static inner class yêu cầu một enclosing instance. Một số cách biên dịch/cơ chế thực thi có thể báo lỗi ở các bước khác nhau khi đưa `null`; đó không phải cách tạo một inner object liên kết hợp lệ và không nên dựa vào phản ứng ngoại lệ cụ thể của mọi compiler.
+**Do not pass `null` to fake a valid outer object.** The constructor contract of a non-static inner class requires an enclosing instance. Different compilation/execution mechanisms may report errors at different steps when `null` is supplied; that is not a way to create a validly linked inner object and one should not rely on a particular compiler's specific exception behavior.
 
-## 7. API Reflection nên dùng và các bước chính xác
+## 7. Reflection APIs to Use and Exact Steps
 
-### 7.1. `getDeclaredConstructor` hay `getConstructor`?
+### 7.1. `getDeclaredConstructor` or `getConstructor`?
 
-- `Class.getDeclaredConstructor(parameterTypes...)` tìm constructor được **khai báo trực tiếp**, bất kể modifier của constructor, theo đúng danh sách kiểu tham số.
-- `Class.getConstructor(parameterTypes...)` tìm **public constructor** theo chữ ký. Với inner member class không static, danh sách kiểu vẫn phải có outer class ở vị trí đầu.
-- `Class.getDeclaredConstructors()` trả toàn bộ constructor khai báo trực tiếp, hữu ích khi bạn chưa chắc signature. Đừng dựa vào thứ tự mảng constructors; hãy kiểm tra `getParameterTypes()` cho từng phần tử.
-- `Constructor.getParameterTypes()` trả `Class<?>[]` theo thứ tự runtime; `getParameterCount()` cho số lượng tham số; `getGenericParameterTypes()` có thể giúp phân tích thông tin generic nếu metadata tương ứng được lưu và phản ánh phù hợp.
+- `Class.getDeclaredConstructor(parameterTypes...)` finds a **directly declared** constructor, regardless of the constructor's modifier, matching the exact parameter type list.
+- `Class.getConstructor(parameterTypes...)` finds a **public constructor** by signature. For a non-static inner member class, the type list still must have the outer class in the first position.
+- `Class.getDeclaredConstructors()` returns all directly declared constructors, useful when you are unsure of the signature. Do not rely on the constructors array order; inspect `getParameterTypes()` for each element.
+- `Constructor.getParameterTypes()` returns `Class<?>[]` in runtime order; `getParameterCount()` gives the parameter count; `getGenericParameterTypes()` can help analyze generic info if corresponding metadata is preserved and reflected accordingly.
 
-Mẫu tra cứu đáng tin:
+Reliable lookup pattern:
 
 ```java
 Class<?> inner = Outer.Inner.class;
 for (Constructor<?> ctor : inner.getDeclaredConstructors()) {
     System.out.println(ctor.getParameterCount());
-    // Xem ctor.getParameterTypes() để nhận diện đúng chữ ký.
+    // Inspect ctor.getParameterTypes() to identify the exact signature.
 }
 ```
 
-Đây là đoạn minh họa, cần `import java.lang.reflect.Constructor;` và một lớp `Outer.Inner` hợp lệ. Nếu các constructor có overload, khớp **đầy đủ kiểu và thứ tự**, không chỉ đếm.
+This is an illustrative snippet, requiring `import java.lang.reflect.Constructor;` and a valid `Outer.Inner` class. If constructors are overloaded, match **all types and order**, not just the count.
 
-### 7.2. `Constructor.newInstance` thực sự làm gì?
+### 7.2. What Does `Constructor.newInstance` Actually Do?
 
-`Constructor<T>.newInstance(Object... initargs)` tạo và khởi tạo một instance mới bằng constructor phản ánh. Với non-static inner member class, **đối số đầu tiên là enclosing instance**; các đối số kế tiếp tương ứng tham số được khai báo.
+`Constructor<T>.newInstance(Object... initargs)` creates and initializes a new instance using the reflected constructor. For a non-static inner member class, **the first argument is the enclosing instance**; subsequent arguments correspond to the declared parameters.
 
 ```java
 Outer outer = new Outer("P");
@@ -324,11 +324,11 @@ Constructor<Outer.Inner> ctor =
 Outer.Inner child = ctor.newInstance(outer, 3);
 ```
 
-Khác với `Class.newInstance()` cũ (đã deprecated), API `Constructor.newInstance` cho phép lựa chọn constructor theo tham số, cung cấp đúng đối số và bọc exception của constructor đích trong `InvocationTargetException`. Nó cũng giúp biểu diễn rõ ràng các lựa chọn truy cập.
+Unlike the legacy `Class.newInstance()` (deprecated), `Constructor.newInstance` allows selecting a constructor by parameters, supplying exact arguments, and wraps exceptions from the target constructor in `InvocationTargetException`. It also makes access choices explicit.
 
-### 7.3. Không tự động vượt qua quyền truy cập
+### 7.3. Does Not Automatically Bypass Access Permissions
 
-Nếu inner class hoặc constructor không public, gọi `getDeclaredConstructor` để lấy metadata **không bảo đảm** `newInstance` có quyền sử dụng. Khi cần:
+If the inner class or constructor is non-public, calling `getDeclaredConstructor` to retrieve metadata **does not guarantee** `newInstance` has permission to invoke it. When needed:
 
 ```java
 Constructor<?> ctor = innerClass.getDeclaredConstructor(
@@ -339,11 +339,11 @@ if (ctor.trySetAccessible()) {
 }
 ```
 
-Đây là mẫu minh họa; `innerClass`, `enclosingClass` và `actualOuter` là các biến đã có sẵn. `trySetAccessible()` chỉ được cấp phép nếu Java access rules và JPMS cho phép. Với named module và deep reflection từ module khác, package có thể phải được `opens` đúng module của caller. Không xem việc truyền outer hợp lệ là quyền bỏ qua Java access checks.
+This is an illustrative pattern; `innerClass`, `enclosingClass`, and `actualOuter` are pre-existing variables. `trySetAccessible()` is granted only if Java access rules and JPMS allow it. With named modules and deep reflection from another module, the package may have to be `opens` to the caller's module. Do not treat passing a valid outer instance as permission to bypass Java access checks.
 
-## 8. `getParameters()`, tham số ẩn và metadata compiler
+## 8. `getParameters()`, Hidden Parameters, and Compiler Metadata
 
-Một số chương trình mong có thể xác định tham số outer bằng:
+Some programs expect to identify the outer parameter using:
 
 ```java
 Parameter[] parameters = ctor.getParameters();
@@ -354,30 +354,30 @@ for (Parameter parameter : parameters) {
 }
 ```
 
-Đoạn minh họa này cần `java.lang.reflect.Parameter` và biến `ctor`. Các cờ như `isImplicit()`/`isSynthetic()` và tên tham số phụ thuộc metadata trong class file, đặc biệt `MethodParameters`, cũng như cấu trúc lớp và cách compiler tạo bytecode. **Không thể suy ra bảo đảm mọi compiler/phiên bản gắn cùng cờ hoặc cùng tên cho tham số outer chỉ từ việc thấy non-static inner class.**
+This illustrative snippet requires `java.lang.reflect.Parameter` and variable `ctor`. Flags such as `isImplicit()`/`isSynthetic()` and parameter names depend on metadata in the class file, specifically `MethodParameters`, as well as class structure and how the compiler emits bytecode. **You cannot infer a guarantee that every compiler/version attaches the same flags or same name to the outer parameter solely from seeing a non-static inner class.**
 
-Với `javac -parameters`, compiler thường ghi thêm tên/thuộc tính tham số để Reflection đọc được. Không có metadata tên, `Parameter.getName()` có thể trả tên tổng hợp như `arg0`; `isNamePresent()` cho biết có tên thật được lưu theo hợp đồng API hay không. Tên tham số outer có thể xuất hiện khác nhau, nên không làm công cụ dựa vào một tên như `this$0` hoặc `arg0`.
+With `javac -parameters`, the compiler usually records parameter names/attributes so Reflection can read them. Without name metadata, `Parameter.getName()` may return synthesized names like `arg0`; `isNamePresent()` indicates whether a real name is stored per the API contract. The outer parameter name may appear differently, so do not build tools depending on a name like `this$0` or `arg0`.
 
-**Cách ổn định khi cần gọi constructor:** lấy danh sách `getParameterTypes()`, đối chiếu phần đầu với enclosing class và đưa đúng instance vào `newInstance`. Chỉ dùng metadata tham số để trình bày bổ sung, không thay cho signature.
+**Reliable approach when invoking a constructor:** obtain `getParameterTypes()`, verify the leading position against the enclosing class, and pass the exact instance into `newInstance`. Use parameter metadata only for supplemental presentation, not as a replacement for the signature.
 
-### Kiểm tra bằng `javap`
+### Inspecting with `javap`
 
-Biên dịch `InnerConstructorDemo.java` rồi, trong thư mục có class file, có thể xem cấu trúc bằng lệnh:
+After compiling `InnerConstructorDemo.java`, in the directory containing the class files, you can inspect the structure with:
 
 ```bash
 javap -p 'InnerConstructorDemo$Outer$Inner'
 javap -p 'InnerConstructorDemo$Outer$Nested'
 ```
 
-Đây là ví dụ tham khảo cú pháp terminal hỗ trợ trích dẫn bằng dấu nháy đơn để ký tự `$` không bị diễn giải thành biến môi trường. **Trên Windows PowerShell**, cũng có thể dùng cách đặt tên lớp trong dấu nháy đơn. Với cấu trúc này, bạn sẽ thấy constructor của inner có tham số outer ở đầu, còn constructor của nested static không có tham số đó. Có thể chạy `javap -v -p` để xem metadata chi tiết hơn, nhưng không phụ thuộc tên field compiler tự sinh hoặc thứ tự hiển thị.
+This is a reference example of terminal syntax supporting single quotes so `$` is not interpreted as an environment variable. **On Windows PowerShell**, placing the class name in single quotes also works. With this structure, you will see the inner constructor has the outer parameter at the start, whereas the static nested constructor does not have that parameter. You can run `javap -v -p` to view more detailed metadata, but do not depend on compiler-generated field names or display order.
 
-Công cụ đọc class file và Reflection phục vụ việc quan sát bytecode đã biên dịch; chúng không dựng lại nguyên vẹn cách viết mã nguồn.
+Classfile inspection tools and Reflection serve to observe compiled bytecode; they do not reconstruct source code verbatim.
 
-## 9. Nested nhiều cấp và các lớp local/anonymous
+## 9. Multi-Level Nesting and Local/Anonymous Classes
 
-### 9.1. Nested nhiều cấp
+### 9.1. Multi-Level Nesting
 
-Giả sử:
+Suppose:
 
 ```java
 class Building {
@@ -389,7 +389,7 @@ class Building {
 }
 ```
 
-`Room` là inner member class trực tiếp nằm trong `Floor`. Khi dùng Reflection tìm constructor, tham số enclosing instance đầu tiên có kiểu **`Building.Floor`**:
+`Room` is an inner member class directly inside `Floor`. When using Reflection to look up the constructor, the first enclosing instance parameter has type **`Building.Floor`**:
 
 ```java
 Constructor<Building.Floor.Room> ctor =
@@ -397,44 +397,44 @@ Constructor<Building.Floor.Room> ctor =
                 Building.Floor.class, int.class);
 ```
 
-Muốn tạo `Room`, cần một `Floor` instance phù hợp; còn bản thân `Floor` instance gắn với một `Building` instance. Reflection không tự thêm lần lượt `Building` và `Floor` thành hai tham số riêng trong constructor của `Room` chỉ vì có hai tầng lexical nesting.
+To create `Room`, a matching `Floor` instance is needed; that `Floor` instance itself is bound to a `Building` instance. Reflection does not automatically prepend both `Building` and `Floor` as two separate parameters in `Room`'s constructor merely because there are two levels of lexical nesting.
 
-### 9.2. Local class và anonymous class không theo một khuôn
+### 9.2. Local Classes and Anonymous Classes Do Not Follow One Template
 
-Local class nằm trong block và anonymous class có thể liên quan đến:
+Local classes inside blocks and anonymous classes may involve:
 
-- Enclosing instance của non-static context;
-- Các giá trị local hoặc tham số được capture (theo quy tắc effectively-final);
-- Tham số bổ sung do compiler dùng để gọi superclass constructor hoặc thực hiện khởi tạo.
+- An enclosing instance from a non-static context;
+- Captured local values or parameters (under effectively-final rules);
+- Extra parameters used by the compiler to call the superclass constructor or perform initialization.
 
-Chữ ký constructor thực tế của chúng có thể phức tạp và **phụ thuộc việc class được khai báo trong static hay non-static context, những giá trị được capture và compiler**. Không áp dụng máy móc công thức `Outer.class + các tham số nguồn` cho mọi local/anonymous class.
+Their actual constructor signatures can be complex and **depend on whether the class is declared in a static or non-static context, which values are captured, and the compiler**. Do not mechanically apply the formula `Outer.class + source parameters` to all local/anonymous classes.
 
-Trong bài này, công thức trọng tâm nhắm tới **non-static member inner class** như `Outer.Inner`. Đối với loại khác, kiểm tra `getEnclosingClass()`, `getEnclosingMethod()`, `getEnclosingConstructor()`, `isLocalClass()`, `isAnonymousClass()` và danh sách constructor thực tế; không giả định một chữ ký khi chưa quan sát.
+In this lesson, the core formula targets **non-static member inner classes** such as `Outer.Inner`. For other kinds, inspect `getEnclosingClass()`, `getEnclosingMethod()`, `getEnclosingConstructor()`, `isLocalClass()`, `isAnonymousClass()`, and the actual constructor list; do not assume a signature without observing it.
 
-### 9.3. Generic outer class
+### 9.3. Generic Outer Class
 
-Ví dụ `Outer<String>.Inner` khi runtime vẫn có outer instance là object của `Outer`; kiểu tham số constructor phản ánh là `Outer.class` do type erasure, không thể tra cứu bằng cú pháp `Outer<String>.class` (Java không có class literal cho kiểu parameterized đó). Nếu cần kiểm tra generic metadata, hãy tìm `Signature`/Reflection generic APIs nếu được compiler lưu.
+For example, `Outer<String>.Inner` at runtime still has an outer instance that is an object of `Outer`; the reflected constructor parameter type is `Outer.class` due to type erasure, and cannot be looked up using syntax like `Outer<String>.class` (Java has no class literal for that parameterized type). If checking generic metadata is needed, consult `Signature`/Reflection generic APIs if saved by the compiler.
 
-## 10. Lỗi thường gặp và hướng xử lý
+## 10. Common Errors and Remedies
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách sửa |
+| Symptom | Common cause | Fix |
 | --- | --- | --- |
-| `NoSuchMethodException` khi tìm `Inner(int)` | Quên tham số outer đứng đầu signature | Tìm `Inner(Outer, int)` |
-| `IllegalArgumentException` từ `newInstance(5)` | Thiếu enclosing instance khi gọi | `newInstance(outer, 5)` |
-| `IllegalArgumentException` do sai kiểu đầu tiên | Đưa object khác `Outer` vào tham số outer | Truyền instance `Outer` đúng kiểu |
-| `IllegalAccessException` | Caller thiếu quyền gọi constructor | Kiểm tra modifier, package, module; dùng cơ chế access hợp lệ |
-| `InaccessibleObjectException` khi bật access | JPMS không cho deep reflection | Kiểm tra package `opens` tới module caller |
-| `InvocationTargetException` | Constructor đích ném exception | Xem `getCause()` để tìm lỗi trong constructor |
-| `InstantiationException` | Lớp khai báo constructor không thể khởi tạo trong điều kiện API | Kiểm tra kiểu/constructor đích; không dùng với abstract class |
-| Nhận nhầm `Nested` là `Inner` | Chỉ kiểm tra `getEnclosingClass()`, bỏ qua `static` | Kiểm tra `isMemberClass()` và `Modifier.isStatic` |
-| Đọc field `this$0` rồi gắn chặt logic vào tên này | Phụ thuộc compiler-generated implementation detail | Dựa vào constructor signature và `newInstance` |
-| Cho rằng mọi anonymous/local class có tham số đầu giống member inner class | Khái quát hóa quá mức | Quan sát constructors thực tế và bối cảnh khai báo |
+| `NoSuchMethodException` when looking up `Inner(int)` | Forgot the leading outer parameter in the signature | Look up `Inner(Outer, int)` |
+| `IllegalArgumentException` from `newInstance(5)` | Missing enclosing instance on invocation | `newInstance(outer, 5)` |
+| `IllegalArgumentException` due to wrong first type | Passed an object other than `Outer` for the outer parameter | Pass an `Outer` instance of the right type |
+| `IllegalAccessException` | Caller lacks permission to invoke constructor | Check modifier, package, module; use valid access mechanisms |
+| `InaccessibleObjectException` when opening access | JPMS forbids deep reflection | Check package `opens` to caller module |
+| `InvocationTargetException` | Target constructor threw an exception | Inspect `getCause()` to find the error inside the constructor |
+| `InstantiationException` | Declaring class cannot be instantiated under API rules | Check target type/constructor; do not use with abstract classes |
+| Mistaking `Nested` for `Inner` | Checked only `getEnclosingClass()`, ignored `static` | Check `isMemberClass()` and `Modifier.isStatic` |
+| Reading field `this$0` and coupling logic to this name | Depending on compiler-generated implementation details | Rely on constructor signature and `newInstance` |
+| Assuming all anonymous/local classes share the same first parameter as member inner classes | Overgeneralization | Observe actual constructors and declaration context |
 
-**Phân biệt thời điểm lỗi:** `getDeclaredConstructor(...)` có thể thất bại trong bước **tìm chữ ký**; `newInstance(...)` có thể thất bại trong bước **kiểm tra đối số/quyền hoặc chạy constructor**. Gặp lỗi nào hãy kiểm tra đúng bước đó trước.
+**Distinguishing failure timing:** `getDeclaredConstructor(...)` can fail at the **signature lookup** step; `newInstance(...)` can fail at **argument/permission checks or running the constructor**. Whichever error appears, check that exact step first.
 
-## 11. Bài tự kiểm tra
+## 11. Self-Check Exercise
 
-Cho lớp sau:
+Given the following class:
 
 ```java
 class Company {
@@ -448,32 +448,32 @@ class Company {
 }
 ```
 
-Hãy dự đoán trước khi chạy:
+Predict before running:
 
-1. `Company.Employee.class.getDeclaredConstructor(String.class, int.class)` có tìm được constructor không?
-2. Danh sách kiểu tham số đúng cho `Company.Employee` là gì?
-3. `Company.Department.class.getDeclaredConstructor(String.class)` có cần `Company.class` đứng đầu không?
-4. Khi gọi constructor của `Employee` qua `newInstance`, tham số đầu tiên cần **kiểu** hay **giá trị**?
-5. Nếu có hai `Company` instances khác nhau, Reflection tự chọn instance nào?
-6. `Company.Employee.class.getDeclaringClass() == Company.class` có đủ để tạo `Employee` không?
+1. Does `Company.Employee.class.getDeclaredConstructor(String.class, int.class)` find the constructor?
+2. What is the correct parameter type list for `Company.Employee`?
+3. Does `Company.Department.class.getDeclaredConstructor(String.class)` need `Company.class` at the start?
+4. When invoking `Employee`'s constructor via `newInstance`, does the first parameter need a **type** or a **value**?
+5. If there are two different `Company` instances, which instance does Reflection automatically choose?
+6. Is `Company.Employee.class.getDeclaringClass() == Company.class` sufficient to create an `Employee`?
 
-**Đáp án:**
+**Answers:**
 
-1. Không; thiếu `Company.class` trong lookup, nên `NoSuchMethodException`.
+1. No; `Company.class` is missing from the lookup, so `NoSuchMethodException`.
 2. `(Company.class, String.class, int.class)`.
-3. Không; `Department` là `static nested class`.
-4. Đưa **giá trị `Company` instance**; `Company.class` chỉ dùng khi tra cứu signature.
-5. Không tự chọn; caller truyền đối tượng bao ngoài cụ thể vào `newInstance`.
-6. Không. `getDeclaringClass()` chỉ cung cấp class metadata; vẫn phải có `Company` instance phù hợp và cung cấp các tham số constructor.
+3. No; `Department` is a `static nested class`.
+4. Pass a **`Company` instance value**; `Company.class` is only used when looking up the signature.
+5. It does not choose automatically; the caller passes a specific enclosing object to `newInstance`.
+6. No. `getDeclaringClass()` only provides class metadata; a suitable `Company` instance and constructor arguments are still required.
 
-## 12. Ghi nhớ
+## 12. Key Takeaway
 
-**Non-static member inner class có enclosing instance**. Khi Reflection lấy constructor của nó, hãy tính **kiểu enclosing class là tham số đứng đầu**, rồi nối tiếp các kiểu tham số mà mã nguồn khai báo; khi gọi `newInstance`, cung cấp **đối tượng outer thật** trước các đối số tường minh.
+**A non-static member inner class has an enclosing instance**. When Reflection retrieves its constructor, include **the enclosing class type as the first parameter**, followed by the parameter types declared in source code; when calling `newInstance`, supply the **actual outer object** before the explicit arguments.
 
-Phân biệt với `static nested class` không cần đối tượng outer. Dùng `getParameterTypes()` để xác minh signature, `Modifier.isStatic()` để hỗ trợ phân loại member class, xử lý đúng quyền truy cập và exception. Không phụ thuộc vào tên field/parameter compiler tự sinh; với local/anonymous classes, cần khảo sát bytecode cụ thể thay vì áp dụng một công thức duy nhất.
+Distinguish this from a `static nested class` which needs no outer object. Use `getParameterTypes()` to verify the signature, `Modifier.isStatic()` to help classify member classes, and handle access permissions and exceptions properly. Do not rely on compiler-generated field/parameter names; for local/anonymous classes, inspect the specific bytecode rather than applying a single formula.
 
-Tài liệu chuẩn để đối chiếu:
+Official references:
 
-- [Java SE 17 — `Class.getDeclaredConstructor` và `Class.getConstructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html)
+- [Java SE 17 — `Class.getDeclaredConstructor` and `Class.getConstructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html)
 - [Java SE 17 — `Constructor.newInstance`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html)
-- [Java Language Specification `8.8.1 và `15.9.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html)
+- [Java Language Specification §8.8.1 and §15.9.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html)

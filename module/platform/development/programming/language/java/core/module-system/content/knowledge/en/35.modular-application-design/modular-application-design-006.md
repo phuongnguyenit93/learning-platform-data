@@ -1,25 +1,25 @@
-# Chọn layer khi cần plugin hoặc isolation
+# Choosing Layers When Plugins or Isolation Are Needed
 
-Java Module System cho phép một ứng dụng tạo nhiều ModuleLayer trong cùng một JVM. Mỗi layer chứa một cấu hình module đã được resolve và có quan hệ cha với một hoặc nhiều layer khác. Đây là nền tảng hữu ích khi ứng dụng cần nạp plugin động, quản lý nhiều nhóm module hoặc giới hạn phạm vi nhìn thấy provider.
+The Java Module System allows an application to create multiple `ModuleLayer` instances within the same JVM. Each layer holds a resolved module configuration and has parent relationships with one or more other layers. This is a useful foundation when an application needs to load plugins dynamically, manage multiple module groups, or scope provider visibility.
 
-Không phải ứng dụng nào cũng cần tạo layer riêng. Nếu tất cả module được xác định cố định khi khởi động, một module graph trong boot layer hoặc một module layer duy nhất thường đơn giản hơn. Hãy tạo layer mới khi có nhu cầu thực tế về vòng đời plugin, tập module có thể thay đổi, nhiều phiên bản plugin hoặc phạm vi service riêng.
+Not every application needs to create custom layers. If all modules are statically determined at startup, a single module graph in the boot layer or a single module layer is usually simpler. Create new layers only when there is a real need for plugin lifecycles, changing module sets, multiple plugin versions, or separate service scopes.
 
-## 1. ModuleLayer đại diện cho điều gì?
+## 1. What does `ModuleLayer` represent?
 
-ModuleLayer là một tập hợp các module đã được định nghĩa trong runtime, cùng với quan hệ tới các layer cha. Một layer được tạo từ Configuration đã resolve và một hoặc nhiều parent layer.
+`ModuleLayer` is a collection of modules defined at runtime, together with relationships to parent layers. A layer is created from a resolved `Configuration` and one or more parent layers.
 
-Các thành phần liên quan:
+Related components:
 
-| Thành phần | Vai trò |
+| Component | Role |
 |---|---|
-| ModuleFinder | Tìm module từ module path, runtime image hoặc nguồn module khác |
-| ModuleDescriptor | Mô tả tên module, requires, exports, opens, uses và provides |
-| Configuration | Kết quả resolve module graph, xác định các module cần có mặt và dependency |
-| ModuleLayer | Chứa các module đã được định nghĩa và quan hệ cha-con giữa các layer |
-| ModuleLayer.Controller | Đối tượng điều khiển layer mới, có thể dùng để điều chỉnh một số quan hệ module trong runtime |
-| ClassLoader | Nạp class của các module theo cách định nghĩa layer |
+| `ModuleFinder` | Locates modules from a module path, runtime image, or other module source |
+| `ModuleDescriptor` | Describes module name, `requires`, `exports`, `opens`, `uses`, and `provides` |
+| `Configuration` | Result of resolving the module graph, determining present modules and dependencies |
+| `ModuleLayer` | Contains the defined modules and parent-child relationships between layers |
+| `ModuleLayer.Controller` | Controls a newly created layer and can adjust certain module relationships at runtime |
+| `ClassLoader` | Loads module classes according to how the layer was defined |
 
-Luồng tạo layer thường gặp:
+Typical layer creation flow:
 
 ~~~text
 Plugin directory
@@ -40,23 +40,23 @@ ModuleLayer child
 ServiceLoader.load(childLayer, Service.class)
 ~~~
 
-Configuration là kết quả resolve, còn ModuleLayer là môi trường runtime nơi các module trong configuration được định nghĩa. Chỉ tìm thấy một JAR bằng ModuleFinder chưa có nghĩa module đó đã được nạp vào một layer.
+`Configuration` is the resolution result, whereas `ModuleLayer` is the runtime environment where the modules in that configuration are defined. Merely finding a JAR with `ModuleFinder` does not mean that module has been loaded into a layer.
 
-## 2. Khi nào nên tạo layer riêng?
+## 2. When should you create a separate layer?
 
-Các tình huống thường phù hợp:
+Common suitable scenarios:
 
-- **Plugin được cài thêm khi ứng dụng đã chạy:** ứng dụng có thể tìm module trong thư mục plugin và tạo layer mới cho plugin.
-- **Nhiều nhóm plugin độc lập:** mỗi nhóm có thể được đặt trong một layer con riêng để kiểm soát module nào được nhìn thấy.
-- **Cần phiên bản dependency riêng:** hai plugin có thể dùng các module dependency khác nhau nếu module graph và class loader được thiết kế phù hợp.
-- **Cần phạm vi ServiceLoader cụ thể:** ứng dụng có thể tìm provider trong một layer và các layer cha của nó.
-- **Cần ranh giới triển khai:** module plugin được resolve và khởi tạo theo thời điểm hoặc cấu hình riêng.
+- **Plugins installed after the application has started:** the application can scan a plugin directory and create a new layer for the plugin.
+- **Multiple independent plugin groups:** each group can be placed in a separate child layer to control which modules are visible.
+- **Separate dependency versions needed:** two plugins can use different module dependencies if the module graph and class loaders are designed appropriately.
+- **Specific `ServiceLoader` scoping needed:** the application can search for providers in a specific layer and its parent layers.
+- **Deployment boundaries needed:** plugin modules are resolved and initialized at their own timing or configuration.
 
-Không nên tạo layer chỉ để chia package cho đẹp. Nếu các module luôn được nạp cùng nhau, có cùng vòng đời và không cần phạm vi discovery riêng, một layer duy nhất thường dễ vận hành hơn.
+Do not create layers just to organize packages neatly. If modules are always loaded together, share the same lifecycle, and do not need separate discovery scopes, a single layer is usually easier to operate.
 
-## 3. Kiến trúc host và plugin
+## 3. Host and plugin architecture
 
-Một thiết kế plugin điển hình đặt service API trong layer cha. Host và plugin cùng tham chiếu tới đúng một định nghĩa service interface. Plugin implementation nằm trong layer con.
+A typical plugin design places the service API in the parent layer. Both the host and the plugin reference the exact same service interface definition. Plugin implementations live in child layers.
 
 ~~~text
 Boot layer
@@ -78,7 +78,7 @@ Child layer B
        provides Plugin with ExportPlugin
 ~~~
 
-Host chỉ biết contract Plugin. Nó không cần import AuditPlugin hoặc ExportPlugin. Mỗi plugin được tìm và nạp vào layer phù hợp.
+The host knows only the `Plugin` contract. It does not need to import `AuditPlugin` or `ExportPlugin`. Each plugin is discovered and loaded into the appropriate layer.
 
 Service API:
 
@@ -92,7 +92,7 @@ public interface Plugin {
 }
 ~~~
 
-Module API:
+API module:
 
 ~~~java
 module com.example.plugin.api {
@@ -100,7 +100,7 @@ module com.example.plugin.api {
 }
 ~~~
 
-Module host:
+Host module:
 
 ~~~java
 module com.example.host {
@@ -110,7 +110,7 @@ module com.example.host {
 }
 ~~~
 
-Module plugin:
+Plugin module:
 
 ~~~java
 module com.example.audit.plugin {
@@ -144,11 +144,11 @@ public final class AuditPlugin implements Plugin {
 }
 ~~~
 
-Service API nên được định nghĩa và nạp từ layer cha. Không đóng gói một bản sao của API vào mỗi plugin. Nếu host và plugin nhìn thấy hai class Plugin khác nhau do hai class loader định nghĩa, chúng không có cùng class identity và việc ép kiểu hoặc gọi service có thể thất bại.
+The service API should be defined and loaded from the parent layer. Do not bundle a copy of the API into each plugin. If the host and plugin see two different `Plugin` classes defined by two different class loaders, they do not share class identity, and casting or invoking the service can fail.
 
-## 4. Tìm và resolve plugin module
+## 4. Finding and resolving plugin modules
 
-Giả sử host nhận đường dẫn thư mục plugin. Có thể dùng ModuleFinder để tìm module gốc, sau đó resolve dependency dựa trên configuration của boot layer.
+Suppose the host receives a plugin directory path. `ModuleFinder` can locate the root module and then resolve dependencies based on the boot layer's configuration.
 
 ~~~java
 import java.lang.module.Configuration;
@@ -168,21 +168,21 @@ Configuration configuration =
                         Set.of("com.example.audit.plugin"));
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-1. ModuleFinder.of(pluginPath) tìm module trong thư mục plugin.
-2. Configuration của boot layer làm cấu hình cha để resolve dependency.
-3. finder cung cấp module plugin và các dependency nằm trong thư mục đó.
-4. ModuleFinder.of() ở vị trí after-finder không bổ sung module từ một nguồn khác.
-5. Set.of(...) chỉ định root module cần resolve.
+1. `ModuleFinder.of(pluginPath)` discovers modules in the plugin directory.
+2. The boot layer's `Configuration` acts as the parent configuration for resolving dependencies.
+3. `finder` supplies the plugin module and dependencies residing in that directory.
+4. `ModuleFinder.of()` in the after-finder position adds no modules from another source.
+5. `Set.of(...)` specifies the root modules to resolve.
 
-Các dependency có thể được thỏa mãn bởi module trong parent configuration hoặc module finder theo quy tắc resolution. Nếu plugin cần thư viện riêng, đặt thư viện đó trên module path phù hợp và kiểm soát xung đột tên module.
+Dependencies can be satisfied by modules in the parent configuration or module finders according to resolution rules. If a plugin needs its own libraries, place them on the appropriate module path and manage module name conflicts.
 
-Có thể dùng resolveAndBind() thay cho resolve() khi muốn service binding tự động tìm thêm provider module phù hợp từ các finder trong quá trình resolution. Không dùng nó một cách máy móc: hãy xác định service nào được khai báo uses và provider nào cần được đưa vào configuration.
+`resolveAndBind()` can be used instead of `resolve()` when you want service binding to automatically pull in matching provider modules from the finders during resolution. Do not use it mechanically: identify which services are declared with `uses` and which providers need to be included in the configuration.
 
-## 5. Định nghĩa layer bằng một class loader
+## 5. Defining a layer with one class loader
 
-Sau khi có Configuration, tạo layer:
+Once you have a `Configuration`, create the layer:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -218,15 +218,15 @@ public final class PluginLayerFactory {
 }
 ~~~
 
-defineModulesWithOneLoader định nghĩa tất cả module trong configuration mới bằng một class loader mới. Class loader này có parent là class loader được truyền vào. Trong ví dụ, parent loader có thể nhìn thấy service API đã được định nghĩa ở layer cha.
+`defineModulesWithOneLoader` defines all modules in the new configuration using a single new class loader. This class loader's parent is the class loader passed in. In the example, the parent loader can see the service API defined in the parent layer.
 
-Cách này phù hợp khi các module trong cùng plugin layer có thể chia sẻ một class loader. Nó cũng giúp quản lý nhóm plugin như một đơn vị.
+This approach fits when modules within the same plugin layer can share one class loader. It also helps manage a group of plugins as a single unit.
 
-Không nên truyền một parent loader không nhìn thấy service API hoặc các kiểu public mà plugin cần dùng. Nếu API class được nạp lần nữa trong child layer, class identity sẽ khác với API class mà host đang dùng.
+Do not pass a parent loader that cannot see the service API or public types the plugin needs to use. If the API class is loaded a second time in the child layer, its class identity will differ from the API class the host is using.
 
-## 6. Dùng ServiceLoader để tìm provider trong layer
+## 6. Using `ServiceLoader` to find providers in a layer
 
-Sau khi tạo layer, host có thể tìm provider bằng overload nhận ModuleLayer:
+After creating the layer, the host can look up providers using the overload that takes a `ModuleLayer`:
 
 ~~~java
 import java.util.ServiceLoader;
@@ -243,9 +243,9 @@ for (Plugin plugin : loader) {
 }
 ~~~
 
-ServiceLoader.load(pluginLayer, Plugin.class) tìm provider trong layer được chỉ định và các layer cha của nó. Nó không tìm provider chỉ nằm trong một layer anh em.
+`ServiceLoader.load(pluginLayer, Plugin.class)` searches for providers in the specified layer and its parent layers. It does not find providers residing only in a sibling layer.
 
-Nếu cần kiểm tra provider thuộc layer nào trước khi khởi tạo, dùng stream():
+If you need to inspect which layer a provider belongs to before instantiating it, use `stream()`:
 
 ~~~java
 ServiceLoader.load(pluginLayer, Plugin.class)
@@ -258,15 +258,15 @@ ServiceLoader.load(pluginLayer, Plugin.class)
         });
 ~~~
 
-Lưu ý rằng layer cha cũng có thể chứa provider. Nếu yêu cầu là chỉ chạy provider đến từ layer plugin cụ thể, hãy lọc theo provider.type().getModule().getLayer() trước khi gọi get().
+Note that parent layers can also contain providers. If the requirement is to run only providers originating from a specific plugin layer, filter by `provider.type().getModule().getLayer()` before calling `get()`.
 
-ServiceLoader không tự quản lý toàn bộ vòng đời plugin. Host vẫn cần định nghĩa cách start, stop, xử lý lỗi, lưu trạng thái và giải phóng tài nguyên của plugin.
+`ServiceLoader` does not manage the full plugin lifecycle on its own. The host still needs to define how plugins are started, stopped, error-handled, stateful, and cleaned up.
 
-## 7. Một layer hay nhiều layer?
+## 7. One layer or multiple layers?
 
-Có thể tạo một layer chứa nhiều plugin hoặc tạo layer riêng cho từng plugin.
+You can create one layer containing multiple plugins or create a separate layer for each plugin.
 
-### Một layer cho một nhóm plugin
+### One layer for a group of plugins
 
 ~~~text
 Boot layer
@@ -278,9 +278,9 @@ Plugin layer
     |-- reporting plugin
 ~~~
 
-Phù hợp khi các plugin được triển khai, nâng cấp và khởi động cùng nhau; có dependency chung; hoặc cần chia sẻ class giữa các module plugin.
+Suitable when plugins are deployed, upgraded, and started together; share dependencies; or need to share classes among plugin modules.
 
-### Một layer cho mỗi plugin
+### One layer per plugin
 
 ~~~text
                  Boot layer
@@ -290,29 +290,29 @@ Phù hợp khi các plugin được triển khai, nâng cấp và khởi động
            layer    layer   layer
 ~~~
 
-Phù hợp khi plugin có dependency riêng, cần nạp hoặc gỡ độc lập, hoặc cần giới hạn phạm vi ServiceLoader. Mỗi layer con có thể có configuration và class loader riêng.
+Suitable when plugins have separate dependencies, need to be loaded or unloaded independently, or need `ServiceLoader` scope isolation. Each child layer can have its own configuration and class loader.
 
-Tuy nhiên, layer riêng không tự động cách ly mọi thứ. Plugin vẫn chạy trong cùng process, có thể dùng chung tài nguyên hệ điều hành, thread, filesystem và các API mà quyền của process cho phép. Nếu cần chạy code không tin cậy, dùng process/container boundary và cơ chế kiểm soát ở cấp hệ điều hành.
+However, separate layers do not automatically isolate everything. Plugins still run in the same process and can share OS resources, threads, the filesystem, and any APIs permitted by the process's privileges. If untrusted code must be run, use process/container boundaries and OS-level access controls.
 
-## 8. Chọn class loader strategy
+## 8. Choosing a class loader strategy
 
-ModuleLayer cung cấp nhiều cách định nghĩa module và gắn class loader.
+`ModuleLayer` provides several ways to define modules and attach class loaders.
 
-| API | Cách tổ chức loader | Khi phù hợp |
+| API | Loader organization | When appropriate |
 |---|---|---|
-| defineModulesWithOneLoader | Một loader cho tất cả module trong layer mới | Các module trong một plugin group cần chia sẻ loader |
-| defineModulesWithManyLoaders | Một loader cho mỗi module mới | Cần tách loader giữa các module |
-| defineModules | Ứng dụng cung cấp hàm ánh xạ tên module sang class loader | Cần kiểm soát loader strategy chi tiết |
+| `defineModulesWithOneLoader` | One loader for all modules in the new layer | Modules in a plugin group need to share a loader |
+| `defineModulesWithManyLoaders` | One loader per new module | Loaders need to be separated across modules |
+| `defineModules` | Application supplies a function mapping module name to class loader | Fine-grained control over loader strategy is needed |
 
-Với defineModulesWithManyLoaders, các module vẫn thuộc cùng một ModuleLayer nhưng có loader riêng. Với defineModules, hàm ánh xạ phải trả về class loader phù hợp cho từng module.
+With `defineModulesWithManyLoaders`, modules still belong to the same `ModuleLayer` but have separate loaders. With `defineModules`, the mapping function must return an appropriate class loader for each module.
 
-Chọn loader strategy dựa trên dependency và yêu cầu runtime. Nhiều loader có thể làm class visibility phức tạp hơn. Nếu một module cần chia sẻ kiểu với module khác, phải bảo đảm quan hệ readability và khả năng nạp class phù hợp.
+Choose a loader strategy based on dependencies and runtime requirements. Multiple loaders can make class visibility more complex. If one module needs to share types with another module, ensure appropriate readability relationships and class-loading capabilities.
 
-Một class trong Java được nhận diện không chỉ bằng tên đầy đủ mà còn bởi class loader đã định nghĩa nó. Hai class cùng tên nhưng do hai loader khác nhau định nghĩa là hai kiểu khác nhau. Đây là nguyên nhân phổ biến của ClassCastException khi plugin đóng gói bản sao service API.
+A class in Java is identified not only by its fully qualified name, but also by the class loader that defined it. Two classes with the same name defined by two different loaders are two distinct types. This is a common cause of `ClassCastException` when a plugin bundles a duplicate copy of the service API.
 
-## 9. Quan hệ cha-con và sibling layer
+## 9. Parent-child and sibling layer relationships
 
-Một layer con có thể đọc module từ layer cha theo cấu hình và quan hệ readability. Nhưng sibling layer không tự động đọc module của nhau.
+A child layer can read modules from parent layers according to configuration and readability rules. Sibling layers, however, do not automatically read each other's modules.
 
 ~~~text
                  Boot layer
@@ -322,26 +322,26 @@ Một layer con có thể đọc module từ layer cha theo cấu hình và quan
           Plugin A      Plugin B
 ~~~
 
-Nếu childA và childB đều có boot layer làm parent:
+If `childA` and `childB` both have the boot layer as their parent:
 
-- Plugin trong childA có thể đọc các module phù hợp từ boot layer.
-- Plugin trong childB có thể đọc các module phù hợp từ boot layer.
-- childA không tự động đọc module chỉ có trong childB.
-- childB không tự động đọc module chỉ có trong childA.
+- Plugins in `childA` can read eligible modules from the boot layer.
+- Plugins in `childB` can read eligible modules from the boot layer.
+- `childA` does not automatically read modules that exist only in `childB`.
+- `childB` does not automatically read modules that exist only in `childA`.
 
-Đây là cơ sở để giới hạn phạm vi provider hoặc dependency giữa các plugin. Nếu hai plugin cần giao tiếp, thiết kế contract ở layer cha hoặc truyền dữ liệu qua API host quản lý thay vì truy cập trực tiếp implementation của layer kia.
+This is the basis for scoping providers or dependencies between plugins. If two plugins need to communicate, design a contract in a parent layer or exchange data through a host-managed API instead of directly accessing the other layer's implementation.
 
-Cũng cần phân biệt visibility với quyền truy cập package. Một module có thể đọc module khác nhưng vẫn không truy cập được package chưa export. Readability và exports là hai điều kiện riêng.
+Also distinguish visibility from package access. One module may read another module and still be unable to access an unexported package. Readability and `exports` are two separate conditions.
 
-## 10. Controller và điều chỉnh module ở runtime
+## 10. Controller and runtime module adjustments
 
-Các phương thức defineModules... trả về ModuleLayer.Controller. Controller cho phép thực hiện một số thay đổi có kiểm soát đối với module trong layer được tạo, ví dụ:
+The `defineModules...` methods return a `ModuleLayer.Controller`. The controller enables certain controlled changes to modules in the created layer, for example:
 
-- addReads: bổ sung quan hệ readability.
-- addExports: export một package tới module đích.
-- addOpens: mở package cho deep reflection.
+- `addReads`: adds a readability relationship.
+- `addExports`: exports a package to a target module.
+- `addOpens`: opens a package for deep reflection.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~java
 ModuleLayer.Controller controller =
@@ -353,53 +353,53 @@ ModuleLayer.Controller controller =
 ModuleLayer layer = controller.layer();
 ~~~
 
-Chỉ giữ Controller nếu ứng dụng thực sự cần điều chỉnh quan hệ module sau khi tạo layer. Đừng dùng addReads, addExports hoặc addOpens để che giấu một module descriptor được thiết kế sai. Hãy khai báo requires, exports và opens ngay trong module-info.java nếu đó là contract ổn định.
+Retain the `Controller` only if the application genuinely needs to adjust module relationships after layer creation. Do not use `addReads`, `addExports`, or `addOpens` to mask a poorly designed module descriptor. Declare `requires`, `exports`, and `opens` directly in `module-info.java` when they are stable contracts.
 
-Runtime adjustment có thể tạo coupling khó nhìn thấy trong descriptor và làm việc chẩn đoán phức tạp hơn. Ghi lại rõ lý do, module nguồn, module đích và package được mở nếu phải dùng Controller.
+Runtime adjustments can introduce coupling that is hard to see in descriptors and complicate diagnostics. Clearly document the reason, source module, target module, and opened package whenever `Controller` must be used.
 
-## 11. Vòng đời plugin và khả năng thu hồi layer
+## 11. Plugin lifecycle and layer reclamation
 
-ModuleLayer không có phương thức close() như URLClassLoader. Tạo layer không đồng nghĩa với việc ứng dụng có thể gỡ plugin ngay lập tức.
+`ModuleLayer` does not have a `close()` method like `URLClassLoader`. Creating a layer does not imply the application can unload a plugin immediately.
 
-Class và resource được nạp bởi class loader của plugin có thể được thu hồi khi class loader trở nên không còn được tham chiếu và garbage collector có thể thu hồi các class tương ứng. Vì vậy, ứng dụng phải giải phóng mọi tham chiếu có thể giữ plugin sống:
+Classes and resources loaded by a plugin's class loader can be reclaimed once the class loader becomes unreachable and the garbage collector can reclaim the corresponding classes. Therefore, the application must release every reference that could keep the plugin alive:
 
-- Dừng thread do plugin tạo.
-- Hủy executor, scheduler và timer.
-- Gỡ listener hoặc callback đăng ký vào host.
-- Xóa plugin object khỏi registry và cache.
-- Xóa ThreadLocal do plugin tạo nếu còn được giữ bởi thread sống lâu.
-- Khôi phục thread context class loader nếu plugin đã thay đổi.
-- Đóng file, socket, database connection và resource mà plugin sở hữu.
-- Không giữ ServiceLoader, Provider hoặc Class object của plugin trong cache toàn cục.
+- Stop threads created by the plugin.
+- Cancel executors, schedulers, and timers.
+- Unregister listeners or callbacks registered with the host.
+- Remove plugin objects from registries and caches.
+- Clear `ThreadLocal` values created by the plugin if held by long-lived threads.
+- Restore the thread context class loader if the plugin changed it.
+- Close files, sockets, database connections, and resources owned by the plugin.
+- Do not retain `ServiceLoader`, `Provider`, or plugin `Class` objects in global caches.
 
-Ngay cả khi bỏ tham chiếu ModuleLayer, một thread đang chạy code của plugin hoặc một static cache của host vẫn có thể giữ class loader sống. Việc thu hồi không xảy ra tức thời và không nên dựa vào System.gc().
+Even after dropping references to `ModuleLayer`, a running thread executing plugin code or a static cache on the host can still keep the class loader alive. Reclamation does not happen instantaneously and should not rely on `System.gc()`.
 
-Thiết kế plugin cần có lifecycle contract, ví dụ start() và stop(), để host yêu cầu plugin giải phóng tài nguyên trước khi loại bỏ registry và tham chiếu tới layer.
+Plugin design needs a lifecycle contract—such as `start()` and `stop()`—so the host can ask the plugin to release resources before removing registry entries and references to the layer.
 
-## 12. ModuleLayer không phải security sandbox
+## 12. `ModuleLayer` is not a security sandbox
 
-ModuleLayer giúp tổ chức module graph, readability, exports, opens và phạm vi class loading. Nó không phải một sandbox bảo mật cho code không tin cậy.
+`ModuleLayer` organizes module graphs, readability, `exports`, `opens`, and class-loading scope. It is not a security sandbox for untrusted code.
 
-Plugin chạy trong cùng JVM có thể sử dụng những quyền mà process đang có nếu có thể truy cập API tương ứng. Module encapsulation giúp kiểm soát truy cập giữa module, nhưng không thay thế phân quyền hệ điều hành.
+A plugin running in the same JVM can exercise whatever privileges the process holds if it can access the corresponding APIs. Module encapsulation controls access between modules, but it does not replace operating system permissions.
 
-Nếu plugin đến từ nguồn không tin cậy hoặc cần giới hạn quyền đọc file, truy cập mạng, native code hay tài nguyên máy chủ, cân nhắc chạy plugin trong process riêng, container hoặc môi trường được hệ điều hành kiểm soát. Giao tiếp qua IPC hoặc network contract có thể tạo ranh giới mạnh hơn layer trong cùng JVM.
+If plugins come from untrusted sources or require restrictions on file access, network access, native code, or host resources, consider running plugins in a separate process, container, or OS-controlled environment. Communicating over IPC or a network contract provides a stronger boundary than layers inside the same JVM.
 
-## 13. Kiểm thử plugin layer
+## 13. Testing plugin layers
 
-Nên kiểm thử ít nhất các trường hợp:
+At minimum, test the following scenarios:
 
-| Tình huống | Kết quả mong đợi |
+| Scenario | Expected result |
 |---|---|
-| Plugin module hợp lệ trong thư mục plugin | ModuleFinder tìm thấy và Configuration resolve thành công |
-| Plugin thiếu dependency | Resolve thất bại với thông tin module thiếu |
-| Plugin khai báo provides đúng service | ServiceLoader của layer tìm thấy provider |
-| Provider nằm trong parent layer | Loader của child layer có thể nhìn thấy provider parent |
-| Provider chỉ nằm trong sibling layer | Loader của layer khác không tìm thấy provider đó |
-| Plugin đóng gói bản sao service API | Phát hiện lỗi class identity hoặc cấu hình module |
-| Hai plugin dùng cùng tên module trong cùng cấu hình | Phát hiện xung đột module name |
-| Plugin stop không giải phóng thread/listener | Class loader có thể vẫn được giữ sống |
+| Valid plugin module in plugin directory | `ModuleFinder` locates it and `Configuration` resolves successfully |
+| Plugin missing a dependency | Resolution fails with missing module information |
+| Plugin properly declares `provides` for the service | The layer's `ServiceLoader` finds the provider |
+| Provider resides in the parent layer | Child layer loader can see the parent provider |
+| Provider resides only in a sibling layer | Another layer's loader does not find that provider |
+| Plugin bundles a duplicate copy of the service API | Class identity or module configuration error is detected |
+| Two plugins use the same module name in the same configuration | Module name conflict is detected |
+| Plugin `stop` fails to release threads/listeners | The class loader may remain alive |
 
-Ví dụ kiểm tra layer identity:
+Example of checking layer identity:
 
 ~~~java
 ServiceLoader.load(pluginLayer, Plugin.class)
@@ -412,32 +412,32 @@ ServiceLoader.load(pluginLayer, Plugin.class)
         });
 ~~~
 
-Nếu một layer có nhiều provider hoặc provider từ parent, đừng giả định thứ tự duyệt. Hãy xác định provider theo module name, metadata hoặc contract nghiệp vụ.
+If a layer has multiple providers or providers from parent layers, do not assume iteration order. Identify providers by module name, metadata, or business contract.
 
-Ngoài test đơn vị, chạy integration test với đúng thư mục module plugin và JDK mục tiêu. Test trên classpath không chứng minh module path và layer resolution hoạt động như mong đợi.
+Beyond unit tests, run integration tests using the actual plugin module directory and target JDK. Tests on the classpath do not prove that the module path and layer resolution behave as expected.
 
-## 14. Quy trình chọn layer
+## 14. Layer selection workflow
 
-Khi quyết định có nên tạo layer riêng, trả lời theo thứ tự:
+When deciding whether to create a separate layer, answer in order:
 
-1. Module/plugin có cần được phát hiện hoặc nạp sau khi host đã khởi động không?
-2. Plugin có dependency graph hoặc phiên bản dependency riêng không?
-3. Host có cần kiểm soát phạm vi ServiceLoader cho từng plugin không?
-4. Các plugin có cần được nạp và quản lý vòng đời riêng không?
-5. Có thể dùng chung service API từ layer cha mà không sao chép class không?
-6. Cần một loader cho cả nhóm module hay loader riêng cho từng module?
-7. Có yêu cầu security isolation không? Nếu có, ModuleLayer một mình không đáp ứng.
-8. Có kế hoạch dừng thread, listener và resource trước khi bỏ layer không?
+1. Do modules/plugins need to be discovered or loaded after the host has started?
+2. Do plugins have separate dependency graphs or dependency versions?
+3. Does the host need to control `ServiceLoader` scope per plugin?
+4. Do plugins need to be loaded and lifecycle-managed independently?
+5. Can the service API be shared from a parent layer without duplicating classes?
+6. Is one loader needed for the whole module group, or separate loaders per module?
+7. Is security isolation required? If so, `ModuleLayer` alone does not satisfy it.
+8. Is there a plan to stop threads, listeners, and resources before dropping a layer?
 
-Nếu không có nhu cầu discovery, dependency isolation hoặc lifecycle riêng, dùng một module layer đơn giản sẽ giảm độ phức tạp. Nếu có plugin động, nhiều layer con với service API ở parent thường là một cấu trúc phù hợp.
+If there is no need for dynamic discovery, dependency isolation, or separate lifecycles, using a single module layer reduces complexity. If dynamic plugins exist, multiple child layers with a shared service API in the parent are usually an appropriate structure.
 
-## 15. Ghi nhớ
+## 15. Key takeaways
 
-ModuleLayer là đơn vị runtime để định nghĩa một tập module đã resolve và quan hệ cha-con của chúng. Dùng layer riêng khi cần nạp plugin động, kiểm soát phạm vi provider hoặc quản lý các nhóm module có dependency và vòng đời riêng. Đặt service API ổn định ở layer cha, resolve plugin bằng ModuleFinder và Configuration, sau đó định nghĩa layer với class loader phù hợp.
+`ModuleLayer` is the runtime unit that defines a set of resolved modules and their parent-child relationships. Use separate layers when you need dynamic plugin loading, provider scope control, or management of module groups with independent dependencies and lifecycles. Place the stable service API in a parent layer, resolve plugins with `ModuleFinder` and `Configuration`, and define the layer with an appropriate class loader.
 
-Một layer con có thể nhìn thấy module ở parent theo quy tắc module system; sibling layer không tự động nhìn thấy nhau. Chọn một loader cho cả nhóm plugin khi chúng cần chia sẻ loader, hoặc nhiều loader khi cần phân tách class loading. Cuối cùng, nhớ rằng ModuleLayer không phải security sandbox và việc thu hồi plugin đòi hỏi giải phóng class loader, thread, listener và tài nguyên do plugin giữ.
+A child layer can see modules in its parents according to module system rules; sibling layers do not automatically see each other. Choose one loader for an entire plugin group when they need to share a loader, or multiple loaders when class loading must be separated. Finally, remember that `ModuleLayer` is not a security sandbox, and reclaiming plugins requires releasing class loaders, threads, listeners, and resources held by the plugin.
 
-## Tài liệu tham khảo
+## References
 
 - Java API — ModuleLayer: https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/ModuleLayer.html
 - Java API — Configuration: https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/module/Configuration.html

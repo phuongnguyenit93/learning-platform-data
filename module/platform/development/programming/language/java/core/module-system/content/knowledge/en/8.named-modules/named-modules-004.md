@@ -1,14 +1,14 @@
-# Readability của named module
+# Readability of Named Modules
 
-Trong Java Platform Module System (JPMS), một module có thể tồn tại trên module path nhưng code của module khác vẫn không được phép sử dụng các kiểu của nó. Một điều kiện quan trọng là **readability**: module đang viết code có đọc module chứa kiểu mà nó muốn sử dụng hay không.
+In the Java Platform Module System (JPMS), a module may exist on the module path, yet code in another module is still not allowed to use its types. An important condition is **readability**: whether the module being written reads the module containing the type it wants to use.
 
-Readability là quan hệ giữa các module trong module graph. Nó trả lời câu hỏi: “Module A có thể đọc module B không?”. Đây là điều kiện cần để sử dụng kiểu từ B, nhưng chưa đủ. Package chứa kiểu đó còn phải được export phù hợp và kiểu/member phải đáp ứng quy tắc truy cập Java.
+Readability is a relationship between modules in the module graph. It answers the question: "Can Module A read Module B?". This is a necessary condition to use types from B, though not sufficient on its own. The package containing that type must also be appropriately exported, and the type/member must satisfy Java access rules.
 
-## 1. Readability là gì?
+## 1. What is readability?
 
-Với named module, directive `requires` trong `module-info.java` khai báo dependency trực tiếp và tạo quan hệ đọc module.
+For a named module, the `requires` directive in `module-info.java` declares a direct dependency and establishes a module readability relationship.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.orders {
@@ -16,21 +16,21 @@ module com.acme.orders {
 }
 ~~~
 
-Khai báo này cho biết module `com.acme.orders` đọc module `com.acme.catalog`. Code trong orders có thể tham chiếu các kiểu public thuộc package mà catalog export, nếu các điều kiện truy cập khác cũng thỏa mãn.
+This declaration states that module `com.acme.orders` reads module `com.acme.catalog`. Code in orders can reference public types in packages that catalog exports, provided other access conditions are also met.
 
-Có thể hình dung:
+You can visualize it as:
 
 ~~~text
 com.acme.orders  ──reads──>  com.acme.catalog
 ~~~
 
-Một module không tự động đọc mọi module chỉ vì các JAR của chúng cùng nằm trên module path. Module path là nơi tìm module; readability là quan hệ được xác định trong module graph sau khi phân giải.
+A module does not automatically read every module simply because their JARs sit together on the module path. The module path is where modules are located; readability is a relationship determined in the module graph after resolution.
 
-Readability cũng không đồng nghĩa với việc nạp tất cả class của module vào bộ nhớ. Nó là quyền/quan hệ ở cấp module để compiler và runtime áp dụng quy tắc truy cập.
+Readability is also not synonymous with loading all classes of a module into memory. It is a module-level permission/relationship used by the compiler and runtime to enforce access rules.
 
-## 2. Quan hệ đọc trực tiếp qua requires
+## 2. Direct readability via requires
 
-Nếu A khai báo `requires B`, A đọc B:
+If A declares `requires B`, A reads B:
 
 ~~~java
 module com.acme.app {
@@ -44,24 +44,24 @@ module com.acme.service {
 }
 ~~~
 
-Graph có hai cạnh dependency:
+The graph has two dependency edges:
 
 ~~~text
 com.acme.app ──requires──> com.acme.service
 com.acme.service ──requires──> com.acme.model
 ~~~
 
-Từ các khai báo trên, app đọc service. Service đọc model. App **không tự động đọc model** chỉ vì service có dependency tới model.
+From the declarations above, app reads service. Service reads model. App **does not automatically read model** just because service has a dependency on model.
 
-Đây là điểm quan trọng khi đọc module descriptor: dependency của một module không mặc nhiên được truyền cho tất cả consumer của module đó. Mỗi module nên khai báo rõ những module mà code của chính nó cần đọc, trừ khi dependency được truyền qua `requires transitive`.
+This is an important point when reading module descriptors: a module's dependencies are not passed by default to all consumers of that module. Each module should explicitly declare the modules its own code needs to read, unless a dependency is propagated via `requires transitive`.
 
-Ngoài dependency được khai báo, mọi named module (trừ chính `java.base`) có một yêu cầu ngầm tới `java.base`. Vì vậy, module thông thường có thể sử dụng các API nền tảng như `java.lang.String`, `java.util.List` mà không cần viết `requires java.base;` trong descriptor.
+In addition to declared dependencies, every named module (except `java.base` itself) has an implicit requirement on `java.base`. Therefore, normal modules can use foundational APIs such as `java.lang.String` and `java.util.List` without writing `requires java.base;` in the descriptor.
 
-## 3. Readability có tính truyền qua khi dùng requires transitive
+## 3. Transitive readability when using requires transitive
 
-`requires transitive` cho phép một module truyền khả năng đọc dependency tới các module đọc nó.
+`requires transitive` allows a module to pass readability of a dependency on to modules that read it.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.service {
@@ -70,7 +70,7 @@ module com.acme.service {
 }
 ~~~
 
-Nếu app khai báo:
+If app declares:
 
 ~~~java
 module com.acme.app {
@@ -78,7 +78,7 @@ module com.acme.app {
 }
 ~~~
 
-thì app đọc được cả service và model:
+then app reads both service and model:
 
 ~~~text
 com.acme.app
@@ -87,25 +87,25 @@ com.acme.app
                               │
                               └── requires transitive ──> com.acme.model
 
-Readability của app:
+Readability of app:
   app ──reads──> service
   app ──reads──> model
 ~~~
 
-Có thể diễn đạt quy tắc như sau:
+The rule can be stated as follows:
 
-- A đọc trực tiếp B khi A khai báo `requires B`.
-- Nếu A đọc B và B khai báo `requires transitive C`, A cũng đọc C.
-- Quy tắc được áp dụng tiếp theo chuỗi các dependency transitive.
-- Một cạnh `requires` thông thường của B không tự truyền C cho A.
+- A directly reads B when A declares `requires B`.
+- If A reads B and B declares `requires transitive C`, then A also reads C.
+- The rule continues to apply along chains of transitive dependencies.
+- A regular `requires` edge from B does not propagate C to A.
 
-`requires transitive` không sao chép code, không gộp module và không biến C thành một phần của B. Nó chỉ mở rộng quan hệ readability của consumer.
+`requires transitive` does not copy code, merge modules, or turn C into part of B. It only extends the consumer's readability relationship.
 
-## 4. Khi nào nên dùng requires transitive?
+## 4. When should requires transitive be used?
 
-Nên cân nhắc `requires transitive` khi kiểu của dependency xuất hiện trong API public của module và consumer cần đọc kiểu đó để sử dụng API.
+Consider `requires transitive` when a dependency's type appears in the module's public API and consumers need to read that type in order to use the API.
 
-Ví dụ module model cung cấp kiểu `Product`:
+For example, the model module provides the `Product` type:
 
 ~~~java
 module com.acme.model {
@@ -120,7 +120,7 @@ public record Product(String id, String name) {
 }
 ~~~
 
-Module service sử dụng `Product` trong chữ ký public:
+The service module uses `Product` in a public signature:
 
 ~~~java
 module com.acme.service {
@@ -139,7 +139,7 @@ public interface ProductService {
 }
 ~~~
 
-Consumer chỉ cần:
+The consumer only needs:
 
 ~~~java
 module com.acme.app {
@@ -147,9 +147,9 @@ module com.acme.app {
 }
 ~~~
 
-Vì service công khai `Product` trong API và khai báo model là transitive, app đọc được model để import và sử dụng `Product`.
+Because service exposes `Product` in its API and declares model as transitive, app can read model to import and use `Product`.
 
-Nếu service chỉ dùng model trong implementation nội bộ, còn API public chỉ trả về kiểu do service sở hữu, hãy dùng `requires` thông thường:
+If service only uses model in its internal implementation, and the public API only returns types owned by service, use regular `requires`:
 
 ~~~java
 module com.acme.service {
@@ -158,7 +158,7 @@ module com.acme.service {
 }
 ~~~
 
-Ví dụ API không làm lộ kiểu của model:
+Example of an API that does not expose types from model:
 
 ~~~java
 package com.acme.service.api;
@@ -167,13 +167,13 @@ public record ProductSummary(String id, String displayName) {
 }
 ~~~
 
-Consumer của service chỉ cần đọc service. Việc service dùng model bên trong không phải lý do để truyền dependency model tới mọi consumer.
+Consumers of service only need to read service. The fact that service uses model internally is not a reason to pass the model dependency to every consumer.
 
-### Hai cách xử lý khi consumer cần kiểu của dependency
+### Two approaches when a consumer needs a dependency's type
 
-Giả sử app muốn sử dụng trực tiếp `Product`:
+Suppose app wants to use `Product` directly:
 
-**Cách 1 — service công khai dependency transitive**
+**Approach 1 — service exposes the dependency transitively**
 
 ~~~java
 module com.acme.service {
@@ -188,9 +188,9 @@ module com.acme.app {
 }
 ~~~
 
-Cách này phù hợp nếu service xác định model là một phần của hợp đồng API mà consumer nên đọc được thông qua service.
+This approach fits when service defines model as part of the API contract that consumers should be able to read through service.
 
-**Cách 2 — app khai báo dependency trực tiếp**
+**Approach 2 — app declares the dependency directly**
 
 ~~~java
 module com.acme.service {
@@ -206,15 +206,15 @@ module com.acme.app {
 }
 ~~~
 
-Cách này phù hợp nếu app chủ động sử dụng model vì nhu cầu riêng của app. Dependency được thể hiện ngay tại nơi sử dụng.
+This approach fits when app actively uses model for app's own needs. The dependency is shown directly where it is used.
 
-Không nên chọn `transitive` chỉ để làm hết lỗi “package is not visible”. Hãy kiểm tra kiểu của dependency có nằm trong public API của module trung gian hay không và consumer có thực sự nên phụ thuộc vào nó hay không.
+Do not choose `transitive` merely to make a "package is not visible" error go away. Check whether the dependency's type is actually part of the intermediate module's public API and whether consumers truly ought to depend on it.
 
-## 5. Readability khác exports và opens
+## 5. Readability differs from exports and opens
 
-Một module có thể đọc module khác nhưng vẫn không truy cập được package mà module kia giữ kín.
+A module can read another module yet still be unable to access packages that the other module keeps private.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.catalog {
@@ -222,7 +222,7 @@ module com.acme.catalog {
 }
 ~~~
 
-Module app:
+The app module:
 
 ~~~java
 module com.acme.app {
@@ -230,27 +230,27 @@ module com.acme.app {
 }
 ~~~
 
-App đọc catalog, nhưng chỉ có thể sử dụng các kiểu public trong package `com.acme.catalog.api`. Nếu app cố import kiểu trong `com.acme.catalog.internal`, compiler báo package không được export hoặc không nhìn thấy.
+App reads catalog, but can only use public types in the `com.acme.catalog.api` package. If app attempts to import a type in `com.acme.catalog.internal`, the compiler reports that the package is not exported or not visible.
 
-Ba khái niệm cần được kiểm tra riêng:
+Three concepts need to be checked separately:
 
-| Khái niệm | Câu hỏi được trả lời | Directive |
+| Concept | Question answered | Directive |
 | --- | --- | --- |
-| Readability | Module A có đọc module B không? | `requires`, `requires transitive` |
-| Export | Module B công khai package nào cho code Java thông thường? | `exports` |
-| Open | Module B cho phép module nào deep reflection vào package? | `opens` |
+| Readability | Does Module A read Module B? | `requires`, `requires transitive` |
+| Export | Which packages does Module B publish to regular Java code? | `exports` |
+| Open | Which modules does Module B allow to perform deep reflection on a package? | `opens` |
 
-Để app gọi được một method public trong package API của catalog, cần đồng thời:
+For app to call a public method in catalog's API package, all of the following are required simultaneously:
 
-1. App đọc module catalog.
-2. Catalog export package chứa kiểu đó cho app (hoặc export không giới hạn).
-3. Kiểu và member đáp ứng quy tắc truy cập Java thông thường.
+1. App reads the catalog module.
+2. Catalog exports the package containing that type to app (or exports it unqualified).
+3. The type and member satisfy normal Java access rules.
 
-`opens` không làm package trở thành API compile-time. Nó dành cho reflection khi chạy, chẳng hạn framework cần truy cập private field.
+`opens` does not make a package a compile-time API. It is intended for runtime reflection, such as when a framework needs to access private fields.
 
-## 6. Ví dụ hoàn chỉnh: ba module app, service và model
+## 6. Complete example: three modules app, service, and model
 
-Giả sử có ba module:
+Suppose there are three modules:
 
 ~~~text
 src/
@@ -265,7 +265,7 @@ src/
     └── com/acme/app/Main.java
 ~~~
 
-Module model:
+The model module:
 
 ~~~java
 module com.acme.model {
@@ -280,7 +280,7 @@ public record Product(String id, String name) {
 }
 ~~~
 
-Module service truyền readability của model vì `Product` xuất hiện trong public API:
+The service module propagates readability of model because `Product` appears in the public API:
 
 ~~~java
 module com.acme.service {
@@ -301,7 +301,7 @@ public class ProductService {
 }
 ~~~
 
-Module app chỉ yêu cầu service:
+The app module only requires service:
 
 ~~~java
 module com.acme.app {
@@ -323,29 +323,29 @@ public class Main {
 }
 ~~~
 
-Biên dịch từ thư mục chứa `src`:
+Compile from the directory containing `src`:
 
 ~~~bash
 javac --module-source-path src -d out \
   -m com.acme.model,com.acme.service,com.acme.app
 ~~~
 
-Chạy app:
+Run app:
 
 ~~~bash
 java --module-path out \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 P-100: Java Module Guide
 ~~~
 
-App không khai báo `requires com.acme.model`, nhưng vẫn import được `Product` nhờ service đã khai báo `requires transitive com.acme.model`.
+App did not declare `requires com.acme.model`, yet it can still import `Product` because service declared `requires transitive com.acme.model`.
 
-Nếu đổi descriptor service thành:
+If the service descriptor is changed to:
 
 ~~~java
 module com.acme.service {
@@ -354,9 +354,9 @@ module com.acme.service {
 }
 ~~~
 
-thì code app vẫn đọc được `ProductService`, nhưng import `Product` sẽ không còn hợp lệ nếu app không khai báo `requires com.acme.model` trực tiếp. Đây là ví dụ thực tế cho thấy readability transitive ảnh hưởng trực tiếp tới khả năng biên dịch consumer.
+then app code can still read `ProductService`, but importing `Product` will no longer be valid unless app declares `requires com.acme.model` directly. This is a practical example showing how transitive readability directly affects consumer compilation.
 
-## 7. Readability trong các trường hợp đặc biệt
+## 7. Readability in special cases
 
 ### requires static
 
@@ -366,25 +366,25 @@ module com.acme.report {
 }
 ~~~
 
-`requires static` biểu thị dependency cần ở compile-time nhưng có thể vắng mặt khi chạy. Nó hữu ích với một số annotation hoặc API chỉ phục vụ quá trình biên dịch. Nếu chương trình thực sự sử dụng class của dependency khi chạy, việc dependency vắng mặt vẫn có thể gây lỗi nạp hoặc liên kết.
+`requires static` indicates a dependency required at compile time but allowed to be absent at runtime. It is useful for certain annotations or APIs that only serve compilation. If the program actually uses classes from that dependency at runtime, the dependency's absence can still cause loading or linking errors.
 
-Có thể kết hợp `static` và `transitive` khi hợp đồng cần truyền readability trong giai đoạn biên dịch nhưng dependency vẫn là tùy chọn ở runtime. Chỉ sử dụng khi semantics đó thực sự phù hợp với API.
+`static` and `transitive` can be combined when the contract needs to propagate readability during compilation while the dependency remains optional at runtime. Only use this when those semantics genuinely fit the API.
 
-### Automatic module
+### Automatic modules
 
-JAR cũ không có `module-info.class` khi đặt trên module path có thể được xem là automatic module. Automatic module có quy tắc readability và export rộng hơn explicit named module. Không nên lấy quy tắc của automatic module để suy luận rằng một named module bình thường có thể đọc mọi module trên module path.
+Legacy JARs without `module-info.class`, when placed on the module path, can be treated as automatic modules. Automatic modules have broader readability and export rules than explicit named modules. Do not use automatic module rules to infer that a regular named module can read every module on the module path.
 
-Khi chuyển thư viện từ automatic module sang explicit named module, cần khai báo rõ `requires` và `exports`. Các consumer có thể phải bổ sung dependency trực tiếp nếu trước đó dựa vào hành vi rộng của automatic module.
+When converting a library from an automatic module to an explicit named module, explicitly declare `requires` and `exports`. Consumers may need to add direct dependencies if they previously relied on the broad behavior of automatic modules.
 
-### Unnamed module
+### Unnamed modules
 
-Code chạy trên classpath thuộc unnamed module. Unnamed module có khả năng đọc rộng các module trong cấu hình runtime theo quy tắc của JPMS, nhưng điều đó không có nghĩa named module cũng có readability rộng như vậy.
+Code running on the classpath belongs to the unnamed module. The unnamed module has broad readability across modules in the runtime configuration under JPMS rules, but that does not mean named modules also have such broad readability.
 
-Khi ứng dụng chuyển từ classpath sang module path, các dependency trước đây hoạt động nhờ unnamed module có thể cần khai báo rõ trong `module-info.java`.
+When an application migrates from the classpath to the module path, dependencies that previously worked thanks to the unnamed module may need explicit declarations in `module-info.java`.
 
-## 8. Điều chỉnh readability khi cần tương thích
+## 8. Adjusting readability when compatibility is needed
 
-Có thể bổ sung quan hệ đọc module bằng tùy chọn launcher:
+Module read relationships can be supplemented using a launcher option:
 
 ~~~bash
 java --add-reads com.acme.app=com.acme.legacy \
@@ -392,50 +392,50 @@ java --add-reads com.acme.app=com.acme.legacy \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-`--add-reads source=target` yêu cầu module nguồn đọc module đích trong lần chạy đó. Đây là cơ chế hữu ích cho tương thích hoặc chẩn đoán, đặc biệt khi chưa thể sửa descriptor của dependency.
+`--add-reads source=target` instructs the source module to read the target module during that run. This is a useful mechanism for compatibility or diagnostics, especially when a dependency's descriptor cannot yet be modified.
 
-Ở compile-time, `javac` cũng có tùy chọn `--add-reads` tương ứng. Runtime option không tự sửa `module-info.class` và không thay đổi source descriptor.
+At compile time, `javac` also has a corresponding `--add-reads` option. The runtime option does not modify `module-info.class` and does not alter the source descriptor.
 
-Không nên dùng `--add-reads` như giải pháp mặc định cho kiến trúc lâu dài. Nếu dependency là một phần ổn định của module, hãy khai báo `requires` trong source để dependency được quản lý, review và kiểm tra cùng code.
+Do not use `--add-reads` as the default solution for long-term architecture. If a dependency is a stable part of a module, declare `requires` in source so the dependency is managed, reviewed, and verified alongside the code.
 
-## 9. Chẩn đoán lỗi readability
+## 9. Diagnosing readability errors
 
-Khi compiler hoặc JVM báo module không đọc được module khác, hãy xác định đúng giai đoạn và quan hệ:
+When the compiler or JVM reports that a module cannot read another module, identify the exact phase and relationship:
 
-| Triệu chứng | Nguyên nhân có thể | Hướng xử lý |
+| Symptom | Possible cause | Resolution |
 | --- | --- | --- |
-| `module not found` | Module cần thiết không có trên module path/module source path | Kiểm tra vị trí artifact và tên module trong descriptor |
-| `package ... is not visible` | Module đọc được nhưng package chưa export, hoặc thiếu readability | Kiểm tra cả `requires` và `exports` |
-| App dùng kiểu từ dependency bắc cầu nhưng compile thất bại | Module trung gian dùng `requires` thông thường | App khai báo dependency trực tiếp hoặc module trung gian công khai transitive nếu phù hợp |
-| Runtime báo thiếu module bắt buộc | Dependency không có trong runtime configuration | Kiểm tra runtime module path và các root module |
-| Code classpath hoạt động nhưng named module thất bại | Trước đây code dựa vào readability rộng của unnamed module | Khai báo dependency và package access rõ ràng |
+| `module not found` | Required module is missing from the module path/module source path | Check artifact location and module name in the descriptor |
+| `package ... is not visible` | Module is readable but the package is not exported, or readability is missing | Check both `requires` and `exports` |
+| App uses a type from a transitive dependency but compilation fails | Intermediate module uses regular `requires` | App declares the dependency directly, or intermediate module exposes it transitively if appropriate |
+| Runtime reports missing required module | Dependency is missing from the runtime configuration | Check the runtime module path and root modules |
+| Classpath code works but named module fails | Code previously relied on the broad readability of the unnamed module | Declare dependencies and package access explicitly |
 
-Các lệnh hữu ích:
+Useful commands:
 
 ~~~bash
-# Hiển thị module graph được phân giải khi chạy
+# Display the resolved module graph at runtime
 java --show-module-resolution \
   --module-path out \
   --module com.acme.app/com.acme.app.Main
 
-# Kiểm tra dependency của một module
+# Check dependencies of a module
 jdeps --check com.acme.app --module-path out
 ~~~
 
-Khi dùng `jdeps`, hãy bảo đảm module path chứa các module mà công cụ cần phân tích. Nếu cần kiểm tra descriptor cụ thể, có thể dùng `jar --describe-module` hoặc `javap -v module-info.class`.
+When using `jdeps`, make sure the module path contains the modules the tool needs to analyze. If you need to inspect a specific descriptor, you can use `jar --describe-module` or `javap -v module-info.class`.
 
-## 10. Nguyên tắc thiết kế
+## 10. Design principles
 
-1. **Requires trực tiếp:** mỗi named module khai báo dependency mà code của nó thực sự cần đọc.
-2. **Transitive có chủ đích:** chỉ truyền readability khi dependency xuất hiện trong API public và consumer cần dùng kiểu đó.
-3. **Không dựa vào module path:** việc JAR tồn tại trên module path không tự tạo quan hệ đọc cho named module.
-4. **Tách readability khỏi visibility:** kiểm tra cả `requires` và `exports`; đừng dùng một directive để giải quyết nhầm vấn đề của directive kia.
-5. **Giữ public API gọn:** module trung gian không nên truyền mọi dependency của implementation tới consumer.
-6. **Kiểm tra cả compile và runtime:** module graph và module path của hai giai đoạn phải phù hợp.
-7. **Giảm ngoại lệ cấu hình:** dùng `--add-reads` cho tương thích có kiểm soát; đưa dependency bền vững vào descriptor.
+1. **Direct requires:** each named module declares the dependencies its code actually needs to read.
+2. **Intentional transitive:** only propagate readability when the dependency appears in the public API and consumers need to use that type.
+3. **Do not rely on the module path:** a JAR existing on the module path does not automatically create a read relationship for a named module.
+4. **Separate readability from visibility:** check both `requires` and `exports`; do not use one directive to solve the wrong directive's problem.
+5. **Keep the public API lean:** intermediate modules should not pass every implementation dependency to consumers.
+6. **Verify both compile and runtime:** the module graph and module path of both phases must align.
+7. **Minimize configuration exceptions:** use `--add-reads` for controlled compatibility; place durable dependencies in the descriptor.
 
-## Kết luận
+## Conclusion
 
-Readability xác định module nào có thể đọc module nào trong JPMS. `requires` tạo quan hệ đọc trực tiếp; `requires transitive` truyền khả năng đọc tới consumer khi dependency là một phần của hợp đồng public. Readability vẫn phải đi cùng `exports` để code Java thông thường truy cập package và kiểu public.
+Readability determines which modules can read which other modules in JPMS. `requires` establishes a direct read relationship; `requires transitive` propagates readability to consumers when a dependency is part of the public contract. Readability must still go hand in hand with `exports` for normal Java code to access packages and public types.
 
-Thiết kế named module rõ ràng bằng dependency trực tiếp, API nhỏ và transitive có chủ đích giúp module graph dễ hiểu, giảm phụ thuộc vô tình và giữ thay đổi nội bộ ít ảnh hưởng tới consumer.
+Designing named modules clearly with direct dependencies, small APIs, and intentional transitive edges keeps the module graph understandable, reduces accidental coupling, and keeps internal changes from heavily impacting consumers.

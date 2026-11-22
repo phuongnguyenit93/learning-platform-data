@@ -1,39 +1,39 @@
-# Chạy ServiceLoader trên module path
+# Running ServiceLoader on the Module Path
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Java ServiceLoader cho phép một module sử dụng service interface mà không cần phụ thuộc trực tiếp vào class triển khai. Khi chạy trên Java Platform Module System (JPMS), service API, module tiêu thụ và module provider có thể được đóng gói thành các named module riêng biệt.
+Java ServiceLoader allows a module to use a service interface without directly depending on the implementation classes. When running on the Java Platform Module System (JPMS), the service API, consumer module, and provider module can be packaged as separate named modules.
 
-Để ServiceLoader tìm được implementation trên module path, cần phối hợp ba phần:
+For ServiceLoader to locate implementations on the module path, three parts must work together:
 
-1. Module API công khai service interface.
-2. Module consumer khai báo service cần dùng bằng directive `uses`.
-3. Module provider khai báo implementation bằng directive `provides ... with ...`.
+1. The API module exposes the service interface.
+2. The consumer module declares the service it needs using the `uses` directive.
+3. The provider module declares the implementation using the `provides ... with ...` directive.
 
-Khi khởi chạy ứng dụng, module resolver phải nhìn thấy provider module và đưa nó vào module graph. Sau đó ServiceLoader mới có thể khám phá provider và cung cấp service instance.
+When launching the application, the module resolver must see the provider module and include it in the module graph. Only then can ServiceLoader discover the provider and supply service instances.
 
-Bài này dựng một ví dụ hoàn chỉnh gồm ba module, biên dịch thành modular JAR, chạy ứng dụng trên module path, rồi xử lý các lỗi thường gặp.
+This lesson builds a complete three-module example, compiles it into modular JARs, runs the application on the module path, and handles common errors.
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Phân biệt service API, consumer và provider module.
-- Viết đúng `uses` và `provides ... with ...` trong `module-info.java`.
-- Biên dịch nhiều module và đóng gói thành modular JAR.
-- Chạy ứng dụng bằng `java --module-path` và `--module`.
-- Dùng `ServiceLoader.load` để lấy provider.
-- Kiểm tra module resolution và chẩn đoán khi ServiceLoader không tìm thấy provider.
+- Distinguish among service API, consumer, and provider modules.
+- Write `uses` and `provides ... with ...` properly in `module-info.java`.
+- Compile multiple modules and package them into modular JARs.
+- Run the application using `java --module-path` and `--module`.
+- Use `ServiceLoader.load` to obtain providers.
+- Inspect module resolution and diagnose when ServiceLoader fails to find a provider.
 
-## 2. Cấu trúc dự án
+## 2. Project Structure
 
-Ta xây dựng ứng dụng greeting với ba module:
+We will build a greeting application with three modules:
 
-| Module | Trách nhiệm |
+| Module | Responsibility |
 | --- | --- |
-| `com.example.greeting.api` | Khai báo service interface mà consumer và provider cùng sử dụng. |
-| `com.example.greeting.provider` | Cung cấp implementation cho service. |
-| `com.example.greeting.app` | Khởi chạy ứng dụng và yêu cầu ServiceLoader tìm provider. |
+| `com.example.greeting.api` | Declares the service interface shared by consumer and provider. |
+| `com.example.greeting.provider` | Supplies an implementation for the service. |
+| `com.example.greeting.app` | Launches the application and asks ServiceLoader to locate providers. |
 
-Cấu trúc source tree:
+Source tree structure:
 
 ~~~text
 service-loader-demo/
@@ -49,11 +49,11 @@ service-loader-demo/
         └── com/example/greeting/app/Main.java
 ~~~
 
-Mỗi module có một `module-info.java` ở gốc source tree của module. Tên thư mục module khớp với tên module được khai báo trong descriptor.
+Each module has a `module-info.java` at the root of the module's source tree. The module directory name matches the module name declared in the descriptor.
 
-## 3. Khai báo service API
+## 3. Declaring the service API
 
-Module API chỉ định package chứa interface được export:
+The API module specifies that the package containing the interface is exported:
 
 ~~~java
 // src/com.example.greeting.api/module-info.java
@@ -73,13 +73,13 @@ public interface GreetingService {
 }
 ~~~
 
-Module API không cần biết implementation nào sẽ được sử dụng. Nó chỉ định nghĩa contract chung để consumer gọi và provider triển khai.
+The API module does not need to know which implementation will be used. It only defines a shared contract for consumers to call and providers to implement.
 
-Package chứa interface phải được export vì consumer cần đọc kiểu `GreetingService`, còn provider cần implement interface đó.
+The package containing the interface must be exported because the consumer needs to read the `GreetingService` type, and the provider needs to implement that interface.
 
-## 4. Khai báo provider module bằng provides
+## 4. Declaring the provider module with provides
 
-Module provider phụ thuộc vào API và công bố implementation trong descriptor:
+The provider module depends on the API and publishes its implementation in the descriptor:
 
 ~~~java
 // src/com.example.greeting.provider/module-info.java
@@ -111,15 +111,15 @@ public final class FormalGreetingService implements GreetingService {
 }
 ~~~
 
-Directive `provides S with P` có nghĩa module này cung cấp implementation `P` cho service type `S`.
+The `provides S with P` directive means this module supplies implementation `P` for service type `S`.
 
-Trong ví dụ, provider module khai báo `requires com.example.greeting.api` để đọc service interface. Package triển khai `com.example.greeting.provider` không cần export chỉ để ServiceLoader phát hiện provider được đăng ký trong module descriptor. Module system có thể khám phá provider thông qua metadata `provides` mà vẫn giữ package implementation được encapsulate.
+In this example, the provider module declares `requires com.example.greeting.api` to read the service interface. The implementation package `com.example.greeting.provider` does not need to be exported just for ServiceLoader to discover the provider registered in the module descriptor. The module system can discover the provider via the `provides` metadata while keeping the implementation package encapsulated.
 
-Với cách khởi tạo bằng constructor, provider class cần có constructor public không tham số. JPMS cũng hỗ trợ provider method tĩnh theo quy tắc của ServiceLoader, nhưng ví dụ này dùng constructor để dễ theo dõi.
+With constructor-based instantiation, the provider class must have a public no-argument constructor. JPMS also supports static provider methods per ServiceLoader rules, though this example uses a constructor for simplicity.
 
-## 5. Khai báo consumer module bằng uses
+## 5. Declaring the consumer module with uses
 
-Module ứng dụng đọc API và khai báo service cần tìm:
+The application module reads the API and declares the service to look up:
 
 ~~~java
 // src/com.example.greeting.app/module-info.java
@@ -130,11 +130,11 @@ module com.example.greeting.app {
 }
 ~~~
 
-Directive `uses` nói rằng module app sử dụng service type `GreetingService`. Nó không nêu tên provider module và không tạo dependency tường minh từ app tới `com.example.greeting.provider`.
+The `uses` directive states that the app module uses the `GreetingService` service type. It does not name the provider module and does not create an explicit dependency from app to `com.example.greeting.provider`.
 
-Đây là điểm quan trọng của ServiceLoader: consumer phụ thuộc vào contract, còn implementation có thể được thay thế bằng provider khác mà không cần sửa code consumer.
+This is the key point of ServiceLoader: the consumer depends on the contract, while the implementation can be replaced with another provider without editing consumer code.
 
-## 6. Viết code gọi ServiceLoader
+## 6. Writing code that calls ServiceLoader
 
 Main class:
 
@@ -167,16 +167,16 @@ public class Main {
 }
 ~~~
 
-Các bước thực hiện:
+Execution steps:
 
-1. `ServiceLoader.load(GreetingService.class)` tạo loader cho service type.
-2. Loader khám phá các provider khả dụng trong môi trường module/class loader hiện tại.
-3. Vòng lặp lấy từng service instance.
-4. Consumer gọi method trên interface `GreetingService`, không cần tham chiếu implementation class.
+1. `ServiceLoader.load(GreetingService.class)` creates a loader for the service type.
+2. The loader discovers available providers in the current module/class loader environment.
+3. The loop retrieves each service instance.
+4. The consumer calls methods on the `GreetingService` interface without referencing the implementation class.
 
-Vì app là named module và dùng service type, directive `uses` trong `module-info.java` là bắt buộc. Nếu thiếu, ServiceLoader có thể ném `ServiceConfigurationError` khi kiểm tra quyền sử dụng service.
+Because app is a named module and uses the service type, the `uses` directive in `module-info.java` is mandatory. If missing, ServiceLoader can throw `ServiceConfigurationError` when checking permission to use the service.
 
-Nếu chỉ cần một provider, có thể dùng:
+If only one provider is needed, you can use:
 
 ~~~java
 GreetingService service = ServiceLoader
@@ -187,23 +187,23 @@ GreetingService service = ServiceLoader
     );
 ~~~
 
-Nếu ứng dụng có thể có nhiều implementation, hãy quyết định rõ có dùng tất cả provider hay chọn một provider theo metadata/cấu hình. Không nên dựa vào thứ tự khám phá như một cơ chế ưu tiên ổn định.
+If the application may have multiple implementations, decide explicitly whether to use all providers or choose one based on metadata/configuration. Do not rely on discovery order as a stable priority mechanism.
 
-## 7. Biên dịch các module từ source tree
+## 7. Compiling the modules from the source tree
 
-Từ thư mục gốc `service-loader-demo`, tạo output directory và biên dịch ba module:
+From the `service-loader-demo` root directory, create the output directory and compile the three modules:
 
 ~~~bash
 javac --module-source-path src -d mods -m com.example.greeting.api,com.example.greeting.provider,com.example.greeting.app
 ~~~
 
-Trong đó:
+Where:
 
-- `--module-source-path src` chỉ vị trí chứa source tree của các module.
-- `-d mods` đặt output đã biên dịch vào thư mục `mods`.
-- `-m` chỉ định các module cần biên dịch.
+- `--module-source-path src` specifies the location of the modules' source trees.
+- `-d mods` puts compiled output into the `mods` directory.
+- `-m` specifies the modules to compile.
 
-Sau khi biên dịch, cấu trúc output có dạng:
+After compilation, the output structure looks like:
 
 ~~~text
 mods/
@@ -218,44 +218,44 @@ mods/
     └── com/example/greeting/app/Main.class
 ~~~
 
-Đây là exploded modules: mỗi module là một thư mục chứa `module-info.class` và các class đã biên dịch.
+These are exploded modules: each module is a directory containing `module-info.class` and the compiled classes.
 
-Nếu source tree không đúng cấu trúc, compiler có thể báo không tìm thấy module hoặc package. Hãy kiểm tra tên thư mục module, vị trí `module-info.java`, package declaration và các directive `requires`/ `exports`.
+If the source tree is not structured properly, the compiler may report that a module or package cannot be found. Check module directory names, `module-info.java` placement, package declarations, and `requires`/`exports` directives.
 
-## 8. Chạy ứng dụng bằng module path
+## 8. Running the application using the module path
 
-Dùng launcher Java với module path trỏ tới thư mục `mods`:
+Use the Java launcher with the module path pointing to the `mods` directory:
 
 ~~~bash
 java --module-path mods --module com.example.greeting.app/com.example.greeting.app.Main
 ~~~
 
-Dạng viết ngắn:
+Short form:
 
 ~~~bash
 java -p mods -m com.example.greeting.app/com.example.greeting.app.Main
 ~~~
 
-Trong lệnh:
+In the command:
 
-- `--module-path mods` hoặc `-p mods` chỉ nơi chứa các module đã biên dịch.
-- `--module` hoặc `-m` chọn module ứng dụng và main class.
-- Phần trước dấu `/` là tên module.
-- Phần sau dấu `/` là tên đầy đủ của main class.
+- `--module-path mods` or `-p mods` specifies where the compiled modules are located.
+- `--module` or `-m` selects the application module and main class.
+- The part before `/` is the module name.
+- The part after `/` is the fully qualified name of the main class.
 
-Kết quả mong đợi:
+Expected output:
 
 ~~~text
 Hello, Java Module System!
 ~~~
 
-Khi launcher resolve module graph, consumer khai báo `uses` và provider module có `provides` phù hợp. Cơ chế service binding của launcher có thể đưa provider module khả kiến vào configuration để ServiceLoader khám phá được.
+When the launcher resolves the module graph, the consumer declares `uses` and the provider module has a matching `provides`. The launcher's service binding mechanism can bring observable provider modules into the configuration so ServiceLoader can discover them.
 
-Provider module phải nằm trong phạm vi module path mà launcher có thể quan sát. Chỉ có file JAR ở một thư mục không được chỉ định trong module path thì chưa đủ.
+The provider module must lie within the module path visible to the launcher. Simply having a JAR file in a directory not specified in the module path is not enough.
 
-## 9. Đóng gói thành modular JAR
+## 9. Packaging into modular JARs
 
-Thay vì chạy exploded modules, có thể đóng gói từng module thành modular JAR.
+Instead of running exploded modules, you can package each module into a modular JAR.
 
 ~~~bash
 jar --create --file mods/com.example.greeting.api.jar -C mods/com.example.greeting.api .
@@ -263,163 +263,163 @@ jar --create --file mods/com.example.greeting.provider.jar -C mods/com.example.g
 jar --create --file mods/com.example.greeting.app.jar -C mods/com.example.greeting.app .
 ~~~
 
-Các file JAR vẫn chứa `module-info.class`, nên module name được xác định bởi descriptor chứ không phụ thuộc tên file.
+The JAR files still contain `module-info.class`, so the module name is determined by the descriptor rather than depending on the file name.
 
-Chạy ứng dụng từ các modular JAR:
+Run the application from the modular JARs:
 
 ~~~bash
 java --module-path mods --module com.example.greeting.app/com.example.greeting.app.Main
 ~~~
 
-Module path có thể chứa modular JAR hoặc exploded module. Cả hai đều có thể được dùng để resolve named modules nếu cấu trúc hợp lệ.
+The module path can contain modular JARs or exploded modules. Both can be used to resolve named modules if their structure is valid.
 
-Có thể kiểm tra descriptor của provider:
+You can inspect the provider's descriptor:
 
 ~~~bash
 jar --describe-module --file mods/com.example.greeting.provider.jar
 ~~~
 
-Kết quả cần thể hiện module name và directive `provides com.example.greeting.api.GreetingService with ...`.
+The output should show the module name and the `provides com.example.greeting.api.GreetingService with ...` directive.
 
-## 10. ServiceLoader.load và ModuleLayer
+## 10. ServiceLoader.load and ModuleLayer
 
-Ví dụ trước dùng:
+The earlier example used:
 
 ~~~java
 ServiceLoader.load(GreetingService.class)
 ~~~
 
-Cách này dùng thread context class loader để tìm provider trong môi trường loader hiện tại. Với ứng dụng chạy trên module path chuẩn, đây thường là cách đơn giản nhất.
+This uses the thread context class loader to search for providers in the current loader environment. For applications running on the standard module path, this is usually the simplest approach.
 
-Nếu ứng dụng tạo module layer riêng bằng API `ModuleLayer`, hãy dùng overload nhận layer:
+If the application creates its own module layer using the `ModuleLayer` API, use the overload taking a layer:
 
 ~~~java
 ServiceLoader<GreetingService> services =
     ServiceLoader.load(customLayer, GreetingService.class);
 ~~~
 
-Overload này tìm provider trong layer được chỉ định và các ancestor layer của nó. Điều này hữu ích khi plugin hoặc provider được nạp vào layer động, tách khỏi boot layer.
+This overload searches for providers in the specified layer and its ancestor layers. This is useful when plugins or providers are loaded into a dynamic layer, separate from the boot layer.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ~~~java
-ModuleLayer customLayer = /* layer đã được resolve và define */;
+ModuleLayer customLayer = /* resolved and defined layer */;
 ServiceLoader<GreetingService> services =
     ServiceLoader.load(customLayer, GreetingService.class);
 ~~~
 
-Layer phải chứa hoặc nhìn thấy provider module phù hợp. Tạo layer không tự động bảo đảm có provider: module finder phải tìm thấy module, configuration phải resolve module đó và descriptor phải đăng ký đúng service.
+The layer must contain or see the appropriate provider module. Creating a layer does not automatically guarantee the provider is present: the module finder must locate the module, the configuration must resolve that module, and the descriptor must register the service properly.
 
-Không dùng `ServiceLoader.load(service)` một cách mặc định nếu provider nằm trong một custom layer mà thread context class loader không đại diện cho layer đó. Chọn overload phù hợp với nơi provider được nạp.
+Do not default to `ServiceLoader.load(service)` if the provider lives in a custom layer that the thread context class loader does not represent. Choose the overload matching where the provider is loaded.
 
-## 11. Named module và classpath provider khác nhau thế nào?
+## 11. How do named module and classpath providers differ?
 
-ServiceLoader hỗ trợ cả named module và classpath truyền thống, nhưng cách đăng ký provider khác nhau.
+ServiceLoader supports both named modules and the traditional classpath, but provider registration differs.
 
-| Môi trường | Cách đăng ký provider |
+| Environment | Provider registration method |
 | --- | --- |
-| Named module trên module path | Directive `provides Service with Provider` trong `module-info.java`. |
-| Classpath/unnamed module | File `META-INF/services/<fully-qualified-service-name>` chứa tên đầy đủ của provider class. |
+| Named module on the module path | `provides Service with Provider` directive in `module-info.java`. |
+| Classpath/unnamed module | `META-INF/services/<fully-qualified-service-name>` file containing the fully qualified provider class name. |
 
-Ví dụ file service configuration trên classpath:
+Example service configuration file on the classpath:
 
 ~~~text
 META-INF/services/com.example.greeting.api.GreetingService
 ~~~
 
-Nội dung:
+Content:
 
 ~~~text
 com.example.greeting.provider.FormalGreetingService
 ~~~
 
-Với modular JAR được dùng như named module, hãy khai báo `provides` trong module descriptor. Không nên dựa vào file `META-INF/services` thay cho descriptor của named provider module.
+For a modular JAR used as a named module, declare `provides` in the module descriptor. Do not rely on a `META-INF/services` file instead of the descriptor for a named provider module.
 
-Consumer trên classpath không có `module-info.java`, vì vậy không khai báo `uses`. Consumer là named module thì phải khai báo `uses` cho service type mà nó dùng.
+A consumer on the classpath has no `module-info.java`, so it does not declare `uses`. A consumer that is a named module must declare `uses` for the service type it uses.
 
-## 12. Kiểm tra module resolution khi provider không xuất hiện
+## 12. Inspecting module resolution when providers do not appear
 
-Nếu chương trình không tìm thấy provider, hãy kiểm tra theo từng lớp.
+If the program cannot find a provider, check layer by layer.
 
-### Kiểm tra module descriptor
+### Inspecting module descriptors
 
-Xem descriptor của consumer:
+View the consumer's descriptor:
 
 ~~~bash
 java --module-path mods --describe-module com.example.greeting.app
 ~~~
 
-Xác nhận module app có `uses com.example.greeting.api.GreetingService`.
+Confirm the app module has `uses com.example.greeting.api.GreetingService`.
 
-Xem descriptor của provider:
+View the provider's descriptor:
 
 ~~~bash
 java --module-path mods --describe-module com.example.greeting.provider
 ~~~
 
-Xác nhận provider có `provides` đúng service type và implementation class đúng package/name.
+Confirm the provider has `provides` for the right service type and the implementation class has the right package/name.
 
-### Kiểm tra module có observable không
+### Checking whether the module is observable
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Tên `com.example.greeting.provider` cần xuất hiện trong tập module observable. Nếu không có, kiểm tra đường dẫn module path, cấu trúc modular JAR/exploded module và module name trong descriptor.
+The name `com.example.greeting.provider` should appear in the set of observable modules. If not, check the module path, modular JAR/exploded module structure, and module name in the descriptor.
 
-### Xem graph được resolve khi khởi chạy
+### Viewing the resolved graph at launch
 
 ~~~bash
 java --show-module-resolution --module-path mods --module com.example.greeting.app/com.example.greeting.app.Main
 ~~~
 
-Output giúp quan sát root module, dependency và thông tin bind provider trong quá trình launcher resolution. Nếu provider không được đưa vào graph, kiểm tra `uses`, `provides`, module finder và phạm vi module path.
+The output helps observe root modules, dependencies, and provider binding information during launcher resolution. If the provider is not brought into the graph, check `uses`, `provides`, module finder, and module path scope.
 
-### Phân biệt provider không được tìm thấy với lỗi khởi tạo
+### Distinguishing provider-not-found from initialization failure
 
-Nếu provider đã được khám phá nhưng constructor hoặc provider method lỗi, vấn đề không còn là module path đơn thuần. ServiceLoader có thể ném `ServiceConfigurationError` khi cấu hình provider sai, class không thể nạp hoặc instance không thể được tạo.
+If the provider was discovered but its constructor or provider method fails, the issue is no longer simply the module path. ServiceLoader can throw `ServiceConfigurationError` if provider configuration is invalid, the class cannot be loaded, or the instance cannot be created.
 
-Kiểm tra exception và nguyên nhân gốc, bao gồm constructor, dependency runtime, quyền truy cập module và class loader. Đừng chỉ bắt mọi lỗi rồi trả về danh sách rỗng, vì như vậy sẽ che giấu lỗi cấu hình.
+Inspect the exception and root cause, including the constructor, runtime dependencies, module access permissions, and class loader. Do not simply catch all errors and return an empty list, as that hides configuration bugs.
 
-## 13. Những lỗi thường gặp
+## 13. Common Errors
 
-**Consumer thiếu uses**
+**Consumer missing uses**
 
-Một named module gọi ServiceLoader nhưng không khai báo `uses` cho service type. Thêm directive vào `module-info.java` của consumer rồi biên dịch lại.
+A named module calls ServiceLoader without declaring `uses` for the service type. Add the directive to the consumer's `module-info.java` and recompile.
 
-**Provider thiếu provides**
+**Provider missing provides**
 
-Provider class có implement interface nhưng module descriptor không đăng ký nó. Thêm `provides Service with Provider` vào descriptor của provider module.
+The provider class implements the interface, but the module descriptor does not register it. Add `provides Service with Provider` to the provider module's descriptor.
 
-**Provider không nằm trên module path**
+**Provider not on the module path**
 
-Launcher không thể tìm module provider nếu module path không chứa artifact phù hợp. Bổ sung đúng thư mục hoặc modular JAR vào `--module-path`.
+The launcher cannot find the provider module if the module path does not contain the appropriate artifact. Add the proper directory or modular JAR to `--module-path`.
 
-**Sai service type**
+**Wrong service type**
 
-Consumer dùng một interface nhưng provider đăng ký một interface khác, dù tên class implementation có vẻ đúng. Kiểm tra fully qualified name của service type ở cả hai descriptor.
+The consumer uses one interface while the provider registers another, even if the implementation class name looks right. Check the fully qualified name of the service type in both descriptors.
 
-**Provider class không tạo được instance**
+**Provider class cannot be instantiated**
 
-Kiểm tra constructor public không tham số hoặc provider method, dependency của implementation và exception gốc. Đây là lỗi khởi tạo provider chứ không nhất thiết là lỗi resolution.
+Check the public no-argument constructor or provider method, implementation dependencies, and root exception. This is a provider initialization error rather than necessarily a resolution error.
 
-**Dùng sai loader hoặc layer**
+**Using the wrong loader or layer**
 
-Provider được nạp trong custom ModuleLayer nhưng code lại tìm qua context class loader của layer khác. Dùng `ServiceLoader.load(layer, Service.class)` với đúng layer.
+The provider is loaded in a custom ModuleLayer, yet the code looks up via the context class loader of another layer. Use `ServiceLoader.load(layer, Service.class)` with the right layer.
 
-**Package implementation không export**
+**Implementation package not exported**
 
-Thông thường không cần export package chứa provider class chỉ để ServiceLoader phát hiện provider được khai báo bằng `provides`. Chỉ export package nếu module khác cần truy cập API public trong package đó.
+Normally there is no need to export the package containing the provider class just for ServiceLoader to discover a provider declared with `provides`. Only export the package if another module needs to access public APIs in that package.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- API module export service interface.
-- Consumer module khai báo `uses ServiceType;`.
-- Provider module khai báo `provides ServiceType with ProviderClass;` và đọc module API bằng `requires`.
-- Biên dịch source tree modular bằng `javac --module-source-path`; chạy bằng `java --module-path` và `--module`.
-- Provider phải observable và được resolve vào module graph để ServiceLoader tìm thấy.
-- `ServiceLoader.load(Service.class)` phù hợp với môi trường loader hiện tại; `ServiceLoader.load(layer, Service.class)` dùng khi provider nằm trong module layer cụ thể.
-- Named module đăng ký provider bằng descriptor; classpath provider dùng `META-INF/services`.
-- `--list-modules`, `--describe-module` và `--show-module-resolution` giúp kiểm tra khả năng quan sát, descriptor và graph được resolve.
+- The API module exports the service interface.
+- The consumer module declares `uses ServiceType;`.
+- The provider module declares `provides ServiceType with ProviderClass;` and reads the API module using `requires`.
+- Compile modular source trees with `javac --module-source-path`; run with `java --module-path` and `--module`.
+- The provider must be observable and resolved into the module graph for ServiceLoader to locate it.
+- `ServiceLoader.load(Service.class)` fits the current loader environment; `ServiceLoader.load(layer, Service.class)` is used when providers reside in a specific module layer.
+- Named modules register providers in the descriptor; classpath providers use `META-INF/services`.
+- `--list-modules`, `--describe-module`, and `--show-module-resolution` help verify observability, descriptors, and the resolved graph.
 
-Hãy giữ consumer phụ thuộc vào service contract, để provider có thể được thay đổi hoặc bổ sung mà không làm ứng dụng gắn cứng với implementation cụ thể.
+Keep the consumer depending on the service contract, so providers can be swapped or added without tightly coupling the application to a concrete implementation.

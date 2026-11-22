@@ -1,69 +1,69 @@
-# System module finder và các module JDK
+# System Module Finder and JDK Modules
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích “system modules” là gì trong Java Platform Module System (JPMS).
-- Dùng API `java.lang.module.ModuleFinder.ofSystem()` để phát hiện các module mà runtime hiện tại cung cấp.
-- Đọc `ModuleReference` và `ModuleDescriptor` để biết tên, phụ thuộc, exports và thông tin của module.
-- Phân biệt **module có thể tìm thấy**, **module được chọn trong quá trình resolution** và **module đã hiện diện trong boot layer**.
-- Dùng lệnh JDK để xem module, phân tích quan hệ phụ thuộc và kiểm tra đồ thị module được resolve.
-- Nhận ra sự khác nhau giữa các module `java.*` và `jdk.*`, cũng như tác động của bản JDK hoặc runtime image tùy chỉnh.
+- Explain what “system modules” are in the Java Platform Module System (JPMS).
+- Use the `java.lang.module.ModuleFinder.ofSystem()` API to discover the modules provided by the current runtime.
+- Read `ModuleReference` and `ModuleDescriptor` to inspect a module's name, dependencies, exports, and information.
+- Distinguish between **observable modules**, **modules selected during resolution**, and **modules present in the boot layer**.
+- Use JDK commands to list modules, analyze dependencies, and inspect the resolved module graph.
+- Recognize the difference between `java.*` and `jdk.*` modules, as well as the impact of JDK distributions or custom runtime images.
 
-Ví dụ trong bài sử dụng Java 17 trở lên; các API module cốt lõi đã xuất hiện từ Java 9. Danh sách module và kết quả cụ thể có thể thay đổi theo phiên bản hoặc bản phân phối JDK.
+The examples in this lesson use Java 17 or later; the core module APIs were introduced in Java 9. The exact list of modules and results may vary by JDK version or distribution.
 
-## 2. “System module” nằm ở đâu trong JPMS?
+## 2. Where Do “System Modules” Fit in JPMS?
 
-JPMS tổ chức chương trình thành **named module**. Một module có tên (chẳng hạn `java.sql`) được mô tả bằng descriptor, thường được khai báo trong `module-info.java` khi xây dựng từ mã nguồn.
+JPMS organizes programs into **named modules**. A named module (such as `java.sql`) is described by a descriptor, typically declared in `module-info.java` when built from source.
 
-Có ba khái niệm cần tách bạch:
+There are three concepts to keep distinct:
 
-| Khái niệm | Ý nghĩa |
+| Concept | Meaning |
 | --- | --- |
-| **System module** | Module được cung cấp trong runtime image hiện đang chạy, thường thuộc Java SE/JDK. |
-| **Observable module** | Module mà quá trình resolution có thể xét đến, phụ thuộc system modules, module path và các lựa chọn khởi chạy. |
-| **Resolved module** | Module đã được chọn vào một `Configuration` vì thuộc tập root hoặc nằm trên đường phụ thuộc cần thiết. |
-| **Module trong layer** | Module được gắn vào một `ModuleLayer` cụ thể, có thể tra bằng `findModule`. |
+| **System module** | A module provided in the currently running runtime image, typically belonging to Java SE/JDK. |
+| **Observable module** | A module that the resolution process can consider, depending on system modules, the module path, and launch options. |
+| **Resolved module** | A module selected into a `Configuration` because it is in the root set or lies on a required dependency path. |
+| **Module in a layer** | A module attached to a specific `ModuleLayer`, which can be looked up with `findModule`. |
 
-System module thường nằm trong runtime image hiện đại thay cho cách coi toàn bộ thư viện chuẩn là một file `rt.jar` như trước Java 9. Runtime image có hệ thống tệp đặc biệt `jrt:/` để biểu diễn nội dung các module.
+System modules typically reside in the modern runtime image instead of treating the entire standard library as a single `rt.jar` file as prior to Java 9. The runtime image has a special `jrt:/` filesystem to represent module contents.
 
-Hệ sinh thái có hai nhóm tên thường gặp:
+The ecosystem has two common naming groups:
 
-- `java.*`: các module API Java SE, ví dụ `java.base`, `java.logging`, `java.xml`, `java.sql`, `java.net.http`.
-- `jdk.*`: các module tính năng, công cụ hoặc triển khai do JDK cung cấp, ví dụ `jdk.compiler`, `jdk.javadoc`, `jdk.jfr`, `jdk.httpserver`, `jdk.jdeps`. Sự hiện diện và tính ổn định của API công khai cần xem theo từng module; tiền tố `jdk.` không đồng nghĩa mọi package bên trong đều được export.
+- `java.*`: Java SE API modules, for example `java.base`, `java.logging`, `java.xml`, `java.sql`, `java.net.http`.
+- `jdk.*`: feature, tool, or implementation modules provided by the JDK, for example `jdk.compiler`, `jdk.javadoc`, `jdk.jfr`, `jdk.httpserver`, `jdk.jdeps`. The presence and stability of public APIs must be checked per module; the `jdk.` prefix does not imply that all packages inside are exported.
 
-`java.base` là module nền tảng: mọi module đều đọc nó theo quy tắc JPMS, và bạn không cần khai báo `requires java.base;`.
+`java.base` is the foundational module: every module reads it by JPMS rules, and you do not need to declare `requires java.base;`.
 
-Một số bản JDK có module gom nhóm `java.se` để biểu diễn tập module chuẩn, nhưng không nên giả định mọi runtime đã thu gọn đều có module này. Runtime do `jlink` tạo có thể chỉ chứa các module được chọn.
+Some JDK distributions include an aggregator module `java.se` to represent the standard module set, but you should not assume every trimmed runtime includes this module. A runtime created by `jlink` may contain only selected modules.
 
-## 3. System module finder: `ModuleFinder.ofSystem()`
+## 3. System Module Finder: `ModuleFinder.ofSystem()`
 
-`ModuleFinder` là interface trong package `java.lang.module`. Nó là cơ chế **tìm mô tả module**, không phải class loader và bản thân nó không resolve hay khởi tạo module.
+`ModuleFinder` is an interface in the `java.lang.module` package. It is a mechanism for **finding module descriptions**, not a class loader, and by itself it does not resolve or instantiate modules.
 
-Các phương thức cần nhớ:
+Methods to remember:
 
-| API | Tác dụng |
+| API | Effect |
 | --- | --- |
-| `ModuleFinder.ofSystem()` | Lấy finder cho các system module của runtime hiện tại. |
-| `finder.find("java.sql")` | Trả về `Optional<ModuleReference>` nếu tìm thấy module tên `java.sql`. |
-| `finder.findAll()` | Trả về `Set<ModuleReference>` của các module mà finder nhìn thấy. |
-| `ModuleFinder.of(paths...)` | Tạo finder trên các đường dẫn chứa modular JAR hoặc exploded module. |
-| `ModuleFinder.compose(f1, f2, ...)` | Kết hợp finder; khi trùng tên, finder xuất hiện trước được ưu tiên. |
+| `ModuleFinder.ofSystem()` | Obtains a finder for the system modules of the current runtime. |
+| `finder.find("java.sql")` | Returns `Optional<ModuleReference>` if a module named `java.sql` is found. |
+| `finder.findAll()` | Returns a `Set<ModuleReference>` of the modules seen by the finder. |
+| `ModuleFinder.of(paths...)` | Creates a finder over paths containing modular JARs or exploded modules. |
+| `ModuleFinder.compose(f1, f2, ...)` | Combines finders; when module names collide, the finder appearing earlier takes precedence. |
 
-`findAll()` cho biết những module có thể truy cập qua finder. Nó **không có nghĩa** tất cả module ấy đang tham gia đồ thị module của ứng dụng.
+`findAll()` shows which modules are accessible via the finder. It **does not mean** all of those modules are participating in the application's module graph.
 
-Một finder trả về `ModuleReference`, cho phép truy cập:
+A finder returns `ModuleReference`, which provides access to:
 
-- `descriptor()`: đối tượng `ModuleDescriptor` có tên module, `requires`, `exports`, `opens`, `uses`, `provides`, phiên bản nếu có.
-- `location()`: `Optional<URI>` cho nơi tham chiếu tới module; system module thường có dạng `jrt:/java.base`.
-- `open()`: mở `ModuleReader` để duyệt hoặc đọc tài nguyên trong module; cần đóng reader đúng cách khi dùng.
+- `descriptor()`: the `ModuleDescriptor` object containing the module name, `requires`, `exports`, `opens`, `uses`, `provides`, and version if present.
+- `location()`: an `Optional<URI>` for where the module is referenced; system modules typically have the form `jrt:/java.base`.
+- `open()`: opens a `ModuleReader` to browse or read resources inside the module; the reader must be closed properly when used.
 
-Finder dùng để quan sát metadata và xây dựng cấu hình. Quyền truy cập kiểu dữ liệu trong code vẫn phụ thuộc graph và các khai báo `exports`/`opens`, chứ không phụ thuộc việc finder tìm được module.
+A finder is used to observe metadata and build configurations. Type access permissions in code still depend on the graph and `exports`/`opens` declarations, not on whether a finder found the module.
 
-## 4. Chương trình Java liệt kê các system module
+## 4. Java Program to List System Modules
 
-Tạo file `SystemModuleExplorer.java`:
+Create the file `SystemModuleExplorer.java`:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -82,9 +82,9 @@ public class SystemModuleExplorer {
                     ModuleDescriptor descriptor = ref.descriptor();
                     String location = ref.location()
                             .map(Object::toString)
-                            .orElse("(khong co URI)");
+                            .orElse("(no URI)");
                     String version = descriptor.rawVersion()
-                            .orElse("(khong ghi version)");
+                            .orElse("(no version)");
 
                     System.out.printf("%-26s version=%-12s location=%s%n",
                             descriptor.name(), version, location);
@@ -95,20 +95,20 @@ public class SystemModuleExplorer {
         boolean inBootLayer = ModuleLayer.boot().findModule(name).isPresent();
 
         System.out.println();
-        System.out.printf("%s tim thay boi system finder: %s%n", name, available);
-        System.out.printf("%s co trong boot layer: %s%n", name, inBootLayer);
+        System.out.printf("%s found by system finder: %s%n", name, available);
+        System.out.printf("%s present in boot layer: %s%n", name, inBootLayer);
     }
 }
 ~~~
 
-Biên dịch và chạy trong terminal có `javac`/`java` từ một JDK:
+Compile and run in a terminal with `javac`/`java` from a JDK:
 
 ~~~bash
 javac SystemModuleExplorer.java
 java SystemModuleExplorer
 ~~~
 
-Dòng kết quả có thể giống:
+The output lines may look like:
 
 ~~~text
 java.base                  version=17.0.x       location=jrt:/java.base
@@ -116,17 +116,17 @@ java.logging               version=17.0.x       location=jrt:/java.logging
 java.sql                   version=17.0.x       location=jrt:/java.sql
 jdk.compiler               version=17.0.x       location=jrt:/jdk.compiler
 ...
-java.sql tim thay boi system finder: true
-java.sql co trong boot layer: true
+java.sql found by system finder: true
+java.sql present in boot layer: true
 ~~~
 
-Đây chỉ là minh họa: số module, thứ tự sau sắp xếp, phiên bản và trạng thái boot layer phụ thuộc runtime/cách khởi chạy. `rawVersion()` có thể rỗng; không nên viết mã giả định module nào cũng có version.
+This is only an illustration: the number of modules, sorted order, versions, and boot layer status depend on the runtime and launch options. `rawVersion()` may be empty; do not write code assuming every module has a version.
 
-Điểm chính của hai giá trị boolean cuối: **finder cho biết sự hiện diện trong nguồn module; boot layer cho biết module có nằm trong layer khởi động của lần chạy này hay không**. Hai câu hỏi này không đồng nhất.
+The key takeaway from the last two boolean values: **the finder tells you about presence in the module source; the boot layer tells you whether the module is in the startup layer of this run**. These two questions are not identical.
 
-## 5. Đọc metadata của một module JDK
+## 5. Reading Metadata of a JDK Module
 
-Muốn kiểm tra module `java.sql` mà không cần đoán package hoặc dependency:
+To inspect the `java.sql` module without guessing its packages or dependencies:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -138,15 +138,15 @@ public class InspectModule {
 
         var optionalRef = ModuleFinder.ofSystem().find(target);
         if (optionalRef.isEmpty()) {
-            System.out.println("System module khong ton tai: " + target);
+            System.out.println("System module does not exist: " + target);
             return;
         }
 
         ModuleDescriptor descriptor = optionalRef.get().descriptor();
 
-        System.out.println("Ten: " + descriptor.name());
-        System.out.println("La automatic module: " + descriptor.isAutomatic());
-        System.out.println("La open module: " + descriptor.isOpen());
+        System.out.println("Name: " + descriptor.name());
+        System.out.println("Is automatic module: " + descriptor.isAutomatic());
+        System.out.println("Is open module: " + descriptor.isOpen());
 
         System.out.println("Requires:");
         descriptor.requires().stream()
@@ -169,7 +169,7 @@ public class InspectModule {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac InspectModule.java
@@ -178,22 +178,22 @@ java InspectModule java.base
 java InspectModule jdk.compiler
 ~~~
 
-Ý nghĩa của các mục trong descriptor:
+Meaning of the entries in the descriptor:
 
-- `requires x`: module phụ thuộc trực tiếp vào `x`.
-- `requires transitive x`: ngoài việc phụ thuộc, khả năng đọc `x` được lan truyền tới module đọc module hiện tại.
-- `requires static x`: dependency cần tại thời điểm biên dịch nhưng có thể vắng mặt lúc chạy.
-- `exports p`: công khai package `p` để code ở module khác dùng API public của package, với giới hạn nếu là qualified export.
-- `opens p`: cho phép truy cập reflective sâu tới package tương ứng theo quy tắc JPMS.
-- `uses S`, `provides S with P`: công bố tiêu thụ hoặc cung cấp service.
+- `requires x`: the module depends directly on `x`.
+- `requires transitive x`: in addition to depending on it, readability of `x` is propagated to modules that read the current module.
+- `requires static x`: a dependency required at compile time but allowed to be absent at runtime.
+- `exports p`: exposes package `p` so code in other modules can use the package's public API, restricted if it is a qualified export.
+- `opens p`: allows deep reflective access to the corresponding package according to JPMS rules.
+- `uses S`, `provides S with P`: declares consumption or provision of a service.
 
-`ModuleDescriptor` mô tả hợp đồng module; nó không tự xác nhận rằng mọi implementation class có thể được truy cập bởi module của bạn. Một package không được export vẫn bị đóng gói mạnh đối với truy cập thông thường từ module khác.
+`ModuleDescriptor` describes the module contract; it does not by itself confirm that every implementation class can be accessed by your module. An unexported package remains strongly encapsulated against ordinary access from other modules.
 
-## 6. Finder và module resolution phối hợp ra sao?
+## 6. How Do the Finder and Module Resolution Work Together?
 
-Resolution là quá trình xác định một đồ thị module hợp lệ từ **root modules** và các quan hệ phụ thuộc. Runtime hoặc API cấu hình tìm module bằng finder, rồi duyệt các `requires` cần thiết. Kết quả nằm trong `java.lang.module.Configuration` dưới dạng những `ResolvedModule`.
+Resolution is the process of determining a valid module graph from **root modules** and dependency relationships. The runtime or configuration API locates modules via finders, then traverses the required `requires`. The result is stored in `java.lang.module.Configuration` as `ResolvedModule` instances.
 
-Sơ đồ khái niệm:
+Conceptual diagram:
 
 ~~~text
 System runtime image (java.*, jdk.*)
@@ -205,22 +205,22 @@ System runtime image (java.*, jdk.*)
   ModuleReference/Descriptor
             |
             v
-      Chon root modules
+      Select root modules
             |
             v
  Resolution: requires, transitive,
- service binding (neu duoc yeu cau)
+ service binding (if requested)
             |
             v
      Configuration (graph)
             |
             v
- ModuleLayer (module da duoc dinh nghia)
+ ModuleLayer (defined modules)
 ~~~
 
-Khi chạy ứng dụng modular, Java còn có thể quan sát module từ `--module-path`. Trong cấu hình thực tế, finder dùng lúc resolution có thể bao gồm cả system modules và application modules. `ModuleFinder.ofSystem()` riêng lẻ chỉ giải quyết phần nguồn system modules, không thay thế module path của ứng dụng.
+When running a modular application, Java can also observe modules from `--module-path`. In an actual configuration, the finders used during resolution can include both system modules and application modules. `ModuleFinder.ofSystem()` alone only handles the system module source and does not replace the application's module path.
 
-Ví dụ module ứng dụng:
+Application module example:
 
 `src/com.example.app/module-info.java`:
 
@@ -249,22 +249,22 @@ public class Main {
 }
 ~~~
 
-Biên dịch module và chạy:
+Compile the module and run:
 
 ~~~bash
 javac -d mods/com.example.app src/com.example.app/module-info.java src/com.example.app/com/example/app/Main.java
 java --show-module-resolution --module-path mods --module com.example.app/com.example.app.Main
 ~~~
 
-Ở ví dụ này, `com.example.app` là root từ `--module`; `java.sql` được đưa vào graph vì `requires java.sql` và những phụ thuộc cần thiết của `java.sql` cũng được resolve. Với `--show-module-resolution`, JVM in thông tin resolution trước khi chạy chương trình.
+In this example, `com.example.app` is the root from `--module`; `java.sql` is brought into the graph because of `requires java.sql`, and the required dependencies of `java.sql` are also resolved. With `--show-module-resolution`, the JVM prints resolution information before running the program.
 
-Lệnh `--module-path mods` cung cấp module ứng dụng; finder hệ thống cung cấp `java.sql` và các module JDK. Nếu thiếu module được yêu cầu trong những nguồn có thể quan sát, resolution thất bại, thường với lỗi dạng `Module ... not found, required by ...`.
+The `--module-path mods` option supplies the application module; the system finder supplies `java.sql` and the JDK modules. If a required module is missing from the observable sources, resolution fails, typically with an error such as `Module ... not found, required by ...`.
 
-### 6.1. Boot layer là gì?
+### 6.1. What Is the Boot Layer?
 
-`ModuleLayer.boot()` trả về layer khởi động của JVM. `ModuleLayer.boot().modules()` liệt kê module thực sự được định nghĩa trong layer đó, không phải danh sách toàn bộ module runtime.
+`ModuleLayer.boot()` returns the JVM's startup layer. `ModuleLayer.boot().modules()` lists the modules actually defined in that layer, not the list of all runtime modules.
 
-Có thể khảo sát:
+You can inspect it:
 
 ~~~java
 ModuleLayer.boot().modules().stream()
@@ -273,29 +273,29 @@ ModuleLayer.boot().modules().stream()
         .forEach(System.out::println);
 ~~~
 
-`ModuleLayer.boot().configuration()` là configuration liên quan đến boot layer. API `Configuration` có thể được dùng để resolve các cấu hình khác trong những hệ thống plugin hoặc layer tùy chỉnh. Đừng nhầm finder (tìm ứng viên) với configuration (đồ thị đã resolve) hoặc layer (module được định nghĩa khi chạy).
+`ModuleLayer.boot().configuration()` is the configuration associated with the boot layer. The `Configuration` API can be used to resolve other configurations in plugin systems or custom layers. Do not confuse a finder (locating candidates) with a configuration (the resolved graph) or a layer (modules defined at runtime).
 
-### 6.2. Sự hiện diện không bảo đảm khả năng đọc
+### 6.2. Presence Does Not Guarantee Readability
 
-Ví dụ `ModuleFinder.ofSystem().find("jdk.compiler")` có kết quả không làm cho mọi module ứng dụng tự động đọc `jdk.compiler`, và cũng không làm cho các package nội bộ của module ấy trở thành API công khai.
+For example, `ModuleFinder.ofSystem().find("jdk.compiler")` returning a result does not make every application module automatically read `jdk.compiler`, nor does it make that module's internal packages public API.
 
-Để code trong một **named module** sử dụng API công khai từ module khác, cần có quan hệ đọc tương ứng (thường qua `requires`) và package phải được export cho module gọi. Reflection sâu cần xét thêm `opens` hoặc cơ chế mở package được cho phép.
+For code in a **named module** to use public APIs from another module, there must be a corresponding read relationship (typically via `requires`) and the package must be exported to the calling module. Deep reflection additionally requires checking `opens` or an allowed package-opening mechanism.
 
-## 7. Các lệnh JDK hữu ích khi điều tra system modules
+## 7. Useful JDK Commands for Investigating System Modules
 
-| Lệnh | Công dụng |
+| Command | Purpose |
 | --- | --- |
-| `java --list-modules` | Liệt kê các module thuộc runtime hiện tại. |
-| `java --describe-module java.base` | Xem descriptor của module chỉ định. |
-| `java --describe-module jdk.compiler` | Xem metadata của một module JDK nếu tồn tại. |
-| `java --show-module-resolution -m ...` | Theo dõi module graph khi chạy một modular application. |
-| `jdeps --list-deps app.jar` | Phân tích các module/package mà ứng dụng phụ thuộc ở mức bytecode. |
-| `jdeps --print-module-deps app.jar` | Đề xuất danh sách module phục vụ việc tạo runtime image; cần kiểm tra dependency runtime và reflection riêng. |
-| `jlink --list-plugins` | Xem các plugin có thể dùng khi xây runtime image, phụ thuộc phiên bản công cụ. |
+| `java --list-modules` | Lists the modules belonging to the current runtime. |
+| `java --describe-module java.base` | Displays the descriptor of the specified module. |
+| `java --describe-module jdk.compiler` | Displays metadata of a JDK module if it exists. |
+| `java --show-module-resolution -m ...` | Traces the module graph when running a modular application. |
+| `jdeps --list-deps app.jar` | Analyzes the modules/packages an application depends on at the bytecode level. |
+| `jdeps --print-module-deps app.jar` | Suggests a list of modules for building a runtime image; runtime and reflection dependencies must be checked separately. |
+| `jlink --list-plugins` | Lists the plugins available when building a runtime image, depending on the tool version. |
 
-Lưu ý cú pháp `-m ...` yêu cầu một modular main module có sẵn; chỉ chạy `java --show-module-resolution` kèm lệnh chạy thực tế. `jdeps` phân tích tĩnh, nên không luôn phát hiện những dependency chỉ xuất hiện qua reflection, service loading hoặc cấu hình.
+Note that the `-m ...` syntax requires an existing modular main module; only run `java --show-module-resolution` together with an actual launch command. `jdeps` performs static analysis, so it does not always detect dependencies that only appear through reflection, service loading, or configuration.
 
-Một vài lệnh thực hành độc lập:
+Some standalone practice commands:
 
 ~~~bash
 java --list-modules
@@ -304,65 +304,65 @@ java --describe-module jdk.compiler
 jdeps --print-module-deps my-app.jar
 ~~~
 
-Ví dụ đầu ra có thể chứa tên dạng `java.base@17.0.x` hoặc `jdk.compiler@17.0.x`. Không hard-code danh sách JDK modules theo một máy: JDK đầy đủ, runtime image rút gọn và bản phân phối có thể cho kết quả khác nhau.
+Example output may contain names like `java.base@17.0.x` or `jdk.compiler@17.0.x`. Do not hard-code the JDK module list based on one machine: a full JDK, a trimmed runtime image, and different distributions can produce different results.
 
-### 7.1. Runtime image rút gọn và `jlink`
+### 7.1. Trimmed Runtime Images and `jlink`
 
-`jlink` có thể xây runtime image chứa tập module đã chọn. Ví dụ minh họa (thay đường dẫn cho đúng môi trường):
+`jlink` can build a runtime image containing a selected set of modules. Illustrative example (adjust the path for your environment):
 
 ~~~bash
 jlink --module-path /path/to/jdk/jmods --add-modules java.base,java.logging --output custom-runtime
 ~~~
 
-Để xem module được gói trong image tạo ra:
+To see the modules packaged in the resulting image:
 
 ~~~bash
 custom-runtime/bin/java --list-modules
 ~~~
 
-Trên Windows, tệp chạy thường là `custom-runtime\bin\java.exe`. Phụ thuộc hệ điều hành, đường dẫn `--module-path` cần trỏ tới thư mục `jmods` phù hợp của JDK.
+On Windows, the executable is typically `custom-runtime\bin\java.exe`. Depending on the OS, the `--module-path` path should point to the appropriate `jmods` directory of the JDK.
 
-Chương trình chạy trên image này sẽ nhận system finder của **chính image đó**. Vì vậy một module có trong JDK lúc phát triển có thể vắng mặt ở runtime tối giản. Nếu ứng dụng cần `java.sql`, image phải chứa nó và các dependency của nó.
+A program running on this image receives the system finder of **that image itself**. Therefore, a module present in the JDK during development may be absent in a minimal runtime. If the application needs `java.sql`, the image must contain it and its dependencies.
 
-Một số JDK có lệnh `jmod` để thao tác archive `.jmod`. File `.jmod` chủ yếu phục vụ liên kết/đóng gói runtime, không phải định dạng thường dùng để đưa lên application module path khi chạy như modular JAR. Nên phân biệt file `.jmod` của JDK với URI `jrt:/...` nhìn thấy khi runtime đã được tạo.
+Some JDKs include the `jmod` command for working with `.jmod` archives. `.jmod` files are primarily for linking/packaging a runtime, not the format normally placed on an application module path at runtime like a modular JAR. Distinguish JDK `.jmod` files from the `jrt:/...` URIs observed once a runtime has been created.
 
-## 8. Các tình huống lỗi thường gặp
+## 8. Common Error Scenarios
 
-**1. Tìm module thấy, nhưng `ModuleLayer.boot().findModule(...)` rỗng.** Module hiện diện trong runtime, nhưng không được chọn cho boot graph của lần chạy. Kiểm tra root modules, `requires` và tham số khởi chạy; chưa cần suy ra runtime bị hỏng.
+**1. The module is found by the finder, but `ModuleLayer.boot().findModule(...)` is empty.** The module is present in the runtime, but was not selected for this run's boot graph. Check root modules, `requires`, and launch options; there is no need to assume the runtime is broken.
 
-**2. Ứng dụng báo “Module ... not found”.** Xác minh tên module, phiên bản/runtime đang thực thi, `java --list-modules`, `--module-path` và module descriptor. Có thể đang chạy bằng một image đã rút gọn, hoặc module application không nằm trên đúng path.
+**2. The application reports “Module ... not found”.** Verify the module name, the executing runtime/version, `java --list-modules`, `--module-path`, and the module descriptor. You may be running on a trimmed image, or the application module may not be on the right path.
 
-**3. Module tồn tại nhưng compiler báo package không visible.** Kiểm tra module gọi có đọc module đích không, package có được `exports` không và export có giới hạn đích hay không. `--add-exports` là tùy chọn tương thích đặc biệt, không thay thế việc thiết kế module descriptor đúng.
+**3. The module exists, but the compiler reports that a package is not visible.** Check whether the calling module reads the target module, whether the package is exported by `exports`, and whether the export is restricted to specific targets. `--add-exports` is a special compatibility option and does not replace proper module descriptor design.
 
-**4. Reflection bị `InaccessibleObjectException`.** `requires`/`exports` thường chưa đủ cho truy cập reflective sâu. Kiểm tra `opens`, `open module` hoặc lựa chọn runtime `--add-opens` trong trường hợp phù hợp.
+**4. Reflection fails with `InaccessibleObjectException`.** `requires`/`exports` are usually not enough for deep reflective access. Check `opens`, `open module`, or the `--add-opens` runtime option where appropriate.
 
-**5. Mã chạy trên một JDK nhưng lỗi trên máy khác.** So sánh `java -version`, `java --list-modules` và đường dẫn executable. Không mặc định module `jdk.*`, công cụ JDK hay internal package luôn có ở mọi distribution.
+**5. Code runs on one JDK but fails on another machine.** Compare `java -version`, `java --list-modules`, and the executable path. Do not assume `jdk.*` modules, JDK tools, or internal packages are always present in every distribution.
 
-**6. Thấy `java.se` rồi cho rằng nó là tất cả module JDK.** `java.se` là aggregate module trong các runtime có cung cấp nó, liên quan các module Java SE; các module `jdk.*` không đồng nghĩa đều thuộc `java.se`.
+**6. Seeing `java.se` and assuming it includes all JDK modules.** `java.se` is an aggregate module in runtimes that provide it, related to Java SE modules; `jdk.*` modules are not necessarily part of `java.se`.
 
-## 9. Bài thực hành
+## 9. Practice Exercises
 
-1. Viết chương trình in tổng số module mà `ModuleFinder.ofSystem().findAll()` trả về; nhóm theo tiền tố `java.`, `jdk.` và nhóm khác. Giải thích vì sao tổng số này có thể khác máy bạn bè.
-2. Tìm `java.base`, `java.sql`, `jdk.compiler` bằng `find(name)`. Với mỗi module tìm thấy, in `descriptor().name()`, `rawVersion()` và `location()`. Xử lý `Optional.empty()` an toàn.
-3. In danh sách module trong `ModuleLayer.boot()` rồi đối chiếu với finder của system. Tìm ít nhất một trường hợp khác nhau nếu môi trường cho phép và giải thích sự khác biệt về ý nghĩa.
-4. Tạo modular app nhỏ với `requires java.logging;`, dùng `java.util.logging.Logger`, rồi khởi chạy bằng `--show-module-resolution`. Chỉ ra root và module được kéo vào graph.
-5. Dùng `java --describe-module java.sql` đối chiếu với dữ liệu `descriptor.requires()` từ code. Nêu ví dụ về `requires transitive` nếu descriptor trong JDK của bạn thể hiện.
-6. Nếu đã quen `jlink`, tạo một image rút gọn và chạy `--list-modules` bằng executable nằm trong image đó. So sánh với JDK gốc.
+1. Write a program that prints the total number of modules returned by `ModuleFinder.ofSystem().findAll()`, grouped by `java.`, `jdk.`, and other prefixes. Explain why this total may differ from a friend's machine.
+2. Look up `java.base`, `java.sql`, and `jdk.compiler` using `find(name)`. For each module found, print `descriptor().name()`, `rawVersion()`, and `location()`. Handle `Optional.empty()` safely.
+3. Print the list of modules in `ModuleLayer.boot()` and compare it against the system finder. Find at least one case where they differ if your environment allows, and explain the difference in meaning.
+4. Create a small modular app with `requires java.logging;`, use `java.util.logging.Logger`, and launch it with `--show-module-resolution`. Identify the root and the modules pulled into the graph.
+5. Use `java --describe-module java.sql` and compare it with the `descriptor.requires()` data from code. Give an example of `requires transitive` if your JDK's descriptor displays one.
+6. If you are already familiar with `jlink`, create a trimmed image and run `--list-modules` using the executable inside that image. Compare it with the original JDK.
 
-Gợi ý khi làm bài: lưu lại **phiên bản Java và lệnh khởi chạy** để kết quả có thể được tái hiện; đừng lấy danh sách module in ra trên một máy làm chuẩn tuyệt đối cho mọi môi trường.
+Hint for the exercises: record the **Java version and launch command** so results can be reproduced; do not treat the module list printed on one machine as an absolute standard for every environment.
 
-## 10. Ghi nhớ
+## 10. Key Takeaways
 
-- `ModuleFinder.ofSystem()` tìm **module mà runtime hiện tại cung cấp**, dựa trên mô tả module chứ không tải class.
-- `ModuleReference` mô tả vị trí/thông tin một module; `ModuleDescriptor` cho biết hợp đồng phụ thuộc và khả năng công khai package.
-- **Resolution** chọn module từ roots và dependencies để tạo `Configuration`; `ModuleLayer` là nơi các module được định nghĩa cho quá trình thực thi.
-- Có mặt trong finder, tham gia configuration và có mặt trong boot layer là ba trạng thái cần phân biệt khi debug.
-- Công cụ `java --list-modules`, `--describe-module` và `--show-module-resolution` giúp kiểm tra trực tiếp; `jdeps`/`jlink` hỗ trợ phân tích dependency và đóng gói runtime.
-- Danh sách `java.*`/`jdk.*` phụ thuộc runtime image, nên luôn kiểm tra trên đúng JDK/runtime mà ứng dụng đang sử dụng.
+- `ModuleFinder.ofSystem()` locates **modules provided by the current runtime**, based on module descriptions rather than loading classes.
+- `ModuleReference` describes a module's location and info; `ModuleDescriptor` reveals the dependency contract and package exposure.
+- **Resolution** selects modules from roots and dependencies to produce a `Configuration`; `ModuleLayer` is where modules are defined for execution.
+- Being present in a finder, participating in a configuration, and being present in the boot layer are three states to keep distinct when debugging.
+- Tools like `java --list-modules`, `--describe-module`, and `--show-module-resolution` help inspect directly; `jdeps`/`jlink` assist with dependency analysis and runtime packaging.
+- The list of `java.*`/`jdk.*` modules depends on the runtime image, so always check against the exact JDK/runtime the application uses.
 
-## 11. Tài liệu tham khảo
+## 11. References
 
 - Java SE API: `java.lang.module.ModuleFinder`, `ModuleReference`, `ModuleDescriptor`, `Configuration`.
 - Java SE API: `java.lang.ModuleLayer`.
 - Java Platform Module System (JPMS), JEP 261.
-- Tài liệu lệnh `java`, `jdeps`, `jlink` và `jmod` của phiên bản JDK đang sử dụng.
+- Documentation for the `java`, `jdeps`, `jlink`, and `jmod` commands of the JDK version in use.

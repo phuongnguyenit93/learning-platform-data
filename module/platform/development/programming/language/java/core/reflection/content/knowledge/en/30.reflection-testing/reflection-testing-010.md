@@ -1,19 +1,19 @@
-# Kiểm thử hai ClassLoader định nghĩa lớp cùng tên trong Java
+# Testing Two ClassLoaders Defining Classes with the Same Name in Java
 
-Trong Java, **hai lớp có cùng tên đầy đủ chưa chắc là cùng một kiểu tại runtime**. Đối với một class bình thường, định danh kiểu gồm **binary name và class loader đã *định nghĩa* class đó** (*defining class loader*). Vì vậy, nếu hai class loader khác nhau tự gọi `defineClass` để định nghĩa cùng một tên như `sample.Plugin` từ cùng nội dung bytecode, JVM vẫn tạo ra **hai kiểu khác nhau**.
+In Java, **two classes with the same fully qualified name are not necessarily the same type at runtime**. For a normal class, type identity consists of the **binary name and the class loader that *defined* that class** (*defining class loader*). Therefore, if two different class loaders each call `defineClass` to define the same name such as `sample.Plugin` from the exact same bytecode content, the JVM still creates **two distinct types**.
 
-Bài học này dùng một bài kiểm thử Java 17+ có thể chạy độc lập để kiểm chứng:
+This lesson uses a standalone runnable Java 17+ test to verify:
 
-- Cùng `Class.getName()` nhưng **`Class<?>` không bằng nhau**.
-- Hai kiểu không thể ép kiểu hoặc gán cho nhau chỉ dựa vào tên giống nhau.
-- Mỗi loader chỉ nên định nghĩa một class với một tên một lần; một loader khác có thể định nghĩa class trùng tên trong không gian riêng của nó.
-- Hai plugin độc lập vẫn có thể cộng tác qua **interface chung được nạp bởi loader cha**, nếu cấu trúc class loader được thiết kế đúng.
+- Same `Class.getName()`, yet **`Class<?>` instances are not equal**.
+- Two types cannot be cast or assigned to each other based solely on matching names.
+- Each loader should define a class with a given name only once; another loader can define a same-named class in its own namespace.
+- Two independent plugins can still collaborate through a **shared interface loaded by a parent loader**, if the class loader hierarchy is designed properly.
 
-Đây là một kỹ năng quan trọng khi kiểm thử plugin, ứng dụng server, thư viện hot reload, hệ thống chạy script và môi trường có nhiều class loader.
+This is an essential skill when testing plugins, application servers, hot-reload libraries, scripting engines, and multi-class-loader environments.
 
-## 1. Quy tắc định danh lớp tại runtime
+## 1. Class Identity Rules at Runtime
 
-Nhìn hai đoạn thông tin này:
+Look at these two entries:
 
 ```text
 binary name   = sample.Plugin
@@ -21,48 +21,48 @@ loader A      = PluginLoader@...
 loader B      = PluginLoader@...
 ```
 
-Dấu `@...` ở đây là ký hiệu minh họa cho hai instance class loader, không phải output xác định của JVM.
+The `@...` suffix here is an illustrative notation for two class loader instances, not deterministic JVM output.
 
-Nếu loader A định nghĩa `sample.Plugin` và loader B cũng **tự định nghĩa** `sample.Plugin` thì:
+If loader A defines `sample.Plugin` and loader B also **defines** `sample.Plugin` itself, then:
 
 ```text
 (sample.Plugin, loader A)  !=  (sample.Plugin, loader B)
 ```
 
-Điều này giải thích vì sao:
+This explains why:
 
 ```java
 Class<?> a = Class.forName("sample.Plugin", false, loaderA);
 Class<?> b = Class.forName("sample.Plugin", false, loaderB);
 
 System.out.println(a.getName().equals(b.getName())); // true
-System.out.println(a == b);                         // false, nếu A/B tự define
-System.out.println(a.isAssignableFrom(b));          // false, nếu không có quan hệ subtype
+System.out.println(a == b);                         // false, if A/B each define it
+System.out.println(a.isAssignableFrom(b));          // false, if no subtype relationship
 ```
 
-Đây là **đoạn minh họa**: nó giả định `loaderA` và `loaderB` đã được tạo và thực sự định nghĩa class đích độc lập. Nếu cả hai loader chỉ **ủy quyền cho cùng một loader cha**, hai lệnh `Class.forName` có thể trả đúng **một** `Class<?>`.
+This is an **illustrative snippet**: it assumes `loaderA` and `loaderB` have been created and actually defined the target class independently. If both loaders merely **delegate to the same parent loader**, both `Class.forName` calls can return the **exact same** `Class<?>`.
 
-### Defining loader khác initiating loader
+### Defining Loader vs. Initiating Loader
 
-- **Defining loader** là loader thực sự định nghĩa class bằng cơ chế như `defineClass`. Phần định danh runtime phụ thuộc loader này.
-- **Initiating loader** là loader mà quá trình yêu cầu load class được gắn với; có thể chỉ ủy quyền và nhận class do loader khác định nghĩa.
-- `clazz.getClassLoader()` trả **defining loader** (với một số class nền tảng, kết quả có thể là `null` cho bootstrap loader).
+- **Defining loader** is the loader that actually defines the class via a mechanism such as `defineClass`. Runtime identity depends on this loader.
+- **Initiating loader** is the loader associated with the class-loading request; it may simply delegate and receive a class defined by another loader.
+- `clazz.getClassLoader()` returns the **defining loader** (for some platform classes, the result can be `null` for the bootstrap loader).
 
-Do đó, **hai đối tượng `ClassLoader` khác nhau không tự động tạo hai runtime class khác nhau**. Bài test phải buộc chúng tự định nghĩa lớp mục tiêu thay vì âm thầm ủy quyền toàn bộ cho cùng loader cha.
+Therefore, **two different `ClassLoader` objects do not automatically produce two different runtime classes**. The test must force them to define the target class themselves instead of silently delegating everything to the same parent loader.
 
-## 2. Vì sao mặc định dễ không tái hiện được hiện tượng?
+## 2. Why Default Behavior Easily Fails to Reproduce the Phenomenon
 
-`ClassLoader.loadClass(String)` mặc định thường thực hiện parent-first delegation: kiểm tra class đã load, nhờ loader cha tìm class và chỉ tự tìm khi cần. Nếu hai loader đều có cùng cha và cha đã thấy `sample.Plugin`:
+The default `ClassLoader.loadClass(String)` typically performs parent-first delegation: check already-loaded classes, ask the parent loader to find the class, and load locally only when needed. If both loaders share the same parent and the parent already sees `sample.Plugin`:
 
 ```text
 PluginLoader A ──┐
                  ├──> AppClassLoader ──> sample.Plugin
 PluginLoader B ──┘
 
-Kết quả: hai đường truy cập trỏ cùng Class<?> do AppClassLoader định nghĩa.
+Result: both lookup paths point to the same Class<?> defined by AppClassLoader.
 ```
 
-Như vậy, đoạn test chỉ gọi:
+Thus, a test that merely calls:
 
 ```java
 ClassLoader a = new ClassLoader() {};
@@ -71,29 +71,29 @@ Class<?> typeA = a.loadClass("sample.Plugin");
 Class<?> typeB = b.loadClass("sample.Plugin");
 ```
 
-**không chứng minh** JVM tạo hai kiểu. Hai instance `ClassLoader` bên trên không override cách tìm/nạp nên nhiều khả năng đều được cha phục vụ.
+**does not prove** the JVM creates two types. The two `ClassLoader` instances above do not override finding/loading, so both will likely be served by the parent.
 
-Muốn kiểm thử trường hợp hai kiểu riêng biệt, cần một trong hai cách:
+To test the two-distinct-types case, one of two approaches is required:
 
-1. Tạo hai loader riêng với nguồn class không thuộc phạm vi loader cha, để mỗi loader tự `findClass` rồi `defineClass`.
-2. Viết class loader **ưu tiên tự định nghĩa đúng class mục tiêu**, và vẫn ủy quyền các class khác cho cha.
+1. Create two separate loaders whose class source is outside the parent loader's scope, so each loader calls `findClass` then `defineClass` itself.
+2. Write a class loader that **prefers defining the exact target class itself**, while still delegating all other classes to the parent.
 
-Bài này dùng cách 2, cố ý giới hạn chỉ tên `sample.Plugin`. Đây là một mô phỏng có kiểm soát; **không nên chuyển toàn bộ loader thành child-first** nếu không hiểu hệ quả với thư viện và API chung.
+This lesson uses approach 2, intentionally scoped only to the name `sample.Plugin`. This is a controlled simulation; **do not switch an entire loader to child-first** without understanding the consequences for shared libraries and APIs.
 
-## 3. Thiết kế bài kiểm thử có kết quả xác định
+## 3. Designing a Test with Deterministic Results
 
-Ta dùng ba file Java và hai instance của một class loader tùy chỉnh:
+We use three Java files and two instances of a custom class loader:
 
 ```text
 src/
 ├── host/
-│   └── Speaker.java          (contract chung, app loader nạp)
+│   └── Speaker.java          (shared contract, loaded by app loader)
 ├── sample/
-│   └── Plugin.java           (class bytecode được định nghĩa lại)
+│   └── Plugin.java           (class bytecode redefined)
 └── TwoLoadersTest.java       (test runner + PluginLoader)
 ```
 
-Cấu trúc loader mong muốn:
+Desired loader structure:
 
 ```text
                     AppClassLoader
@@ -102,15 +102,15 @@ Cấu trúc loader mong muốn:
           sample.Plugin          sample.Plugin
                  \                  /
                   \__ host.Speaker _/
-                       (cùng một Class<?>)
+                       (same Class<?>)
 ```
 
-Hai plugin đều implements `host.Speaker`. Các loader con tự định nghĩa `sample.Plugin` từ **cùng bytecode**, nhưng ủy quyền việc tìm `host.Speaker` cho cùng loader cha. Điều này giúp quan sát hai tính chất cùng lúc:
+Both plugins implement `host.Speaker`. The child loaders define `sample.Plugin` themselves from **the same bytecode**, while delegating lookup of `host.Speaker` to the same parent loader. This lets us observe two properties simultaneously:
 
-- Hai class `sample.Plugin` **không cùng type identity**, nên ép đối tượng của bên A sang class bên B thất bại.
-- Cả hai instance **cùng tương thích** với `host.Speaker` do cha định nghĩa, nên có thể gọi `hello()` thông qua contract chung.
+- The two `sample.Plugin` classes **do not share type identity**, so casting an object from side A to side B's class fails.
+- Both instances **are compatible** with `host.Speaker` defined by the parent, so `hello()` can be called through the shared contract.
 
-## 4. Chương trình Java 17+ có thể biên dịch và chạy
+## 4. Compilable and Runnable Java 17+ Program
 
 ### File 1 — `src/host/Speaker.java`
 
@@ -122,7 +122,7 @@ public interface Speaker {
 }
 ```
 
-Interface `Speaker` nằm trên classpath ứng dụng. Chương trình host dùng interface này như **điểm gặp nhau** giữa các plugin.
+The `Speaker` interface sits on the application classpath. The host program uses this interface as the **meeting point** between plugins.
 
 ### File 2 — `src/sample/Plugin.java`
 
@@ -141,7 +141,7 @@ public class Plugin implements Speaker {
 }
 ```
 
-Ta chỉ cần **một** file nguồn và **một** file bytecode `Plugin.class`. Hai class loader khác nhau sẽ đọc **cùng mảng bytecode** nhưng mỗi loader tự định nghĩa class trong không gian của mình.
+We only need **one** source file and **one** `Plugin.class` bytecode file. Two distinct class loaders will read **the same bytecode array**, yet each loader defines the class in its own space.
 
 ### File 3 — `src/TwoLoadersTest.java`
 
@@ -224,16 +224,16 @@ public class TwoLoadersTest {
 }
 ```
 
-### Biên dịch và chạy
+### Compile and Run
 
-Đứng tại thư mục chứa `src/`. Với JDK 17 hoặc mới hơn, thực hiện:
+From the directory containing `src/`. With JDK 17 or newer, execute:
 
 ```bash
 javac -encoding UTF-8 -d out src/host/Speaker.java src/sample/Plugin.java src/TwoLoadersTest.java
 java -cp out TwoLoadersTest out/sample/Plugin.class
 ```
 
-Lệnh `javac -d out` tạo:
+The `javac -d out` command produces:
 
 ```text
 out/
@@ -245,9 +245,9 @@ out/
 └── TwoLoadersTest$PluginLoader.class
 ```
 
-Các file class của runner và interface chung nằm trên application classpath; trong chương trình, mỗi `PluginLoader` chỉ giữ bytecode đọc từ `out/sample/Plugin.class`.
+The runner and shared interface class files sit on the application classpath; inside the program, each `PluginLoader` only holds the bytecode read from `out/sample/Plugin.class`.
 
-### Kết quả thực tế
+### Actual Output
 
 ```text
 Same binary name: true
@@ -261,53 +261,53 @@ Cast B <- instance A: ClassCastException
 Shared interface: hello from plugin | hello from plugin
 ```
 
-Kết quả được kiểm tra bằng cách biên dịch và chạy chương trình Java tương ứng. Tên file, class và những chuỗi in ra khớp với mã nguồn bên trên.
+The output was verified by compiling and running the corresponding Java program. File names, class names, and printed strings match the source code above.
 
-## 5. Giải thích chính xác từng kết quả
+## 5. Exact Explanation of Each Result
 
-### 5.1. Cùng tên, khác `Class<?>`
+### 5.1. Same Name, Different `Class<?>`
 
-`a.getName().equals(b.getName())` trả `true` vì cả hai class đều mang binary name `sample.Plugin`.
+`a.getName().equals(b.getName())` returns `true` because both classes carry the binary name `sample.Plugin`.
 
-`a == b` trả `false` vì hai đối tượng `Class<?>` biểu diễn hai kiểu khác nhau: class do loader A định nghĩa và class do loader B định nghĩa.
+`a == b` returns `false` because the two `Class<?>` objects represent two different types: the class defined by loader A and the class defined by loader B.
 
-Cùng bytecode **không** buộc Java hợp nhất hai class từ hai loader. Việc mỗi loader định nghĩa bytecode tạo ra một không gian type riêng cho tên đó.
+Having the same bytecode **does not** force Java to merge two classes from two loaders. Each loader defining the bytecode creates a separate type namespace for that name.
 
-### 5.2. `getClassLoader()` chỉ ra nguồn định danh
+### 5.2. `getClassLoader()` Identifies the Source of Identity
 
-`a.getClassLoader() != b.getClassLoader()` là `true`. Trong test, loader A và B khác nhau và mỗi loader thật sự gọi `defineClass` cho `sample.Plugin`.
+`a.getClassLoader() != b.getClassLoader()` is `true`. In the test, loaders A and B are distinct and each genuinely called `defineClass` for `sample.Plugin`.
 
-Đây là bước kiểm chứng cần thiết. Nếu chỉ in hai loader variable được tạo khác nhau mà không kiểm tra **defining loader của kết quả `Class<?>`**, bài test có thể vô tình chỉ chứng minh hai instance loader, chưa chứng minh class đã được định nghĩa riêng.
+This is a necessary verification step. If you only print two distinct loader variables without checking the **defining loader of the resulting `Class<?>`**, the test could accidentally prove only two loader instances exist, without proving the class was defined separately.
 
-### 5.3. `isAssignableFrom` và `isInstance` không chỉ nhìn tên
+### 5.3. `isAssignableFrom` and `isInstance` Do Not Look Only at Names
 
-`a.isAssignableFrom(b)` là `false`. Hai class độc lập không có quan hệ kế thừa kiểu với nhau dù tên trùng.
+`a.isAssignableFrom(b)` is `false`. Two independent classes have no type-inheritance relationship with each other even with matching names.
 
-`b.isInstance(instanceA)` cũng là `false`: instanceA được tạo bởi class A, không phải instance của class B.
+`b.isInstance(instanceA)` is also `false`: `instanceA` was created by class A, so it is not an instance of class B.
 
-Việc gọi `b.cast(instanceA)` ném `ClassCastException` như mong đợi. Lỗi không đến từ method `hello()`, không phải do chuỗi tên khác nhau, mà do **khác runtime type identity**.
+Calling `b.cast(instanceA)` throws `ClassCastException` as expected. The error does not come from `hello()`, nor from differing name strings, but from **different runtime type identities**.
 
-### 5.4. Vì sao cả hai vẫn được coi là `Speaker`?
+### 5.4. Why Are Both Still Recognized as `Speaker`?
 
-Cả `sample.Plugin` từ loader A và loader B đều implements **cùng `host.Speaker` của parent loader**. Do `Speaker` do loader cha định nghĩa nên:
+Both `sample.Plugin` from loader A and loader B implement **the same `host.Speaker` from the parent loader**. Because `Speaker` is defined by the parent loader:
 
 ```java
 Speaker.class.isAssignableFrom(a);  // true
 Speaker.class.isAssignableFrom(b);  // true
 ```
 
-Hai đối tượng có thể được nhìn qua `Speaker`:
+Both objects can be viewed through `Speaker`:
 
 ```java
 Speaker left = Speaker.class.cast(instanceA);
 Speaker right = Speaker.class.cast(instanceB);
 ```
 
-Đây là lợi ích thực tế của kiến trúc plugin: **giữ contract chung ở host/parent loader, chỉ nạp implementation riêng ở plugin loader**. Qua interface chung, chương trình host không cần ép kiểu về `sample.Plugin` của một loader cụ thể.
+This is the practical benefit of plugin architecture: **keep the shared contract in the host/parent loader, and load only separate implementations in plugin loaders**. Through the shared interface, the host program never needs to cast to a specific loader's `sample.Plugin`.
 
-## 6. Tìm hiểu kỹ phương thức `loadClass` được override
+## 6. Inspecting the Overridden `loadClass` Method Closely
 
-Trong `PluginLoader`, điều kiện:
+In `PluginLoader`, the condition:
 
 ```java
 if (!TARGET.equals(name)) {
@@ -315,9 +315,9 @@ if (!TARGET.equals(name)) {
 }
 ```
 
-giữ **parent delegation** cho tất cả class ngoài `sample.Plugin`: Java API, `host.Speaker`, `java.lang.String` và các dependency chung. Với `sample.Plugin`, loader sẽ tự định nghĩa.
+preserves **parent delegation** for every class other than `sample.Plugin`: Java APIs, `host.Speaker`, `java.lang.String`, and shared dependencies. For `sample.Plugin`, the loader defines it locally.
 
-Đoạn chính:
+The core block:
 
 ```java
 synchronized (getClassLoadingLock(name)) {
@@ -330,121 +330,121 @@ synchronized (getClassLoadingLock(name)) {
 }
 ```
 
-Có bốn ý cần hiểu:
+There are four points to understand:
 
-1. `getClassLoadingLock(name)` giúp phối hợp các lời gọi load đồng thời cho cùng binary name của một loader. Đây là quy trình phù hợp với hợp đồng khóa trong `ClassLoader`.
-2. `findLoadedClass(name)` tránh **định nghĩa trùng lần hai trong cùng loader**. Sau khi loader đã định nghĩa class có tên đó, các lần yêu cầu tiếp theo trả lại đối tượng `Class<?>` đã tạo.
-3. `defineClass(name, bytecode, 0, bytecode.length)` dùng bytecode để tạo runtime class với **defining loader chính là instance `PluginLoader` hiện tại**. Bytecode có binary name phải phù hợp tên `name`; nếu không, JVM có thể báo lỗi như `NoClassDefFoundError`.
-4. `resolveClass(found)` được gọi khi đối số `resolve` yêu cầu linking/resolution bổ sung; không đồng nghĩa ép khởi tạo class.
+1. `getClassLoadingLock(name)` coordinates concurrent loading calls for the same binary name on a single loader. This aligns with `ClassLoader`'s locking contract.
+2. `findLoadedClass(name)` prevents **defining a duplicate a second time in the same loader**. Once the loader has defined the class with that name, subsequent requests return the already-created `Class<?>`.
+3. `defineClass(name, bytecode, 0, bytecode.length)` uses the bytecode to create a runtime class whose **defining loader is the current `PluginLoader` instance**. The bytecode's binary name must match `name`; otherwise, the JVM can report errors such as `NoClassDefFoundError`.
+4. `resolveClass(found)` is called when the `resolve` argument requests linking/resolution; this does not equate to forcing class initialization.
 
-**Vì sao clone bytecode?** Constructor `PluginLoader` dùng `bytecode.clone()` để hai loader giữ dữ liệu bất biến theo ý đồ ví dụ trước những sửa đổi từ bên ngoài. Không phải cứ clone bytecode là tạo class riêng; điều quyết định là **hai lời gọi `defineClass` bởi hai loader khác nhau**.
+**Why clone the bytecode?** `PluginLoader`'s constructor uses `bytecode.clone()` so both loaders keep immutable data per the example's intent against external mutation. Cloning bytecode alone does not create separate classes; what decides it is **two `defineClass` calls by two different loaders**.
 
-**Vì sao không override `findClass` cho mọi tên?** Bài học muốn trình bày hiện tượng trong phạm vi duy nhất `sample.Plugin`. Trong ứng dụng lớn, thường triển khai `findClass`/`loadClass` theo chiến lược rõ, với dependency resolution và bảo vệ namespace. Mẫu tối giản này là fixture kiểm thử, không phải class loader hoàn chỉnh cho production.
+**Why not override `findClass` for all names?** The lesson aims to demonstrate the phenomenon scoped strictly to `sample.Plugin`. In larger applications, `findClass`/`loadClass` are usually implemented with an explicit strategy, dependency resolution, and namespace protection. This minimal pattern is a test fixture, not a complete production class loader.
 
-## 7. Phép kiểm thử bị sai thường gặp: cả hai loader đều ủy quyền cho cha
+## 7. Common Flawed Test: Both Loaders Delegate to the Parent
 
-Nếu dùng code như:
+If you write code like:
 
 ```java
 ClassLoader parent = TwoLoadersTest.class.getClassLoader();
 ClassLoader childA = new ClassLoader(parent) {};
 ClassLoader childB = new ClassLoader(parent) {};
 
-// Nếu app classpath có sample.Plugin, cả hai thường ủy quyền lên cha.
+// If sample.Plugin is on the app classpath, both typically delegate to the parent.
 Class<?> a = Class.forName("sample.Plugin", false, childA);
 Class<?> b = Class.forName("sample.Plugin", false, childB);
 ```
 
-Đây là **đoạn minh họa phụ thuộc vào dự án có sẵn `TwoLoadersTest`/`sample.Plugin`**. Với parent-first mặc định và class `sample.Plugin` nằm trên application classpath, `a == b` có thể là `true`.
+This is an **illustrative snippet depending on a project already having `TwoLoadersTest`/`sample.Plugin`**. With default parent-first delegation and `sample.Plugin` on the application classpath, `a == b` can be `true`.
 
-Đừng kết luận “JVM không hỗ trợ hai class cùng tên”. Fixture chưa tạo ra hai **defining loader** khác nhau.
+Do not conclude "the JVM does not support two classes with the same name." The fixture simply has not created two distinct **defining loaders**.
 
-Để test đúng:
+To test properly:
 
-- Đảm bảo class mục tiêu được định nghĩa cục bộ trong từng loader (như ví dụ).
-- In `a.getClassLoader()` và `b.getClassLoader()` hoặc so sánh trực tiếp.
-- Xác nhận `a != b` và `a.getName().equals(b.getName())`.
-- Tạo instance từ đúng `Class<?>` tương ứng và thử `isInstance`/`cast`.
+- Ensure the target class is defined locally in each loader (as in the example).
+- Print `a.getClassLoader()` and `b.getClassLoader()` or compare them directly.
+- Assert `a != b` and `a.getName().equals(b.getName())`.
+- Instantiate objects from each respective `Class<?>` and test `isInstance`/`cast`.
 
-## 8. Những biến thể kiểm thử nên biết
+## 8. Test Variations Worth Knowing
 
-### 8.1. Cùng loader gọi lại cùng tên
+### 8.1. Same Loader Requesting the Same Name Again
 
-Sau khi A đã load `sample.Plugin`, lệnh:
+After A has loaded `sample.Plugin`, calling:
 
 ```java
 Class<?> again = Class.forName("sample.Plugin", false, one);
 System.out.println(again == a); // true
 ```
 
-là đoạn minh họa trong ngữ cảnh `main` của ví dụ; nó cho thấy **cùng loader không định nghĩa thêm một bản** sau khi đã cache class thành công. Các lần gọi lại vẫn là một `Class<?>`.
+is an illustrative snippet in the example's `main` context; it shows that **the same loader does not define another copy** once it has cached the class successfully. Repeated requests still return the same `Class<?>`.
 
-Nếu cố gọi `defineClass` một lần thứ hai với đúng binary name trong **cùng loader**, JVM có thể ném `LinkageError` do duplicate definition; không nên thiết kế hot reload bằng cách cố định nghĩa đè class cũ ngay trong loader đang sống.
+If you try calling `defineClass` a second time with the exact same binary name in **the same loader**, the JVM can throw `LinkageError` due to duplicate definition; do not design hot reload by trying to overwrite an old class inside a still-live loader.
 
-### 8.2. Thử ép kiểu trực tiếp theo tên class từ host
+### 8.2. Attempting Direct Cast by Class Name from the Host
 
-Nếu host import `sample.Plugin` rồi cast một instance do plugin loader A định nghĩa:
+If the host imports `sample.Plugin` and casts an instance defined by plugin loader A:
 
 ```java
-// Minh họa ý tưởng, đòi hỏi host biên dịch nhìn thấy sample.Plugin.
+// Illustrates the idea; requires host compilation to see sample.Plugin.
 sample.Plugin p = (sample.Plugin) instanceA;
 ```
 
-Kết quả cũng có thể ném `ClassCastException` vì `sample.Plugin` được tham chiếu trực tiếp từ host thường là class do application loader định nghĩa, **khác** `sample.Plugin` của plugin loader A. Một message exception có thể nhắc đến hai loader, dù cả hai type đều in cùng tên class.
+This can also throw `ClassCastException` because `sample.Plugin` referenced directly by the host is normally the class defined by the application loader, **different** from plugin loader A's `sample.Plugin`. The exception message may mention both loaders, even though both types print the same class name.
 
-### 8.3. Nếu interface chung cũng bị định nghĩa hai lần?
+### 8.3. What If the Shared Interface Is Also Defined Twice?
 
-Giả sử loader A tự định nghĩa cả `sample.Plugin` và `host.Speaker`, còn loader B cũng tự định nghĩa hai class đó. Khi ấy:
+Suppose loader A defines both `sample.Plugin` and `host.Speaker` itself, and loader B also defines both classes. Then:
 
 ```text
 (host.Speaker, loader A) != (host.Speaker, loader B)
 ```
 
-Host gọi `Speaker.class.isAssignableFrom(a)` có thể trả `false`, làm mất đường giao tiếp chung. Đây là lỗi thường gặp khi một plugin đóng gói trùng API chung trong JAR riêng và class loader giải quyết API theo hướng child-first.
+The host calling `Speaker.class.isAssignableFrom(a)` can return `false`, breaking the shared communication channel. This is a common bug when a plugin bundles duplicate shared APIs inside its own JAR and the class loader resolves APIs child-first.
 
-Thiết kế plugin đáng tin cậy nên chọn rõ **nhóm package được chia sẻ/ủy quyền** và **nhóm package do plugin tự định nghĩa**, đồng thời bảo đảm tương thích phiên bản interface.
+Reliable plugin design explicitly decides **which packages are shared/delegated** and **which packages are defined by the plugin itself**, while ensuring interface version compatibility.
 
-### 8.4. Cùng tên nhưng bytecode khác nhau
+### 8.4. Same Name, Different Bytecode
 
-Hai loader có thể nạp các phiên bản bytecode khác nhau cho cùng binary name. Chúng vẫn khác type identity. Nếu bytecode khác method, field hoặc API signature, runtime còn có thể xảy ra các lỗi compatibility hoặc linkage khi cố trộn object, lời gọi và class loader.
+Two loaders can load different bytecode versions for the same binary name. They still have distinct type identities. If the bytecode differs in methods, fields, or API signatures, runtime compatibility or linkage errors can also occur when mixing objects, calls, and class loaders.
 
-Trong bài này dùng **cùng bytecode** để cô lập một nguyên nhân duy nhất: loader khác nhau.
+This lesson uses **identical bytecode** to isolate a single cause: different loaders.
 
-### 8.5. Unload/hot reload
+### 8.5. Unloading / Hot Reload
 
-Một loader mới có thể định nghĩa thế hệ `sample.Plugin` mới. Class thế hệ cũ và thế hệ mới vẫn là hai kiểu khác nhau ngay cả khi giữ tên. Class unloading phụ thuộc việc class/loader liên quan còn được tham chiếu hay không, GC và điều kiện runtime; không thể chắc chắn unload ngay chỉ vì xóa file JAR.
+A new loader can define a new generation of `sample.Plugin`. Old-generation and new-generation classes remain two different types even when keeping the same name. Class unloading depends on whether related classes/loaders are still referenced, GC, and runtime conditions; you cannot guarantee immediate unloading just by deleting a JAR file.
 
-Sau hot reload, tránh giữ những reference cũ trong static caches, thread context class loader, thread hoặc registry; nếu không, loader cũ và toàn bộ class của nó có thể tiếp tục tồn tại.
+After hot reload, avoid keeping old references in static caches, thread context class loaders, threads, or registries; otherwise, the old loader and all of its classes can stay alive.
 
-## 9. Mối liên hệ với Reflection và kiểm thử thực tế
+## 9. Relationship with Reflection and Practical Testing
 
-Reflection thường trả về `Class<?>`, `Method`, `Field` hoặc `Constructor`. Những metadata object này **thuộc về class cụ thể do loader cụ thể định nghĩa**. Vì vậy, khi framework quét plugin rồi gọi `Method.invoke`, cần dùng receiver của **đúng runtime class**, không chỉ đối tượng có `getClass().getName()` giống tên phương thức khai báo.
+Reflection commonly returns `Class<?>`, `Method`, `Field`, or `Constructor`. These metadata objects **belong to a specific class defined by a specific loader**. Therefore, when a framework scans plugins and calls `Method.invoke`, it must pass a receiver of the **exact runtime class**, not merely an object whose `getClass().getName()` matches the declaring class name.
 
-Kiểm tra đúng:
+Valid check:
 
 ```java
-// Trong ngữ cảnh ví dụ trên:
+// In the context of the example above:
 Class<?> targetClass = a;
 Object target = targetClass.getDeclaredConstructor().newInstance();
 boolean receiverMatches = targetClass.isInstance(target); // true
 ```
 
-Kiểm tra sai:
+Flawed check:
 
 ```java
-// Không đủ để xác nhận compatibility:
+// Insufficient to confirm compatibility:
 boolean nameMatches = target.getClass().getName()
-        .equals(b.getName()); // true, nhưng b.cast(target) vẫn thất bại
+        .equals(b.getName()); // true, yet b.cast(target) still fails
 ```
 
-**Trong cache Reflection:** Đừng chỉ lấy `String className` làm cache key nếu ứng dụng có nhiều loader. Dùng `Class<?>` hoặc key gắn rõ loader/đời class, tùy chính sách lifecycle. Ngược lại, cache toàn cục giữ `Class<?>`/`Method` mãi cũng có thể cản class unloading; cache cần quản lý vòng đời plugin.
+**In Reflection caches:** Do not use only `String className` as the cache key if the application has multiple loaders. Use `Class<?>` or a key explicitly tied to loader/class generation, depending on lifecycle policy. Conversely, a global cache holding `Class<?>`/`Method` indefinitely can prevent class unloading; caches must manage plugin lifecycles.
 
-### Gợi ý các assertion của một bài test tự động
+### Suggested Assertions for an Automated Test
 
-Với `a`, `b`, `instanceA`, `instanceB` và `one`/`two` trong chương trình:
+With `a`, `b`, `instanceA`, `instanceB`, and `one`/`two` in the program:
 
 ```java
-// Đây là nhóm assertion để đưa vào test có cùng fixture, không phải file độc lập.
+// This is a set of assertions to place in a test using the same fixture, not a standalone file.
 if (!a.getName().equals(b.getName())) throw new AssertionError();
 if (a == b) throw new AssertionError();
 if (a.getClassLoader() == b.getClassLoader()) throw new AssertionError();
@@ -454,45 +454,45 @@ if (!Speaker.class.isInstance(instanceA)) throw new AssertionError();
 if (!Speaker.class.isInstance(instanceB)) throw new AssertionError();
 ```
 
-Các điều kiện này kiểm thử **hành vi quan trọng**, không phụ thuộc việc `ClassLoader.toString()` in hash code nào. Nếu dùng JUnit, chuyển thành `assertEquals`/`assertNotSame`/`assertFalse`/`assertTrue`/`assertThrows`; việc chọn framework không đổi bản chất kiểm thử.
+These conditions test **essential behavior**, independent of whatever hash code `ClassLoader.toString()` prints. With JUnit, convert them to `assertEquals`/`assertNotSame`/`assertFalse`/`assertTrue`/`assertThrows`; the choice of framework does not change the essence of the test.
 
-## 10. Cảnh báo khi chuyển fixture sang hệ thống thật
+## 10. Warnings When Moving the Fixture to Production Systems
 
-- **Không nạp bytecode không đáng tin cậy chỉ để thử nghiệm.** `defineClass` không phải sandbox an toàn. Code được nạp có thể thực thi khi khởi tạo hoặc khi gọi method; kiểm soát nguồn bytecode và quyền chạy.
-- **Không tùy tiện child-first mọi class.** Nếu nhân bản `java.*` hoặc API của host, loader có thể gặp lỗi bảo vệ package, loader constraint, incompatibility hoặc `ClassCastException`. JVM có quy tắc bảo vệ các namespace như `java.*`.
-- **Giữ API chia sẻ ở loader cha hoặc một loader dùng chung.** Với hệ thống plugin, truyền DTO kiểu có hợp đồng rõ hoặc qua serialization thay vì truyền thẳng implementation nội bộ.
-- **Chú ý Java modules (JPMS).** Module readability, `exports` và `opens` có thể ảnh hưởng Reflection; classpath test trong ví dụ là **unnamed module** và không thay thế test trong named-module deployment.
-- **Loader constraints.** Khi nhiều loader cùng tham gia resolve chữ ký method/field, JVM có thể áp đặt ràng buộc về identity của các kiểu được chia sẻ. Một thiết kế liên kết sai có thể gây `LinkageError` bên cạnh `ClassCastException`.
-- **Thread context class loader** có thể khác class loader định nghĩa code của thread. `Thread.currentThread().getContextClassLoader()` thường được framework dùng để khám phá resource/service, nhưng không làm hai kiểu cùng tên tự động hợp nhất.
-- **Đừng so sánh chỉ `getName()`.** Khi debug, ghi tên class, mô tả loader định nghĩa và module khi cần; luôn kiểm tra quyền và tránh lộ thông tin nhạy cảm trong log.
+- **Do not load untrusted bytecode just for testing.** `defineClass` is not a security sandbox. Loaded code can execute during class initialization or method invocation; control bytecode sources and execution privileges.
+- **Do not arbitrarily load all classes child-first.** Duplicating `java.*` or host APIs can cause package-protection errors, loader constraints, incompatibilities, or `ClassCastException`. The JVM enforces protection rules for namespaces such as `java.*`.
+- **Keep shared APIs in the parent loader or a common shared loader.** In plugin systems, pass well-contracted DTO types or serialize across boundaries rather than passing internal implementations directly.
+- **Pay attention to Java modules (JPMS).** Module readability, `exports`, and `opens` can affect Reflection; the classpath test in the example runs in the **unnamed module** and does not replace tests in named-module deployments.
+- **Loader constraints.** When multiple loaders participate in resolving method/field signatures, the JVM can impose identity constraints on shared types. A flawed linking design can trigger `LinkageError` alongside `ClassCastException`.
+- **Thread context class loader** can differ from the class loader that defined the thread's code. `Thread.currentThread().getContextClassLoader()` is often used by frameworks to discover resources/services, but it does not automatically merge two same-named types.
+- **Do not compare only `getName()`.** When debugging, log class name, defining loader description, and module when needed; always check permissions and avoid leaking sensitive information in logs.
 
-## 11. Khi nào nên chọn một loader chung?
+## 11. When Should You Choose a Shared Loader?
 
-Nếu mục tiêu là **chia sẻ cùng một type** giữa các phần của hệ thống, cho chúng cùng ủy quyền việc load lớp đó tới một loader phù hợp. Điều này làm cho runtime type identity thống nhất.
+If the goal is to **share the exact same type** across parts of a system, have them all delegate loading of that class to one appropriate loader. This keeps runtime type identity unified.
 
-Nếu mục tiêu là **cô lập plugin/phiên bản**, cho mỗi plugin loader tự định nghĩa implementation, nhưng thống nhất contract trong một nơi dùng chung. Cách này cho phép plugin trùng binary name mà không khiến host nhầm các implementation với nhau.
+If the goal is to **isolate plugins/versions**, let each plugin loader define its implementations while unifying contracts in a single shared place. This lets plugins reuse binary names without the host confusing implementations with one another.
 
-| Mục tiêu | Kiến trúc loading | Kiểm chứng |
+| Goal | Loading architecture | Verification |
 | --- | --- | --- |
-| Dùng chung một class | Hai child loader ủy quyền cho cùng defining loader | `a == b` |
-| Hai bản implementation tách biệt | A và B tự định nghĩa cùng binary name | `a.getName().equals(b.getName())` và `a != b` |
-| Hai plugin cùng thực thi contract | Interface chung do parent/host loader định nghĩa | `SharedApi.class.isAssignableFrom(a/b)` |
-| Hot reload không xung đột class cũ | Tạo loader mới cho implementation mới, điều phối vòng đời | Class cũ và mới khác identity, dọn reference khi ngừng dùng |
+| Share one class | Two child loaders delegate to the same defining loader | `a == b` |
+| Two isolated implementations | A and B each define the same binary name | `a.getName().equals(b.getName())` and `a != b` |
+| Two plugins implementing one contract | Shared interface defined by parent/host loader | `SharedApi.class.isAssignableFrom(a/b)` |
+| Hot reload without colliding with old classes | Create a new loader for the new implementation, coordinate lifecycle | Old and new classes have distinct identities; clear references when retired |
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-1. Vì sao hai class có cùng `getName()` vẫn không thể ép kiểu cho nhau?
-2. Nếu hai `ClassLoader` khác nhau đều delegate class đích cho cùng parent, kết quả `a == b` ra sao?
-3. `Class.getClassLoader()` thể hiện *defining loader* hay luôn là loader được dùng ở lời gọi đầu tiên?
-4. Trong ví dụ, vì sao `Speaker.class.isAssignableFrom(a)` và `Speaker.class.isAssignableFrom(b)` cùng đúng dù `a.isAssignableFrom(b)` sai?
-5. Tại sao phải dùng `findLoadedClass` khi định nghĩa class theo yêu cầu?
-6. Vì sao hot reload thường dùng loader mới, thay vì gọi `defineClass` lần nữa trên loader cũ?
-7. Khi ứng dụng cache metadata Reflection của plugin theo tên class, lỗi nào có thể xảy ra sau reload?
-8. Nếu cùng interface API cũng bị hai loader tự define, host còn cast hai plugin về interface của host một cách an toàn không?
+1. Why can two classes with the same `getName()` still not be cast to each other?
+2. If two different `ClassLoader`s both delegate the target class to the same parent, what is `a == b`?
+3. Does `Class.getClassLoader()` reflect the *defining loader* or always the loader used on the initial call?
+4. In the example, why are both `Speaker.class.isAssignableFrom(a)` and `Speaker.class.isAssignableFrom(b)` true while `a.isAssignableFrom(b)` is false?
+5. Why must `findLoadedClass` be used when defining classes on demand?
+6. Why does hot reload usually create a new loader instead of calling `defineClass` again on the old loader?
+7. When an application caches plugin Reflection metadata by class name, what bug can happen after reload?
+8. If the shared API interface is also defined separately by two loaders, can the host still cast both plugins to the host's interface safely?
 
-## 13. Tài liệu tham khảo
+## 13. References
 
 - [Java SE 17: `ClassLoader`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): `loadClass`, `findLoadedClass`, `defineClass`, `getClassLoadingLock`.
 - [Java SE 17: `Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `getName`, `getClassLoader`, `isAssignableFrom`, `isInstance`, `cast`.
-- [Java Language Specification §12.2: Loading of Classes and Interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-12.html#jls-12.2): tính duy nhất của runtime class identity và các class loader.
-- [Java Virtual Machine Specification §5.3: Creation of Classes and Interfaces](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html#jvms-5.3): defining loader và initiating loader.
+- [Java Language Specification §12.2: Loading of Classes and Interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-12.html#jls-12.2): uniqueness of runtime class identity and class loaders.
+- [Java Virtual Machine Specification §5.3: Creation of Classes and Interfaces](https://docs.oracle.com/javase/specs/jvms/se17/html/jls-5.html#jvms-5.3): defining loader and initiating loader.

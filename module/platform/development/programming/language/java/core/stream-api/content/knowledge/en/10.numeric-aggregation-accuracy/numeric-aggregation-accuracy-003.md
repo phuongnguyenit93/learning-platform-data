@@ -1,12 +1,12 @@
-# Sai số dấu phẩy động và thứ tự cộng trong phép rút gọn
+# Floating-Point Precision Errors and Addition Order in Reduction
 
-Trong Java Stream API, `reduce`, `sum` và các collector giúp tổng hợp một dãy số bằng cú pháp khai báo. Tuy nhiên, kết quả của phép cộng `double` không phải lúc nào cũng trùng với phép cộng số thực trong toán học. Hai pipeline cùng cộng những giá trị giống nhau có thể cho ra kết quả hơi khác chỉ vì **thứ tự cộng hoặc cách nhóm các phép cộng thay đổi**.
+In the Java Stream API, `reduce`, `sum`, and collectors let you aggregate a sequence of numbers declaratively. However, the result of adding `double` values does not always match real-number addition in mathematics. Two pipelines summing the exact same values can produce slightly different results simply because **the addition order or grouping changes**.
 
-Bài này thuộc chương **Độ chính xác khi tổng hợp số** của module **JAVA_STREAM_API**. Ta sẽ đi từ biểu diễn số dấu phẩy động, hiểu điều kiện kết hợp của `reduce`, phân tích việc gộp kết quả khi chạy song song, sau đó lựa chọn giữa `reduce`, `DoubleStream.sum()`, `BigDecimal` và các biện pháp kiểm soát sai số. Kiến thức này giúp xây dựng pipeline `filter`, `map`, `reduce`, `collect` đúng hợp đồng, đồng thời đánh giá độ chính xác, trạng thái chia sẻ và hiệu năng.
+This lesson belongs to the **Numeric Aggregation Accuracy** chapter of the **JAVA_STREAM_API** module. We will move from floating-point representation to understanding the associativity requirement of `reduce`, analyzing how results are combined in parallel execution, and choosing among `reduce`, `DoubleStream.sum()`, `BigDecimal`, and error-control techniques. This knowledge helps you build `filter`, `map`, `reduce`, and `collect` pipelines that honor their contracts while evaluating precision, shared state, and performance.
 
-## 1. Vì sao cộng `double` có thể có sai số?
+## 1. Why Can `double` Addition Have Rounding Errors?
 
-Java dùng biểu diễn dấu phẩy động nhị phân theo IEEE 754 cho `float` và `double`. `double` có độ chính xác hữu hạn (53 bit significand, tính cả bit dẫn đầu ngầm định với số normal). Nhiều phân số thập phân quen thuộc **không có biểu diễn nhị phân hữu hạn**, nên phải làm tròn khi lưu hoặc trong mỗi phép tính.
+Java uses IEEE 754 binary floating-point representation for `float` and `double`. A `double` has finite precision (a 53-bit significand, including the implicit leading bit for normal numbers). Many familiar decimal fractions **have no finite binary representation**, so they must be rounded when stored or during each operation.
 
 ```java
 double a = 0.1;
@@ -17,20 +17,20 @@ System.out.println(actual);         // 0.30000000000000004
 System.out.println(actual == 0.3);  // false
 ```
 
-`0.1`, `0.2` và `0.3` trong mã nguồn đều được làm tròn thành giá trị `double` gần nhất có thể biểu diễn. Hai số đầu được cộng rồi làm tròn lần nữa; kết quả đó khác giá trị `double` được tạo trực tiếp từ literal `0.3`.
+`0.1`, `0.2`, and `0.3` in source code are each rounded to the nearest representable `double`. The first two are added and rounded again; that result differs from the `double` produced directly from the literal `0.3`.
 
-Điều này không có nghĩa Java tính sai: hệ thống đang tuân theo phép toán dấu phẩy động với độ chính xác hữu hạn. Để suy luận đúng về phép tổng hợp, cần phân biệt:
+This does not mean Java calculates incorrectly: the runtime is following finite-precision floating-point arithmetic. To reason accurately about aggregation, distinguish:
 
-| Khái niệm | Ý nghĩa | Ví dụ |
+| Concept | Meaning | Example |
 |---|---|---|
-| Giá trị toán học lý tưởng | Phép tính trên số thực với độ chính xác không giới hạn | `0.1 + 0.2 = 0.3` |
-| Giá trị lưu trong `double` | Xấp xỉ nhị phân của một số | Literal `0.1` không biểu diễn chính xác một phần mười |
-| Kết quả phép toán dấu phẩy động | Kết quả đã làm tròn theo quy tắc số học của `double` | `0.1 + 0.2` in ra `0.30000000000000004` |
-| Sai số tổng hợp | Sai khác tích lũy từ các giá trị đầu vào và các lần làm tròn | Tổng nhiều khoản rất nhỏ bên cạnh một khoản lớn |
+| Ideal mathematical value | Real-number arithmetic with unlimited precision | `0.1 + 0.2 = 0.3` |
+| Value stored in `double` | Binary approximation of a number | The literal `0.1` does not exactly represent one-tenth |
+| Floating-point operation result | Result rounded according to `double` arithmetic rules | `0.1 + 0.2` prints `0.30000000000000004` |
+| Aggregation error | Discrepancy accumulated from input values and rounding steps | Summing many tiny amounts alongside a huge amount |
 
-Độ chính xác tương đối của `double` thường khoảng 15–17 chữ số thập phân có nghĩa; đây **không** phải cam kết rằng phép cộng hàng triệu số luôn đúng 15 chữ số cuối. Sai số còn phụ thuộc độ lớn, dấu và trình tự của các phép tính.
+The relative precision of `double` is roughly 15–17 significant decimal digits; this is **not** a guarantee that summing millions of numbers will always be accurate to the last 15 digits. Error also depends on magnitude, signs, and operation order.
 
-### 1.1. Khi số lớn che mất số nhỏ
+### 1.1. When Large Numbers Swallow Small Numbers
 
 ```java
 double large = 1e16;
@@ -39,17 +39,17 @@ double small = 1.0;
 System.out.println(large + small == large); // true
 ```
 
-Khoảng cách giữa hai giá trị `double` liên tiếp quanh `1e16` lớn hơn `1`. Vì vậy, cộng thêm `1` không làm thay đổi giá trị `double` sau khi làm tròn. Hiện tượng này đặc biệt quan trọng khi tổng hợp dữ liệu có chênh lệch rất lớn về độ lớn.
+The gap between consecutive `double` values around `1e16` is greater than `1`. Therefore, adding `1` does not change the `double` value after rounding. This phenomenon is especially important when aggregating data spanning vastly different orders of magnitude.
 
-## 2. Phép cộng dấu phẩy động không có tính kết hợp tuyệt đối
+## 2. Floating-Point Addition Is Not Strictly Associative
 
-Trong toán học trên số thực, tính kết hợp nói rằng:
+In mathematics over real numbers, associativity states:
 
 ```text
 (a + b) + c = a + (b + c)
 ```
 
-Với `double`, mỗi bước cộng đều có thể bị làm tròn, nên hai cách nhóm có thể trả kết quả khác nhau:
+With `double`, each addition step can round, so two groupings can return different results:
 
 ```java
 double a = 1e16;
@@ -63,32 +63,32 @@ System.out.println(leftGrouped);  // 1.0
 System.out.println(rightGrouped); // 0.0
 ```
 
-Giải thích cụ thể:
+Specifically:
 
-1. `(1e16 + -1e16) + 1`: hai số lớn triệt tiêu thành `0`, sau đó cộng `1` nên kết quả là `1`.
-2. `1e16 + (-1e16 + 1)`: ở bước cộng bên trong, `1` bị mất do làm tròn bên cạnh `-1e16`; bước cuối cho `0`.
+1. `(1e16 + -1e16) + 1`: the two large numbers cancel to `0`, then `1` is added, yielding `1`.
+2. `1e16 + (-1e16 + 1)`: in the inner addition, `1` is lost to rounding next to `-1e16`; the final step yields `0`.
 
-Cùng ba giá trị đầu vào, cùng toán tử `+`, nhưng **cách nhóm** khác dẫn đến sai khác đúng `1.0`. Tổng chính xác theo số học trên các giá trị đó là `1.0`; cách nhóm bên phải đã làm mất đóng góp của phần tử nhỏ.
+Same three inputs, same `+` operator, yet a different **grouping** causes an exact discrepancy of `1.0`. The exact arithmetic sum of those values is `1.0`; the right-hand grouping lost the contribution of the small element.
 
-Sơ đồ cho thấy vị trí làm tròn:
+Diagram showing where rounding occurs:
 
 ```text
-Nhóm bên trái                         Nhóm bên phải
+Left grouping                         Right grouping
 
   1e16 + (-1e16)                       -1e16 + 1
          |                                  |
-         0                           -1e16 (làm tròn)
+         0                           -1e16 (rounded)
          |                                  |
         + 1                            + 1e16
          |                                  |
          1                                  0
 ```
 
-**Hệ quả với Stream:** `reduce` chỉ có thể tự do chia nhỏ rồi kết hợp các kết quả trung gian mà không làm thay đổi ngữ nghĩa nếu phép tích lũy có tính kết hợp theo hợp đồng. Phép cộng `double` không bảo đảm kết hợp tuyệt đối ở cấp độ bit.
+**Implication for Streams:** `reduce` can only split work freely and combine intermediate results without changing semantics if the accumulator is associative by contract. `double` addition does not guarantee strict bit-level associativity.
 
-## 3. Cộng bằng `reduce` trong Stream API
+## 3. Summing With `reduce` in the Stream API
 
-Đối với `Stream<Double>`, một cách tổng hợp là:
+For `Stream<Double>`, one way to aggregate is:
 
 ```java
 import java.util.List;
@@ -101,13 +101,13 @@ double total = values.stream()
 System.out.println(total); // 7.0
 ```
 
-Ở đây:
+Here:
 
-- `0.0` là *identity* được dùng để khởi tạo phép rút gọn.
-- `Double::sum` là một `BinaryOperator<Double>` kết hợp hai giá trị.
-- `reduce` là terminal operation, kích hoạt việc tiêu thụ pipeline.
+- `0.0` is the *identity* used to initialize the reduction.
+- `Double::sum` is a `BinaryOperator<Double>` combining two values.
+- `reduce` is a terminal operation that triggers pipeline consumption.
 
-Tương tự, với `DoubleStream`:
+Similarly, with `DoubleStream`:
 
 ```java
 import java.util.stream.DoubleStream;
@@ -117,7 +117,7 @@ double total = DoubleStream.of(2.5, 1.5, 3.0)
 System.out.println(total); // 7.0
 ```
 
-Overload có identity trả `double`; overload `reduce(DoubleBinaryOperator)` không có identity trả `OptionalDouble`, vì stream có thể rỗng:
+The overload with an identity returns `double`; the `reduce(DoubleBinaryOperator)` overload without an identity returns `OptionalDouble`, because the stream may be empty:
 
 ```java
 import java.util.OptionalDouble;
@@ -127,15 +127,15 @@ OptionalDouble totalMaybe = DoubleStream.empty()
 System.out.println(totalMaybe.isEmpty()); // true
 ```
 
-### 3.1. Điều kiện kết hợp của `reduce`
+### 3.1. The Associativity Requirement of `reduce`
 
-Hợp đồng của `reduce(identity, accumulator)` yêu cầu accumulator có tính kết hợp; `identity` phải là phần tử trung hòa cho phép kết hợp. Đây là yêu cầu quan trọng vì Java Stream API có thể thực hiện giảm song song bằng cách tính nhiều tổng con rồi gộp chúng.
+The contract of `reduce(identity, accumulator)` requires the accumulator to be associative; `identity` must be an identity element for that combining operation. This requirement matters because the Java Stream API can perform parallel reduction by computing partial sums and combining them.
 
-Đối với các số thực toán học, phép cộng có tính kết hợp. Đối với `double`, tính kết hợp chỉ là một xấp xỉ do giới hạn biểu diễn và làm tròn. Vì vậy, dùng `Double::sum` trong `reduce` hữu ích nhưng **không thể yêu cầu mọi cách chia nhóm đều cho cùng kết quả bit-for-bit**.
+For mathematical real numbers, addition is associative. For `double`, associativity is only an approximation due to representation limits and rounding. Therefore, using `Double::sum` in `reduce` is useful, yet **you cannot require every partitioning strategy to produce bit-for-bit identical results**.
 
-Ngoài ra, `+0.0` và `-0.0` khác nhau về bit dấu. Dùng `0.0` làm identity có ý nghĩa tự nhiên khi tính tổng số học thông thường, nhưng có thể làm thay đổi dấu của `-0.0` trong các trường hợp đặc biệt. Nếu ứng dụng cần giữ phân biệt signed zero, phải đặt chính sách cụ thể thay vì dựa vào phép tổng hợp mặc định.
+In addition, `+0.0` and `-0.0` differ in their sign bit. Using `0.0` as the identity is natural for ordinary arithmetic sums, but can alter the sign of `-0.0` in edge cases. If an application must preserve signed-zero distinctions, define an explicit policy instead of relying on default aggregation.
 
-### 3.2. Một ví dụ dễ bị ảnh hưởng bởi thứ tự
+### 3.2. An Order-Sensitive Example
 
 ```java
 import java.util.List;
@@ -146,14 +146,14 @@ double reduced = samples.stream()
         .reduce(0.0, Double::sum);
 
 System.out.println(reduced);
-// Với lối cộng lần lượt theo thứ tự List: 1.0
+// With sequential addition in List order: 1.0
 ```
 
-Trên pipeline tuần tự đơn giản, ta thường quan sát phép cộng theo thứ tự phần tử của `List`. Tuy nhiên, mục đích của ví dụ không phải khẳng định mọi triển khai `reduce` sẽ luôn dùng đúng một cây phép cộng cố định: hợp đồng `reduce` chủ yếu yêu cầu toán tử có tính kết hợp để cho phép thực thi song song.
+On a simple sequential pipeline, we typically observe addition following the `List` element order. However, the purpose of this example is not to claim every `reduce` implementation will always use one fixed addition tree: the `reduce` contract primarily requires the operator to be associative to allow parallel execution.
 
-## 4. Vì sao `parallelStream().reduce(...)` có thể cho kết quả khác?
+## 4. Why Can `parallelStream().reduce(...)` Produce a Different Result?
 
-Trong stream song song, Java có thể chia dữ liệu thành các đoạn, rút gọn từng đoạn, sau đó kết hợp tổng con. Việc chia đoạn và kết hợp đó không bị buộc phải giống một phép cộng tuần tự từ trái sang phải.
+In a parallel stream, Java can split data into chunks, reduce each chunk, and then combine partial sums. That splitting and combining is not required to match a sequential left-to-right addition.
 
 ```java
 List<Double> samples = List.of(1e16, -1e16, 1.0);
@@ -166,71 +166,71 @@ double parallel = samples.parallelStream()
 
 System.out.println("Sequential: " + sequential);
 System.out.println("Parallel:   " + parallel);
-// Không khẳng định hai dòng phải khác nhau hay phải giống nhau tuyệt đối.
+// Do not assert that the two lines must differ or must match bit-for-bit.
 ```
 
-Mỗi lần thực thi có thể tạo cách nhóm cộng hợp lệ theo chiến lược chia việc:
+Each run can form a valid addition grouping according to its work-splitting strategy:
 
 ```text
-Nguồn: [1e16, -1e16, 1]
+Source: [1e16, -1e16, 1]
 
-Cách A: ((1e16 + -1e16) + 1) = 1
+Grouping A: ((1e16 + -1e16) + 1) = 1
 
-Cách B: (1e16 + (-1e16 + 1)) = 0
+Grouping B: (1e16 + (-1e16 + 1)) = 0
 ```
 
-Java không cam kết `parallelStream()` phải dùng cách A hay cách B trong ví dụ. Kết quả thực tế có thể phụ thuộc kích thước dữ liệu, cách phân tách `Spliterator`, triển khai terminal operation và môi trường chạy. **Đừng viết bài kiểm thử yêu cầu tổng dấu phẩy động song song luôn chính xác bằng tổng tính theo một thứ tự tuần tự cụ thể.**
+Java does not promise whether `parallelStream()` will use Grouping A or Grouping B in this example. Actual output can depend on dataset size, `Spliterator` splitting, terminal operation implementation, and runtime environment. **Do not write tests requiring a parallel floating-point sum to equal a sum computed in one specific sequential order.**
 
-### 4.1. Encounter order và thứ tự cộng là hai vấn đề khác nhau
+### 4.1. Encounter Order and Addition Order Are Different Concerns
 
-Nguồn `List` có encounter order xác định; `toList()` có thể bảo toàn thứ tự kết quả ngay cả khi pipeline song song. Nhưng **bảo toàn encounter order của phần tử không đồng nghĩa bảo toàn cách nhóm phép cộng** bên trong `reduce`.
+A `List` source has a defined encounter order; `toList()` can preserve element order even in a parallel pipeline. Yet **preserving element encounter order does not mean preserving addition grouping** inside `reduce`.
 
 ```java
 List<Double> values = List.of(1e16, -1e16, 1.0);
 
 System.out.println(values.parallelStream().toList());
-// [1.0E16, -1.0E16, 1.0]: thứ tự phần tử được giữ
+// [1.0E16, -1.0E16, 1.0]: element order is preserved
 
 System.out.println(values.parallelStream().reduce(0.0, Double::sum));
-// Tổng chịu ảnh hưởng của cách kết hợp các tổng con
+// The sum is affected by how partial sums are combined
 ```
 
-`sequential()` giúp yêu cầu xử lý tuần tự, nhưng **không biến số học dấu phẩy động thành số học chính xác**. Ngay cả khi luôn cộng tuần tự theo một thứ tự cố định, sai số làm tròn vẫn có thể tồn tại.
+`sequential()` requests sequential processing, yet **it does not turn floating-point arithmetic into exact arithmetic**. Even when always adding sequentially in a fixed order, rounding error can still exist.
 
-### 4.2. Không cập nhật biến tổng dùng chung trong lambda
+### 4.2. Do Not Update a Shared Sum Variable Inside a Lambda
 
 ```java
 double[] total = {0.0};
 
-// Không an toàn: nhiều thread cùng cập nhật total[0].
+// Unsafe: multiple threads update total[0] concurrently.
 // values.parallelStream().forEach(x -> total[0] += x);
 ```
 
-Việc đọc, cộng, rồi ghi vào `total[0]` có thể xảy ra đồng thời, gây *data race* và mất cập nhật. Kể cả thay bằng một bộ cộng thread-safe, thứ tự cộng vẫn có thể thay đổi và sai số số học vẫn tồn tại. Dùng `reduce` hoặc collector phù hợp để Java quản lý các tổng con; sau đó chọn chiến lược chính xác tương ứng với yêu cầu.
+Reading, adding, and writing back to `total[0]` can interleave concurrently, causing a *data race* and lost updates. Even if replaced with a thread-safe adder, addition order can still vary and arithmetic error still exists. Use `reduce` or an appropriate collector so Java manages partial sums; then choose a precision strategy matching your requirements.
 
-## 5. `reduce(Double::sum)` và `DoubleStream.sum()` khác nhau thế nào?
+## 5. How Do `reduce(Double::sum)` and `DoubleStream.sum()` Differ?
 
-Java cung cấp terminal operation chuyên dụng `DoubleStream.sum()`:
+Java provides the specialized terminal operation `DoubleStream.sum()`:
 
 ```java
 double total = DoubleStream.of(0.1, 0.2).sum();
 System.out.println(total);
 ```
 
-`DoubleStream.sum()` được tài liệu Java mô tả là có thể dùng **compensated summation** (cộng bù sai số) hoặc kỹ thuật khác để giảm sai số khi cộng các giá trị dấu phẩy động. Vì vậy, trong nhiều trường hợp, `sum()` có thể cho kết quả số học tốt hơn việc tự viết `reduce(0.0, Double::sum)`.
+`DoubleStream.sum()` is documented in Java as allowed to use **compensated summation** or other techniques to reduce rounding error when summing floating-point values. Consequently, in many cases, `sum()` can yield better numerical accuracy than writing `reduce(0.0, Double::sum)` yourself.
 
-Điều cần phân biệt:
+Key distinctions:
 
-| Tiêu chí | `reduce(0.0, Double::sum)` | `DoubleStream.sum()` |
+| Criterion | `reduce(0.0, Double::sum)` | `DoubleStream.sum()` |
 |---|---|---|
-| Ý nghĩa | Rút gọn bằng toán tử do người viết chọn | Tính tổng theo terminal operation chuyên dụng |
-| Kỹ thuật tính tổng | Áp dụng phép cộng `double` cho mỗi lần gộp | Triển khai có thể dùng cộng bù sai số/kỹ thuật khác |
-| Kết quả chính xác toán học tuyệt đối | Không bảo đảm | **Không** bảo đảm |
-| Phụ thuộc thứ tự/cách nhóm | Có thể | Có thể |
-| Khả năng dùng với stream số nguyên thủy | Có, nhưng tổng quát hơn | Có trực tiếp trên `DoubleStream` |
-| Khi nên chọn | Muốn minh họa `reduce` hoặc có toán tử riêng | Muốn tính tổng `double` thông thường |
+| Meaning | Reduction with a user-supplied operator | Summation via a specialized terminal operation |
+| Summation technique | Applies `double` addition on every combine step | Implementation may use compensated summation/other techniques |
+| Absolute mathematical exactness | Not guaranteed | **Not** guaranteed |
+| Sensitive to order/grouping | Possibly | Possibly |
+| Usability on primitive streams | Yes, though more general | Available directly on `DoubleStream` |
+| When to choose | Demonstrating `reduce` or using a custom operator | Computing an ordinary `double` sum |
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.stream.DoubleStream;
@@ -242,14 +242,14 @@ double viaSum = DoubleStream.of(1e16, -1e16, 1.0)
 
 System.out.println("reduce = " + viaReduce);
 System.out.println("sum    = " + viaSum);
-// Đánh giá theo sai số và yêu cầu nghiệp vụ, không giả định luôn bằng nhau.
+// Evaluate by error tolerance and business rules; do not assume they are always equal.
 ```
 
-**Không nên tự suy ra** thuật toán `DoubleStream.sum()` phải dùng cách cộng bù cụ thể hoặc kết quả phải ổn định tuyệt đối qua mọi JDK, mọi cách chạy song song. API có quyền lựa chọn kỹ thuật và thứ tự cộng phù hợp.
+**Do not assume** that `DoubleStream.sum()` must use one specific compensated algorithm or that its output must be bit-stable across every JDK and parallel execution. The API reserves the right to choose an appropriate summation technique and order.
 
-### 5.1. Các terminal operation tổng hợp khác
+### 5.1. Other Aggregation Terminal Operations
 
-`DoubleStream.average()`, `DoubleSummaryStatistics` và các collector như `Collectors.summingDouble`, `Collectors.averagingDouble`, `Collectors.summarizingDouble` cũng làm việc với số dấu phẩy động. Chúng hữu ích để biểu đạt mục đích nhưng **không xóa bỏ bản chất sai số của `double`**.
+`DoubleStream.average()`, `DoubleSummaryStatistics`, and collectors such as `Collectors.summingDouble`, `Collectors.averagingDouble`, and `Collectors.summarizingDouble` also operate on floating-point numbers. They express intent cleanly, yet **do not eliminate the inherent error of `double`**.
 
 ```java
 import java.util.DoubleSummaryStatistics;
@@ -262,15 +262,15 @@ DoubleSummaryStatistics stats = readings.stream()
         .collect(Collectors.summarizingDouble(Double::doubleValue));
 
 System.out.println(stats.getCount());   // 3
-System.out.println(stats.getSum());     // Tổng double xấp xỉ
-System.out.println(stats.getAverage()); // Trung bình double xấp xỉ
+System.out.println(stats.getSum());     // Approximate double sum
+System.out.println(stats.getAverage()); // Approximate double average
 ```
 
-Lưu ý: `average()` trên stream rỗng trả `OptionalDouble.empty()`; các API có identity hoặc statistics có thể chọn quy ước khác cho trường hợp rỗng. Không lấy `sum / count` khi `count == 0` nếu chưa định nghĩa chính sách xử lý.
+Note: `average()` on an empty stream returns `OptionalDouble.empty()`; APIs with an identity or statistics may adopt different conventions for the empty case. Do not compute `sum / count` when `count == 0` without a defined handling policy.
 
-## 6. Cộng số rất lớn, rất nhỏ và dữ liệu có dấu trái nhau
+## 6. Summing Very Large, Very Small, and Opposite-Sign Data
 
-Khi các giá trị có độ lớn chênh lệch mạnh, phần nhỏ có thể bị mất trong từng bước cộng. Khi có các giá trị dương và âm gần như triệt tiêu, sai số đó có thể trở nên lớn **so với tổng thực**.
+When values differ greatly in magnitude, small terms can be lost during individual additions. When positive and negative values nearly cancel out, that error can become large **relative to the true sum**.
 
 ```java
 List<Double> values = List.of(1e16, 1.0, -1e16);
@@ -281,25 +281,25 @@ for (double value : values) {
 }
 
 System.out.println(leftToRight); // 0.0
-// Tổng toán học của ba giá trị là 1.0.
+// The mathematical sum of the three values is 1.0.
 ```
 
-Ở bước cộng `1e16 + 1`, giá trị `1` bị làm tròn mất. Sau đó trừ đi `1e16`, kết quả còn `0`. Nếu đổi thứ tự thành `1e16, -1e16, 1`, tổng tuần tự của ba giá trị lại ra `1`.
+In the step `1e16 + 1`, the value `1` is rounded away. Subtracting `1e16` afterward leaves `0`. Changing the order to `1e16, -1e16, 1` brings the sequential sum back to `1`.
 
-Một số trường hợp cần nhận diện thêm:
+Additional edge cases to watch for:
 
-- **NaN:** nếu đầu vào chứa `Double.NaN`, phép cộng và kết quả tổng hợp có thể là `NaN`. Không kiểm tra `NaN` bằng `value == Double.NaN`; dùng `Double.isNaN(value)`.
-- **Vô cực:** cộng các số hữu hạn cực lớn có thể tràn thành `Infinity`; tổng chứa cả `+Infinity` và `-Infinity` có thể thành `NaN`.
-- **Dấu của số không:** `+0.0` và `-0.0` có bit khác nhau; một phép cộng hoặc identity `+0.0` có thể ảnh hưởng dấu.
-- **Tràn số/thiếu độ chính xác ở đầu vào:** một giá trị đã bị làm tròn khi đọc thành `double` không thể được phục hồi đơn giản chỉ bằng đổi phương pháp cộng ở cuối.
+- **NaN:** if the input contains `Double.NaN`, additions and the aggregated result can become `NaN`. Do not check `NaN` with `value == Double.NaN`; use `Double.isNaN(value)`.
+- **Infinity:** summing huge finite values can overflow to `Infinity`; a sum containing both `+Infinity` and `-Infinity` can produce `NaN`.
+- **Sign of zero:** `+0.0` and `-0.0` have different bit patterns; an addition or `+0.0` identity can change the sign.
+- **Input overflow/loss of precision:** a value already rounded when parsed into `double` cannot be recovered simply by changing the summation method at the end.
 
-Vì vậy, việc “tổng vẫn là một `double` hợp lệ” **không** tự chứng minh kết quả đủ chính xác cho ứng dụng.
+Therefore, “the sum is still a valid `double`” **does not** by itself prove the result is accurate enough for the application.
 
-## 7. Chiến lược tăng độ chính xác và tính tái lập
+## 7. Strategies to Improve Accuracy and Reproducibility
 
-Không có một chiến lược duy nhất tối ưu cho mọi bài toán. Cần xác định rõ ứng dụng coi trọng **độ chính xác số học**, **tính lặp lại bit-for-bit**, hay **tốc độ**.
+No single strategy is optimal for every problem. Clarify whether the application prioritizes **numerical accuracy**, **bit-for-bit reproducibility**, or **speed**.
 
-### 7.1. Ưu tiên `DoubleStream.sum()` cho tổng dấu phẩy động thông thường
+### 7.1. Prefer `DoubleStream.sum()` for Ordinary Floating-Point Sums
 
 ```java
 double total = readings.stream()
@@ -307,11 +307,11 @@ double total = readings.stream()
         .sum();
 ```
 
-`mapToDouble` chuyển từ `Stream<Double>` sang `DoubleStream` và tránh boxing không cần thiết trong phần tính tổng. `sum()` biểu đạt rõ mục đích và cho phép Java chọn kỹ thuật giảm sai số phù hợp. Tuy nhiên, kết quả vẫn là xấp xỉ.
+`mapToDouble` converts `Stream<Double>` to `DoubleStream` and avoids unnecessary boxing during summation. `sum()` expresses intent clearly and lets Java pick an error-reducing technique. However, the result remains approximate.
 
-### 7.2. Kiểm soát thứ tự cộng nếu tính tái lập quan trọng
+### 7.2. Control Addition Order When Reproducibility Matters
 
-Khi cần một quy trình tính tổng lặp lại được với đầu vào có thứ tự cố định, có thể yêu cầu tính tuần tự, bảo toàn thứ tự đầu vào và xác định rõ thuật toán tính:
+When you need a repeatable summation procedure for an input with a fixed order, enforce sequential execution, preserve input order, and specify the algorithm explicitly:
 
 ```java
 static double leftFold(List<Double> values) {
@@ -323,25 +323,25 @@ static double leftFold(List<Double> values) {
 }
 ```
 
-Đoạn mã này nêu rõ phép cộng theo thứ tự phần tử của `List`; nó **không** sửa sai số. Nếu muốn dùng stream, hãy tránh nguồn `unordered` và tránh giả định việc đổi sang `parallel()` vẫn giữ đúng cách nhóm của một vòng lặp cố định.
+This code makes addition in `List` element order explicit; it **does not** eliminate error. If you use a stream, avoid `unordered` sources and do not assume switching to `parallel()` preserves the grouping of a fixed loop.
 
-Đôi khi sắp xếp các giá trị theo độ lớn trước khi cộng có thể cải thiện độ chính xác, nhưng không phải quy tắc luôn đúng cho mọi phân bố dữ liệu, và đổi thứ tự có thể ảnh hưởng yêu cầu nghiệp vụ. Không mặc định `sorted()` là “thuốc chữa” sai số.
+Sorting values by magnitude before summing can sometimes improve accuracy, yet it is not a universal rule for every data distribution, and reordering can affect business logic. Do not treat `sorted()` as a cure-all for rounding error.
 
-### 7.3. Cộng bù sai số
+### 7.3. Compensated Summation
 
-Các thuật toán như Kahan summation và Neumaier summation dùng biến bù để giữ lại một phần sai số làm tròn của các phép cộng trước. Chúng thường giúp giảm sai số so với cộng tuần tự đơn giản, nhất là khi tổng hợp nhiều giá trị có độ lớn chênh lệch.
+Algorithms such as Kahan summation and Neumaier summation use a compensation variable to retain part of the rounding error from prior additions. They often reduce error compared to naive sequential addition, especially when aggregating values of widely varying magnitudes.
 
-Tuy nhiên:
+However:
 
-- Cộng bù không làm cho kết quả `double` trở thành chính xác tuyệt đối.
-- Thuật toán có trạng thái cần được thiết kế đúng nếu muốn chia dữ liệu và gộp kết quả song song.
-- Không thể tùy tiện dùng một accumulator có trạng thái chia sẻ trong `parallelStream().forEach(...)` rồi coi đó là phép rút gọn an toàn.
+- Compensation does not make a `double` result absolutely exact.
+- Stateful algorithms must be designed properly if you want to split data and merge results in parallel.
+- You cannot casually mutate a shared stateful accumulator inside `parallelStream().forEach(...)` and call it a safe reduction.
 
-Đối với nhiều ứng dụng, `DoubleStream.sum()` là điểm khởi đầu tốt trước khi tự viết thuật toán cộng bù và đo sai số.
+For many applications, `DoubleStream.sum()` is a good starting point before writing a custom compensated algorithm and measuring error.
 
-### 7.4. Dùng `BigDecimal` khi cần phép cộng thập phân chính xác
+### 7.4. Use `BigDecimal` When Exact Decimal Addition Is Required
 
-Với số tiền hoặc dữ liệu yêu cầu cộng thập phân chính xác, `BigDecimal` thường phù hợp hơn `double`. **Khởi tạo từ chuỗi thập phân**, không mặc định lấy `new BigDecimal(0.1)`.
+For money or data requiring exact decimal addition, `BigDecimal` is generally more suitable than `double`. **Construct from decimal strings**, rather than defaulting to `new BigDecimal(0.1)`.
 
 ```java
 import java.math.BigDecimal;
@@ -359,7 +359,7 @@ BigDecimal total = amounts.stream()
 System.out.println(total); // 0.60
 ```
 
-Với các đầu vào `BigDecimal` được tạo đúng từ chuỗi, phép `add` là phép cộng thập phân **chính xác**, không bị làm tròn nhị phân như `double`. Phép cộng `BigDecimal` không thay đổi đối tượng nguồn; kết quả là đối tượng mới.
+With `BigDecimal` inputs constructed properly from strings, `add` performs **exact** decimal addition without binary rounding like `double`. `BigDecimal` addition does not mutate the source objects; the result is a new object.
 
 ```java
 System.out.println(new BigDecimal(0.1));
@@ -369,26 +369,26 @@ System.out.println(new BigDecimal("0.1")); // 0.1
 System.out.println(BigDecimal.valueOf(0.1)); // 0.1
 ```
 
-`new BigDecimal(0.1)` chuyển **giá trị nhị phân thực đã lưu** trong `double` sang dạng thập phân chính xác của giá trị đó. `BigDecimal.valueOf(0.1)` dùng biểu diễn chuỗi chuẩn của `double`, thường tiện hơn, nhưng không phục hồi được độ chính xác thập phân gốc nếu dữ liệu đã bị làm tròn hoặc tính toán sai ở bước trước. Với dữ liệu tiền tệ, ưu tiên nhận và lưu ngay từ nguồn dưới dạng decimal.
+`new BigDecimal(0.1)` converts the **exact binary value stored** in the `double` into its exact decimal form. `BigDecimal.valueOf(0.1)` uses `double`'s canonical string representation, which is often cleaner, yet cannot restore original decimal precision if data was already rounded or miscomputed earlier. For financial data, prefer receiving and storing values as decimals right at the source.
 
-Lưu ý rằng `BigDecimal.divide` có thể yêu cầu quy định precision hoặc `RoundingMode` nếu kết quả thập phân không hữu hạn; độ chính xác của phép **cộng** không đồng nghĩa mọi phép toán BigDecimal đều tự có kết quả thập phân hữu hạn.
+Note that `BigDecimal.divide` may require specifying precision or a `RoundingMode` when a quotient is non-terminating; exactness of **addition** does not imply every `BigDecimal` operation automatically yields a finite decimal.
 
-### 7.5. Dùng đơn vị nguyên khi miền dữ liệu cho phép
+### 7.5. Use Integer Units When the Domain Allows
 
-Nếu nghiệp vụ cho phép quy đổi về đơn vị nhỏ nhất, ví dụ số tiền tính bằng xu hoặc số đo tính bằng đơn vị nguyên cố định, có thể tính tổng bằng `long` và chuyển đổi để hiển thị ở cuối:
+If business rules allow converting to the smallest unit, such as amounts in cents or measurements in fixed integer units, you can sum using `long` and convert for display at the end:
 
 ```java
 import java.util.stream.LongStream;
 
 long totalCents = LongStream.of(125, 250, 375).sum();
-System.out.println(totalCents); // 750 (xu)
+System.out.println(totalCents); // 750 (cents)
 ```
 
-Cộng số nguyên loại bỏ vấn đề làm tròn nhị phân của các phân số, nhưng **vẫn có thể tràn số**. `LongStream.sum()` không tự phát hiện overflow. Khi cần phát hiện tràn, dùng `Math.addExact` trong một thuật toán phù hợp, hoặc dùng `BigInteger`/`BigDecimal` tùy miền dữ liệu. Cũng cần xác định cách làm tròn khi chuyển giá trị thập phân sang đơn vị nguyên.
+Integer summation eliminates binary rounding of fractions, yet **can still overflow**. `LongStream.sum()` does not automatically detect overflow. When overflow detection is needed, use `Math.addExact` in an appropriate algorithm, or use `BigInteger`/`BigDecimal` depending on the domain. Also define rounding rules when converting decimal values into integer units.
 
-## 8. Kiểm thử các kết quả số học đúng cách
+## 8. Testing Numerical Results Properly
 
-So sánh trực tiếp bằng `==` phù hợp khi muốn kiểm tra **bằng nhau đúng theo giá trị dấu phẩy động**, nhưng thường không phù hợp để kiểm tra kết quả tính toán xấp xỉ:
+Direct comparison with `==` is appropriate when testing **exact floating-point value equality**, yet is usually unsuitable for testing approximate computed results:
 
 ```java
 double actual = 0.1 + 0.2;
@@ -397,14 +397,14 @@ double expected = 0.3;
 System.out.println(actual == expected); // false
 ```
 
-Với các giá trị hữu hạn và dung sai được xác định theo nghiệp vụ, có thể dùng một kiểm tra kết hợp sai số tuyệt đối và tương đối:
+For finite values with a business-defined tolerance, you can use a check combining absolute and relative error:
 
 ```java
 static boolean approximatelyEqual(double a, double b,
                                   double absoluteTolerance,
                                   double relativeTolerance) {
     if (!Double.isFinite(a) || !Double.isFinite(b)) {
-        return a == b; // NaN không được coi là bằng nhau.
+        return a == b; // NaN is not considered equal.
     }
     double scale = Math.max(Math.abs(a), Math.abs(b));
     return Math.abs(a - b)
@@ -418,38 +418,38 @@ System.out.println(
 ); // true
 ```
 
-Ví dụ này minh họa chiến lược cơ bản cho các giá trị hữu hạn ở miền thông thường. Với giá trị cực lớn, hiệu `a - b` hoặc phép tính ngưỡng có thể overflow; bài toán số học chuyên biệt cần phép so sánh được thiết kế cho miền dữ liệu và sai số dự kiến. **Không lấy một epsilon cố định tùy ý** rồi áp dụng cho mọi thang đo hoặc mọi phép tính.
+This example illustrates a basic strategy for finite values in ordinary ranges. For extremely large values, `a - b` or threshold calculations can overflow; specialized numerical tasks require comparisons tailored to the domain and expected error. **Do not pick an arbitrary fixed epsilon** and apply it blindly to every scale or calculation.
 
-Với `BigDecimal`:
+With `BigDecimal`:
 
 ```java
 BigDecimal x = new BigDecimal("1.0");
 BigDecimal y = new BigDecimal("1.00");
 
-System.out.println(x.compareTo(y) == 0); // true: bằng giá trị số
-System.out.println(x.equals(y));         // false: khác scale
+System.out.println(x.compareTo(y) == 0); // true: numerically equal
+System.out.println(x.equals(y));         // false: different scale
 ```
 
-Chọn `compareTo` khi muốn so sánh giá trị số; chọn `equals` nếu cả biểu diễn scale cũng là một phần yêu cầu.
+Choose `compareTo` when comparing numeric value; choose `equals` when scale representation itself is part of the requirement.
 
-## 9. Sai lầm thường gặp
+## 9. Common Mistakes
 
-| Suy luận/cách viết | Vấn đề | Cách xử lý |
+| Reasoning / code pattern | Problem | How to handle it |
 |---|---|---|
-| “Phép cộng toán học có tính kết hợp nên `Double::sum` cũng vậy” | Mỗi phép cộng `double` có thể làm tròn | Chấp nhận dung sai hoặc chọn kiểu số/thuật toán chính xác hơn |
-| “Stream có encounter order nên reduce phải cộng đúng từ trái sang phải” | `reduce` có thể gộp tổng con theo cách khác | Không suy ra cây phép cộng từ thứ tự phần tử |
-| “Chạy song song chỉ đổi tốc độ, kết quả double phải giống từng bit” | Thay cách nhóm cộng có thể thay kết quả | Dùng chiến lược tái lập hoặc so sánh có dung sai |
-| “Thay `reduce` bằng `sum()` sẽ luôn có kết quả chính xác tuyệt đối” | `sum()` chỉ có thể giảm sai số, không xóa nó | Xác định yêu cầu precision và chọn `BigDecimal` nếu cần |
-| “`new BigDecimal(0.1)` lưu đúng 0,1 thập phân” | Nó lưu chính xác giá trị double đã xấp xỉ | Dùng `new BigDecimal("0.1")` từ nguồn decimal |
-| “Cứ thêm `sorted()` là cộng chính xác” | Đổi thứ tự chỉ có thể cải thiện một số trường hợp | Đo sai số; dùng thuật toán phù hợp |
-| “Dùng `peek` hoặc `forEach` cộng vào biến chung là được” | Side effect có thể bị bỏ qua, gây data race hoặc sai thứ tự | Dùng terminal operation và collector an toàn |
-| “Kiểm thử bằng `actual == expected` cho mọi tổng double” | Sai số làm tròn có thể khiến kiểm thử sai | So sánh bằng dung sai có căn cứ |
-| “Cộng `long` luôn an toàn” | Có thể overflow | Giới hạn miền dữ liệu hoặc phát hiện tràn |
-| “`Double.NaN == Double.NaN` là true” | NaN không bằng bất kỳ số nào, kể cả chính nó | Dùng `Double.isNaN` |
+| “Mathematical addition is associative, so `Double::sum` is too” | Each `double` addition can round | Accept a tolerance or choose a more accurate numeric type/algorithm |
+| “Streams have encounter order, so `reduce` must add strictly left-to-right” | `reduce` may combine partial sums differently | Do not infer an addition tree from element order |
+| “Running in parallel only changes speed; `double` results must match bit-for-bit” | Changing addition grouping can alter the result | Use a reproducible strategy or compare with tolerance |
+| “Replacing `reduce` with `sum()` guarantees an exact result” | `sum()` can reduce error, not eliminate it | Define precision requirements and choose `BigDecimal` if needed |
+| “`new BigDecimal(0.1)` stores exact decimal 0.1” | It stores the exact value of the approximated `double` | Use `new BigDecimal("0.1")` from a decimal source |
+| “Just add `sorted()` and addition becomes exact” | Reordering only helps in certain cases | Measure error; use an appropriate algorithm |
+| “Using `peek` or `forEach` to add into a shared variable is fine” | Side effects can be skipped, cause data races, or run out of order | Use safe terminal operations and collectors |
+| “Testing every `double` sum with `actual == expected`” | Rounding error can fail valid tests | Compare using a justified tolerance |
+| “`long` addition is always safe” | It can overflow | Bound the data domain or detect overflow |
+| “`Double.NaN == Double.NaN` is true” | `NaN` equals no number, not even itself | Use `Double.isNaN` |
 
-## 10. Ví dụ tổng hợp có thể chạy (Java 17+)
+## 10. Complete Runnable Example (Java 17+)
 
-Chương trình sau kết nối ví dụ về thứ tự cộng với `reduce`, `DoubleStream.sum()` và `BigDecimal`:
+The following program ties together addition order with `reduce`, `DoubleStream.sum()`, and `BigDecimal`:
 
 ```java
 import java.math.BigDecimal;
@@ -472,16 +472,16 @@ public class FloatingPointReductionDemo {
     }
 
     public static void main(String[] args) {
-        // 1. Sai số biểu diễn nhị phân.
+        // 1. Binary representation error.
         System.out.println(0.1 + 0.2); // 0.30000000000000004
         System.out.println(0.1 + 0.2 == 0.3); // false
 
-        // 2. Tính không kết hợp.
+        // 2. Non-associativity.
         double a = 1e16, b = -1e16, c = 1.0;
         System.out.println((a + b) + c); // 1.0
         System.out.println(a + (b + c)); // 0.0
 
-        // 3. Pipeline giảm tuần tự và song song.
+        // 3. Sequential and parallel reduction pipelines.
         List<Double> numbers = List.of(a, b, c);
         double folded = leftFold(numbers);
         double reduced = numbers.stream().reduce(0.0, Double::sum);
@@ -492,36 +492,36 @@ public class FloatingPointReductionDemo {
         System.out.println("Reduce:    " + reduced);
         System.out.println("Parallel:  " + parallel);
         System.out.println("Sum:       " + summed);
-        // Không đòi hỏi reduced/parallel/summed luôn giống nhau từng bit.
+        // Do not require reduced/parallel/summed to always be bit-identical.
 
-        // 4. Kiểm tra xấp xỉ ở miền giá trị nhỏ.
+        // 4. Approximate check in a small value range.
         System.out.println(approximatelyEqual(0.1 + 0.2, 0.3, 1e-12));
         // true
 
-        // 5. Tổng thập phân chính xác từ dữ liệu nguồn dạng String.
+        // 5. Exact decimal sum from String source data.
         BigDecimal money = List.of("0.10", "0.20", "0.30").stream()
                 .map(BigDecimal::new)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         System.out.println(money); // 0.60
 
-        // 6. Với bài toán tổng double thông thường, có API chuyên dụng.
+        // 6. For ordinary double sums, a specialized API exists.
         System.out.println(DoubleStream.of(2.5, 1.5, 3.0).sum()); // 7.0
     }
 }
 ```
 
-Ví dụ không khẳng định kết quả của `parallel` nhất thiết khác hoặc giống `reduced`, vì đó là điểm cần hiểu về quyền lựa chọn cách kết hợp của Stream API. Các dòng có kết quả được chú thích chính xác là những tình huống có giá trị rõ ràng với dữ liệu đã chọn.
+The example does not assert that `parallel` necessarily differs from or equals `reduced`, because understanding the Stream API's freedom to choose how to combine partial results is the key point. The lines with exact output comments correspond to cases whose values are unambiguous for the chosen data.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-1. **Vì sao `0.1 + 0.2 == 0.3` là `false`?** Vì các phân số thập phân này không biểu diễn chính xác bằng `double`; phép cộng tạo thêm bước làm tròn.
-2. **Vì sao `(a+b)+c` có thể khác `a+(b+c)` khi `a=1e16`, `b=-1e16`, `c=1`?** Vì `1` có thể mất khi cộng với giá trị lớn trước khi hai số lớn triệt tiêu nhau.
-3. **`reduce(0.0, Double::sum)` có bảo đảm kết quả giống nhau từng bit giữa tuần tự và song song không?** Không. Các phép cộng có thể được nhóm khác nhau.
-4. **`DoubleStream.sum()` có phải phép cộng chính xác thập phân tuyệt đối không?** Không. Nó có thể dùng kỹ thuật giảm sai số nhưng vẫn trả kết quả `double`.
-5. **Với dữ liệu tiền tệ dạng `"0.10"` và `"0.20"`, nên tạo `BigDecimal` từ đâu?** Từ chuỗi decimal (`new BigDecimal("0.10")`), tránh đưa dữ liệu qua `double` trước.
-6. **`BigDecimal("1.0")` và `BigDecimal("1.00")` có cùng giá trị số không?** Có theo `compareTo`; `equals` khác vì scale.
-7. **Dùng `parallelStream().forEach(x -> sum += x)` có đúng không?** Không an toàn: `sum` là trạng thái chia sẻ, có thể xảy ra race condition.
-8. **Làm sao kiểm thử tổng `double`?** Xác định sai số chấp nhận được cho miền dữ liệu, xử lý NaN/vô cực rõ ràng và so sánh bằng dung sai thích hợp.
-9. **Nếu chỉ cần tổng của một `DoubleStream` hữu hạn thông thường, nên thử API nào trước?** `DoubleStream.sum()`, vì API diễn đạt đúng phép tổng và có thể giảm sai số so với giảm bằng phép cộng đơn giản.
+1. **Why is `0.1 + 0.2 == 0.3` `false`?** Because these decimal fractions are not represented exactly as `double`; addition introduces another rounding step.
+2. **Why can `(a+b)+c` differ from `a+(b+c)` when `a=1e16`, `b=-1e16`, `c=1`?** Because `1` can be lost when added to a large number before the two large numbers cancel out.
+3. **Does `reduce(0.0, Double::sum)` guarantee bit-identical results between sequential and parallel runs?** No. Additions can be grouped differently.
+4. **Is `DoubleStream.sum()` an exact decimal addition?** No. It can use error-reducing techniques, yet still returns a `double`.
+5. **For monetary inputs like `"0.10"` and `"0.20"`, how should `BigDecimal` be constructed?** From decimal strings (`new BigDecimal("0.10")`), avoiding passing values through `double` first.
+6. **Do `BigDecimal("1.0")` and `BigDecimal("1.00")` have the same numeric value?** Yes under `compareTo`; `equals` differs because of scale.
+7. **Is `parallelStream().forEach(x -> sum += x)` valid?** Unsafe: `sum` is shared state, creating a potential race condition.
+8. **How should `double` sums be tested?** Define an acceptable error bound for the data domain, handle `NaN`/infinity explicitly, and compare with an appropriate tolerance.
+9. **If you only need the sum of an ordinary finite `DoubleStream`, which API should you try first?** `DoubleStream.sum()`, because it expresses summation directly and can reduce error compared to a simple addition reduction.
 
-**Ghi nhớ:** sai số trong `double` đến từ biểu diễn nhị phân hữu hạn và các bước làm tròn. Do cộng `double` không kết hợp tuyệt đối, thay đổi thứ tự/cách nhóm trong `reduce`, đặc biệt khi chạy song song, có thể làm thay đổi tổng. Hãy chọn kiểu dữ liệu, thuật toán cộng, chế độ thực thi và chính sách kiểm thử theo yêu cầu **độ chính xác và tính tái lập** của bài toán.
+**Key takeaway:** Errors in `double` stem from finite binary representation and rounding steps. Because `double` addition is not strictly associative, changing order or grouping in `reduce`—especially under parallel execution—can alter the sum. Choose your data type, summation algorithm, execution mode, and testing policy based on the problem's **accuracy and reproducibility** requirements.

@@ -1,56 +1,56 @@
-# Kiểm thử đóng tài nguyên khi dừng sớm hoặc có ngoại lệ
+# Testing Resource Closure on Early Exit or Exceptions
 
-> **Chương:** Gỡ lỗi và kiểm thử pipeline  
-> **Module:** `JAVA_STREAM_API` — học xử lý dữ liệu khai báo bằng Java Stream API qua pipeline lazy, `filter`, `map`, `reduce`, `collect`; thực hành grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers, đồng thời nhận diện giới hạn về trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Debugging and Testing Pipelines  
+> **Module:** `JAVA_STREAM_API` — learning declarative data processing with the Java Stream API through lazy pipelines, `filter`, `map`, `reduce`, and `collect`; practicing grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers while recognizing state, resource, and performance limits.
 
-Một pipeline Java Stream có thể trả đúng kết quả nhưng vẫn **rò rỉ tài nguyên**. Ví dụ, chương trình đọc một vài dòng đầu từ file bằng `Files.lines(...).limit(5)`, hoặc tìm được phần tử phù hợp bằng `findFirst()`, rồi quên đóng Stream. Việc xử lý đã kết thúc về mặt dữ liệu **không đồng nghĩa** handle file, thư mục hay nguồn I/O đã được giải phóng.
+A Java Stream pipeline can return the exact right result yet still **leak resources**. For example, a program reads the first few lines from a file with `Files.lines(...).limit(5)`, or finds a match with `findFirst()`, and forgets to close the Stream. The fact that data processing has finished **does not mean** the underlying file handle, directory stream, or I/O resource was released.
 
-Tình huống khó hơn xuất hiện khi lambda trong `map`, `filter` hoặc terminal operation ném ngoại lệ. Lúc đó, mã dọn dẹp đặt sau terminal operation có thể không bao giờ chạy. Bài này hướng dẫn đặt **quyền sở hữu tài nguyên** đúng chỗ bằng `try-with-resources`, viết kiểm thử quan sát `onClose`, kiểm tra ngoại lệ trong xử lý và ngoại lệ khi đóng, đồng thời tránh nhầm hành vi dừng sớm của Stream với hành vi đóng tài nguyên.
+An even trickier situation arises when a lambda in `map`, `filter`, or a terminal operation throws an exception. Cleanup code placed after the terminal operation may never run. This lesson teaches how to establish **resource ownership** properly using `try-with-resources`, write tests observing `onClose`, test exceptions both during processing and during closing, and avoid confusing Stream short-circuiting with resource closure.
 
-Các ví dụ chạy trên **Java 17+**, không cần thư viện ngoài JDK. Các phép kiểm tra dùng `AssertionError` để có thể chạy mà không cần bật `-ea`.
+The examples run on **Java 17+**, requiring no external libraries beyond the JDK. Assertions throw `AssertionError` explicitly so tests run without enabling `-ea`.
 
-## 1. Ba sự kiện khác nhau: tiêu thụ, dừng và đóng
+## 1. Three Distinct Events: Consuming, Stopping, and Closing
 
-Trong Java Stream API cần phân biệt:
+In the Java Stream API, distinguish these events:
 
-| Sự kiện | Ví dụ | Có tự gọi `close()` không? |
+| Event | Example | Automatically calls `close()`? |
 | --- | --- | --- |
-| **Terminal operation kết thúc bình thường** | `toList()`, `count()`, `sum()` | **Không**. |
-| **Terminal operation dừng sớm** | `findFirst()`, `anyMatch(...)`, `limit(3).toList()` | **Không**. |
-| **Terminal operation ném ngoại lệ** | `map(...)` ném `IllegalArgumentException` lúc `toList()` | **Không bảo đảm đóng**; cần cơ chế quản lý tài nguyên. |
-| **`close()` được gọi tường minh** | `stream.close()` | **Có**, gọi các close handler đã đăng ký. |
-| **Rời khối `try-with-resources`** | `try (Stream<T> s = ...) { ... }` | **Có**, kể cả khi `return` hoặc ngoại lệ. |
+| **Terminal operation finishes normally** | `toList()`, `count()`, `sum()` | **No**. |
+| **Terminal operation short-circuits** | `findFirst()`, `anyMatch(...)`, `limit(3).toList()` | **No**. |
+| **Terminal operation throws an exception** | `map(...)` throws `IllegalArgumentException` during `toList()` | **No guaranteed close**; requires a resource-management mechanism. |
+| **`close()` is called explicitly** | `stream.close()` | **Yes**, invokes registered close handlers. |
+| **Exiting a `try-with-resources` block** | `try (Stream<T> s = ...) { ... }` | **Yes**, even on `return` or exception. |
 
-`Stream` kế thừa `BaseStream`, mà `BaseStream` triển khai `AutoCloseable`. Vì vậy, Stream có thể được khai báo trong `try-with-resources`. Tuy nhiên, **gọi terminal operation không tự động đóng Stream**. Một Stream sau terminal operation thường đã bị tiêu thụ và không được dùng lại, nhưng trạng thái *consumed* không phải trạng thái *closed*.
+`Stream` extends `BaseStream`, which implements `AutoCloseable`. Therefore, a Stream can be declared inside `try-with-resources`. However, **calling a terminal operation does not automatically close a Stream**. After a terminal operation, a Stream is consumed and cannot be reused, yet *consumed* is not the same state as *closed*.
 
-Một sơ đồ vòng đời:
+A lifecycle diagram:
 
 ```text
-Tạo Stream từ nguồn I/O
+Create Stream from an I/O source
         |
         v
-Tạo các intermediate stages (filter/map/limit...)
+Build intermediate stages (filter/map/limit...)
         |
         v
 Terminal operation
         |
-        +---- hoàn tất toàn bộ nguồn -----------+
+        +---- finishes entire source -----------+
         |                                       |
-        +---- dừng sớm (findFirst/limit...) ----+----> Chưa chắc đã close
+        +---- stops early (findFirst/limit...)--+----> Not necessarily closed
         |                                       |
-        +---- ném ngoại lệ ---------------------+
+        +---- throws an exception --------------+
                                                 |
-                              Rời try-with-resources / gọi close()
+                             Exit try-with-resources / call close()
                                                 |
                                                 v
-                                     Đóng pipeline và close handlers
+                                    Close pipeline and close handlers
 ```
 
-Hầu hết Stream từ collection/mảng không giữ tài nguyên I/O cần giải phóng nên thường không phải đóng. Ngược lại, các Stream gắn với file, bộ duyệt thư mục hoặc nguồn do ứng dụng tự mở phải tuân thủ **hợp đồng đóng tài nguyên** của nguồn đó. Không thể suy rằng mọi Stream từ API bất kỳ đều tự quản lý handle.
+Most Streams backed by collections or arrays hold no I/O resources to release and normally do not need closing. Conversely, Streams backed by files, directory walkers, or application-opened sources must obey **the closing contract** of that source. Never assume any arbitrary API's Stream manages handles automatically.
 
-## 2. Mẫu an toàn với `Files.lines` và `Files.walk`
+## 2. Safe Patterns with `Files.lines` and `Files.walk`
 
-Ví dụ, chỉ muốn đọc tối đa năm dòng đầu tiên của một file:
+For example, reading at most the first five lines of a file:
 
 ```java
 import java.io.IOException;
@@ -70,11 +70,11 @@ try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
 }
 ```
 
-`Files.lines` trả một Stream được hỗ trợ bởi tài nguyên file và **phải được đóng** sau khi sử dụng. `limit(5)` giúp terminal operation chỉ yêu cầu một tiền tố của nguồn nhưng **không thay thế** việc đóng Stream. `try-with-resources` gọi `close()` khi rời khối, dù nguồn có nhiều hơn năm dòng.
+`Files.lines` returns a Stream backed by a file resource that **must be closed** after use. `limit(5)` tells the terminal operation to request only a prefix of the source, **without replacing** Stream closure. `try-with-resources` invokes `close()` when exiting the block, even if the file has more than five lines.
 
-`Files.lines` có thể ném `IOException` khi mở file; lỗi I/O xảy ra **trong lúc duyệt** cũng có thể được bọc thành `UncheckedIOException`. Đoạn bắt `IOException` ở trên minh họa lỗi mở file, không phải chính sách xử lý mọi lỗi runtime khi đọc. Ứng dụng cần xác định cách báo lỗi cả hai trường hợp và không nuốt ngoại lệ.
+`Files.lines` can throw `IOException` when opening the file; I/O errors occurring **during traversal** can also be wrapped in `UncheckedIOException`. The `catch (IOException)` above demonstrates handling open failures, not every runtime read failure. Applications must define error handling for both cases and never swallow exceptions.
 
-Một ví dụ khác là duyệt thư mục và lấy tối đa ba đường dẫn file:
+Another example is walking a directory and taking at most three file paths:
 
 ```java
 import java.io.IOException;
@@ -96,13 +96,13 @@ try (Stream<Path> paths = Files.walk(root)) {
 }
 ```
 
-`Files.walk` cũng dùng tài nguyên mở trong quá trình duyệt; việc dừng bằng `limit` không tự giải phóng những tài nguyên đó. Cũng như `Files.lines`, lỗi phát sinh khi duyệt có thể là `UncheckedIOException`.
+`Files.walk` likewise holds open resources during traversal; stopping via `limit` does not release those resources. As with `Files.lines`, errors raised during traversal can be `UncheckedIOException`.
 
-**Lưu ý:** Nếu sử dụng `BufferedReader.lines()`, hãy xem `BufferedReader` là tài nguyên cần quản lý và đóng reader bằng `try-with-resources`. Không nên suy từ tên phương thức `lines()` rằng mọi nguồn đều có chính sách đóng giống nhau.
+**Note:** When using `BufferedReader.lines()`, treat `BufferedReader` as the managed resource and close the reader with `try-with-resources`. Never infer from the method name `lines()` that every source shares the exact same closing policy.
 
-## 3. `onClose`: công cụ kiểm thử đường đóng
+## 3. `onClose`: A Tool for Testing the Close Path
 
-Đối với một Stream trong bộ nhớ, ta có thể đăng ký callback `onClose` để quan sát liệu `close()` có thực sự được gọi hay không:
+For an in-memory Stream, you can register an `onClose` callback to observe whether `close()` is actually invoked:
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -114,23 +114,23 @@ try (Stream<Integer> numbers = Stream.of(1, 2, 3)
         .onClose(closeCount::incrementAndGet)) {
     int first = numbers.findFirst().orElseThrow();
     System.out.println(first);         // 1
-    System.out.println(closeCount.get()); // 0: đang ở trong try
+    System.out.println(closeCount.get()); // 0: still inside try
 }
 
-System.out.println(closeCount.get());  // 1: close đã được gọi
+System.out.println(closeCount.get());  // 1: close has been called
 ```
 
-Đây là **kiểm thử cơ chế gọi close handler**, không phải phép đo trực tiếp rằng hệ điều hành đã đóng một file descriptor nào đó. `onClose` được dùng rất tốt để xác nhận ownership và control flow. Muốn kiểm chứng giải phóng tài nguyên cụ thể, cần test tích hợp với loại tài nguyên đó.
+This tests **the close-handler invocation path**, not a direct proof that the OS closed a specific file descriptor. `onClose` is ideal for verifying ownership and control flow. To verify actual OS-level resource release, pair it with integration tests for that resource type.
 
-### Vì sao dùng `AtomicInteger`?
+### Why use `AtomicInteger`?
 
-Trong test tuần tự, một biến đếm đơn giản có thể đủ, nhưng `AtomicInteger` an toàn hơn khi bài tập được mở rộng sang các tình huống có nhiều thread. Tuy vậy, **thread-safe counter không quyết định thời điểm đóng**; chính `try-with-resources` hoặc `close()` mới là hành động cần kiểm tra.
+In sequential tests a simple counter might suffice, yet `AtomicInteger` stays safe if exercises expand to multi-threaded scenarios. Even so, **a thread-safe counter does not determine when closing occurs**; `try-with-resources` or `close()` is the behavior being tested.
 
-`onClose` đăng ký một handler chạy **khi đóng pipeline**, không đăng ký callback sau mỗi phần tử, và cũng không phải `peek`. Không dùng nó để tăng bộ đếm số dòng đã xử lý.
+`onClose` registers a handler that runs **when the pipeline closes**, not a per-element callback, and not `peek`. Never use it to count processed rows.
 
-## 4. Kiểm thử dừng sớm: `findFirst`, `anyMatch`, `limit`
+## 4. Testing Early Exit: `findFirst`, `anyMatch`, `limit`
 
-Ba ví dụ đều cần đóng Stream nếu nguồn giữ tài nguyên:
+All three examples require closing the Stream when the source holds resources:
 
 ```java
 try (Stream<String> lines = Files.lines(path)) {
@@ -156,11 +156,11 @@ try (Stream<String> lines = Files.lines(path)) {
 }
 ```
 
-Trong ba ví dụ, `path` là `Path` trỏ tới file thực tế. `findFirst` và `anyMatch` có thể dừng khi đã đạt điều kiện; `limit` có thể dừng sau khi thu đủ phần tử. **Không có thao tác nào tự gọi `close()` để thay cho `try-with-resources`.**
+In all three examples, `path` is a `Path` pointing to a real file. `findFirst` and `anyMatch` can stop as soon as the condition is met; `limit` can stop after collecting enough elements. **None of them calls `close()` automatically in place of `try-with-resources`.**
 
-Không nên viết test giả định lambda trong `filter` hoặc `peek` được gọi đúng N lần trong **mọi** pipeline, đặc biệt khi có short-circuit hoặc xử lý song song. Điều ổn định để kiểm tra ở đây là: **kết quả nghiệp vụ đúng và handler đóng chạy khi rời scope**.
+Do not write tests assuming lambdas in `filter` or `peek` run exactly N times in **every** pipeline, especially with short-circuiting or parallel execution. What stays stable to assert here is: **correct business output and close handler execution upon leaving scope**.
 
-### Dùng nguồn vô hạn một cách kiểm soát
+### Using infinite sources safely under bounds
 
 ```java
 AtomicInteger closed = new AtomicInteger();
@@ -174,23 +174,23 @@ try (Stream<Integer> values = Stream.iterate(1, n -> n + 1)
 System.out.println(closed.get()); // 1
 ```
 
-`Stream.iterate` ở ví dụ này có thể vô hạn, nhưng `limit(4)` bảo đảm terminal operation chỉ cần bốn giá trị đầu. Nếu vô tình bỏ `limit` và gọi `toList()`, phép xử lý có thể không kết thúc, nên câu lệnh `close` ở cuối khối cũng chưa được thực hiện vì chương trình chưa ra khỏi khối. Trong test tự động về short-circuit, nên áp dụng **timeout của test runner** để tránh treo suite khi có lỗi logic.
+`Stream.iterate` here can produce an infinite stream, yet `limit(4)` ensures the terminal operation requests only the first four values. If someone accidentally omits `limit` and calls `toList()`, processing may never terminate, so the `close` at block exit is never reached either. In automated short-circuit tests, configure a **test-runner timeout** to avoid hanging the suite on logic bugs.
 
-## 5. Ngoại lệ giữa pipeline: dọn dẹp vẫn phải xảy ra
+## 5. Mid-Pipeline Exceptions: Cleanup Must Still Happen
 
-Đoạn sau **không an toàn** khi Stream gắn với file hoặc nguồn cần đóng:
+The snippet below is **unsafe** when the Stream is backed by a file or closeable resource:
 
 ```java
 Stream<String> lines = Files.lines(path);
 List<Integer> numbers = lines
         .map(Integer::parseInt)
         .toList();
-lines.close(); // Không chạy nếu parseInt ném ngoại lệ!
+lines.close(); // Skipped if parseInt throws an exception!
 ```
 
-Một dòng `abc` sẽ khiến `Integer.parseInt` ném `NumberFormatException`; khi đó câu lệnh `lines.close()` phía sau không được thực thi.
+A line `"abc"` causes `Integer.parseInt` to throw `NumberFormatException`; the trailing `lines.close()` never executes.
 
-Sửa bằng `try-with-resources`:
+Fix with `try-with-resources`:
 
 ```java
 try (Stream<String> lines = Files.lines(path)) {
@@ -201,18 +201,18 @@ try (Stream<String> lines = Files.lines(path)) {
 }
 ```
 
-Nếu việc phân tích dữ liệu ném ngoại lệ và thoát khỏi khối, Java vẫn gọi `close()` của `lines`. Ngoại lệ từ `parseInt` tiếp tục được truyền ra ngoài, trừ khi chương trình chủ động bắt nó ở tầng phù hợp.
+If parsing throws an exception and unwinds out of the block, Java still invokes `lines.close()`. The `parseInt` exception propagates outward unless caught at an appropriate application layer.
 
-Đừng dùng `finally` một cách thủ công khi `try-with-resources` đã diễn đạt rõ ownership. Với nhiều tài nguyên và ngoại lệ từ `close`, cú pháp `try-with-resources` còn xử lý **suppressed exceptions** đúng quy tắc của Java.
+Avoid manual `finally` blocks when `try-with-resources` expresses ownership cleanly. With multiple resources and close-time exceptions, `try-with-resources` also handles **suppressed exceptions** according to Java's rules.
 
-## 6. Khi đóng cũng ném ngoại lệ: suppressed exceptions
+## 6. When Closing Throws Too: Suppressed Exceptions
 
-Có hai nơi độc lập có thể hỏng:
+Two independent places can fail:
 
-1. **Thân xử lý:** `map`/terminal operation ném `IllegalArgumentException`, `UncheckedIOException`, ...
-2. **Đóng tài nguyên:** một close handler hoặc phương thức `close()` ném `RuntimeException`.
+1. **Try body:** `map`/terminal operation throws `IllegalArgumentException`, `UncheckedIOException`, etc.
+2. **Resource closing:** a close handler or `close()` throws a `RuntimeException`.
 
-Trong `try-with-resources`, nếu **thân khối đã ném ngoại lệ**, ngoại lệ đó thường là **primary exception**; ngoại lệ phát sinh khi đóng được gắn vào `primary.getSuppressed()`, thay vì thay thế lỗi xử lý ban đầu.
+Inside `try-with-resources`, if **the try body already threw an exception**, that exception stays the **primary exception**; any exception thrown during closing is attached to `primary.getSuppressed()` instead of replacing the original processing failure.
 
 ```java
 import java.util.stream.Stream;
@@ -235,11 +235,11 @@ try (Stream<Integer> values = Stream.of(1, 2)
 }
 ```
 
-Ở đây `close()` không bị bỏ qua: nó đã chạy và ném lỗi; Java giữ lỗi xử lý làm **nguyên nhân chính** và giữ lỗi đóng để chẩn đoán thêm. Khi làm hệ thống thực, log và giám sát nên xem cả `getSuppressed()`, đặc biệt khi hai loại lỗi cùng xuất hiện.
+Here `close()` was not skipped: it ran and threw; Java preserves the processing error as the **primary cause** while keeping the close failure for diagnostics. In production systems, logging and monitoring should inspect `getSuppressed()` too, especially when both failures occur together.
 
-### Nhiều `onClose` handler
+### Multiple `onClose` handlers
 
-`BaseStream.onClose(...)` cho phép đăng ký nhiều handler. Các handler được chạy **theo thứ tự đăng ký**; nếu một handler ném ngoại lệ, những handler còn lại vẫn được gọi. Ngoại lệ đầu tiên sẽ là ngoại lệ được ném từ `close()`, các ngoại lệ tiếp theo được gắn dưới dạng suppressed.
+`BaseStream.onClose(...)` allows registering multiple handlers. Handlers run **in registration order**; if one throws, remaining handlers are still executed. The first thrown exception becomes the exception thrown by `close()`, with subsequent exceptions attached as suppressed.
 
 ```java
 List<String> events = new ArrayList<>();
@@ -260,11 +260,11 @@ try (Stream<Integer> values = Stream.of(1)
 }
 ```
 
-Trong chương trình hoàn chỉnh ở mục 8, các tình huống này được kiểm tra bằng điều kiện, không chỉ in log.
+In the complete program in Section 8, these cases are verified via assertions rather than just printed.
 
-## 7. Đóng pipeline và quản lý quyền sở hữu tài nguyên
+## 7. Closing Pipelines and Managing Resource Ownership
 
-Khi tạo các stage từ một Stream:
+When chaining stages on a Stream:
 
 ```java
 Stream<String> source = Files.lines(path);
@@ -273,7 +273,7 @@ Stream<Integer> lengths = source
         .map(String::length);
 ```
 
-`source` và `lengths` thuộc **cùng một pipeline**. Khi đóng một Stream trong pipeline, các close handler của pipeline được gọi. Vì thế, có thể đặt `try-with-resources` quanh Stream sau cùng mà mình sẽ tiêu thụ:
+`source` and `lengths` belong to **the same pipeline**. Closing any Stream in the pipeline invokes the pipeline's close handlers. Thus, you can wrap the final Stream you consume in `try-with-resources`:
 
 ```java
 try (Stream<Integer> lengths = Files.lines(path)
@@ -283,14 +283,14 @@ try (Stream<Integer> lengths = Files.lines(path)
 }
 ```
 
-Quyền sở hữu phải rõ ràng: ai tạo Stream I/O, ai có trách nhiệm đóng, có trả Stream ra khỏi phương thức hay chỉ trả danh sách đã vật hóa? Một phương thức trả `List<T>` sau khi đóng Stream thường đơn giản hơn để sử dụng an toàn. Nếu phương thức **trả Stream còn mở**, phải công bố rõ caller có trách nhiệm đóng và không được đóng nó trước khi caller tiêu thụ.
+Ownership must be unambiguous: who creates the I/O Stream, who is responsible for closing it, and does the method return a Stream or a materialized list? A method that closes the Stream and returns `List<T>` is usually much simpler to use safely. If a method **returns an open Stream**, document clearly that the caller owns closing it and never close it before the caller consumes it.
 
-### Tự tạo Stream từ nguồn cần đóng
+### Building a custom Stream from a closeable source
 
-Nếu ứng dụng tự xây Stream qua `StreamSupport.stream(spliterator, ...)` trên một nguồn tài nguyên, Stream đó **không tự biết cách đóng** tài nguyên riêng của bạn. Cần gắn `onClose` hoặc bảo đảm đối tượng nguồn được đóng bằng một scope `try-with-resources` riêng.
+If an application builds a Stream via `StreamSupport.stream(spliterator, ...)` over a resource, that Stream **does not automatically know how to close** your custom resource. Attach `onClose` or manage the source inside its own `try-with-resources` scope.
 
 ```java
-// Ví dụ mô hình, không phải code chạy độc lập:
+// Pattern illustration, not standalone runnable code:
 // Stream<Record> records = StreamSupport.stream(source.spliterator(), false)
 //         .onClose(source::close);
 // try (records) {
@@ -298,11 +298,11 @@ Nếu ứng dụng tự xây Stream qua `StreamSupport.stream(spliterator, ...)`
 // }
 ```
 
-Ở ví dụ này, `source` được hiểu là một đối tượng có `spliterator()` và `close()` phù hợp. Các `Stream` thông thường từ `List` hoặc mảng không cần đăng ký close handler giả chỉ để tính toán số.
+Here `source` represents an object with appropriate `spliterator()` and `close()` methods. Plain `Stream`s over `List` or arrays do not need synthetic close handlers just to compute numbers.
 
-### `close()` được gọi hai lần thì sao?
+### What if `close()` is called twice?
 
-`BaseStream.close()` là **idempotent**: khi Stream đã đóng, lời gọi tiếp theo không gây tác dụng mới. Điều này hữu ích để tránh dọn dẹp trùng, nhưng không phải lý do để phân tán nhiều chỗ đóng trong chương trình.
+`BaseStream.close()` is **idempotent**: once a Stream is closed, subsequent calls have no further effect. This helps prevent duplicate cleanup, though it is not an excuse to scatter multiple `close()` calls across the codebase.
 
 ```java
 AtomicInteger closeCount = new AtomicInteger();
@@ -314,11 +314,11 @@ values.close();
 System.out.println(closeCount.get()); // 1
 ```
 
-Vẫn nên chọn **một owner** và một scope quản lý cụ thể thay vì để nhiều tầng tùy ý đóng cùng Stream.
+Always establish **one clear owner** and one management scope rather than having multiple layers arbitrarily close the same Stream.
 
-## 8. Chương trình Java 17+ tự chứa: kiểm thử đóng trong mọi nhánh
+## 8. Self-Contained Java 17+ Program: Testing Closure Across All Branches
 
-Lưu chương trình sau vào `StreamResourceClosureTests.java`. Để bộ test chạy được mà **không tạo file ngoài**, ta dùng `Stream.onClose` và biến đếm `AtomicInteger` làm điểm quan sát. Test này kiểm chứng đường gọi `close()`; sau đó mục 9 đề xuất cách kiểm thử tích hợp trên nguồn I/O thực.
+Save the following program as `StreamResourceClosureTests.java`. To keep the test suite runnable **without creating external files**, we use `Stream.onClose` and an `AtomicInteger` counter as our observation point. These tests verify the `close()` invocation path; Section 9 then outlines integration tests over real I/O sources.
 
 ```java
 import java.util.ArrayList;
@@ -516,8 +516,8 @@ public class StreamResourceClosureTests {
                     "Không tìm thấy phần tử thỏa điều kiện");
         }
 
-        // Không đếm số lần callback của anyMatch: parallel có thể
-        // đánh giá thêm phần tử trước khi cơ chế dừng hoàn tất.
+        // Do not count anyMatch callback invocations: parallel execution
+        // may evaluate extra elements before short-circuiting completes.
         check(closed.get() == 1,
                 "Pipeline song song không được đóng khi rời scope");
     }
@@ -539,34 +539,34 @@ public class StreamResourceClosureTests {
 }
 ```
 
-Chạy trên JDK 17+:
+Run on JDK 17+:
 
 ```text
 javac StreamResourceClosureTests.java
 java StreamResourceClosureTests
 ```
 
-Đầu ra mong đợi nếu mọi ca kiểm tra đều đạt:
+Expected output when all checks pass:
 
 ```text
 ALL STREAM CLOSE TESTS PASS
 ```
 
-Đây là mã tự kiểm thử cung cấp trong tài liệu. Việc biên soạn bài học **không đồng nghĩa** chương trình đã được biên dịch hoặc thực thi trong môi trường làm việc.
+This is a self-test program provided in the lesson. Authoring this lesson **does not imply** the program was compiled or executed in the workspace.
 
-## 9. Kiểm thử tích hợp với tài nguyên thật
+## 9. Integration Testing with Real Resources
 
-Các ca `onClose` ở mục 8 kiểm tra được **đường gọi close**, nhưng chưa chứng minh hệ điều hành giải phóng tài nguyên cụ thể hay thư viện bên ngoài đã đóng đúng hợp đồng. Với `Files.lines` và `Files.walk`, có thể bổ sung test tích hợp riêng:
+The `onClose` tests in Section 8 verify **the close invocation path**, yet do not prove the OS released a specific resource or that an external library obeyed its close contract. For `Files.lines` and `Files.walk`, add dedicated integration tests:
 
-1. Tạo một file thử trong thư mục tạm được test sở hữu; ghi vài dòng hợp lệ và một dòng gây lỗi parse.
-2. Mở Stream bằng `Files.lines` trong `try-with-resources`, lần lượt kiểm `findFirst`, `limit` và ngoại lệ giữa `map`.
-3. Sau mỗi scope, xác minh có thể tiếp tục thao tác phù hợp với file theo đặc tính nền tảng đang kiểm thử.
-4. Thử cả lỗi phát sinh trong quá trình đọc, nếu có thể mô phỏng một nguồn I/O chủ động ném lỗi.
-5. Dọn tài nguyên test trong `finally` hoặc `try-with-resources`, không để test thất bại rồi bỏ lại file tạm.
+1. Create a test file inside a test-owned temporary directory; write several valid lines and one line that triggers a parse failure.
+2. Open the Stream with `Files.lines` inside `try-with-resources`, testing `findFirst`, `limit`, and mid-`map` exceptions in turn.
+3. After each scope, verify you can perform subsequent file operations appropriate to the platform under test.
+4. Also test errors raised mid-read if you can simulate an I/O source that throws on read.
+5. Clean up test resources in `finally` or `try-with-resources` so failed tests don't leave stray temp files behind.
 
-**Không coi việc xóa được file là một tiêu chí đóng file chung cho mọi hệ điều hành.** Trên một số hệ điều hành, file vẫn có thể bị unlink dù còn handle mở; trên hệ khác, hành vi có thể khác. Để xác minh hợp đồng chính xác, kết hợp fake/mock resource đếm số lần đóng với integration test phù hợp môi trường.
+**Do not treat file deletion as a universal file-closure check across all operating systems.** On some OSes, a file can be unlinked even while handles remain open; on others, behavior differs. To verify contracts reliably, combine fake/mock resources counting close calls with platform-appropriate integration tests.
 
-Một mẫu test tích hợp bằng JUnit (phác thảo; **không phải mã chạy độc lập** vì cần test framework và fixture):
+A JUnit integration test sketch (outline only; **not standalone runnable code** since it requires the test framework and fixture):
 
 ```java
 // @TempDir Path tempDir; // JUnit 5
@@ -585,45 +585,45 @@ Một mẫu test tích hợp bằng JUnit (phác thảo; **không phải mã ch�
 // });
 ```
 
-Với integration test, có thể quan sát thời điểm tài nguyên được đóng qua wrapper riêng hoặc kiểm tra sự kiện dọn dẹp của thư viện, thay vì đoán dựa trên số thread hay thời điểm file bị hệ điều hành khóa.
+In integration tests, observe when resources close via a dedicated wrapper or library cleanup hooks rather than guessing from thread counts or OS file-locking timing.
 
-## 10. Bảng kiểm thử bắt buộc cho dừng sớm và ngoại lệ
+## 10. Required Test Matrix for Early Exit and Exceptions
 
-| Ca | Terminal / tình huống | Khi nào `onClose` chạy? | Điều cần xác minh |
+| Case | Terminal / scenario | When does `onClose` run? | What to verify |
 | --- | --- | --- | --- |
-| Bình thường, đọc hết | `toList()`, `count()` | Khi `close()` được gọi hoặc rời `try`. | Không tự đóng khi terminal kết thúc. |
-| Tìm phần tử đầu | `findFirst()` | Khi rời `try`. | Kết quả đúng; đóng đúng một lần. |
-| Match ngắn mạch | `anyMatch(...)` | Khi rời `try`. | Không phụ thuộc số phần tử đã được đánh giá. |
-| Hạn chế đầu ra | `limit(n).toList()` | Khi rời `try`. | Không đọc vô hạn; vẫn đóng pipeline. |
-| Trả sớm khỏi phương thức | `return` trong khối `try` | Trước khi phương thức trả về. | Close handler vẫn chạy. |
-| Lambda ném ngoại lệ | `map(...).toList()` ném lỗi | Khi thoát `try` do ngoại lệ. | Vẫn đóng và giữ lỗi xử lý. |
-| Lỗi chỉ ở close | Handler ném lỗi | Trong `close()`. | Lỗi close không bị nuốt. |
-| Lỗi xử lý **và** close | Hai nơi đều ném lỗi | Trong bước cleanup khi thoát `try`. | Lỗi close là `suppressed` của lỗi chính. |
-| Nhiều close handler | Handler đầu ném lỗi | Khi `close()` gọi tất cả handlers. | Thứ tự đăng ký đúng; lỗi sau nằm trong suppressed. |
-| Gọi `close()` lặp lại | `close(); close()` | Handler chỉ chạy lần đầu. | Idempotency. |
-| Song song, dừng sớm | `parallel().anyMatch(...)` | Khi rời `try`. | Không đếm callback hay giả định thứ tự thread. |
+| Normal, full read | `toList()`, `count()` | When `close()` is called or exiting `try`. | Does not auto-close on terminal completion. |
+| Find first match | `findFirst()` | On exiting `try`. | Exact result; closed exactly once. |
+| Short-circuit match | `anyMatch(...)` | On exiting `try`. | Independent of how many elements were evaluated. |
+| Bounded output | `limit(n).toList()` | On exiting `try`. | Does not read infinitely; still closes pipeline. |
+| Early return from method | `return` inside `try` block | Before method returns. | Close handler still runs. |
+| Lambda throws exception | `map(...).toList()` fails | On unwinding out of `try`. | Still closes and preserves processing error. |
+| Failure only on close | Handler throws | Inside `close()`. | Close failure is not swallowed. |
+| Failure in processing **and** close | Both throw | During cleanup on `try` exit. | Close failure is `suppressed` on primary error. |
+| Multiple close handlers | First handler throws | As `close()` calls all handlers. | Registration order; later error is suppressed. |
+| Repeated `close()` calls | `close(); close()` | Handler runs only the first time. | Idempotency. |
+| Parallel early exit | `parallel().anyMatch(...)` | On exiting `try`. | Never count callbacks or assume thread order. |
 
-Nếu test chỉ quan sát rằng `findFirst()` trả đúng phần tử mà **không kiểm tra `close()`**, test đó chưa kiểm thử quyền sở hữu tài nguyên. Tương tự, nếu test chỉ kiểm có ngoại lệ ném ra nhưng không kiểm sự kiện đóng, lỗi leak vẫn có thể lọt qua.
+If a test checks only that `findFirst()` returns the right element **without checking `close()`**, that test fails to test resource ownership. Likewise, if a test checks only that an exception was thrown without verifying closure, resource leaks slip right through.
 
-## 11. Những sai lầm thường gặp
+## 11. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Cho rằng `toList()`/`sum()` tự đóng mọi Stream | Handle I/O có thể tiếp tục mở. | Dùng `try-with-resources` cho nguồn cần đóng. |
-| Dừng bằng `findFirst()` rồi bỏ Stream | Terminal kết thúc sớm nhưng tài nguyên chưa được đóng. | Đặt toàn bộ pipeline trong `try`. |
-| Gọi `close()` sau `map(...).toList()` | Lỗi trong lambda có thể bỏ qua câu lệnh đóng. | Để `try-with-resources` thực hiện cleanup. |
-| Dùng `onClose` như callback cho từng phần tử | Đếm sai và hiểu nhầm lifecycle. | Dùng `onClose` chỉ để quản lý/quan sát lúc đóng. |
-| Nuốt mọi ngoại lệ trong `catch (Exception)` | Có thể mất lỗi xử lý và lỗi đóng quan trọng. | Xử lý theo tầng và xem suppressed exceptions. |
-| Bắt một ngoại lệ close rồi cho rằng handler sau không chạy | Bỏ qua hợp đồng xử lý nhiều close handler. | Kiểm thứ tự và suppressed theo API. |
-| Đếm chính xác số lần `peek` trên `parallel().findAny()` | Test phụ thuộc tối ưu hóa và lịch chạy. | Kiểm kết quả, khả năng kết thúc và sự kiện đóng. |
-| Trả một `Stream` còn mở mà không ghi owner | Caller có thể quên đóng hoặc dùng sau khi owner đóng. | Công bố trách nhiệm đóng hoặc trả kết quả đã materialize. |
-| Tạo Stream từ `Spliterator` của tài nguyên riêng và quên hook đóng | Stream không tự biết tài nguyên nào cần cleanup. | Dùng `onClose(resource::close)` hoặc quản lý resource riêng. |
-| Dùng việc xóa file làm test đóng tuyệt đối trên mọi OS | Kết quả test khác nhau giữa hệ điều hành. | Mock/fake close và integration test theo nền tảng. |
-| Dùng nguồn vô hạn mà quên `limit` | Terminal có thể không kết thúc để rời scope. | Định nghĩa short-circuit và đặt timeout cho test. |
+| Assuming `toList()`/`sum()` closes every Stream | I/O handles can remain open. | Use `try-with-resources` for closeable sources. |
+| Stopping via `findFirst()` and discarding Stream | Terminal stops early while resource stays open. | Wrap the entire pipeline in `try`. |
+| Calling `close()` after `map(...).toList()` | Exceptions in lambdas skip the close statement. | Let `try-with-resources` perform cleanup. |
+| Using `onClose` as a per-element callback | Miscounts and misunderstands lifecycle. | Use `onClose` strictly to manage/observe closure. |
+| Swallowing everything in `catch (Exception)` | Hides critical processing and close errors. | Handle at proper layer and inspect suppressed exceptions. |
+| Catching one close exception and assuming later handlers skip | Misses multi-handler close contract. | Verify ordering and suppressed exceptions per API. |
+| Asserting exact `peek` counts on `parallel().findAny()` | Test depends on optimizations and scheduling. | Assert output, termination, and close events. |
+| Returning an open `Stream` without naming an owner | Caller forgets to close or reads after owner closes. | Document close ownership or return materialized results. |
+| Creating a Stream from a custom resource `Spliterator` without a close hook | Stream doesn't know what resource needs cleanup. | Attach `onClose(resource::close)` or manage resource separately. |
+| Using file deletion as a universal close test across OSes | Test behavior varies across operating systems. | Combine mock/fake close checks with OS-aware integration tests. |
+| Using an infinite source and forgetting `limit` | Terminal never finishes to exit scope. | Define short-circuiting and set test timeouts. |
 
-## 12. Bài tập tự luyện
+## 12. Self-Practice Exercises
 
-**Bài 1 — Terminal có tự đóng không?** Dự đoán `counter` sau `findFirst()` và sau `close()`:
+**Exercise 1 — Does a terminal auto-close?** Predict `counter` after `findFirst()` and after `close()`:
 
 ```java
 AtomicInteger counter = new AtomicInteger();
@@ -636,34 +636,34 @@ s.close();
 int after = counter.get();
 ```
 
-**Đáp án:** `before == 0`, `after == 1`. Terminal đã dùng Stream nhưng chưa tự gọi handler đóng.
+**Answer:** `before == 0`, `after == 1`. The terminal consumed the Stream without automatically invoking the close handler.
 
-**Bài 2 — Kết thúc sớm.** Nếu `Files.lines(path)` có 10.000 dòng và `limit(1).toList()` trả một dòng, có thể bỏ `try-with-resources` không?
+**Exercise 2 — Early stop.** If `Files.lines(path)` has 10,000 lines and `limit(1).toList()` returns one line, can you omit `try-with-resources`?
 
-**Đáp án:** Không. `limit` chỉ giới hạn kết quả/tiêu thụ, không thay nghĩa vụ đóng file-backed Stream.
+**Answer:** No. `limit` restricts consumption/output, not the obligation to close the file-backed Stream.
 
-**Bài 3 — Ngoại lệ giữa pipeline.** Viết test đảm bảo `NumberFormatException` từ `Integer.parseInt` không ngăn `onClose` được gọi khi Stream đặt trong `try-with-resources`. Đặt một dòng `"oops"` sau dòng hợp lệ và xác minh cả ngoại lệ lẫn số lần đóng.
+**Exercise 3 — Mid-pipeline exception.** Write a test ensuring `NumberFormatException` from `Integer.parseInt` does not prevent `onClose` from running when the Stream is inside `try-with-resources`. Put `"oops"` after a valid line and verify both the exception and the close count.
 
-**Bài 4 — Hai ngoại lệ.** Cho thân `try` ném `IllegalArgumentException("body")`, `onClose` ném `IllegalStateException("close")`. Ngoại lệ nào là primary? Ngoại lệ nào trong `getSuppressed()`?
+**Exercise 4 — Two exceptions.** Have the `try` body throw `IllegalArgumentException("body")` and `onClose` throw `IllegalStateException("close")`. Which is primary? Which appears in `getSuppressed()`?
 
-**Đáp án:** `IllegalArgumentException("body")` là primary, còn `IllegalStateException("close")` được gắn suppressed.
+**Answer:** `IllegalArgumentException("body")` is primary, and `IllegalStateException("close")` is attached as suppressed.
 
-**Bài 5 — Nhiều handler.** Đăng ký ba `onClose` handler; handler thứ nhất và thứ ba ném ngoại lệ, handler thứ hai tăng bộ đếm. Xác minh cả ba handler được gọi theo thứ tự, và ngoại lệ thứ ba bị suppressed vào ngoại lệ đầu tiên.
+**Exercise 5 — Multiple handlers.** Register three `onClose` handlers; the first and third throw exceptions, while the second increments a counter. Verify all three run in registration order, and the third exception is suppressed on the first.
 
-**Bài 6 — `return` trong `try`.** Viết phương thức trả kết quả `findFirst()` ngay trong khối `try (Stream<T> s = ...)`. Vì sao lời gọi `return` không làm bỏ qua `close()`?
+**Exercise 6 — `return` inside `try`.** Write a method returning `findFirst()` directly inside `try (Stream<T> s = ...)`. Why doesn't `return` bypass `close()`?
 
-**Đáp án:** `try-with-resources` tạo phần cleanup được thực hiện khi thoát scope, kể cả thoát bằng `return`. Việc đóng xảy ra trước khi người gọi nhận giá trị trả về.
+**Answer:** `try-with-resources` generates cleanup executed upon leaving scope, including exiting via `return`. Closing completes before the caller receives the return value.
 
-**Bài 7 — Tài nguyên tự xây.** Một nguồn do ứng dụng tự tạo có `spliterator()` và `close()`. Thiết kế cách kết nối `StreamSupport.stream(...)` với việc đóng nguồn. Phân tích ai là owner nếu phương thức trả Stream còn mở cho caller.
+**Exercise 7 — Custom resource.** An application-defined source provides `spliterator()` and `close()`. Design how to wire `StreamSupport.stream(...)` to resource closure. Analyze who owns closing if a method returns the open Stream to its caller.
 
-**Bài 8 — Test song song.** Viết ca `parallelStream().anyMatch(...)` trên danh sách lớn và gắn `onClose`. Tại sao chỉ nên yêu cầu `onClose` được gọi đúng khi đóng, không khẳng định `map` luôn chạy đúng số phần tử đã quan sát ở một lần thử?
+**Exercise 8 — Parallel test.** Write a `parallelStream().anyMatch(...)` test on a large list with `onClose` attached. Why should you require only that `onClose` runs on close, without asserting `map` always processes the exact element count seen in one trial?
 
-**Đáp án:** Stream song song có quyền chia công việc, xử lý trước một số phần tử và dừng sau khi một nhánh đã có đáp án. Số lời gọi callback không phải hợp đồng ổn định; `try-with-resources` mới bảo đảm hành động đóng ở cuối scope.
+**Answer:** A parallel Stream may split work, speculatively evaluate extra elements, and stop once one branch finds a match. Callback counts are not a stable contract; `try-with-resources` guarantees closing at scope exit.
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-- **Terminal operation không tự đóng Stream**, kể cả khi đã đọc hết nguồn hoặc dừng sớm bằng `findFirst`, `anyMatch`, `limit`.
-- Nguồn gắn với tài nguyên như `Files.lines`/`Files.walk` cần **`try-with-resources`**; `return` và ngoại lệ trong pipeline không bỏ qua cleanup.
-- `onClose` dùng để gắn/quan sát hành động đóng pipeline; đóng Stream là idempotent. Kiểm thử `onClose` chứng minh đường gọi close, không tự chứng minh mọi handle của hệ điều hành đã được giải phóng.
-- Khi có lỗi cả trong xử lý và khi đóng, `try-with-resources` giữ lỗi xử lý làm **primary** và đưa lỗi đóng vào **suppressed exceptions**; các close handler được gọi theo thứ tự đăng ký.
-- Kiểm thử cả **thành công, dừng sớm, nguồn vô hạn được giới hạn, ngoại lệ, nhiều handler và song song**. Đừng buộc số callback hay lịch thread phải cố định nếu API không cam kết.
+- **Terminal operations do not auto-close a Stream**, even after reading the entire source or stopping early with `findFirst`, `anyMatch`, or `limit`.
+- Resource-backed sources like `Files.lines`/`Files.walk` require **`try-with-resources`**; `return` statements and mid-pipeline exceptions never bypass cleanup.
+- `onClose` attaches/observes pipeline close actions; closing a Stream is idempotent. Testing `onClose` proves the close invocation path, not automatically that all OS handles were released.
+- When both processing and closing fail, `try-with-resources` keeps the processing failure as **primary** and records close failures in **suppressed exceptions**; close handlers run in registration order.
+- Test **normal completion, early exit, bounded infinite sources, exceptions, multiple handlers, and parallel runs**. Never require fixed callback counts or thread schedules that the API does not promise.

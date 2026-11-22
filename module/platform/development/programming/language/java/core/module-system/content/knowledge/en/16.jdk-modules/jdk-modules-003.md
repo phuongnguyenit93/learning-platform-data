@@ -1,82 +1,82 @@
-# jdk.* module và công cụ phát triển
+# jdk.* Modules and Development Tools
 
-Từ Java 9, Java Platform Module System (JPMS) phân chia JDK thành nhiều **named modules**. Một nhóm là các module có tên bắt đầu bằng `java.` (ví dụ `java.base`, `java.compiler`, `java.sql`); nhóm khác có tên bắt đầu bằng `jdk.` (ví dụ `jdk.compiler`, `jdk.javadoc`, `jdk.jdeps`, `jdk.jlink`, `jdk.jshell`).
+Since Java 9, the Java Platform Module System (JPMS) divides the JDK into many **named modules**. One group consists of modules whose names start with `java.` (for example `java.base`, `java.compiler`, `java.sql`); another group consists of modules whose names start with `jdk.` (for example `jdk.compiler`, `jdk.javadoc`, `jdk.jdeps`, `jdk.jlink`, `jdk.jshell`).
 
-Nhiều module `jdk.*` cung cấp **công cụ dành cho người phát triển**, implementation của compiler, công cụ phân tích dependency, công cụ tạo runtime image, môi trường JShell hoặc những chức năng quan sát JVM. Hiểu chúng giúp cấu hình đúng build, nhận biết API nào được hỗ trợ, và tránh lỗi khi chạy trên một Java runtime image không chứa đầy đủ công cụ của JDK.
+Many `jdk.*` modules provide **developer tools**, the compiler implementation, dependency analysis tools, runtime image creation tools, the JShell environment, or JVM observability capabilities. Understanding them helps configure builds properly, recognize which APIs are supported, and avoid errors when running on a Java runtime image that does not include the full JDK toolset.
 
-**Nguyên tắc:** tiền tố `jdk.` chỉ cho biết tên module thuộc nhóm module do JDK cung cấp; nó không tự chứng minh mọi package bên trong đều là public API ổn định. Cần xem **exports**, tài liệu API và mục đích cụ thể của module trước khi phụ thuộc trực tiếp vào class nào đó.
+**Principle:** the `jdk.` prefix only indicates that the module name belongs to the group of modules provided by the JDK; it does not prove that every package inside is a stable public API. Check **exports**, the API documentation, and the module's specific purpose before depending directly on any class.
 
-## 1. java.* và jdk.* khác nhau như thế nào?
+## 1. How Do java.* and jdk.* Differ?
 
-Trong JDK modular:
+In the modular JDK:
 
-- Các module `java.*` bao gồm các API Java SE chuẩn như collections, networking, JDBC, XML, logging và Java Compiler API. Ví dụ `java.base` luôn có mặt trong mọi runtime Java.
-- Các module `jdk.*` cung cấp những khả năng do JDK định nghĩa, bao gồm một số API công khai của JDK và cả implementation hoặc công cụ dành cho lập trình viên.
-- Một module có thể **exports** package công khai trong khi giữ những package nội bộ không được export.
-- Tập module thực tế có thể khác giữa các phiên bản JDK, nhà cung cấp JDK và custom runtime images.
+- `java.*` modules include standard Java SE APIs such as collections, networking, JDBC, XML, logging, and the Java Compiler API. For example, `java.base` is always present in every Java runtime.
+- `jdk.*` modules provide JDK-defined capabilities, including certain public JDK APIs as well as implementations or developer tools.
+- A module can **exports** public packages while keeping internal packages unexported.
+- The actual set of modules can vary across JDK versions, JDK vendors, and custom runtime images.
 
-Ví dụ:
+Example:
 
     module com.example.app {
         requires java.compiler;
     }
 
-Khai báo trên cho phép ứng dụng dùng API Java Compiler chuẩn trong `javax.tools` và `javax.annotation.processing`. Nó **không tương đương** với:
+The declaration above allows the application to use the standard Java Compiler API in `javax.tools` and `javax.annotation.processing`. It is **not equivalent** to:
 
     module com.example.app {
         requires jdk.compiler;
     }
 
-`jdk.compiler` chứa implementation của compiler cùng một số API công cụ riêng của JDK; còn `java.compiler` định nghĩa những interface và kiểu chuẩn mà ứng dụng có thể sử dụng khi phù hợp.
+`jdk.compiler` contains the compiler implementation along with certain JDK-specific tool APIs; whereas `java.compiler` defines standard interfaces and types that applications can use when appropriate.
 
-Cũng cần phân biệt **module name** với **package name**. Một package tên `com.sun.source.tree` có thể được export từ `jdk.compiler`, dù tên package không bắt đầu bằng `jdk.`. Ngược lại, package bắt đầu bằng `jdk.internal.` thường không phải API được hỗ trợ để ứng dụng dùng trực tiếp.
+You should also distinguish **module name** from **package name**. A package named `com.sun.source.tree` can be exported from `jdk.compiler`, even though the package name does not start with `jdk.`. Conversely, a package starting with `jdk.internal.` is usually not a supported API for direct application use.
 
-## 2. Những module jdk.* thường gặp
+## 2. Commonly Encountered jdk.* Modules
 
-| Module | Chức năng chính | Công cụ hoặc API liên quan |
+| Module | Primary purpose | Related tool or API |
 |---|---|---|
-| `jdk.compiler` | Implementation Java compiler và API phân tích cấu trúc source của JDK | `javac`, `com.sun.source.tree`, `com.sun.source.util` |
-| `jdk.javadoc` | Implementation công cụ tạo tài liệu Java | `javadoc`, `jdk.javadoc.doclet` |
-| `jdk.jdeps` | Phân tích dependency của class/JAR và gợi ý module dependencies | `jdeps` |
-| `jdk.jlink` | Công cụ liên kết module và đóng gói runtime image | `jlink`, `jmod` |
-| `jdk.jshell` | API và implementation JShell | `jshell`, `jdk.jshell` |
+| `jdk.compiler` | JDK Java compiler implementation and source structure analysis API | `javac`, `com.sun.source.tree`, `com.sun.source.util` |
+| `jdk.javadoc` | Java documentation generation tool implementation | `javadoc`, `jdk.javadoc.doclet` |
+| `jdk.jdeps` | Class/JAR dependency analysis and module dependency suggestions | `jdeps` |
+| `jdk.jlink` | Module linking and runtime image packaging tools | `jlink`, `jmod` |
+| `jdk.jshell` | JShell API and implementation | `jshell`, `jdk.jshell` |
 | `jdk.jfr` | Java Flight Recorder (JFR) | `jdk.jfr.FlightRecorder`, `Recording` |
-| `jdk.attach` | Attach API để tương tác với JVM khác khi được hỗ trợ | `com.sun.tools.attach.VirtualMachine` |
-| `jdk.management` | Phần mở rộng JDK Management API | `com.sun.management` |
-| `jdk.httpserver` | HTTP server nhẹ do JDK cung cấp | `com.sun.net.httpserver.HttpServer` |
-| `jdk.unsupported` | Một số API legacy không chuẩn được duy trì để tương thích | Không nên chọn cho ứng dụng mới nếu có API thay thế |
+| `jdk.attach` | Attach API for interacting with another JVM when supported | `com.sun.tools.attach.VirtualMachine` |
+| `jdk.management` | JDK Management API extensions | `com.sun.management` |
+| `jdk.httpserver` | Lightweight HTTP server provided by the JDK | `com.sun.net.httpserver.HttpServer` |
+| `jdk.unsupported` | Certain legacy non-standard APIs retained for compatibility | Should not be chosen for new applications if a standard alternative exists |
 
-Bảng mô tả các module quen thuộc trong những bản JDK hiện đại; **không phải cam kết rằng mọi bản phân phối Java đều có toàn bộ danh sách**. Module cung cấp công cụ có thể không có trong runtime image tối giản được tạo bởi `jlink`.
+The table describes familiar modules in modern JDK releases; **it is not a guarantee that every Java distribution contains the entire list**. Modules providing tools may be absent in a minimal runtime image created with `jlink`.
 
-`jdk.*` cũng không đồng nghĩa mọi module chỉ dành cho compile time: chẳng hạn `jdk.jfr`, `jdk.attach`, `jdk.management` hoặc `jdk.httpserver` có thể được sử dụng khi chương trình đang chạy.
+`jdk.*` also does not mean every module is compile-time only: for example, `jdk.jfr`, `jdk.attach`, `jdk.management`, or `jdk.httpserver` can be used while the program is running.
 
-## 3. Module là thành phần runtime; lệnh javac là công cụ
+## 3. A Module Is a Runtime Component; the javac Command Is a Tool
 
-Có hai tầng cần tách:
+There are two layers to separate:
 
-**Tầng module:** `jdk.compiler` là một named module có descriptor, các package, dependencies và exports cụ thể.
+**Module layer:** `jdk.compiler` is a named module with a specific descriptor, packages, dependencies, and exports.
 
-**Tầng công cụ:** `javac` là công cụ dòng lệnh dùng để biên dịch source Java. Khi chạy `javac`, bạn đang sử dụng chức năng compiler của JDK; shell command không phải là tên module.
+**Tool layer:** `javac` is a command-line tool used to compile Java source. When you run `javac`, you are invoking the JDK's compiler functionality; the shell command is not a module name.
 
-Tương tự:
+Similarly:
 
-    Công cụ:  javac       -> module liên quan: jdk.compiler
-    Công cụ:  javadoc     -> module liên quan: jdk.javadoc
-    Công cụ:  jdeps       -> module liên quan: jdk.jdeps
-    Công cụ:  jlink       -> module liên quan: jdk.jlink
-    Công cụ:  jshell      -> module liên quan: jdk.jshell
+    Tool:     javac       -> related module: jdk.compiler
+    Tool:     javadoc     -> related module: jdk.javadoc
+    Tool:     jdeps       -> related module: jdk.jdeps
+    Tool:     jlink       -> related module: jdk.jlink
+    Tool:     jshell      -> related module: jdk.jshell
 
-Không phải mọi command-line launcher đều có cùng cơ chế cung cấp API trong chương trình Java. Khi viết Java code, hãy tìm API công khai phù hợp và khai báo `requires` nếu source module cần dùng kiểu của module đó.
+Not every command-line launcher shares the same mechanism for providing an API inside a Java program. When writing Java code, look up the appropriate public API and declare `requires` if your source module needs to use types from that module.
 
-Các executable trong thư mục `bin` của JDK và các runtime modules được lưu trong JDK image là những thành phần liên quan nhưng không phải cùng một thực thể.
+The executables in the JDK's `bin` directory and the runtime modules stored in the JDK image are related components, not the exact same entity.
 
-## 4. Xem các module đang có trong JDK
+## 4. Viewing Modules Present in the JDK
 
-Cách dễ nhất để biết một Java runtime nhìn thấy những module hệ thống nào là:
+The easiest way to see which system modules a Java runtime recognizes is:
 
     java --list-modules
 
-Đầu ra có thể gồm:
+Output may include:
 
     java.base@...
     java.compiler@...
@@ -85,33 +85,33 @@ Cách dễ nhất để biết một Java runtime nhìn thấy những module h�
     jdk.jdeps@...
     jdk.jlink@...
 
-Dấu `...` chỉ phiên bản được rút gọn trong ví dụ. Danh sách thực tế phụ thuộc JDK.
+The `...` indicates shortened version numbers in the example. The actual list depends on the JDK.
 
-Lọc tên module trên Linux/macOS:
+Filter module names on Linux/macOS:
 
     java --list-modules | grep '^jdk\.'
 
-Trên Windows với Command Prompt:
+On Windows with Command Prompt:
 
     java --list-modules | findstr /B jdk.
 
-Xem descriptor của một module:
+View a module's descriptor:
 
     java --describe-module jdk.compiler
 
-Descriptor có thể cho biết:
+The descriptor can show:
 
-- Tên và phiên bản module.
-- Directive `requires`, gồm module nào nó đọc.
-- Những package được `exports`.
-- Những package được `opens` nếu có.
-- Các service declarations `uses` và `provides`.
+- Module name and version.
+- `requires` directives, indicating which modules it reads.
+- Packages that are `exports`ed.
+- Packages that are `opens`ed, if any.
+- `uses` and `provides` service declarations.
 
-Nếu `java --describe-module jdk.compiler` báo module không tìm thấy, hãy kiểm tra đúng lệnh `java` đang chạy thuộc JDK/runtime image nào, thay vì mặc định lỗi nằm ở source application.
+If `java --describe-module jdk.compiler` reports that the module is not found, check which JDK/runtime image the running `java` command belongs to rather than assuming the bug is in application source code.
 
-## 5. Quan sát module bằng Java API
+## 5. Observing Modules via the Java API
 
-API `ModuleFinder` cho phép tìm module hệ thống hiện có:
+The `ModuleFinder` API lets you locate available system modules:
 
     import java.lang.module.ModuleFinder;
     import java.lang.module.ModuleReference;
@@ -131,21 +131,21 @@ API `ModuleFinder` cho phép tìm module hệ thống hiện có:
         }
     }
 
-`ModuleFinder.ofSystem()` mô tả các module hệ thống mà runtime hiện tại có thể tìm thấy. Nó không phải trình quét mọi JAR của Maven hay Gradle.
+`ModuleFinder.ofSystem()` describes the system modules that the current runtime can locate. It is not a scanner for every Maven or Gradle JAR.
 
-Đừng nhầm “module hiện diện trong system module finder” với “module đã được resolve vào boot layer”. Có thể xem:
+Do not confuse "module present in the system module finder" with "module resolved into the boot layer". You can check:
 
     boolean resolved = ModuleLayer.boot()
             .findModule("jdk.compiler")
             .isPresent();
 
-Kết quả phụ thuộc cấu hình khởi chạy, root modules và resolution. Một module có thể quan sát được nhưng chưa nằm trong module graph của chương trình hiện tại.
+The result depends on launch configuration, root modules, and resolution. A module may be observable yet not part of the current program's module graph.
 
-Nếu cần tìm một module phụ thuộc tùy chọn, hãy kiểm tra sự hiện diện và cấu hình resolution thay vì dựa duy nhất vào filename của JAR.
+If you need to look for an optional dependent module, check its presence and resolution configuration rather than relying solely on JAR filenames.
 
-## 6. java.compiler: API chuẩn cho trình biên dịch
+## 6. java.compiler: Standard API for the Compiler
 
-Module `java.compiler` định nghĩa các API chuẩn phục vụ compiler và annotation processing:
+The `java.compiler` module defines standard APIs for compilation and annotation processing:
 
     javax.tools.JavaCompiler
     javax.tools.ToolProvider
@@ -154,13 +154,13 @@ Module `java.compiler` định nghĩa các API chuẩn phục vụ compiler và 
     javax.lang.model.element.Element
     javax.lang.model.type.TypeMirror
 
-Nếu ứng dụng muốn yêu cầu hệ thống biên dịch một file Java thông qua Java Compiler API, có thể khai báo:
+If an application wants to ask the system to compile a Java file through the Java Compiler API, it can declare:
 
     module com.example.buildhelper {
         requires java.compiler;
     }
 
-Sau đó:
+Then:
 
     import javax.tools.JavaCompiler;
     import javax.tools.ToolProvider;
@@ -188,43 +188,43 @@ Sau đó:
         }
     }
 
-`getSystemJavaCompiler()` trả về `null` nếu runtime không cung cấp compiler hệ thống. Ví dụ, một runtime image được tùy biến chỉ chứa các module cần chạy ứng dụng có thể không có compiler.
+`getSystemJavaCompiler()` returns `null` if the runtime does not provide a system compiler. For instance, a custom runtime image containing only the modules needed to run the application might lack a compiler.
 
-Điểm quan trọng là **source code gọi các API chuẩn từ `java.compiler`**, còn implementation compiler thực tế thường do `jdk.compiler` cung cấp trong JDK đầy đủ. Nếu chương trình cần compiler khi chạy, runtime phải có implementation thích hợp.
+The key point is that **source code calls standard APIs from `java.compiler`**, while the actual compiler implementation is typically provided by `jdk.compiler` in a full JDK. If the program needs a compiler at runtime, the runtime must include an appropriate implementation.
 
-## 7. Khi nào cần requires jdk.compiler?
+## 7. When Is requires jdk.compiler Needed?
 
-Không phải ứng dụng dùng `javac` đều cần khai báo:
+Not every application compiled with `javac` needs to declare:
 
     requires jdk.compiler;
 
-Nếu ứng dụng **chỉ được javac biên dịch**, module app không cần `requires jdk.compiler` vì chỉ dùng compiler như một công cụ bên ngoài.
+If the application is **merely compiled by javac**, the app module does not need `requires jdk.compiler` because it only uses the compiler as an external tool.
 
-Nếu ứng dụng dùng các API chuẩn `javax.tools` hoặc `javax.lang.model`, thông thường dùng:
+If the application uses the standard `javax.tools` or `javax.lang.model` APIs, it typically uses:
 
     requires java.compiler;
 
-Nếu ứng dụng thật sự import API của module `jdk.compiler`, chẳng hạn Tree API hoặc Trees utility:
+If the application genuinely imports APIs from the `jdk.compiler` module, such as the Tree API or Trees utility:
 
     import com.sun.source.tree.CompilationUnitTree;
     import com.sun.source.util.JavacTask;
     import com.sun.source.util.Trees;
 
-khi đó module có thể cần:
+then the module may need:
 
     module com.example.analysis {
         requires jdk.compiler;
     }
 
-Một số package `com.sun.source.*` là API công khai do `jdk.compiler` export để hỗ trợ phân tích source. Ngược lại, các package `com.sun.tools.javac.*` chứa nhiều implementation detail không được export rộng và không phải API ổn định.
+Some `com.sun.source.*` packages are public APIs exported by `jdk.compiler` to support source analysis. In contrast, `com.sun.tools.javac.*` packages contain many implementation details that are not broadly exported and are not stable APIs.
 
-**Không suy ra từ tiền tố `com.sun` rằng mọi API đều giống nhau**: kiểm tra exports trong descriptor và tài liệu API tương ứng.
+**Do not infer from the `com.sun` prefix that all APIs are alike**: check the exports in the descriptor and the corresponding API documentation.
 
-## 8. Ví dụ sử dụng API phân tích source của javac
+## 8. Example Using javac's Source Analysis API
 
-Nếu cần phân tích AST (Abstract Syntax Tree), có thể sử dụng `JavacTask` và `CompilationUnitTree` thay vì truy cập nội bộ compiler không được hỗ trợ.
+If you need to analyze an AST (Abstract Syntax Tree), you can use `JavacTask` and `CompilationUnitTree` instead of accessing unsupported compiler internals.
 
-Ví dụ:
+Example:
 
     import com.sun.source.tree.CompilationUnitTree;
     import com.sun.source.util.JavacTask;
@@ -261,21 +261,21 @@ Ví dụ:
         }
     }
 
-Đây là ví dụ dùng API JDK cho AST. Tên module cung cấp implementation vẫn liên quan tới `jdk.compiler`; khi đóng gói thành named module, `requires jdk.compiler;` phù hợp với imports `com.sun.source.*`.
+This is an example of using the JDK API for ASTs. The module providing the implementation is still tied to `jdk.compiler`; when packaged as a named module, `requires jdk.compiler;` matches the `com.sun.source.*` imports.
 
-Hãy dùng public Tree API trước khi đụng tới các cấu trúc `com.sun.tools.javac.*` nội bộ. API công khai có hợp đồng hỗ trợ tốt hơn khi nâng JDK.
+Use the public Tree API before touching internal `com.sun.tools.javac.*` structures. Public APIs have better support guarantees when upgrading the JDK.
 
-## 9. Annotation processors không phải lúc nào cần jdk.compiler
+## 9. Annotation Processors Do Not Always Need jdk.compiler
 
-Một annotation processor thông thường thường dùng:
+A typical annotation processor usually uses:
 
     javax.annotation.processing.AbstractProcessor
     javax.annotation.processing.RoundEnvironment
     javax.lang.model.element.TypeElement
 
-Các API đó thuộc `java.compiler`.
+Those APIs belong to `java.compiler`.
 
-Module processor có thể viết:
+A processor module can be written as:
 
     module com.example.processor {
         requires java.compiler;
@@ -284,99 +284,99 @@ Module processor có thể viết:
             with com.example.processor.MyProcessor;
     }
 
-Khi biên dịch module processor, cần đưa implementation vào processor path hoặc processor module path thích hợp để compiler phát hiện và chạy processor.
+When compiling with a processor module, place the implementation on the appropriate processor path or processor module path so the compiler discovers and executes the processor.
 
-Không nên mặc định annotation processor nào cũng phải `requires jdk.compiler`. Chỉ thêm dependency đó nếu processor thực sự sử dụng các API `jdk.compiler` export.
+Do not assume every annotation processor must `requires jdk.compiler`. Only add that dependency if the processor actually uses APIs exported by `jdk.compiler`.
 
-Processor đời cũ có thể phụ thuộc vào `com.sun.tools.javac` nội bộ, gặp `IllegalAccessError` hoặc lỗi package visibility trên các JDK mới. Giải pháp bền vững thường là cập nhật processor hoặc đổi sang API chuẩn, không phải mở tất cả package nội bộ của `jdk.compiler`.
+Legacy processors may depend on internal `com.sun.tools.javac` packages and hit `IllegalAccessError` or package visibility errors on newer JDKs. The sustainable fix is usually updating the processor or switching to standard APIs, rather than opening all internal packages of `jdk.compiler`.
 
-## 10. jdk.javadoc và công cụ tạo tài liệu
+## 10. jdk.javadoc and the Documentation Generation Tool
 
-Module `jdk.javadoc` chứa implementation của công cụ `javadoc`. Khi chạy:
+The `jdk.javadoc` module contains the implementation of the `javadoc` tool. When running:
 
     javadoc -d docs -sourcepath src com.example.api
 
-Javadoc sẽ phân tích source và sinh tài liệu HTML, tùy source layout và cấu hình command.
+Javadoc analyzes the source and generates HTML documentation, depending on source layout and command options.
 
-Một số API phát triển công cụ Javadoc nằm trong các package như:
+Some APIs for extending the Javadoc tool reside in packages such as:
 
     jdk.javadoc.doclet
 
-Nếu viết doclet riêng và import API ở module `jdk.javadoc`, source module cần quan hệ đọc thích hợp, chẳng hạn:
+If you write a custom doclet and import APIs from the `jdk.javadoc` module, the source module needs the appropriate readability relationship, such as:
 
     module com.example.doclet {
         requires jdk.javadoc;
     }
 
-Điều này khác với việc đơn giản dùng command `javadoc` để tạo tài liệu cho một ứng dụng. Ứng dụng **không cần** `requires jdk.javadoc` chỉ vì pipeline build có bước tạo Javadoc.
+This differs from simply running the `javadoc` command to generate documentation for an application. An application **does not need** `requires jdk.javadoc` just because its build pipeline includes a Javadoc generation step.
 
-Trong custom runtime image không có `jdk.javadoc`, những chức năng cần Javadoc implementation có thể không khả dụng. Hãy giữ nhiệm vụ sinh tài liệu ở môi trường build JDK nếu production không cần chúng.
+In a custom runtime image without `jdk.javadoc`, features requiring the Javadoc implementation may be unavailable. Keep documentation generation tasks in the build JDK environment if production does not need them.
 
-## 11. jdk.jdeps: phân tích dependency khi modularize
+## 11. jdk.jdeps: Analyzing Dependencies When Modularizing
 
-`jdeps` là một công cụ quan trọng khi chuyển dự án legacy sang JPMS. Module hỗ trợ công cụ này là `jdk.jdeps`.
+`jdeps` is an important tool when migrating legacy projects to JPMS. The module supporting this tool is `jdk.jdeps`.
 
-Ví dụ liệt kê dependency ở cấp module:
+Example listing module-level dependencies:
 
     jdeps --print-module-deps app.jar
 
-Nếu phụ thuộc không nằm trong nguồn mà công cụ thấy được, có thể cần bổ sung classpath hoặc module path tương ứng.
+If dependencies are not in the sources the tool sees, you may need to supply the corresponding classpath or module path.
 
-Xem phụ thuộc vào nội bộ JDK:
+Check dependencies on JDK internals:
 
     jdeps --jdk-internals app.jar
 
-Lệnh này đặc biệt hữu ích khi ứng dụng hoặc thư viện cũ sử dụng API JDK nội bộ từng có thể truy cập từ classpath.
+This command is especially useful when an older application or library uses internal JDK APIs that used to be accessible from the classpath.
 
-Đối với JAR yêu cầu module path riêng:
+For JARs requiring a separate module path:
 
     jdeps --module-path libs --print-module-deps app.jar
 
-`jdeps` hỗ trợ phân tích tĩnh dependency được biểu diễn trong class files; nó **không bảo đảm nhìn thấy mọi dependency được tạo động bằng reflection hoặc service discovery**.
+`jdeps` supports static analysis of dependencies represented in class files; it **does not guarantee visibility into dependencies created dynamically via reflection or service discovery**.
 
-Một ứng dụng chỉ dùng reflection theo tên class trong chuỗi có thể cần module runtime mà `jdeps` không phát hiện bằng phân tích static. Vì vậy, kết quả `jdeps` là cơ sở cho module graph, không phải bản kiểm kê tất cả thành phần chạy được.
+An application that only uses reflection by class names in strings may need runtime modules that `jdeps` does not detect through static analysis. Therefore, `jdeps` output is a starting point for the module graph, not a complete inventory of every runtime component.
 
-## 12. jdk.jlink: tạo runtime image theo modules
+## 12. jdk.jlink: Creating Modular Runtime Images
 
-`jlink` giúp tạo một Java runtime image chỉ chứa các module được yêu cầu và dependency cần thiết của chúng. Công cụ liên quan tới module `jdk.jlink`.
+`jlink` lets you create a Java runtime image containing only the requested modules and their required dependencies. The tool corresponds to the `jdk.jlink` module.
 
-Ví dụ:
+Example:
 
     jlink --add-modules java.base,java.logging
           --output image
 
-Runtime image này có thể phù hợp với ứng dụng chỉ cần một tập API nhỏ. Tuy nhiên, nó không nhất thiết chứa compiler, Javadoc, JShell hay các công cụ phát triển khác.
+This runtime image can suit an application that needs only a small set of APIs. However, it will not necessarily include the compiler, Javadoc, JShell, or other development tools.
 
-Nếu ứng dụng thực sự cần compiler ở runtime:
+If the application genuinely needs the compiler at runtime:
 
     jlink --add-modules java.base,jdk.compiler
           --output image-with-compiler
 
-Module graph của `jdk.compiler` kéo theo những module phụ thuộc phù hợp khi image được tạo.
+The module graph of `jdk.compiler` pulls in the appropriate dependent modules when the image is built.
 
-Khi triển khai production, **không thêm tất cả module `jdk.*` chỉ vì chúng có trong full JDK**. Đưa vào những module thực sự cần cho ứng dụng để giảm kích thước và bề mặt phụ thuộc.
+In production deployments, **do not include every `jdk.*` module just because it exists in a full JDK**. Include only the modules the application truly needs to reduce image size and dependency surface.
 
-Ngoài ra, lưu ý **JMOD** và **modular JAR** khác nhau: các file `.jmod` trong thư mục `jmods` của JDK hỗ trợ công cụ như `jlink`; chúng không phải artifact JAR để chương trình tùy ý nạp trên application module path bằng Java launcher.
+Also note that **JMOD** and **modular JAR** formats differ: `.jmod` files in the JDK's `jmods` directory support tools like `jlink`; they are not JAR artifacts for programs to load arbitrarily on the application module path via the Java launcher.
 
-## 13. jdk.jshell: thử mã và API JShell
+## 13. jdk.jshell: Experimenting with Code and the JShell API
 
-JShell cung cấp môi trường REPL (Read-Eval-Print Loop) để chạy đoạn mã Java ngắn:
+JShell provides a REPL (Read-Eval-Print Loop) environment for running short Java snippets:
 
     jshell
 
-Trong JShell có thể thử:
+Inside JShell you can try:
 
     jshell> 1 + 2
 
-Bên cạnh công cụ dòng lệnh, module `jdk.jshell` cung cấp API công khai như `jdk.jshell.JShell`.
+Beyond the command-line tool, the `jdk.jshell` module provides public APIs such as `jdk.jshell.JShell`.
 
-Một ứng dụng xây dựng giao diện học Java hoặc IDE plugin có thể dùng:
+An application building a Java learning interface or IDE plugin might use:
 
     module com.example.repl {
         requires jdk.jshell;
     }
 
-Ví dụ tạo một JShell instance:
+Example creating a JShell instance:
 
     import jdk.jshell.JShell;
 
@@ -389,91 +389,91 @@ Ví dụ tạo một JShell instance:
         }
     }
 
-Nếu application chỉ được build bằng JDK có công cụ `jshell` nhưng không import API JShell, **không cần** thêm `requires jdk.jshell`.
+If an application is merely built using a JDK that includes the `jshell` tool without importing the JShell API, there is **no need** to add `requires jdk.jshell`.
 
-Hãy nhớ rằng JShell có cơ chế execution environment riêng; việc sử dụng JShell API trong ứng dụng nhúng phải cân nhắc vòng đời tài nguyên và môi trường thực thi snippet.
+Keep in mind that JShell has its own execution environment mechanism; using the JShell API inside an embedded application requires considering resource lifecycles and the snippet execution environment.
 
-## 14. Một số jdk.* module có API ở runtime
+## 14. Some jdk.* Modules Have Runtime APIs
 
-Không phải module `jdk.*` nào cũng chỉ phục vụ build:
+Not every `jdk.*` module is strictly for build time:
 
 **`jdk.jfr` — Java Flight Recorder**
 
-Cung cấp API quan sát hiệu năng và sự kiện runtime:
+Provides APIs for performance observation and runtime events:
 
     module com.example.monitoring {
         requires jdk.jfr;
     }
 
-Có thể sử dụng API `jdk.jfr.Recording` hoặc event phù hợp khi ứng dụng cần JFR.
+You can use `jdk.jfr.Recording` or appropriate event APIs when the application needs JFR.
 
 **`jdk.attach` — Attach API**
 
-Cung cấp các kiểu như `com.sun.tools.attach.VirtualMachine`. Khả năng attach phụ thuộc nền tảng, quyền tiến trình, chính sách bảo mật và runtime image; không phải lúc nào ứng dụng cũng được phép attach JVM khác.
+Provides types such as `com.sun.tools.attach.VirtualMachine`. Attach capability depends on platform, process permissions, security policies, and the runtime image; an application is not always permitted to attach to another JVM.
 
-**`jdk.management` — mở rộng quản lý JVM**
+**`jdk.management` — JVM Management Extensions**
 
-Cung cấp các API quản lý mở rộng trong package `com.sun.management`. Phân biệt với API JMX chuẩn như `java.management`.
+Provides extended management APIs in the `com.sun.management` package. Distinguish this from standard JMX APIs such as `java.management`.
 
-**`jdk.httpserver` — HTTP server nhỏ**
+**`jdk.httpserver` — Small HTTP Server**
 
-Cung cấp `com.sun.net.httpserver.HttpServer`, đôi khi hữu ích cho công cụ phát triển, test hoặc demo. Khi source import kiểu thuộc package này, named module cần:
+Provides `com.sun.net.httpserver.HttpServer`, sometimes handy for development tools, tests, or demos. When source imports types from this package, a named module needs:
 
     requires jdk.httpserver;
 
-Không nên hiểu mọi module `jdk.*` đều là implementation detail không dùng được; một số export API công khai của JDK. Điều quan trọng là **đúng API, đúng module, đúng runtime**.
+Do not assume every `jdk.*` module is an unusable implementation detail; several export public JDK APIs. What matters is **right API, right module, right runtime**.
 
-## 15. jdk.unsupported và ranh giới API nội bộ
+## 15. jdk.unsupported and Internal API Boundaries
 
-`jdk.unsupported` tồn tại nhằm hỗ trợ một số API không chuẩn từng được phần mềm sử dụng rộng rãi, chẳng hạn một số kiểu `sun.misc`.
+`jdk.unsupported` exists to support certain non-standard APIs that were once widely used by software, such as certain `sun.misc` types.
 
-Sự tồn tại của module này **không biến mọi API nội bộ JDK thành API chuẩn**. Một API được export từ `jdk.unsupported` vẫn có thể có ràng buộc tương thích khác với API Java SE.
+The existence of this module **does not turn every internal JDK API into a standard API**. An API exported from `jdk.unsupported` may still carry compatibility constraints different from Java SE APIs.
 
-Ví dụ:
+For example:
 
-- Không thay `java.util.concurrent`, `VarHandle` hoặc API chuẩn khác bằng kiểu `Unsafe` chỉ để thuận tiện.
-- Không xem `--add-exports` vào `jdk.internal.*` là giải pháp kiến trúc lâu dài.
-- Khi thấy thư viện phụ thuộc vào `sun.*` hoặc `com.sun.tools.javac.*`, kiểm tra phiên bản thư viện và khả năng nâng cấp.
+- Do not replace `java.util.concurrent`, `VarHandle`, or other standard APIs with `Unsafe` merely for convenience.
+- Do not treat `--add-exports` into `jdk.internal.*` as a long-term architectural solution.
+- When seeing a library depend on `sun.*` or `com.sun.tools.javac.*`, check the library version and upgrade options.
 
-Dùng `jdeps --jdk-internals` để tìm dấu hiệu tham chiếu nội bộ JDK khi cần lập kế hoạch migration.
+Use `jdeps --jdk-internals` to spot references to JDK internals when planning a migration.
 
-## 16. --add-modules dùng khi nào?
+## 16. When Is --add-modules Used?
 
-Khi chạy chương trình Java trên classpath hoặc với module roots cụ thể, không phải module hệ thống có sẵn nào cũng tự động được resolve vào boot layer.
+When running a Java program on the classpath or with specific module roots, not every available system module is automatically resolved into the boot layer.
 
-Tùy chọn launcher:
+The launcher option:
 
     --add-modules module.name
 
-bổ sung các module được chỉ định vào tập root cần resolve.
+adds the specified modules to the set of root modules to resolve.
 
-Ví dụ:
+Example:
 
     java --add-modules jdk.compiler -cp app.jar com.example.Main
 
-Nếu chương trình cần một tool provider do `jdk.compiler` cung cấp mà runtime đang không resolve module đó theo cấu hình mặc định, `--add-modules` có thể là phần của cấu hình phù hợp.
+If a program needs a tool provider supplied by `jdk.compiler` and the runtime is not resolving that module under default configuration, `--add-modules` can be part of an appropriate configuration.
 
-Nhưng **`--add-modules` không tạo module còn thiếu trong Java image**. Nếu custom runtime không chứa `jdk.compiler`, thêm root module name vẫn không thể khôi phục implementation.
+However, **`--add-modules` does not create a missing module inside a Java image**. If a custom runtime does not contain `jdk.compiler`, adding the root module name still cannot restore the implementation.
 
-Đối với named module có:
+For a named module containing:
 
     requires jdk.compiler;
 
-JPMS sẽ resolve dependency theo `requires` nếu module thực sự có sẵn; thông thường không cần lặp lại tên module đó trong `--add-modules`.
+JPMS resolves the dependency via `requires` if the module is actually available; normally you do not need to repeat that module name in `--add-modules`.
 
-## 17. ToolProvider: hai API có tên giống nhau
+## 17. ToolProvider: Two APIs with the Same Name
 
-Java có hai cách truy cập công cụ dễ gây nhầm:
+Java has two ways to access tools that are easily confused:
 
-1. `javax.tools.ToolProvider` thuộc `java.compiler`, dùng để lấy compiler hoặc documentation tool theo API chuẩn.
-2. `java.util.spi.ToolProvider` thuộc `java.base`, là service-provider abstraction cho các công cụ dòng lệnh được JDK expose qua cơ chế tool providers.
+1. `javax.tools.ToolProvider` in `java.compiler`, used to obtain the compiler or documentation tool via standard APIs.
+2. `java.util.spi.ToolProvider` in `java.base`, a service-provider abstraction for command-line tools exposed by the JDK via the tool providers mechanism.
 
-Ví dụ với Java compiler API:
+Example with the Java compiler API:
 
     JavaCompiler compiler =
         javax.tools.ToolProvider.getSystemJavaCompiler();
 
-Ví dụ tìm công cụ dòng lệnh:
+Example finding a command-line tool:
 
     import java.util.spi.ToolProvider;
 
@@ -490,128 +490,128 @@ Ví dụ tìm công cụ dòng lệnh:
         }
     }
 
-Dù cả hai có tên `ToolProvider`, chúng khác package, API và mục đích.
+Although both share the name `ToolProvider`, they differ in package, API, and purpose.
 
-Khả năng tìm thấy một tool provider tùy vào các module/tool có mặt và được resolve trong Java runtime image. Nếu không tìm thấy, `Optional` rỗng không có nghĩa file source của ứng dụng bị lỗi.
+Whether a tool provider is found depends on which modules/tools are present and resolved in the Java runtime image. If not found, an empty `Optional` does not mean the application's source files are broken.
 
-## 18. Module path và system modules không giống nhau
+## 18. Module Path and System Modules Are Not the Same
 
-Ứng dụng có thể có:
+An application can have:
 
     --module-path libs:mods
 
-để tìm **application/library modules**. Trong khi đó, các module JDK như `java.base`, `jdk.compiler`, `jdk.jfr` thường đến từ **system module image** của runtime.
+to locate **application/library modules**. Meanwhile, JDK modules such as `java.base`, `jdk.compiler`, and `jdk.jfr` normally come from the runtime's **system module image**.
 
-Điểm cần nhớ:
+Points to remember:
 
-- Module path cung cấp thêm application modules và thư viện.
-- System modules được runtime cung cấp theo JDK image đang chạy.
-- Cùng một source code có thể chạy trên full JDK nhưng lỗi trên custom runtime image thiếu `jdk.*` module cần thiết.
-- Đưa một JAR lên classpath không phải cách thêm `jdk.compiler` vào system image bị cắt bỏ.
+- The module path provides additional application modules and libraries.
+- System modules are supplied by the runtime according to the running JDK image.
+- The same source code can run on a full JDK yet fail on a custom runtime image missing a required `jdk.*` module.
+- Putting a JAR on the classpath is not a way to add `jdk.compiler` into a stripped-down system image.
 
-Khi kiểm tra một ứng dụng đã đóng gói, hãy chạy:
+When inspecting a packaged application, run:
 
     java --list-modules
 
-bằng **Java executable của image thực tế** chứ không chỉ bằng `java` từ JDK cài đặt toàn hệ thống.
+using **the Java executable of the actual image**, not merely `java` from a globally installed JDK.
 
-## 19. Lỗi thường gặp với jdk.* modules
+## 19. Common Errors with jdk.* Modules
 
-| Lỗi hoặc triệu chứng | Nguyên nhân cần kiểm tra | Hướng xử lý |
+| Error or symptom | Cause to investigate | How to resolve |
 |---|---|---|
-| `error: module not found: jdk.compiler` | Compile JDK/toolchain không chứa module, hoặc cấu hình không dùng đúng JDK | Xác định `javac` đang chạy từ JDK nào; kiểm tra `java --list-modules` |
-| `FindException: Module jdk.compiler not found` | Runtime image không có `jdk.compiler` | Dùng JDK/image có module hoặc tạo lại image bằng `jlink` |
-| `getSystemJavaCompiler() == null` | Không có system compiler implementation | Kiểm tra module `jdk.compiler` và runtime thực tế |
-| `IllegalAccessError` với `com.sun.tools.javac.*` | Processor/tool phụ thuộc nội bộ compiler bị đóng gói | Cập nhật công cụ, chuyển sang API chuẩn hoặc API export công khai |
-| `package com.sun.source... is not visible` | Chưa đọc `jdk.compiler` hoặc cấu hình module path/exports sai | Kiểm tra `requires jdk.compiler` và descriptor |
-| `jdeps` không có trong image | Image không đóng gói công cụ/module liên quan | Dùng full JDK build image hoặc runtime chứa tool nếu thực sự cần |
-| JShell không khởi động | Thiếu module/tool trong image hoặc sai Java executable | Kiểm tra danh sách module, launcher, quyền thực thi |
-| `ClassNotFoundException` với API `jdk.*` | Module chưa resolve, image thiếu module hoặc classpath/module configuration sai | Xác định module thực tế, thêm `requires` hoặc cấu hình roots đúng |
+| `error: module not found: jdk.compiler` | Compile JDK/toolchain lacks the module, or configuration uses the wrong JDK | Check which JDK `javac` runs from; verify `java --list-modules` |
+| `FindException: Module jdk.compiler not found` | Runtime image lacks `jdk.compiler` | Use a JDK/image with the module or rebuild the image with `jlink` |
+| `getSystemJavaCompiler() == null` | No system compiler implementation present | Check the `jdk.compiler` module and the actual runtime |
+| `IllegalAccessError` with `com.sun.tools.javac.*` | Processor/tool depends on encapsulated compiler internals | Update the tool, migrate to standard APIs, or use publicly exported APIs |
+| `package com.sun.source... is not visible` | Not reading `jdk.compiler`, or incorrect module path/exports setup | Check `requires jdk.compiler` and the descriptor |
+| `jdeps` unavailable in the image | The image does not package the relevant tool/module | Use a full JDK build image or a runtime containing the tool if genuinely needed |
+| JShell fails to start | Missing module/tool in image or wrong Java executable | Check module list, launcher, and execution permissions |
+| `ClassNotFoundException` with `jdk.*` API | Module unresolved, image missing module, or incorrect classpath/module setup | Identify the actual module, add `requires`, or configure roots properly |
 
-Không suy luận tất cả lỗi đều do `--module-path` thiếu JAR. Với system modules, vấn đề có thể là Java image đã lược bỏ module, hoặc dự án đang chạy bằng một JDK/toolchain khác với bản biên dịch.
+Do not assume every error comes from `--module-path` missing a JAR. With system modules, the issue may be that the Java image omitted the module, or the project is running on a different JDK/toolchain than the one used for compilation.
 
-## 20. Maven, Gradle và nhiều JDK versions
+## 20. Maven, Gradle, and Multiple JDK Versions
 
-Trong Maven, compiler plugin và test plugin có thể sử dụng JDK/toolchain khác với JVM chạy Maven:
+In Maven, the compiler plugin and test plugin can use a JDK/toolchain different from the JVM running Maven:
 
-- Maven process có thể chạy trên một JDK.
-- `maven-compiler-plugin` có thể dùng toolchain riêng.
-- Surefire/Failsafe có thể khởi chạy JVM test riêng.
-- Production image có thể là custom runtime không có các developer modules.
+- The Maven process may run on one JDK.
+- `maven-compiler-plugin` may use a separate toolchain.
+- Surefire/Failsafe may launch a separate test JVM.
+- The production image may be a custom runtime without developer modules.
 
-Với Gradle cũng cần phân biệt JVM chạy Gradle daemon, Java toolchain cho compile, JVM cho test và JVM ứng dụng.
+With Gradle, you also need to distinguish the JVM running the Gradle daemon, the Java toolchain for compilation, the JVM for tests, and the application JVM.
 
-Một đoạn code import `jdk.jshell` có thể compile thành công bằng full JDK nhưng không chạy trên image được tạo chỉ với `java.base` và dependencies của module app nếu `jdk.jshell` không được đưa vào.
+Code importing `jdk.jshell` might compile successfully with a full JDK yet fail to run on an image built with only `java.base` and application module dependencies if `jdk.jshell` is not included.
 
-Để giảm sai lệch giữa các môi trường, nên kiểm tra:
+To reduce discrepancies across environments, verify:
 
-1. Phiên bản JDK thực tế của từng công cụ.
-2. Module `jdk.*` có nằm trong runtime image dùng cho từng bước không.
-3. Build/test tool có dùng API chuẩn `java.compiler` hay import implementation internals.
-4. Các JVM test và production có cùng tập modules cần thiết không.
-5. Việc đóng gói custom image có bao gồm dependency runtime thực sự không.
+1. The exact JDK version used by each tool.
+2. Whether `jdk.*` modules reside in the runtime image used at each step.
+3. Whether build/test tools use the standard `java.compiler` API or import implementation internals.
+4. Whether test and production JVMs have the same set of required modules.
+5. Whether custom image packaging includes actual runtime dependencies.
 
-**Developer tools** nên nằm trong build environment nếu production không cần chúng. Không phải runtime ứng dụng nào cũng cần mang theo compiler, Javadoc hoặc JShell.
+**Developer tools** should stay in the build environment if production does not need them. Not every application runtime needs to carry a compiler, Javadoc, or JShell.
 
-## 21. Quy trình chẩn đoán khi thiếu jdk.* module
+## 21. Diagnostic Workflow When a jdk.* Module Is Missing
 
-Khi gặp lỗi liên quan `jdk.compiler`, `jdk.jlink`, `jdk.jfr` hoặc module JDK khác, hãy thực hiện:
+When encountering errors related to `jdk.compiler`, `jdk.jlink`, `jdk.jfr`, or other JDK modules, follow these steps:
 
-**Bước 1 — Xác định công cụ đang lỗi.**
+**Step 1 — Identify which tool is failing.**
 
-Lỗi xảy ra khi chạy `javac`, Maven/Gradle build, unit tests hay trong Java runtime image?
+Did the error occur while running `javac`, a Maven/Gradle build, unit tests, or inside the Java runtime image?
 
-**Bước 2 — Xác định tên module chính xác.**
+**Step 2 — Identify the exact module name.**
 
-Xem `requires` trong `module-info.java` hoặc module name trong stack trace.
+Inspect `requires` in `module-info.java` or the module name in the stack trace.
 
-**Bước 3 — Kiểm tra Java executable của đúng môi trường.**
+**Step 3 — Inspect the Java executable of the exact environment.**
 
     java --version
     java --list-modules
 
-Nếu cần kiểm tra descriptor:
+If you need to inspect a descriptor:
 
     java --describe-module jdk.compiler
 
-**Bước 4 — Phân biệt thiếu module với thiếu readability hoặc exports.**
+**Step 4 — Distinguish a missing module from missing readability or exports.**
 
-Nếu module không có trong image, `--add-exports` hay `--add-opens` sẽ không làm nó xuất hiện. Nếu module có nhưng package không được export, phải xem API đó có được hỗ trợ hay không.
+If the module is not in the image, `--add-exports` or `--add-opens` will not make it appear. If the module is present but the package is not exported, check whether that API is supported.
 
-**Bước 5 — Xem module graph đang resolve.**
+**Step 5 — Inspect the resolved module graph.**
 
     java --show-module-resolution -m com.example.app/com.example.Main
 
-Lệnh trên là ví dụ khởi chạy một named module. Điều chỉnh module path và main class theo ứng dụng thực tế.
+The command above is an example of launching a named module. Adjust the module path and main class for your actual application.
 
-**Bước 6 — Quyết định cách sửa nhỏ nhất.**
+**Step 6 — Choose the minimal fix.**
 
-- Cần Java Compiler API: dùng `requires java.compiler` và bảo đảm implementation compiler có mặt khi chạy.
-- Cần public Tree API: dùng `requires jdk.compiler`.
-- Cần JFR API: dùng `requires jdk.jfr`.
-- Chỉ cần chạy `jdeps` trong CI: sử dụng JDK build có `jdeps`, không thêm dependency đó vào production module.
-- Thiếu trong custom image: cấu hình lại `jlink` hoặc loại bỏ nhu cầu dùng module đó tại runtime.
+- Need the Java Compiler API: use `requires java.compiler` and ensure a compiler implementation is present at runtime.
+- Need the public Tree API: use `requires jdk.compiler`.
+- Need the JFR API: use `requires jdk.jfr`.
+- Only need to run `jdeps` in CI: use a build JDK with `jdeps`; do not add that dependency to the production module.
+- Missing in a custom image: reconfigure `jlink` or remove the runtime need for that module.
 
-## 22. Những nhầm lẫn thường gặp
+## 22. Common Misconceptions
 
-- **Tưởng mọi `jdk.*` module đều là nội bộ không bao giờ được dùng.** Một số module export API công khai như `jdk.jfr`, `jdk.jshell`, `com.sun.source.*`.
-- **Tưởng mọi package trong `jdk.compiler` đều public.** Nhiều implementation package không được export hoặc không có cam kết ổn định.
-- **Tưởng ứng dụng được `javac` biên dịch phải `requires jdk.compiler`.** Build tool dùng compiler bên ngoài không tạo dependency runtime tự động.
-- **Tưởng `java.compiler` và `jdk.compiler` là cùng module.** Một module chứa API chuẩn, module kia chủ yếu cung cấp implementation và một số API công cụ JDK.
-- **Tưởng có command `jdeps` nghĩa application cần `requires jdk.jdeps`.** Công cụ build và dependency của ứng dụng là hai tầng khác nhau.
-- **Tưởng `--add-modules` tải lại một module đã bị jlink cắt bỏ.** Nếu image không có module, phải chọn image khác hoặc tạo lại image.
-- **Tưởng module có mặt thì luôn nằm trong boot layer.** Cần phân biệt observable system module với module đã resolve.
-- **Tưởng `com.sun.source.*` giống các package `com.sun.tools.javac.*` nội bộ.** Hãy xem exports, API docs và mục đích package.
-- **Tưởng classpath chứa JAR là cách cung cấp compiler trong custom image.** Compiler implementation là module của runtime image, không phải JAR thông thường.
-- **Tưởng JVM production, JVM test và JVM build luôn dùng cùng JDK.** Toolchains hoặc cấu hình triển khai có thể khác nhau.
+- **Assuming every `jdk.*` module is internal and never usable.** Several modules export public APIs such as `jdk.jfr`, `jdk.jshell`, and `com.sun.source.*`.
+- **Assuming every package in `jdk.compiler` is public.** Many implementation packages are not exported and carry no stability guarantee.
+- **Assuming an application compiled with `javac` must `requires jdk.compiler`.** A build tool invoking an external compiler does not create a runtime dependency automatically.
+- **Assuming `java.compiler` and `jdk.compiler` are the same module.** One module holds standard APIs, while the other primarily provides the implementation and certain JDK tool APIs.
+- **Assuming having the `jdeps` command means the application needs `requires jdk.jdeps`.** Build tools and application dependencies are two separate layers.
+- **Assuming `--add-modules` reloads a module stripped out by jlink.** If the image lacks the module, you must choose another image or rebuild the image.
+- **Assuming a module being present means it is always in the boot layer.** Distinguish observable system modules from resolved modules.
+- **Assuming `com.sun.source.*` is the same as internal `com.sun.tools.javac.*` packages.** Check exports, API docs, and package intent.
+- **Assuming a classpath containing a JAR is how to supply the compiler in a custom image.** The compiler implementation is a runtime image module, not a regular JAR.
+- **Assuming production, test, and build JVMs always use the same JDK.** Toolchains or deployment configurations can differ.
 
-## Ghi nhớ
+## Takeaways
 
-- Các module `jdk.*` cung cấp nhiều công cụ và khả năng riêng của JDK, như compiler, Javadoc, dependency analysis, runtime-image creation, JShell và monitoring.
-- `java.compiler` là API Java Compiler chuẩn; `jdk.compiler` cung cấp implementation và API phân tích source do JDK export.
-- Chỉ khai báo `requires jdk.*` khi **source module thực sự dùng API hoặc runtime service của module đó**; không thêm chỉ vì lệnh build có sử dụng công cụ JDK.
-- Dùng `java --list-modules`, `java --describe-module`, `ModuleFinder.ofSystem()` và `jdeps` để chẩn đoán.
-- Custom runtime image có thể không chứa developer modules; `--add-modules` không khôi phục module không tồn tại.
-- Ưu tiên API chuẩn và API được JDK export công khai, tránh phụ thuộc vào các implementation package nội bộ khi có thể.
+- `jdk.*` modules provide many tools and JDK-specific capabilities, such as the compiler, Javadoc, dependency analysis, runtime-image creation, JShell, and monitoring.
+- `java.compiler` is the standard Java Compiler API; `jdk.compiler` provides the implementation and JDK-exported source analysis APIs.
+- Only declare `requires jdk.*` when **the source module genuinely uses APIs or runtime services of that module**; do not add it just because build commands invoke JDK tools.
+- Use `java --list-modules`, `java --describe-module`, `ModuleFinder.ofSystem()`, and `jdeps` for diagnosis.
+- Custom runtime images may omit developer modules; `--add-modules` does not restore non-existent modules.
+- Prefer standard APIs and publicly exported JDK APIs, avoiding dependencies on internal implementation packages whenever possible.
 
-Hiểu rõ ranh giới giữa **API Java SE**, **module triển khai của JDK** và **command-line build tool** sẽ giúp ứng dụng modular có dependency chính xác, đồng thời tránh lỗi khi thay JDK, nâng phiên bản toolchain hoặc triển khai bằng runtime image tối giản.
+Clearly understanding the boundary between **Java SE APIs**, **JDK implementation modules**, and **command-line build tools** helps keep modular applications' dependencies accurate while avoiding failures when switching JDKs, upgrading toolchain versions, or deploying with minimal runtime images.

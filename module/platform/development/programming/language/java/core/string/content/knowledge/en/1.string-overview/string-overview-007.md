@@ -1,22 +1,22 @@
-# Chọn String, StringBuilder hoặc StringBuffer theo nhu cầu
+# Choosing String, StringBuilder, or StringBuffer Based on Your Needs
 
-Trong Java, cả ba kiểu đều liên quan đến chuỗi ký tự, nhưng khác nhau về **khả năng thay đổi nội dung**, **chi phí khi nối nhiều lần** và **đồng bộ hóa khi có nhiều luồng**. Việc chọn loại phù hợp phải dựa vào vòng đời dữ liệu và cách sử dụng thực tế.
+In Java, all three types relate to character strings, but they differ in **content mutability**, **cost during repeated concatenation**, and **synchronization under multiple threads**. Choosing the right type should be based on data lifecycle and actual usage.
 
-## 1. Bảng so sánh nhanh
+## 1. Quick comparison table
 
-| Tiêu chí | String | StringBuilder | StringBuffer |
+| Criterion | String | StringBuilder | StringBuffer |
 |---|---|---|---|
-| Nội dung đối tượng thay đổi được? | Không (immutable) | Có (mutable) | Có (mutable) |
-| Nối chuỗi thường dùng | +, concat(), formatted() | append(), insert() | append(), insert() |
-| Chỉnh sửa tại chỗ | Không | Có | Có |
-| Bảo đảm khi nhiều luồng cùng chỉnh sửa một đối tượng | Không có thao tác chỉnh sửa nội dung; có thể chia sẻ giá trị bất biến | Không đồng bộ hóa | Các phương thức thao tác chính được synchronized |
-| Trường hợp phù hợp | Giá trị văn bản đã hoàn chỉnh, ít phép nối | Xây dựng văn bản lặp lại trong một luồng | Thực sự phải cùng sửa một bộ đệm từ nhiều luồng và cách đồng bộ từng phương thức đáp ứng yêu cầu |
+| Is object content mutable? | No (immutable) | Yes (mutable) | Yes (mutable) |
+| Common concatenation | +, concat(), formatted() | append(), insert() | append(), insert() |
+| In-place modification | No | Yes | Yes |
+| Guarantees when multiple threads modify one object | No content-modification operations; immutable values can be shared | Not synchronized | Main manipulation methods are synchronized |
+| Suitable use case | Complete text values, few concatenations | Repeatedly building text in a single thread | Truly needing to modify one buffer from multiple threads where per-method synchronization meets requirements |
 
-Quy tắc thực hành: **String cho giá trị thông thường, StringBuilder cho quá trình lắp ráp nhiều bước, StringBuffer khi thật sự cần bộ đệm mutable được đồng bộ hóa**. Một ứng dụng chạy nhiều luồng vẫn có thể dùng StringBuilder nếu mỗi luồng sở hữu một instance riêng.
+Practical rule: **String for ordinary values, StringBuilder for multi-step assembly, StringBuffer when you genuinely need a synchronized mutable buffer**. A multi-threaded application can still use StringBuilder if each thread owns its own separate instance.
 
-## 2. String: dữ liệu bất biến
+## 2. String: immutable data
 
-String là immutable: sau khi tạo, nội dung của một **đối tượng String** không thay đổi. concat(), replace(), substring(), toUpperCase() trả về giá trị String; chúng không sửa đối tượng gốc. Biến có thể trỏ sang chuỗi khác, nhưng đó là thay tham chiếu.
+String is immutable: after creation, the content of a **String object** does not change. concat(), replace(), substring(), and toUpperCase() return String values; they do not modify the original object. A variable can point to a different string, but that is changing the reference.
 
 ~~~java
 String original = "Java";
@@ -26,24 +26,24 @@ System.out.println(original); // Java
 System.out.println(extended); // Java 17
 ~~~
 
-Gọi original.concat(" 17") rồi bỏ qua kết quả sẽ không làm original có thêm " 17". Muốn cập nhật biến, dùng original = original.concat(" 17") hoặc tạo biến mới.
+Calling original.concat(" 17") and ignoring the result will not give original an extra " 17". To update the variable, use original = original.concat(" 17") or create a new variable.
 
-Tính bất biến giúp chia sẻ **nội dung String** an toàn giữa các luồng. Tuy nhiên, nếu các luồng cùng ghi và đọc một trường tham chiếu String hoặc cấu trúc bao quanh nó, quy tắc hiển thị và đồng bộ của Java vẫn áp dụng; tính bất biến không tự làm toàn bộ chương trình thread-safe.
+Immutability makes sharing **String content** across threads safe. However, if threads concurrently read and write a String reference field or an enclosing structure, Java's visibility and synchronization rules still apply; immutability does not automatically make the whole program thread-safe.
 
-Chọn String khi:
+Choose String when:
 
-- Biểu diễn tên, mã định danh, câu thông báo, giá trị được truyền giữa các phương thức.
-- Ghép ít đoạn bằng biểu thức rõ ràng như "Hello, " + name.
-- Trả về giá trị đã hoàn chỉnh và không muốn đối tượng bị sửa nội dung sau đó.
-- So sánh nội dung bằng equals(), equalsIgnoreCase() hay phương thức phù hợp.
+- Representing names, identifiers, messages, or values passed between methods.
+- Joining a few parts with a clear expression such as "Hello, " + name.
+- Returning a finalized value and wanting to ensure the object's content cannot be modified afterward.
+- Comparing content with equals(), equalsIgnoreCase(), or an appropriate method.
 
-**Không kết luận rằng mọi phép + đều kém hiệu năng.** Trình biên dịch và JVM hiện đại có tối ưu cho phép nối trong một biểu thức. Từ Java 9, lời gọi nối thường được tạo bằng invokedynamic; cách tối ưu cụ thể tùy phiên bản và ngữ cảnh. Một biểu thức nối ngắn thường dễ đọc hơn việc tự tạo bộ đệm.
+**Do not conclude that every + operation has poor performance.** Modern compilers and JVMs optimize concatenations within a single expression. Since Java 9, concatenation calls are often compiled using invokedynamic; specific optimizations depend on the version and context. A short concatenation expression is usually easier to read than manually creating a buffer.
 
-Điểm cần tránh là **cộng dồn String lặp đi lặp lại** trong quá trình xây dựng kết quả dài: mỗi lần tạo một giá trị String mới có thể cần sao chép nội dung tích lũy. Với các chuỗi lớn hoặc vòng lặp nhiều lần, hãy cân nhắc StringBuilder.
+What to avoid is **repeatedly accumulating a String** while building a long result: each step creating a new String value may need to copy the accumulated content. For large strings or many loop iterations, consider StringBuilder.
 
-## 3. StringBuilder: lắp ráp văn bản qua nhiều bước
+## 3. StringBuilder: assembling text across multiple steps
 
-StringBuilder có bộ đệm mutable. append(), insert(), delete(), replace(), reverse() thay đổi trạng thái cùng đối tượng, giúp giảm nhu cầu tạo String trung gian khi thêm nhiều phần.
+StringBuilder has a mutable buffer. append(), insert(), delete(), replace(), and reverse() change the state of the same object, helping reduce intermediate String allocations when adding many pieces.
 
 ~~~java
 StringBuilder builder = new StringBuilder("Java");
@@ -52,7 +52,7 @@ builder.insert(4, " Core");
 System.out.println(builder); // Java Core 17
 ~~~
 
-toString() tạo một **String kết quả ổn định**. Nếu builder được chỉnh sửa sau đó, String đã nhận từ toString() không đổi.
+toString() creates a **stable result String**. If builder is modified afterward, the String already obtained from toString() does not change.
 
 ~~~java
 String snapshot = builder.toString();
@@ -61,7 +61,7 @@ System.out.println(snapshot); // Java Core 17
 System.out.println(builder);  // Java Core 17!
 ~~~
 
-Khi tạo chuỗi có dấu phân cách qua nhiều lượt, đặt builder **ngoài** vòng lặp:
+When building a delimited string across multiple iterations, place the builder **outside** the loop:
 
 ~~~java
 StringBuilder line = new StringBuilder();
@@ -74,15 +74,15 @@ for (int i = 1; i <= 3; i++) {
 System.out.println(line.toString()); // 1, 2, 3
 ~~~
 
-Một bộ đệm được tái sử dụng thường phù hợp hơn việc thực hiện result = result + fragment qua nhiều vòng lặp. Kết luận về hiệu năng phải dựa trên workload thực tế: kích thước dữ liệu, tối ưu JIT và cách triển khai có thể làm kết quả khác nhau.
+Reusing a single buffer is generally preferable to executing result = result + fragment across many loop iterations. Performance conclusions should rest on actual workloads: data size, JIT optimizations, and implementation details can cause results to vary.
 
-**length() và capacity():** length() là độ dài nội dung hiện có theo đơn vị mã UTF-16; capacity() là dung lượng bộ đệm đang cấp phát theo cùng đơn vị, có thể lớn hơn length(). Khi ước lượng được kích thước, new StringBuilder(expectedCapacity) có thể giảm số lần mở rộng bộ đệm; không cần dùng nó cho mọi trường hợp. Một ký tự Unicode ngoài BMP có thể chiếm hai đơn vị mã UTF-16, nên length() không nhất thiết bằng số ký tự người dùng nhìn thấy.
+**length() and capacity():** length() is the length of current content in UTF-16 code units; capacity() is the allocated buffer capacity in the same units, which can be larger than length(). When size can be estimated, new StringBuilder(expectedCapacity) can reduce buffer reallocations; you do not need to use it in every case. A Unicode character outside the BMP can occupy two UTF-16 code units, so length() does not necessarily equal the number of visible characters.
 
-StringBuilder **không đồng bộ hóa** các thao tác. Nếu nhiều luồng cùng chỉnh sửa một instance không có cơ chế phối hợp, kết quả có thể sai. Dùng builder cục bộ trong mỗi thread/task là cách phổ biến để tránh chia sẻ trạng thái mutable.
+StringBuilder **does not synchronize** its operations. If multiple threads modify one instance concurrently without coordination, results can be corrupted. Using a local builder per thread/task is a common way to avoid sharing mutable state.
 
-## 4. StringBuffer: bộ đệm có đồng bộ hóa phương thức
+## 4. StringBuffer: a buffer with method-level synchronization
 
-StringBuffer cũng có append(), insert(), delete(), replace() và toString(), nhưng các phương thức thao tác chính được đồng bộ hóa trên đối tượng. Vì vậy các lời gọi append() riêng lẻ vào cùng StringBuffer không giẫm lên nhau như khi nhiều luồng cùng sửa StringBuilder không bảo vệ.
+StringBuffer also provides append(), insert(), delete(), replace(), and toString(), but its main manipulation methods are synchronized on the object. Thus, individual append() calls to the same StringBuffer do not step on each other the way unprotected concurrent edits to StringBuilder would.
 
 ~~~java
 StringBuffer buffer = new StringBuffer("Log");
@@ -90,7 +90,7 @@ buffer.append(": ").append("ready");
 System.out.println(buffer); // Log: ready
 ~~~
 
-Ví dụ chạy độc lập với hai luồng cùng nối vào một bộ đệm:
+Standalone runnable example with two threads appending to one buffer:
 
 ~~~java
 public class SharedBufferDemo {
@@ -115,22 +115,22 @@ public class SharedBufferDemo {
 }
 ~~~
 
-Lưu tệp **SharedBufferDemo.java**, biên dịch và chạy bằng JDK 17+:
+Save as **SharedBufferDemo.java**, compile, and run with JDK 17+:
 
 ~~~bash
 javac SharedBufferDemo.java
 java SharedBufferDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 2000
 ~~~
 
-Mỗi luồng thêm 1.000 ký tự "x"; join() bảo đảm cả hai kết thúc trước khi đọc độ dài. Thứ tự thao tác giữa các luồng không được xác định, nhưng độ dài cuối là 2.000 trong ví dụ này.
+Each thread adds 1,000 "x" characters; join() ensures both finish before reading the length. The interleaving order between threads is unspecified, but the final length is 2,000 in this example.
 
-**Cảnh báo về tính nguyên tử:** Một phương thức synchronized chỉ bảo vệ **một lời gọi phương thức**. Nếu bài toán yêu cầu kiểm tra điều kiện rồi thêm ký tự như một thao tác duy nhất, đoạn sau không bảo đảm tính nguyên tử khi nhiều luồng cùng làm:
+**Warning on atomicity:** A synchronized method protects only **a single method call**. If the task requires checking a condition and then appending a character as a single atomic operation, the following snippet is not atomic when multiple threads run it concurrently:
 
 ~~~java
 if (shared.length() < 2_000) {
@@ -138,7 +138,7 @@ if (shared.length() < 2_000) {
 }
 ~~~
 
-Cả length() và append() đều được đồng bộ riêng, nhưng một luồng khác có thể chen vào giữa. Khi bắt buộc giữ nguyên tử cho cả nhóm, dùng cùng monitor:
+Both length() and append() are synchronized individually, yet another thread can interleave between them. When atomicity across the whole sequence is mandatory, synchronize on the same monitor:
 
 ~~~java
 synchronized (shared) {
@@ -148,13 +148,13 @@ synchronized (shared) {
 }
 ~~~
 
-Những nơi khác thực hiện cùng quy tắc kiểm tra/cập nhật phải phối hợp trên cùng khóa. Với quy trình nhiều bước phức tạp, cân nhắc giảm hoặc loại bỏ việc dùng chung bộ đệm, thay vì mặc định StringBuffer giải quyết tất cả vấn đề đồng thời.
+Other places enforcing the same check-and-update rule must coordinate on the same lock. For complex multi-step workflows, consider reducing or eliminating buffer sharing rather than assuming StringBuffer solves all concurrency issues.
 
-**Không chọn StringBuffer chỉ vì ứng dụng là đa luồng.** Nếu dữ liệu được tạo riêng trong mỗi tác vụ, StringBuilder không cần chi phí đồng bộ; nếu cần dữ liệu tổng hợp phức tạp từ nhiều luồng, có thể thiết kế kết quả cục bộ rồi hợp nhất theo một bước điều phối.
+**Do not choose StringBuffer just because an application is multi-threaded.** If data is constructed locally within each task, StringBuilder avoids synchronization overhead; if complex aggregated output is needed from multiple threads, you can produce local results and merge them in a coordinated step.
 
-## 5. Chương trình so sánh hoàn chỉnh (Java 17+)
+## 5. Complete comparison program (Java 17+)
 
-Ví dụ này độc lập với SharedBufferDemo ở trên. Lưu thành **StringChoiceDemo.java**:
+This example is independent of SharedBufferDemo above. Save as **StringChoiceDemo.java**:
 
 ~~~java
 public class StringChoiceDemo {
@@ -197,7 +197,7 @@ javac StringChoiceDemo.java
 java StringChoiceDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 original=Java
@@ -210,49 +210,49 @@ buffer=ABC
 joined=1, 2, 3
 ~~~
 
-original không đổi sau concat(); builder thay đổi tại chỗ qua append()/insert(); snapshot giữ giá trị String riêng sau khi builder sửa tiếp; buffer minh họa API của StringBuffer. Ví dụ thứ hai chỉ cho thấy thao tác của StringBuffer, còn SharedBufferDemo minh họa dùng chung giữa nhiều luồng.
+original stays unchanged after concat(); builder changes in place via append()/insert(); snapshot retains a separate String value after builder is modified further; buffer illustrates StringBuffer's API. This second example only demonstrates StringBuffer operations, whereas SharedBufferDemo illustrates sharing across multiple threads.
 
-## 6. Áp dụng theo tình huống
+## 6. Applying by scenario
 
-| Nhu cầu | Nên bắt đầu bằng | Lý do |
+| Need | Good starting point | Reason |
 |---|---|---|
-| Tạo thông báo "Xin chào" + tên một lần | String | Đơn giản, dễ đọc |
-| Lưu/trao đổi giá trị văn bản hoàn chỉnh | String | Nội dung bất biến |
-| Ghép hàng nghìn trường dữ liệu trong một luồng | StringBuilder | Tái sử dụng một bộ đệm khi nối nhiều lần |
-| Mỗi tác vụ song song tự tạo một đoạn báo cáo | StringBuilder riêng trong mỗi tác vụ | Không có mutable state chia sẻ |
-| Nhiều luồng cùng append vào cùng một bộ đệm | StringBuffer, nếu cần chia sẻ thật sự | Đồng bộ hóa từng lời gọi append |
-| Kiểm tra rồi cập nhật cùng bộ đệm ở nhiều luồng | Khóa bao cả nhóm thao tác hoặc thiết kế khác | Đồng bộ từng phương thức chưa đủ |
-| Nối các từ bằng dấu phẩy | String.join() hoặc StringJoiner | Diễn đạt trực tiếp dấu phân cách |
-| Tạo JSON/SQL/HTML có escape hoặc tham số | API chuyên dụng phù hợp | Xử lý cấu trúc, ký tự đặc biệt hoặc tham số an toàn hơn việc ghép tay |
+| Build a "Hello, " + name message once | String | Simple, readable |
+| Store/exchange finalized text values | String | Immutable content |
+| Join thousands of fields in a single thread | StringBuilder | Reuses one buffer across many appends |
+| Each parallel task builds its own report section | Separate StringBuilder per task | No shared mutable state |
+| Multiple threads append to the same buffer | StringBuffer, if sharing is genuinely needed | Synchronizes each append call |
+| Check then update the same buffer from multiple threads | Lock wrapping the entire group of operations or another design | Per-method synchronization is not enough |
+| Join words with commas | String.join() or StringJoiner | Directly expresses the delimiter |
+| Build JSON/SQL/HTML with escaping or parameters | Appropriate specialized API | Handles structure, special characters, or parameters more safely than manual concatenation |
 
-Ví dụ nối với dấu phân cách khi đã có các chuỗi hoàn chỉnh:
+Example of joining with a delimiter when you already have finalized strings:
 
 ~~~java
 String names = String.join(", ", "Lan", "Minh", "An");
 System.out.println(names); // Lan, Minh, An
 ~~~
 
-Nếu dữ liệu ở stream, Collectors.joining(", ") cũng giúp thể hiện rõ nhu cầu nối các phần tử. Không nhất thiết phải tự quản lý dấu phân cách bằng StringBuilder cho trường hợp đơn giản.
+If data is in a stream, Collectors.joining(", ") also clearly expresses the need to join elements. You do not have to manage delimiters manually with StringBuilder for simple cases.
 
-## 7. Sai lầm thường gặp
+## 7. Common mistakes
 
-1. **Quên nhận giá trị trả về của String.** s.replace("a", "o") không sửa s. Hãy gán s = s.replace("a", "o") hoặc dùng giá trị mới.
-2. **Dùng + để tích lũy trong vòng lặp lớn.** Dùng StringBuilder được tạo bên ngoài vòng lặp khi phải ghép nhiều phần.
-3. **Tin rằng mọi dấu + đều chậm.** Cách nối trong một biểu thức được JVM tối ưu theo phiên bản/ngữ cảnh; đừng làm mã phức tạp khi chưa có nhu cầu.
-4. **Chọn StringBuffer cho builder chỉ dùng ở một luồng.** Đồng bộ hóa khi không cần có thể tăng chi phí.
-5. **Cho rằng StringBuffer bảo đảm nguyên tử cho nhiều phương thức liên tiếp.** Kiểm tra và cập nhật hoặc các chuỗi thao tác phối hợp cần khóa bao trọn.
-6. **So sánh StringBuilder bằng equals() như String.** StringBuilder không ghi đè equals() để so sánh nội dung kiểu String; có thể dùng a.toString().equals(b.toString()).
-7. **Nhầm StringBuilder/StringBuffer với String.** Chúng triển khai CharSequence, nhưng API yêu cầu String cụ thể cần toString().
-8. **Nhầm capacity() với length().** Dung lượng dự trữ khác với số đơn vị UTF-16 đã sử dụng.
-9. **Đưa cùng StringBuilder cho nhiều thread mà không phối hợp.** Hãy giữ riêng theo tác vụ hoặc thiết kế đồng bộ thích hợp.
-10. **Benchmark bằng một vòng lặp ngắn.** Warm-up, JIT, GC và khả năng loại bỏ phép tính làm số đo sai lệch. Nếu tối ưu là mục tiêu thực tế, dùng JMH với workload có ý nghĩa và kết quả được tiêu thụ.
+1. **Forgetting to capture String's return value.** s.replace("a", "o") does not modify s. Assign s = s.replace("a", "o") or use the new value.
+2. **Using + to accumulate inside a large loop.** Use a StringBuilder created outside the loop when assembling many parts.
+3. **Believing every + is slow.** Concatenation within a single expression is optimized by the JVM depending on version/context; do not complicate code unnecessarily.
+4. **Choosing StringBuffer for a single-threaded builder.** Unnecessary synchronization can add overhead.
+5. **Assuming StringBuffer guarantees atomicity across consecutive method calls.** Check-then-act or coordinated sequences require an enclosing lock.
+6. **Comparing StringBuilder with equals() like String.** StringBuilder does not override equals() for String-like content comparison; you can use a.toString().equals(b.toString()).
+7. **Confusing StringBuilder/StringBuffer with String.** They implement CharSequence, but an API requiring an explicit String needs toString().
+8. **Confusing capacity() with length().** Reserved capacity differs from the number of UTF-16 units currently used.
+9. **Passing the same StringBuilder to multiple threads without coordination.** Keep it local per task or design appropriate synchronization.
+10. **Benchmarking with a short loop.** Warm-up, JIT, GC, and dead-code elimination skew measurements. If optimization is a real goal, use JMH with a meaningful workload whose result is consumed.
 
-## 8. Cây quyết định đơn giản
+## 8. Simple decision tree
 
-1. Văn bản đã hoàn chỉnh hoặc chỉ ghép một vài đoạn? **Dùng String**.
-2. Cần nối/chèn/xóa lặp đi lặp lại để tạo kết quả? **Dùng StringBuilder**.
-3. Bộ đệm có thật sự được nhiều luồng cùng sửa? **Xét StringBuffer** hoặc một thiết kế giảm chia sẻ mutable state.
-4. Nhiều bước phải là một thao tác nguyên tử? **Thiết kế khóa bao toàn bộ bước**; StringBuffer không tự đủ.
-5. Xây dựng xong và cần trả dữ liệu ổn định? **Gọi toString()** để nhận String.
+1. Is the text already finalized or only joining a few parts? **Use String**.
+2. Do you need to append/insert/delete repeatedly to build a result? **Use StringBuilder**.
+3. Is the buffer genuinely modified by multiple threads concurrently? **Consider StringBuffer** or a design that reduces shared mutable state.
+4. Must multiple steps execute as one atomic operation? **Design a lock wrapping all steps**; StringBuffer alone is insufficient.
+5. Finished building and need to return stable data? **Call toString()** to obtain a String.
 
-Điểm cốt lõi: **String là giá trị bất biến; StringBuilder là bộ đệm xây dựng chuỗi mặc định; StringBuffer là bộ đệm có đồng bộ hóa từng phương thức**. Chọn theo cách sử dụng và phạm vi chia sẻ, không chỉ theo tên API hoặc giả định hiệu năng.
+Key takeaway: **String is an immutable value; StringBuilder is the default string-building buffer; StringBuffer is a buffer with per-method synchronization**. Choose based on usage and sharing scope, not merely on API names or performance assumptions.

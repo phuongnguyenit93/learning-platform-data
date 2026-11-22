@@ -1,12 +1,12 @@
-# `Module.isExported`, `Module.isOpen` và kiểm tra ngữ cảnh truy cập
+# `Module.isExported`, `Module.isOpen`, and Checking Access Context
 
-## 1. Vấn đề: `public` vẫn có thể chưa đủ
+## 1. The Problem: `public` May Still Not Be Enough
 
-`Module.isExported` và `Module.isOpen` đọc **trạng thái quyền package tại runtime** từ góc nhìn một module cụ thể. Khi chẩn đoán Reflection, hãy xác định đúng module chứa package đích (`source`) và module **thực sự gọi** `setAccessible` (`client`): đó có thể là framework, không phải module ứng dụng khởi tạo yêu cầu.
+`Module.isExported` and `Module.isOpen` read the **runtime package permission state** from the perspective of a specific module. When diagnosing Reflection, accurately identify the module containing the target package (`source`) and the module **actually calling** `setAccessible` (`client`): that may be a framework, not the application module that initiated the request.
 
-Khi cần tham chiếu public API bằng mã Java thông thường, xét readability và `exports`; khi muốn bỏ qua Java access checks từ module khác, xét `opens`. Phần dưới tập trung vào cách diễn giải chính xác bốn overload và trường hợp `opens` cũng làm `isExported` trả `true` ở runtime.
+When you need to reference a public API with regular Java code, examine readability and `exports`; when you want to bypass Java access checks from another module, examine `opens`. The sections below focus on accurately interpreting the four overloads and the case where `opens` also causes `isExported` to return `true` at runtime.
 
-Bốn API của `java.lang.Module` là trọng tâm bài:
+Four APIs of `java.lang.Module` are the centerpiece of this lesson:
 
 ```java
 boolean x1 = source.isExported("example.api");
@@ -15,19 +15,19 @@ boolean x3 = source.isOpen("example.internal");
 boolean x4 = source.isOpen("example.internal", client);
 ```
 
-Đoạn trên là minh họa với hai biến kiểu `Module` đã được xác định. Mỗi API hỏi về quyền của **một package trong module nguồn**, không trực tiếp hỏi một field/method có thể đọc hoặc gọi được hay không.
+The snippet above is illustrative with two already-resolved `Module` variables. Each API asks about permissions for **a package in the source module**, not directly whether a specific field/method can be read or invoked.
 
-**Điểm mấu chốt:** `opens` khác `exports` về mục đích, nhưng **một package mở cho module đích được xem như export cho module đó tại runtime**. Vì thế, `isExported(pn, client)` có thể trả `true` dù `module-info.java` chỉ khai báo `opens pn to client;`. Đừng nhầm kết quả runtime với quyền import package đó tại compile time.
+**Key point:** `opens` differs from `exports` in purpose, yet **a package opened to a target module is treated as exported to that module at runtime**. Therefore, `isExported(pn, client)` can return `true` even if `module-info.java` only declares `opens pn to client;`. Do not confuse the runtime result with compile-time permission to import that package.
 
-## 2. Xác định đúng source, client và package
+## 2. Correctly Identifying Source, Client, and Package
 
-Gọi:
+Define:
 
-- **`source`**: module chứa package/lớp đang được truy cập.
-- **`client`** (hay `callerModule`): module chứa mã thực sự thực hiện Reflection.
-- **`pn`**: tên package đầy đủ như `"example.internal"`; không phải tên lớp `example.internal.Secret` hay đường dẫn `example/internal`.
+- **`source`**: the module containing the package/class being accessed.
+- **`client`** (or `callerModule`): the module containing the code actually performing Reflection.
+- **`pn`**: the full package name such as `"example.internal"`; not a class name `example.internal.Secret` or path `example/internal`.
 
-Lấy thông tin từ class:
+Obtaining the information from classes:
 
 ```java
 Module source = TargetType.class.getModule();
@@ -35,28 +35,28 @@ Module client = MyInspector.class.getModule();
 String pn = TargetType.class.getPackageName();
 ```
 
-Đây là đoạn minh họa, đòi hỏi các class được khai báo ở chương trình phù hợp. Nếu package không export nên mã client không thể import `TargetType` trực tiếp, bạn có thể nhận `source` từ một lớp API public đã export cùng module, từ `Class.forName(...)` khi thích hợp, hoặc tra module đã resolve bằng `ModuleLayer.boot().findModule("ten.module")` nếu nó thuộc boot layer.
+This is an illustrative snippet requiring the classes to be declared in an appropriate program. If the package is not exported so client code cannot import `TargetType` directly, you can obtain `source` from an exported public API class in the same module, from `Class.forName(...)` when appropriate, or look up a resolved module via `ModuleLayer.boot().findModule("module.name")` if it belongs to the boot layer.
 
-| Cách kiểm tra | Ý nghĩa |
+| Check | Meaning |
 | --- | --- |
-| `source.isNamed()` | Phân biệt named module và unnamed module |
-| `source.getName()` | Tên module; `null` với unnamed module |
-| `source.getPackages().contains(pn)` | Package hiện được module báo là của nó? |
-| `client.canRead(source)` | Client có thể đọc source? |
-| `source.isExported(pn)` | Export không điều kiện tại runtime? |
-| `source.isExported(pn, client)` | Export ít nhất đến client tại runtime? |
-| `source.isOpen(pn)` | Open không điều kiện tại runtime? |
-| `source.isOpen(pn, client)` | Open ít nhất đến client tại runtime? |
+| `source.isNamed()` | Distinguish a named module from an unnamed module |
+| `source.getName()` | Module name; `null` for an unnamed module |
+| `source.getPackages().contains(pn)` | Is the package currently reported by the module as its own? |
+| `client.canRead(source)` | Can client read source? |
+| `source.isExported(pn)` | Unconditionally exported at runtime? |
+| `source.isExported(pn, client)` | Exported at least to client at runtime? |
+| `source.isOpen(pn)` | Unconditionally open at runtime? |
+| `source.isOpen(pn, client)` | Open at least to client at runtime? |
 
-**Không đảo hướng:** Khi hỏi quyền truy cập vào package của `source`, gọi `source.isOpen(pn, client)`, không phải `client.isOpen(pn, source)`.
+**Do not reverse the direction:** When asking about access to `source`'s package, call `source.isOpen(pn, client)`, not `client.isOpen(pn, source)`.
 
-Trong ứng dụng thực tế, `client` có thể là module của framework đang chạy đoạn Reflection, **không nhất thiết là module ứng dụng đã gọi vào framework**. Đây là một nguồn gây lỗi cấu hình `opens ... to ...` rất phổ biến.
+In real applications, `client` may be the module of the framework running the Reflection code, **not necessarily the application module that called into the framework**. This is a very common source of `opens ... to ...` misconfiguration.
 
-## 3. `isExported`: package được nhìn thấy cho mục đích nào?
+## 3. `isExported`: What Purpose Is the Package Visible For?
 
 ### 3.1. `isExported(String pn)`
 
-Trả `true` nếu package được export **không điều kiện** tại runtime:
+Returns `true` if the package is exported **unconditionally** at runtime:
 
 ```java
 module m.library {
@@ -64,15 +64,15 @@ module m.library {
 }
 ```
 
-`source.isExported("demo.api")` sẽ là `true` với module này nếu `demo.api` là package hiện có. Mã trong module khác muốn tham chiếu trực tiếp kiểu `public` từ `demo.api` còn cần các điều kiện Java/module access khác, đặc biệt readability.
+`source.isExported("demo.api")` will be `true` for this module if `demo.api` is a present package. Code in another module wishing to directly reference `public` types from `demo.api` still needs other Java/module access conditions, notably readability.
 
-Không dùng `isExported(pn)` thay cho kiểm tra `client.canRead(source)`: tài liệu Java quy định các phương thức `isExported` **không kiểm tra** module đang xét có được module client đọc hay không.
+Do not use `isExported(pn)` as a substitute for checking `client.canRead(source)`: the Java documentation specifies that `isExported` methods **do not check** whether the module under inspection is read by the client module.
 
-Lưu ý quan trọng: package được **open không điều kiện** cũng được xem như export không điều kiện ở runtime, nên `source.isExported(pn)` có thể là `true` khi descriptor có `opens pn;` mà không có `exports pn;`.
+Important note: an **unconditionally opened** package is also treated as unconditionally exported at runtime, so `source.isExported(pn)` can be `true` when the descriptor has `opens pn;` without `exports pn;`.
 
 ### 3.2. `isExported(String pn, Module other)`
 
-Kiểm tra package đã export ít nhất cho module `other` hay chưa. Ví dụ:
+Checks whether the package is exported at least to module `other`. For example:
 
 ```java
 module m.library {
@@ -80,12 +80,12 @@ module m.library {
 }
 ```
 
-Với đúng module `m.client`:
+With the exact module `m.client`:
 
-- `source.isExported("demo.spi")` là `false` vì export **có điều kiện**.
-- `source.isExported("demo.spi", client)` là `true` vì client có trong danh sách đích.
+- `source.isExported("demo.spi")` is `false` because the export is **qualified**.
+- `source.isExported("demo.spi", client)` is `true` because client is in the target list.
 
-Trường hợp **qualified opens** còn tinh tế hơn:
+The case of **qualified opens** is even subtler:
 
 ```java
 module m.library {
@@ -93,19 +93,19 @@ module m.library {
 }
 ```
 
-Ở **runtime**, `source.isExported("demo.internal", client)` là **`true`** vì package mở cho client được coi là export cho client. Nhưng `source.isExported("demo.internal")` là `false` khi không có export/open không điều kiện.
+At **runtime**, `source.isExported("demo.internal", client)` is **`true`** because a package opened to client is treated as exported to client. However, `source.isExported("demo.internal")` is `false` when there is no unconditional export/open.
 
-Đừng suy luận rằng mã nguồn `m.client` có thể viết `import demo.internal.Secret;` chỉ vì overload hai tham số trả `true`. `opens` phục vụ Reflection và quyền runtime; `exports` mới là tuyên bố public API thông thường khi trình biên dịch kiểm tra tính truy cập giữa named modules.
+Do not deduce that `m.client` source code can write `import demo.internal.Secret;` simply because the two-parameter overload returns `true`. `opens` serves Reflection and runtime access; `exports` is the regular public API declaration checked by the compiler between named modules.
 
-### 3.3. Trường hợp module tự truy cập chính mình
+### 3.3. A Module Accessing Itself
 
-Nếu package thuộc `source`, `source.isExported(pn, source)` trả `true`: Java xem module có quyền tới package của chính nó. Đây **không** phải bằng chứng package được export ra ngoài. Muốn biết quyền của framework khác, truyền đúng `Module` của framework đó.
+If the package belongs to `source`, `source.isExported(pn, source)` returns `true`: Java considers a module to have access to its own packages. This is **not** evidence that the package is exported externally. To learn an external framework's permission, pass that framework's exact `Module`.
 
-## 4. `isOpen`: cho phép truy cập Reflection sâu
+## 4. `isOpen`: Permitting Deep Reflection Access
 
 ### 4.1. `isOpen(String pn)`
 
-Kiểm tra package có được open **không điều kiện** hay không:
+Checks whether the package is opened **unconditionally**:
 
 ```java
 module m.library {
@@ -113,9 +113,9 @@ module m.library {
 }
 ```
 
-Trong cấu hình đó, `source.isOpen("demo.model")` là `true`. Package open cho phép các API Reflection phù hợp có thể yêu cầu bỏ qua Java language access checks đối với member ở package đó, ví dụ `private` constructor hoặc field.
+In that configuration, `source.isOpen("demo.model")` is `true`. An open package allows suitable Reflection APIs to request bypassing Java language access checks for members in that package, such as `private` constructors or fields.
 
-Ngược lại, nếu module chỉ có:
+Conversely, if the module only has:
 
 ```java
 module m.library {
@@ -123,11 +123,11 @@ module m.library {
 }
 ```
 
-thì `source.isExported("demo.api")` là `true` nhưng `source.isOpen("demo.api")` vẫn là `false`. Export không tự động cấp quyền deep reflection.
+then `source.isExported("demo.api")` is `true` while `source.isOpen("demo.api")` remains `false`. Exporting does not automatically grant deep reflection permission.
 
 ### 4.2. `isOpen(String pn, Module other)`
 
-Kiểm tra package đã open cho **một module cụ thể** hay chưa:
+Checks whether the package is opened to **a specific module**:
 
 ```java
 module m.library {
@@ -135,59 +135,59 @@ module m.library {
 }
 ```
 
-Nếu không có thay đổi quyền bổ sung ở runtime:
+Assuming no additional runtime permission changes:
 
-| Kiểm tra | Kết quả |
+| Check | Result |
 | --- | --- |
 | `source.isOpen("demo.model")` | `false` |
 | `source.isOpen("demo.model", client)` | `true` |
 | `source.isExported("demo.model")` | `false` |
-| `source.isExported("demo.model", client)` | **`true`** vì open cũng được coi là export tại runtime |
-| `client.canRead(source)` | Phải kiểm tra **riêng** |
+| `source.isExported("demo.model", client)` | **`true`** because open is also treated as export at runtime |
+| `client.canRead(source)` | Must be checked **separately** |
 
-Tài liệu `Module` cũng quy định `source.isOpen(pn, source)` trả `true` nếu package thuộc chính source. Vì vậy, khi kiểm tra một framework bên ngoài, truyền `source` làm `other` sẽ cho kết quả dễ gây hiểu lầm.
+The `Module` documentation also specifies that `source.isOpen(pn, source)` returns `true` if the package belongs to source itself. Thus, when checking an external framework, passing `source` as `other` will give misleading results.
 
-### 4.3. So sánh các chỉ thị
+### 4.3. Comparing the Directives
 
-Bảng giả định **explicit named module** và package thật sự thuộc nó, không có thêm `--add-exports`/`--add-opens`:
+The table assumes an **explicit named module** whose package actually belongs to it, with no added `--add-exports`/`--add-opens`:
 
 | `module-info.java` | `isExported(pn)` | `isOpen(pn)` | `isExported(pn, client)` | `isOpen(pn, client)` |
 | --- | --- | --- | --- | --- |
-| Không có `exports`/`opens` | false | false | false | false |
+| Neither `exports`/`opens` | false | false | false | false |
 | `exports p;` | true | false | true | false |
 | `exports p to m.client;` | false | false | true | false |
 | `opens p;` | **true** | true | **true** | true |
 | `opens p to m.client;` | false | false | **true** | true |
 
-Ở hai dòng qualified, `client` là đúng module `m.client`. Nếu truyền một module khác không có trong danh sách, các kết quả qualified tương ứng sẽ là `false`. Các phương thức trả trạng thái access **hiện hành**, không chỉ đọc các dòng khai báo trong nguồn.
+In the two qualified rows, `client` is the exact module `m.client`. If you pass another module not in the list, the corresponding qualified results will be `false`. These methods return the **current** access state, not merely reading the source declaration lines.
 
-## 5. Kiểm tra đủ ngữ cảnh: đọc module, package và member
+## 5. Checking Full Context: Module Read, Package, and Member
 
-Để mã Java ở module client có thể **tham chiếu trực tiếp** public API trong source, phải xét đồng thời:
+For Java code in the client module to **directly reference** a public API in source, you must check simultaneously:
 
-1. **Readability:** `client.canRead(source)`. Lệnh `requires m.library;` trong `module-info.java` tạo quan hệ đọc khi module graph được resolve theo các quy tắc JPMS.
-2. **Export:** package chứa public API được export cho client; cần phân biệt export công khai và qualified.
-3. **Java access control:** kiểu và member thực sự có quyền phù hợp, ví dụ class `public`, method `public`.
+1. **Readability:** `client.canRead(source)`. A `requires m.library;` directive in `module-info.java` creates the read edge when the module graph is resolved under JPMS rules.
+2. **Export:** the package containing the public API is exported to client; distinguish unconditional from qualified exports.
+3. **Java access control:** the type and member actually have suitable visibility, e.g., `public` class, `public` method.
 
-Để **deep reflection** từ một framework, câu hỏi bổ sung là package có **open tới module chứa framework** hay không. Khi thao tác trên `Field`, `Method`, `Constructor`, phương thức ở `java.lang.reflect.AccessibleObject` còn phản ánh khả năng access cụ thể:
+For **deep reflection** from a framework, the additional question is whether the package is **open to the module containing the framework**. When operating on `Field`, `Method`, and `Constructor`, methods on `java.lang.reflect.AccessibleObject` also reflect specific accessibility:
 
-| API | Tác dụng |
+| API | Effect |
 | --- | --- |
-| `getDeclaredField("value")` | Tìm metadata về field **khai báo trực tiếp**, không tự cấp quyền đọc giá trị |
-| `canAccess(instance)` | Kiểm tra quyền truy cập hiện tại của **caller** đối với reflected object |
-| `trySetAccessible()` | Thử bật chế độ bỏ qua access checks; trả `true` nếu bật được, `false` khi không thể |
-| `setAccessible(true)` | Yêu cầu bật chế độ đó; có thể ném `InaccessibleObjectException` khi JPMS cấm |
-| `Field.get(instance)` / `Method.invoke(...)` | Thực hiện truy cập/gọi và áp dụng quy tắc phù hợp |
+| `getDeclaredField("value")` | Finds metadata about a **directly declared** field; does not grant permission to read the value |
+| `canAccess(instance)` | Checks the **caller**'s current access permission for the reflected object |
+| `trySetAccessible()` | Attempts to enable suppressing access checks; returns `true` if enabled, `false` when impossible |
+| `setAccessible(true)` | Requests enabling that mode; may throw `InaccessibleObjectException` when JPMS forbids it |
+| `Field.get(instance)` / `Method.invoke(...)` | Performs the access/invocation and enforces the appropriate rules |
 
-**Ngữ cảnh caller rất quan trọng:** Mã ở module `m.framework` gọi `trySetAccessible()` thì source phải mở package cho `m.framework`. Mở package cho `m.app` là chưa chắc giúp ích, ngay cả khi `m.app` là nơi khởi động framework.
+**Caller context is critical:** If code in module `m.framework` calls `trySetAccessible()`, source must open the package to `m.framework`. Opening the package to `m.app` may not help, even if `m.app` is what launched the framework.
 
-**Một khác biệt kỹ thuật:** Theo tài liệu `AccessibleObject`, việc sử dụng reflected objects để truy cập member có biến thể trong kiểm tra quyền: Reflection **giả định readability** khi kiểm tra access. Vì vậy không được áp dụng máy móc tất cả quy tắc compile-time reference cho thao tác Reflection runtime. Dù vậy, `canRead` vẫn hữu ích khi phân tích module graph và quyền truy cập Java thông thường; bản thân nó không hề đủ để vượt qua package encapsulation.
+**A technical distinction:** Per `AccessibleObject` documentation, using reflected objects to access members has a variation in permission checking: Reflection **assumes readability** during access checks. Therefore, do not mechanically apply every compile-time reference rule to runtime Reflection operations. Even so, `canRead` remains useful when analyzing the module graph and normal Java access; by itself it is nowhere near enough to bypass package encapsulation.
 
-Không đồng nhất ba việc **tìm thấy `Class`**, **lấy được `Field`/`Method` metadata** và **được phép đọc/gọi member đó**. Ví dụ `Class.forName` có thể tìm một class nhưng `trySetAccessible` vẫn thất bại nếu package không mở cho caller.
+Do not equate **finding a `Class`**, **obtaining `Field`/`Method` metadata**, and **being permitted to read/invoke that member**. For example, `Class.forName` can find a class while `trySetAccessible` still fails if the package is not opened to the caller.
 
-## 6. Ví dụ thực hành Java 17+: hai named module
+## 6. Hands-On Java 17+ Example: Two Named Modules
 
-Ví dụ dưới đây cho thấy **qualified opens**: một package nội bộ không export công khai nhưng vẫn mở cho Reflection của client cụ thể. Tạo các tệp:
+The example below demonstrates **qualified opens**: an internal package is not publicly exported yet is opened for Reflection to a specific client. Create the files:
 
 ```text
 src/
@@ -271,7 +271,7 @@ public class Main {
         System.out.println("model open to client: "
                 + source.isOpen("demo.model", client));
 
-        // Không import trực tiếp package demo.model.
+        // Do not import package demo.model directly.
         Class<?> type = Class.forName("demo.model.Secret");
         Constructor<?> constructor = type.getDeclaredConstructor();
         System.out.println("constructor trySetAccessible: "
@@ -286,14 +286,14 @@ public class Main {
 }
 ```
 
-Tại thư mục chứa `src`, biên dịch rồi chạy:
+In the directory containing `src`, compile and run:
 
 ```bash
 javac -d out --module-source-path src src/m.library/module-info.java src/m.library/demo/api/Api.java src/m.library/demo/model/Secret.java src/m.client/module-info.java src/m.client/demo/client/Main.java
 java --module-path out -m m.client/demo.client.Main
 ```
 
-**Stdout mong đợi:**
+**Expected stdout:**
 
 ```text
 client reads library: true
@@ -308,19 +308,19 @@ field trySetAccessible: true
 secret: hello
 ```
 
-Phân tích:
+Analysis:
 
-- `requires m.library;` giúp client đọc module thư viện; `canRead` là `true`.
-- `demo.api` chỉ được `exports` công khai: `isExported` là `true`, `isOpen` là `false`.
-- `demo.model` được `opens ... to m.client`: không export/open không điều kiện. Nhưng **`isExported("demo.model", client) == true` tại runtime**, vì qualified open cho client cũng tính là export.
-- Client không viết `import demo.model.Secret;`. Thay vào đó, `Class.forName` lấy class theo tên. Đây là đường tra cứu metadata, không cấp sẵn quyền truy cập constructor/field.
-- Hai lần `trySetAccessible()` thành công vì package thực sự được mở cho module `m.client` chứa mã gọi, nên code có thể khởi tạo object bằng private constructor và đọc private field.
+- `requires m.library;` lets client read the library module; `canRead` is `true`.
+- `demo.api` is only publicly `exports`-ed: `isExported` is `true`, `isOpen` is `false`.
+- `demo.model` is `opens ... to m.client`: not unconditionally exported/opened. Yet **`isExported("demo.model", client) == true` at runtime**, because qualified open to client also counts as exported.
+- Client does not write `import demo.model.Secret;`. Instead, `Class.forName` fetches the class by name. That is a metadata lookup path and does not pre-grant access to constructors/fields.
+- Both `trySetAccessible()` calls succeed because the package is genuinely opened to module `m.client` containing the calling code, so the code can instantiate the object via its private constructor and read the private field.
 
-**Bài thử lỗi có kiểm soát:** Bỏ dòng `opens demo.model to m.client;` trong module nguồn, biên dịch lại. Khi đó `isOpen("demo.model", client)` và `isExported("demo.model", client)` trở thành `false`. `constructor.trySetAccessible()` cũng trả `false`; nếu mã vẫn gọi `constructor.newInstance()` như thể đã được cấp quyền, có thể gặp `IllegalAccessException`. Hãy kiểm tra giá trị trả về và ngừng nhánh truy cập sâu khi thất bại.
+**Controlled failure test:** Remove `opens demo.model to m.client;` in the source module and recompile. Then `isOpen("demo.model", client)` and `isExported("demo.model", client)` become `false`. `constructor.trySetAccessible()` also returns `false`; if the code still calls `constructor.newInstance()` as if permission were granted, `IllegalAccessException` can occur. Always check the return value and stop the deep-access branch on failure.
 
-## 7. Kiểm tra nhanh từ classpath và `java.base`
+## 7. Quick Check from Classpath and `java.base`
 
-Đây là ví dụ riêng, không cần tổ chức nhiều module. Lưu `ModuleProbe.java`:
+This is a separate example without a multi-module layout. Save `ModuleProbe.java`:
 
 ```java
 public class ModuleProbe {
@@ -347,7 +347,7 @@ javac ModuleProbe.java
 java -cp . ModuleProbe
 ```
 
-**Stdout trên cấu hình JDK 17+ tiêu chuẩn, không thêm `--add-opens java.base/java.lang=ALL-UNNAMED`:**
+**Stdout on standard JDK 17+ configuration, without adding `--add-opens java.base/java.lang=ALL-UNNAMED`:**
 
 ```text
 mine named: false
@@ -358,81 +358,81 @@ java.lang exported to mine: true
 java.lang open to mine: false
 ```
 
-`ModuleProbe` chạy trong **unnamed module** của class loader; `String` thuộc named module `java.base`. Package `java.lang` được export để mã dùng public API như `String.length()`, nhưng điều đó không cho phép Reflection từ classpath tùy ý đọc các field private của `String`.
+`ModuleProbe` runs in the class loader's **unnamed module**; `String` belongs to the named module `java.base`. Package `java.lang` is exported so code can use public APIs like `String.length()`, but that does not permit Reflection from the classpath to arbitrarily read `String`'s private fields.
 
-## 8. Các loại module đặc biệt và hệ quả
+## 8. Special Module Types and Consequences
 
-### Explicit named module
+### Explicit Named Module
 
-Module có khai báo tường minh `module-info.java` cho phép kiểm soát từng package bằng `exports` và `opens` (kể cả qualified dạng `to m.client`). Đây là trường hợp bảng so sánh ở mục 4 áp dụng trực tiếp.
+A module with an explicit `module-info.java` allows per-package control using `exports` and `opens` (including qualified `to m.client` forms). This is the case to which the comparison table in section 4 directly applies.
 
 ### `open module`
 
-Khai báo `open module m.library { ... }` mở **mọi package thuộc module** cho Reflection. Đây là đặc tính cấp module, khác với `opens p;` chỉ mở một package. Với package thuộc một open module, `isOpen(pn)` trả `true`; package open không điều kiện cũng được xem như export không điều kiện ở runtime. Trong phần thân `open module` không khai báo thêm các chỉ thị `opens` riêng.
+Declaring `open module m.library { ... }` opens **every package belonging to the module** for Reflection. This is a module-level property, unlike `opens p;` which opens a single package. For packages in an open module, `isOpen(pn)` returns `true`; an unconditionally open package is also treated as unconditionally exported at runtime. Inside the body of an `open module`, do not declare separate `opens` directives.
 
-### Unnamed module
+### Unnamed Module
 
-Mã nạp từ classpath thường thuộc unnamed module. Theo hợp đồng Java `Module`, các phương thức `isExported` và `isOpen` **khi gọi trên unnamed module** luôn trả `true`; unnamed module cũng đọc mọi module. Nhưng unnamed module không khiến named module khác tự động mở các package của chúng cho mã classpath.
+Code loaded from the classpath typically belongs to an unnamed module. Per the Java `Module` contract, `isExported` and `isOpen` **when called on an unnamed module** always return `true`; an unnamed module also reads every module. However, an unnamed module does not cause other named modules to automatically open their packages to classpath code.
 
-### Automatic module
+### Automatic Module
 
-Một JAR không có explicit module descriptor có thể trở thành **automatic module** nếu được đưa lên module path. Automatic module có tên (`isNamed() == true`), export và open các package theo cơ chế tương thích. Phân biệt nó với unnamed module. Có thể xem `module.getDescriptor().isAutomatic()` khi descriptor tồn tại.
+A JAR without an explicit module descriptor can become an **automatic module** if placed on the module path. An automatic module has a name (`isNamed() == true`), and exports and opens its packages for compatibility. Distinguish it from an unnamed module. You can inspect `module.getDescriptor().isAutomatic()` when a descriptor is present.
 
-### Module tự truy cập package
+### A Module Accessing Its Own Package
 
-`source.isOpen(pn, source)` hoặc `source.isExported(pn, source)` trả `true` với package thuộc source. Nếu vô tình truyền `source` thay cho module framework đang truy cập, kết quả dễ bị diễn giải sai thành quyền mở ra ngoài.
+`source.isOpen(pn, source)` or `source.isExported(pn, source)` returns `true` for packages belonging to `source`. If you accidentally pass `source` instead of the accessing framework's module, the result is easily misinterpreted as external open permission.
 
-## 9. Quyền runtime có thể khác khai báo nguồn
+## 9. Runtime Permissions Can Differ from Source Declarations
 
-`Module.isExported` và `Module.isOpen` phản ánh **runtime module state**. Khi chạy Java, có thể bổ sung các quyền:
+`Module.isExported` and `Module.isOpen` reflect the **runtime module state**. When running Java, additional permissions can be supplied:
 
-| Cơ chế | Tác dụng |
+| Mechanism | Effect |
 | --- | --- |
-| `requires m.library;` | Thiết lập module readability theo module graph |
-| `exports p;` hoặc `exports p to m.client;` | Public API unqualified / qualified |
-| `opens p;` hoặc `opens p to m.client;` | Reflection access unqualified / qualified |
-| `--add-reads m.client=m.library` | Thêm read edge lúc chạy |
-| `--add-exports m.library/demo.internal=m.client` | Thêm export cho client lúc chạy |
-| `--add-opens m.library/demo.model=m.client` | Thêm open cho client lúc chạy |
+| `requires m.library;` | Establishes module readability in the module graph |
+| `exports p;` or `exports p to m.client;` | Unqualified / qualified public API |
+| `opens p;` or `opens p to m.client;` | Unqualified / qualified Reflection access |
+| `--add-reads m.client=m.library` | Adds a read edge at runtime |
+| `--add-exports m.library/demo.internal=m.client` | Adds an export to client at runtime |
+| `--add-opens m.library/demo.model=m.client` | Adds an open to client at runtime |
 
-Giả sử bỏ `opens demo.model to m.client;` trong thư viện, sau khi biên dịch lại có thể bật quyền open ngay khi chạy (nếu bạn kiểm soát launch command):
+Suppose you remove `opens demo.model to m.client;` from the library; after recompiling, you can enable open permission right at launch (if you control the launch command):
 
 ```bash
 java --module-path out --add-opens m.library/demo.model=m.client -m m.client/demo.client.Main
 ```
 
-`--add-opens` là lựa chọn cho nhu cầu deep reflection. `--add-exports` có ý nghĩa khác, hỗ trợ public access tại runtime; đừng tự động thêm cả hai khi chưa xác định yêu cầu.
+`--add-opens` is the choice for deep reflection needs. `--add-exports` has a different meaning, supporting public access at runtime; do not automatically add both without determining the requirement.
 
-Các phương thức `Module.addReads`, `Module.addExports` và `Module.addOpens` cũng tồn tại nhưng **được bảo vệ bởi điều kiện về caller và trạng thái module**. Một framework ở module bất kỳ không thể giả định nó được tự do mở tất cả package của module khác.
+The methods `Module.addReads`, `Module.addExports`, and `Module.addOpens` also exist, but they are **guarded by caller and module-state checks**. An arbitrary module's framework cannot assume it is free to open all packages of another module.
 
-Vì vậy, `source.getDescriptor().exports()` hoặc `opens()` biểu diễn mô tả của module và có thể **khác trạng thái runtime** do các lệnh cấu hình hoặc cập nhật. Khi phân tích một lỗi, hãy nhìn đồng thời descriptor, `Module` object thực tế, tham số khởi chạy và module layer liên quan.
+Therefore, `source.getDescriptor().exports()` or `opens()` represents the module's descriptor and can **differ from runtime state** due to configuration flags or dynamic updates. When analyzing an error, look simultaneously at the descriptor, the actual `Module` object, launch arguments, and the relevant module layer.
 
-## 10. Quy trình debug `InaccessibleObjectException`
+## 10. Workflow for Debugging `InaccessibleObjectException`
 
-Một quy trình ngắn nhưng đầy đủ:
+A short yet complete workflow:
 
-1. **Lớp đích:** xác định `targetClass.getName()` và `targetClass.getPackageName()`.
-2. **Module nguồn:** `targetClass.getModule()`, cùng tên và trạng thái `isNamed()`.
-3. **Caller thật:** tìm class đang chạy `setAccessible`/`trySetAccessible`; lấy `Accessor.class.getModule()`. Nếu đó là framework, module framework mới là `other`.
-4. **Truy vấn quyền package:** so sánh `source.isOpen(pn)` với `source.isOpen(pn, callerModule)`; tương tự cho `isExported`.
-5. **Readability:** hỏi `callerModule.canRead(source)` riêng, nhất là khi có lỗi compile/module resolution hay Java access bình thường.
-6. **Kiểm tra member cụ thể:** thử `canAccess`/`trySetAccessible` hoặc xem exception thật, lưu ý constructor, instance/static field và method yêu cầu tham số `obj` phù hợp.
-7. **Kiểm tra runtime:** `module-info.java`, `--module-path` so với `-cp`, launch flags, agent và các API cập nhật quyền.
+1. **Target class:** identify `targetClass.getName()` and `targetClass.getPackageName()`.
+2. **Source module:** `targetClass.getModule()`, along with its name and `isNamed()` status.
+3. **Actual caller:** find the class executing `setAccessible`/`trySetAccessible`; get `Accessor.class.getModule()`. If that is a framework, the framework module is `other`.
+4. **Query package permissions:** compare `source.isOpen(pn)` with `source.isOpen(pn, callerModule)`; do the same for `isExported`.
+5. **Readability:** query `callerModule.canRead(source)` separately, especially when there are compile/module resolution errors or normal Java access errors.
+6. **Check the specific member:** test `canAccess`/`trySetAccessible` or examine the actual exception, noting that constructors, instance/static fields, and methods require the proper `obj` argument.
+7. **Check runtime:** `module-info.java`, `--module-path` vs `-cp`, launch flags, agents, and permission-updating APIs.
 
-Khi exception ghi module `m.library` không `opens demo.model` cho module `m.framework`, hãy kiểm tra quyền open **tới `m.framework`**. Thêm `opens demo.model to m.app;` chỉ vì ứng dụng chính thuộc `m.app` có thể không xử lý đúng caller.
+When an exception says module `m.library` does not `opens demo.model` to module `m.framework`, check open permission **to `m.framework`**. Adding `opens demo.model to m.app;` just because the main application belongs to `m.app` may fail to cover the actual caller.
 
-### Những suy luận cần tránh
+### Inferences to Avoid
 
-- `isOpen(pn) == false` **không** có nghĩa `isOpen(pn, client)` luôn false (có qualified opens).
-- `isExported(pn, client) == true` **không** có nghĩa package chắc chắn có dòng `exports`; kết quả có thể đến từ `opens` ở runtime.
-- `isOpen(pn, client) == true` **không** bảo đảm mọi hành động Reflection thành công vô điều kiện.
-- `canRead(source) == true` **không** cho phép đọc field private nếu thiếu các điều kiện Reflection khác.
-- `getDeclaredField` tìm thấy field **không** đồng nghĩa caller được phép `Field.get`.
-- `isOpen(pn, source) == true` với một package thuộc source **không** chứng minh package đó đã mở cho framework bên ngoài.
+- `isOpen(pn) == false` **does not** mean `isOpen(pn, client)` is always false (there are qualified opens).
+- `isExported(pn, client) == true` **does not** guarantee the package has an `exports` line; the result can come from `opens` at runtime.
+- `isOpen(pn, client) == true` **does not** guarantee every Reflection action will succeed unconditionally.
+- `canRead(source) == true` **does not** allow reading private fields if other Reflection conditions are missing.
+- `getDeclaredField` finding a field **does not** mean the caller is allowed to call `Field.get`.
+- `isOpen(pn, source) == true` for a package belonging to `source` **does not** prove the package is opened to an external framework.
 
-## 11. Bài tự kiểm tra
+## 11. Self-Check Exercise
 
-Cho module nguồn:
+Given the source module:
 
 ```java
 module m.provider {
@@ -441,7 +441,7 @@ module m.provider {
 }
 ```
 
-Giả sử `demo.api` và `demo.internal` là hai package có thật, module `m.consumer` đã resolve và đọc module nguồn, không có runtime override. Dự đoán:
+Assume `demo.api` and `demo.internal` are real packages, module `m.consumer` is resolved and reads the source module, and there are no runtime overrides. Predict:
 
 ```java
 provider.isExported("demo.api");                   // A
@@ -453,15 +453,15 @@ provider.isOpen("demo.internal", consumer);        // F
 provider.isOpen("demo.internal", provider);        // G
 ```
 
-**Đáp án:** A = `true`; B = `false`; C = `false`; D = `false`; E = **`true`** (qualified opens cũng có hiệu lực export tại runtime); F = `true`; G = `true` (module được truy cập package của chính mình).
+**Answer:** A = `true`; B = `false`; C = `false`; D = `false`; E = **`true`** (qualified opens also takes export effect at runtime); F = `true`; G = `true` (a module can access its own packages).
 
-Đây là các mảnh mã để suy luận, không phải tệp Java độc lập có thể biên dịch. Muốn chạy, sử dụng chương trình đầy đủ ở mục 6.
+These are code snippets for reasoning, not a standalone compilable Java file. To run, use the full program in section 6.
 
-## 12. Ghi nhớ và tài liệu chuẩn
+## 12. Takeaways and Official Documentation
 
-**Đặt câu hỏi từ góc nhìn source và caller:** `source.isExported(package, callerModule)` và `source.isOpen(package, callerModule)`. Overload một tham số hỏi quyền không điều kiện; overload hai tham số hỏi quyền ít nhất cho một module cụ thể. Package mở cho module đích **được xem là exported cho module đó tại runtime**, nhưng `opens` vẫn có mục đích riêng là deep reflection; `exports` dùng cho public API thông thường. Quyền đọc module, quyền package và quyền của member cần đánh giá riêng.
+**Ask questions from both source and caller perspectives:** `source.isExported(package, callerModule)` and `source.isOpen(package, callerModule)`. The one-argument overload queries unconditional permission; the two-argument overload queries permission at least for a specific module. A package opened to a target module **is treated as exported to that module at runtime**, yet `opens` retains its distinct purpose of deep reflection; `exports` is for normal public APIs. Module readability, package permissions, and member permissions must be evaluated separately.
 
-Tài liệu đối chiếu:
+Reference documentation:
 
 - [Java SE 21 — `Module`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Module.html)
 - [Java SE 21 — `AccessibleObject`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html)

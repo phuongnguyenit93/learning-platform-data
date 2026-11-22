@@ -1,34 +1,34 @@
-# Đưa precision, scale và rounding vào hợp đồng thiết kế dữ liệu số trong Java
+# Putting Precision, Scale, and Rounding into the Numeric Data Design Contract in Java
 
-## 1. Tại sao đây phải là hợp đồng, không chỉ là lựa chọn định dạng?
+## 1. Why Must This Be a Contract, Not Just a Formatting Choice?
 
-Một trường số như `amount`, `price`, `rate`, `distance` hoặc `quantity` không được định nghĩa đầy đủ chỉ bằng câu “kiểu `BigDecimal`”. Hai hệ thống đều dùng `BigDecimal` nhưng có thể bất đồng về số chữ số cho phép, ngưỡng lớn nhất và cách làm tròn. Kết quả: lỗi nhập dữ liệu, chênh lệch một đơn vị tiền nhỏ nhất khi đối soát, thay đổi ngoài ý muốn lúc ghi database, hoặc khác biệt giữa các endpoint.
+A numeric field such as `amount`, `price`, `rate`, `distance`, or `quantity` is not completely defined merely by saying "type `BigDecimal`." Two systems both using `BigDecimal` can still disagree on the number of allowed digits, maximum thresholds, and rounding behavior. The result: input validation errors, a one-minor-unit discrepancy during reconciliation, unintended changes when writing to the database, or mismatches across endpoints.
 
-Khi thiết kế dữ liệu số, cần coi ba yếu tố sau là **một phần hợp đồng công khai**:
+When designing numeric data, treat the following three factors as **part of the public contract**:
 
-- **Precision (độ chính xác chữ số):** tổng số chữ số có nghĩa mà giá trị được phép chứa.
-- **Scale (vị trí thập phân):** số chữ số bên phải dấu thập phân trong biểu diễn `BigDecimal` (scale có thể âm).
-- **Rounding (chính sách làm tròn):** điều gì xảy ra nếu phép tính hay dữ liệu đầu vào không thể biểu diễn tại precision/scale yêu cầu.
+- **Precision (significant digits):** the total number of significant digits the value is permitted to contain.
+- **Scale (decimal places):** the number of digits to the right of the decimal point in a `BigDecimal` representation (scale can be negative).
+- **Rounding (rounding policy):** what happens when a calculation or input value cannot be represented at the required precision/scale.
 
-Ngoài ra hợp đồng thực tế còn phải nêu **đơn vị, miền giá trị, cách xử lý null, quy tắc parse/serialize, thứ tự thao tác và thời điểm làm tròn**. Không thể chỉ nhìn một câu `setScale(2)` mà suy ra tất cả các điều trên.
+In addition, a real-world contract must state **units, value ranges, null handling, parse/serialize rules, operation ordering, and rounding timing**. You cannot infer all of those merely by looking at a `setScale(2)` call.
 
-Ví dụ hợp đồng cụ thể:
+Concrete contract example:
 
-> `totalAmount`: tiền theo một đơn vị tiền tệ đã xác định, không âm, tối đa 10 chữ số phần nguyên và 2 chữ số phần thập phân; dữ liệu phải biểu diễn chính xác tới đơn vị 0.01; không âm thầm làm tròn khi nhận input. Khi tính thuế, chỉ làm tròn đến 2 chữ số **ở bước tính thuế của dòng hóa đơn**, sử dụng `HALF_EVEN`. Khi xuất API, chuỗi decimal phải giữ chính xác 2 chữ số thập phân.
+> `totalAmount`: money in a defined currency, non-negative, up to 10 integer digits and 2 decimal places; data must be representable exactly to 0.01; do not silently round upon input. When calculating tax, round to 2 decimal places **only at the invoice-line tax calculation step**, using `HALF_EVEN`. When outputting via API, the decimal string must retain exactly 2 decimal places.
 
-Chính sách này có thể diễn đạt bằng `DECIMAL(12,2)` ở cơ sở dữ liệu và `BigDecimal` trong Java, **nhưng hai khai báo đó chưa đủ để định nghĩa toàn bộ quy trình tính**. Phải bổ sung validation, thời điểm rounding và định dạng truyền dữ liệu.
+This policy can be expressed with `DECIMAL(12,2)` in the database and `BigDecimal` in Java, **yet those two declarations are not enough to define the entire calculation flow**. You must add validation, rounding timing, and data transfer formatting.
 
-## 2. Precision, scale và unscaled value của `BigDecimal`
+## 2. Precision, Scale, and Unscaled Value of `BigDecimal`
 
-Một đối tượng `BigDecimal` được mô tả về mặt giá trị bởi:
+A `BigDecimal` object's value is described mathematically by:
 
 ```text
 value = unscaledValue × 10^(-scale)
 ```
 
-Ví dụ:
+Examples:
 
-| Chuỗi dùng để khởi tạo | `unscaledValue()` | `scale()` | `precision()` | Giá trị số học |
+| String Used for Construction | `unscaledValue()` | `scale()` | `precision()` | Numeric Value |
 |---|---:|---:|---:|---:|
 | `"123.45"` | `12345` | `2` | `5` | 123.45 |
 | `"123.450"` | `123450` | `3` | `6` | 123.45 |
@@ -36,9 +36,9 @@ Ví dụ:
 | `"1E+3"` | `1` | `-3` | `1` | 1000 |
 | `"0.001"` | `1` | `3` | `1` | 0.001 |
 
-`precision()` là số chữ số của phần *unscaled value* (theo quy tắc của `BigDecimal`), **không phải số chữ số sau dấu chấm**. `scale()` là độ dịch thập phân, **không phải số chữ số có nghĩa**. Precision của zero bằng 1.
+`precision()` is the number of digits in the *unscaled value* (per `BigDecimal` rules), **not the number of digits after the decimal point**. `scale()` is the decimal shift, **not the number of significant digits**. The precision of zero is 1.
 
-Cùng giá trị số học có thể có precision và scale khác nhau:
+The same numeric value can have different precision and scale:
 
 ```java
 BigDecimal a = new BigDecimal("2.0");
@@ -48,34 +48,34 @@ System.out.println(a.compareTo(b) == 0); // true
 System.out.println(a.equals(b));         // false
 ```
 
-`compareTo` so sánh giá trị số học. `equals` của `BigDecimal` còn đòi **cùng scale**. Vì vậy, khi hợp đồng cần bảo toàn cách biểu diễn (ví dụ input phải có đúng 2 chữ số thập phân), phép so sánh `compareTo` không đủ để kiểm tra chi tiết đó.
+`compareTo` compares numeric values. `BigDecimal.equals` additionally requires **the same scale**. Therefore, when a contract requires preserving representation (e.g., input must have exactly 2 decimal digits), `compareTo` alone is insufficient to verify that detail.
 
-**Ghi nhớ:** `DECIMAL(12,2)` trong database thường thể hiện tối đa 12 chữ số theo precision và scale 2 (tương ứng tối đa 10 chữ số phần nguyên). Nó không đồng nghĩa “12 chữ số bên trái dấu chấm và 2 chữ số bên phải”. Hành vi lưu/round khi vượt scale có thể khác nhau giữa các hệ CSDL và cấu hình; ứng dụng phải xác nhận rõ thay vì phó mặc driver/database quyết định.
+**Remember:** `DECIMAL(12,2)` in a database typically expresses up to 12 digits of total precision and scale 2 (corresponding to at most 10 integer digits). It does not mean "12 digits to the left of the decimal point and 2 digits to the right." Storage/rounding behavior when exceeding scale can differ across DBMSs and configurations; the application must verify explicitly rather than leaving it to the driver or database.
 
-## 3. `setScale` và `MathContext`: hai loại giới hạn khác nhau
+## 3. `setScale` and `MathContext`: Two Different Kinds of Limits
 
-### 3.1. `setScale(newScale, mode)`: điều chỉnh số chữ số thập phân
+### 3.1. `setScale(newScale, mode)`: Adjusting Decimal Places
 
-`setScale` tạo một `BigDecimal` với scale yêu cầu. Nếu tăng scale, Java bổ sung số 0 mà không thay đổi giá trị số học; nếu giảm scale, có thể phải làm tròn:
+`setScale` creates a `BigDecimal` with the requested scale. When increasing scale, Java pads zeros without changing numeric value; when decreasing scale, rounding may be needed:
 
 ```java
 new BigDecimal("12.3").setScale(2); // 12.30
 new BigDecimal("12.345").setScale(2, RoundingMode.HALF_UP); // 12.35
 ```
 
-Nếu giảm scale mà sẽ mất chữ số có nghĩa và không truyền rounding mode phù hợp, phép thay đổi chính xác không thể thực hiện. `setScale(2, RoundingMode.UNNECESSARY)` là cách **xác thực giá trị có thể biểu diễn đến 2 chữ số thập phân mà không làm tròn**.
+If decreasing scale would discard non-zero digits and no appropriate rounding mode is passed, an exact change cannot be performed. `setScale(2, RoundingMode.UNNECESSARY)` is how you **verify that a value can be represented to 2 decimal places without rounding**.
 
-Điểm khác nhau quan trọng:
+Important distinctions:
 
-- `new BigDecimal("12.300").setScale(2, UNNECESSARY)` thành công: kết quả `12.30`, phần bị bỏ chỉ là zero.
-- `new BigDecimal("12.301").setScale(2, UNNECESSARY)` ném `ArithmeticException`: việc bỏ chữ số 1 sẽ mất giá trị.
-- `new BigDecimal("12.3").setScale(2, UNNECESSARY)` thành công: thêm zero thành `12.30`.
+- `new BigDecimal("12.300").setScale(2, UNNECESSARY)` succeeds: result is `12.30`, dropped digits are only zero.
+- `new BigDecimal("12.301").setScale(2, UNNECESSARY)` throws `ArithmeticException`: dropping digit 1 would lose value.
+- `new BigDecimal("12.3").setScale(2, UNNECESSARY)` succeeds: appends zero to produce `12.30`.
 
-Do đó, `UNNECESSARY` kiểm tra **khả năng biểu diễn chính xác**, không kiểm tra input có **chính xác** 2 chữ số trên văn bản hay không. Hai hợp đồng này phải phân biệt.
+Thus, `UNNECESSARY` checks **exact representability**, not whether the input text literally had **exactly** 2 digits. These two contracts must be kept distinct.
 
-### 3.2. `MathContext(precision, mode)`: giới hạn tổng chữ số có nghĩa
+### 3.2. `MathContext(precision, mode)`: Limiting Total Significant Digits
 
-`MathContext` đưa một precision áp dụng cho kết quả thao tác `BigDecimal`, cùng rounding mode. Ví dụ:
+`MathContext` applies a precision limit to the result of a `BigDecimal` operation, together with a rounding mode. Example:
 
 ```java
 BigDecimal x = new BigDecimal("123.456");
@@ -84,13 +84,13 @@ System.out.println(x.setScale(2, RoundingMode.HALF_EVEN)); // 123.46
 System.out.println(x.round(new MathContext(4, RoundingMode.HALF_EVEN))); // 123.5
 ```
 
-`setScale(2)` giữ **2 chữ số bên phải dấu chấm**; `MathContext(4)` giữ **4 chữ số có nghĩa trên toàn giá trị**. Đây là hai mục tiêu khác nhau, không thể dùng thay thế nhau.
+`setScale(2)` keeps **2 digits to the right of the decimal point**; `MathContext(4)` keeps **4 significant digits across the entire value**. These are two different goals and cannot be used interchangeably.
 
-`MathContext.UNLIMITED` có precision bằng 0, nghĩa là không giới hạn precision của phép toán mà nó áp dụng; nó **không có nghĩa** phép chia không kết thúc như `1/3` có thể biểu diễn chính xác hữu hạn. Đối với `BigDecimal.ONE.divide(new BigDecimal("3"))` không có rounding/scale, Java ném `ArithmeticException` vì thương không có biểu diễn thập phân hữu hạn.
+`MathContext.UNLIMITED` has precision 0, meaning unlimited precision for the operation to which it is applied; it **does not mean** non-terminating divisions like `1/3` can be represented finitely and exactly. For `BigDecimal.ONE.divide(new BigDecimal("3"))` without rounding/scale, Java throws `ArithmeticException` because the quotient has no finite decimal representation.
 
-### 3.3. Những kết quả dễ hiểu sai
+### 3.3. Easily Misunderstood Results
 
-| Phép toán | Kết quả / hành vi |
+| Operation | Result / Behavior |
 |---|---|
 | `new BigDecimal("123.450").precision()` | `6` |
 | `new BigDecimal("123.450").scale()` | `3` |
@@ -100,65 +100,65 @@ System.out.println(x.round(new MathContext(4, RoundingMode.HALF_EVEN))); // 123.
 | `new BigDecimal("2.355").setScale(2, HALF_EVEN)` | `2.36` |
 | `new BigDecimal("123.456").round(MathContext(4, HALF_EVEN))` | `123.5` |
 
-Chỉ sử dụng `MathContext` nếu hợp đồng nêu rõ precision trên **kết quả phép toán**; chỉ sử dụng `setScale` nếu muốn điều chỉnh **số chữ số thập phân**. Nhiều ứng dụng tiền tệ cần cả miền precision/scale của **giá trị lưu trữ**, nhưng ở mỗi phép tính trung gian không nhất thiết được làm tròn đến precision đó.
+Use `MathContext` only if the contract specifies precision on **operation results**; use `setScale` only when adjusting **decimal places**. Many monetary applications need both a precision/scale limit on **stored values**, yet intermediate operations do not necessarily round to that precision at every step.
 
-## 4. RoundingMode: quy tắc nghiệp vụ bắt buộc phải đặt tên
+## 4. RoundingMode: A Business Rule That Must Be Named
 
-`java.math.RoundingMode` gồm nhiều chế độ. Khi không thể giữ nguyên số chữ số theo precision/scale mong muốn, cách làm tròn quyết định kết quả:
+`java.math.RoundingMode` includes several modes. When the exact digits cannot be retained at the desired precision/scale, the rounding mode determines the outcome:
 
-| Mode | Ý nghĩa | `2.345` → 2 chữ số | `-2.345` → 2 chữ số |
+| Mode | Meaning | `2.345` → 2 places | `-2.345` → 2 places |
 |---|---|---:|---:|
-| `UP` | Ra xa 0 | 2.35 | -2.35 |
-| `DOWN` | Về 0 | 2.34 | -2.34 |
-| `CEILING` | Về +∞ | 2.35 | -2.34 |
-| `FLOOR` | Về -∞ | 2.34 | -2.35 |
-| `HALF_UP` | Gần nhất; ở đúng giữa thì xa 0 | 2.35 | -2.35 |
-| `HALF_DOWN` | Gần nhất; ở đúng giữa thì về 0 | 2.34 | -2.34 |
-| `HALF_EVEN` | Gần nhất; ở đúng giữa thì chữ số giữ lại cuối là chẵn | 2.34 | -2.34 |
-| `UNNECESSARY` | Không cho phép làm tròn | Ngoại lệ | Ngoại lệ |
+| `UP` | Away from 0 | 2.35 | -2.35 |
+| `DOWN` | Toward 0 | 2.34 | -2.34 |
+| `CEILING` | Toward +∞ | 2.35 | -2.34 |
+| `FLOOR` | Toward -∞ | 2.34 | -2.35 |
+| `HALF_UP` | Nearest; ties away from 0 | 2.35 | -2.35 |
+| `HALF_DOWN` | Nearest; ties toward 0 | 2.34 | -2.34 |
+| `HALF_EVEN` | Nearest; ties to even last kept digit | 2.34 | -2.34 |
+| `UNNECESSARY` | Rounding forbidden | Exception | Exception |
 
-Lưu ý các cột kết quả trên giả định **đúng giá trị thập phân được tạo từ chuỗi** `"2.345"` và `"-2.345"`. Với `2.355`, mode `HALF_EVEN` cho `2.36`, vì chữ số hàng phần trăm giữ lại là 6 (chẵn). `HALF_EVEN` thường gọi là *banker's rounding*, nhưng việc phù hợp hay không còn tùy luật, chuẩn kế toán hoặc quy tắc sản phẩm.
+Note that the result columns above assume **exact decimal values constructed from strings** `"2.345"` and `"-2.345"`. For `2.355`, `HALF_EVEN` gives `2.36`, because the retained hundredths digit is 6 (even). `HALF_EVEN` is often called *banker's rounding*, yet whether it is appropriate depends on laws, accounting standards, or product rules.
 
-Cách viết **không có rounding mode** thường là thiếu hợp đồng. Đặc biệt cần xác định:
+Writing code **without a rounding mode** usually indicates a missing contract. Specifically, determine:
 
-- Khi nào **từ chối** đầu vào có nhiều chữ số hơn cho phép?
-- Khi nào **được phép làm tròn**?
-- Làm tròn ở bước nào: từng đơn giá, từng dòng, trước/sau thuế, hay chỉ cuối hóa đơn?
-- Dùng mode nào, do ai quy định và có thay đổi theo loại phí/đơn vị tiền tệ không?
+- When to **reject** inputs with more digits than allowed?
+- When is **rounding permitted**?
+- At which step does rounding happen: per unit price, per line item, pre/post tax, or only at invoice total?
+- Which mode is used, who mandates it, and does it vary by fee type or currency?
 
-**Tránh** dùng `RoundingMode.DOWN` chỉ vì từ “down” nghe giống làm tròn xuống: với số âm, `DOWN` là **về 0**, trong khi `FLOOR` là về âm vô cực.
+**Avoid** using `RoundingMode.DOWN` merely because the word "down" sounds like rounding downward: for negative numbers, `DOWN` rounds **toward 0**, whereas `FLOOR` rounds toward negative infinity.
 
-## 5. Hợp đồng số phải mô tả cả đơn vị, miền và cách biểu diễn
+## 5. Numeric Contracts Must Describe Unit, Range, and Representation
 
-Một ví dụ về đặc tả dành cho API `POST /payments`:
+An example specification for a `POST /payments` API:
 
-| Thuộc tính hợp đồng | Ví dụ được quy định |
+| Contract Attribute | Specified Example |
 |---|---|
-| Tên trường | `amount` |
-| Đơn vị | Một loại tiền tệ được xác định, không suy đoán theo locale |
-| Miền hợp lệ | `0.00 ≤ amount ≤ 9,999,999,999.99` |
-| Giới hạn lưu trữ | `precision ≤ 12`, `scale = 2` sau chuẩn hóa |
-| Quy tắc input | Chấp nhận nếu **chính xác** đến 0.01; `19.900` có thể chuẩn hóa thành `19.90`, `19.999` bị từ chối |
-| Rounding khi nhận input | `UNNECESSARY` (cấm mất chữ số có nghĩa) |
-| Rounding khi tính thuế | `HALF_EVEN` ở bước tính thuế theo dòng đã định |
-| Cách xuất | Chuỗi thập phân `"19.90"`; không ép về `double` |
-| Null / dữ liệu thiếu | Bị từ chối nếu `amount` bắt buộc |
-| Overflow | Bị từ chối nếu tổng cuối vượt miền hỗ trợ |
+| Field name | `amount` |
+| Unit | A specified currency, never guessed from locale |
+| Valid range | `0.00 ≤ amount ≤ 9,999,999,999.99` |
+| Storage limit | `precision ≤ 12`, `scale = 2` after normalization |
+| Input rule | Accepted if **exact** to 0.01; `19.900` may normalize to `19.90`, `19.999` is rejected |
+| Rounding on input | `UNNECESSARY` (forbids losing significant digits) |
+| Rounding on tax | `HALF_EVEN` at the defined per-line tax step |
+| Output format | Decimal string `"19.90"`; do not cast to `double` |
+| Null / missing data | Rejected if `amount` is required |
+| Overflow | Rejected if final total exceeds supported range |
 
-Đây là **một ví dụ chính sách**, không phải luật chung cho mọi tiền tệ. Những đơn vị không có phần thập phân hoặc có số chữ số thập phân khác phải đặt scale theo cấu hình riêng. Miền hợp lệ, xử lý hoàn tiền (số âm), số học thuế và cách báo lỗi cũng cần tuân thủ yêu cầu thực tế.
+This is **one policy example**, not a universal rule for all currencies. Currencies with zero decimal places or different decimal counts must configure their own scales. Valid ranges, refund handling (negatives), tax arithmetic, and error reporting must also follow real requirements.
 
-**Hợp đồng ngữ nghĩa** và **hợp đồng định dạng** có thể khác nhau:
+**Semantic contracts** and **formatting contracts** can differ:
 
-- Hợp đồng ngữ nghĩa “giá trị là bội số chính xác của 0.01” có thể chấp nhận `"19.900"` và chuẩn hóa về `19.90`.
-- Hợp đồng văn bản “client **phải gửi chính xác 2 chữ số** sau dấu chấm” sẽ từ chối `"19.900"`, dù giá trị số học tương đương.
+- A semantic contract "value is an exact multiple of 0.01" can accept `"19.900"` and normalize to `19.90`.
+- A textual contract "client **must send exactly 2 digits** after the decimal point" will reject `"19.900"`, even though the numeric value is equivalent.
 
-Muốn áp dụng hợp đồng định dạng, kiểm tra chuỗi đầu vào theo format đã công bố trước khi parse; không thể chỉ dựa vào `setScale(2, UNNECESSARY)` để xác nhận số chữ số có mặt trong văn bản gốc.
+To enforce a formatting contract, validate the input string against the published format before parsing; you cannot rely solely on `setScale(2, UNNECESSARY)` to verify the digit count in the original text.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: validate theo hợp đồng rồi chuẩn hóa
+## 6. Complete Java 17+ Example: Validate Per Contract Then Normalize
 
-Bên dưới là ví dụ chính sách **số tiền không âm, tối đa 12 chữ số với scale 2**. Đầu vào có thể chứa nhiều zero ở cuối nhưng tuyệt đối không bị bỏ chữ số có nghĩa để vừa scale.
+Below is an example policy for **non-negative monetary amounts, up to 12 digits with scale 2**. Inputs may contain trailing zeros, yet significant digits must never be discarded to fit the scale.
 
-**Tệp `MoneyContractDemo.java`:**
+**File `MoneyContractDemo.java`:**
 
 ```java
 import java.math.BigDecimal;
@@ -172,7 +172,7 @@ public class MoneyContractDemo {
     public static BigDecimal parseAmount(String input) {
         Objects.requireNonNull(input, "amount");
 
-        // Giới hạn độ dài input trước khi parse để tránh dữ liệu quá lớn.
+        // Limit input length before parsing to avoid oversized data.
         if (input.length() > 100) {
             throw new IllegalArgumentException("Amount is too long");
         }
@@ -218,14 +218,14 @@ public class MoneyContractDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac MoneyContractDemo.java
 java MoneyContractDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 19.90 -> 19.90
@@ -237,41 +237,41 @@ Kết quả:
 9999999999.99 -> 9999999999.99
 ```
 
-Giải thích:
+Explanation:
 
-1. **Parse bằng `new BigDecimal(String)`** để giữ giá trị thập phân mà client gửi. Không parse thành `double` trước.
-2. **`setScale(2, UNNECESSARY)`** kiểm tra có mất phần có nghĩa hay không. `19.900` chuyển thành `19.90` mà không mất giá trị; `19.999` bị từ chối.
-3. **`signum()`** từ chối số âm theo miền đã chọn.
-4. **`precision() <= 12` sau khi scale đã được chuẩn hóa**: kết quả không có quá 12 chữ số có nghĩa, phù hợp miền `DECIMAL(12,2)` cho những giá trị không âm ở đây. Với `10000000000.00`, precision là 13 nên bị từ chối.
-5. **Không auto-round đầu vào**: thay vì biến `19.999` thành `20.00` một cách âm thầm, hệ thống trả lỗi rõ ràng.
+1. **Parse with `new BigDecimal(String)`** to preserve the decimal value sent by the client. Do not parse to `double` first.
+2. **`setScale(2, UNNECESSARY)`** checks whether significant digits would be lost. `19.900` normalizes to `19.90` without losing value; `19.999` is rejected.
+3. **`signum()`** rejects negative numbers per the chosen range.
+4. **`precision() <= 12` after scale normalization**: the result has at most 12 significant digits, matching `DECIMAL(12,2)` for non-negative values here. For `10000000000.00`, precision is 13, so it is rejected.
+5. **No auto-rounding on input**: instead of silently turning `19.999` into `20.00`, the system returns a clear error.
 
-Trong ứng dụng thật, còn cần giới hạn kích thước HTTP/JSON, số ký tự và **mũ/scientific notation** tùy chính sách. Constructor `BigDecimal(String)` chấp nhận dạng số mũ như `"1E+3"`; nếu API chỉ cho phép dạng thập phân không có số mũ, hãy dùng validation cú pháp trước khi gọi constructor. `Objects.requireNonNull` ở ví dụ ném `NullPointerException` cho input null; tầng API có thể chuyển thành lỗi validation có cấu trúc theo quy ước ứng dụng.
+In a real application, also enforce HTTP/JSON payload size limits, character count limits, and **exponent/scientific notation** rules per policy. The `BigDecimal(String)` constructor accepts exponents like `"1E+3"`; if the API only allows non-exponential decimal notation, run syntax validation before calling the constructor. `Objects.requireNonNull` in the example throws `NullPointerException` for null input; the API layer can map this to a structured validation error per application conventions.
 
-### Nếu bắt buộc đúng hai chữ số trong văn bản đầu vào
+### If Exactly Two Digits in Input Text Are Mandatory
 
-Đây là **hợp đồng khác**, cần kiểm tra định dạng, ví dụ:
+This is **a different contract** requiring format validation, for example:
 
 ```java
-// Mảnh mã minh họa trong phương thức nhận String text:
+// Illustrative snippet inside a method taking String text:
 if (!text.matches("(0|[1-9][0-9]*)\\.[0-9]{2}")) {
     throw new IllegalArgumentException("Expected decimal with 2 places");
 }
 ```
 
-Biểu thức trên không chấp nhận dấu âm, số mũ, zero đứng đầu không cần thiết hay chuỗi thiếu phần thập phân; đó là lựa chọn format riêng. Trong tệp Java thực, chuỗi regex dùng `\\.` để khớp dấu chấm literal. Quy định về dấu `+`, khoảng trắng, locale, ký tự Unicode và độ dài cũng phải công bố rõ ràng nếu có.
+This expression rejects minus signs, exponents, unnecessary leading zeros, or strings missing a fractional part; that is a specific format choice. In an actual Java source file, the regex string uses `\\.` to match a literal dot. Rules on `+` signs, whitespace, locale, Unicode digits, and length must also be published explicitly if applicable.
 
-## 7. Hợp đồng rounding ở bước tính toán: thứ tự có thể đổi kết quả
+## 7. Rounding Contract in Calculation Steps: Order Can Change Results
 
-Một lỗi thiết kế kinh điển là ghi “làm tròn 2 chữ số” nhưng không chỉ rõ **làm tròn trước hay sau khi nhân**.
+A classic design bug is specifying "round to 2 decimal places" without clarifying **whether to round before or after multiplying**.
 
-Giả sử một đơn giá chính xác nội bộ là `0.335` và số lượng là `3`; chính sách `HALF_UP` với 2 chữ số:
+Suppose an exact internal unit price is `0.335` and quantity is `3`; policy is `HALF_UP` to 2 decimal places:
 
-- **Làm tròn đơn giá trước**: `0.335 → 0.34`, rồi `0.34 × 3 = 1.02`.
-- **Nhân trước, làm tròn cả dòng sau**: `0.335 × 3 = 1.005 → 1.01`.
+- **Round unit price first**: `0.335 → 0.34`, then `0.34 × 3 = 1.02`.
+- **Multiply first, round line total afterward**: `0.335 × 3 = 1.005 → 1.01`.
 
-Cả hai dùng **cùng rounding mode và scale**, nhưng cho **kết quả khác**. Một hợp đồng đủ rõ phải chọn một trong hai mô hình.
+Both use the **exact same rounding mode and scale**, yet produce **different results**. A sufficiently clear contract must pick one of the two models.
 
-**Tệp `InvoiceRoundingDemo.java`:**
+**File `InvoiceRoundingDemo.java`:**
 
 ```java
 import java.math.BigDecimal;
@@ -296,7 +296,7 @@ public class InvoiceRoundingDemo {
         System.out.println("unitFirst=" + unitFirst);
         System.out.println("lineFirst=" + lineFirst);
 
-        // Ví dụ khác: tính thuế từ giá trị gốc rồi làm tròn riêng thuế.
+        // Another example: calculate tax from original value, then round tax separately.
         BigDecimal net = new BigDecimal("19.99");
         BigDecimal rate = new BigDecimal("0.075");
         BigDecimal tax = net.multiply(rate)
@@ -321,39 +321,39 @@ tax=1.50
 gross=21.49
 ```
 
-Đây là **hai ví dụ chính sách độc lập**, không phải quy tắc thuế/pháp lý mặc định. Trong dự án thật phải làm rõ giá đưa vào có gồm thuế không, thuế tính theo dòng hay cả đơn, có bao nhiêu loại thuế, quy tắc phân bổ chênh lệch, loại tiền tệ, xử lý hoàn tiền và rounding mode bắt buộc.
+These are **two independent policy examples**, not default tax or legal rules. In real projects, clarify whether input prices are tax-inclusive, whether tax is calculated per line or per invoice, how many tax categories exist, remainder allocation rules, currency, refund handling, and mandatory rounding modes.
 
-**Nguyên tắc triển khai:** giữ precision thích hợp trong các bước trung gian và làm tròn **tại điểm được hợp đồng quy định**, không gọi `setScale(2, ...)` bừa bãi sau mọi phép cộng/nhân. Nếu phải kiểm soát precision trong phép tính dài, dùng `MathContext` theo thiết kế thuật toán, đồng thời ý thức rằng làm tròn trung gian có thể ảnh hưởng kết quả cuối.
+**Implementation principle:** retain adequate precision in intermediate steps and round **at the contract-specified point**, rather than calling `setScale(2, ...)` indiscriminately after every addition/multiplication. If precision must be bounded in long calculations, use `MathContext` per algorithm design while staying aware that intermediate rounding can affect the final outcome.
 
-## 8. Chia số và tỷ lệ: xác định precision/scale ngay trong phép toán
+## 8. Division and Ratios: Specify Precision/Scale Right in the Operation
 
-Phép chia là nguồn lỗi phổ biến khi dùng `BigDecimal`:
+Division is a common source of bugs when using `BigDecimal`:
 
 ```java
 BigDecimal one = BigDecimal.ONE;
 BigDecimal three = new BigDecimal("3");
 
-// one.divide(three) ném ArithmeticException vì 1/3 vô hạn thập phân.
+// one.divide(three) throws ArithmeticException because 1/3 is a non-terminating decimal.
 BigDecimal rounded = one.divide(three, 2, RoundingMode.HALF_UP);
 System.out.println(rounded); // 0.33
 ```
 
-Đây là mảnh mã minh họa trong một phương thức, cần import `BigDecimal` và `RoundingMode`.
+This is an illustrative snippet inside a method, requiring `BigDecimal` and `RoundingMode` imports.
 
-Quyết định đúng tùy hợp đồng:
+The right decision depends on the contract:
 
-- “Lưu tỷ lệ có 4 chữ số sau dấu chấm” → cân nhắc `divide(divisor, 4, mode)`.
-- “Giữ 8 chữ số có nghĩa cho tính toán khoa học” → cân nhắc `divide(divisor, new MathContext(8, mode))`.
-- “Tỷ lệ phần trăm hiển thị 2 số sau dấu chấm” → xác định giá trị lưu là `0.075` hay `7.5%`, và làm tròn ở bước **hiển thị** hay tính toán.
-- “Phải chia chính xác, không làm tròn” → chấp nhận ngoại lệ nếu thương không có biểu diễn thập phân hữu hạn, hoặc dùng biểu diễn phân số riêng.
+- "Store ratios to 4 decimal places" → consider `divide(divisor, 4, mode)`.
+- "Keep 8 significant digits for scientific calculation" → consider `divide(divisor, new MathContext(8, mode))`.
+- "Percentage displayed with 2 decimal places" → define whether the stored value is `0.075` or `7.5%`, and whether rounding occurs at **display** or calculation.
+- "Must divide exactly, no rounding" → accept the exception if the quotient has no finite decimal representation, or use a dedicated fraction representation.
 
-**Không** viết `divide` không có mode rồi ngạc nhiên với `ArithmeticException` ở `1/3`. Ngược lại, cũng không mặc định `HALF_UP` và scale 2 cho mọi phép chia: hệ thống có thể cần thêm chữ số trung gian để không làm mất thông tin quan trọng.
+**Never** write `divide` without a mode and then act surprised by `ArithmeticException` on `1/3`. Conversely, do not default to `HALF_UP` and scale 2 for every division: the system may need extra intermediate digits to avoid losing critical information.
 
-## 9. Hợp đồng qua các tầng: Java, JSON, database và báo cáo
+## 9. Contract Across Layers: Java, JSON, Database, and Reports
 
-### 9.1. Java domain model
+### 9.1. Java Domain Model
 
-Một thiết kế tốt đặt tên cho cấu hình số, tránh “magic number” 2 xuất hiện ở nhiều nơi:
+A sound design names numeric configuration, avoiding the "magic number" 2 scattered everywhere:
 
 ```java
 public final class MoneyPolicy {
@@ -367,13 +367,13 @@ public final class MoneyPolicy {
 }
 ```
 
-Đây là lớp hoàn chỉnh có thể lưu ở `MoneyPolicy.java` trong Java 17+. Trong kiến trúc thực, đặt chính sách ở domain hoặc module cấu hình phù hợp; nếu nhiều loại tiền tệ có scale khác nhau, không dùng một hằng `SCALE=2` toàn cục cho mọi đối tượng.
+This is a complete class savable as `MoneyPolicy.java` in Java 17+. In real architectures, place policy in the appropriate domain or configuration module; if multiple currencies have different scales, do not use a global constant `SCALE=2` for every object.
 
-Đừng che giấu rounding trong setter không rõ hợp đồng: `setAmount(input)` âm thầm làm tròn có thể khiến phần còn lại của chương trình tưởng rằng dữ liệu gốc chưa bị đổi. API rõ ý định hơn có thể là `parseExactAmount`, `calculateRoundedTax`, `serializeAmount`.
+Do not hide rounding inside an undocumented setter: `setAmount(input)` silently rounding can mislead the rest of the program into thinking original data was unmodified. Clearer intent-revealing APIs include `parseExactAmount`, `calculateRoundedTax`, and `serializeAmount`.
 
-### 9.2. API JSON và định dạng
+### 9.2. JSON APIs and Formatting
 
-JSON hỗ trợ số nhưng client có thể parse thành `double`, JavaScript `Number`, hoặc đưa dữ liệu qua một hệ thống không giữ nguyên số chữ số sau dấu chấm. Vì vậy, với lượng tiền cần bảo toàn biểu diễn, **decimal string** thường là lựa chọn dễ quy định hơn:
+JSON supports numbers, yet clients may parse them as `double`, JavaScript `Number`, or pass data through a system that does not preserve trailing decimal digits. Thus, for monetary amounts requiring representation preservation, **decimal strings** are often easier to specify cleanly:
 
 ```json
 {
@@ -382,51 +382,51 @@ JSON hỗ trợ số nhưng client có thể parse thành `double`, JavaScript `
 }
 ```
 
-Hợp đồng cần nêu chuỗi `amount` theo quy tắc nào: dấu chấm thập phân, có cho số mũ không, bao nhiêu chữ số, có cho dấu âm/plus không, có khoảng trắng không; lỗi trả về mã gì. Không phụ thuộc locale người dùng để parse chuỗi giao tiếp máy với máy.
+The contract must state which rules the `amount` string follows: decimal point, whether exponents are allowed, digit counts, whether minus/plus signs or whitespace are permitted, and which error codes are returned. Never rely on user locale to parse machine-to-machine strings.
 
-Nếu API sử dụng JSON number, cũng cần nêu rõ hai bên phải dùng kiểu decimal chính xác và round-trip an toàn. JSON number **không bảo đảm** mọi client gìn giữ scale như `"19.90"` và tránh biến về IEEE 754.
+If the API uses JSON numbers, explicitly state that both sides must use exact decimal types and safe round-tripping. JSON numbers **do not guarantee** that every client preserves scale like `"19.90"` or avoids converting to IEEE 754.
 
 ### 9.3. Database `DECIMAL(P,S)`
 
-Với một ví dụ SQL schema:
+For an example SQL schema:
 
 ```sql
 amount DECIMAL(12, 2) NOT NULL
 ```
 
-Thông thường, `P=12` là tổng số chữ số, `S=2` là số chữ số thập phân được lưu. Một giá trị `9999999999.99` vừa giới hạn này; `10000000000.00` vượt số chữ số phần nguyên cho phép.
+Typically, `P=12` is total digits and `S=2` is stored decimal digits. A value `9999999999.99` fits this limit; `10000000000.00` exceeds the allowed integer digits.
 
-**Không dựa vào database tự quyết rounding**. Quy tắc ép/làm tròn khi insert giá trị có quá nhiều chữ số có thể thay đổi theo sản phẩm database, phiên bản hoặc mode. Để không bị lệch giữa môi trường dev/staging/production, validate trong domain trước và test tích hợp với schema thật. Database còn là lớp bảo vệ cuối giúp từ chối giá trị ngoài phạm vi; không thay thế validation nghiệp vụ.
+**Do not rely on the database to decide rounding.** Truncation/rounding rules when inserting values with too many digits can vary by database vendor, version, or SQL mode. To prevent drift across dev/staging/production environments, validate in the domain first and integration-test against the real schema. The database acts as a final safety net rejecting out-of-bounds values, not a substitute for business validation.
 
-Nếu cần lưu cả số chữ số đầu vào gốc, ví dụ “2.00” khác “2.0” về bằng chứng đo lường, phải thiết kế **metadata biểu diễn** tương ứng; `DECIMAL(P,S)` cố định có thể chuẩn hóa scale và không bảo toàn chuỗi người dùng đã nhập.
+If original input digit counts must also be preserved (e.g., "2.00" differs from "2.0" as measurement evidence), design corresponding **representation metadata**; fixed `DECIMAL(P,S)` can normalize scale and does not preserve the exact string a user entered.
 
-### 9.4. Báo cáo và CSV
+### 9.4. Reports and CSV
 
-Sử dụng `BigDecimal.toPlainString()` khi cần xuất dạng thập phân không dùng ký pháp khoa học, đồng thời **đặt scale theo hợp đồng** trước khi xuất. `stripTrailingZeros()` có thể khiến `new BigDecimal("1000.00")` thành `1E+3` (scale âm), nên không được coi là hàm định dạng hiển thị tiền.
+Use `BigDecimal.toPlainString()` when outputting decimal format without scientific notation, while **setting scale per contract** beforehand. `stripTrailingZeros()` can turn `new BigDecimal("1000.00")` into `1E+3` (negative scale), so it must not be treated as a monetary display formatter.
 
-Nếu báo cáo có nhiều đơn vị tiền tệ, mỗi giá trị cần có đơn vị cụ thể. Hai giá trị có cùng số “10.00” nhưng khác currency không thể cộng nếu chưa có quy tắc quy đổi, nguồn tỷ giá, thời điểm và precision/rounding liên quan.
+If reports contain multiple currencies, every value needs a concrete unit. Two values both reading "10.00" in different currencies cannot be added without conversion rules, exchange rate sources, timestamps, and associated precision/rounding.
 
-## 10. Test như thế nào để đảm bảo hợp đồng số?
+## 10. How to Test to Guarantee the Numeric Contract?
 
-Viết test từ **hợp đồng**, không chỉ test khi thấy bug:
+Write tests from **the contract**, not only after finding bugs:
 
-| Nhóm | Ca thử nên có | Điều cần xác nhận |
+| Group | Cases to Include | What to Verify |
 |---|---|---|
-| Giá trị hợp lệ | `0`, `19.90`, `9999999999.99` | Chuẩn hóa chính xác, đúng miền |
-| Trailing zero | `19.900` | Chấp nhận nếu hợp đồng là giá trị chính xác tới cent |
-| Không hợp lệ do scale | `19.999` | Từ chối, không âm thầm `20.00` |
-| Không hợp lệ do precision | `10000000000.00` | Từ chối vượt miền |
-| Giá trị âm | `-1.00` | Từ chối hoặc chấp nhận theo quy tắc hoàn tiền riêng |
-| Không phải số | `"abc"`, `""` | Lỗi parse/validation có cấu trúc |
-| Cú pháp ngoài format | `"1E+3"`, `"+1.00"` | Cho phép/từ chối theo hợp đồng input |
-| Rounding tie | `2.345`, `2.355`, `-2.345` | Đúng `HALF_EVEN`/`HALF_UP` |
-| Thứ tự làm tròn | `0.335 × 3` | Cùng chính sách, kết quả 1.01 hoặc 1.02 tùy điểm làm tròn |
-| Chia không kết thúc | `1 / 3` | Bắt buộc mode/scale hoặc ngoại lệ có chủ ý |
-| Round-trip | Java → JSON → Java → DB → Java | Không đổi giá trị và biểu diễn theo phần hợp đồng cần giữ |
+| Valid values | `0`, `19.90`, `9999999999.99` | Exact normalization, within range |
+| Trailing zero | `19.900` | Accepted if contract is exactness to cents |
+| Invalid by scale | `19.999` | Rejected, not silently `20.00` |
+| Invalid by precision | `10000000000.00` | Rejected as out of range |
+| Negative values | `-1.00` | Rejected or accepted per separate refund rules |
+| Non-numeric | `"abc"`, `""` | Structured parse/validation error |
+| Out-of-format syntax | `"1E+3"`, `"+1.00"` | Allowed/rejected per input contract |
+| Rounding ties | `2.345`, `2.355`, `-2.345` | Matches `HALF_EVEN`/`HALF_UP` |
+| Rounding order | `0.335 × 3` | Same policy gives 1.01 or 1.02 depending on rounding point |
+| Non-terminating division | `1 / 3` | Mandatory mode/scale or intentional exception |
+| Round-trip | Java → JSON → Java → DB → Java | Value and contract-required representation unchanged |
 
-### Ví dụ test Java không cần framework
+### Framework-Free Java Test Example
 
-**Tệp `MoneyContractChecks.java`**; dùng lớp `MoneyContractDemo` từ mục 6 đã biên dịch:
+**File `MoneyContractChecks.java`**; uses the compiled `MoneyContractDemo` class from Section 6:
 
 ```java
 import java.math.BigDecimal;
@@ -444,7 +444,7 @@ public class MoneyContractChecks {
             MoneyContractDemo.parseAmount(input);
             throw new AssertionError("Expected rejection: " + input);
         } catch (IllegalArgumentException expected) {
-            // Đúng: đầu vào bị từ chối theo hợp đồng.
+            // Correct: input rejected per contract.
         }
     }
 
@@ -485,100 +485,100 @@ java MoneyContractChecks
 Contract checks passed
 ```
 
-Chú ý `rejects()` bắt `IllegalArgumentException` mà `parseAmount` phát sinh, còn `AssertionError` là một loại `Error` riêng nên không bị nuốt bởi catch này. Nếu muốn test exception subclass cụ thể, JUnit 5 có `assertThrows`; nhưng bài học này không cần thêm thư viện.
+Note that `rejects()` catches `IllegalArgumentException` thrown by `parseAmount`, while `AssertionError` is a distinct `Error` subtype and is not swallowed by this catch. If you want to test specific exception subclasses, JUnit 5 offers `assertThrows`; this lesson requires no extra libraries.
 
-Khi kiểm thử giá trị money đã được chuẩn hóa và **scale là hợp đồng**, `BigDecimal.equals` là phù hợp vì kiểm tra cả giá trị và scale. Khi chỉ yêu cầu giá trị số học (ví dụ so sánh 2.0 với 2.00), `compareTo == 0` phù hợp hơn. Chọn assertion đúng ý định, không sử dụng một kiểu so sánh cho mọi trường hợp.
+When testing normalized money values where **scale is part of the contract**, `BigDecimal.equals` is appropriate because it checks both value and scale. When only numeric value is required (e.g., comparing 2.0 with 2.00), `compareTo == 0` is more appropriate. Choose the assertion matching your intent rather than using one comparison style everywhere.
 
-## 11. Các sai lầm thiết kế thường gặp
+## 11. Common Design Mistakes
 
-### 11.1. Lẫn precision với scale
+### 11.1. Confusing Precision with Scale
 
-Ghi “precision = 2” khi muốn “2 chữ số sau dấu chấm” sẽ dẫn đến tính toán sai. Với `123.456`, `MathContext(2)` chỉ giữ 2 chữ số có nghĩa (kết quả gần `120`), còn `setScale(2)` giữ 2 chữ số thập phân (`123.46` với `HALF_EVEN`).
+Writing "precision = 2" when you mean "2 digits after the decimal point" leads to wrong calculations. For `123.456`, `MathContext(2)` keeps only 2 significant digits (producing roughly `120`), whereas `setScale(2)` keeps 2 decimal digits (`123.46` with `HALF_EVEN`).
 
-### 11.2. Dùng `double` làm trung gian cho tiền
+### 11.2. Using `double` as an Intermediate Type for Money
 
-`double` không biểu diễn chính xác nhiều số thập phân như `0.1`. `new BigDecimal(0.1)` tạo `BigDecimal` chứa chính xác giá trị nhị phân của `double`, không phải đúng giá trị thập phân `0.1` mong muốn. Hãy tạo từ chuỗi `new BigDecimal("0.1")` hoặc từ một nguồn decimal chính xác. `BigDecimal.valueOf(double)` sử dụng chuỗi biểu diễn chuẩn của `double`, nhưng không thể khôi phục chữ số gốc đã mất từ trước.
+`double` does not represent many decimals like `0.1` accurately. `new BigDecimal(0.1)` constructs a `BigDecimal` holding the exact binary value of `double`, not the desired exact decimal `0.1`. Construct from strings `new BigDecimal("0.1")` or an exact decimal source. `BigDecimal.valueOf(double)` uses `double`'s canonical string representation, yet cannot recover original digits already lost beforehand.
 
-### 11.3. Làm tròn khi parse, không thông báo
+### 11.3. Rounding Silently Upon Parsing
 
-Một client gửi `19.999` có thể vô tình bị đổi thành `20.00`; đây là thay đổi giá trị nghiệp vụ. Nếu hợp đồng đòi nhập chính xác đến cent, dùng `UNNECESSARY` và **từ chối** thay vì ngầm sửa dữ liệu.
+A client sending `19.999` might accidentally get converted to `20.00`; that alters business value. If the contract requires exactness to cents, use `UNNECESSARY` and **reject** instead of silently altering data.
 
-### 11.4. Áp `MathContext` quá sớm
+### 11.4. Applying `MathContext` Too Early
 
-Dùng `MathContext(4)` cho mọi phép cộng/nhân có thể làm mất chữ số ở từng bước. Kết quả cuối có thể khác cách giữ precision trung gian lớn hơn rồi rounding một lần ở điểm được hợp đồng quy định. Chọn chính sách có căn cứ, không “đặt cho an toàn” tùy tiện.
+Using `MathContext(4)` on every addition/multiplication can lose digits at each step. The final result may differ from keeping wider intermediate precision and rounding once at the contract-defined boundary. Pick a justified policy rather than setting an arbitrary "safety" cap.
 
-### 11.5. `stripTrailingZeros()` cho mục tiêu hiển thị
+### 11.5. Using `stripTrailingZeros()` for Display
 
-`stripTrailingZeros()` có thể tạo scale âm và ký pháp khoa học, ví dụ `1000.00 → 1E+3`. Nó hữu ích khi cần canonical hóa giá trị theo một chính sách rõ ràng, nhưng không thay thế `setScale(2)`/định dạng phù hợp khi xuất `1000.00`.
+`stripTrailingZeros()` can produce negative scales and scientific notation, e.g. `1000.00 → 1E+3`. It is useful when canonicalizing values under an explicit policy, but does not replace `setScale(2)` or proper formatting when outputting `1000.00`.
 
-### 11.6. Không công bố đơn vị và mức làm tròn
+### 11.6. Failing to Publish Units and Rounding Granularity
 
-“Dùng 2 chữ số thập phân” chưa trả lời currency nào, đơn vị giá nào, có làm tròn từng dòng không hay một lần ở toàn bộ đơn. Các hệ thống khác nhau có thể đều “đúng 2 chữ số” nhưng khác kết quả. Cần viết ví dụ số cụ thể trong hợp đồng.
+"Use 2 decimal places" does not answer which currency, which price unit, or whether rounding happens per line or once per order. Different systems can all be "2 decimal places" yet disagree on results. Include concrete numeric examples in the contract.
 
-### 11.7. Không giới hạn miền và đầu vào quá lớn
+### 11.7. Not Bounding Ranges and Oversized Inputs
 
-`BigDecimal` hỗ trợ độ chính xác tùy ý nhưng không miễn phí. Chuỗi rất dài, số mũ cực lớn và chuyển scale có thể làm hệ thống dùng nhiều CPU/bộ nhớ. Giới hạn kích thước payload, độ dài chuỗi, số mũ và miền giá trị phù hợp trước khi cấp phát lớn hoặc chuẩn hóa dữ liệu.
+`BigDecimal` supports arbitrary precision, though not for free. Huge strings, extreme exponents, and scale shifts can make the system consume excessive CPU/memory. Enforce payload size limits, string length limits, exponent limits, and range checks before allocating or normalizing large data.
 
-### 11.8. Phó mặc database hoặc serialize tự làm tròn
+### 11.8. Leaving Rounding to the Database or Serializer
 
-Rounding ở tầng persistence có thể âm thầm đổi giá trị so với domain; round-trip giữa Java/JSON/DB có thể không giữ scale đúng như mong đợi. Thiết kế nên quy định một **nguồn sự thật** cho chính sách số và kiểm tra bằng test tích hợp.
+Rounding at the persistence layer can silently alter values relative to the domain; round-tripping across Java/JSON/DB may fail to preserve expected scale. Design should designate a single **source of truth** for numeric policy and verify it with integration tests.
 
-## 12. Checklist viết một hợp đồng dữ liệu số
+## 12. Checklist for Writing a Numeric Data Contract
 
-Trước khi chốt schema hoặc API, nên ghi thành văn bản:
+Before finalizing a schema or API, document in writing:
 
-1. **Ý nghĩa & đơn vị** của số: tiền, phần trăm, tỷ lệ 0..1, đo lường hoặc số lượng.
-2. **Kiểu số**: `BigDecimal`, integer minor units, `BigInteger` hay `double` (nêu lý do).
-3. **Miền hợp lệ**: min, max, có nhận số âm/0/giá trị đặc biệt không.
-4. **Precision** tối đa theo từng tầng và cách xử lý khi vượt giới hạn.
-5. **Scale** đầu vào, trong tính toán, tại lưu trữ, tại xuất dữ liệu.
-6. **RoundingMode** và **điểm làm tròn**: theo đơn giá, dòng, nhóm, thuế hay tổng.
-7. **Chính sách dữ liệu không hợp lệ**: từ chối, trả lỗi nào, có cho làm tròn có chủ ý không.
-8. **Định dạng wire**: decimal string hay JSON number, cú pháp được phép, locale, số mũ, trailing zeros.
-9. **Persistence**: `DECIMAL(P,S)` và đối chiếu giới hạn/rounding của database thật.
-10. **Kiểm thử**: ca biên, tie, negative, zero, precision overflow, chia không kết thúc, round-trip.
-11. **Tương thích phiên bản**: thay precision, scale hoặc rounding là thay đổi hợp đồng có thể ảnh hưởng dữ liệu lưu, API clients và kết quả kế toán; cần kế hoạch migration.
-12. **Quyền thay đổi chính sách**: ai duyệt rounding mode, cách lưu lịch sử version chính sách và tái tính khi cần đối soát.
+1. **Meaning & unit** of the number: money, percentage, 0..1 ratio, measurement, or count.
+2. **Numeric type**: `BigDecimal`, integer minor units, `BigInteger`, or `double` (state rationale).
+3. **Valid range**: min, max, whether negatives/0/special values are accepted.
+4. **Maximum precision** per layer and handling when exceeded.
+5. **Scale** on input, during calculation, in storage, and on output.
+6. **RoundingMode** and **rounding point**: per unit price, line item, group, tax, or total.
+7. **Invalid data policy**: reject, which error to return, whether intentional rounding is allowed.
+8. **Wire format**: decimal string or JSON number, permitted syntax, locale, exponents, trailing zeros.
+9. **Persistence**: `DECIMAL(P,S)` verified against actual database limits and rounding behavior.
+10. **Testing**: boundary cases, ties, negatives, zero, precision overflow, non-terminating division, round-trips.
+11. **Versioning compatibility**: changing precision, scale, or rounding is a contract change that can impact stored data, API clients, and accounting results; plan migrations.
+12. **Policy governance**: who approves rounding modes, how policy version history is stored, and how to recompute for reconciliation.
 
-Đối với các trường mà số chữ số mang ý nghĩa đo lường (ví dụ `2.0` và `2.00` có thể báo độ phân giải đo khác nhau), lưu riêng metadata về độ phân giải hoặc văn bản gốc nếu nghiệp vụ đòi. `BigDecimal` giữ scale khi khởi tạo từ chuỗi nhưng nhiều phép toán, serialize hoặc lưu DB có thể chuẩn hóa cách biểu diễn.
+For fields where digit count conveys measurement meaning (e.g., `2.0` vs. `2.00` may indicate different measurement resolutions), store separate metadata for resolution or raw text if business rules require it. `BigDecimal` preserves scale when constructed from strings, yet many operations, serializers, or DB saves can normalize representations.
 
-## 13. Bài tập tự kiểm tra, có lời giải
+## 13. Self-Check Exercises with Answers
 
-1. **`new BigDecimal("123.450").precision()` và `scale()` là bao nhiêu?**  
-   Lần lượt 6 và 3. Hai giá trị này không cùng nghĩa.
+1. **What are `new BigDecimal("123.450").precision()` and `scale()`?**  
+   6 and 3, respectively. These two values do not mean the same thing.
 
-2. **Vì sao `new BigDecimal("19.900").setScale(2, UNNECESSARY)` không ném ngoại lệ?**  
-   Vì việc bỏ số 0 thập phân cuối không đổi giá trị số học, kết quả là `19.90`.
+2. **Why does `new BigDecimal("19.900").setScale(2, UNNECESSARY)` not throw an exception?**  
+   Because dropping trailing decimal zeros does not change numeric value; the result is `19.90`.
 
-3. **Vì sao `new BigDecimal("19.999").setScale(2, UNNECESSARY)` ném ngoại lệ?**  
-   Vì không thể giữ giá trị chính xác ở scale 2: cần bỏ chữ số 9 khác 0.
+3. **Why does `new BigDecimal("19.999").setScale(2, UNNECESSARY)` throw an exception?**  
+   Because the exact value cannot be preserved at scale 2: a non-zero digit 9 would have to be dropped.
 
-4. **`2.345` làm tròn 2 chữ số theo `HALF_UP` và `HALF_EVEN` được gì?**  
-   Lần lượt `2.35` và `2.34`, với đầu vào `BigDecimal` từ chuỗi.
+4. **What does `2.345` rounded to 2 decimal places give under `HALF_UP` and `HALF_EVEN`?**  
+   `2.35` and `2.34`, respectively, with `BigDecimal` input from strings.
 
-5. **`0.335 × 3` nếu làm tròn đơn giá trước hoặc sau khi nhân theo `HALF_UP` được gì?**  
-   Lần lượt `1.02` và `1.01`; điểm làm tròn là một phần của hợp đồng.
+5. **What does `0.335 × 3` give if unit price is rounded before vs. after multiplying with `HALF_UP`?**  
+   `1.02` and `1.01`, respectively; the rounding point is part of the contract.
 
-6. **`BigDecimal.ONE.divide(new BigDecimal("3"))` có trả một số thập phân tùy ý dài vô hạn không?**  
-   Không; nếu không chỉ định rounding/scale/MathContext và thương không kết thúc, Java ném `ArithmeticException`.
+6. **Does `BigDecimal.ONE.divide(new BigDecimal("3"))` return an infinitely long decimal?**  
+   No; if no rounding/scale/MathContext is given and the quotient does not terminate, Java throws `ArithmeticException`.
 
-7. **`DECIMAL(12,2)` có cho 12 chữ số phần nguyên không?**  
-   Không theo ý nghĩa SQL phổ biến: precision tổng 12, scale 2, nên tối đa 10 chữ số phần nguyên.
+7. **Does `DECIMAL(12,2)` allow 12 integer digits?**  
+   No under common SQL semantics: total precision is 12 and scale is 2, allowing at most 10 integer digits.
 
-8. **Nếu API đòi đúng ký tự `"12.30"` thay vì `"12.300"`, chỉ dùng `UNNECESSARY` đủ không?**  
-   Không. `UNNECESSARY` kiểm tra giá trị có biểu diễn chính xác được sau chuẩn hóa, không đếm chữ số của chuỗi đầu vào; cần kiểm tra định dạng văn bản riêng.
+8. **If an API mandates literally `"12.30"` instead of `"12.300"`, is `UNNECESSARY` alone sufficient?**  
+   No. `UNNECESSARY` checks whether the value is exactly representable after normalization, not the digit count of the input string; separate text-format validation is required.
 
-9. **Dùng `equals` hay `compareTo` cho hai giá trị tiền đã chuẩn hóa theo scale 2?**  
-   `equals` phù hợp khi yêu cầu **cả scale** thuộc hợp đồng; `compareTo == 0` phù hợp khi chỉ yêu cầu cùng giá trị số học.
+9. **Should you use `equals` or `compareTo` for two monetary values normalized to scale 2?**  
+   `equals` is appropriate when **scale itself** is part of the contract; `compareTo == 0` is appropriate when only equal numeric value is required.
 
-10. **Vì sao một thay đổi rounding mode có thể là breaking change dù API field vẫn tên `amount`?**  
-    Vì cùng input có thể cho output khác, ảnh hưởng dữ liệu đã lưu, đối soát, hóa đơn và client; cần version/chính sách migration nếu thay đổi.
+10. **Why can changing rounding mode be a breaking change even if the API field is still named `amount`?**  
+    Because identical inputs can produce different outputs, affecting stored data, reconciliation, invoices, and clients; versioning/migration planning is needed if changed.
 
-## 14. Tổng kết và tài liệu chính thức
+## 14. Summary and Official Documentation
 
-**Precision, scale và rounding là phần của hợp đồng dữ liệu số, không phải ba tham số kỹ thuật tùy ý.** `precision` giới hạn chữ số có nghĩa; `scale` xác định vị trí thập phân; `RoundingMode` quy định cách xử lý khi buộc giảm độ chính xác. Một hệ thống đúng phải thống nhất cách parse, tính toán, lưu trữ, trao đổi và kiểm thử—kèm miền hợp lệ, đơn vị và điểm làm tròn rõ ràng.
+**Precision, scale, and rounding are part of the numeric data contract, not three arbitrary technical parameters.** `precision` bounds significant digits; `scale` specifies decimal placement; `RoundingMode` governs what happens when precision reduction is forced. A correct system unifies parsing, calculation, storage, exchange, and testing—complete with clear valid ranges, units, and rounding points.
 
-Tài liệu tham khảo:
+References:
 
 - [Java 21 — `BigDecimal`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html)
 - [Java 21 — `MathContext`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/MathContext.html)

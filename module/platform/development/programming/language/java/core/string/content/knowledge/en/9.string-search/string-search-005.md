@@ -1,49 +1,49 @@
-# `lastIndexOf` và hướng tìm ngược trong Java
+# `lastIndexOf` and Reverse Search Direction in Java
 
-`String.lastIndexOf(...)` dùng để tìm **lần xuất hiện cuối cùng** của một ký tự hoặc chuỗi con, tính theo chỉ số trong `String`. Nó hữu ích khi cần dấu phân cách cuối cùng, phần mở rộng tệp, vị trí dấu gạch chéo cuối trong đường dẫn, hoặc khi muốn tìm ngược từ một vị trí xác định.
+`String.lastIndexOf(...)` is used to find the **last occurrence** of a character or substring, measured by its index in a `String`. It is useful when you need the last separator, a file extension, the position of the final slash in a path, or when searching backward from a specified position.
 
-Khác biệt quan trọng với `indexOf` là **hướng tìm và vị trí khớp được chọn**. Cả hai trả về một chỉ số bắt đầu tính từ **0 ở đầu chuỗi**, không phải khoảng cách đếm từ cuối. Nếu không tìm thấy thì trả về `-1`.
+The key difference from `indexOf` is the **search direction and which match position is chosen**. Both return a starting index counted from **0 at the start of the string**, not a distance counted from the end. If not found, `-1` is returned.
 
-> Quy tắc trọng tâm: `lastIndexOf` chọn vị trí bắt đầu của **lần khớp nằm xa về phía bên phải nhất** trong phạm vi tìm kiếm; `fromIndex`, nếu có, giới hạn phạm vi tìm từ phải sang trái.
+> Core rule: `lastIndexOf` chooses the starting position of the **rightmost match** within the search range; `fromIndex`, when provided, bounds the search from right to left.
 
-## 1. Bốn overload của `String.lastIndexOf`
+## 1. The Four Overloads of `String.lastIndexOf`
 
-`String` trong Java cung cấp bốn overload chính:
+Java's `String` provides four main overloads:
 
-| Phương thức | Tìm gì? | Bắt đầu ở đâu? |
+| Method | What does it search for? | Where does it start? |
 | --- | --- | --- |
-| `lastIndexOf(int ch)` | Một Unicode code point được biểu diễn bằng `int` | Từ cuối chuỗi về đầu |
-| `lastIndexOf(int ch, int fromIndex)` | Code point `ch` | Từ vị trí `fromIndex` (bao gồm vị trí đó) trở về đầu |
-| `lastIndexOf(String str)` | Toàn bộ chuỗi con `str` | Lần xuất hiện cuối trong chuỗi nguồn |
-| `lastIndexOf(String str, int fromIndex)` | Toàn bộ chuỗi con `str` | Lần khớp có **chỉ số bắt đầu** không vượt quá `fromIndex` |
+| `lastIndexOf(int ch)` | A Unicode code point represented as `int` | From the end of the string toward the start |
+| `lastIndexOf(int ch, int fromIndex)` | Code point `ch` | From position `fromIndex` (inclusive) toward the start |
+| `lastIndexOf(String str)` | The full substring `str` | Last occurrence in the source string |
+| `lastIndexOf(String str, int fromIndex)` | The full substring `str` | Match whose **starting index** does not exceed `fromIndex` |
 
-Mỗi overload trả về `int`: **chỉ số đầu tiên của đoạn khớp** trên thang vị trí UTF-16 của chuỗi nguồn, hoặc `-1` khi không khớp.
+Each overload returns an `int`: the **first index of the matched segment** on the source string's UTF-16 position scale, or `-1` when there is no match.
 
-Các overload `int` nhận Unicode code point. Với ký tự thông thường trong Basic Multilingual Plane (BMP), bạn có thể truyền một literal kiểu `char` vì Java tự nâng `char` thành `int`. Với code point ngoài BMP (ví dụ một số emoji), `int` cho phép tìm cả cặp surrogate như một code point; điều này được giải thích ở phần Unicode.
+The `int` overloads accept a Unicode code point. For ordinary characters in the Basic Multilingual Plane (BMP), you can pass a `char` literal because Java automatically widens `char` to `int`. For non-BMP code points (such as certain emojis), `int` lets you search for an entire surrogate pair as a single code point; this is explained in the Unicode section.
 
-Các overload nhận `String str` đòi hỏi đối số `str` không phải `null`. Đối số `null` không phải «không tìm thấy»: nó gây `NullPointerException`. Nếu bạn cần xử lý trường hợp thiếu chuỗi tìm kiếm, hãy kiểm tra và quyết định chính sách ở phía gọi.
+The overloads accepting `String str` require a non-`null` argument `str`. A `null` argument does not mean "not found": it throws `NullPointerException`. If you need to handle missing search strings, check and decide the policy on the caller side.
 
-## 2. Tìm lần xuất hiện cuối cùng nhưng trả chỉ số tính từ đầu
+## 2. Finding the Last Occurrence While Returning a Start-Relative Index
 
-Xét `"abracadabra"`:
+Consider `"abracadabra"`:
 
 ```text
-Giá trị: a b r a c a d a b r a
-Chỉ số: 0 1 2 3 4 5 6 7 8 9 10
+Value: a b r a c a d a b r a
+Index: 0 1 2 3 4 5 6 7 8 9 10
 ```
 
-Ký tự `'a'` xuất hiện ở các vị trí `0`, `3`, `5`, `7` và `10`. Do đó:
+The character `'a'` appears at positions `0`, `3`, `5`, `7`, and `10`. Therefore:
 
-- `indexOf('a')` trả về `0`: lần xuất hiện đầu tiên.
-- `lastIndexOf('a')` trả về `10`: lần xuất hiện cuối cùng.
-- `lastIndexOf("bra")` trả về `8`: đoạn `"bra"` cuối cùng bắt đầu tại chỉ số 8.
-- `lastIndexOf("missing")` trả về `-1`: không có đoạn khớp.
+- `indexOf('a')` returns `0`: the first occurrence.
+- `lastIndexOf('a')` returns `10`: the last occurrence.
+- `lastIndexOf("bra")` returns `8`: the last `"bra"` segment starts at index 8.
+- `lastIndexOf("missing")` returns `-1`: no matching segment.
 
-Tên `lastIndexOf` mô tả cách **chọn kết quả**; chỉ số vẫn là chỉ số của Java tính từ đầu. Không được lấy `length() - result` để xem đó là vị trí trả về của phương thức. Nếu bài toán thật sự cần khoảng cách đến cuối, bạn mới tự tính từ chỉ số đã tìm được theo đúng ý nghĩa bài toán.
+The name `lastIndexOf` describes how the **result is selected**; the index is still a Java index counted from the start. Never compute `length() - result` thinking that is the method's return position. Only if your problem genuinely needs the distance to the end should you calculate it yourself from the returned index according to the problem definition.
 
-### Ví dụ 1: phân biệt `indexOf` và `lastIndexOf`
+### Example 1: Distinguishing `indexOf` and `lastIndexOf`
 
-Tạo tệp `LastIndexOfBasicsDemo.java`:
+Create file `LastIndexOfBasicsDemo.java`:
 
 ```java
 public class LastIndexOfBasicsDemo {
@@ -60,14 +60,14 @@ public class LastIndexOfBasicsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac LastIndexOfBasicsDemo.java
 java LastIndexOfBasicsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 0
@@ -78,20 +78,20 @@ Kết quả:
 -1
 ```
 
-`"BRA"` không khớp với `"bra"` vì các phép tìm này **phân biệt chữ hoa và chữ thường**. `lastIndexOf` không tự bỏ dấu, chuẩn hóa Unicode, tách từ hay áp dụng quy tắc ngôn ngữ tự nhiên.
+`"BRA"` does not match `"bra"` because these searches are **case-sensitive**. `lastIndexOf` does not automatically strip accents, normalize Unicode, split words, or apply natural-language rules.
 
-## 3. `fromIndex`: tìm ngược từ vị trí được chỉ định
+## 3. `fromIndex`: Searching Backward from a Specified Position
 
-Hai overload có `fromIndex` cho phép giới hạn phần nguồn được xét:
+The two overloads with `fromIndex` let you restrict the portion of the source considered:
 
 ```java
 lastIndexOf(int ch, int fromIndex)
 lastIndexOf(String str, int fromIndex)
 ```
 
-Tìm theo hướng **giảm chỉ số**, từ khu vực gần `fromIndex` sang bên trái. Với một ký tự thuộc BMP, vị trí `fromIndex` được kiểm tra **bao gồm cả chính nó** nếu hợp lệ.
+Searching proceeds in **decreasing index order**, from around `fromIndex` to the left. For a BMP character, position `fromIndex` itself is **included in the check** if valid.
 
-Ví dụ:
+Example:
 
 ```text
 String text = "abracadabra";
@@ -102,15 +102,15 @@ Text:    a b r a c a d a b r a
            fromIndex = 6
 ```
 
-Lệnh `text.lastIndexOf('a', 6)` không xét `'a'` ở 7 hay 10; nó đi ngược từ chỉ số 6 và gặp `'a'` ở 5, nên trả `5`. Tương tự, `text.lastIndexOf('a', 3)` trả `3` vì vị trí bắt đầu **được tính vào phạm vi tìm kiếm**.
+`text.lastIndexOf('a', 6)` does not consider `'a'` at 7 or 10; it moves backward from index 6 and encounters `'a'` at 5, so it returns `5`. Likewise, `text.lastIndexOf('a', 3)` returns `3` because the starting position **is included in the search range**.
 
-Một điểm quan trọng hơn với *chuỗi con*: `fromIndex` giới hạn **vị trí bắt đầu của lần khớp**, không nhất thiết giới hạn tất cả ký tự của lần khớp ở bên trái `fromIndex`.
+A subtler point applies to *substrings*: `fromIndex` bounds the **starting position of the match**, not necessarily keeping every character of the match to the left of `fromIndex`.
 
-Ví dụ `"abcd".lastIndexOf("bcd", 1)` trả về `1` dù phần khớp có các ký tự ở chỉ số `2` và `3`. Đoạn khớp bắt đầu ở chỉ số 1 nên vẫn thỏa điều kiện.
+For example, `"abcd".lastIndexOf("bcd", 1)` returns `1` even though the match has characters at indices `2` and `3`. The matched segment starts at index 1, so it still satisfies the condition.
 
-### Ví dụ 2: vị trí bắt đầu được tính vào kết quả
+### Example 2: Starting Position Included in the Result
 
-Tạo `LastIndexOfFromIndexDemo.java`:
+Create `LastIndexOfFromIndexDemo.java`:
 
 ```java
 public class LastIndexOfFromIndexDemo {
@@ -136,7 +136,7 @@ javac LastIndexOfFromIndexDemo.java
 java LastIndexOfFromIndexDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 5
@@ -149,22 +149,22 @@ Kết quả:
 -1
 ```
 
-Giải thích:
+Explanation:
 
-1. Khi `fromIndex` là 6, vị trí `'a'` gần nhất tính về bên trái là 5.
-2. Khi `fromIndex` là 3, ký tự `'a'` ngay tại chỉ số 3 được tính.
-3. Khi `fromIndex < 0`, không có vị trí bắt đầu hợp lệ nên kết quả là `-1`.
-4. Khi `fromIndex` vượt quá chỉ số cuối, tìm ký tự bắt đầu hiệu quả từ vị trí cuối hợp lệ; kết quả là 10.
-5. Với `"bra"`, vị trí bắt đầu 8 được tính trong `lastIndexOf("bra", 8)`; khi giới hạn `fromIndex = 7` thì tìm lần khớp trước đó ở 1.
-6. `"bcd"` bắt đầu tại 1 nên `lastIndexOf("bcd", 1)` hợp lệ, dù đoạn khớp kéo dài qua chỉ số 3.
+1. When `fromIndex` is 6, the nearest `'a'` to the left is at 5.
+2. When `fromIndex` is 3, the character `'a'` right at index 3 is counted.
+3. When `fromIndex < 0`, there is no valid starting position, so the result is `-1`.
+4. When `fromIndex` exceeds the last index, searching effectively starts from the last valid position; the result is 10.
+5. For `"bra"`, starting position 8 is included in `lastIndexOf("bra", 8)`; when limited to `fromIndex = 7`, it finds the previous match at 1.
+6. `"bcd"` starts at 1 so `lastIndexOf("bcd", 1)` succeeds, even though the match extends through index 3.
 
-Nếu bạn định nghĩa «chỉ tìm trong **tiền tố** kết thúc tại một chỉ số», cần kiểm soát ranh giới đoạn khớp thay vì giả định `fromIndex` tự cắt dữ liệu đầu vào.
+If your specification means "search only within the **prefix** ending at an index", control the end boundary of the match rather than assuming `fromIndex` truncates the input data.
 
-## 4. Một chuỗi con có thể khớp nhiều lần, kể cả chồng lấp
+## 4. A Substring Can Match Multiple Times, Including Overlapping Matches
 
-`lastIndexOf(String)` tìm toàn bộ dãy ký tự liên tiếp. Các lần xuất hiện chồng lấp vẫn là ứng viên hợp lệ.
+`lastIndexOf(String)` matches the entire contiguous character sequence. Overlapping occurrences remain valid candidates.
 
-Ví dụ `"bananana"` có đoạn `"ana"` bắt đầu ở các chỉ số `1`, `3` và `5`:
+For example, `"bananana"` has `"ana"` starting at indices `1`, `3`, and `5`:
 
 ```text
 b a n a n a n a
@@ -174,16 +174,16 @@ b a n a n a n a
           └─ana─┘
 ```
 
-Do đó:
+Therefore:
 
 - `lastIndexOf("ana")` → `5`.
 - `lastIndexOf("ana", 4)` → `3`.
 - `lastIndexOf("ana", 2)` → `1`.
 - `lastIndexOf("ana", 0)` → `-1`.
 
-### Ví dụ 3: tìm ngược nhiều lần
+### Example 3: Searching Backward Multiple Times
 
-Tạo `ReverseSearchDemo.java`:
+Create `ReverseSearchDemo.java`:
 
 ```java
 public class ReverseSearchDemo {
@@ -210,7 +210,7 @@ javac ReverseSearchDemo.java
 java ReverseSearchDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 1
@@ -223,23 +223,23 @@ match = 3
 match = 1
 ```
 
-Trong vòng lặp, `at - 1` bảo đảm lần tìm tiếp theo xét các **vị trí bắt đầu nhỏ hơn** vị trí vừa tìm thấy. Nếu gọi lại với đúng `at`, kết quả có thể là chính vị trí hiện tại và tạo vòng lặp vô hạn. Mẫu trên liệt kê được cả những lần khớp **chồng lấp**. Nếu muốn bỏ khớp chồng lấp, chính sách cập nhật chỉ số cần được thiết kế theo mục tiêu riêng.
+In the loop, `at - 1` ensures the next search considers **starting positions smaller than** the one just found. Calling it again with `at` itself could return the current position and cause an infinite loop. The pattern above lists **overlapping** matches as well. If you want to skip overlapping matches, design the index update policy for that specific goal.
 
-## 5. Biên đặc biệt: chuỗi trống, vị trí âm và vị trí vượt độ dài
+## 5. Special Boundaries: Empty Strings, Negative Positions, and Out-of-Bounds Positions
 
-Các cạnh biên dễ bị bỏ qua nhất nằm ở overload tìm **chuỗi con rỗng**.
+The easiest edge cases to overlook are in the overloads searching for an **empty substring**.
 
-Với một chuỗi `s` có độ dài `n`:
+For a string `s` of length `n`:
 
-- `s.lastIndexOf("")` trả về `n`, vì chuỗi rỗng có thể khớp ở ranh giới ngay sau ký tự cuối.
-- `s.lastIndexOf("", fromIndex)` trả về `min(fromIndex, n)` nếu `fromIndex >= 0`; nếu `fromIndex < 0`, trả về `-1`.
-- Với chuỗi tìm kiếm **không rỗng**, `fromIndex < 0` trả về `-1`; `fromIndex` quá lớn sẽ được giới hạn vào các vị trí bắt đầu có thể khớp.
-- `s.lastIndexOf("longer-than-source")` trả về `-1` nếu toàn bộ chuỗi con không thể nằm trong `s`.
-- `s.lastIndexOf((String) null)` gây `NullPointerException`, khác với kết quả `-1` khi không tìm thấy.
+- `s.lastIndexOf("")` returns `n`, because an empty string can match at the boundary right after the last character.
+- `s.lastIndexOf("", fromIndex)` returns `min(fromIndex, n)` if `fromIndex >= 0`; if `fromIndex < 0`, it returns `-1`.
+- For a **non-empty** search string, `fromIndex < 0` returns `-1`; an overly large `fromIndex` is clamped to possible matching start positions.
+- `s.lastIndexOf("longer-than-source")` returns `-1` if the entire substring cannot fit inside `s`.
+- `s.lastIndexOf((String) null)` throws `NullPointerException`, unlike returning `-1` when not found.
 
-### Ví dụ 4: kiểm thử ranh giới một cách có chủ đích
+### Example 4: Intentionally Testing Boundaries
 
-Tạo `LastIndexOfEdgeCasesDemo.java`:
+Create `LastIndexOfEdgeCasesDemo.java`:
 
 ```java
 public class LastIndexOfEdgeCasesDemo {
@@ -267,7 +267,7 @@ javac LastIndexOfEdgeCasesDemo.java
 java LastIndexOfEdgeCasesDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 3
@@ -281,21 +281,21 @@ Kết quả:
 -1
 ```
 
-**Không đồng nhất chuỗi rỗng với «không tìm thấy».** Nếu một tham số tìm kiếm rỗng là không hợp lệ trong nghiệp vụ, hãy kiểm tra `needle.isEmpty()` trước khi gọi, thay vì dựa vào `lastIndexOf` để trả `-1`.
+**Do not equate an empty string with "not found".** If an empty search argument is invalid in your business rules, check `needle.isEmpty()` before calling, rather than relying on `lastIndexOf` to return `-1`.
 
-## 6. Chỉ số của `lastIndexOf` theo UTF-16, không phải vị trí ký tự hiển thị
+## 6. `lastIndexOf` Indices Are UTF-16, Not Visible Character Positions
 
-`String` lưu các ký tự với ngữ nghĩa chỉ số **UTF-16 code unit**. Một ký tự Unicode ngoài BMP (ví dụ U+1F600) được biểu diễn bằng **hai `char`** — một cặp surrogate. Vì thế chỉ số trả về của `lastIndexOf` cũng là **vị trí code unit**, không phải vị trí đếm theo code point hoặc grapheme cluster.
+`String` stores characters with **UTF-16 code unit** indexing semantics. A Unicode character outside the BMP (such as U+1F600) is represented by **two `char`s**—a surrogate pair. Consequently, the index returned by `lastIndexOf` is also a **code unit position**, not a position counted by code points or grapheme clusters.
 
-Có hai cách tìm đáng phân biệt:
+There are two ways of searching worth distinguishing:
 
-- `lastIndexOf(int ch)` có thể nhận một Unicode code point hợp lệ ngoài BMP, ví dụ `0x1F600`, và tìm cặp surrogate tương ứng. Kết quả là chỉ số UTF-16 của **high surrogate**, tức vị trí bắt đầu của cặp.
-- `lastIndexOf(String str)` tìm chính xác dãy code unit có trong chuỗi con `str`. Có thể dùng một chuỗi chứa đủ cặp surrogate.
-- `lastIndexOf(char)` không phải overload độc lập; truyền một `char` gọi overload `int` sau khi nâng kiểu. Một `char` đơn lẻ không thể biểu diễn toàn bộ code point ngoài BMP.
+- `lastIndexOf(int ch)` can accept a valid non-BMP Unicode code point, such as `0x1F600`, and find the matching surrogate pair. The result is the UTF-16 index of the **high surrogate**, i.e., the start of the pair.
+- `lastIndexOf(String str)` searches for the exact sequence of code units present in substring `str`. You can pass a string containing the full surrogate pair.
+- `lastIndexOf(char)` is not a separate overload; passing a `char` invokes the `int` overload after widening. A single `char` cannot represent an entire non-BMP code point.
 
-### Ví dụ 5: tìm emoji bằng Unicode code point
+### Example 5: Searching for an Emoji by Unicode Code Point
 
-Tạo `LastIndexOfUnicodeDemo.java`:
+Create `LastIndexOfUnicodeDemo.java`:
 
 ```java
 public class LastIndexOfUnicodeDemo {
@@ -318,7 +318,7 @@ javac LastIndexOfUnicodeDemo.java
 java LastIndexOfUnicodeDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 6
@@ -329,15 +329,15 @@ Kết quả:
 4
 ```
 
-Chuỗi hiển thị là `A😀B😀`: bốn code point nhưng sáu UTF-16 code unit. Emoji đầu có high surrogate ở vị trí 1; emoji cuối ở vị trí 4. `lastIndexOf(emoji, 3)` tìm lùi từ khu vực chỉ số 3 và gặp emoji đầu ở 1. Tìm riêng low surrogate `'\uDE00'` cho kết quả 5, nhưng đó chỉ là **nửa sau của cặp surrogate cuối**, không đại diện cho cả emoji.
+The displayed string is `A😀B😀`: four code points but six UTF-16 code units. The first emoji has its high surrogate at position 1; the last emoji is at position 4. `lastIndexOf(emoji, 3)` searches backward from around index 3 and finds the first emoji at 1. Searching specifically for the low surrogate `'\uDE00'` returns 5, which is only the **second half of the last surrogate pair**, not representative of the whole emoji.
 
-Lưu ý bổ sung: ngay cả khi đếm theo code point, một ký tự mà người dùng nhìn thấy có thể gồm nhiều code point (ví dụ ký tự kết hợp dấu hoặc emoji ghép). Nếu cần tìm kiếm theo **grapheme cluster** hay quy tắc ngôn ngữ tự nhiên, `lastIndexOf` không tự cung cấp chức năng đó.
+Additional note: even when counting by code points, a character perceived by a user may consist of multiple code points (such as combining accent marks or composite emojis). If you need to search by **grapheme cluster** or natural-language rules, `lastIndexOf` does not provide that capability on its own.
 
-## 7. Tình huống thực tế: lấy phần sau dấu phân cách cuối
+## 7. Practical Scenario: Extracting the Part After the Last Separator
 
-Khi biết dữ liệu có cấu trúc đơn giản với dấu phân cách cố định, `lastIndexOf` kết hợp `substring` là giải pháp trực tiếp.
+When data is known to have a simple structure with a fixed separator, `lastIndexOf` combined with `substring` is a direct solution.
 
-Giả sử tên tệp là `report.final.csv` và cần lấy phần mở rộng cuối:
+Suppose the file name is `report.final.csv` and you need the final extension:
 
 ```java
 String filename = "report.final.csv";
@@ -345,11 +345,11 @@ int dot = filename.lastIndexOf('.');
 String extension = dot >= 0 ? filename.substring(dot + 1) : "";
 ```
 
-Kết quả `extension` là `"csv"`. `dot + 1` đúng vì `substring(beginIndex)` bắt đầu **sau** dấu chấm. Nếu dấu chấm không xuất hiện, `lastIndexOf` trả `-1`. Trong ví dụ trên, ta chủ động chọn giá trị rỗng cho trường hợp không có dấu chấm.
+The resulting `extension` is `"csv"`. `dot + 1` is right because `substring(beginIndex)` starts **after** the dot. If no dot appears, `lastIndexOf` returns `-1`. In the example above, we intentionally choose an empty value when there is no dot.
 
-### Ví dụ 6: xử lý nhiều tên tệp
+### Example 6: Handling Multiple File Names
 
-Tạo `FileExtensionDemo.java`:
+Create `FileExtensionDemo.java`:
 
 ```java
 public class FileExtensionDemo {
@@ -372,7 +372,7 @@ javac FileExtensionDemo.java
 java FileExtensionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 csv
@@ -381,13 +381,13 @@ csv
 env
 ```
 
-Trong đầu ra có **một dòng trống** sau `csv` vì `README` không có dấu chấm. `"notes."` có dấu chấm cuối nên `substring(dot + 1)` là chuỗi rỗng được in dưới dạng `[]`. Với `".env"`, hàm đơn giản coi `"env"` là phần mở rộng; nhiều quy ước về tệp ẩn lại coi `.env` là **tên tệp không có phần mở rộng**.
+In the output there is **a blank line** after `csv` because `README` has no dot. `"notes."` has a trailing dot so `substring(dot + 1)` is an empty string printed as `[]`. For `".env"`, this simple function treats `"env"` as the extension; many hidden-file conventions treat `.env` as a **file name with no extension**.
 
-**Giới hạn của ví dụ:** đây là quy tắc xử lý *chuỗi tên tệp*, không phải parser đường dẫn đầy đủ. Một dấu chấm trong tên thư mục, đường dẫn URL, file ẩn hoặc quy ước nhiều phần mở rộng có thể cần chính sách khác. Trong ứng dụng cần xử lý đường dẫn đa nền tảng, cân nhắc `java.nio.file.Path` để tách tên tệp khỏi đường dẫn trước khi áp dụng logic phần mở rộng.
+**Limitation of this example:** this is a *file-name string* rule, not a full path parser. A dot in a directory name, a URL path, hidden files, or multi-part extensions may require different policies. In applications handling cross-platform paths, consider `java.nio.file.Path` to separate the file name from the path before applying extension logic.
 
-## 8. Tình huống thực tế: lấy đoạn sau dấu phân cách nhiều ký tự
+## 8. Practical Scenario: Extracting the Segment After a Multi-Character Separator
 
-Khi dấu phân cách có nhiều ký tự, cần cộng **độ dài của toàn bộ dấu phân cách**, không chỉ cộng 1.
+When a separator has multiple characters, you must add **the length of the entire separator**, not just 1.
 
 ```java
 String message = "region::team::member";
@@ -396,11 +396,11 @@ int at = message.lastIndexOf(separator);
 String last = at < 0 ? message : message.substring(at + separator.length());
 ```
 
-Kết quả `last` là `"member"`. Nếu bạn cộng `at + 1`, kết quả sẽ chứa dư một dấu `':'` ở đầu.
+The resulting `last` is `"member"`. If you add `at + 1`, the result will contain an extra leading `':'`.
 
-### Ví dụ 7: tìm phần cuối và kiểm soát lỗi
+### Example 7: Finding the Last Segment and Validating Errors
 
-Tạo `LastSegmentDemo.java`:
+Create `LastSegmentDemo.java`:
 
 ```java
 public class LastSegmentDemo {
@@ -426,7 +426,7 @@ javac LastSegmentDemo.java
 java LastSegmentDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 c
@@ -434,51 +434,51 @@ single
 []
 ```
 
-Hàm lựa chọn trả toàn bộ đầu vào khi không có dấu phân cách, và trả chuỗi rỗng nếu dấu phân cách nằm cuối. Đây là **chính sách nghiệp vụ** được viết rõ trong code, không phải tính năng tự động của `lastIndexOf`. Hàm cũng chặn dấu phân cách rỗng vì `lastIndexOf("")` có ngữ nghĩa riêng, thường không phù hợp để tách phân đoạn.
+The function chooses to return the entire input when no separator is present, and returns an empty string if the separator is at the end. This is an explicit **business policy** written in code, not an automatic feature of `lastIndexOf`. The function also rejects an empty separator because `lastIndexOf("")` has special semantics generally unsuitable for splitting segments.
 
-## 9. So sánh `indexOf` và `lastIndexOf` khi lựa chọn cách tìm
+## 9. Comparing `indexOf` and `lastIndexOf` When Choosing a Search Method
 
-| Nhu cầu | Lựa chọn phù hợp |
+| Need | Suitable choice |
 | --- | --- |
-| Tìm vị trí **đầu tiên** của ký tự hoặc chuỗi con | `indexOf(...)` |
-| Tìm vị trí **cuối cùng** của ký tự hoặc chuỗi con | `lastIndexOf(...)` |
-| Tìm lần xuất hiện đầu ở vị trí ≥ `fromIndex` | `indexOf(..., fromIndex)` |
-| Tìm lần xuất hiện cuối có vị trí bắt đầu ≤ `fromIndex` | `lastIndexOf(..., fromIndex)` |
-| Kiểm tra có chứa một chuỗi con cụ thể hay không | `contains(...)` hoặc `indexOf(...) >= 0` |
-| Kiểm tra tiền tố/hậu tố cụ thể | `startsWith(...)` / `endsWith(...)` |
-| Tìm theo biểu thức chính quy, nhóm bắt, tập ký tự | `Pattern`/`Matcher` và regex thích hợp |
+| Find the **first** position of a character or substring | `indexOf(...)` |
+| Find the **last** position of a character or substring | `lastIndexOf(...)` |
+| Find the first occurrence at position ≥ `fromIndex` | `indexOf(..., fromIndex)` |
+| Find the last occurrence whose starting position is ≤ `fromIndex` | `lastIndexOf(..., fromIndex)` |
+| Check whether a specific substring is contained | `contains(...)` or `indexOf(...) >= 0` |
+| Check a specific prefix/suffix | `startsWith(...)` / `endsWith(...)` |
+| Search by regular expression, capture groups, character classes | `Pattern`/`Matcher` and an appropriate regex |
 
-`lastIndexOf` tìm **literal** ký tự hoặc chuỗi con. Ví dụ `lastIndexOf(".")` tìm dấu chấm thực, không diễn giải `"."` là «mọi ký tự» như trong regex. Khi chỉ cần dấu phân cách cuối, không cần regex.
+`lastIndexOf` searches for a **literal** character or substring. For example, `lastIndexOf(".")` searches for a literal period, not interpreting `"."` as "any character" as in regex. When you only need the last separator, regex is unnecessary.
 
-`lastIndexOf` có thể được JVM tối ưu ở mức implementation, nhưng API không cam kết một độ phức tạp hay kiểu bộ nhớ duy nhất cho mọi JVM. Không nên đưa ra kết luận hiệu năng tuyệt đối nếu chưa đo trên dữ liệu và runtime thực tế.
+`lastIndexOf` may be optimized by the JVM at the implementation level, but the API does not guarantee a single complexity or memory profile across all JVMs. Do not draw absolute performance conclusions without measuring on real data and runtime.
 
-## 10. Những lỗi dễ mắc
+## 10. Common Pitfalls
 
-**Lỗi 1 — tưởng kết quả đếm từ cuối.** `lastIndexOf` trả **chỉ số từ đầu chuỗi**. Với `"abcabc"`, `lastIndexOf("abc") == 3`, không phải 0.
+**Pitfall 1 — thinking the result is counted from the end.** `lastIndexOf` returns a **start-relative index**. For `"abcabc"`, `lastIndexOf("abc") == 3`, not 0.
 
-**Lỗi 2 — dùng `fromIndex` như chỉ số loại trừ.** Khác với `endIndex` trong `substring`, `fromIndex` trong `lastIndexOf` được tính **bao gồm**. Muốn bỏ vị trí khớp hiện tại, thường cần gọi lại với `at - 1`.
+**Pitfall 2 — treating `fromIndex` as an exclusive index.** Unlike `endIndex` in `substring`, `fromIndex` in `lastIndexOf` is **inclusive**. To skip the current match position, you typically call again with `at - 1`.
 
-**Lỗi 3 — nghĩ chuỗi con phải nằm hoàn toàn bên trái `fromIndex`.** `fromIndex` hạn chế **vị trí bắt đầu**, không nhất thiết hạn chế vị trí kết thúc đoạn khớp. `"abcd".lastIndexOf("bcd", 1)` trả 1.
+**Pitfall 3 — thinking the entire substring must lie to the left of `fromIndex`.** `fromIndex` restricts the **starting position**, not necessarily the ending position of the matched segment. `"abcd".lastIndexOf("bcd", 1)` returns 1.
 
-**Lỗi 4 — không kiểm tra `-1`.** `substring(text.lastIndexOf("::") + 2)` có thể xử lý sai khi dấu phân cách vắng mặt vì `-1 + 2 == 1`. Hãy kiểm tra vị trí khớp trước khi cắt chuỗi.
+**Pitfall 4 — failing to check `-1`.** `substring(text.lastIndexOf("::") + 2)` can behave wrongly when the separator is absent because `-1 + 2 == 1`. Check the match position before slicing.
 
-**Lỗi 5 — cộng 1 cho dấu phân cách nhiều ký tự.** Với `"::"`, phải cộng `separator.length()` khi lấy phần sau đoạn khớp.
+**Pitfall 5 — adding 1 for a multi-character separator.** With `"::"`, you must add `separator.length()` when taking the part after the match.
 
-**Lỗi 6 — bỏ qua chuỗi rỗng.** `lastIndexOf("")` trả độ dài chuỗi, không trả `-1`. Hãy tự định nghĩa có cho phép tìm chuỗi rỗng hay không.
+**Pitfall 6 — overlooking empty strings.** `lastIndexOf("")` returns the string length, not `-1`. Define explicitly whether empty search strings are allowed.
 
-**Lỗi 7 — giả định tìm kiếm không phân biệt hoa thường.** `"Java".lastIndexOf("java") == -1`. Nếu muốn xử lý không phân biệt hoa thường, cần quy tắc so sánh riêng, đặc biệt khi có Unicode và locale.
+**Pitfall 7 — assuming case-insensitive search.** `"Java".lastIndexOf("java") == -1`. If case-insensitive handling is desired, implement dedicated comparison rules, especially with Unicode and locales.
 
-**Lỗi 8 — coi `char` là mọi ký tự Unicode.** Một code point ngoài BMP chiếm hai UTF-16 code unit. Dùng overload `int` với code point đúng, hoặc dùng chuỗi con hoàn chỉnh, và hiểu chỉ số trả về.
+**Pitfall 8 — treating `char` as every Unicode character.** A non-BMP code point takes two UTF-16 code units. Use the `int` overload with the right code point, or use a full substring, and understand the returned index.
 
-**Lỗi 9 — dùng `lastIndexOf` như parser ngữ nghĩa.** Tìm dấu `'.'` cuối chỉ là thao tác trên chuỗi; nó không tự biết phần mở rộng tệp, định dạng URL, escape sequence hay quy tắc đường dẫn.
+**Pitfall 9 — using `lastIndexOf` as a semantic parser.** Finding the last `'.'` is just a string operation; it does not understand file extensions, URL formats, escape sequences, or path rules on its own.
 
-**Lỗi 10 — quên rằng chuỗi nguồn bất biến.** `lastIndexOf` chỉ đọc `String` và trả vị trí, không sửa nội dung hay dịch con trỏ tìm kiếm bên trong chuỗi.
+**Pitfall 10 — forgetting that the source string is immutable.** `lastIndexOf` only reads the `String` and returns a position; it does not modify contents or shift an internal search cursor.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-### Câu 1: tìm ngược có chỉ số bắt đầu
+### Question 1: Reverse search with a starting index
 
-Cho:
+Given:
 
 ```java
 String text = "one-two-two";
@@ -487,7 +487,7 @@ System.out.println(text.lastIndexOf("two", 5));
 System.out.println(text.lastIndexOf('-', 6));
 ```
 
-Đáp án:
+Answer:
 
 ```text
 8
@@ -495,11 +495,11 @@ System.out.println(text.lastIndexOf('-', 6));
 3
 ```
 
-`"two"` xuất hiện tại 4 và 8; tìm từ vị trí 5 chỉ có thể chọn khớp bắt đầu ở 4. Dấu `'-'` ở chỉ số 3 và 7; tìm ngược từ 6 gặp chỉ số 3.
+`"two"` appears at 4 and 8; searching from position 5 can only pick the match starting at 4. The `'-'` character is at indices 3 and 7; searching backward from 6 finds index 3.
 
-### Câu 2: chuỗi tìm kiếm rỗng
+### Question 2: Empty search string
 
-Cho:
+Given:
 
 ```java
 String text = "xyz";
@@ -508,7 +508,7 @@ System.out.println(text.lastIndexOf("", 1));
 System.out.println(text.lastIndexOf("", -1));
 ```
 
-Đáp án:
+Answer:
 
 ```text
 3
@@ -516,25 +516,25 @@ System.out.println(text.lastIndexOf("", -1));
 -1
 ```
 
-Vị trí ranh giới ngay sau ký tự cuối cũng là một vị trí khớp hợp lệ của chuỗi rỗng.
+The boundary right after the last character is also a valid match position for an empty string.
 
-### Câu 3: lấy hậu tố sau dấu hai chấm cuối
+### Question 3: Extracting the suffix after the last colon
 
-Với `String text = "a:b:c";`, viết phép cắt để lấy `"c"`.
+Given `String text = "a:b:c";`, write the slice to obtain `"c"`.
 
-Lời giải:
+Solution:
 
 ```java
 int separator = text.lastIndexOf(':');
 String tail = separator < 0 ? text : text.substring(separator + 1);
 ```
 
-Biến `tail` có giá trị `"c"`. Đây là một đoạn mã minh họa đặt trong phương thức có biến `text` đã khai báo.
+The variable `tail` has value `"c"`. This is an illustrative snippet placed inside a method where `text` is already declared.
 
-### Câu 4: các lần khớp chồng lấp
+### Question 4: Overlapping matches
 
-Với `"aaaa"`, đoạn `"aa"` bắt đầu ở các chỉ số `0`, `1`, `2`. Vì vậy `lastIndexOf("aa")` trả `2`, còn `lastIndexOf("aa", 1)` trả `1`. Tính chồng lấp không khiến một vị trí khớp hợp lệ bị loại bỏ.
+In `"aaaa"`, the segment `"aa"` starts at indices `0`, `1`, and `2`. Thus `lastIndexOf("aa")` returns `2`, and `lastIndexOf("aa", 1)` returns `1`. Overlapping does not disqualify a valid match position.
 
-## Ghi nhớ
+## Takeaway
 
-**`lastIndexOf` tìm từ phải sang trái nhưng trả về chỉ số bắt đầu tính từ trái sang phải.** Overload với `fromIndex` tìm các lần khớp có vị trí bắt đầu không lớn hơn ranh giới đó; ranh giới được tính **bao gồm**. Kết quả `-1` nghĩa là không tìm thấy, còn tìm chuỗi rỗng là một trường hợp đặc biệt có kết quả hợp lệ. Khi dùng chỉ số để cắt đoạn văn bản, hãy kiểm tra `-1`, cộng đúng độ dài dấu phân cách, và nhớ rằng các chỉ số của `String` dùng UTF-16 code unit.
+**`lastIndexOf` searches from right to left yet returns a starting index counted from left to right.** The overloads with `fromIndex` find matches whose starting position is no greater than that boundary; the boundary is **inclusive**. A result of `-1` means not found, while searching for an empty string is a special case with valid results. When using an index to slice text, check for `-1`, add the exact separator length, and remember that `String` indices use UTF-16 code units.

@@ -1,15 +1,15 @@
-# So sánh String.join(), StringJoiner, StringBuilder và phép nối `+` trong Java
+# Comparing `String.join()`, `StringJoiner`, `StringBuilder`, and `+` Concatenation in Java
 
-## 1. Bốn cách ghép chuỗi giải quyết những nhu cầu khác nhau
+## 1. Four Ways of Joining Strings Solve Different Needs
 
-Trong Java, `String` là **bất biến (immutable)**: sau khi một chuỗi được tạo, nội dung của nó không thay đổi. Việc ghép chuỗi tạo ra giá trị `String` mới; cách tổ chức thao tác ghép sẽ ảnh hưởng đến mức độ rõ ràng, khả năng kiểm soát dấu phân cách và lượng công việc khi ghép nhiều phần.
+In Java, `String` is **immutable**: once a string is created, its contents cannot change. Joining strings produces a new `String` value; how you structure the joining operation affects code clarity, delimiter control, and the amount of work performed when joining many parts.
 
-- **Phép `+`**: diễn đạt phép nối trực tiếp, rất tiện cho một biểu thức ngắn hoặc một vài thành phần cố định.
-- **`String.join()`**: ghép một dãy phần tử bằng **cùng một delimiter**; phù hợp khi đã có mảng hoặc `Iterable` và chỉ cần chuỗi kết quả.
-- **`StringJoiner`**: tích lũy các phần tử với delimiter và hỗ trợ **prefix/suffix**, giá trị khi rỗng và `merge()`; phù hợp khi thêm từng phần tử theo thời gian.
-- **`StringBuilder`**: bộ đệm ký tự có thể thay đổi, cho phép `append()`, `insert()`, `delete()`, `replace()` và tự xây dựng quy tắc định dạng; phù hợp khi ghép trong vòng lặp hoặc cần kiểm soát chi tiết.
+- **`+` operator**: expresses direct concatenation; very convenient for a short expression or a few fixed parts.
+- **`String.join()`**: joins a sequence of elements using **the same delimiter**; suitable when you already have an array or `Iterable` and just want the resulting string.
+- **`StringJoiner`**: accumulates elements with a delimiter and supports **prefix/suffix**, an empty value, and `merge()`; suitable when adding elements one by one over time.
+- **`StringBuilder`**: a mutable character buffer supporting `append()`, `insert()`, `delete()`, `replace()`, and custom formatting rules; suitable when joining in a loop or needing fine-grained control.
 
-Ví dụ cùng dữ liệu `["Java", "Spring", "SQL"]`:
+Example with the same data `["Java", "Spring", "SQL"]`:
 
 ~~~java
 String a = "Java" + " | " + "Spring" + " | " + "SQL";
@@ -24,29 +24,29 @@ builder.append("Java").append(" | ").append("Spring").append(" | ").append("SQL"
 String d = builder.toString();
 ~~~
 
-`a`, `b` và `d` có cùng nội dung `Java | Spring | SQL`. `c` khác vì được yêu cầu thêm ngoặc vuông. Các cách này không phải bốn kiểu dữ liệu tương đương: `+` là toán tử; `String.join()` trả về `String`; `StringJoiner` và `StringBuilder` là các đối tượng giữ trạng thái trong quá trình tạo kết quả.
+`a`, `b`, and `d` have the same content `Java | Spring | SQL`. `c` differs because square brackets were requested. These four approaches are not equivalent data types: `+` is an operator; `String.join()` returns a `String`; `StringJoiner` and `StringBuilder` are stateful objects used while constructing the result.
 
-## 2. Phép nối `+`: rõ ràng cho biểu thức ngắn
+## 2. The `+` Operator: Clear for Short Expressions
 
-Khi **một toán hạng là `String`**, toán tử `+` thực hiện nối chuỗi. Các toán hạng còn lại được chuyển thành biểu diễn chuỗi theo quy tắc chuyển đổi chuỗi của Java. Với các hằng chuỗi, trình biên dịch có thể gộp ngay khi biên dịch (constant folding):
+When **one operand is a `String`**, the `+` operator performs string concatenation. The other operands are converted to their string representations according to Java's string conversion rules. For string constants, the compiler can fold them at compile time (constant folding):
 
 ~~~java
-String fixed = "Hello" + " " + "Java"; // Hằng "Hello Java"
+String fixed = "Hello" + " " + "Java"; // Constant "Hello Java"
 String name = "Lan";
-String greeting = "Hello, " + name + "!"; // Ghép lúc chạy
+String greeting = "Hello, " + name + "!"; // Concatenated at runtime
 ~~~
 
-Cần phân biệt phép cộng số và phép nối chuỗi, vì biểu thức được đánh giá từ trái sang phải:
+Be careful to distinguish numeric addition from string concatenation, because expressions are evaluated left to right:
 
 ~~~java
-System.out.println(1 + 2 + " người"); // 3 người
-System.out.println("Số người: " + 1 + 2); // Số người: 12
-System.out.println("Số người: " + (1 + 2)); // Số người: 3
+System.out.println(1 + 2 + " people"); // 3 people
+System.out.println("People count: " + 1 + 2); // People count: 12
+System.out.println("People count: " + (1 + 2)); // People count: 3
 ~~~
 
-**Không kết luận rằng mỗi dấu `+` luôn tạo một `StringBuilder` riêng hoặc luôn chậm.** Trình biên dịch/JVM tối ưu phép ghép một biểu thức; từ Java 9, các biểu thức nối chuỗi thông thường thường dùng cơ chế `invokedynamic` với `StringConcatFactory`. Chi tiết thực thi phụ thuộc trình biên dịch và JVM. Vì vậy, viết `"Xin chào " + name` là hợp lý và dễ đọc.
+**Do not conclude that every `+` always creates a separate `StringBuilder` or is always slow.** The compiler and JVM optimize single-expression concatenation; since Java 9, typical concatenation expressions commonly use `invokedynamic` with `StringConcatFactory`. Execution details depend on the compiler and JVM. Therefore, writing `"Hello " + name` is reasonable and readable.
 
-Điểm cần tránh là **cập nhật chuỗi đang lớn lên trong vòng lặp**:
+What you should avoid is **updating a growing string inside a loop**:
 
 ~~~java
 String result = "";
@@ -55,20 +55,20 @@ for (String item : items) {
 }
 ~~~
 
-Mỗi lần cập nhật về mặt ngữ nghĩa cần một giá trị `String` mới để lưu kết quả dài hơn; việc lặp lại sao chép phần đã ghép có thể gây nhiều cấp phát và tổng công việc gần bậc hai khi số lượng/độ dài phần tử tăng. Với khối lượng đủ lớn, `StringBuilder` phù hợp hơn. Đây là hướng dẫn về mẫu sử dụng, không phải khẳng định mọi `+` đều kém hiệu năng trong mọi JVM.
+Each update semantically requires a new `String` value to hold the longer result; repeatedly copying the accumulated prefix can cause many allocations and near-quadratic total work as the number or length of elements grows. At sufficiently large scale, `StringBuilder` is more appropriate. This is guidance about usage patterns, not a claim that every `+` performs poorly on every JVM.
 
-Ngoài ra, Java ghép giá trị `null` vào chuỗi thành chữ `"null"` (ví dụ `"x=" + (Object) null` thành `x=null`). Nếu muốn bỏ qua hoặc thay giá trị vắng mặt, hãy xử lý `null` trước.
+In addition, Java converts a `null` value concatenated into a string to the text `"null"` (for example, `"x=" + (Object) null` becomes `x=null`). If you want to skip or replace absent values, handle `null` beforehand.
 
-## 3. `String.join()`: ghép một tập phần tử với delimiter chung
+## 3. `String.join()`: Joining an Element Collection with a Common Delimiter
 
-Các overload phổ biến:
+Common overloads:
 
 ~~~java
 String.join(CharSequence delimiter, CharSequence... elements)
 String.join(CharSequence delimiter, Iterable<? extends CharSequence> elements)
 ~~~
 
-Ví dụ:
+Examples:
 
 ~~~java
 String csvLike = String.join(",", "A", "B", "C");
@@ -79,25 +79,25 @@ String path = String.join("/", paths);
 // users/42/orders
 
 String empty = String.join(", ", List.<String>of());
-// "" (chuỗi rỗng)
+// "" (empty string)
 ~~~
 
-`String.join()` **không tự thêm delimiter ở đầu hoặc cuối** và **không tự lọc phần tử rỗng hay null**. Delimiter chỉ được đặt *giữa* các phần tử:
+`String.join()` **does not automatically add leading or trailing delimiters** and **does not automatically filter out empty or null elements**. The delimiter is placed only *between* elements:
 
 ~~~java
 System.out.println(String.join("-", "A", "", "C"));    // A--C
 System.out.println(String.join(",", "A", null, "C")); // A,null,C
 ~~~
 
-Những quy tắc quan trọng:
+Important rules:
 
-- Delimiter `null` gây `NullPointerException`; đối số mảng/`Iterable` chứa danh sách phần tử cũng phải là tham chiếu hợp lệ.
-- Một **phần tử** `null` được biểu diễn bằng chuỗi `"null"`, chứ không tự biến mất.
-- Một dãy có 0 phần tử cho kết quả `""`. Một dãy có một phần tử cho đúng biểu diễn phần tử đó, không có delimiter.
-- Phương thức trả về một `String` mới; không làm thay đổi mảng/danh sách đầu vào.
-- Tên `csvLike` ở ví dụ chỉ mô tả dấu phẩy: đây **không phải bộ ghi CSV chuẩn**, vì `String.join()` không quote/escape dấu phẩy, dấu nháy hay xuống dòng nằm trong dữ liệu.
+- A `null` delimiter causes `NullPointerException`; the array/`Iterable` argument holding the element list must also be a valid reference.
+- A `null` **element** is represented by the string `"null"` rather than disappearing automatically.
+- A sequence of 0 elements returns `""`. A sequence of one element returns that element's representation with no delimiter.
+- The method returns a new `String`; it does not modify the input array or list.
+- The name `csvLike` in the example merely describes the comma separator: this is **not a standard CSV writer**, because `String.join()` does not quote or escape commas, quotes, or newlines inside data.
 
-Nếu cần loại bỏ chuỗi trắng/null trước khi nối, hãy chuẩn hóa đầu vào. Ví dụ với Stream:
+If you need to remove blank/null strings before joining, normalize the input. For example, with a Stream:
 
 ~~~java
 List<String> raw = Arrays.asList("Java", null, " ", "Spring");
@@ -107,18 +107,18 @@ String result = raw.stream()
 // Java, Spring
 ~~~
 
-`Collectors.joining()` thích hợp khi dữ liệu đã đi qua chuỗi thao tác `Stream` (lọc, ánh xạ, sắp xếp). Còn với một mảng hoặc `List` đã sẵn sàng, `String.join()` thường là lựa chọn ít mã nhất.
+`Collectors.joining()` fits well when data already flows through a `Stream` pipeline (filtering, mapping, sorting). When an array or `List` is already ready, `String.join()` is usually the choice with the least code.
 
-## 4. `StringJoiner`: thêm từng phần tử, tự quản lý dấu phân cách
+## 4. `StringJoiner`: Adding Elements One by One, Managing Delimiters Automatically
 
-`StringJoiner` thuộc `java.util`. Có hai constructor:
+`StringJoiner` lives in `java.util`. It has two constructors:
 
 ~~~java
 new StringJoiner(delimiter)
 new StringJoiner(delimiter, prefix, suffix)
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 StringJoiner j = new StringJoiner(", ", "[", "]");
@@ -128,28 +128,28 @@ j.add("blue");
 System.out.println(j); // [red, green, blue]
 ~~~
 
-`StringJoiner` thêm delimiter **giữa các lần `add()`**; người viết không phải kiểm tra xem đây có phải phần tử đầu tiên. `add()` trả về chính joiner để có thể gọi nối tiếp. `toString()` tạo ra chuỗi kết quả ở trạng thái hiện tại; các lần `add()` tiếp theo vẫn làm thay đổi joiner.
+`StringJoiner` inserts the delimiter **between `add()` calls**; the caller never has to check whether this is the first element. `add()` returns the joiner itself for chaining. `toString()` builds the resulting string for the current state; subsequent `add()` calls continue to mutate the joiner.
 
-### 4.1. Khi chưa có phần tử và `setEmptyValue()`
+### 4.1. When No Elements Have Been Added and `setEmptyValue()`
 
-Với prefix và suffix, khi chưa `add()`, biểu diễn mặc định là `prefix + suffix`. Có thể thay bằng `setEmptyValue()`:
+With a prefix and suffix, before `add()` is called, the default representation is `prefix + suffix`. You can override it with `setEmptyValue()`:
 
 ~~~java
 StringJoiner j = new StringJoiner(", ", "[", "]");
 System.out.println(j); // []
 
-j.setEmptyValue("(không có phần tử)");
-System.out.println(j); // (không có phần tử)
+j.setEmptyValue("(no elements)");
+System.out.println(j); // (no elements)
 
 j.add("A");
 System.out.println(j); // [A]
 ~~~
 
-`setEmptyValue()` chỉ ảnh hưởng **trạng thái chưa được thêm phần tử**. Sau khi `add()`, kể cả `add("")`, joiner không còn được xem là chưa thêm phần tử.
+`setEmptyValue()` affects **only the state where no elements have been added yet**. After `add()`, including `add("")`, the joiner is no longer considered empty of elements.
 
-### 4.2. `merge()` khi kết hợp các nhóm
+### 4.2. `merge()` When Combining Groups
 
-`merge(other)` thêm nội dung các phần tử của `other` như một nhóm, dùng delimiter của joiner đích ở ranh giới. Prefix/suffix của `other` không được chèn nguyên vào kết quả:
+`merge(other)` appends the element content of `other` as a single group, using the target joiner's delimiter at the boundary. `other`'s prefix/suffix are not inserted into the result:
 
 ~~~java
 StringJoiner left = new StringJoiner(" | ", "<", ">");
@@ -163,20 +163,20 @@ System.out.println(left); // <A | B | C, D>
 System.out.println(right); // (C, D)
 ~~~
 
-Trong phần nội dung nhóm nguồn, dấu `", "` được giữ nguyên; vì vậy kết quả có dấu cách sau dấu phẩy. `merge()` không xóa dữ liệu của `right`; joiner nguồn vẫn sử dụng được.
+Inside the source group's content, `", "` is preserved; therefore the output has a comma followed by a space. `merge()` does not clear `right`'s data; the source joiner remains usable.
 
-Khi sử dụng `merge()`, cần hiểu delimiter bên trong nhóm nguồn và delimiter phân nhóm của đích có thể khác nhau. Đừng giả định merge sẽ đổi mọi dấu phân cách của nguồn thành dấu phân cách đích.
+When using `merge()`, understand that the internal delimiter of the source group and the group-separating delimiter of the target may differ. Do not assume `merge` rewrites every source delimiter into the target delimiter.
 
-### 4.3. Những giới hạn cần nhớ
+### 4.3. Limitations to Remember
 
-- `StringJoiner` tập trung vào `add()`, delimiter, prefix/suffix, empty value và merge; nó **không phải trình sửa ký tự tùy ý** như `StringBuilder`.
-- Gọi `add(null)` thêm chữ `"null"`; `null` không tự bị loại bỏ.
-- `length()` trả về độ dài biểu diễn hiện tại (bao gồm prefix/suffix nếu có), không phải số phần tử đã thêm.
-- Nếu bài toán chỉ là `String.join(", ", list)`, tạo joiner thủ công có thể khiến mã dài thêm không cần thiết.
+- `StringJoiner` focuses on `add()`, delimiter, prefix/suffix, empty value, and merge; it is **not a general-purpose character editor** like `StringBuilder`.
+- Calling `add(null)` appends `"null"`; `null` is not removed automatically.
+- `length()` returns the length of the current representation (including prefix/suffix if present), not the number of elements added.
+- If the task is simply `String.join(", ", list)`, manually constructing a joiner can make the code unnecessarily verbose.
 
-## 5. `StringBuilder`: kiểm soát từng thao tác tạo chuỗi
+## 5. `StringBuilder`: Controlling Every Step of String Construction
 
-`StringBuilder` thuộc `java.lang`, chứa một dãy ký tự có thể thay đổi. `append()` có nhiều overload cho chuỗi, số, boolean, ký tự, mảng ký tự và đối tượng. Nó không tự biết cần đặt delimiter ở đâu:
+`StringBuilder` lives in `java.lang` and holds a mutable sequence of characters. `append()` has overloads for strings, numbers, booleans, characters, character arrays, and objects. It does not automatically know where to place delimiters:
 
 ~~~java
 List<String> names = List.of("An", "Bình", "Chi");
@@ -192,7 +192,7 @@ for (String name : names) {
 String output = sb.toString(); // An, Bình, Chi
 ~~~
 
-Mẫu trên đúng khi không có phần tử rỗng. Nếu phần tử có thể là `""`, dùng chỉ số hoặc biến `first` sẽ an toàn hơn cho mục đích đếm phần tử, vì `sb.length() == 0` không đồng nghĩa “chưa xử lý phần tử nào”:
+The pattern above works when there are no empty elements. If an element can be `""`, using an index or a `first` flag is safer for tracking elements, because `sb.length() == 0` does not necessarily mean "no elements processed yet":
 
 ~~~java
 StringBuilder sb = new StringBuilder();
@@ -208,9 +208,9 @@ for (String item : List.of("", "B")) {
 System.out.println(sb); // |B
 ~~~
 
-Trường hợp này `String.join("|", List.of("", "B"))` cũng trả `"|B"` và ngắn hơn; mẫu `StringBuilder` hữu ích khi mỗi phần tử còn cần định dạng hoặc thao tác bổ sung.
+In this case `String.join("|", List.of("", "B"))` also returns `"|B"` and is shorter; the `StringBuilder` pattern is useful when each element also needs extra formatting or operations.
 
-Các thao tác bổ sung mà `String.join()`/`StringJoiner` không trực tiếp cung cấp:
+Additional operations that `String.join()`/`StringJoiner` do not provide directly:
 
 ~~~java
 StringBuilder sb = new StringBuilder("abc");
@@ -222,19 +222,19 @@ sb.reverse();             // edZYX
 String result = sb.toString();
 ~~~
 
-Phân biệt:
+Distinctions:
 
-- `length()` là số ký tự hiện có.
-- `capacity()` là dung lượng bộ đệm hiện được cấp để lưu ký tự; thường lớn hơn hoặc bằng `length()`, và có thể tự tăng.
-- `new StringBuilder(estimatedCapacity)` có thể giảm lần mở rộng bộ đệm nếu có ước lượng đáng tin. Đó là tối ưu tùy tình huống, không bắt buộc.
-- `toString()` tạo `String` kết quả; nên gọi khi cần kết quả cuối thay vì lặp lại trong từng vòng ghép.
-- `append((String) null)` thêm chữ `"null"`; nếu muốn bỏ qua `null`, phải kiểm tra trước.
+- `length()` is the current number of characters.
+- `capacity()` is the currently allocated buffer capacity for storing characters; it is at least `length()` and can grow automatically.
+- `new StringBuilder(estimatedCapacity)` can reduce buffer expansions when a reliable estimate is known. That is a situational optimization, not mandatory.
+- `toString()` creates the resulting `String`; call it when the final result is needed rather than repeatedly inside each concatenation iteration.
+- `append((String) null)` appends `"null"`; if you want to skip `null`, check beforehand.
 
-`StringBuilder` **không đồng bộ hóa các thao tác để dùng chung một instance cho nhiều luồng**. `StringJoiner` cũng không nên được dùng chung rồi cùng sửa từ nhiều luồng nếu không có phối hợp an toàn. `StringBuffer` là lựa chọn có các phương thức được đồng bộ hóa, nhưng điều đó không tự bảo đảm toàn bộ quy trình ghép nhiều bước là một thao tác nguyên tử; nhiều trường hợp tốt hơn là mỗi luồng dùng builder riêng.
+`StringBuilder` **does not synchronize operations for sharing a single instance across multiple threads**. Nor should `StringJoiner` be shared and mutated concurrently across threads without safe coordination. `StringBuffer` is an option with synchronized methods, but that alone does not make an entire multi-step assembly an atomic operation; in many cases it is better for each thread to use its own builder.
 
-## 6. Ví dụ hoàn chỉnh Java 17+
+## 6. Complete Java 17+ Example
 
-Lưu chương trình dưới tên **`StringJoiningDemo.java`**:
+Save the program as **`StringJoiningDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -272,7 +272,7 @@ public class StringJoiningDemo {
         System.out.println("builder: " + viaBuilder);
 
         StringJoiner empty = new StringJoiner(", ", "[", "]");
-        empty.setEmptyValue("(trống)");
+        empty.setEmptyValue("(empty)");
         System.out.println("empty  : " + empty);
 
         List<String> raw = Arrays.asList("A", null, "", "B");
@@ -284,88 +284,88 @@ public class StringJoiningDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac StringJoiningDemo.java
 java StringJoiningDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 plus   : Java | Spring | SQL
 join   : Java | Spring | SQL
 joiner : [Java | Spring | SQL]
 builder: Java | Spring | SQL
-empty  : (trống)
+empty  : (empty)
 filter : A, B
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `+` nối ba phần tử biết trước vị trí; mã sẽ kém linh hoạt nếu danh sách thay đổi độ dài.
-2. `String.join()` nhận trực tiếp `List`, tự chèn `" | "` giữa các mục và không thêm dấu ở hai đầu.
-3. `StringJoiner` nhận từng phần tử, đồng thời bao kết quả bằng `[` và `]`.
-4. `StringBuilder` chèn delimiter khi `i > 0`, rồi chuyển bộ đệm thành `String`.
-5. `setEmptyValue()` xử lý joiner chưa có mục; ví dụ Stream chủ động loại bỏ null và chuỗi rỗng trước khi ghép.
+1. `+` joins three elements at known positions; the code becomes inflexible if the list length varies.
+2. `String.join()` accepts the `List` directly, inserts `" | "` between items, and adds nothing at either end.
+3. `StringJoiner` takes elements one by one while also wrapping the result with `[` and `]`.
+4. `StringBuilder` inserts the delimiter when `i > 0`, then converts the buffer to a `String`.
+5. `setEmptyValue()` handles a joiner with no items yet; the Stream example explicitly removes `null` and empty strings before joining.
 
-## 7. So sánh theo yêu cầu sử dụng
+## 7. Comparison by Usage Requirements
 
-| Tiêu chí | Toán tử `+` | `String.join()` | `StringJoiner` | `StringBuilder` |
+| Criterion | `+` operator | `String.join()` | `StringJoiner` | `StringBuilder` |
 |---|---|---|---|---|
-| Loại API | Toán tử biểu thức | Phương thức tĩnh trả `String` | Đối tượng tích lũy | Bộ đệm ký tự thay đổi |
-| Hợp với | Một vài phần đã biết | Mảng/`Iterable` có delimiter chung | Thêm dần, prefix/suffix, merge | Vòng lặp, định dạng phức tạp, sửa ký tự |
-| Tự chèn delimiter | Không | Có | Có | Không |
-| Prefix/suffix tự động | Không | Không | Có | Phải tự viết |
-| Xử lý kết quả rỗng | Tùy biểu thức | `""` khi 0 phần tử | Prefix+suffix hoặc `setEmptyValue()` | `""` nếu builder rỗng |
-| Chèn/xóa/sửa ký tự tùy ý | Không | Không | Không | Có |
-| Đầu ra cuối | `String` | `String` | `toString()` | `toString()` |
+| API kind | Expression operator | Static method returning `String` | Accumulator object | Mutable character buffer |
+| Best for | A few known parts | Array/`Iterable` with a shared delimiter | Incremental additions, prefix/suffix, merge | Loops, complex formatting, character edits |
+| Auto-inserts delimiter | No | Yes | Yes | No |
+| Automatic prefix/suffix | No | No | Yes | Must write manually |
+| Empty-result handling | Depends on expression | `""` when 0 elements | `prefix+suffix` or `setEmptyValue()` | `""` if builder is empty |
+| Arbitrary insert/delete/edit | No | No | No | Yes |
+| Final output | `String` | `String` | `toString()` | `toString()` |
 
-### 7.1. Khía cạnh hiệu năng và bộ nhớ
+### 7.1. Performance and Memory Aspects
 
-Giả sử có `n` phần tử với tổng độ dài ký tự `L` và delimiter độ dài `d`. Một thuật toán ghép tốt cần xử lý xấp xỉ `L + (n - 1) × d` ký tự đầu ra (chưa tính prefix/suffix). Do đó:
+Suppose there are `n` elements with total character length `L` and a delimiter of length `d`. A good joining algorithm processes roughly `L + (n - 1) × d` output characters (excluding prefix/suffix). Consequently:
 
-- **Một lần `String.join()` hoặc dùng `StringJoiner` rồi gọi `toString()`** thường thích hợp cho nhiều phần tử cần dấu phân cách; tránh công việc tự kiểm tra phần tử đầu tiên.
-- **Một `StringBuilder` được tái sử dụng xuyên suốt vòng lặp** có thể ghép tuyến tính theo tổng lượng dữ liệu với chi phí mở rộng bộ đệm được phân bổ qua nhiều lần `append()`.
-- **Một biểu thức `+` đơn lẻ** có thể được JVM tối ưu tốt; chọn dựa trên độ rõ ràng trước khi tối ưu sớm.
-- **`result += piece` trong vòng lặp dài** là dấu hiệu cần xem lại vì liên tục hình thành `String` trung gian. Đừng suy diễn chỉ từ số dấu `+` trong source code.
+- **A single `String.join()` or using `StringJoiner` and calling `toString()`** is usually appropriate for many delimiter-separated elements; it avoids manual first-element checks.
+- **A `StringBuilder` reused across a loop** can concatenate linearly in total data size with buffer-expansion cost amortized across many `append()` calls.
+- **A single `+` expression** can be optimized well by the JVM; prioritize clarity before optimizing prematurely.
+- **`result += piece` in a long loop** is a warning sign worth revisiting because it repeatedly creates intermediate `String` objects. Do not judge purely by counting `+` signs in source code.
 
-Các đặc điểm cấp phát, chi phí thực tế và ngưỡng chênh lệch phụ thuộc phiên bản JDK, JVM, JIT, dữ liệu và cách viết mã. Nếu hiệu năng quan trọng, đo với **JMH**, có warm-up và dữ liệu đại diện; tránh kết luận từ phép đo thủ công chỉ chạy một lần hoặc từ việc in log trong vòng đo.
+Allocation characteristics, actual overhead, and crossover thresholds depend on JDK version, JVM, JIT, data, and code shape. When performance matters, measure with **JMH**, using warm-up and representative data; avoid drawing conclusions from one-off manual timings or printing logs inside the benchmark loop.
 
-### 7.2. Chọn nhanh qua tình huống
+### 7.2. Quick Scenario Selection
 
-- Tạo thông báo `"Xin chào, " + userName` → **`+`** vì ngắn, trực quan.
-- Tạo danh sách `a,b,c` từ một `List<String>` có sẵn → **`String.join(",", list)`**.
-- Tạo chuỗi dạng `[a, b, c]` bằng cách `add()` từng mục → **`StringJoiner(", ", "[", "]")`**.
-- Tạo báo cáo nhiều dòng với số, điều kiện, đoạn văn và chèn/sửa vị trí → **`StringBuilder`**.
-- Ghép dữ liệu sau `filter()`/`map()` của Stream → **`Collectors.joining(delimiter)`** thường gọn nhất.
+- Building a message `"Hello, " + userName` → **`+`** because it is short and direct.
+- Building a list `a,b,c` from an existing `List<String>` → **`String.join(",", list)`**.
+- Building a string like `[a, b, c]` by calling `add()` per item → **`StringJoiner(", ", "[", "]")`**.
+- Building a multi-line report with numbers, conditionals, paragraphs, and positional edits → **`StringBuilder`**.
+- Joining data after Stream `filter()`/`map()` → **`Collectors.joining(delimiter)`** is usually cleanest.
 
-## 8. Những lỗi và ngộ nhận thường gặp
+## 8. Common Mistakes and Misconceptions
 
-**1. Ghép hai phần tử bằng delimiter nhưng tự thêm delimiter sau mọi phần tử.**
+**1. Joining two elements with a delimiter by appending the delimiter after every element.**
 
 ~~~java
 StringBuilder sb = new StringBuilder();
 for (String s : List.of("A", "B")) {
-    sb.append(s).append(","); // A,B, (dư dấu phẩy)
+    sb.append(s).append(","); // A,B, (extra trailing comma)
 }
 ~~~
 
-Nếu chỉ cần nối danh sách: `String.join(",", List.of("A", "B"))` trả `A,B`. Nếu dùng builder, thêm delimiter **trước các phần tử từ thứ hai** hoặc dựa vào chỉ số.
+If you just need to join a list: `String.join(",", List.of("A", "B"))` returns `A,B`. If using a builder, append the delimiter **before elements from the second onward** or track by index.
 
-**2. Cho rằng `join()` lọc null/rỗng.** Thực tế `String.join("-", "A", "", "C")` thành `A--C`; `String.join("-", "A", null, "C")` thành `A-null-C`. Hãy quyết định trước liệu muốn giữ, bỏ qua hay thay thế các giá trị này.
+**2. Assuming `join()` filters out null/empty values.** In fact, `String.join("-", "A", "", "C")` becomes `A--C`; `String.join("-", "A", null, "C")` becomes `A-null-C`. Decide upfront whether to keep, skip, or replace these values.
 
-**3. Cho rằng `StringJoiner.setEmptyValue()` có hiệu lực ngay cả sau `add("")`.** Một chuỗi rỗng vẫn là một phần tử đã được thêm; joiner không còn ở trạng thái rỗng theo nghĩa API.
+**3. Assuming `StringJoiner.setEmptyValue()` still applies after `add("")`.** An empty string is still an added element; the joiner is no longer in the empty state in the API sense.
 
-**4. Nhầm `StringBuilder.length()` với số phần tử.** Nó đếm ký tự; khi phần tử đầu tiên là chuỗi rỗng, `length() == 0` vẫn đúng. Dùng biến `first` hoặc chỉ số để quản lý dấu phân cách nếu dữ liệu có thể có chuỗi rỗng.
+**4. Confusing `StringBuilder.length()` with element count.** It counts characters; when the first element is an empty string, `length() == 0` still holds. Use a `first` flag or an index to manage delimiters if the data can include empty strings.
 
-**5. Nhầm `String.join()` với encoder định dạng dữ liệu.** Đầu vào `"Ho, Ten"` chứa dấu phẩy vẫn giữ dấu phẩy đó trong đầu ra. Với CSV, JSON, SQL hay URL, phải dùng formatter/encoder/API phù hợp; riêng SQL cần truy vấn tham số thay vì tự nối input.
+**5. Confusing `String.join()` with a structured data-format encoder.** An input `"Ho, Ten"` containing a comma still retains that comma in the output. For CSV, JSON, SQL, or URLs, use an appropriate formatter/encoder/API; specifically, SQL requires parameterized queries rather than concatenating input manually.
 
-**6. Dùng `+` để tích lũy lượng dữ liệu lớn và cho rằng cách đó luôn nhanh như một biểu thức đơn lẻ.** Tối ưu một biểu thức nối không đồng nghĩa JVM loại bỏ được mọi `String` trung gian giữa các lần gán `+=` trong vòng lặp.
+**6. Using `+` to accumulate large amounts of data while assuming it is always as fast as a single expression.** Optimizing a single concatenation expression does not mean the JVM eliminates all intermediate `String` objects across `+=` assignments in a loop.
 
-**7. Dùng chung một `StringBuilder` mutable giữa nhiều luồng.** Nếu các luồng sửa cùng đối tượng mà không có đồng bộ phù hợp, nội dung có thể sai. Thường nên tạo bộ đệm trong phạm vi một phương thức/tác vụ.
+**7. Sharing a mutable `StringBuilder` across multiple threads.** If threads modify the same object without proper synchronization, the contents can become corrupted. Usually, create the buffer scoped to a single method or task.
 
-## 9. Ghi nhớ khi áp dụng
+## 9. Takeaways When Applying
 
-Hãy bắt đầu từ **hình dạng đầu vào** và **quy tắc đầu ra**. Với vài phần cố định, dùng `+`. Với một dãy đã có và một delimiter, dùng `String.join()`. Với quá trình thêm dần cần prefix/suffix, dùng `StringJoiner`. Với việc xây dựng chuỗi phức tạp hoặc cập nhật lặp nhiều lần, dùng `StringBuilder`. Sau đó xác định rõ cách xử lý null, chuỗi rỗng, escaping và phạm vi sử dụng giữa các luồng; các yếu tố này ảnh hưởng tính đúng đắn hơn nhiều so với việc chọn API ngắn nhất.
+Start from the **input shape** and **output rules**. For a few fixed parts, use `+`. For an existing sequence and a single delimiter, use `String.join()`. For incremental additions needing prefix/suffix, use `StringJoiner`. For complex string construction or repeated edits, use `StringBuilder`. Then explicitly define how to handle `null`, empty strings, escaping, and thread confinement; those factors affect correctness far more than choosing the shortest API.

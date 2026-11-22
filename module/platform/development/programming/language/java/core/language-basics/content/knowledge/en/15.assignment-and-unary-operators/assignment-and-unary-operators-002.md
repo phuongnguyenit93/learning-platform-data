@@ -1,12 +1,12 @@
-# Gán liên tiếp và lý do nên hạn chế trong Java
+# Chained Assignment and Why It Should Be Limited in Java
 
-> **Java core — language-basics / Gán và toán tử một ngôi**  
-> **Phiên bản:** Java 17+; ví dụ một file, không cần thư viện ngoài.  
-> **Mục tiêu:** Hiểu `a = b = c = value` được nhóm như thế nào, vì sao biểu thức gán có giá trị và phải tương thích kiểu; nhận diện vấn đề về khả năng đọc, thứ tự đánh giá, tác dụng phụ và các tham chiếu cùng trỏ tới một đối tượng.
+> **Java core — language-basics / Assignment and Unary Operators**  
+> **Version:** Java 17+; single-file examples, no external libraries required.  
+> **Objective:** Understand how `a = b = c = value` is grouped, why an assignment expression has a value and must be type-compatible; recognize issues with readability, evaluation order, side effects, and multiple references pointing to the same object.
 
-## 1. Gán liên tiếp là gì?
+## 1. What Is Chained Assignment?
 
-Một phép gán `left = right` lưu giá trị của vế phải vào biến được chỉ định ở vế trái. Java cho phép **biểu thức gán** nằm ở vế phải của phép gán khác:
+An assignment `left = right` stores the value of the right-hand side into the variable specified on the left-hand side. Java allows an **assignment expression** to appear on the right-hand side of another assignment:
 
 ~~~java
 int a, b, c;
@@ -14,59 +14,59 @@ a = b = c = 7;
 System.out.println(a + "," + b + "," + c); // 7,7,7
 ~~~
 
-Toán tử gán `=` **kết hợp từ phải sang trái** (*right-associative*). Cách nhóm của dòng trên là:
+The assignment operator `=` is **right-associative**. The grouping of the line above is:
 
 ~~~text
 a = (b = (c = 7))
 ~~~
 
-Diễn giải trường hợp các biến đơn giản:
+Walkthrough for simple variables:
 
-1. `c = 7` gán 7 cho `c`; toàn bộ biểu thức này có giá trị 7.
-2. `b = (c = 7)` nhận 7 rồi gán vào `b`.
-3. `a = (b = (c = 7))` nhận 7 rồi gán vào `a`.
+1. `c = 7` assigns 7 to `c`; this entire expression has value 7.
+2. `b = (c = 7)` receives 7 and assigns it to `b`.
+3. `a = (b = (c = 7))` receives 7 and assigns it to `a`.
 
-Kết thúc, cả ba biến đều bằng 7. **Gán liên tiếp không khai báo biến mới**: `a`, `b`, `c` phải tồn tại trước và kiểu của chúng phải phù hợp.
+At the end, all three variables equal 7. **Chained assignment does not declare new variables**: `a`, `b`, and `c` must already exist and their types must be compatible.
 
-## 2. Biểu thức gán có giá trị và có kiểu
+## 2. An Assignment Expression Has a Value and a Type
 
-Với phép gán đơn giản, biểu thức `variable = expression` mang **giá trị đã gán** và có kiểu của biến bên trái. Vì thế có thể dùng nó bên trong phép gán khác:
+For a simple assignment, the expression `variable = expression` carries **the assigned value** and has the type of the variable on the left. Therefore, it can be used inside another assignment:
 
 ~~~java
 int left, right;
-left = right = 12; // Cả hai đều nhận 12.
+left = right = 12; // Both receive 12.
 ~~~
 
-Không phải mọi phép gán liên tiếp đều bắt buộc các biến có cùng kiểu. Từng bước gán phải hợp lệ theo quy tắc chuyển kiểu Java:
+Not every chained assignment requires all variables to have the exact same type. Each assignment step must be valid under Java's type conversion rules:
 
 ~~~java
 int whole;
 double decimal;
-decimal = whole = 3; // Hợp lệ: whole nhận int 3, decimal nhận double 3.0.
+decimal = whole = 3; // Valid: whole receives int 3, decimal receives double 3.0.
 ~~~
 
-Ngược lại:
+Conversely:
 
 ~~~java
 int whole;
 double decimal;
-// whole = decimal = 3.5; // Lỗi biên dịch: không thể gán double vào int.
+// whole = decimal = 3.5; // Compile error: cannot assign double to int.
 ~~~
 
-**Điểm cần nhớ:** Java không tự suy đoán một kiểu chung tùy ý chỉ vì phép gán nằm trên cùng một dòng. Dấu ngoặc cho biết cách **nhóm**, còn quy tắc tương thích kiểu vẫn được áp dụng ở mỗi phép gán.
+**Key takeaway:** Java does not arbitrarily infer a single common type just because the assignments are on the same line. Parentheses show the **grouping**, while type-compatibility rules still apply to each individual assignment.
 
-Gán liên tiếp có thể chứa biểu thức khác:
+A chained assignment can contain other expressions:
 
 ~~~java
 int a, b, c = 2;
-a = b = c + 5; // a = 7, b = 7, c vẫn là 2.
+a = b = c + 5; // a = 7, b = 7, c remains 2.
 ~~~
 
-Ở đây `c + 5` **không gán lại** `c`. Phân biệt `c + 5` với `c += 5`: phép thứ hai thay đổi `c`.
+Here `c + 5` **does not reassign** `c`. Distinguish `c + 5` from `c += 5`: the latter modifies `c`.
 
-## 3. Biến tham chiếu: gán cùng object, không nhân bản object
+## 3. Reference Variables: Assigning the Same Object, Not Cloning the Object
 
-Với kiểu tham chiếu, gán liên tiếp có thể khiến nhiều biến cùng trỏ đến **một object**:
+With reference types, chained assignment can cause multiple variables to point to **the same object**:
 
 ~~~java
 int[] first, second;
@@ -76,38 +76,38 @@ first[0] = 99;
 System.out.println(second[0]); // 99
 ~~~
 
-Dòng `new int[] {10, 20}` tạo **một mảng duy nhất**. Hai phép gán chỉ sao chép giá trị **tham chiếu**, không tạo hai mảng độc lập. Vì thế sửa phần tử qua `first` cũng được nhìn thấy qua `second`.
+The expression `new int[] {10, 20}` creates **a single array**. The two assignments only copy the **reference** value; they do not create two independent arrays. Therefore, modifying an element through `first` is also visible through `second`.
 
-Nếu cần hai đối tượng riêng, hãy tạo/copy có chủ đích, chẳng hạn:
+If you need two separate objects, create or copy them intentionally, for example:
 
 ~~~java
 int[] first = {10, 20};
-int[] second = first.clone(); // Mảng mới với các phần tử được sao chép.
+int[] second = first.clone(); // New array with copied elements.
 ~~~
 
-Với object có trạng thái thay đổi được, sử dụng gán liên tiếp mà không để ý đến việc chia sẻ tham chiếu có thể tạo lỗi khó truy vết. Với các kiểu bất biến như `String`, việc chia sẻ tham chiếu thường ít rủi ro hơn, nhưng vẫn phải hiểu ngữ nghĩa gán.
+With mutable objects, using chained assignment without noticing shared references can create hard-to-trace bugs. With immutable types like `String`, sharing references is generally lower risk, but you must still understand assignment semantics.
 
-## 4. Vì sao nên hạn chế gán liên tiếp?
+## 4. Why Should Chained Assignment Be Limited?
 
-| Vấn đề | Ví dụ hoặc hậu quả | Cách diễn đạt rõ hơn |
+| Issue | Example or Consequence | Clearer Expression |
 | --- | --- | --- |
-| Khó đọc cách dữ liệu đi qua biến | `a = b = c = compute();` | Tạo giá trị trung gian có tên, rồi gán rõ từng biến |
-| Dễ bỏ sót kiểu không tương thích | `int x; double y; x = y = 1.5;` | Chuyển kiểu có chủ đích, tách từng phép gán |
-| Che khuất việc nhiều biến cùng tham chiếu | `x = y = new int[3];` | Đặt tên thể hiện chia sẻ, hoặc clone/tạo riêng |
-| Trộn tác dụng phụ | `array[i++] = array[i++] = 8;` | Tách việc chọn chỉ số và việc gán |
-| Khó đặt breakpoint/log theo bước | Một dòng sửa nhiều biến | Mỗi câu lệnh sửa một biến khi nghiệp vụ phức tạp |
-| Dễ hiểu sai giữa nhóm và thứ tự đánh giá | Gán kết hợp phải không có nghĩa mọi biểu thức con chạy từ phải sang trái | Tách bước hoặc dùng ngoặc kết hợp với biến trung gian |
+| Hard to read how data flows through variables | `a = b = c = compute();` | Create a named intermediate value, then assign each variable explicitly |
+| Easy to overlook incompatible types | `int x; double y; x = y = 1.5;` | Convert types intentionally, separating each assignment |
+| Obscures that multiple variables share a reference | `x = y = new int[3];` | Name variables to show sharing, or clone/create separately |
+| Mixes side effects | `array[i++] = array[i++] = 8;` | Separate index selection from assignment |
+| Hard to set step-by-step breakpoints/logs | One line modifies multiple variables | One statement modifies one variable when business logic is complex |
+| Easy to confuse grouping with evaluation order | Right-associative assignment does not mean every subexpression runs right-to-left | Split steps or use parentheses with intermediate variables |
 
-Gán liên tiếp **không sai về kỹ thuật**. Với ví dụ ngắn `a = b = 0;`, ý định có thể rất rõ. Nhưng khi liên quan đến trạng thái, object, lời gọi hàm hoặc chỉ số mảng, **ưu tiên khả năng đọc và kiểm thử hơn số dòng ít nhất**.
+Chained assignment is **not technically wrong**. For a short example like `a = b = 0;`, the intent may be very clear. But when state, objects, method calls, or array indices are involved, **prioritize readability and testability over minimizing line count**.
 
-### Một lời gọi không chạy ba lần
+### One Call Does Not Run Three Times
 
 ~~~java
 int a, b, c;
 a = b = c = calculate();
 ~~~
 
-`calculate()` được gọi **một lần**; kết quả của nó được dùng cho ba phép gán. Nếu muốn ba giá trị được tính **độc lập**, phải gọi hàm riêng cho mỗi biến:
+`calculate()` is called **once**; its result is used for all three assignments. If you want three **independently** computed values, you must call the method separately for each variable:
 
 ~~~java
 a = calculate();
@@ -115,11 +115,11 @@ b = calculate();
 c = calculate();
 ~~~
 
-Đây là khác biệt nghiệp vụ quan trọng khi `calculate()` đọc thời gian, sinh số ngẫu nhiên hoặc thay đổi trạng thái.
+This is a critical business difference when `calculate()` reads the current time, generates random numbers, or mutates state.
 
-## 5. Tính kết hợp không phải thứ tự đánh giá tác dụng phụ
+## 5. Associativity Is Not the Evaluation Order of Side Effects
 
-`a = b = c = value` nhóm **từ phải sang trái**, nhưng với một **vế trái phức tạp** như truy cập mảng, Java vẫn có quy tắc về **thứ tự đánh giá biểu thức**.
+`a = b = c = value` groups **from right to left**, yet with a **complex left-hand side** such as an array access, Java still follows its rules for **expression evaluation order**.
 
 ~~~java
 int[] values = {1, 2, 3};
@@ -128,11 +128,11 @@ int i = 0;
 values[i++] = values[i++] = 8;
 ~~~
 
-Ở phép gán mảng bên ngoài, Java đánh giá tham chiếu mảng và **chỉ số bên trái** trước khi đánh giá biểu thức gán ở bên phải. Lần `i++` đầu chọn `values[0]`; lần thứ hai chọn `values[1]`; sau đó cả hai vị trí nhận 8. Kết quả là `values = {8, 8, 3}` và `i = 2`.
+In the outer array assignment, Java evaluates the array reference and **the left-hand index** before evaluating the assignment expression on the right. The first `i++` selects `values[0]`; the second selects `values[1]`; then both positions receive 8. The result is `values = {8, 8, 3}` and `i = 2`.
 
-Đừng suy từ “gán kết hợp phải” rằng lần `i++` nằm bên phải **luôn** chạy trước. Độ kết hợp quyết định **cây biểu thức**, còn thứ tự đánh giá có quy tắc khác.
+Do not infer from “assignment is right-associative” that the `i++` on the right **always** runs first. Associativity determines the **expression tree**, while evaluation order follows a different rule.
 
-**Cách viết rõ hơn:**
+**Clearer way to write it:**
 
 ~~~java
 int firstIndex = i++;
@@ -141,11 +141,11 @@ values[secondIndex] = 8;
 values[firstIndex] = 8;
 ~~~
 
-Đoạn tách bước có thể dài hơn nhưng cho phép quan sát/chỉnh sửa và đặt breakpoint tại từng bước. Thực tế, nếu không cần tác dụng phụ của `i++`, hãy chọn chỉ số tường minh và tránh phép gán lồng nhau.
+The step-by-step version may be longer, but it lets you inspect, edit, and set breakpoints at each step. In practice, if you do not need the side effect of `i++`, choose explicit indices and avoid nested assignments.
 
-## 6. Chương trình Java 17+ runnable
+## 6. Runnable Java 17+ Program
 
-Tạo file **ChainedAssignmentDemo.java**:
+Create the file **ChainedAssignmentDemo.java**:
 
 ~~~java
 public final class ChainedAssignmentDemo {
@@ -196,14 +196,14 @@ public final class ChainedAssignmentDemo {
 }
 ~~~
 
-Chạy tại thư mục chứa tệp (Bash, PowerShell hoặc Command Prompt):
+Run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ChainedAssignmentDemo.java
 java ChainedAssignmentDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 basic=7,7,7
@@ -218,11 +218,11 @@ indexed=8,8,3
 indexAfter=2
 ~~~
 
-Đối chiếu: `expression=12,12,7` cho thấy `c` không đổi khi chỉ dùng `c + 5`; `calls=1` xác nhận hàm được gọi một lần; `sameStringReference=true` và `sharedArray=99,99` cho thấy gán chia sẻ tham chiếu. `indexed` minh họa vì sao có tác dụng phụ trong vế trái thì không nên chỉ dựa vào cách nhóm từ phải.
+Cross-check: `expression=12,12,7` shows that `c` does not change when only `c + 5` is used; `calls=1` confirms the method was called once; `sameStringReference=true` and `sharedArray=99,99` show that assignment shares references. `indexed` illustrates why, when there are side effects on the left-hand side, you must not rely solely on right-to-left grouping.
 
-## 7. Cách thay thế dễ đọc hơn
+## 7. More Readable Alternatives
 
-Nếu kết quả dùng nhiều lần, cân nhắc tên biến có nghĩa:
+If a result is used multiple times, consider a meaningful variable name:
 
 ~~~java
 int defaultLimit = 100;
@@ -230,29 +230,29 @@ int readLimit = defaultLimit;
 int writeLimit = defaultLimit;
 ~~~
 
-Để gán các biến ban đầu cùng một giá trị một cách đơn giản:
+To initialize variables to the same starting value in a simple way:
 
 ~~~java
 int x = 0;
 int y = 0;
 ~~~
 
-Khi gọi hàm có side effect, hãy quyết định rõ là **một kết quả chia sẻ** hay **các kết quả tính riêng**. Khi làm việc với object/mảng, hãy quyết định rõ **chia sẻ tham chiếu** hay **tạo bản sao**.
+When calling a method with side effects, decide explicitly between **one shared result** or **separately computed results**. When working with objects/arrays, decide explicitly between **sharing a reference** or **creating a copy**.
 
-Không nhất thiết loại bỏ mọi `a = b = 0;`; hãy tránh khi dấu `=` xuất hiện quá nhiều, biến có ý nghĩa nghiệp vụ khác nhau, hoặc việc gán tác động đến những trạng thái cần truy vết riêng.
+You do not have to eliminate every `a = b = 0;`; avoid chained assignment when `=` appears too many times, when variables have different business meanings, or when assignment affects state that needs to be traced individually.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-**Bài 1.** Viết lại `a = b = c = 5;` có dấu ngoặc thể hiện cách nhóm. Giá trị của từng biến sau dòng lệnh là gì?
+**Exercise 1.** Rewrite `a = b = c = 5;` with parentheses showing its grouping. What is the value of each variable after the statement?
 
-**Bài 2.** Cho `int c = 2; int a, b; a = b = c + 5;`. Giá trị `a`, `b`, `c` thế nào? Điều gì thay đổi nếu viết `a = b = (c += 5);`?
+**Exercise 2.** Given `int c = 2; int a, b; a = b = c + 5;`, what are the values of `a`, `b`, and `c`? What changes if you write `a = b = (c += 5);`?
 
-**Bài 3.** Vì sao `double d; int i; d = i = 3;` hợp lệ nhưng `i = d = 3.5;` không hợp lệ?
+**Exercise 3.** Why is `double d; int i; d = i = 3;` valid while `i = d = 3.5;` is invalid?
 
-**Bài 4.** Với hai biến mảng `x` và `y` được gán từ cùng một `new int[2]`, sửa `x[0]` có làm `y[0]` thay đổi không? Viết cách tạo mảng riêng nếu không muốn chia sẻ.
+**Exercise 4.** Given two array variables `x` and `y` assigned from the same `new int[2]`, does modifying `x[0]` change `y[0]`? Write how to create separate arrays if sharing is not wanted.
 
-**Bài 5.** Giải thích vì sao biểu thức `array[i++] = array[i++] = 8;` khó bảo trì dù Java quy định rõ cách nhóm và thứ tự đánh giá.
+**Exercise 5.** Explain why the expression `array[i++] = array[i++] = 8;` is hard to maintain even though Java clearly specifies its grouping and evaluation order.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Gán liên tiếp dùng tính kết hợp phải của `=`: `a = b = c = value` nhóm thành `a = (b = (c = value))`.** Mỗi phép gán phải tương thích kiểu; giá trị tham chiếu được **sao chép**, không phải object được nhân bản. **Hạn chế gán liên tiếp** khi có nhiều trạng thái, tác dụng phụ, mảng hoặc object chia sẻ, vì tách các câu lệnh thường làm ý định rõ hơn và dễ kiểm thử.
+**Chained assignment uses the right-associativity of `=`: `a = b = c = value` groups as `a = (b = (c = value))`.** Each assignment must be type-compatible; reference values are **copied**, not cloned as objects. **Limit chained assignment** when there is complex state, side effects, arrays, or shared objects, because separate statements usually make intent clearer and testing easier.

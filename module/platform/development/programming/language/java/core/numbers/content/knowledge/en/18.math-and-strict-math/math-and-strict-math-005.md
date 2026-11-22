@@ -1,33 +1,33 @@
-# asin, acos, atan và atan2 trong Java — Math và StrictMath
+# asin, acos, atan, and atan2 in Java — Math and StrictMath
 
-## 1. Bạn sẽ học gì?
+## 1. What Will You Learn?
 
-Khi biết **sin, cos, tan** của một góc, làm sao tìm lại góc ấy? Khi biết tọa độ `(x, y)` của một điểm, làm sao tìm góc phương vị mà **không nhầm góc phần tư**?
+When you know the **sin, cos, tan** of an angle, how do you find that angle back? When you know the coordinates `(x, y)` of a point, how do you find its bearing/azimuth angle without **confusing quadrants**?
 
-Java cung cấp bốn hàm lượng giác ngược quan trọng:
+Java provides four important inverse trigonometric functions:
 
-- `Math.asin(x)`: **arc sine**, tìm một góc có sin bằng `x`.
-- `Math.acos(x)`: **arc cosine**, tìm một góc có cos bằng `x`.
-- `Math.atan(x)`: **arc tangent**, tìm một góc có tan bằng `x`.
-- `Math.atan2(y, x)`: tìm góc từ trục `+x` đến vector `(x, y)`, có xét **dấu của cả hai tọa độ** để nhận biết góc phần tư.
+- `Math.asin(x)`: **arc sine**, finds an angle whose sine equals `x`.
+- `Math.acos(x)`: **arc cosine**, finds an angle whose cosine equals `x`.
+- `Math.atan(x)`: **arc tangent**, finds an angle whose tangent equals `x`.
+- `Math.atan2(y, x)`: finds the angle from the `+x` axis to the vector `(x, y)`, taking into account the **signs of both coordinates** to determine the quadrant.
 
-Cả bốn đều có phiên bản tương ứng trên `StrictMath`. Bài này thuộc **Java Core — Numbers / Math và StrictMath**, sử dụng Java 17 trở lên.
+All four have corresponding versions on `StrictMath`. This lesson belongs to **Java Core — Numbers / Math and StrictMath**, using Java 17 or newer.
 
-Hoàn thành bài học, bạn cần:
+After completing this lesson, you should be able to:
 
-1. Nêu đúng **đầu vào hợp lệ, khoảng giá trị đầu ra và đơn vị radian** của từng hàm.
-2. Hiểu tại sao phép toán ngược không khôi phục mọi góc ban đầu: các hàm trả **giá trị chính (principal value)**.
-3. Phân biệt `atan(y / x)` với `atan2(y, x)`, nhớ **tham số y đứng trước x**.
-4. Biết cách đổi radian ↔ degree bằng `Math.toRadians` và `Math.toDegrees`.
-5. Xử lý `NaN`, ±Infinity và **signed zero** theo hợp đồng API; hiểu góc ở đường biên ±π.
-6. So sánh giới hạn chính xác của `Math` và yêu cầu tái lập kết quả của `StrictMath`.
-7. Viết mã hình học, kiểm tra miền đầu vào và xây dựng test cho bốn góc phần tư.
+1. State the exact **valid inputs, output value range, and radian unit** of each function.
+2. Understand why inverse operations do not recover every original angle: the functions return a **principal value**.
+3. Distinguish `atan(y / x)` from `atan2(y, x)`, remembering that **parameter y comes before x**.
+4. Convert radians ↔ degrees using `Math.toRadians` and `Math.toDegrees`.
+5. Handle `NaN`, ±Infinity, and **signed zero** per the API contract; understand angles on the ±π boundary.
+6. Compare the accuracy bounds of `Math` with the result reproducibility requirements of `StrictMath`.
+7. Write geometry code, validate input domains, and build tests for all four quadrants.
 
-Kiến thức chuẩn bị: kiểu `double`, số thực IEEE 754, tọa độ Descartes, sin/cos/tan và ý nghĩa của `Math.PI`.
+Prerequisites: `double` type, IEEE 754 floating-point numbers, Cartesian coordinates, sin/cos/tan, and the meaning of `Math.PI`.
 
-## 2. Lượng giác ngược không có nghĩa đảo hàm trên toàn trục thực
+## 2. Inverse Trigonometry Does Not Mean Inverting the Function Over the Entire Real Line
 
-Trên một vòng tròn, nhiều góc khác nhau có cùng giá trị sin hoặc cos. Chẳng hạn:
+On a circle, many different angles share the same sine or cosine value. For instance:
 
 ```text
 sin(π / 6) = 1 / 2
@@ -35,54 +35,54 @@ sin(5π / 6) = 1 / 2
 sin(π / 6 + 2π) = 1 / 2
 ```
 
-Không có cách chọn **duy nhất** góc gốc chỉ từ giá trị `sin`. Vì vậy, mỗi hàm lượng giác ngược chọn một **khoảng giá trị chính**.
+There is no way to **uniquely** select the original angle solely from the `sin` value. Therefore, each inverse trigonometric function picks a **principal value range**.
 
-| Hàm Java | Ý nghĩa | Miền đầu vào thông thường | Khoảng kết quả chính (radian) |
+| Java Function | Meaning | Typical Input Domain | Principal Result Range (radians) |
 | --- | --- | --- | --- |
-| `asin(v)` | Góc có sin = `v` | `−1 ≤ v ≤ 1` | `[−π/2, +π/2]` |
-| `acos(v)` | Góc có cos = `v` | `−1 ≤ v ≤ 1` | `[0, π]` |
-| `atan(v)` | Góc có tan = `v` | Mọi số thực hữu hạn; ±∞ cũng được xử lý | `[−π/2, +π/2]`, tiệm cận hai đầu |
-| `atan2(y,x)` | Góc vector `(x,y)` tính từ trục `+x` | Hai tọa độ thực, có quy tắc IEEE 754 cho giá trị đặc biệt | `[−π, +π]` |
+| `asin(v)` | Angle with sin = `v` | `−1 ≤ v ≤ 1` | `[−π/2, +π/2]` |
+| `acos(v)` | Angle with cos = `v` | `−1 ≤ v ≤ 1` | `[0, π]` |
+| `atan(v)` | Angle with tan = `v` | All finite reals; ±∞ also handled | `[−π/2, +π/2]`, asymptotic at both ends |
+| `atan2(y,x)` | Angle of vector `(x,y)` from `+x` axis | Two real coordinates, with IEEE 754 rules for special values | `[−π, +π]` |
 
-**Đơn vị trả về luôn là radian**, không phải độ, và **kiểu trả về là primitive `double`**. Java cung cấp `Math.asin(double)`, `Math.acos(double)`, `Math.atan(double)` và `Math.atan2(double,double)`. Truyền `float` hoặc `int` vào các method này thường được widening sang `double`; không có bộ overload riêng `asin(float)` trả `float` trong `Math` của Java 17.
+**The returned unit is always radians**, not degrees, and **the return type is primitive `double`**. Java provides `Math.asin(double)`, `Math.acos(double)`, `Math.atan(double)`, and `Math.atan2(double,double)`. Passing `float` or `int` into these methods widens to `double`; there is no separate `asin(float)` overload returning `float` in Java 17's `Math`.
 
-Lưu ý các đầu mút của `atan` với đối số hữu hạn: nó không đạt chính xác ±π/2 theo toán học cho một giá trị hữu hạn, nhưng trong biểu diễn floating point kết quả có thể được làm tròn tới mẫu `double` gần π/2. Khi đối số ±Infinity, Java trả kết quả gần nhất với ±π/2 theo hợp đồng API.
+Note the endpoints of `atan` for finite arguments: it does not reach exact ±π/2 mathematically for any finite value, though in floating-point representation the result can round to the `double` pattern closest to π/2. When the argument is ±Infinity, Java returns the value closest to ±π/2 per the API contract.
 
-## 3. Đổi độ và radian trước khi tính
+## 3. Converting Degrees and Radians Before Calculating
 
-Một vòng tròn có `360° = 2π` radian. Công thức:
+A full circle has `360° = 2π` radians. Formulas:
 
 ```text
 radian = degree × π / 180
 degree = radian × 180 / π
 ```
 
-Java có hai helper chuẩn:
+Java provides two standard helpers:
 
 ```java
 double radians = Math.toRadians(30.0);
 double degrees = Math.toDegrees(Math.PI / 6);
 ```
 
-Chúng trả `double`, và phép chuyển có thể có **sai số làm tròn**; không khẳng định mọi độ lớn đều đổi qua lại tuyệt đối chính xác ở mức bit.
+They return `double`, and conversions can involve **rounding error**; do not claim every magnitude round-trips back and forth with bit-level exactness.
 
-Ví dụ:
+Example:
 
 ```java
-System.out.println(Math.toDegrees(Math.asin(0.5))); // 30.000000000000004 có thể xuất hiện
+System.out.println(Math.toDegrees(Math.asin(0.5))); // 30.000000000000004 may appear
 ```
 
-Trong phần chương trình bên dưới, sẽ dùng `printf(Locale.US, "%.1f%n", ...)` để **chủ động hiển thị một chữ số thập phân**, tránh hiểu nhầm cách in số gần 30 là kết quả không đúng.
+In the programs below, `printf(Locale.US, "%.1f%n", ...)` is used to **intentionally display one decimal place**, avoiding misunderstanding a printed number near 30 as an incorrect result.
 
-**Bẫy phổ biến:** `Math.asin(0.5)` là khoảng `0.5235987756` **radian**, không phải `30.0` degree. `Math.asin(30)` không phải phép tính “asin của 30°”; đây là đối số **ngoài miền** của hàm asin.
+**Common trap:** `Math.asin(0.5)` is approximately `0.5235987756` **radians**, not `30.0` degrees. `Math.asin(30)` is not computing "asin of 30°"; that is an **out-of-domain** argument for asin.
 
-## 4. Math.asin: arc sine, chọn góc trong [−π/2, π/2]
+## 4. Math.asin: Arc Sine, Choosing an Angle in [−π/2, π/2]
 
-Ký hiệu toán học `arcsin(v)` hoặc `sin⁻¹(v)` mô tả **một góc có sin bằng v**. Đây là hàm lượng giác ngược, **không phải** giá trị `1/sin(v)`.
+Mathematical notation `arcsin(v)` or `sin⁻¹(v)` describes **an angle whose sine equals v**. This is the inverse sine function, **not** the value `1/sin(v)`.
 
-Với `v` trong `[−1,1]`, `Math.asin(v)` cho góc chính trong `[−π/2,π/2]`:
+For `v` in `[−1,1]`, `Math.asin(v)` yields the principal angle in `[−π/2,π/2]`:
 
-| v | Góc chính radian | Góc theo degree |
+| v | Principal Angle (radians) | Angle in Degrees |
 | ---: | --- | ---: |
 | −1 | −π/2 | −90° |
 | −0.5 | −π/6 | −30° |
@@ -90,7 +90,7 @@ Với `v` trong `[−1,1]`, `Math.asin(v)` cho góc chính trong `[−π/2,π/2]
 | 0.5 | π/6 | 30° |
 | 1 | π/2 | 90° |
 
-Ví dụ:
+Example:
 
 ```java
 double angle = Math.asin(0.5);
@@ -98,30 +98,30 @@ System.out.printf(java.util.Locale.US, "%.1f%n",
         Math.toDegrees(angle)); // 30.0
 ```
 
-**Điểm quan trọng:** `Math.asin(Math.sin(theta))` không luôn bằng `theta`. Nếu `theta` ở góc phần tư II, `sin(theta)` có thể trùng với một góc góc phần tư I, và `asin` sẽ trả kết quả trong khoảng `[−90°,90°]`. Ví dụ `sin(150°)≈0.5`; `asin(0.5)` trả `30°` chứ không phải `150°`.
+**Important point:** `Math.asin(Math.sin(theta))` does not always equal `theta`. If `theta` is in quadrant II, `sin(theta)` can match a quadrant I angle, and `asin` will return a result in `[−90°,90°]`. For example, `sin(150°)≈0.5`; `asin(0.5)` returns `30°` rather than `150°`.
 
-### 4.1. Đầu vào ngoài miền và NaN
+### 4.1. Out-of-Domain Inputs and NaN
 
-Nếu `|v| > 1` hoặc `v` là NaN, `Math.asin(v)` trả **NaN**, không ném `IllegalArgumentException` chỉ vì miền số học không hợp lệ.
+If `|v| > 1` or `v` is NaN, `Math.asin(v)` returns **NaN**, without throwing `IllegalArgumentException` simply because the numerical domain is invalid.
 
 ```java
 System.out.println(Double.isNaN(Math.asin(1.01))); // true
 System.out.println(Double.isNaN(Math.asin(Double.NaN))); // true
 ```
 
-`Math.asin(Double.POSITIVE_INFINITY)` và `Math.asin(Double.NEGATIVE_INFINITY)` cũng trả NaN vì độ lớn vượt 1.
+`Math.asin(Double.POSITIVE_INFINITY)` and `Math.asin(Double.NEGATIVE_INFINITY)` also return NaN because their magnitude exceeds 1.
 
-Nếu input lẽ ra là tỉ số nằm `[−1,1]` nhưng phép tính do rounding ra `1.0000000000000002`, có thể bạn cần chính sách xử lý sai số. **Không tự động ép mọi input về [−1,1]**: clamp có thể che giấu dữ liệu sai như `5.0`; nếu nghiệp vụ cho phép clamp trong dung sai đã định, phải kiểm tra cách giá trị ra khỏi miền trước khi clamp.
+If an input should be a ratio in `[−1,1]` but rounding produced `1.0000000000000002`, you may need an error-handling policy. **Do not blindly clamp every input to [−1,1]**: clamping can mask corrupt data like `5.0`; if business logic permits clamping within a defined tolerance, check how far the value is outside the domain before clamping.
 
-### 4.2. Signed zero
+### 4.2. Signed Zero
 
-`Math.asin(+0.0)` trả `+0.0`; `Math.asin(-0.0)` trả `-0.0`. Hai số so sánh bằng nhau theo toán tử primitive `==`, nhưng có bit dấu khác nhau. Nếu cần kiểm thử dấu zero, dùng `Double.doubleToRawLongBits` thay vì chỉ `==`.
+`Math.asin(+0.0)` returns `+0.0`; `Math.asin(-0.0)` returns `-0.0`. Both compare equal under the primitive `==` operator, but have different sign bits. If you need to test the sign of zero, use `Double.doubleToRawLongBits` rather than just `==`.
 
-## 5. Math.acos: arc cosine, chọn góc trong [0, π]
+## 5. Math.acos: Arc Cosine, Choosing an Angle in [0, π]
 
-`Math.acos(v)` trả góc chính trong `[0,π]` với `cos(angle) = v`:
+`Math.acos(v)` returns the principal angle in `[0,π]` with `cos(angle) = v`:
 
-| v | Góc chính radian | Degree |
+| v | Principal Angle (radians) | Degrees |
 | ---: | --- | ---: |
 | 1 | 0 | 0° |
 | 0.5 | π/3 | 60° |
@@ -129,7 +129,7 @@ Nếu input lẽ ra là tỉ số nằm `[−1,1]` nhưng phép tính do roundin
 | −0.5 | 2π/3 | 120° |
 | −1 | π | 180° |
 
-Ví dụ:
+Example:
 
 ```java
 double angle = Math.acos(0.5);
@@ -137,71 +137,71 @@ System.out.printf(java.util.Locale.US, "%.1f%n",
         Math.toDegrees(angle)); // 60.0
 ```
 
-**Miền đầu vào là [−1,1]**, giống `asin`; nếu ngoài miền hoặc NaN, kết quả NaN. `Math.acos(1.0)` trả **+0.0** theo hợp đồng API. Với `Math.acos(-1.0)`, kết quả là giá trị `double` gần nhất với π.
+**Input domain is [−1,1]**, just like `asin`; if out of domain or NaN, the result is NaN. `Math.acos(1.0)` returns **+0.0** per the API contract. For `Math.acos(-1.0)`, the result is the `double` value closest to π.
 
-Tính chất toán học hữu ích:
+Useful mathematical property:
 
 ```text
 acos(v) + asin(v) ≈ π/2  (v ∈ [−1,1])
 ```
 
-Ký hiệu `≈` là có thể lệch một lượng nhỏ do làm tròn floating point. Không nên kiểm tra tổng bằng chính xác `Math.PI/2` ở mọi input.
+The `≈` symbol indicates it may deviate slightly due to floating-point rounding. Do not test that the sum equals exact `Math.PI/2` for all inputs.
 
-### 5.1. Vì sao acos không thay thế atan2 để tìm hướng?
+### 5.1. Why Does acos Not Replace atan2 for Finding Direction?
 
-`acos(x/r)` chỉ trả góc trong `[0,π]`, không cho biết tọa độ `y` nằm **phía trên hay phía dưới** trục x. Nếu chỉ biết cos, góc `+60°` và `−60°` có cùng cosine. Từ một vector `(x,y)`, cách trực tiếp để biết dấu và góc phần tư là `atan2(y,x)`.
+`acos(x/r)` only returns an angle in `[0,π]`, giving no indication of whether the `y` coordinate lies **above or below** the x-axis. Knowing only the cosine, `+60°` and `−60°` share the same cosine. From a vector `(x,y)`, the direct way to know both sign and quadrant is `atan2(y,x)`.
 
-## 6. Math.atan: arc tangent của một tỉ số
+## 6. Math.atan: Arc Tangent of a Ratio
 
-`Math.atan(v)` là góc chính có tan bằng `v`; khoảng giá trị gần `(−π/2,π/2)` cho đối số hữu hạn. Điểm khác `asin`/`acos`: `atan` **không giới hạn input vào [−1,1]**.
+`Math.atan(v)` is the principal angle whose tangent is `v`; the value range lies near `(−π/2,π/2)` for finite arguments. Unlike `asin`/`acos`, `atan` **does not restrict input to [−1,1]**.
 
-Một số mốc:
+Some landmarks:
 
-| v | Kết quả radian | Degree |
+| v | Radian Result | Degrees |
 | --- | --- | --- |
-| −∞ | gần −π/2 | −90° |
+| −∞ | near −π/2 | −90° |
 | −1 | −π/4 | −45° |
 | −0.0 | −0.0 | −0.0° |
 | 0.0 | 0.0 | 0.0° |
 | 1 | π/4 | 45° |
-| +∞ | gần +π/2 | +90° |
+| +∞ | near +π/2 | +90° |
 
-Ví dụ:
+Example:
 
 ```java
 System.out.println(Math.atan(1.0)); 
-// 0.7853981633974483 trên JDK được kiểm thử
+// 0.7853981633974483 on tested JDK
 
 System.out.println(Math.atan(Double.POSITIVE_INFINITY));
-// 1.5707963267948966 trên JDK được kiểm thử
+// 1.5707963267948966 on tested JDK
 ```
 
-`Math.atan(Double.NaN)` trả NaN. `Math.atan(-0.0)` bảo toàn zero âm.
+`Math.atan(Double.NaN)` returns NaN. `Math.atan(-0.0)` preserves negative zero.
 
-### 6.1. Khi đảo tangens, mất thông tin góc phần tư
+### 6.1. Losing Quadrant Information When Inverting Tangent
 
-Vì `tan(theta + π) = tan(theta)`, `atan` không thể khôi phục thông tin theta thuộc phần tư nào. Hơn nữa, khi dùng tỉ số `y/x`, bạn mất dấu riêng của `x`/`y`, đặc biệt nếu `x=0`.
+Because `tan(theta + π) = tan(theta)`, `atan` cannot recover which quadrant theta belongs to. Moreover, when using the ratio `y/x`, you lose the individual signs of `x`/`y`, especially if `x=0`.
 
-Ví dụ hai vector `(1,1)` và `(−1,−1)` cùng có tỉ số `y/x = 1` nên:
+For example, both vectors `(1,1)` and `(−1,−1)` have ratio `y/x = 1`, so:
 
 ```java
-Math.atan(1.0 / 1.0);      // gần +45°
-Math.atan(-1.0 / -1.0);    // gần +45° (không phải -135°)
+Math.atan(1.0 / 1.0);      // near +45°
+Math.atan(-1.0 / -1.0);    // near +45° (not -135°)
 ```
 
-Nhưng góc hướng từ trục +x của vector `(−1,−1)` là `−135°` theo quy ước của `atan2`. Đó là lý do không dùng một mình `atan(y/x)` cho góc vector tổng quát.
+Yet the direction angle from the +x axis of vector `(−1,−1)` is `−135°` by `atan2` convention. That is why you do not rely solely on `atan(y/x)` for general vector angles.
 
-## 7. Math.atan2(y, x): biết góc phần tư từ cả hai tọa độ
+## 7. Math.atan2(y, x): Knowing the Quadrant from Both Coordinates
 
-Phương thức:
+The method:
 
 ```java
 double theta = Math.atan2(y, x);
 ```
 
-Nhận **tọa độ y đầu tiên, tọa độ x thứ hai**. Đây là một quy ước cố định của Java (cũng xuất hiện trong nhiều thư viện toán học), dễ bị viết ngược do ta quen ghi điểm `(x,y)`.
+takes **the y coordinate first, and the x coordinate second**. This is a fixed convention in Java (also appearing in many math libraries), easily reversed because we are used to writing points as `(x,y)`.
 
-Với vector `(x,y)` khác gốc tọa độ, góc chính thường nằm trong `[−π,+π]`:
+For a vector `(x,y)` away from the origin, the principal angle generally lies in `[−π,+π]`:
 
 ```text
                           y+
@@ -217,20 +217,20 @@ Với vector `(x,y)` khác gốc tọa độ, góc chính thường nằm trong 
                           y−
 ```
 
-Ví dụ bốn góc phần tư, in degree tới một chữ số:
+Four quadrant examples, printed in degrees to one decimal place:
 
-| Tọa độ (x,y) | Cách gọi đúng | Góc |
+| Coordinates (x,y) | Correct Call | Angle |
 | --- | --- | ---: |
 | (1,1) | `atan2(1,1)` | +45° |
 | (−1,1) | `atan2(1,−1)` | +135° |
 | (−1,−1) | `atan2(−1,−1)` | −135° |
 | (1,−1) | `atan2(−1,1)` | −45° |
 
-`Math.atan2` xử lý góc phần tư dù `x` âm. Nếu chỉ dùng `Math.atan(y/x)`, góc thường bị đưa về khoảng ±90° và thiếu thông tin để phân biệt QI với QIII, QII với QIV.
+`Math.atan2` handles the quadrant even when `x` is negative. Using only `Math.atan(y/x)` collapses angles into ±90° and lacks the information to distinguish QI from QIII, or QII from QIV.
 
-### 7.1. Không thay atan2 bằng atan(y/x) khi x = 0
+### 7.1. Do Not Replace atan2 with atan(y/x) When x = 0
 
-`x = 0` khiến biểu thức `y/x` có thể tạo ±Infinity hoặc NaN theo IEEE 754 (hoặc ném `ArithmeticException` nếu thao tác chia là integer). Với `atan2`, hai tọa độ được đưa vào trực tiếp nên có quy tắc cụ thể:
+`x = 0` causes the expression `y/x` to produce ±Infinity or NaN under IEEE 754 (or throw `ArithmeticException` if the division is integer). With `atan2`, both coordinates are passed directly and follow specific rules:
 
 ```java
 System.out.println(Math.atan2(1.0, 0.0));
@@ -240,17 +240,17 @@ System.out.println(Math.atan2(-1.0, 0.0));
 // -1.5707963267948966 ~ -90°
 ```
 
-Khi `x` và `y` quá lớn hoặc quá nhỏ, phép chia `y/x` riêng lẻ còn có thể overflow/underflow và làm mất thông tin về tỷ lệ; `atan2` là API chuẩn để xử lý cặp tọa độ, không bắt buộc tạo tỉ số trung gian.
+When `x` and `y` are extremely large or small, dividing `y/x` separately can also overflow/underflow and lose ratio information; `atan2` is the standard API for handling coordinate pairs without needing an intermediate ratio.
 
-### 7.2. Cách diễn giải góc trên hình học
+### 7.2. Interpreting Angles Geometrically
 
-Trong hệ tọa độ toán học thông thường, trục `+x` hướng phải và `+y` hướng lên; góc dương quay **ngược kim đồng hồ**. Nhưng trên nhiều hệ tọa độ màn hình, `y` tăng khi đi **xuống dưới**. Lúc đó một vector pixel `(dx,dy)` truyền vào `atan2(dy,dx)` có chiều góc dương hướng xuống, dễ bị người dùng cảm nhận như quay thuận chiều kim đồng hồ.
+In a standard mathematical coordinate system, `+x` points right and `+y` points up; positive angles rotate **counter-clockwise**. However, in many screen coordinate systems, `y` increases **downward**. Then a pixel vector `(dx,dy)` passed into `atan2(dy,dx)` has positive angles pointing downward, which users often perceive as rotating clockwise.
 
-Hãy **xác định hệ trục trước khi diễn giải dấu góc**. Nếu muốn chuyển tọa độ màn hình có y hướng xuống về tọa độ toán học y hướng lên, một cách trong trường hợp trục không bị biến đổi khác là `Math.atan2(-dy, dx)`.
+**Identify the axis system before interpreting angle sign.** If you want to convert screen coordinates with y-downward to mathematical coordinates with y-upward, one approach when no other axis transforms exist is `Math.atan2(-dy, dx)`.
 
-### 7.3. Giới hạn principal angle và chuẩn hóa góc
+### 7.3. Principal Angle Limits and Angle Normalization
 
-`atan2` trả góc chính `[−π,+π]`, không tự trả giá trị trong `[0,2π)`. Nếu cần góc từ 0° đến nhỏ hơn 360°, quy tắc thông thường là cộng `2π` cho giá trị âm:
+`atan2` returns a principal angle `[−π,+π]`, rather than automatically returning values in `[0,2π)`. If you need an angle from 0° up to less than 360°, the usual rule is adding `2π` for negative values:
 
 ```java
 double angle = Math.atan2(y, x);
@@ -259,27 +259,27 @@ if (angle < 0.0) {
 }
 ```
 
-Đây là **mảnh code** cho góc hữu hạn thông thường. Nếu `angle` bằng `-0.0`, điều kiện `angle < 0.0` là false; nếu nghiệp vụ cần chuẩn hóa bit dấu của zero, hãy bổ sung quy tắc `angle == 0.0 ? 0.0 : angle`. Nếu `angle` là `NaN`, phép so sánh `angle < 0.0` false và NaN vẫn giữ nguyên, cần kiểm tra đầu vào riêng.
+This is a **code snippet** for ordinary finite angles. If `angle` equals `-0.0`, the condition `angle < 0.0` is false; if business rules require normalizing the sign bit of zero, add the rule `angle == 0.0 ? 0.0 : angle`. If `angle` is `NaN`, the comparison `angle < 0.0` is false and NaN remains, requiring separate input validation.
 
-Do phép làm tròn ở ranh giới ±π/2π, có thể cần chuẩn hóa thêm ở điểm gần `2π` nếu yêu cầu đầu ra **chắc chắn nhỏ hơn 2π**. Không dùng vòng lặp trừ 2π thiếu điều kiện với một số NaN/Infinity; nên định nghĩa rõ miền dữ liệu và điều kiện chuẩn hóa.
+Due to rounding at the ±π/2π boundary, additional normalization near `2π` may be needed if the output **must strictly be less than 2π**. Do not use an unguarded `2π`-subtraction loop with NaN/Infinity; clearly define the data domain and normalization conditions.
 
-## 8. Bảng quyết định: hàm nào phù hợp?
+## 8. Decision Table: Which Function Fits?
 
-| Nhu cầu | Cách tiếp cận |
+| Need | Approach |
 | --- | --- |
-| Biết `sin(theta)` và cần một góc chính | `asin(s)`, xác thực `s ∈ [−1,1]` |
-| Biết `cos(theta)` và cần góc từ 0 đến π | `acos(c)`, xác thực `c ∈ [−1,1]` |
-| Biết riêng giá trị `tan(theta)` và chỉ cần góc chính | `atan(t)` |
-| Biết điểm/vector `(x,y)` và cần hướng/góc phần tư | **`atan2(y,x)`** |
-| Cần kết quả ở degree | `Math.toDegrees(angleRadians)` |
-| Cần xử lý input đang ở degree cho sin/cos/tan | `Math.toRadians(degrees)` trước |
-| Cần tính toán có yêu cầu bit-reproducible về thư viện lượng giác | Xem `StrictMath` và hợp đồng JDK cụ thể |
+| Know `sin(theta)` and need a principal angle | `asin(s)`, validate `s ∈ [−1,1]` |
+| Know `cos(theta)` and need an angle from 0 to π | `acos(c)`, validate `c ∈ [−1,1]` |
+| Know only `tan(theta)` and only need a principal angle | `atan(t)` |
+| Know point/vector `(x,y)` and need direction/quadrant | **`atan2(y,x)`** |
+| Need the result in degrees | `Math.toDegrees(angleRadians)` |
+| Need to pass degree input to sin/cos/tan | `Math.toRadians(degrees)` first |
+| Need computations with bit-reproducible trig library requirements | Check `StrictMath` and specific JDK contracts |
 
-Phân biệt **lấy góc từ tọa độ** với **lấy độ dài vector**. Nếu cần bán kính `r = √(x²+y²)`, API thích hợp là `Math.hypot(x,y)`; góc lấy bằng `atan2(y,x)`. `atan2` tự nó chỉ trả góc, không trả độ lớn vector.
+Distinguish **getting the angle from coordinates** from **getting the vector length**. If you need the radius `r = √(x²+y²)`, the appropriate API is `Math.hypot(x,y)`; get the angle using `atan2(y,x)`. `atan2` itself returns only the angle, not the vector magnitude.
 
-## 9. Chương trình Java đầy đủ A — bốn hàm cơ bản
+## 9. Complete Java Program A — Four Basic Functions
 
-Tạo tệp **`InverseTrigBasics.java`**:
+Create file **`InverseTrigBasics.java`**:
 
 ```java
 import java.util.Locale;
@@ -301,14 +301,14 @@ public class InverseTrigBasics {
 }
 ```
 
-Chạy với JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac --release 17 InverseTrigBasics.java
 java InverseTrigBasics
 ```
 
-**Stdout** (formatter US với một chữ số phần lẻ):
+**Stdout** (US formatter with one fractional digit):
 
 ```text
 asin(0.5) = 30.0 deg
@@ -319,13 +319,13 @@ true
 true
 ```
 
-Giải thích: đối số `0.5` hợp lệ với `asin` và `acos`; `atan(1)` cho π/4; `atan2(1,1)` là vector góc 45°. Các đối số `1.01` và `−1.01` vượt miền của `asin`/`acos` nên trả NaN, được kiểm tra bằng `Double.isNaN`.
+Explanation: the argument `0.5` is valid for `asin` and `acos`; `atan(1)` yields π/4; `atan2(1,1)` is a 45° vector. The arguments `1.01` and `−1.01` exceed the domain of `asin`/`acos`, returning NaN, checked with `Double.isNaN`.
 
-Không khẳng định giá trị nội bộ luôn là **30.0 radian** chỉ vì formatter in `30.0 deg`: kết quả đã được **đổi radian sang degree** và trình bày với một chữ số phần lẻ.
+Do not assert that the internal value is always **30.0 radians** just because the formatter prints `30.0 deg`: the result was **converted from radians to degrees** and displayed with one decimal digit.
 
-## 10. Chương trình Java đầy đủ B — bốn góc phần tư
+## 10. Complete Java Program B — Four Quadrants
 
-Tạo **`Atan2Quadrants.java`**:
+Create **`Atan2Quadrants.java`**:
 
 ```java
 import java.util.Locale;
@@ -347,7 +347,7 @@ public class Atan2Quadrants {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 Atan2Quadrants.java
@@ -363,51 +363,51 @@ java Atan2Quadrants
 (x= 1.0, y=-1.0) ->  -45.0 deg
 ```
 
-Chú ý chữ ký `show(x,y)` dùng thứ tự tọa độ quen thuộc, nhưng bên trong gọi `Math.atan2(y,x)`. Đây là cách đặt tên rõ ràng để tránh truyền sai thứ tự.
+Note the signature `show(x,y)` uses the familiar coordinate order, but internally calls `Math.atan2(y,x)`. This is clear naming to avoid passing parameters in the wrong order.
 
-### 10.1. Vì sao công thức atan(y/x) trả sai QIII?
+### 10.1. Why Does atan(y/x) Return the Wrong Quadrant for QIII?
 
-Với `x=-1`, `y=-1`:
+With `x=-1`, `y=-1`:
 
 ```java
 double byRatio = Math.toDegrees(Math.atan(y / x));
-// khoảng +45°, đánh mất góc phần tư
+// around +45°, loses the quadrant
 
 double byVector = Math.toDegrees(Math.atan2(y, x));
-// khoảng -135°, đúng hướng của vector
+// around -135°, true vector direction
 ```
 
-Đây là **mảnh code** cần khai báo `x`, `y` trước khi biên dịch. Trong ứng dụng thực tế, ưu tiên `atan2` khi đã có tọa độ, không thử sửa bằng cách cộng π tự phát trong từng nhánh if khi API chuẩn xử lý được.
+This is a **code snippet** requiring `x` and `y` to be declared before compiling. In real applications, prefer `atan2` when coordinates are available; do not try to patch it by manually adding π in `if` branches when the standard API handles it.
 
-## 11. Signed zero: hai mẫu zero có thể dẫn tới hai góc khác nhau
+## 11. Signed Zero: Two Zero Patterns Can Lead to Two Different Angles
 
-IEEE 754 có `+0.0` và `-0.0`. Chúng bằng nhau theo primitive `==`, nhưng có bit dấu khác nhau. `asin` và `atan` giữ dấu zero của đối số; `atan2` dùng dấu zero để chọn phía đường biên góc.
+IEEE 754 has `+0.0` and `-0.0`. They are equal under primitive `==`, but have different sign bits. `asin` and `atan` preserve the zero sign of their argument; `atan2` uses the sign of zero to pick the side of the angle boundary.
 
-Bảng quy tắc `atan2(y,x)` tại trục tọa độ:
+Rule table for `atan2(y,x)` on coordinate axes:
 
 | y | x | `Math.atan2(y,x)` |
 | --- | --- | --- |
 | `+0.0` | `+1.0` | `+0.0` |
 | `-0.0` | `+1.0` | `-0.0` |
-| `+0.0` | `-1.0` | `+π` gần nhất |
-| `-0.0` | `-1.0` | `-π` gần nhất |
-| `+1.0` | `+0.0` | `+π/2` gần nhất |
-| `-1.0` | `+0.0` | `-π/2` gần nhất |
+| `+0.0` | `-1.0` | nearest `+π` |
+| `-0.0` | `-1.0` | nearest `-π` |
+| `+1.0` | `+0.0` | nearest `+π/2` |
+| `-1.0` | `+0.0` | nearest `-π/2` |
 
-**Rất quan trọng:** `Math.atan2(+0.0, -1.0)` và `Math.atan2(-0.0, -1.0)` trả hai góc khác dấu, xấp xỉ +π và −π. Chúng là hai phía của **branch cut** ở trục x âm.
+**Very important:** `Math.atan2(+0.0, -1.0)` and `Math.atan2(-0.0, -1.0)` return two angles of opposite signs, approximately +π and −π. They are the two sides of the **branch cut** along the negative x-axis.
 
-### 11.1. atan2(0,0) không mặc nhiên là NaN
+### 11.1. atan2(0,0) Is Not Automatically NaN
 
-Trong toán học, hướng của vector zero tại gốc tọa độ không được xác định theo góc hình học. Nhưng Java `Math.atan2` vẫn có **quy tắc floating-point xác định** cho ±0 ở hai tọa độ:
+Mathematically, the direction of the zero vector at the origin is undefined as a geometric angle. However, Java's `Math.atan2` still has **deterministic floating-point rules** for ±0 in both coordinates:
 
 ```java
 System.out.println(Math.atan2(+0.0, +0.0)); // 0.0
 System.out.println(Math.atan2(-0.0, +0.0)); // -0.0
-System.out.println(Math.atan2(+0.0, -0.0)); // gần +pi
-System.out.println(Math.atan2(-0.0, -0.0)); // gần -pi
+System.out.println(Math.atan2(+0.0, -0.0)); // near +pi
+System.out.println(Math.atan2(-0.0, -0.0)); // near -pi
 ```
 
-**Không đồng nhất “API trả một giá trị” với “vector có hướng hình học hợp lệ”.** Nếu ứng dụng không chấp nhận vector zero, hãy kiểm tra từ đầu:
+**Do not equate "the API returns a value" with "the vector has a valid geometric direction".** If the application rejects the zero vector, validate upfront:
 
 ```java
 if (x == 0.0 && y == 0.0) {
@@ -416,40 +416,40 @@ if (x == 0.0 && y == 0.0) {
 double angle = Math.atan2(y, x);
 ```
 
-Đây là **mảnh code minh họa**; đặt trong method có khai báo `x`, `y`. Điều kiện `== 0.0` nhận cả zero dương và zero âm. Nếu đầu vào có thể chứa NaN hoặc Infinity, cần định nghĩa thêm chính sách hữu hạn.
+This is an **illustrative code snippet**; place inside a method with `x`, `y` declared. The `== 0.0` condition matches both positive and negative zero. If inputs may contain NaN or Infinity, define an additional finiteness policy.
 
-## 12. Vô cực và NaN: hành vi của từng phương thức
+## 12. Infinity and NaN: Behavior of Each Method
 
-`Math`/`StrictMath` xử lý các giá trị đặc biệt theo hợp đồng Java, không cần được bao ngoài bằng `try/catch` cho `ArithmeticException` trong các trường hợp domain số thực thông thường.
+`Math`/`StrictMath` handle special values according to Java's contract and do not need to be wrapped in `try/catch` for `ArithmeticException` in normal real-domain cases.
 
-| Trường hợp | Kết quả |
+| Case | Result |
 | --- | --- |
-| `Math.asin(1.1)` | NaN (vượt miền) |
-| `Math.acos(-1.1)` | NaN (vượt miền) |
+| `Math.asin(1.1)` | NaN (out of domain) |
+| `Math.acos(-1.1)` | NaN (out of domain) |
 | `Math.asin(Double.NaN)` | NaN |
 | `Math.acos(Double.POSITIVE_INFINITY)` | NaN |
 | `Math.atan(Double.NaN)` | NaN |
-| `Math.atan(Double.POSITIVE_INFINITY)` | gần +π/2 |
-| `Math.atan(Double.NEGATIVE_INFINITY)` | gần −π/2 |
+| `Math.atan(Double.POSITIVE_INFINITY)` | near +π/2 |
+| `Math.atan(Double.NEGATIVE_INFINITY)` | near −π/2 |
 | `Math.atan2(Double.NaN, 1.0)` | NaN |
 | `Math.atan2(1.0, Double.NaN)` | NaN |
-| `Math.atan2(1.0, +0.0)` | gần +π/2 |
-| `Math.atan2(-1.0, +0.0)` | gần −π/2 |
+| `Math.atan2(1.0, +0.0)` | near +π/2 |
+| `Math.atan2(-1.0, +0.0)` | near −π/2 |
 
-Với cả hai tọa độ vô cực, `atan2` có thêm quy tắc đặc biệt, không thể suy đơn giản từ tỷ số vô cực/vô cực (vốn là NaN):
+When both coordinates are infinite, `atan2` has additional special rules that cannot be deduced simply from an infinity/infinity ratio (which is NaN):
 
-| y | x | Góc |
+| y | x | Angle |
 | --- | --- | --- |
 | +∞ | +∞ | +π/4 |
 | +∞ | −∞ | +3π/4 |
 | −∞ | +∞ | −π/4 |
 | −∞ | −∞ | −3π/4 |
 
-Điều này là một ví dụ khác cho thấy **`atan2(y,x)` không phải lời gọi `atan(y/x)` đơn thuần**.
+This is another example showing **`atan2(y,x)` is not merely a call to `atan(y/x)`**.
 
-### 12.1. Vì sao không so NaN bằng ==?
+### 12.1. Why Not Compare NaN with ==?
 
-`NaN == NaN` trả false theo primitive floating-point equality, kể cả khi cùng tham chiếu tới giá trị `Double.NaN` sau unbox. Để phát hiện giá trị không hợp lệ:
+`NaN == NaN` returns false under primitive floating-point equality, even when both unbox to `Double.NaN`. To detect invalid values:
 
 ```java
 double result = Math.acos(1.1);
@@ -459,15 +459,15 @@ if (Double.isNaN(result)) {
 }
 ```
 
-Muốn ràng buộc cả vô cực, dùng `Double.isFinite(result)` trong Java 17. Nếu nhận đầu vào từ người dùng, thông báo nguyên nhân phù hợp: `acos(1.1)` do vượt miền, còn `atan2(Double.NaN,1)` do tọa độ không phải một số hợp lệ.
+To also constrain infinities, use `Double.isFinite(result)` in Java 17. When receiving user input, report the appropriate cause: `acos(1.1)` is out of domain, whereas `atan2(Double.NaN,1)` has a coordinate that is not a valid number.
 
-### 12.2. Dấu zero có thể bị mất ở những bước khác
+### 12.2. Zero Sign Can Be Lost in Other Steps
 
-Nếu trước `atan2` bạn tính tỉ số `y/x`, việc chia hoặc các phép toán khác có thể làm tròn, overflow, underflow hoặc thay đổi dấu zero. Do đó, truyền trực tiếp các tọa độ cho `atan2` giúp bảo toàn nhiều thông tin cần thiết về dấu/góc hơn so với tự tính `atan(y/x)`.
+If you compute the ratio `y/x` before `atan2`, division or other operations may round, overflow, underflow, or alter the sign of zero. Thus, passing coordinates directly to `atan2` preserves more essential sign/angle information than computing `atan(y/x)` manually.
 
-## 13. Chương trình Java đầy đủ C — những trường hợp đặc biệt
+## 13. Complete Java Program C — Special Cases
 
-Lưu **`InverseTrigEdges.java`**:
+Save **`InverseTrigEdges.java`**:
 
 ```java
 public class InverseTrigEdges {
@@ -494,14 +494,14 @@ public class InverseTrigEdges {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 InverseTrigEdges.java
 java InverseTrigEdges
 ```
 
-**Stdout trên JDK được kiểm thử:**
+**Stdout on tested JDK:**
 
 ```text
 true
@@ -519,11 +519,11 @@ true
 true
 ```
 
-Các mốc đặc biệt như ±0, ±π, ±π/2, NaN được nêu trong hợp đồng API. Khi dùng `Math` trên các JDK/nền tảng khác nhau, **không nên lấy mọi chữ số thập phân của các góc không đặc biệt làm cam kết bit-for-bit**. `StrictMath` được định nghĩa chặt hơn cho một số hàm để tăng khả năng tái lập kết quả giữa các implementation.
+Special milestones like ±0, ±π, ±π/2, and NaN are stated in the API contract. When using `Math` across different JDKs/platforms, **do not treat every decimal digit of non-special angles as a bit-for-bit guarantee**. `StrictMath` is more tightly specified for certain functions to increase result reproducibility across implementations.
 
-## 14. Math so với StrictMath: trùng chức năng nhưng khác mức cam kết tái lập
+## 14. Math vs. StrictMath: Overlapping Functionality, Different Reproducibility Guarantees
 
-Java cung cấp cả:
+Java provides both:
 
 ```java
 double a = Math.asin(0.5);
@@ -539,36 +539,36 @@ double g = Math.atan2(1.0, -1.0);
 double h = StrictMath.atan2(1.0, -1.0);
 ```
 
-Cả hai lớp dùng **radian**, cùng ý nghĩa toán học và cùng kiểu trả về `double`. Điểm khác không phải `Math` “sai”, mà là **chính sách đảm bảo kết quả theo thuật toán**.
+Both classes use **radians**, share the same mathematical meaning, and have the same return type `double`. The difference is not that `Math` is "wrong", but the **algorithmic result guarantee policy**.
 
-### 14.1. Math: độ chính xác đủ theo đặc tả, implementation được linh hoạt
+### 14.1. Math: Sufficient Accuracy per Specification, Implementation Flexibility
 
-Java SE 17 `Math.asin`/`acos`/`atan` quy định sai số trong **1 ulp** của kết quả toán học chính xác, với yêu cầu **semi-monotonic**. `Math.atan2` cho phép sai số trong **2 ulp** và có yêu cầu semi-monotonic theo hợp đồng API.
+Java SE 17 `Math.asin`/`acos`/`atan` specify accuracy within **1 ulp** of the exact mathematical result, with a **semi-monotonic** requirement. `Math.atan2` allows error within **2 ulp** and has a semi-monotonic requirement per the API contract.
 
-`ulp` là “unit in the last place”, nói khái quát là khoảng cách giữa các giá trị floating-point biểu diễn được quanh một số. Sai số trong 1–2 ulp là một ràng buộc có ý nghĩa với binary64, **không phải** “sai số cố định nhỏ hơn 0.000001 radian cho mọi giá trị” hay “luôn làm tròn chính xác nhất”.
+`ulp` stands for "unit in the last place", roughly the spacing between representable floating-point values around a number. An error within 1–2 ulp is a meaningful constraint for binary64, **not** "a fixed error smaller than 0.000001 radians for all values" or "always correctly rounded".
 
-Các implementation của `Math` được phép sử dụng thuật toán hoặc chỉ thị tối ưu phù hợp với nền tảng, miễn là thỏa hợp đồng chính xác và special cases.
+Implementations of `Math` are permitted to use platform-specific algorithms or optimized instructions, as long as they satisfy the accuracy contract and special cases.
 
-### 14.2. StrictMath: nhắm đến kết quả dễ tái lập hơn
+### 14.2. StrictMath: Aimed at Higher Reproducibility
 
-Theo tài liệu Java SE 17, một số hàm của `StrictMath` (bao gồm các hàm lượng giác đang học) được ràng buộc theo thuật toán **fdlibm 5.3** (Freely Distributable Math Library) được mô tả trong API, để hỗ trợ kết quả **bit-for-bit phù hợp giữa các implementation Java tuân chuẩn**.
+According to Java SE 17 documentation, several `StrictMath` functions (including the trigonometric functions studied here) are bound to the **fdlibm 5.3** (Freely Distributable Math Library) algorithms described in the API, supporting **bit-for-bit consistent** results across compliant Java implementations.
 
-Điều đó không có nghĩa:
+That does not mean:
 
-- Kết quả `StrictMath` biểu diễn số thực toán học bằng **độ chính xác vô hạn**.
-- Mọi hàm của `StrictMath` đều có cùng cơ chế fdlibm hoặc cùng chính sách làm tròn trong mọi trường hợp.
-- `Math.asin(x)` **phải luôn khác** `StrictMath.asin(x)`: trên nhiều JDK chúng có thể cho chính cùng bit.
-- Dùng `StrictMath` làm phép so sánh `==` của những kết quả tính toán có tính ổn định tuyệt đối cho mọi thuật toán cộng/trừ/nhân/chia khác: những phép toán trung gian vẫn có rounding.
+- `StrictMath` results represent mathematical real numbers with **infinite precision**.
+- Every `StrictMath` function uses the exact same fdlibm mechanism or same rounding policy in every case.
+- `Math.asin(x)` **must always differ** from `StrictMath.asin(x)`: on many JDKs they may yield the exact same bits.
+- Using `StrictMath` makes `==` comparisons of calculated results unconditionally stable across all other arithmetic (`+`, `-`, `*`, `/`): intermediate operations still undergo rounding.
 
-**Hướng chọn:** với ứng dụng thông thường cần hàm toán học có độ chính xác bảo đảm bởi JDK, `Math` là lựa chọn trực tiếp. Khi hệ thống yêu cầu kết quả lượng giác dễ đối chiếu **bit-for-bit giữa các implementation** cho cùng đầu vào (kiểm thử hồi quy, mô phỏng xác định có quy định), xem xét `StrictMath` và tài liệu phiên bản đích.
+**Guidance for choosing:** for ordinary applications needing math functions with JDK-guaranteed accuracy, `Math` is the straightforward choice. When a system requires trigonometric results that match **bit-for-bit across implementations** for the same inputs (regression testing, regulated deterministic simulations), consider `StrictMath` and the target version's documentation.
 
-### 14.3. strictfp không thay thế StrictMath
+### 14.3. strictfp Does Not Replace StrictMath
 
-Trong Java 17, ngữ nghĩa floating-point expression luôn được đánh giá nghiêm ngặt theo JLS, và modifier `strictfp` đã trở nên không cần thiết cho mục đích ép strict evaluation của phép toán primitive. Nhưng điều đó **không biến** `Math` thành các hàm fdlibm của `StrictMath`. Câu hỏi về **thuật toán thư viện tính asin/acos/atan/atan2** khác câu hỏi về **precision của các phép toán primitive**.
+In Java 17, floating-point expression semantics are always evaluated strictly per the JLS, and the `strictfp` modifier has become unnecessary for forcing strict evaluation of primitive operations. However, that **does not turn** `Math` into `StrictMath`'s fdlibm functions. The question of **library algorithms computing asin/acos/atan/atan2** is distinct from **precision of primitive operations**.
 
-## 15. Chương trình Java đầy đủ D — cùng API ở Math và StrictMath
+## 15. Complete Java Program D — Same API in Math and StrictMath
 
-Tạo tệp **`MathVersusStrictMath.java`**:
+Create file **`MathVersusStrictMath.java`**:
 
 ```java
 import java.util.Locale;
@@ -590,14 +590,14 @@ public class MathVersusStrictMath {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 MathVersusStrictMath.java
 java MathVersusStrictMath
 ```
 
-**Stdout (làm tròn hiển thị tới 6 chữ số lẻ):**
+**Stdout (formatted to 6 decimal places):**
 
 ```text
 asin -> Math: 0.523599, StrictMath: 0.523599
@@ -606,11 +606,11 @@ atan -> Math: 0.785398, StrictMath: 0.785398
 atan2 -> Math: 2.356194, StrictMath: 2.356194
 ```
 
-**Cách hiểu:** ví dụ cho cùng chữ số thập phân sau khi format **không chứng minh** hai kết quả giống hệt nhau ở mọi bit hoặc mọi đầu vào. Muốn đánh giá tính tái lập thật sự, cần so sánh raw bits `Double.doubleToRawLongBits` trên tập input đại diện và nhiều JDK/kiến trúc được hỗ trợ. Đừng xây dựng một bài kiểm thử bắt buộc `Math` và `StrictMath` luôn bit-equal khi hợp đồng không đòi điều ấy.
+**How to interpret:** showing identical decimal digits after formatting **does not prove** the two results are identical in every bit or for all inputs. To evaluate true reproducibility, compare raw bits via `Double.doubleToRawLongBits` over a representative input set and multiple supported JDKs/architectures. Do not write a test forcing `Math` and `StrictMath` to always be bit-equal when the contract does not require it.
 
-## 16. Ứng dụng: hướng của chuyển động, tọa độ và vector
+## 16. Application: Direction of Motion, Coordinates, and Vectors
 
-Giả sử một vật đi từ `(x1,y1)` tới `(x2,y2)` trên hệ trục Descartes. Vector chuyển động:
+Suppose an object moves from `(x1,y1)` to `(x2,y2)` on a Cartesian coordinate system. The displacement vector is:
 
 ```text
 dx = x2 - x1
@@ -618,7 +618,7 @@ dy = y2 - y1
 theta = atan2(dy, dx)
 ```
 
-Ví dụ một chuyển động từ `(1,2)` tới `(−2,5)`:
+Example of motion from `(1,2)` to `(−2,5)`:
 
 ```java
 double x1 = 1.0;
@@ -635,22 +635,22 @@ System.out.printf(java.util.Locale.US,
 // 135.0 degrees
 ```
 
-Đoạn này **minh họa một phương thức** (hoặc khối bên trong `main`), không phải một file Java đầy đủ riêng. Góc +135° đúng vì dx âm và dy dương.
+This snippet **illustrates a method** (or a block inside `main`), not a standalone Java file. The angle +135° is right because dx is negative and dy is positive.
 
-### 16.1. Vector length ≠ angle
+### 16.1. Vector Length ≠ Angle
 
-`Math.hypot(dx,dy)` cho độ lớn vector. Nó tránh một số nguy cơ overflow/underflow trung gian so với tự tính `Math.sqrt(dx*dx + dy*dy)`.
+`Math.hypot(dx,dy)` gives the vector magnitude. It avoids certain intermediate overflow/underflow risks compared to manually computing `Math.sqrt(dx*dx + dy*dy)`.
 
 ```java
 double length = Math.hypot(dx, dy);
 double angle = Math.atan2(dy, dx);
 ```
 
-Hai kết quả lần lượt là **độ dài** và **góc**. Nếu vector bằng zero, độ dài bằng 0 nhưng hướng thường không được định nghĩa trong bài toán hình học, dù `atan2` của Java vẫn trả giá trị theo signed-zero inputs.
+The two results are **length** and **angle**, respectively. If the vector is zero, length is 0 but direction is typically undefined in geometry problems, even though Java's `atan2` still returns a value based on signed-zero inputs.
 
-### 16.2. Chuẩn hóa nếu domain muốn [0,360)
+### 16.2. Normalizing If the Domain Wants [0,360)
 
-`Math.toDegrees(Math.atan2(dy,dx))` trả gần `[−180,180]`. Nếu muốn hướng từ 0 đến nhỏ hơn 360 độ:
+`Math.toDegrees(Math.atan2(dy,dx))` returns approximately `[−180,180]`. If you want a heading from 0 to less than 360 degrees:
 
 ```java
 double angleDeg = Math.toDegrees(Math.atan2(dy, dx));
@@ -659,50 +659,50 @@ if (angleDeg < 0.0) {
 }
 ```
 
-Điều này phù hợp với input hữu hạn trong tình huống thông thường. Với signed zero và các điểm ranh giới −180/+180, quy ước chính xác cần được mô tả và kiểm thử. Nếu hệ tọa độ màn hình dùng y tăng xuống dưới, chiều góc cũng phải được điều chỉnh trước khi hiển thị.
+This works for finite inputs in ordinary scenarios. For signed zero and the −180/+180 boundary points, exact conventions should be documented and tested. If the screen coordinate system uses y increasing downward, angle direction must also be adjusted before displaying.
 
-## 17. Những lỗi thường gặp khi dùng inverse trig
+## 17. Common Mistakes When Using Inverse Trig
 
-| Sai lầm | Điều gì xảy ra | Cách đúng |
+| Mistake | What Happens | Right Way |
 | --- | --- | --- |
-| Cho rằng `asin(0.5)` trả `30` | Kết quả là **radian** | Dùng `toDegrees` khi cần degree |
-| Gọi `asin(30)` với ý nghĩa 30° | 30 ngoài miền [−1,1] → NaN | Phân biệt giá trị sin với góc |
-| Dùng `acos(1.0001)` rồi mong 0 | Đối số vượt miền → NaN | Xác thực input; clamp chỉ theo chính sách sai số |
-| Dùng `atan(y/x)` tìm góc phần tư | Mất dấu riêng x,y | Dùng `atan2(y,x)` |
-| Gọi `atan2(x,y)` | Đổi nhầm tham số | Hàm **atan2(y,x)** |
-| Dùng `atan2(0,0)` như hướng vector hợp lệ | API trả số theo signed zero nhưng hình học không có hướng duy nhất | Kiểm tra vector zero nếu cần |
-| Bỏ qua zero âm | Có thể đổi ±π ở branch cut | Bảo toàn signed zero hoặc chuẩn hóa có chủ đích |
-| So NaN bằng `== Double.NaN` | Luôn false | `Double.isNaN` |
-| Gán `Math.atan(1.0)` trực tiếp cho `float` | Type trả `double`, cần cast và có thể mất precision | Dùng `double` nếu không có yêu cầu đặc biệt |
-| Coi `asin(sin(t))==t` luôn đúng | Sin có tính tuần hoàn, asin chỉ trả principal value | Xem miền và điều kiện duy nhất |
-| Gán “Math lúc nào cũng nhanh hơn StrictMath” | Hiệu năng phụ thuộc JDK/hardware | Benchmark trên môi trường thật |
-| Coi `StrictMath` luôn chính xác tuyệt đối | Vẫn là `double` có rounding | Hiểu fdlibm và precision |
-| So kết quả góc bằng `==` với số thập phân hiển thị | Sai số biểu diễn/rounding | Chọn tolerance theo đơn vị và độ chính xác bài toán |
+| Assuming `asin(0.5)` returns `30` | Result is in **radians** | Use `toDegrees` when degrees are needed |
+| Calling `asin(30)` meaning 30° | 30 is outside [−1,1] → NaN | Distinguish sine value from angle |
+| Using `acos(1.0001)` expecting 0 | Argument exceeds domain → NaN | Validate input; clamp only per error policy |
+| Using `atan(y/x)` to find the quadrant | Loses individual signs of x,y | Use `atan2(y,x)` |
+| Calling `atan2(x,y)` | Swapped parameters by mistake | Method is **atan2(y,x)** |
+| Treating `atan2(0,0)` as a valid vector direction | API returns a number per signed zero, but geometrically direction is not unique | Check for zero vector if needed |
+| Ignoring negative zero | Can flip ±π at the branch cut | Preserve signed zero or normalize intentionally |
+| Comparing NaN using `== Double.NaN` | Always false | `Double.isNaN` |
+| Assigning `Math.atan(1.0)` directly to `float` | Return type is `double`, requires cast and can lose precision | Use `double` unless specifically required otherwise |
+| Assuming `asin(sin(t))==t` is always true | Sine is periodic, asin only returns principal value | Check domain and uniqueness conditions |
+| Claiming "Math is always faster than StrictMath" | Performance depends on JDK/hardware | Benchmark in real environment |
+| Treating `StrictMath` as infinitely accurate | Still `double` with rounding | Understand fdlibm and precision |
+| Comparing angle results with `==` against displayed decimals | Representation/rounding error | Pick tolerance based on units and problem accuracy |
 
-Một bẫy tinh tế là **dùng sin và cos được tính từ góc rồi đảo lại**: `Math.atan2(Math.sin(theta), Math.cos(theta))` trả **phiên bản chuẩn hóa của theta về góc chính**, không bảo đảm đúng theta gốc nếu theta ngoài `[−π,π]`. Các sai số floating point cũng có thể xuất hiện gần ranh giới và tại bội của π.
+A subtle trap is **re-inverting sine and cosine computed from an angle**: `Math.atan2(Math.sin(theta), Math.cos(theta))` returns a **normalized principal version of theta**, not necessarily the original theta if theta was outside `[−π,π]`. Floating-point errors can also appear near boundaries and at multiples of π.
 
-## 18. Thiết kế kiểm thử đúng cho toán học dấu phẩy động
+## 18. Designing Proper Tests for Floating-Point Math
 
-**Không kiểm tra mọi giá trị bằng một epsilon cố định không có ngữ cảnh.** Nếu ứng dụng chấp nhận sai số về góc là 0,01 độ, hãy đổi các giá trị cần kiểm tra sang degree hoặc đổi dung sai sang radian, đồng thời xác định cách so sánh tại đường biên ±180°.
+**Do not test every value with a context-free fixed epsilon.** If the application allows an angular error of 0.01 degrees, convert the values under test to degrees or convert the tolerance to radians, and also define how comparisons work at the ±180° boundary.
 
-Các bài kiểm thử nên gồm:
+Tests should cover:
 
-1. Giá trị chuẩn: `asin(0.5)` ≈ 30°, `acos(0.5)` ≈ 60°, `atan(1)` ≈ 45°.
-2. Hai biên miền: `asin(−1)`, `asin(1)`, `acos(−1)`, `acos(1)`.
-3. Ngoài miền: `asin(1.01)`, `acos(−1.01)` → NaN.
-4. Bốn góc phần tư: `atan2(±1, ±1)`.
-5. Trục tọa độ: `atan2(±0.0, ±1.0)` và `atan2(±1.0, ±0.0)`.
-6. Gốc tọa độ: xác định chính sách xử lý zero vector.
-7. Giá trị đặc biệt: ±Infinity, NaN.
-8. Tọa độ rất lớn/rất nhỏ: không tự chia `y/x` hoặc bình phương mất kiểm soát.
-9. Ranh giới ±π: quan sát branch cut và quy ước chuẩn hóa góc.
-10. Đối chiếu `Math` và `StrictMath` theo yêu cầu tái lập thực sự, không dựa trên chuỗi đã làm tròn.
+1. Standard values: `asin(0.5)` ≈ 30°, `acos(0.5)` ≈ 60°, `atan(1)` ≈ 45°.
+2. Both domain boundaries: `asin(−1)`, `asin(1)`, `acos(−1)`, `acos(1)`.
+3. Out of domain: `asin(1.01)`, `acos(−1.01)` → NaN.
+4. All four quadrants: `atan2(±1, ±1)`.
+5. Coordinate axes: `atan2(±0.0, ±1.0)` and `atan2(±1.0, ±0.0)`.
+6. Origin: define zero-vector handling policy.
+7. Special values: ±Infinity, NaN.
+8. Very large/very small coordinates: do not manually divide `y/x` or square uncontrollably.
+9. ±π boundary: observe the branch cut and angle normalization conventions.
+10. Comparing `Math` and `StrictMath` based on actual reproducibility requirements, not rounded strings.
 
-### 18.1. Khoảng cách góc phải tính theo vòng tròn khi cần
+### 18.1. Angular Distance Must Wrap Around the Circle When Needed
 
-Hai góc `179.9°` và `−179.9°` cách nhau **0.2° theo hướng ngắn nhất**, không phải gần 359.8° như phép trừ số thập phân thông thường. Khi cần so **hướng trên vòng tròn**, hãy định nghĩa phép tính chênh lệch góc có chuẩn hóa mod 360°/2π.
+Two angles `179.9°` and `−179.9°` are **0.2° apart along the shortest arc**, not nearly 359.8° as ordinary decimal subtraction suggests. When comparing **directions on a circle**, define an angle-difference calculation normalized modulo 360°/2π.
 
-Một công thức hữu ích cho độ lệch góc principal trong radian là:
+A useful formula for the principal angular distance in radians is:
 
 ```java
 static double angleDistance(double a, double b) {
@@ -711,123 +711,123 @@ static double angleDistance(double a, double b) {
 }
 ```
 
-Đây là **mảnh phương thức** cần đặt trong một class; nó hữu ích cho góc hữu hạn bình thường nhưng phép trừ `a-b` với số cực lớn/Infinity có thể tràn hoặc tạo NaN, và kết quả vẫn chịu rounding. Nếu hệ thống xử lý góc rất lớn hoặc đặc biệt, chuẩn hóa góc cẩn thận trước và xác thực `Double.isFinite`.
+This is a **method snippet** that must be placed inside a class; it works well for ordinary finite angles, though `a-b` with huge numbers/Infinity can overflow or produce NaN, and the result is still subject to rounding. If the system handles very large or special angles, normalize angles carefully beforehand and validate `Double.isFinite`.
 
-## 19. Bài tập tự luyện có đáp án
+## 19. Self-Practice Exercises with Answers
 
-### Bài 1 — Đọc đúng ý nghĩa hàm
+### Exercise 1 — Reading Function Semantics Correctly
 
-`Math.asin(0.5)` trả khoảng bao nhiêu radian và bao nhiêu độ?
+Approximately how many radians and how many degrees does `Math.asin(0.5)` return?
 
-**Đáp án:** gần `0.5235987756` radian, tương đương `30°`. Dùng `Math.toDegrees` nếu muốn kết quả độ.
+**Answer:** approximately `0.5235987756` radians, equivalent to `30°`. Use `Math.toDegrees` if a degree result is wanted.
 
-### Bài 2 — Góc của acos
+### Exercise 2 — Angles of acos
 
-`Math.acos(0.5)` và `Math.acos(-1.0)` tương ứng bao nhiêu độ?
+How many degrees do `Math.acos(0.5)` and `Math.acos(-1.0)` correspond to?
 
-**Đáp án:** `60°` và `180°`. `acos` trả góc chính trong `[0°,180°]`.
+**Answer:** `60°` and `180°`. `acos` returns the principal angle in `[0°,180°]`.
 
-### Bài 3 — Góc của atan
+### Exercise 3 — Angle of atan
 
-`Math.atan(1.0)` tương ứng bao nhiêu độ?
+How many degrees does `Math.atan(1.0)` correspond to?
 
-**Đáp án:** `45°`, tức gần π/4 radian.
+**Answer:** `45°`, i.e., approximately π/4 radians.
 
-### Bài 4 — Giá trị ngoài miền
+### Exercise 4 — Out-of-Domain Values
 
-`Math.asin(2.0)` và `Math.acos(-2.0)` ném exception hay cho gì?
+Do `Math.asin(2.0)` and `Math.acos(-2.0)` throw exceptions or return something else?
 
-**Đáp án:** trả `NaN`; kiểm tra bằng `Double.isNaN`. Không có góc thực mà sin/cos bằng ±2.
+**Answer:** they return `NaN`; check using `Double.isNaN`. There is no real angle whose sine or cosine equals ±2.
 
-### Bài 5 — Bốn góc phần tư
+### Exercise 5 — Four Quadrants
 
-Với tọa độ `(x,y) = (−1,1)` và `(−1,−1)`, gọi `atan2` thế nào, kết quả góc gì?
+For coordinates `(x,y) = (−1,1)` and `(−1,−1)`, how do you call `atan2` and what are the resulting angles?
 
-**Đáp án:** `Math.atan2(1,-1)` ≈ +135°; `Math.atan2(-1,-1)` ≈ −135°. `y` là tham số đầu tiên.
+**Answer:** `Math.atan2(1,-1)` ≈ +135°; `Math.atan2(-1,-1)` ≈ −135°. `y` is the first parameter.
 
-### Bài 6 — Vì sao không dùng atan(y/x)?
+### Exercise 6 — Why Not Use atan(y/x)?
 
-Với vector `(−1,−1)`, `atan(y/x)` có thể trả khoảng `+45°`, còn `atan2(y,x)` trả `−135°`. Tại sao?
+For vector `(−1,−1)`, `atan(y/x)` can return around `+45°`, whereas `atan2(y,x)` returns `−135°`. Why?
 
-**Đáp án:** phép chia mất dấu riêng của hai tọa độ: `(−1)/(−1) = +1`, giống tỉ số của vector `(1,1)`. `atan2` vẫn thấy x âm và y âm nên chọn QIII.
+**Answer:** division loses the individual signs of the two coordinates: `(−1)/(−1) = +1`, the same ratio as vector `(1,1)`. `atan2` still sees negative x and negative y and picks QIII.
 
-### Bài 7 — Signed zero trên trục x âm
+### Exercise 7 — Signed Zero on the Negative x-Axis
 
-`atan2(+0.0,-1.0)` và `atan2(-0.0,-1.0)` là góc gì?
+What angles are `atan2(+0.0,-1.0)` and `atan2(-0.0,-1.0)`?
 
-**Đáp án:** gần +π và −π. Dấu zero quyết định phía branch cut.
+**Answer:** near +π and −π. The sign of zero determines the side of the branch cut.
 
-### Bài 8 — Zero vector
+### Exercise 8 — Zero Vector
 
-`Math.atan2(0.0,0.0)` có cho NaN không? Có nên xem đó là hướng hình học hợp lệ không?
+Does `Math.atan2(0.0,0.0)` return NaN? Should it be treated as a valid geometric direction?
 
-**Đáp án:** theo Java, cho `+0.0` với hai zero dương. Nhưng vector (0,0) không có hướng xác định, nên ứng dụng cần kiểm tra riêng nếu yêu cầu vector khác 0.
+**Answer:** in Java, it returns `+0.0` for two positive zeros. However, the vector (0,0) has no defined direction, so the application should check separately if a non-zero vector is required.
 
-### Bài 9 — Infinity
+### Exercise 9 — Infinity
 
-`Math.atan(Double.POSITIVE_INFINITY)` và `Math.atan(Double.NEGATIVE_INFINITY)` tiến đến góc nào?
+What angles do `Math.atan(Double.POSITIVE_INFINITY)` and `Math.atan(Double.NEGATIVE_INFINITY)` approach?
 
-**Đáp án:** gần +π/2 và −π/2; theo contract Java, trả giá trị double gần nhất với hai mốc đó.
+**Answer:** near +π/2 and −π/2; per Java's contract, it returns the double values closest to those two landmarks.
 
-### Bài 10 — Hai tọa độ infinity
+### Exercise 10 — Two Infinite Coordinates
 
-`Math.atan2(Double.POSITIVE_INFINITY,Double.NEGATIVE_INFINITY)` gần góc bao nhiêu?
+What angle is `Math.atan2(Double.POSITIVE_INFINITY,Double.NEGATIVE_INFINITY)` close to?
 
-**Đáp án:** +3π/4 = 135°. `atan(y/x)` không thay thế được vì `Infinity / -Infinity` là NaN.
+**Answer:** +3π/4 = 135°. `atan(y/x)` cannot substitute because `Infinity / -Infinity` is NaN.
 
-### Bài 11 — Math và StrictMath
+### Exercise 11 — Math vs. StrictMath
 
-Có được khẳng định `Math.atan2(y,x) == StrictMath.atan2(y,x)` với **mọi** giá trị không? Vì sao?
+Can we assert `Math.atan2(y,x) == StrictMath.atan2(y,x)` for **all** values? Why or why not?
 
-**Đáp án:** không nên khẳng định như vậy. `Math` cho phép implementation linh hoạt trong giới hạn chính xác; `StrictMath` có ràng buộc thuật toán fdlibm để hỗ trợ tái lập bit cho một số method.
+**Answer:** no, we should not assert that. `Math` permits flexible implementations within accuracy limits; `StrictMath` has fdlibm algorithm constraints to support bit-level reproducibility for certain methods.
 
-### Bài 12 — Radian/degree
+### Exercise 12 — Radians/Degrees
 
-Viết một biểu thức Java để lấy góc độ của vector `(x,y)`.
+Write a Java expression to get the angle in degrees of vector `(x,y)`.
 
-**Đáp án:** `Math.toDegrees(Math.atan2(y,x))`. Nếu muốn góc trong [0,360), thêm chuẩn hóa theo yêu cầu và kiểm tra signed zero/ràng buộc biên.
+**Answer:** `Math.toDegrees(Math.atan2(y,x))`. If you want the angle in [0,360), add normalization as required and check signed zero/boundary constraints.
 
-### Bài 13 — Góc principal
+### Exercise 13 — Principal Angle
 
-Vì sao `asin(sin(150°))` không cho 150°?
+Why does `asin(sin(150°))` not give 150°?
 
-**Đáp án:** `sin(150°)=sin(30°)`, trong khi `asin` chỉ trả góc trong [−90°,90°], nên kết quả chính là gần 30°; phải đổi 150° sang radian trước khi gọi sin.
+**Answer:** `sin(150°)=sin(30°)`; meanwhile, `asin` only returns angles in [−90°,90°], so the principal result is near 30°; 150° must also be converted to radians before calling sin.
 
-### Bài 14 — Tọa độ màn hình
+### Exercise 14 — Screen Coordinates
 
-Trên màn hình, y tăng hướng xuống. Khi rê chuột sang phải và xuống, `atan2(dy,dx)` trả góc dương hay âm? Muốn góc dương theo chiều ngược kim đồng hồ toán học phải làm gì?
+On a screen, y increases downward. When dragging the mouse right and down, does `atan2(dy,dx)` return a positive or negative angle? What should you do if you want positive angles counter-clockwise as in math?
 
-**Đáp án:** nếu dx>0 và dy>0 thì `atan2(dy,dx)` trả góc dương trong góc phần tư I của hệ tọa độ số truyền vào; trên màn hình, nó trông như hướng xuống-phải. Muốn quy ước y hướng lên, dùng `atan2(-dy,dx)` nếu không có biến đổi tọa độ khác.
+**Answer:** if dx>0 and dy>0, `atan2(dy,dx)` returns a positive angle in quadrant I of the passed numeric coordinate system; on screen, it looks like down-right. To use a y-upward convention, use `atan2(-dy,dx)` if no other coordinate transform is applied.
 
-### Bài 15 — Kiểm tra độ chính xác
+### Exercise 15 — Accuracy Checking
 
-Nếu ứng dụng cần so góc ở gần +180° và −180°, vì sao `Math.abs(a-b)` có thể đánh giá sai “gần nhau”?
+If an application needs to compare angles near +180° and −180°, why can `Math.abs(a-b)` misjudge "closeness"?
 
-**Đáp án:** khoảng góc quanh vòng tròn có tính chu kỳ. Hai hướng ±179.9° chỉ chênh 0.2° theo cung ngắn; cần chuẩn hóa chênh lệch góc modulo 360° hoặc 2π theo contract của ứng dụng.
+**Answer:** angle intervals around a circle are periodic. The two directions ±179.9° only differ by 0.2° along the short arc; normalize the angular difference modulo 360° or 2π per the application's contract.
 
-## 20. Checklist và tài liệu tham khảo
+## 20. Checklist and References
 
-- [ ] Tôi nhớ `asin` và `acos` nhận đối số trong [−1,1], còn `atan` nhận số thực ngoài khoảng đó.
-- [ ] Tôi biết khoảng kết quả chính của từng hàm và đơn vị **radian**.
-- [ ] Tôi hiểu `asin(sin(theta))`, `acos(cos(theta))`, `atan(tan(theta))` không luôn khôi phục theta gốc.
-- [ ] Tôi luôn viết `atan2(y,x)` khi có tọa độ, **không đảo tham số**.
-- [ ] Tôi không dùng `atan(y/x)` thay cho `atan2` khi cần phân biệt góc phần tư và xử lý x=0.
-- [ ] Tôi kiểm tra input của `asin`/`acos` thay vì âm thầm che giấu dữ liệu sai.
-- [ ] Tôi biết `asin`/`atan` bảo toàn signed zero; `atan2` có quy tắc cho ±0 ở các trục.
-- [ ] Tôi biết `atan2(0,0)` có output theo IEEE 754 nhưng vector zero có thể bị coi là không hợp lệ theo nghiệp vụ.
-- [ ] Tôi kiểm tra `Double.isNaN`/`Double.isFinite` với input và output phù hợp.
-- [ ] Tôi phân biệt yêu cầu chính xác 1 ulp/2 ulp của `Math` với ràng buộc fdlibm của `StrictMath`.
-- [ ] Tôi tự viết được ví dụ vector dx/dy và đổi kết quả sang độ.
-- [ ] Tôi kiểm thử bốn phần tư, trục tọa độ, ±π, signed zero, NaN và infinity.
-- [ ] Tôi hiểu bài toán góc trên **vòng tròn** khác so sánh hai số thực trên một trục thẳng.
-- [ ] Tôi đã chạy các chương trình Java 17+ và đối chiếu stdout.
+- [ ] I remember that `asin` and `acos` accept arguments in [−1,1], while `atan` accepts real numbers outside that range.
+- [ ] I know the principal result range of each function and the **radian** unit.
+- [ ] I understand `asin(sin(theta))`, `acos(cos(theta))`, `atan(tan(theta))` do not always recover the original theta.
+- [ ] I always write `atan2(y,x)` when given coordinates, **without swapping parameters**.
+- [ ] I do not use `atan(y/x)` instead of `atan2` when distinguishing quadrants and handling x=0.
+- [ ] I validate inputs to `asin`/`acos` rather than silently hiding bad data.
+- [ ] I know `asin`/`atan` preserve signed zero; `atan2` has rules for ±0 on the axes.
+- [ ] I know `atan2(0,0)` has an IEEE 754 output, but a zero vector may be considered invalid by business logic.
+- [ ] I check `Double.isNaN`/`Double.isFinite` on inputs and outputs as appropriate.
+- [ ] I distinguish the 1 ulp/2 ulp accuracy requirements of `Math` from the fdlibm constraints of `StrictMath`.
+- [ ] I can write a dx/dy vector example and convert the result to degrees.
+- [ ] I test all four quadrants, coordinate axes, ±π, signed zero, NaN, and infinity.
+- [ ] I understand angular problems on a **circle** differ from comparing two real numbers on a straight line.
+- [ ] I have run the Java 17+ programs and verified stdout.
 
-**Tài liệu chính thức Java SE 17:**
+**Official Java SE 17 Documentation:**
 
-- [Math API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `asin`, `acos`, `atan`, `atan2`, `toDegrees`, `toRadians`, đặc tả về ulp và special cases.
-- [StrictMath API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StrictMath.html): các hàm tương ứng, quy tắc fdlibm và tính tái lập.
+- [Math API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `asin`, `acos`, `atan`, `atan2`, `toDegrees`, `toRadians`, ulp specifications, and special cases.
+- [StrictMath API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StrictMath.html): corresponding functions, fdlibm rules, and reproducibility.
 - [Double API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): `NaN`, ±Infinity, signed zero, `doubleToRawLongBits`.
-- [JLS 17 `4.2.3 Floating-Point Types](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): số thực Java.
-- [JLS 17 `15.4 Floating-Point Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.4): precision, rounding và ngữ nghĩa biểu thức trong Java 17.
+- [JLS 17 `4.2.3 Floating-Point Types](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): Java floating-point numbers.
+- [JLS 17 `15.4 Floating-Point Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.4): precision, rounding, and expression semantics in Java 17.
 
-**Kết luận:** `asin`, `acos`, `atan` tìm **góc chính** từ giá trị lượng giác, còn `atan2(y,x)` tìm **hướng vector dựa trên cả hai tọa độ**. Trong code hình học Java, hãy ưu tiên `atan2` khi có x/y, nhớ radian, xem xét signed zero/NaN và chọn `Math` hay `StrictMath` theo đúng yêu cầu về độ chính xác và tái lập.
+**Conclusion:** `asin`, `acos`, and `atan` find a **principal angle** from a trigonometric value, while `atan2(y,x)` finds the **vector direction based on both coordinates**. In Java geometry code, prefer `atan2` when x/y are available, remember radians, account for signed zero/NaN, and choose `Math` or `StrictMath` based on actual accuracy and reproducibility requirements.

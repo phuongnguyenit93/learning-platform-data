@@ -1,6 +1,6 @@
-# Biến vòng lặp là bản sao giá trị phần tử — Java 17+
+# The Loop Variable Is a Copy of the Element Value — Java 17+
 
-Trong **enhanced `for`** (còn gọi là *for-each*), biến vòng lặp nhận **giá trị của từng phần tử**, chứ không phải một ô lưu trữ có thể gán thay thế trong mảng hoặc danh sách. Vì Java truyền và gán **theo giá trị**, việc **gán lại biến vòng lặp** không đồng nghĩa với việc sửa phần tử gốc.
+In **enhanced `for`** (also called *for-each*), the loop variable receives **the value of each element**, rather than a storage slot that can be assigned to replace the element in the array or list. Because Java passes and assigns **by value**, **reassigning the loop variable** does not modify the original element.
 
 ~~~java
 int[] numbers = {1, 2, 3};
@@ -8,12 +8,12 @@ int[] numbers = {1, 2, 3};
 for (int number : numbers) {
     number *= 10;
 }
-// numbers vẫn là {1, 2, 3}.
+// numbers is still {1, 2, 3}.
 ~~~
 
-Với **kiểu nguyên thủy**, biến nhận bản sao của số. Với **kiểu tham chiếu**, biến nhận **bản sao của tham chiếu**: nó có thể trỏ tới *cùng đối tượng*, nhưng bản thân biến không phải vị trí chứa phần tử trong collection. Phân biệt này quyết định phép thay đổi nào được phản ánh ra bên ngoài.
+With **primitive types**, the variable receives a copy of the number. With **reference types**, the variable receives **a copy of the reference**: it can point to the *same object*, but the variable itself is not the element slot inside the collection. This distinction determines which changes are visible externally.
 
-## 1. Enhanced `for` đọc phần tử như thế nào?
+## 1. How Does Enhanced `for` Read Elements?
 
 ~~~java
 int[] a = {10, 20};
@@ -22,29 +22,29 @@ for (int value : a) {
 }
 ~~~
 
-Về ý nghĩa liên quan đến biến phần tử, có thể hình dung gần như:
+In terms of what happens to the element variable, you can think of it roughly as:
 
 ~~~java
 for (int i = 0; i < a.length; i++) {
-    int value = a[i]; // Nhận một bản sao của giá trị phần tử.
+    int value = a[i]; // Receives a copy of the element value.
     System.out.println(value);
 }
 ~~~
 
-Với `Iterable` như `List`, enhanced `for` dùng `Iterator` để lấy từng giá trị, không phải tự nhiên có một biến đại diện trực tiếp cho ô lưu trữ. Dù giá trị lấy qua mảng hay iterator, **gán lại biến phần tử không ghi ngược trở về nguồn**.
+For an `Iterable` like `List`, enhanced `for` uses an `Iterator` to fetch each value, rather than providing a variable directly representing a storage slot. Whether values are retrieved from an array or an iterator, **reassigning the element variable does not write back to the source**.
 
-| Loại phần tử | Biến vòng lặp giữ gì? | Gán lại biến có thay phần tử gốc? |
+| Element Type | What Does the Loop Variable Hold? | Does Reassigning the Variable Change the Original Element? |
 | --- | --- | --- |
-| `int`, `double`, `boolean`... | Bản sao giá trị nguyên thủy | **Không** |
-| `String`, `Integer` | Bản sao tham chiếu đối tượng bất biến | **Không** |
-| Đối tượng có thể thay đổi, như `Box` | Bản sao tham chiếu đến cùng đối tượng | **Không**, nhưng có thể sửa trạng thái đối tượng |
-| Mảng con `int[]` của `int[][]` | Bản sao tham chiếu mảng con | **Không**, nhưng có thể sửa phần tử trong mảng con |
+| `int`, `double`, `boolean`... | Copy of the primitive value | **No** |
+| `String`, `Integer` | Copy of reference to an immutable object | **No** |
+| Mutable object, such as `Box` | Copy of reference to the same object | **No**, but the object's state can be mutated |
+| Subarray `int[]` of `int[][]` | Copy of reference to the subarray | **No**, but elements inside the subarray can be modified |
 
-Từ “bản sao” ở đây là **sao chép giá trị biến** (đối với đối tượng là địa chỉ tham chiếu theo mô hình ngữ nghĩa), **không** phải tự động tạo *deep copy* của đối tượng.
+The word "copy" here means **copying the variable's value** (for objects, the reference address according to the semantic model), **not** automatically creating a *deep copy* of the object.
 
-## 2. Chương trình Java 17+ độc lập, chạy bằng CLI
+## 2. Standalone Java 17+ Program, Run via CLI
 
-Tạo tệp UTF-8 tên **`EnhancedForCopyDemo.java`**:
+Create a UTF-8 file named **`EnhancedForCopyDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -139,7 +139,7 @@ public class EnhancedForCopyDemo {
 }
 ~~~
 
-Dùng **JDK 17 trở lên**, mở PowerShell hoặc Bash tại thư mục chứa file:
+Using **JDK 17 or higher**, open PowerShell or Bash in the directory containing the file:
 
 ~~~bash
 java -version
@@ -148,7 +148,7 @@ javac -encoding UTF-8 EnhancedForCopyDemo.java
 java EnhancedForCopyDemo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java EnhancedForCopyDemo`:
+**Exact expected stdout** of the `java EnhancedForCopyDemo` command alone:
 
 ~~~text
 == primitive ==
@@ -171,32 +171,32 @@ gridReplace=[[-1], [-1]]
 done
 ~~~
 
-`java -version` và `javac -version` có đầu ra tùy JDK được cài nên không thuộc phần stdout cố định. Chương trình chỉ dùng Java chuẩn và không yêu cầu thư viện ngoài.
+`java -version` and `javac -version` have output depending on the installed JDK and are not part of the fixed stdout. The program uses only standard Java and requires no external libraries.
 
-## 3. Với kiểu nguyên thủy: chỉ sửa biến cục bộ
+## 3. With Primitive Types: Only Modifies the Local Variable
 
 ~~~java
 int[] scores = {10, 20};
 for (int score : scores) {
     score += 5;
 }
-// scores vẫn là {10, 20}.
+// scores is still {10, 20}.
 ~~~
 
-Mỗi lượt, `score` nhận **một bản sao số nguyên**. Câu `score += 5` chỉ cập nhật biến cục bộ trong lượt đó. Nếu muốn tăng trực tiếp các phần tử mảng:
+On each iteration, `score` receives **an integer copy**. The statement `score += 5` only updates the local variable during that iteration. If you want to increment the array elements directly:
 
 ~~~java
 for (int i = 0; i < scores.length; i++) {
     scores[i] += 5;
 }
-// scores thành {15, 25}.
+// scores becomes {15, 25}.
 ~~~
 
-Đây là khác biệt giữa **sửa biến vòng lặp** và **sửa ô mảng bằng chỉ số**. Enhanced `for` đặc biệt thích hợp cho tác vụ **đọc, tính tổng, in hoặc kiểm tra** từng phần tử.
+This is the difference between **modifying the loop variable** and **modifying an array slot by index**. Enhanced `for` is particularly well suited for tasks like **reading, summing, printing, or checking** each element.
 
-## 4. Với tham chiếu: gán lại khác với thay đổi trạng thái đối tượng
+## 4. With References: Reassigning Differs from Mutating Object State
 
-Xét lớp có thể thay đổi:
+Consider a mutable class:
 
 ~~~java
 class Box {
@@ -205,118 +205,118 @@ class Box {
 }
 ~~~
 
-Nếu một mảng chứa `Box`:
+If an array holds `Box` references:
 
 ~~~java
 Box[] boxes = {new Box(1), new Box(2)};
 
 for (Box box : boxes) {
-    box.value += 5; // Sửa trạng thái đối tượng đang được tham chiếu.
+    box.value += 5; // Modifies the state of the referenced object.
 }
 // boxes[0].value == 6; boxes[1].value == 7.
 ~~~
 
-Biến `box` là **bản sao tham chiếu**, nhưng vẫn trỏ tới **cùng một đối tượng `Box`** mà mảng đang giữ. Vì thế `box.value += 5` thay đổi đối tượng và có thể quan sát được thông qua mảng.
+The variable `box` is a **copy of the reference**, yet it still points to **the same `Box` object** held by the array. Therefore, `box.value += 5` mutates the object and is observable through the array.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 for (Box box : boxes) {
-    box = new Box(999); // Chỉ thay đổi biến box trong lượt này.
+    box = new Box(999); // Only changes the box variable in this iteration.
 }
-// Mảng vẫn giữ hai đối tượng Box ban đầu.
+// The array still holds the two original Box objects.
 ~~~
 
-`box = ...` không thể thay `boxes[0]` hay `boxes[1]`: phép gán chỉ đổi tham chiếu nằm trong biến cục bộ `box`. Muốn **thay thế đối tượng tại vị trí mảng**, sử dụng `boxes[i] = new Box(...)` với chỉ số.
+`box = ...` cannot change `boxes[0]` or `boxes[1]`: the assignment only changes the reference stored in the local variable `box`. To **replace the object at an array position**, use `boxes[i] = new Box(...)` with an index.
 
-| Thao tác | Thay ô lưu trữ mảng/list? | Có thể thay trạng thái đối tượng gốc? |
+| Operation | Changes Array/List Storage Slot? | Can Mutate Original Object State? |
 | --- | --- | --- |
-| `box = anotherBox;` | Không | Không, chỉ đổi biến cục bộ |
-| `box.value = 7;` | Không | Có |
-| `boxes[i] = anotherBox;` | Có | Không tự thay đổi đối tượng cũ |
-| `list.set(i, anotherBox);` | Có | Không tự thay đổi đối tượng cũ |
+| `box = anotherBox;` | No | No, only changes the local variable |
+| `box.value = 7;` | No | Yes |
+| `boxes[i] = anotherBox;` | Yes | Does not automatically mutate the old object |
+| `list.set(i, anotherBox);` | Yes | Does not automatically mutate the old object |
 
-**Lưu ý:** Không phải mọi tham chiếu đều trỏ tới đối tượng cho phép sửa. `String` và các wrapper như `Integer` là bất biến; biểu thức tạo “giá trị mới” thường chỉ tạo/trả về một đối tượng khác rồi phải **gán vào phần tử gốc** nếu muốn lưu lại.
+**Note:** Not all references point to objects that allow modification. `String` and wrappers like `Integer` are immutable; expressions that produce a "new value" usually only create/return another object and must then be **assigned back to the original element** if you want to store it.
 
-## 5. `List` và mảng nhiều chiều
+## 5. `List` and Multidimensional Arrays
 
-Enhanced `for` duyệt được **mảng** và các đối tượng **`Iterable`** như `List`:
+Enhanced `for` can iterate over **arrays** and **`Iterable`** objects like `List`:
 
 ~~~java
 List<Integer> ids = new ArrayList<>(List.of(1, 2));
 
 for (Integer id : ids) {
-    id++; // Unbox, tăng rồi boxing trở lại vào biến id.
+    id++; // Unboxes, increments, then boxes back into the variable id.
 }
-// ids vẫn là [1, 2].
+// ids is still [1, 2].
 
 ids.replaceAll(n -> n + 1);
-// ids thành [2, 3].
+// ids becomes [2, 3].
 ~~~
 
-Với danh sách cho phép thay phần tử, có thể dùng `List.set(index, value)` hoặc `replaceAll` tùy ý định. **Đừng xóa/thêm trực tiếp phần tử vào `ArrayList` bằng `list.add/remove` trong lúc đang dùng enhanced `for` duyệt chính danh sách đó**: iterator fail-fast có thể ném `ConcurrentModificationException`. Khi cần xóa an toàn theo điều kiện, dùng `removeIf` hoặc một `Iterator` với `remove()` đúng hợp đồng.
+For lists that allow element replacement, you can use `List.set(index, value)` or `replaceAll` depending on your intent. **Do not remove/add elements directly to an `ArrayList` via `list.add/remove` while iterating over that same list with enhanced `for`**: the fail-fast iterator may throw `ConcurrentModificationException`. When conditional removal is needed safely, use `removeIf` or an `Iterator` with `remove()` following its contract.
 
-Mảng hai chiều cũng là **mảng chứa các tham chiếu mảng con**:
+A two-dimensional array is also an **array containing references to subarrays**:
 
 ~~~java
 int[][] grid = {{1, 2}, {3, 4}};
 
 for (int[] row : grid) {
-    row[0] *= 10; // Sửa phần tử trong mảng con.
+    row[0] *= 10; // Modifies an element inside the subarray.
 }
 // grid = {{10, 2}, {30, 4}}.
 
 for (int[] row : grid) {
-    row = new int[] {0, 0}; // Không thay tham chiếu trong grid.
+    row = new int[] {0, 0}; // Does not change the reference in grid.
 }
-// grid vẫn = {{10, 2}, {30, 4}}.
+// grid is still {{10, 2}, {30, 4}}.
 ~~~
 
-Nếu muốn thay **cả mảng con**, phải cập nhật `grid[index]`. Việc chỉnh sửa phần tử mảng con khác hoàn toàn việc gán lại biến `row`.
+If you want to replace **an entire subarray**, you must update `grid[index]`. Modifying an element of a subarray is completely different from reassigning the variable `row`.
 
-## 6. Những lưu ý về phạm vi biến, `final` và `null`
+## 6. Notes on Variable Scope, `final`, and `null`
 
-- Biến khai báo trong `for (Type item : items)` là biến của vòng lặp; **không dùng được ngoài phạm vi vòng**.
-- Có thể viết `for (final Box box : boxes)` để **cấm gán lại biến tham chiếu `box`**. Tuy nhiên `final` **không khiến đối tượng `Box` bất biến**: `box.value++` vẫn có thể hợp lệ.
-- Phần tử tham chiếu có thể là `null`. Lúc đó biến vòng lặp nhận null; gọi `item.method()` sẽ gây `NullPointerException` nếu không kiểm tra.
-- Nếu chính mảng hoặc nguồn `Iterable` là null, enhanced `for` không thể duyệt và sẽ gây `NullPointerException`.
-- Nếu chỉ cần **đọc từng giá trị**, không cần vị trí, enhanced `for` thường gọn hơn một vòng đếm. Nếu cần **ghi đè chính phần tử**, nên dùng chỉ số hoặc API cập nhật thích hợp.
+- The variable declared in `for (Type item : items)` is a loop-scoped variable; **it cannot be used outside the loop's scope**.
+- You can write `for (final Box box : boxes)` to **prevent reassigning the reference variable `box`**. However, `final` **does not make the `Box` object immutable**: `box.value++` may still be valid.
+- A reference element can be `null`. In that case, the loop variable receives null; calling `item.method()` will throw `NullPointerException` if unchecked.
+- If the array or `Iterable` source itself is null, enhanced `for` cannot iterate and will throw `NullPointerException`.
+- If you only need to **read each value** without needing positions, enhanced `for` is usually cleaner than a counting loop. If you need to **overwrite the elements themselves**, use an index or an appropriate update API.
 
-## 7. Các lỗi thường gặp
+## 7. Common Mistakes
 
-| Hiểu nhầm | Cách đúng |
+| Misconception | Correct Behavior |
 | --- | --- |
-| “`for (int x : a) { x++; }` tăng từng phần tử `a`.” | Chỉ tăng **bản sao** trong biến `x` |
-| “Biến vòng lặp là bí danh trực tiếp của ô mảng.” | Biến chỉ nhận **giá trị** của phần tử |
-| “Tham chiếu được sao chép nghĩa là đối tượng được deep copy.” | Không; hai tham chiếu có thể trỏ cùng đối tượng |
-| “`box.value++` cũng không thể thay gì bên ngoài.” | Có thể sửa trạng thái đối tượng gốc |
-| “`box = new Box(...)` thay phần tử gốc.” | Không; phải ghi đè vị trí mảng hoặc list |
-| “`final Box box` khiến toàn bộ Box bất biến.” | Chỉ không cho gán lại biến `box` |
-| “Đổi `String s` bằng `s.toUpperCase()` sẽ cập nhật list.” | Không nếu không gán trở lại phần tử |
-| “Enhanced `for` phù hợp nhất để thay mọi phần tử tại chỗ.” | Thường dùng chỉ số, `set` hoặc `replaceAll` để thay |
+| "`for (int x : a) { x++; }` increments each element of `a`." | It only increments the **copy** in variable `x` |
+| "The loop variable is a direct alias of the array slot." | The variable only receives a **value** of the element |
+| "Copying a reference means the object is deep-copied." | No; two references can point to the same object |
+| "`box.value++` also cannot change anything outside." | It can mutate the state of the original object |
+| "`box = new Box(...)` replaces the original element." | No; you must overwrite the array or list slot |
+| "`final Box box` makes the entire Box immutable." | It only prevents reassigning the variable `box` |
+| "Changing `String s` with `s.toUpperCase()` updates the list." | Not unless you assign it back to the element |
+| "Enhanced `for` is best for replacing every element in place." | Usually use an index, `set`, or `replaceAll` to replace elements |
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-1. `int[] a = {1,2}; for (int x : a) x += 10;` — mảng có đổi không?  
-   *Đáp án:* Không, vẫn `{1,2}`.
-2. `String[] a = {"hi"}; for (String s : a) s = "bye";` — phần tử đầu là gì?  
-   *Đáp án:* `"hi"`.
-3. `Box[] a = {new Box(3)}; for (Box b : a) b.value++;` — giá trị trong `a[0]`?  
-   *Đáp án:* 4, vì sửa cùng đối tượng.
-4. Nếu thay `b.value++` bằng `b = new Box(9)`, phần tử gốc có bị thay không?  
-   *Đáp án:* Không.
-5. Với `int[][] grid`, `row[0]++` và `row = new int[1]` khác nhau thế nào?  
-   *Đáp án:* Phép đầu sửa mảng con gốc; phép sau chỉ gán lại biến `row`.
-6. Muốn thay toàn bộ `Integer` trong `List` theo công thức, dùng gì?  
-   *Gợi ý:* `list.replaceAll(...)` hoặc vòng theo chỉ số với `list.set(i, ...)`.
+1. `int[] a = {1,2}; for (int x : a) x += 10;` — does the array change?  
+   *Answer:* No, it remains `{1,2}`.
+2. `String[] a = {"hi"}; for (String s : a) s = "bye";` — what is the first element?  
+   *Answer:* `"hi"`.
+3. `Box[] a = {new Box(3)}; for (Box b : a) b.value++;` — what is the value in `a[0]`?  
+   *Answer:* 4, because it mutates the same object.
+4. If `b.value++` is replaced with `b = new Box(9)`, is the original element replaced?  
+   *Answer:* No.
+5. With `int[][] grid`, how do `row[0]++` and `row = new int[1]` differ?  
+   *Answer:* The former modifies the original subarray; the latter only reassigns the variable `row`.
+6. To replace all `Integer` elements in a `List` according to a formula, what do you use?  
+   *Hint:* `list.replaceAll(...)` or an indexed loop with `list.set(i, ...)`.
 
 ## Checklist
 
-- [ ] Hiểu enhanced `for` gán **giá trị phần tử** vào biến trong mỗi lượt.
-- [ ] Phân biệt sao chép **giá trị nguyên thủy** và sao chép **tham chiếu**.
-- [ ] Biết **gán lại biến vòng lặp không ghi ngược vào collection**.
-- [ ] Nhận diện việc **sửa trạng thái đối tượng** vẫn có thể được phản ánh qua phần tử gốc.
-- [ ] Dùng `array[i] = ...`, `list.set` hoặc `replaceAll` khi cần thay thế phần tử.
-- [ ] Biết giới hạn phạm vi biến, `final` và cách xử lý phần tử `null`.
+- [ ] Understand that enhanced `for` assigns **the element's value** to the variable on each iteration.
+- [ ] Distinguish copying **primitive values** from copying **references**.
+- [ ] Know that **reassigning the loop variable does not write back to the collection**.
+- [ ] Recognize that **mutating object state** can still be reflected through the original element.
+- [ ] Use `array[i] = ...`, `list.set`, or `replaceAll` when you need to replace elements.
+- [ ] Know variable scope limits, `final`, and how to handle `null` elements.
 
-**Kết luận:** Enhanced `for` là cách diễn đạt tốt khi **đọc từng phần tử**, nhưng biến vòng lặp chỉ nhận **một bản sao giá trị**. Với đối tượng, bản sao đó là **tham chiếu tới cùng đối tượng**, nên sửa thuộc tính có thể tác động đến đối tượng gốc, còn **gán lại biến tham chiếu** không thay vị trí phần tử trong mảng hoặc danh sách.
+**Conclusion:** Enhanced `for` is a good way to express **reading each element**, but the loop variable only receives **a copy of the value**. For objects, that copy is **a reference to the same object**, so modifying properties can affect the original object, whereas **reassigning the reference variable** does not replace the element slot in an array or list.

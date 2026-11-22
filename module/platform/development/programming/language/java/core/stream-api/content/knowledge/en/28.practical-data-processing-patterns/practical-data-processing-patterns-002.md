@@ -1,73 +1,73 @@
-# Lập chỉ mục và phát hiện bản ghi trùng theo khóa nghiệp vụ
+# Indexing and Detecting Duplicate Records by Business Key
 
-## 1. Bài toán: từ danh sách bản ghi đến chỉ mục tra cứu đáng tin cậy
+## 1. Problem: From a List of Records to a Reliable Lookup Index
 
-Trong chương **Mẫu xử lý dữ liệu thực tế** của **JAVA_STREAM_API**, các pipeline `filter`, `map`, `collect` và `reduce` không chỉ dùng để biến đổi danh sách. Một ứng dụng thường nhận nhiều bản ghi từ API, file hoặc hệ thống đối tác, rồi cần trả lời nhanh:
+In the **Practical Data Processing Patterns** chapter of **JAVA_STREAM_API**, `filter`, `map`, `collect`, and `reduce` pipelines are not used only for transforming lists. An application often receives many records from APIs, files, or partner systems and needs to quickly answer:
 
-- Có bản ghi nào mang cùng **khóa nghiệp vụ** hay không?
-- Với mỗi khóa, cần chọn **một bản ghi đại diện**, gộp giá trị hay **từ chối cả nhóm**?
-- Có thể tạo `Map<Key, Record>` để tra cứu trực tiếp thay vì quét lại `List` nhiều lần không?
-- Cách chuẩn hóa khóa có làm hai bản ghi vốn khác nhau bị coi là trùng hay không?
-- Làm sao báo cáo bản ghi bị trùng để kiểm tra dữ liệu nguồn, thay vì âm thầm ghi đè?
+- Are there records sharing the same **business key**?
+- For each key, should we select **a representative record**, merge values, or **reject the whole group**?
+- Can we build a `Map<Key, Record>` for direct lookup instead of scanning a `List` repeatedly?
+- Does key normalization cause two originally distinct records to be treated as duplicates?
+- How do we report duplicate records to inspect source data instead of silently overwriting?
 
-Ví dụ hệ thống nhận các bản ghi tồn kho:
+For example, a system receives inventory records:
 
 ~~~text
-Nguồn:
+Source:
 [tenant=T1, sku=" book ", version=1, quantity=10]
 [tenant=T1, sku="BOOK",   version=2, quantity=8]
 [tenant=T1, sku="PEN",    version=1, quantity=5]
 [tenant=T2, sku="BOOK",   version=1, quantity=100]
 
-Quy tắc nghiệp vụ:
-- SKU không phân biệt chữ hoa/thường và khoảng trắng đầu/cuối.
-- Một SKU chỉ duy nhất trong phạm vi một tenant.
-- Các bản ghi có cùng tenant + SKU chuẩn hóa là cùng khóa.
-- version càng lớn càng mới; quantity là snapshot, KHÔNG phải lượng để cộng.
+Business rules:
+- SKU is case-insensitive and ignores leading/trailing whitespace.
+- An SKU is unique only within a single tenant.
+- Records with the same normalized tenant + SKU share the same key.
+- Higher version means newer; quantity is a snapshot, NOT an amount to sum.
 
-Khóa chuẩn hóa:
-(T1, BOOK) -> 2 bản ghi  -> cần kiểm tra trùng -> chọn version 2
-(T1, PEN)  -> 1 bản ghi  -> hợp lệ
-(T2, BOOK) -> 1 bản ghi  -> độc lập với (T1, BOOK)
+Normalized keys:
+(T1, BOOK) -> 2 records -> check duplicates -> pick version 2
+(T1, PEN)  -> 1 record  -> valid
+(T2, BOOK) -> 1 record  -> independent of (T1, BOOK)
 ~~~
 
-Một kết quả thường gồm **hai sản phẩm riêng**:
+A result typically consists of **two separate artifacts**:
 
-1. **Chỉ mục cuối cùng** `Map<BusinessKey, Record>` để truy vấn nhanh theo khóa.
-2. **Báo cáo chất lượng dữ liệu** chứa những khóa trùng và các bản ghi liên quan.
+1. **Final index** `Map<BusinessKey, Record>` for fast lookup by key.
+2. **Data-quality report** containing duplicate keys and their associated records.
 
-Nếu chỉ tạo Map rồi bỏ qua thông tin trùng, ta có thể đánh mất dấu vết một lỗi nghiệp vụ nghiêm trọng.
+If you only build the Map and discard duplicate information, you can lose the trail of a serious business error.
 
-Bài dùng **Java 17+** với `record`, `Stream.toList()` và `Collectors`. Mục đích là thiết kế quy trình có hợp đồng rõ ràng, nhận biết các giới hạn về `null`, thứ tự, dữ liệu mutable và xử lý song song. Đây là một mẫu xử lý dữ liệu trong bộ môn Stream API, không phải cơ chế thay thế ràng buộc duy nhất ở cơ sở dữ liệu.
+This lesson uses **Java 17+** with `record`, `Stream.toList()`, and `Collectors`. The goal is to design a workflow with an explicit contract while recognizing limits around `null`, ordering, mutable data, and parallel processing. This is a data-processing pattern in the Stream API module, not a replacement for uniqueness constraints in a database.
 
-## 2. Khóa nghiệp vụ không nhất thiết là ID của bản ghi
+## 2. A Business Key Is Not Necessarily a Record ID
 
-**Khóa kỹ thuật** thường do hệ thống tạo ra, ví dụ ID bản ghi, UUID hoặc số thứ tự import. **Khóa nghiệp vụ** là tập thuộc tính xác định một thực thể theo quy tắc domain.
+A **technical key** is typically system-generated, such as a row ID, UUID, or import sequence number. A **business key** is the set of attributes identifying an entity according to domain rules.
 
-| Bối cảnh | Khóa kỹ thuật | Khóa nghiệp vụ có thể là |
+| Context | Technical Key | Possible Business Key |
 | --- | --- | --- |
-| Sản phẩm theo khách hàng | `rowId` | `(tenantId, normalizedSku)` |
-| Đơn hàng từ đối tác | `internalId` | `(partnerId, externalOrderId)` |
-| Giao dịch ngân hàng | `databaseId` | Mã giao dịch/định danh chống nhập trùng theo hợp đồng |
-| Đăng ký khóa học | `enrollmentId` | `(studentId, courseId, term)` |
-| Báo cáo ngày | `rowId` | `(accountId, date, metricType)` |
+| Product per customer | `rowId` | `(tenantId, normalizedSku)` |
+| Order from partner | `internalId` | `(partnerId, externalOrderId)` |
+| Bank transaction | `databaseId` | Transaction code / contract idempotency identifier |
+| Course enrollment | `enrollmentId` | `(studentId, courseId, term)` |
+| Daily report | `rowId` | `(accountId, date, metricType)` |
 
-Không tự chọn một trường “có vẻ duy nhất” nếu nghiệp vụ chưa xác nhận. Chẳng hạn, cùng một SKU có thể hợp lệ ở **hai tenant khác nhau**; dùng SKU đơn lẻ làm khóa sẽ tạo **trùng giả** và làm mất dữ liệu.
+Do not pick a field that merely "looks unique" without business confirmation. For instance, the same SKU may be valid across **two different tenants**; using SKU alone as the key creates **false duplicates** and drops data.
 
-### Trùng khóa không có nghĩa hai bản ghi hoàn toàn giống nhau
+### Key Duplication Does Not Mean Two Records Are Identical
 
-Hai dòng có thể:
+Two rows may be:
 
-- **Trùng hoàn toàn:** cùng khóa, cùng phiên bản, cùng mọi trường.
-- **Trùng khóa nhưng khác phiên bản:** cần chọn bản mới nhất hoặc giữ lịch sử.
-- **Trùng khóa và mâu thuẫn:** cùng phiên bản nhưng giá trị khác nhau; có thể phải báo lỗi.
-- **Không trùng sau khi thêm phạm vi:** cùng SKU nhưng khác tenant là hai thực thể riêng.
+- **Exact duplicates:** same key, same version, same values across all fields.
+- **Same key, different versions:** need to keep the newest record or retain history.
+- **Same key and conflicting:** same version but differing values; may need to raise an error.
+- **Not duplicates once scoped properly:** same SKU but different tenants are two separate entities.
 
-Vì vậy, thao tác phát hiện trùng khóa **không tương đương** `stream.distinct()` trên toàn bộ record: `distinct()` xét `equals` của phần tử, còn khóa nghiệp vụ có thể chỉ là một số trường sau chuẩn hóa.
+Therefore, duplicate-key detection is **not equivalent** to `stream.distinct()` across the whole record: `distinct()` checks element `equals`, whereas a business key may consist only of certain fields after normalization.
 
-## 3. Định nghĩa khóa chuẩn hóa bằng record bất biến
+## 3. Define Normalized Keys Using Immutable Records
 
-Ta mô hình hóa dữ liệu nhập thành `StockRow` và khóa nghiệp vụ thành `BusinessKey`. Record giúp nhận được `equals` và `hashCode` theo các thành phần khóa, điều kiện cần để dùng làm khóa của `HashMap`.
+We model imported data as `StockRow` and the business key as `BusinessKey`. A record gives us `equals` and `hashCode` based on key components, which is required for use as a `HashMap` key.
 
 ~~~java
 import java.util.Locale;
@@ -89,7 +89,7 @@ public class StockDomain {
         String result = text.strip().toUpperCase(Locale.ROOT);
         if (result.isEmpty()) {
             throw new IllegalArgumentException(
-                "Thành phần khóa không được rỗng"
+                "Key component must not be empty"
             );
         }
         return result;
@@ -105,7 +105,7 @@ public class StockDomain {
 }
 ~~~
 
-Theo **quy ước của ví dụ**, khóa không phân biệt chữ hoa/thường và khoảng trắng đầu/cuối. Với dữ liệu dưới đây:
+By the **example convention**, keys are case-insensitive and ignore leading/trailing whitespace. Given the data below:
 
 ~~~java
 StockDomain.StockRow a = new StockDomain.StockRow(
@@ -121,23 +121,23 @@ System.out.println(
 ); // true
 ~~~
 
-`record BusinessKey` là một **value object**: hai khóa có cùng cặp thành phần chuẩn hóa thì bằng nhau. Không nên tạo khóa bằng nối chuỗi không có phân cách như `tenant + sku`, vì `("AB","C")` và `("A","BC")` đều thành `"ABC"`.
+`record BusinessKey` is a **value object**: two keys with the same normalized components are equal. Avoid creating keys by concatenating strings without a separator like `tenant + sku`, because `("AB","C")` and `("A","BC")` both produce `"ABC"`.
 
-### Chuẩn hóa phải theo hợp đồng nghiệp vụ
+### Normalization Must Follow the Business Contract
 
-Việc `toUpperCase(Locale.ROOT)` ở đây là **quy tắc SKU giả định**, không phải cách chuẩn hóa an toàn cho mọi loại ID. Ví dụ:
+Calling `toUpperCase(Locale.ROOT)` here is an **assumed SKU rule**, not a safe normalization for every ID type. For example:
 
-- Địa chỉ email có quy tắc phân biệt chữ hoa/thường và alias phụ thuộc nhà cung cấp; không tự ý loại dấu chấm hay đoạn sau dấu cộng.
-- Một số mã đối tác phân biệt chữ hoa/thường; viết hoa mọi ký tự có thể tạo trùng giả.
-- Unicode có nhiều cách biểu diễn hoặc ký tự tương tự về hình dạng; chuẩn hóa Unicode, dấu và khoảng trắng phải được quy định riêng nếu cần.
-- SKU có số 0 đầu (như `"0012"`) không nên bị ép thành số `12` nếu hai mã khác nhau.
-- Với định danh chuỗi, không tự bỏ dấu gạch nối hoặc khoảng trắng ở giữa nếu hợp đồng chưa cho phép.
+- Email addresses have provider-dependent case sensitivity and alias rules; do not arbitrarily strip dots or plus-addressed suffixes.
+- Some partner codes are case-sensitive; uppercasing every character can create false collisions.
+- Unicode can have multiple representations or visually similar characters; Unicode normalization, diacritics, and whitespace rules must be specified explicitly if needed.
+- SKUs with leading zeros (such as `"0012"`) must not be coerced to number `12` if the two codes are distinct.
+- For string identifiers, do not arbitrarily strip hyphens or internal whitespace unless the contract explicitly permits it.
 
-**Quy tắc thiết kế:** Chuẩn hóa trước khi tạo khóa và dùng **cùng một hàm chuẩn hóa** khi xây chỉ mục lẫn khi truy vấn chỉ mục.
+**Design rule:** Normalize before constructing the key and use the **exact same normalization function** both when building the index and when querying it.
 
-## 4. Cách 1 — Lập chỉ mục bằng toMap khi khóa phải duy nhất
+## 4. Approach 1 — Indexing with toMap When Keys Must Be Unique
 
-Nếu hợp đồng đầu vào bảo đảm không có khóa trùng, `Collectors.toMap(keyMapper, valueMapper)` là cách ngắn gọn để tạo một chỉ mục:
+If the input contract guarantees no duplicate keys, `Collectors.toMap(keyMapper, valueMapper)` is a concise way to build an index:
 
 ~~~java
 import java.util.List;
@@ -150,9 +150,9 @@ public class UniqueIndex {
 
     public static void main(String[] args) {
         List<Product> products = List.of(
-            new Product("BOOK", "Sách"),
-            new Product("PEN", "Bút"),
-            new Product("PAD", "Sổ")
+            new Product("BOOK", "Book"),
+            new Product("PEN", "Pen"),
+            new Product("PAD", "Notebook")
         );
 
         Map<String, Product> bySku = products.stream()
@@ -161,15 +161,15 @@ public class UniqueIndex {
                 Function.identity()
             ));
 
-        System.out.println(bySku.get("PEN").name()); // Bút
+        System.out.println(bySku.get("PEN").name()); // Pen
         System.out.println(bySku.size()); // 3
     }
 }
 ~~~
 
-`Function.identity()` giữ nguyên đối tượng làm **giá trị Map**. Key mapper có thể được thay bằng `StockDomain::businessKey` khi kiểu đầu vào là `StockRow`.
+`Function.identity()` keeps the element itself as the **Map value**. The key mapper can be replaced by `StockDomain::businessKey` when the input type is `StockRow`.
 
-### Khóa trùng mặc định gây lỗi, không âm thầm ghi đè
+### Duplicate Keys Fail by Default Instead of Silently Overwriting
 
 ~~~java
 import java.util.List;
@@ -179,24 +179,24 @@ import java.util.stream.Collectors;
 record Product(String sku, String name) {}
 
 List<Product> duplicates = List.of(
-    new Product("BOOK", "Sách A"),
-    new Product("BOOK", "Sách B")
+    new Product("BOOK", "Book A"),
+    new Product("BOOK", "Book B")
 );
 
-// Ném IllegalStateException khi có khóa BOOK trùng:
+// Throws IllegalStateException when BOOK key is duplicated:
 duplicates.stream().collect(Collectors.toMap(
     Product::sku,
     Function.identity()
 ));
 ~~~
 
-Điểm mạnh của overload này là **phát hiện xung đột ngay trong quá trình thu thập**. Nó hợp lý khi bản ghi trùng **là lỗi và chương trình cần thất bại**. Tuy nhiên, ngoại lệ không phải một **báo cáo đầy đủ** về tất cả khóa trùng; nếu cần tổng hợp mọi xung đột để phản hồi cho người nhập dữ liệu, xem các mẫu `groupingBy` bên dưới.
+The strength of this overload is **catching conflicts immediately during collection**. It makes sense when duplicate records **are an error and the program should fail**. However, an exception is not a **complete report** of all duplicate keys; if you need to gather every conflict for feedback to the data submitter, see the `groupingBy` patterns below.
 
-`Collectors.toMap` mặc định không cam kết loại Map, thứ tự duyệt khóa, khả năng sửa đổi hoặc an toàn luồng của kết quả. Chỉ dựa vào giao diện `Map` trừ khi chọn `mapFactory` cụ thể.
+By default, `Collectors.toMap` makes no guarantees about Map implementation type, key iteration order, mutability, or thread safety of the result. Rely only on the `Map` interface unless you supply a specific `mapFactory`.
 
-## 5. Cách 2 — Đếm tần suất để phát hiện khóa trùng
+## 5. Approach 2 — Counting Frequencies to Detect Duplicate Keys
 
-Khi muốn biết **mọi khóa trùng** và số lần xuất hiện, `groupingBy(keyMapper, counting())` phù hợp. Kết quả là `Map<Key, Long>`; khóa có số đếm lớn hơn 1 là khóa trùng.
+When you want to find **every duplicate key** and how many times it appears, `groupingBy(keyMapper, counting())` fits well. The result is `Map<Key, Long>`; keys with count greater than 1 are duplicates.
 
 ~~~java
 import java.util.List;
@@ -236,16 +236,16 @@ public class CountDuplicates {
 }
 ~~~
 
-Đây là **phát hiện trùng**, chưa phải **giải quyết trùng**. Dữ liệu `BOOK` xuất hiện hai lần, nhưng bài toán còn phải trả lời: nên cộng quantity, chọn phiên bản mới nhất, giữ cả hai hay từ chối import?
+This is **duplicate detection**, not yet **duplicate resolution**. `BOOK` appears twice, yet the problem still requires deciding: should we sum quantities, pick the latest version, keep both, or reject the import?
 
-### Đếm theo khóa đã chuẩn hóa, không phải chuỗi thô
+### Count by Normalized Key, Not Raw String
 
 ~~~java
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// StockDomain.businessKey đã định nghĩa ở mục 3.
+// StockDomain.businessKey was defined in section 3.
 List<StockDomain.StockRow> rows = List.of(
     new StockDomain.StockRow("1", "T1", " book ", 1, 10),
     new StockDomain.StockRow("2", "t1", "BOOK", 2, 8),
@@ -267,11 +267,11 @@ System.out.println(counts.get(
 )); // 1
 ~~~
 
-Chú ý khóa dùng để tra cứu trong Map phải ở dạng chuẩn hóa. Nếu lấy raw SKU `" book "` để gọi `get`, Map sẽ không tự chuẩn hóa lại tham số tra cứu.
+Note that keys used for Map lookup must already be normalized. Passing a raw SKU like `" book "` to `get` will not cause the Map to normalize the lookup argument automatically.
 
-## 6. Cách 3 — Giữ toàn bộ bản ghi trong nhóm trùng
+## 6. Approach 3 — Retaining All Records Within Duplicate Groups
 
-Nếu bộ phận nhập liệu cần kiểm tra **những dòng cụ thể nào** gây xung đột, chỉ đếm là chưa đủ. Dùng `groupingBy` với downstream là `toList()`, rồi chỉ giữ các nhóm có kích thước lớn hơn một.
+If the ingestion team needs to inspect **which specific rows** caused a conflict, counting alone is insufficient. Use `groupingBy` with a `toList()` downstream, then retain only groups whose size exceeds one.
 
 ~~~java
 import java.util.LinkedHashMap;
@@ -315,17 +315,17 @@ public class DuplicateGroups {
 }
 ~~~
 
-Các quyết định của ví dụ:
+Decisions in this example:
 
-1. `LinkedHashMap::new` làm Map nhóm duyệt theo **thứ tự khóa được gặp lần đầu** trên Stream tuần tự có encounter order.
-2. `toList()` giữ từng bản ghi thuộc nhóm, không loại thông tin.
-3. `filter(size > 1)` xác định nhóm trùng, không phải chỉ trùng hoàn toàn theo record `equals`.
-4. `List.copyOf(...)` tạo List không sửa đổi được cho báo cáo nhóm, đồng thời **cấm phần tử null**.
-5. `toMap(..., LinkedHashMap::new)` giữ lại thứ tự duyệt khóa của các nhóm đã lọc.
+1. `LinkedHashMap::new` makes the group Map iterate in **first-seen key order** over a sequential Stream with encounter order.
+2. `toList()` preserves every record in the group without losing details.
+3. `filter(size > 1)` identifies duplicate-key groups, not merely exact `equals` duplicates.
+4. `List.copyOf(...)` creates an unmodifiable List for the group report while **forbidding null elements**.
+5. `toMap(..., LinkedHashMap::new)` preserves the key iteration order of the filtered groups.
 
-Nếu không cần thứ tự khóa, có thể bỏ factory `LinkedHashMap`. Với dữ liệu lớn, lưu toàn bộ các nhóm có chi phí bộ nhớ gần theo **số bản ghi đầu vào**. Chỉ dùng đếm nếu đó là tất cả thông tin cần thu thập.
+If key order does not matter, you can omit the `LinkedHashMap` factory. For large datasets, storing entire groups carries memory cost roughly proportional to **the number of input records**. Use counting alone if that is all you need.
 
-### Trùng hoàn toàn hay trùng khóa?
+### Exact Duplicate or Duplicate Key?
 
 ~~~java
 record Row(String sku, int quantity) {}
@@ -343,11 +343,11 @@ long businessKeyDistinctCount = rows.stream()
     .count(); // 1
 ~~~
 
-`distinct()` trên `Row` giữ cả hai vì `quantity` khác nhau. Sau khi `map(Row::sku)`, phép `distinct()` chỉ so sánh SKU. Tuy nhiên, một `Stream<String>` của các SKU riêng biệt **không** cho biết từng bản ghi gốc nào đã trùng. Muốn điều tra, giữ nhóm bản ghi như ví dụ trước.
+`distinct()` on `Row` retains both because `quantity` differs. After `map(Row::sku)`, `distinct()` compares only SKUs. However, a `Stream<String>` of distinct SKUs **does not** tell you which original records collided. To investigate, retain record groups as in the previous example.
 
-## 7. Cách 4 — Chọn bản ghi đại diện bằng mergeFunction
+## 7. Approach 4 — Choosing a Representative Record with mergeFunction
 
-Nếu có khóa trùng nhưng ứng dụng cần **một giá trị cuối cùng cho mỗi khóa**, dùng overload ba tham số:
+If keys can repeat and the application needs **one final value per key**, use the three-argument overload:
 
 ~~~java
 Collectors.toMap(
@@ -357,9 +357,9 @@ Collectors.toMap(
 )
 ~~~
 
-`mergeFunction` nhận hai giá trị đã được ánh xạ và quyết định giá trị giữ lại.
+`mergeFunction` receives two mapped values and decides which value to keep.
 
-### 7.1. Chọn giá trị đầu hoặc cuối: chỉ khi thứ tự là quy tắc được định nghĩa
+### 7.1. Choosing First or Last Value: Only When Order Is a Defined Rule
 
 ~~~java
 import java.util.List;
@@ -369,8 +369,8 @@ import java.util.stream.Collectors;
 record Row(String key, String value) {}
 
 List<Row> rows = List.of(
-    new Row("K", "bản ghi đầu"),
-    new Row("K", "bản ghi sau")
+    new Row("K", "first record"),
+    new Row("K", "second record")
 );
 
 Map<String, String> firstWins = rows.stream()
@@ -387,15 +387,15 @@ Map<String, String> lastWins = rows.stream()
         (left, right) -> right
     ));
 
-System.out.println(firstWins.get("K")); // bản ghi đầu
-System.out.println(lastWins.get("K"));  // bản ghi sau
+System.out.println(firstWins.get("K")); // first record
+System.out.println(lastWins.get("K"));  // second record
 ~~~
 
-Trong ví dụ là **List tuần tự có encounter order**. Nếu nguồn không có thứ tự, hoặc dùng một collector `UNORDERED` như `toConcurrentMap`, cách chọn đại diện bằng vị trí `left/right` không tạo chính sách “đầu/ cuối theo thời gian” đáng tin cậy.
+Here the source is a **sequential List with encounter order**. If the source is unordered, or you use an `UNORDERED` collector like `toConcurrentMap`, picking by `left/right` position does not yield a reliable "first/last in time" policy.
 
-Hơn nữa, thứ tự trong file không nhất thiết là **thời gian cập nhật** của thực thể. Nếu nghiệp vụ nói “giữ bản ghi mới nhất”, phải so sánh `version`, `updatedAt` hay khóa ưu tiên có định nghĩa rõ ràng.
+Moreover, file order is not necessarily the entity's **update time**. If business rules say "keep the newest record", compare `version`, `updatedAt`, or a clearly defined precedence key.
 
-### 7.2. Chọn phiên bản mới nhất theo trường version
+### 7.2. Choosing the Latest Version via a version Field
 
 ~~~java
 import java.util.Comparator;
@@ -433,16 +433,16 @@ public class LatestByVersion {
 }
 ~~~
 
-**Không cộng `quantity` của hai snapshot** nếu mỗi bản ghi mô tả trạng thái tồn kho ở một thời điểm khác nhau. Tổng `10 + 8 = 18` sẽ sai nghiệp vụ; kết quả cần là **8**, thuộc phiên bản mới nhất.
+**Do not sum `quantity` across two snapshots** when each record describes inventory state at a different point in time. Summing `10 + 8 = 18` is wrong for the business; the answer must be **8**, from the latest version.
 
-Nếu hai bản ghi cùng SKU có **cùng version nhưng quantity khác nhau**, `maxBy` với comparator chỉ theo version chưa đủ để định nghĩa đại diện. Có hai hướng hợp lý:
+If two records with the same SKU have the **same version but different quantities**, `maxBy` using a version-only comparator does not sufficiently define the winner. Two reasonable options are:
 
-- **Báo xung đột** vì hai snapshot cùng version mâu thuẫn.
-- **Đặt quy tắc phá hòa** dựa vào một trường ổn định và có ý nghĩa (ví dụ ID ưu tiên theo nguồn), nếu nghiệp vụ cho phép.
+- **Report a conflict** because two snapshots with the same version contradict each other.
+- **Define a tie-breaker** based on a stable, meaningful field (such as a source-priority ID), if business rules permit.
 
-### 7.3. Xử lý tie một cách tường minh
+### 7.3. Handling Ties Explicitly
 
-Một merge function có thể từ chối trường hợp xung đột ở cùng version:
+A merge function can reject conflicting same-version collisions:
 
 ~~~java
 import java.util.function.BinaryOperator;
@@ -452,7 +452,7 @@ BinaryOperator<LatestByVersion.Snapshot> chooseOrReject =
         if (left.version() == right.version()) {
             if (!left.equals(right)) {
                 throw new IllegalStateException(
-                    "Cùng SKU và version nhưng dữ liệu khác nhau"
+                    "Same SKU and version but differing data"
                 );
             }
             return left;
@@ -461,13 +461,13 @@ BinaryOperator<LatestByVersion.Snapshot> chooseOrReject =
     };
 ~~~
 
-Dùng logic này khi snapshot có cùng version phải **hoàn toàn giống nhau** theo hợp đồng. Với các bản ghi có metadata kỹ thuật khác nhau nhưng payload tương đương, hãy so sánh những trường payload **có ý nghĩa nghiệp vụ**, không nhất thiết so sánh toàn bộ record.
+Use this logic when same-version snapshots must be **strictly identical** by contract. For records whose technical metadata differs while payloads are equivalent, compare the **business-meaningful** payload fields rather than necessarily comparing the entire record.
 
-Việc ném lỗi trong merge làm import dừng lại; nếu muốn trả **toàn bộ danh sách lỗi**, nên `groupingBy` để thu thập xung đột trước, rồi mới chọn đại diện ở bước sau.
+Throwing an exception during merge halts the import; if you want to return a **complete error list**, use `groupingBy` to collect conflicts first, then select representatives in a subsequent step.
 
-## 8. Cách 5 — Gộp giá trị theo khóa khi dữ liệu là các phát sinh độc lập
+## 8. Approach 5 — Merging Values by Key When Records Are Independent Events
 
-Không phải mọi trùng khóa đều là lỗi. Nếu mỗi bản ghi là một **phát sinh độc lập**, nhiều dòng cùng SKU có thể cần **cộng dồn**.
+Not every duplicate key is an error. When each record represents an **independent event**, multiple rows with the same SKU may need to be **accumulated**.
 
 ~~~java
 import java.util.List;
@@ -497,23 +497,23 @@ public class SoldUnitsIndex {
 }
 ~~~
 
-`Long::sum` là phép gộp **kết hợp** và **giao hoán** trên ngữ nghĩa số nguyên Java; không phụ thuộc thứ tự dòng theo cách phép chọn “bản ghi cuối” phụ thuộc thứ tự. Dù vậy, `long` vẫn có nguy cơ tràn nếu yêu cầu tổng toán học vượt miền biểu diễn.
+`Long::sum` is an **associative** and **commutative** merge operation under Java integer semantics; it does not depend on row order the way "last record" selection does. Still, `long` can overflow if the mathematical sum exceeds its range.
 
-### Phân biệt dữ liệu snapshot và dữ liệu event
+### Distinguish Snapshot Data from Event Data
 
-| Dạng dữ liệu | Hai dòng cùng khóa | Phép xử lý thường hợp lý |
+| Data Kind | Two Rows Sharing a Key | Usually Valid Handling |
 | --- | --- | --- |
-| Snapshot số lượng tồn kho | Hai trạng thái của cùng thực thể | Chọn bản mới nhất hoặc báo xung đột |
-| Dòng bán hàng | Hai phát sinh bán độc lập | Cộng lượng bán |
-| Thông tin khách hàng | Hai cập nhật của một hồ sơ | So version/timestamp, xử lý tie |
-| Đăng ký lớp học | Hai lần đăng ký cùng sinh viên/lớp/kỳ | Thường báo trùng hoặc giữ một đăng ký hợp lệ |
-| Sự kiện giao dịch trùng request ID | Có thể là retry cùng giao dịch | Kiểm tra idempotency, không cộng tiền hai lần |
+| Inventory quantity snapshot | Two states of the same entity | Pick newest version or report conflict |
+| Sales line | Two independent sales occurrences | Sum sold units |
+| Customer profile | Two updates to one profile | Compare version/timestamp, handle ties |
+| Course registration | Two registrations for same student/class/term | Usually report duplicate or keep one valid registration |
+| Transaction event with duplicate request ID | Likely a retry of the same transaction | Check idempotency, do not add money twice |
 
-Không được chọn merge function chỉ vì nó **biên dịch được**. Nó phải thực thi đúng ý nghĩa của “trùng khóa” trong từng loại dữ liệu.
+Never pick a merge function merely because it **compiles**. It must enforce the true meaning of "duplicate key" for that kind of data.
 
-## 9. Khóa kết hợp và phạm vi định danh nhiều tầng
+## 9. Composite Keys and Multi-Level Identity Scope
 
-Một business key có thể là **nhiều trường**. Với tồn kho đa tenant, `sku` chỉ duy nhất trong phạm vi `tenantId`:
+A business key may consist of **multiple fields**. In multi-tenant inventory, `sku` is unique only within a `tenantId`:
 
 ~~~java
 record BusinessKey(String tenantId, String sku) {}
@@ -534,9 +534,9 @@ Map<BusinessKey, Row> byBusinessKey = rows.stream()
 System.out.println(byBusinessKey.size()); // 2
 ~~~
 
-Nếu chỉ dùng `Row::sku` làm khóa, collector hai tham số sẽ ném `IllegalStateException` do hai dòng có SKU `BOOK`. Nhưng đây là **hai dòng hợp lệ ở hai tenant**, nên xung đột đó là **trùng giả do định nghĩa khóa sai**.
+If you use `Row::sku` alone as the key, the two-argument collector throws `IllegalStateException` because both rows have SKU `BOOK`. Yet these are **two valid rows in different tenants**, so that conflict would be a **false duplicate caused by a wrong key definition**.
 
-### Khi nào dùng Map lồng nhau?
+### When to Use Nested Maps?
 
 ~~~java
 import java.util.List;
@@ -555,25 +555,25 @@ Map<String, Map<String, Row>> byTenantThenSku = rows.stream()
 System.out.println(byTenantThenSku.get("T1").get("BOOK").quantity()); // 10
 ~~~
 
-Hai thiết kế đều có thể hợp lý:
+Both designs can be appropriate:
 
-- `Map<BusinessKey, Row>`: chỉ mục phẳng, lookup bằng một object khóa; thuận tiện cho so sánh, cache và chuyển đổi.
-- `Map<Tenant, Map<Sku, Row>>`: diễn đạt cấu trúc phân cấp; thuận tiện khi cần lấy tất cả SKU của một tenant.
+- `Map<BusinessKey, Row>`: flat index, lookup via a single key object; convenient for comparisons, caching, and conversions.
+- `Map<Tenant, Map<Sku, Row>>`: expresses hierarchical structure; convenient when fetching all SKUs for one tenant.
 
-Ở Map lồng nhau, `toMap` phía trong vẫn ném lỗi nếu có **hai SKU trùng trong cùng tenant**. Nhờ đó, ranh giới định danh được phản ánh chính xác.
+In the nested Map, the inner `toMap` still fails if there are **two duplicate SKUs within the same tenant**. Thus, identity boundaries are modeled accurately.
 
-## 10. Kiểm soát null và dữ liệu không hợp lệ trước khi lập chỉ mục
+## 10. Controlling Nulls and Invalid Data Before Indexing
 
-Các collector không tự biết `null` có nghĩa gì trong nghiệp vụ. Đặc biệt:
+Collectors do not know on their own what `null` means in your domain. Specifically:
 
-- `groupingBy` trong JDK chuẩn không chấp nhận classifier trả khóa `null`.
-- `Collectors.toUnmodifiableMap` cấm cả khóa và giá trị `null`.
-- `Collectors.toMap` không nên được dùng như một hợp đồng chấp nhận `null` trên mọi triển khai. Nhiều trường hợp giá trị null dẫn tới `NullPointerException`.
-- `List.of(...)` không chấp nhận phần tử null, trong khi nguồn như `Arrays.asList(...)` có thể chứa.
+- `groupingBy` in the standard JDK does not allow classifiers to return a `null` key.
+- `Collectors.toUnmodifiableMap` forbids both `null` keys and `null` values.
+- `Collectors.toMap` should not be treated as a contract that accepts `null` across implementations. In many cases `null` values lead to `NullPointerException`.
+- `List.of(...)` rejects null elements, whereas sources such as `Arrays.asList(...)` may contain them.
 
-**Mẫu rõ ràng nhất** là quyết định chính sách đầu vào trước khi gọi collector: **từ chối**, **lọc**, hoặc **chuyển thành một trạng thái khóa có ý nghĩa**.
+The **clearest pattern** is to decide the input policy before invoking a collector: **reject**, **filter out**, or **map into an explicit key state**.
 
-### 10.1. Lọc những dòng không thể lập khóa
+### 10.1. Filtering Out Rows That Cannot Form a Key
 
 ~~~java
 import java.util.Arrays;
@@ -604,37 +604,37 @@ Map<String, Row> index = valid.stream()
     ));
 
 System.out.println(valid.size()); // 2
-System.out.println(index.keySet()); // Chứa BOOK và PEN.
+System.out.println(index.keySet()); // Contains BOOK and PEN.
 ~~~
 
-Ở đây chọn **bỏ bản ghi lỗi** để minh họa. Trong quy trình tài chính hoặc tích hợp dữ liệu quan trọng, thường nên có báo cáo số dòng bị loại và nguyên nhân, hoặc dừng import. Không âm thầm biến null thành một khóa mặc định nếu nó có thể vô tình gộp nhiều thực thể khác nhau.
+Here we chose to **drop invalid records** for illustration. In financial workflows or critical data integrations, you should typically report dropped row counts and reasons, or abort the import. Do not silently convert null into a default key if doing so could accidentally merge distinct entities.
 
-### 10.2. Phát hiện null trước khi so sánh
+### 10.2. Detecting Nulls Before Comparing
 
 ~~~java
-// KHÔNG nên gọi row.sku().strip() trước khi
-// bảo đảm row != null và row.sku() != null.
+// Do NOT call row.sku().strip() before
+// ensuring row != null and row.sku() != null.
 ~~~
 
-`String::strip` và `toUpperCase` cần đối tượng `String` hợp lệ. `filter(Objects::nonNull)` cho dòng nguồn phải đứng trước phép truy cập trường; sau đó kiểm tra các trường thành phần của khóa.
+`String::strip` and `toUpperCase` require a valid `String` instance. `filter(Objects::nonNull)` for the source row must precede field access; afterward, validate the key component fields.
 
-### 10.3. Quy trình chuẩn hóa không được giữ state ẩn
+### 10.3. Key Normalization Must Not Hold Hidden State
 
-Hàm tạo khóa nên **thuần**: cùng bản ghi luôn tạo cùng khóa, không phụ thuộc biến đếm, thời gian hiện tại hay thứ tự callback. Trong parallel stream, mapper có thể chạy theo lịch bất kỳ; một key mapper thay đổi theo thời gian sẽ làm kết quả mất tính xác định.
+Key-building functions must be **pure**: the same record always produces the same key, without depending on counters, current time, or callback order. In a parallel stream, mappers may run in any schedule; a time-varying key mapper destroys determinism.
 
-## 11. Thứ tự đầu ra và lựa chọn Map phù hợp
+## 11. Output Order and Choosing the Right Map
 
-`Map` phục vụ **tra cứu theo khóa**, không mặc nhiên phục vụ một danh sách có thứ tự. `Collectors.toMap` và `groupingBy` mặc định không cam kết thứ tự duyệt khóa.
+A `Map` serves **key-based lookup**, not implicitly an ordered list. `Collectors.toMap` and `groupingBy` make no default guarantees about key iteration order.
 
-| Yêu cầu | Lựa chọn | Lưu ý |
+| Requirement | Choice | Notes |
 | --- | --- | --- |
-| Tra cứu bình thường, không quan tâm thứ tự | `toMap(key, value, merge)` | Không dựa vào `map.keySet()` có thứ tự |
-| Giữ thứ tự khóa gặp lần đầu từ List tuần tự | `toMap(key, value, merge, LinkedHashMap::new)` | Thứ tự chèn, không phải thứ tự version |
-| Muốn khóa sắp theo comparator | `toMap(key, value, merge, TreeMap::new)` | Comparator quyết định khóa trùng |
-| Map không sửa đổi được, dữ liệu không null | `toUnmodifiableMap(key, value, merge)` | Không cam kết thứ tự duyệt |
-| Map có thể dùng để cập nhật đồng thời | `toConcurrentMap(...)` | Collector `UNORDERED`, phải xét tính độc lập thứ tự |
+| Normal lookup, order unimportant | `toMap(key, value, merge)` | Do not rely on `map.keySet()` order |
+| Preserve first-seen key order from sequential List | `toMap(key, value, merge, LinkedHashMap::new)` | Insertion order, not version order |
+| Sort keys by comparator | `toMap(key, value, merge, TreeMap::new)` | Comparator defines key equivalence |
+| Unmodifiable Map, non-null data | `toUnmodifiableMap(key, value, merge)` | No iteration-order guarantee |
+| Map suitable for concurrent updates | `toConcurrentMap(...)` | `UNORDERED` collector; must consider order independence |
 
-Ví dụ tạo index theo thứ tự xuất hiện của khóa:
+Example building an index in key encounter order:
 
 ~~~java
 import java.util.LinkedHashMap;
@@ -661,7 +661,7 @@ Map<String, Integer> inFirstSeenOrder = rows.stream()
 System.out.println(inFirstSeenOrder); // {PEN=4, BOOK=2}
 ~~~
 
-Dữ liệu kết quả là Map có thể sửa được. Nếu muốn công bố index **không cho sửa cấu trúc** nhưng vẫn duyệt theo thứ tự chèn, có thể dùng:
+The resulting Map is mutable. If you want to publish a **structurally unmodifiable** index while still iterating in insertion order, you can use:
 
 ~~~java
 import java.util.Collections;
@@ -673,11 +673,11 @@ Map<String, Integer> published =
     );
 ~~~
 
-`Collections.unmodifiableMap` là view không cho sửa qua tham chiếu wrapper; việc tạo `new LinkedHashMap<>(...)` trước giúp tách cấu trúc khỏi Map xây dựng ban đầu. Tuy nhiên, các object giá trị mutable (nếu có) vẫn có thể thay đổi; đây **không tự động là bất biến sâu**.
+`Collections.unmodifiableMap` provides a read-only view through the wrapper reference; copying into `new LinkedHashMap<>(...)` decouples its structure from the builder Map. Still, mutable value objects (if any) remain mutable; this is **not automatically deep immutability**.
 
-## 12. Song song, đặc tính CONCURRENT của Collector và merge function
+## 12. Parallelism, Collector CONCURRENT Characteristic, and Merge Functions
 
-Khi dữ liệu lớn, có thể cân nhắc `parallelStream()`. Nhưng tính đúng phải được bảo đảm trước khi tối ưu.
+When datasets are large, you might consider `parallelStream()`. Correctness must be established before optimizing.
 
 ~~~java
 import java.util.List;
@@ -702,7 +702,7 @@ Map<String, Long> totals = sales.parallelStream()
 System.out.println(totals.get("BOOK")); // 5
 ~~~
 
-`toMap` **không** là concurrent collector, nhưng có thể dùng trên parallel stream. Framework có thể tích lũy vào các Map trung gian rồi **hợp nhất** chúng. `toConcurrentMap` là collector có `CONCURRENT` và `UNORDERED`, phù hợp khi muốn một `ConcurrentMap` và không cần thứ tự.
+`toMap` is **not** a concurrent collector, yet it can run on a parallel stream. The framework accumulates into intermediate Maps and then **merges** them. `toConcurrentMap` has both `CONCURRENT` and `UNORDERED` characteristics, fitting when you want a `ConcurrentMap` and do not need ordering.
 
 ~~~java
 import java.util.concurrent.ConcurrentMap;
@@ -717,9 +717,9 @@ ConcurrentMap<String, Long> concurrentTotals =
     );
 ~~~
 
-**Không dùng** `(left, right) -> right` làm “lấy bản ghi mới nhất” trong collector `UNORDERED`. Để kết quả nhất quán, dùng một hàm gộp **kết hợp** và, nếu thứ tự có thể thay đổi, nên **giao hoán** hoặc chọn đại diện theo khóa so sánh ổn định.
+**Do not use** `(left, right) -> right` as "pick the latest record" in an `UNORDERED` collector. For consistent results, use an **associative** merge function and, when order can vary, make it **commutative** or select representatives using a stable comparison key.
 
-### 12.1. Khi cần giữ tất cả nhóm trùng trong song song
+### 12.1. Retaining All Duplicate Groups in Parallel
 
 ~~~java
 import java.util.concurrent.ConcurrentMap;
@@ -733,24 +733,24 @@ ConcurrentMap<String, List<SaleLine>> grouped =
         ));
 ~~~
 
-`groupingByConcurrent` là collector `CONCURRENT` và `UNORDERED`. Danh sách trong nhóm không được bảo đảm giữ encounter order hoặc hỗ trợ các sửa đổi đồng thời tùy ý **sau khi thu thập**. Chọn collector tuần tự và loại Map có thứ tự nếu cần báo cáo điều tra trùng theo đúng trình tự nguồn.
+`groupingByConcurrent` is `CONCURRENT` and `UNORDERED`. Group lists are not guaranteed to preserve encounter order or support arbitrary concurrent mutations **after collection**. Choose a sequential collector and an ordered Map type when duplicate-investigation reports must match source order.
 
-### 12.2. Chi phí thực tế
+### 12.2. Practical Costs
 
-Các khóa “nóng” có nhiều bản ghi trùng khiến nhiều cập nhật cạnh tranh cùng một entry. Thời gian tính hash, chuẩn hóa khóa, merge object, GC và kết hợp Map có thể lớn hơn lợi ích song song. Không có ngưỡng kích thước cố định để `parallelStream` luôn nhanh hơn; hãy đo dữ liệu đại diện.
+"Hot" keys with many duplicates cause updates to contend on the same entry. Hashing, key normalization, object merging, GC, and Map merging costs can outweigh parallel speedups. There is no fixed size threshold where `parallelStream` is always faster; benchmark on representative data.
 
-## 13. Một quy trình nhập liệu hoàn chỉnh: giữ index và báo cáo trùng
+## 13. Complete Import Workflow: Keeping Both Index and Duplicate Report
 
-**Bài toán tổng hợp:** Dữ liệu tồn kho gồm tenant, SKU, version, quantity và ID dòng nhập. Đầu vào có thể có dòng `null` hoặc trường khóa không hợp lệ. Quy tắc:
+**Synthesis problem:** Inventory data contains tenant, SKU, version, quantity, and import row ID. Inputs may contain `null` rows or invalid key fields. Rules:
 
-1. Dòng thiếu tenant, SKU, rowId hoặc có version/quantity âm bị loại vào số đếm lỗi.
-2. SKU và tenant được chuẩn hóa bằng `strip().toUpperCase(Locale.ROOT)` theo quy tắc bài.
-3. Hai dòng cùng `BusinessKey(tenant, sku)` được ghi nhận là trùng, dù version khác nhau.
-4. Chỉ mục cuối cùng giữ snapshot có version **cao nhất**.
-5. Nếu version bằng nhau, bài minh họa phá hòa bằng `rowId` theo thứ tự chữ cái để kết quả xác định. **Trong hệ thống thật, cần xác nhận chính sách này**, hoặc báo lỗi nếu payload mâu thuẫn.
-6. Khóa Map được duyệt theo lần xuất hiện đầu trong danh sách đầu vào; kết quả được công bố dưới dạng Map không cho sửa cấu trúc.
+1. Rows missing tenant, SKU, or rowId, or having negative version/quantity, are counted as rejected.
+2. SKU and tenant are normalized with `strip().toUpperCase(Locale.ROOT)` per exercise rules.
+3. Two rows sharing `BusinessKey(tenant, sku)` are recorded as duplicates even if versions differ.
+4. The final index keeps the snapshot with the **highest** version.
+5. On equal versions, this illustration breaks ties lexicographically by `rowId` so results stay deterministic. **In production, confirm this policy** or raise an error when payloads contradict each other.
+6. Map keys iterate in first-seen order from the input list; results are published as structurally unmodifiable Maps.
 
-### Lời giải Java 17+ đầy đủ
+### Complete Java 17+ Solution
 
 ~~~java
 import java.util.Arrays;
@@ -812,7 +812,7 @@ public class StockImport {
 
         long rejectedCount = source.size() - valid.size();
 
-        // Giữ toàn bộ nguồn của các khóa trùng để điều tra.
+        // Keep all source rows of duplicate keys for investigation.
         Map<BusinessKey, List<StockRow>> grouped = valid.stream()
             .collect(Collectors.groupingBy(
                 StockImport::keyOf,
@@ -880,7 +880,7 @@ public class StockImport {
 
         System.out.println(
             report.latestByKey().get(t2Book).quantity()
-        ); // 100 (tenant khác)
+        ); // 100 (different tenant)
 
         System.out.println(
             report.duplicateGroups().get(t1Book)
@@ -890,39 +890,39 @@ public class StockImport {
 }
 ~~~
 
-### Tại sao phải tính hai cấu trúc riêng?
+### Why Compute Two Separate Structures?
 
-- `groupingBy` giữ đủ các bản ghi gốc của khóa trùng, phục vụ chẩn đoán.
-- `toMap` với `mergeFunction` giữ một bản ghi đại diện, phục vụ tra cứu thường xuyên.
-- `LinkedHashMap` giúp báo cáo dễ theo dõi theo **thứ tự xuất hiện đầu của các khóa** trong input `List` tuần tự.
-- `List.copyOf` trong báo cáo trùng tạo danh sách không sửa đổi được; record `StockRow` cũng chỉ chứa các giá trị bất biến trong ví dụ.
-- `rejectedCount` giữ tín hiệu số lượng dữ liệu đầu vào bị loại; hệ thống thực có thể lưu thêm lý do lỗi của từng dòng.
+- `groupingBy` retains every original record for duplicate keys, supporting diagnostics.
+- `toMap` with `mergeFunction` retains one representative record, supporting frequent lookups.
+- `LinkedHashMap` keeps reports easy to follow in **first-seen key order** from a sequential input `List`.
+- `List.copyOf` in the duplicate report creates unmodifiable lists; `StockRow` also holds only immutable values in this example.
+- `rejectedCount` preserves the count of dropped inputs; production systems may also store per-row rejection reasons.
 
-Ở đoạn trên, `StockRow` được giữ nguyên như dữ liệu nguồn, còn **khóa trong Map** đã được chuẩn hóa. Đừng gọi `latestByKey().get(new BusinessKey("t1", " book "))` và mong Map tự chuẩn hóa query. Hãy cung cấp hàm `lookupKey(tenant, sku)` dùng đúng `canonicalize` trước khi tra cứu.
+Above, `StockRow` retains its original source fields while the **Map key** is normalized. Do not call `latestByKey().get(new BusinessKey("t1", " book "))` expecting the Map to normalize the query. Provide a `lookupKey(tenant, sku)` helper applying the same `canonicalize` before lookup.
 
-### Nếu không thể chấp nhận tie tùy ý
+### If Arbitrary Tie-Breaking Is Unacceptable
 
-Quy tắc phá hòa `thenComparing(StockRow::rowId)` giúp lựa chọn nhất quán nhưng không đảm bảo đúng nghiệp vụ. Nếu cùng `version` mà quantity khác nhau là **lỗi xung đột**, hãy phát hiện ở các nhóm trùng và báo lỗi **trước** khi tạo index cuối. Không để một quyết định kỹ thuật che mất vi phạm dữ liệu.
+The tie-breaker `thenComparing(StockRow::rowId)` makes selection consistent, not guaranteed to be business-correct. If equal `version` with different quantities is a **conflict error**, detect it in `duplicateGroups` and fail **before** producing the final index. Never let a technical tie-breaker mask a data violation.
 
-## 14. Kiểm thử tính đúng của khóa và chỉ mục
+## 14. Testing Key and Index Correctness
 
-Kiểm thử nên tập trung vào **ngữ nghĩa nghiệp vụ**, không vào thứ tự mà một `HashMap` tình cờ in ra. Các tình huống quan trọng:
+Tests should focus on **business semantics**, not the incidental print order of a `HashMap`. Key scenarios:
 
-| Tình huống | Kết quả mong đợi |
+| Scenario | Expected Outcome |
 | --- | --- |
-| Cùng tenant, SKU khác chữ hoa/thường | Thành cùng khóa nếu chính sách là không phân biệt |
-| Cùng SKU, khác tenant | Hai khóa khác nhau |
-| Cùng khóa, version mới hơn | Chọn đúng version cao nhất |
-| Cùng khóa, version bằng nhau nhưng payload khác | Báo xung đột hoặc áp dụng tie policy đã định |
-| Khóa bị null/rỗng | Theo chính sách: từ chối, không âm thầm lập khóa |
-| Nguồn rỗng | Index và báo cáo trùng rỗng |
-| Một dòng hợp lệ | Có một entry, không có nhóm trùng |
-| Nhiều bản ghi trùng | Có một index entry và nhóm trùng với đủ bản ghi |
-| Data là phát sinh độc lập | Gộp bằng phép cộng nếu đúng miền nghiệp vụ |
-| Parallel/unordered | Không chọn đại diện dựa vào lịch thread |
-| Key mutable | Không sử dụng key có trạng thái thay đổi sau khi đưa vào Map |
+| Same tenant, SKU differing in case | Same key if policy is case-insensitive |
+| Same SKU, different tenants | Two distinct keys |
+| Same key, newer version | Selects highest version |
+| Same key, equal version, differing payload | Reports conflict or applies defined tie policy |
+| Null/blank key | Per policy: reject, never silently index |
+| Empty source | Empty index and empty duplicate report |
+| Single valid row | One entry, no duplicate groups |
+| Multiple duplicate records | One index entry and a duplicate group containing all rows |
+| Data consists of independent events | Merge by addition if domain-appropriate |
+| Parallel/unordered | Representative selection never depends on thread scheduling |
+| Mutable key | Never use keys whose state changes after Map insertion |
 
-### Bài kiểm tra độc lập với thứ tự HashMap
+### A Test Independent of HashMap Order
 
 ~~~java
 import java.util.List;
@@ -951,15 +951,15 @@ public class IndexAssertions {
             ));
 
         if (counts.size() != 2) {
-            throw new AssertionError("Sai số khóa phân biệt");
+            throw new AssertionError("Wrong distinct key count");
         }
         if (!Long.valueOf(2).equals(
                 counts.get(new Key("T1", "BOOK")))) {
-            throw new AssertionError("Không phát hiện đúng trùng khóa");
+            throw new AssertionError("Failed to detect duplicate key properly");
         }
         if (!Long.valueOf(1).equals(
                 counts.get(new Key("T2", "BOOK")))) {
-            throw new AssertionError("Gộp nhầm dữ liệu giữa tenant");
+            throw new AssertionError("Incorrectly merged data across tenants");
         }
 
         System.out.println("PASS");
@@ -967,127 +967,127 @@ public class IndexAssertions {
 }
 ~~~
 
-Bài kiểm tra này dùng record `Key` để xác định tính bằng nhau của khóa qua **hai trường**. Trong phiên bản sản xuất, thêm kiểm thử chuẩn hóa, dữ liệu null, collision, version tie và giới hạn số.
+This test uses `record Key` to verify key equality across **two fields**. In production, add tests for normalization, nulls, collisions, version ties, and numeric bounds.
 
-### Có cần so sánh Stream tuần tự và song song?
+### Should Sequential and Parallel Streams Be Compared?
 
-Có, nếu định dùng parallel. Với phép tổng kết hợp/giao hoán, so sánh Map theo nội dung bằng `Map.equals` là cách hợp lý. Với chính sách chọn latest theo `version`, phải xác định **toàn bộ thứ tự so sánh** để không phụ thuộc cách phân nhóm. Không đo tính đúng bằng số lượng log trong `peek` hoặc thứ tự callback.
+Yes, if you plan to use parallelism. For associative/commutative sums, comparing Maps by content via `Map.equals` makes sense. When selecting latest by `version`, define a **total ordering** so results do not depend on chunking. Never measure correctness by `peek` log counts or callback ordering.
 
-## 15. Hiệu năng và giới hạn của cách tiếp cận
+## 15. Performance and Limits of This Approach
 
-### 15.1. Lookup Map thay cho quét List lặp lại
+### 15.1. Map Lookup Instead of Repeated List Scans
 
-Nếu cần tìm `k` bản ghi từ một List gồm `n` dòng, cách `list.stream().filter(...).findFirst()` lặp lại có thể tốn nhiều lần quét. Lập Map một lần giúp truy vấn theo khóa bằng `get` thường nhanh hơn đáng kể khi có nhiều lần lookup.
+If you need to look up `k` records from a List of `n` rows, repeating `list.stream().filter(...).findFirst()` performs many linear scans. Building a Map once lets key queries via `get` run much faster across many lookups.
 
-Chi phí nhìn chung:
+General cost profile:
 
-- Xây `HashMap` qua `toMap`: trung bình tỷ lệ với số phần tử đầu vào khi hash và equality hoạt động tốt.
-- Mỗi lần `Map.get`: trung bình gần O(1) đối với HashMap với điều kiện phân bố hash tốt.
-- `groupingBy(..., toList())`: cần giữ nhiều bản ghi, bộ nhớ theo quy mô nguồn.
-- `TreeMap`: có thứ tự theo comparator, các thao tác tìm/chèn thường O(log k) với `k` khóa.
+- Building a `HashMap` via `toMap`: scales on average linearly with input size when hash and equality behave well.
+- Each `Map.get`: average near O(1) for HashMap assuming good hash distribution.
+- `groupingBy(..., toList())`: holds all records, so memory scales with source size.
+- `TreeMap`: ordered by comparator; lookup/insert operations are typically O(log k) for `k` keys.
 
-Đây là mô tả định hướng, không phải bảo đảm thời gian cố định của Stream API. Trường hợp hash collision nặng, phép chuẩn hóa đắt hoặc memory/GC giới hạn có thể thay đổi hiệu năng thực tế.
+These are general guidelines, not fixed-time guarantees of the Stream API. Severe hash collisions, expensive normalization, or memory/GC pressure can alter real performance.
 
-### 15.2. Không xây cả danh sách nhóm nếu chỉ cần đếm
+### 15.2. Do Not Build Full Group Lists When Only Counts Are Needed
 
-`groupingBy(key, counting())` giữ giá trị đếm theo mỗi khóa, trong khi `groupingBy(key, toList())` giữ **toàn bộ dòng** trong từng nhóm. Nếu chỉ cần biết liệu có trùng hay không và không cần bản ghi chi tiết, đếm thường tiết kiệm bộ nhớ hơn.
+`groupingBy(key, counting())` stores one count per key, whereas `groupingBy(key, toList())` stores **every row** in each group. If you only need to know whether duplicates exist without row details, counting is usually much lighter on memory.
 
-Nếu dữ liệu rất lớn và phải tìm **tất cả nhóm trùng**, hãy cân nhắc xử lý theo lô hoặc sử dụng cơ sở dữ liệu/engine chuyên dụng. Một Map trong RAM không thay thế các ràng buộc và chỉ mục bền vững trên hệ thống lưu trữ.
+If the dataset is very large and you must find **all duplicate groups**, consider batch processing or a database/dedicated engine. An in-memory Map does not replace persistent constraints and indexes on storage systems.
 
-### 15.3. Chỉ mục trong RAM không bảo đảm tính duy nhất giao dịch
+### 15.3. An In-Memory Index Does Not Guarantee Transactional Uniqueness
 
-Hai tiến trình có thể cùng đọc dữ liệu, mỗi bên thấy “không trùng”, rồi đồng thời ghi vào database. Kiểm tra trùng trong Stream chỉ là **kiểm tra dữ liệu trong phạm vi đang có**; nó không ngăn race condition giữa nhiều phiên nhập.
+Two processes can read data concurrently, each see "no duplicates", and both write to the database. Duplicate checks in a Stream only validate **data within the current in-memory batch**; they do not prevent race conditions across concurrent import sessions.
 
-Với yêu cầu duy nhất bền vững, cần **unique constraint/index** hoặc thao tác upsert/transaction phù hợp tại tầng lưu trữ. Stream có thể phát hiện lỗi sớm và tạo báo cáo thân thiện, nhưng không thay thế bảo đảm nhất quán của database.
+For durable uniqueness guarantees, use a **unique constraint/index** or proper upsert/transaction semantics at the storage layer. Streams can catch bad batches early and build friendly reports, but they do not replace database consistency guarantees.
 
-## 16. Những nhầm lẫn thường gặp
+## 16. Common Misconceptions
 
-### Nhầm lẫn 1: `distinct()` là đủ để phát hiện mọi bản ghi trùng theo nghiệp vụ
+### Misconception 1: `distinct()` is enough to find all business duplicates
 
-`distinct()` xét `equals` của phần tử. Nếu khóa nghiệp vụ là tenant + SKU, phải ánh xạ sang `BusinessKey` hoặc phân nhóm theo hàm tạo khóa; hai record khác version vẫn có thể trùng khóa.
+`distinct()` checks element `equals`. If the business key is tenant + SKU, map to `BusinessKey` or group by the key function; two records with different versions can still collide on key.
 
-### Nhầm lẫn 2: `toMap` tự ghi đè bản ghi trùng
+### Misconception 2: `toMap` automatically overwrites duplicate records
 
-Overload hai tham số ném `IllegalStateException` khi khóa trùng. Muốn giải quyết trùng phải truyền `mergeFunction` và xác định quy tắc nghiệp vụ.
+The two-argument overload throws `IllegalStateException` on duplicate keys. To resolve duplicates, pass a `mergeFunction` and define business rules.
 
-### Nhầm lẫn 3: dữ liệu snapshot có thể cộng như giao dịch phát sinh
+### Misconception 3: snapshot data can be summed like event transactions
 
-Hai số lượng tồn kho 10 rồi 8 là hai trạng thái, không phải tổng 18. Hãy phân biệt snapshot với event trước khi chọn `Integer::sum` hoặc `Long::sum`.
+Inventory counts of 10 and then 8 are two states, not a total of 18. Distinguish snapshots from events before choosing `Integer::sum` or `Long::sum`.
 
-### Nhầm lẫn 4: chỉ cần chuẩn hóa khi nhập, không cần khi truy vấn
+### Misconception 4: normalization is only needed at import, not at query time
 
-Map dùng `equals`/`hashCode` trên khóa được cung cấp. Query `" book "` không tự thành `"BOOK"`. Dùng chung hàm chuẩn hóa cho cả tạo và tra cứu khóa.
+Maps use `equals`/`hashCode` on the keys given to them. Querying `" book "` does not automatically become `"BOOK"`. Share the same normalization function for both index creation and lookup.
 
-### Nhầm lẫn 5: chọn SKU làm khóa cho mọi tenant
+### Misconception 5: using SKU alone as the key across all tenants
 
-Một SKU có thể tồn tại ở nhiều tenant. Dùng composite key để tránh phát hiện trùng giả và ghi đè thông tin tenant khác.
+An SKU can exist across multiple tenants. Use a composite key to avoid false duplicate detections and overwriting another tenant's data.
 
-### Nhầm lẫn 6: `(left, right) -> right` luôn là bản ghi mới nhất
+### Misconception 6: `(left, right) -> right` always picks the newest record
 
-Thứ tự xử lý và lịch thread không phải timestamp nghiệp vụ. So sánh version/timestamp có chính sách tie rõ ràng.
+Processing order and thread scheduling are not business timestamps. Compare version/timestamp with an explicit tie policy.
 
-### Nhầm lẫn 7: Map không sửa được nghĩa là phần tử bất biến sâu
+### Misconception 7: an unmodifiable Map means deep immutability
 
-`Map.copyOf` và `Collections.unmodifiableMap` ngăn chỉnh sửa cấu trúc qua Map kết quả, nhưng nếu value là object mutable, trường bên trong vẫn có thể thay đổi. Hãy chọn value object bất biến hoặc sao chép phòng vệ khi cần snapshot thật.
+`Map.copyOf` and `Collections.unmodifiableMap` prevent structural edits through the resulting Map, yet if values are mutable objects, their internal fields can still mutate. Choose immutable value objects or defensive copies when true snapshots are needed.
 
-### Nhầm lẫn 8: chuyển sang `parallelStream()` luôn tăng tốc
+### Misconception 8: switching to `parallelStream()` always speeds things up
 
-Chi phí merge, chia việc, contention ở khóa nóng, cấp phát và GC có thể khiến song song chậm hơn. Trước khi benchmark, hãy bảo đảm mapper thuần và phép gộp hợp lệ.
+Merging overhead, task splitting, hot-key contention, allocations, and GC can make parallel runs slower. Before benchmarking, ensure mappers are pure and merge functions are valid.
 
-## 17. Bảng chọn giải pháp cho từng mục tiêu
+## 17. Solution Selection Table by Goal
 
-| Mục tiêu | Pipeline hoặc collector gợi ý | Chú ý |
+| Goal | Suggested Pipeline or Collector | Notes |
 | --- | --- | --- |
-| Lập index khi khóa phải duy nhất | `toMap(key, identity())` | Từ chối khóa trùng |
-| Tìm mọi khóa xuất hiện hơn một lần | `groupingBy(key, counting())` rồi lọc `count > 1` | Không giữ payload |
-| Giữ tất cả dòng gây trùng | `groupingBy(key, toList())` rồi lọc nhóm `size > 1` | Tốn bộ nhớ hơn |
-| Chọn snapshot mới nhất | `toMap(key, identity(), maxBy(versionComparator))` | Cần xử lý tie |
-| Gộp phát sinh độc lập | `toMap(key, amountMapper, sumOperator)` | Kiểm tra overflow/đơn vị |
-| Lập index theo nhiều trường | `record BusinessKey(...)` làm key | Bảo đảm chuẩn hóa và equality |
-| Giữ thứ tự xuất hiện đầu của khóa | `toMap(..., LinkedHashMap::new)` | Nguồn tuần tự ordered |
-| Sắp khóa theo comparator | `toMap(..., TreeMap::new)` | Comparator quyết định tính tương đương |
-| Thu vào ConcurrentMap | `toConcurrentMap(...)` | `UNORDERED`, không dựa vào last-wins |
-| Tạo nhiều nhóm đồng thời | `groupingByConcurrent(...)` | Không giữ encounter order |
-| Công bố Map không cho sửa | Tạo bản sao rồi bọc, hoặc `toUnmodifiableMap` khi phù hợp | Chính sách null, thứ tự và value mutable |
-| Duy trì uniqueness xuyên giao dịch | Unique constraint/index ở database | Stream không đủ bảo đảm |
+| Index when keys must be unique | `toMap(key, identity())` | Fails on duplicate keys |
+| Find every key appearing more than once | `groupingBy(key, counting())` then filter `count > 1` | Does not retain payloads |
+| Keep all rows causing duplicates | `groupingBy(key, toList())` then filter groups `size > 1` | Uses more memory |
+| Pick newest snapshot | `toMap(key, identity(), maxBy(versionComparator))` | Must handle ties |
+| Sum independent events | `toMap(key, amountMapper, sumOperator)` | Check overflow/units |
+| Index by multiple fields | `record BusinessKey(...)` as key | Ensure normalization and equality |
+| Preserve first-seen key order | `toMap(..., LinkedHashMap::new)` | Sequential ordered source |
+| Sort keys by comparator | `toMap(..., TreeMap::new)` | Comparator defines equivalence |
+| Collect into ConcurrentMap | `toConcurrentMap(...)` | `UNORDERED`, do not rely on last-wins |
+| Build groups concurrently | `groupingByConcurrent(...)` | Does not preserve encounter order |
+| Publish read-only Map | Copy then wrap, or `toUnmodifiableMap` when suitable | Watch nulls, order, and mutable values |
+| Maintain cross-transaction uniqueness | Unique constraint/index in database | Streams alone are insufficient |
 
-## 18. Câu hỏi tự kiểm tra và bài mở rộng
+## 18. Self-Check Questions and Extended Exercises
 
-1. **Khóa kỹ thuật khác khóa nghiệp vụ thế nào?** Khóa kỹ thuật nhận diện bản ghi lưu trữ; khóa nghiệp vụ nhận diện thực thể theo quy tắc domain.
-2. **Vì sao `(tenantId, sku)` tốt hơn chỉ `sku` trong hệ thống đa tenant?** Cùng SKU của hai tenant khác nhau không phải trùng thực thể.
-3. **`Collectors.toMap(key, value)` làm gì khi khóa trùng?** Ném `IllegalStateException`.
-4. **Muốn biết toàn bộ khóa trùng và số lần, dùng gì?** `groupingBy(key, counting())` rồi lọc những số đếm lớn hơn 1.
-5. **Muốn xem dòng dữ liệu nào gây xung đột, dùng gì?** `groupingBy(key, toList())` rồi lọc nhóm trùng.
-6. **Hai record khác `quantity` nhưng cùng tenant/SKU có thể bị coi là trùng không?** Có, nếu business key chỉ gồm tenant/SKU.
-7. **`distinct()` trên toàn record có phát hiện được trùng khóa bất chấp version không?** Không nhất thiết; `distinct` dựa vào `equals` của record.
-8. **Vì sao chuẩn hóa khóa phải dùng cả khi xây index và khi lookup?** Vì Map không tự chuẩn hóa query.
-9. **Vì sao không dùng một chuỗi nối không phân cách làm composite key?** Các cặp thành phần khác nhau có thể tạo cùng chuỗi kết quả.
-10. **Giữ dòng có version lớn nhất có phù hợp để gộp doanh số của nhiều giao dịch không?** Không; doanh số phát sinh thường cần cộng hoặc giữ từng giao dịch tùy mô hình.
-11. **Vì sao version bằng nhau cần chính sách phá hòa hoặc báo xung đột?** Vì comparator chỉ theo version có thể không xác định một đại diện hợp lệ duy nhất.
-12. **`Long::sum` có đảm bảo không tràn long không?** Không.
-13. **Có nên dựa vào thứ tự in ra của `Collectors.toMap` mặc định không?** Không.
-14. **Khi nào dùng `LinkedHashMap::new`?** Khi yêu cầu duyệt khóa theo thứ tự chèn.
-15. **`toConcurrentMap` có bảo đảm giữ encounter order không?** Không; đây là collector `UNORDERED`.
-16. **Có được đưa `null` vào key mapper rồi kỳ vọng mọi collector xử lý giống nhau không?** Không; cần chính sách rõ ràng trước collect.
-17. **Tại sao không lưu mọi List nhóm nếu chỉ cần phát hiện trùng?** Vì lưu payload làm tăng chi phí bộ nhớ; đếm có thể đủ.
-18. **Kiểm tra trùng bằng Stream có thay thế unique constraint ở cơ sở dữ liệu không?** Không; không bảo đảm uniqueness xuyên tiến trình/giao dịch.
-19. **Khi nào nên ưu tiên vòng lặp hơn Stream?** Khi cần dừng ngay với thông tin lỗi cụ thể, tích lũy nhiều cấu trúc có side effect cần kiểm soát hoặc thao tác phức tạp khó đọc bằng collector lồng nhau.
-20. **Bản ghi immutable và BusinessKey immutable có giúp gì?** Giữ `equals`/`hashCode` và dữ liệu index ổn định; tránh mutation phá lookup.
+1. **How does a technical key differ from a business key?** A technical key identifies a stored record; a business key identifies an entity under domain rules.
+2. **Why is `(tenantId, sku)` better than `sku` alone in a multi-tenant system?** The same SKU across two different tenants is not a duplicate entity.
+3. **What does `Collectors.toMap(key, value)` do on duplicate keys?** It throws `IllegalStateException`.
+4. **What should you use to get all duplicate keys and their counts?** `groupingBy(key, counting())` followed by filtering counts greater than 1.
+5. **What should you use to inspect the conflicting rows themselves?** `groupingBy(key, toList())` followed by filtering duplicate groups.
+6. **Can two records with different `quantity` values but the same tenant/SKU be considered duplicates?** Yes, if the business key consists only of tenant/SKU.
+7. **Does `distinct()` across the whole record detect key duplicates regardless of version?** Not necessarily; `distinct` relies on the record's `equals`.
+8. **Why must key normalization be applied both when building the index and when looking up keys?** Because Map does not normalize lookup queries automatically.
+9. **Why should you avoid an unseparated concatenated string as a composite key?** Different component pairs can produce the same resulting string.
+10. **Is keeping the highest-version row appropriate for aggregating sales across multiple transactions?** No; sales events usually need summing or preserving per transaction depending on the model.
+11. **Why do equal versions need a tie-breaker or conflict error?** Because a version-only comparator may not uniquely identify a single valid representative.
+12. **Does `Long::sum` guarantee no long overflow?** No.
+13. **Should you rely on the print order of default `Collectors.toMap`?** No.
+14. **When should you use `LinkedHashMap::new`?** When keys must iterate in insertion order.
+15. **Does `toConcurrentMap` guarantee encounter order?** No; it is an `UNORDERED` collector.
+16. **Can you pass `null` from a key mapper and expect every collector to behave the same?** No; define an explicit policy before collecting.
+17. **Why avoid storing every group List if you only need to detect duplicates?** Storing payloads increases memory usage; counting may suffice.
+18. **Do Stream duplicate checks replace database unique constraints?** No; they do not enforce uniqueness across processes or transactions.
+19. **When should a loop be preferred over a Stream?** When you need to stop immediately with detailed error context, accumulate multiple structures with controlled side effects, or avoid unreadable nested collectors.
+20. **How do immutable records and an immutable `BusinessKey` help?** They keep `equals`/`hashCode` and indexed data stable, preventing mutations from breaking lookups.
 
-### Bài mở rộng A — Phát hiện xung đột version
+### Extended Exercise A — Detecting Version Conflicts
 
-Với các snapshot cùng `BusinessKey`, viết quy tắc: version lớn hơn thắng; nếu version bằng nhau mà quantity khác thì báo lỗi. Thiết kế kiểm thử với ba bản ghi cùng khóa, hai version bằng nhau và có quantity khác.
+For snapshots sharing a `BusinessKey`, implement the rule: higher version wins; if versions are equal and quantities differ, report an error. Design a test with three records sharing a key, two having equal version and different quantities.
 
-### Bài mở rộng B — Không loại dữ liệu lỗi âm thầm
+### Extended Exercise B — Never Drop Bad Data Silently
 
-Thay `rejectedRows` bằng `List<ValidationError>` chứa `rowId` và lý do: tenant thiếu, SKU thiếu, quantity âm hoặc version âm. Thiết kế collector hoặc các bước phân loại sao cho bản ghi lỗi không bị đưa vào Map cuối.
+Replace `rejectedRows` with `List<ValidationError>` containing `rowId` and reason: missing tenant, missing SKU, negative quantity, or negative version. Design collectors or classification steps so invalid rows never enter the final Map.
 
-### Bài mở rộng C — Khóa nghiệp vụ theo ngày
+### Extended Exercise C — Date-Scoped Business Key
 
-Tạo `record DailyKey(String accountId, LocalDate day)`. Nhập giao dịch, nhóm theo ngày và tài khoản, tính tổng với `BigDecimal`. Thử trường hợp timestamp ở múi giờ khác nhau: phải quyết định “ngày” theo timezone nghiệp vụ trước khi lập khóa.
+Create `record DailyKey(String accountId, LocalDate day)`. Import transactions, group by day and account, and sum with `BigDecimal`. Test timestamps across time zones: determine the "day" in the business time zone before constructing the key.
 
-### Bài mở rộng D — So sánh cách xử lý song song
+### Extended Exercise D — Comparing Parallel Approaches
 
-Dùng dữ liệu 100.000 dòng có số khóa phân biệt thấp và cao. So sánh kết quả `toMap`, `toConcurrentMap` với `Long::sum`, kiểm tra Map bằng `equals`, rồi benchmark. Không mặc định concurrent nhanh hơn; giải thích tác động của khóa nóng.
+Use a 100,000-row dataset with low and high distinct-key cardinality. Compare `toMap` and `toConcurrentMap` with `Long::sum`, verify Map equality with `equals`, and benchmark. Do not assume concurrent is faster; explain the impact of hot keys.
 
-**Ghi nhớ:** Lập chỉ mục đúng bắt đầu từ **định nghĩa khóa nghiệp vụ** và **quy tắc chuẩn hóa**, không bắt đầu từ lời gọi `toMap`. `toMap` phù hợp khi cần một kết quả cho mỗi khóa và có chính sách xử lý xung đột; `groupingBy` phù hợp khi cần đếm hoặc lưu đủ nhóm trùng để kiểm tra. Hãy phân biệt snapshot với phát sinh độc lập, xử lý `null` và tie rõ ràng, bảo đảm phép merge đúng miền dữ liệu và nhớ rằng chỉ mục Stream trong RAM không thay thế ràng buộc nhất quán của hệ thống lưu trữ.
+**Key takeaway:** Reliable indexing starts with **defining the business key** and **normalization rules**, not with calling `toMap`. `toMap` fits when you want one result per key with an explicit conflict policy; `groupingBy` fits when you need counts or full duplicate groups for inspection. Distinguish snapshots from independent events, handle `null`s and ties explicitly, make sure merges fit the data domain, and remember that an in-memory Stream index never replaces storage-layer consistency constraints.

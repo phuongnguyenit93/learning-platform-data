@@ -1,15 +1,15 @@
-# Kiểm tra service binding bằng module descriptor
+# Checking Service Binding with Module Descriptors
 
-## 1. Service binding trong JPMS là gì?
+## 1. What Is Service Binding in JPMS?
 
-JPMS hỗ trợ cơ chế Service Provider Interface (SPI) để một module công bố dịch vụ, module khác cung cấp implementation và module tiêu thụ tìm implementation thông qua `ServiceLoader`.
+JPMS supports the Service Provider Interface (SPI) mechanism so that one module publishes a service, another module provides an implementation, and a consuming module discovers implementations via `ServiceLoader`.
 
-Cơ chế này được mô tả bằng hai chỉ thị trong `module-info.java`:
+This mechanism is described by two directives in `module-info.java`:
 
-- `uses`: khai báo module có nhu cầu sử dụng một service type.
-- `provides ... with ...`: khai báo module cung cấp implementation cho service type đó.
+- `uses`: declares that a module needs to use a service type.
+- `provides ... with ...`: declares that a module supplies an implementation for that service type.
 
-Ví dụ tổng quát:
+General example:
 
 ~~~java
 module com.acme.checkout {
@@ -18,7 +18,7 @@ module com.acme.checkout {
 }
 ~~~
 
-Module triển khai:
+Implementation module:
 
 ~~~java
 module com.acme.payment.fastpay {
@@ -29,43 +29,43 @@ module com.acme.payment.fastpay {
 }
 ~~~
 
-Các khai báo này là metadata của module. Chúng giúp compiler, JVM và cơ chế phân giải module biết consumer cần service nào, provider nào đăng ký service đó. Khi ứng dụng gọi `ServiceLoader`, các provider phù hợp có thể được phát hiện và tạo instance theo cơ chế service loading.
+These declarations are module metadata. They inform the compiler, JVM, and module resolution mechanism which service a consumer needs and which provider registers that service. When the application calls `ServiceLoader`, matching providers can be discovered and instantiated through the service loading mechanism.
 
-Cần phân biệt hai hoạt động:
+Two activities should be distinguished:
 
-1. **Service binding khi phân giải module graph:** resolver có thể tìm và đưa các module cung cấp service được sử dụng vào cấu hình module.
-2. **Service loading khi chạy ứng dụng:** `ServiceLoader` tìm và tạo các provider để code sử dụng.
+1. **Service binding during module graph resolution:** the resolver can locate and add modules providing used services into the module configuration.
+2. **Service loading at application runtime:** `ServiceLoader` locates and instantiates providers for application code to use.
 
-Module descriptor khai báo mối quan hệ. Việc kiểm tra runtime mới xác nhận ứng dụng thực sự tìm và sử dụng được provider.
+The module descriptor declares the relationship. Runtime verification confirms that the application actually locates and uses the provider.
 
-## 2. Ba vai trò trong một service
+## 2. Three Roles in a Service
 
-Một service thường có ba vai trò:
+A service typically has three roles:
 
-| Vai trò | Trách nhiệm | Khai báo trong module descriptor |
+| Role | Responsibility | Declaration in module descriptor |
 |---|---|---|
-| Service API | Định nghĩa interface hoặc abstract service type | Export package chứa service type |
-| Consumer | Cần sử dụng service nhưng không phụ thuộc trực tiếp vào implementation cụ thể | `requires` API module và `uses` service type |
-| Provider | Cung cấp một implementation của service | `requires` API module và `provides ... with ...` |
+| Service API | Defines the interface or abstract service type | Export the package containing the service type |
+| Consumer | Needs to use the service without directly depending on a specific implementation | `requires` API module and `uses` service type |
+| Provider | Supplies an implementation of the service | `requires` API module and `provides ... with ...` |
 
-Ví dụ với hệ thống thanh toán:
+Example with a payment system:
 
 ~~~text
 com.acme.payment.api
-    Định nghĩa PaymentProvider
+    Defines PaymentProvider
 
 com.acme.payment.fastpay
-    Cung cấp FastPayProvider
+    Provides FastPayProvider
 
 com.acme.checkout
-    Sử dụng PaymentProvider qua ServiceLoader
+    Uses PaymentProvider via ServiceLoader
 ~~~
 
-Consumer chỉ cần biết contract `PaymentProvider`. Khi có provider mới, module provider có thể được bổ sung mà không phải sửa code consumer, miễn là provider tuân thủ cùng service contract và được đưa vào cấu hình runtime phù hợp.
+The consumer only needs to know the `PaymentProvider` contract. When a new provider becomes available, the provider module can be added without modifying consumer code, provided the provider conforms to the same service contract and is included in the appropriate runtime configuration.
 
-## 3. Khai báo service API
+## 3. Declaring the Service API
 
-Tạo module API:
+Create the API module:
 
 ~~~java
 // src/com.acme.payment.api/module-info.java
@@ -74,7 +74,7 @@ module com.acme.payment.api {
 }
 ~~~
 
-Định nghĩa service type trong package được export:
+Define the service type in the exported package:
 
 ~~~java
 // src/com.acme.payment.api/com/acme/payment/spi/PaymentProvider.java
@@ -87,13 +87,13 @@ public interface PaymentProvider {
 }
 ~~~
 
-Package chứa service type cần được export để consumer có thể import interface và provider có thể triển khai interface đó.
+The package containing the service type must be exported so the consumer can import the interface and the provider can implement it.
 
-Không nên đặt implementation cụ thể vào module API. Module API chỉ giữ contract mà hai phía cùng phụ thuộc.
+Concrete implementations should not be placed in the API module. The API module only holds the contract that both sides depend on.
 
-## 4. Khai báo provider bằng provides
+## 4. Declaring a Provider with provides
 
-Module provider khai báo:
+The provider module declares:
 
 ~~~java
 // src/com.acme.payment.fastpay/module-info.java
@@ -130,24 +130,24 @@ public class FastPayProvider implements PaymentProvider {
 }
 ~~~
 
-Đọc chỉ thị:
+Reading the directive:
 
 ~~~java
 provides com.acme.payment.spi.PaymentProvider
     with com.acme.payment.fastpay.FastPayProvider;
 ~~~
 
-- Phần sau `provides` là service type.
-- Phần sau `with` là provider class được đăng ký.
-- Provider module phải đọc được module chứa service type, vì vậy ví dụ có `requires com.acme.payment.api;`.
+- The part after `provides` is the service type.
+- The part after `with` is the registered provider class.
+- The provider module must read the module containing the service type, so the example includes `requires com.acme.payment.api;`.
 
-Provider class cần đáp ứng quy tắc của service provider, ví dụ có constructor public không tham số như trên. JPMS cũng hỗ trợ dạng provider method theo quy tắc của `ServiceLoader`; khi dùng dạng đó, cần bảo đảm method `provider()` có chữ ký hợp lệ và trả về service type tương ứng.
+The provider class must satisfy service provider rules, such as having a public no-argument constructor as shown above. JPMS also supports the provider method form per `ServiceLoader` rules; when using that form, ensure the `provider()` method has a valid signature and returns the corresponding service type.
 
-Package implementation `com.acme.payment.fastpay` không cần export chỉ để consumer tìm provider bằng `ServiceLoader`. Consumer phụ thuộc vào service type, còn module descriptor của provider đăng ký implementation. Giữ package implementation không export giúp tránh biến lớp triển khai thành API công khai.
+The implementation package `com.acme.payment.fastpay` does not need to be exported just so consumers can locate the provider via `ServiceLoader`. The consumer depends on the service type, while the provider's module descriptor registers the implementation. Keeping the implementation package unexported prevents turning implementation classes into public API.
 
-## 5. Khai báo consumer bằng uses
+## 5. Declaring a Consumer with uses
 
-Module consumer khai báo:
+The consumer module declares:
 
 ~~~java
 // src/com.acme.checkout/module-info.java
@@ -158,18 +158,18 @@ module com.acme.checkout {
 }
 ~~~
 
-Hai chỉ thị có vai trò riêng:
+The two directives have distinct roles:
 
-- `requires com.acme.payment.api;` tạo quan hệ readability để code consumer sử dụng kiểu `PaymentProvider`.
-- `uses com.acme.payment.spi.PaymentProvider;` khai báo consumer cần tìm provider cho service type đó.
+- `requires com.acme.payment.api;` creates a readability relationship so consumer code can use the `PaymentProvider` type.
+- `uses com.acme.payment.spi.PaymentProvider;` declares that the consumer needs to find providers for that service type.
 
-Với named module, module gọi `ServiceLoader.load(...)` cần khai báo `uses` cho service type. Nếu thiếu khai báo này, thao tác service loading từ module đó có thể thất bại với `ServiceConfigurationError`.
+For named modules, a module calling `ServiceLoader.load(...)` must declare `uses` for the service type. Without this declaration, service loading from that module may fail with a `ServiceConfigurationError`.
 
-Chỉ thị `uses` không chỉ định provider class. Consumer không cần biết tên `FastPayProvider`, và cũng không cần `requires com.acme.payment.fastpay;` nếu mục tiêu là tìm implementation thông qua SPI.
+The `uses` directive does not name a provider class. The consumer does not need to know the name `FastPayProvider`, nor does it need `requires com.acme.payment.fastpay;` if the goal is to discover implementations through SPI.
 
-## 6. Tìm provider bằng ServiceLoader
+## 6. Discovering Providers with ServiceLoader
 
-Code trong consumer:
+Code in the consumer:
 
 ~~~java
 // src/com.acme.checkout/com/acme/checkout/Main.java
@@ -192,19 +192,19 @@ public class Main {
 }
 ~~~
 
-Khi chạy, `ServiceLoader` tìm các provider được đăng ký cho `PaymentProvider` trong phạm vi service loading tương ứng.
+At runtime, `ServiceLoader` searches for registered providers of `PaymentProvider` within the corresponding service loading scope.
 
-Nếu có nhiều provider, vòng lặp có thể nhận nhiều implementation. Thứ tự provider không nên được dùng như một quy tắc ưu tiên nghiệp vụ; nếu ứng dụng cần chọn provider theo cấu hình, hãy xây dựng chính sách lựa chọn rõ ràng.
+If multiple providers exist, the loop may receive multiple implementations. Provider ordering should not be used as a business priority rule; if the application needs to select a provider based on configuration, build an explicit selection policy.
 
-Nếu không tìm thấy provider, vòng lặp không có phần tử để xử lý. Điều đó có thể là hợp lệ nếu service là tùy chọn; nếu ứng dụng bắt buộc phải có provider, cần kiểm tra và báo lỗi cấu hình một cách tường minh.
+If no provider is found, the loop has no elements to process. That may be valid if the service is optional; if the application strictly requires a provider, check for it and report a configuration error explicitly.
 
-## 7. Kiểm tra module descriptor
+## 7. Checking Module Descriptors
 
-Khi nghi ngờ service không được đăng ký đúng, hãy kiểm tra descriptor của từng module theo đúng vai trò.
+When you suspect a service is not properly registered, inspect each module's descriptor according to its role.
 
-### 7.1. Kiểm tra module API
+### 7.1. Checking the API Module
 
-Đảm bảo descriptor của API có package chứa service type:
+Ensure the API descriptor exports the package containing the service type:
 
 ~~~java
 module com.acme.payment.api {
@@ -212,11 +212,11 @@ module com.acme.payment.api {
 }
 ~~~
 
-Nếu package chưa được export, consumer hoặc provider ở module khác sẽ không thể sử dụng service type theo cách truy cập Java thông thường.
+If the package is not exported, consumers or providers in other modules cannot use the service type under standard Java access rules.
 
-### 7.2. Kiểm tra module provider
+### 7.2. Checking the Provider Module
 
-Đảm bảo provider module có đủ hai phần:
+Ensure the provider module has both required parts:
 
 ~~~java
 module com.acme.payment.fastpay {
@@ -227,19 +227,19 @@ module com.acme.payment.fastpay {
 }
 ~~~
 
-Các điểm cần đối chiếu:
+Points to verify:
 
-- Tên service type đúng package và đúng tên lớp.
-- Tên provider class đúng với lớp implementation.
-- Provider class nằm trong chính module khai báo `provides`.
-- Provider module đọc được module chứa service type.
-- Provider class đáp ứng quy tắc tạo provider của `ServiceLoader`.
+- The service type name has the exact package and class name.
+- The provider class name matches the implementation class.
+- The provider class resides inside the same module that declares `provides`.
+- The provider module can read the module containing the service type.
+- The provider class satisfies `ServiceLoader` provider instantiation rules.
 
-Một lỗi thường gặp là code implementation đã tồn tại nhưng quên thêm `provides`. Khi đó, việc đặt JAR trên module path chưa đủ để biến implementation thành provider được đăng ký trong JPMS.
+A common mistake is that the implementation code exists, but `provides` was forgotten. In that case, placing the JAR on the module path is not enough to make the implementation a registered provider in JPMS.
 
-### 7.3. Kiểm tra module consumer
+### 7.3. Checking the Consumer Module
 
-Đảm bảo consumer có:
+Ensure the consumer has:
 
 ~~~java
 module com.acme.checkout {
@@ -248,16 +248,16 @@ module com.acme.checkout {
 }
 ~~~
 
-Đừng nhầm `uses` với `requires`:
+Do not confuse `uses` with `requires`:
 
-- `requires` nói module consumer cần đọc module API.
-- `uses` nói module consumer cần service loader tìm implementation cho service type.
+- `requires` states that the consumer module needs to read the API module.
+- `uses` states that the consumer module needs the service loader to locate implementations for the service type.
 
-Nếu consumer gọi `ServiceLoader` nhưng thiếu `uses`, descriptor chưa mô tả đầy đủ nhu cầu service của module.
+If the consumer calls `ServiceLoader` but omits `uses`, the descriptor does not fully describe the module's service requirements.
 
-## 8. Kiểm tra descriptor đã đóng gói trong JAR
+## 8. Checking Descriptors Packaged Inside JARs
 
-Sau khi build module thành JAR, dùng công cụ `jar` để đọc module descriptor:
+After building modules into JARs, use the `jar` tool to read the module descriptors:
 
 ~~~bash
 jar --describe-module --file build/libs/payment-api.jar
@@ -265,9 +265,9 @@ jar --describe-module --file build/libs/payment-fastpay.jar
 jar --describe-module --file build/libs/checkout.jar
 ~~~
 
-Đầu ra của từng JAR giúp xác nhận module name, `requires`, `exports`, `uses` và `provides` đã được đóng gói.
+Each JAR's output confirms that the module name, `requires`, `exports`, `uses`, and `provides` have been packaged.
 
-Ví dụ, provider JAR cần thể hiện quan hệ tương đương:
+For example, the provider JAR should display equivalent relationships:
 
 ~~~text
 com.acme.payment.fastpay
@@ -276,7 +276,7 @@ provides com.acme.payment.spi.PaymentProvider
   with com.acme.payment.fastpay.FastPayProvider
 ~~~
 
-Consumer JAR cần thể hiện:
+The consumer JAR should display:
 
 ~~~text
 com.acme.checkout
@@ -284,13 +284,13 @@ requires com.acme.payment.api
 uses com.acme.payment.spi.PaymentProvider
 ~~~
 
-Tên và cách trình bày chính xác có thể khác theo phiên bản JDK, nhưng cần tìm được đúng service type và provider class trong kết quả.
+Exact formatting and labels may vary across JDK versions, but the right service type and provider class should appear in the output.
 
-Nếu kết quả không có `provides` hoặc `uses`, hãy kiểm tra source `module-info.java`, cấu hình source set và quá trình đóng gói. Có thể bạn đang xem nhầm JAR hoặc artifact được build từ source cũ.
+If `provides` or `uses` is missing from the output, check the `module-info.java` source, source set configuration, and packaging steps. You may be inspecting the wrong JAR or an artifact built from stale sources.
 
-## 9. Build và chạy thử toàn bộ module
+## 9. Building and Testing All Modules Together
 
-Với cấu trúc source module như sau:
+With a module source structure like this:
 
 ~~~text
 src/
@@ -305,48 +305,48 @@ src/
     └── com/acme/checkout/Main.java
 ~~~
 
-Có thể biên dịch tất cả module bằng JDK:
+All modules can be compiled with the JDK:
 
 ~~~bash
 javac --module-source-path src -d mods   -m com.acme.payment.api,com.acme.payment.fastpay,com.acme.checkout
 ~~~
 
-Sau khi biên dịch, thư mục `mods` chứa các module đã được biên dịch. Chạy module consumer:
+After compiling, the `mods` directory contains the compiled modules. Run the consumer module:
 
 ~~~bash
 java --module-path mods   --module com.acme.checkout/com.acme.checkout.Main
 ~~~
 
-Nếu mọi khai báo và provider đều hợp lệ, chương trình sẽ tìm thấy `FastPayProvider`, in tên provider và gọi phương thức `pay`.
+If all declarations and providers are valid, the program will locate `FastPayProvider`, print the provider's name, and call the `pay` method.
 
-Khi cần xem quá trình phân giải module, thêm `--show-module-resolution`:
+When you need to observe module resolution, add `--show-module-resolution`:
 
 ~~~bash
 java --show-module-resolution   --module-path mods   --module com.acme.checkout/com.acme.checkout.Main
 ~~~
 
-Đầu ra giúp quan sát module gốc, các quan hệ phụ thuộc và những module được resolver đưa vào cấu hình. Khi có service binding, chú ý các dòng thể hiện module được bind do service. Việc một provider module xuất hiện trong cấu hình vẫn chưa chứng minh constructor hoặc nghiệp vụ của provider chạy thành công; cần quan sát kết quả `ServiceLoader` trong chương trình.
+The output lets you observe the root modules, dependency relationships, and modules brought into the configuration by the resolver. When service binding occurs, pay attention to lines showing modules bound due to services. A provider module appearing in the configuration still does not prove that its constructor or business logic succeeds; inspect `ServiceLoader` results in the program.
 
-## 10. Kiểm tra service binding bằng Configuration.resolveAndBind
+## 10. Checking Service Binding with Configuration.resolveAndBind
 
-Ngoài launcher, Java API cho phép tạo module configuration có service binding thông qua `Configuration.resolveAndBind(...)`.
+Beyond the launcher, the Java API allows creating module configurations with service binding via `Configuration.resolveAndBind(...)`.
 
-Về ý nghĩa, resolver bắt đầu từ các root module, đọc các chỉ thị `uses`, tìm module có `provides` cho những service type đó và bổ sung provider module cùng các dependency cần thiết vào cấu hình nếu chúng có thể được tìm thấy.
+Conceptually, the resolver starts from root modules, reads `uses` directives, finds modules with `provides` for those service types, and adds provider modules along with their required dependencies into the configuration if they can be located.
 
-Điểm cần phân biệt:
+Key distinction:
 
-- `Configuration.resolve(...)` phân giải module graph theo các quan hệ phụ thuộc.
-- `Configuration.resolveAndBind(...)` thực hiện phân giải có xét service binding.
+- `Configuration.resolve(...)` resolves the module graph according to dependency relationships.
+- `Configuration.resolveAndBind(...)` performs resolution taking service binding into account.
 
-Điều này hữu ích khi ứng dụng tạo module layer động, chẳng hạn một hệ thống plugin tự tìm module từ một thư mục. Module layer có thể được tạo từ configuration đã resolve; sau đó dùng overload `ServiceLoader.load(layer, ServiceType.class)` để tìm service trong layer đó.
+This is useful when an application creates dynamic module layers, such as a plugin system discovering modules from a directory. A module layer can be created from the resolved configuration; then use the `ServiceLoader.load(layer, ServiceType.class)` overload to locate services in that layer.
 
-Service binding là một bước phân giải cấu hình. Nó không tự gọi constructor provider, không chạy code nghiệp vụ và không thay thế việc xử lý lỗi khi service được tải.
+Service binding is a configuration resolution step. It does not automatically invoke provider constructors, execute business code, or replace error handling when services are loaded.
 
-## 11. Kiểm tra runtime và các lỗi thường gặp
+## 11. Runtime Verification and Common Errors
 
-Sau khi descriptor được kiểm tra, cần chạy một kiểm tra thực tế bằng `ServiceLoader`.
+After descriptors are verified, run an actual check with `ServiceLoader`.
 
-Có thể ghi nhận số lượng provider:
+You can check the number of providers:
 
 ~~~java
 long count = ServiceLoader.load(PaymentProvider.class)
@@ -359,57 +359,57 @@ if (count == 0) {
 }
 ~~~
 
-Nếu provider là bắt buộc, kiểm tra rỗng giúp lỗi cấu hình xuất hiện ngay khi khởi động thay vì đến lúc thanh toán mới thất bại.
+If a provider is mandatory, checking for an empty count causes configuration errors to surface at startup rather than failing only when a payment is processed.
 
-Một số tình huống cần phân biệt:
+Several situations to distinguish:
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách kiểm tra |
+| Symptom | Common Cause | How to Check |
 |---|---|---|
-| Không tìm thấy provider | Provider module không có trong module path hoặc chưa được bind vào configuration | Kiểm tra module path và module-resolution output |
-| JAR có implementation nhưng ServiceLoader không tìm thấy | Thiếu `provides` trong descriptor hoặc thiếu file cấu hình service ở kiểu triển khai cũ | Dùng `jar --describe-module` kiểm tra descriptor |
-| Consumer gọi ServiceLoader nhưng bị lỗi cấu hình | Named consumer thiếu `uses` | Kiểm tra `module-info.java` của module gọi ServiceLoader |
-| Không thể import service interface | API package chưa được export hoặc consumer chưa requires API module | Kiểm tra descriptor API và consumer |
-| Provider không khởi tạo được | Constructor/provider method không hợp lệ, hoặc code khởi tạo ném exception | Đọc `ServiceConfigurationError` và nguyên nhân gốc |
-| Provider class không tương thích | Provider không triển khai service type đúng cách | Kiểm tra kiểu trả về và quan hệ kế thừa/interface |
-| Chạy được trên classpath nhưng lỗi trên module path | Descriptor hoặc quy tắc encapsulation khác với cách chạy classpath | Kiểm tra module path, `uses`, `provides`, `exports` và `opens` |
+| Provider not found | Provider module is absent from the module path or not bound into the configuration | Check the module path and module-resolution output |
+| JAR has implementation but ServiceLoader does not find it | Missing `provides` in descriptor or missing service configuration file in legacy packaging | Use `jar --describe-module` to inspect the descriptor |
+| Consumer calls ServiceLoader but gets configuration error | Named consumer is missing `uses` | Check `module-info.java` of the module calling ServiceLoader |
+| Cannot import service interface | API package is not exported or consumer does not require API module | Check API and consumer descriptors |
+| Provider fails to instantiate | Invalid constructor/provider method, or initialization code throws an exception | Read `ServiceConfigurationError` and its root cause |
+| Incompatible provider class | Provider does not properly implement the service type | Check return type and inheritance/interface relationship |
+| Works on classpath but fails on module path | Descriptors or encapsulation rules differ from classpath execution | Check module path, `uses`, `provides`, `exports`, and `opens` |
 
-Các lỗi từ service loading có thể được báo dưới dạng `ServiceConfigurationError`. Không nên chỉ bắt lỗi rồi bỏ qua; cần ghi rõ service type, provider và nguyên nhân để người vận hành biết module nào cần sửa.
+Errors from service loading may be reported as `ServiceConfigurationError`. Do not merely catch and ignore the error; log the service type, provider, and cause clearly so operators know which module needs fixing.
 
-## 12. Service provider trong module và provider kiểu cũ
+## 12. Service Providers in Modules vs. Legacy Providers
 
-JPMS không loại bỏ cơ chế service provider truyền thống của Java. Trên classpath, thư viện có thể đăng ký provider bằng file:
+JPMS does not eliminate Java's traditional service provider mechanism. On the classpath, libraries can register providers using a file:
 
 ~~~text
 META-INF/services/com.acme.payment.spi.PaymentProvider
 ~~~
 
-File này chứa tên đầy đủ của provider class, thường mỗi dòng một provider.
+This file contains the fully qualified names of provider classes, typically one provider per line.
 
-Với named module, nên khai báo provider bằng `provides ... with ...` trong `module-info.java`. Với ứng dụng đang chuyển đổi, có thể vẫn gặp các JAR cũ dùng `META-INF/services`; cần kiểm tra cách chúng được đặt trên classpath hoặc module path và cách cấu hình runtime phân giải provider.
+For named modules, declare providers using `provides ... with ...` in `module-info.java`. For applications in transition, you may still encounter legacy JARs using `META-INF/services`; check how they are placed on the classpath or module path and how the runtime configuration resolves providers.
 
-Không nên mặc định rằng một JAR có file `META-INF/services` đồng nghĩa với việc module descriptor đã có `provides`. Hãy kiểm tra artifact thực tế.
+Do not assume that a JAR containing a `META-INF/services` file means its module descriptor already has `provides`. Inspect the actual artifact.
 
-## 13. Checklist kiểm tra service binding
+## 13. Service Binding Verification Checklist
 
-Khi kiểm tra một service trong JPMS, có thể đi theo thứ tự:
+When verifying a service in JPMS, follow this order:
 
-1. Service type nằm trong package đã export của API module.
-2. Consumer khai báo `requires` API module.
-3. Consumer khai báo `uses` đúng service type.
-4. Provider khai báo `requires` API module.
-5. Provider khai báo `provides ServiceType with ProviderClass`.
-6. Provider class đúng tên, nằm trong provider module và đáp ứng quy tắc khởi tạo.
-7. Các module cần thiết được đưa vào module path hoặc module layer.
-8. Dùng `jar --describe-module` xác nhận descriptor trong artifact.
-9. Dùng `--show-module-resolution` khi cần quan sát quá trình phân giải và service binding.
-10. Chạy `ServiceLoader` để xác nhận provider được phát hiện và có thể khởi tạo.
+1. The service type resides in an exported package of the API module.
+2. The consumer declares `requires` on the API module.
+3. The consumer declares `uses` for the exact service type.
+4. The provider declares `requires` on the API module.
+5. The provider declares `provides ServiceType with ProviderClass`.
+6. The provider class has the exact name, resides in the provider module, and satisfies instantiation rules.
+7. Required modules are placed on the module path or in the module layer.
+8. Use `jar --describe-module` to confirm the descriptor inside the artifact.
+9. Use `--show-module-resolution` when needed to observe resolution and service binding.
+10. Run `ServiceLoader` to confirm the provider is discovered and can be instantiated.
 
-Không nên dừng ở việc nhìn thấy một dòng `provides` trong source. Bằng chứng tốt hơn là descriptor đã đóng gói đúng, cấu hình runtime phân giải được module provider và code consumer thực sự nhận được provider.
+Do not stop at seeing a `provides` line in source code. Better evidence is a properly packaged descriptor, a runtime configuration that resolves the provider module, and consumer code actually receiving the provider.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-Trong JPMS, `uses` mô tả nhu cầu service của consumer, còn `provides ... with ...` đăng ký implementation tại provider module. Hai chỉ thị được đặt ở đúng module theo vai trò của chúng.
+In JPMS, `uses` describes a consumer's service need, while `provides ... with ...` registers an implementation in the provider module. Both directives belong in their respective modules according to their roles.
 
-`requires` và `exports` vẫn cần thiết để service type có thể được sử dụng giữa các module. Package implementation của provider thường có thể giữ kín vì consumer chỉ làm việc với service abstraction.
+`requires` and `exports` remain necessary so the service type can be used across modules. A provider's implementation package can usually remain hidden because consumers work only with the service abstraction.
 
-Để kiểm tra service binding, hãy kiểm tra cả ba lớp bằng chứng: **module descriptor**, **module resolution** và **ServiceLoader ở runtime**. Descriptor đúng cho biết mối quan hệ đã được khai báo; resolver cho biết module graph có thể đưa provider vào cấu hình; kiểm tra runtime xác nhận provider thực sự được tìm và khởi tạo.
+To verify service binding, inspect all three layers of evidence: **module descriptor**, **module resolution**, and **ServiceLoader at runtime**. A correct descriptor indicates the relationship is declared; the resolver confirms the module graph can bring the provider into the configuration; runtime verification confirms the provider is actually discovered and instantiated.

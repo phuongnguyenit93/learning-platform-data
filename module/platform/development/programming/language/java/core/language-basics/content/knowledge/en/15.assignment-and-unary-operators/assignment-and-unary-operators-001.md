@@ -1,8 +1,8 @@
-# Phép gán `=` và giá trị của biểu thức gán — Java 17+
+# Assignment `=` and the Value of an Assignment Expression — Java 17+
 
-## 1. Mục tiêu và khái niệm
+## 1. Objective and Concept
 
-Trong Java, toán tử `=` dùng để **gán một giá trị cho một biến** (*assignment*). Quan trọng hơn: **bản thân phép gán cũng là một biểu thức có kiểu và có giá trị** nếu được đánh giá thành công.
+In Java, the `=` operator is used to **assign a value to a variable** (*assignment*). More importantly: **an assignment itself is also an expression that has a type and a value** if it is evaluated successfully.
 
 ~~~java
 int count = 1;
@@ -12,28 +12,28 @@ System.out.println(count);  // 5
 System.out.println(result); // 7
 ~~~
 
-Diễn biến:
+Execution flow:
 
-1. `count = 5` thay giá trị của biến `count` thành `5`.
-2. Biểu thức gán `(count = 5)` có **kiểu `int`** và **giá trị `5`**.
-3. `5 + 2` bằng `7`, gán vào `result`.
+1. `count = 5` changes the value of the variable `count` to `5`.
+2. The assignment expression `(count = 5)` has **type `int`** and **value `5`**.
+3. `5 + 2` equals `7`, which is assigned to `result`.
 
-Từ đây, cần tách rõ **hai hiệu ứng** của phép gán:
+From here, we need to clearly separate the **two effects** of an assignment:
 
-- **Cập nhật nơi lưu giá trị** (*side effect*): thay giá trị của biến bên trái.
-- **Tạo giá trị biểu thức**: biểu thức `a = b` tự nó cho một giá trị có thể dùng trong biểu thức bao ngoài.
+- **Updating the storage location** (*side effect*): changing the value of the variable on the left-hand side.
+- **Producing an expression value**: the expression `a = b` itself yields a value that can be used inside an enclosing expression.
 
-Đây là ngữ nghĩa **kiểu tĩnh** của Java 17+, không phải biến động kiểu hay cú pháp đặc biệt chỉ dành cho ví dụ.
+This is the **static type** semantics of Java 17+, not dynamic typing or a special syntax made only for examples.
 
-## 2. `=` khác `==` như thế nào?
+## 2. How Is `=` Different from `==`?
 
-| Toán tử | Mục đích | Ví dụ | Kết quả |
+| Operator | Purpose | Example | Result |
 |---|---|---|---|
-| `=` | **Gán** giá trị vào biến | `x = 10` | Cập nhật `x`; biểu thức gán có giá trị 10 |
-| `==` | **So sánh bằng** | `x == 10` | Biểu thức có kiểu `boolean` |
-| `!=` | **So sánh khác** | `x != 10` | Biểu thức có kiểu `boolean` |
+| `=` | **Assign** a value to a variable | `x = 10` | Updates `x`; the assignment expression has value 10 |
+| `==` | **Equality comparison** | `x == 10` | Expression of type `boolean` |
+| `!=` | **Inequality comparison** | `x != 10` | Expression of type `boolean` |
 
-Ví dụ:
+Example:
 
 ~~~java
 int x = 10;
@@ -45,70 +45,70 @@ x = 20;
 System.out.println(x);       // 20
 ~~~
 
-**Bẫy thường gặp:**
+**Common pitfall:**
 
 ~~~java
 boolean allowed = false;
 
-if (allowed = true) { // Hợp lệ nhưng là PHÉP GÁN, không phải so sánh
+if (allowed = true) { // Valid, but it is an ASSIGNMENT, not a comparison
     System.out.println("entered");
 }
 ~~~
 
-Dòng `if` trên đặt `allowed = true`; biểu thức gán trả `true`, nên nhánh được thực hiện. Đây là **lỗi logic dễ lọt qua compiler** vì cả kiểu và cú pháp đều hợp lệ.
+The `if` line above sets `allowed = true`; the assignment expression returns `true`, so the branch is executed. This is a **logic bug that easily slips past the compiler** because both the type and syntax are valid.
 
-Nếu mục đích là kiểm tra, viết `if (allowed)` hoặc `if (allowed == true)` (cách đầu thường gọn hơn). Nếu muốn kiểm tra `false`, dùng `if (!allowed)`.
+If the intent is to check, write `if (allowed)` or `if (allowed == true)` (the first form is usually cleaner). If you want to check for `false`, use `if (!allowed)`.
 
-## 3. Các thành phần của phép gán đơn giản
+## 3. Components of a Simple Assignment
 
-Cú pháp cơ bản:
+Basic syntax:
 
 ~~~java
 variable = expression
 ~~~
 
-- **Vế trái** (*left-hand side*) phải biểu thị một **biến có thể gán**, chẳng hạn biến cục bộ, field hoặc phần tử mảng.
-- **Vế phải** (*right-hand side*) được đánh giá để lấy giá trị phù hợp với kiểu biến bên trái.
-- Khi hoàn tất bình thường, biến bên trái nhận giá trị được gán.
+- **The left-hand side** must denote an **assignable variable**, such as a local variable, a field, or an array component.
+- **The right-hand side** is evaluated to obtain a value compatible with the type of the variable on the left.
+- When it completes normally, the variable on the left receives the assigned value.
 
-Ví dụ:
+Example:
 
 ~~~java
 int local = 0;
-local = 12; // Biến cục bộ
+local = 12; // Local variable
 
 int[] data = {1, 2};
-data[1] = 9; // Phần tử mảng
+data[1] = 9; // Array element
 
 Box box = new Box();
-box.value = 4; // Field của object (class Box định nghĩa ở ví dụ độc lập bên dưới)
+box.value = 4; // Object field (class Box is defined in the standalone example below)
 ~~~
 
-Không phải mọi biểu thức có giá trị đều có thể đứng bên trái `=`:
+Not every expression that has a value can stand on the left of `=`:
 
 ~~~java
-// 5 = local;                // SAI: literal không phải biến
-// (local + 1) = 10;         // SAI: kết quả phép cộng không phải biến
-// Math.abs(local) = 10;     // SAI: kết quả gọi method không phải biến
+// 5 = local;                // INVALID: a literal is not a variable
+// (local + 1) = 10;         // INVALID: the result of addition is not a variable
+// Math.abs(local) = 10;     // INVALID: the result of a method call is not a variable
 ~~~
 
-**`=` không giống dấu bằng toán học đối xứng.** `x = y` và `y = x` là **hai thao tác khác nhau**: nơi được cập nhật là biến ở vế trái.
+**`=` is not like the symmetric mathematical equals sign.** `x = y` and `y = x` are **two different operations**: the location updated is the variable on the left-hand side.
 
-## 4. Giá trị và kiểu của biểu thức gán
+## 4. Value and Type of an Assignment Expression
 
-Kiểu của `x = expression` liên quan tới **kiểu của biến bên trái** theo quy tắc ngôn ngữ (có các chi tiết *capture conversion* trong trường hợp generic). Giá trị biểu thức là **giá trị của biến sau khi gán**, không phải một kiểu mới được suy ra tùy tiện.
+The type of `x = expression` is tied to **the type of the variable on the left-hand side** according to language rules (including *capture conversion* details in generic cases). The expression value is **the value of the variable after assignment**, not an arbitrarily inferred new type.
 
 ~~~java
 int n = 0;
-long wider = (n = 7); // n=7; giá trị int 7 được widening thành long
+long wider = (n = 7); // n=7; the int value 7 is widened to long
 
 System.out.println(n);     // 7
 System.out.println(wider); // 7
 ~~~
 
-Ở đây `(n = 7)` có kiểu `int`. Phép gán ngoài `long wider = ...` tiếp tục chuyển rộng từ `int` sang `long`.
+Here `(n = 7)` has type `int`. The outer assignment `long wider = ...` then widens from `int` to `long`.
 
-Với số nhỏ:
+With smaller numeric types:
 
 ~~~java
 byte small = 0;
@@ -118,67 +118,67 @@ System.out.println(small);    // 42
 System.out.println(combined); // 43
 ~~~
 
-`small = 42` có kiểu `byte` và giá trị 42; khi cộng 1, Java áp dụng *binary numeric promotion*, nên `(small = 42) + 1` có kiểu `int` và giá trị 43.
+`small = 42` has type `byte` and value 42; when adding 1, Java applies *binary numeric promotion*, so `(small = 42) + 1` has type `int` and value 43.
 
-**Đừng suy rằng mọi phép gán đều trả về một biến tham chiếu mới hoặc một bản sao object.** Biểu thức cho **giá trị** (đối với tham chiếu là giá trị tham chiếu) và có cập nhật ở nơi được gán; đó là hai khía cạnh khác nhau.
+**Do not assume that every assignment returns a new reference variable or a copy of an object.** The expression yields a **value** (for references, the reference value) and updates the assigned location; those are two distinct aspects.
 
-## 5. Chuyển đổi kiểu khi gán: hợp lệ và không hợp lệ
+## 5. Type Conversion on Assignment: Valid and Invalid
 
-Java kiểm tra kiểu tĩnh của vế phải theo **assignment conversion**. Một vài trường hợp thường gặp:
+Java checks the static type of the right-hand side using **assignment conversion**. Some common cases:
 
-| Mẫu code | Kết quả | Giải thích |
+| Code pattern | Outcome | Explanation |
 |---|---|---|
-| `long a = 7;` | Hợp lệ | `int` sang `long` (widening) |
-| `double d = 7;` | Hợp lệ | `int` sang `double` |
-| `byte b = 42;` | Hợp lệ | Literal hằng `int` trong miền byte được phép thu hẹp khi gán |
-| `byte b = 128;` | Lỗi compile | Hằng 128 ngoài miền byte |
-| `int n = 3.5;` | Lỗi compile | `double` không tự thu hẹp thành `int` |
-| `int n = (int) 3.5;` | Hợp lệ | Cast tường minh, giá trị 3 |
-| `Integer boxed = 7;` | Hợp lệ | Autoboxing `int` thành `Integer` |
-| `Long boxed = 7;` | Lỗi compile | Không tự kết hợp `int → long → Long` trong phép gán này |
-| `Long boxed = 7L;` | Hợp lệ | Boxing `long` thành `Long` |
+| `long a = 7;` | Valid | `int` to `long` (widening) |
+| `double d = 7;` | Valid | `int` to `double` |
+| `byte b = 42;` | Valid | Constant `int` literal within `byte` range is allowed to narrow on assignment |
+| `byte b = 128;` | Compile error | Constant 128 is outside the `byte` range |
+| `int n = 3.5;` | Compile error | `double` does not automatically narrow to `int` |
+| `int n = (int) 3.5;` | Valid | Explicit cast, value 3 |
+| `Integer boxed = 7;` | Valid | Autoboxing `int` to `Integer` |
+| `Long boxed = 7;` | Compile error | Does not automatically chain `int → long → Long` in this assignment |
+| `Long boxed = 7L;` | Valid | Boxing `long` to `Long` |
 
-Một đặc điểm quan trọng: **constant expression narrowing** trong phép gán:
+An important feature: **constant expression narrowing** in assignment:
 
 ~~~java
-byte small = 100;  // Hằng int 100 nằm trong miền byte
+byte small = 100;  // int constant 100 is within the byte range
 int variable = 100;
-// byte other = variable; // Lỗi compile: biến int không phải hằng được phép thu hẹp
-byte other = (byte) variable; // Hợp lệ về cú pháp; cần tự kiểm tra miền
+// byte other = variable; // Compile error: int variable is not a constant allowed to narrow
+byte other = (byte) variable; // Syntactically valid; range must be checked manually
 ~~~
 
-Nếu dùng cast sai miền, giá trị có thể bị mất hoặc tràn. Phép gán biên dịch được **không bảo đảm** dữ liệu thỏa yêu cầu nghiệp vụ.
+If a cast is used outside the valid range, data may be lost or overflow. An assignment that compiles **does not guarantee** that the data satisfies business requirements.
 
-## 6. Phép gán liên tiếp: hệ quả của giá trị biểu thức gán
+## 6. Chained Assignment: A Consequence of Assignment Expression Values
 
-Vì `(b = 9)` vừa cập nhật `b` vừa cho giá trị `9`, Java cho phép dùng nó làm vế phải của một phép gán khác:
+Because `(b = 9)` both updates `b` and produces the value `9`, Java allows using it as the right-hand side of another assignment:
 
 ~~~java
 int a, b, c;
-a = b = c = 9; // a, b, c đều bằng 9
+a = b = c = 9; // a, b, and c are all equal to 9
 ~~~
 
-Dấu `=` **kết hợp từ phải sang trái**: `a = (b = (c = 9))`. Điều này nói về cách **nhóm biểu thức**, không nói rằng mọi toán hạng trong Java đều chạy từ phải sang trái. Mỗi phép gán vẫn phải qua kiểm tra kiểu riêng; chẳng hạn `long wide; int narrow; wide = narrow = 8;` hợp lệ, còn phép gán kết quả `long` về `int` không tự hợp lệ.
+The `=` operator **associates from right to left**: `a = (b = (c = 9))`. This describes how the expression is **grouped**, not that all operands in Java are evaluated from right to left. Each assignment still goes through its own type check; for example, `long wide; int narrow; wide = narrow = 8;` is valid, whereas assigning a `long` result back to `int` is not automatically valid.
 
-Để hiểu đầy đủ khi nào nên tránh gán liên tiếp, đặc biệt với chỉ số mảng, lời gọi hàm và nhiều biến tham chiếu, xem bài **“Gán liên tiếp và lý do nên hạn chế”**. Ở bài này, điều cần giữ lại là **giá trị của một phép gán có thể tiếp tục làm đầu vào cho phép gán khác**.
+To fully understand when chained assignment should be avoided—especially with array indices, method calls, and multiple reference variables—see the lesson **“Chained Assignment and Why It Should Be Limited in Java”**. In this lesson, the key takeaway is that **the value of one assignment can serve as the input to another assignment**.
 
-## 7. Assignment expression được dùng ở những đâu?
+## 7. Where Can an Assignment Expression Be Used?
 
-Một phép gán có thể làm **câu lệnh biểu thức** (*statement expression*) hoặc là một phần của biểu thức lớn hơn:
+An assignment can serve as a **statement expression** or as part of a larger expression:
 
 ~~~java
 int x = 1;
 
-x = 5;                 // Câu lệnh gán
-int y = (x = 6) + 2;   // Gán dùng như biểu thức con
-boolean changed = (x = 7) > 5; // Kết quả x=7 được đem so
+x = 5;                 // Assignment statement
+int y = (x = 6) + 2;   // Assignment used as a subexpression
+boolean changed = (x = 7) > 5; // Result of x=7 is compared
 
 System.out.println(x);       // 7
 System.out.println(y);       // 8
 System.out.println(changed); // true
 ~~~
 
-Ngoài ra, với biến boolean:
+Also, with a boolean variable:
 
 ~~~java
 boolean ready = false;
@@ -188,18 +188,18 @@ System.out.println(ready);  // true
 System.out.println(copied); // true
 ~~~
 
-Tuy nhiên, **được phép dùng không đồng nghĩa nên lạm dụng**. Code business thường sáng sủa hơn khi tách:
+However, **being allowed does not mean it should be overused**. Business code is usually much clearer when separated:
 
 ~~~java
 x = 7;
 boolean changed = x > 5;
 ~~~
 
-Điều này đặc biệt quan trọng nếu vế phải chứa method có tác dụng phụ hoặc phép tính có thể ném ngoại lệ.
+This is especially important if the right-hand side contains a method with side effects or a computation that may throw an exception.
 
-## 8. Biểu thức gán và biểu thức điều kiện
+## 8. Assignment Expressions and the Conditional Expression
 
-Ví dụ biểu thức điều kiện:
+Example with the conditional expression:
 
 ~~~java
 int count = 0;
@@ -211,9 +211,9 @@ System.out.println(selected); // 10
 System.out.println(count);    // 10
 ~~~
 
-Khi `valid` là true, chỉ nhánh `count = 10` được đánh giá; nhánh còn lại không chạy. Giá trị của phép gán được chọn trở thành kết quả biểu thức điều kiện.
+When `valid` is true, only the `count = 10` branch is evaluated; the other branch does not execute. The value of the selected assignment becomes the result of the conditional expression.
 
-**Điểm quan trọng:** việc gán trạng thái bên trong `?:` có thể khó kiểm tra; cách thông thường dễ đọc hơn:
+**Important point:** assigning state inside `?:` can be hard to inspect; the conventional form is easier to read:
 
 ~~~java
 if (valid) {
@@ -224,9 +224,9 @@ if (valid) {
 int selected = count;
 ~~~
 
-Cách nào đúng phụ thuộc quy mô logic, nhưng không nên đặt các side effect quan trọng vào biểu thức lồng nhiều tầng.
+Which approach is right depends on the scale of the logic, but you should avoid placing important side effects inside deeply nested expressions.
 
-## 9. Thứ tự đánh giá khi dùng giá trị gán trong phép tính
+## 9. Evaluation Order When Using an Assigned Value in a Calculation
 
 ~~~java
 int n = 1;
@@ -235,18 +235,18 @@ System.out.println(result); // 8
 System.out.println(n);      // 4
 ~~~
 
-Toán hạng trái `(n = 4)` được đánh giá trước toán hạng phải `n`. Nó cập nhật `n` và cung cấp `4`; lần đọc sau cũng thấy `4`. Hai việc “cung cấp giá trị” và “đổi trạng thái” xảy ra trong một biểu thức, nên hãy thận trọng khi đặt phép gán vào phép tính hoặc điều kiện.
+The left operand `(n = 4)` is evaluated before the right operand `n`. It updates `n` and supplies `4`; the subsequent read also sees `4`. Both “providing a value” and “changing state” happen in a single expression, so be cautious when placing assignments inside arithmetic or conditions.
 
-Các tình huống nhiều lần `++`/`--` trên cùng biến cần một cách truy vết khác và được phân tích ở bài cuối chương. Ở đây, mẫu an toàn khi không cần side effect trong biểu thức là tách rõ:
+Situations with multiple `++`/`--` operations on the same variable require a different tracing approach and are analyzed in the final lesson of this chapter. Here, the safe pattern when no side effect is needed inside the expression is to separate them clearly:
 
 ~~~java
 n = 4;
 int simplerResult = n + n; // 8
 ~~~
 
-## 10. Field và phần tử mảng cũng dùng phép gán có giá trị
+## 10. Fields and Array Elements Also Use Assignments with Values
 
-Ví dụ field:
+Field example:
 
 ~~~java
 static final class Box {
@@ -260,7 +260,7 @@ System.out.println(box.value);     // 12
 System.out.println(assignedField); // 12
 ~~~
 
-Ví dụ mảng:
+Array example:
 
 ~~~java
 int[] scores = {3, 7};
@@ -270,9 +270,9 @@ System.out.println(scores[1]);      // 20
 System.out.println(assignedElement); // 20
 ~~~
 
-Trong cả hai trường hợp, biểu thức gán cập nhật **một biến thực sự**: một field hoặc một thành phần mảng. Giá trị biểu thức phản ánh giá trị sau gán.
+In both cases, the assignment expression updates **an actual variable**: a field or an array component. The expression value reflects the value after assignment.
 
-### Chỉ số mảng có thể có tác dụng phụ riêng
+### Array Indices Can Have Their Own Side Effects
 
 ~~~java
 int[] values = {10, 20};
@@ -284,9 +284,9 @@ System.out.println(index);     // 1
 System.out.println(result);    // 100
 ~~~
 
-`index++` cung cấp chỉ số 0 rồi tăng `index` lên 1. Phép gán phần tử cho giá trị 99; vế phải `+ index` dùng 1. Ví dụ hợp lệ nhưng **khó đọc và dễ sửa sai** hơn cách tách việc chọn chỉ số, cập nhật mảng và tính tổng.
+`index++` provides index 0 and then increments `index` to 1. The element assignment yields 99; the right-hand side `+ index` uses 1. The example is valid, but **harder to read and easier to mismodify** than separating index selection, array update, and summation.
 
-## 11. Gán tham chiếu không sao chép đối tượng
+## 11. Assigning a Reference Does Not Copy the Object
 
 ~~~java
 StringBuilder first = new StringBuilder("A");
@@ -296,9 +296,9 @@ alias.append("B");
 System.out.println(first); // AB
 ~~~
 
-`alias = first` sao chép **giá trị tham chiếu**, nên hai biến trỏ đến **cùng object**; phép gán không tạo bản sao `StringBuilder`.
+`alias = first` copies the **reference value**, so both variables point to the **same object**; the assignment does not create a copy of the `StringBuilder`.
 
-Khi gán tham chiếu mới vào một biến:
+When assigning a new reference to a variable:
 
 ~~~java
 StringBuilder original = first;
@@ -308,44 +308,44 @@ System.out.println(original); // AB
 System.out.println(first);    // C
 ~~~
 
-`first` trỏ sang object mới; `original` vẫn trỏ object cũ. Không nhầm **gán lại biến tham chiếu** với **sửa nội dung object**.
+`first` points to the new object; `original` still points to the old object. Do not confuse **reassigning a reference variable** with **mutating an object's contents**.
 
-Nếu muốn object độc lập, phải dùng cơ chế copy thích hợp do class cung cấp, chẳng hạn `new StringBuilder(first.toString())` trong ngữ cảnh này.
+If an independent object is desired, you must use an appropriate copy mechanism provided by the class, such as `new StringBuilder(first.toString())` in this context.
 
-## 12. Ranh giới giữa `=` và các phép gán kết hợp
+## 12. Boundary Between `=` and Compound Assignments
 
-Phép gán đơn giản `x = value` chuyển giá trị vế phải theo quy tắc *assignment conversion*. Phép gán kết hợp như `x += value` còn thực hiện phép toán rồi có thể **thu hẹp ngầm** kết quả về kiểu vế trái; với vế trái phức tạp, nó chỉ đánh giá vế trái **một lần**. Đây là khác biệt về ngữ nghĩa, không chỉ cách viết ngắn:
+A simple assignment `x = value` converts the right-hand side according to *assignment conversion* rules. A compound assignment such as `x += value` also performs the operation and can **implicitly narrow** the result to the left-hand side's type; for a complex left-hand side, it evaluates the left-hand side **only once**. This is a semantic difference, not just shorthand syntax:
 
 ~~~java
 byte b = 120;
-b += 10;             // Hợp lệ; 130 thu hẹp về byte thành -126.
-// b = b + 10;       // Lỗi compile: phép cộng thông thường cho int.
+b += 10;             // Valid; 130 narrows to byte as -126.
+// b = b + 10;       // Compile error: ordinary addition produces int.
 
 String label = "value=";
-label += 7;          // Nối chuỗi: "value=7".
+label += 7;          // String concatenation: "value=7".
 ~~~
 
-Bài này chỉ dùng những ví dụ đó để **đặt ranh giới với toán tử `=`**. Khi tính toán thật, kiểm tra miền số và tác dụng phụ; đừng tự thay `op=` bằng `x = x op y` khi vế trái là biểu thức có side effect.
+This lesson uses those examples only to **draw the boundary with the `=` operator**. In real calculations, check numeric ranges and side effects; do not blindly replace `op=` with `x = x op y` when the left-hand side is an expression with side effects.
 
-## 13. Gán và ràng buộc của `final`
+## 13. Assignment and `final` Constraints
 
-`final` giới hạn việc **gán lại biến**, không phải luôn làm đối tượng mà tham chiếu trỏ đến bất biến:
+`final` restricts **reassigning a variable**, not necessarily making the referenced object immutable:
 
 ~~~java
 final int once;
-once = 10; // Hợp lệ: biến local final được gán chắc chắn đúng một lần.
-// once = 11; // Lỗi compile: gán lại.
+once = 10; // Valid: local final variable is definitely assigned exactly once.
+// once = 11; // Compile error: reassignment.
 
 final StringBuilder builder = new StringBuilder("A");
-builder.append("B"); // Hợp lệ: sửa trạng thái object.
-// builder = new StringBuilder("C"); // Lỗi: gán lại tham chiếu final.
+builder.append("B"); // Valid: mutating object state.
+// builder = new StringBuilder("C"); // Error: reassigning a final reference.
 ~~~
 
-Giá trị của phép gán `=` không bỏ qua các quy tắc definite assignment và `final`. Khi chỉ cần cập nhật một biến thông thường, hãy ưu tiên câu lệnh độc lập dễ kiểm tra thay vì lồng trong biểu thức lớn.
+The value of an `=` assignment does not bypass definite assignment and `final` rules. When you only need to update an ordinary variable, prefer a standalone, easy-to-inspect statement rather than nesting it inside a large expression.
 
-## 14. Exception và lỗi trong vế phải
+## 14. Exceptions and Errors on the Right-Hand Side
 
-Một phép gán chỉ hoàn thành bình thường khi những bước cần thiết đều thành công. Ví dụ vế phải ném ngoại lệ:
+An assignment completes normally only when all required steps succeed. Example where the right-hand side throws an exception:
 
 ~~~java
 int value = 3;
@@ -359,35 +359,35 @@ try {
 System.out.println(value); // 3
 ~~~
 
-Với biến cục bộ đơn giản này, phép chia `10 / divisor` thất bại **trước khi giá trị mới được gán**, nên `value` vẫn bằng 3.
+For this simple local variable, the division `10 / divisor` fails **before the new value is assigned**, so `value` remains 3.
 
-Nhưng không nên suy rộng rằng mọi biểu thức gán thất bại đều **không có tác dụng phụ**: quá trình đánh giá vế trái hoặc vế phải có thể đã gọi method, tăng chỉ số, sửa object hoặc ghi I/O trước khi exception xảy ra.
+However, do not generalize that every failed assignment expression has **no side effects**: evaluating the left-hand side or right-hand side may already have called a method, incremented an index, mutated an object, or performed I/O before the exception occurred.
 
-**Khuyến nghị:** kiểm tra input và hạn chế nhiều side effect trong một biểu thức gán, nhất là trong logic giao dịch.
+**Recommendation:** validate inputs and minimize multiple side effects within a single assignment expression, especially in transactional logic.
 
-## 15. Các lỗi phổ biến và cách khắc phục
+## 15. Common Mistakes and How to Fix Them
 
-| Lỗi / ngộ nhận | Vì sao sai? | Cách đúng |
+| Mistake / Misconception | Why Is It Wrong? | Correct Approach |
 |---|---|---|
-| `x = 5` là phép so sánh | `=` gán, không so | `x == 5` |
-| `if (ready = true)` để kiểm tra `ready` | Thực tế gán true rồi điều kiện luôn true | `if (ready)` |
-| `5 = x` | Literal không phải biến có thể gán | `x = 5` |
-| `a + 1 = 3` | Kết quả phép cộng không gán được | Gán vào biến thích hợp |
-| `int x = 3.5;` | Double không tự chuyển thành int | Cast có kiểm tra hoặc dùng double |
-| `Long boxed = 7;` | Không tự int → long → Long | `Long boxed = 7L;` |
-| `byte b = 128;` | Hằng không vừa miền byte | Chọn kiểu đủ lớn, không che bằng cast |
-| Nghĩ `a = b = 9` nhóm từ trái | Phép gán kết hợp phải | `a = (b = 9)` |
-| `i = i++` để tăng i | Phép gán ngoài ghi đè tăng hậu tố | `i++;` |
-| Nghĩ assignment expression không có giá trị | Nó có giá trị sau gán | Có thể dùng `(x = 5) + 2`, nhưng cân nhắc dễ đọc |
-| `byte b; b = b + 1;` | Kết quả int không tự thu hẹp | Chọn int hoặc cast có kiểm tra |
-| Nghĩ `b += 1` luôn y như `b = b + 1` | Compound assignment có chuyển kiểu và đánh giá vế trái đặc thù | Hiểu quy tắc trước khi đổi code |
-| Gán tham chiếu tưởng đã clone object | Sao chép tham chiếu, không copy object | Dùng copy riêng khi cần |
-| Gán lại biến `final` | Vi phạm quy tắc definite assignment | Thiết kế init một lần |
-| Cho rằng `catch` luôn rollback phép gán | Side effect trước lỗi có thể đã xảy ra | Tách bước/validate/transaction phù hợp |
+| `x = 5` is a comparison | `=` assigns, it does not compare | `x == 5` |
+| `if (ready = true)` to check `ready` | Actually assigns true so the condition is always true | `if (ready)` |
+| `5 = x` | A literal is not an assignable variable | `x = 5` |
+| `a + 1 = 3` | The result of addition cannot be assigned to | Assign to an appropriate variable |
+| `int x = 3.5;` | `double` does not auto-convert to `int` | Cast with range checks or use `double` |
+| `Long boxed = 7;` | Does not auto-convert `int → long → Long` | `Long boxed = 7L;` |
+| `byte b = 128;` | Constant does not fit in `byte` range | Choose a sufficiently large type; do not mask with a cast |
+| Thinking `a = b = 9` groups from the left | Assignment is right-associative | `a = (b = 9)` |
+| `i = i++` to increment `i` | The outer assignment overwrites the postfix increment | `i++;` |
+| Thinking an assignment expression has no value | It has the value after assignment | `(x = 5) + 2` can be used, but weigh readability |
+| `byte b; b = b + 1;` | `int` result does not auto-narrow | Choose `int` or cast with checks |
+| Thinking `b += 1` is always identical to `b = b + 1` | Compound assignment has specific type conversion and single LHS evaluation | Understand the rules before changing code |
+| Assigning a reference and assuming the object was cloned | Copies the reference, does not copy the object | Perform an explicit copy when needed |
+| Reassigning a `final` variable | Violates definite assignment rules | Design for single initialization |
+| Assuming `catch` always rolls back an assignment | Side effects before the error may already have happened | Separate steps/validation/transactions appropriately |
 
-## 16. Chương trình Java 17 đầy đủ — quan sát riêng phép gán
+## 16. Complete Java 17 Program — Observing Assignments Alone
 
-Lưu thành `AssignmentExpressionDemo.java`. Ví dụ gom các trường hợp **phép gán đơn giản trả giá trị** và phân biệt với phép so sánh; những chương trình về `op=`, gán chuỗi và `++` được triển khai ở bài riêng.
+Save as `AssignmentExpressionDemo.java`. This example gathers cases of **simple assignments returning values** and distinguishes them from comparisons; programs for `op=`, chained assignment, and `++` are implemented in separate lessons.
 
 ~~~java
 public final class AssignmentExpressionDemo {
@@ -433,7 +433,7 @@ public final class AssignmentExpressionDemo {
 }
 ~~~
 
-Biên dịch và chạy với **JDK 17+** trong thư mục chứa file:
+Compile and run with **JDK 17+** in the directory containing the file:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 AssignmentExpressionDemo.java
@@ -453,11 +453,11 @@ rhs failed
 unchanged=3
 ~~~
 
-`(count = 5)` trả `5`; gán `boolean` trả `true`; giá trị `int` từ `(number = 7)` có thể chuyển rộng thành `long`. Phép gán field/mảng cập nhật đúng nơi chứa giá trị, còn gán tham chiếu chỉ sao chép tham chiếu. Cuối cùng, phép chia cho 0 làm vế phải thất bại trước khi `unchanged` nhận giá trị mới.
+`(count = 5)` returns `5`; assigning a `boolean` returns `true`; the `int` value from `(number = 7)` can be widened to `long`. Field/array assignments update the exact storage location, while reference assignment only copies the reference. Finally, division by 0 causes the right-hand side to fail before `unchanged` receives a new value.
 
-## 17. Bài tập có đáp án
+## 17. Exercises with Answers
 
-### Bài A — giá trị biểu thức gán
+### Exercise A — Value of an Assignment Expression
 
 ~~~java
 int x = 2;
@@ -466,14 +466,14 @@ System.out.println(x);
 System.out.println(y);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 6
 18
 ~~~
 
-### Bài B — chuỗi gán
+### Exercise B — Chained Assignment
 
 ~~~java
 int a, b, c;
@@ -481,9 +481,9 @@ a = b = c = 4;
 System.out.println(a + b + c);
 ~~~
 
-**Đáp án:** `12`. Cả ba biến nhận 4 rồi cộng số nguyên.
+**Answer:** `12`. All three variables receive 4 and are then summed as integers.
 
-### Bài C — lỗi logic `=` và `==`
+### Exercise C — Logic Bug with `=` and `==`
 
 ~~~java
 boolean enabled = false;
@@ -492,9 +492,9 @@ if (enabled = true) {
 }
 ~~~
 
-**Đáp án:** in `enabled`; đoạn code đã **gán true**, không phải so sánh. Nếu chỉ muốn kiểm tra giá trị ban đầu, viết `if (enabled)`.
+**Answer:** prints `enabled`; the code **assigned true**, rather than comparing. If you only want to check the initial value, write `if (enabled)`.
 
-### Bài D — khác nhau giữa `=` và `+=`
+### Exercise D — Difference Between `=` and `+=`
 
 ~~~java
 byte a = 120;
@@ -502,9 +502,9 @@ a += 10;
 System.out.println(a);
 ~~~
 
-**Đáp án:** `-126`. Compound assignment tự chuyển về byte; `a = a + 10` không tự hợp lệ vì phép cộng thông thường trả `int`.
+**Answer:** `-126`. Compound assignment automatically converts back to `byte`; `a = a + 10` is not automatically valid because ordinary addition returns `int`.
 
-### Bài E — biểu thức gán trong mảng
+### Exercise E — Assignment Expression in an Array
 
 ~~~java
 int[] data = {5, 8};
@@ -513,14 +513,14 @@ System.out.println(result);
 System.out.println(data[0]);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 20
 12
 ~~~
 
-### Bài F — local final
+### Exercise F — Local `final`
 
 ~~~java
 final int value;
@@ -528,9 +528,9 @@ value = 3;
 // value = 4;
 ~~~
 
-**Đáp án:** gán `3` là khởi tạo hợp lệ; bật dòng `value = 4` sẽ lỗi compile do gán lại biến local final.
+**Answer:** assigning `3` is valid initialization; uncommenting `value = 4` causes a compile error due to reassigning a local `final` variable.
 
-### Bài G — xử lý exception
+### Exercise G — Exception Handling
 
 ~~~java
 int x = 10;
@@ -542,23 +542,23 @@ try {
 }
 ~~~
 
-**Đáp án:** `10`. Vế phải lỗi trước khi phép gán đơn giản cập nhật `x`.
+**Answer:** `10`. The right-hand side fails before the simple assignment updates `x`.
 
-## 18. Checklist và kết luận
+## 18. Checklist and Conclusion
 
-- [ ] Hiểu toán tử `=` là **gán**, `==` là **so sánh bằng**.
-- [ ] Biết vế trái phải là một biến gán được (local, field, array component).
-- [ ] Biết phép gán là biểu thức có kiểu và giá trị sau gán.
-- [ ] Hiểu `int y = (x = 5) + 2;` vừa sửa `x` vừa tạo giá trị 7.
-- [ ] Hiểu phép gán kiểm tra *assignment conversion* theo kiểu đích.
-- [ ] Biết chuỗi `a = b = c = 9` được nhóm từ phải sang trái.
-- [ ] Không dùng nhầm `if (condition = true)` thay cho kiểm tra boolean.
-- [ ] Nhận diện side effect khi lồng phép gán vào biểu thức khác.
-- [ ] Biết gán field/mảng cũng tạo giá trị; chú ý chỉ số thay đổi.
-- [ ] Biết gán tham chiếu không tự sao chép object.
-- [ ] Phân biệt `=` đơn giản với compound assignment như `+=`.
-- [ ] Hiểu `final` ngăn gán lại biến đã khởi tạo.
-- [ ] Biết vế phải ném exception có thể khiến phép gán không hoàn tất.
-- [ ] Chạy `AssignmentExpressionDemo.java` bằng `javac` và `java` trên JDK 17+; so khớp toàn bộ stdout.
+- [ ] Understand that `=` is **assignment** and `==` is **equality comparison**.
+- [ ] Know that the left-hand side must be an assignable variable (local, field, array component).
+- [ ] Know that an assignment is an expression with a type and the post-assignment value.
+- [ ] Understand that `int y = (x = 5) + 2;` both modifies `x` and produces the value 7.
+- [ ] Understand that assignment checks *assignment conversion* against the target type.
+- [ ] Know that the chain `a = b = c = 9` is grouped from right to left.
+- [ ] Do not mistakenly use `if (condition = true)` instead of a boolean check.
+- [ ] Recognize side effects when nesting assignments inside other expressions.
+- [ ] Know that field/array assignments also produce values; watch out for changing indices.
+- [ ] Know that reference assignment does not automatically copy the object.
+- [ ] Distinguish simple `=` from compound assignments like `+=`.
+- [ ] Understand that `final` prevents reassigning an already initialized variable.
+- [ ] Know that an exception thrown on the right-hand side can prevent an assignment from completing.
+- [ ] Run `AssignmentExpressionDemo.java` with `javac` and `java` on JDK 17+; verify the full stdout matches.
 
-**Kết luận:** `a = b` trong Java 17+ vừa **cập nhật biến `a`** vừa **tạo một giá trị biểu thức** theo kiểu được kiểm tra tại compile time. Khả năng dùng phép gán trong biểu thức lớn hơn giải thích được gán chuỗi, gán trong điều kiện và biểu thức số học — nhưng cũng tạo nguy cơ side effect khó đọc. Ưu tiên các câu lệnh gán riêng, có tên biến rõ ràng, và chỉ tận dụng giá trị của biểu thức gán khi thực sự giúp code đơn giản hơn.
+**Conclusion:** `a = b` in Java 17+ both **updates the variable `a`** and **produces an expression value** with a type checked at compile time. The ability to use an assignment inside a larger expression explains chained assignment, assignments in conditions, and arithmetic expressions — but it also introduces the risk of hard-to-read side effects. Prefer separate assignment statements with clear variable names, and only leverage the value of an assignment expression when it genuinely makes the code simpler.

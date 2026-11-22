@@ -1,17 +1,17 @@
-# Lấy tiền tố thỏa điều kiện bằng takeWhile
+# Taking a Conditional Prefix with `takeWhile`
 
-## 1. Bài toán: lấy dữ liệu từ đầu cho đến khi điều kiện không còn đúng
+## 1. The Problem: Taking Data from the Start Until a Condition Fails
 
-Trong Java Stream API, `filter` thường được dùng để giữ **mọi phần tử** thỏa một điều kiện. Tuy nhiên, có những bài toán chỉ cần một đoạn dữ liệu liên tiếp **từ đầu nguồn**, và phải dừng ngay khi gặp phần tử đầu tiên không thỏa:
+In the Java Stream API, `filter` is typically used to keep **every element** matching a condition. However, some problems only need a contiguous slice **from the start of the source**, stopping immediately upon encountering the first element that fails the condition:
 
-- Lấy các bản ghi thời gian trước 09:00 trong một nhật ký **đã sắp xếp tăng dần theo thời gian**.
-- Đọc những dòng đầu của tệp cho đến dòng trống đầu tiên.
-- Sinh những số liên tiếp cho đến khi đạt một ngưỡng.
-- Lấy các mẫu đo đầu tiên trong một chuỗi cho đến khi xuất hiện tín hiệu vượt giới hạn.
+- Taking timestamped records before 09:00 from a log **already sorted in ascending chronological order**.
+- Reading the initial lines of a file up to the first blank line.
+- Generating consecutive numbers until a threshold is reached.
+- Taking the initial measurements in a sequence until an out-of-bounds signal appears.
 
-Thao tác `takeWhile` được thiết kế để diễn tả yêu cầu này. Nó thuộc nhóm **thứ tự, loại trùng và cắt lát** (*ordering, deduplication and slicing*) vì kết quả phụ thuộc vào thứ tự gặp phần tử (*encounter order*).
+The `takeWhile` operation is designed to express this requirement. It belongs to the **ordering, deduplication, and slicing** group because its result depends on *encounter order*.
 
-Ví dụ mở đầu:
+Opening example:
 
 ```java
 import java.util.List;
@@ -25,62 +25,62 @@ List<Integer> prefix = measurements.stream()
 System.out.println(prefix); // [2, 4, 6]
 ```
 
-Số `11` không thỏa điều kiện `n < 10`, vì vậy `takeWhile` dừng lấy phần tử tại đó. Các số `3` và `5` đứng sau `11` dù cũng nhỏ hơn 10 vẫn **không xuất hiện** trong kết quả.
+The number `11` does not satisfy `n < 10`, so `takeWhile` stops taking elements there. Even though `3` and `5` after `11` are also less than 10, they **do not appear** in the result.
 
-**Mục tiêu sau bài học:** hiểu hợp đồng của `takeWhile`; phân biệt với `filter`, `dropWhile` và `limit`; sử dụng đúng trên Stream có và không có thứ tự; kết hợp với `map`, `sorted` và `collect`; nhận diện giới hạn của pipeline lazy, Stream vô hạn và xử lý song song.
+**Learning goals:** understand the contract of `takeWhile`; distinguish it from `filter`, `dropWhile`, and `limit`; use it properly on ordered and unordered Streams; combine it with `map`, `sorted`, and `collect`; and recognize the limits of lazy pipelines, infinite Streams, and parallel processing.
 
-> `takeWhile` được giới thiệu từ **Java 9** cho `Stream<T>`, `IntStream`, `LongStream` và `DoubleStream`. Các đoạn mã dùng `Stream.toList()` cần **Java 16+**; nếu chạy Java 9–15, có thể dùng `collect(Collectors.toList())` với Stream đối tượng.
+> `takeWhile` was introduced in **Java 9** for `Stream<T>`, `IntStream`, `LongStream`, and `DoubleStream`. Snippets using `Stream.toList()` require **Java 16+**; on Java 9–15, you can use `collect(Collectors.toList())` for object Streams.
 
-## 2. Hợp đồng chính xác của takeWhile
+## 2. Exact Contract of `takeWhile`
 
-Chữ ký trên `Stream<T>`:
+Signature on `Stream<T>`:
 
 ```java
 Stream<T> takeWhile(Predicate<? super T> predicate)
 ```
 
-`takeWhile` là **thao tác trung gian có trạng thái và hỗ trợ dừng sớm** (*stateful short-circuiting intermediate operation*). Nó trả về một Stream mới có cùng kiểu phần tử; không tự thu thập kết quả hay sửa nguồn.
+`takeWhile` is a **stateful short-circuiting intermediate operation**. It returns a new Stream with the same element type; it does not collect results or mutate the source itself.
 
-Với nguồn có encounter order, kết quả là **tiền tố dài nhất** mà mọi phần tử trong đó đều thỏa `predicate`.
+For a source with an encounter order, the result is the **longest prefix** in which every element satisfies `predicate`.
 
-Giả sử nguồn có thứ tự `x1, x2, ..., xn` và `k` là vị trí đầu tiên có `predicate(xk) == false`. Kết quả là các phần tử `x1, ..., x(k-1)`. Nếu tất cả phần tử đều thỏa, toàn bộ nguồn được giữ lại. Nếu ngay phần tử đầu tiên không thỏa, kết quả rỗng.
+Suppose the ordered source is `x1, x2, ..., xn` and `k` is the first position where `predicate(xk) == false`. The result consists of elements `x1, ..., x(k-1)`. If all elements match, the entire source is retained. If the very first element fails, the result is empty.
 
 ```text
-Nguồn (theo encounter order):
+Source (in encounter order):
 
  [2] -> [4] -> [6] -> [11] -> [3] -> [5]
    ✓      ✓      ✓       ✗      ✓      ✓
    |      |      |       |
-   +------+------+-------+--- ranh giới dừng
+   +------+------+-------+--- stopping boundary
    |      |      |
    v      v      v
-   [2,    4,     6]              <- Stream sau takeWhile(n < 10)
+   [2,    4,     6]              <- Stream after takeWhile(n < 10)
 
-Mọi phần tử kể từ phần tử sai đầu tiên đều bị loại khỏi tiền tố.
+All elements from the first failing element onward are excluded from the prefix.
 ```
 
-Điểm cần nhớ là **điều kiện không được kiểm tra để tìm mọi phần tử phù hợp trên toàn bộ nguồn như `filter`**. Với nguồn có thứ tự, `takeWhile` quan tâm đến một ranh giới bắt đầu từ đầu dãy.
+Keep in mind that **the condition is not evaluated to find every matching element across the entire source like `filter`**. On an ordered source, `takeWhile` cares about a single boundary starting from the beginning of the sequence.
 
-### Ba trường hợp biên
+### Three Edge Cases
 
 ```java
 List<Integer> values = List.of(1, 3, 5);
 
 System.out.println(values.stream()
-        .takeWhile(n -> n < 10).toList()); // [1, 3, 5]: tất cả đều đạt
+        .takeWhile(n -> n < 10).toList()); // [1, 3, 5]: all pass
 
 System.out.println(values.stream()
-        .takeWhile(n -> n < 0).toList());  // []: phần tử đầu đã sai
+        .takeWhile(n -> n < 0).toList());  // []: first element already fails
 
 System.out.println(values.stream()
-        .takeWhile(n -> n < 4).toList());  // [1, 3]: dừng ở 5
+        .takeWhile(n -> n < 4).toList());  // [1, 3]: stops at 5
 ```
 
-Phần tử **đầu tiên làm predicate trả về `false` không nằm trong kết quả**. Nếu nghiệp vụ cần bao gồm cả phần tử đánh dấu kết thúc, `takeWhile` đơn thuần không diễn đạt trực tiếp yêu cầu đó; cân nhắc vòng lặp có điều kiện rõ ràng hoặc bộ xử lý có trạng thái được thiết kế riêng.
+The **first element for which the predicate returns `false` is not included in the result**. If business logic requires including the terminating sentinel element as well, `takeWhile` alone does not express that directly; consider an explicit conditional loop or a custom stateful processor.
 
-## 3. takeWhile khác filter, dropWhile và limit
+## 3. How `takeWhile` Differs from `filter`, `dropWhile`, and `limit`
 
-Các thao tác đều có thể làm Stream ngắn lại, nhưng chúng cắt dữ liệu theo những tiêu chí khác nhau.
+All four operations can shorten a Stream, yet they slice data by different rules.
 
 ```java
 List<Integer> data = List.of(3, 5, 9, 2, 11, 4);
@@ -107,22 +107,22 @@ System.out.println(dropped);  // [9, 2, 11, 4]
 System.out.println(limited);  // [3, 5]
 ```
 
-| Thao tác | Quy tắc với Stream có thứ tự | Trong ví dụ |
+| Operation | Rule on an ordered Stream | In the example |
 | --- | --- | --- |
-| `takeWhile(p)` | Giữ các phần tử **liên tiếp từ đầu** khi `p` còn đúng; dừng ở phần tử sai đầu tiên. | `[3, 5]` |
-| `filter(p)` | Giữ **mọi phần tử** thỏa `p` dù nằm trước hay sau phần tử không thỏa. | `[3, 5, 2, 4]` |
-| `dropWhile(p)` | Bỏ tiền tố dài nhất thỏa `p`, sau đó giữ toàn bộ phần còn lại. | `[9, 2, 11, 4]` |
-| `limit(n)` | Lấy tối đa `n` phần tử đầu tiên, không dùng predicate. | `[3, 5]` |
+| `takeWhile(p)` | Keeps **contiguous elements from the start** while `p` holds; stops at the first failing element. | `[3, 5]` |
+| `filter(p)` | Keeps **every element** satisfying `p`, whether before or after a failing element. | `[3, 5, 2, 4]` |
+| `dropWhile(p)` | Discards the longest prefix satisfying `p`, then keeps all remaining elements. | `[9, 2, 11, 4]` |
+| `limit(n)` | Takes at most the first `n` elements, without using a predicate. | `[3, 5]` |
 
-Trong một dãy có thứ tự cố định và predicate không trạng thái, `takeWhile(p)` và `dropWhile(p)` tạo ra hai phần liên tiếp tại cùng ranh giới. Đừng nhầm `dropWhile` với phép đảo predicate của `takeWhile`: `dropWhile` vẫn lấy cả phần tử thỏa điều kiện nằm **sau** ranh giới.
+On a fixed-order sequence with a stateless predicate, `takeWhile(p)` and `dropWhile(p)` split the sequence into two contiguous parts at the exact same boundary. Do not confuse `dropWhile` with negating `takeWhile`'s predicate: `dropWhile` still keeps matching elements that appear **after** the boundary.
 
-Mặc dù `takeWhile` và `limit` trong ví dụ đều cho `[3, 5]`, một bên giới hạn bằng **điều kiện nội dung**, bên kia bằng **số lượng**. Khi dữ liệu thay đổi, hai kết quả không còn nhất thiết giống nhau.
+Although `takeWhile` and `limit` both produce `[3, 5]` in the example above, one limits by **content condition** and the other by **count**. When the data changes, the two results are no longer guaranteed to match.
 
-## 4. Encounter order quyết định ý nghĩa của tiền tố
+## 4. Encounter Order Determines the Meaning of a Prefix
 
-### Nguồn có thứ tự
+### Ordered Sources
 
-`List`, mảng, `IntStream.range` và các nguồn có encounter order xác định cho phép nói rõ phần tử nào là "đầu tiên".
+`List`, arrays, `IntStream.range`, and sources with a defined encounter order make it unambiguous which element comes "first".
 
 ```java
 List<String> tokens = List.of("header", "row-1", "row-2", "END", "row-3");
@@ -134,11 +134,11 @@ List<String> beforeEnd = tokens.stream()
 System.out.println(beforeEnd); // [header, row-1, row-2]
 ```
 
-Nếu thứ tự biểu diễn ý nghĩa nghiệp vụ (nhật ký theo thời gian, bước quy trình, dòng trong tệp), hãy bảo đảm nguồn thực sự giữ đúng thứ tự đó.
+If order carries business meaning (chronological logs, workflow steps, lines in a file), verify that the source truly preserves that order.
 
-### Nguồn không có thứ tự
+### Unordered Sources
 
-Một nguồn như `HashSet` hoặc một pipeline đã gọi `unordered()` không cam kết encounter order. Khi **chỉ một phần** dữ liệu thỏa predicate, `takeWhile` được phép trả về **bất kỳ tập con nào** của các phần tử thỏa, kể cả tập rỗng. Vì không có "đầu" được định nghĩa, không thể dùng nó để lấy một tiền tố xác định.
+A source like `HashSet` or a pipeline after calling `unordered()` does not promise an encounter order. When **only some** elements satisfy the predicate, `takeWhile` is allowed to return **any subset** of the matching elements, including an empty set. Since there is no defined "beginning", it cannot be used to take a deterministic prefix.
 
 ```java
 Set<Integer> values = new HashSet<>(List.of(1, 2, 3, 9, 10));
@@ -147,14 +147,14 @@ List<Integer> result = values.stream()
         .takeWhile(n -> n < 5)
         .toList();
 
-// Không được giả định result == [1, 2, 3].
-// Với nguồn unordered, kết quả là một tập con hợp lệ
-// của các số thỏa n < 5, thứ tự cũng không được bảo đảm.
+// Do not assume result == [1, 2, 3].
+// For an unordered source, the result is any valid subset
+// of the numbers satisfying n < 5, and order is not guaranteed either.
 ```
 
-Trong trường hợp **mọi phần tử đều thỏa**, kết quả gồm toàn bộ phần tử; nếu **không phần tử nào thỏa**, kết quả rỗng. Tính không xác định của việc chọn tập con là điểm quan trọng khi có cả phần tử thỏa và không thỏa.
+If **every element matches**, the result contains all elements; if **no element matches**, the result is empty. This non-deterministic subset selection is the key caveat when both matching and non-matching elements exist.
 
-Nếu cần **mọi** phần tử thỏa từ một tập không có thứ tự, `filter` mới biểu đạt đúng yêu cầu. Nếu cần một tiền tố xác định, trước tiên phải xác lập thứ tự theo nghiệp vụ:
+If you need **all** matching elements from an unordered set, `filter` expresses that requirement accurately. If you need a deterministic prefix, first establish a business-defined order:
 
 ```java
 List<Integer> orderedPrefix = values.stream()
@@ -165,13 +165,13 @@ List<Integer> orderedPrefix = values.stream()
 System.out.println(orderedPrefix); // [1, 2, 3]
 ```
 
-`sorted()` xác lập encounter order theo phép so sánh cho Stream kết quả, nhưng đây là thao tác **có trạng thái**: nó thường cần quan sát và lưu trữ toàn bộ dữ liệu hữu hạn trước khi phát ra phần tử đã sắp xếp. Vì vậy, việc thêm `sorted` có thể đánh đổi khả năng dừng đọc sớm của nguồn để lấy tính đúng đắn về thứ tự.
+`sorted()` establishes an encounter order based on comparison for the resulting Stream, but it is a **stateful** operation: it generally needs to observe and buffer all finite elements before emitting sorted output. Therefore, adding `sorted` may trade away early-read termination on the source in exchange for ordering correctness.
 
-## 5. Đặt takeWhile ở đâu trong chuỗi thao tác?
+## 5. Where Does `takeWhile` Belong in the Operation Chain?
 
-Thứ tự các thao tác Stream có thể làm thay đổi **ranh giới tiền tố**, vì mỗi thao tác trung gian tạo đầu vào cho bước sau.
+The order of Stream operations can change the **prefix boundary**, because each intermediate operation supplies input to the next stage.
 
-### filter trước và sau takeWhile
+### `filter` Before and After `takeWhile`
 
 ```java
 List<Integer> values = List.of(2, 7, 4, 1);
@@ -190,35 +190,35 @@ System.out.println(first);  // [2]
 System.out.println(second); // [2, 4]
 ```
 
-Ở `first`, `7` kết thúc tiền tố ngay sau `2`. Ở `second`, `filter` loại `7` trước, khiến `4` trở thành phần tử tiếp theo mà `takeWhile` nhìn thấy. Vì vậy, **không tự ý hoán đổi thứ tự hai thao tác** khi điều kiện có ý nghĩa nghiệp vụ.
+In `first`, `7` terminates the prefix right after `2`. In `second`, `filter` removes `7` first, making `4` the next element `takeWhile` sees. Thus, **never arbitrarily swap the two operations** when the conditions carry business meaning.
 
-### map trước takeWhile
+### `map` Before `takeWhile`
 
-Khi ranh giới được xác định bằng **giá trị sau chuẩn hóa**, đặt `map` trước:
+When the boundary is defined over **normalized values**, place `map` first:
 
 ```java
-List<String> raw = List.of("  An  ", " Bình ", "   ", " Chi ");
+List<String> raw = List.of("  An  ", " Binh ", "   ", " Chi ");
 
 List<String> namesBeforeBlank = raw.stream()
         .map(String::strip)
         .takeWhile(name -> !name.isEmpty())
         .toList();
 
-System.out.println(namesBeforeBlank); // [An, Bình]
+System.out.println(namesBeforeBlank); // [An, Binh]
 ```
 
-Nếu yêu cầu dựa vào dữ liệu gốc và phép ánh xạ tốn kém, đặt `takeWhile` trước `map` có thể tiết kiệm việc biến đổi các phần tử ngoài tiền tố:
+If the boundary depends on raw data and mapping is expensive, putting `takeWhile` before `map` avoids transforming elements outside the prefix:
 
 ```java
 List<String> labels = List.of(1, 2, 3, 20, 4).stream()
         .takeWhile(n -> n < 10)
-        .map(n -> "Mã-" + n)
+        .map(n -> "Code-" + n)
         .toList();
 
-System.out.println(labels); // [Mã-1, Mã-2, Mã-3]
+System.out.println(labels); // [Code-1, Code-2, Code-3]
 ```
 
-### sorted trước hoặc sau takeWhile
+### `sorted` Before or After `takeWhile`
 
 ```java
 List<Integer> samples = List.of(4, 1, 7, 2, 3);
@@ -237,41 +237,41 @@ System.out.println(a); // [1, 4]
 System.out.println(b); // [1, 2, 3, 4]
 ```
 
-Với `a`, tiền tố dừng ở `7` trước khi sắp xếp. Với `b`, toàn bộ dãy được sắp xếp rồi mới xét ranh giới. Đây là hai câu hỏi nghiệp vụ khác nhau.
+In `a`, the prefix stops at `7` before sorting. In `b`, the entire sequence is sorted before evaluating the boundary. These answer two different business questions.
 
-## 6. Lazy, short-circuiting và số lần gọi predicate
+## 6. Laziness, Short-Circuiting, and Predicate Invocation Count
 
-`takeWhile` thuộc pipeline xử lý **lazy**. Việc tạo pipeline không duyệt toàn bộ dữ liệu:
+`takeWhile` is part of a **lazy** processing pipeline. Constructing the pipeline does not traverse any data:
 
 ```java
 Stream<Integer> pipeline = List.of(2, 4, 9, 1).stream()
         .takeWhile(n -> n < 5);
 
-// Chưa có terminal operation, nên chưa thu được danh sách kết quả.
+// No terminal operation yet, so no result list has been collected.
 List<Integer> result = pipeline.toList();
 System.out.println(result); // [2, 4]
 ```
 
-Khi terminal operation yêu cầu các phần tử, `takeWhile` có thể ngừng phát phần tử từ nguồn sau ranh giới thay vì duyệt hết toàn bộ danh sách. Đây là lợi ích của **short-circuiting** đối với nguồn có thứ tự và pipeline phù hợp.
+When a terminal operation requests elements, `takeWhile` can stop pulling elements from the source past the boundary instead of traversing the entire list. That is the benefit of **short-circuiting** for ordered sources and suitable pipelines.
 
-Tuy nhiên, không được biến predicate thành nơi đặt tác dụng phụ bắt buộc:
+However, do not turn the predicate into a place for mandatory side effects:
 
 ```java
 List<Integer> result = List.of(2, 4, 9, 1).stream()
         .takeWhile(n -> {
-            System.out.println("Kiểm tra: " + n); // Chỉ nên dùng để quan sát/debug
+            System.out.println("Checking: " + n); // Use only for observation/debugging
             return n < 5;
         })
         .toList();
 ```
 
-Một pipeline tuần tự đơn giản như trên thường kiểm tra các giá trị `2`, `4` và `9`, nhưng ứng dụng không nên dựa vào một **số lần gọi predicate chính xác**. Tối ưu của Stream, thao tác kết thúc và xử lý song song có thể làm thay đổi cách đánh giá các phần tử. Hợp đồng cần dựa vào **kết quả của pipeline**, không dựa vào số lượt in log hay hiệu ứng ngoài.
+A simple sequential pipeline like this typically checks `2`, `4`, and `9`, yet an application must not depend on an **exact predicate invocation count**. Stream optimizations, terminal operations, and parallel execution can alter how elements are evaluated. Contracts must rely on the **pipeline output**, not log print counts or side effects.
 
-Predicate được cung cấp phải **không can thiệp vào nguồn** (*non-interfering*) và **không phụ thuộc trạng thái thay đổi giữa các phần tử** (*stateless*). Bản thân thao tác `takeWhile` có trạng thái nội bộ để xác định ranh giới; đó là trạng thái do thư viện quản lý, khác với việc lambda tự dùng biến đếm chia sẻ.
+The supplied predicate must be **non-interfering** with the source and **stateless** across elements. The `takeWhile` operation itself maintains internal state to detect the boundary; that is library-managed state, distinct from a lambda mutating a shared counter variable.
 
-## 7. Stream vô hạn: takeWhile xác lập điểm dừng theo điều kiện
+## 7. Infinite Streams: `takeWhile` Establishes a Condition-Based Stop Point
 
-Một số Stream là **vô hạn**, ví dụ `IntStream.iterate` không có điều kiện kết thúc. `takeWhile` đặc biệt hữu ích khi biết điều kiện dừng theo dữ liệu:
+Some Streams are **infinite**, such as `IntStream.iterate` without a termination predicate. `takeWhile` is especially helpful when the stopping condition depends on data values:
 
 ```java
 import java.util.stream.IntStream;
@@ -286,9 +286,9 @@ System.out.println(firstSquaresBelow100);
 // [1, 4, 9, 16, 25, 36, 49, 64, 81]
 ```
 
-Nguồn sinh `1, 2, 3, ...`, bước `map` tạo bình phương, và `takeWhile` dừng lấy dữ liệu trước giá trị `100`. Phần tử đầu tiên làm điều kiện sai **không được đưa vào kết quả**.
+The source emits `1, 2, 3, ...`, `map` computes squares, and `takeWhile` stops taking elements before `100`. The first element failing the condition is **excluded from the result**.
 
-Java 9 còn bổ sung overload ba tham số của `iterate`, cho phép gắn điều kiện kết thúc ngay ở **nguồn**:
+Java 9 also added a three-argument `iterate` overload, letting you attach the termination condition directly at the **source**:
 
 ```java
 List<Integer> numbers = IntStream.iterate(
@@ -302,13 +302,13 @@ List<Integer> numbers = IntStream.iterate(
 System.out.println(numbers); // [1, 2, 3, 4, 5]
 ```
 
-Lựa chọn dựa trên vị trí điều kiện: nếu muốn sinh dãy hữu hạn theo điều kiện nguồn, overload `iterate(seed, hasNext, next)` rất rõ ràng; nếu cần xét **giá trị sau các bước ánh xạ** hoặc sau một nguồn khác, `takeWhile` phù hợp.
+Choose based on where the condition belongs: if you want a finite sequence governed by a source condition, `iterate(seed, hasNext, next)` is very clear; if you need to test **values after mapping steps** or from another source, `takeWhile` fits well.
 
-**Chú ý:** với Stream vô hạn, nếu predicate **không bao giờ trả về `false`** và terminal operation cần tiêu thụ toàn bộ kết quả (như `toList`), thao tác đó có thể không bao giờ kết thúc. Đừng giả định mọi pipeline có `takeWhile` đều hữu hạn.
+**Caution:** on an infinite Stream, if the predicate **never returns `false`** and the terminal operation must consume the entire result (such as `toList`), execution may never terminate. Do not assume every pipeline containing `takeWhile` is finite.
 
-## 8. Primitive stream và xử lý số liệu
+## 8. Primitive Streams and Numeric Processing
 
-Không cần boxing các số trước khi dùng `takeWhile`. Các stream chuyên biệt có cùng phương thức:
+You do not need to box numbers before calling `takeWhile`. Specialized streams offer matching methods:
 
 ```java
 int sumBeforeThreshold = IntStream.of(3, 5, 7, 20, 2)
@@ -318,9 +318,9 @@ int sumBeforeThreshold = IntStream.of(3, 5, 7, 20, 2)
 System.out.println(sumBeforeThreshold); // 15
 ```
 
-Tương tự, `LongStream.takeWhile(LongPredicate)` và `DoubleStream.takeWhile(DoublePredicate)` xử lý dữ liệu số nguyên dài hoặc số thực.
+Likewise, `LongStream.takeWhile(LongPredicate)` and `DoubleStream.takeWhile(DoublePredicate)` handle long integers and floating-point numbers.
 
-Ví dụ cắt một dãy đo rồi tính trung bình:
+Example slicing a measurement sequence and computing the average:
 
 ```java
 double average = java.util.stream.DoubleStream
@@ -332,11 +332,11 @@ double average = java.util.stream.DoubleStream
 System.out.println(average); // 3.0
 ```
 
-`average()` trả về `OptionalDouble` vì dữ liệu sau cắt lát có thể rỗng. Cần chọn giá trị mặc định hoặc xử lý trường hợp không có mẫu hợp lệ theo nghiệp vụ.
+`average()` returns `OptionalDouble` because the sliced stream may be empty. Choose a default value or handle the no-valid-samples case according to business rules.
 
-## 9. null, ngoại lệ và các trường hợp dữ liệu thiếu
+## 9. `null`, Exceptions, and Missing-Data Cases
 
-Với Stream chứa `null`, cách viết predicate quyết định hành vi:
+For Streams containing `null`, how you write the predicate determines behavior:
 
 ```java
 import java.util.Arrays;
@@ -351,22 +351,22 @@ List<String> beforeNull = rows.stream()
 System.out.println(beforeNull); // [header, row-1]
 ```
 
-Ở đây `null` được dùng như **dấu mốc kết thúc**. Nếu dùng `filter(Objects::nonNull)` thì `row-2` vẫn được giữ lại, vì `filter` chỉ bỏ `null` và tiếp tục xét những phần tử phía sau.
+Here `null` acts as a **termination marker**. Using `filter(Objects::nonNull)` instead would keep `row-2`, because `filter` merely discards `null` and continues checking subsequent elements.
 
-Ngược lại, với predicate như `text -> !text.isBlank()`, gặp `null` sẽ ném `NullPointerException`. Hãy quyết định rõ `null` có nghĩa là "dừng", "bỏ qua" hay "dữ liệu lỗi" rồi chọn chiến lược tương ứng.
+Conversely, a predicate like `text -> !text.isBlank()` will throw `NullPointerException` upon hitting `null`. Decide explicitly whether `null` means "stop", "skip", or "invalid data", and implement the corresponding strategy.
 
-Predicate gây ngoại lệ trong quá trình duyệt sẽ khiến terminal operation thất bại; `takeWhile` không tự bắt ngoại lệ hoặc tiếp tục bằng cách bỏ qua phần tử lỗi.
+If the predicate throws an exception during traversal, the terminal operation fails; `takeWhile` does not catch exceptions or continue by skipping failing elements.
 
-## 10. Ví dụ đọc tệp đến dòng trống đầu tiên
+## 10. Example: Reading a File Until the First Blank Line
 
-Giả sử một tệp văn bản có phần tiêu đề và dữ liệu, kết thúc phần cần đọc bằng một dòng trống. `Files.lines` cung cấp Stream theo thứ tự dòng tệp, phù hợp với `takeWhile`:
+Suppose a text file has a header and data section ending at a blank line. `Files.lines` supplies a Stream in file line order, pairing naturally with `takeWhile`:
 
 ```text
-SACH,3
-BUT,8
-VO,2
+BOOK,3
+PEN,8
+NOTEBOOK,2
 
-GHI_CHU,khong_xu_ly
+NOTE,do_not_process
 ```
 
 ```java
@@ -385,21 +385,21 @@ try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
             .toList();
 
     System.out.println(firstSection);
-    // [SACH,3, BUT,8, VO,2]
+    // [BOOK,3, PEN,8, NOTEBOOK,2]
 } catch (IOException exception) {
-    System.err.println("Không đọc được tệp: " + exception.getMessage());
+    System.err.println("Could not read file: " + exception.getMessage());
 }
 ```
 
-Đoạn mã minh họa nằm trong một phương thức có thể xử lý ngoại lệ. `isBlank()` có từ Java 11; nó kiểm tra cả các chuỗi chỉ gồm khoảng trắng. `try-with-resources` bảo đảm Stream và tài nguyên tệp được đóng sau khi sử dụng, kể cả khi việc duyệt dừng sớm. Các lỗi I/O xảy ra **trong quá trình duyệt** có thể được bọc thành `UncheckedIOException` và cũng cần được xử lý nếu ứng dụng muốn phục hồi.
+This snippet lives inside a method capable of handling exceptions. `isBlank()` has been available since Java 11; it also detects whitespace-only lines. `try-with-resources` guarantees the Stream and underlying file resource are closed after use, even when traversal short-circuits early. I/O errors occurring **during traversal** may be wrapped in `UncheckedIOException` and should also be handled if recovery is required.
 
-Nếu yêu cầu là **bỏ qua mọi dòng trống nhưng tiếp tục đọc phần sau**, hãy dùng `filter(line -> !line.isBlank())`. Việc chọn `takeWhile` có nghĩa là dòng trống đầu tiên mang ý nghĩa **kết thúc phân đoạn**.
+If the requirement is to **skip all blank lines while continuing to read later sections**, use `filter(line -> !line.isBlank())`. Choosing `takeWhile` means the first blank line signifies the **end of the section**.
 
-## 11. Ví dụ nghiệp vụ hoàn chỉnh: thống kê giao dịch trước mốc giờ
+## 11. Complete Business Example: Aggregating Transactions Before a Cutoff Time
 
-Giả sử dữ liệu giao dịch đã được ghi theo thứ tự thời gian tăng dần. Cần thống kê tổng số lượng theo khách hàng từ đầu danh sách **cho đến trước 09:00**, đồng thời giữ lại các giao dịch thuộc tiền tố đó để kiểm tra.
+Suppose transaction records are already stored in ascending chronological order. We need to sum quantities per customer from the start of the list **until before 09:00**, while also retaining the prefix transactions for inspection.
 
-Ví dụ hoàn chỉnh sau dùng Java 17+:
+The following complete example uses Java 17+:
 
 ```java
 import java.time.LocalTime;
@@ -448,14 +448,14 @@ public class TakeWhileDemo {
 }
 ```
 
-Phân tích:
+Analysis:
 
-1. `chronological` có encounter order đúng với thời gian tăng dần.
-2. `takeWhile(tx -> tx.time().isBefore(cutoff))` giữ `T01`, `T02`, `T03` và dừng trước `T04` lúc 09:00.
-3. `toList()` tạo danh sách mới; nguồn không bị thay đổi.
-4. `groupingBy` và `summingInt` tổng hợp trên kết quả đã cắt lát, với `LinkedHashMap` giữ thứ tự lần đầu xuất hiện của các nhóm trong Stream tuần tự.
+1. `chronological` has an encounter order matching ascending time.
+2. `takeWhile(tx -> tx.time().isBefore(cutoff))` retains `T01`, `T02`, `T03` and stops before `T04` at 09:00.
+3. `toList()` creates a new list; the source is untouched.
+4. `groupingBy` and `summingInt` aggregate the sliced result, with `LinkedHashMap` preserving first-seen group order in a sequential Stream.
 
-**Điều kiện tiên quyết quan trọng:** nếu danh sách **không được sắp theo thời gian**, một giao dịch có giờ trước 09:00 nhưng nằm sau bản ghi lúc 09:00 sẽ bị loại khỏi tiền tố. Khi muốn lấy **mọi giao dịch trước 09:00 bất kể vị trí**, dùng:
+**Critical precondition:** if the list is **not sorted chronologically**, a transaction before 09:00 appearing after an 09:00 record will be excluded from the prefix. When you want **all transactions before 09:00 regardless of position**, use:
 
 ```java
 List<Transaction> allBeforeCutoff = chronological.stream()
@@ -463,7 +463,7 @@ List<Transaction> allBeforeCutoff = chronological.stream()
         .toList();
 ```
 
-Nếu nghiệp vụ cần tiền tố sau khi **xếp lại** theo thời gian, có thể sắp trước khi cắt:
+If business logic wants the prefix after **re-sorting** chronologically, you can sort before slicing:
 
 ```java
 List<Transaction> sortedPrefix = chronological.stream()
@@ -474,17 +474,17 @@ List<Transaction> sortedPrefix = chronological.stream()
         .toList();
 ```
 
-`sorted` cần xử lý tập dữ liệu hữu hạn trước khi trả ra tiền tố; vì vậy, đừng dùng cách này với một nguồn vô hạn chưa được giới hạn. Với nhật ký đã có thứ tự đúng, `takeWhile` trực tiếp có thể tiết kiệm nhiều thao tác hơn.
+`sorted` must process a finite dataset before emitting the prefix; therefore, do not use this approach on an unbounded infinite source. On a log already guaranteed to be in order, `takeWhile` directly can avoid substantial work.
 
-## 12. Hiệu năng, song song và hợp đồng về trạng thái
+## 12. Performance, Parallelism, and State Contracts
 
-### Stream tuần tự có thứ tự
+### Ordered Sequential Streams
 
-Đây là trường hợp tự nhiên nhất của `takeWhile`: với pipeline phù hợp, việc cắt ở phần tử sai đầu tiên có thể tránh phải xử lý phần còn lại của nguồn. Hiệu quả thực tế còn phụ thuộc các bước trước nó: `sorted`, một số phép gom trạng thái hoặc nguồn khó chia tách có thể yêu cầu công việc bổ sung.
+This is the most natural scenario for `takeWhile`: in a suitable pipeline, stopping at the first failing element avoids processing the rest of the source. Actual efficiency still depends on upstream stages: `sorted`, certain stateful collectors, or poorly splittable sources may require extra work.
 
-### Stream song song có thứ tự
+### Ordered Parallel Streams
 
-`takeWhile` vẫn phải cung cấp **tiền tố dài nhất theo encounter order**. Tuy nhiên, việc phối hợp giữa nhiều nhánh để nhận biết ranh giới có thể tốn chi phí đáng kể. Không thể giả định cứ dùng `parallelStream()` là nhanh hơn:
+`takeWhile` must still produce the **longest prefix according to encounter order**. However, coordinating across multiple branches to detect the boundary can incur significant overhead. Never assume `parallelStream()` is automatically faster:
 
 ```java
 List<Integer> original = List.of(1, 2, 3, 9, 1, 2);
@@ -496,11 +496,11 @@ List<Integer> prefix = original.parallelStream()
 System.out.println(prefix); // [1, 2, 3]
 ```
 
-Kết quả có thứ tự vẫn là `[1, 2, 3]`. Điều **không được bảo đảm** là trình tự thực thi predicate trên các thread, số lượt đánh giá hoặc lợi ích tốc độ so với tuần tự.
+The ordered result is still `[1, 2, 3]`. What is **not guaranteed** is the execution order of the predicate across threads, the number of evaluations, or a speedup over sequential execution.
 
-### Khi có thể bỏ encounter order
+### When Encounter Order Can Be Dropped
 
-Nếu yêu cầu **không cần tiền tố xác định**, việc gọi `unordered()` có thể giúp giảm một số chi phí phối hợp:
+If the requirement **does not need a deterministic prefix**, calling `unordered()` may reduce some coordination overhead:
 
 ```java
 List<Integer> subset = original.parallelStream()
@@ -509,16 +509,16 @@ List<Integer> subset = original.parallelStream()
         .toList();
 ```
 
-Nhưng ngữ nghĩa đã đổi: `subset` có thể là **bất kỳ tập con nào** của các phần tử thỏa `n < 5`, kể cả rỗng, và không có thứ tự cam kết. Không dùng cách này để tối ưu bài toán buộc phải lấy "đến phần tử đầu tiên sai" theo thứ tự nguồn. Khi cần **tất cả** phần tử thỏa từ nguồn unordered, `filter` phù hợp hơn.
+However, the semantics change: `subset` can be **any subset** of elements satisfying `n < 5`, including empty, with no guaranteed ordering. Do not use this to optimize a problem that strictly requires taking "up to the first failing element" in source order. When you need **all** matching elements from an unordered source, `filter` is more appropriate.
 
-### Non-interference và stateless predicate
+### Non-Interference and Stateless Predicates
 
-`takeWhile` không hợp thức hóa việc sửa nguồn ngay trong predicate:
+`takeWhile` does not make mutating the source inside the predicate valid:
 
 ```java
 List<Integer> mutable = new java.util.ArrayList<>(List.of(1, 2, 3, 10));
 
-// SAI: thay đổi chính nguồn khi đang duyệt.
+// WRONG: mutating the source itself while traversing it.
 List<Integer> invalid = mutable.stream()
         .takeWhile(n -> {
             if (n == 2) {
@@ -529,53 +529,53 @@ List<Integer> invalid = mutable.stream()
         .toList();
 ```
 
-Cách viết này vi phạm **non-interference**; có thể xuất hiện `ConcurrentModificationException` hoặc hành vi không thể dự đoán theo nguồn. Hãy dùng predicate chỉ đọc dữ liệu, tạo kết quả từ Stream, rồi cập nhật nguồn trong một giai đoạn riêng sau terminal operation.
+This violates **non-interference**; it may throw `ConcurrentModificationException` or exhibit unpredictable source-dependent behavior. Use read-only predicates, build results from the Stream, and update sources in a separate phase after the terminal operation.
 
-Tương tự, tránh predicate phụ thuộc biến đếm dùng chung:
+Similarly, avoid predicates relying on a shared mutable counter:
 
 ```java
 java.util.concurrent.atomic.AtomicInteger calls =
         new java.util.concurrent.atomic.AtomicInteger();
 
-// Không nên: ranh giới phụ thuộc số lần/lịch thực thi predicate.
+// Discouraged: boundary depends on predicate invocation count/scheduling.
 List<Integer> unstable = original.parallelStream()
         .takeWhile(n -> calls.incrementAndGet() <= 3)
         .toList();
 ```
 
-`AtomicInteger` chỉ giúp cập nhật số đếm theo cách nguyên tử; nó **không đảm bảo** phần tử nào được xét trước trong pipeline song song. Nếu mục tiêu là lấy ba phần tử đầu tiên từ nguồn có thứ tự, dùng `limit(3)`.
+`AtomicInteger` only makes the counter update atomic; it **does not guarantee** which elements are tested first in a parallel pipeline. If the goal is to take the first three elements from an ordered source, use `limit(3)`.
 
-## 13. Dấu hiệu lỗi thường gặp
+## 13. Common Failure Symptoms
 
-| Triệu chứng | Nguyên nhân | Cách sửa |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Kết quả thiếu phần tử thỏa nằm ở giữa/cuối nguồn | `takeWhile` dừng ở phần tử không thỏa đầu tiên. | Dùng `filter` nếu cần mọi phần tử thỏa. |
-| Kết quả khác nhau từ `HashSet` | Nguồn không có encounter order. | Dùng `filter` hoặc xác lập thứ tự với `sorted`. |
-| Dừng sớm hơn dự kiến | Đầu vào chưa sắp theo tiêu chí của predicate. | Sắp dữ liệu trước, hoặc thay bằng `filter` tùy ý nghĩa. |
-| Đã lọc trước, tiền tố dài hơn bất ngờ | `filter` loại phần tử gây dừng trước khi `takeWhile` thấy nó. | Xét lại thứ tự các bước. |
-| Bị `NullPointerException` trong predicate | Predicate gọi phương thức trên phần tử `null`. | Quy định rõ `null` là mốc dừng, bỏ qua hay lỗi. |
-| Pipeline trên nguồn vô hạn chạy mãi | Predicate luôn đúng, terminal operation đòi duyệt hết. | Đưa vào điều kiện dừng chắc chắn hoặc giới hạn hữu hạn. |
-| `parallelStream` chậm hơn | Chi phí phối hợp giữ tiền tố theo thứ tự. | Đo hiệu năng, cân nhắc Stream tuần tự. |
-| Dùng `unordered()` rồi mất kết quả ổn định | Đã bỏ cam kết encounter order. | Giữ thứ tự nếu yêu cầu tiền tố xác định. |
-| Tác dụng phụ chạy số lần khó đoán | Predicate dùng biến trạng thái/log để điều khiển nghiệp vụ. | Viết predicate stateless; dùng `limit` khi giới hạn số lượng. |
+| Result misses matching elements in the middle/end of the source | `takeWhile` stops at the first non-matching element. | Use `filter` if every matching element is needed. |
+| Varying results from a `HashSet` | Source lacks encounter order. | Use `filter` or establish order with `sorted`. |
+| Stops earlier than expected | Input is not sorted by the predicate's criterion. | Sort the data first, or switch to `filter` depending on intent. |
+| Filtered beforehand, prefix is unexpectedly longer | `filter` removed the stopping element before `takeWhile` saw it. | Re-examine operation order. |
+| `NullPointerException` inside the predicate | Predicate invokes a method on a `null` element. | Specify clearly whether `null` means stop, skip, or error. |
+| Pipeline on an infinite source hangs | Predicate is always true while terminal operation consumes everything. | Supply a guaranteed false condition or a finite bound. |
+| `parallelStream` runs slower | Coordination overhead to preserve prefix in order. | Benchmark and consider a sequential Stream. |
+| Calling `unordered()` loses stable output | Encounter-order guarantee was dropped. | Keep ordering if a deterministic prefix is required. |
+| Side effects run an unpredictable number of times | Predicate uses mutable state/logging to drive business logic. | Write stateless predicates; use `limit` for count bounds. |
 
-## 14. Bài tập thực hành
+## 14. Practice Exercise
 
-Cho danh sách nhiệt độ theo thứ tự đo:
+Given a list of temperatures recorded in chronological order:
 
 ```java
 List<Double> temperatures = List.of(22.5, 24.0, 26.5, 32.0, 23.0, 25.0);
 ```
 
-**Yêu cầu:**
+**Requirements:**
 
-1. Dùng `takeWhile` lấy các nhiệt độ liên tiếp từ đầu **nhỏ hơn 30°C**.
-2. Dùng `filter` lấy **tất cả** nhiệt độ nhỏ hơn 30°C.
-3. Dùng `dropWhile` lấy phần dữ liệu kể từ nhiệt độ **đầu tiên từ 30°C trở lên**.
-4. Tính trung bình của tiền tố ở câu 1 với `mapToDouble`.
-5. Giải thích vì sao hai giá trị `23.0` và `25.0` không xuất hiện trong câu 1.
+1. Use `takeWhile` to get the consecutive leading temperatures **below 30°C**.
+2. Use `filter` to get **all** temperatures below 30°C.
+3. Use `dropWhile` to get the data starting from the **first temperature of 30°C or higher**.
+4. Compute the average of the prefix from question 1 using `mapToDouble`.
+5. Explain why `23.0` and `25.0` do not appear in question 1.
 
-**Lời giải tham khảo:**
+**Reference solution:**
 
 ```java
 List<Double> beforeFirstHigh = temperatures.stream()
@@ -599,11 +599,11 @@ double average = temperatures.stream()
         .average()
         .orElse(Double.NaN);
 
-System.out.println(average); // 24.333333333333332 (xấp xỉ 24.33)
+System.out.println(average); // 24.333333333333332 (approximately 24.33)
 ```
 
-**Tự mở rộng:** Thêm một nhiệt độ `21.0` ở **đầu danh sách**; thêm cùng nhiệt độ ấy ở **cuối danh sách**. So sánh tiền tố sau mỗi thay đổi. Bài tập nhấn mạnh rằng kết quả `takeWhile` bị chi phối bởi **vị trí của phần tử đầu tiên làm predicate sai**, không chỉ bởi giá trị từng phần tử.
+**Self-extension:** Insert `21.0` at the **beginning of the list**; insert the same value at the **end of the list**. Compare the prefixes after each change. This exercise highlights that `takeWhile`'s result is governed by the **position of the first failing element**, not solely by individual element values.
 
-## Ghi nhớ
+## Key Takeaways
 
-`takeWhile(predicate)` lấy **tiền tố dài nhất thỏa điều kiện** từ Stream có encounter order; phần tử đầu tiên không thỏa và mọi phần tử phía sau đều không xuất hiện. `filter` chọn mọi phần tử thỏa, `dropWhile` bỏ tiền tố thỏa, còn `limit` giới hạn theo số lượng. Nếu thứ tự nguồn không được xác định, `takeWhile` không bảo đảm tiền tố hay tập phần tử cố định. Đây là thao tác trung gian lazy, có trạng thái và hỗ trợ dừng sớm; predicate nên stateless, không can thiệp nguồn. Dùng trên dữ liệu đã sắp đúng theo ranh giới nghiệp vụ, cân nhắc nguồn vô hạn và chi phí của xử lý song song trước khi áp dụng.
+`takeWhile(predicate)` takes the **longest matching prefix** from a Stream with an encounter order; the first failing element and all subsequent elements are excluded. `filter` selects every matching element, `dropWhile` discards the matching prefix, and `limit` caps by count. When source order is undefined, `takeWhile` guarantees neither a fixed prefix nor a fixed element set. It is a lazy, stateful, short-circuiting intermediate operation; predicates should be stateless and non-interfering. Apply it to data ordered appropriately for the business boundary, and evaluate infinite sources and parallel coordination costs before adopting it.

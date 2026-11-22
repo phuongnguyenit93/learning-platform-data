@@ -1,37 +1,37 @@
-# API module và implementation module
+# API Modules and Implementation Modules
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích vì sao nên tách API contract khỏi implementation trong một modular application.
-- Thiết kế module API chỉ công khai các type mà consumer cần sử dụng.
-- Thiết kế implementation module phụ thuộc API và giữ package triển khai ở trạng thái encapsulated.
-- Dùng `uses` và `provides` cùng `ServiceLoader` để tìm implementation mà không phụ thuộc class cụ thể.
-- Hiểu hướng dependency giữa application, API và implementation.
-- Nhận diện khi nào nên tách module và khi nào một module duy nhất là đủ.
+- Explain why an API contract should be separated from its implementation in a modular application.
+- Design an API module that exposes only the types consumers need to use.
+- Design an implementation module that depends on the API and keeps implementation packages encapsulated.
+- Use `uses` and `provides` with `ServiceLoader` to locate an implementation without depending on concrete classes.
+- Understand the dependency direction between application, API, and implementation.
+- Recognize when to split modules and when a single module is sufficient.
 
-## 1. Vì sao tách API và implementation?
+## 1. Why separate API and implementation?
 
-Một module thường có hai nhóm nội dung khác nhau:
+A module typically contains two distinct groups of content:
 
-- **API contract**: những type, method và hành vi mà module khác được phép sử dụng.
-- **Implementation**: class, thuật toán, cấu trúc dữ liệu và chi tiết nội bộ để thực hiện contract đó.
+- **API contract**: the types, methods, and behaviors that other modules are permitted to use.
+- **Implementation**: the classes, algorithms, data structures, and internal details that fulfill that contract.
 
-Nếu consumer phụ thuộc trực tiếp vào class triển khai, thay đổi implementation có thể kéo theo thay đổi ở consumer. Khi nhiều module cùng dùng một implementation cụ thể, việc thay thế hoặc nâng cấp nó trở nên khó khăn.
+If a consumer depends directly on an implementation class, changes to the implementation can force changes in the consumer. When multiple modules share a concrete implementation, replacing or upgrading it becomes difficult.
 
-Tách API module và implementation module giúp xác định ranh giới rõ hơn:
+Separating an API module and an implementation module establishes clearer boundaries:
 
-- API module sở hữu contract ổn định.
-- Implementation module cung cấp một cách thực hiện contract.
-- Application module phụ thuộc vào API và sử dụng contract.
-- Implementation có thể được thay thế mà không buộc application import class triển khai.
+- The API module owns the stable contract.
+- The implementation module provides one way of fulfilling the contract.
+- The application module depends on the API and uses the contract.
+- The implementation can be replaced without forcing the application to import implementation classes.
 
-Mục tiêu không phải tạo thêm module cho mọi interface. Chỉ nên tách khi có ranh giới trách nhiệm và vòng đời thay đổi đủ rõ, chẳng hạn một domain capability có nhiều implementation, plugin hoặc nhiều consumer độc lập.
+The goal is not to create an extra module for every interface. Split only when there is a sufficiently clear boundary of responsibility and change lifecycle—for instance, a domain capability with multiple implementations, plugins, or multiple independent consumers.
 
-## 2. Hướng dependency mong muốn
+## 2. Desired dependency direction
 
-Một thiết kế phổ biến có ba module:
+A common design has three modules:
 
 ~~~text
                  +--------------------+
@@ -53,20 +53,20 @@ Một thiết kế phổ biến có ba module:
                  +--------------------+
 ~~~
 
-Cả application và implementation đều biết API contract. Application không cần biết class triển khai cụ thể.
+Both the application and the implementation know the API contract. The application does not need to know the concrete implementation class.
 
 Dependency direction:
 
 - Application → API
 - Implementation → API
-- Application không cần compile dependency trực tiếp tới implementation khi dùng service discovery.
-- API không phụ thuộc implementation.
+- The application does not need a direct compile-time dependency on the implementation when using service discovery.
+- The API does not depend on the implementation.
 
-Không tạo vòng phụ thuộc như API → implementation → API. Nếu contract cần một abstraction chung, abstraction đó thuộc API hoặc một module contract nhỏ hơn.
+Do not create cyclic dependencies such as API → implementation → API. If the contract needs a shared abstraction, that abstraction belongs in the API or in a smaller contract module.
 
-## 3. Thiết kế API module
+## 3. Designing the API module
 
-Giả sử hệ thống có capability tạo đơn hàng. API module công khai một interface:
+Suppose the system has an order creation capability. The API module exposes an interface:
 
 ~~~java
 package com.acme.orders.api;
@@ -85,42 +85,42 @@ module com.acme.orders.api {
 }
 ~~~
 
-`exports` công khai package chứa contract để module khác có thể dùng public type của nó.
+`exports` exposes the package containing the contract so that other modules can use its public types.
 
-API nên chứa:
+The API should contain:
 
-- Interface hoặc abstract contract mà consumer cần.
-- DTO, request/response type và exception thuộc public contract.
-- Enum, annotation hoặc value type cần chia sẻ.
-- Service interface dùng cho dependency injection hoặc ServiceLoader.
+- Interfaces or abstract contracts that consumers need.
+- DTOs, request/response types, and exceptions belonging to the public contract.
+- Enums, annotations, or value types that need to be shared.
+- Service interfaces used for dependency injection or `ServiceLoader`.
 
-API nên tránh chứa:
+The API should avoid containing:
 
-- Concrete implementation.
-- Cấu hình database hoặc network client cụ thể.
-- Framework adapter không thuộc contract.
-- Internal helper và cache.
-- Type chỉ phục vụ một implementation.
+- Concrete implementations.
+- Database configurations or specific network clients.
+- Framework adapters that do not belong to the contract.
+- Internal helpers and caches.
+- Types that serve only a single implementation.
 
-Nếu API cần DTO, hãy đặt DTO trong package được export phù hợp. Consumer chỉ nên nhìn thấy những type cần để gọi contract.
+If the API needs DTOs, place them in an appropriately exported package. Consumers should only see the types needed to invoke the contract.
 
-### 3.1. Giữ contract ổn định
+### 3.1. Keeping the contract stable
 
-API là ranh giới tương thích giữa các module. Khi thay đổi public method, constructor, record component hoặc semantics, có thể ảnh hưởng nhiều consumer.
+The API is the compatibility boundary between modules. Changing public methods, constructors, record components, or semantics can affect many consumers.
 
-Một số nguyên tắc:
+Some principles:
 
-- Đặt tên method theo nghiệp vụ, tránh rò rỉ chi tiết persistence.
-- Không trả về type nội bộ của implementation.
-- Không để API phụ thuộc vào ORM entity hoặc database-specific type nếu consumer không cần.
-- Xác định rõ nullability, exception và ownership của dữ liệu.
-- Version API theo quy tắc tương thích của hệ thống.
+- Name methods after business concepts, avoiding leaks of persistence details.
+- Do not return internal implementation types.
+- Do not let the API depend on ORM entities or database-specific types if consumers do not need them.
+- Clearly define nullability, exceptions, and data ownership.
+- Version the API according to the system's compatibility rules.
 
-Ví dụ, nếu implementation dùng JPA, API không nhất thiết phải trả về JPA entity. Có thể trả về DTO hoặc abstraction độc lập với persistence.
+For example, if the implementation uses JPA, the API does not necessarily have to return a JPA entity. It can return a DTO or a persistence-independent abstraction.
 
-## 4. Thiết kế implementation module
+## 4. Designing the implementation module
 
-Implementation module phụ thuộc API:
+The implementation module depends on the API:
 
 ~~~java
 module com.acme.orders.impl {
@@ -128,7 +128,7 @@ module com.acme.orders.impl {
 }
 ~~~
 
-Implementation cung cấp class thực thi interface:
+The implementation provides a class that implements the interface:
 
 ~~~java
 package com.acme.orders.impl;
@@ -151,7 +151,7 @@ public final class DefaultOrderService implements OrderService {
 }
 ~~~
 
-Package triển khai không cần export. Descriptor đầy đủ sẽ được bổ sung directive `provides`:
+The implementation package does not need to be exported. The full descriptor adds a `provides` directive:
 
 ~~~java
 module com.acme.orders.impl {
@@ -162,13 +162,13 @@ module com.acme.orders.impl {
 }
 ~~~
 
-Điểm quan trọng: `com.acme.orders.impl` không có `exports com.acme.orders.impl`. Class provider có thể là public để đáp ứng quy tắc provider constructor, nhưng package vẫn không được công khai cho code Java thông thường của module khác. ServiceLoader có thể tìm provider được khai báo mà consumer không cần import class triển khai.
+Key point: `com.acme.orders.impl` has no `exports com.acme.orders.impl`. The provider class can be `public` to satisfy the provider constructor rule, while the package remains unexposed to normal Java code in other modules. `ServiceLoader` can locate the declared provider without consumers having to import the implementation class.
 
-Không dùng `opens` để thay thế `exports` trong trường hợp này. Reflection openness là một hợp đồng khác; service provider không cần mở toàn bộ package triển khai chỉ để được phát hiện.
+Do not use `opens` as a substitute for `exports` in this case. Reflection openness is a different contract; a service provider does not need to open its entire implementation package just to be discovered.
 
-## 5. Application phụ thuộc API và dùng ServiceLoader
+## 5. Application depends on API and uses ServiceLoader
 
-Application module khai báo:
+The application module declares:
 
 ~~~java
 module com.acme.app {
@@ -178,9 +178,9 @@ module com.acme.app {
 }
 ~~~
 
-`requires` tạo dependency tới API. `uses` khai báo application là consumer của service `OrderService`.
+`requires` creates a dependency on the API. `uses` declares that the application is a consumer of the `OrderService` service.
 
-Code sử dụng service:
+Code using the service:
 
 ~~~java
 package com.acme.app;
@@ -206,32 +206,32 @@ public class Main {
 }
 ~~~
 
-Application chỉ import `OrderService`. Nó không import `DefaultOrderService` và không cần biết package triển khai.
+The application only imports `OrderService`. It does not import `DefaultOrderService` and does not need to know the implementation package.
 
-Implementation module khai báo `provides`; application module khai báo `uses`. Hai directive này mô tả hợp đồng service ở cấp module.
+The implementation module declares `provides`; the application module declares `uses`. These two directives describe the service contract at the module level.
 
-### 5.1. Vì sao không dùng new DefaultOrderService()?
+### 5.1. Why not use `new DefaultOrderService()`?
 
-Nếu application viết:
+If the application writes:
 
 ~~~java
 OrderService service = new DefaultOrderService();
 ~~~
 
-thì application phải:
+then the application must:
 
-- Biết tên class triển khai.
-- Compile dependency tới implementation module.
-- Có quyền truy cập package chứa class.
-- Thay đổi code khi đổi implementation.
+- Know the implementation class name.
+- Have a compile-time dependency on the implementation module.
+- Have access to the package containing the class.
+- Change its code whenever the implementation changes.
 
-Điều đó làm mất lợi ích của việc tách contract. ServiceLoader tạo một điểm tìm implementation qua API thay vì tham chiếu concrete class.
+This defeats the benefit of separating the contract. `ServiceLoader` provides a lookup point for implementations through the API instead of referencing concrete classes.
 
-Nếu ứng dụng chỉ có một implementation cố định và không cần thay thế, plugin hoặc service discovery, constructor injection trực tiếp có thể đơn giản hơn. Tách module và ServiceLoader nên phục vụ nhu cầu kiến trúc thực tế.
+If the application only has a single fixed implementation and does not need replacement, plugins, or service discovery, direct constructor injection may be simpler. Module splitting and `ServiceLoader` should serve real architectural needs.
 
-## 6. Cấu trúc source tree hoàn chỉnh
+## 6. Complete source tree structure
 
-Ví dụ project có ba module:
+Example of a three-module project:
 
 ~~~text
 project/
@@ -250,7 +250,7 @@ project/
             └── Main.java
 ~~~
 
-Các descriptor:
+The descriptors:
 
 **API**
 
@@ -281,13 +281,13 @@ module com.acme.app {
 }
 ~~~
 
-Compile các module:
+Compile the modules:
 
 ~~~bash
 javac -d mods --module-source-path src -m com.acme.orders.api,com.acme.orders.impl,com.acme.app
 ~~~
 
-Output có dạng:
+The output looks like:
 
 ~~~text
 mods/
@@ -302,43 +302,43 @@ mods/
     └── com/acme/app/Main.class
 ~~~
 
-Các package của API được export. Package implementation không được export, dù provider được khai báo trong descriptor.
+The API package is exported. The implementation package is not exported, even though the provider is declared in the descriptor.
 
-## 7. Resolve implementation module và service binding
+## 7. Resolving the implementation module and service binding
 
-Một điểm quan trọng khi dùng ServiceLoader với named modules là provider module phải có mặt trong module layer nơi service được tìm.
+An important point when using `ServiceLoader` with named modules is that the provider module must be present in the module layer where the service is looked up.
 
-Khi chạy launcher, có thể đưa implementation module vào graph rõ ràng:
+When running the launcher, you can explicitly include the implementation module in the graph:
 
 ~~~bash
 java --module-path mods --add-modules com.acme.orders.impl -m com.acme.app/com.acme.app.Main
 ~~~
 
-`--add-modules` thêm provider module vào tập module được resolve. Application vẫn chỉ phụ thuộc API trong source code; tên implementation được cấu hình ở bước khởi chạy.
+`--add-modules` adds the provider module to the set of resolved modules. The application still depends only on the API in source code; the implementation name is configured at launch time.
 
-Trong ứng dụng plugin hoặc khi tạo module layer bằng API, có thể dùng `Configuration.resolveAndBind` để resolve dependency và bind các service provider tương ứng với service mà các module đã resolve sử dụng. Đây là cách phù hợp khi host xây dựng layer động từ một tập module finder.
+In plugin applications or when creating module layers via the API, `Configuration.resolveAndBind` can be used to resolve dependencies and bind the service providers corresponding to services used by the resolved modules. This is suitable when a host dynamically constructs layers from a set of module finders.
 
-Nếu ServiceLoader không tìm thấy provider, hãy kiểm tra:
+If `ServiceLoader` cannot find a provider, check:
 
-1. API interface có đúng class identity với provider không?
-2. Consumer module đã khai báo `uses` chưa?
-3. Provider module có khai báo `provides ... with ...` đúng không?
-4. Provider module có được resolve vào layer không?
-5. Provider class có đáp ứng yêu cầu của ServiceLoader không?
-6. Bạn có đang dùng đúng layer khi gọi ServiceLoader không?
+1. Does the API interface have the exact same class identity as the one the provider implements?
+2. Has the consumer module declared `uses`?
+3. Has the provider module properly declared `provides ... with ...`?
+4. Is the provider module resolved into the layer?
+5. Does the provider class meet `ServiceLoader`'s requirements?
+6. Are you using the right layer when invoking `ServiceLoader`?
 
-Với named module, `ServiceLoader.load(serviceType)` tìm provider trong layer phù hợp với module của service type. Nếu host tự tạo layer mới, có thể cần dùng overload nhận layer cụ thể:
+With named modules, `ServiceLoader.load(serviceType)` searches for providers in the layer appropriate for the service type's module. If the host creates new layers itself, you may need the overload that accepts a specific layer:
 
 ~~~java
 ServiceLoader<OrderService> services =
         ServiceLoader.load(pluginLayer, OrderService.class);
 ~~~
 
-Điều này giúp host tìm provider trong layer plugin thay vì mặc định chỉ tìm ở layer context phù hợp khác.
+This lets the host find providers in the plugin layer instead of defaulting to searching another context layer.
 
-## 8. Nhiều implementation cho cùng một API
+## 8. Multiple implementations for the same API
 
-Một lợi ích của API/implementation separation là có thể có nhiều implementation:
+One benefit of API/implementation separation is supporting multiple implementations:
 
 ~~~text
 com.acme.orders.api
@@ -352,42 +352,42 @@ com.acme.orders.impl.sql   com.acme.orders.impl.memory
                OrderService
 ~~~
 
-Ví dụ:
+For example:
 
-- SQL implementation dùng database.
-- In-memory implementation dùng cho test hoặc demo.
-- Remote implementation gọi service bên ngoài.
+- An SQL implementation using a database.
+- An in-memory implementation for testing or demos.
+- A remote implementation calling an external service.
 
-Mỗi implementation module có thể khai báo:
+Each implementation module can declare:
 
 ~~~java
 provides com.acme.orders.api.OrderService
     with com.acme.orders.impl.sql.SqlOrderService;
 ~~~
 
-hoặc:
+or:
 
 ~~~java
 provides com.acme.orders.api.OrderService
     with com.acme.orders.impl.memory.MemoryOrderService;
 ~~~
 
-Nếu nhiều provider cùng được resolve, `ServiceLoader` có thể trả về nhiều implementation. Không nên gọi `findFirst()` rồi giả định thứ tự provider là quy tắc chọn implementation ổn định.
+If multiple providers are resolved together, `ServiceLoader` can return multiple implementations. Do not call `findFirst()` and assume provider ordering is a stable selection rule.
 
-Nếu chỉ cho phép một implementation, hãy đảm bảo module graph chỉ đưa một provider vào layer. Nếu hỗ trợ nhiều provider, hãy định nghĩa chính sách lựa chọn rõ ràng, ví dụ:
+If only one implementation is allowed, ensure the module graph brings only one provider into the layer. If multiple providers are supported, define an explicit selection policy, such as:
 
-- Provider có priority được khai báo trong metadata riêng.
-- Qualifier hoặc configuration key chọn provider.
-- Host chọn module/layer tương ứng.
-- API cung cấp factory hoặc registry có contract xác định.
+- Providers having a priority declared in separate metadata.
+- A qualifier or configuration key selecting the provider.
+- The host selecting the corresponding module/layer.
+- The API providing a factory or registry with a deterministic contract.
 
-Không dựa vào thứ tự file trên module path hoặc thứ tự scan không được cam kết.
+Do not rely on file order on the module path or an unguaranteed scan order.
 
-## 9. Encapsulation của implementation module
+## 9. Encapsulation of the implementation module
 
-Một implementation module nên export ít package nhất có thể.
+An implementation module should export as few packages as possible.
 
-Ví dụ descriptor:
+Example descriptor:
 
 ~~~java
 module com.acme.orders.impl {
@@ -398,26 +398,26 @@ module com.acme.orders.impl {
 }
 ~~~
 
-Không cần:
+No need for:
 
 ~~~java
 exports com.acme.orders.impl;
 ~~~
 
-Khi không export package:
+When the package is not exported:
 
-- Application không thể import class triển khai qua module boundary thông thường.
-- Implementation có thể thay class hoặc cấu trúc package mà không thay đổi public API.
-- Các internal helper, repository adapter và cache vẫn nằm sau module boundary.
-- ServiceLoader vẫn có thể sử dụng provider được khai báo theo service contract.
+- The application cannot import implementation classes across normal module boundaries.
+- The implementation can change classes or package structure without changing the public API.
+- Internal helpers, repository adapters, and caches remain behind the module boundary.
+- `ServiceLoader` can still use the provider declared via the service contract.
 
-Nếu một framework cần reflection vào package nội bộ, chỉ thêm qualified `opens` cho đúng package và module framework thực sự cần quyền. Không mở toàn bộ implementation module chỉ vì một thư viện.
+If a framework needs reflection into an internal package, add only a qualified `opens` for the exact package and framework module that genuinely needs permission. Do not open the entire implementation module just for one library.
 
-## 10. Tránh rò rỉ implementation qua API
+## 10. Avoiding implementation leaks through the API
 
-Việc tạo hai module chưa đủ nếu API vẫn trả về concrete implementation type.
+Creating two modules is not enough if the API still returns concrete implementation types.
 
-Ví dụ contract không tốt:
+Example of a poor contract:
 
 ~~~java
 public interface OrderService {
@@ -425,9 +425,9 @@ public interface OrderService {
 }
 ~~~
 
-Consumer bị phụ thuộc vào persistence implementation. Khi đổi JPA sang một cách lưu trữ khác, API và consumer đều có thể phải thay đổi.
+The consumer becomes dependent on the persistence implementation. When switching from JPA to another storage mechanism, both the API and consumers may have to change.
 
-Một contract tốt hơn chỉ để lộ capability cần thiết:
+A better contract exposes only the required capability:
 
 ~~~java
 public interface OrderService {
@@ -435,102 +435,102 @@ public interface OrderService {
 }
 ~~~
 
-Một số dạng rò rỉ khác:
+Other forms of leakage:
 
-- API trả về implementation-specific exception.
-- API yêu cầu consumer truyền ORM entity.
-- API expose class cấu hình nội bộ.
-- API phụ thuộc vào type chỉ tồn tại trong một implementation module.
-- API khai báo callback hoặc annotation của framework không phải dependency chung đã được chấp nhận.
+- The API returns implementation-specific exceptions.
+- The API requires consumers to pass ORM entities.
+- The API exposes internal configuration classes.
+- The API depends on types that exist only in one implementation module.
+- The API declares framework callbacks or annotations that are not an agreed-upon shared dependency.
 
-Giữ contract nhỏ giúp consumer không cần biết implementation hoạt động bên trong như thế nào.
+Keeping the contract small ensures consumers do not need to know how the implementation works internally.
 
-## 11. Dependency, versioning và compatibility
+## 11. Dependencies, versioning, and compatibility
 
-API module thường có vòng đời tương thích quan trọng hơn implementation module vì nhiều consumer phụ thuộc vào nó.
+The API module typically has a more critical compatibility lifecycle than the implementation module because many consumers depend on it.
 
-Khi thay đổi API:
+When changing the API:
 
-- Thêm method abstract vào interface có thể phá implementation hiện có.
-- Xóa hoặc đổi kiểu public method có thể phá consumer.
-- Đổi tên module hoặc package có thể làm hỏng requires và service descriptor.
-- Thay đổi DTO/record có thể ảnh hưởng serialization và binary compatibility.
-- Thay đổi semantics có thể phá hành vi dù signature không đổi.
+- Adding an abstract method to an interface can break existing implementations.
+- Removing or changing a public method's signature can break consumers.
+- Renaming a module or package can break `requires` and service descriptors.
+- Modifying DTOs/records can affect serialization and binary compatibility.
+- Changing semantics can break behavior even if signatures remain unchanged.
 
-Khi thay implementation:
+When changing the implementation:
 
-- Giữ nguyên service interface.
-- Giữ module name hoặc cập nhật cấu hình provider có kiểm soát.
-- Giữ semantics và error behavior của contract.
-- Chạy contract tests với từng implementation.
-- Không để application phụ thuộc vào implementation package.
+- Keep the service interface unchanged.
+- Keep the module name or update provider configuration in a controlled manner.
+- Preserve the contract's semantics and error behavior.
+- Run contract tests against each implementation.
+- Do not let the application depend on implementation packages.
 
-Nếu API và implementation được phát hành thành artifact riêng, cần version compatibility rõ ràng. Ví dụ implementation phiên bản mới phải tương thích với dải API mà nó khai báo hoặc được kiểm thử cùng.
+If the API and implementation are published as separate artifacts, explicit version compatibility is required. For example, a new implementation version must be compatible with the API version range it declares or is tested against.
 
-## 12. Kiểm thử theo ranh giới module
+## 12. Testing along module boundaries
 
-Nên có nhiều loại kiểm thử:
+Multiple types of tests should be included:
 
-### API contract test
+### API contract tests
 
-Kiểm tra hành vi và semantics mà consumer được phép dựa vào. Contract test nên độc lập với chi tiết database hoặc framework của một implementation cụ thể.
+Verify the behavior and semantics that consumers are permitted to rely on. Contract tests should be independent of database or framework details of any particular implementation.
 
-### Implementation test
+### Implementation tests
 
-Kiểm tra từng implementation thực hiện contract đúng. Có thể dùng test fixture riêng cho database hoặc in-memory storage.
+Verify that each implementation fulfills the contract properly. Dedicated test fixtures can be used for databases or in-memory storage.
 
-### Service discovery integration test
+### Service discovery integration tests
 
-Chạy ứng dụng trên module path thật và xác nhận ServiceLoader tìm đúng provider. Test chỉ chạy trên classpath có thể bỏ qua lỗi descriptor, uses/provides hoặc module resolution.
+Run the application on the real module path and confirm that `ServiceLoader` finds the expected provider. Tests run solely on the classpath can miss descriptor errors, `uses`/`provides` issues, or module resolution problems.
 
-### Encapsulation test
+### Encapsulation tests
 
-Xác nhận application không thể import package implementation khi package không export. Nếu cần, kiểm tra module descriptor hoặc compile một consumer test nhỏ trong named module.
+Confirm that the application cannot import implementation packages when those packages are not exported. If needed, inspect the module descriptor or compile a small consumer test in a named module.
 
-### Replacement test
+### Replacement tests
 
-Thay implementation module bằng implementation khác mà không sửa source application. Đây là bằng chứng thực tế rằng consumer phụ thuộc vào contract.
+Swap the implementation module for another implementation without modifying the application source code. This provides practical proof that the consumer depends on the contract.
 
-## 13. Khi nào không cần tách API và implementation?
+## 13. When is separating API and implementation unnecessary?
 
-Không phải module nào cũng cần chia thành hai artifact/module.
+Not every module needs to be split into two artifacts/modules.
 
-Có thể giữ chung một module khi:
+They can remain in a single module when:
 
-- Module nhỏ, chỉ có một consumer nội bộ.
-- Implementation không có khả năng thay thế và không cần plugin.
-- Public API và implementation có cùng vòng đời thay đổi.
-- Việc tách chỉ tạo thêm dependency, build configuration và versioning mà không tạo ranh giới hữu ích.
+- The module is small and has only one internal consumer.
+- The implementation is unlikely to be replaced and plugins are not needed.
+- The public API and implementation share the same change lifecycle.
+- Splitting would only add dependencies, build configuration, and versioning overhead without creating a useful boundary.
 
-Tách module khi có ít nhất một lý do rõ ràng:
+Split modules when there is at least one clear reason:
 
-- Nhiều consumer cần dùng chung contract.
-- Có nhiều implementation hoặc plugin.
-- Implementation cần được thay thế độc lập.
-- Muốn giữ package nội bộ không export.
-- API cần versioning và compatibility độc lập.
-- Có ranh giới triển khai hoặc ownership riêng.
+- Multiple consumers need to share the contract.
+- There are multiple implementations or plugins.
+- The implementation needs to be replaced independently.
+- You want to keep internal packages unexported.
+- The API needs independent versioning and compatibility.
+- There are distinct deployment or ownership boundaries.
 
-Đừng tách chỉ vì mọi interface đều có vẻ nên nằm trong một module API. Ranh giới module nên phản ánh contract và ownership thực tế.
+Do not split just because every interface looks like it should live in an API module. Module boundaries should reflect actual contracts and ownership.
 
-## 14. Checklist thiết kế
+## 14. Design checklist
 
-Trước khi đưa API/implementation separation vào một modular application, hãy xác nhận:
+Before introducing API/implementation separation into a modular application, confirm:
 
-- [ ] API module chỉ chứa contract và public types cần thiết.
-- [ ] API không phụ thuộc implementation.
-- [ ] Implementation module phụ thuộc API, không tạo vòng dependency.
-- [ ] Application phụ thuộc API thay vì concrete implementation khi cần thay thế.
-- [ ] Package implementation không export nếu consumer không cần truy cập trực tiếp.
-- [ ] Nếu dùng ServiceLoader, consumer có `uses` và provider có `provides`.
-- [ ] Provider module thực sự được resolve vào module layer.
-- [ ] Có chính sách rõ ràng nếu nhiều provider cùng tồn tại.
-- [ ] API không làm lộ ORM entity, repository hoặc framework-specific type ngoài contract.
-- [ ] Có contract test và integration test trên module path.
-- [ ] Module split mang lại lợi ích ownership, versioning hoặc thay thế rõ ràng.
+- [ ] The API module contains only the necessary contract and public types.
+- [ ] The API does not depend on the implementation.
+- [ ] The implementation module depends on the API without creating cyclic dependencies.
+- [ ] The application depends on the API instead of a concrete implementation when replaceability is needed.
+- [ ] Implementation packages are not exported if consumers do not need direct access.
+- [ ] If using `ServiceLoader`, the consumer has `uses` and the provider has `provides`.
+- [ ] The provider module is actually resolved into the module layer.
+- [ ] There is a clear policy if multiple providers coexist.
+- [ ] The API does not leak ORM entities, repositories, or framework-specific types outside the contract.
+- [ ] Contract tests and integration tests run on the module path.
+- [ ] The module split provides clear ownership, versioning, or replaceability benefits.
 
-## Kết luận
+## Conclusion
 
-API module định nghĩa hợp đồng mà consumer được phép dùng. Implementation module phụ thuộc vào hợp đồng đó, cung cấp cách thực hiện và giữ package triển khai ở trạng thái encapsulated. Application có thể phụ thuộc API và tìm implementation qua `uses`, `provides` và `ServiceLoader`.
+The API module defines the contract that consumers are allowed to use. The implementation module depends on that contract, provides its execution, and keeps implementation packages encapsulated. The application can depend on the API and discover implementations via `uses`, `provides`, and `ServiceLoader`.
 
-Hãy giữ dependency direction rõ ràng: **application → API; implementation → API**. Khi application chỉ biết contract, implementation có thể được thay thế hoặc mở rộng mà không buộc consumer phụ thuộc vào class triển khai cụ thể.
+Keep the dependency direction clear: **application → API; implementation → API**. When the application knows only the contract, implementations can be replaced or extended without forcing consumers to depend on concrete implementation classes.

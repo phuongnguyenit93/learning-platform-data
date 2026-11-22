@@ -1,12 +1,12 @@
-# Thu thập thành `Set` và hiểu ngữ nghĩa loại trùng
+# Collecting into a `Set` and Understanding Deduplication Semantics
 
-Trong Java Stream API, `collect` là terminal operation biến một pipeline khai báo thành kết quả cụ thể. Khi bài toán cần **các giá trị duy nhất**, `Set` là cấu trúc dữ liệu thường được chọn. Tuy nhiên, “duy nhất” phải được hiểu theo đúng hợp đồng so sánh của từng loại `Set`; thứ tự phần tử, khả năng chỉnh sửa và khả năng xử lý `null` cũng phụ thuộc cách thu thập.
+In the Java Stream API, `collect` is a terminal operation that turns a declarative pipeline into a concrete result. When a problem requires **unique values**, `Set` is the commonly chosen data structure. However, "unique" must be understood according to the exact equality contract of each `Set` type; element ordering, mutability, and `null` handling also depend on how collection is performed.
 
-Bài này thuộc chương **Thu thập thành Collection** của module **JAVA_STREAM_API**. Trọng tâm là `Collectors.toSet()`, `Collectors.toCollection(...)`, `Collectors.toUnmodifiableSet()`, quy tắc `equals`/`hashCode`, cách chọn `HashSet`, `LinkedHashSet` và `TreeSet`, cũng như khác biệt giữa `distinct()` và thu thập vào `Set`. Các ví dụ kết hợp `filter`, `map`, `collect`, `groupingBy` và stream song song; đồng thời chỉ ra giới hạn về trạng thái, tài nguyên và hiệu năng.
+This lesson belongs to the **Collecting into Collections** chapter of the **JAVA_STREAM_API** module. It focuses on `Collectors.toSet()`, `Collectors.toCollection(...)`, `Collectors.toUnmodifiableSet()`, `equals`/`hashCode` rules, choosing between `HashSet`, `LinkedHashSet`, and `TreeSet`, as well as the difference between `distinct()` and collecting into a `Set`. The examples combine `filter`, `map`, `collect`, `groupingBy`, and parallel streams, while highlighting constraints around state, resources, and performance.
 
-## 1. Thu thập thành `Set` bằng `Collectors.toSet()`
+## 1. Collecting into a `Set` with `Collectors.toSet()`
 
-Giả sử danh sách đầu vào có các mã kỹ năng bị lặp:
+Suppose an input list contains duplicate skill codes:
 
 ```java
 import java.util.List;
@@ -24,15 +24,15 @@ System.out.println(unique.contains("SQL"));         // true
 System.out.println(unique.contains("Git"));         // true
 ```
 
-Đầu vào có năm phần tử nhưng `Set` kết quả chỉ còn ba giá trị khác nhau. **Không nên khẳng định thứ tự khi in `unique`**: `Collectors.toSet()` không bảo đảm kiểu triển khai hay thứ tự duyệt phần tử.
+The input has five elements, but the resulting `Set` only has three distinct values. **Do not assume any specific order when printing `unique`**: `Collectors.toSet()` guarantees neither the concrete implementation type nor the iteration order.
 
-Pipeline có ba phần:
+The pipeline has three parts:
 
-1. `skills.stream()` tạo nguồn từ danh sách, có encounter order theo vị trí phần tử.
-2. Các intermediate operation tùy chọn như `filter` hoặc `map` mô tả việc lọc và chuyển đổi.
-3. `collect(Collectors.toSet())` tiêu thụ stream, tích lũy vào một `Set` và loại các phần tử trùng theo quy tắc của `Set` được tạo.
+1. `skills.stream()` creates a source from the list, with an encounter order based on element position.
+2. Optional intermediate operations such as `filter` or `map` describe filtering and transformations.
+3. `collect(Collectors.toSet())` consumes the stream, accumulates elements into a `Set`, and eliminates duplicates according to the rules of the created `Set`.
 
-Nếu cần kết hợp thao tác khác:
+If you need to combine other operations:
 
 ```java
 Set<String> normalized = List.of(" Java ", "SQL", "Java", " Git ").stream()
@@ -43,25 +43,25 @@ Set<String> normalized = List.of(" Java ", "SQL", "Java", " Git ").stream()
 System.out.println(normalized.equals(Set.of("java", "sql", "git"))); // true
 ```
 
-Đây là cách loại trùng **sau khi chuẩn hóa**. Nếu hai giá trị chỉ khác khoảng trắng hoặc chữ hoa thường nhưng ứng dụng muốn xem là cùng một mã, hãy chuẩn hóa trước khi thu thập.
+This is how you deduplicate **after normalization**. If two values differ only by whitespace or letter case and the application wants to treat them as the same code, normalize them before collecting.
 
-### 1.1. `toSet()` bảo đảm điều gì, và không bảo đảm điều gì?
+### 1.1. What Does `toSet()` Guarantee, and What Does It Not Guarantee?
 
-| Thuộc tính | Hợp đồng của `Collectors.toSet()` |
+| Property | Contract of `Collectors.toSet()` |
 |---|---|
-| Số phần tử | Mỗi giá trị tương đương theo quy tắc của `Set` xuất hiện tối đa một lần |
-| Kiểu trả về | `Set<T>` |
-| Kiểu triển khai cụ thể | **Không được bảo đảm**, không giả định luôn là `HashSet` |
-| Thứ tự duyệt phần tử | **Không được bảo đảm**, dù nguồn là `List` có thứ tự |
-| Khả năng chỉnh sửa kết quả | **Không được bảo đảm** bởi hợp đồng collector |
-| Khả năng tuần tự hóa hoặc thread safety | **Không được bảo đảm** |
-| Đặc tính collector | `UNORDERED`; không có cam kết giữ encounter order |
+| Element count | Each equivalent value per the `Set`'s rules appears at most once |
+| Return type | `Set<T>` |
+| Concrete implementation class | **Not guaranteed**; do not assume it is always `HashSet` |
+| Element iteration order | **Not guaranteed**, even when the source is an ordered `List` |
+| Mutability of result | **Not guaranteed** by the collector contract |
+| Serializability or thread safety | **Not guaranteed** |
+| Collector characteristics | `UNORDERED`; no promise to preserve encounter order |
 
-Nếu ứng dụng cần một kiểu `Set` cụ thể hoặc chính sách thứ tự cụ thể, chọn `Collectors.toCollection(supplier)` thay vì dựa vào một chi tiết triển khai của `toSet()`.
+If the application requires a specific `Set` type or a specific ordering policy, choose `Collectors.toCollection(supplier)` instead of relying on an implementation detail of `toSet()`.
 
-## 2. “Trùng” nghĩa là gì? `equals` và `hashCode`
+## 2. What Does "Duplicate" Mean? `equals` and `hashCode`
 
-Với các `Set` dựa trên hash như `HashSet` và `LinkedHashSet`, tính duy nhất dựa vào `equals` và `hashCode` của phần tử. Hai đối tượng có dữ liệu nhìn giống nhau chưa chắc được xem là bằng nhau.
+For hash-based `Set` implementations such as `HashSet` and `LinkedHashSet`, uniqueness relies on the elements' `equals` and `hashCode`. Two objects with visually similar data are not necessarily considered equal.
 
 ```java
 import java.util.List;
@@ -74,18 +74,18 @@ Set<String> names = List.of("Java", "Java", "java").stream()
 System.out.println(names.size()); // 2
 ```
 
-`String.equals` phân biệt chữ hoa và chữ thường: `"Java"` bằng `"Java"`, nhưng không bằng `"java"`. Thu thập vào `Set` **không tự động chuẩn hóa** dữ liệu.
+`String.equals` is case-sensitive: `"Java"` equals `"Java"`, but does not equal `"java"`. Collecting into a `Set` **does not automatically normalize** data.
 
-### 2.1. `equals` và `hashCode` phải nhất quán
+### 2.1. `equals` and `hashCode` Must Be Consistent
 
-Với những phần tử dùng trong hash-based `Set`, hợp đồng quan trọng là:
+For elements used in a hash-based `Set`, the key contract is:
 
-- `equals` cần có tính phản xạ, đối xứng, bắc cầu và nhất quán khi trạng thái so sánh không thay đổi.
-- Nếu `a.equals(b)` là `true` thì `a.hashCode() == b.hashCode()` phải đúng.
-- Hai đối tượng có cùng `hashCode` **không nhất thiết** bằng nhau; hash collision được phép xảy ra.
-- Nếu ghi đè `equals`, phải ghi đè `hashCode` tương ứng; nếu không, `HashSet` có thể không phát hiện trùng đúng cách.
+- `equals` must be reflexive, symmetric, transitive, and consistent when the compared state does not change.
+- If `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()` must hold.
+- Two objects with the same `hashCode` are **not necessarily** equal; hash collisions are allowed.
+- If you override `equals`, you must override `hashCode` accordingly; otherwise, `HashSet` may fail to detect duplicates properly.
 
-Một `record` mặc định có `equals` và `hashCode` xét **tất cả thành phần**:
+A `record` by default has `equals` and `hashCode` considering **all components**:
 
 ```java
 record Employee(long id, String name) {}
@@ -93,19 +93,19 @@ record Employee(long id, String name) {}
 Set<Employee> employees = List.of(
         new Employee(1, "An"),
         new Employee(1, "An"),
-        new Employee(1, "An Nguyễn")
+        new Employee(1, "An Nguyen")
 ).stream().collect(Collectors.toSet());
 
 System.out.println(employees.size()); // 2
 ```
 
-Trong ví dụ, bản ghi thứ nhất và thứ hai bằng nhau vì mọi thành phần đều bằng nhau. Bản ghi thứ ba khác `name`, nên vẫn là phần tử riêng, mặc dù có cùng `id`.
+In this example, the first and second records are equal because all components match. The third record has a different `name`, so it remains a separate element despite sharing the same `id`.
 
-**Quy tắc loại trùng là quy tắc miền dữ liệu**, không phải chỉ việc gọi `toSet()`. Muốn định nghĩa “hai nhân viên cùng mã id là một người”, ta phải biểu diễn hoặc triển khai tiêu chí đó một cách tường minh.
+**Deduplication rules are domain rules**, not just a matter of calling `toSet()`. If you want to define "two employees with the same id are the same person", you must express or implement that criterion explicitly.
 
-### 2.2. Tùy chỉnh ngữ nghĩa bằng đối tượng có khóa định danh
+### 2.2. Customizing Semantics with an Identity-Keyed Object
 
-Ví dụ một kiểu dữ liệu chỉ xác định danh tính theo `id`:
+Consider a data type whose identity is determined solely by `id`:
 
 ```java
 import java.util.Objects;
@@ -141,15 +141,15 @@ final class Customer {
 }
 ```
 
-Với kiểu này, `new Customer(1, "An")` và `new Customer(1, "An cập nhật")` được coi là bằng nhau theo `id`. Thu thập bằng `toSet()` sẽ không giữ cả hai. **Không được suy rằng bản ghi tên cũ hay mới luôn là bản ghi được giữ** từ một collector unordered, đặc biệt trong stream song song.
+With this type, `new Customer(1, "An")` and `new Customer(1, "An updated")` are considered equal by `id`. Collecting with `toSet()` will not keep both. **Do not assume that either the old or new record is always the one retained** by an unordered collector, especially in a parallel stream.
 
-Trong thực tế, chỉ ghi đè `equals`/`hashCode` theo `id` nếu điều đó phù hợp với ý nghĩa danh tính của class ở mọi nơi. Nếu bài toán chỉ muốn đếm các `id` duy nhất, cách rõ ràng hơn là:
+In practice, only override `equals`/`hashCode` by `id` if that matches the class's identity semantics everywhere. If the problem only requires counting unique `id`s, a clearer approach is:
 
 ```java
 Set<Long> ids = List.of(
         new Employee(1, "An"),
-        new Employee(1, "An cập nhật"),
-        new Employee(2, "Bình")
+        new Employee(1, "An updated"),
+        new Employee(2, "Binh")
 ).stream()
  .map(Employee::id)
  .collect(Collectors.toSet());
@@ -157,21 +157,21 @@ Set<Long> ids = List.of(
 System.out.println(ids.equals(Set.of(1L, 2L))); // true
 ```
 
-### 2.3. Không thay đổi khóa hash khi phần tử đang ở trong `Set`
+### 2.3. Do Not Mutate Hash Keys While an Element Is in a `Set`
 
-Nếu `equals` và `hashCode` sử dụng một thuộc tính mutable, việc sửa thuộc tính đó sau khi đưa phần tử vào `HashSet` có thể khiến `contains` hoặc `remove` hoạt động khó dự đoán, vì phần tử đã nằm trong bucket theo hash cũ. Ưu tiên khóa bất biến: `record`, trường `final` hoặc dữ liệu không bị thay đổi trong thời gian phần tử thuộc tập hợp.
+If `equals` and `hashCode` depend on a mutable property, modifying that property after inserting the element into a `HashSet` can cause `contains` or `remove` to behave unpredictably, because the element was placed into a bucket based on its old hash. Prefer immutable keys: `record`, `final` fields, or data that is not mutated while the element belongs to the set.
 
-## 3. Chọn `HashSet`, `LinkedHashSet` hay `TreeSet`
+## 3. Choosing `HashSet`, `LinkedHashSet`, or `TreeSet`
 
-`Set` là giao diện. Cách tạo và quy tắc của cấu trúc cụ thể quyết định thứ tự và chiến lược nhận biết phần tử trùng:
+`Set` is an interface. The construction and rules of the concrete structure determine ordering and duplicate detection strategy:
 
-| Loại `Set` | Quy tắc duy nhất | Thứ tự duyệt | Trường hợp điển hình |
+| `Set` type | Uniqueness rule | Iteration order | Typical use case |
 |---|---|---|---|
-| `HashSet` | `equals`/`hashCode` | Không bảo đảm | Tra cứu giá trị, kiểm tra thành viên |
-| `LinkedHashSet` | `equals`/`hashCode` | Theo thứ tự thêm phần tử | Loại trùng nhưng cần giữ thứ tự gặp đầu tiên |
-| `TreeSet` | So sánh theo `compareTo` hoặc `Comparator`; `compare(...) == 0` nghĩa là trùng | Theo thứ tự sắp xếp | Tập giá trị duy nhất có thứ tự tăng dần/quy tắc riêng |
+| `HashSet` | `equals`/`hashCode` | Not guaranteed | Value lookup, membership testing |
+| `LinkedHashSet` | `equals`/`hashCode` | Insertion order | Deduplicating while preserving first-seen order |
+| `TreeSet` | Comparison via `compareTo` or `Comparator`; `compare(...) == 0` means duplicate | Sorted order | Unique values ordered ascending or by custom rule |
 
-`Collectors.toCollection` cho phép **chỉ định supplier tạo collection**:
+`Collectors.toCollection` lets you **specify the collection supplier**:
 
 ```java
 import java.util.HashSet;
@@ -193,12 +193,12 @@ TreeSet<Integer> sorted = source.stream()
 
 System.out.println(insertion); // [4, 2, 1, 3]
 System.out.println(sorted);    // [1, 2, 3, 4]
-System.out.println(hash.size()); // 4; không dựa vào thứ tự in
+System.out.println(hash.size()); // 4; do not rely on print order
 ```
 
-Với stream nguồn `List` có thứ tự, `LinkedHashSet` lưu thứ tự thêm **lần đầu**. `TreeSet` đưa phần tử vào thứ tự tự nhiên của `Integer`. `HashSet` không có hợp đồng thứ tự dù việc in trên một JDK có thể trông ổn định.
+With an ordered `List` stream source, `LinkedHashSet` records the **first-time** insertion order. `TreeSet` places elements in the natural order of `Integer`. `HashSet` has no ordering contract, even if printing it on one JDK happens to look consistent.
 
-### 3.1. Vì sao `Collectors.toCollection(LinkedHashSet::new)` khác `Collectors.toSet()`?
+### 3.1. Why Is `Collectors.toCollection(LinkedHashSet::new)` Different from `Collectors.toSet()`?
 
 ```java
 List<String> events = List.of("open", "save", "open", "close", "save");
@@ -209,13 +209,13 @@ Set<String> firstSeenOrder = events.stream()
 System.out.println(firstSeenOrder); // [open, save, close]
 ```
 
-Đây là lựa chọn khi nghiệp vụ cần “các sự kiện duy nhất theo thứ tự xuất hiện lần đầu”. `Collectors.toSet()` chỉ bảo đảm tính duy nhất theo `Set`; nó là collector `UNORDERED`, không giữ lời hứa về thứ tự xuất hiện.
+This is the right choice when business logic needs "unique events in order of first appearance". `Collectors.toSet()` only guarantees uniqueness per `Set`; it is an `UNORDERED` collector and makes no promise about appearance order.
 
-Với stream đã bị bỏ encounter order bằng `unordered()` hoặc nguồn vốn không có thứ tự như `HashSet`, `LinkedHashSet` vẫn có thứ tự chèn, nhưng không tự **khôi phục** một encounter order mà nguồn không cung cấp. Nếu muốn thứ tự toàn phần được xác định bởi giá trị, hãy sắp xếp hoặc dùng `TreeSet` với comparator phù hợp.
+For a stream whose encounter order was dropped with `unordered()` or an inherently unordered source like `HashSet`, `LinkedHashSet` still has an insertion order, but it does not **restore** an encounter order the source never provided. If you want a total order determined by values, sort or use `TreeSet` with an appropriate comparator.
 
-### 3.2. `TreeSet` có một khái niệm “trùng” khác
+### 3.2. `TreeSet` Has a Different Notion of "Duplicate"
 
-`TreeSet` dùng kết quả so sánh để quyết định phần tử tương đương. Chẳng hạn, bộ so sánh không phân biệt hoa thường:
+`TreeSet` uses comparison results to decide element equivalence. For example, with a case-insensitive comparator:
 
 ```java
 import java.util.TreeSet;
@@ -229,11 +229,11 @@ TreeSet<String> tokens = Stream.of("Java", "JAVA", "sql", "SQL")
 System.out.println(tokens.size()); // 2
 ```
 
-Hai chuỗi `"Java"` và `"JAVA"` khác nhau theo `String.equals`, nhưng comparator trả `0`, nên `TreeSet` coi chúng là một nhóm tương đương. Phần tử đại diện được giữ phụ thuộc vào phần tử được thêm trước; không diễn giải kết quả là “chọn dạng chữ chuẩn nhất”. Nếu cần dạng chuẩn, dùng `map(String::toLowerCase)` hoặc quy tắc chuẩn hóa rõ ràng trước khi thu thập.
+The two strings `"Java"` and `"JAVA"` differ under `String.equals`, but the comparator returns `0`, so `TreeSet` treats them as an equivalence group. Which representative element is retained depends on which was added first; do not interpret the result as "picking the most canonical casing". If you need a canonical form, use `map(String::toLowerCase)` or an explicit normalization rule before collecting.
 
-Với sorted set, comparator hoặc natural ordering **nên nhất quán với `equals`** nếu muốn thực hiện đầy đủ hợp đồng chung của `Set`. Dùng comparator không nhất quán có thể hợp lệ cho một nhu cầu sắp xếp cụ thể nhưng gây bất ngờ khi so sánh, trao đổi hoặc xử lý các loại `Set` khác nhau.
+For a sorted set, the comparator or natural ordering **should be consistent with `equals`** if you want to fully honor the general `Set` contract. Using an inconsistent comparator may be valid for a specific sorting need, but can cause surprises when comparing, exchanging, or processing different `Set` types.
 
-Một ví dụ kinh điển:
+A classic example:
 
 ```java
 import java.math.BigDecimal;
@@ -254,22 +254,22 @@ System.out.println(hashBased.size()); // 2
 System.out.println(treeBased.size()); // 1
 ```
 
-Đây là lý do phải xác định đúng **tiêu chí trùng** trước khi chọn loại `Set`.
+This is why you must determine the exact **duplication criterion** before choosing a `Set` type.
 
-## 4. `distinct()` và `collect(toSet())` có giống nhau không?
+## 4. Are `distinct()` and `collect(toSet())` the Same?
 
-Cả hai đều liên quan loại trùng, nhưng ở **hai giai đoạn khác nhau**:
+Both relate to deduplication, but at **two different stages**:
 
-| Đặc điểm | `distinct()` | `collect(Collectors.toSet())` |
+| Characteristic | `distinct()` | `collect(Collectors.toSet())` |
 |---|---|---|
-| Loại thao tác | Intermediate, stateful | Terminal |
-| Kiểu dữ liệu sau thao tác | Vẫn là `Stream<T>` | Thành `Set<T>` |
-| Tiếp tục `map`, `filter` được không? | Có | Không, stream đã tiêu thụ |
-| Tiêu chí trùng | `Object.equals` | Theo loại `Set` mà collector dùng; với hash-based set là `equals`/`hashCode` |
-| Thứ tự với nguồn có encounter order | Giữ phần tử xuất hiện **đầu tiên** | Không bảo đảm thứ tự |
-| Bối cảnh dùng | Loại trùng giữa pipeline trước các bước tiếp theo | Thu được tập kết quả duy nhất ở cuối pipeline |
+| Operation type | Intermediate, stateful | Terminal |
+| Data type after operation | Remains `Stream<T>` | Becomes `Set<T>` |
+| Can continue with `map`, `filter`? | Yes | No, the stream is consumed |
+| Duplication criterion | `Object.equals` | Determined by the `Set` used by the collector; for hash-based sets, `equals`/`hashCode` |
+| Order with encounter-ordered source | Keeps the **first** appearing element | Order not guaranteed |
+| Usage context | Deduplicate mid-pipeline before subsequent steps | Obtain a unique result set at the end of a pipeline |
 
-Ví dụ:
+Example:
 
 ```java
 List<String> labels = List.of("A", "B", "A", "C", "B");
@@ -281,10 +281,10 @@ System.out.println(orderedUnique); // [A, B, C]
 
 Set<String> uniqueSet = labels.stream()
         .collect(Collectors.toSet());
-System.out.println(uniqueSet.size()); // 3; thứ tự không được bảo đảm
+System.out.println(uniqueSet.size()); // 3; order is not guaranteed
 ```
 
-Khi stream **có encounter order**, `distinct()` giữ phần tử xuất hiện đầu tiên trong nhóm bằng nhau. Nếu cần đưa kết quả cuối vào `Set` mà vẫn giữ thứ tự lần đầu:
+When a stream **has an encounter order**, `distinct()` retains the first element appearing in each equal group. If you need the final result in a `Set` while preserving first-seen order:
 
 ```java
 LinkedHashSet<String> orderedSet = labels.stream()
@@ -292,9 +292,9 @@ LinkedHashSet<String> orderedSet = labels.stream()
 System.out.println(orderedSet); // [A, B, C]
 ```
 
-Không bắt buộc thêm `distinct()` trước `toCollection(LinkedHashSet::new)`: bản thân `LinkedHashSet` đã loại trùng. Tuy nhiên, `distinct()` hữu ích nếu phải loại trùng **trước một thao tác trung gian tiếp theo** hoặc cần danh sách kết quả giữ thứ tự.
+Adding `distinct()` before `toCollection(LinkedHashSet::new)` is not required: `LinkedHashSet` already deduplicates on its own. However, `distinct()` is useful if you must deduplicate **before a subsequent intermediate operation** or if you need an ordered result list.
 
-### 4.1. `sorted()` trước `toSet()` không bảo đảm thứ tự của `Set`
+### 4.1. `sorted()` Before `toSet()` Does Not Guarantee the `Set`'s Order
 
 ```java
 Set<Integer> result = List.of(4, 1, 3, 2).stream()
@@ -302,10 +302,10 @@ Set<Integer> result = List.of(4, 1, 3, 2).stream()
         .collect(Collectors.toSet());
 
 System.out.println(result.size()); // 4
-// Không khẳng định kết quả duyệt có thứ tự [1, 2, 3, 4].
+// Do not assert that iteration order is [1, 2, 3, 4].
 ```
 
-Nếu cần một `Set` có thứ tự tăng dần, dùng:
+If you need a `Set` in ascending order, use:
 
 ```java
 TreeSet<Integer> sortedUnique = List.of(4, 1, 3, 2).stream()
@@ -313,19 +313,19 @@ TreeSet<Integer> sortedUnique = List.of(4, 1, 3, 2).stream()
 System.out.println(sortedUnique); // [1, 2, 3, 4]
 ```
 
-Nếu cần danh sách có thứ tự tăng dần và không trùng, dùng `stream().distinct().sorted().toList()`. Lựa chọn cấu trúc kết quả theo cách bên gọi sẽ sử dụng dữ liệu.
+If you need a list in ascending order without duplicates, use `stream().distinct().sorted().toList()`. Choose the result structure based on how the caller will use the data.
 
-## 5. Bản ghi nào được giữ khi trùng khóa?
+## 5. Which Record Is Kept on Key Collisions?
 
-Một câu hỏi thực tế là: “Nếu hai object bằng nhau theo `equals` nhưng chứa thông tin khác nhau, bản nào được giữ?” Với `Collectors.toSet()`, thứ tự và phần tử đại diện không được cam kết. Bản ghi được giữ có thể phụ thuộc collector, cách chia dữ liệu hoặc thứ tự xử lý.
+A practical question is: "If two objects are equal by `equals` but contain different data, which one is kept?" With `Collectors.toSet()`, neither order nor the representative element is guaranteed. Which record is retained can depend on the collector, data splitting, or processing order.
 
-Đối với nguồn có encounter order và yêu cầu lấy bản ghi **xuất hiện đầu tiên theo tiêu chí `equals`**, có thể dùng `distinct()` rồi thu vào `List`:
+For a source with an encounter order where you require the **first-appearing record under `equals`**, you can use `distinct()` and then collect into a `List`:
 
 ```java
 List<Customer> customers = List.of(
-        new Customer(1, "An cũ"),
-        new Customer(1, "An mới"),
-        new Customer(2, "Bình")
+        new Customer(1, "An old"),
+        new Customer(1, "An new"),
+        new Customer(2, "Binh")
 );
 
 List<Customer> firstByEquality = customers.stream()
@@ -333,21 +333,21 @@ List<Customer> firstByEquality = customers.stream()
         .toList();
 
 System.out.println(firstByEquality);
-// [Customer[1, An cũ], Customer[2, Bình]]
+// [Customer[1, An old], Customer[2, Binh]]
 ```
 
-Trong ví dụ, `Customer` ở mục 2.2 có `equals` theo `id`; với `List.stream()` có thứ tự, `distinct()` giữ đại diện đầu tiên. **Đừng thay bằng `unordered().distinct()`** nếu tiêu chí “đầu tiên” quan trọng.
+In this example, `Customer` from section 2.2 has `equals` based on `id`; with an ordered `List.stream()`, `distinct()` keeps the first representative. **Do not replace this with `unordered().distinct()`** if the "first" criterion matters.
 
-Nếu tiêu chí trùng chỉ là một trường nhưng class `equals` xét tất cả trường, `distinct()` không thể tự suy ra “trùng theo id”. Có thể sử dụng `toMap` với merge function rõ ràng:
+If the duplication criterion is a single field while the class's `equals` considers all fields, `distinct()` cannot infer "duplicate by id" on its own. You can use `toMap` with an explicit merge function:
 
 ```java
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 List<Employee> source = List.of(
-        new Employee(1, "An cũ"),
-        new Employee(1, "An mới"),
-        new Employee(2, "Bình")
+        new Employee(1, "An old"),
+        new Employee(1, "An new"),
+        new Employee(2, "Binh")
 );
 
 Map<Long, Employee> firstById = source.stream()
@@ -358,23 +358,23 @@ Map<Long, Employee> firstById = source.stream()
                 LinkedHashMap::new
         ));
 
-System.out.println(firstById.get(1L)); // Employee[id=1, name=An cũ]
+System.out.println(firstById.get(1L)); // Employee[id=1, name=An old]
 ```
 
-Ví dụ dùng nguồn có thứ tự; merge function `(first, ignored) -> first` nêu chính sách chọn giá trị theo thứ tự gặp phần tử. `LinkedHashMap` cung cấp thứ tự chèn của khóa trong kết quả. Nếu nghiệp vụ cần **bản ghi mới nhất theo thời gian**, hãy định nghĩa trường thời gian và quy tắc so sánh rõ ràng; không suy từ việc đối tượng “đến sau” trong một nguồn không có thứ tự.
+This example uses an ordered source; the merge function `(first, ignored) -> first` specifies the selection policy based on element encounter order. `LinkedHashMap` preserves key insertion order in the result. If business logic requires the **latest record by timestamp**, define an explicit timestamp field and comparison rule; do not infer it from an object "coming later" in an unordered source.
 
-## 6. Kết quả có thể chỉnh sửa hay không?
+## 6. Can the Result Be Modified or Not?
 
-Một số API tạo `Set` bất biến hoặc không cho phép chỉnh sửa; đây là yêu cầu độc lập với chuyện loại trùng.
+Some APIs produce immutable or unmodifiable `Set`s; this requirement is independent of deduplication.
 
-| Cách tạo | Hợp đồng quan trọng | Phiên bản Java |
+| Creation approach | Key contract | Java version |
 |---|---|---|
-| `Collectors.toSet()` | Không bảo đảm tính có thể sửa/kiểu cụ thể | Java 8+ |
-| `Collectors.toCollection(HashSet::new)` | Kết quả là `HashSet` mutable | Java 8+ |
-| `Collectors.toCollection(LinkedHashSet::new)` | Kết quả là `LinkedHashSet` mutable | Java 8+ |
-| `Collectors.toUnmodifiableSet()` | Kết quả không thể sửa; không chấp nhận `null` | Java 10+ |
-| `Set.copyOf(collection)` | Bản sao không thể sửa; không chấp nhận `null` | Java 10+ |
-| `Set.of(elements...)` | Không thể sửa; `null` và phần tử trùng gây lỗi | Java 9+ |
+| `Collectors.toSet()` | Does not guarantee mutability or concrete type | Java 8+ |
+| `Collectors.toCollection(HashSet::new)` | Result is a mutable `HashSet` | Java 8+ |
+| `Collectors.toCollection(LinkedHashSet::new)` | Result is a mutable `LinkedHashSet` | Java 8+ |
+| `Collectors.toUnmodifiableSet()` | Result cannot be modified; rejects `null` | Java 10+ |
+| `Set.copyOf(collection)` | Unmodifiable copy; rejects `null` | Java 10+ |
+| `Set.of(elements...)` | Unmodifiable; `null` and duplicates throw errors | Java 9+ |
 
 ### 6.1. `Collectors.toUnmodifiableSet()`
 
@@ -384,18 +384,18 @@ Set<String> permissions = Stream.of("READ", "WRITE", "READ")
 
 System.out.println(permissions.size()); // 2
 
-// permissions.add("DELETE"); // Ném UnsupportedOperationException khi chạy.
+// permissions.add("DELETE"); // Throws UnsupportedOperationException at runtime.
 ```
 
-Đừng nhầm `toUnmodifiableSet()` với `toSet()`: API thứ nhất **cam kết không thể chỉnh sửa**, API thứ hai không cam kết điều đó. `toUnmodifiableSet()` cũng là một collector unordered và khi các phần tử bằng nhau được đưa vào, nó không cam kết giữ đối tượng đại diện nào trong số các phần tử bằng nhau.
+Do not confuse `toUnmodifiableSet()` with `toSet()`: the first API **guarantees unmodifiability**, while the second does not. `toUnmodifiableSet()` is also an unordered collector, and when equal elements are supplied, it makes no promise as to which representative object among equal elements is retained.
 
 ```java
-// Có thể ném NullPointerException vì kết quả không cho phép null:
+// May throw NullPointerException because the result does not allow null:
 // Set<String> invalid = Stream.of("A", null)
 //         .collect(Collectors.toUnmodifiableSet());
 ```
 
-Nếu cần loại `null`, làm rõ ngay trong pipeline:
+If `null` needs to be removed, make that explicit in the pipeline:
 
 ```java
 import java.util.Objects;
@@ -407,7 +407,7 @@ Set<String> safe = Stream.of("A", null, "B", "A")
 System.out.println(safe.equals(Set.of("A", "B"))); // true
 ```
 
-### 6.2. `Set.of` khác `Set.copyOf`
+### 6.2. `Set.of` vs. `Set.copyOf`
 
 ```java
 Set<String> fixed = Set.of("A", "B");
@@ -416,14 +416,14 @@ Set<String> copy = Set.copyOf(List.of("A", "B", "A"));
 System.out.println(fixed.size()); // 2
 System.out.println(copy.size());  // 2
 
-// Set.of("A", "A"); // IllegalArgumentException: trùng phần tử.
+// Set.of("A", "A"); // IllegalArgumentException: duplicate element.
 ```
 
-`Set.of` **từ chối phần tử trùng**, trong khi `Set.copyOf` **loại trùng** từ collection đầu vào. Với các đối tượng khác nhau nhưng `equals` trả `true`, `Set.copyOf` không cam kết giữ đại diện cụ thể nào. Cả hai loại tập không cho chỉnh sửa và không chấp nhận `null`.
+`Set.of` **rejects duplicate elements**, whereas `Set.copyOf` **deduplicates** from the input collection. For distinct objects where `equals` returns `true`, `Set.copyOf` makes no guarantee about which specific representative is kept. Both set types forbid modification and reject `null`.
 
-### 6.3. Vừa giữ thứ tự thêm vừa không cho chỉnh sửa
+### 6.3. Preserving Insertion Order While Disallowing Modification
 
-Nếu cần một `Set` kết quả duyệt theo thứ tự đầu tiên và không cho bên gọi sửa, có thể xây dựng một `LinkedHashSet` mới rồi trả về bản bọc không thể chỉnh sửa:
+If you need a resulting `Set` that iterates in first-seen order and cannot be modified by callers, you can build a new `LinkedHashSet` and return an unmodifiable wrapper:
 
 ```java
 import java.util.Collections;
@@ -439,11 +439,11 @@ System.out.println(orderedReadOnly); // [B, A, C]
 // orderedReadOnly.add("D"); // UnsupportedOperationException.
 ```
 
-Ở đây collector tạo một `LinkedHashSet` mới không bị bên ngoài giữ tham chiếu, rồi trả về wrapper không cho chỉnh sửa. **Đây không phải deep immutability**: nếu các phần tử là object mutable, nội dung bên trong chúng vẫn có thể thay đổi; vì vậy nên thu thập dữ liệu bất biến khi phù hợp.
+Here the collector creates a fresh `LinkedHashSet` to which no external reference is held, then returns an unmodifiable wrapper. **This is not deep immutability**: if elements are mutable objects, their internal state can still change; therefore, collect immutable data where appropriate.
 
-## 7. Xử lý `null` trước khi thu thập
+## 7. Handling `null` Before Collecting
 
-`null` không phải giá trị nghiệp vụ hợp lệ trong nhiều hệ thống. Đừng phụ thuộc vào việc `Collectors.toSet()` hiện tại có thể đang tạo `HashSet` chấp nhận `null`: API không cam kết kiểu kết quả. `Collectors.toUnmodifiableSet()` từ chối `null`; `TreeSet` với natural ordering cũng không thể so sánh `null` theo cách thông thường.
+`null` is not a valid business value in many systems. Do not rely on `Collectors.toSet()` currently creating a `HashSet` that accepts `null`: the API makes no guarantee about the result type. `Collectors.toUnmodifiableSet()` rejects `null`; a `TreeSet` with natural ordering cannot compare `null` in the normal way either.
 
 ```java
 Set<String> labels = Stream.of("Java", null, "SQL", "Java")
@@ -453,7 +453,7 @@ Set<String> labels = Stream.of("Java", null, "SQL", "Java")
 System.out.println(labels.equals(Set.of("Java", "SQL"))); // true
 ```
 
-Nếu `null` có ý nghĩa riêng (ví dụ “chưa phân loại”), nên chuyển thành một nhãn/giá trị miền dữ liệu rõ ràng:
+If `null` has a distinct meaning (such as "unclassified"), map it to an explicit domain label or value:
 
 ```java
 Set<String> categories = Stream.of("A", null, "B")
@@ -463,9 +463,9 @@ Set<String> categories = Stream.of("A", null, "B")
 System.out.println(categories.contains("UNCLASSIFIED")); // true
 ```
 
-Quyết định này thuộc về yêu cầu nghiệp vụ: **bỏ `null`** và **thay `null` bằng một giá trị có nghĩa** là hai hành vi khác nhau.
+This decision belongs to business requirements: **dropping `null`** and **replacing `null` with a meaningful value** are two different behaviors.
 
-## 8. Thu thập thành `Set` khi stream chạy song song
+## 8. Collecting into a `Set` in a Parallel Stream
 
 ```java
 Set<Integer> unique = List.of(1, 2, 2, 3, 1, 4)
@@ -475,39 +475,39 @@ Set<Integer> unique = List.of(1, 2, 2, 3, 1, 4)
 System.out.println(unique.equals(Set.of(1, 2, 3, 4))); // true
 ```
 
-`Collectors.toSet()` có thể sử dụng với `parallelStream()`. Stream framework xử lý việc tạo container tích lũy cục bộ và kết hợp các phần kết quả theo hợp đồng collector. Điều đó **không có nghĩa `Set` trả về là thread-safe**, và cũng không có nghĩa nên chia sẻ một `HashSet` bên ngoài với nhiều thread.
+`Collectors.toSet()` can be used with `parallelStream()`. The Stream framework handles creating thread-local accumulation containers and combining partial results according to the collector contract. That **does not mean the returned `Set` is thread-safe**, nor does it mean you should share an external `HashSet` across multiple threads.
 
-### 8.1. Sai lầm: dùng `forEach` để tự thêm vào `HashSet` chung
+### 8.1. Mistake: Using `forEach` to Add Manually to a Shared `HashSet`
 
 ```java
 import java.util.HashSet;
 
 Set<Integer> target = new HashSet<>();
 
-// Không an toàn:
+// Not safe:
 // List.of(1, 2, 3, 4).parallelStream().forEach(target::add);
 ```
 
-`HashSet` không bảo đảm thao tác thêm từ nhiều thread đồng thời là an toàn. Dữ liệu có thể bị race, thiếu phần tử hoặc trạng thái nội bộ bị ảnh hưởng. Dùng `collect(Collectors.toSet())` để framework quản lý quá trình tích lũy.
+`HashSet` does not guarantee thread-safety for concurrent additions from multiple threads. Data can suffer race conditions, lost elements, or corrupted internal state. Use `collect(Collectors.toSet())` so the framework manages accumulation.
 
-### 8.2. `UNORDERED` không đồng nghĩa `CONCURRENT`
+### 8.2. `UNORDERED` Does Not Mean `CONCURRENT`
 
-Hai khái niệm khác nhau:
+These are two distinct concepts:
 
-- **`UNORDERED`**: collector không cam kết thứ tự phần tử trong kết quả.
-- **`CONCURRENT`**: collector cho phép nhiều thread đồng thời tích lũy vào cùng container kết quả trong các điều kiện do hợp đồng collector quy định.
+- **`UNORDERED`**: the collector does not promise any element ordering in the result.
+- **`CONCURRENT`**: the collector allows multiple threads to accumulate concurrently into the same result container under conditions specified by the collector contract.
 
-`Collectors.toSet()` là collector `UNORDERED`; không có cam kết là collector `CONCURRENT`. Việc `parallelStream().collect(toSet())` chạy hợp lệ không cho phép tự ý gọi `add` trên một `HashSet` chung từ nhiều thread.
+`Collectors.toSet()` is an `UNORDERED` collector; it does not claim to be a `CONCURRENT` collector. The fact that `parallelStream().collect(toSet())` executes validly does not authorize calling `add` on a shared `HashSet` from multiple threads.
 
-Nếu bắt buộc có cấu trúc dữ liệu đồng thời với nhiều luồng bên ngoài tự cập nhật, cần thiết kế riêng cơ chế đồng bộ hoặc cấu trúc thread-safe phù hợp. Đối với một pipeline thu thập kết quả đơn thuần, collector thường là lựa chọn đơn giản và ít lỗi hơn.
+If a concurrent data structure updated independently by multiple external threads is truly required, design an explicit synchronization mechanism or use an appropriate thread-safe structure. For a straightforward result-collecting pipeline, a collector is typically simpler and less error-prone.
 
-### 8.3. Giữ thứ tự khi song song có thể tăng chi phí
+### 8.3. Preserving Order in Parallel Can Increase Cost
 
-Với `LinkedHashSet` hoặc `distinct()` trên stream có thứ tự, duy trì thứ tự gặp đầu tiên có thể tốn chi phí phối hợp khi chạy song song. Nếu nghiệp vụ không yêu cầu thứ tự, `toSet()` cho phép framework có thêm lựa chọn thực thi. **Không mặc định collector unordered luôn nhanh hơn**: kết quả đo phụ thuộc dữ liệu, va chạm hash, kích thước tập, số thread và chi phí tạo/kết hợp các container.
+With `LinkedHashSet` or `distinct()` on an ordered stream, maintaining first-seen order can incur coordination overhead when running in parallel. If business logic does not require ordering, `toSet()` gives the framework more execution freedom. **Do not assume an unordered collector is always faster**: measurements depend on data, hash collisions, set size, thread count, and container creation/merging overhead.
 
-## 9. Kết hợp `groupingBy` với `toSet()`
+## 9. Combining `groupingBy` with `toSet()`
 
-Một ứng dụng phổ biến là nhóm dữ liệu rồi lấy các giá trị duy nhất trong từng nhóm. Ví dụ mỗi nhóm học có nhiều đăng ký môn học, trong đó có thể trùng:
+A common use case is grouping data and then collecting unique values within each group. For example, each study group has multiple course registrations, which may contain duplicates:
 
 ```java
 import java.util.Map;
@@ -539,9 +539,9 @@ System.out.println(coursesByGroup.get("B").equals(Set.of("Git", "SQL")));
 // true
 ```
 
-`groupingBy` quyết định khóa nhóm, `mapping` lấy trường `course`, còn `toSet()` loại trùng **bên trong từng nhóm**. `Map` được tạo bởi overload `groupingBy` mặc định cũng không cam kết thứ tự duyệt khóa.
+`groupingBy` determines the group key, `mapping` extracts the `course` field, and `toSet()` deduplicates **within each group**. The `Map` created by the default `groupingBy` overload also does not guarantee key iteration order.
 
-Nếu phải giữ thứ tự đăng ký đầu tiên của từng môn trong nhóm, có thể thay downstream collector bằng:
+If you must preserve the first registration order of each course within a group, you can replace the downstream collector with:
 
 ```java
 Map<String, LinkedHashSet<String>> orderedCoursesByGroup =
@@ -556,21 +556,21 @@ Map<String, LinkedHashSet<String>> orderedCoursesByGroup =
 System.out.println(orderedCoursesByGroup.get("A")); // [Java, SQL]
 ```
 
-Nguồn `registrations` là `List` có encounter order. Nếu còn yêu cầu thứ tự các khóa nhóm, cần chỉ định `mapFactory` của `groupingBy`, ví dụ `LinkedHashMap::new`; việc chọn downstream `LinkedHashSet` chỉ áp dụng cho **giá trị trong nhóm**.
+The `registrations` source is a `List` with encounter order. If the order of group keys is also required, specify a `mapFactory` to `groupingBy`, such as `LinkedHashMap::new`; choosing a `LinkedHashSet` downstream applies only to **the values within each group**.
 
-## 10. Giới hạn hiệu năng, bộ nhớ và vòng đời
+## 10. Performance, Memory, and Lifecycle Limits
 
-Việc thu thập thành `Set` cần lưu những giá trị duy nhất trong bộ nhớ. Với nguồn hữu hạn có `n` phần tử và `u` phần tử duy nhất:
+Collecting into a `Set` must store the unique values in memory. For a finite source with `n` elements and `u` unique elements:
 
-- Với hash-based `Set`, thời gian thêm phần tử trung bình thường gần `O(n)` tổng cộng khi phân bố hash tốt; trường hợp xấu, va chạm hash và chi phí `equals` có thể làm chậm đáng kể.
-- `TreeSet` thường tốn khoảng `O(n log u)` để thêm `n` phần tử, đổi lại có thứ tự so sánh.
-- Bộ nhớ cho kết quả phụ thuộc khoảng `u` phần tử cùng cấu trúc dữ liệu, không chỉ số lượng `n`. Trong xử lý song song có thể tồn tại thêm các container và bộ đệm trung gian.
-- `toSet()` không tự đóng tài nguyên của nguồn và không phải terminal operation ngắn mạch: nó cần duyệt nguồn hữu hạn đến khi hết.
+- With a hash-based `Set`, average total insertion time is typically near `O(n)` when hash distribution is good; in the worst case, hash collisions and `equals` costs can slow it down significantly.
+- `TreeSet` typically takes around `O(n log u)` to insert `n` elements, in exchange for comparison-based ordering.
+- Memory for the result depends on roughly `u` elements and the data structure overhead, not just `n`. In parallel processing, additional intermediate containers and buffers may also exist.
+- `toSet()` does not automatically close source resources and is not a short-circuiting terminal operation: it must traverse a finite source to completion.
 
-Với stream vô hạn, không gọi `collect(toSet())` trực tiếp vì terminal operation có thể không kết thúc, ngay cả nếu phần tử được sinh lặp đi lặp lại:
+With an infinite stream, do not call `collect(toSet())` directly because the terminal operation may never terminate, even if the generated element repeats endlessly:
 
 ```java
-// Không chạy:
+// Do not run:
 // Set<Integer> forever = Stream.generate(() -> 1)
 //         .collect(Collectors.toSet());
 
@@ -581,7 +581,7 @@ Set<Integer> sample = Stream.generate(() -> 1)
 System.out.println(sample.equals(Set.of(1))); // true
 ```
 
-Với nguồn gắn tài nguyên, ví dụ `Files.lines(path)`, dùng `try-with-resources`:
+For resource-backed sources such as `Files.lines(path)`, use `try-with-resources`:
 
 ```java
 import java.io.IOException;
@@ -598,11 +598,11 @@ static Set<String> readUniqueLines(Path path) throws IOException {
 }
 ```
 
-Sau một terminal operation `collect`, không được tiêu thụ lại cùng đối tượng `Stream`; muốn thu thập kiểu khác, tạo stream mới từ nguồn có thể đọc lại. Không dùng `peek` hay accumulator có side effect để thay thế việc thu thập: code tích lũy vào `Set` có cơ chế rõ ràng hơn và tránh thay đổi trạng thái bên ngoài trong pipeline.
+After a `collect` terminal operation, do not consume the same `Stream` object again; to collect in a different way, create a new stream from a re-readable source. Do not use `peek` or stateful accumulators with side effects to replace collection: accumulating into a `Set` via a collector has clearer semantics and avoids mutating external state inside a pipeline.
 
-## 11. Chương trình tổng hợp có thể chạy (Java 17+)
+## 11. Runnable Comprehensive Program (Java 17+)
 
-Ví dụ độc lập dưới đây minh họa `toSet`, `toCollection`, `toUnmodifiableSet`, phân biệt các kiểu `Set` và loại trùng theo khóa:
+The standalone example below demonstrates `toSet`, `toCollection`, `toUnmodifiableSet`, distinguishing `Set` types, and key-based deduplication:
 
 ```java
 import java.util.HashSet;
@@ -640,8 +640,8 @@ public class CollectToSetDemo {
 
         List<Employee> employees = List.of(
                 new Employee(1, "An"),
-                new Employee(1, "An cập nhật"),
-                new Employee(2, "Bình")
+                new Employee(1, "An updated"),
+                new Employee(2, "Binh")
         );
         Set<Long> ids = employees.stream()
                 .map(Employee::id)
@@ -669,43 +669,43 @@ public class CollectToSetDemo {
                 .collect(Collectors.toSet());
         System.out.println(parallel.equals(Set.of(1, 2, 3))); // true
 
-        // Không suy ra thứ tự duyệt từ toSet(), kể cả khi nguồn là List.
+        // Do not infer iteration order from toSet(), even when the source is a List.
     }
 }
 ```
 
-Chương trình không dựa vào thứ tự in của `HashSet` hoặc của kết quả `toSet()`; những kiểm tra ở đó sử dụng `Set.equals`, vì phép bằng nhau giữa các set phản ánh chính xác nội dung phần tử mà ứng dụng quan tâm.
+The program does not depend on the print order of `HashSet` or `toSet()` results; those checks use `Set.equals`, because set equality accurately reflects the element contents the application cares about.
 
-## 12. Những lỗi thường gặp
+## 12. Common Mistakes
 
-| Cách hiểu hoặc đoạn mã | Vì sao có vấn đề? | Cách phù hợp |
+| Misconception or snippet | Why is it problematic? | Appropriate approach |
 |---|---|---|
-| Gọi `toSet()` rồi mong giữ thứ tự `List` | Collector là `UNORDERED` | Dùng `toCollection(LinkedHashSet::new)` |
-| Gọi `sorted().collect(toSet())` rồi mong set đã sắp | `Set` kết quả không cam kết thứ tự duyệt | Dùng `toCollection(TreeSet::new)` hoặc `distinct().sorted().toList()` |
-| Hai object có cùng `id` phải tự động bị loại trùng | `equals` có thể xét các trường khác | Xác định danh tính theo id hoặc `map` sang id |
-| Ghi đè `equals` nhưng quên `hashCode` | Vi phạm hợp đồng hash-based collection | Cài đặt nhất quán cả hai hoặc dùng `record` phù hợp |
-| Tưởng `TreeSet` luôn loại trùng theo `equals` | `TreeSet` dựa vào comparator hoặc `compareTo` | Đánh giá `compare(...) == 0` và tính nhất quán với `equals` |
-| Mong `Collectors.toSet()` luôn trả `HashSet` mutable | API không cam kết kiểu/khả năng chỉnh sửa | Dùng `toCollection(HashSet::new)` khi cần cụ thể |
-| Dùng `toUnmodifiableSet()` với `null` | Collector từ chối `null` | `filter(Objects::nonNull)` hoặc định chính sách thay thế |
-| Nghĩ `Set.of("A", "A")` sẽ loại trùng | Factory này ném `IllegalArgumentException` | Dùng `Set.copyOf` hoặc collector nếu muốn loại trùng |
-| `parallelStream().forEach(sharedSet::add)` | `HashSet` dùng chung không an toàn luồng | Dùng `parallelStream().collect(toSet())` |
-| Cho rằng `UNORDERED` nghĩa là `CONCURRENT` | Đây là hai đặc tính collector khác nhau | Đọc chính xác `Collector.Characteristics` |
-| Thu thập nguồn vô hạn trực tiếp thành set | `collect` đợi nguồn hoàn tất | Giới hạn hữu hạn trước `collect` |
-| Dùng `distinct()` trước `toSet()` ở mọi pipeline | Có thể tạo bước loại trùng dư thừa | Chỉ dùng khi cần loại trùng giữa pipeline hoặc cần chọn đại diện theo thứ tự |
+| Calling `toSet()` and expecting `List` order to be preserved | The collector is `UNORDERED` | Use `toCollection(LinkedHashSet::new)` |
+| Calling `sorted().collect(toSet())` and expecting a sorted set | Resulting `Set` does not promise iteration order | Use `toCollection(TreeSet::new)` or `distinct().sorted().toList()` |
+| Assuming two objects with the same `id` are automatically deduplicated | `equals` may inspect other fields | Define identity by id or `map` to id |
+| Overriding `equals` but forgetting `hashCode` | Violates the hash-based collection contract | Implement both consistently or use an appropriate `record` |
+| Assuming `TreeSet` always deduplicates by `equals` | `TreeSet` relies on comparator or `compareTo` | Evaluate `compare(...) == 0` and consistency with `equals` |
+| Expecting `Collectors.toSet()` to always return a mutable `HashSet` | API does not promise concrete type or mutability | Use `toCollection(HashSet::new)` when specifically needed |
+| Using `toUnmodifiableSet()` with `null` | Collector rejects `null` | `filter(Objects::nonNull)` or define a replacement policy |
+| Thinking `Set.of("A", "A")` will deduplicate | This factory throws `IllegalArgumentException` | Use `Set.copyOf` or a collector if deduplication is desired |
+| `parallelStream().forEach(sharedSet::add)` | A shared `HashSet` is not thread-safe | Use `parallelStream().collect(toSet())` |
+| Assuming `UNORDERED` means `CONCURRENT` | These are two different collector characteristics | Read `Collector.Characteristics` carefully |
+| Collecting an infinite stream directly into a set | `collect` waits for the source to finish | Set a finite limit before `collect` |
+| Using `distinct()` before `toSet()` in every pipeline | Can create an unnecessary deduplication step | Only use when mid-pipeline deduplication or ordered representative selection is needed |
 
-## 13. Tự kiểm tra
+## 13. Self-Check
 
-1. **`List.of("a", "b", "a").stream().collect(Collectors.toSet()).size()` trả gì?** Trả `2`.
-2. **`Collectors.toSet()` có cam kết tạo `HashSet` mutable không?** Không, kiểu triển khai và khả năng chỉnh sửa không được cam kết.
-3. **Làm sao loại trùng nhưng giữ thứ tự xuất hiện đầu tiên của nguồn `List`?** `collect(Collectors.toCollection(LinkedHashSet::new))` hoặc `distinct().toList()` nếu cần `List`.
-4. **Làm sao tạo set gồm các số tăng dần?** `collect(Collectors.toCollection(TreeSet::new))` khi phần tử có thứ tự tự nhiên phù hợp.
-5. **Hai record `Employee(1, "An")` và `Employee(1, "An mới")` có bị loại trùng mặc định không?** Không, vì `record.equals` xét tất cả thành phần.
-6. **Tại sao `BigDecimal("1.0")` và `BigDecimal("1.00")` có thể bị `TreeSet` xem là trùng nhưng `HashSet` xem là khác?** `compareTo` trả `0`, còn `equals` phân biệt scale.
-7. **`Collectors.toUnmodifiableSet()` khác gì `Collectors.toSet()`?** Loại đầu cam kết không chỉnh sửa và từ chối `null`; loại sau không cam kết tính có thể sửa hoặc kiểu cụ thể.
-8. **`Set.of("A", "A")` trả set một phần tử không?** Không. Nó ném `IllegalArgumentException`.
-9. **`parallelStream().collect(Collectors.toSet())` có yêu cầu `HashSet` là thread-safe không?** Không. Framework quản lý các container/tổng hợp; set trả về không tự nhiên trở thành thread-safe.
-10. **Muốn các môn duy nhất trong mỗi nhóm, dùng các collector nào?** `groupingBy` với `mapping` và `toSet`.
-11. **`Stream.generate(() -> 1).collect(Collectors.toSet())` có kết thúc vì chỉ có một giá trị duy nhất không?** Không. Collector vẫn chờ nguồn kết thúc; cần giới hạn hoặc nguồn hữu hạn.
-12. **Nếu cần bản ghi đầu tiên theo `equals` từ nguồn có thứ tự, nên dùng gì?** `distinct().toList()` hoặc `distinct()` rồi thu vào một cấu trúc giữ encounter order.
+1. **What does `List.of("a", "b", "a").stream().collect(Collectors.toSet()).size()` return?** Returns `2`.
+2. **Does `Collectors.toSet()` guarantee creating a mutable `HashSet`?** No, neither implementation type nor mutability is guaranteed.
+3. **How do you deduplicate while preserving first-appearance order from a `List` source?** `collect(Collectors.toCollection(LinkedHashSet::new))` or `distinct().toList()` if a `List` is needed.
+4. **How do you create a set of ascending numbers?** `collect(Collectors.toCollection(TreeSet::new))` when elements have an appropriate natural order.
+5. **Are two records `Employee(1, "An")` and `Employee(1, "An new")` deduplicated by default?** No, because `record.equals` compares all components.
+6. **Why can `BigDecimal("1.0")` and `BigDecimal("1.00")` be treated as duplicates by `TreeSet` yet distinct by `HashSet`?** `compareTo` returns `0`, whereas `equals` distinguishes scale.
+7. **How does `Collectors.toUnmodifiableSet()` differ from `Collectors.toSet()`?** The first guarantees unmodifiability and rejects `null`; the second guarantees neither mutability nor concrete type.
+8. **Does `Set.of("A", "A")` return a single-element set?** No. It throws `IllegalArgumentException`.
+9. **Does `parallelStream().collect(Collectors.toSet())` require `HashSet` to be thread-safe?** No. The framework manages containers and merging; the returned set does not automatically become thread-safe.
+10. **To get unique courses within each group, which collectors do you use?** `groupingBy` with `mapping` and `toSet`.
+11. **Does `Stream.generate(() -> 1).collect(Collectors.toSet())` terminate because there is only one unique value?** No. The collector still waits for the source to finish; a limit or finite source is required.
+12. **If you need the first record by `equals` from an ordered source, what should you use?** `distinct().toList()` or `distinct()` followed by collecting into a structure that preserves encounter order.
 
-**Ghi nhớ:** Thu thập thành `Set` là chọn **quy tắc duy nhất**, **cấu trúc kết quả** và **hợp đồng thứ tự**. `Collectors.toSet()` phù hợp khi chỉ cần một tập phần tử khác nhau; `toCollection(LinkedHashSet::new)` khi cần giữ thứ tự gặp đầu tiên; `toCollection(TreeSet::new)` khi cần duyệt theo thứ tự so sánh; `toUnmodifiableSet()` khi cần kết quả không thể sửa. Trước khi loại trùng đối tượng, luôn kiểm tra `equals`/`hashCode` hoặc comparator đang định nghĩa “cùng một phần tử” theo nghĩa nào.
+**Key takeaway:** Collecting into a `Set` means choosing the **uniqueness rule**, **result structure**, and **ordering contract**. `Collectors.toSet()` fits when you only need a set of distinct elements; `toCollection(LinkedHashSet::new)` when first-seen order must be kept; `toCollection(TreeSet::new)` when iterating in comparison order; and `toUnmodifiableSet()` when an unmodifiable result is required. Before deduplicating objects, always verify what `equals`/`hashCode` or the comparator defines as "the same element".

@@ -1,18 +1,18 @@
-# Configuration tạo layer mới trong Java ModuleLayer (JPMS)
+# Configuration for Creating a New Layer in Java ModuleLayer (JPMS)
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Trong Java Platform Module System (JPMS, từ Java 9), một chương trình có thể tạo thêm `ModuleLayer` khi đang chạy để nạp các module ngoài tập module được giải quyết lúc khởi động. Tình huống phổ biến là ứng dụng chính chạy ổn định trong boot layer, còn các plugin được tìm trong một thư mục riêng và nạp vào layer con khi cần.
+In the Java Platform Module System (JPMS, since Java 9), a program can create additional `ModuleLayer` instances at runtime to load modules outside the set resolved at startup. A common scenario is that the main application runs stably in the boot layer, while plugins are discovered in a separate directory and loaded into a child layer when needed.
 
-Để làm điều đó, cần phân biệt hai khái niệm:
+To do that, you need to distinguish two concepts:
 
-- `Configuration` (`java.lang.module.Configuration`) là **đồ thị các module đã được phân giải**: module nào được chọn, module nào yêu cầu module nào, và cấu hình cha là gì. Configuration chưa tạo `Module` đang chạy và chưa tải class.
-- `ModuleLayer` (`java.lang.ModuleLayer`) là **môi trường module lúc chạy** được tạo từ một `Configuration`, liên kết các module đã giải quyết với các `ClassLoader` tương ứng và với layer cha.
+- `Configuration` (`java.lang.module.Configuration`) is **the graph of resolved modules**: which modules are selected, which module requires which module, and what the parent configurations are. A Configuration does not yet create runtime `Module` objects and does not yet load classes.
+- `ModuleLayer` (`java.lang.ModuleLayer`) is **the runtime module environment** created from a `Configuration`, binding the resolved modules to their corresponding `ClassLoader` instances and to parent layers.
 
-Luồng cơ bản:
+Basic flow:
 
 ```text
-Các JAR module trong plugins/
+Modular JARs in plugins/
             |
             v
     ModuleFinder.of(...)
@@ -28,32 +28,32 @@ ModuleLayer.boot().configuration()
 bootLayer.defineModulesWithOneLoader(config, parentLoader)
             |
             v
-       ModuleLayer mới
+       New ModuleLayer
             |
             v
   ServiceLoader / findLoader / findModule
 ```
 
-Đây là cách xây dựng một layer mới; `Configuration` không tự trở thành layer chỉ bằng việc gọi `resolve`.
+This is how a new layer is constructed; a `Configuration` does not automatically become a layer merely by calling `resolve`.
 
-## 2. Các thành phần liên quan
+## 2. Related Components
 
-| Thành phần | Vai trò |
+| Component | Role |
 | --- | --- |
-| `ModuleFinder` | Tìm mô tả module trong thư mục hoặc JAR modular, ví dụ `plugins/`. |
-| `ModuleDescriptor` | Mô tả `requires`, `exports`, `uses`, `provides` và các thuộc tính module. |
-| `Configuration` | Kết quả phân giải module; có các `ResolvedModule` và quan hệ đọc ở mức cấu hình. |
-| `ModuleLayer.boot()` | Layer mặc định sau khi JVM khởi động; thường được dùng làm layer cha. |
-| `ModuleLayer.defineModulesWithOneLoader(...)` | Định nghĩa các module của configuration mới trong một layer con, dùng chung một loader cho các module ở layer đó. |
-| `ModuleLayer.findModule(...)` | Tìm module theo tên trong layer đang xét và các layer cha. |
-| `ModuleLayer.findLoader(...)` | Lấy loader được gán cho module nằm trong layer này. |
-| `ServiceLoader.load(layer, serviceType)` | Tìm implementation của dịch vụ trong layer được chỉ định và các layer cha phù hợp. |
+| `ModuleFinder` | Finds module descriptors in a directory or modular JARs, e.g. `plugins/`. |
+| `ModuleDescriptor` | Describes `requires`, `exports`, `uses`, `provides`, and module attributes. |
+| `Configuration` | Result of module resolution; holds `ResolvedModule` entries and read relationships at the configuration level. |
+| `ModuleLayer.boot()` | The default layer after the JVM starts; commonly used as a parent layer. |
+| `ModuleLayer.defineModulesWithOneLoader(...)` | Defines the new configuration's modules in a child layer, sharing one loader for the modules in that layer. |
+| `ModuleLayer.findModule(...)` | Looks up a module by name in the current layer and its parent layers. |
+| `ModuleLayer.findLoader(...)` | Gets the loader assigned to a module located in this layer. |
+| `ServiceLoader.load(layer, serviceType)` | Finds service implementations in the specified layer and appropriate parent layers. |
 
-Một `Configuration` mới có thể tham chiếu các module đã tồn tại ở configuration cha. Những module cha không bị sao chép vào layer con.
+A new `Configuration` can reference modules that already exist in a parent configuration. Those parent modules are not copied into the child layer.
 
-## 3. Tạo Configuration từ ModuleFinder
+## 3. Creating a Configuration from ModuleFinder
 
-Giả sử ứng dụng host đã khởi động và `plugins/` chứa `com.example.plugin.jar`. Module `com.example.plugin` sẽ được nạp vào layer mới.
+Suppose the host application has started and `plugins/` contains `com.example.plugin.jar`. The module `com.example.plugin` will be loaded into a new layer.
 
 ```java
 import java.lang.module.Configuration;
@@ -67,7 +67,7 @@ public class CreateConfiguration {
         Configuration parentConfig = parentLayer.configuration();
 
         ModuleFinder before = ModuleFinder.of(Path.of("plugins"));
-        ModuleFinder after = ModuleFinder.of(); // Không tìm thêm module ngoài nguồn đã chọn
+        ModuleFinder after = ModuleFinder.of(); // Do not search for more modules beyond the chosen source
 
         Configuration childConfig = parentConfig.resolve(
                 before,
@@ -82,25 +82,25 @@ public class CreateConfiguration {
 }
 ```
 
-Ý nghĩa của các tham số `resolve(before, after, roots)`:
+Meaning of the `resolve(before, after, roots)` parameters:
 
-1. `before` là nguồn module ưu tiên tìm trước khi xét các cấu hình cha. Ở ví dụ là các module trong `plugins/`.
-2. `after` là nguồn bổ sung để tìm module chưa tìm thấy ở `before` và các cấu hình cha. `ModuleFinder.of()` tạo finder rỗng.
-3. `roots` là tên module gốc cần phân giải. Bộ phân giải đưa cả các dependency `requires` cần thiết vào đồ thị.
+1. `before` is the module source searched first before consulting parent configurations. In the example, this is the modules in `plugins/`.
+2. `after` is the additional source used to find modules not yet found in `before` or parent configurations. `ModuleFinder.of()` creates an empty finder.
+3. `roots` is the set of root module names to resolve. The resolver also brings required `requires` dependencies into the graph.
 
-`Configuration` là bất biến sau khi tạo. Nếu cần chọn tập module khác, hãy tạo configuration khác và định nghĩa layer mới từ configuration đó.
+A `Configuration` is immutable once created. If you need to select a different set of modules, create another configuration and define a new layer from it.
 
-Khi plugin phụ thuộc vào `com.example.api` đã nằm trong boot layer, bộ phân giải có thể sử dụng module ở configuration cha. Plugin không cần đóng gói bản sao của API.
+When a plugin depends on `com.example.api` already present in the boot layer, the resolver can use the module from the parent configuration. The plugin does not need to bundle a duplicate copy of the API.
 
-## 4. Ví dụ hoàn chỉnh: nạp plugin qua SPI
+## 4. Complete Example: Loading a Plugin via SPI
 
-Ví dụ dưới đây gồm ba module:
+The following example consists of three modules:
 
-- `com.example.api` định nghĩa giao diện dịch vụ; có mặt trong boot layer.
-- `com.example.host` là ứng dụng chính; có mặt trong boot layer.
-- `com.example.plugin` triển khai dịch vụ; được đưa vào layer con lúc chạy.
+- `com.example.api` defines the service interface; present in the boot layer.
+- `com.example.host` is the main application; present in the boot layer.
+- `com.example.plugin` implements the service; placed into a child layer at runtime.
 
-Cấu trúc nguồn:
+Source structure:
 
 ```text
 src/
@@ -113,11 +113,11 @@ src/
   plugin/
     module-info.java
     com/example/plugin/HelloProvider.java
-mods/       # API và host khi chạy
-plugins/    # JAR plugin được tìm động
+mods/       # API and host at runtime
+plugins/    # Plugin JAR discovered dynamically
 ```
 
-### 4.1. API module
+### 4.1. API Module
 
 `src/api/module-info.java`:
 
@@ -137,7 +137,7 @@ public interface GreetingProvider {
 }
 ```
 
-### 4.2. Plugin module
+### 4.2. Plugin Module
 
 `src/plugin/module-info.java`:
 
@@ -162,14 +162,14 @@ public class HelloProvider implements GreetingProvider {
 
     @Override
     public String greet(String name) {
-        return "Xin chào, " + name + "!";
+        return "Hello, " + name + "!";
     }
 }
 ```
 
-Plugin cung cấp dịch vụ bằng `provides ... with ...`. Không bắt buộc `exports com.example.plugin` chỉ để `ServiceLoader` khởi tạo provider đã khai báo hợp lệ.
+The plugin provides the service using `provides ... with ...`. `exports com.example.plugin` is not required just for `ServiceLoader` to instantiate a validly declared provider.
 
-### 4.3. Host module và điểm tạo layer
+### 4.3. Host Module and Layer Creation Point
 
 `src/host/module-info.java`:
 
@@ -197,23 +197,23 @@ public class Main {
     public static void main(String[] args) {
         ModuleLayer boot = ModuleLayer.boot();
 
-        // Bước 1: phát hiện JAR modular nằm ngoài module-path của host.
+        // Step 1: discover modular JARs outside the host's module-path.
         ModuleFinder plugins = ModuleFinder.of(Path.of("plugins"));
 
-        // Bước 2: phân giải module plugin và những dependency cần thiết.
+        // Step 2: resolve the plugin module and its required dependencies.
         Configuration config = boot.configuration().resolve(
                 plugins,
                 ModuleFinder.of(),
                 Set.of("com.example.plugin")
         );
 
-        // Bước 3: định nghĩa các module vừa phân giải trong layer con.
+        // Step 3: define the resolved modules in a child layer.
         ModuleLayer pluginLayer = boot.defineModulesWithOneLoader(
                 config,
                 ClassLoader.getSystemClassLoader()
         );
 
-        // Bước 4: lấy provider từ layer con qua hợp đồng API chung.
+        // Step 4: obtain providers from the child layer via the shared API contract.
         ServiceLoader<GreetingProvider> providers =
                 ServiceLoader.load(pluginLayer, GreetingProvider.class);
 
@@ -221,27 +221,27 @@ public class Main {
             System.out.println(provider.greet("Minh"));
         }
 
-        // Quan sát kết quả nạp module, phục vụ chẩn đoán.
+        // Observe the module loading result for diagnostics.
         pluginLayer.findModule("com.example.plugin")
                 .ifPresent(module ->
-                        System.out.println("Đã nạp: " + module.getName())
+                        System.out.println("Loaded: " + module.getName())
                 );
     }
 }
 ```
 
-Đầu ra dự kiến:
+Expected output:
 
 ```text
-Xin chào, Minh!
-Đã nạp: com.example.plugin
+Hello, Minh!
+Loaded: com.example.plugin
 ```
 
-Ứng dụng host và API cần dùng cùng một định nghĩa `GreetingProvider` từ parent layer. Nếu host và plugin sử dụng hai bản class API được tải ở các loader khác nhau, có thể gặp lỗi kiểu dữ liệu (`ClassCastException`) hoặc không nhận diện đúng SPI.
+The host application and the API must use the same `GreetingProvider` definition from the parent layer. If the host and plugin use two copies of the API class loaded in different loaders, type errors (`ClassCastException`) or failure to recognize the SPI properly may occur.
 
-### 4.4. Biên dịch và chạy
+### 4.4. Compiling and Running
 
-Tạo sẵn các thư mục `build/api`, `build/plugin`, `build/host`, `mods` và `plugins`. Với JDK 9 trở lên, từ thư mục gốc của ví dụ:
+Create the directories `build/api`, `build/plugin`, `build/host`, `mods`, and `plugins` beforehand. With JDK 9 or later, from the example's root directory:
 
 ```bash
 javac -d build/api \
@@ -265,49 +265,49 @@ jar --create --file mods/com.example.host.jar -C build/host .
 java --module-path mods -m com.example.host/com.example.host.Main
 ```
 
-Dấu `\` cuối dòng ở đoạn lệnh trên dùng để xuống dòng trong shell Unix. Trong PowerShell hoặc CMD, có thể nhập mỗi lệnh trên một dòng. Mấu chốt là `mods/` chứa host và API, còn `plugins/` được chương trình đọc khi đang chạy; đặt plugin vào boot module path sẽ làm thay đổi cấu trúc phân giải ban đầu.
+The trailing `\` in the snippet above is for line continuation in a Unix shell. In PowerShell or CMD, you can enter each command on a single line. The key point is that `mods/` contains the host and API, while `plugins/` is read by the program at runtime; placing the plugin on the boot module path would alter the initial resolution structure.
 
-## 5. Chọn cách tạo layer từ Configuration
+## 5. Choosing How to Create a Layer from a Configuration
 
-Sau khi có configuration, JPMS cung cấp các cách ánh xạ module sang class loader:
+Once you have a configuration, JPMS offers several ways to map modules to class loaders:
 
-### Một loader cho layer
+### One Loader for the Layer
 
 ```java
 ModuleLayer layer = ModuleLayer.boot()
         .defineModulesWithOneLoader(config, ClassLoader.getSystemClassLoader());
 ```
 
-Đây là cách ngắn gọn khi nhóm module mới có thể dùng chung loader. Các module trong layer mới được ánh xạ vào một loader do API thiết lập, còn tham số `parentLoader` xác định loader cha phục vụ delegation.
+This is a concise option when the new group of modules can share a loader. The modules in the new layer are mapped to a single loader set up by the API, while the `parentLoader` argument specifies the parent loader used for delegation.
 
-### Một loader riêng cho từng module
+### A Separate Loader per Module
 
 ```java
 ModuleLayer layer = ModuleLayer.boot()
         .defineModulesWithManyLoaders(config, ClassLoader.getSystemClassLoader());
 ```
 
-Cách này tạo mapping tách biệt hơn giữa các module của layer. Việc chia loader không tự động biến plugin thành sandbox bảo mật.
+This approach creates a more separated mapping among the layer's modules. Splitting loaders does not automatically turn a plugin into a security sandbox.
 
-### Ánh xạ loader tùy chỉnh
+### Custom Loader Mapping
 
 ```java
-// Chỉ là khuôn mẫu; hàm mapping phải trả về loader phù hợp cho từng module.
+// Template only; the mapping function must return a suitable loader for each module.
 ModuleLayer layer = ModuleLayer.boot()
         .defineModules(config, moduleName -> chooseLoader(moduleName));
 ```
 
-`defineModules` nhận hàm ánh xạ tên module sang `ClassLoader`. Đây là phương án nâng cao khi ứng dụng đã quản lý loader và package ownership rõ ràng.
+`defineModules` accepts a function mapping a module name to a `ClassLoader`. This is an advanced option when the application already manages loaders and package ownership explicitly.
 
-Với nhiều parent layer, nhóm API tĩnh như `ModuleLayer.defineModulesWithOneLoader(config, parentLayers, parentLoader)` trả về `ModuleLayer.Controller`; lấy layer mới bằng `controller.layer()`. Các parent layer truyền vào phải tương ứng với danh sách configuration cha của `config`.
+With multiple parent layers, the static API group such as `ModuleLayer.defineModulesWithOneLoader(config, parentLayers, parentLoader)` returns a `ModuleLayer.Controller`; obtain the new layer with `controller.layer()`. The parent layers passed in must correspond to the parent configurations list of `config`.
 
-## 6. resolve và resolveAndBind khác nhau thế nào?
+## 6. How Do `resolve` and `resolveAndBind` Differ?
 
-`resolve(...)` bắt đầu từ tập `roots` rồi đi theo các dependency bắt buộc (`requires`). Đây là lựa chọn rõ ràng khi đã biết tên module plugin phải nạp.
+`resolve(...)` starts from the `roots` set and follows mandatory dependencies (`requires`). This is the straightforward choice when you already know the plugin module names to load.
 
-`resolveAndBind(...)` còn thực hiện service binding: khi các module đã giải quyết khai báo `uses`, bộ phân giải có thể tìm thêm module provider phù hợp trong các nguồn module được cung cấp. Điều này hữu ích cho hệ thống mở rộng bằng SPI, nơi host không muốn liệt kê trước tên từng provider.
+`resolveAndBind(...)` also performs service binding: when resolved modules declare `uses`, the resolver can discover additional matching provider modules in the supplied module sources. This is useful for SPI-based extension systems where the host does not want to list every provider name in advance.
 
-Ví dụ thay cách phân giải ở trên:
+Example replacing the resolution step above:
 
 ```java
 Configuration config = ModuleLayer.boot().configuration()
@@ -318,16 +318,16 @@ Configuration config = ModuleLayer.boot().configuration()
         );
 ```
 
-`resolveAndBind` không thay thế việc khai báo `uses` và `provides` đúng trong `module-info.java`; cũng không tự quét mọi thư mục trên máy. Phạm vi tìm kiếm phụ thuộc các `ModuleFinder` được truyền vào.
+`resolveAndBind` does not replace declaring `uses` and `provides` properly in `module-info.java`; nor does it automatically scan every directory on the machine. The search scope depends on the `ModuleFinder` instances passed in.
 
-Khi chỉ có một plugin đã xác định bằng tên, `resolve` là đủ cho ví dụ ở mục 4.
+When there is only one plugin already identified by name, `resolve` is sufficient for the example in Section 4.
 
-## 7. Kiểm tra graph và layer sau khi tạo
+## 7. Inspecting the Graph and Layer After Creation
 
 ```java
 Configuration config = pluginLayer.configuration();
 
-// Các module thuộc configuration của chính layer con.
+// Modules belonging to the child layer's own configuration.
 config.modules().forEach(rm -> {
     System.out.println("Module: " + rm.name());
     rm.reads().forEach(dep ->
@@ -335,62 +335,62 @@ config.modules().forEach(rm -> {
     );
 });
 
-// Các module runtime được định nghĩa trực tiếp trong layer con.
+// Runtime modules defined directly in the child layer.
 pluginLayer.modules().forEach(m ->
         System.out.println("Runtime module: " + m.getName())
 );
 
-// Có thể tìm module trong layer này hoặc ở layer cha.
+// Can find modules in this layer or in parent layers.
 System.out.println(pluginLayer.findModule("com.example.api").isPresent());
 
-// findLoader yêu cầu module thuộc chính layer được truy vấn.
+// findLoader requires the module to belong to the queried layer itself.
 ClassLoader pluginLoader = pluginLayer.findLoader("com.example.plugin");
 System.out.println(pluginLoader);
 ```
 
-`Configuration.modules()` và `ModuleLayer.modules()` đều phản ánh module trực tiếp của đối tượng đang xét; không nên mặc định chúng chứa toàn bộ module ở các parent. Muốn xem parent layers, dùng `pluginLayer.parents()`.
+Both `Configuration.modules()` and `ModuleLayer.modules()` reflect the direct modules of the target object; do not assume they contain all modules from parent layers. To inspect parent layers, use `pluginLayer.parents()`.
 
-Khi cần tự tải một class plugin cụ thể, có thể lấy loader qua `findLoader` rồi dùng `Class.forName(className, true, loader)`. Tuy nhiên, việc tìm được class không tự cấp quyền truy cập vào các package chưa `exports` hoặc `opens`. Khi chỉ cần gọi điểm mở rộng, SPI thường làm giảm phụ thuộc vào tên class nội bộ của plugin.
+When you need to manually load a specific plugin class, you can get the loader via `findLoader` and use `Class.forName(className, true, loader)`. However, finding a class does not automatically grant access to packages that are not `exports` or `opens`. When you only need to invoke an extension point, SPI generally reduces dependence on internal plugin class names.
 
-## 8. Lỗi thường gặp và hướng xử lý
+## 8. Common Errors and Troubleshooting
 
-| Hiện tượng | Nguyên nhân hay gặp | Hướng xử lý |
+| Symptom | Common cause | How to address |
 | --- | --- | --- |
-| `FindException` | Không tìm thấy module gốc hoặc dependency; JAR không phải module mong đợi. | Kiểm tra `Path` truyền vào `ModuleFinder`, tên module thật và cấu trúc JAR. |
-| `ResolutionException` | Đồ thị module có xung đột, ví dụ về package hoặc ràng buộc đọc. | Kiểm tra `requires`, package trùng và các dependency transitively readable. |
-| `LayerInstantiationException` | Không thể định nghĩa graph bằng mapping class loader đã chọn, chẳng hạn package trùng trong cùng loader. | Đổi cách ánh xạ loader hoặc chỉnh cấu trúc module/package. |
-| Không tìm thấy provider qua `ServiceLoader` | Thiếu `uses`/`provides`, provider chưa được đưa vào graph, hoặc gọi `load` trên layer khác. | Kiểm tra descriptor, roots/`resolveAndBind` và layer truyền cho `ServiceLoader.load`. |
-| `IllegalAccessException` / `InaccessibleObjectException` | Code ngoài module cố truy cập package chưa `exports` hoặc reflective access chưa `opens`. | Thiết kế API công khai và khai báo `exports`/`opens` phù hợp; tránh mở rộng quyền không cần thiết. |
-| `ClassCastException` / `ServiceConfigurationError` | Interface dịch vụ khác class identity hoặc provider không hợp lệ. | Dùng chung API ở layer cha, kiểm tra constructor và khai báo `provides`. |
+| `FindException` | Root module or dependency not found; JAR is not the expected module. | Check the `Path` passed to `ModuleFinder`, the actual module name, and the JAR structure. |
+| `ResolutionException` | Module graph has a conflict, e.g. overlapping packages or read constraints. | Check `requires`, duplicate packages, and transitively readable dependencies. |
+| `LayerInstantiationException` | Cannot define the graph with the chosen class loader mapping, such as overlapping packages in the same loader. | Change the loader mapping strategy or adjust the module/package structure. |
+| Provider not found via `ServiceLoader` | Missing `uses`/`provides`, provider not included in the graph, or calling `load` on the wrong layer. | Check descriptors, roots/`resolveAndBind`, and the layer passed to `ServiceLoader.load`. |
+| `IllegalAccessException` / `InaccessibleObjectException` | Code outside the module attempts to access a non-`exports` package or reflective access without `opens`. | Design a public API and declare `exports`/`opens` appropriately; avoid granting unnecessary permissions. |
+| `ClassCastException` / `ServiceConfigurationError` | Different class identity for the service interface or invalid provider. | Share the API from a parent layer, check constructors and `provides` declarations. |
 
-Một vài điểm cần nhớ:
+A few points to remember:
 
-- Nếu module đã có trong boot layer, `resolve` cho layer con không có nghĩa JVM sẽ “nạp lại” module đó vào layer con. Module ở configuration cha tiếp tục được sử dụng từ cha.
-- Các module có cùng tên có thể thuộc những layer khác nhau, nhưng sự tồn tại của các layer không cho phép bỏ qua nguyên tắc đọc module, export package hay identity của class loader.
-- Tạo layer mới không tự động cập nhật layer cũ hoặc thay thế class đã nạp. Muốn thay phiên bản plugin, thường cần tạo configuration/layer mới và quản lý vòng đời tham chiếu đến phiên bản cũ.
-- Layer là cơ chế tổ chức và liên kết module, **không phải** cơ chế sandbox bảo mật để chạy mã không tin cậy.
+- If a module already exists in the boot layer, calling `resolve` for a child layer does not mean the JVM will “reload” that module into the child layer. The module in the parent configuration continues to be used from the parent.
+- Modules with the same name can belong to different layers, but the existence of layers does not allow bypassing module readability rules, package exports, or class loader identity.
+- Creating a new layer does not automatically update an old layer or replace already-loaded classes. To swap plugin versions, you usually need to create a new configuration/layer and manage the lifecycle of references to the old version.
+- A layer is a mechanism for organizing and linking modules, **not** a security sandbox for running untrusted code.
 
-## 9. Khi nào nên dùng Configuration + ModuleLayer?
+## 9. When Should You Use Configuration + ModuleLayer?
 
-Nên xem xét khi ứng dụng cần nạp tập module theo lựa chọn lúc chạy, cần quản lý plugin từ thư mục độc lập với boot module path, hoặc cần tạo những không gian module khác nhau cho các phiên bản extension.
+Consider it when an application needs to load a chosen set of modules at runtime, manage plugins from a directory independent of the boot module path, or create separate module spaces for different extension versions.
 
-Nếu toàn bộ module đã biết khi đóng gói và không có nhu cầu nạp động, cấu hình module path và để JVM tạo boot layer thường đơn giản hơn.
+If all modules are known at packaging time and there is no need for dynamic loading, configuring the module path and letting the JVM build the boot layer is usually simpler.
 
-Quy trình thao tác cần thuộc:
+Operational workflow to master:
 
-1. Xác định layer cha và lấy `parentLayer.configuration()`.
-2. Tạo `ModuleFinder` để tìm module mới.
-3. Gọi `resolve` hoặc `resolveAndBind` với roots có chủ đích.
-4. Chọn chiến lược class loader và định nghĩa `ModuleLayer` mới.
-5. Truy cập module qua SPI, `findModule` hoặc `findLoader`.
-6. Kiểm tra đồ thị và lỗi phân giải khi module/dependency không hợp lệ.
+1. Identify the parent layer and retrieve `parentLayer.configuration()`.
+2. Create a `ModuleFinder` to locate new modules.
+3. Call `resolve` or `resolveAndBind` with intentional roots.
+4. Choose a class loader strategy and define the new `ModuleLayer`.
+5. Access modules via SPI, `findModule`, or `findLoader`.
+6. Inspect the graph and resolution errors when modules/dependencies are invalid.
 
-## 10. Bài tập thực hành
+## 10. Practice Exercises
 
-1. Thêm module `com.example.plugin.fr` cùng triển khai `GreetingProvider`, đặt JAR vào `plugins/`. Cho cả hai module plugin vào tập roots và quan sát hai provider được tìm thấy.
-2. Thử bỏ `requires com.example.api` khỏi plugin rồi biên dịch để thấy vai trò của dependency trong module descriptor.
-3. Thử bỏ `provides ... with ...` và so sánh kết quả của `ServiceLoader.load(pluginLayer, GreetingProvider.class)`.
-4. In danh sách `config.modules()`, `pluginLayer.modules()`, `pluginLayer.parents()` và giải thích module nào thuộc layer cha.
-5. Chuyển `defineModulesWithOneLoader` sang `defineModulesWithManyLoaders` và quan sát loader của plugin qua `findLoader`.
+1. Add a `com.example.plugin.fr` module also implementing `GreetingProvider`, and place its JAR in `plugins/`. Include both plugin modules in the roots set and observe that two providers are found.
+2. Try removing `requires com.example.api` from the plugin and compiling to see the role of dependencies in the module descriptor.
+3. Try removing `provides ... with ...` and compare the result of `ServiceLoader.load(pluginLayer, GreetingProvider.class)`.
+4. Print the lists of `config.modules()`, `pluginLayer.modules()`, and `pluginLayer.parents()`, and explain which modules belong to the parent layer.
+5. Switch `defineModulesWithOneLoader` to `defineModulesWithManyLoaders` and inspect the plugin's loader via `findLoader`.
 
-**Ghi nhớ:** `Configuration` quyết định **module nào và quan hệ đọc ra sao**; `ModuleLayer` quyết định **các module đã giải quyết được hiện thực hóa trong runtime và gắn với class loader nào**.
+**Takeaway:** `Configuration` decides **which modules are included and how they read each other**; `ModuleLayer` decides **how the resolved modules are realized at runtime and which class loaders they are bound to**.

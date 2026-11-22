@@ -1,17 +1,17 @@
-# Phân biệt tìm chuỗi nguyên văn với tìm theo biểu thức chính quy trong Java
+# Distinguishing Literal String Search from Regular Expression Search in Java
 
-## 1. Hai kiểu tìm kiếm có ý nghĩa khác nhau
+## 1. Two Search Types with Different Meanings
 
-Một thao tác tìm văn bản có thể nhận **từ khóa nguyên văn (literal)** hoặc **biểu thức chính quy (regex)**. Hai khái niệm này khác nhau ngay cả khi tình cờ cho ra cùng kết quả.
+A text search operation can accept either a **literal keyword** or a **regular expression (regex)**. These two concepts differ even when they happen to produce the same result.
 
-- **Tìm nguyên văn:** các ký tự của từ khóa chính là dữ liệu cần tìm. Từ khóa **a.b** chỉ khớp đúng ba ký tự **a**, dấu chấm, **b**.
-- **Tìm regex:** từ khóa là một *mẫu* có ký hiệu điều khiển. Regex **a.b** khớp **a.b**, **aXb**, **a1b**, vì dấu chấm **.** biểu diễn một ký tự bất kỳ (trừ một số line terminator theo chế độ mặc định).
+- **Literal search:** the characters of the keyword are the exact data to find. The keyword **a.b** matches only the three characters **a**, a period, and **b**.
+- **Regex search:** the keyword is a *pattern* containing control symbols. The regex **a.b** matches **a.b**, **aXb**, and **a1b**, because the dot **.** represents any single character (except certain line terminators under default mode).
 
-Trong Java, chọn **String.contains()** hoặc **String.indexOf()** khi người dùng muốn tìm một đoạn văn bản chính xác; chọn **java.util.regex.Pattern** và **Matcher** khi cần một quy tắc như “mã bắt đầu bằng item- rồi tới nhiều chữ số”.
+In Java, choose **String.contains()** or **String.indexOf()** when you want to find an exact text segment; choose **java.util.regex.Pattern** and **Matcher** when you need a rule like "a code starting with item- followed by multiple digits".
 
-Không nên nghĩ rằng String chứa ký tự **.**, **\**, **+**, **?** hoặc ngoặc vuông thì tự động biến thành regex. Chúng chỉ mang ý nghĩa regex khi được đưa vào một API **chủ động phân tích biểu thức chính quy**.
+Do not assume that a `String` containing **.**, **\**, **+**, **?**, or square brackets automatically becomes a regex. They only carry regex meaning when passed to an API that **actively parses regular expressions**.
 
-Ví dụ nhanh, đặt trong một phương thức:
+Quick example, placed inside a method:
 
 ~~~java
 String text = "a.b aXb";
@@ -19,22 +19,22 @@ System.out.println(text.contains("a.b")); // true: literal "a.b"
 System.out.println(text.indexOf("a.b"));  // 0
 System.out.println(text.contains("a.b aXb")); // true
 System.out.println(java.util.regex.Pattern
-        .compile("a.b").matcher("aXb").find()); // true: "." là wildcard
+        .compile("a.b").matcher("aXb").find()); // true: "." is a wildcard
 ~~~
 
-## 2. Những API tìm nguyên văn của String
+## 2. Literal Search APIs on `String`
 
-| API | Kết quả | Cách tìm |
+| API | Result | How it searches |
 | --- | --- | --- |
-| **text.contains(query)** | boolean | Có đoạn **query** xuất hiện nguyên văn trong text không? |
-| **text.indexOf(query)** | int | Vị trí đầu tiên của đoạn query hoặc **-1** nếu không có |
-| **text.indexOf(query, fromIndex)** | int | Tìm nguyên văn, bắt đầu từ một offset UTF-16 |
-| **text.lastIndexOf(query)** | int | Tìm lần xuất hiện cuối theo chiều ngược |
-| **text.startsWith(prefix)** | boolean | Khớp tiền tố nguyên văn |
-| **text.endsWith(suffix)** | boolean | Khớp hậu tố nguyên văn |
-| **text.equals(query)** | boolean | So toàn bộ nội dung, không phải tìm chuỗi con |
+| **text.contains(query)** | boolean | Does **query** appear literally inside text? |
+| **text.indexOf(query)** | int | First position of query, or **-1** if absent |
+| **text.indexOf(query, fromIndex)** | int | Literal search starting from a UTF-16 offset |
+| **text.lastIndexOf(query)** | int | Last occurrence searching backward |
+| **text.startsWith(prefix)** | boolean | Literal prefix match |
+| **text.endsWith(suffix)** | boolean | Literal suffix match |
+| **text.equals(query)** | boolean | Compares full content, not a substring search |
 
-Ví dụ:
+Example:
 
 ~~~java
 String path = "report.v1.txt";
@@ -45,20 +45,20 @@ System.out.println(path.endsWith(".txt"));   // true
 System.out.println(path.contains("\\d+"));   // false
 ~~~
 
-Ở câu cuối, **"\\d+"** là một String Java có nội dung gồm dấu gạch chéo ngược, chữ **d** và dấu **+**. **contains()** không giải mã nó như regex “một hoặc nhiều chữ số”.
+On the last line, **"\\d+"** is a Java `String` whose content consists of a backslash, the letter **d**, and **+**. **contains()** does not decode it as the regex "one or more digits".
 
-Các phương thức tìm String nêu trên **phân biệt hoa thường**, không tự chuẩn hóa Unicode và không nhận chính sách so khớp bỏ dấu tiếng Việt.
+The `String` search methods listed above are **case-sensitive**, do not automatically normalize Unicode, and do not apply Vietnamese accent-insensitive matching policies.
 
-### Trường hợp rỗng, null và vị trí
+### Empty Strings, `null`, and Positions
 
-- **text.contains("")** trả về **true** với một String text khác null.
-- **text.indexOf("")** trả về **0**; **text.lastIndexOf("")** trả về **text.length()**.
-- Nếu **text == null**, việc gọi phương thức trên text gây **NullPointerException**. Nếu query của **contains** hoặc **indexOf(String)** là null, phương thức cũng không chấp nhận và ném ngoại lệ.
-- **indexOf()**, **lastIndexOf()** và đa số phép cắt String dùng **offset UTF-16**, không phải số ký tự người dùng nhìn thấy. Emoji ngoài BMP có thể chiếm hai đơn vị UTF-16.
+- **text.contains("")** returns **true** for any non-null `String` `text`.
+- **text.indexOf("")** returns **0**; **text.lastIndexOf("")** returns **text.length()**.
+- If **text == null**, calling a method on `text` causes **NullPointerException**. If `query` passed to **contains** or **indexOf(String)** is `null`, the method rejects it as well and throws an exception.
+- **indexOf()**, **lastIndexOf()**, and most `String` slicing operations use **UTF-16 offsets**, not visible character counts. Non-BMP emojis can occupy two UTF-16 units.
 
-Nếu query rỗng không có ý nghĩa trong chức năng tìm kiếm, hãy kiểm tra đầu vào trước khi gọi API; đừng mặc nhiên hiểu **contains("") == true** là kết quả người dùng mong muốn.
+If an empty query makes no sense in your search feature, validate the input before calling the API; do not assume **contains("") == true** is what the user wants.
 
-### Backslash trong literal Java
+### Backslashes in Java Literals
 
 ~~~java
 String location = "C:\\temp\\file.txt";
@@ -66,25 +66,25 @@ System.out.println(location.contains("\\"));  // true
 System.out.println(location.contains(".txt")); // true
 ~~~
 
-Dấu **\\** trong mã nguồn được viết kép vì cú pháp **Java string literal**. Đây là cơ chế escape của ngôn ngữ Java, độc lập với cú pháp regex. Nếu query đã được nhập từ bàn phím dưới dạng biến String thì dùng **contains(query)** trực tiếp, không tự chèn thêm các dấu gạch chéo ngược.
+The **\\** in source code is doubled because of **Java string literal** syntax. That is Java's language-level escape mechanism, independent of regex syntax. If `query` was already read from keyboard input as a `String` variable, pass **contains(query)** directly without manually inserting extra backslashes.
 
-## 3. Regex trong Java: Pattern và Matcher
+## 3. Regex in Java: `Pattern` and `Matcher`
 
-Để dùng biểu thức chính quy, import:
+To use regular expressions, import:
 
 ~~~java
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 ~~~
 
-**Pattern.compile(regex)** biên dịch một regex thành **Pattern**. **pattern.matcher(text)** tạo **Matcher** có trạng thái duyệt một văn bản. Sau đó:
+**Pattern.compile(regex)** compiles a regex into a **Pattern**. **pattern.matcher(text)** creates a stateful **Matcher** that scans text. Then:
 
-- **find()** tìm **đoạn con** khớp regex ở vị trí tiếp theo.
-- **matches()** yêu cầu **toàn bộ vùng được xét** khớp regex.
-- **lookingAt()** yêu cầu regex khớp ngay **đầu vùng**, không nhất thiết hết vùng.
-- **group()** lấy văn bản vừa khớp; **start()** và **end()** trả về offset UTF-16 bắt đầu và ngay sau đoạn khớp.
+- **find()** finds the next **subsequence** matching the regex.
+- **matches()** requires the **entire target region** to match the regex.
+- **lookingAt()** requires the regex to match right at the **start of the region**, not necessarily the entire region.
+- **group()** retrieves the matched text; **start()** and **end()** return the starting UTF-16 offset and the offset right after the match.
 
-Ví dụ tìm các mã theo mẫu:
+Example finding codes matching a pattern:
 
 ~~~java
 Pattern pattern = Pattern.compile("item-\\d+");
@@ -102,9 +102,9 @@ item-42
 item-7
 ~~~
 
-**\\d** trong regex đại diện cho chữ số theo quy tắc của Java Pattern; **+** nghĩa là ít nhất một lần. Trong **mã nguồn Java**, regex này phải viết **"item-\\d+"** để giá trị String thực tế đưa vào engine chứa dấu gạch chéo ngược.
+**\\d** in regex represents a digit according to Java `Pattern` rules; **+** means one or more times. In **Java source code**, this regex must be written **"item-\\d+"** so that the actual `String` value passed to the engine contains a backslash.
 
-### find(), matches() và String.matches()
+### `find()`, `matches()`, and `String.matches()`
 
 ~~~java
 Pattern digits = Pattern.compile("\\d+");
@@ -116,15 +116,15 @@ System.out.println("123".matches("\\d+"));                   // true
 System.out.println("abc123xyz".matches("\\d+"));             // false
 ~~~
 
-Các câu lệnh có import **Pattern** ở trên là minh họa trong một phương thức.
+The statements importing **Pattern** above are an illustration inside a method.
 
-**String.matches(regex)** cũng kiểm tra **toàn chuỗi**. Vì vậy **"abc123".matches("\\d+")** là false, dù phần **123** hoàn toàn khớp regex. Nếu muốn **tìm xem có tồn tại một đoạn khớp** trong văn bản, dùng **Pattern.compile(regex).matcher(text).find()**.
+**String.matches(regex)** also checks the **entire string**. Hence **"abc123".matches("\\d+")** is `false`, even though the **123** part matches the regex completely. If you want to **check whether a matching segment exists** in the text, use **Pattern.compile(regex).matcher(text).find()**.
 
-Không nên máy móc bọc regex bằng **".*"** ở hai đầu để giả lập find(): quy tắc sẽ khó đọc hơn, dễ bị ảnh hưởng bởi cách **.** xử lý newline và có thể phát sinh chi phí xử lý không cần thiết.
+Do not mechanically wrap a regex with **".*"** on both ends to simulate `find()`: the rule becomes harder to read, is affected by how **.** handles newlines, and can incur unnecessary processing overhead.
 
-## 4. Chạy ví dụ Java 17+: so sánh literal với regex
+## 4. Running a Java 17+ Example: Comparing Literal vs. Regex
 
-Lưu thành **LiteralVsRegexSearchDemo.java** theo UTF-8:
+Save as **LiteralVsRegexSearchDemo.java** in UTF-8:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -157,7 +157,7 @@ public class LiteralVsRegexSearchDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 LiteralVsRegexSearchDemo.java
@@ -178,35 +178,35 @@ item-42@22-29
 ITEM-7@32-38
 ~~~
 
-Giải thích:
+Explanation:
 
-1. **contains("file.txt")** tìm chuỗi nguyên văn có dấu chấm, trả true.
-2. **indexOf("file.txt") == 0**, còn **fileXtxt** bắt đầu tại offset 11.
-3. Regex **file\\.txt** trong Java yêu cầu **dấu chấm thật**; vì vậy tìm được file.txt nhưng không khớp fileXtxt.
-4. Regex **file.txt** cho phép một ký tự bất kỳ tại dấu chấm và vì vậy khớp cả fileXtxt.
-5. **text.matches("file\\.txt")** trả false vì text dài hơn file.txt; **matches** yêu cầu khớp toàn bộ.
-6. Flag inline **(?i)** bật so khớp không phân biệt hoa thường, nên tìm được item-42 và ITEM-7.
-7. **start()/end()** trả về offset UTF-16, trong đó **end()** không được tính vào đoạn khớp. Có thể dùng **text.substring(start, end)** để lấy lại đoạn đã khớp.
+1. **contains("file.txt")** searches for the literal string with a period, returning `true`.
+2. **indexOf("file.txt") == 0**, while **fileXtxt** starts at offset 11.
+3. The regex **file\\.txt** in Java requires a **literal period**; so it finds `file.txt` but does not match `fileXtxt`.
+4. The regex **file.txt** allows any character at the dot position and therefore matches `fileXtxt` too.
+5. **text.matches("file\\.txt")** returns `false` because `text` is longer than `file.txt`; **matches** requires a full match.
+6. The inline flag **(?i)** enables case-insensitive matching, so both `item-42` and `ITEM-7` are found.
+7. **start()/end()** return UTF-16 offsets, where **end()** is exclusive. You can use **text.substring(start, end)** to extract the matched segment.
 
-## 5. Các ký hiệu regex dễ bị hiểu thành văn bản nguyên vẹn
+## 5. Regex Symbols Easily Mistaken for Literal Text
 
-| Cú pháp regex | Ý nghĩa theo mẫu | Khi muốn tìm literal |
+| Regex syntax | Pattern meaning | When you want a literal match |
 | --- | --- | --- |
-| **.** | Một ký tự bất kỳ, ngoại trừ một số line terminator theo chế độ | Escape thành **\\.** |
-| **\\d** | Chữ số | Quote ký tự backslash và d nếu chúng thực sự là dữ liệu |
-| **[abc]** | Một ký tự trong tập a, b, c | Quote cả chuỗi **[abc]** |
-| **a+** | Một hoặc nhiều ký tự a | Escape dấu cộng nếu cần tìm **a+** |
-| **a*** | Không hoặc nhiều ký tự a | Escape dấu sao nếu cần tìm **a*** |
-| **a?** | Không hoặc một ký tự a | Escape dấu hỏi nếu cần tìm **a?** |
-| **^abc** | Mẫu tại đầu theo chế độ | Quote dấu mũ nếu là dữ liệu |
-| **abc$** | Mẫu tại cuối theo chế độ | Quote dấu đô-la nếu là dữ liệu |
-| **(abc)** | Nhóm regex | Quote dấu ngoặc nếu cần tìm văn bản có ngoặc |
-| **a\|b** | Khớp a hoặc b | Quote dấu pipe khi nó là văn bản |
-| **\\bcat\\b** | Từ cat với ranh giới từ | Tìm bằng regex khi nghiệp vụ thực sự cần ranh giới |
+| **.** | Any character, except certain line terminators depending on mode | Escape as **\\.** |
+| **\\d** | A digit | Quote the backslash and `d` if they are actual data |
+| **[abc]** | One character from the set `a`, `b`, `c` | Quote the whole string **[abc]** |
+| **a+** | One or more `a` characters | Escape the plus sign if searching for **a+** |
+| **a*** | Zero or more `a` characters | Escape the asterisk if searching for **a*** |
+| **a?** | Zero or one `a` character | Escape the question mark if searching for **a?** |
+| **^abc** | Pattern at start depending on mode | Quote the caret if it is literal data |
+| **abc$** | Pattern at end depending on mode | Quote the dollar sign if it is literal data |
+| **(abc)** | Regex group | Quote parentheses if searching for text with parentheses |
+| **a\|b** | Match `a` or `b` | Quote the pipe character when it is literal text |
+| **\\bcat\\b** | Word `cat` with word boundaries | Use regex when business rules actually need boundaries |
 
-Regex có các cấu trúc nhóm, character class, quantifier, anchor, lookaround. Chúng rất hữu ích khi đầu vào là một **mẫu có chủ đích**, nhưng sẽ gây kết quả sai nếu lấy nguyên từ khóa người dùng rồi coi như mẫu.
+Regex has groups, character classes, quantifiers, anchors, and lookarounds. They are very useful when the input is an **intentional pattern**, but cause wrong results if you take a raw user keyword and treat it as a pattern.
 
-### Tìm từ nguyên vẹn khác tìm một phần của từ
+### Searching for Whole Words vs. Substrings Inside Words
 
 ~~~java
 String text = "cat scatter cat";
@@ -217,43 +217,43 @@ while (matcher.find()) {
 }
 ~~~
 
-Đoạn minh họa trên in:
+The snippet above prints:
 
 ~~~text
 cat
 cat
 ~~~
 
-**String.contains("cat")** vẫn trả true vì chứa đoạn cat; **indexOf** còn có thể tìm chuỗi con cat bên trong scatter. Regex **\\bcat\\b** giới hạn bằng ranh giới từ và không nhận chữ cat bên trong scatter. Quy tắc word boundary của regex không thay thế hoàn toàn tách từ ngôn ngữ tự nhiên, nhất là văn bản đa ngữ.
+**String.contains("cat")** still returns `true` because the string contains `cat`; **indexOf** can even find the substring `cat` inside `scatter`. The regex **\\bcat\\b** constrains by word boundaries and does not match `cat` inside `scatter`. Regex word-boundary rules do not completely replace natural-language tokenization, especially for multilingual text.
 
-## 6. Hiểu đúng hai tầng escape: Java literal và regex
+## 6. Understanding the Two Escaping Layers: Java Literal and Regex
 
-Giả sử muốn tìm dấu chấm thật:
+Suppose you want to match a literal dot:
 
-1. Văn bản cần khớp: **.**
-2. Cú pháp regex: **\\.**
-3. Java string literal truyền vào Pattern: **"\\."**
+1. Text to match: **.**
+2. Regex syntax: **\\.**
+3. Java string literal passed to `Pattern`: **"\\."**
 
-**Java xử lý escape của string literal trước; regex engine đọc kết quả sau đó.**
+**Java processes string literal escapes first; the regex engine reads the resulting string afterward.**
 
-| Ý định | Regex thực tế | Viết trong Java String literal |
+| Intent | Actual regex | Written in Java String literal |
 | --- | --- | --- |
-| Dấu chấm | **\\.** | **"\\."** |
-| Dấu cộng | **\\+** | **"\\+"** |
-| Dấu hỏi | **\\?** | **"\\?"** |
-| Một backslash | **\\\\** | **"\\\\\\\\"** |
-| Một hoặc nhiều chữ số | **\\d+** | **"\\d+"** |
-| Ba ký tự a, ., b | **a\\.b** | **"a\\.b"** |
+| A dot | **\\.** | **"\\."** |
+| A plus sign | **\\+** | **"\\+"** |
+| A question mark | **\\?** | **"\\?"** |
+| One backslash | **\\\\** | **"\\\\\\\\"** |
+| One or more digits | **\\d+** | **"\\d+"** |
+| Three chars `a`, `.`, `b` | **a\\.b** | **"a\\.b"** |
 
-Với biến **query** đã là String chứa dữ liệu người dùng, không áp dụng quy tắc escape Java string literal thêm lần nữa. Ví dụ **query = "a.b"** được nhận từ một form đã là văn bản thực tế. Để tìm nguyên văn, gọi **text.contains(query)**; để tìm bằng Matcher mà vẫn giữ literal, dùng **Pattern.quote(query)**.
+For a variable **query** that is already a `String` holding user data, do not apply Java string literal escaping a second time. For example, **query = "a.b"** received from a form is already the actual text. To search literally, call **text.contains(query)**; to search with `Matcher` while keeping it literal, use **Pattern.quote(query)**.
 
-## 7. Tìm nguyên văn bằng Pattern: quote và LITERAL
+## 7. Literal Search Using `Pattern`: `quote` and `LITERAL`
 
-Đôi khi ứng dụng muốn duyệt từng lần xuất hiện, lấy **Matcher.start()/end()** hoặc kết hợp một phần literal vào mẫu regex lớn. Lúc đó có hai công cụ quan trọng.
+Sometimes an application wants to iterate over occurrences, get **Matcher.start()/end()**, or embed a literal part inside a larger regex pattern. Two important tools exist for this.
 
-### 7.1. Pattern.quote(query)
+### 7.1. `Pattern.quote(query)`
 
-**Pattern.quote(String)** biến query thành một đoạn regex có nghĩa **khớp nguyên văn toàn bộ nội dung query**, kể cả dấu cộng, dấu hỏi, dấu ngoặc, backslash hoặc chuỗi **\\E**.
+**Pattern.quote(String)** turns `query` into a regex fragment meaning **literally match the entire content of `query`**, including plus signs, question marks, parentheses, backslashes, or the sequence **\\E**.
 
 ~~~java
 String query = "a.b";
@@ -261,11 +261,11 @@ Pattern literalPattern = Pattern.compile(Pattern.quote(query));
 System.out.println(literalPattern.matcher("aXb a.b").find()); // true
 ~~~
 
-Đoạn trên nằm trong một phương thức có import **Pattern**. Kết quả true vì văn bản có **a.b** ở cuối; regex này không nhận aXb làm đoạn literal.
+The snippet above sits inside a method with **Pattern** imported. The result is `true` because the text has **a.b** at the end; this regex does not match `aXb` as a literal.
 
-Đừng tự ghép **"\\Q" + query + "\\E"** cho đầu vào tùy ý: bản thân query có thể chứa ký hiệu **\\E**. **Pattern.quote** đã xử lý trường hợp đặc biệt đó.
+Never manually concatenate **"\\Q" + query + "\\E"** for arbitrary input: `query` itself might contain **\\E**. **Pattern.quote** handles that edge case properly.
 
-Khi chỉ **một phần** mẫu là dữ liệu người dùng, quote phần đó:
+When only **part** of a pattern is user data, quote that part:
 
 ~~~java
 String query = "a.b";
@@ -276,11 +276,11 @@ System.out.println(token.matcher("start:a.b:end").matches()); // true
 System.out.println(token.matcher("start:aXb:end").matches()); // false
 ~~~
 
-Phần **start:** và **:end** ở ví dụ này cố định; query là văn bản nguyên vẹn được chèn vào giữa. Nếu các phần cố định có ký hiệu đặc biệt của regex thì chính chúng cũng phải được thiết kế hoặc quote thích hợp.
+The **start:** and **:end** parts in this example are fixed; `query` is literal text inserted in the middle. If the fixed parts contain regex metacharacters, those must also be designed or quoted appropriately.
 
-### 7.2. Pattern.LITERAL
+### 7.2. `Pattern.LITERAL`
 
-**Pattern.LITERAL** khiến **toàn bộ mẫu đầu vào** được hiểu là văn bản nguyên vẹn, không phân tích các regex metacharacter:
+**Pattern.LITERAL** makes the **entire input pattern** be interpreted as literal text without parsing regex metacharacters:
 
 ~~~java
 String query = "a.b";
@@ -290,11 +290,11 @@ System.out.println(literal.matcher("aXb").find()); // false
 System.out.println(literal.matcher("a.b").find()); // true
 ~~~
 
-**Pattern.LITERAL** phù hợp khi cả mẫu là literal. **Pattern.quote** linh hoạt hơn khi phải trộn regex cố định với một đoạn dữ liệu literal. Các flag về cách khớp hoa/thường như **CASE_INSENSITIVE** và **UNICODE_CASE** vẫn có thể có tác dụng với mẫu **LITERAL**.
+**Pattern.LITERAL** fits when the whole pattern is literal. **Pattern.quote** is more flexible when mixing fixed regex syntax with a literal data fragment. Case-matching flags like **CASE_INSENSITIVE** and **UNICODE_CASE** can still take effect with **LITERAL** patterns.
 
-### Ví dụ Java 17+ đầy đủ
+### Complete Java 17+ Example
 
-Lưu thành **SafeLiteralSearchDemo.java**:
+Save as **SafeLiteralSearchDemo.java**:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -343,23 +343,23 @@ literal=0:a.b
 literal=9:a.b
 ~~~
 
-Đầu vào có **3 đoạn** khớp regex **a.b**, vì wildcard cũng nhận aXb, trong khi **quote** và **LITERAL** chỉ khớp **2 đoạn** a.b nguyên văn. Vị trí 0, 4 và 9 là offset UTF-16.
+The input has **3 segments** matching the regex **a.b**, because the wildcard also matches `aXb`, whereas **quote** and **LITERAL** match only the **2 segments** of literal `a.b`. Positions 0, 4, and 9 are UTF-16 offsets.
 
-## 8. Phân biệt với replace, replaceAll và split
+## 8. Distinguishing `replace`, `replaceAll`, and `split`
 
-Nhiều nhầm lẫn xuất phát từ việc một số API của String dùng literal, nhưng các API khác lại nhận regex.
+Much confusion arises because some `String` APIs take literals while others take regexes.
 
-| API | Nghĩa của đối số tìm kiếm |
+| API | Meaning of search argument |
 | --- | --- |
 | **contains(CharSequence)** | Literal |
 | **indexOf(String)** | Literal |
-| **replace(CharSequence, CharSequence)** | Literal cho đoạn cần thay và đoạn thay thế |
+| **replace(CharSequence, CharSequence)** | Literal for both target and replacement |
 | **replaceAll(String regex, String replacement)** | Regex |
 | **replaceFirst(String regex, String replacement)** | Regex |
-| **split(String regex)** | Regex để xác định dấu phân cách |
-| **matches(String regex)** | Regex yêu cầu khớp toàn chuỗi |
+| **split(String regex)** | Regex defining the delimiter |
+| **matches(String regex)** | Regex requiring full-string match |
 
-Ví dụ:
+Example:
 
 ~~~java
 String file = "one.two.three";
@@ -368,13 +368,13 @@ System.out.println(file.replaceAll("\\.", "-")); // one-two-three
 System.out.println(file.replaceAll(".", "-"));   // -------------
 ~~~
 
-Regex **.** trong **replaceAll** khớp từng ký tự ở ví dụ không có line terminator. Với **split**, muốn tách theo dấu chấm thì viết **split("\\.")** hoặc **split(Pattern.quote("."))** thay vì **split(".")**.
+The regex **.** in **replaceAll** matches every character in an example without line terminators. With **split**, to split on a literal period, write **split("\\.")** or **split(Pattern.quote("."))** instead of **split(".")**.
 
-**split(regex)** có giới hạn ngầm **limit = 0**, làm bỏ các phần tử rỗng ở cuối. Nếu muốn giữ các phần rỗng cuối chuỗi, dùng **split(regex, -1)**.
+**split(regex)** has an implicit **limit = 0**, which discards trailing empty elements. If you want to keep trailing empty strings, use **split(regex, -1)**.
 
-### Replacement là cú pháp riêng
+### Replacement Has Its Own Syntax
 
-Đối số **replacement** của **Matcher.replaceAll** và **String.replaceAll** có cách hiểu đặc biệt với ký hiệu **$** tham chiếu capture group và backslash escape. Khi replacement là dữ liệu người dùng, dùng **Matcher.quoteReplacement(replacement)**, khác với **Pattern.quote(query)** dùng cho mẫu tìm:
+The **replacement** argument of **Matcher.replaceAll** and **String.replaceAll** gives special meaning to **$** (capture group references) and backslash escapes. When the replacement comes from user data, use **Matcher.quoteReplacement(replacement)**, unlike **Pattern.quote(query)** which is for the search pattern:
 
 ~~~java
 String text = "cost=42";
@@ -385,11 +385,11 @@ String safe = Pattern.compile("\\d+")
 System.out.println(safe); // cost=$5
 ~~~
 
-Đoạn minh họa nằm trong phương thức có import **Pattern** và **Matcher**. Nếu không quote replacement, ký hiệu **$5** có thể bị diễn giải thành tham chiếu nhóm không có thật và gây lỗi. Với **String.replace(old, new)**, đoạn thay thế là văn bản nguyên vẹn.
+This snippet sits inside a method importing **Pattern** and **Matcher**. Without quoting the replacement, **$5** can be interpreted as a reference to a non-existent capture group and cause an error. With **String.replace(old, new)**, the replacement string is literal text.
 
-## 9. Hoa/thường và Unicode là những quy tắc độc lập
+## 9. Case Sensitivity and Unicode Are Independent Rules
 
-**String.contains** và **indexOf** tìm nguyên văn có phân biệt chữ hoa/thường. Regex có thể dùng:
+**String.contains** and **indexOf** perform case-sensitive literal matching. Regex can use:
 
 ~~~java
 Pattern insensitive = Pattern.compile(
@@ -397,41 +397,41 @@ Pattern insensitive = Pattern.compile(
 System.out.println(insensitive.matcher("JAVA").find()); // true
 ~~~
 
-Nếu cần case folding Unicode theo Java Pattern, dùng thêm **Pattern.UNICODE_CASE** cùng **CASE_INSENSITIVE**. Chọn rõ chính sách nghiệp vụ; việc tìm không phân biệt hoa/thường không tự đồng nghĩa với tìm bỏ dấu tiếng Việt.
+If you need Unicode case folding in Java `Pattern`, combine **Pattern.UNICODE_CASE** with **CASE_INSENSITIVE**. Choose your business policy explicitly; case-insensitive matching is not synonymous with accent-insensitive Vietnamese search.
 
-String và regex cũng không tự bảo đảm hai cách mã hóa Unicode có hình thức hiển thị giống nhau sẽ khớp:
+Neither `String` nor regex automatically guarantees that two visually identical Unicode encodings will match:
 
 ~~~java
-String composed = "\u00E1";     // á dựng sẵn
-String decomposed = "a\u0301"; // a + dấu sắc kết hợp
+String composed = "\u00E1";     // precomposed á
+String decomposed = "a\u0301"; // a + combining acute accent
 
 System.out.println(composed.contains(decomposed)); // false
 ~~~
 
-Nếu cần canonical equivalence cho tiếng Việt, chuẩn hóa dữ liệu và truy vấn theo cùng một quy tắc, ví dụ **java.text.Normalizer.Form.NFC**, trước khi tìm. Regex có **Pattern.CANON_EQ** nhưng cách sử dụng và chi phí cần đánh giá; chuẩn hóa nhất quán thường dễ kiểm soát hơn cho tìm kiếm thông thường.
+If canonical equivalence is needed for Vietnamese, normalize both data and query with the same rule, such as **java.text.Normalizer.Form.NFC**, before searching. Regex has **Pattern.CANON_EQ**, though its usage and cost should be evaluated; consistent upfront normalization is usually easier to control for ordinary searching.
 
-Một regex có thể khớp một hoặc nhiều code point; “một ký tự hiển thị” vẫn có thể là grapheme cluster gồm nhiều code point. Nếu thật sự xử lý grapheme, Java Pattern hỗ trợ **\\X**; đó là một bài toán khác với tìm chuỗi nguyên văn.
+A regex can match one or more code points; a "visible character" can still be a grapheme cluster of multiple code points. If you genuinely need grapheme handling, Java `Pattern` supports **\\X**; that is a different problem from literal string search.
 
-## 10. Hiệu năng, an toàn và đầu vào người dùng
+## 10. Performance, Safety, and User Input
 
-**Tìm nguyên văn đơn giản:** ưu tiên **contains** hoặc **indexOf**. Ý định được thể hiện trực tiếp và không phải biên dịch regex.
+**Simple literal search:** prefer **contains** or **indexOf**. Intent is expressed directly and no regex compilation is needed.
 
-**Tìm theo mẫu thực sự:** biên dịch **Pattern** và dùng **Matcher**. Nếu lặp lại nhiều lần với cùng regex, có thể tái sử dụng **Pattern**. Một **Pattern** là đối tượng bất biến và có thể dùng chung giữa các luồng; **Matcher** chứa trạng thái tìm kiếm biến đổi, nên mỗi tác vụ hoặc luồng cần Matcher riêng.
+**True pattern search:** compile a **Pattern** and use **Matcher**. When reusing the same regex repeatedly, reuse the **Pattern**. A **Pattern** is immutable and safe to share across threads; a **Matcher** holds mutable search state, so each task or thread needs its own `Matcher`.
 
-**Đầu vào là từ khóa người dùng:** không gọi **Pattern.compile(userInput)** trừ khi chức năng thực sự cho phép người dùng viết regex. Ký tự như **[**, **(** có thể gây **PatternSyntaxException**; lượng từ hoặc điều kiện khác có thể thay đổi hoàn toàn kết quả.
+**Input is a user keyword:** do not call **Pattern.compile(userInput)** unless the feature intentionally lets users write regexes. Characters like **[** or **(** can throw **PatternSyntaxException**; quantifiers or other operators can completely alter results.
 
 ~~~java
-String query = userInput; // giá trị đến từ form hoặc API
+String query = userInput; // value coming from a form or API
 boolean found = text.contains(query);
 
-// Nếu cần vị trí các lần khớp do Matcher cung cấp:
+// If you need match positions provided by Matcher:
 Pattern safe = Pattern.compile(Pattern.quote(query));
 boolean foundByMatcher = safe.matcher(text).find();
 ~~~
 
-Đoạn trên giả định **text**, **userInput** đã được khai báo, với import Pattern. Với từ khóa null hoặc rỗng, áp dụng hợp đồng đầu vào trước khi tìm.
+The snippet above assumes **text** and **userInput** are declared, with `Pattern` imported. For `null` or empty keywords, apply your input contract before searching.
 
-**Cho phép người dùng nhập regex một cách có chủ đích:** bắt **PatternSyntaxException** để báo lỗi cú pháp có ích:
+**Intentionally allowing users to enter regexes:** catch **PatternSyntaxException** to report helpful syntax errors:
 
 ~~~java
 try {
@@ -441,55 +441,55 @@ try {
 }
 ~~~
 
-Ngoài lỗi cú pháp, regex trên dữ liệu không đáng tin cậy có thể gây **quá tải do backtracking** trong những mẫu phức tạp. Nếu hỗ trợ chế độ tìm regex, nên giới hạn đầu vào, kiểm soát độ phức tạp và kiểm thử những mẫu tốn tài nguyên. **Pattern.quote(query)** giúp tránh diễn giải các ký hiệu regex khi ý định là literal.
+Beyond syntax errors, running regexes on untrusted input can cause **backtracking overload** in complex patterns. If regex search mode is supported, bound inputs, control complexity, and test resource-heavy patterns. **Pattern.quote(query)** prevents regex symbol interpretation when literal search is intended.
 
-## 11. Chọn API theo tình huống
+## 11. Choosing an API by Scenario
 
-| Yêu cầu | Cách phù hợp | Lý do |
+| Requirement | Appropriate approach | Reason |
 | --- | --- | --- |
-| Có chứa đúng **item.42** không? | **text.contains("item.42")** | Dấu chấm là dữ liệu |
-| Vị trí đầu tiên của một URL/ID cố định? | **text.indexOf(query)** | Trả về offset UTF-16 |
-| Tìm mã **item-** kèm nhiều chữ số | **Pattern.compile("item-\\d+").matcher(text).find()** | Mẫu thay đổi phần chữ số |
-| Toàn bộ chuỗi chỉ có ba chữ cái và bốn chữ số | **text.matches("[A-Za-z]{3}\\d{4}")** | Xác thực toàn chuỗi |
-| Người dùng nhập dấu ngoặc, dấu cộng, dấu chấm và cần offsets | **Pattern.compile(Pattern.quote(query))** | Tìm literal bằng Matcher |
-| Toàn bộ regex phải được hiểu là văn bản | **Pattern.compile(query, Pattern.LITERAL)** | Không diễn giải ký hiệu regex |
-| Tách dữ liệu bằng dấu chấm thật | **text.split("\\.")** | split nhận regex |
-| Thay dấu chấm bằng dấu gạch ngang | **text.replace(".", "-")** | replace tìm nguyên văn |
+| Does it contain exact **item.42**? | **text.contains("item.42")** | The dot is literal data |
+| First position of a fixed URL/ID? | **text.indexOf(query)** | Returns UTF-16 offset |
+| Find code **item-** with digits | **Pattern.compile("item-\\d+").matcher(text).find()** | Digit portion varies by pattern |
+| Entire string is 3 letters and 4 digits | **text.matches("[A-Za-z]{3}\\d{4}")** | Full-string validation |
+| User enters brackets, pluses, dots and needs offsets | **Pattern.compile(Pattern.quote(query))** | Literal search via `Matcher` |
+| Whole pattern must be treated as text | **Pattern.compile(query, Pattern.LITERAL)** | Disables regex symbol parsing |
+| Split data by a literal dot | **text.split("\\.")** | `split` takes a regex |
+| Replace dots with hyphens | **text.replace(".", "-")** | `replace` searches literally |
 
-Trước khi triển khai một ô tìm kiếm, xác định rõ: literal hay regex, khớp toàn bộ hay một đoạn, có phân biệt chữ hoa/thường không, xử lý Unicode normalization thế nào, có cần tất cả vị trí khớp không và đầu vào rỗng được hiểu ra sao.
+Before implementing a search box, clarify: literal or regex, full match or substring, case-sensitive or insensitive, how Unicode normalization is handled, whether all match positions are needed, and how empty input is interpreted.
 
-## 12. Những lỗi phổ biến
+## 12. Common Mistakes
 
-1. **Dùng text.matches("abc") để hỏi có chứa abc không.** Vì matches đòi khớp toàn bộ, dùng **contains** hoặc **Matcher.find**.
-2. **Tưởng regex a.b chỉ khớp đúng a.b.** Escape dấu chấm (**"a\\.b"**), hoặc dùng **Pattern.quote**.
-3. **Truyền query nguyên văn cho Pattern.compile(query).** Query có thể chứa metacharacter, sai kết quả hoặc gây lỗi cú pháp. Dùng literal search khi thích hợp.
-4. **Quên hai tầng escape Java và regex.** Regex **\\.** được viết **"\\."** trong mã Java.
-5. **Dùng split(".") để tách dấu chấm.** Regex **.** là wildcard; dùng **split("\\.")**.
-6. **Dùng replaceAll(".", "-") để đổi duy nhất dấu chấm.** Nó thay tất cả ký tự khớp wildcard; dùng **replace(".", "-")** hoặc regex escape.
-7. **Nhầm quoteReplacement với Pattern.quote.** Một cái xử lý văn bản thay thế, cái kia xử lý từ khóa tìm kiếm.
-8. **Tưởng Matcher.start()/end() là số Unicode code point.** Chúng là offset UTF-16; đặc biệt lưu ý emoji ngoài BMP.
-9. **Bỏ qua normalization.** Hai chuỗi tiếng Việt cùng hiển thị có thể khác mã hóa và không được tìm thấy nếu không có chính sách chuẩn hóa.
-10. **Dùng lại Matcher giữa các luồng.** Matcher mutable, nên tạo riêng từ Pattern đã biên dịch.
-11. **Coi mọi regex đều an toàn vì compile thành công.** Regex có thể tiêu thụ nhiều CPU trên một số đầu vào; cần kiểm soát chế độ tìm mẫu do người dùng nhập.
+1. **Using `text.matches("abc")` to ask whether it contains `abc`.** Because `matches` requires a full match, use **contains** or **Matcher.find**.
+2. **Assuming regex `a.b` only matches literal `a.b`.** Escape the dot (**"a\\.b"**), or use **Pattern.quote**.
+3. **Passing a raw query to `Pattern.compile(query)`.** The query may contain metacharacters, causing wrong results or syntax errors. Use literal search when appropriate.
+4. **Forgetting the two escaping layers for Java and regex.** The regex **\\.** is written **"\\."** in Java code.
+5. **Using `split(".")` to split on a dot.** Regex **.** is a wildcard; use **split("\\.")**.
+6. **Using `replaceAll(".", "-")` to replace only dots.** It replaces every character matching the wildcard; use **replace(".", "-")** or an escaped regex.
+7. **Confusing `quoteReplacement` with `Pattern.quote`.** One handles replacement text, the other handles the search pattern.
+8. **Assuming `Matcher.start()/end()` return Unicode code point counts.** They are UTF-16 offsets; pay special attention to non-BMP emojis.
+9. **Skipping normalization.** Two Vietnamese strings that render identically may have different encodings and fail to match without a normalization policy.
+10. **Sharing a `Matcher` across threads.** `Matcher` is mutable; create a separate one from the compiled `Pattern`.
+11. **Assuming any regex that compiles is safe.** A regex can consume excessive CPU on certain inputs; restrict user-entered pattern search modes.
 
-## 13. Tự kiểm tra kiến thức
+## 13. Knowledge Self-Check
 
-1. **"a.b"** trong **contains** và **Pattern.compile** khác nhau thế nào? — contains tìm dấu chấm thật; regex a.b cho phép một ký tự bất kỳ ở vị trí giữa.
-2. Tại sao **"abc123".matches("\\d+")** là false nhưng **Pattern.compile("\\d+").matcher("abc123").find()** là true? — Khớp toàn bộ khác khớp một đoạn con.
-3. Tìm chính xác ký tự dấu chấm bằng String làm thế nào? — **contains(".")** hoặc **indexOf(".")**.
-4. Khi query do người dùng nhập có **[**, **?**, **+**, làm sao tìm nguyên văn bằng Matcher? — **Pattern.compile(Pattern.quote(query))**.
-5. **Pattern.LITERAL** khác **Pattern.quote** ở đâu? — LITERAL áp dụng cho toàn bộ mẫu; quote cho phép quote một thành phần hoặc cả từ khóa khi xây regex.
-6. **Matcher.quoteReplacement** dùng để làm gì? — Giữ nguyên văn bản thay thế, không để **$** và backslash bị diễn giải là cú pháp replacement.
-7. **Matcher.start()** trả về loại vị trí nào? — Offset UTF-16.
-8. Tìm tiếng Việt muốn coi chữ dạng NFC và NFD tương đương thì làm gì? — Xác định chính sách chuẩn hóa và chuẩn hóa nhất quán dữ liệu với query trước khi tìm.
+1. How does **"a.b"** differ between **contains** and **Pattern.compile**? — `contains` looks for a literal dot; regex `a.b` allows any single character in the middle.
+2. Why is **"abc123".matches("\\d+")** `false` while **Pattern.compile("\\d+").matcher("abc123").find()** is `true`? — Full-string match vs. substring match.
+3. How do you search for an exact dot character with `String`? — **contains(".")** or **indexOf(".")**.
+4. When a user-entered query contains **[**, **?**, **+**, how do you search literally with `Matcher`? — **Pattern.compile(Pattern.quote(query))**.
+5. How does **Pattern.LITERAL** differ from **Pattern.quote**? — `LITERAL` applies to the whole pattern; `quote` lets you quote a component or whole keyword when composing a regex.
+6. What is **Matcher.quoteReplacement** used for? — Preserving replacement text literally so **$** and backslashes are not interpreted as replacement syntax.
+7. What kind of position does **Matcher.start()** return? — A UTF-16 offset.
+8. What should you do if Vietnamese search must treat NFC and NFD forms as equivalent? — Define a normalization policy and normalize both data and query consistently before searching.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- **Tìm nguyên văn:** **String.contains**, **indexOf**, **startsWith**, **endsWith**. Ký tự đặc biệt của regex chỉ là ký tự dữ liệu.
-- **Tìm theo mẫu:** **Pattern.compile(regex)** và **Matcher.find()**; kiểm tra full match bằng **Matcher.matches()** hoặc **String.matches(regex)**.
-- **Dấu chấm regex . là wildcard**; regex khớp dấu chấm thật cần escape, viết **"\\."** trong Java.
-- **Từ khóa người dùng cần tìm nguyên văn:** dùng **Pattern.quote(query)** hoặc **Pattern.LITERAL** khi vẫn cần Regex API.
-- **contains/indexOf/replace** và **matches/replaceAll/split** có ngữ nghĩa khác nhau. Chọn đúng API trước khi xử lý escape.
-- **Hoa thường, Unicode normalization và grapheme** là các yêu cầu riêng, không tự được giải quyết chỉ nhờ chọn literal hoặc regex.
+- **Literal search:** **String.contains**, **indexOf**, **startsWith**, **endsWith**. Regex special characters are just ordinary data characters.
+- **Pattern search:** **Pattern.compile(regex)** and **Matcher.find()**; check full match with **Matcher.matches()** or **String.matches(regex)**.
+- **Regex dot `.` is a wildcard**; a regex matching a literal dot needs escaping, written **"\\."** in Java.
+- **User keywords needing literal search:** use **Pattern.quote(query)** or **Pattern.LITERAL** when you still need the Regex API.
+- **contains/indexOf/replace** and **matches/replaceAll/split** have different semantics. Choose the right API before worrying about escaping.
+- **Case sensitivity, Unicode normalization, and graphemes** are separate requirements that are not solved automatically simply by choosing literal or regex.
 
-Tham khảo Java SE 17: **java.lang.String** (contains, indexOf, matches, replace, replaceAll, split), **java.util.regex.Pattern** (compile, quote, LITERAL, flags) và **java.util.regex.Matcher** (find, matches, lookingAt, group, start, end, quoteReplacement).
+Java SE 17 references: **java.lang.String** (`contains`, `indexOf`, `matches`, `replace`, `replaceAll`, `split`), **java.util.regex.Pattern** (`compile`, `quote`, `LITERAL`, flags), and **java.util.regex.Matcher** (`find`, `matches`, `lookingAt`, `group`, `start`, `end`, `quoteReplacement`).

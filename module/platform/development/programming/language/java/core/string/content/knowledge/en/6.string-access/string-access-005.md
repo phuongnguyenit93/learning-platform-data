@@ -1,76 +1,76 @@
-# `String.offsetByCodePoints()` — di chuyển theo Unicode code point trong Java
+# `String.offsetByCodePoints()` — Stepping by Unicode Code Points in Java
 
-## 1. Mục tiêu: vị trí UTF-16 khác với số lượng code point
+## 1. Goal: UTF-16 position differs from code point count
 
-Trong Java, `String` là dãy các **đơn vị mã UTF-16** (`char`). Chỉ số dùng bởi `String.charAt()`, `substring()`, `codePointAt()` và `offsetByCodePoints()` đều là **chỉ số UTF-16**. Một Unicode code point trong Basic Multilingual Plane (BMP) thường chiếm một `char`; code point ngoài BMP chiếm **hai `char`** (một cặp *high surrogate* và *low surrogate*).
+In Java, a `String` is a sequence of **UTF-16 code units** (`char`). The indices used by `String.charAt()`, `substring()`, `codePointAt()`, and `offsetByCodePoints()` are all **UTF-16 indices**. A Unicode code point in the Basic Multilingual Plane (BMP) normally occupies one `char`; a code point outside the BMP occupies **two `char`s** (a pair of *high surrogate* and *low surrogate*).
 
-Vì vậy, di chuyển chỉ số thêm `1` đơn vị UTF-16 (`index++`) không luôn đồng nghĩa với di chuyển thêm một code point. `offsetByCodePoints` giải quyết đúng vấn đề này: **nhận một vị trí UTF-16 ban đầu và số code point muốn đi qua; trả về một vị trí UTF-16 mới**.
+Therefore, advancing an index by `1` UTF-16 unit (`index++`) does not always mean advancing by one code point. `offsetByCodePoints` solves this exact problem: **it takes an initial UTF-16 position and the number of code points to step through, and returns a new UTF-16 position**.
 
-Ví dụ với chuỗi `"A🙂B"`:
+Example with the string `"A🙂B"`:
 
 ```text
-Nội dung nhìn thấy:       A       🙂        B
+Visible content:          A       🙂        B
 Unicode code point:      U+0041  U+1F642   U+0042
-Độ dài UTF-16:              1       2        1
+UTF-16 length:              1       2        1
 
-Chỉ số UTF-16:            0   1   2   3   4
+UTF-16 index:             0   1   2   3   4
                           | A |  🙂   | B |
-Vị trí hợp lệ giữa
-các code point:          ^   ^       ^   ^
+Valid positions between
+code points:             ^   ^       ^   ^
                          0   1       3   4
 
-index 2 nằm GIỮA hai char tạo thành emoji.
+index 2 lies BETWEEN the two chars forming the emoji.
 ```
 
-`"A🙂B".length()` bằng **4**, còn `codePointCount(0, length())` bằng **3**. Muốn di chuyển hai code point từ đầu chuỗi phải đến chỉ số UTF-16 **3**, không phải **2**.
+`"A🙂B".length()` equals **4**, while `codePointCount(0, length())` equals **3**. To move two code points from the beginning of the string, you must reach UTF-16 index **3**, not **2**.
 
-## 2. Chữ ký và hợp đồng của `offsetByCodePoints`
+## 2. Signature and contract of `offsetByCodePoints`
 
-API thuộc `java.lang.String` (có từ Java 5, dùng trực tiếp trong Java 17+):
+API on `java.lang.String` (available since Java 5, used directly in Java 17+):
 
 ```java
 public int offsetByCodePoints(int index, int codePointOffset)
 ```
 
-| Tham số / kết quả | Đơn vị | Ý nghĩa |
+| Parameter / result | Unit | Meaning |
 | --- | --- | --- |
-| `index` | Chỉ số UTF-16 | Vị trí bắt đầu di chuyển; hợp lệ trong khoảng `0..length()`, **bao gồm** `length()` |
-| `codePointOffset` | Số code point | Số lượng code point cần đi qua: dương tiến về cuối, âm lùi về đầu, 0 đứng yên |
-| Giá trị trả về `int` | Chỉ số UTF-16 | Vị trí mới có thể truyền vào các API dùng offset UTF-16, ví dụ `substring` |
-| Ngoại lệ | — | `IndexOutOfBoundsException` nếu vị trí ban đầu sai hoặc số bước yêu cầu vượt phần văn bản còn lại theo hướng di chuyển |
+| `index` | UTF-16 index | Starting position to move from; valid in the range `0..length()`, **inclusive** of `length()` |
+| `codePointOffset` | Number of code points | Number of code points to traverse: positive moves toward the end, negative moves toward the start, 0 stays put |
+| Return value `int` | UTF-16 index | New position that can be passed to APIs expecting UTF-16 offsets, such as `substring` |
+| Exception | — | `IndexOutOfBoundsException` if the initial position is invalid or the requested steps exceed the remaining text in the direction of movement |
 
-Ví dụ về cách hiểu (giả sử `String text = "A🙂B";`):
+Examples to build intuition (assuming `String text = "A🙂B";`):
 
 ```java
-text.offsetByCodePoints(0, 0);  // 0: không di chuyển
-text.offsetByCodePoints(0, 1);  // 1: đi qua 'A'
-text.offsetByCodePoints(0, 2);  // 3: đi qua 'A' và '🙂'
-text.offsetByCodePoints(0, 3);  // 4: đi qua cả ba code point
-text.offsetByCodePoints(4, -1); // 3: lùi qua 'B'
-text.offsetByCodePoints(4, -2); // 1: lùi qua 'B' và '🙂'
-text.offsetByCodePoints(4, -3); // 0: về đầu chuỗi
+text.offsetByCodePoints(0, 0);  // 0: no movement
+text.offsetByCodePoints(0, 1);  // 1: steps past 'A'
+text.offsetByCodePoints(0, 2);  // 3: steps past 'A' and '🙂'
+text.offsetByCodePoints(0, 3);  // 4: steps past all three code points
+text.offsetByCodePoints(4, -1); // 3: steps back past 'B'
+text.offsetByCodePoints(4, -2); // 1: steps back past 'B' and '🙂'
+text.offsetByCodePoints(4, -3); // 0: back to the start of the string
 ```
 
-Những dòng trên là **snippet biểu thức**, chưa phải chương trình độc lập. Điểm cần ghi nhớ: tham số thứ hai tính bằng **code point**, còn **kết quả vẫn là chỉ số UTF-16**.
+The lines above are **expression snippets**, not a standalone program. Key point to remember: the second parameter is measured in **code points**, while **the result is still a UTF-16 index**.
 
-`offsetByCodePoints` không thay đổi `String`, không trả code point, không trả số ký tự và không cắt chuỗi. Nó chỉ tính một offset mới từ vị trí hiện tại.
+`offsetByCodePoints` does not modify the `String`, does not return a code point, does not return a character count, and does not slice the string. It only computes a new offset from the current position.
 
-## 3. Cơ chế tiến và lùi qua surrogate pair
+## 3. Mechanism of stepping forward and backward across surrogate pairs
 
-Một code point ngoài BMP được mã hóa trong UTF-16 thành hai đơn vị `char` liên tiếp:
-- *High surrogate*: giá trị `char` trong khoảng `U+D800..U+DBFF`.
-- *Low surrogate*: giá trị `char` trong khoảng `U+DC00..U+DFFF`.
+A code point outside the BMP is encoded in UTF-16 as two consecutive `char` units:
+- *High surrogate*: a `char` value in the range `U+D800..U+DBFF`.
+- *Low surrogate*: a `char` value in the range `U+DC00..U+DFFF`.
 
-Khi bắt đầu tại **ranh giới code point hợp lệ**:
-- Di chuyển **tiến** qua ký tự BMP thông thường tăng chỉ số UTF-16 thêm 1; tiến qua một cặp surrogate hợp lệ tăng thêm 2.
-- Di chuyển **lùi** qua ký tự BMP thông thường giảm chỉ số 1; lùi qua một cặp surrogate hợp lệ giảm 2.
-- Nếu dãy UTF-16 có **surrogate lẻ, không ghép cặp**, Java tính mỗi surrogate lẻ là một code point khi di chuyển. Phương thức không tự chuẩn hóa hoặc sửa dữ liệu đầu vào.
+When starting at a **valid code point boundary**:
+- Stepping **forward** past a normal BMP character increases the UTF-16 index by 1; stepping forward past a valid surrogate pair increases it by 2.
+- Stepping **backward** past a normal BMP character decreases the index by 1; stepping backward past a valid surrogate pair decreases it by 2.
+- If the UTF-16 sequence has an **unpaired lone surrogate**, Java counts each lone surrogate as one code point when stepping. The method does not automatically normalize or repair input data.
 
-Do đó bạn không thể thay thế tổng quát bằng `index + codePointOffset`, kể cả khi chuỗi “trông có vẻ” chỉ gồm vài ký tự. Nội dung Unicode quyết định số đơn vị UTF-16 phải đi qua.
+Therefore you cannot generally replace it with `index + codePointOffset`, even when the string “looks like” it only has a few characters. The Unicode content determines how many UTF-16 units must be traversed.
 
-### Ví dụ Java 17+ chạy độc lập: tiến, lùi và cắt đúng ranh giới
+### Standalone Java 17+ example: stepping forward, backward, and slicing on boundaries
 
-Lưu thành `OffsetByCodePointsDemo.java`:
+Save as `OffsetByCodePointsDemo.java`:
 
 ```java
 public class OffsetByCodePointsDemo {
@@ -98,7 +98,7 @@ public class OffsetByCodePointsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+ (nguồn mã UTF-8):
+Compile and run with JDK 17+ (UTF-8 source encoding):
 
 ```bash
 javac -encoding UTF-8 OffsetByCodePointsDemo.java
@@ -115,41 +115,41 @@ Emoji: 🙂
 Code point: U+1F642
 ```
 
-Chỉ số `p1 = 1` ngay trước emoji; vì emoji chiếm hai `char` nên `p2 = 3`. `substring(p1,p2)` lấy đúng hai đơn vị UTF-16 biểu diễn **một** code point emoji. `codePointAt(p1)` đọc code point tại chỉ số UTF-16 1, trả `0x1F642`; `charAt(p1)` chỉ trả high surrogate.
+Index `p1 = 1` is immediately before the emoji; because the emoji occupies two `char`s, `p2 = 3`. `substring(p1,p2)` extracts the exact two UTF-16 units representing **one** emoji code point. `codePointAt(p1)` reads the code point at UTF-16 index 1, returning `0x1F642`; `charAt(p1)` would only return the high surrogate.
 
-## 4. Di chuyển từng code point trong vòng lặp
+## 4. Stepping one code point at a time in a loop
 
-### Duyệt tiến
+### Forward traversal
 
-Khi viết thuật toán duyệt từng code point, dùng một biến `int index` đại diện cho **vị trí UTF-16 ở đầu code point tiếp theo**. Bắt đầu tại 0, tiếp tục đến khi `index == text.length()`:
+When writing an algorithm to iterate over each code point, use an `int index` variable representing the **UTF-16 position at the start of the next code point**. Start at 0 and continue until `index == text.length()`:
 
 ```java
 for (int index = 0; index < text.length(); ) {
     int codePoint = text.codePointAt(index);
-    // Xử lý codePoint ở đây.
+    // Process codePoint here.
     index = text.offsetByCodePoints(index, 1);
 }
 ```
 
-Không thêm `index++` vào phần cuối vòng lặp: số `char` của code point vừa đọc có thể là 1 hoặc 2. Có thể thay bước di chuyển bằng `index += Character.charCount(codePoint)` khi `codePoint` được đọc đúng từ `codePointAt(index)`, nhưng `offsetByCodePoints` thể hiện trực tiếp ý định di chuyển theo code point và hỗ trợ cả hướng âm.
+Do not put `index++` at the end of the loop: the number of `char`s of the code point just read can be 1 or 2. You can replace the step with `index += Character.charCount(codePoint)` when `codePoint` is read directly via `codePointAt(index)`, but `offsetByCodePoints` directly expresses the intent of stepping by code point and also supports negative directions.
 
-### Duyệt lùi
+### Backward traversal
 
-Muốn đi ngược từ cuối chuỗi, đặt `index = text.length()` và lùi một code point **trước khi** gọi `codePointAt`:
+To walk backward from the end of the string, set `index = text.length()` and step back one code point **before** calling `codePointAt`:
 
 ```java
 for (int index = text.length(); index > 0; ) {
     index = text.offsetByCodePoints(index, -1);
     int codePoint = text.codePointAt(index);
-    // Xử lý codePoint ở đây.
+    // Process codePoint here.
 }
 ```
 
-Vị trí `length()` hợp lệ đối với `offsetByCodePoints`; nó là ranh giới **sau ký tự cuối**. Nhưng `text.codePointAt(text.length())` không hợp lệ, vì `codePointAt` cần vị trí của một phần tử `char` thực tế, từ 0 đến `length()-1`.
+The position `length()` is valid for `offsetByCodePoints`; it is the boundary **after the last character**. However, `text.codePointAt(text.length())` is invalid, because `codePointAt` needs the position of an actual `char` element, from 0 to `length()-1`.
 
-### Ví dụ hai chiều chạy độc lập
+### Standalone bidirectional example
 
-Lưu thành `WalkCodePoints.java`:
+Save as `WalkCodePoints.java`:
 
 ```java
 public class WalkCodePoints {
@@ -186,19 +186,19 @@ java WalkCodePoints
 B🙂A
 ```
 
-Bước `append(value, i, next)` lấy một đoạn `CharSequence` theo **chỉ số UTF-16 [i, next)**, nên emoji không bị cắt ở giữa hai surrogate. Vòng lặp lùi thu được các code point theo thứ tự đảo ngược. Tuy nhiên, đảo thứ tự **code point** không phải lúc nào cũng tương đương đảo thứ tự **ký tự hiển thị** (ví dụ ký tự có dấu tổ hợp), vì một grapheme cluster có thể gồm nhiều code point.
+The step `append(value, i, next)` takes a `CharSequence` slice by **UTF-16 indices [i, next)**, so the emoji is never cut between the two surrogates. The backward loop collects the code points in reverse order. However, reversing **code point** order is not always equivalent to reversing **visible characters** (for example characters with combining marks), because one grapheme cluster can contain multiple code points.
 
-## 5. Dùng `offsetByCodePoints` với `substring`
+## 5. Using `offsetByCodePoints` with `substring`
 
-`String.substring(beginIndex, endIndex)` nhận **chỉ số UTF-16**. Nếu yêu cầu nghiệp vụ lại nói “lấy từ code point thứ `a` đến trước code point thứ `b`”, không nên truyền `a` và `b` trực tiếp vào `substring`.
+`String.substring(beginIndex, endIndex)` takes **UTF-16 indices**. If a business requirement says “extract from the `a`-th code point up to before the `b`-th code point”, do not pass `a` and `b` directly into `substring`.
 
-Cách đúng là:
-1. Kiểm tra chỉ số tính theo code point và tổng số code point.
-2. Đổi offset code point đầu thành chỉ số UTF-16 qua `offsetByCodePoints(0, beginCodePoint)`.
-3. Từ ranh giới đầu, tiến `endCodePoint - beginCodePoint` code point để tìm ranh giới cuối.
-4. Gọi `substring(beginUtf16, endUtf16)`.
+The right approach is:
+1. Validate the code-point-based indices against the total number of code points.
+2. Convert the start code point offset to a UTF-16 index via `offsetByCodePoints(0, beginCodePoint)`.
+3. From the start boundary, advance `endCodePoint - beginCodePoint` code points to find the end boundary.
+4. Call `substring(beginUtf16, endUtf16)`.
 
-Ví dụ hoàn chỉnh, lưu `SliceByCodePoints.java`:
+Complete example, save `SliceByCodePoints.java`:
 
 ```java
 import java.util.Objects;
@@ -243,37 +243,37 @@ A🙂
 true
 ```
 
-Hàm này xem `beginCodePoint` là vị trí đầu **tính theo số code point**, `endCodePoint` là ranh giới cuối **loại trừ**. Nó chuyển hai vị trí đó về offset UTF-16 trước khi cắt. Chỉ số trong `substring` là 0-based theo đơn vị `char`; chỉ số đầu/cuối mà hàm `slice` nhận là 0-based theo ranh giới code point. Hai hệ tọa độ không được dùng lẫn nhau.
+This function treats `beginCodePoint` as the start position **counted in code points**, and `endCodePoint` as the **exclusive** end boundary. It converts both positions to UTF-16 offsets before slicing. Indices in `substring` are 0-based in `char` units; the start/end indices accepted by `slice` are 0-based by code point boundary. The two coordinate systems must not be mixed.
 
-**Khi dữ liệu có surrogate lẻ:** phép đếm và di chuyển của Java vẫn có quy tắc nhất quán (mỗi surrogate lẻ tính một code point), nhưng hàm trên không phải bộ kiểm định chuỗi Unicode hợp lệ. Ứng dụng đòi hỏi Unicode scalar value hợp lệ nên kiểm tra dữ liệu riêng.
+**When data contains lone surrogates:** Java's counting and stepping still follow consistent rules (each lone surrogate counts as one code point), but the function above is not a validator for well-formed Unicode strings. Applications requiring valid Unicode scalar values should validate the data separately.
 
-## 6. Ranh giới và ngoại lệ
+## 6. Boundaries and exceptions
 
-`offsetByCodePoints(index, codePointOffset)` sẽ ném `IndexOutOfBoundsException` nếu:
-- `index < 0` hoặc `index > text.length()`.
-- `codePointOffset > 0` nhưng không còn đủ code point ở đoạn sau `index`.
-- `codePointOffset < 0` nhưng không có đủ code point ở đoạn trước `index`.
+`offsetByCodePoints(index, codePointOffset)` throws `IndexOutOfBoundsException` if:
+- `index < 0` or `index > text.length()`.
+- `codePointOffset > 0` and there are not enough code points remaining after `index`.
+- `codePointOffset < 0` and there are not enough code points preceding `index`.
 
-Các tình huống điển hình với `String text = "A🙂B";`:
+Typical cases with `String text = "A🙂B";`:
 
-| Lệnh | Kết quả | Vì sao |
+| Call | Result | Why |
 | --- | --- | --- |
-| `text.offsetByCodePoints(0, 0)` | `0` | Giữ nguyên vị trí đầu |
-| `text.offsetByCodePoints(4, 0)` | `4` | Giữ nguyên vị trí cuối |
-| `text.offsetByCodePoints(0, 3)` | `4` | Đi qua đúng 3 code point |
-| `text.offsetByCodePoints(4, -3)` | `0` | Lùi đúng 3 code point |
-| `text.offsetByCodePoints(4, 1)` | Ngoại lệ | Không còn code point phía sau |
-| `text.offsetByCodePoints(0, -1)` | Ngoại lệ | Không có code point phía trước |
-| `text.offsetByCodePoints(0, 4)` | Ngoại lệ | Chuỗi chỉ có 3 code point |
-| `text.offsetByCodePoints(5, 0)` | Ngoại lệ | Chỉ số UTF-16 ngoài phạm vi |
+| `text.offsetByCodePoints(0, 0)` | `0` | Keeps start position unchanged |
+| `text.offsetByCodePoints(4, 0)` | `4` | Keeps end position unchanged |
+| `text.offsetByCodePoints(0, 3)` | `4` | Traverses exactly 3 code points |
+| `text.offsetByCodePoints(4, -3)` | `0` | Steps back exactly 3 code points |
+| `text.offsetByCodePoints(4, 1)` | Exception | No code points remaining after |
+| `text.offsetByCodePoints(0, -1)` | Exception | No code points preceding |
+| `text.offsetByCodePoints(0, 4)` | Exception | String has only 3 code points |
+| `text.offsetByCodePoints(5, 0)` | Exception | UTF-16 index out of range |
 
-Nếu cần xử lý việc “không đủ bước” như một kết quả nghiệp vụ bình thường, hãy kiểm tra trước số code point khả dụng bằng `codePointCount(index, length())` khi tiến, hoặc `codePointCount(0, index)` khi lùi, **với điều kiện `index` đã ở một ranh giới code point thích hợp**. Đừng nuốt mọi `IndexOutOfBoundsException`: lỗi có thể cho thấy chương trình đã trộn lẫn chỉ số UTF-16 và chỉ số code point.
+If you need to handle “not enough steps” as a normal business outcome, check the available code points beforehand using `codePointCount(index, length())` when moving forward, or `codePointCount(0, index)` when moving backward, **provided `index` is already on an appropriate code point boundary**. Do not swallow every `IndexOutOfBoundsException`: an exception can indicate that the program mixed up UTF-16 indices and code point indices.
 
-### Không tự động sửa vị trí nằm giữa surrogate pair
+### It does not automatically fix a position in the middle of a surrogate pair
 
-Đây là một trường hợp tinh tế. `index` về mặt API chỉ cần thỏa `0 <= index <= length()`; phương thức **không yêu cầu kiểm tra** rằng `index` bắt đầu tại ranh giới code point và cũng **không tự dịch** nó về đầu cặp surrogate.
+This is a subtle case. From the API's perspective, `index` only needs to satisfy `0 <= index <= length()`; the method **does not require checking** that `index` starts on a code point boundary and **does not automatically shift** it to the start of the surrogate pair.
 
-Với `text = "A🙂B"`, `index = 2` nằm ở **low surrogate** của emoji:
+With `text = "A🙂B"`, `index = 2` lies on the **low surrogate** of the emoji:
 
 ```java
 String text = "A🙂B";
@@ -282,15 +282,15 @@ System.out.println(text.offsetByCodePoints(2, 1));            // 3
 System.out.println(text.offsetByCodePoints(2, -1));           // 1
 ```
 
-Đây là snippet đặt trong `main`. Khi tiến từ vị trí giữa cặp, nửa low surrogate ở phía sau được tính như một đơn vị lẻ trong phạm vi cần đi; khi lùi, nửa high surrogate ở phía trước cũng được tính riêng. Kết quả **không** có nghĩa vị trí 2 là ranh giới hợp lý để xử lý emoji trọn vẹn.
+This is a snippet placed inside `main`. When stepping forward from the middle of the pair, the low surrogate half ahead is counted as an unpaired unit within the traversed range; when stepping backward, the high surrogate half behind is also counted separately. The result **does not** mean position 2 is a sensible boundary for processing the whole emoji.
 
-**Quy tắc thực hành:** luôn tạo con trỏ từ đầu hoặc cuối chuỗi rồi di chuyển bằng `offsetByCodePoints`; hoặc chuyển vị trí code point sang UTF-16 một lần trước khi dùng. Không lấy một chỉ số `charAt` bất kỳ rồi mặc định nó nằm ở đầu code point.
+**Practical rule:** always initialize cursors from the start or end of the string and step with `offsetByCodePoints`; or convert a code point position to UTF-16 once before using it. Never take an arbitrary `charAt` index and assume it sits at the start of a code point.
 
-## 7. Surrogate lẻ và những điều `offsetByCodePoints` không làm
+## 7. Lone surrogates and what `offsetByCodePoints` does not do
 
-Một chuỗi Java có thể chứa một high surrogate không đi kèm low surrogate hợp lệ, hoặc một low surrogate đơn độc. Trong phạm vi xét bởi `offsetByCodePoints`, **surrogate lẻ được đếm là một code point** theo hợp đồng Java. Điều này không biến nó thành Unicode scalar value hợp lệ và không có nghĩa Java “sửa” văn bản.
+A Java string can contain a high surrogate without an accompanying valid low surrogate, or an isolated low surrogate. Within the range examined by `offsetByCodePoints`, **a lone surrogate is counted as one code point** per Java's contract. This does not turn it into a valid Unicode scalar value and does not mean Java “repairs” text.
 
-Ví dụ độc lập, lưu `UnpairedSurrogateDemo.java`:
+Standalone example, save `UnpairedSurrogateDemo.java`:
 
 ```java
 public class UnpairedSurrogateDemo {
@@ -319,78 +319,78 @@ java UnpairedSurrogateDemo
 d83d
 ```
 
-Mảng có ba đơn vị UTF-16: `'A'`, một high surrogate lẻ `\uD83D`, rồi `'B'`. Phương thức đếm ba code point theo quy tắc Java và di chuyển từ offset 1 sang 2 qua surrogate lẻ. Đây là cách API xử lý dữ liệu chưa ghép cặp, không phải ví dụ một ký tự Unicode hợp lệ có mã U+D83D.
+The array has three UTF-16 units: `'A'`, a lone high surrogate `\uD83D`, then `'B'`. The method counts three code points per Java's rules and moves from offset 1 to 2 across the lone surrogate. This shows how the API handles unpaired data, not an example of a valid Unicode character with code U+D83D.
 
-Một giới hạn khác: **code point không đồng nghĩa với grapheme cluster**. Ví dụ `"e\u0301"` là chữ `e` theo sau bằng dấu sắc kết hợp. Nó có **hai code point** nhưng thường hiển thị như một chữ “é”. Di chuyển một code point sẽ đứng giữa chữ cơ sở và dấu kết hợp. Các chuỗi emoji nối bằng ZWJ hay biểu tượng cờ còn có thể gồm nhiều code point cho một ký tự người dùng nhìn thấy. Nếu yêu cầu là di chuyển theo *grapheme cluster* để xử lý caret/chọn văn bản, cần thuật toán phân đoạn ký tự phù hợp với Unicode; `offsetByCodePoints` chỉ đáp ứng mức code point.
+Another limitation: **a code point is not synonymous with a grapheme cluster**. For example, `"e\u0301"` is the letter `e` followed by a combining acute accent. It has **two code points** yet typically displays as a single letter “é”. Advancing by one code point stops between the base letter and the combining mark. ZWJ-joined emoji sequences or flag symbols can also consist of multiple code points for a single user-perceived character. If the requirement is to move by *grapheme cluster* for caret/text-selection handling, a Unicode-compliant character segmentation algorithm is needed; `offsetByCodePoints` only operates at the code point level.
 
-## 8. Đặt cạnh các phương thức liên quan
+## 8. Side by side with related methods
 
-| API | Đầu vào là chỉ số gì? | Đầu ra là gì? | Công dụng |
+| API | What index unit is the input? | What is the output? | Purpose |
 | --- | --- | --- | --- |
-| `length()` | Không có | Số **char** UTF-16 | Độ dài bộ lưu trữ logic theo UTF-16 |
-| `charAt(i)` | UTF-16 | Một `char` | Đọc đúng một đơn vị UTF-16 |
-| `codePointAt(i)` | UTF-16 | Một `int` code point | Đọc code point tại vị trí đầu (nếu là high surrogate có low theo sau thì ghép đôi) |
-| `codePointBefore(i)` | UTF-16 ranh giới sau phần tử | Một `int` code point | Đọc code point ngay trước vị trí đó |
-| `codePointCount(begin,end)` | Hai chỉ số UTF-16 | **Số** code point trong đoạn | Đếm, không trả chỉ số |
-| `offsetByCodePoints(index,n)` | UTF-16 + **số** code point | Chỉ số UTF-16 | Di chuyển con trỏ |
-| `substring(begin,end)` | Hai chỉ số UTF-16 | `String` | Cắt đoạn theo ranh giới cung cấp |
-| `codePoints()` | Không có | `IntStream` | Duyệt giá trị code point |
-| `chars()` | Không có | `IntStream` của đơn vị `char` | Duyệt từng đơn vị UTF-16 |
+| `length()` | None | Number of UTF-16 **`char`s** | Logical storage length in UTF-16 |
+| `charAt(i)` | UTF-16 | One `char` | Read exactly one UTF-16 unit |
+| `codePointAt(i)` | UTF-16 | One code point `int` | Read the code point at the start position (pairs if high surrogate is followed by low) |
+| `codePointBefore(i)` | UTF-16 boundary after element | One code point `int` | Read the code point immediately before that position |
+| `codePointCount(begin,end)` | Two UTF-16 indices | **Count** of code points in the slice | Count, does not return an index |
+| `offsetByCodePoints(index,n)` | UTF-16 + **count** of code points | UTF-16 index | Move the cursor |
+| `substring(begin,end)` | Two UTF-16 indices | `String` | Extract slice over the provided boundaries |
+| `codePoints()` | None | `IntStream` | Iterate over code point values |
+| `chars()` | None | `IntStream` of `char` units | Iterate over individual UTF-16 units |
 
-Cần phân biệt đặc biệt hai lời gọi:
+In particular, distinguish these two calls:
 
 ```java
-int howMany = text.codePointCount(0, text.length()); // SỐ lượng
-int where = text.offsetByCodePoints(0, 2);           // VỊ TRÍ UTF-16
+int howMany = text.codePointCount(0, text.length()); // COUNT
+int where = text.offsetByCodePoints(0, 2);           // UTF-16 POSITION
 ```
 
-Không đưa `howMany` thẳng vào `substring` như một chỉ số UTF-16. `codePointCount` và `offsetByCodePoints` là hai phép toán khác nhau: **đếm** và **đổi vị trí sau khi di chuyển**.
+Do not pass `howMany` straight into `substring` as a UTF-16 index. `codePointCount` and `offsetByCodePoints` are two different operations: **counting** and **computing a new position after stepping**.
 
-Nếu chỉ muốn duyệt tuần tự toàn bộ chuỗi theo code point mà không cần vị trí, `text.codePoints()` có thể đơn giản hơn. Nếu cần vị trí để tương tác với `substring`, `regionMatches`, hoặc ghi nhớ con trỏ UTF-16, `offsetByCodePoints` hữu ích.
+If you only want to iterate sequentially through the entire string by code point without needing positions, `text.codePoints()` can be simpler. If you need positions to interact with `substring`, `regionMatches`, or track a UTF-16 cursor, `offsetByCodePoints` is useful.
 
-Java cũng cung cấp `Character.offsetByCodePoints(CharSequence seq, int index, int codePointOffset)`; phiên bản này nhận một `CharSequence`, cho phép thuật toán dùng với các lớp triển khai ngoài `String`. Ngoài ra còn overload cho một vùng `char[]` với `start`, `count` và `index`; ở đó cần tuân thủ ranh giới **của vùng mảng được chỉ định**, không mặc định toàn bộ mảng. Dù API nào, kiểu chỉ số trả về vẫn là offset theo đơn vị UTF-16.
+Java also provides `Character.offsetByCodePoints(CharSequence seq, int index, int codePointOffset)`; this version accepts a `CharSequence`, allowing algorithms to work with implementations beyond `String`. There is also an overload for a `char[]` subarray with `start`, `count`, and `index`; there, you must respect the boundaries **of the specified array region**, not assume the entire array. Regardless of which API is used, the returned index type is still an offset in UTF-16 units.
 
-## 9. Thiết kế hàm di chuyển an toàn
+## 9. Designing safe navigation functions
 
-Một API lưu vị trí trỏ vào `String` nên xác định rõ hệ tọa độ. Ví dụ:
-- Tên `utf16Offset` cho vị trí đưa vào `charAt`/`substring`/`offsetByCodePoints`.
-- Tên `codePointOffset` hoặc `codePointIndex` cho số bước hoặc thứ tự code point.
-- Khi cần đi từ code point thứ `k` về chỉ số UTF-16, dùng `text.offsetByCodePoints(0, k)` sau khi đã kiểm tra `0 <= k <= text.codePointCount(0,text.length())`.
-- Khi cần đi từ vị trí UTF-16 `p` tới vị trí tương ứng code point thứ mấy từ đầu, dùng `text.codePointCount(0,p)` **nếu `p` là ranh giới đúng**; nếu `p` cắt surrogate pair thì đây không còn là phép đổi vị trí nguyên vẹn.
-- Nếu phải di chuyển nhiều bước liên tục, giữ và cập nhật vị trí hiện tại; tránh quét lại từ 0 sau mỗi bước.
+An API that stores positions pointing into a `String` should define its coordinate system clearly. For example:
+- Name `utf16Offset` for positions passed to `charAt`/`substring`/`offsetByCodePoints`.
+- Name `codePointOffset` or `codePointIndex` for step counts or code point ordinals.
+- When converting from the `k`-th code point to a UTF-16 index, use `text.offsetByCodePoints(0, k)` after verifying `0 <= k <= text.codePointCount(0,text.length())`.
+- When converting from a UTF-16 position `p` to which code point ordinal from the start it corresponds to, use `text.codePointCount(0,p)` **if `p` is a proper boundary**; if `p` splits a surrogate pair, this is no longer an intact position conversion.
+- If you must take many consecutive steps, keep and update the current position; avoid rescanning from 0 on every step.
 
-Về hiệu năng, `offsetByCodePoints` phải xem xét nội dung trong phạm vi đi qua để nhận ra cặp surrogate; không giả định truy cập code point thứ `k` có chi phí hằng số. Duyệt tuần tự với vị trí được cập nhật là lựa chọn rõ ràng; nếu cần truy cập ngẫu nhiên rất nhiều vị trí code point trên cùng văn bản lớn, cân nhắc lưu chỉ số ranh giới đã tính trước hoặc dùng biểu diễn dữ liệu phù hợp và đo đạc thực tế trước khi tối ưu.
+Regarding performance, `offsetByCodePoints` must inspect the content in the traversed range to recognize surrogate pairs; do not assume accessing the `k`-th code point is constant time. Sequential traversal with an updated position is the clear choice; if you need random access to many code point positions on the same large text, consider caching precomputed boundary indices or using an appropriate data representation, and measure in practice before optimizing.
 
-Với `StringBuilder` mutable, dữ liệu có thể thay đổi và các vị trí UTF-16 cũ trở nên không còn chính xác sau thao tác chèn/xóa. Không duyệt dựa trên các offset đã tính cũ trong lúc nội dung đang thay đổi mà không có quy tắc cập nhật vị trí thích hợp.
+With a mutable `StringBuilder`, the data can change and old UTF-16 positions become inaccurate after insertions or deletions. Do not traverse using previously computed offsets while the content is changing without an appropriate position-updating rule.
 
-## 10. Các lỗi phổ biến
+## 10. Common mistakes
 
-1. **Dùng `index++` để đi tới “ký tự Unicode kế tiếp”.** Nếu gặp emoji ngoài BMP, chỉ số sẽ đi vào giữa cặp surrogate. Dùng `offsetByCodePoints(index,1)` từ ranh giới hợp lệ.
-2. **Nhầm giá trị trả về là số code point.** Kết quả của `offsetByCodePoints` là offset UTF-16; số code point trong đoạn lấy từ `codePointCount`.
-3. **Dùng chỉ số code point trực tiếp với `substring`.** Chuyển hai đầu đoạn thành vị trí UTF-16 trước.
-4. **Gọi `codePointAt(length())`.** Vị trí cuối hợp lệ làm **điểm xuất phát** để lùi, nhưng không hợp lệ để đọc code point phía sau.
-5. **Không xét bước âm.** `codePointOffset` âm là hợp lệ và cần thiết cho duyệt lùi; nó có thể gây ngoại lệ nếu lùi quá đầu.
-6. **Giả định chỉ số UTF-16 bất kỳ đều ở đầu code point.** Phương thức không tự sửa khi điểm bắt đầu nằm giữa surrogate pair.
-7. **Cho rằng API luôn có dữ liệu Unicode hợp lệ.** Surrogate lẻ có thể tồn tại trong `String` và được Java tính như một code point trong các API liên quan.
-8. **Nhầm code point với ký tự hiển thị.** Dấu tổ hợp, cờ, emoji ZWJ có thể chứa nhiều code point; cần phân đoạn grapheme nếu bài toán yêu cầu.
-9. **Đo lường chi phí như truy cập phần tử mảng.** Di chuyển theo code point cần quét nội dung giữa các ranh giới; tránh tính lại từ đầu vô ích.
+1. **Using `index++` to move to “the next Unicode character”.** When encountering emoji outside the BMP, the index moves into the middle of the surrogate pair. Use `offsetByCodePoints(index,1)` from a valid boundary.
+2. **Confusing the return value with a code point count.** The result of `offsetByCodePoints` is a UTF-16 offset; the number of code points in a slice comes from `codePointCount`.
+3. **Using code point indices directly with `substring`.** Convert both endpoints of the slice to UTF-16 positions first.
+4. **Calling `codePointAt(length())`.** The end position is valid as a **starting point** for stepping backward, but invalid for reading a code point ahead.
+5. **Forgetting negative steps.** Negative `codePointOffset` values are valid and necessary for backward traversal; they can throw an exception if stepping past the start.
+6. **Assuming any UTF-16 index is at the start of a code point.** The method does not auto-correct when the starting point lies between a surrogate pair.
+7. **Assuming the API always receives valid Unicode data.** Lone surrogates can exist in a `String` and are counted as one code point by Java's related APIs.
+8. **Confusing code points with visible characters.** Combining marks, flags, and ZWJ emoji can contain multiple code points; use grapheme segmentation if the problem requires it.
+9. **Assuming the cost is like array element indexing.** Stepping by code points requires scanning the content between boundaries; avoid recomputing from the start unnecessarily.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-check questions
 
-Với `String s = "X🙂Y";`, hãy tự trả lời:
+With `String s = "X🙂Y";`, answer the following:
 
-1. `s.length()` và `s.codePointCount(0,s.length())` khác nhau thế nào?
-2. `s.offsetByCodePoints(0,2)` trả về chỉ số mấy? Vì sao không phải `2`?
-3. `s.offsetByCodePoints(s.length(),-2)` trả về chỉ số mấy?
-4. Nếu muốn lấy riêng emoji bằng `substring`, phải truyền hai chỉ số UTF-16 nào?
-5. Vì sao `s.offsetByCodePoints(2,1)` không phải cách đúng để tiến **từ đầu emoji** sang code point sau?
+1. How do `s.length()` and `s.codePointCount(0,s.length())` differ?
+2. What index does `s.offsetByCodePoints(0,2)` return? Why is it not `2`?
+3. What index does `s.offsetByCodePoints(s.length(),-2)` return?
+4. If you want to extract only the emoji using `substring`, which two UTF-16 indices must you pass?
+5. Why is `s.offsetByCodePoints(2,1)` not the right way to step **from the start of the emoji** to the next code point?
 
-Đáp án: (1) `4` và `3`; (2) `3`; (3) `1`; (4) `substring(1,3)`; (5) vị trí `2` đã nằm giữa hai surrogate của emoji, không phải ranh giới code point để bắt đầu duyệt.
+Answers: (1) `4` and `3`; (2) `3`; (3) `1`; (4) `substring(1,3)`; (5) position `2` already lies between the two surrogates of the emoji, not on a code point boundary to start traversing from.
 
-**Quy tắc cần nhớ:** `offsetByCodePoints` nhận **offset UTF-16 hiện tại** và **số bước code point**, sau đó trả lại **offset UTF-16 mới**. Hãy sinh và duy trì các vị trí ở ranh giới code point khi chuyển qua lại giữa duyệt Unicode và các API Java dùng chỉ số `char`.
+**Rule to remember:** `offsetByCodePoints` takes the **current UTF-16 offset** and a **number of code point steps**, then returns a **new UTF-16 offset**. Generate and maintain positions on code point boundaries when bridging between Unicode traversal and Java APIs that use `char` indices.
 
-## Tài liệu API chính thức (Java SE 17)
+## Official API documentation (Java SE 17)
 
 - [`String.offsetByCodePoints`, `codePointAt`, `codePointCount`, `substring` — Oracle Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
 - [`Character.offsetByCodePoints`, `charCount`, surrogate helpers — Oracle Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
-- [`CharSequence` và `codePoints()` — Oracle Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/CharSequence.html)
+- [`CharSequence` and `codePoints()` — Oracle Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/CharSequence.html)

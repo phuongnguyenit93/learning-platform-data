@@ -1,36 +1,36 @@
-# Khóa trùng và giá trị thay thế khi gọi `Map.put()`
+# Duplicate Keys and Replaced Values When Calling `Map.put()`
 
-Khi làm việc với cấu trúc dữ liệu băm trong Java, `Map.put(key, value)` không đơn giản là “thêm một phần tử”. Nếu map **chưa có khóa tương đương**, thao tác sẽ tạo ánh xạ mới. Nếu map **đã có khóa tương đương**, thao tác sẽ **thay giá trị gắn với khóa hiện có**. Đây là hành vi quan trọng của `HashMap` và là nền tảng để hiểu vì sao hai đối tượng khóa khác nhau về danh tính vẫn có thể cùng đại diện cho một entry.
+When working with hash data structures in Java, `Map.put(key, value)` is not simply "adding an element". If the map **does not yet have an equivalent key**, the operation creates a new mapping. If the map **already has an equivalent key**, the operation **replaces the value associated with the existing key**. This is a crucial behavior of `HashMap` and is the foundation for understanding why two key objects with different identities can still represent the same entry.
 
-Ví dụ: sau `scores.put("java", 10)`, gọi `scores.put("java", 20)` thì giá trị của khóa `"java"` trở thành `20`, số entry không tăng, và lần gọi thứ hai trả về giá trị cũ `10`. Để hiểu đầy đủ, cần làm rõ **khóa trùng được xác định ra sao**, **`hashCode` và `equals` phối hợp như thế nào**, **`put` trả về gì**, và **`null` làm thay đổi cách đọc kết quả ra sao**.
+For example: after `scores.put("java", 10)`, calling `scores.put("java", 20)` changes the value of key `"java"` to `20`, the entry count does not increase, and the second call returns the old value `10`. To understand this fully, we need to clarify **how duplicate keys are determined**, **how `hashCode` and `equals` cooperate**, **what `put` returns**, and **how `null` changes how results are interpreted**.
 
-## 1. Ý nghĩa và hợp đồng cơ bản của `Map.put()`
+## 1. Meaning and Basic Contract of `Map.put()`
 
-Khai báo khái quát của phương thức trong giao diện `Map<K, V>`:
+General declaration of the method in the `Map<K, V>` interface:
 
 ~~~java
 V put(K key, V value);
 ~~~
 
-`put` gắn một `value` với `key`; nếu trước đó map đã chứa ánh xạ cho khóa này, giá trị mới thay thế giá trị cũ. Giá trị trả về là **giá trị trước đó** của khóa, hoặc `null` nếu trước đó không có ánh xạ; một `null` cũng có thể có nghĩa **giá trị cũ vốn là `null`** trong các map cho phép `null`.
+`put` associates a `value` with `key`; if the map previously contained a mapping for this key, the new value replaces the old value. The return value is the **previous value** for the key, or `null` if there was no previous mapping; a `null` can also mean **the previous value itself was `null`** in maps that allow `null`.
 
-| Tình trạng trước `put(k, v)` | Sau khi gọi | Giá trị trả về | Kích thước map |
+| State before `put(k, v)` | After the call | Return value | Map size |
 | --- | --- | --- | --- |
-| Chưa có khóa tương đương `k` | Tạo ánh xạ `k → v` | `null` | Tăng 1 |
-| Đã có `k → old`, `old != null` | Đổi thành `k → v` | `old` | Giữ nguyên |
-| Đã có `k → null` và map cho phép giá trị null | Đổi thành `k → v` | `null` | Giữ nguyên |
+| No key equivalent to `k` | Creates mapping `k → v` | `null` | Increases by 1 |
+| Already has `k → old`, `old != null` | Changes to `k → v` | `old` | Unchanged |
+| Already has `k → null` and map allows null values | Changes to `k → v` | `null` | Unchanged |
 
-`put` là thao tác sửa đổi. Không phải mọi hiện thực `Map` đều hỗ trợ: chẳng hạn map tạo bằng `Map.of(...)` không thể sửa, nên gọi `put` sẽ ném `UnsupportedOperationException`. Các ví dụ trong bài chủ yếu dùng **`HashMap` có thể sửa đổi**.
+`put` is a mutating operation. Not every `Map` implementation supports it: for instance, a map created with `Map.of(...)` cannot be modified, so calling `put` throws `UnsupportedOperationException`. The examples in this lesson mainly use a **modifiable `HashMap`**.
 
-Với `HashMap`, **mỗi khóa phân biệt theo `equals` chỉ có một entry**, không phụ thuộc có bao nhiêu lần gán lại giá trị cho khóa đó. Thay giá trị **không** làm tăng kích thước. Ngược lại, có thêm khóa mới thì `size()` tăng kể cả giá trị mới trùng với giá trị của khóa khác: tính duy nhất áp dụng cho **khóa**, không phải cho **value**.
+With `HashMap`, **each distinct key by `equals` has only one entry**, regardless of how many times a value is reassigned to that key. Replacing a value **does not** increase the size. Conversely, adding a new key increases `size()` even if the new value equals another key's value: uniqueness applies to the **key**, not the **value**.
 
-## 2. Hai đối tượng khóa độc lập vẫn có thể được coi là khóa trùng
+## 2. Two Independent Key Objects Can Still Be Considered Duplicate Keys
 
-Một nhầm lẫn thường gặp là nghĩ chỉ các tham chiếu cùng đối tượng (`==`) mới có thể thay thế cùng entry. Với `HashMap`, khóa được tìm qua hash và kiểm tra bằng nhau theo `equals`. Do đó, **hai đối tượng độc lập** có thể đại diện cho **cùng khóa logic**, miễn là `equals`/`hashCode` được định nghĩa đúng.
+A common misconception is thinking only references to the same object (`==`) can replace the same entry. With `HashMap`, keys are located via hash and checked for equality via `equals`. Thus, **two independent objects** can represent **the same logical key**, provided `equals`/`hashCode` are properly defined.
 
-Giả sử `ProductKey` nhận diện sản phẩm bằng `sku`. Hai `ProductKey("P-01")` được tạo riêng nhưng biểu diễn cùng mã sản phẩm. `record` trong Java 17 sinh sẵn `equals` và `hashCode` dựa trên thành phần `sku`.
+Suppose `ProductKey` identifies a product by `sku`. Two `ProductKey("P-01")` instances are created separately yet represent the same product code. A `record` in Java 17 automatically generates `equals` and `hashCode` based on the `sku` component.
 
-Tệp **`MapPutDemo.java`**, chạy độc lập trên Java 17+:
+File **`MapPutDemo.java`**, standalone runnable on Java 17+:
 
 ~~~java
 import java.util.HashMap;
@@ -67,14 +67,14 @@ public class MapPutDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac MapPutDemo.java
 java MapPutDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 false
@@ -93,28 +93,28 @@ Archived
 2
 ~~~
 
-Giải thích từng nhóm kết quả:
+Explanation of each group of results:
 
-1. `first == sameValue` là `false` vì đây là hai instance được tạo độc lập. Nhưng `first.equals(sameValue)` là `true` vì cả hai record có cùng `sku`. Khi `equals` là `true`, hợp đồng buộc `hashCode` tương ứng phải bằng nhau.
-2. `put(first, "Draft")` và `put(other, "Active")` đều trả `null` vì trước đó chưa có ánh xạ tương ứng. Map lúc này có **2 entry**.
-3. `put(sameValue, "Published")` trả về **`"Draft"`**, là giá trị cũ của khóa `"P-01"`. Tuy `sameValue` không cùng tham chiếu với `first`, chúng bằng nhau theo hợp đồng của `ProductKey`, nên entry được cập nhật, không tạo entry thứ ba. `size()` vẫn là `2`.
-4. Cả `get(first)` và `get(sameValue)` đều trả `"Published"`. `get(other)` vẫn trả `"Active"` vì `"P-02"` là khóa riêng.
-5. `put(first, "Archived")` trả `"Published"`. Sau đó, `get(sameValue)` trả `"Archived"` và kích thước vẫn là `2`.
+1. `first == sameValue` is `false` because these are two independently created instances. Yet `first.equals(sameValue)` is `true` because both records have the same `sku`. When `equals` is `true`, the contract requires their corresponding `hashCode` values to be equal.
+2. `put(first, "Draft")` and `put(other, "Active")` both return `null` because there was no corresponding mapping beforehand. The map now has **2 entries**.
+3. `put(sameValue, "Published")` returns **`"Draft"`**, which is the old value of key `"P-01"`. Although `sameValue` does not share a reference with `first`, they are equal under `ProductKey`'s contract, so the entry is updated without creating a third entry. `size()` remains `2`.
+4. Both `get(first)` and `get(sameValue)` return `"Published"`. `get(other)` still returns `"Active"` because `"P-02"` is a separate key.
+5. `put(first, "Archived")` returns `"Published"`. Afterward, `get(sameValue)` returns `"Archived"` and the size remains `2`.
 
-Điểm cốt lõi: **`put` quyết định “khóa đã tồn tại hay chưa” theo ngữ nghĩa khóa của map**, không dựa đơn thuần vào việc biến khóa là một đối tượng được tạo mới.
+Core point: **`put` decides "whether a key already exists" according to the map's key semantics**, not simply based on whether the key variable is a newly created object.
 
-### Hash code tham gia ở bước nào?
+### At which step does the hash code participate?
 
-Trong `HashMap`, hash code giúp định vị nhóm ứng viên cần tra cứu. Sau đó map cần kiểm tra sự bằng nhau của khóa để biết ứng viên nào đại diện cho cùng khóa logic. Với một lớp khóa bình thường:
+In `HashMap`, the hash code helps locate the candidate group to look up. Next, the map must check key equality to know which candidate represents the same logical key. For a normal key class:
 
-- `k1.equals(k2) == true` thì **bắt buộc** `k1.hashCode() == k2.hashCode()`. Nếu vi phạm, thao tác `put` hoặc `get` có thể không tìm ra entry tương đương.
-- `k1.hashCode() == k2.hashCode()` **không suy ra** `k1.equals(k2)`. Hai khóa khác nhau vẫn được phép trùng hash; `HashMap` phải phân biệt chúng.
+- If `k1.equals(k2) == true`, then `k1.hashCode() == k2.hashCode()` is **mandatory**. If violated, `put` or `get` may fail to find the equivalent entry.
+- `k1.hashCode() == k2.hashCode()` **does not imply** `k1.equals(k2)`. Two distinct keys are still allowed to share a hash; `HashMap` must distinguish them.
 
-Những chi tiết như số bucket, cách trộn bit hay cấu trúc nội bộ khi va chạm là chi tiết triển khai. Điều mà mã ứng dụng cần dựa vào là **hợp đồng khóa** và hành vi `Map` đã công bố, không phải giả định về vị trí bucket.
+Details such as bucket count, bit mixing, or internal structure under collisions are implementation details. What application code should rely on is **the key contract** and the documented `Map` behavior, not assumptions about bucket locations.
 
-## 3. Khóa trùng khác với hash collision
+## 3. Duplicate Keys Differ From Hash Collisions
 
-Hai chuỗi `"Aa"` và `"BB"` có **cùng** `String.hashCode() == 2112`, nhưng không bằng nhau về nội dung. Khi lần lượt đưa chúng vào `HashMap`, **cả hai entry vẫn tồn tại**.
+The two strings `"Aa"` and `"BB"` have the **same** `String.hashCode() == 2112`, yet are not equal in content. When inserting them sequentially into `HashMap`, **both entries remain present**.
 
 ~~~java
 Map<String, Integer> scores = new HashMap<>();
@@ -129,23 +129,23 @@ System.out.println(scores.get("Aa"));                   // 10
 System.out.println(scores.get("BB"));                   // 20
 ~~~
 
-Đoạn trên là phần mã minh họa đặt **bên trong một phương thức**, với `import java.util.HashMap;` và `import java.util.Map;` nếu biên dịch riêng. Chú thích phản ánh output đúng của Java.
+The snippet above is illustrative code placed **inside a method**, with `import java.util.HashMap;` and `import java.util.Map;` if compiled separately. Comments reflect exact Java output.
 
-Nếu tiếp tục `scores.put(new String("Aa"), 30)`, chỉ giá trị của entry khóa `"Aa"` đổi thành `30`; entry `"BB"` giữ `20`, và kích thước vẫn là `2`. Đây là **trùng khóa theo `equals`**, khác với **trùng mã băm**.
+If you continue with `scores.put(new String("Aa"), 30)`, only the value of the entry for key `"Aa"` changes to `30`; the `"BB"` entry keeps `20`, and the size remains `2`. This is **duplicate key by `equals`**, which differs from **duplicate hash code**.
 
-| Trường hợp | `equals` của hai key | Hash code | `put` vào `HashMap` |
+| Case | `equals` of the two keys | Hash code | `put` into `HashMap` |
 | --- | --- | --- | --- |
-| Hai `ProductKey("P-01")` | `true` | Phải bằng nhau | Key sau cập nhật value của entry cũ |
-| `"Aa"` và `"BB"` | `false` | Đều bằng `2112` | Giữ hai entry khác nhau |
-| `"P-01"` và `"P-02"` | `false` | Có thể khác hoặc trùng | Giữ hai entry khác nhau |
+| Two `ProductKey("P-01")`s | `true` | Must be equal | Later key updates value of old entry |
+| `"Aa"` and `"BB"` | `false` | Both equal `2112` | Keeps two separate entries |
+| `"P-01"` and `"P-02"` | `false` | May differ or match | Keeps two separate entries |
 
-**Không được lấy `hashCode` làm mã khóa duy nhất** trong nghiệp vụ. Nếu tự thay `Map<ProductKey, ...>` bằng `Map<Integer, ...>` chỉ lưu hash của key, bạn có thể khiến hai khóa không bằng nhau bị gộp nhầm.
+**Do not use `hashCode` as a unique key identifier** in business logic. If you replace `Map<ProductKey, ...>` with `Map<Integer, ...>` storing only the key's hash, you may cause unequal keys to be mistakenly merged.
 
-## 4. Giá trị trả về của `put` và cái bẫy `null`
+## 4. Return Value of `put` and the `null` Trap
 
-Với `HashMap`, bạn có thể lưu **khóa `null`** và **giá trị `null`**. Điều này tạo ra một điểm cần chú ý: chỉ nhìn kết quả trả về `null` của `put` là **không đủ để biết** vừa thêm khóa mới hay vừa thay một value cũ vốn bằng `null`.
+With `HashMap`, you can store a **`null` key** and **`null` values**. This creates a subtlety: looking only at a `null` return value from `put` is **not enough to tell** whether a new key was just added or an old value that happened to be `null` was just replaced.
 
-Tệp **`MapNullAndCollisionDemo.java`**:
+File **`MapNullAndCollisionDemo.java`**:
 
 ~~~java
 import java.util.HashMap;
@@ -184,14 +184,14 @@ public class MapNullAndCollisionDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac MapNullAndCollisionDemo.java
 java MapNullAndCollisionDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 null
@@ -214,35 +214,35 @@ true
 20
 ~~~
 
-Diễn giải:
+Interpretation:
 
-- Gọi `states.put("task", null)` trên map trống trả về `null`, **nhưng map đã có khóa `"task"`**: `containsKey("task")` là `true`, `size() == 1`.
-- Gọi `states.put("task", "Queued")` cũng trả về `null`, lần này vì **giá trị cũ là `null`**. Đây là một lần **thay thế**, nên kích thước vẫn là `1`.
-- Gọi `states.put("task", "Done")` trả về `"Queued"`; `get("task")` là `"Done"`.
-- Với khóa `"missing"`, `containsKey` là `false`, còn `get` là `null`. Vì thế không nên dùng một mình `get(k) == null` để khẳng định key không tồn tại trong map cho phép giá trị `null`.
-- Trong `HashMap`, khóa `null` được chấp nhận. Lần `put(null, 2)` thay thế `put(null, 1)`, trả `1`, và map `numbers` vẫn chỉ có một entry trước khi thêm hai chuỗi.
-- `"Aa"` và `"BB"` cùng hash code nhưng khác `equals`, nên đều được thêm vào `numbers`; cùng với entry có khóa `null`, tổng là **3 entry**.
+- Calling `states.put("task", null)` on an empty map returns `null`, **yet the map now contains key `"task"`**: `containsKey("task")` is `true`, `size() == 1`.
+- Calling `states.put("task", "Queued")` also returns `null`, this time because **the old value was `null`**. This is a **replacement**, so the size remains `1`.
+- Calling `states.put("task", "Done")` returns `"Queued"`; `get("task")` is `"Done"`.
+- For key `"missing"`, `containsKey` is `false`, while `get` is `null`. Therefore, you should not use `get(k) == null` alone to conclude a key does not exist in a map that permits `null` values.
+- In `HashMap`, a `null` key is accepted. The call `put(null, 2)` replaces `put(null, 1)`, returns `1`, and the `numbers` map still has only one entry before adding the two strings.
+- `"Aa"` and `"BB"` share the same hash code yet differ in `equals`, so both are added to `numbers`; together with the `null`-key entry, the total is **3 entries**.
 
-Nếu cần biết chắc một khóa đã tồn tại **trước khi gọi** `put`, có thể dùng `containsKey` trước thao tác:
+If you need to know for sure whether a key already existed **before calling** `put`, you can use `containsKey` prior to the operation:
 
 ~~~java
 boolean existedBefore = states.containsKey("task");
 String previous = states.put("task", "Reviewed");
 ~~~
 
-Đây là ví dụ cho việc phân biệt trạng thái trước/sau **trong luồng thao tác đơn giản, không có cập nhật cạnh tranh**. Trong chương trình đa luồng, cặp `containsKey` rồi `put` **không tạo thành một thao tác nguyên tử**; phải dùng hiện thực/construction hỗ trợ đồng bộ hoặc các thao tác nguyên tử thích hợp khi cần. Ngoài ra, một số `Map` không cho khóa hoặc giá trị `null`: `Map.of` không chấp nhận `null`; `ConcurrentHashMap` cũng không chấp nhận khóa/giá trị `null`. Không nên suy rộng ví dụ `HashMap` sang mọi hiện thực `Map`.
+This is an example for distinguishing before/after state **in a simple single-threaded flow without concurrent updates**. In a multithreaded program, the `containsKey` followed by `put` pair **does not form an atomic operation**; you must use an implementation/construct supporting synchronization or appropriate atomic operations when needed. Additionally, some `Map`s do not allow `null` keys or values: `Map.of` does not accept `null`; `ConcurrentHashMap` also does not accept `null` keys/values. Do not generalize the `HashMap` example to every `Map` implementation.
 
-## 5. `put`, `putIfAbsent` và `replace` khác nhau ở đâu?
+## 5. How Do `put`, `putIfAbsent`, and `replace` Differ?
 
-Ba phương thức này có chủ đích khác nhau:
+These three methods have different intents:
 
-| Phương thức | Hành vi chính |
+| Method | Primary behavior |
 | --- | --- |
-| `put(k, v)` | Ghi giá trị `v` dù khóa chưa có hay đã có; nếu đã có thì thay giá trị cũ. |
-| `putIfAbsent(k, v)` | Chỉ đặt giá trị khi không có ánh xạ, hoặc khóa đang ánh xạ tới `null` theo hợp đồng mặc định của `Map`. |
-| `replace(k, v)` | Chỉ thay nếu khóa đã có ánh xạ; không tạo entry khi khóa chưa tồn tại. |
+| `put(k, v)` | Writes value `v` whether the key is absent or already present; if already present, replaces the old value. |
+| `putIfAbsent(k, v)` | Only sets the value when there is no mapping, or the key currently maps to `null` per `Map`'s default contract. |
+| `replace(k, v)` | Only replaces if the key already has a mapping; does not create an entry when the key does not exist yet. |
 
-Tệp **`MapUpdateVariantsDemo.java`**:
+File **`MapUpdateVariantsDemo.java`**:
 
 ~~~java
 import java.util.HashMap;
@@ -270,14 +270,14 @@ public class MapUpdateVariantsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac MapUpdateVariantsDemo.java
 java MapUpdateVariantsDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 null
@@ -292,13 +292,13 @@ null
 Filled
 ~~~
 
-Phép `putIfAbsent("A", "Second")` không thay `"First"` đã tồn tại. Phép `replace("B", "Ignored")` không tạo khóa `"B"`. Trong `HashMap`, khi `"C"` hiện đã tồn tại với value `null`, `putIfAbsent("C", "Filled")` vẫn có thể ghi `"Filled"`, còn `put("C", "Filled")` luôn thực hiện ghi bất kể value cũ. Đọc hợp đồng cụ thể của phương thức khi cần phân biệt cập nhật vô điều kiện, chỉ-thêm, chỉ-thay hoặc cập nhật nguyên tử trong môi trường đồng thời.
+The call `putIfAbsent("A", "Second")` does not replace the existing `"First"`. The call `replace("B", "Ignored")` does not create key `"B"`. In `HashMap`, when `"C"` currently exists with value `null`, `putIfAbsent("C", "Filled")` can still write `"Filled"`, whereas `put("C", "Filled")` always writes regardless of the old value. Read the specific method contract when you need to distinguish unconditional update, insert-only, replace-only, or atomic updates in concurrent environments.
 
-## 6. Đảm bảo khóa có `equals` và `hashCode` phù hợp
+## 6. Ensuring Keys Have Suitable `equals` and `hashCode`
 
-Nếu dùng đối tượng tự định nghĩa làm key, cần xác định chính xác các trường biểu diễn danh tính **logic** của khóa. Ví dụ hai `InvoiceKey` có cùng `invoiceNumber` được xem là cùng khóa trong ứng dụng; chúng phải bằng nhau theo `equals`, đồng thời có cùng `hashCode`.
+If you use a custom-defined object as a key, you must accurately identify the fields representing the key's **logical** identity. For instance, two `InvoiceKey`s with the same `invoiceNumber` are considered the same key in the application; they must be equal by `equals`, and also have the same `hashCode`.
 
-Tệp **`InvoiceKeyDemo.java`**:
+File **`InvoiceKeyDemo.java`**:
 
 ~~~java
 import java.util.HashMap;
@@ -345,14 +345,14 @@ public class InvoiceKeyDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac InvoiceKeyDemo.java
 java InvoiceKeyDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 false
@@ -363,18 +363,18 @@ null
 250
 ~~~
 
-Các quy tắc cần bảo toàn:
+Rules to preserve:
 
-- **Tính nhất quán `equals`/`hashCode`:** nếu hai khóa bằng nhau theo `equals` thì bắt buộc cho cùng hash. Override `equals` nhưng quên `hashCode` có thể khiến `HashMap` không tìm thấy entry cần thay khi nhận một instance khóa khác nhưng bằng giá trị.
-- **Tính ổn định của key:** tránh sửa dữ liệu tham gia `equals`/`hashCode` sau khi đưa khóa vào `HashMap`. Nếu mã băm thay đổi, thao tác `get`, `put`, `remove` bằng khóa đã biến đổi có thể cho kết quả ngoài dự kiến. Lớp `InvoiceKey` dùng trường `final` với `String` bất biến để tránh vấn đề này.
-- **Tính đúng của mô hình nghiệp vụ:** không mặc định rằng mọi trường đều phải tham gia `equals`. Ví dụ trong `InvoiceKey`, `invoiceNumber` được định nghĩa làm khóa; nếu nghiệp vụ thực tế cần cả mã doanh nghiệp và số hóa đơn, phải đưa cả hai vào `equals` **và** `hashCode`.
-- **Không suy luận giá trị được ghi đè từ tham chiếu khóa:** hai `InvoiceKey` là hai instance khác nhau, nhưng map chỉ giữ **một entry** vì cùng giá trị khóa.
+- **`equals`/`hashCode` consistency:** if two keys are equal by `equals`, they must produce the same hash. Overriding `equals` yet forgetting `hashCode` can cause `HashMap` to fail to find the entry to replace when receiving a different key instance with the same value.
+- **Key stability:** avoid modifying data participating in `equals`/`hashCode` after putting the key into `HashMap`. If the hash code changes, `get`, `put`, and `remove` using the mutated key can produce unexpected results. The `InvoiceKey` class uses a `final` field with immutable `String` to avoid this issue.
+- **Business-model accuracy:** do not assume every field must participate in `equals`. For example, in `InvoiceKey`, `invoiceNumber` is defined as the key; if real business logic needs both company code and invoice number, both must be included in `equals` **and** `hashCode`.
+- **Do not infer overwritten values from key references:** the two `InvoiceKey`s are two different instances, yet the map keeps only **one entry** because of the same key value.
 
-Trong hiện thực `HashMap` thông thường, cập nhật bằng key tương đương sẽ sửa value của entry đã lưu thay vì thay hẳn đối tượng key đang nằm trong entry. Tuy nhiên, **đừng xây dựng logic ứng dụng trên việc instance key vật lý nào được giữ lại**: quy tắc mà giao diện `Map` bảo đảm là quan hệ ánh xạ key→value, không phải sự tồn tại của một object key gốc cụ thể. Đặc biệt, các map đặc biệt có thể định nghĩa cách so khóa khác `HashMap`.
+In typical `HashMap` implementations, updating with an equivalent key modifies the value of the stored entry rather than replacing the key object residing in the entry. However, **do not build application logic on which physical key instance is retained**: the rule guaranteed by the `Map` interface is the key→value mapping relationship, not the persistence of a specific original key object. In particular, specialized maps may define key comparison differently from `HashMap`.
 
-## 7. Các trường hợp đặc biệt và sai lầm dễ gặp
+## 7. Special Cases and Common Mistakes
 
-### 7.1. Hai value bằng nhau không đồng nghĩa hai key bằng nhau
+### 7.1. Two equal values do not mean two equal keys
 
 ~~~java
 Map<String, Integer> counts = new HashMap<>();
@@ -383,9 +383,9 @@ counts.put("B", 1);
 System.out.println(counts.size()); // 2
 ~~~
 
-Hai entry có thể có **cùng value** mà vẫn là hai entry riêng vì **khóa khác nhau**. Map không phải tập hợp giá trị duy nhất.
+Two entries can have the **same value** yet still be two separate entries because **the keys differ**. A map is not a set of unique values.
 
-### 7.2. Key có cùng hash code vẫn chưa phải khóa trùng
+### 7.2. Keys with the same hash code are not necessarily duplicate keys
 
 ~~~java
 Map<String, Integer> counts = new HashMap<>();
@@ -394,48 +394,48 @@ counts.put("BB", 2);
 System.out.println(counts.size()); // 2
 ~~~
 
-`"Aa"` và `"BB"` trùng `hashCode` nhưng khác `equals`. Đây là collision hợp lệ; `HashMap` vẫn giữ cả hai.
+`"Aa"` and `"BB"` share `hashCode` yet differ in `equals`. This is a valid collision; `HashMap` still keeps both.
 
-### 7.3. Đừng dựa vào thứ tự in `HashMap` để kiểm tra thay thế
+### 7.3. Do not rely on `HashMap` print order to verify replacement
 
-`HashMap` **không bảo đảm thứ tự duyệt key/entry**. Khi kiểm chứng, hãy gọi `size()`, `get(key)`, `containsKey(key)` hoặc kiểm tra giá trị trả về của `put`, thay vì suy luận từ chuỗi in ra của toàn bộ map.
+`HashMap` **does not guarantee key/entry iteration order**. When verifying, call `size()`, `get(key)`, `containsKey(key)`, or inspect the return value of `put`, rather than inferring from the printed string of the whole map.
 
-Nếu cần thứ tự duyệt có bảo đảm, phải chọn cấu trúc đáp ứng yêu cầu khác, chẳng hạn `LinkedHashMap` (theo thứ tự chèn ở chế độ mặc định). Dù vậy, vấn đề chính của bài này vẫn là **khi nào value của một key bị thay thế**, không phải thứ tự duyệt.
+If guaranteed iteration order is needed, you must choose another structure meeting that requirement, such as `LinkedHashMap` (in insertion order by default). Even so, the main topic of this lesson remains **when a key's value is replaced**, not iteration order.
 
-### 7.4. Đừng mặc định mọi `Map` sử dụng cùng quy tắc “khóa trùng”
+### 7.4. Do not assume every `Map` uses the same "duplicate key" rule
 
-`HashMap` dựa trên `equals` và `hashCode` của key (với xử lý đặc biệt phù hợp cho `null`). Nhưng:
+`HashMap` relies on the key's `equals` and `hashCode` (with appropriate special handling for `null`). However:
 
-- `TreeMap` phân biệt khóa dựa trên kết quả **so sánh thứ tự** của `Comparator` được cung cấp hoặc `Comparable`. Hai key có thể được coi là tương đương khi `compare(k1, k2) == 0`.
-- `IdentityHashMap` chủ ý dùng **danh tính tham chiếu** (`==`) thay cho `equals`, phục vụ các tình huống đặc biệt.
-- `Map.of` là map không sửa được; gọi `put` thất bại với `UnsupportedOperationException`, còn trùng khóa trong đối số khi tạo map sẽ bị từ chối.
+- `TreeMap` distinguishes keys based on the **ordering comparison** result of a provided `Comparator` or `Comparable`. Two keys can be treated as equivalent when `compare(k1, k2) == 0`.
+- `IdentityHashMap` intentionally uses **reference identity** (`==`) instead of `equals`, serving specialized scenarios.
+- `Map.of` creates an unmodifiable map; calling `put` fails with `UnsupportedOperationException`, and duplicate keys among arguments at creation time are rejected.
 
-Vì vậy, luôn xem **loại map cụ thể** trước khi đưa ra giả định về tính tương đương của key và khả năng sửa đổi.
+Therefore, always check **the specific map type** before making assumptions about key equivalence and mutability.
 
-### 7.5. Đừng dùng `get(k) == null` để xác định khóa chưa tồn tại
+### 7.5. Do not use `get(k) == null` to determine that a key does not exist
 
-Với `HashMap`, giá trị `null` là hợp lệ. `get(k) == null` có thể có nghĩa khóa chưa tồn tại **hoặc** đang ánh xạ tới `null`. Khi cần xác định có key thật hay không, dùng `containsKey(k)`. Tương tự, `put(k, v)` trả `null` có thể là thêm mới hoặc thay giá trị cũ `null`.
+With `HashMap`, `null` values are valid. `get(k) == null` can mean the key does not exist yet **or** currently maps to `null`. When you need to determine whether a key is truly present, use `containsKey(k)`. Similarly, `put(k, v)` returning `null` could be a new addition or replacing an old `null` value.
 
-### 7.6. Đừng xem `put` trên `HashMap` thường là thao tác cập nhật an toàn trong đa luồng
+### 7.6. Do not treat `put` on a regular `HashMap` as a thread-safe update
 
-`HashMap` không được thiết kế để nhiều luồng đồng thời sửa không có phối hợp. Mẫu **đọc rồi ghi** (`containsKey`/ `get` sau đó `put`) cũng không phải thao tác nguyên tử. Trong bài toán đồng thời, cần cấu trúc dữ liệu và thao tác thích hợp, ví dụ `ConcurrentHashMap` cùng `putIfAbsent`, `compute`, `merge` khi phù hợp; lưu ý `ConcurrentHashMap` không cho key/value `null` và ngữ nghĩa của các thao tác là khác nhau.
+Regular `HashMap` is not designed for concurrent modification by multiple threads without coordination. The **check-then-act** pattern (`containsKey`/`get` followed by `put`) is also not an atomic operation. In concurrent problems, you need appropriate data structures and operations, such as `ConcurrentHashMap` with `putIfAbsent`, `compute`, or `merge` when suitable; note that `ConcurrentHashMap` does not allow `null` keys/values and operation semantics differ.
 
-## 8. Checklist khi dùng `Map.put()`
+## 8. Checklist When Using `Map.put()`
 
-1. **Xác định loại map:** `HashMap`, `TreeMap`, `IdentityHashMap`, map bất biến hay map đồng thời có quy tắc tương đương khóa và khả năng cập nhật khác nhau.
-2. **Xác định thế nào là cùng khóa logic:** với `HashMap`, kiểm tra `equals`/`hashCode` của class key và bảo đảm trạng thái khóa ổn định.
-3. **Dự đoán hành vi:** key mới thì thêm entry; key tương đương đã có thì thay value và giữ nguyên kích thước.
-4. **Đọc kết quả trả về đúng nghĩa:** `put` trả old value; `null` có thể không rõ đã có key trước đó hay chưa nếu map cho giá trị `null`.
-5. **Tách collision khỏi trùng khóa:** hash bằng nhau không đủ; phải xét quan hệ bằng nhau của key.
-6. **Chọn đúng biến thể cập nhật:** dùng `putIfAbsent` khi chỉ muốn gán lúc absent/`null`, `replace` khi chỉ muốn thay key hiện có, hoặc các thao tác nguyên tử thích hợp khi có nhiều luồng.
+1. **Identify the map type:** `HashMap`, `TreeMap`, `IdentityHashMap`, immutable maps, or concurrent maps have different key-equivalence rules and mutability capabilities.
+2. **Define what constitutes the same logical key:** for `HashMap`, check the key class's `equals`/`hashCode` and ensure key state is stable.
+3. **Predict the behavior:** a new key adds an entry; an existing equivalent key replaces the value and keeps the size unchanged.
+4. **Interpret the return value properly:** `put` returns the old value; `null` may leave it ambiguous whether the key existed beforehand if the map allows `null` values.
+5. **Separate collisions from duplicate keys:** equal hashes are not enough; the key's equality relation must be checked.
+6. **Choose the right update variant:** use `putIfAbsent` when you only want to assign if absent/`null`, `replace` when you only want to replace an existing key, or appropriate atomic operations when multiple threads are involved.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-1. Sau `map.put("A", 1); map.put("A", 2);`, `map.size()` và `map.get("A")` bằng bao nhiêu? Lần gọi `put` thứ hai trả gì?
-2. Nếu gọi `map.put(new String("A"), 3)` trên map chứa `"A" → 2`, đây có phải khóa mới không? Vì sao?
-3. Hai key có cùng `hashCode` nhưng `equals` trả `false`. Nếu dùng `HashMap`, lời gọi `put` sau có bắt buộc ghi đè giá trị của key trước không?
-4. Vì sao `put("A", "ready")` trả `null` không đủ để kết luận `"A"` chưa tồn tại trước đó?
-5. Điều gì có thể xảy ra nếu một key bị thay đổi trường dùng trong `hashCode` sau khi đã thêm vào `HashMap`?
-6. Trong tình huống nào `putIfAbsent` phù hợp hơn `put`? Nếu khóa tồn tại nhưng value hiện là `null`, `putIfAbsent` của `HashMap` làm gì?
+1. After `map.put("A", 1); map.put("A", 2);`, what are `map.size()` and `map.get("A")`? What does the second `put` call return?
+2. If you call `map.put(new String("A"), 3)` on a map containing `"A" → 2`, is this a new key? Why?
+3. Two keys have the same `hashCode` yet `equals` returns `false`. When using `HashMap`, does the second `put` call necessarily overwrite the first key's value?
+4. Why is `put("A", "ready")` returning `null` insufficient to conclude that `"A"` did not exist beforehand?
+5. What can happen if a key has a field used in `hashCode` modified after being added to `HashMap`?
+6. In what situation is `putIfAbsent` more appropriate than `put`? If the key exists yet its current value is `null`, what does `HashMap`'s `putIfAbsent` do?
 
-**Ghi nhớ:** Với `HashMap`, `Map.put(k, v)` **thêm entry nếu khóa mới**, nhưng **thay giá trị nếu đã có khóa tương đương theo `equals`/`hashCode`**, kể cả khi dùng một đối tượng khóa khác có cùng giá trị. `put` trả về value cũ (có thể `null`), còn **trùng hash code không tự động là trùng khóa**.
+**Remember:** With `HashMap`, `Map.put(k, v)` **adds an entry if the key is new**, but **replaces the value if an equivalent key by `equals`/`hashCode` already exists**, even when using a different key object with the same value. `put` returns the old value (which may be `null`), and **matching hash codes do not automatically mean duplicate keys**.

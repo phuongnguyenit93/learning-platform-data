@@ -1,29 +1,29 @@
-# Module giúp đóng gói, phụ thuộc và ẩn package như thế nào
+# How modules enable encapsulation, dependencies, and package hiding
 
-Java Platform Module System (JPMS), được giới thiệu từ Java 9, bổ sung một ranh giới tổ chức ở cấp **module**. Một module gom các package có liên quan, khai báo module nào nó cần và chỉ định package nào được công khai cho module khác. Nhờ đó, ứng dụng có thể mô tả phụ thuộc rõ ràng và giữ các package triển khai ở bên trong.
+The Java Platform Module System (JPMS), introduced in Java 9, adds an organizational boundary at the **module** level. A module groups related packages, declares which modules it needs, and specifies which packages are exposed to other modules. As a result, an application can describe its dependencies explicitly and keep implementation packages internal.
 
-Ba ý chính cần nối với nhau là: **đóng gói** xác định phần code thuộc về module nào; **phụ thuộc** xác định module nào được phép đọc và sử dụng module khác; **ẩn package** xác định phần nào của module trở thành API bên ngoài và phần nào chỉ dùng nội bộ.
+The three main ideas to connect together are: **encapsulation** determines which code belongs to which module; **dependencies** determine which module is allowed to read and use another module; **package hiding** determines which parts of a module become external API and which parts are for internal use only.
 
-## 1. Vì sao Java cần ranh giới module?
+## 1. Why does Java need module boundaries?
 
-Một ứng dụng Java thường có nhiều package. Package giúp nhóm class và interface theo chức năng, đồng thời hỗ trợ kiểm soát truy cập bằng các modifier như `public`, `protected`, package-private và `private`.
+A Java application typically has many packages. Packages help group classes and interfaces by functionality while supporting access control through modifiers such as `public`, `protected`, package-private, and `private`.
 
-Tuy nhiên, package riêng lẻ chưa diễn tả đầy đủ cấu trúc phụ thuộc của toàn ứng dụng. Khi chỉ dùng classpath, thư viện có thể được tìm thấy mà không có một khai báo module rõ ràng cho biết thành phần nào phụ thuộc vào thành phần nào. Các kiểu `public` trong package công khai cũng có thể trở thành bề mặt sử dụng rộng hơn dự kiến.
+However, packages alone do not fully express the dependency structure of an entire application. When using only the classpath, libraries can be discovered without an explicit module declaration stating which component depends on which component. `public` types in public packages can also end up with a broader usage surface than intended.
 
-JPMS đưa ra cấp tổ chức cao hơn:
+JPMS introduces a higher level of organization:
 
-- **Package** nhóm các kiểu Java có liên quan.
-- **Module** nhóm một hoặc nhiều package và có một tên module.
-- **Module descriptor** khai báo tên module, phụ thuộc và các package được xuất ra ngoài.
-- **Module path** là nơi Java tìm các module khi biên dịch hoặc chạy ứng dụng modular.
+- **Package** groups related Java types.
+- **Module** groups one or more packages and has a module name.
+- **Module descriptor** declares the module name, dependencies, and packages exported externally.
+- **Module path** is where Java searches for modules when compiling or running a modular application.
 
-Một module được đặt tên thường có file `module-info.java` ở gốc mã nguồn module. Khi biên dịch, file này trở thành `module-info.class` trong module đã biên dịch; khi đóng gói thành modular JAR, descriptor được đặt ở gốc JAR.
+A named module usually has a `module-info.java` file at the root of the module's source code. When compiled, this file becomes `module-info.class` in the compiled module; when packaged into a modular JAR, the descriptor is placed at the root of the JAR.
 
-Module không thay thế package. Package vẫn tổ chức class bên trong module; module tạo ranh giới phụ thuộc và khả năng truy cập giữa các nhóm package.
+Modules do not replace packages. Packages still organize classes inside a module; modules establish dependency and accessibility boundaries between groups of packages.
 
-## 2. Module descriptor mô tả ranh giới
+## 2. The module descriptor describes boundaries
 
-Ví dụ một module tên `com.acme.model`:
+Example of a module named `com.acme.model`:
 
 ```java
 module com.acme.model {
@@ -31,28 +31,28 @@ module com.acme.model {
 }
 ```
 
-Đoạn khai báo này có nghĩa:
+This declaration means:
 
-- Tên module là `com.acme.model`.
-- Module có thể chứa nhiều package.
-- Package `com.acme.model.api` được xuất để module khác có thể sử dụng các kiểu công khai trong package đó.
-- Những package khác của module không tự động trở thành API bên ngoài.
+- The module name is `com.acme.model`.
+- The module can contain multiple packages.
+- The `com.acme.model.api` package is exported so other modules can use public types in that package.
+- Other packages of the module do not automatically become external API.
 
-Tên module thường dùng dạng tên đảo ngược theo miền để giảm xung đột tên, chẳng hạn `com.acme.model`. Đây là quy ước đặt tên, không có nghĩa tên module bắt buộc phải trùng với tên package.
+Module names typically use reverse domain name notation to reduce name collisions, such as `com.acme.model`. This is a naming convention; it does not mean a module name is required to match a package name.
 
-Module có thể khai báo nhiều package bằng nhiều chỉ thị `exports`. Nếu không khai báo `exports` cho package nào, các package đó không được module khác truy cập theo cách thông thường ở thời điểm biên dịch.
+A module can declare multiple packages using multiple `exports` directives. If no `exports` declaration is provided for a package, other modules cannot access it in the ordinary way at compile time.
 
-Mọi module đều đọc được module nền tảng `java.base` một cách ngầm định. Vì vậy, descriptor không cần viết `requires java.base;` trong các ví dụ thông thường.
+Every module implicitly reads the foundational `java.base` module. Therefore, descriptors do not need to write `requires java.base;` in ordinary examples.
 
-## 3. Đóng gói: gom những gì thuộc cùng một module
+## 3. Encapsulation: grouping what belongs to the same module
 
-Giả sử hệ thống quản lý khách hàng có ba phần:
+Suppose a customer management system has three parts:
 
-- `com.acme.model`: mô hình dữ liệu khách hàng.
-- `com.acme.service`: nghiệp vụ tra cứu khách hàng.
-- `com.acme.app`: chương trình khởi chạy và giao diện dòng lệnh.
+- `com.acme.model`: customer data model.
+- `com.acme.service`: customer lookup business logic.
+- `com.acme.app`: launcher program and command-line interface.
 
-Cấu trúc mã nguồn có thể như sau:
+The source code structure can look like this:
 
 ```text
 src/
@@ -72,15 +72,15 @@ src/
         └── Main.java
 ```
 
-Mỗi thư mục con trực tiếp của `src` là một module nguồn. Bên trong module, các thư mục tiếp tục biểu diễn cấu trúc package.
+Each direct subdirectory of `src` is a source module. Inside a module, directories continue to represent the package structure.
 
-Module `com.acme.service` chứa cả `api` và `internal`. Hai package thuộc cùng module nên code trong module có thể phối hợp sử dụng chúng theo quy tắc truy cập Java. Chỉ package `api` được xuất; package `internal` là chi tiết triển khai.
+The `com.acme.service` module contains both `api` and `internal`. Both packages belong to the same module, so code within the module can collaborate using them according to Java access rules. Only the `api` package is exported; the `internal` package is an implementation detail.
 
-Đóng gói theo module giúp người đọc nhận ra phần nào thuộc cùng một thành phần, đồng thời cho phép build và phân phối thành phần đó như một module riêng. Một modular JAR có thể chứa các package của module cùng descriptor của nó.
+Module-level encapsulation helps readers recognize which parts belong to the same component, while allowing that component to be built and distributed as a separate module. A modular JAR can contain the module's packages together with its descriptor.
 
-## 4. Khai báo phụ thuộc bằng `requires`
+## 4. Declaring dependencies with `requires`
 
-Một module chỉ có thể sử dụng các module mà nó đọc được. Chỉ thị `requires` khai báo một phụ thuộc trực tiếp:
+A module can only use modules that it reads. The `requires` directive declares a direct dependency:
 
 ```java
 module com.acme.service {
@@ -89,18 +89,18 @@ module com.acme.service {
 }
 ```
 
-Ở đây, `com.acme.service` cần `com.acme.model`. Khi biên dịch và chạy, Java phải tìm được module được yêu cầu trong module graph. Nếu một phụ thuộc bắt buộc không thể được tìm thấy hoặc module không thể được phân giải, ứng dụng không thể khởi động theo cấu hình đó.
+Here, `com.acme.service` needs `com.acme.model`. At compile time and runtime, Java must find the required module in the module graph. If a mandatory dependency cannot be found or a module cannot be resolved, the application cannot start under that configuration.
 
-Cần phân biệt hai khái niệm:
+Two concepts must be distinguished:
 
-- `import` trong file Java giúp viết tên kiểu ngắn hơn, ví dụ `import com.acme.model.api.Customer;`.
-- `requires` trong `module-info.java` khai báo quan hệ phụ thuộc và khả năng đọc giữa các module.
+- `import` in a Java file allows writing shorter type names, such as `import com.acme.model.api.Customer;`.
+- `requires` in `module-info.java` declares the dependency and readability relationship between modules.
 
-Một lệnh `import` không tự tạo phụ thuộc module. Muốn sử dụng kiểu từ module khác, module hiện tại phải có khả năng đọc module chứa kiểu đó và package chứa kiểu phải được xuất phù hợp.
+An `import` statement does not by itself create a module dependency. To use a type from another module, the current module must be able to read the module containing that type and the package containing the type must be appropriately exported.
 
 ### `requires transitive`
 
-Nếu kiểu của module A xuất hiện trong API công khai của module B, module C sử dụng B có thể cần đọc A để làm việc với API đó. Khi ấy B có thể khai báo:
+If a type from module A appears in the public API of module B, module C using B may need to read A to work with that API. In that case, B can declare:
 
 ```java
 module com.acme.service {
@@ -109,23 +109,23 @@ module com.acme.service {
 }
 ```
 
-`requires transitive` có nghĩa module đọc `com.acme.service` cũng được truyền khả năng đọc tới `com.acme.model`. Chỉ dùng nó khi phụ thuộc đó thực sự là một phần của API mà module muốn cung cấp cho người dùng.
+`requires transitive` means a module reading `com.acme.service` is also granted readability to `com.acme.model`. Only use it when that dependency is genuinely part of the API that the module intends to provide to consumers.
 
-Một số chỉ thị liên quan:
+Related directives:
 
-| Chỉ thị | Ý nghĩa |
+| Directive | Meaning |
 |---|---|
-| `requires module.name;` | Khai báo phụ thuộc bắt buộc trực tiếp |
-| `requires transitive module.name;` | Khai báo phụ thuộc và truyền khả năng đọc tới module phụ thuộc cho các module đọc module hiện tại |
-| `requires static module.name;` | Phụ thuộc cần có khi biên dịch nhưng có thể không cần hiện diện lúc chạy |
+| `requires module.name;` | Declares a direct mandatory dependency |
+| `requires transitive module.name;` | Declares a dependency and propagates readability of the dependency module to modules that read the current module |
+| `requires static module.name;` | A dependency required at compile time that may be absent at runtime |
 
-Không nên thêm `transitive` cho mọi phụ thuộc. Nếu một thư viện chỉ được dùng bên trong phần triển khai và không xuất hiện trong API công khai, `requires` thông thường thường thể hiện ý định rõ hơn.
+You should not add `transitive` to every dependency. If a library is only used inside the implementation and does not appear in the public API, plain `requires` usually expresses the intent more clearly.
 
-## 5. Ẩn package bằng `exports`
+## 5. Hiding packages with `exports`
 
-Điểm quan trọng của JPMS là package không tự động công khai chỉ vì bên trong có class `public`.
+An important point of JPMS is that a package is not automatically public just because it contains a `public` class.
 
-Ví dụ module `com.acme.service` chỉ xuất package API:
+For example, the `com.acme.service` module exports only its API package:
 
 ```java
 module com.acme.service {
@@ -134,7 +134,7 @@ module com.acme.service {
 }
 ```
 
-Module có thể chứa hai package:
+The module can contain two packages:
 
 ```text
 com.acme.service.api
@@ -144,41 +144,41 @@ com.acme.service.internal
     CustomerRepository.java
 ```
 
-Các kiểu `public` trong `com.acme.service.api` có thể được module khác sử dụng vì package này được xuất. Các kiểu trong `com.acme.service.internal` vẫn nằm bên trong ranh giới module, dù một class trong đó được khai báo `public`.
+`public` types in `com.acme.service.api` can be used by other modules because this package is exported. Types in `com.acme.service.internal` remain inside the module boundary, even if a class in it is declared `public`.
 
-Ví dụ:
+Example:
 
 ```java
 package com.acme.service.internal;
 
 public class CustomerRepository {
-    // Chi tiết truy cập dữ liệu nội bộ của service.
+    // Internal data access details of the service.
 }
 ```
 
-Một module bên ngoài không thể chỉ vì thấy class có modifier `public` mà import và sử dụng `CustomerRepository`. Package chứa class chưa được xuất khỏi module.
+An external module cannot import and use `CustomerRepository` merely because the class has the `public` modifier. The package containing the class has not been exported from the module.
 
-Cần nhớ ba tầng kiểm soát khác nhau:
+Three distinct layers of access control should be remembered:
 
-1. **Module export:** module khác có được phép truy cập package hay không.
-2. **Package và class access:** trong package đã được xuất, các modifier Java vẫn quyết định kiểu và thành viên nào truy cập được.
-3. **Object access:** `private`, `protected` và các quy tắc truy cập thành viên vẫn có hiệu lực như bình thường.
+1. **Module export:** whether other modules are allowed to access the package.
+2. **Package and class access:** within an exported package, Java modifiers still determine which types and members are accessible.
+3. **Object access:** `private`, `protected`, and member access rules remain in effect as usual.
 
-Vì vậy, `exports` không biến mọi thành viên thành `public`; nó mở package ở ranh giới module, sau đó các quy tắc truy cập Java tiếp tục được áp dụng.
+Therefore, `exports` does not make every member `public`; it opens the package at the module boundary, after which Java's access rules continue to apply.
 
-Có thể xuất package cho một module cụ thể bằng qualified export:
+A package can be exported to a specific module using a qualified export:
 
 ```java
 exports com.acme.service.internal to com.acme.test;
 ```
 
-Khi đó package được xuất có giới hạn cho module `com.acme.test`, thay vì công khai cho mọi module đọc được module hiện tại. Cách này hữu ích khi cần cho một module tích hợp hoặc kiểm thử truy cập một API đặc biệt.
+In that case, the package is exported restrictively to the `com.acme.test` module, rather than publicly to every module that can read the current module. This approach is useful when an integration or test module needs access to a special API.
 
-## 6. `opens`: cho phép reflection truy cập sâu
+## 6. `opens`: allowing deep reflection access
 
-`exports` phục vụ khả năng truy cập API ở mức biên dịch và sử dụng kiểu thông thường. Một số framework lại cần reflection để kiểm tra hoặc truy cập thành viên không công khai, chẳng hạn framework ánh xạ object, dependency injection hoặc thư viện tuần tự hóa.
+`exports` serves compile-time API accessibility and normal type usage. Some frameworks, however, need reflection to inspect or access non-public members, such as object-mapping frameworks, dependency injection, or serialization libraries.
 
-Đối với trường hợp đó, JPMS có `opens`:
+For that case, JPMS provides `opens`:
 
 ```java
 module com.acme.model {
@@ -187,18 +187,18 @@ module com.acme.model {
 }
 ```
 
-Chỉ thị `opens` cho phép module `com.acme.mapper` truy cập sâu bằng reflection vào package `com.acme.model.internal`, trong phạm vi các quy tắc reflection và quyền truy cập của Java.
+The `opens` directive allows the `com.acme.mapper` module deep reflective access to the `com.acme.model.internal` package, within the bounds of Java's reflection and access rules.
 
-Hai chỉ thị có mục đích khác nhau:
+The two directives have different purposes:
 
-| Chỉ thị | Mục đích | Dùng khi |
+| Directive | Purpose | Use when |
 |---|---|---|
-| `exports` | Cho module khác sử dụng kiểu công khai trong package | Package là API mà module muốn cung cấp |
-| `opens` | Cho phép truy cập sâu bằng reflection ở runtime | Framework cần đọc hoặc truy cập thành viên qua reflection |
+| `exports` | Allows other modules to use public types in the package | The package is an API the module wants to provide |
+| `opens` | Allows deep reflective access at runtime | A framework needs to read or access members via reflection |
 
-Có thể dùng `opens package.name;` để mở package cho reflection từ các module khác. Nếu viết `opens package.name to framework.module;`, quyền mở được giới hạn cho module được nêu.
+You can use `opens package.name;` to open a package for reflection from other modules. If written as `opens package.name to framework.module;`, the open permission is restricted to the named module.
 
-Cú pháp `open module` mở tất cả package của module cho deep reflection:
+The `open module` syntax opens all packages of the module for deep reflection:
 
 ```java
 open module com.acme.legacy {
@@ -206,13 +206,13 @@ open module com.acme.legacy {
 }
 ```
 
-`open module` không đồng nghĩa với việc xuất tất cả package như `exports`. Nó phục vụ reflection; module khác vẫn không có API package công khai để import các kiểu nội bộ theo cách thông thường.
+`open module` is not equivalent to exporting all packages like `exports`. It serves reflection; other modules still do not get public API packages to import internal types in the ordinary way.
 
-Hãy mở đúng package và đúng module cần thiết. Mở toàn bộ module có thể làm giảm lợi ích đóng gói mà JPMS mang lại.
+Open only the exact packages and exact modules needed. Opening an entire module can diminish the encapsulation benefits that JPMS brings.
 
-## 7. Ví dụ hoàn chỉnh với ba module
+## 7. Complete example with three modules
 
-Các file dưới đây kết hợp phụ thuộc, API công khai và package nội bộ.
+The files below combine dependencies, public APIs, and internal packages.
 
 **Module `com.acme.model`:**
 
@@ -232,7 +232,7 @@ package com.acme.model.api;
 public record Customer(String id, String name) {}
 ```
 
-Module model chỉ xuất package `com.acme.model.api`.
+The model module exports only the `com.acme.model.api` package.
 
 **Module `com.acme.service`:**
 
@@ -277,9 +277,9 @@ public class CustomerService {
 }
 ```
 
-Service cần model để tạo và trả về `Customer`. Vì `Customer` xuất hiện trong kiểu trả về của API `CustomerService.find`, descriptor dùng `requires transitive` để module sử dụng service có thể đọc model qua service.
+Service needs model to construct and return `Customer`. Because `Customer` appears in the return type of the `CustomerService.find` API, the descriptor uses `requires transitive` so that modules using service can read model through service.
 
-Package `com.acme.service.internal` không được xuất. `CustomerService` trong cùng module vẫn có thể sử dụng `CustomerRepository`, còn module bên ngoài không thể import trực tiếp repository.
+The `com.acme.service.internal` package is not exported. `CustomerService` in the same module can still use `CustomerRepository`, while external modules cannot import the repository directly.
 
 **Module `com.acme.app`:**
 
@@ -307,64 +307,64 @@ public class Main {
 }
 ```
 
-App chỉ khai báo phụ thuộc trực tiếp vào service. Nhờ `requires transitive` trong service, app có thể đọc kiểu `Customer` từ model. Nếu service chỉ khai báo `requires com.acme.model;`, app muốn sử dụng trực tiếp kiểu `Customer` sẽ phải khai báo thêm `requires com.acme.model;`.
+App declares only a direct dependency on service. Thanks to `requires transitive` in service, app can read the `Customer` type from model. If service only declared `requires com.acme.model;`, app wanting to use the `Customer` type directly would also have to declare `requires com.acme.model;`.
 
-Biên dịch cả ba module từ thư mục chứa `src`:
+Compile all three modules from the directory containing `src`:
 
 ```bash
 javac --module-source-path src -d out \
   -m com.acme.model,com.acme.service,com.acme.app
 ```
 
-Chạy ứng dụng:
+Run the application:
 
 ```bash
 java --module-path out \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Kết quả:
+Output:
 
 ```text
 C01 - An
 ```
 
-Ví dụ cho thấy module app gọi API của service, service dùng package nội bộ của chính nó và model cung cấp kiểu dữ liệu được xuất công khai. Các quan hệ này được mô tả bằng descriptor thay vì phụ thuộc hoàn toàn vào quy ước của nhóm phát triển.
+The example shows the app module calling the service API, service using its own internal package, and model providing publicly exported data types. These relationships are described by descriptors rather than relying solely on development team conventions.
 
-## 8. Điều gì xảy ra khi module vi phạm ranh giới?
+## 8. What happens when a module violates boundaries?
 
-Nếu app cố import:
+If app tries to import:
 
 ```java
 import com.acme.service.internal.CustomerRepository;
 ```
 
-trong khi `com.acme.service` không xuất package `com.acme.service.internal`, thao tác sử dụng kiểu này từ module app sẽ bị từ chối khi biên dịch hoặc khi phân giải quyền truy cập module. Việc class `CustomerRepository` được khai báo `public` không vượt qua được ranh giới module.
+while `com.acme.service` does not export the `com.acme.service.internal` package, using this type from the app module will be rejected at compile time or when resolving module access permissions. Having `CustomerRepository` declared `public` cannot bypass the module boundary.
 
-Nếu module app không khai báo khả năng đọc module chứa một kiểu cần dùng, compiler cũng sẽ không coi kiểu đó là API sẵn có của app. Tương tự, nếu module khai báo một phụ thuộc bắt buộc nhưng module đó không có trên module path, quá trình phân giải module sẽ thất bại.
+If the app module does not declare readability to the module containing a needed type, the compiler will also not treat that type as available API for app. Similarly, if a module declares a mandatory dependency but that module is absent from the module path, module resolution will fail.
 
-Một package cũng không nên được chia sẻ đồng thời giữa nhiều named module trong cùng module graph. Hãy để một module sở hữu package và xuất API cần thiết cho các module khác. Điều này giúp tránh split package và làm rõ nơi chịu trách nhiệm cho từng namespace.
+A package should also not be shared simultaneously among multiple named modules in the same module graph. Let one module own the package and export the necessary API to other modules. This helps avoid split packages and clarifies responsibility for each namespace.
 
-Module system hỗ trợ đóng gói và kiểm soát truy cập ở cấp kiến trúc. Nó không phải sandbox bảo mật để chạy mã không đáng tin cậy; không nên coi ranh giới module là cơ chế cô lập an toàn thay cho các biện pháp bảo mật của ứng dụng và môi trường chạy.
+The module system supports architectural encapsulation and access control. It is not a security sandbox for running untrusted code; module boundaries should not be treated as a secure isolation mechanism replacing application and runtime security measures.
 
-## 9. Cách chọn `requires`, `exports` và `opens`
+## 9. How to choose `requires`, `exports`, and `opens`
 
-Khi thiết kế một module, có thể lần lượt tự hỏi:
+When designing a module, you can ask yourself in turn:
 
-1. **Module này cần dùng module nào?** Khai báo `requires` cho phụ thuộc trực tiếp.
-2. **Kiểu của phụ thuộc có xuất hiện trong API công khai không?** Nếu người dùng API cần đọc module phụ thuộc thông qua module hiện tại, cân nhắc `requires transitive`.
-3. **Package nào là API cho module khác?** Chỉ xuất những package cần công khai bằng `exports`.
-4. **Framework có cần reflection sâu vào package nào không?** Chỉ mở package cần thiết bằng `opens`, và giới hạn module nhận quyền nếu có thể.
-5. **Package nào chỉ phục vụ triển khai?** Giữ chúng không được xuất để module khác không phụ thuộc trực tiếp vào chi tiết nội bộ.
+1. **Which modules does this module need to use?** Declare `requires` for direct dependencies.
+2. **Do types from a dependency appear in the public API?** If API consumers need to read the dependency module through the current module, consider `requires transitive`.
+3. **Which packages are API for other modules?** Export only the packages that need to be exposed using `exports`.
+4. **Does a framework need deep reflection into any package?** Open only the necessary packages with `opens`, and restrict recipient modules if possible.
+5. **Which packages are solely for implementation?** Keep them unexported so other modules cannot depend directly on internal details.
 
-Một thiết kế tốt thường có ít package được xuất, phụ thuộc rõ ràng và các package triển khai được giữ trong module sở hữu chúng. Khi cần thay đổi nội bộ, module có thể thay đổi cách cài đặt mà ít ảnh hưởng đến module tiêu thụ API.
+A good design typically has few exported packages, clear dependencies, and implementation packages kept within their owning module. When internal changes are needed, the module can change its implementation with minimal impact on API consumers.
 
-## Ghi nhớ
+## Summary
 
-- **Đóng gói:** module gom các package thuộc cùng một thành phần và có descriptor riêng.
-- **Phụ thuộc:** `requires` khai báo module cần đọc; `requires transitive` truyền khả năng đọc cho người dùng module hiện tại.
-- **Ẩn package:** chỉ package được `exports` mới trở thành API thông thường cho module khác; package không xuất vẫn dùng được bên trong module.
-- **Reflection:** `opens` cho phép truy cập sâu ở runtime, có thể giới hạn cho module cụ thể.
-- **Phân quyền nhiều lớp:** module export, modifier của Java và quyền truy cập thành viên cùng phối hợp tạo nên ranh giới thực tế.
+- **Encapsulation:** a module groups packages belonging to the same component and has its own descriptor.
+- **Dependencies:** `requires` declares modules needed to be read; `requires transitive` propagates readability to users of the current module.
+- **Package hiding:** only packages with `exports` become ordinary API for other modules; unexported packages remain usable inside the module.
+- **Reflection:** `opens` permits deep access at runtime and can be restricted to specific modules.
+- **Layered access control:** module exports, Java modifiers, and member access permissions work together to form the effective boundary.
 
-Khi nhìn vào `module-info.java`, hãy đọc nó như bản đồ kiến trúc của module: module cần gì, công khai package nào và cho phép framework truy cập sâu vào đâu. Đó là cách JPMS giúp hệ thống Java có phụ thuộc minh bạch, API gọn và phần triển khai được đóng kín hơn.
+When looking at `module-info.java`, read it as an architectural map of the module: what the module needs, which packages it exposes, and where it permits frameworks deep access. That is how JPMS helps Java systems have transparent dependencies, clean APIs, and tighter implementation hiding.

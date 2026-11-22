@@ -1,21 +1,21 @@
-# Audit module graph trong pipeline phát hành
+# Auditing the Module Graph in the Release Pipeline
 
-Một ứng dụng Java modular có thể biên dịch thành công nhưng vẫn thất bại khi khởi chạy sau khi đóng gói. Nguyên nhân có thể nằm ở module bị thiếu, dependency bắc cầu không đúng, module provider không được đưa vào runtime, package chưa export hoặc cấu hình module path khác với môi trường build.
+A modular Java application can compile successfully yet still fail to start after packaging. Causes may include missing modules, incorrect transitive dependencies, provider modules excluded from runtime, unexported packages, or a module path configuration that differs from the build environment.
 
-Vì vậy, pipeline phát hành cần kiểm tra **module graph của artifact sẽ được triển khai**, thay vì chỉ kiểm tra file module-info.java trong source. Việc audit phải xác nhận module nào được tìm thấy, module nào được resolve, các quan hệ dependency có hợp lệ và ứng dụng có khởi động được với cấu hình runtime dự kiến hay không.
+Therefore, the release pipeline needs to inspect **the module graph of the artifacts to be deployed**, rather than checking only `module-info.java` files in source. The audit must verify which modules are found, which modules are resolved, whether dependency relationships are valid, and whether the application can start with the expected runtime configuration.
 
-## 1. Phân biệt source dependency graph và runtime module graph
+## 1. Distinguishing the Source Dependency Graph from the Runtime Module Graph
 
-Trong một dự án modular, có nhiều lớp dependency khác nhau:
+In a modular project, there are several distinct dependency layers:
 
-- **Source dependency graph:** các module mà mã nguồn khai báo qua requires, uses và provides.
-- **Observable module set:** các module mà JVM có thể tìm thấy từ system modules, module path và các nguồn module được cấu hình.
-- **Resolved module graph:** các root modules cùng những dependency cần thiết sau quá trình resolution.
-- **Runtime environment:** module graph thực tế cùng classpath, module path, JVM arguments, module layer và các cấu hình khởi chạy.
+- **Source dependency graph:** the modules declared in source code via `requires`, `uses`, and `provides`.
+- **Observable module set:** the modules that the JVM can locate from system modules, the module path, and configured module sources.
+- **Resolved module graph:** the root modules together with required dependencies after resolution.
+- **Runtime environment:** the actual module graph together with classpath, module path, JVM arguments, module layers, and launch configurations.
 
-Các lớp này có liên quan nhưng không giống nhau. Một JAR nằm trên module path có thể observable nhưng chưa được resolve. Một module đã resolve cũng chưa chắc cung cấp đúng method mà bytecode consumer yêu cầu.
+These layers are related but not identical. A JAR on the module path may be observable without being resolved. A resolved module is also not guaranteed to supply the exact methods required by consumer bytecode.
 
-Ví dụ:
+For example:
 
 ~~~text
 com.example.app
@@ -28,66 +28,66 @@ com.example.plugin.audit
     └── requires com.example.api
 ~~~
 
-Nếu app không khai báo dependency tới plugin.audit và không có cơ chế nào đưa plugin vào graph, plugin có thể nằm trên module path nhưng không xuất hiện trong graph được resolve.
+If `app` does not declare a dependency on `plugin.audit` and no mechanism brings the plugin into the graph, the plugin may sit on the module path without appearing in the resolved graph.
 
-Khi phát hành, cần xác định rõ plugin đó là dependency bắt buộc, module tùy chọn hay service provider được lựa chọn theo cấu hình. Không nên chỉ nhìn danh sách JAR trong thư mục phân phối để kết luận runtime đã sử dụng tất cả chúng.
+At release time, clearly determine whether that plugin is a required dependency, an optional module, or a service provider selected by configuration. Do not look only at the list of JARs in the distribution directory and conclude that runtime uses all of them.
 
-## 2. Vì sao cần audit ở pipeline phát hành?
+## 2. Why Audit in the Release Pipeline?
 
-Audit module graph giúp phát hiện sớm các lỗi thường chỉ xuất hiện trên máy triển khai:
+Auditing the module graph catches errors early that otherwise only appear on deployment machines:
 
-- Thiếu module hoặc dependency trong thư mục phân phối.
-- Module name không khớp với requires.
-- Dependency bắc cầu thay đổi sau khi nâng phiên bản thư viện.
-- Package cần dùng không được export.
-- Module provider không được resolve hoặc service không được phát hiện.
-- Module path hoặc JVM arguments của production khác môi trường kiểm thử.
-- Hai artifact cùng khai báo một module name hoặc chứa package xung đột.
-- Module runtime không tương thích với bytecode consumer đã biên dịch.
-- Package được opens quá rộng hoặc không đúng module đích.
-- Ứng dụng phụ thuộc vào classpath hoặc JDK internals mà bản phát hành không còn cung cấp.
+- Missing modules or dependencies in the distribution directory.
+- Module name mismatch with `requires`.
+- Transitive dependencies changing after a library version upgrade.
+- Needed packages not being exported.
+- Provider modules not being resolved or services not being discovered.
+- Production module path or JVM arguments differing from the test environment.
+- Two artifacts declaring the same module name or containing conflicting packages.
+- Runtime modules incompatible with compiled consumer bytecode.
+- Packages opened too broadly via `opens` or to the wrong target modules.
+- Application depending on classpath or JDK internals no longer provided by the release runtime.
 
-Một build xanh chỉ chứng minh những bước đã chạy trong build thành công. Nếu pipeline không kiểm tra runtime image hoặc tập artifact phát hành, nó chưa chứng minh module graph triển khai hợp lệ.
+A green build only proves that the steps executed in the build succeeded. If the pipeline does not inspect the runtime image or release artifact set, it has not proven that the deployed module graph is valid.
 
-## 3. Xác định đầu vào của một lần audit
+## 3. Defining Inputs for an Audit
 
-Trước khi chạy công cụ, cần cố định các đầu vào sau:
+Before running tools, pin down the following inputs:
 
-| Đầu vào | Cần xác định |
+| Input | What to Specify |
 | --- | --- |
-| JDK | Phiên bản JDK dùng để biên dịch và chạy kiểm thử |
-| Application module | Module khởi động chính |
-| Module path | Thư mục hoặc JAR chứa các named module |
-| Classpath | Các thư viện còn chạy trên unnamed module, nếu có |
-| Root modules | Module khởi động và các module bổ sung bằng --add-modules |
-| Module limit | Có dùng --limit-modules hay không |
-| Module patch/upgrade | Có dùng --patch-module hoặc --upgrade-module-path không |
-| Runtime flags | Các tùy chọn --add-reads, --add-exports và --add-opens |
-| Service declarations | Các module khai báo uses và provides |
-| Artifact manifest | Danh sách file, module name, version metadata và checksum |
+| JDK | JDK version used for compiling and running tests |
+| Application module | Main startup module |
+| Module path | Directories or JARs containing named modules |
+| Classpath | Libraries still running in the unnamed module, if any |
+| Root modules | Startup module and modules added via `--add-modules` |
+| Module limit | Whether `--limit-modules` is used |
+| Module patch/upgrade | Whether `--patch-module` or `--upgrade-module-path` is used |
+| Runtime flags | `--add-reads`, `--add-exports`, and `--add-opens` options |
+| Service declarations | Modules declaring `uses` and `provides` |
+| Artifact manifest | File list, module names, version metadata, and checksums |
 
-Đầu vào phải phản ánh cấu hình sẽ dùng để chạy bản phát hành. Nếu production có thêm một JVM argument hoặc một thư mục module path mà CI không biết, kết quả audit sẽ không đại diện cho production.
+Inputs must reflect the configuration that will run the release. If production adds a JVM argument or a module path directory unknown to CI, audit results will not represent production.
 
-Nên lưu lại command line hoặc cấu hình khởi chạy đã được chuẩn hóa để các lần build có thể tái lập.
+Save the standardized command line or launch configuration so builds remain reproducible.
 
-## 4. Kiểm tra descriptor của từng module artifact
+## 4. Inspecting the Descriptor of Each Module Artifact
 
-Dùng công cụ jar để xem module descriptor được đóng gói trong artifact:
+Use the `jar` tool to view the module descriptor packaged inside the artifact:
 
 ~~~shell
 jar --describe-module --file build/dist/com.example.api.jar
 ~~~
 
-Kết quả giúp xác nhận:
+The output helps confirm:
 
-- Tên module.
-- Version metadata nếu có.
-- Các package được export.
-- Các package được opens.
-- requires, uses và provides.
-- Module là explicit, automatic hoặc dạng phù hợp với artifact.
+- Module name.
+- Version metadata, if present.
+- Exported packages.
+- Opened packages (`opens`).
+- `requires`, `uses`, and `provides`.
+- Whether the module is explicit, automatic, or matches the artifact format.
 
-Ví dụ descriptor:
+Example descriptor:
 
 ~~~java
 module com.example.api {
@@ -109,67 +109,67 @@ module com.example.audit.provider {
 }
 ~~~
 
-Consumer khai báo uses cho service mà nó cần. Provider khai báo provides để đăng ký implementation. Các khai báo này cần được kiểm tra cùng với việc provider có được đưa vào runtime graph và được service loading phát hiện hay không.
+The consumer declares `uses` for the service it needs. The provider declares `provides` to register an implementation. These declarations must be checked alongside whether the provider is brought into the runtime graph and discovered by service loading.
 
-Không nên chỉ kiểm tra source module-info.java. Hãy kiểm tra descriptor bên trong JAR cuối cùng, vì artifact có thể được tạo, thay thế hoặc đóng gói lại trong một bước khác.
+Do not inspect only source `module-info.java`. Inspect the descriptor inside the final JAR, because artifacts can be generated, replaced, or repackaged in another step.
 
-## 5. Kiểm tra dependency bằng jdeps
+## 5. Checking Dependencies with `jdeps`
 
-jdeps phân tích dependency của class và module. Công cụ này giúp tìm module được tham chiếu, dependency thiếu và sự khác biệt giữa descriptor với các dependency mà bytecode thực sự sử dụng.
+`jdeps` analyzes class and module dependencies. This tool helps find referenced modules, missing dependencies, and discrepancies between descriptors and dependencies actually used by bytecode.
 
-### Liệt kê dependency của artifact
+### Listing Artifact Dependencies
 
 ~~~shell
 jdeps --module-path build/dist --list-deps build/dist/com.example.app.jar
 ~~~
 
-Lệnh này hiển thị các module dependency mà jdeps phát hiện từ artifact và module path được cung cấp.
+This command displays module dependencies detected by `jdeps` from the artifact and the provided module path.
 
-### In danh sách module dependency
+### Printing the Module Dependency List
 
 ~~~shell
 jdeps --module-path build/dist --print-module-deps build/dist/com.example.app.jar
 ~~~
 
-Kết quả là danh sách tên module phân cách bằng dấu phẩy. Có thể dùng kết quả này làm dữ liệu tham khảo khi tạo runtime image hoặc đối chiếu với danh sách module mong đợi.
+The output is a comma-separated list of module names. This output can serve as reference data when creating a runtime image or comparing against the expected module list.
 
-### Kiểm tra descriptor của named module
+### Checking a Named Module's Descriptor
 
 ~~~shell
 jdeps --module-path build/dist --check com.example.app
 ~~~
 
-Tùy chọn --check phân tích module được chỉ định, hiển thị descriptor và dependency của module để hỗ trợ phát hiện sự không nhất quán trong module declaration.
+The `--check` option analyzes the specified module, showing its descriptor and dependencies to help uncover inconsistencies in module declarations.
 
-Nếu pipeline audit nhiều module, hãy chạy kiểm tra cho từng module ứng dụng hoặc module quan trọng, đồng thời giữ kết quả theo từng artifact.
+If the pipeline audits multiple modules, run checks for each application module or critical module and retain results per artifact.
 
-### Kiểm tra API và dependency của JDK
+### Checking JDK APIs and Dependencies
 
-Có thể dùng:
+You can use:
 
 ~~~shell
 jdeps --module-path build/dist --api-only build/dist/com.example.app.jar
 ~~~
 
-Hoặc kiểm tra việc sử dụng JDK internal APIs:
+Or check usage of JDK internal APIs:
 
 ~~~shell
 jdeps --jdk-internals build/dist/com.example.app.jar
 ~~~
 
-jdeps là công cụ phân tích bytecode tĩnh. Nó không thể phát hiện đầy đủ mọi dependency được nạp động qua reflection, tên class được đọc từ cấu hình, custom class loader hoặc service discovery ở runtime. Các dependency động phải được bổ sung vào danh sách audit và kiểm thử tích hợp.
+`jdeps` is a static bytecode analysis tool. It cannot fully detect dependencies loaded dynamically via reflection, class names read from configuration, custom class loaders, or runtime service discovery. Dynamic dependencies must be added to the audit list and integration tests.
 
-## 6. Xác thực tập module observable và resolution
+## 6. Validating Observable Modules and Resolution
 
-Sau khi chuẩn bị module path, có thể yêu cầu JVM xác thực các module tìm thấy:
+After preparing the module path, you can ask the JVM to validate the discovered modules:
 
 ~~~shell
 java --module-path build/dist --validate-modules
 ~~~
 
-Tùy chọn --validate-modules yêu cầu JVM xác thực module trong cấu hình observable rồi thoát. Đây là một bước kiểm tra hữu ích để phát hiện lỗi module configuration trước khi chạy ứng dụng.
+The `--validate-modules` option asks the JVM to validate modules in the observable configuration and exit. This is a useful check to detect module configuration errors before running the application.
 
-Tiếp theo, khởi chạy module chính và hiển thị quá trình resolution:
+Next, launch the main module and display the resolution process:
 
 ~~~shell
 java \
@@ -178,14 +178,14 @@ java \
   --module com.example.app/com.example.app.Main
 ~~~
 
-Output giúp quan sát:
+The output helps observe:
 
-- Module nào được resolve.
-- Dependency nào được yêu cầu.
-- Nguồn module được sử dụng trong quá trình resolution.
-- Các service binding hoặc module liên quan được runtime đưa vào graph theo cấu hình.
+- Which modules are resolved.
+- Which dependencies are required.
+- Which module sources are used during resolution.
+- Which service bindings or related modules are brought into the graph by runtime configuration.
 
-Nếu ứng dụng cần module tùy chọn làm root, hãy đưa đúng tùy chọn đó vào audit:
+If the application needs an optional module as a root, include that exact option in the audit:
 
 ~~~shell
 java \
@@ -195,33 +195,33 @@ java \
   --module com.example.app/com.example.app.Main
 ~~~
 
-Không nên dùng ALL-MODULE-PATH trong audit nếu production chỉ resolve một tập module xác định. Audit phải tái hiện cấu hình thực tế, nếu không có thể kiểm tra một graph khác với graph được phát hành.
+Do not use `ALL-MODULE-PATH` in the audit if production only resolves a specific set of modules. The audit must reproduce the actual configuration; otherwise it may validate a different graph from the one released.
 
-## 7. Kiểm tra các quan hệ requires và package boundary
+## 7. Checking `requires` Relationships and Package Boundaries
 
-Một module graph hợp lệ vẫn có thể không đáp ứng contract truy cập của ứng dụng.
+A valid module graph may still fail to satisfy the application's access contract.
 
-Cần kiểm tra các khai báo:
+Check declarations:
 
-- requires: module cần đọc module khác.
-- requires transitive: dependency được truyền tiếp tới các module đọc module này.
-- requires static: dependency cần lúc biên dịch nhưng có thể không bắt buộc ở runtime.
-- exports: package công khai cho module khác.
-- opens: package mở cho deep reflection.
-- uses: module tiêu thụ service.
-- provides: module cung cấp implementation cho service.
+- `requires`: module needs to read another module.
+- `requires transitive`: dependency forwarded to modules reading this module.
+- `requires static`: dependency needed at compile time that may be optional at runtime.
+- `exports`: package exposed to other modules.
+- `opens`: package opened for deep reflection.
+- `uses`: module consumes a service.
+- `provides`: module supplies an implementation for a service.
 
-Đặc biệt, cần xem các kiểu trong public API có đến từ module được khai báo phù hợp hay không. Nếu API của một module export kiểu thuộc dependency khác, quan hệ requires có thể cần transitive để consumer sử dụng API một cách đúng đắn.
+In particular, verify whether types in a public API come from properly declared dependencies. If a module's API exports types belonging to another dependency, the `requires` relationship may need `transitive` so consumers can use the API properly.
 
-Với requires static, pipeline nên xác định module đó có thật sự cần trong production hay chỉ phục vụ compile-time. Nếu một tính năng tùy chọn được kích hoạt ở runtime nhưng dependency tương ứng bị thiếu, ứng dụng có thể gặp lỗi khi thực hiện tính năng đó.
+For `requires static`, the pipeline should determine whether that module is genuinely needed in production or only at compile time. If an optional feature is enabled at runtime while its corresponding dependency is missing, the application may fail when executing that feature.
 
-Với opens, kiểm tra đúng package và đúng module đích. Không nên đưa một cờ --add-opens rộng vào cấu hình chung chỉ để làm cho smoke test chạy qua.
+For `opens`, verify the exact package and exact target module. Do not put a broad `--add-opens` flag into shared configuration merely to get smoke tests to pass.
 
-## 8. Kiểm tra service provider và module tùy chọn
+## 8. Checking Service Providers and Optional Modules
 
-ServiceLoader là một phần quan trọng của ứng dụng modular có plugin hoặc adapter.
+`ServiceLoader` is an important part of modular applications with plugins or adapters.
 
-Ví dụ service API:
+Example service API:
 
 ~~~java
 module com.example.audit.api {
@@ -242,15 +242,15 @@ module com.example.audit.file {
 }
 ~~~
 
-Một pipeline chỉ kiểm tra module app và audit.api có thể bỏ sót provider nếu provider không được đưa vào graph hoặc artifact phân phối không chứa nó.
+A pipeline that only checks `app` and `audit.api` modules may miss the provider if the provider is not brought into the graph or is omitted from distribution artifacts.
 
-Hãy kiểm tra theo ba lớp:
+Check across three layers:
 
-1. Descriptor của provider có khai báo provides đúng service type không?
-2. Provider module có nằm trong tập module observable và được resolve theo cấu hình không?
-3. Runtime test có thực sự tìm được provider bằng ServiceLoader không?
+1. Does the provider's descriptor declare `provides` for the right service type?
+2. Is the provider module in the observable module set and resolved per configuration?
+3. Does the runtime test actually discover the provider via `ServiceLoader`?
 
-Ví dụ kiểm thử:
+Test example:
 
 ~~~java
 long providerCount =
@@ -265,11 +265,11 @@ if (providerCount == 0) {
 }
 ~~~
 
-Nếu provider là tùy chọn, kiểm thử cần phản ánh chính sách của ứng dụng: không có provider có phải là trạng thái hợp lệ hay là lỗi phát hành. Không nên ép mọi môi trường phải có tất cả provider nếu kiến trúc cho phép lựa chọn theo cấu hình.
+If the provider is optional, tests should reflect application policy: whether having zero providers is a valid state or a release failure. Do not force every environment to include all providers if the architecture allows selecting them by configuration.
 
-## 9. Tạo một bước audit trong CI
+## 9. Creating an Audit Step in CI
 
-Một pipeline có thể chia thành các bước sau:
+A pipeline can be divided into the following steps:
 
 ~~~text
 Compile
@@ -302,7 +302,7 @@ Generate audit evidence
 Publish release artifact
 ~~~
 
-Ví dụ script Bash tối giản:
+Minimal Bash script example:
 
 ~~~shell
 #!/usr/bin/env bash
@@ -343,15 +343,15 @@ java \
   > "$AUDIT/runtime-resolution.txt" 2>&1
 ~~~
 
-Script trên minh họa cấu trúc kiểm tra. Tên JAR, main class, module path và JVM arguments phải được điều chỉnh theo artifact thực tế. Nếu ứng dụng dùng classpath, --add-modules, --add-reads, --add-opens hoặc custom runtime image, hãy đưa chính cấu hình đó vào bước audit.
+The script above illustrates the check structure. JAR names, main class, module path, and JVM arguments must be tailored to actual artifacts. If the application uses a classpath, `--add-modules`, `--add-reads`, `--add-opens`, or a custom runtime image, include that exact configuration in the audit step.
 
-Trong CI thực tế, nên chia kết quả thành các file riêng để reviewer dễ tìm nguyên nhân. Một lệnh thất bại phải làm pipeline dừng trước khi publish artifact.
+In real CI, split outputs into separate files so reviewers can easily locate causes. A failed command must stop the pipeline before publishing artifacts.
 
-## 10. Đưa audit vào Gradle pipeline
+## 10. Integrating the Audit into a Gradle Pipeline
 
-Với Gradle Java plugin, có thể tạo một task phụ thuộc vào artifact đã đóng gói. Ý tưởng là audit JAR thực tế sau khi task jar hoàn tất, không chỉ chạy javac trên source.
+With the Gradle Java plugin, you can create a task depending on the packaged artifact. The idea is to audit the actual JAR after the `jar` task completes, rather than only running `javac` on sources.
 
-Ví dụ cấu hình minh họa:
+Illustrative configuration example:
 
 ~~~groovy
 tasks.register('auditModuleDescriptor') {
@@ -369,20 +369,20 @@ tasks.register('auditModuleDescriptor') {
 }
 ~~~
 
-Có thể bổ sung các task riêng cho:
+Separate tasks can be added for:
 
-- jdeps --check trên module ứng dụng.
-- jdeps --print-module-deps để lưu danh sách dependency.
-- java --validate-modules trên thư mục release module path.
-- Smoke test chạy bằng cùng JDK và JVM arguments với production.
+- `jdeps --check` on the application module.
+- `jdeps --print-module-deps` to save the dependency list.
+- `java --validate-modules` on the release module path directory.
+- Smoke tests run with the exact same JDK and JVM arguments as production.
 
-Nếu là Gradle multi-project, cần tập hợp đúng runtime artifacts của module ứng dụng và các dependency. Không nên dùng toàn bộ JAR trong cache Gradle làm module path vì cache có thể chứa nhiều phiên bản hoặc artifact không được phát hành cùng ứng dụng.
+For Gradle multi-project builds, gather the exact runtime artifacts of the application module and its dependencies. Do not use all JARs in the Gradle cache as the module path because the cache may contain multiple versions or artifacts not released with the application.
 
-Các task audit cần dùng artifact đã được resolve theo configuration dành cho runtime, không tự suy đoán từ tên thư mục hoặc dependency khai báo ở compile time.
+Audit tasks should use artifacts resolved via the runtime configuration rather than guessing from directory names or compile-time declared dependencies.
 
-## 11. Tạo bằng chứng audit gắn với release
+## 11. Generating Audit Evidence Tied to the Release
 
-Kết quả audit cần gắn với đúng bộ artifact được phát hành. Một thư mục evidence có thể gồm:
+Audit results should be bound to the exact set of artifacts released. An evidence directory might include:
 
 ~~~text
 module-audit/
@@ -396,57 +396,57 @@ module-audit/
 └── smoke-test-result.txt
 ~~~
 
-Nên ghi nhận:
+Record:
 
-- Commit hoặc source revision tạo artifact.
-- JDK vendor và version.
-- Tên, version metadata và checksum của từng modular JAR.
-- Module path hoặc runtime image đã kiểm tra.
-- Root module và JVM arguments được sử dụng.
-- Kết quả descriptor, jdeps, validation và smoke test.
-- Các module tùy chọn hoặc provider được bật trong từng profile.
+- Commit or source revision that produced the artifact.
+- JDK vendor and version.
+- Name, version metadata, and checksum of each modular JAR.
+- Inspected module path or runtime image.
+- Root modules and JVM arguments used.
+- Descriptor, `jdeps`, validation, and smoke test results.
+- Optional modules or providers enabled in each profile.
 
-Checksum giúp liên kết evidence với đúng artifact. Nếu JAR được thay thế sau khi audit, evidence cũ không còn chứng minh cho artifact mới.
+Checksums bind evidence to the exact artifact. If a JAR is replaced after the audit, the old evidence no longer proves anything for the new artifact.
 
-Có thể dùng SHA-256 để tạo manifest:
+SHA-256 can be used to create a manifest:
 
 ~~~shell
 sha256sum build/dist/*.jar > build/module-audit/artifact-checksums.txt
 ~~~
 
-Trên Windows, có thể dùng Get-FileHash trong PowerShell hoặc công cụ checksum tương ứng của môi trường CI.
+On Windows, you can use `Get-FileHash` in PowerShell or the corresponding checksum tool of your CI environment.
 
-Không nên chỉ lưu log "audit passed". Hãy lưu cấu hình và danh sách module đã kiểm tra để có thể giải thích vì sao một bản phát hành được chấp nhận.
+Do not save only a log saying `"audit passed"`. Save the configuration and list of inspected modules so you can explain why a release was accepted.
 
-## 12. Những gì static audit không thể chứng minh
+## 12. What Static Audits Cannot Prove
 
-jdeps và module descriptor cung cấp góc nhìn tĩnh. Chúng không chứng minh toàn bộ hành vi runtime.
+`jdeps` and module descriptors provide a static view. They do not prove all runtime behavior.
 
-Một số dependency có thể không xuất hiện rõ trong bytecode:
+Some dependencies may not appear explicitly in bytecode:
 
-- Class được nạp bằng Class.forName với tên lấy từ cấu hình.
-- Framework quét package hoặc dùng reflection.
-- Service provider được chọn theo môi trường.
-- Module layer được tạo động.
-- Resource hoặc cấu hình được tải theo tên.
-- Code phụ thuộc vào thứ tự hoặc nội dung của runtime image.
+- Classes loaded via `Class.forName` with names read from configuration.
+- Frameworks scanning packages or using reflection.
+- Service providers selected by environment.
+- Dynamically created module layers.
+- Resources or configurations loaded by name.
+- Code depending on the order or contents of a runtime image.
 
-Do đó, pipeline cần có smoke test và integration test cho các đường chạy quan trọng. Với module layer động, hãy tạo test khởi tạo layer giống production và xác nhận các module mong đợi xuất hiện.
+Therefore, the pipeline needs smoke tests and integration tests for critical execution paths. For dynamic module layers, create tests that initialize layers like production and verify the expected modules appear.
 
-Nếu ứng dụng hỗ trợ nhiều profile, hãy audit từng profile có module graph khác nhau. Ví dụ profile database, profile plugin hoặc profile chạy batch có thể sử dụng tập module khác nhau.
+If the application supports multiple profiles, audit each profile with a different module graph. For example, a database profile, plugin profile, or batch profile may use different sets of modules.
 
-## 13. Những nhầm lẫn thường gặp
+## 13. Common Misconceptions
 
-1. **Có JAR trong thư mục dist nghĩa là module đã resolve:** module có thể observable nhưng chưa nằm trong graph.
-2. **Compile thành công chứng minh runtime graph hợp lệ:** runtime có thể thiếu artifact hoặc dùng JVM arguments khác.
-3. **jdeps là kiểm thử runtime đầy đủ:** jdeps phân tích dependency tĩnh và không phát hiện mọi dynamic loading.
-4. **Module version bảo đảm API tương thích:** version metadata không thay thế binary compatibility check.
-5. **Audit chỉ cần đọc module-info.java trong source:** phải kiểm tra descriptor trong artifact được phát hành.
-6. **ALL-MODULE-PATH giúp audit toàn diện hơn:** nếu production không dùng selector đó, kết quả có thể không phản ánh graph thực tế.
-7. **Service API đã resolve nghĩa là provider đã hoạt động:** cần kiểm tra provider module và gọi ServiceLoader trong runtime test.
-8. **Một lần audit cho mọi JDK là đủ:** module behavior và JDK internal access có thể khác theo phiên bản runtime.
-9. **Lưu log mà không gắn checksum là đủ:** artifact có thể bị thay đổi sau khi audit.
+1. **Having a JAR in the `dist` directory means the module is resolved:** a module can be observable yet absent from the graph.
+2. **Successful compilation proves the runtime graph is valid:** runtime may miss artifacts or use different JVM arguments.
+3. **`jdeps` is a complete runtime test:** `jdeps` analyzes static dependencies and does not detect all dynamic loading.
+4. **Module version guarantees API compatibility:** version metadata does not replace binary compatibility checks.
+5. **Auditing only needs reading `module-info.java` in source:** the descriptor inside the released artifact must be inspected.
+6. **`ALL-MODULE-PATH` makes the audit more thorough:** if production does not use that selector, results may not reflect the real graph.
+7. **The service API resolving means the provider works:** the provider module must be verified and `ServiceLoader` invoked in runtime tests.
+8. **One audit for every JDK is enough:** module behavior and JDK internal access can differ across runtime versions.
+9. **Saving logs without attaching checksums is enough:** artifacts can be swapped after the audit.
 
-## Kết luận
+## Conclusion
 
-Audit module graph nên là một quality gate trước khi phát hành ứng dụng Java modular. Pipeline cần kiểm tra descriptor của artifact, phân tích dependency bằng jdeps, xác thực module set, quan sát quá trình resolution và chạy smoke test với đúng cấu hình production. Hãy lưu kết quả cùng checksum và revision của release để có thể truy vết. Static audit phát hiện vấn đề về cấu trúc; runtime test xác nhận các module, service và tính năng quan trọng thực sự hoạt động trong môi trường triển khai.
+Auditing the module graph should be a quality gate before releasing a modular Java application. The pipeline needs to inspect artifact descriptors, analyze dependencies with `jdeps`, validate the module set, observe the resolution process, and run smoke tests with exact production configurations. Archive results along with release checksums and revisions for traceability. Static audits uncover structural issues; runtime tests confirm that critical modules, services, and features actually work in the deployment environment.

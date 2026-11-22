@@ -1,28 +1,28 @@
-# Compression, strip debug và reproducibility
+# Compression, Strip Debug, and Reproducibility
 
-## 1. Mục tiêu khi đóng gói runtime image
+## 1. Goals When Packaging a Runtime Image
 
-Khi dùng **jlink** để tạo runtime image cho ứng dụng modular, có thể điều chỉnh nội dung và cách lưu trữ image nhằm giảm dung lượng phân phối, loại bỏ thông tin chỉ phục vụ debug và giúp quy trình build có thể tái lập.
+When using **jlink** to create a runtime image for a modular application, you can adjust the image's contents and storage format to reduce distribution size, remove debug-only information, and make the build process reproducible.
 
-Ba mục tiêu này liên quan nhưng khác nhau:
+These three goals are related but distinct:
 
-- **Compression** giảm kích thước một số tài nguyên trong runtime image, đổi lại có thể phát sinh chi phí giải nén hoặc xử lý khi chạy.
-- **Strip debug** loại bỏ metadata debug khỏi các module được đưa vào image, giúp image gọn hơn.
-- **Reproducibility** hướng tới việc tạo ra cùng một kết quả từ cùng bộ đầu vào và cấu hình build, để có thể kiểm chứng, so sánh và phát hành đáng tin cậy.
+- **Compression** reduces the size of certain resources in the runtime image, at the trade-off of potential decompression or processing overhead at runtime.
+- **Strip debug** removes debug metadata from modules included in the image, making the image leaner.
+- **Reproducibility** aims to produce the same output from the same set of inputs and build configuration, enabling reliable verification, comparison, and release.
 
-Không nên chọn cấu hình chỉ dựa trên kích thước nhỏ nhất. Runtime image phải còn đủ module, tài nguyên và khả năng chẩn đoán cần thiết cho môi trường triển khai. Cần đo kích thước, thời gian khởi động và kiểm thử chức năng trên image thực tế.
+Do not choose a configuration based solely on achieving the smallest size. The runtime image must still retain the modules, resources, and diagnostic capabilities needed for the deployment environment. Measure image size, startup time, and test functionality on the actual image.
 
-## 2. Compression với jlink
+## 2. Compression with jlink
 
-Tùy chọn **--compress** điều khiển cách jlink nén tài nguyên trong image. Các mức thường gặp:
+The **--compress** option controls how jlink compresses resources in the image. Common levels:
 
-| Tùy chọn | Ý nghĩa |
+| Option | Meaning |
 |---|---|
-| **--compress=0** | Không bật cơ chế compression của jlink |
-| **--compress=1** | Dùng constant string sharing để giảm trùng lặp chuỗi trong dữ liệu class |
-| **--compress=2** | Nén tài nguyên bằng ZIP |
+| **--compress=0** | Disables jlink compression |
+| **--compress=1** | Uses constant string sharing to reduce duplicate strings in class data |
+| **--compress=2** | Compresses resources with ZIP |
 
-Ví dụ tạo image có ZIP compression:
+Example creating an image with ZIP compression:
 
 ~~~bash
 jlink \
@@ -32,9 +32,9 @@ jlink \
   --output runtime-image
 ~~~
 
-**--compress=2** thường phù hợp khi ưu tiên giảm kích thước image để phân phối hoặc lưu trữ. Việc nén có thể làm tăng chi phí xử lý khi tài nguyên được truy cập, nên cần đo thời gian khởi động và hành vi ứng dụng thay vì giả định image nhỏ hơn luôn chạy nhanh hơn.
+**--compress=2** is often suitable when prioritizing smaller image size for distribution or storage. Compression can increase processing overhead when resources are accessed, so measure startup time and application behavior rather than assuming a smaller image always runs faster.
 
-Nếu muốn dùng constant string sharing:
+If you want to use constant string sharing:
 
 ~~~bash
 jlink \
@@ -44,9 +44,9 @@ jlink \
   --output runtime-image
 ~~~
 
-Mức 1 xử lý việc chia sẻ chuỗi hằng lặp lại trong dữ liệu class. Đây không phải ZIP compression và không nên so sánh trực tiếp với mức 2 như hai mức nén cùng một thuật toán.
+Level 1 performs sharing of repeated constant strings in class data. This is not ZIP compression and should not be compared directly with level 2 as two compression levels of the same algorithm.
 
-Có thể tắt compression để có cấu hình cơ sở khi đo:
+You can disable compression to establish a baseline when measuring:
 
 ~~~bash
 jlink \
@@ -56,11 +56,11 @@ jlink \
   --output runtime-image
 ~~~
 
-Hãy kiểm tra **jlink --help** của đúng JDK đang dùng vì tùy chọn và cách diễn giải có thể thay đổi giữa các bản phát hành. Khi so sánh, giữ nguyên module đầu vào và mọi tùy chọn khác; chỉ thay mức compression để kết quả đo có ý nghĩa.
+Check **jlink --help** for the exact JDK you are using, as options and their interpretation may vary across releases. When comparing, keep input modules and all other options identical; only vary the compression level so measurements are meaningful.
 
-## 3. Strip debug với --strip-debug
+## 3. Stripping Debug Info with --strip-debug
 
-Tùy chọn **--strip-debug** yêu cầu jlink loại bỏ thông tin debug khỏi các module được đưa vào runtime image:
+The **--strip-debug** option instructs jlink to remove debug information from modules included in the runtime image:
 
 ~~~bash
 jlink \
@@ -70,34 +70,34 @@ jlink \
   --output runtime-image
 ~~~
 
-Thông tin debug trong bytecode có thể bao gồm metadata về dòng nguồn, biến cục bộ và thông tin phục vụ debugger. Loại bỏ metadata này có thể giảm dung lượng image. Đổi lại, việc gỡ lỗi sau triển khai có thể khó hơn vì debugger hoặc công cụ chẩn đoán mất một phần thông tin ánh xạ về mã nguồn.
+Debug information in bytecode may include source line metadata, local variables, and information used by debuggers. Removing this metadata can reduce image size. In return, post-deployment debugging can be harder because debuggers or diagnostic tools lose part of the mapping back to source code.
 
-Cần phân biệt phạm vi của **jlink --strip-debug** với việc biên dịch ứng dụng:
+Distinguish the scope of **jlink --strip-debug** from compiling the application:
 
-- Nếu module ứng dụng được đưa vào image qua module path, jlink xử lý các module đó cùng các module runtime theo tùy chọn strip.
-- Nếu ứng dụng được phân phối riêng dưới dạng JAR trên classpath bên ngoài image, jlink không sửa nội dung JAR đó.
-- Với class do dự án biên dịch, **javac -g:none** có thể tắt việc sinh thông tin debug ngay từ bước compile.
+- If application modules are included in the image via the module path, jlink processes those modules together with runtime modules according to the strip option.
+- If the application is distributed separately as a JAR on the classpath outside the image, jlink does not modify that JAR's contents.
+- For classes compiled by the project, **javac -g:none** can disable generating debug information right at the compile step.
 
-Ví dụ:
+Example:
 
 ~~~bash
 javac -g:none -d out src/com/example/Main.java
 ~~~
 
-Nếu cần debug trong môi trường staging hoặc hỗ trợ điều tra sự cố, có thể giữ artifact có debug metadata riêng cho mục đích chẩn đoán và tạo runtime image phát hành với **--strip-debug**. Cần bảo đảm cách lưu trữ artifact debug phù hợp với quy trình phát hành và truy cập nội bộ.
+If you need debugging in a staging environment or to support incident investigation, you can keep artifacts with debug metadata separately for diagnostics and build the release runtime image with **--strip-debug**. Ensure debug artifact storage aligns with release workflows and internal access policies.
 
-Không nên loại bỏ debug metadata trước khi hoàn tất kiểm thử nếu nhóm phát triển còn cần dùng debugger để xác định lỗi. Hãy quyết định theo yêu cầu vận hành và chính sách hỗ trợ của ứng dụng.
+Do not strip debug metadata before testing is complete if the development team still needs a debugger to pinpoint bugs. Decide based on operational requirements and the application's support policy.
 
-## 4. Các tùy chọn giảm dung lượng liên quan
+## 4. Related Size-Reduction Options
 
-Ngoài compression và strip debug, jlink có thể loại bỏ một số thành phần không cần cho runtime:
+In addition to compression and stripping debug info, jlink can exclude several components not needed at runtime:
 
-- **--no-header-files** bỏ các native header files.
-- **--no-man-pages** bỏ các trang hướng dẫn.
-- **--strip-debug** bỏ debug metadata trong module image.
-- **--compress=2** nén tài nguyên bằng ZIP.
+- **--no-header-files** omits native header files.
+- **--no-man-pages** omits manual pages.
+- **--strip-debug** omits debug metadata in the module image.
+- **--compress=2** compresses resources with ZIP.
 
-Ví dụ:
+Example:
 
 ~~~bash
 jlink \
@@ -110,17 +110,17 @@ jlink \
   --output runtime-image
 ~~~
 
-Hai tùy chọn **--no-header-files** và **--no-man-pages** thường phù hợp với image chỉ dùng để chạy ứng dụng. Nếu image còn phục vụ phát triển hoặc biên dịch mã native, hãy kiểm tra xem có cần giữ header files hay không.
+The two options **--no-header-files** and **--no-man-pages** are usually suitable for images intended solely to run the application. If the image is also used for development or compiling native code, verify whether header files must be kept.
 
-Việc bỏ man pages không làm thay đổi logic ứng dụng, nhưng có thể khiến người vận hành không tra cứu được tài liệu cục bộ trong image. Hãy bảo đảm tài liệu vận hành được cung cấp ở nơi khác nếu cần.
+Omitting man pages does not change application logic, but it may prevent operators from looking up local documentation inside the image. Ensure operational documentation is provided elsewhere if needed.
 
-Ngoài ra, lựa chọn module qua **--add-modules** thường ảnh hưởng đáng kể đến kích thước image. Trước khi tối ưu compression, hãy xác định module gốc và phụ thuộc thực sự cần thiết. Không loại bỏ module chỉ để giảm vài MB nếu chức năng ứng dụng còn cần module đó ở runtime.
+Furthermore, module selection via **--add-modules** often has a major impact on image size. Before optimizing compression, determine the root modules and dependencies truly needed. Do not drop a module just to save a few MB if application functionality still needs that module at runtime.
 
-## 5. Ví dụ cấu hình runtime image cho phát hành
+## 5. Example Release Runtime Image Configuration
 
-Giả sử ứng dụng modular có tên **com.example.app**, các module ứng dụng đã biên dịch nằm trong **mods**, và JDK hiện tại cung cấp các module trong **$JAVA_HOME/jmods**.
+Suppose the modular application is named **com.example.app**, compiled application modules are in **mods**, and the current JDK provides its modules in **$JAVA_HOME/jmods**.
 
-Có thể tạo image tối ưu cho phát hành:
+You can create an optimized release image:
 
 ~~~bash
 jlink \
@@ -134,17 +134,17 @@ jlink \
   --output runtime-image
 ~~~
 
-Trên Windows PowerShell, dấu phân cách các phần tử trong module path là dấu chấm phẩy:
+On Windows PowerShell, the separator between elements in the module path is a semicolon:
 
 ~~~powershell
 jlink --module-path "$env:JAVA_HOME\jmods;mods" --add-modules com.example.app --compress=2 --strip-debug --no-header-files --no-man-pages --launcher app=com.example.app/com.example.app.Main --output runtime-image
 ~~~
 
-Thay tên module và main class bằng giá trị của dự án. Thư mục output phải chưa tồn tại hoặc được dọn theo quy trình build có kiểm soát trước khi chạy lệnh.
+Replace the module name and main class with your project's values. The output directory must not already exist or must be cleaned under a controlled build process before running the command.
 
-Nếu ứng dụng dùng service provider, hãy xác định có cần **--bind-services** hay không. Khi dùng tùy chọn này, các provider có thể được liên kết vào image theo metadata service. Cần cố định module path và các provider đầu vào để lần build sau không vô tình thu nhận thêm module mới.
+If the application uses service providers, decide whether **--bind-services** is needed. When using this option, providers may be linked into the image according to service metadata. Pin the module path and input providers so subsequent builds do not accidentally pick up new modules.
 
-Có thể lưu các tùy chọn jlink đã dùng vào file:
+You can save the jlink options used to a file:
 
 ~~~bash
 jlink \
@@ -158,37 +158,37 @@ jlink \
   --output runtime-image
 ~~~
 
-File **jlink-options.txt** giúp lưu lại cấu hình dòng lệnh để xem xét và tái sử dụng. File này không tự khóa phiên bản JDK, module đầu vào hoặc môi trường hệ điều hành; các thông tin đó vẫn cần được quản lý riêng.
+The **jlink-options.txt** file helps record command-line configuration for review and reuse. This file does not by itself lock the JDK version, input modules, or OS environment; that information must still be managed separately.
 
-## 6. Reproducibility là gì?
+## 6. What Is Reproducibility?
 
-Một build có tính tái lập khi cùng một bộ đầu vào và cấu hình được sử dụng lại, quy trình tạo ra kết quả tương đương có thể kiểm chứng. Có hai mức thường được quan tâm:
+A build is reproducible when, given the same set of inputs and configuration, the process produces a verifiable equivalent result. Two levels are commonly considered:
 
-- **Functional reproducibility:** runtime image có cùng module, cùng cấu hình và hành vi ứng dụng như bản build tham chiếu.
-- **Bit-for-bit reproducibility:** mọi file đầu ra có cùng byte và cùng hash giữa các lần build.
+- **Functional reproducibility:** the runtime image has the same modules, configuration, and application behavior as the reference build.
+- **Bit-for-bit reproducibility:** every output file has the exact same bytes and hash across builds.
 
-Hai mức này không giống nhau. Hai runtime image có thể chạy giống nhau nhưng khác hash do metadata, timestamp hoặc khác biệt từ toolchain. Nếu yêu cầu phát hành cần so sánh hash chính xác, phải kiểm tra thực tế trên cùng môi trường và không mặc định rằng jlink bảo đảm bit-for-bit reproducibility trong mọi trường hợp.
+These two levels are not identical. Two runtime images can run identically yet differ in hash due to metadata, timestamps, or toolchain differences. If release requirements demand exact hash comparison, test in practice on the same environment and do not assume jlink guarantees bit-for-bit reproducibility in every scenario.
 
-Reproducibility là thuộc tính của toàn bộ pipeline, gồm artifact ứng dụng, JDK, module đầu vào, tùy chọn jlink, môi trường build và cách đóng gói kết quả. Chỉ lưu lại một câu lệnh jlink chưa đủ để tái lập toàn bộ image.
+Reproducibility is a property of the entire pipeline, including application artifacts, JDK, input modules, jlink options, build environment, and how the output is packaged. Saving a single jlink command alone is not enough to reproduce the entire image.
 
-## 7. Cố định đầu vào và môi trường build
+## 7. Pinning Inputs and the Build Environment
 
-Để các lần build có thể so sánh, nên kiểm soát các yếu tố sau:
+To make builds comparable, control the following factors:
 
-1. **JDK:** dùng cùng nhà cung cấp, phiên bản, bản vá và build number. Ghi lại kết quả của **java --version** và **jlink --version**.
-2. **Nền tảng:** tạo image cho đúng hệ điều hành và kiến trúc đích. Runtime image thường phụ thuộc nền tảng, nên image Linux không thể mặc định thay thế image Windows hoặc macOS.
-3. **Module đầu vào:** dùng đúng phiên bản JAR/module đã được xác minh hash. Tránh thay đổi nội dung thư mục module path giữa các lần build.
-4. **Module graph:** cố định danh sách **--add-modules**, cách dùng **--bind-services** và các module provider được phép tham gia.
-5. **Tùy chọn đóng gói:** giữ ổn định compression, strip debug, header/man pages, launcher và các tùy chọn khác.
-6. **Artifact ứng dụng:** cấu hình build JAR có thể tái lập, bao gồm thứ tự nội dung và metadata archive nếu quy trình cần so sánh hash.
-7. **Môi trường:** ghi lại hệ điều hành, kiến trúc, locale và các biến môi trường liên quan đến build.
-8. **Đường dẫn và đầu ra:** dùng thư mục build sạch, đường dẫn đầu vào cố định và không ghi đè image đang được phát hành.
+1. **JDK:** use the same vendor, version, patch level, and build number. Record the output of **java --version** and **jlink --version**.
+2. **Platform:** build the image for the exact target operating system and architecture. Runtime images are typically platform-dependent, so a Linux image cannot be assumed to substitute for a Windows or macOS image.
+3. **Input modules:** use the exact JAR/module versions with verified hashes. Avoid mutating module path directory contents between builds.
+4. **Module graph:** pin the **--add-modules** list, usage of **--bind-services**, and which provider modules are allowed to participate.
+5. **Packaging options:** keep compression, strip debug, header/man pages, launcher, and other options consistent.
+6. **Application artifacts:** configure JAR builds reproducibly, including entry ordering and archive metadata if the pipeline requires hash comparison.
+7. **Environment:** record the operating system, architecture, locale, and build-related environment variables.
+8. **Paths and outputs:** use a clean build directory, fixed input paths, and do not overwrite an already released image.
 
-Nếu module path lấy nội dung từ nhiều thư mục, hãy ghi lại chính xác các thư mục và phiên bản module. Việc một thư viện được nâng phiên bản hoặc một provider mới xuất hiện có thể làm thay đổi module graph và image đầu ra.
+If the module path pulls contents from multiple directories, record the exact directories and module versions. Upgrading a library or introducing a new provider can alter the module graph and the resulting image.
 
-## 8. Lưu lại bằng chứng của mỗi lần build
+## 8. Recording Evidence for Each Build
 
-Một manifest build có thể lưu các thông tin:
+A build manifest can record the following information:
 
 ~~~text
 Application: com.example.app
@@ -207,140 +207,140 @@ Launcher: app=com.example.app/com.example.app.Main
 Output: runtime-image
 ~~~
 
-Các giá trị trong dấu ngoặc nhọn là chỗ điền dữ liệu thực tế. Không dùng manifest mẫu này như bằng chứng rằng image đã được tạo với cấu hình tương ứng; nó phải được sinh hoặc lưu cùng build thực tế.
+Values inside angle brackets are placeholders for actual data. Do not treat this sample manifest as proof that an image was built with that configuration; it must be generated or saved alongside the actual build.
 
-Nên lưu thêm:
+You should also store:
 
-- Lệnh jlink đầy đủ hoặc file **--save-opts**.
-- Hash của từng JAR/module đầu vào.
-- Hash của image hoặc từng file trong image.
-- Log build và kết quả kiểm thử.
-- Danh sách module có trong image.
+- The full jlink command or **--save-opts** file.
+- The hash of each input JAR/module.
+- The hash of the image or of each file in the image.
+- Build logs and test results.
+- The list of modules present in the image.
 
-Nhờ đó, khi có sự cố hoặc cần so sánh hai bản phát hành, có thể xác định thay đổi đến từ JDK, module đầu vào, tùy chọn đóng gói hay ứng dụng.
+That way, when an issue occurs or two releases need comparison, you can identify whether the change came from the JDK, input modules, packaging options, or the application.
 
-## 9. Kiểm chứng runtime image
+## 9. Verifying the Runtime Image
 
-Sau khi tạo image, kiểm tra phiên bản Java và module có trong image:
+After creating the image, check the Java version and modules inside the image:
 
 ~~~bash
 runtime-image/bin/java --version
 runtime-image/bin/java --list-modules
 ~~~
 
-Có thể liệt kê nội dung module image bằng công cụ **jimage** từ JDK:
+You can list the module image contents using the **jimage** tool from the JDK:
 
 ~~~bash
 jimage list runtime-image/lib/modules
 ~~~
 
-Kiểm tra launcher:
+Test the launcher:
 
 ~~~bash
 runtime-image/bin/app
 ~~~
 
-Nếu không tạo launcher riêng, chạy module trực tiếp:
+If no custom launcher was created, run the module directly:
 
 ~~~bash
 runtime-image/bin/java -m com.example.app/com.example.app.Main
 ~~~
 
-Để đo dung lượng trên Linux/macOS:
+To measure size on Linux/macOS:
 
 ~~~bash
 du -sh runtime-image
 ~~~
 
-Trên PowerShell:
+On PowerShell:
 
 ~~~powershell
 $bytes = (Get-ChildItem -LiteralPath runtime-image -Recurse -File | Measure-Object -Property Length -Sum).Sum
 "{0:N2} MB" -f ($bytes / 1MB)
 ~~~
 
-Khi so sánh compression, tạo các image riêng với **--compress=0**, **--compress=1** và **--compress=2**, giữ các yếu tố còn lại giống nhau. Ghi lại dung lượng, thời gian khởi động và kết quả workload đại diện.
+When comparing compression, build separate images with **--compress=0**, **--compress=1**, and **--compress=2**, keeping all other factors identical. Record size, startup time, and representative workload results.
 
-Không nên đo một lần duy nhất. Thời gian khởi động có thể chịu ảnh hưởng của cache hệ điều hành, JIT, tải đĩa và môi trường chạy. Dùng cùng máy, cùng workload, nhiều lượt đo và ghi rõ phương pháp để kết quả có thể so sánh.
+Do not rely on a single measurement. Startup time can be affected by OS caching, JIT, disk load, and the runtime environment. Use the same machine, the same workload, multiple runs, and document the methodology so results are comparable.
 
-## 10. Kiểm tra tính tái lập giữa hai lần build
+## 10. Checking Reproducibility Between Two Builds
 
-Một quy trình kiểm tra cơ bản:
+A basic verification workflow:
 
-1. Build image lần thứ nhất trong thư mục sạch.
-2. Lưu manifest, log, danh sách module và hash của đầu vào.
-3. Build lại lần thứ hai từ cùng bộ artifact, cùng JDK và cùng tùy chọn trong một thư mục sạch khác.
-4. So sánh cây thư mục, kích thước và hash file.
-5. Nếu hash khác, xác định file nào khác và kiểm tra metadata, timestamp, nội dung module hoặc khác biệt toolchain.
-6. Chạy smoke test và các kiểm thử chức năng trên cả hai image.
-7. Lưu kết quả so sánh cùng manifest để làm bằng chứng phát hành.
+1. Build the image the first time in a clean directory.
+2. Save the manifest, logs, module list, and input hashes.
+3. Rebuild a second time from the same artifact set, same JDK, and same options in another clean directory.
+4. Compare the directory tree, sizes, and file hashes.
+5. If hashes differ, identify which files differ and check metadata, timestamps, module contents, or toolchain differences.
+6. Run smoke tests and functional tests on both images.
+7. Store comparison results alongside the manifest as release evidence.
 
-Ví dụ tính hash cho một file trên Linux:
+Example computing the hash for a file on Linux:
 
 ~~~bash
 sha256sum runtime-image/lib/modules
 ~~~
 
-Trên PowerShell:
+On PowerShell:
 
 ~~~powershell
 Get-FileHash -Algorithm SHA256 runtime-image\lib\modules
 ~~~
 
-Có thể so sánh hash của từng file thay vì chỉ so sánh một file lớn. Với image chứa nhiều file, cần có script hoặc công cụ build tạo danh sách đường dẫn và hash theo thứ tự ổn định.
+You can compare hashes of individual files rather than only comparing a single large file. For an image containing many files, a script or build tool is needed to produce a deterministically ordered list of paths and hashes.
 
-Nếu yêu cầu là bit-for-bit reproducibility, phải xử lý cả khác biệt metadata và đóng gói. Nếu chỉ yêu cầu image có hành vi tương đương, cần kiểm tra module graph, file cấu hình, resource và test runtime. Hãy ghi rõ tiêu chí mà pipeline đang xác nhận.
+If bit-for-bit reproducibility is required, metadata and packaging differences must also be addressed. If only functionally equivalent behavior is required, verify the module graph, config files, resources, and runtime tests. Clearly state the criteria your pipeline verifies.
 
-## 11. Các lỗi thường gặp khi tối ưu
+## 11. Common Pitfalls When Optimizing
 
-**Image nhỏ hơn nhưng khởi động chậm hơn**
+**Smaller image but slower startup**
 
-Compression có thể giảm dữ liệu lưu trữ nhưng tăng chi phí xử lý khi truy cập. Đo trên môi trường triển khai thực tế và chọn mức phù hợp với mục tiêu.
+Compression can reduce stored data size while increasing processing cost on access. Measure in the actual deployment environment and pick the level that fits your goals.
 
-**Mất khả năng debug sau khi strip**
+**Loss of debugging ability after stripping**
 
-**--strip-debug** loại bỏ metadata debug khỏi module trong image. Nếu cần điều tra sự cố, giữ artifact có thông tin debug riêng hoặc tạo image chẩn đoán cho môi trường phù hợp.
+**--strip-debug** removes debug metadata from modules in the image. If troubleshooting is needed, keep separate artifacts with debug info or build diagnostic images for appropriate environments.
 
-**Thư viện ứng dụng vẫn còn debug metadata**
+**Application libraries still contain debug metadata**
 
-Nếu ứng dụng JAR được phân phối riêng trên classpath, **jlink --strip-debug** không xử lý JAR đó. Có thể cấu hình compiler như **javac -g:none** hoặc tùy chọn tương ứng của build tool nếu thực sự muốn bỏ metadata từ bước compile.
+If application JARs are distributed separately on the classpath, **jlink --strip-debug** does not process those JARs. Configure the compiler such as **javac -g:none** or the corresponding build tool option if you genuinely want to omit metadata from the compile step.
 
-**Image thay đổi dù câu lệnh jlink giống nhau**
+**Image changes despite the same jlink command**
 
-Kiểm tra JDK build, OS/architecture, hash module đầu vào, provider được tìm thấy, module path và metadata của artifact. Cùng câu lệnh không đảm bảo cùng đầu ra nếu môi trường hoặc đầu vào đã thay đổi.
+Check the JDK build, OS/architecture, input module hashes, discovered providers, module path, and artifact metadata. The same command does not guarantee the same output if the environment or inputs changed.
 
-**Module mới xuất hiện trong image**
+**New modules appear in the image**
 
-Nếu dùng **--bind-services**, một provider mới trên module path có thể được liên kết vào image. Cố định tập module đầu vào và kiểm tra danh sách module sau build.
+If using **--bind-services**, a new provider on the module path may be linked into the image. Pin the input module set and inspect the module list after building.
 
-**Build không thể tái lập trên máy khác**
+**Build is not reproducible on another machine**
 
-Runtime image thường gắn với nền tảng và JDK cụ thể. Tạo image riêng cho từng OS/architecture bằng toolchain đã khóa phiên bản; lưu lại manifest và artifact đầu vào của từng nền tảng.
+Runtime images are usually tied to a specific platform and JDK. Build separate images per OS/architecture using version-pinned toolchains; save the manifest and input artifacts for each platform.
 
-## 12. Quy trình đóng gói đề xuất
+## 12. Recommended Packaging Workflow
 
-1. Xác định module gốc và các phụ thuộc cần có trong runtime image.
-2. Khóa JDK vendor/version/build và nền tảng đích.
-3. Tạo artifact module từ nguồn với cấu hình build có thể tái lập.
-4. Lưu hash và manifest của module đầu vào.
-5. Chọn **--compress** theo mục tiêu dung lượng và thời gian chạy.
-6. Chọn **--strip-debug** theo nhu cầu chẩn đoán và hỗ trợ.
-7. Chỉ bật **--no-header-files** và **--no-man-pages** khi image không cần các thành phần đó.
-8. Lưu cấu hình jlink bằng **--save-opts** và ghi lại các tùy chọn thực tế.
-9. Tạo image trong thư mục sạch, kiểm tra module list và chạy smoke test.
-10. Đo kích thước, startup và workload đại diện.
-11. Build lần thứ hai từ cùng đầu vào để kiểm tra tính tái lập theo tiêu chí của dự án.
-12. Lưu hash, log, manifest và kết quả kiểm thử cùng bản phát hành.
+1. Identify root modules and dependencies required in the runtime image.
+2. Pin JDK vendor/version/build and target platform.
+3. Build module artifacts from source with a reproducible build configuration.
+4. Record hashes and manifests of input modules.
+5. Choose **--compress** according to size and runtime performance goals.
+6. Choose **--strip-debug** according to diagnostic and support needs.
+7. Enable **--no-header-files** and **--no-man-pages** only when the image does not need those components.
+8. Save jlink configuration with **--save-opts** and record the actual options used.
+9. Build the image in a clean directory, inspect the module list, and run smoke tests.
+10. Measure size, startup, and representative workloads.
+11. Build a second time from the same inputs to verify reproducibility against the project's criteria.
+12. Store hashes, logs, manifests, and test results alongside the release.
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-- **--compress=0** tắt compression; **--compress=1** dùng constant string sharing; **--compress=2** dùng ZIP compression trên các JDK hỗ trợ các mức này.
-- **--strip-debug** bỏ debug metadata của các module được đóng gói vào image.
-- **javac -g:none** điều khiển debug metadata ở bước biên dịch class của ứng dụng.
-- **--no-header-files** và **--no-man-pages** loại bỏ thành phần không cần thiết cho nhiều runtime deployment.
-- **--save-opts** lưu lại tùy chọn jlink để kiểm tra và tái sử dụng, nhưng không khóa JDK hoặc module đầu vào.
-- Reproducibility cần cố định toolchain, module, artifact, cấu hình và môi trường.
-- So sánh hash để kiểm tra byte-for-byte; chạy kiểm thử để xác nhận hành vi runtime.
-- Luôn đo compression và kiểm thử image trên đúng nền tảng sẽ triển khai.
+- **--compress=0** disables compression; **--compress=1** uses constant string sharing; **--compress=2** uses ZIP compression on JDKs supporting these levels.
+- **--strip-debug** removes debug metadata from modules packaged into the image.
+- **javac -g:none** controls debug metadata at the application class compilation step.
+- **--no-header-files** and **--no-man-pages** omit components unnecessary for many runtime deployments.
+- **--save-opts** saves jlink options for inspection and reuse, but does not lock the JDK or input modules.
+- Reproducibility requires pinning the toolchain, modules, artifacts, configuration, and environment.
+- Compare hashes to check byte-for-byte equivalence; run tests to confirm runtime behavior.
+- Always measure compression and test the image on the exact platform where it will be deployed.
 
-Một runtime image tốt cần đáp ứng cả kích thước, khả năng chẩn đoán và tính tái lập của quy trình phát hành. Hãy chọn compression và strip debug dựa trên số liệu đo được, đồng thời lưu đầy đủ JDK, module đầu vào, lệnh jlink và kết quả xác minh để có thể tạo lại và kiểm tra bản image sau này.
+A good runtime image satisfies size, diagnosability, and release process reproducibility. Choose compression and debug stripping based on measured metrics, and retain complete records of the JDK, input modules, jlink command, and verification results so the image can be recreated and inspected later.

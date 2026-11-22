@@ -1,55 +1,55 @@
-# Tránh cache toàn JVM không có chính sách vòng đời trong Java Reflection
+# Avoiding JVM-Wide Reflection Caches Without a Lifecycle Policy in Java
 
-## 1. Câu hỏi quan trọng trước khi tạo cache
+## 1. Key Questions Before Creating a Cache
 
-Một cache Reflection được xem là hoàn chỉnh khi **đúng dữ liệu, đúng chủ sở hữu và đúng thời hạn**. `ConcurrentHashMap` làm việc với nhiều thread nhưng không tự đặt kích thước tối đa, thời gian hết hạn hoặc điểm hủy. Vì vậy, với cache metadata, phải chỉ rõ: *ai tạo, ai được dùng, lúc nào metadata còn hợp lệ, ai loại bỏ, và cần quan sát điều gì sau khi loại bỏ*.
+A Reflection cache is complete only when it has **the right data, the right owner, and the right expiration**. `ConcurrentHashMap` handles multiple threads, yet it does not set a maximum size, expiration time, or teardown point on its own. Therefore, for any metadata cache, you must specify: *who creates it, who can use it, how long metadata remains valid, who removes it, and what to observe after removal*.
 
-Tình huống cần quyết định khác nhau: metadata cho một request ngắn hạn có thể giữ ở biến local; schema của class dùng hàng triệu lần có thể nằm trong `ClassValue`; registry plugin thay phiên bản phải hủy cache khi plugin dừng; kết quả phụ thuộc policy/tenant phải gắn version hoặc chỉ nằm trong phạm vi request.
+Different situations call for different decisions: metadata for a short-lived request can stay in a local variable; a class schema used millions of times can live in `ClassValue`; a plugin registry across versions must drop caches when the plugin stops; policy- or tenant-dependent results must be versioned or stay scoped to the request.
 
-Về class loader, một entry giữ `Class<?>`, `Method`, `Field` hoặc handle trong thành phần sống lâu **có thể** giữ loader của plugin cũ. Nhưng không phải cứ thấy `static` là leak: cần xét owner và đường tham chiếu thực. Nội dung chuyên sâu về GC roots và `WeakHashMap` nằm ở bài “Cache giữ Class có thể giữ cả class loader”; bài này tập trung xây **chính sách vòng đời có thể kiểm tra**.
+Regarding classloaders, an entry holding a `Class<?>`, `Method`, `Field`, or handle inside a long-lived component **can** retain an old plugin's loader. Still, not every `static` field is a leak: you must inspect ownership and actual reference paths. Deeper coverage of GC roots and `WeakHashMap` is in the lesson “Caches Holding Class Can Retain the Entire ClassLoader”; this lesson focuses on building **testable lifecycle policies**.
 
-## 2. Phân loại dữ liệu để xác định thời hạn hợp lệ
+## 2. Classifying Data to Determine Validity Lifetime
 
-| Dữ liệu cache | Identity/scope chính | Lúc cần tính lại hoặc loại bỏ |
+| Cached Data | Primary Identity/Scope | When Recomputation or Removal Is Needed |
 | --- | --- | --- |
-| `Field`, `Method`, `Constructor` của một class cụ thể | `Class<?>`, member signature và quy tắc lookup | Owner/plugin unload hoặc metadata cần rebuild |
-| Descriptor bất biến suy từ class | Theo `Class<?>`; `ClassValue` khi phù hợp | Class/schema policy thực sự thay đổi |
-| Schema đã lọc theo naming policy/config | Class **cộng policy generation/version** | Đổi policy hoặc phiên bản schema |
-| Quyết định field được lộ cho người dùng/tenant | Request/user/policy; tránh cache class-only | Thay quyền, tenant hoặc request context |
-| Giá trị `Field.get(instance)` | Trạng thái **instance**, không phải class metadata | Đổi state; thông thường không thuộc metadata cache |
-| Dữ liệu/handler của plugin generation cũ | Instance/generation của plugin | Đóng plugin, hủy đăng ký và kết thúc in-flight work |
+| `Field`, `Method`, `Constructor` of a specific class | `Class<?>`, member signature, and lookup rules | Owner/plugin unloads or metadata needs rebuild |
+| Immutable descriptor derived from a class | Per `Class<?>`; `ClassValue` when suitable | Class/schema policy actually changes |
+| Schema filtered by naming policy/config | Class **plus policy generation/version** | Policy or schema version changes |
+| Decision on which fields are exposed to a user/tenant | Request/user/policy; avoid class-only caching | Permissions, tenant, or request context change |
+| Value of `Field.get(instance)` | **Instance** state, not class metadata | State changes; normally does not belong in a metadata cache |
+| Data/handlers of an old plugin generation | Plugin instance/generation | Plugin closes, unregisters, and finishes in-flight work |
 
-**Key đúng chưa đủ.** `Class<?>` phân biệt runtime class theo loader; tuy nhiên cùng một class có thể có schema khác nhau khi policy hoặc cấu hình thay đổi. Một `ClassValue` chỉ phân biệt theo class, nên dữ liệu phụ thuộc version cần thêm tầng quản lý version/invalidation. Ngược lại, cache bằng chuỗi `getName()` có thể ghép nhầm class từ hai loader.
+**A correct key alone is not enough.** `Class<?>` distinguishes runtime classes by loader; however, the same class can have different schemas when policies or configurations change. A `ClassValue` distinguishes only by class, so version-dependent data needs an additional version/invalidation layer. Conversely, caching by `getName()` strings can conflate classes from two loaders.
 
-**Value cũng phải được xét.** Nếu shared value chứa capability truy cập private hoặc trạng thái theo tenant, chỉ thêm phần tử vào key không tự tạo ra ranh giới quyền phù hợp. Nên giữ metadata chung ở scope đã kiểm chứng và áp dụng kiểm tra quyền theo request tại nơi sử dụng.
+**Values must also be checked.** If a shared value contains private-access capabilities or per-tenant state, merely adding fields to the key does not automatically enforce proper permission boundaries. Keep shared metadata in a verified scope and apply per-request authorization checks at the point of use.
 
-## 3. Ba lựa chọn thực tế và trách nhiệm dọn dẹp
+## 3. Three Practical Options and Cleanup Responsibilities
 
-### 3.1. Cache thuộc request, session hoặc plugin
+### 3.1. Caches Owned by a Request, Session, or Plugin
 
-Dùng khi dữ liệu chỉ lặp lại trong thời gian ngắn hoặc gắn với một plugin generation. Một `InspectionSession` có thể chứa `Map<Class<?>, Metadata>`, đóng bằng `AutoCloseable` và xóa entries trong `close()`; ví dụ chạy được ở mục 4.
+Use this when data is repeated only briefly or is tied to one plugin generation. An `InspectionSession` can hold a `Map<Class<?>, Metadata>`, implement `AutoCloseable`, and clear entries in `close()`; a runnable example is in section 4.
 
-Một plugin unload cần thứ tự rõ ràng: ngừng nhận việc mới → hoàn tất/hủy việc đang chạy → unregister listener/callback/task → xóa cache và reference do plugin sở hữu → đóng tài nguyên phù hợp. `clear()` chỉ cắt reference của chính map, không chứng minh JVM đã unload lớp. Với session có nhiều thread, `close()` còn phải phối hợp với in-flight operation thay vì cho phép lookup và shutdown tranh chấp.
+Plugin unloading requires a clear order: stop accepting new work → complete/cancel in-flight work → unregister listeners/callbacks/tasks → clear caches and references owned by the plugin → close appropriate resources. `clear()` only drops the map's own references and does not prove the JVM unloaded classes. For multi-threaded sessions, `close()` must also coordinate with in-flight operations rather than letting lookups and shutdown race.
 
-### 3.2. `ClassValue<T>` cho metadata thật sự thuộc về từng Class
+### 3.2. `ClassValue<T>` for Metadata Truly Belonging to Each `Class`
 
-Nếu một descriptor chỉ là hàm của `Class<?>` và tái dùng thường xuyên, `ClassValue` tránh map global giữ key mạnh trực tiếp. `computeValue(type)` có thể chạy nhiều lần dưới contention, nên tạo metadata hoàn chỉnh, lý tưởng không có side effect. `remove(type)` chỉ invalid một class trong một `ClassValue`, không cung cấp TTL, `clearAll` hay việc đóng tài nguyên bên ngoài. Lần đọc đang giữ value cũ có thể tiếp tục dùng nó; nếu policy cần chuyển đổi đồng nhất, phải có synchronization/generation ở tầng sở hữu.
+If a descriptor is purely a function of `Class<?>` and reused frequently, `ClassValue` avoids a global map directly holding strong keys. `computeValue(type)` may run multiple times under contention, so construct complete metadata, ideally side-effect-free. `remove(type)` invalidates only one class in one `ClassValue`, and provides no TTL, `clearAll`, or closing of external resources. Readers already holding an old value may keep using it; if policy requires uniform switching, add synchronization/generation control at the owning layer.
 
-### 3.3. Cache bounded/TTL hoặc generation-aware
+### 3.3. Bounded/TTL or Generation-Aware Caches
 
-Chọn khi hệ thống phải cache theo nhiều khóa động như `(Class, policyVersion)`, cần giới hạn memory và kiểm soát eviction. Đặt rõ **maximum size/weight, idle/TTL, trigger invalidation và owner**; `ConcurrentHashMap` không cung cấp các khả năng này tự động.
+Choose this when the system must cache across dynamic keys like `(Class, policyVersion)`, needs memory bounds, and needs eviction control. Explicitly configure **maximum size/weight, idle/TTL, invalidation triggers, and owner**; `ConcurrentHashMap` provides none of these automatically.
 
-Ví dụ, khi cấu hình serialization nâng từ generation `v12` lên `v13`, xây snapshot metadata mới, công bố generation mới rồi hủy entries `v12` sau khi lượt xử lý cũ hoàn thành. TTL là giới hạn thời gian dự phòng, không thay cho sự kiện invalidate do schema/security policy đổi. Theo dõi hit/miss, current entries, evictions và retained old loaders để phát hiện chính sách không hoạt động.
+For example, when serialization config advances from generation `v12` to `v13`, build a new metadata snapshot, publish the new generation, and discard `v12` entries once older processing passes complete. TTL is a fallback time limit, not a substitute for invalidation events when schemas or security policies change. Monitor hits/misses, current entries, evictions, and retained old loaders to detect ineffective policies.
 
-### Checklist thiết kế
+### Design Checklist
 
-Trước khi triển khai hãy xác định **owner**, **key/value dependencies**, **thời hạn hiệu lực**, **điểm invalidate**, **hành vi concurrent close/reload** và **cách xác minh**. Một cache thiếu bất kỳ mục nào trong các mục đó có thể nhanh ở trạng thái ổn định nhưng trả schema cũ hoặc giữ plugin lâu ngoài dự kiến.
+Before implementing, define **owner**, **key/value dependencies**, **validity lifetime**, **invalidation points**, **concurrent close/reload behavior**, and **verification strategy**. A cache missing any of those items may be fast in steady state yet return stale schemas or retain plugins unexpectedly long.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh: global map, ClassValue và session
+## 4. Complete Java 17+ Example: Global Map, `ClassValue`, and Session
 
-Ví dụ dưới đây dùng metadata đơn giản là tên field của lớp `Invoice`. Chương trình minh họa **so sánh hành vi cache**, không mô phỏng đầy đủ class unloading. Vì chạy tuần tự trên một class bình thường, các con số scan ổn định. Đừng sao chép `GLOBAL` làm giải pháp production không có chính sách giải phóng.
+The example below uses simple metadata consisting of field names of the `Invoice` class. The program illustrates **comparing cache behaviors**, not full class unloading. Because it runs sequentially on a normal class, scan counts are deterministic. Do not copy `GLOBAL` as a production solution without a release policy.
 
-Lưu nội dung vào `ReflectionCacheLifetimeDemo.java`:
+Save the contents to `ReflectionCacheLifetimeDemo.java`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -144,14 +144,14 @@ public class ReflectionCacheLifetimeDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ~~~bash
 javac --release 17 ReflectionCacheLifetimeDemo.java
 java ReflectionCacheLifetimeDemo
 ~~~
 
-Output chính xác (chương trình một luồng):
+Exact output (single-threaded program):
 
 ~~~text
 global first: [amount, id], scans=1
@@ -164,101 +164,101 @@ session again: [amount, id], entries=1, scans=4
 session closed: references cleared
 ~~~
 
-**Ý nghĩa:**
+**Interpretation:**
 
-1. `GLOBAL` chỉ scan một lần, nhưng entry `Class<?>` sẽ tồn tại trong `static` map cho tới lúc xóa hoặc cache được GC. Map này không có `remove/clear`.
-2. `PER_CLASS` cũng reuse metadata; gọi `remove(Invoice.class)` khiến lần `get` kế tiếp scan lại. Với nhiều thread, số lần `computeValue` không bắt buộc giống demo.
-3. `InspectionSession` tái sử dụng kết quả trong phiên; `close()` xóa map. Dòng `"references cleared"` chỉ xác nhận cleanup do ứng dụng thực hiện, **không chứng minh ClassLoader đã được unload**.
-4. `scan` chỉ lấy metadata, không đọc state của instance `Invoice`. Việc bỏ field `transient` là **chính sách riêng của demo**, không phải quy tắc bắt buộc khi dùng Reflection.
-5. `getDeclaredFields()` không bảo đảm thứ tự; ví dụ `sorted()` để output ổn định.
-6. `InspectionSession` minh họa **cách dùng tuần tự**. `HashMap`/`closed` không thread-safe; session chia sẻ đa luồng cần đồng bộ và quy tắc dừng tác vụ trước khi `close()`.
+1. `GLOBAL` scans only once, but the `Class<?>` entry stays in the `static` map until removed or the cache itself is GC'd. This map has no `remove/clear`.
+2. `PER_CLASS` also reuses metadata; calling `remove(Invoice.class)` causes the next `get` to scan again. With multiple threads, the `computeValue` count need not match the demo.
+3. `InspectionSession` reuses results within the session; `close()` clears the map. The `"references cleared"` line only confirms application-level cleanup, **it does not prove the ClassLoader was unloaded**.
+4. `scan` only extracts metadata, without reading `Invoice` instance state. Skipping `transient` fields is **this demo's specific policy**, not a mandatory rule when using Reflection.
+5. `getDeclaredFields()` does not guarantee order; the example uses `sorted()` for deterministic output.
+6. `InspectionSession` demonstrates **sequential usage**. `HashMap`/`closed` are not thread-safe; a shared multi-threaded session needs synchronization and rules to stop tasks before `close()`.
 
-## 5. Tại sao key đúng vẫn có thể cho value sai?
+## 5. Why Can the Right Key Still Return the Wrong Value?
 
-`Class<?>` là key hợp lý cho metadata **cấu trúc của class**, nhưng nhiều giá trị derived metadata còn phụ thuộc vào policy. Cùng một class có thể có projection khác nhau khi:
+`Class<?>` is a valid key for **class structural metadata**, yet many derived metadata values also depend on policy. The same class can have different projections when:
 
-- Audit nội bộ cần trường kỹ thuật, API công khai thì loại trường nhạy cảm.
-- Tenant A và tenant B được nhìn các field khác nhau.
-- Cấu hình serialization, naming strategy, locale hoặc version schema thay đổi.
-- Module layer/access context khác nhau, hoặc plugin được hot reload.
-- Mapping giữa field với business property thay đổi dù `Class<?>` không đổi.
+- Internal audits need technical fields, while public APIs exclude sensitive fields.
+- Tenant A and Tenant B are allowed to see different fields.
+- Serialization config, naming strategy, locale, or schema version changes.
+- Module layer/access context differs, or a plugin is hot-reloaded.
+- The mapping between fields and business properties changes even though `Class<?>` stays the same.
 
-Không được cache quyết định `allowed=true` cho user A trong `Map<Class<?>, Boolean>` toàn JVM rồi tái dùng cho user B. Nên cache phần **metadata có thể chia sẻ** và tính authorization/redaction theo request; hoặc đưa policy identity/version vào key và đặt cache trong owner có vòng đời cụ thể.
+Never cache an `allowed=true` decision for User A in a JVM-wide `Map<Class<?>, Boolean>` and reuse it for User B. Cache the **shareable metadata** and compute authorization/redaction per request; or include policy identity/version in the key and place the cache inside an owner with a concrete lifecycle.
 
-Không nên cache `Field.get(obj)` như thể metadata: đó là **giá trị runtime của một instance**, có thể đổi theo thời gian, có tác dụng bảo mật và không tự tạo snapshot nhất quán trên nhiều field.
+Do not cache `Field.get(obj)` as if it were metadata: that is **an instance's runtime value**, which changes over time, carries security implications, and does not automatically form a consistent snapshot across multiple fields.
 
-## 6. Eviction, unload và concurrency là ba chủ đề riêng
+## 6. Eviction, Unloading, and Concurrency Are Three Separate Topics
 
-### 6.1. Eviction không đồng nghĩa class unloading ngay
+### 6.1. Eviction Does Not Mean Immediate Class Unloading
 
-Khi xóa entry, map thôi giữ tham chiếu **của riêng nó**. Đối tượng đang chạy, stack frame, thread-local, executor, listener, callbacks, công cụ monitoring hoặc cache khác vẫn có thể giữ ClassLoader. Ngay cả khi không còn đường tham chiếu mạnh, JVM có thể trì hoãn GC/class unloading.
+When an entry is removed, the map drops **its own** reference. Live objects, stack frames, thread-locals, executors, listeners, callbacks, monitoring tools, or other caches can still hold the ClassLoader. Even when no strong reference paths remain, the JVM may defer GC/class unloading.
 
-Không kiểm thử leak bằng cách gọi `System.gc()` một lần rồi kết luận chắc chắn. Hãy phân tích heap dump, GC roots và retained heap sau nhiều chu kỳ chạy/phục hồi phù hợp.
+Do not test for leaks by calling `System.gc()` once and declaring certainty. Analyze heap dumps, GC roots, and retained heap across multiple appropriate run/redeploy cycles.
 
-### 6.2. Compute không bảo đảm exactly once
+### 6.2. Compute Does Not Guarantee Exactly-Once Execution
 
-Javadoc `ClassValue.get` cho phép nhiều thread cùng tính `computeValue` và cài đặt một kết quả; do đó compute phải có tính lặp lại an toàn, lý tưởng là thuần hàm trên metadata và policy bất biến. `remove(type)` cạnh tranh với `get(type)` có các quy tắc state riêng.
+The `ClassValue.get` Javadoc allows multiple threads to compute `computeValue` concurrently and install one result; therefore compute must be safely repeatable, ideally a pure function over metadata and immutable policy. `remove(type)` racing with `get(type)` follows its own state rules.
 
-`ConcurrentHashMap.computeIfAbsent` điều phối atomic mapping của map; không nên ngoại suy ngữ nghĩa exactly-once của map sang `ClassValue`. Khi phân tích benchmark nhiều luồng, đừng assert đúng một lần compute nếu API cho phép cạnh tranh.
+`ConcurrentHashMap.computeIfAbsent` coordinates atomic map insertion; do not extrapolate the map's single-entry atomicity semantics onto `ClassValue`. When analyzing multi-threaded benchmarks, do not assert exactly one compute call if the API permits contention.
 
-### 6.3. Close cần phối hợp với in-flight work
+### 6.3. Close Must Coordinate with In-Flight Work
 
-`close()` trên cache scoped không tự đợi các request đang giữ reference hoàn tất. Nếu nhiều worker đang sử dụng plugin, chủ sở hữu nên ngừng nhận công việc mới, đợi/cancel công việc đang xử lý theo policy, rồi giải phóng cache và ClassLoader. Tránh đồng thời dỡ loader trong khi một operation vẫn truy cập metadata của plugin.
+`close()` on a scoped cache does not automatically wait for requests currently holding references to finish. If multiple workers are using a plugin, the owner should stop accepting new work, wait for or cancel in-flight work per policy, and then release the cache and ClassLoader. Avoid tearing down a loader while an operation is still accessing plugin metadata.
 
-## 7. Quy trình thiết kế cache Reflection có thể kiểm chứng
+## 7. A Testable Reflection Cache Design Process
 
-1. **Đo nhu cầu:** đo tỷ lệ scan lặp lại, thời gian Reflection, tổng latency, khối lượng class và heap/metaspace trước khi cache.
-2. **Phân loại dữ liệu:** chỉ cache metadata dùng lại hợp lệ; phân biệt derived schema, dữ liệu theo user và giá trị object.
-3. **Chọn owner:** request/session, plugin, application component hay JVM. Tránh owner lâu hơn dữ liệu mà không có lý do và cleanup.
-4. **Chọn key:** `Class<?>` cho class identity, bổ sung policy/config generation khi cần; không dùng tên class đơn độc xuyên loader.
-5. **Chọn implementation:** cache scoped, `ClassValue`, bounded/TTL; xem value có tham chiếu ngược tới class/loader không.
-6. **Định nghĩa expiration/invalidation:** clear ở `close`, remove khi đổi policy, unload plugin, hoặc bounded eviction; xác định hành vi khi concurrent load.
-7. **Đo/kiểm thử:** hit/miss, entry count (nếu có), retained class loaders, memory usage, thời gian reload và hành vi sau shutdown. Chạy lặp nhiều vòng plugin unload/reload, không chỉ một lần.
+1. **Measure the need:** measure repeated scan rate, Reflection time, total latency, class volume, and heap/metaspace before caching.
+2. **Classify the data:** cache only validly reusable metadata; separate derived schemas, per-user data, and object values.
+3. **Choose the owner:** request/session, plugin, application component, or JVM. Avoid an owner that outlives the data without a reason and cleanup.
+4. **Choose the key:** `Class<?>` for class identity, adding policy/config generation when needed; never use class name alone across loaders.
+5. **Choose the implementation:** scoped cache, `ClassValue`, bounded/TTL; check whether values point back to classes/loaders.
+6. **Define expiration/invalidation:** clear in `close`, remove on policy change, plugin unload, or bounded eviction; specify behavior during concurrent loading.
+7. **Measure/test:** hits/misses, entry count (if available), retained classloaders, memory usage, reload time, and post-shutdown behavior. Run multiple plugin unload/reload cycles, not just one.
 
-Các dấu hiệu cần điều tra gồm: class loader thế hệ cũ không mất khỏi GC roots sau khi plugin dừng, số entry tăng theo mỗi lần reload, retained heap/metaspace tăng liên tục, hoặc cache chứa field/Method của loader đã không còn phục vụ request nào.
+Warning signs to investigate include: old-generation classloaders failing to disappear from GC roots after a plugin stops, entry counts growing on every reload, retained heap/metaspace climbing continuously, or caches holding fields/Methods of a loader no longer serving any requests.
 
-## 8. Ví dụ lựa chọn theo tình huống
+## 8. Scenario-Based Selection Examples
 
-| Tình huống | Cách phù hợp | Lưu ý |
+| Scenario | Suitable Approach | Notes |
 | --- | --- | --- |
-| Quét vài loại DTO trong một request | Cache trong request/session | Dọn ngay sau request hoặc khi close. |
-| Metadata bất biến theo `Class` dùng trên nhiều request | `ClassValue` | Không trộn auth/config per-user; `computeValue` có thể chạy nhiều lần. |
-| Plugin hot deploy, runtime cần reload | Cache sở hữu bởi plugin hoặc per-class association | Gỡ registry, listener, worker và mọi reference khác tới loader cũ. |
-| Schema phụ thuộc phiên bản cấu hình | Bounded cache key chứa version hoặc cache generation scoped | Invalidate khi version thay đổi. |
-| Shared cache có nguy cơ gặp hàng trăm nghìn kiểu | Cache bounded có memory budget/TTL hoặc bỏ cache | `ConcurrentHashMap` nguyên bản không có max size. |
-| Dữ liệu nhạy cảm theo tenant | Không giữ trong metadata cache toàn JVM | Redaction/permission theo request. |
+| Scanning a few DTO types during one request | Cache within the request/session | Clean up right after the request or on close. |
+| Immutable per-`Class` metadata used across many requests | `ClassValue` | Do not mix per-user auth/config; `computeValue` may run multiple times. |
+| Hot-deployed plugins requiring runtime reload | Plugin-owned cache or per-class association | Remove registries, listeners, workers, and all other references to the old loader. |
+| Schema depending on configuration version | Bounded cache key including version, or generation-scoped cache | Invalidate when version changes. |
+| Shared cache at risk of encountering hundreds of thousands of types | Bounded cache with memory budget/TTL, or skip caching | Plain `ConcurrentHashMap` has no max size. |
+| Per-tenant sensitive data | Do not store in a JVM-wide metadata cache | Apply redaction/permissions per request. |
 
-## 9. Các lỗi vòng đời nên phát hiện trong review
+## 9. Lifecycle Bugs to Catch in Code Review
 
-| Dấu hiệu | Phân tích | Hành động |
+| Symptom | Analysis | Action |
 | --- | --- | --- |
-| Cache global tăng entries qua mỗi plugin reload | Có thể giữ metadata thế hệ cũ | Owner cho từng plugin/generation; evict khi unload |
-| Policy đã cập nhật nhưng metadata vẫn cũ | Key thiếu policy version hoặc không invalidate | Versioned key/snapshot và quy trình chuyển đổi rõ |
-| `close()` chạy trong khi request còn dùng metadata | Reference cũ vẫn còn trong in-flight work | Chặn việc mới, chờ/hủy việc cũ rồi dọn owner |
-| Bounded cache hết hạn nhưng dữ liệu bảo mật vẫn sai | TTL không bảo đảm invalidation ngay khi quyền đổi | Quyết định quyền theo request hoặc invalidate ngay |
-| Chọn `ClassValue` nhưng cần `clearAll()`/TTL | API không cung cấp thao tác đó | Chọn owner/cache policy khác hoặc quản lý instance/generation |
-| `ConcurrentHashMap` được coi là có giới hạn dung lượng | Thread-safe không đồng nghĩa bounded | Đặt eviction/memory budget riêng |
-| Chỉ đo GC một lần để kết luận hết leak | GC/class unloading không được đảm bảo đúng lúc | Theo dõi GC roots, retained loaders qua nhiều chu kỳ |
+| Global cache grows entries on every plugin reload | Likely retaining old-generation metadata | Scope owner per plugin/generation; evict on unload |
+| Policy updated but metadata stays stale | Key lacks policy version or invalidation is missing | Versioned keys/snapshots and explicit switchover workflow |
+| `close()` runs while requests still use metadata | Stale references remain in in-flight work | Block new work, wait/cancel old work, then clean up owner |
+| Bounded cache expires, yet security data is still wrong | TTL does not guarantee immediate invalidation when permissions change | Enforce permissions per request or invalidate immediately |
+| Chose `ClassValue` but need `clearAll()`/TTL | API does not provide those operations | Choose another owner/cache policy or manage instance/generation |
+| `ConcurrentHashMap` assumed to be capacity-bounded | Thread-safe does not mean bounded | Add separate eviction/memory budget |
+| Ran GC once to conclude there is no leak | GC/class unloading has no guaranteed timing | Track GC roots and retained loaders over multiple cycles |
 
-Không kiểm tra an toàn cache chỉ bằng tỷ lệ hit. Cần đồng thời kiểm thử việc đổi schema/tenant policy, plugin reload, lỗi trong compute, đồng thời khi close và các tham chiếu còn sống sau khi dọn.
+Do not validate cache safety solely by hit rate. Also test schema/tenant policy changes, plugin reloads, exceptions inside compute, concurrent close, and live references remaining after cleanup.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-1. Thêm class `Receipt` trong chương trình và gọi `GLOBAL.computeIfAbsent(Receipt.class, ...)`. Kích thước global map thay đổi ra sao? Nó tự xóa entry khi hết dùng class không?
-2. Bỏ dòng `PER_CLASS.remove(type)` và dự đoán `SCANS`. Khi thêm nhiều thread, điều gì khiến kết quả đếm compute khác đi?
-3. Gọi `InspectionSession.fieldNames` sau `close()`: tại sao chương trình chủ động từ chối?
-4. Thiết kế trường hợp hai loader A/B nạp class cùng binary name. Vì sao key `getName()` sai, còn `Class<?>` đủ để phân biệt?
-5. Vẽ reference graph của `WeakHashMap<Class<?>, List<Field>>` và giải thích vì sao key có thể chưa được thu gom.
-6. Một công cụ export schema có policy theo tenant và tự động reload plugin: chọn loại cache nào cho metadata thô, loại nào cho view theo user, và các điểm invalidation cụ thể.
-7. Đề xuất bài stress test tải/dỡ plugin 100 vòng. Theo dõi loader cũ bằng heap/GC roots và cache entries; nếu số retained loader tăng, cần kiểm tra những owner nào ngoài cache?
+1. Add a `Receipt` class to the program and call `GLOBAL.computeIfAbsent(Receipt.class, ...)`. How does the global map's size change? Does it automatically remove entries when the class is no longer used?
+2. Remove the `PER_CLASS.remove(type)` line and predict `SCANS`. When adding multiple threads, what can cause the compute count to differ?
+3. Call `InspectionSession.fieldNames` after `close()`: why does the program proactively reject it?
+4. Design a case where two loaders A/B load a class with the same binary name. Why is a `getName()` key wrong, whereas `Class<?>` suffices to distinguish them?
+5. Draw the reference graph of `WeakHashMap<Class<?>, List<Field>>` and explain why the key might still not be collected.
+6. A schema-export tool has per-tenant policies and supports automatic plugin reloads: pick which cache type to use for raw metadata, which for per-user views, and the exact invalidation points.
+7. Propose a stress test loading/unloading a plugin for 100 cycles. Monitor old loaders via heap/GC roots and cache entries; if retained loaders increase, which owners besides the cache should you inspect?
 
-**Tự đánh giá:** Khi một cache dùng `Class<?>`/`Method`/`Field` làm key hay value, bạn có xác định được **đơn vị sở hữu, hạn tồn tại, nơi invalidation, key có thể trỏ tới loader nào và liệu dữ liệu bị sai khi policy đổi** không? Nếu chưa, cache toàn JVM không giới hạn là một thiết kế chưa hoàn chỉnh.
+**Self-assessment:** Whenever a cache uses `Class<?>`/`Method`/`Field` as key or value, can you identify **its owning unit, lifetime limit, invalidation point, which loaders its keys may point to, and whether data becomes wrong when policies change**? If not, an unbounded JVM-wide cache is an incomplete design.
 
-## 11. Tài liệu chính thức
+## 11. Official References
 
-- [Java SE 17 — ClassValue](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassValue.html) — `get`, `computeValue`, `remove` và cạnh tranh.
-- [Java SE 17 — Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html) — `getDeclaredFields`, `getClassLoader` và class identity.
+- [Java SE 17 — ClassValue](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassValue.html) — `get`, `computeValue`, `remove`, and contention.
+- [Java SE 17 — Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html) — `getDeclaredFields`, `getClassLoader`, and class identity.
 - [Java SE 17 — Field](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html) — declaring class, metadata.
 - [Java SE 17 — ConcurrentHashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html) — atomic map operations, `computeIfAbsent`.
-- [Java SE 17 — WeakHashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/WeakHashMap.html) — weak keys, strong values và vòng tham chiếu.
-- [Java SE 17 — ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html) — định nghĩa class qua loader.
+- [Java SE 17 — WeakHashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/WeakHashMap.html) — weak keys, strong values, and reference cycles.
+- [Java SE 17 — ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html) — defining classes through loaders.

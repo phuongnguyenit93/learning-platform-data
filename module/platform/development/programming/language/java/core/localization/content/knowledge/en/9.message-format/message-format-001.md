@@ -1,15 +1,15 @@
-# Vì sao cần định dạng toàn câu thay cho nối các mảnh văn bản?
+# Why Is Whole-Sentence Formatting Needed Instead of Concatenating Text Fragments?
 
-## 1. Vấn đề: một câu có ý nghĩa lớn hơn tổng các mảnh ghép
+## 1. The Problem: A Sentence Means More Than the Sum of Its Fragments
 
-Trong ứng dụng Java, cách đơn giản để tạo thông báo động là nối các chuỗi:
+In a Java application, a simple way to build a dynamic message is to concatenate strings:
 
 ```java
 String sentence = "Hello, " + name + "! You have "
         + count + " new messages.";
 ```
 
-Đoạn code có thể hoạt động khi chỉ hỗ trợ tiếng Anh. Nhưng nếu dùng các “mảnh” để bản địa hóa:
+This code can work when only English is supported. However, if you use "fragments" for localization:
 
 ```java
 String sentence = bundle.getString("greeting.prefix")
@@ -19,76 +19,76 @@ String sentence = bundle.getString("greeting.prefix")
         + bundle.getString("inbox.suffix");
 ```
 
-thì người dịch bị buộc tuân theo **thứ tự ghép do Java quyết định**. Ngữ pháp từng ngôn ngữ không có cùng thứ tự chủ ngữ, số lượng, danh từ và lời xưng hô. Có ngôn ngữ cần di chuyển cả cụm từ, thêm hậu tố theo ngữ cảnh hoặc bỏ dấu câu vốn thuộc một mảnh khác.
+then translators are forced to follow the **concatenation order dictated by Java**. The grammar of each language does not share the same order for subject, quantity, noun, and form of address. Some languages need to move entire phrases, add context-dependent suffixes, or omit punctuation that belonged to another fragment.
 
-Ví dụ:
+For example:
 
-- Tiếng Anh: **“Hello, Linh. You have 2 new messages.”**
-- Tiếng Việt: **“Bạn có 2 tin nhắn mới, Linh.”**
+- English: **“Hello, Linh. You have 2 new messages.”**
+- Vietnamese: **“Bạn có 2 tin nhắn mới, Linh.”**
 
-Ở tiếng Anh, tên `Linh` xuất hiện trước số lượng `2`; ở tiếng Việt, vị trí được đổi lại. Nếu chia thông điệp thành “prefix + name + middle + count + suffix”, bản dịch phải chấp nhận một cấu trúc câu cứng nhắc, hoặc code phải thêm các nhánh điều kiện ngôn ngữ. Mỗi nhánh mới lại tăng rủi ro lỗi.
+In English, the name `Linh` appears before the count `2`; in Vietnamese, the positions are swapped. If the message is split into "prefix + name + middle + count + suffix", translations have to accept a rigid sentence structure, or the code must add language-specific conditional branches. Each new branch increases the risk of bugs.
 
-**Quy tắc chính:** hãy dịch **nguyên câu có ngữ cảnh**, và đưa các dữ liệu động vào **tham số được đánh dấu**. Java xử lý dữ liệu, còn bản dịch được quyền sắp xếp các thành phần trong câu.
+**Key rule:** translate **whole sentences with context**, and pass dynamic data into **indexed placeholders**. Java handles the data, while the translation has the freedom to arrange the sentence components.
 
-Trong Java, `java.text.MessageFormat` là một công cụ chuẩn để biểu diễn một thông điệp hoàn chỉnh có tham số, định dạng số, ngày và một số dạng lựa chọn đơn giản theo locale.
+In Java, `java.text.MessageFormat` is a standard tool for representing a complete message with parameters, number/date formatting, and certain simple locale-sensitive choices.
 
-## 2. Phân biệt nối chuỗi và mẫu thông điệp
+## 2. Distinguishing String Concatenation from Message Patterns
 
-So sánh hai thiết kế:
+Compare the two designs:
 
-| Khía cạnh | Nối nhiều mảnh | Định dạng toàn câu |
+| Aspect | Concatenating multiple fragments | Whole-sentence formatting |
 | --- | --- | --- |
-| Đơn vị dịch | `prefix`, `suffix`, từ và dấu câu | Một thông điệp có ý nghĩa đầy đủ |
-| Thứ tự tên và số | Cố định trong code | Mỗi bản dịch có thể đổi vị trí tham số |
-| Dấu câu và khoảng trắng | Chia giữa các mảnh, dễ thừa hoặc thiếu | Thuộc câu hoàn chỉnh |
-| Cách nói tự nhiên | Dễ bị ép theo ngữ pháp của ngôn ngữ gốc | Người dịch tự chọn cấu trúc |
-| Dữ liệu động | Nối hoặc thay chuỗi thủ công | Tham số `{0}`, `{1}`, ... |
-| Số/ngày theo locale | Thường bị chuyển thành chuỗi quá sớm | Có thể định dạng tại thời điểm tạo câu |
-| Kiểm thử | Khó kiểm tra ngữ pháp toàn câu | Kiểm thử từng mẫu thông điệp và tham số |
+| Translation unit | `prefix`, `suffix`, words, and punctuation | A message with complete meaning |
+| Order of name and number | Hardcoded in code | Each translation can reorder parameters |
+| Punctuation and spacing | Split across fragments, easily duplicated or missing | Belongs to the complete sentence |
+| Natural phrasing | Easily forced into the source language's grammar | Translators choose the structure |
+| Dynamic data | Manual concatenation or string replacement | Parameters `{0}`, `{1}`, ... |
+| Locale-specific numbers/dates | Often converted to strings too early | Can be formatted at sentence-creation time |
+| Testing | Hard to verify whole-sentence grammar | Test each message pattern and its arguments |
 
-Thiết kế toàn câu vẫn cần một **khóa thông điệp** ở tầng tài nguyên. Ví dụ:
+A whole-sentence design still needs a **message key** at the resource layer. For example:
 
 ```properties
 inbox.summary=Hello, {0}. You have {1,number,integer} new messages.
 ```
 
-Với bản dịch tiếng Việt:
+With the Vietnamese translation:
 
 ```properties
 inbox.summary=Bạn có {1,number,integer} tin nhắn mới, {0}.
 ```
 
-Cả hai tệp dùng **cùng một key** `inbox.summary` và cùng một danh sách đối số, nhưng thứ tự `{0}`, `{1}` hoàn toàn khác nhau. Điều đó chính là lợi ích của việc định dạng cả câu.
+Both files use the **same key** `inbox.summary` and the same argument list, yet the order of `{0}` and `{1}` is completely different. That is the core benefit of formatting the entire sentence.
 
-**Điểm cần tránh:** `MessageFormat` không tự dịch tiếng Anh sang tiếng Việt. Bạn phải cung cấp các mẫu câu phù hợp trong các tệp dịch; `MessageFormat` chỉ diễn giải mẫu và chèn dữ liệu theo quy tắc định dạng.
+**Pitfall to avoid:** `MessageFormat` does not automatically translate English into Vietnamese. You must provide appropriate sentence patterns in the translation files; `MessageFormat` only parses the pattern and inserts data according to formatting rules.
 
-## 3. Cấu trúc cơ bản của MessageFormat
+## 3. Basic Structure of MessageFormat
 
-Ví dụ mẫu:
+Example pattern:
 
 ```text
 Hello, {0}. You have {1,number,integer} new messages.
 ```
 
-- `{0}`: lấy đối số có **chỉ số 0**.
-- `{1}`: lấy đối số có **chỉ số 1**.
-- `{1,number,integer}`: lấy đối số 1 và trình bày dưới dạng số nguyên theo locale của `MessageFormat`.
-- Văn bản ở ngoài dấu ngoặc nhọn là một phần của câu, được giữ nguyên như translator đã viết.
+- `{0}`: takes the argument at **index 0**.
+- `{1}`: takes the argument at **index 1**.
+- `{1,number,integer}`: takes argument 1 and formats it as an integer according to the `MessageFormat` locale.
+- Text outside curly braces is part of the sentence, preserved as written by the translator.
 
-API chính:
+Main API:
 
 ```java
 MessageFormat format = new MessageFormat(pattern, locale);
 String result = format.format(new Object[] {name, count});
 ```
 
-`pattern` là **mẫu thông điệp**; `locale` quyết định cách định dạng các đối số có kiểu số/ngày. `name` và `count` là dữ liệu động. Để thay đổi cấu trúc câu, sửa mẫu trong bản dịch, không cần sửa thứ tự đối số Java gửi vào.
+`pattern` is the **message pattern**; `locale` determines how numeric/date arguments are formatted. `name` and `count` are dynamic data. To change the sentence structure, modify the pattern in the translation without changing the argument order passed by Java.
 
-Trong mẫu, chỉ số tham số bắt đầu từ 0 và **không cần xuất hiện theo thứ tự tăng dần**. Có thể lặp lại một đối số ở nhiều vị trí, hoặc bỏ qua đối số không cần dùng. Dù vậy, hãy giữ một hợp đồng rõ ràng cho từng key: đối số 0 là gì, đối số 1 là gì, kiểu dữ liệu nào được phép.
+In a pattern, argument indices start at 0 and **do not need to appear in ascending order**. An argument can be repeated in multiple places, or unused arguments can be omitted. Even so, keep a clear contract for each key: what argument 0 is, what argument 1 is, and which data types are allowed.
 
-## 4. Ví dụ Java 17+ chạy độc lập: hai ngôn ngữ, một danh sách đối số
+## 4. Standalone Java 17+ Example: Two Languages, One Argument List
 
-Tạo file `WholeSentenceDemo.java`:
+Create the file `WholeSentenceDemo.java`:
 
 ```java
 import java.text.MessageFormat;
@@ -117,7 +117,7 @@ public class WholeSentenceDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 WholeSentenceDemo.java
@@ -131,13 +131,13 @@ Hello, Linh. You have 2 new messages.
 Bạn có 2 tin nhắn mới, Linh.
 ```
 
-Mỗi câu hoàn chỉnh được lưu trong một biến pattern, nhưng cả hai nhận cùng dữ liệu `"Linh"` và `2`. Bản tiếng Việt dùng `{1}` trước `{0}`. Khi có thêm ngôn ngữ, ta thêm một bản dịch toàn câu và vẫn dùng cùng lời gọi `formatter.format(...)`.
+Each complete sentence is stored in a pattern variable, while both receive the same data `"Linh"` and `2`. The Vietnamese version uses `{1}` before `{0}`. When adding another language, you add a whole-sentence translation and keep using the same `formatter.format(...)` call.
 
-Việc hard-code `english` và `vietnamese` ở ví dụ chỉ nhằm tập trung vào cơ chế `MessageFormat`. Trong ứng dụng thật, mẫu nên được lấy từ tài nguyên bản địa hóa, ví dụ `ResourceBundle`, để người dịch chỉnh văn bản mà không sửa code.
+Hard-coding `english` and `vietnamese` in this example is only to focus on the `MessageFormat` mechanism. In a real application, patterns should be loaded from localized resources, such as `ResourceBundle`, so translators can edit text without modifying code.
 
-## 5. Kết hợp ResourceBundle: lưu cả câu trong file tài nguyên
+## 5. Combining with ResourceBundle: Storing Whole Sentences in Resource Files
 
-Một cấu trúc chạy được với Java 17+:
+A working structure for Java 17+:
 
 ```text
 message-demo/
@@ -147,7 +147,7 @@ message-demo/
 └── messages_vi.properties
 ```
 
-`messages.properties` — bundle gốc, chứa bản mặc định:
+`messages.properties` — the root bundle, containing the default version:
 
 ```properties
 inbox.summary=Hello, {0}. You have {1,number,integer} new messages.
@@ -159,7 +159,7 @@ inbox.summary=Hello, {0}. You have {1,number,integer} new messages.
 inbox.summary=Hello, {0}. You have {1,number,integer} new messages.
 ```
 
-`messages_vi.properties` (lưu UTF-8):
+`messages_vi.properties` (saved as UTF-8):
 
 ```properties
 inbox.summary=Bạn có {1,number,integer} tin nhắn mới, {0}.
@@ -190,7 +190,7 @@ public class MessageBundleDemo {
 }
 ```
 
-Ở thư mục chứa bốn tệp:
+In the directory containing the four files:
 
 ```bash
 javac -encoding UTF-8 MessageBundleDemo.java
@@ -204,47 +204,47 @@ Hello, Linh. You have 2 new messages.
 Bạn có 2 tin nhắn mới, Linh.
 ```
 
-**Luồng hoạt động:**
+**Execution flow:**
 
-1. Java xác định locale mà người dùng yêu cầu.
-2. `ResourceBundle.getBundle("messages", locale)` tìm một bundle theo quy tắc locale/fallback.
-3. `getString("inbox.summary")` lấy **toàn câu** bằng key cố định.
-4. `new MessageFormat(pattern, locale)` tạo formatter với locale mong muốn.
-5. `format(new Object[] {name, count})` chèn dữ liệu vào đúng vị trí mà bản dịch quy định.
+1. Java determines the locale requested by the user.
+2. `ResourceBundle.getBundle("messages", locale)` finds a bundle according to locale/fallback rules.
+3. `getString("inbox.summary")` retrieves the **whole sentence** using a fixed key.
+4. `new MessageFormat(pattern, locale)` creates a formatter with the desired locale.
+5. `format(new Object[] {name, count})` inserts data at the exact positions specified by the translation.
 
-Các file `.properties` phải có mặt trên classpath. Trong Maven hoặc Gradle, thông thường đặt chúng ở `src/main/resources`. Với Java 9+ và `PropertyResourceBundle`, UTF-8 là cách mã hóa mặc định theo cơ chế chuẩn; cần giữ encoding nhất quán trong công cụ biên dịch, soạn thảo và dịch thuật.
+The `.properties` files must be on the classpath. In Maven or Gradle, they are typically placed in `src/main/resources`. With Java 9+ and `PropertyResourceBundle`, UTF-8 is the default encoding under the standard mechanism; keep the encoding consistent across compiler, editor, and translation tools.
 
-**Phân biệt hai loại fallback:** nếu không có bundle cho locale được yêu cầu, `ResourceBundle` có cơ chế tìm bundle cha, locale mặc định và bundle gốc theo quy tắc riêng. Nếu đã chọn được bundle nhưng thiếu một key, việc tra cứu có thể dùng parent bundle. `MessageFormat` không xử lý việc tìm bản dịch; nó chỉ nhận `pattern` sau khi lookup.
+**Distinguishing two kinds of fallback:** if no bundle exists for the requested locale, `ResourceBundle` has its own rules for searching parent bundles, the default locale, and the root bundle. If a bundle has been selected but is missing a key, key lookup can fall back to the parent bundle. `MessageFormat` does not handle finding translations; it only receives the `pattern` after lookup.
 
-## 6. Vì sao việc ghép câu hay hỏng khi đổi ngôn ngữ?
+## 6. Why Does Sentence Concatenation Break When Switching Languages?
 
-### 6.1. Thứ tự từ và vị trí tham số
+### 6.1. Word Order and Parameter Position
 
-Các ngôn ngữ có thể đặt chủ thể, đối tượng hoặc tên người ở vị trí khác nhau. Bản dịch toàn câu có thể dùng `{1}` trước `{0}`; ghép `prefix + value + suffix` không cho translator quyền đó.
+Languages can place the subject, object, or person's name in different positions. A whole-sentence translation can use `{1}` before `{0}`; concatenating `prefix + value + suffix` deprives translators of that freedom.
 
-### 6.2. Dấu câu và khoảng trắng
+### 6.2. Punctuation and Spacing
 
-Nếu key `greeting.prefix` kết thúc bằng dấu phẩy và khoảng trắng, còn `greeting.suffix` có dấu chấm than, một chỉnh sửa nhỏ có thể tạo hai dấu cách hoặc thiếu khoảng trắng. Một số ngôn ngữ có khoảng cách và dấu câu khác nhau. Đặt chúng trong toàn câu giúp trách nhiệm rõ ràng.
+If a `greeting.prefix` key ends with a comma and a space, and `greeting.suffix` has an exclamation mark, a minor edit can produce double spaces or missing spaces. Some languages use different spacing and punctuation rules. Keeping them in the whole sentence makes ownership clear.
 
-### 6.3. Ngữ pháp phụ thuộc số lượng
+### 6.3. Quantity-Dependent Grammar
 
-Câu kiểu `count + " files"` không đủ khi cần hình thức số ít/số nhiều, và quy tắc khác nhau giữa các ngôn ngữ. Tiếng Anh phân biệt “1 file” và “2 files”; nhiều ngôn ngữ có **hơn hai loại số lượng**, hoặc hình thức phụ thuộc giá trị và ngữ cảnh. Không nên chỉ dịch riêng từ “file” rồi nối sau số.
+Phrases like `count + " files"` are insufficient when singular/plural forms are needed, and rules vary across languages. English distinguishes "1 file" and "2 files"; many languages have **more than two plural categories**, or forms that depend on value and context. You should not translate the word "file" in isolation and append it after a number.
 
-### 6.4. Giới tính, cách xưng hô và sắc thái
+### 6.4. Gender, Form of Address, and Nuance
 
-Một câu thông báo có thể thay đổi cách xưng hô theo đối tượng, quan hệ xã hội hoặc ngữ pháp của ngôn ngữ. Chia thành các mảnh từ vựng thường khiến translator không nhìn thấy bối cảnh. Lưu cả câu, thêm chú thích ngữ cảnh và tạo biến thể thông điệp khi cần.
+A notification sentence may change forms of address depending on the person, social relationship, or language grammar. Splitting into lexical fragments often prevents translators from seeing the context. Store whole sentences, add context notes, and create message variants when needed.
 
-### 6.5. Số, ngày và tiền tệ
+### 6.5. Numbers, Dates, and Currencies
 
-Nếu chuyển `double` hoặc `Date` thành chuỗi trước khi chọn locale, có thể đem dấu phân cách số hoặc tên tháng của ngôn ngữ này vào câu của ngôn ngữ khác. Mẫu `{0,number}`, `{0,number,integer}`, `{0,date,short}` có thể trì hoãn định dạng cho đúng locale của formatter. Múi giờ là vấn đề riêng; cần lựa chọn rõ khi hiển thị thời điểm.
+If a `double` or `Date` is converted to a string before choosing the locale, you can bring number separators or month names from one language into a sentence of another language. Patterns like `{0,number}`, `{0,number,integer}`, and `{0,date,short}` defer formatting to the formatter's locale. Time zones are a separate concern; choose one explicitly when displaying instants.
 
-### 6.6. Tính nhất quán và dễ thay đổi
+### 6.6. Consistency and Maintainability
 
-Khi một câu là một key, người viết nội dung có thể thay đổi giọng văn, dấu câu và thứ tự thành phần trong một nơi. Code chỉ biết hợp đồng đối số. Việc kiểm thử cũng có thể dựa trên tập key và định dạng câu, ít phụ thuộc vào số mảnh rải rác.
+When a sentence is a single key, content authors can update tone, punctuation, and component order in one place. The code only knows the argument contract. Testing can also rely on the set of keys and sentence patterns, with less coupling to scattered fragments.
 
-## 7. Định dạng số và ngày phải gắn với ngữ cảnh người đọc
+## 7. Number and Date Formatting Must Match the Reader's Context
 
-Một số mẫu của `MessageFormat`:
+Some `MessageFormat` patterns:
 
 ```text
 Total items: {0,number,integer}
@@ -253,15 +253,15 @@ Processed on {0,date,short}
 Started at {0,time,short}
 ```
 
-Các tham số `number`, `date`, `time` dựa vào locale của `MessageFormat`. Với `number,currency`, đơn vị tiền tệ mặc định thường được suy ra từ locale; nếu nghiệp vụ quản lý nhiều đơn vị tiền, hãy xác định `Currency` và cấu hình `NumberFormat` phù hợp thay vì suy diễn toàn bộ từ ngôn ngữ.
+The `number`, `date`, and `time` parameters rely on the `MessageFormat`'s locale. With `number,currency`, the default currency unit is usually inferred from the locale; if the domain manages multiple currencies, explicitly specify `Currency` and configure an appropriate `NumberFormat` instead of inferring everything from the language.
 
-Nếu ứng dụng cần hiển thị thời điểm, cần xác định thêm `TimeZone` của formatter/ngữ cảnh người dùng. Locale không tự chọn đúng múi giờ.
+If the application needs to display instants in time, you also need to specify the `TimeZone` on the formatter/user context. A locale does not automatically select the right time zone.
 
-**Không nhầm định dạng giao diện với serialization:** JSON number, timestamp ISO, mã định danh hay dữ liệu trao đổi API phải theo đặc tả giao thức. Không dùng `MessageFormat` để sinh JSON bằng cách nối một số đoạn văn bản: escaping, kiểu dữ liệu và bảo mật cần serializer chuyên dụng.
+**Do not confuse UI formatting with serialization:** JSON numbers, ISO timestamps, identifiers, or API exchange payloads must follow protocol specifications. Do not use `MessageFormat` to generate JSON by concatenating text fragments: escaping, data types, and security require a dedicated serializer.
 
-## 8. Số ít/số nhiều: ví dụ ChoiceFormat và giới hạn của nó
+## 8. Singular/Plural: ChoiceFormat Example and Its Limitations
 
-Java `MessageFormat` hỗ trợ cú pháp `choice` để tạo một số nhánh dựa trên giá trị số. Ví dụ tiếng Anh đơn giản:
+Java's `MessageFormat` supports the `choice` syntax to branch based on a numeric value. A simple English example:
 
 ```java
 import java.text.MessageFormat;
@@ -281,7 +281,7 @@ public class ChoiceDemo {
 }
 ```
 
-Lưu `ChoiceDemo.java`, rồi chạy:
+Save `ChoiceDemo.java`, then run:
 
 ```bash
 javac -encoding UTF-8 ChoiceDemo.java
@@ -296,15 +296,15 @@ One item
 2 items
 ```
 
-Ở đây `0#` áp dụng từ mốc 0, `1#` từ mốc 1, và `1<` áp dụng cho giá trị **lớn hơn 1**. Mẫu có thể chứa `{0,number,integer}` trong nhánh, nên Java tiếp tục xử lý placeholder lồng nhau.
+Here `0#` applies from 0 upward, `1#` from 1 upward, and `1<` applies to values **greater than 1**. Patterns can contain `{0,number,integer}` inside a branch, so Java continues processing nested placeholders.
 
-Đây chỉ là ví dụ cho tiếng Anh và số nguyên không âm. **Không nên sao chép quy tắc 0/1/nhiều cho mọi ngôn ngữ.** `ChoiceFormat` dựa trên ranh giới số, không cung cấp đầy đủ plural categories của CLDR như `one`, `few`, `many` tùy ngôn ngữ. Khi sản phẩm cần nhiều ngôn ngữ và pluralization chính xác, cân nhắc hệ thống bản dịch hỗ trợ plural rules theo CLDR/ICU hoặc giải pháp i18n được kiểm chứng, đồng thời giữ toàn câu trong từng nhánh.
+This is only an example for English and non-negative integers. **Do not copy the 0/1/many rule for every language.** `ChoiceFormat` is based on numeric boundaries and does not provide full CLDR plural categories such as `one`, `few`, and `many` depending on the language. When a product needs multiple languages and accurate pluralization, consider a translation system supporting CLDR/ICU plural rules or a proven i18n solution, while keeping complete sentences in each branch.
 
-Điểm chung vẫn là: không nối phần đầu, số lượng và danh từ một cách cố định từ Java.
+The common principle remains: do not concatenate a prefix, a count, and a noun in a fixed order from Java.
 
-## 9. Dấu nháy đơn, ngoặc nhọn và ký tự đặc biệt trong pattern
+## 9. Single Quotes, Curly Braces, and Special Characters in Patterns
 
-`MessageFormat` có cú pháp riêng: **dấu nháy đơn** `'` dùng để quote một đoạn literal. Để hiển thị một dấu nháy đơn trong pattern, thường phải viết thành `''` (hai dấu nháy đơn). Ví dụ:
+`MessageFormat` has its own syntax: a **single quote** `'` is used to quote a literal segment. To display a single quote in a pattern, you usually must write it as `''` (two single quotes). For example:
 
 ```java
 MessageFormat format = new MessageFormat(
@@ -318,15 +318,15 @@ Stdout:
 You're welcome, Linh!
 ```
 
-Nếu viết `You're welcome, {0}!` trực tiếp trong pattern, dấu `'` có thể bắt đầu vùng quote, khiến `{0}` không được xử lý như mong muốn. Khi dịch các câu dùng apostrophe (ví dụ tiếng Pháp), đây là một lỗi khá phổ biến.
+If you write `You're welcome, {0}!` directly in the pattern, the `'` character can start a quoted region, preventing `{0}` from being processed as intended. When translating sentences that use apostrophes (such as French), this is a very common bug.
 
-Dấu ngoặc nhọn `{` và `}` cũng có ý nghĩa đánh dấu tham số. Nếu cần hiển thị chúng như văn bản, phải dùng quy tắc quote của `MessageFormat`. Tránh đưa chuỗi chưa kiểm soát từ người dùng vào **pattern**; người dùng chỉ nên cung cấp **argument values**, không phải một mẫu định dạng tự do được parser thực thi.
+Curly braces `{` and `}` also serve to delimit parameters. If they must appear as literal text, you must use `MessageFormat`'s quoting rules. Avoid putting unvalidated user strings into the **pattern**; users should only supply **argument values**, not an arbitrary format pattern executed by the parser.
 
-Với file `.properties`, còn có quy tắc escape riêng của định dạng properties, ví dụ `\\` hoặc ký tự xuống dòng. Vì vậy một mẫu phải đúng ở **hai tầng**: cú pháp file tài nguyên và cú pháp MessageFormat sau khi được đọc. Kiểm thử nên dùng đúng đường nạp ResourceBundle thực tế.
+For `.properties` files, the properties format also has its own escaping rules, such as `\\` or newline characters. Therefore, a pattern must be valid at **two levels**: the resource file syntax and the `MessageFormat` syntax after being read. Tests should use the actual `ResourceBundle` loading path.
 
-## 10. Thiết kế khóa và hợp đồng tham số
+## 10. Key Design and Parameter Contracts
 
-Một key dịch tốt diễn đạt *mục đích* của thông điệp, không chỉ lặp nguyên câu tiếng Anh:
+A good translation key expresses the *purpose* of the message, rather than merely repeating the English sentence:
 
 ```properties
 inbox.summary=Hello, {0}. You have {1,number,integer} new messages.
@@ -334,92 +334,92 @@ checkout.total=Your total is {0,number,currency}.
 profile.update.success=Your profile was updated.
 ```
 
-Để người dịch không nhầm `{0}` và `{1}`, ghi ngữ cảnh:
+So that translators do not confuse `{0}` and `{1}`, document the context:
 
 ```properties
 # {0}: recipient display name; {1}: unread message count (integer)
 inbox.summary=Hello, {0}. You have {1,number,integer} new messages.
 ```
 
-Những quy tắc nên thống nhất trong dự án:
+Rules to standardize across the project:
 
-1. **Một key tương ứng một ý nghĩa và một ngữ cảnh hiển thị.** Hai nút cùng chữ “Open” nhưng khác mục đích có thể cần key riêng.
-2. **Các đối số có thứ tự và kiểu rõ ràng.** Ví dụ `{0}` là tên hiển thị (`String`), `{1}` là số lượng (`Number`).
-3. **Mọi locale dùng cùng hợp đồng đối số**, nhưng được đổi vị trí và thay cấu trúc câu.
-4. **Không xóa placeholder bắt buộc** hoặc thay cú pháp `{0}` bằng `%s` tùy tiện. `String.format` và `MessageFormat` là hai hệ cú pháp khác nhau.
-5. **Đổi câu chữ không buộc đổi key**. Đổi ý nghĩa hoặc hợp đồng đối số cần được xem là thay đổi giao diện giữa code và tài nguyên dịch.
-6. **Không nối câu hoàn chỉnh với một mảnh câu khác** chỉ vì muốn “tái sử dụng”. Sự trùng câu giữa hai vị trí hôm nay không đảm bảo bản dịch về sau giống nhau.
+1. **One key corresponds to one meaning and one display context.** Two buttons both labeled "Open" but serving different purposes may need separate keys.
+2. **Arguments have a clear order and type.** For example, `{0}` is a display name (`String`), and `{1}` is a count (`Number`).
+3. **Every locale uses the same argument contract**, while remaining free to reorder parameters and change sentence structure.
+4. **Do not delete required placeholders** or arbitrarily replace `{0}` syntax with `%s`. `String.format` and `MessageFormat` are two different syntax systems.
+5. **Changing wording does not require changing the key.** Changing the meaning or argument contract should be treated as an interface change between code and translation resources.
+6. **Do not concatenate a complete sentence with another fragment** just for "reuse". Identical phrasing in two places today does not guarantee identical translations later.
 
-Nếu ngôn ngữ đích không cần một tham số nhất định, bản dịch có thể chủ động không dùng nó khi có lý do chính đáng; tuy vậy, key quan trọng nên có kiểm thử để tránh lỗi vô tình bỏ sót dữ liệu. Đặc biệt với số tiền, ngày, tên và điều kiện nghiệp vụ, không được đánh rơi thông tin cần thiết.
+If a target language does not need a specific parameter, a translation may intentionally omit it for a valid linguistic reason; nevertheless, critical keys should have tests to prevent accidentally dropping data. Especially for amounts, dates, names, and business conditions, essential information must never be lost.
 
-## 11. MessageFormat khác String.format và nối StringBuilder thế nào?
+## 11. How Does MessageFormat Differ from String.format and StringBuilder Concatenation?
 
-- **Nối chuỗi / `StringBuilder`:** hữu ích để tạo các dữ liệu kỹ thuật có cấu trúc đơn giản hoặc ghép những thành phần **không phải câu văn cần dịch**. Không nên là cơ chế chính để địa phương hóa cả câu.
-- **`String.format`:** hỗ trợ cú pháp kiểu `%s`, `%d`, `%.2f` và có overload nhận `Locale`. Có thể dùng cho thông điệp đơn giản, nhưng bản dịch phải tuân thủ các quy tắc đánh chỉ số tham số của Formatter nếu muốn đổi thứ tự.
-- **`MessageFormat`:** thiết kế để xử lý message pattern có `{0}`, `{1,number}`, `{2,date}` và những cấu trúc lựa chọn; được dùng phổ biến kết hợp ResourceBundle.
+- **String concatenation / `StringBuilder`:** useful for building simple structured technical data or combining parts that are **not prose sentences to be translated**. It should not be the primary mechanism for localizing whole sentences.
+- **`String.format`:** supports `%s`, `%d`, `%.2f` style syntax and has an overload accepting `Locale`. It can be used for simple messages, though translations must follow `Formatter` argument indexing rules if they need to reorder arguments.
+- **`MessageFormat`:** designed to handle message patterns with `{0}`, `{1,number}`, `{2,date}`, and choice constructs; commonly used together with `ResourceBundle`.
 
-Ví dụ `String.format(Locale.US, "Hello %s", name)` vẫn là một thông điệp đủ ngắn hợp lệ. Giá trị của `MessageFormat` rõ hơn khi bạn có **cả một hệ thống mẫu dịch** với tham số, số và ngày. Điều cốt lõi của bài này là **đơn vị dịch phải là toàn câu**, không nhất thiết mỗi câu đều phải dùng một API duy nhất.
+For example, `String.format(Locale.US, "Hello %s", name)` is still a valid short message. The value of `MessageFormat` becomes clearer when you have **an entire system of translation patterns** with parameters, numbers, and dates. The core takeaway of this lesson is that **the translation unit must be the whole sentence**, not necessarily that every sentence must use a single API.
 
-## 12. Các lỗi dễ gặp khi đưa vào sản phẩm
+## 12. Common Pitfalls in Production
 
-| Lỗi | Vì sao sai | Cách sửa |
+| Pitfall | Why it is wrong | How to fix |
 | --- | --- | --- |
-| Dịch `prefix` và `suffix` độc lập | Mất quyền đổi thứ tự và dấu câu | Dịch toàn câu với placeholder |
-| Dịch riêng danh từ và nối sau số | Không xử lý được số ít/số nhiều nhiều ngôn ngữ | Dùng thông điệp đầy đủ cùng cơ chế plural phù hợp |
-| Viết `{0}` theo thứ tự cứng trong code | Bản dịch khó đặt tên và số đúng vị trí | Giữ hợp đồng đối số, cho bản dịch đổi thứ tự |
-| Trộn `%s` với `{0}` | Hai API có cú pháp khác nhau | Chọn rõ formatter cho từng key |
-| `MessageFormat` dùng default locale vô tình | Số/ngày có thể sai vùng | Tạo formatter với locale người dùng |
-| Nối giá trị đã format trước khi dịch | Cứng dấu số và múi giờ không phù hợp | Truyền giá trị typed, định dạng trong message hoặc bằng formatter phù hợp |
-| Quên escape apostrophe | Placeholder bị quote, hiển thị sai | Dùng `''` và kiểm thử |
-| Dùng một nhánh plural tiếng Anh cho mọi locale | Quy tắc đa ngôn ngữ phức tạp hơn | Dùng giải pháp plural bản địa hóa đã kiểm chứng |
-| Gộp các phần dịch giống chữ nhưng khác nghĩa | Người dịch thiếu ngữ cảnh | Đặt key theo mục đích |
-| Xem `MessageFormat` là bộ lọc XSS/SQL | Nó chỉ định dạng thông điệp | Escape theo ngữ cảnh đầu ra; dùng prepared statement/serializer thích hợp |
-| Chia sẻ đối tượng `MessageFormat` mutable giữa thread | Không an toàn cho cập nhật/format đồng thời | Tạo instance theo lần dùng, hoặc quản lý bản sao/đồng bộ phù hợp |
+| Translating `prefix` and `suffix` independently | Loses ability to reorder and adjust punctuation | Translate whole sentences with placeholders |
+| Translating nouns separately and appending after numbers | Cannot handle multi-language singular/plural rules | Use full messages with an appropriate plural mechanism |
+| Writing `{0}` in a hardcoded order in code | Translations struggle to place names and numbers naturally | Keep the argument contract, let translations reorder |
+| Mixing `%s` with `{0}` | The two APIs have different syntaxes | Choose the formatter clearly per key |
+| `MessageFormat` accidentally using the default locale | Numbers/dates can have the wrong regional format | Create the formatter with the user's locale |
+| Concatenating pre-formatted values before translation | Locks in inappropriate number separators and time zones | Pass typed values, format in the message or via proper formatters |
+| Forgetting to escape apostrophes | Placeholders become quoted and render incorrectly | Use `''` and write tests |
+| Using one English plural branch for all locales | Multilingual rules are more complex | Use a proven localized plural solution |
+| Merging translations that look identical in text but differ in meaning | Translators lack context | Name keys by purpose |
+| Treating `MessageFormat` as an XSS/SQL filter | It only formats messages | Escape for the output context; use prepared statements/proper serializers |
+| Sharing mutable `MessageFormat` objects across threads | Unsafe for concurrent updates/formatting | Create per-use instances, or manage copies/synchronization properly |
 
-`MessageFormat` có trạng thái có thể thay đổi qua `applyPattern`, `setFormat`, v.v. Không coi một instance mutable chia sẻ tự do giữa nhiều luồng là thread-safe. Tạo một instance mới khi render hoặc áp dụng một chiến lược quản lý đồng thời được kiểm chứng.
+`MessageFormat` has mutable state via `applyPattern`, `setFormat`, etc. Do not assume a mutable instance shared freely across threads is thread-safe. Create a new instance when rendering or apply a verified concurrency strategy.
 
-Dữ liệu người dùng khi đưa vào `{0}` được chèn như dữ liệu; `MessageFormat` **không** làm HTML escaping. Nếu kết quả được đưa vào HTML, JSON, SQL hoặc log, tầng tiêu thụ vẫn phải dùng cách mã hóa/escape đúng theo context.
+User data passed into `{0}` is inserted as data; `MessageFormat` does **not** perform HTML escaping. If the result is placed into HTML, JSON, SQL, or logs, the consuming layer must still apply context-appropriate encoding/escaping.
 
-## 13. Kiểm thử: chứng minh câu dịch tự nhiên và đầy đủ
+## 13. Testing: Proving Translations Are Natural and Complete
 
-Với mỗi key có tham số, nên kiểm tra:
+For each parameterized key, you should check:
 
-- **Đổi vị trí:** một ngôn ngữ sử dụng `{0}` trước `{1}`, ngôn ngữ khác đảo thứ tự, nhưng code vẫn truyền cùng dữ liệu.
-- **Giữ đúng kiểu dữ liệu:** số lượng truyền dưới dạng `Number`, ngày dưới dạng `Date`/kiểu được formatter hỗ trợ, không làm mất thông tin bằng `toString` sớm.
-- **Đúng dấu câu:** khoảng trắng, dấu phẩy, dấu chấm, ngoặc và nháy đơn không bị sai.
-- **Đủ tham số quan trọng:** thông điệp kết quả thể hiện những giá trị nghiệp vụ bắt buộc.
-- **Các trường hợp số:** 0, 1, 2, nhiều, giá trị biên, và mọi plural categories cần hỗ trợ.
-- **Khác locale:** chạy với `vi-VN`, `en-US` và các locale thực sự hỗ trợ; xác nhận cách định dạng số và ngày.
-- **Tài nguyên:** key có trong bundle chính; mọi bản dịch chứa mẫu hợp lệ, placeholder đúng hợp đồng và không bị thiếu.
-- **Fallback:** nếu một locale chưa có bản dịch, chính sách hiển thị có chủ đích; không giả định `ResourceBundle` sẽ luôn chọn ngôn ngữ mong muốn.
-- **Nội dung nguy hiểm:** với dữ liệu chứa `<`, `&`, dấu nháy hoặc ký tự đặc biệt, bảo đảm tầng xuất kết quả có escaping phù hợp.
+- **Reordering:** one language uses `{0}` before `{1}`, another reverses the order, while code still passes the same data.
+- **Preserving types:** counts passed as `Number`, dates as `Date`/types supported by the formatter, without losing information via early `toString`.
+- **Correct punctuation:** spaces, commas, periods, braces, and single quotes are not malformed.
+- **Required parameters present:** the resulting message displays mandatory business values.
+- **Numeric cases:** 0, 1, 2, many, boundary values, and all required plural categories.
+- **Different locales:** run with `vi-VN`, `en-US`, and all actually supported locales; verify number and date formatting.
+- **Resources:** keys exist in the base bundle; all translations contain valid patterns, placeholders match the contract, and none are missing.
+- **Fallback:** if a locale lacks a translation, the display policy is intentional; do not assume `ResourceBundle` will always pick the desired language.
+- **Dangerous content:** for data containing `<`, `&`, quotes, or special characters, ensure the output layer applies appropriate escaping.
 
-Một bài test điển hình có thể kiểm tra ngay hai dòng stdout ở phần 4. Ngoài automated tests, cần có **review ngôn ngữ thực tế** vì một mẫu có thể hợp lệ về cú pháp nhưng vẫn sai ngữ pháp.
+A typical test can directly assert the two stdout lines from section 4. Beyond automated tests, **real linguistic review** is necessary because a pattern can be syntactically valid yet grammatically wrong.
 
-## 14. Khi nào cần giải pháp nâng cao?
+## 14. When Are Advanced Solutions Needed?
 
-`MessageFormat` của JDK phù hợp để học nguyên tắc toàn câu, chèn tham số, định dạng số/ngày và xử lý một số mẫu `choice`. Với dự án có nhiều ngôn ngữ cần quy tắc plural/gender phức tạp, khả năng đổi trật tự câu và bản địa hóa số lượng chuyên sâu, có thể dùng các giải pháp dựa trên ICU MessageFormat hoặc thư viện i18n của framework, với chính sách format và tài nguyên rõ ràng.
+JDK `MessageFormat` is well-suited for learning whole-sentence principles, parameter insertion, number/date formatting, and handling certain `choice` patterns. For projects with many languages requiring complex plural/gender rules, sentence reordering, and deep quantity localization, you can use solutions based on ICU MessageFormat or a framework's i18n library, with clear formatting and resource policies.
 
-Dù chọn công cụ nào, những nguyên tắc vẫn giữ nguyên:
+Whichever tool you choose, the principles remain the same:
 
-- **Cả câu là đơn vị dịch**, bao gồm dấu câu và cấu trúc ngữ pháp.
-- **Dữ liệu động là tham số có hợp đồng**, không phải các mảnh câu.
-- **Người dịch có ngữ cảnh** về ý nghĩa và kiểu tham số.
-- **Locale của người dùng điều khiển định dạng hiển thị**; không vô tình dùng locale máy chủ.
-- **Mỗi bản dịch được kiểm thử như một thông điệp hoàn chỉnh**, bao gồm trường hợp lỗi và fallback.
+- **The whole sentence is the translation unit**, including punctuation and grammatical structure.
+- **Dynamic data consists of contracted parameters**, not sentence fragments.
+- **Translators have context** about parameter meanings and types.
+- **The user's locale controls display formatting**; never accidentally use the server locale.
+- **Each translation is tested as a complete message**, including error and fallback cases.
 
-## 15. Bài tập thực hành
+## 15. Hands-On Exercises
 
-1. Thay `count = 2` thành `count = 12` ở phần 4. Xác nhận hai bản dịch vẫn dùng cùng danh sách đối số; chỉ vị trí tham số khác nhau.
-2. Viết phiên bản nối `prefix + name + middle + count + suffix`. Thử chuyển tên người xuống cuối câu; quan sát phải sửa Java hoặc tạo logic riêng.
-3. Thêm file `messages_fr.properties` với toàn câu tiếng Pháp và cùng hợp đồng `{0}` là tên, `{1}` là số lượng. Sửa chương trình để gọi locale `fr-FR`, không tạo nhánh nối chuỗi mới.
-4. Tạo mẫu chứa apostrophe: `You''re welcome, {0}!`. Thử sửa thành một nháy đơn để quan sát cách parser xử lý khác nhau.
-5. Thêm thông điệp về số tệp hoặc lượt đăng ký. Kiểm thử 0, 1, 2, 5, 21; xác định quy tắc số ít/số nhiều của từng ngôn ngữ hỗ trợ trước khi chọn cơ chế `choice` hay plural nâng cao.
-6. Thử truyền một tên chứa `<tag>` vào argument. Chú ý `MessageFormat` không tự escape HTML; nếu render trong web, yêu cầu encode theo ngữ cảnh HTML.
+1. Change `count = 2` to `count = 12` in section 4. Confirm that both translations still use the same argument list; only the placeholder positions differ.
+2. Write a version concatenating `prefix + name + middle + count + suffix`. Try moving the person's name to the end of the sentence; observe that you have to modify Java code or add custom logic.
+3. Add a `messages_fr.properties` file with a whole French sentence and the same contract where `{0}` is the name and `{1}` is the count. Update the program to invoke the `fr-FR` locale without adding new concatenation branches.
+4. Create a pattern containing an apostrophe: `You''re welcome, {0}!`. Try changing it to a single quote to observe how the parser behaves differently.
+5. Add a message about the number of files or registrations. Test 0, 1, 2, 5, 21; identify the singular/plural rules of each supported language before choosing between `choice` or an advanced plural mechanism.
+6. Try passing a name containing `<tag>` as an argument. Note that `MessageFormat` does not automatically escape HTML; if rendering on the web, encode it for the HTML context.
 
-**Ghi nhớ:** Lỗi của cách nối các mảnh văn bản không chỉ là code trông dài. Nó lấy mất khả năng viết **một câu tự nhiên và hoàn chỉnh** của người dịch. `MessageFormat` giải quyết bằng cách giữ thông điệp nguyên vẹn, còn biến động được đánh dấu bằng các tham số có thể đặt ở bất kỳ vị trí thích hợp nào trong bản dịch.
+**Takeaway:** The flaw with concatenating text fragments is not just verbose code. It strips translators of the ability to write **a natural, complete sentence**. `MessageFormat` solves this by keeping the message intact, while dynamic parts are marked with placeholders that can be placed at any appropriate position in the translation.
 
-## Tài liệu tham khảo
+## References
 
 - [Oracle JDK 21 — MessageFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/MessageFormat.html)
 - [Oracle JDK 21 — ResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ResourceBundle.html)

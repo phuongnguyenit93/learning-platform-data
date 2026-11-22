@@ -1,8 +1,8 @@
-# Nhóm bắt và tham chiếu nhóm trong chuỗi thay thế — Java Regex
+# Capturing Groups and Group References in Replacement Strings — Java Regex
 
-Khi xử lý văn bản, ta có thể cần **đảo vị trí, giữ lại hoặc kết hợp những phần của đoạn khớp**. Java Regex cho phép dùng *nhóm bắt* (capturing group) trong biểu thức tìm kiếm và *tham chiếu nhóm* (group reference) trong chuỗi thay thế để tái sử dụng chính dữ liệu đã khớp.
+When processing text, you may need to **reorder, preserve, or combine parts of a matched segment**. Java Regex lets you use *capturing groups* in the search expression and *group references* in the replacement string to reuse the matched data itself.
 
-Ví dụ đổi ngày `2026-10-23` thành `23/10/2026`:
+Example converting the date `2026-10-23` to `23/10/2026`:
 
 ```java
 String result = "2026-10-23".replaceAll(
@@ -11,56 +11,56 @@ String result = "2026-10-23".replaceAll(
 System.out.println(result); // 23/10/2026
 ```
 
-Ba nhóm lần lượt bắt năm, tháng, ngày. Chuỗi thay thế dùng `$3` (ngày), `$2` (tháng), `$1` (năm). Đây là cách **sắp xếp lại dữ liệu từ match** thay vì cắt chuỗi thủ công.
+The three groups capture the year, month, and day in order. The replacement string uses `$3` (day), `$2` (month), and `$1` (year). This is a way to **rearrange data from a match** instead of slicing strings manually.
 
-## 1. Nhóm bắt được tạo và đánh số như thế nào?
+## 1. How Are Capturing Groups Created and Numbered?
 
-Cặp ngoặc tròn `(...)` trong regex tạo **nhóm bắt**. Khi tìm thấy một đoạn khớp, Java ghi lại chuỗi con mà mỗi nhóm đã khớp.
+Parentheses `(...)` in a regex create a **capturing group**. When a match is found, Java records the substring that each group matched.
 
-Xét regex:
+Consider the regex:
 
 ```regex
 (\d{4})-(\d{2})-(\d{2})
 ```
 
-Với đầu vào `2026-10-23`:
+With the input `2026-10-23`:
 
-| Số nhóm | Giá trị | Ý nghĩa |
+| Group number | Value | Meaning |
 | --- | --- | --- |
-| 0 | `2026-10-23` | **Toàn bộ** đoạn khớp |
-| 1 | `2026` | Nhóm đầu: năm |
-| 2 | `10` | Nhóm thứ hai: tháng |
-| 3 | `23` | Nhóm thứ ba: ngày |
+| 0 | `2026-10-23` | **Entire** matched segment |
+| 1 | `2026` | First group: year |
+| 2 | `10` | Second group: month |
+| 3 | `23` | Third group: day |
 
-Quy tắc đánh số: đếm **theo thứ tự dấu ngoặc mở `(` của các nhóm bắt, từ trái qua phải**, bắt đầu từ 1. Nhóm 0 luôn là toàn bộ match và không đòi hỏi cặp ngoặc riêng.
+Numbering rule: count **in the order of opening parentheses `(` of capturing groups, from left to right**, starting from 1. Group 0 is always the entire match and does not require its own pair of parentheses.
 
-Với nhóm lồng nhau `((ab)(cd))` trên `abcd`, nhóm 1 là `abcd`, nhóm 2 là `ab`, nhóm 3 là `cd`, do vị trí ba dấu ngoặc mở.
+With nested groups `((ab)(cd))` on `abcd`, group 1 is `abcd`, group 2 is `ab`, and group 3 is `cd`, according to the positions of the three opening parentheses.
 
-Khi cần gom các phần của regex nhưng **không muốn tạo nhóm bắt**, dùng `(?:...)` (non-capturing group):
+When you need to group parts of a regex but **do not want to create a capturing group**, use `(?:...)` (non-capturing group):
 
 ```regex
 (?:Mr\.|Ms\.)\s+([A-Za-z]+)
 ```
 
-`(?:Mr\.|Ms\.)` gom hai lựa chọn tiền tố mà không chiếm số nhóm; `([A-Za-z]+)` là **nhóm 1** để lấy tên. Không cần tham chiếu đến một nhóm thì nên dùng `(?:...)` nhằm tránh thay đổi thứ tự các nhóm quan trọng.
+`(?:Mr\.|Ms\.)` groups the two prefix alternatives without taking up a group number; `([A-Za-z]+)` is **group 1** to capture the name. If you do not need to reference a group, you should use `(?:...)` to avoid shifting the numbering of important groups.
 
-## 2. Tham chiếu nhóm trong chuỗi thay thế
+## 2. Group References in Replacement Strings
 
-`String.replaceAll(regex, replacement)` và `String.replaceFirst(regex, replacement)` sử dụng cú pháp replacement của `Matcher`:
+`String.replaceAll(regex, replacement)` and `String.replaceFirst(regex, replacement)` use the replacement syntax of `Matcher`:
 
-| Cú pháp trong replacement | Ý nghĩa |
+| Syntax in replacement | Meaning |
 | --- | --- |
-| `$1`, `$2`, ... | Chèn văn bản đã khớp bởi nhóm bắt số 1, 2, ... |
-| `$0` | Chèn **toàn bộ** match (nhóm 0) |
-| `${name}` | Chèn văn bản khớp bởi **nhóm có tên** |
-| `\$` ở runtime | Chèn ký tự `$` literal |
-| `\\` ở runtime | Chèn dấu `\` literal |
+| `$1`, `$2`, ... | Inserts the text matched by capturing group 1, 2, ... |
+| `$0` | Inserts the **entire** match (group 0) |
+| `${name}` | Inserts the text matched by a **named group** |
+| `\$` at runtime | Inserts a literal `$` character |
+| `\\` at runtime | Inserts a literal `\` character |
 
-Trong mã nguồn Java, `"$1"` không cần escape dấu `$`. Khi muốn viết dấu `$` literal trực tiếp trong replacement Java, giá trị runtime `\$` được biểu diễn bằng `"\\$"`; khi muốn chèn ký tự `\` literal, cần biểu diễn runtime `\\`, tức Java string `"\\\\"`. Với dữ liệu runtime không cố định, sử dụng `Matcher.quoteReplacement` sẽ đơn giản và an toàn hơn.
+In Java source code, `"$1"` does not need the `$` escaped. When you want to write a literal `$` directly in a Java replacement string, the runtime value `\$` is written as `"\\$"`; when you want to insert a literal `\` character, you need to express the runtime value `\\`, which is the Java string `"\\\\"`. For non-fixed runtime data, using `Matcher.quoteReplacement` is simpler and safer.
 
-`${name}` chỉ dành cho **tên nhóm**, không viết `${1}` để thay cho `$1`.
+`${name}` is only for **group names**; do not write `${1}` instead of `$1`.
 
-Ví dụ dùng nhóm 0 và nhóm 1:
+Example using group 0 and group 1:
 
 ```java
 String s = "id=42";
@@ -68,13 +68,13 @@ System.out.println(s.replaceAll("(\\d+)", "<$0|$1>"));
 // id=<42|42>
 ```
 
-Cả nhóm 0 và nhóm 1 đều là `42` trong ví dụ này vì regex chứa một nhóm bao trọn match. Nếu regex có phần nằm ngoài ngoặc, nhóm 0 và nhóm 1 có thể khác.
+Both group 0 and group 1 are `42` in this example because the regex contains a single group enclosing the entire match. If the regex has parts outside parentheses, group 0 and group 1 can differ.
 
-### Phân biệt tham chiếu khi tìm kiếm và khi thay thế
+### Distinguishing References When Searching vs. When Replacing
 
-**Trong regex tìm kiếm**, `\1` nghĩa là yêu cầu phần văn bản tiếp theo bằng chính nội dung nhóm 1 đã khớp (backreference); trong chuỗi Java cần viết `"\\1"`.
+**In the search regex**, `\1` means requiring the subsequent text to equal the exact content matched by group 1 (a backreference); in a Java string it must be written `"\\1"`.
 
-**Trong replacement**, `$1` nghĩa là chèn nội dung nhóm 1 vào đầu ra.
+**In the replacement**, `$1` means inserting the content of group 1 into the output.
 
 ```java
 System.out.println(
@@ -82,13 +82,13 @@ System.out.println(
 // ha
 ```
 
-Regex `(\\w+)\\s+\\1` nhận ra một từ đứng cạnh chính nó sau khoảng trắng; `"$1"` giữ lại một từ.
+The regex `(\\w+)\\s+\\1` recognizes a word standing next to itself after whitespace; `"$1"` keeps one word.
 
-## 3. Nhóm đặt tên: `(?<name>...)` và `${name}`
+## 3. Named Groups: `(?<name>...)` and `${name}`
 
-Với regex có nhiều nhóm, `$1` và `$2` dễ gây nhầm. Java cho phép đặt tên bằng `(?<name>regex)`, sau đó tham chiếu bằng `${name}` trong replacement.
+With regexes that have many groups, `$1` and `$2` can easily cause confusion. Java lets you assign a name using `(?<name>regex)`, and then reference it with `${name}` in the replacement.
 
-Ví dụ đổi `"Họ, Tên"` thành `"Tên Họ"`:
+Example converting `"Last, First"` to `"First Last"`:
 
 ```java
 String names = "Nguyen, An; Tran, Binh";
@@ -100,15 +100,15 @@ System.out.println(reordered);
 // An Nguyen; Binh Tran
 ```
 
-Giải thích: `(?<last>[A-Za-z]+)` bắt họ, `,\\s*` khớp dấu phẩy và các khoảng trắng ngay sau nó, `(?<first>[A-Za-z]+)` bắt tên; `${first} ${last}` đưa tên lên trước họ.
+Explanation: `(?<last>[A-Za-z]+)` captures the last name, `,\\s*` matches the comma and any whitespace immediately following it, and `(?<first>[A-Za-z]+)` captures the first name; `${first} ${last}` moves the first name before the last name.
 
-Nhóm đặt tên **vẫn được đánh số** như nhóm thường; nó không làm mất khả năng truy cập theo số. Tên nhóm bắt đầu bằng chữ, theo sau là chữ hoặc số, và mỗi tên phải duy nhất trong regex.
+A named group **is still numbered** like an ordinary group; it does not lose the ability to be accessed by number. A group name starts with a letter, followed by letters or digits, and each name must be unique within the regex.
 
-Regex `[A-Za-z]+` ở đây dùng cho dữ liệu minh họa chữ Latin không dấu. Họ tên thực tế có thể gồm dấu tiếng Việt, dấu nối, khoảng trắng và quy tắc phức tạp hơn; không nên dùng regex minh họa này để phân tích tên người hoàn chỉnh.
+The regex `[A-Za-z]+` here is used for unaccented Latin-letter sample data. Real-world personal names may contain Vietnamese diacritics, hyphens, spaces, and more complex rules; you should not use this illustrative regex to parse full personal names.
 
-## 4. Ví dụ Java chạy được độc lập
+## 4. Standalone Runnable Java Example
 
-Tạo file `RegexGroupReplacementDemo.java`:
+Create the file `RegexGroupReplacementDemo.java`:
 
 ```java
 import java.util.regex.Matcher;
@@ -126,28 +126,28 @@ public class RegexGroupReplacementDemo {
                 "(?<last>[A-Za-z]+),\\s*(?<first>[A-Za-z]+)",
                 "${first} ${last}"));
 
-        // (?:...) gom regex mà không tạo nhóm bắt.
+        // (?:...) groups regex elements without creating a capturing group.
         System.out.println("noncap   = " + "a1 b2".replaceAll(
                 "(?:[a-z])([0-9])",
                 "[$1]"));
 
-        // $0 là toàn bộ match; $1 là nhóm đầu.
+        // $0 is the entire match; $1 is the first group.
         System.out.println("full     = " + "id=42".replaceAll(
                 "(\\d+)",
                 "<$0|$1>"));
 
-        // Nhóm tùy chọn không khớp thì thay bằng chuỗi rỗng.
+        // An optional group that did not match is replaced with an empty string.
         System.out.println("optional = " + "ab1 a2".replaceAll(
                 "(a)(b)?(\\d)",
                 "[$1|$2|$3]"));
 
-        // Dấu $ và \ trong replacement là ký tự literal.
+        // $ and \ in the replacement are literal characters.
         String literal = "$5\\path";
         System.out.println("literal  = " + "amount=42".replaceAll(
                 "\\d+",
                 Matcher.quoteReplacement(literal)));
 
-        // Thay theo giá trị tính riêng cho từng match.
+        // Replace with a value computed separately for each match.
         Matcher matcher = Pattern.compile("(\\d+)").matcher("a12 b3");
         StringBuilder out = new StringBuilder();
         while (matcher.find()) {
@@ -161,14 +161,14 @@ public class RegexGroupReplacementDemo {
 }
 ```
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac RegexGroupReplacementDemo.java
 java RegexGroupReplacementDemo
 ```
 
-Kết quả stdout chính xác:
+Exact stdout output:
 
 ```text
 date     = 23/10/2026
@@ -180,18 +180,18 @@ literal  = amount=$5\path
 computed = a[24] b[6]
 ```
 
-`String` trong Java là immutable; `replaceAll` trả kết quả mới, không sửa chuỗi gốc. Nếu không có đoạn nào khớp, nội dung trả về bằng đầu vào. Mỗi match của `replaceAll` sẽ sử dụng **những nhóm được bắt trong chính match ấy**.
+`String` in Java is immutable; `replaceAll` returns a new result without modifying the original string. If no segment matches, the returned content equals the input. Each match of `replaceAll` uses **the groups captured in that specific match**.
 
-## 5. Nhóm tùy chọn, nhóm lặp và nhiều match
+## 5. Optional Groups, Repeated Groups, and Multiple Matches
 
-### Nhóm có thể không khớp
+### Groups That May Not Match
 
-Với regex `(a)(b)?(\\d)` trên `"ab1 a2"`:
+With the regex `(a)(b)?(\\d)` on `"ab1 a2"`:
 
-- Match `ab1`: nhóm 1 là `a`, nhóm 2 là `b`, nhóm 3 là `1`.
-- Match `a2`: nhóm 1 là `a`, **nhóm 2 không tham gia match**, nhóm 3 là `2`.
+- Match `ab1`: group 1 is `a`, group 2 is `b`, group 3 is `1`.
+- Match `a2`: group 1 is `a`, **group 2 did not participate in the match**, group 3 is `2`.
 
-Do nhóm 2 tồn tại trong pattern, tham chiếu `$2` là hợp lệ. Nhưng khi nhóm này không tham gia vào một match, Java chèn **chuỗi rỗng**:
+Because group 2 exists in the pattern, the reference `$2` is valid. However, when this group does not participate in a match, Java inserts an **empty string**:
 
 ```java
 System.out.println(
@@ -199,15 +199,15 @@ System.out.println(
 // [a|b|1] [a||2]
 ```
 
-**Nhóm có tồn tại nhưng không khớp** khác với **nhóm không được khai báo**. Tham chiếu đến nhóm không tồn tại sẽ gây lỗi.
+**A group that exists but did not match** is different from **an undeclared group**. Referencing a nonexistent group throws an error.
 
-### Nhóm đặt dưới lượng từ
+### Group Under a Quantifier
 
-Ví dụ regex `([a-z])+` khớp `abc` nhưng nhóm 1 chứa **lần bắt cuối**, là `c`; nhóm không lưu danh sách tất cả lần lặp. Nếu muốn nhóm 1 chứa cả `abc`, đưa lượng từ vào bên trong: `([a-z]+)`.
+For example, the regex `([a-z])+` matches `abc`, but group 1 contains **the last captured match**, which is `c`; the group does not store a list of all repetitions. If you want group 1 to contain all of `abc`, move the quantifier inside: `([a-z]+)`.
 
-### Thay nhiều match
+### Replacing Multiple Matches
 
-`replaceAll` duyệt các match **không chồng lấp**, theo thứ tự từ trái sang phải, và áp dụng chuỗi replacement cho mỗi match:
+`replaceAll` iterates through **non-overlapping** matches in left-to-right order and applies the replacement string to each match:
 
 ```java
 System.out.println(
@@ -215,60 +215,60 @@ System.out.println(
 // A=[12]; B=[345]
 ```
 
-`$1` lần đầu là `12`, lần sau là `345`. `replaceFirst` chỉ thay match đầu tiên.
+`$1` is `12` the first time and `345` the next time. `replaceFirst` replaces only the first match.
 
-## 6. Giữ regex và replacement đúng vai trò
+## 6. Keeping Regex and Replacement in Their Proper Roles
 
-Trong **regex tìm kiếm**, tham chiếu ngược yêu cầu phần văn bản sau khớp lại với một nhóm đã bắt; trong **replacement**, **$1**, **$2** và **${name}** chèn dữ liệu từ nhóm vào kết quả. **String.replace** thì làm việc với chuỗi literal, nên không mở rộng tham chiếu nhóm.
+In the **search regex**, a backreference requires subsequent text to match a previously captured group again; in the **replacement**, **$1**, **$2**, and **${name}** insert data from groups into the result. **String.replace** works with literal strings, so it does not expand group references.
 
-Khi cần chèn nội dung ngoài hệ thống như giá tiền hoặc đường dẫn có **$** và dấu gạch chéo ngược, dùng **Matcher.quoteReplacement**. Nhưng nếu cố ý dùng **$1** để tái sử dụng nhóm bắt, không quote toàn bộ template. Những bài kế tiếp trình bày riêng cú pháp escape và kỹ thuật chèn nguyên văn.
+When you need to insert external content such as prices or file paths containing **$** and backslashes, use **Matcher.quoteReplacement**. However, if you intentionally use **$1** to reuse a capturing group, do not quote the entire template. The next lessons cover escape syntax and literal insertion techniques separately.
 
-## 7. Truy cập nhóm để tính giá trị riêng cho từng match
+## 7. Accessing Groups to Compute Per-Match Values
 
-**String.replaceAll** phù hợp khi mọi match dùng cùng một template nhóm bắt. Khi cần tính kết quả khác nhau, **Matcher.find()** kết hợp **group(1)**, **appendReplacement** và **appendTail** cho phép lấy nhóm, tính chuỗi mới và giữ phần đuôi chưa khớp; chương trình ở mục 4 đã minh họa quy trình này.
+**String.replaceAll** is suitable when every match uses the same capturing-group template. When you need to compute different results, **Matcher.find()** combined with **group(1)**, **appendReplacement**, and **appendTail** lets you extract groups, compute a new string, and keep the unmatched tail; the program in section 4 illustrated this workflow.
 
-Từ Java 9, **Matcher.replaceAll(Function<MatchResult, String>)** rút gọn việc thay riêng từng match. Trong Java 17, callback **MatchResult** cho phép đọc nhóm bằng chỉ số, còn **Matcher** cũng hỗ trợ nhóm theo tên. Cả giá trị truyền vào appendReplacement lẫn chuỗi callback trả về vẫn tuân theo cú pháp replacement, nên quote khi muốn chèn nguyên văn.
+Since Java 9, **Matcher.replaceAll(Function<MatchResult, String>)** simplifies per-match replacement. In Java 17, the **MatchResult** callback lets you read groups by index, while **Matcher** also supports named groups. Both the value passed to appendReplacement and the string returned by the callback still follow replacement syntax, so quote them when you want to insert literal text.
 
-## 8. Những lỗi thường gặp
+## 8. Common Mistakes
 
-1. **Đặt `$1` vào regex tìm kiếm.** Tham chiếu nhóm trong *regex* là `\1`; `$1` dành cho *replacement*.
-2. **Nhầm nhóm không bắt với nhóm bắt.** `(?:...)` không tạo nhóm và không có số để tham chiếu. Với regex chỉ gồm nhóm không bắt, replacement `$1` là không hợp lệ.
-3. **Đánh số theo dấu ngoặc đóng.** Phải đánh số từ trái sang phải theo **ngoặc mở** của nhóm bắt, kể cả với nhóm lồng nhau.
-4. **Quên nhóm có thể không tham gia match.** Nhóm có tồn tại nhưng không khớp được thay bằng chuỗi rỗng; nhóm hoàn toàn không tồn tại gây lỗi.
-5. **Đưa nguyên chuỗi người dùng làm replacement.** Ký tự `$` và `\` có thể mang nghĩa đặc biệt. Nếu cần literal, dùng `Matcher.quoteReplacement`.
-6. **Dùng `$10` rồi hiểu nhầm.** Cú pháp numeric được đọc đủ dài theo số nhóm thực sự tồn tại. Với mười nhóm, `$10` tham chiếu nhóm 10; với một nhóm, `$10` có thể là nhóm 1 rồi ký tự `0`. Nhóm đặt tên giúp hạn chế mơ hồ.
-7. **Mong nhóm lặp chứa toàn bộ các lần bắt.** `([a-z])+` thường chỉ để lại lần bắt cuối; `([a-z]+)` giữ cả dãy ký tự trong cùng một match.
-8. **Dùng `String.replace` rồi mong `$1` hoạt động.** `String.replace(CharSequence, CharSequence)` thực hiện thay literal; không diễn giải regex hay tham chiếu nhóm.
-9. **Dùng regex minh họa làm parser dữ liệu phức tạp.** Có thể cần xử lý Unicode, quoted values, dấu escape hay định dạng nhiều tầng; cần chọn parser phù hợp thay vì dựa vào vài nhóm bắt đơn giản.
+1. **Putting `$1` in the search regex.** A group reference in a *regex* is `\1`; `$1` is for the *replacement*.
+2. **Confusing non-capturing groups with capturing groups.** `(?:...)` does not create a group and has no number to reference. With a regex consisting only of non-capturing groups, a replacement `$1` is invalid.
+3. **Numbering by closing parentheses.** You must number from left to right by the **opening parentheses** of capturing groups, including for nested groups.
+4. **Forgetting a group may not participate in a match.** A group that exists but did not match is replaced by an empty string; a group that does not exist at all causes an error.
+5. **Passing raw user strings as the replacement.** The characters `$` and `\` can have special meaning. If literal text is needed, use `Matcher.quoteReplacement`.
+6. **Using `$10` and misunderstanding it.** Numeric syntax is parsed as long as needed according to the number of groups that actually exist. With ten groups, `$10` references group 10; with one group, `$10` can mean group 1 followed by the character `0`. Named groups help reduce ambiguity.
+7. **Expecting a repeated group to hold all captures.** `([a-z])+` usually leaves only the last capture; `([a-z]+)` keeps the entire sequence of characters in a single match.
+8. **Using `String.replace` and expecting `$1` to work.** `String.replace(CharSequence, CharSequence)` performs literal replacement; it does not interpret regex or group references.
+9. **Using illustrative regexes as parsers for complex data.** You may need to handle Unicode, quoted values, escape characters, or multi-level formats; choose an appropriate parser rather than relying on a few simple capturing groups.
 
-Regex không hợp lệ có thể gây `PatternSyntaxException`; replacement sai cú pháp hoặc tham chiếu tới nhóm không tồn tại có thể gây `IllegalArgumentException` hoặc `IndexOutOfBoundsException` tùy tình huống. Phải xác định rõ dữ liệu bên ngoài được phép mang cú pháp regex/replacement hay chỉ là văn bản literal.
+An invalid regex can throw `PatternSyntaxException`; a syntactically invalid replacement or a reference to a nonexistent group can throw `IllegalArgumentException` or `IndexOutOfBoundsException` depending on the situation. You must clearly determine whether external data is allowed to carry regex/replacement syntax or is strictly literal text.
 
-## 9. Bài tự luyện
+## 9. Practice Exercises
 
-**Bài 1.** Đổi `user:100` thành `100 (user)` bằng hai nhóm:
+**Exercise 1.** Convert `user:100` to `100 (user)` using two groups:
 
 ```java
 "user:100".replaceAll("([a-z]+):(\\d+)", "$2 ($1)")
 // "100 (user)"
 ```
 
-**Bài 2.** Vì sao `"a1 b2".replaceAll("(?:[a-z])(\\d)", "$1")` tạo `"1 2"`?
+**Exercise 2.** Why does `"a1 b2".replaceAll("(?:[a-z])(\\d)", "$1")` produce `"1 2"`?
 
-Vì `(?:[a-z])` khớp chữ nhưng **không tạo nhóm bắt**, nên nhóm 1 chính là `(\\d)`. Chữ bị bỏ khi toàn bộ match được thay bằng mỗi chữ số.
+Because `(?:[a-z])` matches the letter without **creating a capturing group**, so group 1 is `(\\d)`. The letter is discarded when the entire match is replaced by just the digit.
 
-**Bài 3.** Muốn chèn đúng hai ký tự `$1` theo nghĩa literal khi thay chữ số:
+**Exercise 3.** To literally insert the exact two characters `$1` when replacing digits:
 
 ```java
 "abc42".replaceAll("\\d+", Matcher.quoteReplacement("$1"))
 // "abc$1"
 ```
 
-**Bài 4.** Với regex `(?<area>\\d{3})-(?<number>\\d{4})`, replacement nào chỉ giữ số phía sau dấu gạch ngang?
+**Exercise 4.** Given the regex `(?<area>\\d{3})-(?<number>\\d{4})`, which replacement keeps only the digits after the hyphen?
 
-`${number}` (cũng có thể dùng `$2`, nhưng tên nhóm giúp rõ nghĩa).
+`${number}` (you can also use `$2`, though a group name makes the meaning clearer).
 
-**Bài 5.** Tại sao `"abc".replaceAll("([a-z])+", "$1")` là `"c"`? Nhóm 1 được lặp và chỉ giữ lần bắt cuối. Muốn giữ cả chuỗi, dùng `([a-z]+)`.
+**Exercise 5.** Why is `"abc".replaceAll("([a-z])+", "$1")` equal to `"c"`? Group 1 is repeated and keeps only the last capture. To keep the whole string, use `([a-z]+)`.
 
-**Ghi nhớ:** `(...)` tạo nhóm bắt; `(?:...)` chỉ nhóm cú pháp; `$1` và `${name}` tái sử dụng nội dung nhóm trong replacement; `Matcher.quoteReplacement` bảo vệ văn bản thay thế literal; `Matcher` phù hợp khi thay thế đòi hỏi tính toán riêng cho từng match.
+**Key takeaway:** `(...)` creates a capturing group; `(?:...)` only groups syntax; `$1` and `${name}` reuse group contents in the replacement; `Matcher.quoteReplacement` protects literal replacement text; `Matcher` is suitable when replacement requires separate computation per match.
 
-**Tham khảo chính thức:** [`String.replaceAll` (Java SE 21)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html#replaceAll(java.lang.String,java.lang.String)), [`Matcher`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Matcher.html), [`Pattern`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html).
+**Official references:** [`String.replaceAll` (Java SE 21)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html#replaceAll(java.lang.String,java.lang.String)), [`Matcher`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Matcher.html), [`Pattern`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html).

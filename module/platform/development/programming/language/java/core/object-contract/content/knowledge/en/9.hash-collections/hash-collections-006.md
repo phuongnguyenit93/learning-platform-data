@@ -1,98 +1,98 @@
-# Va chạm hash không tự nó làm mất tính đúng đắn
+# Hash Collisions Do Not by Themselves Break Correctness
 
-## Mục tiêu
+## Objectives
 
-Một cấu trúc dữ liệu băm như `HashMap` hoặc `HashSet` dùng mã băm để tìm nơi lưu trữ và tra cứu phần tử hiệu quả. Nhiều đối tượng có thể cho cùng mã băm (**hash collision**, va chạm băm). Tuy nhiên, **collision tự nó không khiến `HashMap` nhầm hai khóa khác nhau thành một khóa hoặc khiến `HashSet` đánh mất phần tử**.
+A hash data structure such as `HashMap` or `HashSet` uses hash codes to find where to store and look up elements efficiently. Multiple objects can produce the same hash code (**hash collision**). However, **a collision by itself does not cause `HashMap` to confuse two different keys as one key or cause `HashSet` to lose elements**.
 
-Sau bài này, bạn sẽ hiểu:
+After this lesson, you will understand:
 
-- Collision là gì và vì sao không thể đòi hỏi mọi đối tượng khác nhau đều phải có hash khác nhau.
-- Cơ chế khái niệm mà cấu trúc dữ liệu băm dùng để xử lý nhiều khóa cùng mã băm.
-- Vai trò riêng của `hashCode()` và `equals()` trong quyết định tìm được khóa, thay thế giá trị hay cho phép thêm phần tử.
-- Cách kiểm chứng bằng Java 17+ rằng nhiều khóa cùng hash vẫn được lưu và truy xuất đúng.
-- Sự khác biệt giữa **đúng đắn về kết quả** và **hiệu năng**; các lỗi hợp đồng hoặc thay đổi khóa có thể thực sự gây vấn đề.
+- What a collision is and why you cannot require every distinct object to have a distinct hash.
+- The conceptual mechanism hash data structures use to handle multiple keys with the same hash code.
+- The distinct roles of `hashCode()` and `equals()` in deciding whether a key is found, a value is replaced, or an element is allowed to be added.
+- How to verify with Java 17+ that multiple keys with the same hash are still stored and retrieved accurately.
+- The difference between **result correctness** and **performance**; contract bugs or key mutations that can actually cause problems.
 
-## 1. Collision là gì?
+## 1. What Is a Collision?
 
-Hàm `hashCode()` của Java trả về `int`, một giá trị số nguyên có dấu 32 bit. Số đối tượng và trạng thái dữ liệu có thể tạo ra lớn hơn rất nhiều tập mã băm hữu hạn đó. Vì thế, không thể bảo đảm một mã băm độc nhất cho mọi đối tượng.
+Java's `hashCode()` method returns an `int`, a 32-bit signed integer value. The number of objects and data states that can be created is far larger than that finite set of hash codes. Therefore, it is impossible to guarantee a unique hash code for every object.
 
-**Hash collision** xảy ra khi hai đối tượng hoặc khóa **khác nhau về phép so sánh bằng nhau** nhưng cho cùng mã băm:
+A **hash collision** occurs when two objects or keys **differ under the equality comparison** yet produce the same hash code:
 
 ```text
 a.equals(b) == false
 a.hashCode() == b.hashCode()
 ```
 
-Đây là tình huống **hợp lệ**. Ví dụ tưởng tượng, nếu mã băm của khóa số là chữ số hàng đơn vị, khóa 21 và khóa 31 đều có hash 1 nhưng vẫn là hai khóa khác nhau. Cách băm đó có thể phân bố kém, song collision không làm biến mất thông tin gốc về khóa.
+This is a **valid** situation. As an imaginary example, if the hash code of a numeric key were its units digit, key 21 and key 31 would both have hash 1 yet still be two different keys. That hashing scheme may distribute poorly, yet the collision does not erase the original key information.
 
-Ngay cả những hàm băm được thiết kế tốt vẫn có thể collision. Điều quan trọng là cấu trúc lưu trữ biết cách **phân biệt các khóa va chạm** thay vì dùng mỗi mã băm làm bằng chứng hai khóa bằng nhau.
+Even well-designed hash functions can still collide. What matters is that the storage structure knows how to **distinguish colliding keys** instead of using the hash code alone as proof that two keys are equal.
 
-### Nhắc lại hợp đồng liên quan
+### Reviewing the relevant contract
 
-Với các đối tượng tuân thủ hợp đồng `equals()/hashCode()`:
+For objects obeying the `equals()/hashCode()` contract:
 
-| Quan hệ | Có bắt buộc không? |
+| Relationship | Mandatory? |
 | --- | --- |
-| `a.equals(b) == true` ⇒ `a.hashCode() == b.hashCode()` | **Bắt buộc** |
-| `a.hashCode() == b.hashCode()` ⇒ `a.equals(b) == true` | **Không** |
-| `a.equals(b) == false` ⇒ hai hash phải khác nhau | **Không** |
+| `a.equals(b) == true` ⇒ `a.hashCode() == b.hashCode()` | **Mandatory** |
+| `a.hashCode() == b.hashCode()` ⇒ `a.equals(b) == true` | **No** |
+| `a.equals(b) == false` ⇒ the two hashes must differ | **No** |
 
-Điều kiện đầu tiên bảo đảm những khóa bằng nhau về logic có mã băm tương thích để cấu trúc băm có thể tìm và đối chiếu chúng. Hai điều kiện còn lại cho phép collision.
+The first condition ensures that logically equal keys have compatible hash codes so the hash structure can locate and match them. The remaining two conditions permit collisions.
 
-## 2. Mã băm giúp tìm ứng viên, `equals()` quyết định bằng nhau
+## 2. The Hash Code Finds Candidates, `equals()` Decides Equality
 
-Trong `HashMap<K,V>`, hàm băm giúp xác định vùng tìm kiếm ứng viên. Khi có nhiều khóa va chạm, triển khai vẫn phải tìm ra khóa nào **thực sự bằng khóa cần tra cứu**. Việc xác định bằng nhau có thể tận dụng kiểm tra cùng tham chiếu rồi gọi `equals()` khi cần. Chỉ có cùng mã băm chưa đủ.
+In `HashMap<K,V>`, the hash function helps narrow down the candidate search region. When multiple keys collide, the implementation still must find which key **actually equals the lookup key**. Determining equality can take advantage of a same-reference check and then call `equals()` when needed. Having the same hash code alone is not enough.
 
-Mô hình tư duy:
+Mental model:
 
 ```text
                  map.get(key)
                      │
                      ▼
-            Tính hash của key
+           Compute key's hash
                      │
                      ▼
-       Xác định vùng chứa ứng viên
+       Determine candidate region
                      │
                      ▼
-    Đối chiếu từng ứng viên thích hợp
+    Check each suitable candidate
                      │
           ┌──────────┴──────────┐
           ▼                     ▼
-      Khóa bằng nhau         Khóa khác nhau
-      theo equals()          dù hash có thể trùng
+      Equal key            Different key
+      by equals()          even if hash matches
           │                     │
           ▼                     ▼
-   Trả về giá trị         Tiếp tục tìm hoặc
-   tương ứng              kết luận không có
+   Return matching       Continue searching or
+       value             conclude absent
 ```
 
-Đây là **sơ đồ khái niệm**, không phải bản sao mã nguồn nội bộ của một phiên bản `HashMap`. Tùy triển khai, bảng có thể xử lý thêm bit của hash, dùng các nhóm chứa nhiều mục nhập, và tổ chức nhóm bằng danh sách hoặc cây khi phù hợp. Cơ chế cụ thể ảnh hưởng chủ yếu đến cách tìm kiếm và hiệu năng. Ngữ nghĩa của `Map` vẫn đòi hỏi phân biệt khóa không bằng nhau.
+This is a **conceptual diagram**, not a copy of the internal source code of a specific `HashMap` version. Depending on the implementation, the table may process additional hash bits, use groups holding multiple entries, and organize groups using lists or trees when appropriate. The exact mechanism primarily affects search method and performance. `Map` semantics still require distinguishing unequal keys.
 
-Với `HashSet`, nguyên lý tương tự: một phần tử chỉ bị coi là đã tồn tại nếu có phần tử **bằng nó** theo quy tắc của tập hợp. Hai phần tử khác nhau nhưng cùng hash được phép cùng tồn tại.
+For `HashSet`, the principle is the same: an element is only considered already present if there is an element **equal to it** by the set's rule. Two different elements with the same hash are allowed to coexist.
 
-### Minh họa một vùng va chạm
+### Illustrating a collision region
 
-Giả sử ba khóa có hash là 5, nhưng chỉ `A` và `A2` bằng nhau:
+Suppose three keys have hash 5, yet only `A` and `A2` are equal:
 
 ```text
-Nhóm có hash 5:
+Group with hash 5:
 
   [Key A, value 100]    [Key B, value 200]
 
-Key A.equals(Key B)  = false  → hai mục nhập
-Key A.equals(Key A2) = true   → A2 là khóa tương đương A
+Key A.equals(Key B)  = false  → two entries
+Key A.equals(Key A2) = true   → A2 is a key equivalent to A
 ```
 
-Nếu `put(A2, 300)`, thao tác cập nhật mục nhập dành cho khóa `A`, chứ không tạo thêm khóa thứ ba chỉ vì `A2` là một instance mới. Nếu `put(B, 400)`, dữ liệu của `A` vẫn độc lập dù `B` có cùng hash. Trùng hash có thể khiến việc tìm ứng viên lâu hơn, nhưng không biến `B` thành `A`.
+If `put(A2, 300)` is called, the operation updates the entry for key `A`, rather than creating a third key just because `A2` is a new instance. If `put(B, 400)` is called, `A`'s data stays independent even though `B` shares the same hash. Matching hashes can make finding candidates take longer, but do not turn `B` into `A`.
 
-## 3. Ví dụ Java 17+ chạy được: mọi khóa đều có cùng hash
+## 3. Runnable Java 17+ Example: Every Key Has the Same Hash
 
-Ta cố ý tạo một lớp khóa có hàm `hashCode()` luôn trả về `1` để mô phỏng tình huống va chạm cực đoan. Lớp này sử dụng `record` trong Java 17: phép `equals()` được sinh ra để so sánh giá trị thành phần `id`, còn `hashCode()` được ghi đè rõ ràng thành một giá trị cố định.
+We intentionally create a key class whose `hashCode()` always returns `1` to simulate an extreme collision scenario. This class uses a Java 17 `record`: `equals()` is generated to compare the `id` component value, while `hashCode()` is explicitly overridden to return a constant value.
 
-Đây là **mẫu để quan sát hành vi**, không phải khuyến nghị thiết kế hàm băm cho ứng dụng thật.
+This is a **pattern for observing behavior**, not a recommended hash function design for real applications.
 
-Tạo tệp `HashCollisionCorrectnessDemo.java`:
+Create the file `HashCollisionCorrectnessDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -104,7 +104,7 @@ public class HashCollisionCorrectnessDemo {
     record Key(int id) {
         @Override
         public int hashCode() {
-            return 1; // Cố ý tạo collision cho tất cả khóa
+            return 1; // Intentionally create collisions for all keys
         }
     }
 
@@ -150,14 +150,14 @@ public class HashCollisionCorrectnessDemo {
 }
 ```
 
-Biên dịch và chạy trên JDK 17+:
+Compile and run on JDK 17+:
 
 ```bash
 javac HashCollisionCorrectnessDemo.java
 java HashCollisionCorrectnessDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 same hash: true
@@ -177,86 +177,86 @@ set contains 20: true
 set contains 99: false
 ```
 
-Giải thích từng nhóm kết quả:
+Explanation of each group of results:
 
-1. `a` và `b` có cùng hash `1`, nhưng `record Key(int id)` có `equals()` dựa trên `id`, vì thế `a.equals(b)` là `false`.
-2. Hai lần gọi `map.put(a, ...)` và `map.put(b, ...)` lưu **hai khóa riêng**; `map.size()` là `2`, không phải `1`.
-3. `map.get(new Key(10))` tìm lại giá trị `"ten"` dù đối tượng truy vấn vừa được tạo, vì khóa truy vấn bằng `a` theo `equals()`. Tương tự với `Key(20)`.
-4. `map.get(new Key(99))` là `null` vì không có khóa tương đương; việc hash của `Key(99)` cũng bằng `1` **không làm chương trình lấy nhầm giá trị** của khóa khác.
-5. `map.put(equivalentA, "TEN")` thay giá trị của khóa `Key(10)`, trả lại giá trị trước đó là `"ten"`. Số khóa vẫn là `2`, và giá trị của `Key(20)` vẫn là `"twenty"`.
-6. `HashSet` lưu hai phần tử `Key(10)` và `Key(20)`. Thêm `equivalentA` thất bại vì đã có phần tử bằng nó, không phải vì collision. Sau đó `contains(Key(20))` đúng, còn `contains(Key(99))` sai.
+1. `a` and `b` share hash `1`, yet `record Key(int id)` has `equals()` based on `id`, so `a.equals(b)` is `false`.
+2. Both `map.put(a, ...)` and `map.put(b, ...)` store **two separate keys**; `map.size()` is `2`, not `1`.
+3. `map.get(new Key(10))` retrieves the value `"ten"` even though the query object was just created, because the query key equals `a` by `equals()`. Same for `Key(20)`.
+4. `map.get(new Key(99))` is `null` because there is no equivalent key; the fact that `Key(99)`'s hash is also `1` **does not cause the program to retrieve the wrong value** of another key.
+5. `map.put(equivalentA, "TEN")` replaces the value of key `Key(10)`, returning the previous value `"ten"`. The key count stays `2`, and the value of `Key(20)` remains `"twenty"`.
+6. `HashSet` stores two elements `Key(10)` and `Key(20)`. Adding `equivalentA` fails because an equal element already exists, not because of a collision. Afterward, `contains(Key(20))` is true, while `contains(Key(99))` is false.
 
-Chương trình chỉ in các phép truy vấn đã xác định, không dựa vào thứ tự duyệt `HashMap`/`HashSet`. Nhờ vậy đầu ra rõ ràng và không phụ thuộc thứ tự của cấu trúc băm.
+The program only prints deterministic query calls, without relying on `HashMap`/`HashSet` iteration order. As a result, the output is clear and independent of the hash structure's ordering.
 
-## 4. Vì sao hàm hash cố định vẫn đúng về logic?
+## 4. Why Is a Constant Hash Function Still Logically Correct?
 
-Hàm `hashCode()` luôn trả về `1` thỏa những điều kiện cốt lõi của hợp đồng:
+A `hashCode()` that always returns `1` satisfies the core conditions of the contract:
 
-- Trên cùng đối tượng với dữ liệu quyết định bằng nhau không thay đổi, các lần gọi hash trả về kết quả nhất quán.
-- Nếu hai đối tượng bằng nhau theo `equals()` thì cả hai cũng có hash `1`.
-- Nếu hai đối tượng **không** bằng nhau thì Java **không bắt buộc** mã băm khác nhau.
+- On the same object whose equality-determining data does not change, hash calls return consistent results.
+- If two objects are equal by `equals()`, both also have hash `1`.
+- If two objects are **not** equal, Java **does not require** different hash codes.
 
-Do đó, mọi mục nhập đều có thể dùng hash cố định mà cấu trúc băm vẫn bảo toàn kết quả nghiệp vụ, miễn là các khóa còn tuân thủ hợp đồng, trạng thái dùng để so sánh vẫn ổn định khi được lưu, và cấu trúc được sử dụng đúng cách.
+Therefore, every entry can use a constant hash while the hash structure still preserves business results, provided the keys obey the contract, the state used for comparison remains stable while stored, and the structure is used properly.
 
-Tuy vậy, cách cài đặt này là **lựa chọn hiệu năng kém**. Một tập hợp lớn chứa hàng nghìn khóa khác nhau nhưng có cùng hash có thể phải kiểm tra nhiều ứng viên hơn so với trường hợp hash phân bố tốt. Một triển khai `HashMap` có thể dùng cấu trúc dữ liệu khác để giảm chi phí trong một số tình huống, nhưng không có lý do gì để cố ý tạo mọi collision trong ứng dụng thật.
+Even so, this implementation is a **poor performance choice**. A large collection holding thousands of distinct keys sharing the same hash may have to check many more candidates than when hashes are well distributed. A `HashMap` implementation may use a different data structure to reduce cost in some situations, yet there is no reason to intentionally create all-key collisions in a real application.
 
-Có thể nói:
+It can be said:
 
-> **Hàm băm tốt giúp hiệu quả; `equals()` đúng cùng hợp đồng `hashCode()` giúp đúng đắn.**
+> **A good hash function helps efficiency; a proper `equals()` with a compliant `hashCode()` contract ensures correctness.**
 
-Câu này không có nghĩa hiệu năng luôn tách biệt hoàn toàn khỏi trải nghiệm thực tế: collision quá nhiều có thể khiến thao tác chậm đến mức gây timeout hoặc giảm khả năng phục vụ. Nhưng đó là hệ quả hiệu năng/khả dụng, khác với việc `HashMap` lặng lẽ gộp hai khóa không bằng nhau thành một.
+This statement does not mean performance is always completely separated from real-world experience: excessive collisions can make operations slow enough to cause timeouts or degrade service availability. However, that is a performance/availability consequence, distinct from `HashMap` silently merging two unequal keys into one.
 
-## 5. So sánh tác động lên ba thao tác quan trọng
+## 5. Comparing the Impact on Three Key Operations
 
 ### 5.1. `put(key, value)`
 
-Khi thêm mục nhập có khóa chưa bằng khóa hiện hữu, `HashMap` phải lưu thành mục nhập riêng ngay cả khi hash trùng. Khi thêm khóa **bằng** khóa hiện hữu, `put` cập nhật giá trị đang gắn với khóa đó.
+When adding an entry with a key not equal to any existing key, `HashMap` must store it as a separate entry even if hashes collide. When adding a key **equal** to an existing key, `put` updates the value currently associated with that key.
 
-Ví dụ `new Key(10)` và `new Key(20)` đều có hash 1 nhưng tồn tại song song. Trong khi `new Key(10)` lần thứ hai bằng khóa `Key(10)` cũ, vì vậy cập nhật mục nhập của cùng khóa logic.
+For example, `new Key(10)` and `new Key(20)` both have hash 1 yet exist side by side. Meanwhile, the second `new Key(10)` equals the old `Key(10)`, so it updates the entry of the same logical key.
 
-### 5.2. `get(key)` và `containsKey(key)`
+### 5.2. `get(key)` and `containsKey(key)`
 
-Hash giúp xác định vùng ứng viên. Trường hợp các khóa có hash trùng, thao tác phải tiếp tục dùng ngữ nghĩa bằng nhau để chọn kết quả đúng.
+The hash helps determine the candidate region. When keys have colliding hashes, the operation must still use equality semantics to select the right result.
 
-Nếu có `Key(10)` và `Key(20)`, truy vấn `Key(99)` cho `null` ở `get` và `false` ở `containsKey` mặc dù tất cả đều có hash 1.
+If `Key(10)` and `Key(20)` are present, querying `Key(99)` yields `null` from `get` and `false` from `containsKey` even though all have hash 1.
 
-**Lưu ý:** `map.get(key) == null` không luôn chứng minh khóa vắng mặt, vì `HashMap` cho phép một mục nhập có giá trị `null`. Khi cần phân biệt “không có khóa” và “có khóa với value là `null`”, dùng `containsKey(key)`.
+**Note:** `map.get(key) == null` does not always prove a key is absent, because `HashMap` permits an entry with a `null` value. When you need to distinguish "key absent" from "key present with `null` value", use `containsKey(key)`.
 
-### 5.3. `HashSet.add(element)` và `contains(element)`
+### 5.3. `HashSet.add(element)` and `contains(element)`
 
-Trong `HashSet`, nếu một phần tử **khác** theo `equals` thì được thêm dù hash trùng. Nếu phần tử bằng phần tử đã có, lời gọi `add` trả về `false`.
+In `HashSet`, if an element **differs** by `equals`, it is added even if hashes collide. If the element equals an existing element, the `add` call returns `false`.
 
-Điều kiện trùng lặp là **bằng nhau theo hợp đồng của phần tử**, không phải đơn thuần `hashCode()` bằng nhau. Đây là lý do ví dụ thêm `equivalentA` không tăng kích thước tập hợp, còn thêm `b` lại tăng.
+The duplication condition is **equality under the element's contract**, not merely equal `hashCode()`. This is why in the example adding `equivalentA` does not increase the set size, while adding `b` does.
 
-## 6. Ranh giới giữa hiệu năng và tính đúng đắn
+## 6. The Boundary Between Performance and Correctness
 
-| Khía cạnh | Collision nhiều có thể gây ra | Collision tự nó không gây ra |
+| Aspect | What many collisions can cause | What collisions by themselves do not cause |
 | --- | --- | --- |
-| Lưu trữ khóa | Nhiều mục nhập phải cùng chia sẻ một vùng hoặc nhóm ứng viên | Không tự xóa khóa khác nhau theo `equals` |
-| Tra cứu | Có thể tốn thêm công sức phân biệt ứng viên | Không tự làm `get` trả giá trị của một khóa không bằng khóa truy vấn |
-| `HashSet` | Có thể tăng chi phí thêm và kiểm tra thành viên | Không tự loại bỏ phần tử khác nhau chỉ vì hash trùng |
-| Tăng dữ liệu | Hiệu năng có thể suy giảm khi phân bố băm kém | Không thay đổi hợp đồng logic của `Map`/`Set` |
+| Key storage | Multiple entries must share one region or candidate group | Do not automatically delete keys differing by `equals` |
+| Lookup | May spend extra work distinguishing candidates | Do not automatically make `get` return the value of a key unequal to the query key |
+| `HashSet` | May increase insertion and membership-check cost | Do not automatically reject distinct elements merely because hashes collide |
+| Data growth | Performance can degrade when hash distribution is poor | Does not change the logical contract of `Map`/`Set` |
 
-Về độ phức tạp, các thao tác trên bảng băm thường được kỳ vọng hiệu quả trung bình khi phân bố hash tốt. Trong trường hợp phân bố rất kém, việc xử lý nhiều ứng viên có thể tốn thời gian đáng kể. Đừng đưa ra một độ phức tạp cụ thể cho **mọi** triển khai và hoàn cảnh, vì Java có thể tối ưu việc xử lý bucket theo kích thước bảng, số lượng mục nhập và kiểu khóa.
+Regarding complexity, operations on a hash table are typically expected to be efficient on average when hash distribution is good. Under very poor distribution, processing many candidates can take significant time. Do not state a single fixed complexity for **all** implementations and circumstances, because Java can optimize bucket handling depending on table size, entry count, and key type.
 
-Khi đánh giá ứng dụng thực tế, một hàm hash tốt phải có phân bố đủ phù hợp cho dữ liệu sử dụng, trả về kết quả ổn định theo hợp đồng và tương thích với `equals`. Không thể đánh giá tính đúng đắn của khóa chỉ bằng cách thống kê số collision; cần kiểm tra cả quy tắc `equals`.
+When evaluating a real application, a good hash function should have distribution suitable enough for the data in use, return stable results per the contract, and be compatible with `equals`. You cannot evaluate key correctness solely by counting collisions; you must also verify the `equals` rules.
 
-## 7. Vấn đề nào thực sự có thể làm cấu trúc băm trả kết quả sai?
+## 7. What Problems Can Actually Cause Hash Structures to Return Wrong Results?
 
-Collision hợp lệ khác với các lỗi sau.
+Valid collisions differ from the following bugs.
 
-### 7.1. Vi phạm chiều bắt buộc của hợp đồng `equals()/hashCode()`
+### 7.1. Violating the mandatory direction of the `equals()/hashCode()` contract
 
-Giả sử hai đối tượng được `equals` xem là bằng nhau nhưng `hashCode()` lại khác:
+Suppose two objects are considered equal by `equals` yet `hashCode()` differs:
 
 ```text
 a.equals(b) == true
-a.hashCode() != b.hashCode()  // Vi phạm hợp đồng
+a.hashCode() != b.hashCode()  // Contract violation
 ```
 
-Đây là lỗi thiết kế của lớp khóa. Khi bộ sưu tập dựa trên hash để khoanh vùng tra cứu, những khóa logic bằng nhau có mã băm không tương thích có thể không tìm thấy nhau hoặc xuất hiện trùng lặp không mong muốn.
+This is a design bug in the key class. When a collection relies on hashes to narrow down lookups, logically equal keys with incompatible hash codes may fail to find each other or produce unwanted duplicates.
 
-Ví dụ về **phản mẫu** bên trong một lớp có trường `int id` và `String name`:
+Example of an **anti-pattern** inside a class with fields `int id` and `String name`:
 
 ```java
 @Override
@@ -272,46 +272,46 @@ public boolean equals(Object obj) {
 
 @Override
 public int hashCode() {
-    return java.util.Objects.hashCode(name); // Sai hợp đồng
+    return java.util.Objects.hashCode(name); // Violates contract
 }
 ```
 
-Đây là **đoạn minh họa lỗi, không phải chương trình độc lập**. Hai đối tượng có cùng `id` nhưng `name` khác nhau được xem là bằng nhau, trong khi hash có thể khác. Cách sửa là tính hash nhất quán từ `id` nếu `id` thực sự là trường duy nhất quyết định bằng nhau.
+This is a **bug-illustration snippet, not a standalone program**. Two objects with the same `id` but different `name`s are considered equal, while their hashes can differ. The fix is to compute the hash consistently from `id` if `id` is truly the sole field determining equality.
 
-Đừng cố “sửa collision” bằng cách cho mọi đối tượng một hash khác nhau bằng mọi giá; việc đó không giải quyết hợp đồng giữa `equals` và `hashCode`.
+Do not try to "fix collisions" by giving every object a different hash at all costs; doing so does not resolve the contract between `equals` and `hashCode`.
 
-### 7.2. Thay đổi trường làm khóa sau khi chèn
+### 7.2. Mutating a key field after insertion
 
-Giả sử một khóa được thêm vào `HashMap` với hash tính từ `id = 10`. Sau đó chương trình sửa `id` thành `20`, khiến hash mới khác hash được dùng khi chèn. Việc tra cứu có thể đi đến nhóm ứng viên khác và không tìm được mục nhập.
+Suppose a key is added to `HashMap` with a hash computed from `id = 10`. Later, the program modifies `id` to `20`, causing the new hash to differ from the hash used at insertion. Lookup may go to a different candidate group and fail to find the entry.
 
-Đây là **lỗi do khóa biến đổi trạng thái**, không phải collision. Đặc biệt với các trường tham gia `equals/hashCode`, nên dùng khóa bất biến hoặc có chiến lược loại bỏ rồi thêm lại khi cần thay đổi.
+This is a **bug caused by key state mutation**, not a collision. Especially for fields participating in `equals/hashCode`, use immutable keys or a strategy of removing and re-adding when changes are needed.
 
-Các khóa `record Key(int id)` trong ví dụ không có setter, và thành phần kiểu nguyên thủy `id` là bất biến, nên tránh được trường hợp này.
+The `record Key(int id)` keys in the example have no setters, and the primitive component `id` is immutable, thus avoiding this case.
 
-### 7.3. `equals()` thiếu tính đối xứng, bắc cầu hoặc nhất quán
+### 7.3. `equals()` lacking symmetry, transitivity, or consistency
 
-Nếu `a.equals(b)` và `b.equals(a)` cho kết quả khác nhau, hoặc quan hệ bằng nhau thay đổi bất thường khi dữ liệu liên quan không đổi, cấu trúc băm khó có thể hoạt động theo kỳ vọng. Vấn đề phát sinh từ hợp đồng của lớp khóa, không phải chỉ vì hai giá trị hash trùng nhau.
+If `a.equals(b)` and `b.equals(a)` give different results, or the equality relation changes erratically when relevant data has not changed, hash structures can hardly operate as expected. The issue stems from the key class's contract, not merely from two matching hash values.
 
-### 7.4. Sử dụng đồng thời không đúng cách
+### 7.4. Improper concurrent usage
 
-`HashMap` và `HashSet` thông thường không cung cấp an toàn luồng cho mọi thao tác ghi/đọc đồng thời. Nếu nhiều luồng thay đổi cấu trúc mà không đồng bộ hóa thích hợp, chương trình có thể gặp hành vi không mong muốn. Đây là vấn đề **truy cập đồng thời**, không phải tính sai của thuật toán xử lý collision.
+Standard `HashMap` and `HashSet` do not provide thread safety for concurrent read/write operations. If multiple threads mutate the structure without proper synchronization, the program can exhibit unexpected behavior. This is a **concurrent access** issue, not incorrectness of the collision-handling algorithm.
 
-Nếu cần cấu trúc dùng đồng thời, lựa chọn tương thích như `ConcurrentHashMap` và cơ chế đồng bộ phù hợp với yêu cầu ứng dụng; không nên đổ lỗi cho collision khi nguyên nhân là race condition.
+If a concurrent structure is needed, choose a compatible one such as `ConcurrentHashMap` and synchronization mechanisms suited to the application's requirements; do not blame collisions when the cause is a race condition.
 
-## 8. Các lỗi tư duy thường gặp
+## 8. Common Thinking Mistakes
 
-1. **“Hai khóa cùng hash thì mục nhập thứ hai ghi đè mục nhập thứ nhất.”** Sai. `HashMap` cập nhật khi khóa bằng nhau theo ngữ nghĩa khóa; collision không đủ.
-2. **“`HashSet` chỉ chứa tối đa một phần tử cho mỗi hash.”** Sai. Nhiều phần tử khác nhau theo `equals` có thể có cùng hash và cùng tồn tại.
-3. **“Không có collision mới chứng minh code đúng.”** Sai. Không có collision trong dữ liệu thử nghiệm không bảo đảm `equals/hashCode` đúng hợp đồng.
-4. **“Collision xảy ra nghĩa là mất dữ liệu.”** Sai. Cấu trúc băm đúng phải có cơ chế phân biệt các khóa va chạm.
-5. **“Hash duy nhất là định danh đối tượng.”** Sai. Giá trị `int` không được bảo đảm duy nhất; `hashCode()` cũng không có nghĩa là địa chỉ bộ nhớ.
-6. **“Chỉ cần `hashCode()` giống nhau là có thể bỏ gọi `equals()`.”** Sai. Nếu bạn tự xây cấu trúc băm, đây có thể là lỗi nghiêm trọng làm gộp hai khóa khác nhau.
-7. **“Hash luôn bằng 1 là thực hành tốt vì vẫn chạy đúng.”** Sai. Nó có thể đúng hợp đồng nhưng làm phân bố tệ, ảnh hưởng đáng kể đến hiệu năng.
-8. **“Thấy `get` sai thì chắc do collision.”** Trước tiên kiểm tra hợp đồng `equals/hashCode`, tính ổn định của khóa, chính sách `null`, logic thao tác và truy cập đồng thời.
+1. **"When two keys have the same hash, the second entry overwrites the first."** False. `HashMap` updates when keys are equal by key semantics; a collision is not enough.
+2. **"`HashSet` holds at most one element per hash."** False. Multiple elements differing by `equals` can share the same hash and coexist.
+3. **"Having no collisions proves the code is correct."** False. Having no collisions in test data does not guarantee `equals/hashCode` obey the contract.
+4. **"A collision occurring means data loss."** False. A proper hash structure must have a mechanism to distinguish colliding keys.
+5. **"A unique hash is an object identifier."** False. An `int` value is not guaranteed unique; nor does `hashCode()` mean memory address.
+6. **"As long as `hashCode()` matches, you can skip calling `equals()`."** False. If you build your own hash structure, this can be a severe bug merging two distinct keys.
+7. **"Always returning hash 1 is good practice because it still runs correctly."** False. It may obey the contract yet causes poor distribution, significantly hurting performance.
+8. **"Seeing wrong `get` results must be due to collisions."** First check the `equals/hashCode` contract, key stability, `null` policy, operation logic, and concurrent access.
 
-## 9. Bài tập suy luận không cần chạy chương trình
+## 9. Reasoning Exercise Without Running the Program
 
-Cho lớp `Key` từ ví dụ có `hashCode() == 1` cho mọi instance và `equals` so sánh `id`, xét lần lượt:
+Given the `Key` class from the example with `hashCode() == 1` for every instance and `equals` comparing `id`, trace step by step:
 
 ```java
 Map<Key, String> map = new HashMap<>();
@@ -327,31 +327,31 @@ String unknown = map.get(new Key(3));
 boolean presentThree = map.containsKey(new Key(3));
 ```
 
-Đây là đoạn mã cần đặt trong một phương thức có các import cần thiết và có thể truy cập `record Key` được định nghĩa trong chương trình ở phần 3.
+This snippet must be placed inside a method with the required imports and access to `record Key` defined in the program in section 3.
 
-**Đáp án:**
+**Answers:**
 
-- `size == 2` vì `Key(1)` và `Key(2)` là hai khóa khác nhau, còn `Key(1)` được thêm lần thứ hai chỉ cập nhật giá trị.
-- `one` là `"A2"` vì giá trị mới đã thay giá trị cũ của khóa tương đương `Key(1)`.
-- `two` là `"B"` vì collision không ghi đè khóa `Key(2)`.
-- `unknown == null` và `presentThree == false` vì `Key(3)` không bằng khóa nào đang lưu, mặc dù hash vẫn là `1`.
+- `size == 2` because `Key(1)` and `Key(2)` are two distinct keys, while the second `Key(1)` only updates the value.
+- `one` is `"A2"` because the new value replaced the old value of the equivalent key `Key(1)`.
+- `two` is `"B"` because a collision does not overwrite key `Key(2)`.
+- `unknown == null` and `presentThree == false` because `Key(3)` equals none of the stored keys, even though its hash is still `1`.
 
-Hãy thay `Key` bằng một kiểu có hash phân bố tốt hơn nhưng giữ nguyên định nghĩa bằng nhau theo `id`. Nếu cài đặt vẫn tuân thủ hợp đồng và trạng thái khóa không đổi, các kết quả nghiệp vụ trên **phải giữ nguyên**; chỉ cách phân bố và hiệu năng có thể khác.
+Try replacing `Key` with a type having better hash distribution while keeping the same equality definition by `id`. If the implementation still obeys the contract and key state does not change, the business results above **must remain identical**; only distribution and performance may differ.
 
-## 10. Khi nào cần hành động trong dự án thực tế?
+## 10. When Should You Take Action in a Real Project?
 
-Nếu quan sát nhiều collision hoặc thao tác `HashMap` chậm, hãy đánh giá phân bố mã băm theo **dữ liệu thật** và cách cài đặt `hashCode()`. Các trường hợp số lượng lớn khóa có chung hash có thể làm giảm hiệu năng; thử nghiệm với dữ liệu đặc trưng sẽ hữu ích hơn việc giả định hash luôn ngẫu nhiên.
+If you observe many collisions or slow `HashMap` operations, evaluate hash code distribution against **real data** and the `hashCode()` implementation. Cases where large numbers of keys share a hash can degrade performance; testing with representative data is more useful than assuming hashes are always random.
 
-Nếu lại quan sát thấy khóa “biến mất”, có nhiều khóa bằng nhau cùng xuất hiện, hoặc `HashSet.contains` trả về kết quả bất thường, nên kiểm tra theo thứ tự:
+If instead you observe keys "disappearing", multiple equal keys appearing together, or `HashSet.contains` returning abnormal results, check in order:
 
-1. `equals()` có tuân thủ tính phản xạ, đối xứng, bắc cầu, nhất quán và xử lý `null` đúng không?
-2. Hai đối tượng bằng nhau có luôn cho cùng hash không?
-3. Các trường tham gia tính bằng nhau và hash có thay đổi sau khi chèn không?
-4. Mã có truy cập đồng thời vào cấu trúc không an toàn luồng hoặc sử dụng sai một API liên quan không?
-5. Có nhầm việc `Map.get` trả `null` với sự vắng mặt của khóa có giá trị `null` không?
+1. Does `equals()` obey reflexivity, symmetry, transitivity, consistency, and proper `null` handling?
+2. Do two equal objects always produce the same hash?
+3. Do fields participating in equality and hash change after insertion?
+4. Is code concurrently accessing a non-thread-safe structure or misusing a related API?
+5. Is `Map.get` returning `null` being confused with the absence of a key that has a `null` value?
 
-Các bước này tập trung vào những nguyên nhân có thể làm sai hành vi. Collision hợp lệ chỉ là đặc tính cần được cấu trúc băm xử lý đúng và có thể cần tối ưu về hiệu năng khi tần suất quá lớn.
+These steps focus on causes that can produce wrong behavior. Valid collisions are simply a characteristic to be handled properly by the hash structure and may need performance optimization when frequency is excessive.
 
-## Ghi nhớ
+## Key Takeaways
 
-**Va chạm hash là việc nhiều khóa khác nhau cho cùng mã băm; nó không đồng nghĩa với việc các khóa bằng nhau hoặc dữ liệu bị mất.** `HashMap` và `HashSet` phân biệt khóa/phần tử bằng ngữ nghĩa bằng nhau, nên có thể giữ nhiều khóa cùng hash mà vẫn tra cứu và cập nhật chính xác. Collision quá nhiều có thể làm chậm thao tác; lỗi hợp đồng `equals/hashCode`, khóa bị thay đổi hoặc dùng cấu trúc sai mới là những nguồn rủi ro rõ ràng cho tính đúng đắn.
+**A hash collision is when multiple distinct keys produce the same hash code; it does not mean the keys are equal or data is lost.** `HashMap` and `HashSet` distinguish keys/elements by equality semantics, so they can hold multiple keys with the same hash while still looking up and updating accurately. Too many collisions can slow down operations; `equals/hashCode` contract bugs, mutated keys, or improper structure usage are the real sources of risk to correctness.

@@ -1,47 +1,47 @@
-# Đọc method và field do compiler bổ sung mà không phụ thuộc tên nội bộ
+# Reading compiler-added methods and fields without relying on internal names
 
-## 1. Reflection nhìn thấy lớp đã biên dịch
+## 1. Reflection sees the compiled class
 
-Mã nguồn một enum có thể rất ngắn, nhưng lớp sau khi biên dịch chứa thêm thành viên để thực hiện quy tắc của Java và hỗ trợ JVM. Vì vậy, danh sách trả về từ `getDeclaredFields()` hoặc `getDeclaredMethods()` không phải bản chép nguyên văn những gì lập trình viên đã gõ trong tệp nguồn.
+An enum's source code can be very short, yet the compiled class contains additional members to implement Java rules and support the JVM. Therefore, the list returned by `getDeclaredFields()` or `getDeclaredMethods()` is not a verbatim copy of what the programmer typed in the source file.
 
-Khi xây công cụ đọc cấu trúc enum, cần phân biệt ba nhóm:
+When building a tool to read enum structure, distinguish three groups:
 
-1. **Thành viên được khai báo tường minh:** field và method do người viết mã khai báo.
-2. **Thành viên được ngôn ngữ khai báo ngầm định:** chẳng hạn các field biểu diễn hằng enum và hai method `values()`, `valueOf(String)`.
-3. **Thành viên hỗ trợ do trình biên dịch tạo:** có thể gồm field lưu dữ liệu nội bộ, method trợ giúp và phương thức cầu nối (`bridge method`).
+1. **Explicitly declared members:** fields and methods declared by the code author.
+2. **Language-implicitly declared members:** such as fields representing enum constants and the two methods `values()` and `valueOf(String)`.
+3. **Compiler-generated helper members:** which may include fields storing internal data, helper methods, and `bridge method`s.
 
-Không phải mọi thành viên do compiler bổ sung đều được nhận diện bằng `isSynthetic()`. Đặc biệt, các API ngầm định của enum có vị trí riêng trong hợp đồng ngôn ngữ.
+Not every compiler-added member is identified by `isSynthetic()`. In particular, the implicit enum APIs have a distinct place in the language contract.
 
-Mục tiêu của bài là đọc và phân loại metadata đúng. Việc gọi method, đọc giá trị field hoặc thay đổi dữ liệu bên trong enum là các thao tác khác.
+The goal of this lesson is to read and classify metadata accurately. Invoking methods, reading field values, or modifying data inside an enum are separate operations.
 
-## 2. Điều gì được Java bảo đảm, điều gì thuộc cách biên dịch?
+## 2. What is guaranteed by Java, and what belongs to the compilation strategy?
 
-Với enum `E`, Java quy định:
+For an enum `E`, Java specifies:
 
-- Mỗi hằng enum tương ứng với một field `public static final` mang tên hằng và có kiểu `E`.
-- Có method `public static E[] values()`.
-- Có method `public static E valueOf(String name)`.
+- Each enum constant corresponds to a `public static final` field bearing the constant's name and having type `E`.
+- There is a method `public static E[] values()`.
+- There is a method `public static E valueOf(String name)`.
 
-Đây là những thành viên có hợp đồng ngôn ngữ. Dùng tên `values` hoặc `valueOf` kèm đúng tham số để tìm API tương ứng không phải là phụ thuộc một tên nội bộ tùy ý.
+These are members with a language contract. Using the names `values` or `valueOf` with the exact parameters to find the corresponding API is not relying on an arbitrary internal name.
 
-Ngược lại, cách trình biên dịch lưu mảng hằng hay tách các bước khởi tạo có thể khác nhau. Những tên như `$VALUES` hoặc `$values` có thể xuất hiện khi khảo sát đầu ra của một trình biên dịch, nhưng không phải API công khai mà ứng dụng nên tìm để lấy danh sách hằng.
+Conversely, how the compiler stores the constants array or splits initialization steps may vary. Names such as `$VALUES` or `$values` may appear when inspecting a compiler's output, yet they are not public APIs that applications should look up to obtain the list of constants.
 
-Không viết thuật toán kiểu “tìm một field có đúng tên nội bộ ấy rồi đọc nó”. Cũng không suy ra vai trò chỉ từ hình dạng tên như bắt đầu bằng `$`, viết hoa hoặc chứa từ `values`.
+Do not write algorithms like "find a field with that exact internal name and read it". Also do not infer roles solely from name shape such as starting with `$`, being uppercase, or containing the word `values`.
 
-| Nhu cầu | Điểm dựa phù hợp |
+| Need | Appropriate basis |
 | --- | --- |
-| Nhận diện field biểu diễn hằng enum | `Field.isEnumConstant()` |
-| Nhận biết field/method được đánh dấu synthetic | `isSynthetic()` trên thành viên |
-| Nhận biết method cầu nối | `Method.isBridge()` |
-| Nhận diện API ngầm định của enum | Lớp khai báo, tên API, tham số, kiểu trả về và modifier |
-| Lấy các đối tượng hằng theo thứ tự khai báo | `Class.getEnumConstants()` |
-| Tìm toàn bộ phần triển khai để chẩn đoán bytecode | Giữ metadata và ghi rõ vai trò, không loại bỏ mặc định |
+| Identify fields representing enum constants | `Field.isEnumConstant()` |
+| Recognize fields/methods marked synthetic | `isSynthetic()` on the member |
+| Recognize bridge methods | `Method.isBridge()` |
+| Identify implicit enum APIs | Declaring class, API name, parameters, return type, and modifiers |
+| Retrieve constant objects in declaration order | `Class.getEnumConstants()` |
+| Find the entire implementation for bytecode diagnostics | Keep metadata and record roles explicitly rather than dropping by default |
 
-Các cờ metadata trả lời câu hỏi kỹ thuật. Chính sách hiển thị của công cụ phải quyết định nhóm nào được đưa vào tài liệu hoặc màn hình kiểm tra.
+Metadata flags answer technical questions. A tool's display policy must decide which groups are included in documentation or inspection screens.
 
-## 3. Ví dụ: phân loại field và method của một enum
+## 3. Example: classifying fields and methods of an enum
 
-Lưu thành `EnumCompilerMembersDemo.java`:
+Save as `EnumCompilerMembersDemo.java`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -114,14 +114,14 @@ public class EnumCompilerMembersDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17:
+Compile and run with JDK 17:
 
 ~~~bash
 javac --release 17 EnumCompilerMembersDemo.java
 java EnumCompilerMembersDemo
 ~~~
 
-Kết quả với `javac` của JDK 17:
+Output with JDK 17 `javac`:
 
 ~~~text
 constantFields=RUNNING,WAITING
@@ -133,38 +133,38 @@ valueOf.synthetic=false
 declarationOrder=[WAITING, RUNNING]
 ~~~
 
-Ví dụ đã chủ động sắp xếp tên field và nhãn method để kết quả in ổn định. Không dựa vào thứ tự mảng metadata do Reflection trả về.
+The example proactively sorts field names and method labels so printed output is stable. Do not rely on the array order of metadata returned by Reflection.
 
-Cần phân biệt **thứ tự hiển thị đã sắp xếp** với **thứ tự hằng trong khai báo**. Danh sách field được sắp theo tên nên có `RUNNING` trước `WAITING`; `getEnumConstants()` vẫn giữ `WAITING` trước `RUNNING`.
+You must distinguish **sorted display order** from **constant order in the declaration**. The field list is sorted by name so `RUNNING` appears before `WAITING`; `getEnumConstants()` still keeps `WAITING` before `RUNNING`.
 
-Hằng `DEFAULT` là một field do tác giả khai báo, dù nó cũng là `public static final` và có kiểu `TaskState`. `isEnumConstant()` vẫn trả `false`. Vì vậy, chỉ kiểm tra kiểu field và modifier không đủ để nhận diện hằng enum.
+The `DEFAULT` field is an author-declared field, even though it is also `public static final` and has type `TaskState`. `isEnumConstant()` still returns `false`. Thus, checking only the field type and modifiers is not enough to identify enum constants.
 
-Hai method `values()` và `valueOf(String)` xuất hiện dù tác giả không viết phần khai báo của chúng. Trong đầu ra được kiểm tra ở đây, chúng không mang cờ synthetic. Lọc hết thành viên synthetic vẫn giữ lại hai API này.
+The two methods `values()` and `valueOf(String)` appear even though the author did not write their declarations. In the output observed here, they do not carry the synthetic flag. Filtering out all synthetic members still retains these two APIs.
 
-Chương trình không in tên hoặc số lượng thành viên hỗ trợ nội bộ. Khi đổi compiler hoặc cách biên dịch, chi tiết hỗ trợ có thể đổi mà không làm thay đổi mục đích của phần phân loại.
+The program does not print the names or counts of internal helper members. When switching compilers or compilation strategies, helper details can change without altering the purpose of the classification.
 
-## 4. isSynthetic không đồng nghĩa với “không do tác giả viết”
+## 4. isSynthetic does not mean "not author-written"
 
-`Field.isSynthetic()` và `Method.isSynthetic()` đọc dấu hiệu synthetic của thành viên. Dấu hiệu này hữu ích để nhận diện phần hỗ trợ kỹ thuật, nhưng không tái tạo đầy đủ lịch sử tác giả của mã nguồn.
+`Field.isSynthetic()` and `Method.isSynthetic()` read a member's synthetic marker. This marker is useful for recognizing technical scaffolding, yet does not fully reconstruct source code authorship history.
 
-Có hai chiều cần tránh suy diễn:
+There are two directions of inference to avoid:
 
-- Một thành viên được compiler bổ sung có thể tương ứng với khai báo ngầm định của Java, như các API enum vừa thấy.
-- Một thành viên synthetic vẫn có thể quan trọng đối với một công cụ phân tích lớp đã biên dịch, dù không phù hợp để hiển thị như API nghiệp vụ.
+- A compiler-added member may correspond to an implicit Java declaration, like the enum APIs just seen.
+- A synthetic member can still be important to a tool analyzing compiled classes, even if it is unsuitable for display as a business API.
 
-Vì vậy, hãy đặt tên chính sách chính xác. Bộ lọc `!method.isSynthetic()` có nghĩa là “bỏ method được đánh dấu synthetic”, không có nghĩa là “chỉ giữ method được viết tường minh trong nguồn”.
+Therefore, name policies accurately. The filter `!method.isSynthetic()` means "exclude methods marked synthetic", not "keep only methods explicitly written in source".
 
-Nếu cần xác định chính xác đoạn nào được tác giả viết trong một tệp nguồn, chỉ metadata Reflection không phải một bản đồ nguồn đầy đủ. Có thể cần đọc nguồn hoặc metadata bổ sung phục vụ mục tiêu đó. Đừng gán nhãn “do người dùng viết” cho mọi method không synthetic mà chưa xét thành viên ngầm định.
+If you need to determine precisely which parts were written by an author in a source file, Reflection metadata alone is not a complete source map. Reading the source or additional metadata may be needed for that goal. Do not label every non-synthetic method "user-written" without accounting for implicit members.
 
-Tương tự, không mặc định ẩn mọi field `static` hoặc mọi field có kiểu mảng để loại dữ liệu hỗ trợ: enum hoàn toàn có thể khai báo field ứng dụng thuộc các dạng ấy.
+Similarly, do not hide every `static` field or every array-typed field by default to exclude helper data: an enum can certainly declare application fields of those forms.
 
-## 5. Nếu muốn ẩn API ngầm định, phải kiểm tra đúng hợp đồng
+## 5. If you want to hide implicit APIs, check the exact contract
 
-Một công cụ tài liệu có thể muốn giữ API enum chuẩn; công cụ khác chỉ muốn liệt kê phần mở rộng do tác giả định nghĩa. Đó là quyết định hiển thị, cần được tách khỏi cơ chế đọc metadata.
+One documentation tool may want to keep standard enum APIs; another may only want to list author-defined extensions. That is a presentation decision that must be separated from the metadata-reading mechanism.
 
-Nếu chính sách yêu cầu ẩn `values()` và `valueOf(String)`, đừng loại mọi method chỉ vì tên là `values` hoặc `valueOf`. Enum có thể có một overload hợp lệ như `valueOf(int)` do tác giả viết.
+If policy requires hiding `values()` and `valueOf(String)`, do not exclude every method just because its name is `values` or `valueOf`. An enum can have a valid overload such as `valueOf(int)` written by the author.
 
-Lưu thành `EnumApiFilterDemo.java`:
+Save as `EnumApiFilterDemo.java`:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -246,14 +246,14 @@ public class EnumApiFilterDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 EnumApiFilterDemo.java
 java EnumApiFilterDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 values(): implicit=true
@@ -262,19 +262,19 @@ valueOf(int): implicit=false
 kept=valueOf(int)
 ~~~
 
-Hàm nhận diện dùng đối tượng `Class` để kiểm tra kiểu trả về và kiểu tham số, không so sánh các chuỗi tên kiểu đã rút gọn. Các tên đơn giản trong `methodLabel` chỉ phục vụ bản in của ví dụ.
+The detector uses `Class` objects to check the return type and parameter types, rather than comparing shortened type name strings. Simple names in `methodLabel` serve only the example's printout.
 
-Việc lọc theo hợp đồng này áp dụng cho một lớp enum Java hợp lệ. Nó không phải bộ nhận diện mọi thành viên do mọi bộ sinh bytecode có thể tạo ra.
+Filtering by this contract applies to a valid Java enum class. It is not a detector for every member that every bytecode generator might produce.
 
-Các kiểm tra về modifier và lớp khai báo còn giúp tránh nhầm một method cùng tên nhưng khác vai trò. Chính sách ẩn chỉ loại hai API đã xác định; overload `valueOf(int)` vẫn được giữ.
+The modifier and declaring-class checks also prevent confusing a method with the same name but a different role. The hiding policy removes only the two identified APIs; the `valueOf(int)` overload is still kept.
 
-## 6. Bridge method: cùng tên và tham số vẫn có thể thấy hai method
+## 6. Bridge methods: two methods can still be seen with the same name and parameters
 
-Enum cũng có thể triển khai interface generic. Khi cần nối hợp đồng sau xóa kiểu với phần thực hiện có kiểu cụ thể hơn, trình biên dịch có thể tạo bridge method.
+An enum can also implement a generic interface. When bridging an erased contract to an implementation with a more specific return type, the compiler may generate a bridge method.
 
-Đây không phải một API enum mới. Nó là phần hỗ trợ để lời gọi qua kiểu interface vẫn đến đúng phần thực hiện.
+This is not a new enum API. It is scaffolding so calls through the interface type still reach the right implementation.
 
-Lưu thành `EnumBridgeMetadataDemo.java`:
+Save as `EnumBridgeMetadataDemo.java`:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -309,87 +309,87 @@ public class EnumBridgeMetadataDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17:
+Compile and run with JDK 17:
 
 ~~~bash
 javac --release 17 EnumBridgeMetadataDemo.java
 java EnumBridgeMetadataDemo
 ~~~
 
-Kết quả với `javac` của JDK 17:
+Output with JDK 17 `javac`:
 
 ~~~text
 code -> Object synthetic=true bridge=true
 code -> String synthetic=false bridge=false
 ~~~
 
-Tác giả chỉ viết một method `String code()`. Method trả `Object` là bridge được compiler tạo để phục vụ hợp đồng của `CodeSupplier<T>` sau xóa kiểu.
+The author wrote only one `String code()` method. The method returning `Object` is a bridge generated by the compiler to fulfill the `CodeSupplier<T>` contract after type erasure.
 
-Nếu công cụ tài liệu hiển thị cả hai như hai thao tác nghiệp vụ riêng biệt, người dùng có thể thấy API bị lặp. Một chính sách tài liệu thông thường có thể loại method bridge. Một công cụ chẩn đoán bytecode nên giữ nó và ghi rõ cờ tương ứng.
+If a documentation tool displays both as two separate business operations, users may see duplicated APIs. A typical documentation policy can exclude bridge methods. A bytecode diagnostic tool should keep them and display the corresponding flags.
 
-Không ghép hoặc loại method chỉ theo tên. Ở mức Reflection/JVM, có thể quan sát các method trùng tên và kiểu tham số nhưng khác kiểu trả về, như ví dụ này. Khi tạo khóa metadata, cần giữ thông tin lớp khai báo, tên, tham số và kiểu trả về phù hợp với mục tiêu của công cụ.
+Do not merge or exclude methods solely by name. At the Reflection/JVM level, methods with identical names and parameter types yet different return types can be observed, as in this example. When creating metadata keys, keep the declaring class, name, parameters, and return type information appropriate to the tool's goal.
 
-`isBridge()` trả lời vai trò cầu nối cụ thể. `isSynthetic()` trả lời dấu hiệu synthetic rộng hơn. Bridge method là một trường hợp synthetic; không phải mọi method synthetic đều là bridge.
+`isBridge()` answers the specific bridge role. `isSynthetic()` answers the broader synthetic marker. A bridge method is a synthetic case; not every synthetic method is a bridge.
 
-## 7. Chọn đúng phạm vi đọc trước khi lọc
+## 7. Choose the right reading scope before filtering
 
-`getDeclaredFields()` và `getDeclaredMethods()` lấy thành viên được khai báo trực tiếp trong lớp đang xét, bao gồm cả thành viên không public. Chúng không tự gộp mọi thành viên kế thừa.
+`getDeclaredFields()` and `getDeclaredMethods()` retrieve members declared directly in the class being inspected, including non-public members. They do not automatically include inherited members.
 
-Điều này giải thích vì sao `values()` và `valueOf(String)` có trong metadata trực tiếp của enum, còn các method như `name()` và `ordinal()` đến từ lớp cơ sở `Enum`.
+This explains why `values()` and `valueOf(String)` appear in the enum's direct metadata, whereas methods like `name()` and `ordinal()` come from the `Enum` base class.
 
-Nếu mục tiêu là API public gồm phần kế thừa, `getMethods()` có phạm vi khác. Hãy xác định phạm vi trước, rồi mới áp dụng chính sách synthetic/bridge/enum API. Nếu không, công cụ có thể “thiếu” hoặc “thừa” method vì chọn sai phạm vi từ đầu.
+If the goal is the public API including inherited parts, `getMethods()` has a different scope. Determine the scope first, and only then apply synthetic/bridge/enum API policies. Otherwise, a tool can appear "missing" or "extra" methods because it chose the wrong scope from the start.
 
-Khi bắt đầu từ một đối tượng hằng enum có thân riêng, lớp thực tế của hằng còn có thể là lớp con ẩn danh. Nếu muốn khảo sát lớp enum chung, chuẩn hóa bằng `constant.getDeclaringClass()`; nếu muốn khảo sát phần riêng của hằng, dùng lớp thực tế của nó.
+When starting from an enum constant object with its own body, the constant's runtime class may even be an anonymous subclass. If you want to inspect the shared enum class, normalize with `constant.getDeclaringClass()`; if you want to inspect the constant's own part, use its runtime class.
 
-Không dùng thứ tự mảng field/method từ Reflection làm thứ tự nguồn. Sắp xếp bản trình bày khi cần đầu ra ổn định; lấy danh sách hằng qua API enum khi cần thứ tự khai báo của các hằng.
+Do not treat the field/method array order from Reflection as source order. Sort presentation output when stable output is needed; retrieve the constant list via the enum API when the declaration order of constants is needed.
 
-## 8. Quan sát metadata không đòi hỏi đọc dữ liệu nội bộ
+## 8. Observing metadata does not require reading internal data
 
-Các ví dụ dùng tên, kiểu, modifier và cờ thành viên để phân loại. Không cần gọi `setAccessible(true)` hoặc đọc field private để biết một field có phải enum constant hay synthetic hay không.
+The examples use names, types, modifiers, and member flags to classify. There is no need to call `setAccessible(true)` or read private fields to know whether a field is an enum constant or synthetic.
 
-Nếu chỉ cần các giá trị hằng, dùng `getEnumConstants()`. Nếu đã biết kiểu enum trong nguồn, dùng `values()`. Cả hai giúp mã tránh phụ thuộc cách compiler cất dữ liệu hỗ trợ.
+If only constant values are needed, use `getEnumConstants()`. If the enum type is known in source, use `values()`. Both keep code free from depending on how the compiler stores helper data.
 
-Đọc một field nội bộ không tạo thêm một hợp đồng ổn định cho ứng dụng. Thay đổi mảng lưu trữ hỗ trợ, nếu tìm thấy và truy cập được, còn có thể phá giả định của enum hoặc của thư viện khác. Khả năng nhìn thấy metadata không phải lý do để sửa trạng thái ấy.
+Reading an internal field does not establish a stable contract for an application. Modifying the backing storage array, if found and accessible, can also break assumptions of the enum or other libraries. Metadata visibility is no reason to mutate that state.
 
-Cũng cần giữ ranh giới thực thi: lấy `Method` chỉ mô tả method; gọi `invoke` mới thực hiện lời gọi. Đọc giá trị field tĩnh hoặc lấy các đối tượng hằng có thể liên quan đến khởi tạo lớp. Một trình xem metadata không nên gọi thử method chỉ để quyết định thành viên thuộc nhóm nào.
+Execution boundaries must also be kept clear: obtaining a `Method` only describes the method; calling `invoke` performs the call. Reading static field values or retrieving constant objects can involve class initialization. A metadata viewer should not speculatively invoke methods just to decide which group a member belongs to.
 
-## 9. Lỗi thường gặp và cách kiểm tra
+## 9. Common mistakes and how to check
 
-| Sai lầm | Điều cần kiểm tra lại |
+| Mistake | What to double-check |
 | --- | --- |
-| Tìm field có tên nội bộ cố định để lấy các hằng | Dùng API enum thay vì dữ liệu hỗ trợ |
-| Nhận diện hằng chỉ bằng public/static/final và kiểu field | Dùng `Field.isEnumConstant()`; một field bí danh có thể cùng kiểu và modifier |
-| Coi mọi method không synthetic là method tác giả viết | Xét các API được khai báo ngầm định |
-| Loại mọi method tên `valueOf` | Kiểm tra tham số, kiểu trả về, modifier và lớp khai báo |
-| Hiển thị bridge như một thao tác nghiệp vụ thứ hai | Quyết định chính sách `isBridge()` theo mục đích |
-| Loại synthetic ngay khi đọc rồi không lưu dấu vết | Công cụ chẩn đoán có thể cần chính những thành viên ấy |
-| So sánh ảnh chụp metadata theo thứ tự JVM trả về | Sắp xếp khóa/nhãn trước khi so sánh |
-| Dùng số lượng field/method nội bộ như một cam kết | Chỉ kiểm tra hợp đồng cần thiết, không đóng cứng chi tiết compiler |
-| Gọi API đọc giá trị private chỉ để phân loại | Dùng metadata công khai và các cờ vai trò |
+| Looking up a field with a fixed internal name to get constants | Use the enum API instead of helper data |
+| Identifying constants solely by public/static/final and field type | Use `Field.isEnumConstant()`; an alias field can have the same type and modifiers |
+| Treating every non-synthetic method as author-written | Account for implicitly declared APIs |
+| Excluding every method named `valueOf` | Check parameters, return type, modifiers, and declaring class |
+| Displaying a bridge as a second business operation | Decide `isBridge()` policy by purpose |
+| Discarding synthetic members on read without leaving a trace | Diagnostic tools may need those very members |
+| Comparing metadata snapshots in the order returned by the JVM | Sort keys/labels before comparing |
+| Treating the count of internal fields/methods as a guarantee | Check only the necessary contracts; do not hardcode compiler details |
+| Calling private value-reading APIs just to classify | Use public metadata and role flags |
 
-Một cách tổ chức rõ ràng là: thu thập metadata, phân loại vai trò, rồi chọn chính sách trình bày. Như vậy, một bộ đọc có thể phục vụ cả màn hình API lẫn chế độ chẩn đoán mà không phải đoán vai trò từ tên thành viên.
+A clean organization is: collect metadata, classify roles, then choose a presentation policy. That way, one reader can serve both an API view and a diagnostic mode without guessing roles from member names.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-1. Vì sao bộ lọc `!method.isSynthetic()` vẫn có thể giữ `values()` và `valueOf(String)`?
-2. Một field `public static final MyEnum DEFAULT` có chắc là hằng enum không?
-3. Nếu enum khai báo thêm `valueOf(int)`, có nên loại nó chỉ vì tên method là `valueOf`?
-4. Trong ví dụ generic, tại sao thấy cả `Object code()` và `String code()`?
-5. Muốn danh sách hằng theo thứ tự nguồn, nên sắp xếp field hay dùng API nào?
-6. Có nên ghi cứng tên hoặc số lượng field lưu trữ nội bộ trong một bài kiểm tra tính đúng của ứng dụng không?
+1. Why can the `!method.isSynthetic()` filter still retain `values()` and `valueOf(String)`?
+2. Is a `public static final MyEnum DEFAULT` field guaranteed to be an enum constant?
+3. If an enum additionally declares `valueOf(int)`, should it be excluded solely because the method name is `valueOf`?
+4. In the generic example, why are both `Object code()` and `String code()` seen?
+5. To list constants in source order, should you sort fields or use which API?
+6. Should the name or count of internal storage fields be hardcoded in a test checking application correctness?
 
-Đáp án:
+Answers:
 
-1. Chúng là API được Java khai báo ngầm định; không thể đồng nhất “compiler bổ sung” với “synthetic”.
-2. Không. Dùng `Field.isEnumConstant()` để phân biệt field hằng enum với field thông thường.
-3. Không. Đó có thể là overload do tác giả viết; phải xét đúng hợp đồng cần lọc.
-4. Compiler tạo bridge để nối hợp đồng generic sau xóa kiểu với phần thực hiện trả `String`.
-5. Dùng `Class.getEnumConstants()` hoặc `values()` khi biết kiểu cụ thể.
-6. Không. Kiểm tra hành vi/hợp đồng cần thiết và tránh phụ thuộc các chi tiết hỗ trợ có thể thay đổi.
+1. They are APIs implicitly declared by Java; "compiler-added" cannot be equated with "synthetic".
+2. No. Use `Field.isEnumConstant()` to distinguish enum constant fields from regular fields.
+3. No. That can be an author-written overload; check the exact contract to filter.
+4. The compiler generates a bridge to connect the erased generic contract to the implementation returning `String`.
+5. Use `Class.getEnumConstants()`, or `values()` when the concrete type is known.
+6. No. Verify required behavior/contracts and avoid depending on helper details that may change.
 
-## Tài liệu đối chiếu
+## Reference documentation
 
-- [JLS 17 — Các thành viên ngầm định của enum](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9.3).
-- [JLS 17 — Dạng nhị phân, synthetic và khai báo ngầm định](https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html#jls-13.1).
-- [Java 17 — Field.isEnumConstant và isSynthetic](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html#isEnumConstant()).
-- [Java 17 — Method.isBridge và isSynthetic](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#isBridge()).
+- [JLS 17 — Implicitly declared members of enums](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9.3).
+- [JLS 17 — Binary form, synthetic, and implicitly declared](https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html#jls-13.1).
+- [Java 17 — Field.isEnumConstant and isSynthetic](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html#isEnumConstant()).
+- [Java 17 — Method.isBridge and isSynthetic](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#isBridge()).

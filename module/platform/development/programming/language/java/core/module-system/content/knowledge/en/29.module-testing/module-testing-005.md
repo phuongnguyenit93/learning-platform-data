@@ -1,20 +1,20 @@
-# Reflection test khi package đóng trong Java Module System
+# Reflection Testing When Packages Are Closed in the Java Module System
 
-Khi áp dụng Java Platform Module System (JPMS), một package có thể chứa class public nhưng vẫn **không được export** cho module khác. Ngay cả khi package được export, các field hoặc constructor private trong package ấy cũng không tự động được mở cho deep reflection. Vì vậy, một bộ kiểm thử reflection cần xác nhận cả hai phía: **quyền truy cập nào phải bị từ chối** và **quyền nào được mở có chủ đích để framework hoặc module được phép hoạt động**.
+When applying the Java Platform Module System (JPMS), a package may contain a public class yet still **not be exported** to other modules. Even if a package is exported, private fields or constructors in that package are not automatically opened for deep reflection. Therefore, a reflection test suite needs to verify both sides: **which accesses must be denied** and **which accesses are intentionally opened so a framework or module can operate**.
 
-Đây là một dạng kiểm thử quan trọng khi chuyển ứng dụng từ classpath sang module path. Test trước đây chạy qua unnamed module hoặc được ghép vào module đang kiểm tra có thể truy cập khác với một consumer thực sự chạy trong named module độc lập. Nếu test chỉ kiểm tra luồng thành công, hoặc test runner tự truyền --add-opens để tránh lỗi, cấu hình bị mở quá rộng có thể tồn tại mà không được phát hiện.
+This is an important form of testing when migrating an application from the classpath to the module path. Tests that previously ran in the unnamed module or were merged into the module under test may have different access than an actual consumer running in an independent named module. If tests only check the happy path, or if the test runner passes --add-opens automatically to avoid errors, an overly broad configuration can exist undetected.
 
-Bài học này hướng dẫn thiết kế test cho package đóng, phân biệt exports với opens, dùng Java reflection API, thiết lập hai module độc lập để kiểm tra biên giới và xử lý các cờ test runner có thể làm sai lệch kết quả.
+This lesson guides designing tests for closed packages, distinguishing exports from opens, using the Java reflection API, setting up two independent modules to verify boundaries, and handling test runner flags that could skew results.
 
-## 1. Ba lớp quyền truy cập cần phân biệt
+## 1. Three Access Layers to Distinguish
 
-Trong JPMS, có ít nhất ba câu hỏi độc lập:
+In JPMS, there are at least three independent questions:
 
-1. **Module có đọc module kia không?** Quan hệ này thường được tạo bởi requires trong module-info.java.
-2. **Package có được export tới consumer không?** Chỉ khi có exports phù hợp, mã Java thông thường từ consumer mới có thể truy cập kiểu public trong package đó.
-3. **Package có được open cho caller reflection không?** Khi cần truy cập sâu vào private member bằng reflection, package phải được mở cho module của caller theo quy tắc JPMS.
+1. **Does one module read the other?** This relationship is typically established by requires in module-info.java.
+2. **Is the package exported to the consumer?** Only with appropriate exports can ordinary Java code from the consumer access public types in that package.
+3. **Is the package opened to the reflecting caller?** When deep reflection into private members is needed, the package must be opened to the caller's module under JPMS rules.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.domain {
@@ -22,37 +22,37 @@ module com.example.domain {
 }
 ~~~
 
-Package com.example.domain.api là API public. Package com.example.domain.model, nếu tồn tại, không được export hoặc open bởi descriptor trên.
+Package com.example.domain.api is the public API. Package com.example.domain.model, if it exists, is neither exported nor opened by the descriptor above.
 
-Điều đó có các hệ quả:
+This has the following consequences:
 
-- Một module khác có thể nhìn thấy tên class qua một số API reflection nhưng không có nghĩa nó được gọi constructor, method hoặc truy cập field của class đó.
-- Việc Class.getDeclaredField hay Class.getDeclaredMethod trả về metadata không đồng nghĩa có quyền bỏ qua access checks.
-- Một package được exports không có nghĩa private field trong package được mở cho deep reflection.
-- Ngay cả khi package được opens, việc mã nguồn consumer import class từ package đó vẫn cần exports thích hợp.
+- Another module might observe a class name via certain reflection APIs, yet that does not mean it can invoke constructors, methods, or access fields on that class.
+- Returning metadata from Class.getDeclaredField or Class.getDeclaredMethod does not imply permission to bypass access checks.
+- An exported package does not mean private fields in the package are opened for deep reflection.
+- Even when a package is opened, consumer source code importing a class from that package still requires appropriate exports.
 
-Bài kiểm thử cần phân tách những hành vi này thay vì gộp vào một câu khẳng định "reflection hoạt động".
+Tests should separate these behaviors instead of lumping them into a single assertion that "reflection works".
 
-## 2. Mục tiêu của reflection test
+## 2. Goals of Reflection Tests
 
-Một bộ test có ý nghĩa nên bảo vệ các hợp đồng sau:
+A meaningful test suite should guard the following contracts:
 
-| Tình huống | Kỳ vọng |
+| Scenario | Expectation |
 | --- | --- |
-| Consumer đọc được module nhưng package không export | Truy cập Java thông thường bị chặn |
-| Consumer tìm được metadata của private field trong package đóng | Không được tự bỏ qua access checks |
-| Caller khác module gọi trySetAccessible trên private field | Trả về false nếu package chưa mở cho caller |
-| Caller khác module gọi setAccessible(true) khi không đủ quyền | Ném InaccessibleObjectException |
-| Package được opens ... to cho đúng consumer | Consumer đó có thể thực hiện deep reflection phù hợp |
-| Consumer khác không nằm trong qualified opens | Vẫn bị từ chối deep reflection |
-| Package chỉ có exports | Public API truy cập được nhưng private member không mặc nhiên mở |
-| Test chỉ chạy trong module sở hữu package | Không dùng kết quả đó để khẳng định module bên ngoài bị chặn |
+| Consumer reads module yet package is not exported | Normal Java access is blocked |
+| Consumer obtains metadata of private field in closed package | Must not bypass access checks |
+| Caller in another module calls trySetAccessible on private field | Returns false if package is not open to caller |
+| Caller in another module calls setAccessible(true) without permission | Throws InaccessibleObjectException |
+| Package is opened via opens ... to for the right consumer | That consumer can perform appropriate deep reflection |
+| Another consumer not listed in qualified opens | Still denied deep reflection |
+| Package only has exports | Public API is accessible yet private members are not opened by default |
+| Test runs only inside the package-owning module | Do not use that result to claim external modules are blocked |
 
-Test chính xác phải chạy dưới điều kiện module graph, module descriptor và JVM arguments gần với cấu hình thực tế.
+Accurate tests must run under a module graph, module descriptors, and JVM arguments close to the real configuration.
 
-## 3. Fixture: một module domain và một module kiểm thử bên ngoài
+## 3. Fixture: One Domain Module and One External Test Module
 
-Để tái hiện ranh giới JPMS, tạo hai named modules thực sự:
+To reproduce JPMS boundaries, create two real named modules:
 
 ~~~text
 reflection-demo/
@@ -65,7 +65,7 @@ reflection-demo/
         └── com/example/probe/ReflectionProbe.java
 ~~~
 
-Module domain:
+Domain module:
 
 ~~~java
 // src/com.example.domain/module-info.java
@@ -73,7 +73,7 @@ module com.example.domain {
 }
 ~~~
 
-Class model:
+Model class:
 
 ~~~java
 // src/com.example.domain/com/example/domain/model/Customer.java
@@ -91,7 +91,7 @@ public final class Customer {
 }
 ~~~
 
-Module probe:
+Probe module:
 
 ~~~java
 // src/com.example.probe/module-info.java
@@ -100,13 +100,13 @@ module com.example.probe {
 }
 ~~~
 
-Với descriptor trên, module probe **đọc được** domain nhưng package com.example.domain.model vẫn **đóng** đối với probe: nó chưa được export và chưa được open.
+With the descriptors above, the probe module **reads** domain, yet package com.example.domain.model remains **closed** to probe: it is neither exported nor opened.
 
-Đây là fixture chủ động để kiểm tra từ chối quyền. Không dùng tên package mặc định và không đặt class probe trong chính module domain vì mục tiêu là kiểm tra một caller khác module.
+This is an intentional fixture for testing permission denial. Do not use the default package and do not place the probe class inside the domain module itself, because the goal is to test a cross-module caller.
 
-## 4. Negative test với trySetAccessible
+## 4. Negative Test with trySetAccessible
 
-Tạo class kiểm thử chạy từ module probe:
+Create a test class running from the probe module:
 
 ~~~java
 package com.example.probe;
@@ -133,17 +133,17 @@ public final class ReflectionProbe {
 }
 ~~~
 
-Điểm quan trọng:
+Key points:
 
-- Class.forName tìm class theo binary name; tên class được viết dưới dạng string để tránh phải import package không export.
-- getDeclaredField lấy metadata field có tên secret.
-- trySetAccessible cố bỏ qua Java language access checks bằng quyền reflection hiện có.
-- Khi probe là một named module khác và package domain.model chưa open cho probe, trySetAccessible trả về false.
-- Nếu trả về true, test thất bại và cần tìm nguyên nhân package đã bị mở bởi descriptor, JVM arguments hoặc một điều chỉnh runtime khác.
+- Class.forName looks up the class by binary name; the class name is written as a string to avoid importing a non-exported package.
+- getDeclaredField retrieves metadata for the field named secret.
+- trySetAccessible attempts to bypass Java language access checks with current reflection permissions.
+- When probe is a different named module and domain.model is not open to probe, trySetAccessible returns false.
+- If it returns true, the test fails and you must find out why the package was opened by a descriptor, JVM arguments, or another runtime adjustment.
 
-Bài test này không cần khởi tạo Customer và không đọc giá trị field. Vì vậy nó cô lập đúng kiểm tra quyền reflection, không phụ thuộc constructor hoặc dữ liệu nghiệp vụ.
+This test neither instantiates Customer nor reads the field value. Thus it cleanly isolates the reflection permission check without depending on constructors or business data.
 
-Biên dịch hai module:
+Compile both modules:
 
 ~~~bash
 javac --module-source-path src \
@@ -151,24 +151,24 @@ javac --module-source-path src \
       -m com.example.domain,com.example.probe
 ~~~
 
-Chạy trên module path:
+Run on the module path:
 
 ~~~bash
 java --module-path mods \
      -m com.example.probe/com.example.probe.ReflectionProbe
 ~~~
 
-Khi chưa có quyền open nào được bổ sung, kỳ vọng:
+When no open permissions have been added, expect:
 
 ~~~text
 PASS: deep reflection denied
 ~~~
 
-Đây là negative test: thành công nghĩa là quyền không được cấp, chứ không phải framework đã đọc được field.
+This is a negative test: passing means permission was denied, not that the framework read the field.
 
-## 5. Negative test với setAccessible(true)
+## 5. Negative Test with setAccessible(true)
 
-Nếu muốn kiểm tra rõ loại exception, thay lời gọi trySetAccessible bằng:
+If you want to verify the exact exception type, replace the trySetAccessible call with:
 
 ~~~java
 package com.example.probe;
@@ -195,34 +195,34 @@ public final class ReflectionProbe {
 }
 ~~~
 
-**setAccessible(true)** yêu cầu nâng quyền reflection, còn **trySetAccessible()** cung cấp kết quả boolean khi không được cấp quyền.
+**setAccessible(true)** requests privilege escalation for reflection, whereas **trySetAccessible()** returns a boolean result when permission is not granted.
 
-Không nên bắt mọi RuntimeException hoặc Exception rồi cho test pass, bởi như vậy có thể che các lỗi khác như class không tìm thấy, field bị đổi tên hoặc code test sai.
+Do not catch every RuntimeException or Exception and let the test pass, because that can mask other errors such as class not found, a renamed field, or broken test code.
 
-Một bộ test tốt phải tách bước tìm class/field khỏi bước yêu cầu quyền để khi thất bại có thể biết chính xác vấn đề ở tên class, bytecode, module graph hay encapsulation.
+A good test separates looking up the class/field from requesting access so that on failure you know immediately whether the issue is the class name, bytecode, module graph, or encapsulation.
 
-## 6. Tại sao Class.forName có thể tìm class dù package đóng?
+## 6. Why Can Class.forName Find a Class Even When the Package Is Closed?
 
-JPMS phân biệt **khả năng tìm và nạp class** với **quyền truy cập vào kiểu và member**. Trong nhiều cấu hình modular, Class.forName có thể nạp class theo tên dù package chứa class chưa được exports hoặc opens cho caller. Thao tác này tự nó không tạo quyền gọi private member.
+JPMS distinguishes **the ability to locate and load a class** from **permission to access types and members**. In many modular configurations, Class.forName can load a class by name even if its package has not been exported or opened to the caller. That operation alone does not grant permission to invoke private members.
 
-Vì vậy, chuỗi thao tác sau không mâu thuẫn:
+Therefore, the following sequence is not contradictory:
 
 ~~~text
-Class.forName("...Customer")          -> có thể thành công
-getDeclaredField("secret")           -> có thể thành công
+Class.forName("...Customer")          -> may succeed
+getDeclaredField("secret")           -> may succeed
 trySetAccessible()                   -> false
 setAccessible(true)                  -> InaccessibleObjectException
 ~~~
 
-Một lỗi phổ biến là nhìn thấy Class<?> được trả về rồi kết luận package đã bị mở. Kết luận đúng chỉ có thể rút ra khi kiểm tra quyền truy cập theo API mà ứng dụng thực sự dùng.
+A common mistake is seeing a non-null Class<?> returned and concluding the package is open. The true conclusion can only be drawn by testing the access permission with the API the application actually uses.
 
-Tính khả dụng của class vẫn phụ thuộc module đã được phân giải, class loader nhìn thấy bytecode và tên class chính xác. Nếu Class.forName thất bại vì ClassNotFoundException, hãy sửa vấn đề loading/resolution trước, không đánh dấu negative reflection test là pass.
+Class availability still depends on the module being resolved, the class loader seeing the bytecode, and the exact class name. If Class.forName fails with ClassNotFoundException, fix the loading/resolution issue first rather than marking a negative reflection test as passed.
 
-## 7. Positive test bằng qualified opens
+## 7. Positive Test with Qualified opens
 
-Sau khi đã xác nhận package đóng từ bên ngoài, thử mở có giới hạn cho đúng module probe.
+Once you have confirmed the package is closed externally, try opening it restrictively to the probe module.
 
-Sửa descriptor của domain:
+Edit the domain descriptor:
 
 ~~~java
 module com.example.domain {
@@ -231,9 +231,9 @@ module com.example.domain {
 }
 ~~~
 
-Rebuild hai module rồi chạy lại class ReflectionProbe dùng trySetAccessible. Với cấu hình này, việc nâng quyền reflection của module probe đối với package model được cho phép và **trySetAccessible()** có thể trả về true.
+Rebuild both modules and re-run the ReflectionProbe class using trySetAccessible. With this configuration, probe's reflection elevation on the model package is allowed and **trySetAccessible()** can return true.
 
-Một positive test rõ ràng:
+An explicit positive test:
 
 ~~~java
 package com.example.probe;
@@ -258,13 +258,13 @@ public final class ReflectionProbe {
 }
 ~~~
 
-Khi dùng ví dụ này, hãy thay test negative trước đó hoặc chạy hai biến thể với descriptor tương ứng. Không thể yêu cầu cả "được phép" và "không được phép" cho cùng một caller, cùng package, cùng cấu hình module tại cùng thời điểm.
+When using this example, replace the earlier negative test or run two variants with corresponding descriptors. You cannot expect both "permitted" and "denied" for the same caller, same package, and same module configuration simultaneously.
 
-Qualified opens không export package. Nếu cố import com.example.domain.model.Customer trong source của module probe, javac vẫn có thể báo package không visible vì thiếu exports.
+Qualified opens does not export the package. If you try to import com.example.domain.model.Customer in the probe module's source, javac will still report the package is not visible due to missing exports.
 
-## 8. Kiểm tra consumer thứ hai vẫn bị chặn
+## 8. Verifying a Second Consumer Remains Blocked
 
-Để xác nhận **qualified** opens thực sự giới hạn quyền, tạo một module khác:
+To confirm **qualified** opens genuinely restricts access, create another module:
 
 ~~~text
 src/
@@ -281,7 +281,7 @@ module com.example.otherprobe {
 }
 ~~~
 
-Dùng cùng ý tưởng kiểm tra:
+Use the same verification idea:
 
 ~~~java
 package com.example.otherprobe;
@@ -306,9 +306,9 @@ public final class OtherProbe {
 }
 ~~~
 
-Khi descriptor domain chỉ ghi **opens com.example.domain.model to com.example.probe**, module otherprobe không có quyền deep reflection đối với package đó.
+When the domain descriptor states only **opens com.example.domain.model to com.example.probe**, module otherprobe has no deep reflection rights on that package.
 
-Biên dịch cả ba module:
+Compile all three modules:
 
 ~~~bash
 javac --module-source-path src \
@@ -316,7 +316,7 @@ javac --module-source-path src \
       -m com.example.domain,com.example.probe,com.example.otherprobe
 ~~~
 
-Chạy từng module probe độc lập:
+Run each probe module independently:
 
 ~~~bash
 java --module-path mods \
@@ -328,11 +328,11 @@ java --module-path mods \
      -m com.example.otherprobe/com.example.otherprobe.OtherProbe
 ~~~
 
-Kết quả mong đợi khi qualified opens đúng là probe được phép, còn otherprobe bị từ chối. Đây là cách thử cả positive và negative case cho cùng chính sách.
+Expected behavior when qualified opens is correct: probe is permitted, while otherprobe is denied. This tests both positive and negative cases for the same policy.
 
-## 9. Kiểm tra exports không thay thế opens
+## 9. Verifying exports Does Not Substitute for opens
 
-Một package có thể được export nhưng vẫn không được mở cho private reflection:
+A package can be exported yet still closed to private reflection:
 
 ~~~java
 module com.example.domain {
@@ -340,39 +340,39 @@ module com.example.domain {
 }
 ~~~
 
-Module probe khai báo requires như trước. Bây giờ code Java trong probe có thể import các public type của package:
+The probe module declares requires as before. Now Java code in probe can import public types from the package:
 
 ~~~java
 import com.example.domain.model.Customer;
 ~~~
 
-Nhưng đối với private field secret, thao tác:
+Yet for the private field secret, the operation:
 
 ~~~java
 Field field = Customer.class.getDeclaredField("secret");
 boolean allowed = field.trySetAccessible();
 ~~~
 
-vẫn bị chặn nếu package chưa được mở cho probe.
+remains blocked if the package has not been opened to probe.
 
-Cần phân biệt hai kiểm tra:
+Distinguish the two checks:
 
-| Kiểm tra | Với exports nhưng không opens |
+| Check | With exports but no opens |
 | --- | --- |
-| Import Customer là public class | Được phép nếu probe đọc domain |
-| Gọi public constructor phù hợp | Có thể được phép theo Java access rules |
-| Gọi publicName() là public method | Có thể được phép theo Java access rules |
-| Bỏ qua private access cho field secret | Không được phép từ probe |
+| Import public class Customer | Allowed if probe reads domain |
+| Invoke appropriate public constructor | May be allowed per Java access rules |
+| Invoke public method publicName() | May be allowed per Java access rules |
+| Bypass private access for field secret | Denied from probe |
 
-Điều này cho thấy test chỉ kiểm tra public API không đủ để bảo đảm framework serialization có thể đọc private state.
+This shows that tests covering only the public API are insufficient to guarantee a serialization framework can read private state.
 
-Ngược lại, khi package chỉ có opens, reflection sâu có thể được phép nhưng source Java của consumer vẫn không thể truy cập package như một API export.
+Conversely, when a package only has opens, deep reflection may be permitted while consumer Java source still cannot access the package as an exported API.
 
-## 10. Kiểm tra MethodHandles.privateLookupIn
+## 10. Testing MethodHandles.privateLookupIn
 
-Một số framework dùng **MethodHandles** thay vì java.lang.reflect.Field. JPMS vẫn kiểm soát quyền truy cập private qua module openness.
+Some frameworks use **MethodHandles** instead of java.lang.reflect.Field. JPMS still governs private access through module openness.
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.example.probe;
@@ -400,15 +400,15 @@ public final class LookupProbe {
 }
 ~~~
 
-Khi package domain.model đóng với module probe, **privateLookupIn** không thể cấp lookup quyền private. Khi mở package cho probe và caller có quyền lookup phù hợp, thao tác có thể thành công.
+When package domain.model is closed to module probe, **privateLookupIn** cannot grant a private-access lookup. When the package is opened to probe and the caller has an appropriate lookup, the operation can succeed.
 
-Cần lưu ý MethodHandles có các điều kiện riêng về lookup modes, module readability và loại lookup được dùng. Do đó, khi gặp IllegalAccessException, hãy kiểm tra cả package opens và lookup object thực tế; không mặc định mọi lỗi MethodHandles đều do thiếu opens.
+Note that MethodHandles has its own conditions regarding lookup modes, module readability, and lookup type. Therefore, when encountering IllegalAccessException, check both package openness and the actual lookup object; do not assume every MethodHandles failure is due to missing opens.
 
-Nếu framework production sử dụng MethodHandles, nên có ít nhất một integration test qua chính framework đó, không chỉ test Field.setAccessible.
+If a production framework uses MethodHandles, include at least one integration test through that framework itself rather than testing only Field.setAccessible.
 
-## 11. Module API giúp giải thích kết quả test
+## 11. Module API Helps Explain Test Results
 
-Trong code test, có thể kiểm tra module của class:
+In test code, you can inspect a class's module:
 
 ~~~java
 Class<?> type =
@@ -430,15 +430,15 @@ System.out.println(
 );
 ~~~
 
-Khi package không export/open, domain.isExported và domain.isOpen cho module probe thường trả về false. Sau khi thêm qualified opens, isOpen trở thành true cho module probe nhưng vẫn false cho otherprobe.
+When the package is neither exported nor opened, domain.isExported and domain.isOpen for module probe usually return false. After adding qualified opens, isOpen becomes true for module probe while remaining false for otherprobe.
 
-Những API này giúp chẩn đoán **quyền runtime hiện tại**. Chúng không nói quyền được tạo từ module-info.java hay từ một cờ launcher. Nếu --add-opens còn được truyền ngoài ý muốn, isOpen có thể trả về true dù descriptor chưa ghi opens.
+These APIs diagnose **current runtime permissions**. They do not state whether permission came from module-info.java or from a launcher flag. If --add-opens is passed unintentionally, isOpen may return true even though the descriptor declares no opens.
 
-Để xác nhận chính sách mà artifact dự định cung cấp, đối chiếu Module API với descriptor được đóng gói và JVM arguments của test.
+To confirm the policy the artifact is intended to provide, cross-check the Module API against the packaged descriptor and test JVM arguments.
 
-## 12. JVM arguments có thể làm negative test sai
+## 12. JVM Arguments Can Skew Negative Tests
 
-Một test định chứng minh package đóng sẽ mất giá trị nếu launcher đã thêm quyền:
+A test meant to prove a package is closed loses validity if the launcher already added permission:
 
 ~~~bash
 java --add-opens \
@@ -447,64 +447,64 @@ java --add-opens \
   -m com.example.probe/com.example.probe.ReflectionProbe
 ~~~
 
-Cờ trên mở package cho probe ở runtime. Negative test dùng trySetAccessible sẽ trả về true và fail theo đúng logic của nó.
+The flag above opens the package to probe at runtime. A negative test using trySetAccessible will return true and fail as designed.
 
-Tình huống nguy hiểm là test được viết lỏng lẻo, chỉ kiểm tra "không có exception khi khởi chạy" và vì vậy không phát hiện quyền đã bị mở ngoài dự kiến.
+The dangerous scenario is a loosely written test that only checks "no exception on startup" and therefore fails to catch unexpectedly opened permissions.
 
-Cần kiểm kê các nơi có thể truyền cờ:
+Inventory all places where flags might be injected:
 
-- IDE Run/Debug configuration.
-- Maven Surefire, Failsafe và cấu hình argLine.
-- Gradle Test, JavaExec hoặc applicationDefaultJvmArgs.
+- IDE Run/Debug configurations.
+- Maven Surefire, Failsafe, and argLine settings.
+- Gradle Test, JavaExec, or applicationDefaultJvmArgs.
 - JDK_JAVA_OPTIONS, JAVA_TOOL_OPTIONS.
-- CI scripts, container entrypoint hoặc launch scripts.
-- Agent và launcher wrapper có thể thêm tùy chọn module.
+- CI scripts, container entrypoints, or launch scripts.
+- Agents and launcher wrappers that may add module options.
 
-Một test xác minh encapsulation nên có một chế độ chạy **không có cờ --add-opens/--add-exports liên quan** để kiểm tra ranh giới mặc định.
+A test verifying encapsulation should have a run mode **without relevant --add-opens/--add-exports flags** to verify the default boundary.
 
-## 13. Nguy cơ khi test được patch vào module đang kiểm tra
+## 13. Risk When Tests Are Patched into the Module Under Test
 
-Một số build tool chạy test modular bằng cách dùng **--patch-module** để đưa test class vào module chính.
+Some build tools run modular tests by using **--patch-module** to inject test classes into the main module.
 
-Ví dụ khái quát:
+General example:
 
 ~~~bash
 --patch-module com.example.domain=target/test-classes
 ~~~
 
-Khi test class được định nghĩa là một phần của chính module domain, nó không còn là một consumer khác module đối với domain. Module có quyền truy cập nội bộ của chính nó, do đó test có thể truy cập những thành phần mà một library bên ngoài sẽ bị chặn.
+When a test class is defined as part of the domain module itself, it is no longer a cross-module consumer of domain. A module has internal access to itself, so tests can access elements that an external library would be blocked from.
 
-Điều này phù hợp với unit test kiểm tra implementation nội bộ, nhưng **không thích hợp làm bằng chứng duy nhất** rằng encapsulation đã chặn consumer bên ngoài.
+This is suitable for unit tests checking internal implementation, yet **unsuitable as sole evidence** that encapsulation blocks external consumers.
 
-Để test chính sách module boundary:
+To test module boundary policy:
 
-1. Dùng một named module kiểm thử riêng.
-2. Cho module kiểm thử requires module production nếu cần đọc nó.
-3. Không patch test class vào module domain trong bài kiểm tra ranh giới.
-4. Khởi chạy test bằng module path theo cấu hình xác định.
-5. Kiểm tra module thực tế của test class bằng getModule().getName().
+1. Use a separate named test module.
+2. Have the test module declare requires on the production module if it needs to read it.
+3. Do not patch test classes into the domain module in boundary tests.
+4. Launch tests on the module path under a deterministic configuration.
+5. Verify the test class's actual module with getModule().getName().
 
-Ví dụ kiểm tra:
+Verification snippet:
 
 ~~~java
 System.out.println(ReflectionProbe.class.getModule().getName());
 ~~~
 
-Kết quả phải là **com.example.probe** trong fixture ở trên. Nếu in **com.example.domain**, bạn đang chạy test trong module sở hữu package, không phải consumer bên ngoài.
+The output must be **com.example.probe** in the fixture above. If it prints **com.example.domain**, you are running the test inside the package-owning module, not as an external consumer.
 
-## 14. Tích hợp với JUnit và Maven
+## 14. Integration with JUnit and Maven
 
-Một dự án thực tế thường dùng JUnit 5 và Maven. Có thể tổ chức một module test integration riêng, nhưng cần kiểm tra cách Maven Surefire hoặc Failsafe đặt test classes lên module path, dùng --patch-module hay truyền thêm --add-opens.
+Real projects commonly use JUnit 5 and Maven. You can organize a separate integration test module, though you must check whether Maven Surefire or Failsafe puts test classes on the module path, uses --patch-module, or passes extra --add-opens.
 
-Mục tiêu cấu hình:
+Configuration goals:
 
-- Module chứa domain được build như modular JAR đúng descriptor.
-- Integration test được chạy trong một module khác domain nếu muốn kiểm tra boundary.
-- Test runtime không tự mở package đang được xác minh trong negative case.
-- JUnit engine và test launcher có quyền truy cập cần thiết để chạy test, nhưng quyền đó không nên vô tình mở domain.model tới test module.
-- Các assertion kiểm tra rõ false/true hoặc đúng exception, thay vì chỉ kiểm tra tiến trình không crash.
+- The domain module is built as a modular JAR with the proper descriptor.
+- Integration tests run in a module distinct from domain when verifying boundaries.
+- The test runtime does not automatically open the package being verified in negative cases.
+- The JUnit engine and test launcher have the access needed to run tests, without accidentally opening domain.model to the test module.
+- Assertions explicitly check false/true or the exact exception, rather than merely checking that the process didn't crash.
 
-Một mẫu JUnit test đơn giản trong module consumer:
+A simple JUnit test sample in a consumer module:
 
 ~~~java
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -526,17 +526,17 @@ final class DomainReflectionTest {
 }
 ~~~
 
-Đây là ví dụ về assertion. Để chạy như module test thực sự, descriptor của test module phải khai báo dependency tới module domain và các module JUnit tương ứng với version đang dùng; Maven/Gradle phải cấu hình module path và test launcher thích hợp.
+This is an assertion example. To run as a real test module, the test module descriptor must declare dependencies on the domain module and the JUnit modules matching your version; Maven/Gradle must configure the module path and test launcher appropriately.
 
-Không nên mặc định tên module của mọi JUnit artifact là giống nhau trên mọi phiên bản. Kiểm tra tên thực tế bằng **jar --describe-module** hoặc tài liệu tương ứng của toolchain.
+Do not assume every JUnit artifact shares the same module name across all versions. Check the actual name with **jar --describe-module** or your toolchain documentation.
 
-Nếu Surefire tự thêm --add-opens để chạy test, cần phân biệt quyền mà JUnit engine cần với quyền mà bài test đang xác minh. Có thể dùng một Java main probe nhỏ như các ví dụ đầu bài để tách kiểm tra encapsulation khỏi sự phức tạp của test runner.
+If Surefire automatically adds --add-opens to run tests, separate permissions needed by the JUnit engine from permissions the test is verifying. You can use a small Java main probe like the examples earlier in this article to isolate encapsulation checks from test runner complexity.
 
-## 15. Tích hợp với Gradle
+## 15. Integration with Gradle
 
-Trong Gradle, cách đưa test lên module path tùy cấu hình source set, modularity inference và plugin đang dùng.
+In Gradle, how tests are placed on the module path depends on source sets, modularity inference, and plugins in use.
 
-Ví dụ có thể có JVM args trên Test task:
+For example, there might be JVM args on a Test task:
 
 ~~~groovy
 tasks.withType(Test).configureEach {
@@ -547,31 +547,31 @@ tasks.withType(Test).configureEach {
 }
 ~~~
 
-Cấu hình này có thể cần cho một số framework test cũ, nhưng nó cũng làm thay đổi quyền mà test quan sát được. Với bài test xác minh package đóng, cần tách cấu hình kiểm tra boundary khỏi các test vốn phải mở package để hoạt động.
+This configuration may be needed by older test frameworks, yet it also alters the permissions tests observe. For tests verifying closed packages, separate boundary-checking configuration from tests that require opening packages to function.
 
-Có thể tạo một task JavaExec chạy module probe bằng lệnh **java --module-path ... -m ...**, hoặc một integration-test task riêng không truyền cờ mở package được kiểm tra.
+You can create a JavaExec task running the module probe via **java --module-path ... -m ...**, or a dedicated integration-test task that does not pass flags opening the package under test.
 
-Điều quan trọng không phải tên task mà là **module identity thực tế của caller** và **các JVM arguments cuối cùng**. Hãy in caller.getModule().getName() khi điều tra.
+What matters is not the task name, but the **actual module identity of the caller** and the **final JVM arguments**. Print caller.getModule().getName() when investigating.
 
-## 16. Phân biệt InaccessibleObjectException và IllegalAccessException
+## 16. Distinguishing InaccessibleObjectException and IllegalAccessException
 
-Các API phản ánh loại lỗi khác nhau:
+Different APIs reflect different failure modes:
 
-| Thao tác | Kết quả khi bị chặn |
+| Operation | Result When Blocked |
 | --- | --- |
-| Field.trySetAccessible() | Thường trả về false |
-| Field.setAccessible(true) | InaccessibleObjectException khi không thể bật accessible flag vì JPMS |
-| Field.get(instance) khi không có quyền | IllegalAccessException |
-| Constructor.newInstance(...) khi không có quyền | IllegalAccessException hoặc lỗi truy cập liên quan |
-| MethodHandles.privateLookupIn(...) | IllegalAccessException nếu điều kiện lookup/module access không đáp ứng |
+| Field.trySetAccessible() | Typically returns false |
+| Field.setAccessible(true) | InaccessibleObjectException when accessible flag cannot be enabled due to JPMS |
+| Field.get(instance) without permission | IllegalAccessException |
+| Constructor.newInstance(...) without permission | IllegalAccessException or related access error |
+| MethodHandles.privateLookupIn(...) | IllegalAccessException if lookup/module access conditions are not met |
 
-Không nên dùng một catch(Exception) rộng để cho tất cả test đi qua. Nếu code bị ClassNotFoundException, NoSuchFieldException hoặc lỗi khởi tạo bất ngờ, đó không phải bằng chứng encapsulation đang hoạt động chính xác.
+Do not use a broad catch(Exception) to pass tests. If code hits ClassNotFoundException, NoSuchFieldException, or an unexpected initialization error, that is not evidence that encapsulation works correctly.
 
-Khi test cần chứng minh một đường truy cập bị từ chối, nên assert chính xác exception hoặc giá trị trả về của thao tác mà production thực sự sử dụng.
+When a test must prove an access path is denied, assert the exact exception or return value of the operation production actually uses.
 
-## 17. Kiểm thử reflection có kiểm soát thay vì mở toàn bộ module
+## 17. Controlled Reflection Testing Instead of Opening the Whole Module
 
-Nếu framework chỉ cần truy cập một package model, cấu hình nên giới hạn package và consumer:
+If a framework only needs access to one model package, restrict the configuration by package and consumer:
 
 ~~~java
 module com.example.domain {
@@ -582,7 +582,7 @@ module com.example.domain {
 }
 ~~~
 
-Tránh ngay lập tức thay bằng:
+Avoid immediately replacing this with:
 
 ~~~java
 open module com.example.domain {
@@ -590,52 +590,52 @@ open module com.example.domain {
 }
 ~~~
 
-**open module** mở mọi package của module cho deep reflection. Điều đó có thể làm hỏng các negative test bảo vệ package khác và làm suy yếu ranh giới mà ứng dụng muốn duy trì.
+**open module** opens every package of the module to deep reflection. That can break negative tests protecting other packages and weaken boundaries the application wants to maintain.
 
-Bộ kiểm thử phù hợp có thể có hai module consumer:
+An appropriate test suite can have two consumer modules:
 
-- Module **com.example.json** được phép reflection vào domain.model.
-- Module **com.example.otherprobe** không được phép reflection vào domain.model.
+- Module **com.example.json** is allowed to reflect into domain.model.
+- Module **com.example.otherprobe** is denied reflection into domain.model.
 
-Với các package nội bộ khác của domain, cả hai consumer vẫn phải bị chặn nếu descriptor không chủ động mở.
+For other internal packages of domain, both consumers must remain blocked unless the descriptor explicitly opens them.
 
-Test dương và âm cùng tồn tại là cách xác nhận đúng phạm vi qualified opens, thay vì chỉ xác nhận framework có thể hoạt động.
+Coexisting positive and negative tests verify the exact scope of qualified opens, rather than just verifying the framework can work.
 
-## 18. Reflection test với library trên classpath
+## 18. Reflection Tests with Libraries on the Classpath
 
-Một legacy library nằm trên classpath thuộc unnamed module của class loader tương ứng. Nếu muốn framework trên classpath deep reflection vào package của named module, cách mở quyền tạm có thể là:
+A legacy library on the classpath belongs to its class loader's unnamed module. If a classpath framework needs deep reflection into a named module's package, a temporary way to open access can be:
 
 ~~~bash
 --add-opens com.example.domain/com.example.domain.model=ALL-UNNAMED
 ~~~
 
-Giá trị ALL-UNNAMED không phải tên module có thể viết trong qualified opens của module-info.java. Nó là đích đặc biệt của tùy chọn dòng lệnh, đại diện cho các unnamed modules.
+The value ALL-UNNAMED is not a module name you can write in module-info.java qualified opens. It is a special command-line option target representing unnamed modules.
 
-Vì vậy, khi đánh giá migration:
+Therefore, when evaluating migration:
 
-- Test với framework trên classpath phải phản ánh quyền dành cho unnamed module.
-- Test với framework đã được chuyển thành named module phải phản ánh quyền dành cho tên module cụ thể đó.
-- Nếu chuyển framework lên module path làm thay đổi tên hoặc module identity, cần cập nhật các qualified opens và test tương ứng.
-- Không suy luận từ test classpath rằng cùng một đường reflection sẽ hoạt động trong named-module runtime.
+- Tests with the framework on the classpath must reflect permissions granted to the unnamed module.
+- Tests once the framework becomes a named module must reflect permissions for that specific module name.
+- If moving the framework onto the module path changes its name or module identity, update qualified opens and corresponding tests.
+- Do not infer from classpath tests that the exact same reflection path will work in a named-module runtime.
 
-Nếu library cũ chưa hỗ trợ JPMS và cần cờ tương thích, hãy ghi lại cờ cùng module nguồn, package, consumer và điều kiện loại bỏ. Đừng dùng test đã bật ALL-UNNAMED làm bằng chứng package đóng chặt.
+If an older library does not yet support JPMS and needs compatibility flags, document the flag along with source module, package, consumer, and removal condition. Never use a test with ALL-UNNAMED enabled as proof that a package is tightly closed.
 
-## 19. Công cụ quan sát và chẩn đoán
+## 19. Observation and Diagnostic Tools
 
-Có thể xem descriptor của modular JAR:
+You can inspect a modular JAR's descriptor:
 
 ~~~bash
 jar --describe-module --file mods/com.example.domain.jar
 ~~~
 
-Nếu test dùng exploded modules, hãy kiểm tra module-info.class tồn tại trong output của module:
+If tests use exploded modules, check that module-info.class exists in the module output:
 
 ~~~text
 mods/com.example.domain/module-info.class
 mods/com.example.probe/module-info.class
 ~~~
 
-Có thể quan sát quá trình phân giải:
+You can observe module resolution:
 
 ~~~bash
 java --show-module-resolution \
@@ -643,7 +643,7 @@ java --show-module-resolution \
      -m com.example.probe/com.example.probe.ReflectionProbe
 ~~~
 
-Khi nghi ngờ class nạp sai JAR hoặc sai loader:
+When suspecting a class loaded from the wrong JAR or loader:
 
 ~~~bash
 java -Xlog:class+load=info \
@@ -651,7 +651,7 @@ java -Xlog:class+load=info \
      -m com.example.probe/com.example.probe.ReflectionProbe
 ~~~
 
-Trong test, in module identity:
+In tests, print module identity:
 
 ~~~java
 Module testModule =
@@ -673,43 +673,43 @@ System.out.println(
 );
 ~~~
 
-Nếu test thất bại, hãy xác định module name, source artifact, JVM arguments, descriptor và API reflection đã được gọi. Đó là các bằng chứng tối thiểu để tách lỗi permission khỏi lỗi class loading.
+If a test fails, identify the module name, source artifact, JVM arguments, descriptor, and reflection API invoked. Those are the minimal pieces of evidence to separate permission errors from class loading errors.
 
-## 20. Những sai lầm thường gặp
+## 20. Common Mistakes
 
-**Dùng test trong cùng module để chứng minh package đóng.** Code cùng module được phép truy cập nội bộ của module mình; phải dùng caller ở một named module khác.
+**Using a test in the same module to prove a package is closed.** Code in the same module is allowed internal access to its own module; use a caller in another named module.
 
-**Chỉ dùng Class.forName và kết luận package open.** Tìm được Class không chứng minh deep reflection được cấp quyền.
+**Using only Class.forName and concluding the package is open.** Finding a Class does not prove deep reflection is permitted.
 
-**Nhầm exports với opens.** Export public API không cho phép đọc private field; open phục vụ reflection nhưng không thay thế exports cho source import thông thường.
+**Confusing exports with opens.** Exporting a public API does not permit reading private fields; opening serves reflection yet does not substitute for exports for ordinary source imports.
 
-**Catch mọi exception và cho test pass.** Lỗi classpath, field name hoặc test setup có thể bị che.
+**Catching all exceptions and passing the test.** Classpath errors, field names, or test setup bugs can be masked.
 
-**Giữ --add-opens trong test runtime.** Negative test sẽ chạy với chính quyền mà nó được thiết kế để bác bỏ.
+**Keeping --add-opens in the test runtime.** Negative tests will run with the very permission they are designed to reject.
 
-**Patch test vào module production.** Caller module thay đổi; quyền kiểm thử không phản ánh consumer thực tế.
+**Patching tests into the production module.** The caller module changes; tested permissions no longer reflect a real consumer.
 
-**Kiểm thử một module duy nhất sau qualified opens.** Chưa chứng minh các module khác vẫn bị chặn.
+**Testing only one module after qualified opens.** Fails to prove other modules remain blocked.
 
-**Giữ bản JAR cũ khi sửa descriptor.** Source module-info.java đã thay đổi nhưng runtime vẫn sử dụng module-info.class cũ.
+**Keeping an old JAR after editing the descriptor.** Source module-info.java changed while runtime still uses the stale module-info.class.
 
-**Chỉ chạy IDE classpath test.** Kết quả có thể khác khi production dùng named modules và module path.
+**Running only IDE classpath tests.** Behavior can differ when production uses named modules and the module path.
 
-**Xem opens như sandbox bảo mật.** JPMS mạnh về encapsulation và ranh giới API, nhưng không phải cơ chế cô lập mã không tin cậy thành sandbox an toàn.
+**Treating opens as a security sandbox.** JPMS provides strong encapsulation and API boundaries, not a mechanism to isolate untrusted code into a security sandbox.
 
-## 21. Quy trình kiểm thử đề xuất
+## 21. Recommended Testing Workflow
 
-1. Tạo fixture domain module với package chứa private field.
-2. Tạo probe module riêng có requires tới domain.
-3. Kiểm tra probe thực sự chạy dưới đúng tên module bằng Class.getModule().
-4. Khi package đóng, xác nhận trySetAccessible false và setAccessible(true) bị từ chối.
-5. Khi chỉ exports, kiểm tra public API hợp lệ nhưng private reflection vẫn bị chặn.
-6. Khi qualified opens tới probe, xác nhận positive reflection pass.
-7. Tạo otherprobe và xác nhận qualified opens không cấp quyền cho module không được liệt kê.
-8. Nếu production dùng MethodHandles, kiểm tra privateLookupIn tương ứng.
-9. Nếu production dùng framework serialization/injection, chạy integration test kích hoạt thật đường reflection đó.
-10. Xem lại JVM args và test runner để chắc chắn không vô tình mở package trong negative case.
-11. Kiểm tra module-info.class của artifact và dùng --show-module-resolution khi cần.
-12. Chạy test với JDK và module path phù hợp môi trường triển khai.
+1. Create a domain module fixture with a package containing a private field.
+2. Create a separate probe module with requires on domain.
+3. Verify the probe actually runs under the right module name via Class.getModule().
+4. When the package is closed, confirm trySetAccessible returns false and setAccessible(true) is denied.
+5. When only exports is present, verify public API works while private reflection stays blocked.
+6. With qualified opens to probe, verify positive reflection passes.
+7. Create otherprobe and confirm qualified opens does not grant permission to unlisted modules.
+8. If production uses MethodHandles, test privateLookupIn accordingly.
+9. If production uses serialization/injection frameworks, run integration tests that actually exercise that reflection path.
+10. Review JVM args and the test runner to ensure packages are not accidentally opened in negative cases.
+11. Inspect artifact module-info.class and use --show-module-resolution when needed.
+12. Run tests with the JDK and module path matching the deployment environment.
 
-**Reflection test khi package đóng** không chỉ kiểm tra một lời gọi setAccessible có ném exception hay không. Nó xác minh chính sách module: consumer nào được phép dùng public API, consumer nào có thể deep reflection và consumer nào phải bị chặn. Một test fixture gồm các named modules độc lập, negative/positive assertions rõ ràng và launcher không có ngoại lệ ngầm là nền tảng đáng tin cậy để bảo vệ encapsulation khi ứng dụng Java được modular hóa.
+**Reflection testing when packages are closed** does more than check whether one setAccessible call throws an exception. It verifies module policy: which consumers may use the public API, which consumers may perform deep reflection, and which consumers must be blocked. A test fixture of independent named modules, clear negative/positive assertions, and a launcher free of hidden overrides provides a reliable foundation to protect encapsulation as Java applications become modularized.

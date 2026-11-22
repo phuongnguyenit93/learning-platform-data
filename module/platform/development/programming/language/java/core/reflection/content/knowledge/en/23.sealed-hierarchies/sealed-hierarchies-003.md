@@ -1,39 +1,39 @@
-# Metadata `permits` khác gì mọi kiểu con đang tồn tại?
+# How Does `permits` Metadata Differ from Every Existing Subtype?
 
-`getPermittedSubclasses()` thường bị hiểu nhầm là cách “lấy tất cả kiểu con” của một lớp hoặc interface. Thực ra, nó đọc một phần metadata của **phân cấp sealed**: các kiểu con **trực tiếp được cho phép** của kiểu đang xét.
+`getPermittedSubclasses()` is often misunderstood as a way to "get all subtypes" of a class or interface. In reality, it reads a specific piece of **sealed hierarchy** metadata: the **directly permitted** subtypes of the type under inspection.
 
-Đó là câu hỏi khác với “có những hậu duệ nào”, “JVM đã nạp những lớp nào” hoặc “đang có những đối tượng nào”. Phân biệt các câu hỏi này giúp công cụ phân tích kiểu, ánh xạ dữ liệu hoặc xử lý plugin tránh kết luận rằng một danh sách đã đầy đủ khi nó chưa đủ căn cứ.
+That is a different question from "what descendants exist", "which classes has the JVM loaded", or "what objects currently exist". Distinguishing these questions helps type-analysis tools, data mappers, or plugin processors avoid concluding that a list is complete when there is not enough basis to do so.
 
-Các API sealed trong bài có từ Java 17. Ví dụ chạy bằng Java 17 trở lên, không cần tính năng preview.
+The sealed APIs in this article are available from Java 17 onward. The examples run on Java 17 or later, with no preview features required.
 
-## 1. Bốn tập thông tin không nên gộp lại
+## 1. Four Sets of Information That Should Not Be Conflated
 
-| Câu hỏi | Phạm vi thông tin |
+| Question | Scope of information |
 | --- | --- |
-| Gốc sealed cho phép những kiểu con trực tiếp nào? | Metadata `permits` của chính gốc |
-| Những kiểu nào là hậu duệ trực tiếp hoặc gián tiếp? | Quan hệ kiểu trên một phạm vi kiểu cần xác định |
-| JVM hiện đã nạp những lớp nào? | Trạng thái nạp lớp tại thời điểm quan sát |
-| Những đối tượng nào đang được giữ hoặc đang sống? | Trạng thái đối tượng; không phải danh sách khai báo kiểu |
+| Which direct subtypes does the sealed root permit? | `permits` metadata of the root itself |
+| Which types are direct or indirect descendants? | Type relationships over a defined scope of types |
+| Which classes has the JVM loaded so far? | Class loading state at the moment of observation |
+| Which objects are currently held or live? | Object state; not the type declaration list |
 
-Một lớp có thể là hậu duệ gián tiếp nhưng không nằm trong danh sách trực tiếp của gốc. Một kiểu được cho phép cũng không cần có đối tượng được tạo ra mới xuất hiện trong metadata.
+A class can be an indirect descendant without appearing in the root's direct list. A permitted type also does not need any instantiated objects to appear in metadata.
 
-`Class.isAssignableFrom(candidate)` kiểm tra quan hệ với **một ứng viên đã có**. Nó không tự tìm hay liệt kê tất cả ứng viên trong môi trường.
+`Class.isAssignableFrom(candidate)` checks the relationship with **a given candidate**. It does not discover or list all candidates in the environment.
 
-## 2. Ý nghĩa của metadata sealed
+## 2. Meaning of Sealed Metadata
 
-Trong Java, `sealed` giới hạn các kiểu con trực tiếp. Với một interface sealed, các mục được cho phép có thể là lớp triển khai hoặc interface con. Quy tắc này thuộc [phân cấp sealed của lớp](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.1.6) và [interface](https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html#jls-9.1.4).
+In Java, `sealed` restricts direct subtypes. For a sealed interface, permitted entries can be implementing classes or subinterfaces. These rules are defined in [the sealed hierarchy specification for classes](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.1.6) and [interfaces](https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html#jls-9.1.4).
 
-Ở mức tệp `.class`, thuộc tính [`PermittedSubclasses`](https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.7.31) ghi các kiểu được phép trực tiếp mở rộng hoặc triển khai kiểu hiện tại. Nó không phải một bộ đăng ký đối tượng, cũng không lưu toàn bộ cây hậu duệ.
+At the `.class` file level, the [`PermittedSubclasses`](https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.7.31) attribute records the types permitted to directly extend or implement the current type. It is not an object registry, nor does it store the entire descendant tree.
 
-Tên của API có chữ `Subclasses`, nhưng khi dùng với interface, kết quả vẫn có thể chứa interface con. Một mục trong kết quả cũng có thể là lớp trừu tượng; không được coi mọi mục là lớp có thể khởi tạo.
+The API name contains `Subclasses`, yet when used with an interface, the result can still include subinterfaces. An entry in the result can also be an abstract class; you must not assume every entry is an instantiable class.
 
-### Không nhất thiết phải có chữ `permits` trong mã nguồn
+### The word `permits` does not have to appear in source code
 
-Khi các điều kiện ngôn ngữ cho phép, trình biên dịch suy ra tập kiểu con được cho phép từ cùng đơn vị biên dịch. Vì vậy, một khai báo không viết tường minh mệnh đề `permits` vẫn có metadata sealed.
+When language conditions allow, the compiler infers the set of permitted subtypes from the same compilation unit. Therefore, a declaration that does not explicitly write a `permits` clause still has sealed metadata.
 
-Reflection đọc cấu trúc kiểu đã biên dịch; nó không đang tìm chuỗi chữ `permits` trong tệp nguồn.
+Reflection reads the compiled type structure; it is not searching for the literal text `permits` in the source file.
 
-## 3. Phân cấp dùng trong thí nghiệm
+## 3. Hierarchy Used in the Experiment
 
 ```mermaid
 flowchart TD
@@ -41,15 +41,15 @@ flowchart TD
     E -->|permits| L["LocalEvent · sealed, abstract"]
     E -->|permits| X["Extension · non-sealed"]
     L -->|permits| R["Renamed · final"]
-    X -.->|kiểu con đã biết| A["PluginA"]
-    X -.->|kiểu con đã biết| B["PluginB"]
+    X -.->|known subtype| A["PluginA"]
+    X -.->|known subtype| B["PluginB"]
 ```
 
-Các đường `permits` là quan hệ metadata trực tiếp. Hai đường nét đứt minh họa kiểu con của nhánh mở mà chương trình đã biết qua cách khác; chúng không được lấy từ `Extension.getPermittedSubclasses()`.
+The `permits` edges are direct metadata relationships. The two dashed edges illustrate subtypes of the open branch that the program already knows through another mechanism; they are not obtained from `Extension.getPermittedSubclasses()`.
 
-## 4. Ví dụ Java 17+ chạy độc lập
+## 4. Standalone Runnable Java 17+ Example
 
-Lưu toàn bộ vào **`SealedPermitsDemo.java`**:
+Save everything into **`SealedPermitsDemo.java`**:
 
 ```java
 import java.lang.reflect.Modifier;
@@ -169,14 +169,14 @@ public class SealedPermitsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 --release 17 -Xlint:all -Werror SealedPermitsDemo.java
 java SealedPermitsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Event permits = [Extension, LocalEvent, Saved]
@@ -197,112 +197,112 @@ Inferred permits = [InferredLeaf]
 Object permits = null
 ```
 
-Hàm `names()` và các đoạn in danh sách chủ động sắp xếp tên. Chương trình không dựa vào thứ tự trả về của mảng để quyết định quan hệ kiểu.
+`names()` and the list-printing sections explicitly sort the names. The program does not rely on the array's return order to determine type relationships.
 
-## 5. Trực tiếp không có nghĩa là toàn bộ hậu duệ
+## 5. Direct Does Not Mean All Descendants
 
-`Event` trực tiếp cho phép `Saved`, `LocalEvent`, `Extension`. `Renamed` lại được `LocalEvent` trực tiếp cho phép.
+`Event` directly permits `Saved`, `LocalEvent`, and `Extension`. `Renamed` is directly permitted by `LocalEvent`.
 
-Vì thế, hai kết quả sau không mâu thuẫn:
+Therefore, the following two results do not contradict each other:
 
-- `Event.class.isAssignableFrom(Renamed.class)` là `true`: `Renamed` có quan hệ kiểu phù hợp với `Event` qua `LocalEvent`.
-- `Renamed` không nằm trong danh sách trực tiếp của `Event`.
+- `Event.class.isAssignableFrom(Renamed.class)` is `true`: `Renamed` has a valid type relationship with `Event` through `LocalEvent`.
+- `Renamed` is not in `Event`'s direct list.
 
-Muốn đi sâu trong phần sealed, cần truy vấn tiếp từng kiểu con sealed. Hàm `collectByPermits` thực hiện bước đó và tìm thêm `Renamed`.
+To go deeper into the sealed portion, you must query each sealed subtype in turn. `collectByPermits` performs that step and additionally finds `Renamed`.
 
-Tuy nhiên, kết quả `[Extension, LocalEvent, Renamed, Saved]` chỉ là những nút đi tới được bằng các cạnh metadata mà hàm đã duyệt. Nó không phải chứng minh rằng không còn kiểu con nào khác trong toàn bộ phân cấp.
+However, the result `[Extension, LocalEvent, Renamed, Saved]` is only the nodes reachable via the metadata edges that the function traversed. It is not proof that no other subtypes exist in the entire hierarchy.
 
-Tập `visited` dùng `Class<?>` để tránh xử lý lặp nếu cùng một kiểu được tiếp cận qua nhiều nhánh interface. Mã in tên ngắn chỉ để dễ đọc; công cụ thực tế không nên nhận diện kiểu chỉ bằng `getSimpleName()`.
+The `visited` set uses `Class<?>` to avoid duplicate processing if the same type is reached across multiple interface branches. The code prints short names only for readability; real tools should not identify types solely by `getSimpleName()`.
 
-## 6. `non-sealed` là ranh giới mở
+## 6. `non-sealed` Is an Open Boundary
 
-`Extension` được phép trực tiếp mở rộng `Event`, nhưng bản thân nó là `non-sealed`. Do đó, các lớp có thể triển khai `Extension` theo các quy tắc thông thường về truy cập và quan hệ kiểu.
+`Extension` is permitted to directly extend `Event`, yet `Extension` itself is `non-sealed`. As a result, classes can implement `Extension` under the ordinary rules of accessibility and type relationships.
 
-`PluginA` và `PluginB` là những ví dụ hợp lệ của nhánh đó. Chúng phù hợp với `Event`, nhưng không cần xuất hiện trong `Event.permits` vì không trực tiếp triển khai `Event`.
+`PluginA` and `PluginB` are valid examples on that branch. They conform to `Event`, yet do not need to appear in `Event.permits` because they do not directly implement `Event`.
 
-`Extension.class.getPermittedSubclasses()` cho `null`. Điều này có nghĩa **`Extension` không phải kiểu sealed**, không có nghĩa **`Extension` không có lớp triển khai**.
+`Extension.class.getPermittedSubclasses()` returns `null`. This means **`Extension` is not a sealed type**, not that **`Extension` has no implementing classes**.
 
-Trong cùng thí nghiệm, `Saved` là record `final`, cũng cho kết quả `null`. Nhưng `Saved` không có kiểu con hợp lệ, trong khi `Extension` là một nhánh mở. Vì vậy, chỉ nhìn `null` không đủ để kết luận phân cấp đã kết thúc theo cùng một nghĩa.
+In the same experiment, `Saved` is a `final` record, which also returns `null`. Yet `Saved` has no valid subtypes, whereas `Extension` is an open branch. Therefore, seeing `null` alone is not enough to conclude that the hierarchy terminates in the same sense.
 
-Ngay cả `Object.class.getPermittedSubclasses()` cũng cho `null`, dù rõ ràng có rất nhiều lớp kế thừa `Object`.
+Even `Object.class.getPermittedSubclasses()` returns `null`, even though clearly a vast number of classes extend `Object`.
 
-### Khi nào có thể xem cây kiểu là đóng?
+### When can a type tree be considered closed?
 
-Bạn có thể phân tích một phân cấp theo các nhánh sealed và final khi đã xác minh metadata và các kiểu cần thiết được cung cấp đầy đủ. Nếu gặp nhánh `non-sealed`, việc chỉ duyệt `permits` không đủ để liệt kê hết các hậu duệ của nhánh đó.
+You can analyze a hierarchy along `sealed` and `final` branches once you have verified the metadata and that the required types are completely provided. If a `non-sealed` branch is encountered, traversing `permits` alone is not enough to enumerate all descendants of that branch.
 
-Cũng đừng chỉ thu các lá `final` rồi gọi đó là “mọi lớp có thể có đối tượng”. Một lớp sealed vẫn có thể là lớp cụ thể, không trừu tượng; việc nó có kiểu con không cấm tạo đối tượng của chính lớp đó. `LocalEvent` trong thí nghiệm được khai báo trừu tượng một cách tường minh.
+Also do not collect only `final` leaves and call them "every class that can have instances". A sealed class can still be a concrete, non-abstract class; having subtypes does not prohibit instantiating that class itself. `LocalEvent` in the experiment is explicitly declared `abstract`.
 
-## 7. Tập ứng viên và tập đối tượng là những nguồn khác
+## 7. Candidate Sets and Object Sets Are Different Sources
 
-### Lọc những ứng viên đã cung cấp
+### Filtering supplied candidates
 
-Chương trình có một mảng `candidates` được viết rõ trong mã. Lọc nó bằng `Event.class::isAssignableFrom` tìm thấy cả `PluginA` và `PluginB`.
+The program has a `candidates` array explicitly written in code. Filtering it with `Event.class::isAssignableFrom` finds both `PluginA` and `PluginB`.
 
-Đây là **lọc một tập đã biết**, không phải tự phát hiện mọi kiểu con trong JVM. Nếu không cung cấp một lớp trong tập ứng viên, bộ lọc không tự tìm ra nó.
+This is **filtering a known set**, not automatically discovering every subtype in the JVM. If a class is not supplied in the candidate set, the filter will not find it on its own.
 
-Kết quả còn chứa `Extension` và `LocalEvent`, vì quan hệ kiểu áp dụng cho cả interface con và lớp trừu tượng. Muốn danh sách các lớp cụ thể có thể tạo đối tượng, cần đặt thêm tiêu chí; muốn biết constructor phù hợp, còn cần kiểm tra điều kiện khác nữa.
+The result also includes `Extension` and `LocalEvent`, because the type relationship applies to subinterfaces and abstract classes as well. To get a list of concrete instantiable classes, additional criteria are needed; to know which constructors are suitable, further condition checks are required.
 
-### Quan sát những đối tượng trong một danh sách
+### Observing objects in a list
 
-Mảng metadata của `Event` có ba nhánh trực tiếp, nhưng danh sách `objects` chỉ chứa một `Saved` và một `PluginA`. Kết quả `[PluginA, Saved]` mô tả các lớp của **những đối tượng trong chính danh sách đó**.
+`Event`'s metadata array has three direct branches, while the `objects` list only contains one `Saved` and one `PluginA`. The result `[PluginA, Saved]` describes the classes of **the objects in that specific list**.
 
-Nó không mô tả mọi đối tượng đang sống trong toàn JVM, cũng không mô tả mọi kiểu hợp lệ. Tạo thêm hoặc bớt đối tượng trong danh sách không sửa metadata sealed của `Event`.
+It does not describe every live object across the entire JVM, nor does it describe every valid type. Adding or removing objects in the list does not alter `Event`'s sealed metadata.
 
-Trong ứng dụng, danh sách đăng ký plugin, dữ liệu cấu hình hoặc một phạm vi tệp lớp được quét có thể cung cấp tập ứng viên. Mỗi nguồn có phạm vi và quy tắc riêng; không tự biến kết quả của nó thành một khẳng định toàn cục.
+In an application, a plugin registry, configuration data, or a scanned scope of class files may provide the candidate set. Each source has its own scope and rules; do not turn its result into a global claim.
 
-## 8. Việc lấy `Class` và giới hạn tính đầy đủ
+## 8. Obtaining `Class` Objects and Completeness Limits
 
-[Hợp đồng `getPermittedSubclasses()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getPermittedSubclasses()) nêu rằng API cố lấy `Class` cho các mục được ghi trong metadata bằng bộ nạp định nghĩa kiểu hiện tại. Mục không lấy được `Class` bị bỏ qua, không có trong mảng kết quả. Thứ tự phần tử không được bảo đảm; kiểu không sealed trả `null`, còn kiểu sealed trả mảng khác `null`, có thể rỗng.
+The [`getPermittedSubclasses()` contract](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getPermittedSubclasses()) states that the API attempts to obtain `Class` objects for the entries recorded in metadata using the current type's defining class loader. Entries whose `Class` cannot be obtained are omitted and excluded from the returned array. Element order is not guaranteed; unsealed types return `null`, while sealed types return a non-`null` array, which may be empty.
 
-Điều đó có hai hệ quả cần ghi rõ trong công cụ:
+That has two consequences to make explicit in tooling:
 
-- Kết quả không phải ảnh chụp thụ động của danh sách lớp đã được nạp trước khi gọi; API có hoạt động lấy các đối tượng `Class` cần thiết.
-- Không nên dùng riêng độ dài mảng để khẳng định rằng mọi mục dự kiến trong bộ dữ liệu triển khai đều đã được giải quyết thành công.
+- The result is not a passive snapshot of classes already loaded prior to the call; the API performs work to obtain the needed `Class` objects.
+- Array length alone should not be used to assert that every expected entry in a deployment artifact resolved successfully.
 
-Nếu công cụ phải chứng minh danh sách đầy đủ so với metadata trong tệp lớp hoặc với bộ phát hành, cần đối chiếu thêm nguồn tương ứng và việc phân giải kiểu. Không lặng lẽ coi một mục vắng mặt là bằng chứng rằng kiểu đó chưa từng được cho phép.
+If a tool must prove list completeness against class-file metadata or a release artifact, it must cross-check the corresponding source and type resolution. Do not silently treat an absent entry as proof that the type was never permitted.
 
-Trong thí nghiệm, các tệp lớp đều được cung cấp đầy đủ cùng nhau, nên các kết quả cụ thể có thể được đối chiếu với mã nguồn. Bài không giả định rằng mọi môi trường plugin hay bộ nạp tùy biến đều có cùng điều kiện đó.
+In the experiment, all class files are provided together in full, so concrete results can be cross-checked against the source code. This article does not assume every plugin environment or custom class loader shares those same conditions.
 
-### Khác với danh sách lớp đã nạp
+### Difference from the list of loaded classes
 
-Trong bối cảnh có Java agent, [`Instrumentation.getAllLoadedClasses()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.instrument/java/lang/instrument/Instrumentation.html#getAllLoadedClasses()) cung cấp các lớp hiện đã được nạp trong JVM tại thời điểm quan sát. Đó vẫn là một nguồn dữ liệu khác: có thể lọc các lớp đó theo quan hệ kiểu, nhưng không suy ra những lớp chưa nạp hoặc những đối tượng đang sống từ danh sách ấy.
+In the context of a Java agent, [`Instrumentation.getAllLoadedClasses()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.instrument/java/lang/instrument/Instrumentation.html#getAllLoadedClasses()) provides the classes currently loaded in the JVM at the time of observation. That is still a different data source: you can filter those classes by type relationship, but you cannot infer unloaded classes or live objects from that list.
 
-Việc thiết lập agent là chủ đề riêng; ví dụ trong bài không dùng agent và không tuyên bố đo thời điểm JVM nạp từng lớp.
+Setting up an agent is a separate topic; the examples in this article do not use an agent and do not claim to measure when the JVM loads individual classes.
 
-## 9. Cách chọn câu hỏi đúng khi thiết kế công cụ
+## 9. Choosing the Right Question When Designing Tools
 
-| Nhu cầu | Cách tiếp cận phù hợp |
+| Need | Appropriate approach |
 | --- | --- |
-| Hiển thị nhánh trực tiếp của một kiểu sealed | `getPermittedSubclasses()` và diễn giải đúng phạm vi |
-| Duyệt phần phân cấp còn đóng bằng sealed | Truy vấn tiếp từng nhánh, ghi nhận các ranh giới mở và giới hạn phân giải kiểu |
-| Kiểm tra một ứng viên có thể dùng ở vị trí kiểu gốc không | `isAssignableFrom` trên đúng hai đối tượng `Class` |
-| Liệt kê plugin ứng dụng chấp nhận | Nguồn đăng ký hoặc khám phá plugin có phạm vi được định nghĩa |
-| Phân tích các lớp đã nạp | Nguồn quan sát nạp lớp thích hợp, không dùng metadata `permits` thay thế |
-| Đếm đối tượng ứng dụng đang quản lý | Dữ liệu quản lý đối tượng hoặc công cụ quan sát phù hợp với yêu cầu |
+| Display direct branches of a sealed type | `getPermittedSubclasses()` with accurate scope interpretation |
+| Traverse the closed portion of a hierarchy | Query each branch recursively, recording open boundaries and type-resolution limits |
+| Check whether a candidate can be used in place of a root type | `isAssignableFrom` on the exact two `Class` objects |
+| List plugins accepted by the application | Plugin registry or discovery source with a defined scope |
+| Analyze loaded classes | Appropriate class-loading observation source, not `permits` metadata as a substitute |
+| Count objects managed by the application | Object management data or observation tools suited to the requirement |
 
-Chỉ dựa vào metadata sealed để chấp nhận hoặc từ chối mọi đối tượng cũng có thể sai ở nhánh mở. Ví dụ, một chính sách cho phép mọi giá trị của `Event` cần hiểu rằng `PluginA` hợp lệ dù không nằm trong danh sách trực tiếp của gốc.
+Relying solely on sealed metadata to accept or reject objects can also fail on open branches. For instance, a policy permitting any value of `Event` needs to recognize that `PluginA` is valid even though it is not in the root's direct list.
 
-Ngược lại, nếu ứng dụng chỉ cho phép đúng một tập lớp được đăng ký, đó là một chính sách riêng của ứng dụng. Không đồng nhất nó với quy tắc kế thừa hợp lệ của Java.
+Conversely, if an application only allows a specific set of registered classes, that is an application-level policy. Do not equate it with Java's valid inheritance rules.
 
-## 10. Lỗi thường gặp và tự kiểm tra
+## 10. Common Mistakes and Self-Check
 
-| Suy luận sai | Điều cần phân biệt |
+| Wrong inference | Distinction to maintain |
 | --- | --- |
-| Danh sách `permits` là mọi hậu duệ | Trực tiếp so với gián tiếp |
-| Duyệt đệ quy là luôn đầy đủ | Nhánh đóng so với nhánh `non-sealed` |
-| `null` nghĩa là không có kiểu con | Không sealed so với không thể có kiểu con |
-| Mỗi mục là lớp tạo đối tượng được | Interface, lớp trừu tượng và lớp cụ thể |
-| Kiểu được liệt kê phải có instance | Metadata kiểu so với trạng thái đối tượng |
-| Kết quả là danh sách lớp đã nạp trước lời gọi | Quy trình lấy `Class` so với quan sát nạp lớp |
-| Không viết mệnh đề `permits` thì không có metadata | Khai báo tường minh so với tập được trình biên dịch suy ra |
-| Lọc một mảng ứng viên tìm ra mọi lớp trong môi trường | Phạm vi ứng viên được cung cấp |
+| `permits` list is all descendants | Direct vs. indirect |
+| Recursive traversal is always complete | Closed branches vs. `non-sealed` branches |
+| `null` means no subtypes exist | Not sealed vs. unable to have subtypes |
+| Every entry is an instantiable class | Interfaces, abstract classes, and concrete classes |
+| A listed type must have instances | Type metadata vs. object state |
+| Result is the list of classes loaded before the call | Obtaining `Class` objects vs. observing class loading |
+| No `permits` clause means no metadata | Explicit declaration vs. compiler-inferred set |
+| Filtering a candidate array finds every class in the environment | Scope of the supplied candidates |
 
-Tự kiểm chứng bằng các thay đổi nhỏ:
+Verify your understanding with small changes:
 
-1. Thêm một lớp `PluginC implements Extension`: có phải sửa danh sách trực tiếp của `Event` không?
-2. Thêm một hậu duệ final mới cho `LocalEvent`: kết quả nào thay đổi ở gốc và ở nhánh?
-3. Không tạo `Saved` trong danh sách `objects`: vì sao metadata của `Event` vẫn có `Saved`?
-4. Nếu chỉ lấy các lớp final trong kết quả duyệt, có đủ để mô tả mọi kiểu con hay mọi lớp có thể tạo đối tượng không?
-5. Khi bộ triển khai thiếu một tệp lớp được ghi trong metadata, vì sao không nên coi mảng trả về là bản sao đầy đủ của danh sách trong tệp `.class`?
+1. Add a class `PluginC implements Extension`: must `Event`'s direct list be modified?
+2. Add a new final descendant for `LocalEvent`: which results change at the root and at the branch?
+3. Omit `Saved` from the `objects` list: why does `Event`'s metadata still contain `Saved`?
+4. If you collect only `final` classes during traversal, is that enough to describe all subtypes or all instantiable classes?
+5. When a deployment is missing a class file recorded in metadata, why should the returned array not be treated as a complete copy of the list in the `.class` file?
 
-Hãy diễn giải đúng phạm vi: **`permits` mô tả quyền tạo quan hệ kiểu trực tiếp của sealed; mọi hậu duệ, các lớp đã nạp và các đối tượng đang tồn tại là những câu hỏi khác.**
+Interpret the scope accurately: **`permits` describes permission to form direct sealed type relationships; all descendants, loaded classes, and existing objects are different questions.**

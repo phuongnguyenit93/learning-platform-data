@@ -1,14 +1,14 @@
-# Đặt ResourceBundle đúng đường dẫn khi đóng gói JAR trong Java
+# Placing ResourceBundle at the Correct Path When Packaging a JAR in Java
 
-## 1. Vì sao ResourceBundle chạy trong IDE nhưng lỗi khi chạy JAR?
+## 1. Why Does ResourceBundle Work in the IDE but Fail When Running the JAR?
 
-Một lỗi phổ biến trong ứng dụng Java đa ngôn ngữ:
+A common error in multilingual Java applications:
 
-- Khi chạy `Main` trong IDE, các thông điệp tiếng Việt tải bình thường.
-- Sau khi chạy `mvn package` hoặc `gradle jar`, chương trình báo `MissingResourceException`.
-- Kiểm tra JAR mới phát hiện tệp `Messages_vi_VN.properties` không được đưa vào, hoặc nó nằm dưới một thư mục không thuộc classpath root.
+- When running `Main` in the IDE, Vietnamese messages load normally.
+- After running `mvn package` or `gradle jar`, the program throws `MissingResourceException`.
+- Inspecting the JAR reveals that the `Messages_vi_VN.properties` file was not included, or it resides under a directory that is not part of the classpath root.
 
-Ví dụ chương trình gọi:
+For example, the program calls:
 
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle(
@@ -16,28 +16,28 @@ ResourceBundle bundle = ResourceBundle.getBundle(
         Locale.forLanguageTag("vi-VN"));
 ```
 
-Đây là **snippet** yêu cầu import `java.util.ResourceBundle` và `java.util.Locale`. Java sẽ tra cứu bundle theo **base name**, **locale** và **classpath/module resources**. Với bundle `.properties` trên classpath truyền thống, một tài nguyên có thể được tìm tại đường dẫn:
+This is a **snippet** requiring imports of `java.util.ResourceBundle` and `java.util.Locale`. Java looks up the bundle by **base name**, **locale**, and **classpath/module resources**. For `.properties` bundles on the traditional classpath, a resource can be found at the path:
 
 ```text
 com/example/i18n/Messages_vi_VN.properties
 ```
 
-**Phải hiểu rằng đây là đường dẫn tương đối tính từ classpath root hoặc từ gốc nội dung của JAR**, không phải đường dẫn đến file nguồn trong dự án. Khi đóng gói, chỉ cần một cấp thư mục dư như `src/main/resources/` ở bên trong JAR cũng có thể làm Java không tìm thấy tài nguyên.
+**It must be understood that this is a relative path from the classpath root or from the root of the JAR contents**, not the path to the source file in the project. When packaging, even a single extra directory level such as `src/main/resources/` inside the JAR can prevent Java from finding the resource.
 
-Bài này hướng dẫn cách bố trí resource bundle, tổ chức Maven/Gradle và JAR thủ công, cách Java chọn file theo locale và cơ chế fallback, kiểm tra JAR thực tế, phân biệt classpath với filesystem và những điểm đặc biệt ở Java 9+/Java 17+, named modules và Spring Boot.
+This article explains how to lay out a resource bundle, organize Maven/Gradle and manual JAR builds, how Java selects files by locale and the fallback mechanism, how to inspect the actual JAR, distinguish classpath from filesystem, and special considerations in Java 9+/Java 17+, named modules, and Spring Boot.
 
-## 2. Ba khái niệm: base name, resource path và classpath root
+## 2. Three Concepts: Base Name, Resource Path, and Classpath Root
 
-| Khái niệm | Ví dụ | Vai trò |
+| Concept | Example | Role |
 | --- | --- | --- |
-| **Base name** | `com.example.i18n.Messages` | Tên logic truyền cho `ResourceBundle.getBundle`, dùng dấu chấm, **không có** phần mở rộng `.properties` |
-| **Tên bundle theo locale** | `Messages_vi_VN.properties` | Tên file sử dụng quy tắc `_<language>_<country>` khi tương ứng locale |
-| **Resource path** | `com/example/i18n/Messages_vi_VN.properties` | Đường dẫn tương đối từ classpath/JAR root |
-| **Classpath root** | `target/classes`, `build/resources/main` hoặc **gốc nội dung** một JAR | Vị trí Java dùng làm điểm xuất phát để tìm resource |
-| **JAR entry** | `com/example/i18n/Messages_vi_VN.properties` | Tên entry cần xuất hiện trong file `.jar`, dùng dấu `/` |
-| **Filesystem path trong repo** | `src/main/resources/com/example/i18n/Messages_vi_VN.properties` | Vị trí file nguồn; bước build phải chép vào classpath output |
+| **Base name** | `com.example.i18n.Messages` | Logical name passed to `ResourceBundle.getBundle`, using dots, **without** the `.properties` extension |
+| **Locale-specific bundle name** | `Messages_vi_VN.properties` | File name using the `_<language>_<country>` convention when matching a locale |
+| **Resource path** | `com/example/i18n/Messages_vi_VN.properties` | Relative path from the classpath/JAR root |
+| **Classpath root** | `target/classes`, `build/resources/main`, or the **content root** of a JAR | Location Java uses as the starting point to search for resources |
+| **JAR entry** | `com/example/i18n/Messages_vi_VN.properties` | Entry name that needs to appear inside the `.jar` file, using `/` |
+| **Filesystem path in repo** | `src/main/resources/com/example/i18n/Messages_vi_VN.properties` | Source file location; the build step must copy it to the classpath output |
 
-Với base name `com.example.i18n.Messages`, Java xét các tên bundle như:
+With the base name `com.example.i18n.Messages`, Java considers bundle names such as:
 
 ```text
 com.example.i18n.Messages_vi_VN
@@ -45,7 +45,7 @@ com.example.i18n.Messages_vi
 com.example.i18n.Messages
 ```
 
-Khi tra cứu bundle dạng property trên classpath, dấu chấm của phần package được đổi thành dấu `/` và thêm `.properties`:
+When looking up property-based bundles on the classpath, dots in the package part are converted to `/` and `.properties` is appended:
 
 ```text
 com/example/i18n/Messages_vi_VN.properties
@@ -53,11 +53,11 @@ com/example/i18n/Messages_vi.properties
 com/example/i18n/Messages.properties
 ```
 
-Đó là lý do **cấu trúc thư mục** và **tên file** phải tương ứng base name. Nếu bạn truyền `"Messages"` thay vì `"com.example.i18n.Messages"`, Java sẽ tìm ở **gốc** classpath, không tự dò vào thư mục `com/example/i18n`.
+That is why the **directory structure** and **file names** must match the base name. If you pass `"Messages"` instead of `"com.example.i18n.Messages"`, Java will search at the **root** of the classpath and will not automatically look inside the `com/example/i18n` directory.
 
-### Thử tên đường dẫn bằng API Java
+### Testing Path Names Using the Java API
 
-Trong ứng dụng classpath/unnamed module, `ResourceBundle.Control` có các phương thức dùng để quan sát phép biến đổi tên:
+In a classpath/unnamed module application, `ResourceBundle.Control` has methods to observe the name transformation:
 
 ```java
 import java.util.Locale;
@@ -75,18 +75,18 @@ System.out.println(bundleName);
 System.out.println(path);
 ```
 
-Đây là **snippet đặt trong phương thức**, không phải một class độc lập. Kết quả đã xác minh:
+This is a **snippet placed inside a method**, not a standalone class. Verified output:
 
 ```text
 com.example.i18n.Messages_vi_VN
 com/example/i18n/Messages_vi_VN.properties
 ```
 
-**Lưu ý:** `ResourceBundle.Control` mô tả chi tiết đặc biệt của chiến lược classpath; một số overload `getBundle(..., Control)` **không hỗ trợ khi gọi trong named module**. Với ứng dụng JPMS cần tuân thủ API và quy tắc đóng gói module tương ứng; không sao chép nguyên cách xử lý classpath sang module path.
+**Note:** `ResourceBundle.Control` describes details specific to the classpath strategy; some `getBundle(..., Control)` overloads are **not supported when called inside a named module**. For JPMS applications, follow the corresponding module API and packaging rules; do not copy classpath handling verbatim onto the module path.
 
-## 3. Cấu trúc dự án Maven/Gradle đúng chuẩn
+## 3. Standard Maven/Gradle Project Structure
 
-Một dự án Java thông dụng:
+A typical Java project:
 
 ```text
 bundle-demo/
@@ -107,15 +107,15 @@ bundle-demo/
                         └── Messages_vi_VN.properties
 ```
 
-Trong Maven, `src/main/resources` là thư mục mặc định cho tài nguyên runtime. Với Gradle Java plugin, `src/main/resources` cũng là resource source directory mặc định. Bước build đặt nội dung của thư mục ấy vào output resources hoặc sao chép vào JAR.
+In Maven, `src/main/resources` is the default directory for runtime resources. With the Gradle Java plugin, `src/main/resources` is also the default resource source directory. The build step places the contents of that directory into the output resources or copies them into the JAR.
 
-**Không** đặt các file này trong `src/main/java/com/example/i18n` và tin rằng mọi công cụ build mặc định sẽ đưa `.properties` ở source code tree vào JAR. Một số IDE có thể xử lý khác, nhưng bản build CLI không phải lúc nào cũng sao chép các non-`.java` resources ở source tree.
+Do **not** place these files in `src/main/java/com/example/i18n` and assume every build tool by default will include `.properties` files from the source code tree in the JAR. Some IDEs may handle this differently, but CLI builds do not always copy non-`.java` resources from the source tree.
 
-**Không** coi `src/main/resources` là một package cần hiện diện trong JAR. Đây là thư mục đầu vào của build tool, không phải thành phần của base name.
+Do **not** treat `src/main/resources` as a package that needs to exist inside the JAR. It is an input directory for the build tool, not part of the base name.
 
-### Bên trong JAR chuẩn phải trông như thế nào?
+### What Should the Inside of a Standard JAR Look Like?
 
-Sau khi đóng gói JAR chạy theo classpath truyền thống, các entry quan trọng phải có cấu trúc:
+After packaging a JAR to run on the traditional classpath, the key entries must have the structure:
 
 ```text
 com/example/app/Main.class
@@ -124,7 +124,7 @@ com/example/i18n/Messages_vi.properties
 com/example/i18n/Messages_vi_VN.properties
 ```
 
-Không nên có dạng:
+They should not look like:
 
 ```text
 src/main/resources/com/example/i18n/Messages_vi_VN.properties
@@ -132,13 +132,13 @@ resources/com/example/i18n/Messages_vi_VN.properties
 target/classes/com/example/i18n/Messages_vi_VN.properties
 ```
 
-trừ khi runtime được cấu hình và base name được thiết kế đặc biệt để xử lý những layout đó. Với ví dụ base name chuẩn của bài, các tên entry có thêm tiền tố như trên là **sai vị trí**.
+unless the runtime is configured and the base name is specifically designed to handle those layouts. For the standard base name example in this article, entry names with extra prefixes like the above are **in the wrong location**.
 
-## 4. Ví dụ Java 17+: ResourceBundle hoạt động trước và sau khi đóng gói
+## 4. Java 17+ Example: ResourceBundle Working Before and After Packaging
 
-Ví dụ này là một dự án Maven **không có thư viện runtime bên ngoài**, đủ để tạo một JAR đơn giản và chạy bằng `java -cp`.
+This example is a Maven project **with no external runtime libraries**, sufficient to build a simple JAR and run it with `java -cp`.
 
-### 4.1. Tạo các tệp thông điệp
+### 4.1. Creating the Message Files
 
 **`src/main/resources/com/example/i18n/Messages.properties`**
 
@@ -161,15 +161,15 @@ app.title=Ứng dụng bản địa hóa
 greeting=Xin chào từ Việt Nam
 ```
 
-Tạo và lưu ba file ở **UTF-8**. Trong Java 9 trở lên, property resource bundles dùng UTF-8 theo mặc định (với cơ chế fallback ISO-8859-1 cho dữ liệu cũ trong trường hợp byte UTF-8 không hợp lệ). Java 17+ hỗ trợ các ký tự tiếng Việt trực tiếp như trong ví dụ.
+Create and save all three files in **UTF-8**. In Java 9 and later, property resource bundles use UTF-8 by default (with an ISO-8859-1 fallback mechanism for legacy data in case of invalid UTF-8 bytes). Java 17+ supports Vietnamese characters directly as shown in the example.
 
-Cả ba file dùng **cùng một base name `com.example.i18n.Messages`** nhưng khác phần hậu tố locale. File root `Messages.properties` có ý nghĩa dự phòng. File `Messages_vi.properties` cung cấp bản tiếng Việt chung; `Messages_vi_VN.properties` chứa các ghi đè riêng cho Việt Nam.
+All three files share the **same base name `com.example.i18n.Messages`** but differ in their locale suffix. The root file `Messages.properties` serves as the fallback. The `Messages_vi.properties` file provides general Vietnamese translations; `Messages_vi_VN.properties` contains overrides specific to Vietnam.
 
-Tài nguyên `Messages_vi_VN.properties` **không cần lặp lại mọi key** từ cha; `ResourceBundle` cho phép tra key qua chuỗi parent bundle khi một key không có trong bundle con.
+The `Messages_vi_VN.properties` resource **does not need to repeat every key** from its parent; `ResourceBundle` allows looking up keys along the parent bundle chain when a key is absent from the child bundle.
 
-### 4.2. Chương trình Main.java đầy đủ
+### 4.2. Complete Main.java Program
 
-Tạo file **`src/main/java/com/example/app/Main.java`**:
+Create **`src/main/java/com/example/app/Main.java`**:
 
 ```java
 package com.example.app;
@@ -206,18 +206,18 @@ public class Main {
 }
 ```
 
-Đây là lớp Java 17+ độc lập về runtime (sử dụng Java SE), nhưng **muốn chạy thành công phải đóng gói/đặt các file `.properties` cùng classpath đúng như phần trên**.
+This is a Java 17+ class that is runtime-standalone (using Java SE), but **to run successfully, the `.properties` files must be packaged/placed on the classpath exactly as shown above**.
 
-Ý nghĩa:
+Explanation:
 
-1. `getBundle(baseName, locale)` dùng tên có dấu chấm, **không** cần chuỗi hậu tố `_vi_VN` vì Java tự chọn candidate bundles.
-2. `bundle.getLocale()` cho biết locale của bundle được tải — ở đây là `vi-VN`.
-3. `getString("greeting")` lấy giá trị từ `Messages_vi_VN.properties`.
-4. `getString("app.title")` tìm đến parent `Messages_vi.properties` vì key không có trong `vi_VN`.
-5. `getString("only.base")` tìm đến root `Messages.properties`.
-6. `ClassLoader.getResource(path)` kiểm tra tài nguyên qua **classpath**, không dựa vào thư mục làm việc hiện tại.
+1. `getBundle(baseName, locale)` uses the dot-separated name, **without** needing the `_vi_VN` suffix because Java automatically selects candidate bundles.
+2. `bundle.getLocale()` reports the locale of the loaded bundle — here `vi-VN`.
+3. `getString("greeting")` retrieves the value from `Messages_vi_VN.properties`.
+4. `getString("app.title")` resolves to the parent `Messages_vi.properties` because the key is not in `vi_VN`.
+5. `getString("only.base")` resolves to the root `Messages.properties`.
+6. `ClassLoader.getResource(path)` checks the resource via the **classpath**, not based on the current working directory.
 
-Với các file được tạo đúng và dữ liệu locale Java 17+, stdout dự kiến:
+With the files created properly and Java 17+ locale data, expected stdout:
 
 ```text
 Bundle locale: vi-VN
@@ -227,13 +227,13 @@ Base fallback: Base fallback
 Resource in classpath: true
 ```
 
-Nếu terminal không hỗ trợ Unicode, ký tự trên màn hình có thể hiển thị sai dù `ResourceBundle` đọc đúng. Để chẩn đoán, kiểm tra code point hoặc file output UTF-8 thay vì chỉ nhìn hình dạng glyph.
+If the terminal does not support Unicode, characters on screen may display incorrectly even though `ResourceBundle` reads them properly. To diagnose, inspect the code points or write UTF-8 output to a file rather than relying solely on glyph rendering.
 
-## 5. Đóng gói bằng Maven: resources phải được copy vào target/classes
+## 5. Packaging with Maven: Resources Must Be Copied to target/classes
 
-### 5.1. pom.xml tối thiểu
+### 5.1. Minimal pom.xml
 
-Tạo **`pom.xml`** tại gốc dự án:
+Create **`pom.xml`** at the project root:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -263,18 +263,18 @@ Tạo **`pom.xml`** tại gốc dự án:
 </project>
 ```
 
-Cấu hình trên cho phép Maven compile source tương ứng Java 17. Khi dự án không tự định nghĩa `resources` khác, Maven coi `src/main/resources` là resource directory chuẩn. Bước `process-resources` sao chép các file sang `target/classes`, rồi mục tiêu `package` đưa chúng cùng class đã biên dịch vào JAR.
+This configuration allows Maven to compile source for Java 17. When the project does not define custom `resources`, Maven treats `src/main/resources` as the standard resource directory. The `process-resources` phase copies the files to `target/classes`, and the `package` goal bundles them together with compiled classes into the JAR.
 
-### 5.2. Build và kiểm tra
+### 5.2. Building and Inspecting
 
-Chạy từ **gốc dự án**:
+Run from the **project root**:
 
 ```bash
 mvn -q clean package
 jar tf target/bundle-demo-1.0.0.jar
 ```
 
-`jar tf` hiển thị toàn bộ entry trong JAR. Tìm những entry sau (đây là **trích phần liên quan**, không phải toàn bộ kết quả của `jar tf`):
+`jar tf` lists all entries in the JAR. Look for the following entries (this is a **relevant excerpt**, not the full output of `jar tf`):
 
 ```text
 com/example/app/Main.class
@@ -283,33 +283,33 @@ com/example/i18n/Messages_vi.properties
 com/example/i18n/Messages_vi_VN.properties
 ```
 
-Nếu các tệp `.properties` không xuất hiện, **vấn đề nằm ở cấu hình build, đường dẫn resource, ignore/exclude/filter hoặc artifact được kiểm tra**. Nếu file có xuất hiện nhưng dưới `src/main/resources/...`, cấu trúc entry bên trong JAR vẫn không đúng với base name.
+If the `.properties` files do not appear, **the issue lies in the build configuration, resource path, ignore/exclude/filter rules, or the artifact being inspected**. If the files appear under `src/main/resources/...`, the entry structure inside the JAR still does not match the base name.
 
-Chạy bằng classpath (cách này **không cần Main-Class trong manifest**):
+Run via classpath (this approach **does not require Main-Class in the manifest**):
 
 ```bash
 java -cp target/bundle-demo-1.0.0.jar com.example.app.Main
 ```
 
-Với ví dụ này, lệnh trên in năm dòng như mục 4.2. Java dùng JAR như một **classpath entry**: đường dẫn `com/example/i18n/Messages_vi_VN.properties` được tìm tính từ gốc của JAR.
+With this example, the command prints the five lines shown in section 4.2. Java uses the JAR as a **classpath entry**: the path `com/example/i18n/Messages_vi_VN.properties` is resolved from the root of the JAR.
 
-**Không** chạy `java -jar target/bundle-demo-1.0.0.jar` và kỳ vọng thành công trong ví dụ `pom.xml` tối thiểu: JAR mặc định có thể **không có `Main-Class` trong manifest**. `java -cp <jar> <main-class>` là cách chạy đúng mà không cần manifest entry. Nếu muốn dùng `java -jar`, cấu hình plugin để tạo manifest có `Main-Class`; việc này tách biệt với việc đóng gói `.properties`.
+Do **not** run `java -jar target/bundle-demo-1.0.0.jar` and expect it to succeed with the minimal `pom.xml` example: the default JAR may **lack a `Main-Class` in the manifest**. `java -cp <jar> <main-class>` is the right way to run without a manifest entry. If you want to use `java -jar`, configure a plugin to generate a manifest with `Main-Class`; this is separate from packaging `.properties` files.
 
-### 5.3. Resource nằm ở đâu qua từng giai đoạn?
+### 5.3. Where Are Resources Located at Each Stage?
 
-| Giai đoạn | Nơi tồn tại | Vì sao |
+| Stage | Location | Why |
 | --- | --- | --- |
-| Trước build | `src/main/resources/com/example/i18n/*.properties` | File nguồn resource |
-| Sau process-resources | `target/classes/com/example/i18n/*.properties` | Classpath output của Maven |
-| Sau compile | `target/classes/com/example/app/Main.class` | Java bytecode |
-| Sau package | Các entry `com/example/i18n/*.properties` trong JAR | Có thể tải được trên runtime classpath |
-| Sau `java -cp ...` | Java tra trong classpath JAR | Không cần file vật lý tách rời cạnh JAR |
+| Before build | `src/main/resources/com/example/i18n/*.properties` | Resource source files |
+| After process-resources | `target/classes/com/example/i18n/*.properties` | Maven classpath output |
+| After compile | `target/classes/com/example/app/Main.class` | Java bytecode |
+| After package | Entries `com/example/i18n/*.properties` in JAR | Loadable on runtime classpath |
+| After `java -cp ...` | Java looks up in the JAR classpath | No separate physical files needed beside the JAR |
 
-**Đừng** viết code đọc `src/main/resources/...` bằng `new File(...)`: khi ứng dụng được triển khai, source tree thường không tồn tại.
+**Never** write code that reads `src/main/resources/...` using `new File(...)`: when the application is deployed, the source tree usually does not exist.
 
-## 6. Đóng gói bằng Gradle Java plugin
+## 6. Packaging with the Gradle Java Plugin
 
-Gradle Java plugin cũng có layout chuẩn:
+The Gradle Java plugin also uses a standard layout:
 
 ```text
 src/main/java/
@@ -318,7 +318,7 @@ src/test/java/
 src/test/resources/
 ```
 
-Với cấu hình mặc định, các tệp trong `src/main/resources` được xử lý thành runtime resources (thường tại `build/resources/main`) và được đưa vào JAR do tác vụ `jar` tạo. Ví dụ Gradle Kotlin DSL tối thiểu:
+With the default configuration, files in `src/main/resources` are processed into runtime resources (typically at `build/resources/main`) and included in the JAR created by the `jar` task. Minimal Gradle Kotlin DSL example:
 
 **`build.gradle.kts`**
 
@@ -341,34 +341,34 @@ tasks.withType<JavaCompile>().configureEach {
 }
 ```
 
-Đây là file build Gradle; cấu trúc `src/main/java` và `src/main/resources` giữ nguyên như mục 3. Build bằng Gradle Wrapper của dự án nếu có:
+This is a Gradle build file; the `src/main/java` and `src/main/resources` structure stays the same as in section 3. Build using the project's Gradle Wrapper if available:
 
 ```bash
 ./gradlew clean jar
 ```
 
-Trên Windows có thể dùng `gradlew.bat clean jar`. JAR thường nằm dưới `build/libs/`, ví dụ `bundle-demo-1.0.0.jar` nếu tên project là `bundle-demo`. Sau đó kiểm tra:
+On Windows, you can use `gradlew.bat clean jar`. The JAR is usually located under `build/libs/`, for example `bundle-demo-1.0.0.jar` if the project name is `bundle-demo`. Then inspect and run:
 
 ```bash
 jar tf build/libs/bundle-demo-1.0.0.jar
 java -cp build/libs/bundle-demo-1.0.0.jar com.example.app.Main
 ```
 
-Nếu tên project hoặc version khác, **thay tên file bằng artifact thực tế**; không mặc định mọi Gradle build tạo đúng tên này.
+If the project name or version differs, **substitute the actual artifact file name**; do not assume every Gradle build produces this exact name.
 
-### Khi nào resources có thể biến mất khỏi Gradle JAR?
+### When Can Resources Disappear from a Gradle JAR?
 
-- `sourceSets.main.resources.srcDirs` đã được đổi sang thư mục khác.
-- Task `processResources` có `exclude` hoặc bộ lọc không phù hợp.
-- Task `jar` đã tùy biến `from` hoặc `duplicatesStrategy`.
-- Ứng dụng chạy một artifact khác JAR vừa tạo.
-- Bạn chỉ chạy `javac` ở ngoài Gradle nhưng quên đưa `src/main/resources` lên classpath.
+- `sourceSets.main.resources.srcDirs` was changed to another directory.
+- The `processResources` task has an `exclude` or an improper filter.
+- The `jar` task customized `from` or `duplicatesStrategy`.
+- The application is running a different artifact than the JAR just built.
+- You ran `javac` directly outside Gradle and forgot to add `src/main/resources` to the classpath.
 
-Đối chiếu các file source resources, output `build/resources/main` và entry thực tế của JAR để phân biệt lỗi **không copy**, lỗi **copy sai đường dẫn** và lỗi **runtime classpath**.
+Compare the source resource files, the `build/resources/main` output, and the actual JAR entries to distinguish between a **missing copy**, a **wrong-path copy**, and a **runtime classpath** error.
 
-## 7. Đóng gói JAR thủ công bằng javac và jar
+## 7. Manual JAR Packaging with javac and jar
 
-Không dùng Maven hoặc Gradle vẫn có thể kiểm tra rõ các lớp:
+Even without Maven or Gradle, you can verify each layer explicitly:
 
 ```bash
 javac -encoding UTF-8 -d out src/main/java/com/example/app/Main.java
@@ -377,17 +377,17 @@ jar tf bundle-demo.jar
 java -cp bundle-demo.jar com.example.app.Main
 ```
 
-Đây là các lệnh của **JDK 17+** chạy từ gốc dự án. Chúng có ý nghĩa:
+These are **JDK 17+** commands run from the project root. Their meaning:
 
-1. `javac -d out` tạo `out/com/example/app/Main.class`.
-2. `-C out .` của `jar` đưa **nội dung bên trong** `out` vào gốc JAR.
-3. `-C src/main/resources .` đưa **nội dung bên trong** thư mục resources vào gốc JAR.
-4. `jar tf` xác nhận tên entry thực tế.
-5. `java -cp bundle-demo.jar com.example.app.Main` chạy với artifact được tạo.
+1. `javac -d out` creates `out/com/example/app/Main.class`.
+2. `-C out .` in `jar` puts the **contents inside** `out` into the JAR root.
+3. `-C src/main/resources .` puts the **contents inside** the resources directory into the JAR root.
+4. `jar tf` verifies the actual entry names.
+5. `java -cp bundle-demo.jar com.example.app.Main` runs with the generated artifact.
 
-Lưu ý: những lệnh shell này là hướng dẫn, không phải code Java. Trên Windows, hãy dùng các công cụ `javac` và `jar` trong `PATH`; cú pháp option `-C` của công cụ `jar` là độc lập với ký tự phân cách classpath của hệ điều hành.
+Note: these shell commands are instructions, not Java code. On Windows, use the `javac` and `jar` tools in `PATH`; the `-C` option syntax of the `jar` tool is independent of the OS classpath separator.
 
-Nếu muốn chạy **không đóng JAR** từ hai thư mục riêng, cần đưa **cả class output lẫn resource root** vào runtime classpath:
+If you want to run **without packaging a JAR** from two separate directories, you must put **both the class output and the resource root** on the runtime classpath:
 
 Linux/macOS:
 
@@ -401,29 +401,29 @@ Windows:
 java -cp "out;src/main/resources" com.example.app.Main
 ```
 
-Dấu phân cách các thành phần classpath là `:` trên hệ điều hành kiểu Unix và `;` trên Windows. Đừng chỉ để `out` trên classpath rồi kỳ vọng `getBundle` đọc được resource nằm trong `src/main/resources` mà không có bước copy/đưa root vào classpath.
+The classpath entry separator is `:` on Unix-like operating systems and `;` on Windows. Do not put only `out` on the classpath and expect `getBundle` to read resources located in `src/main/resources` without copying them or adding that root to the classpath.
 
-## 8. Vì sao không thể đọc resource trong JAR bằng new File?
+## 8. Why Can't Resources Inside a JAR Be Read with new File?
 
-Một lỗi khác:
+Another common mistake:
 
 ```java
 File file = new File("src/main/resources/com/example/i18n/Messages_vi_VN.properties");
 ```
 
-Trong IDE, working directory có thể trùng gốc repo và file tồn tại. Nhưng trong bản deploy, runtime thường chỉ có `bundle-demo.jar`, không có thư mục `src/main/resources`.
+In the IDE, the working directory may match the repo root and the file exists. But in a deployment, the runtime usually has only `bundle-demo.jar`, without the `src/main/resources` directory.
 
-Kể cả khi đã biết URL tới entry trong JAR:
+Even when you obtain the URL to an entry inside the JAR:
 
 ```text
 jar:file:/.../bundle-demo.jar!/com/example/i18n/Messages_vi_VN.properties
 ```
 
-nó **không phải** một filesystem `Path` thông thường. Đừng lấy `getResource(...).getFile()` rồi mặc nhiên chuyển sang `new File(...)`; cách làm này có thể hỏng với các URL có dấu cách, dấu `!`, path được escape hoặc nested JAR.
+it is **not** a regular filesystem `Path`. Do not take `getResource(...).getFile()` and blindly convert it to `new File(...)`; this approach can break with URLs containing spaces, `!` characters, escaped paths, or nested JARs.
 
-### Đọc resource qua classloader
+### Reading Resources via ClassLoader
 
-Khi cần trực tiếp đọc một resource (không dùng `ResourceBundle`):
+When you need to read a resource directly (without using `ResourceBundle`):
 
 ```java
 import java.io.InputStream;
@@ -435,23 +435,23 @@ try (InputStream in = Main.class.getClassLoader()
     if (in == null) {
         throw new IllegalStateException("Resource not found");
     }
-    // Đọc từ InputStream với charset phù hợp.
+    // Read from InputStream with the appropriate charset.
 }
 ```
 
-Đây là **snippet đặt trong một method thuộc lớp Main**. `getResourceAsStream` trả một `InputStream` có thể truy cập nội dung của entry ngay trong JAR mà không cần giải nén. Phải đóng stream sau khi dùng.
+This is a **snippet placed inside a method of class Main**. `getResourceAsStream` returns an `InputStream` that can access the entry's contents directly inside the JAR without extracting it. Always close the stream after use.
 
-Phân biệt hai API:
+Distinguish between the two APIs:
 
-- `Main.class.getClassLoader().getResourceAsStream("com/example/...")` dùng đường dẫn **tính từ classpath root**, **không có dấu `/` ở đầu**.
-- `Main.class.getResourceAsStream("/com/example/...")` dùng đường dẫn **tuyệt đối từ classpath root** do dấu `/` đầu tiên.
-- `Main.class.getResourceAsStream("local.txt")` khi không có dấu `/` sẽ tìm **tương đối tới package `com/example/app`** của `Main`.
+- `Main.class.getClassLoader().getResourceAsStream("com/example/...")` takes a path **relative to the classpath root**, **with no leading `/`**.
+- `Main.class.getResourceAsStream("/com/example/...")` takes an **absolute path from the classpath root** because of the leading `/`.
+- `Main.class.getResourceAsStream("local.txt")` without a leading `/` searches **relative to the `com/example/app` package** of `Main`.
 
-`ResourceBundle.getBundle` thực hiện logic tìm bundle/fallback, không chỉ đọc một file đơn lẻ. Vì vậy với thông điệp đa ngôn ngữ, ưu tiên `ResourceBundle` thay vì tự duyệt các path của `.properties`, trừ khi ứng dụng có định dạng resource tùy chỉnh.
+`ResourceBundle.getBundle` performs bundle/fallback lookup logic, not just reading a single file. Therefore, for multilingual messages, prefer `ResourceBundle` over manually probing `.properties` paths, unless the application uses a custom resource format.
 
-## 9. Candidate locales, fallback và key kế thừa
+## 9. Candidate Locales, Fallback, and Inherited Keys
 
-Khi gọi:
+When calling:
 
 ```java
 ResourceBundle.getBundle(
@@ -459,7 +459,7 @@ ResourceBundle.getBundle(
         Locale.forLanguageTag("vi-VN"));
 ```
 
-với các file trong ví dụ, Java xét candidate bundle phù hợp; trong trường hợp `vi-VN` đơn giản:
+with the files in the example, Java evaluates matching candidate bundles; in the simple `vi-VN` case:
 
 ```text
 Messages_vi_VN.properties
@@ -467,75 +467,75 @@ Messages_vi.properties
 Messages.properties
 ```
 
-Với dữ liệu được chuẩn bị ở mục 4, các key được giải quyết:
+With the data prepared in section 4, the keys resolve as:
 
-| Key | File chứa giá trị được sử dụng | Giá trị |
+| Key | File containing the used value | Value |
 | --- | --- | --- |
 | `greeting` | `Messages_vi_VN.properties` | `Xin chào từ Việt Nam` |
 | `app.title` | `Messages_vi.properties` | `Ứng dụng bản địa hóa` |
 | `only.base` | `Messages.properties` | `Base fallback` |
 
-Một chú ý về thuật toán mặc định: `ResourceBundle` có chiến lược **candidate locales và fallback tới default locale** nếu bundle cho locale yêu cầu không tìm được, tùy tình huống. Không nên giải thích cứng rằng “mọi yêu cầu đều thử locale → root rồi dừng” cho tất cả cấu hình. Ví dụ đặt `Locale.getDefault()` thành một vùng khác có thể thay đổi bundle nào được chọn khi candidate cho locale yêu cầu không có.
+A note on the default algorithm: `ResourceBundle` has a strategy for **candidate locales and fallback to the default locale** if no bundle for the requested locale is found, depending on the situation. You should not rigidly state that "every request tries locale -> root and stops" for all configurations. For instance, setting `Locale.getDefault()` to another region can change which bundle is chosen when candidates for the requested locale are missing.
 
-Nếu cần **không fallback qua default locale JVM** trên classpath, có thể dùng `ResourceBundle.Control.getNoFallbackControl(...)` — nhưng cần hiểu API này không sử dụng như cũ cho mọi named module.
+If you need **no fallback via the JVM default locale** on the classpath, you can use `ResourceBundle.Control.getNoFallbackControl(...)` — but understand that this API cannot be used the same way in all named modules.
 
-Ví dụ kiểm soát rõ locale là tốt hơn việc chỉ gọi overload không truyền locale:
+Explicitly controlling the locale is better than calling the overload without a locale:
 
 ```java
 ResourceBundle selected = ResourceBundle.getBundle(
         "com.example.i18n.Messages", Locale.forLanguageTag("vi-VN"));
 ```
 
-Đừng gọi `ResourceBundle.getBundle(baseName)` trong server đa vùng rồi kỳ vọng mọi người dùng thấy đúng ngôn ngữ riêng: overload đó dựa trên locale mặc định của JVM, không phải locale của từng request.
+Do not call `ResourceBundle.getBundle(baseName)` in a multi-region server and expect every user to see their own language: that overload relies on the JVM's default locale, not the locale of each request.
 
-### MissingResourceException có hai nguyên nhân khác nhau
+### MissingResourceException Has Two Distinct Causes
 
-- **Không tìm thấy bundle:** `ResourceBundle.getBundle(...)` ném `MissingResourceException` vì không thể tải bundle thích hợp từ classpath/module.
-- **Có bundle nhưng thiếu key:** `bundle.getString("some.key")` cũng có thể ném `MissingResourceException` vì key không có trong bundle được chọn và các parent.
+- **Bundle not found:** `ResourceBundle.getBundle(...)` throws `MissingResourceException` because no suitable bundle could be loaded from the classpath/module.
+- **Bundle found, but key missing:** `bundle.getString("some.key")` can also throw `MissingResourceException` because the key does not exist in the selected bundle or its parents.
 
-Cùng tên ngoại lệ **không đồng nghĩa cùng cách sửa**. Hãy kiểm tra **base name, classpath, JAR entries** khi lỗi xảy ra tại `getBundle`; kiểm tra **key names và parent hierarchy** khi lỗi ở `getString`.
+Having the same exception name **does not mean having the same fix**. Check the **base name, classpath, and JAR entries** when the error occurs at `getBundle`; check **key names and parent hierarchy** when the error is at `getString`.
 
-## 10. Encoding: ResourceBundle .properties và Java 9+
+## 10. Encoding: ResourceBundle .properties and Java 9+
 
-Đối với Java 17+, file `.properties` của `PropertyResourceBundle` được đọc theo **UTF-8** theo mặc định (thay đổi từ Java 9, JEP 226). Nếu file không phải UTF-8 hợp lệ, implementation mặc định thử **ISO-8859-1** để tương thích một số tài nguyên cũ.
+For Java 17+, `.properties` files of `PropertyResourceBundle` are read as **UTF-8** by default (changed since Java 9, JEP 226). If a file is not valid UTF-8, the default implementation falls back to **ISO-8859-1** for compatibility with legacy resources.
 
-Có thể dùng thuộc tính hệ thống `java.util.PropertyResourceBundle.encoding` với giá trị `UTF-8` hoặc `ISO-8859-1` để cố định cách đọc. Thuộc tính này được xét khi `PropertyResourceBundle` khởi tạo; không thay giá trị runtime rồi kỳ vọng mọi bundle đã cache sẽ giải mã lại.
+You can use the system property `java.util.PropertyResourceBundle.encoding` with the value `UTF-8` or `ISO-8859-1` to fix how it is read. This property is evaluated when `PropertyResourceBundle` initializes; do not change its value at runtime and expect already-cached bundles to be re-decoded.
 
-Điểm cần phân biệt:
+Points to distinguish:
 
-| API | Quy tắc charset |
+| API | Charset rule |
 | --- | --- |
-| `PropertyResourceBundle(InputStream)`, Java 9+ | UTF-8 trước, fallback ISO-8859-1 khi byte không hợp lệ, trừ cấu hình cố định |
-| `Properties.load(InputStream)` | Theo đặc tả truyền thống, giải mã byte ISO-8859-1; **không** phải UTF-8 mặc định |
-| `Properties.load(Reader)` | Dùng ký tự do Reader đã giải mã theo charset của nó |
-| `ResourceBundle.getBundle(...)` tìm property bundles | Theo cơ chế `PropertyResourceBundle`/provider và môi trường classpath/module tương ứng |
+| `PropertyResourceBundle(InputStream)`, Java 9+ | UTF-8 first, fallback to ISO-8859-1 on invalid bytes, unless configured explicitly |
+| `Properties.load(InputStream)` | By traditional specification, decodes ISO-8859-1 bytes; **not** UTF-8 by default |
+| `Properties.load(Reader)` | Uses characters already decoded by the Reader according to its charset |
+| `ResourceBundle.getBundle(...)` loading property bundles | Follows `PropertyResourceBundle`/provider mechanisms and the corresponding classpath/module environment |
 
-**JDK 18 chuyển charset mặc định sang UTF-8 (JEP 400) không phải nguyên nhân của thay đổi JEP 226**: quy tắc property resource bundle UTF-8 đã có từ Java 9.
+**JDK 18 changing the default charset to UTF-8 (JEP 400) is not the cause of the JEP 226 change**: the UTF-8 property resource bundle rule has existed since Java 9.
 
-### Một số lỗi do công cụ build làm biến đổi resource
+### Build Tool Errors That Mutate Resources
 
-Không chỉ Java runtime, **bước build** cũng có thể ảnh hưởng byte:
+Not only the Java runtime, but also the **build step** can alter bytes:
 
-- Plugin resource filtering thay các mẫu placeholder trong `.properties`.
-- Công cụ build đọc file với charset không phù hợp rồi ghi lại, gây mojibake.
-- File thực tế được lưu trong legacy encoding nhưng code/tài liệu nói UTF-8.
-- Lỗi escape của `.properties`: ký tự `=`, `:`, `#`, `!`, `\\` và dòng nối có ý nghĩa cú pháp; không nên tự kết luận tệp resource là một file text “key=value” không cần escaping.
+- Resource filtering plugins replace placeholder patterns inside `.properties`.
+- The build tool reads the file with an inappropriate charset and writes it back, causing mojibake.
+- The file is actually saved in a legacy encoding while code/docs claim UTF-8.
+- `.properties` escaping mistakes: characters `=`, `:`, `#`, `!`, `\\`, and line continuations have syntactic meaning; do not assume a resource file is just a plain "key=value" text file needing no escaping.
 
-Với Java 17+, lưu source properties ở UTF-8 và khai báo encoding của build phù hợp. Chỉ bật Maven/Gradle resource filtering khi thật sự cần; **không** dùng filtering để tự động biến đổi nội dung dịch nếu có nguy cơ ảnh hưởng dấu, dấu nháy hoặc placeholder.
+With Java 17+, save source properties in UTF-8 and declare the appropriate build encoding. Only enable Maven/Gradle resource filtering when truly needed; do **not** use filtering to automatically transform translated content if there is a risk of corrupting diacritics, quotes, or placeholders.
 
-## 11. Named modules (JPMS) và resource bundles
+## 11. Named Modules (JPMS) and Resource Bundles
 
-Mô hình classpath thông thường đặt JAR trên `-cp` và lớp nằm trong **unnamed module**. Khi ứng dụng dùng `module-info.java` và chạy bằng `--module-path`, việc tìm resource phải tuân thủ thêm **module encapsulation**.
+The traditional classpath model places JARs on `-cp` and classes reside in the **unnamed module**. When an application uses `module-info.java` and runs with `--module-path`, resource lookup must also obey **module encapsulation**.
 
-Các điều quan trọng:
+Key points:
 
-1. Resource bundle nằm **cùng named module** với ứng dụng có thể được tải bởi code bên trong module thông qua `ResourceBundle.getBundle(baseName, locale)`.
-2. Resource bundle trong **module khác** không mặc định mở cho mọi nơi đọc; khả năng truy cập còn phụ thuộc module exports/opens và cơ chế tìm qua module.
-3. API Java 9+ hỗ trợ `ResourceBundle.getBundle(baseName, locale, module)` để tìm trên danh nghĩa một module cụ thể.
-4. Resource bundle có thể được cung cấp qua **`ResourceBundleProvider` service** giữa các modules, với `uses`/`provides` phù hợp.
-5. Một số overload `getBundle` nhận `ResourceBundle.Control` **không hỗ trợ trong named module**; dùng đúng quy tắc JPMS và APIs hiện đại.
+1. A resource bundle in the **same named module** as the application can be loaded by code inside that module via `ResourceBundle.getBundle(baseName, locale)`.
+2. A resource bundle in **another module** is not open by default for everyone to read; accessibility also depends on module exports/opens and the module lookup mechanism.
+3. The Java 9+ API supports `ResourceBundle.getBundle(baseName, locale, module)` to look up on behalf of a specific module.
+4. Resource bundles can be provided across modules via the **`ResourceBundleProvider` service**, with appropriate `uses`/`provides` declarations.
+5. Some `getBundle` overloads accepting `ResourceBundle.Control` are **not supported in named modules**; follow proper JPMS rules and modern APIs.
 
-Ví dụ một câu lệnh ở ngữ cảnh module có ý nghĩa:
+An example statement in a meaningful module context:
 
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle(
@@ -544,13 +544,13 @@ ResourceBundle bundle = ResourceBundle.getBundle(
         Main.class.getModule());
 ```
 
-Đây là **snippet**, yêu cầu resource nằm trong module được chỉ định/được module đó truy cập theo quy tắc đóng gói; không bảo đảm tự tìm resource bị ẩn ở module không liên quan.
+This is a **snippet**, requiring the resource to reside in the specified module or be accessible to that module under encapsulation rules; it is not guaranteed to automatically find resources hidden in unrelated modules.
 
-**Đừng giải quyết lỗi bằng cách tự ý mở toàn bộ module ra bên ngoài.** Hãy kiểm tra bundle nằm cùng module hay module khác, module được cấp quyền gì và API nào đang gọi. Xem phần *Resource Bundles and Named Modules* của Javadoc chính thức.
+**Do not solve the error by arbitrarily opening entire modules externally.** Check whether the bundle is in the same module or another module, what access the module is granted, and which API is being called. See the *Resource Bundles and Named Modules* section of the official Javadoc.
 
-## 12. Spring Boot executable JAR khác JAR classpath thông thường
+## 12. Spring Boot Executable JARs Differ from Standard Classpath JARs
 
-Một executable JAR của Spring Boot thường có cấu trúc:
+A Spring Boot executable JAR typically has the structure:
 
 ```text
 BOOT-INF/classes/com/example/app/Main.class
@@ -559,72 +559,72 @@ BOOT-INF/lib/...
 META-INF/MANIFEST.MF
 ```
 
-Đây là **layout của Spring Boot executable JAR**, không phải tên entry root của một JAR chuẩn chạy trực tiếp bằng `java -cp`. Spring Boot loader tạo classpath runtime từ `BOOT-INF/classes` và các nested JAR phụ thuộc. Vì vậy:
+This is the **layout of a Spring Boot executable JAR**, not the root entry names of a standard JAR run directly with `java -cp`. The Spring Boot loader constructs the runtime classpath from `BOOT-INF/classes` and the nested dependency JARs. Therefore:
 
-- `jar tf app.jar` có thể cho thấy `BOOT-INF/classes/com/example/i18n/Messages_vi_VN.properties` và vẫn **đúng** đối với Spring Boot.
-- Dùng lệnh run chuẩn của Spring Boot, ví dụ `java -jar app.jar` khi manifest/loader đã cấu hình đúng.
-- Không áp quy tắc “entry bắt buộc ở gốc JAR” của mục 3 một cách máy móc cho các định dạng executable archive khác nhau.
-- Nếu sử dụng **Spring MessageSource** với `spring.messages.basename`, tham số đó tuân theo cách tìm resource của Spring và cấu hình tương ứng, không nhất thiết giống mọi cách dùng `java.util.ResourceBundle`. Cần xem tài liệu và cấu hình Spring cụ thể.
+- `jar tf app.jar` can show `BOOT-INF/classes/com/example/i18n/Messages_vi_VN.properties` and still be **correct** for Spring Boot.
+- Use the standard Spring Boot run command, such as `java -jar app.jar` when the manifest/loader is properly configured.
+- Do not mechanically apply the "entries must be at the JAR root" rule from section 3 to different executable archive formats.
+- If using **Spring MessageSource** with `spring.messages.basename`, that parameter follows Spring's resource lookup rules and corresponding configuration, which may not behave identically to all uses of `java.util.ResourceBundle`. Consult Spring's specific documentation and configuration.
 
-Đường dẫn nguồn vẫn thường là `src/main/resources`. Khác biệt là **cách Boot đóng gói và load resource**. Khi debug, xác định **loại JAR** trước, rồi mới quyết định entry nào là đúng.
+The source path is still typically `src/main/resources`. The difference lies in **how Boot packages and loads resources**. When debugging, determine the **type of JAR** first, then decide which entries are valid.
 
-## 13. ClassLoader và bẫy đóng gói đa JAR
+## 13. ClassLoader and Multi-JAR Packaging Traps
 
-Trong hệ thống thực, bundle có thể nằm ở module phụ thuộc hoặc một JAR riêng. Khi đó:
+In real-world systems, bundles may reside in a dependency module or a separate JAR. In that case:
 
-- Cần đặt JAR chứa resources trên **runtime classpath** (hoặc module path với quy tắc phù hợp).
-- Một resource có thể tồn tại ở nhiều JAR khác nhau với **cùng một path**. Thứ tự/chiến lược tra cứu của classloader có thể quyết định file nào được chọn; không nên dựa vào sự trùng path.
-- Trong plugin systems, application servers, thread context class loaders có thể khác classloader của lớp ứng dụng. `ResourceBundle.getBundle(baseName, locale, loader)` hoặc overload module có thể hữu ích khi cần chỉ rõ môi trường tải.
-- Trên Java 9+, cache bundle có thể gắn với classloader/module và locale. Thay đổi JAR ngoài đĩa không bắt buộc làm bundle đang sống trong JVM tự động reload.
-- `ResourceBundle.clearCache()` tồn tại cho một số tình huống reload kiểm thử, nhưng không thay thế thiết kế cập nhật resource có quản lý classloader và lifetime phù hợp.
+- The JAR containing the resources must be placed on the **runtime classpath** (or module path with appropriate rules).
+- A resource can exist in multiple different JARs under the **exact same path**. Classloader lookup order/strategy may determine which file gets picked; do not rely on path collisions.
+- In plugin systems and application servers, thread context classloaders may differ from the application class's classloader. `ResourceBundle.getBundle(baseName, locale, loader)` or the module overload can be useful when you need to specify the loading environment.
+- On Java 9+, bundle caches may be tied to the classloader/module and locale. Modifying a JAR on disk does not necessarily force live bundles in the JVM to reload automatically.
+- `ResourceBundle.clearCache()` exists for certain testing reload scenarios, but it does not replace designing resource updates with properly managed classloaders and lifetimes.
 
-Một chương trình đơn giản không cần custom classloader. Chỉ dùng các overload nâng cao khi hệ thống thật sự có các loader hoặc module khác nhau. Đừng viết code để quét toàn bộ filesystem tìm file `Messages*.properties` nếu lỗi chủ yếu là sai classpath.
+A simple program does not need a custom classloader. Only use advanced overloads when the system genuinely involves distinct loaders or modules. Do not write code to scan the entire filesystem for `Messages*.properties` files when the root cause is simply a misconfigured classpath.
 
-## 14. Quy trình chẩn đoán MissingResourceException có hệ thống
+## 14. Systematic Workflow for Diagnosing MissingResourceException
 
-Khi lỗi xảy ra sau khi đóng gói:
+When the error occurs after packaging:
 
-### Bước 1. Xác định nơi ném lỗi
+### Step 1. Identify Where the Exception Is Thrown
 
-- `getBundle(base, locale)` lỗi → kiểm tra bundle/resource path và runtime loader.
-- `getString(key)` lỗi → kiểm tra tên key, các file parent và bundle locale được chọn.
+- `getBundle(base, locale)` fails -> check bundle/resource path and runtime loader.
+- `getString(key)` fails -> check key name, parent files, and the selected bundle locale.
 
-### Bước 2. Ghi chính xác base name và locale
+### Step 2. Log the Exact Base Name and Locale
 
 ```java
 System.out.println("Bundle base: " + baseName);
 System.out.println("Requested locale: " + locale.toLanguageTag());
 ```
 
-Đây là snippet, với `baseName` và `locale` đã được tạo.
+This is a snippet, assuming `baseName` and `locale` have already been created.
 
-Chú ý viết hoa/thường ở tên thư mục, tên tệp và hậu tố locale, ví dụ `Messages_vi_VN.properties` khác `messages_vi_vn.properties` trên nhiều môi trường. Hãy tuân theo tên mà `ResourceBundle` sinh ra, không tự đổi `vi_VN` thành `vi-VN` trong tên file chỉ vì BCP 47 dùng dấu gạch nối.
+Pay attention to letter casing in directory names, file names, and locale suffixes; for example, `Messages_vi_VN.properties` differs from `messages_vi_vn.properties` on many environments. Follow the naming convention generated by `ResourceBundle`; do not manually change `vi_VN` to `vi-VN` in the file name just because BCP 47 uses a hyphen.
 
-### Bước 3. Kiểm tra classpath output và artifact
+### Step 3. Inspect Classpath Output and Artifact
 
-Với Maven:
+With Maven:
 
 ```bash
 mvn -q clean package
 jar tf target/bundle-demo-1.0.0.jar
 ```
 
-Với Gradle: kiểm tra `build/resources/main` rồi `jar tf build/libs/<actual-name>.jar`. Với Spring Boot: xem `BOOT-INF/classes`, không chỉ root entry.
+With Gradle: inspect `build/resources/main` and then `jar tf build/libs/<actual-name>.jar`. With Spring Boot: check `BOOT-INF/classes`, not just root entries.
 
-### Bước 4. So sánh đường dẫn cần tìm với entry thực
+### Step 4. Compare the Expected Path with the Actual Entry
 
 ```text
 Expected: com/example/i18n/Messages_vi_VN.properties
 Actual:   src/main/resources/com/example/i18n/Messages_vi_VN.properties
 ```
 
-Trường hợp này là **file có trong JAR nhưng sai path**. Sửa build packaging/copy root, không sửa locale hay chuyển charset.
+This case means **the file is inside the JAR but at the wrong path**. Fix the build packaging/copy root, not the locale or charset conversion.
 
-### Bước 5. Kiểm tra đúng JAR đang chạy
+### Step 5. Verify the Exact JAR Being Executed
 
-Đôi khi `jar tf` được chạy trên artifact mới nhất nhưng deployment lại chạy bản cũ hoặc một JAR khác tên. Xác nhận script, container image, `-cp`, `-jar`, module path và classloader thực tế.
+Sometimes `jar tf` is run on the latest artifact while the deployment executes an older build or a differently named JAR. Confirm the actual launch script, container image, `-cp`, `-jar`, module path, and classloader.
 
-### Bước 6. Kiểm tra runtime getResource
+### Step 6. Verify Runtime getResource
 
 ```java
 String resourcePath =
@@ -634,41 +634,41 @@ boolean found = Main.class.getClassLoader()
 System.out.println(found);
 ```
 
-Đây là snippet. Nếu `false`, classloader đang dùng **không tìm thấy đúng path**. Nếu `true` nhưng `getBundle` vẫn lỗi, kiểm tra base name, candidate locale, format, module constraints, bundle class/property xung đột hoặc loader khác nhau.
+This is a snippet. If `false`, the active classloader **cannot find the exact path**. If `true` yet `getBundle` still fails, check the base name, candidate locales, format, module constraints, conflicting class/property bundles, or differing loaders.
 
-### Bước 7. Tách lỗi encoding khỏi lỗi tìm resource
+### Step 7. Separate Encoding Errors from Resource Lookup Errors
 
-Nếu `getBundle` và `getString` **thành công** nhưng dấu tiếng Việt thành chuỗi sai, resource có thể đã được tải đúng path nhưng byte bị chuyển mã sai hoặc console hiển thị sai. Khi đó mới kiểm tra UTF-8, resource filtering và output encoding.
+If `getBundle` and `getString` **succeed** but Vietnamese diacritics turn into garbled characters, the resource was likely loaded from the right path, while the bytes were decoded wrongly or the console displays them improperly. Only then should you inspect UTF-8, resource filtering, and output encoding.
 
-## 15. Bảng đối chiếu lỗi thường gặp
+## 15. Common Error Reference Table
 
-| Triệu chứng | Nguyên nhân có thể | Hướng sửa |
+| Symptom | Possible Cause | Fix |
 | --- | --- | --- |
-| IDE chạy, JAR không chạy | Resource chưa vào JAR | Đặt file trong `src/main/resources`; xem `jar tf` |
-| JAR có file nhưng `MissingResourceException` | Entry bị thêm tiền tố `src/main/resources/` hoặc `resources/` | Đóng gói **nội dung** resource root vào root JAR |
-| `getBundle("Messages", locale)` không tìm thấy | Base name thiếu package | Dùng `com.example.i18n.Messages` khi file ở package tương ứng |
-| Truyền `Messages_vi_VN.properties` làm base name | Base name không phải file name | Bỏ extension và locale suffix; truyền base name |
-| `.properties` nằm trong `src/main/java` | Build không copy non-code files ở source tree | Chuyển sang `src/main/resources` |
-| Lỗi chỉ xảy ra trên Linux | File/package khác chữ hoa/thường | Kiểm tra case của path và suffix |
-| `getString` thiếu key dù bundle tồn tại | Key không nằm trong bundle hoặc parent | Kiểm tra parent chain và tên key |
-| Hiển thị ngôn ngữ khác mong đợi | Locale/default locale và fallback | Truyền locale tường minh; kiểm tra `getLocale()` |
-| Đọc được nhưng chữ tiếng Việt lỗi | Encoding resource hoặc console | Xác nhận UTF-8, JEP 226, pipeline output |
-| `getResourceAsStream` trả null | Classpath root sai, path có `/` đầu khi dùng ClassLoader | Dùng đúng path tương đối classpath root |
-| `new File("src/main/resources/...")` lỗi khi deploy | Working directory khác, source tree không tồn tại | Dùng `getResourceAsStream`/`getBundle` |
-| `java -jar` báo thiếu main manifest | JAR chưa có `Main-Class` | Cấu hình manifest hoặc chạy `java -cp jar Main` |
-| `java -cp` trên Boot fat JAR không hoạt động | Nested `BOOT-INF` layout | Chạy qua Boot loader/`java -jar` đúng cách |
-| Named module không thấy bundle | Module encapsulation hoặc loader không đúng | Xem JPMS ResourceBundle docs và cách mở package hợp lệ |
-| Locale thay nhưng vẫn thấy nội dung cũ | Bundle cache/classloader sống lâu | Kiểm tra deployment, cache/reload strategy |
-| Một bundle bị load nhầm từ dependency | Trùng resource path trong nhiều JAR | Đặt tên namespace riêng; kiểm tra classloader |
-| Build filtering làm hỏng placeholder | Plugin xử lý resource text ngoài ý muốn | Cấu hình excludes/encoding/filtering đúng |
-| Tên file `Messages_vi-VN.properties` | Sai convention underscore của bundle locale file | Dùng `Messages_vi_VN.properties` |
-| Không có root file | Fallback không như dự kiến hoặc không có bundle phù hợp | Cân nhắc tạo `Messages.properties` làm root fallback |
+| Works in IDE, fails in JAR | Resource not included in JAR | Put file in `src/main/resources`; check `jar tf` |
+| File is in JAR, still `MissingResourceException` | Entry prefixed with `src/main/resources/` or `resources/` | Package the **contents** of the resource root into the JAR root |
+| `getBundle("Messages", locale)` not found | Base name missing package | Use `com.example.i18n.Messages` when file is in that package |
+| Passing `Messages_vi_VN.properties` as base name | Base name is not a file name | Strip extension and locale suffix; pass the base name |
+| `.properties` located in `src/main/java` | Build does not copy non-code files in source tree | Move to `src/main/resources` |
+| Fails only on Linux | Case mismatch in file/package name | Verify exact casing of path and suffix |
+| `getString` missing key even though bundle exists | Key absent from bundle and parents | Check parent chain and key name |
+| Shows unexpected language | Locale/default locale and fallback | Pass locale explicitly; check `getLocale()` |
+| Reads fine but Vietnamese text is corrupted | Resource or console encoding | Verify UTF-8, JEP 226, output pipeline |
+| `getResourceAsStream` returns null | Wrong classpath root, leading `/` used with ClassLoader | Use correct path relative to classpath root |
+| `new File("src/main/resources/...")` fails on deploy | Different working directory, source tree absent | Use `getResourceAsStream`/`getBundle` |
+| `java -jar` reports no main manifest attribute | JAR lacks `Main-Class` | Configure manifest or run `java -cp jar Main` |
+| `java -cp` on Boot fat JAR fails | Nested `BOOT-INF` layout | Run via Boot loader/`java -jar` properly |
+| Named module cannot see bundle | Module encapsulation or wrong loader | Check JPMS ResourceBundle docs and valid package opening |
+| Locale changes but old content still shows | Long-lived bundle cache/classloader | Check deployment and cache/reload strategy |
+| Wrong bundle loaded from a dependency | Duplicate resource path across multiple JARs | Use a distinct namespace; check classloader |
+| Build filtering breaks placeholders | Plugin unintentionally processes resource text | Configure excludes/encoding/filtering properly |
+| File named `Messages_vi-VN.properties` | Wrong underscore convention for bundle locale files | Use `Messages_vi_VN.properties` |
+| Missing root file | Fallback behaves unexpectedly or no matching bundle | Consider creating `Messages.properties` as root fallback |
 
-## 16. Kiểm thử tự động sau khi package
+## 16. Automated Testing After Packaging
 
-Kiểm thử ở IDE chưa đủ, vì IDE có thể tự động đưa `src/main/resources` lên runtime classpath. Nên có **smoke test trực tiếp trên JAR thành phẩm**.
+Testing in the IDE is not enough, because the IDE may automatically add `src/main/resources` to the runtime classpath. You should run a **smoke test directly against the built JAR**.
 
-Với dự án Maven tối thiểu trong bài:
+With the minimal Maven project in this article:
 
 ```bash
 mvn -q clean package
@@ -676,79 +676,79 @@ jar tf target/bundle-demo-1.0.0.jar
 java -cp target/bundle-demo-1.0.0.jar com.example.app.Main
 ```
 
-Các kỳ vọng cần đạt:
+Expectations to verify:
 
-1. JAR chứa đúng entry `com/example/i18n/Messages_vi_VN.properties`.
-2. Output `Bundle locale: vi-VN`.
+1. The JAR contains the exact entry `com/example/i18n/Messages_vi_VN.properties`.
+2. Output shows `Bundle locale: vi-VN`.
 3. `Greeting: Xin chào từ Việt Nam`.
-4. Key `app.title` kế thừa `vi` và `only.base` kế thừa root.
+4. Key `app.title` inherits from `vi` and `only.base` inherits from root.
 5. `Resource in classpath: true`.
-6. Test **sau khi di chuyển JAR** sang một thư mục khác vẫn chạy bằng `java -cp /path/to/jar com.example.app.Main`, không cần source tree.
-7. Nếu chạy trong container, đường dẫn resource được tìm từ **artifact/runtime classpath**, không phải từ current working directory.
+6. Testing **after moving the JAR** to another directory still runs via `java -cp /path/to/jar com.example.app.Main`, without needing the source tree.
+7. If running inside a container, resource paths are resolved from the **artifact/runtime classpath**, not from the current working directory.
 
-### Bất biến hữu ích cho pipeline
+### Useful Invariants for Pipelines
 
-- **Tất cả bundle variants cần thiết được đóng gói** vào đúng path.
-- **Mỗi base name có root bundle** khi sản phẩm yêu cầu fallback ổn định.
-- Các key bắt buộc được kiểm tra trong các locale sản phẩm hỗ trợ.
-- Không có duplicate resource path ngoài chủ đích.
-- Build artifact có checksum/version đúng với bản đang deploy.
-- Không dựa vào file tồn tại trong source tree để đọc resource ở runtime.
+- **All required bundle variants are packaged** at the right paths.
+- **Every base name has a root bundle** when the product requires predictable fallback.
+- Mandatory keys are verified across all supported product locales.
+- No unintended duplicate resource paths exist.
+- The build artifact's checksum/version matches the deployed build.
+- Do not rely on files existing in the source tree to read resources at runtime.
 
-Với hệ thống cần kiểm thử chặt, có thể viết integration test chạy `java -cp artifact.jar Main` sau build. Lỗi source-resource root thường chỉ được phát hiện ở bước này.
+For systems requiring strict testing, you can write an integration test that executes `java -cp artifact.jar Main` after the build. Source-resource root bugs are often caught only at this step.
 
-## 17. Bài tập thực hành và đáp án
+## 17. Practice Exercises and Answers
 
-**Câu 1.** Tệp `src/main/resources/com/acme/i18n/Labels_fr_CA.properties` tương ứng base name nào?
+**Question 1.** What base name does `src/main/resources/com/acme/i18n/Labels_fr_CA.properties` correspond to?
 
-**Đáp án:** `com.acme.i18n.Labels`. Locale tương ứng `fr-CA`. JAR classpath thông thường phải chứa `com/acme/i18n/Labels_fr_CA.properties`.
+**Answer:** `com.acme.i18n.Labels`. The corresponding locale is `fr-CA`. A standard classpath JAR must contain `com/acme/i18n/Labels_fr_CA.properties`.
 
-**Câu 2.** Vì sao file `src/main/resources/Labels_vi.properties` không được tìm khi gọi `getBundle("com.acme.Labels", Locale.forLanguageTag("vi"))`?
+**Question 2.** Why is `src/main/resources/Labels_vi.properties` not found when calling `getBundle("com.acme.Labels", Locale.forLanguageTag("vi"))`?
 
-**Đáp án:** Base name quy định package `com.acme`, nên Java tìm `com/acme/Labels_vi.properties` từ classpath root. File đặt ở gốc resources lại có path `Labels_vi.properties`, không khớp.
+**Answer:** The base name specifies package `com.acme`, so Java looks for `com/acme/Labels_vi.properties` from the classpath root. A file placed at the root of resources has path `Labels_vi.properties`, which does not match.
 
-**Câu 3.** Tệp `Messages_vi_VN.properties` đã xuất hiện trong `jar tf` nhưng dưới `src/main/resources/com/example/i18n`. Có đủ không?
+**Question 3.** `Messages_vi_VN.properties` appears in `jar tf`, but under `src/main/resources/com/example/i18n`. Is that sufficient?
 
-**Đáp án:** Không đối với base name trong ví dụ. Java tìm dưới `com/example/i18n` tính từ classpath root/JAR root, không phải dưới thư mục `src/main/resources` nằm bên trong JAR.
+**Answer:** No, for the base name in the example. Java searches under `com/example/i18n` relative to the classpath root/JAR root, not under a `src/main/resources` folder inside the JAR.
 
-**Câu 4.** Nếu `Messages_vi_VN.properties` không có `app.title` mà `Messages_vi.properties` có, `getString("app.title")` trả gì?
+**Question 4.** If `Messages_vi_VN.properties` does not have `app.title` while `Messages_vi.properties` does, what does `getString("app.title")` return?
 
-**Đáp án:** Theo parent bundle chain, trả giá trị `Ứng dụng bản địa hóa` từ `Messages_vi.properties`.
+**Answer:** Following the parent bundle chain, it returns `Ứng dụng bản địa hóa` from `Messages_vi.properties`.
 
-**Câu 5.** Vì sao `java -cp bundle-demo.jar com.example.app.Main` chạy được nhưng `java -jar bundle-demo.jar` báo thiếu main manifest?
+**Question 5.** Why does `java -cp bundle-demo.jar com.example.app.Main` run while `java -jar bundle-demo.jar` reports a missing main manifest?
 
-**Đáp án:** `-cp` chỉ định JAR trong classpath và tên lớp Main tường minh; `-jar` yêu cầu manifest/launcher phù hợp. Đây là hai khái niệm khác với việc resource đã được đóng gói.
+**Answer:** `-cp` specifies the JAR on the classpath and the Main class name explicitly; `-jar` requires a suitable manifest/launcher. These are separate concepts from whether resources have been packaged.
 
-**Câu 6.** Có thể sửa bằng `new File("src/main/resources/...")` trong production không?
+**Question 6.** Can we fix this in production using `new File("src/main/resources/...")`?
 
-**Đáp án:** Không nên. Khi đóng gói JAR, source tree không nhất thiết được triển khai. Dùng `ResourceBundle` hoặc `ClassLoader.getResourceAsStream` để đọc entry qua classpath.
+**Answer:** No, you should not. When packaged into a JAR, the source tree is not necessarily deployed. Use `ResourceBundle` or `ClassLoader.getResourceAsStream` to read entries via the classpath.
 
-**Câu 7.** Vì sao cùng một JAR chạy trong Spring Boot lại có `BOOT-INF/classes` và vẫn load resources được?
+**Question 7.** Why does a Spring Boot JAR contain `BOOT-INF/classes` and still load resources?
 
-**Đáp án:** Spring Boot executable JAR dùng loader bố trí runtime classpath từ layout riêng của nó. Quy tắc root entry của JAR classpath thường không áp trực tiếp lên layout này.
+**Answer:** A Spring Boot executable JAR uses a loader that constructs the runtime classpath from its own layout. The root-entry rule for standard classpath JARs does not apply directly to this layout.
 
-**Câu 8.** Java 17 có đọc được thông điệp tiếng Việt trực tiếp trong `.properties` lưu UTF-8 không?
+**Question 8.** Can Java 17 read Vietnamese messages directly in `.properties` saved in UTF-8?
 
-**Đáp án:** Có đối với property resource bundles chuẩn Java 9+, theo JEP 226. Đừng nhầm với `Properties.load(InputStream)` vốn có quy tắc ISO-8859-1.
+**Answer:** Yes, for standard Java 9+ property resource bundles, per JEP 226. Do not confuse this with `Properties.load(InputStream)`, which uses ISO-8859-1 rules.
 
-**Câu 9.** `getBundle(...)` thành công nhưng `getString("missing.key")` thất bại. Cần sửa packaging trước tiên không?
+**Question 9.** `getBundle(...)` succeeds, but `getString("missing.key")` fails. Should you fix packaging first?
 
-**Đáp án:** Không nhất thiết. Hãy kiểm tra key ở bundle và các parent. `MissingResourceException` có thể là lỗi **thiếu key**, không phải lỗi thiếu file.
+**Answer:** Not necessarily. Check the key in the bundle and its parents. `MissingResourceException` can be a **missing key** error rather than a missing file error.
 
-**Câu 10.** Muốn chắc JAR deploy không phụ thuộc IDE, test nào đáng tin?
+**Question 10.** To be sure a deployed JAR does not depend on the IDE, which test is reliable?
 
-**Đáp án:** Chạy `jar tf` kiểm tra entry, sau đó chạy trực tiếp JAR thành phẩm bằng runtime launcher/classpath phù hợp từ môi trường **không có source tree**.
+**Answer:** Run `jar tf` to inspect the entries, then execute the built JAR directly using the appropriate runtime launcher/classpath from an environment **without the source tree**.
 
-## 18. Tổng kết
+## 18. Summary
 
-- **Base name** dùng dấu chấm, **resource path** dùng dấu `/`; với `com.example.i18n.Messages` và `vi-VN`, file cần có path `com/example/i18n/Messages_vi_VN.properties` từ classpath root.
-- Trong Maven/Gradle chuẩn, để các file trong `src/main/resources` để build tool tự copy và đóng gói; không lồng thêm nguyên thư mục `src/main/resources` bên trong JAR.
-- **Xác minh JAR thành phẩm bằng `jar tf`** và chạy thử artifact trực tiếp; chạy được trong IDE chưa chứng minh package đúng.
-- `ResourceBundle.getBundle` thực hiện tìm variant theo locale và fallback key. `ClassLoader.getResourceAsStream` dùng để đọc resource cụ thể; `new File(...)` không phù hợp cho entry nằm trong JAR.
-- Java 9+ có quy tắc UTF-8 cho property resource bundles. Lỗi resource path, thiếu key, encoding và lỗi manifest/launcher là các loại vấn đề **khác nhau**.
-- Named modules và Spring Boot executable JAR có mô hình tìm resources/đóng gói riêng; kiểm tra đúng kiểu runtime trước khi sửa.
+- **Base names** use dots, **resource paths** use `/`; for `com.example.i18n.Messages` and `vi-VN`, the file must have the path `com/example/i18n/Messages_vi_VN.properties` from the classpath root.
+- In standard Maven/Gradle projects, place files in `src/main/resources` so the build tool copies and packages them; do not nest the entire `src/main/resources` directory inside the JAR.
+- **Verify the built JAR with `jar tf`** and test running the artifact directly; running in the IDE does not prove packaging is right.
+- `ResourceBundle.getBundle` performs locale variant lookup and key fallback. `ClassLoader.getResourceAsStream` reads a specific resource; `new File(...)` is unsuitable for entries inside a JAR.
+- Java 9+ has UTF-8 rules for property resource bundles. Resource path errors, missing keys, encoding errors, and manifest/launcher errors are **different** classes of problems.
+- Named modules and Spring Boot executable JARs have their own resource lookup/packaging models; verify the exact runtime type before applying a fix.
 
-**Tài liệu chính thức và tham khảo:**
+**Official Documentation and References:**
 
 - [Java SE 21 — ResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ResourceBundle.html)
 - [Java SE 21 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/PropertyResourceBundle.html)

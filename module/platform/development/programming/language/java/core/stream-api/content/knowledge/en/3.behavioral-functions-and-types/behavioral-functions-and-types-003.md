@@ -1,16 +1,16 @@
-# Lambda và method reference cho các phép toán Stream
+# Lambdas and Method References for Stream Operations
 
-> **Chương:** Hàm hành vi và kiểu dữ liệu  
+> **Chapter:** Behavioral Functions and Types  
 > **Module:** JAVA_STREAM_API  
-> **Trọng tâm:** Viết, đọc và lựa chọn lambda hoặc method reference để truyền hành vi vào các phép toán Stream một cách rõ ràng, đúng kiểu và an toàn.
+> **Focus:** Write, read, and choose lambdas or method references to pass behavior into Stream operations clearly, type-safely, and securely.
 
-Java Stream API cho phép mô tả việc xử lý dữ liệu theo kiểu khai báo: **chọn phần tử nào** bằng `filter`, **biến đổi thế nào** bằng `map`, **tổng hợp ra sao** bằng `reduce` hoặc `collect`. Các phép toán ấy cần được cung cấp *hành vi*; trong Java, hành vi thường được biểu diễn bằng **biểu thức lambda** hoặc **method reference** tương ứng với một *functional interface* (giao diện hàm).
+The Java Stream API lets you describe data processing declaratively: **which elements to select** with `filter`, **how to transform them** with `map`, **how to aggregate them** with `reduce` or `collect`. Those operations need to be supplied with *behavior*; in Java, behavior is commonly represented by a **lambda expression** or a **method reference** matching a *functional interface*.
 
-Bài này tập trung vào cách viết hành vi, chọn đúng kiểu hàm và hiểu tác động của hành vi đối với pipeline lazy. Đây là nền tảng để học tiếp grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers trong module **JAVA_STREAM_API**, cũng như nhận diện giới hạn về trạng thái, tài nguyên và hiệu năng.
+This lesson focuses on how to write behavior, choose the right function type, and understand the impact of behavior on lazy pipelines. This is the foundation for learning grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers in the **JAVA_STREAM_API** module, as well as recognizing limits around state, resources, and performance.
 
-## 1. Vì sao Stream nhận hàm như một tham số?
+## 1. Why Do Streams Accept Functions as Parameters?
 
-Giả sử cần lấy tên khách hàng đã thanh toán cho các đơn hàng từ 100.000 đồng trở lên:
+Suppose we need to get the names of customers who have paid for orders of 100,000 VND or more:
 
 ```java
 import java.util.List;
@@ -36,32 +36,32 @@ class LambdaIntro {
 }
 ```
 
-Một pipeline bao gồm ba vai trò:
+A pipeline consists of three roles:
 
-1. **Nguồn:** `orders.stream()` cung cấp từng đối tượng `Order`.
-2. **Phép toán trung gian:** `filter(...)` cần một hàm trả về `boolean`; `map(...)` cần một hàm biến `Order` thành `String`.
-3. **Phép toán kết thúc:** `toList()` yêu cầu đánh giá pipeline để tạo danh sách kết quả.
+1. **Source:** `orders.stream()` supplies each `Order` object.
+2. **Intermediate operations:** `filter(...)` needs a function returning `boolean`; `map(...)` needs a function turning an `Order` into a `String`.
+3. **Terminal operation:** `toList()` triggers pipeline evaluation to produce the resulting list.
 
-`order -> order.paid() && order.amount() >= 100_000` là một **lambda**. `Order::customer` là một **method reference**. Chúng là hai cách cung cấp hành vi cho API, không phải hai loại pipeline khác nhau.
+`order -> order.paid() && order.amount() >= 100_000` is a **lambda**. `Order::customer` is a **method reference**. They are two ways of supplying behavior to the API, not two different kinds of pipelines.
 
-Trong `filter(...)`, Java đã biết cần loại hành vi nào: một đối tượng thực hiện giao diện `Predicate<Order>`. Trong `map(...)`, Java cần một hành vi tương thích với `Function<Order, String>`. Kiểu kỳ vọng đó được gọi là **target type**, và nó giải thích tại sao không cần khai báo kiểu tham số `order` trong đa số lambda.
+In `filter(...)`, Java already knows what kind of behavior is required: an object implementing the `Predicate<Order>` interface. In `map(...)`, Java needs a behavior compatible with `Function<Order, String>`. That expected type is called the **target type**, and it explains why you do not need to declare the parameter type of `order` in most lambdas.
 
-## 2. Lambda expression là gì?
+## 2. What Is a Lambda Expression?
 
-Lambda là một biểu thức đại diện cho việc triển khai phương thức trừu tượng duy nhất của một functional interface.
+A lambda is an expression representing the implementation of the single abstract method of a functional interface.
 
-Cú pháp tổng quát:
+General syntax:
 
 ```java
 (thamSo1, thamSo2) -> bieuThuc
 
 (thamSo1, thamSo2) -> {
-    // Một hoặc nhiều câu lệnh
+    // One or more statements
     return ketQua;
 }
 ```
 
-Ví dụ các dạng thường gặp:
+Examples of common forms:
 
 ```java
 Predicate<String> nonBlank = s -> !s.isBlank();
@@ -75,22 +75,22 @@ Predicate<String> longName = (String s) -> {
 };
 ```
 
-Đoạn ví dụ cần các import tương ứng từ `java.util.function`; `String.isBlank()` có từ Java 11.
+These examples require the corresponding imports from `java.util.function`; `String.isBlank()` has been available since Java 11.
 
-| Cách viết | Ý nghĩa |
+| Syntax | Meaning |
 | --- | --- |
-| `s -> s.trim()` | Một tham số, thân là một biểu thức có kết quả. |
-| `(s) -> s.trim()` | Tương đương, đặt tham số trong ngoặc. |
-| `(String s) -> s.trim()` | Khai báo kiểu tường minh. |
-| `(a, b) -> a + b` | Hai tham số. |
-| `() -> "default"` | Không có tham số. |
-| `s -> { return s.trim(); }` | Thân dạng block, cần `return` khi phương thức đích trả về giá trị. |
+| `s -> s.trim()` | Single parameter, body is an expression yielding a result. |
+| `(s) -> s.trim()` | Equivalent, parameter enclosed in parentheses. |
+| `(String s) -> s.trim()` | Explicit type declaration. |
+| `(a, b) -> a + b` | Two parameters. |
+| `() -> "default"` | No parameters. |
+| `s -> { return s.trim(); }` | Block body; requires `return` when the target method returns a value. |
 
-**Lưu ý cú pháp:** với lambda nhiều tham số, các tham số phải đặt trong ngoặc. Không trộn tham số khai báo kiểu tường minh với tham số suy luận kiểu trong cùng danh sách, ví dụ `(String s, n) -> ...` là không hợp lệ.
+**Syntax note:** for multi-parameter lambdas, the parameters must be enclosed in parentheses. Do not mix explicitly typed parameters with type-inferred parameters in the same list; for example, `(String s, n) -> ...` is invalid.
 
-### 2.1. Lambda cần một kiểu đích
+### 2.1. A Lambda Needs a Target Type
 
-Lambda không có kiểu độc lập theo kiểu `String` hay `int`; Java diễn giải nó trong ngữ cảnh một functional interface cụ thể:
+A lambda does not have an independent type like `String` or `int`; Java interprets it in the context of a specific functional interface:
 
 ```java
 Predicate<String> hasText = s -> !s.isBlank();
@@ -100,57 +100,57 @@ boolean a = hasText.test("Java");   // true
 int b = countChars.apply("Java");   // 4
 ```
 
-Cùng cú pháp `s -> ...` nhưng phương thức được triển khai khác nhau: `Predicate.test` hoặc `Function.apply`.
+The same syntax `s -> ...` implements different methods: `Predicate.test` or `Function.apply`.
 
-Ví dụ sau không biên dịch:
+The following example does not compile:
 
 ```java
-// var operation = value -> value.trim(); // Lỗi: lambda thiếu target type
+// var operation = value -> value.trim(); // Error: lambda is missing a target type
 ```
 
-Có thể cung cấp kiểu đích bằng khai báo biến, tham số của phương thức, ép kiểu hoặc lời gọi API thích hợp:
+You can supply the target type via a variable declaration, method parameter, cast, or an appropriate API call:
 
 ```java
 Function<String, String> operation = value -> value.trim();
 
 List<String> cleaned = List.of("  An  ", " Bình ").stream()
-    .map(value -> value.trim()) // Target type được suy luận từ map
+    .map(value -> value.trim()) // Target type is inferred from map
     .toList();
 ```
 
-Lambda chỉ triển khai một phương thức trừu tượng theo hợp đồng functional interface; bản thân biểu thức lambda không phải một lời gọi phương thức được thực thi ngay.
+A lambda only implements a single abstract method according to the functional interface contract; the lambda expression itself is not a method call executed immediately.
 
-## 3. Functional interface: cầu nối giữa lambda và Stream
+## 3. Functional Interface: The Bridge Between Lambdas and Streams
 
-Một **functional interface** có đúng một phương thức trừu tượng cần triển khai; nó vẫn có thể có phương thức `default`, `static` hoặc các phương thức tương ứng với `Object`. Annotation `@FunctionalInterface` giúp trình biên dịch kiểm tra ràng buộc này.
+A **functional interface** has exactly one abstract method to implement; it may still have `default` methods, `static` methods, or methods matching `Object`. The `@FunctionalInterface` annotation helps the compiler enforce this constraint.
 
-Các kiểu hay gặp nằm trong `java.util.function`:
+Common types live in `java.util.function`:
 
-| Kiểu | Phương thức trừu tượng | Hình dạng hành vi | Ví dụ sử dụng |
+| Type | Abstract method | Behavior shape | Usage examples |
 | --- | --- | --- | --- |
 | `Predicate<T>` | `boolean test(T t)` | `T → boolean` | `filter`, `anyMatch`, `allMatch` |
 | `Function<T,R>` | `R apply(T t)` | `T → R` | `map`, `groupingBy` |
-| `Consumer<T>` | `void accept(T t)` | `T → tác động` | `forEach`, `peek` |
-| `Supplier<T>` | `T get()` | `() → T` | Tạo giá trị hoặc nguồn dữ liệu theo nhu cầu |
-| `UnaryOperator<T>` | `T apply(T t)` | `T → T` | `Stream.iterate`, biến đổi cùng kiểu |
+| `Consumer<T>` | `void accept(T t)` | `T → action` | `forEach`, `peek` |
+| `Supplier<T>` | `T get()` | `() → T` | Supplying values or on-demand data sources |
+| `UnaryOperator<T>` | `T apply(T t)` | `T → T` | `Stream.iterate`, same-type transformation |
 | `BinaryOperator<T>` | `T apply(T a, T b)` | `(T,T) → T` | `reduce` |
 | `Comparator<T>` | `int compare(T a, T b)` | `(T,T) → int` | `sorted`, `min`, `max` |
-| `BiFunction<T,U,R>` | `R apply(T t, U u)` | `(T,U) → R` | Hàm tích lũy có hai đầu vào trong `reduce` ba tham số |
+| `BiFunction<T,U,R>` | `R apply(T t, U u)` | `(T,U) → R` | Two-input accumulator in three-argument `reduce` |
 
-`Comparator<T>` nằm trong `java.util`; những kiểu còn lại trong bảng nằm trong `java.util.function`.
+`Comparator<T>` is in `java.util`; the remaining types in the table are in `java.util.function`.
 
-Có cả biến thể tránh boxing cho dữ liệu nguyên thủy:
+There are also primitive variants to avoid boxing:
 
-| Kiểu | Công dụng |
+| Type | Purpose |
 | --- | --- |
-| `IntPredicate`, `LongPredicate`, `DoublePredicate` | Điều kiện trên giá trị nguyên thủy. |
-| `IntFunction<R>` | Biến `int` thành `R`. |
-| `ToIntFunction<T>`, `ToLongFunction<T>`, `ToDoubleFunction<T>` | Biến đối tượng thành giá trị nguyên thủy; dùng với `mapToInt`, `mapToLong`, `mapToDouble`. |
-| `IntUnaryOperator`, `LongUnaryOperator`, `DoubleUnaryOperator` | Biến đổi cùng kiểu nguyên thủy. |
-| `IntBinaryOperator`, `LongBinaryOperator`, `DoubleBinaryOperator` | Kết hợp hai giá trị nguyên thủy cùng kiểu. |
-| `ObjIntConsumer<T>` và các biến thể tương ứng | Nhận một đối tượng và một đối số nguyên thủy. |
+| `IntPredicate`, `LongPredicate`, `DoublePredicate` | Conditions on primitive values. |
+| `IntFunction<R>` | Turns an `int` into `R`. |
+| `ToIntFunction<T>`, `ToLongFunction<T>`, `ToDoubleFunction<T>` | Turns an object into a primitive value; used with `mapToInt`, `mapToLong`, `mapToDouble`. |
+| `IntUnaryOperator`, `LongUnaryOperator`, `DoubleUnaryOperator` | Same-type primitive transformation. |
+| `IntBinaryOperator`, `LongBinaryOperator`, `DoubleBinaryOperator` | Combines two primitive values of the same type. |
+| `ObjIntConsumer<T>` and corresponding variants | Accepts an object and a primitive argument. |
 
-Ví dụ:
+Example:
 
 ```java
 List<String> names = List.of("An", "Bình", "Chi");
@@ -169,11 +169,11 @@ int totalCharacters = names.stream()
     .sum(); // 9
 ```
 
-Với các tên đã cho, `"An"` có 2 ký tự, `"Bình"` có 4 và `"Chi"` có 3, nên tổng là **9**. `String.length()` đếm đơn vị mã UTF-16; với một số ký tự Unicode ngoài BMP, kết quả này không bằng số ký tự theo cách người dùng nhìn thấy.
+With the given names, `"An"` has 2 characters, `"Bình"` has 4, and `"Chi"` has 3, so the sum is **9**. `String.length()` counts UTF-16 code units; for certain Unicode characters outside the BMP, this result does not equal the number of user-perceived characters.
 
-### 3.1. Đọc chữ ký của các phép toán Stream
+### 3.1. Reading Stream Operation Signatures
 
-Các phương thức trong `Stream<T>` có chữ ký kiểu generic. Chẳng hạn, dạng rút gọn:
+Methods in `Stream<T>` have generic type signatures. For example, in abbreviated form:
 
 ```java
 Stream<T> filter(Predicate<? super T> predicate);
@@ -189,18 +189,18 @@ Optional<T> reduce(BinaryOperator<T> accumulator);
 <R, A> R collect(Collector<? super T, A, R> collector);
 ```
 
-Ở đây `T` là kiểu phần tử hiện tại; `R` là kiểu đầu ra sau ánh xạ. Các dấu `? super` và `? extends` là wildcard variance, giúp API chấp nhận hàm có kiểu đầu vào/đầu ra tương thích thay vì buộc trùng khớp tuyệt đối.
+Here `T` is the current element type; `R` is the output type after mapping. The `? super` and `? extends` clauses are wildcard variance bounds, allowing the API to accept functions with compatible input/output types instead of forcing exact matches.
 
-Với `Stream<Order>`, `filter` chờ một điều kiện nhận `Order`; `map` có thể biến phần tử thành kiểu khác:
+For `Stream<Order>`, `filter` expects a condition taking an `Order`; `map` can turn elements into another type:
 
 ```java
 List<Long> amounts = orders.stream()
     .filter(Order::paid)    // Predicate<Order>
-    .map(Order::amount)     // Function<Order, Long>, có boxing
+    .map(Order::amount)     // Function<Order, Long>, involves boxing
     .toList();
 ```
 
-Nếu mục tiêu là tính tổng, dùng biến thể nguyên thủy sẽ thích hợp hơn:
+If the goal is to compute a sum, using the primitive variant is more appropriate:
 
 ```java
 long total = orders.stream()
@@ -209,22 +209,22 @@ long total = orders.stream()
     .sum();
 ```
 
-Các đoạn trên sử dụng kiểu `Order` đã định nghĩa ở mục 1.
+These snippets use the `Order` type defined in section 1.
 
-## 4. Method reference: tham chiếu một phương thức có sẵn
+## 4. Method Reference: Referencing an Existing Method
 
-**Method reference** dùng cú pháp `::` để biểu diễn lời gọi một phương thức hoặc constructor phù hợp với target type. Nó giúp rút gọn lambda khi lambda chỉ chuyển tiếp tham số tới phương thức đã có.
+A **method reference** uses the `::` syntax to represent a call to an existing method or constructor matching the target type. It shortens a lambda when the lambda merely forwards its parameters to an existing method.
 
-Bốn nhóm quan trọng:
+Four key forms:
 
-| Dạng | Method reference | Lambda tương đương về hành vi | Kiểu đích ví dụ |
+| Form | Method reference | Behaviorally equivalent lambda | Example target type |
 | --- | --- | --- | --- |
-| Phương thức `static` | `Integer::parseInt` | `s -> Integer.parseInt(s)` | `Function<String,Integer>` |
-| Phương thức instance của một đối tượng cụ thể (*bound*) | `System.out::println` | `s -> System.out.println(s)` | `Consumer<String>` |
-| Phương thức instance của đối tượng sẽ được truyền vào (*unbound*) | `String::trim` | `s -> s.trim()` | `Function<String,String>` |
+| `static` method | `Integer::parseInt` | `s -> Integer.parseInt(s)` | `Function<String,Integer>` |
+| Instance method of a specific object (*bound*) | `System.out::println` | `s -> System.out.println(s)` | `Consumer<String>` |
+| Instance method of an incoming object (*unbound*) | `String::trim` | `s -> s.trim()` | `Function<String,String>` |
 | Constructor | `ArrayList::new` | `() -> new ArrayList<>()` | `Supplier<ArrayList<String>>` |
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.ArrayList;
@@ -254,18 +254,18 @@ class MethodReferenceKinds {
 }
 ```
 
-`String::trim` không tạo trước một đối tượng `String` nào: mỗi giá trị đầu vào trở thành **receiver** khi phương thức `trim()` được gọi. Ngược lại, `System.out::println` tham chiếu phương thức của một đối tượng `PrintStream` cụ thể.
+`String::trim` does not create a `String` object ahead of time: each incoming value becomes the **receiver** when `trim()` is called. By contrast, `System.out::println` references a method on a specific `PrintStream` object.
 
-### 4.1. Nhìn chữ ký để hiểu method reference không tham số và có tham số
+### 4.1. Looking at Signatures to Understand Zero-Parameter and Multi-Parameter Method References
 
-`String::length` trông như không nhận tham số vì `length()` không khai báo tham số. Nhưng với kiểu đích `Function<String,Integer>`, `String` đầu vào chính là receiver:
+`String::length` looks like it takes no parameters because `length()` declares no parameters. Yet with target type `Function<String,Integer>`, the incoming `String` is the receiver:
 
 ```java
 Function<String, Integer> length = String::length;
 int n = length.apply("Stream"); // 6
 ```
 
-Một method reference dạng unbound cũng có thể nhận thêm đối số của phương thức:
+An unbound method reference can also accept additional method arguments:
 
 ```java
 BiPredicate<String, String> startsWith = String::startsWith;
@@ -273,23 +273,23 @@ BiPredicate<String, String> startsWith = String::startsWith;
 boolean ok = startsWith.test("stream-api", "stream"); // true
 ```
 
-Ở đây tham số đầu của `BiPredicate` là receiver, tham số thứ hai là đối số của `String.startsWith(String prefix)`.
+Here the first parameter of `BiPredicate` is the receiver, and the second parameter is the argument to `String.startsWith(String prefix)`.
 
-### 4.2. Constructor reference và array constructor reference
+### 4.2. Constructor References and Array Constructor References
 
-Constructor reference thường được dùng khi tạo collection đầu ra hoặc đối tượng mới:
+Constructor references are commonly used when creating output collections or new objects:
 
 ```java
 Supplier<List<String>> listFactory = ArrayList::new;
 List<String> list = listFactory.get();
 
 IntFunction<String[]> arrayFactory = String[]::new;
-String[] array = arrayFactory.apply(3); // Độ dài 3
+String[] array = arrayFactory.apply(3); // Length 3
 ```
 
-`ArrayList::new` tương thích với nhiều target type khác nhau nếu có constructor thích hợp; `String[]::new` cần một độ dài, nên nhận `int` qua `IntFunction<String[]>`.
+`ArrayList::new` is compatible with various target types if a matching constructor exists; `String[]::new` needs a length, so it accepts an `int` via `IntFunction<String[]>`.
 
-Trong một collector:
+In a collector:
 
 ```java
 ArrayList<String> result = Stream.of(" An ", " Bình ")
@@ -297,11 +297,11 @@ ArrayList<String> result = Stream.of(" An ", " Bình ")
     .collect(Collectors.toCollection(ArrayList::new));
 ```
 
-`Collectors.toCollection` nhận một `Supplier` để tạo collection tích lũy, phù hợp với constructor reference.
+`Collectors.toCollection` takes a `Supplier` to create the accumulation collection, which fits a constructor reference well.
 
-### 4.3. Khi nào method reference không phù hợp?
+### 4.3. When Is a Method Reference Not Appropriate?
 
-Method reference chỉ gọn khi ý định có thể đọc trực tiếp từ tên phương thức. Lambda rõ hơn nếu cần kết hợp điều kiện, biến đổi tham số, bắt ngoại lệ hoặc diễn đạt logic nhiều bước:
+A method reference is only concise when the intent can be read directly from the method name. A lambda is clearer if you need to combine conditions, transform arguments, catch exceptions, or express multi-step logic:
 
 ```java
 .filter(order -> order.paid() && order.amount() > 100_000)
@@ -312,13 +312,13 @@ Method reference chỉ gọn khi ý định có thể đọc trực tiếp từ 
     Integer.compare(left.length(), right.length()))
 ```
 
-Đừng cố tạo thêm một phương thức chỉ để thay mọi lambda thành method reference. Nếu một method reference gây khó hiểu vì overload hoặc generic type inference, lambda tường minh có thể dễ bảo trì hơn.
+Do not force yourself to create an extra helper method just to replace every lambda with a method reference. If a method reference becomes confusing due to overloads or generic type inference, an explicit lambda can be easier to maintain.
 
-## 5. Áp dụng lambda và method reference cho từng phép toán
+## 5. Applying Lambdas and Method References to Each Operation
 
-### 5.1. `filter`: chọn phần tử bằng `Predicate<T>`
+### 5.1. `filter`: Selecting Elements with `Predicate<T>`
 
-`filter` giữ phần tử khi điều kiện trả về `true`:
+`filter` keeps an element when the condition returns `true`:
 
 ```java
 List<String> names = List.of("An", "", " Bình ", "Chi");
@@ -331,7 +331,7 @@ List<String> valid = names.stream()
 // [An, Bình, Chi]
 ```
 
-Nếu đã có phương thức kiểm tra, có thể tham chiếu trực tiếp:
+If a checking method already exists, you can reference it directly:
 
 ```java
 List<String> nonEmpty = names.stream()
@@ -339,7 +339,7 @@ List<String> nonEmpty = names.stream()
     .toList();
 ```
 
-`Predicate` còn hỗ trợ kết hợp điều kiện bằng `and`, `or`, `negate`:
+`Predicate` also supports combining conditions with `and`, `or`, and `negate`:
 
 ```java
 Predicate<String> hasLength = name -> name.length() >= 3;
@@ -350,11 +350,11 @@ Predicate<String> selected = hasLength.and(beginsWithB);
 boolean b = selected.test("Bình"); // true
 ```
 
-Sự kết hợp dùng ngữ nghĩa short-circuit tương tự toán tử `&&` và `||`. Hãy cân nhắc thứ tự điều kiện khi việc đánh giá có chi phí khác nhau.
+This combination uses short-circuit semantics similar to `&&` and `||`. Consider condition ordering when evaluations have different costs.
 
-### 5.2. `map` và `flatMap`: biến đổi bằng `Function`
+### 5.2. `map` and `flatMap`: Transforming with `Function`
 
-`map` nhận mỗi phần tử và trả một kết quả:
+`map` takes each element and returns one result:
 
 ```java
 List<String> ids = List.of(" A01 ", " B02 ");
@@ -365,7 +365,7 @@ List<String> normalized = ids.stream()
     .toList(); // [a01, b02]
 ```
 
-`flatMap` cần một hàm có đầu ra là Stream để trải phẳng:
+`flatMap` needs a function whose output is a Stream in order to flatten:
 
 ```java
 List<List<String>> teams = List.of(
@@ -378,11 +378,11 @@ List<String> members = teams.stream()
     .toList(); // [An, Bình, Chi]
 ```
 
-Với `Stream<List<String>>`, `List::stream` là method reference tương ứng `team -> team.stream()`. Mỗi danh sách tạo một Stream con; `flatMap` hợp nhất chúng thành `Stream<String>`.
+With `Stream<List<String>>`, `List::stream` is the method reference corresponding to `team -> team.stream()`. Each list produces a sub-stream; `flatMap` merges them into `Stream<String>`.
 
-### 5.3. `sorted`, `min` và `max`: so sánh bằng `Comparator<T>`
+### 5.3. `sorted`, `min`, and `max`: Comparing with `Comparator<T>`
 
-Khi cần sắp xếp theo độ dài tên, có thể viết:
+When sorting by name length, you can write:
 
 ```java
 List<String> sorted = List.of("Bình", "An", "Chi").stream()
@@ -390,7 +390,7 @@ List<String> sorted = List.of("Bình", "An", "Chi").stream()
     .toList(); // [An, Chi, Bình]
 ```
 
-Cách diễn đạt ý định rõ hơn là:
+A clearer way to express intent is:
 
 ```java
 List<String> sorted = List.of("Bình", "An", "Chi").stream()
@@ -398,7 +398,7 @@ List<String> sorted = List.of("Bình", "An", "Chi").stream()
     .toList(); // [An, Chi, Bình]
 ```
 
-`Comparator.comparingInt` nhận `ToIntFunction<String>`, nên `String::length` đóng vai trò trích xuất khóa số nguyên để so sánh. Với đối tượng nghiệp vụ:
+`Comparator.comparingInt` takes a `ToIntFunction<String>`, so `String::length` acts as the integer key extractor for comparison. With business objects:
 
 ```java
 Comparator<Order> byAmountDescending =
@@ -409,7 +409,7 @@ List<Order> expensiveFirst = orders.stream()
     .toList();
 ```
 
-Nếu cần thứ tự thứ cấp:
+If a secondary sort order is needed:
 
 ```java
 Comparator<Order> byAmountThenName = Comparator
@@ -417,32 +417,32 @@ Comparator<Order> byAmountThenName = Comparator
     .thenComparing(Order::customer);
 ```
 
-Khi dùng `sorted`, chú ý chi phí lưu trữ/sắp xếp; trên nguồn không giới hạn, phép toán sắp xếp toàn cục có thể không bao giờ cho kết quả.
+When using `sorted`, be mindful of buffering/sorting cost; on an unbounded source, a global sort operation may never produce a result.
 
-### 5.4. `reduce`: gộp bằng `BinaryOperator<T>`
+### 5.4. `reduce`: Aggregating with `BinaryOperator<T>`
 
-`reduce` hai tham số gồm **identity** và hàm kết hợp:
+Two-argument `reduce` takes an **identity** and a combining function:
 
 ```java
 int sum = Stream.of(10, 20, 30)
     .reduce(0, Integer::sum); // 60
 ```
 
-`Integer::sum` tương đương `(left, right) -> left + right` và phù hợp với `BinaryOperator<Integer>`. `0` là identity của phép cộng.
+`Integer::sum` is equivalent to `(left, right) -> left + right` and matches `BinaryOperator<Integer>`. `0` is the identity for addition.
 
-Không phải mọi lambda hai tham số đều phù hợp để `reduce`. Phép kết hợp phải có tính **kết hợp (associative)** để cho kết quả đúng khi tổ chức lại nhóm tính toán. Phép trừ không thỏa điều kiện:
+Not every two-parameter lambda is suitable for `reduce`. The combining operation must be **associative** so it yields the correct result regardless of how computation is grouped. Subtraction does not satisfy this requirement:
 
 ```java
-// Không phù hợp để làm phép reduce tổng quát, đặc biệt khi chạy song song:
+// Not suitable as a general reduce operation, especially in parallel:
 int value = Stream.of(10, 3, 2)
     .reduce(0, (a, b) -> a - b);
 ```
 
-Thứ tự gom nhóm có thể khiến kết quả phép trừ thay đổi. Với dữ liệu số và mục tiêu tổng, dùng `sum` hoặc `Integer::sum`.
+Grouping order can change the result of subtraction. For numeric data when computing a sum, use `sum` or `Integer::sum`.
 
-### 5.5. `collect`: truyền hàm vào collector
+### 5.5. `collect`: Passing Functions to a Collector
 
-Collector cũng cần hành vi, chẳng hạn hàm phân nhóm và hàm trích số tiền:
+Collectors also require behavior, such as a grouping classifier and an amount extractor:
 
 ```java
 Map<String, Long> revenueByCustomer = orders.stream()
@@ -453,13 +453,13 @@ Map<String, Long> revenueByCustomer = orders.stream()
     ));
 ```
 
-Trong ví dụ:
+In the example:
 
-- `Order::paid` là điều kiện `Predicate<Order>`.
-- `Order::customer` là classifier `Function<Order,String>`.
-- `Order::amount` được `summingLong` sử dụng như `ToLongFunction<Order>`.
+- `Order::paid` is a `Predicate<Order>` condition.
+- `Order::customer` is a `Function<Order,String>` classifier.
+- `Order::amount` is used by `summingLong` as a `ToLongFunction<Order>`.
 
-Phương thức `Collectors.toMap` có thể nhận thêm `BinaryOperator` để giải quyết khóa trùng:
+`Collectors.toMap` can also accept a `BinaryOperator` to resolve duplicate keys:
 
 ```java
 Map<String, Long> maxOrderByCustomer = orders.stream()
@@ -470,17 +470,17 @@ Map<String, Long> maxOrderByCustomer = orders.stream()
     ));
 ```
 
-Nếu bỏ hàm gộp và hai phần tử sinh ra cùng khóa, `toMap` dạng hai đối số sẽ ném `IllegalStateException`. Chọn hàm gộp theo quy tắc dữ liệu: tính tổng, chọn lớn nhất hoặc xác định bản ghi ưu tiên.
+If you omit the merge function and two elements produce the same key, two-argument `toMap` throws `IllegalStateException`. Choose a merge function based on data rules: summing, picking the maximum, or choosing the preferred record.
 
-### 5.6. `forEach` và `peek`: hành động bằng `Consumer<T>`
+### 5.6. `forEach` and `peek`: Acting with `Consumer<T>`
 
-`forEach` nhận một `Consumer<T>`, thường thấy với thao tác in:
+`forEach` accepts a `Consumer<T>`, commonly seen with printing:
 
 ```java
 Stream.of("An", "Bình").forEach(System.out::println);
 ```
 
-`peek` là phép toán trung gian, thường dùng để quan sát quá trình xử lý khi gỡ lỗi:
+`peek` is an intermediate operation, typically used to observe processing during debugging:
 
 ```java
 List<Integer> doubled = Stream.of(1, 2, 3)
@@ -489,11 +489,11 @@ List<Integer> doubled = Stream.of(1, 2, 3)
     .toList();
 ```
 
-Không dùng `peek` để cập nhật dữ liệu nghiệp vụ hoặc đếm số phần tử một cách bắt buộc: Stream là lazy và một số phép kết thúc có thể tối ưu bỏ qua duyệt phần tử. `forEach` trên Stream song song cũng không đảm bảo thứ tự gặp phần tử; khi cần giữ thứ tự, cân nhắc `forEachOrdered`.
+Do not use `peek` to update business data or count elements as a required step: Streams are lazy and some terminal operations can optimize away element traversal. `forEach` on a parallel Stream also does not guarantee encounter order; when order must be preserved, consider `forEachOrdered`.
 
-## 6. Tái sử dụng và kết hợp các hàm đã định nghĩa
+## 6. Reusing and Composing Defined Functions
 
-Có thể tách các quy tắc xử lý thành biến có kiểu rõ ràng để dùng nhiều lần:
+You can extract processing rules into explicitly typed variables to reuse them multiple times:
 
 ```java
 Predicate<String> isUseful = Predicate.not(String::isBlank);
@@ -507,10 +507,10 @@ List<String> result = Stream.of("  java ", "", " stream ")
     .toList(); // [JAVA, STREAM]
 ```
 
-`Function` cung cấp hai phép tổ hợp quan trọng:
+`Function` provides two important composition methods:
 
-- `f.andThen(g)`: thực hiện `f` trước, sau đó `g`.
-- `f.compose(g)`: thực hiện `g` trước, sau đó `f`.
+- `f.andThen(g)`: executes `f` first, then `g`.
+- `f.compose(g)`: executes `g` first, then `f`.
 
 ```java
 Function<String, String> trim = String::trim;
@@ -522,13 +522,13 @@ String a = normalize.apply("  java "); // JAVA
 String b = upper.compose(trim).apply("  java "); // JAVA
 ```
 
-Với `Predicate`, các phép `and`, `or`, `negate` giúp biểu diễn quy tắc phức tạp theo từng điều kiện dễ kiểm tra.
+For `Predicate`, `and`, `or`, and `negate` help express complex rules as individually testable conditions.
 
-**Chú ý:** hàm được tách ra phải có kiểu tương thích với nơi sử dụng. Ví dụ `Predicate<Object>` có thể nhận `String` nếu điều kiện chỉ cần `Object`, nhưng `Predicate<Integer>` không phù hợp với một `Stream<String>`.
+**Note:** an extracted function must have a type compatible with where it is used. For example, `Predicate<Object>` can accept a `String` if the check only needs `Object`, whereas `Predicate<Integer>` is not compatible with a `Stream<String>`.
 
-## 7. Biến bên ngoài lambda và quy tắc effectively final
+## 7. External Variables in Lambdas and the Effectively Final Rule
 
-Lambda có thể dùng biến cục bộ trong phạm vi bao quanh nếu biến được khai báo `final` hoặc **effectively final** (không bị gán lại sau khi khởi tạo):
+A lambda can use local variables from the enclosing scope if the variable is declared `final` or is **effectively final** (never reassigned after initialization):
 
 ```java
 long minimum = 100_000;
@@ -538,27 +538,27 @@ List<Order> chosen = orders.stream()
     .toList();
 ```
 
-Dù không có từ khóa `final`, `minimum` là effectively final. Ví dụ không hợp lệ:
+Even without the `final` keyword, `minimum` is effectively final. Invalid example:
 
 ```java
 long minimum = 100_000;
 minimum = 200_000;
 
-// Lỗi biên dịch: biến minimum không còn effectively final.
+// Compile error: variable minimum is no longer effectively final.
 // List<Order> chosen = orders.stream()
 //     .filter(order -> order.amount() >= minimum)
 //     .toList();
 ```
 
-**Phân biệt biến và đối tượng:** không gán lại biến tham chiếu không đồng nghĩa với việc đối tượng được tham chiếu là bất biến. Ví dụ sau có thể biên dịch nhưng là thiết kế nguy hiểm:
+**Distinguish variables from objects:** not reassigning a reference variable does not mean the referenced object is immutable. The following compiles, yet it is a dangerous design:
 
 ```java
 List<String> output = new ArrayList<>();
 
-names.stream().forEach(output::add); // Biên dịch được, nhưng dùng trạng thái ngoài.
+names.stream().forEach(output::add); // Compiles, but uses external mutable state.
 ```
 
-Đặc biệt với `parallelStream()`, `ArrayList` không an toàn cho nhiều luồng đồng thời thêm phần tử. Nên diễn đạt việc tích lũy bằng `toList()` hoặc `collect(...)`:
+Especially with `parallelStream()`, `ArrayList` is not safe for concurrent additions from multiple threads. Express accumulation with `toList()` or `collect(...)` instead:
 
 ```java
 List<String> output = names.stream()
@@ -566,11 +566,11 @@ List<String> output = names.stream()
     .toList();
 ```
 
-Lambda còn có thể ghi/đọc thuộc tính của đối tượng bên ngoài, nhưng **tính hợp lệ về cú pháp không đảm bảo an toàn đồng thời** hay phù hợp với non-interference. Khi chạy pipeline, tránh sửa nguồn đang được duyệt và tránh phụ thuộc vào trạng thái mutable chung.
+A lambda can also read/write fields of external objects, but **syntactic validity does not guarantee thread safety** or compliance with non-interference. When running a pipeline, avoid mutating the source being traversed and avoid relying on shared mutable state.
 
-### 7.1. Lambda không tự bảo đảm thời điểm thực thi
+### 7.1. Lambdas Do Not Guarantee When They Execute
 
-`filter`, `map` và nhiều phép toán trung gian là lazy:
+`filter`, `map`, and many intermediate operations are lazy:
 
 ```java
 Stream<String> pipeline = Stream.of("An", "Bình")
@@ -583,32 +583,32 @@ System.out.println("Configured");
 List<String> result = pipeline.toList();
 ```
 
-Ở đây `Configured` được in trước khi lambda `map` chạy; `toList()` kích hoạt việc đánh giá. Với `findFirst` hoặc `anyMatch`, chỉ một phần nguồn có thể cần đi qua lambda. Một số phép kết thúc còn có thể dùng tối ưu không phải duyệt từng phần tử.
+Here `Configured` is printed before the `map` lambda runs; `toList()` triggers evaluation. With `findFirst` or `anyMatch`, only part of the source may need to pass through the lambda. Some terminal operations can also apply optimizations that avoid traversing elements altogether.
 
-Do đó, lambda trong các phép toán trung gian nên mô tả **phép tính**, không nên ẩn các tác động phụ mà chương trình bắt buộc phải thực hiện.
+Therefore, lambdas in intermediate operations should describe **computations**, not hide essential side effects that the program requires to happen.
 
-## 8. Method reference, overload và suy luận kiểu
+## 8. Method References, Overloads, and Type Inference
 
-Compiler chọn phương thức tham chiếu dựa trên target type, số tham số và kiểu trả về tương thích. Một tên phương thức có overload vẫn có thể dùng bằng `::` nếu ngữ cảnh đủ rõ:
+The compiler selects the referenced method based on the target type, parameter count, and compatible return type. An overloaded method name can still be used with `::` if the context is unambiguous:
 
 ```java
 Function<String, Integer> parse = Integer::valueOf;
 int n = parse.apply("42");
 ```
 
-Tương tự, `System.out::println` có nhiều overload nhưng `Consumer<String>` cho biết cần phương thức chấp nhận một `String`.
+Similarly, `System.out::println` has many overloads, but `Consumer<String>` tells the compiler it needs the overload taking one `String`.
 
-Khi compiler không đủ thông tin để chọn phương thức, hãy khai báo functional interface rõ ràng hoặc dùng lambda tường minh:
+When the compiler lacks sufficient information to pick a method, declare the functional interface explicitly or use an explicit lambda:
 
 ```java
 Function<String, Integer> converter = text -> Integer.parseInt(text);
 ```
 
-Không nên ép kiểu chỉ để giảm số ký tự. Đặt tên biến theo ý định nghiệp vụ thường khiến code dễ đọc hơn.
+Do not add casts merely to save a few characters. Naming variables after business intent usually makes the code much easier to read.
 
-### 8.1. Trường hợp bound reference cần chú ý
+### 8.1. A Nuance with Bound References
 
-Với method reference dạng `obj::method`, **biểu thức nhận đối tượng `obj` được đánh giá khi tạo method reference**, dù lời gọi phương thức có thể xảy ra sau đó.
+With a bound method reference of the form `obj::method`, **the receiver expression `obj` is evaluated when the method reference is created**, even though the method invocation itself may happen later.
 
 ```java
 String prefix = "ID-";
@@ -617,7 +617,7 @@ Function<String, String> addPrefix = prefix::concat;
 String id = addPrefix.apply("123"); // ID-123
 ```
 
-Đối chiếu với dạng unbound `String::concat`: nó cần hai giá trị (receiver và đối số):
+Compare this with the unbound form `String::concat`: it requires two values (receiver and argument):
 
 ```java
 BinaryOperator<String> join = String::concat;
@@ -625,21 +625,21 @@ BinaryOperator<String> join = String::concat;
 String result = join.apply("ID-", "123"); // ID-123
 ```
 
-Nếu receiver của một bound method reference là `null`, việc tạo reference có thể ném `NullPointerException` ngay tại thời điểm đánh giá. Với lambda `x -> obj.method(x)`, việc truy cập `obj` nằm trong thân lambda và xảy ra lúc gọi lambda. Đây là một khác biệt ngữ nghĩa khi xử lý giá trị có thể null.
+If the receiver of a bound method reference is `null`, creating the reference can throw a `NullPointerException` immediately at evaluation time. With a lambda `x -> obj.method(x)`, accessing `obj` happens inside the lambda body when the lambda is called. This is a semantic difference when handling potentially null values.
 
-## 9. Lambda và ngoại lệ
+## 9. Lambdas and Exceptions
 
-Các functional interface chuẩn như `Function` và `Predicate` **không khai báo checked exception** trong phương thức trừu tượng. Vì thế, không thể truyền trực tiếp lambda gọi một phương thức ném `IOException` mà không xử lý ngoại lệ:
+Standard functional interfaces like `Function` and `Predicate` **do not declare checked exceptions** on their abstract methods. Because of this, you cannot directly pass a lambda calling a method that throws `IOException` without handling the exception:
 
 ```java
-// Không biên dịch vì IOException là checked exception:
+// Does not compile because IOException is a checked exception:
 //
 // List<String> contents = paths.stream()
 //     .map(path -> Files.readString(path))
 //     .toList();
 ```
 
-Một cách xử lý là chuyển lỗi I/O thành `UncheckedIOException` và giữ nguyên nguyên nhân:
+One approach is to wrap the I/O error into an `UncheckedIOException` while preserving the cause:
 
 ```java
 import java.io.IOException;
@@ -667,15 +667,15 @@ class ReadFilesExample {
 }
 ```
 
-Ví dụ giả định các tệp tồn tại. Trong hệ thống thực, cần quyết định chính sách lỗi: dừng toàn bộ pipeline, ghi nhận lỗi theo từng phần tử hay trả về một kiểu kết quả có lỗi. Đừng bỏ qua ngoại lệ để tạo vẻ như mọi dữ liệu đều hợp lệ.
+The example assumes the files exist. In real systems, you must decide on an error policy: abort the entire pipeline, record per-element errors, or return a result type holding errors. Do not swallow exceptions to make invalid data appear valid.
 
-Khi Stream gắn với tài nguyên như `Files.lines(path)`, cần quản lý vòng đời bằng `try-with-resources`. Method reference và lambda không tự giải phóng tài nguyên ngoài phạm vi quản lý của API.
+When a Stream is backed by a resource such as `Files.lines(path)`, manage its lifecycle with `try-with-resources`. Method references and lambdas do not automatically release resources outside the API's management scope.
 
-## 10. Ví dụ đầy đủ: một pipeline sử dụng nhiều kiểu hàm
+## 10. Complete Example: A Pipeline Using Multiple Function Types
 
-Bài toán: từ danh sách đơn hàng, chuẩn hóa tên khách hàng, lọc đơn đã thanh toán với số tiền dương, tính doanh thu theo khách hàng và liệt kê tên theo doanh thu giảm dần.
+Problem: given a list of orders, normalize customer names, filter paid orders with positive amounts, compute revenue per customer, and list names in descending order of revenue.
 
-Ví dụ Java 17+; lưu vào tệp `BehavioralFunctionsDemo.java`:
+Java 17+ example; save in `BehavioralFunctionsDemo.java`:
 
 ```java
 import java.util.Comparator;
@@ -730,66 +730,66 @@ public class BehavioralFunctionsDemo {
 }
 ```
 
-Phân tích:
+Analysis:
 
-| Đoạn mã | Kiểu hàm | Vai trò |
+| Code snippet | Function type | Role |
 | --- | --- | --- |
-| `order -> order.paid() && order.amount() > 0` | `Predicate<Order>` | Xác định đơn hợp lệ. |
-| `String::trim` | `Function<String,String>` | Chuẩn hóa tên khi gom nhóm. |
-| `order -> normalizeName.apply(order.customer())` | `Function<Order,String>` | Trích khóa nhóm đã chuẩn hóa. |
-| `Order::amount` | `ToLongFunction<Order>` | Lấy số tiền cho `summingLong`. |
-| `Map.Entry.comparingByValue()` và `thenComparing(...)` | `Comparator<Map.Entry<...>>` | Xếp hạng doanh thu; cùng doanh thu thì theo tên. |
-| `Map.Entry::getKey`, `Map.Entry::getValue` | `Function` | Chuyển entry trở lại map. |
-| `(left, right) -> left` | `BinaryOperator<Long>` | Hàm gộp nếu phát sinh khóa trùng khi `toMap`. |
-| `LinkedHashMap::new` | `Supplier<LinkedHashMap<...>>` | Bảo toàn thứ tự đưa phần tử vào map. |
+| `order -> order.paid() && order.amount() > 0` | `Predicate<Order>` | Identifies valid orders. |
+| `String::trim` | `Function<String,String>` | Normalizes names during grouping. |
+| `order -> normalizeName.apply(order.customer())` | `Function<Order,String>` | Extracts normalized grouping key. |
+| `Order::amount` | `ToLongFunction<Order>` | Extracts amount for `summingLong`. |
+| `Map.Entry.comparingByValue()` and `thenComparing(...)` | `Comparator<Map.Entry<...>>` | Ranks revenue; ties broken by name. |
+| `Map.Entry::getKey`, `Map.Entry::getValue` | `Function` | Transfers entries back into a map. |
+| `(left, right) -> left` | `BinaryOperator<Long>` | Merge function if duplicate keys arise in `toMap`. |
+| `LinkedHashMap::new` | `Supplier<LinkedHashMap<...>>` | Preserves insertion order into the map. |
 
-Ở bài toán này, mỗi khóa của `revenue` đã duy nhất nên hàm gộp trong `toMap` không phải xử lý va chạm. `LinkedHashMap` giúp kết quả duy trì thứ tự được tạo sau `sorted`, nhờ đó thứ tự in phản ánh xếp hạng.
+In this problem, every key in `revenue` is already unique, so the merge function in `toMap` never has to resolve a collision. `LinkedHashMap` preserves the order produced by `sorted`, so the printed order reflects the ranking.
 
-### 10.1. Điều gì xảy ra nếu muốn chạy song song?
+### 10.1. What Happens If We Want to Run in Parallel?
 
-Có thể đổi `orders.stream()` thành `orders.parallelStream()` để sử dụng cơ chế xử lý song song. Tuy nhiên:
+You can change `orders.stream()` to `orders.parallelStream()` to use parallel execution. However:
 
-- `valid` và `normalizeName` nên không có trạng thái thay đổi và không phụ thuộc thứ tự gọi.
-- `groupingBy` có thể tốn chi phí phối hợp map khi thực thi song song; tốc độ thực tế phụ thuộc kích thước dữ liệu và số nhóm.
-- `sorted` phải thiết lập thứ tự kết quả và thường có chi phí đáng kể.
-- Không dùng biến `ArrayList` bên ngoài rồi thêm phần tử bằng `forEach` từ nhiều luồng.
-- Chỉ chọn thực thi song song khi đã đo đạc trên khối lượng dữ liệu thật và hiểu tính chất nguồn/collector.
+- `valid` and `normalizeName` must hold no mutable state and not depend on invocation order.
+- `groupingBy` can incur map coordination overhead when run in parallel; actual speedup depends on data size and group count.
+- `sorted` must establish result ordering and often carries significant overhead.
+- Do not use an external `ArrayList` variable and add elements via `forEach` from multiple threads.
+- Choose parallel execution only after benchmarking on realistic workloads and understanding source/collector characteristics.
 
-Các quy tắc này cũng áp dụng khi viết collector tùy chỉnh, khai thác `Spliterator` hoặc dùng Stream Gatherers để tạo phép toán trung gian mạnh hơn: tính đúng đắn của các hàm hành vi quan trọng hơn việc tiết kiệm vài ký tự khi viết lambda.
+These same rules apply when writing custom collectors, leveraging `Spliterator`, or using Stream Gatherers to build more powerful intermediate operations: correctness of behavioral functions matters far more than saving a few characters when writing a lambda.
 
-## 11. Các lỗi thường gặp và cách xử lý
+## 11. Common Mistakes and Fixes
 
-| Sai lầm | Tại sao không phù hợp | Cách khắc phục |
+| Mistake | Why it fails | Fix |
 | --- | --- | --- |
-| Viết `var f = x -> ...` | Lambda thiếu target type. | Khai báo `Function<T,R>` hoặc kiểu hàm tương ứng. |
-| Truyền `name -> name.length()` cho `filter` | `filter` yêu cầu `boolean`, còn `length()` trả `int`. | Dùng `name -> name.length() > 0`. |
-| Dùng `map` khi cần trải phẳng danh sách con | Kết quả vẫn là `Stream<List<T>>`. | Dùng `flatMap(List::stream)`. |
-| Chọn `Function<Order,Long>` để tính tổng rất lớn mà không cần boxing | Boxing gây thêm chi phí. | Dùng `ToLongFunction<Order>` và `mapToLong`. |
-| Dùng `peek` cho tác động phụ bắt buộc | Pipeline có thể dừng sớm hoặc tối ưu bỏ duyệt. | Dùng phép kết thúc hoặc tách hành động nghiệp vụ rõ ràng. |
-| Đưa `(a,b) -> a-b` vào `reduce` | Phép trừ không kết hợp. | Chọn phép toán có tính kết hợp và identity phù hợp. |
-| Dùng danh sách mutable chung trong `parallelStream` | Dễ gây race condition hoặc mất dữ liệu. | Dùng collector phù hợp. |
-| Dùng method reference quá khó đọc | Overload hoặc suy luận kiểu làm che ý định. | Viết lambda rõ tên tham số và logic. |
-| Không xử lý checked exception | `Function.apply` không khai báo `IOException`. | Xử lý ngoại lệ trong lambda hoặc xây dựng abstraction có chính sách lỗi. |
-| Giả định mọi Stream có thể dùng nhiều lần | Một đối tượng Stream chỉ tiêu thụ một lần. | Tạo Stream mới từ nguồn có thể duyệt lại. |
+| Writing `var f = x -> ...` | Lambda lacks a target type. | Declare `Function<T,R>` or the appropriate function type. |
+| Passing `name -> name.length()` to `filter` | `filter` requires `boolean`, while `length()` returns `int`. | Use `name -> name.length() > 0`. |
+| Using `map` when sub-lists need flattening | Result remains `Stream<List<T>>`. | Use `flatMap(List::stream)`. |
+| Choosing `Function<Order,Long>` for large sums without needing boxing | Boxing adds overhead. | Use `ToLongFunction<Order>` and `mapToLong`. |
+| Using `peek` for mandatory side effects | Pipeline may short-circuit or optimize away traversal. | Use a terminal operation or separate explicit business actions. |
+| Passing `(a,b) -> a-b` to `reduce` | Subtraction is not associative. | Choose an associative operation and proper identity. |
+| Using a shared mutable list in `parallelStream` | Easily causes race conditions or lost data. | Use an appropriate collector. |
+| Using overly cryptic method references | Overloads or type inference obscure intent. | Write a lambda with clear parameter names and logic. |
+| Not handling checked exceptions | `Function.apply` does not declare `IOException`. | Handle exceptions inside the lambda or build an abstraction with an error policy. |
+| Assuming every Stream can be reused | A Stream instance can be consumed only once. | Create a new Stream from a re-traversable source. |
 
-## 12. Tự kiểm tra cách hiểu
+## 12. Check Your Understanding
 
-1. Vì sao `filter(String::isBlank)` hợp lệ, còn `filter(String::length)` thì không?
-2. `String::trim` là method reference dạng bound hay unbound? Tham số của `Function<String,String>` đóng vai trò gì?
-3. Khi nào dùng `mapToLong(Order::amount)` thay cho `map(Order::amount)`?
-4. Vì sao `(a,b) -> a-b` không thích hợp để `reduce` song song?
-5. Trong `Collectors.groupingBy(Order::customer, Collectors.summingLong(Order::amount))`, hai method reference cần hai target type nào?
-6. Tại sao biến cục bộ được lambda capture phải effectively final nhưng đối tượng được biến đó tham chiếu vẫn có thể mutable?
-7. Nếu một method reference khó đọc vì overloaded method, có thể thay thế bằng cú pháp nào?
-8. Vì sao lambda của `map` thường không chạy ngay khi gọi `map(...)`?
+1. Why is `filter(String::isBlank)` valid, while `filter(String::length)` is not?
+2. Is `String::trim` a bound or unbound method reference? What role does the parameter of `Function<String,String>` play?
+3. When should you use `mapToLong(Order::amount)` instead of `map(Order::amount)`?
+4. Why is `(a,b) -> a-b` unsuitable for parallel `reduce`?
+5. In `Collectors.groupingBy(Order::customer, Collectors.summingLong(Order::amount))`, which two target types do the two method references need?
+6. Why must a local variable captured by a lambda be effectively final, yet the object referenced by that variable can still be mutable?
+7. If a method reference is hard to read because of an overloaded method, what syntax can replace it?
+8. Why does a `map` lambda usually not execute immediately when `map(...)` is called?
 
-**Đối chiếu nhanh:** (1) `filter` cần `Predicate<String>` trả `boolean`; (2) unbound, tham số là receiver; (3) khi cần luồng `long` nguyên thủy để xử lý số hiệu quả; (4) phép trừ không associative; (5) `Function<Order,String>` và `ToLongFunction<Order>`; (6) quy tắc capture ràng buộc việc gán lại biến, không biến đối tượng thành immutable; (7) lambda tường minh; (8) phép trung gian Stream thường lazy.
+**Quick check:** (1) `filter` requires a `Predicate<String>` returning `boolean`; (2) unbound, the parameter is the receiver; (3) when you need a primitive `long` stream for efficient numeric processing; (4) subtraction is not associative; (5) `Function<Order,String>` and `ToLongFunction<Order>`; (6) the capture rule restricts reassigning the variable, not making the object immutable; (7) an explicit lambda; (8) Stream intermediate operations are typically lazy.
 
-## 13. Ghi nhớ cốt lõi
+## 13. Key Takeaways
 
-- **Lambda** là cách viết triển khai hành vi ngắn gọn, được suy luận theo functional interface mà API yêu cầu.
-- **Method reference** là cách dùng lại phương thức/constructor đã tồn tại khi chữ ký tương thích với target type; nó giúp code ngắn hơn nếu ý định vẫn rõ.
-- **`Predicate`, `Function`, `Consumer`, `Supplier`, `Comparator` và `BinaryOperator`** là những kiểu hàm chủ chốt trong Stream API. Hiểu target type giúp chọn đúng hành vi cho từng phép toán.
-- **Các biến thể nguyên thủy** như `ToLongFunction` và `IntUnaryOperator` tránh boxing không cần thiết và giúp sử dụng đúng API của `IntStream`, `LongStream` và `DoubleStream`.
-- **Lambda trong pipeline lazy** có thể chạy muộn, chỉ một phần hoặc bị tối ưu bỏ qua trong vài trường hợp; đừng đặt tác động phụ thiết yếu vào các phép toán trung gian.
-- **Tính kết hợp, non-interference và tránh trạng thái mutable chia sẻ** là những yêu cầu quan trọng khi đi từ pipeline đơn giản sang `reduce`, `collect`, xử lý song song, collector tùy chỉnh và Gatherers.
+- **Lambdas** are a concise way to write behavioral implementations, inferred from the functional interface expected by the API.
+- **Method references** reuse existing methods/constructors when signatures match the target type; they shorten code as long as intent stays clear.
+- **`Predicate`, `Function`, `Consumer`, `Supplier`, `Comparator`, and `BinaryOperator`** are the core function types in the Stream API. Understanding target types helps pick the right behavior for each operation.
+- **Primitive variants** such as `ToLongFunction` and `IntUnaryOperator` avoid unnecessary boxing and match the APIs of `IntStream`, `LongStream`, and `DoubleStream`.
+- **Lambdas in lazy pipelines** may run deferred, partially, or be optimized away in some cases; do not put essential side effects inside intermediate operations.
+- **Associativity, non-interference, and avoiding shared mutable state** are critical requirements when moving from simple pipelines to `reduce`, `collect`, parallel processing, custom collectors, and Gatherers.

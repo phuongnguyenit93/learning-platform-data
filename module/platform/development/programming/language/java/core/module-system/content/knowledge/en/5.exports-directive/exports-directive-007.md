@@ -1,10 +1,10 @@
-# Thay đổi export ảnh hưởng binary compatibility
+# How Export Changes Affect Binary Compatibility
 
-## 1. exports là một phần của hợp đồng module
+## 1. exports Is Part of the Module Contract
 
-Trong JPMS, chỉ khai báo `requires` chưa đủ để module khác sử dụng kiểu thuộc một module named. Module cung cấp còn phải export package chứa kiểu đó.
+In JPMS, declaring `requires` alone is not enough for another module to use types belonging to a named module. The providing module must also export the package containing those types.
 
-Ví dụ module thư viện công bố API:
+Example of a library module exposing an API:
 
 ~~~java
 module com.acme.customer {
@@ -12,7 +12,7 @@ module com.acme.customer {
 }
 ~~~
 
-Một module tiêu thụ có thể đọc và sử dụng các kiểu public trong package đã export:
+A consuming module can read and use public types in the exported package:
 
 ~~~java
 module com.acme.application {
@@ -20,39 +20,13 @@ module com.acme.application {
 }
 ~~~
 
-`exports` là ranh giới truy cập ở cấp package. Khi package được export, các kiểu và thành viên vẫn phải tuân theo quy tắc truy cập Java thông thường: một lớp top-level thường phải là `public`, và thành viên được sử dụng phải có mức truy cập phù hợp. Export package không biến lớp package-private hoặc thành viên private thành public.
+`exports` is a package-level access boundary. When a package is exported, types and members must still obey normal Java access rules: a top-level class usually must be `public`, and the member being used must have an appropriate access level. Exporting a package does not make package-private classes or private members public.
 
-Vì module tiêu thụ dựa vào chỉ thị export để biên dịch và chạy, việc thay đổi `exports` có thể ảnh hưởng trực tiếp đến chương trình đã biên dịch trước đó. Do đó, package đã công bố cần được xem như một phần của hợp đồng tương thích mà thư viện cam kết duy trì.
+Because consuming modules rely on the export directive to compile and run, changing `exports` can directly affect previously compiled programs. Therefore, exposed packages should be treated as part of the compatibility contract that the library commits to maintaining.
 
-## 2. Ba thay đổi export cần phân biệt
+## 2. Three Export Changes to Distinguish
 
-Giả sử phiên bản đầu của thư viện có descriptor:
-
-~~~java
-module com.acme.customer {
-    exports com.acme.customer.api;
-}
-~~~
-
-Mọi named module đọc `com.acme.customer` đều có thể truy cập các kiểu public thuộc package `com.acme.customer.api`.
-
-### Xóa exports
-
-Phiên bản mới bỏ chỉ thị:
-
-~~~java
-module com.acme.customer {
-    // Không còn exports com.acme.customer.api
-}
-~~~
-
-Package trở thành nội bộ đối với các module khác. Một consumer đã biên dịch trước đó vẫn có thể chứa bytecode tham chiếu tới các lớp trong package này, nhưng khi JVM cần truy cập kiểu hoặc thành viên bị che khỏi module đó, việc kiểm tra quyền truy cập có thể thất bại với `IllegalAccessError`.
-
-Consumer biên dịch lại với descriptor mới cũng sẽ bị từ chối khi import hoặc truy cập package không được export.
-
-### Thu hẹp từ export công khai thành qualified export
-
-Phiên bản đầu:
+Suppose the first version of the library has the descriptor:
 
 ~~~java
 module com.acme.customer {
@@ -60,7 +34,33 @@ module com.acme.customer {
 }
 ~~~
 
-Phiên bản sau:
+Every named module reading `com.acme.customer` can access public types in package `com.acme.customer.api`.
+
+### Removing exports
+
+The new version drops the directive:
+
+~~~java
+module com.acme.customer {
+    // No longer exports com.acme.customer.api
+}
+~~~
+
+The package becomes internal to other modules. A previously compiled consumer may still contain bytecode referencing classes in this package, but when the JVM needs to access a type or member hidden from that module, the access check can fail with `IllegalAccessError`.
+
+A consumer recompiled against the new descriptor will also be rejected when importing or accessing the unexported package.
+
+### Narrowing from a Public Export to a Qualified Export
+
+Initial version:
+
+~~~java
+module com.acme.customer {
+    exports com.acme.customer.api;
+}
+~~~
+
+Later version:
 
 ~~~java
 module com.acme.customer {
@@ -68,13 +68,13 @@ module com.acme.customer {
 }
 ~~~
 
-Package giờ chỉ được export cho module `com.acme.application`. Các consumer khác trước đây đọc module customer và sử dụng package API sẽ mất quyền truy cập.
+The package is now exported only to module `com.acme.application`. Other consumers that previously read the customer module and used the API package lose access.
 
-Đây là thay đổi có thể gây lỗi tương thích dù tên module, tên package, lớp public và chữ ký phương thức không đổi. Quyền truy cập đã thay đổi ở cấp module descriptor.
+This is a change that can break compatibility even though the module name, package name, public classes, and method signatures have not changed. Access permissions changed at the module descriptor level.
 
-### Bỏ một module khỏi danh sách qualified export
+### Removing a Module from a Qualified Export List
 
-Giả sử descriptor đang là:
+Suppose the descriptor is:
 
 ~~~java
 module com.acme.customer {
@@ -83,7 +83,7 @@ module com.acme.customer {
 }
 ~~~
 
-Nếu bản phát hành sau bỏ `com.acme.integration`:
+If a subsequent release removes `com.acme.integration`:
 
 ~~~java
 module com.acme.customer {
@@ -92,18 +92,18 @@ module com.acme.customer {
 }
 ~~~
 
-Consumer `com.acme.integration` không còn được phép truy cập package đó. Các consumer còn lại trong danh sách vẫn giữ quyền truy cập nếu những điều kiện khác không đổi.
+Consumer `com.acme.integration` is no longer allowed to access that package. Remaining consumers on the list retain access if other conditions remain unchanged.
 
-## 3. Vì sao bytecode cũ có thể gặp IllegalAccessError?
+## 3. Why Can Old Bytecode Encounter IllegalAccessError?
 
-Biên dịch Java và liên kết/chạy bytecode là hai thời điểm khác nhau:
+Java compilation and bytecode linking/execution occur at two different times:
 
-1. Khi biên dịch consumer, compiler đọc module descriptor của thư viện và xác nhận package cần dùng được export cho consumer.
-2. Compiler tạo bytecode chứa các tham chiếu tới kiểu, phương thức hoặc field của thư viện.
-3. Khi chạy, JVM phân giải các tham chiếu và thực hiện kiểm tra truy cập theo module descriptor đang được nạp.
-4. Nếu bản thư viện mới không còn export package cho module consumer, JVM có thể ném `IllegalAccessError` khi đường thực thi chạm tới tham chiếu bị cấm.
+1. When compiling the consumer, the compiler reads the library's module descriptor and confirms that the needed package is exported to the consumer.
+2. The compiler generates bytecode containing references to types, methods, or fields of the library.
+3. At runtime, the JVM resolves references and performs access checks according to the module descriptors currently loaded.
+4. If the new library version no longer exports the package to the consuming module, the JVM can throw `IllegalAccessError` when the execution path reaches the forbidden reference.
 
-Ví dụ consumer đã được biên dịch với API:
+Example of a consumer already compiled against the API:
 
 ~~~java
 package com.acme.application;
@@ -118,27 +118,27 @@ public class Main {
 }
 ~~~
 
-Consumer được biên dịch khi module customer còn export `com.acme.customer.api`. Sau đó ứng dụng thay JAR thư viện bằng phiên bản đã xóa export. Bytecode consumer không tự được biên dịch lại và vẫn chứa tham chiếu tới `CustomerService`. Khi JVM cần truy cập kiểu này, kiểm tra module access có thể thất bại với `IllegalAccessError`.
+The consumer was compiled while the customer module still exported `com.acme.customer.api`. Later, the application swaps in a version of the library JAR with the export removed. The consumer bytecode is not automatically recompiled and still contains the reference to `CustomerService`. When the JVM needs to access this type, the module access check can fail with `IllegalAccessError`.
 
-Lỗi có thể xuất hiện khi class hoặc member được liên kết hay sử dụng, không nhất thiết ngay tại thời điểm JVM khởi động. Vì vậy, chỉ chạy ứng dụng qua một đường code không dùng API đã bị thu hẹp chưa đủ chứng minh tương thích.
+The error may appear when the class or member is linked or used, not necessarily immediately at JVM startup. Therefore, merely running the application through a code path that does not touch the narrowed API is not sufficient to prove compatibility.
 
-## 4. Phân biệt lỗi biên dịch và lỗi runtime
+## 4. Distinguishing Compile-Time Errors from Runtime Errors
 
-| Tình huống | Consumer biên dịch lại | Consumer bytecode cũ |
+| Scenario | Recompiled Consumer | Old Consumer Bytecode |
 |---|---|---|
-| Package vẫn export cho consumer | Có thể tiếp tục biên dịch nếu API còn tương thích | Có thể tiếp tục chạy nếu các điều kiện liên kết khác không đổi |
-| Xóa unqualified export | Compiler báo package không được export/không hiển thị | Có thể gặp `IllegalAccessError` khi truy cập kiểu hoặc thành viên |
-| Chuyển thành qualified export nhưng consumer không có trong danh sách | Compiler từ chối truy cập package | Có thể gặp `IllegalAccessError` |
-| Xóa consumer khỏi qualified export | Compiler từ chối truy cập package | Có thể gặp `IllegalAccessError` |
-| Thêm một qualified export cho consumer mới | Consumer mới có thể biên dịch | Consumer cũ khác không bị mất quyền chỉ vì export mới được thêm |
+| Package remains exported to consumer | Can continue compiling if API remains compatible | Can continue running if other linking conditions remain unchanged |
+| Unqualified export removed | Compiler reports package is not exported/visible | May encounter `IllegalAccessError` when accessing a type or member |
+| Changed to qualified export and consumer is not on the list | Compiler denies package access | May encounter `IllegalAccessError` |
+| Consumer removed from qualified export | Compiler denies package access | May encounter `IllegalAccessError` |
+| Qualified export added for a new consumer | New consumer can compile | Other existing consumers do not lose access just because a new export is added |
 
-Thông báo compiler thường diễn đạt rằng package không được hiển thị hoặc module không export package cho module consumer. Thông báo runtime thường nêu rõ module nguồn, package và module đích không được phép truy cập.
+Compiler messages usually state that the package is not visible or that the module does not export the package to the consuming module. Runtime messages usually specify the source module, package, and target module that is not permitted access.
 
-Không nên gộp mọi lỗi sau khi thay đổi descriptor thành lỗi binary compatibility. Nếu một phương thức public bị xóa, kiểu bị đổi tên hoặc chữ ký thay đổi, consumer có thể gặp các lỗi liên kết khác như `NoSuchMethodError` hoặc `NoClassDefFoundError`. Nếu package không còn được export, vấn đề nằm ở quyền truy cập module và có thể dẫn tới `IllegalAccessError`.
+You should not lump every error after changing a descriptor into a binary compatibility error of exports. If a public method is removed, a type is renamed, or a signature changes, consumers may encounter other linking errors such as `NoSuchMethodError` or `NoClassDefFoundError`. If a package is no longer exported, the issue lies in module access permission and can lead to `IllegalAccessError`.
 
-## 5. Thêm export thường là thay đổi mở rộng, nhưng làm rộng API
+## 5. Adding an Export Is Usually Additive, but Widens the API
 
-Thêm một export:
+Adding an export:
 
 ~~~java
 module com.acme.customer {
@@ -147,23 +147,23 @@ module com.acme.customer {
 }
 ~~~
 
-thường không làm mất quyền của consumer đang hoạt động. Các module khác có thể bắt đầu sử dụng package mới nếu chúng đọc module customer và các kiểu/member cần thiết là accessible.
+usually does not revoke permissions from currently working consumers. Other modules can begin using the new package if they read the customer module and the required types/members are accessible.
 
-Tuy vậy, export mới làm tăng bề mặt API công khai. Một khi consumer bắt đầu phụ thuộc vào package đó, việc thu hẹp hoặc xóa export trong phiên bản sau có thể trở thành thay đổi phá vỡ tương thích.
+However, a new export increases the public API surface. Once consumers begin depending on that package, narrowing or removing the export in a later version can become a compatibility-breaking change.
 
-Trước khi export package mới, hãy xác nhận:
+Before exporting a new package, confirm:
 
-- Package có được hỗ trợ lâu dài không?
-- Các kiểu public trong package đã ổn định chưa?
-- Package có chứa implementation detail hoặc class chỉ phục vụ nội bộ không?
-- Có thể dùng qualified export để chỉ công bố cho một module tích hợp cụ thể không?
-- Việc công bố package có làm lộ thêm dependency trong API không?
+- Will the package be supported long term?
+- Are the public types in the package stable yet?
+- Does the package contain implementation details or internal-only classes?
+- Can a qualified export be used to expose it only to a specific integration module?
+- Does exposing the package expose additional dependencies in the API?
 
-Không nên export một package chỉ để làm một lỗi truy cập biến mất nếu package đó không thuộc hợp đồng mà thư viện muốn cung cấp.
+Do not export a package just to make an access error disappear if that package is not part of the contract the library wants to provide.
 
-## 6. Qualified exports và consumer classpath
+## 6. Qualified Exports and Classpath Consumers
 
-Qualified export chỉ cấp quyền cho các module được nêu tên:
+A qualified export grants permission only to named modules:
 
 ~~~java
 module com.acme.customer {
@@ -171,20 +171,20 @@ module com.acme.customer {
 }
 ~~~
 
-Điều này phù hợp với SPI nội bộ dành cho một module tích hợp đã biết. Nhưng cần nhớ:
+This suits an internal SPI meant for a known integration module. Keep in mind, however:
 
-- Module consumer phải có tên phù hợp với danh sách.
-- Một consumer khác không được cấp quyền chỉ vì nó cũng khai báo `requires com.acme.customer`.
-- Mã nằm trên classpath thuộc unnamed module, không có tên để liệt kê như một named consumer trong qualified export.
-- Chuyển consumer từ module path sang classpath có thể thay đổi khả năng truy cập nếu package chỉ được export có điều kiện.
+- The consuming module must have a name matching the list.
+- Another consumer is not granted permission just because it also declares `requires com.acme.customer`.
+- Code on the classpath belongs to the unnamed module, which has no name to list as a named consumer in a qualified export.
+- Moving a consumer from the module path to the classpath can change accessibility if the package is only conditionally exported.
 
-Nếu thư viện cần hỗ trợ cả consumer trên classpath lẫn nhiều named module, hãy cân nhắc liệu package nên là unqualified export hay nên có một API công khai khác. Đừng giả định qualified export sẽ tự áp dụng cho mọi consumer.
+If a library needs to support both classpath consumers and multiple named modules, consider whether the package should be an unqualified export or have a different public API. Do not assume a qualified export will automatically apply to every consumer.
 
-## 7. exports và opens là hai hợp đồng khác nhau
+## 7. exports and opens Are Two Different Contracts
 
-`exports` kiểm soát truy cập thông thường tới các kiểu public của package. `opens` cho phép reflection sâu trên package ở runtime.
+`exports` controls normal access to public types of a package. `opens` permits deep reflection on a package at runtime.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.customer {
@@ -193,31 +193,31 @@ module com.acme.customer {
 }
 ~~~
 
-Nếu xóa:
+If you remove:
 
 ~~~java
 exports com.acme.customer.api;
 ~~~
 
-thì consumer Java thông thường có thể mất quyền truy cập API. Nếu xóa:
+normal Java consumers can lose API access. If you remove:
 
 ~~~java
 opens com.acme.customer.model to com.acme.persistence;
 ~~~
 
-thì framework persistence có thể gặp lỗi reflection như `InaccessibleObjectException`, dù mã consumer vẫn biên dịch và package model không được dùng trực tiếp trong source code.
+the persistence framework can encounter reflection errors such as `InaccessibleObjectException`, even though consumer code still compiles and the model package is not used directly in source code.
 
-Ngược lại, giữ `opens` không thay thế `exports`. Một package chỉ được mở cho reflection không vì thế trở thành API có thể import và gọi trực tiếp từ module khác.
+Conversely, keeping `opens` does not replace `exports`. A package opened only for reflection does not thereby become an API that can be imported and called directly from another module.
 
-Khi thay đổi descriptor, kiểm tra cả hai loại quyền riêng biệt: consumer source/binary đối với exports và framework runtime đối với opens.
+When changing descriptors, check both kinds of permission separately: consumer source/binary compatibility for exports, and framework runtime behavior for opens.
 
-## 8. Cách kiểm thử tác động của thay đổi export
+## 8. How to Test the Impact of Export Changes
 
-Một lần build thành công của thư viện chỉ chứng minh source của chính thư viện biên dịch được. Để đánh giá tác động với consumer, hãy kiểm tra trên cả consumer mới và bytecode cũ.
+A successful build of the library itself only proves that the library's own source compiles. To assess the impact on consumers, test against both new consumers and old bytecode.
 
-### Bước 1: Giữ lại consumer đã biên dịch với descriptor cũ
+### Step 1: Retain a consumer compiled against the old descriptor
 
-Biên dịch một module consumer khi package còn được export:
+Compile a consuming module while the package is still exported:
 
 ~~~java
 module com.acme.application {
@@ -225,46 +225,46 @@ module com.acme.application {
 }
 ~~~
 
-Consumer gọi một API thuộc package được export. Lưu lại artifact consumer đã biên dịch để thử với bản thư viện mới.
+The consumer calls an API belonging to the exported package. Save the compiled consumer artifact to test against the new library version.
 
-### Bước 2: Build thư viện với descriptor mới
+### Step 2: Build the library with the new descriptor
 
-Tạo JAR phát hành ứng viên, trong đó export đã được xóa hoặc thu hẹp theo thay đổi đang đánh giá.
+Produce the release candidate JAR in which the export has been removed or narrowed according to the change being evaluated.
 
-### Bước 3: Chạy bytecode cũ với JAR mới
+### Step 3: Run old bytecode with the new JAR
 
-Đặt JAR thư viện mới và bytecode consumer cũ vào module path. Chạy đúng đường code truy cập package bị thay đổi. Ghi nhận lỗi liên kết hoặc lỗi quyền truy cập, nếu có.
+Place the new library JAR and the old consumer bytecode on the module path. Execute the exact code path that accesses the changed package. Record any linking or access permission errors, if any.
 
-### Bước 4: Biên dịch lại consumer
+### Step 4: Recompile the consumer
 
-Dùng module path mới để biên dịch lại consumer. Nếu package không còn được export cho module đó, compiler sẽ phát hiện vấn đề trước runtime.
+Use the new module path to recompile the consumer. If the package is no longer exported to that module, the compiler will catch the issue before runtime.
 
-### Bước 5: Thử tất cả qualified consumer và classpath consumer được hỗ trợ
+### Step 5: Test all supported qualified consumers and classpath consumers
 
-Nếu descriptor có `exports ... to A, B`, thử riêng A và B. Nếu thư viện cam kết hỗ trợ mã classpath, kiểm tra cả unnamed module vì nó không có tên trong danh sách qualified export.
+If the descriptor has `exports ... to A, B`, test A and B individually. If the library commits to supporting classpath code, also test the unnamed module because it cannot be named in a qualified export list.
 
-### Bước 6: Kiểm tra reflection và service độc lập
+### Step 6: Test reflection and services independently
 
-Chạy framework thực tế để kiểm tra `opens`; kiểm tra `ServiceLoader` nếu module có `uses` hoặc `provides`. Một bài thử truy cập API thông thường không thay thế được các bài thử này.
+Run actual frameworks to test `opens`; test `ServiceLoader` if the module has `uses` or `provides`. A normal API access test does not substitute for these tests.
 
-## 9. Công cụ hỗ trợ kiểm tra artifact
+## 9. Tools to Inspect Artifacts
 
-Sau khi build JAR mới:
+After building the new JAR:
 
 ~~~bash
 jar --describe-module --file build/libs/customer-module.jar
 jar --list --file build/libs/customer-module.jar
 ~~~
 
-Hai lệnh này giúp xác nhận descriptor và package được đóng gói trong artifact thực tế.
+These two commands confirm the descriptor and packages packaged inside the actual artifact.
 
-Có thể kiểm tra module descriptor so với dependency được phát hiện:
+You can check the module descriptor against detected dependencies:
 
 ~~~bash
 jdeps --check com.acme.customer --module-path mods
 ~~~
 
-Và kiểm tra module configuration khi chạy:
+And inspect the module configuration at runtime:
 
 ~~~bash
 java --show-module-resolution \
@@ -272,9 +272,9 @@ java --show-module-resolution \
   -m com.acme.application/com.acme.application.Main
 ~~~
 
-Các công cụ trên giúp xác nhận tên module, descriptor và quan hệ dependency. Chúng không thay thế việc chạy consumer đã biên dịch trước đó với JAR mới; bài thử consumer mới và cũ mới trực tiếp phát hiện ảnh hưởng tương thích của export.
+These tools help confirm module names, descriptors, and dependency relationships. They do not replace running previously compiled consumers against the new JAR; testing both new and old consumers directly uncovers the compatibility impact of exports.
 
-Trong giai đoạn chẩn đoán, có thể dùng `--add-exports` để kiểm chứng giả thuyết về quyền truy cập:
+During diagnosis, `--add-exports` can be used to verify hypotheses about access permissions:
 
 ~~~bash
 java --add-exports com.acme.customer/com.acme.customer.api=com.acme.application \
@@ -282,37 +282,37 @@ java --add-exports com.acme.customer/com.acme.customer.api=com.acme.application 
   -m com.acme.application/com.acme.application.Main
 ~~~
 
-Tùy chọn này bổ sung quyền export ở runtime cho lần chạy đó. Nó hữu ích để xác định nguyên nhân hoặc hỗ trợ migration có kiểm soát, nhưng không sửa descriptor trong JAR và không nên được xem là giải pháp phát hành lâu dài thay cho hợp đồng module đúng.
+This option adds runtime export permission for that run. It is useful for identifying root causes or supporting controlled migration, but it does not fix the descriptor in the JAR and should not be treated as a long-term release solution in place of a proper module contract.
 
-## 10. Chính sách tương thích khi phát hành
+## 10. Compatibility Policy at Release Time
 
-Nếu package đã được export công khai và được tài liệu hóa là API hỗ trợ, hãy xem việc xóa export hoặc thu hẹp danh sách consumer là thay đổi phá vỡ tương thích.
+If a package is publicly exported and documented as a supported API, treat removing the export or narrowing the consumer list as a compatibility-breaking change.
 
-Một quy trình phát hành có thể áp dụng:
+A release process can apply:
 
-- **Bản vá (patch)**: giữ nguyên các export công khai và các consumer đã được hỗ trợ; chỉ sửa lỗi nội bộ hoặc bổ sung quyền tương thích có kiểm soát.
-- **Bản minor**: có thể bổ sung package export hoặc qualified export mới khi API mới đã ổn định và việc mở rộng phù hợp chính sách tương thích.
-- **Bản major**: thực hiện thay đổi có chủ đích như xóa export, đổi tên package/module hoặc thu hẹp qualified export đã công bố; kèm migration note và hướng dẫn thay thế.
+- **Patch release**: preserve public exports and supported consumers; only fix internal bugs or add controlled compatibility permissions.
+- **Minor release**: may add new exported packages or qualified exports when the new API is stable and expansion aligns with the compatibility policy.
+- **Major release**: perform intentional changes such as removing exports, renaming packages/modules, or narrowing published qualified exports; accompanied by migration notes and replacement guidance.
 
-Đây là chính sách phiên bản ở cấp thư viện, không phải quy tắc bắt buộc của JPMS. Nhóm phát triển cần xác định rõ package nào là API được hỗ trợ, package nào chỉ là chi tiết nội bộ và module consumer nào được bảo đảm.
+This is a library-level versioning policy, not a mandatory JPMS rule. The development team must clearly identify which packages are supported APIs, which packages are internal details, and which consumer modules are guaranteed support.
 
-Nếu cần ngừng một package API, có thể phát hành giai đoạn chuyển tiếp: công bố API thay thế, đánh dấu API cũ deprecated, hướng dẫn consumer chuyển đổi, đo lường hoặc kiểm tra các consumer đã biết, rồi mới thu hẹp export trong major release.
+If an API package needs to be retired, a transition period can be released: publish the replacement API, mark the old API deprecated, guide consumers to migrate, measure or check known consumers, and only then narrow the export in a major release.
 
-## 11. Checklist trước khi thay đổi exports
+## 11. Checklist Before Changing exports
 
-- [ ] Liệt kê mọi package đang được export trong descriptor hiện hành.
-- [ ] Xác định các module consumer đã biết đang sử dụng từng package.
-- [ ] Kiểm tra package là API công khai, SPI có giới hạn hay implementation detail.
-- [ ] Đánh giá riêng thay đổi unqualified export và qualified export.
-- [ ] Xác định consumer nào sẽ mất quyền truy cập nếu xóa hoặc thu hẹp export.
-- [ ] Biên dịch lại consumer với descriptor mới để phát hiện lỗi source.
-- [ ] Chạy bytecode consumer cũ với JAR mới để phát hiện lỗi runtime như `IllegalAccessError`.
-- [ ] Kiểm tra `opens` riêng cho framework reflection.
-- [ ] Xác nhận JAR cuối cùng chứa đúng `module-info.class` và descriptor dự kiến.
-- [ ] Cập nhật phiên bản, migration note và tài liệu API theo mức ảnh hưởng.
+- [ ] List all packages currently exported in the existing descriptor.
+- [ ] Identify known consuming modules currently using each package.
+- [ ] Verify whether each package is a public API, a restricted SPI, or an implementation detail.
+- [ ] Evaluate changes to unqualified exports and qualified exports separately.
+- [ ] Identify which consumers will lose access if the export is removed or narrowed.
+- [ ] Recompile consumers against the new descriptor to detect source errors.
+- [ ] Run old consumer bytecode against the new JAR to detect runtime errors such as `IllegalAccessError`.
+- [ ] Check `opens` separately for framework reflection.
+- [ ] Confirm the final JAR contains the exact `module-info.class` and expected descriptor.
+- [ ] Update the version, migration notes, and API documentation according to the impact level.
 
-## Kết luận
+## Conclusion
 
-Thay đổi `exports` là thay đổi quyền truy cập ở cấp module. Xóa một export, chuyển export công khai thành qualified export hoặc bỏ một consumer khỏi danh sách cho phép có thể khiến source không biên dịch lại được và bytecode cũ gặp `IllegalAccessError` khi JVM kiểm tra quyền truy cập.
+Changing `exports` is a module-level access permission change. Removing an export, converting a public export into a qualified export, or removing a consumer from the allowlist can prevent source from recompiling and cause old bytecode to encounter `IllegalAccessError` when the JVM checks access permissions.
 
-Trước khi phát hành, hãy xem package đã export là một phần của hợp đồng tương thích, kiểm tra cả consumer mới lẫn bytecode cũ, và xác nhận descriptor trên chính JAR cuối cùng. Cách kiểm tra này giúp thay đổi API module có chủ đích, có phiên bản phù hợp và có hướng dẫn migration rõ ràng.
+Before releasing, treat exported packages as part of the compatibility contract, test both new consumers and old bytecode, and verify the descriptor on the actual final JAR. This testing approach ensures module API changes are intentional, properly versioned, and accompanied by clear migration guidance.

@@ -1,37 +1,37 @@
-# Tách dữ liệu nghiệp vụ khỏi văn bản hiển thị trong ứng dụng Java
+# Separating Business Data from Display Text in Java Applications
 
-## 1. Vì sao cần tách dữ liệu nghiệp vụ và văn bản hiển thị?
+## 1. Why Separate Business Data from Display Text?
 
-Trong một ứng dụng bản địa hóa (*localization*), **dữ liệu nghiệp vụ** mô tả sự thật và các quy tắc của hệ thống: số tiền, đơn vị tiền tệ, số lượng, thời điểm, trạng thái đơn hàng, mã sản phẩm. **Văn bản hiển thị** là cách diễn đạt dữ liệu đó cho người dùng bằng một ngôn ngữ, quy ước số, ngày giờ và bố cục cụ thể.
+In a localized (*localization*) application, **business data** describes the facts and rules of the system: monetary amounts, currency units, quantities, timestamps, order statuses, and product codes. **Display text** is the way that data is expressed to a user using a specific language, number format, date/time convention, and layout.
 
-Giả sử một đơn hàng có tổng tiền **1.234,50 EUR**. Cùng một dữ liệu có thể được hiển thị:
+Suppose an order has a total amount of **1,234.50 EUR**. The exact same data can be displayed as:
 
 ```text
 en-US: €1,234.50
 de-DE: 1.234,50 €
 ```
 
-Chữ `EUR`, trị số decimal `1234.50` và ID đơn hàng **không thay đổi** khi người dùng chuyển từ tiếng Anh sang tiếng Đức. Chỉ lớp trình bày (*presentation*) sử dụng `Locale` để quyết định dấu thập phân, dấu nhóm, vị trí ký hiệu và khoảng trắng.
+The code `EUR`, the decimal value `1234.50`, and the order ID **do not change** when the user switches from English to German. Only the presentation layer uses `Locale` to determine the decimal separator, grouping separator, symbol position, and spacing.
 
-Nếu lưu `"€1,234.50"` làm giá trị tiền, một parser theo `de-DE` có thể hiểu sai hoặc từ chối nó; nếu so chuỗi hiển thị làm khóa, thay đổi ngôn ngữ có thể làm tra cứu thất bại; nếu lưu `"Đã thanh toán"` thay cho trạng thái `PAID`, hệ thống sẽ phụ thuộc bản dịch tiếng Việt để vận hành.
+If `"€1,234.50"` is stored as the monetary value, a `de-DE` parser might misinterpret or reject it; if display strings are compared as keys, changing the language can break lookups; if `"Đã thanh toán"` is stored instead of the status `PAID`, the system becomes dependent on the Vietnamese translation to operate.
 
-**Nguyên tắc:** *Dữ liệu domain là nguồn sự thật; văn bản hiển thị là kết quả có thể tái tạo theo locale và ngữ cảnh.* Không đảo vai trò của hai lớp này.
+**Principle:** *Domain data is the source of truth; display text is a reproducible result based on locale and context.* Do not invert the roles of these two layers.
 
-### Mục tiêu học tập
+### Learning Objectives
 
-Sau bài học, bạn sẽ:
+After this lesson, you will be able to:
 
-1. Phân biệt domain model, application/service, persistence/API, localization/presentation và UI layout.
-2. Biểu diễn **số tiền** bằng `BigDecimal` cùng `Currency`, **thời điểm** bằng `Instant` hoặc kiểu thời gian thích hợp, **trạng thái** bằng enum/mã ổn định.
-3. Sử dụng `NumberFormat`, `DateTimeFormatter`, `ResourceBundle` và `MessageFormat` ở đúng ranh giới hiển thị.
-4. Thiết kế đầu vào theo locale nhưng lưu dữ liệu theo **hợp đồng độc lập locale**.
-5. Tránh các lỗi trộn bản dịch với business rules, lưu tiền ở dạng chuỗi định dạng, dùng default locale toàn JVM hoặc so sánh nhãn UI.
-6. Phân biệt **mã máy dùng để trao đổi** với **tên/nhãn người dùng đọc được**, và tách locale, currency, timezone thành những thuộc tính độc lập.
-7. Kiểm thử việc đổi ngôn ngữ mà không làm đổi giá trị nghiệp vụ.
+1. Distinguish between domain model, application/service, persistence/API, localization/presentation, and UI layout.
+2. Represent **monetary amounts** with `BigDecimal` and `Currency`, **timestamps** with `Instant` or the appropriate temporal type, and **statuses** with enums/stable codes.
+3. Use `NumberFormat`, `DateTimeFormatter`, `ResourceBundle`, and `MessageFormat` at the proper presentation boundary.
+4. Design locale-aware input while storing data under a **locale-independent contract**.
+5. Avoid common mistakes such as mixing translations into business rules, storing money as formatted strings, relying on the JVM-wide default locale, or comparing UI labels.
+6. Distinguish **machine-readable codes for exchange** from **human-readable names/labels**, and separate locale, currency, and timezone into independent attributes.
+7. Test switching languages without altering business values.
 
-## 2. Một ví dụ: cùng một đơn hàng, nhiều cách nhìn
+## 2. An Example: Same Order, Multiple Views
 
-Xét dữ liệu domain:
+Consider the domain data:
 
 ```text
 orderId    = "ORD-2026-042"
@@ -43,30 +43,30 @@ paidAt     = 2026-10-28T01:30:00Z
 status     = PAID
 ```
 
-Phần **đã lưu** phải mang được các ý nghĩa này mà không dựa vào ngôn ngữ hiện tại. Với một locale và múi giờ hiển thị cụ thể, UI mới tạo các chuỗi:
+The **stored** part must carry these meanings without depending on the current language. Only given a specific display locale and timezone does the UI produce the strings:
 
-| Trường domain | Người dùng en-US, UTC | Người dùng de-DE, Europe/Berlin |
+| Domain field | User en-US, UTC | User de-DE, Europe/Berlin |
 | --- | --- | --- |
 | `status = PAID` | Paid | Bezahlt |
 | `total = 1234.50 EUR` | €1,234.50 | 1.234,50 € |
-| `paidAt = 2026-10-28T01:30:00Z` | Ngày/giờ theo UTC | Ngày/giờ theo Europe/Berlin |
+| `paidAt = 2026-10-28T01:30:00Z` | Date/time in UTC | Date/time in Europe/Berlin |
 | `orderId` | ORD-2026-042 | ORD-2026-042 |
 
-Bảng mô tả **ý nghĩa**; bản dịch, ngày/giờ và chuỗi tiền cụ thể phụ thuộc resource, Java locale provider và cấu hình sản phẩm. Dù presentation đổi, `total`, `currency`, `paidAt` và `status` vẫn bất biến.
+The table describes **meaning**; specific translations, date/time strings, and currency strings depend on resources, the Java locale provider, and product configuration. Even when presentation changes, `total`, `currency`, `paidAt`, and `status` remain invariant.
 
-Nếu người dùng đổi ngôn ngữ, hệ thống nên tính lại **view model** hoặc chuỗi đang hiển thị, không sửa record gốc trong database.
+If the user switches language, the system should recompute the **view model** or displayed strings, rather than modifying the original record in the database.
 
-## 3. Các tầng trách nhiệm
+## 3. Layers of Responsibility
 
-| Tầng | Sở hữu | Không nên sở hữu |
+| Layer | Owns | Should not own |
 | --- | --- | --- |
-| **Domain model** | Giá trị và quy tắc nghiệp vụ: tiền, thuế, trạng thái, số lượng, thời điểm | Văn bản `"Đã thanh toán"`, dấu nhóm, tên tháng, nút UI |
-| **Application/service** | Use case, tính toán, validation domain, giao dịch, quyền truy cập | Trộn các nhãn đã dịch vào business logic |
-| **Persistence/API** | Schema, ID, currency code, decimal, instant, enum/code, hợp đồng trao đổi | Chuỗi trình bày tùy locale nếu không được định nghĩa là dữ liệu |
-| **Localization/presenter** | `Locale`, `ResourceBundle`, formatter số/ngày, lời nhắn và placeholders | Quyết định số tiền thật, trạng thái thật, rounding nghiệp vụ |
-| **UI/layout** | Wrap, canh lề, font, RTL, ellipsis, accessibility | Tự suy lại giá trị nghiệp vụ từ label |
+| **Domain model** | Business values and rules: money, tax, status, quantity, timestamps | Text like `"Đã thanh toán"`, grouping separators, month names, UI buttons |
+| **Application/service** | Use cases, calculations, domain validation, transactions, access control | Mixing translated labels into business logic |
+| **Persistence/API** | Schema, IDs, currency codes, decimals, instants, enums/codes, exchange contracts | Locale-dependent presentation strings unless explicitly defined as data |
+| **Localization/presenter** | `Locale`, `ResourceBundle`, number/date formatters, messages and placeholders | Deciding the actual amount, actual status, or business rounding |
+| **UI/layout** | Wrapping, alignment, fonts, RTL, ellipsis, accessibility | Inferring business values back from labels |
 
-Sơ đồ luồng một chiều:
+One-way flow diagram:
 
 ```text
 Persistence / API (canonical data)
@@ -74,7 +74,7 @@ Persistence / API (canonical data)
                  v
     Domain model / use case
                  |
-                 | dữ liệu có kiểu và ngữ nghĩa
+                 | typed and semantic data
                  v
           Presenter / i18n
          /          |          \
@@ -86,23 +86,23 @@ Persistence / API (canonical data)
                  v
        Layout, font, RTL, wrap
 
-User input → parser theo locale → validation → domain value
+User input → locale-aware parser → validation → domain value
 ```
 
-Việc UI gửi input lên không phá nguyên tắc này: chuỗi nhập **chỉ là đầu vào tạm thời**; một bước parsing/validation có trách nhiệm chuyển nó thành giá trị có kiểu trước khi truyền vào nghiệp vụ.
+The UI submitting input does not break this principle: the input string is **only temporary input**; a parsing/validation step is responsible for converting it into a typed value before passing it to business logic.
 
-## 4. Số tiền: `BigDecimal` và mã tiền tệ, không phải một `String`
+## 4. Money: `BigDecimal` and Currency Code, Not a `String`
 
-Một thiết kế sai thường gặp:
+A common flawed design:
 
 ```java
-// Sai về mô hình dữ liệu:
+// Flawed data model:
 String total = "1.234,50 €";
 ```
 
-Chuỗi này chứa đồng thời **giá trị**, **dấu phân nhóm**, **dấu thập phân**, **ký hiệu tiền** và **quy ước locale**. Không dễ cộng, so, lưu bền hoặc parse lại khi locale/JDK thay đổi. Ký hiệu `€` không thay thế được mô hình currency; tương tự ký hiệu `$` có thể chỉ nhiều đồng tiền.
+This string simultaneously bundles **value**, **grouping separator**, **decimal separator**, **currency symbol**, and **locale convention**. It is hard to add, compare, persist reliably, or re-parse when the locale or JDK changes. The symbol `€` cannot replace a currency model; similarly, the symbol `$` can refer to many different currencies.
 
-Thiết kế rõ hơn:
+A clearer design:
 
 ```java
 import java.math.BigDecimal;
@@ -117,33 +117,33 @@ public record Money(BigDecimal amount, Currency currency) {
 }
 ```
 
-Đây là **một file Java độc lập** nếu lưu thành `Money.java` (trong default package), dùng được trên Java 17+. Nó biểu diễn *amount + currency* mà không chứa locale hiển thị. Trong code thật còn cần quy tắc quy mô/phân số tiền, làm tròn, miền giá trị và phương thức cộng chỉ các đồng tiền tương thích. `BigDecimal` giữ các chữ số decimal, nhưng không tự áp đặt toàn bộ quy tắc tài chính.
+This is **a standalone Java file** if saved as `Money.java` (in the default package), runnable on Java 17+. It represents *amount + currency* without embedding any display locale. In production code, you also need scale/fractional unit rules, rounding, value ranges, and addition methods that only allow compatible currencies. `BigDecimal` preserves decimal digits, but it does not automatically enforce all financial rules.
 
-### 4.1. `amount` không thể chỉ là `double` nếu cần tính tiền chính xác
+### 4.1. `amount` Cannot Just Be `double` for Exact Monetary Calculations
 
-`double` biểu diễn số nhị phân xấp xỉ; nhiều số như `0.1` không được lưu chính xác theo decimal. Dùng:
+`double` represents binary approximations; many numbers like `0.1` cannot be stored accurately in decimal. Use:
 
 ```java
 BigDecimal amount = new BigDecimal("1234.50");
 ```
 
-thay vì:
+instead of:
 
 ```java
 BigDecimal amount = new BigDecimal(1234.50);
 ```
 
-khi muốn chuyển từ literal decimal text một cách chính xác. Với các phép toán như chia, cần chọn scale và `RoundingMode` theo nghiệp vụ. **Formatter hiển thị không được âm thầm làm thay đổi amount domain** chỉ vì UI chỉ hiển thị hai chữ số.
+when converting accurately from literal decimal text. For operations like division, you must choose scale and `RoundingMode` according to business rules. **The display formatter must not silently alter the domain amount** just because the UI only displays two digits.
 
-### 4.2. Currency và locale là hai tham số khác nhau
+### 4.2. Currency and Locale Are Two Separate Parameters
 
-`Locale.GERMANY` chỉ mô tả quy ước hiển thị cho người dùng, không có nghĩa mọi giao dịch của người đó đều dùng EUR. Một giao dịch USD của người dùng tại Đức vẫn phải lưu `USD` và amount chính xác, rồi format bằng **locale Đức** và **currency USD**.
+`Locale.GERMANY` only describes the user's display convention; it does not mean every transaction for that user uses EUR. A USD transaction for a user in Germany must still store `USD` and the exact amount, then format using **German locale** and **USD currency**.
 
-Dùng `NumberFormat.getCurrencyInstance(displayLocale)` để lấy formatter, sau đó `setCurrency(domainCurrency)`. Không suy currency thật từ `Currency.getInstance(displayLocale)` nếu hợp đồng giao dịch cung cấp currency riêng.
+Use `NumberFormat.getCurrencyInstance(displayLocale)` to obtain a formatter, then call `setCurrency(domainCurrency)`. Do not infer the actual currency from `Currency.getInstance(displayLocale)` if the transaction contract specifies its own currency.
 
-## 5. Java 17+: một `Money`, hai chuỗi hiển thị
+## 5. Java 17+: One `Money`, Two Display Strings
 
-Tạo file `MoneyPresentationDemo.java`:
+Create `MoneyPresentationDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -189,14 +189,14 @@ public class MoneyPresentationDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 MoneyPresentationDemo.java
 java MoneyPresentationDemo
 ```
 
-Ví dụ kết quả từ một JDK có locale data CLDR thông dụng:
+Sample output from a JDK with standard CLDR locale data:
 
 ```text
 domain amount: 1234.50
@@ -206,17 +206,17 @@ de-DE: 1.234,50 €
 unchanged: true
 ```
 
-Dòng `de-DE` có thể chứa **U+00A0 NO-BREAK SPACE** trước `€`, không phải ASCII space. Vị trí/ký hiệu/space có thể khác giữa các bản JDK hoặc locale provider. Các dòng `domain amount`, `domain currency` và `unchanged` minh họa điều cần bất biến.
+The `de-DE` line may contain **U+00A0 NO-BREAK SPACE** before `€`, rather than an ASCII space. Symbol/position/spacing may differ across JDK versions or locale providers. The `domain amount`, `domain currency`, and `unchanged` lines illustrate what must remain invariant.
 
-**Tách biệt quan trọng:** vì `NumberFormat` mutable và không bảo đảm thread-safe, ví dụ tạo formatter **mới cho mỗi lần gọi**. Không dùng chung một `NumberFormat` static giữa nhiều request rồi gọi `setCurrency` liên tục: có thể rò cấu hình và in sai đồng tiền.
+**Important isolation:** because `NumberFormat` is mutable and not thread-safe, the example creates a **new formatter per call**. Do not share a static `NumberFormat` across multiple requests while repeatedly calling `setCurrency`: configuration can leak and print the wrong currency.
 
-### Nếu cần hai chữ số phần lẻ?
+### What if Two Fractional Digits Are Needed?
 
-Đừng chỉ dựa vào `setMinimumFractionDigits(2)` để quyết định một khoản tiền hợp lệ: đó là **định dạng hiển thị**. Chính sách tiền tệ của domain có thể yêu cầu số chữ số khác nhau theo currency và loại giao dịch. Trước khi lưu hoặc tính toán, áp dụng validation và rounding business (ví dụ `RoundingMode.HALF_EVEN` hoặc quy tắc bắt buộc của nghiệp vụ); sau đó formatter trình bày kết quả theo locale.
+Do not rely solely on `setMinimumFractionDigits(2)` to determine whether a monetary amount is valid: that is **display formatting**. The domain currency policy may require different numbers of digits depending on currency and transaction type. Before storing or calculating, apply business validation and rounding (for example `RoundingMode.HALF_EVEN` or a mandatory business rule); only afterward should the formatter present the result according to the locale.
 
-## 6. Status: mã ổn định khác nhãn dịch
+## 6. Status: Stable Codes Differ from Translated Labels
 
-Một lỗi thiết kế nghiêm trọng:
+A serious design flaw:
 
 ```java
 if (order.statusText().equals("Đã thanh toán")) {
@@ -224,9 +224,9 @@ if (order.statusText().equals("Đã thanh toán")) {
 }
 ```
 
-Mỗi lần thay đổi bản dịch, logic có thể sai. Tương tự, việc đổi ngôn ngữ tiếng Anh → tiếng Việt không phải lý do khiến đơn hàng đổi trạng thái.
+Every time the translation changes, the logic can break. Likewise, switching the language from English to Vietnamese is no reason for an order to change status.
 
-Nên dùng một enum hoặc trạng thái domain ổn định:
+Instead, use an enum or a stable domain status:
 
 ```java
 public enum OrderStatus {
@@ -234,7 +234,7 @@ public enum OrderStatus {
 }
 ```
 
-Resource tương ứng có thể là:
+The corresponding resource can be:
 
 ```properties
 status.NEW=New
@@ -243,7 +243,7 @@ status.CANCELLED=Cancelled
 status.REFUNDED=Refunded
 ```
 
-và bản tiếng Việt:
+and the Vietnamese version:
 
 ```properties
 status.NEW=Mới
@@ -252,15 +252,15 @@ status.CANCELLED=Đã hủy
 status.REFUNDED=Đã hoàn tiền
 ```
 
-Các ví dụ `.properties` trên là **hai bộ dữ liệu khác nhau**, không ghép cùng một file. Khi triển khai, lưu chúng trong `Labels_en.properties` và `Labels_vi.properties` ở classpath.
+The `.properties` examples above are **two separate datasets**, not combined in the same file. In deployment, store them as `Labels_en.properties` and `Labels_vi.properties` on the classpath.
 
-`ResourceBundle.getBundle("Labels", locale)` chọn bản dịch theo cơ chế locale fallback. `ResourceBundle` là thành phần **presentation**, trong khi `OrderStatus.PAID` là thông tin nghiệp vụ. Không truyền label đã dịch vào API như một enum code; API nên dùng `"PAID"` theo schema đã thống nhất.
+`ResourceBundle.getBundle("Labels", locale)` selects the translation via the locale fallback mechanism. `ResourceBundle` is a **presentation** component, whereas `OrderStatus.PAID` is business information. Do not pass translated labels into an API as an enum code; the API should use `"PAID"` per the agreed schema.
 
-Nếu sản phẩm cần thay tên `"Paid"` thành `"Payment received"`, chỉ thay resource; logic domain không cần sửa.
+If the product needs to change the label `"Paid"` to `"Payment received"`, only the resource changes; domain logic requires no modification.
 
-## 7. Ví dụ Java 17+: `ResourceBundle` và `MessageFormat`
+## 7. Java 17+ Example: `ResourceBundle` and `MessageFormat`
 
-Đặt ba file trong **cùng một thư mục** khi chạy:
+Place the three files in the **same directory** when running:
 
 ```text
 Labels_en.properties
@@ -314,64 +314,64 @@ public class LocalizedStatusDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 LocalizedStatusDemo.java
 java LocalizedStatusDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Order ORD-42: 1234.50 EUR — Paid
 Đơn ORD-42: 1234.50 EUR — Đã thanh toán
 ```
 
-Ở đây `currencyText` cố tình dùng một chuỗi minh họa đã được tạo bên ngoài, để tập trung vào **nội dung bản dịch**. Trong sản phẩm, giá trị nên đi từ `Money` qua `NumberFormat` theo locale, rồi mới được chèn vào message.
+Here `currencyText` intentionally uses an illustrative string created externally, to focus on **translation content**. In production, the value should flow from `Money` through `NumberFormat` for the locale before being inserted into the message.
 
-**Lưu ý quan trọng về `MessageFormat`:**
+**Important notes on `MessageFormat`:**
 
-- Message pattern là **cả câu**, để người dịch đổi thứ tự các placeholder `{0}`, `{1}`, `{2}` theo ngữ pháp.
-- Trong pattern của `MessageFormat`, dấu nháy đơn `'` có quy tắc escaping riêng; muốn hiển thị dấu nháy đơn literal nhiều khi cần viết `''`. Không gán mọi chuỗi tài nguyên qua `MessageFormat` nếu chưa hiểu quy tắc quote.
-- Với số nhiều phức tạp theo locale, Java SE `MessageFormat` cơ bản không phải engine hỗ trợ đầy đủ mọi CLDR plural categories; cân nhắc ICU MessageFormat hoặc giải pháp i18n phù hợp sản phẩm.
-- Bản dịch là **dữ liệu ngôn ngữ**, không phải kênh chứa logic chuyển trạng thái, SQL, biểu thức tính tiền hay thứ tự hành động nghiệp vụ.
-- Với ứng dụng web, dữ liệu đưa vào HTML còn cần escaping theo ngữ cảnh render (text node, attribute, URL...). `MessageFormat` không tự bảo vệ khỏi HTML/script injection.
+- A message pattern should be a **full sentence**, so translators can reorder placeholders `{0}`, `{1}`, `{2}` according to grammar.
+- In `MessageFormat` patterns, the single quote `'` has special escaping rules; displaying a literal single quote often requires writing `''`. Do not route every resource string through `MessageFormat` without understanding its quoting rules.
+- For complex locale-specific plurals, basic Java SE `MessageFormat` is not an engine that fully supports all CLDR plural categories; consider ICU MessageFormat or an i18n solution suited to the product.
+- Translations are **linguistic data**, not a channel for embedding state-transition logic, SQL, monetary calculation expressions, or business action ordering.
+- In web applications, data rendered into HTML still needs context-appropriate escaping (text nodes, attributes, URLs, etc.). `MessageFormat` does not automatically protect against HTML/script injection.
 
-## 8. Ngày giờ: `Instant` không phải chuỗi ngày theo ngôn ngữ
+## 8. Date and Time: `Instant` Is Not a Language-Specific Date String
 
-Một giao dịch hoàn thành tại:
+A transaction completes at:
 
 ```text
 2026-10-28T01:30:00Z
 ```
 
-Đây là một **thời điểm tuyệt đối**. Người dùng ở Tokyo xem thấy giờ khác người dùng ở UTC, nhưng `Instant` phải là **cùng một instant**.
+This is an **absolute point in time**. A user in Tokyo sees a different wall-clock time than a user in UTC, but the `Instant` must be **the exact same instant**.
 
-Không nên lưu:
+Do not store:
 
 ```text
 "28/10/2026 08:30"
 ```
 
-mà không có offset/timezone và schema, rồi giả định có thể suy ra instant bất biến. `28/10/2026` có thể là format ngày Việt Nam; nơi khác có thể dùng `10/28/2026`. Nếu có DST, cùng giờ địa phương có thể không tồn tại hoặc lặp.
+without an offset/timezone and schema, and then assume you can recover an invariant instant. `28/10/2026` may be a Vietnamese date format; elsewhere `10/28/2026` is used. With DST, the same local time may not exist or may occur twice.
 
-### 8.1. Các kiểu ngày giờ theo ý nghĩa nghiệp vụ
+### 8.1. Temporal Types by Business Meaning
 
-| Nhu cầu | Java type thường phù hợp | Lưu ý |
+| Need | Typically appropriate Java type | Notes |
 | --- | --- | --- |
-| Timestamp giao dịch đã xảy ra | `Instant` | Một điểm thời gian tuyệt đối |
-| Ngày sinh, ngày nghỉ (không cần giờ) | `LocalDate` | Không chuyển thành instant khi chưa có zone/ngữ nghĩa |
-| Giờ mở cửa hàng lặp hằng ngày | `LocalTime` + zone/schedule policy | Không tương đương timestamp |
-| Lịch hẹn lúc 9:00 ở một khu vực | `LocalDateTime` + `ZoneId` và chính sách DST | Zone có quy tắc thay đổi |
-| Thời điểm đã gắn múi giờ | `ZonedDateTime` | Mang zone ID; cân nhắc lưu instant và zone riêng |
-| Thời điểm gửi API có offset | `OffsetDateTime` nếu schema yêu cầu | Offset không luôn giữ region zone ID |
+| Timestamp of an event that occurred | `Instant` | An absolute point on the timeline |
+| Birth date, holiday (no time needed) | `LocalDate` | Do not convert to an instant without a zone/semantics |
+| Daily recurring store opening hours | `LocalTime` + zone/schedule policy | Not equivalent to a timestamp |
+| Scheduled appointment at 9:00 in a region | `LocalDateTime` + `ZoneId` and DST policy | Zone rules can change |
+| Instant paired with a timezone | `ZonedDateTime` | Carries zone ID; consider storing instant and zone separately |
+| Timestamp sent over API with an offset | `OffsetDateTime` if the schema requires it | Offset does not always preserve the region zone ID |
 
-`DateTimeFormatter` biến đối tượng thời gian thành chuỗi. Nếu hiển thị theo locale, có thể dùng `ofLocalizedDateTime` với `withLocale` và `withZone` khi định dạng một `Instant`. Nếu cần timestamp máy, dùng `Instant.toString()`/`DateTimeFormatter.ISO_INSTANT` thay vì localized output.
+`DateTimeFormatter` turns a temporal object into a string. For localized display, you can use `ofLocalizedDateTime` with `withLocale` and `withZone` when formatting an `Instant`. If a machine-readable timestamp is needed, use `Instant.toString()`/`DateTimeFormatter.ISO_INSTANT` instead of localized output.
 
-### Ví dụ Java 17+: cùng một `Instant`, nhiều giờ hiển thị
+### Java 17+ Example: Same `Instant`, Multiple Display Times
 
-Tạo `InstantPresentationDemo.java`:
+Create `InstantPresentationDemo.java`:
 
 ```java
 import java.time.Instant;
@@ -414,16 +414,16 @@ Tokyo: 2026-10-28 10:30 +09:00
 unchanged: true
 ```
 
-Đây là pattern cố định để có stdout rõ ràng. Trong UI đa ngôn ngữ, dùng `DateTimeFormatter.ofLocalizedDateTime(style).withLocale(locale).withZone(zone)` để lấy quy ước người dùng, rồi **không dùng chuỗi kết quả để lưu lại instant**.
+This uses a fixed pattern for clear stdout output. In a multilingual UI, use `DateTimeFormatter.ofLocalizedDateTime(style).withLocale(locale).withZone(zone)` to apply the user's conventions, and **do not use the resulting string to store the instant**.
 
-`DateTimeFormatter` là immutable; `withZone` trả một formatter mới, không sửa bản cũ. Ngược lại, nhiều formatter cũ như `SimpleDateFormat` và `NumberFormat` mutable, không nên chia sẻ giữa các thread đang thay cấu hình.
+`DateTimeFormatter` is immutable; `withZone` returns a new formatter without mutating the old one. Conversely, many legacy formatters like `SimpleDateFormat` and `NumberFormat` are mutable and should not be shared across threads that change configuration.
 
-## 9. Parse input: lớp riêng chuyển text thành giá trị nghiệp vụ
+## 9. Parsing Input: A Dedicated Layer Converts Text to Business Values
 
-Khi người dùng nhập `1.234,50` trong giao diện `de-DE`, đây là **chuỗi của một form nhập liệu**. Domain không nên tự phân tích dấu phẩy/dấu chấm. Một lớp adapter/presenter/parser cần biết locale rồi tạo `BigDecimal`:
+When a user enters `1.234,50` in a `de-DE` interface, this is **an input form string**. The domain should not parse commas/periods itself. An adapter/presenter/parser layer needs to know the locale and produce a `BigDecimal`:
 
 ```text
-Input UI "1.234,50" + locale de-DE
+UI input "1.234,50" + locale de-DE
            |
            v
 Locale number parser + full-input validation
@@ -438,13 +438,13 @@ Domain validation: >=0, currency/scale/range...
 Money(amount=1234.50, currency=EUR)
 ```
 
-### Vì sao không parse ngay trong domain?
+### Why Not Parse Directly Inside the Domain?
 
-Domain model như `Money` có thể được tạo từ REST API, CSV import, database, batch job, desktop UI hoặc form web. Nếu nó chấp nhận một chuỗi theo locale mặc định của JVM, các nguồn khác nhau vô tình phải tuân một format do máy chủ chọn. Tách parser ở **ranh giới đầu vào** giúp domain nhất quán, còn mỗi input channel có adapter riêng.
+A domain model like `Money` can be constructed from a REST API, CSV import, database, batch job, desktop UI, or web form. If it accepted a string parsed with the JVM's default locale, different channels would inadvertently be forced into whatever format the server chose. Separating the parser at the **input boundary** keeps the domain consistent while each input channel has its own adapter.
 
-### Ví dụ Java 17+: parse đúng locale và kiểm tra toàn bộ input
+### Java 17+ Example: Locale-Correct Parsing and Full-Input Validation
 
-Tạo `LocalizedNumberInputDemo.java`:
+Create `LocalizedNumberInputDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -514,36 +514,36 @@ suffix rejected
 wrong locale rejected
 ```
 
-**Điểm quan trọng:**
+**Key points:**
 
-- `DecimalFormat` với `setParseBigDecimal(true)` giữ giá trị decimal hữu hạn và scale theo chuỗi được parse.
-- `NumberFormat.parse(String)` thông thường có thể chấp nhận **một tiền tố**; dùng `ParsePosition.getIndex()==text.length()` để phát hiện phần thừa.
-- `NaN`/vô cực có thể trả `Double`, không phải `BigDecimal`; `instanceof BigDecimal` giúp từ chối các giá trị không phù hợp domain tiền.
-- Việc parse hết chuỗi **chưa chứng minh grouping đúng quy tắc nghiêm ngặt**. `DecimalFormat` có thể chấp nhận nhóm sai vị trí; nếu cần field tiền strict, bổ sung lexical validation theo schema, scale, miền giá trị, giới hạn độ dài.
-- Không thay `Locale.setDefault(...)` theo từng request; truyền locale đã xác nhận từ profile/session/input format.
-- Nếu currency được chọn riêng trên form, parser số không được tự đoán currency từ mã ngôn ngữ.
+- `DecimalFormat` with `setParseBigDecimal(true)` preserves finite decimal values and the parsed string's scale.
+- Standard `NumberFormat.parse(String)` can accept **just a prefix**; use `ParsePosition.getIndex()==text.length()` to detect trailing characters.
+- `NaN`/infinity can return a `Double`, not a `BigDecimal`; `instanceof BigDecimal` helps reject values unsuitable for a money domain.
+- Parsing the entire string **does not prove grouping follows strict rules**. `DecimalFormat` may accept misplaced grouping separators; if strict monetary fields are required, add lexical validation against your schema, scale, value range, and length limits.
+- Do not change `Locale.setDefault(...)` per request; pass the confirmed locale from the profile/session/input format.
+- If the currency is chosen separately on the form, the number parser must not guess the currency from the language tag.
 
-## 10. Lưu trữ: dữ liệu canonical, không phải snapshot của text UI
+## 10. Storage: Canonical Data, Not UI Text Snapshots
 
-**Canonical data** là giá trị có schema đủ để đọc lại mà không phải đoán locale.
+**Canonical data** is a value with a schema sufficient to be read back without guessing a locale.
 
-| Domain value | Gợi ý persistence/API | Không nên lưu làm source of truth |
+| Domain value | Persistence/API recommendation | Should not be stored as source of truth |
 | --- | --- | --- |
-| `BigDecimal("1234.50")` | Cột DECIMAL/NUMERIC có precision/scale rõ, hoặc chuỗi decimal không grouping | `"1.234,50"` theo locale Đức |
-| `Currency EUR` | `"EUR"` trong cột/code ISO được thống nhất | `"€"` hoặc `"Euro"` |
-| `Instant` | Timestamp có hợp đồng UTC/offset, ISO 8601 | `"28/10/2026 08:30"` không zone |
-| `OrderStatus.PAID` | Code `"PAID"` hoặc enum mapping theo version schema | `"Đã thanh toán"` |
-| `Locale vi-VN` | BCP 47 language tag `"vi-VN"` | `"Tiếng Việt"` làm ID |
-| `ZoneId` | ID vùng như `"Asia/Ho_Chi_Minh"` | Tên hiển thị vùng giờ |
-| Mã sản phẩm | Chuỗi mã có quy tắc riêng | `NumberFormat` đã thêm grouping |
+| `BigDecimal("1234.50")` | DECIMAL/NUMERIC column with clear precision/scale, or ungrouped decimal string | `"1.234,50"` in German locale |
+| `Currency EUR` | `"EUR"` in an agreed ISO code column/field | `"€"` or `"Euro"` |
+| `Instant` | Timestamp with UTC/offset contract, ISO 8601 | `"28/10/2026 08:30"` without zone |
+| `OrderStatus.PAID` | Code `"PAID"` or schema-versioned enum mapping | `"Đã thanh toán"` |
+| `Locale vi-VN` | BCP 47 language tag `"vi-VN"` | `"Tiếng Việt"` as an ID |
+| `ZoneId` | Region ID such as `"Asia/Ho_Chi_Minh"` | Localized timezone display name |
+| Product code | String code with its own rules | `NumberFormat` output with grouping added |
 
-**Ghi chú về JSON:** JSON number không tự bảo đảm mọi consumer sẽ giữ precision/scale như `BigDecimal`; với số tiền chính xác, cần hợp đồng rõ kiểu và cách biểu diễn (ví dụ decimal string hoặc format JSON decimal thống nhất cho hệ thống) thay vì tin mọi client parse số bằng decimal.
+**Note on JSON:** A JSON number does not automatically guarantee every consumer will preserve precision/scale like `BigDecimal`; for exact monetary amounts, define a clear contract for type and representation (e.g., decimal string or a system-wide consistent JSON decimal format) rather than assuming every client parses numbers as decimals.
 
-**Ghi chú về JDBC/DB:** scale khi lưu `BigDecimal` phụ thuộc schema cột và driver. Cột DECIMAL(12,2) có các quy tắc giới hạn, rounding/overflow cần test; đừng chỉ để frontend hiển thị hai chữ số rồi tin dữ liệu đã hợp lệ.
+**Note on JDBC/DB:** The scale when storing `BigDecimal` depends on column schema and driver. A `DECIMAL(12,2)` column has constraints, rounding, and overflow rules that must be tested; do not assume data is valid just because the frontend displays two decimal digits.
 
-### Ví dụ Java 17+: dữ liệu canonical và giá trị khôi phục
+### Java 17+ Example: Canonical Data and Round-Tripped Values
 
-Tạo `CanonicalDataDemo.java`:
+Create `CanonicalDataDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -594,26 +594,26 @@ currency equals: true
 instant equals: true
 ```
 
-Với `BigDecimal` có scale âm, `toPlainString()` không bảo toàn mọi giá trị scale khi dựng lại; nếu phải giữ nguyên scale cho **mọi** số, dùng `toString()` hoặc lưu `unscaledValue + scale` theo schema. Ví dụ này có scale 2 và khôi phục đúng `equals`.
+For a `BigDecimal` with a negative scale, `toPlainString()` does not preserve all scale values when reconstructed; if exact scale must be preserved for **every** number, use `toString()` or store `unscaledValue + scale` per your schema. This example has scale 2 and round-trips to `equals` true.
 
-Đừng nhầm việc lưu **bản ghi văn bản đã được ban hành** với lưu **giá trị domain**: một hóa đơn PDF đã phát hành có thể cần lưu snapshot để audit; bản domain vẫn nên lưu amount, currency, date, line items và version của các quy tắc nội dung.
+Do not confuse storing **an issued document record** with storing **domain values**: an issued PDF invoice may require storing a snapshot for auditing; the domain record should still store amount, currency, date, line items, and the version of the content rules.
 
-## 11. Domain invariant phải được kiểm tra trước presentation
+## 11. Domain Invariants Must Be Checked Before Presentation
 
-Chẳng hạn, use case bán hàng có thể quy định:
+For instance, a sales use case might specify:
 
-- quantity phải nguyên dương;
-- unit price không âm;
-- tổng tiền = unit price × quantity;
-- currency của tất cả dòng phải tương thích;
-- rounding thuế hoặc chiết khấu dùng quy tắc cụ thể;
-- timestamp là thời điểm hợp lệ từ đồng hồ/service.
+- quantity must be a positive integer;
+- unit price is non-negative;
+- total = unit price × quantity;
+- currencies across all lines must be compatible;
+- tax or discount rounding follows a specific rule;
+- timestamp is a valid point in time from the clock/service.
 
-Những quy tắc này **không thay đổi khi người dùng đổi locale**. Đừng xem chuỗi `"1,23"` hay `"1.23"` là giá trị số khi đang tính toán; đó là biểu diễn đầu vào/đầu ra.
+These rules **do not change when the user changes locale**. Do not treat strings like `"1,23"` or `"1.23"` as numeric values during calculations; those are input/output representations.
 
-### Java 17+: domain record tính tổng không phụ thuộc locale
+### Java 17+: Locale-Independent Domain Record Computing Total
 
-Tạo `OrderDomainDemo.java`:
+Create `OrderDomainDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -662,29 +662,29 @@ total: 1234.50
 currency: EUR
 ```
 
-Vì code tính trên `BigDecimal`, kết quả không phụ thuộc dấu thập phân của `vi-VN` hay `de-DE`. `OrderLine` là mô hình **đơn giản**: hệ thống thực còn phải xác định tax, discount, quantity units, rounding, currency conversion và chính sách khoản tiền không âm một cách rõ ràng.
+Because the code calculates with `BigDecimal`, the result does not depend on the decimal separator of `vi-VN` or `de-DE`. `OrderLine` is a **simplified** model: a real system must also explicitly define tax, discount, quantity units, rounding, currency conversion, and non-negative monetary amount policies.
 
-### Không dùng label để quyết định trạng thái
+### Do Not Use Labels to Determine Status
 
-**Sai:**
+**Wrong:**
 
 ```java
-if (statusLabel.equals("Paid")) { /* xử lý đơn */ }
+if (statusLabel.equals("Paid")) { /* process order */ }
 ```
 
-**Đúng về tầng trách nhiệm:**
+**Right by responsibility layer:**
 
 ```java
 if (order.status() == OrderStatus.PAID) {
-    // xử lý nghiệp vụ không phụ thuộc ngôn ngữ
+    // language-independent business logic
 }
 ```
 
-Đây là **mã minh họa** có biến `order` và enum `OrderStatus` theo domain. Label `"Paid"`/`"Đã thanh toán"` chỉ được tạo sau khi use case biết trạng thái.
+This is **illustrative code** assuming a domain `order` variable and `OrderStatus` enum. The label `"Paid"`/`"Đã thanh toán"` is only produced after the use case already knows the status.
 
-## 12. Locale, timezone, currency và ngôn ngữ giao diện không đồng nhất
+## 12. Independent Locale, Timezone, Currency, and UI Language
 
-Một người dùng có thể chọn:
+A user may select:
 
 ```text
 display language: en-US
@@ -693,28 +693,28 @@ time zone:        Asia/Ho_Chi_Minh
 transaction money: USD
 ```
 
-Không có mâu thuẫn. Người đó có thể thích tiếng Anh, nhập số theo quy ước Đức, xem giờ Việt Nam và thanh toán USD. Ứng dụng phải xác định **từng thuộc tính** theo hợp đồng sản phẩm; đừng dùng một `Locale` để đoán mọi preference.
+There is no contradiction. That user may prefer English, enter numbers using German conventions, view times in Vietnam time, and pay in USD. The application must resolve **each attribute** according to the product contract; do not use a single `Locale` to guess all preferences.
 
-| Thuộc tính | Nguồn khả dĩ | Ý nghĩa |
+| Attribute | Possible sources | Meaning |
 | --- | --- | --- |
-| Message locale | Profile, thiết lập ứng dụng, nội dung `Accept-Language` được hỗ trợ | Chọn bản dịch/resource |
-| Number input/output locale | User preference hoặc form locale được xác định | Parser/formatter số |
-| Zone ID | Profile, đặt lịch, vùng của sự kiện | Quy tắc ngày giờ địa phương |
-| Currency code | Đơn hàng/price list/hợp đồng giao dịch | Đồng tiền nghiệp vụ |
-| Measurement unit | Domain/schema/user preference được chuyển đổi có kiểm soát | kg/lb, km/mi, °C/°F |
-| Calendar system | Quy ước nghiệp vụ hoặc lựa chọn presentation | ISO/Buddhist/Japanese calendar... |
+| Message locale | Profile, app settings, supported `Accept-Language` values | Select translations/resources |
+| Number input/output locale | User preference or explicitly defined form locale | Number parser/formatter |
+| Zone ID | Profile, schedule setting, event region | Local date/time rules |
+| Currency code | Order/price list/transaction contract | Business currency |
+| Measurement unit | Domain/schema/controlled user preference conversion | kg/lb, km/mi, °C/°F |
+| Calendar system | Business convention or presentation choice | ISO/Buddhist/Japanese calendar... |
 
-**Không dùng `Locale.getDefault()` hay `TimeZone.getDefault()` của server như sở thích của request.** Hai default này là cấu hình của JVM/process và có thể khác người dùng, không an toàn khi đổi liên tục để phục vụ nhiều request song song.
+**Do not use the server's `Locale.getDefault()` or `TimeZone.getDefault()` as a request's preference.** These defaults are JVM/process-level settings that may differ from the user and are unsafe to mutate repeatedly across concurrent requests.
 
-Nếu một ứng dụng nội bộ thực sự chỉ có một locale/zone cố định, vẫn nên đưa lựa chọn thành **configuration tường minh**, để có thể kiểm thử và di trú.
+If an internal application truly has only one fixed locale/zone, still make that choice an **explicit configuration**, so it can be tested and migrated.
 
-## 13. Thiết kế DTO và API: text chỉ là một projection
+## 13. DTO and API Design: Text Is Only a Projection
 
-Một response phục vụ máy và response phục vụ UI có thể cần hợp đồng khác nhau.
+A machine-facing response and a UI-facing response may require different contracts.
 
-### 13.1. API có giá trị chuẩn
+### 13.1. API with Canonical Values
 
-Ví dụ JSON minh họa:
+Illustrative JSON example:
 
 ```json
 {
@@ -726,11 +726,11 @@ Ví dụ JSON minh họa:
 }
 ```
 
-`amount` ở đây là **decimal string theo schema**, không phải số có dấu nhóm; `paidAt` là ISO instant. Consumer có thể tạo bản dịch theo locale của mình, và API không bị ràng buộc phải giữ dấu ngăn cách tiếng Anh hay tiếng Việt.
+Here `amount` is a **decimal string per schema**, not a number with grouping separators; `paidAt` is an ISO instant. Consumers can produce translations in their own locale, and the API is not tied to English or Vietnamese separators.
 
-### 13.2. UI projection có thể thêm label
+### 13.2. UI Projection May Include Labels
 
-Ví dụ một view model có thể chứa:
+For example, a view model might contain:
 
 ```json
 {
@@ -742,64 +742,64 @@ Ví dụ một view model có thể chứa:
 }
 ```
 
-Các trường `statusLabel`, `formattedTotal`, `formattedPaidAt` là **presentation data**, phụ thuộc locale, zone và quy tắc hiện hành. Không gửi chúng trở lại API như dữ liệu có thẩm quyền. Nếu backend cung cấp view-model localized để phục vụ UI, vẫn giữ **domain model và serialization ổn định** ở tầng nghiệp vụ.
+The fields `statusLabel`, `formattedTotal`, and `formattedPaidAt` are **presentation data**, dependent on locale, zone, and active rules. Do not send them back to the API as authoritative data. If the backend provides a localized view model for the UI, still keep the **domain model and stable serialization** in the business layer.
 
-### Tránh format hai lần
+### Avoid Double Formatting
 
-Nếu backend đã format số bằng de-DE và frontend lại gọi formatter en-US với chuỗi ấy, output dễ sai hoặc bị "double-format". Tốt nhất quyết định rõ **formatter thuộc server hay client**; khi client chịu trách nhiệm, gửi raw amount có kiểu/schema và locale preference. Khi server chịu trách nhiệm, gửi display text đi kèm code/value thật nếu client cần tương tác/submit.
+If the backend already formatted a number using `de-DE` and the frontend calls an `en-US` formatter on that string, the output easily breaks or gets "double-formatted". It is best to decide clearly whether **formatting belongs to the server or the client**; when the client is responsible, send typed/schema-compliant raw amounts and locale preferences. When the server is responsible, send display text alongside the real code/value if the client needs to interact or submit.
 
-## 14. Resource key không phải dữ liệu nghiệp vụ
+## 14. Resource Keys Are Not Business Data
 
-Resource key như `status.PAID` hoặc `error.order.notFound` là **địa chỉ thông điệp**. Nó nên ổn định trong code và có thể kiểm soát qua resource bundles. Nhưng không nên dùng một đoạn bản dịch làm key:
+A resource key like `status.PAID` or `error.order.notFound` is a **message address**. It should remain stable in code and be managed via resource bundles. However, do not use a translated string as a key:
 
 ```java
-// Không an toàn khi thay ngôn ngữ:
+// Unsafe when changing languages:
 messageMap.get("Đơn hàng không tồn tại");
 ```
 
-Hợp lý hơn:
+Better:
 
 ```java
 messages.getString("error.order.notFound");
 ```
 
-Tên key mô tả ý nghĩa và nơi dùng, còn content thực nằm trong resource theo locale. Nếu wording đổi từ `"Không tìm thấy đơn hàng"` sang `"Đơn hàng không tồn tại"`, chương trình vẫn tra đúng key.
+The key name describes meaning and usage location, while the actual content lives in locale-specific resources. If the wording changes from `"Không tìm thấy đơn hàng"` to `"Đơn hàng không tồn tại"`, the program still looks up the same key.
 
-### Thông báo lỗi phải tách code và message
+### Error Messages Must Separate Code and Message
 
-Ví dụ domain/service trả:
+For example, the domain/service returns:
 
 ```text
 errorCode = ORDER_NOT_FOUND
 orderId   = ORD-2026-042
 ```
 
-Lớp presentation có thể tạo:
+The presentation layer can produce:
 
 ```text
 vi-VN: Không tìm thấy đơn hàng ORD-2026-042.
 en-US: Order ORD-2026-042 was not found.
 ```
 
-API client cần xử lý lỗi theo **error code**, không so chuỗi message đang hiển thị. Message có thể thay vì cải tiến cách viết hoặc thay đổi locale mà không phá logic.
+API clients should handle errors by **error code**, not by comparing the displayed message string. Messages can change for copy improvements or locale switches without breaking logic.
 
-## 15. UI chịu trách nhiệm bố cục, không phải domain
+## 15. The UI Owns Layout, Not the Domain
 
-Một bản dịch dài hơn có thể khiến nút hoặc nhãn cần nhiều không gian. **Đó là trách nhiệm của giao diện**, không phải lý do thay domain data.
+A longer translation may cause a button or label to need more space. **That is a UI responsibility**, not a reason to alter domain data.
 
-Lớp UI nên:
+The UI layer should:
 
-- cho label/container co giãn và xuống dòng theo hệ chữ/Unicode;
-- chọn font, line-height, alignment, khả năng truy cập và overflow policy;
-- hỗ trợ RTL/BiDi khi locale yêu cầu;
-- giữ nguyên giá trị và trạng thái underlying model khi người dùng đổi ngôn ngữ;
-- không cắt tên sản phẩm/đơn vị tiền tệ ở tầng domain chỉ để vừa layout.
+- allow labels/containers to resize and wrap appropriately for the script/Unicode;
+- choose fonts, line-height, alignment, accessibility, and overflow policy;
+- support RTL/BiDi when required by the locale;
+- preserve the underlying model's values and state when the user switches languages;
+- never truncate product names or currency units in the domain layer just to fit a layout.
 
-Chuỗi `"Đã thanh toán"` có thể bị tạm rút gọn thành nhãn ngắn đã được biên tập riêng trong giao diện hẹp, nhưng `OrderStatus.PAID` vẫn như cũ. Nếu cần lưu đúng văn bản một bản chứng từ đã phát hành, đó là **yêu cầu audit/snapshot** tách với dữ liệu domain.
+The string `"Đã thanh toán"` can be temporarily shortened to a separately authored short label in a narrow UI, while `OrderStatus.PAID` remains unchanged. If you need to store the exact wording of an issued document, that is an **audit/snapshot requirement** separate from domain data.
 
-## 16. Những phản ví dụ khiến ứng dụng bị phụ thuộc ngôn ngữ
+## 16. Anti-Examples That Couple Applications to a Language
 
-### 16.1. Lưu số đã format vào database
+### 16.1. Storing Formatted Numbers in the Database
 
 ```java
 String stored = NumberFormat
@@ -807,11 +807,11 @@ String stored = NumberFormat
         .format(new BigDecimal("1234.50"));
 ```
 
-Chuỗi có thể là `"1.234,5"` (không nhất thiết giữ số 0 cuối) và **không phải decimal canonical**. Sau nâng cấp locale provider, phiên bản JDK, hoặc khi một process đọc bằng locale khác, `stored` có thể khó parse đúng.
+The string may be `"1.234,5"` (not guaranteed to keep trailing zeros) and is **not a canonical decimal**. After upgrading locale providers, JDK versions, or when another process reads under a different locale, `stored` may fail to parse properly.
 
-**Sửa:** lưu DECIMAL/numeric hoặc decimal string với schema; format khi render.
+**Fix:** store DECIMAL/numeric or a schema-defined decimal string; format at render time.
 
-### 16.2. Quyết định theo text nút bấm
+### 16.2. Making Decisions Based on Button Text
 
 ```java
 if (button.getText().equals("Delete")) {
@@ -819,45 +819,45 @@ if (button.getText().equals("Delete")) {
 }
 ```
 
-Nếu label thành `"Xóa"`, logic không còn hoạt động. **Sửa:** gán action/command ID hoặc event handler có ý nghĩa nghiệp vụ, không suy action từ chữ trên nút.
+If the label becomes `"Xóa"`, the logic stops working. **Fix:** attach a business-meaningful action/command ID or event handler, rather than inferring the action from the button text.
 
-### 16.3. Dùng chuỗi ngày theo locale làm ID
+### 16.3. Using Localized Date Strings as IDs
 
 ```text
 "10/11/2026"
 ```
 
-Chuỗi có thể mang nghĩa ngày 10 tháng 11 hoặc ngày 11 tháng 10 tùy vùng. **Sửa:** truyền `LocalDate` theo schema ISO khi đó là ngày, hoặc `Instant` khi đó là một timestamp tuyệt đối.
+This string can mean November 10 or October 11 depending on region. **Fix:** pass `LocalDate` in ISO schema when it is a calendar date, or `Instant` when it is an absolute timestamp.
 
-### 16.4. Tự đổi default locale cho từng request
+### 16.4. Mutating the Default Locale per Request
 
 ```java
 Locale.setDefault(userLocale);
 TimeZone.setDefault(userZone);
 ```
 
-Đây là thay đổi ở phạm vi JVM, không phải context của riêng thread/request. Trong server đa người dùng, dễ gây race condition. **Sửa:** truyền `Locale`/`ZoneId` vào từng formatter và use case; dùng dependency injection hoặc request context có ownership rõ.
+This is a JVM-wide change, not isolated to a single thread/request context. In a multi-user server, it easily causes race conditions. **Fix:** pass `Locale`/`ZoneId` explicitly into each formatter and use case; use dependency injection or a request context with clear ownership.
 
-### 16.5. Dùng display name làm khóa
+### 16.5. Using Display Names as Keys
 
 ```text
-"Germany"  ← tên quốc gia tiếng Anh
-"Deutschland" ← tên tiếng Đức
+"Germany"     ← English country name
+"Deutschland" ← German name
 ```
 
-Cả hai cùng nói tới mã quốc gia DE. Lưu tên hiển thị làm foreign key khiến thay ngôn ngữ phá liên kết. **Sửa:** lưu mã domain rõ, trình bày tên theo display locale.
+Both refer to country code `DE`. Storing display names as foreign keys causes language switches to break relationships. **Fix:** store an explicit domain code and present the name according to the display locale.
 
-### 16.6. Dùng `String.equals` cho khái niệm số hoặc ngày
+### 16.6. Using `String.equals` for Numeric or Date Concepts
 
 ```java
 "1,234.50".equals("1.234,50") // false
 ```
 
-Kết quả đúng về so chuỗi nhưng không nói được hai biểu diễn có cùng **giá trị số học** hay không. Phải parse đúng locale thành `BigDecimal` rồi so theo giá trị. Với `BigDecimal`, `equals` còn xét **scale**; `compareTo(...)==0` so trị số. Chọn phương thức so phù hợp nghiệp vụ.
+That result is accurate for string comparison, but it says nothing about whether the two representations have the same **numerical value**. You must parse with the proper locale into `BigDecimal` and then compare by value. For `BigDecimal`, `equals` also checks **scale**; `compareTo(...) == 0` compares numerical value. Choose the comparison method that fits the business rule.
 
-## 17. Thiết kế boundary rõ cho hệ thống nhiều kênh
+## 17. Designing Clear Boundaries for Multi-Channel Systems
 
-Một hệ thống có thể có web, mobile, batch import, CLI và REST. Mỗi kênh không nhất thiết cùng locale nhưng phải tạo ra **cùng kiểu dữ liệu domain**.
+A system may have web, mobile, batch import, CLI, and REST channels. Each channel need not share the same locale, yet all must produce **the same domain data types**.
 
 ```text
              Web form de-DE
@@ -880,43 +880,43 @@ Batch CSV canonical   |       REST JSON decimal string
           de-DE   en-US   vi-VN
 ```
 
-**Thiết kế dễ kiểm thử:** parser adapter có thể được test bằng các cặp `input + locale`; domain service test bằng đối tượng có kiểu, **không cần cài locale JDK**; presenter test bằng `domain + locale + zone`. Lỗi có thể được khoanh vùng theo ranh giới rõ.
+**Testable design:** parser adapters can be tested with `input + locale` pairs; domain services can be tested with typed objects **without installing JDK locales**; presenters can be tested with `domain + locale + zone`. Bugs can be isolated to clear boundaries.
 
-### Có cần mọi input đều giữ raw string?
+### Do All Inputs Need to Keep Raw Strings?
 
-Không nhất thiết. Với một field tiền giao dịch, sau parse đúng và validation domain, có thể chỉ lưu giá trị số và currency. Nếu nghiệp vụ cần audit việc người dùng đã nhập chính xác dạng nào, lưu raw input **riêng** cùng nguồn, thời điểm, version policy và quy tắc bảo mật. Đừng để raw form string trở thành nguồn tính toán.
+Not necessarily. For a transaction amount field, after proper parsing and domain validation, storing only the numeric value and currency may suffice. If business rules require auditing exactly what the user typed, store the raw input **separately** with its source, timestamp, policy version, and security controls. Do not let raw form strings become the source of truth for calculations.
 
-## 18. Kiểm thử: đổi locale, bất biến domain
+## 18. Testing: Vary the Locale, Keep the Domain Invariant
 
-Đừng chỉ snapshot từng chuỗi UI. Hãy kiểm tra cả **bất biến nghiệp vụ** và **sự thay đổi trình bày được mong đợi**.
+Do not merely snapshot every UI string. Test both **business invariants** and **expected presentation variations**.
 
-### 18.1. Test miền dữ liệu
+### 18.1. Domain Data Tests
 
-- Tổng tiền không đổi khi locale hiển thị đổi.
-- Mã currency không đổi, dù symbol dịch khác.
-- Status code không đổi, dù label dịch khác.
-- Timestamp epoch không đổi, dù giờ địa phương khác.
-- Không có phép toán nghiệp vụ nào cần `Locale.getDefault()`.
+- Total amount does not change when display locale changes.
+- Currency code does not change, even if the localized symbol differs.
+- Status code does not change, even if the translated label differs.
+- Epoch timestamp does not change, even if local wall-clock time differs.
+- No business operation relies on `Locale.getDefault()`.
 
-### 18.2. Test lớp parser
+### 18.2. Parser Layer Tests
 
-- Input hợp lệ theo locale tương ứng parse thành đúng `BigDecimal`.
-- Input có suffix, ký hiệu lạ hoặc locale sai bị từ chối.
-- Validation kiểm soát precision, scale, giới hạn và grouping nghiêm ngặt nếu cần.
-- Không tự xem `parse(String)` trả number là parse toàn bộ input.
-- Không dùng đồng thời mutable `NumberFormat` giữa threads.
+- Valid input for the given locale parses to the expected `BigDecimal`.
+- Input with trailing suffixes, unexpected characters, or the wrong locale is rejected.
+- Validation enforces precision, scale, bounds, and strict grouping if needed.
+- Do not assume `parse(String)` returning a number means the entire input was parsed.
+- Do not share mutable `NumberFormat` instances concurrently across threads.
 
-### 18.3. Test lớp presentation
+### 18.3. Presentation Layer Tests
 
-- Thông điệp đúng `ResourceBundle` và placeholder được đặt đúng.
-- Nhãn dài có thể xuống dòng, phóng to, được screen reader đọc đầy đủ.
-- Có test cho locale CJK, RTL, các dấu nhóm Unicode khác ASCII và font fallback.
-- Thay JDK/CLDR có thể đổi chuỗi hiển thị; chỉ golden test **literal** ở nơi hợp đồng yêu cầu.
-- UI không dùng label để làm khóa hoặc quyết định nghiệp vụ.
+- Messages match `ResourceBundle` entries and placeholders are placed properly.
+- Long labels wrap, scale, and are read completely by screen readers.
+- Test CJK locales, RTL, non-ASCII Unicode grouping characters, and font fallback.
+- JDK/CLDR updates may alter display strings; only write **literal** golden tests where an explicit contract requires it.
+- The UI does not use labels as keys or for business decisions.
 
-### Java 17+: một kiểm thử bất biến dạng executable
+### Java 17+: An Executable Invariant Check
 
-Tạo file `DomainSeparationCheck.java`:
+Create `DomainSeparationCheck.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -981,110 +981,110 @@ domain invariant: PASS
 display variation: PASS
 ```
 
-Bài test này xác nhận **cùng một domain value** vẫn đúng sau khi render theo nhiều locale; không kiểm tra nguyên văn ký hiệu/vị trí tiền theo từng phiên bản CLDR. Nếu sản phẩm có contract bắt buộc về chuỗi hiển thị, viết thêm presentation snapshot test có version/provider rõ.
+This test confirms that **the same domain value** remains valid after rendering across multiple locales; it does not assert exact currency symbol placement per CLDR version. If a product has a strict contract on display strings, add presentation snapshot tests pinned to the version/provider.
 
-## 19. Đổi locale lúc runtime: cập nhật presenter, không tạo lại domain
+## 19. Switching Locale at Runtime: Update the Presenter, Do Not Recreate the Domain
 
-Một yêu cầu phổ biến là đổi ngôn ngữ giao diện khi ứng dụng đang mở.
+A common requirement is switching the UI language while the application is open.
 
-Luồng tốt:
+Good flow:
 
-1. Đổi **UI/display locale** trong preference hoặc context của phiên làm việc.
-2. Presenter đọc lại resource và format lại các trường domain theo locale/zone mới.
-3. UI update text, hướng bố cục và wrapping.
-4. Không sửa các field như `order.total`, `order.currency`, `paidAt`, `status`.
-5. Nếu form đang có **text chưa submit**, phải xử lý riêng: chuỗi nhập đang theo locale cũ có thể không còn parse đúng với locale mới. Có thể lưu **giá trị parsed** độc lập trước khi re-render, hoặc giữ locale-source cho input cho đến khi người dùng hoàn tất; không âm thầm parse bằng locale mới.
+1. Change the **UI/display locale** in session preferences or context.
+2. The presenter reloads resources and reformats domain fields using the new locale/zone.
+3. The UI updates text, layout direction, and wrapping.
+4. Do not modify fields such as `order.total`, `order.currency`, `paidAt`, or `status`.
+5. If a form currently has **unsubmitted text**, handle it separately: input typed under the old locale may no longer parse properly under the new locale. You can store the **parsed value** independently before re-rendering, or keep the source locale associated with that input until the user finishes; do not silently re-parse it with the new locale.
 
-Không gọi `Locale.setDefault(locale)` của JVM để đổi ngôn ngữ một phiên web. Locale nên là phần của UI/session/request context, có nguồn rõ và không gây trạng thái toàn cục.
+Never call the JVM's `Locale.setDefault(locale)` to switch language for a web session. Locale should belong to the UI/session/request context, with a clear source and no global state.
 
-### Lưu ý khi dữ liệu thay đổi trong khi đang chỉnh sửa
+### Caution When Data Changes During Editing
 
-Không ép một chuỗi form `"1.234,50"` đang nhập dở thành `"1,234.50"` chỉ bằng thay ký tự: có thể có separator sai, dấu thập phân chưa nhập xong, selection/caret position và lỗi validation. Thiết kế form nên xác định rõ trạng thái **raw draft**, **parsed value** và **committed domain value**.
+Do not force a partially entered form string `"1.234,50"` into `"1,234.50"` merely by replacing characters: separators may be wrong, decimal input may be incomplete, and caret/selection positions or validation errors can break. Form design should clearly distinguish **raw draft**, **parsed value**, and **committed domain value** states.
 
-## 20. Tách dữ liệu nghiệp vụ còn giúp tăng khả năng truy cập và bảo trì
+## 20. Separating Business Data Also Improves Accessibility and Maintainability
 
-Các lợi ích không chỉ giới hạn bản địa hóa:
+The benefits extend beyond localization:
 
-- **Dễ test:** domain service chạy với dữ liệu có kiểu, không cần hệ thống resource bundle.
-- **Dễ dịch:** người dịch chỉ chỉnh thông điệp; không làm đổi enum/ID hoặc phép tính.
-- **Dễ đổi nền tảng:** web, Android, desktop nhận cùng dữ liệu canonical, tự chọn renderer.
-- **Dễ migration:** nâng JDK/CLDR và chỉnh bản dịch không phá schema số/ngày.
-- **Dễ truy xuất:** search key/domain ID ổn định; label UI không trở thành khóa.
-- **Dễ audit:** lưu timestamp, amount, currency, trạng thái và phiên bản quy tắc tính; snapshot UI có thể được lưu độc lập khi cần.
-- **Dễ đáp ứng accessibility:** UI lựa chọn văn bản đầy đủ, trình đọc màn hình và bố cục thay thế mà domain không bị cắt ngắn.
-- **Dễ bảo mật:** output encoding và escaping diễn ra ở presentation boundary đúng ngữ cảnh, thay vì để bản dịch tác động đến cú pháp HTML/SQL.
+- **Easier testing:** domain services run on typed data without requiring a resource bundle system.
+- **Easier translation:** translators only edit messages; they cannot alter enums/IDs or calculations.
+- **Cross-platform flexibility:** web, Android, and desktop receive the same canonical data and choose their own renderers.
+- **Safer migrations:** JDK/CLDR upgrades and translation edits do not break number/date schemas.
+- **Reliable querying:** search keys and domain IDs stay stable; UI labels never become keys.
+- **Cleaner auditing:** store timestamps, amounts, currencies, statuses, and rule version; UI snapshots can be stored independently when needed.
+- **Better accessibility:** the UI chooses complete text, screen-reader labels, and alternative layouts without truncating domain data.
+- **Stronger security:** output encoding and escaping happen at the presentation boundary in the right context, rather than letting translations affect HTML/SQL syntax.
 
-Tuy nhiên, **không phải mọi thứ thuộc presentation đều tự do thay đổi không giới hạn**. Một email giao dịch hoặc hóa đơn pháp lý được phát hành có thể phải lưu nguyên bản đã gửi. Khi đó **snapshot hiển thị là một artifact nghiệp vụ riêng có version**, còn dữ liệu nền vẫn có cấu trúc để tính toán, đối soát và phân tích.
+However, **not everything in presentation can change freely without limits**. A transactional email or legally issued invoice may need to retain the exact wording that was sent. In that case, **the display snapshot is a separate versioned business artifact**, while the underlying data remains structured for calculation, reconciliation, and analytics.
 
-## 21. Anti-pattern và cách thay thế
+## 21. Anti-Patterns and Alternatives
 
-| Anti-pattern | Vì sao nguy hiểm? | Thiết kế thay thế |
+| Anti-pattern | Why it is dangerous | Alternative design |
 | --- | --- | --- |
-| `String total = "1.234,50 €"` làm amount | Không còn type decimal/currency rõ | `Money(BigDecimal, Currency)` |
-| `double` cho mọi khoản tiền | Có thể sai số nhị phân | `BigDecimal` + rounding domain |
-| Lưu ngày `"28/10/2026"` rồi tự đoán | Mơ hồ locale/timezone | `LocalDate`/`Instant` theo schema |
-| Dùng `statusLabel` làm trạng thái | Đổi bản dịch phá logic | Enum/code ổn định |
-| Dùng `Currency.getSymbol` làm currency ID | Ký hiệu không duy nhất | ISO currency code |
-| Dùng `Locale.getDisplayName` làm khóa | Tên hiển thị đổi theo locale/CLDR | BCP 47 tag/code |
-| Nối câu từ các mảnh được dịch | Trật tự ngữ pháp bị cố định | Cả message với placeholders |
-| Dùng `Locale.setDefault` theo request | Race trên JVM default | Truyền locale tường minh |
-| Parse input trong domain theo server locale | Adapter bị lẫn nghiệp vụ | Localized input parser trước domain |
-| `parse(String)` không kiểm tra suffix | Nhận số sai hoặc dữ liệu thừa | `ParsePosition` và validation |
-| UI trả chuỗi formatted về API | Double-format hoặc sai parse | Gửi canonical value theo schema |
-| Hardcode text width theo tiếng Anh | Bản dịch bị cắt | UI responsive/wrapping |
-| Dùng chung `NumberFormat` mutable static | Rò currency/locale qua threads | Tạo formatter riêng/lifecycle rõ |
-| Mong `format → parse` giữ số gốc | Rounding/scale/pattern có thể mất | Lưu domain, không lưu display |
-| Test chỉ so literal localized output | CLDR nâng cấp gây lỗi giả | Test domain invariants và display contract riêng |
-| Chuyển locale khi form chưa commit rồi parse lại | Input thay nghĩa | Quản lý raw draft/parsed/domain riêng |
+| `String total = "1.234,50 €"` as amount | Loses explicit decimal/currency types | `Money(BigDecimal, Currency)` |
+| `double` for monetary amounts | Binary rounding errors | `BigDecimal` + domain rounding |
+| Storing date `"28/10/2026"` and guessing | Ambiguous locale/timezone | `LocalDate`/`Instant` per schema |
+| Using `statusLabel` as status | Changing translation breaks logic | Stable enum/code |
+| Using `Currency.getSymbol` as currency ID | Symbols are not unique | ISO currency code |
+| Using `Locale.getDisplayName` as key | Display names change with locale/CLDR | BCP 47 tag/code |
+| Concatenating translated sentence fragments | Grammar order is hardcoded | Full message with placeholders |
+| Calling `Locale.setDefault` per request | Race conditions on JVM default | Pass locale explicitly |
+| Parsing input in domain using server locale | Adapter logic leaks into business layer | Localized input parser before domain |
+| `parse(String)` without suffix check | Accepts malformed numbers or trailing junk | `ParsePosition` and validation |
+| UI sending formatted strings back to API | Double-formatting or parse failures | Send canonical values per schema |
+| Hardcoding text width for English | Translated text gets truncated | Responsive UI/wrapping |
+| Sharing static mutable `NumberFormat` | Currency/locale leaks across threads | Separate formatter/clear lifecycle |
+| Expecting `format → parse` to preserve exact number | Rounding/scale/pattern may lose data | Store domain data, not display text |
+| Tests asserting only literal localized output | CLDR upgrades cause false failures | Separate domain invariant and display contract tests |
+| Switching locale on uncommitted form and re-parsing | Input changes meaning | Manage raw draft/parsed/domain separately |
 
-## 22. Bài tập tự kiểm tra
+## 22. Self-Check Exercises
 
-1. **Nếu cùng số tiền hiển thị `€1,234.50` và `1.234,50 €`, đâu là phần phải giống nhau?** `BigDecimal amount=1234.50` và `Currency EUR`.
-2. **Tại sao không dùng `"Đã thanh toán"` làm trạng thái database?** Vì đây là bản dịch; dùng code `PAID` độc lập locale.
-3. **`NumberFormat.getCurrencyInstance(Locale.GERMANY)` có tự biết giao dịch là USD không?** Không. Phải truyền `Currency.getInstance("USD")` từ domain.
-4. **`BigDecimal` có giải quyết mọi rounding tiền tệ không?** Không; domain phải xác định quy tắc rounding/scale/precision.
-5. **Đổi timezone hiển thị có được sửa `Instant` gốc không?** Không; chỉ thay biểu diễn giờ địa phương.
-6. **`Locale` và `ZoneId` có phải cùng một thiết lập không?** Không; ngôn ngữ/quy ước và múi giờ là hai chiều độc lập.
-7. **Một user ở Việt Nam thích tiếng Anh nhưng thanh toán EUR có hợp lệ không?** Có; locale giao diện, zone, currency độc lập.
-8. **Để chuyển `"1.234,50"` thành tiền domain nên làm gì?** Parse theo `de-DE`, kiểm tra hết input và validation rồi tạo `BigDecimal`/`Money`.
-9. **Vì sao không dùng `Double.parseDouble` để đọc mọi localized form?** Nó không hiểu các dấu theo locale và dùng kiểu nhị phân xấp xỉ.
-10. **Nếu resource dịch thay `Paid` thành `Payment received`, có cần migration `OrderStatus` không?** Không, khi code trạng thái độc lập.
-11. **API gửi `"1.234,50"` không kèm locale có vấn đề gì?** Chuỗi mơ hồ, phụ thuộc người nhận; nên dùng schema decimal canonical.
-12. **Nếu hóa đơn PDF phát hành phải lưu đúng câu chữ, có mâu thuẫn với tách domain và UI không?** Không; lưu snapshot artifact riêng cùng domain data.
-13. **`MessageFormat` có nhiệm vụ quyết định số tiền?** Không; nó tạo thông điệp từ giá trị đã có và formatter theo locale.
-14. **Vì sao thay locale lúc form đang gõ cần cẩn trọng?** Text nháp có thể đang theo locale cũ; phải xử lý raw draft/parsed value riêng.
-15. **Có nên dùng `Locale.getDefault()` trong server đa người dùng?** Không làm nguồn duy nhất của user context; truyền locale tường minh.
-16. **Tại sao việc tách tầng giúp CI test ổn định?** Domain tests so giá trị, không bị ảnh hưởng bản dịch hoặc CLDR; presentation tests kiểm tra đúng trách nhiệm riêng.
-17. **Trường hợp nào domain nên lưu cả zone và local time?** Lịch hẹn tương lai được định nghĩa theo giờ địa phương tại một vùng, có thể gặp DST gap/overlap.
-18. **Khi nào cần lưu raw input?** Khi có yêu cầu audit/điều tra hoặc khôi phục chính xác cách nhập; lưu riêng theo retention và bảo mật.
-19. **Vì sao UI không nên tự suy status từ text của nút?** Text có thể đổi theo locale hoặc A/B test; action ID/command thuộc logic.
-20. **Điều cần bất biến khi người dùng đổi từ vi-VN sang en-US?** Giá trị, mã trạng thái, currency, timestamp, ID và các business rules.
+1. **If the same monetary amount displays as `€1,234.50` and `1.234,50 €`, which parts must be identical?** `BigDecimal amount=1234.50` and `Currency EUR`.
+2. **Why shouldn't `"Đã thanh toán"` be used as a database status?** Because it is a translation; use a locale-independent code like `PAID`.
+3. **Does `NumberFormat.getCurrencyInstance(Locale.GERMANY)` automatically know a transaction is in USD?** No. You must pass `Currency.getInstance("USD")` from the domain.
+4. **Does `BigDecimal` solve all monetary rounding problems?** No; the domain must specify rounding/scale/precision rules.
+5. **Can changing the display timezone modify the original `Instant`?** No; it only changes the local wall-clock representation.
+6. **Are `Locale` and `ZoneId` the same setting?** No; language/formatting conventions and timezone are two independent dimensions.
+7. **Is it valid for a user in Vietnam to prefer English while paying in EUR?** Yes; UI locale, timezone, and currency are independent.
+8. **What should be done to convert `"1.234,50"` into domain money?** Parse using `de-DE`, verify the entire input and domain validation, then construct `BigDecimal`/`Money`.
+9. **Why not use `Double.parseDouble` to read all localized forms?** It does not understand locale-specific separators and uses approximate binary floating-point types.
+10. **If a translation resource changes `Paid` to `Payment received`, does `OrderStatus` need a migration?** No, when the status code is independent.
+11. **What is the problem with an API sending `"1.234,50"` without a locale?** The string is ambiguous and depends on the recipient; use a canonical decimal schema.
+12. **If an issued PDF invoice must preserve exact wording, does that conflict with separating domain and UI?** No; store a separate snapshot artifact alongside domain data.
+13. **Is `MessageFormat` responsible for deciding monetary amounts?** No; it builds messages from existing values and locale-aware formatters.
+14. **Why must switching locale while typing in a form be handled carefully?** Draft text may be formatted under the old locale; raw draft and parsed value must be managed separately.
+15. **Should `Locale.getDefault()` be used in a multi-user server?** Not as the sole source of user context; pass locale explicitly.
+16. **Why does layer separation make CI tests more stable?** Domain tests compare values unaffected by translations or CLDR updates; presentation tests verify their own separate responsibility.
+17. **When should the domain store both zone and local time?** Future scheduled appointments defined in local time in a region, which can encounter DST gaps or overlaps.
+18. **When should raw input be stored?** When required for audit/investigation or reconstructing exact input; store separately under retention and security policies.
+19. **Why shouldn't the UI infer status from button text?** Text can change by locale or A/B test; action IDs/commands belong to logic.
+20. **What must remain invariant when a user switches from `vi-VN` to `en-US`?** Values, status codes, currency, timestamps, IDs, and business rules.
 
-## 23. Checklist trước khi triển khai
+## 23. Pre-Deployment Checklist
 
-- [ ] Domain type có ý nghĩa rõ: amount, currency, quantity, date/instant, status code.
-- [ ] Không có business rule phụ thuộc vào bản dịch cụ thể hoặc `getText()` của UI component.
-- [ ] API/persistence dùng schema canonical, không dùng formatted number/date mặc định của JVM.
-- [ ] Locale, zone, currency được chọn riêng theo nguồn dữ liệu và preference.
-- [ ] UI messages đặt trong `ResourceBundle` hoặc hệ thống i18n tương đương, có key ổn định.
-- [ ] Thông điệp chứa placeholder để người dịch thay trật tự theo ngữ pháp.
-- [ ] Input parser hiểu locale của nguồn, kiểm tra toàn bộ chuỗi và validation domain.
-- [ ] Parser và presenter có ownership rõ; mutable formatter không chia sẻ tùy tiện giữa threads.
-- [ ] Chuyển locale không mutate domain; form input chưa commit được xử lý an toàn.
-- [ ] UI hỗ trợ bản dịch dài, RTL, wrap và accessibility.
-- [ ] Domain tests không phụ thuộc literal localized display strings.
-- [ ] Presentation tests bao phủ locale, font, JDK/CLDR provider và timezone khi có yêu cầu.
-- [ ] Artifact cần bảo toàn nguyên văn được lưu snapshot/version riêng, không thay thế domain data.
+- [ ] Domain types have clear meaning: amount, currency, quantity, date/instant, status code.
+- [ ] No business rule depends on a specific translation or a UI component's `getText()`.
+- [ ] API/persistence uses canonical schemas, never the JVM's default formatted numbers/dates.
+- [ ] Locale, zone, and currency are resolved separately from data sources and preferences.
+- [ ] UI messages reside in `ResourceBundle` or an equivalent i18n system with stable keys.
+- [ ] Messages contain placeholders so translators can reorder them for grammar.
+- [ ] Input parsers know the source locale, check the full string, and enforce domain validation.
+- [ ] Parsers and presenters have clear ownership; mutable formatters are never arbitrarily shared across threads.
+- [ ] Switching locale does not mutate domain state; uncommitted form input is handled safely.
+- [ ] UI supports long translations, RTL, wrapping, and accessibility.
+- [ ] Domain tests do not depend on literal localized display strings.
+- [ ] Presentation tests cover locales, fonts, JDK/CLDR providers, and timezones where required.
+- [ ] Artifacts requiring verbatim preservation are stored as separate versioned snapshots rather than replacing domain data.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): format/parse số và tiền theo locale, các phương thức factory, cấu hình currency.
-- [Oracle Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html): số decimal, `setParseBigDecimal` và cú pháp dấu phân nhóm.
-- [Oracle Java SE 17 — Currency](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Currency.html): currency code, symbol và trường dữ liệu tiền tệ.
-- [Oracle Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): decimal exactness, scale/precision và rounding.
-- [Oracle Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html): lookup resource theo locale/fallback và classpath bundles.
-- [Oracle Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html): placeholders, locale-specific subformats và quy tắc dấu nháy.
-- [Oracle Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): định dạng ngày giờ theo locale/zone, immutable.
-- [Oracle Java SE 17 — Instant](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Instant.html): điểm thời gian tuyệt đối.
-- [Oracle Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): locale tags, default và localizations.
-- [Unicode CLDR Project](https://cldr.unicode.org/): dữ liệu locale và thay đổi ở cách trình bày số/ngày theo phiên bản.
+- [Oracle Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): locale-aware number and currency formatting/parsing, factory methods, currency configuration.
+- [Oracle Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html): decimal numbers, `setParseBigDecimal`, and grouping separator syntax.
+- [Oracle Java SE 17 — Currency](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Currency.html): currency codes, symbols, and currency data fields.
+- [Oracle Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): decimal exactness, scale/precision, and rounding.
+- [Oracle Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html): locale/fallback resource lookup and classpath bundles.
+- [Oracle Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html): placeholders, locale-specific subformats, and quoting rules.
+- [Oracle Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): locale/zone-aware date-time formatting, immutable.
+- [Oracle Java SE 17 — Instant](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Instant.html): absolute point in time.
+- [Oracle Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): locale tags, defaults, and localizations.
+- [Unicode CLDR Project](https://cldr.unicode.org/): locale data and version-to-version changes in number/date presentation.

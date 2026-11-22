@@ -1,58 +1,58 @@
-# Rà soát ngữ nghĩa kết quả khi nâng JDK hoặc thay phép toán
+# Reviewing Result Semantics When Upgrading JDKs or Replacing Operations
 
-Nâng phiên bản JDK hoặc viết lại một pipeline Java Stream API có thể khiến chương trình **biên dịch thành công, chạy không báo lỗi, nhưng kết quả không còn đúng với hợp đồng nghiệp vụ**. Một thay đổi tưởng như vô hại, chẳng hạn thay `collect(Collectors.toList())` bằng `toList()`, chuyển `findFirst()` sang `findAny()`, thay `filter` bằng `takeWhile` hoặc thu thập Map bằng collector đồng thời, có thể thay đổi **khả năng sửa kết quả, xử lý null, lựa chọn phần tử, thứ tự hoặc dữ liệu bị giữ/bỏ**.
+Upgrading the JDK version or rewriting a Java Stream API pipeline can result in a program that **compiles cleanly and runs without errors, yet no longer satisfies the business contract**. A seemingly harmless change—such as replacing `collect(Collectors.toList())` with `toList()`, switching `findFirst()` to `findAny()`, replacing `filter` with `takeWhile`, or collecting a Map with a concurrent collector—can alter **result mutability, null handling, element selection, ordering, or which data is kept or dropped**.
 
-Ở chiều ngược lại, không phải mọi khác biệt quan sát được giữa hai lần chạy là lỗi tương thích: thứ tự in từ `HashMap`, tên lớp implementation của `List` hoặc thời điểm một lambda có side effect được gọi có thể **không được API bảo đảm từ đầu**. Điều cần bảo vệ là **ngữ nghĩa có hợp đồng rõ ràng**, không phải tình cờ của một bản JDK.
+Conversely, not every difference observed between two runs is a compatibility bug: iteration order from a `HashMap`, the implementation class name of a `List`, or the timing of a lambda with side effects may **not have been guaranteed by the API in the first place**. What must be protected are **semantics with an explicit contract**, not incidental behavior of a particular JDK release.
 
-Bài thuộc chương **Khả năng tương thích JDK** của module **JAVA_STREAM_API**. Ta sẽ rà soát các thay đổi liên quan đến pipeline lazy, `filter`, `map`, `reduce`, `collect`, grouping, collector tùy chỉnh, xử lý song song, `Spliterator`, quản lý tài nguyên và các API mới như Stream Gatherers. Mục tiêu cuối là có một quy trình kiểm tra **trước và sau khi nâng JDK hoặc refactor**, với ví dụ và bài tập tự thực hành.
+This lesson belongs to the **JDK Compatibility** chapter of the `JAVA_STREAM_API` module. We will audit changes involving lazy pipelines, `filter`, `map`, `reduce`, `collect`, grouping, custom collectors, parallel processing, `Spliterator`, resource management, and newer APIs such as Stream Gatherers. The end goal is a verification process **before and after a JDK upgrade or refactor**, complete with examples and hands-on exercises.
 
-## 1. Phân biệt bốn loại tương thích
+## 1. Distinguishing Four Types of Compatibility
 
-Khi nói “nâng JDK mà không làm hỏng Stream”, trước tiên cần xác định đang kiểm tra vấn đề nào:
+When speaking of "upgrading the JDK without breaking Streams", first clarify which concern is being checked:
 
-| Loại tương thích | Câu hỏi phải trả lời | Ví dụ |
+| Compatibility Type | Question to Answer | Example |
 |---|---|---|
-| **Nguồn (source)** | Mã có biên dịch với mức Java đích không? | `Stream.toList()` không có trong Java 8 |
-| **Binary/runtime** | File `.class` và thư viện có chạy với JRE đích không? | Bytecode biên dịch cho JDK mới không chạy được trên JRE quá cũ |
-| **Ngữ nghĩa (behavioral)** | Giá trị, ngoại lệ, thứ tự và trạng thái trả về có còn đúng không? | `findFirst` đổi thành `findAny` có thể chọn khác phần tử |
-| **Phi chức năng** | Hiệu năng, bộ nhớ, tài nguyên, song song có còn chấp nhận được không? | `parallel()` làm tăng tranh chấp hoặc chi phí |
+| **Source** | Does the code compile at the target Java level? | `Stream.toList()` does not exist in Java 8 |
+| **Binary/runtime** | Do `.class` files and libraries run on the target JRE? | Bytecode compiled for a newer JDK fails on an overly old JRE |
+| **Semantic (behavioral)** | Do returned values, exceptions, ordering, and states remain right? | Changing `findFirst` to `findAny` may pick a different element |
+| **Non-functional** | Are performance, memory, resources, and parallelism still acceptable? | `parallel()` increases contention or overhead |
 
-Bài này tập trung vào **tương thích ngữ nghĩa**, nhưng ba loại còn lại cũng cần có bước kiểm tra riêng. Mã biên dịch thành công **không chứng minh** kết quả đúng; một bài kiểm thử đúng giá trị trên vài phần tử cũng **không chứng minh** hiệu năng hay an toàn tài nguyên.
+This lesson focuses on **semantic compatibility**, though the other three categories also require their own checks. Code compiling successfully **does not prove** results are right; a unit test passing on a few sample elements **does not prove** performance or resource safety.
 
-### 1.1. Ngữ nghĩa nào cần được giữ?
+### 1.1. Which Semantics Must Be Preserved?
 
-Với mỗi pipeline, hãy ghi rõ:
+For every pipeline, explicitly document:
 
-1. **Tập phần tử đầu vào nào được tính?** Bao gồm cả phần tử null hay chỉ dữ liệu hợp lệ?
-2. **Có cần thứ tự không?** Nếu cần, là thứ tự nguồn, thứ tự sắp xếp hay thứ tự thời gian nghiệp vụ?
-3. **Kết quả rỗng biểu diễn thế nào?** Số 0, `Optional.empty()`, Map rỗng hay không có khóa nhóm?
-4. **Có chấp nhận trùng lặp không?** Một SKU có thể xuất hiện nhiều đơn; phải cộng hay giữ bản ghi nào?
-5. **Kết quả có được phép sửa không?** Caller có dùng `list.add(...)` hoặc cập nhật Map không?
-6. **Sai số và tràn số được xử lý ra sao?** `int`, `long`, `double` hay `BigDecimal`?
-7. **Ai chịu trách nhiệm đóng nguồn I/O?** Terminal operation có làm thay việc đóng file không?
+1. **Which input elements count?** Are null elements included, or only valid data?
+2. **Is ordering required?** If so, is it source order, sorted order, or business timestamp order?
+3. **How is an empty result represented?** Number 0, `Optional.empty()`, empty Map, or absent group keys?
+4. **Are duplicates allowed?** One SKU may appear across many orders; should values be summed, or which record kept?
+5. **May the result be mutated?** Do callers invoke `list.add(...)` or update the Map?
+6. **How are rounding errors and overflow handled?** `int`, `long`, `double`, or `BigDecimal`?
+7. **Who is responsible for closing I/O sources?** Does the terminal operation close files automatically?
 
-Nếu chưa trả lời, một phép thay thế “trông gọn hơn” có thể vô tình thay đổi hợp đồng.
+If these remain unanswered, a "cleaner-looking" replacement can silently alter the contract.
 
-## 2. Bảng mốc API quan trọng khi rà soát phiên bản JDK
+## 2. Important API Milestone Table When Reviewing JDK Versions
 
-Các mốc dưới đây giúp nhận diện phương thức có sẵn theo phiên bản. Đây là **mốc giới thiệu API**, không phải kết luận rằng các phương thức có cùng chức năng có thể thay thế cho nhau.
+The milestones below help identify methods available by version. These are **API introduction milestones**, not a claim that similarly purposed methods are interchangeable.
 
-| Phiên bản Java/JDK | API hoặc thay đổi đáng chú ý | Điểm cần rà soát |
+| Java/JDK Version | Notable API or Change | Points to Audit |
 |---|---|---|
-| **Java 8** | `Stream`, `map`, `flatMap`, `filter`, `reduce`, `collect`, `Collectors.toList`/`toMap`/`groupingBy`, primitive streams | Nền tảng cho mã tương thích Java 8 |
-| **Java 9** | `takeWhile`, `dropWhile`, `Stream.ofNullable`, `Stream.iterate(seed, hasNext, next)`, `Optional.stream`, `Collectors.flatMapping`/`filtering` | Điều kiện dừng, null, cách giữ nhóm và thay đổi tập phần tử |
-| **Java 10** | `Collectors.toUnmodifiableList`/`toUnmodifiableSet`/`toUnmodifiableMap`; `List.copyOf` | Khả năng sửa kết quả, null và khóa trùng |
-| **Java 12** | `Collectors.teeing` | Kết hợp hai phép thu thập, cách xử lý nguồn rỗng và finisher |
-| **Java 16** | `Stream.toList()`, `Stream.mapMulti(...)` | Danh sách không sửa được; chuyển một phần tử thành 0..n kết quả |
-| **Java 24** | Stream Gatherers (`Stream.gather`, `Gatherer`) được hoàn thiện thành tính năng chính thức | API không có ở các bản JDK cũ; kiểm tra cách đóng khung, trạng thái và thực thi |
+| **Java 8** | `Stream`, `map`, `flatMap`, `filter`, `reduce`, `collect`, `Collectors.toList`/`toMap`/`groupingBy`, primitive streams | Foundation for Java 8-compatible code |
+| **Java 9** | `takeWhile`, `dropWhile`, `Stream.ofNullable`, `Stream.iterate(seed, hasNext, next)`, `Optional.stream`, `Collectors.flatMapping`/`filtering` | Stopping conditions, nulls, group retention, and element-set changes |
+| **Java 10** | `Collectors.toUnmodifiableList`/`toUnmodifiableSet`/`toUnmodifiableMap`; `List.copyOf` | Result mutability, nulls, and duplicate keys |
+| **Java 12** | `Collectors.teeing` | Combining two collections, empty-source handling, and finisher |
+| **Java 16** | `Stream.toList()`, `Stream.mapMulti(...)` | Unmodifiable lists; expanding one element into 0..n results |
+| **Java 24** | Stream Gatherers (`Stream.gather`, `Gatherer`) finalized as standard feature | API absent on older JDKs; check framing, state, and execution |
 
-Ở Java 22 và 23, Stream Gatherers từng ở giai đoạn preview; mã dùng chúng tại các phiên bản ấy có yêu cầu riêng về bật tính năng preview. Với mã cần chạy trên Java 8, 11, 17 hoặc 21, không sử dụng trực tiếp `Stream.gather` của Java 24.
+In Java 22 and 23, Stream Gatherers were in preview; code using them on those releases has separate preview-flag requirements. For code that must run on Java 8, 11, 17, or 21, do not directly use Java 24's `Stream.gather`.
 
-**Quan trọng:** Không tự suy rằng một phương thức mới “sửa lỗi” tất cả phiên bản cũ. Việc thay API mới phải được đánh giá theo **hợp đồng kết quả**, **mức `--release`**, và dữ liệu thực tế.
+**Important:** Never assume a newer method "fixes" all older versions. Adopting a newer API must be evaluated against the **result contract**, **`--release` level**, and real data.
 
-## 3. Trường hợp dễ lỗi nhất: toList(), Collectors.toList() và toUnmodifiableList()
+## 3. Most Error-Prone Case: toList(), Collectors.toList(), and toUnmodifiableList()
 
-Ba cách thu thập thành danh sách có thể nhìn giống nhau:
+Three ways of collecting into a list look similar:
 
 ```java
 // Java 8+
@@ -65,23 +65,23 @@ List<String> b = stream.collect(Collectors.toUnmodifiableList());
 List<String> c = stream.toList();
 ```
 
-Các dòng là **ba ví dụ riêng**; cần tạo Stream mới cho từng lệnh vì Stream chỉ tiêu thụ một lần.
+These lines are **three separate examples**; a new Stream must be created for each call because a Stream is consumed only once.
 
-### 3.1. So sánh hợp đồng
+### 3.1. Contract Comparison
 
-| API | Mức Java tối thiểu | Có bảo đảm sửa được List không? | Chính sách null | Thứ tự |
+| API | Minimum Java | Is List Mutability Guaranteed? | Null Policy | Ordering |
 |---|---:|---|---|---|
-| `collect(Collectors.toList())` | 8 | **Không cam kết** khả năng sửa hoặc kiểu List | Không nên thiết kế dựa vào một implementation cụ thể | Giữ encounter order nếu nguồn có thứ tự |
-| `collect(Collectors.toUnmodifiableList())` | 10 | **Không sửa được** | **Không chấp nhận phần tử null** | Giữ encounter order nếu có |
-| `Stream.toList()` | 16 | **Không sửa được** | **Cho phép phần tử null** trong List kết quả | Giữ encounter order nếu có |
+| `collect(Collectors.toList())` | 8 | **No guarantee** on mutability or List type | Should not design around a specific implementation | Preserves encounter order if source is ordered |
+| `collect(Collectors.toUnmodifiableList())` | 10 | **Unmodifiable** | **Rejects null elements** | Preserves encounter order if present |
+| `Stream.toList()` | 16 | **Unmodifiable** | **Allows null elements** in returned List | Preserves encounter order if present |
 
-Sự khác biệt quan trọng nhất khi refactor:
+Most crucial differences when refactoring:
 
-- Thay `collect(toList())` bằng `toList()` có thể làm **code ở phía sau ném `UnsupportedOperationException`** nếu trước đó caller dựa vào việc `add` hoặc `remove` hoạt động.
-- Thay bằng `toUnmodifiableList()` có thể làm **code ném `NullPointerException`** khi nguồn có phần tử null.
-- Chỉ đổi tên phương thức mà không chạy lại các kiểm thử về null, thứ tự và khả năng sửa có thể bỏ sót lỗi.
+- Replacing `collect(toList())` with `toList()` can cause **downstream code to throw `UnsupportedOperationException`** if callers previously relied on `add` or `remove` working.
+- Replacing with `toUnmodifiableList()` can cause **code to throw `NullPointerException`** when the source contains null elements.
+- Merely renaming the method without re-running tests for nulls, ordering, and mutability can miss bugs.
 
-### 3.2. Ví dụ chạy được từ Java 16
+### 3.2. Example Runnable Since Java 16
 
 ```java
 import java.util.List;
@@ -96,52 +96,52 @@ public class ToListSemanticDemo {
 
         try {
             values.add("C");
-            throw new AssertionError("Không được sửa List");
+            throw new AssertionError("Must not modify List");
         } catch (UnsupportedOperationException expected) {
-            System.out.println("List không sửa được");
+            System.out.println("List is unmodifiable");
         }
     }
 }
 ```
 
-Nếu cần **danh sách có thể sửa được**, hãy tạo kiểu cụ thể một cách rõ ràng:
+If a **mutable list** is needed, explicitly request a concrete type:
 
 ```java
-// Java 8+: kết quả là một ArrayList do ta yêu cầu.
+// Java 8+: the result is an ArrayList as requested.
 List<String> mutable = stream.collect(
         Collectors.toCollection(ArrayList::new));
 ```
 
-Hoặc, ở Java 16+, có thể sao chép:
+Or, in Java 16+, you can copy:
 
 ```java
 List<String> mutable = new ArrayList<>(stream.toList());
 ```
 
-Lời hứa “List có thể sửa” đến từ `ArrayList` được chọn, **không** đến từ hành vi tình cờ của `Collectors.toList()` trên một bản JDK cụ thể.
+The promise of a "mutable List" comes from choosing `ArrayList`, **not** from incidental behavior of `Collectors.toList()` in a particular JDK release.
 
-### 3.3. Không phụ thuộc vào lớp implementation
+### 3.3. Do Not Depend on Implementation Classes
 
-Không kiểm thử kiểu:
+Do not write tests like:
 
 ```java
-// Không nên:
+// Do not do this:
 // assert result.getClass() == ArrayList.class;
 ```
 
-`Collectors.toList()` không cam kết loại List cụ thể; `Stream.toList()` cũng không cam kết một tên lớp implementation nhất định và kết quả có thể có tính chất *value-based*. Hãy kiểm tra giá trị, thứ tự và tính không sửa được **nếu chúng là hợp đồng**, thay vì phụ thuộc tên class, địa chỉ đối tượng hoặc đồng bộ trên List trả về.
+`Collectors.toList()` does not promise a specific List class; `Stream.toList()` likewise promises no specific implementation class name and the result may be *value-based*. Test values, ordering, and unmodifiability **when those are part of the contract**, instead of relying on class names, object identity, or synchronizing on the returned List.
 
-## 4. Phân biệt giá trị null với Stream rỗng
+## 4. Distinguishing null Values from an Empty Stream
 
-Java 9 thêm `Stream.ofNullable(value)`:
+Java 9 added `Stream.ofNullable(value)`:
 
 ```java
 // Java 9+
-Stream<String> none = Stream.ofNullable(null); // 0 phần tử
-Stream<String> one = Stream.ofNullable("A");   // 1 phần tử
+Stream<String> none = Stream.ofNullable(null); // 0 elements
+Stream<String> one = Stream.ofNullable("A");   // 1 element
 ```
 
-Nhưng `Stream.of((String) null)` chứa **một phần tử null**, không phải Stream rỗng:
+Yet `Stream.of((String) null)` contains **one null element**, not an empty Stream:
 
 ```java
 // Java 8+
@@ -151,13 +151,13 @@ long withNull = Stream.of((String) null).count(); // 1
 long withoutValue = Stream.<String>ofNullable(null).count(); // 0
 ```
 
-Đây là khác biệt ngữ nghĩa rõ ràng. Nếu refactor `Stream.of(value)` thành `Stream.ofNullable(value)`, khi `value == null`, **số phần tử thay đổi từ 1 thành 0**. Điều đó có thể ảnh hưởng `count`, `collect`, số bản ghi bị loại và báo cáo chất lượng dữ liệu.
+This is a clear semantic difference. If refactoring `Stream.of(value)` to `Stream.ofNullable(value)`, when `value == null`, **the element count changes from 1 to 0**. That can affect `count`, `collect`, dropped-record counts, and data quality reports.
 
-### 4.1. Optional không thay thế số liệu rỗng bằng 0
+### 4.1. Optional Does Not Replace Empty Metrics with 0
 
-Một vài kết quả:
+A few results:
 
-| Phép toán | Stream rỗng | Stream có một phần tử 0 |
+| Operation | Empty Stream | Stream with One Element 0 |
 |---|---|---|
 | `IntStream.sum()` | `0` | `0` |
 | `IntStream.average()` | `OptionalDouble.empty()` | `OptionalDouble[0.0]` |
@@ -165,23 +165,23 @@ Một vài kết quả:
 | `IntStream.reduce(0, Integer::sum)` | `0` | `0` |
 | `IntStream.count()` | `0L` | `1L` |
 
-Việc thay `reduce(Integer::sum)` bằng `sum()` **làm mất trạng thái “không có phần tử”** nếu phía gọi quan tâm tới `OptionalInt.empty()`. Ngược lại, nếu nghiệp vụ định nghĩa tổng của nguồn rỗng bằng 0, `sum()` là lựa chọn dễ đọc.
+Replacing `reduce(Integer::sum)` with `sum()` **loses the "no elements" state** if the caller cares about `OptionalInt.empty()`. Conversely, if business rules define an empty source's sum as 0, `sum()` is the clearer choice.
 
-### 4.2. findFirst() và giá trị null
+### 4.2. findFirst() and null Values
 
-`findFirst()` trả `Optional<T>`. Nếu phần tử được chọn là `null`, thao tác này có thể ném `NullPointerException`; không nên dùng nó như cách “trả Optional rỗng cho phần tử null”:
+`findFirst()` returns `Optional<T>`. If the selected element is `null`, this operation can throw `NullPointerException`; do not use it as a way to "return an empty Optional for a null element":
 
 ```java
-// SAI nếu phần tử đầu là null:
+// WRONG if the first element is null:
 // Stream.of((String) null, "A").findFirst();
 
 Optional<String> safe = Stream.of((String) null, "A")
         .filter(Objects::nonNull)
         .findFirst();
-System.out.println(safe.orElse("(trống)")); // A
+System.out.println(safe.orElse("(empty)")); // A
 ```
 
-Ở Java 9+, `Optional.stream()` có thể làm phẳng các Optional:
+In Java 9+, `Optional.stream()` can flatten Optionals:
 
 ```java
 // Java 9+
@@ -194,15 +194,15 @@ List<String> present = Stream.of(
 // [A, B]
 ```
 
-Ở Java 8, có thể dùng `filter(Optional::isPresent).map(Optional::get)` khi chính đối tượng Optional không null. Dù chọn cách nào, cần xác định rõ **có giữ thông tin phần tử vắng mặt trong thống kê hay không**.
+In Java 8, you can use `filter(Optional::isPresent).map(Optional::get)` when the `Optional` objects themselves are non-null. Whichever approach is chosen, explicitly decide **whether absent elements should remain tracked in statistics**.
 
-## 5. filter khác takeWhile và dropWhile
+## 5. filter Differs from takeWhile and dropWhile
 
-Java 9 có `takeWhile` và `dropWhile`, nhưng chúng **không thay thế tương đương** cho `filter`.
+Java 9 provides `takeWhile` and `dropWhile`, yet they are **not equivalent replacements** for `filter`.
 
-- `filter(p)` kiểm tra predicate **trên các phần tử** và giữ mọi phần tử thỏa điều kiện.
-- `takeWhile(p)` trên Stream **có thứ tự** giữ **đoạn đầu liên tiếp dài nhất** mà tất cả phần tử đều thỏa predicate; gặp phần tử không thỏa đầu tiên thì dừng lấy.
-- `dropWhile(p)` trên Stream **có thứ tự** bỏ **đoạn đầu liên tiếp dài nhất** thỏa predicate, sau đó giữ phần còn lại.
+- `filter(p)` evaluates the predicate **on elements** and keeps all matching elements.
+- `takeWhile(p)` on an **ordered** Stream keeps the **longest contiguous leading slice** where every element satisfies the predicate; it stops upon hitting the first non-matching element.
+- `dropWhile(p)` on an **ordered** Stream drops the **longest contiguous leading slice** satisfying the predicate, then keeps the remainder.
 
 ```java
 // Java 9+
@@ -224,15 +224,15 @@ List<Integer> dropped = data.stream()
 // [0, 3, 4]
 ```
 
-Thay `filter(n -> n > 0)` bằng `takeWhile(n -> n > 0)` sẽ làm mất các số dương phía sau `0`. Phép thay thế chỉ đúng nếu **nguồn đã được sắp xếp hoặc có bất biến bảo đảm mọi phần tử không thỏa nằm sau toàn bộ phần tử thỏa**, và nghiệp vụ thực sự muốn cắt đoạn đầu.
+Replacing `filter(n -> n > 0)` with `takeWhile(n -> n > 0)` loses positive numbers appearing after `0`. This replacement is only valid if **the source is sorted or satisfies an invariant guaranteeing all non-matching elements come after all matching elements**, and business logic genuinely wants the leading prefix.
 
-### 5.1. Stream không có thứ tự
+### 5.1. Unordered Streams
 
-Với Stream **unordered**, `takeWhile` không cam kết một đoạn đầu cụ thể theo encounter order và có thể trả một **tập con** các phần tử thỏa predicate theo hợp đồng của thao tác; `dropWhile` cũng có sự tự do khác với nguồn có thứ tự. Không sử dụng chúng để biểu diễn “chọn N bản ghi đầu tiên” hoặc “dừng đúng tại sự kiện đầu” nếu thứ tự đầu vào không được định nghĩa.
+On an **unordered** Stream, `takeWhile` does not promise a specific prefix in encounter order and may return a **subset** of predicate-matching elements per the operation's contract; `dropWhile` also has freedoms differing from ordered sources. Do not use them to express "pick the first N records" or "stop at the exact first event" when input order is undefined.
 
-### 5.2. iterate ba tham số cũng là một điều kiện dừng
+### 5.2. Three-Parameter iterate Is Also a Stopping Condition
 
-Java 9 cung cấp:
+Java 9 provides:
 
 ```java
 // Java 9+: seed, hasNext, next
@@ -241,7 +241,7 @@ Stream<Integer> numbers = Stream.iterate(
 // 1, 2, 3, 4, 5
 ```
 
-Trước đó, Java 8 thường kết hợp `Stream.iterate(seed, next)` với `limit(n)`:
+Previously, Java 8 often combined `Stream.iterate(seed, next)` with `limit(n)`:
 
 ```java
 // Java 8+
@@ -249,13 +249,13 @@ Stream<Integer> firstFive = Stream.iterate(1, n -> n + 1)
         .limit(5);
 ```
 
-Hai ví dụ tình cờ cho cùng dãy, nhưng `limit(5)` đếm số phần tử còn `n -> n <= 5` xét giá trị của phần tử. Với bước nhảy, nguồn hoặc điều kiện khác, chúng có thể không tương đương. Khi nâng JDK, hãy giữ rõ yêu cầu **“lấy đúng N phần tử”** hay **“lấy tới khi điều kiện dừng xảy ra”**.
+Both examples happen to yield the same sequence, yet `limit(5)` counts elements whereas `n -> n <= 5` checks element values. With a different step, source, or condition, they may not be equivalent. When upgrading JDKs, keep clear whether the requirement is **"take exactly N elements"** or **"take until a stopping condition occurs"**.
 
-## 6. Thứ tự, findFirst, findAny và phép thu thập Map/Set
+## 6. Ordering, findFirst, findAny, and Map/Set Collection
 
-### 6.1. Không nhầm findFirst với findAny
+### 6.1. Do Not Confuse findFirst with findAny
 
-Với nguồn có encounter order:
+With an encounter-ordered source:
 
 ```java
 OptionalInt first = IntStream.rangeClosed(1, 100)
@@ -268,14 +268,14 @@ OptionalInt any = IntStream.rangeClosed(1, 100)
         .parallel()
         .filter(n -> n % 7 == 0)
         .findAny();
-// Có giá trị, nhưng không bảo đảm là 7.
+// Present, though not guaranteed to be 7.
 ```
 
-`findAny` có thể mang lại tự do tối ưu lớn hơn, nhưng không phù hợp nếu yêu cầu là **“bản ghi thỏa điều kiện đầu tiên theo thứ tự nguồn”**. Một bài kiểm thử khẳng định `findAny` luôn trả 7 là kiểm thử của hành vi không được bảo đảm, không phải kiểm thử tính đúng.
+`findAny` allows greater optimization freedom, yet is wrong when the requirement is **"the first matching record in source order"**. A test asserting that `findAny` always returns 7 tests unguaranteed behavior, not correctness.
 
-### 6.2. forEach không bảo đảm thứ tự hành động
+### 6.2. forEach Does Not Guarantee Action Order
 
-`parallel().forEach(action)` không bảo đảm các action chạy theo encounter order. `forEachOrdered(action)` giữ thứ tự hành động theo encounter order nếu nguồn có thứ tự, đổi lại có thể giảm lợi ích song song.
+`parallel().forEach(action)` does not guarantee actions run in encounter order. `forEachOrdered(action)` preserves action order per encounter order if the source is ordered, at the potential cost of reduced parallelism.
 
 ```java
 IntStream.rangeClosed(1, 4)
@@ -284,11 +284,11 @@ IntStream.rangeClosed(1, 4)
 // 1234
 ```
 
-Đừng thay `forEachOrdered` bằng `forEach` chỉ vì muốn nhanh khi thứ tự ghi log, xuất file hoặc xử lý sự kiện là một yêu cầu nghiệp vụ.
+Do not replace `forEachOrdered` with `forEach` merely for speed when log order, file output order, or event processing order is a business requirement.
 
-### 6.3. Map và Set không mặc nhiên có thứ tự duyệt
+### 6.3. Maps and Sets Do Not Have Implicit Iteration Order
 
-`Collectors.toSet()` không cam kết thứ tự phần tử; `Collectors.toMap(...)` và `groupingBy(...)` không cam kết loại Map hoặc thứ tự duyệt khóa. Đổi phiên bản JDK hoặc chuyển chế độ song song có thể làm thứ tự in **khác nhau mà không vi phạm hợp đồng API**.
+`Collectors.toSet()` does not promise element order; `Collectors.toMap(...)` and `groupingBy(...)` do not promise Map implementation type or key iteration order. Changing JDK versions or switching to parallel mode can make printed order **differ without violating the API contract**.
 
 ```java
 Map<String, Long> totals = orders.stream()
@@ -296,14 +296,14 @@ Map<String, Long> totals = orders.stream()
                 Order::getRegion,
                 Collectors.counting()));
 
-// ĐÚNG: so sánh giá trị theo khóa.
+// RIGHT: compare values by key.
 long bac = totals.getOrDefault("BAC", 0L);
 
-// KHÔNG NÊN: dựa vào thứ tự in của totals.toString()
-// để xác định thứ tự các khu vực.
+// DO NOT DO THIS: rely on totals.toString() print order
+// to determine region ordering.
 ```
 
-Đoạn minh họa giả định có kiểu `Order` và danh sách `orders`. Nếu nghiệp vụ muốn khóa Map tăng dần, dùng overload cho phép chọn `TreeMap::new`:
+This snippet assumes an `Order` type and an `orders` list. If business logic wants Map keys in ascending order, use the overload allowing `TreeMap::new`:
 
 ```java
 Map<String, Long> sorted = orders.stream()
@@ -313,11 +313,11 @@ Map<String, Long> sorted = orders.stream()
                 Collectors.counting()));
 ```
 
-Nếu muốn giữ thứ tự chèn các khóa trong một phép thu thập tuần tự, cân nhắc `LinkedHashMap::new` ở overload có map supplier. **Thứ tự của khóa trong Map** và **phần tử thắng cuộc khi hai giá trị có cùng khóa** là hai vấn đề khác nhau.
+To preserve key insertion order in a sequential collection, consider `LinkedHashMap::new` in the overload accepting a map supplier. **Key ordering inside a Map** and **which element wins when two values share a key** are two separate concerns.
 
-## 7. toMap, groupingBy và hàm merge khi thay thuật toán
+## 7. toMap, groupingBy, and Merge Functions When Changing Algorithms
 
-Với dữ liệu có khóa trùng, `Collectors.toMap(keyMapper, valueMapper)` mặc định ném `IllegalStateException`. Một refactor từ `groupingBy(..., toList())` sang `toMap` có thể làm mất khả năng biểu diễn **nhiều giá trị trên cùng khóa**, hoặc làm code ném ngoại lệ.
+With duplicate keys, `Collectors.toMap(keyMapper, valueMapper)` throws `IllegalStateException` by default. Refactoring from `groupingBy(..., toList())` to `toMap` can lose the ability to represent **multiple values per key**, or cause the code to throw an exception.
 
 ```java
 List<String> data = Arrays.asList("P01:A", "P01:B", "P02:C");
@@ -325,9 +325,9 @@ List<String> data = Arrays.asList("P01:A", "P01:B", "P02:C");
 Map<String, List<String>> grouped = data.stream()
         .collect(Collectors.groupingBy(
                 item -> item.substring(0, 3)));
-// P01 có hai chuỗi, P02 có một chuỗi.
+// P01 has two strings, P02 has one string.
 
-// SAI với P01 trùng khóa:
+// WRONG with duplicate key P01:
 // data.stream().collect(Collectors.toMap(
 //         item -> item.substring(0, 3), item -> item));
 
@@ -336,12 +336,12 @@ Map<String, String> latestByEncounter = data.stream()
                 item -> item.substring(0, 3),
                 item -> item,
                 (oldValue, newValue) -> newValue));
-// P01 -> P01:B với List nguồn và phép thu thập có thứ tự ở đây.
+// P01 -> P01:B with this source List and ordered collection.
 ```
 
-### 7.1. Phép merge phải có tính kết hợp nhóm
+### 7.1. Merge Operations Must Be Associative
 
-Một phép gộp dùng cho reduction song song phải giữ ý nghĩa khi các nhóm được kết hợp theo các cách khác nhau. Ví dụ:
+A merge function used in parallel reduction must preserve meaning regardless of how groups are associated. Example:
 
 ```text
 (10 + 20) + 40 = 70
@@ -351,30 +351,30 @@ Một phép gộp dùng cho reduction song song phải giữ ý nghĩa khi các 
 (10 + (20 + 40) / 2) / 2 = 20
 ```
 
-Hàm `(a, b) -> (a + b) / 2` **không phải** phép merge hợp lệ để tính trung bình toàn bộ các bản ghi trùng khóa. Muốn trung bình đúng, hãy giữ **tổng và số lượng** trong trạng thái hoặc dùng `Collectors.averagingInt` phù hợp.
+`(a, b) -> (a + b) / 2` is **not** a valid merge function to compute the average of all duplicate-key records. For an exact average, retain **sum and count** in state or use `Collectors.averagingInt` appropriately.
 
-### 7.2. toConcurrentMap làm mất ý nghĩa “gặp đầu/cuối”
+### 7.2. toConcurrentMap Loses "First/Last Seen" Meaning
 
-`Collectors.toConcurrentMap` là collector concurrent và unordered. Khi chuyển từ `toMap` sang `toConcurrentMap`, phép gộp giữ giá trị cũ hoặc mới:
+`Collectors.toConcurrentMap` is a concurrent and unordered collector. When switching from `toMap` to `toConcurrentMap`, merge functions keeping old or new values:
 
 ```java
 (oldValue, newValue) -> oldValue
 (oldValue, newValue) -> newValue
 ```
 
-không còn là một cách đáng tin để chọn **bản ghi đầu tiên/cuối cùng theo List nguồn**. Nếu cần bản ghi mới nhất, hãy chọn bằng `timestamp`, `version` và tie-breaker rõ ràng; không dựa vào lịch thực thi các worker.
+are no longer a reliable way to pick **the first/last record in the source List**. When the newest record is needed, select by `timestamp`, `version`, and an explicit tie-breaker; never rely on worker execution scheduling.
 
-### 7.3. Nhóm rỗng và null key
+### 7.3. Empty Groups and Null Keys
 
-`groupingBy` không tự tạo khóa cho nhóm **không xuất hiện trong nguồn**. Nếu đang làm phẳng dữ liệu cha–con, `flatMap` trước `groupingBy` có thể làm mất nhóm cha không có phần tử con, trong khi `Collectors.flatMapping` (Java 9+) **bên trong** `groupingBy` có thể giữ nhóm cha đã xuất hiện với downstream rỗng.
+`groupingBy` does not automatically create keys for groups **absent from the source**. When flattening parent–child data, `flatMap` before `groupingBy` can drop parent groups that have zero children, whereas `Collectors.flatMapping` (Java 9+) **inside** `groupingBy` can retain encountered parent groups with empty downstream results.
 
-Không dựa vào khả năng nhận `null` làm khóa/giá trị của các Map collector. `groupingBy` yêu cầu khóa classifier hợp lệ và thông thường ném `NullPointerException` với khóa null; `toConcurrentMap` không chấp nhận khóa/giá trị null. Chuẩn hóa hoặc từ chối dữ liệu thiếu **trước** khi thu thập.
+Do not rely on Map collectors accepting `null` as keys/values. `groupingBy` requires a valid classifier key and normally throws `NullPointerException` on null keys; `toConcurrentMap` rejects null keys/values. Normalize or reject missing data **before** collecting.
 
-## 8. Kiểm tra số học: sum, average, overflow và double
+## 8. Arithmetic Checks: sum, average, Overflow, and double
 
-Đổi kiểu Stream hoặc thay collector có thể giữ số phần tử nhưng làm thay đổi **ý nghĩa số học**.
+Changing Stream types or swapping collectors can keep the same element count while changing **arithmetic meaning**.
 
-### 8.1. Nguồn rỗng: Optional khác giá trị mặc định
+### 8.1. Empty Sources: Optional Differs from Default Values
 
 ```java
 OptionalDouble primitiveAverage = IntStream.empty().average();
@@ -385,15 +385,15 @@ System.out.println(primitiveAverage.isPresent()); // false
 System.out.println(collectorAverage);              // 0.0
 ```
 
-Hai API khác nhau **trên nguồn rỗng**. Nếu muốn giữ phân biệt “không có dữ liệu” và “trung bình bằng 0”, đừng chuyển từ `average()` sang `averagingInt(...)` mà chỉ kiểm thử trên nguồn không rỗng.
+The two APIs differ **on empty sources**. If you want to keep distinguishing "no data" from "an average of 0", do not switch from `average()` to `averagingInt(...)` while testing only non-empty sources.
 
-`IntSummaryStatistics`, `LongSummaryStatistics` có `getAverage() == 0.0` khi `count == 0`. Min/max của statistics rỗng cũng có các giá trị sentinel; kiểm tra `getCount()` trước khi hiển thị.
+`IntSummaryStatistics` and `LongSummaryStatistics` return `getAverage() == 0.0` when `count == 0`. Min/max of empty statistics also hold sentinel values; check `getCount()` before displaying them.
 
-### 8.2. Tràn số nguyên có thể bị bỏ sót
+### 8.2. Integer Overflow Can Go Unnoticed
 
 ```java
 int wrongForBusiness = IntStream.of(Integer.MAX_VALUE, 1).sum();
-// Bị tràn int: giá trị không phải tổng toán học 2147483648.
+// int overflow: value is not the mathematical sum 2147483648.
 
 long widened = IntStream.of(Integer.MAX_VALUE, 1)
         .mapToLong(value -> (long) value)
@@ -401,24 +401,24 @@ long widened = IntStream.of(Integer.MAX_VALUE, 1)
 // 2147483648
 ```
 
-Với tổng có thể vượt `long`, dùng `BigInteger`/`BigDecimal` hoặc phép cộng kiểm tra tràn như `Math.addExact` tùy chính sách. Chỉ đổi từ `sum` sang `reduce` không tự khắc phục tràn; cần thay kiểu hoặc quy tắc kiểm tra.
+For sums that can exceed `long`, use `BigInteger`/`BigDecimal` or overflow-checked addition like `Math.addExact` depending on policy. Switching from `sum` to `reduce` does not automatically prevent overflow; you must change the type or validation rules.
 
-### 8.3. Sai số dấu phẩy động và cách gộp song song
+### 8.3. Floating-Point Rounding Error and Parallel Combining
 
-`double` không kết hợp nhóm chính xác theo bit:
+`double` is not bitwise associative:
 
 ```java
 double a = (1.0e16 + -1.0e16) + 1.0; // 1.0
 double b = 1.0e16 + (-1.0e16 + 1.0); // 0.0
 ```
 
-Do đó, khi đổi cách phân nhánh hoặc implementation thuật toán cộng, kết quả tổng/trung bình số thực **có thể khác nhau về làm tròn**. `DoubleStream.sum()` có thể dùng kỹ thuật cộng bù để cải thiện độ chính xác, nhưng không cam kết một thứ tự gộp hoặc sự đồng nhất bit giữa tất cả cách thực thi.
+Consequently, changing branching or summation algorithms can cause floating-point sums/averages to **differ in rounding**. `DoubleStream.sum()` may use compensated summation to improve accuracy, yet does not promise a single combining order or bitwise identity across all implementations.
 
-Với phép thống kê gần đúng, kiểm thử theo **dung sai có ý nghĩa nghiệp vụ** và xử lý riêng `NaN`, vô cực. Với tiền tệ, ưu tiên `BigDecimal` hoặc số nguyên theo đơn vị nhỏ nhất, xác định rõ quy tắc làm tròn.
+For approximate statistics, test within **business-meaningful tolerances** and handle `NaN` and infinities explicitly. For currency, prefer `BigDecimal` or integers in the smallest unit, with clear rounding rules.
 
-## 9. Side effect: vì sao nâng JDK có thể làm log hoặc counter thay đổi?
+## 9. Side Effects: Why Upgrading JDKs Can Change Logs or Counters
 
-Các thao tác trung gian như `map`, `filter`, `peek` có tính lazy. Stream implementation được quyền tối ưu khi một thao tác không cần thực thi để xác định kết quả hợp lệ. Đặc biệt, `count()` trên nguồn có kích thước biết trước có thể trả kết quả **mà không duyệt qua tất cả phần tử**, nếu các thao tác trong pipeline không làm thay đổi số phần tử theo cách cần kiểm tra.
+Intermediate operations such as `map`, `filter`, and `peek` are lazy. Stream implementations are permitted to optimize away operations that are unnecessary to determine a valid result. Specifically, `count()` on a sized source can return the result **without traversing every element**, provided pipeline operations do not alter element count in a way requiring inspection.
 
 ```java
 List<String> names = Arrays.asList("A", "B", "C");
@@ -428,14 +428,14 @@ long count = names.stream()
         .count();
 
 System.out.println(count); // 3
-// KHÔNG bảo đảm cả ba dòng "Saw ..." đều được in.
+// Does NOT guarantee all three "Saw ..." lines are printed.
 ```
 
-Từ Java 9, tài liệu API nêu rõ ví dụ tối ưu hóa `count` như vậy. Một implementation có thể bỏ qua việc gọi `peek` khi kích thước nguồn đã biết và không cần đi qua phần tử. Điều này **không phải lỗi sai kết quả `count`**; lỗi thiết kế nằm ở việc dựa vào side effect của `peek` để ghi nhận nghiệp vụ.
+Since Java 9, the API documentation explicitly mentions this `count` optimization example. An implementation may skip calling `peek` when the source size is known and element traversal is unnecessary. This is **not a bug in `count`**; the design flaw lies in relying on `peek`'s side effect for business recording.
 
-### 9.1. Không đếm tác dụng phụ từ map/peek
+### 9.1. Do Not Count Side Effects from map/peek
 
-Tránh:
+Avoid:
 
 ```java
 AtomicInteger processed = new AtomicInteger();
@@ -447,10 +447,10 @@ long count = names.stream()
         })
         .count();
 
-// Không lấy processed.get() làm số bản ghi nghiệp vụ đáng tin.
+// Do not treat processed.get() as a reliable business record count.
 ```
 
-Thay bằng phép tổng hợp thể hiện trực tiếp kết quả cần tính:
+Replace with an aggregation directly expressing the needed result:
 
 ```java
 long numberOfNames = names.stream().count();
@@ -460,13 +460,13 @@ Map<Integer, Long> countsByLength = names.stream()
                 String::length, Collectors.counting()));
 ```
 
-Nếu yêu cầu là **thực hiện hành động trên mọi phần tử**, hãy dùng thao tác kết thúc phù hợp như `forEach` với cân nhắc về thứ tự và an toàn luồng; nếu yêu cầu là **tổng hợp số liệu**, hãy dùng collector/reduction. Không thiết kế tính đúng dựa vào việc `peek` có luôn được gọi.
+If the requirement is to **perform an action on every element**, use an appropriate terminal operation such as `forEach` with ordering and thread-safety considerations; if the requirement is to **aggregate metrics**, use collectors/reductions. Never base correctness on `peek` always being called.
 
-## 10. flatMap, mapMulti và Gatherers: cùng hình dạng chưa chắc cùng hợp đồng
+## 10. flatMap, mapMulti, and Gatherers: Same Shape Does Not Mean Same Contract
 
-### 10.1. flatMap so với mapMulti
+### 10.1. flatMap vs. mapMulti
 
-`Stream.flatMap` có từ Java 8. Nó yêu cầu mapper trả `Stream` con:
+`Stream.flatMap` has existed since Java 8. It requires the mapper to return a sub-`Stream`:
 
 ```java
 // Java 8+
@@ -475,7 +475,7 @@ List<String> words = sentences.stream()
         .collect(Collectors.toList());
 ```
 
-`Stream.mapMulti` từ Java 16 cho mapper **phát 0..n phần tử trực tiếp** qua một consumer:
+`Stream.mapMulti` from Java 16 lets the mapper **emit 0..n elements directly** through a consumer:
 
 ```java
 // Java 16+
@@ -488,22 +488,22 @@ List<String> words = sentences.stream()
         .toList();
 ```
 
-Đoạn này giả định `sentences` là `List<String>` không có phần tử null. Nếu chỉ xét **dãy từ được phát ra**, hai cách có thể tương đương. Nhưng ví dụ còn thay `collect(toList())` bằng `toList()`, làm thay đổi **khả năng sửa danh sách**. Vì vậy, khi refactor, hãy kiểm thử **cả phép biến đổi và bước kết thúc**, không chỉ output được in.
+This assumes `sentences` is a `List<String>` with no null elements. Considering only **the sequence of emitted words**, the two approaches may be equivalent. However, the example also changed `collect(toList())` to `toList()`, changing **list mutability**. Thus, when refactoring, test **both the transformation and the terminal step**, not only printed output.
 
-`mapMulti` không cần tạo Stream con cho từng phần tử nguồn, nên **có thể** hữu ích về chi phí khi một phần tử phát ít giá trị; không mặc định nhanh hơn cho mọi trường hợp. Với `flatMap` trả Stream con từ nguồn I/O, còn phải hiểu hợp đồng đóng các Stream con sau khi nội dung của chúng được đưa vào pipeline. Không thay cách quản lý tài nguyên chỉ dựa trên hình dạng kết quả.
+`mapMulti` does not need to allocate a sub-stream per source element, so it **may** help on overhead when each element emits few values; do not assume it is faster in all cases. When `flatMap` returns I/O-backed sub-streams, you must also understand the contract of closing sub-streams once their contents enter the pipeline. Never change resource management based purely on result shape.
 
-### 10.2. Gatherers thuộc mức JDK khác
+### 10.2. Gatherers Belong to a Different JDK Level
 
-Stream Gatherers cho phép những phép biến đổi trung gian có trạng thái, cửa sổ dữ liệu (*windowing*) và nhiều hình dạng điều phối phức tạp hơn `map` hay `flatMap`. API `Stream.gather` và `Gatherer` được chuẩn hóa trong Java 24. Điều đó có hai hệ quả cần rà soát:
+Stream Gatherers enable stateful intermediate transformations, windowing, and coordination shapes beyond `map` or `flatMap`. The `Stream.gather` and `Gatherer` APIs were standardized in Java 24. That has two consequences to audit:
 
-1. **Mức JDK:** mã dùng `gather` không thể tự chạy trên JRE Java 8/11/17/21.
-2. **Hợp đồng pipeline:** khi thay `limit`, `map`, `flatMap` hay collector tùy chỉnh bằng gatherer, phải kiểm tra trạng thái, thứ tự, điều kiện kết thúc và sự tương đương kết quả, nhất là ở nguồn rỗng, xử lý song song và Stream không có thứ tự.
+1. **JDK level:** code using `gather` cannot run on Java 8/11/17/21 JREs.
+2. **Pipeline contract:** when replacing `limit`, `map`, `flatMap`, or custom collectors with a gatherer, verify state, ordering, stopping conditions, and result equivalence—especially on empty sources, parallel execution, and unordered Streams.
 
-Không cần chuyển mọi pipeline sang Gatherers chỉ vì nâng JDK. Ưu tiên phép toán đơn giản nhất diễn đạt đúng yêu cầu và có mức tương thích phù hợp với hệ thống.
+Do not move every pipeline to Gatherers merely because of a JDK upgrade. Prefer the simplest operation that expresses the requirement accurately and matches the system's compatibility level.
 
-## 11. Tài nguyên I/O: nâng JDK không làm terminal operation tự đóng Stream
+## 11. I/O Resources: Upgrading JDKs Does Not Make Terminal Operations Auto-Close Streams
 
-Các nguồn như `Files.lines`, `Files.list`, `Files.walk` và `Files.find` có thể nắm giữ file hoặc directory handle. Dù gọi `count()`, `findFirst()` hay `collect()`, vẫn cần **đóng Stream gắn tài nguyên** bằng `try-with-resources`.
+Sources such as `Files.lines`, `Files.list`, `Files.walk`, and `Files.find` can hold open file or directory handles. Whether calling `count()`, `findFirst()`, or `collect()`, you still need to **close resource-backed Streams** with `try-with-resources`.
 
 ```java
 import java.io.IOException;
@@ -523,15 +523,15 @@ public static Optional<String> firstError(Path path) throws IOException {
 }
 ```
 
-`findFirst` có thể dừng sớm, nhưng **nguồn vẫn phải được đóng**. Không đổi hàm trả một `List` đã tính thành hàm trả một `Stream` còn mở mà không xác định **ai sẽ đóng**. Ngược lại, đừng trả pipeline được tạo trong một `try-with-resources` đã kết thúc; caller sẽ nhận Stream đã đóng.
+`findFirst` can stop early, yet **the source must still be closed**. Do not change a method returning a computed `List` into a method returning an open `Stream` without defining **who closes it**. Conversely, never return a pipeline created inside a `try-with-resources` block that has already exited; the caller would receive a closed Stream.
 
-Với `Stream.concat(first, second)`, đóng Stream kết hợp sẽ đóng các input Stream theo hợp đồng, nhưng nếu việc mở nguồn thứ hai thất bại **trước khi concat được tạo**, nguồn thứ nhất vẫn cần có `try-with-resources` bảo vệ. Bản nâng cấp JDK không xóa bỏ các yêu cầu sở hữu và vòng đời tài nguyên này.
+With `Stream.concat(first, second)`, closing the combined Stream closes the input Streams by contract, yet if opening the second source fails **before `concat` is created**, the first source still needs `try-with-resources` protection. JDK upgrades do not remove these resource ownership and lifecycle requirements.
 
-## 12. Ví dụ Java 8 hoàn chỉnh: bộ kiểm tra ngữ nghĩa nền tảng
+## 12. Complete Java 8 Example: Foundational Semantic Audit Suite
 
-Bộ kiểm tra sau **không dùng API sau Java 8**, nên có thể biên dịch trên JDK 8. Nó không kiểm tra tốc độ hoặc tên lớp implementation. Thay vào đó, nó kiểm tra những điều mà bài toán thực sự yêu cầu: kết quả sau lọc, thứ tự có cam kết, số liệu rỗng, Optional, phép gộp trùng khóa và tương đương giữa xử lý tuần tự/song song.
+The following audit suite **uses no post-Java 8 APIs**, so it compiles on JDK 8. It does not test speed or implementation class names. Instead, it tests what business logic truly requires: post-filter results, guaranteed ordering, empty metrics, Optionals, duplicate-key merging, and sequential/parallel equivalence.
 
-Lưu thành `StreamBehaviorAudit.java`:
+Save as `StreamBehaviorAudit.java`:
 
 ```java
 import java.util.ArrayList;
@@ -572,33 +572,33 @@ public class StreamBehaviorAudit {
     public static void main(String[] args) {
         List<Integer> data = Arrays.asList(3, 1, 3, 2);
 
-        // 1) Giữ thứ tự với nguồn List có encounter order.
+        // 1) Preserve order with an encounter-ordered List source.
         List<Integer> unique = data.parallelStream()
                 .distinct()
                 .collect(Collectors.toList());
         check(unique.equals(Arrays.asList(3, 1, 2)),
-                "distinct giữ encounter order");
+                "distinct preserves encounter order");
 
-        // 2) Không đòi hỏi iteration order ở Set.
+        // 2) Do not require iteration order on Set.
         Set<Integer> asSet = data.stream()
                 .collect(Collectors.toSet());
         check(asSet.equals(new HashSet<>(Arrays.asList(1, 2, 3))),
-                "tập phần tử thay vì thứ tự in");
+                "element set instead of print order");
 
-        // 3) Phân biệt rỗng với tổng thực sự bằng 0.
+        // 3) Distinguish empty from an actual sum of 0.
         check(IntStream.empty().sum() == 0,
-                "sum trên nguồn rỗng");
+                "sum on empty source");
         OptionalDouble average = IntStream.empty().average();
         check(!average.isPresent(),
-                "average trên nguồn rỗng");
+                "average on empty source");
         OptionalInt reduced = IntStream.of(-5, 5)
                 .reduce(Integer::sum);
         check(reduced.isPresent() && reduced.getAsInt() == 0,
-                "có dữ liệu nhưng reduce ra 0");
+                "non-empty data reduces to 0");
         check(!IntStream.empty().reduce(Integer::sum).isPresent(),
-                "reduce không identity trên nguồn rỗng");
+                "reduce without identity on empty source");
 
-        // 4) Số lượng thật khác số phần tử sau làm phẳng.
+        // 4) True count differs from element count after flattening.
         List<List<Integer>> nested = Arrays.asList(
                 Arrays.asList(1, 2),
                 Collections.<Integer>emptyList(),
@@ -607,9 +607,9 @@ public class StreamBehaviorAudit {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         check(flattened.equals(Arrays.asList(1, 2, 3)),
-                "flatMap bỏ danh sách con rỗng");
+                "flatMap skips empty sublists");
 
-        // 5) Map: chỉ kiểm tra nội dung theo khóa.
+        // 5) Map: check contents by key only.
         List<Sale> sales = Arrays.asList(
                 new Sale("BAC", "P01", 100L),
                 new Sale("NAM", "P02", 200L),
@@ -628,9 +628,9 @@ public class StreamBehaviorAudit {
                         Long::sum));
 
         check(seqTotals.equals(parallelTotals),
-                "toMap tuần tự và song song tương đương");
+                "sequential and parallel toMap match");
         check(seqTotals.get("P01") == 400L,
-                "merge cộng đủ khóa trùng");
+                "merge sums duplicate keys");
 
         Map<String, Long> byRegion = sales.parallelStream()
                 .collect(Collectors.groupingBy(
@@ -638,9 +638,9 @@ public class StreamBehaviorAudit {
                         Collectors.counting()));
         check(byRegion.get("BAC") == 2L
                 && byRegion.get("NAM") == 1L,
-                "groupingBy đếm đúng từng nhóm");
+                "groupingBy counts each group accurately");
 
-        // 6) toMap không merge phải từ chối khóa trùng.
+        // 6) toMap without merge must reject duplicate keys.
         boolean duplicateRejected = false;
         try {
             Stream.of("P01:A", "P01:B").collect(Collectors.toMap(
@@ -649,103 +649,103 @@ public class StreamBehaviorAudit {
         } catch (IllegalStateException expected) {
             duplicateRejected = true;
         }
-        check(duplicateRejected, "toMap từ chối khóa trùng");
+        check(duplicateRejected, "toMap rejects duplicate keys");
 
-        // 7) Tự yêu cầu ArrayList nếu cần kết quả có thể sửa.
+        // 7) Request ArrayList explicitly when a mutable result is needed.
         List<Integer> mutable = data.stream()
                 .collect(Collectors.toCollection(ArrayList::new));
         mutable.add(99);
         check(mutable.size() == 5 && mutable.get(4) == 99,
-                "toCollection(ArrayList::new) có thể sửa");
+                "toCollection(ArrayList::new) is mutable");
 
-        // 8) findFirst khác findAny về cam kết chọn phần tử.
+        // 8) findFirst differs from findAny in element selection guarantee.
         OptionalInt first = IntStream.rangeClosed(1, 100)
                 .parallel()
                 .filter(n -> n % 7 == 0)
                 .findFirst();
         check(first.isPresent() && first.getAsInt() == 7,
-                "findFirst tôn trọng encounter order");
+                "findFirst respects encounter order");
 
         System.out.println("PASS " + checks + " semantic checks");
     }
 }
 ```
 
-**Kết quả kỳ vọng:** chương trình in `PASS 13 semantic checks` và không ném `AssertionError`. Điều quan trọng không phải một chuỗi log tùy ý, mà là **các bất biến được kiểm tra bằng `check`**. Nếu một kiểm tra thất bại sau khi nâng JDK hoặc refactor, cần tìm hiểu xem ta đã thay đổi nghiệp vụ hay đã vô tình đặt kỳ vọng lên hành vi không được API bảo đảm.
+**Expected output:** the program prints `PASS 13 semantic checks` and throws no `AssertionError`. What matters is not an arbitrary log string, but **the invariants verified via `check`**. If a check fails after a JDK upgrade or refactor, investigate whether business logic changed or expectations were placed on behavior not guaranteed by the API.
 
-### 12.1. Cách dùng bộ kiểm tra khi di chuyển phiên bản
+### 12.1. How to Use the Audit Suite During Version Migration
 
-Trên **JDK 9 trở lên**, có thể biên dịch chương trình bằng:
+On **JDK 9 or later**, you can compile the program with:
 
 ```bash
 javac --release 8 StreamBehaviorAudit.java
 java StreamBehaviorAudit
 ```
 
-`--release 8` yêu cầu trình biên dịch chỉ cho phép các API sẵn có ở mức Java 8 và tạo bytecode tương thích mục tiêu. Trên **chính JDK 8**, dùng `javac StreamBehaviorAudit.java` vì tùy chọn `--release` xuất hiện từ JDK 9.
+`--release 8` instructs the compiler to allow only APIs available at Java 8 level and emit target-compatible bytecode. On **JDK 8 itself**, use `javac StreamBehaviorAudit.java` because the `--release` option appeared in JDK 9.
 
-Khi triển khai nâng cấp, chạy bộ kiểm tra trên **runtime cũ và runtime mới** bằng môi trường riêng, đồng thời đo hiệu năng và thử các phiên bản thư viện thực tế. `--release` giúp kiểm tra tương thích nguồn/API mục tiêu nhưng **không thay thế việc chạy mã trên runtime mục tiêu**.
+When rolling out an upgrade, run the suite on **both the old runtime and the new runtime** in isolated environments, while also benchmarking performance and testing real library versions. `--release` checks source/target-API compatibility, yet **does not replace running the code on the target runtime**.
 
-## 13. Xây dựng ma trận kiểm thử trước và sau nâng cấp
+## 13. Building a Pre- and Post-Upgrade Test Matrix
 
-Một bộ test “happy path” với vài số dương là chưa đủ. Nên xây ma trận những biên và thuộc tính ngữ nghĩa sau:
+A "happy path" test suite with a few positive integers is insufficient. Build a matrix covering the following boundaries and semantic properties:
 
-| Nhóm kiểm thử | Bộ dữ liệu/điều kiện | Kỳ vọng cần ghi rõ |
+| Test Group | Datasets / Conditions | Expectations to Document |
 |---|---|---|
-| **Nguồn rỗng** | `[]`; mọi phần tử bị `filter` loại | Tổng, average, Optional, Map/list rỗng |
-| **Null** | Null đầu nguồn, trong danh sách con, mapper trả null | Lọc, chấp nhận, từ chối hoặc báo lỗi? |
-| **Trùng khóa** | Nhiều bản ghi cùng SKU | Cộng, giữ đầu/cuối, chọn max hay ném ngoại lệ? |
-| **Thứ tự** | List có thứ tự; Set không có thứ tự; pipeline `unordered()` | Khi nào phải bảo toàn encounter order? |
-| **Song song** | `parallelStream()`; nhiều cách chia `Spliterator` | Giá trị tương đương, không phụ thuộc side effect |
-| **Sai số** | Tổng rất lớn, `Double.NaN`, vô cực, số thập phân | Chấp nhận dung sai, phát hiện tràn, xử lý dữ liệu đặc biệt |
-| **Khả năng sửa** | Caller gọi `add`/`remove` trên kết quả | Có phải yêu cầu của API không? |
-| **Nguồn một lần** | Stream đã tiêu thụ; đọc từ tệp | Có sử dụng lại Stream sai hay quên đóng không? |
-| **Điều kiện dừng** | Predicate thay đổi đúng/sai nhiều lần | `filter` khác `takeWhile`, `dropWhile` và `limit` |
-| **API theo phiên bản** | Java 8/11/17/21/24 tùy hệ thống | Có dùng tính năng mới vượt mức hỗ trợ không? |
+| **Empty source** | `[]`; all elements removed by `filter` | Sum, average, Optional, empty Map/list |
+| **Nulls** | Null in source, inside sublists, mapper returning null | Filter, accept, reject, or throw error? |
+| **Duplicate keys** | Multiple records with the same SKU | Sum, keep first/last, pick max, or throw exception? |
+| **Ordering** | Ordered List; unordered Set; `unordered()` pipeline | When must encounter order be preserved? |
+| **Parallel** | `parallelStream()`; different `Spliterator` splits | Equivalent values, no reliance on side effects |
+| **Precision / overflow** | Huge sums, `Double.NaN`, infinity, decimals | Acceptable tolerance, overflow detection, special values |
+| **Mutability** | Caller invokes `add`/`remove` on result | Is mutability part of the API contract? |
+| **Single-use source** | Consumed Stream; reading from files | Any invalid Stream reuse or forgotten close? |
+| **Stopping condition** | Predicate flips true/false multiple times | `filter` differs from `takeWhile`, `dropWhile`, and `limit` |
+| **Versioned APIs** | Java 8/11/17/21/24 per system | Any new features exceeding supported level? |
 
-### 13.1. Golden tests và kiểm thử bất biến
+### 13.1. Golden Tests and Invariant Testing
 
-Nên kết hợp hai cách:
+Combine two approaches:
 
-- **Golden tests:** với dữ liệu nhỏ đã biết, ghi lại kết quả chính xác mang ý nghĩa nghiệp vụ, ví dụ `P01 -> 400`, `count -> 3`, `[A,B]` khi thứ tự được yêu cầu.
-- **Property/invariant tests:** kiểm tra đặc tính trên nhiều bộ dữ liệu, ví dụ tổng số đếm theo nhóm bằng tổng số bản ghi hợp lệ, kết quả `sum` tuần tự/song song tương đương khi phép cộng không tràn, hoặc `distinct` không làm xuất hiện phần tử mới.
+- **Golden tests:** on small known datasets, record exact business-meaningful results, e.g., `P01 -> 400`, `count -> 3`, `[A,B]` when order is required.
+- **Property/invariant tests:** verify properties across many datasets, e.g., sum of group counts equals total valid records, sequential and parallel `sum` match when addition does not overflow, or `distinct` never introduces new elements.
 
-Đừng lưu `Map.toString()` hay thứ tự duyệt `HashSet` làm golden output nếu hợp đồng không yêu cầu thứ tự ấy. Khi so Map và Set, so theo **nội dung**, không so thứ tự in ra console.
+Do not save `Map.toString()` or `HashSet` iteration order as golden output if the contract does not mandate that order. When comparing Maps and Sets, compare **contents**, not console print order.
 
-### 13.2. Chạy cả mức nguồn lẫn runtime
+### 13.2. Testing Both Source Level and Runtime
 
-Với một dự án hỗ trợ Java 8 nhưng phát triển trên JDK mới, nên:
+For a project supporting Java 8 while developed on a newer JDK, you should:
 
-1. Biên dịch với mức API/bytecode tối thiểu được hỗ trợ (ví dụ `javac --release 8` trên JDK đủ mới).
-2. Chạy trên JRE tối thiểu thực sự cần hỗ trợ.
-3. Chạy cùng bộ test trên JRE dự kiến nâng cấp.
-4. Thử tổ hợp thư viện và dữ liệu thật, kiểm tra ngoại lệ, tài nguyên, bộ nhớ và hiệu năng.
-5. Chỉ thay các phép toán sau khi đã xác định rõ hợp đồng ngữ nghĩa và các test biên.
+1. Compile targeting the minimum supported API/bytecode level (e.g., `javac --release 8` on a recent enough JDK).
+2. Run on the actual minimum supported JRE.
+3. Run the same test suite on the upgraded target JRE.
+4. Test with real libraries and realistic data, checking exceptions, resources, memory, and performance.
+5. Replace operations only after clearly establishing the semantic contract and boundary tests.
 
-Đừng bỏ qua bước 2 chỉ vì chương trình đã chạy trên JDK mới. Mục tiêu của `--release` là kiểm soát phiên bản API/bytecode, không chứng minh mọi hành vi ở runtime cũ.
+Do not skip step 2 merely because the program already runs on the newer JDK. The goal of `--release` is controlling API/bytecode versions, not proving every behavior on the older runtime.
 
-## 14. Quy trình rà soát một pull request thay Stream
+## 14. Process for Reviewing a Stream Refactoring Pull Request
 
-Trước khi chấp nhận thay đổi “rút gọn code”, hãy đối chiếu hai pipeline ở những mặt sau:
+Before approving a "code simplification" change, compare both pipelines on these aspects:
 
-| Thay đổi đề xuất | Câu hỏi bắt buộc |
+| Proposed Change | Mandatory Questions |
 |---|---|
-| `collect(toList())` → `toList()` | Caller có sửa List không? JDK tối thiểu ≥ 16 không? |
-| `collect(toList())` → `toUnmodifiableList()` | Nguồn có thể chứa null không? JDK tối thiểu ≥ 10 không? |
-| `Stream.of(value)` → `ofNullable(value)` | Có cần giữ phần tử null như một bản ghi không? |
-| `filter(p)` → `takeWhile(p)` | Predicate có thể từ đúng thành sai rồi đúng lại không? |
-| `limit(n)` → `iterate(seed, hasNext, next)` | Giới hạn theo **số phần tử** hay theo **giá trị**? |
-| `findFirst()` → `findAny()` | Có cần phần tử đầu theo encounter order không? |
-| `reduce(op)` → `sum()` | Có cần phân biệt nguồn rỗng với tổng bằng 0 không? |
-| `average()` → `averagingInt(...)` | Có chấp nhận trung bình 0.0 khi nguồn rỗng không? |
-| `toMap(...)` → `toConcurrentMap(...)` | Merge có phụ thuộc thứ tự không? |
-| `flatMap(...)` → `mapMulti(...)` | Có phát đúng số phần tử, đúng thứ tự và xử lý null/tài nguyên tương đương không? |
-| `sequential()` → `parallel()` | Reducer/collector có hợp đồng đúng, không side effect chia sẻ không? |
-| `collect(toList())` sau `Files.lines` → một API trả Stream | Ai đóng file? Stream có bị dùng sau khi đóng không? |
+| `collect(toList())` → `toList()` | Does the caller mutate the List? Is minimum JDK ≥ 16? |
+| `collect(toList())` → `toUnmodifiableList()` | Can the source contain nulls? Is minimum JDK ≥ 10? |
+| `Stream.of(value)` → `ofNullable(value)` | Should a null element be retained as a record? |
+| `filter(p)` → `takeWhile(p)` | Can the predicate go true → false → true? |
+| `limit(n)` → `iterate(seed, hasNext, next)` | Bounded by **element count** or by **value**? |
+| `findFirst()` → `findAny()` | Is the first element in encounter order needed? |
+| `reduce(op)` → `sum()` | Must an empty source be distinguished from a sum of 0? |
+| `average()` → `averagingInt(...)` | Is an average of 0.0 acceptable on an empty source? |
+| `toMap(...)` → `toConcurrentMap(...)` | Does merging depend on order? |
+| `flatMap(...)` → `mapMulti(...)` | Does it emit the same count/order and handle nulls/resources identically? |
+| `sequential()` → `parallel()` | Do reducer/collector follow valid contracts with no shared side effects? |
+| `collect(toList())` after `Files.lines` → an API returning a Stream | Who closes the file? Can the Stream be used after closing? |
 
-### 14.1. Ví dụ review một thay đổi nhỏ
+### 14.1. Example Review of a Small Change
 
-**Mã cũ, hỗ trợ Java 8:**
+**Legacy code, supporting Java 8:**
 
 ```java
 List<String> selected = names.stream()
@@ -753,7 +753,7 @@ List<String> selected = names.stream()
         .collect(Collectors.toList());
 ```
 
-**Đề xuất mới, yêu cầu Java 16+:**
+**New proposal, requiring Java 16+:**
 
 ```java
 List<String> selected = names.stream()
@@ -761,99 +761,99 @@ List<String> selected = names.stream()
         .toList();
 ```
 
-Để phê duyệt đúng, cần xác định:
+To approve accurately, verify:
 
-1. Mức JDK tối thiểu của sản phẩm **đã** cho phép Java 16+ chưa?
-2. Có nơi nào về sau gọi `selected.add(...)` hay `selected.remove(...)` không? Nếu có, refactor làm thay đổi hợp đồng.
-3. Nếu `names` chứa null, biểu thức `name.startsWith("A")` vốn đã ném lỗi; đổi terminal operation **không khắc phục** điều này.
-4. Với `names` có encounter order, hai cách có cùng thứ tự nội dung khi pipeline không đổi; **không** cần khóa chặt implementation List.
+1. Does the product's minimum JDK level **already** allow Java 16+?
+2. Does any subsequent code call `selected.add(...)` or `selected.remove(...)`? If so, the refactor alters the contract.
+3. If `names` contains null, `name.startsWith("A")` already throws an exception; changing the terminal operation **does not fix** this.
+4. When `names` has encounter order, both produce the same content order with the same pipeline; there is **no** need to lock down the List implementation class.
 
-Nếu caller thực sự cần List mutable, giữ cách tạo `ArrayList` được yêu cầu tường minh, thay vì quyết định theo tên phương thức ngắn hơn.
+If the caller genuinely needs a mutable List, keep the explicitly requested `ArrayList` construction rather than choosing based on a shorter method name.
 
-## 15. Những nhầm lẫn thường gặp
+## 15. Common Misconceptions
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 |---|---|
-| “Biên dịch trên JDK mới thì chạy được trên mọi JDK cũ.” | Phải kiểm tra mức bytecode/API và chạy trên runtime mục tiêu. |
-| “`Collectors.toList()` luôn trả `ArrayList` mutable.” | API không cam kết implementation hoặc khả năng sửa. |
-| “`Stream.toList()` giống hệt `Collectors.toList()`.” | `toList()` từ Java 16 trả List không sửa được; cần rà soát caller. |
-| “`toUnmodifiableList()` giống `toList()` cả về null.” | `toUnmodifiableList()` từ chối null, còn `Stream.toList()` có thể chứa null. |
-| “`Stream.ofNullable(null)` chứa một phần tử null.” | Nó tạo Stream rỗng; `Stream.of((T) null)` mới chứa một phần tử null. |
-| “`takeWhile` là cách viết khác của `filter`.” | Với Stream có thứ tự, `takeWhile` chỉ lấy đoạn đầu liên tiếp thỏa predicate. |
-| “`findAny` sẽ trả phần tử đầu khi dữ liệu nhỏ.” | API không cam kết; dùng `findFirst` nếu yêu cầu phần tử đầu. |
-| “Đổi JDK làm `HashMap` in thứ tự khác là regression.” | Nếu không có hợp đồng thứ tự, đây có thể là hành vi được phép. |
-| “`peek` được gọi một lần cho mỗi phần tử trước `count`.” | Implementation có thể bỏ qua các thao tác không cần cho kết quả. |
-| “`average` và `Collectors.averagingInt` giống nhau trên nguồn rỗng.” | Một bên trả Optional rỗng, bên kia trả số `0.0`. |
-| “Chạy parallel thì tự an toàn và nhanh hơn.” | Cần hợp đồng reduction, tránh trạng thái chung và đo hiệu năng. |
-| “Terminal operation tự đóng `Files.lines`.” | Phải đóng nguồn I/O bằng `try-with-resources` hoặc hợp đồng sở hữu rõ ràng. |
+| "Compiling on a newer JDK means it runs on all older JDKs." | Bytecode/API level must be checked and run on the target runtime. |
+| "`Collectors.toList()` always returns a mutable `ArrayList`." | The API does not promise implementation type or mutability. |
+| "`Stream.toList()` is identical to `Collectors.toList()`." | `toList()` since Java 16 returns an unmodifiable List; audit callers. |
+| "`toUnmodifiableList()` matches `toList()` on nulls too." | `toUnmodifiableList()` rejects nulls, while `Stream.toList()` may contain nulls. |
+| "`Stream.ofNullable(null)` holds one null element." | It creates an empty Stream; `Stream.of((T) null)` holds one null element. |
+| "`takeWhile` is just another way to write `filter`." | On ordered Streams, `takeWhile` takes only the leading contiguous prefix matching the predicate. |
+| "`findAny` will return the first element for small data." | The API makes no promise; use `findFirst` when the first element is required. |
+| "Changing JDK makes `HashMap` print in a different order—a regression." | Without an ordering contract, this can be permitted behavior. |
+| "`peek` is called once per element before `count`." | Implementations may elide operations unnecessary for the result. |
+| "`average` and `Collectors.averagingInt` behave the same on empty sources." | One returns an empty Optional; the other returns `0.0`. |
+| "Running parallel is automatically safe and faster." | Valid reduction contracts, avoiding shared state, and benchmarking are required. |
+| "Terminal operations close `Files.lines` automatically." | I/O sources must be closed via `try-with-resources` or clear ownership contracts. |
 
-## 16. Bài tập thực hành có đáp án
+## 16. Practice Exercises With Solutions
 
-### Bài 1. Đổi sang toList
+### Exercise 1. Switching to toList
 
-Một phương thức cũ trả danh sách và caller có dòng `result.add("NEW")`. Có nên đổi ngay `collect(Collectors.toList())` thành `Stream.toList()`?
+A legacy method returns a list and the caller has `result.add("NEW")`. Should `collect(Collectors.toList())` be switched immediately to `Stream.toList()`?
 
-**Đáp án:** Không nếu hợp đồng caller đòi List mutable. `Stream.toList()` từ Java 16 không sửa được. Dùng `Collectors.toCollection(ArrayList::new)` hoặc `new ArrayList<>(stream.toList())` khi muốn bảo đảm khả năng sửa.
+**Answer:** No, if the caller contract requires a mutable List. `Stream.toList()` from Java 16 is unmodifiable. Use `Collectors.toCollection(ArrayList::new)` or `new ArrayList<>(stream.toList())` when mutability must be guaranteed.
 
-### Bài 2. Null và nguồn rỗng
+### Exercise 2. Nulls and Empty Sources
 
-`Stream.of((String) null).count()` và `Stream.<String>ofNullable(null).count()` có cùng kết quả không?
+Do `Stream.of((String) null).count()` and `Stream.<String>ofNullable(null).count()` return the same result?
 
-**Đáp án:** Không. Vế đầu có **1** phần tử null, vế sau có **0** phần tử. `ofNullable` chỉ sẵn có từ Java 9.
+**Answer:** No. The first has **1** null element; the second has **0** elements. `ofNullable` is only available since Java 9.
 
-### Bài 3. filter so với takeWhile
+### Exercise 3. filter vs. takeWhile
 
-Cho `[1, 2, 0, 3]`, kết quả `filter(n -> n > 0)` và `takeWhile(n -> n > 0)` lần lượt là gì?
+Given `[1, 2, 0, 3]`, what are the results of `filter(n -> n > 0)` and `takeWhile(n -> n > 0)` respectively?
 
-**Đáp án:** `filter` cho `[1, 2, 3]`, `takeWhile` cho `[1, 2]` khi nguồn có thứ tự. Hai phép không thay thế tương đương.
+**Answer:** `filter` yields `[1, 2, 3]`, while `takeWhile` yields `[1, 2]` on an ordered source. The two operations are not equivalent replacements.
 
-### Bài 4. Kiểm tra Optional trên nguồn rỗng
+### Exercise 4. Checking Optional on Empty Sources
 
-Một refactor thay `IntStream.empty().average()` bằng `Stream.<Integer>empty().collect(Collectors.averagingInt(Integer::intValue))`. Hợp đồng thiếu dữ liệu có giữ nguyên không?
+A refactor replaces `IntStream.empty().average()` with `Stream.<Integer>empty().collect(Collectors.averagingInt(Integer::intValue))`. Is the missing-data contract preserved?
 
-**Đáp án:** Không. `average()` trả `OptionalDouble.empty()`, collector trả số `0.0`. Nếu nghiệp vụ cần phân biệt thiếu dữ liệu, phải giữ Optional hoặc kèm count.
+**Answer:** No. `average()` returns `OptionalDouble.empty()`, while the collector returns `0.0`. If business logic must distinguish missing data, keep the Optional or include a count.
 
-### Bài 5. Thay toMap bằng toConcurrentMap
+### Exercise 5. Replacing toMap with toConcurrentMap
 
-Đang dùng hàm merge `(oldValue, newValue) -> newValue` để chọn phần tử cuối của List có thứ tự. Có thể đổi sang `toConcurrentMap` và kỳ vọng luôn chọn phần tử cuối như cũ không?
+Using merge function `(oldValue, newValue) -> newValue` to select the last element of an ordered List. Can you switch to `toConcurrentMap` and still expect the last element to always win?
 
-**Đáp án:** Không. `toConcurrentMap` là unordered; thứ tự cập nhật không nhất thiết là encounter order. Nếu cần bản ghi mới nhất, dùng thuộc tính thời gian hoặc phiên bản và một quy tắc phá hòa.
+**Answer:** No. `toConcurrentMap` is unordered; update order need not follow encounter order. If the latest record is needed, use a timestamp or version property plus a tie-breaker rule.
 
-### Bài 6. count và peek
+### Exercise 6. count and peek
 
-`List.of("A", "B").stream().peek(System.out::println).count()` có luôn in hai dòng không?
+Does `List.of("A", "B").stream().peek(System.out::println).count()` always print two lines?
 
-**Đáp án:** Không. `List.of` có từ Java 9; `count` có thể suy ra kích thước và bỏ duyệt nếu không cần. Dùng `peek` để quan sát/debug, không dùng làm bước nghiệp vụ bắt buộc.
+**Answer:** No. `List.of` is from Java 9; `count` may deduce the size and skip traversal if unnecessary. Use `peek` for observation/debugging, never as a mandatory business step.
 
-### Bài 7. Tràn số nguyên
+### Exercise 7. Integer Overflow
 
-Vì sao `IntStream.of(Integer.MAX_VALUE, 1).sum()` không trả tổng toán học mong đợi? Sửa thế nào?
+Why does `IntStream.of(Integer.MAX_VALUE, 1).sum()` not return the expected mathematical sum? How do you fix it?
 
-**Đáp án:** Phép tổng ở kiểu `int` bị tràn. Có thể `mapToLong(n -> (long) n).sum()` cho ví dụ này; nếu vẫn có thể vượt `long` thì cần chiến lược kiểu số/kiểm soát tràn khác.
+**Answer:** `int` summation overflows. You can use `mapToLong(n -> (long) n).sum()` for this example; if sums can still exceed `long`, another numeric type/overflow-control strategy is needed.
 
-### Bài 8. Golden test có thứ tự
+### Exercise 8. Ordered Golden Tests
 
-Có nên so `Collectors.toSet().toString()` với chuỗi `"[A, B]"` trên các JDK khác nhau không?
+Should `Collectors.toSet().toString()` be compared against `"[A, B]"` across different JDKs?
 
-**Đáp án:** Không. `toSet` không cam kết thứ tự phần tử. So bằng `Set.equals` hoặc sắp xếp tường minh nếu output nghiệp vụ yêu cầu thứ tự.
+**Answer:** No. `toSet` does not guarantee element order. Compare using `Set.equals` or sort explicitly if business output requires ordering.
 
-### Bài 9. Nâng JDK và đổi API cùng lúc
+### Exercise 9. Upgrading JDK and Changing APIs Simultaneously
 
-Một dự án đồng thời chuyển JDK 8 lên JDK 21 và thay `flatMap` bằng `mapMulti`, `collect(toList())` bằng `toList()`. Nếu test thất bại, nên kiểm tra theo thứ tự nào?
+A project simultaneously moves from JDK 8 to JDK 21 and replaces `flatMap` with `mapMulti` and `collect(toList())` with `toList()`. If tests fail, in what order should you investigate?
 
-**Đáp án định hướng:** Tách hai loại thay đổi: trước tiên chạy bộ kiểm tra nghiệp vụ trên JDK mới **với logic cũ** khi còn tương thích; sau đó thay từng phép toán, xác minh số phần tử và thứ tự sau làm phẳng, null, ngoại lệ, tính không sửa được của kết quả và chi phí bộ nhớ. Làm từng bước giúp định vị nguyên nhân hơn là đổi nhiều hành vi cùng lúc.
+**Guided answer:** Separate the two kinds of changes: first run the business test suite on the new JDK **with the old logic** where still compatible; then swap operations one by one, verifying post-flattening counts and order, nulls, exceptions, result unmodifiability, and memory cost. Stepping incrementally isolates causes far better than changing multiple behaviors at once.
 
-## 17. Checklist trước khi chấp nhận nâng JDK hoặc refactor Stream
+## 17. Checklist Before Accepting a JDK Upgrade or Stream Refactor
 
-1. **Xác định JDK tối thiểu và runtime mục tiêu.** API mới có vượt mức hỗ trợ không? Có cần `--release` hoặc chiến lược preview không?
-2. **Ghi rõ hợp đồng dữ liệu.** Nguồn rỗng, null, trùng khóa, thứ tự và điều kiện dừng xử lý thế nào?
-3. **Kiểm tra đặc tính kết quả.** List/Map có sửa được không? Thứ tự có được bảo đảm không? Có thay `Optional` bằng số mặc định không?
-4. **Đối chiếu phép biến đổi.** `map`/`flatMap`/`mapMulti`, `filter`/`takeWhile` và `limit` có giữ tập phần tử mong muốn không?
-5. **Đối chiếu phép kết thúc.** `findFirst`/`findAny`, `reduce`/`sum`, `average`/`averaging...` và collector Map có thay ngữ nghĩa không?
-6. **Rà soát song song.** Accumulator/combiner có kết hợp đúng, không phụ thuộc thứ tự không được bảo đảm hoặc trạng thái mutable dùng chung không?
-7. **Rà soát số học.** Tràn `int`/`long`, sai số `double`, `NaN` và chính sách `BigDecimal` có được kiểm soát không?
-8. **Rà soát tài nguyên.** Mọi Stream nguồn I/O cần đóng có `try-with-resources` hoặc quyền sở hữu rõ ràng không?
-9. **Chạy kiểm thử trên các runtime cần hỗ trợ.** So kết quả theo bất biến nghiệp vụ, không theo implementation hoặc thứ tự tình cờ.
-10. **Đo hiệu năng riêng sau khi xác nhận tính đúng.** Không đổi ngữ nghĩa chỉ để tối ưu mà không có bằng chứng đo lường.
+1. **Identify minimum JDK and target runtime.** Do newer APIs exceed the supported level? Are `--release` or preview strategies needed?
+2. **State the data contract clearly.** How are empty sources, nulls, duplicate keys, ordering, and stopping conditions handled?
+3. **Check result properties.** Are Lists/Maps mutable? Is ordering guaranteed? Was an `Optional` replaced with a default number?
+4. **Cross-check transformations.** Do `map`/`flatMap`/`mapMulti`, `filter`/`takeWhile`, and `limit` keep the intended element set?
+5. **Cross-check terminal operations.** Do `findFirst`/`findAny`, `reduce`/`sum`, `average`/`averaging...`, and Map collectors alter semantics?
+6. **Audit parallelism.** Do accumulators/combiners associate properly without relying on unguaranteed ordering or shared mutable state?
+7. **Audit arithmetic.** Are `int`/`long` overflow, `double` rounding error, `NaN`, and `BigDecimal` policies controlled?
+8. **Audit resources.** Does every closeable I/O-backed Stream have `try-with-resources` or explicit ownership?
+9. **Run tests across supported runtimes.** Compare results by business invariants, not incidental implementations or ordering.
+10. **Benchmark separately after verifying correctness.** Never alter semantics merely to optimize without measurement evidence.
 
-**Kết luận:** Khi nâng JDK hoặc thay phép toán Stream, hãy giữ nguyên **hợp đồng kết quả** thay vì chỉ giữ mã biên dịch hoặc các dòng log trông giống nhau. Những khác biệt quan trọng cần rà soát là **tập phần tử được xử lý, thứ tự, khả năng sửa kết quả, null, nguồn rỗng, khóa trùng, phép gộp, độ chính xác và vòng đời tài nguyên**. Dùng một ma trận test có các trường hợp biên và so sánh theo những gì Java API thật sự bảo đảm, ta có thể tận dụng các tính năng Stream mới mà không đánh đổi tính đúng của ứng dụng.
+**Conclusion:** When upgrading JDKs or replacing Stream operations, preserve the **result contract** rather than merely keeping code compiling or log lines looking similar. Critical differences to audit are **processed element sets, ordering, result mutability, nulls, empty sources, duplicate keys, merge functions, arithmetic precision, and resource lifecycles**. Using a test matrix with boundary cases and comparing strictly against what the Java API actually guarantees allows you to leverage newer Stream features without trading away application correctness.

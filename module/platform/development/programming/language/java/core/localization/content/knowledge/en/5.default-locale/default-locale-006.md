@@ -1,53 +1,53 @@
-# Ảnh hưởng của thời điểm tạo formatter và bộ nhớ đệm
+# Impact of Formatter Creation Time and Caching
 
-Trong Java, khi một API định dạng **không nhận `Locale` tường minh**, nó thường lấy locale mặc định **tại thời điểm tạo đối tượng formatter**. Nếu sau đó ứng dụng đổi locale mặc định, các formatter đã tạo thường **không tự đổi theo**, còn các formatter tạo mới có thể dùng giá trị mới. Bộ nhớ đệm (cache) khiến hành vi này dễ bị hiểu nhầm: đối tượng cũ tiếp tục được tái sử dụng dù cấu hình hiện tại đã khác.
+In Java, when a formatting API **does not receive an explicit `Locale`**, it typically reads the default locale **at the time the formatter object is created**. If the application later changes the default locale, already-created formatters generally **do not update automatically**, whereas newly created formatters may use the new value. Caching makes this behavior easy to misunderstand: old objects continue to be reused even though the current configuration has changed.
 
-Đây là một chủ đề quan trọng của **Locale mặc định**: phải biết **khi nào locale được chọn, ai giữ formatter, cache được đánh chỉ mục bằng gì và thay đổi nào cần làm mới cache**.
+This is an important topic under **Default Locale**: you must know **when the locale is selected, who holds the formatter, what the cache is keyed on, and which changes require refreshing the cache**.
 
-> **Nguyên tắc thực hành:** Chọn locale của request/người dùng một cách tường minh rồi truyền vào formatter. Không dùng thao tác đổi locale mặc định của JVM như cách chuyển ngôn ngữ cho từng request, và không cache formatter mutable để nhiều thread dùng đồng thời.
+> **Practical rule:** Choose the request/user's locale explicitly and pass it into the formatter. Do not use JVM default locale mutation as a way to switch languages per request, and do not cache mutable formatters for concurrent use across threads.
 
-## 1. Phân biệt bốn thời điểm
+## 1. Distinguishing Four Points in Time
 
-Giả sử ứng dụng có các bước:
+Suppose an application goes through these steps:
 
-1. **T1:** JVM đang có locale mặc định `en-US`.
-2. **T2:** Ứng dụng tạo `NumberFormat` hoặc `DateTimeFormatter` mà không truyền locale.
-3. **T3:** Một nơi khác gọi `Locale.setDefault(..., Locale.GERMANY)`.
-4. **T4:** Ứng dụng dùng lại formatter cũ hoặc tạo formatter mới để hiển thị dữ liệu.
+1. **T1:** The JVM currently has a default locale of `en-US`.
+2. **T2:** The application creates a `NumberFormat` or `DateTimeFormatter` without passing a locale.
+3. **T3:** Another part of the code calls `Locale.setDefault(..., Locale.GERMANY)`.
+4. **T4:** The application reuses the old formatter or creates a new formatter to display data.
 
-Ở T4, hai thao tác có thể cho kết quả khác nhau:
+At T4, the two operations can yield different results:
 
-- **Dùng lại formatter tạo ở T2:** đối tượng đã giữ locale hoặc các quy tắc/thiết lập có liên quan; thay đổi default tại T3 không tự cấu hình lại đối tượng đó.
-- **Tạo formatter mới tại T4:** lời gọi factory không truyền locale có thể đọc default mới nên cho định dạng Đức.
+- **Reusing the formatter created at T2:** the object already holds its locale or related rules/settings; changing the default at T3 does not automatically reconfigure that object.
+- **Creating a new formatter at T4:** a factory call without a locale can read the new default and thus produce German formatting.
 
-Đổi default **không phải lệnh “refresh mọi formatter đang tồn tại”**. Ngược lại, nếu truyền `Locale` vào lúc tạo thì hành vi không phụ thuộc vào default JVM được đặt khi nào.
+Changing the default **is not a command to “refresh every existing formatter”**. Conversely, if you pass `Locale` at creation time, the behavior does not depend on when the JVM default was set.
 
-| Đối tượng hoặc thao tác | Thời điểm ảnh hưởng của default | Ghi chú |
+| Object or operation | Time when the default takes effect | Notes |
 | --- | --- | --- |
-| `NumberFormat.getNumberInstance()` | Khi factory được gọi | Tạo formatter theo default `FORMAT` lúc đó |
-| `NumberFormat.getNumberInstance(locale)` | Không cần đọc default để chọn locale | Dùng locale tham số |
-| `DateTimeFormatter.ofLocalizedDate(style)` | Locale mặc định được gắn khi tạo formatter | `getLocale()` quan sát được locale của formatter |
-| `formatter.withLocale(locale)` | Khi gọi `withLocale` | Trả về **formatter mới** với locale được yêu cầu |
-| `new SimpleDateFormat(pattern)` | Khi constructor chạy | Có thể nhận default về locale và múi giờ; đối tượng mutable |
-| `ResourceBundle.getBundle(baseName)` | Khi lời gọi chọn locale mặc định | Bundle được cache độc lập theo cơ chế `ResourceBundle` |
-| `Locale.getDefault(...)` | Ngay khi gọi | Đọc trạng thái mặc định hiện tại của JVM; không phải formatter |
+| `NumberFormat.getNumberInstance()` | When the factory is called | Creates a formatter using the `FORMAT` default at that moment |
+| `NumberFormat.getNumberInstance(locale)` | Does not need to read the default to select the locale | Uses the parameter locale |
+| `DateTimeFormatter.ofLocalizedDate(style)` | The default locale is attached when creating the formatter | `getLocale()` observes the formatter's locale |
+| `formatter.withLocale(locale)` | When `withLocale` is called | Returns a **new formatter** with the requested locale |
+| `new SimpleDateFormat(pattern)` | When the constructor runs | May capture defaults for locale and time zone; mutable object |
+| `ResourceBundle.getBundle(baseName)` | When the call selects the default locale | Bundles are cached independently by the `ResourceBundle` mechanism |
+| `Locale.getDefault(...)` | Immediately when called | Reads the JVM's current default state; not a formatter |
 
-Không nên suy diễn một quy tắc duy nhất cho **mọi thư viện**. API Java chuẩn và thư viện thứ ba có thể quyết định khác nhau về snapshot, lazy loading, cache, fallback và khả năng cấu hình lại.
+You should not generalize a single rule for **all libraries**. Standard Java APIs and third-party libraries may make different choices regarding snapshots, lazy loading, caching, fallback, and reconfigurability.
 
-## 2. Locale mặc định chung và locale mặc định theo category
+## 2. General Default Locale vs. Category Default Locales
 
-Java có `Locale.getDefault()` và `Locale.getDefault(Locale.Category)`. Hai category đáng chú ý:
+Java provides `Locale.getDefault()` and `Locale.getDefault(Locale.Category)`. Two notable categories:
 
-- `Locale.Category.FORMAT`: ngữ cảnh mặc định cho các dịch vụ định dạng như số, ngày giờ.
-- `Locale.Category.DISPLAY`: ngữ cảnh mặc định cho tên hiển thị của locale, quốc gia, ngôn ngữ.
+- `Locale.Category.FORMAT`: default context for formatting services such as numbers and dates/times.
+- `Locale.Category.DISPLAY`: default context for display names of locales, countries, and languages.
 
-`Locale.setDefault(Locale)` thay đổi locale mặc định chung, đồng thời cập nhật các locale mặc định theo category theo hợp đồng của API. `Locale.setDefault(Locale.Category.FORMAT, locale)` thay đổi riêng mặc định của category `FORMAT`; việc đó không có nghĩa `getDefault()` không tham số hoặc category `DISPLAY` nhất thiết trả cùng giá trị.
+`Locale.setDefault(Locale)` changes the general default locale and also updates the category default locales according to the API contract. `Locale.setDefault(Locale.Category.FORMAT, locale)` changes only the `FORMAT` category default; doing so does not mean the no-argument `getDefault()` or the `DISPLAY` category will necessarily return the same value.
 
-**Cảnh báo phạm vi:** default locale là trạng thái **toàn JVM**, không phải biến cục bộ cho một người dùng hay một HTTP request. Thay đổi nó giữa lúc nhiều luồng đang tạo formatter có thể khiến luồng này dùng quy ước của luồng khác. Các ví dụ dưới đây chỉ dùng việc đổi default trong chương trình thử nghiệm khép kín và khôi phục default bằng `finally`.
+**Scope warning:** the default locale is **JVM-wide** state, not a local variable for one user or one HTTP request. Changing it while multiple threads are creating formatters can cause one thread to pick up another thread's conventions. The examples below only mutate defaults inside self-contained demo programs and restore defaults using `finally`.
 
-## 3. Thí nghiệm chạy được: formatter cũ và formatter mới
+## 3. Runnable Experiment: Old Formatter vs. New Formatter
 
-Tạo tệp **`FormatterCreationTimeDemo.java`**:
+Create the file **`FormatterCreationTimeDemo.java`**:
 
 ~~~java
 import java.text.NumberFormat;
@@ -88,14 +88,14 @@ public class FormatterCreationTimeDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng **Java 17+**:
+Compile/run using **Java 17+**:
 
 ~~~bash
 javac FormatterCreationTimeDemo.java
 java FormatterCreationTimeDemo
 ~~~
 
-Trên JDK dùng dữ liệu định dạng thông dụng cho hai locale này, kết quả:
+On a JDK with standard formatting data for these two locales, the output is:
 
 ~~~text
 Old date locale: en-US
@@ -105,15 +105,15 @@ New number: 1.234,5
 Old number again: 1,234.5
 ~~~
 
-Hai dòng `getLocale().toLanguageTag()` chứng minh đối tượng `DateTimeFormatter` cũ vẫn giữ `en-US`, đối tượng mới giữ `de-DE`. Phần số minh họa sự khác biệt dấu thập phân/dấu nhóm giữa `Locale.US` và `Locale.GERMANY`. Dữ liệu locale/provider có thể biến đổi theo JDK, nên khi cần kiểm thử byte-by-byte phải cố định cả runtime và các phụ thuộc định dạng, không coi mọi chuỗi localized là hợp đồng bất biến toàn cầu.
+The two `getLocale().toLanguageTag()` lines prove that the old `DateTimeFormatter` object still holds `en-US`, while the new object holds `de-DE`. The numbers illustrate the decimal/grouping separator difference between `Locale.US` and `Locale.GERMANY`. Locale/provider data can vary across JDKs, so when byte-for-byte testing is needed, pin both the runtime and formatting dependencies rather than treating every localized string as a universal immutable contract.
 
-**Diễn giải chính xác:** Lời gọi `Locale.setDefault` không hề “đổi nội dung” của `oldNumber` hoặc `oldDate`. Tại thời điểm T4, `oldNumber` vẫn dùng cấu hình trước đó; `newNumber` lấy cấu hình khác khi được tạo. Việc gọi `format` nhiều lần trên cùng formatter không nhất thiết tra lại locale mặc định.
+**Accurate interpretation:** Calling `Locale.setDefault` did not "change the contents" of `oldNumber` or `oldDate`. At time T4, `oldNumber` still uses the earlier configuration; `newNumber` obtains a different configuration when created. Calling `format` repeatedly on the same formatter does not necessarily re-read the default locale.
 
-## 4. `DateTimeFormatter`: immutable, tạo mới khi đổi locale
+## 4. `DateTimeFormatter`: Immutable, Creating a New Instance When Changing Locale
 
-Với Java Time API (`java.time`), `DateTimeFormatter` là immutable và thread-safe. `withLocale`, `withZone`, `withChronology` và các phương thức tương tự trả về formatter được cấu hình mới, không sửa formatter gốc.
+In the Java Time API (`java.time`), `DateTimeFormatter` is immutable and thread-safe. `withLocale`, `withZone`, `withChronology`, and similar methods return a newly configured formatter without modifying the original formatter.
 
-Ví dụ đoạn mã đặt trong một phương thức Java:
+Example code snippet placed inside a Java method:
 
 ~~~java
 Locale vietnamese = Locale.forLanguageTag("vi-VN");
@@ -126,13 +126,13 @@ DateTimeFormatter forVietnam = base.withLocale(vietnamese);
 System.out.println(forVietnam.getLocale().toLanguageTag());
 ~~~
 
-Cần import `java.util.Locale`, `java.time.format.DateTimeFormatter` và `java.time.format.FormatStyle`. Dòng kết quả:
+Requires importing `java.util.Locale`, `java.time.format.DateTimeFormatter`, and `java.time.format.FormatStyle`. Output line:
 
 ~~~text
 vi-VN
 ~~~
 
-Ngay cả khi `base` được tạo dưới default `en-US`, `forVietnam` có locale `vi-VN`. Trong dịch vụ nhiều người dùng, cách rõ ràng hơn là truyền locale người dùng tại lớp gọi:
+Even if `base` was created under an `en-US` default, `forVietnam` has locale `vi-VN`. In a multi-user service, a clearer approach is to pass the user's locale at the call layer:
 
 ~~~java
 String formatDate(java.time.LocalDate date, Locale locale) {
@@ -143,18 +143,18 @@ String formatDate(java.time.LocalDate date, Locale locale) {
 }
 ~~~
 
-Đây là **phương thức minh họa**, cần đặt trong class với các import thích hợp; không phải chương trình Java độc lập. Nó không phụ thuộc vào việc một luồng khác vừa đổi default JVM.
+This is an **illustrative method**, which must be placed inside a class with appropriate imports; it is not a standalone Java program. It does not depend on another thread having just changed the JVM default.
 
-### Hai điều không nên nhầm
+### Two Things Not to Confuse
 
-1. **Formatter có locale** và **dữ liệu locale dùng để diễn giải mẫu localized** là hai tầng. Formatter giữ lựa chọn locale, còn JDK/provider cung cấp mẫu, tên tháng, ký hiệu. Một số chi tiết triển khai có thể được tra cứu hoặc cache khi formatter hoạt động; điều đó không biến default mới thành locale mới của formatter cũ.
-2. **`withLocale` không phải lệnh dịch tất cả chuỗi trong ứng dụng.** Nó điều chỉnh formatter. Bản dịch thông điệp giao diện phải được lấy từ tài nguyên i18n, còn múi giờ, tiền tệ và lịch có thể cần cấu hình riêng.
+1. **The formatter's locale** and **the locale data used to interpret localized patterns** are two layers. The formatter holds the locale selection, while the JDK/provider supplies patterns, month names, and symbols. Some implementation details may be looked up or cached as the formatter operates; that does not turn a new default into the old formatter's new locale.
+2. **`withLocale` is not a command to translate all strings in the application.** It configures the formatter. UI message translations must come from i18n resources, while time zones, currencies, and calendars may need separate configuration.
 
-## 5. `NumberFormat` và `SimpleDateFormat`: trạng thái mutable
+## 5. `NumberFormat` and `SimpleDateFormat`: Mutable State
 
-Khác với `DateTimeFormatter`, những formatter cũ như `java.text.NumberFormat`, `DecimalFormat` và `SimpleDateFormat` có trạng thái thay đổi được. Chúng có thể giữ ký hiệu, pattern, số chữ số thập phân, chế độ làm tròn hoặc múi giờ, tùy lớp và cách cấu hình.
+Unlike `DateTimeFormatter`, legacy formatters such as `java.text.NumberFormat`, `DecimalFormat`, and `SimpleDateFormat` have mutable state. They can hold symbols, patterns, fraction digit counts, rounding modes, or time zones depending on the class and configuration.
 
-Ví dụ `NumberFormat` có các setter:
+Example of `NumberFormat` having setters:
 
 ~~~java
 NumberFormat number = NumberFormat.getNumberInstance(Locale.US);
@@ -164,69 +164,69 @@ number.setMaximumFractionDigits(2);
 System.out.println(number.format(1234.5));
 ~~~
 
-Đây là **đoạn mã trong phương thức** có `import java.text.NumberFormat;` và `import java.util.Locale;`. Kết quả:
+This is a **code snippet inside a method** with `import java.text.NumberFormat;` and `import java.util.Locale;`. Output:
 
 ~~~text
 1234.50
 ~~~
 
-Dù sau đó default JVM chuyển sang `Locale.GERMANY`, đối tượng `number` vẫn giữ những thuộc tính đã đặt. Thay đổi default không được thiết kế để thay thế lời gọi setter hoặc tái cấu hình đối tượng đang tồn tại.
+Even if the JVM default later switches to `Locale.GERMANY`, the `number` object retains all attributes that were set. Changing the default is not designed to replace setter calls or reconfigure existing objects.
 
-**Thread safety:** `NumberFormat` và `SimpleDateFormat` không bảo đảm an toàn khi nhiều luồng cùng truy cập một instance. Đặt chúng trong cache toàn cục và dùng chung có thể gây lỗi dữ liệu/race ngay cả khi **mọi** request đều dùng cùng locale. Các cách an toàn thường là:
+**Thread safety:** `NumberFormat` and `SimpleDateFormat` are not guaranteed to be safe when multiple threads access one instance concurrently. Placing them in a global cache and sharing them can cause data corruption/races even if **every** request uses the same locale. Safe approaches typically include:
 
-- Tạo instance mới trong phạm vi một request/phép định dạng.
-- Dùng cơ chế đồng bộ khi bắt buộc chia sẻ, có đánh giá hiệu năng.
-- Dùng cache **cấu hình bất biến hoặc factory**, rồi tạo bản formatter mutable riêng khi sử dụng.
-- Với ngày giờ, ưu tiên `DateTimeFormatter` immutable và có thể cache an toàn.
+- Creating a new instance scoped to a single request/formatting operation.
+- Using synchronization when sharing is mandatory, with performance evaluation.
+- Caching **immutable configurations or factories**, then creating a dedicated mutable formatter instance when used.
+- For dates and times, preferring immutable `DateTimeFormatter`, which can be cached safely.
 
-Không nên sửa `Locale.setDefault` để “sửa thread safety” của formatter: đây là hai vấn đề hoàn toàn khác nhau.
+Do not change `Locale.setDefault` to “fix thread safety” of formatters: those are two completely different issues.
 
-## 6. Bộ nhớ đệm làm hành vi phụ thuộc thời điểm rõ hơn
+## 6. Caching Makes Time-Dependent Behavior More Pronounced
 
-Trong ứng dụng Java, có thể tồn tại nhiều cache khác nhau:
+In a Java application, several different caches may exist:
 
-| Tầng | Ví dụ | Điều cần lưu ý |
+| Layer | Example | What to watch out for |
 | --- | --- | --- |
-| **Cache do ứng dụng tạo** | `static Map<Locale, DateTimeFormatter>` | Key, thời điểm tạo, chính sách vô hiệu hóa do ứng dụng sở hữu |
-| **Cache thư viện/framework** | Cache formatter, message catalog, template đã biên dịch | Phụ thuộc tài liệu và cấu hình thư viện |
-| **Cache trong dịch vụ JDK** | Dữ liệu/pattern/locale provider mà JDK tái sử dụng | Không có hợp đồng chung rằng đổi default sẽ xóa mọi cache |
-| **Cache tài nguyên `ResourceBundle`** | Bundle theo base name, locale, class loader/module | Có API cache/clear riêng, khác cache formatter |
-| **Cache kết quả đã định dạng** | Chuỗi tiền/ngày gắn với bản ghi | Key phải phản ánh locale và các tham số định dạng |
+| **Application-created cache** | `static Map<Locale, DateTimeFormatter>` | Key, creation time, and invalidation policy are owned by the application |
+| **Library/framework cache** | Formatter cache, message catalog, compiled templates | Depends on library documentation and configuration |
+| **JDK internal service cache** | Locale data/patterns/providers reused by the JDK | No general contract that changing defaults clears all caches |
+| **`ResourceBundle` resource cache** | Bundles by base name, locale, class loader/module | Has its own cache/clear API, distinct from formatter caches |
+| **Formatted-result cache** | Currency/date strings attached to records | Keys must reflect the locale and formatting parameters |
 
-Cần tách **hai câu hỏi**:
+Separate **two questions**:
 
-1. Cache đang lưu **formatter** hay **chuỗi kết quả**?
-2. Cache key đã phản ánh tất cả thông tin khiến đầu ra thay đổi chưa?
+1. Is the cache storing a **formatter** or a **result string**?
+2. Does the cache key already reflect every piece of information that can change the output?
 
-Ví dụ một `Map<String, String>` cache HTML của giao diện nếu key chỉ là mã sản phẩm sẽ có thể phục vụ phiên bản tiếng Việt cho người dùng tiếng Anh. Cache key có thể cần `productId + effectiveLocale + currency + zone + version` tùy nội dung thực tế. Nếu format chỉ là số thuần túy thì `ZoneId` không cần thiết; chọn đúng những chiều dữ liệu có ảnh hưởng, tránh khóa thừa.
+For example, a `Map<String, String>` caching UI HTML keyed only by product ID could serve a Vietnamese version to an English user. The cache key may need `productId + effectiveLocale + currency + zone + version` depending on the actual content. If only plain numbers are formatted, `ZoneId` is unnecessary; choose exactly the dimensions that affect output and avoid redundant keys.
 
-### Cache formatter theo locale
+### Caching Formatters by Locale
 
-Sai về mặt thiết kế:
+Flawed by design:
 
 ~~~java
-// Ví dụ chống chỉ định trong dịch vụ nhiều người dùng.
+// Anti-pattern example in a multi-user service.
 static final NumberFormat SHARED =
         NumberFormat.getNumberInstance();
 ~~~
 
-Vấn đề gồm cả **snapshot** của default khi class được khởi tạo lẫn **mutable / không thread-safe** khi nhiều request gọi cùng một `SHARED`. Khi default đổi, `SHARED` không trở thành formatter mới theo locale khác.
+The problems include both taking a **snapshot** of the default when the class is initialized and being **mutable / not thread-safe** when multiple requests invoke the same `SHARED` instance. When the default changes, `SHARED` does not become a new formatter for another locale.
 
-Cũng dễ sai:
+Also easy to get wrong:
 
 ~~~java
-// Cache chỉ có một phần tử, nhưng đầu ra phụ thuộc locale.
+// Cache has only one entry, yet output depends on locale.
 static DateTimeFormatter cached =
         DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG);
 ~~~
 
-Đối tượng `cached` là immutable và thread-safe, nhưng nếu dùng nó cho người dùng từ nhiều locale mà không thay locale, tất cả sẽ nhìn thấy định dạng theo locale được bắt tại thời điểm khởi tạo. **Thread-safe không có nghĩa là đúng ngữ cảnh người dùng.**
+The `cached` object is immutable and thread-safe, but if used for users from multiple locales without switching the locale, everyone sees the format captured at initialization time. **Thread-safe does not mean user-context-correct.**
 
-Thiết kế tốt hơn: cache các formatter **immutable** theo locale được chọn tường minh; đồng thời đưa các tùy chọn ảnh hưởng khác vào key nếu cần.
+Better design: cache **immutable** formatters keyed by explicitly selected locales; also include other affecting options in the key if needed.
 
-## 7. Ví dụ runnable: cache `DateTimeFormatter` đúng theo locale
+## 7. Runnable Example: Properly Caching `DateTimeFormatter` by Locale
 
-Tạo tệp **`LocaleAwareFormatterCache.java`**:
+Create the file **`LocaleAwareFormatterCache.java`**:
 
 ~~~java
 import java.time.LocalDate;
@@ -274,28 +274,28 @@ javac LocaleAwareFormatterCache.java
 java LocaleAwareFormatterCache
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 true
 1
 ~~~
 
-Giải thích:
+Explanation:
 
-- `computeIfAbsent` chỉ tạo formatter mới cho locale chưa có trong map; key được đưa vào `withLocale(requested)`.
-- Cả hai lần đều dùng `Locale.US`, do đó kết quả của cùng ngày không đổi chỉ vì default `FORMAT` của JVM chuyển sang Đức.
-- Cache có đúng một entry `Locale.US`. Vì formatter là immutable, có thể chia sẻ instance đó giữa các thread.
+- `computeIfAbsent` creates a new formatter only for locales not yet in the map; the key is passed into `withLocale(requested)`.
+- Both calls use `Locale.US`, so the result for the same date does not change merely because the JVM's `FORMAT` default switched to Germany.
+- The cache has exactly one entry for `Locale.US`. Because the formatter is immutable, that instance can be shared across threads.
 
-**Giới hạn ví dụ:** Trong hệ thống thật, nếu cache theo locale do người dùng tự gửi không giới hạn, có thể cần kiểm tra locale có được ứng dụng hỗ trợ và đặt giới hạn kích thước cache. Nếu tạo formatter khác nhau theo `FormatStyle`, `ZoneId`, `Chronology`, cấu hình pattern hay cách đánh số, một key chỉ có `Locale` chưa đủ cho mọi nhu cầu.
+**Example limitations:** In a real system, if caching unboundedly by user-supplied locales, you may need to validate whether the locale is supported by the application and bound the cache size. If formatters vary by `FormatStyle`, `ZoneId`, `Chronology`, pattern configuration, or numbering system, a key with only `Locale` is insufficient for all needs.
 
-Không cần cache formatter chỉ để tránh viết một dòng `withLocale`. Trước khi thêm cache, đo chi phí thực tế; một cache vô hạn và sai key có thể gây nhiều lỗi hơn phần hiệu năng tiết kiệm được.
+Do not cache formatters just to avoid writing a single `withLocale` line. Before adding a cache, measure the actual cost; an unbounded cache with an incomplete key can cause more bugs than the performance it saves.
 
-## 8. `ResourceBundle` có bộ nhớ đệm riêng
+## 8. `ResourceBundle` Has Its Own Cache
 
-`ResourceBundle` là cơ chế lấy thông điệp được địa phương hóa, **không phải formatter số hoặc ngày**. Nó có bộ nhớ đệm của riêng mình.
+`ResourceBundle` is a mechanism for retrieving localized messages, **not a number or date formatter**. It has its own cache.
 
-Giả sử có các tệp trên classpath:
+Suppose the classpath contains:
 
 ~~~text
 Messages.properties
@@ -303,32 +303,32 @@ Messages_en.properties
 Messages_vi.properties
 ~~~
 
-Với code:
+With code:
 
 ~~~java
 ResourceBundle messages = ResourceBundle.getBundle("Messages");
 ~~~
 
-Lời gọi **không có tham số locale** chọn locale mặc định tại thời điểm thực hiện lời gọi (theo quy tắc `ResourceBundle`). Đối tượng `messages` đã được giữ lại không tự chuyển sang bundle ngôn ngữ mới chỉ vì default sau đó thay đổi.
+The call **without a locale argument** selects the default locale at the moment the call is made (per `ResourceBundle` rules). A retained `messages` object does not automatically switch to a new language bundle just because the default changes afterward.
 
-Trái lại:
+Conversely:
 
 ~~~java
 ResourceBundle messages =
         ResourceBundle.getBundle("Messages", requestedLocale);
 ~~~
 
-Đoạn mã thứ hai **truyền locale rõ ràng** (biến `requestedLocale` phải được khai báo ở nơi sử dụng), nên giảm phụ thuộc vào default lúc gọi. Tuy nhiên `ResourceBundle` có cơ chế lựa chọn ứng viên và fallback riêng; nếu locale yêu cầu không có bundle đủ phù hợp, lựa chọn fallback có thể bao gồm locale mặc định JVM hoặc bundle gốc tùy trường hợp. Muốn bảo đảm chính sách sản phẩm, hãy kiểm thử chuỗi fallback và tài nguyên thực tế.
+The second snippet **passes the locale explicitly** (the variable `requestedLocale` must be declared where used), reducing dependence on the default at call time. However, `ResourceBundle` has its own candidate selection and fallback mechanism; if the requested locale lacks a sufficiently matching bundle, fallback options may include the JVM default locale or the root bundle depending on the case. To guarantee product policy, test the fallback chain and actual resources.
 
-### Cập nhật tệp dịch có làm cache tự thay đổi?
+### Does updating translation files automatically update the cache?
 
-Không nhất thiết. Với cơ chế mặc định, `ResourceBundle` có thể giữ bundle trong cache. Java hỗ trợ `ResourceBundle.clearCache()` và `ResourceBundle.clearCache(ClassLoader)`, nhưng việc gọi các hàm này chỉ tác động đến cache của `ResourceBundle` theo hợp đồng API: nó **không** xóa mọi cache trong framework hay những biến ứng dụng đang giữ tham chiếu đến bundle cũ.
+Not necessarily. Under the default mechanism, `ResourceBundle` may keep bundles cached. Java provides `ResourceBundle.clearCache()` and `ResourceBundle.clearCache(ClassLoader)`, but calling these methods only affects `ResourceBundle`'s cache per the API contract: it **does not** clear all framework caches or application variables still holding references to old bundles.
 
-Nếu cần reload động, có thể dùng `ResourceBundle.Control` (trong những ngữ cảnh API hỗ trợ), thiết kế TTL/reload rõ ràng, hoặc cơ chế catalog của framework đang dùng. Lựa chọn này phải tương thích class loader/module và cách triển khai tài nguyên thực tế. **Đổi default locale không phải giải pháp tự động reload bản dịch.**
+If dynamic reloading is needed, you can use `ResourceBundle.Control` (in API contexts that support it), design an explicit TTL/reload policy, or use your framework's catalog mechanism. That choice must be compatible with class loaders/modules and the actual resource deployment setup. **Changing the default locale is not a solution for automatically reloading translations.**
 
-### Ví dụ kiểm chứng lựa chọn bundle theo thời điểm gọi
+### Example Verifying Bundle Selection at Call Time
 
-Giả sử cùng thư mục có hai tệp UTF-8:
+Suppose the same directory contains two UTF-8 files:
 
 **`Messages_en.properties`:**
 
@@ -342,7 +342,7 @@ greeting=Hello
 greeting=Xin chào
 ~~~
 
-Tệp **`BundleCreationTimeDemo.java`**:
+File **`BundleCreationTimeDemo.java`**:
 
 ~~~java
 import java.util.Locale;
@@ -376,7 +376,7 @@ javac BundleCreationTimeDemo.java
 java -cp . BundleCreationTimeDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hello
@@ -384,17 +384,17 @@ Xin chào
 Hello
 ~~~
 
-Khi ngôn ngữ mặc định thay đổi, lời gọi `getBundle` thứ hai có thể lấy một bundle khác, dù JDK vẫn sử dụng cache để tối ưu. Tham chiếu `oldBundle` trong chương trình không bị thay thế. Khả năng reload của bundle và khả năng thay lựa chọn theo default là **hai hành vi khác nhau**.
+When the default language changes, the second `getBundle` call can retrieve a different bundle, even though the JDK still uses caching for optimization. The `oldBundle` reference in the program is not replaced. Bundle reloading capability and selection changes following the default are **two different behaviors**.
 
-Trong môi trường nhiều người dùng, nên truyền locale tường minh vào `getBundle`, không xoay default toàn JVM ở mỗi request.
+In a multi-user environment, pass an explicit locale to `getBundle` rather than rotating the JVM-wide default on each request.
 
-## 9. Múi giờ mặc định: một nguồn phụ thuộc thời điểm khác
+## 9. Default Time Zone: Another Source of Time-Dependent Behavior
 
-Với ngày giờ, **locale** quyết định văn phong/mẫu địa phương hóa, còn **time zone** quyết định cách diễn giải thời điểm trên trục thời gian thành giờ địa phương. Đổi default locale không làm thay đổi thời gian thực tế của `Instant`, và đổi default time zone không phải thao tác chọn ngôn ngữ.
+With dates and times, **locale** governs localization style/patterns, whereas **time zone** governs how an instant on the timeline is interpreted into local time. Changing the default locale does not change the actual instant of an `Instant`, and changing the default time zone is not a language-selection operation.
 
-Các API date/time cũ như `DateFormat`/`SimpleDateFormat` có thể lấy múi giờ mặc định **khi khởi tạo**. Một formatter được lưu lâu có thể tiếp tục giữ múi giờ đã cấu hình, dù mặc định của JVM thay đổi sau đó. Vì vậy cache key của một formatter hoặc kết quả hiển thị thời điểm có thể cần `ZoneId` ngoài `Locale`.
+Legacy date/time APIs like `DateFormat`/`SimpleDateFormat` can capture the default time zone **at initialization**. A long-lived formatter may continue holding its configured time zone even if the JVM default changes later. Thus, the cache key for a formatter or formatted instant output may need `ZoneId` in addition to `Locale`.
 
-Với Java Time, nên chuyển `Instant` hoặc `ZonedDateTime` bằng zone được người dùng/ứng dụng chọn và dùng `DateTimeFormatter` có locale tường minh:
+With Java Time, convert `Instant` or `ZonedDateTime` using the zone chosen by the user/application and use a `DateTimeFormatter` with an explicit locale:
 
 ~~~java
 import java.time.Instant;
@@ -426,7 +426,7 @@ javac ExplicitContextDemo.java
 java ExplicitContextDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 en-US
@@ -434,117 +434,117 @@ Asia/Tokyo
 9
 ~~~
 
-Mã tách rõ ba thành phần: **thời điểm** `Instant`, **vùng giờ** `ZoneId` và **ngữ cảnh hiển thị** `Locale`. `formatter` trong ví dụ có cấu hình zone và locale tường minh; việc gọi `format(instant)` sau đó sẽ theo cấu hình ấy chứ không cần đọc default JVM mới.
+The code clearly separates three components: the **instant** `Instant`, the **time zone** `ZoneId`, and the **display context** `Locale`. `formatter` in the example has explicit zone and locale settings; subsequent calls to `format(instant)` follow that configuration rather than reading any new JVM default.
 
-## 10. Khi nào cache phải được vô hiệu hóa?
+## 10. When Must a Cache Be Invalidated?
 
-Một cache chỉ đúng khi **đầu vào có thể thay đổi kết quả** được phản ánh trong key và dữ liệu cache vẫn hợp lệ.
+A cache is only correct when **inputs that can change the result** are reflected in the key and cached data remains valid.
 
-**Trường hợp A — Chỉ đổi default JVM, formatter cache theo locale tường minh.** Nếu lời gọi và key đã chứa `Locale.US`, không cần xóa cache chỉ vì default JVM đổi từ `en-US` sang `de-DE`. Đó chính là lợi ích của loại bỏ phụ thuộc ngầm.
+**Case A — Only the JVM default changed; formatters are cached by explicit locale.** If the call and key already contain `Locale.US`, there is no need to clear the cache just because the JVM default switched from `en-US` to `de-DE`. That is precisely the benefit of eliminating implicit dependencies.
 
-**Trường hợp B — Cache formatter tạo bằng default mà key không có locale.** Đây là thiết kế dễ sai: đổi default xong vẫn nhận formatter cũ. Sửa **cách tạo và đánh key**, không dựa vào thao tác clear cache rời rạc. Sau khi sửa thiết kế, xóa/rebuild những entry cũ không phản ánh locale.
+**Case B — Formatters created via default are cached without a locale in the key.** This is an error-prone design: after changing the default, you still receive the old formatter. Fix **how formatters are created and keyed**, rather than relying on ad-hoc cache clearing. After fixing the design, remove/rebuild old entries that did not reflect the locale.
 
-**Trường hợp C — Người dùng đổi locale đã lưu.** Cache kết quả render/HTML/message theo người dùng phải dùng locale hiệu lực mới trong key hoặc bị vô hiệu hóa phù hợp. Nếu không, có thể thấy kết quả cũ mặc dù formatter mới được tạo đúng.
+**Case C — The user changes their saved locale.** A cache of rendered/HTML/message results per user must use the new effective locale in the key or be invalidated appropriately. Otherwise, stale results may appear even when new formatters are created properly.
 
-**Trường hợp D — Bản dịch hoặc quy tắc ứng dụng được cập nhật.** Cache thông điệp/kết quả cần version hoặc chính sách reload rõ ràng. `ResourceBundle.clearCache` chỉ xử lý phần cache do `ResourceBundle` quản lý.
+**Case D — Translations or application rules are updated.** Message/result caches need versioning or an explicit reload policy. `ResourceBundle.clearCache` only handles the cache managed by `ResourceBundle`.
 
-**Trường hợp E — Nâng JDK, thư viện CLDR/provider, dữ liệu tzdb hoặc cấu hình định dạng.** Chất lượng/hình thức đầu ra có thể đổi. Cần kiểm thử hồi quy và xây lại cache dữ liệu đã định dạng nếu sản phẩm đòi hỏi phản ánh quy tắc mới. Nhiều cache nội bộ runtime không có API “xóa tất cả” công khai; thông thường triển khai phiên bản runtime mới là một ranh giới khởi tạo mới.
+**Case E — Upgrading the JDK, CLDR/provider libraries, tzdb data, or formatting configuration.** Output quality/appearance can change. Run regression tests and rebuild cached formatted data if the product requires reflecting the new rules. Many internal runtime caches have no public “clear all” API; typically deploying the new runtime version serves as a fresh initialization boundary.
 
-Nếu cache lưu kết quả định dạng, một key có thể gồm `value`, `locale`, `formatOptions`, `currency`, `zone`, `catalogVersion` khi các yếu tố ấy thực sự tác động lên kết quả. Nếu cache lưu `DateTimeFormatter`, key thường gồm locale, style/pattern và các cấu hình của formatter. **Không có một cache key chung phù hợp mọi ứng dụng.**
+If a cache stores formatted results, a key might include `value`, `locale`, `formatOptions`, `currency`, `zone`, and `catalogVersion` when those factors actually affect the result. If a cache stores `DateTimeFormatter`, the key usually includes locale, style/pattern, and formatter configurations. **There is no single universal cache key suitable for every application.**
 
-## 11. Đồng thời, tính nhất quán và chống rò rỉ ngữ cảnh
+## 11. Concurrency, Consistency, and Preventing Context Leaks
 
-Hãy xét một server có hai HTTP request chạy song song:
-
-~~~text
-Request A (vi-VN): setDefault(vi-VN) --- tạo formatter --- format
-Request B (en-US):       setDefault(en-US) --- tạo formatter --- format
-~~~
-
-Thời điểm xen kẽ của hai request không kiểm soát được. Request A có thể tạo formatter **sau khi** B đã đổi default thành `en-US`. Vấn đề xảy ra ngay cả khi không dùng cache. Thêm cache không sửa được race này và có thể làm một lỗi nhất thời tồn tại lâu hơn.
-
-Lựa chọn an toàn hơn:
+Consider a server with two HTTP requests running in parallel:
 
 ~~~text
-Request A (vi-VN) → Locale A → formatter/cache key vi-VN → kết quả A
-Request B (en-US) → Locale B → formatter/cache key en-US → kết quả B
+Request A (vi-VN): setDefault(vi-VN) --- create formatter --- format
+Request B (en-US):       setDefault(en-US) --- create formatter --- format
 ~~~
 
-- Locale là dữ liệu của request hoặc ngữ cảnh người dùng, được truyền tường minh tới lớp định dạng.
-- Formatter immutable có thể dùng chung theo key phù hợp.
-- Formatter mutable cần instance riêng hoặc cơ chế đồng bộ rõ ràng.
-- Không gọi `Locale.setDefault` trong đường xử lý request.
-- Nếu framework có request-scoped locale context, cần hiểu phạm vi và cơ chế truyền ngữ cảnh qua tác vụ async/thread pool; không tự giả định biến theo thread luôn được kế thừa đúng.
+The interleaving timing of the two requests cannot be controlled. Request A may create a formatter **after** B has changed the default to `en-US`. This problem occurs even without caching. Adding a cache does not fix this race and can make a transient bug persist longer.
 
-**Ghi nhớ thêm:** một cache `ConcurrentHashMap` chỉ bảo đảm thao tác trên map an toàn giữa các thread; nó **không biến giá trị `NumberFormat` mutable bên trong thành thread-safe**.
+Safer alternative:
 
-## 12. Kiểm thử đúng vấn đề phụ thuộc thời điểm
+~~~text
+Request A (vi-VN) → Locale A → vi-VN formatter/cache key → result A
+Request B (en-US) → Locale B → en-US formatter/cache key → result B
+~~~
 
-Để kiểm tra hệ thống không phụ thuộc ngầm vào default JVM, có thể thiết kế các bài kiểm thử:
+- Locale is request data or user context, passed explicitly to the formatting layer.
+- Immutable formatters can be shared by an appropriate key.
+- Mutable formatters need dedicated instances or explicit synchronization.
+- Never call `Locale.setDefault` on the request-handling path.
+- If the framework has a request-scoped locale context, understand its scope and how context propagates across async tasks/thread pools; do not assume thread-bound variables are always inherited properly.
 
-| Kiểm thử | Điều cần quan sát |
+**Additional reminder:** a `ConcurrentHashMap` cache only guarantees that operations on the map itself are thread-safe; it **does not make mutable `NumberFormat` values inside it thread-safe**.
+
+## 12. Properly Testing Time-Dependent Behavior
+
+To verify that a system does not implicitly depend on the JVM default, you can design these tests:
+
+| Test | What to observe |
 | --- | --- |
-| Tạo formatter dưới default A, đổi default B, dùng lại formatter | Formatter cũ giữ cách định dạng/config đã tạo |
-| Tạo formatter mới sau khi đổi default | API không truyền locale có thể chọn B |
-| Truyền locale tường minh A, đổi default nhiều lần | Kết quả của cùng giá trị/formatter A vẫn ổn định |
-| Cache theo `Locale`, truy cập đồng thời | Không trộn locale giữa các request |
-| Cache formatter mutable dùng chung | Kiểm tra race; tốt nhất loại bỏ thiết kế này |
-| Người dùng đổi ngôn ngữ | Cache nội dung trả về ngôn ngữ mới |
-| Reload bundle/cập nhật message | Chính sách cache trả bản dịch đúng phiên bản |
-| Đổi time zone hoặc cập nhật tzdb | Kết quả giờ địa phương phù hợp chính sách |
-| Nâng JDK/provider | So sánh output định dạng quan trọng, đặc biệt ký tự Unicode và mẫu ngày |
+| Create formatter under default A, switch to default B, reuse formatter | The old formatter retains the formatting/config it was created with |
+| Create a new formatter after changing default | APIs without a locale parameter may pick B |
+| Pass explicit locale A, change default repeatedly | Results for the same value/formatter A remain stable |
+| Cache by `Locale`, concurrent access | No locale mixing across requests |
+| Shared mutable formatter cache | Check for races; best to eliminate this design |
+| User changes language | Content cache returns the new language |
+| Reload bundle/update messages | Cache policy returns the right translation version |
+| Change time zone or update tzdb | Local time results align with policy |
+| Upgrade JDK/provider | Compare critical formatting output, especially Unicode characters and date patterns |
 
-### Để kiểm thử tái lập và không gây nhiễm giữa các bài
+### Keeping Tests Reproducible Without Cross-Test Contamination
 
-Trong chương trình Java chạy độc lập, có thể lưu default trước thử nghiệm và khôi phục trong `finally`. Tuy nhiên nếu test suite chạy **song song trong cùng JVM**, việc đổi default vẫn có thể ảnh hưởng các test khác trước khi `finally` được thực thi. Hãy cân nhắc chạy những test cần đổi default trong process JVM riêng hoặc tuần tự có cô lập, và ưu tiên test logic bằng cách truyền locale tường minh.
+In a standalone Java program, you can save the default before an experiment and restore it in `finally`. However, if a test suite runs **in parallel within the same JVM**, changing the default can still affect other tests before `finally` executes. Consider running tests that must mutate defaults in a separate JVM process or sequentially with isolation, and prefer testing logic by passing explicit locales.
 
-Nếu cần assert chuỗi localized **chính xác**, phải xác định phiên bản JDK, locale provider và dữ liệu phụ thuộc. Đừng chỉ so sánh các dấu cách trông giống nhau: ký tự dấu cách thường (`U+0020`), non-breaking space (`U+00A0`) và narrow no-break space (`U+202F`) khác nhau. Trong kiểm thử nghiệp vụ, so sánh trường dữ liệu/locale được chọn có thể đáng tin hơn so với snapshot từng ký tự phụ thuộc CLDR.
+If you need to assert **exact** localized strings, pin the JDK version, locale provider, and dependent data. Do not casually compare spaces that look alike: regular space (`U+0020`), non-breaking space (`U+00A0`), and narrow no-break space (`U+202F`) are different characters. In business logic tests, asserting data fields or the selected locale can be more reliable than character-by-character CLDR-dependent snapshots.
 
-## 13. Những hiểu nhầm thường gặp
+## 13. Common Misconceptions
 
-1. **“Đổi `Locale.setDefault` là mọi formatter đang sống sẽ đổi ngôn ngữ.”** Sai: nhiều formatter giữ thiết lập từ lúc tạo.
-2. **“Mỗi lần `format` đều xem lại default locale.”** Không có bảo đảm chung như vậy; thông thường formatter đã giữ lựa chọn locale/quy tắc.
-3. **“Một `static final NumberFormat` sẽ tự cập nhật theo người dùng.”** Sai; lại còn mutable và không thread-safe.
-4. **“`DateTimeFormatter` immutable nghĩa là luôn đúng locale.”** Sai; nó có thể an toàn khi chia sẻ mà vẫn mang locale sai.
-5. **“Đổi default sẽ xóa cache JDK, framework và `ResourceBundle`.”** Không có hành vi xóa cache tổng quát như vậy.
-6. **“`ResourceBundle.clearCache()` làm thay đổi các đối tượng bundle cũ đang được giữ.”** Sai: xóa entry cache không thay thế tham chiếu mà ứng dụng đã lưu.
-7. **“Dùng `ConcurrentHashMap<Locale, NumberFormat>` thì formatter thread-safe.”** Sai: map an toàn không làm giá trị mutable trở thành an toàn.
-8. **“Locale và múi giờ là một.”** Sai: cả hai có thể ảnh hưởng hiển thị, nhưng quyết định những phần khác nhau.
-9. **“Cache theo một locale là đủ cho mọi định dạng.”** Có thể thiếu style, pattern, zone, tiền tệ, chronology và các tùy chọn khác.
-10. **“Thêm `synchronized` quanh `Locale.setDefault` trong từng request giải quyết hết vấn đề.”** Không giải quyết được các thư viện/luồng khác đọc default ngoài cùng khóa, và vẫn để sót ngữ cảnh ngầm toàn JVM.
+1. **“Calling `Locale.setDefault` makes all live formatters switch language.”** False: many formatters retain settings from creation time.
+2. **“Every `format` call re-checks the default locale.”** There is no general guarantee of that; normally the formatter already holds its locale selection/rules.
+3. **“A `static final NumberFormat` will automatically update per user.”** False; it is also mutable and not thread-safe.
+4. **“An immutable `DateTimeFormatter` always has the right locale.”** False; it can be thread-safe to share while still carrying the wrong locale.
+5. **“Changing the default clears JDK, framework, and `ResourceBundle` caches.”** There is no such general cache-clearing behavior.
+6. **“`ResourceBundle.clearCache()` alters old bundle objects already held.”** False: clearing cache entries does not replace references the application already stored.
+7. **“Using `ConcurrentHashMap<Locale, NumberFormat>` makes the formatter thread-safe.”** False: a thread-safe map does not make its mutable values thread-safe.
+8. **“Locale and time zone are the same thing.”** False: both can affect display, yet they govern different parts.
+9. **“Caching by a single locale is enough for every format.”** It may miss style, pattern, zone, currency, chronology, and other options.
+10. **“Wrapping `Locale.setDefault` in `synchronized` per request solves everything.”** It does not protect against other libraries/threads reading the default outside that lock, and still leaves a JVM-wide implicit context.
 
-## 14. Cách áp dụng trong ứng dụng Java
+## 14. Applying This in a Java Application
 
-Một kiến trúc thực tế thường đi theo thứ tự:
+A practical architecture usually follows this order:
 
-1. **Nhận và xác thực locale của người dùng** bằng danh sách locale sản phẩm hỗ trợ; có fallback công khai.
-2. **Lựa chọn locale hiệu lực** ngay tại ranh giới request/use case.
-3. **Truyền `Locale` tường minh** vào các formatter và hệ thống thông điệp; truyền múi giờ, tiền tệ và các tùy chọn độc lập khi cần.
-4. **Cache `DateTimeFormatter` immutable theo key đủ thông tin** nếu có lợi ích rõ; với `NumberFormat` mutable, tạo instance riêng cho phạm vi sử dụng.
-5. **Không đổi locale mặc định toàn JVM trong đường xử lý đa người dùng.**
-6. **Quản lý cache nội dung và bundle bằng chính sách riêng**, có version/reload khi cập nhật bản dịch hoặc quy tắc.
-7. **Kiểm thử việc đổi ngữ cảnh và các request đồng thời**, không chỉ kiểm thử trên một default cố định lúc JVM khởi động.
+1. **Receive and validate the user's locale** against the product's supported locale list, with a documented fallback.
+2. **Select the effective locale** right at the request/use-case boundary.
+3. **Pass an explicit `Locale`** to formatters and message systems; pass time zone, currency, and independent options as needed.
+4. **Cache immutable `DateTimeFormatter` instances with complete keys** where clearly beneficial; for mutable `NumberFormat`, create per-scope instances.
+5. **Do not mutate the JVM-wide default locale on multi-user processing paths.**
+6. **Manage content and bundle caches with dedicated policies**, using versioning/reloading when translations or rules are updated.
+7. **Test context switching and concurrent requests**, rather than testing only against one fixed JVM startup default.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-**1.** Đã tạo `NumberFormat.getNumberInstance()` khi default là `en-US`. Sau đó đổi default `de-DE`. Lời gọi `format` trên đối tượng cũ có tự chuyển sang `de-DE` không?
+**1.** `NumberFormat.getNumberInstance()` was created when the default was `en-US`. Later the default changed to `de-DE`. Will calling `format` on the old object automatically switch to `de-DE`?
 
-**Đáp án:** Không; formatter cũ giữ cấu hình tạo trước. Muốn định dạng Đức, tạo formatter mới đúng locale hoặc chủ động cấu hình formatter phù hợp.
+**Answer:** No; the old formatter keeps its creation-time configuration. To format in German, create a new formatter with the right locale or explicitly configure an appropriate formatter.
 
-**2.** Một `static final DateTimeFormatter` an toàn cho nhiều thread có phải là lựa chọn tốt cho mọi locale?
+**2.** Is a thread-safe `static final DateTimeFormatter` a good choice for every locale?
 
-**Đáp án:** Chưa đủ; nó an toàn về truy cập nhưng có thể mang duy nhất locale đã được chọn khi tạo. Dùng `withLocale` hoặc cache theo locale cụ thể.
+**Answer:** Not enough; it is safe for concurrent access, but can carry only the single locale chosen at creation time. Use `withLocale` or cache by specific locale.
 
-**3.** Tại sao `ResourceBundle.clearCache()` không bảo đảm giao diện lập tức đổi toàn bộ bản dịch?
+**3.** Why does `ResourceBundle.clearCache()` not guarantee that the UI immediately switches all translations?
 
-**Đáp án:** Ứng dụng có thể vẫn giữ bundle cũ, kết quả HTML đã cache hoặc cache của framework khác. Phải quản lý từng tầng.
+**Answer:** The application may still hold old bundle references, cached HTML output, or another framework's cache. Each layer must be managed.
 
-**4.** Nếu trong một JVM có người dùng `vi-VN` và `en-US` đồng thời, vì sao không dùng `Locale.setDefault` cho mỗi request?
+**4.** If `vi-VN` and `en-US` users exist concurrently in one JVM, why not call `Locale.setDefault` per request?
 
-**Đáp án:** Default là trạng thái chia sẻ; hai luồng có thể xen kẽ khi đọc/ghi và tạo formatter sai locale. Truyền locale của từng request là cách kiểm soát đúng.
+**Answer:** The default is shared state; two threads can interleave reads/writes and create formatters with the wrong locale. Passing each request's locale is the proper control.
 
-**5.** Khi cache chuỗi ngày giờ đã hiển thị, ngoài locale còn có yếu tố nào có thể ảnh hưởng?
+**5.** When caching formatted date-time strings, besides locale, what other factors can affect the result?
 
-**Đáp án:** Giá trị thời gian, zone, style/pattern, chronology và phiên bản dữ liệu định dạng, tùy trường hợp sử dụng.
+**Answer:** The timestamp value, zone, style/pattern, chronology, and formatting data version, depending on the use case.
 
-**Ghi nhớ:** **Thời điểm tạo formatter quyết định phần quan trọng của cấu hình nó mang theo; cache có thể kéo dài tuổi thọ cấu hình đó.** Locale mặc định là trạng thái JVM, nên hệ thống nhiều người dùng cần chọn locale tường minh, key cache đủ ngữ cảnh và kiểm soát vòng đời formatter theo đặc tính immutable/mutable.
+**Key takeaway:** **Formatter creation time determines a crucial part of the configuration it carries; caching can extend the lifetime of that configuration.** The default locale is JVM state, so multi-user systems need explicit locale selection, adequately keyed caches, and formatter lifecycle management suited to immutable/mutable characteristics.

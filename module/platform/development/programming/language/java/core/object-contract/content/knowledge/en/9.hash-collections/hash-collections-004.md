@@ -1,64 +1,64 @@
-# Dùng đối tượng mới nhưng bằng nhau để tìm khóa trong HashMap
+# Using a New Yet Equal Object to Look Up a Key in HashMap
 
-## 1. Một khóa mới có thể tìm được mapping đã lưu
+## 1. A New Key Can Find a Stored Mapping
 
-Khi lưu dữ liệu trong `HashMap<K, V>`, không nhất thiết phải giữ lại chính instance khóa đã truyền vào `put()`. Ta có thể tạo một đối tượng mới có cùng **giá trị khóa theo nghiệp vụ** để gọi `get()` hoặc `containsKey()`.
+When storing data in a `HashMap<K, V>`, you do not necessarily have to keep the exact key instance passed into `put()`. You can create a new object with the same **business key value** to call `get()` or `containsKey()`.
 
-Ví dụ: tài khoản được định danh bằng cặp `(tenantId, userId)`. Một bản đồ lưu tên người dùng theo khóa `AccountKey("team-a", "u-42")`. Sau đó, một yêu cầu khác tạo **instance mới** với cùng hai trường và lấy lại giá trị cũ. Điều này hoạt động nếu `AccountKey` xác định chính xác hai instance thế nào được coi là bằng nhau, đồng thời cung cấp `hashCode()` nhất quán với `equals()`.
+For example: an account is identified by the pair `(tenantId, userId)`. A map stores user names keyed by `AccountKey("team-a", "u-42")`. Later, another request creates a **new instance** with the same two fields and retrieves the old value. This works if `AccountKey` accurately defines when two instances are considered equal, while also providing a `hashCode()` consistent with `equals()`.
 
-Phân biệt ngay từ đầu:
+Distinguish right from the start:
 
-- `first == second` kiểm tra hai biến có trỏ tới **cùng một instance** hay không. Hai lần gọi `new` riêng biệt thông thường cho kết quả `false`.
-- `first.equals(second)` kiểm tra bình đẳng logic do kiểu đối tượng định nghĩa. Hai instance khác nhau có thể trả về `true`.
-- `first.hashCode() == second.hashCode()` là điều **bắt buộc** nếu `first.equals(second)` đúng, nhưng bản thân hash bằng nhau không chứng minh hai đối tượng bằng nhau.
+- `first == second` checks whether two variables point to **the same instance**. Two separate `new` calls normally return `false`.
+- `first.equals(second)` checks logical equality defined by the object's type. Two distinct instances can return `true`.
+- `first.hashCode() == second.hashCode()` is **mandatory** if `first.equals(second)` is true, though matching hashes alone do not prove two objects are equal.
 
-`Object.equals()` mặc định so đồng nhất tham chiếu. Vì vậy, tự tạo một lớp khóa rồi chỉ giữ các trường giống nhau **chưa đủ** để tìm lại bằng instance mới. `String` và các kiểu giá trị khác đã định nghĩa hợp đồng phù hợp; một lớp khóa tự viết phải chủ động thiết kế.
+The default `Object.equals()` compares reference identity. Therefore, creating a custom key class and simply keeping the same fields **is not enough** to look up with a new instance. `String` and other value types already define an appropriate contract; a custom key class must be deliberately designed.
 
-## 2. Cách HashMap dùng hash và equality
+## 2. How HashMap Uses Hashing and Equality
 
-Có thể hình dung thao tác thêm và lấy phần tử qua luồng khái niệm sau:
+You can picture adding and retrieving elements through the following conceptual flow:
 
 ```text
 put(keyA, value)
     │
-    ├─ tính keyA.hashCode()
-    ├─ xác định bucket phù hợp
-    ├─ so với các khóa ứng viên bằng equals() khi cần
-    └─ thêm mapping hoặc cập nhật mapping tương đương
+    ├─ compute keyA.hashCode()
+    ├─ determine the appropriate bucket
+    ├─ compare with candidate keys using equals() when needed
+    └─ add mapping or update equivalent mapping
 
-get(keyB)    // keyB là một object mới
+get(keyB)    // keyB is a new object
     │
-    ├─ tính keyB.hashCode()
-    ├─ tìm vùng lưu tương ứng
-    ├─ kiểm tra khóa tương đương bằng equals()
-    └─ trả giá trị hoặc null nếu không có mapping
+    ├─ compute keyB.hashCode()
+    ├─ locate corresponding storage region
+    ├─ check equivalent key using equals()
+    └─ return value or null if no mapping exists
 ```
 
-Với Java `HashMap`, một khóa đang tra cứu có thể tìm thấy mapping lưu bằng khóa khác nếu chúng tương đương theo `equals()` và có giá trị hash tương thích. Chi tiết nội bộ như trộn bit của hash, chọn bucket, cấu trúc danh sách/cây và resize phụ thuộc triển khai JDK; không nên xây logic ứng dụng dựa vào chỉ số bucket hay thứ tự duyệt `HashMap`.
+With Java `HashMap`, a lookup key can find a mapping stored under another key if they are equivalent according to `equals()` and have compatible hash values. Internal details such as hash bit mixing, bucket selection, list/tree structure, and resizing depend on the JDK implementation; you should not build application logic on bucket indices or `HashMap` iteration order.
 
-**Hai quy tắc phải đi cùng nhau:**
+**Two rules must go together:**
 
-1. **Bằng nhau kéo theo cùng hash.** Nếu `a.equals(b)` trả về `true`, `a.hashCode()` và `b.hashCode()` phải giống nhau. Nếu vi phạm, `HashMap` có thể tìm sai vùng và bỏ lỡ khóa.
-2. **Cùng hash chưa chắc bằng nhau.** Hash collision xảy ra hợp lệ: các đối tượng không bằng nhau có thể trùng hash. `HashMap` cần dùng kiểm tra equality để phân biệt chúng.
+1. **Equality implies same hash.** If `a.equals(b)` returns `true`, `a.hashCode()` and `b.hashCode()` must be identical. If violated, `HashMap` may search the wrong region and miss the key.
+2. **Same hash does not guarantee equality.** Hash collisions legitimately occur: unequal objects can share the same hash. `HashMap` needs to use equality checks to distinguish them.
 
-Khi gọi `put()` bằng một khóa mới **tương đương** với khóa đã có, bản đồ cập nhật giá trị hiện hữu thay vì tăng số lượng entry. Không cần hai tham chiếu bằng `==`.
+When calling `put()` with a new key **equivalent** to an existing key, the map updates the existing value rather than increasing the entry count. The two references do not need to satisfy `==`.
 
-## 3. Thiết kế khóa: chọn đúng các trường equality
+## 3. Key Design: Choosing the Right Equality Fields
 
-Không có quy tắc “so mọi trường” áp dụng cho mọi class. Với khóa tài khoản ở nhiều tenant, mã `userId` có thể lặp giữa các tenant, nên `(tenantId, userId)` tạo thành khóa kết hợp. Bỏ `tenantId` sẽ làm hai tài khoản thuộc hai tenant khác nhau bị coi là một. Ngược lại, nếu thêm `displayName` vào equality, việc đổi tên có thể khiến cùng tài khoản trở thành một khóa khác.
+There is no "compare all fields" rule applicable to every class. For an account key across multiple tenants, a `userId` may repeat across tenants, so `(tenantId, userId)` forms a composite key. Omitting `tenantId` would cause two accounts from two different tenants to be treated as one. Conversely, if `displayName` were added to equality, changing a name could turn the same account into a different key.
 
-Một tập trường khóa tốt nên có:
+A good set of key fields should have:
 
-- **Ý nghĩa nghiệp vụ rõ ràng:** hai đối tượng có cùng những trường đó thực sự đại diện cùng khóa.
-- **Phạm vi duy nhất đúng:** nếu ID chỉ duy nhất trong tenant, phải xét tenant; nếu ID đã duy nhất toàn hệ thống, có thể không cần thêm namespace.
-- **Độ ổn định:** những dữ liệu tham gia `equals()/hashCode()` không nên thay đổi khi object còn là key của `HashMap`.
-- **So sánh nhất quán:** kiểu thành phần có chính sách equality phù hợp; ví dụ `String.equals()` phân biệt chữ hoa thường và `BigDecimal.equals()` xét scale.
+- **Clear business meaning:** two objects with those same fields genuinely represent the same key.
+- **Proper uniqueness scope:** if the ID is only unique within a tenant, tenant must be included; if the ID is already globally unique, an extra namespace may not be needed.
+- **Stability:** data participating in `equals()/hashCode()` should not change while the object remains a key in `HashMap`.
+- **Consistent comparison:** component types have suitable equality policies; for example, `String.equals()` is case-sensitive and `BigDecimal.equals()` considers scale.
 
-Hợp đồng `equals()` gồm: phản xạ (`x.equals(x)`), đối xứng (`x.equals(y)` tương đương `y.equals(x)`), bắc cầu, nhất quán khi dữ liệu liên quan không đổi, và `x.equals(null) == false`. Hai khóa được coi là bằng nhau phải có cùng `hashCode()`. Đừng dùng timestamp thay đổi liên tục, giá trị ngẫu nhiên hoặc địa chỉ tham chiếu trong hash nếu equality dựa trên các trường giá trị.
+The `equals()` contract includes: reflexivity (`x.equals(x)`), symmetry (`x.equals(y)` equivalent to `y.equals(x)`), transitivity, consistency when relevant data does not change, and `x.equals(null) == false`. Two keys considered equal must have the same `hashCode()`. Do not use continuously changing timestamps, random values, or reference addresses in the hash if equality is based on value fields.
 
-## 4. Chương trình Java 17+ hoàn chỉnh
+## 4. Complete Java 17+ Program
 
-Đặt mã sau trong tệp `HashMapEqualKeysDemo.java`. Ta tự viết `equals()` và `hashCode()` để nhìn rõ giao ước:
+Place the following code in `HashMapEqualKeysDemo.java`. We write `equals()` and `hashCode()` manually to see the contract clearly:
 
 ```java
 import java.util.HashMap;
@@ -97,7 +97,7 @@ public class HashMapEqualKeysDemo {
         Map<AccountKey, String> accounts = new HashMap<>();
 
         AccountKey inserted = new AccountKey("team-a", "u-42");
-        accounts.put(inserted, "Trang hồ sơ");
+        accounts.put(inserted, "Profile page");
 
         AccountKey lookup = new AccountKey("team-a", "u-42");
         AccountKey otherTenant = new AccountKey("team-b", "u-42");
@@ -110,7 +110,7 @@ public class HashMapEqualKeysDemo {
         System.out.println(accounts.containsKey(otherTenant));
         System.out.println(accounts.get(otherTenant));
 
-        accounts.put(lookup, "Đã cập nhật");
+        accounts.put(lookup, "Updated");
         System.out.println(accounts.size());
         System.out.println(accounts.get(inserted));
 
@@ -120,114 +120,114 @@ public class HashMapEqualKeysDemo {
                 new AccountKey("team-b", "u-01")));
         System.out.println(accounts.get(nullValueKey));
         System.out.println(accounts.getOrDefault(
-                new AccountKey("team-c", "u-99"), "Không có"));
+                new AccountKey("team-c", "u-99"), "Not found"));
     }
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run using JDK 17 or higher:
 
 ```bash
 javac HashMapEqualKeysDemo.java
 java HashMapEqualKeysDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 false
 true
 true
 true
-Trang hồ sơ
+Profile page
 false
 null
 1
-Đã cập nhật
+Updated
 true
 null
-Không có
+Not found
 ```
 
-Từng nhóm kết quả mang ý nghĩa:
+Each group of results carries meaning:
 
-1. `inserted == lookup` là `false` vì hai lần khởi tạo tạo hai instance. Nhưng `inserted.equals(lookup)` là `true` vì hai trường khóa giống nhau; hash của chúng cũng bằng nhau.
-2. `accounts.containsKey(lookup)` là `true` và `accounts.get(lookup)` trả về `Trang hồ sơ`, mặc dù chính instance `lookup` chưa từng được truyền vào `put()`.
-3. `otherTenant` mang cùng `userId` nhưng tenant khác nên không phải khóa tương đương. `containsKey()` cho `false`; `get()` cho `null`.
-4. `accounts.put(lookup, "Đã cập nhật")` cập nhật mapping cũ. Vì hai khóa bằng nhau, `size()` vẫn là `1` và `get(inserted)` trả về `Đã cập nhật`.
-5. Một mapping thực sự có thể lưu giá trị `null`. `containsKey(new AccountKey("team-b", "u-01"))` cho `true`, còn `get(nullValueKey)` trả về `null`. Điều này không đồng nghĩa khóa vắng mặt.
-6. `getOrDefault()` với khóa `("team-c", "u-99")` chưa lưu trả về `Không có`. Nếu mapping có tồn tại và lưu `null`, `getOrDefault()` trả về `null`, không dùng default.
+1. `inserted == lookup` is `false` because two instantiations create two instances. However, `inserted.equals(lookup)` is `true` because the two key fields match; their hashes are also equal.
+2. `accounts.containsKey(lookup)` is `true` and `accounts.get(lookup)` returns `Profile page`, even though the `lookup` instance itself was never passed into `put()`.
+3. `otherTenant` carries the same `userId` but a different tenant, so it is not an equivalent key. `containsKey()` yields `false`; `get()` yields `null`.
+4. `accounts.put(lookup, "Updated")` updates the old mapping. Because the two keys are equal, `size()` remains `1` and `get(inserted)` returns `Updated`.
+5. A mapping can legitimately store a `null` value. `containsKey(new AccountKey("team-b", "u-01"))` yields `true`, while `get(nullValueKey)` returns `null`. This does not mean the key is absent.
+6. `getOrDefault()` with the unstored key `("team-c", "u-99")` returns `Not found`. If a mapping exists and stores `null`, `getOrDefault()` returns `null`, without using the default.
 
-Trong thiết kế này, `AccountKey` là `final`, hai trường khóa là `private final String`, constructor từ chối `null` hoặc chuỗi trắng, và `String` bất biến. Vì vậy sau khi tạo khóa, không có cách hợp lệ để đổi giá trị hai thành phần equality; dùng làm key của `HashMap` ổn định.
+In this design, `AccountKey` is `final`, both key fields are `private final String`, the constructor rejects `null` or blank strings, and `String` is immutable. Therefore, once a key is created, there is no valid way to change the values of the two equality components; using it as a `HashMap` key is stable.
 
-## 5. Điểm khác biệt giữa get, containsKey và getOrDefault
+## 5. Differences Between get, containsKey, and getOrDefault
 
-| Lệnh | Ý nghĩa |
+| Call | Meaning |
 | --- | --- |
-| `map.get(key)` | Lấy giá trị của khóa tương đương, hoặc `null` nếu không có mapping; cũng `null` nếu giá trị lưu là `null`. |
-| `map.containsKey(key)` | Xác nhận có mapping ứng với khóa tương đương, kể cả khi giá trị map đang lưu là `null`. |
-| `map.getOrDefault(key, fallback)` | Trả fallback nếu **không có mapping**. Mapping tới `null` vẫn trả `null`. |
-| `map.put(key, value)` | Thêm mapping mới hoặc thay thế giá trị của mapping có khóa tương đương; trả giá trị cũ hoặc `null`. |
-| `map.remove(key)` | Xóa mapping được nhận diện qua khóa tương đương; giá trị trả về có thể là `null`. |
+| `map.get(key)` | Retrieves the value of the equivalent key, or `null` if no mapping exists; also `null` if the stored value is `null`. |
+| `map.containsKey(key)` | Confirms whether a mapping exists for the equivalent key, even when the stored map value is `null`. |
+| `map.getOrDefault(key, fallback)` | Returns fallback if **no mapping exists**. A mapping to `null` still returns `null`. |
+| `map.put(key, value)` | Adds a new mapping or replaces the value of a mapping with an equivalent key; returns the old value or `null`. |
+| `map.remove(key)` | Removes the mapping identified via the equivalent key; the return value may be `null`. |
 
-`HashMap` hỗ trợ một khóa `null` và các giá trị `null`. Trong trường hợp cần phân biệt mapping có tồn tại hay không, không được chỉ dựa vào `get(key) != null`. Ngữ nghĩa này khác `ConcurrentHashMap`, vốn không cho khóa hoặc giá trị `null`.
+`HashMap` supports one `null` key and `null` values. When you need to distinguish whether a mapping exists or not, you must not rely solely on `get(key) != null`. This semantics differs from `ConcurrentHashMap`, which does not allow `null` keys or values.
 
-Ngoài `HashMap`, các triển khai `Map` có thể chọn tiêu chí tương đương khóa khác: `IdentityHashMap` cố ý so theo đồng nhất tham chiếu, `TreeMap` dựa vào thứ tự so sánh của `Comparable`/`Comparator`. Vì vậy kỹ thuật “tạo khóa mới nhưng bằng nhau” trong bài này gắn với **HashMap và hợp đồng equals/hashCode**, không tự động khái quát cho mọi map.
+Beyond `HashMap`, other `Map` implementations can choose different key-equivalence criteria: `IdentityHashMap` intentionally compares by reference identity, and `TreeMap` relies on comparison ordering via `Comparable`/`Comparator`. Thus, the "create a new yet equal key" technique in this lesson is tied to **HashMap and the equals/hashCode contract**, and does not automatically generalize to every map.
 
-## 6. Sai lầm: chỉ ghi đè một trong hai phương thức
+## 6. Mistake: Overriding Only One of the Two Methods
 
-### Chỉ ghi đè equals()
+### Overriding only equals()
 
-Nếu hai object có cùng `tenantId` và `userId` nhưng `hashCode()` vẫn là cách tính mặc định theo identity, chúng có thể có hash khác nhau. Tra cứu bằng object mới không đáng tin cậy vì hash có thể dẫn đến vùng khác. Ví dụ sai về mặt hợp đồng:
+If two objects have the same `tenantId` and `userId` yet `hashCode()` remains the default identity-based computation, they can have different hashes. Looking up with a new object becomes unreliable because the hash may lead to a different region. Contract-violating example:
 
 ```java
-// Chỉ là ví dụ phương thức bên trong một class có hai trường:
+// Just a method example inside a class with two fields:
 @Override
 public boolean equals(Object other) {
     return other instanceof AccountKey that
             && tenantId.equals(that.tenantId)
             && userId.equals(that.userId);
 }
-// Quên ghi đè hashCode(): SAI, vì hai instance equals có thể khác hash.
+// Forgot to override hashCode(): WRONG, because two equal instances can have different hashes.
 ```
 
-Chú thích trên giả định lớp đang dùng `Object.hashCode()`. Nếu `AccountKey` đã có cách tính hash tương thích thì phương thức equals không tạo vấn đề này; lỗi nằm ở việc thiếu hợp đồng đồng bộ.
+The comment above assumes the class is using `Object.hashCode()`. If `AccountKey` already had a compatible hash calculation, the `equals` method would not cause this issue; the bug lies in lacking a synchronized contract.
 
-### Chỉ ghi đè hashCode()
+### Overriding only hashCode()
 
-Nếu `hashCode()` trả giá trị giống nhau cho mọi instance nhưng `equals()` vẫn là `Object.equals()` mặc định, hai object khác nhau vẫn không được coi là một khóa. Hash chỉ khoanh vùng ứng viên, còn `equals()` quyết định chúng có tương đương hay không.
+If `hashCode()` returns the same value for every instance while `equals()` remains the default `Object.equals()`, two distinct objects still will not be treated as the same key. The hash only narrows down candidates, whereas `equals()` decides whether they are equivalent.
 
-### Hash collision không phải lỗi equality
+### Hash collision is not an equality bug
 
-Không được dùng `a.hashCode() == b.hashCode()` để khẳng định `a.equals(b)`. Một hash 32-bit không thể phân biệt mọi đối tượng có thể tạo; collision là điều bình thường. Dù hai khóa có cùng hash, `HashMap` vẫn có thể lưu cả hai nếu chúng không bằng nhau. Cũng không nên cố tạo hash “duy nhất tuyệt đối” vì hợp đồng Java không hứa điều đó.
+You must not use `a.hashCode() == b.hashCode()` to assert `a.equals(b)`. A 32-bit hash cannot distinguish every object that can be created; collisions are normal. Even if two keys have the same hash, `HashMap` can still store both if they are not equal. Nor should you try to create an "absolutely unique" hash because the Java contract does not promise that.
 
-## 7. Sai lầm: thay đổi trạng thái quyết định khóa sau khi put
+## 7. Mistake: Mutating State That Determines the Key After put
 
-Đây là một bẫy thực tế. Giả sử `MutableKey.id` tham gia tính cả `equals()` lẫn `hashCode()`:
+This is a real-world trap. Suppose `MutableKey.id` participates in computing both `equals()` and `hashCode()`:
 
 ```java
-// Minh họa logic sai, không phải chương trình chạy độc lập.
+// Illustrates flawed logic, not a standalone runnable program.
 MutableKey key = new MutableKey("U-100");
 map.put(key, "An");
 
-key.setId("U-200"); // Đổi giá trị đang tham gia hash/equality.
-System.out.println(map.get(key)); // Có thể null dù map vẫn chứa entry.
+key.setId("U-200"); // Change the value participating in hash/equality.
+System.out.println(map.get(key)); // Can be null even though the map still contains the entry.
 ```
 
-Entry được bố trí theo hash tại thời điểm `put()`. Nếu trường khóa thay đổi, `get(key)` tính hash mới và có thể tìm nhầm vùng. Ngay cả khi truyền lại **chính instance** đã lưu, tra cứu vẫn có thể thất bại. `HashMap` không tự di chuyển entry khi các trường của object thay đổi.
+The entry is placed according to the hash at the time of `put()`. If the key field changes, `get(key)` computes the new hash and may search the wrong region. Even when passing back **the exact instance** that was stored, lookup can still fail. `HashMap` does not automatically relocate an entry when an object's fields change.
 
-Giải pháp:
+Solution:
 
-- Ưu tiên key bất biến hoặc snapshot khóa được đóng băng tại thời điểm tạo.
-- Nếu cần đổi danh tính khóa, xóa mapping cũ trước khi thay và thêm mapping dưới khóa mới, hoặc tạo key mới thay vì mutate key cũ.
-- Với field tham chiếu, `final` chỉ ngăn gán lại biến; `final List<String>` hoặc `final StringBuilder` vẫn có thể chứa nội dung mutable ảnh hưởng equality/hash.
-- Nếu ID database chỉ được cấp sau khi persist, đừng vô tình dùng object với ID thay đổi làm key. Thiết kế chính sách equality cho toàn bộ vòng đời entity trước khi lưu nó trong collection băm.
+- Prefer immutable keys or a key snapshot frozen at creation time.
+- If you need to change a key's identity, remove the old mapping before changing it and add a mapping under the new key, or create a new key instead of mutating the old key.
+- For reference fields, `final` only prevents reassigning the variable; a `final List<String>` or `final StringBuilder` can still hold mutable contents affecting equality/hash.
+- If a database ID is only assigned after persisting, do not accidentally use an object with a changing ID as a key. Design the equality policy for the entity's entire lifecycle before storing it in a hash collection.
 
-Các trường bổ trợ như `displayName`, `lastLogin` có thể mutable nếu hoàn toàn không được dùng trong `equals()/hashCode()`. Điều phải ổn định là **phần tạo nên khóa**, không bắt buộc mọi trạng thái của entity.
+Auxiliary fields such as `displayName` or `lastLogin` can be mutable if they are completely unused in `equals()/hashCode()`. What must be stable is **the part forming the key**, not necessarily every state of the entity.
 
-## 8. Viết key gọn hơn bằng record (Java 17)
+## 8. Writing Keys More Concisely With record (Java 17)
 
-Nếu khóa có đúng hai thành phần giá trị, `record` hỗ trợ tự sinh `equals()` và `hashCode()`:
+If a key has just two value components, `record` helps auto-generate `equals()` and `hashCode()`:
 
 ```java
 record AccountKey(String tenantId, String userId) {
@@ -241,57 +241,57 @@ record AccountKey(String tenantId, String userId) {
 }
 ```
 
-*Đây là cách khai báo thay thế, không ghép thêm vào chương trình ở mục 4 vì sẽ trùng tên `AccountKey`.* Java tạo equality dựa trên **tất cả** record component. Do đó hai `new AccountKey("team-a", "u-42")` riêng biệt có equality/hash tương thích để dùng với `HashMap`.
+*This is an alternative declaration; do not merge it into the program in section 4 because the name `AccountKey` would conflict.* Java generates equality based on **all** record components. Consequently, two separate `new AccountKey("team-a", "u-42")` objects have compatible equality/hash for use with `HashMap`.
 
-Record **không tự sao chép sâu** các component là array, list hay đối tượng mutable. Đặc biệt, record chứa array sử dụng semantics equality mặc định của array cho component đó; nếu muốn so nội dung mảng và hash theo nội dung, phải thiết kế riêng. Record có component mang trạng thái không nên ảnh hưởng identity sẽ đưa component ấy vào equality mặc định, nên chọn component phù hợp với domain.
+A record **does not automatically deep-copy** components that are arrays, lists, or mutable objects. In particular, a record containing an array uses the array's default equality semantics for that component; if you want to compare array contents and hash by content, you must design it separately. A record with a component carrying state that should not affect identity will include that component in default equality, so choose components suited to the domain.
 
-## 9. Dữ liệu thành phần và chuẩn hóa khóa
+## 9. Component Data and Key Normalization
 
-Một số tình huống khiến hai đối tượng nhìn “giống nhau” với người dùng nhưng `equals()` lại khác nhau:
+Some situations cause two objects to look "the same" to a user yet differ under `equals()`:
 
-| Thành phần | Cần xác định chính sách |
+| Component | Policy to determine |
 | --- | --- |
-| `String` | `"U-42"` và `"u-42"` là hai chuỗi khác theo `equals()`; chỉ chuẩn hóa hoa/thường nếu domain cho phép. |
-| `BigDecimal` | `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` là `false` vì khác scale, dù `compareTo() == 0`. Nếu cần cùng giá trị số, chuẩn hóa nhất quán trước khi tạo khóa. |
-| Array | Equality mặc định trên tham chiếu không so từng phần tử. Nếu lấy nội dung làm khóa, cần `Arrays.equals()/hashCode()` hoặc `deepEquals()/deepHashCode()` tương thích với loại dữ liệu. |
-| `List` | `List.equals()` xét các phần tử **theo thứ tự**; phải kiểm soát khả năng mutate trong thời gian khóa nằm trong map. |
-| `Set` | `Set.equals()` xét tập phần tử, không dựa vào thứ tự; phần tử thay đổi equality/hash cũng có thể gây hỏng logic. |
+| `String` | `"U-42"` and `"u-42"` are two different strings under `equals()`; normalize case only if the domain allows it. |
+| `BigDecimal` | `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` is `false` due to differing scale, even though `compareTo() == 0`. If the same numeric value is needed, normalize consistently before creating the key. |
+| Array | Default equality on references does not compare element-by-element. If using contents as a key, `Arrays.equals()/hashCode()` or `deepEquals()/deepHashCode()` compatible with the data type is needed. |
+| `List` | `List.equals()` considers elements **in order**; mutability must be controlled while the key resides in the map. |
+| `Set` | `Set.equals()` considers the set of elements regardless of order; elements changing equality/hash can also break logic. |
 
-Chính sách chuẩn hóa dữ liệu (ví dụ mã có cần loại khoảng trắng đầu/cuối không) phải được quyết định **trước** khi thiết lập khóa và áp dụng đồng bộ cho `equals()` lẫn `hashCode()`. Không nên âm thầm `toLowerCase()` mọi mã, tên người dùng hoặc email khi chưa biết domain có phân biệt chữ hoa thường hay không.
+Data normalization policies (for instance, whether codes need leading/trailing whitespace trimmed) must be decided **before** constructing keys and applied uniformly to both `equals()` and `hashCode()`. Do not silently call `toLowerCase()` on every code, username, or email without knowing whether the domain is case-sensitive.
 
-`toString()` không phải cách chuẩn để tạo khóa. Hai chuỗi hiển thị giống nhau không đảm bảo hai object bằng nhau và `toString()` có thể thay đổi chỉ để phục vụ debug.
+`toString()` is not a proper way to construct a key. Two identical display strings do not guarantee two objects are equal, and `toString()` can change solely for debugging purposes.
 
-## 10. Bảng kiểm và tự kiểm tra
+## 10. Checklist and Self-Check
 
-Trước khi dùng lớp tùy biến làm khóa `HashMap`, có thể kiểm tra:
+Before using a custom class as a `HashMap` key, you can check:
 
-| Tình huống thử | Kết quả cần có |
+| Test scenario | Required outcome |
 | --- | --- |
-| Tạo hai object độc lập có cùng giá trị khóa | `a != b` theo tham chiếu; `a.equals(b)` là `true` và hash bằng nhau. |
-| `put(a, v)` rồi `get(b)` | Nhận đúng `v` và `containsKey(b)` là `true`. |
-| `put(b, newValue)` khi `a.equals(b)` | Chỉ cập nhật mapping, `size()` không tăng. |
-| Khóa khác tenant dù trùng userId | Không lấy nhầm dữ liệu giữa các tenant. |
-| Hai khóa khác nhau cùng hash | Vẫn được phân biệt qua `equals()`. |
-| Thay trường không thuộc equality | Việc tra cứu không thay đổi. |
-| Thay trường thuộc equality khi key đang trong map | Đó là thiết kế nguy hiểm, cần tránh. |
-| Có mapping lưu giá trị `null` | `containsKey()` phân biệt được với trường hợp không có mapping. |
+| Create two independent objects with the same key value | `a != b` by reference; `a.equals(b)` is `true` and hashes are equal. |
+| `put(a, v)` then `get(b)` | Receives `v` accurately and `containsKey(b)` is `true`. |
+| `put(b, newValue)` when `a.equals(b)` | Only updates the mapping, `size()` does not increase. |
+| Keys with different tenants despite same userId | Does not accidentally retrieve data across tenants. |
+| Two different keys with the same hash | Still distinguished via `equals()`. |
+| Modify a field not belonging to equality | Lookup does not change. |
+| Modify a field belonging to equality while key is in the map | This is a dangerous design and must be avoided. |
+| Mapping storing a `null` value | `containsKey()` distinguishes it from the absent-mapping case. |
 
-**Câu 1:** Vì sao `new String("java")` có thể tìm mapping lưu bởi một instance `String` khác có nội dung `"java"`?  
-**Đáp án:** Vì `String.equals()` so nội dung và `String.hashCode()` nhất quán với equality.
+**Question 1:** Why can `new String("java")` find a mapping stored by another `String` instance with content `"java"`?  
+**Answer:** Because `String.equals()` compares content and `String.hashCode()` is consistent with equality.
 
-**Câu 2:** Hai object cùng `hashCode()` có chắc trả cùng giá trị khi `map.get()` không?  
-**Đáp án:** Không; hai khóa có thể collision mà `equals()` vẫn `false`.
+**Question 2:** Are two objects with the same `hashCode()` guaranteed to return the same value on `map.get()`?  
+**Answer:** No; two keys can collide while `equals()` is still `false`.
 
-**Câu 3:** Khi `put()` một instance khóa mới bằng khóa đã tồn tại, số entry tăng không?  
-**Đáp án:** Không; giá trị gắn với khóa tương đương được thay thế.
+**Question 3:** When `put()` is called with a new key instance equal to an existing key, does the entry count increase?  
+**Answer:** No; the value associated with the equivalent key is replaced.
 
-**Câu 4:** `map.get(key) == null` có chắc không có mapping không?  
-**Đáp án:** Không với `HashMap`: mapping có thể tồn tại và chứa giá trị `null`. Dùng `containsKey()`.
+**Question 4:** Does `map.get(key) == null` guarantee that no mapping exists?  
+**Answer:** Not for `HashMap`: a mapping can exist and hold a `null` value. Use `containsKey()`.
 
-**Câu 5:** Vì sao không nên sửa `id` của object đang nằm trong `HashMap` nếu `id` tham gia equality/hash?  
-**Đáp án:** Vì hash dùng khi tra cứu có thể khác hash lúc lưu, làm map không tìm được entry đang tồn tại.
+**Question 5:** Why should you not modify the `id` of an object currently inside a `HashMap` if `id` participates in equality/hash?  
+**Answer:** Because the hash used during lookup can differ from the hash at storage time, causing the map to fail to find the existing entry.
 
-**Câu 6:** Thay `tenantId` có làm cùng `userId` trở thành cùng khóa không?  
-**Đáp án:** Không trong mô hình của bài; tenant là một phần của khóa để ngăn tra cứu nhầm giữa các không gian định danh.
+**Question 6:** Does changing `tenantId` make the same `userId` become the same key?  
+**Answer:** Not in this lesson's model; tenant is part of the key to prevent accidental cross-namespace lookup.
 
-Kết luận dùng được ngay: **Một instance khóa mới có thể tìm lại mapping trong `HashMap` nếu nó `equals()` với khóa đã lưu, có `hashCode()` tương thích, và dữ liệu tạo nên khóa được giữ ổn định trong quá trình sử dụng.**
+Directly actionable conclusion: **A new key instance can look up a mapping in `HashMap` if it `equals()` the stored key, has a compatible `hashCode()`, and the data forming the key is kept stable during use.**

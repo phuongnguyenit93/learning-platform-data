@@ -1,18 +1,18 @@
-# `Integer`, `Long`, `Double`, `Boolean` và các lớp bao khác — Java 17+
+# `Integer`, `Long`, `Double`, `Boolean`, and Other Wrapper Classes — Java 17+
 
-Java có tám **kiểu nguyên thủy** (*primitive*) dùng để lưu giá trị như số, ký tự và đúng/sai. Mỗi primitive có một **lớp bao** (*wrapper class*) tương ứng trong gói `java.lang`. Wrapper là **kiểu tham chiếu**: biến có thể tham chiếu đối tượng wrapper hoặc mang giá trị `null`. Wrapper cho phép đưa giá trị nguyên thủy vào API làm việc với đối tượng, đặc biệt là các collection và generic.
+Java has eight **primitive types** (*primitives*) used to store values such as numbers, characters, and booleans (true/false). Each primitive has a corresponding **wrapper class** in the `java.lang` package. Wrappers are **reference types**: a variable can reference a wrapper object or hold the value `null`. Wrappers allow passing primitive values into APIs that work with objects, especially collections and generics.
 
 ~~~java
-int count = 42;          // int: gia tri nguyen thuy.
+int count = 42;          // int: primitive value.
 Integer boxed = count;   // Integer: autoboxing.
 int again = boxed;       // int: unboxing.
 ~~~
 
-`Integer` không phải cách viết dài hơn của `int`: hai kiểu có **ngữ nghĩa khác nhau**, đặc biệt ở `null`, so sánh, đối tượng được tạo và chi phí boxing/unboxing.
+`Integer` is not just a longer way to write `int`: the two types have **different semantics**, especially regarding `null`, comparisons, created objects, and boxing/unboxing cost.
 
-## 1. Bảng đủ tám cặp primitive ↔ wrapper
+## 1. Table of All Eight Primitive ↔ Wrapper Pairs
 
-| Primitive | Wrapper trong `java.lang` | Ví dụ |
+| Primitive | Wrapper in `java.lang` | Example |
 | --- | --- | --- |
 | `byte` | `Byte` | `Byte.valueOf((byte) 7)` |
 | `short` | `Short` | `Short.valueOf((short) 300)` |
@@ -23,16 +23,16 @@ int again = boxed;       // int: unboxing.
 | `char` | `Character` | `Character.valueOf('J')` |
 | `boolean` | `Boolean` | `Boolean.valueOf(true)` |
 
-Một số điều cần nhớ:
+A few things to keep in mind:
 
-- `int` và `Integer` là hai **kiểu khác nhau**; Java có thể tự chuyển giữa chúng trong ngữ cảnh phù hợp.
-- Wrapper **bất biến**: không có phương thức thay đổi giá trị số/boolean/ký tự bên trong cùng một wrapper. Gán `boxed = 43` khiến biến tham chiếu kết quả boxing khác, không sửa nội dung đối tượng `Integer` cũ.
-- `boolean`/`Boolean` không được ép thành số `0`/`1` bằng cast của Java. Muốn ánh xạ phải viết quy tắc, ví dụ `flag ? 1 : 0`.
-- `Void` là lớp đặc biệt đại diện cho từ khóa `void` trong một số API phản chiếu, **không phải wrapper thứ chín chứa một giá trị primitive `void`**.
+- `int` and `Integer` are two **different types**; Java can automatically convert between them in appropriate contexts.
+- Wrappers are **immutable**: there is no method to change the numeric/boolean/character value inside the same wrapper. Assigning `boxed = 43` makes the variable reference a different boxing result; it does not modify the contents of the old `Integer` object.
+- `boolean`/`Boolean` cannot be cast to the numbers `0`/`1` using a Java cast. To map them, you must write a rule, for example `flag ? 1 : 0`.
+- `Void` is a special class representing the `void` keyword in some reflection APIs; **it is not a ninth wrapper containing a primitive `void` value**.
 
-## 2. Java 17+ runnable: đủ wrapper, parsing, so sánh và `null`
+## 2. Runnable Java 17+: All Wrappers, Parsing, Comparisons, and `null`
 
-Lưu tệp **`WrapperTypesDemo.java`** với mã nguồn sau:
+Save the file **`WrapperTypesDemo.java`** with the following source code:
 
 ~~~java
 import java.util.List;
@@ -86,7 +86,7 @@ public class WrapperTypesDemo {
         List<Integer> numbers = List.of(3, 5, 7);
         int total = 0;
         for (Integer number : numbers) {
-            total += number; // Unboxing de cong voi int.
+            total += number; // Unboxing to add with int.
         }
         System.out.println("listSum=" + total);
         System.out.println("charIsLetter=" + Character.isLetter(letter));
@@ -121,7 +121,7 @@ public class WrapperTypesDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) ở thư mục chứa file. Dùng **JDK 17 trở lên**:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file. Use **JDK 17 or later**:
 
 ~~~bash
 java -version
@@ -130,7 +130,7 @@ javac -encoding UTF-8 WrapperTypesDemo.java
 java WrapperTypesDemo
 ~~~
 
-**Expected output chính xác** của lệnh `java WrapperTypesDemo`:
+**Exact expected output** of the `java WrapperTypesDemo` command:
 
 ~~~text
 primitive=42
@@ -161,28 +161,28 @@ zeroPrimitiveEqual=true
 zeroWrapperEqual=false
 ~~~
 
-Hai lệnh kiểm tra phiên bản JDK in thông tin tùy môi trường; chúng không thuộc khối expected output trên.
+The two JDK version check commands print environment-dependent information; they are not part of the expected output block above.
 
-## 3. Wrapper và primitive chuyển đổi qua boxing/unboxing
+## 3. Wrappers and Primitives Convert via Boxing/Unboxing
 
-**Autoboxing** đóng gói giá trị nguyên thủy thành wrapper khi Java cho phép; **unboxing** lấy giá trị primitive tương ứng. Trong số học, unboxing có thể xảy ra mà không có lời gọi method rõ ràng:
+**Autoboxing** boxes a primitive value into a wrapper when Java allows it; **unboxing** extracts the corresponding primitive value. In arithmetic, unboxing can happen without an explicit method call:
 
 ~~~java
 Integer object = 42;           // Boxing int -> Integer.
 int value = object;            // Unboxing Integer -> int.
-int next = object + 1;         // Unbox rồi cộng -> 43.
+int next = object + 1;         // Unbox then add -> 43.
 ~~~
 
-Một wrapper được phép chứa `null`; vì vậy `Integer missing = null; int n = missing;` **biên dịch được nhưng ném `NullPointerException` lúc chạy**. Kiểm tra null trước phép toán hoặc thiết kế hợp đồng dữ liệu bắt buộc, không tự gán mặc định 0 nếu “chưa có” khác “bằng 0”. Biến cục bộ chưa khởi tạo cũng không tự có giá trị `null`; chỉ các field/reference array elements mới được default theo quy tắc Java.
+A wrapper is allowed to hold `null`; therefore `Integer missing = null; int n = missing;` **compiles but throws `NullPointerException` at runtime**. Check for null before performing operations or enforce a required data contract; do not default to 0 if "missing" differs from "equal to 0". Uninitialized local variables do not automatically have the value `null` either; only fields/reference array elements receive defaults according to Java rules.
 
-Bài chuyên boxing giải thích chi tiết overload, chuyển kiểu số học và thao tác `++`, còn bài unboxing null tập trung vào các biểu thức/điều kiện có thể gây NPE.
+The dedicated boxing lesson explains overloads, numeric conversions, and the `++` operation in detail, while the unboxing-null lesson focuses on expressions/conditions that can cause an NPE.
 
 
-## 4. API chuyển đổi chuỗi: kiểu trả về phải rõ
+## 4. String Conversion APIs: Return Types Must Be Clear
 
-Các lớp bao có cả factory trả wrapper và parser trả primitive:
+Wrapper classes have both factories returning a wrapper and parsers returning a primitive:
 
-| Biểu thức | Kiểu trả về |
+| Expression | Return Type |
 | --- | --- |
 | `Integer.parseInt("42")` | `int` |
 | `Integer.valueOf("42")` | `Integer` |
@@ -191,10 +191,10 @@ Các lớp bao có cả factory trả wrapper và parser trả primitive:
 | `Boolean.parseBoolean("TrUe")` | `boolean` |
 | `String.valueOf(42)` | `String` |
 
-`Integer.parseInt("abc")` ném `NumberFormatException`; `Boolean.parseBoolean("yes")` lại trả `false`, nên phải **validate riêng** nếu API chỉ chấp nhận `true`/`false`. Khi gán `int` parser trả về vào `Integer`, Java boxing **sau** lời gọi; kiểu trả về của method không đổi. Bài `parseInt()/valueOf()` giải thích các overload/radix và bài `NumberFormatException` phân loại lỗi dữ liệu.
+`Integer.parseInt("abc")` throws `NumberFormatException`; `Boolean.parseBoolean("yes")` returns `false`, so you must **validate separately** if the API only accepts `true`/`false`. When assigning the `int` returned by a parser to an `Integer`, Java boxes **after** the call; the method's return type does not change. The `parseInt()/valueOf()` lesson explains overloads/radix, and the `NumberFormatException` lesson classifies data errors.
 
 
-## 5. Giá trị wrapper khác identity của đối tượng
+## 5. Wrapper Value Differs from Object Identity
 
 ~~~java
 Integer a = Integer.valueOf(1_000);
@@ -202,36 +202,36 @@ Integer b = Integer.valueOf(1_000);
 System.out.println(a.equals(b)); // true.
 ~~~
 
-Với hai tham chiếu `Integer`, `a == b` kiểm tra **identity**, không phải số bên trong. `Integer.valueOf(100)` được bảo đảm tái sử dụng wrapper ở vùng cache `-128..127`, nhưng không thể dựa vào `==` để so giá trị nói chung. Dùng `a.equals(b)` nếu `a` không null, hoặc `Objects.equals(a, b)` nếu hai phía có thể null. Khi so wrapper với **primitive**, Java có thể unbox, nên null lại gây NPE.
+For two `Integer` references, `a == b` checks **identity**, not the number inside. `Integer.valueOf(100)` is guaranteed to reuse wrappers in the `-128..127` cache range, but you cannot rely on `==` to compare values in general. Use `a.equals(b)` if `a` is non-null, or `Objects.equals(a, b)` if either side can be null. When comparing a wrapper with a **primitive**, Java can unbox, so null will again cause an NPE.
 
-`Double.equals` và `Float.equals` còn có quy tắc khác phép `==` primitive: hai wrapper chứa `NaN` được xem là bằng nhau, trong khi `+0.0` và `-0.0` được `equals` phân biệt. Vì vậy phải chọn rõ semantics mong muốn. Bài equality phân tích trường hợp hỗn hợp, còn bài cache giải thích các vùng identity được bảo đảm cho từng wrapper.
+`Double.equals` and `Float.equals` also have different rules from the primitive `==` operator: two wrappers containing `NaN` are considered equal, whereas `+0.0` and `-0.0` are distinguished by `equals`. Therefore, you must clearly choose the desired semantics. The equality lesson analyzes mixed cases, while the cache lesson explains the guaranteed identity ranges for each wrapper.
 
 
-## 6. Wrapper trong generic và collection
+## 6. Wrappers in Generics and Collections
 
-Generic như `List<T>` yêu cầu **kiểu tham chiếu**:
+Generics such as `List<T>` require a **reference type**:
 
 ~~~java
 import java.util.List;
 
-List<Integer> scores = List.of(3, 5, 7); // Hop le.
-// List<int> invalid;                    // Khong hop le.
+List<Integer> scores = List.of(3, 5, 7); // Valid.
+// List<int> invalid;                    // Invalid.
 ~~~
 
-Dùng `List<Integer>` vì phần tử là đối tượng `Integer`. Khi thêm một `int` vào `List<Integer>`, Java có thể boxing; khi lấy phần tử để tính toán `int`, Java có thể unboxing. `List.of(...)` tạo danh sách không thể thay đổi qua các thao tác thêm/xóa; nó **không cho phép phần tử null**.
+Use `List<Integer>` because the elements are `Integer` objects. When adding an `int` to a `List<Integer>`, Java can box it; when retrieving an element for `int` arithmetic, Java can unbox it. `List.of(...)` creates a list that cannot be modified via add/remove operations; it **does not allow null elements**.
 
-So với mảng:
+Compared to arrays:
 
 ~~~java
-int[] primitiveArray = new int[2];        // Cac phan tu mac dinh 0.
-Integer[] wrapperArray = new Integer[2]; // Cac phan tu mac dinh null.
+int[] primitiveArray = new int[2];        // Elements default to 0.
+Integer[] wrapperArray = new Integer[2]; // Elements default to null.
 ~~~
 
-Nếu hiệu năng, bộ nhớ và tránh null là ưu tiên trong vòng lặp xử lý số lượng lớn, primitive array hoặc API primitive có thể phù hợp hơn việc boxing hàng loạt. Tuy nhiên, lựa chọn nên dựa vào yêu cầu thực tế và đo đạc khi cần, không mặc định wrapper luôn là lựa chọn sai.
+If performance, memory, and avoiding null are priorities in loops processing large volumes, primitive arrays or primitive APIs may be more suitable than mass boxing. However, the choice should be based on actual requirements and measurements when needed, rather than assuming wrappers are always the wrong choice.
 
-## 7. Wrapper bất biến, biến tham chiếu vẫn có thể gán lại
+## 7. Wrappers Are Immutable, Reference Variables Can Still Be Reassigned
 
-Wrapper không cho phép sửa giá trị bên trong instance. Phép toán trên biến wrapper có thể unbox, tính toán, box rồi **gán một tham chiếu kết quả**; một biến khác giữ tham chiếu cũ không bị thay đổi:
+Wrappers do not allow modifying the value inside an instance. An operation on a wrapper variable may unbox, compute, box, and then **assign a resulting reference**; another variable holding the old reference is not changed:
 
 ~~~java
 Integer count = 10;
@@ -241,45 +241,45 @@ System.out.println(count);  // 11
 System.out.println(before); // 10
 ~~~
 
-Khai báo `final Integer fixed = 10;` cấm **gán lại biến** nhưng không phải nguyên nhân khiến wrapper bất biến. Bài boxing phân tích riêng toán tử `++` và các chuyển đổi ngầm.
+Declaring `final Integer fixed = 10;` prohibits **reassigning the variable** but is not the reason wrappers are immutable. The boxing lesson separately analyzes the `++` operator and implicit conversions.
 
-## 8. Tóm tắt lựa chọn kiểu theo tình huống
+## 8. Summary of Type Selection by Scenario
 
-| Khi nào? | Kiểu phù hợp thường gặp | Cần nhớ |
+| When? | Common Suitable Types | Things to Remember |
 | --- | --- | --- |
-| Biến đếm/tính toán luôn có giá trị | `int`, `long`, `double` | Không có trạng thái null |
-| Giá trị có thể chưa được cung cấp | `Integer`, `Long`, `Boolean` | Phải quy định ý nghĩa của null |
-| Generic collection | `List<Integer>`, `Map<String, Long>` | Type argument cần kiểu tham chiếu |
-| Parse số để tính toán | `Integer.parseInt`, `Double.parseDouble` | Parser trả primitive tương ứng |
+| Counters/calculations that always have a value | `int`, `long`, `double` | No null state |
+| Value may not have been provided yet | `Integer`, `Long`, `Boolean` | Must define the meaning of null |
+| Generic collections | `List<Integer>`, `Map<String, Long>` | Type arguments require reference types |
+| Parsing numbers for calculation | `Integer.parseInt`, `Double.parseDouble` | Parsers return the corresponding primitive |
 
-`Boolean` có thể biểu diễn ba trạng thái `TRUE`, `FALSE` và `null` nếu hợp đồng dữ liệu thật sự cần. Đừng tự coi null là false hoặc 0. Bài cuối chương áp dụng các nguyên tắc này cho model, API, validation và hiệu năng.
+`Boolean` can represent three states—`TRUE`, `FALSE`, and `null`—if the data contract genuinely requires it. Do not automatically treat null as false or 0. The final lesson in this chapter applies these principles to models, APIs, validation, and performance.
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-Check Exercises
 
-1. **Ghép cặp:** Kiểu bao của `int`, `char`, `boolean` và `double` là gì?  
-   *Đáp án:* `Integer`, `Character`, `Boolean` và `Double`.
-2. **Boxing:** `Integer x = 7; int y = x;` gồm những bước nào?  
-   *Đáp án:* Boxing `int -> Integer`, rồi unboxing `Integer -> int`.
-3. **Null:** `Integer n = null; int x = n;` có biên dịch không, và chạy thế nào?  
-   *Đáp án:* Biên dịch được; lúc chạy ném `NullPointerException` khi unboxing.
-4. **Parsing:** `Integer.parseInt("12")` khác `Integer.valueOf("12")` ở điểm nào?  
-   *Đáp án:* Phương thức đầu trả `int`, phương thức sau trả `Integer`.
-5. **Boolean:** `Boolean.parseBoolean("YES")` trả gì?  
-   *Đáp án:* `false`; chỉ chuỗi bằng `"true"` không phân biệt hoa/thường được coi là true.
-6. **So sánh:** Vì sao không nên so hai biến `Integer` bằng `==`?  
-   *Đáp án:* `==` kiểm tra đồng nhất đối tượng, có thể chịu tác động của cache; dùng `equals` để so giá trị khi không null.
-7. **Số thực:** `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` trả gì?  
-   *Đáp án:* `true` theo định nghĩa `Double.equals`, dù `Double.NaN == Double.NaN` là `false`.
+1. **Matching:** What are the wrapper classes for `int`, `char`, `boolean`, and `double`?  
+   *Answer:* `Integer`, `Character`, `Boolean`, and `Double`.
+2. **Boxing:** What steps are involved in `Integer x = 7; int y = x;`?  
+   *Answer:* Boxing `int -> Integer`, then unboxing `Integer -> int`.
+3. **Null:** Does `Integer n = null; int x = n;` compile, and how does it behave at runtime?  
+   *Answer:* It compiles; at runtime it throws `NullPointerException` when unboxing.
+4. **Parsing:** How does `Integer.parseInt("12")` differ from `Integer.valueOf("12")`?  
+   *Answer:* The former returns `int`; the latter returns `Integer`.
+5. **Boolean:** What does `Boolean.parseBoolean("YES")` return?  
+   *Answer:* `false`; only a string equal to `"true"` case-insensitively is treated as true.
+6. **Comparison:** Why shouldn't you compare two `Integer` variables using `==`?  
+   *Answer:* `==` checks object identity, which can be affected by caching; use `equals` to compare values when non-null.
+7. **Floating-Point:** What does `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` return?  
+   *Answer:* `true` by the definition of `Double.equals`, even though `Double.NaN == Double.NaN` is `false`.
 
-## Checklist ghi nhớ
+## Memory Checklist
 
-- [ ] Thuộc **tám cặp primitive–wrapper**, đặc biệt `char -> Character` và `int -> Integer`.
-- [ ] Hiểu **autoboxing/unboxing** là chuyển đổi, không biến primitive thành reference vĩnh viễn.
-- [ ] Biết wrapper có thể null và unboxing null gây `NullPointerException`.
-- [ ] Dùng `parseXxx` khi muốn primitive; dùng `valueOf` khi muốn wrapper.
-- [ ] Dùng `equals`/`Objects.equals` để so giá trị wrapper, không dựa vào `==` và cache.
-- [ ] Nhận biết quy tắc riêng của `Double`/`Float` với `NaN` và zero có dấu.
-- [ ] Biết generic như `List<Integer>` không chấp nhận kiểu tham số `int`.
-- [ ] Chọn primitive cho dữ liệu luôn có giá trị, wrapper khi API/generic yêu cầu hoặc null là trạng thái có nghĩa.
+- [ ] Memorize the **eight primitive–wrapper pairs**, especially `char -> Character` and `int -> Integer`.
+- [ ] Understand that **autoboxing/unboxing** is a conversion, not a permanent transformation of a primitive into a reference.
+- [ ] Know that wrappers can be null and unboxing null causes `NullPointerException`.
+- [ ] Use `parseXxx` when you want a primitive; use `valueOf` when you want a wrapper.
+- [ ] Use `equals`/`Objects.equals` to compare wrapper values, without relying on `==` and caching.
+- [ ] Recognize the specific rules of `Double`/`Float` for `NaN` and signed zero.
+- [ ] Know that generics such as `List<Integer>` do not accept primitive type arguments like `int`.
+- [ ] Choose primitives for data that always has a value, and wrappers when APIs/generics require them or null is a meaningful state.
 
-**Kết luận:** Các lớp `Integer`, `Long`, `Double`, `Boolean`, `Byte`, `Short`, `Float` và `Character` giúp làm việc với giá trị primitive trong thế giới đối tượng của Java. Dùng chúng đúng nghĩa: **giữ rõ kiểu dữ liệu, xử lý null trước khi unboxing, phân biệt so sánh giá trị với tham chiếu, và chọn phương thức parsing/boxing phù hợp**.
+**Conclusion:** The classes `Integer`, `Long`, `Double`, `Boolean`, `Byte`, `Short`, `Float`, and `Character` make it possible to work with primitive values in Java's object world. Use them properly: **keep data types clear, handle null before unboxing, distinguish value comparison from reference comparison, and choose the appropriate parsing/boxing method**.

@@ -1,22 +1,22 @@
-# Rủi ro khác kết quả giữa máy phát triển, kiểm thử và máy chủ khi dùng Locale mặc định
+# Risk of Different Results Across Development, Testing, and Production Machines When Using the Default Locale
 
-Một chương trình Java có thể chạy đúng trên laptop lập trình viên nhưng cho kết quả khác trong CI hoặc máy chủ **dù mã nguồn và dữ liệu đầu vào giống nhau**. Một nguyên nhân phổ biến là chương trình vô tình phụ thuộc **Locale mặc định** của JVM. Khi locale khác, việc định dạng số, phân tích dữ liệu người dùng, chuyển hoa/thường, lấy tên ngày tháng, sắp xếp chuỗi và tìm bản dịch có thể thay đổi. Tác động có thể chỉ là giao diện hiển thị khác, nhưng cũng có thể làm bài kiểm thử thất bại, đọc sai dữ liệu hoặc tạo ra lỗi nghiệp vụ.
+A Java program can run properly on a developer's laptop yet produce different results in CI or on a production server **even when the source code and input data are identical**. A common cause is the program unintentionally depending on the JVM's **default locale**. When the locale differs, number formatting, user input parsing, case conversion, date/month naming, string sorting, and translation lookup can all change. The impact might be just a different UI display, or it could break tests, misparse data, or cause business logic bugs.
 
-Bài này tập trung vào **rủi ro khác kết quả do Locale mặc định giữa môi trường phát triển (dev), kiểm thử (test/CI) và máy chủ (production)**: nguyên nhân, ví dụ có thể tái hiện, cách chẩn đoán, lựa chọn thiết kế và kiểm thử để tránh phụ thuộc môi trường không chủ đích.
+This lesson focuses on the **risk of divergent results caused by the default locale across development (dev), testing (test/CI), and server (production) environments**: root causes, reproducible examples, diagnostic steps, design choices, and testing strategies to avoid unintended environment dependencies.
 
-## 1. Locale mặc định là gì và vì sao mỗi môi trường có thể khác nhau?
+## 1. What Is the Default Locale and Why Can Every Environment Differ?
 
-**java.util.Locale** biểu diễn ngôn ngữ và quy ước địa phương, có thể gồm mã ngôn ngữ, vùng, chữ viết và các phần mở rộng. Ví dụ **vi-VN**, **en-US**, **de-DE** hoặc **tr-TR**.
+**java.util.Locale** represents language and regional conventions, which can include a language code, region, script, and extensions. Examples: **vi-VN**, **en-US**, **de-DE**, or **tr-TR**.
 
-Java cung cấp một **Locale mặc định toàn JVM**, đọc qua **Locale.getDefault()**. JVM cũng có hai mặc định theo loại mục đích:
+Java provides a **JVM-wide default locale**, read via **Locale.getDefault()**. The JVM also has two category-specific defaults:
 
-- **Locale.Category.FORMAT**: dùng cho các thao tác định dạng/phân tích theo ngữ cảnh địa phương, chẳng hạn số, ngày giờ.
-- **Locale.Category.DISPLAY**: dùng cho tên ngôn ngữ, tên quốc gia/vùng hiển thị cho người dùng.
-- **Locale.getDefault()** không truyền category: lấy locale mặc định chung, là nguồn được nhiều API sử dụng.
+- **Locale.Category.FORMAT**: used for locale-sensitive formatting/parsing operations such as numbers and dates/times.
+- **Locale.Category.DISPLAY**: used for language names and country/region names displayed to users.
+- **Locale.getDefault()** without a category argument: retrieves the general default locale, which is the source used by many APIs.
 
-Vào lúc khởi tạo, giá trị mặc định chịu ảnh hưởng từ hệ điều hành, thiết lập môi trường chạy và cấu hình JVM. Cùng một ứng dụng có thể chạy trên máy dev được cấu hình tiếng Việt, runner CI tiếng Anh và container máy chủ dùng một locale khác. Ngoài ra, mã Java có thể gọi **Locale.setDefault(...)** trong lúc tiến trình đang chạy và thay đổi mặc định được các phần khác nhìn thấy.
+At startup, the default values are influenced by the operating system, runtime environment settings, and JVM configuration. The same application might run on a dev machine configured for Vietnamese, an English CI runner, and a server container using yet another locale. Furthermore, Java code can call **Locale.setDefault(...)** while the process is running and change the default seen by other parts of the program.
 
-Ví dụ kiểm tra trạng thái thực tế:
+Example to inspect actual state:
 
 ~~~java
 import java.util.Locale;
@@ -35,37 +35,37 @@ public class InspectDefaultLocale {
 }
 ~~~
 
-Lưu thành **InspectDefaultLocale.java**, chạy:
+Save as **InspectDefaultLocale.java**, and run:
 
 ~~~bash
 javac InspectDefaultLocale.java
 java InspectDefaultLocale
 ~~~
 
-Chương trình in ra **ba language tag của chính môi trường đang chạy**. Không thể đưa một stdout cố định mà đúng trên mọi máy: khác biệt đó chính là điều cần kiểm tra. Khi đối chiếu dev, CI và production, hãy thu thập kết quả của cùng chương trình cùng thời điểm khởi động.
+The program prints **the three language tags of the actual running environment**. It is impossible to give a single fixed stdout that holds true on every machine: that difference is precisely what needs inspecting. When comparing dev, CI, and production, collect the output of the same program at the same startup moment.
 
-**Phân biệt rõ:** locale mặc định **không phải** múi giờ, charset hay ngôn ngữ giao diện mà người dùng đã chủ động chọn. Chúng là các quyết định có liên quan nhưng độc lập. **ZoneId.systemDefault()**, **Charset.defaultCharset()** và **Locale.getDefault()** phải được kiểm tra riêng khi một kết quả có thể chịu ảnh hưởng của nhiều yếu tố.
+**Clear distinction:** the default locale is **not** the time zone, charset, or UI language explicitly selected by a user. They are related yet independent decisions. **ZoneId.systemDefault()**, **Charset.defaultCharset()**, and **Locale.getDefault()** must be inspected separately when an output can be affected by multiple factors.
 
-## 2. Điều kiện gây khác kết quả: API ngầm đọc mặc định
+## 2. Condition Causing Divergent Results: APIs Implicitly Reading the Default
 
-Nhiều API Java có overload **không nhận Locale**. Overload đó thường dùng một mặc định theo hợp đồng của API, do đó cùng một lệnh có thể cho kết quả khác nhau khi chạy tại môi trường khác. Những ví dụ quan trọng:
+Many Java APIs have overloads **without a Locale parameter**. Those overloads typically use a default per the API's contract, so the exact same call can produce different results when run in different environments. Important examples:
 
-| Nhóm chức năng | Cách phụ thuộc ngầm | Cách kiểm soát tường minh |
+| Functional Group | Implicit Dependency | Explicit Control |
 | --- | --- | --- |
-| Định dạng văn bản chứa số | **String.format("%.2f", value)** dùng locale mặc định dành cho định dạng | **String.format(Locale.US, "%.2f", value)** hoặc locale đã chọn |
-| Định dạng số/tiền/phần trăm | **NumberFormat.getNumberInstance()**, **getCurrencyInstance()** | Factory nhận **Locale** |
-| Phân tích số nhập | **NumberFormat.getInstance().parse(text)** | Tạo formatter với locale của chính dữ liệu đầu vào |
-| Định dạng ngày giờ | **DateTimeFormatter.ofLocalizedDate(style)** và các factory tương tự | Sử dụng **withLocale(locale)**; timezone xử lý riêng |
-| Chuyển hoa/thường | **String.toLowerCase()**, **toUpperCase()** | Overload nhận **Locale**; dùng **Locale.ROOT** cho quy tắc ngôn ngữ trung lập khi thích hợp |
-| Sắp xếp văn bản | **Collator.getInstance()** | **Collator.getInstance(locale)** |
-| Phân tách văn bản | **BreakIterator.getWordInstance()** và factory tương tự | Truyền locale theo nội dung văn bản |
-| Tra cứu chuỗi đa ngôn ngữ | **ResourceBundle.getBundle("messages")** | Truyền locale được chọn và xác định chính sách fallback |
+| Text formatting with numbers | **String.format("%.2f", value)** uses the formatting default locale | **String.format(Locale.US, "%.2f", value)** or the chosen locale |
+| Number/currency/percent formatting | **NumberFormat.getNumberInstance()**, **getCurrencyInstance()** | Factories accepting **Locale** |
+| Parsing input numbers | **NumberFormat.getInstance().parse(text)** | Create a formatter with the input data's own locale |
+| Date/time formatting | **DateTimeFormatter.ofLocalizedDate(style)** and similar factories | Use **withLocale(locale)**; handle timezone separately |
+| Case conversion | **String.toLowerCase()**, **toUpperCase()** | Overloads taking **Locale**; use **Locale.ROOT** for language-neutral rules where appropriate |
+| Text sorting | **Collator.getInstance()** | **Collator.getInstance(locale)** |
+| Text segmentation | **BreakIterator.getWordInstance()** and similar factories | Pass the locale matching the text content |
+| Multilingual string lookup | **ResourceBundle.getBundle("messages")** | Pass the selected locale and define a fallback policy |
 
-Không phải mọi API Java phụ thuộc locale. **Integer.parseInt("123")** dùng cú pháp số xác định của Java; **LocalDate.parse("2026-10-28")** dùng định dạng ISO theo mặc định; **String.compareTo** so sánh đơn vị UTF-16 mà không áp dụng ngôn ngữ địa phương. Cần biết API nào biến đổi theo locale để không truy tìm sai nguyên nhân.
+Not all Java APIs are locale-dependent. **Integer.parseInt("123")** uses Java's deterministic numeric syntax; **LocalDate.parse("2026-10-28")** uses ISO format by default; **String.compareTo** compares UTF-16 code units without applying regional linguistic rules. You need to know which APIs vary by locale so you do not chase the wrong root cause.
 
-## 3. Thí nghiệm có stdout chính xác: cùng mã, khác FORMAT locale
+## 3. Experiment with Exact Stdout: Same Code, Different FORMAT Locale
 
-Ví dụ đầy đủ sau giả lập hai môi trường trong một lần chạy. Nó đặt mặc định **FORMAT** lần lượt là Hoa Kỳ và Đức để cho thấy kết quả của overload ngầm định. Đồng thời, chương trình luôn định dạng tường minh bằng **Locale.US** để so sánh.
+The following complete example simulates two environments in a single run. It sets the **FORMAT** default to the United States and Germany in turn to demonstrate the output of the implicit overload. At the same time, the program always formats explicitly with **Locale.US** for comparison.
 
 **File DefaultLocaleRiskDemo.java**
 
@@ -108,43 +108,43 @@ public class DefaultLocaleRiskDemo {
 }
 ~~~
 
-Lưu đúng tên **DefaultLocaleRiskDemo.java** và chạy trên Java 17+:
+Save with the exact name **DefaultLocaleRiskDemo.java** and run on Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 DefaultLocaleRiskDemo.java
 java DefaultLocaleRiskDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 en-US | implicit=1.50 | explicit=1.50
 de-DE | implicit=1,50 | explicit=1.50
 ~~~
 
-**Giải thích:** Khi locale mặc định cho **FORMAT** là **en-US**, dấu thập phân là dấu chấm. Khi chuyển sang **de-DE**, overload **String.format("%.2f", ...)** dùng dấu phẩy. Còn overload **String.format(Locale.US, ...)** giữ nguyên cách biểu diễn trong cả hai trường hợp. Đây là ví dụ thay đổi **kết quả hiển thị**, giá trị số **double 1.5** trong bộ nhớ không thay đổi.
+**Explanation:** When the **FORMAT** default locale is **en-US**, the decimal separator is a dot. When switched to **de-DE**, the **String.format("%.2f", ...)** overload uses a comma. Meanwhile, the **String.format(Locale.US, ...)** overload keeps the exact same representation in both cases. This illustrates a change in **display output**; the numeric value **double 1.5** in memory does not change.
 
-**Giới hạn quan trọng:** Ví dụ cố ý gọi **Locale.setDefault** để minh họa lỗi, với giả định một chương trình console chạy độc lập. Việc khôi phục trong **finally** giảm ảnh hưởng sau thí nghiệm nhưng **không bảo đảm an toàn nếu nhiều luồng đang chạy song song**. Không sử dụng thủ thuật đổi default theo từng request trong server.
+**Important limitation:** This example deliberately calls **Locale.setDefault** to demonstrate the pitfall, assuming a standalone console program. Restoring in **finally** reduces side effects after the experiment, yet **does not ensure safety if multiple threads run concurrently**. Do not use the per-request default-switching trick in a server.
 
-## 4. Rủi ro 1: số và tiền tệ hiển thị hoặc được phân tích sai
+## 4. Risk 1: Numbers and Currency Displayed or Parsed Incorrectly
 
-### 4.1. Kết quả hiển thị khác nhau
+### 4.1. Divergent display outputs
 
-Giả sử mã nguồn dùng:
+Suppose the source code uses:
 
 ~~~java
 String displayed = String.format("%.2f", 1234.5);
 ~~~
 
-Đây là đoạn minh họa đặt trong một phương thức. Với mặc định FORMAT **en-US**, kết quả là **1234.50**; với **de-DE**, kết quả là **1234,50**. Nếu chương trình tạo bản báo cáo, nội dung email, file dữ liệu hoặc snapshot kiểm thử từ **displayed**, chỉ thay môi trường có thể làm kết quả khác.
+This is an illustrative snippet placed inside a method. With a FORMAT default of **en-US**, the result is **1234.50**; with **de-DE**, the result is **1234,50**. If the program generates report files, email bodies, data files, or test snapshots from **displayed**, merely changing the environment can alter the output.
 
-Với các formatter có phân nhóm chữ số và định dạng tiền tệ, cách hiển thị còn chịu dữ liệu bản địa hóa theo JDK: vị trí ký hiệu, dấu cách đặc biệt, dấu phân cách và chữ số. Đừng giả định hai phiên bản JDK đều trả một chuỗi byte-for-byte giống nhau chỉ vì cùng language tag.
+With formatters that use digit grouping and currency formatting, presentation also depends on JDK localization data: symbol placement, special spaces, separators, and digits. Do not assume two JDK versions always return byte-for-byte identical strings simply because they share the same language tag.
 
-### 4.2. Phân tích số có thể làm thay đổi giá trị
+### 4.2. Parsing numbers can alter values
 
-Sự khác biệt không dừng ở vẻ ngoài. Chuỗi **"1,234"** có thể mang nghĩa **một nghìn hai trăm ba mươi tư** khi dùng quy ước Hoa Kỳ, nhưng mang nghĩa **một phẩy hai ba bốn** trong ngữ cảnh Đức. Nếu một dịch vụ nhận input theo quy ước cụ thể mà lại dùng **NumberFormat.getInstance()** không truyền locale, kết quả phân tích có thể khác giữa dev và production.
+The difference does not stop at appearance. The string **"1,234"** can mean **one thousand two hundred thirty-four** under US conventions, yet mean **one point two three four** in a German context. If a service receives input following a specific convention but uses **NumberFormat.getInstance()** without passing a locale, parsing results can diverge between dev and production.
 
-Khi đọc số từ người dùng, phải biết **locale của dữ liệu nhập**:
+When reading numbers from users, you must know **the locale of the input data**:
 
 ~~~java
 import java.text.NumberFormat;
@@ -165,29 +165,29 @@ public class ParsingLocaleDemo {
 }
 ~~~
 
-Lưu **ParsingLocaleDemo.java**, chạy:
+Save **ParsingLocaleDemo.java**, and run:
 
 ~~~bash
 javac ParsingLocaleDemo.java
 java ParsingLocaleDemo
 ~~~
 
-Kết quả theo quy tắc số của hai locale:
+Output according to the number rules of the two locales:
 
 ~~~text
 US: 1234
 Germany: 1.234
 ~~~
 
-Kết quả thể hiện hai **giá trị số khác nhau**. Đừng lưu chuỗi số đã bản địa hóa rồi đọc ngược bằng mặc định hệ thống. Với API, cơ sở dữ liệu, file trao đổi giữa máy, hãy dùng hợp đồng biểu diễn ổn định (ví dụ số JSON hoặc định dạng số đã quy định) và chỉ dùng locale khi hiển thị hoặc phân tích dữ liệu thật sự do con người nhập.
+The output represents two **different numeric values**. Do not store localized number strings and read them back using the system default. For APIs, databases, and machine-exchange files, use a stable representation contract (such as JSON numbers or a specified numeric format) and only use locales when displaying or parsing genuinely human-entered data.
 
-**Lưu ý phân tích dữ liệu:** **NumberFormat.parse(String)** có thể chấp nhận một phần chuỗi và trả về kết quả cho tiền tố hợp lệ. Với input cần được kiểm tra đầy đủ, dùng **ParsePosition** để xác nhận đã tiêu thụ hết chuỗi, kèm validation về khoảng giá trị và kiểu dữ liệu. Với tiền tệ có yêu cầu chính xác, cân nhắc **BigDecimal** thay vì **double**.
+**Parsing note:** **NumberFormat.parse(String)** can accept a partial string and return a result for a valid prefix. For input requiring full validation, use **ParsePosition** to verify the entire string was consumed, along with range and type validation. For monetary values requiring precision, consider **BigDecimal** instead of **double**.
 
-## 5. Rủi ro 2: lỗi chữ hoa/thường do ngôn ngữ mặc định
+## 5. Risk 2: Uppercase/Lowercase Bugs Caused by Default Language
 
-Những lệnh tưởng đơn giản như **String.toLowerCase()** có thể phụ thuộc ngôn ngữ. Tiếng Thổ Nhĩ Kỳ có quy tắc chữ **I/i** khác tiếng Anh. Nếu dùng cách chuyển chữ mặc định để chuẩn hóa khóa máy, tên quyền hoặc mã lệnh, cùng một chuỗi có thể biến đổi khác nhau giữa môi trường.
+Seemingly simple calls like **String.toLowerCase()** can be language-dependent. Turkish has different **I/i** casing rules from English. If default case conversion is used to normalize machine keys, permission names, or command codes, the same string can transform differently across environments.
 
-Ví dụ tự chứa, tránh phụ thuộc môi trường:
+Self-contained example avoiding environment dependence:
 
 **File CaseMappingDemo.java**
 
@@ -206,7 +206,7 @@ public class CaseMappingDemo {
 }
 ~~~
 
-Lưu **CaseMappingDemo.java**, chạy:
+Save **CaseMappingDemo.java**, and run:
 
 ~~~bash
 javac CaseMappingDemo.java
@@ -220,15 +220,15 @@ title
 tıtle
 ~~~
 
-Dòng thứ hai chứa chữ **ı** không dấu chấm (U+0131), khác chữ **i** thường (U+0069). Nếu gọi **command.toLowerCase()** không tham số, kết quả có thể phản ánh locale mặc định chung. Với **mã định danh kỹ thuật** mà hợp đồng yêu cầu quy tắc độc lập ngôn ngữ, dùng **Locale.ROOT** khi chuyển chữ, đồng thời quy định bảng ký tự hợp lệ và chuẩn hóa dữ liệu. Với **văn bản tự nhiên** của người dùng, dùng locale đúng của ngôn ngữ đó; không mặc định rằng Locale.ROOT phù hợp mọi trường hợp.
+The second line contains the dotless **ı** (U+0131), distinct from the regular lowercase **i** (U+0069). If **command.toLowerCase()** is called without arguments, the result can reflect the general default locale. For **technical identifiers** whose contract requires language-independent rules, use **Locale.ROOT** during case conversion while enforcing allowed character sets and normalization. For **natural user text**, use the exact locale of that language; do not assume Locale.ROOT fits every case.
 
-Cảnh báo: chuyển hoa/thường không phải phương pháp đầy đủ để chuẩn hóa Unicode hay kiểm tra tính tương đương của mọi ngôn ngữ. Nếu cần so khớp văn bản theo ngôn ngữ, cân nhắc **Collator**; nếu cần chuẩn hóa dạng Unicode, xem **Normalizer** và thiết kế quy tắc tách biệt với quyền/định danh.
+Warning: case conversion is not a complete method for Unicode normalization or equivalence checking across all languages. If linguistic text matching is needed, consider **Collator**; if Unicode normalization forms are needed, see **Normalizer** and keep rules separate from permissions/identifiers.
 
-## 6. Rủi ro 3: ngày giờ và snapshot kiểm thử
+## 6. Risk 3: Dates/Times and Test Snapshots
 
-Trong Java hiện đại, **java.time** nên được dùng cho ngày giờ. Tuy vậy, **DateTimeFormatter.ofLocalizedDate(...)** tạo formatter dùng quy ước địa phương; khi không chỉ định locale, kết quả có thể chịu ảnh hưởng mặc định **FORMAT**. Tên tháng, trật tự thành phần ngày và dấu phân cách có thể khác nhau.
+In modern Java, **java.time** should be used for dates and times. Even so, **DateTimeFormatter.ofLocalizedDate(...)** creates a formatter using regional conventions; when no locale is specified, the output can be affected by the **FORMAT** default. Month names, component order, and separators can differ.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~java
 import java.time.LocalDate;
@@ -253,15 +253,15 @@ public class DateFormattingDemo {
 }
 ~~~
 
-Lưu **DateFormattingDemo.java** và chạy **javac DateFormattingDemo.java**, **java DateFormattingDemo**. Hai dòng trình bày cùng **ngày 28/10/2026** bằng quy ước của từng locale. Cách viết tháng/chèn khoảng trắng có thể thay đổi theo dữ liệu CLDR của JDK, vì vậy ví dụ không gán một stdout cố định cho các môi trường không chốt phiên bản runtime.
+Save **DateFormattingDemo.java** and run **javac DateFormattingDemo.java**, **java DateFormattingDemo**. The two lines present the same date **28/10/2026** using each locale's conventions. Month wording/whitespace insertion can change across JDK CLDR data, so the example does not assign a fixed stdout for environments without a pinned runtime version.
 
-Nếu một snapshot test yêu cầu nguyên văn chuỗi ngày tiếng Việt theo CLDR, việc nâng cấp Java/JDK có thể làm test đổi kết quả ngay cả khi application code không đổi. Muốn kiểm tra **ý nghĩa của ngày** nên assert đối tượng **LocalDate**, còn muốn kiểm tra format cụ thể thì chỉ định locale, lựa chọn style/pattern và kiểm soát phiên bản môi trường.
+If a snapshot test asserts a verbatim Vietnamese date string per CLDR, upgrading Java/JDK can cause the test output to change even when application code did not change. To verify **the semantic value of a date**, assert the **LocalDate** object; to test a specific format, specify the locale, select the style/pattern, and control the environment version.
 
-**Locale khác TimeZone:** cùng một **Instant** khi hiển thị ở **Asia/Ho_Chi_Minh** và **America/New_York** cho giờ địa phương khác nhau dù locale giữ nguyên. Một test chạy đúng ở dev nhưng sai production có thể bị ảnh hưởng **cả locale và múi giờ**. Không dùng **ZoneId.systemDefault()** nếu hợp đồng xử lý thời gian phải thống nhất; truyền **ZoneId** rõ ràng hoặc dùng **UTC** cho dữ liệu thời điểm trao đổi qua API.
+**Locale differs from TimeZone:** the same **Instant** displayed in **Asia/Ho_Chi_Minh** and **America/New_York** shows different local times even when the locale stays the same. A test passing on dev but failing in production can be affected by **both locale and time zone**. Do not use **ZoneId.systemDefault()** if time-handling contracts must be consistent; pass an explicit **ZoneId** or use **UTC** for instant data exchanged via APIs.
 
-## 7. Rủi ro 4: bản dịch và ResourceBundle thay đổi
+## 7. Risk 4: Translations and ResourceBundle Shifting
 
-Giả sử classpath có các file:
+Suppose the classpath has these files:
 
 ~~~text
 messages.properties
@@ -269,16 +269,16 @@ messages_vi.properties
 messages_en.properties
 ~~~
 
-Nếu mã gọi:
+If code calls:
 
 ~~~java
 ResourceBundle bundle = ResourceBundle.getBundle("messages");
 String title = bundle.getString("title");
 ~~~
 
-Đoạn minh họa cần import **java.util.ResourceBundle**, tệp resource thực tế và một khóa **title**. Overload không truyền locale sử dụng mặc định JVM để lựa chọn resource. Khi dev chạy trong môi trường tiếng Việt còn máy chủ mặc định tiếng Anh, cùng một khóa có thể trả bản dịch khác nhau.
+This illustrative snippet requires importing **java.util.ResourceBundle**, actual resource files, and a **title** key. The overload without a locale uses the JVM default to select the resource. When dev runs in a Vietnamese environment while the server defaults to English, the same key can return different translations.
 
-Cách kiểm soát:
+How to control it:
 
 ~~~java
 Locale chosen = Locale.forLanguageTag("vi-VN");
@@ -287,15 +287,15 @@ ResourceBundle bundle =
 String title = bundle.getString("title");
 ~~~
 
-Đoạn minh họa cần import **java.util.Locale** và **java.util.ResourceBundle**. **chosen** nên đến từ cơ chế chọn locale của người dùng hoặc chính sách ứng dụng; chỉ định locale giúp tránh phụ thuộc mặc định ở bước chọn bundle. Tuy nhiên, **ResourceBundle** có cơ chế tìm bản dịch và fallback riêng, trong một số trường hợp có thể xét locale mặc định của JVM nếu không có candidate phù hợp. Vì vậy, một hệ thống cần fallback tuyệt đối xác định còn phải **thiết kế chính sách bundle** và kiểm thử trường hợp thiếu resource.
+This illustrative snippet requires importing **java.util.Locale** and **java.util.ResourceBundle**. **chosen** should come from the user's locale selection mechanism or application policy; specifying the locale avoids relying on the default at bundle selection time. However, **ResourceBundle** has its own translation lookup and fallback mechanism, which in some cases may still consider the JVM's default locale if no matching candidate is found. Therefore, a system needing strictly deterministic fallback must also **design a bundle policy** and test missing-resource scenarios.
 
-Với resource bundle dạng properties trên classpath có hỗ trợ **ResourceBundle.Control**, có thể dùng **getNoFallbackControl(...)** để loại bỏ bước fallback theo locale JVM mà vẫn giữ chuỗi candidate và resource gốc. Đối với named modules, API nhận **Control** có những hạn chế; cần áp dụng cơ chế tài nguyên/provider tương ứng.
+For properties-based resource bundles on the classpath that support **ResourceBundle.Control**, you can use **getNoFallbackControl(...)** to eliminate fallback to the JVM locale while preserving the candidate chain and root resource. For named modules, APIs accepting **Control** have restrictions; apply the corresponding resource/provider mechanism instead.
 
-**Điều cần kiểm tra:** kiểm thử bản dịch thiếu khóa, locale không được hỗ trợ, cache bundle và default locale của JVM. Khi nhiều request dùng cùng server, không gọi **Locale.setDefault** để đổi giao diện theo từng người dùng.
+**What to test:** test missing keys, unsupported locales, bundle caching, and JVM default locales. When multiple requests share a server, do not call **Locale.setDefault** to switch UI language per user.
 
-## 8. Rủi ro 5: thứ tự sắp xếp và xử lý văn bản khác nhau
+## 8. Risk 5: Sorting Order and Text Processing Diverging
 
-**Collator.getInstance()** không nhận locale có thể tạo bộ so sánh theo ngữ cảnh mặc định. Các chữ cái có dấu, chữ ghép và thứ tự chữ cái thay đổi giữa quy tắc ngôn ngữ; danh sách tên hiển thị có thể được sắp theo cách khác trên hai máy.
+**Collator.getInstance()** without a locale can create a comparator based on the default context. Accented letters, digraphs, and alphabetical ordering vary across linguistic rules; a list of display names may be sorted differently on two machines.
 
 ~~~java
 import java.text.Collator;
@@ -313,44 +313,44 @@ public class ExplicitCollationDemo {
 }
 ~~~
 
-Lưu **ExplicitCollationDemo.java**, chạy bằng **javac** và **java**. Các tên được sắp theo Collator của locale đã chỉ định thay vì locale mặc định. Kết quả cụ thể còn có thể phụ thuộc dữ liệu và nhà cung cấp locale của JDK, nên nếu thứ tự được xem là hợp đồng dữ liệu phải kiểm thử trong runtime triển khai thực tế.
+Save **ExplicitCollationDemo.java**, and run with **javac** and **java**. The names are sorted using the Collator of the specified locale rather than the default locale. Exact output can still depend on JDK locale data and providers, so if ordering is treated as a data contract, test it on the actual deployment runtime.
 
-Không dùng kết quả của **Collator** để xác định quyền truy cập hay tính duy nhất của mã định danh bảo mật. So sánh ngôn ngữ phục vụ hiển thị/tìm kiếm và so sánh định danh kỹ thuật giải quyết hai bài toán khác nhau.
+Do not use **Collator** results to determine access rights or uniqueness of security identifiers. Linguistic comparison for display/search and technical identifier comparison solve two different problems.
 
-Tương tự, **BreakIterator** không nhận locale có thể chọn quy tắc phân tách văn bản theo mặc định. Nếu ứng dụng xử lý tiếng Thái, tiếng Việt hoặc emoji/cụm ký tự Unicode, thay đổi JDK/dữ liệu Unicode còn có thể tác động tới ranh giới ký tự. Việc truyền đúng locale giúp xác định ngữ cảnh mong muốn nhưng **không bảo đảm không có thay đổi giữa mọi phiên bản JDK**.
+Similarly, **BreakIterator** without a locale can choose text segmentation rules based on the default. If the application processes Thai, Vietnamese, or Unicode emoji/grapheme clusters, changes in JDK/Unicode data can also affect character boundaries. Passing the right locale establishes the intended context, though it **does not guarantee zero changes across all JDK versions**.
 
-## 9. Hai lớp khác biệt: cấu hình runtime và dữ liệu bản địa hóa của JDK
+## 9. Two Distinct Layers of Difference: Runtime Configuration and JDK Localization Data
 
-Cần phân biệt hai nguyên nhân có dấu hiệu giống nhau.
+Distinguish two causes that show similar symptoms.
 
-### 9.1. Mặc định khác nhau do môi trường
+### 9.1. Different defaults due to environment
 
-Các máy có thể cho **Locale.getDefault()** khác nhau vì:
-- Người dùng hệ điều hành và cài đặt vùng khác nhau.
-- Cách chạy trong IDE, terminal, CI, container hay service manager khác nhau.
-- Thuộc tính JVM như **user.language** và **user.country** được đặt khi khởi động.
-- Mã ứng dụng hoặc thư viện gọi **Locale.setDefault**.
-- Mặc định theo category **FORMAT**/**DISPLAY** được tùy chỉnh riêng.
+Machines can produce different **Locale.getDefault()** values because:
+- OS users and regional settings differ.
+- Execution environments across IDE, terminal, CI, container, or service manager differ.
+- JVM properties such as **user.language** and **user.country** are set at startup.
+- Application code or a library calls **Locale.setDefault**.
+- Category defaults **FORMAT**/**DISPLAY** are customized independently.
 
-Nếu app sử dụng overload ngầm, thay đổi những yếu tố trên có thể làm kết quả khác mà không cần sửa một dòng Java nào.
+If the app uses implicit overloads, changing any of the above can change outputs without modifying a single line of Java.
 
-### 9.2. Cùng locale nhưng dữ liệu JDK khác nhau
+### 9.2. Same locale, different JDK data
 
-Giả sử cả hai môi trường đều có mặc định **vi-VN**. Output vẫn có khả năng khác do:
-- Phiên bản JDK hoặc bản cập nhật JDK khác.
-- Dữ liệu **CLDR** (Unicode Common Locale Data Repository) được JDK tích hợp thay đổi.
-- Cấu hình locale providers trong runtime khác nhau.
-- Các API ngày giờ phụ thuộc dữ liệu múi giờ (**tzdb**) khác nhau, vốn là vấn đề độc lập với locale.
+Suppose both environments have a **vi-VN** default. Outputs can still differ due to:
+- Different JDK versions or JDK updates.
+- Changes in **CLDR** (Unicode Common Locale Data Repository) data bundled with the JDK.
+- Different locale provider configurations in the runtime.
+- Date/time APIs depending on different time zone data (**tzdb**), which is orthogonal to locale.
 
-Điều này thường xảy ra ở **dấu cách phân nhóm số, ký hiệu tiền tệ, định dạng ngày tháng, tên địa danh, cách viết chữ và collation**. Java 17+ dùng dữ liệu locale từ runtime và có thể cập nhật dữ liệu theo các bản phát hành. **Truyền locale tường minh giải quyết sự phụ thuộc vào default, nhưng không khóa phiên bản dữ liệu CLDR.**
+This commonly happens in **number grouping spaces, currency symbols, date formats, place names, spelling conventions, and collation**. Java 17+ uses locale data from the runtime and can update that data across releases. **Passing an explicit locale eliminates default dependency, but does not lock the CLDR data version.**
 
-Vì thế để kết quả hiển thị ổn định tuyệt đối, cần xác định cả **locale** lẫn **JDK/runtime**, và trong một số hợp đồng phải dùng định dạng kỹ thuật bất biến được chỉ định rõ thay vì định dạng bản địa hóa.
+Therefore, for strictly stable display outputs, both **locale** and **JDK/runtime** must be pinned, and some contracts must use specified invariant technical formats rather than localized formats.
 
-## 10. Cách tái hiện và chẩn đoán trong dev, CI và production
+## 10. How to Reproduce and Diagnose in Dev, CI, and Production
 
-### 10.1. Ghi lại thông tin có ích
+### 10.1. Record useful diagnostics
 
-Khi gặp lỗi “chỉ xảy ra trên máy chủ”, bắt đầu từ những thông tin liên quan đến sự khác biệt thay vì phỏng đoán:
+When encountering a “works on my machine, fails on server” bug, start with facts relevant to the divergence instead of guessing:
 
 ~~~java
 import java.nio.charset.Charset;
@@ -377,46 +377,46 @@ public class RuntimeLocaleDiagnostic {
 }
 ~~~
 
-Lưu **RuntimeLocaleDiagnostic.java** rồi chạy:
+Save **RuntimeLocaleDiagnostic.java** and run:
 
 ~~~bash
 javac RuntimeLocaleDiagnostic.java
 java RuntimeLocaleDiagnostic
 ~~~
 
-**Không có stdout cố định** vì chương trình cố tình đọc môi trường thật. Chạy nó hoặc tích hợp phần đo tương đương trong môi trường dev, test và server. Ghi nhận thêm tên JDK vendor/build, image/container version, cấu hình locale của JVM, cấu hình startup và phiên bản gói triển khai nếu cần tái hiện.
+**There is no fixed stdout** because the program intentionally reads the real environment. Run it or integrate equivalent diagnostics in dev, test, and server environments. Also record JDK vendor/build, image/container version, JVM locale configuration, startup flags, and deployment package version when reproduction is needed.
 
-Với ứng dụng có nhiều người dùng, chỉ log thông tin môi trường ở mức phù hợp để chẩn đoán; không ghi token, cookie hoặc dữ liệu cá nhân nhạy cảm. Khi kết quả sai chỉ xuất hiện trong một request, log **resolved locale** của request và nguồn lựa chọn locale ở mức an toàn, tránh quy mọi lỗi cho JVM default.
+In multi-user applications, log environment info at an appropriate diagnostic level; do not log tokens, cookies, or sensitive personal data. When an incorrect output occurs only in a single request, log the request's **resolved locale** and locale selection source safely rather than blaming every bug on the JVM default.
 
-### 10.2. Chạy thử với default khác nhau
+### 10.2. Test with different defaults
 
-Nếu chạy Java 17+ bằng command line, có thể thử tạo hai tiến trình riêng với các thuộc tính JVM:
+When running Java 17+ from the command line, you can spawn two separate processes with JVM properties:
 
 ~~~bash
 java -Duser.language=en -Duser.country=US RuntimeLocaleDiagnostic
 java -Duser.language=de -Duser.country=DE RuntimeLocaleDiagnostic
 ~~~
 
-Các thuộc tính **-D...** đặt trước tên main class. Sau khi chạy, kiểm tra **Locale.getDefault(...)** in ra thực tế vì cấu hình theo category và các điều kiện runtime khác có thể tác động. Đây là cách kiểm tra hành vi phụ thuộc môi trường theo **từng process**, phù hợp hơn với việc đổi default ngay trong những bài kiểm thử chạy song song.
+The **-D...** properties are placed before the main class name. After running, check the actual **Locale.getDefault(...)** printed, as category settings and other runtime conditions can take effect. This is a **per-process** way to test environment-dependent behavior, better suited than mutating defaults inside tests running in parallel.
 
-Để quan sát chênh lệch cụ thể trong NumberFormat, định dạng ngày hoặc ResourceBundle, chạy chính chức năng nghi ngờ trong hai tiến trình. Đừng kết luận chỉ dựa vào việc hai máy có **LANG** khác nhau: JVM có thể xử lý locale khác các chương trình shell, và giá trị thực tế cần được lấy từ API Java.
+To observe concrete differences in NumberFormat, date formatting, or ResourceBundle, run the suspected feature in two separate processes. Do not conclude based solely on two machines having different **LANG** values: the JVM may handle locales differently from shell programs, and actual values should be read from Java APIs.
 
-### 10.3. Quy trình khoanh vùng
+### 10.3. Isolation workflow
 
-1. **So sánh đầu vào gốc**: dữ liệu nghiệp vụ, phiên bản cấu hình, ngôn ngữ do request hoặc người dùng chọn.
-2. **Ghi nhận default thực tế**: global, FORMAT, DISPLAY; đồng thời kiểm tra zone/charset nếu đầu ra có liên quan.
-3. **Tìm các overload không truyền locale** và nơi gọi **Locale.setDefault** trong ứng dụng hoặc thư viện.
-4. **Gọi lại với locale tường minh** trên cùng dữ liệu để xem khác biệt có biến mất không.
-5. **Đối chiếu JDK và dữ liệu locale** khi cả hai nơi đã dùng cùng một locale nhưng kết quả chuỗi vẫn khác.
-6. **Xác định hợp đồng output**: hiển thị theo người dùng hay dữ liệu trao đổi cần bất biến. Sau đó sửa tại ranh giới phù hợp, viết kiểm thử bảo vệ hành vi.
+1. **Compare raw inputs**: business data, configuration version, language selected by the request or user.
+2. **Record actual defaults**: global, FORMAT, DISPLAY; also check zone/charset if relevant to the output.
+3. **Locate overloads without locale parameters** and places calling **Locale.setDefault** in the application or libraries.
+4. **Re-invoke with an explicit locale** on the same data to see if the discrepancy disappears.
+5. **Compare JDK and locale data** when both environments already use the same locale yet string outputs still differ.
+6. **Define the output contract**: human-facing display vs. invariant machine-exchange data. Then fix at the proper boundary and write tests to guard the behavior.
 
-Nếu xử lý bản dịch thiếu khóa, kiểm tra thứ tự fallback ResourceBundle trước khi đổ lỗi cho default. Nếu giờ bị lệch nhưng ngôn ngữ/format tương đồng, điều tra ZoneId và dữ liệu tzdb riêng.
+If handling missing translation keys, inspect the ResourceBundle fallback order before blaming the default. If hours are shifted while language/formatting match, investigate ZoneId and tzdb data separately.
 
-## 11. Cách thiết kế để kết quả ổn định
+## 11. Designing for Consistent Results
 
-### 11.1. Truyền locale tường minh
+### 11.1. Pass explicit locales
 
-Các phương thức xử lý theo ngôn ngữ nên nhận locale như một tham số hoặc nhận một đối tượng ngữ cảnh chứa locale đã resolve:
+Language-sensitive processing methods should accept a locale parameter or a context object holding the resolved locale:
 
 ~~~java
 import java.text.NumberFormat;
@@ -434,48 +434,48 @@ public class LocaleAwarePrice {
 }
 ~~~
 
-Lưu **LocaleAwarePrice.java**; class biên dịch với Java 17+. Đây là phương thức tiện ích không có **main**, dùng từ một caller khi đã xác định **displayLocale**. Tách việc **chọn locale** khỏi việc **định dạng** giúp cùng một dữ liệu cho kết quả thống nhất khi được truyền cùng ngữ cảnh.
+Save **LocaleAwarePrice.java**; the class compiles with Java 17+. This is a utility method without **main**, called by a caller once **displayLocale** has been determined. Separating **locale selection** from **formatting** ensures the same data yields consistent results when passed the same context.
 
-Lưu ý **NumberFormat** mutable, không nên dùng chung một instance rồi đổi locale/định dạng giữa các thread. Đối với ngày giờ, **DateTimeFormatter** immutable và thích hợp chia sẻ nếu đã cấu hình đúng.
+Note that **NumberFormat** is mutable; do not share a single instance while changing its locale/format across threads. For dates and times, **DateTimeFormatter** is immutable and suitable for sharing once properly configured.
 
-### 11.2. Có mặc định riêng của ứng dụng
+### 11.2. Have an explicit application default
 
-Nếu người dùng không chọn locale, dùng một **application default** rõ ràng, nằm trong danh sách locale mà ứng dụng hỗ trợ, ví dụ **vi-VN**. Giá trị có thể đến từ cấu hình triển khai hoặc cấu hình sản phẩm, nhưng phải được xác minh khi khởi động. Đừng mặc định rằng default của JVM là ngôn ngữ mà hệ thống đã chuẩn bị bản dịch.
+If the user has not chosen a locale, use an explicit **application default** from the application's supported locale list, such as **vi-VN**. The value can come from deployment or product configuration, but must be verified at startup. Do not assume the JVM default is a language for which the system has prepared translations.
 
-Với ứng dụng đa người dùng, chính sách thực tế có thể là:
+In a multi-user application, a practical policy might be:
 
 ~~~text
-Lựa chọn hiện tại của người dùng
-    -> Cấu hình đã lưu của người dùng
-    -> Ngôn ngữ client được hỗ trợ
-    -> Mặc định tenant/tổ chức (nếu có)
-    -> Mặc định ứng dụng
+User's current selection
+    -> User's saved configuration
+    -> Supported client language
+    -> Tenant/organization default (if applicable)
+    -> Application default
 ~~~
 
-Đây là **ví dụ chính sách**, không phải thứ tự Java Core tự áp đặt. Một resolver chịu trách nhiệm trả về **Locale** được hỗ trợ trước khi phần hiển thị xử lý dữ liệu. Không dùng **Locale.setDefault** để chuyển ngôn ngữ theo request.
+This is an **example policy**, not an order automatically enforced by Java Core. A resolver is responsible for returning a supported **Locale** before the presentation layer processes data. Never use **Locale.setDefault** to switch languages per request.
 
-### 11.3. Dữ liệu máy cần hợp đồng độc lập ngôn ngữ
+### 11.3. Machine data needs a language-independent contract
 
-Không xuất số, ngày hoặc mã định danh bằng cách gọi formatter phụ thuộc locale ngầm rồi kỳ vọng hệ thống khác tự đọc giống như máy nguồn:
+Do not output numbers, dates, or identifiers by calling formatters that implicitly rely on defaults and expecting another system to parse them just like the source machine:
 
-- Với ngày/giờ trao đổi máy, dùng kiểu dữ liệu chính xác và một biểu diễn được quy định, ví dụ **ISO-8601**, kèm offset/zone khi cần.
-- Với số của JSON/API, dùng cú pháp số theo hợp đồng dữ liệu; không nhúng số bản địa hóa vào trường string trừ khi hợp đồng yêu cầu.
-- Với mã định danh kỹ thuật, quy định rõ so sánh case-sensitive hay canonicalization; không phụ thuộc chữ hoa/thường trong ngôn ngữ của máy chủ.
-- Với văn bản dành cho người đọc, định dạng theo locale của người đọc và kiểm tra dữ liệu bản địa hóa trong runtime được hỗ trợ.
+- For machine-exchanged dates/times, use exact data types and a specified representation, such as **ISO-8601**, with offset/zone when required.
+- For JSON/API numbers, use numeric syntax per the data contract; do not embed localized numbers in string fields unless required by the contract.
+- For technical identifiers, explicitly define case-sensitive comparison or canonicalization; do not depend on server-language casing rules.
+- For human-readable text, format according to the reader's locale and test localization data on supported runtimes.
 
-Cùng một trường dữ liệu thường có **giá trị chuẩn** và **chuỗi hiển thị** khác nhau. Hãy lưu giá trị chuẩn và chỉ sinh chuỗi hiển thị ở biên phù hợp.
+The same data field often has a **canonical value** and a different **display string**. Store the canonical value and generate the display string only at the appropriate boundary.
 
-### 11.4. Không sử dụng Locale.setDefault theo request
+### 11.4. Do not use Locale.setDefault per request
 
-**Locale.setDefault(...)** sửa trạng thái ở mức JVM. Nếu request A đặt **vi-VN** và request B đặt **de-DE**, request A có thể vô tình định dạng theo locale của B do hai request chạy xen kẽ. Việc dùng **try/finally** để trả lại default cũng không loại bỏ race trong quá trình chạy.
+**Locale.setDefault(...)** modifies JVM-level state. If request A sets **vi-VN** and request B sets **de-DE**, request A can accidentally format using B's locale because the two requests interleave. Using **try/finally** to restore the default also fails to prevent races during execution.
 
-Thay vì thay toàn bộ tiến trình, giữ locale trong biến/ngữ cảnh request và truyền cho formatter, bundle, collator. Với xử lý bất đồng bộ, chuyển ngữ cảnh tường minh theo nhiệm vụ; một **ThreadLocal** không được tự động mang sang mọi executor và phải dọn sạch khi dùng thread pool.
+Instead of mutating the entire process, keep the locale in a request variable/context and pass it to formatters, bundles, and collators. For asynchronous processing, propagate context explicitly with each task; a **ThreadLocal** is not automatically carried across all executors and must be cleaned up when using thread pools.
 
-## 12. Kiểm thử: tránh kết quả phụ thuộc môi trường
+## 12. Testing: Avoiding Environment-Dependent Results
 
-### 12.1. Kiểm thử hành vi tường minh, không dựa vào máy CI
+### 12.1. Test explicit behavior without relying on the CI machine
 
-Ví dụ kiểm tra số theo hai locale bằng một chương trình độc lập:
+Example verifying numbers in two locales with a standalone program:
 
 **File StableFormattingCheck.java**
 
@@ -502,90 +502,90 @@ public class StableFormattingCheck {
 }
 ~~~
 
-Lưu **StableFormattingCheck.java**, chạy:
+Save **StableFormattingCheck.java**, and run:
 
 ~~~bash
 javac StableFormattingCheck.java
 java StableFormattingCheck
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 PASS
 ~~~
 
-Bài kiểm tra này xác minh quy tắc dấu thập phân đơn giản với tham số locale tường minh. Nếu muốn kiểm tra một chuỗi ngày dài hoặc tiền tệ phụ thuộc dữ liệu CLDR, cần kiểm soát JDK/provider hoặc thiết kế assertion kiểm tra hành vi thay vì buộc một văn bản bản địa hóa cụ thể trên mọi phiên bản runtime.
+This test verifies a simple decimal separator rule with explicit locale arguments. If you want to test a long date string or currency that depends on CLDR data, control the JDK/provider or design behavioral assertions rather than forcing one exact localized text across every runtime version.
 
-### 12.2. Ma trận kiểm thử thiết yếu
+### 12.2. Essential test matrix
 
-| Kiểm thử | Mục đích | Điều cần xác minh |
+| Test | Purpose | What to verify |
 | --- | --- | --- |
-| Chạy cùng bài test ở **en-US** và **de-DE** default | Phát hiện overload phụ thuộc default | Logic nghiệp vụ không đổi; chỉ output được chủ đích địa phương hóa mới khác |
-| Dùng **tr-TR** khi xử lý chữ **I/i** | Phát hiện case mapping ngầm | Mã kỹ thuật không bị biến dạng bởi locale hệ thống |
-| **vi-VN** trên hai bản JDK được hỗ trợ | Phát hiện thay đổi dữ liệu locale | Chuỗi hiển thị/format thay đổi có được chấp nhận hay không |
-| Tài khoản **en-US** trên server **vi-VN** | Phát hiện dùng sai nguồn locale | UI theo lựa chọn người dùng, không theo server |
-| Missing locale hoặc thiếu ResourceBundle | Kiểm tra fallback | Không xuất nội dung trộn ngôn ngữ ngoài chính sách |
-| Parse số từ input định dạng **de-DE** | Tránh sai giá trị | Giá trị số đúng và kiểm tra hết input |
-| Date/Instant qua hai ZoneId | Tách locale khỏi timezone | Thời điểm gốc được giữ; giờ hiển thị đúng zone |
-| Hai request ngôn ngữ khác nhau chạy đồng thời | Bắt race do shared default/formatter | Không lẫn bản dịch hay dấu phân cách |
-| Runner CI image hoặc JDK nâng cấp | Kiểm tra tính tái lập | Chênh lệch format được dự kiến, khóa hoặc chấp nhận có kiểm soát |
+| Run the same test under **en-US** and **de-DE** defaults | Detect overloads relying on defaults | Business logic is unchanged; only intentionally localized output differs |
+| Use **tr-TR** when handling **I/i** characters | Detect implicit case mapping | Technical codes are not corrupted by the system locale |
+| **vi-VN** on two supported JDK versions | Detect locale data changes | Whether display/format changes are acceptable |
+| **en-US** account on a **vi-VN** server | Detect wrong locale source | UI follows user preference, not the server |
+| Missing locale or missing ResourceBundle | Verify fallback | No mixed-language content outside policy |
+| Parse numbers from **de-DE** formatted input | Prevent wrong values | Numeric value is accurate and entire input is validated |
+| Date/Instant across two ZoneIds | Separate locale from timezone | Underlying instant is preserved; displayed time matches the zone |
+| Two requests with different languages running concurrently | Catch races from shared default/formatter | No mixing of translations or separators |
+| CI runner image or JDK upgrade | Verify reproducibility | Format differences are anticipated, pinned, or deliberately accepted |
 
-Không nên để các bài test chạy song song cùng gọi **Locale.setDefault** rồi dựa vào giá trị đổi qua lại. Nếu cần test tính nhạy cảm với JVM default, chạy theo **process riêng**; hoặc bảo đảm test được cô lập hoàn toàn và khôi phục mặc định. Dù khôi phục trong finally, một test khác chạy đồng thời trong cùng JVM vẫn có thể bị ảnh hưởng.
+Do not let tests running in parallel call **Locale.setDefault** and rely on toggling values back and forth. If you need to test sensitivity to the JVM default, run in **separate processes**, or ensure the test is completely isolated and restores the default. Even with restoration in finally, another test running concurrently in the same JVM can still be affected.
 
-### 12.3. Snapshot và golden file
+### 12.3. Snapshots and golden files
 
-Snapshot test so sánh nguyên văn chuỗi đầu ra thường nhạy cảm với locale. Ví dụ cùng một ngày được bản địa hóa theo cách khác hoặc có dấu cách Unicode khác khiến snapshot fail. Khi fixture là văn bản tiếng Việt, hãy **chỉ định locale** thay vì để lấy theo CI. Nếu cần so sánh byte-for-byte lâu dài, chốt hoặc xác định giới hạn phiên bản JDK và bộ dữ liệu locale.
+Snapshot tests comparing verbatim output strings are often sensitive to locale. For example, the same date localized slightly differently or containing a different Unicode space causes snapshots to fail. When fixtures contain Vietnamese text, **specify the locale** instead of letting it come from CI. If long-term byte-for-byte comparison is required, pin or bound the JDK version and locale dataset.
 
-Với logic chỉ quan tâm giá trị nghiệp vụ, tốt hơn là assert **BigDecimal**, **LocalDate**, **Instant** và các thuộc tính cấu trúc. Tránh đưa định dạng giao diện vào tầng kiểm thử phải độc lập locale.
+For logic concerned only with business values, it is better to assert **BigDecimal**, **LocalDate**, **Instant**, and structural properties. Avoid pulling UI formatting into test layers that should be locale-independent.
 
-## 13. Vận hành và triển khai: quản trị khác biệt môi trường
+## 13. Operations and Deployment: Managing Environment Differences
 
-Để tránh tình trạng dev khác test khác production, quy trình triển khai nên:
+To prevent dev, test, and production from diverging, deployment processes should:
 
-1. **Cố định phiên bản/bản build JDK cho mỗi môi trường** trong phạm vi cần tái lập, đặc biệt khi golden file phụ thuộc dữ liệu locale.
-2. **Định nghĩa application default** và supported locales bằng cấu hình rõ ràng; xác minh lúc khởi động.
-3. **Kiểm tra startup options** và không để các cờ **-Duser.language**, **-Duser.country** vô tình thay đổi hành vi mà không được quan sát.
-4. **Ghi nhận runtime locale FORMAT/DISPLAY** trong thông tin chẩn đoán phù hợp; xử lý locale theo request riêng.
-5. **Truyền locale tường minh** tới những API phục vụ con người; sử dụng format bất biến cho hợp đồng giữa máy.
-6. **Kiểm thử container/CI như thực tế** đối với những đầu ra có tính bản địa hóa; chú ý cả JDK, locale, zone và charset.
-7. **Giám sát lỗi thiếu bản dịch hoặc dữ liệu parse không hợp lệ** để phát hiện fallback bất thường thay vì âm thầm làm sai dữ liệu.
+1. **Pin the JDK version/build per environment** where reproducibility is needed, especially when golden files depend on locale data.
+2. **Define the application default** and supported locales via explicit configuration; verify at startup.
+3. **Audit startup options** and prevent flags like **-Duser.language** and **-Duser.country** from silently altering behavior unobserved.
+4. **Record runtime FORMAT/DISPLAY locales** in appropriate diagnostic info; handle per-request locales separately.
+5. **Pass explicit locales** to human-facing APIs; use invariant formats for machine-to-machine contracts.
+6. **Test containers/CI realistically** for localized outputs; pay attention to JDK, locale, zone, and charset.
+7. **Monitor missing-translation errors or invalid parse data** to catch abnormal fallbacks instead of silently corrupting data.
 
-Nếu hệ thống xuất bản báo cáo theo locale của tổ chức, hãy ghi rõ locale dùng lúc tạo báo cáo cùng các tham số định dạng quan trọng khi cần tái tạo kết quả về sau. Chỉ lưu locale mà không biết phiên bản runtime vẫn có thể chưa đủ để tái hiện chính xác các quy tắc dữ liệu địa phương hóa của JDK cũ.
+If the system generates reports in an organization's locale, record the exact locale used at report generation time along with key formatting parameters when results need to be reproduced later. Storing only the locale without knowing the runtime version may still be insufficient to reproduce exact localization data rules of older JDKs.
 
-## 14. Những hiểu lầm dễ dẫn đến lỗi
+## 14. Misconceptions That Easily Cause Bugs
 
-**“Java code giống nhau nên output chắc chắn giống nhau.”** Sai với những API dùng default locale, dữ liệu locale hoặc timezone. Hãy kiểm tra các tham số ngầm.
+**“The Java code is identical, so the output must be identical.”** False for APIs using the default locale, locale data, or timezone. Check implicit parameters.
 
-**“Locale.getDefault() là locale của người dùng đang gửi request.”** Không đúng trong server đa người dùng. Nó là mặc định của JVM, không biết user nào đang gọi.
+**“Locale.getDefault() is the locale of the user sending the request.”** Not true in a multi-user server. It is the JVM's default and has no knowledge of which user is calling.
 
-**“Chỉ cần Locale.setDefault ở đầu request.”** Sai vì default dùng chung; request đồng thời có thể can thiệp nhau.
+**“Just call Locale.setDefault at the start of the request.”** False because the default is shared; concurrent requests can interfere with each other.
 
-**“Truyền Locale.US khắp hệ thống sẽ giải quyết mọi vấn đề.”** Nó có thể làm dữ liệu trao đổi kỹ thuật ổn định ở một số tình huống, nhưng giao diện người dùng cần locale họ đã chọn. Phải tách hợp đồng máy và giao diện.
+**“Passing Locale.US everywhere in the system solves everything.”** It can stabilize technical data exchange in some situations, but the user interface needs the user's chosen locale. Machine contracts and UI must be separated.
 
-**“Cùng locale thì mọi JDK phải định dạng giống từng byte.”** Không chắc đúng: dữ liệu CLDR, provider và phiên bản runtime có thể khác.
+**“With the same locale, every JDK must format identically byte-for-byte.”** Not guaranteed: CLDR data, providers, and runtime versions can differ.
 
-**“Locale tự bao gồm múi giờ và tiền tệ đang giao dịch.”** Không đúng. Quản lý **ZoneId** và mã **Currency** theo nguồn yêu cầu riêng.
+**“Locale already includes the time zone and transaction currency.”** False. Manage **ZoneId** and **Currency** codes from their own respective sources.
 
-**“Một bài test pass với mặc định en-US chứng tỏ không có bug locale.”** Không đủ. Cần kiểm tra ít nhất một locale có quy tắc khác rõ ràng và những dữ liệu nhạy cảm với ngôn ngữ.
+**“A test passing under an en-US default proves there are no locale bugs.”** Insufficient. Test at least one locale with clearly different rules and language-sensitive inputs.
 
-## 15. Tình huống tổng hợp: tìm nguyên nhân một lỗi production
+## 15. Synthesis Scenario: Root-Causing a Production Bug
 
-Giả sử dev xuất file báo cáo giá **"1234.50"**, CI xác minh thành công, nhưng production lại xuất **"1234,50"**. Một job downstream đọc file theo cú pháp dấu chấm và báo lỗi.
+Suppose dev outputs a price report file with **"1234.50"**, CI verifies it successfully, yet production outputs **"1234,50"**. A downstream job reads the file expecting dot-decimal syntax and fails.
 
-Quy trình hợp lý:
+A sound diagnostic workflow:
 
-1. Kiểm tra cùng input giá số là **1234.5** ở ba nơi.
-2. Kiểm tra code xuất: phát hiện **String.format("%.2f", price)** không truyền locale.
-3. In **Locale.getDefault(Locale.Category.FORMAT)** ở mỗi nơi; production dùng locale mà dấu thập phân là dấu phẩy.
-4. Xác định hợp đồng file này là dữ liệu máy đọc và yêu cầu dấu chấm, không phải báo cáo dành cho người đọc theo locale.
-5. Đổi thành **String.format(Locale.US, "%.2f", price)** cho trường đó; nếu cần độ chính xác tiền tệ, thiết kế dữ liệu và quy tắc làm tròn bằng **BigDecimal** phù hợp.
-6. Kiểm thử kết quả cố định dưới ít nhất hai mặc định JVM khác nhau. Sau đó kiểm thử tại môi trường tương đương production trước triển khai.
+1. Check that the same numeric price input **1234.5** is used in all three environments.
+2. Inspect the export code: discover **String.format("%.2f", price)** without passing a locale.
+3. Print **Locale.getDefault(Locale.Category.FORMAT)** in each environment; production uses a locale where the decimal separator is a comma.
+4. Identify the file's contract as machine-readable data requiring a dot, not a locale-formatted human report.
+5. Change that field to **String.format(Locale.US, "%.2f", price)**; if monetary precision is needed, design the data and rounding rules with **BigDecimal** appropriately.
+6. Test the fixed output under at least two different JVM defaults. Then verify in a production-equivalent environment before deployment.
 
-Ngược lại, nếu cùng trường đó là số **hiển thị cho người dùng Đức**, việc cho ra **1234,50** có thể đúng. **Đúng hay sai phụ thuộc vào hợp đồng của dữ liệu**, không phụ thuộc mặc định hiện có của máy. Vì vậy sửa lỗi phải bắt đầu từ mục đích đầu ra, rồi mới quyết định format theo locale nào.
+Conversely, if that same field is a number **displayed to a German user**, producing **1234,50** can be right. **Right or wrong depends on the data contract**, not on the machine's current default. Therefore, fixing the bug must start from the output's purpose before deciding which locale to format with.
 
-## 16. Ghi nhớ
+## 16. Key Takeaway
 
-**Rủi ro chính là phụ thuộc một tham số ngầm: Locale mặc định của JVM.** Dev, CI và production có thể dùng mặc định khác nhau; ngay cả cùng locale, các bản JDK cũng có thể khác dữ liệu bản địa hóa. Hậu quả từ chênh lệch dấu thập phân và bản dịch đến parse sai dữ liệu, snapshot thất bại hoặc lỗi xử lý mã định danh.
+**The primary risk is depending on an implicit parameter: the JVM's default Locale.** Dev, CI, and production may use different defaults; even with the same locale, different JDK versions can carry different localization data. Consequences range from decimal separator and translation mismatches to misparsed data, failing snapshots, or broken identifier handling.
 
-Giải pháp là **xác định locale của người dùng hoặc ứng dụng một cách tường minh**, truyền nó cho các API định dạng/xử lý văn bản, bảo vệ hợp đồng trao đổi dữ liệu bằng format ổn định, không thay đổi JVM default theo request và kiểm thử bằng nhiều locale, nhiều môi trường đúng phạm vi hỗ trợ. Khi kết quả vẫn khác, kiểm tra riêng phiên bản JDK/CLDR, múi giờ và charset thay vì quy mọi khác biệt về một nguyên nhân.
+The solution is to **determine the user's or application's locale explicitly**, pass it to formatting/text-processing APIs, protect data-exchange contracts with stable formats, never mutate the JVM default per request, and test across multiple locales and environments within the supported scope. When outputs still differ, investigate JDK/CLDR version, time zone, and charset separately instead of blaming every difference on a single cause.

@@ -1,67 +1,67 @@
 # java --describe-module
 
-java --describe-module là tùy chọn của Java launcher dùng để hiển thị mô tả của một module rồi kết thúc. Tùy chọn viết tắt là -d. Đây là công cụ tra cứu module trong môi trường Java đang chạy, hữu ích khi kiểm tra tên module, dependency, package được export, service được dùng hoặc provider được khai báo.
+`java --describe-module` is a Java launcher option used to display the description of a module and then exit. Its short option is `-d`. It is a module lookup tool in the running Java environment, useful for checking module names, dependencies, exported packages, used services, or declared providers.
 
-Cú pháp cơ bản:
+Basic syntax:
 
 ~~~bash
 java --describe-module module_name
 ~~~
 
-Hoặc dạng ngắn:
+Or short form:
 
 ~~~bash
 java -d module_name
 ~~~
 
-Lệnh không chạy main class của module. Nó yêu cầu launcher tìm module theo cấu hình module path hiện tại, in mô tả module và thoát. Vì vậy, đây là bước kiểm tra nhanh khi một ứng dụng modular không resolve được module như dự kiến.
+The command does not run the module's main class. It asks the launcher to locate the module under the current module path configuration, print the module description, and exit. Therefore, it is a quick check when a modular application fails to resolve a module as expected.
 
-## 1. Cú pháp và cách hoạt động
+## 1. Syntax and How It Works
 
-Dạng tổng quát:
+General form:
 
 ~~~bash
 java [launcher-options] --describe-module module_name
 ~~~
 
-Tham số module_name là tên module, ví dụ java.base, java.sql hoặc com.example.payment. Đây là tên module được khai báo trong module-info.java, không phải tên package, tên class main hay tên file JAR.
+The `module_name` parameter is the module name, for example `java.base`, `java.sql`, or `com.example.payment`. This is the module name declared in `module-info.java`, not a package name, main class name, or JAR filename.
 
-Ví dụ:
+Examples:
 
 ~~~bash
 java --describe-module java.base
 java -d java.sql
 ~~~
 
-Hai lệnh trên mô tả module hệ thống. Với module ứng dụng nằm trên module path, truyền thêm --module-path:
+The two commands above describe system modules. For an application module located on the module path, also pass `--module-path`:
 
 ~~~bash
 java --module-path mods --describe-module com.example.payment
 ~~~
 
-Nếu module nằm trong thư mục plugins:
+If the module is located in the `plugins` directory:
 
 ~~~bash
 java --module-path "mods;plugins" --describe-module com.example.payment
 ~~~
 
-Trên Windows, dấu chấm phẩy phân tách các phần tử module path. Trên Linux và macOS, dùng dấu hai chấm:
+On Windows, semicolons separate module path elements. On Linux and macOS, use colons:
 
 ~~~bash
 java --module-path "mods:plugins" --describe-module com.example.payment
 ~~~
 
-Tùy chọn -p là dạng viết tắt của --module-path:
+The `-p` option is the short form of `--module-path`:
 
 ~~~bash
 java -p mods --describe-module com.example.payment
 ~~~
 
-Các launcher option phải được đặt trước module_name. Khi đã chỉ định --describe-module, launcher in mô tả và kết thúc thay vì tiếp tục tìm main class để chạy ứng dụng.
+Launcher options must be placed before `module_name`. When `--describe-module` is specified, the launcher prints the description and exits rather than continuing to look for a main class to run the application.
 
-## 2. Đọc kết quả mô tả module
+## 2. Reading Module Description Output
 
-Ví dụ, một module ứng dụng có thể được mô tả như sau:
+For example, an application module may be described as follows:
 
 ~~~text
 com.example.payment
@@ -73,27 +73,27 @@ provides com.example.payment.spi.PaymentProvider
     with com.example.payment.internal.DefaultPaymentProvider
 ~~~
 
-Ý nghĩa các phần thường gặp:
+Meaning of common parts:
 
-| Dòng kết quả | Ý nghĩa |
+| Output Line | Meaning |
 |---|---|
-| Tên module ở dòng đầu | Tên module được mô tả; có thể kèm version nếu descriptor cung cấp |
-| exports package | Package được module export để module khác truy cập API public |
-| exports package to ... | Qualified export: chỉ các module được nêu tên mới được truy cập package |
-| opens package | Package được mở cho reflection sâu theo quy tắc module |
-| opens package to ... | Qualified open dành cho một nhóm module |
-| requires module | Module phụ thuộc vào module khác |
-| requires ... transitive | Dependency được truyền tiếp tới module phụ thuộc vào module hiện tại |
-| requires ... static | Dependency chỉ bắt buộc tại thời điểm biên dịch |
-| uses service | Module khai báo tiêu thụ service |
-| provides service with provider | Module khai báo implementation cung cấp cho service |
-| mandated | Dependency được yêu cầu ngầm theo quy tắc ngôn ngữ hoặc runtime, thường gặp với java.base |
+| Module name on the first line | Name of the described module; may include a version if provided by the descriptor |
+| exports package | Package exported by the module so other modules can access public APIs |
+| exports package to ... | Qualified export: only the named modules can access the package |
+| opens package | Package opened for deep reflection according to module rules |
+| opens package to ... | Qualified open intended for a specific group of modules |
+| requires module | Module depends on another module |
+| requires ... transitive | Dependency propagated onward to modules that depend on the current module |
+| requires ... static | Dependency required only at compile time |
+| uses service | Module declares consumption of a service |
+| provides service with provider | Module declares an implementation provided for a service |
+| mandated | Dependency implicitly required by language or runtime rules, commonly seen with java.base |
 
-Kết quả là bản tóm tắt của module descriptor mà runtime nhận diện. Nó giúp kiểm tra module đã được đóng gói với metadata nào, nhưng không chứng minh toàn bộ ứng dụng có thể khởi động thành công. Các vấn đề như thiếu module khác, lỗi khởi tạo provider hoặc lỗi cấu hình runtime vẫn có thể xuất hiện khi chạy ứng dụng.
+The output is a summary of the module descriptor recognized by the runtime. It helps verify what metadata a module was packaged with, but does not prove the entire application can start successfully. Issues such as missing other modules, provider initialization failures, or runtime configuration errors can still occur when running the application.
 
-## 3. Kiểm tra module hệ thống
+## 3. Checking System Modules
 
-JDK cung cấp nhiều module hệ thống. Có thể mô tả trực tiếp một module:
+The JDK provides many system modules. You can describe a module directly:
 
 ~~~bash
 java --describe-module java.base
@@ -102,33 +102,33 @@ java --describe-module java.sql
 java --describe-module java.xml
 ~~~
 
-java.base là module nền tảng và được mọi module phụ thuộc ngầm định. Các module như java.sql hoặc java.xml cung cấp API chuyên biệt.
+`java.base` is the foundational module and is implicitly depended on by every module. Modules such as `java.sql` or `java.xml` provide specialized APIs.
 
-Nếu chưa biết chính xác tên module nào có thể được runtime quan sát, dùng:
+If you do not yet know the exact names of modules observable by the runtime, use:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Lệnh này liệt kê các module quan sát được rồi kết thúc. Sau đó có thể lấy một tên từ danh sách và đưa vào --describe-module.
+This command lists observable modules and exits. You can then pick a name from the list and pass it to `--describe-module`.
 
-Để lọc danh sách trên shell:
+To filter the list in a shell:
 
 ~~~bash
 java --list-modules | grep java.sql
 ~~~
 
-Trên PowerShell:
+In PowerShell:
 
 ~~~powershell
 java --list-modules | Select-String java.sql
 ~~~
 
-Nếu lệnh trả về module name kèm version, có thể dùng tên module trước ký tự @ cho tùy chọn --describe-module.
+If the command returns a module name with a version, you can use the module name before the `@` character for the `--describe-module` option.
 
-## 4. Mô tả module ứng dụng trên module path
+## 4. Describing Application Modules on the Module Path
 
-Giả sử dự án đã đóng gói module com.example.payment thành:
+Suppose the project has packaged the `com.example.payment` module into:
 
 ~~~text
 build/
@@ -137,41 +137,41 @@ build/
     |-- com.example.customer.jar
 ~~~
 
-Kiểm tra module:
+Inspect the module:
 
 ~~~bash
 java --module-path build/mods \
      --describe-module com.example.payment
 ~~~
 
-Launcher tìm module theo tên module trong các vị trí được chỉ định. Nó không yêu cầu tên file JAR phải giống tên module. Một JAR tên payment-library.jar vẫn có thể chứa module tên com.example.payment.
+The launcher searches for the module by module name in the specified locations. It does not require the JAR filename to match the module name. A JAR named `payment-library.jar` can still contain a module named `com.example.payment`.
 
-Nếu kết quả báo không tìm thấy module, kiểm tra lần lượt:
+If the output reports that the module was not found, check step by step:
 
-1. Đã truyền đúng thư mục chứa modular JAR hoặc exploded module chưa?
-2. File JAR có module-info.class hợp lệ hoặc Automatic-Module-Name phù hợp không?
-3. Tên module truyền vào có khớp tên trong descriptor không?
-4. Có module cùng tên bị trùng trên module path hoặc upgrade module path không?
-5. Đang chạy đúng JDK và đúng cấu hình module path dự kiến không?
+1. Did you pass the right directory containing modular JARs or exploded modules?
+2. Does the JAR file have a valid `module-info.class` or an appropriate `Automatic-Module-Name`?
+3. Does the module name passed in match the name in the descriptor?
+4. Are there duplicate modules with the same name on the module path or upgrade module path?
+5. Are you running the intended JDK and the expected module path configuration?
 
-Có thể dùng --list-modules cùng module path để xem các module mà launcher nhận diện:
+You can use `--list-modules` with the module path to see the modules recognized by the launcher:
 
 ~~~bash
 java --module-path build/mods --list-modules
 ~~~
 
-Sau đó mô tả module cần kiểm tra:
+Then describe the module you need to inspect:
 
 ~~~bash
 java --module-path build/mods \
      --describe-module com.example.payment
 ~~~
 
-## 5. Kết hợp với upgrade module path
+## 5. Combining with the Upgrade Module Path
 
---upgrade-module-path chỉ định nơi tìm các bản thay thế cho module có thể nâng cấp trong runtime image. Nếu ứng dụng đang thay thế một module hệ thống được phép nâng cấp, cần tính đến đường dẫn này khi kiểm tra.
+`--upgrade-module-path` specifies where to look for replacements for upgradeable modules in the runtime image. If the application replaces an upgradeable system module, account for this path when inspecting.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --upgrade-module-path upgrades \
@@ -179,49 +179,49 @@ java --upgrade-module-path upgrades \
      --describe-module java.xml
 ~~~
 
-Module được tìm thấy qua upgrade module path có thể thay thế module tương ứng trong runtime image theo quy tắc của module system. Nếu kết quả mô tả khác với mong đợi, hãy kiểm tra cả upgrade module path lẫn module path.
+A module found via the upgrade module path can replace the corresponding module in the runtime image according to module system rules. If the description result differs from what you expect, inspect both the upgrade module path and the module path.
 
-Không nên thêm upgrade module path chỉ để sửa lỗi module not found. Trước tiên xác định module thuộc loại module ứng dụng hay module hệ thống có thể nâng cấp.
+Do not add an upgrade module path just to fix a module not found error. First determine whether the module is an application module or an upgradeable system module.
 
-## 6. Phân biệt java --describe-module và jar --describe-module
+## 6. Distinguishing `java --describe-module` and `jar --describe-module`
 
-Hai lệnh có tên gần giống nhau nhưng phục vụ hai điểm kiểm tra khác nhau.
+The two commands have similar names but serve two different inspection points.
 
-| Lệnh | Đầu vào | Mục đích |
+| Command | Input | Purpose |
 |---|---|---|
-| java --describe-module module_name | Tên module và cấu hình module path của launcher | Mô tả module mà runtime có thể tìm thấy trong cấu hình hiện tại |
-| jar --describe-module --file library.jar | File JAR cụ thể | Mô tả module descriptor hoặc automatic module name của archive |
+| java --describe-module module_name | Module name and launcher module path configuration | Describes the module that the runtime can locate under the current configuration |
+| jar --describe-module --file library.jar | Specific JAR file | Describes the module descriptor or automatic module name of the archive |
 
-Ví dụ kiểm tra trực tiếp một JAR:
+Example of inspecting a JAR directly:
 
 ~~~bash
 jar --describe-module --file build/mods/payment-library.jar
 ~~~
 
-Ví dụ kiểm tra cùng module thông qua module path:
+Example of inspecting the same module via the module path:
 
 ~~~bash
 java --module-path build/mods \
      --describe-module com.example.payment
 ~~~
 
-Dùng jar khi câu hỏi là: “Archive này chứa module descriptor hoặc automatic module name nào?”. Dùng java khi câu hỏi là: “Với module path và JDK hiện tại, launcher nhận diện module này ra sao?”.
+Use `jar` when the question is: "Which module descriptor or automatic module name does this archive contain?". Use `java` when the question is: "With the current module path and JDK, how does the launcher recognize this module?".
 
-Nếu JAR là modular JAR, jar --describe-module có thể in descriptor lấy từ archive. Nếu JAR không có module-info.class nhưng có Automatic-Module-Name, công cụ có thể hiển thị tên automatic module. Nếu không có tên khai báo, tên automatic module có thể được suy ra từ tên file theo quy tắc đặt tên.
+If the JAR is a modular JAR, `jar --describe-module` can print the descriptor taken from the archive. If the JAR has no `module-info.class` but has `Automatic-Module-Name`, the tool can display the automatic module name. If there is no declared name, the automatic module name can be derived from the filename according to naming rules.
 
-## 7. Phân biệt với các tùy chọn launcher liên quan
+## 7. Distinguishing from Related Launcher Options
 
-| Tùy chọn | Công dụng |
+| Option | Purpose |
 |---|---|
-| --describe-module hoặc -d | In descriptor của một module rồi thoát |
-| --list-modules | Liệt kê module quan sát được rồi thoát |
-| --module-path hoặc -p | Chỉ định nơi tìm module ứng dụng |
-| --upgrade-module-path | Chỉ định module thay thế module hệ thống có thể nâng cấp |
-| --add-modules | Thêm root module vào tập module được resolve |
-| --show-module-resolution | Hiển thị thông tin về module được resolve khi khởi chạy |
-| --validate-modules | Kiểm tra xung đột và lỗi module trên các đường dẫn module |
+| --describe-module or -d | Prints a module's descriptor and exits |
+| --list-modules | Lists observable modules and exits |
+| --module-path or -p | Specifies where to locate application modules |
+| --upgrade-module-path | Specifies modules that replace upgradeable system modules |
+| --add-modules | Adds root modules to the set of modules to be resolved |
+| --show-module-resolution | Displays information about resolved modules at startup |
+| --validate-modules | Checks for module conflicts and errors across module paths |
 
-Ví dụ, để quan sát quá trình resolve khi chạy ứng dụng:
+For example, to observe the resolution process when running an application:
 
 ~~~bash
 java --show-module-resolution \
@@ -229,70 +229,70 @@ java --show-module-resolution \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Để kiểm tra module path có xung đột hay lỗi cấu hình:
+To check whether the module path has conflicts or configuration errors:
 
 ~~~bash
 java --module-path mods --validate-modules
 ~~~
 
-Hai lệnh này trả lời câu hỏi khác với --describe-module. Một lệnh mô tả descriptor của một module; các lệnh còn lại cung cấp thông tin về resolution hoặc xác thực module graph.
+These two commands answer different questions from `--describe-module`. One command describes a single module's descriptor; the others provide information about resolution or validate the module graph.
 
-## 8. Ví dụ quy trình chẩn đoán
+## 8. Example Diagnostic Workflow
 
-Giả sử ứng dụng báo không truy cập được package com.example.payment.api. Có thể kiểm tra theo quy trình sau.
+Suppose the application reports that the `com.example.payment.api` package cannot be accessed. You can inspect using the following workflow.
 
-**Bước 1: Xác định module có được tìm thấy không.**
+**Step 1: Determine whether the module is found.**
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Nếu module không xuất hiện, kiểm tra vị trí JAR, cấu trúc archive và module path.
+If the module does not appear, check the JAR location, archive structure, and module path.
 
-**Bước 2: Mô tả module.**
+**Step 2: Describe the module.**
 
 ~~~bash
 java --module-path mods --describe-module com.example.payment
 ~~~
 
-Tìm dòng exports com.example.payment.api. Nếu package không được export, module khác không thể truy cập API public của package đó theo quy tắc truy cập thông thường.
+Look for the `exports com.example.payment.api` line. If the package is not exported, other modules cannot access that package's public API under standard access rules.
 
-**Bước 3: Kiểm tra qualified export.**
+**Step 3: Check qualified exports.**
 
-Nếu kết quả là:
+If the output is:
 
 ~~~text
 exports com.example.payment.api to com.example.app
 ~~~
 
-Chỉ module com.example.app được nhận quyền truy cập package qua qualified export. Một module khác dù đọc được module com.example.payment vẫn không được truy cập package này.
+Only the `com.example.app` module receives access to the package via the qualified export. Another module, even if it reads `com.example.payment`, still cannot access this package.
 
-**Bước 4: Kiểm tra dependency.**
+**Step 4: Check dependencies.**
 
-Tìm dòng requires để biết module có khai báo dependency tới module cần thiết hay không. Phân biệt requires, requires transitive và requires static vì chúng có tác động khác nhau tới resolution và readability.
+Look for `requires` lines to see whether the module declares dependencies on the required modules. Distinguish `requires`, `requires transitive`, and `requires static` because they have different impacts on resolution and readability.
 
-**Bước 5: Kiểm tra cấu hình tổng thể.**
+**Step 5: Check the overall configuration.**
 
-Nếu descriptor đúng nhưng ứng dụng vẫn không chạy, dùng --validate-modules và --show-module-resolution khi khởi chạy để tìm xung đột, module thiếu hoặc module graph khác dự kiến.
+If the descriptor is correct yet the application still fails to run, use `--validate-modules` and `--show-module-resolution` at launch time to find conflicts, missing modules, or an unexpected module graph.
 
-## 9. Các giới hạn và lỗi thường gặp
+## 9. Limitations and Common Mistakes
 
-- **Dùng tên JAR thay cho tên module:** tham số của --describe-module là module name, không phải đường dẫn file JAR.
-- **Quên module path:** module ứng dụng không nằm trong runtime image phải được cung cấp qua --module-path hoặc một cơ chế tìm module tương ứng.
-- **Nhầm package với module:** một module có thể export nhiều package; truyền tên package sẽ không mô tả module.
-- **Nhầm java với jar:** java mô tả module theo cấu hình launcher; jar kiểm tra archive cụ thể.
-- **Kỳ vọng lệnh khởi chạy ứng dụng:** --describe-module in descriptor và kết thúc, không gọi main method.
-- **Cho rằng exports và opens giống nhau:** exports cấp quyền truy cập API theo module; opens cho phép deep reflection theo quy tắc của module system.
-- **Cho rằng descriptor đúng đồng nghĩa ứng dụng chạy được:** lệnh không kiểm tra toàn bộ logic khởi tạo và hành vi runtime của ứng dụng.
-- **Bỏ qua module path thay thế:** upgrade module path có thể ảnh hưởng module mà runtime sử dụng.
+- **Using a JAR name instead of a module name:** the argument to `--describe-module` is the module name, not the JAR file path.
+- **Forgetting the module path:** application modules not in the runtime image must be provided via `--module-path` or an appropriate module discovery mechanism.
+- **Confusing a package with a module:** a module can export multiple packages; passing a package name will not describe the module.
+- **Confusing `java` with `jar`:** `java` describes a module according to the launcher configuration; `jar` inspects a specific archive.
+- **Expecting the command to launch the application:** `--describe-module` prints the descriptor and exits, without calling the `main` method.
+- **Assuming `exports` and `opens` are the same:** `exports` grants API access across modules; `opens` allows deep reflection according to module system rules.
+- **Assuming a correct descriptor means the application will run:** the command does not verify all initialization logic or runtime behavior of the application.
+- **Ignoring alternative module paths:** the upgrade module path can affect which module the runtime uses.
 
-## 10. Ghi nhớ
+## 10. Takeaways
 
-java --describe-module module_name là cách nhanh để xem module descriptor mà Java launcher tìm thấy trong cấu hình hiện tại. Dùng --module-path khi mô tả module ứng dụng, --list-modules để tìm tên module, và --validate-modules hoặc --show-module-resolution khi cần chẩn đoán module graph.
+`java --describe-module module_name` is a fast way to inspect the module descriptor that the Java launcher finds in the current configuration. Use `--module-path` when describing application modules, `--list-modules` to find module names, and `--validate-modules` or `--show-module-resolution` when you need to diagnose the module graph.
 
-Khi kiểm tra một archive độc lập, dùng jar --describe-module --file. Khi kiểm tra ứng dụng thực tế, dùng java --describe-module cùng module path mà ứng dụng sẽ sử dụng. Kết hợp hai góc nhìn này giúp phân biệt lỗi đóng gói JAR với lỗi tìm module trong cấu hình runtime.
+When inspecting an independent archive, use `jar --describe-module --file`. When inspecting a real application, use `java --describe-module` with the same module path that the application will use. Combining these two perspectives helps distinguish JAR packaging errors from module discovery errors in the runtime configuration.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle Java Launcher — The java Command: https://docs.oracle.com/en/java/javase/27/docs/specs/man/java.html
 - Oracle JDK 24 — The jar Command: https://docs.oracle.com/en/java/javase/24/docs/specs/man/jar.html

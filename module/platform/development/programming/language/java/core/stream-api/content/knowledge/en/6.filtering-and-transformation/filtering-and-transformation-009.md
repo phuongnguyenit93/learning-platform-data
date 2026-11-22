@@ -1,51 +1,51 @@
-# Giữ ngữ cảnh dữ liệu khi làm phẳng quan hệ cha con
+# Preserving Data Context When Flattening Parent-Child Relationships
 
-Trong chương **Lọc và biến đổi phần tử** của **Java Stream API**, `flatMap` giúp chuyển một cấu trúc gồm nhiều đối tượng cha, mỗi cha chứa một tập đối tượng con, thành một luồng phần tử phẳng. Đây là thao tác thường gặp khi xử lý đơn hàng và dòng hàng, phòng ban và nhân viên, bài học và câu hỏi, hoặc một cấu trúc cây nhiều cấp.
+In the **Filtering and Transforming Elements** chapter of the **Java Stream API**, `flatMap` helps turn a structure of many parent objects, each containing a collection of child objects, into a flat stream of elements. This is a common operation when processing orders and line items, departments and employees, lessons and questions, or multi-level tree structures.
 
-Điểm dễ sai là **phần tử con thường không chứa đủ thông tin về cha**. Nếu chỉ lấy các phần tử con bằng `flatMap`, các bước phía sau có thể không còn biết dòng hàng thuộc đơn hàng nào, người nào thuộc phòng ban nào, hoặc bản ghi được tạo từ nhánh nào. Bài này trình bày cách **đính kèm ngữ cảnh cha ngay trong lúc làm phẳng**, chọn cấu trúc dữ liệu đầu ra phù hợp và kiểm soát các tình huống như danh sách con rỗng, lọc dữ liệu, trùng khóa, thứ tự và chi phí xử lý.
+A common pitfall is that **child elements often do not contain enough information about the parent**. If you only extract child elements using `flatMap`, downstream steps may no longer know which order a line item belongs to, which department a person belongs to, or which branch generated a record. This lesson shows how to **attach parent context during flattening**, choose an appropriate output data structure, and handle situations such as empty child lists, filtering, duplicate keys, ordering, and processing cost.
 
-## 1. Bài toán: một cha có thể có nhiều con
+## 1. The Problem: One Parent Can Have Many Children
 
-Giả sử một hệ thống bán hàng lưu danh sách đơn hàng. Mỗi đơn hàng có mã đơn, mã khách hàng và nhiều dòng hàng; mỗi dòng hàng có mã sản phẩm, số lượng và đơn giá.
+Suppose a sales system stores a list of orders. Each order has an order ID, a customer ID, and multiple line items; each line item has a product SKU, quantity, and unit price.
 
 ~~~text
-Đơn O-100 (khách C-01)
-  ├─ Bút  (PEN): 2 × 10.000
-  └─ Sách (BOOK): 1 × 50.000
+Order O-100 (customer C-01)
+  ├─ Pen  (PEN): 2 × 10.000
+  └─ Book (BOOK): 1 × 50.000
 
-Đơn O-101 (khách C-02)
-  └─ Bút  (PEN): 1 × 12.000
+Order O-101 (customer C-02)
+  └─ Pen  (PEN): 1 × 12.000
 
-Đơn O-102 (khách C-03)
-  └─ (không có dòng hàng)
+Order O-102 (customer C-03)
+  └─ (no line items)
 ~~~
 
-Nếu cần xuất bảng các dòng hàng để báo cáo, ta muốn kết quả dạng:
+If we need to export a table of line items for reporting, we want results like:
 
-| Mã đơn | Mã khách | Sản phẩm | Số lượng | Thành tiền |
+| Order ID | Customer ID | Product | Quantity | Amount |
 | --- | --- | --- | ---: | ---: |
 | O-100 | C-01 | PEN | 2 | 20.000 |
 | O-100 | C-01 | BOOK | 1 | 50.000 |
 | O-101 | C-02 | PEN | 1 | 12.000 |
 
-Mỗi dòng của bảng là **một phần tử con kèm thông tin cha**. Ba đơn hàng tạo ra ba dòng đầu ra; đơn `O-102` không có dòng hàng nên không xuất hiện. Số lượng dòng đầu ra của thao tác làm phẳng là tổng số con của các cha, không phải số lượng cha.
+Each row in the table is **one child element together with parent info**. Three orders produce three output rows; order `O-102` has no line items so it does not appear. The number of output rows from flattening is the total number of children across parents, not the number of parents.
 
-Đây là điểm khác biệt quan trọng khi chuyển từ dữ liệu phân cấp sang bản ghi phẳng để lọc, nhóm, tính tổng, xuất CSV hoặc truyền qua một API.
+This is an important distinction when transforming hierarchical data into flat records for filtering, grouping, summing, exporting CSV, or passing through an API.
 
-## 2. Phân biệt `map` và `flatMap`
+## 2. Distinguishing `map` and `flatMap`
 
-Cả `map` và `flatMap` đều là thao tác trung gian (*intermediate operation*) trong pipeline lazy. Tuy nhiên, kiểu kết quả khác nhau:
+Both `map` and `flatMap` are *intermediate operations* in a lazy pipeline. However, their result types differ:
 
-| Phép biến đổi | Hàm áp dụng cho mỗi cha | Kiểu đầu ra |
+| Transformation | Function applied per parent | Output type |
 | --- | --- | --- |
-| `map` | Cha → một giá trị, chẳng hạn một `List<Line>` hoặc `Stream<Line>` | `Stream<List<Line>>` hoặc `Stream<Stream<Line>>`: còn một tầng lồng |
-| `flatMap` | Cha → một `Stream<Line>` gồm 0, 1 hoặc nhiều con | `Stream<Line>`: gộp các Stream con thành một luồng phẳng |
-| `flatMap` giữ ngữ cảnh | Cha → một `Stream<Row>`, mỗi `Row` chứa thông tin cha và con | `Stream<Row>`: luồng phẳng vẫn biết nguồn gốc từng con |
+| `map` | Parent → one value, such as a `List<Line>` or `Stream<Line>` | `Stream<List<Line>>` or `Stream<Stream<Line>>`: still has one nesting layer |
+| `flatMap` | Parent → a `Stream<Line>` of 0, 1, or many children | `Stream<Line>`: merges sub-Streams into a flat stream |
+| `flatMap` preserving context | Parent → a `Stream<Row>`, each `Row` containing parent and child info | `Stream<Row>`: flat stream still knows each child's origin |
 
-Minh họa với các kiểu Java đơn giản:
+Illustrated with simple Java types:
 
 ~~~java
-// Giả sử orders có kiểu List<Order> và mỗi Order có lines().
+// Assume orders has type List<Order> and each Order has lines().
 Stream<Stream<Line>> nested = orders.stream()
         .map(order -> order.lines().stream());
 
@@ -53,21 +53,21 @@ Stream<Line> flattened = orders.stream()
         .flatMap(order -> order.lines().stream());
 ~~~
 
-Phiên bản `flattened` chỉ chứa `Line`. Nếu `Line` không tự mang `orderId`, ta đã bỏ mất quan hệ cha–con đối với các bước xử lý tiếp theo.
+The `flattened` version only contains `Line`. If `Line` does not carry `orderId` itself, we have lost the parent–child relationship for subsequent processing steps.
 
-**Quy tắc thực hành:** Khi phần tử đầu ra cần biết cha của nó, hãy tạo một đối tượng kết quả kết hợp thông tin cha và con **bên trong hàm truyền cho `flatMap`**:
+**Practical rule:** When an output element needs to know its parent, construct a result object combining parent and child information **inside the function passed to `flatMap`**:
 
 ~~~java
 orders.stream()
     .flatMap(order -> order.lines().stream()
-        .map(line -> /* tạo kết quả từ cả order và line */));
+        .map(line -> /* build result from both order and line */));
 ~~~
 
-Biến `order` được giữ trong *lexical scope* của lambda bên ngoài; lambda bên trong sử dụng nó để tạo mỗi bản ghi. Đây là cách giữ ngữ cảnh rõ ràng, không cần tìm ngược cha từ con sau khi đã làm phẳng.
+The `order` variable is captured in the *lexical scope* of the outer lambda; the inner lambda uses it to construct each record. This is a clean way to preserve context without looking up the parent from the child after flattening.
 
-## 3. Ví dụ đầy đủ: từ đơn hàng sang bản ghi có ngữ cảnh
+## 3. Complete Example: From Orders to Context-Aware Records
 
-Ví dụ sau dùng **Java 17+** để tận dụng `record` và `Stream.toList()`. Mỗi dòng đầu ra có `orderId`, `customerId`, thông tin sản phẩm và thành tiền.
+The example below uses **Java 17+** for `record` and `Stream.toList()`. Each output row includes `orderId`, `customerId`, product details, and line amount.
 
 ~~~java
 import java.math.BigDecimal;
@@ -117,7 +117,7 @@ public class OrderFlatteningDemo {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 LineRow[orderId=O-100, customerId=C-01, sku=PEN, quantity=2, amount=20000]
@@ -125,25 +125,25 @@ LineRow[orderId=O-100, customerId=C-01, sku=BOOK, quantity=1, amount=50000]
 LineRow[orderId=O-101, customerId=C-02, sku=PEN, quantity=1, amount=12000]
 ~~~
 
-Đọc pipeline từ ngoài vào trong:
+Reading the pipeline from outside in:
 
-1. `orders.stream()` tạo Stream các đơn hàng.
-2. Với mỗi `order`, `order.lines().stream()` tạo Stream những dòng hàng của đúng đơn đó.
-3. `map(line -> new LineRow(...))` tạo **một đối tượng kết quả cho mỗi dòng hàng**, lấy dữ liệu từ cả `order` và `line`.
-4. `flatMap` nối các Stream dòng kết quả thành một Stream duy nhất.
-5. `toList()` là terminal operation, kích hoạt xử lý và thu kết quả vào danh sách.
+1. `orders.stream()` creates a Stream of orders.
+2. For each `order`, `order.lines().stream()` creates a Stream of line items for that exact order.
+3. `map(line -> new LineRow(...))` creates **one result object per line item**, pulling data from both `order` and `line`.
+4. `flatMap` concatenates the resulting line streams into a single Stream.
+5. `toList()` is the terminal operation, triggering processing and collecting results into a list.
 
-Nhờ giữ `orderId` và `customerId` ngay lúc chuyển đổi, phần xử lý sau có thể nhóm theo đơn hàng hoặc khách hàng mà không cần tra cứu ngược một bảng khác. Dùng `BigDecimal` cho tiền giúp tránh các sai lệch làm tròn đặc trưng của số thực nhị phân khi tính toán tài chính.
+By keeping `orderId` and `customerId` right during transformation, downstream steps can group by order or customer without looking up another table. Using `BigDecimal` for money avoids rounding inaccuracies typical of binary floating-point numbers in financial calculations.
 
-> **Lưu ý phiên bản:** `record` được hỗ trợ chính thức từ Java 16 và `Stream.toList()` có từ Java 16. Trên Java 8–15, có thể thay các `record` bằng lớp DTO/POJO thông thường và thay `toList()` bằng `collect(Collectors.toList())`. Cách ghép `flatMap` + `map` để giữ ngữ cảnh không thay đổi.
+> **Version note:** `record` has been officially supported since Java 16 and `Stream.toList()` since Java 16. On Java 8–15, replace `record`s with regular DTO/POJO classes and replace `toList()` with `collect(Collectors.toList())`. The `flatMap` + `map` pattern for preserving context stays the same.
 
-## 4. Ba kiểu biểu diễn ngữ cảnh cha–con
+## 4. Three Ways to Represent Parent–Child Context
 
-Có nhiều cách thiết kế bản ghi đầu ra. Cách chọn tùy thuộc vào việc downstream thực sự cần sử dụng thông tin nào.
+There are several ways to design output records. The choice depends on what information downstream genuinely needs to consume.
 
-### 4.1. Sao chép các trường cần thiết vào một DTO phẳng
+### 4.1. Copying Required Fields into a Flat DTO
 
-Như `LineRow` trong ví dụ trên:
+Like `LineRow` in the example above:
 
 ~~~java
 record LineRow(
@@ -155,13 +155,13 @@ record LineRow(
 ) {}
 ~~~
 
-**Phù hợp khi** xuất báo cáo, gửi qua API, lưu snapshot hoặc chuyển dữ liệu giữa các tầng hệ thống. DTO thể hiện rõ hợp đồng dữ liệu và tránh việc phần xử lý sau phải biết mô hình đối tượng cha.
+**Suitable when** exporting reports, sending over an API, saving snapshots, or transferring data across system layers. A DTO explicitly defines the data contract and prevents downstream code from having to know the parent object model.
 
-Ưu điểm là dễ kiểm soát trường nào được phép đưa ra ngoài; đổi lại, một số giá trị cha có thể được lặp lại trên nhiều bản ghi con. Nếu DTO chứa thông tin được tính toán, cần xác định thời điểm snapshot và tính nhất quán khi nguồn thay đổi.
+The advantage is easy control over which fields are exposed; in return, some parent values may be repeated across multiple child records. If the DTO contains computed values, define snapshot timing and consistency rules when sources change.
 
-### 4.2. Giữ tham chiếu cha và con trong một đối tượng
+### 4.2. Keeping Parent and Child References in One Object
 
-Khi đang xử lý nội bộ và cần nhiều thuộc tính của cả hai đối tượng, có thể giữ nguyên tham chiếu:
+When processing internally and many properties of both objects are needed, you can retain the references directly:
 
 ~~~java
 record LineWithOrder(Order order, Line line) {}
@@ -171,17 +171,17 @@ List<LineWithOrder> pairs = orders.stream()
                 .map(line -> new LineWithOrder(order, line)))
         .toList();
 
-// Ở bước sau vẫn truy cập được cả cha và con:
+// Downstream steps still have access to both parent and child:
 pairs.forEach(pair -> System.out.println(
         pair.order().id() + ": " + pair.line().sku()
 ));
 ~~~
 
-Cách này tránh sao chép nhiều trường và thuận tiện khi logic nghiệp vụ còn cần đối tượng cha. Tuy nhiên, bản ghi kết quả **giữ tham chiếu đến toàn bộ cha**, có thể kéo theo đồ thị đối tượng lớn hơn, trạng thái có thể thay đổi và cả dữ liệu không cần thiết. Nếu `Order` là entity gắn với ORM, việc truyền entity ra khỏi phạm vi transaction còn có thể gây lỗi lazy loading hoặc làm rò rỉ chi tiết của tầng persistence.
+This avoids copying many fields and is convenient when business logic still needs the parent object. However, the result record **holds a reference to the entire parent**, which can drag along a larger object graph, mutable state, and unneeded data. If `Order` is an ORM-managed entity, passing the entity outside transaction boundaries can also trigger lazy-loading errors or leak persistence-layer details.
 
-### 4.3. Dùng cặp khóa–giá trị cho thao tác ngắn
+### 4.3. Using Key–Value Pairs for Short Operations
 
-Có thể sử dụng `Map.entry` (Java 9+):
+You can use `Map.entry` (Java 9+):
 
 ~~~java
 var pairs = orders.stream()
@@ -190,16 +190,16 @@ var pairs = orders.stream()
         .toList();
 ~~~
 
-Ở đây mỗi phần tử là `Map.Entry<String, Line>`; `getKey()` là mã đơn hàng, còn `getValue()` là dòng hàng. Đây chỉ là **cặp giá trị**, không phải một `Map` duy nhất. `Map.entry` không chấp nhận khóa hoặc giá trị `null`.
+Here each element is a `Map.Entry<String, Line>`; `getKey()` is the order ID, and `getValue()` is the line item. This is just a **pair of values**, not a single `Map`. `Map.entry` does not accept `null` keys or values.
 
-Cặp giá trị phù hợp với pipeline ngắn, ít trường; khi ngữ cảnh có nhiều thuộc tính hoặc cần tên trường rõ ràng, `record` hoặc DTO chuyên biệt thường dễ đọc và dễ bảo trì hơn.
+Value pairs suit short pipelines with few fields; when context involves multiple properties or needs clear field names, a dedicated `record` or DTO is usually easier to read and maintain.
 
-## 5. Đặt `filter` đúng nơi để giữ ý nghĩa nghiệp vụ
+## 5. Placing `filter` in the Right Spot to Preserve Business Meaning
 
-Trong pipeline quan hệ cha–con, ta có thể lọc **cha**, lọc **con**, hoặc lọc theo điều kiện kết hợp cả hai:
+In a parent–child pipeline, you can filter **parents**, filter **children**, or filter by conditions combining both:
 
 ~~~java
-// Dựa trên ví dụ OrderFlatteningDemo ở trên:
+// Based on OrderFlatteningDemo above:
 List<LineRow> selected = orders.stream()
         .filter(order -> order.customerId().equals("C-01"))
         .flatMap(order -> order.lines().stream()
@@ -216,20 +216,20 @@ List<LineRow> selected = orders.stream()
         .toList();
 ~~~
 
-Pipeline này chỉ duyệt dòng hàng của khách `C-01` và chỉ giữ dòng có số lượng ít nhất 2. Kết quả là dòng `PEN` thuộc đơn `O-100`.
+This pipeline only traverses lines for customer `C-01` and only keeps lines with quantity at least 2. The result is the `PEN` line belonging to order `O-100`.
 
-Một số nguyên tắc khi đặt bộ lọc:
+A few guidelines for placing filters:
 
-- **Lọc cha trước `flatMap`** nếu không cần xử lý bất kỳ con nào của cha không đạt điều kiện. Điều này giúp tránh tạo Stream con và DTO không cần thiết.
-- **Lọc con trước `map` thành DTO** nếu điều kiện chỉ dựa trên dữ liệu con, như số lượng hoặc mã sản phẩm. Như vậy không phải tạo những DTO sau đó bị loại.
-- **Lọc sau khi tạo DTO** khi điều kiện thực sự cần dữ liệu được tổng hợp từ cả cha và con hoặc kết quả tính toán của DTO.
-- **Thứ tự không phải lúc nào cũng hoán đổi được**: lọc theo số lượng dòng hàng của một cha trước khi làm phẳng khác với lọc từng dòng hàng rồi đếm.
+- **Filter parents before `flatMap`** if no children of a non-qualifying parent need processing. This avoids creating unnecessary sub-Streams and DTOs.
+- **Filter children before `map` to DTO** if the condition only relies on child data, such as quantity or SKU. That avoids constructing DTOs only to discard them.
+- **Filter after creating the DTO** when the condition genuinely requires aggregated data from both parent and child or a computed DTO field.
+- **Order is not always interchangeable**: filtering by the number of lines in a parent before flattening differs from filtering individual lines and then counting.
 
-Lưu ý khi sử dụng `filter` với lambda có side effect: Stream API có thể tối ưu cách thực thi, đặc biệt trong một số terminal operation; không nên dùng side effect để lưu lại quan hệ cha–con. Hãy đưa ngữ cảnh vào chính giá trị đầu ra của `map`.
+Be careful when using `filter` with side-effecting lambdas: the Stream API may optimize execution, especially under certain terminal operations; do not use side effects to record parent–child relationships. Put context directly into the output value produced by `map`.
 
-## 6. Cha không có con: điểm khác biệt giữa làm phẳng và giữ đủ danh sách cha
+## 6. Parents Without Children: Flattening vs Keeping All Parents
 
-`flatMap` tạo **0 phần tử** khi hàm ánh xạ trả về Stream rỗng. Đó là lý do đơn `O-102` không xuất hiện trong bảng `LineRow`.
+`flatMap` produces **0 elements** when the mapping function returns an empty Stream. That is why order `O-102` does not appear in the `LineRow` table.
 
 ~~~java
 List<LineRow> rows = orders.stream()
@@ -245,12 +245,12 @@ List<LineRow> rows = orders.stream()
                 )))
         .toList();
 
-// rows không chứa bản ghi cho O-102.
+// rows contains no entry for O-102.
 ~~~
 
-Nếu nhiệm vụ là **một dòng báo cáo cho mỗi con**, hành vi này là đúng. Nếu yêu cầu là **một dòng cho mỗi cha, kể cả cha không có con**, không nên trông chờ `flatMap` tự tạo ra dòng cha rỗng.
+If the task is **one report row per child**, this behavior is right. If the requirement is **one row per parent, including parents with no children**, do not expect `flatMap` to automatically fabricate an empty parent row.
 
-Chẳng hạn, tính tổng tiền theo **từng đơn**, gồm cả đơn rỗng:
+For example, calculating total amount **per order**, including empty orders:
 
 ~~~java
 import java.math.BigDecimal;
@@ -270,15 +270,15 @@ List<OrderTotal> totals = orders.stream()
         .toList();
 ~~~
 
-Kết quả của `totals` bao gồm `O-100 = 70000`, `O-101 = 12000` và **`O-102 = 0`**. Ở đây `map` tạo đúng một `OrderTotal` cho mỗi đơn hàng; phép `reduce` bên trong trả về giá trị khởi tạo bằng 0 khi không có dòng hàng.
+The `totals` result includes `O-100 = 70000`, `O-101 = 12000`, and **`O-102 = 0`**. Here `map` creates exactly one `OrderTotal` per order; the inner `reduce` returns the identity value 0 when there are no line items.
 
-Nếu cần kết quả dạng mỗi cha xuất hiện ít nhất một lần như **left outer join** trong SQL, phải thiết kế biểu diễn riêng cho trường hợp không có con, ví dụ một dòng với `Optional<Line>` rỗng. Không nên tạo một `Line` giả với mã sản phẩm bất kỳ: dữ liệu giả dễ bị tính nhầm như một dòng hàng thực.
+If you need results where every parent appears at least once like a SQL **left outer join**, design an explicit representation for the childless case, such as a row with an empty `Optional<Line>`. Do not fabricate a dummy `Line` with an arbitrary product code: fake data is easily miscounted as a real line item.
 
-## 7. Từ danh sách phẳng trở lại nhóm theo cha
+## 7. Going from a Flat List Back to Grouping by Parent
 
-Một lợi ích của việc giữ mã cha trong mỗi DTO là có thể tính toán tiếp bằng các collector của Java Stream API.
+One benefit of retaining the parent ID in each DTO is that you can perform further aggregations using Java Stream API collectors.
 
-Giả sử ta đang có `rows` kiểu `List<LineRow>` của ví dụ ban đầu:
+Suppose we have `rows` of type `List<LineRow>` from the initial example:
 
 ~~~java
 import java.math.BigDecimal;
@@ -299,18 +299,18 @@ System.out.println(amountByOrder.get("O-100")); // 70000
 System.out.println(amountByOrder.get("O-101")); // 12000
 ~~~
 
-`groupingBy` nhóm các dòng theo `orderId` và `reducing` cộng thành tiền của từng dòng. Đây là quá trình **nhóm lại theo khóa** của dữ liệu đã làm phẳng; nó không khôi phục toàn bộ cấu trúc ban đầu nếu ta đã bỏ các trường khác.
+`groupingBy` groups lines by `orderId` and `reducing` sums the amount of each line. This is **re-grouping by key** of flattened data; it does not restore the entire original structure if other fields were dropped.
 
-Có hai giới hạn cần nhớ:
+Two limitations to keep in mind:
 
-1. **Cha không có con không xuất hiện trong `rows`**, vì vậy `groupingBy` trên `rows` cũng không tự sinh khóa `O-102`. Nếu cần kết quả cho toàn bộ đơn, hãy tổng hợp trên danh sách `orders` như ví dụ `OrderTotal` hoặc bổ sung khóa rỗng một cách có chủ đích.
-2. **Khóa phải nhận diện đúng cha.** Nếu `orderId` chỉ duy nhất trong phạm vi một cửa hàng hoặc tenant, nhóm riêng theo `orderId` có thể vô tình trộn dữ liệu. Hãy dùng khóa tổng hợp như `(tenantId, orderId)` khi nghiệp vụ yêu cầu.
+1. **Parents without children do not appear in `rows`**, so `groupingBy` on `rows` will not generate a key for `O-102`. If results for all orders are required, aggregate on the `orders` list like in the `OrderTotal` example, or explicitly add empty keys.
+2. **Keys must uniquely identify the parent.** If `orderId` is only unique within a store or tenant, grouping solely by `orderId` can accidentally merge data. Use a composite key such as `(tenantId, orderId)` when required by business rules.
 
-Tương tự, có thể nhóm theo khách hàng hoặc sản phẩm nếu DTO đã chứa các trường tương ứng. Dùng `Collectors.groupingByConcurrent` để tối ưu song song chỉ phù hợp khi các ràng buộc về thứ tự, collector và khóa của bài toán được đáp ứng; bản thân việc nhóm dữ liệu không cho phép bỏ qua tính đúng đắn của khóa.
+Similarly, you can group by customer or product if the DTO already holds the corresponding fields. Using `Collectors.groupingByConcurrent` for parallel optimization is only appropriate when ordering, collector, and key constraints of the problem are satisfied; grouping data itself never allows ignoring key correctness.
 
-## 8. Làm phẳng nhiều tầng mà vẫn giữ đủ đường dẫn
+## 8. Flattening Multiple Levels While Preserving the Full Path
 
-Với dữ liệu có nhiều tầng, ví dụ công ty → phòng ban → nhân viên, cần quyết định phần dữ liệu tổ tiên nào vẫn có ích sau mỗi lần làm phẳng.
+With multi-level data, such as company → department → employee, decide which ancestor fields remain useful after each flattening step.
 
 ~~~text
 Company
@@ -318,11 +318,11 @@ Company
        └─ Employee
 ~~~
 
-Có thể lồng `flatMap` và dùng các biến cha ở phạm vi lambda bên ngoài:
+You can nest `flatMap` calls and reference parent variables from outer lambda scopes:
 
 ~~~java
-// Giả sử có Company::departments, Department::employees
-// và các đối tượng đều có phương thức id().
+// Assume Company::departments, Department::employees exist
+// and each object has an id() method.
 record EmployeeRow(
         String companyId,
         String departmentId,
@@ -340,33 +340,33 @@ List<EmployeeRow> people = companies.stream()
         .toList();
 ~~~
 
-Tại thời điểm tạo `EmployeeRow`, cả ba biến `company`, `department` và `employee` đều nằm trong phạm vi lambda nên ta giữ được đường dẫn đầy đủ. Tương tự, với đơn hàng → dòng hàng → thuộc tính bổ sung, có thể mang theo mã đơn, mã dòng và khóa của thuộc tính.
+At the moment `EmployeeRow` is constructed, all three variables—`company`, `department`, and `employee`—are in scope, so we preserve the full path. Likewise, for order → line item → extra attribute, you can carry order ID, line ID, and attribute key.
 
-Mỗi tầng `flatMap` có thể làm mất cha không có con ở tầng tiếp theo. Đối với báo cáo cần thống kê đầy đủ tất cả cấp, nên cân nhắc giữ cấu trúc phân cấp hoặc tạo bảng kết quả với quy tắc rõ ràng cho nhánh rỗng.
+Each `flatMap` layer can drop parents that have no children at the next level. For reports needing full statistics across every level, consider preserving the hierarchical structure or building result tables with explicit rules for empty branches.
 
-## 9. Thứ tự, số lượng và danh tính phần tử đầu ra
+## 9. Order, Cardinality, and Identity of Output Elements
 
-Một số bất biến giúp kiểm tra kết quả làm phẳng:
+Several invariants help verify flattening results:
 
-**Số lượng.** Nếu không lọc, không bỏ phần tử và danh sách con không chứa `null`, tổng số dòng bằng:
+**Cardinality.** With no filtering, no skipped elements, and no `null` in child lists, the total row count equals:
 
 ~~~text
 totalRows = sum(order.lines().size() for each order)
 ~~~
 
-Với ví dụ đầu bài: `2 + 1 + 0 = 3`. Nếu thêm `filter`, số dòng chỉ bằng số phần tử con thỏa các điều kiện đã chọn.
+For the introductory example: `2 + 1 + 0 = 3`. If `filter` is added, row count equals the number of child elements matching the selected conditions.
 
-**Thứ tự.** Với `List` là nguồn có encounter order, pipeline tuần tự gồm `flatMap` và `map` giữ thứ tự cha, đồng thời giữ thứ tự con trong mỗi cha. Nếu dùng nguồn không có thứ tự hoặc gọi `unordered()`, không nên phụ thuộc vào thứ tự đầu ra. Khi xử lý song song, `forEach` không bảo đảm thứ tự quan sát, còn các terminal operation có hợp đồng giữ encounter order như `toList()` vẫn có thể tạo danh sách theo thứ tự nguồn khi luồng có thứ tự.
+**Order.** With an encounter-ordered `List` source, a sequential pipeline of `flatMap` and `map` preserves parent order as well as child order within each parent. If using an unordered source or calling `unordered()`, do not rely on output order. Under parallel execution, `forEach` does not guarantee observed order, whereas terminal operations with an encounter-order contract like `toList()` can still produce a list in source order when the stream is ordered.
 
-**Danh tính.** Hai đơn có thể cùng sản phẩm `PEN`. Chỉ giữ `sku` không đủ để phân biệt hai dòng khác nhau. Nên giữ `orderId` và, nếu cần phân biệt nhiều dòng cùng `sku` trong một đơn, cần thêm `lineId` hoặc định danh ổn định của dòng hàng.
+**Identity.** Two orders can share the same `PEN` product. Keeping only `sku` is insufficient to distinguish two different lines. Retain `orderId` and, if multiple lines with the same `sku` can exist in one order, add `lineId` or a stable line-item identifier.
 
-**Tính nhất quán.** Bản ghi DTO sao chép trường của cha tại thời điểm pipeline được thực thi; nếu cha và các danh sách con bị sửa đồng thời, kết quả có thể không nhất quán hoặc phát sinh lỗi như `ConcurrentModificationException`. Cần có snapshot hoặc cách kiểm soát đồng thời thích hợp thay vì sửa collection nguồn trong khi Stream đang duyệt.
+**Consistency.** DTO records copy parent fields at the moment the pipeline executes; if parents and child lists are mutated concurrently, results can be inconsistent or throw errors like `ConcurrentModificationException`. Use snapshots or proper concurrency controls instead of mutating source collections while a Stream is traversing them.
 
-## 10. Danh sách con `null`, phần tử con `null` và hợp đồng dữ liệu
+## 10. `null` Child Lists, `null` Child Elements, and Data Contracts
 
-Với mô hình Java tự thiết kế, nên thống nhất: **không có con được biểu diễn bằng danh sách rỗng**, thay vì `null`. Điều này giúp `order.lines().stream()` chạy an toàn.
+In Java models you design yourself, standardize on: **no children is represented by an empty list**, rather than `null`. This lets `order.lines().stream()` run safely.
 
-Nếu dữ liệu cũ có thể trả về `null` cho toàn bộ danh sách con, hãy xử lý rõ ràng ngay tại biên:
+If legacy data may return `null` for an entire child list, handle it explicitly at the boundary:
 
 ~~~java
 record LineWithOrder(Order order, Line line) {}
@@ -382,17 +382,17 @@ List<LineWithOrder> safeRows = orders.stream()
         .toList();
 ~~~
 
-Điều này quy ước `null` danh sách con là **không có dòng hàng**. Chỉ áp dụng khi hợp đồng dữ liệu thực sự cho phép cách hiểu đó. Nếu `null` là dấu hiệu dữ liệu hỏng, có thể thích hợp hơn khi kiểm tra và ném lỗi có thông tin cụ thể.
+This adopts the convention that a `null` child list means **no line items**. Apply it only when the data contract genuinely permits that interpretation. If `null` indicates corrupt data, validating and throwing a descriptive error may be more appropriate.
 
-Nếu **bản thân một phần tử trong danh sách con là `null`**, việc gọi `line.sku()` sẽ lỗi. Không nên âm thầm thêm `filter(Objects::nonNull)` nếu việc mất dòng dữ liệu khiến báo cáo sai; hãy quyết định có loại bỏ, ghi nhận lỗi hay từ chối đầu vào theo yêu cầu nghiệp vụ.
+If **an element inside a child list itself is `null`**, calling `line.sku()` will fail. Do not silently add `filter(Objects::nonNull)` if dropping rows skews reports; decide whether to discard, log errors, or reject inputs according to business requirements.
 
-Các record trong ví dụ là container dữ liệu gọn, nhưng mặc định chúng **không tự xác minh** giá trị hợp lệ. Đặc biệt, record chứa `List<Line>` không làm danh sách bên trong trở nên bất biến nếu caller truyền một danh sách mutable. Có thể dùng `List.copyOf(lines)` và kiểm tra dữ liệu trong constructor khi cần duy trì bất biến mạnh hơn.
+The `record` types in the examples are concise data containers, yet by default they **do not validate** inputs automatically. In particular, a record holding `List<Line>` does not make the inner list immutable if the caller passes a mutable list. Use `List.copyOf(lines)` and validate data in the constructor when stronger immutability is needed.
 
-## 11. Tối ưu và khả năng mở rộng
+## 11. Optimization and Scalability
 
-### 11.1. Luồng xử lý lazy nhưng terminal operation quyết định vật hóa
+### 11.1. Processing Is Lazy, Yet the Terminal Operation Decides Materialization
 
-`flatMap` và `map` là các thao tác trung gian, nên không thu toàn bộ dòng kết quả ngay khi khai báo. Pipeline sẽ xử lý phần tử khi có terminal operation như `toList()`, `collect()`, `count()`, `reduce()` hoặc `forEach()`.
+`flatMap` and `map` are intermediate operations, so they do not collect all result rows upon declaration. The pipeline processes elements when a terminal operation like `toList()`, `collect()`, `count()`, `reduce()`, or `forEach()` executes.
 
 ~~~java
 long rowsCount = orders.stream()
@@ -400,16 +400,16 @@ long rowsCount = orders.stream()
         .count();
 ~~~
 
-Cách này đếm các dòng con mà không yêu cầu tạo danh sách DTO để lưu lại, dù JDK có thể tận dụng tối ưu hóa thích hợp với nguồn và pipeline. Nếu đích cuối chỉ là tổng hợp, cân nhắc collector hoặc phép toán trực tiếp thay vì `toList()` rồi lại duyệt kết quả.
+This counts child lines without requiring DTO list creation to store them, though the JDK may apply optimizations suited to the source and pipeline. If the final goal is just an aggregate, consider a collector or direct operation instead of calling `toList()` and iterating again.
 
-Với nguồn dữ liệu rất lớn, `toList()` sẽ giữ toàn bộ các dòng đầu ra trong bộ nhớ. Dùng một pipeline có terminal operation phù hợp hoặc xử lý theo từng lô giúp giới hạn dung lượng kết quả đang nắm giữ.
+For very large datasets, `toList()` holds all output rows in memory. Using a pipeline with an appropriate terminal operation or processing in batches helps bound the memory held for results.
 
-### 11.2. Giữ lambda không có trạng thái chia sẻ
+### 11.2. Keep Lambdas Free of Shared State
 
-Một cạm bẫy là sử dụng biến ngoài có thể thay đổi để “nhớ” cha hiện tại:
+A common trap is using a mutable external variable to "remember" the current parent:
 
 ~~~java
-// Cách làm không an toàn, đặc biệt khi xử lý song song:
+// Unsafe approach, especially under parallel processing:
 Order[] current = new Order[1];
 
 orders.stream()
@@ -419,13 +419,13 @@ orders.stream()
         .toList();
 ~~~
 
-Trong một số cách thực thi pipeline, đặc biệt song song, `current[0]` có thể bị cập nhật bởi thao tác với cha khác; hơn nữa side effect trong `peek` không phải cơ chế đáng tin cậy để lưu ngữ cảnh. Hãy thay bằng lambda lồng nhau, tạo DTO dựa trên **chính `order` của lượt hiện tại**.
+In some pipeline execution modes, especially parallel ones, `current[0]` can be overwritten by work on another parent; moreover, side effects inside `peek` are not a reliable mechanism for holding context. Replace this with nested lambdas that build the DTO from **that iteration's own `order`**.
 
-Hàm thuần hoặc ít side effect cũng giúp việc xử lý song song và kiểm thử dễ dự đoán hơn.
+Pure or side-effect-free functions also make parallel processing and testing far more predictable.
 
-### 11.3. `mapMulti` là một lựa chọn khi phù hợp (Java 16+)
+### 11.3. `mapMulti` Is an Option When Suitable (Java 16+)
 
-`mapMulti` cho phép một phần tử đầu vào phát ra 0, 1 hoặc nhiều phần tử đầu ra thông qua một consumer, không cần tạo `Stream` con trong mỗi lần ánh xạ:
+`mapMulti` allows one input element to emit 0, 1, or many output elements via a consumer, without creating a sub-`Stream` on each mapping step:
 
 ~~~java
 record LineWithOrder(Order order, Line line) {}
@@ -439,32 +439,32 @@ List<LineWithOrder> rows = orders.stream()
         .toList();
 ~~~
 
-`mapMulti` cũng giữ ngữ cảnh bằng cách đưa `order` vào mỗi phần tử kết quả. Dạng này có thể giảm chi phí tạo các Stream con trong một số trường hợp, nhưng `flatMap` thường dễ đọc hơn khi thao tác tự nhiên được biểu diễn bằng `stream()`. Hãy ưu tiên cách diễn đạt rõ ràng và chỉ tối ưu theo phép đo thực tế.
+`mapMulti` also preserves context by including `order` in every output element. This form can reduce sub-Stream creation overhead in certain cases, though `flatMap` is often more readable when the operation is naturally expressed with `stream()`. Prioritize clarity and only optimize based on real measurements.
 
-### 11.4. Quan hệ từ cơ sở dữ liệu và tài nguyên
+### 11.4. Database Relationships and Resources
 
-Với JPA/Hibernate hoặc ORM tương tự, gọi `order.lines()` có thể kích hoạt truy vấn tải danh sách con. Duyệt rất nhiều đơn hàng có thể gây hiện tượng **N+1 query** hoặc lỗi truy cập lazy association ngoài transaction. Việc dùng `flatMap` không tự tối ưu truy vấn cơ sở dữ liệu.
+With JPA/Hibernate or similar ORMs, calling `order.lines()` may trigger a query to load the child list. Iterating over many orders can cause **N+1 queries** or lazy-loading failures outside a transaction. Using `flatMap` does not automatically optimize database queries.
 
-Nếu cần làm phẳng lượng dữ liệu lớn, có thể xem xét query projection hoặc join tại database, fetch strategy/batch phù hợp và xử lý theo trang. Cần kiểm tra số lượng bản ghi trùng do join, khóa kết hợp và hành vi khi cha không có con. Tránh kéo cả đồ thị entity vào bộ nhớ chỉ để xuất vài trường.
+If large volumes of data need flattening, consider query projections or database joins, appropriate fetch/batch strategies, and pagination. Check for duplicate parent rows caused by joins, composite keys, and childless-parent behavior. Avoid loading entire entity graphs into memory just to export a few fields.
 
-Nếu Stream được tạo từ nguồn có tài nguyên như `Files.lines`, hãy tuân thủ vòng đời đóng tài nguyên bằng `try-with-resources`. Bản thân collection `List` thông thường không cần đóng. Dù `flatMap` có hợp đồng đóng Stream do mapper trả về khi đã xử lý, không nên dùng điều này để thay thế việc quản lý rõ ràng vòng đời nguồn I/O ở tầng tạo nguồn.
+If a Stream is created from a resource-backed source such as `Files.lines`, adhere to resource-closing lifecycles with `try-with-resources`. Plain `List` collections themselves do not need closing. Although `flatMap`'s contract closes Streams returned by its mapper once processed, do not use that as a substitute for explicitly managing I/O source lifecycles where the source is created.
 
-## 12. Các lỗi thường gặp và hướng sửa
+## 12. Common Mistakes and Fixes
 
-| Dấu hiệu | Nguyên nhân | Hướng sửa |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Không xác định được đơn hàng của một dòng con | `flatMap` trả trực tiếp `Line`, bỏ thông tin cha | Tạo `LineRow` hoặc `LineWithOrder` ngay bên trong lambda của `flatMap`. |
-| Đơn rỗng biến mất khỏi báo cáo | `flatMap` trên danh sách rỗng tạo 0 dòng | Nếu cần giữ mọi đơn, tổng hợp từ Stream các cha hoặc định nghĩa biểu diễn cho cha không có con. |
-| Hai dòng bị gộp thành một khi nhóm hoặc đưa vào Map | Khóa nhóm chỉ dùng `sku` hoặc `orderId` không đủ duy nhất | Xác định khóa nghiệp vụ, có thể cần `tenantId`, `orderId` và `lineId`. |
-| Thứ tự thay đổi bất ngờ | Nguồn unordered hoặc terminal `forEach` trên Stream song song | Giữ encounter order theo hợp đồng của nguồn/terminal hoặc sắp xếp đầu ra bằng khóa rõ ràng. |
-| Lỗi `NullPointerException` | `lines` hoặc phần tử con `null` | Chuẩn hóa collection rỗng; xác thực dữ liệu và xử lý `null` có chủ đích. |
-| Bộ nhớ tăng mạnh | Tạo quá nhiều DTO hoặc giữ cả parent entity; materialize toàn bộ bằng `toList()` | Chỉ mang các trường cần thiết, tổng hợp trực tiếp, xử lý theo lô. |
-| Kết quả sai khi chạy song song | Lưu cha hiện tại trong biến mutable bên ngoài | Đưa cha vào lambda lồng và tạo kết quả độc lập cho từng con. |
-| Có nhiều truy vấn SQL bất ngờ | `order.lines()` tải association lazy cho từng đơn | Kiểm tra chiến lược truy vấn, projection và batch ở tầng persistence. |
+| Cannot identify which order a child line belongs to | `flatMap` returns `Line` directly, dropping parent info | Construct `LineRow` or `LineWithOrder` right inside `flatMap`'s lambda. |
+| Empty orders vanish from the report | `flatMap` on an empty list emits 0 rows | If all orders are needed, aggregate from the parent Stream or define a representation for childless parents. |
+| Two lines get merged when grouping or putting into a Map | Grouping key only uses `sku` or `orderId`, which is not unique enough | Identify the business key; may need `tenantId`, `orderId`, and `lineId`. |
+| Unexpected order changes | Unordered source or `forEach` terminal on a parallel Stream | Preserve encounter order per source/terminal contract or sort output by an explicit key. |
+| `NullPointerException` | `lines` or a child element is `null` | Standardize on empty collections; validate data and handle `null` intentionally. |
+| Memory spikes | Creating too many DTOs or retaining whole parent entities; materializing all with `toList()` | Carry only needed fields, aggregate directly, process in batches. |
+| Wrong results under parallelism | Storing current parent in an external mutable variable | Capture parent in nested lambda and build independent results per child. |
+| Unexpectedly many SQL queries | `order.lines()` lazily loads associations per order | Review query strategy, projections, and batching in the persistence layer. |
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-Check Exercises
 
-### Bài 1. Nhận diện điểm làm mất ngữ cảnh
+### Exercise 1. Identifying Where Context Is Lost
 
 ~~~java
 List<Line> lines = orders.stream()
@@ -472,19 +472,19 @@ List<Line> lines = orders.stream()
         .toList();
 ~~~
 
-**Câu hỏi:** Vì sao không thể chắc chắn suy ra `orderId` từ từng `Line` trong kết quả?
+**Question:** Why can you not reliably infer `orderId` from each `Line` in the result?
 
-**Đáp án:** Vì kiểu `Line` trong mô hình không chứa `orderId`. Sau khi làm phẳng, không còn liên kết tường minh từ dòng con tới đối tượng `Order`. Cần tạo `LineRow(order.id(), ...)` hoặc `LineWithOrder(order, line)` khi biến `order` vẫn nằm trong scope lambda.
+**Answer:** Because the `Line` type in the model does not contain `orderId`. After flattening, there is no explicit link from a child line back to its `Order` object. Construct `LineRow(order.id(), ...)` or `LineWithOrder(order, line)` while `order` is still in lambda scope.
 
-### Bài 2. Chọn `map` hay `flatMap`
+### Exercise 2. Choosing `map` or `flatMap`
 
-**Yêu cầu:** Tạo một báo cáo gồm **một dòng tổng tiền cho mỗi đơn**, kể cả đơn không có dòng hàng.
+**Requirement:** Produce a report containing **one total-amount row per order**, including orders with no line items.
 
-**Đáp án:** Dùng `orders.stream().map(order -> new OrderTotal(...))`, và dùng `reduce(BigDecimal.ZERO, BigDecimal::add)` trên các dòng hàng của chính đơn đó. Nếu làm phẳng trước rồi nhóm lại, cần thêm bước bổ sung các đơn không có dòng hàng.
+**Answer:** Use `orders.stream().map(order -> new OrderTotal(...))`, and use `reduce(BigDecimal.ZERO, BigDecimal::add)` over that order's own line items. If you flatten first and then group, you would need an extra step to add back orders with no line items.
 
-### Bài 3. Đếm số dòng và nhận diện khách hàng
+### Exercise 3. Counting Rows and Identifying Customers
 
-Cho dữ liệu:
+Given data:
 
 ~~~text
 O-1 / C-A: [PEN, BOOK]
@@ -492,15 +492,15 @@ O-2 / C-B: []
 O-3 / C-A: [PEN]
 ~~~
 
-**Câu hỏi:** `flatMap` giữ mã cha tạo mấy dòng? Nhóm theo khách `C-A` có mấy dòng?
+**Question:** How many rows does `flatMap` carrying parent IDs produce? How many rows belong to customer `C-A`?
 
-**Đáp án:** Tổng cộng **3 dòng**: hai từ `O-1` và một từ `O-3`; khách `C-A` có **3 dòng**. Đơn `O-2` không tạo dòng, vì danh sách con rỗng.
+**Answer:** **3 rows** in total: two from `O-1` and one from `O-3`; customer `C-A` has **3 rows**. Order `O-2` produces no rows because its child list is empty.
 
-### Bài 4. Thay thế biến trạng thái chia sẻ
+### Exercise 4. Replacing a Shared State Variable
 
-**Yêu cầu:** Cần xuất `(departmentId, employeeId)` từ nhiều phòng ban trong pipeline chạy song song. Có nên dùng một biến `currentDepartmentId` bên ngoài rồi cập nhật khi duyệt từng phòng ban không?
+**Requirement:** Export `(departmentId, employeeId)` across multiple departments in a parallel pipeline. Should you use an external `currentDepartmentId` variable updated while iterating each department?
 
-**Đáp án:** Không. Biến ngoài có thể bị nhiều tác vụ cập nhật khiến mã phòng ban gắn sai nhân viên. Dùng:
+**Answer:** No. An external variable can be overwritten by multiple tasks, attaching the wrong department ID to employees. Use:
 
 ~~~java
 record EmployeeRef(String departmentId, String employeeId) {}
@@ -514,14 +514,14 @@ List<EmployeeRef> refs = departments.parallelStream()
         .toList();
 ~~~
 
-Dữ liệu ngữ cảnh được lấy trực tiếp từ biến `department` của đúng lượt ánh xạ, không dựa vào trạng thái dùng chung.
+Context data is taken directly from the `department` variable of that exact mapping step, without relying on shared state.
 
-## 14. Ghi nhớ và áp dụng
+## 14. Takeaways and Application
 
-- **Giữ ngữ cảnh ngay lúc làm phẳng:** `flatMap(parent -> children.stream().map(child -> result(parent, child)))` là mẫu cốt lõi.
-- **Chọn cấu trúc đầu ra theo mục đích:** DTO phẳng cho báo cáo/API; cặp cha–con khi cần xử lý nội bộ; khóa tổng hợp khi cần nhóm hoặc nhận diện duy nhất.
-- **Hiểu số lượng phần tử:** làm phẳng ra 0..N kết quả cho mỗi cha; cha rỗng biến mất trừ khi ứng dụng định nghĩa cách giữ lại.
-- **Lọc và tổng hợp đúng cấp:** lọc cha trước `flatMap` khi có thể; dùng `map` trên cha nếu yêu cầu mỗi cha có một bản ghi kể cả không có con.
-- **Tôn trọng hợp đồng pipeline:** lambda nên tránh trạng thái dùng chung; cân nhắc encounter order, null, chi phí vật hóa dữ liệu và cách nguồn dữ liệu được tải.
+- **Preserve context during flattening:** `flatMap(parent -> children.stream().map(child -> result(parent, child)))` is the core pattern.
+- **Choose output structures by purpose:** flat DTOs for reports/APIs; parent–child pairs for internal processing; composite keys for grouping or unique identification.
+- **Understand element counts:** flattening yields 0..N results per parent; empty parents disappear unless the application explicitly defines how to retain them.
+- **Filter and aggregate at the right level:** filter parents before `flatMap` when possible; use `map` on parents if every parent requires one record even without children.
+- **Respect pipeline contracts:** lambdas should avoid shared state; consider encounter order, null handling, materialization cost, and how data sources are loaded.
 
-**Ý chính:** `flatMap` giải quyết việc *gộp* dữ liệu con vào một Stream, còn **định danh, ngữ cảnh và ý nghĩa nghiệp vụ của mối quan hệ cha–con** phải được thể hiện trong phần tử kết quả do bạn thiết kế. Khi giữ đủ ngữ cảnh từ đầu, các bước `filter`, `collect`, `groupingBy`, xử lý song song và xuất dữ liệu về sau sẽ rõ ràng, dễ kiểm chứng và ít gây nhầm lẫn hơn.
+**Main idea:** `flatMap` solves *merging* child data into a single Stream, while the **identity, context, and business meaning of the parent–child relationship** must be captured in the result element you design. Keeping full context from the start makes downstream `filter`, `collect`, `groupingBy`, parallel processing, and data export clearer, easier to verify, and less error-prone.

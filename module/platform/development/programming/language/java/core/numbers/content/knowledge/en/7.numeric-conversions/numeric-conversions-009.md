@@ -1,40 +1,40 @@
-# Phân biệt ép kiểu, làm tròn và kiểm tra chuyển đổi `exact` trong Java
+# Distinguishing Casting, Rounding, and `exact` Conversion Checks in Java
 
-## 1. Ba câu hỏi khác nhau khi chuyển đổi số
+## 1. Three distinct questions when converting numbers
 
-Khi chuyển một giá trị từ kiểu số này sang kiểu số khác, cần tách ba mục tiêu:
+When converting a value from one numeric type to another, separate three goals:
 
-1. **Ép kiểu (cast/conversion)**: đưa giá trị sang một kiểu dữ liệu khác theo quy tắc của Java. Phép chuyển có thể giữ nguyên, làm mất phần thập phân, làm mất bit, hoặc giới hạn giá trị ở biên kiểu đích.
-2. **Làm tròn (rounding)**: chọn một giá trị đại diện theo quy tắc rõ ràng (gần nhất, lên, xuống, về 0, quy tắc xử lý trường hợp đúng giữa hai mức...). Làm tròn không đồng nghĩa với đổi kiểu, cũng không đảm bảo kết quả nằm trong miền kiểu đích.
-3. **Chuyển đổi chính xác (`exact`)**: yêu cầu kết quả giữ nguyên giá trị số theo hợp đồng API; nếu phải bỏ phần lẻ hoặc vượt giới hạn kiểu đích thì báo lỗi, thường là `ArithmeticException`.
+1. **Casting/conversion**: moving the value to another data type under Java's rules. The conversion may preserve the value, drop the fractional part, drop bits, or clamp the value at the target type's bounds.
+2. **Rounding**: choosing a representative value according to an explicit rule (nearest, up, down, toward zero, tie-breaking rules, etc.). Rounding is not synonymous with changing types, nor does it guarantee the result fits within the target type's range.
+3. **Exact conversion (`exact`)**: requiring the result to preserve the numeric value under an API contract; if a fractional part would have to be discarded or the target type's limits are exceeded, an error is reported, typically `ArithmeticException`.
 
-Ví dụ với `12.8`:
+Example with `12.8`:
 
-- `(int) 12.8` cho `12` vì chuyển `double` sang `int` cắt phần thập phân về phía 0.
-- `Math.round(12.8)` cho `13L`, vì hàm chọn số nguyên gần nhất và trả về `long` với đối số `double`.
-- `new BigDecimal("12.8").intValueExact()` ném `ArithmeticException`, vì `12.8` không phải số nguyên.
+- `(int) 12.8` yields `12` because converting `double` to `int` truncates the fractional part toward 0.
+- `Math.round(12.8)` yields `13L`, because the method selects the nearest integer and returns `long` for a `double` argument.
+- `new BigDecimal("12.8").intValueExact()` throws `ArithmeticException`, because `12.8` is not an integer.
 
-Không có phép nào trong ba phép trên tự động phù hợp mọi nghiệp vụ. Đặc biệt, *`exact`* nói về việc chuyển không làm đổi **giá trị hiện đang được lưu**, chứ không khôi phục được độ chính xác đã mất ở bước tính toán trước đó.
+None of these three operations automatically fits every business need. In particular, *`exact`* refers to converting without altering **the value currently stored**, rather than restoring precision lost in an earlier calculation step.
 
-## 2. Nền tảng: miền giá trị, độ rộng và độ chính xác
+## 2. Foundation: value ranges, bit width, and precision
 
-| Kiểu nguyên thủy | Độ rộng | Miền / đặc tính quan trọng |
+| Primitive type | Width | Range / key properties |
 | --- | ---: | --- |
-| `byte` | 8 bit | `-128` đến `127` |
-| `short` | 16 bit | `-32768` đến `32767` |
-| `char` | 16 bit | Không dấu `0` đến `65535`; là một đơn vị mã UTF-16 |
-| `int` | 32 bit | `-2147483648` đến `2147483647` |
-| `long` | 64 bit | `-9223372036854775808` đến `9223372036854775807` |
-| `float` | 32 bit | Số dấu phẩy động nhị phân, khoảng 24 bit độ chính xác phần trị |
-| `double` | 64 bit | Số dấu phẩy động nhị phân, khoảng 53 bit độ chính xác phần trị |
+| `byte` | 8 bits | `-128` to `127` |
+| `short` | 16 bits | `-32768` to `32767` |
+| `char` | 16 bits | Unsigned `0` to `65535`; one UTF-16 code unit |
+| `int` | 32 bits | `-2147483648` to `2147483647` |
+| `long` | 64 bits | `-9223372036854775808` to `9223372036854775807` |
+| `float` | 32 bits | Binary floating-point, ~24 bits of significand precision |
+| `double` | 64 bits | Binary floating-point, ~53 bits of significand precision |
 
-Giá trị `float`/`double` còn có thể là `NaN`, `+Infinity`, `-Infinity` và `+0.0`/`-0.0`. Chúng không biểu diễn chính xác mọi số thập phân hữu hạn; chẳng hạn `0.1` không có biểu diễn nhị phân hữu hạn chính xác trong `double`.
+`float`/`double` values can also be `NaN`, `+Infinity`, `-Infinity`, and `+0.0`/`-0.0`. They do not represent every finite decimal number exactly; for instance, `0.1` has no exact finite binary representation in `double`.
 
-### Widening không phải lúc nào cũng giữ nguyên độ chính xác
+### Widening does not always preserve precision
 
-Một số chuyển đổi mở rộng (*widening*) là chính xác: `byte` → `short` → `int` → `long` giữ nguyên giá trị nguyên; `float` → `double` giữ chính xác giá trị `float` **đã có**.
+Some *widening* conversions are exact: `byte` → `short` → `int` → `long` preserves integer values; `float` → `double` preserves the **existing** `float` value exactly.
 
-Tuy nhiên, `int` → `float` và `long` → `double` có thể làm mất bit chính xác dù kiểu đích thường được gọi là “rộng hơn”. Ví dụ:
+However, `int` → `float` and `long` → `double` can lose precision bits even though the target type is commonly called "wider." For example:
 
 ```java
 long original = 9_007_199_254_740_993L; // 2^53 + 1
@@ -42,13 +42,13 @@ double converted = original;            // 2^53
 long back = (long) converted;            // 9_007_199_254_740_992L
 ```
 
-`double` chỉ có 53 bit phần trị chính xác, nên không biểu diễn được hai số nguyên liên tiếp ở vùng này. Sau khi chuyển thành `double`, thông tin đã mất; ép ngược hoặc gọi một phương thức `exact` sau đó không thể tái tạo số ban đầu. Khi so sánh trực tiếp `original == converted`, Java lại chuyển `long` sang `double` để so sánh, nên cách so sánh đó cũng có thể che giấu mất mát. Hãy kiểm tra trước khi chuyển hoặc dùng một miền số phù hợp.
+`double` has only 53 bits of significand precision, so it cannot represent two consecutive integers in this region. Once converted to `double`, information is lost; casting back or calling an `exact` method afterward cannot reconstruct the original number. When comparing directly with `original == converted`, Java converts `long` to `double` for the comparison, so that check can also mask the loss. Check before converting or use an appropriate numeric domain.
 
-## 3. Ép kiểu nguyên thủy: kết quả có thể mất dữ liệu mà không báo lỗi
+## 3. Primitive casting: results can lose data without throwing
 
-### 3.1. Từ số nguyên lớn xuống số nguyên nhỏ
+### 3.1. From a larger integer to a smaller integer
 
-Phép chuyển thu hẹp (*narrowing*) bằng cast, như `(int) someLong` hay `(byte) someInt`, giữ các bit thấp phù hợp với độ rộng kiểu đích. Với kiểu có dấu, mẫu bit kết quả được diễn giải theo bù hai.
+Narrowing via a cast, such as `(int) someLong` or `(byte) someInt`, keeps the low bits matching the target type's width. For signed types, the resulting bit pattern is interpreted in two's complement.
 
 ```java
 int a = 130;
@@ -58,35 +58,35 @@ long large = 3_000_000_000L;
 int narrowed = (int) large; // -1294967296
 ```
 
-Với `130`, 8 bit thấp là `1000_0010`, mang giá trị `-126` trong `byte`. Với `3_000_000_000L`, 32 bit thấp tương ứng với giá trị `int` âm. Java **không ném ngoại lệ** khi cast nguyên thủy mất bit.
+For `130`, the low 8 bits are `1000_0010`, carrying the value `-126` in `byte`. For `3_000_000_000L`, the low 32 bits correspond to a negative `int` value. Java **does not throw an exception** when a primitive cast drops bits.
 
-Với `char`, kết quả nằm trong `0..65535`; giá trị lớn hơn cũng bị giữ 16 bit thấp. Vì `char` là đơn vị mã UTF-16, không nên coi cast số → `char` là thao tác chuyển số Unicode code point bất kỳ thành ký tự đầy đủ.
+For `char`, the result falls in `0..65535`; larger values also keep only the low 16 bits. Because `char` is a UTF-16 code unit, casting a number to `char` should not be treated as converting an arbitrary Unicode code point into a full character.
 
-### 3.2. Từ `float`/`double` sang `int`/`long`
+### 3.2. From `float`/`double` to `int`/`long`
 
-Với giá trị hữu hạn còn nằm trong miền kiểu đích, Java **cắt phần thập phân về phía 0** (*truncation toward zero*), khác với làm tròn số nguyên gần nhất:
+For finite values within the target type's range, Java **truncates the fractional part toward zero** (*truncation toward zero*), which differs from rounding to the nearest integer:
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 | --- | ---: |
 | `(int) 2.9` | `2` |
 | `(int) -2.9` | `-2` |
 | `(long) 2.9` | `2L` |
 | `(long) -2.9` | `-2L` |
 
-Các biên đặc biệt quan trọng:
+Crucial boundary rules:
 
-- `NaN` chuyển sang `int`/`long` thành `0`.
-- Giá trị quá lớn phía dương (kể cả `+Infinity`) chuyển thành `Integer.MAX_VALUE` hoặc `Long.MAX_VALUE`.
-- Giá trị quá nhỏ phía âm (kể cả `-Infinity`) chuyển thành `Integer.MIN_VALUE` hoặc `Long.MIN_VALUE`.
-- Cast không ném `ArithmeticException` khi xảy ra các trường hợp trên.
+- `NaN` converts to `int`/`long` as `0`.
+- Overly large positive values (including `+Infinity`) convert to `Integer.MAX_VALUE` or `Long.MAX_VALUE`.
+- Overly small negative values (including `-Infinity`) convert to `Integer.MIN_VALUE` or `Long.MIN_VALUE`.
+- Casting does not throw `ArithmeticException` when these cases occur.
 
-Ví dụ `(int) 1e20` cho `2147483647`; `(int) Double.NaN` cho `0`. Vì vậy cast **không phải** một phép xác thực đầu vào.
+For example, `(int) 1e20` yields `2147483647`; `(int) Double.NaN` yields `0`. Thus casting is **not** an input validation check.
 
-Đối với ép `double` → `float`, Java cũng có thể làm tròn theo độ chính xác nhị phân thấp hơn; giá trị có độ lớn quá lớn có thể trở thành vô cực, giá trị rất nhỏ có thể thành 0 (hoặc số subnormal). Đây là quy tắc chuyển dấu phẩy động, không phải hành vi cắt phần thập phân của `double` → `int`.
+For `double` → `float`, Java can also round due to lower binary precision; magnitudes that are too large can become infinity, and very small values can become 0 (or subnormal numbers). This is a floating-point conversion rule, not the fractional-truncation behavior of `double` → `int`.
 
-### 3.3. Cú pháp cast khác với parse
+### 3.3. Cast syntax differs from parsing
 
-`(int) d` chuyển một giá trị số có sẵn. `Integer.parseInt("123")` đọc một **chuỗi ký tự** thành số nguyên, kiểm tra cú pháp và miền `int`, có thể ném `NumberFormatException`.
+`(int) d` converts an existing numeric value. `Integer.parseInt("123")` reads a **character string** into an integer, checks syntax and `int` bounds, and can throw `NumberFormatException`.
 
 ```java
 int a = (int) 12.9;         // 12
@@ -94,25 +94,25 @@ int b = Integer.parseInt("12"); // 12
 // Integer.parseInt("12.9"); // NumberFormatException
 ```
 
-Nếu đầu vào người dùng phải là số nguyên và không được mất phần lẻ, hãy phân tích chuỗi bằng API phù hợp (`Integer.parseInt`, hoặc `BigDecimal` nếu có định dạng thập phân cần kiểm tra), thay vì parse sang `double` rồi cast.
+If user input must be an integer with no fractional loss, parse the string with an appropriate API (`Integer.parseInt`, or `BigDecimal` if decimal formatting needs validation), rather than parsing to `double` and casting.
 
-## 4. Làm tròn: xác định đúng hướng và quy tắc khi gặp giá trị giữa hai mức
+## 4. Rounding: specify the direction and tie-breaking rule
 
-### 4.1. Cast, `floor`, `ceil`, `round` và `rint`
+### 4.1. Cast, `floor`, `ceil`, `round`, and `rint`
 
-Các API toán học của `Math` trả kết quả theo những quy tắc khác nhau:
+`Math` operations return results according to different rules:
 
-| Phép toán | Quy tắc | Ví dụ với `2.5` | Ví dụ với `-2.5` |
+| Operation | Rule | Example with `2.5` | Example with `-2.5` |
 | --- | --- | --- | --- |
-| `(int) x` | Cắt về phía 0 (nếu hữu hạn, trong miền) | `2` | `-2` |
-| `Math.floor(x)` | Số nguyên lớn nhất `<= x`, kết quả `double` | `2.0` | `-3.0` |
-| `Math.ceil(x)` | Số nguyên nhỏ nhất `>= x`, kết quả `double` | `3.0` | `-2.0` |
-| `Math.round(x)` | Số nguyên gần nhất; khi đúng giữa hai số, chọn số lớn hơn | `3` | `-2` |
-| `Math.rint(x)` | Số nguyên gần nhất ở dạng `double`; hòa chọn số chẵn | `2.0` | `-2.0` |
+| `(int) x` | Truncate toward 0 (if finite, in range) | `2` | `-2` |
+| `Math.floor(x)` | Greatest integer `<= x`, `double` result | `2.0` | `-3.0` |
+| `Math.ceil(x)` | Smallest integer `>= x`, `double` result | `3.0` | `-2.0` |
+| `Math.round(x)` | Nearest integer; on exact ties, choose the larger number | `3` | `-2` |
+| `Math.rint(x)` | Nearest integer as `double`; ties pick the even number | `2.0` | `-2.0` |
 
-Trong bảng, `Math.round(double)` trả về **`long`**, còn `Math.round(float)` trả về **`int`**. `Math.floor`, `Math.ceil`, `Math.rint` trả kiểu `double`; **kiểu trả về khác nhau** dù các kết quả nhìn giống số nguyên.
+In the table, `Math.round(double)` returns **`long`**, whereas `Math.round(float)` returns **`int`**. `Math.floor`, `Math.ceil`, and `Math.rint` return `double`; the **return types differ** even when the results look like integers.
 
-Các ví dụ khác:
+More examples:
 
 ```java
 Math.round(2.5);  // 3L
@@ -123,11 +123,11 @@ Math.floor(-2.2); // -3.0
 Math.ceil(-2.2);  // -2.0
 ```
 
-`Math.round` cũng xử lý `NaN` thành `0` và bão hòa ở biên `int`/`long` với vô cực hoặc giá trị vượt miền. Vì vậy, dù có chữ “round”, kết quả của hàm **không có nghĩa là** đã xác thực giới hạn kiểu đích. `Math.floor`/`ceil`/`rint` giữ kết quả dạng `double` và có quy tắc riêng với `NaN`/vô cực; nếu sau đó cast, các quy tắc mất dữ liệu của cast vẫn áp dụng.
+`Math.round` also maps `NaN` to `0` and saturates at `int`/`long` bounds for infinity or out-of-range values. Therefore, despite the word "round," the method's output **does not mean** the input was validated against target-type limits. `Math.floor`/`ceil`/`rint` keep results as `double` and have their own rules for `NaN`/infinity; if you cast afterward, cast data-loss rules still apply.
 
-### 4.2. RoundingMode của `BigDecimal`
+### 4.2. `RoundingMode` of `BigDecimal`
 
-Khi cần kiểm soát số chữ số thập phân, đặc biệt với tiền, thuế hoặc dữ liệu yêu cầu quy tắc làm tròn được chỉ định, dùng `BigDecimal.setScale(scale, roundingMode)`:
+When you need to control the number of decimal digits, especially for money, taxes, or data requiring a specified rounding rule, use `BigDecimal.setScale(scale, roundingMode)`:
 
 ```java
 import java.math.BigDecimal;
@@ -138,39 +138,39 @@ BigDecimal a = x.setScale(2, RoundingMode.HALF_UP);   // 12.35
 BigDecimal b = x.setScale(2, RoundingMode.HALF_EVEN); // 12.34
 ```
 
-Ở đây `scale = 2` nghĩa là hai chữ số bên phải dấu thập phân; **không** phải hai chữ số có nghĩa. Các chế độ thường dùng:
+Here `scale = 2` means two digits to the right of the decimal point; **not** two significant digits. Common modes:
 
-| Chế độ | Quy tắc chính | Ví dụ làm tròn thành số nguyên |
+| Mode | Core rule | Example rounding to integer |
 | --- | --- | --- |
-| `UP` | Ra xa 0 khi phải bỏ chữ số khác 0 | `-2.1 → -3` |
-| `DOWN` | Về phía 0 | `-2.9 → -2` |
-| `CEILING` | Về phía dương vô cực | `-2.1 → -2` |
-| `FLOOR` | Về phía âm vô cực | `-2.1 → -3` |
-| `HALF_UP` | Gần nhất; đúng giữa hai mức thì ra xa 0 | `-2.5 → -3` |
-| `HALF_DOWN` | Gần nhất; đúng giữa hai mức thì về 0 | `-2.5 → -2` |
-| `HALF_EVEN` | Gần nhất; đúng giữa hai mức thì chọn chữ số cuối chẵn | `2.5 → 2`, `3.5 → 4` |
-| `UNNECESSARY` | Không cho phép bỏ phần có giá trị; cần làm tròn thì ném lỗi | `2.5` về scale 0 → lỗi |
+| `UP` | Away from 0 whenever nonzero digits are discarded | `-2.1 → -3` |
+| `DOWN` | Toward 0 | `-2.9 → -2` |
+| `CEILING` | Toward positive infinity | `-2.1 → -2` |
+| `FLOOR` | Toward negative infinity | `-2.1 → -3` |
+| `HALF_UP` | Nearest; exact ties go away from 0 | `-2.5 → -3` |
+| `HALF_DOWN` | Nearest; exact ties go toward 0 | `-2.5 → -2` |
+| `HALF_EVEN` | Nearest; exact ties pick the even last digit | `2.5 → 2`, `3.5 → 4` |
+| `UNNECESSARY` | Disallows dropping nonzero value; throws if rounding is needed | `2.5` to scale 0 → error |
 
-`Math.round(-2.5)` là `-2`, nhưng `new BigDecimal("-2.5").setScale(0, RoundingMode.HALF_UP)` là `-3`. Cả hai đều đúng theo quy tắc riêng; không nên gọi chung chung là “làm tròn kiểu thông thường”.
+`Math.round(-2.5)` is `-2`, whereas `new BigDecimal("-2.5").setScale(0, RoundingMode.HALF_UP)` is `-3`. Both are right under their own rules; avoid loosely calling either "standard rounding."
 
-Để tính decimal ổn định, ưu tiên `new BigDecimal("0.1")` hoặc `BigDecimal.valueOf(0.1)`. `new BigDecimal(0.1)` ghi lại **giá trị nhị phân chính xác của `double` đã làm tròn**, vốn không bằng chính xác `0.1` trong hệ thập phân. `BigDecimal.valueOf(double)` sử dụng chuỗi thập phân chuẩn của giá trị `double`, nhưng không thể phục hồi các chữ số mà phép tính dấu phẩy động trước đó đã làm mất.
+For predictable decimal arithmetic, prefer `new BigDecimal("0.1")` or `BigDecimal.valueOf(0.1)`. `new BigDecimal(0.1)` records the **exact binary value of the already-rounded `double`**, which is not exactly equal to `0.1` in base 10. `BigDecimal.valueOf(double)` uses the canonical decimal string of the `double` value, yet cannot recover digits that earlier floating-point operations already lost.
 
-## 5. Các API chuyển đổi `exact` kiểm tra điều gì?
+## 5. What do the `exact` conversion APIs check?
 
-### 5.1. `Math.toIntExact(long)`: thu hẹp `long` → `int` có kiểm tra miền
+### 5.1. `Math.toIntExact(long)`: range-checked `long` → `int` narrowing
 
 ```java
 int ok = Math.toIntExact(42L); // 42
 
-// Ném ArithmeticException vì vượt Integer.MAX_VALUE:
+// Throws ArithmeticException because it exceeds Integer.MAX_VALUE:
 int overflow = Math.toIntExact(3_000_000_000L);
 ```
 
-`Math.toIntExact` không có overload nhận `double` hoặc `BigDecimal`; nó chỉ dùng cho một giá trị `long` muốn chuyển sang `int`. Trái với `(int) someLong`, hàm này **từ chối** giá trị ngoài phạm vi `int`. Nếu cần kiểm tra tràn số của phép cộng/nhân nguyên trong quá trình tính, có các hàm liên quan `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`...; đó là kiểm tra **phép tính**, không phải ép kiểu.
+`Math.toIntExact` has no overload taking `double` or `BigDecimal`; it is only for a `long` value being converted to `int`. Unlike `(int) someLong`, this method **rejects** values outside the `int` range. When you need overflow checks on integer addition/multiplication during calculation, related methods exist such as `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, etc.; those check **arithmetic operations**, not casts.
 
 ### 5.2. `BigInteger.intValueExact()` / `longValueExact()`
 
-`BigInteger` có thể lớn hơn miền `long`. Hai phương thức `intValueExact()` và `longValueExact()` ném `ArithmeticException` nếu giá trị không vừa kiểu đích.
+`BigInteger` can exceed the `long` range. `intValueExact()` and `longValueExact()` throw `ArithmeticException` if the value does not fit in the target type.
 
 ```java
 import java.math.BigInteger;
@@ -183,39 +183,39 @@ BigInteger tooLarge = new BigInteger("2147483648");
 long fitsLong = tooLarge.longValueExact(); // 2147483648L
 ```
 
-Trong khi đó, `.intValue()`/`.longValue()` có thể làm mất bit; tên không có `Exact` không đảm bảo giữ nguyên giá trị.
+Meanwhile, `.intValue()`/`.longValue()` can drop bits; names without `Exact` do not guarantee preserving the value.
 
 ### 5.3. `BigDecimal.intValueExact()` / `longValueExact()`
 
-Với `BigDecimal`, `exact` kiểm tra **cả phần lẻ lẫn phạm vi**:
+For `BigDecimal`, `exact` checks **both fractional parts and range**:
 
 ```java
 import java.math.BigDecimal;
 
-new BigDecimal("12.00").intValueExact(); // 12: phần thập phân chỉ gồm 0
+new BigDecimal("12.00").intValueExact(); // 12: fractional part is all zeros
 new BigDecimal("-4").longValueExact();   // -4L
 
-// new BigDecimal("12.01").intValueExact();  // ArithmeticException: có phần lẻ
-// new BigDecimal("2147483648").intValueExact(); // ArithmeticException: quá miền
+// new BigDecimal("12.01").intValueExact();  // ArithmeticException: has fractional part
+// new BigDecimal("2147483648").intValueExact(); // ArithmeticException: out of range
 ```
 
-Điều kiện không phải `scale == 0`: `12.00` có scale là 2 nhưng vẫn biểu thị chính xác số nguyên 12. Các phương thức `.intValue()` và `.longValue()` thông thường không phát tín hiệu khi bỏ phần lẻ hoặc vượt miền.
+The condition is not `scale == 0`: `12.00` has scale 2 yet still represents the exact integer 12. The regular `.intValue()` and `.longValue()` methods give no signal when dropping a fractional part or exceeding the range.
 
-Nếu mục tiêu là **phải có số nguyên**, hãy gọi `intValueExact()` trực tiếp lên giá trị `BigDecimal` gốc. Nếu nghiệp vụ cho phép làm tròn trước, hãy chọn rõ `RoundingMode`, rồi gọi `intValueExact()` lên giá trị đã làm tròn. Hai quy trình này có ý nghĩa khác nhau:
+If the goal is **requiring an integer**, call `intValueExact()` directly on the original `BigDecimal`. If business rules allow rounding first, explicitly choose a `RoundingMode` and then call `intValueExact()` on the rounded value. These two workflows have different meanings:
 
 ```java
 BigDecimal input = new BigDecimal("12.8");
 
-// Không được làm mất phần lẻ: input.intValueExact() sẽ ném lỗi.
+// Cannot silently lose the fraction: input.intValueExact() will throw.
 int rounded = input.setScale(0, java.math.RoundingMode.HALF_UP)
                    .intValueExact(); // 13
 ```
 
-`setScale(0, ...)` giải quyết chuyện phần lẻ; `intValueExact()` sau đó vẫn kiểm tra miền `int`. Nếu muốn không bao giờ phải làm tròn, có thể dùng `RoundingMode.UNNECESSARY` và kiểm tra chính xác.
+`setScale(0, ...)` settles the fractional part; `intValueExact()` afterward still validates the `int` range. If rounding must never occur, you can use `RoundingMode.UNNECESSARY` and verify exactness.
 
-### 5.4. Có phương thức `exact` cho `double` → `int` không?
+### 5.4. Is there an `exact` method for `double` → `int`?
 
-Không có `Math.toIntExact(double)` trong Java 17. Với dữ liệu `double` hiện có, hãy kiểm tra hữu hạn, nguyên vẹn và trong miền `int` **trước khi cast**:
+There is no `Math.toIntExact(double)` in Java 17. For existing `double` data, check finiteness, integrality, and `int` range **before casting**:
 
 ```java
 static int requireInt(double value) {
@@ -229,9 +229,9 @@ static int requireInt(double value) {
 }
 ```
 
-Ở đây `Math.rint(value)` giúp xác nhận giá trị `double` hiện tại là số nguyên (không cần làm tròn); dấu `==`/`!=` có thể so sánh chính xác trong trường hợp này vì ta so sánh hai `double` và đã lọc `NaN`/vô cực. Giá trị `-0.0` được chấp nhận thành `int` 0, vì `int` không phân biệt dấu của số 0.
+Here `Math.rint(value)` confirms the current `double` value is whole (needs no rounding); `==`/`!=` compares accurately in this case because we are comparing two `double`s after filtering out `NaN`/infinity. `-0.0` is accepted as `int` 0, since `int` does not distinguish signed zeros.
 
-**Bẫy biên `long`:** không sao chép mù quáng điều kiện `value > Long.MAX_VALUE` vào phép kiểm tra `double` → `long`. `Long.MAX_VALUE` khi chuyển sang `double` làm tròn thành `2^63`, nên phép so sánh đó có thể chấp nhận sai một giá trị ngoài miền. Nếu cần chuyển `double` thành `long` đúng với **giá trị `double` đang có**, dùng giới hạn nửa mở, chẳng hạn:
+**`long` boundary trap:** do not blindly copy `value > Long.MAX_VALUE` into a `double` → `long` check. `Long.MAX_VALUE` rounds to `2^63` when converted to `double`, so that comparison can wrongly accept an out-of-range value. If you need to convert `double` to `long` matching the **current `double` value**, use a half-open bound, such as:
 
 ```java
 static long requireLong(double value) {
@@ -245,28 +245,28 @@ static long requireLong(double value) {
 }
 ```
 
-`0x1.0p63` là literal `double` biểu diễn chính xác `2^63`; `Long.MIN_VALUE == -2^63` vẫn hợp lệ, nhưng `+2^63` đã vượt `Long.MAX_VALUE`. Dẫu vậy, nếu một `long` lớn đã được đổi sang `double` và mất bit trước đó, cả kiểm tra này lẫn cast đều không thể phát hiện hay sửa lại giá trị `long` ban đầu. Khi có dữ liệu thập phân ban đầu, hãy giữ dữ liệu trong `BigDecimal` và dùng phương thức `...ValueExact()` ngay trên nguồn đó.
+`0x1.0p63` is a `double` literal representing `2^63` exactly; `Long.MIN_VALUE == -2^63` is still valid, whereas `+2^63` already exceeds `Long.MAX_VALUE`. Even so, if a large `long` was previously converted to `double` and lost bits, neither this check nor casting can detect or repair the original `long` value. When starting with decimal data, keep it in `BigDecimal` and call `...ValueExact()` directly on that source.
 
-## 6. Chọn phép toán theo yêu cầu nghiệp vụ
+## 6. Choosing the right operation for business requirements
 
-| Yêu cầu | Lựa chọn phù hợp | Cảnh báo |
+| Requirement | Appropriate choice | Caveat |
 | --- | --- | --- |
-| Chuyển `int` thành `long` | Gán trực tiếp `long n = i;` | Giữ nguyên giá trị |
-| Chuyển `long` thành `int`, phải nguyên vẹn | `Math.toIntExact(n)` | Ném `ArithmeticException` nếu ngoài miền |
-| Chuyển `long` thành `int`, cố ý giữ bit thấp | `(int) n` | Có thể đổi dấu/giá trị |
-| Chuyển số thực thành số nguyên bằng cách cắt về 0 | Cast sau khi xác thực phạm vi nếu cần | `NaN` và quá miền có kết quả đặc biệt |
-| Làm tròn đến số nguyên gần nhất, hòa về phía dương | `Math.round(...)` | Không dùng để chứng minh đầu vào nằm trong miền |
-| Làm tròn đến số nguyên gần nhất, hòa về số chẵn | `Math.rint(double)` hoặc `BigDecimal` `HALF_EVEN` | `rint` vẫn trả `double` |
-| Làm tròn tiền thành hai chữ số thập phân | `BigDecimal.setScale(2, mode)` | Quy tắc `mode` phải đến từ yêu cầu nghiệp vụ |
-| Chuyển decimal thành `int` không mất thông tin | `BigDecimal.intValueExact()` | Cần là số nguyên và vừa miền `int` |
-| Chuyển `BigInteger` thành `long` không mất thông tin | `BigInteger.longValueExact()` | Không vừa miền sẽ ném lỗi |
-| Nhập chuỗi số nguyên từ người dùng | `Integer.parseInt` / `Long.parseLong` | Lỗi chuỗi/miền là `NumberFormatException` |
+| Convert `int` to `long` | Direct assignment `long n = i;` | Preserves value |
+| Convert `long` to `int`, must be intact | `Math.toIntExact(n)` | Throws `ArithmeticException` if out of range |
+| Convert `long` to `int`, intentionally keep low bits | `(int) n` | Can change sign/value |
+| Convert float/double to integer by truncating toward 0 | Cast after validating range if needed | `NaN` and out-of-range have special results |
+| Round to nearest integer, ties toward positive | `Math.round(...)` | Do not use to prove input is in range |
+| Round to nearest integer, ties to even | `Math.rint(double)` or `BigDecimal` `HALF_EVEN` | `rint` still returns `double` |
+| Round money to two decimal places | `BigDecimal.setScale(2, mode)` | `mode` must come from business rules |
+| Convert decimal to `int` losslessly | `BigDecimal.intValueExact()` | Must be whole and fit in `int` |
+| Convert `BigInteger` to `long` losslessly | `BigInteger.longValueExact()` | Throws if it does not fit |
+| Parse integer string from user | `Integer.parseInt` / `Long.parseLong` | Syntax/range errors throw `NumberFormatException` |
 
-Không chọn `Math.round` chỉ vì tên gọi nghe “an toàn”. `round`, `cast` và `exact` trả lời ba câu hỏi khác nhau về cách xử lý phần lẻ, tràn miền và thất thoát dữ liệu.
+Do not choose `Math.round` merely because its name sounds "safe." `round`, `cast`, and `exact` answer three different questions about handling fractions, range overflow, and data loss.
 
-## 7. Ví dụ Java 17 đầy đủ và kết quả kiểm chứng
+## 7. Complete Java 17 example and verified output
 
-Lưu tệp `NumericConversionDemo.java`:
+Save the file `NumericConversionDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -313,14 +313,14 @@ public class NumericConversionDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac NumericConversionDemo.java
 java NumericConversionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 cast 2.9 = 2
@@ -342,11 +342,11 @@ long to int overflow: ArithmeticException
 decimal with fraction: ArithmeticException
 ```
 
-Ví dụ dùng literal `double` và `BigDecimal` từ chuỗi rõ ràng để tránh trộn lẫn kết quả làm tròn nhị phân với quy tắc rounding thập phân.
+The example uses `double` literals and explicit string-based `BigDecimal`s to avoid mixing binary rounding results with decimal rounding rules.
 
-## 8. Khi dữ liệu đến từ chuỗi hoặc phép tính thập phân
+## 8. When data comes from strings or decimal calculations
 
-Hãy xét yêu cầu: người dùng nhập số lượng sản phẩm ở dạng `"12.00"`, hệ thống chỉ chấp nhận số lượng nguyên trong miền `int`. Cách phù hợp là:
+Consider the requirement: the user enters a product quantity as `"12.00"`, and the system accepts only whole quantities in the `int` range. An appropriate approach is:
 
 ```java
 import java.math.BigDecimal;
@@ -376,30 +376,30 @@ java QuantityParser
 12
 ```
 
-`new BigDecimal(raw)` có thể ném `NumberFormatException` nếu chuỗi không hợp lệ; `intValueExact()` có thể ném `ArithmeticException` nếu số có phần lẻ hoặc vượt miền. Sau đó mới kiểm tra luật nghiệp vụ (ví dụ không âm). Như vậy mỗi lỗi có ý nghĩa riêng và không bị âm thầm cắt dữ liệu.
+`new BigDecimal(raw)` can throw `NumberFormatException` if the string is invalid; `intValueExact()` can throw `ArithmeticException` if the number has a fraction or exceeds range. Only then are business rules checked (e.g., non-negative). Thus each error has a clear meaning and data is never silently truncated.
 
-Trái lại, nếu yêu cầu là *cho phép số lẻ và làm tròn số lượng* thì phải xác định `RoundingMode` rõ ràng trước khi dùng `intValueExact()`. Không tự quyết định `HALF_UP` hay `HALF_EVEN` chỉ dựa vào thói quen.
+Conversely, if the requirement *permits fractional values and rounds the quantity*, an explicit `RoundingMode` must be chosen before calling `intValueExact()`. Do not pick `HALF_UP` or `HALF_EVEN` purely out of habit.
 
-Một tình huống tương tự là tính tiền. Nếu tổng tiền cần hai chữ số thập phân, giữ giá trị trong `BigDecimal`, tính với độ chính xác phù hợp, rồi dùng `setScale(2, mode)` theo yêu cầu kế toán. Cast sang `int` chỉ giữ phần nguyên và khiến phần lẻ bị loại bỏ, không tương đương làm tròn đến đơn vị tiền nhỏ.
+A similar situation occurs when calculating money. If a total needs two decimal places, keep the value in `BigDecimal`, compute with suitable precision, and then call `setScale(2, mode)` per accounting requirements. Casting to `int` only keeps the integer part and drops the fraction, which is not equivalent to rounding to the smallest currency unit.
 
-## 9. Những lỗi phổ biến và cách phát hiện
+## 9. Common errors and how to spot them
 
-1. **Cho rằng cast là làm tròn.** `(int) -2.9 == -2`, còn `Math.floor(-2.9) == -3.0`; các phép toán phục vụ mục đích khác nhau.
-2. **Cho rằng cast tự báo tràn.** `(int) 3_000_000_000L` cho giá trị âm; `Math.toIntExact(3_000_000_000L)` mới ném `ArithmeticException`.
-3. **Cho rằng `Math.round` bảo đảm không vượt miền.** `Math.round(Double.POSITIVE_INFINITY)` trả `Long.MAX_VALUE`; `Math.round(Double.NaN)` trả `0`.
-4. **Trộn quy tắc hòa khi làm tròn.** `Math.round(-2.5) == -2`, `HALF_UP` của `BigDecimal("-2.5")` cho `-3`, còn `HALF_EVEN` chọn chữ số cuối chẵn.
-5. **Tạo `BigDecimal` từ `double` mà không hiểu dữ liệu nguồn.** `new BigDecimal(0.1)` ghi lại giá trị nhị phân của `double`; nếu yêu cầu đúng số thập phân `0.1` từ đầu vào, dùng chuỗi hoặc dữ liệu decimal nguyên gốc.
-6. **Làm mất dữ liệu trước khi kiểm tra `exact`.** `(long) someDouble` đã có thể cắt/bão hòa; `Math.toIntExact((long) someDouble)` chỉ kiểm tra `long` sau bước cast, không thể kiểm tra phần lẻ hoặc vô cực của nguồn ban đầu.
-7. **Dùng `Long.MAX_VALUE` làm cận trên cho `double` → `long`.** Giá trị `Long.MAX_VALUE` khi chuyển sang `double` không biểu diễn chính xác; cận trên an toàn là `value < 0x1.0p63`.
-8. **Chỉ kiểm tra phần lẻ mà quên giới hạn kiểu đích.** `1e20` là một giá trị `double` không có phần lẻ, nhưng không vừa trong `int` hoặc `long`; kiểm tra `x == Math.rint(x)` là chưa đủ.
-9. **Nhầm chữ `Exact` là “luôn cho ra đáp án thập phân chính xác”.** `BigDecimal.intValueExact` bảo đảm chuyển integer value hiện có, không sửa sai số từ phép tính `double` trước đó.
-10. **Bỏ qua kiểu trả về.** `Math.round(float)` trả `int`, `Math.round(double)` trả `long`, còn `Math.floor`/`Math.ceil`/`Math.rint` trả `double`. Việc ép tiếp sang kiểu nhỏ hơn cần kiểm tra riêng.
-11. **Dùng `parseInt` để hiểu chuỗi decimal.** `"12.00"` không hợp lệ với `Integer.parseInt` dù có thể được `BigDecimal.intValueExact()` chuyển thành 12 sau khi parse thành decimal.
-12. **Lấy `RoundingMode` từ trực giác.** Quy tắc kế toán, điều chỉnh điểm, thống kê và hiển thị có thể khác nhau; phải ghi rõ cách xử lý phần lẻ, dấu âm và trường hợp đúng giữa hai mức.
+1. **Assuming casting is rounding.** `(int) -2.9 == -2`, whereas `Math.floor(-2.9) == -3.0`; the operations serve different purposes.
+2. **Assuming casting automatically reports overflow.** `(int) 3_000_000_000L` produces a negative value; only `Math.toIntExact(3_000_000_000L)` throws `ArithmeticException`.
+3. **Assuming `Math.round` guarantees in-range results.** `Math.round(Double.POSITIVE_INFINITY)` returns `Long.MAX_VALUE`; `Math.round(Double.NaN)` returns `0`.
+4. **Mixing tie-breaking rules when rounding.** `Math.round(-2.5) == -2`, `HALF_UP` on `BigDecimal("-2.5")` gives `-3`, and `HALF_EVEN` picks the even last digit.
+5. **Creating `BigDecimal` from `double` without understanding the source data.** `new BigDecimal(0.1)` records the binary value of `double`; if exact decimal `0.1` from input is required, use strings or original decimal data.
+6. **Losing data before checking `exact`.** `(long) someDouble` may already have truncated/saturated; `Math.toIntExact((long) someDouble)` checks only the `long` after the cast, unable to inspect fractions or infinity from the original source.
+7. **Using `Long.MAX_VALUE` as the upper bound for `double` → `long`.** `Long.MAX_VALUE` converted to `double` is not exact; the safe upper bound is `value < 0x1.0p63`.
+8. **Checking only for fractions while forgetting target type limits.** `1e20` is a `double` with no fractional part, yet it does not fit in `int` or `long`; checking `x == Math.rint(x)` is insufficient.
+9. **Confusing `Exact` with "always produces an exact decimal answer."** `BigDecimal.intValueExact` guarantees converting the existing integer value, not fixing errors from earlier `double` math.
+10. **Ignoring return types.** `Math.round(float)` returns `int`, `Math.round(double)` returns `long`, and `Math.floor`/`Math.ceil`/`Math.rint` return `double`. Casting onward to a narrower type needs separate checking.
+11. **Using `parseInt` to interpret decimal strings.** `"12.00"` is invalid for `Integer.parseInt` even though `BigDecimal.intValueExact()` can convert it to 12 after parsing as decimal.
+12. **Picking `RoundingMode` by intuition.** Accounting, grading, statistics, and display rules can differ; explicitly document how fractions, negative signs, and exact ties are handled.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-check exercises
 
-Hãy dự đoán kết quả hoặc ngoại lệ trước khi chạy Java:
+Predict the result or exception before running Java:
 
 ```java
 (int) -7.9
@@ -412,14 +412,14 @@ new java.math.BigDecimal("-1.5")
     .setScale(0, java.math.RoundingMode.HALF_UP)
 ```
 
-**Đáp án theo thứ tự:**
+**Answers in order:**
 
-1. `-7` vì cast cắt phần lẻ về phía 0.
-2. `-7L` vì `Math.round` chọn số nguyên gần nhất, đúng giữa hai số chọn phía dương.
-3. `8.0` vì `Math.rint` hòa về số chẵn.
-4. `ArithmeticException` vì lớn hơn `Integer.MAX_VALUE`.
-5. `15` vì phần thập phân chỉ chứa các chữ số 0.
-6. `ArithmeticException` vì còn phần lẻ khác 0.
-7. `-2` dưới dạng `BigDecimal` vì `HALF_UP` ra xa 0 khi đúng giữa hai mức.
+1. `-7` because casting truncates the fractional part toward 0.
+2. `-7L` because `Math.round` picks the nearest integer and exact ties go toward positive.
+3. `8.0` because `Math.rint` ties to the even number.
+4. `ArithmeticException` because it exceeds `Integer.MAX_VALUE`.
+5. `15` because the fractional part contains only zeros.
+6. `ArithmeticException` because a nonzero fractional part remains.
+7. `-2` as a `BigDecimal` because `HALF_UP` goes away from 0 on exact ties.
 
-**Quy tắc ghi nhớ:** khi muốn **thay kiểu** có thể cast (và chấp nhận quy tắc mất dữ liệu), khi muốn **chọn giá trị gần mức nào** phải chỉ rõ rounding, còn khi muốn **bảo toàn giá trị** hãy dùng `...Exact()` hoặc một phép kiểm tra tương đương **trước** khi thực hiện cast. Nếu dữ liệu bắt đầu từ chuỗi thập phân, giữ chúng ở dạng decimal cho đến khi hoàn tất xác thực và làm tròn theo yêu cầu.
+**Rule to remember:** when you want to **change types** you can cast (accepting the data-loss rules), when you want to **pick a value near a level** you must specify rounding, and when you want to **preserve the value** use `...Exact()` or an equivalent check **before** casting. If data starts as decimal strings, keep it in decimal form until validation and required rounding are complete.

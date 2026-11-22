@@ -1,19 +1,19 @@
-# Không viết chuỗi so sánh kiểu toán học như `0 < x < 10` trong Java
+# Do Not Write Mathematical Chained Comparisons Like `0 < x < 10` in Java
 
-> **Java core — language-basics / So sánh**  
-> **Phiên bản:** Java 17+, một file runnable không cần thư viện ngoài.  
-> **Mục tiêu:** Giải thích lỗi biên dịch của `0 < x < 10`; chuyển thành các phép so sánh độc lập nối bằng `&&`, chọn đúng biên mở/đóng và tránh tác dụng phụ khi đánh giá biểu thức.
+> **Java core — language-basics / Comparisons**  
+> **Version:** Java 17+, single runnable file with no external libraries.  
+> **Goal:** Explain the compilation error of `0 < x < 10`; rewrite it into independent comparisons joined by `&&`, choose the right open/closed bounds, and avoid side effects when evaluating expressions.
 
-## 1. Vì sao `0 < x < 10` không biên dịch?
+## 1. Why Does `0 < x < 10` Fail to Compile?
 
-Trong toán học, `0 < x < 10` có nghĩa `x` **đồng thời** lớn hơn 0 và nhỏ hơn 10. Trong Java, toán tử quan hệ `<` trả **`boolean`**, không phải một số.
+In mathematics, `0 < x < 10` means `x` is **simultaneously** greater than 0 and less than 10. In Java, the relational operator `<` returns a **`boolean`**, not a number.
 
 ~~~java
 int x = 5;
-// boolean valid = 0 < x < 10; // LỖI BIÊN DỊCH.
+// boolean valid = 0 < x < 10; // COMPILATION ERROR.
 ~~~
 
-Hai toán tử `<` ở cùng mức ưu tiên và nhóm từ trái sang phải, nên cách hiểu cú pháp là:
+The two `<` operators share the same precedence and group from left to right, so the syntactic grouping is:
 
 ~~~text
 (0 < x) < 10
@@ -21,45 +21,45 @@ Hai toán tử `<` ở cùng mức ưu tiên và nhóm từ trái sang phải, n
  boolean
 ~~~
 
-`0 < x` trả true/false, sau đó chương trình cố so sánh `boolean < int` — không hợp lệ. Đây là **lỗi kiểu khi biên dịch**, không phải một phép kiểm tra khoảng trả false.
+`0 < x` returns true/false, and then the program tries to compare `boolean < int` — which is invalid. This is a **compile-time type error**, not a range check returning false.
 
-Lỗi tương tự xuất hiện với `0 <= x <= 10`, `a < b < c` hoặc `a > b >= c`. Java không biến chuỗi so sánh quan hệ thành phép AND một cách tự động.
+The same error occurs with `0 <= x <= 10`, `a < b < c`, or `a > b >= c`. Java does not automatically convert chained relational comparisons into an AND operation.
 
-## 2. Viết đúng bằng `&&`
+## 2. Write It Correctly Using `&&`
 
 ~~~java
 int x = 5;
 boolean inside = 0 < x && x < 10; // true.
 ~~~
 
-Tương đương:
+Equivalent to:
 
 ~~~java
 boolean inside = (0 < x) && (x < 10);
 ~~~
 
-Đây là **hai** phép so sánh độc lập, mỗi phép tạo một giá trị `boolean`. `&&` kết hợp các kết quả: toàn bộ true chỉ khi **cả hai đều true**.
+These are **two** independent comparisons, each producing a `boolean` value. `&&` combines the results: the overall expression is true only when **both are true**.
 
-Toán tử quan hệ có độ ưu tiên cao hơn `&&`, nên dấu ngoặc là tùy chọn ở biểu thức đơn giản. Với điều kiện dài hoặc trộn nhiều phép toán, dấu ngoặc giúp làm rõ ý định.
+Relational operators have higher precedence than `&&`, so parentheses are optional in simple expressions. For long conditions or mixed operators, parentheses help clarify intent.
 
-**Không dùng OR để thay thế:** `0 < x || x < 10` là điều kiện “hoặc”; với `x = -5`, vế thứ hai true; với `x = 20`, vế thứ nhất true. Nó không có nghĩa “x nằm giữa 0 và 10”.
+**Do not substitute OR:** `0 < x || x < 10` is an "or" condition; when `x = -5`, the second side is true; when `x = 20`, the first side is true. It does not mean "`x` is between 0 and 10".
 
-## 3. Chọn đúng dấu ở các biên
+## 3. Choosing the Right Operators at the Boundaries
 
-| Khoảng cần kiểm tra | Biểu thức Java | Với `x=0` | Với `x=10` |
+| Range to check | Java expression | For `x=0` | For `x=10` |
 | --- | --- | --- | --- |
-| Mở: lớn hơn 0, nhỏ hơn 10 | `0 < x && x < 10` | false | false |
-| Đóng: từ 0 đến 10 | `0 <= x && x <= 10` | true | true |
-| Lấy 0, loại 10 | `0 <= x && x < 10` | true | false |
-| Loại 0, lấy 10 | `0 < x && x <= 10` | false | true |
+| Open: greater than 0, less than 10 | `0 < x && x < 10` | false | false |
+| Closed: from 0 to 10 | `0 <= x && x <= 10` | true | true |
+| Include 0, exclude 10 | `0 <= x && x < 10` | true | false |
+| Exclude 0, include 10 | `0 < x && x <= 10` | false | true |
 
-Với khoảng mở `(0, 10)`, các giá trị 1 đến 9 (nếu `x` là số nguyên) hợp lệ; 0, 10 và mọi số ngoài khoảng đều không hợp lệ. Với chỉ số mảng, khoảng thường là **`0 <= index && index < array.length`**, vì chỉ số cuối là `length - 1`.
+For the open interval `(0, 10)`, values 1 through 9 (if `x` is an integer) are valid; 0, 10, and everything outside are invalid. For array indices, the range is typically **`0 <= index && index < array.length`**, because the last valid index is `length - 1`.
 
-Muốn kiểm tra **nằm ngoài khoảng mở** thì dùng `x <= 0 || x >= 10`. Quy tắc De Morgan cho phép viết phủ định của `0 < x && x < 10` dưới dạng `!(0 < x && x < 10)`; chú ý với số thực `NaN`, hai cách diễn đạt phủ định phải được xét theo đúng semantics.
+To check for being **outside the open interval**, use `x <= 0 || x >= 10`. De Morgan's law allows writing the negation of `0 < x && x < 10` as `!(0 < x && x < 10)`; note that for floating-point `NaN`, the two negated forms must be evaluated according to their exact semantics.
 
-## 4. Short-circuit và kiểm tra an toàn
+## 4. Short-Circuiting and Safe Checks
 
-`&&` đánh giá vế trái trước. Nếu vế trái false, Java **bỏ qua vế phải**. Ví dụ bảo vệ chỉ số mảng:
+`&&` evaluates the left-hand side first. If the left-hand side is false, Java **skips the right-hand side**. Example of guarding an array index:
 
 ~~~java
 int[] values = {10, 20, 30};
@@ -68,45 +68,45 @@ int index = -1;
 boolean safe = index >= 0
         && index < values.length
         && values[index] > 0;
-// safe=false; values[-1] không được truy cập.
+// safe=false; values[-1] is never accessed.
 ~~~
 
-Nếu đặt `values[index] > 0` trước kiểm tra `index >= 0`, chương trình có thể ném `ArrayIndexOutOfBoundsException`. Với boolean `&`, Java đánh giá cả hai vế, không short-circuit, nên không thích hợp để bảo vệ vế phải trong tình huống này.
+If you place `values[index] > 0` before checking `index >= 0`, the program can throw `ArrayIndexOutOfBoundsException`. With boolean `&`, Java evaluates both sides without short-circuiting, making it unsuitable for guarding the right-hand side in this situation.
 
-`&&` không làm cho mọi lỗi biến mất; chỉ bỏ qua **vế phải chưa cần đánh giá**. Vẫn phải viết điều kiện bảo vệ đúng thứ tự, bao gồm kiểm tra `null` trước khi gọi phương thức trên đối tượng.
+`&&` does not make every error vanish; it only skips an **unevaluated right-hand side**. Guard conditions must still be written in the proper order, including `null` checks before calling methods on objects.
 
-## 5. Không đọc hoặc tính lại một giá trị có tác dụng phụ
+## 5. Do Not Re-read or Recompute a Value with Side Effects
 
-Cách viết sau có thể kiểm tra **hai giá trị khác nhau**, không phải một số `x`:
+The following pattern can end up checking **two different values**, not one single `x`:
 
 ~~~java
-// Không nên dùng nếu readValue() có thể trả kết quả khác mỗi lần:
+// Avoid this if readValue() can return a different result each time:
 boolean result = 0 < readValue() && readValue() < 10;
 ~~~
 
-Nếu lời gọi đầu tiên trả 5 và lời gọi thứ hai trả 50, toàn bộ điều kiện false, dù 5 thực sự nằm trong khoảng mở. Short-circuit còn làm cho lời gọi thứ hai **không được thực hiện** khi lời gọi đầu không thỏa giới hạn dưới.
+If the first call returns 5 and the second returns 50, the entire condition evaluates to false, even though 5 is indeed within the open interval. Short-circuiting also causes the second call **not to execute** when the first fails the lower bound.
 
-Khi muốn kiểm tra **một lần đọc duy nhất**, hãy lưu kết quả:
+When you want to check **a single read**, store the result in a variable:
 
 ~~~java
 int x = readValue();
 boolean inside = 0 < x && x < 10;
 ~~~
 
-Điều này đặc biệt quan trọng với việc đọc input, đo thời gian, lấy dữ liệu thay đổi, random hoặc hàm có side effect.
+This is especially critical when reading input, measuring time, fetching mutable data, using randomness, or calling functions with side effects.
 
-## 6. Hai bẫy: `==` giữa boolean và `NaN`
+## 6. Two Traps: `==` Between Booleans and `NaN`
 
-Không nên cố thay `&&` bằng một phép so sánh bằng nhau giữa hai điều kiện:
+Do not try to replace `&&` with an equality check between two conditions:
 
 ~~~java
-// Biên dịch được nhưng KHÔNG tương đương kiểm tra trong khoảng:
+// Compiles, but is NOT equivalent to a range check:
 boolean wrong = (0 < x) == (x < 10);
 ~~~
 
-Phép `==` chỉ hỏi **hai giá trị boolean có giống nhau không**. Nếu cả hai cùng false, kết quả vẫn true, trong khi AND phải false.
+The `==` operator only asks **whether two boolean values are the same**. If both are false, the result is still true, whereas AND must return false.
 
-Điều này có thể được chứng minh bằng số thực `Double.NaN`:
+This can be demonstrated using floating-point `Double.NaN`:
 
 ~~~java
 double x = Double.NaN;
@@ -114,17 +114,17 @@ boolean valid = 0.0 < x && x < 10.0; // false.
 boolean wrong = (0.0 < x) == (x < 10.0); // true.
 ~~~
 
-Vì mọi so sánh thứ tự `<`/`>` đối với `NaN` là false, biểu thức `false == false` trở thành true. Khi cần kiểm tra đầu vào `double` phải **hữu hạn**, thêm `Double.isFinite(x)`:
+Because all ordering comparisons (`<`/`>`) with `NaN` return false, `false == false` becomes true. When a `double` input must be **finite**, add `Double.isFinite(x)`:
 
 ~~~java
 boolean inside = Double.isFinite(x) && 0.0 < x && x < 10.0;
 ~~~
 
-Đừng cố chuyển `boolean` thành số để viết chuỗi so sánh: Java không hỗ trợ ép `boolean` thành `int`. Dùng trực tiếp các phép toán logic.
+Do not try to convert `boolean` to a number to write chained comparisons: Java does not support casting `boolean` to `int`. Use logical operators directly.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Runnable Java 17+ Program
 
-Tạo file **RangeComparisonDemo.java**:
+Create the file **RangeComparisonDemo.java**:
 
 ~~~java
 public final class RangeComparisonDemo {
@@ -179,14 +179,14 @@ public final class RangeComparisonDemo {
 }
 ~~~
 
-Biên dịch và chạy ở thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 RangeComparisonDemo.java
 java RangeComparisonDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 x=-1,open=false,closed=false
@@ -203,29 +203,29 @@ sampled=true,reads=1
 shortCircuit=false,reads=1
 ~~~
 
-Trong ví dụ, `readValue()` trả 5 ở lần gọi đầu và 50 ở lần gọi thứ hai. `repeated` dùng **cả hai giá trị** nên false, còn `sampled` chỉ lấy một giá trị 5 nên true. Với `shortCircuit`, vế trái `5 < 0` false nên Java chỉ gọi `readValue()` một lần. `nanEqualityTrap=true` chứng minh so sánh **bằng nhau** giữa hai boolean không thay được `&&`.
+In the example, `readValue()` returns 5 on the first call and 50 on the second. `repeated` uses **both values** so it yields false, while `sampled` reads only one value (5) so it yields true. For `shortCircuit`, the left-hand side `5 < 0` is false, so Java calls `readValue()` only once. `nanEqualityTrap=true` proves that comparing two booleans for **equality** cannot substitute for `&&`.
 
-## 8. Quy tắc thực hành và bài tập
+## 8. Practical Rules and Exercises
 
-| Trường hợp | Viết như thế nào? |
+| Case | How to write it? |
 | --- | --- |
-| Kiểm tra giá trị nằm giữa hai biên mở | `min < x && x < max` |
-| Kiểm tra giá trị thuộc cả hai biên | `min <= x && x <= max` |
-| Kiểm tra chỉ số mảng hợp lệ | `0 <= i && i < array.length` |
-| Điều kiện ở vế phải có thể gây lỗi | Đặt guard bên trái `&&` |
-| Giá trị lấy từ hàm có side effect | Gọi một lần, lưu vào biến trước khi so sánh |
-| Số thực phải hữu hạn | Kết hợp `Double.isFinite(x)` với kiểm tra khoảng |
+| Check value strictly between two open bounds | `min < x && x < max` |
+| Check value within both inclusive bounds | `min <= x && x <= max` |
+| Check valid array index | `0 <= i && i < array.length` |
+| Right-hand condition may throw an error | Place the guard on the left of `&&` |
+| Value comes from a function with side effects | Call once and store in a variable before comparing |
+| Floating-point value must be finite | Combine `Double.isFinite(x)` with the range check |
 
-**Bài 1.** Viết điều kiện hợp lệ Java cho `-5 < x < 5` và `0 ≤ x ≤ 100`. Đừng dùng chuỗi quan hệ.
+**Exercise 1.** Write valid Java conditions for `-5 < x < 5` and `0 ≤ x ≤ 100`. Do not use chained comparisons.
 
-**Bài 2.** Giải thích vì sao `1 < x < 10` lỗi ngay từ lúc biên dịch; kiểu của `1 < x` là gì?
+**Exercise 2.** Explain why `1 < x < 10` fails at compile time; what is the type of `1 < x`?
 
-**Bài 3.** Kiểm tra `0 <= index && index < length` ở ba giá trị `index=-1`, `index=0`, `index=length`.
+**Exercise 3.** Evaluate `0 <= index && index < length` for the three values `index=-1`, `index=0`, and `index=length`.
 
-**Bài 4.** Vì sao `0 < getValue() && getValue() < 10` không nhất thiết kiểm tra một giá trị? Viết lại chỉ gọi `getValue()` một lần.
+**Exercise 4.** Why does `0 < getValue() && getValue() < 10` not necessarily check a single value? Rewrite it to call `getValue()` only once.
 
-**Bài 5.** Chứng minh `(0.0 < Double.NaN) == (Double.NaN < 10.0)` true nhưng điều kiện AND trả false.
+**Exercise 5.** Demonstrate why `(0.0 < Double.NaN) == (Double.NaN < 10.0)` is true while the AND condition returns false.
 
-### Ghi nhớ
+### Remember
 
-**Java không hỗ trợ `0 < x < 10`.** Phải viết **`0 < x && x < 10`** — hai phép so sánh độc lập nối bằng AND. Chọn `<` hoặc `<=` phù hợp với biên, tận dụng short-circuit cho guard và tránh gọi lại hàm có tác dụng phụ khi muốn kiểm tra **một** giá trị nhất quán.
+**Java does not support `0 < x < 10`.** You must write **`0 < x && x < 10`** — two independent comparisons joined with AND. Choose `<` or `<=` to match the bounds, leverage short-circuiting for guards, and avoid calling side-effecting functions twice when checking **one** consistent value.

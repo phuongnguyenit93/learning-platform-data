@@ -1,14 +1,14 @@
-# Quan hệ giữa equals, hashCode và việc hai chuỗi băm trùng trong Java
+# Relationship Between equals, hashCode, and Hash Collisions for Strings in Java
 
-Khi so sánh `String` trong Java, `equals()` trả lời câu hỏi **“hai chuỗi có cùng nội dung không?”**; `hashCode()` tính một **giá trị băm `int`** từ nội dung để hỗ trợ các cấu trúc dữ liệu như `HashMap` và `HashSet`. Hai chức năng liên quan chặt chẽ theo một hợp đồng quan trọng:
+When comparing `String` objects in Java, `equals()` answers **"do these two strings have the same content?"**; `hashCode()` computes an **`int` hash value** from the content to support data structures like `HashMap` and `HashSet`. The two capabilities are tightly linked by a critical contract:
 
-> Nếu hai `String` bằng nhau theo `equals()`, chúng **bắt buộc** có cùng `hashCode()`. Chiều ngược lại **không đúng**: hai chuỗi **khác nhau** hoàn toàn có thể có giá trị băm trùng (*hash collision*).
+> If two `String` objects are equal according to `equals()`, they **must** have the same `hashCode()`. The converse is **not true**: two **different** strings can easily share the same hash value (*hash collision*).
 
-Hiểu hợp đồng này giúp tránh nhầm lẫn giữa **định danh**, **so sánh nội dung** và **băm để tìm kiếm**; cũng giải thích vì sao các bộ sưu tập dạng hash vẫn phân biệt được hai chuỗi khác nhau có cùng giá trị băm.
+Understanding this contract helps avoid confusing **identity**, **content comparison**, and **hashing for lookup**; it also explains why hash-based collections can still distinguish two different strings that have the same hash value.
 
-## 1. equals() so sánh điều gì?
+## 1. What Does equals() Compare?
 
-`String.equals(Object other)` trả về `true` khi `other` là một đối tượng `String` có cùng **dãy đơn vị mã UTF-16** (cùng chiều dài và cùng giá trị `char` tại từng vị trí). So sánh phân biệt chữ hoa/thường. Ví dụ:
+`String.equals(Object other)` returns `true` when `other` is a `String` object with the same **sequence of UTF-16 code units** (same length and same `char` value at every position). The comparison is case-sensitive. Example:
 
 ~~~java
 String a = "Java";
@@ -20,30 +20,30 @@ System.out.println(a.equals(c));  // false
 System.out.println(a == b);       // false
 ~~~
 
-Đây là **đoạn mã minh họa** đặt trong phương thức Java. `a.equals(b)` bằng `true` vì nội dung giống nhau; `a == b` bằng `false` vì `new String("Java")` tạo một đối tượng riêng. Toán tử `==` với hai tham chiếu đối tượng hỏi chúng có trỏ đến **cùng đối tượng** không; đó không phải phép kiểm tra bằng nhau về nội dung chuỗi.
+This is an **illustrative code snippet** placed inside a Java method. `a.equals(b)` is `true` because the contents match; `a == b` is `false` because `new String("Java")` creates a separate object. The `==` operator on two object references asks whether they point to the **same object**; it is not a string content equality check.
 
-Lưu ý:
+Notes:
 
-- `equals()` trả về `false` khi đối số `null` hoặc không phải `String` phù hợp.
-- Gọi `nullReference.equals(...)` sẽ gây `NullPointerException`. Nếu có thể chứa `null`, dùng `java.util.Objects.equals(a, b)` để so sánh null-safe.
-- `String` bất biến: nội dung đã tạo không đổi; vì vậy kết quả `equals()` và `hashCode()` của một đối tượng `String` ổn định suốt vòng đời đối tượng.
-- `equalsIgnoreCase()` là **một cách so sánh khác**: nó không biến hai chuỗi khác hoa/thường thành bằng nhau theo `equals()`.
+- `equals()` returns `false` when the argument is `null` or not a matching `String`.
+- Calling `nullReference.equals(...)` throws `NullPointerException`. When values may be `null`, use `java.util.Objects.equals(a, b)` for null-safe comparison.
+- `String` is immutable: once created, its content does not change; thus `equals()` and `hashCode()` of a `String` object remain stable throughout its lifetime.
+- `equalsIgnoreCase()` is a **different comparison method**: it does not make two strings with different casing equal under `equals()`.
 
-### “Cùng nội dung” trong Java chưa chắc là “trông giống nhau”
+### "Same Content" in Java Does Not Always Mean "Looks Identical"
 
-`equals()` so sánh dãy UTF-16, không tự chuẩn hóa Unicode. Ví dụ chữ `é` ghép sẵn (`U+00E9`) và chữ `e` cộng dấu sắc kết hợp (`U+0065 U+0301`) có thể trông giống nhau nhưng có dãy code unit khác nhau. Tương tự, `equals()` không tự bỏ khoảng trắng hay không tự chuyển chữ hoa thành chữ thường. Nếu nghiệp vụ muốn coi những cách biểu diễn đó là tương đương, cần **quy định chuẩn hóa/so sánh riêng** trước khi dùng làm khóa.
+`equals()` compares UTF-16 sequences and does not auto-normalize Unicode. For instance, precomposed `é` (`U+00E9`) and `e` plus combining acute accent (`U+0065 U+0301`) may look identical yet have different code-unit sequences. Similarly, `equals()` does not strip whitespace or convert uppercase to lowercase. If business logic wants to treat those representations as equivalent, you must **define explicit normalization/comparison rules** before using them as keys.
 
-## 2. hashCode() của String được tính như thế nào?
+## 2. How Is String's hashCode() Computed?
 
-Theo hợp đồng API Java, `String.hashCode()` được tính từ các giá trị `char` theo công thức đa thức cơ số **31**:
+According to the Java API contract, `String.hashCode()` is computed from its `char` values using a base-**31** polynomial formula:
 
 \[
 h = s[0]\cdot 31^{n-1} + s[1]\cdot 31^{n-2} + \ldots + s[n-1]
 \]
 
-Trong đó `n = s.length()` và `s[i]` là **UTF-16 code unit** ở vị trí `i`, không nhất thiết là một Unicode code point hoàn chỉnh. Phép tính thực hiện với số nguyên `int` 32 bit, nên các phép nhân/cộng có thể **tràn số theo quy tắc Java**, tương ứng kết quả modulo \(2^{32}\); số băm có thể âm. Chuỗi rỗng có `hashCode() == 0`.
+Here `n = s.length()` and `s[i]` is the **UTF-16 code unit** at index `i`, not necessarily a full Unicode code point. Arithmetic uses 32-bit signed `int`, so multiplications and additions can **overflow under Java rules**, corresponding to a result modulo \(2^{32}\); the hash value can be negative. The empty string has `hashCode() == 0`.
 
-Có thể hình dung thuật toán tương đương sau (minh họa logic, không phải mã nguồn nội bộ bắt buộc của JVM):
+You can picture the equivalent algorithm below (illustrative logic, not required internal JVM source code):
 
 ~~~java
 static int manualStringHash(String s) {
@@ -55,20 +55,20 @@ static int manualStringHash(String s) {
 }
 ~~~
 
-Đây là **phương thức minh họa** cần đặt trong một lớp Java. Khi tính toán `int`, overflow xảy ra theo quy tắc Java, không tạo ngoại lệ. Đối với `String` thông thường, hàm trên cho cùng kết quả với `s.hashCode()`.
+This is an **illustrative method** that must be placed inside a Java class. In `int` arithmetic, overflow wraps according to Java rules without throwing an exception. For normal `String`s, this function yields the same result as `s.hashCode()`.
 
-**Ý nghĩa:** cùng một dãy code unit luôn cho cùng một giá trị băm, bất kể hai chuỗi được tạo bằng literal, `new String(...)`, thao tác nối hay đọc từ tệp. Nhưng không có thông tin nào trong giá trị `int` cho phép suy ra duy nhất chuỗi gốc.
+**Meaning:** the same code-unit sequence always yields the same hash value, regardless of whether two strings were created via literals, `new String(...)`, concatenation, or file I/O. Yet no information inside the `int` value uniquely identifies the original string.
 
-## 3. Hợp đồng giữa equals() và hashCode()
+## 3. The Contract Between equals() and hashCode()
 
-| Quan hệ giữa hai chuỗi `a`, `b` | Hệ quả bắt buộc | Điều không thể kết luận |
+| Relationship Between Two Strings `a`, `b` | Required Consequence | What Cannot Be Concluded |
 | --- | --- | --- |
-| `a.equals(b) == true` | `a.hashCode() == b.hashCode()` | Không có nghĩa `a == b` |
-| `a.hashCode() != b.hashCode()` | `a.equals(b) == false` | Không nói gì về thứ tự từ điển giữa `a` và `b` |
-| `a.hashCode() == b.hashCode()` | Chỉ biết hai băm trùng nhau | **Không kết luận** `a.equals(b) == true` |
-| `a.equals(b) == false` | Nội dung khác nhau | Hai hash **có thể trùng hoặc khác** |
+| `a.equals(b) == true` | `a.hashCode() == b.hashCode()` | Does not imply `a == b` |
+| `a.hashCode() != b.hashCode()` | `a.equals(b) == false` | Says nothing about lexicographical order between `a` and `b` |
+| `a.hashCode() == b.hashCode()` | Only known that both hashes match | **Cannot conclude** `a.equals(b) == true` |
+| `a.equals(b) == false` | Content differs | The two hashes **may collide or differ** |
 
-Một cách ghi nhớ:
+One way to remember it:
 
 ~~~text
 a.equals(b) == true
@@ -78,19 +78,19 @@ a.hashCode() == b.hashCode()
 
 a.hashCode() == b.hashCode()
         |
-        +---- có thể a.equals(b) == true
+        +---- possibly a.equals(b) == true
         |
-        +---- cũng có thể a.equals(b) == false
+        +---- or possibly a.equals(b) == false
               (hash collision)
 ~~~
 
-Hợp đồng này áp dụng cho các đối tượng có cách triển khai `equals()` và `hashCode()` đúng quy định của `Object`. `String` đã triển khai phù hợp. Khi tự xây dựng lớp làm khóa `HashMap`, nếu ghi đè `equals()` thì thông thường **phải ghi đè `hashCode()` tương thích** để các đối tượng bằng nhau có cùng giá trị băm.
+This contract applies to objects whose `equals()` and `hashCode()` conform to `Object`'s specification. `String` already implements it properly. When building your own class to serve as a `HashMap` key, overriding `equals()` generally requires **overriding a compatible `hashCode()`** so equal objects produce identical hash values.
 
-Việc có cùng hash cũng không làm `equals()` trả về `true`, vì `equals()` không định nghĩa sự bằng nhau thông qua mỗi giá trị hash. Giá trị hash chỉ là **bước hỗ trợ tìm kiếm/phân nhóm**.
+Having the same hash also does not make `equals()` return `true`, because `equals()` does not define equality solely through hash values. The hash value is merely a **helper step for lookup/bucketing**.
 
-## 4. Ví dụ va chạm nổi tiếng: "Aa" và "BB"
+## 4. Famous Collision Example: "Aa" and "BB"
 
-Hai chuỗi **khác nội dung** sau đây có cùng giá trị hash:
+The following two strings with **different content** have the exact same hash value:
 
 ~~~java
 String first = "Aa";
@@ -101,20 +101,20 @@ System.out.println(second.hashCode());     // 2112
 System.out.println(first.equals(second));  // false
 ~~~
 
-Ta tự tính theo công thức của `String`, với giá trị UTF-16 của các ký tự ASCII:
+Calculating by `String`'s formula using ASCII UTF-16 values:
 
-- `"Aa"`: `'A' = 65`, `'a' = 97` nên `65 * 31 + 97 = 2112`.
-- `"BB"`: `'B' = 66` nên `66 * 31 + 66 = 2112`.
+- `"Aa"`: `'A' = 65`, `'a' = 97`, so `65 * 31 + 97 = 2112`.
+- `"BB"`: `'B' = 66`, so `66 * 31 + 66 = 2112`.
 
-Hash bằng nhau vì hai phép tính cho cùng số nguyên; các chữ trong chuỗi vẫn khác nhau. **Đây là va chạm băm**, không phải lỗi của Java.
+The hashes match because both calculations produce the same integer; the characters in the strings still differ. **This is a hash collision**, not a Java bug.
 
-Va chạm là điều **không thể loại bỏ hoàn toàn** bằng một hàm băm trả về `int`: có vô số chuỗi `String` có thể tạo ra, nhưng giá trị trả về của `hashCode()` chỉ có \(2^{32}\) khả năng. Theo nguyên lý ngăn kéo, nhiều chuỗi khác nhau phải chia sẻ một giá trị hash.
+Collisions are **impossible to eliminate completely** in a hash function returning `int`: infinitely many `String`s can be constructed, whereas `hashCode()` has only \(2^{32}\) possible return values. By the pigeonhole principle, many distinct strings must share a hash value.
 
-Đặc biệt, ngay cả khi không có overflow, hai chuỗi ngắn như `"Aa"` và `"BB"` đã có thể băm trùng. Vì vậy **không được dùng hash làm bằng chứng duy nhất cho tính bằng nhau**.
+Noticeably, even without integer overflow, short strings like `"Aa"` and `"BB"` already collide. Therefore **never use hashes as sole proof of equality**.
 
-## 5. Chương trình Java 17+ kiểm chứng cả equals, HashSet, HashMap
+## 5. Java 17+ Program Verifying equals, HashSet, and HashMap
 
-Lưu chương trình sau vào tệp **StringHashCollisionDemo.java**:
+Save the following program to **`StringHashCollisionDemo.java`**:
 
 ~~~java
 import java.util.HashMap;
@@ -156,14 +156,14 @@ public class StringHashCollisionDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 hoặc mới hơn:
+Run with JDK 17 or newer:
 
 ~~~bash
 javac -encoding UTF-8 StringHashCollisionDemo.java
 java StringHashCollisionDemo
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 first hash = 2112
@@ -178,62 +178,62 @@ map Aa = 3
 map BB = 2
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `first` và `second` có cùng hash `2112` nhưng khác nội dung, nên `equals()` trả về `false`.
-2. `sameContent` là một đối tượng `String` khác với `first`, nhưng có nội dung `"Aa"` nên `first.equals(sameContent)` trả về `true` và chúng có cùng hash.
-3. `HashSet` lưu **hai** phần tử: `"Aa"` và `"BB"`. Giá trị băm trùng **không khiến một chuỗi bị loại**; phần tử thứ ba `sameContent` không được thêm vì **bằng theo `equals()`** với `"Aa"` đã có.
-4. `HashMap` giữ **hai** khóa `"Aa"` và `"BB"`. Lệnh `put(sameContent, 3)` cập nhật giá trị gắn với khóa bằng nội dung `"Aa"` từ `1` thành `3`, không tạo khóa thứ ba.
-5. Lời gọi `map.get(new String("Aa"))` tìm đúng giá trị `3` dù tham chiếu khóa truyền vào là một đối tượng mới.
+1. `first` and `second` share the hash `2112` yet differ in content, so `equals()` returns `false`.
+2. `sameContent` is a different `String` object from `first`, yet has content `"Aa"`, so `first.equals(sameContent)` returns `true` and they share the same hash.
+3. `HashSet` stores **two** elements: `"Aa"` and `"BB"`. Colliding hash values **do not cause one string to be dropped**; the third element `sameContent` is not added because it is **equal via `equals()`** to the existing `"Aa"`.
+4. `HashMap` keeps **two** keys `"Aa"` and `"BB"`. Calling `put(sameContent, 3)` updates the value associated with the `"Aa"` key from `1` to `3` instead of creating a third key.
+5. `map.get(new String("Aa"))` retrieves `3` accurately even though the lookup key is a newly allocated object.
 
-Không dựa vào **thứ tự duyệt** `HashMap`/`HashSet` để kiểm thử: các collection này không bảo đảm thứ tự như danh sách. Ví dụ trên chỉ in kích thước và kết quả truy xuất theo khóa, nên không phụ thuộc thứ tự lặp.
+Do not rely on **iteration order** of `HashMap`/`HashSet` in tests: these collections do not guarantee list-like ordering. The example above prints only sizes and key-based lookups, avoiding dependence on iteration order.
 
-## 6. Vì sao HashMap và HashSet vẫn hoạt động khi hash trùng?
+## 6. Why Do HashMap and HashSet Still Work When Hashes Collide?
 
-Ý tưởng tổng quát của cấu trúc hash trong Java là kết hợp **mã băm để khoanh vùng tìm kiếm** và **so sánh bằng nhau để xác nhận đúng khóa**:
+The general idea of hash-based structures in Java is combining **hash codes to narrow down the search** with **equality checks to confirm the exact key**:
 
 ~~~text
 key (String)
      |
      v
-hashCode() --> chọn vị trí/vùng tìm kiếm trong bảng
+hashCode() --> pick slot/search region in table
                     |
                     v
-                các mục ứng viên
+            candidate entries
                     |
                     v
-             kiểm tra bằng nhau
-             (equals/định danh)
+             equality check
+            (equals/identity)
                     |
             +-------+--------+
             |                |
-         bằng nhau        không bằng
+          equal          not equal
             |                |
-      cùng khóa logic     khóa khác, dù
-      (cập nhật/tra)      hash có thể trùng
+     same logical key   different key, even if
+     (update/lookup)     hashes may collide
 ~~~
 
-Sơ đồ là **mô hình khái niệm**. Triển khai thực tế của `HashMap` có bước trộn bit hash, lựa chọn bucket, tổ chức bucket và tối ưu khác theo phiên bản JDK. Điều cốt lõi của ngữ nghĩa công khai là các khóa `String` được phân biệt theo `equals()`, không dựa độc quyền vào `hashCode()`.
+This diagram is a **conceptual model**. The actual `HashMap` implementation includes hash-bit spreading, bucket selection, bucket organization, and optimizations across JDK versions. The core public semantics are that `String` keys are distinguished by `equals()`, never exclusively by `hashCode()`.
 
-- **Hash trùng + `equals()` trả về `true`:** cùng một khóa logic, thường ghi đè/cập nhật giá trị trong `HashMap`; `HashSet.add()` không tăng kích thước.
-- **Hash trùng + `equals()` trả về `false`:** hai khóa logic khác nhau, đều có thể tồn tại trong `HashMap` và `HashSet`.
-- **Hash khác:** hai `String` không thể bằng nhau theo `equals()` vì vi phạm chiều thuận của hợp đồng nếu chúng bằng nhau.
+- **Hash collision + `equals()` returns `true`:** same logical key; typically overwrites/updates the value in `HashMap`; `HashSet.add()` does not increase size.
+- **Hash collision + `equals()` returns `false`:** two distinct logical keys; both can coexist in `HashMap` and `HashSet`.
+- **Different hashes:** two `String`s cannot be equal under `equals()`, as that would violate the forward direction of the contract.
 
-Việc nhiều khóa băm trùng có thể làm tăng số lần so sánh và ảnh hưởng **hiệu năng**, nhưng không được phép phá vỡ kết quả đúng của tra cứu. Các tối ưu ở cấp triển khai không biến hash thành định danh duy nhất.
+Having many colliding keys can increase comparison counts and affect **performance**, yet it must never break lookup correctness. Implementation-level optimizations do not turn hashes into unique identifiers.
 
-### Phân biệt ba thứ dễ nhầm
+### Distinguishing Three Easily Confused Operations
 
-| Thao tác | Câu hỏi được trả lời | Có thể dùng để thay thế thao tác kia không? |
+| Operation | Question Answered | Can It Replace the Others? |
 | --- | --- | --- |
-| `a == b` | Có cùng tham chiếu đối tượng không? | Không thay `equals()` khi cần nội dung |
-| `a.equals(b)` | Có bằng nhau theo giá trị `String` không? | Đúng cho so sánh nội dung nguyên văn |
-| `a.hashCode() == b.hashCode()` | Có cùng mã băm 32 bit không? | **Không** thay `equals()` vì có collision |
+| `a == b` | Same object reference? | Cannot replace `equals()` when content is needed |
+| `a.equals(b)` | Equal `String` value? | Right for verbatim content comparison |
+| `a.hashCode() == b.hashCode()` | Same 32-bit hash code? | **Cannot** replace `equals()` due to collisions |
 
-Nếu mục tiêu thật sự là **khóa nội dung chuỗi**, hãy truyền chính `String` làm khóa `Map<String, ...>` hoặc phần tử của `Set<String>`. Không biến chuỗi thành một `int` qua `hashCode()` rồi dùng `int` đó làm “mã duy nhất” để lưu trữ hoặc ghi đè dữ liệu.
+If your goal is genuinely **keying by string content**, pass the `String` itself as the key of `Map<String, ...>` or element of `Set<String>`. Never convert a string into an `int` via `hashCode()` and use that `int` as a "unique ID" to store or overwrite data.
 
-## 7. Tự triển khai hàm băm tương đương để kiểm chứng
+## 7. Implementing an Equivalent Hash Function to Verify
 
-Để hiểu vì sao giá trị băm phụ thuộc **nội dung UTF-16**, có thể tự hiện thực phép tính:
+To see why hash values depend on **UTF-16 content**, you can implement the calculation yourself:
 
 ~~~java
 public class ManualStringHashDemo {
@@ -254,14 +254,14 @@ public class ManualStringHashDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 ManualStringHashDemo.java
 java ManualStringHashDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 true
@@ -271,15 +271,15 @@ true
 true
 ~~~
 
-Chương trình trên cho thấy `hashCode()` của `String` được xác định theo công thức công khai, kể cả với chuỗi chứa emoji gồm một cặp surrogate. **Kích thước bộ nhớ nội bộ** hoặc cách JVM tối ưu đối tượng không làm thay đổi giá trị hash mà API cam kết.
+This program shows that `String.hashCode()` is determined by the published formula, even for strings containing an emoji made of a surrogate pair. **Internal memory layout** or JVM object optimizations do not alter the hash value promised by the API.
 
-Cũng vì hash dùng đơn vị UTF-16 theo công thức, nó **không phải** mã hóa UTF-8, checksum của byte tệp hay hàm đếm Unicode code point. Hash không cho biết chuỗi dài bao nhiêu ký tự hiển thị và không thể dùng để khôi phục nội dung ban đầu.
+Because the hash uses UTF-16 units in its formula, it is **not** a UTF-8 encoding, file byte checksum, or Unicode code-point counter. A hash reveals neither how many displayed characters a string has nor how to recover the original text.
 
-## 8. So sánh khác quy tắc thì phải thiết kế quy tắc khóa nhất quán
+## 8. Different Comparison Rules Require Consistent Key Rules
 
-### Chữ hoa/chữ thường
+### Uppercase and Lowercase
 
-`equalsIgnoreCase()` không tham gia hợp đồng `String.hashCode()`. Ví dụ:
+`equalsIgnoreCase()` does not participate in `String.hashCode()`'s contract. Example:
 
 ~~~java
 System.out.println("A".equalsIgnoreCase("a")); // true
@@ -288,18 +288,18 @@ System.out.println("A".hashCode());            // 65
 System.out.println("a".hashCode());            // 97
 ~~~
 
-Đây là **đoạn mã minh họa** đặt trong phương thức. Hai chuỗi có thể bằng nhau dưới **quy tắc bỏ qua hoa/thường**, nhưng hash vẫn khác vì `String.hashCode()` tính theo **nội dung gốc**. Điều này hoàn toàn phù hợp với hợp đồng `equals()` của `String` vì `"A".equals("a")` là `false`.
+This is an **illustrative code snippet** inside a method. Two strings can match under **case-insensitive rules**, yet their hashes differ because `String.hashCode()` is computed from **original content**. This aligns completely with `String`'s `equals()` contract because `"A".equals("a")` is `false`.
 
-Muốn một bảng tra cứu không phân biệt hoa/thường, cần chủ động xác định quy tắc nghiệp vụ: chẳng hạn chuẩn hóa các khóa trước khi lưu và tra bằng cùng một quy tắc, hoặc dùng cấu trúc/comparator phù hợp như `TreeMap<>(String.CASE_INSENSITIVE_ORDER)` nếu hành vi so sánh của comparator đáp ứng yêu cầu. Với Unicode đa ngôn ngữ, quy tắc chuyển hoa/thường, locale và so sánh không nhạy hoa/thường cần được xem xét cẩn thận; chuyển `toLowerCase()` tùy tiện không tự bảo đảm mọi hình thức case folding hay chuẩn hóa mong muốn.
+To build a case-insensitive lookup table, explicitly define business rules: for example, normalize keys before storing and looking up using the same rule, or use a suitable structure/comparator such as `TreeMap<>(String.CASE_INSENSITIVE_ORDER)` if the comparator's matching behavior fits requirements. For multilingual Unicode, case conversion, locale, and case-insensitive matching require careful attention; calling `toLowerCase()` arbitrarily does not automatically guarantee all desired case-folding or normalization behavior.
 
-### Unicode normalization
+### Unicode Normalization
 
-Chữ `é` có thể được biểu diễn bằng code point ghép sẵn `U+00E9` hoặc `e` + dấu sắc `U+0301`:
+The letter `é` can be represented by the precomposed code point `U+00E9` or by `e` + combining acute accent `U+0301`:
 
 ~~~java
 import java.text.Normalizer;
 
-// Đoạn mã minh họa bên trong phương thức Java:
+// Illustrative code snippet inside a Java method:
 String composed = "\u00E9";
 String decomposed = "e\u0301";
 
@@ -312,66 +312,66 @@ String normalized = Normalizer.normalize(
 System.out.println(composed.equals(normalized)); // true
 ~~~
 
-Vì dãy code unit khác nhau, `equals()` và `hashCode()` trên chuỗi **chưa chuẩn hóa** cũng có thể khác. Trong trường hợp này, NFC chuyển chuỗi decomposed thành nội dung ghép sẵn, nên `equals()` trả về `true` và theo hợp đồng hash cũng trùng.
+Because the code-unit sequences differ, `equals()` and `hashCode()` on **unnormalized** strings can also differ. Here, NFC turns the decomposed string into precomposed content, so `equals()` returns `true` and by contract their hashes also match.
 
-Nếu muốn coi những chuỗi tương đương theo chuẩn Unicode là cùng khóa, phải **chuẩn hóa nhất quán cả lúc thêm và lúc tra cứu**, và quy tắc nào được coi là “tương đương” phải được ghi rõ trong ứng dụng. Không thể dùng một mình `hashCode()` để thực hiện việc chuẩn hóa hay so sánh ngữ nghĩa.
+If canonically equivalent Unicode strings should act as the same key, you must **normalize consistently on both insertion and lookup**, and document what counts as "equivalent" in the application. You cannot use `hashCode()` alone to perform normalization or semantic comparison.
 
-## 9. Những sai lầm thường gặp
+## 9. Common Mistakes
 
-| Sai lầm | Vì sao sai | Cách làm đúng |
+| Mistake | Why It Is Wrong | Correct Practice |
 | --- | --- | --- |
-| `a.hashCode() == b.hashCode()` thì chắc chắn `a.equals(b)` | Hash collision tồn tại; `"Aa"` và `"BB"` là phản ví dụ | Khi cần biết cùng nội dung, dùng `equals()` |
-| Hai chuỗi có cùng hash nên `HashSet` sẽ chỉ lưu một | `HashSet` phân biệt phần tử bằng logic bằng nhau | `"Aa"` và `"BB"` cùng tồn tại |
-| `==` thay cho `equals()` | `==` với tham chiếu kiểm tra danh tính đối tượng | Dùng `equals()` với chuỗi |
-| Dùng `hashCode()` làm ID duy nhất của chuỗi | Chỉ là số nguyên 32 bit, có collision | Giữ khóa là chuỗi gốc hoặc dùng ID riêng được quản lý |
-| Dùng hash để phát hiện chuỗi bị thay đổi hay dữ liệu bị giả mạo | `String.hashCode()` không phải hash mật mã, dễ cố ý tạo collision | Chọn công cụ cryptographic phù hợp với bài toán an ninh |
-| Dùng `equalsIgnoreCase()` nhưng nghĩ hash cũng bỏ qua hoa/thường | `hashCode()` vẫn theo nội dung `String` chính xác | Thiết kế chuẩn hóa/so sánh khóa thống nhất |
-| Các ký tự hiển thị giống nhau phải có cùng hash | Dãy Unicode code unit có thể khác | Xác định quy tắc Unicode normalization trước |
-| `String.hashCode()` phụ thuộc địa chỉ đối tượng | Hash của `String` tính từ nội dung | Hai đối tượng `String` nội dung bằng nhau luôn hash bằng nhau |
-| Chỉ so sánh hash để tiết kiệm thời gian | Có thể báo bằng nhau sai; chi phí hash cũng không miễn phí | Dùng collection và API so sánh chuẩn, để cấu trúc xử lý collision |
+| `a.hashCode() == b.hashCode()` guarantees `a.equals(b)` | Hash collisions exist; `"Aa"` and `"BB"` are a counterexample | When checking identical content, use `equals()` |
+| Two strings with the same hash mean `HashSet` keeps only one | `HashSet` distinguishes elements via equality logic | Both `"Aa"` and `"BB"` coexist |
+| `==` instead of `equals()` | `==` on references checks object identity | Use `equals()` for strings |
+| Using `hashCode()` as a unique string ID | It is only a 32-bit integer with collisions | Keep the original string key or use a dedicated managed ID |
+| Using hash to detect modified strings or tampered data | `String.hashCode()` is non-cryptographic; collisions are easy to craft | Choose cryptographic tools suitable for security |
+| Using `equalsIgnoreCase()` and expecting hashes to ignore case too | `hashCode()` still uses exact `String` content | Design consistent key normalization/comparison |
+| Visually identical characters must have the same hash | Unicode code-unit sequences may differ | Define Unicode normalization rules beforehand |
+| `String.hashCode()` depends on object address | `String` hash is computed from content | Two `String` objects with equal content always hash identically |
+| Comparing hashes alone to save time | Can report false equality; hashing is not free either | Use standard collections and comparison APIs, letting the structure handle collisions |
 
-**Lưu ý về bảo mật:** `String.hashCode()` là mã băm **không dùng cho mục đích mật mã**; dễ dự đoán và dễ tìm collision. Không dùng nó cho chữ ký, xác thực mật khẩu, kiểm tra tính toàn vẹn chống sửa đổi hoặc chứng minh duy nhất. Bài toán an ninh cần thuật toán và thiết kế phù hợp riêng.
+**Security note:** `String.hashCode()` is a **non-cryptographic** hash; it is predictable and easy to collide deliberately. Never use it for signatures, password verification, tamper-resistant integrity checks, or proving uniqueness. Security tasks require dedicated algorithms and designs.
 
-## 10. Checklist khi dùng String làm khóa
+## 10. Checklist for Using String as a Key
 
-1. Xác định **“hai khóa được coi là bằng nhau”** theo quy tắc nào: nguyên văn, bỏ qua hoa/thường, Unicode normalization hay quy tắc nghiệp vụ khác?
-2. Nếu là **nguyên văn**, dùng `String` trực tiếp làm khóa `HashMap<String, V>` / `HashSet<String>`; `equals()` và `hashCode()` của `String` đã phù hợp với nhau.
-3. Nếu cần **chuẩn hóa**, thực hiện cùng một phép biến đổi cho mọi khóa lúc lưu và truy xuất; lưu ý locale và dữ liệu Unicode.
-4. Không so sánh duy nhất bằng hash và không biến `hashCode()` thành mã định danh duy nhất.
-5. Kiểm thử cả cặp **khác nội dung nhưng hash trùng** như `"Aa"` và `"BB"`, và cặp **bằng nội dung nhưng khác đối tượng** như literal `"Aa"` và `new String("Aa")`.
-6. Khi nhận giá trị có thể `null`, dùng cơ chế kiểm tra null phù hợp; không gọi `s.equals()` hoặc `s.hashCode()` trực tiếp trên tham chiếu `null`.
-7. Đánh giá hiệu năng nếu có nhiều khóa do nguồn không tin cậy cố ý chọn gây collision; kết quả đúng và đặc tính hiệu năng là hai mối quan tâm riêng.
+1. Define what **"two keys are considered equal"** means: verbatim, case-insensitive, Unicode-normalized, or another business rule?
+2. If **verbatim**, use `String` directly as the key in `HashMap<String, V>` / `HashSet<String>`; `String`'s `equals()` and `hashCode()` already align.
+3. If **normalization** is required, apply the exact same transformation to every key on storage and retrieval; mind locale and Unicode data.
+4. Never compare solely by hash and never turn `hashCode()` into a unique identifier.
+5. Test both **different-content colliding-hash** pairs like `"Aa"` and `"BB"`, and **equal-content different-object** pairs like literal `"Aa"` and `new String("Aa")`.
+6. When accepting nullable values, apply appropriate null checks; never call `s.equals()` or `s.hashCode()` directly on a `null` reference.
+7. Evaluate performance if many keys come from untrusted sources that could intentionally trigger collisions; correctness and performance characteristics are separate concerns.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** Nếu `a.equals(b)` là `true`, có trường hợp `a.hashCode() != b.hashCode()` với hai `String` Java hợp lệ không?
+**Question 1.** If `a.equals(b)` is `true`, can `a.hashCode() != b.hashCode()` ever happen for two valid Java `String`s?
 
-**Đáp án:** không. Đây là chiều bắt buộc của hợp đồng `equals()` / `hashCode()`.
+**Answer:** no. That is the mandatory forward direction of the `equals()` / `hashCode()` contract.
 
-**Câu 2.** Nếu hai `String` có cùng `hashCode()`, có đủ dữ kiện khẳng định chúng bằng nhau không?
+**Question 2.** If two `String`s have the same `hashCode()`, is that enough to conclude they are equal?
 
-**Đáp án:** không. `"Aa"` và `"BB"` cùng hash `2112` nhưng `equals()` trả về `false`.
+**Answer:** no. `"Aa"` and `"BB"` share hash `2112`, yet `equals()` returns `false`.
 
-**Câu 3.** Đưa `"Aa"` và `"BB"` vào `HashSet<String>` có bao nhiêu phần tử?
+**Question 3.** Inserting `"Aa"` and `"BB"` into a `HashSet<String>` yields how many elements?
 
-**Đáp án:** hai. Chúng có hash trùng nhưng khác nhau theo `equals()`.
+**Answer:** two. They have colliding hashes but differ under `equals()`.
 
-**Câu 4.** Với `Map<String, Integer> m`, sau `m.put("Aa", 1); m.put(new String("Aa"), 2);`, kích thước tăng thành hai không?
+**Question 4.** Given `Map<String, Integer> m`, after `m.put("Aa", 1); m.put(new String("Aa"), 2);`, does the size grow to two?
 
-**Đáp án:** không. Hai khóa bằng nhau theo `equals()`, nên khóa logic `"Aa"` được cập nhật giá trị thành `2`; kích thước vẫn là một.
+**Answer:** no. Both keys are equal under `equals()`, so the logical key `"Aa"` has its value updated to `2`; size remains one.
 
-**Câu 5.** Vì sao `"A".equalsIgnoreCase("a")` bằng `true`, nhưng hash `65` và `97` khác nhau vẫn không vi phạm hợp đồng?
+**Question 5.** Why does `"A".equalsIgnoreCase("a")` equal `true` while their differing hashes `65` and `97` do not violate the contract?
 
-**Đáp án:** hợp đồng dựa trên `equals()`, mà `"A".equals("a")` bằng `false`. `equalsIgnoreCase()` là quy tắc so sánh khác.
+**Answer:** the contract is based on `equals()`, and `"A".equals("a")` is `false`. `equalsIgnoreCase()` is a separate comparison rule.
 
-**Câu 6.** Vì sao không nên lưu `String.hashCode()` làm ID độc nhất của tên đăng nhập?
+**Question 6.** Why should `String.hashCode()` not be stored as a unique ID for usernames?
 
-**Đáp án:** nhiều chuỗi khác nhau có thể cùng hash; nếu dùng hash làm ID duy nhất, người dùng khác nhau có thể bị đồng nhất nhầm. Cần lưu và so sánh theo khóa đúng hoặc hệ thống ID riêng có kiểm soát.
+**Answer:** many different strings can share the same hash; using a hash as a unique ID could mistakenly equate different users. Store and compare by the proper key or a dedicated managed ID system.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): hợp đồng của `equals()`, `hashCode()`, `equalsIgnoreCase()` và công thức băm chuỗi.
-- [Java SE 17 — Object](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html): hợp đồng tổng quát giữa `equals()` và `hashCode()`.
-- [Java SE 17 — HashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html): hành vi bảng băm với khóa và giá trị.
-- [Java SE 17 — HashSet](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashSet.html): tập hợp không lưu các phần tử trùng theo quan hệ bằng nhau.
-- [Java SE 17 — Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): chuẩn hóa biểu diễn Unicode khi yêu cầu nghiệp vụ cần.
+- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): contracts of `equals()`, `hashCode()`, `equalsIgnoreCase()`, and the string hashing formula.
+- [Java SE 17 — Object](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html): general contract between `equals()` and `hashCode()`.
+- [Java SE 17 — HashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html): hash table behavior with keys and values.
+- [Java SE 17 — HashSet](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashSet.html): set that rejects duplicate elements under equality.
+- [Java SE 17 — Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): normalizing Unicode representations when business requirements call for it.

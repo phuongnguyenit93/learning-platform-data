@@ -1,41 +1,41 @@
-# Kết hợp Gatherer bằng andThen
+# Composing Gatherers with andThen
 
-> **Chương:** Stream Gatherer  
+> **Chapter:** Stream Gatherer  
 > **Module:** JAVA_STREAM_API  
-> **Trọng tâm:** Hiểu và dùng `Gatherer.andThen(...)` để ghép nhiều phép biến đổi Stream tùy chỉnh thành một Gatherer có thể tái sử dụng. Bài kết nối kiến thức pipeline lazy, `filter`/`map`, collector, Spliterator và xử lý song song; đặc biệt chú ý kiểu đầu vào/đầu ra, thứ tự ghép, trạng thái, `finisher`, short-circuit và hiệu năng.
+> **Focus:** Understand and use `Gatherer.andThen(...)` to compose multiple custom Stream transformations into a reusable Gatherer. This lesson connects lazy pipelines, `filter`/`map`, collectors, Spliterator, and parallel processing; paying special attention to input/output types, composition order, state, `finisher`, short-circuiting, and performance.
 
-## Mục tiêu học tập
+## Learning objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích mục đích của `Gatherer`, `Stream.gather(...)` và phương thức `Gatherer.andThen(...)`.
-2. Đọc đúng chữ ký generic, hiểu luồng kiểu `T → R → RR` và vai trò riêng của trạng thái `A`.
-3. Chứng minh bằng ví dụ rằng `stream.gather(a.andThen(b))` tương đương về **ngữ nghĩa** với `stream.gather(a).gather(b)`.
-4. Phân biệt phép **ghép tuần tự** (*composition*) với ghép kết quả (*concat*), ghép hai nhánh (*zip*) và terminal collector.
-5. Tạo pipeline từ các Gatherer chuẩn: `windowFixed`, `windowSliding`, `scan`, `fold`, `mapConcurrent`.
-6. Viết Gatherer đơn giản bằng `Gatherer.of(...)` hoặc `Gatherer.ofSequential(...)` rồi kết hợp với Gatherer chuẩn.
-7. Giải thích cách một Gatherer có thể phát 0, 1 hoặc nhiều phần tử, phát kết quả cuối trong `finisher` và báo dừng khi downstream không nhận thêm.
-8. Xử lý nguồn rỗng, cửa sổ cuối thiếu phần tử, thứ tự dữ liệu, lỗi null và giới hạn bộ nhớ.
-9. Hiểu vì sao ghép Gatherer **không tự tạo combiner đúng**, không tự bảo đảm tăng tốc khi song song và không thay thế quản lý tài nguyên.
-10. Kiểm thử chain bằng một pipeline tham chiếu độc lập, dữ liệu biên và các bất biến về thứ tự/kết quả.
+1. Explain the purpose of `Gatherer`, `Stream.gather(...)`, and the `Gatherer.andThen(...)` method.
+2. Read generic signatures accurately, understanding the type flow `T → R → RR` and the private role of state `A`.
+3. Demonstrate by example that `stream.gather(a.andThen(b))` is **semantically** equivalent to `stream.gather(a).gather(b)`.
+4. Distinguish **sequential composition** (*composition*) from concatenating results (*concat*), zipping two branches (*zip*), and terminal collectors.
+5. Build pipelines from standard Gatherers: `windowFixed`, `windowSliding`, `scan`, `fold`, and `mapConcurrent`.
+6. Write simple Gatherers using `Gatherer.of(...)` or `Gatherer.ofSequential(...)` and compose them with standard Gatherers.
+7. Explain how a Gatherer can emit 0, 1, or many elements, emit final results in `finisher`, and signal stop when downstream accepts no more.
+8. Handle empty sources, incomplete final windows, data ordering, null errors, and memory limits.
+9. Understand why composing Gatherers **does not automatically produce a valid combiner**, does not guarantee speedup in parallel, and does not replace resource management.
+10. Test chains using an independent reference pipeline, boundary data, and ordering/result invariants.
 
-**Yêu cầu phiên bản:** Ví dụ chính sử dụng **Java 24 trở lên**, khi Stream Gatherers đã là API chuẩn theo **JEP 485**. Gatherers từng được giới thiệu dưới dạng *preview* ở **JDK 22 (JEP 461)** và **JDK 23 (JEP 473)**. Mã Java 24 trong bài không cần `--enable-preview` chỉ để dùng `Gatherer`. Java 8, 11, 17 và 21 **không** có `Stream.gather`/`Gatherer.andThen` như API chuẩn.
+**Version requirement:** Main examples use **Java 24 or later**, where Stream Gatherers became a standard API under **JEP 485**. Gatherers were previously introduced as a *preview* in **JDK 22 (JEP 461)** and **JDK 23 (JEP 473)**. Java 24 code in this lesson does not need `--enable-preview` just to use `Gatherer`. Java 8, 11, 17, and 21 **do not** include `Stream.gather`/`Gatherer.andThen` as standard APIs.
 
-Đây là một bài kiến thức tự chứa của module `JAVA_STREAM_API`, không phải hướng dẫn bật preview trên JDK cũ. Mọi ví dụ có `import java.util.stream.Gatherer` hoặc `Gatherers` đều nhắm tới API Java 24+.
+This is a self-contained knowledge lesson of the `JAVA_STREAM_API` module, not a guide to enabling previews on older JDKs. All examples importing `java.util.stream.Gatherer` or `Gatherers` target the Java 24+ API.
 
 ---
 
-## 1. Vì sao Stream cần Gatherer và phép ghép andThen?
+## 1. Why does Stream need Gatherer and andThen composition?
 
-Stream truyền thống cung cấp `filter`, `map`, `flatMap`, `distinct`, `sorted`, `reduce` và `collect`. Chúng xử lý được rất nhiều bài toán, nhưng có những phép biến đổi trung gian khó diễn đạt gọn:
+Traditional Streams provide `filter`, `map`, `flatMap`, `distinct`, `sorted`, `reduce`, and `collect`. They handle many problems, yet some intermediate transformations are awkward to express concisely:
 
-- **Đóng gói theo cửa sổ:** cứ ba phần tử phát một `List`.
-- **Tổng tích lũy:** sau mỗi phần tử phát tổng đã thấy đến thời điểm đó.
-- **Giữ trạng thái riêng:** phát bản ghi khi khác bản ghi ngay trước nó.
-- **Chỉ phát kết quả khi hết nguồn:** ghép toàn bộ chuỗi thành một phần tử.
-- **Giới hạn công việc đồng thời:** thực thi mapper có giới hạn concurrency.
+- **Window packaging:** emit a `List` every three elements.
+- **Running totals:** emit the sum seen so far after each element.
+- **Private state retention:** emit a record when it differs from the one immediately before it.
+- **Emit-on-completion only:** fold the entire sequence into a single element.
+- **Bounded concurrent work:** execute a mapper with a concurrency cap.
 
-`Gatherer<T,A,R>` cho phép định nghĩa những phép biến đổi trung gian như vậy. Khi có hai bước cần thực hiện liên tiếp, `andThen` nối chúng thành **một Gatherer mới**:
+`Gatherer<T,A,R>` allows defining such intermediate transformations. When two steps must run back-to-back, `andThen` chains them into **one new Gatherer**:
 
 ~~~text
 Stream<T>
@@ -43,7 +43,7 @@ Stream<T>
     v
 Gatherer A: T -> R
     |
-    | các phần tử R do A phát ra
+    | R elements emitted by A
     v
 Gatherer B: R -> RR
     |
@@ -54,10 +54,10 @@ Stream<RR>
 terminal operation: toList / count / findFirst / collect...
 ~~~
 
-Ví dụ quy trình:
+Workflow example:
 
 ~~~text
-Số đơn hàng:          [10, 20, 30, 40, 50]
+Order counts:         [10, 20, 30, 40, 50]
                               |
                     windowFixed(2)
                               |
@@ -65,53 +65,53 @@ Số đơn hàng:          [10, 20, 30, 40, 50]
                         [30,40],
                         [50]]
                               |
-                     map từng cửa sổ
+                     map each window
                               |
                         [30, 70, 50]
                               |
-                      scan tổng dồn
+                      scan running sum
                               |
                         [30,100,150]
 ~~~
 
-Ở đây `windowFixed` thay đổi “một phần tử” từ `Integer` thành `List<Integer>`. Gatherer tiếp theo có thể tính tổng từng list, rồi một Gatherer khác tính tổng tích lũy.
+Here `windowFixed` changes "one element" from `Integer` to `List<Integer>`. The next Gatherer can sum each list, and another Gatherer can compute the running total.
 
-**Điểm cốt lõi:** `andThen` nối **đầu ra của bước trước** với **đầu vào của bước sau**. Nó không nối hai danh sách kết quả độc lập, không chạy hai nhánh cạnh nhau và không tự thay thế terminal operation.
+**Core point:** `andThen` connects **the output of the previous step** to **the input of the next step**. It does not concatenate two independent result lists, does not run two branches side by side, and does not replace a terminal operation.
 
 ---
 
-## 2. Bản đồ API: Gatherer, Gatherers và Stream.gather
+## 2. API map: Gatherer, Gatherers, and Stream.gather
 
-Các thành phần liên quan trong `java.util.stream`:
+Related components in `java.util.stream`:
 
-| API | Vai trò | Mức sử dụng |
+| API | Role | Usage level |
 |---|---|---|
-| `Gatherer<T,A,R>` | Hợp đồng của phép biến đổi trung gian có thể có trạng thái | Định nghĩa hoặc tham chiếu một Gatherer |
-| `Gatherer.andThen(that)` | Ghép kết quả của Gatherer hiện tại vào Gatherer sau | **Trọng tâm bài học** |
-| `Stream.gather(gatherer)` | Gắn một Gatherer vào pipeline Stream | Khi thực thi pipeline |
-| `Gatherers.windowFixed(n)` | Chia nguồn thành các nhóm liên tiếp kích thước n | Gatherer chuẩn |
-| `Gatherers.windowSliding(n)` | Phát các cửa sổ trượt | Gatherer chuẩn |
-| `Gatherers.scan(initial, scanner)` | Phát giá trị tích lũy sau mỗi input | Gatherer chuẩn |
-| `Gatherers.fold(initial, folder)` | Phát một giá trị tổng hợp khi kết thúc | Gatherer chuẩn |
-| `Gatherers.mapConcurrent(k, mapper)` | Biến đổi từng phần tử với giới hạn concurrency | Gatherer chuẩn |
-| `Gatherer.of(...)` | Tạo Gatherer có thể có combiner | Gatherer tự định nghĩa |
-| `Gatherer.ofSequential(...)` | Tạo Gatherer có đặc tính xử lý tuần tự | Gatherer tự định nghĩa |
+| `Gatherer<T,A,R>` | Contract of a potentially stateful intermediate transformation | Defining or referencing a Gatherer |
+| `Gatherer.andThen(that)` | Feeds the output of the current Gatherer into the next Gatherer | **Lesson focus** |
+| `Stream.gather(gatherer)` | Attaches a Gatherer to a Stream pipeline | When executing a pipeline |
+| `Gatherers.windowFixed(n)` | Splits source into consecutive groups of size n | Standard Gatherer |
+| `Gatherers.windowSliding(n)` | Emits sliding windows | Standard Gatherer |
+| `Gatherers.scan(initial, scanner)` | Emits accumulated value after each input | Standard Gatherer |
+| `Gatherers.fold(initial, folder)` | Emits one aggregated value upon completion | Standard Gatherer |
+| `Gatherers.mapConcurrent(k, mapper)` | Transforms each element with bounded concurrency | Standard Gatherer |
+| `Gatherer.of(...)` | Creates a Gatherer that may have a combiner | Custom Gatherer |
+| `Gatherer.ofSequential(...)` | Creates a Gatherer with sequential processing semantics | Custom Gatherer |
 
-Phân biệt tên:
+Distinguish the names:
 
-- `Gatherer` (số ít): **interface** của một thao tác trung gian.
-- `Gatherers` (số nhiều): lớp tiện ích cung cấp **Gatherer có sẵn**.
-- `Collector`: thu thập ở **cuối** pipeline; `Gatherer` biến đổi **ở giữa** pipeline.
-- `Gatherer.andThen`: ghép **hai Gatherer**, không phải `Consumer.andThen` hoặc `Function.andThen`.
+- `Gatherer` (singular): the **interface** of an intermediate operation.
+- `Gatherers` (plural): utility class providing **built-in Gatherers**.
+- `Collector`: collects at the **end** of a pipeline; `Gatherer` transforms **in the middle** of a pipeline.
+- `Gatherer.andThen`: composes **two Gatherers**, not `Consumer.andThen` or `Function.andThen`.
 
-### 2.1. Cấu trúc đầy đủ của Gatherer
+### 2.1. Full structure of a Gatherer
 
-Một Gatherer có thể định nghĩa:
+A Gatherer can define:
 
-1. `initializer()` — tạo trạng thái riêng `A`.
-2. `integrator()` — nhận phần tử `T`, cập nhật trạng thái và có thể phát các phần tử `R`.
-3. `combiner()` — gộp trạng thái trung gian khi phép gather hỗ trợ song song.
-4. `finisher()` — thực hiện thao tác cuối khi phần tích lũy kết thúc, có thể phát thêm phần tử.
+1. `initializer()` — creates private state `A`.
+2. `integrator()` — receives element `T`, updates state, and may emit `R` elements.
+3. `combiner()` — merges intermediate states when gathering supports parallelism.
+4. `finisher()` — performs final actions when integration finishes, potentially emitting extra elements.
 
 ~~~text
                      +------------------------+
@@ -120,23 +120,23 @@ Input T ------------>| integrator(state, T)   |
                      |       +---- push(R) ---+----> Downstream
                      +------------------------+
                                |
-                       state A thay đổi
+                       state A mutates
                                |
-                      sau khi kết thúc
+                      after completion
                                |
                                v
                        finisher(state)
                                |
-                          push(R) nếu cần
+                          push(R) if needed
 ~~~
 
-**Không phải Gatherer nào cũng sử dụng cả bốn phần.** Một Gatherer stateless đơn giản có thể chỉ cần `integrator`. Một Gatherer theo cửa sổ hoặc tổng dồn cần trạng thái; một Gatherer kiểu `fold` có thể đợi đến `finisher` mới phát kết quả.
+**Not every Gatherer uses all four parts.** A simple stateless Gatherer may only need `integrator`. A windowing or running-total Gatherer needs state; a `fold`-style Gatherer may wait until `finisher` to emit its result.
 
 ---
 
-## 3. Chữ ký chính xác của andThen
+## 3. Exact signature of andThen
 
-Chữ ký khái niệm trong Java 24:
+Conceptual signature in Java 24:
 
 ~~~java
 default <RR> Gatherer<T, ?, RR> andThen(
@@ -144,34 +144,34 @@ default <RR> Gatherer<T, ?, RR> andThen(
 );
 ~~~
 
-Giả sử Gatherer ban đầu có kiểu:
+Suppose the initial Gatherer has type:
 
 ~~~java
 Gatherer<T, A, R> first;
 ~~~
 
-thì `that` phải nhận được phần tử kiểu `R` mà `first` phát ra. Kết quả là một Gatherer mới:
+then `that` must accept the `R` elements emitted by `first`. The result is a new Gatherer:
 
 ~~~java
 Gatherer<T, ?, RR> combined = first.andThen(that);
 ~~~
 
-Bảng đọc kiểu:
+Type-reading table:
 
-| Ký hiệu | Ý nghĩa | Ví dụ |
+| Symbol | Meaning | Example |
 |---|---|---|
-| `T` | Đầu vào **toàn chain** | `Integer` |
-| `A` | Trạng thái riêng của Gatherer đầu | Ví dụ state dùng gom cửa sổ |
-| `R` | Đầu ra bước đầu, **đầu vào bước sau** | `List<Integer>` |
-| `RR` | Đầu ra **toàn chain** | `Integer` |
-| `?` | Chi tiết trạng thái nội bộ đã được ẩn khỏi API của chain | Trạng thái ghép của hai Gatherer |
+| `T` | Input of **the entire chain** | `Integer` |
+| `A` | Private state of the first Gatherer | E.g. state used to collect windows |
+| `R` | Output of the first step, **input of the next step** | `List<Integer>` |
+| `RR` | Output of **the entire chain** | `Integer` |
+| `?` | Internal state details hidden from the chain's API | Combined state of the two Gatherers |
 
-### 3.1. Vì sao có ? super R và ? extends RR?
+### 3.1. Why `? super R` and `? extends RR`?
 
-- `? super R`: Gatherer sau có thể chấp nhận chính `R` hoặc một **kiểu cha** phù hợp.
-- `? extends RR`: Gatherer sau có thể phát kiểu `RR` hoặc một **kiểu con** có thể dùng như `RR`.
+- `? super R`: the second Gatherer can accept `R` itself or an appropriate **supertype**.
+- `? extends RR`: the second Gatherer can emit `RR` or a **subtype** usable as `RR`.
 
-Ví dụ một Gatherer phát `Integer` có thể được nối vào một Gatherer nhận `Number`, vì mọi `Integer` đều là `Number`.
+For example, a Gatherer emitting `Integer` can be chained into a Gatherer accepting `Number`, because every `Integer` is a `Number`.
 
 ~~~java
 import java.util.stream.Gatherer;
@@ -192,35 +192,35 @@ Gatherer<Integer, ?, String> chain =
         increment.andThen(formatNumber);
 ~~~
 
-Chain nhận `Integer` và phát `String`. Kiểu trạng thái của từng Gatherer không cần bị lộ trong biến `chain`.
+The chain accepts `Integer` and emits `String`. The state types of the individual Gatherers do not need to be exposed in the `chain` variable.
 
-### 3.2. Ghép sai kiểu không biên dịch
+### 3.2. Mismatched composition fails to compile
 
 ~~~java
 Gatherer<Integer, ?, Integer> numbers = ...;
 Gatherer<String, ?, String> trimTexts = ...;
 
-// KHÔNG biên dịch: bước sau cần String,
-// nhưng bước trước chỉ phát Integer.
+// DOES NOT compile: the next step requires String,
+// while the previous step only emits Integer.
 // numbers.andThen(trimTexts);
 ~~~
 
-Muốn nối đúng, cần một bước `Integer → String` hoặc thay đổi kiểu đầu ra của Gatherer trước. Không ép kiểu một cách tùy ý để che giấu thiết kế sai.
+To connect properly, an `Integer → String` step is needed, or the previous Gatherer's output type must change. Do not cast arbitrarily to mask a mismatched design.
 
-### 3.3. Truyền null là lỗi
+### 3.3. Passing null is an error
 
 ~~~java
-// Ném NullPointerException:
+// Throws NullPointerException:
 // chain.andThen(null);
 ~~~
 
-Một Gatherer `null` không phải “bước rỗng” hợp lệ. Nếu không có công đoạn tùy chọn, xây chain có điều kiện trong mã ứng dụng, hoặc dùng một Gatherer pass-through đã được định nghĩa rõ.
+A `null` Gatherer is not a valid "empty step". If an optional stage is absent, build the chain conditionally in application code, or use a well-defined pass-through Gatherer.
 
 ---
 
-## 4. Định luật cơ bản: hai lần gather tương đương andThen
+## 4. Fundamental law: two gather calls equal andThen
 
-Javadoc của `Gatherer.andThen` cam kết kết quả có ngữ nghĩa tương đương với việc nối hai thao tác gather liên tiếp.
+The Javadoc of `Gatherer.andThen` guarantees that the result is semantically equivalent to chaining two consecutive gather operations.
 
 ~~~java
 import java.util.List;
@@ -253,44 +253,44 @@ System.out.println(composed.equals(separate)); // true
 ~~~
 
 ~~~text
-Cách 1: gather(scan.andThen(asText))
-          Integer --> Integer --> String
+Approach 1: gather(scan.andThen(asText))
+              Integer --> Integer --> String
 
-Cách 2: gather(scan).gather(asText)
-          Integer --> Integer --> String
+Approach 2: gather(scan).gather(asText)
+              Integer --> Integer --> String
 ~~~
 
-**Tương đương ngữ nghĩa** không có nghĩa framework phải tạo cùng số lượng object, dùng cùng lịch thread hoặc gọi hàm người dùng theo một lịch trình quan sát được qua side effect. Mục tiêu so sánh là **kết quả theo hợp đồng**, không phải thứ tự in debug của những lambda chạy song song.
+**Semantic equivalence** does not mean the framework must allocate the same number of objects, use the same thread scheduling, or invoke user functions in a schedule observable via side effects. The comparison target is **contracted output**, not debug-print order from parallel lambdas.
 
-### 4.1. andThen tạo một Gatherer, không chạy ngay
+### 4.1. andThen creates a Gatherer, it does not execute immediately
 
 ~~~java
 Gatherer<Integer, ?, String> reusable =
-        scan.andThen(asText); // Chưa có nguồn, chưa phát phần tử.
+        scan.andThen(asText); // No source yet, no elements emitted yet.
 
 List<String> result = Stream.of(5, 6)
         .gather(reusable)
-        .toList();             // Terminal operation tiêu thụ nguồn.
+        .toList();             // Terminal operation consumes source.
 ~~~
 
-Trong pipeline lazy, khai báo `Gatherer` hoặc gọi `andThen` **không tự đánh giá** các phần tử của Stream. `toList()`, `collect()`, `count()`, `findFirst()` hoặc terminal khác mới kích hoạt xử lý.
+In a lazy pipeline, declaring a `Gatherer` or calling `andThen` **does not evaluate** Stream elements on its own. `toList()`, `collect()`, `count()`, `findFirst()`, or another terminal operation triggers execution.
 
-### 4.2. Không dùng lại chính một Stream đã bị tiêu thụ
+### 4.2. Do not reuse a Stream that has already been consumed
 
 ~~~java
-// Sai mô hình:
+// Wrong pattern:
 // Stream<Integer> source = Stream.of(1, 2, 3);
 // source.gather(scan).toList();
 // source.gather(scan.andThen(asText)).toList();
 ~~~
 
-Hãy tạo **hai Stream mới từ cùng nguồn có thể duyệt lại** hoặc dùng `Supplier<Stream<T>>` để so sánh. Có thể tái sử dụng **định nghĩa Gatherer không giữ state ngoài không hợp lệ**; trạng thái của Gatherer chuẩn được tạo cho từng lần chạy, không phải do biến `Gatherer` lưu sẵn kết quả.
+Create **two new Streams from the same re-traversable source** or use a `Supplier<Stream<T>>` to compare. You can reuse a **Gatherer definition that holds no invalid external state**; standard Gatherer state is created per run, not stored inside the `Gatherer` variable.
 
 ---
 
-## 5. Ví dụ nền tảng: windowFixed rồi tính tổng từng cửa sổ
+## 5. Foundational example: windowFixed then sum each window
 
-`Gatherers.windowFixed(n)` nhận `Stream<T>` và phát `Stream<List<T>>`. Ta nối nó với một Gatherer nhận `List<Integer>`, tính tổng và phát `Integer`.
+`Gatherers.windowFixed(n)` takes `Stream<T>` and emits `Stream<List<T>>`. We chain it with a Gatherer that takes `List<Integer>`, computes its sum, and emits `Integer`.
 
 ~~~java
 import java.util.List;
@@ -321,7 +321,7 @@ List<Integer> result = Stream.of(1, 2, 3, 4, 5, 6, 7)
 System.out.println(result); // [6, 15, 7]
 ~~~
 
-Diễn giải:
+Trace:
 
 ~~~text
 Input Integer:        1 2 3 4 5 6 7
@@ -335,9 +335,9 @@ Output List<Integer>: [1,2,3] [4,5,6] [7]
 Output Integer:         6      15     7
 ~~~
 
-Cửa sổ cuối có thể **ít hơn n phần tử**. `windowFixed(3)` không tự bỏ `[7]`. `sumWindow` phải tính đúng với cả list nhỏ hơn kích thước chuẩn.
+The final window may have **fewer than n elements**. `windowFixed(3)` does not discard `[7]`. `sumWindow` must compute properly even for lists smaller than the nominal size.
 
-### 5.1. So với gather liên tiếp
+### 5.1. Compared with consecutive gather calls
 
 ~~~java
 List<Integer> sameResult = Stream.of(1, 2, 3, 4, 5, 6, 7)
@@ -348,9 +348,9 @@ List<Integer> sameResult = Stream.of(1, 2, 3, 4, 5, 6, 7)
 System.out.println(result.equals(sameResult)); // true
 ~~~
 
-Hai cách diễn đạt cùng logic; `andThen` có lợi khi muốn đặt tên và tái sử dụng phép biến đổi **“gom 3 rồi tính tổng”**.
+Both express the same logic; `andThen` is advantageous when you want to name and reuse the **"batch by 3 then sum"** transformation.
 
-### 5.2. Khi nào không cần andThen?
+### 5.2. When is andThen unnecessary?
 
 ~~~java
 List<Integer> alsoValid = Stream.of(1, 2, 3, 4, 5, 6, 7)
@@ -361,17 +361,17 @@ List<Integer> alsoValid = Stream.of(1, 2, 3, 4, 5, 6, 7)
         .toList();
 ~~~
 
-Một `map` thông thường là đủ nếu giai đoạn sau chỉ biến đổi **một-một** và không cần đóng gói thành Gatherer riêng. `andThen` không thay thế `map` trong mọi bài toán; nó là công cụ để **tổ hợp những Gatherer** có thể xử lý nhiều kiểu trạng thái và số lượng đầu ra.
+A plain `map` is enough when the subsequent stage only performs a **one-to-one** transformation and does not need to be packaged as a standalone Gatherer. `andThen` does not replace `map` everywhere; it is a tool for **composing Gatherers** that may handle diverse state and output counts.
 
 ---
 
-## 6. Ví dụ nâng cao: tổng cửa sổ rồi tính tổng tích lũy
+## 6. Advanced example: window sums followed by running total
 
-Có ba giai đoạn:
+There are three stages:
 
 1. `windowFixed(2)`: `Integer → List<Integer>`.
 2. `sumWindow`: `List<Integer> → Integer`.
-3. `scan`: `Integer → Integer`, phát tổng tích lũy sau mỗi cửa sổ.
+3. `scan`: `Integer → Integer`, emitting the running total after each window.
 
 ~~~java
 import java.util.List;
@@ -405,7 +405,7 @@ List<Integer> totals = Stream.of(1, 2, 3, 4, 5)
 System.out.println(totals); // [3, 10, 15]
 ~~~
 
-Vì:
+Because:
 
 ~~~text
 Input:             [1, 2, 3, 4, 5]
@@ -414,9 +414,9 @@ sumEach:           [3, 7, 5]
 scan(sum):         [3, 10, 15]
 ~~~
 
-Với `scan`, giá trị do `initial` trả về là **trạng thái xuất phát**, không được phát như một phần tử đứng đầu. Vì vậy kết quả có ba số ứng với ba cửa sổ, không phải bốn số bắt đầu từ `0`.
+With `scan`, the value returned by `initial` is the **starting state**, not emitted as a leading element. Thus the output has three numbers matching the three windows, not four numbers starting at `0`.
 
-### 6.1. Tương đương ba lần gather riêng
+### 6.1. Equivalent to three separate gather calls
 
 ~~~java
 List<Integer> separateStages = Stream.of(1, 2, 3, 4, 5)
@@ -428,7 +428,7 @@ List<Integer> separateStages = Stream.of(1, 2, 3, 4, 5)
 System.out.println(totals.equals(separateStages)); // true
 ~~~
 
-### 6.2. Tạo thành một công cụ tái sử dụng
+### 6.2. Turning into a reusable utility
 
 ~~~java
 static Gatherer<Integer, ?, Integer>
@@ -453,7 +453,7 @@ runningWindowSums(int windowSize) {
 }
 ~~~
 
-Đặt phương thức trong một lớp Java. Chúng ta có thể dùng:
+Place the method in a Java class. We can use:
 
 ~~~java
 List<Integer> a = Stream.of(1, 2, 3, 4, 5)
@@ -468,25 +468,25 @@ System.out.println(a); // [3, 10, 15]
 System.out.println(b); // [30, 60]
 ~~~
 
-Hàm tạo một Gatherer **mới theo cấu hình cửa sổ**. Nó không giữ một tổng `int` bên ngoài dùng chung giữa các luồng đánh giá.
+The function creates a **fresh Gatherer per window configuration**. It does not hold an external `int` sum shared across evaluation streams.
 
-**Lưu ý độ chính xác:** Ví dụ dùng `int` để đơn giản. Với dữ liệu có thể làm tổng `int` tràn, cần chọn `long`/`BigInteger` thích hợp thay vì hy vọng `andThen` tự khắc phục overflow.
+**Precision note:** The example uses `int` for simplicity. For data where sums can overflow `int`, choose `long`/`BigInteger` as appropriate rather than expecting `andThen` to fix overflow.
 
 ---
 
-## 7. Thứ tự ghép quan trọng: andThen không giao hoán
+## 7. Composition order matters: andThen is not commutative
 
-Nói chung:
+In general:
 
 ~~~text
 A.andThen(B) != B.andThen(A)
 ~~~
 
-Thậm chí nhiều cặp Gatherer không thể đảo vì **không khớp kiểu dữ liệu**. Với các Gatherer cùng kiểu, hai thứ tự vẫn có thể cho kết quả khác.
+Many Gatherer pairs cannot even be swapped due to **type mismatch**. Even for Gatherers with matching types, the two orders can produce different results.
 
-### 7.1. Ví dụ scan rồi fold
+### 7.1. Example: scan then fold
 
-`scan` phát **từng tổng tích lũy**; `fold` thu toàn bộ những tổng ấy thành một kết quả cuối.
+`scan` emits **each running total**; `fold` reduces all those totals into a single final result.
 
 ~~~java
 import java.util.List;
@@ -507,7 +507,7 @@ List<Integer> scanThenFold = Stream.of(1, 2, 3, 4)
 System.out.println(scanThenFold); // [20]
 ~~~
 
-Giải thích:
+Explanation:
 
 ~~~text
 Input:     [1, 2, 3, 4]
@@ -516,7 +516,7 @@ fold:      [1 + 3 + 6 + 10]
 Output:    [20]
 ~~~
 
-### 7.2. Ví dụ fold rồi scan
+### 7.2. Example: fold then scan
 
 ~~~java
 List<Integer> foldThenScan = Stream.of(1, 2, 3, 4)
@@ -526,20 +526,20 @@ List<Integer> foldThenScan = Stream.of(1, 2, 3, 4)
 System.out.println(foldThenScan); // [10]
 ~~~
 
-Giải thích:
+Explanation:
 
 ~~~text
 Input:     [1, 2, 3, 4]
-fold:      [10]     (một phần tử phát cuối nguồn)
-scan:      [10]     (chỉ xử lý một phần tử)
+fold:      [10]     (one element emitted at end of source)
+scan:      [10]     (processes only one element)
 Output:    [10]
 ~~~
 
-Hai pipeline có **cùng kiểu đầu/cuối** nhưng kết quả **khác nhau**. Đây là phản ví dụ đơn giản nhất cho suy luận sai rằng `andThen` có tính giao hoán.
+The two pipelines have **the same start/end types** yet **different outputs**. This is the simplest counterexample to the false assumption that `andThen` is commutative.
 
-### 7.3. Associativity ở mức kết quả
+### 7.3. Associativity at the result level
 
-Với ba Gatherer `A: T→U`, `B: U→V`, `C: V→W`, hai biểu thức sau có cùng dòng biến đổi theo hợp đồng:
+For three Gatherers `A: T→U`, `B: U→V`, `C: V→W`, the two expressions below share the same transformation flow per contract:
 
 ~~~java
 Gatherer<T, ?, W> leftGrouped =
@@ -549,15 +549,15 @@ Gatherer<T, ?, W> rightGrouped =
         A.andThen(B.andThen(C));
 ~~~
 
-Đây là **mã minh họa kiểu**, không phải đoạn Java biên dịch độc lập vì các biến `A`/`B`/`C` và type parameters `T`/`U`/`V`/`W` cần được khai báo. Ý nghĩa là cả hai nhóm ngoặc đều truyền dữ liệu theo thứ tự `A → B → C`.
+This is **type-illustrative code**, not standalone compilable Java since variables `A`/`B`/`C` and type parameters `T`/`U`/`V`/`W` must be declared. The point is that both parenthesizations pass data in the order `A → B → C`.
 
-**Không** suy ra hai cách có cùng chi phí cấp phát, cùng thread, cùng số lần gọi lambda quan sát qua side effect. Tính tương đương được xét trên **hành vi đầu ra theo hợp đồng**.
+Do **not** infer that both forms have the same allocation cost, same threads, or same lambda invocation counts observed via side effects. Equivalence is evaluated on **contracted output behavior**.
 
 ---
 
-## 8. windowSliding và hậu xử lý theo chuỗi cửa sổ
+## 8. windowSliding and post-processing over a sequence of windows
 
-`Gatherers.windowSliding(n)` tạo cửa sổ trượt. Với n = 3 và đầu vào 1..5:
+`Gatherers.windowSliding(n)` creates sliding windows. With n = 3 and input 1..5:
 
 ~~~text
 [1,2,3]
@@ -565,7 +565,7 @@ Gatherer<T, ?, W> rightGrouped =
     [3,4,5]
 ~~~
 
-Ta có thể ghép một Gatherer lấy trung bình từng cửa sổ:
+We can compose a Gatherer that averages each window:
 
 ~~~java
 import java.util.List;
@@ -594,11 +594,11 @@ List<Double> averages = Stream.of(1, 2, 3, 4, 5)
 System.out.println(averages); // [2.0, 3.0, 4.0]
 ~~~
 
-`average().orElseThrow()` an toàn **trong ví dụ** vì cửa sổ trượt được phát có ít nhất một phần tử khi `windowSize >= 1`. Nếu bạn viết một Gatherer phát các list có thể rỗng, phải chọn chính sách xử lý rỗng rõ ràng.
+`average().orElseThrow()` is safe **in this example** because emitted sliding windows contain at least one element when `windowSize >= 1`. If you write a Gatherer that can emit empty lists, pick an explicit empty-handling policy.
 
-### 8.1. Nguồn ngắn hơn kích thước window
+### 8.1. Source shorter than window size
 
-Nếu input có ít phần tử hơn `windowSliding(3)`, Gatherer có thể phát **một cửa sổ chứa mọi phần tử hiện có**.
+If the input has fewer elements than `windowSliding(3)`, the Gatherer emits **one window containing all available elements**.
 
 ~~~java
 List<List<Integer>> windows = Stream.of(1, 2)
@@ -608,19 +608,19 @@ List<List<Integer>> windows = Stream.of(1, 2)
 System.out.println(windows); // [[1, 2]]
 ~~~
 
-Với nguồn rỗng, không có cửa sổ. Với `windowFixed`, cửa sổ cuối cũng có thể ngắn hơn n. Không nên viết downstream mặc định mọi list đều có đúng n phần tử mà không kiểm tra hợp đồng cụ thể của loại cửa sổ.
+With an empty source, there are no windows. With `windowFixed`, the final window can also be shorter than n. Never write downstream assuming every list has exactly n elements without checking the specific window contract.
 
-### 8.2. Chi phí
+### 8.2. Cost
 
-Cửa sổ trượt có nhiều phần tử **chồng lấp**; tổng lượng phần tử xuất hiện qua các cửa sổ có thể lớn hơn kích thước input. Ghép thêm một Gatherer tính thống kê cho từng cửa sổ có thể làm lại một số phép tính.
+Sliding windows have many **overlapping** elements; the total number of element appearances across windows can far exceed the input size. Chaining another Gatherer that computes statistics per window may repeat calculations.
 
-Nếu cần tối ưu sâu, cân nhắc thuật toán cập nhật thống kê trượt theo state chuyên dụng. `andThen` giúp mô tả **cấu trúc pipeline**, không tự biến thuật toán O(n·windowSize) thành O(n).
+If deep optimization is required, consider a dedicated stateful sliding-statistics algorithm. `andThen` helps express **pipeline structure**; it does not automatically turn an O(n·windowSize) algorithm into O(n).
 
 ---
 
-## 9. Finisher: phần tử phát ở cuối vẫn đi qua Gatherer sau
+## 9. Finisher: elements emitted at the end still flow through the next Gatherer
 
-Một số Gatherer chỉ phát output trong `finisher` sau khi upstream hoàn tất. `Gatherers.fold` là ví dụ quan trọng.
+Some Gatherers emit output only inside `finisher` after upstream finishes. `Gatherers.fold` is an important example.
 
 ~~~java
 import java.util.List;
@@ -649,24 +649,24 @@ Stream.of(3,5,7)
    |
    v
 foldSum:
-  integrator nhận 3,5,7;
-  không phát từng tổng trung gian;
-  finisher phát 15
+  integrator receives 3,5,7;
+  does not emit intermediate sums;
+  finisher emits 15
    |
    v
 format:
-  integrator nhận 15
-  và phát "TOTAL=15"
+  integrator receives 15
+  and emits "TOTAL=15"
    |
    v
 ["TOTAL=15"]
 ~~~
 
-Vì output của `fold` được phát **cuối nguồn**, Gatherer đứng sau vẫn cần nhận và xử lý nó. Việc ghép không có nghĩa “bỏ qua finisher của bước trước”.
+Because `fold`'s output is emitted **at the end of the source**, the downstream Gatherer still receives and processes it. Composition does not mean "skipping the previous step's finisher".
 
-### 9.1. Trường hợp nguồn rỗng
+### 9.1. Empty source case
 
-Theo hợp đồng `Gatherers.fold`, khi không có input và xử lý hoàn tất bình thường, nó phát **giá trị initial**.
+Per the `Gatherers.fold` contract, when there is no input and processing finishes normally, it emits **the initial value**.
 
 ~~~java
 List<Integer> foldedEmpty = Stream.<Integer>empty()
@@ -676,7 +676,7 @@ List<Integer> foldedEmpty = Stream.<Integer>empty()
 System.out.println(foldedEmpty); // [0]
 ~~~
 
-Ngược lại, `windowFixed(3)` trên Stream rỗng không phát cửa sổ:
+Conversely, `windowFixed(3)` on an empty Stream emits no windows:
 
 ~~~java
 List<List<Integer>> emptyWindows = Stream.<Integer>empty()
@@ -686,7 +686,7 @@ List<List<Integer>> emptyWindows = Stream.<Integer>empty()
 System.out.println(emptyWindows); // []
 ~~~
 
-Khi ghép hai bước:
+When composing the two steps:
 
 ~~~java
 Gatherer<Integer, ?, List<Integer>> windows =
@@ -703,19 +703,19 @@ List<Integer> counts = Stream.<Integer>empty()
 System.out.println(counts); // [0]
 ~~~
 
-**Điểm dễ nhầm:** “Gatherer A không phát output” không đồng nghĩa “toàn chain không có output”, vì Gatherer B có thể phát giá trị trong `finisher` ngay cả khi không nhận input.
+**Common pitfall:** "Gatherer A emitted no output" does not mean "the whole chain has no output", because Gatherer B can emit a value in its `finisher` even when receiving no input.
 
-### 9.2. Finisher khác terminal Collector.finisher
+### 9.2. Finisher vs. terminal Collector.finisher
 
-- `Gatherer.finisher` có thể **phát thêm các phần tử vào downstream**, vẫn là một phần của phép biến đổi Stream.
-- `Collector.finisher` chuyển trạng thái thu thập `A` thành **kết quả terminal** `R` của `collect`.
-- `Gatherer.andThen` ghép các thao tác **trung gian**; `Collectors.collectingAndThen` hoàn thiện một **kết quả collector**. Hai API không thể thay thế cho nhau.
+- `Gatherer.finisher` can **emit additional elements downstream**, remaining part of the Stream transformation.
+- `Collector.finisher` converts collection state `A` into the **terminal result** `R` of `collect`.
+- `Gatherer.andThen` composes **potentially stateful intermediate operations**; `Collectors.collectingAndThen` finalizes a **collector result**. The two APIs are not interchangeable.
 
 ---
 
-## 10. Tự tạo Gatherer stateless rồi ghép
+## 10. Writing a stateless custom Gatherer and composing it
 
-Ta muốn chuẩn hóa chuỗi và bỏ những chuỗi trống, sau đó chia các chuỗi còn lại thành từng cặp.
+We want to normalize strings, discard blank strings, and then group the remaining strings into pairs.
 
 ~~~java
 import java.util.List;
@@ -732,7 +732,7 @@ Gatherer<String, ?, String> nonBlankTrimmed =
 
                     String trimmed = text.trim();
                     if (trimmed.isEmpty()) {
-                        return true; // Không phát phần tử.
+                        return true; // Emit no element.
                     }
 
                     return downstream.push(trimmed);
@@ -752,15 +752,15 @@ List<List<String>> result = Stream
 System.out.println(result); // [[An, Binh], [Chi]]
 ~~~
 
-Hợp đồng:
+Contract:
 
-- Một input `String` có thể tạo **0 hoặc 1** output từ `nonBlankTrimmed`.
-- `windowFixed(2)` chỉ nhìn thấy **những String thực sự được phát**; các chuỗi trống đã biến mất trước bước gom.
-- Nếu dùng `windowFixed(2).andThen(...)` với một bước xử lý list, bạn đang nhóm **dữ liệu gốc trước**; đó là quy trình khác.
+- One input `String` can produce **0 or 1** output from `nonBlankTrimmed`.
+- `windowFixed(2)` sees only **the Strings actually emitted**; blank strings disappeared before grouping.
+- If you use `windowFixed(2).andThen(...)` with a list-processing step, you are grouping **the raw data first**; that is a different workflow.
 
-### 10.1. Khi nào dùng filter + map thông thường?
+### 10.1. When to use regular filter + map?
 
-Cùng bài toán có thể viết:
+The same problem can be written:
 
 ~~~java
 List<List<String>> alsoValid = Stream
@@ -771,15 +771,15 @@ List<List<String>> alsoValid = Stream
         .toList();
 ~~~
 
-`map` và `filter` thường rõ hơn nếu không cần đóng gói phép biến đổi thành một Gatherer tái sử dụng. Chỉ tự viết Gatherer khi có yêu cầu về phát số lượng phần tử, state, short-circuit, finisher hoặc thành phần compose cụ thể.
+`map` and `filter` are usually clearer if you do not need to package the transformation into a reusable Gatherer. Only write custom Gatherers when you have specific requirements around emission count, state, short-circuiting, finisher, or composition components.
 
 ---
 
-## 11. Gatherer stateful tự định nghĩa: dừng sau mốc nhưng giữ mốc
+## 11. Custom stateful-style Gatherer: stop after a milestone while keeping it
 
-Yêu cầu: Stream số nguyên có encounter order, lấy phần tử từ đầu **cho đến khi gặp số đầu tiên >= threshold**, bao gồm cả số chạm ngưỡng.
+Requirement: given an integer Stream with encounter order, take elements from the start **until the first number >= threshold**, inclusive of the number reaching the threshold.
 
-Một Gatherer kiểu này có thể dừng nguồn sớm:
+A Gatherer like this can stop the source early:
 
 ~~~java
 import java.util.stream.Gatherer;
@@ -788,19 +788,19 @@ static Gatherer<Integer, ?, Integer>
 takeUntilInclusive(int threshold) {
     return Gatherer.<Integer, Integer>ofSequential(
             (ignored, value, downstream) -> {
-                // Phát phần tử, nếu downstream còn nhận.
+                // Emit element if downstream still accepts.
                 boolean wantsMore = downstream.push(value);
 
-                // Dừng sau phần tử đầu tiên >= threshold.
+                // Stop after the first element >= threshold.
                 return wantsMore && value < threshold;
             }
     );
 }
 ~~~
 
-Dù không lưu state riêng, `ofSequential` được chọn để nhấn mạnh ngữ nghĩa **tiền tố theo thứ tự đầu vào**. Không tự công bố một combiner khiến dữ liệu bị chia mà không thể xác định mốc đầu tiên toàn cục.
+Even without storing separate state, `ofSequential` is chosen to emphasize **prefix semantics in input order**. Do not advertise a combiner that splits data without being able to determine the global first milestone.
 
-### 11.1. Ghép với scan
+### 11.1. Composing with scan
 
 ~~~java
 import java.util.List;
@@ -821,9 +821,9 @@ List<Integer> result = Stream.of(1, 2, 3, 4, 5)
 System.out.println(result); // [1, 3, 6]
 ~~~
 
-Sau khi phát `3`, Gatherer trước trả `false` để không nhận thêm input. `running` chỉ nhìn thấy `[1,2,3]`.
+After emitting `3`, the first Gatherer returns `false` so it receives no more inputs. `running` only sees `[1,2,3]`.
 
-### 11.2. Đảo thứ tự có thể đổi điểm dừng
+### 11.2. Swapping order can change the stopping point
 
 ~~~java
 List<Integer> other = Stream.of(1, 2, 3, 4, 5)
@@ -833,27 +833,27 @@ List<Integer> other = Stream.of(1, 2, 3, 4, 5)
 System.out.println(other); // [1, 3]
 ~~~
 
-Vì `running` phát `[1,3,6,10,15]`, Gatherer dừng ở **tổng tích lũy 3** (phần tử thứ hai), nên kết quả là `[1,3]`. Đây là một ví dụ nữa cho thấy `andThen` **có thứ tự**.
+Because `running` emits `[1,3,6,10,15]`, the Gatherer stops at **running total 3** (the second element), yielding `[1,3]`. This is another example showing `andThen` **is order-sensitive**.
 
-### 11.3. Không nuốt tín hiệu từ downstream.push
+### 11.3. Do not swallow the signal from downstream.push
 
 ~~~java
-// Kém an toàn nếu downstream dừng sớm:
+// Unsafe if downstream stops early:
 // (ignored, value, downstream) -> {
 //     downstream.push(value);
-//     return true; // Cố yêu cầu upstream tiếp tục.
+//     return true; // Tries to tell upstream to continue.
 // }
 ~~~
 
-`downstream.push(value)` trả `boolean` cho biết downstream còn muốn nhận thêm hay không. Nếu trả `false`, không tiếp tục phát vào downstream. `downstream.isRejecting()` có thể hỗ trợ kiểm tra sớm, nhưng là *best-effort*; không được dùng nó để thay quy tắc xử lý giá trị trả về từ `push`.
+`downstream.push(value)` returns a `boolean` indicating whether downstream still wants more. If it returns `false`, stop emitting downstream. `downstream.isRejecting()` can assist with an early check, though it is *best-effort*; never use it to replace handling the return value of `push`.
 
-Ví dụ `takeUntilInclusive` trả `wantsMore && ...`, vì vậy tôn trọng cả điều kiện dừng của chính Gatherer và yêu cầu dừng từ terminal operation phía sau.
+The `takeUntilInclusive` example returns `wantsMore && ...`, respecting both the Gatherer's own stopping condition and a stop request from a subsequent terminal operation.
 
 ---
 
-## 12. Custom finisher: phát kết quả sau khi hết nguồn
+## 12. Custom finisher: emitting result after the source ends
 
-Ví dụ một Gatherer giữ số phần tử đã nhận, chỉ phát `"count=N"` khi upstream kết thúc.
+Example of a Gatherer that tracks the count of received elements and emits `"count=N"` only when upstream ends.
 
 ~~~java
 import java.util.stream.Gatherer;
@@ -878,14 +878,14 @@ static Gatherer<Integer, ?, String> countAsText() {
 }
 ~~~
 
-Trong phần code này:
+In this code:
 
-- `initializer` tạo một `CountState` cho mỗi lần đánh giá thích hợp.
-- `integrator` tăng count nhưng **không phát output**.
-- `finisher` phát một String khi kết thúc.
-- Không lưu state hay đối tượng `downstream` vào field static để dùng về sau.
+- `initializer` creates a `CountState` for each appropriate evaluation.
+- `integrator` increments count without **emitting any output**.
+- `finisher` emits one String upon completion.
+- Never save state or the `downstream` object into a static field for later use.
 
-### 12.1. Ghép custom finisher với Gatherer khác
+### 12.1. Composing custom finisher with another Gatherer
 
 ~~~java
 import java.util.List;
@@ -905,34 +905,34 @@ List<Integer> result = Stream.of(3, 7, 11)
 System.out.println(result); // [7]
 ~~~
 
-`"count=3"` có độ dài `7`. Output của finisher bước trước được chuyển tiếp qua integrator của bước sau, dù bước trước không phát gì trong khi đọc từng phần tử.
+`"count=3"` has length `7`. The output of the previous step's finisher is forwarded through the next step's integrator, even though the previous step emitted nothing while reading each element.
 
-### 12.2. Short-circuit và finisher
+### 12.2. Short-circuiting and finisher
 
-Không dựa vào việc finisher của từng Gatherer luôn phát thành công mọi giá trị:
+Do not assume every Gatherer's finisher will always emit every value successfully:
 
-- Terminal `limit`/`findFirst` có thể khiến downstream **không nhận thêm**.
-- Nếu một integrator dừng sớm, xử lý phần input còn lại có thể bị bỏ.
-- Nếu downstream đã từ chối, finisher không nên cố gửi thêm phần tử bằng mọi giá.
-- Đừng đặt side effect bắt buộc như commit transaction, gửi email hoặc đóng file handle chỉ trong một finisher rồi giả định mọi đường lỗi/hủy đều sẽ gọi nó đúng một lần.
+- Terminal `limit`/`findFirst` may cause downstream **to stop accepting more**.
+- If an integrator stops early, processing remaining input may be skipped.
+- If downstream is already rejecting, finisher should not try to push extra elements at all costs.
+- Never place mandatory side effects such as committing transactions, sending emails, or closing file handles solely inside a finisher assuming every error/cancellation path will invoke it once.
 
-Đối với tài nguyên, dùng `try-with-resources` và các cơ chế đảm bảo cleanup chuyên biệt của ứng dụng.
+For resources, use `try-with-resources` and dedicated application cleanup mechanisms.
 
 ---
 
-## 13. Việc compose ảnh hưởng ra sao đến state của hai Gatherer?
+## 13. How does composition affect the state of two Gatherers?
 
-Giả sử:
+Suppose:
 
 ~~~text
-A: windowFixed(3)     state A gom số vào cửa sổ
-B: scan(sum)           state B giữ tổng tích lũy
-C: fold(...)           state C giữ một giá trị tổng hợp cuối
+A: windowFixed(3)     state A collects numbers into windows
+B: scan(sum)          state B holds running sum
+C: fold(...)          state C holds one final aggregated value
 ~~~
 
-Khi ghép `A.andThen(B).andThen(C)`, mỗi stage vẫn có **ngữ nghĩa state riêng**. Trạng thái của B không phải trạng thái của A; tổng tích lũy của B được tính từ **những output A đã phát**, chứ không trực tiếp từ mọi input T.
+When composing `A.andThen(B).andThen(C)`, each stage retains its **own state semantics**. B's state is not A's state; B's running sum is computed from **the outputs emitted by A**, not directly from every input T.
 
-Một sơ đồ:
+Diagram:
 
 ~~~text
 Stream<T>
@@ -940,7 +940,7 @@ Stream<T>
   v
 A.initializer / A.integrator / A.finisher
   |          |
-  |          +-- có thể phát trong finisher
+  |          +-- may emit in finisher
   v
 R
   |
@@ -957,30 +957,30 @@ C.initializer / C.integrator / C.finisher
 Final Output
 ~~~
 
-`andThen` trả một Gatherer **bao gói sự kết hợp**. Kiểu trạng thái nội bộ được ẩn bằng wildcard `?`, vì mã gọi không cần biết hai Gatherer lưu những gì bên trong.
+`andThen` returns a Gatherer **encapsulating the composition**. Internal state types are hidden with the wildcard `?`, because callers do not need to know what the two Gatherers store internally.
 
-### 13.1. Không đưa state mutable ra ngoài pipeline
+### 13.1. Do not leak mutable state outside the pipeline
 
 ~~~java
-// Không nên:
+// Do not:
 // List<Integer> shared = new ArrayList<>();
 // Gatherer<Integer, ?, Integer> g = Gatherer.of(
 //     (unused, n, downstream) -> {
-//         shared.add(n);       // Cùng list chia sẻ giữa các lần evaluate.
+//         shared.add(n);       // Same list shared across evaluations.
 //         return downstream.push(n);
 //     }
 // );
 ~~~
 
-State dùng để theo dõi tiến trình phải thuộc về **lần đánh giá** (qua initializer hoặc cơ chế state tương ứng), không phải một biến mutable dùng chung cho nhiều pipeline.
+State used to track progress must belong to **the evaluation pass** (via initializer or appropriate state mechanism), not a mutable variable shared across multiple pipelines.
 
-**Ràng buộc API:** Một Gatherer tự định nghĩa không được giữ tham chiếu tới state được truyền vào hoặc `Gatherer.Downstream` vượt quá thời gian gọi hàm nhận các tham chiếu đó, và không được chuyển chúng sang thread khác để dùng tùy tiện.
+**API constraint:** A custom Gatherer must not retain references to the passed-in state or `Gatherer.Downstream` beyond the lifetime of the function invocation receiving them, and must not hand them off to another thread for arbitrary use.
 
 ---
 
-## 14. Parallel stream: andThen không tự làm Gatherer song song hóa
+## 14. Parallel streams: andThen does not automatically parallelize Gatherers
 
-Một Gatherer chỉ có thể được đánh giá song song nếu mô hình và **combiner** của nó cho phép. `Gatherer.ofSequential(...)` chỉ mô tả một Gatherer **tuần tự**; có thể xuất hiện trong pipeline có `parallel()`, nhưng không vì thế nó tự được chia và gộp an toàn.
+A Gatherer can only be evaluated in parallel if its model and **combiner** allow it. `Gatherer.ofSequential(...)` describes only a **sequential** Gatherer; it may appear in a `parallel()` pipeline, yet that does not mean it is split and merged safely in parallel.
 
 ~~~java
 import java.util.List;
@@ -1003,29 +1003,29 @@ List<Integer> result = IntStream.rangeClosed(1, 4)
 System.out.println(result); // [20]
 ~~~
 
-Kết quả vẫn phải tuân thủ hợp đồng biến đổi đã ghép, nhưng **đừng suy ra** hai stage thực sự xử lý trên nhiều thread. Những phép tính phụ thuộc thứ tự như prefix scan/fold có thể giới hạn khả năng song song.
+The result must still adhere to the composed transformation contract, yet **do not infer** that both stages actually run across multiple threads. Order-dependent computations like prefix scan/fold can limit parallelizability.
 
-### 14.1. Các điều kiện của một combiner đúng
+### 14.1. Conditions for a valid combiner
 
-Nếu tự viết Gatherer có combiner, phải bảo đảm:
+If writing a custom Gatherer with a combiner, you must ensure:
 
-1. **Mỗi phân vùng được khởi tạo trạng thái riêng**, không sửa một object dùng chung không an toàn.
-2. **Combiner gộp hai trạng thái theo đúng ý nghĩa của phép biến đổi**, có tính kết hợp khi cần chia/gộp nhiều tầng.
-3. Kết quả không phụ thuộc một lịch phân vùng cụ thể nếu API cho phép đánh giá theo những cách khác nhau.
-4. **Ngữ nghĩa encounter order** vẫn được giữ ở những bước cần bảo đảm thứ tự.
-5. Việc dừng sớm và hủy các phần thừa không được dẫn tới output sai.
+1. **Each partition initializes its own state**, without mutating an unsafe shared object.
+2. **Combiner merges two states according to the exact transformation semantics**, being associative when multi-level splitting/merging is needed.
+3. Results do not depend on a specific partitioning schedule if the API permits evaluating in different ways.
+4. **Encounter-order semantics** are still preserved at steps requiring order guarantees.
+5. Early stopping and canceling surplus work never lead to wrong outputs.
 
-Không thể lấy combiner cộng số của một Gatherer rồi áp vào Gatherer gom cửa sổ mà không chứng minh **ranh giới cửa sổ giữa hai phân vùng** được xử lý đúng.
+You cannot take a numeric-addition combiner from one Gatherer and apply it to a windowing Gatherer without proving that **window boundaries between two partitions** are handled correctly.
 
-### 14.2. Nếu một stage chỉ có thể chạy tuần tự?
+### 14.2. What if one stage can only run sequentially?
 
-Một chain gồm một Gatherer tuần tự và một Gatherer có thể song song vẫn phải giữ **ngữ nghĩa của toàn chain**. Bước tuần tự có thể tạo nút nghẽn; việc có một stage có combiner không tự làm các stage còn lại song song hóa.
+A chain consisting of one sequential Gatherer and one parallel-capable Gatherer must still preserve **the semantics of the entire chain**. The sequential step can create a bottleneck; having one stage with a combiner does not automatically parallelize the other stages.
 
-`andThen` là phép **tổ hợp ngữ nghĩa**, không phải lời hứa toàn bộ pipeline được triển khai như một thuật toán song song tối ưu.
+`andThen` is a **semantic composition**, not a promise that the entire pipeline is implemented as an optimal parallel algorithm.
 
-### 14.3. mapConcurrent có nghĩa gì?
+### 14.3. What does mapConcurrent mean?
 
-`Gatherers.mapConcurrent(maxConcurrency, mapper)` có thể thực thi mapper với **mức đồng thời tối đa** được cấu hình, sử dụng virtual threads, đồng thời giữ thứ tự đầu ra theo nguồn. Nó khác với việc bật `parallelStream()` toàn pipeline.
+`Gatherers.mapConcurrent(maxConcurrency, mapper)` can execute the mapper with a configured **maximum concurrency** using virtual threads while preserving output order from the source. It differs from turning on `parallelStream()` for the whole pipeline.
 
 ~~~java
 import java.util.List;
@@ -1050,22 +1050,22 @@ System.out.println(output);
 // [[enriched:A, enriched:B], [enriched:C]]
 ~~~
 
-Ví dụ mapper chỉ ghép chuỗi cho dễ kiểm chứng; trong thực tế `mapConcurrent` thích hợp hơn với công việc độc lập có chi phí chờ như gọi I/O, và phải giới hạn concurrency theo tài nguyên. Đừng gọi mapper trên dữ liệu mutable dùng chung mà không có kiểm soát thread.
+The example mapper just concatenates strings for easy verification; in practice `mapConcurrent` suits independent waiting work such as I/O calls, and concurrency must be bounded according to resources. Do not invoke the mapper on shared mutable data without thread control.
 
 ---
 
-## 15. andThen không phải collect, collectingAndThen hay Function.andThen
+## 15. andThen is not collect, collectingAndThen, or Function.andThen
 
-Bốn cách có chữ “Then” hoặc mô hình ghép dễ gây nhầm:
+Four constructs with "Then" or composition models are easy to confuse:
 
-| API | Nằm ở đâu? | Đầu ra |
+| API | Where does it live? | Output |
 |---|---|---|
-| `Function.andThen` | Ghép hai hàm biến đổi một-một | Một hàm mới |
-| `Consumer.andThen` | Ghép hai hành động `void` | Một consumer mới |
-| `Collector`/`Collectors.collectingAndThen` | Hoàn thiện kết quả thu thập ở terminal | Kết quả cuối `R` của `collect` |
-| `Gatherer.andThen` | Ghép **hai thao tác trung gian có thể có state** | Một Gatherer mới |
+| `Function.andThen` | Composes two one-to-one transformation functions | A new function |
+| `Consumer.andThen` | Composes two `void` actions | A new consumer |
+| `Collector`/`Collectors.collectingAndThen` | Finalizes collected result at terminal stage | Final `R` result of `collect` |
+| `Gatherer.andThen` | Composes **two potentially stateful intermediate operations** | A new Gatherer |
 
-### 15.1. Function.andThen không có cơ chế phát nhiều output hoặc finisher
+### 15.1. Function.andThen has no multi-output or finisher mechanism
 
 ~~~java
 import java.util.function.Function;
@@ -1078,9 +1078,9 @@ Function<Integer, String> f = plusOne.andThen(toText);
 System.out.println(f.apply(4)); // n=5
 ~~~
 
-Hàm truyền thống không có `integrator`, `downstream.push`, `finisher` hoặc combiner như Gatherer. Dùng `Function.andThen` khi chỉ cần chuỗi biến đổi 1→1 thuần.
+Traditional functions do not have `integrator`, `downstream.push`, `finisher`, or combiner like Gatherer. Use `Function.andThen` when only a pure 1→1 transformation chain is needed.
 
-### 15.2. collectingAndThen chạy khi thu thập xong
+### 15.2. collectingAndThen runs after collection completes
 
 ~~~java
 import java.util.List;
@@ -1094,9 +1094,9 @@ List<Integer> list = Stream.of(1, 2, 3)
         ));
 ~~~
 
-Đây là **terminal operation**. `List::copyOf` được áp dụng lên **toàn kết quả thu thập**; nó không nhận từng phần tử như một Gatherer trung gian.
+This is a **terminal operation**. `List::copyOf` is applied to **the entire collected result**; it does not receive individual elements like an intermediate Gatherer.
 
-### 15.3. Gatherer.andThen vẫn cho pipeline tiếp tục
+### 15.3. Gatherer.andThen keeps the pipeline going
 
 ~~~java
 long howMany = Stream.of(1, 2, 3, 4)
@@ -1115,13 +1115,13 @@ long howMany = Stream.of(1, 2, 3, 4)
 System.out.println(howMany); // 2
 ~~~
 
-Sau `gather`, Stream vẫn có thể tiếp tục qua `filter`, `map`, `sorted`, `collect` hoặc terminal khác. `andThen` không kết thúc Stream.
+After `gather`, the Stream can continue through `filter`, `map`, `sorted`, `collect`, or another terminal operation. `andThen` does not terminate the Stream.
 
 ---
 
-## 16. Kết hợp Gatherer và Stream operations thông thường
+## 16. Combining Gatherers and regular Stream operations
 
-Không nhất thiết mọi giai đoạn đều phải là Gatherer.
+Not every stage needs to be a Gatherer.
 
 ~~~java
 import java.util.List;
@@ -1140,30 +1140,30 @@ List<Integer> result = Stream.of(-1, 1, 2, 3, 4, 5)
 System.out.println(result); // [7, 5]
 ~~~
 
-Sau `filter(n > 0)`, input là `[1,2,3,4,5]`. Các cửa sổ: `[1,2]`, `[3,4]`, `[5]`. Tổng: `3,7,5`. Sau điều kiện `sum > 3`: `[7,5]`.
+After `filter(n > 0)`, the input is `[1,2,3,4,5]`. The windows are: `[1,2]`, `[3,4]`, `[5]`. Sums: `3,7,5`. After `sum > 3`: `[7,5]`.
 
-Nếu một bước sau nhiều lần dùng lại ở các pipeline khác nhau, ta có thể đưa nó vào Gatherer riêng rồi `andThen`. Nếu chỉ cần một phép `map` đơn giản tại đúng một nơi, pipeline hỗn hợp thường dễ đọc hơn.
+If a later step is reused across multiple pipelines, you can move it into its own Gatherer and use `andThen`. If you only need a simple `map` in one place, a mixed pipeline is usually easier to read.
 
-### 16.1. Chỉ đưa filter lên trước window khi không đổi nghiệp vụ
+### 16.1. Only move filter before window when business semantics allow
 
 ~~~text
 Input: [A, X, B, C]
-X: bản ghi không hợp lệ
-windowFixed(2) trước filter: [[A,X], [B,C]]
-filter trước windowFixed(2): [[A,B], [C]]
+X: invalid record
+windowFixed(2) before filter: [[A,X], [B,C]]
+filter before windowFixed(2): [[A,B], [C]]
 ~~~
 
-Hai quy trình chia nhóm khác nhau. Khi dùng `andThen` để đóng gói một chain, hãy ghi rõ **thời điểm lọc** so với **thời điểm gom cửa sổ**.
+These are two different grouping workflows. When using `andThen` to package a chain, document clearly **when filtering happens** relative to **when windowing happens**.
 
-### 16.2. Không lạm dụng custom Gatherer
+### 16.2. Do not overuse custom Gatherers
 
-Một phép biến đổi `x -> x * 2` thường nên viết `map(x -> x * 2)`. Một phép loại trùng theo `equals` thường dùng `distinct`. Gatherer có ích khi cần state hoặc cơ chế phát phần tử mà operations có sẵn không diễn đạt rõ, hoặc khi muốn đóng gói **một tổ hợp Gatherer nhiều stage**.
+A transformation `x -> x * 2` should usually be written `map(x -> x * 2)`. Deduplication by `equals` usually uses `distinct`. Gatherers are useful when you need state or emission rules that built-in operations cannot express cleanly, or when packaging **a multi-stage Gatherer combination**.
 
 ---
 
-## 17. Tái sử dụng chain và khái niệm cấu hình
+## 17. Reusing chains and configuration concepts
 
-Một cách tổ chức code thực tế:
+A practical way to organize code:
 
 ~~~java
 import java.util.List;
@@ -1195,14 +1195,14 @@ windowAveragesRoundedDown(int size) {
 }
 ~~~
 
-Tạo chain từ tham số cấu hình `size` giúp bài toán được đặt tên và có thể kiểm thử riêng. `Gatherers.windowFixed` sẽ từ chối `size < 1`; ta không nên âm thầm đổi thành size=1 nếu nghiệp vụ không yêu cầu.
+Creating a chain from a configuration parameter `size` gives the problem a name and makes it independently testable. `Gatherers.windowFixed` rejects `size < 1`; never silently coerce it to size=1 unless the business logic requires it.
 
-**Giới hạn số học:** Ví dụ dùng `long` cho sum và `Math.toIntExact` để phát hiện kết quả vượt `int`. Với tổng cực lớn có thể vượt `long`, cần nâng sang `BigInteger` nếu nghiệp vụ yêu cầu tổng tuyệt đối chính xác.
+**Arithmetic limits:** The example uses `long` for sum and `Math.toIntExact` to detect results overflowing `int`. For huge totals that can exceed `long`, upgrade to `BigInteger` if business logic requires exact sums.
 
-### 17.1. Không dùng biến đếm mutable ở cấp ứng dụng
+### 17.1. Do not use application-level mutable counters
 
 ~~~java
-// Không nên:
+// Do not:
 // AtomicInteger running = new AtomicInteger();
 // Gatherer<Integer, ?, Integer> g = Gatherer.of(
 //       (unused, n, downstream) ->
@@ -1210,21 +1210,21 @@ Tạo chain từ tham số cấu hình `size` giúp bài toán được đặt t
 // );
 ~~~
 
-Dùng `Gatherers.scan(() -> 0, Integer::sum)` để mỗi lần đánh giá có state phù hợp theo hợp đồng. Tái sử dụng một **định nghĩa Gatherer an toàn** khác với chia sẻ một **container mutable mang dữ liệu của các lần chạy trước**.
+Use `Gatherers.scan(() -> 0, Integer::sum)` so each evaluation has compliant per-run state. Reusing a **safe Gatherer definition** differs from sharing a **mutable container carrying data from previous runs**.
 
 ---
 
-## 18. Sự khác biệt giữa windowFixed và windowSliding khi ghép
+## 18. Differences between windowFixed and windowSliding when composing
 
-| Điều kiện | `windowFixed(3)` | `windowSliding(3)` |
+| Condition | `windowFixed(3)` | `windowSliding(3)` |
 |---|---|---|
-| Đầu vào `[1,2,3,4,5]` | `[[1,2,3],[4,5]]` | `[[1,2,3],[2,3,4],[3,4,5]]` |
-| Số phần tử mỗi cửa sổ | Cuối có thể ít hơn 3 | Thường 3 khi nguồn đủ dài; nguồn ngắn hơn 3 có thể phát một cửa sổ ngắn |
-| Chồng lấp | Không | Có |
-| Dùng phổ biến | Chia batch để gửi/gom | Trung bình trượt, so sánh lân cận |
-| Khi ghép với `scan` | Scan chạy theo **mỗi batch** | Scan chạy theo **mỗi cửa sổ trượt** |
+| Input `[1,2,3,4,5]` | `[[1,2,3],[4,5]]` | `[[1,2,3],[2,3,4],[3,4,5]]` |
+| Elements per window | Last may have fewer than 3 | Usually 3 when source is long enough; source shorter than 3 emits one short window |
+| Overlap | No | Yes |
+| Common usage | Batching for sending/aggregating | Moving averages, adjacent comparisons |
+| Composed with `scan` | Scan runs per **batch** | Scan runs per **sliding window** |
 
-### 18.1. Phản ví dụ: tưởng hai loại cửa sổ cho cùng số output
+### 18.1. Counterexample: thinking both window types produce the same output count
 
 ~~~java
 import java.util.List;
@@ -1243,27 +1243,27 @@ System.out.println(fixed);   // [[1, 2, 3], [4, 5]]
 System.out.println(sliding); // [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
 ~~~
 
-Một Gatherer theo sau sẽ thấy **2 phần tử List** trong trường hợp fixed và **3 phần tử List** trong trường hợp sliding. Hãy chọn đúng ý nghĩa cửa sổ trước khi nối tiếp với `fold` hoặc `scan`.
+A subsequent Gatherer will see **2 List elements** in the fixed case and **3 List elements** in the sliding case. Choose the right window semantics before chaining with `fold` or `scan`.
 
 ---
 
-## 19. Xử lý null, nguồn rỗng và dữ liệu có vấn đề
+## 19. Handling null, empty sources, and problematic data
 
-### 19.1. Nguồn rỗng
+### 19.1. Empty sources
 
-| Chain | Kết quả khi không có input và xử lý hoàn tất bình thường |
+| Chain | Result when no input and processing finishes normally |
 |---|---|
-| `windowFixed(3)` | Không phát cửa sổ |
-| `windowSliding(3)` | Không phát cửa sổ |
-| `scan(() -> 0, sum)` | Không phát tổng dồn |
-| `fold(() -> 0, sum)` | Phát giá trị khởi tạo `0` |
-| `windowFixed(3).andThen(fold(count))` | Có thể phát `0` vì downstream fold không nhận cửa sổ nào |
+| `windowFixed(3)` | Emits no windows |
+| `windowSliding(3)` | Emits no windows |
+| `scan(() -> 0, sum)` | Emits no running totals |
+| `fold(() -> 0, sum)` | Emits initial value `0` |
+| `windowFixed(3).andThen(fold(count))` | Can emit `0` because downstream fold receives zero windows |
 
-Đây là lý do bộ test không được áp một quy tắc “Stream rỗng luôn trả List rỗng” cho **mọi Gatherer**. Một Gatherer với `finisher` có thể phát giá trị **dù không có input**.
+This is why test suites must not apply a blanket rule "an empty Stream always returns an empty List" to **every Gatherer**. A Gatherer with a `finisher` can emit a value **even with zero inputs**.
 
 ### 19.2. Null
 
-`Stream.of((String) null)` có thể tạo một phần tử null. Nhưng `String::trim` trên null ném `NullPointerException`.
+`Stream.of((String) null)` can produce a null element. However, `String::trim` on null throws `NullPointerException`.
 
 ~~~java
 import java.util.Objects;
@@ -1279,19 +1279,19 @@ List<List<String>> safe = Stream.of(" An ", null, " Binh ")
 System.out.println(safe); // [[An, Binh]]
 ~~~
 
-Lọc null **trước** khi vào Gatherer nếu Gatherer chưa định nghĩa cách xử lý null. Điều này cũng thay đổi kích thước và ranh giới cửa sổ so với việc giữ một vị trí null, nên cần thống nhất chính sách.
+Filter out nulls **before** entering a Gatherer if the Gatherer has not defined null handling. This also alters window sizes and boundaries compared to keeping a null slot, so align on the policy.
 
-### 19.3. Ngoại lệ trong mapper và finisher
+### 19.3. Exceptions in mapper and finisher
 
-Khi hàm mapper/gatherer phát sinh exception, pipeline có thể kết thúc bằng exception; các side effect đã thực hiện ở những phần trước không có cơ chế rollback tự động.
+When a mapper/gatherer function throws an exception, the pipeline can terminate with an exception; side effects already executed in earlier parts have no automatic rollback mechanism.
 
-Với `mapConcurrent`, khi công việc mapper thất bại, ngoại lệ có thể được chuyển tiếp dưới dạng `RuntimeException` và các task còn lại có thể bị hủy theo best effort. Không giả định mọi task đã khởi chạy đều hoàn tất hoặc các thao tác ngoài hệ thống được hoàn tác tự động.
+With `mapConcurrent`, when a mapper fails, the exception may be propagated as a `RuntimeException` and remaining tasks may be canceled best-effort. Do not assume every started task completes or external operations are automatically undone.
 
 ---
 
-## 20. Hiệu năng: composition có thể tối ưu nhưng không có bảo đảm
+## 20. Performance: composition may optimize, with no guarantees
 
-Một ví dụ:
+Example:
 
 ~~~java
 Stream<Integer> source = ...;
@@ -1301,44 +1301,44 @@ List<Integer> result = source
         .toList();
 ~~~
 
-Không thể khẳng định chỉ từ cú pháp rằng cách viết này luôn:
+You cannot assert from syntax alone that this form always:
 
-- Duyệt nguồn ít lần hơn cách `gather(g1).gather(g2)`.
-- Tạo ít object hơn trong mọi JDK.
-- Xử lý song song tốt hơn.
-- Không dùng bộ nhớ tạm.
-- Hủy mọi công việc ngay lập tức khi downstream dừng.
+- Traverses the source fewer times than `gather(g1).gather(g2)`.
+- Allocates fewer objects on every JDK.
+- Runs better in parallel.
+- Uses zero temporary memory.
+- Cancels all work immediately when downstream stops.
 
-`andThen` cung cấp **hợp đồng ghép**, còn runtime có thể chọn cách triển khai bảo toàn ngữ nghĩa, tùy phiên bản JDK, đặc tính Gatherer và pipeline.
+`andThen` provides a **composition contract**, while the runtime may choose an implementation preserving semantics depending on JDK version, Gatherer characteristics, and pipeline shape.
 
-### 20.1. Các nguồn chi phí quan trọng
+### 20.1. Major cost sources
 
-| Chi phí | Khi nào đáng kể? |
+| Cost | When significant? |
 |---|---|
-| Giữ state | `scan`, `fold`, Gatherer tùy chỉnh |
-| Cấp phát cửa sổ | `windowFixed`/`windowSliding`, nhất là cửa sổ lớn |
-| Tính lại trên cửa sổ trượt | Khi mỗi cửa sổ được xử lý riêng bằng một phép reduce |
-| Gộp state song song | Gatherer có combiner; cần kiểm tra hợp đồng |
-| Bảo toàn encounter order | Khi phép biến đổi có trạng thái phụ thuộc thứ tự |
-| Đồng thời I/O | `mapConcurrent` có nhiều virtual threads nhưng tài nguyên ngoài vẫn giới hạn |
-| Kết quả cuối | `toList` có thể giữ toàn bộ output vào bộ nhớ |
+| Holding state | `scan`, `fold`, custom Gatherers |
+| Allocating windows | `windowFixed`/`windowSliding`, especially large windows |
+| Recomputing on sliding windows | When each window is processed separately with a reduction |
+| Parallel state merging | Gatherer with combiner; contract must be checked |
+| Preserving encounter order | When stateful transformations are order-dependent |
+| I/O concurrency | `mapConcurrent` uses many virtual threads while external resources remain bounded |
+| Final result | `toList` can retain all output in memory |
 
-### 20.2. Đo hiệu năng đúng
+### 20.2. Benchmarking properly
 
-Nếu hiệu năng là yêu cầu, nên dùng JMH hoặc cách đo có warm-up và kiểm soát rõ:
+If performance is a requirement, use JMH or a measurement setup with warm-up and clear controls:
 
-- Cùng nguồn dữ liệu và cùng hợp đồng kết quả.
-- Các kích thước dữ liệu và window size khác nhau.
-- So pipeline truyền thống, `gather` nối tiếp và `andThen`.
-- Đo throughput, allocation, GC, latency và peak memory.
-- Tách chi phí I/O thật khỏi phép biến đổi CPU nếu muốn biết nút nghẽn.
-- Không so hai pipeline **khác ngữ nghĩa** như `windowFixed` và `windowSliding` rồi kết luận nhanh/chậm thuần túy.
+- Same data source and same result contract.
+- Varying data sizes and window sizes.
+- Comparing traditional pipelines, chained `gather`, and `andThen`.
+- Measuring throughput, allocation, GC, latency, and peak memory.
+- Separating real I/O cost from CPU transformations to locate bottlenecks.
+- Never comparing two **semantically different** pipelines like `windowFixed` and `windowSliding` and concluding one is purely faster/slower.
 
 ---
 
-## 21. Chương trình Java 24 hoàn chỉnh: kiểm thử andThen
+## 21. Complete Java 24 program: testing andThen
 
-Đây là ví dụ độc lập, có thể đặt trong tệp `GathererAndThenDemo.java` và biên dịch bằng JDK 24 trở lên.
+This is a standalone example that can be placed in `GathererAndThenDemo.java` and compiled with JDK 24 or later.
 
 ~~~java
 import java.util.List;
@@ -1400,19 +1400,19 @@ public class GathererAndThenDemo {
         checkEquals("composed", List.of(3, 10, 15), composed);
         checkEquals("equivalence", separate, composed);
 
-        // Nguồn rỗng: windowFixed không tạo cửa sổ.
+        // Empty source: windowFixed creates no windows.
         List<Integer> empty = Stream.<Integer>empty()
                 .gather(runningPairSums())
                 .toList();
         checkEquals("empty", List.of(), empty);
 
-        // Cửa sổ cuối thiếu phần tử.
+        // Incomplete final window.
         List<Integer> one = Stream.of(7)
                 .gather(runningPairSums())
                 .toList();
         checkEquals("one", List.of(7), one);
 
-        // Hai cách gọi gather có cùng ngữ nghĩa.
+        // Both gather styles have identical semantics.
         Gatherer<Integer, ?, Integer> pairs = pairSums();
         Gatherer<Integer, ?, Integer> running =
                 Gatherers.scan(() -> 0, Integer::sum);
@@ -1428,7 +1428,7 @@ public class GathererAndThenDemo {
 
         checkEquals("andThen vs gather-gather", chained, joined);
 
-        // Sử dụng nhiều lần nhưng luôn tạo Stream mới.
+        // Reusing multiple times, always creating a new Stream.
         List<Integer> again = input.stream()
                 .gather(runningPairSums())
                 .toList();
@@ -1440,56 +1440,56 @@ public class GathererAndThenDemo {
 }
 ~~~
 
-Kết quả kỳ vọng:
+Expected output:
 
 ~~~text
 AND_THEN_OK
 [3, 10, 15]
 ~~~
 
-### 21.1. Chạy với JDK 24+
+### 21.1. Running with JDK 24+
 
 ~~~text
 javac GathererAndThenDemo.java
 java GathererAndThenDemo
 ~~~
 
-Nếu `javac` báo không tìm thấy `Gatherer` hoặc `Stream.gather`, hãy kiểm tra phiên bản thực tế của JDK đang dùng:
+If `javac` reports it cannot find `Gatherer` or `Stream.gather`, check the actual JDK version in use:
 
 ~~~text
 java -version
 javac -version
 ~~~
 
-JDK 22/23 có các bản **preview** của Stream Gatherers; bài này nhắm vào **API final trên JDK 24+**, không khuyến nghị sao chép nguyên ví dụ sang những JDK cũ mà không kiểm tra tương thích.
+JDK 22/23 included **preview** versions of Stream Gatherers; this lesson targets the **final API on JDK 24+**, and copying the examples verbatim to older JDKs without checking compatibility is not recommended.
 
 ---
 
-## 22. Kiểm thử chain theo oracle và bất biến
+## 22. Testing chains with an oracle and invariants
 
-Các ca nên có:
+Cases that should be included:
 
-| Ca | Mong đợi |
+| Case | Expectation |
 |---|---|
-| Nguồn rỗng | Tùy chain: không cửa sổ, nhưng `fold` có thể phát initial |
-| Một phần tử | `windowFixed` phát cửa sổ ngắn; downstream xử lý được |
-| Kích thước chia hết cho n | Không tạo cửa sổ rỗng thừa |
-| Kích thước không chia hết cho n | Cửa sổ cuối có phần tử còn lại |
-| Chạy `gather(A).gather(B)` | Kết quả bằng `gather(A.andThen(B))` theo hợp đồng |
-| Đảo `A/B` khi cùng kiểu | Không tự suy ra tương đương; có thể khác |
-| Type A output không khớp B input | Lỗi biên dịch; không ép kiểu giả |
-| Downstream terminal `limit` | Tôn trọng ngừng nhận thêm; không dựa số lần gọi lambda |
-| Gatherer stateful | Không rò state giữa hai lần đánh giá |
-| Gatherer có finisher | Output phát cuối vẫn đi qua bước sau |
-| Parallel | Đúng kết quả theo hợp đồng; không đòi dùng nhiều thread |
-| Null/ngoại lệ | Xử lý đầu vào và cleanup theo chính sách |
-| Window size không hợp lệ | `windowFixed`/`windowSliding` từ chối size < 1 |
-| Kết quả cần số học chính xác | Kiểm tra overflow và rounding |
-| I/O | Nguồn tệp được đóng, không chỉ trông chờ finisher |
+| Empty source | Depends on chain: no windows, though `fold` may emit initial |
+| Single element | `windowFixed` emits a short window; downstream handles it |
+| Size divisible by n | No extra empty window created |
+| Size not divisible by n | Final window holds remaining elements |
+| Running `gather(A).gather(B)` | Result matches `gather(A.andThen(B))` per contract |
+| Swapping `A/B` when types match | Do not assume equivalence; may differ |
+| Type A output mismatches B input | Compile error; no fake casting |
+| Downstream terminal `limit` | Respects stopping intake; do not rely on lambda call counts |
+| Stateful Gatherer | No state leak between two evaluations |
+| Gatherer with finisher | Output emitted at end still passes through next step |
+| Parallel | Correct result per contract; do not require multi-thread execution |
+| Null/exceptions | Input handling and cleanup follow policy |
+| Invalid window size | `windowFixed`/`windowSliding` reject size < 1 |
+| Results requiring exact arithmetic | Check overflow and rounding |
+| I/O | File source is closed, not relying solely on finisher |
 
-### 22.1. Xây một oracle từ List và vòng lặp
+### 22.1. Building an oracle from a List and a loop
 
-Ví dụ kiểm chứng `windowFixed(2)` rồi cộng mỗi cặp, rồi tổng dồn:
+Example verifying `windowFixed(2)` then summing each pair, then running sum:
 
 ~~~java
 import java.util.ArrayList;
@@ -1514,9 +1514,9 @@ static List<Integer> oracleRunningPairs(List<Integer> input) {
 }
 ~~~
 
-Phương thức này đặt trong lớp Java và phù hợp với dữ liệu mẫu không tràn `int`. Oracle **không gọi lại chính Gatherer** cần kiểm tra, nên có thể phát hiện một lỗi cấu trúc chain.
+This method goes inside a Java class and suits sample data that does not overflow `int`. The oracle **does not call the Gatherer itself** under test, so it can catch structural bugs in the chain.
 
-### 22.2. Kiểm tra nhiều kích thước đầu vào
+### 22.2. Testing multiple input sizes
 
 ~~~java
 for (int size = 0; size <= 20; size++) {
@@ -1542,145 +1542,145 @@ for (int size = 0; size <= 20; size++) {
 }
 ~~~
 
-Kiểm tra đủ size 0..20 giúp bao phủ cả cửa sổ cuối đủ/thiếu phần tử; tuy nhiên chưa chứng minh mọi dữ liệu và mọi cách chia. Bổ sung giá trị âm, số lớn, các ca null và kiểu xử lý song song theo yêu cầu.
+Testing all sizes 0..20 covers both full and incomplete final windows; however, it does not prove all data values and splitting strategies. Add negative numbers, large numbers, null cases, and parallel checks as required.
 
-### 22.3. Không kiểm thử bằng số lần gọi side effect
+### 22.3. Do not test by counting side-effect invocations
 
 ~~~java
-// Không nên lấy số lần println trong integrator làm oracle,
-// vì short-circuit/parallel/lazy optimizations có thể ảnh hưởng
-// lịch gọi và thứ tự quan sát được.
+// Do not use println counts inside an integrator as an oracle,
+// because short-circuit/parallel/lazy optimizations can affect
+// invocation schedules and observed ordering.
 //
-// Hãy so KẾT QUẢ DỮ LIỆU và các bất biến thuộc hợp đồng.
+// Compare DATA RESULTS and contract invariants instead.
 ~~~
 
 ---
 
-## 23. Những lỗi thường gặp khi ghép Gatherer
+## 23. Common mistakes when composing Gatherers
 
-| Lỗi | Hậu quả | Sửa |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| Nhầm `andThen` là concat hai luồng | Sai mô hình xử lý | Hiểu đầu ra A trở thành đầu vào B |
-| Đảo thứ tự `A.andThen(B)` | Có thể sai kiểu hoặc sai kết quả | Vẽ sơ đồ `T → R → RR` trước |
-| Quên terminal operation | Pipeline không tiêu thụ nguồn | Gọi `toList`, `collect`, `findFirst`... khi cần |
-| Dùng lại Stream đã tiêu thụ | Lỗi vòng đời Stream | Tạo Stream mới |
-| Giả định window cuối luôn đủ n | Lỗi indexing/thiếu dữ liệu | Xử lý list ngắn |
-| Nghĩ fold phát từng giá trị | Sai số lượng output | `fold` phát một kết quả khi kết thúc; `scan` phát mỗi bước |
-| Nghĩ Stream rỗng luôn cho output rỗng | Sai với `fold(initial)` | Kiểm tra finisher của từng stage |
-| Bỏ qua `downstream.push` trả false | Không tôn trọng yêu cầu dừng | Trả false khi downstream từ chối |
-| Lưu `Downstream` hoặc state để dùng ngoài lời gọi | Vi phạm hợp đồng Gatherer | Chỉ dùng trong thời gian invocation |
-| Cho state mutable chung vào lambda | Rò state/race giữa nhiều lần xử lý | Tạo state qua initializer |
-| Tưởng `andThen` tự tạo combiner song song | Có thể sai kết quả hoặc mất hiệu năng | Thiết kế combiner đúng hoặc giữ sequential |
-| Gắn `CONCURRENT` theo suy đoán | Nhầm với Collector, không đúng hợp đồng | Phân biệt Gatherer và Collector |
-| Mặc định `windowSliding` giống `windowFixed` | Số cửa sổ và chi phí khác nhau | Chọn đúng loại cửa sổ |
-| Thay `takeUntilInclusive` bằng `filter` | Mất ngữ nghĩa dừng ở mốc đầu | Dùng Gatherer có short-circuit |
-| Không kiểm tra phiên bản JDK | Không biên dịch trên Java 17/21 | Dùng JDK 24+ cho API final |
-| Xem hai pipeline khác nghĩa như cùng benchmark | Tối ưu sai mục tiêu | So cùng oracle/ngữ nghĩa trước |
+| Confusing `andThen` with concatenating two streams | Wrong processing model | Understand A's output becomes B's input |
+| Reversing `A.andThen(B)` order | May fail types or produce wrong results | Draw the `T → R → RR` diagram first |
+| Forgetting terminal operation | Pipeline does not consume source | Call `toList`, `collect`, `findFirst`, etc. when needed |
+| Reusing an already-consumed Stream | Stream lifecycle error | Create a new Stream |
+| Assuming the last window always has n elements | Indexing/missing data error | Handle short lists |
+| Thinking fold emits each value | Wrong output count | `fold` emits one result at completion; `scan` emits every step |
+| Thinking an empty Stream always yields empty output | Wrong with `fold(initial)` | Check each stage's finisher |
+| Ignoring `downstream.push` returning false | Does not respect stop request | Return false when downstream rejects |
+| Saving `Downstream` or state for use outside the call | Violates Gatherer contract | Use only during invocation lifetime |
+| Capturing shared mutable state inside lambda | State leak/race across evaluations | Create state via initializer |
+| Thinking `andThen` automatically builds a parallel combiner | Wrong results or lost performance | Design a valid combiner or keep sequential |
+| Guessing `CONCURRENT` characteristics | Confusing with Collector, violates contract | Distinguish Gatherer from Collector |
+| Assuming `windowSliding` equals `windowFixed` | Different window counts and cost | Pick the right window type |
+| Replacing `takeUntilInclusive` with `filter` | Loses first-milestone stopping semantics | Use a short-circuiting Gatherer |
+| Not checking JDK version | Fails to compile on Java 17/21 | Use JDK 24+ for the final API |
+| Benchmarking two semantically different pipelines as equivalent | Optimizing the wrong target | Compare against the same oracle/semantics first |
 
 ---
 
-## 24. Khi nào dùng andThen, khi nào dùng gather liên tiếp?
+## 24. When to use andThen vs. consecutive gather calls?
 
-Dùng `andThen` khi:
+Use `andThen` when:
 
-- Có **hai hoặc nhiều Gatherer** muốn đặt tên như một phép xử lý tái sử dụng.
-- Muốn công bố một API nhỏ kiểu `Gatherer<Input, ?, Output>` thay vì yêu cầu mã gọi tự lắp các stage.
-- Muốn cô lập việc cấu hình window, scan, fold hoặc custom gatherer trong một helper.
-- Cần kiểm thử một tổ hợp như **một đơn vị nghiệp vụ**.
-- Muốn mô tả rõ các chuyển kiểu trung gian.
+- You have **two or more Gatherers** you want to name as one reusable operation.
+- You want to expose a small API like `Gatherer<Input, ?, Output>` instead of asking callers to wire stages manually.
+- You want to encapsulate configuration of window, scan, fold, or custom gatherers inside a helper.
+- You need to test a composition as **a single business unit**.
+- You want to clearly document intermediate type transitions.
 
-Dùng `gather(A).gather(B)` khi:
+Use `gather(A).gather(B)` when:
 
-- Chỉ xây một pipeline ở một vị trí và các bước riêng rẽ dễ đọc hơn.
-- Muốn debug hoặc thêm các thao tác `filter`/`map` giữa A và B.
-- Không cần đóng gói tổ hợp thành đối tượng Gatherer tái sử dụng.
+- Building a one-off pipeline in one place where separate steps are easier to read.
+- You want to debug or insert `filter`/`map` operations between A and B.
+- There is no need to package the combination as a reusable Gatherer object.
 
-Dùng `map`/`filter`/`flatMap` khi:
+Use `map`/`filter`/`flatMap` when:
 
-- Thao tác là một biến đổi đơn giản đã được Stream hỗ trợ sẵn.
-- Không cần state, finisher hay cơ chế short-circuit tùy chỉnh.
+- The operation is a simple transformation already supported natively by Stream.
+- No custom state, finisher, or short-circuiting mechanism is needed.
 
-Dùng `collect` khi:
+Use `collect` when:
 
-- Muốn **thu kết quả cuối** thành List/Map/Set, thống kê hoặc DTO.
-- Không cần tiếp tục truyền các phần tử qua một Stream sau phép tổng hợp.
+- You want to **collect the final result** into a List/Map/Set, statistics, or DTO.
+- There is no need to keep passing elements through a Stream after aggregation.
 
-### 24.1. Checklist thiết kế chain
+### 24.1. Chain design checklist
 
-1. Đặt tên **đầu vào, đầu ra của từng bước**, ví dụ `Integer → List<Integer> → Long`.
-2. Xác minh kiểu generic của `andThen` biên dịch hợp lệ.
-3. Xác định mỗi bước phát **0, 1 hay nhiều** phần tử trên mỗi input.
-4. Xác định có bước nào **chỉ phát trong finisher** không.
-5. Xác định **nguồn rỗng** cho output nào.
-6. Xác định encounter order, trạng thái và điều kiện dừng sớm.
-7. Kiểm soát state mutable: không đưa trạng thái riêng ra ngoài invocation.
-8. Nếu dùng parallel, bảo đảm combiner hợp lệ hoặc chấp nhận stage tuần tự.
-9. Không để hàm phát ra kiểu số vượt miền tính toán mà không có chính sách.
-10. So `gather(A.andThen(B))` và `gather(A).gather(B)` trên cùng dữ liệu.
-11. Dùng oracle độc lập để phát hiện **cả hai cách cùng sai nghiệp vụ**.
-12. Benchmark sau khi đã xác nhận kết quả và ràng buộc tài nguyên.
-
----
-
-## 25. Bài tập nền tảng (có đáp án)
-
-### Bài 1. andThen nhận loại đối tượng nào?
-
-**Đề:** `Gatherer.andThen(...)` nhận một `Collector`, một `Function` hay một `Gatherer`?
-
-**Đáp án:** Nhận một **`Gatherer`** khác. Chữ ký có dạng `Gatherer<T,?,RR> andThen(Gatherer<? super R,?,? extends RR> that)`. Đầu ra bước trước phải dùng được làm đầu vào bước sau.
-
-### Bài 2. Hai cách gọi tương đương
-
-**Đề:** Hãy viết cách tương đương với `stream.gather(a.andThen(b))`.
-
-**Đáp án:** `stream.gather(a).gather(b)`. Sự tương đương xét **ngữ nghĩa đầu ra** theo hợp đồng, không phải số thread, số lần gọi log hoặc chi tiết tối ưu.
-
-### Bài 3. Kiểu dữ liệu trung gian
-
-**Đề:** `Gatherers.windowFixed(3)` nhận số `Integer` và phát gì? Một Gatherer tiếp theo nên nhận kiểu gì để tính tổng cửa sổ?
-
-**Đáp án:** Nó phát `List<Integer>`. Gatherer sau có đầu vào `List<Integer>`, có thể phát `Integer` là tổng của list.
-
-### Bài 4. Cửa sổ cuối
-
-**Đề:** `Stream.of(1,2,3,4,5).gather(Gatherers.windowFixed(2)).toList()` trả gì?
-
-**Đáp án:** `[[1,2],[3,4],[5]]`. Cửa sổ cuối có thể ngắn hơn kích thước yêu cầu.
-
-### Bài 5. Scan sau window sum
-
-**Đề:** Input `[1,2,3,4,5]`, `windowFixed(2)` rồi tính tổng từng cửa sổ, sau đó `scan(() -> 0, Integer::sum)`. Kết quả?
-
-**Đáp án:** Cửa sổ `[[1,2],[3,4],[5]]`, tổng cửa sổ `[3,7,5]`, scan phát `[3,10,15]`.
-
-### Bài 6. fold khác scan
-
-**Đề:** `scan` và `fold` cùng có initial 0, cùng cộng các số `[1,2,3]`. Kết quả khác nhau thế nào?
-
-**Đáp án:** `scan` phát `[1,3,6]` sau từng input; `fold` phát một giá trị cuối `[6]` khi upstream kết thúc.
-
-### Bài 7. Nguồn rỗng
-
-**Đề:** `Stream.<Integer>empty().gather(Gatherers.fold(() -> 0, Integer::sum)).toList()` trả gì?
-
-**Đáp án:** `[0]` vì `fold` phát initial tại finisher ngay cả khi không có phần tử đầu vào. `windowFixed(3)` riêng lẻ trên nguồn rỗng trả `[]`.
-
-### Bài 8. Đảo thứ tự
-
-**Đề:** Với `[1,2,3,4]`, `scan(sum).andThen(fold(sum))` và `fold(sum).andThen(scan(sum))` có bằng nhau không?
-
-**Đáp án:** Không. Cách đầu phát `[20]` vì tổng các prefix sums 1+3+6+10. Cách sau phát `[10]` vì fold tính tổng 10 rồi scan nhận đúng một số 10.
+1. Name **each step's input and output**, e.g. `Integer → List<Integer> → Long`.
+2. Verify generic types of `andThen` compile cleanly.
+3. Determine whether each step emits **0, 1, or many** elements per input.
+4. Identify whether any step **emits only in finisher**.
+5. Determine what output an **empty source** produces.
+6. Clarify encounter order, state, and short-circuiting conditions.
+7. Control mutable state: never leak private state outside an invocation.
+8. If using parallel, ensure a valid combiner or accept a sequential stage.
+9. Do not let functions emit numbers overflowing arithmetic bounds without a policy.
+10. Compare `gather(A.andThen(B))` and `gather(A).gather(B)` on the same data.
+11. Use an independent oracle to catch cases where **both forms share the same business bug**.
+12. Benchmark only after verifying results and resource constraints.
 
 ---
 
-## 26. Bài tập trung cấp (có đáp án)
+## 25. Foundational exercises (with answers)
 
-### Bài 9. Viết Gatherer biến mỗi cửa sổ thành tổng
+### Exercise 1. What kind of object does andThen accept?
 
-**Đề:** Viết `Gatherer<List<Integer>, ?, Integer>` dùng `Gatherer.of` để chuyển một list số thành một số tổng.
+**Prompt:** Does `Gatherer.andThen(...)` take a `Collector`, a `Function`, or a `Gatherer`?
 
-**Đáp án:**
+**Answer:** It takes another **`Gatherer`**. The signature has the form `Gatherer<T,?,RR> andThen(Gatherer<? super R,?,? extends RR> that)`. The previous step's output must be usable as the next step's input.
+
+### Exercise 2. Two equivalent invocations
+
+**Prompt:** Write the equivalent form of `stream.gather(a.andThen(b))`.
+
+**Answer:** `stream.gather(a).gather(b)`. Equivalence applies to **output semantics** per contract, not thread counts, log invocations, or optimization details.
+
+### Exercise 3. Intermediate data types
+
+**Prompt:** `Gatherers.windowFixed(3)` accepts `Integer` numbers and emits what? What type should a subsequent Gatherer accept to compute window sums?
+
+**Answer:** It emits `List<Integer>`. The next Gatherer takes `List<Integer>` as input and can emit `Integer` as the list sum.
+
+### Exercise 4. Final window
+
+**Prompt:** What does `Stream.of(1,2,3,4,5).gather(Gatherers.windowFixed(2)).toList()` return?
+
+**Answer:** `[[1,2],[3,4],[5]]`. The final window can be shorter than the requested size.
+
+### Exercise 5. Scan after window sum
+
+**Prompt:** Input `[1,2,3,4,5]`, `windowFixed(2)`, sum each window, then `scan(() -> 0, Integer::sum)`. Result?
+
+**Answer:** Windows `[[1,2],[3,4],[5]]`, window sums `[3,7,5]`, scan emits `[3,10,15]`.
+
+### Exercise 6. fold vs. scan
+
+**Prompt:** `scan` and `fold` both start with initial 0 and add `[1,2,3]`. How do their results differ?
+
+**Answer:** `scan` emits `[1,3,6]` after each input; `fold` emits one final value `[6]` when upstream completes.
+
+### Exercise 7. Empty source
+
+**Prompt:** What does `Stream.<Integer>empty().gather(Gatherers.fold(() -> 0, Integer::sum)).toList()` return?
+
+**Answer:** `[0]`, because `fold` emits initial in its finisher even when there are no input elements. `windowFixed(3)` alone on an empty source returns `[]`.
+
+### Exercise 8. Reversing order
+
+**Prompt:** For `[1,2,3,4]`, are `scan(sum).andThen(fold(sum))` and `fold(sum).andThen(scan(sum))` equal?
+
+**Answer:** No. The first emits `[20]` by summing the prefix sums 1+3+6+10. The second emits `[10]` because fold computes 10 and scan receives just that one number 10.
+
+---
+
+## 26. Intermediate exercises (with answers)
+
+### Exercise 9. Write a Gatherer turning each window into its sum
+
+**Prompt:** Write `Gatherer<List<Integer>, ?, Integer>` using `Gatherer.of` to turn a list of integers into one sum integer.
+
+**Answer:**
 
 ~~~java
 Gatherer<List<Integer>, ?, Integer> sumWindow =
@@ -1692,94 +1692,94 @@ Gatherer<List<Integer>, ?, Integer> sumWindow =
         );
 ~~~
 
-Đây là Gatherer stateless, biến một input List thành một output Integer. Sau đó có thể nối `Gatherers.<Integer>windowFixed(2).andThen(sumWindow)`.
+This is a stateless Gatherer turning one List input into one Integer output. You can then chain `Gatherers.<Integer>windowFixed(2).andThen(sumWindow)`.
 
-### Bài 10. Chuỗi trống ảnh hưởng đến cửa sổ
+### Exercise 10. Blank strings affecting windows
 
-**Đề:** Nguồn `["A", "", "B", "C"]`. Nếu loại chuỗi rỗng trước khi `windowFixed(2)` thì nhận gì? Nếu gom trước rồi mới loại rỗng trong từng cửa sổ?
+**Prompt:** Source `["A", "", "B", "C"]`. What do you get if empty strings are removed before `windowFixed(2)`? What if grouped first and then empty strings are removed within each window?
 
-**Đáp án:** Lọc trước cho `[["A","B"],["C"]]`. Gom trước tạo `[["A",""],["B","C"]]`, rồi loại rỗng theo từng cửa sổ cho `[["A"],["B","C"]]`. Thứ tự xử lý thay đổi ranh giới nhóm, không hoán đổi tùy ý.
+**Answer:** Filtering first yields `[["A","B"],["C"]]`. Grouping first produces `[["A",""],["B","C"]]`, then removing blanks inside each window gives `[["A"],["B","C"]]`. Processing order alters group boundaries and cannot be swapped arbitrarily.
 
-### Bài 11. Dừng bao gồm phần tử mốc
+### Exercise 11. Stopping inclusive of milestone element
 
-**Đề:** Viết Gatherer nhận Integer, phát các số từ đầu và dừng ngay sau số đầu tiên `>= 5`. Input `[1,3,6,2,8]` cho kết quả nào?
+**Prompt:** Write a Gatherer accepting Integers, emitting numbers from the start and stopping right after the first number `>= 5`. What result does input `[1,3,6,2,8]` give?
 
-**Đáp án:** `[1,3,6]`. Integrator cần phát `6` rồi trả `false`; dùng `ofSequential` khi xử lý ranh giới tiền tố phụ thuộc encounter order. `filter(n -> n < 5)` sẽ trả `[1,3,2]`, khác yêu cầu.
+**Answer:** `[1,3,6]`. The integrator must emit `6` and then return `false`; use `ofSequential` when handling encounter-order-dependent prefix boundaries. `filter(n -> n < 5)` would return `[1,3,2]`, differing from the requirement.
 
-### Bài 12. Tại sao downstream.push trả boolean?
+### Exercise 12. Why does downstream.push return boolean?
 
-**Đề:** Nếu downstream đã nhận đủ phần tử, một Gatherer còn phát thêm và luôn trả true có đúng cách không?
+**Prompt:** If downstream has already received enough elements, is it proper for a Gatherer to keep emitting and always return true?
 
-**Đáp án:** Không. `push` trả false khi downstream không muốn nhận thêm. Integrator cần tôn trọng tín hiệu này và tránh phát các phần tử tiếp theo. `isRejecting()` chỉ giúp kiểm tra thêm theo best effort.
+**Answer:** No. `push` returns false when downstream no longer wants more. The integrator must respect this signal and avoid emitting further elements. `isRejecting()` only assists with best-effort early checks.
 
-### Bài 13. andThen có tự tối ưu parallel không?
+### Exercise 13. Does andThen optimize parallel automatically?
 
-**Đề:** Có `A` dùng `ofSequential` và `B` có combiner hợp lệ. `A.andThen(B)` có tự bảo đảm cả hai stage chạy song song không?
+**Prompt:** Given `A` using `ofSequential` and `B` with a valid combiner. Does `A.andThen(B)` guarantee both stages run in parallel?
 
-**Đáp án:** Không. Mỗi Gatherer có hợp đồng xử lý riêng; một stage tuần tự có thể giới hạn toàn chain. Muốn song song hóa phải có cơ chế chia/gộp đúng, không thể chỉ thêm `parallel()` hay `andThen`.
+**Answer:** No. Each Gatherer has its own processing contract; one sequential stage can constrain the entire chain. Parallelizing requires a valid split/merge mechanism, not just adding `parallel()` or `andThen`.
 
-### Bài 14. Finisher và đầu ra sau cùng
+### Exercise 14. Finisher and final output
 
-**Đề:** Gatherer `A` không phát gì trong integrator nhưng finisher phát String `"count=4"`. Gatherer `B` biến String thành độ dài. `A.andThen(B)` trả gì?
+**Prompt:** Gatherer `A` emits nothing in its integrator, yet its finisher emits String `"count=4"`. Gatherer `B` turns a String into its length. What does `A.andThen(B)` return?
 
-**Đáp án:** Phát một phần tử `[7]`, vì `"count=4"` dài 7 ký tự. Đầu ra phát trong finisher A vẫn đi qua Gatherer B.
+**Answer:** Emits one element `[7]`, because `"count=4"` has 7 characters. Output emitted in A's finisher still flows through Gatherer B.
 
-### Bài 15. Sliding và fixed
+### Exercise 15. Sliding and fixed
 
-**Đề:** Với `[1,2,3,4,5]` và window size 3, mỗi loại cửa sổ phát bao nhiêu list?
+**Prompt:** For `[1,2,3,4,5]` and window size 3, how many lists does each window type emit?
 
-**Đáp án:** `windowFixed(3)` phát hai list `[[1,2,3],[4,5]]`; `windowSliding(3)` phát ba list `[[1,2,3],[2,3,4],[3,4,5]]`.
+**Answer:** `windowFixed(3)` emits two lists `[[1,2,3],[4,5]]`; `windowSliding(3)` emits three lists `[[1,2,3],[2,3,4],[3,4,5]]`.
 
-### Bài 16. Nguồn Java 21
+### Exercise 16. Java 21 codebase
 
-**Đề:** Dự án chạy Java 21 và cần viết `stream.gather(g1.andThen(g2))`. Có thể copy trực tiếp code Java 24 không?
+**Prompt:** A project runs on Java 21 and needs `stream.gather(g1.andThen(g2))`. Can Java 24 code be copied directly?
 
-**Đáp án:** Không. Stream Gatherers chỉ được chuẩn hóa ở Java 24, đã là preview ở 22/23; Java 21 không có API này. Nếu không thể nâng JDK, cần diễn đạt bằng `map`/`flatMap`/`collect`/`Spliterator` hoặc vòng lặp, tùy đúng nghiệp vụ.
+**Answer:** No. Stream Gatherers were only standardized in Java 24 after previews in 22/23; Java 21 does not have this API. If upgrading the JDK is impossible, express the logic using `map`/`flatMap`/`collect`/`Spliterator` or loops, per business requirements.
 
-### Bài 17. Kiểm tra tương đương
+### Exercise 17. Checking equivalence
 
-**Đề:** Chỉ so kết quả của `gather(a.andThen(b))` và `gather(a).gather(b)` có chứng minh đúng yêu cầu nghiệp vụ không?
+**Prompt:** Does merely comparing the outputs of `gather(a.andThen(b))` and `gather(a).gather(b)` prove the business requirement is met?
 
-**Đáp án:** Chưa đủ. Hai cách có thể cùng áp dụng sai comparator, sai kích thước cửa sổ hoặc sai công thức. Cần thêm một oracle độc lập và các trường hợp biên.
+**Answer:** Not enough. Both could apply the same wrong comparator, wrong window size, or wrong formula. An independent oracle and boundary cases are also needed.
 
-### Bài 18. Kiểu dữ liệu không khớp
+### Exercise 18. Mismatched data types
 
-**Đề:** Gatherer A phát `List<Integer>`, Gatherer B nhận `String`. Có thể dùng `A.andThen(B)` không?
+**Prompt:** Gatherer A emits `List<Integer>`, Gatherer B accepts `String`. Can `A.andThen(B)` be used?
 
-**Đáp án:** Không thể nối trực tiếp với kiểu dữ liệu không tương thích. Cần một Gatherer `List<Integer> → String` trung gian, hoặc đổi contract đầu ra của A/đầu vào của B.
-
----
-
-## 27. Checklist cuối bài
-
-Một chain `A.andThen(B)` được thiết kế tốt khi:
-
-- **Kiểu đúng:** `output(A)` có thể đưa vào `input(B)`.
-- **Thứ tự đúng:** Đã xác định rõ A chạy trước B, không đảo dựa vào cảm giác.
-- **Số phần tử đúng:** Đã tính đến A/B có thể phát 0, 1 hoặc nhiều phần tử.
-- **Nguồn rỗng đúng:** Đã hiểu hành vi của từng finisher.
-- **Cửa sổ cuối đúng:** Không giả định mọi batch đủ kích thước.
-- **Short-circuit đúng:** Tôn trọng tín hiệu từ `downstream.push`.
-- **Trạng thái đúng:** Không giữ state/Downstream bên ngoài lời gọi hợp lệ hoặc dùng object mutable chung.
-- **Song song đúng:** Không tự gắn combiner sai; không hứa tăng tốc khi có stage tuần tự.
-- **Tài nguyên đúng:** Đóng nguồn I/O ở tầng phù hợp, không dựa vào finisher thay cleanup.
-- **Kết quả đúng:** So với oracle và các bất biến, không chỉ so hai cách viết của cùng chain.
-- **Phiên bản đúng:** Biên dịch và chạy trên JDK 24+ khi dùng API Gatherer chuẩn.
-- **Hiệu năng được đo:** Không khẳng định `andThen` tự fusion/tự tiết kiệm bộ nhớ.
-
-### Tài liệu tra cứu
-
-- Javadoc chính thức Java 24 — [Gatherer](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html)
-- Javadoc chính thức Java 24 — [Gatherers](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html)
-- Đặc tả chuẩn hóa — [JEP 485: Stream Gatherers](https://openjdk.org/jeps/485)
+**Answer:** Incompatible types cannot be chained directly. An intermediate `List<Integer> → String` Gatherer is needed, or A's output / B's input contract must change.
 
 ---
 
-## Tổng kết
+## 27. Final checklist
 
-`Gatherer.andThen(...)` là cơ chế **ghép các phép biến đổi Stream trung gian**: đầu ra `R` của Gatherer thứ nhất trở thành đầu vào của Gatherer thứ hai, tạo một Gatherer mới có kiểu `T → RR`. Theo hợp đồng, `stream.gather(a.andThen(b))` tương đương về ngữ nghĩa với `stream.gather(a).gather(b)`.
+A chain `A.andThen(B)` is well-designed when:
 
-Trong thực hành, `andThen` đặc biệt hữu ích để đóng gói các quy trình như **chia cửa sổ → tính tổng từng cửa sổ → tính tổng tích lũy**, hoặc **lọc/chuẩn hóa → gom nhóm**, hoặc **fold → định dạng kết quả**. Phải hiểu các trường hợp **finisher phát phần tử cuối**, **short-circuit**, **trạng thái riêng từng lần chạy**, **kiểu trung gian** và **giới hạn xử lý song song** trước khi biến một chain thành thư viện tái sử dụng.
+- **Types match:** `output(A)` fits into `input(B)`.
+- **Order is right:** A clearly runs before B, not swapped by guesswork.
+- **Element counts match:** Accounted for A/B emitting 0, 1, or many elements.
+- **Empty source works:** Behavior of each finisher is understood.
+- **Final window works:** Not assuming every batch has full size.
+- **Short-circuit works:** Respects signals from `downstream.push`.
+- **State is safe:** Never retains state/`Downstream` outside valid calls or shares mutable objects.
+- **Parallelism is safe:** Never attaches a broken combiner; never promises speedup with a sequential stage.
+- **Resources are safe:** Closes I/O sources at the appropriate layer without relying on finisher as cleanup.
+- **Results are verified:** Checked against an oracle and invariants, not just comparing two ways of writing the same chain.
+- **Version is right:** Compiles and runs on JDK 24+ when using the standard Gatherer API.
+- **Performance is measured:** Never claims `andThen` automatically fuses or saves memory.
 
-**Ghi nhớ:** `andThen` là phép **nối theo thứ tự**, không phải phép cộng hai kết quả hay phép bảo đảm tăng tốc. Để viết Java Stream API đúng, hãy xác định rõ đầu vào/đầu ra của từng Gatherer, kiểm tra bằng oracle độc lập, và chạy trên JDK hỗ trợ API final (Java 24+).
+### Reference documentation
+
+- Official Java 24 Javadoc — [Gatherer](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html)
+- Official Java 24 Javadoc — [Gatherers](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html)
+- Standardization specification — [JEP 485: Stream Gatherers](https://openjdk.org/jeps/485)
+
+---
+
+## Summary
+
+`Gatherer.andThen(...)` is the mechanism for **composing intermediate Stream transformations**: output `R` of the first Gatherer becomes the input of the second Gatherer, creating a new Gatherer of type `T → RR`. By contract, `stream.gather(a.andThen(b))` is semantically equivalent to `stream.gather(a).gather(b)`.
+
+In practice, `andThen` is especially helpful for packaging workflows such as **windowing → summing per window → running total**, **filtering/normalizing → batching**, or **folding → formatting results**. You must understand **finishers emitting final elements**, **short-circuiting**, **per-run private state**, **intermediate types**, and **parallel processing limits** before turning a chain into a reusable library component.
+
+**Remember:** `andThen` is an **ordered composition**, not a concatenation of two results or a speedup guarantee. To write correct Java Stream API code, define each Gatherer's input/output clearly, verify with an independent oracle, and run on a JDK supporting the final API (Java 24+).
 

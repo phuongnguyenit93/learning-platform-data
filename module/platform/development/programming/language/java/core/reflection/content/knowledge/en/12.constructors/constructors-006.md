@@ -1,8 +1,8 @@
-# Không khởi tạo abstract class hoặc interface bằng constructor thông thường trong Java Reflection
+# Do Not Instantiate Abstract Classes or Interfaces via Ordinary Constructors in Java Reflection
 
-## 1. Hiểu đúng giới hạn của constructor
+## 1. Understanding Constructor Boundaries Correctly
 
-Trong Java, **abstract class** là lớp chưa được phép tạo đối tượng trực tiếp; **interface** là hợp đồng kiểu, không phải lớp có constructor thông thường. Reflection có thể đọc metadata của các kiểu này nhưng **không làm chúng trở thành kiểu có thể khởi tạo trực tiếp**.
+In Java, an **abstract class** is a class not permitted to be instantiated directly; an **interface** is a type contract, not a class with ordinary constructors. Reflection can read metadata of these types, yet **it does not make them directly instantiable types**.
 
 ```java
 abstract class Animal {
@@ -15,41 +15,41 @@ interface Movable {
 }
 ```
 
-Những lệnh sau đều không hợp lệ tại thời điểm biên dịch:
+These statements are both invalid at compile time:
 
 ```java
-// MÃ MINH HỌA KHÔNG BIÊN DỊCH ĐƯỢC
-// Animal animal = new Animal();    // Animal là abstract class.
-// Movable movable = new Movable(); // Movable là interface.
+// ILLUSTRATIVE CODE THAT DOES NOT COMPILE
+// Animal animal = new Animal();    // Animal is an abstract class.
+// Movable movable = new Movable(); // Movable is an interface.
 ```
 
-Tương tự, dùng Reflection để tìm `Class` hay constructor **không thể bỏ qua** hạn chế này. Phải tạo một **lớp cụ thể (concrete class)** có thể khởi tạo, rồi tham chiếu đối tượng đó qua kiểu abstract class/interface nếu cần.
+Similarly, using Reflection to look up a `Class` or constructor **cannot bypass** this restriction. You must create an instantiable **concrete class**, then reference that object through the abstract class/interface type if needed.
 
-**Phân biệt hai trường hợp:**
+**Distinguishing the two cases:**
 
-- Abstract class **có thể khai báo constructor**; constructor đó được thực thi trong quá trình xây dựng một đối tượng của lớp con cụ thể. Tuy nhiên, `Constructor` của abstract class **không thể** tự tạo instance của chính abstract class.
-- Interface **không có constructor**. Không thể tìm `Constructor<Interface>` của interface, kể cả bằng `getDeclaredConstructor()`.
+- An abstract class **can declare constructors**; such a constructor executes while constructing an object of a concrete subclass. However, an abstract class's `Constructor` **cannot** create an instance of the abstract class itself.
+- An interface **has no constructors**. You cannot find a `Constructor<Interface>` of an interface, even with `getDeclaredConstructor()`.
 
-## 2. Những API Reflection liên quan
+## 2. Related Reflection APIs
 
-| Thao tác | Abstract class | Interface |
+| Operation | Abstract class | Interface |
 | --- | --- | --- |
-| `SomeType.class`, `Class.forName(...)` | Lấy metadata `Class` bình thường | Lấy metadata `Class` bình thường |
+| `SomeType.class`, `Class.forName(...)` | Retrieves `Class` metadata normally | Retrieves `Class` metadata normally |
 | `Class.isInterface()` | `false` | `true` |
-| `Modifier.isAbstract(type.getModifiers())` | `true` | Cũng thường `true` vì interface có cờ `abstract` |
-| `getDeclaredConstructors()` | Có thể trả về các constructor khai báo trong abstract class | Mảng rỗng |
-| `getDeclaredConstructor(parameterTypes...)` | Có thể tìm constructor khớp chữ ký | Ném `NoSuchMethodException` |
-| `getConstructor(parameterTypes...)` | Có thể tìm constructor `public` của abstract class | Ném `NoSuchMethodException` |
-| `Constructor.newInstance(args...)` | Không tạo được abstract class; có thể ném `InstantiationException` | Không có constructor interface để gọi |
-| Khởi tạo lớp triển khai cụ thể | Được, qua constructor của **lớp con concrete** | Được, qua constructor của **lớp implement concrete** |
+| `Modifier.isAbstract(type.getModifiers())` | `true` | Also typically `true` because interfaces carry the `abstract` flag |
+| `getDeclaredConstructors()` | May return constructors declared in the abstract class | Empty array |
+| `getDeclaredConstructor(parameterTypes...)` | Can find a constructor matching signature | Throws `NoSuchMethodException` |
+| `getConstructor(parameterTypes...)` | Can find a `public` constructor of the abstract class | Throws `NoSuchMethodException` |
+| `Constructor.newInstance(args...)` | Cannot instantiate abstract class; may throw `InstantiationException` | No interface constructor to invoke |
+| Instantiating a concrete implementation class | Yes, via a constructor of the **concrete subclass** | Yes, via a constructor of the **concrete implementing class** |
 
-`getDeclaredConstructor(...)` chỉ **tra cứu khai báo**, còn `Constructor.newInstance(...)` mới **yêu cầu JVM tạo đối tượng**. Tìm được constructor không đồng nghĩa việc gọi constructor đó để tạo instance là hợp lệ.
+`getDeclaredConstructor(...)` only **looks up declarations**, whereas `Constructor.newInstance(...)` **asks the JVM to create an object**. Finding a constructor does not mean invoking that constructor to create an instance is valid.
 
-Các constructor **không được kế thừa**: `Child.class.getConstructor(...)` chỉ tra cứu constructor công khai được khai báo cho `Child` theo quy tắc API, không dùng constructor của `Parent` để tạo `Child`. Đối tượng lớp con được xây dựng bằng constructor của lớp con và constructor lớp cha được gọi trong chuỗi `super(...)`.
+Constructors **are not inherited**: `Child.class.getConstructor(...)` only looks up public constructors declared for `Child` per API rules, and does not use `Parent`'s constructor to create `Child`. A subclass object is built by the subclass constructor with the parent constructor invoked in the `super(...)` chain.
 
-## 3. Tại sao abstract class vẫn có constructor?
+## 3. Why Do Abstract Classes Still Have Constructors?
 
-Constructor của abstract class phục vụ phần trạng thái chung cần khởi tạo cho mọi lớp con.
+An abstract class's constructor serves to initialize shared state needed by all subclasses.
 
 ```java
 abstract class Job {
@@ -64,7 +64,7 @@ abstract class Job {
 
 class EmailJob extends Job {
     EmailJob(String name) {
-        super(name); // Gọi constructor của phần Job trong đối tượng EmailJob.
+        super(name); // Calls the constructor of the Job part inside the EmailJob object.
     }
 
     @Override
@@ -74,13 +74,13 @@ class EmailJob extends Job {
 }
 ```
 
-Tại `new EmailJob("daily")`, JVM tạo đối tượng có **runtime class `EmailJob`**, đồng thời thực thi `Job(String)` trong chuỗi khởi tạo. Không hề có đối tượng độc lập với runtime class chính xác là abstract `Job`.
+At `new EmailJob("daily")`, the JVM creates an object with **runtime class `EmailJob`**, while executing `Job(String)` in the initialization chain. There is no standalone object whose exact runtime class is abstract `Job`.
 
-Reflection tìm được `Job.class.getDeclaredConstructor(String.class)`, nhưng **gọi `newInstance("daily")` trên chính `Constructor<Job>` đó không tạo một `EmailJob`**. JVM không đoán giúp lớp con. Nó từ chối tạo instance của kiểu abstract.
+Reflection finds `Job.class.getDeclaredConstructor(String.class)`, but **calling `newInstance("daily")` on that `Constructor<Job>` does not create an `EmailJob`**. The JVM does not guess a subclass for you. It refuses to create an instance of an abstract type.
 
-## 4. Ví dụ Java 17+ đầy đủ và chạy được
+## 4. Complete and Runnable Java 17+ Example
 
-Lưu nguyên chương trình sau dưới tên `AbstractConstructorDemo.java`:
+Save the following program verbatim as `AbstractConstructorDemo.java`:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -150,7 +150,7 @@ public class AbstractConstructorDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac AbstractConstructorDemo.java
@@ -171,40 +171,40 @@ job call: run:demo
 interface call: run:demo
 ```
 
-**Giải thích kết quả:**
+**Output explanation:**
 
-1. `Modifier.isAbstract(Job.class.getModifiers())` xác nhận `Job` là abstract.
-2. `Job.class.getDeclaredConstructor(String.class)` vẫn tìm thấy constructor có một tham số.
-3. `baseCtor.newInstance("x")` thất bại với `InstantiationException` vì kiểu khai báo là abstract; constructor có tồn tại và được tra cứu đúng cũng không thay đổi điều đó.
-4. `Work.class.isInterface()` trả `true`; `getDeclaredConstructors()` có kích thước bằng `0`. Tra cứu constructor không tham số của interface ném `NoSuchMethodException`.
-5. `RealJob` là lớp cụ thể với constructor `public RealJob(String)`. `realCtor.newInstance("demo")` tạo một đối tượng thật sự có runtime class `RealJob`.
-6. Đối tượng `RealJob` có thể được tham chiếu bằng `Job` và `Work`. Kiểu của biến tham chiếu **không phải** bằng chứng rằng JVM đã tạo trực tiếp instance của abstract class/interface.
+1. `Modifier.isAbstract(Job.class.getModifiers())` confirms `Job` is abstract.
+2. `Job.class.getDeclaredConstructor(String.class)` still finds the one-parameter constructor.
+3. `baseCtor.newInstance("x")` fails with `InstantiationException` because the declaring type is abstract; the fact that the constructor exists and was looked up properly does not change that.
+4. `Work.class.isInterface()` returns `true`; `getDeclaredConstructors()` has length `0`. Looking up a no-arg constructor on an interface throws `NoSuchMethodException`.
+5. `RealJob` is a concrete class with constructor `public RealJob(String)`. `realCtor.newInstance("demo")` creates an actual object with runtime class `RealJob`.
+6. The `RealJob` object can be referenced as `Job` and `Work`. The reference variable's type **is not** proof that the JVM directly created an instance of an abstract class/interface.
 
-Trong ví dụ, constructor của `Job` được khai báo `public` để việc truy cập không che lấp lỗi cần học. Nếu constructor abstract class là `protected` hoặc `private`, quy tắc truy cập Reflection có thể gây `IllegalAccessException` hay lỗi quyền khác **trước khi** chạm đến bước kiểm tra tính khởi tạo được.
+In the example, `Job`'s constructor is declared `public` so access checks do not mask the error being studied. If an abstract class's constructor is `protected` or `private`, Reflection access rules can trigger `IllegalAccessException` or another permission error **before** reaching the instantiability check.
 
-## 5. Ba nhóm lỗi cần phân biệt
+## 5. Three Error Groups to Distinguish
 
-Khi làm việc với constructor, lỗi có thể xảy ra ở **những giai đoạn khác nhau**:
+When working with constructors, errors can happen at **different stages**:
 
-| Giai đoạn | Trường hợp | Kết quả thường gặp |
+| Stage | Case | Typical outcome |
 | --- | --- | --- |
-| Tra cứu | `Interface.class.getDeclaredConstructor()` | `NoSuchMethodException` vì interface không có constructor |
-| Tra cứu | Tìm sai chữ ký constructor của một lớp, ví dụ `RealJob.class.getConstructor(int.class)` | `NoSuchMethodException` vì chỉ có `RealJob(String)` |
-| Tạo instance | `Job.class.getDeclaredConstructor(String.class).newInstance("x")` | `InstantiationException` vì `Job` là abstract |
-| Quyền truy cập | Có constructor nhưng caller không được phép dùng nó | `IllegalAccessException` hoặc lỗi truy cập tùy ngữ cảnh |
-| Kiểm tra đối số | Số lượng/kiểu đối số không hợp lệ khi gọi `newInstance` | `IllegalArgumentException` |
-| Chạy constructor | Constructor concrete thực thi và ném exception | `InvocationTargetException` chứa nguyên nhân gốc |
+| Lookup | `Interface.class.getDeclaredConstructor()` | `NoSuchMethodException` because interfaces have no constructors |
+| Lookup | Looking up a wrong constructor signature of a class, e.g. `RealJob.class.getConstructor(int.class)` | `NoSuchMethodException` because only `RealJob(String)` exists |
+| Instantiation | `Job.class.getDeclaredConstructor(String.class).newInstance("x")` | `InstantiationException` because `Job` is abstract |
+| Access permission | Constructor exists, but caller is not permitted to use it | `IllegalAccessException` or access error depending on context |
+| Argument check | Invalid argument count/types when calling `newInstance` | `IllegalArgumentException` |
+| Running constructor | Concrete constructor executes and throws an exception | `InvocationTargetException` containing the root cause |
 
-Đừng bắt duy nhất `NoSuchMethodException` cho toàn bộ quy trình. Lỗi đó thuộc **bước tìm**; `InstantiationException` xảy ra ở **bước tạo**, khi metadata constructor đã có rồi.
+Do not catch only `NoSuchMethodException` for the entire workflow. That error belongs to the **lookup step**; `InstantiationException` happens at the **creation step**, once constructor metadata has already been obtained.
 
-`Constructor.newInstance(...)` có thể ném các checked exceptions như `InstantiationException`, `IllegalAccessException`, `InvocationTargetException`, bên cạnh exception do đối số/quyền truy cập. Khi viết code thư viện, hãy xử lý theo ý nghĩa của từng lỗi thay vì cố thử đi thử lại cùng một constructor trên abstract class.
+`Constructor.newInstance(...)` can throw checked exceptions such as `InstantiationException`, `IllegalAccessException`, `InvocationTargetException`, alongside argument/access exceptions. When writing library code, handle each error according to its meaning instead of repeatedly retrying the same constructor on an abstract class.
 
-## 6. Kiểm tra kiểu trước khi chọn constructor
+## 6. Checking the Type Before Selecting a Constructor
 
-Khi class được cung cấp qua cấu hình, annotation scanning hoặc `Class.forName`, hãy kiểm tra tính cụ thể của kiểu trước khi thử khởi tạo:
+When a class is provided via configuration, annotation scanning, or `Class.forName`, verify the type's concreteness before attempting instantiation:
 
 ```java
-// Hàm độc lập đặt trong một lớp Java; chỉ minh họa bước kiểm tra.
+// Standalone helper method placed in a Java class; illustrates only the check step.
 static boolean isConcreteClass(Class<?> type) {
     int modifiers = type.getModifiers();
     return !type.isInterface()
@@ -215,36 +215,36 @@ static boolean isConcreteClass(Class<?> type) {
 }
 ```
 
-Bước này phân biệt abstract class và interface với lớp bình thường nhưng **không đủ để bảo đảm mọi `Class<?>` còn lại tạo instance được**. Ví dụ: lớp không có constructor phù hợp; constructor không truy cập được; enum bị hạn chế tạo instance bằng Reflection; `void.class` cũng không biểu diễn lớp có thể khởi tạo. `Class.isInterface()` là tín hiệu trực tiếp để phân biệt interface, vì chỉ kiểm tra `Modifier.isAbstract(...)` sẽ gộp interface với abstract class.
+This step separates abstract classes and interfaces from ordinary classes, yet **is not enough to guarantee every remaining `Class<?>` can be instantiated**. For example: the class may lack a matching constructor; the constructor may be inaccessible; enums restrict instantiation via Reflection; `void.class` also does not represent an instantiable class. `Class.isInterface()` is the direct signal to distinguish interfaces, since checking only `Modifier.isAbstract(...)` lumps interfaces together with abstract classes.
 
-Một quy trình thực tế hơn:
+A more practical workflow:
 
-1. Kiểm tra `type.isInterface()` và `Modifier.isAbstract(type.getModifiers())`. Nếu một trong hai đúng, **không dùng constructor trên chính kiểu đó**.
-2. Xác định concrete class cần tạo từ cấu hình hay contract đã biết; kiểm tra `expectedType.isAssignableFrom(concreteType)` để xác nhận tương thích.
-3. Dùng `concreteType.getDeclaredConstructor(parameterTypes...)` hoặc `getConstructor(...)` theo phạm vi cần tra, và truyền chính xác kiểu tham số.
-4. Kiểm tra khả năng truy cập constructor; không mặc định có quyền mở module/package nội bộ.
-5. Gọi `newInstance(args...)` trên constructor **của concrete class** và xử lý các lỗi thực thi.
+1. Check `type.isInterface()` and `Modifier.isAbstract(type.getModifiers())`. If either is true, **do not use a constructor on that type itself**.
+2. Determine the concrete class to create from configuration or a known contract; check `expectedType.isAssignableFrom(concreteType)` to confirm compatibility.
+3. Use `concreteType.getDeclaredConstructor(parameterTypes...)` or `getConstructor(...)` per the required scope, passing exact parameter types.
+4. Check constructor accessibility; do not assume permission to open internal modules/packages.
+5. Call `newInstance(args...)` on a constructor **of the concrete class** and handle execution errors.
 
-**Không suy diễn** rằng chọn lớp con chỉ bằng cách gọi `getConstructor` trên abstract class: việc tìm subtype cụ thể là trách nhiệm của ứng dụng hoặc container/DI, không phải của `Constructor.newInstance`.
+**Do not infer** that a subclass is selected merely by calling `getConstructor` on an abstract class: finding a concrete subtype is the responsibility of the application or container/DI, not `Constructor.newInstance`.
 
-## 7. Dùng abstract class/interface như kiểu tham chiếu hoàn toàn hợp lệ
+## 7. Using an Abstract Class/Interface as a Reference Type Is Completely Valid
 
-Một số đoạn code có thể khiến người mới hiểu nhầm rằng “đã tạo interface” hoặc “đã tạo abstract class”.
+Some code patterns can mislead beginners into thinking they "created an interface" or "created an abstract class".
 
-### 7.1. Concrete subclass
+### 7.1. Concrete Subclass
 
 ```java
-// Khi đã có lớp RealJob trong chương trình đầy đủ:
+// When the RealJob class is present in a complete program:
 Job job = new RealJob("billing");
 Work work = (Work) job;
 ```
 
-`new` khởi tạo `RealJob`. Hai biến chỉ giữ tham chiếu được gán theo quy tắc kế thừa/implements.
+`new` instantiates `RealJob`. Both variables simply hold references assigned according to inheritance/implements rules.
 
-### 7.2. Anonymous subclass của abstract class
+### 7.2. Anonymous Subclass of an Abstract Class
 
 ```java
-// Đặt trong phương thức có thể truy cập AbstractConstructorDemo.Job:
+// Placed in a method that can access AbstractConstructorDemo.Job:
 AbstractConstructorDemo.Job anonymous =
         new AbstractConstructorDemo.Job("one-off") {
             @Override
@@ -255,60 +255,60 @@ AbstractConstructorDemo.Job anonymous =
 System.out.println(anonymous.run()); // anonymous:one-off
 ```
 
-Cú pháp `new AbstractConstructorDemo.Job(...) { ... }` tạo **lớp con ẩn danh cụ thể**, có phần cài đặt phương thức abstract. Nó **không** tạo trực tiếp đối tượng có runtime class là `Job`. Mảnh code này minh họa, không phải một chương trình độc lập.
+The syntax `new AbstractConstructorDemo.Job(...) { ... }` creates a **concrete anonymous subclass** with implementations of the abstract methods. It **does not** directly create an object whose runtime class is `Job`. This snippet is illustrative, not a standalone program.
 
-### 7.3. Lambda cho functional interface
+### 7.3. Lambda for a Functional Interface
 
 ```java
-// Work là interface có đúng một abstract method như chương trình ở mục 4.
+// Work is an interface with a single abstract method as in the program in section 4.
 AbstractConstructorDemo.Work action = () -> "lambda";
 System.out.println(action.run()); // lambda
 ```
 
-Lambda cung cấp một đối tượng triển khai functional interface theo cơ chế của Java; **interface `Work` không tự có constructor**. Nếu interface có nhiều abstract methods và không phải functional interface, cú pháp lambda sẽ không hợp lệ.
+A lambda supplies an object implementing a functional interface through Java's language mechanism; **the `Work` interface does not itself have a constructor**. If an interface has multiple abstract methods and is not a functional interface, lambda syntax is invalid.
 
 ### 7.4. Dynamic Proxy
 
-`java.lang.reflect.Proxy.newProxyInstance(...)` có thể tạo một **đối tượng proxy thực thi interface** theo `InvocationHandler`, nhưng đối tượng có runtime class là lớp proxy được runtime tạo ra, không phải chính interface. Đây là kỹ thuật tạo implementation động, **khác** với việc gọi constructor của interface. Không dùng proxy như cách mặc định để thay thế thiết kế concrete implementation khi không cần hành vi động.
+`java.lang.reflect.Proxy.newProxyInstance(...)` can create a **proxy object implementing an interface** backed by an `InvocationHandler`, yet the object's runtime class is a runtime-generated proxy class, not the interface itself. This is a dynamic implementation generation technique, **different from** invoking an interface constructor. Do not use a proxy as the default replacement for designing a concrete implementation when dynamic behavior is unnecessary.
 
-## 8. Vai trò của constructor cha khi có kế thừa
+## 8. Role of the Parent Constructor Under Inheritance
 
-Thứ tự khởi tạo chuẩn khi gọi `new RealJob("demo")`:
+Standard initialization order when calling `new RealJob("demo")`:
 
 ```text
-RealJob(String) được chọn làm constructor đích
+RealJob(String) is selected as the target constructor
     |
     v
-super(name) gọi Job(String)
+super(name) calls Job(String)
     |
     v
-Job khởi tạo name
+Job initializes name
     |
     v
-RealJob hoàn tất xây dựng
+RealJob completes construction
     |
     v
-Đối tượng có runtime class RealJob
+Object has runtime class RealJob
 ```
 
-Đó là lý do abstract class cần và có thể có constructor: **lớp cha phải thiết lập phần trạng thái chung** cho đối tượng lớp con. Java cấm **trực tiếp khởi tạo abstract class**, nhưng không cấm constructor của nó tham gia chuỗi khởi tạo hợp lệ.
+That is why an abstract class needs and can have constructors: **the parent class must set up the shared state portion** for subclass objects. Java forbids **directly instantiating an abstract class**, but does not forbid its constructor from participating in a valid initialization chain.
 
-Một lưu ý thiết kế: constructor abstract class không nên gọi các phương thức overridable nếu các phương thức ấy phụ thuộc trạng thái mà lớp con chưa khởi tạo. Quy tắc dispatch động có thể kích hoạt implementation của lớp con quá sớm trong lúc constructor cha đang chạy.
+One design note: an abstract class constructor should not call overridable methods if those methods depend on state that the subclass has not yet initialized. Dynamic dispatch rules can trigger the subclass implementation too early while the parent constructor is still running.
 
-## 9. Lỗi thường gặp và cách xử lý
+## 9. Common Errors and How to Handle Them
 
-| Hiện tượng / ngộ nhận | Nguyên nhân | Cách xử lý |
+| Symptom / Misconception | Cause | How to handle |
 | --- | --- | --- |
-| `getDeclaredConstructor` tìm thấy nhưng `newInstance` ném `InstantiationException` | Đang dùng `Constructor` của abstract class | Chọn constructor của concrete subclass |
-| `Interface.class.getDeclaredConstructor()` ném `NoSuchMethodException` | Interface không khai báo constructor | Chọn lớp implement hoặc cơ chế tạo implementation phù hợp |
-| Nghĩ abstract class không được có constructor | Nhầm giới hạn tạo object với khai báo constructor | Constructor abstract class phục vụ xây dựng subclass |
-| Nghĩ gọi `abstractType.getConstructor(...)` sẽ tự tìm subclass | Reflection lookup không tự chọn lớp con | Xác định concrete class tường minh |
-| Nghĩ `Class.forName("...")` khởi tạo được interface | `Class.forName` lấy `Class`/nạp và có thể khởi tạo lớp theo ngữ nghĩa API, không tạo instance của kiểu | Phân biệt metadata `Class` với đối tượng triển khai |
-| Kiểm tra `Modifier.isAbstract` để phân biệt hai loại | Interface cũng mang modifier `abstract` | Kiểm tra `isInterface()` trước |
-| Constructor lớp con không gọi constructor cha | Constructor Java bắt buộc dẫn tới gọi `super(...)` hoặc `this(...)`, trực tiếp hay ngầm định | Xem chuỗi constructor và chữ ký constructor cha |
-| Dùng `Class.newInstance()` cũ để tránh lỗi | API cũ đã deprecated; không vượt được abstract/interface | Dùng `getDeclaredConstructor(...).newInstance(...)` trên kiểu concrete |
-| Tạo được proxy rồi kết luận interface có constructor | Proxy tạo lớp triển khai động | Kiểm tra `object.getClass()`; hiểu proxy là implementation |
+| `getDeclaredConstructor` succeeds, but `newInstance` throws `InstantiationException` | Using a `Constructor` of an abstract class | Select a constructor of a concrete subclass |
+| `Interface.class.getDeclaredConstructor()` throws `NoSuchMethodException` | Interfaces declare no constructors | Pick an implementing class or suitable implementation-creation mechanism |
+| Thinking an abstract class cannot have constructors | Confusing object-creation restrictions with constructor declarations | Abstract class constructors serve subclass construction |
+| Thinking calling `abstractType.getConstructor(...)` automatically finds a subclass | Reflection lookup does not pick subclasses | Identify the concrete class explicitly |
+| Thinking `Class.forName("...")` instantiates an interface | `Class.forName` retrieves/loads `Class` and may initialize the class per API semantics, not create an instance of the type | Distinguish `Class` metadata from an implementation object |
+| Checking `Modifier.isAbstract` to tell the two apart | Interfaces also carry the `abstract` modifier | Check `isInterface()` first |
+| Subclass constructor does not call parent constructor | Java constructors must lead to a `super(...)` or `this(...)` call, explicitly or implicitly | Check the constructor chain and parent constructor signatures |
+| Using legacy `Class.newInstance()` to avoid errors | Old API is deprecated; cannot bypass abstract/interface | Use `getDeclaredConstructor(...).newInstance(...)` on a concrete type |
+| Creating a proxy and concluding interfaces have constructors | Proxy generates a dynamic implementation class | Check `object.getClass()`; understand a proxy is an implementation |
 
-**Ghi nhớ:** **Abstract class có thể có constructor nhưng không được tạo instance trực tiếp; interface không có constructor.** Reflection phản ánh đúng hai quy tắc ấy. Luôn lấy `Constructor` của một **lớp cụ thể có thể khởi tạo**, rồi dùng abstract class/interface làm kiểu tham chiếu nếu phù hợp.
+**Key takeaway:** **An abstract class can have constructors yet cannot be instantiated directly; an interface has no constructors.** Reflection faithfully reflects both rules. Always obtain a `Constructor` of an **instantiable concrete class**, then use the abstract class/interface as a reference type where appropriate.
 
-Tham khảo: [Java SE 17 `Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [`java.lang.reflect.Constructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html), [JLS §8.1.1.1 — abstract Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.1.1.1).
+References: [Java SE 17 `Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [`java.lang.reflect.Constructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html), [JLS §8.1.1.1 — abstract Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.1.1.1).

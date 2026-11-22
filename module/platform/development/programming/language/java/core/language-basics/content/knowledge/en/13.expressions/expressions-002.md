@@ -1,46 +1,46 @@
-# Toán hạng, toán tử và biểu thức lồng nhau — Java 17+
+# Operands, Operators, and Nested Expressions — Java 17+
 
-Một **biểu thức** (*expression*) trong Java là cấu trúc có thể được đánh giá để tạo ra một **giá trị** hoặc biến (trong một số trường hợp) thực hiện phép gán hay gây tác dụng phụ. Để đọc đúng biểu thức phức tạp, cần phân biệt ba khái niệm:
+An **expression** in Java is a construct that can be evaluated to produce a **value** or variable (in certain cases), perform an assignment, or cause side effects. To read complex expressions accurately, three concepts must be distinguished:
 
-- **Toán hạng** (*operand*): phần dữ liệu mà toán tử tác động lên, ví dụ literal `5`, biến `price`, lời gọi `getPrice()` hoặc **một biểu thức con**.
-- **Toán tử** (*operator*): ký hiệu hoặc cấu trúc thực hiện phép toán, ví dụ `+`, `*`, `!`, `&&`, `?:`, `=`.
-- **Biểu thức lồng nhau** (*nested expression*): một biểu thức được dùng làm toán hạng trong biểu thức lớn hơn, có thể được nhóm bằng dấu ngoặc tròn để thể hiện rõ ý.
+- **Operand**: the piece of data an operator acts upon, such as the literal `5`, variable `price`, call `getPrice()`, or **a sub-expression**.
+- **Operator**: the symbol or construct performing an operation, such as `+`, `*`, `!`, `&&`, `?:`, `=`.
+- **Nested expression**: an expression used as an operand inside a larger expression, optionally grouped with parentheses to make intent clear.
 
 ~~~java
 int total = 8 + 3 * 2;
 ~~~
 
-Trong biểu thức `8 + 3 * 2`, `8`, `3`, `2` là toán hạng đơn giản; `+` và `*` là toán tử. Do `*` có độ ưu tiên cao hơn `+`, biểu thức được **nhóm** như `8 + (3 * 2)` và có giá trị **14**.
+In the expression `8 + 3 * 2`, `8`, `3`, and `2` are simple operands; `+` and `*` are operators. Because `*` has higher precedence than `+`, the expression is **grouped** as `8 + (3 * 2)` and evaluates to **14**.
 
-**Điểm then chốt:** *độ ưu tiên quyết định cách nhóm toán hạng*, còn *thứ tự đánh giá* quyết định khi nào các phần được chạy. Đây là hai khái niệm khác nhau trong Java.
+**Key point:** *precedence determines how operands are grouped*, whereas *evaluation order* determines when the parts are executed. These are two distinct concepts in Java.
 
-## 1. Các dạng toán hạng và toán tử
+## 1. Forms of Operands and Operators
 
-| Dạng | Biểu thức minh họa | Diễn giải |
+| Form | Example expression | Explanation |
 | --- | --- | --- |
-| Literal | `42`, `true`, `"Java"` | Giá trị viết trực tiếp |
-| Biến | `quantity` | Đọc giá trị biến |
-| Lời gọi phương thức | `name.length()` | Kết quả của phương thức có kiểu trả về phù hợp |
-| Truy cập phần tử | `scores[0]` | Giá trị ở vị trí mảng |
-| Toán tử một ngôi | `-x`, `!enabled`, `++n` | Một toán hạng |
-| Toán tử hai ngôi | `a + b`, `a * b`, `x > y` | Hai toán hạng |
-| Toán tử điều kiện ba ngôi | `condition ? a : b` | Ba phần: điều kiện và hai nhánh |
-| Gán | `x = 10`, `x += 2` | Có giá trị biểu thức và tác dụng gán |
-| Ép kiểu | `(double) sum` | Chuyển kiểu biểu thức |
-| Lồng nhau | `(a + b) * (c - d)` | Biểu thức con làm toán hạng |
+| Literal | `42`, `true`, `"Java"` | Value written directly |
+| Variable | `quantity` | Reads the variable's value |
+| Method invocation | `name.length()` | Result of a method with an appropriate return type |
+| Element access | `scores[0]` | Value at an array index |
+| Unary operator | `-x`, `!enabled`, `++n` | One operand |
+| Binary operator | `a + b`, `a * b`, `x > y` | Two operands |
+| Ternary conditional operator | `condition ? a : b` | Three parts: condition and two branches |
+| Assignment | `x = 10`, `x += 2` | Has an expression value and performs assignment |
+| Cast | `(double) sum` | Converts an expression's type |
+| Nested | `(a + b) * (c - d)` | Sub-expressions acting as operands |
 
-Một **literal** như `7` đã là biểu thức đơn giản; không phải mọi biểu thức đều cần một toán tử. Ngược lại, một **câu lệnh** (*statement*) như `if (...) { ... }` là cấu trúc điều khiển, không phải toán hạng mang giá trị có thể thay trực tiếp vào phép cộng.
+A **literal** like `7` is already a simple expression; not every expression needs an operator. Conversely, a **statement** such as `if (...) { ... }` is a control-flow construct, not a value-bearing operand that can be substituted directly into an addition.
 
-## 2. Nhóm biểu thức và dấu ngoặc
+## 2. Grouping Expressions and Parentheses
 
-Đọc hai biểu thức có cùng con số nhưng khác cách nhóm:
+Read two expressions with the same numbers but different grouping:
 
 ~~~java
 int a = 8 + 3 * 2;     // 14.
 int b = (8 + 3) * 2;   // 22.
 ~~~
 
-Có thể hình dung cây biểu thức:
+You can visualize the expression trees:
 
 ~~~text
 8 + 3 * 2             (8 + 3) * 2
@@ -52,27 +52,27 @@ Có thể hình dung cây biểu thức:
        3   2             8   3
 ~~~
 
-Nhóm theo cây bên trái: `3 * 2` là một toán hạng của `+`. Nhóm theo cây bên phải: `8 + 3` là một toán hạng của `*`.
+Grouped according to the tree on the left: `3 * 2` is an operand of `+`. Grouped according to the tree on the right: `8 + 3` is an operand of `*`.
 
-Dấu ngoặc tròn có thể **thay đổi cách nhóm** hoặc chỉ làm cách nhóm sẵn có **dễ đọc hơn**:
+Parentheses can **change the grouping** or simply make the existing grouping **easier to read**:
 
 ~~~java
 int a = 8 + 3 * 2;          // 14.
-int b = 8 + (3 * 2);        // 14: nhom ro hon, khong doi gia tri.
-int c = (8 + 3) * 2;        // 22: thay doi nhom.
+int b = 8 + (3 * 2);        // 14: clearer grouping, value unchanged.
+int c = (8 + 3) * 2;        // 22: changes the grouping.
 ~~~
 
-Tuy vậy, dấu ngoặc **không** thay đổi quy tắc kiểu dữ liệu. Ví dụ `(5 / 2)` vẫn chia nguyên và trả `2`; muốn `2.5` phải có toán hạng số thực, chẳng hạn `5 / 2.0`.
+However, parentheses do **not** change data type rules. For instance, `(5 / 2)` still performs integer division and returns `2`; to get `2.5` you must have a floating-point operand, such as `5 / 2.0`.
 
-## 3. Nhìn cây nhóm trước, theo dõi đánh giá sau
+## 3. Read the Grouping Tree First, Trace Evaluation Second
 
-Độ ưu tiên và tính kết hợp xác định biểu thức con nào là toán hạng của toán tử lớn hơn. Chẳng hạn, `20 - 5 - 3` nhóm thành `(20 - 5) - 3` và có giá trị 12; `a = b = 7` nhóm thành `a = (b = 7)`.
+Precedence and associativity determine which sub-expression is an operand of a larger operator. For example, `20 - 5 - 3` groups as `(20 - 5) - 3` and evaluates to 12; `a = b = 7` groups as `a = (b = 7)`.
 
-Đừng nhầm cấu trúc ấy với **thứ tự gọi method**. Trong `first() + second() * third()`, phép nhân là nhánh phải của phép cộng nhưng các lời gọi (khi đều hoàn tất bình thường) chạy lần lượt `first`, `second`, `third`. Nếu là `left && right`, Java còn có thể bỏ qua `right`. Vì vậy khi đọc biểu thức lồng nhau, hãy vẽ cây **nhóm toán tử** trước rồi mới lần theo thứ tự đánh giá các toán hạng của từng nhánh.
+Do not confuse that structure with **method call order**. In `first() + second() * third()`, multiplication is the right branch of addition, yet the calls (when all complete normally) run in order `first`, `second`, `third`. In `left && right`, Java can even skip `right`. Therefore, when reading nested expressions, draw the **operator grouping** tree first and only then trace the evaluation order of each branch's operands.
 
-## 4. Chương trình Java 17+ runnable
+## 4. Runnable Java 17+ Program
 
-Tạo file UTF-8 tên **`NestedExpressionsDemo.java`**:
+Create a UTF-8 file named **`NestedExpressionsDemo.java`**:
 
 ~~~java
 public class NestedExpressionsDemo {
@@ -137,7 +137,7 @@ public class NestedExpressionsDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) ở thư mục chứa file, dùng **JDK 17+**:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the folder containing the file, using **JDK 17+**:
 
 ~~~bash
 java -version
@@ -146,7 +146,7 @@ javac -encoding UTF-8 NestedExpressionsDemo.java
 java NestedExpressionsDemo
 ~~~
 
-**Exact expected output** của lệnh `java NestedExpressionsDemo`:
+**Exact expected output** of `java NestedExpressionsDemo`:
 
 ~~~text
 precedence=14
@@ -176,31 +176,31 @@ nAfterPost=6
 chainedAssignment=7,7
 ~~~
 
-Hai lệnh `java -version` và `javac -version` hiển thị phiên bản của máy đang chạy, không thuộc khối stdout cố định ở trên.
+The two commands `java -version` and `javac -version` display the version on the machine being used and are not part of the fixed stdout block above.
 
-### Đọc kết quả theo từng nhóm
+### Reading the Output by Group
 
-**Nhóm số học:** `x + y * 2` bằng `8 + 6 = 14`, còn `(x + y) * 2` bằng `11 * 2 = 22`. Biểu thức lồng `(x + (y * 2)) - (x / y)` bằng `14 - 2 = 12` vì `8 / 3` là phép chia `int`.
+**Arithmetic group:** `x + y * 2` equals `8 + 6 = 14`, whereas `(x + y) * 2` equals `11 * 2 = 22`. The nested expression `(x + (y * 2)) - (x / y)` equals `14 - 2 = 12` because `8 / 3` is `int` division.
 
-**Nhóm so sánh và logic:** toán tử `>` tạo kết quả `boolean`; `&&` kết hợp hai giá trị boolean; `?:` chỉ đánh giá nhánh được chọn. Điều kiện `x > y` là true nên kết quả ba ngôi là `x - y = 5`.
+**Comparison and logical group:** the `>` operator yields a `boolean` result; `&&` combines two boolean values; `?:` evaluates only the selected branch. Since `x > y` is true, the ternary result is `x - y = 5`.
 
-**Nhóm chuỗi:** `"stringUngrouped=" + 1 + 2` được đánh giá qua các phép nối từ trái sang phải, cho `"stringUngrouped=12"`. `"stringGrouped=" + (1 + 2)` buộc cộng số trước, cho `"stringGrouped=3"`. Toán tử `+` có thể là phép cộng số **hoặc nối chuỗi**, tùy kiểu toán hạng.
+**String group:** `"stringUngrouped=" + 1 + 2` is evaluated via left-to-right concatenations, producing `"stringUngrouped=12"`. `"stringGrouped=" + (1 + 2)` forces numeric addition first, producing `"stringGrouped=3"`. The `+` operator can be numeric addition **or string concatenation**, depending on operand types.
 
-**Nhóm thứ tự đánh giá:** dù phép nhân có độ ưu tiên cao hơn cộng, `mark("left", 2)` chạy trước, rồi `mark("middle", 3)` và `mark("right", 4)`. Các dấu `visit=...` trong output chứng minh trình tự đánh giá các toán hạng của biểu thức `a() + b() * c()`.
+**Evaluation order group:** even though multiplication has higher precedence than addition, `mark("left", 2)` runs first, then `mark("middle", 3)`, and then `mark("right", 4)`. The `visit=...` lines in the output demonstrate the evaluation sequence of operands in `a() + b() * c()`.
 
-**Nhóm ngắn mạch:** với `||`, khi toán hạng trái đã là true, phương thức `check("skipped", false)` **không được gọi**; vì thế chỉ có `check=first`. Với `&&`, khi `divisor != 0` là false, Java không đánh giá `x / divisor > 1`, nên tránh được phép chia cho 0. Không dựa vào mẹo này nếu biến có thể bị thay đổi đồng thời mà chưa đồng bộ phù hợp.
+**Short-circuit group:** with `||`, once the left operand is true, `check("skipped", false)` is **not called**; thus only `check=first` appears. With `&&`, when `divisor != 0` is false, Java does not evaluate `x / divisor > 1`, avoiding division by zero. Do not rely on this trick if a variable may be mutated concurrently without proper synchronization.
 
-**Nhóm tác dụng phụ:** `count += 3` vừa cập nhật `count` từ 4 thành 7, vừa có giá trị 7; sau đó nhân 2 cho `assigned = 14`. `n++` sử dụng giá trị cũ 5 trong biểu thức, sau đó biến thành 6; `post = 5 + 2 = 7`.
+**Side-effect group:** `count += 3` both updates `count` from 4 to 7 and evaluates to 7; multiplying by 2 gives `assigned = 14`. `n++` uses the old value 5 in the expression and then increments the variable to 6; `post = 5 + 2 = 7`.
 
-## 5. Phân tích biểu thức theo ba bước
+## 5. Analyzing an Expression in Three Steps
 
-Khi gặp một biểu thức dài, hãy đi theo quy trình:
+When encountering a long expression, follow this process:
 
-1. **Xác định các toán hạng**: literal, biến, lời gọi phương thức, truy cập phần tử hoặc biểu thức lồng.
-2. **Nhóm theo dấu ngoặc, độ ưu tiên và tính kết hợp**: xác định cây biểu thức và kiểu kết quả của từng phần.
-3. **Theo dõi đánh giá lúc chạy**: xét thứ tự toán hạng, ngắn mạch, nhánh điều kiện được chọn và tác dụng phụ.
+1. **Identify the operands**: literals, variables, method calls, element accesses, or nested expressions.
+2. **Group by parentheses, precedence, and associativity**: determine the expression tree and the result type of each part.
+3. **Trace runtime evaluation**: check operand order, short-circuiting, chosen conditional branch, and side effects.
 
-Ví dụ `(price + tax) * quantity >= minimum && active`:
+Example `(price + tax) * quantity >= minimum && active`:
 
 ~~~text
                      &&
@@ -214,69 +214,69 @@ Ví dụ `(price + tax) * quantity >= minimum && active`:
           price tax
 ~~~
 
-Để đúng kiểu Java, giả sử `price`, `tax`, `quantity`, `minimum` có các kiểu số tương thích và `active` là `boolean`. Biểu thức con bên trái `>=` có kiểu boolean; toàn bộ `&&` cũng có kiểu boolean. Nếu phần bên trái `&&` false thì giá trị `active` không cần được đánh giá.
+For valid Java typing, assume `price`, `tax`, `quantity`, and `minimum` have compatible numeric types and `active` is `boolean`. The sub-expression on the left of `>=` has type `boolean`; the entire `&&` also has type `boolean`. If the left side of `&&` is false, `active` does not need to be evaluated.
 
-Sơ đồ chỉ thể hiện **cách nhóm**, không phải lịch trình từng lời gọi hoặc tác dụng phụ trong biểu thức.
+The diagram shows only **grouping**, not a schedule of individual calls or side effects inside the expression.
 
-## 6. Kiểu của từng biểu thức con
+## 6. Types of Individual Sub-Expressions
 
-Lồng nhau không làm mất quy tắc kiểu: mỗi nút của cây biểu thức vẫn cần toán hạng đúng kiểu. Ví dụ:
+Nesting does not bypass type rules: every node of the expression tree still requires operands of the proper type. For example:
 
 ~~~java
 int a = 5, b = 2;
 boolean ok = (a + b) > 6 && b != 0; // true
 ~~~
 
-`a + b` có kiểu `int`; phép `> 6` và `b != 0` đều có kiểu `boolean`; kết quả của `&&` cũng là `boolean`. Ngoặc quanh `(a + b)` chỉ nhóm phép tính, không làm nó thành `double`; Java không chuyển ngầm số 0 thành `false` như một số ngôn ngữ khác.
+`a + b` has type `int`; `> 6` and `b != 0` both have type `boolean`; the result of `&&` is also `boolean`. Parentheses around `(a + b)` only group the operation, not turn it into `double`; Java does not implicitly convert `0` to `false` as some other languages do.
 
-## 7. Cách nhóm không thay thế kiểm tra kiểu và giới hạn
+## 7. Grouping Does Not Replace Type and Range Checks
 
 ~~~java
 int price = 50_000, units = 50_000;
-long overflowed = (long) (price * units); // Nhân int trước, đã tràn
-long safeSize = (long) price * units;      // Nhân long, kết quả 2500000000
+long overflowed = (long) (price * units); // Multiplies ints first, already overflowed
+long safeSize = (long) price * units;      // Multiplies as long, result 2500000000
 ~~~
 
-Cây nhóm giúp biết phép nhân nằm ở đâu, nhưng không tự mở rộng kiểu số hay kiểm tra overflow. Muốn tránh mất dữ liệu cần chuyển kiểu **trước** phép tính hoặc dùng phép kiểm tra tràn phù hợp. Với lời gọi có side effect, cân nhắc tách toán hạng thành các biến có tên để dễ kiểm tra.
+The grouping tree shows where multiplication sits, but it does not automatically widen numeric types or check for overflow. To avoid data loss, convert the type **before** the operation or use an appropriate overflow check. For calls with side effects, consider extracting operands into named variables for easier inspection.
 
-## 8. Lỗi phổ biến và cách nhận diện
+## 8. Common Mistakes and How to Spot Them
 
-| Ngộ nhận | Thực tế |
+| Misconception | Reality |
 | --- | --- |
-| “Toán tử `*` ưu tiên cao nên lời gọi ở vế nhân luôn chạy trước.” | Độ ưu tiên quyết định **nhóm**, không đảo thứ tự đánh giá toán hạng Java |
-| “`(5 / 2)` có kết quả số thực vì có ngoặc.” | Ngoặc không tự đổi `int` thành `double` |
-| “`"x=" + 1 + 2` cho `x=3`.” | Nối chuỗi từ trái sang phải, cho `x=12` |
-| “`(a && b)` lúc nào cũng chạy cả hai phía.” | `&&` ngắn mạch khi bên trái false |
-| “`a || b` luôn gọi `b`.” | `||` bỏ qua `b` nếu `a` đã true |
-| “`(n += 1)` không phải biểu thức có giá trị.” | Phép gán có giá trị và cập nhật biến |
-| “`n++` và `++n` luôn cho cùng giá trị trong biểu thức.” | Postfix dùng giá trị cũ, prefix dùng giá trị mới |
-| “Thêm ngoặc luôn khiến phép toán không tràn.” | Ngoặc không tự mở rộng miền số hoặc kiểm tra overflow |
+| "The `*` operator has high precedence, so calls in the multiplication side always run first." | Precedence determines **grouping**, not reversing Java's operand evaluation order |
+| "`(5 / 2)` gives a floating-point result because it has parentheses." | Parentheses do not turn `int` into `double` |
+| "`"x=" + 1 + 2` gives `x=3`." | Concatenates strings left to right, giving `x=12` |
+| "`(a && b)` always evaluates both sides." | `&&` short-circuits when the left side is false |
+| "`a || b` always calls `b`." | `||` skips `b` if `a` is already true |
+| "`(n += 1)` is not a value-producing expression." | Assignment has a value and updates the variable |
+| "`n++` and `++n` always give the same value inside an expression." | Postfix uses the old value; prefix uses the new value |
+| "Adding parentheses always prevents arithmetic overflow." | Parentheses do not widen numeric ranges or check overflow |
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-Check Exercises
 
-1. **Ưu tiên:** `2 + 3 * 4` và `(2 + 3) * 4` lần lượt bằng bao nhiêu?  
-   *Đáp án:* 14 và 20.
-2. **Kết hợp:** `20 - 5 - 3` bằng bao nhiêu?  
-   *Đáp án:* 12, nhóm `(20 - 5) - 3`.
-3. **Nối chuỗi:** `"n=" + 1 + 2` khác `"n=" + (1 + 2)` thế nào?  
-   *Đáp án:* `"n=12"` và `"n=3"`.
-4. **Ngắn mạch:** `int d = 0; boolean ok = d != 0 && 10 / d > 1;` có chia cho 0 không?  
-   *Đáp án:* Không, vế phải `&&` bị bỏ qua khi điều kiện đầu false.
-5. **Tăng hậu tố:** `int n = 4; int r = n++ + 2;`, cuối cùng `r` và `n` bằng bao nhiêu?  
-   *Đáp án:* `r = 6` và `n = 5`.
-6. **Kiểu kết quả:** `double x = 5 / 2;` có giá trị bao nhiêu?  
-   *Đáp án:* `2.0`; muốn `2.5` cần `5 / 2.0` hoặc cast phù hợp.
-7. **Thứ tự đánh giá:** Trong `first() + second() * third()`, nếu các hàm đều trả số và in dấu vết, thứ tự lời gọi nào xảy ra?  
-   *Đáp án:* `first()` rồi `second()` rồi `third()`.
+1. **Precedence:** What are `2 + 3 * 4` and `(2 + 3) * 4`, respectively?  
+   *Answer:* 14 and 20.
+2. **Associativity:** What is `20 - 5 - 3`?  
+   *Answer:* 12, grouped as `(20 - 5) - 3`.
+3. **String concatenation:** How does `"n=" + 1 + 2` differ from `"n=" + (1 + 2)`?  
+   *Answer:* `"n=12"` and `"n=3"`.
+4. **Short-circuiting:** Does `int d = 0; boolean ok = d != 0 && 10 / d > 1;` divide by 0?  
+   *Answer:* No, the right side of `&&` is skipped when the first condition is false.
+5. **Postfix increment:** In `int n = 4; int r = n++ + 2;`, what are `r` and `n` at the end?  
+   *Answer:* `r = 6` and `n = 5`.
+6. **Result type:** What value does `double x = 5 / 2;` have?  
+   *Answer:* `2.0`; to get `2.5`, use `5 / 2.0` or an appropriate cast.
+7. **Evaluation order:** In `first() + second() * third()`, if all functions return numbers and print a trace, in what order do the calls occur?  
+   *Answer:* `first()`, then `second()`, then `third()`.
 
 ## Checklist
 
-- [ ] Nhận diện **toán hạng**, **toán tử**, và **biểu thức con**.
-- [ ] Tách biệt **cách nhóm do precedence/associativity** với **thứ tự đánh giá toán hạng**.
-- [ ] Sử dụng ngoặc để làm rõ ý, không cho rằng ngoặc tự thay đổi kiểu dữ liệu.
-- [ ] Hiểu `&&`/`||`/`?:` có thể bỏ qua đánh giá một nhánh.
-- [ ] Theo dõi kiểu và giá trị trung gian, nhất là phép chia nguyên và số có thể tràn.
-- [ ] Cẩn thận tác dụng phụ của `=`, `+=`, `++` và lời gọi phương thức trong biểu thức.
-- [ ] Khi biểu thức quá dài, cân nhắc đặt tên các bước trung gian để dễ kiểm tra.
+- [ ] Identify **operands**, **operators**, and **sub-expressions**.
+- [ ] Separate **grouping from precedence/associativity** from **operand evaluation order**.
+- [ ] Use parentheses to clarify intent, without assuming parentheses change data types.
+- [ ] Understand that `&&`/`||`/`?:` can skip evaluating a branch.
+- [ ] Track intermediate types and values, especially integer division and numbers that may overflow.
+- [ ] Be careful with side effects from `=`, `+=`, `++`, and method calls inside expressions.
+- [ ] When an expression gets too long, consider naming intermediate steps for easier inspection.
 
-**Kết luận:** Hãy đọc biểu thức Java bằng cách xác định **các toán hạng**, **toán tử liên kết chúng**, **cây nhóm của những biểu thức lồng nhau** và **thứ tự đánh giá thực tế**. Cách tiếp cận này giúp tránh nhầm về độ ưu tiên, sai kiểu kết quả và tác dụng phụ khó thấy.
+**Conclusion:** Read Java expressions by identifying **the operands**, **the operators connecting them**, **the grouping tree of nested expressions**, and **the actual evaluation order**. This approach helps avoid precedence mistakes, wrong result types, and hard-to-spot side effects.

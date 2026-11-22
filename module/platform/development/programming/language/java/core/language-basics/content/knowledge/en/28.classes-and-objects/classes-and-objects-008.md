@@ -1,8 +1,8 @@
-# Giới thiệu `enum`, `record` và `interface` — đọc hiểu cú pháp Java 17+
+# Introducing `enum`, `record`, and `interface` — Reading Java 17+ Syntax
 
-## 1. Nhận diện nhanh ba kiểu khai báo
+## 1. Quickly Recognizing the Three Declaration Kinds
 
-Java không chỉ có `class`. Khi đọc mã nguồn, bạn thường gặp:
+Java does not only have `class`. When reading source code, you will frequently encounter:
 
 ~~~java
 enum Priority { LOW, MEDIUM, HIGH }
@@ -14,15 +14,15 @@ interface Printable {
 }
 ~~~
 
-| Từ khóa | Mục đích chính | Đọc hiểu nhanh |
+| Keyword | Primary purpose | Quick reading |
 |---|---|---|
-| `enum` | Biểu diễn tập giá trị cố định có tên | `Priority.MEDIUM` là một hằng kiểu `Priority` |
-| `record` | Khai báo kiểu dữ liệu mang các thành phần (*components*) | `new Point(2, 3)` có các accessor `x()`, `y()` |
-| `interface` | Định nghĩa hợp đồng mà các kiểu khác có thể thực hiện | `class/record X implements Printable` cam kết cung cấp `label()` |
+| `enum` | Represents a fixed set of named values | `Priority.MEDIUM` is a constant of type `Priority` |
+| `record` | Declares a data carrier type with *components* | `new Point(2, 3)` has accessors `x()`, `y()` |
+| `interface` | Defines a contract that other types can implement | `class/record X implements Printable` commits to providing `label()` |
 
-Cả ba tạo ra **kiểu tham chiếu**, không phải kiểu nguyên thủy như `int`. Bài này tập trung **đọc đúng cú pháp và sử dụng cơ bản** trên Java 17, chưa đi sâu thiết kế OOP.
+All three produce **reference types**, not primitive types like `int`. This lesson focuses on **reading syntax accurately and basic usage** on Java 17, before diving deep into OOP design.
 
-## 2. `enum`: tập hằng có tên và kiểu rõ ràng
+## 2. `enum`: Named Constants with an Explicit Type
 
 ~~~java
 enum Priority {
@@ -39,11 +39,11 @@ System.out.println(current);
 MEDIUM
 ~~~
 
-- `Priority` là tên kiểu `enum`, còn `LOW`, `MEDIUM`, `HIGH` là các hằng của kiểu đó.
-- `Priority.MEDIUM` không phải chuỗi `"MEDIUM"`; nó là một giá trị kiểu `Priority`.
-- `Priority.values()` trả mảng chứa các hằng theo thứ tự khai báo; `Priority.valueOf("MEDIUM")` tìm đúng hằng có tên này.
-- `current.name()` trả tên hằng; `current.ordinal()` là vị trí bắt đầu từ 0, nhưng **không nên lưu ordinal làm mã nghiệp vụ bền vững** vì đổi thứ tự hằng sẽ đổi số.
-- `enum` có thể có field, method và constructor, nhưng ở mức cơ bản có thể chỉ cần liệt kê các hằng.
+- `Priority` is the `enum` type name, and `LOW`, `MEDIUM`, `HIGH` are constants of that type.
+- `Priority.MEDIUM` is not the string `"MEDIUM"`; it is a value of type `Priority`.
+- `Priority.values()` returns an array containing the constants in declaration order; `Priority.valueOf("MEDIUM")` looks up the constant with that exact name.
+- `current.name()` returns the constant's name; `current.ordinal()` is its 0-based position, though **you should not store ordinal as a durable business code** because reordering constants changes the numbers.
+- An `enum` can have fields, methods, and constructors, though at a basic level simply listing constants may suffice.
 
 ~~~java
 String action = switch (current) {
@@ -60,9 +60,9 @@ System.out.println(action);
 review
 ~~~
 
-Đây là **switch expression** hợp lệ trong Java 17: các nhánh bao phủ mọi hằng hiện có của `Priority`. Không thể viết `new Priority()` để tùy ý tạo thêm hằng enum.
+This is a valid **switch expression** in Java 17: the branches cover every existing constant of `Priority`. You cannot write `new Priority()` to arbitrarily create extra enum constants.
 
-## 3. `record`: cách khai báo gọn một kiểu dữ liệu
+## 3. `record`: Concise Declaration of a Data Type
 
 ~~~java
 record Point(int x, int y) {}
@@ -81,14 +81,14 @@ System.out.println(p);
 Point[x=2, y=3]
 ~~~
 
-`record Point(int x, int y)` khai báo hai **record components** `x` và `y`. Java tự cung cấp nhiều thành phần thường phải viết thủ công:
+`record Point(int x, int y)` declares two **record components** `x` and `y`. Java automatically provides several members that otherwise have to be written manually:
 
-- Constructor chuẩn theo các components, ví dụ `new Point(2, 3)`.
-- Các accessor tên `x()` và `y()`, **không mặc định là** `getX()`/`getY()`.
-- `equals`, `hashCode`, `toString` dựa trên các components.
-- Các trường component là `private final` trong record, không được gán lại sau khi khởi tạo.
+- A canonical constructor matching the components, e.g., `new Point(2, 3)`.
+- Accessors named `x()` and `y()`, **not** `getX()`/`getY()` by default.
+- `equals`, `hashCode`, and `toString` based on the components.
+- Component fields are `private final` in the record and cannot be reassigned after initialization.
 
-Record vẫn có thể có method riêng và **kiểm tra dữ liệu lúc tạo** bằng compact constructor:
+A record can still have its own methods and **validate data at creation time** via a compact constructor:
 
 ~~~java
 record Lesson(String title, int minutes) {
@@ -104,11 +104,11 @@ record Lesson(String title, int minutes) {
 }
 ~~~
 
-`Lesson { ... }` là **compact canonical constructor**: viết logic kiểm tra/chuẩn hóa, không phải khai báo một method tên `Lesson`. Sau phần thân này, Java gán các giá trị tham số component đã xử lý vào các trường tương ứng.
+`Lesson { ... }` is a **compact canonical constructor**: write validation/normalization logic, not a method named `Lesson`. After this body, Java assigns the processed component parameter values to the corresponding fields.
 
-**Quan trọng:** record không đồng nghĩa *deep immutable*. Nếu component là một mảng hoặc object mutable, bản ghi vẫn có thể giữ tham chiếu tới dữ liệu có thể bị sửa. Record là `final` (không thể được kế thừa bằng `extends`); nó có thể `implements interface`.
+**Important:** `record` does not mean *deeply immutable*. If a component is an array or mutable object, the record can still hold a reference to data that can be mutated. A record is `final` (cannot be extended via `extends`); it can `implements interface`.
 
-## 4. `interface`: hợp đồng hành vi
+## 4. `interface`: Behavior Contract
 
 ~~~java
 interface Describable {
@@ -124,13 +124,13 @@ interface Describable {
 }
 ~~~
 
-Đọc cú pháp:
+Reading the syntax:
 
-- `String label();` khai báo một phương thức trừu tượng (implicit `public abstract`); không có thân ở đây.
-- `default String summary() { ... }` có **thân mặc định** để các lớp thực hiện interface có thể sử dụng hoặc override.
-- `static String kind() { ... }` là phương thức static của interface, gọi bằng `Describable.kind()`.
-- Một class hoặc record dùng `implements Describable` và phải cung cấp cách cài đặt các phương thức abstract chưa được thực hiện.
-- Phương thức cài đặt `label()` từ interface phải là `public`; không được giảm quyền truy cập thành package-private hay `private`.
+- `String label();` declares an abstract method (implicitly `public abstract`); there is no body here.
+- `default String summary() { ... }` has a **default body** that implementing classes can use or override.
+- `static String kind() { ... }` is a static method on the interface, invoked as `Describable.kind()`.
+- A class or record uses `implements Describable` and must provide implementations for unimplemented abstract methods.
+- The method implementing `label()` from the interface must be `public`; you cannot reduce its visibility to package-private or `private`.
 
 ~~~java
 record Lesson(String title, int minutes) implements Describable {
@@ -141,9 +141,9 @@ record Lesson(String title, int minutes) implements Describable {
 }
 ~~~
 
-Ví dụ trên chỉ minh họa hình dạng khai báo; chương trình hoàn chỉnh ở mục 6 có thêm compact constructor để xác thực dữ liệu.
+The snippet above only illustrates the declaration shape; the complete program in Section 6 adds a compact constructor for data validation.
 
-**Không viết** `new Describable()`: interface không phải class cụ thể để khởi tạo trực tiếp. Nhưng biến kiểu interface có thể **tham chiếu tới object của lớp/record cài đặt nó**:
+**Do not write** `new Describable()`: an interface is not a concrete class that can be instantiated directly. However, a variable of interface type can **reference an object of a class/record implementing it**:
 
 ~~~java
 Describable item = new Lesson("Java", 30);
@@ -158,25 +158,25 @@ Java
 Named:Java
 ~~~
 
-Java cũng hỗ trợ class `implements` nhiều interface, và interface `extends` một hoặc nhiều interface khác. Đừng nhầm từ khóa `implements` (thực hiện hợp đồng) với `extends` (quan hệ kế thừa được phép giữa các kiểu).
+Java also supports a class implementing multiple interfaces, and an interface extending one or more other interfaces. Do not confuse the keyword `implements` (fulfilling a contract) with `extends` (permitted inheritance relationship between types).
 
-## 5. Đặt ba kiểu cạnh nhau
+## 5. Comparing the Three Types Side by Side
 
-| Điểm khác biệt | `enum` | `record` | `interface` |
+| Difference | `enum` | `record` | `interface` |
 |---|---|---|---|
-| Thường dùng để | Trạng thái/tùy chọn hữu hạn | Gói dữ liệu có tên trường | Hợp đồng hành vi |
-| Tạo giá trị | Dùng hằng khai báo sẵn | Thường `new RecordName(...)` | Không tạo object trực tiếp |
-| Ví dụ truy cập | `Priority.HIGH` | `lesson.title()` | `item.label()` |
-| Phương thức có thân | Có thể khai báo | Có thể khai báo | `default`, `static` (và helper `private` trên Java hiện đại) |
-| Có thể thực hiện interface | Có | Có | Interface khác có thể mở rộng nó |
+| Commonly used for | Finite states/options | Data bundle with named fields | Behavior contract |
+| Creating values | Use predeclared constants | Typically `new RecordName(...)` | Cannot instantiate directly |
+| Access example | `Priority.HIGH` | `lesson.title()` | `item.label()` |
+| Methods with bodies | Can be declared | Can be declared | `default`, `static` (and `private` helpers in modern Java) |
+| Can implement interfaces | Yes | Yes | Other interfaces can extend it |
 
-Khi đọc chữ ký `record Lesson(...) implements Describable`, hiểu theo thứ tự: định nghĩa **kiểu record** `Lesson`, khai báo components trong ngoặc, rồi xác nhận nó **cung cấp hành vi** theo `Describable`.
+When reading the signature `record Lesson(...) implements Describable`, read in order: defines the **record type** `Lesson`, declares components in parentheses, then confirms it **provides behavior** according to `Describable`.
 
-Trong Java 17, cả ba cú pháp trên đều **ổn định, không cần bật preview features**. Record trở thành tính năng chính thức từ Java 16; enum và interface đã có từ các phiên bản Java trước đó.
+In Java 17, all three syntaxes above are **stable, without needing preview features enabled**. Records became a standard feature in Java 16; enums and interfaces have existed in earlier Java versions.
 
-## 6. Chương trình Java 17+ hoàn chỉnh
+## 6. Complete Java 17+ Program
 
-Lưu đúng file **`EnumRecordInterfaceDemo.java`**:
+Save exact file **`EnumRecordInterfaceDemo.java`**:
 
 ~~~java
 public final class EnumRecordInterfaceDemo {
@@ -267,7 +267,7 @@ public final class EnumRecordInterfaceDemo {
 }
 ~~~
 
-Yêu cầu **JDK 17 trở lên**, không cần Maven/Gradle, thư viện bên ngoài hay `--enable-preview`.
+Requires **JDK 17 or later**, no Maven/Gradle, external libraries, or `--enable-preview`.
 
 **Bash (Linux/macOS):**
 
@@ -303,44 +303,44 @@ class implements=Named:Basics
 record invalid=blank title
 ~~~
 
-Đọc luồng kết quả: biến `priority` giữ một hằng enum; `Lesson` tạo hai object có cùng nội dung (`equals=true`) nhưng khác tham chiếu (`==false`); object record có thể được gán cho biến interface `Describable` vì đã `implements`; lớp `Folder` cũng có thể thực hiện cùng interface.
+Reading the output flow: `priority` holds an enum constant; `Lesson` creates two objects with the same content (`equals=true`) but different references (`==false`); the record object can be assigned to the `Describable` interface variable because it `implements` it; the `Folder` class can also implement the same interface.
 
-## 7. Lỗi đọc cú pháp thường gặp
+## 7. Common Syntax-Reading Mistakes
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Confusion | Correct understanding |
 |---|---|
-| Coi `Priority.HIGH` là `String` | Nó là hằng kiểu `Priority`; dùng `.name()` nếu cần tên |
-| Dùng `new Priority()` | Không thể tự tạo enum constant bằng `new` |
-| Dùng `new Describable()` | Interface không được khởi tạo trực tiếp |
-| Gọi `lesson.getTitle()` theo mặc định | Record component có accessor `title()` |
-| Nghĩ record luôn deep immutable | Component tham chiếu mutable vẫn có thể bị thay đổi |
-| Gọi `Describable.summary()` như static | `summary()` là instance default method; chỉ `kind()` mới static |
-| Cài đặt `label()` không `public` | Không được giảm quyền truy cập của phương thức interface |
-| Dùng `extends` thay `implements` khi record cài đặt interface | Viết `record Lesson(...) implements Describable` |
-| Coi `record` là class có thể kế thừa | Record ngầm `final`, không được lớp khác `extends` |
-| Lưu `enum.ordinal()` như mã cố định | Thứ tự hằng thay đổi sẽ làm ordinal đổi |
+| Treating `Priority.HIGH` as a `String` | It is a constant of type `Priority`; use `.name()` if the string name is needed |
+| Using `new Priority()` | Cannot instantiate new enum constants with `new` |
+| Using `new Describable()` | An interface cannot be instantiated directly |
+| Calling `lesson.getTitle()` by default | A record component has accessor `title()` |
+| Thinking records are always deeply immutable | Mutable reference components can still be mutated |
+| Calling `Describable.summary()` as static | `summary()` is an instance default method; only `kind()` is static |
+| Implementing `label()` without `public` | Cannot reduce visibility of an interface method |
+| Using `extends` instead of `implements` when a record implements an interface | Write `record Lesson(...) implements Describable` |
+| Treating `record` as an extendable class | Records are implicitly `final` and cannot be `extends`-ed by other classes |
+| Storing `enum.ordinal()` as a fixed code | Reordering constants changes ordinals |
 
-## 8. Bài tập có đáp án
+## 8. Exercises with Answers
 
-**A.** Với `enum Traffic { RED, YELLOW, GREEN }`, biến `Traffic light = Traffic.RED;` giữ kiểu gì? **`Traffic`**; `RED` là một hằng của enum, không phải chuỗi.
+**A.** Given `enum Traffic { RED, YELLOW, GREEN }`, what type does `Traffic light = Traffic.RED;` hold? **`Traffic`**; `RED` is an enum constant, not a string.
 
-**B.** Với `record Size(int width, int height) {}`, tạo `new Size(2, 5)` rồi đọc chiều rộng thế nào? **`size.width()`** với biến `Size size`; Java không tự tạo `getWidth()`.
+**B.** Given `record Size(int width, int height) {}`, after creating `new Size(2, 5)`, how do you read the width? **`size.width()`** for variable `Size size`; Java does not automatically generate `getWidth()`.
 
-**C.** Interface khai báo `void run();`, class thực hiện nó phải viết phương thức với quyền truy cập nào? **`public void run() { ... }`** (nếu class cụ thể cung cấp cài đặt trực tiếp).
+**C.** An interface declares `void run();`. With what access level must a class implementing it write the method? **`public void run() { ... }`** (if the concrete class provides the implementation directly).
 
-**D.** Hai record cùng giá trị components có thể `equals` true nhưng `==` false không? **Có**: `equals` dựa vào nội dung components, `==` so object identity.
+**D.** Can two records with identical component values have `equals` true yet `==` false? **Yes**: `equals` compares component contents, while `==` compares object identity.
 
-**E.** `record Lesson(String name) implements Describable` có thể có thêm method riêng không? **Có**; record vẫn là kiểu lớp đặc biệt có thể khai báo method và thực hiện interface.
+**E.** Can `record Lesson(String name) implements Describable` declare additional methods of its own? **Yes**; a record is still a specialized class type that can declare methods and implement interfaces.
 
-## 9. Checklist và kết luận
+## 9. Checklist and Conclusion
 
-- [ ] Nhận diện `enum`, danh sách hằng và cách viết `Type.CONSTANT`.
-- [ ] Hiểu `record X(T component)` khai báo dữ liệu và accessor `component()`.
-- [ ] Biết `equals` và `==` của record mang ý nghĩa khác nhau.
-- [ ] Hiểu interface khai báo hợp đồng; `implements` là thực hiện hợp đồng.
-- [ ] Phân biệt abstract, default và static method trong interface.
-- [ ] Biết record có thể `implements interface`.
-- [ ] Không nhầm record là deep immutable hay enum là `String`.
-- [ ] Biên dịch, chạy `EnumRecordInterfaceDemo.java` bằng JDK 17+ và đối chiếu exact stdout.
+- [ ] Recognize `enum`, constant lists, and `Type.CONSTANT` notation.
+- [ ] Understand `record X(T component)` declares data and the `component()` accessor.
+- [ ] Know that `equals` and `==` on records carry different meanings.
+- [ ] Understand interfaces declare contracts; `implements` fulfills a contract.
+- [ ] Distinguish `abstract`, `default`, and `static` methods in an interface.
+- [ ] Know that a record can `implements interface`.
+- [ ] Do not mistake records for deeply immutable types or enums for `String`.
+- [ ] Compile and run `EnumRecordInterfaceDemo.java` with JDK 17+ and verify exact stdout.
 
-**Kết luận:** `enum` phù hợp với **tập lựa chọn có tên**, `record` thuận tiện để biểu diễn **dữ liệu có cấu trúc**, còn `interface` biểu diễn **hợp đồng hành vi**. Đọc đúng ba cú pháp giúp hiểu cách các kiểu Java kết hợp với nhau mà chưa cần học sâu các kỹ thuật OOP nâng cao.
+**Conclusion:** `enum` fits **named choice sets**, `record` conveniently represents **structured data**, and `interface` expresses **behavior contracts**. Reading these three syntaxes correctly helps you understand how Java types work together before diving deeper into advanced OOP techniques.

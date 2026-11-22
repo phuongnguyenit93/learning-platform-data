@@ -1,46 +1,46 @@
-# Chỉ lưu sẵn hash code khi trạng thái và cơ chế đồng bộ cho phép
+# Only Cache Hash Codes When State and Synchronization Allow It
 
-`hashCode()` là một phần của hợp đồng bằng nhau giữa các đối tượng Java. Khi tính mã băm tốn chi phí, ta có thể **lưu sẵn (cache, memoization)** kết quả để tái sử dụng. Nhưng một trường `cachedHash` chỉ đúng nếu kết quả đó còn đại diện cho trạng thái mà `equals()` xem là danh tính logic, và nếu nhiều luồng truy cập thì việc công bố cũng như đọc/ghi giá trị đã được thiết kế đúng.
+`hashCode()` is part of the equality contract between Java objects. When computing a hash code is expensive, you can **cache (memoize)** the result for reuse. However, a `cachedHash` field is only valid if that value still represents the state that `equals()` treats as logical identity, and—when accessed by multiple threads—both publication and reads/writes of the value are properly designed.
 
-Ba câu hỏi phải được giải quyết trước khi lưu hash:
+Three questions must be answered before caching a hash:
 
-1. **Trạng thái nào quyết định `equals()` và `hashCode()`?** Trạng thái ấy có giữ nguyên trong suốt vòng đời đối tượng hoặc ít nhất trong thời gian sử dụng cache không?
-2. **Hash được tính và công bố như thế nào?** Có luồng khác truy cập trước hoặc đồng thời khi cache được gán không?
-3. **Đối tượng được dùng ở đâu?** Nếu đã làm khóa `HashMap` hoặc phần tử `HashSet`, việc thay đổi giá trị quyết định hash có thể làm mất khả năng tra cứu ngay cả khi cache được cập nhật đúng.
+1. **What state determines `equals()` and `hashCode()`?** Does that state stay unchanged for the object's lifetime, or at least for as long as the cache is used?
+2. **How is the hash computed and published?** Can another thread access it before or concurrently while the cache is being assigned?
+3. **Where is the object used?** If it already serves as a `HashMap` key or `HashSet` element, changing the values that determine its hash can break lookup even if the cache is updated properly.
 
-Mục tiêu là bảo vệ tính đúng đắn trước rồi mới tối ưu hiệu năng.
+The goal is to protect correctness first, and optimize performance second.
 
-## 1. Hợp đồng `equals()` – `hashCode()` quyết định việc có được cache
+## 1. The `equals()`–`hashCode()` Contract Governs Whether Caching Is Allowed
 
-Với hai đối tượng `a`, `b`:
+For two objects `a` and `b`:
 
-- Nếu `a.equals(b)` trả `true`, **bắt buộc** `a.hashCode() == b.hashCode()`.
-- Hai đối tượng khác nhau **được phép** có mã băm giống nhau: va chạm hash không có nghĩa chúng bằng nhau.
-- Trong một lần chạy Java, nếu những thông tin được sử dụng cho phép so sánh bằng nhau **không đổi**, việc gọi `hashCode()` nhiều lần trên cùng đối tượng phải cho kết quả nhất quán.
-- Nếu các thông tin dùng trong phép so sánh **thay đổi**, kết quả hash có thể thay đổi; nhưng cần tránh thay đổi khi đối tượng đang được sử dụng như khóa của cấu trúc hash.
+- If `a.equals(b)` returns `true`, `a.hashCode() == b.hashCode()` **must** hold.
+- Two unequal objects **are allowed** to have the same hash code: a hash collision does not mean they are equal.
+- Within a single execution of a Java application, if the information used in equality comparisons **does not change**, multiple calls to `hashCode()` on the same object must return consistent results.
+- If the information used in comparisons **changes**, the hash result may change; however, avoid mutating it while the object is actively used as a key in a hash structure.
 
-Hash được cache là một **giá trị dẫn xuất** từ trạng thái. Khi trạng thái logic đã đổi, cache có thể thành **giá trị cũ (stale cache)**. Ví dụ, đối tượng đang có `code = "B"` nhưng trường cache chứa hash của `"A"`. Một đối tượng khác cũng có `code = "B"` sẽ bằng nhau theo `equals()` nhưng có thể trả một mã băm khác. Đó là lỗi hợp đồng, dù mọi phương thức đều có thể chạy không ném exception.
+A cached hash is a **derived value** from state. When logical state changes, the cache can become a **stale cache**. For example, the object currently has `code = "B"`, yet the cache field holds the hash of `"A"`. Another object that also has `code = "B"` will be equal under `equals()`, yet may return a different hash code. That is a contract bug, even though every method runs without throwing an exception.
 
-Cũng không được hiểu `hashCode()` là một ID duy nhất, bất biến theo mọi trường hợp. Mã hash có thể va chạm; tính ổn định phải được thiết kế theo **các trường tham gia equality**.
+Nor should `hashCode()` be mistaken for a unique, universally invariant ID. Hash codes can collide; stability must be designed around **the fields participating in equality**.
 
-## 2. Chọn chiến lược theo tính chất trạng thái
+## 2. Choosing a Strategy Based on State Characteristics
 
-| Trường hợp | Khuyến nghị | Lý do |
+| Case | Recommendation | Reason |
 | --- | --- | --- |
-| Value object bất biến; hash thường được sử dụng | Có thể **tính trước** và lưu trong trường `final` | Không phải xử lý invalidation và visibility của một lần ghi cache muộn |
-| Value object bất biến; hash đắt nhưng ít được gọi | Có thể **tính lười** với cơ chế công bố an toàn | Tránh tính hash cho những instance không bao giờ cần |
-| Object mutable chỉ dùng nội bộ một luồng | Cache có điều kiện; phải vô hiệu hóa khi trạng thái liên quan đổi | Tránh trả lại kết quả cũ |
-| Object mutable nhiều luồng cùng truy cập | Cân nhắc thiết kế lại; muốn cache cần nhất quán cho trạng thái, cache và `equals()` | `volatile` riêng cache không đồng bộ các trường trạng thái khác |
-| Object mutable đã nằm trong `HashMap`/`HashSet` | Tránh thay đổi các trường dùng cho equality/hash | Invalidation không điều chỉnh vị trí phần tử trong cấu trúc hash |
-| Hash tính rẻ, hiếm gọi | Thường cứ tính trực tiếp | Cache tốn bộ nhớ, nhánh điều kiện và đôi khi đồng bộ |
+| Immutable value object; hash is used frequently | Can **precompute eagerly** and store in a `final` field | No need to handle invalidation or visibility of a late cache write |
+| Immutable value object; hash is expensive but rarely called | Can **compute lazily** with safe publication | Avoids computing hashes for instances that never need them |
+| Mutable object used strictly within a single thread | Conditional caching; must invalidate when relevant state changes | Prevents returning stale results |
+| Mutable object accessed concurrently by multiple threads | Consider redesigning; if caching, keep state, cache, and `equals()` consistent | `volatile` on the cache alone does not synchronize other state fields |
+| Mutable object already inside `HashMap`/`HashSet` | Avoid mutating fields used for equality/hash | Invalidation does not relocate the element inside the hash structure |
+| Hash is cheap to compute and rarely called | Usually compute directly | Caching costs memory, conditional branches, and sometimes synchronization |
 
-Không nên chỉ thấy `private final List<String> items` mà kết luận trạng thái bất biến: `final` cố định **tham chiếu**, nhưng `List` bên trong vẫn có thể thay đổi. Nếu nội dung danh sách tham gia phép tính hash, cần sao chép phòng vệ và giữ nội dung thực sự bất biến, hoặc chọn một thiết kế khác.
+Do not see `private final List<String> items` and assume the state is immutable: `final` fixes the **reference**, whereas the underlying `List` can still be modified. If the list's contents participate in the hash calculation, make a defensive copy and keep the contents truly immutable, or choose a different design.
 
-## 3. Cache tính sớm: đơn giản nhất với đối tượng bất biến
+## 3. Eager Caching: Simplest for Immutable Objects
 
-Khi mọi trường tham gia `equals()` đều bất biến, ta có thể tính hash một lần trong constructor, lưu vào một trường `final`. Đó là cách tránh việc phải xử lý cache bị lỗi thời.
+When every field participating in `equals()` is immutable, you can compute the hash once in the constructor and store it in a `final` field. That avoids having to handle stale caches altogether.
 
-Tạo file **`EagerHashDemo.java`**:
+Create the file **`EagerHashDemo.java`**:
 
 ```java
 import java.util.HashSet;
@@ -93,7 +93,7 @@ public class EagerHashDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac EagerHashDemo.java
@@ -108,23 +108,23 @@ same hash: true
 set size: 2
 ```
 
-**Vì sao mẫu này hợp lệ?**
+**Why is this pattern valid?**
 
-- `tenant` và `account` không null, thuộc kiểu `String` bất biến và được gán một lần.
-- `equals()` và phép tính `Objects.hash(tenant, account)` sử dụng **cùng hai thành phần**.
-- `cachedHash` là `final`, được gán ngay trong constructor, không có setter.
-- `AccountKey` là lớp `final`, ngăn subclass bổ sung trạng thái nhưng kế thừa quy tắc bằng nhau cũ.
-- Đối tượng được tạo đúng cách: không để tham chiếu `this` thoát khỏi constructor. Java Memory Model có quy tắc khởi tạo đặc biệt cho `final` fields; tuy vậy, cần tuân thủ cách công bố đối tượng an toàn cho các phần trạng thái khác nếu có.
+- `tenant` and `account` are non-null, of the immutable `String` type, and assigned once.
+- `equals()` and `Objects.hash(tenant, account)` use the **exact same two components**.
+- `cachedHash` is `final`, assigned directly in the constructor, with no setter.
+- `AccountKey` is a `final` class, preventing subclasses from adding state while inheriting the old equality rule.
+- The object is properly constructed: `this` never escapes the constructor. The Java Memory Model provides special initialization guarantees for `final` fields; nevertheless, follow safe object publication for any other state if present.
 
-`Objects.hash()` dễ đọc, nhưng do sử dụng varargs, nó có chi phí bổ sung so với một công thức hash thủ công. Chỉ tối ưu công thức sau khi đo đạc, luôn giữ nhất quán với `equals()`.
+`Objects.hash()` is easy to read, though because it uses varargs it carries extra overhead compared to a manual hash formula. Only optimize the formula after measuring, always staying consistent with `equals()`.
 
-**Phân biệt:** tính sớm làm constructor thêm việc, kể cả khi không ai gọi `hashCode()`. Với đối tượng nhỏ và phép hash đơn giản, không có lý do phải lưu sẵn hash nếu đo đạc không cho thấy lợi ích.
+**Distinction:** eager calculation adds work to the constructor even if nobody ever calls `hashCode()`. For small objects with simple hashing, there is no reason to cache the hash unless measurements show a benefit.
 
-## 4. Cache tính lười: phải giải quyết công bố kết quả giữa các luồng
+## 4. Lazy Caching: Must Solve Cross-Thread Publication
 
-**Lazy caching** chỉ tính hash ở lần gọi đầu tiên. Nếu đối tượng bất biến, hai luồng có thể cùng tính hash dựa trên cùng dữ liệu và nhận cùng kết quả. Trường hợp đó, tính trùng chỉ làm hao công; tính đúng đắn không bị ảnh hưởng nếu phép tính **thuần, tất định**, và kết quả được công bố an toàn.
+**Lazy caching** computes the hash only on the first call. If the object is immutable, two threads might compute the hash concurrently from the same data and obtain the same result. In that case, duplicate computation only wastes a bit of CPU; correctness is unaffected provided the calculation is **pure and deterministic**, and the result is safely published.
 
-Một cách dễ kiểm chứng là lưu hash trong trường **`volatile Integer`**, dùng `null` biểu thị chưa tính:
+An easy-to-verify approach is storing the hash in a **`volatile Integer`** field, using `null` to indicate "not yet computed":
 
 ```java
 private volatile Integer cachedHash;
@@ -142,11 +142,11 @@ public int hashCode() {
 }
 ```
 
-Đây là **mảnh code minh họa**, giả định lớp có trường `immutableCode` bất biến. Từ khóa `volatile` đảm bảo khi một luồng đọc được tham chiếu cache đã được công bố, nó quan sát giá trị phù hợp; việc gán một tham chiếu vào trường volatile là nguyên tử. Hai luồng vẫn có thể cùng thấy `null` và cùng tính, nhưng với dữ liệu bất biến, cả hai đều công bố cùng giá trị.
+This is an **illustrative code snippet**, assuming the class has an immutable `immutableCode` field. The `volatile` keyword ensures that once a thread reads the published cache reference, it observes the proper value; assigning a reference to a `volatile` field is atomic. Two threads can still both observe `null` and compute it, yet with immutable data both publish the same value.
 
-### 4.1. Ví dụ đầy đủ, bao gồm hash bằng 0
+### 4.1. Complete Example, Including a Hash of `0`
 
-Tạo file **`LazyHashDemo.java`**:
+Create the file **`LazyHashDemo.java`**:
 
 ```java
 import java.util.Objects;
@@ -195,7 +195,7 @@ public class LazyHashDemo {
 }
 ```
 
-Lệnh:
+Commands:
 
 ```bash
 javac LazyHashDemo.java
@@ -211,21 +211,21 @@ equals: true
 same hash: true
 ```
 
-`String.hashCode()` của chuỗi rỗng là `0`. Nếu dùng một trường `int cachedHash = 0` rồi cho `0` nghĩa là “chưa tính”, đối tượng có hash thực sự bằng 0 có thể phải tính lại mãi. Điều đó **không nhất thiết sai kết quả**, nhưng phá kỳ vọng “chỉ tính một lần”. Dùng `Integer` nullable, một cờ đã khởi tạo riêng hoặc một cấu trúc kết quả khác để phân biệt.
+`String.hashCode()` for the empty string is `0`. If you use an `int cachedHash = 0` field and treat `0` as meaning "not computed yet", an object whose true hash is `0` will recompute it every time. That **does not necessarily produce a wrong result**, but it breaks the "compute only once" expectation. Use a nullable `Integer`, a separate initialized flag, or another result structure to distinguish them.
 
-**Chi phí cần cân nhắc:** `Integer` có boxing, trường `volatile` có chi phí truy cập và lazy init có nhánh điều kiện. Đối với hash rẻ, việc dùng trực tiếp `code.hashCode()` có thể đơn giản hơn. Đây là **mẫu đúng về semantics**, không phải tuyên bố rằng cache luôn nhanh hơn.
+**Costs to weigh:** `Integer` involves boxing, a `volatile` field has access overhead, and lazy init adds a conditional branch. For cheap hashes, calling `code.hashCode()` directly can be simpler. This is a **semantically valid pattern**, not a claim that caching is always faster.
 
-### 4.2. Khi nào cần `synchronized`?
+### 4.2. When Is `synchronized` Needed?
 
-Nếu bản thân phép tính hash rất nặng hoặc có giới hạn tài nguyên nên cần **đúng một lần tính**, có thể bảo vệ việc kiểm tra và cập nhật cache bằng `synchronized` hoặc một cơ chế khởi tạo đồng bộ tương đương. Tuy vậy, đồng bộ không miễn phí và cũng không thay thế yêu cầu dữ liệu dùng tính hash phải có snapshot ổn định.
+If the hash computation itself is very heavy or resource-constrained so that **at-most-once execution** is required, you can guard checking and updating the cache with `synchronized` or an equivalent synchronized initialization mechanism. Even then, synchronization is not free and does not replace the requirement that the hashed data represent a stable snapshot.
 
-Không áp dụng double-checked locking một cách máy móc: mẫu đó đòi hỏi thiết kế visibility/công bố đúng với Java Memory Model và chỉ đáng dùng nếu thật sự có lợi ích. Nếu `hashCode()` có side effect, lấy giá trị ngẫu nhiên, đọc đồng hồ hoặc phụ thuộc dữ liệu bên ngoài biến đổi, vấn đề còn nằm ở **thiết kế hàm hash không nhất quán**.
+Do not apply double-checked locking mechanically: that pattern requires careful visibility/publication design under the Java Memory Model and is only worth using when genuinely beneficial. If `hashCode()` has side effects, uses random values, reads a clock, or depends on mutating external data, the deeper flaw is an **inconsistent hash function design**.
 
-## 5. Lỗi cache stale khi đối tượng mutable
+## 5. Stale Cache Bugs on Mutable Objects
 
-Nếu thuộc tính tham gia `equals()` thay đổi mà cache không được invalidation, hai đối tượng có thể bằng nhau nhưng báo hash khác nhau.
+If an attribute participating in `equals()` changes without invalidating the cache, two objects can be equal while reporting different hashes.
 
-Tạo file **`StaleHashDemo.java`**:
+Create the file **`StaleHashDemo.java`**:
 
 ```java
 import java.util.Objects;
@@ -240,7 +240,7 @@ final class MutableKey {
 
     void changeCode(String newCode) {
         code = Objects.requireNonNull(newCode);
-        // Lỗi cố ý: không xóa cachedHash.
+        // Intentional bug: fails to clear cachedHash.
     }
 
     @Override
@@ -278,7 +278,7 @@ public class StaleHashDemo {
 }
 ```
 
-Lệnh:
+Commands:
 
 ```bash
 javac StaleHashDemo.java
@@ -295,11 +295,11 @@ equals: true
 same hash: false
 ```
 
-`"A".hashCode()` là 65, `"B".hashCode()` là 66. Sau khi `a` đổi `code` thành `"B"`, `equals()` đánh giá `a` và `b` bằng nhau, nhưng `a.hashCode()` tiếp tục dùng cache cũ 65. **Vi phạm trực tiếp hợp đồng `equals()`/`hashCode()`.** Đây là ví dụ lỗi có chủ ý, chỉ dùng để học.
+`"A".hashCode()` is `65`, and `"B".hashCode()` is `66`. After `a` changes `code` to `"B"`, `equals()` evaluates `a` and `b` as equal, yet `a.hashCode()` keeps returning the old cached `65`. **This directly violates the `equals()`/`hashCode()` contract.** This is an intentionally broken example for learning purposes only.
 
-### 5.1. Vô hiệu hóa cache ở setter là cần nhưng chưa đủ
+### 5.1. Invalidating the Cache in Setters Is Necessary but Not Sufficient
 
-Với đối tượng mutable và sử dụng trong một luồng được kiểm soát, có thể vô hiệu hóa cache khi giá trị liên quan thay đổi:
+For a mutable object used in a controlled single thread, you can invalidate the cache when the relevant value changes:
 
 ```java
 void changeCode(String newCode) {
@@ -308,80 +308,80 @@ void changeCode(String newCode) {
 }
 ```
 
-Đây chỉ là **mảnh code cho bối cảnh một luồng hoặc có đồng bộ bao quanh**, chưa phải giải pháp đầy đủ. Cần xét tiếp:
+This is only a **snippet for a single-threaded or externally synchronized context**, not a complete solution. You must also consider:
 
-- Mọi setter của **mọi** trường tham gia equality/hash phải vô hiệu hóa cache.
-- Với nhiều luồng, một luồng có thể đang tính hash cũ, luồng khác đổi trạng thái và xóa cache; luồng đầu có thể ghi lại cache cũ **sau khi cache đã bị xóa**.
-- Không có bảo đảm rằng một lần đọc nhiều trường mutable sẽ tạo thành một **snapshot nhất quán** nếu thiếu cùng một giao thức đồng bộ.
-- Nếu đối tượng đã được chèn vào `HashMap`/`HashSet`, tính lại hash sau khi trạng thái đổi không tự chuyển vị trí phần tử trong bảng băm.
+- Every setter of **every** field participating in equality/hash must invalidate the cache.
+- With multiple threads, one thread could be computing the old hash while another mutates state and clears the cache; the first thread might then write back the stale hash **after the cache was cleared**.
+- There is no guarantee that reading multiple mutable fields forms a **consistent snapshot** without a shared synchronization protocol.
+- If the object has already been inserted into a `HashMap`/`HashSet`, recomputing the hash after state changes does not automatically move the element's bucket in the hash table.
 
-Suy ra **vô hiệu hóa cache đúng** vẫn chưa có nghĩa **đổi trạng thái khóa trong collection là an toàn**.
+Thus, **proper cache invalidation** still does not mean **mutating a key inside a collection is safe**.
 
-## 6. Nhiều luồng: `volatile` không thay thế đồng bộ trạng thái
+## 6. Multiple Threads: `volatile` Does Not Replace State Synchronization
 
-Hãy hình dung equality của một đối tượng phụ thuộc vào hai trường mutable `name` và `revision`. Luồng A cập nhật `name` rồi cập nhật `revision`; luồng B tính hash đúng giữa hai bước đó. B có thể lấy cặp giá trị chưa phải trạng thái nghiệp vụ hoàn chỉnh. Thêm `volatile cachedHash` chỉ công bố **giá trị cache**, không biến phép đọc hai trường mutable thành một thao tác nguyên tử.
+Imagine an object's equality depends on two mutable fields `name` and `revision`. Thread A updates `name` and then updates `revision`; thread B computes the hash right in between those two steps. B may observe a pair of values that never represented a valid complete business state. Making `cachedHash` `volatile` only publishes the **cache value**; it does not turn reading two mutable fields into an atomic operation.
 
-Muốn cache một hash phụ thuộc trạng thái mutable và chia sẻ nhiều luồng, cần thiết kế và kiểm chứng **toàn bộ** các quan hệ sau:
+To cache a hash that depends on mutable state shared across multiple threads, you must design and verify **all** of the following relationships:
 
-1. **Đọc/ghi trạng thái:** setter và `hashCode()` sử dụng cùng khóa đồng bộ hoặc snapshot bất biến được công bố nguyên tử.
-2. **Cache gắn với phiên bản trạng thái:** không có khả năng một luồng tính từ phiên bản cũ rồi công bố sau lần invalidation của phiên bản mới.
-3. **`equals()` phù hợp:** phép so sánh hai đối tượng cũng phải đọc những trạng thái logic nhất quán; nếu cần khóa hai đối tượng, phải giải quyết thứ tự khóa để tránh deadlock.
-4. **Công bố đối tượng:** khởi tạo và chia sẻ instance cho luồng khác an toàn, không để trạng thái xây dựng dang dở lọt ra.
-5. **Ngữ nghĩa collection:** bất kể cách đồng bộ phía trên, nếu thuộc tính xác định khóa bị sửa **trong thời gian khóa ở trong map/set**, vị trí lưu nội bộ vẫn có thể không tương ứng với giá trị hash mới.
+1. **State reads/writes:** setters and `hashCode()` use the same synchronization lock or an atomically published immutable snapshot.
+2. **Cache tied to state version:** prevent a thread from computing from an old version and publishing after a newer version invalidated the cache.
+3. **Consistent `equals()`:** comparing two objects must also read consistent logical states; if two objects must be locked, resolve lock ordering to avoid deadlock.
+4. **Object publication:** construct and share instances across threads safely without leaking half-constructed state.
+5. **Collection semantics:** regardless of the synchronization above, if key-defining attributes are modified **while the key resides in a map/set**, the internal storage slot may still fail to match the new hash value.
 
-`volatile` giải quyết visibility/order cho **một trường hoặc một bước công bố**, không tạo một transaction cho tập nhiều trường. `synchronized` chỉ có tác dụng khi mọi nơi truy cập liên quan đều tuân một giao thức đồng bộ phù hợp. `ConcurrentHashMap` bảo vệ thao tác của cấu trúc map, **không** tự bảo vệ đối tượng khóa mutable khỏi thay đổi hash/equality.
+`volatile` solves visibility/ordering for **a single field or publication step**, not transactions across multiple fields. `synchronized` works only when every relevant access follows a compatible synchronization protocol. `ConcurrentHashMap` protects the map's internal structure, **not** a mutable key object from having its hash/equality mutated.
 
-**Hướng thiết kế thường dễ chứng minh hơn:** giữ khóa bất biến, còn giá trị mutable nằm ở value của map. Ví dụ `Map<AccountKey, MutableAccountState>` dùng `AccountKey` như mục 3. Nếu cập nhật danh tính, tạo khóa mới và thực hiện thao tác thay thế phù hợp theo chính sách đồng bộ của ứng dụng. Hoặc giữ một **snapshot bất biến** mỗi lần cập nhật; mỗi snapshot có trạng thái và mã băm riêng cố định.
+**A design that is usually easier to verify:** keep the key immutable and put mutable state in the map's value. For example, `Map<AccountKey, MutableAccountState>` using `AccountKey` from Section 3. To update identity, create a new key and perform the appropriate replacement under your application's synchronization policy. Alternatively, hold an **immutable snapshot** on each update; each snapshot has its own fixed state and hash code.
 
-## 7. Kiểm tra sự khác biệt giữa bất biến và mutable khi làm khóa
+## 7. Checking the Difference Between Immutable and Mutable Keys
 
-Cấu trúc hash thường tính/phân phối theo hash **ở thời điểm chèn** rồi khi tra cứu sẽ tính hash của khóa truyền vào. Nếu cùng instance làm khóa nhưng giá trị tham gia hash đã đổi, việc tìm có thể đến bucket khác. Cho dù setter xóa cache đúng, dữ liệu vẫn nằm trong vị trí từ lần chèn trước đó. Việc gọi `hashCode()` chuẩn ở hiện tại không “sửa chữa” lịch sử chèn.
+Hash-based structures typically compute/place entries using the hash **at insertion time** and then compute the hash of the lookup key when querying. If the same instance serves as a key yet its hash-participating values changed, the lookup may probe a different bucket. Even if the setter cleared the cache properly, the entry still sits in the slot from the earlier insertion. Calling a fresh `hashCode()` now cannot "repair" insertion history.
 
-Vì vậy:
+Therefore:
 
-- `HashMap`, `HashSet` và cả `ConcurrentHashMap` đều cần khóa giữ ngữ nghĩa `equals()`/`hashCode()` ổn định **trong thời gian sử dụng làm khóa**.
-- Không được suy luận rằng dùng `Collections.synchronizedMap(...)` làm việc thay đổi khóa trở nên an toàn.
-- Nếu buộc phải chuyển định danh, thiết kế một thao tác cập nhật có kiểm soát: loại khóa cũ trong trạng thái cũ, tạo hoặc chọn khóa mới bất biến, chèn lại vào collection theo giao thức đồng bộ phù hợp. Không nên đổi trường hash của khóa đang lưu rồi hy vọng `remove()` tìm đúng đối tượng.
-- Nếu đối tượng mutable chỉ đóng vai trò value trong map, thay đổi value không gây ra chính vấn đề bucket theo khóa, dù an toàn luồng của value vẫn phải được thiết kế riêng.
+- `HashMap`, `HashSet`, and even `ConcurrentHashMap` require keys to keep stable `equals()`/`hashCode()` semantics **for the duration they act as keys**.
+- Do not assume wrapping with `Collections.synchronizedMap(...)` makes key mutation safe.
+- If an identity change is unavoidable, design a controlled update operation: remove the old key under its old state, create or select the new immutable key, and re-insert under the proper synchronization protocol. Never mutate hash fields of a stored key and hope `remove()` finds the right object.
+- If a mutable object serves only as a map *value*, mutating the value does not cause key-bucket issues, though thread safety of the value still needs its own design.
 
-## 8. Quy trình quyết định cache `hashCode()` trong dự án
+## 8. Process for Deciding on `hashCode()` Caching in a Project
 
-**Bước 1: Xác định dữ liệu equality.** Nếu chỉ `id` là danh tính, hash nên dựa trên `id`, không đưa thêm tên hoặc timestamp có thể đổi. Nếu là value object, cần xét những thành phần thật sự mang ý nghĩa giá trị.
+**Step 1: Identify equality data.** If only `id` defines identity, the hash should rely on `id`, without adding mutable names or timestamps. If it is a value object, examine the components that genuinely carry value semantics.
 
-**Bước 2: Kiểm tra khả năng thay đổi sâu.** Các field dùng để tính hash có bất biến thật không? Có array, list, object con hoặc reference mutable không? Có `this` thoát khỏi constructor không? Subclass có thể đổi định nghĩa equality không?
+**Step 2: Check for deep mutability.** Are the hashed fields truly immutable? Are there arrays, lists, nested objects, or mutable references? Does `this` escape the constructor? Could a subclass alter the equality definition?
 
-**Bước 3: Đo chi phí.** Chạy benchmark/profile với workload thực tế. Hash đơn giản đôi khi rẻ hơn việc duy trì cache; ghi thêm trường có thể làm tăng bộ nhớ cho số lượng object lớn.
+**Step 3: Measure cost.** Benchmark/profile with realistic workloads. Simple hashing is sometimes cheaper than maintaining a cache; adding a field can increase memory footprint across large object counts.
 
-**Bước 4: Chọn cách lưu nếu phù hợp.** Với object bất biến và hash thường dùng, ưu tiên tính sớm trong trường `final`. Với object bất biến và hash đắt nhưng hiếm dùng, cân nhắc tính lười cùng cơ chế công bố rõ ràng. Nếu phép hash rất rẻ, cứ tính trực tiếp.
+**Step 4: Pick a caching approach if warranted.** For immutable objects with frequently used hashes, prefer eager computation in a `final` field. For immutable objects with expensive but rarely used hashes, consider lazy computation with explicit publication. If hashing is very cheap, just compute it directly.
 
-**Bước 5: Nếu mutable, thận trọng với invalidation và concurrency.** Mọi đường ghi liên quan phải phối hợp với cache và các đường đọc, tránh ghi trả lại kết quả từ phiên bản cũ sau invalidation. Trong phần lớn ứng dụng, tách khóa bất biến đơn giản và ít lỗi hơn.
+**Step 5: If mutable, be rigorous about invalidation and concurrency.** Every relevant write path must coordinate with the cache and read paths, avoiding stale write-backs after invalidation. In most applications, separating out an immutable key is simpler and less error-prone.
 
-**Bước 6: Kiểm tra tập và map.** Đối tượng có được dùng làm khóa trong suốt thời gian nó có thể đổi trường equality/hash không? Nếu có, hãy thay đổi thiết kế khóa thay vì chỉ đổi cách lưu cache.
+**Step 6: Audit set and map usage.** Can the object be used as a key while its equality/hash fields might change? If so, change the key design rather than just changing how caching is implemented.
 
-**Bước 7: Kiểm thử trường hợp biên.** Bao gồm hai instance bằng nhau, va chạm hash, hash bằng 0, cache sau cập nhật trạng thái, nhiều luồng tính đồng thời, và quan hệ `equals()`/`hashCode()` của các lớp kế thừa nếu có.
+**Step 7: Test edge cases.** Include two equal instances, hash collisions, a hash of `0`, cached hashes after state updates, concurrent multi-threaded computation, and `equals()`/`hashCode()` across inheritance hierarchies if any exist.
 
-## 9. Các ngộ nhận thường gặp
+## 9. Common Misconceptions
 
-| Ngộ nhận | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “Tính hash một lần rồi lưu là tối ưu vô hại.” | Lợi ích phụ thuộc workload; cache có chi phí, và có thể sai nếu trạng thái đổi. |
-| “Có `final` field nghĩa là mọi dữ liệu bên trong đều bất biến.” | `final` cố định tham chiếu, không ngăn sửa nội dung object được trỏ tới. |
-| “`volatile cachedHash` biến object thành thread-safe.” | Nó chỉ bảo vệ công bố/visibility của cache theo mô hình bộ nhớ. |
-| “Nếu setter xóa cache là khóa `HashMap` luôn đúng.” | Bucket lưu từ lúc chèn không tự được cập nhật theo hash mới. |
-| “`ConcurrentHashMap` giải quyết khóa mutable.” | Thread safety của map không làm cho hash/equality của khóa trở nên ổn định. |
-| “Hash bằng 0 tức là chưa tính.” | 0 là mã hash hợp lệ; cần cờ hoặc sentinel phù hợp nếu cần cache cả 0. |
-| “Hai mã hash bằng nhau chứng minh hai object bằng nhau.” | Va chạm hash hợp lệ; vẫn cần `equals()`. |
-| “Đã đặt `synchronized` trên `hashCode()` thì mọi vấn đề hết.” | Nếu trạng thái và equals không dùng cùng cơ chế phù hợp, vẫn có thể đọc dữ liệu không nhất quán. |
+| "Computing a hash once and caching it is a harmless optimization." | Benefit depends on workload; caching has costs and breaks if state changes. |
+| "Having `final` fields means everything inside is immutable." | `final` fixes the reference, not the contents of the referenced object. |
+| "`volatile cachedHash` makes the object thread-safe." | It only protects visibility/publication of the cache under the memory model. |
+| "If the setter clears the cache, `HashMap` keys are always fine." | The bucket assigned at insertion is not automatically updated to the new hash. |
+| "`ConcurrentHashMap` solves mutable keys." | Map thread safety does not make a key's hash or equality stable. |
+| "A hash of 0 means uninitialized." | `0` is a valid hash code; use a proper flag or sentinel if `0` must be cached too. |
+| "Two equal hash codes prove two objects are equal." | Hash collisions are valid; `equals()` is still required. |
+| "Putting `synchronized` on `hashCode()` solves everything." | If state mutations and `equals()` do not use a compatible mechanism, inconsistent reads can still happen. |
 
-## 10. Checklist code review
+## 10. Code Review Checklist
 
-- [ ] `equals()` và `hashCode()` dùng dữ liệu phù hợp; các object bằng nhau luôn có cùng hash.
-- [ ] Thuộc tính xác định hash ổn định hoặc mọi thay đổi được phối hợp với invalidation đúng cách.
-- [ ] Không nhầm `final` reference với bất biến sâu.
-- [ ] Cache tính sớm được khởi tạo hoàn chỉnh trước khi object được công bố.
-- [ ] Cache tính lười có cơ chế visibility thích hợp, xử lý giá trị hash bằng 0 và xét việc tính trùng.
-- [ ] Khi nhiều luồng truy cập, nhất quán cho dữ liệu gốc, cache và `equals()`, không chỉ cho một trường.
-- [ ] Các khóa trong `HashMap`/`HashSet` không đổi những trường làm nên equality/hash trong thời gian lưu.
-- [ ] Việc lưu hash có lợi ích hiệu năng đã được đo và không làm mã khó bảo trì vô ích.
+- [ ] `equals()` and `hashCode()` use consistent data; equal objects always produce the same hash.
+- [ ] Hash-determining properties are immutable, or every mutation coordinates proper invalidation.
+- [ ] `final` references are not mistaken for deep immutability.
+- [ ] Eager caches are completely initialized before the object is published.
+- [ ] Lazy caches use proper visibility, handle a hash value of `0`, and account for concurrent computation.
+- [ ] Under multi-threaded access, consistency covers source data, cache, and `equals()`, not just a single field.
+- [ ] Keys inside `HashMap`/`HashSet` never change equality/hash-defining fields while stored.
+- [ ] Caching has measured performance benefit and does not add pointless maintenance complexity.
 
-**Nguyên tắc cần nhớ:** chỉ cache `hashCode()` khi **trạng thái được băm đủ ổn định** và **cơ chế công bố/đồng bộ cho phép tái sử dụng an toàn**. Nếu chưa có lời giải rõ cho hai điều đó, hãy giữ cách tính hash trực tiếp hoặc chọn đối tượng khóa bất biến.
+**Principle to remember:** cache `hashCode()` only when **the hashed state is sufficiently stable** and **the publication/synchronization mechanism permits safe reuse**. Without clear answers to both, keep hashing direct or use immutable key objects.

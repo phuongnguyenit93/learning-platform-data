@@ -1,34 +1,34 @@
-# jdk.localedata và tập dữ liệu trong runtime tùy chỉnh
+# jdk.localedata and Datasets in Custom Runtimes
 
-## 1. Vấn đề: cùng chương trình nhưng định dạng locale khác nhau giữa các runtime
+## 1. Problem: the same program formats locales differently across runtimes
 
-Một chương trình Java có thể chạy đúng trên máy phát triển dùng JDK đầy đủ, nhưng sau khi đóng gói thành runtime nhỏ bằng `jlink`, cách in ngày tháng, số, tiền tệ hoặc tên bản địa hóa có thể thay đổi. Thay vì `28 tháng 10, 2026`, hệ thống có thể dùng một kiểu fallback; thay vì tên tháng bằng tiếng Pháp, bạn có thể thấy dữ liệu từ locale cha hoặc locale gốc.
+A Java program can run properly on a development machine using a full JDK, yet after packaging into a slim runtime with `jlink`, how it prints dates, numbers, currencies, or localized names can change. Instead of `28 tháng 10, 2026`, the system may use a fallback style; instead of French month names, you might see data from a parent locale or the root locale.
 
-Đó không nhất thiết là lỗi trong `DateTimeFormatter`, `NumberFormat` hay `Locale`. Nguyên nhân có thể là **runtime image không chứa dữ liệu locale mà formatter cần**.
+That is not necessarily a bug in `DateTimeFormatter`, `NumberFormat`, or `Locale`. The cause may be that **the runtime image does not contain the locale data the formatter needs**.
 
-Java 9+ tách nhiều dữ liệu bản địa hóa ra một module tên **`jdk.localedata`**. Khi dùng `jlink` để tạo **custom runtime image**, bạn quyết định đưa module đó vào hay loại bỏ; tùy chọn `--include-locales` cho phép chọn một tập locale nhỏ hơn trong module.
+Java 9+ separates much of its localization data into a module named **`jdk.localedata`**. When using `jlink` to build a **custom runtime image**, you decide whether to include or exclude that module; the `--include-locales` option lets you pick a smaller subset of locales inside the module.
 
-Bài học giải thích:
+This lesson explains:
 
-1. `java.base`, `jdk.localedata` và dữ liệu locale được phân chia ra sao.
-2. Vì sao `Locale` hợp lệ **không chứng minh** bản dịch/định dạng cho nó có sẵn.
-3. Cách tạo runtime tùy chỉnh với `jlink --add-modules` và `--include-locales`.
-4. Cách kiểm tra `DateTimeFormatter`, `NumberFormat`, `DateFormat`, tên tiền tệ và danh sách locale có sẵn.
-5. Cách đối chiếu hành vi giữa JDK đầy đủ và runtime tối giản, phát hiện fallback, viết test và tránh giả định sai khi triển khai.
+1. How `java.base`, `jdk.localedata`, and locale data are split.
+2. Why a valid `Locale` **does not prove** translations/formatting for it are available.
+3. How to build a custom runtime with `jlink --add-modules` and `--include-locales`.
+4. How to inspect `DateTimeFormatter`, `NumberFormat`, `DateFormat`, currency names, and available locale lists.
+5. How to compare behavior between a full JDK and a minimal runtime, detect fallbacks, write tests, and avoid wrong deployment assumptions.
 
-Phạm vi bài nằm trong **Dữ liệu locale JDK**. Đây là câu chuyện về **tài nguyên dữ liệu được đóng gói trong runtime**, không phải hướng dẫn tải bản dịch từ Internet hay chỉ định một `Locale` trong mã nguồn.
+The scope of this lesson lies within **JDK Locale Data**. This is about **data resources packaged inside the runtime**, not a guide to downloading translations from the Internet or specifying a `Locale` in source code.
 
-## 2. Locale không phải là một gói dữ liệu bản dịch
+## 2. Locale is not a bundle of translation data
 
-`java.util.Locale` chủ yếu là một **đối tượng định danh ngôn ngữ/vùng/script/extension**, chẳng hạn:
+`java.util.Locale` is primarily an **identifier object for language/region/script/extensions**, for example:
 
 ~~~java
 Locale locale = Locale.forLanguageTag("vi-VN");
 ~~~
 
-Lệnh này tạo ra một đối tượng mô tả locale tiếng Việt (vùng Việt Nam). Nó **không** tự tải về tên tháng, dấu số, tên tiền tệ hoặc các mẫu ngày tháng.
+This statement creates an object describing the Vietnamese locale (Vietnam region). It **does not** automatically fetch month names, number symbols, currency names, or date patterns.
 
-Khi bạn gọi:
+When you call:
 
 ~~~java
 DateTimeFormatter formatter =
@@ -36,93 +36,93 @@ DateTimeFormatter formatter =
                 .withLocale(locale);
 ~~~
 
-API định dạng sẽ tra cứu **nguồn dữ liệu locale/provider có sẵn trong runtime** để chọn pattern và các từ ngữ tương ứng. Nếu dữ liệu đúng locale không có, việc fallback có thể khiến kết quả khác mong đợi.
+the formatting API looks up **locale data sources/providers available in the runtime** to select patterns and corresponding words. If data for the exact locale is missing, fallback can produce unexpected output.
 
-Phân biệt ba câu hỏi:
+Distinguish three questions:
 
-| Câu hỏi | Điều đang được xác minh |
+| Question | What is being verified |
 | --- | --- |
-| `Locale.forLanguageTag("vi-VN")` có tạo object không? | Locale identifier có thể được biểu diễn trong Java |
-| Runtime có module `jdk.localedata` không? | Image có chứa module dữ liệu locale mở rộng không |
-| Dịch vụ định dạng cho `vi-VN` có dữ liệu thực sự không? | Provider được chọn có hỗ trợ đúng dữ liệu cho dịch vụ/ngữ cảnh đó không |
+| Does `Locale.forLanguageTag("vi-VN")` construct an object? | The locale identifier can be represented in Java |
+| Does the runtime include the `jdk.localedata` module? | Whether the image contains the extended locale data module |
+| Does the formatting service for `vi-VN` have real data? | Whether the chosen provider actually supplies data for that service/context |
 
-Ba câu hỏi **không tương đương**. Một `Locale` được khởi tạo thành công không chứng minh rằng `DateTimeFormatter` sẽ in tên tháng tiếng Việt hoặc `Currency.getDisplayName(locale)` sẽ có tên dịch mà bạn kỳ vọng.
+The three questions are **not equivalent**. A successfully constructed `Locale` does not prove `DateTimeFormatter` will print Vietnamese month names or `Currency.getDisplayName(locale)` will have the localized name you expect.
 
-## 3. `java.base` và `jdk.localedata` đóng vai trò gì?
+## 3. What roles do `java.base` and `jdk.localedata` play?
 
-### 3.1. `java.base`: module nền tảng
+### 3.1. `java.base`: the foundational module
 
-Mọi Java runtime image luôn cần `java.base`, vì đây là module bắt buộc của nền tảng Java. Module này bao gồm các API như:
+Every Java runtime image always requires `java.base`, as it is the mandatory base module of the Java platform. This module includes APIs such as:
 
 - `java.util.Locale`;
 - `java.text.NumberFormat`, `DateFormat`;
 - `java.time.format.DateTimeFormatter`;
 - `java.util.Currency`.
 
-Các API trên tồn tại **không có nghĩa runtime đã đi kèm mọi dữ liệu bản địa hóa**.
+The existence of those APIs **does not mean the runtime ships with all localization data**.
 
-Trong các bản Oracle/OpenJDK được tài liệu hóa, `java.base` mang dữ liệu locale cơ bản, bao gồm **US English và các locale cha như `ROOT`**. Dữ liệu cho nhiều locale khác nằm ở `jdk.localedata`.
+In documented Oracle/OpenJDK builds, `java.base` carries baseline locale data, including **US English and parent locales such as `ROOT`**. Data for many other locales resides in `jdk.localedata`.
 
-### 3.2. `jdk.localedata`: dữ liệu locale bổ sung
+### 3.2. `jdk.localedata`: supplementary locale data
 
-`jdk.localedata` là một **JDK-specific module** chứa dữ liệu bản địa hóa mở rộng cho các dịch vụ locale-sensitive, ví dụ lựa chọn biểu diễn ngày, số, đơn vị tiền tệ hoặc tên hiển thị theo ngôn ngữ.
+`jdk.localedata` is a **JDK-specific module** containing extended localization data for locale-sensitive services, such as language-specific date, number, currency, or display name representations.
 
-Module này không phải một lớp mà bạn phải import khi viết `DateTimeFormatter`. Phần lớn chương trình vẫn dùng các API trong `java.base`; chính **module graph và nguồn dữ liệu runtime** quyết định dữ liệu mở rộng có sẵn không.
+This module is not a class you import when writing `DateTimeFormatter`. Most programs still use APIs in `java.base`; it is the **module graph and runtime data sources** that decide whether extended data is present.
 
-Ví dụ những tính năng có thể chịu ảnh hưởng khi dữ liệu locale tương ứng bị lược bỏ:
+Examples of features that may be affected when corresponding locale data is omitted:
 
-- Tên tháng, tên thứ, mẫu ngày/giờ qua `DateTimeFormatter` hoặc `DateFormat`.
-- Dấu thập phân, dấu phân nhóm, biểu diễn phần trăm qua `NumberFormat`.
-- Tên hiển thị của locale, quốc gia và tiền tệ qua các API tương ứng.
-- Một số quy tắc định dạng/so sánh được cấp bởi các locale service providers của runtime.
+- Month names, weekday names, and date/time patterns via `DateTimeFormatter` or `DateFormat`.
+- Decimal separators, grouping separators, and percent representations via `NumberFormat`.
+- Display names of locales, countries, and currencies via their respective APIs.
+- Certain formatting/comparison rules supplied by the runtime's locale service providers.
 
-**Không suy diễn quá mức:** việc bỏ `jdk.localedata` không có nghĩa mọi chức năng Unicode, UTF-8, `Locale`, `java.time` hay mọi múi giờ đều biến mất. Phạm vi của nó là **dữ liệu locale mở rộng**; các thành phần khác của `java.base` vẫn tồn tại.
+**Do not overgeneralize:** omitting `jdk.localedata` does not mean all Unicode features, UTF-8, `Locale`, `java.time`, or all timezones vanish. Its scope is **extended locale data**; other components of `java.base` remain intact.
 
-### 3.3. Dữ liệu locale và tài nguyên riêng của ứng dụng
+### 3.3. Locale data vs. application-specific resources
 
-`ResourceBundle` hoặc file `messages_vi.properties` do **ứng dụng tự cung cấp** không tự nằm trong `jdk.localedata`. Chúng phải được đóng gói/đọc theo cách của ứng dụng và module tương ứng.
+`ResourceBundle` or `messages_vi.properties` files **provided by the application itself** do not automatically live inside `jdk.localedata`. They must be packaged and loaded according to your application and module setup.
 
-Ngược lại, có đủ bản dịch UI trong `ResourceBundle` của bạn **không bảo đảm** `NumberFormat` hoặc `DateTimeFormatter` có đúng dữ liệu CLDR của locale đó trong runtime.
+Conversely, having complete UI translations in your `ResourceBundle` **does not guarantee** `NumberFormat` or `DateTimeFormatter` has the right CLDR data for that locale in the runtime.
 
-Hai luồng tài nguyên cần được kiểm thử riêng: **dữ liệu bản địa hóa ứng dụng** và **dữ liệu locale JDK**.
+Two separate resource tracks must be tested independently: **application localization data** and **JDK locale data**.
 
-## 4. JDK đầy đủ khác runtime được tạo bằng jlink
+## 4. Full JDK vs. a runtime created with jlink
 
-Khi cài một **JDK đầy đủ**, bộ công cụ thường bao gồm module `jdk.localedata` và dữ liệu locale mở rộng. Vì vậy thử nghiệm với `vi-VN`, `fr-FR`, `ja-JP` trên máy phát triển có thể thành công.
+When installing a **full JDK**, the distribution usually includes the `jdk.localedata` module and extended locale data. Therefore, testing with `vi-VN`, `fr-FR`, and `ja-JP` on a developer machine may succeed.
 
-Với `jlink`, nhà phát triển tạo một **custom runtime image** bằng cách ghép tập module cần thiết. Một image tối giản có thể chỉ có `java.base`; khi ấy nhiều dữ liệu locale mở rộng sẽ vắng mặt.
+With `jlink`, developers assemble a **custom runtime image** containing only the required set of modules. A minimal image might contain only `java.base`; in that case, much of the extended locale data will be absent.
 
-Hãy hình dung:
+Visualize it:
 
 ~~~text
-JDK đầy đủ
-  java.base          -> APIs + locale data cơ bản
-  jdk.localedata     -> dữ liệu locale mở rộng
-  nhiều module khác  -> các API/công cụ/dịch vụ khác
+Full JDK
+  java.base          -> APIs + baseline locale data
+  jdk.localedata     -> extended locale data
+  other modules      -> other APIs/tools/services
 
-Custom image nhỏ
-  java.base          -> APIs vẫn có
-  (không có jdk.localedata)
-  => nhiều locale không có dữ liệu định dạng đầy đủ
+Minimal custom image
+  java.base          -> APIs are still present
+  (no jdk.localedata)
+  => many locales lack full formatting data
 ~~~
 
-Một image khác có thể chứa:
+Another image might contain:
 
 ~~~text
-Custom image hỗ trợ chọn lọc
+Selectively supported custom image
   java.base
-  jdk.localedata (đã lọc theo --include-locales)
-  các module app yêu cầu
-  => có dữ liệu cho nhóm locale được chọn
+  jdk.localedata (filtered by --include-locales)
+  modules required by the app
+  => data present for the selected locale group
 ~~~
 
-`jlink` **không thay đổi semantics của `Locale.forLanguageTag`**; nó thay đổi **nội dung module và tài nguyên đi kèm runtime**, từ đó ảnh hưởng các dịch vụ cần dữ liệu locale.
+`jlink` **does not change the semantics of `Locale.forLanguageTag`**; it changes **the modules and resources bundled in the runtime**, which in turn affects services requiring locale data.
 
-Không coi “chương trình chạy không ném lỗi” là bằng chứng locale data đầy đủ. Fallback nhiều khi **không gây exception** mà chỉ tạo chuỗi ngày/giờ hoặc số khác với trải nghiệm người dùng dự kiến.
+Do not treat "the program ran without throwing an error" as proof of complete locale data. Fallback often **throws no exception**, instead simply producing date/time or number strings that differ from the intended user experience.
 
-## 5. Công cụ kiểm tra tại máy phát triển
+## 5. Inspection tools on the development machine
 
-Trước khi tạo image, xác minh JDK nguồn đang được dùng:
+Before building an image, verify the source JDK being used:
 
 ~~~bash
 java -version
@@ -130,35 +130,35 @@ jlink --version
 java --list-modules
 ~~~
 
-Lệnh `java --list-modules` liệt kê các module có trong runtime. Bạn có thể tìm `jdk.localedata` trong danh sách này.
+The `java --list-modules` command lists the modules present in the runtime. You can look for `jdk.localedata` in this list.
 
-Trên Windows PowerShell, có thể lọc:
+In Windows PowerShell, you can filter:
 
 ~~~powershell
 java --list-modules | Select-String 'jdk.localedata'
 ~~~
 
-Trên shell Linux/macOS, ví dụ:
+In Linux/macOS shells, for example:
 
 ~~~bash
 java --list-modules | grep 'jdk.localedata'
 ~~~
 
-**Lưu ý:** các lệnh trên chỉ cho biết **module có tồn tại trong runtime image**, không khẳng định mọi locale đã được đưa vào. Một image có `jdk.localedata` nhưng được lọc bằng `--include-locales` vẫn có thể thiếu các locale bạn cần.
+**Note:** these commands only show that **the module exists in the runtime image**, not that every locale was retained. An image with `jdk.localedata` filtered via `--include-locales` may still lack the locales you need.
 
-Nếu ứng dụng hoặc công cụ triển khai dùng `JAVA_HOME`, phải bảo đảm `java` và `jlink` được gọi từ **đúng JDK phiên bản/kiến trúc mục tiêu**. Khi kiểm tra runtime image đã phát hành, hãy chạy **binary `java` của image đó**, không vô tình chạy lệnh từ JDK hệ thống.
+If your application or deployment tooling uses `JAVA_HOME`, ensure `java` and `jlink` are invoked from the **target JDK version and architecture**. When testing a shipped runtime image, run **that image's `java` binary**, rather than accidentally invoking the system JDK command.
 
-## 6. Tạo image chỉ với module tối thiểu
+## 6. Building an image with only the minimal module
 
-Ví dụ dòng lệnh dành cho `jlink` của JDK phù hợp:
+Example `jlink` command for a compatible JDK:
 
 ~~~bash
 jlink --add-modules java.base --output image-base
 ~~~
 
-Đây là **ví dụ tạo custom runtime image tối giản để so sánh**. Nó tạo thư mục `image-base` chứa runtime có `java.base`; không phải bản build tự động đủ mọi module cho một ứng dụng bất kỳ.
+This is an **example of creating a minimal custom runtime image for comparison**. It creates the `image-base` directory containing a runtime with `java.base`; it is not an automatic build containing all modules needed by an arbitrary application.
 
-Sau khi tạo, kiểm tra image bằng chính Java launcher bên trong nó.
+After creation, inspect the image using the Java launcher inside it.
 
 Linux/macOS:
 
@@ -172,37 +172,37 @@ Windows PowerShell:
 .\image-base\bin\java.exe --list-modules
 ~~~
 
-Danh sách sẽ có `java.base` và không có `jdk.localedata` trong image chỉ gồm `java.base`.
+The list will include `java.base` and will not contain `jdk.localedata` in a `java.base`-only image.
 
-Điều đó **không đồng nghĩa mọi locale khác US sẽ throw exception**. Dịch vụ có thể fallback hoặc cung cấp hành vi dựa trên dữ liệu cơ bản. Vì vậy không dùng một exception làm điều kiện duy nhất để phát hiện thiếu dữ liệu locale.
+That **does not mean every non-US locale will throw an exception**. Services may fall back or operate using baseline data. Hence, never rely on an exception as the sole condition for detecting missing locale data.
 
-`jlink` cũng yêu cầu các module ứng dụng thực sự sử dụng. Nếu ứng dụng cần `java.logging`, `java.sql`, `java.xml` hoặc module khác, phải tính các phụ thuộc đó khi build. Không sao chép nguyên lệnh `java.base` vào production nếu nó không phù hợp module graph của ứng dụng.
+`jlink` also requires whatever modules the application actually uses. If the app needs `java.logging`, `java.sql`, `java.xml`, or other modules, include those dependencies at build time. Do not copy a `java.base`-only command into production if it does not match your application's module graph.
 
-## 7. Bổ sung jdk.localedata vào image
+## 7. Adding jdk.localedata to the image
 
-Để mang theo module dữ liệu locale mở rộng:
+To carry the extended locale data module:
 
 ~~~bash
 jlink --add-modules java.base,jdk.localedata --output image-full-locale
 ~~~
 
-Đối với nhiều JDK, nếu không dùng tùy chọn `--include-locales` để lọc, module được đóng gói với tập dữ liệu locale đi kèm JDK đang dùng. Image sẽ lớn hơn bản chỉ có `java.base`, nhưng có điều kiện để cung cấp nhiều dịch vụ bản địa hóa hơn.
+On many JDKs, without `--include-locales` filtering, the module is packaged with the locale dataset bundled in that JDK. The image will be larger than a `java.base`-only build, while enabling broader localization services.
 
-Kiểm tra:
+Verify:
 
 ~~~bash
 ./image-full-locale/bin/java --list-modules
 ~~~
 
-Trên Windows, thay đường dẫn launcher bằng `.\image-full-locale\bin\java.exe`.
+On Windows, replace the launcher path with `.\image-full-locale\bin\java.exe`.
 
-Kết quả danh sách phải chứa `jdk.localedata`. Tuy nhiên, **module hiện diện chưa phải bằng chứng các dịch vụ định dạng bạn dùng đang chọn đúng provider hoặc có đúng mọi bản dịch**. Hãy chạy thêm một chương trình kiểm tra ngày/số/tiền tệ theo từng locale quan trọng.
+The listed modules must include `jdk.localedata`. However, **module presence alone is not proof that your formatting services pick the right provider or carry every expected translation**. Run an additional check program verifying dates, numbers, and currencies across each key locale.
 
-Đừng chỉ xem `jlink` có exit code 0: một image hợp lệ về module vẫn có thể thiếu **yêu cầu locale thực tế** của sản phẩm.
+Do not look solely at whether `jlink` exits with code 0: a module-valid image can still miss the product's **actual locale requirements**.
 
-## 8. `--include-locales`: lọc dữ liệu theo danh sách ngôn ngữ/vùng
+## 8. `--include-locales`: filtering data by language/region list
 
-Plug-in `include-locales` của `jlink` cho phép giới hạn dữ liệu locale đóng gói:
+`jlink`'s `include-locales` plug-in lets you restrict packaged locale data:
 
 ~~~bash
 jlink --add-modules java.base,jdk.localedata \
@@ -210,26 +210,26 @@ jlink --add-modules java.base,jdk.localedata \
       --output image-selected-locales
 ~~~
 
-Đây là ví dụ cú pháp cho shell có hỗ trợ dấu `\\` tiếp dòng. Trên Windows PowerShell, sử dụng **một dòng** để tránh khác biệt ký tự tiếp dòng:
+This syntax example assumes a shell supporting `\\` line continuation. On Windows PowerShell, use **a single line** to avoid line-continuation syntax differences:
 
 ~~~powershell
 jlink --add-modules java.base,jdk.localedata --include-locales=vi-VN,fr-FR,ja-JP --output image-selected-locales
 ~~~
 
-**Hai điểm quan trọng của `include-locales`:**
+**Two important points about `include-locales`:**
 
-1. Khi dùng `--include-locales`, **phải thêm module `jdk.localedata`** trong tập module đưa vào image. Plug-in không có ý nghĩa như một yêu cầu “tự tải ngôn ngữ về”.
-2. Danh sách `vi-VN,fr-FR,ja-JP` là **language tags** theo BCP 47. Plug-in có quy tắc matching locale; có thể dùng các mẫu ngôn ngữ/vùng như `en,ja,*-IN` trong ví dụ tài liệu Oracle. Không tự coi `vi` và `vi-VN` luôn giống nhau cho mọi bộ dữ liệu và dịch vụ; kiểm tra tập locale thực tế sau khi build.
+1. When using `--include-locales`, you **must add the `jdk.localedata` module** to the modules included in the image. The plug-in does not act as a request to "download languages automatically."
+2. The list `vi-VN,fr-FR,ja-JP` consists of BCP 47 **language tags**. The plug-in applies locale-matching rules; language/region patterns like `en,ja,*-IN` can be used as shown in Oracle doc examples. Do not assume `vi` and `vi-VN` always behave identically across every dataset and service; check the actual locale set after building.
 
-`--include-locales` **không được hiểu là bộ lọc toàn bộ String/ResourceBundle của ứng dụng**. Nó lọc phần dữ liệu locale tương ứng trong module `jdk.localedata` của image. Nó cũng không chuyển đổi các tệp dữ liệu người dùng sang tiếng Việt/Pháp/Nhật.
+`--include-locales` **must not be understood as a filter over all application Strings or ResourceBundles**. It filters corresponding locale data inside the image's `jdk.localedata` module. Nor does it translate user data files into Vietnamese, French, or Japanese.
 
-Một cách chọn locale chỉ phù hợp nếu bạn biết danh sách locale mà **sản phẩm phải hỗ trợ**; cần cân bằng kích thước image với chất lượng bản địa hóa.
+Filtering locales is appropriate only when you know the exact list of locales the **product must support**; balance image size against localization quality.
 
-## 9. Ví dụ Java 17+: dò module, locale và kết quả định dạng
+## 9. Java 17+ example: probing modules, locales, and formatted outputs
 
-Việc có/không có module mới chỉ là tín hiệu đầu tiên. Bạn cần **kiểm tra kết quả chạy thực tế** bằng các API của sản phẩm.
+Module presence/absence is only the first signal. You need to **verify real execution outputs** using the product's APIs.
 
-Tạo file `LocaleDataProbe.java`:
+Create `LocaleDataProbe.java`:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -270,19 +270,19 @@ public class LocaleDataProbe {
 }
 ~~~
 
-Biên dịch bằng JDK 17+:
+Compile with JDK 17+:
 
 ~~~bash
 javac -encoding UTF-8 LocaleDataProbe.java
 ~~~
 
-Chạy trên JDK đầy đủ:
+Run on the full JDK:
 
 ~~~bash
 java LocaleDataProbe
 ~~~
 
-Ví dụ stdout đã kiểm tra trên OpenJDK 24 có dữ liệu locale mở rộng:
+Example stdout verified on OpenJDK 24 with extended locale data:
 
 ~~~text
 module present: true
@@ -293,20 +293,20 @@ fr: 28 octobre 2026
 us: October 28, 2026
 ~~~
 
-Khi chạy trên một runtime image bị lọc hoặc không có `jdk.localedata`, **kết quả có thể khác**; nhất là không được sao chép nguyên stdout của full JDK thành kỳ vọng cố định cho image thu gọn.
+When running on a filtered runtime image or one without `jdk.localedata`, **outputs can differ**; in particular, never copy the full JDK's stdout verbatim as a fixed expectation for a slimmed image.
 
-Phân tích các tín hiệu:
+Analyzing the signals:
 
-- `ModuleFinder.ofSystem().find("jdk.localedata")` kiểm tra module **có trong hệ thống module hiện tại**. Nó không chứng minh module đã được resolve trong boot layer, cũng không đếm các locale được giữ sau lọc.
-- `DateFormat.getAvailableLocales()` liệt kê các locale được dịch vụ `DateFormat` công bố có sẵn; nó **không** bảo đảm các dịch vụ `java.time`, tiền tệ và số đều có cùng mức dữ liệu hoặc từng chuỗi hiển thị khớp kỳ vọng.
-- `DateTimeFormatter.ofLocalizedDate(...).withLocale(...)` kiểm tra **hành vi định dạng thật** cho ngày và locale đã chọn.
-- Chuỗi ngày tháng có thể thay đổi theo JDK/CLDR provider; kiểm tra semantic và môi trường mục tiêu, không mặc định dữ liệu dịch thuật bất biến mãi mãi.
+- `ModuleFinder.ofSystem().find("jdk.localedata")` checks whether the module **exists in the current system module set**. It does not prove the module was resolved in the boot layer, nor does it count locales retained after filtering.
+- `DateFormat.getAvailableLocales()` lists locales advertised as available by the `DateFormat` service; it **does not** guarantee `java.time`, currency, and number services share the same data level or that every display string matches expectations.
+- `DateTimeFormatter.ofLocalizedDate(...).withLocale(...)` tests **actual formatting behavior** for the chosen date and locale.
+- Date strings can change across JDK/CLDR providers; verify semantics and target environments rather than assuming localized strings stay immutable forever.
 
-Một module có sẵn có thể không nằm trong **module graph được resolve** của ứng dụng; cần xem thêm cấu hình launcher/đồ thị module nếu có tình huống provider không được sử dụng. Trong thực tế, thử nghiệm output là bước không thể thiếu.
+An available module might still be absent from the application's **resolved module graph**; inspect launcher flags and module resolution if a provider goes unused. In practice, testing outputs directly is indispensable.
 
-## 10. Chạy cùng class trên nhiều runtime để so sánh
+## 10. Running the same class across multiple runtimes to compare
 
-Sau khi biên dịch `LocaleDataProbe.java` thành `LocaleDataProbe.class` trong thư mục làm việc, chạy **cùng class** bằng các launcher khác nhau:
+After compiling `LocaleDataProbe.java` to `LocaleDataProbe.class` in your working directory, run **the exact same class** with different launchers:
 
 Linux/macOS:
 
@@ -326,36 +326,36 @@ java -cp . LocaleDataProbe
 .\image-selected-locales\bin\java.exe -cp . LocaleDataProbe
 ~~~
 
-**Đảm bảo phiên bản JDK dùng biên dịch tương thích với Java launcher trong image.** Nếu class được biên dịch cho Java 24 nhưng image chỉ chạy Java 17, chương trình có thể ném `UnsupportedClassVersionError`; đó không phải lỗi locale.
+**Ensure the JDK version used to compile is compatible with the Java launcher inside the image.** If the class was compiled for Java 24 while the image runs Java 17, the program can throw `UnsupportedClassVersionError`; that is not a locale bug.
 
-Khi so sánh, giữ cố định:
+When comparing, hold constant:
 
-1. Bytecode chương trình, dữ liệu ngày/giờ và số đầu vào.
-2. `Locale` được truyền tường minh.
-3. Phiên bản JDK/CLDR nếu có thể.
-4. Provider selection, module graph, môi trường chạy và biến cấu hình liên quan.
+1. Program bytecode, input date/time, and input numbers.
+2. Explicitly passed `Locale`.
+3. JDK/CLDR version where possible.
+4. Provider selection, module graph, runtime environment, and relevant config variables.
 
-Sau đó thay đổi **duy nhất runtime image** để thấy ảnh hưởng của gói locale data. Nếu vừa thay version JDK vừa thay `java.locale.providers`, rất khó quy kết nguyên nhân từ một khác biệt trong output.
+Then vary **only the runtime image** to observe the effect of the locale data packaging. If you change both the JDK version and `java.locale.providers` simultaneously, attributing the cause of an output difference becomes very difficult.
 
-## 11. Tại sao fallback không luôn gây lỗi?
+## 11. Why doesn't fallback always throw an error?
 
-Một dịch vụ định dạng có thể dự phòng từ locale cụ thể sang locale cha, từ nguồn dữ liệu hiện có khác, hoặc dữ liệu gốc theo cơ chế của API/provider. Nếu người dùng yêu cầu `vi-VN` mà image thiếu dữ liệu phù hợp, bạn có thể gặp:
+A formatting service may fall back from a specific locale to a parent locale, another available data source, or root data per API/provider mechanics. If a user requests `vi-VN` on an image lacking matching data, you may see:
 
-- Tên tháng/thứ không ở ngôn ngữ mong đợi.
-- Mẫu ngày tháng thay đổi thứ tự hoặc dấu câu.
-- Cách nhóm số, dấu thập phân hoặc ký hiệu tiền tệ khác.
-- Tên hiển thị quốc gia/tiền tệ trở về mã hay tên trong locale khác.
-- Một dịch vụ có output có vẻ bình thường, trong khi dịch vụ khác thiếu bản địa hóa.
+- Month/weekday names in an unexpected language.
+- Date patterns with altered field order or punctuation.
+- Different number grouping, decimal separators, or currency symbols.
+- Country/currency display names reverting to codes or names in another locale.
+- One service producing normal-looking output while another lacks localization.
 
-**Không tuyên bố chắc chắn một chuỗi fallback duy nhất** cho mọi phiên bản JDK hoặc provider. Output cụ thể phải được xác minh trên image thực tế.
+**Never assert a single deterministic fallback string** across all JDK versions or providers. Exact outputs must be verified on the actual image.
 
-Việc `Locale.forLanguageTag("vi-VN")` thành công, hoặc ngày ISO `2026-10-28` vẫn format được, không chứng minh tên tháng tiếng Việt có mặt. Một formatter toàn chữ số có thể che giấu việc thiếu dữ liệu locale. Cần test những phần **thực sự phải bản địa hóa**, chẳng hạn `MMMM` hoặc `FormatStyle.LONG`.
+The fact that `Locale.forLanguageTag("vi-VN")` succeeds, or that ISO date `2026-10-28` still formats, does not prove Vietnamese month names are present. A purely numeric formatter can mask missing locale data. Test parts that **genuinely must be localized**, such as `MMMM` or `FormatStyle.LONG`.
 
-## 12. Kiểm thử NumberFormat và Currency trên image
+## 12. Testing NumberFormat and Currency on the image
 
-Ngày tháng không phải đối tượng duy nhất của locale data. Một ứng dụng tài chính nên kiểm tra cả định dạng số và cách trình bày tiền tệ.
+Dates are not the only subject of locale data. A financial application should also verify number formatting and currency presentation.
 
-Tạo `LocaleNumberProbe.java`:
+Create `LocaleNumberProbe.java`:
 
 ~~~java
 import java.text.NumberFormat;
@@ -383,163 +383,163 @@ public class LocaleNumberProbe {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 LocaleNumberProbe.java
 java LocaleNumberProbe
 ~~~
 
-**Không ấn định một stdout cố định cho ví dụ này**: định dạng số, khoảng trắng có thể là NBSP/narrow NBSP, tên hiển thị tiền tệ và provider có thể khác theo JDK/CLDR. Mục tiêu là chạy **cùng class ở hai image** và so sánh hành vi.
+**Do not prescribe a fixed stdout for this example**: number formats, whitespace (which may be NBSP/narrow NBSP), currency display names, and providers can differ across JDK/CLDR releases. The goal is to run **the same class on both images** and compare behavior.
 
-Đừng so sánh bằng cách nhìn mắt thường khi có dấu cách Unicode đặc biệt. Nếu một test thất bại dù đầu ra trông gần giống nhau, hãy in các code point (ví dụ dùng `String.codePoints()`) để xác định có `U+00A0` hay `U+202F`.
+Do not rely on visual comparison when special Unicode spaces are involved. If a test fails even though outputs look nearly identical, print code points (e.g., via `String.codePoints()`) to detect `U+00A0` or `U+202F`.
 
-**Phân biệt currency metadata và tên được dịch:** việc `Currency.getInstance("USD")` tồn tại không chứng minh tên tiếng Việt hoặc ký hiệu mong đợi có trong runtime. Nếu một API dùng metadata đơn vị còn API khác dùng dữ liệu hiển thị theo locale, sự hiện diện module/locale vẫn phải được kiểm tra theo đúng dịch vụ.
+**Distinguish currency metadata from translated names:** the existence of `Currency.getInstance("USD")` does not prove its Vietnamese name or expected symbol is present in the runtime. When one API uses unit metadata and another uses locale-specific display data, module/locale presence must still be checked for the right service.
 
-## 13. Locale provider và `java.locale.providers`
+## 13. Locale providers and `java.locale.providers`
 
-Java có kiến trúc **Locale Service Provider**. Dữ liệu locale có thể được cấp bởi những provider khác nhau tùy phiên bản, runtime và cấu hình. Hệ sinh thái JDK hiện đại dùng dữ liệu **CLDR** rộng rãi để bản địa hóa.
+Java has a **Locale Service Provider** architecture. Locale data can come from different providers depending on version, runtime, and configuration. The modern JDK ecosystem relies broadly on **CLDR** data for localization.
 
-System property `java.locale.providers` cho phép cấu hình thứ tự/loại provider được ưu tiên trong những phiên bản hỗ trợ. Ví dụ chạy probe bằng CLDR:
+The `java.locale.providers` system property configures the prioritized order/types of providers in supported releases. Example running the probe with CLDR:
 
 ~~~bash
 java -Djava.locale.providers=CLDR -cp . LocaleDataProbe
 ~~~
 
-Khi so sánh, hãy giữ cùng cấu hình provider trên cả JDK đầy đủ và image được tạo bằng `jlink`.
+When comparing, keep the exact same provider configuration on both the full JDK and the `jlink`-built image.
 
-**Các bẫy thường gặp:**
+**Common traps:**
 
-- Đổi property provider **không tự thêm** dữ liệu locale đã bị loại khỏi image.
-- Những provider legacy hoặc tên cấu hình hợp lệ có thể khác giữa các đời JDK; không áp một danh sách provider của JDK cũ lên mọi runtime mới.
-- Việc có thêm provider không chứng minh mọi dịch vụ/locale được hỗ trợ bởi cùng provider.
-- Tùy chỉnh property lúc quá muộn trong quá trình chạy có thể không làm các dịch vụ đã khởi tạo tự động chuyển nguồn; nên cấu hình từ lúc JVM start nếu cần.
+- Changing the provider property **does not restore** locale data that was stripped from the image.
+- Legacy providers or valid configuration names can differ across JDK generations; do not blindly apply an old JDK's provider list to every new runtime.
+- Adding a provider does not prove every service/locale is backed by that same provider.
+- Changing the property too late at runtime might not switch already-initialized services; configure it at JVM startup when needed.
 
-Khi chẩn đoán, ghi lại Java version, module list, provider property và đầu ra định dạng thực tế trước khi kết luận.
+When diagnosing, record the Java version, module list, provider property, and actual formatted outputs before drawing conclusions.
 
-## 14. Tùy chỉnh runtime đúng nghĩa: image và ứng dụng
+## 14. True runtime customization: image vs. application
 
-Một custom runtime image **khác** với file ứng dụng `.jar` hoặc module của bạn. `jlink` tạo thư mục runtime gồm Java launcher, module system image và các tài nguyên liên quan. Bạn còn phải phân phối ứng dụng (hoặc tích hợp bằng công cụ đóng gói khác) tùy cách build.
+A custom runtime image is **distinct** from your application `.jar` or modules. `jlink` produces a runtime directory containing the Java launcher, modular system image, and associated resources. You still must distribute your application (or integrate via another packaging tool) according to your build model.
 
-Các trường hợp phổ biến:
+Common scenarios:
 
-- **Ứng dụng modular** có `module-info.java`: image cần module ứng dụng và các phụ thuộc.
-- **Ứng dụng chạy trên classpath**: có thể tạo image chứa các JDK modules cần thiết rồi chạy classpath với Java launcher của image.
-- **Ứng dụng desktop**: có thể dùng `jpackage` dựa trên custom runtime và bộ đóng gói cho nền tảng.
-- **Ứng dụng container/server**: image chạy trong container phải chứa đúng tập JDK modules, bao gồm `jdk.localedata` nếu cần dữ liệu locale ngoài base.
+- **Modular applications** with `module-info.java`: the image needs the application module and its dependencies.
+- **Classpath applications**: you can build an image with the needed JDK modules and run the classpath using the image's Java launcher.
+- **Desktop applications**: `jpackage` can build on top of a custom runtime and platform installer.
+- **Container/server applications**: the container's runtime image must contain the exact JDK modules needed, including `jdk.localedata` if non-base locale data is required.
 
-Không lấy ví dụ `jlink --add-modules java.base,jdk.localedata` làm công thức cho mọi ứng dụng thực tế. Nó chỉ minh họa sự hiện diện dữ liệu locale; phần module ứng dụng, service binding và các dependency cần được xác định riêng.
+Never treat `jlink --add-modules java.base,jdk.localedata` as a complete recipe for every real-world app. It merely illustrates locale data inclusion; application modules, service bindings, and dependencies must be determined separately.
 
-Một lỗi thường gặp là JDK trong CI có đủ `jdk.localedata`, nhưng runtime image trong Docker hoặc bản desktop release lại thiếu. Vì vậy các test bản địa hóa cần chạy trên **artifact cuối cùng**, không chỉ trên máy build.
+A frequent mistake is having full `jdk.localedata` on the CI JDK while missing it in the Docker runtime image or desktop release bundle. Therefore, localization tests must run against the **final artifact**, not only on the build machine.
 
-## 15. Kích thước image và chiến lược chọn locale
+## 15. Image size and locale selection strategy
 
-Đóng gói toàn bộ `jdk.localedata` thường làm image lớn hơn bản tối giản. Lọc locale bằng `--include-locales` có thể giảm dữ liệu đi kèm, nhưng quá chặt sẽ gây fallback khi ứng dụng thực sự phục vụ ngôn ngữ khác.
+Packaging all of `jdk.localedata` generally yields a larger image than a minimal build. Filtering locales with `--include-locales` reduces bundled data, but filtering too aggressively triggers fallbacks whenever the app serves additional languages.
 
-Cách chọn:
+How to choose:
 
-1. Liệt kê locale sản phẩm **cam kết hỗ trợ**, gồm language tag đầy đủ và vùng/script khi cần.
-2. Xác định API sử dụng: ngày/giờ, số/tiền tệ, tên quốc gia, collator và tài nguyên riêng.
-3. Xem nhu cầu các **parent locales**, vùng và extension tương ứng; dựa vào tài liệu matching của `jlink` rồi kiểm tra thực tế.
-4. Thêm `jdk.localedata` và dùng `--include-locales` phù hợp.
-5. Chạy probe trên image mới và kiểm tra dịch vụ theo từng locale.
-6. Đo kích thước image, khởi động và chất lượng bản địa hóa; tối ưu sau khi bảo đảm tính đúng.
-7. Nếu sản phẩm bổ sung locale, cập nhật cấu hình `jlink` và regression tests cùng lúc.
+1. List the locales the product **commits to supporting**, including full language tags and region/script subtags where needed.
+2. Identify used APIs: date/time, numbers/currencies, country names, collators, and app resources.
+3. Account for **parent locales**, regions, and relevant extensions; consult `jlink` matching docs and verify empirically.
+4. Add `jdk.localedata` and apply `--include-locales` appropriately.
+5. Run probes on the new image and verify services per locale.
+6. Measure image size, startup time, and localization quality; optimize only after ensuring correctness.
+7. Whenever the product adds a locale, update the `jlink` configuration and regression tests together.
 
-**Không giả định** chỉ việc đặt ngôn ngữ của UI thành `vi` thì mọi nhu cầu định dạng `vi-VN`, locale extension hoặc các vùng khác đều được bao phủ. Đồng thời, không cần đóng gói tất cả locale nếu sản phẩm thật sự chỉ sử dụng một tập nhỏ và đã kiểm thử.
+**Never assume** simply setting UI language to `vi` covers every formatting need for `vi-VN`, locale extensions, or other regions. At the same time, there is no need to ship all locales if the product genuinely serves and tests a small set.
 
-## 16. Một chiến lược QA cho CI/CD
+## 16. A QA strategy for CI/CD
 
-Có thể xây bài kiểm tra tự động gồm các bước:
+You can build an automated test suite with these steps:
 
-### 16.1. Kiểm tra module
+### 16.1. Module check
 
-Chạy launcher của image:
+Run the image's launcher:
 
 ~~~bash
 ./image-selected-locales/bin/java --list-modules
 ~~~
 
-Xác nhận `jdk.localedata` xuất hiện khi image được yêu cầu hỗ trợ dữ liệu locale mở rộng.
+Confirm `jdk.localedata` appears when the image is required to support extended locale data.
 
-### 16.2. Kiểm tra phạm vi locale
+### 16.2. Locale coverage check
 
-Dùng `DateFormat.getAvailableLocales()` hoặc API `getAvailableLocales()` tương ứng của dịch vụ. Xác nhận danh sách chứa các locale bắt buộc và ghi nhận những locale không có.
+Use `DateFormat.getAvailableLocales()` or the corresponding service's `getAvailableLocales()` API. Verify the list contains mandatory locales and flag any missing ones.
 
-### 16.3. Kiểm tra output thật
+### 16.3. Actual output check
 
-Format một ngày cố định `2026-10-28`, một số `1234.5` và một tiền tệ cụ thể bằng locale yêu cầu. Với locale tiếng Việt, kiểm tra tên tháng thực sự là tên tiếng Việt khi theo chính sách sản phẩm; với locale Pháp, kiểm tra tên tháng tiếng Pháp.
+Format a fixed date `2026-10-28`, a number `1234.5`, and a specific currency using the requested locales. For Vietnamese, verify the month name is actually Vietnamese per product policy; for French, verify French month names.
 
-**Không chỉ kiểm tra length hoặc “không ném exception”**. Dịch vụ có fallback vẫn có thể chạy thành công với ngôn ngữ không mong đợi.
+**Do not check only string length or "no exception thrown."** A service experiencing fallback can still succeed while returning an unintended language.
 
-### 16.4. Kiểm thử chính image phát hành
+### 16.4. Test the actual release image
 
-Trong CI/CD, chạy kiểm thử **sau khi tạo image** và trước publish. Nếu có nhiều image (Linux, Windows, macOS hoặc các kiến trúc), kiểm tra từng artifact phù hợp; `jlink` thường tạo runtime gắn với nền tảng của JDK nguồn.
+In CI/CD, run tests **after creating the image** and before publishing. When shipping multiple images (Linux, Windows, macOS, or multiple architectures), test each target artifact; `jlink` normally produces runtimes tied to the source JDK's platform.
 
-### 16.5. Lưu bằng chứng build
+### 16.5. Archive build evidence
 
-Ghi thông tin JDK version, danh sách module, tập language tags được chọn, phiên bản công cụ build và kết quả probe. Khi nâng JDK, dữ liệu CLDR có thể thay đổi mà source code không đổi; so sánh các thay đổi đó có chủ đích.
+Record JDK version, module list, chosen language tags, build tool version, and probe outputs. When upgrading the JDK, CLDR data can change without source changes; review those diffs intentionally.
 
-## 17. Những ngộ nhận cần tránh
+## 17. Misconceptions to avoid
 
-| Ngộ nhận | Thực tế | Hướng xử lý |
+| Misconception | Reality | How to handle |
 | --- | --- | --- |
-| `Locale.forLanguageTag` thành công là đủ dữ liệu | Nó chỉ tạo locale identifier | Kiểm thử provider/output |
-| `java.base` chứa mọi bản dịch | Chỉ có dữ liệu locale cơ bản trong nhiều JDK | Thêm `jdk.localedata` khi cần |
-| Có `jdk.localedata` là có mọi locale | Có thể đã bị lọc bằng `--include-locales` | Kiểm tra tập locale thực tế |
-| Không có module là tất cả API locale thất bại | Các API vẫn có thể fallback | Quan sát định dạng thật |
-| `--include-locales` tự tải/generate dữ liệu | Nó chọn dữ liệu đã có trong JDK | Build bằng JDK nguồn phù hợp |
-| `--include-locales` hoạt động mà không add `jdk.localedata` | Plug-in yêu cầu module | Add module và kiểm tra output |
-| Dữ liệu `ResourceBundle` của app nằm trong `jdk.localedata` | Đây là tài nguyên ứng dụng riêng | Đóng gói và test riêng |
-| `getAvailableLocales` đảm bảo mọi dịch vụ có đủ tài nguyên | Mỗi dịch vụ/provider có đặc điểm riêng | Test API sử dụng |
-| Locale thiếu luôn ném exception | Fallback thường không báo lỗi | Kiểm tra tên tháng/dấu số |
-| Date/number ISO còn chạy là locale đầy đủ | Output chỉ toàn chữ số có thể che thiếu dữ liệu | Kiểm thử tên tháng/tiền tệ |
-| Property provider khôi phục dữ liệu đã bị cắt | Property chỉ điều chỉnh lựa chọn provider | Bổ sung dữ liệu vào image |
-| Test thành công trên full JDK là đủ | Image release có module/data khác | Chạy test trên artifact cuối |
-| Nâng JDK không ảnh hưởng output localized | CLDR/data cập nhật theo phiên bản | Pin/test runtime khi cần |
-| Locale là timezone | Locale và `ZoneId` độc lập | Cấu hình đúng ngữ cảnh |
+| `Locale.forLanguageTag` succeeding means data is present | It only constructs a locale identifier | Test providers and outputs |
+| `java.base` contains all translations | Only baseline locale data in many JDKs | Add `jdk.localedata` when needed |
+| Having `jdk.localedata` means having all locales | May have been filtered by `--include-locales` | Check actual locale coverage |
+| Missing the module makes all locale APIs fail | APIs can still fall back | Inspect actual formatted outputs |
+| `--include-locales` downloads/generates data | It selects data already inside the JDK | Build from an appropriate source JDK |
+| `--include-locales` works without adding `jdk.localedata` | The plug-in requires the module | Add the module and verify outputs |
+| App `ResourceBundle` files live in `jdk.localedata` | They are separate application resources | Package and test separately |
+| `getAvailableLocales` guarantees full resources across all services | Each service/provider has its own traits | Test the specific APIs used |
+| A missing locale always throws an exception | Fallback is usually silent | Check month names and number symbols |
+| ISO dates/numbers working means full locale support | Numeric-only outputs hide missing data | Test month names and currencies |
+| Provider property restores stripped data | The property only adjusts provider selection | Include the data in the image |
+| Passing tests on a full JDK is sufficient | Release images have different modules/data | Run tests on the final artifact |
+| JDK upgrades do not affect localized outputs | CLDR/data updates across versions | Pin/test runtimes when needed |
+| Locale equals timezone | Locale and `ZoneId` are independent | Configure each context properly |
 
-## 18. Checklist thực hành
+## 18. Practical checklist
 
-1. **Nguồn JDK:** xác minh `java -version` và `jlink --version` thuộc bản JDK dự kiến.
-2. **Module:** chạy `java --list-modules` của custom image; kiểm tra `jdk.localedata`.
-3. **Jlink config:** nếu dùng `--include-locales`, có `jdk.localedata` trong `--add-modules`.
-4. **Ngôn ngữ:** liệt kê `vi-VN`, `fr-FR`, `ja-JP` hoặc các BCP 47 tags bắt buộc.
-5. **Provider:** ghi nhận `java.locale.providers` và tránh dùng cấu hình provider không có trên JDK đích.
-6. **Ngày:** test tên tháng/thứ và localized style chứ không chỉ ISO numeric format.
-7. **Số:** test dấu thập phân, phân nhóm, phần trăm và số âm.
-8. **Tiền tệ:** test ký hiệu/tên hiển thị theo locale và precision phù hợp.
-9. **Locale listing:** dùng đúng `getAvailableLocales` theo dịch vụ cần kiểm tra.
-10. **Fallback:** nếu thiếu locale, xác nhận hành vi mong muốn hoặc chặn release.
-11. **ResourceBundle:** xác nhận các bundle do ứng dụng cung cấp có trong artifact.
-12. **Phần mềm đóng gói:** kiểm tra runtime được launcher thật sự sử dụng.
-13. **Chạy thử:** dùng cùng class probe trên full JDK và image nhỏ.
-14. **Tính ổn định:** dữ liệu thử cố định, không dùng ngày/giờ hiện tại.
-15. **CLDR:** khi nâng JDK, xác định khác biệt format là cập nhật dữ liệu hay lỗi thiếu module.
-16. **Release:** tự động kiểm thử artifact được phát hành, không chỉ source hoặc CI host.
+1. **Source JDK:** verify `java -version` and `jlink --version` belong to the intended JDK build.
+2. **Modules:** run `java --list-modules` on the custom image; check `jdk.localedata`.
+3. **Jlink config:** when using `--include-locales`, include `jdk.localedata` in `--add-modules`.
+4. **Languages:** list `vi-VN`, `fr-FR`, `ja-JP`, or other mandatory BCP 47 tags.
+5. **Providers:** record `java.locale.providers` and avoid provider settings absent on the target JDK.
+6. **Dates:** test month/weekday names and localized styles rather than only numeric ISO formats.
+7. **Numbers:** test decimal separators, grouping, percentages, and negative numbers.
+8. **Currencies:** test localized symbols/display names and proper precision.
+9. **Locale listing:** call `getAvailableLocales` on the exact service under test.
+10. **Fallback:** when a locale is missing, verify intended behavior or fail the release.
+11. **ResourceBundle:** confirm application-provided bundles exist in the artifact.
+12. **Packaged software:** verify the exact runtime invoked by the real launcher.
+13. **Trial runs:** run the same probe class on both the full JDK and the slim image.
+14. **Determinism:** use fixed test inputs rather than the current date/time.
+15. **CLDR:** on JDK upgrades, distinguish expected data updates from missing-module bugs.
+16. **Release:** automate testing against the shipped artifact, not solely source code or the CI host.
 
-### Bài tập
+### Exercises
 
-- Tạo image chỉ có `java.base` rồi chạy `LocaleDataProbe`. So sánh danh sách module và định dạng `vi-VN` với full JDK.
-- Tạo image `java.base,jdk.localedata` không dùng `--include-locales`. So sánh với image có chọn `vi-VN,fr-FR`.
-- Dùng `--include-locales=vi-VN` để tạo image chuyên cho Việt Nam, sau đó thử `Locale.FRANCE` và giải thích fallback.
-- Với `NumberFormat.getNumberInstance(Locale.FRANCE)`, in code points của formatted string để tìm dấu phân nhóm không phải ASCII.
-- Thiết kế kiểm thử `Currency.getDisplayName(Locale.forLanguageTag("vi-VN"))` trên image và so sánh với full JDK.
-- Thêm các locale `en-US`, `ja-JP`, `vi-VN` vào danh sách test, chỉ định đâu là cam kết sản phẩm và đâu là fallback chấp nhận được.
-- Viết pipeline build thất bại nếu image release không có module hoặc không đạt kiểm thử định dạng cho các locale bắt buộc.
+- Build a `java.base`-only image and run `LocaleDataProbe`. Compare the module list and `vi-VN` formatting against the full JDK.
+- Build a `java.base,jdk.localedata` image without `--include-locales`. Compare with an image selecting `vi-VN,fr-FR`.
+- Use `--include-locales=vi-VN` to build a Vietnam-focused image, then test `Locale.FRANCE` and explain the fallback.
+- For `NumberFormat.getNumberInstance(Locale.FRANCE)`, print the code points of the formatted string to spot non-ASCII grouping spaces.
+- Design a test for `Currency.getDisplayName(Locale.forLanguageTag("vi-VN"))` on the image and compare against the full JDK.
+- Add `en-US`, `ja-JP`, and `vi-VN` to a test matrix, specifying which are product commitments and which fallbacks are acceptable.
+- Write a build pipeline that fails if the release image lacks the module or fails formatting checks for required locales.
 
-## 19. Kết luận
+## 19. Conclusion
 
-`java.base` cung cấp API và dữ liệu locale cơ bản; **`jdk.localedata` cung cấp dữ liệu locale mở rộng** trong các bản JDK được tài liệu hóa. Khi tạo custom runtime image bằng `jlink`, phải đưa `jdk.localedata` vào nếu cần bản địa hóa ngoài tập cơ bản, và có thể chọn lọc dữ liệu qua **`--include-locales`** để giảm kích thước.
+`java.base` provides core APIs and baseline locale data; **`jdk.localedata` supplies extended locale data** in documented JDK releases. When building custom runtime images with `jlink`, include `jdk.localedata` if localization beyond the baseline set is required, and optionally filter data via **`--include-locales`** to reduce footprint.
 
-**Một `Locale` tồn tại không bảo đảm dữ liệu format tồn tại.** Vì vậy, đừng chỉ kiểm tra code chạy mà phải xác minh chính launcher của image, module list, tập locale khả dụng và kết quả định dạng ngày/số/tiền tệ thực tế. Đồng thời tách tài nguyên bản dịch ứng dụng khỏi dữ liệu JDK và giữ môi trường/phiên bản CLDR nhất quán khi test.
+**An existing `Locale` does not guarantee formatting data exists.** Therefore, do not stop at verifying the code runs—verify the image's own launcher, module list, available locale set, and actual date/number/currency formatting outputs. At the same time, keep application translation resources separate from JDK data and maintain consistent runtime/CLDR versions during testing.
 
-Lựa chọn đúng không phải “đóng gói tất cả locale” bằng mọi giá, mà là **đóng gói đủ những locale sản phẩm cam kết hỗ trợ và kiểm thử trực tiếp trên runtime image phát hành**.
+The right choice is not "package every locale" at any cost, but rather **package the exact locales your product commits to supporting and test directly on the shipped runtime image**.
 
-## Tài liệu tham khảo chính thức
+## Official references
 
 - [Oracle JDK 17 — Supported Locales, Locales and Modules](https://www.oracle.com/java/technologies/javase/jdk17-suported-locales.html)
-- [Oracle Java 21 — jlink command và plug-in include-locales](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jlink.html)
+- [Oracle Java 21 — jlink command and include-locales plug-in](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jlink.html)
 - [Oracle Java 21 — java.util.Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html)
 - [Oracle Java 21 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html)
 - [Oracle Java 21 — DateFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DateFormat.html)

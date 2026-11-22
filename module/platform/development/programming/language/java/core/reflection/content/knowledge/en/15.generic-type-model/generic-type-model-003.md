@@ -1,14 +1,14 @@
-# Raw type, owner type và kiểu lồng có generic trong Java Reflection
+# Raw Types, Owner Types, and Generic Nested Types in Java Reflection
 
-## 1. Ba khái niệm phải phân biệt
+## 1. Three Concepts That Must Be Distinguished
 
-Trong Java, một kiểu generic có thể được sử dụng với tham số kiểu cụ thể, chẳng hạn `List<String>` hoặc `Outer<String>.Inner<Integer>`. Khi đọc cấu trúc kiểu qua Reflection, ba khái niệm quan trọng là **raw type**, **owner type** và **tham số kiểu của bản thân kiểu lồng**.
+In Java, a generic type can be used with concrete type arguments, such as `List<String>` or `Outer<String>.Inner<Integer>`. When reading type structures through Reflection, three important concepts are **raw type**, **owner type**, and **the type arguments of the nested type itself**.
 
-- **Raw type trong ngôn ngữ Java** là cách dùng một kiểu generic mà bỏ danh sách đối số kiểu, chẳng hạn `List` thay cho `List<String>`, hoặc `Outer.Inner` khi `Outer<T>` bị dùng ở dạng raw. Raw type được Java giữ lại chủ yếu vì tương thích mã nguồn trước khi có generics.
-- **Raw type theo `ParameterizedType.getRawType()`** là cấu trúc khai báo nền của một parameterized type, thường là `Class<?>`. Ví dụ, trong `List<String>`, `getRawType()` trả `List.class`. **Điều này không có nghĩa khai báo `List<String>` trong source là raw usage**: ta chỉ đang xem class/interface gốc của kiểu đã được tham số hóa.
-- **Owner type** của một kiểu thành viên là kiểu mà nó là thành viên. Với `Outer<String>.Inner<Integer>`, owner của `Inner<Integer>` là `Outer<String>`. Owner giữ thông tin kiểu của phần bao bên ngoài, và bản thân `Inner` giữ tham số kiểu riêng của nó.
+- **Raw type in the Java language** is using a generic type while omitting the type argument list, such as `List` instead of `List<String>`, or `Outer.Inner` when `Outer<T>` is used in raw form. Raw types are retained by Java mainly for compatibility with pre-generics source code.
+- **Raw type according to `ParameterizedType.getRawType()`** is the underlying declaration structure of a parameterized type, usually a `Class<?>`. For example, in `List<String>`, `getRawType()` returns `List.class`. **This does not mean the `List<String>` declaration in source code is a raw usage**: we are simply inspecting the base class/interface of the parameterized type.
+- **Owner type** of a member type is the type of which it is a member. For `Outer<String>.Inner<Integer>`, the owner of `Inner<Integer>` is `Outer<String>`. The owner holds the type information of the enclosing outer part, and `Inner` itself holds its own type arguments.
 
-Ví dụ khởi đầu:
+Initial example:
 
 ~~~java
 class Outer<T> {
@@ -18,42 +18,42 @@ class Outer<T> {
 }
 ~~~
 
-Các kiểu khác nhau:
+Different usages:
 
-| Cách dùng | Ý nghĩa |
+| Usage | Meaning |
 | --- | --- |
-| `Outer<String>` | `Outer<T>` với `T = String`. |
-| `Outer` | Dạng raw của `Outer<T>`. |
-| `Outer<String>.Inner<Integer>` | Inner **không static**, vừa có owner `Outer<String>`, vừa có đối số kiểu riêng `Integer` cho `U`. |
-| `Outer<String>.Plain` | Inner không generic riêng; owner vẫn chứa `String`. |
-| `Outer.Inner` | Inner thuộc raw `Outer`, nên cũng được dùng dưới dạng raw. |
-| `Outer.Nested<Long>` | Nested class **static** có tham số kiểu riêng `Long`, không phụ thuộc `T` của `Outer`. |
+| `Outer<String>` | `Outer<T>` with `T = String`. |
+| `Outer` | Raw form of `Outer<T>`. |
+| `Outer<String>.Inner<Integer>` | **Non-static** inner class, having both owner `Outer<String>` and its own type argument `Integer` for `U`. |
+| `Outer<String>.Plain` | Inner class with no generic parameters of its own; the owner still carries `String`. |
+| `Outer.Inner` | Inner belonging to raw `Outer`, so it is also used in raw form. |
+| `Outer.Nested<Long>` | **Static** nested class with its own type argument `Long`, independent of `Outer`'s `T`. |
 
-Lưu ý: “owner type” ở Reflection diễn tả **cấu trúc kiểu thành viên**, không đồng nghĩa một đối tượng outer instance. Static nested class cũng có thể có owner type theo quan hệ khai báo, mặc dù không cần outer instance để khởi tạo.
+Note: "owner type" in Reflection describes **member type structure**, not an outer object instance. A static nested class can also have an owner type by declaration relationship, even though no outer instance is needed to instantiate it.
 
-## 2. Các giao diện Reflection và API cần dùng
+## 2. Reflection Interfaces and APIs to Use
 
-Java cung cấp hệ thống `java.lang.reflect.Type`, bao gồm những dạng chủ yếu sau:
+Java provides the `java.lang.reflect.Type` hierarchy, including the following main forms:
 
-| Kiểu Reflection | Khi nào thường xuất hiện? |
+| Reflection type | When does it typically appear? |
 | --- | --- |
-| `Class<?>` | Class/interface thông thường, kiểu primitive, mảng class, hoặc một khai báo dùng raw type; không chứa tập đối số generic cụ thể. |
-| `ParameterizedType` | Kiểu được tham số hóa như `List<String>`, `Outer<String>.Inner<Integer>`, hoặc kiểu lồng không generic nhưng có owner parameterized. |
-| `TypeVariable<?>` | Tham số kiểu khai báo như `T`, `U` ở mức class hoặc method, chưa thay bằng đối số cụ thể. |
-| `WildcardType` | Ký hiệu wildcard như `? extends Number` hoặc `? super Integer`. |
-| `GenericArrayType` | Một số kiểu mảng có thành phần generic như `T[]`, khác với `String[].class`. |
+| `Class<?>` | Ordinary class/interface, primitive type, array class, or a declaration using a raw type; contains no concrete generic argument set. |
+| `ParameterizedType` | Parameterized types such as `List<String>`, `Outer<String>.Inner<Integer>`, or a non-generic nested type with a parameterized owner. |
+| `TypeVariable<?>` | Declared type parameter such as `T`, `U` at class or method level, not yet substituted with a concrete argument. |
+| `WildcardType` | Wildcard notation such as `? extends Number` or `? super Integer`. |
+| `GenericArrayType` | Certain array types with a generic component such as `T[]`, distinct from `String[].class`. |
 
-Khi đối tượng thực sự là `ParameterizedType p`, ba phương thức mấu chốt:
+When an object is actually a `ParameterizedType p`, three key methods:
 
-- `p.getRawType()`: trả `Type` đại diện cho class/interface khai báo kiểu đang dùng. Với `Outer<String>.Inner<Integer>`, đó là `Outer.Inner.class`, **không phải** `Outer.class`.
-- `p.getOwnerType()`: trả `Type` của kiểu chứa nó, chẳng hạn `Outer<String>`. Nếu là top-level type như `List<String>`, kết quả là `null`.
-- `p.getActualTypeArguments()`: trả `Type[]` cho các đối số kiểu của **phần đang xét**. Với `Outer<String>.Inner<Integer>`, mảng chỉ có `Integer`; `String` thuộc owner, không nằm trong mảng này.
+- `p.getRawType()`: returns the `Type` representing the class/interface declaring the type in use. For `Outer<String>.Inner<Integer>`, that is `Outer.Inner.class`, **not** `Outer.class`.
+- `p.getOwnerType()`: returns the `Type` of its enclosing type, such as `Outer<String>`. If it is a top-level type like `List<String>`, the result is `null`.
+- `p.getActualTypeArguments()`: returns `Type[]` for the type arguments of **the part under inspection**. For `Outer<String>.Inner<Integer>`, the array contains only `Integer`; `String` belongs to the owner, not this array.
 
-Trên một `Type` bất kỳ, **không được ép thẳng sang `ParameterizedType`**: `Field.getGenericType()` có thể trả `Class`, `TypeVariable` hoặc kiểu khác tùy khai báo. Dùng `instanceof ParameterizedType p` rồi mới đọc `getRawType()`, `getOwnerType()`, `getActualTypeArguments()`.
+On an arbitrary `Type`, **never cast directly to `ParameterizedType`**: `Field.getGenericType()` can return `Class`, `TypeVariable`, or another kind depending on the declaration. Use `instanceof ParameterizedType p` before reading `getRawType()`, `getOwnerType()`, or `getActualTypeArguments()`.
 
-## 3. Ví dụ Java 17+ chạy được: quan sát raw/owner/arguments
+## 3. Runnable Java 17+ Example: Observing Raw / Owner / Arguments
 
-Để tránh dựa vào tên binary có ký tự `$`, ví dụ in tên ngắn bằng hàm tiện ích `shortName`. Đặt toàn bộ mã trong **`GenericOwnerDemo.java`**:
+To avoid relying on binary names containing `$`, the example prints short names using a helper method `shortName`. Put all the code in **`GenericOwnerDemo.java`**:
 
 ~~~java
 import java.lang.reflect.*;
@@ -118,14 +118,14 @@ public class GenericOwnerDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 GenericOwnerDemo.java
 java GenericOwnerDemo
 ~~~
 
-Stdout đã được kiểm chứng từ chương trình trên:
+Verified stdout from the program above:
 
 ~~~text
 full: raw=Inner; owner=Outer<String>; args=[Integer]
@@ -137,47 +137,47 @@ nested: raw=Nested; owner=Outer; args=[Long]
 list: raw=List; owner=-; args=[String]
 ~~~
 
-**Phân tích:**
+**Analysis:**
 
-1. `full` được khai báo `Outer<String>.Inner<Integer>`. `getRawType()` chỉ ra `Inner.class`; `getOwnerType()` là một `ParameterizedType` cho `Outer<String>`; `getActualTypeArguments()` ở cấp `Inner` chỉ gồm `Integer.class`.
-2. `plain` được khai báo `Outer<String>.Plain`. Tuy `Plain` **không khai báo tham số kiểu riêng**, Reflection vẫn dùng `ParameterizedType` để giữ owner `Outer<String>`; `getActualTypeArguments()` rỗng. Đây là trường hợp dễ gây nhầm lẫn nhất.
-3. `rawInner` được khai báo `Outer.Inner` trong ngữ cảnh `Outer` raw, nên `getGenericType()` là một `Class<?>`. Không thể cast sang `ParameterizedType` để yêu cầu `getOwnerType()` hay args của khai báo field này.
-4. `parameterizedOuter` là kiểu top-level `Outer<String>`; owner `null`. `rawOuter` chỉ là `Class<Outer>` ở mức Reflection vì khai báo dùng `Outer` không có đối số kiểu.
-5. `nested` là `Outer.Nested<Long>`. `getOwnerType()` là `Class` cho `Outer` (được in là `Outer`), **không phải `Outer<String>`**, bởi `Nested` là `static` và không mang tham số `T` của outer.
-6. `List<String>` là parameterized interface top-level từ thư viện Java, nên `getOwnerType() == null`. Nó khác về quan hệ thành viên so với `Inner` và `Nested`.
+1. `full` is declared as `Outer<String>.Inner<Integer>`. `getRawType()` points to `Inner.class`; `getOwnerType()` is a `ParameterizedType` for `Outer<String>`; `getActualTypeArguments()` at the `Inner` level contains only `Integer.class`.
+2. `plain` is declared as `Outer<String>.Plain`. Although `Plain` **declares no type parameters of its own**, Reflection still uses `ParameterizedType` to hold the owner `Outer<String>`; `getActualTypeArguments()` is empty. This is the most common source of confusion.
+3. `rawInner` is declared as `Outer.Inner` in a raw `Outer` context, so `getGenericType()` is a `Class<?>`. You cannot cast it to `ParameterizedType` to ask for `getOwnerType()` or arguments of this field declaration.
+4. `parameterizedOuter` is the top-level type `Outer<String>`; owner is `null`. `rawOuter` is simply `Class<Outer>` at the Reflection level because the declaration uses `Outer` with no type arguments.
+5. `nested` is `Outer.Nested<Long>`. `getOwnerType()` is `Class` for `Outer` (printed as `Outer`), **not `Outer<String>`**, because `Nested` is `static` and does not carry the outer's `T` parameter.
+6. `List<String>` is a top-level parameterized interface from the Java library, so `getOwnerType() == null`. It differs in member relationship from `Inner` and `Nested`.
 
-Hàm `shortName` chỉ phục vụ trình bày. Nó cố tình hiển thị args của `ParameterizedType` riêng và hiển thị owner ở cột khác; khi kiểu chứa nhiều lớp lồng phức tạp, nên xử lý cấu trúc `Type` đầy đủ thay vì dùng tên rút gọn để tái tạo cú pháp khai báo ban đầu.
+The `shortName` method is solely for presentation. It intentionally displays `ParameterizedType` args separately and shows the owner in another column; when a type has complex multiple nesting levels, process the full `Type` structure rather than reconstructing the original declaration syntax from shortened names.
 
-## 4. Đọc đúng `getRawType()`: class nền và raw usage là hai chuyện
+## 4. Reading `getRawType()` Correctly: Underlying Class vs. Raw Usage Are Two Different Things
 
-Giả sử:
+Suppose:
 
 ~~~java
 List<String> typed;
 List raw;
 ~~~
 
-Trong Reflection trên **hai field khai báo khác nhau**:
+In Reflection across **two differently declared fields**:
 
-- `typed`: `Field.getGenericType()` trả `ParameterizedType`; `getRawType() == List.class`, và `getActualTypeArguments()[0] == String.class`.
-- `raw`: `Field.getGenericType()` trả thẳng `List.class`. Không có mảng `String` hay đối số generic được khai báo trên field đó.
+- `typed`: `Field.getGenericType()` returns a `ParameterizedType`; `getRawType() == List.class`, and `getActualTypeArguments()[0] == String.class`.
+- `raw`: `Field.getGenericType()` returns `List.class` directly. No `String` or generic arguments array is declared on that field.
 
-Vì vậy, không nên nói “`List<String>` là raw” chỉ bởi `getRawType()` của nó là `List.class`. Tên API nói tới **loại khai báo nền của parameterized type**.
+Therefore, you should not say "`List<String>` is raw" just because its `getRawType()` is `List.class`. The API name refers to **the underlying declaration of a parameterized type**.
 
-`Class<?>` của một generic declaration vẫn có thể cung cấp thông tin **tham số kiểu hình thức**:
+The `Class<?>` of a generic declaration can still provide information about **formal type parameters**:
 
 ~~~java
-Outer.class.getTypeParameters(); // chứa TypeVariable tên T
-Outer.Inner.class.getTypeParameters(); // chứa TypeVariable tên U
+Outer.class.getTypeParameters(); // contains TypeVariable named T
+Outer.Inner.class.getTypeParameters(); // contains TypeVariable named U
 ~~~
 
-Nhưng `TypeVariable T` hoặc `U` là “biến kiểu trong khai báo”, không phải **đối số cụ thể** `String`/`Integer` gắn vào một field. Để xem đối số thật được ghi trên field, đọc `Field.getGenericType()` rồi đi qua `ParameterizedType` và owner của nó.
+However, `TypeVariable T` or `U` is a "type variable in the declaration," not the **concrete argument** `String`/`Integer` bound on a field. To see the actual arguments written on a field, read `Field.getGenericType()` and inspect the `ParameterizedType` and its owner.
 
-**Raw type và nguy cơ:** Java giữ raw type cho khả năng tương thích thư viện cũ. Truyền dữ liệu qua raw collections có thể dẫn tới **unchecked warning** ở compile time và `ClassCastException` khi lấy lại dữ liệu sai kiểu. Trong code mới, nên khai báo type argument rõ ràng; nếu chỉ không biết kiểu thì dùng wildcard `<?>` khi phù hợp, ví dụ `List<?>` khác `List` raw.
+**Raw types and risks:** Java retains raw types for compatibility with legacy libraries. Passing data through raw collections can lead to **unchecked warnings** at compile time and `ClassCastException` when retrieving data of the wrong type. In new code, declare type arguments explicitly; if the type is simply unknown, use the wildcard `<?>` when appropriate—for example, `List<?>` is different from raw `List`.
 
-## 5. Owner type không phải outer instance
+## 5. Owner Type Is Not an Outer Instance
 
-Trong mã nguồn Java, **inner class không static** có liên hệ với một instance của outer class. Còn static nested class thì không cần instance đó:
+In Java source code, a **non-static inner class** is associated with an instance of the outer class. A static nested class does not need that instance:
 
 ~~~java
 Outer<String> outer = new Outer<>();
@@ -185,23 +185,23 @@ Outer<String>.Inner<Integer> inner = outer.new Inner<>();
 Outer.Nested<Long> nested = new Outer.Nested<>();
 ~~~
 
-Đây là một **đoạn minh họa sử dụng `Outer` ở phần 3**, không phải file riêng có `main`. Với `inner`, cú pháp tạo instance cần `outer.new Inner<>()` vì `Inner` không static. Với `nested`, có thể gọi trực tiếp `new Outer.Nested<>()`.
+This is an **illustrative snippet using `Outer` from section 3**, not a standalone file with `main`. For `inner`, the instantiation syntax requires `outer.new Inner<>()` because `Inner` is non-static. For `nested`, you can call `new Outer.Nested<>()` directly.
 
-Các phương thức Reflection liên quan nhưng khác mục đích:
+Related Reflection methods with different purposes:
 
-| API | Nội dung |
+| API | Content |
 | --- | --- |
-| `ParameterizedType.getOwnerType()` | Owner **trong biểu diễn kiểu generic cụ thể**: ví dụ `Outer<String>` đối với `Outer<String>.Inner<Integer>`. |
-| `Class.getDeclaringClass()` | Class khai báo một member class/interface, ví dụ `Outer.class` đối với `Outer.Inner.class`; **không mang `<String>`**. |
-| `Class.getEnclosingClass()` | Class bao quanh theo cấu trúc nguồn/binary; còn áp dụng cho một số local/anonymous class. Không cung cấp đối số kiểu của outer. |
-| `Class.isMemberClass()` | Kiểm tra kiểu có phải member class không; không nói kiểu đã được tham số hóa ra sao. |
-| `Modifier.isStatic(nestedClass.getModifiers())` | Cho biết class lồng có static modifier; không thể suy trực tiếp từ việc `getOwnerType()` khác `null`. |
+| `ParameterizedType.getOwnerType()` | Owner **in the concrete generic type representation**: e.g., `Outer<String>` for `Outer<String>.Inner<Integer>`. |
+| `Class.getDeclaringClass()` | Class declaring a member class/interface, e.g., `Outer.class` for `Outer.Inner.class`; **does not carry `<String>`**. |
+| `Class.getEnclosingClass()` | Immediately enclosing class in source/binary structure; also applies to certain local/anonymous classes. Does not provide the outer's type arguments. |
+| `Class.isMemberClass()` | Checks whether a type is a member class; does not say how the type was parameterized. |
+| `Modifier.isStatic(nestedClass.getModifiers())` | Tells whether the nested class has the `static` modifier; cannot be inferred directly from `getOwnerType()` being non-null. |
 
-Một `Outer.Nested<Long>` vẫn có owner type ở metadata vì `Nested` là **member của `Outer`**, dù không có enclosing instance và không kế thừa `T`. Chủ thể “chứa khai báo kiểu” và chủ thể “instance vật lý để truy cập” phải phân biệt.
+An `Outer.Nested<Long>` still has an owner type in metadata because `Nested` is a **member of `Outer`**, even though it has no enclosing instance and does not inherit `T`. The entity "containing the type declaration" and the entity "physical instance for access" must be kept distinct.
 
-## 6. Inner generic và non-generic inner: vì sao args có thể rỗng?
+## 6. Generic Inner vs. Non-Generic Inner: Why Can `args` Be Empty?
 
-Với:
+With:
 
 ~~~java
 class Outer<T> {
@@ -210,16 +210,16 @@ class Outer<T> {
 }
 ~~~
 
-`Outer<String>.Inner<Integer>` có **hai mức ràng buộc kiểu**:
+`Outer<String>.Inner<Integer>` has **two levels of type bindings**:
 
-- `T = String` của `Outer<T>`, nằm trong owner type.
-- `U = Integer` của `Inner<U>`, nằm trong `getActualTypeArguments()` của inner type.
+- `T = String` of `Outer<T>`, residing in the owner type.
+- `U = Integer` of `Inner<U>`, residing in `getActualTypeArguments()` of the inner type.
 
-`Outer<String>.Plain` chỉ có mức owner `T = String`. `Plain` không khai báo `<U>` nên `getActualTypeArguments()` của inner **rỗng** dù toàn bộ kiểu có chứa thông tin generic ở owner.
+`Outer<String>.Plain` has only the owner level `T = String`. `Plain` declares no `<U>`, so the inner's `getActualTypeArguments()` is **empty** even though the whole type contains generic information in the owner.
 
-Một ứng dụng thường sai là chỉ kiểm tra `getActualTypeArguments().length == 0` rồi kết luận toàn bộ kiểu không generic. Cần kiểm tra `getOwnerType()` và đọc đệ quy nếu owner cũng là `ParameterizedType`.
+A common application bug is checking only `getActualTypeArguments().length == 0` and concluding the entire type is non-generic. You must check `getOwnerType()` and read recursively if the owner is also a `ParameterizedType`.
 
-Cách duyệt an toàn về mặt ý tưởng:
+A conceptually safe traversal:
 
 ~~~java
 static void walk(Type type) {
@@ -233,41 +233,41 @@ static void walk(Type type) {
 }
 ~~~
 
-Đây là **method minh họa**, cần đặt vào class có import `java.lang.reflect.*`. Nó chưa xử lý chi tiết các nhánh `WildcardType`, `TypeVariable`, `GenericArrayType` nên không phải generic type printer hoàn chỉnh. Mục tiêu là cho thấy phải duyệt **owner lẫn args**, không chỉ mảng args của inner.
+This is an **illustrative method**, to be placed in a class with `import java.lang.reflect.*`. It does not yet handle `WildcardType`, `TypeVariable`, or `GenericArrayType` branches in detail, so it is not a complete generic type printer. The goal is to show that you must traverse **both owner and args**, not just the inner's args array.
 
-## 7. Các dạng raw với class lồng và lỗi “partially raw”
+## 7. Raw Forms with Nested Classes and "Partially Raw" Errors
 
-JLS §4.8 nêu quy tắc: nếu outer generic bị sử dụng raw, inner member class không static khai báo trong nó cũng được xem là raw. Java không cho dùng **nửa raw/nửa tham số hóa** tại một chuỗi kiểu inner.
+JLS §4.8 states the rule: if an outer generic type is used raw, a non-static inner member class declared inside it is also treated as raw. Java does not allow **half-raw / half-parameterized** usage in an inner type chain.
 
-Với `Outer<T>` có `Inner<U>` ở ví dụ, hai khai báo sau **không hợp lệ và không biên dịch**:
+Given `Outer<T>` with `Inner<U>` in the example, the following two declarations are **invalid and do not compile**:
 
 ~~~text
-Outer.Inner<Integer> bad1;      // Sai: raw Outer nhưng cố truyền <Integer> cho Inner
-Outer<String>.Inner bad2;       // Sai: Outer<String> nhưng dùng raw Inner
+Outer.Inner<Integer> bad1;      // Invalid: raw Outer while attempting to pass <Integer> to Inner
+Outer<String>.Inner bad2;       // Invalid: Outer<String> while using raw Inner
 ~~~
 
-Hai khai báo đúng tương ứng là:
+The two corresponding valid declarations are:
 
 ~~~java
 Outer.Inner rawInner;
 Outer<String>.Inner<Integer> parameterizedInner;
 ~~~
 
-Đây là các **field declaration minh họa**: đặt bên trong class nếu muốn biên dịch. Dùng raw inner hợp lệ vì lý do tương thích legacy nhưng mất bớt kiểm tra generic; dạng được tham số hóa đầy đủ an toàn hơn khi viết code mới.
+These are **illustrative field declarations**: place them inside a class if you want to compile them. Using raw inner is valid for legacy compatibility but loses generic checking; the fully parameterized form is safer when writing new code.
 
-Với class lồng `static`, các quy tắc khác:
+For `static` nested classes, the rules differ:
 
 ~~~java
-Outer.Nested<Long> ok;  // hợp lệ: Nested static có V riêng
+Outer.Nested<Long> ok;  // valid: static Nested has its own V
 ~~~
 
-Bạn **không** viết `Outer<String>.Nested<Long>`, vì static nested type không phụ thuộc tham số `T` và không được chọn static member type từ một parameterized outer qua cú pháp đó. Hãy dùng `Outer.Nested<Long>`.
+You **do not** write `Outer<String>.Nested<Long>`, because a static nested type does not depend on parameter `T` and a static member type cannot be selected from a parameterized outer type using that syntax. Use `Outer.Nested<Long>`.
 
-Sự phân biệt này rất quan trọng khi viết trình phân tích generic type cho framework: đừng tự ghép chuỗi `Outer<...>.Nested<...>` chỉ vì `getOwnerType()` khác null. Cần biết `Nested` có static modifier hay không và semantics của source syntax.
+This distinction is very important when writing a generic type parser for a framework: do not blindly concatenate `Outer<...>.Nested<...>` just because `getOwnerType()` is non-null. You need to know whether `Nested` has the `static` modifier and understand source syntax semantics.
 
-## 8. `getType()` khác `getGenericType()`
+## 8. `getType()` vs. `getGenericType()`
 
-Khi đọc một field:
+When reading a field:
 
 ~~~java
 Field field = Holder.class.getDeclaredField("full");
@@ -275,84 +275,84 @@ Class<?> erased = field.getType();
 Type generic = field.getGenericType();
 ~~~
 
-Đoạn này dùng `Holder` trong ví dụ phần 3, chưa phải chương trình độc lập.
+This snippet uses `Holder` from section 3 and is not a standalone program.
 
-- `getType()` trả `Class<?>` của kiểu field sau erasure, tức `Outer.Inner.class`. Nó không thể mang hai đối số `String` và `Integer`.
-- `getGenericType()` đọc signature generic nếu có và trả `Type` phù hợp, với `full` là `ParameterizedType` có raw=`Outer.Inner.class`, owner=`Outer<String>` và args=`[Integer]`.
-- Với field raw `Outer.Inner rawInner`, cả hai biểu diễn có thể là đối tượng `Class`; generic signature của cách dùng field này không khai báo binding cho `T/U`.
+- `getType()` returns the `Class<?>` of the field type after erasure, namely `Outer.Inner.class`. It cannot carry the two arguments `String` and `Integer`.
+- `getGenericType()` reads the generic signature if present and returns the appropriate `Type`; for `full`, that is a `ParameterizedType` with raw=`Outer.Inner.class`, owner=`Outer<String>`, and args=`[Integer]`.
+- For the raw field `Outer.Inner rawInner`, both representations can be a `Class` object; the generic signature of this field usage declares no binding for `T/U`.
 
-Tương tự, `Method.getGenericReturnType()`, `Method.getGenericParameterTypes()`, `Class.getGenericSuperclass()` và `Class.getGenericInterfaces()` giúp giữ cấu trúc generic **được ghi trong declaration**. Dùng các API `getGeneric...` khi nhiệm vụ là phân tích schema/type model; dùng `getType()`/`getReturnType()` khi chỉ cần runtime `Class` để gọi hoặc kiểm tra kiểu.
+Similarly, `Method.getGenericReturnType()`, `Method.getGenericParameterTypes()`, `Class.getGenericSuperclass()`, and `Class.getGenericInterfaces()` preserve the generic structure **recorded in the declaration**. Use the `getGeneric...` APIs when the task is analyzing a schema/type model; use `getType()`/`getReturnType()` when you only need a runtime `Class` to invoke or type-check.
 
-## 9. Generic metadata không có nghĩa mọi instance giữ type argument runtime
+## 9. Generic Metadata Does Not Mean Every Instance Retains Runtime Type Arguments
 
-Java generics phần lớn dùng **type erasure**. Hai object được tạo qua:
+Java generics largely use **type erasure**. Two objects created via:
 
 ~~~java
 Outer<String> first = new Outer<>();
 Outer<Integer> second = new Outer<>();
 ~~~
 
-đều có cùng runtime `Class` là `Outer.class` (giả sử đặt đoạn trong method hợp lệ). Gọi `first.getClass()` không thể tự xác định `String` và `second.getClass()` không thể tự xác định `Integer`.
+both have the same runtime `Class`, `Outer.class` (assuming placed inside a valid method). Calling `first.getClass()` cannot independently determine `String`, and `second.getClass()` cannot independently determine `Integer`.
 
-Tuy nhiên, field như `Holder.full` có **khai báo generic trong class file**, nên `getGenericType()` vẫn đọc được `Outer<String>.Inner<Integer>`. Hai câu hỏi khác nhau:
+However, a field such as `Holder.full` has a **generic declaration in the class file**, so `getGenericType()` can still read `Outer<String>.Inner<Integer>`. Two different questions:
 
-- “Một object bất kỳ được khởi tạo với đối số generic nào?”: thường không thể phục hồi chỉ bằng `getClass()` do erasure.
-- “Source khai báo một field / method / superclass generic như thế nào?”: có thể đọc metadata signature qua Reflection nếu nó hiện diện.
+- "With what generic arguments was an arbitrary object instantiated?": usually cannot be recovered via `getClass()` alone due to erasure.
+- "How does the source declare a generic field / method / superclass?": the signature metadata can be read via Reflection if present.
 
-Điều này giải thích tại sao một raw `Class<?>` không đủ làm nơi lưu `ownerType` và nhiều tầng actual type arguments cho mọi field.
+This explains why a raw `Class<?>` is insufficient to store `ownerType` and multiple levels of actual type arguments for every field.
 
-## 10. Phân tích `Type` đúng cách trong framework
+## 10. Properly Analyzing `Type` in a Framework
 
-Khi xây mapper, serializer, dependency injection hoặc trình tạo tài liệu API, chọn chiến lược theo bản chất `Type`:
+When building a mapper, serializer, dependency injection container, or API documentation generator, choose a strategy based on the nature of `Type`:
 
-1. **Bắt đầu từ đúng vị trí khai báo:** dùng `Field.getGenericType()`, `Method.getGenericReturnType()` hoặc signature cấp superclass/interface, tùy loại metadata cần đọc.
-2. **Phân nhánh theo `Type` thực tế:** nếu là `ParameterizedType`, đọc `rawType`, `ownerType` và `actualTypeArguments`. Nếu là `Class<?>`, có thể là kiểu không generic hoặc một raw use; xem chính declaration khi cần phân biệt.
-3. **Giữ cả owner và inner args:** `Outer<String>.Inner<Integer>` không tương đương `Outer<Integer>.Inner<Integer>`; nếu cache key chỉ chứa raw `Inner.class` và `Integer`, bạn sẽ bỏ mất thông tin `String`.
-4. **Kiểm tra static nested:** owner ở cấp Reflection có thể là một `Class` chưa tham số hóa. Không suy ra tất cả nested types đều cần outer instance hoặc phải có generic binding bên ngoài.
-5. **Xử lý các nhánh còn lại:** `TypeVariable` có thể cần phân giải qua môi trường kiểu của class kế thừa; `WildcardType` có upper/lower bounds; `GenericArrayType` mang component type có thể generic. Đừng cast tất cả thành `Class`.
-6. **Không nhầm metadata với conversion:** việc biết `T=String` từ field signature không tự động kiểm tra mọi giá trị runtime. Validation và mapping dữ liệu là tác vụ riêng.
+1. **Start from the right declaration site:** use `Field.getGenericType()`, `Method.getGenericReturnType()`, or superclass/interface-level signatures, depending on the metadata needed.
+2. **Branch on the actual `Type`:** if `ParameterizedType`, read `rawType`, `ownerType`, and `actualTypeArguments`. If `Class<?>`, it may be a non-generic type or a raw usage; inspect the declaration itself when you need to tell them apart.
+3. **Preserve both owner and inner args:** `Outer<String>.Inner<Integer>` is not equivalent to `Outer<Integer>.Inner<Integer>`; if a cache key only includes raw `Inner.class` and `Integer`, you lose the `String` information.
+4. **Check for static nested:** the owner at the Reflection level may be an unparameterized `Class`. Do not assume all nested types require an outer instance or must have an outer generic binding.
+5. **Handle the remaining branches:** `TypeVariable` may need resolution through the inheriting class's type environment; `WildcardType` has upper/lower bounds; `GenericArrayType` carries a component type that may be generic. Do not cast everything to `Class`.
+6. **Do not confuse metadata with conversion:** knowing `T=String` from a field signature does not automatically validate every runtime value. Data validation and mapping are separate concerns.
 
-Ví dụ lỗi thường gặp:
+Example of a common bug:
 
 ~~~java
 Type type = field.getGenericType();
-ParameterizedType p = (ParameterizedType) type; // Có thể ClassCastException!
+ParameterizedType p = (ParameterizedType) type; // Can throw ClassCastException!
 ~~~
 
-Đoạn trên chỉ minh họa **lỗi cast không kiểm tra** (cần biến `field` trong scope). Với field `rawInner` hoặc `rawOuter`, `getGenericType()` trả `Class<?>` nên không thể cast thành `ParameterizedType`. Hãy dùng `instanceof` như chương trình phần 3.
+The snippet above only illustrates an **unchecked cast bug** (requires variable `field` in scope). For fields `rawInner` or `rawOuter`, `getGenericType()` returns `Class<?>`, so it cannot be cast to `ParameterizedType`. Use `instanceof` as in section 3's program.
 
-Khi định danh một parameterized type, cần tính đến cả generic declaration, owner type và đối số kiểu. Các implementation `ParameterizedType` được quy định phải có `equals()` dựa vào khai báo và đối số tương ứng; trong cache, dùng `Type` đúng nghĩa thường an toàn hơn ghép tên class đơn giản. Dù vậy, nhiều framework vẫn cần chuẩn hóa/resolve type variables riêng tùy ngữ cảnh.
+When identifying a parameterized type, you must account for its generic declaration, owner type, and type arguments. `ParameterizedType` implementations are specified to implement `equals()` based on the corresponding declaration and arguments; in caches, using a proper `Type` is usually safer than concatenating simple class names. Even so, many frameworks still need to normalize/resolve type variables separately depending on context.
 
-## 11. Những hiểu lầm cần tránh
+## 11. Misconceptions to Avoid
 
-| Nhận định sai | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “Có `getRawType()` nghĩa là khai báo field đã bỏ hết generics.” | `ParameterizedType.getRawType()` chỉ trả khai báo nền của một parameterized type; args vẫn nằm trong `getActualTypeArguments()` và owner. |
-| “`getActualTypeArguments()` của inner chứa luôn T của outer.” | T của outer nằm ở `getOwnerType()`; mảng args của inner chỉ mô tả phần inner. |
-| “Nếu args rỗng, kiểu không có generic liên quan.” | `Outer<String>.Plain` có args rỗng nhưng owner `Outer<String>`. |
-| “Owner type luôn là `Class<?>`.” | Owner có thể là `ParameterizedType` như `Outer<String>`, hoặc `Class<?>` như `Outer`, hoặc `null` với top-level. |
-| “Owner khác null nghĩa là có outer instance.” | Static nested class có owner theo khai báo nhưng không cần outer instance. |
-| “`Class.getDeclaringClass()` cho biết `Outer<String>`.” | Nó trả `Outer.class`, không phải binding `String`. |
-| “Raw `Outer` có thể đi với `Inner<Integer>`.” | Java cấm loại partially raw đó đối với non-static member inner. |
-| “Static nested `Outer.Nested<Long>` phụ thuộc T của `Outer<T>`.” | Static nested có tham số riêng V và không dùng type argument T của outer. |
-| “Mọi `Type` đều là `ParameterizedType`.” | Raw usage có thể trả `Class`; wildcard/type variable/array generic còn có các dạng khác. |
-| “Có thể đọc `T=String` từ `new Outer<String>().getClass()`.” | Erasure không giữ đối số kiểu của instance theo cách đó; phân tích declaration signature là chuyện khác. |
+| "Having `getRawType()` means the field declaration dropped all generics." | `ParameterizedType.getRawType()` only returns the underlying declaration of a parameterized type; args remain in `getActualTypeArguments()` and the owner. |
+| "An inner's `getActualTypeArguments()` includes the outer's `T`." | The outer's `T` resides in `getOwnerType()`; the inner's args array describes only the inner part. |
+| "If `args` is empty, the type involves no generics." | `Outer<String>.Plain` has empty args but owner `Outer<String>`. |
+| "Owner type is always `Class<?>`." | Owner can be a `ParameterizedType` like `Outer<String>`, or `Class<?>` like `Outer`, or `null` for top-level types. |
+| "A non-null owner means there is an outer instance." | A static nested class has an owner in declaration metadata but needs no outer instance. |
+| "`Class.getDeclaringClass()` gives `Outer<String>`." | It returns `Outer.class`, without the `String` binding. |
+| "Raw `Outer` can be combined with `Inner<Integer>`." | Java forbids that partially raw form for non-static member inner classes. |
+| "Static nested `Outer.Nested<Long>` depends on `Outer<T>`'s `T`." | Static nested has its own parameter `V` and does not use the outer's type argument `T`. |
+| "Every `Type` is a `ParameterizedType`." | Raw usage can return `Class`; wildcards/type variables/generic arrays have other forms. |
+| "You can read `T=String` from `new Outer<String>().getClass()`." | Erasure does not retain instance type arguments that way; analyzing declaration signatures is different. |
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-1. Trong `Outer<String>.Inner<Integer>`, `getRawType()` đại diện class nào? `getOwnerType()` chứa kiểu gì? Mảng `getActualTypeArguments()` có bao nhiêu phần tử?
-2. Tại sao `Outer<String>.Plain` vẫn xuất hiện như `ParameterizedType` dù `Plain` không có `<U>`?
-3. Một field khai báo `Outer.Inner rawInner` sẽ cho `Class` hay `ParameterizedType` khi gọi `getGenericType()`? Có thể cast kết quả sang `ParameterizedType` không?
-4. Owner của `Outer.Nested<Long>` có thể khác `null` không? Vì sao điều đó không chứng minh `Nested` cần outer instance?
-5. Hai khai báo `Outer.Inner<Integer>` và `Outer<String>.Inner` có hợp lệ không? Quy tắc JLS nào khiến chúng là “partially raw”?
-6. Nếu một mapper chỉ lưu `getRawType()` của `Outer<String>.Inner<Integer>`, nó bỏ mất thông tin nào cần thiết để phân biệt các field generic?
+1. In `Outer<String>.Inner<Integer>`, which class does `getRawType()` represent? What type does `getOwnerType()` hold? How many elements does `getActualTypeArguments()` have?
+2. Why does `Outer<String>.Plain` still appear as a `ParameterizedType` even though `Plain` has no `<U>`?
+3. Will a field declared as `Outer.Inner rawInner` yield `Class` or `ParameterizedType` when calling `getGenericType()`? Can the result be cast to `ParameterizedType`?
+4. Can the owner of `Outer.Nested<Long>` be non-null? Why does that not prove `Nested` needs an outer instance?
+5. Are the two declarations `Outer.Inner<Integer>` and `Outer<String>.Inner` valid? Which JLS rule makes them "partially raw"?
+6. If a mapper stores only `getRawType()` of `Outer<String>.Inner<Integer>`, what information needed to distinguish generic fields does it lose?
 
-**Điểm nhớ chính:** Với kiểu lồng có generic, hãy xem **ba phần riêng**: `getRawType()` chỉ tới khai báo nền, `getOwnerType()` giữ cấu trúc bao ngoài và `getActualTypeArguments()` mô tả đối số của chính phần đang xét. Raw usage lại là chuyện **bỏ type argument tại nơi dùng kiểu**, không đồng nghĩa với việc gọi `getRawType()`.
+**Key takeaway:** For generic nested types, look at **three separate parts**: `getRawType()` points to the underlying declaration, `getOwnerType()` holds the enclosing structure, and `getActualTypeArguments()` describes the arguments of the part itself. Raw usage, by contrast, is **omitting type arguments at a type use site**, which is not the same as calling `getRawType()`.
 
-## Tài liệu chuẩn
+## Standard References
 
 - [Java SE 17 — `ParameterizedType` (raw, owner, actual arguments)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/ParameterizedType.html)
 - [Java SE 17 — `Field.getGenericType()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html#getGenericType())
 - [JLS 17 §4.5 — Parameterized Types](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.5)
-- [JLS 17 §4.8 — Raw Types và quy tắc inner class](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.8)
+- [JLS 17 §4.8 — Raw Types and inner class rules](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.8)
 - [JLS 17 §8.1.3 — Inner Classes and Enclosing Instances](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.1.3)

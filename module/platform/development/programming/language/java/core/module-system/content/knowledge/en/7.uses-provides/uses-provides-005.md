@@ -1,12 +1,12 @@
-# Provider constructor và yêu cầu khởi tạo
+# Provider Constructors and Instantiation Requirements
 
-Trong Java Platform Module System (JPMS), `uses` và `provides` mô tả quan hệ giữa module tiêu thụ một service và module cung cấp implementation của service đó. Khi `ServiceLoader` tìm thấy provider, nó cần một cách hợp lệ để tạo ra đối tượng phục vụ. Với provider được khai báo trong `module-info.java`, Java hỗ trợ hai cách: **public constructor không tham số** hoặc **public static provider() factory method**.
+In the Java Platform Module System (JPMS), `uses` and `provides` describe the relationship between a module consuming a service and a module providing an implementation of that service. When `ServiceLoader` finds a provider, it needs a valid way to instantiate the service object. For providers declared in `module-info.java`, Java supports two mechanisms: a **public no-argument constructor** or a **public static provider() factory method**.
 
-Hiểu rõ quy tắc khởi tạo giúp tránh lỗi `ServiceConfigurationError` khi module descriptor đã khai báo provider nhưng lớp provider không đáp ứng hợp đồng của `ServiceLoader`.
+Understanding these instantiation rules helps avoid `ServiceConfigurationError` when a module descriptor declares a provider but the provider class does not satisfy `ServiceLoader`'s contract.
 
-## 1. Provider là gì?
+## 1. What Is a Provider?
 
-Giả sử ứng dụng phụ thuộc vào một abstraction:
+Suppose an application depends on an abstraction:
 
     package com.example.spi;
 
@@ -14,15 +14,15 @@ Giả sử ứng dụng phụ thuộc vào một abstraction:
         String greet(String name);
     }
 
-Module chứa interface này công bố service để các module khác có thể đọc:
+The module containing this interface exposes the service so other modules can read it:
 
     module com.example.spi {
         exports com.example.spi;
     }
 
-Một module provider cung cấp implementation của `GreetingService`. Module tiêu thụ chỉ cần biết service interface; nó không cần phụ thuộc trực tiếp vào lớp triển khai cụ thể.
+A provider module supplies an implementation of `GreetingService`. The consuming module only needs to know the service interface; it does not need to depend directly on the concrete implementation class.
 
-Trong JPMS, module provider khai báo:
+In JPMS, the provider module declares:
 
     module com.example.greeting.provider {
         requires com.example.spi;
@@ -31,20 +31,20 @@ Trong JPMS, module provider khai báo:
             with com.example.greeting.provider.EnglishGreetingService;
     }
 
-Directive `provides ... with ...` nói rằng module này cung cấp implementation cho service đã nêu. Tên sau `with` là provider class mà `ServiceLoader` sẽ sử dụng.
+The `provides ... with ...` directive states that this module provides an implementation for the named service. The name after `with` is the provider class that `ServiceLoader` will use.
 
-Module tiêu thụ khai báo:
+The consuming module declares:
 
     module com.example.app {
         requires com.example.spi;
         uses com.example.spi.GreetingService;
     }
 
-Directive `uses` thể hiện module app có nhu cầu tìm provider của service. Ứng dụng không cần khai báo `requires com.example.greeting.provider;` chỉ để gọi service theo cơ chế ServiceLoader.
+The `uses` directive indicates that the app module needs to find providers for the service. The application does not need to declare `requires com.example.greeting.provider;` just to invoke the service via ServiceLoader.
 
-## 2. Cách thứ nhất: public constructor không tham số
+## 2. First Approach: Public No-Argument Constructor
 
-Đối với provider class được khai báo trong `provides`, cách truyền thống là có một constructor public không nhận tham số.
+For a provider class declared in `provides`, the traditional approach is to have a public constructor that takes no parameters.
 
     package com.example.greeting.provider;
 
@@ -61,16 +61,16 @@ Directive `uses` thể hiện module app có nhu cầu tìm provider của servi
         }
     }
 
-Các điều kiện cần nhớ:
+Key requirements to remember:
 
-- Provider class phải là `public`.
-- Provider class phải có constructor `public` không tham số.
-- Provider class phải triển khai service type được khai báo trong `provides`.
-- Constructor phải có thể được gọi để tạo provider; constructor chỉ nhận tham số không đáp ứng quy tắc này.
+- The provider class must be `public`.
+- The provider class must have a `public` no-argument constructor.
+- The provider class must implement the service type declared in `provides`.
+- The constructor must be callable to instantiate the provider; a constructor that only accepts parameters does not satisfy this rule.
 
-Nếu không khai báo constructor nào, Java tạo default constructor với mức truy cập tương ứng với class. Với một class `public`, default constructor cũng có mức truy cập `public`. Tuy nhiên, viết constructor tường minh giúp người đọc thấy rõ hợp đồng khởi tạo mà ServiceLoader yêu cầu.
+If no constructor is declared, Java generates a default constructor with access matching the class. For a `public` class, the default constructor also has `public` access. However, writing the constructor explicitly makes the instantiation contract required by ServiceLoader clear to readers.
 
-Ví dụ sau không đáp ứng yêu cầu:
+The following example does not meet the requirements:
 
     public final class InvalidGreetingService implements GreetingService {
 
@@ -83,11 +83,11 @@ Ví dụ sau không đáp ứng yêu cầu:
         }
     }
 
-Constructor private không phải public no-argument constructor, nên ServiceLoader không thể dùng cách khởi tạo provider truyền thống. Một constructor chỉ nhận tham số cũng không hợp lệ cho cách này.
+A private constructor is not a public no-argument constructor, so ServiceLoader cannot use the traditional provider instantiation approach. A constructor that only takes parameters is also invalid for this approach.
 
-## 3. ServiceLoader tạo provider khi nào?
+## 3. When Does ServiceLoader Instantiate a Provider?
 
-Ứng dụng tìm provider bằng `ServiceLoader`:
+The application locates providers using `ServiceLoader`:
 
     package com.example.app;
 
@@ -105,15 +105,15 @@ Constructor private không phải public no-argument constructor, nên ServiceLo
         }
     }
 
-`ServiceLoader.load(...)` tạo đối tượng loader để tìm provider phù hợp. Việc phát hiện và khởi tạo provider diễn ra lười (lazy): provider được tạo khi chương trình duyệt kết quả hoặc yêu cầu provider tương ứng, chẳng hạn trong vòng lặp trên.
+`ServiceLoader.load(...)` creates a loader object to locate matching providers. Provider discovery and instantiation happen lazily: a provider is created when the program iterates over the results or requests that provider, such as in the loop above.
 
-ServiceLoader lưu cache các provider đã được tìm thấy trong một loader. Nếu gọi `reload()`, cache bị xóa và loader sẽ tìm lại provider khi được duyệt lần tiếp theo.
+ServiceLoader caches providers already discovered within a loader instance. If `reload()` is called, the cache is cleared and the loader will rediscover providers on the next iteration.
 
-Một provider constructor không được gọi chỉ vì ứng dụng khởi động hoặc vì module descriptor có dòng `provides`. Nó được gọi khi ServiceLoader thực sự cần tạo instance của provider.
+A provider constructor is not invoked simply because the application starts or because the module descriptor contains a `provides` line. It is invoked when ServiceLoader actually needs to create an instance of the provider.
 
-## 4. Ví dụ đầy đủ với public no-argument constructor
+## 4. Complete Example with a Public No-Argument Constructor
 
-Cấu trúc source:
+Source structure:
 
     src/
     ├── com.example.spi/
@@ -190,36 +190,36 @@ File `src/com.example.app/com/example/app/Main.java`:
         }
     }
 
-Biên dịch từ thư mục chứa `src`:
+Compile from the directory containing `src`:
 
     javac --module-source-path src -d out
         -m com.example.spi,com.example.greeting.provider,com.example.app
 
-Chạy ứng dụng và thêm provider module vào tập module được resolve:
+Run the application and add the provider module to the resolved module set:
 
     java --module-path out
         --add-modules com.example.greeting.provider
         -m com.example.app/com.example.app.Main
 
-Kết quả:
+Output:
 
     Hello, Phuong
 
-Trong ví dụ, provider package không cần khai báo `exports`. Module descriptor đã khai báo provider bằng `provides`, còn ServiceLoader thực hiện việc nạp và khởi tạo provider theo cơ chế module service. Ứng dụng chỉ truy cập service interface đã được module SPI export.
+In this example, the provider package does not need an `exports` directive. The module descriptor declares the provider via `provides`, and ServiceLoader handles loading and instantiating the provider through the module service mechanism. The application only accesses the service interface exported by the SPI module.
 
-## 5. Cách thứ hai: public static provider() factory method
+## 5. Second Approach: Public Static provider() Factory Method
 
-Với provider được khai báo trong module descriptor, Java còn cho phép provider class cung cấp một phương thức factory có tên chính xác là `provider`.
+For providers declared in a module descriptor, Java also allows the provider class to supply a factory method named exactly `provider`.
 
-Quy tắc của phương thức:
+Method rules:
 
-- Provider class phải là `public`.
-- Phương thức phải là `public static`.
-- Phương thức không nhận tham số.
-- Kiểu trả về phải là service type hoặc một kiểu con có thể gán cho service type.
-- ServiceLoader gọi phương thức này để lấy service instance thay vì gọi constructor của provider class.
+- The provider class must be `public`.
+- The method must be `public static`.
+- The method takes no parameters.
+- The return type must be the service type or a subtype assignable to the service type.
+- ServiceLoader calls this method to obtain the service instance instead of invoking the provider class's constructor.
 
-Ví dụ:
+Example:
 
     package com.example.greeting.provider;
 
@@ -235,7 +235,7 @@ Ví dụ:
         }
     }
 
-Ở đây, `GreetingProvider` không trực tiếp triển khai `GreetingService`. Nó đóng vai trò provider class và cung cấp instance thông qua `provider()`. Constructor của `GreetingProvider` có thể private vì ServiceLoader sử dụng factory method thay cho việc tạo instance của chính provider class.
+Here, `GreetingProvider` does not directly implement `GreetingService`. It acts as the provider class and supplies the instance via `provider()`. The constructor of `GreetingProvider` can be private because ServiceLoader uses the factory method rather than instantiating the provider class itself.
 
 Module descriptor:
 
@@ -246,61 +246,61 @@ Module descriptor:
             with com.example.greeting.provider.GreetingProvider;
     }
 
-`EnglishGreetingService` là implementation thật được factory trả về. Nó phải tương thích với kiểu `GreetingService`; cách tạo nó có thể do provider method kiểm soát.
+`EnglishGreetingService` is the actual implementation returned by the factory. It must be compatible with the `GreetingService` type; how it is created can be controlled by the provider method.
 
-Cách này hữu ích khi khởi tạo service cần cấu hình, chọn implementation, dùng cache hoặc xây dựng đối tượng theo một factory nội bộ. Provider method có thể đóng gói logic tạo instance mà không buộc ServiceLoader gọi constructor của provider class.
+This approach is useful when instantiating the service requires configuration, implementation selection, caching, or constructing an object through an internal factory. The provider method can encapsulate instance creation logic without forcing ServiceLoader to invoke the provider class constructor.
 
-Lưu ý: provider method là cơ chế dành cho provider được khai báo bằng `provides` trong named module. Provider được khai báo trong file cấu hình `META-INF/services` trên classpath phải tuân theo quy tắc constructor public không tham số.
+Note: the provider method mechanism is for providers declared with `provides` in a named module. Providers declared in `META-INF/services` configuration files on the classpath must follow the public no-argument constructor rule.
 
-## 6. So sánh hai cách khởi tạo
+## 6. Comparing the Two Instantiation Approaches
 
-| Tiêu chí | Public no-arg constructor | `provider()` factory method |
+| Criterion | Public no-arg constructor | `provider()` factory method |
 |---|---|---|
 | Provider class | Public | Public |
-| Điểm tạo service | Constructor của provider class | Phương thức factory |
-| Chữ ký | Constructor public, không tham số | `public static`, không tham số, tên `provider` |
-| Provider class phải implements service? | Có | Không bắt buộc nếu factory trả về service type phù hợp |
-| Constructor provider class | Phải public và không tham số | Không được ServiceLoader gọi; có thể private |
-| Trường hợp phù hợp | Implementation đơn giản, tạo trực tiếp | Cần điều khiển hoặc đóng gói logic khởi tạo |
+| Service creation point | Provider class constructor | Factory method |
+| Signature | Public constructor, no arguments | `public static`, no arguments, named `provider` |
+| Must provider class implement service? | Yes | Not required if the factory returns a compatible service type |
+| Provider class constructor | Must be public and no-argument | Not invoked by ServiceLoader; can be private |
+| Best suited for | Simple implementations, direct instantiation | Controlling or encapsulating instantiation logic |
 
-Khi provider class vừa có constructor hợp lệ vừa có `provider()` hợp lệ, ServiceLoader sử dụng provider method theo hợp đồng của named-module provider. Hãy chọn một cách rõ ràng để người đọc hiểu điểm khởi tạo chính.
+When a provider class has both a valid constructor and a valid `provider()` method, ServiceLoader uses the provider method according to the named-module provider contract. Choose one clear approach so readers understand the primary instantiation point.
 
-## 7. Provider trên classpath và file META-INF/services
+## 7. Providers on the Classpath and META-INF/services Files
 
-Không phải mọi ứng dụng Java đều dùng named module. Trong ứng dụng classpath truyền thống, ServiceLoader tìm provider qua file cấu hình:
+Not all Java applications use named modules. In traditional classpath applications, ServiceLoader locates providers via a configuration file:
 
     META-INF/services/com.example.spi.GreetingService
 
-Nội dung file ghi tên đầy đủ của từng provider class, mỗi provider trên một dòng:
+The file lists the fully qualified name of each provider class, one provider per line:
 
     com.example.greeting.provider.EnglishGreetingService
 
-Provider class được khai báo theo cách này phải triển khai service type và có constructor public không tham số. Cơ chế factory method `provider()` trong module descriptor không thay thế quy tắc constructor của provider được liệt kê trong file cấu hình classpath.
+Provider classes declared this way must implement the service type and have a public no-argument constructor. The `provider()` factory method mechanism in module descriptors does not replace the constructor rule for providers listed in classpath configuration files.
 
-Do đó, khi chuyển một thư viện từ classpath sang named module, cần kiểm tra lại cách khai báo provider và hợp đồng khởi tạo. Một class chỉ có static `provider()` có thể phù hợp khi được khai báo bằng `provides` trong named module, nhưng không đáp ứng quy tắc provider class truyền thống trong `META-INF/services`.
+Therefore, when migrating a library from the classpath to a named module, recheck the provider declaration and instantiation contract. A class with only a static `provider()` method may work when declared with `provides` in a named module, yet fail the traditional provider class rules in `META-INF/services`.
 
-## 8. Các lỗi khởi tạo thường gặp
+## 8. Common Instantiation Errors
 
-ServiceLoader có thể ném `ServiceConfigurationError` khi phát hiện cấu hình provider không hợp lệ hoặc không thể tạo instance. Một số nguyên nhân thường gặp:
+ServiceLoader may throw `ServiceConfigurationError` when it detects an invalid provider configuration or fails to create an instance. Common causes include:
 
-1. **Không có constructor public không tham số:** provider dùng cách constructor nhưng chỉ khai báo constructor private hoặc constructor có tham số.
-2. **Provider class không public:** lớp được nêu sau `with` không có mức truy cập public.
-3. **Sai service type:** provider constructor path không triển khai service được khai báo.
-4. **Sai provider method:** method không tên `provider`, không public, không static, có tham số hoặc trả về kiểu không tương thích.
-5. **Thiếu module provider trong cấu hình runtime:** module provider không có mặt hoặc không được resolve vào module layer đang tìm service.
-6. **Thiếu `uses` ở module tiêu thụ:** module gọi ServiceLoader nhưng module descriptor không khai báo service tương ứng trong `uses`.
-7. **Service type không được đọc:** module tiêu thụ không có readability tới module chứa service interface.
-8. **Constructor hoặc factory ném exception:** provider được tìm thấy nhưng quá trình khởi tạo thất bại.
+1. **Missing public no-argument constructor:** the provider uses the constructor approach but only declares a private or parameterized constructor.
+2. **Non-public provider class:** the class listed after `with` does not have public access.
+3. **Wrong service type:** the constructor-based provider does not implement the declared service.
+4. **Invalid provider method:** the method is not named `provider`, is not public, is not static, takes parameters, or returns an incompatible type.
+5. **Missing provider module in runtime configuration:** the provider module is absent or not resolved into the module layer being searched.
+6. **Missing `uses` in the consuming module:** the module calls ServiceLoader, but its module descriptor does not declare the corresponding service in `uses`.
+7. **Service type is not readable:** the consuming module lacks readability to the module containing the service interface.
+8. **Constructor or factory throws an exception:** the provider is found, but initialization fails.
 
-Khi gặp lỗi, hãy đọc thông báo `ServiceConfigurationError` để xác định provider nào gặp vấn đề, sau đó kiểm tra module descriptor và chữ ký constructor hoặc provider method tương ứng.
+When encountering an error, read the `ServiceConfigurationError` message to identify which provider failed, then verify the module descriptor and the corresponding constructor or provider method signature.
 
-## Ghi nhớ
+## Key Takeaways
 
-- Provider được khai báo trong named module bằng `provides Service with Provider;`.
-- Provider class phải public.
-- Cách constructor yêu cầu public constructor không tham số; provider class cũng phải triển khai service type.
-- Named-module provider có thể dùng `public static provider()` không tham số và trả về service type tương thích; khi đó ServiceLoader dùng factory method.
-- Provider khai báo trong `META-INF/services` trên classpath vẫn cần constructor public không tham số.
-- ServiceLoader khởi tạo provider khi cần duyệt hoặc lấy provider, theo cơ chế lazy loading.
+- Providers are declared in named modules using `provides Service with Provider;`.
+- The provider class must be public.
+- The constructor approach requires a public no-argument constructor; the provider class must also implement the service type.
+- Named-module providers can use a parameterless `public static provider()` method returning a compatible service type; in that case, ServiceLoader uses the factory method.
+- Providers declared in `META-INF/services` on the classpath still require a public no-argument constructor.
+- ServiceLoader instantiates providers when iterating or retrieving them, following lazy loading.
 
-Khi thiết kế provider, hãy xác định rõ module đang cung cấp service, cách provider được khai báo và điểm khởi tạo nào được ServiceLoader sử dụng.
+When designing a provider, clearly determine which module supplies the service, how the provider is declared, and which instantiation entry point ServiceLoader will use.

@@ -1,45 +1,45 @@
-# `Objects.deepEquals()` và cách xử lý hai đối số
+# `Objects.deepEquals()` and How It Handles Two Arguments
 
-`java.util.Objects.deepEquals(Object a, Object b)` là phương thức tiện ích để kiểm tra **hai đối số có bằng nhau không**, đồng thời xử lý **mảng và các mảng lồng nhau** theo nội dung. Điểm khác biệt quan trọng so với `Objects.equals(a, b)` là: khi cả hai đối số là mảng, `deepEquals` có khả năng so sánh các phần tử tương ứng, kể cả phần tử là một mảng khác; còn `Objects.equals` thường dựa vào `equals` của chính mảng, tức so sánh danh tính.
+`java.util.Objects.deepEquals(Object a, Object b)` is a utility method to check whether **two arguments are equal**, while handling **arrays and nested arrays** by content. The key difference compared to `Objects.equals(a, b)` is: when both arguments are arrays, `deepEquals` can compare corresponding elements, even when an element is another array; whereas `Objects.equals` normally relies on the array's own `equals`, which compares identity.
 
-Điều này hữu ích khi dữ liệu gồm `int[]`, `String[]`, `int[][]`, `Object[]` chứa nhiều loại mảng, hoặc cấu trúc lồng nhau. Tuy nhiên, **`deepEquals` không tự đi sâu vào mọi trường của một đối tượng Java thông thường**: nếu hai đối số không phải mảng, kết quả vẫn dựa trên `equals` của đối tượng bên trái.
+This is useful when data consists of `int[]`, `String[]`, `int[][]`, `Object[]` containing multiple array types, or nested structures. However, **`deepEquals` does not automatically descend into every field of a regular Java object**: if the two arguments are not arrays, the result still depends on the `equals` of the left-hand object.
 
-## 1. Khai báo và ý nghĩa
+## 1. Declaration and meaning
 
-Phương thức thuộc `java.util.Objects`:
+The method belongs to `java.util.Objects`:
 
 ~~~java
 public static boolean deepEquals(Object a, Object b)
 ~~~
 
-Hai tham số đều kiểu `Object`, vì vậy bạn có thể truyền một đối tượng thông thường, một mảng nguyên thủy như `int[]`, một mảng đối tượng như `String[]`, mảng nhiều chiều như `int[][]`, hoặc `null`. Không cần ép một mảng nguyên thủy thành `Object[]`.
+Both parameters have type `Object`, so you can pass a regular object, a primitive array such as `int[]`, an object array such as `String[]`, a multidimensional array such as `int[][]`, or `null`. There is no need to cast a primitive array to `Object[]`.
 
-Tóm tắt hành vi:
+Behavior summary:
 
-| Hai đối số | Kết quả |
+| Two arguments | Result |
 | --- | --- |
-| Cùng một tham chiếu, kể cả đều `null` | `true`. |
-| Một đối số là `null`, đối số kia không `null` | `false`. |
-| Cả hai là mảng đối tượng (`Object[]` hoặc các kiểu mảng tương thích) | So sánh phần tử theo thứ tự và tiếp tục đi sâu khi phần tử là mảng. |
-| Cả hai là mảng nguyên thủy cùng kiểu, ví dụ `int[]` | So sánh nội dung từng phần tử theo quy tắc của `Arrays.equals` tương ứng. |
-| Cả hai là mảng lồng, ví dụ `int[][]` | So các mảng con tương ứng một cách đệ quy. |
-| Không phải cả hai đều là mảng | Về cơ bản sử dụng `a.equals(b)` sau khi xử lý `null`/cùng tham chiếu; không tự khám phá mọi trường. |
+| Same reference, including both `null` | `true`. |
+| One argument is `null`, the other is non-`null` | `false`. |
+| Both are object arrays (`Object[]` or compatible array types) | Compares elements in order and continues descending when an element is an array. |
+| Both are primitive arrays of the same type, e.g., `int[]` | Compares element-by-element content following the corresponding `Arrays.equals` rules. |
+| Both are nested arrays, e.g., `int[][]` | Compares corresponding sub-arrays recursively. |
+| Not both are arrays | Essentially uses `a.equals(b)` after handling `null`/same-reference; does not automatically inspect all fields. |
 
-Các đối số là **cùng mảng** thì luôn bằng nhau theo nhánh kiểm tra tham chiếu trước tiên, kể cả bên trong mảng có các cấu trúc phức tạp. Với **hai mảng độc lập**, `deepEquals` mới cần kiểm tra các phần tử.
+Arguments that are **the same array** are always equal by the reference-check branch first, even if there are complex structures inside the array. Only for **two independent arrays** does `deepEquals` need to check the elements.
 
-### Thứ tự xử lý quan trọng
+### Important processing order
 
-Có thể hiểu quy trình chính như sau:
+The main flow can be understood as follows:
 
-1. Nếu `a == b`, trả `true` ngay. Trường hợp này cũng bao gồm `a == null` và `b == null`.
-2. Nếu đúng một đối số là `null`, trả `false`.
-3. Với hai đối số không `null`, thực hiện phép so sánh sâu thích hợp cho mảng: nếu chúng là mảng đối tượng thì duyệt phần tử và có thể đi sâu vào mảng con; nếu là hai mảng nguyên thủy cùng loại thì so nội dung; các trường hợp còn lại sử dụng ngữ nghĩa `equals` phù hợp.
+1. If `a == b`, return `true` immediately. This case also covers `a == null` and `b == null`.
+2. If exactly one argument is `null`, return `false`.
+3. For two non-`null` arguments, perform deep comparison appropriate for arrays: if they are object arrays, traverse elements and possibly descend into sub-arrays; if they are two primitive arrays of the same kind, compare contents; the remaining cases use the appropriate `equals` semantics.
 
-Đây là mô hình hành vi để học, không phải lời hứa về thứ tự từng phép gọi nội bộ của mọi bản JDK. Điều cần nhớ là **so mảng theo nội dung khi phù hợp, xử lý `null` an toàn, còn đối tượng không phải mảng vẫn phụ thuộc `equals`**.
+This is a behavioral model for learning, not a promise about the exact order of internal calls across every JDK release. What to remember is **comparing arrays by content when appropriate, handling `null` safely, while non-array objects still depend on `equals`**.
 
-## 2. Ví dụ Java 17+: hai đối số, `null`, mảng và đối tượng thường
+## 2. Java 17+ example: two arguments, `null`, arrays, and regular objects
 
-Tệp **`DeepEqualsArgumentsDemo.java`**:
+File **`DeepEqualsArgumentsDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -75,14 +75,14 @@ public class DeepEqualsArgumentsDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ~~~bash
 javac DeepEqualsArgumentsDemo.java
 java DeepEqualsArgumentsDemo
 ~~~
 
-Kết quả chuẩn:
+Standard output:
 
 ~~~text
 true
@@ -100,19 +100,19 @@ true
 true
 ~~~
 
-Giải thích theo nhóm:
+Explanation by group:
 
-- `deepEquals(null, null)` trả `true`; chỉ một bên `null` thì `false`. Vì thế dùng phương thức này không gây `NullPointerException` chỉ do một tham số là `null`.
-- Hai `int[]` độc lập chứa `{1, 2}` có `first == second` là `false`. `Objects.equals(first, second)` cũng là `false` vì `int[]` không override `Object.equals` để so phần tử. Nhưng `Objects.deepEquals(first, second)` là `true`.
-- `alias = first` là cùng tham chiếu, nên `deepEquals(first, alias)` là `true`. Nếu thay `2` bằng `3`, nội dung khác nên `false`. Mảng `int[]` và `long[]` chứa những số trông giống nhau vẫn là hai kiểu mảng nguyên thủy khác nhau, không được `deepEquals` tự ép thành một kiểu chung.
-- Hai `String` độc lập có `==` là `false` nhưng `deepEquals` là `true`: với chuỗi không phải mảng, việc so sánh dùng `String.equals`, không phải phản chiếu/so từng trường nội bộ của chuỗi.
-- Với hai `String[]` độc lập, `Objects.equals` trả `false`, trong khi `Objects.deepEquals` và `Arrays.equals` cùng trả `true` khi phần tử tương ứng có cùng nội dung.
+- `deepEquals(null, null)` returns `true`; only one side `null` returns `false`. Thus calling this method does not throw `NullPointerException` merely because one parameter is `null`.
+- Two independent `int[]` containing `{1, 2}` have `first == second` as `false`. `Objects.equals(first, second)` is also `false` because `int[]` does not override `Object.equals` to compare elements. Yet `Objects.deepEquals(first, second)` is `true`.
+- `alias = first` is the same reference, so `deepEquals(first, alias)` is `true`. If `2` is replaced with `3`, contents differ so it is `false`. An `int[]` and a `long[]` containing similar-looking numbers are still two different primitive array types, not automatically coerced into a common type by `deepEquals`.
+- Two independent `String`s have `==` as `false` but `deepEquals` as `true`: for non-array strings, comparison uses `String.equals`, not reflection/comparing internal fields of the string.
+- For two independent `String[]`, `Objects.equals` returns `false`, while `Objects.deepEquals` and `Arrays.equals` both return `true` when corresponding elements have the same content.
 
-Lưu ý: `Arrays` được import trong ví dụ để trình bày phép so sánh mảng cùng cấp; nó không phải yêu cầu khi chỉ gọi `Objects.deepEquals`.
+Note: `Arrays` is imported in the example to demonstrate same-level array comparison; it is not required when calling only `Objects.deepEquals`.
 
-## 3. Mảng lồng nhau: “deep” diễn ra ở đâu?
+## 3. Nested arrays: where does “deep” happen?
 
-Xét hai ma trận `int[][]`. Trong Java, đây là **mảng chứa các tham chiếu tới mảng `int[]`**, nên việc so mảng ở tầng ngoài phải tiếp tục so nội dung mảng con.
+Consider two `int[][]` matrices. In Java, this is an **array containing references to `int[]` arrays**, so comparing the outer array must continue comparing sub-array contents.
 
 ~~~java
 int[][] a = {{1, 2}, {3}};
@@ -124,21 +124,21 @@ System.out.println(java.util.Arrays.deepEquals(a, b)); // true
 System.out.println(java.util.Objects.deepEquals(a, b)); // true
 ~~~
 
-Đây là đoạn mã minh họa trong thân một phương thức. `Arrays.equals(a, b)` ở đây chỉ so các **phần tử của mảng tầng ngoài**; mỗi phần tử là `int[]`, mà `int[]` không có `equals` theo nội dung. `Arrays.deepEquals(a, b)` và `Objects.deepEquals(a, b)` đi sâu vào từng `int[]` nên cho `true`.
+This is an illustrative snippet in a method body. `Arrays.equals(a, b)` here only compares the **elements of the outer array**; each element is an `int[]`, and `int[]` does not have content-based `equals`. `Arrays.deepEquals(a, b)` and `Objects.deepEquals(a, b)` descend into each `int[]` and thus yield `true`.
 
-Có thể hình dung phép so sánh:
+The comparison can be visualized as:
 
 ~~~text
 a: int[][{1, 2}, {3}]
 b: int[][{1, 2}, {3}]
 
-Tầng ngoài: cùng số phần tử?              Có
-  a[0] và b[0]: so {1, 2} với {1, 2}     Bằng
-  a[1] và b[1]: so {3} với {3}           Bằng
-Kết luận:                                 true
+Outer level: same element count?        Yes
+  a[0] and b[0]: compare {1, 2} vs {1, 2}  Equal
+  a[1] and b[1]: compare {3} vs {3}        Equal
+Conclusion:                                true
 ~~~
 
-Với một mảng `Object[]` chứa các phần tử hỗn hợp, `deepEquals` cũng biết phân biệt phần tử thường và phần tử mảng:
+For an `Object[]` array containing mixed elements, `deepEquals` also knows how to distinguish regular elements from array elements:
 
 ~~~java
 Object[] x = {
@@ -156,36 +156,36 @@ System.out.println(java.util.Objects.equals(x, y));     // false
 System.out.println(java.util.Objects.deepEquals(x, y)); // true
 ~~~
 
-`"Java"` và `new String("Java")` có nội dung bằng nhau; `int[]` cùng phần tử và `long[]` bên trong cùng phần tử. Hai mảng ngoài khác tham chiếu nhưng bằng nhau khi so sâu.
+`"Java"` and `new String("Java")` have equal content; the `int[]` has the same elements and the inner `long[]` has the same elements. The two outer arrays have different references yet are equal under deep comparison.
 
-**Không có chuyện Java tự “flatten” mảng:** cách phân tầng, độ dài và thứ tự phần tử vẫn có ý nghĩa. Ví dụ `int[][] {{1, 2}, {3}}` **không** bằng `int[][] {{1}, {2, 3}}`, dù ghép tất cả số theo thứ tự đều có thể ra `1, 2, 3`.
+**Java does not automatically “flatten” arrays:** nesting structure, length, and element order still matter. For example, `int[][] {{1, 2}, {3}}` is **not** equal to `int[][] {{1}, {2, 3}}`, even though concatenating all numbers in order gives `1, 2, 3`.
 
-## 4. `Objects.deepEquals`, `Objects.equals` và `Arrays.equals`
+## 4. `Objects.deepEquals`, `Objects.equals`, and `Arrays.equals`
 
-Ba API này trả lời các câu hỏi hơi khác nhau:
+These APIs answer slightly different questions:
 
-| API | Tham số | Cách so sánh nổi bật |
+| API | Parameters | Notable comparison behavior |
 | --- | --- | --- |
-| `Objects.equals(a, b)` | Hai `Object` | An toàn `null`, nếu cả hai khác `null` thì gọi `a.equals(b)`. Mảng thường so tham chiếu. |
-| `Objects.deepEquals(a, b)` | Hai `Object` | An toàn `null`; nếu hai đối số là mảng, so sâu thích hợp cho mảng; nếu là đối tượng thường, dựa trên `equals`. |
-| `Arrays.equals(a, b)` | Hai mảng một chiều có overload tương ứng | So phần tử tầng hiện tại; với mảng lồng chứa mảng con, không tự động so sâu mảng con. |
-| `Arrays.deepEquals(a, b)` | Hai `Object[]` | So sâu phần tử/mảng con. Có thể dùng với `int[][]` vì mỗi `int[][]` là một mảng tham chiếu chứa `int[]`; không gọi trực tiếp với hai `int[]`. |
+| `Objects.equals(a, b)` | Two `Object`s | `null`-safe; if both are non-`null`, calls `a.equals(b)`. Arrays normally compare references. |
+| `Objects.deepEquals(a, b)` | Two `Object`s | `null`-safe; if both arguments are arrays, performs deep comparison appropriate for arrays; if regular objects, relies on `equals`. |
+| `Arrays.equals(a, b)` | Two one-dimensional arrays with matching overload | Compares elements at the current level; for nested arrays containing sub-arrays, does not automatically deep-compare sub-arrays. |
+| `Arrays.deepEquals(a, b)` | Two `Object[]`s | Deeply compares elements/sub-arrays. Can be used with `int[][]` because each `int[][]` is a reference array containing `int[]`; cannot be called directly with two `int[]`. |
 
-Một điểm rất quan trọng về kiểu dữ liệu: `Arrays.deepEquals(Object[] a, Object[] b)` yêu cầu **mảng tham chiếu ở tầng ngoài**. Vì `int[]` không phải `Object[]`, lệnh `Arrays.deepEquals(new int[]{1}, new int[]{1})` **không biên dịch**. Với hai `int[]`, dùng `Arrays.equals` hoặc `Objects.deepEquals`.
+A very important point about data types: `Arrays.deepEquals(Object[] a, Object[] b)` requires **a reference array at the outer level**. Because `int[]` is not an `Object[]`, the statement `Arrays.deepEquals(new int[]{1}, new int[]{1})` **does not compile**. For two `int[]`, use `Arrays.equals` or `Objects.deepEquals`.
 
-### Chọn công cụ theo dữ liệu
+### Choosing the tool by data type
 
-- Hai `int[]` hoặc `double[]` cùng loại: `Arrays.equals` thể hiện rõ ý định so nội dung một chiều.
-- Hai `String[]` một chiều: `Arrays.equals` là đủ nếu chỉ cần so từng `String`.
-- Hai `int[][]` hoặc hai `Object[]` chứa mảng con: `Arrays.deepEquals` hoặc `Objects.deepEquals` khi muốn so sâu.
-- Hai tham số đang có kiểu `Object`, có thể là mảng hoặc không: `Objects.deepEquals` giúp xử lý cả hai trường hợp theo quy tắc đã nêu.
-- Hai đối tượng thông thường, không liên quan mảng: `Objects.equals` thường bộc lộ rõ mục đích hơn; dùng `Objects.deepEquals` không mang lại phép so sâu trường dữ liệu bên trong đối tượng.
+- Two `int[]` or `double[]` of the same type: `Arrays.equals` clearly expresses one-dimensional content comparison intent.
+- Two one-dimensional `String[]`: `Arrays.equals` is sufficient if only comparing each `String`.
+- Two `int[][]` or two `Object[]` containing sub-arrays: `Arrays.deepEquals` or `Objects.deepEquals` when deep comparison is desired.
+- Two parameters currently typed as `Object`, which may or may not be arrays: `Objects.deepEquals` handles both cases according to the stated rules.
+- Two regular objects, unrelated to arrays: `Objects.equals` usually expresses intent more clearly; using `Objects.deepEquals` does not provide deep comparison of internal object fields.
 
-## 5. “Deep” không có nghĩa là tự so sánh mọi thuộc tính của class
+## 5. “Deep” does not mean automatically comparing every property of a class
 
-Giả sử một class `Box` chứa trường `int[]`, nhưng **không override `equals`**. Khi đưa hai `Box` độc lập vào `Objects.deepEquals`, kết quả vẫn là `false`, ngay cả khi hai mảng bên trong cùng nội dung.
+Suppose a class `Box` contains an `int[]` field, but **does not override `equals`**. When passing two independent `Box` instances to `Objects.deepEquals`, the result is still `false`, even when the two inner arrays have identical content.
 
-Tệp **`DeepEqualsObjectDemo.java`**:
+File **`DeepEqualsObjectDemo.java`**:
 
 ~~~java
 import java.util.Objects;
@@ -219,14 +219,14 @@ public class DeepEqualsObjectDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac DeepEqualsObjectDemo.java
 java DeepEqualsObjectDemo
 ~~~
 
-Kết quả chuẩn:
+Standard output:
 
 ~~~text
 false
@@ -237,20 +237,20 @@ false
 true
 ~~~
 
-Phân tích:
+Analysis:
 
-- `Box` là class thường không override `equals`, nên `Box.equals` thừa hưởng từ `Object` và chỉ so danh tính. `Objects.deepEquals(first, second)` không tự dò trường `values`: kết quả `false`.
-- Nhưng khi truyền **chính hai mảng `first.values` và `second.values`**, `deepEquals` so phần tử nên trả `true`.
-- Record Java sinh `equals` dựa trên component, nhưng với component là **mảng**, phép so vẫn theo danh tính mảng khi hai record khác nhau. Do đó hai `ArrayRecord` độc lập chứa `int[]` cùng nội dung vẫn `equals` là `false`.
-- Muốn hai instance của class hoặc record **bằng nhau theo nội dung mảng**, bạn phải tự xây dựng ngữ nghĩa `equals`/ `hashCode` của kiểu bao ngoài, không chỉ thay lời gọi ngoài thành `Objects.deepEquals(box1, box2)`.
+- `Box` is a regular class that does not override `equals`, so `Box.equals` inherits from `Object` and only compares identity. `Objects.deepEquals(first, second)` does not automatically inspect the `values` field: result is `false`.
+- But when passing **the two arrays `first.values` and `second.values` themselves**, `deepEquals` compares elements and returns `true`.
+- A Java record generates `equals` based on its components, yet for an **array** component, comparison still follows array identity when the two records are different. Therefore two independent `ArrayRecord` instances containing `int[]` with identical content still have `equals` return `false`.
+- To make two instances of a class or record **equal by array content**, you must build the `equals`/`hashCode` semantics of the enclosing type yourself, rather than merely changing the outer call to `Objects.deepEquals(box1, box2)`.
 
-Điều này giúp phân biệt **so sánh sâu trên mảng là đối số** với **so sánh sâu xuyên qua các trường của bất kỳ object nào**. Java chỉ cung cấp trường hợp thứ nhất trong `Objects.deepEquals`.
+This helps distinguish **deep comparison on arrays passed as arguments** from **deep comparison across fields of any arbitrary object**. Java only provides the first case in `Objects.deepEquals`.
 
-## 6. Dùng `Objects.deepEquals` trong `equals` của một value object
+## 6. Using `Objects.deepEquals` in a value object's `equals`
 
-Một ứng dụng phổ biến là class giữ cấu trúc mảng lồng và muốn định nghĩa bằng nhau dựa trên toàn bộ phần tử. Khi tự override `equals`, có thể sử dụng `Objects.deepEquals(data, that.data)`. Nhưng **`hashCode` phải sử dụng thuật toán hash tương ứng với phép so sâu**.
+A common application is a class holding a nested array structure that wants to define equality based on all elements. When overriding `equals`, you can use `Objects.deepEquals(data, that.data)`. However, **`hashCode` must use the hashing algorithm corresponding to deep comparison**.
 
-Tệp **`MatrixKeyDemo.java`** (Java 17+):
+File **`MatrixKeyDemo.java`** (Java 17+):
 
 ~~~java
 import java.util.Arrays;
@@ -312,14 +312,14 @@ public class MatrixKeyDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac MatrixKeyDemo.java
 java MatrixKeyDemo
 ~~~
 
-Kết quả chuẩn:
+Standard output:
 
 ~~~text
 false
@@ -334,21 +334,21 @@ new
 true
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-1. `first` và `sameValue` là hai đối tượng `MatrixKey` độc lập, nhưng dữ liệu ma trận giống nhau nên `equals` trả `true`.
-2. `hashCode` dùng `Arrays.deepHashCode(data)` để hai ma trận bằng nhau theo `Objects.deepEquals` cũng có mã băm bằng nhau. Đây là một yêu cầu **bắt buộc** của hợp đồng `equals`/`hashCode`.
-3. `different` chứa giá trị `4` ở vị trí khác nên không bằng `first`.
-4. Thêm `sameValue` vào `HashMap` thay giá trị của khóa logic đã có; `size()` không tăng. Khóa `different` tạo entry thứ hai.
-5. Constructor sao chép **từng mảng con**, nên sửa `source[0][0]` bên ngoài không làm thay đổi dữ liệu trong `first`. Điều này giúp khóa có hash ổn định sau khi dùng trong `HashMap`.
+1. `first` and `sameValue` are two independent `MatrixKey` objects, but their matrix data is identical so `equals` returns `true`.
+2. `hashCode` uses `Arrays.deepHashCode(data)` so that two matrices equal under `Objects.deepEquals` also have equal hash codes. This is a **mandatory** requirement of the `equals`/`hashCode` contract.
+3. `different` contains value `4` at another position, so it is not equal to `first`.
+4. Adding `sameValue` to `HashMap` replaces the value for the existing logical key; `size()` does not increase. Key `different` creates a second entry.
+5. The constructor copies **each sub-array**, so modifying `source[0][0]` externally does not alter data inside `first`. This keeps the key's hash stable after being used in `HashMap`.
 
-Ví dụ cho phép các hàng có độ dài khác nhau (`int[][]` là mảng của các mảng) nhưng từ chối hàng `null` bằng `requireNonNull`. Đó là quyết định thiết kế của `MatrixKey`, không phải giới hạn của `Objects.deepEquals`: bản thân phép so sâu có thể so các vị trí `null` tương ứng.
+The example allows rows of different lengths (`int[][]` is an array of arrays) but rejects `null` rows with `requireNonNull`. That is a design decision of `MatrixKey`, not a limitation of `Objects.deepEquals`: deep comparison itself can compare corresponding `null` positions.
 
-**Không thay `Arrays.deepHashCode(data)` bằng `Objects.hashCode(data)`:** đối với mảng, `Objects.hashCode` đi theo `hashCode` của chính mảng, vốn không phải hash sâu theo nội dung. Hai `MatrixKey` bằng nhau theo dữ liệu mảng có thể nhận hash không khớp và làm hỏng cách dùng làm key trong hash collection.
+**Do not replace `Arrays.deepHashCode(data)` with `Objects.hashCode(data)`:** for arrays, `Objects.hashCode` delegates to the array's own `hashCode`, which is not a deep content hash. Two `MatrixKey`s equal by array data could receive mismatched hashes and break usage as keys in hash collections.
 
-## 7. Những trường hợp góc quan trọng
+## 7. Important corner cases
 
-### 7.1. Cả hai đối số `null`
+### 7.1. Both arguments `null`
 
 ~~~java
 Objects.deepEquals(null, null);             // true
@@ -356,18 +356,18 @@ Objects.deepEquals(null, new Object[0]);    // false
 Objects.deepEquals(new int[0], new int[0]); // true
 ~~~
 
-Hai mảng rỗng khác tham chiếu vẫn bằng nhau về nội dung nếu cùng kiểu/cấu trúc phù hợp. Mảng rỗng không giống `null`.
+Two empty arrays with different references are still equal by content if of matching type/structure. An empty array is not the same as `null`.
 
-### 7.2. Hai mảng có cùng dữ liệu nhưng không cùng loại mảng nguyên thủy
+### 7.2. Two arrays with the same data but different primitive array types
 
 ~~~java
 Objects.deepEquals(new int[] {1, 2}, new long[] {1, 2}); // false
 Objects.deepEquals(new int[] {1}, new int[] {1});         // true
 ~~~
 
-`Objects.deepEquals` **không thực hiện chuyển kiểu số** để coi `int[]` và `long[]` là cùng cấu trúc giá trị. Nếu nghiệp vụ muốn so sau chuẩn hóa kiểu, phải định nghĩa phép chuyển/so riêng.
+`Objects.deepEquals` **does not perform numeric type conversion** to treat `int[]` and `long[]` as the same value structure. If business logic wants comparison after type normalization, a dedicated conversion/comparison must be defined.
 
-### 7.3. Mảng tham chiếu có thể có kiểu runtime khác nhau
+### 7.3. Reference arrays can have different runtime types
 
 ~~~java
 Objects.deepEquals(
@@ -376,11 +376,11 @@ Objects.deepEquals(
 ); // true
 ~~~
 
-Cả hai đối số đều là mảng tham chiếu (`Object[]`) với một phần tử có nội dung bằng nhau; phép so sâu có thể trả `true` dù lớp mảng runtime khác nhau. Đừng hiểu `deepEquals` là yêu cầu `getClass()` của hai mảng phải giống hệt nhau.
+Both arguments are reference arrays (`Object[]`) with one element of equal content; deep comparison can return `true` even if the runtime array classes differ. Do not interpret `deepEquals` as requiring the `getClass()` of the two arrays to be identical.
 
-### 7.4. Cách so `NaN` và `+0.0/-0.0` trong mảng số thực
+### 7.4. How `NaN` and `+0.0/-0.0` are compared in floating-point arrays
 
-Các phép `Arrays.equals` cho mảng `float[]`/`double[]` có quy tắc theo bit chuẩn hóa tương ứng với `Float.equals`/`Double.equals`: các biểu diễn `NaN` được coi là bằng nhau và `+0.0` khác `-0.0`. Vì `Objects.deepEquals` dùng ngữ nghĩa mảng tương ứng, cần chú ý:
+`Arrays.equals` operations for `float[]`/`double[]` have rules based on canonicalized bits corresponding to `Float.equals`/`Double.equals`: `NaN` representations are considered equal and `+0.0` differs from `-0.0`. Because `Objects.deepEquals` uses the corresponding array semantics, take note:
 
 ~~~java
 Objects.deepEquals(
@@ -394,13 +394,13 @@ Objects.deepEquals(
 ); // false
 ~~~
 
-Nếu nghiệp vụ cần quy tắc số thực khác, không nên tự giả định `deepEquals` dùng đúng phép so mong muốn. Hãy định nghĩa phép so phù hợp, đồng thời cân nhắc hợp đồng bằng nhau và mã băm nếu triển khai `equals`.
+If business logic needs different floating-point rules, do not assume `deepEquals` uses the exact comparison you want. Define an appropriate comparison, and also consider the equality and hash code contract if implementing `equals`.
 
-### 7.5. Mảng chứa tham chiếu vòng
+### 7.5. Arrays containing circular references
 
-Nếu mảng `Object[]` chứa **chính nó** làm phần tử, hoặc các mảng tham chiếu lẫn nhau tạo chu trình, phép duyệt sâu có thể tiếp tục đệ quy không kết thúc và gây lỗi như `StackOverflowError`. Tài liệu `Arrays.deepEquals` không định nghĩa hành vi đối với mảng chứa tham chiếu vòng. Không dùng `Objects.deepEquals` như một thuật toán so sánh đồ thị tổng quát có khả năng xử lý chu trình; nếu dữ liệu là đồ thị, hãy thiết kế thuật toán có theo dõi các nút đã thăm.
+If an `Object[]` array contains **itself** as an element, or arrays reference each other forming a cycle, deep traversal may recurse indefinitely and cause errors such as `StackOverflowError`. The `Arrays.deepEquals` documentation does not define behavior for arrays containing circular references. Do not use `Objects.deepEquals` as a general graph-comparison algorithm capable of handling cycles; if data is a graph, design an algorithm that tracks visited nodes.
 
-### 7.6. Phần tử là đối tượng tùy biến
+### 7.6. Elements are custom objects
 
 ~~~java
 class Item {
@@ -413,38 +413,38 @@ Object[] right = {new Item(1)};
 System.out.println(java.util.Objects.deepEquals(left, right)); // false
 ~~~
 
-Đoạn trên là mã minh họa nằm trong ngữ cảnh khai báo lớp và phương thức phù hợp. Vì `Item` không override `equals`, so sánh hai `Item` bên trong mảng vẫn chỉ theo danh tính. `deepEquals` **không tự mở từng `Item` để so trường `id`**. Nếu muốn phần tử `Item` bằng nhau theo giá trị, cần cài đặt `Item.equals` và `Item.hashCode` thích hợp.
+The snippet above is illustrative code in an appropriate class and method declaration context. Because `Item` does not override `equals`, comparing two `Item` instances inside the array still uses identity only. `deepEquals` **does not automatically open each `Item` to compare the `id` field**. If you want `Item` elements to be equal by value, implement `Item.equals` and `Item.hashCode` appropriately.
 
-## 8. Sai lầm thường gặp và cách tránh
+## 8. Common mistakes and how to avoid them
 
-1. **Cho rằng `Objects.equals` đã đủ cho mảng.** Với hai `int[]` hoặc `String[]` độc lập có cùng nội dung, `Objects.equals` thường trả `false`. Chọn `Arrays.equals` hoặc `Objects.deepEquals` khi muốn so nội dung.
-2. **Dùng `Arrays.equals` cho mảng lồng rồi chờ so sâu.** Đối với `int[][]`, các phần tử ở tầng ngoài là các `int[]`. Chọn `Arrays.deepEquals` hoặc `Objects.deepEquals` nếu muốn so từng mảng con.
-3. **Tưởng `Objects.deepEquals` phản chiếu mọi trường của class.** Với hai object thông thường, phương thức dựa vào `equals` của class. Nó không tự so các trường hay property lồng nhau.
-4. **Dùng `Objects.deepEquals` trong `equals` nhưng quên sửa `hashCode`.** Với mảng nhiều chiều, dùng `Arrays.deepHashCode` tương ứng để tránh vi phạm hợp đồng của các hash collection.
-5. **Để cấu trúc mảng có thể thay đổi sau khi làm key của `HashMap`.** Khi dữ liệu dùng trong `equals`/`hashCode` thay đổi, map có thể không tìm được entry. Dùng bản sao bảo vệ và thiết kế value object bất biến khi phù hợp.
-6. **Dùng so sâu trên đồ thị có chu trình.** Trường hợp mảng chứa chính nó hoặc chứa vòng qua các mảng khác không được đảm bảo an toàn.
-7. **Coi “giá trị tương đương theo nghiệp vụ” và “`deepEquals` bằng nhau” là một.** `deepEquals` tôn trọng kiểu mảng, thứ tự phần tử và `equals` của đối tượng thành phần; không tự chuẩn hóa văn bản, số liệu, thứ tự hay định danh nghiệp vụ.
+1. **Assuming `Objects.equals` is enough for arrays.** For two independent `int[]` or `String[]` with identical content, `Objects.equals` normally returns `false`. Choose `Arrays.equals` or `Objects.deepEquals` when comparing content.
+2. **Using `Arrays.equals` on nested arrays and expecting deep comparison.** For `int[][]`, elements at the outer level are `int[]`s. Choose `Arrays.deepEquals` or `Objects.deepEquals` when you want to compare each sub-array.
+3. **Thinking `Objects.deepEquals` reflects every field of a class.** For two regular objects, the method relies on the class's `equals`. It does not automatically compare nested fields or properties.
+4. **Using `Objects.deepEquals` in `equals` but forgetting to update `hashCode`.** For multidimensional arrays, use the corresponding `Arrays.deepHashCode` to avoid breaking hash collection contracts.
+5. **Allowing the array structure to mutate after using it as a `HashMap` key.** When data used in `equals`/`hashCode` changes, the map may fail to find the entry. Use defensive copies and immutable value object design when appropriate.
+6. **Using deep comparison on cyclic graphs.** Cases where an array contains itself or cycles through other arrays are not guaranteed to be safe.
+7. **Treating “business-equivalent value” and “`deepEquals` true” as the same thing.** `deepEquals` respects array type, element order, and component object `equals`; it does not automatically normalize text, numbers, order, or business identifiers.
 
-## 9. Quy trình chọn phép so sánh
+## 9. Process for choosing a comparison method
 
-Khi phải so sánh hai giá trị trong Java:
+When comparing two values in Java:
 
-1. **Kiểm tra loại dữ liệu thực tế:** đối tượng thường, mảng nguyên thủy, mảng tham chiếu, mảng lồng hay một đối tượng chứa trường là mảng.
-2. **Nếu muốn biết cùng instance**, sử dụng `==` với tham chiếu.
-3. **Nếu chỉ muốn so giá trị của hai đối tượng thường**, dùng `Objects.equals(a, b)` khi cần xử lý `null`, bảo đảm kiểu đó có `equals` phù hợp.
-4. **Nếu là mảng một chiều rõ kiểu**, dùng `Arrays.equals(a, b)`.
-5. **Nếu là mảng nhiều tầng**, chọn `Arrays.deepEquals` với mảng `Object[]` ở tầng ngoài hoặc `Objects.deepEquals` với hai giá trị kiểu `Object`.
-6. **Nếu viết value object chứa mảng**, cài đặt `equals` so trường mảng theo nội dung và `hashCode` theo cùng dữ liệu; bảo vệ khỏi thay đổi ngoài ý muốn.
-7. **Nếu có yêu cầu đặc biệt** như so số theo dung sai, bỏ qua thứ tự, chuẩn hóa chữ, hoặc dữ liệu có vòng tham chiếu, hãy viết thuật toán so sánh riêng phù hợp với hợp đồng và mục tiêu bài toán.
+1. **Check the actual data type:** regular object, primitive array, reference array, nested array, or an object containing an array field.
+2. **If you want to know whether they are the same instance**, use `==` on references.
+3. **If you only want to compare values of two regular objects**, use `Objects.equals(a, b)` when `null` handling is needed, ensuring that type has an appropriate `equals`.
+4. **If it is a typed one-dimensional array**, use `Arrays.equals(a, b)`.
+5. **If it is a multi-level array**, choose `Arrays.deepEquals` for an `Object[]` at the outer level or `Objects.deepEquals` for two `Object`-typed values.
+6. **If writing a value object containing arrays**, implement `equals` comparing array fields by content and `hashCode` over the same data; protect against unintended mutation.
+7. **If there are special requirements** such as numeric tolerance comparison, ignoring order, normalizing text, or data with circular references, write a custom comparison algorithm suited to the contract and problem goal.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-check questions
 
-1. Vì sao `Objects.equals(new int[]{1,2}, new int[]{1,2})` là `false` nhưng `Objects.deepEquals(...)` là `true`?
-2. Với hai đối số đều `null`, kết quả `Objects.deepEquals` là gì? Nếu đúng một đối số `null` thì sao?
-3. Vì sao `Arrays.equals(a, b)` với hai `int[][]` độc lập cùng nội dung có thể trả `false`, trong khi `Arrays.deepEquals(a,b)` trả `true`?
-4. Nếu `Box` có trường `int[] values` nhưng không override `equals`, gọi `Objects.deepEquals(box1,box2)` có tự so từng phần tử của `values` không?
-5. Vì sao một class dùng `Objects.deepEquals(matrix1,matrix2)` trong `equals` nên dùng `Arrays.deepHashCode(matrix)` tương ứng trong `hashCode`?
-6. `Objects.deepEquals(new int[]{1}, new long[]{1})` trả gì? Phương thức có tự chuyển `int` sang `long` không?
-7. Nếu một mảng `Object[]` chứa tham chiếu tới chính nó, vì sao không thể giả định phép so sâu luôn kết thúc an toàn?
+1. Why is `Objects.equals(new int[]{1,2}, new int[]{1,2})` `false` while `Objects.deepEquals(...)` is `true`?
+2. When both arguments are `null`, what is the result of `Objects.deepEquals`? What if exactly one argument is `null`?
+3. Why can `Arrays.equals(a, b)` on two independent `int[][]` with identical content return `false`, while `Arrays.deepEquals(a,b)` returns `true`?
+4. If `Box` has an `int[] values` field but does not override `equals`, does calling `Objects.deepEquals(box1,box2)` automatically compare each element of `values`?
+5. Why should a class using `Objects.deepEquals(matrix1,matrix2)` in `equals` use the corresponding `Arrays.deepHashCode(matrix)` in `hashCode`?
+6. What does `Objects.deepEquals(new int[]{1}, new long[]{1})` return? Does the method automatically convert `int` to `long`?
+7. If an `Object[]` array contains a reference to itself, why can we not assume deep comparison will always terminate safely?
 
-**Ghi nhớ:** `Objects.deepEquals(a, b)` nhận **hai đối số kiểu `Object`**, kiểm tra cùng tham chiếu/`null` trước, rồi so sánh **nội dung mảng, kể cả mảng lồng** khi cả hai đối số là mảng. Với các đối tượng thông thường, nó vẫn dựa vào `equals`. Khi dùng so sâu trong `equals` của class chứa mảng, luôn giữ `hashCode` tương ứng và bảo vệ dữ liệu khỏi thay đổi ngoài ý muốn.
+**Key takeaway:** `Objects.deepEquals(a, b)` accepts **two `Object` arguments**, checks same-reference/`null` first, and then compares **array content, including nested arrays** when both arguments are arrays. For regular objects, it still relies on `equals`. When using deep comparison in `equals` of a class containing arrays, always keep a matching `hashCode` and protect data from unintended mutation.

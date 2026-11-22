@@ -1,48 +1,48 @@
-# Từ khóa dành riêng và từ khóa theo ngữ cảnh trong Java 17
+# Reserved Keywords and Contextual Keywords in Java 17
 
-Trong Java, không phải từ nào trông giống tiếng Anh cũng được dùng làm tên biến hoặc tên lớp. Một số từ có ý nghĩa **cố định** với ngôn ngữ; một số chỉ có vai trò đặc biệt trong **cấu trúc cú pháp cụ thể**.
+In Java, not every English-looking word can be used as a variable or class name. Some words have a **fixed** meaning in the language; others only have a special role in **specific syntactic constructs**.
 
-Ví dụ, `class` luôn là từ khóa dành riêng, nhưng `module` có thể là tên biến bình thường ở ngoài cú pháp module. Phân biệt đúng hai nhóm này giúp bạn đặt tên hợp lệ, đọc code Java 17 và hiểu thông báo lỗi của `javac`.
+For example, `class` is always a reserved keyword, whereas `module` can be a normal variable name outside module syntax. Distinguishing these two groups accurately helps you choose valid names, read Java 17 code, and understand `javac` error messages.
 
-**Mục tiêu:** nhận diện từ khóa dành riêng, từ khóa theo ngữ cảnh, literal và identifier thường; viết/chạy một ví dụ kết hợp `var`, `record`, `yield` và `sealed`; sửa các lỗi đặt tên.
+**Objective:** identify reserved keywords, contextual keywords, literals, and regular identifiers; write/run an example combining `var`, `record`, `yield`, and `sealed`; and fix naming errors.
 
-## 1. Bốn loại dễ nhầm
+## 1. Four easily confused categories
 
-| Loại | Ví dụ Java 17 | Quy tắc quan trọng |
+| Category | Java 17 examples | Important rule |
 | --- | --- | --- |
-| **Từ khóa dành riêng** (*reserved keyword*) | `class`, `int`, `public`, `return`, `if`, `switch` | Không được dùng làm identifier thông thường, bất kể vị trí |
-| **Từ khóa theo ngữ cảnh** (*contextual/restricted keyword*) | `var`, `record`, `yield`, `sealed`, `permits`, `non-sealed`, `module`, `requires` | Chỉ có ý nghĩa đặc biệt trong những ngữ cảnh Java quy định; mỗi từ có hạn chế riêng |
-| **Literal** | `true`, `false`, `null` | **Không phải từ khóa**, nhưng cũng không được dùng làm tên biến/lớp |
-| **Identifier thường** | `score`, `main`, `String`, `System` | Là tên do lập trình viên khai báo hoặc tên API, chịu quy tắc đặt tên và phạm vi |
+| **Reserved keyword** | `class`, `int`, `public`, `return`, `if`, `switch` | Cannot be used as a regular identifier, regardless of position |
+| **Contextual/restricted keyword** | `var`, `record`, `yield`, `sealed`, `permits`, `non-sealed`, `module`, `requires` | Only carry special meaning in contexts defined by Java; each word has its own restrictions |
+| **Literal** | `true`, `false`, `null` | **Not keywords**, yet still cannot be used as variable/class names |
+| **Regular identifier** | `score`, `main`, `String`, `System` | Programmer-declared names or API names, subject to naming rules and scope |
 
-`String` là một **lớp**, không phải từ khóa kiểu primitive như `int`. `main` là tên phương thức theo quy ước điểm vào, cũng không phải từ khóa. Java phân biệt chữ hoa/thường: `Class` không phải token `class`, nhưng chọn tên `Class` dễ gây nhầm nên thường không đáng làm.
+`String` is a **class**, not a primitive type keyword like `int`. `main` is a method name by entry-point convention, also not a keyword. Java is case-sensitive: `Class` is not the `class` token, though choosing the name `Class` easily causes confusion and is usually not worth doing.
 
-## 2. Từ khóa dành riêng: bị cấm làm tên ở mọi ngữ cảnh identifier
+## 2. Reserved keywords: prohibited as names in any identifier context
 
-Các nhóm thông dụng:
+Common groups:
 
-| Nhóm | Từ khóa | Công dụng ví dụ |
+| Group | Keywords | Example usage |
 | --- | --- | --- |
-| Khai báo và truy cập | `class`, `interface`, `enum`, `public`, `private`, `protected` | Định nghĩa kiểu, chỉ định phạm vi truy cập |
-| Điều khiển luồng | `if`, `else`, `for`, `while`, `switch`, `case`, `break`, `continue`, `return` | Chọn nhánh, lặp, kết thúc |
-| Kiểu primitive | `boolean`, `byte`, `short`, `int`, `long`, `char`, `float`, `double` | Khai báo dữ liệu primitive |
-| Đối tượng và kế thừa | `new`, `this`, `super`, `extends`, `implements`, `instanceof` | Tạo đối tượng, truy cập, quan hệ kiểu |
-| Ngoại lệ | `try`, `catch`, `finally`, `throw`, `throws` | Xử lý và khai báo ngoại lệ |
-| Thành viên/hành vi khác | `static`, `final`, `abstract`, `void`, `synchronized`, `volatile`, `transient`, `native`, `strictfp` | Định nghĩa cách dùng thành viên và kiểu |
-| Tổ chức mã | `package`, `import`, `default`, `do`, `assert` | Package, nhập kiểu, cú pháp tương ứng |
+| Declaration and access | `class`, `interface`, `enum`, `public`, `private`, `protected` | Define types, specify access scope |
+| Control flow | `if`, `else`, `for`, `while`, `switch`, `case`, `break`, `continue`, `return` | Branching, looping, terminating |
+| Primitive types | `boolean`, `byte`, `short`, `int`, `long`, `char`, `float`, `double` | Declare primitive data |
+| Objects and inheritance | `new`, `this`, `super`, `extends`, `implements`, `instanceof` | Object creation, access, type relationships |
+| Exceptions | `try`, `catch`, `finally`, `throw`, `throws` | Handle and declare exceptions |
+| Other member/behavior modifiers | `static`, `final`, `abstract`, `void`, `synchronized`, `volatile`, `transient`, `native`, `strictfp` | Define how members and types are used |
+| Code organization | `package`, `import`, `default`, `do`, `assert` | Packages, type imports, corresponding syntax |
 
-Đây là **nhóm ví dụ minh họa**, không phải danh sách được sắp theo thứ tự xuất hiện trong đặc tả Java. Hai từ `const` và `goto` cũng **được dành riêng** dù không được Java dùng làm câu lệnh. Ký tự gạch dưới đơn lẻ `_` **không thể** làm identifier kể từ Java 9; nhưng `_value` vẫn là một identifier hợp lệ trong Java 17.
+These are **illustrative example groups**, not a list ordered as they appear in the Java specification. The two words `const` and `goto` are also **reserved** even though Java does not use them as statements. A standalone underscore `_` **cannot** serve as an identifier since Java 9; however, `_value` remains a valid identifier in Java 17.
 
-Các dòng sau **cố ý không biên dịch**:
+The following lines **intentionally do not compile**:
 
 ~~~java
-int class = 3;       // Sai: class là từ khóa dành riêng.
-int return = 5;      // Sai: return là từ khóa dành riêng.
-int _ = 1;           // Sai trên Java 17: _ bị dành riêng.
-int true = 2;        // Sai: true là literal, không phải identifier.
+int class = 3;       // Invalid: class is a reserved keyword.
+int return = 5;      // Invalid: return is a reserved keyword.
+int _ = 1;           // Invalid in Java 17: _ is reserved.
+int true = 2;        // Invalid: true is a literal, not an identifier.
 ~~~
 
-Đổi tên để biểu thị nghĩa của giá trị:
+Rename them to express the value's meaning:
 
 ~~~java
 int classSize = 3;
@@ -51,52 +51,52 @@ int _value = 1;
 boolean enabled = true;
 ~~~
 
-**Lưu ý:** `true`, `false` và `null` là literal (`boolean`/null literal), *không nằm trong nhóm keyword*, nhưng việc dùng chúng như identifier vẫn sai. “Không phải keyword” không đồng nghĩa “dùng làm tên được”.
+**Note:** `true`, `false`, and `null` are literals (`boolean`/null literals) and *do not belong to the keyword group*, yet using them as identifiers is still invalid. "Not a keyword" does not mean "usable as a name".
 
-## 3. Từ khóa theo ngữ cảnh: vị trí cú pháp quyết định ý nghĩa
+## 3. Contextual keywords: syntactic position determines meaning
 
-Java 17 có những từ chỉ được coi là thành phần cú pháp đặc biệt ở ngữ cảnh phù hợp:
+Java 17 has words that are only treated as special syntactic elements in the appropriate context:
 
-| Từ | Khi mang nghĩa đặc biệt | Ngoài ngữ cảnh đó |
+| Word | When it has special meaning | Outside that context |
 | --- | --- | --- |
-| `var` | Suy luận kiểu của một biến cục bộ từ biểu thức khởi tạo | Có thể dùng `var` làm **tên biến**, nhưng không dùng làm tên kiểu do đây là *restricted type name* |
-| `record` | Khai báo record, ví dụ `record Point(int x, int y) {}` | Có thể dùng `record` làm tên biến bình thường |
-| `yield` | Trả một giá trị từ khối trong `switch` expression | Có thể là tên biến; một số cách dùng làm tên lời gọi phương thức không đủ điều kiện bị hạn chế |
-| `sealed`, `permits` | Khai báo kiểu sealed và các kiểu được phép kế thừa/triển khai | Không tự động bị cấm làm tên biến ở mọi nơi |
-| `non-sealed` | Cho phép một subtype trực tiếp của sealed type mở lại khả năng kế thừa | Đây là dạng có dấu nối đặc biệt; **không** phải một identifier thông thường |
-| `module`, `open`, `requires`, `exports`, `opens`, `to`, `uses`, `provides`, `with`, `transitive` | Cú pháp khai báo module trong `module-info.java` | Nhiều từ trong số này vẫn có thể dùng làm identifier ở mã Java thường |
+| `var` | Infers the type of a local variable from its initializer expression | Can use `var` as a **variable name**, but not as a type name because it is a *restricted type name* |
+| `record` | Declares a record, e.g., `record Point(int x, int y) {}` | Can use `record` as a regular variable name |
+| `yield` | Returns a value from a block inside a `switch` expression | Can be a variable name; certain uses as an unqualified method call name are restricted |
+| `sealed`, `permits` | Declares a sealed type and the types permitted to extend/implement it | Not automatically banned as variable names everywhere |
+| `non-sealed` | Allows a direct subtype of a sealed type to reopen inheritance | This is a special hyphenated form; **not** a regular identifier |
+| `module`, `open`, `requires`, `exports`, `opens`, `to`, `uses`, `provides`, `with`, `transitive` | Module declaration syntax in `module-info.java` | Many of these can still be used as identifiers in regular Java code |
 
-Một số thuật ngữ đặc tả Java phân biệt *contextual keywords*, *restricted keywords* và *restricted identifiers/type names*. Khi học, điểm cần nắm không phải tất cả cùng một quy tắc cấm, mà là **từng từ có vị trí được phép và bị hạn chế riêng**.
+Some Java specification terminology distinguishes *contextual keywords*, *restricted keywords*, and *restricted identifiers/type names*. When learning, the key takeaway is not that they share one identical prohibition rule, but that **each word has its own allowed and restricted positions**.
 
-### Ví dụ 1: `var` không làm Java trở thành ngôn ngữ kiểu động
-
-~~~java
-var total = 12;       // Trình biên dịch suy luận total có kiểu int.
-total = 15;           // Hợp lệ.
-// total = "muoi lam"; // Sai: String không gán cho int.
-
-int var = 7;          // Hợp lệ trong Java 17: var là tên biến.
-~~~
-
-`var` dùng để **suy luận kiểu của biến cục bộ**, không phải kiểu “nhận mọi giá trị”. Những đoạn sau không hợp lệ:
+### Example 1: `var` does not make Java a dynamically typed language
 
 ~~~java
-// var x = null;     // Không suy luận được kiểu từ null.
-// var x;            // Không có initializer để suy luận kiểu.
-// class var {}      // Không hợp lệ: var là restricted type name.
+var total = 12;       // The compiler infers total has type int.
+total = 15;           // Valid.
+// total = "muoi lam"; // Invalid: String cannot be assigned to int.
+
+int var = 7;          // Valid in Java 17: var is a variable name.
 ~~~
 
-Đặt tên biến `var` tuy hợp lệ nhưng dễ làm người đọc hiểu nhầm; nên chọn tên theo ý nghĩa dữ liệu.
-
-### Ví dụ 2: `record` và `yield` chỉ đặc biệt khi dùng đúng cú pháp
+`var` is used for **local variable type inference**, not a "hold-any-value" type. The following snippets are invalid:
 
 ~~~java
-record Point(int x, int y) {} // Java 17: khai báo kiểu record.
-
-int record = 5;                // Hợp lệ: tên biến thông thường.
+// var x = null;     // Cannot infer type from null.
+// var x;            // No initializer to infer type.
+// class var {}      // Invalid: var is a restricted type name.
 ~~~
 
-Một `switch` expression có thể dùng `yield` trong khối để cung cấp giá trị:
+Naming a variable `var` is valid, though it easily misleads readers; you should choose names based on data meaning.
+
+### Example 2: `record` and `yield` are only special when used in their syntax
+
+~~~java
+record Point(int x, int y) {} // Java 17: record type declaration.
+
+int record = 5;                // Valid: regular variable name.
+~~~
+
+A `switch` expression can use `yield` inside a block to supply a value:
 
 ~~~java
 int score = 8;
@@ -108,9 +108,9 @@ String result = switch (score) {
 };
 ~~~
 
-Ở đây, `switch`, `case` và `default` là từ khóa dành riêng; `yield` mang nghĩa đặc biệt trong khối của `switch` expression. Đừng hiểu `yield` như `return` cho cả phương thức: nó trả giá trị cho **switch expression**, không tự kết thúc phương thức bao ngoài.
+Here, `switch`, `case`, and `default` are reserved keywords; `yield` carries special meaning inside the block of a `switch` expression. Do not treat `yield` like `return` for the whole method: it returns a value for the **switch expression**, without automatically terminating the enclosing method.
 
-### Ví dụ 3: `sealed` kiểm soát kiểu con
+### Example 3: `sealed` controls subtypes
 
 ~~~java
 sealed interface Result permits Success, Failure {}
@@ -120,13 +120,13 @@ record Success(String message) implements Result {}
 record Failure(int code) implements Result {}
 ~~~
 
-`Result` là sealed interface; chỉ các subtype được cho phép mới trực tiếp triển khai nó. Hai record trên ngầm là `final`, nên thỏa yêu cầu đối với các kiểu trực tiếp được phép kế thừa/triển khai. Khi cần giữ một nhánh cho phép kế thừa tiếp, Java còn có modifier `non-sealed` cho subtype trực tiếp thích hợp.
+`Result` is a sealed interface; only the permitted subtypes may directly implement it. Both records above are implicitly `final`, satisfying the requirement for directly permitted subtypes. When a branch needs to allow further inheritance, Java also provides the `non-sealed` modifier for an appropriate direct subtype.
 
-Không nên cố dùng `non-sealed` như một tên biến có dấu `-`: dấu nối ở đây thuộc cú pháp đặc biệt, không phải ký tự hợp lệ tùy ý trong identifier.
+Do not try to use `non-sealed` as a variable name with a `-`: the hyphen here is part of a special syntax, not an arbitrary valid character in an identifier.
 
-## 4. Chương trình Java 17+ chạy được: so sánh ngay trong mã
+## 4. Runnable Java 17+ program: compare directly in code
 
-Tạo tệp **`KeywordContextDemo.java`**:
+Create a file **`KeywordContextDemo.java`**:
 
 ~~~java
 public class KeywordContextDemo {
@@ -148,8 +148,8 @@ public class KeywordContextDemo {
     }
 
     public static void main(String[] args) {
-        int module = 2;  // module là tên biến hợp lệ ở đây.
-        int record = 3;  // record là tên biến hợp lệ ở đây.
+        int module = 2;  // module is a valid variable name here.
+        int record = 3;  // record is a valid variable name here.
 
         var session = new Session("Java", 45);
         Outcome outcome = new Good("ok");
@@ -166,25 +166,25 @@ public class KeywordContextDemo {
 }
 ~~~
 
-**Giải thích:** `record Session` khai báo một record; `int record = 3` dùng cùng chuỗi ký tự làm tên biến ở ngữ cảnh khác. `var session` suy luận kiểu `Session`. `yield` trả giá trị cho `switch` expression. `sealed` và `permits` đặt ranh giới các subtype của `Outcome`. `module` là tên biến, không phải khai báo module.
+**Explanation:** `record Session` declares a record; `int record = 3` uses the same character sequence as a variable name in a different context. `var session` infers type `Session`. `yield` supplies a value for the `switch` expression. `sealed` and `permits` set boundaries on the subtypes of `Outcome`. `module` is a variable name, not a module declaration.
 
-### Biên dịch và chạy (Windows PowerShell hoặc Linux/Bash)
+### Compiling and running (Windows PowerShell or Linux/Bash)
 
-Lưu mã UTF-8, mở terminal trong thư mục chứa tệp, xác minh JDK 17+:
+Save source as UTF-8, open a terminal in the file's directory, and verify JDK 17+:
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Sau đó dùng cùng lệnh ở cả hai môi trường:
+Then use the same commands in both environments:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 KeywordContextDemo.java
 java KeywordContextDemo
 ~~~
 
-**Kết quả dự kiến:**
+**Expected output:**
 
 ~~~text
 module=2
@@ -195,13 +195,13 @@ label(3)=da hoc
 outcome=Good
 ~~~
 
-`--release 17` yêu cầu compiler hỗ trợ cú pháp và API nền tảng Java 17. Nếu dùng đúng JDK 17, chỉ cần `javac -encoding UTF-8 KeywordContextDemo.java` cũng đủ cho ví dụ này.
+`--release 17` instructs the compiler to support Java 17 syntax and platform APIs. If you are already using JDK 17, `javac -encoding UTF-8 KeywordContextDemo.java` alone is also sufficient for this example.
 
-Một lợi ích của chương trình là **không cần tự tạo package, module hoặc thư viện ngoài** để thấy sự khác biệt giữa các ngữ cảnh.
+One benefit of this program is that it **requires no custom packages, modules, or external libraries** to observe the difference between contexts.
 
-## 5. Vì sao tên trong `module-info.java` trông như keyword?
+## 5. Why do words in `module-info.java` look like keywords?
 
-Hệ thống module của Java có cú pháp dành riêng cho tệp khai báo module. Ví dụ **minh họa cú pháp**, không phải một dự án hoàn chỉnh:
+Java's module system has dedicated syntax for the module declaration file. Example **illustrating syntax**, not a complete project:
 
 ~~~java
 module learning.demo {
@@ -209,56 +209,56 @@ module learning.demo {
 }
 ~~~
 
-Trong nội dung `module-info.java`, từ `module` và `requires` là thành phần cú pháp module declaration. Nhưng ở chương trình thông thường, `int module = 2;` vẫn hợp lệ. Đừng đặt đoạn minh họa module này vào trong lớp `KeywordContextDemo`: đó là **vị trí cú pháp khác** và cần dự án module được bố trí tương ứng.
+Inside `module-info.java`, `module` and `requires` are syntactic elements of a module declaration. Yet in regular programs, `int module = 2;` remains valid. Do not put this module snippet inside the `KeywordContextDemo` class: that is a **different syntactic position** and requires a correspondingly structured module project.
 
-Ví dụ này chỉ nhằm nhận biết *context*. Việc tổ chức module path, đóng gói module và `requires` nằm ngoài mục tiêu bài học về từ vựng Java.
+This example is only meant to recognize *context*. Organizing the module path, packaging modules, and `requires` are outside the scope of this lesson on Java vocabulary.
 
-## 6. Lỗi biên dịch thường gặp và cách sửa
+## 6. Common compile errors and fixes
 
-| Đoạn mã / tình huống | Loại lỗi hoặc nhầm lẫn | Cách xử lý |
+| Code snippet / situation | Error category or confusion | How to resolve |
 | --- | --- | --- |
-| `int class = 1;` | `class` là reserved keyword | Đổi thành `classCount` |
-| `int _ = 1;` | `_` bị dành riêng trong Java 17 | Đổi thành `_count` hoặc `count` |
-| `int true = 1;` | `true` là literal, không là identifier | Dùng `boolean enabled = true;` |
-| `class record {}` | `record` bị hạn chế khi làm tên kiểu | Đổi tên lớp, ví dụ `RecordExample` |
-| `var value = null;` | Không thể suy luận kiểu | Dùng kiểu tường minh, nếu null là giá trị hợp lệ |
-| `var number;` | Không có initializer | Khởi tạo khi khai báo hoặc chọn kiểu tường minh |
-| `yield 1;` ngoài ngữ cảnh cho phép | `yield` không phải statement trả giá trị chung | Dùng `return` trong phương thức hoặc `yield` trong switch expression phù hợp |
-| `non-sealed` ở lớp không liên quan sealed hierarchy | Modifier không hợp lệ ở vị trí đó | Chỉ dùng trên subtype trực tiếp của sealed type khi đáp ứng quy tắc |
+| `int class = 1;` | `class` is a reserved keyword | Rename to `classCount` |
+| `int _ = 1;` | `_` is reserved in Java 17 | Rename to `_count` or `count` |
+| `int true = 1;` | `true` is a literal, not an identifier | Use `boolean enabled = true;` |
+| `class record {}` | `record` is restricted as a type name | Rename the class, e.g., `RecordExample` |
+| `var value = null;` | Cannot infer type | Use an explicit type if null is a valid value |
+| `var number;` | No initializer | Initialize at declaration or choose an explicit type |
+| `yield 1;` outside an allowed context | `yield` is not a general value-returning statement | Use `return` in a method or `yield` in a proper switch expression |
+| `non-sealed` on a class unrelated to a sealed hierarchy | Invalid modifier in that position | Only use on a direct subtype of a sealed type when rules are met |
 
-**Phân biệt:** từ khóa sai vị trí có thể dẫn đến **lỗi cú pháp**; tên kiểu bị hạn chế có thể dẫn đến lỗi **khai báo**; `var` không thể suy luận kiểu thường dẫn đến lỗi **kiểu**. Thông báo `javac` cụ thể thay đổi theo phiên bản, nên tập trung vào cấu trúc mã và ngữ cảnh.
+**Distinction:** a misplaced keyword can lead to a **syntax error**; a restricted type name can lead to a **declaration error**; `var` failing type inference usually leads to a **type error**. Specific `javac` messages vary by version, so focus on code structure and context.
 
-## 7. Bài tập thực hành
+## 7. Practice exercises
 
-**Bài 1 — Phân loại:** Trong `class`, `record`, `main`, `true`, `var`, `int`, `String`, `null`, hãy chia thành keyword dành riêng, contextual/restricted keyword, literal và identifier/tên API.
+**Exercise 1 — Classification:** Among `class`, `record`, `main`, `true`, `var`, `int`, `String`, and `null`, group them into reserved keywords, contextual/restricted keywords, literals, and regular identifiers/API names.
 
-*Đáp án:* Dành riêng: `class`, `int`. Theo ngữ cảnh/hạn chế: `record`, `var`. Literal: `true`, `null`. Tên thường/API: `main`, `String`.
+*Answer:* Reserved: `class`, `int`. Contextual/restricted: `record`, `var`. Literals: `true`, `null`. Regular/API names: `main`, `String`.
 
-**Bài 2 — Dự đoán:** Vì sao `int module = 2;` chạy được nhưng `int class = 2;` không biên dịch?
+**Exercise 2 — Prediction:** Why does `int module = 2;` run while `int class = 2;` fails to compile?
 
-*Đáp án:* `module` có nghĩa đặc biệt trong ngữ cảnh khai báo module, còn `class` luôn là reserved keyword.
+*Answer:* `module` has special meaning in the context of a module declaration, whereas `class` is always a reserved keyword.
 
-**Bài 3 — Tự thử lỗi:** Trong chương trình `KeywordContextDemo.java`, thêm thử `int return = 1;` vào `main`, biên dịch, đọc thông báo rồi bỏ dòng sai. Có thể dùng `returnCount` thay thế không?
+**Exercise 3 — Triggering an error:** In `KeywordContextDemo.java`, temporarily add `int return = 1;` inside `main`, compile, read the message, and then remove the invalid line. Can `returnCount` be used instead?
 
-*Đáp án:* Có, `returnCount` là identifier hợp lệ; `return` thì không.
+*Answer:* Yes, `returnCount` is a valid identifier; `return` is not.
 
-**Bài 4 — Thay đổi switch:** Gọi thêm `label(-1)` rồi dự đoán kết quả. Giải thích vì sao `yield` trong nhánh `default` có thể đưa kết quả về biến/lời gọi chứa `switch` expression.
+**Exercise 4 — Modifying switch:** Also call `label(-1)` and predict the result. Explain why `yield` in the `default` branch can return a result to the variable/call enclosing the `switch` expression.
 
-*Đáp án:* Trả chuỗi `gia tri am`. `yield` cung cấp giá trị của `switch` expression.
+*Answer:* Returns the string `gia tri am`. `yield` supplies the value of the `switch` expression.
 
-**Bài 5 — Không nhầm từ khóa với tên API:** Tại sao `String`, `System`, `println`, `main` không phải keyword, dù xuất hiện nhiều trong chương trình Java?
+**Exercise 5 — Do not confuse keywords with API names:** Why are `String`, `System`, `println`, and `main` not keywords, even though they appear frequently in Java programs?
 
-*Đáp án:* Chúng là tên kiểu/phương thức theo thư viện hoặc quy ước, chứ không phải token cú pháp dành riêng của ngôn ngữ. Cách sử dụng chúng phải đúng khai báo, phạm vi và kiểu.
+*Answer:* They are library or convention-based type/method names, not reserved syntactic tokens of the language. Using them must respect declarations, scope, and types.
 
-## Checklist ghi nhớ
+## Memory checklist
 
-- [ ] Nhận diện reserved keyword như `class`, `if`, `return` và `int`.
-- [ ] Không dùng `true`, `false`, `null` hoặc `_` làm identifier.
-- [ ] Giải thích được vì sao `var` chỉ suy luận kiểu ở những vị trí cho phép nhưng biến vẫn có kiểu tĩnh.
-- [ ] Phân biệt `record` dùng khai báo kiểu với `record` làm tên biến.
-- [ ] Biết `yield` có ý nghĩa đặc biệt trong `switch` expression.
-- [ ] Nhận diện `sealed`, `permits`, `non-sealed` mà không nhầm chúng thành tên tự do.
-- [ ] Biết `module`, `requires` và các từ liên quan có ngữ cảnh khai báo module.
-- [ ] Biên dịch, chạy được ví dụ bằng `javac --release 17` và `java`.
+- [ ] Identify reserved keywords such as `class`, `if`, `return`, and `int`.
+- [ ] Do not use `true`, `false`, `null`, or `_` as identifiers.
+- [ ] Explain why `var` only infers types in permitted positions while variables remain statically typed.
+- [ ] Distinguish `record` used for a type declaration from `record` as a variable name.
+- [ ] Know that `yield` has special meaning inside a `switch` expression.
+- [ ] Recognize `sealed`, `permits`, and `non-sealed` without mistaking them for unrestricted names.
+- [ ] Know that `module`, `requires`, and related words belong to module declaration context.
+- [ ] Compile and run the example using `javac --release 17` and `java`.
 
-**Ghi nhớ:** Từ khóa **dành riêng** bị khóa ở mọi vị trí identifier; từ khóa **theo ngữ cảnh** chỉ mang ý nghĩa cú pháp đặc biệt ở cấu trúc thích hợp và có những giới hạn riêng. `true`/`false`/`null` là literal, không phải keyword, nhưng cũng không phải tên hợp lệ. Khi không chắc, hãy nhìn **ngữ cảnh cú pháp** và thử biên dịch một ví dụ Java 17 tối thiểu.
+**Key takeaway:** **Reserved** keywords are locked out of every identifier position; **contextual** keywords only carry special syntactic meaning in appropriate constructs and have specific restrictions. `true`/`false`/`null` are literals, not keywords, yet are not valid names either. When unsure, examine the **syntactic context** and test-compile a minimal Java 17 example.

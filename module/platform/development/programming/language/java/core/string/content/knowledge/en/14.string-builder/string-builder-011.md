@@ -1,29 +1,29 @@
-# StringBuilder.toString(): kết quả độc lập với những thay đổi về sau
+# StringBuilder.toString(): Result Independent of Subsequent Changes
 
-## 1. Ý nghĩa của “độc lập”
+## 1. What "Independent" Means
 
-`StringBuilder` là đối tượng **có thể thay đổi** (mutable): sau khi tạo, ta có thể `append`, `insert`, `delete`, `replace`, `setCharAt`, `reverse` hoặc `setLength` để sửa dãy ký tự đang giữ. Ngược lại, `String` là **bất biến** (immutable): nội dung của một chuỗi `String` đã tạo không thể bị sửa tại chỗ.
+`StringBuilder` is a **mutable** object: after creation, you can call `append`, `insert`, `delete`, `replace`, `setCharAt`, `reverse`, or `setLength` to modify the character sequence it holds. By contrast, `String` is **immutable**: the content of a created `String` cannot be modified in place.
 
-Khi gọi `String snapshot = builder.toString();`, phương thức lấy **nội dung của `builder` tại thời điểm gọi** và trả về một `String` có nội dung đó. Theo hợp đồng API của `StringBuilder.toString()`, các thay đổi tiếp theo đối với `StringBuilder` **không ảnh hưởng** đến nội dung `String` vừa trả về.
+When you call `String snapshot = builder.toString();`, the method captures **the content of `builder` at the moment of the call** and returns a `String` with that content. Under the `StringBuilder.toString()` API contract, subsequent changes to the `StringBuilder` **do not affect** the content of the returned `String`.
 
-- `snapshot` là giá trị văn bản đã chốt tại thời điểm gọi, không phải “cửa sổ” theo dõi `builder`.
-- `builder` vẫn tồn tại và tiếp tục sửa được; `toString()` không khóa, xóa hay đặt lại nó.
-- Muốn lấy trạng thái mới, phải gọi `builder.toString()` một lần nữa và giữ kết quả mới.
+- `snapshot` is a text value finalized at call time, not a "window" tracking `builder`.
+- `builder` still exists and remains editable; `toString()` does not lock, clear, or reset it.
+- To get a newer state, call `builder.toString()` again and keep the new result.
 
-## 2. Ví dụ Java 17+ chạy độc lập
+## 2. Standalone Runnable Java 17+ Example
 
-Lưu chương trình sau thành `StringBuilderSnapshotDemo.java`:
+Save the following program as `StringBuilderSnapshotDemo.java`:
 
 ```java
 public class StringBuilderSnapshotDemo {
     public static void main(String[] args) {
         StringBuilder builder = new StringBuilder("Java");
 
-        String first = builder.toString();      // Chụp "Java"
+        String first = builder.toString();      // Captures "Java"
         builder.append(" 17");
 
-        String second = builder.toString();     // Chụp "Java 17"
-        builder.replace(0, 4, "OpenJDK");       // Sửa chính builder
+        String second = builder.toString();     // Captures "Java 17"
+        builder.replace(0, 4, "OpenJDK");       // Mutates the builder itself
 
         System.out.println("first   = " + first);
         System.out.println("second  = " + second);
@@ -34,14 +34,14 @@ public class StringBuilderSnapshotDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac StringBuilderSnapshotDemo.java
 java StringBuilderSnapshotDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 first   = Java
@@ -50,19 +50,19 @@ builder = OpenJDK 17
 second still matches builder? false
 ```
 
-Diễn biến của ba giá trị:
+Progression of the three values:
 
-| Thời điểm | Nội dung `builder` | `first` | `second` |
+| Time | `builder` Content | `first` | `second` |
 | --- | --- | --- | --- |
-| Ngay sau `first = builder.toString()` | `Java` | `Java` | Chưa tạo |
-| Sau `append(" 17")` và lần gọi `toString()` thứ hai | `Java 17` | `Java` | `Java 17` |
-| Sau `replace(0, 4, "OpenJDK")` | `OpenJDK 17` | `Java` | `Java 17` |
+| Right after `first = builder.toString()` | `Java` | `Java` | Not yet created |
+| After `append(" 17")` and the second `toString()` call | `Java 17` | `Java` | `Java 17` |
+| After `replace(0, 4, "OpenJDK")` | `OpenJDK 17` | `Java` | `Java 17` |
 
-`replace(0, 4, ...)` thay các ký tự ở vị trí từ `0` đến trước `4` trong **builder hiện tại**. Hai biến kiểu `String` vẫn giữ đúng nội dung lúc được tạo. Phép kiểm tra `contentEquals` cuối cùng trả về `false` vì `Java 17` khác `OpenJDK 17`.
+`replace(0, 4, ...)` replaces the characters from index `0` up to before `4` in the **current builder**. Both `String` variables still keep the exact content from when they were created. The final `contentEquals` check returns `false` because `Java 17` differs from `OpenJDK 17`.
 
-## 3. Phân biệt bản chụp với tham chiếu đến StringBuilder
+## 3. Distinguishing a Snapshot from a Reference to StringBuilder
 
-Một biến khác trỏ vào cùng `StringBuilder` sẽ quan sát những lần sửa tiếp theo của đối tượng đó. Ví dụ đoạn mã sau đặt **bên trong `main`**:
+Another variable pointing to the same `StringBuilder` will observe subsequent edits to that object. For example, place the following snippet **inside `main`**:
 
 ```java
 StringBuilder builder = new StringBuilder("A");
@@ -77,37 +77,37 @@ System.out.println(sequence);  // AB
 System.out.println(snapshot);  // A
 ```
 
-- `alias` và `sequence` cùng tham chiếu đến `builder`, nên khi in ra sau `append`, chúng biểu diễn nội dung mới `AB`.
-- `snapshot` là `String` được tạo **trước** khi `append`, nên vẫn là `A`.
-- Kiểu khai báo `CharSequence` tự nó **không bảo đảm bất biến**: đối tượng thực tế có thể là `StringBuilder` mutable hoặc `String` immutable.
+- `alias` and `sequence` both reference `builder`, so when printed after `append`, they show the new content `AB`.
+- `snapshot` is a `String` created **before** `append`, so it stays `A`.
+- The declared type `CharSequence` by itself **does not guarantee immutability**: the actual object may be a mutable `StringBuilder` or an immutable `String`.
 
-Điều này cũng giải thích vì sao `System.out.println(builder)` in trạng thái của builder lúc lệnh chạy; nó không lưu một bản chụp để các lệnh in tương lai tự tái sử dụng.
+This also explains why `System.out.println(builder)` prints the builder's state at the time the statement runs; it does not store a snapshot for future print statements to reuse.
 
-## 4. Vì sao Java bảo đảm được điều đó?
+## 4. Why Does Java Guarantee This?
 
-`StringBuilder` quản lý một dãy ký tự có thể sửa. `toString()` tạo kết quả kiểu `String` biểu diễn dãy ký tự **tại lần gọi đó**. Từ bên ngoài, kết quả tuân theo tính bất biến của `String` và không chia sẻ trạng thái *có thể bị chỉnh sửa trực tiếp* với `StringBuilder` theo cách khiến nội dung chuỗi cũ biến đổi.
+`StringBuilder` manages a mutable sequence of characters. `toString()` creates a `String` result representing the character sequence **at that call**. From the outside, the result obeys `String`'s immutability and does not share *directly mutable* state with `StringBuilder` in a way that could cause the old string's content to change.
 
-Đây là **bảo đảm về hành vi của API**, không phụ thuộc vào việc phiên bản JVM lưu ký tự bằng mảng byte, mã hóa nội bộ nào hay tối ưu bộ nhớ ra sao. Không cần dựa vào chi tiết triển khai để tin vào tính độc lập về **nội dung** giữa bản chụp và các sửa đổi về sau.
+This is an **API behavioral guarantee**, independent of how a JVM version stores characters in byte arrays, what internal encoding it uses, or how it optimizes memory. You do not need to rely on implementation details to trust the **content** independence between a snapshot and later edits.
 
-Cần phân biệt rõ hai chiều: sửa `builder` không làm thay đổi `snapshot`; ngược lại, `snapshot` cũng không tạo ra khả năng chỉnh sửa `builder`. `String` không có các thao tác sửa ký tự tại chỗ như `setCharAt`.
+Keep both directions clear: modifying `builder` does not change `snapshot`; conversely, `snapshot` does not provide a way to modify `builder`. `String` has no in-place character-editing methods such as `setCharAt`.
 
-## 5. Khi nào nên gọi toString(), và những lỗi thường gặp
+## 5. When to Call toString(), and Common Mistakes
 
-**Khi cần giá trị ổn định:** gọi `toString()` sau khi đã tạo được nội dung mong muốn, ví dụ trước khi trả kết quả từ một phương thức, lưu thông điệp để xử lý về sau hoặc truyền dữ liệu đến API nhận `String`.
+**When you need a stable value:** call `toString()` once the desired content is assembled, for example before returning a result from a method, saving a message for later processing, or passing data to an API expecting `String`.
 
-**Khi còn xây dựng nội dung:** tiếp tục dùng `StringBuilder` để nối/sửa. Việc gọi `toString()` trong mỗi vòng lặp chỉ để quan sát giá trị trung gian có thể tạo nhiều chuỗi và phát sinh chi phí thời gian/bộ nhớ theo độ dài văn bản. Chỉ tạo bản chụp ở những mốc thật sự cần.
+**While still building content:** continue using `StringBuilder` to append/edit. Calling `toString()` on every loop iteration just to inspect intermediate values can create many strings and incur time/memory costs proportional to text length. Create snapshots only at milestones where they are actually needed.
 
-Những nhầm lẫn cần tránh:
+Pitfalls to avoid:
 
-1. **Nghĩ rằng bản chụp tự cập nhật.** `String old = builder.toString(); builder.append("!");` không sửa `old`. Gọi `toString()` lần nữa nếu muốn chuỗi mới.
-2. **Nghĩ rằng `toString()` làm builder bất biến hoặc rỗng.** Phương thức này chỉ trả về `String`; không thay đổi nội dung builder.
-3. **Giữ một alias rồi tưởng đó là bản chụp.** `StringBuilder other = builder;` chỉ tạo thêm tham chiếu đến cùng đối tượng. Dùng `String other = builder.toString();` để lấy giá trị ổn định.
-4. **Dùng `==` để so nội dung hai `String`.** `==` kiểm tra cùng tham chiếu hay không; hãy dùng `equals` hoặc `contentEquals` khi cần kiểm tra nội dung.
-5. **Suy ra rằng `StringBuilder` an toàn khi nhiều luồng cùng sửa.** `StringBuilder` không được đồng bộ hóa; nếu có truy cập đồng thời, phải phối hợp truy cập để bản chụp được lấy ở trạng thái nhất quán. Tính bất biến của `String` đã trả về không tự xử lý tranh chấp khi đang đọc builder.
+1. **Thinking a snapshot updates itself.** `String old = builder.toString(); builder.append("!");` does not modify `old`. Call `toString()` again if you want the new string.
+2. **Thinking `toString()` makes the builder immutable or empty.** This method only returns a `String`; it does not alter the builder's content.
+3. **Keeping an alias and thinking it is a snapshot.** `StringBuilder other = builder;` only creates another reference to the same object. Use `String other = builder.toString();` to obtain a stable value.
+4. **Using `==` to compare the content of two `String`s.** `==` checks reference equality; use `equals` or `contentEquals` when checking content.
+5. **Concluding `StringBuilder` is safe under concurrent multi-threaded mutation.** `StringBuilder` is not synchronized; if concurrent access exists, coordinate access so snapshots are taken in a consistent state. The immutability of the returned `String` does not resolve races while reading the builder.
 
-## 6. Tự kiểm tra
+## 6. Self-Check
 
-Dự đoán kết quả đoạn mã sau, rồi có thể đặt nó vào `main` để chạy:
+Predict the output of the following snippet, then optionally place it inside `main` to run:
 
 ```java
 StringBuilder b = new StringBuilder("AB");
@@ -120,10 +120,10 @@ b.deleteCharAt(1);
 System.out.println(x + " | " + y + " | " + b);
 ```
 
-Kết quả:
+Output:
 
 ```text
 AB | ZB | Z
 ```
 
-`x` giữ `AB`; `y` giữ `ZB`; `b` còn `Z` sau khi xóa ký tự ở vị trí `1`. Mỗi lần gọi `toString()` đánh dấu **một bản chụp nội dung riêng tại thời điểm đó**.
+`x` keeps `AB`; `y` keeps `ZB`; `b` has `Z` left after deleting the character at position `1`. Each `toString()` call marks **a separate content snapshot at that point in time**.

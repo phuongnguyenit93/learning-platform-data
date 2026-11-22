@@ -1,45 +1,45 @@
-# `length()`, `charAt()` và `substring()` trong Java 17+
+# `length()`, `charAt()`, and `substring()` in Java 17+
 
-Ba phương thức thường dùng nhất để đọc và cắt `String` trong Java là:
+The three most commonly used methods for reading and slicing a `String` in Java are:
 
-- `length()`: trả về **số đơn vị mã UTF-16** trong chuỗi.
-- `charAt(index)`: lấy một giá trị `char` tại **chỉ số UTF-16** được yêu cầu.
-- `substring(beginIndex)` và `substring(beginIndex, endIndex)`: lấy phần nội dung từ một vị trí, hoặc từ vị trí bắt đầu **bao gồm** đến vị trí kết thúc **không bao gồm**.
+- `length()`: returns the **number of UTF-16 code units** in the string.
+- `charAt(index)`: retrieves one `char` value at the requested **UTF-16 index**.
+- `substring(beginIndex)` and `substring(beginIndex, endIndex)`: extracts the content from a starting position, or from an **inclusive** start position to an **exclusive** end position.
 
-Mọi chỉ số đều **bắt đầu từ 0**. Đây là ba thao tác để **đọc hoặc tạo kết quả chuỗi**, không thay đổi nội dung `String` gốc.
+All indices **start at 0**. These three operations **read or produce a string result** without modifying the original `String` content.
 
-## 1. Bảng tra nhanh cú pháp và giới hạn
+## 1. Quick reference table for syntax and bounds
 
-Giả sử:
+Suppose:
 
 ~~~java
 String text = "Java Core";
 ~~~
 
-Chuỗi trên có 9 đơn vị mã UTF-16, đánh chỉ số như sau:
+The string above has 9 UTF-16 code units, indexed as follows:
 
 ~~~text
-Ký tự : J a v a   C o r e
-Chỉ số: 0 1 2 3 4 5 6 7 8
-Biên  : 0 1 2 3 4 5 6 7 8 9
+Char    : J a v a   C o r e
+Index   : 0 1 2 3 4 5 6 7 8
+Boundary: 0 1 2 3 4 5 6 7 8 9
 ~~~
 
-| Biểu thức | Kết quả | Quy tắc |
+| Expression | Result | Rule |
 | --- | --- | --- |
-| `text.length()` | `9` | Tổng số **UTF-16 code unit** |
-| `text.charAt(0)` | `'J'` | Phần tử đầu; kiểu trả về là `char` |
-| `text.charAt(5)` | `'C'` | Vị trí thứ 6 |
-| `text.substring(0, 4)` | `"Java"` | Lấy các chỉ số 0, 1, 2, 3 |
-| `text.substring(5)` | `"Core"` | Lấy từ 5 tới hết |
-| `text.substring(5, 9)` | `"Core"` | `endIndex = length()` được phép |
-| `text.substring(4, 4)` | `""` | Hai đầu bằng nhau tạo chuỗi rỗng |
-| `text.substring(0, text.length())` | `"Java Core"` | Chọn toàn bộ chuỗi |
+| `text.length()` | `9` | Total number of **UTF-16 code units** |
+| `text.charAt(0)` | `'J'` | First element; return type is `char` |
+| `text.charAt(5)` | `'C'` | 6th position |
+| `text.substring(0, 4)` | `"Java"` | Takes indices 0, 1, 2, 3 |
+| `text.substring(5)` | `"Core"` | Takes from 5 to the end |
+| `text.substring(5, 9)` | `"Core"` | `endIndex = length()` is allowed |
+| `text.substring(4, 4)` | `""` | Equal bounds produce an empty string |
+| `text.substring(0, text.length())` | `"Java Core"` | Selects the entire string |
 
-Điểm khác nhau quan trọng: **`charAt(length())` sai**, còn **`substring(length())` hợp lệ và trả về `""`**. Vì `charAt` phải đọc phần tử có thật, còn `substring` được phép bắt đầu tại **biên cuối**.
+Important distinction: **`charAt(length())` is invalid**, whereas **`substring(length())` is valid and returns `""`**. That is because `charAt` must read an actual element, while `substring` is allowed to start at the **end boundary**.
 
-## 2. Ví dụ Java 17+ chạy được
+## 2. Runnable Java 17+ example
 
-Lưu tệp UTF-8 tên **`StringIndexDemo.java`**:
+Save a UTF-8 file named **`StringIndexDemo.java`**:
 
 ~~~java
 public class StringIndexDemo {
@@ -88,7 +88,7 @@ public class StringIndexDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) ở thư mục chứa tệp và chạy với JDK 17+:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file and run with JDK 17+:
 
 ~~~bash
 java -version
@@ -120,43 +120,43 @@ invalidCharAt=StringIndexOutOfBoundsException
 invalidSubstring=StringIndexOutOfBoundsException
 ~~~
 
-Giải thích nhanh: `"Java Core"` có 9 code unit và vị trí 5 là chữ `C`. `substring(5, 9)` không lấy phần tử có chỉ số 9 mà lấy các vị trí `5, 6, 7, 8`. `"A🚀B"` có **4 UTF-16 code unit** dù chỉ gồm **3 Unicode code point**, vì emoji 🚀 (U+1F680) cần hai đơn vị mã.
+Quick explanation: `"Java Core"` has 9 code units and position 5 is the letter `C`. `substring(5, 9)` does not include the element at index 9; it takes positions `5, 6, 7, 8`. `"A🚀B"` has **4 UTF-16 code units** even though it consists of only **3 Unicode code points**, because the emoji 🚀 (U+1F680) requires two code units.
 
-Hai lỗi được bắt bằng `try/catch` để chương trình tiếp tục chạy. Khi lập trình thực tế, ưu tiên kiểm tra cận trước khi gọi thay vì dựa vào exception cho luồng xử lý bình thường.
+The two errors are caught with `try/catch` so the program continues running. In real programming, prefer checking bounds before calling rather than relying on exceptions for normal control flow.
 
-## 3. Hiểu chính xác phạm vi chỉ số
+## 3. Understanding exact index bounds
 
-Gọi `n = text.length()`.
+Let `n = text.length()`.
 
-| Phương thức | Điều kiện hợp lệ | Không hợp lệ |
+| Method | Valid condition | Invalid |
 | --- | --- | --- |
-| `text.charAt(i)` | `0 <= i && i < n` | `i < 0` hoặc `i >= n` |
-| `text.substring(begin)` | `0 <= begin && begin <= n` | `begin < 0` hoặc `begin > n` |
-| `text.substring(begin, end)` | `0 <= begin && begin <= end && end <= n` | Bất kỳ vi phạm nào |
+| `text.charAt(i)` | `0 <= i && i < n` | `i < 0` or `i >= n` |
+| `text.substring(begin)` | `0 <= begin && begin <= n` | `begin < 0` or `begin > n` |
+| `text.substring(begin, end)` | `0 <= begin && begin <= end && end <= n` | Any violation |
 
-Java ném **`StringIndexOutOfBoundsException`** khi dùng chỉ số không hợp lệ với các phương thức trên.
+Java throws **`StringIndexOutOfBoundsException`** when invalid indices are passed to the methods above.
 
-Những lỗi thường gặp:
+Common errors:
 
 ~~~java
 String s = "Hi"; // length() = 2.
 
-// s.charAt(2);       // Sai: chi so hop le chi co 0, 1.
-// s.charAt(-1);      // Sai: khong co chi so am.
-// s.substring(-1);   // Sai: begin am.
-// s.substring(1, 3); // Sai: end vuot length().
-// s.substring(2, 1); // Sai: begin lon hon end.
+// s.charAt(2);       // Invalid: valid indices are only 0, 1.
+// s.charAt(-1);      // Invalid: no negative indices.
+// s.substring(-1);   // Invalid: negative begin.
+// s.substring(1, 3); // Invalid: end exceeds length().
+// s.substring(2, 1); // Invalid: begin is greater than end.
 
-String empty = s.substring(2); // Hop le: chuoi rong.
+String empty = s.substring(2); // Valid: empty string.
 ~~~
 
-**Lấy ký tự cuối cùng** khi chắc chắn chuỗi không rỗng:
+**Getting the last character** when the string is guaranteed non-empty:
 
 ~~~java
 char last = s.charAt(s.length() - 1);
 ~~~
 
-Nếu `s.isEmpty()`, biểu thức `length() - 1` bằng `-1` và sẽ gây exception. Cần kiểm tra:
+If `s.isEmpty()`, the expression `length() - 1` equals `-1` and will cause an exception. You must check:
 
 ~~~java
 if (!s.isEmpty()) {
@@ -165,17 +165,17 @@ if (!s.isEmpty()) {
 }
 ~~~
 
-Nếu `s == null`, cả ba phương thức đều không thể được gọi và sẽ ném `NullPointerException`. Điều này **khác** với chuỗi rỗng `""`: chuỗi rỗng là một đối tượng tồn tại, có `length() == 0` và `substring(0)` hợp lệ.
+If `s == null`, none of the three methods can be called and any call will throw `NullPointerException`. This **differs** from the empty string `""`: an empty string is an existing object with `length() == 0`, and `substring(0)` is valid.
 
-## 4. Tại sao `substring` dùng cận cuối loại trừ?
+## 4. Why does `substring` use an exclusive upper bound?
 
-Thiết kế khoảng **`[begin, end)`** có ba lợi ích:
+The **`[begin, end)`** interval design has three benefits:
 
-1. Độ dài đoạn cắt bằng **`end - begin`** tính theo UTF-16 code unit.
-2. Hai khoảng liên tiếp ghép đúng biên: `substring(0, k)` và `substring(k, n)` không trùng, không thiếu đơn vị mã.
-3. Khi lấy từ đầu đến hết, dùng ngay `text.substring(0, text.length())`.
+1. The length of the slice equals **`end - begin`** measured in UTF-16 code units.
+2. Two adjacent intervals meet cleanly at the boundary: `substring(0, k)` and `substring(k, n)` neither overlap nor skip any code units.
+3. To extract from the beginning to the end, simply use `text.substring(0, text.length())`.
 
-Ví dụ tách phần trước/sau dấu `':'`:
+Example splitting before/after a `':'`:
 
 ~~~java
 String record = "id:42";
@@ -187,80 +187,80 @@ if (colon >= 0) {
 }
 ~~~
 
-`indexOf` trả `-1` khi không tìm thấy ký tự. Nếu quên kiểm tra kết quả, phép tính cận cho `substring` có thể sai ý định dù đôi lúc vẫn hợp lệ về mặt chỉ số.
+`indexOf` returns `-1` when the character is not found. If you forget to check the result, the bound calculation for `substring` may violate your intent even when it happens to stay within valid index bounds.
 
-Cũng cần phân biệt **phần của một chuỗi** với **một chuỗi mới có đối tượng độc lập**: `substring` cho kết quả `String` bất biến, nhưng không nên dựa vào giả định JVM luôn tạo ra một đối tượng khác cho mọi khoảng cắt. Hãy kiểm tra **nội dung** bằng `equals`, không dùng `==`.
+Also distinguish **part of a string** from **a new string with an independent object**: `substring` returns an immutable `String` result, but you should not rely on an assumption that the JVM always allocates a distinct object for every slice. Check **content** with `equals`, not `==`.
 
-## 5. Cạm bẫy Unicode: chỉ số trong Java là chỉ số UTF-16
+## 5. Unicode pitfall: indices in Java are UTF-16 indices
 
-`length()` đếm **code unit**, không mặc định đếm Unicode code point hoặc số ký tự hiển thị.
+`length()` counts **code units**, not necessarily Unicode code points or displayed characters.
 
-Với `"A🚀B"`:
+With `"A🚀B"`:
 
 ~~~text
-Giá trị nhìn thấy:    A       🚀          B
-Chỉ số code unit:     0       1, 2        3
-Đầu cuối chuỗi:                              4
+Visible value     : A       🚀          B
+Code unit index   : 0       1, 2        3
+String end bound  :                        4
 ~~~
 
-- `charAt(0)` chứa `'A'`.
-- `charAt(1)` trả **high surrogate**, còn `charAt(2)` trả **low surrogate**. Mỗi giá trị là một `char`, **không phải toàn bộ emoji**.
-- `substring(1, 3)` lấy **đúng cả cặp surrogate** nên là đoạn chứa emoji.
-- `substring(1, 2)` chỉ lấy **nửa cặp surrogate**, có thể tạo chuỗi chứa surrogate đơn lẻ không mong muốn. Đừng cắt giữa hai code unit của một code point ngoài BMP.
+- `charAt(0)` holds `'A'`.
+- `charAt(1)` returns the **high surrogate**, while `charAt(2)` returns the **low surrogate**. Each value is a `char`, **not the whole emoji**.
+- `substring(1, 3)` extracts the **entire surrogate pair**, so it is the slice containing the emoji.
+- `substring(1, 2)` extracts only **half of the surrogate pair**, which can produce an undesirable string containing an unpaired surrogate. Never slice between the two code units of a supplementary code point.
 
-Nếu cần làm việc với Unicode code point, dùng `codePointAt`, `codePointCount`, `offsetByCodePoints` và `codePoints()`. Ví dụ lấy code point đầu tiên:
+If you need to work with Unicode code points, use `codePointAt`, `codePointCount`, `offsetByCodePoints`, and `codePoints()`. For example, extracting the first code point:
 
 ~~~java
 String word = "🚀Launch";
 int cp = word.codePointAt(0);              // 0x1F680.
-int end = word.offsetByCodePoints(0, 1);    // 2 code unit.
+int end = word.offsetByCodePoints(0, 1);    // 2 code units.
 String firstCodePoint = word.substring(0, end); // "🚀".
 ~~~
 
-Lưu ý: **code point không nhất thiết bằng một ký tự người dùng cảm nhận** (*grapheme cluster*), chẳng hạn chữ có dấu kết hợp có thể gồm nhiều code point. Các phương thức `length`/`charAt`/`substring` không phải bộ tách grapheme đầy đủ.
+Note: **a code point does not necessarily equal one user-perceived character** (*grapheme cluster*), for instance a letter with combining diacritics can consist of multiple code points. The `length`/`charAt`/`substring` methods are not a full grapheme breaker.
 
-## 6. Chọn phương thức cho đúng mục đích
+## 6. Choosing the right method for the goal
 
-| Yêu cầu | Cách làm | Ghi chú |
+| Requirement | Approach | Notes |
 | --- | --- | --- |
-| Đo độ dài theo UTF-16 | `text.length()` | Không phải số code point trong mọi trường hợp |
-| Lấy code unit tại chỉ số `i` | `text.charAt(i)` | Kiểm tra `0 <= i < length()` |
-| Lấy từ `begin` đến hết | `text.substring(begin)` | `begin == length()` trả `""` |
-| Lấy khoảng `[begin, end)` | `text.substring(begin, end)` | Cận cuối loại trừ |
-| Đọc một code point | `text.codePointAt(i)` | `i` vẫn là chỉ số UTF-16 |
-| Đếm code point | `text.codePointCount(0, text.length())` | Không phải đếm grapheme |
-| Tránh `NullPointerException` | Kiểm tra `text != null` | Chuỗi rỗng khác null |
+| Measure length in UTF-16 | `text.length()` | Not always the number of code points |
+| Get code unit at index `i` | `text.charAt(i)` | Check `0 <= i < length()` |
+| Get from `begin` to end | `text.substring(begin)` | `begin == length()` returns `""` |
+| Get interval `[begin, end)` | `text.substring(begin, end)` | End bound is exclusive |
+| Read one code point | `text.codePointAt(i)` | `i` is still a UTF-16 index |
+| Count code points | `text.codePointCount(0, text.length())` | Not counting graphemes |
+| Avoid `NullPointerException` | Check `text != null` | Empty string differs from null |
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-check exercises
 
-**Bài 1.** `String s = "abcdef";`. Giá trị của `s.length()`, `s.charAt(2)` và `s.substring(2, 5)` là gì?
+**Exercise 1.** `String s = "abcdef";`. What are the values of `s.length()`, `s.charAt(2)`, and `s.substring(2, 5)`?
 
-*Đáp án:* `6`, `'c'` và `"cde"`.
+*Answer:* `6`, `'c'`, and `"cde"`.
 
-**Bài 2.** Với `String s = "Java";`, `s.substring(4)` và `s.charAt(4)` khác nhau thế nào?
+**Exercise 2.** Given `String s = "Java";`, how do `s.substring(4)` and `s.charAt(4)` differ?
 
-*Đáp án:* `substring(4)` trả chuỗi rỗng; `charAt(4)` ném `StringIndexOutOfBoundsException`.
+*Answer:* `substring(4)` returns an empty string; `charAt(4)` throws `StringIndexOutOfBoundsException`.
 
-**Bài 3.** Tại sao `s.substring(1, 3)` có độ dài 2, không phải 3?
+**Exercise 3.** Why does `s.substring(1, 3)` have length 2 instead of 3?
 
-*Đáp án:* Chỉ lấy chỉ số 1 và 2; cận cuối 3 **không bao gồm**.
+*Answer:* It only takes indices 1 and 2; the end bound 3 is **exclusive**.
 
-**Bài 4.** `"A🚀B".length()` bằng 4 hay 3? `substring(1, 3)` cắt được gì?
+**Exercise 4.** Does `"A🚀B".length()` equal 4 or 3? What does `substring(1, 3)` extract?
 
-*Đáp án:* `length()` bằng 4 code unit; `substring(1, 3)` chứa cả emoji 🚀.
+*Answer:* `length()` equals 4 code units; `substring(1, 3)` contains the complete emoji 🚀.
 
-**Bài 5.** Làm thế nào lấy ký tự cuối chuỗi mà không phát sinh lỗi khi chuỗi rỗng?
+**Exercise 5.** How do you retrieve the last character of a string without throwing an error when the string is empty?
 
-*Đáp án:* Kiểm tra `!s.isEmpty()` rồi mới gọi `s.charAt(s.length() - 1)`. Nếu `s` có thể null, kiểm tra `s != null` trước.
+*Answer:* Check `!s.isEmpty()` before calling `s.charAt(s.length() - 1)`. If `s` could be null, check `s != null` first.
 
-## Checklist ghi nhớ
+## Memory checklist
 
-- [ ] `length()` đếm UTF-16 code unit, không mặc định đếm code point.
-- [ ] `charAt(i)` chỉ nhận `0 <= i < length()`.
-- [ ] `substring(begin, end)` lấy khoảng **`[begin, end)`**, nên độ dài bằng `end - begin`.
-- [ ] `substring(length())` hợp lệ nhưng `charAt(length())` không hợp lệ.
-- [ ] Không lấy `charAt(length() - 1)` trước khi kiểm tra chuỗi rỗng.
-- [ ] Không cắt `substring` giữa hai surrogate của một emoji ngoài BMP.
-- [ ] Phương thức không sửa `String` gốc; nên kiểm tra kết quả theo **nội dung**.
+- [ ] `length()` counts UTF-16 code units, not necessarily code points.
+- [ ] `charAt(i)` only accepts `0 <= i < length()`.
+- [ ] `substring(begin, end)` extracts the interval **`[begin, end)`**, so the length is `end - begin`.
+- [ ] `substring(length())` is valid, whereas `charAt(length())` is invalid.
+- [ ] Do not call `charAt(length() - 1)` before checking for an empty string.
+- [ ] Do not slice `substring` between the two surrogates of a non-BMP emoji.
+- [ ] Methods do not modify the original `String`; verify results by **content**.
 
-**Kết luận:** Hãy nhìn `length()` như **giới hạn trên loại trừ** của chỉ số UTF-16, dùng `charAt` để đọc một code unit và dùng `substring` để lấy khoảng `[begin, end)`. Khi thao tác với Unicode ngoài BMP, nhớ rằng một ký tự hiển thị có thể chiếm nhiều vị trí chỉ số.
+**Conclusion:** Think of `length()` as the **exclusive upper bound** of UTF-16 indices, use `charAt` to read one code unit, and use `substring` to extract the interval `[begin, end)`. When manipulating non-BMP Unicode, remember that one visible character can occupy multiple index positions.

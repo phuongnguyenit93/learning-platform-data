@@ -1,82 +1,82 @@
-# Viết Gatherer xử lý nhóm liên tiếp và cửa sổ dữ liệu
+# Writing Gatherers for Consecutive Groups and Data Windows
 
-Trong nhiều bài toán xử lý chuỗi sự kiện, kết quả không phụ thuộc riêng từng phần tử mà phụ thuộc **những phần tử kề nhau**: một đợt trạng thái liên tiếp, một phiên hoạt động, một dãy số cùng loại hoặc một cửa sổ các phép đo gần nhất. `filter` và `map` xử lý rất tốt từng phần tử; `groupingBy` thu thập toàn bộ phần tử theo khóa; nhưng chúng không trực tiếp diễn tả quy tắc “gom những phần tử **đứng cạnh nhau** rồi phát một kết quả trung gian để tiếp tục pipeline”.
+In many event-sequence processing problems, the result depends not on individual elements alone, but on **adjacent elements**: a streak of consecutive states, an active session, a run of identical items, or a window of the most recent measurements. `filter` and `map` handle per-element logic very well; `groupingBy` collects all elements by key; yet neither directly expresses the rule "group **adjacent** elements and emit an intermediate result to continue the pipeline".
 
-**Stream Gatherers** cung cấp cơ chế tạo thao tác trung gian có trạng thái và có thể phát **0, 1 hoặc nhiều phần tử** đầu ra. Bài học thuộc chương **Bài tập nâng cao và dự án** của module `JAVA_STREAM_API`: chúng ta sẽ tự viết Gatherer cho **nhóm liên tiếp** và **cửa sổ dữ liệu**, đối chiếu với `Gatherers.windowFixed` và `Gatherers.windowSliding`, triển khai một bài toán giám sát sự kiện, kiểm tra tình huống biên và cân nhắc hiệu năng, tài nguyên, thứ tự, xử lý song song.
+**Stream Gatherers** provide a mechanism for stateful intermediate operations that can emit **0, 1, or many** output elements. This lesson belongs to the **Advanced Exercises and Projects** chapter of the `JAVA_STREAM_API` module: we will write custom Gatherers for **consecutive groups** and **data windows**, compare them against `Gatherers.windowFixed` and `Gatherers.windowSliding`, build an event-monitoring problem, test edge cases, and evaluate performance, resources, ordering, and parallel execution.
 
-> **Yêu cầu phiên bản:** API `java.util.stream.Gatherer`, `Gatherers` và thao tác `Stream.gather(...)` được hoàn thiện chính thức trong **Java 24 (JEP 485)**. Java 22 và 23 từng có phiên bản preview với hợp đồng/cú pháp có thể khác; **Java 8–21 không có API chuẩn này**. Các đoạn mã chính hướng tới Java 24 trở lên, không sử dụng cờ `--enable-preview` trên Java 24. Nếu hệ thống chưa thể nâng JDK, có thể dùng vòng lặp hoặc một phép thu thập có trạng thái phù hợp thay vì sao chép nguyên mã Gatherer.
+> **Version requirement:** `java.util.stream.Gatherer`, `Gatherers`, and `Stream.gather(...)` were finalized in **Java 24 (JEP 485)**. Java 22 and 23 had preview versions with potentially different contracts/syntax; **Java 8–21 do not include this standard API**. The main code targets Java 24 or later without the `--enable-preview` flag on Java 24. If your system cannot upgrade its JDK yet, use a loop or a suitable stateful collection instead of copying the Gatherer code verbatim.
 
-## 1. Xác định yêu cầu trước khi viết Gatherer
+## 1. Defining Requirements Before Writing a Gatherer
 
-Giả sử có chuỗi trạng thái theo thời gian:
+Suppose we have a sequence of states over time:
 
 ```text
 A, A, A, B, B, A, C, C
 ```
 
-Có hai cách nhóm rất khác nhau:
+There are several very different ways to group them:
 
-| Nhu cầu | Kết quả mong muốn | Công cụ phù hợp |
+| Need | Desired Output | Suitable Tool |
 | --- | --- | --- |
-| Nhóm tất cả phần tử có cùng khóa, không quan tâm vị trí | A → [A,A,A,A], B → [B,B], C → [C,C] | `Collectors.groupingBy` |
-| Nhóm **các đoạn liên tiếp** có cùng khóa | [A,A,A], [B,B], [A], [C,C] | Gatherer giữ trạng thái nhóm hiện hành |
-| Cắt thành các khối cố định, không chồng lặp | [A,A,A], [B,B,A], [C,C] | `Gatherers.windowFixed(3)` |
-| Tạo cửa sổ trượt kích thước 3 | [A,A,A], [A,A,B], [A,B,B], ... | `Gatherers.windowSliding(3)` |
-| Tạo cửa sổ trượt **chỉ khi đủ 3 phần tử** | Các đoạn dài 3, không phát cửa sổ thiếu phần tử | Gatherer tùy chỉnh có quy tắc phát rõ ràng |
+| Group all elements with the same key regardless of position | A -> [A,A,A,A], B -> [B,B], C -> [C,C] | `Collectors.groupingBy` |
+| Group **consecutive runs** with the same key | [A,A,A], [B,B], [A], [C,C] | Gatherer tracking current group state |
+| Split into fixed non-overlapping blocks | [A,A,A], [B,B,A], [C,C] | `Gatherers.windowFixed(3)` |
+| Create sliding windows of size 3 | [A,A,A], [A,A,B], [A,B,B], ... | `Gatherers.windowSliding(3)` |
+| Create sliding windows **only when all 3 elements are present** | Length-3 slices, no underfilled windows emitted | Custom Gatherer with explicit emission rules |
 
-Khái niệm **nhóm liên tiếp** cần một encounter order có ý nghĩa. Nếu nguồn là một tập không có thứ tự hoặc các sự kiện chưa sắp theo thời gian, “liên tiếp” sẽ phản ánh thứ tự duyệt tình cờ chứ không nhất thiết là thứ tự nghiệp vụ.
+The notion of **consecutive groups** requires a meaningful encounter order. If the source is an unordered set or events are not sorted by time, "consecutive" reflects an accidental traversal order rather than necessarily business order.
 
-**Câu hỏi thiết kế cốt lõi:** Một kết quả được phát ra khi nào? Khi thấy khóa khác, khi đếm đủ `k` phần tử, hay khi nguồn kết thúc? Chính câu trả lời quyết định cách dùng `integrator` và `finisher`.
+**Core design question:** When is a result emitted? When a different key appears, when `k` elements are counted, or when the source ends? That answer dictates how `integrator` and `finisher` are written.
 
-## 2. Gatherer nằm ở đâu trong pipeline?
+## 2. Where Does a Gatherer Sit in the Pipeline?
 
-`gather(...)` là **intermediate operation**, không phải terminal operation:
+`gather(...)` is an **intermediate operation**, not a terminal operation:
 
 ```text
-Nguồn Stream<T>
+Stream<T> source
       |
   filter/map
       |
   gather(custom Gatherer<T, A, R>)
-      |             ├─ initializer: tạo trạng thái A
-      |             ├─ integrator: nhận T, cập nhật A, có thể push R
-      |             ├─ combiner: gộp A nếu hỗ trợ parallel
-      |             └─ finisher: phát kết quả còn lại khi kết thúc
+      |             ├─ initializer: creates state A
+      |             ├─ integrator: receives T, updates A, may push R
+      |             ├─ combiner: merges A if parallel is supported
+      |             └─ finisher: emits remaining result on completion
       |
   map/filter/flatMap
       |
-  collect / toList / reduce / count      ← terminal
+  collect / toList / reduce / count      <- terminal
       |
-  Kết quả
+  Result
 ```
 
-Khái niệm kiểu dữ liệu:
+Type parameter concepts:
 
-- `T`: đầu vào Gatherer;
-- `A`: trạng thái tích lũy nội bộ;
-- `R`: phần tử đầu ra được Gatherer phát sang downstream.
+- `T`: Gatherer input type;
+- `A`: internal accumulation state type;
+- `R`: output element type emitted by the Gatherer downstream.
 
-Ví dụ `Gatherer<String, ?, List<String>>` nhận từng chuỗi và phát ra từng **nhóm chuỗi**, chứ không trả một `Map` cuối cùng.
+For example, `Gatherer<String, ?, List<String>>` accepts individual strings and emits individual **groups of strings**, rather than returning one final `Map`.
 
-Một Gatherer có những thành phần tương tự collector nhưng vai trò khác:
+A Gatherer has components analogous to a collector, though with different roles:
 
-| Thành phần | Chức năng |
+| Component | Responsibility |
 | --- | --- |
-| `initializer` | Tạo trạng thái `A` cho quá trình tích lũy |
-| `integrator` | Nhận một phần tử `T` và quyết định cập nhật trạng thái, phát `R` hay dừng |
-| `combiner` | Phối hợp trạng thái các nhánh khi Gatherer có hợp đồng cho phép |
-| `finisher` | Xử lý trạng thái còn lại khi upstream kết thúc |
-| `Downstream.push(R)` | Chuyển một phần tử `R` xuống bước tiếp theo |
+| `initializer` | Creates state `A` for the accumulation process |
+| `integrator` | Accepts one element `T` and decides whether to update state, emit `R`, or stop |
+| `combiner` | Coordinates branch states when the Gatherer's contract permits it |
+| `finisher` | Handles leftover state when upstream completes |
+| `Downstream.push(R)` | Passes one element `R` to the next stage |
 
-Đặc biệt, `integrator` có kết quả kiểu `boolean`: trả `true` nếu còn cho phép nhận phần tử, trả `false` nếu không cần tiếp tục. `Downstream.push(value)` cũng trả `boolean` cho biết downstream có còn muốn nhận thêm dữ liệu hay không.
+Notably, `integrator` returns a `boolean`: `true` if it can still accept elements, `false` if no further elements are needed. `Downstream.push(value)` also returns a `boolean` indicating whether downstream still wants more data.
 
-Không được hiểu `push` là thao tác ghi trực tiếp vào `List` cuối cùng. Nó chỉ phát phần tử sang bước kế tiếp; phía sau còn có thể có `filter`, `limit`, `map` hoặc một Gatherer khác.
+Do not think of `push` as appending directly to a final `List`. It merely emits an element to the next stage; downstream may still have `filter`, `limit`, `map`, or another Gatherer.
 
-## 3. ofSequential và lý do chọn Gatherer tuần tự
+## 3. ofSequential and Why Choose a Sequential Gatherer
 
-Với bài toán dựa vào **ranh giới giữa phần tử trước và phần tử sau**, cách đơn giản nhất là dùng `Gatherer.ofSequential(...)`.
+For problems relying on **boundaries between the previous and next element**, the simplest approach is `Gatherer.ofSequential(...)`.
 
-Dạng ý tưởng:
+Conceptual form:
 
 ```java
 Gatherer.ofSequential(
@@ -86,29 +86,29 @@ Gatherer.ofSequential(
 );
 ```
 
-Trong đó:
+Where:
 
-- `initializer` cấp trạng thái mới;
-- `integrator` xử lý từng phần tử theo logic liền kề;
-- `finisher` phát phần cuối còn nằm trong bộ đệm.
+- `initializer` supplies a fresh state;
+- `integrator` processes each element according to adjacency logic;
+- `finisher` emits the final buffered remainder.
 
-Không phải Gatherer nào cũng cần finisher; nếu mọi kết quả đã được phát khi nhận phần tử, có thể dùng overload `ofSequential(initializer, integrator)`.
+Not every Gatherer needs a finisher; if every result is already emitted as elements arrive, use the `ofSequential(initializer, integrator)` overload.
 
-`ofSequential` phù hợp vì trạng thái “nhóm hiện tại” hoặc “cửa sổ các phần tử trước đó” phụ thuộc vào thứ tự. Nếu viết một `combiner` cho phép chia xử lý song song, ta phải giải quyết đúng **nhóm nối qua ranh giới hai nhánh**, không chỉ nối hai danh sách kết quả. Không nên tự tạo combiner ghép kết quả một cách tùy ý rồi cho rằng đã song song hóa đúng bài toán.
+`ofSequential` fits because state such as "current group" or "window of prior elements" depends on order. If you write a `combiner` enabling parallel splitting, you must properly resolve **groups spanning the boundary between two branches**, rather than merely concatenating two output lists. Never slap together an arbitrary list-concatenating combiner and assume the problem is correctly parallelized.
 
-Việc gọi `parallel()` ở upstream **không phải** bảo đảm Gatherer tuần tự sẽ chạy nhanh hơn. Phần trước Gatherer có thể có tính chất khác, còn phép biến đổi dựa trên thứ tự vẫn phải duy trì đúng hợp đồng.
+Calling `parallel()` upstream **does not** guarantee a sequential Gatherer will run faster. Stages before the Gatherer may behave differently, while order-dependent transformations must still preserve their contract.
 
-## 4. Bài tập 1: gom nhóm các phần tử liên tiếp theo khóa
+## 4. Exercise 1: Grouping Consecutive Elements by Key
 
-### Yêu cầu và ví dụ
+### Requirements and Example
 
-Từ các mã:
+From the sequence:
 
 ```text
 A, A, B, B, B, A, C, C
 ```
 
-Tạo các nhóm:
+Produce the groups:
 
 ```text
 [A, A]
@@ -117,17 +117,17 @@ Tạo các nhóm:
 [C, C]
 ```
 
-Nhóm `A` thứ ba **không được nhập** với nhóm `A` đầu tiên vì giữa chúng có ba phần tử `B`. Đây là điểm khác `groupingBy`.
+The third `A` **must not merge** with the first `A` group because three `B` elements sit between them. This is how it differs from `groupingBy`.
 
-Quy tắc trạng thái:
+State rules:
 
-1. Chưa có nhóm → mở nhóm bằng khóa phần tử đầu tiên.
-2. Khóa mới bằng khóa nhóm hiện tại → thêm phần tử.
-3. Khóa mới khác khóa hiện tại → **phát bản sao nhóm cũ**, rồi bắt đầu nhóm mới.
-4. Nguồn kết thúc → **phát nhóm cuối** trong finisher.
-5. Nếu downstream không muốn nhận thêm → dừng và không phát phần tồn dư nữa.
+1. No active group yet -> open a group with the first element's key.
+2. New key matches the current group's key -> append the element.
+3. New key differs from the current key -> **emit a copy of the old group**, then start a new group.
+4. Source ends -> **emit the final group** inside the finisher.
+5. If downstream wants no more elements -> stop and emit no leftover data.
 
-### Triển khai hoàn chỉnh
+### Complete Implementation
 
 ```java
 import java.util.ArrayList;
@@ -157,7 +157,7 @@ public final class RunGatherers {
                 (state, element, downstream) -> {
                     K key = classifier.apply(element);
 
-                    // Phần tử đầu tiên của nhóm.
+                    // First element of the group.
                     if (!state.active) {
                         state.active = true;
                         state.currentKey = key;
@@ -165,13 +165,13 @@ public final class RunGatherers {
                         return true;
                     }
 
-                    // Cùng khóa với nhóm hiện tại.
+                    // Same key as the current group.
                     if (Objects.equals(state.currentKey, key)) {
                         state.current.add(element);
                         return true;
                     }
 
-                    // Đổi khóa: phát bản sao của nhóm đã hoàn thành.
+                    // Key changed: emit a copy of the completed group.
                     List<T> completed =
                             new ArrayList<>(state.current);
 
@@ -188,7 +188,7 @@ public final class RunGatherers {
                 },
 
                 (state, downstream) -> {
-                    // Nhóm cuối không có phần tử đổi khóa để kích hoạt push.
+                    // The final group has no key-changing element to trigger push.
                     if (!state.cancelled
                             && state.active
                             && !state.current.isEmpty()) {
@@ -202,7 +202,7 @@ public final class RunGatherers {
 }
 ```
 
-**Cách dùng:**
+**Usage:**
 
 ```java
 import java.util.List;
@@ -217,44 +217,44 @@ System.out.println(runs);
 // [[A, A], [B, B, B], [A], [C, C]]
 ```
 
-Trong lớp trên, kiểu `RunState<T, K>` là dữ liệu **riêng của Gatherer**, không phải kết quả công khai. `current` chỉ giữ một nhóm chưa hoàn tất. `currentKey` lưu khóa của nhóm hiện tại; `active` phân biệt “chưa bắt đầu” với “đang có nhóm có khóa null”.
+In the class above, `RunState<T, K>` is **internal Gatherer data**, not a public result. `current` holds only one incomplete group. `currentKey` stores the current group's key; `active` distinguishes "not started yet" from "currently in a group with a null key".
 
-### Vì sao phải dùng Objects.equals?
+### Why Must We Use Objects.equals?
 
-Nếu classifier có thể trả `null`, viết `currentKey.equals(key)` sẽ gây `NullPointerException`. Trong ví dụ, `Objects.equals(currentKey, key)` coi hai khóa null là cùng một khóa và không nhầm với trạng thái chưa có nhóm nhờ `active`.
+If the classifier can return `null`, writing `currentKey.equals(key)` throws `NullPointerException`. In the example, `Objects.equals(currentKey, key)` treats two null keys as the same key and avoids confusing that with an unstarted state thanks to `active`.
 
-Điều này khác `Collectors.groupingBy`: classifier của `groupingBy` không chấp nhận trả `null` theo hợp đồng. Gatherer tự định nghĩa có thể chọn chính sách khóa null riêng, miễn mã xử lý và kiểu dữ liệu downstream nhất quán.
+This differs from `Collectors.groupingBy`: the classifier of `groupingBy` is disallowed from returning `null` by contract. A custom Gatherer can choose its own null-key policy, as long as handling logic and downstream types remain consistent.
 
-Nếu **bản thân phần tử đầu vào** có thể là null, mã tổng quát vẫn có thể chứa phần tử đó trong `ArrayList`; classifier phải xử lý null một cách hợp lệ. Không nên mặc định mọi `Function<T,K>` đều hỗ trợ đầu vào null.
+If **the input element itself** may be null, generic code can still store that element inside `ArrayList`; the classifier must handle null safely. Never assume every `Function<T,K>` supports null inputs.
 
-## 5. Bước qua ranh giới: integrator và finisher phối hợp ra sao?
+## 5. Crossing Boundaries: How Integrator and Finisher Coordinate
 
-Xem chuỗi `A, A, B`:
+Consider the sequence `A, A, B`:
 
 ```text
-Đọc A:
+Read A:
     active = true, currentKey = A, current = [A]
-    chưa phát
+    not emitted yet
 
-Đọc A:
+Read A:
     current = [A, A]
-    chưa phát
+    not emitted yet
 
-Đọc B:
-    phát snapshot [A, A]
+Read B:
+    emit snapshot [A, A]
     currentKey = B, current = [B]
 
-Nguồn kết thúc:
-    finisher phát snapshot [B]
+Source ended:
+    finisher emits snapshot [B]
 ```
 
-Nếu quên finisher, nhóm cuối sẽ bị mất. Nếu phát thẳng `state.current` rồi gọi `clear()`, downstream có thể giữ tham chiếu tới **cùng một List đã bị xóa sạch**, khiến kết quả trước đó bị hỏng.
+If you forget the finisher, the final group is lost. If you push `state.current` directly and then call `clear()`, downstream may hold a reference to **the exact same cleared List**, corrupting earlier results.
 
-Vì vậy, mỗi lần phát dùng `new ArrayList<>(state.current)`. Đó là một **bản sao tách khỏi bộ đệm mutable**; ta không thay đổi nó nữa sau khi phát.
+Therefore, each emission uses `new ArrayList<>(state.current)`. That creates a **snapshot decoupled from the mutable buffer**; we never modify it after emitting.
 
-### Downstream có thể dừng sớm
+### Downstream May Stop Early
 
-Ví dụ chỉ cần nhóm đầu:
+For example, wanting only the first group:
 
 ```java
 List<List<String>> firstRun = Stream.of(
@@ -266,37 +266,37 @@ List<List<String>> firstRun = Stream.of(
 System.out.println(firstRun); // [[A, A]]
 ```
 
-Khi Gatherer thấy phần tử `B`, nó phát nhóm `[A, A]`. `limit(1)` đã nhận đủ một đầu ra, nên `downstream.push(...)` có thể trả `false`: Gatherer phải dừng và không phát nhóm `B` trong finisher.
+When the Gatherer sees `B`, it emits `[A, A]`. `limit(1)` has received its one output, so `downstream.push(...)` can return `false`: the Gatherer must stop and not emit group `B` in the finisher.
 
-Do đó ví dụ cài đặt ghi `state.cancelled = true` rồi trả `false`. Đừng bỏ qua kết quả của `push` một cách vô điều kiện. **Dừng sớm của downstream không tự đóng nguồn I/O**; nếu upstream là `Files.lines`, vẫn phải dùng `try-with-resources`.
+That is why the implementation sets `state.cancelled = true` and returns `false`. Never unconditionally ignore the return value of `push`. **Early termination downstream does not automatically close an I/O source**; if upstream is `Files.lines`, you still need `try-with-resources`.
 
-## 6. Những trường hợp biên của nhóm liên tiếp
+## 6. Edge Cases for Consecutive Grouping
 
-| Nguồn | Kết quả |
+| Source | Output |
 | --- | --- |
-| Rỗng | `[]` |
+| Empty | `[]` |
 | `[A]` | `[[A]]` |
 | `[A,A,A]` | `[[A,A,A]]` |
 | `[A,B,A]` | `[[A],[B],[A]]` |
 | `[A,A,B]` | `[[A,A],[B]]` |
 | `[A,B,B]` | `[[A],[B,B]]` |
-| `[null,null,A,null]` khi classifier là identity | `[[null,null],[A],[null]]` |
+| `[null,null,A,null]` with identity classifier | `[[null,null],[A],[null]]` |
 
-Với nguồn rỗng, `active` vẫn là `false`; finisher không phát nhóm nào. Với khóa cuối cùng không có phần tử đổi khóa theo sau, finisher hoàn tất nhóm.
+With an empty source, `active` stays `false`; the finisher emits no groups. For the final key with no trailing key-change element, the finisher flushes the group.
 
-Một nhóm có thể rất dài, thậm chí dài bằng toàn bộ nguồn. Bản triển khai trả `List<T>` phải giữ tất cả phần tử của nhóm đó trong bộ nhớ; **không có bảo đảm bộ nhớ `O(1)` theo độ dài nhóm**. Nếu chỉ cần đếm hoặc tính tổng theo từng đoạn, nên lưu trạng thái tổng hợp nhỏ thay vì toàn bộ phần tử.
+A group can be very long—even as long as the entire source. An implementation returning `List<T>` must hold every element of that group in memory; **there is no `O(1)` memory guarantee with respect to group length**. If you only need counts or sums per run, store a compact summary state instead of all elements.
 
-## 7. Biến thể tiết kiệm bộ nhớ: phát thống kê mỗi nhóm
+## 7. Memory-Efficient Variant: Emitting Per-Group Statistics
 
-Dữ liệu log có thể chứa hàng triệu sự kiện cùng loại liên tiếp. Nếu chỉ muốn biết **khóa và số lượng** của mỗi đợt, không cần giữ toàn bộ sự kiện.
+Log data can contain millions of consecutive events of the same type. If you only want the **key and count** of each streak, there is no need to retain all events.
 
-Ví dụ có `record` kết quả:
+Suppose we have a result `record`:
 
 ```java
 record RunCount<K>(K key, long count) {}
 ```
 
-Trạng thái chỉ cần `key`, `count`, `active` và `cancelled`. Ý tưởng triển khai:
+State needs only `key`, `count`, `active`, and `cancelled`. Implementation idea:
 
 ```java
 import java.util.Objects;
@@ -350,7 +350,7 @@ static <T, K> Gatherer<T, ?, RunCount<K>> countRuns(
 }
 ```
 
-Kết quả:
+Result:
 
 ```java
 List<RunCount<String>> counts = Stream.of(
@@ -362,47 +362,47 @@ System.out.println(counts);
 //  RunCount[key=A, count=3]]
 ```
 
-Bộ nhớ trạng thái nội bộ của biến thể này là `O(1)` mỗi nhóm, không tính danh sách kết quả mà terminal `toList()` tạo. Với bộ đếm `long`, vẫn cần cân nhắc tràn số nếu một nhóm có số lượng vượt `Long.MAX_VALUE`.
+Internal state memory for this variant is `O(1)` per run, excluding the output list built by terminal `toList()`. With a `long` counter, still watch for overflow if a single run could exceed `Long.MAX_VALUE`.
 
-> **Điểm thiết kế:** Nếu cần giữ toàn bộ các phần tử trong nhóm, dùng Gatherer phát `List<T>`. Nếu chỉ cần tổng hợp, hãy phát một **DTO thống kê nhỏ**. Việc lựa chọn hình dạng đầu ra quyết định phần lớn chi phí bộ nhớ.
+> **Design point:** If you need all elements in the group, use a Gatherer emitting `List<T>`. If you only need an aggregate, emit a **compact statistics DTO**. Choosing the output shape largely determines memory cost.
 
-## 8. Bài tập 2: cửa sổ cố định và cửa sổ trượt
+## 8. Exercise 2: Fixed Windows and Sliding Windows
 
-“Cửa sổ” (*window*) là một nhóm gồm các phần tử gần nhau trong một dãy có thứ tự. Có hai loại cơ bản.
+A *window* is a group of neighboring elements in an ordered sequence. There are two basic kinds.
 
-### Cửa sổ cố định không chồng lặp
+### Non-Overlapping Fixed Windows
 
-Với kích thước `3`:
+With size `3`:
 
 ```text
-Nguồn:  1 2 3 4 5 6 7 8
+Source:  1 2 3 4 5 6 7 8
 
 Window 1: [1 2 3]
 Window 2:       [4 5 6]
-Window 3:             [7 8]   ← phần cuối chưa đủ 3
+Window 3:             [7 8]   <- final chunk shorter than 3
 ```
 
-Đây là cách chia thành các lô liên tiếp; các lô **không chồng lặp**.
+This partitions into contiguous batches; windows are **non-overlapping**.
 
-### Cửa sổ trượt chồng lặp
+### Overlapping Sliding Windows
 
-Với kích thước `3`:
+With size `3`:
 
 ```text
-Nguồn:  1 2 3 4 5
+Source:  1 2 3 4 5
 
 Window 1: [1 2 3]
 Window 2:   [2 3 4]
 Window 3:     [3 4 5]
 ```
 
-Mỗi cửa sổ đầy đủ dịch một phần tử, nên các phần tử ở giữa xuất hiện trong nhiều cửa sổ. Bài toán điển hình là trung bình trượt, phát hiện xu hướng hoặc kiểm tra ba sự kiện gần nhất.
+Each full window shifts by one element, so middle elements appear in multiple windows. Typical problems are moving averages, trend detection, or inspecting the last three events.
 
-**Cần ghi rõ chính sách cửa sổ thiếu phần tử:** cửa sổ cố định thường muốn phát lô cuối dù thiếu, còn một thuật toán thống kê có thể chỉ muốn cửa sổ trượt **đủ `k` phần tử**. Các yêu cầu này khác nhau, nên ta sẽ định nghĩa rõ hợp đồng của từng biến thể tự viết.
+**Specify the underfilled-window policy explicitly:** fixed windows usually emit the final partial batch, while a statistical algorithm might want sliding windows **only when all `k` elements are present**. These requirements differ, so we will define the contract of each custom variant explicitly.
 
-## 9. Factory có sẵn trong Java 24: Gatherers.windowFixed và windowSliding
+## 9. Built-In Factories in Java 24: Gatherers.windowFixed and windowSliding
 
-Trước khi tự xây, kiểm tra hai Gatherer chuẩn:
+Before building your own, inspect the two standard Gatherers:
 
 ```java
 import java.util.List;
@@ -417,7 +417,7 @@ System.out.println(fixed);
 // [[1, 2, 3], [4, 5, 6], [7, 8]]
 ```
 
-Với sliding window:
+For sliding windows:
 
 ```java
 List<List<Integer>> sliding = Stream.of(1, 2, 3, 4, 5)
@@ -428,15 +428,15 @@ System.out.println(sliding);
 // [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
 ```
 
-Hai factory chuẩn diễn đạt bài toán ngắn gọn và tránh viết lại logic trạng thái. Chúng trả các cửa sổ dưới dạng danh sách; **không nên sửa danh sách đầu ra** nếu không có nhu cầu và hợp đồng mutability rõ ràng.
+These standard factories express the problem concisely and avoid rewriting state logic. They emit windows as lists; **do not mutate output lists** without a clear requirement and mutability contract.
 
-Các factory yêu cầu kích thước cửa sổ **dương**; `0` hoặc giá trị âm là cấu hình không hợp lệ. Với kích thước lớn, hãy tính đến bộ nhớ giữ phần tử và số lượng bản sao cửa sổ được tạo.
+Both factories require a **positive** window size; `0` or negative values are invalid configurations. For large window sizes, account for element retention memory and the number of window copies created.
 
-**Chú ý về trường hợp ngắn hơn kích thước:** khi áp dụng `Gatherers.windowSliding` chuẩn, hãy kiểm tra chính sách cửa sổ chưa đủ kích thước theo hợp đồng JDK đang sử dụng. Bản tùy chỉnh `fullSliding` ở phần sau **cố ý không phát** cửa sổ thiếu phần tử, để thuật toán kiểm tra ngưỡng có ý nghĩa thống nhất.
+**Note on inputs shorter than window size:** when applying standard `Gatherers.windowSliding`, verify its policy for underfilled windows under the JDK contract you are using. The custom `fullSliding` implementation below **deliberately suppresses** incomplete windows so threshold-checking algorithms maintain consistent statistical meaning.
 
-## 10. Tự viết cửa sổ cố định có phát lô cuối
+## 10. Writing a Fixed Window That Emits the Final Batch
 
-Mục tiêu: phát một cửa sổ mỗi khi có đủ `size` phần tử; khi nguồn kết thúc, phát phần còn lại nếu không rỗng.
+Goal: emit a window whenever `size` elements accumulate; when the source ends, emit the remainder if non-empty.
 
 ```java
 import java.util.ArrayList;
@@ -489,7 +489,7 @@ public final class FixedWindowGatherers {
 }
 ```
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.List;
@@ -504,24 +504,24 @@ System.out.println(windows);
 // [[1, 2, 3], [4, 5, 6], [7, 8]]
 ```
 
-Đặc điểm:
+Characteristics:
 
-- Bộ đệm giữ tối đa `size` phần tử trước khi phát.
-- Khi đủ kích thước, tích lũy tạo **snapshot** rồi xóa bộ đệm.
-- `finisher` phát lô cuối nếu còn phần tử.
-- Nếu downstream đã yêu cầu dừng, `cancelled` ngăn finisher phát thêm.
+- The buffer holds at most `size` elements before emitting.
+- Once full, the accumulator takes a **snapshot** and clears the buffer.
+- `finisher` emits the final batch if elements remain.
+- If downstream requested cancellation, `cancelled` stops `finisher` from emitting more.
 
-Với `n > 0` phần tử, số cửa sổ cố định là `ceil(n / size)`; với nguồn rỗng, không phát cửa sổ. Tài nguyên trạng thái đang tích lũy có kích thước `O(size)`, chưa tính các cửa sổ đã được giữ ở downstream.
+For `n > 0` elements, the number of fixed windows is `ceil(n / size)`; for an empty source, no windows are emitted. Accumulating state uses `O(size)` memory, not counting emitted windows retained downstream.
 
-## 11. Tự viết cửa sổ trượt chỉ phát cửa sổ đầy đủ
+## 11. Writing a Sliding Window That Emits Only Full Windows
 
-Mục tiêu chính xác của `fullSliding(size)`:
+Exact requirements for `fullSliding(size)`:
 
-- Nếu còn ít hơn `size` phần tử → **chưa phát gì**.
-- Khi nhận đủ `size` phần tử → phát cửa sổ đầu tiên.
-- Mỗi phần tử mới → bỏ phần tử cũ nhất, thêm phần tử mới, phát cửa sổ mới.
-- **Không phát cửa sổ thiếu** ở cuối nguồn.
-- Nếu downstream từ chối thêm dữ liệu → trả `false` và dừng.
+- While fewer than `size` elements have been seen -> **emit nothing**.
+- Once `size` elements have arrived -> emit the first window.
+- On each new element -> drop the oldest element, append the new element, emit the new window.
+- **Do not emit underfilled windows** at the end of the source.
+- If downstream rejects further data -> return `false` and stop.
 
 ```java
 import java.util.ArrayDeque;
@@ -547,7 +547,7 @@ public final class WindowGatherers {
                 () -> new WindowState<T>(),
 
                 (state, element, downstream) -> {
-                    // ArrayDeque không nhận phần tử null.
+                    // ArrayDeque does not accept null elements.
                     state.buffer.addLast(
                             Objects.requireNonNull(element, "element")
                     );
@@ -569,7 +569,7 @@ public final class WindowGatherers {
 }
 ```
 
-Cách dùng:
+Usage:
 
 ```java
 import java.util.List;
@@ -583,54 +583,54 @@ System.out.println(windows);
 // [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
 ```
 
-Ở mỗi lần phát, `new ArrayList<>(state.buffer)` tạo bản sao độc lập, tránh việc lần `removeFirst` tiếp theo làm thay đổi cửa sổ đã đưa xuống downstream.
+On every emission, `new ArrayList<>(state.buffer)` creates an independent copy so the next `removeFirst` cannot mutate a window already pushed downstream.
 
-**Giới hạn cụ thể:** `ArrayDeque` không nhận phần tử null. Bản triển khai trên chủ động từ chối null bằng `Objects.requireNonNull`; nếu hệ thống cần một dãy có các giá trị null hợp lệ, hãy chọn một buffer khác hoặc biểu diễn dữ liệu thiếu bằng kiểu dữ liệu rõ nghĩa.
+**Specific limitation:** `ArrayDeque` rejects null elements. The implementation above explicitly rejects nulls via `Objects.requireNonNull`; if your system needs a sequence with valid null values, pick a different buffer or represent missing data with an explicit wrapper type.
 
-### Tại sao không cần finisher?
+### Why Is No Finisher Needed?
 
-Vì chính sách đã nêu chỉ phát **cửa sổ đầy đủ**, không có phần tồn dư cần phát khi kết thúc. Bất kỳ buffer có ít hơn `size` phần tử lúc hết nguồn đều không phải cửa sổ hợp lệ theo hợp đồng của bài tập này.
+Because the stated policy emits only **full windows**, there is no leftover remainder to flush on completion. Any buffer holding fewer than `size` elements at end-of-stream is not a valid window under this exercise's contract.
 
-Đây là khác biệt quan trọng với cửa sổ cố định ở phần 10: **finisher có hay không phụ thuộc ngữ nghĩa mong muốn**, không phải bước bắt buộc cho mọi Gatherer.
+This is a key contrast with fixed windows in section 10: **whether a finisher exists depends on desired semantics**, not a mandatory template for every Gatherer.
 
-## 12. Công thức đếm và độ phức tạp
+## 12. Counting Formulas and Complexity
 
-Giả sử nguồn có `n` phần tử, kích thước cửa sổ `k > 0`.
+Suppose the source has `n` elements and window size `k > 0`.
 
-| Thuật toán | Số phần tử đầu ra | Bộ nhớ trạng thái | Chi phí tạo kết quả |
+| Algorithm | Output Element Count | State Memory | Result Creation Cost |
 | --- | --- | --- | --- |
-| `consecutiveBy` phát `List<T>` | Số đoạn có khóa liên tiếp | `O(độ dài đoạn lớn nhất)` | Tổng số phần tử được sao chép khoảng `O(n)` |
-| `countRuns` phát thống kê | Số đoạn có khóa liên tiếp | `O(1)` | `O(số đoạn)` |
-| `fixed(k)` tự viết | `ceil(n/k)` nếu `n > 0`; 0 nếu rỗng | `O(k)` | Tổng số phần tử được chép `O(n)` |
-| `fullSliding(k)` tự viết | `max(0, n-k+1)` | `O(k)` | Có thể `O(k · max(0,n-k+1))` vì chép mỗi cửa sổ |
+| `consecutiveBy` emitting `List<T>` | Number of consecutive-key runs | `O(max run length)` | Total elements copied ~ `O(n)` |
+| `countRuns` emitting statistics | Number of consecutive-key runs | `O(1)` | `O(number of runs)` |
+| Custom `fixed(k)` | `ceil(n/k)` if `n > 0`; 0 if empty | `O(k)` | Total elements copied `O(n)` |
+| Custom `fullSliding(k)` | `max(0, n-k+1)` | `O(k)` | Up to `O(k * max(0,n-k+1))` due to copying each window |
 
-Một sai lầm phổ biến là thấy trạng thái cửa sổ chỉ giữ `k` phần tử rồi suy ra toàn bộ pipeline dùng bộ nhớ `O(k)`. Nếu terminal là `toList()`, toàn bộ các cửa sổ đã phát vẫn được giữ lại; với cửa sổ trượt, lượng phần tử xuất hiện trong output có thể xấp xỉ `k(n-k+1)`.
+A common mistake is seeing that window state holds only `k` elements and concluding the whole pipeline uses `O(k)` memory. If the terminal operation is `toList()`, every emitted window stays in memory; for sliding windows, the number of elements referenced in the output can reach roughly `k(n-k+1)`.
 
-Ví dụ `100_000` phép đo và cửa sổ `100` sẽ tạo gần `100_000` cửa sổ, mỗi cửa sổ chứa `100` phần tử. Nếu chỉ cần **trung bình trượt**, việc phát cả `List<T>` rồi giữ tất cả trong `toList()` có thể rất tốn bộ nhớ; thay vào đó hãy `map` từng cửa sổ thành thống kê ngay, hoặc viết Gatherer duy trì tổng trượt `O(1)` cập nhật mỗi bước.
+For instance, `100_000` measurements with window size `100` produce nearly `100_000` windows of `100` elements each. If you only need a **moving average**, emitting full `List<T>` objects and collecting them with `toList()` can be very memory-intensive; instead, `map` each window directly into a statistic, or write a Gatherer that maintains an `O(1)` rolling sum updated at each step.
 
-Nếu cửa sổ không cần lưu lại tất cả, dùng terminal xử lý tuần tự hoặc ghi ra đích với quản lý I/O rõ ràng để tránh giữ toàn bộ kết quả.
+If windows do not all need to be retained, use a streaming terminal operation or write to a sink with explicit I/O management rather than storing every result.
 
-## 13. Mini project: phát hiện biến động theo từng phiên cảm biến
+## 13. Mini Project: Detecting Spikes per Sensor Session
 
-### Yêu cầu
+### Requirements
 
-Một dòng sự kiện cảm biến có mã cảm biến và giá trị đo. Dữ liệu đã sắp theo thời gian, nhưng những dòng của một cảm biến có thể xuất hiện thành **nhiều phiên không kề nhau**.
+A stream of sensor events contains sensor IDs and measurement values. Data is ordered by time, yet readings for a given sensor can appear in **multiple non-adjacent sessions**.
 
 ```text
 A:10, A:14, A:19, B:20, B:22, B:24, A:5
 ```
 
-Mục tiêu:
+Goals:
 
-1. Gom các sự kiện **kề nhau có cùng mã cảm biến** thành phiên.
-2. Trong mỗi phiên, tạo cửa sổ trượt **đủ ba phần tử**.
-3. Phát tổng ba phép đo cho mỗi cửa sổ.
-4. Không cho cửa sổ vượt qua ranh giới phiên.
-5. Nếu phiên ngắn hơn ba phép đo, không phát kết quả.
+1. Group **adjacent** events **with the same sensor ID** into sessions.
+2. Within each session, form **full three-element** sliding windows.
+3. Emit the sum of the three measurements for each window.
+4. Never let a window cross a session boundary.
+5. If a session has fewer than three readings, emit no result.
 
-Bài này kết hợp hai Gatherer tùy chỉnh mà không cần một Map giữ mọi dữ liệu theo khóa toàn cục.
+This combines two custom Gatherers without needing a global Map holding all readings by key.
 
-### Mô hình dữ liệu
+### Data Model
 
 ```java
 record Reading(String sensorId, long tick, int value) {}
@@ -638,9 +638,9 @@ record Reading(String sensorId, long tick, int value) {}
 record WindowSum(String sensorId, int sum) {}
 ```
 
-`record` là cú pháp có sẵn trên Java 24. Ví dụ giả định đầu vào đã được sắp theo `tick` tăng dần; nếu chưa, cần xác định và xử lý thứ tự trước khi gom phiên.
+`record` is standard syntax in Java 24. The example assumes input is already sorted by ascending `tick`; if not, establish and enforce ordering before grouping sessions.
 
-### Pipeline thực hành
+### Practice Pipeline
 
 ```java
 import java.util.List;
@@ -672,31 +672,31 @@ System.out.println(result);
 //  WindowSum[sensorId=B, sum=66]]
 ```
 
-Vì:
+Because:
 
-- Phiên A đầu có `10 + 14 + 19 = 43`.
-- Phiên B có `20 + 22 + 24 = 66`.
-- Phiên A cuối chỉ có `5` nên không đủ cửa sổ ba phần tử.
+- The first `A` session has `10 + 14 + 19 = 43`.
+- The `B` session has `20 + 22 + 24 = 66`.
+- The trailing `A` session has only `5`, insufficient for a three-element window.
 
-Nếu thay `consecutiveBy` bằng `groupingBy(Reading::sensorId)`, hai phiên A sẽ bị nhập làm một nhóm. Điều đó có thể tạo một cửa sổ đi qua ranh giới thời gian/phiên và làm kết quả nghiệp vụ sai.
+If you replaced `consecutiveBy` with `groupingBy(Reading::sensorId)`, both `A` sessions would merge into one group. That could form a window spanning a time/session gap and produce wrong business results.
 
-### Nâng cấp đề bài
+### Scaling Up the Prompt
 
-Để biến ví dụ thành một mini project thực tế, hãy mở rộng từng bước:
+To turn this example into a realistic mini project, extend it step by step:
 
-1. Bản ghi có thêm `sessionId` hoặc quy tắc bắt đầu phiên mới khi khoảng cách `tick` vượt ngưỡng. Khi đó classifier theo mã cảm biến **chưa đủ**; trạng thái Gatherer phải xét thêm điều kiện ngắt phiên.
-2. Thay phép tính tổng bằng `double average`, đồng thời nêu sai số floating point và chính sách làm tròn.
-3. Phát cảnh báo chỉ khi trung bình ba phép đo vượt ngưỡng và không cảnh báo lặp liên tục trong cùng một phiên.
-4. Nếu dữ liệu đến theo mạng hoặc tệp, xác định ai sở hữu/đóng nguồn; Gatherer không tự quản lý I/O.
-5. Khi dữ liệu rất lớn, tránh giữ toàn bộ phiên trong `List`; viết Gatherer trực tiếp theo từng phiên và dùng cửa sổ ring-buffer.
+1. Records include `sessionId` or a rule starting a new session when the `tick` gap exceeds a threshold. Then a classifier by sensor ID alone is **insufficient**; Gatherer state must also check session-break conditions.
+2. Replace the sum with `double average`, documenting floating-point rounding and rounding policy.
+3. Emit alerts only when the three-reading average exceeds a threshold, without alerting repeatedly within the same session.
+4. If data arrives over a network or file, define who owns and closes the source; the Gatherer does not manage I/O itself.
+5. For massive datasets, avoid holding an entire session in a `List`; write a single per-session Gatherer using a ring-buffer window.
 
-Những bước nâng cấp này là bài tập mở rộng; mã nền tảng ở trên giải quyết chính xác yêu cầu gom phiên theo khóa kề nhau và cửa sổ đủ ba phép đo.
+These upgrades are extension exercises; the baseline code above solves adjacent-key session grouping and full three-reading windows accurately.
 
-## 14. Bài kiểm tra hành vi quan trọng
+## 14. Essential Behavioral Tests
 
-Kiểm thử Gatherer không chỉ so khớp kết quả của một dãy “đẹp”. Hãy kiểm tra các tình huống biên theo hợp đồng.
+Testing a Gatherer is not just matching output on a "happy path" sequence. Test boundary cases against the contract.
 
-### Kiểm thử nhóm liên tiếp
+### Testing Consecutive Grouping
 
 ```java
 import java.util.List;
@@ -733,7 +733,7 @@ checkEquals(
 );
 ```
 
-Với `null`, `List.of(null)` **không hợp lệ** vì `List.of` không nhận null. Nếu cần kiểm thử khóa null, hãy dùng `Arrays.asList(...)` để tạo nguồn/dữ liệu mong đợi:
+With `null`, `List.of(null)` is **illegal** because `List.of` rejects nulls. When testing null keys, use `Arrays.asList(...)` to construct inputs and expected outputs:
 
 ```java
 import java.util.Arrays;
@@ -754,9 +754,9 @@ checkEquals(
 );
 ```
 
-Mục đích là xác minh `active` và `Objects.equals` xử lý đúng trường hợp khóa null, không bị hiểu nhầm null là trạng thái “chưa có nhóm”.
+The goal is verifying that `active` and `Objects.equals` handle null keys cleanly without mistaking null for "no group yet".
 
-### Kiểm thử fixed và fullSliding
+### Testing fixed and fullSliding
 
 ```java
 import java.util.List;
@@ -798,9 +798,9 @@ checkEquals(
 );
 ```
 
-Vì yêu cầu của hai Gatherer khác nhau, kết quả với nguồn ngắn hơn ba phần tử **cố ý khác nhau**. Bài kiểm thử phải khẳng định sự khác biệt này, thay vì cố ép hai API có cùng chính sách.
+Because the two Gatherers have different requirements, their results on inputs shorter than three elements **intentionally differ**. Tests should assert this difference rather than forcing both APIs to share one policy.
 
-### Kiểm thử dừng sớm và snapshot
+### Testing Early Termination and Snapshots
 
 ```java
 List<List<Integer>> onlyFirst =
@@ -822,41 +822,41 @@ checkEquals(
 );
 ```
 
-Cần kiểm tra rằng nhóm đầu không biến thành rỗng khi nhóm thứ hai được xây dựng. Đó là cách phát hiện lỗi phát lại cùng một `ArrayList` mutable.
+Verify that the first group does not turn empty when the second group is built. That catches the bug of emitting the same mutable `ArrayList` repeatedly.
 
-## 15. Các lỗi dễ mắc khi tự viết Gatherer
+## 15. Common Pitfalls When Writing Custom Gatherers
 
-| Lỗi | Hậu quả | Hướng xử lý |
+| Pitfall | Consequence | Fix |
 | --- | --- | --- |
-| Quên `finisher` trong thuật toán nhóm liên tiếp | Mất nhóm cuối | Phát trạng thái còn lại khi upstream kết thúc |
-| Phát thẳng buffer rồi `clear()` | Những nhóm/cửa sổ đã phát bị sửa theo | Phát snapshot `new ArrayList<>(buffer)` |
-| Không kiểm tra `downstream.push(...)` | Tiếp tục phát sau khi downstream không cần | Trả `false`, ghi nhận hủy khi cần |
-| Dùng `currentKey == key` cho String/object | So sánh tham chiếu thay vì giá trị | `Objects.equals` hoặc comparator đúng nghiệp vụ |
-| Dùng `key.equals(...)` với khóa nullable | `NullPointerException` | `Objects.equals` và trạng thái `active` |
-| Dùng `groupingBy` thay cho nhóm kề nhau | Gộp cả các đoạn không liên tiếp cùng khóa | Gatherer có trạng thái ranh giới |
-| Cửa sổ trượt không loại phần tử cũ | Buffer cứ lớn lên, kết quả sai kích thước | Xóa đầu buffer khi vượt `k` |
-| Dùng `ArrayDeque` nhưng yêu cầu phần tử null | `NullPointerException` | Chọn buffer phù hợp hoặc chuẩn hóa dữ liệu |
-| Không kiểm tra `k > 0` | Quy tắc phát cửa sổ vô nghĩa | `IllegalArgumentException` |
-| Nghĩ `windowFixed` và `windowSliding` đều không chồng lặp | Nhầm ý nghĩa dữ liệu | Xác định số bước trượt và điểm phát |
-| Cửa sổ đi qua ranh giới phiên | Kết quả thống kê sai ngữ nghĩa | Gom phiên trước, tạo cửa sổ trong từng phiên |
-| Tự tạo combiner nối hai nhóm cuối/đầu mà không kiểm tra khóa | Mất/gộp sai nhóm ở ranh giới phân hoạch | Dùng `ofSequential` hoặc thiết kế thuật toán ghép ranh giới đầy đủ |
-| Bật `parallel()` và suy ra kết quả nhanh hơn | Overhead có thể lớn, thứ tự phức tạp | Đo trên dữ liệu thật; không đánh đổi tính đúng |
-| Đọc dữ liệu từ `Files.lines` mà không đóng nguồn | Rò rỉ tài nguyên | `try-with-resources` |
-| Dùng `toList()` cho hàng triệu cửa sổ dài | Bộ nhớ tăng lớn do lưu tất cả output | Phát thống kê nhỏ hoặc xử lý luồng |
+| Forgetting `finisher` in consecutive grouping | Final group is dropped | Emit remaining state when upstream finishes |
+| Emitting raw buffer then calling `clear()` | Previously emitted groups/windows get mutated | Emit snapshot `new ArrayList<>(buffer)` |
+| Ignoring `downstream.push(...)` return value | Keeps emitting after downstream stops | Return `false` and record cancellation if needed |
+| Using `currentKey == key` for Strings/objects | Reference comparison instead of value equality | Use `Objects.equals` or proper business comparator |
+| Calling `key.equals(...)` with nullable keys | `NullPointerException` | Use `Objects.equals` and an `active` flag |
+| Using `groupingBy` instead of adjacent grouping | Merges non-adjacent segments with the same key | Use a boundary-aware stateful Gatherer |
+| Sliding window fails to evict old elements | Buffer grows unboundedly, wrong window size | Remove head element when exceeding `k` |
+| Using `ArrayDeque` while requiring null elements | `NullPointerException` | Choose an appropriate buffer or normalize inputs |
+| Not validating `k > 0` | Nonsensical window emission behavior | Throw `IllegalArgumentException` |
+| Assuming `windowFixed` and `windowSliding` are both non-overlapping | Misinterprets data semantics | Check slide step and emission points |
+| Allowing windows to cross session boundaries | Semantically invalid statistics | Group sessions first, window within each session |
+| Writing a combiner that concatenates adjacent ends without checking keys | Drops or mismerges groups at split boundaries | Use `ofSequential` or implement full boundary-merging logic |
+| Enabling `parallel()` and assuming faster execution | Overhead may dominate; complex ordering | Measure on real data; never trade away correctness |
+| Reading from `Files.lines` without closing source | Resource leak | Wrap in `try-with-resources` |
+| Calling `toList()` on millions of long windows | Heavy memory growth retaining all outputs | Emit compact stats or stream outputs |
 
-## 16. Thứ tự, nguồn I/O và parallel stream
+## 16. Ordering, I/O Sources, and Parallel Streams
 
-Bài toán nhóm liên tiếp cần một **encounter order có ý nghĩa**. Với nguồn List sự kiện đã sắp theo thời gian, thứ tự gặp là vị trí trong List. Với nguồn không ordered hoặc dữ liệu phân phối từ nhiều nơi, không nên tự khẳng định rằng các phần tử liền nhau trong Stream cũng liền nhau theo nghiệp vụ.
+Consecutive grouping requires a **meaningful encounter order**. On a time-ordered `List` of events, encounter order matches list position. With unordered sources or distributed multi-source data, never assume elements adjacent in the Stream are adjacent in business time.
 
-Nếu dùng `sorted(Comparator.comparing(...))` để đưa về thứ tự thời gian, hãy nhớ `sorted` là thao tác stateful và có thể cần bộ đệm lớn trước khi phát dữ liệu. Đối với dữ liệu không đủ để phân biệt thời gian, phải xác định tie-breaker, chẳng hạn sequence number.
+If you use `sorted(Comparator.comparing(...))` to restore chronological order, remember `sorted` is stateful and may buffer extensively before emitting anything. When timestamps tie, define a deterministic tie-breaker such as a sequence number.
 
-Không nên tạo một Gatherer có combiner “chỉ nối các List kết quả” mà không xử lý **ranh giới giữa nhánh trái và nhánh phải**: ví dụ nhánh trái kết thúc bằng `A`, nhánh phải bắt đầu bằng `A` thì nhóm cuối của nhánh trái và nhóm đầu của nhánh phải có thể phải hợp nhất. Với sliding window kích thước `k`, khi chia nhánh còn phải duy trì tối đa `k - 1` phần tử đầu/cuối để tạo cửa sổ bắc qua ranh giới.
+Never build a Gatherer whose combiner "just concatenates result lists" without handling **boundaries between left and right branches**: for example, if the left branch ends with `A` and the right branch starts with `A`, the left's tail group and the right's head group may need to merge. For a sliding window of size `k`, splitting also requires preserving up to `k - 1` boundary elements to form cross-boundary windows.
 
-Chính vì các điều kiện đó, `ofSequential` là điểm khởi đầu phù hợp cho bài thực hành. Nếu sau này muốn viết Gatherer hỗ trợ parallel, cần đặc tả phép kết hợp có tính kết hợp và bảo toàn thứ tự/ngữ nghĩa trong mọi cách phân hoạch.
+For those reasons, `ofSequential` is the right starting point for this exercise. If you later need a parallel-capable Gatherer, specify an associative combining operation that preserves ordering and semantics under every partition split.
 
-### Sở hữu tài nguyên không thay đổi vì Gatherer
+### Resource Ownership Does Not Change Because of a Gatherer
 
-Ví dụ xử lý các đợt có cùng mã lỗi từ tệp:
+Example processing streaks of matching error prefixes from a file:
 
 ```java
 import java.io.IOException;
@@ -883,58 +883,58 @@ static List<List<String>> consecutiveErrorLines(Path path)
 }
 ```
 
-Ví dụ trên minh họa **vòng đời tài nguyên**, không phải bộ phân tích log hoàn chỉnh: việc lấy mười ký tự đầu làm khóa chỉ là quy tắc ví dụ và không chắc đúng cho định dạng log thực. Hơn nữa, `filter` có thể làm hai dòng ERROR cách nhau bởi INFO trở thành kề nhau trong pipeline; nếu yêu cầu các nhóm **liên tiếp trong tệp gốc**, phải đưa logic ngắt nhóm vào Gatherer hoặc đặt một bước biến đổi giữ dấu ranh giới thay vì lọc bỏ các dòng ở giữa.
+This example illustrates **resource lifecycle**, not a production log parser: taking the first ten characters as a key is purely an illustrative rule and unlikely to fit real log formats. Moreover, `filter` can make two `ERROR` lines separated by an `INFO` line become adjacent inside the pipeline; if the requirement is runs **consecutive in the original file**, move break logic into the Gatherer or keep boundary markers instead of filtering intermediate lines out.
 
-`collect`, `toList`, `limit` và `gather` đều **không tự đóng Stream** do `Files.lines` trả về. `try-with-resources` đóng nguồn ngay cả khi terminal operation kết thúc sớm hoặc xảy ra lỗi. Nếu I/O lỗi khi duyệt lazy, ngoại lệ có thể xuất hiện dưới dạng `UncheckedIOException`.
+`collect`, `toList`, `limit`, and `gather` **do not automatically close the Stream** returned by `Files.lines`. `try-with-resources` closes the source even when a terminal operation terminates early or throws an exception. If I/O fails during lazy traversal, it may surface as an `UncheckedIOException`.
 
-## 17. Từ bài tập đến triển khai thực tế
+## 17. From Exercise to Production Deployment
 
-Trước khi đưa Gatherer tự viết vào ứng dụng, hãy trả lời:
+Before putting a custom Gatherer into an application, answer these questions:
 
-1. **JDK có hỗ trợ API chưa?** Dùng Java 24+; không mặc định mã chạy trên Java 8–21.
-2. **Đầu ra thật sự cần là gì?** `List<T>`, DTO thống kê, hay một cảnh báo? Đừng giữ dữ liệu không cần thiết.
-3. **Ranh giới nhóm dựa trên gì?** Khóa đổi, khoảng thời gian, session ID, hay predicate đặc biệt?
-4. **Thứ tự đầu vào có được bảo đảm không?** Nếu không, “liên tiếp” và “cửa sổ” có thể không có ý nghĩa ổn định.
-5. **Cửa sổ ngắn hơn `k` được xử lý ra sao?** Phát một phần, bỏ qua hay báo lỗi?
-6. **Đầu vào có thể null không?** Xác định trách nhiệm classifier, bộ đệm và kiểu kết quả.
-7. **Có ngưỡng kích thước bộ đệm không?** Một nhóm rất dài có thể gây áp lực RAM.
-8. **Có thể dừng sớm không?** Khi `push` trả `false`, integrator/finisher phải phối hợp để không phát thừa.
-9. **Có thật sự cần parallel không?** Hãy chứng minh phép gộp trạng thái ở ranh giới trước.
-10. **Nguồn có giữ I/O không?** Phân biệt quyền sở hữu, đóng nguồn bằng `try-with-resources`.
-11. **Đã kiểm tra nguồn rỗng, một phần tử, khóa đổi nhiều lần, cửa sổ chồng lặp và cancellation chưa?**
-12. **Có thể dùng Gatherer chuẩn thay vì tự viết không?** Nếu chỉ cần window cố định/trượt thông thường, `Gatherers.windowFixed`/`windowSliding` có thể đủ.
+1. **Does your JDK support the API?** Use Java 24+; do not assume the code runs on Java 8–21.
+2. **What output is actually needed?** `List<T>`, a summary DTO, or an alert? Avoid retaining unneeded data.
+3. **What defines group boundaries?** Key change, time interval, session ID, or a custom predicate?
+4. **Is input ordering guaranteed?** If not, "consecutive" and "window" may lack stable meaning.
+5. **How are windows shorter than `k` handled?** Emit partial, skip, or fail?
+6. **Can inputs be null?** Clarify classifier, buffer, and result-type responsibilities.
+7. **Is there a buffer size cap?** One huge run can create RAM pressure.
+8. **Can downstream stop early?** When `push` returns `false`, integrator and finisher must coordinate not to over-emit.
+9. **Is parallelism truly necessary?** Prove boundary state merging first.
+10. **Does the source hold I/O?** Clarify ownership and close resources with `try-with-resources`.
+11. **Have empty sources, single elements, repeated key flips, overlapping windows, and cancellation been tested?**
+12. **Can a standard Gatherer replace a custom one?** When ordinary fixed or sliding windows suffice, `Gatherers.windowFixed`/`windowSliding` may be enough.
 
-### Gợi ý tiêu chí chấm bài dự án
+### Suggested Project Grading Rubric
 
-| Tiêu chí | Điều kiện đạt |
+| Criterion | Passing Standard |
 | --- | --- |
-| Đúng nhóm liên tiếp | `A,A,B,A` tạo ba nhóm, không gộp hai đoạn A |
-| Đúng cửa sổ cố định | Nguồn 8 phần tử, `k=3` tạo lô có kích thước 3, 3, 2 |
-| Đúng cửa sổ trượt đầy đủ | Nguồn 5 phần tử, `k=3` tạo 3 cửa sổ kích thước 3 |
-| Bảo toàn snapshot | Kết quả đã phát không thay đổi khi buffer được dùng lại |
-| Kết thúc nguồn | Nhóm cuối và lô cuối được xử lý đúng chính sách |
-| Dừng sớm | `limit(1)` không làm xuất hiện output ngoài yêu cầu |
-| Biên đầu vào | Nguồn rỗng, `k <= 0`, null được xử lý rõ |
-| Quản lý tài nguyên | Stream nguồn I/O được đóng đúng nơi sở hữu |
-| Hiệu năng | Đánh giá bộ nhớ và sao chép phần tử thay vì chỉ đo tốc độ |
-| Tính phù hợp API | Không dùng Gatherer phức tạp khi API chuẩn đã giải quyết yêu cầu |
+| Correct consecutive runs | `A,A,B,A` yields three groups without merging the two `A` segments |
+| Correct fixed windows | 8-element source with `k=3` yields chunks of size 3, 3, 2 |
+| Correct full sliding windows | 5-element source with `k=3` yields 3 windows of size 3 |
+| Snapshot isolation | Previously emitted outputs stay intact when buffer is reused |
+| End-of-stream handling | Final group and final batch follow stated policy |
+| Early termination | `limit(1)` produces no unexpected extra emissions |
+| Boundary inputs | Empty source, `k <= 0`, and nulls handled explicitly |
+| Resource management | I/O-backed Streams closed by their owning scope |
+| Performance awareness | Evaluates memory and copying cost, not raw speed alone |
+| API fit | Avoids complex custom Gatherers when standard APIs suffice |
 
-## 18. Câu hỏi tự kiểm tra
+## 18. Self-Check Questions
 
-1. `gather` là intermediate hay terminal operation? **Intermediate**; có thể tiếp tục `map`, `filter`, `flatMap` rồi mới terminal.
-2. Khác biệt chính giữa `groupingBy` và nhóm liên tiếp? **groupingBy gom toàn cục theo khóa; nhóm liên tiếp giữ các đoạn kề nhau theo encounter order**.
-3. Vì sao nhóm cuối cần finisher? **Không còn phần tử đổi khóa để kích hoạt phát nhóm cuối**.
-4. Vì sao phải sao chép buffer trước khi push? **Để tránh downstream nhìn thấy cùng List bị clear/sửa sau đó**.
-5. `Downstream.push` trả `false` thì integrator nên làm gì? **Ngừng nhận thêm phần tử và không phát tồn dư ngoài yêu cầu**.
-6. `ofSequential` phù hợp khi nào? **Khi trạng thái phụ thuộc thứ tự và không có phép combiner ranh giới được chứng minh đúng**.
-7. `Gatherers.windowFixed(3)` trên 8 phần tử phát mấy cửa sổ? **Ba**, với kích thước 3, 3, 2.
-8. `Gatherers.windowSliding(3)` trên năm phần tử liên tiếp phát mấy cửa sổ đầy đủ? **Ba**, bắt đầu tại vị trí 1, 2, 3.
-9. Bản `fullSliding(3)` tự viết phát gì khi nguồn chỉ có hai phần tử? **Không phát gì**, theo hợp đồng chỉ cửa sổ đầy đủ.
-10. Vì sao `ArrayDeque` trong ví dụ không nhận null? **Đây là quy tắc của ArrayDeque**, nên code kiểm tra đầu vào.
-11. Với `n` phần tử và cửa sổ đầy đủ `k`, số cửa sổ trượt là gì? **`max(0, n-k+1)`**.
-12. Tại sao bộ nhớ của `consecutiveBy` không nhất thiết là `O(1)`? **Vì nó giữ nguyên nhóm chưa kết thúc; độ dài nhóm có thể tăng tới n**.
-13. Nối kết quả hai nhánh parallel có luôn đúng cho nhóm liên tiếp không? **Không**, phải xét nhóm bắc qua ranh giới phân hoạch.
-14. Nếu chỉ cần số lượng trong từng đợt, cải tiến quan trọng nhất là gì? **Chỉ giữ khóa và bộ đếm, phát DTO thống kê thay vì List**.
-15. Khi xử lý `Files.lines` qua Gatherer, terminal operation có tự đóng nguồn không? **Không**, vẫn phải dùng `try-with-resources`.
+1. Is `gather` an intermediate or terminal operation? **Intermediate**; you can chain `map`, `filter`, `flatMap` afterward before a terminal operation.
+2. Main difference between `groupingBy` and consecutive grouping? **`groupingBy` groups globally by key; consecutive grouping preserves adjacent runs in encounter order**.
+3. Why does the last group need a finisher? **There is no subsequent key-changing element to trigger emitting the final group**.
+4. Why copy the buffer before calling push? **To prevent downstream from seeing the same List cleared or mutated later**.
+5. What should the integrator do when `Downstream.push` returns `false`? **Stop accepting more elements and avoid emitting leftover items unnecessarily**.
+6. When does `ofSequential` fit? **When state depends on order and no boundary-combining operation has been proven correct**.
+7. How many windows does `Gatherers.windowFixed(3)` emit on 8 elements? **Three**, of sizes 3, 3, and 2.
+8. How many full windows does `Gatherers.windowSliding(3)` emit on five consecutive elements? **Three**, starting at positions 1, 2, and 3.
+9. What does custom `fullSliding(3)` emit when the source has only two elements? **Nothing**, per its full-window-only contract.
+10. Why does `ArrayDeque` in the example reject nulls? **That is a rule of `ArrayDeque`**, so the code validates inputs explicitly.
+11. For `n` elements and full window size `k`, how many sliding windows are produced? **`max(0, n-k+1)`**.
+12. Why is `consecutiveBy`'s memory not necessarily `O(1)`? **Because it buffers the entire active group; a group's length can grow up to n**.
+13. Is concatenating two parallel branch outputs always right for consecutive groups? **No**, groups spanning the partition boundary must be handled.
+14. If only per-streak counts are needed, what is the biggest improvement? **Store only key and counter, emitting a summary DTO instead of a List**.
+15. When processing `Files.lines` through a Gatherer, does the terminal operation close the source automatically? **No**, `try-with-resources` is still required.
 
-**Nguyên tắc áp dụng:** Viết Gatherer cho nhóm liên tiếp và cửa sổ dữ liệu bắt đầu bằng **định nghĩa ranh giới, thời điểm phát kết quả và chính sách xử lý phần chưa hoàn tất**. Dùng `ofSequential` khi các kết quả phụ thuộc phần tử kề nhau, giữ trạng thái nhỏ nhất cần thiết, phát snapshot độc lập và tôn trọng tín hiệu dừng của downstream. Ưu tiên `Gatherers.windowFixed`/`windowSliding` nếu hợp đồng chuẩn đã đủ; chỉ tự xây Gatherer khi nghiệp vụ cần quy tắc khác. Cuối cùng, kiểm tra tính đúng đắn, nguồn I/O và chi phí bộ nhớ trước khi cân nhắc tối ưu song song.
+**Rule of thumb:** Writing Gatherers for consecutive groups and data windows starts with **defining boundaries, emission timing, and incomplete-tail policies**. Use `ofSequential` when results depend on adjacent elements, keep state minimal, emit independent snapshots, and respect downstream cancellation signals. Prefer `Gatherers.windowFixed`/`windowSliding` when standard contracts fit; build custom Gatherers only when business rules demand different behavior. Finally, verify correctness, I/O lifecycle, and memory costs before considering parallel optimization.

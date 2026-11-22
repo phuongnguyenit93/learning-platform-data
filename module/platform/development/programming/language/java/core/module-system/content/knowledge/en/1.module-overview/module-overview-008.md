@@ -1,68 +1,68 @@
-# Lộ trình học từ module descriptor đến custom ModuleLayer
+# Learning roadmap from module descriptors to custom ModuleLayers
 
-Java Platform Module System (JPMS) đưa cấu trúc module vào nền tảng Java từ JDK 9. Để học JPMS vững, nên đi từ mô tả module trong file module-info.java, hiểu cách compiler và JVM phân giải các module, sau đó mới chuyển sang dịch vụ và tạo ModuleLayer bằng API. Trình tự này giúp mỗi khái niệm mới dựa trên một mô hình đã hiểu, thay vì bắt đầu ngay với custom class loader hoặc các API cấu hình phức tạp.
+The Java Platform Module System (JPMS) introduced module structure to the Java platform in JDK 9. To learn JPMS solidly, proceed from module descriptions in module-info.java, understand how the compiler and JVM resolve modules, and only then move on to services and creating ModuleLayers via API. This sequence lets each new concept build on an already understood model, rather than starting immediately with custom class loaders or complex configuration APIs.
 
-Mục tiêu của lộ trình là có thể đọc và thiết kế module descriptor, biên dịch và chạy một ứng dụng modular, giải thích được module graph, dùng ServiceLoader, rồi nạp một nhóm module plugin vào một ModuleLayer riêng khi ứng dụng cần mở rộng ở runtime.
+The goal of this roadmap is to be able to read and design module descriptors, compile and run a modular application, explain the module graph, use ServiceLoader, and then load a group of plugin modules into a separate ModuleLayer when the application needs runtime extensibility.
 
-## 1. Bản đồ tổng thể
+## 1. Overall map
 
-Một ứng dụng modular có thể được nhìn theo chuỗi xử lý sau:
+A modular application can be viewed along the following processing chain:
 
 ~~~text
-module-info.java và mã nguồn
+module-info.java and source code
           |
           v
-Compiler kiểm tra dependency và quyền truy cập
+Compiler checks dependencies and access permissions
           |
           v
-Module descriptor trong module đã biên dịch
+Module descriptor in compiled module
           |
           v
-ModuleFinder tìm các module trên module path
+ModuleFinder locates modules on the module path
           |
           v
-Module resolution tạo Configuration / module graph
+Module resolution creates Configuration / module graph
           |
           v
-ModuleLayer định nghĩa module và gắn với class loader
+ModuleLayer defines modules and binds class loaders
           |
           v
-Ứng dụng sử dụng class, reflection hoặc ServiceLoader
+Application uses classes, reflection, or ServiceLoader
 ~~~
 
-Các khái niệm có liên hệ nhưng đảm nhiệm những vai trò khác nhau:
+These concepts are related but serve different roles:
 
-- **Module descriptor** mô tả tên module, dependency, package được export hoặc open, và các service module sử dụng hoặc cung cấp.
-- **Module path** là nơi tìm các module có thể tham gia vào quá trình phân giải.
-- **Module resolution** xác định tập module cần thiết và quan hệ đọc giữa chúng.
-- **ModuleLayer** là một miền runtime chứa các module đã được định nghĩa, có quan hệ cha với các layer khác.
-- **ClassLoader** nạp định nghĩa class. Một layer có thể gắn các module với một class loader hoặc với các class loader được chọn theo chiến lược khác.
+- **Module descriptor** describes the module name, dependencies, exported or opened packages, and services the module uses or provides.
+- **Module path** is where modules eligible to participate in resolution are searched.
+- **Module resolution** determines the set of required modules and readability relationships among them.
+- **ModuleLayer** is a runtime region holding defined modules, with parent relationships to other layers.
+- **ClassLoader** loads class definitions. A layer can associate modules with a single class loader or with class loaders chosen by another strategy.
 
-Đừng đồng nhất module với package, JAR hoặc class loader. Package là cách tổ chức tên và class; JAR là một định dạng đóng gói; module là đơn vị phụ thuộc và đóng gói API ở cấp nền tảng; class loader là cơ chế nạp class trong JVM.
+Do not equate a module with a package, a JAR, or a class loader. A package is a way to organize names and classes; a JAR is a packaging format; a module is a platform-level unit of dependency and API encapsulation; a class loader is the class-loading mechanism in the JVM.
 
-## 2. Chặng 1 — Nắm mô hình module và ranh giới encapsulation
+## 2. Stage 1 — Grasp the module model and encapsulation boundaries
 
-Trước khi viết descriptor, hãy hiểu vấn đề JPMS giải quyết. Với classpath truyền thống, thư viện thường được ghép thành một danh sách tìm kiếm. Package và class có thể bị truy cập rộng hơn dự định, dependency khó được mô tả rõ ở cấp nền tảng và việc trùng class có thể gây lỗi khó truy tìm.
+Before writing descriptors, understand the problem JPMS solves. With the traditional classpath, libraries are typically combined into a single search list. Packages and classes can be accessed more broadly than intended, dependencies are hard to express clearly at the platform level, and duplicate classes can cause hard-to-trace errors.
 
-JPMS bổ sung các ranh giới ở cấp module:
+JPMS adds boundaries at the module level:
 
-- Một **named module** có tên và descriptor.
-- Một module có thể khai báo module khác mà nó cần đọc bằng directive **requires**.
-- Package chỉ được module khác truy cập như API công khai khi được export phù hợp.
-- Reflection sâu vào package có thể cần package được open.
-- Các service có thể được khai báo bằng **uses** và **provides**.
+- A **named module** has a name and a descriptor.
+- A module can declare other modules it needs to read using the **requires** directive.
+- A package is only accessible to other modules as public API when appropriately exported.
+- Deep reflection into a package may require the package to be opened.
+- Services can be declared using **uses** and **provides**.
 
-Module có tên thường được tìm trên module path. Các class và JAR đặt trên classpath thuộc unnamed module của class loader tương ứng. Java vẫn hỗ trợ classpath, vì vậy một ứng dụng có thể chuyển đổi từng phần, nhưng khi đã chạy trên module path thì các quy tắc đọc module và truy cập package sẽ được áp dụng.
+Named modules are typically located on the module path. Classes and JARs placed on the classpath belong to the unnamed module of the corresponding class loader. Java still supports the classpath, so an application can migrate incrementally, yet once running on the module path, module readability and package access rules are enforced.
 
-Ở chặng này, hãy tự trả lời được ba câu hỏi:
+At this stage, be able to answer three questions:
 
-1. Package nào thuộc module nào?
-2. Module nào cần đọc module nào?
-3. Package nào là API công khai, package nào cần được giữ đóng?
+1. Which packages belong to which module?
+2. Which module needs to read which module?
+3. Which packages are public API, and which packages need to stay closed?
 
-## 3. Chặng 2 — Đọc và viết module descriptor
+## 3. Stage 2 — Read and write module descriptors
 
-File module-info.java nằm ở gốc source của một module. Ví dụ:
+The module-info.java file sits at the source root of a module. Example:
 
 ~~~java
 module com.example.billing {
@@ -73,36 +73,36 @@ module com.example.billing {
 }
 ~~~
 
-Descriptor trên khai báo module tên **com.example.billing**, phụ thuộc vào module nền tảng **java.logging**, export package API và open package model cho cơ chế reflection phù hợp.
+The descriptor above declares a module named **com.example.billing**, depends on the platform module **java.logging**, exports the API package, and opens the model package for appropriate reflection mechanisms.
 
-Các directive cần học theo thứ tự sau:
+Learn the directives in the following order:
 
-| Directive | Ý nghĩa | Câu hỏi thiết kế |
+| Directive | Meaning | Design question |
 | --- | --- | --- |
-| requires | Khai báo module dependency mà module hiện tại cần đọc | Module này cần kiểu hoặc API từ module nào? |
-| requires transitive | Truyền khả năng đọc dependency tới module phụ thuộc vào module hiện tại | Dependency nào là một phần của API mà người dùng module phải đọc? |
-| requires static | Dependency cần khi biên dịch nhưng có thể không hiện diện ở runtime | Có dependency tùy chọn nào chỉ cần cho compile-time? |
-| exports | Cho phép module khác truy cập các kiểu public trong package được export | Package nào là API công khai? |
-| exports ... to | Chỉ export package cho một số module được nêu tên | Có API nào chỉ dành cho một nhóm module tin cậy? |
-| opens | Cho phép truy cập sâu bằng reflection vào package | Framework có cần đọc hoặc ghi field, constructor không public? |
-| opens ... to | Chỉ mở package cho một số module | Framework nào thực sự cần quyền reflection? |
-| uses | Khai báo module tiêu thụ một service | Module này cần tìm implementation của service nào? |
-| provides ... with | Khai báo implementation cung cấp cho service | Module này cung cấp implementation nào? |
+| requires | Declares a dependency module the current module needs to read | Which modules does this module need types or APIs from? |
+| requires transitive | Propagates readability of the dependency to modules that depend on the current module | Which dependencies are part of the API that consumers of this module must read? |
+| requires static | Dependency needed at compile time that may be absent at runtime | Are there optional dependencies needed only at compile-time? |
+| exports | Allows other modules to access public types in the exported package | Which packages are public API? |
+| exports ... to | Exports the package only to specific named modules | Are there APIs meant only for a trusted group of modules? |
+| opens | Permits deep reflective access into the package | Does a framework need to read or write non-public fields or constructors? |
+| opens ... to | Opens the package only to specific modules | Which framework genuinely needs reflection permission? |
+| uses | Declares that the module consumes a service | Which service implementations does this module need to discover? |
+| provides ... with | Declares an implementation provided for a service | Which implementation does this module supply? |
 
-Một số điểm cần nhớ:
+Key points to remember:
 
-- **requires** tạo quan hệ đọc module; nó không tự export mọi package của dependency.
-- **exports** cho phép truy cập các kiểu public của package đã nêu, nhưng không đồng nghĩa với mở mọi thành viên private cho reflection.
-- **opens** phục vụ deep reflection; nó không phải cách thay thế cho exports khi mã nguồn module khác cần gọi API public theo cách thông thường.
-- **requires transitive** nên dùng khi kiểu từ dependency xuất hiện trong API công khai của module hiện tại và người dùng API cần đọc dependency đó.
-- **requires static** vẫn tạo dependency khi biên dịch. Ứng dụng phải bảo đảm dependency có mặt nếu runtime thực sự cần nó.
-- Một module không thể export một phần package theo từng class. Ranh giới export được khai báo ở cấp package.
+- **requires** creates a module readability relationship; it does not automatically export all packages of the dependency.
+- **exports** allows access to public types of the named package, but does not mean opening all private members for reflection.
+- **opens** serves deep reflection; it is not a replacement for exports when code in another module needs to call public APIs in the ordinary way.
+- **requires transitive** should be used when types from a dependency appear in the current module's public API and API consumers need to read that dependency.
+- **requires static** still creates a compile-time dependency. The application must ensure the dependency is present if runtime actually needs it.
+- A module cannot export part of a package class-by-class. Export boundaries are declared at the package level.
 
-Hãy luyện bằng cách tạo hai module nhỏ: module API export một package chứa một class public; module ứng dụng requires module API và gọi class đó. Sau đó xóa exports hoặc requires để quan sát lỗi compiler. Bài tập này cho thấy JPMS kiểm tra quan hệ đọc và quyền truy cập ngay trong quá trình biên dịch.
+Practice by creating two small modules: an API module exporting a package containing a public class, and an application module that requires the API module and calls that class. Then remove exports or requires to observe compiler errors. This exercise shows that JPMS checks readability and access permissions right during compilation.
 
-## 4. Chặng 3 — Biên dịch và chạy trên module path
+## 4. Stage 3 — Compile and run on the module path
 
-Sau khi hiểu descriptor, hãy học cách tổ chức source tree và dùng Java launcher. Với hai module:
+After understanding descriptors, learn how to organize a source tree and use the Java launcher. With two modules:
 
 ~~~text
 project/
@@ -115,7 +115,7 @@ project/
         └── com/example/greeting/app/Main.java
 ~~~
 
-Descriptor của module API:
+Descriptor of the API module:
 
 ~~~java
 module com.example.greeting.api {
@@ -123,7 +123,7 @@ module com.example.greeting.api {
 }
 ~~~
 
-Descriptor của module ứng dụng:
+Descriptor of the application module:
 
 ~~~java
 module com.example.greeting.app {
@@ -131,42 +131,42 @@ module com.example.greeting.app {
 }
 ~~~
 
-Biên dịch cả hai module từ thư mục project:
+Compile both modules from the project directory:
 
 ~~~bash
 javac -d out --module-source-path src -m com.example.greeting.api,com.example.greeting.app
 ~~~
 
-Sau khi biên dịch, thư mục out chứa các thư mục module đã biên dịch. Chạy ứng dụng:
+After compilation, the out directory contains compiled module directories. Run the application:
 
 ~~~bash
 java --module-path out -m com.example.greeting.app/com.example.greeting.app.Main
 ~~~
 
-Ở đây:
+Here:
 
-- **--module-source-path** cho compiler biết cấu trúc thư mục chứa source của nhiều module.
-- **-m** khi biên dịch chọn các module cần biên dịch.
-- **-d** chỉ định nơi ghi kết quả.
-- **--module-path** cho Java launcher biết nơi tìm module đã biên dịch hoặc JAR modular.
-- **-m module/class** chọn module và class main để khởi chạy.
+- **--module-source-path** tells the compiler the directory structure containing sources of multiple modules.
+- **-m** during compilation selects the modules to compile.
+- **-d** specifies where to write the output.
+- **--module-path** tells the Java launcher where to find compiled modules or modular JARs.
+- **-m module/class** selects the module and main class to launch.
 
-Đường dẫn module source phải khớp với tên module trong cấu trúc source. Khi module đã được đóng gói thành JAR, JAR đó cũng có thể đặt trên module path. Một JAR có descriptor module rõ ràng là explicit module; JAR cũ không có descriptor có thể được xử lý như automatic module khi đặt trên module path. Automatic module hữu ích trong quá trình chuyển đổi, nhưng không nên xem nó là thiết kế đích cho mọi dependency.
+Module source paths must match module names in the source structure. Once a module is packaged into a JAR, that JAR can also be placed on the module path. A JAR with an explicit module descriptor is an explicit module; an old JAR without a descriptor can be treated as an automatic module when placed on the module path. Automatic modules are useful during migration, but should not be treated as the target design for every dependency.
 
-Hãy chạy cùng ví dụ trên classpath và module path để nhận ra khác biệt. Trên classpath, package không được export theo descriptor và quan hệ requires không được dùng để tạo module graph. Trên module path, compiler và JVM áp dụng các quy tắc JPMS.
+Run the same example on both the classpath and the module path to see the difference. On the classpath, packages are not exported by descriptor and requires relationships are not used to build a module graph. On the module path, the compiler and JVM enforce JPMS rules.
 
-## 5. Chặng 4 — Hiểu module resolution và module graph
+## 5. Stage 4 — Understand module resolution and the module graph
 
-Module path chỉ cung cấp các vị trí để tìm module. Nó không có nghĩa mọi module nằm ở đó đều tự động được nạp. Khi khởi chạy một ứng dụng modular, JVM bắt đầu từ module gốc, đọc các directive requires và tìm dependency theo module path hoặc các module nền tảng. Quá trình đó tạo ra một cấu hình đã phân giải.
+The module path only supplies locations to search for modules. It does not mean every module located there is automatically loaded. When launching a modular application, the JVM starts from root modules, reads requires directives, and locates dependencies via the module path or platform modules. That process produces a resolved configuration.
 
-Module graph mô tả các module và quan hệ đọc giữa chúng. Nó giúp trả lời:
+The module graph describes modules and readability relationships among them. It helps answer:
 
-- Module nào thực sự tham gia vào ứng dụng?
-- Dependency nào được yêu cầu trực tiếp hoặc gián tiếp?
-- Module nào đọc được module nào?
-- Vì sao một package public vẫn không truy cập được từ một module cụ thể?
+- Which modules actually participate in the application?
+- Which dependencies are required directly or indirectly?
+- Which module reads which module?
+- Why is a public package still inaccessible from a specific module?
 
-Một vài lệnh hữu ích khi điều tra:
+Several useful commands when investigating:
 
 ~~~bash
 java --show-module-resolution --module-path mods -m com.example.app/com.example.app.Main
@@ -180,15 +180,15 @@ jar --describe-module --file libs/example.jar
 jdeps --module-path mods --module com.example.app
 ~~~
 
-Lệnh đầu hiển thị thông tin phân giải module khi khởi chạy. Lệnh thứ hai đọc descriptor của một JAR. Lệnh thứ ba phân tích dependency của module. Các lệnh này giúp kiểm tra giả thuyết về dependency trước khi chuyển sang API runtime.
+The first command displays module resolution information at startup. The second reads a JAR's descriptor. The third analyzes a module's dependencies. These commands help test hypotheses about dependencies before moving to runtime APIs.
 
-Ở chặng này, hãy phân biệt rõ **module path** với **module graph**: module path là nguồn tìm kiếm; module graph là kết quả quan hệ module được phân giải cho một cấu hình cụ thể.
+At this stage, clearly distinguish the **module path** from the **module graph**: the module path is the lookup source; the module graph is the resulting set of resolved module relationships for a specific configuration.
 
-## 6. Chặng 5 — Hiểu exports, opens và reflection
+## 6. Stage 5 — Understand exports, opens, and reflection
 
-Một module có thể đọc module khác nhưng vẫn không truy cập được một package nếu package đó không được export. Đây là cơ chế encapsulation quan trọng của JPMS.
+One module can read another module yet still not access a package if that package is not exported. This is a core encapsulation mechanism of JPMS.
 
-Ví dụ, module A khai báo:
+For example, module A declares:
 
 ~~~java
 module com.example.domain {
@@ -196,9 +196,9 @@ module com.example.domain {
 }
 ~~~
 
-Module B có thể requires module A và sử dụng public type trong package api. Tuy nhiên, package com.example.domain.internal không được export nên module B không thể dùng các class public trong package đó như một API module thông thường.
+Module B can require module A and use public types in the api package. However, the com.example.domain.internal package is not exported, so module B cannot use public classes in that package as ordinary module API.
 
-Framework dùng reflection có thể cần truy cập constructor, field hoặc method không public. Trong trường hợp này, package tương ứng có thể cần được open:
+Frameworks using reflection may need access to non-public constructors, fields, or methods. In this case, the corresponding package may need to be opened:
 
 ~~~java
 module com.example.domain {
@@ -207,19 +207,19 @@ module com.example.domain {
 }
 ~~~
 
-Cần chọn đúng directive theo nhu cầu:
+Choose the right directive according to the need:
 
-- Mã nguồn module khác gọi public API: dùng **exports**.
-- Framework cần deep reflection: dùng **opens**.
-- Chỉ một framework cần reflection: cân nhắc **opens ... to** để giới hạn module được cấp quyền.
+- Other modules' source code calls public APIs: use **exports**.
+- A framework needs deep reflection: use **opens**.
+- Only one framework needs reflection: consider **opens ... to** to limit the authorized modules.
 
-Các tùy chọn như **--add-exports** và **--add-opens** trên dòng lệnh có thể giúp tương thích với thư viện cũ hoặc phục vụ chẩn đoán. Chúng nên được xem là biện pháp triển khai có chủ đích, không phải cách thay thế lâu dài cho descriptor được thiết kế đúng.
+Command-line options such as **--add-exports** and **--add-opens** can help with legacy library compatibility or diagnostics. They should be treated as deliberate deployment measures, not long-term substitutes for properly designed descriptors.
 
-## 7. Chặng 6 — Dùng service và ServiceLoader
+## 7. Stage 6 — Use services and ServiceLoader
 
-Service là bước chuyển từ dependency tĩnh sang khả năng tìm implementation theo hợp đồng. Module tiêu thụ khai báo **uses**; module cung cấp implementation khai báo **provides ... with**.
+Services are the step from static dependencies to discovering implementations by contract. The consuming module declares **uses**; the module providing an implementation declares **provides ... with**.
 
-Ví dụ, module API định nghĩa service:
+For example, the API module defines the service:
 
 ~~~java
 package com.example.greeting.api;
@@ -229,7 +229,7 @@ public interface GreetingProvider {
 }
 ~~~
 
-Descriptor của module API:
+Descriptor of the API module:
 
 ~~~java
 module com.example.greeting.api {
@@ -237,7 +237,7 @@ module com.example.greeting.api {
 }
 ~~~
 
-Module ứng dụng sử dụng service:
+Application module using the service:
 
 ~~~java
 module com.example.greeting.app {
@@ -246,7 +246,7 @@ module com.example.greeting.app {
 }
 ~~~
 
-Module plugin cung cấp implementation:
+Plugin module providing the implementation:
 
 ~~~java
 module com.example.greeting.hello {
@@ -257,7 +257,7 @@ module com.example.greeting.hello {
 }
 ~~~
 
-Ứng dụng có thể tìm provider bằng ServiceLoader:
+The application can discover providers using ServiceLoader:
 
 ~~~java
 ServiceLoader<GreetingProvider> providers =
@@ -268,29 +268,29 @@ for (GreetingProvider provider : providers) {
 }
 ~~~
 
-ServiceLoader tách hợp đồng API khỏi implementation. Module ứng dụng chỉ phụ thuộc vào service API; các module provider có thể được thêm hoặc thay thế theo cấu hình triển khai. Đây là nền tảng hữu ích cho kiến trúc plugin, adapter hoặc các implementation có thể lựa chọn.
+ServiceLoader decouples the API contract from implementations. The application module depends only on the service API; provider modules can be added or swapped per deployment configuration. This is a useful foundation for plugin architectures, adapters, or selectable implementations.
 
-Hãy xác nhận ba điều trước khi debug service:
+Verify three things before debugging services:
 
-1. Module tiêu thụ đã khai báo uses cho service.
-2. Module provider đã khai báo provides với implementation hợp lệ.
-3. Các module liên quan đã được phân giải và nằm trong phạm vi layer mà ServiceLoader đang tìm kiếm.
+1. The consuming module declared uses for the service.
+2. The provider module declared provides with a valid implementation.
+3. The relevant modules were resolved and reside within the scope of the layer ServiceLoader is searching.
 
-Khi dùng custom ModuleLayer, cần chọn đúng overload của ServiceLoader để tìm provider trong layer mong muốn. Lệnh **ServiceLoader.load(ServiceType.class)** gắn với ngữ cảnh class loader thông thường; **ServiceLoader.load(layer, ServiceType.class)** cho phép tìm provider trong một layer và các layer cha của nó.
+When using a custom ModuleLayer, choose the right ServiceLoader overload to find providers in the desired layer. **ServiceLoader.load(ServiceType.class)** is tied to the standard class loader context; **ServiceLoader.load(layer, ServiceType.class)** searches for providers in a layer and its parent layers.
 
-## 8. Chặng 7 — Từ module graph tới ModuleLayer
+## 8. Stage 7 — From module graph to ModuleLayer
 
-Khi một ứng dụng cần nạp plugin hoặc nhóm module độc lập trong lúc đang chạy, chỉ đặt tất cả JAR lên module path lúc khởi động có thể chưa đủ. JPMS cung cấp API để tìm descriptor, phân giải module và định nghĩa module trong một layer mới.
+When an application needs to load plugins or independent module groups while running, simply putting all JARs on the module path at startup may not suffice. JPMS provides APIs to find descriptors, resolve modules, and define modules in a new layer.
 
-Các thành phần quan trọng:
+Key components:
 
-- **ModuleFinder** tìm module descriptor trong một hoặc nhiều vị trí, ví dụ thư mục plugin hoặc tập JAR.
-- **Configuration** biểu diễn kết quả phân giải module: module nào được chọn và dependency của chúng.
-- **ModuleLayer** định nghĩa các module từ configuration vào JVM và liên kết chúng với layer cha.
-- **defineModulesWithOneLoader** tạo layer trong đó các module mới dùng chung một class loader được tạo theo API.
-- **defineModules** cho phép cung cấp chiến lược ánh xạ module tới class loader tùy chỉnh khi kiến trúc cần kiểm soát chi tiết hơn.
+- **ModuleFinder** finds module descriptors in one or more locations, such as a plugin directory or a set of JARs.
+- **Configuration** represents the result of module resolution: which modules are selected and their dependencies.
+- **ModuleLayer** defines modules from a configuration into the JVM and links them to parent layers.
+- **defineModulesWithOneLoader** creates a layer in which the new modules share one class loader created by the API.
+- **defineModules** lets you supply a custom module-to-class-loader mapping strategy when the architecture needs finer control.
 
-Trình tự cơ bản là:
+The basic sequence is:
 
 ~~~text
 ModuleFinder
@@ -305,7 +305,7 @@ ModuleLayer.defineModulesWithOneLoader(...)
 ServiceLoader.load(layer, ServiceType.class)
 ~~~
 
-Ví dụ, ứng dụng đã chạy trong boot layer và muốn nạp plugin từ thư mục plugins:
+For example, an application already running in the boot layer wants to load a plugin from the plugins directory:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -331,11 +331,11 @@ ModuleLayer pluginLayer =
     );
 ~~~
 
-Ở đây, **ModuleFinder.of(Path.of("plugins"))** tìm các module trong thư mục plugin. Lời gọi **resolve** sử dụng configuration của parent làm bối cảnh, tìm module gốc được yêu cầu và các dependency cần thiết. Sau đó **defineModulesWithOneLoader** định nghĩa các module đã phân giải trong layer con.
+Here, **ModuleFinder.of(Path.of("plugins"))** locates modules in the plugin directory. The **resolve** call uses the parent's configuration as context, finding the requested root module and its required dependencies. Then **defineModulesWithOneLoader** defines the resolved modules in a child layer.
 
-Để ví dụ hoạt động, plugin phải có descriptor hợp lệ, tên module gốc phải khớp, module API mà plugin requires phải đọc được từ parent hoặc từ tập module được tìm thấy, và thư mục plugins phải chứa đúng JAR hoặc cấu trúc module. Module API của service nên được định nghĩa ở layer cha để ứng dụng và plugin cùng tham chiếu một kiểu service.
+For the example to work, the plugin must have a valid descriptor, the root module name must match, API modules that the plugin requires must be readable from the parent or from the discovered module set, and the plugins directory must contain the right JARs or module structure. The service API module should be defined in a parent layer so the application and plugin reference the exact same service type.
 
-Sau khi tạo layer, tìm provider trong layer đó:
+After creating the layer, discover providers in that layer:
 
 ~~~java
 ServiceLoader<GreetingProvider> providers =
@@ -346,55 +346,55 @@ for (GreetingProvider provider : providers) {
 }
 ~~~
 
-Đoạn mã minh họa ý tưởng nạp plugin, không phải một hệ thống plugin hoàn chỉnh. Ứng dụng thực tế cần xử lý lỗi khi thiếu module, sai phiên bản API, provider không khởi tạo được hoặc plugin không tương thích. Nếu plugin có dependency riêng, các dependency đó cũng phải có thể được phân giải từ module path được cung cấp.
+The snippet illustrates the plugin loading concept, not a complete plugin system. A real-world application must handle errors when modules are missing, API versions mismatch, providers fail to instantiate, or plugins are incompatible. If a plugin has its own dependencies, those dependencies must also be resolvable from the provided module path.
 
-## 9. Chặng 8 — Tạo custom ModuleLayer có kiểm soát
+## 9. Stage 8 — Creating a controlled custom ModuleLayer
 
-Sau khi chạy được ví dụ dùng một loader, hãy tìm hiểu khi nào cần custom class loader. Một layer có thể dùng một loader chung cho tất cả module trong layer, hoặc chiến lược ánh xạ loader khác khi cần cô lập việc nạp class theo nhóm plugin.
+After getting the single-loader example working, learn when a custom class loader is needed. A layer can use one shared loader for all modules in the layer, or a different loader mapping strategy when class loading needs isolation by plugin group.
 
-Trước khi viết custom loader, hãy xác định yêu cầu thực tế:
+Before writing a custom loader, determine actual requirements:
 
-- Các plugin có cần dùng chung một bản API do parent layer cung cấp không?
-- Plugin có thể có thư viện nội bộ trùng tên với plugin khác không?
-- Có cần nạp hoặc gỡ nhóm plugin theo vòng đời riêng không?
-- Có cần kiểm soát rõ module nào được nhìn thấy từ module nào không?
-- Việc dùng loader chung có đủ cho yêu cầu triển khai không?
+- Do plugins need to share a single copy of the API provided by the parent layer?
+- Can a plugin contain an internal library with the same name as another plugin?
+- Do plugin groups need to be loaded or unloaded on independent lifecycles?
+- Is explicit control needed over which module is visible from which module?
+- Is using a shared loader sufficient for deployment requirements?
 
-Nếu cần ánh xạ loader theo module, API **ModuleLayer.defineModules(Configuration, List<ModuleLayer>, Function<String, ClassLoader>)** cho phép cung cấp hàm chọn class loader theo tên module. Hàm này phải trả về class loader phù hợp cho từng module trong configuration. ModuleLayer vẫn chịu trách nhiệm định nghĩa module và thiết lập quan hệ layer; class loader thực hiện việc nạp class theo chiến lược được cung cấp.
+If per-module loader mapping is needed, **ModuleLayer.defineModules(Configuration, List<ModuleLayer>, Function<String, ClassLoader>)** allows supplying a function that selects a class loader by module name. This function must return an appropriate class loader for each module in the configuration. ModuleLayer remains responsible for defining modules and establishing layer relationships; the class loaders perform class loading according to the supplied strategy.
 
-Không nên coi custom ModuleLayer là sandbox bảo mật. Module encapsulation và class loader giúp quản lý dependency, khả năng đọc và phạm vi nạp class, nhưng chúng không thay thế cơ chế bảo mật tiến trình, quyền hệ điều hành hoặc cô lập tài nguyên. Nếu plugin là mã không tin cậy, cần thiết kế ranh giới tiến trình hoặc cơ chế thực thi an toàn phù hợp.
+Do not treat a custom ModuleLayer as a security sandbox. Module encapsulation and class loaders help manage dependencies, readability, and class-loading scope, but they do not replace process security mechanisms, OS permissions, or resource isolation. If plugins are untrusted code, design appropriate process boundaries or secure execution mechanisms.
 
-Cũng cần nhớ rằng danh tính một class trong JVM phụ thuộc vào tên class và class loader định nghĩa nó. Hai plugin có thể nạp hai class cùng tên nhưng do hai loader khác nhau định nghĩa; chúng không tự động tương thích kiểu với nhau. Với API dùng chung, hãy để các module plugin đọc và sử dụng cùng module API từ parent layer.
+Also remember that a class's identity in the JVM depends on both the class name and the class loader that defined it. Two plugins can load two classes with the same name defined by two different loaders; they are not automatically type-compatible with each other. For shared APIs, let plugin modules read and use the same API module from the parent layer.
 
-## 10. Bài tập theo từng mốc
+## 10. Exercises by milestone
 
-| Mốc | Bài tập | Bằng chứng hoàn thành |
+| Milestone | Exercise | Proof of completion |
 | --- | --- | --- |
-| 1. Mô hình | Vẽ hai module API và app, chỉ ra package và dependency | Giải thích được module nào reads module nào |
-| 2. Descriptor | Viết requires, exports, opens và thử thay đổi từng directive | Dự đoán và giải thích được lỗi compile/access |
-| 3. Build | Biên dịch và chạy ứng dụng hai module bằng javac/java | Lệnh build và run tái lập được |
-| 4. Resolution | Dùng --show-module-resolution, jar --describe-module và jdeps | Xác định được module gốc và dependency |
-| 5. Encapsulation | Thử truy cập package không export và reflection vào package không open | Phân biệt được lỗi truy cập thông thường với deep reflection |
-| 6. Service | Tạo một service API và ít nhất hai provider | Thay provider mà không sửa code tiêu thụ |
-| 7. ModuleLayer | Nạp một provider từ thư mục plugin vào layer con | ServiceLoader tìm thấy provider trong layer được chọn |
-| 8. Custom loader | Thử ánh xạ loader riêng cho từng nhóm module nếu có yêu cầu | Giải thích được class identity và quan hệ parent layer |
+| 1. Model | Sketch two modules, API and app, showing packages and dependencies | Able to explain which module reads which module |
+| 2. Descriptor | Write requires, exports, opens and try toggling each directive | Able to predict and explain compile/access errors |
+| 3. Build | Compile and run a two-module application using javac/java | Build and run commands are reproducible |
+| 4. Resolution | Use --show-module-resolution, jar --describe-module, and jdeps | Able to identify root modules and dependencies |
+| 5. Encapsulation | Attempt accessing an unexported package and reflecting into an unopened package | Able to distinguish ordinary access errors from deep reflection |
+| 6. Service | Create a service API and at least two providers | Able to swap providers without editing consumer code |
+| 7. ModuleLayer | Load a provider from a plugin directory into a child layer | ServiceLoader finds the provider in the selected layer |
+| 8. Custom loader | Try mapping separate loaders per module group if required | Able to explain class identity and parent layer relationships |
 
-## 11. Lỗi học tập và debug thường gặp
+## 11. Common learning and debugging mistakes
 
-**Module not found** thường cho biết module gốc hoặc dependency không nằm trong vị trí tìm kiếm mà compiler/JVM đang sử dụng, tên module không khớp, hoặc module path trỏ nhầm thư mục.
+**Module not found** usually indicates the root module or dependency is not in the lookup locations used by the compiler/JVM, the module name does not match, or the module path points to the wrong directory.
 
-**Package is not visible** thường liên quan đến module chưa requires module sở hữu package, hoặc package chưa được export cho module gọi.
+**Package is not visible** usually involves a module missing a requires on the package-owning module, or the package not being exported to the calling module.
 
-**IllegalAccessException** hoặc lỗi reflection có thể cho biết package chưa được open theo cách framework cần. Kiểm tra descriptor của module sở hữu class và module thực hiện reflection.
+**IllegalAccessException** or reflection errors can indicate a package has not been opened in the way the framework requires. Check the descriptor of the class-owning module and the module performing reflection.
 
-**ServiceLoader không tìm thấy provider** cần được kiểm tra theo cả ba lớp: uses/provides, module resolution và layer/class loader mà ServiceLoader đang tìm kiếm.
+**ServiceLoader finds no providers** should be checked across all three layers: uses/provides, module resolution, and the layer/class loader that ServiceLoader is searching.
 
-**ClassCastException giữa các plugin** có thể xảy ra khi API bị nạp thành hai định nghĩa class khác nhau bởi hai loader. Đặt API dùng chung ở parent layer và để plugin requires module API đó.
+**ClassCastException across plugins** can happen when an API is loaded into two different class definitions by two loaders. Place shared APIs in a parent layer and have plugins require that API module.
 
-Khi debug, hãy ghi lại tên module, module path, module gốc, layer được dùng và class loader định nghĩa kiểu liên quan. Những dữ kiện này giúp phân biệt lỗi descriptor, lỗi resolution và lỗi runtime class loading.
+When debugging, record the module name, module path, root modules, layer used, and the class loader defining the relevant types. These facts help distinguish descriptor errors, resolution errors, and runtime class-loading errors.
 
-## 12. Tiêu chí hoàn thành lộ trình
+## 12. Roadmap completion criteria
 
-Bạn đã nắm được lộ trình này khi có thể tự xây dựng một ứng dụng gồm module API, module ứng dụng và module provider; biên dịch, chạy và quan sát module graph; giải thích được vì sao exports khác opens; tìm service bằng ServiceLoader; và nạp provider từ thư mục plugin bằng một ModuleLayer con.
+You have mastered this roadmap when you can build an application consisting of an API module, an application module, and a provider module on your own; compile, run, and observe the module graph; explain why exports differs from opens; discover services with ServiceLoader; and load providers from a plugin directory using a child ModuleLayer.
 
-Ở mức nâng cao, bạn cần giải thích được vai trò riêng của ModuleFinder, Configuration, ModuleLayer và ClassLoader, đồng thời xác định được khi nào một loader chung là đủ và khi nào mới cần ánh xạ loader tùy chỉnh. Khi đã làm được điều đó, bạn có thể thiết kế hệ thống modular có plugin mà vẫn kiểm soát được dependency, API công khai và nguồn class được nạp.
+At an advanced level, you should be able to explain the distinct roles of ModuleFinder, Configuration, ModuleLayer, and ClassLoader, as well as determine when a shared loader is sufficient and when custom loader mapping is truly needed. Once you can do that, you can design modular plugin systems while maintaining control over dependencies, public APIs, and the sources of loaded classes.

@@ -1,31 +1,31 @@
-# jpackage kết hợp modular application
+# jpackage Combined with Modular Applications
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể đóng gói một ứng dụng JPMS bằng `jpackage`, tạo app image để kiểm thử, tạo installer theo hệ điều hành, hiểu cách `jpackage` kết hợp module path với runtime image, tùy chỉnh launcher và chuẩn bị artifact có thể phân phối cho người dùng cuối.
+After this lesson, you will be able to package a JPMS application using `jpackage`, create an app image for testing, create an OS-specific installer, understand how `jpackage` combines the module path with a runtime image, customize the launcher, and prepare a distributable artifact for end users.
 
-## 1. jpackage giải quyết vấn đề gì?
+## 1. What Problem Does jpackage Solve?
 
-Một modular application thường cần nhiều thành phần để chạy:
+A modular application typically needs several components to run:
 
-- Module ứng dụng chứa main class.
-- Các module thư viện mà ứng dụng khai báo bằng `requires`.
-- Java runtime tương thích để chạy bytecode và module graph.
-- Các file cấu hình, tài nguyên hoặc dữ liệu đi kèm.
-- Launcher để người dùng khởi chạy ứng dụng mà không cần tự viết lệnh `java`.
+- The application module containing the main class.
+- Library modules that the application declares via `requires`.
+- A compatible Java runtime to execute bytecode and the module graph.
+- Accompanying configuration files, resources, or data.
+- A launcher so users can start the application without having to type a `java` command themselves.
 
-Nếu chỉ phát hành một hoặc nhiều JAR, người dùng thường phải tự cài Java đúng phiên bản, tự cấu hình module path và chạy đúng main module. `jpackage` giúp đóng gói ứng dụng thành application image hoặc native installer, đồng thời có thể tạo runtime image phù hợp bằng `jlink`.
+If only one or more JARs are distributed, users usually have to install the right Java version themselves, configure the module path, and run the right main module. `jpackage` helps package the application into an application image or native installer, and can also generate a suitable runtime image using `jlink`.
 
-Các loại đầu ra phổ biến:
+Common output types:
 
-- **Application image**: thư mục có launcher và runtime cần thiết để chạy ứng dụng.
-- **Native installer**: gói cài đặt theo nền tảng, ví dụ MSI/EXE trên Windows, DMG/PKG trên macOS, DEB/RPM trên Linux.
+- **Application image**: a directory containing the launcher and the runtime needed to run the application.
+- **Native installer**: a platform-specific installation package, such as MSI/EXE on Windows, DMG/PKG on macOS, or DEB/RPM on Linux.
 
-`jpackage` là công cụ của JDK. Hãy dùng JDK có hỗ trợ `jpackage` và `jlink`, không chỉ một JRE rút gọn. Ứng dụng modular được mô tả qua module descriptor; công cụ có thể phân tích dependency để tạo runtime image phù hợp.
+`jpackage` is a JDK tool. Use a JDK that supports `jpackage` and `jlink`, not just a stripped-down JRE. Modular applications are described via module descriptors; the tool can analyze dependencies to create an appropriate runtime image.
 
-## 2. Chuẩn bị một modular application
+## 2. Preparing a Modular Application
 
-Ví dụ ứng dụng có hai module:
+For example, an application has two modules:
 
 ~~~text
 project/
@@ -39,7 +39,7 @@ project/
   mods/
 ~~~
 
-Module thư viện:
+Library module:
 
 ~~~java
 // src/com.acme.greeter/module-info.java
@@ -62,7 +62,7 @@ public final class Greeter {
 }
 ~~~
 
-Module ứng dụng:
+Application module:
 
 ~~~java
 // src/com.acme.app/module-info.java
@@ -85,29 +85,29 @@ public final class Main {
 }
 ~~~
 
-Biên dịch các module vào thư mục `mods`:
+Compile the modules into the `mods` directory:
 
 ~~~bash
 javac -d mods --module-source-path src -m com.acme.greeter,com.acme.app
 ~~~
 
-Sau khi biên dịch, `mods` chứa hai exploded module với `module-info.class` và các class tương ứng. Có thể kiểm tra ứng dụng trước khi đóng gói bằng:
+After compilation, `mods` contains two exploded modules with `module-info.class` and their corresponding classes. You can test the application before packaging with:
 
 ~~~bash
 java --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hello, Java
 ~~~
 
-Khi ứng dụng chạy được bằng launcher modular thông thường, ta có thể chuyển sang bước đóng gói.
+Once the application runs with the standard modular launcher, we can proceed to the packaging step.
 
-## 3. Tạo application image cho modular app
+## 3. Creating an Application Image for a Modular App
 
-Cú pháp cốt lõi:
+Core syntax:
 
 ~~~bash
 jpackage --type app-image \
@@ -117,79 +117,79 @@ jpackage --type app-image \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Giải thích:
+Explanation:
 
-- `--type app-image` yêu cầu tạo application image thay vì installer.
-- `--name AcmeGreeter` đặt tên ứng dụng và launcher.
-- `--dest dist` chỉ định thư mục nhận artifact.
-- `--module-path mods` chỉ nơi chứa module ứng dụng và các dependency.
-- `--module com.acme.app/com.acme.app.Main` chọn root module và main class.
+- `--type app-image` requests creating an application image instead of an installer.
+- `--name AcmeGreeter` sets the application and launcher name.
+- `--dest dist` specifies the destination directory for the artifact.
+- `--module-path mods` points to the location containing the application modules and dependencies.
+- `--module com.acme.app/com.acme.app.Main` selects the root module and main class.
 
-Phần trước dấu gạch chéo là module name; phần sau là tên đầy đủ của main class. Nếu module đã có main class được ghi trong module descriptor, có thể chỉ định module mà không ghi class sau dấu gạch chéo.
+The part before the slash is the module name; the part after is the fully qualified name of the main class. If the module already has a main class recorded in the module descriptor, you can specify the module without writing the class after the slash.
 
-Cấu trúc output phụ thuộc nền tảng, nhưng application image thường chứa launcher, thư mục ứng dụng và runtime image. Người dùng có thể chạy launcher được tạo trong image mà không cần tự viết lệnh `java -m`.
+The output structure depends on the platform, but an application image typically contains the launcher, an application directory, and a runtime image. Users can run the launcher generated in the image without having to write a `java -m` command themselves.
 
-Trên Windows, lệnh thường được viết trên một dòng hoặc dùng dấu backtick khi chạy trong PowerShell. Ví dụ một dòng:
+On Windows, the command is usually written on a single line or using backticks when run in PowerShell. Single-line example:
 
 ~~~powershell
 jpackage --type app-image --name AcmeGreeter --dest dist --module-path mods --module com.acme.app/com.acme.app.Main
 ~~~
 
-## 4. Vì sao nên tạo app image trước installer?
+## 4. Why Create an App Image Before an Installer?
 
-Application image giúp kiểm tra artifact gần với sản phẩm phân phối trước khi tạo installer.
+An application image lets you verify an artifact close to the final distributable product before creating an installer.
 
-Sau khi chạy `jpackage --type app-image`, hãy kiểm tra:
+After running `jpackage --type app-image`, check:
 
-1. Launcher có xuất hiện trong output không?
-2. Ứng dụng có khởi động được trên máy không có cấu hình phát triển không?
-3. Các module dependency có được đóng gói đầy đủ không?
-4. Tài nguyên và file cấu hình cần thiết có được tìm thấy không?
-5. Logging, file ghi ra và đường dẫn dữ liệu có hoạt động trong layout mới không?
+1. Does the launcher appear in the output?
+2. Does the application start on a machine without a development setup?
+3. Are all module dependencies packaged completely?
+4. Are the required resources and configuration files found?
+5. Do logging, file output, and data paths work in the new layout?
 
-Đừng giả định working directory của launcher luôn là thư mục source hoặc thư mục hiện tại trong IDE. Ứng dụng đóng gói nên xác định rõ vị trí resource, thư mục cấu hình và thư mục dữ liệu theo quy tắc phù hợp với hệ điều hành.
+Do not assume the launcher's working directory is always the source directory or the current directory in your IDE. A packaged application should explicitly determine the location of resources, configuration directories, and data directories according to OS-appropriate conventions.
 
-Nếu app image hoạt động đúng, có thể dùng cùng các thông tin module để tạo installer.
+If the app image works properly, you can use the same module settings to build the installer.
 
-## 5. Tạo native installer
+## 5. Creating a Native Installer
 
-Ví dụ trên Windows:
+Example on Windows:
 
 ~~~powershell
 jpackage --type msi --name AcmeGreeter --app-version 1.0.0 --vendor "Acme" --dest dist --module-path mods --module com.acme.app/com.acme.app.Main
 ~~~
 
-Có thể dùng `--type exe` nếu muốn tạo installer EXE trên môi trường Windows có hỗ trợ.
+You can use `--type exe` if you want to create an EXE installer in a supported Windows environment.
 
-Ví dụ trên macOS:
+Example on macOS:
 
 ~~~bash
 jpackage --type dmg --name AcmeGreeter --app-version 1.0.0 --vendor "Acme" --dest dist --module-path mods --module com.acme.app/com.acme.app.Main
 ~~~
 
-Ví dụ trên Linux:
+Example on Linux:
 
 ~~~bash
 jpackage --type deb --name acme-greeter --app-version 1.0.0 --vendor "Acme" --dest dist --module-path mods --module com.acme.app/com.acme.app.Main
 ~~~
 
-Linux cũng có thể tạo RPM nếu môi trường hỗ trợ:
+Linux can also create RPMs if the environment supports it:
 
 ~~~bash
 jpackage --type rpm --name acme-greeter --dest dist --module-path mods --module com.acme.app/com.acme.app.Main
 ~~~
 
-Các loại installer được hỗ trợ phụ thuộc nền tảng và phiên bản JDK. Công cụ thường yêu cầu tiện ích đóng gói hoặc signing tương ứng của hệ điều hành. Hãy kiểm tra tài liệu `jpackage` của JDK đang dùng và cài các công cụ native mà nền tảng yêu cầu.
+Supported installer types depend on the platform and JDK version. The tool often requires corresponding OS packaging or signing utilities. Check the `jpackage` documentation for the JDK in use and install the native tools required by the platform.
 
-Native installer được tạo cho nền tảng hiện tại. Muốn phát hành cho Windows, macOS và Linux, hãy build và kiểm thử trên từng nền tảng đích hoặc dùng máy build phù hợp cho từng hệ điều hành. `jpackage` không phải công cụ cross-compile installer tùy ý giữa các hệ điều hành.
+A native installer is built for the current platform. To release for Windows, macOS, and Linux, build and test on each target platform or use an appropriate build machine for each operating system. `jpackage` is not an arbitrary cross-compilation tool for installers across operating systems.
 
-## 6. jpackage và runtime image
+## 6. jpackage and Runtime Images
 
-Nếu không chỉ định runtime image có sẵn, `jpackage` có thể gọi `jlink` để tạo runtime image cho ứng dụng modular. Runtime image giúp giảm nhu cầu yêu cầu người dùng cài một JDK đầy đủ.
+If an existing runtime image is not specified, `jpackage` can invoke `jlink` to create a runtime image for the modular application. A runtime image helps eliminate the need for users to install a full JDK.
 
-Module system cung cấp dependency graph từ module descriptor. Công cụ có thể xác định module ứng dụng và các dependency cần thiết để tạo runtime phù hợp. Điều này đặc biệt hữu ích khi ứng dụng chỉ dùng một phần Java platform.
+The module system provides the dependency graph from module descriptors. The tool can determine the application modules and required dependencies to build a suitable runtime. This is especially helpful when the application uses only a subset of the Java platform.
 
-Có thể truyền tùy chọn cho `jlink` bằng `--jlink-options`. Ví dụ:
+Options can be passed to `jlink` via `--jlink-options`. Example:
 
 ~~~bash
 jpackage --type app-image \
@@ -200,13 +200,13 @@ jpackage --type app-image \
   --jlink-options "--strip-debug --no-header-files --no-man-pages"
 ~~~
 
-Các tùy chọn như `--strip-debug`, `--no-header-files` và `--no-man-pages` giúp loại bỏ một số thành phần không cần thiết trong runtime image. Chỉ bật tùy chọn phù hợp với yêu cầu debug, native integration và vận hành của ứng dụng.
+Options such as `--strip-debug`, `--no-header-files`, and `--no-man-pages` help remove some unnecessary components in the runtime image. Only enable options that match the application's debugging, native integration, and operational requirements.
 
-Nếu ứng dụng dùng service provider và cần các provider module được liên kết trong runtime image, hãy xem xét tùy chọn `--bind-services` của `jlink` qua `--jlink-options`. Kiểm tra kỹ các service cần thiết trong ứng dụng sau khi tạo image rút gọn.
+If the application uses service providers and needs provider modules linked into the runtime image, consider `jlink`'s `--bind-services` option via `--jlink-options`. Thoroughly test the services needed by the application after creating a stripped-down image.
 
-### Dùng runtime image tự tạo
+### Using a Custom-Built Runtime Image
 
-Có thể tự tạo runtime image bằng `jlink` khi cần kiểm soát module được đưa vào runtime:
+You can create the runtime image yourself with `jlink` when you need control over which modules are included in the runtime:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" \
@@ -214,9 +214,9 @@ jlink --module-path "$JAVA_HOME/jmods:mods" \
   --output runtime-image
 ~~~
 
-Ví dụ trên dùng dấu hai chấm trên Linux/macOS. Trên Windows, thay bằng dấu chấm phẩy và dùng đường dẫn JDK tương ứng.
+The example above uses a colon on Linux/macOS. On Windows, replace it with a semicolon and use the corresponding JDK path.
 
-Sau đó, truyền runtime image đã tạo vào `jpackage`:
+Then, pass the created runtime image to `jpackage`:
 
 ~~~bash
 jpackage --type app-image \
@@ -227,13 +227,13 @@ jpackage --type app-image \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Runtime image phải tương thích với ứng dụng và nền tảng đích, đồng thời chứa đủ Java module cần thiết. Nếu dùng runtime image tự tạo, hãy kiểm tra các module cần cho ứng dụng, reflection, service loading, charset, logging và native integration trước khi phát hành.
+The runtime image must be compatible with the application and target platform, and must contain all required Java modules. If using a custom-built runtime image, check modules needed for the application, reflection, service loading, charsets, logging, and native integration before releasing.
 
-## 7. Đưa resource và file phụ trợ vào gói
+## 7. Including Resources and Auxiliary Files in the Package
 
-Một ứng dụng thực tế thường cần file cấu hình mặc định, template, license hoặc dữ liệu khởi tạo. `--input` chỉ định thư mục chứa các file bổ sung được đưa vào gói.
+A real-world application often needs default configuration files, templates, licenses, or initial data. `--input` specifies a directory containing additional files to include in the package.
 
-Ví dụ:
+Example:
 
 ~~~text
 project/
@@ -245,7 +245,7 @@ project/
       welcome.html
 ~~~
 
-Đóng gói:
+Package:
 
 ~~~bash
 jpackage --type app-image \
@@ -256,30 +256,30 @@ jpackage --type app-image \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Các file trong input directory được đưa vào application image theo layout của công cụ. Hãy kiểm tra vị trí thực tế trong image và dùng đường dẫn tương đối phù hợp trong ứng dụng.
+Files in the input directory are placed into the application image according to the tool's layout. Inspect the actual location in the image and use appropriate relative paths in the application.
 
-Không nên ghi dữ liệu người dùng vào thư mục cài đặt vì thư mục đó có thể cần quyền administrator hoặc bị thay thế khi nâng cấp. Dữ liệu thay đổi trong quá trình sử dụng nên nằm ở thư mục dữ liệu người dùng phù hợp với nền tảng.
+Do not write user data into the installation directory because that directory may require administrator privileges or be replaced during upgrades. Data that changes during use should reside in an OS-appropriate user data directory.
 
-Có thể dùng `--resource-dir` để cung cấp các resource tùy chỉnh cho quá trình đóng gói, ví dụ template launcher hoặc file cấu hình đặc thù của installer. Phân biệt resource phục vụ quá trình tạo gói với file ứng dụng cần đọc ở runtime.
+You can use `--resource-dir` to provide custom resources for the packaging process itself, such as launcher templates or installer-specific configuration files. Distinguish resources used during package creation from application files needed at runtime.
 
-## 8. Tùy chỉnh launcher và metadata
+## 8. Customizing the Launcher and Metadata
 
-Một số option hữu ích:
+Some useful options:
 
-| Option | Mục đích |
+| Option | Purpose |
 | --- | --- |
-| `--name` | Tên ứng dụng và launcher. |
-| `--app-version` | Phiên bản hiển thị của ứng dụng/package. |
-| `--vendor` | Tên nhà phát hành. |
-| `--description` | Mô tả ứng dụng trong metadata installer nếu nền tảng hỗ trợ. |
-| `--icon` | Icon ứng dụng hoặc installer theo định dạng nền tảng yêu cầu. |
-| `--arguments` | Các argument mặc định truyền cho ứng dụng khi launcher chạy. |
-| `--java-options` | JVM option được truyền cho runtime của ứng dụng. |
-| `--add-launcher` | Tạo thêm launcher với cấu hình riêng từ file properties. |
-| `--dest` | Thư mục output. |
-| `--type` | Loại artifact, ví dụ `app-image`, `msi`, `dmg`, `deb` hoặc `rpm`. |
+| `--name` | Application and launcher name. |
+| `--app-version` | Display version of the application/package. |
+| `--vendor` | Publisher name. |
+| `--description` | Application description in installer metadata if supported by the platform. |
+| `--icon` | Application or installer icon in the format required by the platform. |
+| `--arguments` | Default arguments passed to the application when the launcher runs. |
+| `--java-options` | JVM options passed to the application's runtime. |
+| `--add-launcher` | Creates an additional launcher with its own configuration from a properties file. |
+| `--dest` | Output directory. |
+| `--type` | Artifact type, such as `app-image`, `msi`, `dmg`, `deb`, or `rpm`. |
 
-Ví dụ thêm metadata và JVM option:
+Example adding metadata and a JVM option:
 
 ~~~bash
 jpackage --type app-image \
@@ -293,13 +293,13 @@ jpackage --type app-image \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-`--java-options` dành cho option của JVM, ví dụ system property, heap size hoặc module opening cần thiết. `--arguments` dành cho argument của ứng dụng. Đừng nhầm hai nhóm này: JVM option được xử lý bởi Java runtime, còn application argument xuất hiện trong `main(String[] args)`.
+`--java-options` is for JVM options, such as system properties, heap size, or required module openings. `--arguments` is for application arguments. Do not confuse these two groups: JVM options are processed by the Java runtime, whereas application arguments appear in `main(String[] args)`.
 
-Để tạo launcher bổ sung, `--add-launcher` nhận tên launcher và file properties mô tả main module/class, arguments hoặc JVM options riêng. Điều này hữu ích khi một sản phẩm có nhiều chế độ chạy, ví dụ giao diện chính và công cụ quản trị.
+To create additional launchers, `--add-launcher` accepts a launcher name and a properties file describing the separate main module/class, arguments, or JVM options. This is useful when a product has multiple execution modes, such as a main UI and an administrative tool.
 
-## 9. Tích hợp `--add-opens` và các JVM option
+## 9. Integrating `--add-opens` and JVM Options
 
-Một framework cũ có thể cần deep reflection vào package cụ thể. Khi chạy bằng lệnh `java`, ta thường thêm `--add-opens` trực tiếp vào JVM arguments. Với ứng dụng được đóng gói, có thể cấu hình JVM option qua `--java-options`:
+An older framework might need deep reflection into a specific package. When running with the `java` command, we usually add `--add-opens` directly to the JVM arguments. For a packaged application, JVM options can be configured via `--java-options`:
 
 ~~~bash
 jpackage --type app-image \
@@ -310,53 +310,53 @@ jpackage --type app-image \
   --java-options "--add-opens=java.base/java.lang=ALL-UNNAMED"
 ~~~
 
-Option này sẽ được truyền cho JVM của launcher được tạo. Chỉ thêm package và target module thực sự cần thiết. Nếu framework là named module, ưu tiên target module cụ thể thay vì `ALL-UNNAMED`.
+This option will be passed to the JVM of the generated launcher. Only add packages and target modules that are genuinely needed. If the framework is a named module, prefer the specific target module rather than `ALL-UNNAMED`.
 
-Nếu dùng file cấu hình launcher riêng với `--add-launcher`, có thể quản lý JVM options theo từng launcher. Hãy xác nhận option xuất hiện trong launcher cuối cùng và kiểm thử bằng chính application image, vì chạy từ IDE không đảm bảo môi trường đóng gói có cùng cấu hình.
+If using a separate launcher configuration file with `--add-launcher`, JVM options can be managed per launcher. Verify that the options appear in the final launcher and test with the application image itself, because running from an IDE does not guarantee the packaged environment shares the same configuration.
 
-## 10. Kiểm tra artifact trước khi phát hành
+## 10. Testing the Artifact Before Release
 
-Một quy trình thực tế:
+A practical workflow:
 
-1. Biên dịch các module và kiểm tra module descriptor.
-2. Chạy thử bằng `java --module-path ... --module ...`.
-3. Tạo app image bằng `jpackage --type app-image`.
-4. Chạy launcher từ app image trên máy sạch hoặc môi trường gần với người dùng.
-5. Kiểm tra resource, log, dữ liệu, JVM option và hành vi cập nhật.
-6. Tạo installer theo nền tảng đích.
-7. Cài đặt, chạy, gỡ cài đặt và kiểm tra nâng cấp nếu sản phẩm hỗ trợ.
-8. Ký artifact nếu quy trình phân phối hoặc hệ điều hành yêu cầu.
+1. Compile the modules and verify module descriptors.
+2. Test-run using `java --module-path ... --module ...`.
+3. Create an app image using `jpackage --type app-image`.
+4. Run the launcher from the app image on a clean machine or an environment close to end users.
+5. Check resources, logs, data, JVM options, and update behavior.
+6. Create the installer for the target platform.
+7. Install, run, uninstall, and test upgrades if the product supports them.
+8. Sign the artifact if required by the distribution workflow or operating system.
 
-Đừng chỉ kiểm tra lệnh `jpackage` kết thúc thành công. Artifact có thể tạo được nhưng thiếu resource hoặc có lỗi runtime chỉ xuất hiện trên máy không có JDK cài sẵn.
+Do not just check that the `jpackage` command finishes successfully. An artifact can be produced yet still lack resources or have runtime errors that only appear on machines without a pre-installed JDK.
 
-Với native installer, kiểm tra tên package, phiên bản, vendor, vị trí cài đặt, shortcut/menu entry và khả năng uninstall theo đặc điểm nền tảng.
+For native installers, check the package name, version, vendor, installation location, shortcuts/menu entries, and uninstall behavior according to platform conventions.
 
-## 11. Lỗi thường gặp
+## 11. Common Errors
 
-### Module not found hoặc dependency không được phân giải
+### Module not found or dependency unresolved
 
-Kiểm tra `--module-path` có chứa root module và dependency không. Dùng `jar --describe-module` để xem tên module thật trong JAR, và chạy ứng dụng bằng `java -p ... -m ...` trước khi đóng gói.
+Check whether `--module-path` contains the root module and dependencies. Use `jar --describe-module` to view the actual module name in the JAR, and run the application with `java -p ... -m ...` before packaging.
 
-### Không tìm thấy main class
+### Main class not found
 
-Kiểm tra phần `module/main-class` trong `--module`. Tên class phải đầy đủ package. Nếu bỏ main class, module cần có main class được ghi trong descriptor.
+Check the `module/main-class` part in `--module`. The class name must be package-qualified. If the main class is omitted, the module must have a main class recorded in its descriptor.
 
-### jlink không tạo được runtime image
+### jlink fails to create runtime image
 
-Kiểm tra module path, dependency, JDK đang dùng và các `jlink-options`. Nếu ứng dụng dùng native library hoặc service provider, kiểm tra module tương ứng có nằm trong runtime image không.
+Check the module path, dependencies, JDK in use, and `jlink-options`. If the application uses native libraries or service providers, verify that the corresponding modules are included in the runtime image.
 
-### Installer không được hỗ trợ trên máy build
+### Installer is not supported on the build machine
 
-Một số loại package cần tool native của hệ điều hành. Hãy dùng môi trường build đúng nền tảng và cài tiện ích mà phiên bản `jpackage` yêu cầu. Nếu chỉ cần kiểm tra app image, dùng `--type app-image` để tách vấn đề đóng gói runtime khỏi vấn đề tạo installer.
+Some package types require native OS tools. Use a build environment matching the target platform and install the utilities required by the `jpackage` version. If you only need to inspect the app image, use `--type app-image` to separate runtime packaging issues from installer creation issues.
 
-### Ứng dụng không tìm thấy file sau khi cài đặt
+### Application cannot find files after installation
 
-Không giả định current working directory giống lúc chạy từ IDE. Kiểm tra layout của application image, vị trí input files và cách ứng dụng xác định resource. Đối với file có thể thay đổi, dùng thư mục dữ liệu người dùng thay vì ghi vào thư mục cài đặt.
+Do not assume the current working directory is the same as when running from an IDE. Inspect the application image layout, input file locations, and how the application resolves resources. For mutable files, use a user data directory instead of writing to the installation directory.
 
-### JVM option không có tác dụng
+### JVM options have no effect
 
-Xác nhận option được truyền bằng `--java-options` và nằm trong launcher đúng. Với `--add-opens`, kiểm tra source module, package và target module có khớp với thông báo lỗi reflection không.
+Confirm the options were passed via `--java-options` and are present in the right launcher. For `--add-opens`, verify that the source module, package, and target module match the reflection error message.
 
-## Ghi nhớ
+## Key Takeaways
 
-`jpackage` đóng gói modular application thành app image hoặc native installer. Với modular app, dùng `--module-path` để chỉ các module và `--module module/main-class` để chọn entry point. Nếu không cung cấp runtime image, công cụ có thể dùng `jlink` để tạo runtime phù hợp; có thể cung cấp image tự tạo bằng `--runtime-image`. Tạo và kiểm thử app image trước, sau đó build installer trên nền tảng đích. Dùng `--java-options` cho JVM option và `--arguments` cho argument của ứng dụng.
+`jpackage` packages a modular application into an app image or native installer. For modular apps, use `--module-path` to point to modules and `--module module/main-class` to select the entry point. If no runtime image is provided, the tool can use `jlink` to create an appropriate runtime; you can supply a custom-built image with `--runtime-image`. Create and test an app image first, then build the installer on the target platform. Use `--java-options` for JVM options and `--arguments` for application arguments.

@@ -1,72 +1,72 @@
-# So sánh tính sửa đổi được, thứ tự và chính sách null của kết quả
+# Comparing Result Mutability, Ordering, and Null Policies
 
-## 1. Cùng một pipeline, nhưng Collection đầu ra có thể mang hợp đồng khác nhau
+## 1. Same Pipeline, Different Contracts on the Output Collection
 
-Trong chương **Thu thập thành Collection** của **JAVA_STREAM_API**, sau các bước `filter`, `map` hay `flatMap`, ta thường muốn materialize dữ liệu thành `List`, `Set` hoặc `Map` để dùng tiếp. Lựa chọn terminal operation không chỉ quyết định **kiểu dữ liệu**, mà còn ảnh hưởng đến ba hợp đồng có ý nghĩa trực tiếp với chương trình:
+In the **Collecting into Collections** chapter of **JAVA_STREAM_API**, after `filter`, `map`, or `flatMap` steps, we often want to materialize data into a `List`, `Set`, or `Map` for further use. Choosing a terminal operation does not only determine the **data type**, but also affects three contracts that matter directly to your program:
 
-1. **Tính sửa đổi được (mutability):** Collection có cho phép `add`, `remove`, `set` hoặc `put` sau khi thu thập không?
-2. **Thứ tự (ordering):** Collection có duy trì encounter order của Stream, thứ tự chèn, thứ tự sắp xếp hay không bảo đảm thứ tự duyệt?
-3. **Chính sách `null`:** Collection hoặc collector có chấp nhận phần tử `null`, khóa `null`, giá trị `null` hay ném ngoại lệ?
+1. **Mutability:** Does the Collection allow `add`, `remove`, `set`, or `put` after collection?
+2. **Ordering:** Does the Collection preserve the Stream's encounter order, insertion order, sorted order, or guarantee no iteration order?
+3. **`null` policy:** Does the Collection or collector accept `null` elements, `null` keys, `null` values, or throw an exception?
 
-Ví dụ hai câu lệnh có thể tạo các danh sách trông giống nhau, nhưng hợp đồng sử dụng về sau khác nhau:
+For example, two statements can produce lists that look alike yet have different contracts for downstream code:
 
 ~~~java
 import java.util.List;
 import java.util.stream.Collectors;
 
-List<String> immutableResult = List.of("An", "Bình")
+List<String> immutableResult = List.of("An", "Binh")
     .stream()
     .toList();
 
-List<String> unspecifiedResult = List.of("An", "Bình")
+List<String> unspecifiedResult = List.of("An", "Binh")
     .stream()
     .collect(Collectors.toList());
 ~~~
 
-Danh sách đầu từ `Stream.toList()` **không sửa đổi được** theo đặc tả. Với `Collectors.toList()`, API **không cam kết** kiểu triển khai, tính sửa đổi được, tính tuần tự hóa hoặc an toàn luồng. Nhiều JDK hiện nay trả `ArrayList` có thể sửa, nhưng viết code phụ thuộc vào đặc điểm đó là dựa vào implementation detail.
+The first list from `Stream.toList()` is **unmodifiable** by specification. With `Collectors.toList()`, the API **does not guarantee** the implementation class, mutability, serializability, or thread-safety. Many current JDKs return a mutable `ArrayList`, but writing code that relies on that trait depends on an implementation detail.
 
 ~~~text
-                 Stream<T> sau filter / map / ...
+                 Stream<T> after filter / map / ...
                                │
-                 Chọn cách materialize dữ liệu
+                 Choose how to materialize data
                                │
            ┌───────────────────┼────────────────────┐
            ▼                   ▼                    ▼
-       Danh sách             Tập hợp               Ánh xạ
-        (List)                (Set)                 (Map)
+          List                Set                  Map
+         (List)              (Set)                (Map)
            │                   │                    │
-       - Giữ trùng?        - Loại trùng         - Khóa trùng?
-       - Thứ tự?           - Thứ tự?           - Thứ tự key?
-       - Sửa được?         - Sửa được?         - Sửa được?
-       - Cho null?         - Cho null?         - Key/value null?
+       - Keep dups?        - Deduplicate        - Duplicate keys?
+       - Order?            - Order?             - Key order?
+       - Modifiable?       - Modifiable?        - Modifiable?
+       - Allow null?       - Allow null?        - Null key/value?
 ~~~
 
-**Nguyên tắc chính:** Chọn collector dựa trên **hợp đồng cần bảo đảm**, không dựa vào việc một JDK cụ thể tình cờ trả về `ArrayList` hay `HashMap`.
+**Core principle:** Choose a collector based on **the contract that must be guaranteed**, not because a particular JDK happens to return an `ArrayList` or `HashMap`.
 
-Các ví dụ dùng **Java 17+**. `Stream.toList()` xuất hiện từ Java 16; `Collectors.toUnmodifiableList/Set/Map` và `List.copyOf/Set.copyOf/Map.copyOf` có từ Java 10. Những collector cơ bản như `toList`, `toSet`, `toMap`, `toCollection` có từ Java 8.
+The examples use **Java 17+**. `Stream.toList()` was introduced in Java 16; `Collectors.toUnmodifiableList/Set/Map` and `List.copyOf/Set.copyOf/Map.copyOf` have been available since Java 10. Core collectors such as `toList`, `toSet`, `toMap`, and `toCollection` have existed since Java 8.
 
-## 2. Bảng đối chiếu nhanh các cách thu thập phổ biến
+## 2. Quick Comparison Table of Common Collection Methods
 
-Bảng dưới mô tả **những điều code được phép dựa vào**, khác với chi tiết triển khai thường thấy:
+The table below describes **what code is allowed to rely on**, as opposed to common implementation details:
 
-| Cách thu thập | Sửa đổi Collection sau khi tạo | Thứ tự duyệt kết quả | Chính sách `null` |
+| Collection method | Modifying Collection after creation | Result iteration order | `null` policy |
 | --- | --- | --- | --- |
-| `stream.toList()` | **Không**: danh sách không sửa đổi được | Giữ encounter order nếu Stream có thứ tự | Có thể chứa phần tử `null` |
-| `collect(Collectors.toList())` | **Không cam kết** | Theo encounter order nếu Stream có thứ tự | Không có cam kết riêng rõ ràng trong mô tả collector; JDK thông dụng giữ được `null` |
-| `collect(Collectors.toUnmodifiableList())` | **Không** | Giữ encounter order nếu Stream có thứ tự | **Cấm `null`**; ném `NullPointerException` |
-| `collect(Collectors.toCollection(ArrayList::new))` | **Có**: `ArrayList` cụ thể | Giữ encounter order nếu Stream có thứ tự | `ArrayList` cho phép `null` |
-| `collect(Collectors.toSet())` | **Không cam kết** | **Không cam kết** thứ tự duyệt | Không có cam kết riêng về `null`; tránh phụ thuộc chi tiết triển khai |
-| `collect(Collectors.toUnmodifiableSet())` | **Không** | **Không cam kết** thứ tự duyệt | **Cấm `null`**; ném `NullPointerException` |
-| `collect(Collectors.toCollection(LinkedHashSet::new))` | **Có**: `LinkedHashSet` | Theo thứ tự chèn; với nguồn ordered là thứ tự lần xuất hiện đầu của mỗi giá trị | Cho phép một phần tử `null` |
-| `collect(Collectors.toCollection(TreeSet::new))` | **Có**: `TreeSet` | Thứ tự so sánh tự nhiên (hoặc comparator do supplier cung cấp) | `TreeSet` sắp xếp tự nhiên không chấp nhận `null` |
+| `stream.toList()` | **No**: list is unmodifiable | Preserves encounter order if Stream is ordered | Can contain `null` elements |
+| `collect(Collectors.toList())` | **Not guaranteed** | Follows encounter order if Stream is ordered | No explicit guarantee in collector spec; common JDKs retain `null` |
+| `collect(Collectors.toUnmodifiableList())` | **No** | Preserves encounter order if Stream is ordered | **Forbids `null`**; throws `NullPointerException` |
+| `collect(Collectors.toCollection(ArrayList::new))` | **Yes**: concrete `ArrayList` | Preserves encounter order if Stream is ordered | `ArrayList` allows `null` |
+| `collect(Collectors.toSet())` | **Not guaranteed** | **Not guaranteed** iteration order | No explicit guarantee on `null`; avoid relying on implementation details |
+| `collect(Collectors.toUnmodifiableSet())` | **No** | **Not guaranteed** iteration order | **Forbids `null`**; throws `NullPointerException` |
+| `collect(Collectors.toCollection(LinkedHashSet::new))` | **Yes**: `LinkedHashSet` | Insertion order; for ordered sources, first-appearance order of each value | Allows one `null` element |
+| `collect(Collectors.toCollection(TreeSet::new))` | **Yes**: `TreeSet` | Natural comparison order (or comparator provided by supplier) | Naturally ordered `TreeSet` does not accept `null` |
 
-Đối với `Map`, cần phân biệt khóa và giá trị. `toMap` không bảo đảm kiểu Map, tính sửa đổi được hay thứ tự; `toUnmodifiableMap` cho Map không sửa đổi được, cấm khóa hoặc giá trị `null`. Muốn một `LinkedHashMap` có thứ tự và sửa được, truyền supplier cho overload bốn tham số của `Collectors.toMap`.
+For `Map`, distinguish between keys and values. `toMap` guarantees neither Map type, mutability, nor ordering; `toUnmodifiableMap` yields an unmodifiable Map and forbids `null` keys or values. If you want an ordered and mutable `LinkedHashMap`, pass a supplier to the four-argument overload of `Collectors.toMap`.
 
-**Hai cảnh báo khi đọc bảng:** (1) “Không cam kết sửa đổi được” khác với “không sửa đổi được”; (2) với `Set`, thứ tự *in ra khi thử chạy* không tạo thành bảo đảm thứ tự của API.
+**Two warnings when reading the table:** (1) "Not guaranteed to be modifiable" is different from "unmodifiable"; (2) for `Set`, the order *printed during a test run* does not establish an API ordering guarantee.
 
-## 3. Tính sửa đổi được: toList, toUnmodifiableList và toCollection
+## 3. Mutability: toList, toUnmodifiableList, and toCollection
 
-### 3.1. `Stream.toList()` trả List không sửa đổi được
+### 3.1. `Stream.toList()` Returns an Unmodifiable List
 
 ~~~java
 import java.util.List;
@@ -74,79 +74,79 @@ import java.util.stream.Stream;
 
 public class StreamToListDemo {
     public static void main(String[] args) {
-        List<String> names = Stream.of("An", "Bình", "Chi")
+        List<String> names = Stream.of("An", "Binh", "Chi")
             .toList();
 
-        System.out.println(names); // [An, Bình, Chi]
+        System.out.println(names); // [An, Binh, Chi]
 
         // names.add("Dung");      // UnsupportedOperationException
         // names.remove("An");     // UnsupportedOperationException
-        // names.set(0, "Khác");   // UnsupportedOperationException
+        // names.set(0, "Other");  // UnsupportedOperationException
     }
 }
 ~~~
 
-Theo hợp đồng, lời gọi phương thức thay đổi danh sách sẽ ném `UnsupportedOperationException`. `Stream.toList()` không cam kết loại implementation, `Serializable` hay danh tính đối tượng; kết quả có thể là đối tượng dựa trên giá trị (*value-based*), nên tránh đồng bộ bằng khóa trên chính danh sách hoặc dựa vào `==` để so sánh hai kết quả.
+By contract, calls to list-mutating methods throw `UnsupportedOperationException`. `Stream.toList()` does not guarantee implementation type, `Serializable`, or object identity; the result may be *value-based*, so avoid synchronizing on the list's monitor or using `==` to compare two results.
 
-“Không sửa đổi được” áp dụng cho **cấu trúc Collection**, không ngăn ta thay đổi trạng thái của **phần tử mutable** nằm bên trong; sẽ có ví dụ ở mục 10.
+"Unmodifiable" applies to the **Collection structure**, and does not prevent modifying the state of **mutable elements** inside it; an example appears in section 10.
 
-### 3.2. `Collectors.toList()` không có bảo đảm về mutability
+### 3.2. `Collectors.toList()` Has No Mutability Guarantee
 
 ~~~java
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-List<String> collected = Stream.of("An", "Bình")
+List<String> collected = Stream.of("An", "Binh")
     .collect(Collectors.toList());
 
-// Không viết code nghiệp vụ cần bảo đảm collected.add("Chi") hoạt động.
-// Đặc tả của Collectors.toList() không hứa điều đó.
+// Do not write business code requiring collected.add("Chi") to succeed.
+// The Collectors.toList() specification does not promise that.
 ~~~
 
-Trên một bản JDK hiện tại, việc gọi `add` thường hoạt động vì collector sử dụng một `ArrayList`. Kết quả này không phải hợp đồng API. Nếu yêu cầu là **danh sách có thể sửa**, hãy chọn `toCollection` với supplier rõ ràng.
+On a current JDK, calling `add` often succeeds because the collector uses an `ArrayList`. That outcome is not an API contract. If the requirement is a **modifiable list**, choose `toCollection` with an explicit supplier.
 
 ~~~java
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-ArrayList<String> names = Stream.of("An", "Bình")
+ArrayList<String> names = Stream.of("An", "Binh")
     .collect(Collectors.toCollection(ArrayList::new));
 
 names.add("Chi");
 names.remove("An");
-names.set(0, "Bình mới");
+names.set(0, "Binh new");
 
-System.out.println(names); // [Bình mới, Chi]
+System.out.println(names); // [Binh new, Chi]
 ~~~
 
-`toCollection(ArrayList::new)` làm rõ cả kiểu container lẫn khả năng sửa đổi. Truyền supplier khác nếu cần cấu trúc dữ liệu khác, ví dụ `LinkedList::new` hoặc `LinkedHashSet::new`.
+`toCollection(ArrayList::new)` makes both the container type and mutability explicit. Pass a different supplier if another data structure is required, such as `LinkedList::new` or `LinkedHashSet::new`.
 
-### 3.3. `Collectors.toUnmodifiableList()` cũng không cho sửa
+### 3.3. `Collectors.toUnmodifiableList()` Also Forbids Modification
 
 ~~~java
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-List<String> names = Stream.of("An", "Bình")
+List<String> names = Stream.of("An", "Binh")
     .collect(Collectors.toUnmodifiableList());
 
 // names.add("Chi"); // UnsupportedOperationException
 ~~~
 
-Khi không cần sửa kết quả và biết chắc phần tử không có `null`, cả `Stream.toList()` và `Collectors.toUnmodifiableList()` đều là lựa chọn phù hợp. Tuy nhiên, chúng **khác nhau ở chính sách null**, và `Stream.toList()` thường ngắn gọn hơn khi không cần collector đặc biệt.
+When the result does not need modification and elements are known to contain no `null`, both `Stream.toList()` and `Collectors.toUnmodifiableList()` are suitable choices. However, they **differ in null policy**, and `Stream.toList()` is usually more concise when no special collector is needed.
 
-### 3.4. Tại sao không thể chỉ nhìn kiểu trả về List?
+### 3.4. Why Can You Not Judge Solely by the List Return Type?
 
-Giao diện `List<E>` bao gồm các phương thức sửa đổi **tùy chọn**. Một biến có kiểu `List<String>` có thể trỏ tới `ArrayList` có thể sửa, hoặc danh sách không sửa đổi được. Trình biên dịch không thể suy ra chỉ từ kiểu `List` rằng `add` sẽ thành công. Hợp đồng phải đến từ cách tạo danh sách và tài liệu API.
+The `List<E>` interface includes **optional** mutating methods. A variable of type `List<String>` might point to a mutable `ArrayList` or an unmodifiable list. The compiler cannot infer from the `List` type alone that `add` will succeed. The contract must come from how the list is created and from API documentation.
 
-## 4. Chính sách null của List: khác biệt dễ gây lỗi runtime
+## 4. List Null Policy: Differences That Easily Cause Runtime Errors
 
-`null` có thể xuất hiện khi API cũ trả giá trị vắng mặt, khi map dữ liệu chưa đầy đủ hoặc khi callback của `map` trả về `null`.
+`null` can appear when legacy APIs return absent values, when mapping incomplete data, or when a `map` callback returns `null`.
 
-### 4.1. `Stream.toList()` có thể chứa null
+### 4.1. `Stream.toList()` Can Contain null
 
 ~~~java
 import java.util.List;
@@ -159,23 +159,23 @@ System.out.println(values); // [A, null, B]
 System.out.println(values.get(1) == null); // true
 ~~~
 
-Danh sách vẫn **không sửa đổi được**, mặc dù bên trong có phần tử `null`. “Không sửa đổi được” và “không cho null” là **hai thuộc tính độc lập**.
+The list remains **unmodifiable**, even though it contains a `null` element. "Unmodifiable" and "null-free" are **two independent properties**.
 
-### 4.2. `Collectors.toUnmodifiableList()` cấm null
+### 4.2. `Collectors.toUnmodifiableList()` Forbids null
 
 ~~~java
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// Phát sinh NullPointerException trong terminal collect:
+// Throws NullPointerException during terminal collect:
 List<String> invalid = Stream.of("A", null, "B")
     .collect(Collectors.toUnmodifiableList());
 ~~~
 
-Collector này ném `NullPointerException` nếu có phần tử `null`. Đây là hành vi theo hợp đồng, khác với `Stream.toList()`.
+This collector throws `NullPointerException` if any element is `null`. This is contractual behavior, differing from `Stream.toList()`.
 
-Nếu yêu cầu là **bỏ phần tử null và trả một danh sách không sửa đổi được**:
+If the requirement is to **drop null elements and return an unmodifiable list**:
 
 ~~~java
 import java.util.List;
@@ -190,9 +190,9 @@ List<String> cleaned = Stream.of("A", null, "B")
 System.out.println(cleaned); // [A, B]
 ~~~
 
-Hoặc có thể dùng `filter(Objects::nonNull).toList()` nếu chính sách đầu ra không yêu cầu collector `toUnmodifiableList`.
+Or you can use `filter(Objects::nonNull).toList()` if the output policy does not require the `toUnmodifiableList` collector.
 
-### 4.3. `List.of` và `List.copyOf` cấm null
+### 4.3. `List.of` and `List.copyOf` Forbid null
 
 ~~~java
 import java.util.List;
@@ -204,23 +204,23 @@ List<String> withNull = Stream.of("A", null).toList();
 // List.of("A", null);    // NullPointerException.
 ~~~
 
-Vì vậy, nếu chọn một phương thức chuyển đổi không sửa đổi được bằng `List.copyOf`, cần xử lý `null` **trước** khi chuyển.
+Therefore, if you choose an unmodifiable conversion via `List.copyOf`, handle `null` **before** converting.
 
-### 4.4. `Collectors.toList()` với null có đáng dựa vào không?
+### 4.4. Is `Collectors.toList()` Safe to Rely On with null?
 
-Nhiều JDK hiện tại tích lũy `Collectors.toList()` vào `ArrayList` và chấp nhận `null`. Tuy nhiên, tài liệu collector không cam kết kiểu List hay một chính sách null riêng theo cách `Collectors.toUnmodifiableList()` tuyên bố rõ ràng. Với dữ liệu có null là một yêu cầu nghiệp vụ, hãy thể hiện chính sách rõ: `toCollection(ArrayList::new)` nếu muốn chứa null trong một ArrayList mutable, `Stream.toList()` nếu cần List không sửa đổi được nhưng có thể chứa null, hoặc lọc/chuyển null trước khi dùng collector cấm null.
+Many current JDKs accumulate `Collectors.toList()` into an `ArrayList` and accept `null`. However, the collector specification promises neither a List implementation nor a specific null policy the way `Collectors.toUnmodifiableList()` explicitly states it. When data can contain `null` as a business requirement, make the policy explicit: `toCollection(ArrayList::new)` if you want to hold `null` in a mutable `ArrayList`, `Stream.toList()` if you need an unmodifiable List that can contain `null`, or filter/transform `null` before using a collector that forbids `null`.
 
-## 5. Encounter order: thứ tự nguồn khác thứ tự duyệt Collection
+## 5. Encounter Order: Source Order vs. Collection Iteration Order
 
-**Encounter order** là thứ tự mà Stream phải tôn trọng nếu nguồn và pipeline có thứ tự. Ví dụ `List.stream()` có thứ tự phần tử của List; `HashSet.stream()` không cam kết encounter order.
+**Encounter order** is the order a Stream must respect if the source and pipeline are ordered. For instance, `List.stream()` has the List's element order; `HashSet.stream()` does not promise an encounter order.
 
-### 5.1. List từ Stream ordered giữ encounter order
+### 5.1. Lists from Ordered Streams Preserve Encounter Order
 
 ~~~java
 import java.util.List;
 import java.util.stream.Collectors;
 
-List<String> names = List.of("Chi", "An", "Bình");
+List<String> names = List.of("Chi", "An", "Binh");
 
 List<String> a = names.stream().toList();
 
@@ -230,14 +230,14 @@ List<String> b = names.stream()
 List<String> c = names.stream()
     .collect(Collectors.toUnmodifiableList());
 
-System.out.println(a); // [Chi, An, Bình]
-System.out.println(b); // [Chi, An, Bình]
-System.out.println(c); // [Chi, An, Bình]
+System.out.println(a); // [Chi, An, Binh]
+System.out.println(b); // [Chi, An, Binh]
+System.out.println(c); // [Chi, An, Binh]
 ~~~
 
-`toList()` bảo toàn encounter order nếu có. `Collectors.toList()` và `toUnmodifiableList()` là những collector có thứ tự; với nguồn ordered, chúng cũng tích lũy theo encounter order, kể cả khi terminal chạy trên parallel stream.
+`toList()` preserves encounter order if present. `Collectors.toList()` and `toUnmodifiableList()` are ordered collectors; with ordered sources, they also accumulate in encounter order, even when the terminal runs on a parallel stream.
 
-### 5.2. `parallel()` không tự xóa encounter order
+### 5.2. `parallel()` Does Not Automatically Erase Encounter Order
 
 ~~~java
 import java.util.List;
@@ -251,11 +251,11 @@ List<Integer> values = IntStream.rangeClosed(1, 5)
 System.out.println(values); // [1, 2, 3, 4, 5]
 ~~~
 
-Pipeline có thể xử lý các phần tử trên nhiều worker khác nhau, nhưng kết quả của terminal `toList()` phải giữ encounter order khi nguồn có thứ tự.
+The pipeline may process elements across different worker threads, but the result of the terminal `toList()` must preserve encounter order when the source is ordered.
 
-Ngược lại, `forEach` trên parallel stream không cam kết thứ tự **thực thi action**. Không tự tạo danh sách kết quả bằng cách `parallelStream().forEach(shared::add)` với `ArrayList` dùng chung: hành vi vừa không thread-safe vừa làm mất cơ chế gom kết quả đúng của Stream API.
+Conversely, `forEach` on a parallel stream does not guarantee **action execution** order. Never build a result list via `parallelStream().forEach(shared::add)` on a shared `ArrayList`: that behavior is both non-thread-safe and defeats the Stream API's proper collection mechanism.
 
-### 5.3. `unordered()` cho phép bỏ ràng buộc
+### 5.3. `unordered()` Allows Dropping the Constraint
 
 ~~~java
 import java.util.List;
@@ -267,20 +267,20 @@ List<Integer> values = IntStream.rangeClosed(1, 5)
     .boxed()
     .toList();
 
-// Có thể vẫn là [1, 2, 3, 4, 5], nhưng không còn cam kết thứ tự đó.
+// May still be [1, 2, 3, 4, 5], but that order is no longer promised.
 ~~~
 
-`unordered()` không phải phép trộn ngẫu nhiên; nó loại bỏ ràng buộc encounter order. Khi cần danh sách luôn theo thứ tự cố định, dùng nguồn có thứ tự hoặc `sorted(...)` với comparator đủ phân biệt các phần tử.
+`unordered()` is not a random shuffle; it removes the encounter-order constraint. When you need a list always in a fixed order, use an ordered source or `sorted(...)` with a comparator that adequately distinguishes elements.
 
-### 5.4. Đừng lấy thứ tự in ra một lần làm hợp đồng
+### 5.4. Do Not Treat a Single Printed Order as a Contract
 
-Một `HashSet` hoặc `HashMap` có thể cho cùng thứ tự duyệt trên vài lần chạy, nhưng thứ tự đó không được bảo đảm. Trong kiểm thử, so sánh theo cấu trúc thích hợp: nếu thứ tự có ý nghĩa, dùng List/LinkedHashSet/LinkedHashMap hoặc sorted collection; nếu không, so sánh theo tập phần tử.
+A `HashSet` or `HashMap` may produce the same iteration order across several runs, yet that order is not guaranteed. In tests, compare using the appropriate structure: if order matters, use `List`/`LinkedHashSet`/`LinkedHashMap` or a sorted collection; otherwise, compare as a set of elements.
 
-## 6. Thu thập thành Set: loại trùng, thứ tự và null
+## 6. Collecting into Set: Deduplication, Ordering, and null
 
-`Set` loại bỏ phần tử trùng theo quy tắc bằng nhau của loại Set tương ứng. Khi chuyển từ Stream sang Set, ta đổi cả **chính sách giữ phần tử trùng** lẫn có thể đổi thứ tự duyệt kết quả.
+`Set` removes duplicate elements according to the equality rule of the corresponding Set type. When moving from a Stream to a Set, you change the **duplicate-retention policy** and may also change result iteration order.
 
-### 6.1. `Collectors.toSet()` không cam kết thứ tự hay mutability
+### 6.1. `Collectors.toSet()` Guarantees Neither Order Nor Mutability
 
 ~~~java
 import java.util.List;
@@ -296,9 +296,9 @@ System.out.println(unique.size()); // 3
 System.out.println(unique.containsAll(List.of("A", "B", "C"))); // true
 ~~~
 
-Không viết kiểm thử đòi `unique.toString().equals("[B, A, C]")` hoặc `unique.add("D")` phải hoạt động: `toSet()` không cam kết thứ tự duyệt, kiểu Set hay tính sửa đổi được.
+Do not write tests expecting `unique.toString().equals("[B, A, C]")` or `unique.add("D")` to work: `toSet()` guarantees neither iteration order, concrete Set type, nor mutability.
 
-### 6.2. `toUnmodifiableSet()` không sửa được và cấm null
+### 6.2. `toUnmodifiableSet()` Is Unmodifiable and Forbids null
 
 ~~~java
 import java.util.Set;
@@ -315,9 +315,9 @@ System.out.println(unique.size()); // 3
 //                              ^ NullPointerException
 ~~~
 
-Khi có nhiều phần tử **bằng nhau** theo `equals`, collector có thể giữ **bất kỳ đại diện nào** trong nhóm đó; không dựa vào việc luôn giữ object xuất hiện đầu tiên. Thứ tự duyệt Set trả về cũng không được bảo đảm.
+When multiple elements are **equal** under `equals`, the collector may keep **any representative** from that group; do not rely on always keeping the first-appearing object. Iteration order of the returned Set is also not guaranteed.
 
-### 6.3. `LinkedHashSet` cho tập hợp có thứ tự chèn
+### 6.3. `LinkedHashSet` for an Insertion-Ordered Set
 
 ~~~java
 import java.util.LinkedHashSet;
@@ -330,14 +330,14 @@ LinkedHashSet<String> uniqueInOrder = List.of("B", "A", "B", "C")
 
 System.out.println(uniqueInOrder); // [B, A, C]
 
-uniqueInOrder.add("D"); // Có thể sửa.
+uniqueInOrder.add("D"); // Modifiable.
 ~~~
 
-Với nguồn có encounter order, lần xuất hiện đầu tiên của mỗi giá trị xác định thứ tự chèn vào `LinkedHashSet`. Tuy nhiên, nếu nguồn đã `unordered()`, collection này chỉ giữ **thứ tự nhận/chèn thực tế**; nó không thể tái tạo thứ tự gốc đã bỏ.
+With an encounter-ordered source, the first appearance of each value determines its insertion order into `LinkedHashSet`. However, if the source was `unordered()`, this collection only preserves the **actual received/insertion order**; it cannot reconstruct a discarded original order.
 
-`LinkedHashSet` cho phép một phần tử `null`, vì vậy có thể dùng nếu chính sách nghiệp vụ yêu cầu “giữ một giá trị rỗng” trong tập kết quả.
+`LinkedHashSet` allows one `null` element, so it can be used if business policy requires "retaining one null value" in the result set.
 
-### 6.4. `TreeSet` thiết lập thứ tự theo comparator
+### 6.4. `TreeSet` Establishes Order via Comparator
 
 ~~~java
 import java.util.TreeSet;
@@ -351,15 +351,15 @@ TreeSet<Integer> sortedUnique = List.of(5, 2, 5, 1, 3)
 System.out.println(sortedUnique); // [1, 2, 3, 5]
 ~~~
 
-`TreeSet` có thể sửa được và duyệt theo thứ tự so sánh. Nó loại phần tử khi comparator coi chúng tương đương (`compare(a,b) == 0`), ngay cả khi `equals` của hai phần tử khác nhau; vì vậy nên bảo đảm comparator phù hợp với quy tắc bằng nhau theo mục tiêu nghiệp vụ. `TreeSet` dùng natural ordering không cho phép null.
+`TreeSet` is modifiable and iterates in comparison order. It drops elements when the comparator considers them equivalent (`compare(a,b) == 0`), even if `equals` between the two elements differs; therefore, ensure the comparator aligns with the business equality rule. A `TreeSet` using natural ordering does not allow `null`.
 
-Nếu chỉ cần một List không sửa đổi được theo thứ tự, có thể dùng `distinct().sorted().toList()`, không nhất thiết phải tạo TreeSet.
+If you only need an unmodifiable ordered List, you can use `distinct().sorted().toList()`, without necessarily creating a `TreeSet`.
 
-## 7. Thu thập thành Map: ba loại hợp đồng cần rõ ràng
+## 7. Collecting into Map: Three Contracts That Must Be Clear
 
-`Map<K,V>` thêm hai vấn đề: **khóa trùng** và **null ở khóa/giá trị**. Một collector có thể chọn chính sách khóa trùng, trong khi Map trả về có chính sách thứ tự hoặc khả năng sửa đổi khác với List hay Set.
+`Map<K,V>` adds two issues: **duplicate keys** and **`null` in keys/values**. A collector can define a duplicate-key policy, while the returned Map has ordering or mutability contracts different from List or Set.
 
-### 7.1. `toMap` mặc định từ chối khóa trùng
+### 7.1. Default `toMap` Rejects Duplicate Keys
 
 ~~~java
 import java.util.List;
@@ -370,7 +370,7 @@ record User(int id, String name) {}
 
 List<User> users = List.of(
     new User(1, "An"),
-    new User(2, "Bình")
+    new User(2, "Binh")
 );
 
 Map<Integer, String> byId = users.stream()
@@ -379,15 +379,15 @@ Map<Integer, String> byId = users.stream()
 System.out.println(byId.get(1)); // An
 ~~~
 
-Nếu có hai phần tử cùng `id`, overload hai tham số của `toMap` sẽ ném `IllegalStateException`. Phải xác định chính sách gộp hoặc chọn khóa thực sự duy nhất; không dựa vào “giá trị cuối tự ghi đè”.
+If two elements share the same `id`, the two-argument overload of `toMap` throws `IllegalStateException`. You must define a merge policy or choose truly unique keys; never assume "the last value overwrites automatically".
 
 ~~~java
 List<User> duplicated = List.of(
     new User(1, "An"),
-    new User(1, "An cập nhật")
+    new User(1, "An updated")
 );
 
-// Chọn dữ liệu xuất hiện sau theo thứ tự gặp:
+// Pick the entry appearing later in encounter order:
 Map<Integer, String> lastWins = duplicated.stream()
     .collect(Collectors.toMap(
         User::id,
@@ -396,9 +396,9 @@ Map<Integer, String> lastWins = duplicated.stream()
     ));
 ~~~
 
-Với parallel stream có encounter order, collector có thể kết hợp các nhánh nhưng vẫn phải tuân thủ ngữ nghĩa tương ứng của một collector ordered; dù vậy, khi “mới nhất” mang nghĩa **thời gian nghiệp vụ**, hãy so sánh timestamp hoặc phiên bản một cách tường minh, không mặc định rằng thứ tự stream phản ánh bản ghi mới nhất.
+With an encounter-ordered parallel stream, the collector may merge branches yet must still adhere to the semantics of an ordered collector; even so, when "latest" means **business timestamp**, compare timestamps or versions explicitly rather than assuming stream order reflects the newest record.
 
-### 7.2. `toMap` không cam kết Map trả về sửa được hoặc có thứ tự
+### 7.2. `toMap` Does Not Promise a Modifiable or Ordered Map
 
 ~~~java
 import java.util.LinkedHashMap;
@@ -413,13 +413,13 @@ Map<Integer, String> orderedById = users.stream()
         LinkedHashMap::new
     ));
 
-System.out.println(orderedById); // {1=An, 2=Bình}
-orderedById.put(3, "Chi"); // Có thể sửa.
+System.out.println(orderedById); // {1=An, 2=Binh}
+orderedById.put(3, "Chi"); // Modifiable.
 ~~~
 
-Overload bốn tham số cho phép chọn Map cụ thể. `LinkedHashMap` dùng thứ tự chèn; với nguồn ordered, thứ tự chèn phản ánh lần xuất hiện đầu của khóa trong pipeline. Muốn Map có **thứ tự theo khóa** thì chọn `TreeMap::new` với kiểu khóa so sánh được hoặc supplier kèm comparator phù hợp.
+The four-argument overload lets you pick a concrete Map. `LinkedHashMap` uses insertion order; with an ordered source, insertion order reflects the first appearance of each key in the pipeline. If you want a Map **ordered by key**, choose `TreeMap::new` with a comparable key type or a supplier with an appropriate comparator.
 
-### 7.3. `toUnmodifiableMap` tạo Map không sửa được
+### 7.3. `toUnmodifiableMap` Creates an Unmodifiable Map
 
 ~~~java
 import java.util.Map;
@@ -434,13 +434,13 @@ Map<Integer, String> immutableById = users.stream()
 // immutableById.put(3, "Chi"); // UnsupportedOperationException
 ~~~
 
-`toUnmodifiableMap` cấm `null` ở **cả khóa lẫn giá trị**. Nó cũng ném `IllegalStateException` nếu có khóa trùng trong overload hai tham số; có overload ba tham số nhận merge function để xác định cách giải quyết trùng khóa. Không dựa vào thứ tự duyệt của Map mà collector trả về.
+`toUnmodifiableMap` forbids `null` in **both keys and values**. It also throws `IllegalStateException` on duplicate keys in the two-argument overload; a three-argument overload accepts a merge function to resolve duplicate keys. Do not rely on the iteration order of the Map returned by this collector.
 
-### 7.4. Khóa và giá trị null trong Map: xử lý trước terminal
+### 7.4. Null Keys and Values in Map: Handle Before the Terminal Operation
 
-Không nên thiết kế pipeline phụ thuộc vào việc `Collectors.toMap` có chấp nhận khóa `null` hay giá trị `null` trong một bản JDK cụ thể. API không đưa ra bảo đảm chung về một Map hỗ trợ cả hai; một số tổ hợp ném `NullPointerException` khi thu thập.
+Do not design pipelines that depend on whether `Collectors.toMap` accepts `null` keys or `null` values in a specific JDK version. The API offers no general guarantee of a Map supporting both; some combinations throw `NullPointerException` during collection.
 
-Một cách rõ ràng là lọc dữ liệu không đầy đủ trước khi tạo Map:
+A clear approach is filtering out incomplete data before building the Map:
 
 ~~~java
 import java.util.List;
@@ -452,7 +452,7 @@ record Entry(String key, String value) {}
 
 List<Entry> raw = List.of(
     new Entry("A", "Alpha"),
-    new Entry(null, "Không có khóa"),
+    new Entry(null, "No key"),
     new Entry("B", null)
 );
 
@@ -466,11 +466,11 @@ Map<String, String> safe = raw.stream()
 System.out.println(safe); // {A=Alpha}
 ~~~
 
-Nếu null có ý nghĩa nghiệp vụ (ví dụ “giá trị chưa được ghi nhận”), hãy chọn kiểu dữ liệu thể hiện trạng thái này rõ ràng, như một record kết quả có trường trạng thái, thay vì âm thầm bỏ bản ghi hoặc dựa vào chính sách null của HashMap.
+If null has business meaning (e.g., "value not yet recorded"), choose a data type that represents this state explicitly, such as a result record with a status field, rather than silently dropping records or relying on HashMap's null policy.
 
-## 8. `groupingBy`, thứ tự Map và thứ tự danh sách trong từng nhóm
+## 8. `groupingBy`, Map Ordering, and List Ordering Within Each Group
 
-`groupingBy` là collector phổ biến khi một phần tử được đưa vào nhóm theo khóa. Collection trả về thường là một Map, nên phải xem xét đồng thời **thứ tự khóa** và **thứ tự phần tử của mỗi nhóm**.
+`groupingBy` is a common collector when each element is placed into a group by key. Because the returned Collection is typically a Map, you must consider both **key order** and **element order within each group**.
 
 ~~~java
 import java.util.List;
@@ -481,7 +481,7 @@ record Order(String customer, int quantity) {}
 
 List<Order> orders = List.of(
     new Order("An", 2),
-    new Order("Bình", 1),
+    new Order("Binh", 1),
     new Order("An", 3)
 );
 
@@ -489,7 +489,7 @@ Map<String, List<Order>> grouped = orders.stream()
     .collect(Collectors.groupingBy(Order::customer));
 ~~~
 
-`Collectors.groupingBy` dạng mặc định **không cam kết** kiểu Map, mutability, serializability hay thread safety của Map kết quả. `Collectors.toList()` ở tầng downstream cũng không bảo đảm List có thể sửa. Với source ordered, các danh sách nhóm thường giữ thứ tự phần tử gặp trong nhóm theo ngữ nghĩa của downstream collector; nhưng nếu cần một loại List hoặc thứ tự duyệt khóa cụ thể, hãy khai báo rõ.
+The default `Collectors.groupingBy` form **does not guarantee** the Map type, mutability, serializability, or thread-safety of the resulting Map. The downstream `Collectors.toList()` also does not guarantee mutable Lists. With an ordered source, group lists generally retain the encounter order of elements in the group per the downstream collector's semantics; however, if you need a specific List type or key iteration order, declare it explicitly.
 
 ~~~java
 import java.util.ArrayList;
@@ -505,21 +505,21 @@ Map<String, List<Order>> orderedGroups = orders.stream()
         Collectors.toCollection(ArrayList::new)
     ));
 
-// Key theo thứ tự gặp đầu tiên: An, Bình.
-// Trong nhóm An, các đơn xuất hiện theo thứ tự [2, 3].
+// Keys in first-seen order: An, Binh.
+// In group An, orders appear in order [2, 3].
 ~~~
 
-`LinkedHashMap::new` bảo đảm duyệt khóa theo thứ tự chèn, còn `toCollection(ArrayList::new)` tạo danh sách mutable và giữ encounter order của các phần tử trong nhóm khi nguồn ordered. Nếu muốn đầu ra không sửa đổi được, cần một bước chuyển đổi phù hợp cho cả Map và các List bên trong; chỉ bọc Map ở ngoài **không** làm các List bên trong tự bất biến.
+`LinkedHashMap::new` guarantees key iteration in insertion order, and `toCollection(ArrayList::new)` creates mutable lists preserving the encounter order of elements within each group when the source is ordered. If an unmodifiable output is desired, apply an appropriate transformation for both the Map and the inner Lists; wrapping only the outer Map **does not** automatically make the inner Lists immutable.
 
-**Lưu ý null:** implementation của `groupingBy` không cho phép classifier trả về khóa `null`, thường ném `NullPointerException`. Hãy lọc hoặc thay thế khóa null bằng một nhóm có tên rõ ràng trước khi grouping.
+**Null note:** standard `groupingBy` implementations do not allow the classifier to return a `null` key, typically throwing `NullPointerException`. Filter or replace null keys with a named placeholder group before grouping.
 
-## 9. Mutable, unmodifiable và immutable là ba ý niệm cần phân biệt
+## 9. Mutable, Unmodifiable, and Immutable Are Three Concepts to Distinguish
 
-- **Mutable Collection:** các phép sửa cấu trúc như `add`, `remove`, `put` được hỗ trợ theo hợp đồng.
-- **Unmodifiable Collection:** không sửa cấu trúc qua tham chiếu Collection đó; nhưng các phần tử chứa bên trong vẫn có thể mutable.
-- **Deep immutable:** toàn bộ đồ thị dữ liệu có thể quan sát qua Collection không bị thay đổi sau khi tạo. Đây là yêu cầu mạnh hơn mà `toList()`, `toUnmodifiableList()` và `List.copyOf()` **không tự bảo đảm**.
+- **Mutable Collection:** structural mutations like `add`, `remove`, `put` are supported by contract.
+- **Unmodifiable Collection:** structural modifications cannot be performed through that Collection reference; however, elements stored inside may still be mutable.
+- **Deep immutable:** the entire data graph observable through the Collection cannot change after creation. This is a stronger requirement that `toList()`, `toUnmodifiableList()`, and `List.copyOf()` **do not automatically guarantee**.
 
-### 9.1. Danh sách không sửa được vẫn có thể chứa object mutable
+### 9.1. An Unmodifiable List Can Still Hold Mutable Objects
 
 ~~~java
 import java.util.List;
@@ -535,19 +535,19 @@ builder.append("!");
 System.out.println(result.get(0)); // A!
 ~~~
 
-Bản thân danh sách không bị thêm, bớt hay thay thế phần tử, nhưng nội dung phần tử thay đổi. Nếu ứng dụng cần một snapshot thật sự bất biến, hãy chuyển dữ liệu thành các value object bất biến hoặc bản sao phòng vệ trước khi thu thập.
+The list itself has no elements added, removed, or replaced, yet an element's contents changed. If the application needs a truly immutable snapshot, convert data into immutable value objects or defensive copies before collecting.
 
 ~~~java
 List<String> snapshot = Stream.of(builder)
     .map(StringBuilder::toString)
     .toList();
 
-// snapshot chứa "A!" tại thời điểm tạo.
+// snapshot contains "A!" at creation time.
 builder.append("?");
 System.out.println(snapshot); // [A!]
 ~~~
 
-### 9.2. `Collections.unmodifiableList` là view; `List.copyOf` tạo bản sao hợp đồng
+### 9.2. `Collections.unmodifiableList` Is a View; `List.copyOf` Creates a Contractual Copy
 
 ~~~java
 import java.util.ArrayList;
@@ -561,15 +561,15 @@ List<String> copy = List.copyOf(source);
 
 source.add("B");
 
-System.out.println(view); // [A, B] vì view phản ánh list nền.
-System.out.println(copy); // [A] vì copy không phụ thuộc thay đổi của source.
+System.out.println(view); // [A, B] because view reflects the backing list.
+System.out.println(copy); // [A] because copy is independent of changes to source.
 ~~~
 
-`Collections.unmodifiableList(source)` chặn chỉnh sửa **qua view**, nhưng vẫn phản ánh việc một tham chiếu khác sửa `source`. `List.copyOf(source)` trả danh sách không sửa được, độc lập với các sửa đổi sau này của `source`; nó không tạo bản sao sâu của từng phần tử.
+`Collections.unmodifiableList(source)` blocks modifications **through the view**, but still reflects mutations to `source` via another reference. `List.copyOf(source)` returns an unmodifiable list independent of later changes to `source`; it does not deep-copy individual elements.
 
-Cả `List.copyOf` lẫn `Set.copyOf` và `Map.copyOf` đều cấm null ở những vị trí liên quan. `Set.copyOf`/`Map.copyOf` không cam kết thứ tự duyệt như `LinkedHashSet`/`LinkedHashMap`.
+`List.copyOf`, `Set.copyOf`, and `Map.copyOf` all forbid `null` in the relevant positions. `Set.copyOf`/`Map.copyOf` do not promise iteration order like `LinkedHashSet`/`LinkedHashMap`.
 
-### 9.3. `collectingAndThen` có ích khi cần bước hoàn thiện
+### 9.3. `collectingAndThen` Is Useful When a Finishing Step Is Needed
 
 ~~~java
 import java.util.List;
@@ -583,18 +583,18 @@ List<String> immutableCopy = Stream.of("A", "B")
     ));
 ~~~
 
-`collectingAndThen` chạy finisher sau khi tích lũy, có thể chuyển List sang kiểu/định dạng cuối. Với `List::copyOf`, finisher sẽ ném NPE nếu kết quả chứa null.
+`collectingAndThen` runs a finisher after accumulation, allowing conversion of the List to a final type or format. With `List::copyOf`, the finisher will throw NPE if the result contains `null`.
 
-Không cần thêm một bước bọc như vậy nếu `Stream.toList()` hoặc `Collectors.toUnmodifiableList()` đã đáp ứng hoàn toàn yêu cầu. Khi cần một **view** hay snapshot có thể có null, phải xác định rõ chính sách thay vì tự động dùng `copyOf`.
+There is no need to add such a wrapper if `Stream.toList()` or `Collectors.toUnmodifiableList()` already meets the requirement. When a **view** or a snapshot that may contain `null` is needed, define the policy explicitly rather than automatically using `copyOf`.
 
-## 10. Một bài toán thực tế: danh sách mã khách hàng sạch, có thứ tự
+## 10. A Practical Problem: A Clean, Ordered List of Customer Codes
 
-Dữ liệu nhập từ hệ thống cũ có thể có khoảng trắng, chữ hoa/chữ thường không nhất quán, giá trị null và mã trùng. Yêu cầu sản phẩm:
+Input from a legacy system may contain whitespace, inconsistent casing, `null` values, and duplicate codes. Product requirements:
 
-- Loại bỏ mã null và mã rỗng.
-- Chuẩn hóa và loại trùng.
-- Sắp xếp để hiển thị ổn định.
-- Trả kết quả không sửa đổi được.
+- Remove `null` and blank codes.
+- Normalize and deduplicate.
+- Sort for stable display.
+- Return an unmodifiable result.
 
 ~~~java
 import java.util.Arrays;
@@ -624,9 +624,9 @@ public class CustomerCodes {
 }
 ~~~
 
-Vì dữ liệu cuối **không chứa null**, `toList()` là lựa chọn gọn. `distinct()` là stateful intermediate operation để loại trùng; `sorted()` tạo thứ tự theo ký tự. Khi nguồn lớn, hai operation này có thể tiêu thụ bộ nhớ đáng kể; hãy đo nếu hiệu năng quan trọng.
+Because the final data **contains no `null`**, `toList()` is a concise choice. `distinct()` is a stateful intermediate operation for deduplication; `sorted()` produces lexicographical order. For large sources, these two operations can consume significant memory; measure if performance matters.
 
-Nếu nghiệp vụ cần **duy trì thứ tự mã xuất hiện đầu tiên** thay vì sắp xếp, bỏ `sorted()` và dùng `distinct().toList()` trên nguồn ordered. Nếu cần một tập mã **có thể sửa** theo thứ tự xuất hiện, dùng:
+If business logic needs to **preserve the first-appearance order of codes** instead of sorting, omit `sorted()` and use `distinct().toList()` on an ordered source. If a **modifiable** set of codes in appearance order is needed, use:
 
 ~~~java
 import java.util.LinkedHashSet;
@@ -640,118 +640,118 @@ LinkedHashSet<String> editable = rawCodes.stream()
     .collect(Collectors.toCollection(LinkedHashSet::new));
 ~~~
 
-Nếu mục tiêu chỉ là kiểm tra sự hiện diện của mã, một `Set` thường phù hợp hơn `List`. Nhưng nếu giao diện người dùng cần hiển thị thứ tự cụ thể, hãy lựa chọn cấu trúc dữ liệu thể hiện yêu cầu này.
+If the goal is merely checking whether a code is present, a `Set` is usually more suitable than a `List`. However, if the UI must display a specific order, choose the data structure that expresses that requirement.
 
-## 11. Những lỗi thường gặp
+## 11. Common Mistakes
 
-### Lỗi 1: Dựa vào khả năng sửa của Collectors.toList
+### Mistake 1: Relying on the Mutability of Collectors.toList
 
 ~~~java
 List<String> names = source.stream()
     .collect(Collectors.toList());
 
-// names.add("X") có thể chạy trên JDK hiện tại,
-// nhưng không được bảo đảm trong hợp đồng của Collectors.toList().
+// names.add("X") may work on the current JDK,
+// but is not guaranteed by the Collectors.toList() contract.
 ~~~
 
-Dùng `Collectors.toCollection(ArrayList::new)` khi kết quả chắc chắn phải có thể sửa.
+Use `Collectors.toCollection(ArrayList::new)` when the result must definitely be modifiable.
 
-### Lỗi 2: Tưởng `toList()` và `toUnmodifiableList()` luôn tương đương
+### Mistake 2: Assuming `toList()` and `toUnmodifiableList()` Are Always Equivalent
 
 ~~~java
-List<String> a = Stream.of("X", null).toList(); // Có thể chứa null.
+List<String> a = Stream.of("X", null).toList(); // May contain null.
 
-// Dòng này ném NullPointerException:
+// This line throws NullPointerException:
 // List<String> b = Stream.of("X", null)
 //     .collect(Collectors.toUnmodifiableList());
 ~~~
 
-Cả hai đều không sửa được, nhưng chính sách null khác nhau.
+Both are unmodifiable, but their `null` policies differ.
 
-### Lỗi 3: Tưởng toSet giữ encounter order
+### Mistake 3: Assuming toSet Preserves Encounter Order
 
 ~~~java
 Set<Integer> set = List.of(3, 1, 2, 1).stream()
     .collect(Collectors.toSet());
 
-// Chỉ được khẳng định set chứa 1, 2, 3; không dựa vào thứ tự in.
+// Can only assert the set contains 1, 2, 3; do not rely on print order.
 ~~~
 
-Dùng `toCollection(LinkedHashSet::new)` để giữ thứ tự lần xuất hiện đầu, hoặc `toCollection(TreeSet::new)` nếu cần thứ tự so sánh.
+Use `toCollection(LinkedHashSet::new)` to keep first-appearance order, or `toCollection(TreeSet::new)` if comparison order is needed.
 
-### Lỗi 4: Giả định parallel stream làm mất thứ tự List
+### Mistake 4: Assuming Parallel Streams Lose List Order
 
 ~~~java
 List<Integer> values = List.of(3, 1, 2).parallelStream()
     .toList();
 
-// values vẫn có encounter order [3, 1, 2].
+// values still has encounter order [3, 1, 2].
 ~~~
 
-Parallel stream có thể chia tác vụ nhưng không mặc nhiên làm mất ràng buộc thứ tự của terminal. Nếu bỏ thứ tự bằng `unordered()`, hành vi mới có thể khác.
+A parallel stream may split tasks, but it does not by default drop the terminal's ordering constraint. If you discard order with `unordered()`, behavior may differ.
 
-### Lỗi 5: Không xử lý khóa trùng trong toMap
+### Mistake 5: Not Handling Duplicate Keys in toMap
 
 ~~~java
-// Với hai User có cùng id:
+// With two Users sharing the same id:
 // users.stream().collect(Collectors.toMap(User::id, User::name));
-// Có thể ném IllegalStateException vì khóa trùng.
+// May throw IllegalStateException due to duplicate key.
 ~~~
 
-Hãy xác định khóa duy nhất hoặc truyền merge function, chẳng hạn chọn bản ghi theo timestamp có quy tắc.
+Ensure unique keys or pass a merge function, such as picking the record according to a defined timestamp rule.
 
-### Lỗi 6: Bọc Map ngoài rồi tưởng dữ liệu lồng nhau bất biến
+### Mistake 6: Wrapping the Outer Map and Assuming Nested Data Is Immutable
 
 ~~~java
 // Map<String, List<Order>> groups = ...
-// Collections.unmodifiableMap(groups) chỉ chặn thay đổi map
-// qua wrapper, không tự làm từng List<Order> bất biến.
+// Collections.unmodifiableMap(groups) only blocks map mutation
+// through the wrapper; it does not make each List<Order> immutable.
 ~~~
 
-Nếu công bố API không cho phép khách hàng sửa cấu trúc lồng nhau, hãy tạo bản sao bất biến của từng nhóm và của Map ở tầng cuối, đồng thời kiểm soát object con mutable.
+If publishing an API that forbids clients from modifying nested structures, create immutable copies of each group and of the outer Map, and watch out for mutable child objects.
 
-### Lỗi 7: So sánh Collection bằng toString khi thứ tự không được bảo đảm
+### Mistake 7: Comparing Collections with toString When Order Is Not Guaranteed
 
 ~~~java
-// Không so sánh chuỗi in ra của HashSet/HashMap để kiểm tra tập giá trị.
-// So sánh Set bằng equals, Map bằng equals nếu thứ tự không có ý nghĩa.
+// Do not compare printed strings of HashSet/HashMap to verify value sets.
+// Compare Sets with equals, and Maps with equals when order is insignificant.
 ~~~
 
-Với List, `List.equals` có xét thứ tự. Với Set và Map, `equals` mô tả quan hệ phần tử/khóa-giá trị, không dựa vào thứ tự duyệt.
+For Lists, `List.equals` considers order. For Sets and Maps, `equals` describes element/key-value membership, independent of iteration order.
 
-## 12. Checklist lựa chọn collector
+## 12. Collector Selection Checklist
 
-| Câu hỏi | Nếu câu trả lời là có | Lựa chọn gợi ý |
+| Question | If the answer is yes | Suggested choice |
 | --- | --- | --- |
-| Có cần List **không sửa đổi được**, giữ encounter order? | Có | `Stream.toList()` |
-| Có cần List **không sửa đổi được** và **loại null**? | Có | `filter(Objects::nonNull).toList()` hoặc `toUnmodifiableList()` sau lọc |
-| Có cần `ArrayList` có thể thay đổi? | Có | `toCollection(ArrayList::new)` |
-| Cần Set nhưng không quan tâm thứ tự duyệt? | Có | `toSet()` hoặc `toUnmodifiableSet()`, theo chính sách sửa/null |
-| Cần Set theo thứ tự xuất hiện đầu tiên? | Có | `toCollection(LinkedHashSet::new)` |
-| Cần Set có thứ tự sắp xếp? | Có | `toCollection(TreeSet::new)` với comparator phù hợp |
-| Cần Map có thứ tự chèn và có thể sửa? | Có | `toMap(..., merge, LinkedHashMap::new)` |
-| Cần Map không sửa được, không chứa null? | Có | `toUnmodifiableMap(...)` |
-| Cần grouping với thứ tự khóa xác định? | Có | `groupingBy(..., LinkedHashMap::new, downstream)` |
-| Dữ liệu có thể chứa null hay khóa trùng? | Có | Lọc, chuẩn hóa hoặc mô hình hóa lỗi và merge policy trước terminal |
+| Need an **unmodifiable** List keeping encounter order? | Yes | `Stream.toList()` |
+| Need an **unmodifiable** List and **drop null**? | Yes | `filter(Objects::nonNull).toList()` or `toUnmodifiableList()` after filtering |
+| Need a modifiable `ArrayList`? | Yes | `toCollection(ArrayList::new)` |
+| Need a Set without caring about iteration order? | Yes | `toSet()` or `toUnmodifiableSet()`, per mutability/null policy |
+| Need a Set in first-appearance order? | Yes | `toCollection(LinkedHashSet::new)` |
+| Need a Set in sorted order? | Yes | `toCollection(TreeSet::new)` with an appropriate comparator |
+| Need a mutable Map in insertion order? | Yes | `toMap(..., merge, LinkedHashMap::new)` |
+| Need an unmodifiable Map with no null? | Yes | `toUnmodifiableMap(...)` |
+| Need grouping with deterministic key order? | Yes | `groupingBy(..., LinkedHashMap::new, downstream)` |
+| Could data contain null or duplicate keys? | Yes | Filter, normalize, or model errors and merge policy before terminal |
 
-**Lưu ý:** “Cần List không sửa được và loại null” không yêu cầu phải dùng `toUnmodifiableList()` nếu `filter(...).toList()` đã mô tả chính xác mong muốn. Ngược lại, nếu muốn **phát hiện null như lỗi**, có thể dùng collector cấm null để thất bại sớm; ứng dụng phải chọn rõ chính sách thay vì chỉ dựa vào hành vi tình cờ.
+**Note:** "Need an unmodifiable List and drop null" does not mandate `toUnmodifiableList()` if `filter(...).toList()` already expresses the intent accurately. Conversely, if you want to **detect null as an error**, you can use a null-forbidding collector to fail fast; the application should choose its policy explicitly rather than relying on incidental behavior.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-1. **`Stream.toList()` có hỗ trợ `add` sau khi thu thập không?** Không; thao tác sửa sẽ ném `UnsupportedOperationException`.
-2. **`Collectors.toList()` có cam kết trả `ArrayList` mutable không?** Không; kiểu và mutability của List không được bảo đảm.
-3. **`Stream.of("A", null).toList()` có thể cho kết quả gì?** Một List không sửa đổi được chứa `"A"` và `null`.
-4. **`Collectors.toUnmodifiableList()` gặp null thì sao?** Ném `NullPointerException`.
-5. **Vì sao `Collectors.toSet()` không dùng để bảo đảm thứ tự hiển thị?** Collector không cam kết thứ tự duyệt của Set kết quả.
-6. **Nếu cần giữ thứ tự xuất hiện đầu tiên nhưng bỏ trùng, nên dùng gì?** `Collectors.toCollection(LinkedHashSet::new)` hoặc `distinct().toList()` nếu muốn List không sửa đổi được.
-7. **`TreeSet` khác `LinkedHashSet` ở điểm nào?** TreeSet dùng thứ tự so sánh; LinkedHashSet dùng thứ tự chèn.
-8. **Hai phần tử có cùng khóa đi vào `toMap(keyMapper, valueMapper)` thì sao?** Collector ném `IllegalStateException` nếu không có merge policy.
-9. **Muốn Map giữ thứ tự chèn, mutable và loại trùng theo quy tắc xác định, dùng gì?** Overload `toMap(key, value, merge, LinkedHashMap::new)`.
-10. **`toUnmodifiableMap` cho phép null ở khóa hay giá trị không?** Không; cả hai đều bị cấm.
-11. **`List.copyOf` khác `Collections.unmodifiableList(source)` thế nào?** Copy không phản ánh việc sửa cấu trúc nguồn sau này; unmodifiable view phản ánh thay đổi của backing list.
-12. **List không sửa đổi được chứa `StringBuilder` có bất biến sâu không?** Không; nội dung StringBuilder vẫn có thể thay đổi.
-13. **`parallelStream().toList()` có giữ encounter order của List không?** Có, nếu pipeline giữ encounter order.
-14. **Nếu classifier của `groupingBy` trả null thì nên làm gì?** Lọc, chuẩn hóa hoặc ánh xạ thành khóa thay thế trước khi grouping.
-15. **Khi nào nên dùng `Collectors.toCollection`?** Khi cần kiểm soát chính xác loại collection, tính sửa đổi được và những thuộc tính như thứ tự chèn/sắp xếp.
+1. **Does `Stream.toList()` support `add` after collection?** No; mutating operations throw `UnsupportedOperationException`.
+2. **Does `Collectors.toList()` guarantee returning a mutable `ArrayList`?** No; neither the List type nor mutability is guaranteed.
+3. **What can `Stream.of("A", null).toList()` return?** An unmodifiable List containing `"A"` and `null`.
+4. **What happens when `Collectors.toUnmodifiableList()` encounters null?** It throws `NullPointerException`.
+5. **Why is `Collectors.toSet()` not used to guarantee display order?** The collector makes no guarantee about the returned Set's iteration order.
+6. **If you need to preserve first-appearance order while removing duplicates, what should you use?** `Collectors.toCollection(LinkedHashSet::new)` or `distinct().toList()` if an unmodifiable List is desired.
+7. **How does `TreeSet` differ from `LinkedHashSet`?** TreeSet uses comparison order; LinkedHashSet uses insertion order.
+8. **What happens when two elements with the same key enter `toMap(keyMapper, valueMapper)`?** The collector throws `IllegalStateException` if no merge policy is supplied.
+9. **To get a mutable Map preserving insertion order and resolving duplicates by a defined rule, what should you use?** The overload `toMap(key, value, merge, LinkedHashMap::new)`.
+10. **Does `toUnmodifiableMap` allow null in keys or values?** No; both are forbidden.
+11. **How does `List.copyOf` differ from `Collections.unmodifiableList(source)`?** The copy does not reflect later structural modifications to the source; the unmodifiable view reflects changes to the backing list.
+12. **Is an unmodifiable List containing `StringBuilder` deeply immutable?** No; the contents of the `StringBuilder` can still be mutated.
+13. **Does `parallelStream().toList()` preserve a List's encounter order?** Yes, provided the pipeline preserves encounter order.
+14. **What should you do if a `groupingBy` classifier could return null?** Filter, normalize, or map it to a fallback key before grouping.
+15. **When should you use `Collectors.toCollection`?** When you need exact control over the collection type, mutability, and properties like insertion or sorted order.
 
-**Ghi nhớ:** Đầu ra của Stream phải được đánh giá theo **mutability, ordering và null policy** như ba hợp đồng độc lập. `Stream.toList()` và `Collectors.toUnmodifiableList()` đều không sửa đổi được nhưng có chính sách null khác nhau; `Collectors.toList()`/`toSet()` không cam kết mutability; `toCollection` và `toMap` có supplier giúp chọn cấu trúc cụ thể. Khi yêu cầu nghiệp vụ rõ ràng, lựa chọn terminal operation rõ ràng sẽ giảm lỗi runtime và làm pipeline dễ bảo trì, ngay cả khi chuyển sang xử lý song song.
+**Key takeaway:** Stream outputs should be evaluated by **mutability, ordering, and null policy** as three independent contracts. `Stream.toList()` and `Collectors.toUnmodifiableList()` are both unmodifiable yet have different null policies; `Collectors.toList()`/`toSet()` do not promise mutability; `toCollection` and `toMap` with a supplier let you select concrete structures. When business requirements are clear, choosing an explicit terminal operation reduces runtime errors and keeps pipelines maintainable, even when moving to parallel processing.

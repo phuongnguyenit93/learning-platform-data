@@ -1,23 +1,23 @@
-# MIN_VALUE, MIN_NORMAL và MAX_VALUE của float/double trong Java
+# MIN_VALUE, MIN_NORMAL, and MAX_VALUE of float/double in Java
 
-> **Java core – numbers · Biểu diễn dấu phẩy động**  
-> **Mục tiêu:** Phân biệt ba hằng biên quan trọng của `Float`/`Double`, đọc đúng miền *normal* và *subnormal* của IEEE 754, hiểu underflow/overflow, nhận biết số 0 có dấu và chọn cách kiểm tra biên phù hợp trong Java 17+.
+> **Java core – numbers · Floating-Point Representation**  
+> **Objective:** Distinguish the three key boundary constants of `Float`/`Double`, accurately read the IEEE 754 *normal* and *subnormal* ranges, understand underflow/overflow, recognize signed zero, and choose appropriate boundary checks in Java 17+.
 
-## 1. Câu trả lời quan trọng nhất
+## 1. The Most Important Answer
 
-Đối với **`float` và `double`**, Java định nghĩa:
+For **`float` and `double`**, Java defines:
 
-- **`MIN_VALUE`:** số dấu phẩy động **dương hữu hạn khác 0 nhỏ nhất** có thể biểu diễn, thuộc vùng **subnormal** (*dưới chuẩn hóa*).
-- **`MIN_NORMAL`:** số dấu phẩy động **dương hữu hạn chuẩn hóa nhỏ nhất** (*smallest positive normal*).
-- **`MAX_VALUE`:** số dấu phẩy động **dương hữu hạn lớn nhất** có thể biểu diễn.
+- **`MIN_VALUE`:** the **smallest nonzero finite positive** representable floating-point number, lying in the **subnormal** region.
+- **`MIN_NORMAL`:** the **smallest positive normal** finite floating-point number.
+- **`MAX_VALUE`:** the **largest finite positive** representable floating-point number.
 
-**Cảnh báo:** `Double.MIN_VALUE` **không phải số âm nhỏ nhất**. Hằng này lớn hơn 0 nhưng cực kỳ gần 0. Nếu cần giá trị `double` hữu hạn âm có độ lớn lớn nhất, dùng `-Double.MAX_VALUE`. Quy tắc tương tự áp dụng cho `Float`.
+**Warning:** `Double.MIN_VALUE` is **not the smallest negative number**. This constant is greater than 0, yet extremely close to 0. If you need the finite negative `double` value with the largest magnitude, use `-Double.MAX_VALUE`. The same rule applies to `Float`.
 
-Đây là đặc điểm khác hẳn hằng `Integer.MIN_VALUE` hay `Long.MIN_VALUE`: đối với kiểu **nguyên**, `MIN_VALUE` là số âm nhỏ nhất; đối với **dấu phẩy động**, nó là số **dương khác 0 nhỏ nhất**.
+This differs completely from `Integer.MIN_VALUE` or `Long.MIN_VALUE`: for **integer** types, `MIN_VALUE` is the most negative number; for **floating-point** types, it is the **smallest nonzero positive** number.
 
-## 2. Bảng giá trị quan trọng
+## 2. Table of Key Values
 
-| Hằng | Giá trị Java in dạng thập phân | Dạng chính xác theo cơ số 2 |
+| Constant | Java Decimal Print Value | Exact Base-2 Form |
 | --- | --- | --- |
 | `Float.MIN_VALUE` | `1.4E-45` | `2^-149` |
 | `Float.MIN_NORMAL` | `1.17549435E-38` | `2^-126` |
@@ -26,9 +26,9 @@
 | `Double.MIN_NORMAL` | `2.2250738585072014E-308` | `2^-1022` |
 | `Double.MAX_VALUE` | `1.7976931348623157E308` | `(2 - 2^-52) × 2^1023` |
 
-Dãy số thập phân trong bảng là cách Java hiển thị giá trị dưới dạng chuỗi ngắn đủ nhận diện giá trị nhị phân; không nên hiểu `4.9E-324` là giá trị toán học chính xác bằng `4.9 × 10^-324`. Dạng lũy thừa của 2 mô tả trực tiếp giá trị trong hệ nhị phân.
+The decimal strings in the table are how Java displays the values as short strings sufficient to identify the binary values; do not interpret `4.9E-324` as mathematically equal to `4.9 × 10^-324`. The power-of-2 form directly describes the value in binary.
 
-Các hằng nằm trong `java.lang.Float` và `java.lang.Double`; không cần import riêng.
+These constants live in `java.lang.Float` and `java.lang.Double`; no separate import is needed.
 
 ```java
 float smallestPositiveFloat = Float.MIN_VALUE;
@@ -40,50 +40,50 @@ double smallestNormalDouble = Double.MIN_NORMAL;
 double largestFiniteDouble = Double.MAX_VALUE;
 ```
 
-Tất cả sáu hằng đều mang giá trị **dương, hữu hạn, khác 0**. Không hằng nào là `NaN` hoặc vô cực.
+All six constants hold **positive, finite, nonzero** values. None of them is `NaN` or infinity.
 
-## 3. Bố cục IEEE 754 giải thích ba ranh giới
+## 3. IEEE 754 Layout Explains the Three Boundaries
 
-Java dùng dạng nhị phân IEEE 754 cho `float` (*binary32*) và `double` (*binary64*):
+Java uses IEEE 754 binary formats for `float` (*binary32*) and `double` (*binary64*):
 
-| Thuộc tính | `float` | `double` |
+| Property | `float` | `double` |
 | --- | ---: | ---: |
-| Tổng số bit | 32 | 64 |
-| Bit dấu | 1 | 1 |
-| Bit exponent lưu trữ | 8 | 11 |
-| Bit fraction lưu trữ | 23 | 52 |
-| Số bit chính xác hiệu dụng của số normal | 24 | 53 |
-| Exponent không thiên lệch nhỏ nhất của normal | −126 | −1022 |
-| Exponent không thiên lệch lớn nhất của normal | +127 | +1023 |
+| Total bits | 32 | 64 |
+| Sign bit | 1 | 1 |
+| Stored exponent bits | 8 | 11 |
+| Stored fraction bits | 23 | 52 |
+| Effective precision bits of normal numbers | 24 | 53 |
+| Smallest unbiased normal exponent | −126 | −1022 |
+| Largest unbiased normal exponent | +127 | +1023 |
 
-Lược đồ:
+Diagram:
 
 ```text
-float  (32 bit): [sign:1][exponent:8 ][fraction:23]
-double (64 bit): [sign:1][exponent:11][fraction:52]
+float  (32 bits): [sign:1][exponent:8 ][fraction:23]
+double (64 bits): [sign:1][exponent:11][fraction:52]
 ```
 
-Với một số **normal hữu hạn** có exponent field không phải toàn 0/toàn 1, giá trị tuyệt đối có dạng:
+For a **finite normal** number whose exponent field is neither all 0s nor all 1s, the magnitude has the form:
 
 \[
 (1+\mathrm{fraction})\times 2^e
 \]
 
-Bit `1` đầu tiên của phần trị normal là **ẩn** (*implicit leading 1*), nhờ vậy số bit chính xác hiệu dụng lớn hơn số bit fraction lưu trong bộ nhớ 1 bit.
+The leading `1` bit of the normal significand is **implicit** (*implicit leading 1*), so the effective precision has 1 more bit than the fraction bits stored in memory.
 
-Với số **subnormal**, exponent field **toàn 0**, fraction field **khác 0**, và bit dẫn đầu chuyển thành **0**:
+For a **subnormal** number, the exponent field is **all 0s**, the fraction field is **nonzero**, and the leading bit becomes **0**:
 
 \[
 \mathrm{fraction}\times 2^{e_{\min}}
 \]
 
-Ở đây `fraction` là giá trị từ các bit phần lẻ nhị phân; `e_min` bằng −126 cho `float` và −1022 cho `double`. Vì không còn bit `1` ẩn, độ chính xác tương đối của các số subnormal giảm dần khi tiến về 0.
+Here `fraction` is the value from the binary fraction bits; `e_min` is −126 for `float` and −1022 for `double`. Without the implicit `1` bit, the relative precision of subnormal numbers decreases gradually as values approach 0.
 
-Exponenent field **toàn 1** được dành cho các giá trị đặc biệt: `Infinity` và `NaN`. Số 0 có exponent field và fraction field đều bằng 0, với bit dấu có thể là 0 hoặc 1.
+An exponent field of **all 1s** is reserved for special values: `Infinity` and `NaN`. Zero has both the exponent field and fraction field equal to 0, with a sign bit of either 0 or 1.
 
-## 4. MIN_NORMAL: ranh giới bắt đầu của số normal
+## 4. MIN_NORMAL: The Starting Boundary of Normal Numbers
 
-Số normal dương nhỏ nhất có phần trị hiệu dụng là **1.0** và exponent nhỏ nhất của normal:
+The smallest positive normal number has an effective significand of **1.0** and the smallest normal exponent:
 
 \[
 \mathrm{Float.MIN\_NORMAL}=1.0\times 2^{-126}
@@ -93,7 +93,7 @@ Số normal dương nhỏ nhất có phần trị hiệu dụng là **1.0** và 
 \mathrm{Double.MIN\_NORMAL}=1.0\times 2^{-1022}
 \]
 
-Trong Java:
+In Java:
 
 ```java
 float f = 0x1.0p-126f;
@@ -103,13 +103,13 @@ System.out.println(f == Float.MIN_NORMAL);   // true
 System.out.println(d == Double.MIN_NORMAL); // true
 ```
 
-Những hằng hex này đọc là: phần trị `0x1.0` bằng 1, chữ `p` chỉ số mũ của **2**, và hậu tố `f` buộc kiểu `float`. Các biểu thức hex rất tiện khi mô tả biên nhị phân chính xác.
+These hex literals read as: significand `0x1.0` equal to 1, `p` indicating the power of **2**, and the `f` suffix forcing type `float`. Hex expressions are very convenient for expressing exact binary boundaries.
 
-**Điều cần tránh:** `MIN_NORMAL` không phải số dương khác 0 nhỏ nhất. Java còn biểu diễn được các giá trị nhỏ hơn nhờ miền subnormal.
+**Pitfall to avoid:** `MIN_NORMAL` is not the smallest nonzero positive number. Java can represent even smaller values thanks to the subnormal range.
 
-## 5. MIN_VALUE: bước nhỏ nhất khác 0 ở sát số 0
+## 5. MIN_VALUE: The Smallest Nonzero Step Near Zero
 
-Số subnormal dương nhỏ nhất có đúng **một bit fraction thấp nhất bằng 1**. Giá trị của nó là:
+The smallest positive subnormal number has **only the lowest fraction bit equal to 1**. Its value is:
 
 \[
 \mathrm{Float.MIN\_VALUE}=2^{-149}
@@ -119,7 +119,7 @@ Số subnormal dương nhỏ nhất có đúng **một bit fraction thấp nhấ
 \mathrm{Double.MIN\_VALUE}=2^{-1074}
 \]
 
-Có thể viết chính xác:
+It can be written exactly as:
 
 ```java
 float minFloat = 0x1p-149f;       // Float.MIN_VALUE
@@ -129,20 +129,20 @@ System.out.println(minFloat == Float.MIN_VALUE);   // true
 System.out.println(minDouble == Double.MIN_VALUE); // true
 ```
 
-Với `double`, fraction field có 52 bit, nên để từ exponent −1022 đi xuống bit fraction cuối cùng cần thêm 52 bậc: `−1022 − 52 = −1074`. Với `float`: `−126 − 23 = −149`.
+For `double`, the fraction field has 52 bits, so stepping from exponent −1022 down to the last fraction bit takes 52 more powers: `−1022 − 52 = −1074`. For `float`: `−126 − 23 = −149`.
 
-Khoảng giữa **0** và **MIN_NORMAL** gồm nhiều số subnormal dương:
+The interval between **0** and **MIN_NORMAL** contains many positive subnormals:
 
 ```text
-0       MIN_VALUE      ...     subnormal lớn nhất    MIN_NORMAL
+0       MIN_VALUE      ...     largest subnormal     MIN_NORMAL
 |-----------|--------------------------|------------------|
             ^                                      ^
-  subnormal dương nhỏ nhất               normal dương nhỏ nhất
+  smallest positive subnormal               smallest positive normal
 ```
 
-Khoảng cách giữa hai giá trị subnormal dương liên tiếp bằng `MIN_VALUE` của kiểu tương ứng. Đây là cơ chế *gradual underflow*, giúp hạn chế việc một phép toán rất nhỏ bị cắt ngay về 0.
+The spacing between two consecutive positive subnormals equals `MIN_VALUE` of the respective type. This is the *gradual underflow* mechanism, helping avoid abruptly truncating very small calculations straight to 0.
 
-Một kiểm tra:
+A verification check:
 
 ```java
 double smallestStep = Double.MIN_VALUE;
@@ -152,11 +152,11 @@ System.out.println(largestSubnormal + smallestStep
         == Double.MIN_NORMAL); // true
 ```
 
-Giá trị subnormal lớn nhất là số nằm ngay trước `MIN_NORMAL` trên trục số dương.
+The largest subnormal value is the number immediately preceding `MIN_NORMAL` on the positive number line.
 
-## 6. MAX_VALUE: số hữu hạn lớn nhất, chưa phải Infinity
+## 6. MAX_VALUE: Largest Finite Number, Not Yet Infinity
 
-`Float.MAX_VALUE` và `Double.MAX_VALUE` mang **exponent hữu hạn lớn nhất** và toàn bộ fraction bit bằng 1:
+`Float.MAX_VALUE` and `Double.MAX_VALUE` carry the **largest finite exponent** and all fraction bits set to 1:
 
 \[
 \mathrm{Float.MAX\_VALUE}=(2-2^{-23})\times 2^{127}
@@ -166,7 +166,7 @@ Giá trị subnormal lớn nhất là số nằm ngay trước `MIN_NORMAL` trê
 \mathrm{Double.MAX\_VALUE}=(2-2^{-52})\times 2^{1023}
 \]
 
-Dạng literal hex chính xác:
+Exact hex literal form:
 
 ```java
 float largestFloat = 0x1.fffffep127f;
@@ -176,7 +176,7 @@ System.out.println(largestFloat == Float.MAX_VALUE); // true
 System.out.println(largestDouble == Double.MAX_VALUE); // true
 ```
 
-**MAX_VALUE không phải Infinity.** Nó hữu hạn. Nhưng một phép tính vượt miền có thể **overflow thành vô cực**:
+**MAX_VALUE is not Infinity.** It is finite. However, an operation exceeding the range can **overflow to infinity**:
 
 ```java
 double big = Double.MAX_VALUE;
@@ -187,26 +187,26 @@ System.out.println(overflow);             // Infinity
 System.out.println(Double.isInfinite(overflow)); // true
 ```
 
-Không được giả định mọi phép vượt gần biên đều lập tức ra `Infinity`: IEEE 754 làm tròn kết quả; ở một số giá trị thực toán học hơi lớn hơn `MAX_VALUE`, phép làm tròn vẫn có thể trả `MAX_VALUE`. Điều đúng cần nhớ là khi **kết quả đã làm tròn vượt số hữu hạn biểu diễn được**, nó trở thành vô cực theo các quy tắc dấu phẩy động.
+Do not assume every near-boundary excess immediately produces `Infinity`: IEEE 754 rounds results; for some mathematical real values slightly larger than `MAX_VALUE`, rounding can still return `MAX_VALUE`. What is accurate to remember is that when the **rounded result exceeds the largest representable finite number**, it becomes infinity under floating-point rules.
 
-Với kết quả âm vượt biên dưới hữu hạn, bạn có thể nhận `Double.NEGATIVE_INFINITY`. Các hằng `POSITIVE_INFINITY`/`NEGATIVE_INFINITY` và `NaN` thuộc hệ giá trị đặc biệt, khác `MAX_VALUE`.
+For negative results exceeding the finite lower bound, you can get `Double.NEGATIVE_INFINITY`. The constants `POSITIVE_INFINITY`/`NEGATIVE_INFINITY` and `NaN` belong to the special-value system, distinct from `MAX_VALUE`.
 
-## 7. Miền số trên trục số: âm, 0, subnormal, normal
+## 7. Number Line Regions: Negative, 0, Subnormal, Normal
 
-Xét riêng các giá trị `double` hữu hạn:
+Considering finite `double` values alone:
 
 ```text
    -Double.MAX_VALUE                                  Double.MAX_VALUE
           |                                                   |
-     âm normal ... âm subnormal  -0.0  +0.0  dương subnormal ... normal
+    neg. normal ... neg. subnormal  -0.0  +0.0  pos. subnormal ... normal
           |                    |    |    |                   |
           +--------------------+----+----+-------------------+
 
-Biên dương:
+Positive boundaries:
 0 < Double.MIN_VALUE < Double.MIN_NORMAL < Double.MAX_VALUE
 ```
 
-Hai số `+0.0` và `-0.0` có **bit dấu khác nhau** nhưng so sánh bằng nhau với toán tử `==`:
+The two numbers `+0.0` and `-0.0` have **different sign bits** yet compare equal with the `==` operator:
 
 ```java
 System.out.println(0.0 == -0.0); // true
@@ -214,9 +214,9 @@ System.out.println(1.0 / 0.0);   // Infinity
 System.out.println(1.0 / -0.0);  // -Infinity
 ```
 
-Vậy `-0.0` là giá trị quan trọng ở ranh giới dưới 0, nhưng **không thể gọi** nó là “số âm hữu hạn nhỏ nhất” theo nghĩa miền giá trị; số âm hữu hạn có trị tuyệt đối lớn nhất là `-Double.MAX_VALUE`.
+So `-0.0` is an important value right at the 0 boundary, yet it **cannot be called** the “smallest finite negative number” in terms of value range; the finite negative number with the largest magnitude is `-Double.MAX_VALUE`.
 
-Một thứ tự giá trị **hữu hạn** quanh 0:
+A **finite** value ordering around 0:
 
 ```text
 ... < -Double.MIN_NORMAL < -Double.MIN_VALUE < -0.0
@@ -224,11 +224,11 @@ Một thứ tự giá trị **hữu hạn** quanh 0:
                                 < Double.MIN_VALUE < Double.MIN_NORMAL < ...
 ```
 
-Ký hiệu `-0.0 = +0.0` ở đây nói về so sánh số học thông thường (`==`), không khẳng định hai biểu diễn bit là giống nhau. Với `Double.compare` hoặc `Double.equals`, có những quy tắc khác về cách phân biệt hai số 0 có dấu.
+The notation `-0.0 = +0.0` here refers to ordinary numeric comparison (`==`), not claiming the two bit representations are identical. Under `Double.compare` or `Double.equals`, different rules govern how the two signed zeros are distinguished.
 
-## 8. Underflow: từ normal qua subnormal rồi về 0
+## 8. Underflow: From Normal Through Subnormal Back to 0
 
-*Underflow* xảy ra khi kết quả tính toán nằm rất sát 0 so với miền/độ chính xác của kiểu dấu phẩy động. Nó có thể tạo ra một số **subnormal**, hoặc về **0 có dấu** nếu kết quả quá nhỏ để làm tròn thành giá trị khác 0.
+*Underflow* occurs when a computed result falls very close to 0 relative to the range/precision of the floating-point type. It can produce a **subnormal** number, or **signed 0** if the result is too small to round to a nonzero value.
 
 ```java
 double justSubnormal = Double.MIN_NORMAL / 2.0;
@@ -239,23 +239,23 @@ System.out.println(justSubnormal < Double.MIN_NORMAL); // true
 System.out.println(underflowToZero);       // 0.0
 ```
 
-Vì `MIN_VALUE` đã là bước subnormal nhỏ nhất khác 0, chia cho 2 tạo giá trị toán học đúng giữa 0 và `MIN_VALUE`; với chế độ làm tròn mặc định đến giá trị gần nhất, hòa thì chọn chữ số chẵn (*round to nearest, ties to even*), kết quả là `+0.0`.
+Because `MIN_VALUE` is already the smallest nonzero subnormal step, dividing by 2 yields a mathematical value halfway between 0 and `MIN_VALUE`; under the default round-to-nearest, ties-to-even mode, the result is `+0.0`.
 
-Tương tự, `-Double.MIN_VALUE / 2.0` làm tròn về `-0.0`; **dấu có thể được giữ ngay cả khi độ lớn về 0**.
+Similarly, `-Double.MIN_VALUE / 2.0` rounds to `-0.0`; **the sign can be preserved even when magnitude drops to 0**.
 
-Vùng subnormal hữu ích vì phép trừ những số rất nhỏ còn có thể cho kết quả khác 0 thay vì lập tức đột ngột về 0. Tuy vậy số subnormal có ít bit có nghĩa hơn, nên **độ chính xác tương đối thấp hơn** so với số normal.
+The subnormal region is useful because subtracting very small numbers can still produce a nonzero result instead of dropping abruptly to 0. However, subnormal numbers have fewer significant bits, so their **relative accuracy is lower** than that of normal numbers.
 
-**Không dùng** `Double.MIN_VALUE` như “ngưỡng sai số nhỏ chuẩn” cho mọi phép so sánh gần bằng. Nó quá nhỏ so với sai số của các phép tính ở độ lớn thường gặp như gần 1 hoặc 1000.
+**Do not use** `Double.MIN_VALUE` as a “standard small epsilon tolerance” for general approximate comparisons. It is far too small compared to arithmetic errors at typical magnitudes such as near 1 or 1000.
 
-## 9. ULP và nextUp/nextDown: cách khảo sát giá trị sát nhau
+## 9. ULP and nextUp/nextDown: How to Inspect Adjacent Values
 
-*ULP* (*unit in the last place*) mô tả khoảng cách giữa những giá trị biểu diễn được ở một vùng độ lớn nhất định. Trong Java:
+*ULP* (*unit in the last place*) describes the spacing between representable values in a given magnitude region. In Java:
 
-- `Math.ulp(x)` cho biết đơn vị bước gần x theo quy tắc của API.
-- `Math.nextUp(x)` trả số dấu phẩy động có thể biểu diễn ngay phía trên x.
-- `Math.nextDown(x)` trả số có thể biểu diễn ngay phía dưới x.
+- `Math.ulp(x)` gives the unit step near x according to the API's definition.
+- `Math.nextUp(x)` returns the representable floating-point number immediately above x.
+- `Math.nextDown(x)` returns the representable number immediately below x.
 
-Các ví dụ kiểm chứng biên:
+Boundary verification examples:
 
 ```java
 System.out.println(Math.nextUp(0.0) == Double.MIN_VALUE); // true
@@ -265,28 +265,28 @@ System.out.println(Math.nextUp(Double.MAX_VALUE));       // Infinity
 System.out.println(Math.ulp(0.0) == Double.MIN_VALUE);    // true
 ```
 
-Với các số normal, khoảng cách giữa các số liền kề **không cố định trên toàn trục số**: càng tăng độ lớn, bước nhảy giữa các giá trị có thể biểu diễn thường tăng theo lũy thừa của 2.
+For normal numbers, the spacing between adjacent numbers **is not constant across the number line**: as magnitude increases, the step between representable values typically scales by powers of 2.
 
-Ví dụ:
+Example:
 
 ```java
 System.out.println(Math.ulp(1.0));    // 2.220446049250313E-16
 System.out.println(Math.ulp(2.0));    // 4.440892098500626E-16
 ```
 
-Vì vậy một điều kiện như `Math.abs(a - b) < Double.MIN_VALUE` gần như chỉ chấp nhận hiệu đúng bằng 0 ở nhiều vùng số; nếu muốn so sánh gần bằng, phải lựa chọn **độ sai số tuyệt đối/tương đối theo nghiệp vụ** (và cân nhắc vô cực, NaN, gần 0).
+Consequently, a condition such as `Math.abs(a - b) < Double.MIN_VALUE` practically accepts only an exact difference of 0 in many number regions; for approximate comparison, choose **absolute/relative error tolerances based on the business domain** (and account for infinity, NaN, and near-zero values).
 
-## 10. Số đặc biệt: NaN, Infinity, positive/negative zero
+## 10. Special Numbers: NaN, Infinity, Positive/Negative Zero
 
-Ngoài số hữu hạn bình thường và subnormal, IEEE 754 còn có:
+Beyond ordinary normal and subnormal finite numbers, IEEE 754 includes:
 
-| Giá trị | Ví dụ tạo ra | Đặc điểm |
+| Value | Creation Example | Characteristics |
 | --- | --- | --- |
-| `Double.POSITIVE_INFINITY` | `1.0 / 0.0` | Không hữu hạn, lớn hơn mọi số hữu hạn |
-| `Double.NEGATIVE_INFINITY` | `-1.0 / 0.0` | Không hữu hạn, nhỏ hơn mọi số hữu hạn |
-| `Double.NaN` | `0.0 / 0.0` | “Not a Number”, so sánh số học đặc biệt |
-| `+0.0` | `0.0` | Số 0 có dấu dương |
-| `-0.0` | `-0.0` | Số 0 có dấu âm; `1.0 / -0.0` trả `-Infinity` |
+| `Double.POSITIVE_INFINITY` | `1.0 / 0.0` | Non-finite, greater than every finite number |
+| `Double.NEGATIVE_INFINITY` | `-1.0 / 0.0` | Non-finite, less than every finite number |
+| `Double.NaN` | `0.0 / 0.0` | “Not a Number”, special arithmetic comparison rules |
+| `+0.0` | `0.0` | Positive-signed zero |
+| `-0.0` | `-0.0` | Negative-signed zero; `1.0 / -0.0` yields `-Infinity` |
 
 ```java
 double x = Double.NaN;
@@ -295,9 +295,9 @@ System.out.println(Double.isNaN(x));     // true
 System.out.println(Double.isFinite(x));  // false
 ```
 
-Không kiểm tra NaN bằng `x == Double.NaN`. Dùng `Double.isNaN(x)`. Với vô cực dùng `Double.isInfinite(x)`, còn `Double.isFinite(x)` xác định số hữu hạn (bao gồm normal, subnormal và cả ±0.0).
+Do not test for NaN using `x == Double.NaN`. Use `Double.isNaN(x)`. For infinity use `Double.isInfinite(x)`, and `Double.isFinite(x)` identifies finite numbers (including normal, subnormal, and both ±0.0).
 
-Nếu API yêu cầu “số dương và hữu hạn”, điều kiện có thể là:
+If an API requires a “positive and finite number,” the condition can be:
 
 ```java
 static boolean positiveFinite(double x) {
@@ -305,22 +305,22 @@ static boolean positiveFinite(double x) {
 }
 ```
 
-Điều kiện này chấp nhận số subnormal dương. Nếu nghiệp vụ muốn chỉ chấp nhận **normal dương**, phải nêu và kiểm tra thêm `x >= Double.MIN_NORMAL` (đồng thời giữ `isFinite`). Điều kiện `x >= Double.MIN_VALUE` **không** thay thế kiểm tra normal.
+This condition accepts positive subnormals. If the domain wants to accept only **positive normals**, it must explicitly state and check `x >= Double.MIN_NORMAL` (while keeping `isFinite`). The condition `x >= Double.MIN_VALUE` does **not** substitute for a normal check.
 
-## 11. Inspect bit: ba hằng khác nhau ở exponent/fraction
+## 11. Inspecting Bits: How the Three Constants Differ in Exponent/Fraction
 
-Xem cấu trúc bit giúp kết nối giá trị thập phân với biểu diễn IEEE 754:
+Examining the bit structure connects decimal values to IEEE 754 representation:
 
-| Hằng | Hex của toàn bộ raw bits | Ý nghĩa |
+| Constant | Hex of Full Raw Bits | Meaning |
 | --- | --- | --- |
-| `Float.MIN_VALUE` | `0x00000001` | exponent=0, fraction có bit thấp nhất |
-| `Float.MIN_NORMAL` | `0x00800000` | exponent lưu bằng 1, fraction=0 |
-| `Float.MAX_VALUE` | `0x7f7fffff` | exponent hữu hạn lớn nhất, fraction toàn 1 |
-| `Double.MIN_VALUE` | `0x0000000000000001` | exponent=0, fraction có bit thấp nhất |
-| `Double.MIN_NORMAL` | `0x0010000000000000` | exponent lưu bằng 1, fraction=0 |
-| `Double.MAX_VALUE` | `0x7fefffffffffffff` | exponent hữu hạn lớn nhất, fraction toàn 1 |
+| `Float.MIN_VALUE` | `0x00000001` | exponent=0, fraction has lowest bit set |
+| `Float.MIN_NORMAL` | `0x00800000` | stored exponent equals 1, fraction=0 |
+| `Float.MAX_VALUE` | `0x7f7fffff` | largest finite exponent, fraction all 1s |
+| `Double.MIN_VALUE` | `0x0000000000000001` | exponent=0, fraction has lowest bit set |
+| `Double.MIN_NORMAL` | `0x0010000000000000` | stored exponent equals 1, fraction=0 |
+| `Double.MAX_VALUE` | `0x7fefffffffffffff` | largest finite exponent, fraction all 1s |
 
-Trong Java:
+In Java:
 
 ```java
 int fBits = Float.floatToRawIntBits(Float.MIN_NORMAL);
@@ -329,13 +329,13 @@ System.out.printf("float bits = %08x%n", fBits);  // 00800000
 System.out.printf("double bits = %016x%n", dBits); // 0010000000000000
 ```
 
-Lưu ý: **raw bits** là cách mã hóa đủ bit dấu, exponent và fraction, còn `Double.toHexString` biểu diễn **giá trị toán học** theo phần trị hex và số mũ nhị phân. Hai dạng có mục đích khác nhau; không nhầm chúng là một chuỗi.
+Note: **raw bits** are the full encoding of sign, exponent, and fraction bits, whereas `Double.toHexString` represents the **mathematical value** using a hex significand and binary exponent. The two forms serve different purposes; do not confuse them as the same string.
 
-Dạng `Double.toHexString(Double.MIN_VALUE)` là `"0x0.0000000000001p-1022"`; đây là cùng giá trị với literal ngắn `0x1p-1074`. Chữ `0` dẫn trước dấu chấm biểu thị subnormal khi API định dạng theo exponent thấp nhất của normal.
+`Double.toHexString(Double.MIN_VALUE)` produces `"0x0.0000000000001p-1022"`; this is the exact same value as the shorter literal `0x1p-1074`. The leading `0` before the point indicates a subnormal when the API formats relative to the lowest normal exponent.
 
-## 12. Ví dụ Java 17+ biên dịch và chạy độc lập
+## 12. Standalone Compiling and Runnable Java 17+ Example
 
-Tạo tệp **`FloatingPointLimitsDemo.java`**:
+Create the file **`FloatingPointLimitsDemo.java`**:
 
 ```java
 public class FloatingPointLimitsDemo {
@@ -382,14 +382,14 @@ public class FloatingPointLimitsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FloatingPointLimitsDemo.java
 java FloatingPointLimitsDemo
 ```
 
-**Stdout dự kiến trong Java 17+:**
+**Expected stdout in Java 17+:**
 
 ```text
 Float.MIN_VALUE = 1.4E-45
@@ -413,65 +413,65 @@ double MIN_VALUE hex = 0x0.0000000000001p-1022
 1 / -0 = -Infinity
 ```
 
-Điểm quan sát:
+Key observations:
 
-1. Cả `Float.MIN_VALUE` và `Double.MIN_VALUE` đều dương, rất nhỏ và **nhỏ hơn `MIN_NORMAL`**.
-2. Chia `MIN_NORMAL` cho 2 vẫn còn một số dương hữu hạn, nằm trong miền subnormal.
-3. Chia `MIN_VALUE` cho 2 tạo số 0 vì underflow/làm tròn.
-4. Nhân `MAX_VALUE` với 2 thành vô cực vì overflow.
-5. Các hex raw bits xác nhận khác biệt exponent/fraction; `toHexString` cho biểu diễn giá trị dấu phẩy động.
+1. Both `Float.MIN_VALUE` and `Double.MIN_VALUE` are positive, very small, and **smaller than `MIN_NORMAL`**.
+2. Dividing `MIN_NORMAL` by 2 still yields a positive finite number in the subnormal range.
+3. Dividing `MIN_VALUE` by 2 produces 0 due to underflow/rounding.
+4. Multiplying `MAX_VALUE` by 2 produces infinity due to overflow.
+5. The raw-bit hex outputs confirm the exponent/fraction differences; `toHexString` gives the floating-point value representation.
 
-## 13. Nhầm lẫn phổ biến
+## 13. Common Misconceptions
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| “`Double.MIN_VALUE` là số âm nhỏ nhất” | Đây là số **dương khác 0 nhỏ nhất**; số âm hữu hạn có trị tuyệt đối lớn nhất là `-Double.MAX_VALUE` |
-| “`MIN_NORMAL` và `MIN_VALUE` giống nhau” | `MIN_VALUE` là subnormal nhỏ nhất; `MIN_NORMAL` là normal nhỏ nhất |
-| “Nhỏ hơn `MIN_NORMAL` là số 0” | Vẫn có nhiều số subnormal khác 0 |
-| “Mọi giá trị nhỏ hơn `MIN_VALUE` đều bị từ chối khi chạy” | Phép toán có thể underflow và làm tròn thành 0; mặc định không ném ngoại lệ |
-| “`MAX_VALUE` là Infinity” | `MAX_VALUE` còn hữu hạn; phép toán vượt biên có thể thành Infinity |
-| “`MIN_VALUE` là epsilon để so sánh xấp xỉ” | Đây chỉ là độ lớn subnormal nhỏ nhất, quá nhỏ cho nhiều so sánh thực tế |
-| “Toán tử `==` phân biệt `+0.0` và `-0.0`” | `+0.0 == -0.0` là true, dù raw bits và phép chia cho zero có thể khác |
-| “`Double.toHexString` trả raw bits” | Nó trả phần trị hex và số mũ nhị phân của **giá trị**, khác bit field |
-| “Subnormal giữ độ chính xác tương đối giống normal” | Số bit có nghĩa hiệu dụng giảm khi tiến sát 0 |
-| “Dùng `Double.MIN_VALUE` để từ chối NaN” | NaN cần `Double.isNaN`; dùng `Double.isFinite` khi cần số hữu hạn |
-| “`Float.MIN_VALUE` luôn nhỏ hơn `Double.MIN_VALUE` vì float ít bit hơn” | Ngược lại về **độ lớn**, `Float.MIN_VALUE` lớn hơn rất nhiều so với `Double.MIN_VALUE` |
+| “`Double.MIN_VALUE` is the smallest negative number” | It is the **smallest nonzero positive** number; the finite negative number with largest magnitude is `-Double.MAX_VALUE` |
+| “`MIN_NORMAL` and `MIN_VALUE` are the same” | `MIN_VALUE` is the smallest subnormal; `MIN_NORMAL` is the smallest normal |
+| “Anything smaller than `MIN_NORMAL` is 0” | Many nonzero subnormal numbers exist below it |
+| “Any value smaller than `MIN_VALUE` is rejected at runtime” | Operations can underflow and round to 0; no exception is thrown by default |
+| “`MAX_VALUE` is Infinity” | `MAX_VALUE` is still finite; operations exceeding the bound can become Infinity |
+| “`MIN_VALUE` is an epsilon for approximate comparisons” | It is merely the smallest subnormal magnitude, far too small for most real comparisons |
+| “The `==` operator distinguishes `+0.0` and `-0.0`” | `+0.0 == -0.0` is true, even though raw bits and division by zero differ |
+| “`Double.toHexString` returns raw bits” | It returns the hex significand and binary exponent of the **value**, unlike bit fields |
+| “Subnormals maintain the same relative precision as normals” | Effective significant bits decrease as values approach 0 |
+| “Use `Double.MIN_VALUE` to reject NaN” | NaN requires `Double.isNaN`; use `Double.isFinite` when finite numbers are needed |
+| “`Float.MIN_VALUE` is always smaller than `Double.MIN_VALUE` because float has fewer bits” | The opposite in **magnitude**: `Float.MIN_VALUE` is vastly larger than `Double.MIN_VALUE` |
 
-## 14. Bài tập có lời giải
+## 14. Exercises with Solutions
 
-**Bài 1.** Hằng nào nhỏ hơn 0: `Double.MIN_VALUE` hay `-Double.MAX_VALUE`?  
-**Lời giải:** chỉ `-Double.MAX_VALUE` nhỏ hơn 0. `Double.MIN_VALUE > 0`.
+**Exercise 1.** Which constant is less than 0: `Double.MIN_VALUE` or `-Double.MAX_VALUE`?  
+**Solution:** Only `-Double.MAX_VALUE` is less than 0. `Double.MIN_VALUE > 0`.
 
-**Bài 2.** `Double.MIN_NORMAL / 2.0` có bằng 0 không?  
-**Lời giải:** không; đây là một số dương **subnormal** biểu diễn được, nhỏ hơn `MIN_NORMAL`.
+**Exercise 2.** Does `Double.MIN_NORMAL / 2.0` equal 0?  
+**Solution:** No; it is a representable positive **subnormal** number, smaller than `MIN_NORMAL`.
 
-**Bài 3.** Viết dạng lũy thừa của 2 cho `Float.MIN_VALUE` và `Float.MIN_NORMAL`.  
-**Lời giải:** lần lượt `2^-149` và `2^-126`. Chúng cách nhau rất nhiều bậc lũy thừa dù đều nhỏ.
+**Exercise 3.** Write the power-of-2 form for `Float.MIN_VALUE` and `Float.MIN_NORMAL`.  
+**Solution:** `2^-149` and `2^-126`, respectively. They are separated by many orders of magnitude despite both being small.
 
-**Bài 4.** Giá trị của `Math.nextUp(0.0)` là gì?  
-**Lời giải:** `Double.MIN_VALUE`, số dương có thể biểu diễn ngay sau 0.
+**Exercise 4.** What is the value of `Math.nextUp(0.0)`?  
+**Solution:** `Double.MIN_VALUE`, the representable positive number immediately after 0.
 
-**Bài 5.** `Double.MAX_VALUE * 2.0` in gì?  
-**Lời giải:** `Infinity` do overflow, không phải exception.
+**Exercise 5.** What does `Double.MAX_VALUE * 2.0` print?  
+**Solution:** `Infinity` due to overflow, not an exception.
 
-**Bài 6.** `Double.MIN_VALUE / 2.0` ra gì?  
-**Lời giải:** `+0.0` vì kết quả quá nhỏ để biểu diễn dưới mặc định làm tròn về gần nhất; ngay tại nửa bước nhỏ nhất, quy tắc *ties to even* chọn 0.
+**Exercise 6.** What does `Double.MIN_VALUE / 2.0` produce?  
+**Solution:** `+0.0` because the result is too small to represent under default round-to-nearest; right at half of the smallest step, *ties to even* selects 0.
 
-**Bài 7.** Giá trị `double x = 1e-320;` là normal hay subnormal?  
-**Lời giải:** là **subnormal dương**: vẫn lớn hơn `Double.MIN_VALUE` nhưng nhỏ hơn `Double.MIN_NORMAL ≈ 2.225e-308`.
+**Exercise 7.** Is `double x = 1e-320;` normal or subnormal?  
+**Solution:** It is a **positive subnormal**: still larger than `Double.MIN_VALUE` yet smaller than `Double.MIN_NORMAL ≈ 2.225e-308`.
 
-**Bài 8.** `Float.MIN_VALUE` và `Double.MIN_VALUE`: hằng nào biểu diễn giá trị nhỏ hơn về độ lớn?  
-**Lời giải:** `Double.MIN_VALUE` nhỏ hơn vì `2^-1074 < 2^-149`. Nhưng cả hai đều là những giá trị dương khác 0 nhỏ nhất **trong kiểu tương ứng**.
+**Exercise 8.** Between `Float.MIN_VALUE` and `Double.MIN_VALUE`, which constant represents a smaller magnitude?  
+**Solution:** `Double.MIN_VALUE` is smaller because `2^-1074 < 2^-149`. Yet both are the smallest nonzero positive values **in their respective types**.
 
-## 15. Checklist khi xử lý biên dấu phẩy động
+## 15. Checklist When Handling Floating-Point Boundaries
 
-1. **Chọn đúng khái niệm:** đang cần số dương khác 0 nhỏ nhất (`MIN_VALUE`), số normal nhỏ nhất (`MIN_NORMAL`) hay số hữu hạn lớn nhất (`MAX_VALUE`)?
-2. **Không nhầm với số nguyên:** `Integer.MIN_VALUE` là âm, còn `Double.MIN_VALUE` là dương.
-3. **Kiểm tra miền hữu hạn:** dùng `Double.isFinite(x)` hoặc `Float.isFinite(x)` nếu không muốn chấp nhận NaN/vô cực.
-4. **Chú ý underflow:** phép tính có thể thành subnormal rồi ±0, không tự ném lỗi.
-5. **Chú ý overflow:** phép toán có thể trả ±Infinity; kiểm tra kết quả nếu điều đó làm hỏng nghiệp vụ.
-6. **Xác định nhu cầu chính xác:** subnormal có ít bit có nghĩa tương đối hơn; `Math.ulp`/`Math.nextUp` hữu ích để hiểu bước biểu diễn.
-7. **Thiết kế so sánh:** không dùng `MIN_VALUE` làm epsilon chung; chọn dung sai từ bản chất dữ liệu.
-8. **Nếu cần decimal exact:** `BigDecimal` từ chuỗi và quy tắc scale/rounding là một bài toán khác với miền IEEE 754 của `float`/`double`.
+1. **Choose the right concept:** do you need the smallest nonzero positive number (`MIN_VALUE`), the smallest normal number (`MIN_NORMAL`), or the largest finite number (`MAX_VALUE`)?
+2. **Do not confuse with integers:** `Integer.MIN_VALUE` is negative, whereas `Double.MIN_VALUE` is positive.
+3. **Check finite domain:** use `Double.isFinite(x)` or `Float.isFinite(x)` if NaN/infinity must not be accepted.
+4. **Watch for underflow:** operations can become subnormal and then ±0 without throwing an error automatically.
+5. **Watch for overflow:** operations can return ±Infinity; check results if that breaks domain invariants.
+6. **Determine precision needs:** subnormals have fewer relative significant bits; `Math.ulp`/`Math.nextUp` are useful for understanding representation steps.
+7. **Design comparisons carefully:** do not use `MIN_VALUE` as a general epsilon; choose tolerances from the nature of the data.
+8. **If exact decimal is needed:** `BigDecimal` from strings and scale/rounding rules is a separate problem from the IEEE 754 domain of `float`/`double`.
 
-**Ghi nhớ:** Trong dấu phẩy động Java, `MIN_VALUE` là **số dương subnormal nhỏ nhất**, `MIN_NORMAL` là **số dương normal nhỏ nhất**, và `MAX_VALUE` là **số dương hữu hạn lớn nhất**. Ba hằng này mô tả ba biên khác nhau của biểu diễn IEEE 754; hiểu đúng chúng giúp kiểm soát underflow, overflow và độ chính xác gần số 0.
+**Remember:** In Java floating-point, `MIN_VALUE` is the **smallest positive subnormal**, `MIN_NORMAL` is the **smallest positive normal**, and `MAX_VALUE` is the **largest positive finite number**. These three constants describe three distinct boundaries of IEEE 754 representation; understanding them accurately helps you control underflow, overflow, and precision near 0.

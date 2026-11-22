@@ -1,11 +1,11 @@
-# Dịch phải có dấu `>>` và không dấu `>>>` — Java 17+
+# Signed `>>` and Unsigned `>>>` Right Shifts — Java 17+
 
-## 1. Mục tiêu và khác biệt quan trọng nhất
+## 1. Goal and Most Important Difference
 
-Java có hai toán tử **dịch bit sang phải**:
+Java has two **right-shift** operators:
 
-- **`>>` — dịch phải có dấu** (*signed/arithmetic right shift*): đẩy các bit sang phải, lấp các vị trí mới bên trái bằng **bit dấu** của toán hạng sau khi nâng kiểu. Số âm tiếp tục có bit dấu 1.
-- **`>>>` — dịch phải không dấu** (*unsigned/logical right shift*): đẩy các bit sang phải, **luôn lấp bằng bit 0** bên trái. Với số âm, kết quả có thể trở thành số dương rất lớn.
+- **`>>` — signed right shift** (*signed/arithmetic right shift*): shifts bits to the right and fills the newly vacated left positions with the **sign bit** of the operand after promotion. Negative numbers keep their sign bit 1.
+- **`>>>` — unsigned right shift** (*unsigned/logical right shift*): shifts bits to the right and **always fills with 0 bits** on the left. For negative numbers, the result can become a very large positive number.
 
 ~~~java
 int number = -8;
@@ -13,13 +13,13 @@ System.out.println(number >> 2);  // -2
 System.out.println(number >>> 2); // 1073741822
 ~~~
 
-Cả hai đều thao tác trên **biểu diễn bit**; chúng không phải toán tử so sánh `>` và cũng không chuyển kiểu `int` thành một kiểu unsigned mới.
+Both operate on **bit representations**; they are not the `>` comparison operator, nor do they convert `int` into a new unsigned primitive type.
 
-**Cần nắm:** cách điền bit, chiều rộng `int`/`long`, quy tắc mask số bit cần dịch, nâng kiểu số nguyên nhỏ, phép gán dịch kết hợp, ứng dụng trích xuất bit và khác biệt so với phép chia số nguyên.
+**Key topics to grasp:** bit filling, `int`/`long` widths, shift-distance masking rules, promotion of smaller integer types, compound shift assignment, bit-extraction use cases, and differences from integer division.
 
-## 2. Quan sát bit qua hệ thập lục phân
+## 2. Inspecting Bits via Hexadecimal
 
-Trong Java, `int` dùng **32 bit** và `long` dùng **64 bit**, số âm biểu diễn theo **bù hai** (*two's complement*). Với `int n = -8`:
+In Java, `int` uses **32 bits** and `long` uses **64 bits**, with negative numbers represented in **two's complement**. For `int n = -8`:
 
 ~~~text
 n        = 11111111 11111111 11111111 11111000  (0xFFFFFFF8)
@@ -27,14 +27,14 @@ n >> 2   = 11111111 11111111 11111111 11111110  (0xFFFFFFFE = -2)
 n >>> 2  = 00111111 11111111 11111111 11111110  (0x3FFFFFFE = 1073741822)
 ~~~
 
-Bốn điểm dễ kiểm chứng:
+Four easily verifiable observations:
 
-1. Bit trái nhất của `-8` là **1**.
-2. `-8 >> 2` điền thêm **hai bit 1** bên trái.
-3. `-8 >>> 2` điền thêm **hai bit 0** bên trái.
-4. Kết quả `>>>` vẫn là **kiểu `int`**, chỉ khác giá trị bit. Không có kiểu nguyên thủy `uint` trong Java.
+1. The leftmost bit of `-8` is **1**.
+2. `-8 >> 2` fills in **two `1` bits** on the left.
+3. `-8 >>> 2` fills in **two `0` bits** on the left.
+4. The result of `>>>` is still **type `int`**, differing only in bit values. There is no `uint` primitive type in Java.
 
-In dạng hex bằng JDK:
+Printing in hex with the JDK:
 
 ~~~java
 System.out.println(Integer.toHexString(-8));        // fffffff8
@@ -42,9 +42,9 @@ System.out.println(Integer.toHexString(-8 >> 2));   // fffffffe
 System.out.println(Integer.toHexString(-8 >>> 2));  // 3ffffffe
 ~~~
 
-`Integer.toHexString` biểu diễn bit của `int` ở dạng hex không dấu, rất hữu ích để kiểm tra thao tác bit.
+`Integer.toHexString` formats the bits of an `int` as unsigned hexadecimal, which is very handy for checking bit operations.
 
-## 3. Với số không âm, `>>` và `>>>` thường giống nhau
+## 3. For Non-Negative Numbers, `>>` and `>>>` Are Usually the Same
 
 ~~~java
 int number = 24;
@@ -53,21 +53,21 @@ System.out.println(number >> 2);  // 6
 System.out.println(number >>> 2); // 6
 ~~~
 
-Vì bit cao nhất của số `int` không âm bằng 0, `>>` điền bit 0 giống `>>>`.
+Because the highest bit of a non-negative `int` is 0, `>>` fills with 0 bits just like `>>>`.
 
-| Giá trị `int` | `>> 2` | `>>> 2` | Nhận xét |
+| `int` value | `>> 2` | `>>> 2` | Notes |
 |---:|---:|---:|---|
-| `24` | `6` | `6` | Cùng bit điền 0 |
-| `8` | `2` | `2` | Cùng kết quả |
-| `0` | `0` | `0` | Zero giữ nguyên |
-| `-8` | `-2` | `1073741822` | Khác vì bit dấu |
-| `-1` | `-1` | `1073741823` | Dịch 2 bit |
+| `24` | `6` | `6` | Same 0-bit fill |
+| `8` | `2` | `2` | Same result |
+| `0` | `0` | `0` | Zero stays zero |
+| `-8` | `-2` | `1073741822` | Differs due to sign bit |
+| `-1` | `-1` | `1073741823` | Shifted by 2 bits |
 
-**Giới hạn cách hiểu:** “giống nhau” ở đây là với số `int`/`long` **không âm**, khi dùng cùng khoảng dịch. Với số âm và khoảng dịch dương hữu hiệu, hai toán tử có cách điền bit khác nhau.
+**Scope of this rule:** "the same" here applies to **non-negative** `int`/`long` values when using the same shift distance. For negative numbers and an effective positive shift distance, the two operators fill bits differently.
 
-## 4. `>>`: dịch phải có dấu
+## 4. `>>`: Signed Right Shift
 
-Quy tắc `x >> n` điền bit cao mới bằng bit dấu của `x` sau khi áp dụng quy tắc kiểu. Đối với số âm, bit dấu luôn là 1 sau dịch; đối với số không âm, bit dấu là 0.
+The rule for `x >> n` fills new high bits with the sign bit of `x` after type promotion rules are applied. For negative numbers, the sign bit remains 1 after shifting; for non-negative numbers, the sign bit is 0.
 
 ~~~java
 System.out.println(-8 >> 1); // -4
@@ -75,7 +75,7 @@ System.out.println(-8 >> 2); // -2
 System.out.println(-1 >> 5); // -1
 ~~~
 
-Tính chất hay dùng: với `int`/`long` và khoảng dịch hữu hiệu `n`, `x >> n` tương ứng với chia cho `2^n` và **lấy phần nguyên xuống** (*floor*) về phía âm vô cực. Với số âm lẻ, điều này **khác phép chia nguyên `/`**, vốn cắt thương về 0:
+A common property: for `int`/`long` and an effective shift distance `n`, `x >> n` corresponds to dividing by `2^n` and **taking the floor** toward negative infinity. For odd negative numbers, this **differs from integer division `/`**, which truncates toward zero:
 
 ~~~java
 System.out.println(-7 / 2);           // -3
@@ -83,11 +83,11 @@ System.out.println(-7 >> 1);          // -4
 System.out.println(Math.floorDiv(-7, 2)); // -4
 ~~~
 
-**Không dùng `x >> 1` thay cho `x / 2` nếu cần thương cắt về 0 với số âm.** Với số nguyên không âm, cả hai có thể cùng kết quả khi số chia là lũy thừa 2.
+**Do not replace `x / 2` with `x >> 1` if you need truncation toward zero on negative numbers.** For non-negative integers, both yield the same result when the divisor is a power of 2.
 
-## 5. `>>>`: dịch phải không dấu (logic)
+## 5. `>>>`: Unsigned (Logical) Right Shift
 
-`x >>> n` luôn điền bit 0 bên trái. Với `int` âm, kết quả thường trở thành một `int` không âm khi dịch ít nhất một bit:
+`x >>> n` always fills with 0 bits on the left. For a negative `int`, the result becomes a non-negative `int` whenever you shift by at least one bit:
 
 ~~~java
 int negative = -8;
@@ -95,29 +95,29 @@ System.out.println(negative >>> 1); // 2147483644
 System.out.println(negative >>> 2); // 1073741822
 ~~~
 
-Ví dụ `-1` có 32 bit đều bằng 1:
+For example, `-1` has all 32 bits equal to 1:
 
 ~~~java
 System.out.println(-1 >>> 1); // 2147483647
 ~~~
 
-`>>>` hữu ích khi muốn coi mẫu bit như một **giá trị không dấu** để dịch, ví dụ tách các bit dữ liệu từ một `int`. Nó không đổi loại biến sang một kiểu unsigned và không cho phép biểu diễn toàn bộ miền unsigned 32 bit thành `int` dương **mà không có xử lý bổ sung**.
+`>>>` is useful when you want to treat a bit pattern as an **unsigned value** for shifting, such as extracting data bits from an `int`. It does not change a variable's type into an unsigned type, nor does it let you represent the full 32-bit unsigned range as positive `int` values **without additional handling**.
 
-Java 17 hỗ trợ một số API diễn giải `int` dưới dạng unsigned, như `Integer.toUnsignedLong`, `Integer.compareUnsigned` và `Integer.divideUnsigned`.
+Java 17 provides several APIs for interpreting `int` as unsigned, such as `Integer.toUnsignedLong`, `Integer.compareUnsigned`, and `Integer.divideUnsigned`.
 
 ~~~java
 System.out.println(Integer.toUnsignedLong(-8)); // 4294967288
 System.out.println(Integer.divideUnsigned(-8, 4)); // 1073741822
 ~~~
 
-Trong trường hợp chia unsigned cho `4 = 2^2`, `Integer.divideUnsigned(-8, 4)` bằng `-8 >>> 2`. Khi mẫu không phải lũy thừa hai, không thay phép chia bằng shift một cách máy móc.
+When doing unsigned division by `4 = 2^2`, `Integer.divideUnsigned(-8, 4)` equals `-8 >>> 2`. When the divisor is not a power of two, do not mechanically replace division with shifts.
 
-## 6. `int` và `long`: chiều rộng khác nhau
+## 6. `int` and `long`: Different Widths
 
-| Kiểu toán hạng bên trái sau nâng kiểu | Chiều rộng phép dịch | Số bit dùng xác định khoảng dịch |
+| Left operand type after promotion | Shift width | Bits used to determine shift distance |
 |---|---:|---|
-| `int` | 32 bit | **5 bit thấp** của khoảng dịch |
-| `long` | 64 bit | **6 bit thấp** của khoảng dịch |
+| `int` | 32 bits | **Low 5 bits** of the shift distance |
+| `long` | 64 bits | **Low 6 bits** of the shift distance |
 
 ~~~java
 int a = -8;
@@ -127,31 +127,31 @@ System.out.println(a >>> 2); // 1073741822
 System.out.println(b >>> 2); // 4611686018427387902
 ~~~
 
-Hai biểu thức khác nhau vì với `long` có **64 bit**, việc điền 0 cho hai bit cao để lại 62 bit biểu diễn kết quả.
+The two expressions differ because `long` has **64 bits**, so filling the top two bits with 0 leaves 62 bits representing the result.
 
 ~~~java
 System.out.println(Long.toHexString(-8L >> 2));  // fffffffffffffffe
 System.out.println(Long.toHexString(-8L >>> 2)); // 3ffffffffffffffe
 ~~~
 
-**Hãy dùng literal `L` khi muốn phép dịch 64 bit.** Không nên tính trên `int` rồi mới gán sang `long` và kỳ vọng kết quả sẽ giống dịch `long` ngay từ đầu.
+**Use the `L` literal suffix when you want a 64-bit shift.** Do not compute the shift on an `int` and then assign it to a `long` expecting the same result as shifting a `long` from the start.
 
-## 7. Khoảng dịch được mask trước khi tính
+## 7. Shift Distance Is Masked Before Computing
 
-Cả `>>` và `>>>` đều dùng **5 bit thấp** của số lượng dịch nếu toán hạng trái là `int`, hoặc **6 bit thấp** nếu là `long`. Ví dụ:
+Both `>>` and `>>>` use only the **low 5 bits** of the shift count if the left operand is `int`, or the **low 6 bits** if it is `long`. For example:
 
 ~~~java
 System.out.println(-8 >>> 32);   // -8: 32 & 31 = 0.
-System.out.println(-8 >>> 34);   // 1073741822: dịch hiệu lực 2 bit.
+System.out.println(-8 >>> 34);   // 1073741822: effective shift of 2 bits.
 System.out.println(-8L >>> 66);  // 4611686018427387902: 66 & 63 = 2.
 System.out.println(1 >> -1);     // 0: -1 & 31 = 31.
 ~~~
 
-Các khoảng dịch âm hoặc vượt độ rộng không tự ném ngoại lệ. Nếu số lượng dịch là dữ liệu do người dùng cung cấp, hãy kiểm tra giới hạn trước khi dịch, bởi các bit bị mask có thể khiến đầu vào sai tạo kết quả có vẻ hợp lệ. Bài về giới hạn khoảng dịch phân tích đầy đủ quy tắc này; ở đây điều cần quan sát là **cách `>>` và `>>>` điền bit vẫn khác nhau khi khoảng dịch hiệu lực giống nhau**.
+Negative or oversized shift distances do not automatically throw exceptions. If the shift count comes from user-supplied data, validate its bounds before shifting, because masked bits can make invalid inputs produce seemingly valid results. The lesson on shift distance limits examines that rule in full; here, the key observation is that **`>>` and `>>>` still fill bits differently when the effective shift distance is the same**.
 
-## 8. `byte`, `short`, `char` được nâng thành `int` trước khi dịch
+## 8. `byte`, `short`, and `char` Are Promoted to `int` Before Shifting
 
-Toán tử dịch áp dụng *unary numeric promotion* cho **từng toán hạng**; kiểu kết quả của biểu thức dịch là kiểu toán hạng **bên trái sau nâng kiểu**. Khác với cộng số, toán hạng phải **không làm toán hạng trái trở thành `long`** chỉ vì số dịch thuộc kiểu `long`.
+Shift operators apply *unary numeric promotion* to **each operand independently**; the result type of the shift expression is the type of the **left operand after promotion**. Unlike addition, the right operand **does not promote the left operand to `long`** merely because the shift count has type `long`.
 
 ~~~java
 byte small = -8;
@@ -160,9 +160,9 @@ int result = small >>> 2;
 System.out.println(result); // 1073741822
 ~~~
 
-`small` được **sign-extend từ byte lên int** trước, thành `0xFFFFFFF8`; sau đó `>>>` dịch trên 32 bit. Không phải Java đang dịch trực tiếp trên 8 bit rồi tạo một số không dấu 8 bit.
+`small` is **sign-extended from `byte` to `int`** first, becoming `0xFFFFFFF8`; then `>>>` shifts across 32 bits. Java does not shift directly on 8 bits to produce an 8-bit unsigned number.
 
-Với `char`, vì `char` lưu **UTF-16 code unit không dấu**, chuyển lên `int` có giá trị từ 0 tới 65535, nên bit dấu int vẫn bằng 0:
+For `char`, because `char` stores an **unsigned UTF-16 code unit**, widening to `int` produces a value from 0 to 65535, so the `int` sign bit stays 0:
 
 ~~~java
 char codeUnit = '\uFF80';
@@ -170,9 +170,9 @@ System.out.println(codeUnit >> 4);  // 4088
 System.out.println(codeUnit >>> 4); // 4088
 ~~~
 
-Với `short` âm, kết quả cũng chịu sign-extension sang int trước khi dịch.
+For negative `short` values, the operand likewise undergoes sign-extension to `int` before shifting.
 
-### `>>>=`: gán dịch kết hợp có thu hẹp ngầm
+### `>>>=`: Compound Shift Assignment with Implicit Narrowing
 
 ~~~java
 byte small = -8;
@@ -180,36 +180,36 @@ small >>>= 2;
 System.out.println(small); // -2
 ~~~
 
-Mô hình cơ bản của `small >>>= 2` là dịch trên `int`, rồi **thu hẹp** kết quả về `byte` (giữ 8 bit thấp). Vì thế kết quả gán lại là -2, trong khi biểu thức `small >>> 2` gán vào `int` cho 1073741822.
+The underlying model of `small >>>= 2` is to perform the shift in `int`, then **narrow** the result back to `byte` (keeping the low 8 bits). Thus the assigned result is -2, whereas the expression `small >>> 2` assigned to an `int` gives 1073741822.
 
 ~~~java
-// small = small >>> 2; // LỖI COMPILE: biểu thức bên phải là int
-small = (byte) (small >>> 2); // Có cast tường minh, nhưng xem lại giá trị hiện tại của small
+// small = small >>> 2; // COMPILE ERROR: right-hand expression is int
+small = (byte) (small >>> 2); // With explicit cast, though note the current value of small
 ~~~
 
-Quy tắc `op=` còn có điểm đặc biệt: **vế trái chỉ được đánh giá một lần**. Không nên thay máy móc các compound assignment có chỉ số mảng hoặc method side effect bằng dạng gán dài.
+The `op=` rule has another subtlety: **the left-hand side is evaluated only once**. Do not mechanically rewrite compound assignments involving array indices or methods with side effects into the expanded assignment form.
 
-## 9. Dịch bit không phải luôn là phép chia số học
+## 9. Bit Shifting Is Not Always Arithmetic Division
 
-| Biểu thức | Với `x = -7` | Giải thích |
+| Expression | With `x = -7` | Explanation |
 |---|---:|---|
-| `x / 2` | `-3` | Chia nguyên, cắt về 0 |
-| `x >> 1` | `-4` | Dịch có dấu, tương ứng floor |
-| `x >>> 1` | `2147483644` | Dịch 32 bit với điền zero |
+| `x / 2` | `-3` | Integer division, truncates toward 0 |
+| `x >> 1` | `-4` | Signed shift, corresponds to floor |
+| `x >>> 1` | `2147483644` | 32-bit shift with zero-fill |
 
-Việc dùng `>>>` thay cho phép chia số nguyên **đặc biệt nguy hiểm** nếu dữ liệu có thể âm: nó diễn giải bit như unsigned, cho kết quả rất khác.
+Using `>>>` instead of integer division is **especially dangerous** if data can be negative: it interprets the bits as unsigned, yielding a drastically different result.
 
-Với số nguyên **không âm**, `x >> n` và `x >>> n` thường tương ứng với thương của phép chia cho `2^n` khi `n` nằm trong khoảng hợp lý. Nhưng **ưu tiên `/` khi code cần diễn đạt phép chia**: dễ đọc hơn và không khiến người bảo trì hiểu sai về dấu hay khoảng dịch.
+For **non-negative** integers, `x >> n` and `x >>> n` usually match the quotient of dividing by `2^n` when `n` is within a reasonable range. Even so, **prefer `/` when the code is meant to express division**: it is easier to read and prevents maintainers from misreading sign or shift-distance behavior.
 
-## 10. Dùng `>>>` để trích xuất trường bit
+## 10. Using `>>>` to Extract Bit Fields
 
-Giả sử một `int` đóng gói 4 byte:
+Suppose an `int` packs 4 bytes:
 
 ~~~text
 0x12 34 AB CD
 ~~~
 
-Muốn lấy byte thứ hai từ phải (`0xAB`):
+To extract the second byte from the right (`0xAB`):
 
 ~~~java
 int packed = 0x1234ABCD;
@@ -218,13 +218,13 @@ int extracted = (packed >>> 8) & 0xFF;
 System.out.println(extracted); // 171 (0xAB)
 ~~~
 
-Diễn biến:
+Step by step:
 
-1. `packed >>> 8` dịch bit để đưa `0xAB` vào vùng 8 bit thấp.
-2. `& 0xFF` giữ **8 bit thấp**, xóa các bit khác.
-3. Kết quả là 171, giá trị unsigned của byte `0xAB`.
+1. `packed >>> 8` shifts the bits so `0xAB` moves into the low 8-bit position.
+2. `& 0xFF` keeps the **low 8 bits** and clears all other bits.
+3. The result is 171, the unsigned value of byte `0xAB`.
 
-Tương tự, tách **bit dấu** từ một `int`:
+Similarly, extracting the **sign bit** from an `int`:
 
 ~~~java
 int signed = Integer.MIN_VALUE;
@@ -232,13 +232,13 @@ int highBit = signed >>> 31;
 System.out.println(highBit); // 1
 ~~~
 
-Nếu dùng `signed >> 31`, kết quả là **-1** vì `>>` điền toàn 1 ở bit trái. Đây là lý do `>>>` thường được chọn khi xử lý cấu trúc bit/flags.
+If you used `signed >> 31`, the result would be **-1** because `>>` fills all left bits with 1. This is why `>>>` is generally preferred when handling bit structures and flags.
 
-**Chú ý:** trích xuất bit không tự xác nhận dữ liệu đầu vào hợp lệ. Với protocol, hãy xác nhận độ dài, kiểu dữ liệu và vị trí trường bit trước khi dịch/mask.
+**Note:** bit extraction does not validate that the input data is valid. For protocols, verify the length, data type, and bit-field positions before shifting and masking.
 
-## 11. Ưu tiên toán tử và dấu ngoặc
+## 11. Operator Precedence and Parentheses
 
-`>>` và `>>>` thuộc nhóm **toán tử dịch**; chúng có độ ưu tiên thấp hơn `+`/`-`, nhưng cao hơn nhiều toán tử so sánh/bitwise boolean. Đặt ngoặc để thể hiện rõ ý định:
+`>>` and `>>>` belong to the **shift operators** group; they have lower precedence than `+`/`-`, but higher precedence than comparison and bitwise boolean operators. Add parentheses to make your intent explicit:
 
 ~~~java
 int flags = 0x80000000;
@@ -246,37 +246,37 @@ boolean topBitSet = (flags >>> 31) == 1;
 System.out.println(topBitSet); // true
 ~~~
 
-Với mask:
+With masks:
 
 ~~~java
 int byteValue = (packed >>> 8) & 0xFF;
 ~~~
 
-Dấu ngoặc quanh phép dịch làm rõ việc **dịch trước, mask sau**, dù phép dịch có ưu tiên cao hơn `&`.
+Parentheses around the shift clarify **shift first, mask second**, even though shifts have higher precedence than `&`.
 
-Đừng nhầm `>>`/`>>>` trong **biểu thức số học** với ký tự `>` xuất hiện trong mã generic như `Map<String, List<Integer>>`: đây là hai ngữ cảnh cú pháp khác nhau.
+Do not confuse `>>`/`>>>` in **arithmetic expressions** with the `>` characters appearing in generic syntax like `Map<String, List<Integer>>`: those are two distinct syntactic contexts.
 
-## 12. Lỗi phổ biến và cách xử lý
+## 12. Common Pitfalls and How to Handle Them
 
-| Ngộ nhận/lỗi | Vì sao sai | Cách đúng |
+| Misconception / bug | Why it is wrong | Correct approach |
 |---|---|---|
-| `>>` và `>>>` là như nhau | Khác cách điền bit cao khi số âm | Chọn theo mục tiêu signed/bitwise |
-| `-8 >>> 2` là `-2` | `>>>` điền 0, ra 1073741822 | `-8 >> 2` nếu muốn giữ dấu |
-| `>>> ` làm int thành unsigned primitive | Java không có kiểu `uint` nguyên thủy | Dùng các API unsigned nếu cần |
-| `-7 >> 1` bằng `-7 / 2` | Dịch có dấu làm tròn xuống, chia nguyên cắt về 0 | Dùng `/` nếu cần cắt về 0 |
-| `int x; x >>> 32` cho 0 | Khoảng dịch int được mask 5 bit | Validate khoảng dịch nếu cần |
-| `long x` dùng phép dịch 32 bit | long dùng 64 bit | Kiểm tra kiểu toán hạng trái |
-| `byte >>> 2` dịch trên 8 bit | byte được nâng thành int 32 bit | Cân nhắc sign-extension |
-| `byte b; b >>>= 2` trả một byte unsigned lớn | Compound assignment thu hẹp về byte | Xem giá trị int trung gian |
-| `x >>> 2` có cùng nghĩa với unsigned `x / 4` ở mọi trường hợp | Chỉ đúng khi xử lý bit unsigned 32/64 và mẫu lũy thừa hai | Dùng `divideUnsigned` khi phù hợp |
-| Dùng `>>>` để kiểm tra số âm | `>>>` làm đổi bit dấu của kết quả khi dịch | Dùng `x < 0` khi ý định là so dấu |
-| Viết `flags >>> 31 == 1` không chú giải | Dễ hiểu sai precedence | Viết `(flags >>> 31) == 1` |
-| Giả định shift luôn nhanh hơn phép chia | JVM/JIT có tối ưu riêng | Ưu tiên ngữ nghĩa rõ, benchmark nếu cần |
-| Dùng khoảng dịch âm như một tính năng nghiệp vụ | Java mask bit, có thể gây bất ngờ | Validate `n >= 0` và giới hạn phù hợp |
+| `>>` and `>>>` are identical | High-bit fill differs for negative numbers | Choose based on signed vs. bitwise intent |
+| `-8 >>> 2` is `-2` | `>>>` fills 0s, giving 1073741822 | Use `-8 >> 2` to preserve the sign |
+| `>>>` turns `int` into an unsigned primitive | Java has no `uint` primitive type | Use unsigned APIs if needed |
+| `-7 >> 1` equals `-7 / 2` | Signed shift floors; integer division truncates toward 0 | Use `/` if truncation toward 0 is needed |
+| `int x; x >>> 32` yields 0 | `int` shift distance is masked to 5 bits | Validate the shift distance if needed |
+| `long x` uses a 32-bit shift | `long` uses 64 bits | Check the left operand's type |
+| `byte >>> 2` shifts in 8 bits | `byte` is promoted to a 32-bit `int` | Account for sign-extension |
+| `byte b; b >>>= 2` returns a large unsigned byte | Compound assignment narrows back to `byte` | Inspect the intermediate `int` value |
+| `x >>> 2` always means unsigned `x / 4` | Only true for 32/64-bit unsigned bits and power-of-two divisors | Use `divideUnsigned` where appropriate |
+| Using `>>>` to check for negative numbers | `>>>` changes the result's sign bit when shifting | Use `x < 0` when testing sign |
+| Writing `flags >>> 31 == 1` unparenthesized | Easy to misread precedence | Write `(flags >>> 31) == 1` |
+| Assuming shifts are always faster than division | JVM/JIT optimizes arithmetic itself | Prioritize clear semantics; benchmark if needed |
+| Using negative shift counts as a business feature | Java masks the bits, which can surprise callers | Validate `n >= 0` and appropriate bounds |
 
-## 13. Chương trình Java 17 chạy độc lập
+## 13. Standalone Runnable Java 17 Program
 
-Tạo đúng file **`SignedUnsignedShiftDemo.java`**:
+Create the exact file **`SignedUnsignedShiftDemo.java`**:
 
 ~~~java
 public final class SignedUnsignedShiftDemo {
@@ -344,7 +344,7 @@ public final class SignedUnsignedShiftDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal đang mở tại thư mục chứa file; không cần Maven, Gradle hay thư viện ngoài JDK.
+**Requirements:** JDK 17 or later, terminal opened in the directory containing the file; no Maven, Gradle, or external libraries needed.
 
 **Bash (Linux/macOS):**
 
@@ -396,21 +396,21 @@ top bit signed=-1
 top bit set=true
 ~~~
 
-### Cách đối chiếu kết quả
+### How to Verify the Output
 
-1. **Giá trị không âm:** `8 >> 2` và `8 >>> 2` đều bằng 2.
-2. **Giá trị âm:** `-8 >> 2` còn dấu âm (hex `fffffffe`), nhưng `-8 >>> 2` điền 0 (hex `3ffffffe`).
-3. **Bit dấu cao:** `MIN_VALUE >> 1` điền bit 1; `MIN_VALUE >>> 1` điền 0.
-4. **Chiều rộng:** phép dịch `long` có kết quả khác `int`; `Long.toHexString` cho 16 chữ số hex khi cần.
-5. **Mask khoảng dịch:** `int >>> 32` tương ứng dịch 0; `int >>> 34` dịch 2; `long >>> 66` cũng dịch 2.
-6. **Nâng kiểu:** `byte >>> 2` được tính trên int; `byte >>>= 2` chuyển kết quả trở lại byte.
-7. **Phép chia:** `-7 / 2` là -3, khác `-7 >> 1` là -4.
-8. **Unsigned API:** `Integer.toUnsignedLong(-8)` cho 4294967288, còn chia unsigned cho 4 cho 1073741822.
-9. **Trích xuất bit:** dịch `packed` rồi `& 0xFF` lấy `0xAB = 171`; bit cao nhất của `MIN_VALUE` được tách thành 1 bằng `>>>`.
+1. **Non-negative values:** `8 >> 2` and `8 >>> 2` both equal 2.
+2. **Negative values:** `-8 >> 2` keeps its negative sign (hex `fffffffe`), whereas `-8 >>> 2` fills with 0 (hex `3ffffffe`).
+3. **High sign bit:** `MIN_VALUE >> 1` fills with bit 1; `MIN_VALUE >>> 1` fills with 0.
+4. **Width:** shifting a `long` yields a different result from `int`; `Long.toHexString` shows 16 hex digits when full width is set.
+5. **Shift distance masking:** `int >>> 32` shifts by 0; `int >>> 34` shifts by 2; `long >>> 66` also shifts by 2.
+6. **Promotion:** `byte >>> 2` is evaluated as `int`; `byte >>>= 2` converts the result back to `byte`.
+7. **Division:** `-7 / 2` is -3, differing from `-7 >> 1` which is -4.
+8. **Unsigned API:** `Integer.toUnsignedLong(-8)` gives 4294967288, and unsigned division by 4 gives 1073741822.
+9. **Bit extraction:** shifting `packed` then `& 0xFF` yields `0xAB = 171`; the highest bit of `MIN_VALUE` is isolated as 1 using `>>>`.
 
-## 14. Bài tập có đáp án
+## 14. Exercises with Answers
 
-### Bài A — âm với hai cách dịch
+### Exercise A — Negative Value with Both Shifts
 
 ~~~java
 int x = -16;
@@ -418,43 +418,43 @@ System.out.println(x >> 2);
 System.out.println(x >>> 2);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 -4
 1073741820
 ~~~
 
-Vì `-16` có hex `0xfffffff0`; dịch logic hai bit tạo `0x3ffffffc`.
+Because `-16` in hex is `0xfffffff0`; a two-bit logical right shift produces `0x3ffffffc`.
 
-### Bài B — trích xuất một byte
+### Exercise B — Extracting a Byte
 
-Cho `int packed = 0x12AB34CD;`, lấy byte ở vị trí bit 16–23 (`0xAB`) dưới dạng số từ 0 tới 255.
+Given `int packed = 0x12AB34CD;`, extract the byte at bit positions 16–23 (`0xAB`) as a number from 0 to 255.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 int extracted = (packed >>> 16) & 0xFF;
 System.out.println(extracted); // 171
 ~~~
 
-### Bài C — tác động của mask
+### Exercise C — Effect of Masking
 
 ~~~java
 System.out.println(-1 >>> 32);
 System.out.println(-1 >>> 33);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 -1
 2147483647
 ~~~
 
-Trên `int`, số dịch 32 trở thành 0; 33 trở thành 1.
+On `int`, a shift count of 32 becomes 0; 33 becomes 1.
 
-### Bài D — byte được nâng kiểu
+### Exercise D — Promoted Byte
 
 ~~~java
 byte b = -1;
@@ -462,9 +462,9 @@ int result = b >>> 1;
 System.out.println(result);
 ~~~
 
-**Đáp án:** `2147483647`. Byte `-1` được nâng có dấu thành int `0xffffffff`, rồi `>>> 1` thành `0x7fffffff`.
+**Answer:** `2147483647`. Byte `-1` is sign-extended to `int` `0xffffffff`, then `>>> 1` turns it into `0x7fffffff`.
 
-### Bài E — dịch và chia nguyên
+### Exercise E — Shift vs. Integer Division
 
 ~~~java
 int x = -9;
@@ -472,35 +472,35 @@ System.out.println(x / 2);
 System.out.println(x >> 1);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 -4
 -5
 ~~~
 
-Phép chia nguyên cắt về 0, còn dịch phải có dấu với 1 bit tương ứng floor.
+Integer division truncates toward 0, whereas signed right shift by 1 bit corresponds to floor.
 
-### Bài F — chọn toán tử
+### Exercise F — Choosing the Right Operator
 
-Muốn lấy bit dấu cao nhất của `int flags` dưới dạng **0 hoặc 1**, dùng biểu thức nào?
+To extract the highest sign bit of `int flags` as **0 or 1**, which expression should you use?
 
-**Đáp án:** `(flags >>> 31) & 1` hoặc đơn giản `flags >>> 31`. Với `int`, dịch logic 31 bit chỉ để lại bit cao ban đầu ở vị trí thấp nhất; kết quả là 0 hoặc 1. `flags >> 31` lại có thể trả 0 hoặc -1.
+**Answer:** `(flags >>> 31) & 1` or simply `flags >>> 31`. On `int`, a 31-bit logical right shift leaves only the original highest bit at the lowest position; the result is 0 or 1. `flags >> 31`, by contrast, would return 0 or -1.
 
-## 15. Checklist và kết luận
+## 15. Checklist and Conclusion
 
-- [ ] Hiểu `>>` điền bit dấu, `>>>` điền zero ở bên trái.
-- [ ] Biết hai toán tử cho cùng kết quả với số nguyên không âm và cùng khoảng dịch.
-- [ ] Tự giải thích được `-8 >> 2 = -2`, `-8 >>> 2 = 1073741822`.
-- [ ] Nhớ `int` là 32 bit, `long` là 64 bit.
-- [ ] Biết `int` mask 5 bit khoảng dịch, `long` mask 6 bit.
-- [ ] Biết `byte`/`short`/`char` được nâng thành int trước khi dịch.
-- [ ] Phân biệt biểu thức `byte >>> 2` kiểu int với `byte >>>= 2` gán lại byte.
-- [ ] Không nhầm `>>` với phép chia số nguyên cắt về 0 khi số âm.
-- [ ] Biết `>>>` có ích khi trích xuất bit và coi mẫu bit như unsigned.
-- [ ] Hiểu `>>>` không tạo kiểu primitive unsigned mới.
-- [ ] Dùng ngoặc khi kết hợp dịch và mask; xét sign-extension trước khi chuyển kiểu.
-- [ ] Validate số bit dịch nếu nghiệp vụ không cho phép giá trị âm hoặc quá chiều rộng.
-- [ ] Chạy `SignedUnsignedShiftDemo.java` bằng Java 17+ và đối chiếu exact stdout.
+- [ ] Understand that `>>` fills with the sign bit, while `>>>` fills with zero on the left.
+- [ ] Know that both operators give the same result for non-negative integers with the same shift distance.
+- [ ] Can explain `-8 >> 2 = -2` and `-8 >>> 2 = 1073741822` on your own.
+- [ ] Remember that `int` is 32 bits and `long` is 64 bits.
+- [ ] Know that `int` masks 5 bits of the shift distance and `long` masks 6 bits.
+- [ ] Know that `byte`/`short`/`char` are promoted to `int` before shifting.
+- [ ] Distinguish an `int`-typed `byte >>> 2` expression from `byte >>>= 2` which narrows back to `byte`.
+- [ ] Do not confuse `>>` with integer division truncating toward 0 on negative numbers.
+- [ ] Know that `>>>` is useful for extracting bits and treating bit patterns as unsigned.
+- [ ] Understand that `>>>` does not create a new unsigned primitive type.
+- [ ] Use parentheses when combining shifts and masks; account for sign-extension before type conversion.
+- [ ] Validate shift counts if business logic forbids negative or out-of-width values.
+- [ ] Run `SignedUnsignedShiftDemo.java` with Java 17+ and verify against the exact stdout.
 
-**Kết luận:** `>>` giữ dấu bằng cách điền bit dấu; `>>>` dịch logic bằng cách điền bit 0. Sự khác biệt nổi bật ở **số âm**, ngoài ra còn cần chú ý **32/64 bit, mask khoảng dịch, numeric promotion và compound assignment**. Dùng `>>>` để thao tác mẫu bit/unsigned một cách chủ đích; dùng toán tử chia khi mục tiêu thực sự là số học, đặc biệt với số âm.
+**Conclusion:** `>>` preserves the sign by filling with the sign bit; `>>>` shifts logically by filling with 0 bits. The most noticeable difference is on **negative numbers**, alongside **32/64-bit widths, shift-distance masking, numeric promotion, and compound assignment**. Use `>>>` intentionally when working with bit patterns or unsigned bit views, and use division operators when your goal is truly arithmetic—especially with negative numbers.

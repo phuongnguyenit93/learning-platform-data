@@ -1,12 +1,12 @@
-# Xử lý field trùng tên và method ghi đè theo chính sách nhất quán khi dùng Reflection
+# Handling Duplicate-Name Fields and Overridden Methods with a Consistent Policy When Using Reflection
 
-Khi quét một hệ phân cấp class, **field trùng tên** và **method override** cần hai chính sách riêng. Field ở cha/con vẫn là hai vị trí lưu trữ khác nhau; method override sử dụng quy tắc dispatch động theo receiver. `getDeclaredFields()`/`getDeclaredMethods()` chỉ cho biết khai báo ở từng class và không cam kết thứ tự, nên việc giữ phần tử đầu tiên có thể thay đổi kết quả.
+When scanning a class hierarchy, **duplicate-name fields** and **overridden methods** require two distinct policies. Fields on a superclass and subclass remain two separate storage locations; overridden methods use dynamic dispatch based on the receiver. `getDeclaredFields()`/`getDeclaredMethods()` only report declarations on each class and do not guarantee order, so keeping the first element encountered can change results.
 
-Bài này xây registry có khóa chữ ký rõ ràng, thứ tự duyệt từ lớp cụ thể lên superclass và lựa chọn *closest declaration wins* có chủ đích. Nếu ứng dụng phải bảo toàn mọi field cùng tên, nó phải dùng khóa kèm declaring class hoặc báo collision, thay vì gộp im lặng.
+This article builds a registry with explicit signature keys, traversal order from the concrete class up to superclasses, and an intentional *closest declaration wins* choice. If an application must preserve every field sharing the same name, it must use a key incorporating the declaring class or report a collision, rather than merging silently.
 
-## 1. Field hiding khác method overriding
+## 1. Field hiding differs from method overriding
 
-### 1.1. Field cùng tên là hai trường dữ liệu riêng
+### 1.1. Fields with the same name are two separate data slots
 
 ~~~java
 class Parent {
@@ -18,17 +18,17 @@ class Child extends Parent {
 }
 ~~~
 
-`Child.id` **che khuất** (*hide*) `Parent.id` theo cách phân giải tên trong mã nguồn. Nhưng đối tượng `Child` vẫn **chứa cả hai trường**:
+`Child.id` **hides** `Parent.id` under source-code name resolution. Yet a `Child` instance still **contains both fields**:
 
-- `child.id` đọc trường `Child.id`.
-- `((Parent) child).id` đọc trường `Parent.id`.
-- `Child.class.getDeclaredField("id")` trả về khai báo ở `Child`.
-- `Parent.class.getDeclaredField("id")` trả về khai báo ở `Parent`.
-- `Field.get(child)` đọc đúng **trường mà đối tượng `Field` biểu diễn**, kể cả khi receiver là một đối tượng lớp con; nó không tự chuyển sang field cùng tên ở lớp con.
+- `child.id` reads the `Child.id` field.
+- `((Parent) child).id` reads the `Parent.id` field.
+- `Child.class.getDeclaredField("id")` returns the declaration on `Child`.
+- `Parent.class.getDeclaredField("id")` returns the declaration on `Parent`.
+- `Field.get(child)` reads the exact **field represented by that `Field` object**, even when the receiver is a subclass instance; it does not automatically redirect to a same-named field on the subclass.
 
-Vì vậy, chọn trường của lớp con làm đại diện cho khóa `id` là **chính sách flatten schema**, không có nghĩa trường ở lớp cha biến mất. Nếu một serializer cần giữ cả hai giá trị, phải dùng khóa có thêm lớp khai báo (ví dụ `Parent#id`, `Child#id`) hoặc báo xung đột; không gộp cả hai một cách im lặng.
+Therefore, choosing the subclass's field to represent the `id` key is a **schema-flattening policy**, not an indication that the superclass field vanished. If a serializer must retain both values, it must use keys qualified with the declaring class (e.g., `Parent#id`, `Child#id`) or report a conflict; never silently merge both.
 
-### 1.2. Method override là một hành vi được phân phối động
+### 1.2. Method overriding is dynamically dispatched behavior
 
 ~~~java
 class Parent {
@@ -41,47 +41,47 @@ class Child extends Parent {
 }
 ~~~
 
-`Child.label()` **override** `Parent.label()`. Lời gọi instance bình thường `new Child().label()` sử dụng triển khai của `Child`. Kể cả khi lấy một `Method` từ `Parent.class.getDeclaredMethod("label")` rồi `invoke(child)`, lời gọi instance này vẫn sử dụng **dynamic dispatch** nên trả `"child"` (theo quy tắc override của Java).
+`Child.label()` **overrides** `Parent.label()`. A normal instance call `new Child().label()` uses `Child`'s implementation. Even when obtaining a `Method` via `Parent.class.getDeclaredMethod("label")` and calling `invoke(child)`, this instance call still uses **dynamic dispatch** and therefore returns `"child"` (per Java overriding rules).
 
-Ngược lại, `private` method không bị override theo nghĩa thông thường; `static` method được **hide**, không dispatch như instance method; và hai method cùng tên nhưng **khác tập kiểu tham số** là *overload*, không phải override. Một bộ quét thành viên không được gộp tất cả các method chỉ theo tên.
+Conversely, `private` methods are not overridden in the normal sense; `static` methods are **hidden**, not dispatched like instance methods; and two methods with the same name but **different parameter type lists** are *overloads*, not overrides. A member scanner must not merge all methods solely by name.
 
-| Tình huống | Bản chất | Quy tắc xử lý phù hợp với registry công khai |
+| Scenario | Nature | Appropriate handling rule for a public registry |
 | --- | --- | --- |
-| `Parent.id` và `Child.id` | Hai field độc lập; field của lớp con hide field cha | Nếu cần một thuộc tính theo tên: chọn lớp con và báo đã che khuất; nếu cần dữ liệu đầy đủ: giữ cả hai với khóa khác nhau |
-| `Parent.label()` và `Child.label()` | Instance method override | Một khóa method theo tên + danh sách kiểu tham số; chọn khai báo hợp lệ ở lớp cụ thể hơn |
-| `set(String)` và `set(int)` | Overload | Giữ **hai** khóa khác nhau |
-| `Parent.staticMethod()` và `Child.staticMethod()` | Static method hiding | Xử lý riêng theo chính sách static; không coi là override |
-| Private method cùng tên/chữ ký trong hai lớp | Không có quan hệ override thông thường | Nếu quét private, định danh theo lớp khai báo và áp dụng access control riêng |
-| Method do compiler sinh (`bridge`/`synthetic`) | Thành viên hỗ trợ bytecode, có thể trùng khóa nguồn | Chọn rõ có loại khỏi mô hình API nguồn hay cần giữ cho phân tích bytecode |
+| `Parent.id` and `Child.id` | Two independent fields; subclass field hides parent field | If one property per name is needed: pick the subclass and record the hiding; if full data is needed: keep both under distinct keys |
+| `Parent.label()` and `Child.label()` | Instance method override | One method key by name + parameter type list; keep the valid declaration on the more specific class |
+| `set(String)` and `set(int)` | Overload | Keep **two** distinct keys |
+| `Parent.staticMethod()` and `Child.staticMethod()` | Static method hiding | Handle separately under static policy; do not treat as override |
+| Private methods with the same name/signature in two classes | No normal overriding relationship | If scanning private members, key by declaring class and apply separate access control |
+| Compiler-generated methods (`bridge`/`synthetic`) | Bytecode-support members, may collide with source keys | Explicitly choose whether to exclude from the source API model or keep for bytecode analysis |
 
-## 2. Reflection trả về gì và những giả định cần bỏ
+## 2. What Reflection returns and assumptions to discard
 
-- `getDeclaredFields()` và `getDeclaredMethods()` chỉ lấy thành viên **được khai báo trực tiếp** trong kiểu đang xét; chúng không tự thêm thành viên thừa kế. Mảng kết quả **không có thứ tự được đảm bảo**.
-- `getFields()` và `getMethods()` trả các thành viên `public` phù hợp, kể cả thành viên kế thừa từ superclass/superinterface. Thứ tự của các mảng này cũng **không được đảm bảo**. Riêng `getMethods()` còn có quy tắc chọn các phương thức cụ thể hơn theo JDK, không nên suy luận chỉ bằng “phần tử đầu tiên”.
-- `getDeclaredMethods()` có thể trả **bridge/synthetic method** do compiler tạo, đôi khi cùng tên + kiểu tham số nhưng khác kiểu trả về.
-- `getDeclaringClass()` cho biết thành viên được **khai báo ở lớp nào**. Thông tin này rất quan trọng khi xử lý hiding, override, log hoặc cache metadata.
-- `getParameterTypes()` phản ánh **kiểu tham số runtime sau type erasure**; `getGenericParameterTypes()` dành cho nhu cầu giữ metadata kiểu tổng quát. Không dùng riêng `getReturnType()` để phân biệt overload theo ngữ nghĩa Java.
-- `getModifiers()`, `Modifier.isPublic(...)`, `Field.isSynthetic()`, `Method.isBridge()` và `Method.isSynthetic()` giúp lọc; nhưng tính `public` của member chưa đảm bảo có quyền gọi nếu **lớp khai báo/package/module** không truy cập được.
+- `getDeclaredFields()` and `getDeclaredMethods()` only retrieve members **declared directly** on the inspected type; they do not automatically add inherited members. The resulting arrays have **no guaranteed order**.
+- `getFields()` and `getMethods()` return matching `public` members, including members inherited from superclasses/superinterfaces. The order of these arrays is also **not guaranteed**. In particular, `getMethods()` follows JDK rules for selecting more specific methods, so do not infer behavior based solely on "the first element".
+- `getDeclaredMethods()` can return compiler-generated **bridge/synthetic methods**, sometimes with the same name + parameter types but a different return type.
+- `getDeclaringClass()` tells you **which class declared the member**. This information is critical when handling hiding, overriding, logging, or metadata caching.
+- `getParameterTypes()` reflects **runtime parameter types after type erasure**; `getGenericParameterTypes()` is for retaining generic type metadata. Do not use `getReturnType()` alone to distinguish overloads in Java semantics.
+- `getModifiers()`, `Modifier.isPublic(...)`, `Field.isSynthetic()`, `Method.isBridge()`, and `Method.isSynthetic()` aid filtering; however, a member being `public` does not guarantee permission to call it if its **declaring class/package/module** is inaccessible.
 
-Ví dụ về kiểu trả về covariant: `Parent.score(): Number` và `Child.score(): Integer` có thể cần compiler tạo một **bridge method** ở `Child` để giữ tương thích sau biên dịch. Nếu registry lấy ngẫu nhiên phần tử đầu tiên của `Child.getDeclaredMethods()`, bộ dữ liệu có thể chứa cả method nguồn và bridge, hoặc chọn kiểu trả về không mong muốn.
+Example with covariant return types: `Parent.score(): Number` and `Child.score(): Integer` may require the compiler to emit a **bridge method** in `Child` to preserve compatibility after compilation. If a registry grabs an arbitrary first element of `Child.getDeclaredMethods()`, the dataset may contain both the source method and the bridge, or pick an unintended return type.
 
-## 3. Định nghĩa chính sách trước khi triển khai
+## 3. Defining the policy before implementing
 
-Một chính sách minh họa cho **registry thuộc tính và hành vi công khai của class thông thường**:
+An illustrative policy for **a registry of public properties and behaviors of ordinary classes**:
 
-1. **Đầu vào**: một `Class<?>` đại diện cho lớp cụ thể.
-2. **Phạm vi**: chỉ thành viên `public instance` do class hiện tại và các superclass (trừ `Object`) khai báo; bỏ `static`, `synthetic` và `bridge`. Bỏ qua interface/default methods trong lượt quét đơn giản này.
-3. **Thứ tự class**: đi từ lớp cụ thể lên superclass gần nhất rồi tiếp tục tới tổ tiên. *Closest declaration wins*.
-4. **Thứ tự trong từng class**: sắp xếp field theo `Field.getName()` và method theo khóa chữ ký ổn định, tuyệt đối không dựa thứ tự mảng Reflection.
-5. **Khóa của field**: `field.getName()`. Nếu tên trùng, giữ field của class cụ thể hơn. Quyết định này làm mất field cùng tên ở lớp cha **khỏi góc nhìn registry**, không xóa field trong object.
-6. **Khóa của method**: `methodName(parameterType1,parameterType2,...)`, dùng danh sách **kiểu tham số runtime theo đúng thứ tự**. Không gộp các overload; không đưa return type vào khóa API nguồn. Nếu key trùng, giữ khai báo ở class cụ thể hơn.
-7. **Xử lý xung đột**: ghi nhận cả “khai báo được chọn” lẫn “khai báo bị che/ghi đè” khi sản phẩm cần audit hoặc cảnh báo; quyết định rõ đây là chính sách cho schema, mapper hay dispatcher.
+1. **Input**: a `Class<?>` representing a concrete class.
+2. **Scope**: only `public instance` members declared by the current class and its superclasses (excluding `Object`); skip `static`, `synthetic`, and `bridge`. Ignore interface/default methods in this simple pass.
+3. **Class order**: walk from the concrete class up to the nearest superclass and continue to ancestors. *Closest declaration wins*.
+4. **Order within each class**: sort fields by `Field.getName()` and methods by a stable signature key, never relying on Reflection array order.
+5. **Field key**: `field.getName()`. On name collision, keep the field from the more specific class. This decision drops the parent's same-named field **from the registry view**, without removing the field from the object.
+6. **Method key**: `methodName(parameterType1,parameterType2,...)`, using the ordered list of **runtime parameter types**. Do not merge overloads; do not include return type in the source API key. On key collision, keep the declaration in the more specific class.
+7. **Conflict handling**: record both the "selected declaration" and "hidden/overridden declarations" when the product needs auditing or warnings; explicitly decide whether this policy serves a schema, mapper, or dispatcher.
 
-Đây là **quy ước của công cụ**, không phải một thuật toán tổng quát thay thế mọi quy tắc kế thừa của Java. Giới hạn `public instance` khiến ví dụ tránh nhiều trường hợp phức tạp về private, package-private khác package, protected, accessibility xuyên module, interface default/diamond và generics. Nếu công cụ thực sự phải xử lý các trường hợp đó, hãy bổ sung chính sách riêng; không mở rộng quyền một cách ngầm định.
+This is a **tool convention**, not a general algorithm replacing all Java inheritance rules. Restricting to `public instance` lets the example avoid many complexities around private, cross-package package-private, protected, cross-module accessibility, interface defaults/diamonds, and generics. If the tool truly must handle those cases, add explicit policies; never widen permissions implicitly.
 
-## 4. Ví dụ Java 17+ chạy độc lập: quét có thứ tự và khóa rõ ràng
+## 4. Standalone Java 17+ example: ordered scanning with explicit keys
 
-Lưu nội dung sau thành **`ToolPolicyDemo.java`**:
+Save the following as **`ToolPolicyDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -180,14 +180,14 @@ public class ToolPolicyDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac ToolPolicyDemo.java
 java ToolPolicyDemo
 ~~~
 
-Kết quả khi biên dịch bằng `javac` Java 17+:
+Output when compiled with Java 17+ `javac`:
 
 ~~~text
 field owner: Child
@@ -202,81 +202,81 @@ class-only sees interface default: false
 getMethod sees default: interface
 ~~~
 
-Đọc kết quả theo chính sách đã chọn:
+Interpreting the output under the chosen policy:
 
-- `field owner: Child`: registry lấy field gần lớp đích nhất theo tên `id`. Dòng kế tiếp chứng minh field `Parent.id` vẫn tồn tại, có giá trị khác; `Field.get(child)` đọc field của đúng lớp khai báo.
-- `label owner: Child`: `putIfAbsent` giữ method override ở lớp con, vì quét `Child` trước `Parent`. `label call: child` phản ánh hành vi override.
-- `score return type: Integer`: khai báo nguồn ở `Child` được chọn; bộ lọc `!m.isBridge()` bỏ method bridge mà `javac` tạo do kiểu trả về covariant.
-- `overloads kept: true/true`: `update(int)` và `update(String)` có khóa khác nhau nên cả hai được giữ.
-- `bridge count: 1`: demo làm hiện rõ bridge trong metadata của `Child`; đây là kết quả của ví dụ cụ thể khi dùng `javac`, không phải lời khẳng định mọi compiler hay mọi override đều phải sinh chính xác một bridge.
-- `base Method.invoke: child`: chọn `Method` khai báo tại `Parent` **không** cố định triển khai `Parent` khi gọi instance method trên một `Child`; dynamic dispatch vẫn áp dụng.
-- `class-only sees interface default: false`: thuật toán có chủ ý chỉ đi dọc superclass, chưa duyệt `Feature`; nhưng `Child.class.getMethod("tag")` tìm được default method public thừa kế từ interface và gọi được.
+- `field owner: Child`: the registry takes the field closest to the target class under name `id`. The next line proves `Parent.id` still exists with a different value; `Field.get(child)` reads the field of its exact declaring class.
+- `label owner: Child`: `putIfAbsent` retains the overriding method in the subclass because `Child` is scanned before `Parent`. `label call: child` reflects overriding behavior.
+- `score return type: Integer`: the source declaration in `Child` is chosen; the `!m.isBridge()` filter drops the bridge method generated by `javac` due to the covariant return type.
+- `overloads kept: true/true`: `update(int)` and `update(String)` have distinct keys so both are kept.
+- `bridge count: 1`: the demo reveals the bridge in `Child`'s metadata; this is the outcome of this specific example using `javac`, not a claim that every compiler or every override must emit exactly one bridge.
+- `base Method.invoke: child`: choosing a `Method` declared on `Parent` does **not** pin `Parent`'s implementation when invoking an instance method on a `Child`; dynamic dispatch still applies.
+- `class-only sees interface default: false`: the algorithm intentionally walks only superclasses and does not inspect `Feature`; however, `Child.class.getMethod("tag")` finds and can invoke the public default method inherited from the interface.
 
-### Vì sao dùng `LinkedHashMap` và `putIfAbsent`?
+### Why use `LinkedHashMap` and `putIfAbsent`?
 
-`LinkedHashMap` giữ thứ tự chèn của các entry để kết quả lặp lại ổn định khi các đầu vào và chính sách không đổi. Quét từ lớp con lên lớp cha, dùng `putIfAbsent(key, member)` để khai báo đầu tiên (lớp cụ thể nhất) chiếm khóa. Sắp xếp **trước khi chèn** loại bỏ sự phụ thuộc vào thứ tự `getDeclaredFields()`/`getDeclaredMethods()` vốn không được đảm bảo.
+`LinkedHashMap` preserves insertion order of entries so results repeat deterministically when inputs and policy do not change. Scanning from subclass to superclass uses `putIfAbsent(key, member)` so the first declaration encountered (most specific class) claims the key. Sorting **before insertion** eliminates reliance on the unguaranteed order of `getDeclaredFields()`/`getDeclaredMethods()`.
 
-Trong ví dụ, khóa chữ ký method là chuỗi để dễ quan sát. Ở một hệ thống xử lý nhiều class loader, hai lớp khác nhau có thể cùng tên nhị phân. Nếu tính duy nhất phải phản ánh **identity của `Class<?>`**, hãy dùng một key cấu trúc (ví dụ record chứa method name và `List<Class<?>>` parameter types) thay vì chỉ dựa vào `Class.getTypeName()`; chuẩn hóa thêm module/loader nếu lưu cache bền vững hoặc xuất metadata liên tiến trình.
+In the example, the method signature key is a string for easy inspection. In a system handling multiple class loaders, two distinct classes can share the same binary name. If uniqueness must reflect **`Class<?>` identity**, use a structured key (e.g., a record containing method name and `List<Class<?>>` parameter types) rather than relying solely on `Class.getTypeName()`; normalize module/loader identity as well when persisting caches or exporting metadata across processes.
 
-## 5. Mở rộng chính sách theo nhu cầu của công cụ
+## 5. Extending the policy to match tool needs
 
-### 5.1. Muốn giữ tất cả field bị hide
+### 5.1. Wanting to keep all hidden fields
 
-Nếu mục tiêu là debugger, ORM có metadata rõ ràng, serializer lossless hoặc công cụ kiểm tra dữ liệu ở mọi tầng kế thừa, chính sách “một tên một field” có thể **không đủ**.
+If the goal is a debugger, an ORM with explicit metadata, a lossless serializer, or a data inspector across all inheritance levels, a "one name, one field" policy may **not suffice**.
 
-Giải pháp: lưu `Map<DeclaringClassAndName, Field>` (hoặc danh sách các field cùng tên) với khóa cấu trúc gồm `field.getDeclaringClass()` và `field.getName()`. Sau đó ánh xạ sang tên hiển thị có namespace rõ ràng: `Parent#id` và `Child#id`. Nếu format đầu ra chỉ chấp nhận một khóa `id`, cần chính sách loại trừ hoặc báo collision có chủ đích, tránh âm thầm ghi đè giá trị cha.
+Solution: store `Map<DeclaringClassAndName, Field>` (or a list of same-named fields) with a structured key containing `field.getDeclaringClass()` and `field.getName()`. Then map to explicitly namespaced display names: `Parent#id` and `Child#id`. If the output format only accepts a single `id` key, you need an explicit exclusion policy or intentional collision reporting to avoid silently overwriting the parent's value.
 
-Khi dùng annotation để đặt tên logic (ví dụ hai field vật lý khác tên nhưng cùng `@JsonProperty`), **collision của tên logic** còn khác collision của tên Java. Khóa, chính sách ưu tiên và bước phát hiện xung đột phải được xác định ở đúng tầng mapping.
+When using annotations to assign logical names (e.g., two physical fields with different names sharing `@JsonProperty`), **logical-name collisions** also differ from Java-name collisions. Keys, precedence rules, and conflict detection must be defined at the right mapping layer.
 
-### 5.2. Muốn hỗ trợ method từ interface và default method
+### 5.2. Wanting to support interface methods and default methods
 
-Một registry chỉ quét superclass như ví dụ sẽ bỏ `default` method của interface. Có hai hướng:
+A registry scanning only superclasses as in the example will miss interface `default` methods. There are two approaches:
 
-- Với API public đã kế thừa, xem xét `Class.getMethods()` hoặc `getMethod(name, parameterTypes...)` để dựa vào phép phân giải public method mà Reflection cung cấp, rồi lọc/sắp xếp và xác định chính sách nhóm.
-- Nếu cần biết **vị trí khai báo trong interface graph**, chủ động duyệt `getInterfaces()`, loại trùng interface, ưu tiên class method so với interface default theo quy tắc Java, rồi xử lý trường hợp nhiều interface liên quan. Sắp xếp tên/interface cho deterministic output, nhưng việc chọn triển khai phải tuân thủ quan hệ kế thừa/most-specific, **không dùng thứ tự alphabet thay cho ngữ nghĩa override**.
+- For inherited public APIs, consider `Class.getMethods()` or `getMethod(name, parameterTypes...)` to rely on the public method resolution provided by Reflection, then filter/sort and define grouping policies.
+- If you need **declaration location in the interface graph**, actively traverse `getInterfaces()`, deduplicate interfaces, prioritize class methods over interface defaults per Java rules, and handle cases involving multiple interfaces. Sort names/interfaces for deterministic output, while implementation selection must follow inheritance/most-specific rules—**do not substitute alphabetical order for overriding semantics**.
 
-Ví dụ ở mục 4 cố tình cho thấy `methodMap` không chứa `tag()` còn `getMethod("tag")` thì chứa: đây là **giới hạn công khai của chính sách minh họa**, không phải lỗi của Reflection.
+The example in section 4 intentionally shows `methodMap` does not contain `tag()` whereas `getMethod("tag")` does: this is an **explicit limitation of the illustrative policy**, not a Reflection bug.
 
-### 5.3. Static, private, protected, package-private và module
+### 5.3. Static, private, protected, package-private, and modules
 
-- Method `static` cùng chữ ký trong hai lớp được **hide**, không có dynamic dispatch. Nếu registry xử lý static factory, dùng nhóm và ưu tiên riêng; không nhập vào registry instance.
-- Method `private` của cha không bị override; nếu công cụ cần đọc private, khóa phải giữ lớp khai báo hoặc phân biệt metadata, không cho method cùng tên ở con “thay thế” private cha theo suy luận override.
-- `protected` và package-private phải xét **package, quan hệ kiểu và khả năng thực sự truy cập**. Package-private giữa hai package khác nhau không tự trở thành một quan hệ override.
-- Ngoài `Modifier.isPublic`, module `exports`/`opens`, visibility của lớp khai báo và lookup context có thể quyết định khả năng sử dụng. `setAccessible(true)` có giới hạn trong Java 17+ với JPMS và có thể ném `InaccessibleObjectException`; không xem việc tìm được metadata là đủ quyền gọi.
-- Constructor **không được kế thừa**, vì vậy không đưa `getDeclaredConstructors()` vào cùng thuật toán override/hiding.
+- `static` methods with the same signature in two classes are **hidden**, with no dynamic dispatch. If a registry handles static factories, use a separate group and precedence; do not mix them into the instance registry.
+- A parent's `private` method is not overridden; if a tool must read private members, the key must include the declaring class or distinguish metadata, never letting a same-named subclass method "replace" the parent's private method under override assumptions.
+- `protected` and package-private must account for **package, type relationships, and actual accessibility**. Package-private methods in two different packages do not automatically form an override relationship.
+- Beyond `Modifier.isPublic`, module `exports`/`opens`, declaring-class visibility, and lookup context can determine usability. `setAccessible(true)` has restrictions in Java 17+ under JPMS and may throw `InaccessibleObjectException`; do not treat discovering metadata as sufficient permission to invoke.
+- Constructors are **not inherited**, so do not feed `getDeclaredConstructors()` into the same override/hiding algorithm.
 
-Với công cụ xử lý rộng hơn ví dụ, cần kiểm tra accessibility bằng chính API được dùng (Reflection, `MethodHandles.Lookup`, `canAccess` khi có đối tượng phù hợp) và theo chính sách của sản phẩm. Nếu không đủ quyền, báo lỗi rõ ràng thay vì chọn một thành viên khác ngẫu nhiên.
+For tools handling broader cases than the example, verify accessibility using the exact API being used (Reflection, `MethodHandles.Lookup`, `canAccess` when an appropriate object exists) and according to product policy. When permissions are insufficient, report a clear error instead of picking another member arbitrarily.
 
-### 5.4. Generic, bridge và kiểu trả về covariant
+### 5.4. Generics, bridges, and covariant return types
 
-Java xác định overload chủ yếu từ **tên method và danh sách kiểu tham số**, không tạo overload mới chỉ nhờ kiểu trả về khác nhau. Ở bytecode/Reflection, compiler có thể thêm bridge sau type erasure hoặc khi return type covariant. Vì vậy:
+Java determines overloads primarily from **method name and parameter type list**, and does not create a new overload solely from a different return type. In bytecode/Reflection, the compiler may add bridges after type erasure or when return types are covariant. Therefore:
 
-1. Đối với **mô hình API ở cấp Java source**, thường nên lọc `isBridge()`/`isSynthetic()` trước khi nhóm.
-2. Đối với **bytecode analyzer**, có thể cần giữ cả bridge, nhưng khóa lúc đó có thể bao gồm **return type** và thông tin declaring class, kèm cờ bridge/synthetic.
-3. Với generic type metadata, phân biệt `getParameterTypes()` (erased runtime types) và `getGenericParameterTypes()`. Dữ liệu generic là phần mô tả cần lưu thêm; nó không phải lý do để chọn tùy ý một method trùng runtime signature.
+1. For a **Java source-level API model**, it is usually best to filter out `isBridge()`/`isSynthetic()` before grouping.
+2. For a **bytecode analyzer**, it may be necessary to keep bridges as well, in which case keys can include the **return type** and declaring class info, along with bridge/synthetic flags.
+3. For generic type metadata, distinguish `getParameterTypes()` (erased runtime types) from `getGenericParameterTypes()`. Generic data is supplemental descriptive metadata; it is not a reason to arbitrarily pick one method among colliding runtime signatures.
 
-Nếu library yêu cầu hỗ trợ bytecode không thông thường hoặc class sinh động, đừng giả định mọi trùng lặp đều là bridge; kiểm tra nhóm đã lọc và đưa ra quyết định rõ ràng khi vẫn còn collision.
+If a library must support unusual bytecode or dynamically generated classes, do not assume every duplicate is a bridge; inspect the filtered group and make an explicit decision when collisions remain.
 
-## 6. Kiểm tra tính nhất quán trước khi đưa vào framework
+## 6. Consistency checks before shipping into a framework
 
-Một bộ quét đáng tin cậy nên có các đặc điểm có thể kiểm chứng:
+A reliable scanner should have verifiable properties:
 
-| Tiêu chí | Cách kiểm chứng |
+| Criterion | How to verify |
 | --- | --- |
-| Kết quả độc lập với thứ tự mảng Reflection | Hoán vị danh sách đầu vào trước khi sort/group; kết quả chọn vẫn giống nhau |
-| Field cùng tên không làm mất dữ liệu ngoài ý muốn | Có test `Parent.id`/`Child.id`, kiểm tra chính sách “flatten” hay “keep all” |
-| Override khác overload | `label()` chỉ có một entry ở class gần nhất; `update(String)` và `update(int)` cùng tồn tại |
-| Bridge không làm sai kiểu trả về của API nguồn | Thử override covariant; kiểm tra `isBridge()` và kiểu trả về của entry được chọn |
-| Interface default được xử lý theo quy tắc đã công bố | Thử `getMethod`, hoặc kiểm tra rõ phạm vi class-only |
-| Quyền truy cập được xử lý | Thử public trên kiểu không public, private across modules, và xử lý lỗi truy cập |
-| Kết quả ổn định khi cache | Khóa cache gắn `Class<?>`/ClassLoader và chính sách lọc; không dùng chỉ tên class nếu có nhiều loader |
-| Thành viên bị bỏ được giải thích | Với dữ liệu quan trọng, log khai báo gốc/chọn/bị bỏ theo chính sách, tránh silent collision |
+| Output independent of Reflection array order | Permute input lists before sorting/grouping; selected results remain identical |
+| Same-named fields do not silently lose data | Test `Parent.id`/`Child.id`, verifying the "flatten" or "keep all" policy |
+| Overrides differ from overloads | `label()` yields only one entry from the nearest class; `update(String)` and `update(int)` coexist |
+| Bridges do not corrupt source-API return types | Test covariant overrides; check `isBridge()` and the return type of the selected entry |
+| Interface defaults are handled per published rules | Test `getMethod`, or verify explicit class-only scope |
+| Access rights are handled | Test public members on non-public types, private across modules, and access error handling |
+| Stable results when cached | Cache keys bind `Class<?>`/ClassLoader and filter policy; do not use class name alone with multiple loaders |
+| Excluded members are explainable | For critical data, log original/selected/excluded declarations per policy, avoiding silent collisions |
 
-Lỗi phổ biến cần tránh là đặt `Map.put(name, member)` trong vòng lặp không định nghĩa thứ tự: “lần cuối thắng” tùy thuộc thứ tự JVM trả về. Ngay cả `putIfAbsent` cũng chỉ đúng khi **đầu vào đã được sắp xếp và thứ tự lớp đã được thiết kế**.
+A common bug to avoid is calling `Map.put(name, member)` inside a loop with undefined order: "last one wins" depends on the order returned by the JVM. Even `putIfAbsent` is only valid when **inputs are already sorted and class traversal order is intentionally designed**.
 
-**Ghi nhớ:** field hiding giữ **nhiều ô lưu trữ**; method overriding xác định **triển khai instance được gọi**. Registry Reflection phải nêu rõ sẽ giữ tất cả hay chọn một đại diện, với khóa và thứ tự ổn định. Chính sách minh họa dùng “lớp con trước, cùng class sort, field theo tên, method theo tên + tham số, lọc bridge/synthetic/static” để tạo một kết quả dễ dự đoán; khi thêm interface hoặc non-public member, phải mở rộng chính sách tương ứng.
+**Key takeaway:** field hiding retains **multiple storage slots**; method overriding determines **the instance implementation invoked**. A Reflection registry must explicitly state whether it keeps all or chooses one representative, with stable keys and ordering. The illustrative policy uses "subclass first, sort within class, fields by name, methods by name + parameters, filter bridge/synthetic/static" to produce a predictable result; when adding interfaces or non-public members, extend the policy accordingly.
 
-**Tham khảo tài liệu Java SE 21:**
+**Java SE 21 documentation references:**
 - [`Class`: `getDeclaredFields`, `getDeclaredMethods`, `getMethods`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html)
 - [`Method`: `invoke`, `isBridge`, `isSynthetic`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html)
-- [`Field`: `get` và `getDeclaringClass`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html)
+- [`Field`: `get` and `getDeclaringClass`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html)

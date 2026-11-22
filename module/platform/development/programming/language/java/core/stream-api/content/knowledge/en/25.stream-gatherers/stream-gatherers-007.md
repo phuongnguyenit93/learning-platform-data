@@ -1,64 +1,64 @@
-# Ánh xạ đồng thời có giới hạn bằng `Gatherers.mapConcurrent`
+# Bounded Concurrent Mapping with `Gatherers.mapConcurrent`
 
-## 1. Mục tiêu bài học và tình huống thực tế
+## 1. Lesson objectives and real-world scenario
 
-Trong module **`JAVA_STREAM_API`**, một pipeline Java Stream thường biểu diễn luồng xử lý dữ liệu bằng các thao tác khai báo: tạo nguồn, `filter`, `map`, `flatMap`, `reduce` và `collect`. Với các tác vụ độc lập nhưng có thời gian **chờ I/O**, ví dụ gọi nhiều API, kiểm tra trạng thái nhiều bản ghi hoặc đọc dữ liệu từ một dịch vụ có giới hạn kết nối, `map` tuần tự có thể dành nhiều thời gian chỉ để chờ từng kết quả.
+In the **`JAVA_STREAM_API`** module, a Java Stream pipeline usually expresses a data-processing flow with declarative operations: creating a source, `filter`, `map`, `flatMap`, `reduce`, and `collect`. For independent tasks that spend time **waiting on I/O**, such as calling multiple APIs, checking the status of many records, or reading data from a connection-limited service, sequential `map` can spend most of its time simply waiting for each result one by one.
 
-Chạy mọi thứ song song không giới hạn cũng không phù hợp: hệ thống đích có thể chỉ cho phép một số yêu cầu đang xử lý, database connection pool bị giới hạn và bộ nhớ của ứng dụng không vô hạn.
+Running everything in unbounded parallel is also unsuitable: the target system may allow only a certain number of in-flight requests, database connection pools are finite, and application memory is not infinite.
 
-**`Gatherers.mapConcurrent(maxConcurrency, mapper)`** là một gatherer dựng sẵn cho phép:
+**`Gatherers.mapConcurrent(maxConcurrency, mapper)`** is a built-in gatherer that enables:
 
-- Chuyển đổi từng phần tử bằng `mapper` theo quan hệ **một đầu vào → một đầu ra**.
-- Chạy **nhiều lời gọi mapper đồng thời**, tối đa theo giới hạn `maxConcurrency`.
-- Dùng **virtual threads** do API cung cấp để thực thi các lời gọi.
-- **Bảo toàn thứ tự đầu ra** theo encounter order của stream nguồn, dù tác vụ có thể hoàn thành không theo thứ tự.
-- Kết hợp với `Stream.gather(...)` để tiếp tục các thao tác `filter`, `map`, `collect` hoặc terminal operation khác.
+- Transforming each element with `mapper` in a **one-input → one-output** relationship.
+- Running **multiple mapper invocations concurrently**, up to the limit `maxConcurrency`.
+- Using **virtual threads** provided by the API to execute the calls.
+- **Preserving output order** according to the source stream's encounter order, even when tasks complete out of order.
+- Combining with `Stream.gather(...)` to continue with `filter`, `map`, `collect`, or other terminal operations.
 
-Đây là bài trong chương **Stream Gatherer**. Mục đích không chỉ là học cú pháp Java 24 mà còn biết cách thiết kế giới hạn đồng thời, hiểu lỗi, short-circuit, tài nguyên, mức tải và kiểm thử trước khi đưa xử lý đồng thời vào hệ thống.
+This lesson is part of the **Stream Gatherer** chapter. The goal is not only to learn Java 24 syntax, but also to understand how to design concurrency limits, handle errors, short-circuiting, resources, load levels, and testing before bringing concurrency into a system.
 
-Sau bài, bạn sẽ có thể:
+After this lesson, you will be able to:
 
-1. Sử dụng `Stream.gather(Gatherers.mapConcurrent(...))` đúng phiên bản Java.
-2. Giải thích khác nhau giữa **concurrency**, **parallelism** và **rate limiting**.
-3. Xác nhận giới hạn các lời gọi mapper đồng thời bằng bộ đếm an toàn thread.
-4. Giữ kết quả theo thứ tự nguồn ngay khi tác vụ hoàn thành đảo thứ tự.
-5. Phân biệt `mapConcurrent` với `map`, `parallelStream().map` và một executor tự quản lý.
-6. Thiết kế quy tắc về ngoại lệ, hủy tác vụ, timeout và trạng thái dùng chung.
-7. Đánh giá khi nào virtual threads có ích, khi nào công việc CPU-bound không được lợi.
-8. Viết chương trình kiểm chứng Java 24+ và nhận diện giới hạn của thí nghiệm.
+1. Use `Stream.gather(Gatherers.mapConcurrent(...))` with the proper Java version.
+2. Explain the differences among **concurrency**, **parallelism**, and **rate limiting**.
+3. Verify the limit on concurrent mapper calls using a thread-safe counter.
+4. Keep results in source order even when tasks finish out of order.
+5. Distinguish `mapConcurrent` from `map`, `parallelStream().map`, and a self-managed executor.
+6. Design policies for exceptions, task cancellation, timeouts, and shared state.
+7. Evaluate when virtual threads help and when CPU-bound work does not benefit.
+8. Write a Java 24+ verification program and recognize the limits of the experiment.
 
-## 2. Phiên bản JDK và điều kiện biên dịch
+## 2. JDK version and compilation requirements
 
-Các mốc quan trọng:
+Important milestones:
 
-| Phiên bản | Stream Gatherers | `Gatherers.mapConcurrent` |
+| Version | Stream Gatherers | `Gatherers.mapConcurrent` |
 | --- | --- | --- |
-| Java 8–21 | Chưa có API Gatherers chuẩn | Không có phương thức này |
-| Java 22 | Preview lần đầu (JEP 461) | Preview, cần bật preview tương ứng |
-| Java 23 | Preview lần hai (JEP 473) | Preview, tiếp tục cần bật preview |
-| **Java 24 trở lên** | **Chính thức (JEP 485)** | Dùng được như API chuẩn, không cần `--enable-preview` |
+| Java 8–21 | No standard Gatherers API yet | Method does not exist |
+| Java 22 | First preview (JEP 461) | Preview, requires enabling corresponding preview |
+| Java 23 | Second preview (JEP 473) | Preview, still requires enabling preview |
+| **Java 24 and later** | **Official (JEP 485)** | Available as a standard API, no `--enable-preview` needed |
 
-Các ví dụ trong bài dùng **Java 24+**, trừ khi ghi rõ cách thay thế trên JDK cũ. `Stream.toList()` có từ Java 16, nhưng `Stream.gather` và `Gatherers.mapConcurrent` chỉ được chuẩn hóa ở Java 24.
+Examples in this lesson use **Java 24+**, unless an older-JDK alternative is explicitly noted. `Stream.toList()` has existed since Java 16, whereas `Stream.gather` and `Gatherers.mapConcurrent` were only standardized in Java 24.
 
-Kiểm tra môi trường:
+Check the environment:
 
 ```text
 java -version
 javac -version
 ```
 
-Với file `MapConcurrentIntro.java` bên dưới:
+With the `MapConcurrentIntro.java` file below:
 
 ```text
 javac MapConcurrentIntro.java
 java MapConcurrentIntro
 ```
 
-Nếu dự án dùng Maven/Gradle toolchain hoặc `javac --release 21`, không thể dùng Gatherers Java 24 dù terminal được cài JDK 24. Cần cấu hình **mức API biên dịch** và **JDK runtime thực tế** tương thích. Đừng chỉ đổi cấu hình phiên bản mà bỏ qua máy chủ chạy ứng dụng.
+If a project uses a Maven/Gradle toolchain or `javac --release 21`, Java 24 Gatherers cannot be used even if JDK 24 is installed in the terminal. Both **the compile API level** and **the actual runtime JDK** must be compatible. Do not just change one version setting and overlook the application host.
 
-## 3. Chữ ký và hợp đồng quan trọng nhất
+## 3. Signature and core contract
 
-Trên Java 24, API dựng sẵn có chữ ký:
+In Java 24, the built-in API has the signature:
 
 ```java
 public static <T, R> Gatherer<T, ?, R> mapConcurrent(
@@ -67,18 +67,18 @@ public static <T, R> Gatherer<T, ?, R> mapConcurrent(
 )
 ```
 
-Ý nghĩa:
+Meaning:
 
-| Thành phần | Vai trò |
+| Component | Role |
 | --- | --- |
-| `T` | Kiểu phần tử nguồn đi vào gatherer |
-| `R` | Kiểu phần tử mapper tạo ra |
-| `maxConcurrency` | **Mức đồng thời tối đa** mong muốn cho mapper, phải ≥ 1 |
-| `mapper` | Hàm chuyển một `T` thành một `R` |
-| `Gatherer<T, ?, R>` | Đối tượng mô tả phép biến đổi trung gian |
-| `Stream.gather(...)` | Áp dụng gatherer lên stream nguồn, tạo `Stream<R>` |
+| `T` | Source element type entering the gatherer |
+| `R` | Output element type produced by the mapper |
+| `maxConcurrency` | Desired **maximum concurrency** for the mapper, must be ≥ 1 |
+| `mapper` | Function converting one `T` into one `R` |
+| `Gatherer<T, ?, R>` | Object describing the intermediate transformation |
+| `Stream.gather(...)` | Applies the gatherer to the source stream, returning `Stream<R>` |
 
-Ví dụ về hình dạng pipeline:
+Pipeline shape example:
 
 ```java
 Stream<Integer> input = Stream.of(1, 2, 3);
@@ -93,19 +93,19 @@ Stream<String> output = input.gather(
 List<String> result = output.toList();
 ```
 
-Kết quả logic là `[ID-1, ID-2, ID-3]`. `gather` vẫn là **intermediate operation**; việc thực hiện mapper được kích hoạt khi pipeline được tiêu thụ bởi một terminal operation như `toList`.
+The logical result is `[ID-1, ID-2, ID-3]`. `gather` remains an **intermediate operation**; mapper execution is triggered when the pipeline is consumed by a terminal operation such as `toList`.
 
-### 3.1. Một đầu vào tạo một đầu ra
+### 3.1. One input produces one output
 
-`mapConcurrent` có quan hệ **một-một** về mặt phần tử khi mapper hoàn thành bình thường. Không gọi `mapConcurrent` để:
+`mapConcurrent` has a **one-to-one** element relationship when the mapper completes normally. Do not call `mapConcurrent` to:
 
-- Tự phát 0 hoặc nhiều phần tử từ một input.
-- Phân nhóm thành `Map` theo khóa.
-- Tạo cửa sổ trượt, cửa sổ cố định hoặc prefix scan.
+- Emit 0 or multiple elements from a single input on its own.
+- Group into a `Map` by key.
+- Create sliding windows, fixed windows, or prefix scans.
 
-Những nhu cầu đó liên quan các API khác như `filter`, `flatMap`, `mapMulti`, `collect(groupingBy(...))`, `Gatherers.windowSliding` hoặc `Gatherers.scan`.
+Those needs belong to other APIs such as `filter`, `flatMap`, `mapMulti`, `collect(groupingBy(...))`, `Gatherers.windowSliding`, or `Gatherers.scan`.
 
-Ví dụ chỉ nhận số chẵn:
+Example keeping only even numbers:
 
 ```java
 List<String> result = Stream.of(1, 2, 3, 4)
@@ -117,29 +117,29 @@ List<String> result = Stream.of(1, 2, 3, 4)
 System.out.println(result); // [N=2, N=4]
 ```
 
-Ở đây **`filter`**, không phải `mapConcurrent`, loại bớt phần tử.
+Here **`filter`**, not `mapConcurrent`, removes elements.
 
-### 3.2. Kiểm tra tham số
+### 3.2. Parameter validation
 
-Theo API Java 24:
+Per the Java 24 API:
 
 - `maxConcurrency < 1` → `IllegalArgumentException`.
 - `mapper == null` → `NullPointerException`.
 
 ```java
-// Bị từ chối:
+// Rejected:
 Gatherers.mapConcurrent(0, (Integer n) -> n * 2);
 Gatherers.mapConcurrent(-1, (Integer n) -> n * 2);
 Gatherers.<Integer, Integer>mapConcurrent(2, null);
 ```
 
-Không nên chấp nhận `0` và tự hiểu là "chạy tuần tự". Nếu cần một mapper tuần tự, dùng `stream.map(mapper)`, hoặc `mapConcurrent(1, mapper)` khi muốn giữ cùng hình thức gatherer nhưng không kỳ vọng cải thiện tốc độ.
+Do not accept `0` assuming it means "run sequentially". If a sequential mapper is needed, use `stream.map(mapper)`, or `mapConcurrent(1, mapper)` when keeping the same gatherer shape without expecting a speedup.
 
-**Giới hạn trên** cũng nên có chính sách từ ứng dụng. JDK chỉ yêu cầu giá trị dương; cấu hình `1_000_000` không có nghĩa hệ thống đích đủ sức nhận một triệu yêu cầu đồng thời.
+**An upper limit** should also have an application policy. The JDK only requires a positive value; configuring `1_000_000` does not mean the target system can handle a million concurrent requests.
 
-## 4. Ví dụ đầu tiên có thể chạy (Java 24+)
+## 4. First runnable example (Java 24+)
 
-Tạo file `MapConcurrentIntro.java`:
+Create `MapConcurrentIntro.java`:
 
 ```java
 import java.util.List;
@@ -164,92 +164,92 @@ public class MapConcurrentIntro {
 }
 ```
 
-Đọc từ trái sang phải:
+Reading left to right:
 
-1. `IntStream.rangeClosed(1, 6).boxed()` tạo `Stream<Integer>` có encounter order.
-2. `Gatherers.mapConcurrent(3, ...)` cấu hình tối đa ba lời gọi mapper đang thực thi đồng thời.
-3. `gather` tạo pipeline với khả năng ánh xạ đồng thời thông qua virtual threads.
-4. `toList` đợi các kết quả cần thiết và thu thành danh sách.
-5. Danh sách có thứ tự theo **nguồn**, không phụ thuộc callback nào hoàn tất trước.
+1. `IntStream.rangeClosed(1, 6).boxed()` creates a `Stream<Integer>` with encounter order.
+2. `Gatherers.mapConcurrent(3, ...)` configures at most three mapper calls executing concurrently.
+3. `gather` builds a pipeline capable of concurrent mapping via virtual threads.
+4. `toList` waits for the needed results and collects them into a list.
+5. The list is ordered by the **source**, regardless of which callback finished first.
 
-Đây là **ví dụ đúng về ngữ nghĩa** nhưng `lookupLabel` chỉ ghép chuỗi rất nhanh. Không nên kỳ vọng nó sẽ nhanh hơn `map(MapConcurrentIntro::lookupLabel)`: chi phí điều phối có thể lớn hơn phép ghép chuỗi.
+This is a **semantically valid example**, though `lookupLabel` only does fast string concatenation. Do not expect it to be faster than `map(MapConcurrentIntro::lookupLabel)`: coordination overhead can exceed the cost of string concatenation.
 
-## 5. Virtual threads giúp việc chờ như thế nào?
+## 5. How do virtual threads help with waiting?
 
-Một **virtual thread** là cơ chế thread nhẹ do Java runtime quản lý; nhiều virtual threads có thể được lập lịch trên số lượng nhỏ hơn các platform threads. Điều này đặc biệt hữu ích khi công việc thường xuyên **chờ I/O** thay vì liên tục tiêu thụ CPU.
+A **virtual thread** is a lightweight thread mechanism managed by the Java runtime; many virtual threads can be scheduled onto a smaller number of platform threads. This is especially useful when work frequently **waits on I/O** rather than continuously consuming CPU.
 
-Một mô hình khái niệm:
+Conceptual model:
 
 ```text
-Stream nguồn:    A       B       C       D       E
+Source Stream:   A       B       C       D       E
                   \      |      /
                    mapConcurrent(3)
                   /      |      \
              virtual   virtual   virtual
              thread    thread    thread
                  |        |        |
-             chờ API   chờ API   chờ API
+             wait API  wait API  wait API
                   \       |       /
-             nhận kết quả theo thứ tự nguồn
+             receive results in source order
                         |
                      Stream<R>
 ```
 
-Trong lúc một tác vụ chờ phản hồi, runtime có thể thực thi tác vụ khác. **Virtual threads không làm một phép tính CPU trở nên nhanh hơn một cách thần kỳ**: khả năng chạy tính toán đồng thời vẫn bị giới hạn bởi số lõi, tranh chấp bộ nhớ và cách lập lịch.
+While one task waits for a response, the runtime can run another task. **Virtual threads do not magically make a CPU computation faster**: concurrent compute throughput is still bounded by CPU cores, memory contention, and scheduling.
 
-### 5.1. Vì sao không cứ dùng `parallel()`?
+### 5.1. Why not just use `parallel()`?
 
-`parallelStream` thường phân chia nguồn cho các phần việc của cơ chế fork/join. Điều đó phù hợp với nhiều phép tính **CPU-bound độc lập, nguồn dễ chia**. Trong khi đó, `mapConcurrent` có một lợi ích khác: **đưa một bước mapping có thể chờ vào cơ chế thực thi đồng thời có giới hạn, không cần biến toàn bộ stream thành parallel stream**.
+`parallelStream` typically splits the source across fork/join work units. That suits many **independent CPU-bound computations on easily splittable sources**. Meanwhile, `mapConcurrent` offers a different benefit: **putting a potentially blocking mapping step onto bounded concurrent execution without converting the entire stream into a parallel stream**.
 
-Đừng coi hai API là đồng nghĩa. Phần so sánh chi tiết ở mục sau sẽ làm rõ khi nào chọn cách nào.
+Do not treat the two APIs as synonymous. The detailed comparison in a later section clarifies when to pick which.
 
-### 5.2. `maxConcurrency` không phải số lõi CPU
+### 5.2. `maxConcurrency` is not CPU core count
 
-Chọn `maxConcurrency = 20` không yêu cầu máy có 20 lõi. Nó cho phép tối đa 20 lời gọi mapper có thể **đang thực hiện** đồng thời, có thể phần lớn thời gian nằm ở trạng thái chờ. Với tác vụ chỉ tính CPU, vượt quá mức khả dụng của CPU có thể chỉ tăng overhead.
+Choosing `maxConcurrency = 20` does not require the machine to have 20 cores. It allows up to 20 mapper invocations to be **in progress** concurrently, potentially spending most of their time waiting. For CPU-only tasks, exceeding available CPU capacity may only add overhead.
 
-Khi mapper gọi dịch vụ từ xa, ngoài số lõi còn cần cân nhắc:
+When the mapper calls a remote service, beyond core count you must consider:
 
-- Số kết nối đồng thời mà dịch vụ cho phép.
-- Pool kết nối HTTP/JDBC của client.
-- Timeout, retry và circuit breaker.
-- Bộ nhớ giữ dữ liệu đầu vào/đầu ra đang chờ.
-- Số yêu cầu đồng thời từ **những pipeline khác** trong cùng ứng dụng.
+- The number of concurrent connections allowed by the target service.
+- The client's HTTP/JDBC connection pool.
+- Timeouts, retries, and circuit breakers.
+- Memory holding in-flight inputs and outputs.
+- Concurrent requests from **other pipelines** in the same application.
 
-## 6. Concurrency khác parallelism và rate limiting
+## 6. Concurrency differs from parallelism and rate limiting
 
-Ba khái niệm không thể đánh đồng:
+These three concepts must not be equated:
 
-| Khái niệm | Câu hỏi | Ví dụ |
+| Concept | Question | Example |
 | --- | --- | --- |
-| **Concurrency** | Có bao nhiêu công việc được quản lý/đang tiến hành cùng lúc? | Tối đa 5 mapper đang chờ API |
-| **Parallelism** | Có bao nhiêu phần tính toán thực sự chạy đồng thời trên tài nguyên CPU? | Nhiều lõi xử lý các vùng mảng |
-| **Rate limit** | Có bao nhiêu yêu cầu được khởi tạo hoặc hoàn thành trong một khoảng thời gian? | Tối đa 100 request/giây |
+| **Concurrency** | How many tasks are being managed/in progress at the same time? | At most 5 mappers waiting on an API |
+| **Parallelism** | How many compute parts are physically executing simultaneously on CPU resources? | Multiple cores processing array slices |
+| **Rate limit** | How many requests are initiated or completed within a time window? | At most 100 requests/second |
 
-`mapConcurrent(5, mapper)` giới hạn **số lời gọi mapper đồng thời**. Nó **không bảo đảm** tốc độ tối đa 5 request/giây.
+`mapConcurrent(5, mapper)` limits **the number of concurrent mapper calls**. It **does not guarantee** a maximum rate of 5 requests/second.
 
-Ví dụ một dịch vụ phản hồi trong khoảng 10 ms: năm slot có thể được tái sử dụng rất nhiều lần mỗi giây. Nếu dịch vụ phản hồi chậm tới vài giây, throughput sẽ thấp hơn đáng kể với cùng mức concurrency.
+For instance, if a service responds in around 10 ms, five slots can be reused many times per second. If the service responds slowly over several seconds, throughput will be substantially lower at the same concurrency level.
 
-### 6.1. Không dùng concurrency như quota QPS
+### 6.1. Do not use concurrency as a QPS quota
 
-Nếu API có hạn mức **100 request/giây**, chỉ dùng:
+If an API has a quota of **100 requests/second**, simply using:
 
 ```java
 .gather(Gatherers.mapConcurrent(10, this::callApi))
 ```
 
-chưa kiểm soát được số lần bắt đầu yêu cầu mỗi giây. Muốn tuân thủ hạn mức, có thể cần một **rate limiter theo token bucket/time window** kết hợp giới hạn concurrency; hai lớp giới hạn bảo vệ **hai tài nguyên khác nhau**.
+does not control how many requests start per second. To enforce a rate quota, you may need a **token-bucket/time-window rate limiter** combined with a concurrency limit; the two limit layers protect **two different resources**.
 
-### 6.2. Một pipeline không quản lý quota toàn ứng dụng
+### 6.2. One pipeline does not manage an application-wide quota
 
-Hai yêu cầu web độc lập, mỗi yêu cầu tạo một pipeline `mapConcurrent(10, ...)`, không mặc nhiên chia sẻ một budget 10 yêu cầu trên toàn ứng dụng. Nếu upstream chỉ cho phép tổng 10 yêu cầu, cần quản lý **giới hạn toàn cục** ở lớp client hoặc bằng cơ chế concurrency limiter chung (ví dụ `Semaphore`/pool), ngoài giới hạn cục bộ của gatherer.
+Two independent web requests, each creating a `mapConcurrent(10, ...)` pipeline, do not automatically share a global budget of 10 requests across the entire application. If upstream only allows 10 total requests, you must enforce a **global limit** at the client layer or via a shared concurrency limiter (e.g., `Semaphore`/pool), in addition to the gatherer's local limit.
 
-Không thể suy từ mỗi pipeline hợp lệ rằng toàn dịch vụ sẽ không bao giờ vượt tải.
+You cannot infer from each individual pipeline being valid that the whole service will never overload downstream.
 
-## 7. Bảo toàn encounter order dù mapper hoàn thành lệch thứ tự
+## 7. Preserving encounter order even when mappers finish out of order
 
-Giả sử nguồn `[1,2,3,4]`, nhưng mapper của 1 cần nhiều thời gian hơn mapper của 2 và 3. Với `mapConcurrent`, runtime có thể thực hiện nhiều mapper cùng lúc, song **đầu ra vẫn phản ánh encounter order** của stream nguồn có thứ tự.
+Suppose the source is `[1,2,3,4]`, yet the mapper for 1 takes longer than the mappers for 2 and 3. With `mapConcurrent`, the runtime can run multiple mappers concurrently, yet **the output still reflects the encounter order** of an ordered source stream.
 
-Ví dụ Java 24+ với thời gian chờ mô phỏng:
+Java 24+ example with simulated wait times:
 
 ```java
 import java.util.List;
@@ -265,7 +265,7 @@ public class OrderedConcurrentMap {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(
-                "Tac vu bi ngat", ex);
+                "Task interrupted", ex);
         }
         return "id-" + id;
     }
@@ -283,28 +283,28 @@ public class OrderedConcurrentMap {
 }
 ```
 
-Dữ liệu sau `toList` **có thứ tự ổn định** trên nguồn này. Ta cố ý làm thời gian chờ của các ID khác nhau, nhưng **không khẳng định lịch chạy hay thứ tự hoàn thành thực tế luôn giống nhau** ở mọi lần chạy. `Thread.sleep` chỉ là công cụ mô phỏng, không phải bằng chứng tốc độ ứng dụng thật.
+Data after `toList` **has a stable order** on this source. We deliberately vary the wait time across IDs, without **asserting that actual scheduling or completion order is identical** across every run. `Thread.sleep` is only a simulation tool, not evidence of real application speed.
 
-### 7.1. Thứ tự kết quả ≠ thứ tự side effect
+### 7.1. Result order ≠ side-effect order
 
-Không dùng `System.out.println` trong mapper để đoán thứ tự:
+Do not use `System.out.println` inside a mapper to guess ordering:
 
 ```java
-// Chỉ để chẩn đoán, không dùng thứ tự log làm hợp đồng.
+// For diagnostics only; do not treat log order as a contract.
 List<String> result = IntStream.rangeClosed(1, 4)
     .boxed()
     .gather(Gatherers.mapConcurrent(3, id -> {
-        System.out.println("Dang xu ly " + id);
+        System.out.println("Processing " + id);
         return "item-" + id;
     }))
     .toList();
 ```
 
-Dòng log có thể xuất hiện theo thứ tự khác nguồn, nhưng `result` vẫn theo encounter order. Tránh dựa vào thứ tự log để tính kết quả hoặc tạo một **mã thứ tự toàn cục** từ các mapper chạy đồng thời.
+Log lines may appear in an order different from the source, while `result` still follows encounter order. Avoid relying on log order to compute results or generate a **global sequence number** from concurrently running mappers.
 
-### 7.2. Nguồn không có encounter order
+### 7.2. Sources without encounter order
 
-Nếu nguồn là `HashSet` hoặc pipeline gọi `unordered()`, `mapConcurrent` không thể tự tạo một thứ tự nghiệp vụ cố định. Muốn kết quả theo thứ tự ID tăng dần, hãy chuẩn hóa trước:
+If the source is a `HashSet` or the pipeline calls `unordered()`, `mapConcurrent` cannot invent a fixed business order. If results are needed in ascending ID order, normalize beforehand:
 
 ```java
 List<String> result = ids.stream()
@@ -314,47 +314,47 @@ List<String> result = ids.stream()
     .toList();
 ```
 
-`ids` là tập số nguyên trong chương trình thực tế. `sorted` tạo thứ tự theo giá trị, nhưng cần cân nhắc chi phí sắp xếp trên tập lớn. Nếu các phần tử là bản ghi và tiêu chí chính có thể bằng nhau, thêm **khóa phụ ổn định** để có thứ tự tổng thể.
+`ids` is a collection of integers in a real program. `sorted` establishes value order, though sorting cost on large sets should be weighed. If elements are records and the primary key can tie, add a **stable tie-breaker key** for a total order.
 
-## 8. Cửa sổ chờ kết quả và bài toán head-of-line blocking
+## 8. Result buffering window and the head-of-line blocking problem
 
-Bảo toàn encounter order có đánh đổi: một mapper ở vị trí đầu **chậm** có thể khiến việc phát các kết quả **ở sau** phải chờ, dù những mapper đó đã xong.
+Preserving encounter order has a trade-off: a **slow** mapper at an earlier position can force downstream emission of **later** results to wait, even after those mappers have finished.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ```text
 Input:      A    B    C    D
 Mapper:     ├───────────────┤
                  ├──┤ ├──┤ ├──┤
-Hoàn tất:        B    C   D          ... A về sau
-Output ordered:   vẫn cần A trước B, C, D
+Completed:       B    C   D          ... A later
+Ordered output:   still needs A before B, C, D
 ```
 
-Hiện tượng này gọi là **head-of-line blocking**. Nó thường quan trọng khi latency mapper có đuôi dài (tail latency) hoặc khi một dịch vụ phản hồi rất không đều.
+This phenomenon is called **head-of-line blocking**. It often matters when mapper latency has a long tail (tail latency) or when a service responds very unevenly.
 
-Các điểm cần phân biệt:
+Points to distinguish:
 
-- `mapConcurrent` bảo đảm thứ tự **kết quả**, không bảo đảm mỗi phần tử sẵn sàng cho downstream ngay khi mapper của nó hoàn tất.
-- `maxConcurrency` giới hạn số mapper chạy cùng lúc nhưng **không có nghĩa toàn bộ bộ nhớ chỉ chứa đúng `maxConcurrency` đối tượng nhỏ**; kích thước các đầu vào/đầu ra và cách downstream giữ kết quả cũng quan trọng.
-- Khi `toList` thu toàn bộ kết quả, bản thân danh sách cuối cần giữ tất cả phần tử được thu.
-- Nếu nghiệp vụ không cần thứ tự, các API khác có thể phù hợp hơn; đừng dựa vào `mapConcurrent` để phát "ai xong trước ra trước", vì nó có hợp đồng ngược lại.
+- `mapConcurrent` guarantees **result** ordering, not that every element becomes available to downstream immediately when its mapper completes.
+- `maxConcurrency` bounds how many mappers run at once, which **does not mean total memory only holds `maxConcurrency` small objects**; input/output sizes and how downstream retains results also matter.
+- When `toList` collects all results, the final list itself must hold all collected elements.
+- If the business requirement does not need ordering, other APIs may fit better; do not rely on `mapConcurrent` to emit "whichever finishes first comes out first", because its contract is the opposite.
 
-Nếu hệ thống cần đẩy kết quả ngay khi hoàn thành theo thứ tự bất kỳ, hãy thiết kế một mô hình completion-order riêng và ghi rõ **thay đổi ngữ nghĩa** đó.
+If the system needs to push results immediately upon completion in arbitrary order, design a separate completion-order model and document that **semantic change**.
 
 
-## 9. Kiểm chứng thật sự số mapper đang chạy đồng thời
+## 9. Truly verifying the number of concurrently running mappers
 
-Muốn kiểm tra `maxConcurrency`, không đo bằng số virtual threads tồn tại trong toàn JVM và cũng không dùng một biến `int` dùng chung không đồng bộ. Ta cần đếm **số lời gọi mapper đã bắt đầu nhưng chưa kết thúc**.
+To verify `maxConcurrency`, do not measure by counting total virtual threads in the JVM, and do not use an unsynchronized shared `int`. You need to count **mapper invocations that have started but not yet finished**.
 
-Một phép đo có thể dùng:
+A measurement approach you can use:
 
-- `AtomicInteger active`: số mapper hiện đang thực hiện.
-- `AtomicInteger peak`: mức active lớn nhất đã quan sát.
-- Tăng `active` khi mapper vào.
-- Giảm `active` trong `finally` để xử lý cả lỗi hoặc interruption.
-- Cập nhật `peak` bằng phép atomic, không dựa vào kết quả đọc-ghi rời rạc.
+- `AtomicInteger active`: number of mappers currently executing.
+- `AtomicInteger peak`: highest observed active count.
+- Increment `active` when entering the mapper.
+- Decrement `active` in `finally` to handle errors or interruption too.
+- Update `peak` with an atomic operation, not separate read-write steps.
 
-### 9.1. Mẫu giám sát concurrency
+### 9.1. Concurrency monitoring pattern
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -378,21 +378,21 @@ List<String> result = ids.stream()
 System.out.println("Peak observed: " + peak.get());
 ```
 
-Đây là một đoạn đặt bên trong method của lớp Java 24+ có `ids` là `List<Integer>` và import `java.util.List`, `java.util.stream.Gatherers`.
+This snippet is placed inside a method of a Java 24+ class with `ids` as `List<Integer>` and imports `java.util.List`, `java.util.stream.Gatherers`.
 
-Cần kiểm tra:
+Verify:
 
 ```java
 if (peak.get() > 4) {
-    throw new AssertionError("Vuot gioi han dong thoi");
+    throw new AssertionError("Exceeded concurrency limit");
 }
 ```
 
-**Không yêu cầu `peak == 4`.** Với mapper cực nhanh hoặc nguồn ít phần tử, có thể không bao giờ có đủ bốn lời gọi đồng thời. `maxConcurrency` là **giới hạn trên**, không phải mệnh lệnh runtime luôn phải dùng hết số slot.
+**Do not require `peak == 4`.** With a very fast mapper or few elements, four simultaneous invocations may never happen. `maxConcurrency` is an **upper bound**, not a command forcing the runtime to always fill every slot.
 
-### 9.2. Vì sao phải có `finally`?
+### 9.2. Why is `finally` required?
 
-Nếu mapper gặp exception, bỏ `active.decrementAndGet()` sẽ làm counter hiển thị sai:
+If a mapper throws an exception, omitting `active.decrementAndGet()` will leave the counter showing an inaccurate count:
 
 ```java
 int now = active.incrementAndGet();
@@ -403,28 +403,28 @@ try {
 }
 ```
 
-`process(value)` ở đây là hàm minh họa; cần khai báo trong chương trình ứng dụng. `finally` làm phép kiểm đếm có ý nghĩa ngay cả khi mapper bị ngắt hoặc thất bại.
+`process(value)` here is an illustrative function; it must be declared in the application program. `finally` keeps the counter accurate even when a mapper is interrupted or fails.
 
-Trong hệ thống observability, có thể đo gauge số yêu cầu đang chờ qua cấu trúc tương tự. Tuy nhiên, instrumentation phải **thread-safe** và không được trở thành nút cổ chai chính của pipeline.
+In observability systems, you can measure an in-flight request gauge with a similar structure. However, instrumentation must be **thread-safe** and must not become the main bottleneck of the pipeline.
 
-## 10. Ví dụ tình huống I/O: nhiều lời gọi độc lập, kết quả vẫn đúng thứ tự
+## 10. I/O scenario example: multiple independent calls, results still properly ordered
 
-Một API bên ngoài có thể tra thông tin cho mỗi mã đơn hàng. Mô hình dữ liệu:
+An external API can look up details for each order ID. Data model:
 
 ```text
 orderIds = ["O-101", "O-102", "O-103", "O-104"]
 
-Tra cứu (có thể chờ I/O):
+Lookup (may wait on I/O):
   O-101 -> PAID
   O-102 -> PENDING
   O-103 -> PAID
   O-104 -> REFUNDED
 
-Kết quả sau mapConcurrent:
+Result after mapConcurrent:
   ["O-101:PAID", "O-102:PENDING", "O-103:PAID", "O-104:REFUNDED"]
 ```
 
-Code minh họa Java 24+ dùng một nguồn giả lập để tránh phụ thuộc mạng:
+Java 24+ illustrative code using a simulated source to avoid network dependencies:
 
 ```java
 import java.util.List;
@@ -433,13 +433,13 @@ import java.util.stream.Gatherers;
 public class OrderLookupDemo {
 
     static String fetchStatus(String orderId) {
-        // Mô phỏng tác vụ phải chờ, không gọi mạng thật.
+        // Simulates a task that waits, no real network call.
         try {
             Thread.sleep(40L);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(
-                "Tra cuu bi ngat", ex);
+                "Lookup interrupted", ex);
         }
 
         return switch (orderId) {
@@ -465,11 +465,11 @@ public class OrderLookupDemo {
 }
 ```
 
-Lời gọi `Thread.sleep(40)` chỉ mô phỏng thời gian chờ: nó **không chứng minh** performance của client HTTP hoặc JDBC. Trong thực tế, mapper có thể gọi dịch vụ qua một client hỗ trợ timeout, connection pooling và giới hạn tài nguyên.
+Calling `Thread.sleep(40)` only simulates wait time: it **does not prove** HTTP or JDBC client performance. In production, the mapper might call a service through a client supporting timeouts, connection pooling, and resource limits.
 
-### 10.1. Khóa định danh và kết quả
+### 10.1. Identifying key and result
 
-Khi gọi nhiều API đồng thời, nên trả về **kết quả có gắn khóa** thay vì chỉ giữ giá trị dễ gây nhầm:
+When making multiple concurrent API calls, return **results paired with their key** rather than keeping bare values that are easy to mix up:
 
 ```java
 record OrderStatus(String orderId, String status) {}
@@ -481,29 +481,29 @@ List<OrderStatus> statuses = orderIds.stream()
     .toList();
 ```
 
-Đây là ví dụ Java 24+ với `record` từ Java 16, đặt trong phạm vi lớp/phương thức có các import liên quan. Dù `mapConcurrent` giữ thứ tự, việc mang `orderId` trong kết quả giúp downstream làm việc an toàn khi phải đối chiếu với dữ liệu khác.
+This is a Java 24+ example using `record` from Java 16, placed within a class/method with the relevant imports. Even though `mapConcurrent` preserves order, carrying `orderId` inside the result keeps downstream safe when reconciling with other data.
 
-### 10.2. Chọn `maxConcurrency` dựa vào bottleneck
+### 10.2. Choosing `maxConcurrency` based on the bottleneck
 
-Một quy trình chọn mức đồng thời:
+A process for choosing concurrency level:
 
-1. Xác định **tác vụ độc lập** và có thể chạy đồng thời hay không.
-2. Kiểm tra giới hạn từ dịch vụ đích (pool kết nối, quota, concurrency cap, độ ổn định).
-3. Chọn mức khởi đầu nhỏ để tránh tạo thác yêu cầu.
-4. Đo latency, throughput, số lỗi, timeout, in-flight và áp lực bộ nhớ.
-5. Thử một vài mức concurrency trong môi trường đại diện.
-6. Giảm mức nếu vượt quota, gặp timeout, p95/p99 tăng hoặc pool cạn.
-7. Kiểm tra tải có **nhiều pipeline đồng thời**, không chỉ một yêu cầu riêng lẻ.
+1. Determine whether **tasks are independent** and safe to run concurrently.
+2. Check limits on the target service (connection pool, quota, concurrency cap, stability).
+3. Start with a small level to avoid causing a request cascade.
+4. Measure latency, throughput, error counts, timeouts, in-flight count, and memory pressure.
+5. Test several concurrency levels in a representative environment.
+6. Lower the level if hitting quotas, timeouts, rising p95/p99, or pool exhaustion.
+7. Test under **multiple concurrent pipelines**, not just a single isolated request.
 
-Một `maxConcurrency` rất lớn có thể làm throughput **tệ hơn** do tranh chấp và lỗi retry dây chuyền. Đừng sử dụng số lớn làm mặc định chỉ vì virtual threads rẻ hơn platform threads.
+A very large `maxConcurrency` can make throughput **worse** due to contention and cascading retry failures. Do not default to a huge number merely because virtual threads are cheaper than platform threads.
 
-## 11. Đầu ra có một phần tử cho mỗi input, nhưng có thể có lỗi
+## 11. Output has one element per input, unless an error occurs
 
-Về luồng dữ liệu, `mapConcurrent` là phép ánh xạ một-một. Nếu mọi mapper hoàn thành bình thường, các phần tử kết quả tương ứng từng đầu vào. Nhưng khi mapper ném exception, **không được giả định pipeline trả một danh sách kết quả thiếu một vài phần tử và coi như thành công**.
+In terms of data flow, `mapConcurrent` is a one-to-one mapping. If every mapper completes normally, result elements correspond one-for-one to inputs. However, when a mapper throws an exception, **never assume the pipeline returns a result list missing a few elements and treats it as success**.
 
-Theo Javadoc Java 24, nếu một kết quả **đến lượt được phát downstream** nhưng mapper tương ứng hoàn thành với exception, gatherer sẽ phát lại lỗi dưới dạng **`RuntimeException`**, sau đó cố hủy những tác vụ còn lại.
+Per the Java 24 Javadoc, if a result is **ready to be emitted downstream** yet its corresponding mapper completed with an exception, the gatherer rethrows the error as a **`RuntimeException`**, then attempts to cancel the remaining tasks.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.List;
@@ -517,7 +517,7 @@ public class MapperExceptionDemo {
                 .gather(Gatherers.mapConcurrent(2, n -> {
                     if (n == 3) {
                         throw new IllegalArgumentException(
-                            "Gia tri khong hop le: " + n);
+                            "Invalid value: " + n);
                     }
                     return n * 10;
                 }))
@@ -525,17 +525,17 @@ public class MapperExceptionDemo {
 
             System.out.println(result);
         } catch (RuntimeException ex) {
-            System.out.println("Pipeline that bai");
+            System.out.println("Pipeline failed");
         }
     }
 }
 ```
 
-Không cần dựa vào **loại exception cụ thể bên trong `RuntimeException`**, tên thread hoặc thứ tự log để xác nhận hợp đồng. API mô tả cơ chế phát lại lỗi, còn cách đóng gói/đính kèm nguyên nhân không nên bị hardcode khi không được cam kết.
+Do not rely on **the specific exception type inside `RuntimeException`**, thread names, or log order to assert the contract. The API specifies the error-rethrowing mechanism, while wrapping/cause attachment should not be hardcoded when not guaranteed.
 
-### 11.1. Ngoại lệ checked từ I/O
+### 11.1. Checked exceptions from I/O
 
-`Function<T,R>` không khai báo checked exception. Khi mapper gọi API ném `IOException` hoặc `InterruptedException`, cần xử lý **bên trong mapper**:
+`Function<T,R>` does not declare checked exceptions. When a mapper calls an API that throws `IOException` or `InterruptedException`, handle it **inside the mapper**:
 
 ```java
 static String simulatedBlockingCall(String id) {
@@ -545,18 +545,18 @@ static String simulatedBlockingCall(String id) {
     } catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
         throw new IllegalStateException(
-            "Bi ngat khi xu ly " + id, ex);
+            "Interrupted while processing " + id, ex);
     }
 }
 ```
 
-Không nuốt interruption rồi tiếp tục chờ vô hạn. Bảo toàn cờ interrupt có thể giúp chính sách hủy tác vụ và dừng ứng dụng hoạt động đúng hơn.
+Do not swallow interruption and keep waiting indefinitely. Preserving the interrupt flag helps cancellation policies and application shutdown work properly.
 
-**Tuy nhiên, interrupt không phải rollback giao dịch.** Nếu mapper đã gửi một yêu cầu thanh toán hoặc ghi database, việc ngắt Java thread không tự đảo ngược side effect xảy ra ở hệ thống ngoài.
+**However, interrupt is not a transaction rollback.** If the mapper already sent a payment request or database write, interrupting the Java thread does not automatically undo side effects in external systems.
 
-### 11.2. Muốn giữ kết quả lỗi riêng thay vì thất bại toàn pipeline?
+### 11.2. Want to keep error results individually instead of failing the whole pipeline?
 
-Hãy làm lỗi trở thành **một giá trị dữ liệu** theo hợp đồng riêng:
+Turn the error into **a data value** under an explicit contract:
 
 ```java
 record LookupResult(
@@ -580,7 +580,7 @@ static LookupResult safeLookup(String id) {
 }
 ```
 
-Sau đó:
+Then:
 
 ```java
 List<LookupResult> all = ids.stream()
@@ -589,15 +589,15 @@ List<LookupResult> all = ids.stream()
     .toList();
 ```
 
-Đoạn này giả định `ids` và `MyClass` đã được khai báo trong ứng dụng. Đây là **một chính sách nghiệp vụ khác**: ghi nhận lỗi theo từng bản ghi thay vì ném khi gặp lỗi đầu tiên cần phát ra.
+This snippet assumes `ids` and `MyClass` are declared in the application. This is **a different business policy**: recording failures per record instead of throwing upon the first failure to be emitted.
 
-Khi xử lý lỗi, không lưu raw exception message có thể chứa token, URL chứa bí mật hay thông tin cá nhân vào kết quả hiển thị. Nên phân loại lỗi có mã, ghi log có kiểm soát và giữ correlation ID.
+When handling errors, do not expose raw exception messages that may contain tokens, URLs with secrets, or personal data in displayed results. Classify errors with codes, log carefully, and preserve correlation IDs.
 
-**Cẩn thận:** bắt mọi `RuntimeException` rồi trả về giá trị lỗi có thể che khuất bug lập trình. Chỉ nên chuyển thành lỗi dữ liệu với các loại thất bại mà nghiệp vụ đã dự kiến; những lỗi hệ thống nghiêm trọng cần được ghi nhận và xử lý riêng.
+**Caution:** catching all `RuntimeException`s and returning an error value can mask programming bugs. Only convert expected failure categories into data errors; serious system errors must be logged and handled separately.
 
-## 12. Hủy tác vụ theo best-effort và giới hạn short-circuit
+## 12. Best-effort task cancellation and short-circuit limits
 
-Một terminal operation như `findFirst`, `anyMatch` hoặc `limit` có thể dừng khi không cần thêm kết quả.
+A terminal operation like `findFirst`, `anyMatch`, or `limit` can stop when no more results are needed.
 
 ```java
 List<Integer> firstTwo = Stream.of(1, 2, 3, 4, 5)
@@ -609,143 +609,143 @@ List<Integer> firstTwo = Stream.of(1, 2, 3, 4, 5)
 System.out.println(firstTwo); // [10, 20]
 ```
 
-Theo API, khi downstream không muốn nhận thêm phần tử, gatherer sẽ **cố hủy các tác vụ đang chạy theo best-effort**. Điều này **không phải bảo đảm** rằng:
+Per the API, when downstream no longer wants more elements, the gatherer **attempts to cancel running tasks on a best-effort basis**. This is **not a guarantee** that:
 
-- Chỉ đúng hai mapper đã bắt đầu chạy.
-- Những mapper khác chưa gọi API ngoài.
-- Mọi tác vụ đã hoàn toàn dừng ngay khi `limit(2)` hoàn tất.
-- Mọi side effect đã được hủy/rollback.
-- Client HTTP/JDBC của bạn chắc chắn tuân theo interruption.
+- Only exactly two mappers ever started running.
+- Other mappers have not called external APIs yet.
+- All tasks have completely stopped the instant `limit(2)` finishes.
+- All side effects have been canceled or rolled back.
+- Your HTTP/JDBC client necessarily honors interruption.
 
-Vì có thể có nhiều mapper in-flight, số tác vụ đã bắt đầu **có thể lớn hơn số kết quả được giữ**. Do đó không đưa một thao tác không thể đảo ngược vào mapper rồi dựa vào `limit` để cam kết chỉ có vài thao tác được thực hiện.
+Because multiple mappers can be in-flight, the number of started tasks **can exceed the number of retained results**. Therefore, never place an irreversible operation in a mapper and rely on `limit` to promise only a few operations executed.
 
-### 12.1. `findFirst` và `findAny`
+### 12.1. `findFirst` and `findAny`
 
-`mapConcurrent` giữ encounter order của nguồn ordered, nhưng `findFirst` và `findAny` có mục đích khác nhau:
+`mapConcurrent` preserves encounter order of an ordered source, yet `findFirst` and `findAny` serve different purposes:
 
-- `findFirst` cần phần tử đầu tiên trong encounter order.
-- `findAny` có thể chọn bất kỳ phần tử phù hợp nào theo điều kiện của terminal operation.
+- `findFirst` requires the first element in encounter order.
+- `findAny` may pick any matching element per the terminal operation's condition.
 
-Không suy ra `findAny` trên một pipeline đã dùng `mapConcurrent` sẽ tự tạo một cơ chế "ai hoàn thành trước thắng"; cách xử lý theo các tầng và thứ tự có thể ảnh hưởng việc kết quả nào sẵn sàng. Nếu sản phẩm **cần kết quả đầu tiên theo thời gian hoàn thành thực tế**, hãy thiết kế một API completion-order riêng.
+Do not assume `findAny` on a pipeline using `mapConcurrent` automatically creates a "whichever finishes first wins" mechanism; layered processing and ordering can affect which result is ready. If the product **needs the first result by actual completion time**, design a separate completion-order API.
 
-### 12.2. Không dùng short-circuit để thực hiện ghi hàng loạt
+### 12.2. Do not use short-circuiting to perform bulk writes
 
-Giả sử `mapper` gọi `saveToDatabase` hoặc `chargeCreditCard`. Những lệnh này có side effect quan trọng. Một terminal operation dừng sớm không làm rõ **bản ghi nào đã được ghi thành công** và những tác vụ nào đang chờ.
+Suppose `mapper` calls `saveToDatabase` or `chargeCreditCard`. These calls have critical side effects. A short-circuiting terminal operation leaves unclear **which records succeeded** and which tasks are still pending.
 
-Với thao tác có side effect, cần:
+For side-effecting operations, you need:
 
-- Định nghĩa **idempotency key** hoặc phương án chống lặp nếu retry.
-- Biết khi nào thao tác đã commit ở hệ thống ngoài.
-- Quản lý timeout và lỗi một phần.
-- Theo dõi trạng thái từng yêu cầu và chính sách bù trừ khi cần.
-- Không coi cancellation của Java task là transaction rollback.
+- An **idempotency key** or deduplication scheme if retrying.
+- Visibility into when the operation committed in the external system.
+- Timeout and partial-failure management.
+- Per-request state tracking and compensation policies when needed.
+- Never treating Java task cancellation as a transaction rollback.
 
-`mapConcurrent` là công cụ ánh xạ đồng thời, **không phải trình quản lý giao dịch phân tán**.
+`mapConcurrent` is a concurrent mapping tool, **not a distributed transaction manager**.
 
-## 13. Timeout, retry, backpressure và quota
+## 13. Timeouts, retries, backpressure, and quotas
 
-`maxConcurrency` chỉ kiểm soát một phần áp lực tải. Một mapper chờ vô hạn có thể giữ một slot rất lâu; giữ tối đa N slot không tự tạo timeout.
+`maxConcurrency` only controls one aspect of load pressure. An infinitely waiting mapper can hold a slot for a very long time; capping to N slots does not create a timeout on its own.
 
-### 13.1. Thiết lập timeout ngay ở client
+### 13.1. Set timeouts directly on the client
 
-Với HTTP, cần timeout kết nối và timeout yêu cầu ở client/request. Với JDBC, cần deadline/query timeout và pool có giới hạn. Các API này thuộc trách nhiệm **của lớp I/O**, không phải tham số của `mapConcurrent`.
+For HTTP, configure connect and request timeouts on the client/request. For JDBC, configure deadlines/query timeouts and bounded pools. These belong to **the I/O layer**, not `mapConcurrent` parameters.
 
-Một mapper điển hình:
+A typical mapper:
 
 ```java
 static String fetchWithPolicy(String id) {
-    // Client đã được cấu hình:
-    // - timeout của yêu cầu
-    // - pool kết nối
-    // - retry giới hạn cho lỗi thích hợp
-    // - phân loại lỗi/metrics
+    // Client already configured with:
+    // - request timeout
+    // - connection pool
+    // - bounded retries for appropriate errors
+    // - error classification/metrics
     return remoteClient.lookup(id);
 }
 ```
 
-Đây là **pseudocode**: `remoteClient` không phải lớp JDK có sẵn trong ví dụ. Cần cung cấp implementation tương ứng với API/dịch vụ thật.
+This is **pseudocode**: `remoteClient` is not a built-in JDK class in the example. Provide an implementation matching your real API/service.
 
-### 13.2. Retry có thể làm vượt giới hạn ở dịch vụ ngoài
+### 13.2. Retries can exceed external service limits
 
-Nếu mapper tự khởi chạy nhiều yêu cầu **cùng lúc** khi retry/hedging hoặc gọi fan-out cho một đầu vào, `maxConcurrency` chỉ giới hạn số mapper đang chạy, không nhất thiết giới hạn tổng **yêu cầu con**.
+If a mapper itself launches multiple **concurrent** requests during retry/hedging or fans out for a single input, `maxConcurrency` only bounds running mappers, not necessarily total **sub-requests**.
 
-Ví dụ `mapConcurrent(5)` mà mỗi mapper tự tạo 3 tác vụ HTTP song song có thể tạo **nhiều hơn 5** yêu cầu ngoài. Cần giới hạn ở đúng lớp mà tài nguyên được tiêu thụ.
+For example, `mapConcurrent(5)` where each mapper spawns 3 parallel HTTP tasks can generate **more than 5** outbound requests. Enforce limits at the exact layer where the resource is consumed.
 
-### 13.3. Đừng dùng retry không giới hạn
+### 13.3. Do not use unbounded retries
 
-Retry vô hạn hoặc backoff quá thấp có thể giữ mapper slot lâu và tạo bão yêu cầu khi dịch vụ đích yếu. Nên xác định:
+Unbounded retries or tiny backoffs can hold mapper slots for long periods and cause request storms when the target service is degraded. Define:
 
-- Số lần thử tối đa.
-- Deadline/timeout toàn tác vụ.
-- Backoff có giới hạn và jitter khi thích hợp.
-- Danh sách lỗi được phép retry.
-- Idempotency cho các thao tác ghi.
-- Rate limiter độc lập nếu dịch vụ có hạn mức theo thời gian.
+- Maximum attempt count.
+- Whole-task deadline/timeout.
+- Bounded backoff with jitter when appropriate.
+- Allowlist of retryable errors.
+- Idempotency for write operations.
+- An independent rate limiter if the service enforces a time-based quota.
 
-**Backpressure** không đồng nghĩa với một tham số duy nhất. `maxConcurrency` giúp hạn chế số mapper in-flight trong một gatherer, nhưng không tự quản lý mọi queue, buffer, client hoặc toàn bộ luồng công việc ở cấp hệ thống.
+**Backpressure** is not synonymous with a single parameter. `maxConcurrency` helps cap in-flight mappers within one gatherer, yet does not automatically manage all queues, buffers, clients, or system-wide workflows.
 
-## 14. So sánh `map`, `mapConcurrent` và `parallelStream`
+## 14. Comparing `map`, `mapConcurrent`, and `parallelStream`
 
-Cùng một chức năng biến đổi:
+Same transformation functionality:
 
 ```java
-// Tuần tự: mapper của từng phần tử chạy theo pipeline tuần tự.
+// Sequential: each element's mapper runs in a sequential pipeline.
 List<String> a = ids.stream()
     .map(this::fetch)
     .toList();
 
-// Đồng thời có giới hạn: virtual threads, vẫn giữ thứ tự nguồn.
+// Bounded concurrent: virtual threads, still preserves source order.
 List<String> b = ids.stream()
     .gather(Gatherers.mapConcurrent(
         4, this::fetch))
     .toList();
 
-// Stream song song: runtime chia pipeline theo Spliterator.
+// Parallel stream: runtime splits pipeline via Spliterator.
 List<String> c = ids.parallelStream()
     .map(this::fetch)
     .toList();
 ```
 
-Đoạn trên là hình thức minh họa trong **một instance method** có `ids` là `List<String>` và `fetch(String)` trả `String`. Cả ba có thể cho cùng kết quả nếu mapper thuần, thread-safe và không có lỗi.
+The snippet illustrates syntax inside **an instance method** with `ids` as `List<String>` and `fetch(String)` returning `String`. All three can yield the same result if the mapper is pure, thread-safe, and error-free.
 
-| Tiêu chí | `stream().map(...)` | `gather(mapConcurrent(...))` | `parallelStream().map(...)` |
+| Criterion | `stream().map(...)` | `gather(mapConcurrent(...))` | `parallelStream().map(...)` |
 | --- | --- | --- | --- |
-| Mốc Java | Java 8 | Java 24 chính thức | Java 8 |
-| Sự đồng thời của mapper | Không, trong stream tuần tự | Có, tối đa `maxConcurrency` | Theo cách chia/lập lịch parallel stream |
-| Cơ chế cơ bản | Pipeline tuần tự | Virtual threads | Fork/join trong các triển khai JDK thông dụng |
-| Giới hạn trực tiếp cho mapper | Không cần | Có: `maxConcurrency` | Không có tham số trực tiếp tương đương |
-| Dữ liệu có encounter order | Giữ thứ tự | **Giữ thứ tự** | Terminal thích hợp giữ thứ tự |
-| Hợp tác với I/O blocking | Từng mapper chờ lần lượt | Phù hợp để khảo sát khi nhiều tác vụ chờ độc lập | Có thể làm worker pool chờ |
-| CPU-bound thuần | Baseline tốt | Không tự bảo đảm lợi ích | Có thể tăng tốc với nguồn dễ chia, đủ nặng |
-| Cần quản lý timeout/quota | Có | Có | Có |
-| Đảm bảo tốc độ cao hơn | Không | Không | Không |
+| Java milestone | Java 8 | Java 24 official | Java 8 |
+| Mapper concurrency | None, in sequential stream | Yes, up to `maxConcurrency` | Per parallel stream splitting/scheduling |
+| Underlying mechanism | Sequential pipeline | Virtual threads | Fork/join in common JDK implementations |
+| Direct mapper cap | Not needed | Yes: `maxConcurrency` | No equivalent direct parameter |
+| Ordered data with encounter order | Preserves order | **Preserves order** | Appropriate terminal preserves order |
+| Behavior with blocking I/O | Each mapper waits in turn | Good candidate when many independent tasks wait | Can stall worker pool threads |
+| Pure CPU-bound | Good baseline | No guaranteed benefit | Can speed up with easily splittable, heavy sources |
+| Needs timeout/quota management | Yes | Yes | Yes |
+| Guarantees higher speed | No | No | No |
 
-Không có bảng xếp hạng tốc độ chung cho mọi ứng dụng. Một mapper làm phép cộng đơn giản thường không hưởng lợi từ việc khởi chạy virtual threads. Một mapper có thời gian chờ mạng đáng kể có thể được lợi từ concurrency, nhưng **dịch vụ đích và pool kết nối** vẫn quyết định mức song song hiệu quả.
+There is no universal speed ranking across all applications. A mapper doing simple addition typically does not benefit from launching virtual threads. A mapper with substantial network wait time can benefit from concurrency, yet **the target service and connection pool** still determine effective parallelism.
 
-### 14.1. `maxConcurrency = 1` so với `map`
+### 14.1. `maxConcurrency = 1` vs. `map`
 
-`mapConcurrent(1, mapper)` giới hạn một mapper thực thi cùng lúc. Nhưng nó **không phải lời hứa** sẽ có cùng overhead, cách quản lý exception hoặc cách lập lịch như `map(mapper)` tuần tự.
+`mapConcurrent(1, mapper)` limits execution to one mapper at a time. However, it **is not a promise** of identical overhead, exception handling, or scheduling as sequential `map(mapper)`.
 
-Nếu không cần cơ chế virtual-thread mapping, `map` thường đơn giản hơn. Khi bắt đầu đo, coi `mapConcurrent(1)` là một **cấu hình đối chứng riêng**, không đồng nhất hoàn toàn với `map`.
+When virtual-thread mapping is unnecessary, `map` is usually simpler. When benchmarking, treat `mapConcurrent(1)` as a **distinct baseline configuration**, not completely identical to `map`.
 
-### 14.2. Không cộng dồn `parallel()` theo cảm tính
+### 14.2. Do not stack `parallel()` blindly
 
-`parallelStream().gather(Gatherers.mapConcurrent(...))` có thể kết hợp các cơ chế đồng thời, nhưng không nên xem đó là "song song nhân đôi" hay tự động tốt hơn.
+`parallelStream().gather(Gatherers.mapConcurrent(...))` can combine concurrency mechanisms, yet should not be viewed as "double parallelism" or automatically better.
 
-Hãy chọn một mô hình đo rõ ràng:
+Choose a clear benchmarking model:
 
-- Mapper có tính **CPU-bound**: so loop/Stream tuần tự với parallel stream.
-- Mapper có tính **I/O-bound** và độc lập: so Stream tuần tự với `mapConcurrent` nhiều giới hạn.
-- Hỗn hợp CPU + I/O: xác định bottleneck, băng thông, pool và side effect trước khi thêm concurrency.
+- **CPU-bound** mapper: compare sequential loop/Stream against parallel stream.
+- Independent **I/O-bound** mapper: compare sequential Stream against `mapConcurrent` at various limits.
+- Mixed CPU + I/O: identify bottlenecks, bandwidth, pools, and side effects before adding concurrency.
 
-Khi có nhiều nguồn dữ liệu khác nhau, cũng cần xem `Spliterator` có chia hiệu quả không và mỗi nguồn có encounter order hay không.
+When working with different data sources, also check whether `Spliterator` splits efficiently and whether each source has encounter order.
 
 
-## 15. Bảo đảm mapper thread-safe và không can thiệp nguồn
+## 15. Ensuring mappers are thread-safe and non-interfering
 
-Thực thi đồng thời nghĩa là nhiều lời gọi `mapper` có thể chạy cùng lúc. Do đó, quy tắc về **stateless, non-interfering và thread safety** của Stream API cần được áp dụng nghiêm túc.
+Concurrent execution means multiple `mapper` invocations may run at the same time. Therefore, the Stream API rules for **stateless, non-interfering, and thread safety** must be strictly followed.
 
-### 15.1. Sai: ghi vào `ArrayList` dùng chung
+### 15.1. Wrong: writing to a shared `ArrayList`
 
 ```java
 import java.util.ArrayList;
@@ -756,15 +756,15 @@ List<String> shared = new ArrayList<>();
 
 List<String> result = ids.stream()
     .gather(Gatherers.mapConcurrent(4, id -> {
-        shared.add(id);  // KHONG AN TOAN.
+        shared.add(id);  // UNSAFE.
         return "OK:" + id;
     }))
     .toList();
 ```
 
-`ArrayList` không an toàn khi nhiều thread cùng ghi. `mapConcurrent` có thể chạy nhiều mapper đồng thời, làm mất dữ liệu, sai thứ tự hoặc ném lỗi. Thêm `Collections.synchronizedList` có thể giải quyết một phần đồng bộ nhưng **không làm cho thứ tự ghi** trùng encounter order.
+`ArrayList` is not safe for concurrent writes from multiple threads. `mapConcurrent` can run multiple mappers simultaneously, causing lost data, wrong order, or exceptions. Adding `Collections.synchronizedList` may partially address synchronization, yet **does not make write order** match encounter order.
 
-Cách đúng: để mapper **trả kết quả**, rồi dùng terminal operation:
+The right way: have the mapper **return the result**, then use a terminal operation:
 
 ```java
 List<String> result = ids.stream()
@@ -773,27 +773,27 @@ List<String> result = ids.stream()
     .toList();
 ```
 
-Đây là mẫu một-một dễ kiểm thử, không cần một danh sách bên ngoài.
+This is an easy-to-test one-to-one pattern requiring no external list.
 
-### 15.2. Không sửa nguồn trong mapper
+### 15.2. Do not modify the source inside mapper
 
-Sai về nguyên tắc:
+Wrong in principle:
 
 ```java
-// KHONG NEN:
+// DO NOT:
 // ids.stream()
 //     .gather(Gatherers.mapConcurrent(4, id -> {
-//         ids.remove(id); // Can thiep nguon dang duyet.
+//         ids.remove(id); // Interferes with source being traversed.
 //         return id;
 //     }))
 //     .toList();
 ```
 
-Ngay cả trên một `List` không có thread khác, việc sửa cấu trúc nguồn trong khi duyệt có thể làm kết quả không xác định hoặc gây `ConcurrentModificationException`. Nếu cần thay đổi dữ liệu, tạo kết quả mới rồi thực hiện bước cập nhật tường minh **sau khi pipeline kết thúc**, với chính sách transaction phù hợp.
+Even on a `List` with no other threads, mutating the source structure during traversal can cause undefined results or `ConcurrentModificationException`. If data updates are required, build new results and run an explicit update step **after the pipeline completes**, with an appropriate transaction policy.
 
-### 15.3. Bộ đếm để quan sát khác trạng thái nghiệp vụ
+### 15.3. Observation counters differ from business state
 
-`AtomicInteger` có thể phù hợp để đo `active/peak` trong một test. Nhưng không nên dùng counter chia sẻ để **quyết định giá trị đầu ra theo thứ tự**:
+`AtomicInteger` can be suitable for measuring `active/peak` in a test. However, do not use a shared counter to **determine ordered output values**:
 
 ```java
 AtomicInteger sequence = new AtomicInteger();
@@ -804,40 +804,40 @@ List<String> result = ids.stream()
     .toList();
 ```
 
-Counter tăng theo **thứ tự mapper chạy**, không phải encounter order. Dù `result` được đặt đúng thứ tự nguồn, số thứ tự gắn với ID có thể không tăng liên tiếp theo vị trí.
+The counter increments in **mapper execution order**, not encounter order. Even though `result` is placed in source order, the sequence numbers attached to IDs may not increase consecutively by position.
 
-Nếu cần số thứ tự chuẩn, hãy đánh chỉ số **trước** khi chạy mapper, hoặc dựa vào khóa sẵn có. Không dùng lịch thread làm nguồn sinh khóa nghiệp vụ.
+If deterministic sequence numbers are needed, assign indices **before** running the mapper, or rely on an existing key. Never use thread scheduling as a generator of business keys.
 
-## 16. Bộ nhớ, throughput và tail latency
+## 16. Memory, throughput, and tail latency
 
-`maxConcurrency` có thể giúp kiểm soát số tác vụ in-flight, nhưng không tự bảo đảm một ngưỡng RAM hay thời gian phản hồi.
+`maxConcurrency` can help control the number of in-flight tasks, yet does not guarantee a RAM ceiling or response time.
 
-### 16.1. Các thành phần chiếm tài nguyên
+### 16.1. Resource-consuming components
 
-- Các input chưa được xử lý hoặc đang chờ phát.
-- Virtual threads và trạng thái thực thi của mỗi mapper.
-- Kết nối HTTP/JDBC, buffer yêu cầu/phản hồi và tài nguyên native.
-- Kết quả mapper đã hoàn thành nhưng phải chờ phần tử sớm hơn để giữ encounter order.
-- Các collection mà terminal operation như `toList` giữ lại.
-- Cấu trúc bên trong những bước khác: `sorted`, `distinct`, `groupingBy`.
+- Unprocessed inputs or results waiting to be emitted.
+- Virtual threads and execution state of each mapper.
+- HTTP/JDBC connections, request/response buffers, and native resources.
+- Completed mapper results waiting for earlier elements to preserve encounter order.
+- Collections retained by terminal operations such as `toList`.
+- Internal structures of other stages: `sorted`, `distinct`, `groupingBy`.
 
-Do đó "chỉ có bốn mapper đồng thời" **không đồng nghĩa** "chỉ cần bộ nhớ tương đương bốn chuỗi nhỏ". Một mapper có thể nhận hoặc tạo object rất lớn; một downstream `toList` vẫn giữ toàn bộ dữ liệu đầu ra.
+Hence "only four concurrent mappers" **does not mean** "only needs memory for four small strings". A mapper may receive or create huge objects; a downstream `toList` still retains all output data.
 
-### 16.2. Concurrency và throughput theo mô hình gần đúng
+### 16.2. Approximate concurrency and throughput model
 
-Trong điều kiện ổn định, nếu một mapper cần trung bình `W` giây và có `C` slot mapper liên tục bận, một ước lượng thô là:
+In steady state, if a mapper takes an average of `W` seconds and `C` mapper slots stay continuously busy, a rough estimate is:
 
 \[
-\text{Throughput lý tưởng} \approx \frac{C}{W}
+\text{Ideal throughput} \approx \frac{C}{W}
 \]
 
-Ví dụ toán học: `C = 5`, `W = 0,1` giây, trần gần đúng là 50 tác vụ/giây. Đây **không phải số đo thực tế** và không phải rate limit được áp đặt. Throughput có thể thấp hơn do head-of-line blocking, giới hạn dịch vụ ngoài, timeout, GC hoặc nguồn không cung cấp dữ liệu kịp.
+Mathematical example: `C = 5`, `W = 0.1` seconds gives an approximate ceiling of 50 tasks/second. This is **not an actual measurement** and not an enforced rate limit. Throughput can be lower due to head-of-line blocking, external service limits, timeouts, GC, or the source not supplying data fast enough.
 
-Tăng `C` không đảm bảo tăng throughput tuyến tính. Khi dịch vụ ngoài quá tải, thời gian `W` có thể tăng; lúc đó thêm concurrency làm hàng chờ lớn hơn và tail latency xấu đi.
+Increasing `C` does not guarantee linear throughput scaling. When an external service becomes overloaded, `W` can grow; adding more concurrency then enlarges queues and worsens tail latency.
 
-### 16.3. Khi nào công việc CPU-bound không hưởng lợi?
+### 16.3. When does CPU-bound work not benefit?
 
-Ví dụ:
+Example:
 
 ```java
 List<Long> squares = values.stream()
@@ -846,15 +846,15 @@ List<Long> squares = values.stream()
     .toList();
 ```
 
-Nếu `values` là một list nhỏ và mapper chỉ nhân một phép `long`, chi phí chuẩn bị/lập lịch nhiều virtual threads có thể vượt lợi ích. So với `values.stream().map(x -> x * x)`, `mapConcurrent` không có lợi thế mặc định.
+If `values` is a small list and the mapper only multiplies two `long`s, the cost of preparing and scheduling many virtual threads can outweigh any gain. Compared to `values.stream().map(x -> x * x)`, `mapConcurrent` has no default advantage.
 
-Với CPU-heavy work trên nguồn lớn, hãy benchmark `parallelStream` hoặc một mô hình executor phù hợp, đồng thời kiểm tra số lõi và cách chia việc. Virtual threads chủ yếu cải thiện **khả năng quản lý nhiều tác vụ chờ**, không tạo thêm năng lực CPU.
+For CPU-heavy work on large sources, benchmark `parallelStream` or a suitable executor model, checking core count and work splitting. Virtual threads primarily improve **managing many waiting tasks**, not adding CPU capacity.
 
-## 17. Kết hợp với các stage khác của Java Stream API
+## 17. Combining with other Java Stream API stages
 
-`mapConcurrent` là một bước trung gian trong pipeline, không thay thế các phép lọc, thu thập hoặc tổng hợp.
+`mapConcurrent` is an intermediate step in a pipeline; it does not replace filtering, collecting, or aggregating.
 
-### 17.1. Lọc trước khi tra cứu để giảm số lời gọi I/O
+### 17.1. Filtering before lookup to reduce I/O calls
 
 ```java
 List<String> result = orders.stream()
@@ -864,11 +864,11 @@ List<String> result = orders.stream()
     .toList();
 ```
 
-Đây là **pseudocode có kiểu miền**: cần định nghĩa `orders`, lớp Order và `lookup` khi dùng trong ứng dụng. Ý nghĩa: bỏ qua những bản ghi không cần gọi API **trước khi** khởi chạy các mapper có thể tốn I/O.
+This is **domain-typed pseudocode**: `orders`, the Order class, and `lookup` must be defined in an application. Meaning: skip records that do not need an API call **before** launching potentially I/O-heavy mappers.
 
-Nếu đổi vị trí filter để lọc trên dữ liệu đã tra cứu, hệ thống sẽ làm nhiều lời gọi hơn. Đó có thể là yêu cầu thật, nhưng phải được mô tả rõ.
+Moving the filter after lookup to filter on retrieved data makes the system perform more calls. That may be a genuine requirement, but it must be stated explicitly.
 
-### 17.2. Lọc sau khi tra cứu nếu điều kiện chỉ biết từ kết quả
+### 17.2. Filtering after lookup when the condition is only known from the result
 
 ```java
 List<String> paid = orderIds.stream()
@@ -878,9 +878,9 @@ List<String> paid = orderIds.stream()
     .toList();
 ```
 
-Bước này phải tra cứu trước vì điều kiện nằm ở kết quả. **Không đánh đồng** `filter` sau mapper với việc bỏ bớt lời gọi ngoài; những đơn bị loại đã được tra cứu.
+This step must look up first because the predicate inspects the result. **Do not equate** `filter` after the mapper with skipping external calls; excluded orders were already looked up.
 
-### 17.3. Thu báo cáo kết quả sau mapping
+### 17.3. Collecting a summary report after mapping
 
 ```java
 Map<String, Long> countByStatus = orderIds.stream()
@@ -891,13 +891,13 @@ Map<String, Long> countByStatus = orderIds.stream()
         java.util.stream.Collectors.counting()));
 ```
 
-Ở đây `groupingBy` là terminal collector, còn `mapConcurrent` là intermediate gatherer. Mặc dù mapper có thể chạy đồng thời, collector **không tự trở thành concurrent collector**; điều đó không cần thiết để có kết quả đúng.
+Here `groupingBy` is a terminal collector, while `mapConcurrent` is an intermediate gatherer. Although mappers may run concurrently, the collector **does not automatically become a concurrent collector**; that is unnecessary for correctness.
 
-Nếu cần thứ tự hiển thị rõ, sau khi nhóm có thể sắp xếp `entrySet()` theo giá trị và khóa; không dựa vào thứ tự của `HashMap`.
+If explicit display order is needed, sort `entrySet()` by value and key after grouping; do not rely on `HashMap` order.
 
-### 17.4. Kết quả rỗng
+### 17.4. Empty results
 
-Với nguồn rỗng, mapper không có đầu vào để xử lý:
+With an empty source, the mapper has no inputs to process:
 
 ```java
 List<String> empty = Stream.<Integer>empty()
@@ -908,13 +908,13 @@ List<String> empty = Stream.<Integer>empty()
 System.out.println(empty); // []
 ```
 
-Dữ liệu rỗng là một ca hợp lệ và không nên tự tạo kết quả placeholder. Nếu cần thông tin "không tìm thấy", hãy định nghĩa kiểu kết quả hoặc `Optional` theo nghiệp vụ.
+Empty data is a valid case and should not fabricate placeholder results. If "not found" information is needed, define a result type or `Optional` per business rules.
 
-## 18. Chương trình kiểm thử tổng hợp Java 24+
+## 18. Comprehensive Java 24+ verification program
 
-Ví dụ này kiểm tra **mức concurrency thực tế quan sát được**, kết quả giữ thứ tự, tính một-một, nguồn rỗng, tham số sai, exception và việc chạy mapper trên virtual threads.
+This example checks **observed actual concurrency**, ordered results, one-to-one cardinality, empty source, invalid parameters, exceptions, and mappers running on virtual threads.
 
-Tạo file `MapConcurrentCheck.java`:
+Create `MapConcurrentCheck.java`:
 
 ```java
 import java.util.ArrayList;
@@ -942,13 +942,13 @@ public class MapConcurrentCheck {
         peak.accumulateAndGet(now, Math::max);
 
         try {
-            // Mô phỏng những request có độ trễ khác nhau.
+            // Simulates requests with varying latencies.
             Thread.sleep(8L + (id % 3) * 4L);
             return "ID-" + id;
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(
-                "Lookup bi ngat", ex);
+                "Lookup interrupted", ex);
         } finally {
             active.decrementAndGet();
         }
@@ -971,16 +971,16 @@ public class MapConcurrentCheck {
                 .toList();
 
             check(actual.equals(expected),
-                "Sai cardinality/thu tu o limit=" + limit);
+                "Wrong cardinality/order at limit=" + limit);
 
             check(peak.get() >= 1,
-                "Nguon khong rong phai co mapper");
+                "Non-empty source must invoke mapper");
 
             check(peak.get() <= limit,
-                "Vuot maxConcurrency=" + limit);
+                "Exceeded maxConcurrency=" + limit);
 
             check(active.get() == 0,
-                "Con mapper dang hoat dong");
+                "Mappers still active");
         }
 
         AtomicInteger called = new AtomicInteger();
@@ -994,7 +994,7 @@ public class MapConcurrentCheck {
             .toList();
 
         check(empty.isEmpty() && called.get() == 0,
-            "Nguon rong khong duoc goi mapper");
+            "Empty source must not call mapper");
 
         List<Boolean> virtualThreads = Stream.of(1, 2, 3)
             .gather(Gatherers.mapConcurrent(
@@ -1003,7 +1003,7 @@ public class MapConcurrentCheck {
 
         check(virtualThreads.equals(
                 Arrays.asList(true, true, true)),
-            "Mapper phai dung virtual thread");
+            "Mapper must use virtual thread");
 
         boolean rejectedZero = false;
         try {
@@ -1013,7 +1013,7 @@ public class MapConcurrentCheck {
             rejectedZero = true;
         }
         check(rejectedZero,
-            "Phai tu choi maxConcurrency = 0");
+            "Must reject maxConcurrency = 0");
 
         boolean rejectedNullMapper = false;
         try {
@@ -1023,7 +1023,7 @@ public class MapConcurrentCheck {
             rejectedNullMapper = true;
         }
         check(rejectedNullMapper,
-            "Phai tu choi null mapper");
+            "Must reject null mapper");
 
         boolean mapperFailed = false;
         try {
@@ -1042,7 +1042,7 @@ public class MapConcurrentCheck {
             mapperFailed = true;
         }
         check(mapperFailed,
-            "Mapper loi phai khien pipeline bao loi");
+            "Failing mapper must cause pipeline to fail");
 
         List<Integer> shortResult = Stream.of(
                 1, 2, 3, 4, 5)
@@ -1052,28 +1052,28 @@ public class MapConcurrentCheck {
             .toList();
 
         check(shortResult.equals(Arrays.asList(10, 20)),
-            "limit khong dung encounter order");
+            "limit did not preserve encounter order");
 
         System.out.println("PASS: Gatherers.mapConcurrent");
     }
 }
 ```
 
-Khi chạy thành công trên Java 24+:
+When run successfully on Java 24+:
 
 ```text
 PASS: Gatherers.mapConcurrent
 ```
 
-Chương trình **không yêu cầu `peak` phải bằng `limit`**, vì mức đồng thời thực tế còn tùy scheduling và tốc độ callback. Nó cũng **không đo throughput**: `Thread.sleep` giả lập chờ, không mô phỏng hoàn toàn client I/O hoặc độ tải dịch vụ.
+The program **does not require `peak` to equal `limit`**, because actual concurrency depends on scheduling and callback speed. It also **does not measure throughput**: `Thread.sleep` simulates waiting rather than fully modeling an I/O client or service load.
 
-### 18.1. Vì sao không khẳng định số mapper chạy sau `limit`?
+### 18.1. Why not assert the exact number of mapper runs after `limit`?
 
-Test chỉ xác nhận hai kết quả đầu có đúng thứ tự. Nó **cố ý không assert** mapper được gọi đúng hai lần, vì gatherer có thể khởi chạy thêm tác vụ in-flight trước khi downstream dừng. Đây là một điểm quan trọng trong hợp đồng hủy theo best-effort.
+The test only verifies that the first two results are in the right order. It **intentionally does not assert** that the mapper was called exactly twice, because the gatherer may launch additional in-flight tasks before downstream stops. This is a key aspect of the best-effort cancellation contract.
 
-### 18.2. Kiểm tra tương đương với mapper tuần tự
+### 18.2. Checking equivalence with a sequential mapper
 
-Với mapper thuần, kết quả cũng có thể đối chiếu trực tiếp:
+For a pure mapper, results can also be compared directly:
 
 ```java
 List<String> reference = ids.stream()
@@ -1086,40 +1086,40 @@ List<String> concurrent = ids.stream()
     .toList();
 
 if (!reference.equals(concurrent)) {
-    throw new AssertionError("Khac ket qua mapping");
+    throw new AssertionError("Mapping result mismatch");
 }
 ```
 
-Trong đoạn này `ids` là một `List<Integer>` được tạo bên ngoài. So sánh `List.equals` kiểm tra **số phần tử, giá trị và vị trí**; không dùng `Set.equals` vì nó bỏ số lần xuất hiện của những giá trị trùng.
+In this snippet `ids` is an externally created `List<Integer>`. Comparing with `List.equals` checks **element count, values, and positions**; do not use `Set.equals` because it ignores occurrence counts of duplicate values.
 
-## 19. Đo hiệu năng và quan sát hệ thống
+## 19. Benchmarking and system observability
 
-Một phép benchmark nên so cùng công việc, không chỉ so cú pháp:
+A benchmark should compare the same workload, not just syntax:
 
-| Phép thử | Cần đo | Lưu ý |
+| Test case | What to measure | Notes |
 | --- | --- | --- |
-| Mapper CPU nhẹ | Latency/throughput của `map` so với `mapConcurrent` | Virtual threads có thể tăng overhead. |
-| Mapper chờ giả lập | Thời gian hoàn thành với nhiều mức concurrency | Không suy ra hiệu năng HTTP thật. |
-| Mapper gọi API đọc dữ liệu thật | Latency p50/p95/p99, QPS, timeout, lỗi | Chú ý rate limit và pool kết nối. |
-| Nhiều pipeline đồng thời | Throughput toàn dịch vụ, cạnh tranh tài nguyên | Mỗi pipeline có budget riêng. |
-| Mapper có kết quả lớn | Heap, allocation, GC, head-of-line buffering | Thứ tự đầu ra có thể tăng thời gian chờ. |
+| Lightweight CPU mapper | Latency/throughput of `map` vs. `mapConcurrent` | Virtual threads can add overhead. |
+| Simulated waiting mapper | Completion time across concurrency levels | Do not extrapolate to real HTTP performance. |
+| Mapper calling real read API | Latency p50/p95/p99, QPS, timeouts, errors | Watch rate limits and connection pools. |
+| Multiple concurrent pipelines | Whole-service throughput, resource contention | Each pipeline has its own budget. |
+| Mapper with large results | Heap, allocation, GC, head-of-line buffering | Output ordering can increase hold times. |
 
-### 19.1. Không suy từ `Thread.sleep` ra tốc độ thực tế
+### 19.1. Do not infer real-world speed from `Thread.sleep`
 
-Một ví dụ `Thread.sleep(100)` chỉ thể hiện rằng **các tác vụ chờ có thể chồng lấn**. Không có nghĩa dịch vụ ngoài sẽ cho phép cùng mức concurrency, hay thời gian trả kết quả của mỗi yêu cầu luôn bằng 100 ms.
+An example with `Thread.sleep(100)` only shows that **waiting tasks can overlap**. It does not mean an external service will allow the same concurrency, or that every request takes 100 ms.
 
-Khi đo ứng dụng thật, ghi:
+When measuring a real application, record:
 
-- JDK, JVM flags, phần cứng, giới hạn container, môi trường mạng.
-- `maxConcurrency` và số pipeline đồng thời.
-- Pool kết nối, timeout, số retry, rate limit.
-- Số phần tử nguồn, phân phối thời gian mapper, kích thước kết quả.
-- Throughput, latency trung bình/p95/p99, timeout/error rate và GC.
-- Các trường hợp lỗi, dữ liệu rỗng và nguồn bị cập nhật.
+- JDK, JVM flags, hardware, container limits, and network environment.
+- `maxConcurrency` and number of concurrent pipelines.
+- Connection pool, timeouts, retry count, and rate limits.
+- Source element count, mapper latency distribution, and result sizes.
+- Throughput, mean/p95/p99 latency, timeout/error rate, and GC.
+- Error cases, empty data, and mutated sources.
 
-### 19.2. Kích thước dữ liệu lớn, không thu hết mọi thứ nếu không cần
+### 19.2. With large data sizes, avoid collecting everything if unnecessary
 
-`toList` thu toàn bộ dữ liệu đầu ra vào bộ nhớ. Nếu chỉ cần thống kê, thay bằng một terminal aggregation:
+`toList` collects all output data into memory. If only statistics are needed, use a terminal aggregation instead:
 
 ```java
 long successCount = ids.stream()
@@ -1129,96 +1129,96 @@ long successCount = ids.stream()
     .count();
 ```
 
-Đây là đoạn code minh họa trong một instance method có `ids` và kiểu `Result` của ứng dụng. Dù không giữ mọi kết quả trong list, mapper và các kết quả in-flight vẫn tiêu thụ tài nguyên. Một thao tác `count` phía sau `filter` cần biết phần tử nào thỏa điều kiện; nhưng đừng đặt side effect bắt buộc trong mapper rồi coi số lần callback là hợp đồng chung cho mọi terminal operation.
+This is an illustrative snippet inside an instance method with `ids` and the application's `Result` type. Even without retaining every result in a list, the mapper and in-flight results still consume resources. A `count` after `filter` needs to know which elements pass the predicate; however, do not put mandatory side effects inside the mapper and treat callback count as a general contract across all terminal operations.
 
-## 20. Lỗi và hiểu nhầm thường gặp
+## 20. Common mistakes and misconceptions
 
-| Hiểu nhầm / lỗi | Hậu quả | Cách xử lý |
+| Misconception / error | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `mapConcurrent` trên JDK 21 | Không có API chuẩn | Dùng Java 24+ hoặc mô hình thay thế. |
-| Quên bật preview với Java 22/23 | Lỗi biên dịch/chạy | Bật preview tương ứng hoặc nâng JDK 24+. |
-| `maxConcurrency = 0` | `IllegalArgumentException` | Yêu cầu giới hạn ≥ 1. |
-| Truyền null mapper | `NullPointerException` | Cung cấp mapper hợp lệ. |
-| Hiểu `maxConcurrency` là yêu cầu/giây | Dễ vượt quota dịch vụ | Tách rate limiter khỏi concurrency cap. |
-| Hiểu giới hạn ở từng gatherer thành budget toàn hệ thống | Nhiều pipeline cùng vượt tải | Có limiter chung ở lớp dịch vụ/client. |
-| Nghĩ virtual threads tạo thêm lõi CPU | Tác vụ CPU-bound không nhanh như kỳ vọng | Xác định bottleneck và benchmark. |
-| Nghĩ kết quả ra theo thứ tự hoàn tất mapper | Logic phụ thuộc completion order bị sai | `mapConcurrent` bảo toàn encounter order. |
-| Ghi mã thứ tự bằng counter trong mapper | ID/số thứ tự không khớp thứ tự nguồn | Đánh chỉ số trước hoặc dùng khóa nguồn. |
-| Ghi `ArrayList` dùng chung trong mapper | Race condition, mất/sai dữ liệu | Trả kết quả rồi dùng terminal collector. |
-| Sửa nguồn trong mapper | Vi phạm non-interference | Xử lý trên nguồn ổn định, ghi sau. |
-| Dùng `limit(2)` để cam kết chỉ hai yêu cầu ngoài | Tác vụ in-flight có thể đã bắt đầu | Cancellation chỉ best-effort. |
-| Dựa vào interrupt như rollback | Side effect từ xa có thể đã commit | Idempotency, transaction/compensation riêng. |
-| Không có timeout | Slot mapper có thể kẹt lâu | Deadline/timeout ở client. |
-| Retry vô hạn | Bão yêu cầu, giữ slot | Retry giới hạn, backoff, circuit breaker. |
-| Giới hạn mapper nhưng mỗi mapper gọi nhiều request con | Vượt concurrency ở hệ thống ngoài | Limit ở lớp tài nguyên thực tế. |
-| Nguồn `HashSet` mà kỳ vọng thứ tự ID | Không có encounter order xác định | `sorted` theo khóa ổn định. |
-| Thấy `mapConcurrent` chậm hơn `map` khi nhân số | Overhead cao hơn công việc | Dùng `map` cho CPU nhẹ. |
-| Giữ toàn bộ kết quả lớn bằng `toList` | Áp lực heap và GC | Thu kết quả cần thiết, phân lô/streaming có kiểm soát. |
-| Chỉ đo một pipeline lúc máy rảnh | Không phản ánh tải đồng thời | Đo throughput và latency thực tế. |
+| Using `mapConcurrent` on JDK 21 | No standard API exists | Use Java 24+ or an alternative model. |
+| Forgetting `--enable-preview` on Java 22/23 | Compile/runtime error | Enable preview accordingly or upgrade to JDK 24+. |
+| `maxConcurrency = 0` | `IllegalArgumentException` | Require limit ≥ 1. |
+| Passing a null mapper | `NullPointerException` | Provide a valid mapper. |
+| Treating `maxConcurrency` as requests/second | Easily exceeds service quota | Separate rate limiter from concurrency cap. |
+| Treating one gatherer's limit as a system-wide budget | Multiple pipelines overload downstream together | Enforce a shared limiter at the service/client layer. |
+| Thinking virtual threads add CPU cores | CPU-bound tasks do not speed up as expected | Identify the bottleneck and benchmark. |
+| Thinking results arrive in mapper completion order | Logic relying on completion order breaks | `mapConcurrent` preserves encounter order. |
+| Generating sequence numbers with a counter inside mapper | Sequence numbers/IDs do not match source order | Assign indices beforehand or use a source key. |
+| Writing to a shared `ArrayList` inside mapper | Race condition, lost/corrupted data | Return results and use a terminal collector. |
+| Mutating the source inside mapper | Violates non-interference | Process on a stable source, write afterward. |
+| Using `limit(2)` to guarantee only two external requests | In-flight tasks may already have started | Cancellation is only best-effort. |
+| Treating interrupt as rollback | Remote side effects may already have committed | Use idempotency and separate transaction/compensation. |
+| No timeout configured | Mapper slot can hang indefinitely | Set deadlines/timeouts on the client. |
+| Unbounded retries | Request storms, held slots | Bounded retries, backoff, circuit breaker. |
+| Limiting mappers while each mapper fires multiple sub-requests | Exceeds concurrency on external systems | Enforce limits at the actual resource layer. |
+| `HashSet` source while expecting ID order | No deterministic encounter order | Use `sorted` with a stable key. |
+| Observing `mapConcurrent` slower than `map` for multiplying numbers | Overhead exceeds work | Use `map` for lightweight CPU tasks. |
+| Holding huge results with `toList` | Heap and GC pressure | Collect only needed results, batch/stream carefully. |
+| Measuring only one pipeline on an idle machine | Fails to reflect concurrent load | Measure realistic throughput and latency. |
 
-## 21. Bài tập thực hành
+## 21. Practice exercises
 
-### Bài 1 — Dự đoán thứ tự
+### Exercise 1 — Predicting order
 
-Nguồn `[1,2,3,4]` có mapper của số 1 chậm hơn số 2, 3, 4. Kết quả của `gather(mapConcurrent(4, n -> "N-" + n)).toList()` có bắt buộc ra theo thứ tự mapper hoàn thành không?
+Source `[1,2,3,4]` has a mapper for 1 that is slower than for 2, 3, and 4. Must the result of `gather(mapConcurrent(4, n -> "N-" + n)).toList()` come out in mapper completion order?
 
-### Bài 2 — Giới hạn tối đa
+### Exercise 2 — Maximum limit
 
-`mapConcurrent(3, mapper)` có luôn chạy đủ ba mapper đồng thời không? Nêu hai lý do mức `peak` thực tế có thể thấp hơn ba.
+Does `mapConcurrent(3, mapper)` always run three mappers concurrently? Give two reasons why the actual `peak` might be lower than three.
 
-### Bài 3 — Phân biệt QPS
+### Exercise 3 — Distinguishing QPS
 
-Dịch vụ chỉ cho phép 20 request/giây. Giải thích vì sao `mapConcurrent(5, callApi)` không đủ để tuân thủ quota. Cần thành phần gì khác?
+A service allows only 20 requests/second. Explain why `mapConcurrent(5, callApi)` is not enough to stay within quota. What other component is needed?
 
-### Bài 4 — Chọn giải pháp cho CPU-bound
+### Exercise 4 — Choosing a solution for CPU-bound work
 
-Bài toán cần bình phương một triệu số nguyên trong RAM. Nêu lý do không nên mặc định chọn `mapConcurrent(100, mapper)` và hai phương án nên benchmark.
+A problem needs to square one million integers in RAM. Explain why you should not default to `mapConcurrent(100, mapper)` and list two alternatives to benchmark.
 
-### Bài 5 — Hủy tác vụ
+### Exercise 5 — Task cancellation
 
-Có `limit(2)` ngay sau `mapConcurrent(6, remoteCall)`. Có được đảm bảo chỉ hai remote call thực hiện không? Nếu các lời gọi có side effect ghi tiền, cần chính sách nào?
+There is `limit(2)` right after `mapConcurrent(6, remoteCall)`. Is it guaranteed that only two remote calls execute? If the calls have money-transfer side effects, what policy is required?
 
-### Bài 6 — Viết bộ kiểm đếm concurrency
+### Exercise 6 — Writing a concurrency counter
 
-Dùng `AtomicInteger active` và `AtomicInteger peak` để kiểm tra `maxConcurrency = 4`. Vì sao decrement nên đặt trong `finally`?
+Use `AtomicInteger active` and `AtomicInteger peak` to verify `maxConcurrency = 4`. Why must the decrement be placed inside `finally`?
 
-### Bài 7 — Nguồn không có thứ tự
+### Exercise 7 — Unordered source
 
-Một `HashSet<Integer>` chứa các ID 5, 1, 4, 2, 3. Hãy lấy kết quả mapping theo thứ tự ID tăng dần mà vẫn dùng `mapConcurrent`.
+A `HashSet<Integer>` holds IDs 5, 1, 4, 2, 3. Obtain mapping results in ascending ID order while still using `mapConcurrent`.
 
-### Bài 8 — Exception
+### Exercise 8 — Exceptions
 
-Một mapper ném `IllegalStateException`. Hãy nêu hợp đồng truyền lỗi của `mapConcurrent` và giải thích vì sao không nên assert chính xác kiểu wrapper/cause chưa được cam kết.
+A mapper throws `IllegalStateException`. State the error-propagation contract of `mapConcurrent` and explain why you should not assert an exact unpromised wrapper/cause type.
 
-### Bài 9 — Thực thi đồng thời nhiều pipeline
+### Exercise 9 — Concurrent execution of multiple pipelines
 
-Một server xử lý 20 yêu cầu web đồng thời, mỗi yêu cầu có `mapConcurrent(10, ...)`. Có thể có hơn 10 yêu cầu tới backend trong toàn hệ thống không? Cần đặt limiter ở đâu?
+A server handles 20 concurrent web requests, each using `mapConcurrent(10, ...)`. Can more than 10 requests hit the backend system-wide? Where should the limiter be placed?
 
-### Bài 10 — Lọc trước và sau map
+### Exercise 10 — Filtering before and after map
 
-Nếu một phần tử có cờ `active` sẵn ở dữ liệu gốc, tại sao `filter(active)` trước `mapConcurrent(fetch)` thường tiết kiệm I/O hơn? Khi nào phải lọc sau?
+If an element already has an `active` flag in the original data, why does `filter(active)` before `mapConcurrent(fetch)` usually save I/O? When must filtering happen afterward?
 
-### Bài 11 — So sánh API
+### Exercise 11 — Comparing APIs
 
-Nêu điểm khác biệt giữa `Stream.map`, `mapConcurrent`, `parallelStream` và `CompletableFuture`/executor riêng về quyền quản lý concurrency, thứ tự và lifecycle.
+Contrast `Stream.map`, `mapConcurrent`, `parallelStream`, and a dedicated `CompletableFuture`/executor regarding concurrency control, ordering, and lifecycle.
 
-### Bài 12 — Thiết kế bài đo
+### Exercise 12 — Designing a benchmark
 
-Thiết kế thử nghiệm chọn `maxConcurrency` trong tập `{1,2,4,8,16}` khi tra cứu một API có giới hạn kết nối. Nêu ít nhất sáu chỉ số/cấu hình phải ghi và tiêu chí dừng tăng mức.
+Design an experiment to choose `maxConcurrency` from `{1,2,4,8,16}` when querying a connection-limited API. List at least six metrics/settings to record and criteria for stopping increases.
 
-## 22. Đáp án và hướng dẫn
+## 22. Answers and guidance
 
-**Bài 1.** Không. Với ordered stream, `mapConcurrent` bảo toàn **encounter order** của kết quả, nên đầu ra là `[N-1,N-2,N-3,N-4]` khi mọi mapper hoàn thành thành công. Lịch thực thi và thứ tự hoàn thành mapper có thể khác.
+**Exercise 1.** No. On an ordered stream, `mapConcurrent` preserves **encounter order** of results, so the output is `[N-1,N-2,N-3,N-4]` when all mappers succeed. Execution scheduling and mapper completion order may differ.
 
-**Bài 2.** Không. `3` là **giới hạn trên**; nguồn có thể chỉ một phần tử, hoặc mapper quá nhanh/chậm cung cấp dữ liệu khiến mức đồng thời không luôn đạt ba. Scheduling và các bước downstream cũng có thể ảnh hưởng.
+**Exercise 2.** No. `3` is an **upper bound**; the source may have only one element, or mappers may be too fast or upstream too slow to keep three active simultaneously. Scheduling and downstream steps can also affect this.
 
-**Bài 3.** Concurrency là số yêu cầu **đang tiến hành**, còn quota 20 request/giây là **tần suất**. Nếu các request phản hồi nhanh, năm slot có thể gửi hơn 20 request/giây. Dùng rate limiter theo thời gian, cùng giới hạn concurrency và timeout.
+**Exercise 3.** Concurrency is the number of **in-flight** requests, whereas a 20 requests/second quota is a **rate**. If requests respond fast, five slots can send far more than 20 requests/second. Use a time-based rate limiter alongside the concurrency cap and timeouts.
 
-**Bài 4.** Virtual threads không tạo thêm lõi CPU và việc dispatch nhiều mapper có overhead. So vòng lặp hoặc `Stream.map` tuần tự với `parallelStream`/primitive stream phù hợp; kiểm chứng tính đúng và benchmark trên nguồn/máy thực.
+**Exercise 4.** Virtual threads do not add CPU cores, and dispatching many mappers has overhead. Compare a sequential loop or `Stream.map` against `parallelStream`/an appropriate primitive stream; verify correctness and benchmark on real data and hardware.
 
-**Bài 5.** Không. Một số lời gọi có thể đã in-flight và cancellation là best-effort. Cần idempotency, xác định trạng thái commit, retry có giới hạn và xử lý lỗi một phần/compensation khi phù hợp.
+**Exercise 5.** No. Some calls may already be in-flight and cancellation is best-effort. You need idempotency, commit-status visibility, bounded retries, and partial-failure/compensation handling where appropriate.
 
-**Bài 6.**
+**Exercise 6.**
 
 ```java
 int now = active.incrementAndGet();
@@ -1230,9 +1230,9 @@ try {
 }
 ```
 
-`finally` giữ số liệu chính xác khi thành công, exception hoặc interruption; `peak <= 4` là điều cần kiểm tra, không nhất thiết `peak == 4`.
+`finally` keeps metrics accurate on success, exception, or interruption; `peak <= 4` is what should be verified, not necessarily `peak == 4`.
 
-**Bài 7.**
+**Exercise 7.**
 
 ```java
 List<String> labels = ids.stream()
@@ -1244,46 +1244,46 @@ List<String> labels = ids.stream()
 // [ID-1, ID-2, ID-3, ID-4, ID-5]
 ```
 
-`ids` là `HashSet<Integer>` trong bài toán. `sorted` xác định encounter order trước mapper.
+`ids` is the `HashSet<Integer>` in the problem. `sorted` establishes encounter order before the mapper.
 
-**Bài 8.** Khi một kết quả của mapper cần phát downstream nhưng mapper đã hoàn thành với exception, gatherer phát lại exception dưới dạng `RuntimeException`, sau đó cố hủy các tác vụ còn lại. Kiểm tra loại lỗi ở mức hợp đồng, không phụ thuộc tên wrapper/cause hoặc thứ tự side effect nếu API không bảo đảm.
+**Exercise 8.** When a mapper's result is due downstream yet the mapper completed with an exception, the gatherer rethrows it as a `RuntimeException` and attempts to cancel remaining tasks. Check error behavior at the contract level without relying on wrapper/cause names or side-effect ordering if unpromised by the API.
 
-**Bài 9.** Có. Mỗi gatherer có giới hạn cục bộ, nên 20 pipeline có thể cùng làm nhiều mapper. Nếu quota toàn ứng dụng là 10, cần một limiter chung tại client/backend adapter hay nơi gửi yêu cầu, không chỉ đặt `mapConcurrent(10)` ở từng pipeline.
+**Exercise 9.** Yes. Each gatherer enforces only a local cap, so 20 pipelines can simultaneously run many mappers. If the application-wide quota is 10, a shared limiter is needed at the client/backend adapter or outbound dispatcher, not just `mapConcurrent(10)` per pipeline.
 
-**Bài 10.** Lọc trước tránh gọi `fetch` cho phần tử không active. Nếu điều kiện chỉ biết sau khi gọi API, phải map trước rồi filter theo kết quả; chấp nhận chi phí đã thực hiện.
+**Exercise 10.** Filtering first avoids calling `fetch` for inactive elements. If the condition is only known after calling the API, you must map first and filter on the result, accepting the cost of the calls already made.
 
-**Bài 11.** `map` tuần tự thực hiện lần lượt; `mapConcurrent` ánh xạ bằng virtual threads với giới hạn và bảo toàn encounter order; `parallelStream` chia pipeline và không có tham số cap mapper tương đương; `CompletableFuture`/executor riêng cho nhiều quyền điều khiển nhưng phải tự quản lý ordering, lỗi, cancellation và shutdown.
+**Exercise 11.** Sequential `map` runs one after another; `mapConcurrent` maps on virtual threads with a cap while preserving encounter order; `parallelStream` splits the pipeline without an equivalent mapper cap parameter; `CompletableFuture`/custom executors give fine-grained control but require managing ordering, errors, cancellation, and shutdown yourself.
 
-**Bài 12.** Giữ cùng tập ID, tải nền, client và timeout; thử `C={1,2,4,8,16}`, ghi throughput, latency p50/p95/p99, timeout/error rate, pool utilization, in-flight, retry, CPU, allocation/GC và response size. Dừng tăng khi lỗi/thời gian chờ tăng, backend sắp vượt quota, hoặc throughput không còn cải thiện đáng kể. Đo cả một pipeline và nhiều pipeline đồng thời.
+**Exercise 12.** Keep the same ID set, background load, client, and timeouts; test `C={1,2,4,8,16}`, recording throughput, p50/p95/p99 latency, timeout/error rate, pool utilization, in-flight count, retries, CPU, allocation/GC, and response size. Stop increasing when errors/wait times rise, backend nears quota, or throughput stops improving meaningfully. Measure both single-pipeline and multi-pipeline concurrency.
 
-## 23. Checklist đưa `mapConcurrent` vào ứng dụng
+## 23. Checklist for bringing `mapConcurrent` into an application
 
-- [ ] JDK biên dịch và runtime hỗ trợ **Java 24+** hoặc preview đúng phiên bản cũ.
-- [ ] Có hiểu rõ quan hệ **một input → một output** khi mapper thành công.
-- [ ] `maxConcurrency >= 1` và có giới hạn trên theo thực tế.
-- [ ] Phân biệt concurrency cap với **QPS/rate limit**.
-- [ ] Có shared limiter nếu nhiều pipeline dùng chung một dịch vụ có quota tổng.
-- [ ] Mapper độc lập, thread-safe, non-interfering; không sửa nguồn hoặc collection chia sẻ.
-- [ ] Chọn `mapConcurrent` vì nhiều tác vụ **chờ độc lập**, không chỉ vì muốn "chạy nhanh".
-- [ ] Không dựa vào thứ tự log hoặc completion để định nghĩa encounter order.
-- [ ] Nếu nguồn không ordered, đã xác định/sắp xếp thứ tự nghiệp vụ khi cần.
-- [ ] Đã tính tới head-of-line blocking do bảo toàn thứ tự.
-- [ ] Mapper I/O có timeout/deadline và client pool phù hợp.
-- [ ] Retry, idempotency và rate limit được thiết kế riêng.
-- [ ] Không coi interruption/cancellation là rollback side effect đã commit.
-- [ ] Không giả định `limit(n)` khiến đúng n mapper đã được gọi.
-- [ ] Đã xét kích thước kết quả và chi phí `toList`/buffering.
-- [ ] Đã kiểm thử nguồn rỗng, giới hạn 1/2/N, mapper throw, null mapper và đầu vào trùng.
-- [ ] Đã đo `peak <= maxConcurrency`, không đòi dùng hết tất cả slot.
-- [ ] Đã so kết quả với `map` tuần tự trên mapper thuần.
-- [ ] Đã đo latency, throughput, lỗi và tài nguyên dưới tải đại diện.
-- [ ] Không ghép `parallel()` với `mapConcurrent` chỉ dựa vào cảm tính.
-- [ ] Đã xác định ai sở hữu việc đóng tài nguyên nếu nguồn là `Files.lines`/cursor.
-- [ ] Không đưa dữ liệu nhạy cảm, khóa API hoặc payload bí mật vào log mapper.
+- [ ] Compile and runtime JDK support **Java 24+** or proper preview flags on older releases.
+- [ ] Clear understanding of the **one input → one output** relationship on mapper success.
+- [ ] `maxConcurrency >= 1` with a practical upper bound.
+- [ ] Concurrency cap distinguished from **QPS/rate limit**.
+- [ ] Shared limiter exists if multiple pipelines share a downstream service with a global quota.
+- [ ] Mapper is independent, thread-safe, and non-interfering; never modifies source or shared collections.
+- [ ] `mapConcurrent` chosen for many **independent waiting** tasks, not merely to "run fast".
+- [ ] Do not rely on log order or completion order to define encounter order.
+- [ ] If source is unordered, business ordering is established/sorted when needed.
+- [ ] Accounted for head-of-line blocking caused by preserving order.
+- [ ] I/O mappers have timeouts/deadlines and appropriately sized client pools.
+- [ ] Retries, idempotency, and rate limits are designed separately.
+- [ ] Do not treat interruption/cancellation as rollback for committed side effects.
+- [ ] Do not assume `limit(n)` ensures exactly n mappers were invoked.
+- [ ] Considered result sizes and `toList`/buffering costs.
+- [ ] Tested empty source, limits 1/2/N, throwing mapper, null mapper, and duplicate inputs.
+- [ ] Verified `peak <= maxConcurrency`, without requiring all slots to be filled.
+- [ ] Compared results against sequential `map` on pure mappers.
+- [ ] Measured latency, throughput, errors, and resources under representative load.
+- [ ] Do not combine `parallel()` with `mapConcurrent` based on guesswork.
+- [ ] Clarified who owns closing resources if the source is `Files.lines`/a cursor.
+- [ ] Never log sensitive data, API keys, or secret payloads inside mapper logs.
 
-## 24. Tổng kết và nguồn tham khảo
+## 24. Summary and references
 
-`Gatherers.mapConcurrent(maxConcurrency, mapper)` đưa một kiểu concurrency có giới hạn vào pipeline Java Stream API:
+`Gatherers.mapConcurrent(maxConcurrency, mapper)` brings bounded concurrency into a Java Stream API pipeline:
 
 ```java
 List<String> result = ids.stream()
@@ -1292,23 +1292,23 @@ List<String> result = ids.stream()
     .toList();
 ```
 
-Đoạn mẫu trên giả định `ids` và `fetchStatus` thuộc chương trình ứng dụng.
+The sample snippet assumes `ids` and `fetchStatus` belong to the application program.
 
-Tư duy cần giữ:
+Key mindset to keep:
 
-1. **Một-một:** một mapper bình thường tạo một kết quả cho mỗi đầu vào.
-2. **Giới hạn:** `maxConcurrency` là **trần số lời gọi mapper đồng thời**, không phải QPS.
-3. **Virtual threads:** hữu ích với nhiều tác vụ chờ độc lập; không thêm lõi CPU.
-4. **Thứ tự:** đầu ra giữ encounter order của nguồn nếu nguồn ordered, không theo completion order.
-5. **Hủy:** khi downstream ngừng yêu cầu thêm, cancellation là **best-effort**, không rollback tác vụ ngoài.
-6. **Lỗi:** mapper thất bại được phản ánh qua `RuntimeException` khi kết quả tương ứng cần được phát.
-7. **Tài nguyên:** có timeout, rate limiter, connection pool, giới hạn bộ nhớ và quản lý vòng đời.
-8. **Kiểm chứng:** đo peak concurrency, so kết quả tuần tự và benchmark trên workload thực tế.
+1. **One-to-one:** a normal mapper produces one result per input.
+2. **Bound:** `maxConcurrency` is a **ceiling on concurrent mapper invocations**, not QPS.
+3. **Virtual threads:** helpful for many independent waiting tasks; they do not add CPU cores.
+4. **Ordering:** output preserves source encounter order when the source is ordered, not completion order.
+5. **Cancellation:** when downstream stops requesting more, cancellation is **best-effort** and does not roll back external tasks.
+6. **Errors:** mapper failures surface via `RuntimeException` when the corresponding result is due to be emitted.
+7. **Resources:** configure timeouts, rate limiters, connection pools, memory limits, and lifecycle management.
+8. **Verification:** measure peak concurrency, compare against sequential results, and benchmark on realistic workloads.
 
-Tham khảo chính thức:
+Official references:
 
 - [Javadoc Java 24 — Gatherers.mapConcurrent](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html#mapConcurrent(int,java.util.function.Function))
 - [Oracle Java 24 — Stream Gatherers](https://docs.oracle.com/en/java/javase/24/core/stream-gatherers.html)
 - [OpenJDK JEP 485 — Stream Gatherers](https://openjdk.org/jeps/485)
 
-Khi hiểu đúng các hợp đồng trên, bạn có thể dùng Java Stream Gatherers để xử lý nhiều tra cứu độc lập với mức concurrency có kiểm soát, giữ dữ liệu đầu ra ổn định và tránh nhầm lẫn giữa song song hóa, rate limiting, cancellation và an toàn tài nguyên.
+When these contracts are well understood, you can use Java Stream Gatherers to process many independent lookups with controlled concurrency, keep output ordering predictable, and avoid confusing parallelism, rate limiting, cancellation, and resource safety.

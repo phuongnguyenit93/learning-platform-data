@@ -1,21 +1,21 @@
-# Framework cần opens để bind, proxy hoặc serialize
+# Frameworks need opens to bind, proxy, or serialize
 
-Java Platform Module System (JPMS) tạo ranh giới truy cập giữa các mô-đun. Một lớp có thể là public nhưng framework vẫn không được phép đọc hoặc thay đổi field private của lớp đó bằng deep reflection. Đây là lý do ứng dụng modular đôi khi gặp lỗi khi framework thực hiện data binding, dependency injection, tạo proxy hoặc serialization.
+The Java Platform Module System (JPMS) creates access boundaries between modules. A class can be public, yet a framework is still not permitted to read or modify private fields of that class using deep reflection. This is why modular applications sometimes encounter errors when frameworks perform data binding, dependency injection, proxy creation, or serialization.
 
-Chỉ thị **opens** trong module-info.java cho phép một mô-đun cụ thể thực hiện deep reflection trên một package ở runtime. Khi dùng đúng phạm vi, ứng dụng vẫn giữ được ranh giới API trong khi framework có thể truy cập những thành viên nội bộ mà nó cần.
+The **opens** directive in module-info.java allows a specific module to perform deep reflection on a package at runtime. When scoped appropriately, the application preserves its API boundaries while the framework can access the internal members it needs.
 
-## 1. Vì sao framework cần opens?
+## 1. Why do frameworks need opens?
 
-Nhiều framework hoạt động bằng cách kiểm tra cấu trúc lớp lúc runtime. Thay vì chỉ gọi những phương thức public mà mã ứng dụng gọi trực tiếp, chúng có thể cần:
+Many frameworks work by inspecting class structure at runtime. Instead of calling only the public methods that application code calls directly, they may need to:
 
-- Đọc metadata của field, method, constructor và annotation.
-- Tạo đối tượng bằng constructor mà ứng dụng không gọi trực tiếp.
-- Gán giá trị vào field hoặc gọi setter khi bind dữ liệu.
-- Đọc field private để serialize object thành JSON hoặc định dạng khác.
-- Khôi phục object từ dữ liệu đã serialize.
-- Tạo proxy hoặc lớp hỗ trợ dựa trên metadata của lớp gốc.
+- Read metadata of fields, methods, constructors, and annotations.
+- Instantiate objects using constructors that application code does not call directly.
+- Assign values to fields or invoke setters when binding data.
+- Read private fields to serialize objects into JSON or another format.
+- Reconstruct objects from serialized data.
+- Generate proxies or helper classes based on metadata of the original class.
 
-Ví dụ một entity:
+Example of an entity:
 
 ~~~java
 package com.example.customer.model;
@@ -33,20 +33,20 @@ public class Customer {
 }
 ~~~
 
-Mã nghiệp vụ có thể dùng getter public. Tuy nhiên, một ORM hoặc thư viện data binding có thể muốn gọi constructor không public và gán trực tiếp field private. Việc framework nhìn thấy lớp Customer không đồng nghĩa nó được phép thực hiện mọi thao tác reflection trên các thành viên của lớp.
+Business code can use public getters. However, an ORM or data binding library may want to invoke the non-public constructor and assign private fields directly. The fact that a framework can see the Customer class does not mean it is allowed to perform all reflection operations on the class's members.
 
-Nếu package nằm trong named module và chưa được mở, framework có thể gặp java.lang.reflect.InaccessibleObjectException khi cố truy cập sâu.
+If the package resides in a named module and has not been opened, the framework may encounter java.lang.reflect.InaccessibleObjectException when attempting deep access.
 
-## 2. exports và opens giải quyết hai việc khác nhau
+## 2. exports and opens do two different jobs
 
-Đây là khác biệt quan trọng nhất khi cấu hình JPMS:
+This is the most important distinction when configuring JPMS:
 
-| Chỉ thị | Mục đích | Ví dụ sử dụng |
+| Directive | Purpose | Usage example |
 | --- | --- | --- |
-| **exports** | Cho phép mô-đun khác truy cập API public của package bằng mã Java thông thường. | Ứng dụng import CustomerService. |
-| **opens** | Cho phép deep reflection vào package tại runtime, kể cả thành viên không public theo quy tắc reflection. | ORM đọc field private hoặc serializer truy cập constructor. |
+| **exports** | Allows other modules to access the public API of a package in ordinary Java code. | Application imports CustomerService. |
+| **opens** | Allows deep reflection into a package at runtime, including non-public members according to reflection rules. | ORM reads private fields or serializer accesses constructors. |
 
-Ví dụ module descriptor:
+Example module descriptor:
 
 ~~~java
 module com.example.customer {
@@ -55,13 +55,13 @@ module com.example.customer {
 }
 ~~~
 
-Mô-đun khác có thể sử dụng API public trong com.example.customer.api. Riêng mô-đun com.example.orm được phép deep reflection trên com.example.customer.model.
+Other modules can use the public API in com.example.customer.api. Specifically, the com.example.orm module is permitted to perform deep reflection on com.example.customer.model.
 
-Khai báo opens không làm package trở thành API có thể import tùy ý. Ngược lại, exports không tự cấp quyền deep reflection vào field private. Một package có thể vừa được export vừa được open nếu thiết kế thực sự cần cả hai khả năng.
+Declaring opens does not make a package an API that can be arbitrarily imported. Conversely, exports does not automatically grant deep reflection permission into private fields. A package can be both exported and opened if the design genuinely requires both capabilities.
 
-## 3. Cách khai báo opens trong module-info.java
+## 3. How to declare opens in module-info.java
 
-### 3.1. Mở package cho mọi mô-đun
+### 3.1. Opening a package to all modules
 
 ~~~java
 module com.example.customer {
@@ -69,11 +69,11 @@ module com.example.customer {
 }
 ~~~
 
-Đây là unqualified opens. Mọi mô-đun khác có thể thực hiện deep reflection trên package model tại runtime.
+This is unqualified opens. Any other module can perform deep reflection on the model package at runtime.
 
-Cách này đơn giản nhưng phạm vi rộng. Nếu chỉ một framework cần truy cập, nên dùng qualified opens để giới hạn quyền.
+This approach is simple, but its scope is broad. If only one framework needs access, use qualified opens to limit permissions.
 
-### 3.2. Chỉ mở cho một framework
+### 3.2. Opening only to one framework
 
 ~~~java
 module com.example.customer {
@@ -81,9 +81,9 @@ module com.example.customer {
 }
 ~~~
 
-Mô-đun com.example.orm được phép deep reflection trên package model. Những mô-đun khác không được cấp quyền chỉ vì chúng đọc được mô-đun customer.
+The com.example.orm module is permitted deep reflection on the model package. Other modules are not granted permission merely because they read the customer module.
 
-Có thể mở nhiều package cho cùng một framework:
+Multiple packages can be opened to the same framework:
 
 ~~~java
 module com.example.customer {
@@ -92,7 +92,7 @@ module com.example.customer {
 }
 ~~~
 
-Hoặc mở một package cho nhiều framework:
+Or one package can be opened to multiple frameworks:
 
 ~~~java
 module com.example.customer {
@@ -102,9 +102,9 @@ module com.example.customer {
 }
 ~~~
 
-Hãy dùng đúng module name của framework. Tên artifact hoặc tên file JAR không phải lúc nào cũng giống tên mô-đun. Có thể xác minh bằng jar --describe-module --file path/to/framework.jar.
+Use the exact module name of the framework. Artifact names or JAR file names are not always identical to the module name. You can verify this with jar --describe-module --file path/to/framework.jar.
 
-### 3.3. Mở toàn bộ mô-đun
+### 3.3. Opening the entire module
 
 ~~~java
 open module com.example.customer {
@@ -113,15 +113,15 @@ open module com.example.customer {
 }
 ~~~
 
-open module mở tất cả package của mô-đun cho deep reflection tại runtime. Đây là lựa chọn có phạm vi rộng và thường chỉ phù hợp khi framework cần reflection trên nhiều package mà không thể liệt kê rõ từng package.
+open module opens all packages of the module for deep reflection at runtime. This is a broad option and is usually suitable only when a framework needs reflection across many packages that cannot be clearly enumerated individually.
 
-Nếu chỉ ORM cần truy cập package model, mở riêng package đó dễ kiểm soát hơn mở toàn bộ mô-đun.
+If only the ORM needs access to the model package, opening that individual package is easier to control than opening the entire module.
 
-## 4. Data binding: framework ánh xạ dữ liệu vào object
+## 4. Data binding: frameworks map data onto objects
 
-Data binding chuyển dữ liệu bên ngoài thành object Java hoặc chuyển object thành cấu trúc dữ liệu. Các framework có thể dùng constructor, setter, getter, field và annotation để thực hiện việc ánh xạ.
+Data binding converts external data into Java objects or converts objects into data structures. Frameworks can use constructors, setters, getters, fields, and annotations to perform mapping.
 
-Ví dụ request JSON:
+Example JSON request:
 
 ~~~json
 {
@@ -130,7 +130,7 @@ Ví dụ request JSON:
 }
 ~~~
 
-Object đích:
+Target object:
 
 ~~~java
 package com.example.customer.model;
@@ -152,9 +152,9 @@ public class Customer {
 }
 ~~~
 
-Nếu framework chỉ gọi getter/setter public, nó có thể không cần deep reflection vào field private. Nhưng nếu framework dùng field access hoặc cần gọi constructor không public, package có thể phải được mở.
+If the framework only calls public getters/setters, it may not need deep reflection into private fields. However, if the framework uses field access or needs to call a non-public constructor, the package may need to be opened.
 
-Ví dụ module descriptor cho một mô-đun mapper:
+Example module descriptor for a mapper module:
 
 ~~~java
 module com.example.customer {
@@ -162,17 +162,17 @@ module com.example.customer {
 }
 ~~~
 
-Cấu hình này cho phép mapper truy cập sâu package model. Nếu mapper cần import một API public khác của customer, vẫn phải khai báo requires và package API phải được exports phù hợp.
+This configuration allows mapper to deeply access the model package. If mapper needs to import another public API of customer, it must still declare requires and the API package must be exported appropriately.
 
-Đừng mở package theo suy đoán. Hãy kiểm tra lỗi thực tế hoặc tài liệu của framework để biết package nào và module name nào cần được mở.
+Do not open packages based on guesswork. Check the actual error or framework documentation to know which package and module name need to be opened.
 
-## 5. Serialization: đọc object và khôi phục object
+## 5. Serialization: reading objects and reconstructing objects
 
-Serialization thường cần đọc trạng thái object để tạo JSON, XML hoặc định dạng khác. Deserialization thực hiện chiều ngược lại: tạo object và gán dữ liệu vào các thuộc tính.
+Serialization often needs to read object state to produce JSON, XML, or another format. Deserialization does the reverse: instantiating objects and assigning data to properties.
 
-Một serializer có thể dùng getter public, nhưng một số cấu hình hoặc thư viện dùng reflection để truy cập field private. Nếu package nằm trong named module, serializer cần được cấp quyền deep reflection.
+A serializer can use public getters, but some configurations or libraries use reflection to access private fields. If the package resides in a named module, the serializer needs to be granted deep reflection permission.
 
-Ví dụ với mô-đun ứng dụng:
+Example with an application module:
 
 ~~~java
 module com.example.customer {
@@ -180,42 +180,42 @@ module com.example.customer {
 }
 ~~~
 
-Tên com.example.json chỉ là tên minh họa. Khi dùng một thư viện JSON thực tế, hãy xác minh module name của đúng phiên bản đang chạy.
+The name com.example.json is only an illustrative name. When using a real JSON library, verify the module name of the exact version being run.
 
-Nếu thư viện JSON nằm trên classpath, nó thuộc unnamed module. Module descriptor không thể ghi tên một unnamed module trong qualified opens. Khi đó có thể cấu hình JVM bằng --add-opens với đích ALL-UNNAMED:
+If the JSON library sits on the classpath, it belongs to the unnamed module. A module descriptor cannot write the name of an unnamed module in qualified opens. In that case, you can configure the JVM using --add-opens with the target ALL-UNNAMED:
 
 ~~~bash
 java --add-opens com.example.customer/com.example.customer.model=ALL-UNNAMED ...
 ~~~
 
-Tham số trên mở package model của mô-đun customer cho deep reflection từ các lớp thuộc unnamed module trong runtime đó.
+The flag above opens the model package of the customer module for deep reflection from classes belonging to the unnamed module in that runtime.
 
-Nếu framework có named module, nên giới hạn đích theo module name của framework thay vì dùng ALL-UNNAMED.
+If the framework has a named module, restrict the target to the framework's module name instead of using ALL-UNNAMED.
 
-## 6. Proxy và dependency injection
+## 6. Proxies and dependency injection
 
-Framework dependency injection hoặc AOP có thể tạo proxy để bổ sung hành vi như transaction, logging, caching, lazy loading hoặc kiểm tra quyền.
+Dependency injection or AOP frameworks can generate proxies to add behaviors such as transactions, logging, caching, lazy loading, or permission checks.
 
-Có hai cách triển khai proxy phổ biến:
+There are two common ways to implement proxies:
 
-- **JDK dynamic proxy:** tạo đối tượng proxy dựa trên interface.
-- **Subclass/bytecode proxy:** tạo lớp con hoặc lớp bytecode hỗ trợ dựa trên class cần proxy.
+- **JDK dynamic proxy:** creates a proxy object based on an interface.
+- **Subclass/bytecode proxy:** creates a subclass or supporting bytecode class based on the class to be proxied.
 
-Quyền truy cập cần thiết phụ thuộc vào cách framework tạo proxy, visibility của interface/class, package chứa kiểu và module của framework. opens có thể cần thiết khi framework phải kiểm tra hoặc truy cập thành viên không public bằng reflection. Tuy nhiên, opens không tự động giải quyết mọi lỗi tạo proxy: việc đọc kiểu, kế thừa lớp, truy cập constructor hoặc định nghĩa lớp proxy còn chịu các quy tắc readability, exports và quyền truy cập của Java.
+The required access permissions depend on how the framework creates proxies, the visibility of the interface/class, the package containing the type, and the framework's module. opens may be required when the framework must inspect or access non-public members via reflection. However, opens does not automatically solve every proxy creation error: reading types, subclassing classes, accessing constructors, or defining proxy classes are also subject to readability, exports, and Java access rules.
 
-Ví dụ mô-đun chứa service:
+Example of a module containing a service:
 
 ~~~java
 package com.example.orders.internal;
 
 public class OrderServiceImpl {
     public void submit() {
-        // Xử lý đơn hàng.
+        // Process the order.
     }
 }
 ~~~
 
-Nếu framework AOP cần deep reflection trên package implementation:
+If an AOP framework needs deep reflection on the implementation package:
 
 ~~~java
 module com.example.orders {
@@ -223,25 +223,25 @@ module com.example.orders {
 }
 ~~~
 
-Nếu framework cần truy cập một interface public từ mô-đun khác, package chứa interface đó còn phải được exports và mô-đun framework phải đọc được mô-đun sở hữu interface.
+If the framework needs to access a public interface from another module, the package containing that interface must also be exported and the framework module must read the module owning the interface.
 
-Khi gặp lỗi proxy, hãy đọc exception để phân biệt:
+When encountering proxy errors, read the exception to distinguish:
 
-- InaccessibleObjectException: thường liên quan đến deep reflection; kiểm tra opens.
-- IllegalAccessError hoặc lỗi package/type không visible: kiểm tra requires, exports và khả năng truy cập của kiểu.
-- Lỗi định nghĩa lớp proxy hoặc truy cập constructor: kiểm tra cơ chế proxy, visibility, package và module layer; không mặc định chỉ cần thêm opens.
+- InaccessibleObjectException: usually related to deep reflection; check opens.
+- IllegalAccessError or package/type not visible error: check requires, exports, and type accessibility.
+- Proxy class definition or constructor access error: check proxy mechanism, visibility, package, and module layer; do not assume merely adding opens is enough.
 
-## 7. Framework nằm trên module path hay classpath?
+## 7. Is the framework on the module path or classpath?
 
-Đây là chi tiết quyết định cách khai báo quyền mở.
+This is the detail that determines how opening permission is declared.
 
-| Vị trí của framework | Danh tính mô-đun | Cách mở package |
+| Framework location | Module identity | How to open the package |
 | --- | --- | --- |
-| JAR có module descriptor trên module path | Named module | opens package to framework.module; |
-| JAR cũ được nhận diện là automatic module trên module path | Automatic module có tên | Có thể dùng module name đã xác minh trong qualified opens. |
-| JAR trên classpath | Unnamed module | Dùng --add-opens module/package=ALL-UNNAMED nếu cần deep reflection. |
+| JAR with module descriptor on module path | Named module | opens package to framework.module; |
+| Legacy JAR recognized as an automatic module on module path | Automatic module with a name | Can use the verified module name in qualified opens. |
+| JAR on classpath | Unnamed module | Use --add-opens module/package=ALL-UNNAMED if deep reflection is needed. |
 
-Ví dụ khi framework là named module:
+Example when the framework is a named module:
 
 ~~~java
 module com.example.customer {
@@ -249,28 +249,28 @@ module com.example.customer {
 }
 ~~~
 
-Tên trên chỉ là ví dụ minh họa cho một module name đã được xác minh. Hãy kiểm tra đúng module name trong artifact thực tế, vì phiên bản thư viện hoặc cách đóng gói có thể ảnh hưởng tên mô-đun.
+The name above is only an illustrative example of a verified module name. Verify the exact module name in the actual artifact, because library versions or packaging can affect module names.
 
-Nếu framework nằm trên classpath:
+If the framework is on the classpath:
 
 ~~~bash
 java --add-opens com.example.customer/com.example.customer.model=ALL-UNNAMED -jar app.jar
 ~~~
 
-ALL-UNNAMED áp dụng cho các unnamed module trong runtime tương ứng. Nó rộng hơn qualified opens tới một named module, vì vậy chỉ nên dùng khi framework thực sự chạy từ classpath.
+ALL-UNNAMED applies to unnamed modules in that corresponding runtime. It is broader than qualified opens to a named module, so it should only be used when the framework actually runs from the classpath.
 
-## 8. Cách tìm package và module name cần mở
+## 8. How to find the package and module name to open
 
-Khi gặp lỗi reflection, làm theo các bước sau:
+When encountering a reflection error, follow these steps:
 
-1. Đọc đầy đủ exception và tìm dòng nêu tên mô-đun nguồn, package bị đóng và mô-đun đích.
-2. Xác định package thuộc mô-đun ứng dụng hay thư viện bên thứ ba.
-3. Xác định framework chạy trên module path hay classpath.
-4. Nếu framework có JAR riêng, kiểm tra module name bằng jar --describe-module.
-5. Mở đúng package cho đúng framework trong module-info.java hoặc cấu hình --add-opens khi cần.
-6. Chạy lại test hoặc lệnh khởi chạy thực tế để xác nhận quyền reflection đã đủ.
+1. Read the full exception and find the line stating the source module name, the closed package, and the target module.
+2. Determine whether the package belongs to an application module or a third-party library.
+3. Determine whether the framework runs on the module path or classpath.
+4. If the framework has its own JAR, inspect the module name with jar --describe-module.
+5. Open the right package to the right framework in module-info.java or configure --add-opens when needed.
+6. Rerun the tests or actual launch command to confirm reflection permissions are sufficient.
 
-Ví dụ thông báo:
+Example message:
 
 ~~~text
 java.lang.reflect.InaccessibleObjectException:
@@ -280,9 +280,9 @@ module com.example.customer does not "opens
 com.example.customer.model" to module com.example.mapper
 ~~~
 
-Thông báo này đã chỉ ra ba dữ kiện: package nguồn là com.example.customer.model, mô-đun sở hữu là com.example.customer, mô-đun đích là com.example.mapper.
+This message already indicates three facts: the source package is com.example.customer.model, the owning module is com.example.customer, and the target module is com.example.mapper.
 
-Sửa trong descriptor:
+Fix in the descriptor:
 
 ~~~java
 module com.example.customer {
@@ -290,42 +290,42 @@ module com.example.customer {
 }
 ~~~
 
-Nếu lỗi đến từ framework trên classpath, dùng ALL-UNNAMED trong tham số JVM thay vì ghi tên giả định cho unnamed module.
+If the error comes from a framework on the classpath, use ALL-UNNAMED in the JVM argument instead of writing an assumed name for the unnamed module.
 
-## 9. Mở package ở module-info.java hay dùng --add-opens?
+## 9. Opening packages in module-info.java or using --add-opens?
 
-Hai cách có mục đích hơi khác nhau:
+The two approaches have slightly different purposes:
 
-| Cách | Phù hợp khi | Đặc điểm |
+| Approach | Suitable when | Characteristics |
 | --- | --- | --- |
-| opens trong module-info.java | Bạn quản lý mô-đun và biết framework nào cần reflection | Quyền mở được ghi trong module descriptor, dễ review cùng mã nguồn. |
-| --add-opens | Cần tích hợp thư viện không thể sửa, kiểm tra nhanh hoặc điều chỉnh cấu hình triển khai | Quyền mở được cấp lúc chạy qua tham số JVM. |
+| opens in module-info.java | You maintain the module and know which framework needs reflection | Opening permission is recorded in the module descriptor, easy to review alongside source code. |
+| --add-opens | Need to integrate an unmodifiable library, test quickly, or adjust deployment configuration | Opening permission is granted at runtime via JVM arguments. |
 
-Ví dụ tham số:
+Example argument:
 
 ~~~bash
 java --add-opens com.example.customer/com.example.customer.model=com.example.mapper -m com.example.app/com.example.app.Main
 ~~~
 
-Không nên thêm --add-opens cho mọi package để làm biến mất lỗi. Hãy giữ phạm vi nhỏ và ghi lại framework nào cần quyền đó, để cấu hình có thể được xem xét khi nâng cấp dependency.
+Do not add --add-opens for every package just to make errors disappear. Keep the scope small and document which framework needs that permission, so the configuration can be reviewed when upgrading dependencies.
 
-## 10. Những nhầm lẫn thường gặp
+## 10. Common misconceptions
 
-**Package có lớp public thì framework luôn truy cập được:** Không đúng. JPMS còn kiểm soát package có được export hoặc mở hay không.
+**If a package has public classes, frameworks can always access them:** Incorrect. JPMS also controls whether the package is exported or opened.
 
-**Thêm exports sẽ sửa mọi lỗi reflection:** Không đúng. exports dành cho API truy cập thông thường; deep reflection vào thành viên không public cần opens.
+**Adding exports will fix all reflection errors:** Incorrect. exports is for normal API access; deep reflection into non-public members requires opens.
 
-**opens làm package có thể import từ mã nguồn:** Không đúng. opens không thay thế exports.
+**opens makes a package importable from source code:** Incorrect. opens does not replace exports.
 
-**Mọi framework đều có tên mô-đun:** Không đúng. Framework chạy trên classpath thuộc unnamed module; không thể ghi tên đó như một mô-đun đích trong qualified opens.
+**Every framework has a module name:** Incorrect. Frameworks running on the classpath belong to the unnamed module; you cannot write that name as a target module in qualified opens.
 
-**Thêm opens là đủ để proxy hoạt động:** Không phải lúc nào cũng vậy. Cơ chế proxy còn phụ thuộc interface/class visibility, constructor, package, readability và module layer.
+**Adding opens is enough for proxies to work:** Not always. Proxy mechanisms also depend on interface/class visibility, constructors, packages, readability, and module layers.
 
-**Mở toàn bộ mô-đun luôn an toàn và tiện nhất:** Phạm vi mở rộng làm giảm khả năng đóng gói. Hãy mở đúng package và đúng framework cần truy cập.
+**Opening the entire module is always safest and most convenient:** A broad opening scope weakens encapsulation. Open only the right packages and frameworks that need access.
 
-## 11. Ví dụ descriptor cho ứng dụng dùng ORM và serializer
+## 11. Example descriptor for an application using ORM and serializer
 
-Giả sử ứng dụng có API public, model nội bộ cần ORM và JSON mapper truy cập sâu:
+Suppose an application has a public API and an internal model that an ORM and a JSON mapper need deep access to:
 
 ~~~java
 module com.example.customer {
@@ -339,24 +339,24 @@ module com.example.customer {
 }
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- Mô-đun customer đọc java.sql.
-- Mô-đun khác có thể sử dụng API public trong package api nếu có quan hệ requires phù hợp.
-- ORM và JSON mapper được deep reflection trên package model.
-- Các package nội bộ khác vẫn giữ nguyên ranh giới đóng gói.
+- The customer module reads java.sql.
+- Other modules can use the public API in the api package if they have an appropriate requires relationship.
+- The ORM and JSON mapper are granted deep reflection on the model package.
+- Other internal packages retain their encapsulation boundaries.
 
-Nếu JSON mapper thực tế chạy trên classpath, hãy bỏ tên minh họa đó khỏi qualified opens và cấu hình --add-opens ...=ALL-UNNAMED theo runtime. Nếu framework dùng named module, thay bằng module name thực tế đã xác minh.
+If the JSON mapper actually runs on the classpath, remove that illustrative name from qualified opens and configure --add-opens ...=ALL-UNNAMED according to the runtime. If the framework uses a named module, replace it with the verified actual module name.
 
-## 12. Checklist khi tích hợp framework với JPMS
+## 12. Checklist when integrating frameworks with JPMS
 
-- Xác định framework cần gọi API public hay cần deep reflection.
-- Xác định package chứa model/entity/DTO mà framework truy cập.
-- Xác định framework là named module, automatic module hay unnamed module.
-- Dùng requires và exports cho dependency/API thông thường.
-- Dùng opens hoặc --add-opens cho deep reflection.
-- Giới hạn quyền mở vào package và framework thực sự cần.
-- Kiểm tra riêng lỗi proxy vì opens không thay thế mọi quy tắc truy cập kiểu và package.
-- Chạy test binding, proxy và serialization trên đúng module path hoặc classpath của môi trường triển khai.
+- Determine whether the framework needs to call public APIs or needs deep reflection.
+- Identify the packages containing models/entities/DTOs that the framework accesses.
+- Determine whether the framework is a named module, automatic module, or unnamed module.
+- Use requires and exports for normal dependencies/APIs.
+- Use opens or --add-opens for deep reflection.
+- Limit opening permissions to the packages and frameworks that genuinely need them.
+- Check proxy errors separately because opens does not replace all type and package access rules.
+- Run binding, proxy, and serialization tests on the exact module path or classpath of the deployment environment.
 
-JPMS không cấm framework hoạt động với object có field private. Nó yêu cầu mô-đun sở hữu package tuyên bố rõ package nào được mở cho reflection. Khi cấu hình đúng, framework vẫn có thể bind, tạo proxy hoặc serialize dữ liệu trong khi các package nội bộ khác tiếp tục được đóng gói.
+JPMS does not forbid frameworks from working with objects that have private fields. It requires the module owning the package to explicitly declare which packages are open for reflection. When configured properly, frameworks can still bind, create proxies, or serialize data while other internal packages remain encapsulated.

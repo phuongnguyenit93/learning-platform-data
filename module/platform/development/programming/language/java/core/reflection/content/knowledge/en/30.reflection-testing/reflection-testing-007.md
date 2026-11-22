@@ -1,38 +1,38 @@
-# Kiểm thử Reflection với non-static inner class, enum, record và sealed type
+# Testing Reflection with Non-Static Inner Classes, Enums, Records, and Sealed Types
 
-## 1. Vì sao bốn kiểu này cần ca kiểm thử riêng?
+## 1. Why Do These Four Types Need Dedicated Test Cases?
 
-Khi viết một công cụ dùng Java Reflection để khám phá, tạo instance, đọc metadata hoặc kiểm tra cấu trúc lớp, không thể coi mọi `Class<?>` như một top-level class thông thường có constructor không tham số và các field có thể chỉnh sửa. **Non-static inner class, enum, record và sealed type** có những hợp đồng khác nhau về constructor, định danh, tính bất biến, quan hệ kế thừa và khả năng tạo đối tượng.
+When writing a tool that uses Java Reflection to inspect, instantiate, read metadata from, or validate class structures, you cannot treat every `Class<?>` like an ordinary top-level class with a no-arg constructor and mutable fields. **Non-static inner classes, enums, records, and sealed types** have distinct contracts for constructors, identity, immutability, inheritance relationships, and object creation.
 
-Bài học này tập trung vào **cách thiết kế bài kiểm thử cho công cụ Reflection**. Mục tiêu là kiểm tra hành vi được Java/JDK bảo đảm, tách khỏi chi tiết do compiler sinh ra, và viết assertions rõ ràng thay vì chỉ in metadata rồi suy đoán.
+This lesson focuses on **how to design tests for Reflection-based tools**. The goal is to test behaviors guaranteed by Java/the JDK, separate them from compiler-generated details, and write explicit assertions rather than printing metadata and guessing.
 
-| Loại kiểu | Điều kiện quan trọng | Điều gì nên kiểm thử? |
+| Type kind | Key condition | What should be tested? |
 | --- | --- | --- |
-| Non-static member inner class | Instance của outer class gắn với inner instance | `isMemberClass()`, `getEnclosingClass()`, constructor có tham số outer, tạo instance đúng. |
-| Enum | Tập constant do khai báo enum quản lý; Reflection không được tạo enum instance mới | `isEnum()`, `getEnumConstants()`, `Field.isEnumConstant()`, `Enum.valueOf` và thử constructor bị từ chối. |
-| Record | State được khai báo bởi record components và các field thành phần `final` | `isRecord()`, `getRecordComponents()`, canonical constructor, accessor, không chỉnh sửa field thành phần bằng `Field.set`. |
-| Sealed class/interface | Chỉ những direct subtype được cho phép trong `permits` | `isSealed()`, `getPermittedSubclasses()` và kiểm chứng danh sách direct permitted types. |
+| Non-static member inner class | Outer class instance is bound to the inner instance | `isMemberClass()`, `getEnclosingClass()`, constructor taking outer parameter, proper instantiation. |
+| Enum | Constant set managed by enum declaration; Reflection must not create new enum instances | `isEnum()`, `getEnumConstants()`, `Field.isEnumConstant()`, `Enum.valueOf`, and constructor invocation rejected. |
+| Record | State declared by record components and `final` component fields | `isRecord()`, `getRecordComponents()`, canonical constructor, accessor, refusing component field modification via `Field.set`. |
+| Sealed class/interface | Only direct subtypes listed in `permits` are allowed | `isSealed()`, `getPermittedSubclasses()`, and verifying the direct permitted type list. |
 
-**Không có một bộ lọc field/constructor chung có thể thay thế những kiểm thử này.** Ví dụ, `getDeclaredFields()` có thể thấy field hỗ trợ cho inner class, còn `getRecordComponents()` lại mô tả thành phần của record theo quy tắc ngôn ngữ.
+**No single generic field/constructor filter can replace these tests.** For example, `getDeclaredFields()` may reveal backing fields for an inner class, while `getRecordComponents()` describes record components according to language rules.
 
-## 2. Chuẩn bị cách kiểm thử an toàn và ổn định
+## 2. Preparing Safe and Stable Tests
 
-Dùng **JDK 17 trở lên** vì record và sealed class/interface trở thành tính năng chính thức từ Java 16 và Java 17. Một file demo chạy ở classpath đơn giản giúp tập trung vào ngữ nghĩa Reflection, tránh nhầm lỗi module với lỗi thiết kế kiểu.
+Use **JDK 17 or later** because records and sealed classes/interfaces became standard features in Java 16 and Java 17. A simple classpath demo file keeps the focus on Reflection semantics, avoiding confusing module errors with type-design bugs.
 
-Các quy tắc thiết kế test:
+Test design rules:
 
-1. **Kiểm tra điều kiện bằng assertion**: sử dụng `AssertionError`/JUnit hoặc kiểm tra điều kiện rõ ràng; không chỉ quan sát `println`.
-2. **Kiểm tra metadata trước khi gọi thực thi**: tìm constructor khác với `Constructor.newInstance`, đọc field metadata khác `Field.get` hoặc `Field.set`.
-3. **Dùng API chuyên biệt**: `isEnum` và `getEnumConstants` cho enum, `isRecord` và `getRecordComponents` cho record, `isSealed` và `getPermittedSubclasses` cho sealed type.
-4. **Không chốt tên/compiler artifacts**: không assert field `this$0`, `$VALUES`, tên số của local/anonymous class, hoặc thứ tự các mảng field/method do Reflection trả về.
-5. **Kiểm tra lỗi mong đợi đúng loại**: ví dụ `NoSuchMethodException` khi tìm constructor không tồn tại; `IllegalArgumentException` khi cố tạo enum bằng Reflection; `IllegalAccessException` khi cố sửa field thành phần record sau khi bật accessible trong ví dụ.
-6. **Tách test harness khỏi ứng dụng thật**: kiểm thử cùng classpath/nest dễ truy cập non-public member; khi triển khai vào named module khác phải thêm test về access boundary.
+1. **Verify conditions with assertions**: use `AssertionError`/JUnit or explicit condition checks; do not rely solely on inspecting `println`.
+2. **Inspect metadata before executing**: looking up a constructor is separate from `Constructor.newInstance`, and reading field metadata is separate from `Field.get` or `Field.set`.
+3. **Use specialized APIs**: `isEnum` and `getEnumConstants` for enums, `isRecord` and `getRecordComponents` for records, `isSealed` and `getPermittedSubclasses` for sealed types.
+4. **Do not hard-code compiler artifacts/names**: do not assert fields like `this$0`, `$VALUES`, numeric names of local/anonymous classes, or the array order of fields/methods returned by Reflection.
+5. **Verify the exact expected exception type**: e.g., `NoSuchMethodException` when looking up a non-existent constructor; `IllegalArgumentException` when attempting to instantiate an enum via Reflection; `IllegalAccessException` when attempting to modify a record component field after enabling accessibility in the example.
+6. **Separate the test harness from the real application**: tests on the same classpath/nest easily access non-public members; when deploying across separate named modules, add tests for access boundaries.
 
-## 3. Non-static inner class: constructor cần outer instance
+## 3. Non-Static Inner Classes: Constructors Require an Outer Instance
 
-Xét `Outer.Inner` là **member class không khai báo `static`**. Mỗi instance `Inner` gắn với một instance `Outer`. Vì vậy constructor ở mức JVM có tham số đầu đại diện enclosing instance của `Outer`, ngay cả khi constructor ở mã nguồn chỉ khai báo `Inner(String label)`.
+Consider `Outer.Inner` as a **member class not declared `static`**. Every `Inner` instance is bound to an `Outer` instance. Consequently, at the JVM level the constructor has a leading parameter representing the enclosing `Outer` instance, even when source code only declares `Inner(String label)`.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ~~~java
 class Outer {
@@ -42,65 +42,65 @@ class Outer {
 }
 ~~~
 
-Đây chỉ là mảnh khai báo; chương trình hoàn chỉnh nằm ở phần 7.
+This is only a declaration snippet; the complete program is in section 7.
 
-Kiểm thử phù hợp:
+Appropriate checks:
 
-- `Outer.Inner.class.isMemberClass()` phải là `true`: đây là **member class**.
-- `getEnclosingClass() == Outer.class` xác nhận lớp bao ngoài.
-- `getDeclaredConstructor()` **không tồn tại** trong ví dụ chỉ có constructor nhận `String` và enclosing instance; không nên tự giả định có zero-argument constructor.
-- `getDeclaredConstructor(Outer.class, String.class)` tìm được constructor phản chiếu.
-- `newInstance(new Outer(), "A")` tạo inner instance thành công khi phạm vi truy cập phù hợp.
+- `Outer.Inner.class.isMemberClass()` must be `true`: this is a **member class**.
+- `getEnclosingClass() == Outer.class` confirms the enclosing class.
+- `getDeclaredConstructor()` **does not exist** in an example whose only constructor takes `String` and the enclosing instance; do not assume a zero-argument constructor exists.
+- `getDeclaredConstructor(Outer.class, String.class)` finds the reflected constructor.
+- `newInstance(new Outer(), "A")` successfully creates an inner instance when access scope permits.
 
-**Phân biệt:** `Outer.StaticNested` được khai báo `static` không cần enclosing instance. **Local class** nằm trong phương thức có quy tắc capture/constructor khác; đừng đồng nhất mọi nested/local/anonymous class. Các field hỗ trợ chứa outer reference do compiler tạo có thể là synthetic nhưng tên/biểu diễn cụ thể không được dùng làm hợp đồng test.
+**Distinguish:** `Outer.StaticNested` declared `static` does not need an enclosing instance. **Local classes** inside methods have different capture/constructor rules; do not treat all nested/local/anonymous classes identically. Compiler-generated backing fields holding the outer reference may be synthetic, and their exact names/representations must not be used as test contracts.
 
-Nếu gọi `Class.getConstructors()` thay vì `getDeclaredConstructors()`, bạn chỉ xem các constructor `public`. Khi constructor trong ví dụ là package-private, dùng `getDeclaredConstructor` phù hợp hơn. Với module khác, việc tìm thấy constructor không có nghĩa có quyền gọi nó; `canAccess`, `trySetAccessible` và `InaccessibleObjectException` phải được xử lý tùy tình huống.
+If you call `Class.getConstructors()` instead of `getDeclaredConstructors()`, you only see `public` constructors. Since the constructor in the example is package-private, `getDeclaredConstructor` is more appropriate. Across modules, finding a constructor does not guarantee permission to call it; `canAccess`, `trySetAccessible`, and `InaccessibleObjectException` must be handled as appropriate.
 
-## 4. Enum: liệt kê constant, không tạo instance qua constructor
+## 4. Enum: List Constants, Do Not Instantiate via Constructor
 
-Đối với:
+For:
 
 ~~~java
 enum Stage { NEW, DONE }
 ~~~
 
-`Stage.class.isEnum()` trả `true`, và `Stage.class.getEnumConstants()` trả các constant theo **thứ tự khai báo**: `[NEW, DONE]`. `Enum.valueOf(Stage.class, "DONE")` tra cứu constant hiện có. Dùng `getDeclaredFields()` để nhìn toàn bộ field sẽ có thể gặp cả thành phần liên quan hiện thực, vì vậy nếu thực sự cần phân biệt field biểu diễn enum constant, dùng `Field.isEnumConstant()`.
+`Stage.class.isEnum()` returns `true`, and `Stage.class.getEnumConstants()` returns constants in **declaration order**: `[NEW, DONE]`. `Enum.valueOf(Stage.class, "DONE")` looks up an existing constant. Using `getDeclaredFields()` to inspect all fields can include implementation-related fields, so when you truly need to distinguish fields representing enum constants, use `Field.isEnumConstant()`.
 
-### Constructor enum là ngoại lệ có chủ đích
+### Enum Constructors Are an Intentional Exception
 
-`Stage.class.getDeclaredConstructors()` có thể cho thấy constructor của enum, nhưng **`Constructor.newInstance` không được phép tạo thêm enum instance**. API ném `IllegalArgumentException` khi declaring class của constructor là enum, kể cả sau khi đã vượt được kiểm tra quyền truy cập thông thường.
+`Stage.class.getDeclaredConstructors()` may expose the enum constructor, yet **`Constructor.newInstance` is forbidden from creating additional enum instances**. The API throws `IllegalArgumentException` when the constructor's declaring class is an enum, even after bypassing normal access checks.
 
-Đừng dùng việc tìm thấy constructor làm lý do để thử `newInstance` cho tất cả `Class<?>`. Factory của enum là các constant đã định nghĩa, truy cập qua `valueOf` hoặc `getEnumConstants`.
+Do not treat finding a constructor as a reason to try `newInstance` on every `Class<?>`. An enum's factories are its declared constants, accessed via `valueOf` or `getEnumConstants`.
 
-**Cạm bẫy:** enum constant có class body riêng có thể có runtime class là một subclass đặc biệt của enum; `constant.getClass().isEnum()` không nhất thiết `true`. `constant.getDeclaringClass()` cho enum type đã khai báo. Không assert các tên lớp đặc thù của compiler.
+**Pitfall:** an enum constant with its own class body can have a runtime class that is a special subclass of the enum; `constant.getClass().isEnum()` is not necessarily `true`. `constant.getDeclaringClass()` gives the declared enum type. Do not assert compiler-specific class names.
 
-## 5. Record: kiểm thử components và bất biến của state
+## 5. Record: Testing Components and State Immutability
 
-Đối với:
+For:
 
 ~~~java
 record Person(String name, int age) {}
 ~~~
 
-`Person.class.isRecord()` là `true`. `getRecordComponents()` trả các `RecordComponent` theo **thứ tự record header**: `name` rồi `age`. Mỗi component có metadata tên, kiểu và accessor; `getAccessor()` trả `Method` tương ứng.
+`Person.class.isRecord()` is `true`. `getRecordComponents()` returns `RecordComponent` objects in **record header order**: `name` then `age`. Each component has name, type, and accessor metadata; `getAccessor()` returns the corresponding `Method`.
 
-Ví dụ `Person.class.getDeclaredConstructor(String.class, int.class)` tìm **canonical constructor** với tham số theo thứ tự của record header. Trong demo, constructor này được gọi qua Reflection và tạo `new Person("Lan", 20)`.
+For example, `Person.class.getDeclaredConstructor(String.class, int.class)` finds the **canonical constructor** with parameters ordered like the record header. In the demo, this constructor is invoked via Reflection to create `new Person("Lan", 20)`.
 
-### Không coi `setAccessible(true)` là quyền sửa mọi field
+### Do Not Treat `setAccessible(true)` as Permission to Mutate Every Field
 
-Field thành phần của record là `final` theo cơ chế bất biến của record. Trong `java.lang.reflect.Field`, các field `static final`, field `final` của hidden class và field `final` của record là nhóm **non-modifiable final fields**. Kể cả khi `setAccessible(true)` được chấp nhận để đọc, không thể dùng `Field.set` sửa field thành phần record. Với ví dụ, lời gọi `age.set(person, 99)` ném `IllegalAccessException` và `person.age()` vẫn bằng `20`.
+Record component fields are `final` under record immutability semantics. In `java.lang.reflect.Field`, `static final` fields, `final` fields of hidden classes, and `final` fields of records belong to the group of **non-modifiable final fields**. Even if `setAccessible(true)` is accepted for reading, `Field.set` cannot modify a record component field. In the example, `age.set(person, 99)` throws `IllegalAccessException` and `person.age()` remains `20`.
 
-Test nên kiểm tra cả **exception** và **state không đổi**. Không nên coi “có thể lấy `Field`” tương đương “có thể ghi field”.
+Tests should assert both the **exception** and **unchanged state**. Never equate "can obtain `Field`" with "can write to field."
 
-### Field và component không hoàn toàn đồng nhất
+### Fields and Components Are Not Identical
 
-`getDeclaredFields()` mô tả field JVM trong lớp, trong khi `getRecordComponents()` phản ánh **cấu trúc khai báo record**. Nếu công cụ xử lý schema/DTO từ record, thường nên lấy record components trước. Annotation trên component, field và accessor có quy tắc `@Target`/propagation riêng: phải kiểm tra annotation ở đúng vị trí mà công cụ sử dụng.
+`getDeclaredFields()` describes JVM fields in the class, whereas `getRecordComponents()` reflects the **record declaration structure**. If a tool extracts schemas/DTOs from records, it should usually inspect record components first. Annotations on components, fields, and accessors have distinct `@Target`/propagation rules: test annotations at the exact site the tool reads.
 
-Một class thường trả `null` từ `getRecordComponents()`; đừng duyệt kết quả trước khi xác nhận `isRecord()` hoặc xử lý `null`.
+An ordinary class returns `null` from `getRecordComponents()`; do not iterate over the result before checking `isRecord()` or handling `null`.
 
-## 6. Sealed type: danh sách direct permitted subclasses
+## 6. Sealed Type: List of Direct Permitted Subclasses
 
-Ví dụ:
+Example:
 
 ~~~java
 sealed interface Shape permits Circle, Rectangle {}
@@ -110,22 +110,22 @@ record Circle(int radius) implements Shape {}
 final class Rectangle implements Shape {}
 ~~~
 
-Đây là **mảnh khai báo cùng file/package**; chương trình chạy độc lập có khai báo tương đương ở phần 7. `Shape.class.isSealed()` là `true` và `getPermittedSubclasses()` trả các kiểu được phép **trực tiếp** triển khai/mở rộng `Shape`.
+These are **declarations in the same file/package**; the standalone runnable program has an equivalent declaration in section 7. `Shape.class.isSealed()` is `true`, and `getPermittedSubclasses()` returns the types permitted to **directly** implement/extend `Shape`.
 
-Các phép kiểm tra:
+Checks:
 
-- `Shape.class.getPermittedSubclasses()` chứa `Circle.class` và `Rectangle.class`.
-- `Circle.class.isRecord()` là `true`; record luôn là final, nên có thể là subtype trực tiếp hợp lệ của sealed interface.
-- `Rectangle.class` được khai báo `final`, không phải sealed; `isSealed()` là `false`.
-- `getPermittedSubclasses()` không có nghĩa “mọi subtype gián tiếp có thể tồn tại”: trong phân cấp cho phép nhánh `non-sealed`, có thể có nhiều thế hệ con khác. API đang mô tả **direct permitted subtypes**.
+- `Shape.class.getPermittedSubclasses()` contains `Circle.class` and `Rectangle.class`.
+- `Circle.class.isRecord()` is `true`; records are always final, so they can be valid direct subtypes of a sealed interface.
+- `Rectangle.class` is declared `final`, not sealed; `isSealed()` is `false`.
+- `getPermittedSubclasses()` does not mean "every indirect subtype that can exist": in a hierarchy allowing a `non-sealed` branch, further descendant generations can exist. The API describes **direct permitted subtypes**.
 
-**Không dựa vào thứ tự mảng trả về** nếu cần kết quả ổn định; demo ánh xạ sang tên rồi sắp xếp trước khi assert. Với non-sealed type, `Class.getPermittedSubclasses()` trả `null`. Gọi `isSealed()` hoặc kiểm tra `null` trước khi duyệt.
+**Do not rely on the returned array order** when deterministic output is required; the demo maps to names and sorts before asserting. For non-sealed types, `Class.getPermittedSubclasses()` returns `null`. Call `isSealed()` or check for `null` before iterating.
 
-Một lưu ý ứng dụng: **sealed interface không hợp lệ làm interface đầu vào cho JDK `Proxy.newProxyInstance`** (API yêu cầu các interface đầu vào không sealed). Đây là quy tắc riêng của dynamic proxy; không có nghĩa không thể viết một lớp `final` cho phép trong `permits`.
+An application note: **a sealed interface is invalid as an input interface for JDK `Proxy.newProxyInstance`** (the API requires input interfaces to be non-sealed). That is a specific rule of dynamic proxies; it does not prevent writing a permitted `final` class in `permits`.
 
-## 7. Chương trình kiểm thử hoàn chỉnh trên Java 17+
+## 7. Complete Test Program on Java 17+
 
-Tạo file **`ReflectionSpecialTypesTest.java`** với toàn bộ mã sau. Chương trình dùng `check` để ném `AssertionError` nếu phát hiện sai lệch; do đó dòng cuối chỉ xuất hiện khi bốn nhóm kiểm thử đều vượt qua.
+Create file **`ReflectionSpecialTypesTest.java`** with the full code below. The program uses `check` to throw `AssertionError` if any mismatch is detected; thus the final line appears only when all four test groups pass.
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -242,14 +242,14 @@ public class ReflectionSpecialTypesTest {
 }
 ~~~
 
-Biên dịch với đúng mức ngôn ngữ Java 17 và chạy:
+Compile with Java 17 language level and run:
 
 ~~~bash
 javac --release 17 ReflectionSpecialTypesTest.java
 java ReflectionSpecialTypesTest
 ~~~
 
-**Standard output đã được kiểm chứng:**
+**Verified standard output:**
 
 ~~~text
 inner: outer argument required, value=inner:A
@@ -259,88 +259,88 @@ sealed: permitted=[Circle, Rectangle]
 ALL CHECKS PASSED
 ~~~
 
-### Đọc các kết quả theo từng đặc điểm
+### Interpreting Results by Feature
 
-1. **Inner:** constructor phản chiếu nhận `Outer` ở vị trí đầu; test tạo được instance đúng và phát hiện không có constructor zero-arg.
-2. **Enum:** lấy constant theo thứ tự khai báo, lọc field thật sự là enum constant; constructor hiện diện về metadata nhưng việc tạo mới bị cấm.
-3. **Record:** components khớp header và accessor đọc giá trị đúng. `Field.set` bị chặn cho final record component ngay cả khi `setAccessible(true)` thành công trong phạm vi demo.
-4. **Sealed:** danh sách permitted class gồm đúng hai direct subtype; kiểm thử không mặc định chúng phải là sealed. `Circle` đồng thời là record.
-5. **Kết quả cuối:** `ALL CHECKS PASSED` chỉ xuất hiện nếu tất cả `check` đều thành công.
+1. **Inner:** the reflected constructor takes `Outer` first; the test creates a valid instance and detects the absence of a zero-arg constructor.
+2. **Enum:** retrieves constants in declaration order and filters fields that are genuinely enum constants; a constructor exists in metadata, yet creating new instances is forbidden.
+3. **Record:** components match the header and accessors read values accurately. `Field.set` is blocked for final record components even when `setAccessible(true)` succeeds in the demo's scope.
+4. **Sealed:** the permitted class list contains the exact two direct subtypes; the test does not assume they must also be sealed. `Circle` is also a record.
+5. **Final outcome:** `ALL CHECKS PASSED` appears only if every `check` succeeds.
 
-### Vì sao có thể chạy được mà không cần `--add-opens`?
+### Why Can This Run Without `--add-opens`?
 
-Các lớp thử nghiệm là thành viên trong cùng một top-level class, chạy trên classpath (unnamed module). Test đang thực thi từ cùng enclosing class/nest nên có quyền phù hợp. **Không suy ra** rằng code thư viện trong named module khác có thể bật `setAccessible(true)` với mọi private member. Nếu sản phẩm thật làm việc với module JDK hoặc plugin không mở package, hãy thêm test riêng cho `trySetAccessible`, `IllegalAccessException` và `InaccessibleObjectException`.
+The test classes are members inside the same top-level class, running on the classpath (unnamed module). The test executes from the same enclosing class/nest, so it has appropriate permissions. **Do not infer** that library code in a different named module can enable `setAccessible(true)` on arbitrary private members. If a real product works with JDK modules or plugins that do not open packages, add separate tests for `trySetAccessible`, `IllegalAccessException`, and `InaccessibleObjectException`.
 
-## 8. Kiểm thử dựa trên hợp đồng, tránh chi tiết compiler
+## 8. Contract-Based Testing, Avoiding Compiler Details
 
-Một công cụ Reflection hoạt động trên nhiều JDK/compiler nên lựa chọn assertion thận trọng:
+A Reflection tool operating across multiple JDKs/compilers should choose assertions carefully:
 
-| Assertion nên dùng | Assertion nên tránh |
+| Assertions to use | Assertions to avoid |
 | --- | --- |
-| Inner member không static có outer instance trong constructor; constructor công khai/khả dụng theo chính khai báo | Dựa vào tên field hỗ trợ outer như `this$0` hoặc vị trí field trong `getDeclaredFields()`. |
-| `isEnum` và `getEnumConstants` theo thứ tự khai báo | Dựa vào field compiler-generated `$VALUES` hoặc constructor parameters mang tên cụ thể. |
-| `RecordComponent[]` theo record header; accessor đúng | Xem mọi field JVM của record đều là record component hay có thể sửa field `final`. |
-| `isSealed` và tập permitted **direct subtypes** | Coi thứ tự array `getPermittedSubclasses()` là một contract cần khóa chặt khi không có yêu cầu. |
-| Assert bằng `Class<?>` identity khi cần | So sánh chỉ tên class trong hệ thống có nhiều ClassLoader. |
-| Kiểm đúng exception class và trạng thái sau failure | Phụ thuộc thông báo exception chính xác hoặc stack trace thay đổi theo JDK. |
+| Non-static member inner class has an outer instance in its constructor; public/available constructors match its declaration | Relying on outer backing field names like `this$0` or field index in `getDeclaredFields()`. |
+| `isEnum` and `getEnumConstants` in declaration order | Relying on compiler-generated `$VALUES` field or specifically named constructor parameters. |
+| `RecordComponent[]` in record header order; proper accessors | Treating every JVM field of a record as a record component or expecting `final` fields to be writable. |
+| `isSealed` and the set of permitted **direct subtypes** | Treating `getPermittedSubclasses()` array order as a strict contract when no order is guaranteed. |
+| Asserting by `Class<?>` identity when needed | Comparing only class names in systems with multiple ClassLoaders. |
+| Checking the right exception class and post-failure state | Depending on exact exception messages or stack traces that vary by JDK. |
 
-Khi kiểm thử một helper generic:
+When testing a generic helper:
 
-- Bắt đầu với phân loại `isEnum`, `isRecord`, `isSealed`, `isMemberClass`, `getEnclosingClass` và `Modifier.isStatic`.
-- Có thể xét `isLocalClass`, `isAnonymousClass`, `isHidden` nếu helper tuyên bố hỗ trợ nhiều loại Class. Chúng là các chủ đề liên quan nhưng **không nên mặc định cùng hợp đồng constructor như non-static member inner class**.
-- Dùng `getDeclaredConstructor(...)` và `getDeclaredMethods()` khi kiểm tra khai báo nội bộ; dùng `getConstructor(...)` / `getMethods()` nếu mục đích là thành viên public.
-- Khi lời gọi phản chiếu thực thi ném exception từ bên trong constructor/method, chú ý `InvocationTargetException` và `getCause()`; không nhầm với `NoSuchMethodException` khi chỉ tìm metadata.
+- Start by classifying with `isEnum`, `isRecord`, `isSealed`, `isMemberClass`, `getEnclosingClass`, and `Modifier.isStatic`.
+- You can consider `isLocalClass`, `isAnonymousClass`, `isHidden` if the helper claims to support multiple Class kinds. These are related topics, but **must not be assumed to share the same constructor contract as non-static member inner classes**.
+- Use `getDeclaredConstructor(...)` and `getDeclaredMethods()` when checking internal declarations; use `getConstructor(...)` / `getMethods()` when targeting public members.
+- When reflective execution throws an exception from inside a constructor/method, check `InvocationTargetException` and `getCause()`; do not confuse it with `NoSuchMethodException` during metadata lookup.
 
-## 9. Lỗi thường gặp và cách khắc phục
+## 9. Common Mistakes and How to Fix Them
 
-### Lỗi 1: Gọi constructor không tham số cho tất cả lớp
+### Mistake 1: Calling the No-Arg Constructor for Every Class
 
 ~~~java
-// Mảnh minh họa cần đặt trong phương thức:
+// Illustrative snippet to place inside a method:
 Object value = Outer.Inner.class.getDeclaredConstructor().newInstance();
 ~~~
 
-Lệnh trên ném `NoSuchMethodException` ở giai đoạn tìm constructor trong fixture, do inner cần outer instance và `String`. **Khắc phục:** xây kế hoạch tạo đối tượng dựa trên loại Class và chữ ký constructor; nếu thư viện không hỗ trợ inner, báo unsupported với lý do rõ ràng.
+The statement above throws `NoSuchMethodException` at the constructor lookup stage in the fixture, because the inner class requires an outer instance and `String`. **Fix:** plan instantiation based on `Class` kind and constructor signatures; if the library does not support inner classes, fail as unsupported with a clear reason.
 
-### Lỗi 2: Duyệt field enum rồi coi mọi field là constant
+### Mistake 2: Iterating Enum Fields and Treating Every Field as a Constant
 
-`getDeclaredFields()` không được hứa chỉ trả các enum constants. **Khắc phục:** dùng `getEnumConstants()` khi cần giá trị; dùng `Field.isEnumConstant()` nếu cần metadata field của các constants.
+`getDeclaredFields()` is not promised to return only enum constants. **Fix:** use `getEnumConstants()` when values are needed; use `Field.isEnumConstant()` when field metadata of constants is needed.
 
-### Lỗi 3: Coi field `private final` trong record là mutable nhờ `setAccessible`
+### Mistake 3: Treating `private final` Fields in Records as Mutable via `setAccessible`
 
-Record component được bảo vệ bởi đặc điểm final không thể sửa bằng `Field.set`. **Khắc phục:** xây object mới bằng canonical constructor hoặc public factory, thay vì lén chỉnh state của instance đã tạo.
+Record components are protected by final semantics and cannot be mutated via `Field.set`. **Fix:** construct a new object using the canonical constructor or a public factory instead of covertly mutating an existing instance's state.
 
-### Lỗi 4: Hiểu `getPermittedSubclasses` là tập mọi subtype trong cây
+### Mistake 4: Interpreting `getPermittedSubclasses` as All Subtypes in the Hierarchy
 
-API phản ánh **direct permitted subclass/interface** của sealed type. **Khắc phục:** khi cần toàn bộ hierarchy, duyệt đệ quy có kiểm soát, phân biệt nhánh `non-sealed` có thể mở cho các subtype không liệt kê tĩnh.
+The API reflects **direct permitted subclasses/interfaces** of the sealed type. **Fix:** when the entire hierarchy is needed, traverse recursively in a controlled way, distinguishing `non-sealed` branches that may be open to subtypes not statically listed.
 
-### Lỗi 5: Cố ép truy cập `private` trên module khác
+### Mistake 5: Trying to Force `private` Access Across Another Module
 
-`getDeclaredConstructor` có thể tìm thấy member mà không cho phép gọi. **Khắc phục:** ưu tiên API công khai; nếu thật sự cần deep reflection, thiết kế `opens` đúng package/module và test quyền truy cập một cách tường minh.
+`getDeclaredConstructor` can find a member without granting permission to invoke it. **Fix:** prefer public APIs; if deep reflection is genuinely needed, configure `opens` on the right package/module and test access permissions explicitly.
 
-### Lỗi 6: Test thất bại chỉ vì output metadata đổi thứ tự
+### Mistake 6: Tests Failing Solely Because Metadata Output Changed Order
 
-Reflection không bảo đảm thứ tự nhiều tập như `getDeclaredFields()` hay `getDeclaredMethods()`. **Khắc phục:** chuyển thành set hoặc sort theo key ổn định; chỉ dựa vào thứ tự khi tài liệu API xác nhận thứ tự có ý nghĩa như enum constants và record components.
+Reflection does not guarantee ordering for many sets such as `getDeclaredFields()` or `getDeclaredMethods()`. **Fix:** convert to a set or sort by a stable key; only depend on order when API docs confirm order is meaningful, such as enum constants and record components.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-1. Tạo thêm `static class Nested` trong `Outer`, dùng `getDeclaredConstructors()` so sánh tham số với `Outer.Inner`. Nêu chính xác sự khác biệt khi không có enclosing instance.
-2. Với enum `Stage`, dùng `Field.isEnumConstant()` và `getEnumConstants()`; chứng minh lý do không nên kiểm thử field compiler-generated theo tên.
-3. Thêm component `boolean active` vào `Person`, cập nhật canonical constructor trong test và assertion về thứ tự component. Tại sao test phải sửa khi record header thay đổi?
-4. Tạo `non-sealed interface Flexible extends Shape` và cho phép nó trong `permits Shape`. `Shape.getPermittedSubclasses()` trả những direct subtype nào? Các implementation của `Flexible` có phải direct permitted subtype của `Shape` không?
-5. Thử tạo enum mới bằng `Constructor.newInstance` nhưng bỏ lời gọi `setAccessible(true)`: loại lỗi đầu tiên có thể thay đổi thế nào theo access context? Vì sao phải thiết kế fixture rõ ràng khi kiểm một hợp đồng cụ thể?
-6. Tách demo thành bốn bài JUnit 5, dùng `assertThrows` để kiểm `NoSuchMethodException`, `IllegalArgumentException` và `IllegalAccessException`; không phụ thuộc exact exception message.
-7. Viết một classifier trả về `"ENUM"`, `"RECORD"`, `"SEALED"`, `"NON_STATIC_MEMBER"` hoặc `"OTHER"`. Quy định ưu tiên kiểm tra cho kiểu có nhiều đặc tính đồng thời (ví dụ record cũng là permitted subtype của sealed interface) thay vì giả định các phân loại luôn loại trừ nhau.
+1. Add a `static class Nested` inside `Outer`, and use `getDeclaredConstructors()` to compare parameters with `Outer.Inner`. State the exact difference when there is no enclosing instance.
+2. For enum `Stage`, use `Field.isEnumConstant()` and `getEnumConstants()`; demonstrate why compiler-generated fields should not be tested by name.
+3. Add a `boolean active` component to `Person`, and update the canonical constructor and component-order assertion in the test. Why must the test be updated when the record header changes?
+4. Create `non-sealed interface Flexible extends Shape` and list it in `permits Shape`. Which direct subtypes does `Shape.getPermittedSubclasses()` return? Are implementations of `Flexible` direct permitted subtypes of `Shape`?
+5. Try creating a new enum via `Constructor.newInstance` without calling `setAccessible(true)`: how can the first exception type change depending on the access context? Why must fixtures be designed explicitly when testing a specific contract?
+6. Split the demo into four JUnit 5 tests, using `assertThrows` to check `NoSuchMethodException`, `IllegalArgumentException`, and `IllegalAccessException` without depending on exact exception messages.
+7. Write a classifier returning `"ENUM"`, `"RECORD"`, `"SEALED"`, `"NON_STATIC_MEMBER"`, or `"OTHER"`. Define check priority for types combining multiple characteristics (e.g., a record that is also a permitted subtype of a sealed interface) rather than assuming categories are mutually exclusive.
 
-**Tự đánh giá:** Một công cụ Reflection có thể nhìn thấy rất nhiều metadata, nhưng việc tạo object, sửa field hoặc suy diễn quan hệ kiểu phải dựa trên **hợp đồng ngôn ngữ và API cụ thể**. Với bốn nhóm trên, hãy kiểm thử cả điều kiện thành công lẫn tình huống bị từ chối, dùng fixture kiểm soát được và assertions có ý nghĩa.
+**Self-assessment:** A Reflection tool can see a great deal of metadata, yet creating objects, mutating fields, or inferring type relationships must rely on **specific language and API contracts**. For these four groups, test both success conditions and rejected cases using controlled fixtures and meaningful assertions.
 
-## 11. Tài liệu chính thức
+## 11. Official Documentation
 
 - [Oracle Java 17 — java.lang.Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html) — `isMemberClass`, `getEnclosingClass`, `isEnum`, `getEnumConstants`, `isRecord`, `getRecordComponents`, `isSealed`, `getPermittedSubclasses`.
-- [Oracle Java 17 — Constructor.newInstance](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)) — kiểm tra truy cập, ngoại lệ và giới hạn tạo enum instance.
-- [Oracle Java 17 — Field.set](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html#set(java.lang.Object,java.lang.Object)) — non-modifiable final fields của record.
-- [Oracle Java 17 — RecordComponent](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/RecordComponent.html) — metadata component và accessor.
-- [JLS Java 17, 8.1.3 — Inner Classes and Enclosing Instances](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.1.3) — ràng buộc về enclosing instance.
-- [JLS Java 17, 8.10 — Record Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10) — record components và constructors.
-- [JLS Java 17, 8.9 — Enum Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9) — enum constants và constructor.
-- [JLS Java 17, 9.1.1.4 — Sealed Interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.1.1.4) — `sealed`, `non-sealed` và `permits`.
+- [Oracle Java 17 — Constructor.newInstance](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)) — access checks, exceptions, and enum instantiation restrictions.
+- [Oracle Java 17 — Field.set](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html#set(java.lang.Object,java.lang.Object)) — non-modifiable final fields of records.
+- [Oracle Java 17 — RecordComponent](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/RecordComponent.html) — component metadata and accessors.
+- [JLS Java 17, 8.1.3 — Inner Classes and Enclosing Instances](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.1.3) — enclosing instance constraints.
+- [JLS Java 17, 8.10 — Record Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10) — record components and constructors.
+- [JLS Java 17, 8.9 — Enum Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9) — enum constants and constructors.
+- [JLS Java 17, 9.1.1.4 — Sealed Interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.1.1.4) — `sealed`, `non-sealed`, and `permits`.

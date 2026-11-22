@@ -1,96 +1,96 @@
-# Phân tích dữ liệu nhập theo locale với kiểm tra toàn chuỗi trong Java
+# Locale-Aware Input Parsing with Full-String Validation in Java
 
-## 1. Bài toán thực tế: parse thành công chưa chắc đầu vào hợp lệ
+## 1. Practical Problem: Successful Parsing Does Not Guarantee Valid Input
 
-Người dùng ở các khu vực khác nhau có thể nhập **cùng giá trị số** bằng chuỗi khác nhau: `1,234.50` theo quy ước `en-US`, nhưng `1.234,50` theo `de-DE`. Một ngày cũng có thể được viết `29/02/2024`, `02/29/2024` hoặc theo mẫu chữ tên tháng của một ngôn ngữ. Ứng dụng Java phục vụ nhiều locale cần hiểu **đầu vào văn bản** theo quy tắc đã chọn và đồng thời xác nhận **người dùng đã nhập toàn bộ một giá trị hợp lệ**, không chỉ một tiền tố mà parser hiểu được.
+Users in different regions may enter **the same numeric value** using different strings: `1,234.50` under `en-US` conventions, yet `1.234,50` under `de-DE`. A date might also be written `29/02/2024`, `02/29/2024`, or with a language-specific month name. A multilingual Java application needs to interpret **text input** according to the selected rules while confirming **the user entered one complete valid value**, not merely a prefix that a parser happened to understand.
 
-Ví dụ một số parser có thể phân tích phần `123` của `123abc` rồi dừng ở chữ `a`. Nếu ứng dụng chỉ hỏi “parse có trả về `Number` không?” thì nó có thể vô tình chấp nhận một chuỗi đã chứa dữ liệu rác. Ngược lại, ngay cả khi parser **đã tiêu thụ toàn chuỗi**, nó vẫn có thể chấp nhận cách đặt dấu phân nhóm mà nghiệp vụ không cho phép.
+For instance, some parsers parse the `123` portion of `123abc` and stop at `a`. If the application only asks "did `parse` return a `Number`?", it can inadvertently accept a string containing trailing garbage. Conversely, even when a parser **consumes the entire string**, it may still accept grouping separator placements that business rules forbid.
 
-Bài thực hành này giải quyết **hai lớp kiểm tra độc lập**:
+This hands-on guide addresses **two independent validation layers**:
 
-1. **Kiểm tra toàn chuỗi (full consumption):** parser phải xử lý đến đúng cuối input, không còn ký tự thừa.
-2. **Kiểm tra chính sách cú pháp và ngữ nghĩa:** định dạng, dấu nhóm, số chữ số phần thập phân, dải giá trị, ngày hợp lịch và đơn vị tiền tệ phải khớp contract đã thiết kế.
+1. **Full-string validation (full consumption):** the parser must process up to the exact end of the input, leaving no leftover characters.
+2. **Syntactic and semantic policy validation:** formatting, grouping separators, fractional digit count, value range, calendar validity, and currency unit must satisfy the designed contract.
 
-**Không coi hai bước là một.** `ParsePosition` cho phép kiểm tra việc parser đã đi đến đâu; `ResolverStyle.STRICT` giúp phân giải ngày lịch hợp lệ; nhưng một hệ thống tài chính còn cần chính sách về dấu nhóm, độ chính xác và giới hạn tiền riêng.
+**Do not treat these two steps as one.** `ParsePosition` lets you check how far the parser advanced; `ResolverStyle.STRICT` enforces valid calendar resolution; yet a financial system still requires its own rules for grouping, precision, and monetary bounds.
 
-## 2. Quyết định đơn vị dữ liệu trước khi parse
+## 2. Deciding the Data Format Before Parsing
 
-Một ứng dụng đa ngôn ngữ thường có ít nhất hai loại input:
+A multilingual application typically handles at least two kinds of input:
 
-| Nguồn nhập | Ví dụ | Cách nên xử lý |
+| Input Source | Example | How It Should Be Handled |
 | --- | --- | --- |
-| **Ô nhập UI theo locale** | `12,50` tại `de-DE` | Chọn locale hỗ trợ, kiểm tra cú pháp, parse theo locale, validate nghiệp vụ |
-| **Trường giao tiếp máy có schema cố định** | JSON number `12.50` | Dùng parser JSON theo chuẩn; không phụ thuộc `Accept-Language` |
-| **CSV nhập theo hợp đồng nguồn** | `12.50` với decimal `.` cố định | Theo dialect/schema của nguồn, không đoán locale từ người đọc |
-| **Ngày lịch nhập trên UI** | `29/02/2024` theo mẫu công bố | Parse `LocalDate` theo pattern/locale và resolver strict |
-| **Thời điểm trao đổi API** | `2024-02-29T10:00:00Z` | Parse ISO instant/offset theo contract, không dùng định dạng ngày UI |
-| **Số tiền có currency** | amount `12,50` + currency `EUR` | Parse decimal, xác minh currency riêng, áp scale/range theo quy tắc |
-| **Mã định danh kỹ thuật** | `INV-00125` | Không tự xử lý bằng `NumberFormat` vì có thể mất số 0 đầu và ký tự mã |
+| **Locale-aware UI input box** | `12,50` in `de-DE` | Select supported locale, validate syntax, parse per locale, validate business rules |
+| **Machine-to-machine field with fixed schema** | JSON number `12.50` | Use a standard JSON parser; independent of `Accept-Language` |
+| **CSV imported under a source contract** | `12.50` with fixed `.` decimal | Follow source dialect/schema, do not guess locale from reader |
+| **Calendar date entered in UI** | `29/02/2024` matching published pattern | Parse `LocalDate` using pattern/locale and strict resolver |
+| **API timestamp exchange** | `2024-02-29T10:00:00Z` | Parse ISO instant/offset per contract, not UI date format |
+| **Monetary amount with currency** | amount `12,50` + currency `EUR` | Parse decimal, validate currency separately, apply scale/range rules |
+| **Technical identifier** | `INV-00125` | Do not process with `NumberFormat`, which can drop leading zeros and code characters |
 
-`Locale` là một thông số của **quy tắc đọc/hiển thị văn bản**, không xác thực nguồn tiền, đơn vị tiền, timezone hay quốc gia pháp lý. Locale do người dùng chọn và contract dữ liệu máy cần được quản lý tách biệt.
+`Locale` is a parameter governing **text reading/display rules**—it does not verify payment source, currency unit, time zone, or legal jurisdiction. User-selected locales and machine data contracts must be managed separately.
 
-### 2.1. Điều gì xảy ra nếu chọn sai locale?
+### 2.1. What Happens If the Wrong Locale Is Chosen?
 
-Với locale Mỹ, dấu phẩy thường là phân nhóm và dấu chấm thường là thập phân. Với Đức, vai trò của hai dấu ngược lại. Chuỗi `1,23` có thể mang ý “một phẩy hai ba” đối với người dùng quen dấu phẩy thập phân; nhưng parser `en-US` có thể diễn giải nó như **123** do dấu phẩy được xử lý là separator nhóm.
+In US locales, comma is typically the grouping separator and dot is the decimal separator. In Germany, their roles reverse. The string `1,23` may mean "one point two three" to a user accustomed to decimal commas; however, an `en-US` parser can interpret it as **123** because the comma is treated as a grouping separator.
 
-Không chỉ kiểm tra “parser không báo lỗi”; cần bảo đảm locale được lựa chọn chính xác từ ngữ cảnh UI hoặc cấu hình nguồn import. Đừng thử parse tuần tự bằng nhiều locale rồi chọn kết quả đầu tiên thành công: cùng chuỗi có thể có **nhiều cách hiểu hợp lệ nhưng khác giá trị**.
+Do not check merely whether "the parser didn't throw"; ensure the locale is accurately chosen from the UI context or import source configuration. Never try parsing sequentially across multiple locales and take the first success: the same string can have **multiple valid parses with different values**.
 
-## 3. NumberFormat và DecimalFormat trong Java 17
+## 3. NumberFormat and DecimalFormat in Java 17
 
-`java.text.NumberFormat` là API định dạng và phân tích số theo `Locale`:
+`java.text.NumberFormat` is the locale-aware number formatting and parsing API:
 
 ~~~java
 NumberFormat formatter = NumberFormat.getNumberInstance(Locale.US);
 ~~~
 
-Đây là **đoạn minh họa trong một phương thức**, cần `import java.text.NumberFormat;` và `import java.util.Locale;`. Một số việc quan trọng:
+This is an **illustrative snippet inside a method**, requiring `import java.text.NumberFormat;` and `import java.util.Locale;`. Key points:
 
-- `getNumberInstance(locale)` lấy bộ formatter/parser theo quy ước dữ liệu locale do runtime cung cấp.
-- `NumberFormat.parse(String, ParsePosition)` cho biết giá trị và cập nhật vị trí ký tự đã tiêu thụ.
-- `DecimalFormat` là implementation phổ biến có thêm `setParseBigDecimal(true)`.
-- `DecimalFormat` là **mutable**, không nên chia sẻ một instance rồi thay đổi cấu hình giữa các thread.
-- Dữ liệu locale/CLDR và locale providers có thể thay đổi giữa JDK; đừng hard-code một kết quả sắp xếp/dấu của mọi locale mà không kiểm tra runtime hỗ trợ.
+- `getNumberInstance(locale)` retrieves a formatter/parser configured with locale data from the runtime.
+- `NumberFormat.parse(String, ParsePosition)` returns the parsed value and updates the index of consumed characters.
+- `DecimalFormat` is the common implementation offering `setParseBigDecimal(true)`.
+- `DecimalFormat` is **mutable** and should not be shared and reconfigured across threads.
+- Locale/CLDR data and locale providers can change across JDKs; do not hardcode punctuation outcomes for every locale without checking the target runtime.
 
-Đối với xử lý số tiền cần chính xác, nên sử dụng `BigDecimal` thay vì tính qua `double`. Trong môi trường Java chuẩn, `NumberFormat.getNumberInstance(Locale.US)` thường là `DecimalFormat`; nếu một locale provider khác trả subtype khác, mã cần xử lý rõ thay vì cast mù quáng.
+For monetary handling needing precision, use `BigDecimal` instead of `double` arithmetic. In standard Java environments, `NumberFormat.getNumberInstance(Locale.US)` is typically a `DecimalFormat`; if another locale provider returns a different subtype, handle that explicitly instead of casting blindly.
 
-### 3.1. ParsePosition theo đúng ý nghĩa
+### 3.1. Understanding ParsePosition Properly
 
 ~~~java
 ParsePosition pos = new ParsePosition(0);
 Number result = formatter.parse(text, pos);
 ~~~
 
-Đây là hai lệnh minh họa, giả sử `formatter` và `text` đã có. Các đại lượng:
+These two illustrative statements assume `formatter` and `text` exist. Their fields:
 
-- `pos.getIndex()`: chỉ số UTF-16 ngay sau phần parser đã tiêu thụ thành công.
-- `text.length()`: tổng số UTF-16 code units của input.
-- `pos.getErrorIndex()`: vị trí parser ghi nhận lỗi khi parse thất bại, nếu có. Có thể vẫn là `-1` khi parser **thành công một phần** rồi dừng trước hậu tố.
-- `result`: giá trị được parser trả, hoặc `null` khi không thể phân tích ở vị trí bắt đầu.
+- `pos.getIndex()`: the UTF-16 index immediately following the portion successfully consumed by the parser.
+- `text.length()`: total number of UTF-16 code units in the input.
+- `pos.getErrorIndex()`: the index where the parser recorded an error on failure, if any. It can remain `-1` when the parser **partially succeeds** and stops before a suffix.
+- `result`: the parsed value, or `null` if nothing could be parsed at the starting position.
 
-Điều kiện cơ bản:
+Basic condition:
 
 ~~~java
 boolean fullyConsumed = result != null
         && pos.getIndex() == text.length();
 ~~~
 
-Đây là điều kiện **cần** để chấp nhận một giá trị số, không tự động là điều kiện **đủ** cho mọi quy tắc nhập liệu.
+This is a **necessary** condition to accept a numeric value, not automatically a **sufficient** condition for all input rules.
 
-Nếu tạo `ParsePosition(0)`, không được chỉ xét `pos.getIndex() > 0`; điều đó chỉ chứng minh có một tiền tố được tiêu thụ. Luôn so index với `length()`, và xét `result != null`.
+When starting with `ParsePosition(0)`, never check merely `pos.getIndex() > 0`; that proves only that a prefix was consumed. Always compare the index against `length()` and check `result != null`.
 
-**Index là UTF-16**, không phải byte offset hay code point ordinal. Với chuỗi có surrogate pairs, `length()` vẫn là mốc kết thúc phù hợp vì `ParsePosition` cũng hoạt động theo chỉ số `String`.
+**The index is in UTF-16 code units**, not byte offsets or code-point ordinals. For strings containing surrogate pairs, `length()` remains the right end boundary because `ParsePosition` also operates on `String` indices.
 
-### 3.2. Vì sao parse(String) không bảo đảm toàn chuỗi?
+### 3.2. Why Doesn't parse(String) Guarantee Full-String Consumption?
 
-Overload đơn giản `NumberFormat.parse(String)` được thiết kế tiện lợi và có thể chấp nhận **một tiền tố hợp lệ**, tùy pattern/parser. Nó không cung cấp một kết quả full-consumption trực tiếp cho caller như `ParsePosition`.
+The convenience overload `NumberFormat.parse(String)` can accept a **valid prefix**, depending on the pattern and parser. It does not expose a direct full-consumption check to the caller like `ParsePosition`.
 
-Nếu người dùng nhập `1,234.50oops`, bộ parser `en-US` có thể phân tích phần số nhưng để lại `oops`. Mã validation cần từ chối input như vậy.
+If the user types `1,234.50oops`, the `en-US` parser can parse the numeric portion and leave `oops` behind. Validation code must reject such input.
 
-Chương trình độc lập ở mục 8 thực sự thử trường hợp có hậu tố và in `en suffix=REJECTED`.
+The standalone program in Section 8 explicitly tests a suffixed input and prints `en suffix=REJECTED`.
 
-### 3.3. BigDecimal và phân tích chính xác
+### 3.3. BigDecimal and Exact Parsing
 
-Với `DecimalFormat`, gọi `setParseBigDecimal(true)` trước khi parse:
+With `DecimalFormat`, call `setParseBigDecimal(true)` before parsing:
 
 ~~~java
 DecimalFormat decimal = (DecimalFormat)
@@ -98,69 +98,69 @@ DecimalFormat decimal = (DecimalFormat)
 decimal.setParseBigDecimal(true);
 ~~~
 
-Đây là snippet theo cấu hình provider phổ biến; ví dụ hoàn chỉnh ở mục 8 **kiểm tra `instanceof`** trước khi sử dụng. Khi bật chế độ này, phần số hữu hạn trong ví dụ trả `BigDecimal`. Không dùng `new BigDecimal(Double.toString(...))` như một cách khắc phục tùy tiện nếu trước đó parser đã làm mất precision qua `double`.
+This snippet reflects common provider behavior; the complete example in Section 8 **checks `instanceof`** before casting. When this mode is enabled, finite numbers in the example return `BigDecimal`. Never use `new BigDecimal(Double.toString(...))` as a casual workaround if the parser already lost precision via `double`.
 
-`BigDecimal` giữ giá trị thập phân chính xác; nhưng kiểm tra số tiền hợp lệ vẫn cần logic nghiệp vụ: dương/không âm, giới hạn, scale, currency, rounding policy và khả năng được lưu trong hệ thống.
+`BigDecimal` preserves exact decimal values; however, valid monetary validation still requires business logic: positive/non-negative checks, bounds, scale, currency, rounding policy, and persistence limits.
 
-## 4. Full consumption chưa đủ: dấu nhóm và độ rộng
+## 4. Full Consumption Is Not Enough: Grouping Separators and Width
 
-Thử chuỗi:
+Consider the string:
 
 ~~~text
 Input en-US: "1,23"
 ~~~
 
-Trong môi trường Java đã kiểm thử, `DecimalFormat` do `NumberFormat.getNumberInstance(Locale.US)` cung cấp **đọc hết chuỗi** và trả `123`. Parser linh hoạt với vị trí dấu phân nhóm; nó không nhất thiết từ chối mọi cách nhóm không chuẩn.
+In tested Java environments, the `DecimalFormat` returned by `NumberFormat.getNumberInstance(Locale.US)` **reads the entire string** and returns `123`. The parser is lenient with grouping-separator placement; it does not necessarily reject non-standard grouping.
 
-Vì vậy:
+Therefore:
 
 ~~~text
-parse thành công + pos.index == input.length
-KHÔNG SUY RA
-dấu nhóm hợp lệ theo quy tắc UI hoặc kế toán.
+parse succeeds + pos.index == input.length
+DOES NOT IMPLY
+valid grouping per UI or accounting rules.
 ~~~
 
-Tùy yêu cầu, có thể chọn:
+Depending on requirements, you may choose to:
 
-- **Chấp nhận grouping linh hoạt** trong input thông thường và làm rõ giá trị đã phân tích khi xác nhận.
-- **Cấm grouping** cho một ô nhập tiền để tránh mơ hồ; chỉ chấp nhận chữ số và dấu thập phân theo locale.
-- **Cho phép grouping nghiêm ngặt** theo pattern đã quy định, với quy tắc nhóm đầu, nhóm giữa và loại separator cụ thể.
-- **Yêu cầu format giao thức cố định** (ví dụ JSON decimal string có dấu chấm) cho dữ liệu máy, không dựa vào locale.
+- **Accept flexible grouping** for casual input and clearly echo the parsed value at confirmation.
+- **Forbid grouping** in a monetary input box to prevent ambiguity; accept only digits and the locale's decimal separator.
+- **Allow strict grouping** matching a defined pattern, enforcing leading group, middle group, and specific separator rules.
+- **Require a fixed protocol format** (e.g., a dot-decimal JSON string) for machine data, independent of locale.
 
-Trong ví dụ thực hành này, phương thức `parseMoneyNoGrouping` triển khai một **chính sách cố ý hẹp**:
+In this hands-on example, `parseMoneyNoGrouping` implements an **intentionally narrow policy**:
 
-1. Chỉ chấp nhận chữ số ASCII `0`–`9`.
-2. Không chấp nhận dấu nhóm, dấu âm, dấu cộng hoặc khoảng trắng.
-3. Chấp nhận phần thập phân có **một hoặc hai chữ số** sau dấu thập phân của locale.
-4. Sau khi pass regex, vẫn phải parse số và xác minh full consumption.
+1. Accept only ASCII digits `0`–`9`.
+2. Reject grouping separators, minus signs, plus signs, and whitespace.
+3. Accept an optional fractional part with **one or two digits** after the locale's decimal separator.
+4. Even after passing the regex, parse the number and verify full consumption.
 
-Đây là một **ví dụ policy** cho trường giá trị không âm, không phải định nghĩa đầy đủ của “số hợp lệ trong mọi locale”. Nó không hỗ trợ các chữ số bản địa hóa như Arabic-Indic và không áp dụng được cho tất cả mẫu nhóm số của thế giới. Nếu sản phẩm cần hỗ trợ chữ số bản địa hóa, hãy xác định rõ bộ chữ số được phép và cơ chế số hóa tương ứng, rồi kiểm thử từng locale.
+This is a **policy example** for a non-negative amount field, not a universal definition of "valid number in every locale." It does not support localized digits such as Arabic-Indic numerals and does not apply to all grouping conventions worldwide. If your product needs localized digits, define the allowed digit set and digitization rules explicitly, and test each locale.
 
-### 4.1. Lấy separator theo locale
+### 4.1. Retrieving the Locale's Decimal Separator
 
 ~~~java
 char separator = DecimalFormatSymbols.getInstance(locale)
         .getDecimalSeparator();
 ~~~
 
-Đây là snippet cần `locale` đã được xác định và import `DecimalFormatSymbols`. Kết hợp với `Pattern.quote(String.valueOf(separator))` để ký tự như dấu chấm `.` được coi là **ký tự literal trong regex**, không phải metacharacter “bất kỳ ký tự nào”.
+This snippet assumes `locale` is defined and `DecimalFormatSymbols` is imported. Combine it with `Pattern.quote(String.valueOf(separator))` so that characters like `.` are treated as **literal characters in regex**, not the "any character" metacharacter.
 
-Đừng thay tất cả dấu phẩy thành dấu chấm rồi parse bằng `BigDecimal` khi đầu vào còn có group separator. Ví dụ `1.234,50` theo Đức có dấu nhóm chấm và dấu decimal phẩy; một phép replace ngây thơ có thể tạo giá trị sai hoặc lỗi khó chẩn đoán.
+Do not replace all commas with dots and parse via `BigDecimal` when input can contain grouping separators. For example, German `1.234,50` uses `.` for grouping and `,` for decimals; naive replacement produces wrong numbers or confusing failures.
 
-### 4.2. Có cần so round-trip format(parse(s)) với s?
+### 4.2. Should You Compare Round-Trip format(parse(s)) Against s?
 
-So `format(parse(input)).equals(input)` có thể hữu ích để phát hiện sai lệch nếu bạn **quy định duy nhất một dạng canonical display**, nhưng không phải bộ kiểm tra locale-input tổng quát:
+Comparing `format(parse(input)).equals(input)` can catch discrepancies if you **mandate a single canonical display form**, but it is not a general-purpose locale-input validator:
 
-- Người dùng có thể nhập `12,5` thay vì `12,50`, cả hai cùng giá trị.
-- Parser/formatter có thể chèn/bỏ dấu nhóm theo pattern.
-- Formatter có thể làm tròn, thêm số 0 hoặc dùng dấu cách/Unicode spacing khác.
-- Các locale provider có thể có cách biểu diễn khác giữa các phiên bản JDK.
+- A user may enter `12,5` instead of `12,50`, both representing the same value.
+- Parsers/formatters may insert or strip grouping separators based on patterns.
+- Formatters may round, pad zeros, or use different spaces/Unicode spacing.
+- Locale providers can vary formatting across JDK versions.
 
-Nếu business cần chính xác một pattern, định nghĩa pattern/cú pháp cụ thể trước rồi validate. Nếu chấp nhận nhiều cách nhập hợp lệ, đừng dùng equality của chuỗi đã format làm tiêu chuẩn duy nhất.
+If business rules demand one exact pattern, define that pattern/syntax upfront and validate it. If multiple valid input forms are permitted, do not use formatted-string equality as the sole criterion.
 
-## 5. Date parsing: nghiêm ngặt cả cú pháp và lịch
+## 5. Date Parsing: Strict in Both Syntax and Calendar Rules
 
-Số và ngày không có cùng mô hình. `LocalDate` là một **ngày lịch**, cần kiểm tra tháng, ngày, năm nhuận và ranh giới input. Java 17 có bộ `java.time` hiện đại:
+Numbers and dates follow different models. `LocalDate` is a **calendar date**, requiring validation of months, days, leap years, and input boundaries. Java 17 provides the modern `java.time` API:
 
 ~~~java
 DateTimeFormatter dateFormatter = DateTimeFormatter
@@ -170,92 +170,92 @@ DateTimeFormatter dateFormatter = DateTimeFormatter
 LocalDate date = LocalDate.parse(text, dateFormatter);
 ~~~
 
-Đây là snippet nằm trong một phương thức, cần import `DateTimeFormatter`, `ResolverStyle`, `LocalDate`; `locale` và `text` đã được cấp. `LocalDate.parse` dùng formatter để parse **toàn bộ input** và báo `DateTimeParseException` nếu còn hậu tố hoặc ngày không hợp lệ.
+This snippet lives inside a method and requires importing `DateTimeFormatter`, `ResolverStyle`, and `LocalDate`, with `locale` and `text` supplied. `LocalDate.parse` uses the formatter to parse the **entire input** and throws `DateTimeParseException` on trailing suffixes or invalid dates.
 
-### 5.1. Vì sao dùng uuuu thay yyyy?
+### 5.1. Why Use uuuu Instead of yyyy?
 
-Trong `DateTimeFormatter`:
+In `DateTimeFormatter`:
 
-- `u` là **proleptic year**.
-- `y` là **year-of-era**, có thể cần thông tin `ERA` để resolve đầy đủ ở `ResolverStyle.STRICT`.
-- `M` là tháng trong năm.
-- `d` là ngày trong tháng.
+- `u` is **proleptic year**.
+- `y` is **year-of-era**, which can require `ERA` context to resolve completely under `ResolverStyle.STRICT`.
+- `M` is month-of-year.
+- `d` is day-of-month.
 
-Với một trường ngày ISO đơn giản cần strict resolving, `dd/MM/uuuu` thuận tiện hơn `dd/MM/yyyy`. Dùng `yyyy` với STRICT mà không cung cấp era có thể phát sinh lỗi resolve không mong muốn. Đừng thay `uuuu` bằng `yyyy` chỉ vì hai pattern trông tương đương trên màn hình.
+For a simple ISO date field requiring strict resolution, `dd/MM/uuuu` is more convenient than `dd/MM/yyyy`. Using `yyyy` with `STRICT` without providing an era can trigger unexpected resolution errors. Do not replace `uuuu` with `yyyy` just because both patterns look similar on screen.
 
-### 5.2. STRICT, SMART và LENIENT
+### 5.2. STRICT, SMART, and LENIENT
 
-`ResolverStyle.STRICT` yêu cầu bộ trường ngày hợp lệ theo calendar chronology. Chẳng hạn:
-
-~~~text
-29/02/2024 -> hợp lệ (2024 là năm nhuận)
-29/02/2023 -> không hợp lệ (2023 không nhuận)
-31/04/2024 -> không hợp lệ (tháng 4 chỉ 30 ngày)
-~~~
-
-`ResolverStyle.SMART` có thể điều chỉnh một số ngày vượt cuối tháng trong quá trình phân giải, ví dụ số ngày 31 thành cuối tháng; `LENIENT` còn có thể cộng dồn các trường vượt phạm vi. **Không** dùng SMART/LENIENT cho ngày nhập cần được kiểm chứng đúng hệt lịch mà người dùng đưa vào.
-
-Lưu ý kỹ thuật: `ResolverStyle` xử lý **giai đoạn resolve các trường lịch**, không quy định toàn bộ lexical grammar. Nếu cần kiểm soát width, chữ số, dấu phân tách hoặc case folding rất cụ thể, cần một `DateTimeFormatterBuilder` hoặc kiểm tra cú pháp bổ sung. `LocalDate.parse` đã kiểm tra full consumption, nhưng điều đó không tự kiểm tra policy về ngôn ngữ, range nghiệp vụ hoặc timezone.
-
-### 5.3. DateTimeFormatter immutable; DecimalFormat thì không
-
-`DateTimeFormatter` là **immutable** và thread-safe, nên có thể tạo sẵn instance cho một pattern/locale cố định và tái sử dụng an toàn. `DecimalFormat` là **mutable** và không nên dùng chung giữa các thread mà không có quy tắc bảo vệ riêng. Trong ví dụ dưới, tạo `DecimalFormat` mới theo lần parse giúp tránh trạng thái thay đổi lẫn nhau.
-
-Khi cache formatter theo locale, key phải bao gồm các thành phần ảnh hưởng kết quả như locale, pattern, resolver style, zone (nếu có), chronology, decimal style và các lựa chọn khác tùy thiết kế. Không chỉ cache một `DateTimeFormatter` duy nhất rồi dùng cho mọi locale.
-
-### 5.4. Ngày UI khác thời điểm máy
-
-Chuỗi `29/02/2024` là ngày lịch theo mẫu đang nhập. Nó không tự suy ra timezone hay `Instant` tuyệt đối. Với API gửi instant nên dùng `Instant.parse` hoặc formatter ISO tương ứng đã định; với ngày sinh, `LocalDate` thường phù hợp hơn. Không biến một ngày lịch thành timestamp 00:00 UTC khi chưa có định nghĩa miền nghiệp vụ.
-
-## 6. Quyết định về khoảng trắng, Unicode và dữ liệu bẩn
-
-### 6.1. Trim có thể thay nghĩa input
-
-Một số form cho phép khoảng trắng vô tình ở đầu/cuối. Nếu policy cho phép, ứng dụng có thể **chuẩn hóa có kiểm soát** rồi parse. Nhưng để kiểm tra toàn chuỗi theo input gốc, đừng lặng lẽ `trim()` trước khi kiểm tra rồi tuyên bố chuỗi ban đầu “100% hợp lệ”.
-
-Ví dụ:
+`ResolverStyle.STRICT` requires date fields to be valid within the calendar chronology. For example:
 
 ~~~text
-"12.50"  -> có thể hợp lệ theo chính sách hẹp
-"12.50 " -> phải bị từ chối nếu policy cấm whitespace
+29/02/2024 -> valid (2024 is a leap year)
+29/02/2023 -> invalid (2023 is not a leap year)
+31/04/2024 -> invalid (April has only 30 days)
 ~~~
 
-Nếu sản phẩm **chấp nhận** whitespace, hãy ghi rõ rule normalize. `String.trim()` chỉ xử lý một tập ký tự có phạm vi khác `String.strip()`; cả hai không tự giải quyết mọi Unicode separator hoặc non-breaking spaces.
+`ResolverStyle.SMART` can clamp certain out-of-range days during resolution, such as adjusting day 31 to the last day of the month; `LENIENT` can even overflow fields into subsequent months/years. **Never** use `SMART` or `LENIENT` for user-entered dates that must match exact calendar validity.
 
-### 6.2. Group separator có thể là ký tự không nhìn thấy rõ
+Technical note: `ResolverStyle` governs the **calendar-field resolution phase**, not the entire lexical grammar. If you need exact field widths, digit sets, separators, or case folding, use a `DateTimeFormatterBuilder` or additional lexical checks. `LocalDate.parse` already enforces full consumption, though that does not automatically check language policy, business date ranges, or time zones.
 
-Nhiều locale dùng dấu cách, non-breaking space `U+00A0`, narrow no-break space `U+202F` hoặc ký tự khác làm separator. Hai chuỗi có vẻ giống nhau nhưng chứa các code point khác nhau, dẫn đến hành vi parser khác.
+### 5.3. DateTimeFormatter Is Immutable; DecimalFormat Is Not
 
-Khi debug:
+`DateTimeFormatter` is **immutable** and thread-safe, so instances for a fixed pattern/locale can be prebuilt and safely reused. `DecimalFormat` is **mutable** and should not be shared across threads without dedicated synchronization. In the example below, creating a fresh `DecimalFormat` per parse prevents shared state mutation.
 
-- In các code point (ví dụ `String.codePoints()`) thay vì chỉ nhìn glyph.
-- Xác nhận locale và provider đã được chọn.
-- Ghi rõ policy cho grouping, whitespace và Unicode digits.
-- Tránh tự thay `U+00A0` thành ASCII space trên mọi input nếu contract không cho phép.
+When caching formatters by locale, the cache key must include every component affecting output—such as locale, pattern, resolver style, zone (if any), chronology, decimal style, and other design options. Never cache a single `DateTimeFormatter` and share it across all locales.
 
-### 6.3. Locale không phải cơ chế bảo mật
+### 5.4. UI Dates Differ from Machine Timestamps
 
-`Accept-Language` và cài đặt ngôn ngữ người dùng **không** đáng dùng như nguồn xác minh vùng pháp lý, đơn vị tiền hoặc quyền truy cập. Dữ liệu máy như JSON number, ISO timestamp, ID và error code phải được parse theo schema cố định. Với dữ liệu tự do do người dùng nhập, cần kiểm tra độ dài, charset, giới hạn và loại trường theo business policy, không chỉ dựa vào việc formatter parse được.
+The string `29/02/2024` is a calendar date in the input pattern. It implies neither a time zone nor an absolute `Instant`. For APIs transmitting instants, use `Instant.parse` or an explicit ISO formatter; for birthdays, `LocalDate` is usually appropriate. Never convert a calendar date into a `00:00 UTC` timestamp without an explicit business-domain definition.
 
-## 7. Một luồng validation dễ kiểm thử
+## 6. Decisions About Whitespace, Unicode, and Dirty Input
 
-Sơ đồ:
+### 6.1. Trimming Can Alter Input Meaning
+
+Some forms tolerate accidental leading/trailing spaces. If policy permits, the application can perform **controlled normalization** before parsing. However, for strict full-string validation of raw input, never silently `trim()` beforehand and claim the original string was "100% valid."
+
+Example:
+
+~~~text
+"12.50"  -> valid under the narrow policy
+"12.50 " -> must be rejected if policy forbids whitespace
+~~~
+
+If your product **accepts** whitespace, document the normalization rule explicitly. `String.trim()` strips a narrower character set than `String.strip()`, and neither handles every Unicode separator or non-breaking space cleanly by itself.
+
+### 6.2. Grouping Separators Can Be Subtle Invisible Characters
+
+Many locales use regular spaces, non-breaking space `U+00A0`, narrow no-break space `U+202F`, or other characters as separators. Two strings can look identical while holding different code points, yielding different parser behavior.
+
+When debugging:
+
+- Print code points (e.g., via `String.codePoints()`) instead of trusting visual glyphs alone.
+- Confirm which locale and provider were selected.
+- Document policies for grouping, whitespace, and Unicode digits.
+- Avoid blindly replacing `U+00A0` with ASCII space across all inputs unless your contract allows it.
+
+### 6.3. Locale Is Not a Security Mechanism
+
+`Accept-Language` and user language settings should **not** be relied on to verify legal jurisdiction, currency unit, or access permissions. Machine data such as JSON numbers, ISO timestamps, IDs, and error codes must be parsed under fixed schemas. For free-form user input, validate length, charset, bounds, and field type according to business policy rather than relying solely on whether a formatter parsed it.
+
+## 7. A Testable Validation Flow
+
+Diagram:
 
 ~~~text
 Raw UI input + supported Locale
                |
                v
-  Chọn policy field:
+  Select field policy:
   number, money, date, decimal, percent?
                |
                v
-  Validate lexical input (nếu field cần cú pháp hẹp)
+  Validate lexical input (if field requires narrow syntax)
                |
                v
-  Parse theo Locale / pattern đã chọn
+  Parse using selected Locale / pattern
                |
                v
-  Xác minh full consumption hoặc dùng API full parse
+  Verify full consumption or use full-parse API
                |
                v
   Validate business constraints + typed value
@@ -264,36 +264,36 @@ Raw UI input + supported Locale
   Store BigDecimal / LocalDate / domain value
                |
                v
-  Serialize machine data theo schema ổn định
+  Serialize machine data using a stable schema
 ~~~
 
-Khi sai input, UI nên báo lỗi có **mã kỹ thuật và thông điệp được dịch**, không giữ nguyên một `ParseException.toString()` làm câu gửi cho người dùng. Thông tin kỹ thuật như position/errorIndex có thể hữu ích trong log/diagnostics, nhưng không nên để lộ dữ liệu nhạy cảm của input trong logs.
+On invalid input, the UI should report an error with a **technical code and localized message**, rather than exposing raw `ParseException.toString()` text to end users. Technical details such as `position`/`errorIndex` can help logs and diagnostics, though sensitive input data must not be leaked into logs.
 
-### 7.1. Những điều ParsePosition không tự làm
+### 7.1. Things ParsePosition Does Not Do Automatically
 
-`ParsePosition` **không**:
+`ParsePosition` does **not**:
 
-- Xác nhận số tiền phải lớn hơn 0.
-- Xác nhận một loại currency code được chấp nhận.
-- Ngăn grouping không chuẩn nếu parser vẫn chấp nhận.
-- Ngăn nhập nhiều chữ số thập phân hơn quy tắc business nếu parser parse được.
-- Xác nhận độ lớn `BigDecimal` phù hợp giới hạn DB.
-- Xác nhận định dạng năm/tháng/ngày của một trường `LocalDate`.
-- Tự thay cho một parser JSON/CSV theo schema riêng.
+- Enforce that a monetary amount is positive.
+- Validate that a currency code is accepted.
+- Prevent non-standard grouping if the parser accepts it.
+- Reject excessive decimal places if the parser can parse them.
+- Verify that a `BigDecimal` fits database column limits.
+- Validate year/month/day ordering of a `LocalDate` field.
+- Replace a schema-driven JSON/CSV parser.
 
-Đó là những lớp validation khác cần thực hiện sau hoặc trước bước parse tùy đặc tính.
+Those are separate validation layers applied before or after parsing depending on the field's contract.
 
-## 8. Chương trình Java 17 hoàn chỉnh
+## 8. Complete Java 17 Program
 
-Chương trình minh họa:
+This program demonstrates:
 
-- Parse số theo `en-US` và `de-DE` bằng `DecimalFormat` trả `BigDecimal`.
-- Dùng `ParsePosition` để **từ chối ký tự thừa cuối chuỗi**.
-- Chỉ ra `1,23` ở `en-US` vẫn được parser chung đọc thành 123.
-- Dùng regex theo dấu decimal của locale để áp chính sách **không grouping, tối đa hai chữ số thập phân**.
-- Dùng `LocalDate.parse` và `ResolverStyle.STRICT` để từ chối ngày sai và hậu tố.
+- Parsing `en-US` and `de-DE` numbers with `DecimalFormat` returning `BigDecimal`.
+- Using `ParsePosition` to **reject trailing characters at the end of the string**.
+- Showing that `1,23` in `en-US` is still parsed as `123` by the general parser.
+- Using a regex built from the locale's decimal separator to enforce **no grouping, at most two fractional digits**.
+- Using `LocalDate.parse` and `ResolverStyle.STRICT` to reject invalid dates and trailing suffixes.
 
-**Lưu tệp `LocaleInputValidationDemo.java`:**
+**Save the file `LocaleInputValidationDemo.java`:**
 
 ~~~java
 import java.math.BigDecimal;
@@ -392,14 +392,14 @@ public class LocaleInputValidationDemo {
 }
 ~~~
 
-**Biên dịch và chạy trên JDK 17+**:
+**Compile and run on JDK 17+**:
 
 ~~~bash
 javac -encoding UTF-8 LocaleInputValidationDemo.java
 java LocaleInputValidationDemo
 ~~~
 
-**Stdout đã xác minh bằng Java:**
+**Stdout verified with Java:**
 
 ~~~text
 en full=1234.50
@@ -414,52 +414,52 @@ date 29/02/2023=REJECTED
 date 29/02/2024extra=REJECTED
 ~~~
 
-**Phân tích từng nhóm kết quả:**
+**Analysis of each result group:**
 
-1. `en full=1234.50`: chuỗi `1,234.50` theo Mỹ được parse thành giá trị thập phân `1234.50`.
-2. `de full=1234.50`: chuỗi `1.234,50` theo Đức cũng biểu diễn giá trị tương đương, dù **đầu vào khác dấu**.
-3. `en suffix=REJECTED`: parser chung có thể hiểu tiền tố nhưng `pos.getIndex() != text.length()`, nên validator từ chối.
-4. `en odd grouping parses=123`: parser đã tiêu thụ `1,23` nhưng không xác nhận grouping nghiêm ngặt. Đây là bằng chứng full consumption chưa đủ.
-5. `strict en grouping=REJECTED`: policy riêng **cấm dấu nhóm**; dấu phẩy trong input Mỹ bị từ chối trước parse.
-6. `money en=12.50` và `money de=12.50`: cùng giá trị, nhưng locale Mỹ dùng dấu `.`, Đức dùng `,` ở đầu vào.
-7. `leap date=2024-02-29`: ngày 29/2 của năm 2024 là hợp lệ.
-8. `date 29/02/2023=REJECTED`: năm 2023 không nhuận, ResolverStyle.STRICT không tự điều chỉnh thành một ngày khác.
-9. `date 29/02/2024extra=REJECTED`: `LocalDate.parse` không bỏ qua hậu tố.
-10. Chương trình in kết quả dựa trên **giá trị đã parse**, không lưu nguyên chuỗi đã định dạng theo locale làm số tiền trong domain.
+1. `en full=1234.50`: US string `1,234.50` parses to decimal value `1234.50`.
+2. `de full=1234.50`: German string `1.234,50` represents the same value despite **different punctuation in the input**.
+3. `en suffix=REJECTED`: the general parser can parse the prefix, but `pos.getIndex() != text.length()`, so the validator rejects it.
+4. `en odd grouping parses=123`: the parser consumed all of `1,23` without enforcing strict grouping. This proves full consumption alone is insufficient.
+5. `strict en grouping=REJECTED`: the custom policy **forbids grouping separators**; the comma in US input is rejected before parsing.
+6. `money en=12.50` and `money de=12.50`: identical value, while US input uses `.` and German input uses `,`.
+7. `leap date=2024-02-29`: February 29 in 2024 is valid.
+8. `date 29/02/2023=REJECTED`: 2023 is not a leap year, and `ResolverStyle.STRICT` does not silently adjust it to another date.
+9. `date 29/02/2024extra=REJECTED`: `LocalDate.parse` does not ignore trailing suffixes.
+10. The program prints results from the **parsed typed values**, never storing locale-formatted strings as monetary amounts in the domain.
 
-Đây là ví dụ học tập có chính sách regex ASCII cố ý hẹp, không phải hệ parser universal cho mọi ngôn ngữ. Nếu sản phẩm hỗ trợ chữ số bản địa hóa, dấu nhóm Ấn Độ, percent, dấu âm kế toán, currency symbol hoặc chuỗi thời gian có timezone, cần thiết kế parser riêng cho từng loại và có bộ test tương ứng.
+This is a learning example with an intentionally narrow ASCII regex policy, not a universal parser for every language. If your product supports localized digits, Indian grouping patterns, percentages, accounting negative signs, currency symbols, or zoned date-time strings, design dedicated parsers and corresponding test suites for each type.
 
-## 9. Cách mở rộng một cách an toàn
+## 9. How to Extend Safely
 
-### 9.1. Chính sách grouping nghiêm ngặt
+### 9.1. Strict Grouping Policies
 
-Nếu phải cho phép dấu nhóm, đừng thay vì cho phép bất kỳ vị trí nào. Hãy xác định mẫu được hỗ trợ, ví dụ ở một trường chỉ chấp nhận grouping ba chữ số:
+If grouping separators must be permitted, do not allow them in arbitrary positions. Define the supported pattern—for example, a field accepting only three-digit grouping:
 
 ~~~text
-en-US được phép: 1,234.50
-en-US từ chối : 1,23
-en-US từ chối : 12,34,567.89  (nếu policy là nhóm ba)
+en-US allowed : 1,234.50
+en-US rejected: 1,23
+en-US rejected: 12,34,567.89  (if policy is three-digit grouping)
 ~~~
 
-Những ngôn ngữ/khu vực khác có thể dùng nhóm không đồng nhất (ví dụ hàng lakh) hoặc dấu phân cách khác. Chính sách nên được quyết định trên **field contract** và tập locale được hỗ trợ, không ép regex nhóm ba cho mọi quốc gia.
+Other languages and regions may use non-uniform grouping (such as lakhs) or different separators. Policies should reflect the **field contract** and supported locales rather than forcing a three-digit regex on every country.
 
-Một cách triển khai là validator lexical riêng theo locale, theo sau bằng `ParsePosition` và validation kết quả. Nếu chỉ một vài locale được hỗ trợ, có thể định nghĩa trường hợp rõ, kiểm thử trên từng locale. Nếu cần tất cả locale Unicode, cân nhắc giải pháp parsing i18n chuyên dụng được kiểm chứng thay vì regex đơn giản.
+One implementation approach is a locale-specific lexical validator followed by `ParsePosition` and parsed-value checks. When only a few locales are supported, define explicit rules and test each locale. If all Unicode locales are required, consider a proven i18n parsing solution instead of simple regexes.
 
-### 9.2. Thêm dấu âm hoặc percent
+### 9.2. Adding Negative Signs or Percentages
 
-Demo cố ý không hỗ trợ `-12.50`. Nếu domain cho phép số âm, hãy định nghĩa:
+The demo intentionally omits `-12.50`. If your domain permits negative numbers, define:
 
-- Dấu âm ASCII hay dấu minus Unicode được chấp nhận?
-- Dấu âm ở đầu, cuối hay dạng ngoặc kế toán?
-- Có chấp nhận `+12.50`?
-- Dải min/max và có cho phép negative zero?
-- Percent `12%` có nghĩa 12 hay 0.12 trong domain?
+- Are ASCII hyphens or Unicode minus signs accepted?
+- Are negative signs leading, trailing, or accounting parentheses?
+- Is `+12.50` accepted?
+- What are min/max bounds, and is negative zero allowed?
+- Does `12%` mean `12` or `0.12` in the domain?
 
-`NumberFormat.getPercentInstance(locale)` có thể parse/format phần trăm với phép chia tỷ lệ theo quy ước của formatter. **Không** nhầm percent UI với một decimal domain chưa quy định semantics. Tách parser đúng loại field.
+`NumberFormat.getPercentInstance(locale)` can parse and format percentages with scaling according to formatter rules. **Never** confuse a UI percentage with an unspecified domain decimal. Separate parsers per field type.
 
-### 9.3. Kiểm tra scale và precision
+### 9.3. Checking Scale and Precision
 
-Ngay cả khi `DecimalFormat` trả `BigDecimal`, bạn vẫn cần xem `value.scale()`, `value.precision()` và quy tắc đơn vị tiền:
+Even when `DecimalFormat` returns `BigDecimal`, still inspect `value.scale()`, `value.precision()`, and currency unit rules:
 
 ~~~java
 if (value.signum() < 0 || value.scale() > 2) {
@@ -467,107 +467,107 @@ if (value.signum() < 0 || value.scale() > 2) {
 }
 ~~~
 
-Đây là đoạn minh họa nằm trong phương thức có `BigDecimal value`. Quy tắc `scale <= 2` chỉ phù hợp nếu business thật quy định tối đa hai chữ số thập phân; một loại tiền có thể có số minor units khác. Đối với phần tiền được làm tròn, dùng `RoundingMode` rõ ràng và không tự cắt chữ số vượt chuẩn.
+This snippet assumes a `BigDecimal value` inside a method. The `scale <= 2` check applies only when business rules dictate at most two fractional digits; currencies can have different minor-unit counts. For rounded amounts, specify an explicit `RoundingMode` instead of silently truncating excess digits.
 
-### 9.4. Hỗ trợ nhập ngày theo văn bản
+### 9.4. Supporting Textual Date Input
 
-Nếu UI cho phép tên tháng (ví dụ `29 February 2024`), dùng `DateTimeFormatter` với `Locale` và pattern phù hợp. Khi business yêu cầu chỉ định dạng `dd/MM/uuuu`, không tự cho phép `02/29/2024` chỉ vì người dùng đổi locale; pattern cũng là một phần giao kèo của field.
+If the UI permits month names (e.g., `29 February 2024`), use `DateTimeFormatter` with an appropriate `Locale` and pattern. When business rules require strictly `dd/MM/uuuu`, do not silently accept `02/29/2024` merely because the user switched locales; the input pattern is also part of the field contract.
 
-Để ngăn các kiểu ngày mơ hồ `03/04/2024`, tốt hơn dùng **date picker** hoặc hiển thị rõ pattern đang chờ. Không tự “phát hiện” ngày/tháng từ dữ liệu ít thông tin.
+To prevent ambiguous dates like `03/04/2024`, prefer a **date picker** or display the expected pattern clearly. Never try to "auto-detect" day vs. month from ambiguous input.
 
-## 10. Lỗi thường gặp
+## 10. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Chỉ kiểm tra `parse(text) != null` | Chấp nhận tiền tố và bỏ hậu tố | Kiểm tra `ParsePosition` tới cuối |
-| Chỉ kiểm tra `pos.getIndex() > 0` | Hậu tố không được kiểm tra | So với `text.length()` |
-| Chỉ đọc `pos.getErrorIndex()` | Hậu tố có thể dừng mà không đặt error index | Kiểm tra cả value và consumed index |
-| Tưởng full consumption = grouping chuẩn | `en-US` vẫn có thể parse `1,23` thành 123 | Thêm policy lexical |
-| Parse UI bằng `Double.parseDouble` | Không hiểu decimal separator locale | Dùng parser locale phù hợp |
-| Parse JSON number bằng `NumberFormat` | Thay contract máy theo locale | Dùng JSON parser chuẩn |
-| Thử nhiều locale và lấy kết quả đầu tiên | Một chuỗi có thể mang hai nghĩa | Chọn locale nguồn có chủ đích |
-| Dùng `double` để tính tiền | Precision có thể sai | `BigDecimal` + business policy |
-| Dùng `yyyy` với `ResolverStyle.STRICT` tùy tiện | Year-of-era thiếu `ERA` | Dùng `uuuu` khi phù hợp |
-| Dùng date formatter lenient | Ngày sai bị sửa thành ngày khác | ResolverStyle.STRICT |
-| Nghĩ ResolverStyle thay mọi lexical rule | Dấu cách/ký tự có thể vẫn được nhận theo parser policy | Validate syntax/pattern riêng |
-| `trim` input rồi báo chuỗi gốc hợp lệ | Thay input âm thầm | Quy định normalization |
-| Dùng `DecimalFormat` static mutable trong thread pool | Race, sai cấu hình | Tạo per call hoặc clone có kiểm soát |
-| Dùng `LocalDate` thay instant | Thiếu thông tin múi giờ | Chọn kiểu domain phù hợp |
-| Đoán comma/dot không xét grouping | Có thể parse sai giá trị | Dùng locale đúng và policy rõ |
-| Dùng `format(parse(s)) == s` làm chuẩn duy nhất | Từ chối cách nhập hợp lệ khác canonical output | Xây grammar và validation có mục đích |
+| Checking only `parse(text) != null` | Accepts prefix and ignores suffix | Check `ParsePosition` reaches the end |
+| Checking only `pos.getIndex() > 0` | Trailing suffix goes unchecked | Compare against `text.length()` |
+| Reading only `pos.getErrorIndex()` | Partial parse can stop without setting error index | Check both returned value and consumed index |
+| Assuming full consumption implies standard grouping | `en-US` still parses `1,23` as `123` | Add a lexical policy |
+| Parsing UI input with `Double.parseDouble` | Ignores locale decimal separators | Use a locale-aware parser |
+| Parsing JSON numbers with `NumberFormat` | Breaks machine contract based on locale | Use a standard JSON parser |
+| Trying multiple locales and taking the first success | Same string can have two valid meanings | Select the source locale intentionally |
+| Using `double` for money | Precision errors | Use `BigDecimal` + business policy |
+| Using `yyyy` arbitrarily with `ResolverStyle.STRICT` | Year-of-era lacks `ERA` | Use `uuuu` where appropriate |
+| Using a lenient date formatter | Invalid dates silently shift to other dates | Use `ResolverStyle.STRICT` |
+| Assuming `ResolverStyle` enforces all lexical rules | Spaces/extra characters may still satisfy parser rules | Validate syntax/pattern separately |
+| Calling `trim()` and reporting original string valid | Silently mutates input | Specify normalization policy explicitly |
+| Sharing static mutable `DecimalFormat` in thread pools | Race conditions, corrupted configuration | Create per call or clone safely |
+| Using `LocalDate` instead of an instant | Missing time-zone context | Pick the proper domain type |
+| Guessing comma vs. dot without grouping rules | Can misparse values | Use the right locale and explicit policy |
+| Using `format(parse(s)) == s` as the sole check | Rejects valid inputs differing from canonical output | Design purposeful grammar and validation |
 
-## 11. Bộ kiểm thử và QA theo locale
+## 11. Test Suite and Locale QA
 
-Một module đầu vào đa ngôn ngữ nên có tests ở hai mức: **quy tắc parse/validation** và **hợp đồng UI/API**.
+A multilingual input module needs tests at two levels: **parse/validation rules** and **UI/API contracts**.
 
-### 11.1. Ma trận số
+### 11.1. Number Matrix
 
-| Locale và input | Kỳ vọng cho parser/policy của bài |
+| Locale and Input | Expected Behavior for Demo Parser/Policy |
 | --- | --- |
-| `en-US`: `1,234.50` | Parser tổng quát thành `1234.50` |
-| `de-DE`: `1.234,50` | Parser tổng quát thành `1234.50` |
-| `en-US`: `1,234.50oops` | Từ chối vì chưa tiêu thụ hết |
-| `en-US`: `1,23` | Parser tổng quát nhận 123; money policy từ chối |
-| `en-US`: `12.50` | Money policy nhận 12.50 |
-| `de-DE`: `12,50` | Money policy nhận 12.50 |
-| `de-DE`: `12.50` | Money policy từ chối vì sai decimal separator theo rule hẹp |
-| `en-US`: `12.50 ` | Money policy từ chối khoảng trắng cuối |
-| `en-US`: `12.345` | Money policy từ chối ba chữ số thập phân |
-| `en-US`: `-12.50` | Money policy từ chối dấu âm vì contract ví dụ không cho phép |
+| `en-US`: `1,234.50` | General parser returns `1234.50` |
+| `de-DE`: `1.234,50` | General parser returns `1234.50` |
+| `en-US`: `1,234.50oops` | Rejected due to incomplete consumption |
+| `en-US`: `1,23` | General parser accepts `123`; money policy rejects |
+| `en-US`: `12.50` | Money policy accepts `12.50` |
+| `de-DE`: `12,50` | Money policy accepts `12.50` |
+| `de-DE`: `12.50` | Money policy rejects due to wrong decimal separator under narrow rule |
+| `en-US`: `12.50 ` | Money policy rejects trailing space |
+| `en-US`: `12.345` | Money policy rejects three fractional digits |
+| `en-US`: `-12.50` | Money policy rejects minus sign because demo contract forbids it |
 
-Đây là kết quả **của policy và locale đã xác định**, không phải bảng quy định Java phải xử lý tất cả chuỗi tương tự trên mọi CLDR version.
+These outcomes reflect **the defined policy and locales**, not a guarantee that Java behaves identically for all similar inputs across every CLDR version.
 
-### 11.2. Ma trận ngày
+### 11.2. Date Matrix
 
-- Năm nhuận: `29/02/2024` hợp lệ.
-- Năm không nhuận: `29/02/2023` không hợp lệ.
-- Tháng chỉ 30 ngày: `31/04/2024` không hợp lệ.
-- Tháng ngoài `1..12`: từ chối.
-- Hậu tố `29/02/2024extra`: từ chối.
-- Leading/trailing whitespace: chính sách rõ, không chấp nhận im lặng.
-- Year-of-era vs proleptic year: kiểm tra `uuuu` cho strict date.
-- Locale có tên tháng hoặc non-ASCII digits: test bằng dữ liệu thực và formatter hỗ trợ.
+- Leap year: `29/02/2024` is valid.
+- Non-leap year: `29/02/2023` is invalid.
+- 30-day month: `31/04/2024` is invalid.
+- Month outside `1..12`: rejected.
+- Suffix `29/02/2024extra`: rejected.
+- Leading/trailing whitespace: explicit policy, never silently accepted.
+- Year-of-era vs. proleptic year: test `uuuu` for strict dates.
+- Locales with month names or non-ASCII digits: test against real locale data and supported formatters.
 
-### 11.3. Những bất biến cần giữ khi tích hợp
+### 11.3. Invariants to Preserve During Integration
 
-1. Client truyền một locale **đã được chọn từ danh sách hỗ trợ**; không parse chệch vì server default locale khác.
-2. Parser chỉ chấp nhận input mà validation policy cho phép.
-3. Cùng một giá trị domain có thể được nhập bằng các cách khác nhau theo locale nhưng **lưu bằng một kiểu dữ liệu máy**, không lưu chuỗi format hiển thị.
-4. Không có ký tự thừa sau khi parse thành công, trừ khi một grammar chính thức cho phép chúng.
-5. Mọi lỗi được thể hiện bằng error code/field path ổn định và message bản địa hóa.
-6. Test concurrency không tái sử dụng `DecimalFormat` mutable bị thay đổi giữa các thread.
-7. Test upgrade JDK/CLDR trên các locale thật đang hỗ trợ, không chỉ `Locale.US`.
+1. Client supplies a locale **chosen from the supported list**; never parse incorrectly due to a different server default locale.
+2. Parsers accept only inputs permitted by the validation policy.
+3. The same domain value may be entered in different locale formats, yet **is stored in one canonical machine type**, never as a display-formatted string.
+4. No leftover characters remain after a successful parse unless a formal grammar permits them.
+5. Every error is represented with a stable error code/field path and a localized message.
+6. Concurrency tests do not share mutable `DecimalFormat` instances across threads.
+7. Test JDK/CLDR upgrades across all truly supported locales, not only `Locale.US`.
 
-### 11.4. Nên làm gì với invalid input?
+### 11.4. How Should Invalid Input Be Handled?
 
-UI nên giữ lại nguyên chuỗi người dùng để họ sửa (nếu phù hợp với bảo mật), đánh dấu field tương ứng và hiển thị **mẫu định dạng mong đợi**. Đừng tự chuẩn hóa âm thầm từ chuỗi mơ hồ `1,234` sang một giá trị khác rồi lưu mà không báo rõ.
+The UI should preserve the user's raw input string for correction (when appropriate for security), highlight the corresponding field, and show the **expected format example**. Never silently coerce an ambiguous string like `1,234` into another number and persist it without clear confirmation.
 
-Không ghi nguyên input thô vào logs nếu có dữ liệu nhạy cảm; khi cần debug, dùng mã lỗi parser, vị trí lỗi và metadata được kiểm soát, có thể log code points một cách đã ẩn danh cho các trường không nhạy cảm.
+Never log raw inputs containing sensitive data; for debugging, log parser error codes, error indices, and controlled metadata, or anonymized code points for non-sensitive fields.
 
-## 12. Bài tập thực hành
+## 12. Practice Exercises
 
-1. Tạo form nhập `amount` với hai lựa chọn locale `en-US` và `de-DE`. Đổi ngôn ngữ rồi nhập `12,50`, giải thích vì sao giá trị khác nếu dùng locale sai.
-2. Bỏ điều kiện `pos.getIndex() == text.length()`, thử `1,234.50oops` và ghi lại hệ quả.
-3. Giữ full consumption nhưng thử `1,23` ở `en-US`; lý giải vì sao phải thêm lexical policy.
-4. Thêm lựa chọn **cho phép dấu nhóm đúng quy tắc** đối với `en-US`, so với policy không grouping ở demo.
-5. Thay regex demo để chấp nhận dấu âm và một số chữ số phần thập phân khác; nêu rõ quy tắc monetary domain.
-6. Viết một test cho `value.scale()`, `value.precision()`, min/max sau khi parse `BigDecimal`.
-7. Thêm `31/04/2024` vào kiểm thử `LocalDate.parse` với STRICT; kiểm tra exception.
-8. Thử `ResolverStyle.SMART` trên các input ngày sai rồi so với STRICT, không dùng kết quả SMART như validation cho dữ liệu pháp lý.
-9. Thử `dd/MM/yyyy` với `ResolverStyle.STRICT` và giải thích vấn đề `YEAR_OF_ERA`.
-10. Dùng `Locale.forLanguageTag("vi-VN")`, kiểm tra separator và format trên JDK đang dùng; không giả định luôn giống môi trường khác.
-11. Viết test thay `Locale.setDefault` trong môi trường test cô lập; code truyền locale tường minh phải cho kết quả không đổi.
-12. Xây một DTO API có `BigDecimal amount` và `LocalDate date`; serialize thành JSON theo schema cố định, không gửi định dạng UI.
-13. Dùng parser từ `NumberFormat.getPercentInstance` trong một test riêng, giải thích scale nghĩa của kết quả.
-14. Định nghĩa một kiểu lỗi `INPUT_FORMAT_INVALID` và `INPUT_OUT_OF_RANGE` có technical field path; dịch message mà không dịch code.
+1. Build an `amount` input form supporting `en-US` and `de-DE`. Switch languages and enter `12,50`, explaining why the parsed value differs if the wrong locale is used.
+2. Remove `pos.getIndex() == text.length()`, test `1,234.50oops`, and document the consequence.
+3. Keep full consumption enabled, test `1,23` under `en-US`, and explain why an extra lexical policy is required.
+4. Add an option **allowing valid grouping separators** for `en-US` and compare it with the demo's no-grouping policy.
+5. Modify the demo regex to accept negative signs and a different fractional digit count; state the monetary domain rules clearly.
+6. Write tests asserting `value.scale()`, `value.precision()`, and min/max bounds after parsing `BigDecimal`.
+7. Add `31/04/2024` to a `LocalDate.parse` test with `STRICT` and verify the exception.
+8. Test `ResolverStyle.SMART` on invalid dates and compare with `STRICT`, noting why `SMART` should not validate legal dates.
+9. Test `dd/MM/yyyy` with `ResolverStyle.STRICT` and explain the `YEAR_OF_ERA` issue.
+10. Test `Locale.forLanguageTag("vi-VN")` and inspect its separators and behavior on your active JDK without assuming parity with other environments.
+11. Write a test that changes `Locale.setDefault` in an isolated test environment; code passing `Locale` explicitly must produce unchanged results.
+12. Build an API DTO with `BigDecimal amount` and `LocalDate date`; serialize to JSON under a fixed schema rather than sending UI-formatted strings.
+13. Test parsing with `NumberFormat.getPercentInstance` in a separate test and explain the scale of the returned value.
+14. Define `INPUT_FORMAT_INVALID` and `INPUT_OUT_OF_RANGE` error types with a technical field path; translate messages without translating error codes.
 
-## 13. Tổng kết
+## 13. Summary
 
-Trong Java localization, **phân tích theo locale** phải đi cùng **kiểm tra toàn chuỗi và kiểm tra nghiệp vụ**. Đối với `NumberFormat`, dùng `ParsePosition` để xác nhận `result != null` và `position == input.length()`; nhưng đừng nhầm full consumption với nhóm số hoặc grammar nghiêm ngặt. Với `DecimalFormat` và tiền cần chính xác, bật `setParseBigDecimal(true)`, chọn locale rõ ràng, kiểm tra scale/range và tránh chia sẻ formatter mutable tùy tiện.
+In Java localization, **locale-aware parsing** must be paired with **full-string verification and business validation**. For `NumberFormat`, use `ParsePosition` to verify `result != null` and `position == input.length()`; however, never equate full consumption with valid grouping or strict syntax. With `DecimalFormat` and exact money, enable `setParseBigDecimal(true)`, pick the locale explicitly, check scale/range, and avoid unsafe sharing of mutable formatters.
 
-Đối với ngày lịch, `LocalDate.parse` cùng `DateTimeFormatter` và `ResolverStyle.STRICT` giúp từ chối ngày sai/hậu tố; dùng `uuuu` thay cho `yyyy` khi muốn năm proleptic ISO. Sau khi parse thành công, giữ dữ liệu kiểu `BigDecimal`/`LocalDate` trong domain, không lấy chuỗi hiển thị làm dữ liệu máy.
+For calendar dates, `LocalDate.parse` with `DateTimeFormatter` and `ResolverStyle.STRICT` rejects invalid dates and trailing suffixes; prefer `uuuu` over `yyyy` for ISO proleptic years. After parsing succeeds, keep typed `BigDecimal`/`LocalDate` values in the domain rather than treating display strings as machine data.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `NumberFormat`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html
 - Java SE 17, `DecimalFormat`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html

@@ -1,39 +1,39 @@
-# Thiết kế API String: Quy định rõ cách xử lý null, rỗng và trắng
+# String API Design: Clearly Specifying Null, Empty, and Blank Handling
 
-## 1. Vấn đề cốt lõi
+## 1. The core problem
 
-Một API Java nhận `String` thường phải giải quyết ba trạng thái dễ bị đánh đồng:
+A Java API that accepts `String` often has to handle three states that are easily conflated:
 
-1. **`null`**: không có đối tượng chuỗi. Tùy hợp đồng, có thể là “không truyền”, “không biết”, một giá trị được phép, hoặc dữ liệu không hợp lệ.
-2. **Chuỗi rỗng `""` (empty)**: có đối tượng `String`, nhưng độ dài bằng 0. Có thể là giá trị người dùng đã nhập rồi xóa hết, hoặc nội dung hợp lệ như ghi chú trống.
-3. **Chuỗi chỉ gồm ký tự trắng (blank)**: có ký tự nhưng toàn bộ được `String.isBlank()` coi là whitespace, ví dụ `"   "` hoặc `"\t\n"`. Chuỗi rỗng cũng được `isBlank()` trả `true`.
+1. **`null`**: no string object exists. Depending on the contract, this may mean "not provided", "unknown", an allowed value, or invalid data.
+2. **Empty string `""`**: a `String` object exists, but its length is 0. This could be a value the user entered and then deleted, or valid content such as an empty note.
+3. **Whitespace-only string (blank)**: it has characters, but all of them are considered whitespace by `String.isBlank()`, such as `"   "` or `"\t\n"`. An empty string also returns `true` for `isBlank()`.
 
-Ngoài ra, **chuỗi có nội dung** như `" A "` có thể chứa khoảng trắng đầu/cuối mà ứng dụng muốn giữ hoặc chuẩn hóa. Bài học này nằm trong chủ đề **thiết kế API**, nên trọng tâm là định nghĩa rõ ý nghĩa và hành vi tại ranh giới API, không chỉ gọi đúng phương thức thư viện.
+In addition, **strings with content** like `" A "` may contain leading/trailing whitespace that the application wants to preserve or normalize. This lesson falls under **API design**, so the focus is on clearly defining meaning and behavior at the API boundary, not merely calling the right library method.
 
-Ví dụ API tạo tài khoản nhận tên hiển thị, mật khẩu và ghi chú:
+Example of an account creation API accepting a display name, password, and comment:
 
-- Tên hiển thị bắt buộc, `null`/rỗng/trắng đều không hợp lệ; có thể `strip()` rồi kiểm tra.
-- Mật khẩu không cho phép `null` hoặc rỗng nhưng **không được tự động `trim()`/`strip()`**, vì dấu cách có thể là ký tự thật của mật khẩu theo chính sách hệ thống.
-- Ghi chú có thể cho phép `null` (“chưa cung cấp”), `""` (“đã cung cấp nhưng trống”) và `"   "` (“nội dung gồm dấu cách”); nếu muốn gộp các trạng thái, phải ghi rõ.
-- Với API cập nhật từng phần, trường *vắng mặt* và trường *có mặt với giá trị null* có thể có ý nghĩa khác nhau, ví dụ “không đổi” và “xóa giá trị”.
+- Display name is required; `null`/empty/blank are all invalid; it can be `strip()`ped and then checked.
+- Password does not allow `null` or empty, but **must not be automatically `trim()`med/`strip()`ped**, because spaces can be actual characters of the password under system policy.
+- Comment may allow `null` ("not provided"), `""` ("provided but empty"), and `"   "` ("content consisting of spaces"); if you want to merge states, it must be explicitly documented.
+- For partial update APIs, an *absent* field and a *present field with value null* can have different meanings, such as "unchanged" and "clear value".
 
-**Quy tắc nền tảng:** Không chuẩn hóa mọi chuỗi đầu vào bằng `null -> ""` hay `strip()` theo thói quen. Mỗi tham số phải có hợp đồng dữ liệu phù hợp.
+**Foundational rule:** Do not habitually normalize every string input with `null -> ""` or `strip()`. Every parameter must have an appropriate data contract.
 
-## 2. Cách Java kiểm tra từng trạng thái
+## 2. How Java checks each state
 
-`String` trong Java 17 có các API sau:
+`String` in Java 17 has the following APIs:
 
-| Biểu thức | Khi `s == null` | `s = ""` | `s = "   "` | `s = " hi "` |
+| Expression | When `s == null` | `s = ""` | `s = "   "` | `s = " hi "` |
 | --- | --- | --- | --- | --- |
 | `s == null` | `true` | `false` | `false` | `false` |
-| `s.isEmpty()` | Ném `NullPointerException` | `true` | `false` | `false` |
-| `s.isBlank()` | Ném `NullPointerException` | `true` | `true` | `false` |
-| `s.length() == 0` | Ném `NullPointerException` | `true` | `false` | `false` |
-| `s.strip().isEmpty()` | Ném `NullPointerException` | `true` | `true` với dấu cách thông thường | `false` |
+| `s.isEmpty()` | Throws `NullPointerException` | `true` | `false` | `false` |
+| `s.isBlank()` | Throws `NullPointerException` | `true` | `true` | `false` |
+| `s.length() == 0` | Throws `NullPointerException` | `true` | `false` | `false` |
+| `s.strip().isEmpty()` | Throws `NullPointerException` | `true` | `true` for standard spaces | `false` |
 
-Từ Java 11, `String.isBlank()` xác định liệu chuỗi trống hoặc chỉ chứa các code point mà `Character.isWhitespace(int)` nhận diện hay không. `isEmpty()` chỉ xét độ dài bằng 0 và **không cần duyệt từng ký tự**.
+Since Java 11, `String.isBlank()` determines whether a string is empty or contains only code points recognized by `Character.isWhitespace(int)`. `isEmpty()` only checks whether length is 0 and **does not need to scan each character**.
 
-Khi `null` có thể xuất hiện, kiểm tra trước khi gọi phương thức:
+When `null` may occur, check before calling methods:
 
 ```java
 static boolean isNullOrBlank(String value) {
@@ -41,33 +41,33 @@ static boolean isNullOrBlank(String value) {
 }
 ```
 
-Phép `||` đánh giá ngắn mạch: nếu `value == null` là `true`, Java không gọi `isBlank()` nữa. Đây là **đoạn phương thức** đặt trong class Java, không phải chương trình độc lập.
+The `||` operator short-circuits: if `value == null` is `true`, Java does not call `isBlank()`. This is a **method snippet** placed inside a Java class, not a standalone program.
 
-Lưu ý: `isBlank()` trả `true` cho chuỗi rỗng, vì vậy không thể dùng riêng nó để phân biệt **empty** với **blank nhưng không empty**. Khi phân loại, nên kiểm tra theo thứ tự: `null` → `isEmpty()` → `isBlank()` → có nội dung.
+Note: `isBlank()` returns `true` for an empty string, so it cannot be used alone to distinguish **empty** from **blank but non-empty**. When classifying, check in the order: `null` → `isEmpty()` → `isBlank()` → has content.
 
-## 3. Định nghĩa hợp đồng API trước khi lập trình
+## 3. Define the API contract before coding
 
-Một tài liệu API tốt cần trả lời rõ các câu hỏi: `null` có được phép không, `""` có nghĩa gì, khoảng trắng có được giữ không, có chuẩn hóa Unicode không, dữ liệu sai báo lỗi thế nào, và kết quả có bảo toàn đầu vào không.
+Good API documentation should clearly answer: is `null` allowed, what does `""` mean, is whitespace preserved, is Unicode normalized, how is invalid data reported, and does the output preserve the input.
 
-Ví dụ bảng hợp đồng cho một hệ thống:
+Example contract table for a system:
 
-| Trường API | `null` | `""` | Chỉ có whitespace | Khoảng trắng đầu/cuối | Hành vi đề xuất |
+| API Field | `null` | `""` | Whitespace only | Leading/trailing whitespace | Recommended Behavior |
 | --- | --- | --- | --- | --- | --- |
-| `displayName` | Không hợp lệ | Không hợp lệ | Không hợp lệ | `strip()` và lưu bản đã chuẩn hóa | Trả thông báo lỗi rõ ràng khi tên không hợp lệ |
-| `password` | Không hợp lệ | Không hợp lệ | Có thể hợp lệ nếu chính sách cho phép | **Giữ nguyên** | Không sửa nội dung bí mật ngoài yêu cầu tường minh |
-| `searchQuery` | Không lọc | Không lọc | Không lọc | `strip()` | Chuẩn hóa thành “không có bộ lọc” khi trống/trắng |
-| `comment` | Chưa cung cấp | Đã cung cấp ghi chú rỗng | Giữ hoặc từ chối theo nghiệp vụ | Mặc định giữ nguyên | Không gộp ba trạng thái một cách ngầm định |
-| `update.bio` | Có thể mang nghĩa xóa dữ liệu | Có thể mang nghĩa đặt bio rỗng | Có thể là dữ liệu hợp lệ | Theo chính sách | Phải tách khỏi trường vắng mặt trong yêu cầu cập nhật |
+| `displayName` | Invalid | Invalid | Invalid | `strip()` and store normalized version | Return a clear error message when the name is invalid |
+| `password` | Invalid | Invalid | May be valid if policy allows | **Preserve** | Do not alter secret content unless explicitly required |
+| `searchQuery` | No filter | No filter | No filter | `strip()` | Normalize to "no filter" when empty/blank |
+| `comment` | Not provided | Empty comment provided | Keep or reject per business logic | Preserve by default | Do not implicitly merge the three states |
+| `update.bio` | May mean delete data | May mean set empty bio | May be valid data | Per policy | Must be distinguished from an absent field in update requests |
 
-Bảng này là **ví dụ thiết kế**, không phải luật chung của Java. Hợp đồng cần được ghi trong Javadoc, OpenAPI/schema, validation, tài liệu client hoặc nơi thích hợp của dự án.
+This table is a **design example**, not a universal rule of Java. The contract should be documented in Javadoc, OpenAPI/schema, validation, client docs, or the appropriate place in the project.
 
-Một số điều kiện cần thống nhất ở cả **client, server, database**: một chuỗi rỗng có được lưu thành `""` hay thành `NULL`; có cắt khoảng trắng khi validate nhưng không cắt khi lưu; lỗi trả về loại gì; và cách biểu diễn một trường không hiện diện trong JSON.
+Several conditions need to be agreed upon across **client, server, and database**: whether an empty string is stored as `""` or `NULL`; whether whitespace is stripped during validation but not when storing; what kind of error is returned; and how an absent field is represented in JSON.
 
-## 4. Chiến lược xử lý: Reject, Normalize, Preserve
+## 4. Handling strategies: Reject, Normalize, Preserve
 
-### 4.1. Reject — từ chối các trạng thái không hợp lệ
+### 4.1. Reject — reject invalid states
 
-Dùng cho trường bắt buộc có dữ liệu có ý nghĩa, ví dụ tên hiển thị:
+Used for required fields with meaningful data, such as display names:
 
 ```java
 import java.util.Objects;
@@ -83,13 +83,13 @@ static String requireNonBlankName(String raw) {
 }
 ```
 
-`Objects.requireNonNull` chủ động ném `NullPointerException` với thông điệp khi `raw` là null. `IllegalArgumentException` báo giá trị không phù hợp điều kiện nghiệp vụ. Đây là cách thiết kế cho một utility nội bộ; tại ranh giới HTTP, ứng dụng thường chuyển lỗi validation thành phản hồi 4xx có cấu trúc.
+`Objects.requireNonNull` proactively throws `NullPointerException` with a message when `raw` is null. `IllegalArgumentException` reports a value that violates business conditions. This is a design for an internal utility; at an HTTP boundary, applications usually translate validation errors into structured 4xx responses.
 
-**Quan trọng:** Kiểm tra `raw.isBlank()` có thể từ chối blank trước khi chuẩn hóa, nhưng ví dụ trên kiểm tra chuỗi **sau khi strip** vì hợp đồng yêu cầu lưu chuỗi đã bỏ khoảng trắng đầu/cuối. Hai cách thống nhất với nhau khi dùng cùng quy tắc whitespace.
+**Important:** Checking `raw.isBlank()` can reject blank values before normalization, whereas the example above checks the string **after stripping** because the contract requires storing the string without leading/trailing whitespace. The two approaches are consistent when using the same whitespace rule.
 
-### 4.2. Normalize — chủ động gộp các trạng thái
+### 4.2. Normalize — intentionally merge states
 
-Một ô tìm kiếm tùy chọn có thể định nghĩa “không có bộ lọc” khi query bằng `null`, rỗng hoặc toàn dấu cách:
+An optional search box can define "no filter" when the query is `null`, empty, or all spaces:
 
 ```java
 static String normalizeOptionalQuery(String raw) {
@@ -101,13 +101,13 @@ static String normalizeOptionalQuery(String raw) {
 }
 ```
 
-Bây giờ cả `null`, `""` và `" \t "` đều cho `null`, còn `"  java  "` cho `"java"`. Đây là **quyết định nghiệp vụ cố ý**, không phải chuẩn hóa bắt buộc cho mọi tham số String. Nếu cần lưu vết người dùng đã chủ động gửi chuỗi rỗng, không được dùng cách gộp này.
+Now `null`, `""`, and `" \t "` all yield `null`, while `"  java  "` yields `"java"`. This is an **intentional business decision**, not a mandatory normalization for every String parameter. If you need to record that the user explicitly sent an empty string, do not use this merging approach.
 
-Nếu hợp đồng muốn **mọi trường đầu ra đều khác null**, có thể trả `""` để biểu diễn “không có nội dung”, nhưng phải ghi rõ điều đó và hiểu rằng đã mất phân biệt giữa absent và empty.
+If the contract wants **every output field to be non-null**, it can return `""` to represent "no content", but it must state that clearly and accept that the distinction between absent and empty is lost.
 
-### 4.3. Preserve — giữ nguyên, chỉ kiểm tra điều kiện cần
+### 4.3. Preserve — keep intact, only check necessary conditions
 
-Với mật khẩu (trong một chính sách cho phép dấu cách), không tự động strip:
+For passwords (under a policy that allows spaces), do not automatically strip:
 
 ```java
 static String requireNonEmptyPassword(String raw) {
@@ -115,17 +115,17 @@ static String requireNonEmptyPassword(String raw) {
     if (raw.isEmpty()) {
         throw new IllegalArgumentException("password must not be empty");
     }
-    return raw; // Giữ nguyên cả khoảng trắng và các ký tự Unicode.
+    return raw; // Preserve both spaces and Unicode characters.
 }
 ```
 
-Trong hệ thống thực, có thể yêu cầu độ dài, độ phức tạp, danh sách ký tự hợp lệ và giới hạn kích thước theo chính sách xác thực. Ví dụ này chỉ minh họa **hợp đồng chuỗi**, không khuyến nghị mật khẩu chỉ có khoảng trắng.
+In a real system, length, complexity, allowed character lists, and size limits may be required per authentication policy. This example only illustrates the **string contract**, not a recommendation for whitespace-only passwords.
 
-Tương tự, mã định danh, token, chữ ký, nội dung được hash, văn bản giàu định dạng hoặc khoảng trắng có ý nghĩa **không nên** được tự ý `strip()`, `toLowerCase()` hay chuẩn hóa Unicode.
+Similarly, identifiers, tokens, signatures, hashed content, rich-formatted text, or meaningful whitespace **should not** be arbitrarily `strip()`ped, `toLowerCase()`d, or Unicode-normalized.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh
+## 5. Complete Java 17+ example
 
-Tạo file **`StringInputPolicyDemo.java`**:
+Create the file **`StringInputPolicyDemo.java`**:
 
 ```java
 import java.util.Objects;
@@ -195,7 +195,7 @@ public class StringInputPolicyDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 StringInputPolicyDemo.java
@@ -218,20 +218,20 @@ nbsp-isBlank=false
 name-error=name must not be blank
 ```
 
-Các kết quả đã được đối chiếu trên JDK với API có trong Java 17:
+The results have been verified on the JDK with APIs available in Java 17:
 
-- `kind` kiểm tra `null` trước, rồi `isEmpty`, rồi `isBlank` nên không bị `NullPointerException` và giữ đủ bốn trạng thái.
-- Tên được `strip` thành `Lan`; mật khẩu gồm ba dấu cách vẫn giữ độ dài 3, bởi hợp đồng hiện tại chỉ cấm rỗng.
-- Query blank được hợp đồng gộp thành `null`.
-- `\u2003` là EM SPACE được `strip()` nhận diện; `trim()` chỉ loại một số ký tự có mã nhỏ hơn hoặc bằng U+0020 nên không loại nó.
-- `\u00A0` là NO-BREAK SPACE: trong Java, `Character.isWhitespace` không coi nó là whitespace, nên `isBlank()` trả `false`. Cần hiểu rõ định nghĩa “trắng” trong hợp đồng thay vì suy ra theo cảm nhận hiển thị.
-- Một tên toàn whitespace thông thường bị từ chối và nhận lỗi có thông điệp.
+- `kind` checks `null` first, then `isEmpty`, then `isBlank`, so it avoids `NullPointerException` and preserves all four states.
+- The name is `strip`ped to `Lan`; the three-space password retains length 3 because the current contract only forbids empty.
+- The blank query is merged into `null` by the contract.
+- `\u2003` is EM SPACE, recognized by `strip()`; `trim()` only removes characters with code less than or equal to U+0020 so it does not remove it.
+- `\u00A0` is NO-BREAK SPACE: in Java, `Character.isWhitespace` does not treat it as whitespace, so `isBlank()` returns `false`. You must clearly understand the definition of "blank" in the contract rather than inferring from visual appearance.
+- A standard whitespace-only name is rejected and receives an error with a message.
 
-## 6. Phân biệt trim(), strip() và isBlank() trong Unicode
+## 6. Distinguishing trim(), strip(), and isBlank() in Unicode
 
-### 6.1. trim() có tiêu chí lịch sử hẹp hơn
+### 6.1. trim() has narrower historical criteria
 
-`String.trim()` loại ký tự ở hai đầu có mã `<= U+0020` theo đặc tả Java. `strip()` (Java 11+) dựa trên `Character.isWhitespace`; vì thế kết quả khác với một số dấu cách Unicode.
+`String.trim()` removes characters at both ends with code `<= U+0020` per the Java specification. `strip()` (Java 11+) is based on `Character.isWhitespace`; therefore results differ for some Unicode spaces.
 
 ```java
 String input = "\u2003Java\u2003";
@@ -240,11 +240,11 @@ System.out.println(input.trim().length());  // 6
 System.out.println(input.strip().length()); // 4
 ```
 
-Không phải tất cả ký tự thường gọi là “space” đều được `Character.isWhitespace` coi là whitespace: **NO-BREAK SPACE (U+00A0)** là ví dụ. Nếu hệ thống cần định nghĩa “trắng” theo quy tắc đặc thù (ví dụ coi U+00A0 là blank), hãy xây dựng validator chuẩn hóa theo một đặc tả được thống nhất và kiểm tra độc lập.
+Not all characters commonly called "space" are considered whitespace by `Character.isWhitespace`: **NO-BREAK SPACE (U+00A0)** is an example. If the system needs to define "blank" according to custom rules (for example treating U+00A0 as blank), build a validator normalized to an agreed specification and test it independently.
 
-### 6.2. isBlank() không làm thay đổi chuỗi
+### 6.2. isBlank() does not modify the string
 
-`"  A  ".isBlank()` là `false`, vì có ký tự `A`. `isBlank()` không loại bỏ khoảng trắng ở hai đầu; `strip()` mới trả chuỗi mới sau chuẩn hóa. Đừng nhầm **kiểm tra** với **biến đổi**.
+`"  A  ".isBlank()` is `false`, because it contains the character `A`. `isBlank()` does not remove leading/trailing whitespace; `strip()` is what returns a new normalized string. Do not confuse **checking** with **transforming**.
 
 ```java
 String value = "  A  ";
@@ -253,27 +253,27 @@ System.out.println("[" + value.strip() + "]"); // [A]
 System.out.println("[" + value + "]");       // [  A  ]
 ```
 
-`String` là immutable: `strip()` không thay đổi biến `value`. Muốn lưu bản chuẩn hóa, phải sử dụng giá trị trả về.
+`String` is immutable: `strip()` does not modify the `value` variable. To store the normalized version, you must use the return value.
 
-### 6.3. Không dùng isEmpty() để kiểm tra “người dùng chưa nhập”
+### 6.3. Do not use isEmpty() to check "user has not entered anything"
 
-Chuỗi `"    "` không rỗng, vì có ký tự. Nếu một form coi chuỗi toàn dấu cách là không hợp lệ, dùng `isBlank()` (sau kiểm tra null) hoặc `strip().isEmpty()`. Ngược lại, với dữ liệu nhạy với whitespace, chỉ dùng `isEmpty()` nếu hợp đồng yêu cầu.
+The string `"    "` is not empty, because it has characters. If a form considers an all-space string invalid, use `isBlank()` (after null check) or `strip().isEmpty()`. Conversely, for whitespace-sensitive data, only use `isEmpty()` if the contract requires it.
 
-## 7. Null trong tham số, giá trị trả về và trạng thái cập nhật
+## 7. Null in parameters, return values, and update state
 
-### 7.1. Tham số bắt buộc và tùy chọn
+### 7.1. Required and optional parameters
 
-Với tham số bắt buộc, API nên nêu rõ “non-null” và điều kiện rỗng/trắng. Một hàm nhận tên hiển thị có thể dùng Javadoc:
+For required parameters, the API should clearly state "non-null" and empty/blank conditions. A function accepting a display name can use Javadoc:
 
 ```java
 /**
- * Lưu tên hiển thị sau khi strip khoảng trắng hai đầu.
+ * Stores the display name after stripping leading and trailing whitespace.
  *
- * @param name giá trị non-null, sau strip phải có ít nhất một ký tự
- *             không phải whitespace theo Character.isWhitespace
- * @return tên đã chuẩn hóa, khác null và không blank
- * @throws NullPointerException nếu name là null
- * @throws IllegalArgumentException nếu name blank
+ * @param name non-null value; after stripping must have at least one character
+ *             that is not whitespace per Character.isWhitespace
+ * @return normalized name, non-null and non-blank
+ * @throws NullPointerException if name is null
+ * @throws IllegalArgumentException if name is blank
  */
 static String validateDisplayName(String name) {
     Objects.requireNonNull(name, "name");
@@ -285,9 +285,9 @@ static String validateDisplayName(String name) {
 }
 ```
 
-Đây là đoạn phương thức độc lập về ý nghĩa nhưng cần đặt trong một class để biên dịch. Đối với API công khai, có thể chọn cùng một kiểu lỗi validation cho cả null và blank, miễn là **hợp đồng và test thể hiện nhất quán**; ví dụ trên cố ý phân biệt lỗi do null và do giá trị không hợp lệ.
+This is a logically standalone method snippet that needs to be placed inside a class to compile. For public APIs, you may choose the same validation error type for both null and blank, provided **the contract and tests express it consistently**; the example above intentionally distinguishes errors caused by null from invalid values.
 
-Với giá trị **trả về**, nên thống nhất liệu `null` biểu thị “không tìm thấy” hay ngoại lệ, `""` có phải giá trị hợp lệ không. Có thể dùng `Optional<String>` cho kết quả có thể không hiện diện:
+For **return values**, agree on whether `null` means "not found" or an exception, and whether `""` is a valid value. You can use `Optional<String>` for results that may be absent:
 
 ```java
 static java.util.Optional<String> normalizedQuery(String raw) {
@@ -298,80 +298,80 @@ static java.util.Optional<String> normalizedQuery(String raw) {
 }
 ```
 
-`Optional.empty()` cho phép thể hiện “không có kết quả” rõ ràng; nhưng nó cũng **gộp** null và blank theo chính sách. `Optional` không tự thay thế việc quyết định rỗng/trắng, và không cần dùng ở mọi field hoặc tham số chỉ để né thiết kế hợp đồng.
+`Optional.empty()` makes it possible to express "no result" explicitly; however, it also **merges** null and blank according to policy. `Optional` does not replace making decisions about empty/blank, and does not need to be used on every field or parameter just to avoid designing a contract.
 
-### 7.2. API cập nhật từng phần cần phân biệt vắng mặt với null
+### 7.2. Partial update APIs must distinguish absent from null
 
-Giả sử một request cập nhật hồ sơ có trường `bio`. Ba trạng thái đầu vào có thể mang nghĩa:
+Suppose a profile update request has a `bio` field. Input states can carry these meanings:
 
-| Trạng thái request | Ý nghĩa ví dụ |
+| Request State | Example Meaning |
 | --- | --- |
-| Không có thuộc tính `bio` | Giữ nguyên bio hiện tại |
-| Có `bio: null` | Xóa/clear bio (nếu API cho phép) |
-| Có `bio: ""` | Đặt bio thành chuỗi rỗng |
-| Có `bio: "   "` | Đặt thành ba dấu cách hoặc từ chối theo quy định |
+| Property `bio` is absent | Keep current bio unchanged |
+| `bio: null` is present | Delete/clear bio (if the API allows) |
+| `bio: ""` is present | Set bio to empty string |
+| `bio: "   "` is present | Set to three spaces or reject per rule |
 
-Một đối tượng chỉ có field `String bio` đôi khi không thể phân biệt **vắng mặt** với **có mặt nhưng null** sau khi deserialization. Nếu hợp đồng cần phân biệt, request model phải mang cả trạng thái **field present** và giá trị của nó, hoặc dùng một cơ chế cập nhật có ngữ nghĩa định nghĩa rõ như JSON Merge Patch. Không tự coi `null` là “không cập nhật” nếu protocol quy định `null` là “xóa”.
+An object with only a `String bio` field sometimes cannot distinguish **absent** from **present but null** after deserialization. If the contract needs to distinguish them, the request model must carry both the **field present** state and its value, or use an update mechanism with well-defined semantics such as JSON Merge Patch. Do not assume `null` means "do not update" if the protocol defines `null` as "delete".
 
-### 7.3. Đừng biến null thành empty ở quá nhiều tầng
+### 7.3. Do not convert null to empty across too many layers
 
-Nếu HTTP binder, service và repository mỗi nơi tự dùng một quy tắc khác nhau, dữ liệu có thể thay đổi ý nghĩa giữa các tầng. Nên chuẩn hóa ở một **ranh giới có hợp đồng rõ**, rồi truyền giá trị đã được validate vào lớp sau dưới invariant được mô tả. Ví dụ service nhận `displayName` đã non-null và non-blank; repository không tự gọi `strip()` một lần nữa theo một tiêu chí khác.
+If the HTTP binder, service, and repository each apply a different rule, data can change meaning between layers. Normalize at a **boundary with a clear contract**, then pass the validated value to subsequent layers under a documented invariant. For example, the service receives `displayName` already non-null and non-blank; the repository does not call `strip()` again using a different criterion.
 
-## 8. Lỗi và cách thông báo cho caller
+## 8. Errors and how to notify the caller
 
-Một API tốt nêu rõ phản ứng khi dữ liệu không hợp lệ:
+A good API clearly states how it responds to invalid data:
 
-- **Java method nội bộ:** `Objects.requireNonNull` hoặc kiểm tra thủ công; `IllegalArgumentException` cho vi phạm giá trị; thông điệp xác định tên trường và yêu cầu. Thống nhất loại lỗi trong cùng nhóm API.
-- **REST/HTTP:** một lỗi xác thực input thường được map sang mã lỗi phía client (thường là HTTP 400 hoặc mã phù hợp quy ước API) kèm field, reason/code và thông điệp rõ ràng. Không phơi bày dữ liệu bí mật trong lỗi hoặc log.
-- **Validation ở DTO/schema:** khai báo điều kiện phù hợp (`non-null`, `non-empty`, `non-blank`) rồi đảm bảo cấu hình binder và validation thực sự chạy. Trong Jakarta Bean Validation, các annotation thường dùng là `@NotNull`, `@NotEmpty` và `@NotBlank`; đây là **thư viện phụ thuộc**, không phải annotation Java SE 17 có sẵn.
-- **Database:** kiểm tra khả năng lưu `NULL`/`""`, ràng buộc cột và quy tắc so sánh. Một số hệ quản trị có cách xử lý chuỗi rỗng khác nhau; đừng dựa vào giả định giữa các database.
+- **Internal Java methods:** `Objects.requireNonNull` or manual checks; `IllegalArgumentException` for value violations; messages identifying the field name and requirement. Keep error types consistent within the same API group.
+- **REST/HTTP:** an input validation error is typically mapped to a client-side error status (usually HTTP 400 or a code matching API conventions) with field, reason/code, and clear message. Do not expose secret data in errors or logs.
+- **Validation on DTO/schema:** declare appropriate constraints (`non-null`, `non-empty`, `non-blank`) and ensure binder and validation configurations actually execute. In Jakarta Bean Validation, common annotations are `@NotNull`, `@NotEmpty`, and `@NotBlank`; these are **library dependencies**, not built-in Java SE 17 annotations.
+- **Database:** check support for storing `NULL`/`""`, column constraints, and comparison rules. Some DBMSs handle empty strings differently; do not rely on assumptions across databases.
 
-Không trả “invalid” chung chung nếu client cần biết trường nào sai. Nhưng khi field chứa password, token hoặc dữ liệu nhạy cảm, thông điệp và log không nên chép toàn bộ input.
+Do not return a generic "invalid" if the client needs to know which field failed. However, when a field holds a password, token, or sensitive data, messages and logs should not echo the entire input.
 
-## 9. Thiết kế test theo bảng trạng thái
+## 9. Designing tests from a state table
 
-Đối với một tham số, các trường hợp test nên bao phủ cả **trạng thái** và **biến thể ký tự trắng**. Ví dụ hợp đồng `requireNonBlankName`:
+For a parameter, test cases should cover both **states** and **whitespace character variants**. Example for the `requireNonBlankName` contract:
 
-| Đầu vào | Kết quả mong đợi |
+| Input | Expected Result |
 | --- | --- |
-| `null` | `NullPointerException` theo hợp đồng ví dụ |
+| `null` | `NullPointerException` per example contract |
 | `""` | `IllegalArgumentException` |
 | `"   "` | `IllegalArgumentException` |
 | `"\t\n"` | `IllegalArgumentException` |
-| `" A "` | Trả `"A"` |
-| `"A B"` | Giữ khoảng trắng nội bộ, trả `"A B"` |
-| `"\u2003A\u2003"` | Trả `"A"` |
-| `"\u00A0"` | Không được coi là blank bằng `isBlank()` mặc định; cần quyết định nghiệp vụ |
-| Chuỗi quá dài | Có thể bị từ chối nếu hợp đồng đặt giới hạn độ dài |
+| `" A "` | Returns `"A"` |
+| `"A B"` | Preserves internal whitespace, returns `"A B"` |
+| `"\u2003A\u2003"` | Returns `"A"` |
+| `"\u00A0"` | Not treated as blank by default `isBlank()`; requires a business decision |
+| Overly long string | May be rejected if the contract sets a length limit |
 
-Nếu có giới hạn độ dài, nêu rõ **đơn vị đo**: `String.length()` đếm **UTF-16 code unit**, không nhất thiết bằng số Unicode code point hoặc số ký tự người dùng nhìn thấy. Ví dụ một emoji ngoài BMP thường có `length() == 2` và `codePointCount(...) == 1`. Không dùng một tiêu chí độ dài để diễn giải thành tiêu chí khác.
+If there is a length limit, state the **unit of measurement**: `String.length()` counts **UTF-16 code units**, not necessarily the number of Unicode code points or user-perceived characters. For example, a non-BMP emoji typically has `length() == 2` and `codePointCount(...) == 1`. Do not use one length criterion and interpret it as another.
 
-Tránh viết test chỉ chứng minh `String.isBlank()` hoạt động theo JDK; test có giá trị là xác nhận **hợp đồng nghiệp vụ của API**, gồm cả lỗi, chuẩn hóa và hành vi bảo toàn whitespace.
+Avoid writing tests that only prove `String.isBlank()` works as specified by the JDK; valuable tests verify the **business contract of the API**, including errors, normalization, and whitespace preservation behavior.
 
-## 10. Những sai lầm phổ biến
+## 10. Common mistakes
 
-1. **Gọi `s.isBlank()` khi `s` có thể là null.** Kết quả là `NullPointerException` ngoài ý muốn. Kiểm tra null trước hoặc đặt invariant non-null ngay đầu method.
-2. **Coi `isEmpty()` và `isBlank()` như nhau.** `"  "` không empty nhưng blank.
-3. **Coi null và chuỗi rỗng là một.** Có thể làm mất ý nghĩa “chưa cung cấp” so với “cung cấp rỗng”, nhất là trong cập nhật.
-4. **Luôn strip mọi input.** Có thể thay đổi mật khẩu, token, định danh, chữ ký hoặc nội dung được yêu cầu giữ nguyên.
-5. **Chỉ kiểm tra blank rồi không dùng bản chuẩn hóa.** Nếu yêu cầu đầu ra phải bỏ khoảng trắng hai đầu, phải trả/lưu giá trị của `strip()`.
-6. **Nhầm `trim()` và `strip()`.** Hai phương thức khác nhau ở một số Unicode whitespace; không phải tất cả ký tự trông như khoảng trắng đều bị loại bởi `strip()`.
-7. **Tự động biến mọi blank thành null mà không có thỏa thuận.** Có thể làm mất dữ liệu người dùng đã chủ động gửi.
-8. **Định nghĩa null khác nhau giữa Java service và HTTP/JSON.** Tham số String không đủ thể hiện mọi trạng thái field-present; phải giữ trạng thái hiện diện nếu cần.
-9. **Giả định annotation validation tự hoạt động.** `@NotBlank` yêu cầu framework/provider được cấu hình và thực thi; Java SE không tự áp dụng ràng buộc đó.
-10. **Trả lỗi không nhất quán.** Một API từ chối null bằng NPE, API khác âm thầm đổi thành rỗng; người dùng và hệ thống tích hợp khó dự đoán.
-11. **Bỏ qua chuỗi Unicode đặc biệt.** U+00A0, U+2003, zero-width characters và normalization có thể dẫn đến kết quả khác với kỳ vọng. Hãy định nghĩa nhóm ký tự được chấp nhận nếu có yêu cầu bảo mật hoặc nghiệp vụ.
-12. **Hiểu sai kích thước String.** `length()` đo đơn vị UTF-16; API có quy định số ký tự hiển thị nên chọn tiêu chí và test thích hợp.
+1. **Calling `s.isBlank()` when `s` may be null.** The result is an unexpected `NullPointerException`. Check null first or establish a non-null invariant at the start of the method.
+2. **Treating `isEmpty()` and `isBlank()` as identical.** `"  "` is not empty, yet it is blank.
+3. **Treating null and empty string as the same.** This can lose the distinction between "not provided" and "provided as empty", especially in updates.
+4. **Always stripping every input.** This can alter passwords, tokens, identifiers, signatures, or content meant to be preserved.
+5. **Checking blank only and not using the normalized copy.** If the output must drop leading/trailing whitespace, you must return/store the result of `strip()`.
+6. **Confusing `trim()` and `strip()`.** The two methods differ on certain Unicode whitespace; not all characters that look like spaces are removed by `strip()`.
+7. **Automatically converting every blank to null without agreement.** This can discard data the user intentionally submitted.
+8. **Defining null differently between Java services and HTTP/JSON.** A String parameter is not enough to express all field-present states; preserve presence state if needed.
+9. **Assuming validation annotations work automatically.** `@NotBlank` requires a configured and executing framework/provider; Java SE does not enforce that constraint by itself.
+10. **Returning inconsistent errors.** One API rejects null with NPE while another silently converts it to empty; users and integrating systems struggle to predict behavior.
+11. **Ignoring special Unicode strings.** U+00A0, U+2003, zero-width characters, and normalization can produce unexpected results. Define the accepted character set if there are security or business requirements.
+12. **Misunderstanding String size.** `length()` measures UTF-16 units; APIs regulating visible character counts should choose appropriate criteria and tests.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-check exercises
 
-### Bài 1 — Phân loại chính xác bốn trường hợp
+### Exercise 1 — Accurately classify four cases
 
-Viết `kind(String)` để phân loại `null` → `NULL`, `""` → `EMPTY`, `" \t"` → `BLANK`, `"x"` → `TEXT`. Giải pháp có trong chương trình `StringInputPolicyDemo`: kiểm tra null trước, tiếp đến empty, rồi blank. Nếu kiểm tra `isBlank` trước `isEmpty` thì chuỗi rỗng sẽ bị xếp chung vào BLANK và làm mất một trạng thái cần phân biệt.
+Write `kind(String)` to classify `null` → `NULL`, `""` → `EMPTY`, `" \t"` → `BLANK`, `"x"` → `TEXT`. The solution is in the `StringInputPolicyDemo` program: check null first, followed by empty, then blank. If you check `isBlank` before `isEmpty`, the empty string will be grouped into BLANK and one state needing distinction will be lost.
 
-### Bài 2 — Thiết kế chính sách nhập tag
+### Exercise 2 — Design a tag input policy
 
-Đề bài: tag phải có nội dung sau khi loại khoảng trắng đầu/cuối, được viết thường (cho tag ASCII), null không hợp lệ.
+Problem: a tag must have content after removing leading/trailing whitespace, be lowercased (for ASCII tags), and null is invalid.
 
 ```java
 static String normalizeAsciiTag(String raw) {
@@ -384,33 +384,33 @@ static String normalizeAsciiTag(String raw) {
 }
 ```
 
-Đây là đoạn phương thức. `Locale.ROOT` giúp phép biến đổi chữ hoa/thường độc lập locale mặc định, nhưng không tự bảo đảm đúng mọi quy tắc định danh Unicode phức tạp. Chỉ dùng chuẩn hóa chữ thường khi hợp đồng tag thật sự không phân biệt chữ hoa.
+This is a method snippet. `Locale.ROOT` makes case conversion independent of the default locale, though it does not automatically guarantee correctness for all complex Unicode identifier rules. Only use lowercase normalization when the tag contract is truly case-insensitive.
 
-### Bài 3 — Dữ liệu trống trong PATCH
+### Exercise 3 — Empty data in PATCH
 
-Một request không có `nickname`, một request có `nickname: null`, một request có `nickname: ""`. Hãy thiết kế ý nghĩa cho từng trường hợp trước khi viết DTO. Gợi ý: “giữ nguyên”, “xóa”, “đặt rỗng” là một cách phân biệt; nếu cả null và rỗng đều có nghĩa là xóa, đó phải là quy tắc được ghi trong hợp đồng.
+One request omits `nickname`, one request has `nickname: null`, and one request has `nickname: ""`. Design the meaning for each case before writing the DTO. Hint: "keep unchanged", "delete", and "set empty" is one way to distinguish them; if both null and empty mean delete, that must be a rule documented in the contract.
 
-### Bài 4 — Password có dấu cách
+### Exercise 4 — Password with spaces
 
-Với `password = "  secret  "`, tại sao gọi `strip()` trước khi đối chiếu hash có thể sai? Vì đã thay đổi dữ liệu mà người dùng nhập. Hệ thống xác thực phải dùng quy tắc chuẩn hóa được công bố và nhất quán từ lúc thiết lập đến lúc kiểm tra, chứ không tự bỏ ký tự.
+With `password = "  secret  "`, why can calling `strip()` before verifying the hash be wrong? Because it altered the data the user entered. An authentication system must use a published and consistent normalization rule from setup through verification, rather than silently dropping characters.
 
-### Bài 5 — Trường hiển thị toàn whitespace Unicode
+### Exercise 5 — Display field containing only Unicode whitespace
 
-Một form nhận `"\u2003"` (EM SPACE) và `"\u00A0"` (NO-BREAK SPACE). `String.isBlank()` coi trường hợp đầu là blank nhưng không coi trường hợp thứ hai là blank. Hãy quyết định rõ trường hợp thứ hai được phép hay cần validator tùy biến; kết quả không thể suy ra chỉ từ “trông như khoảng trắng”.
+A form receives `"\u2003"` (EM SPACE) and `"\u00A0"` (NO-BREAK SPACE). `String.isBlank()` considers the first blank but does not consider the second blank. Explicitly decide whether the second case is allowed or needs a custom validator; the outcome cannot be inferred solely from "looks like whitespace".
 
-## 12. Checklist khi công bố API
+## 12. Checklist when publishing an API
 
-Trước khi triển khai một tham số hoặc field kiểu `String`, hãy kiểm tra:
+Before implementing a `String` parameter or field, check:
 
-- Có cho phép **null**, **empty** và **blank** một cách độc lập không?
-- Có phân biệt **field absent** với **field present = null** trong thao tác cập nhật không?
-- Có giữ hay loại whitespace ở đầu/cuối, khoảng trắng bên trong và ký tự Unicode đặc biệt không?
-- Chuẩn hóa được thực hiện ở đâu, trước hay sau validation, và giá trị nào được truyền sang tầng tiếp theo?
-- Giá trị không hợp lệ tạo lỗi gì, có thể dự đoán được không, có rò dữ liệu nhạy cảm không?
-- Kết quả có bất biến/invariant nào, ví dụ “tên đã normalize, non-null, non-blank”?
-- Độ dài tối đa được đo bằng UTF-16 code unit, Unicode code point hay quy tắc khác?
-- Các ví dụ, schema, test và tài liệu client có dùng cùng chính sách không?
+- Are **null**, **empty**, and **blank** allowed independently?
+- Are **absent field** and **present field = null** distinguished in update operations?
+- Are leading/trailing whitespace, internal spaces, and special Unicode characters kept or removed?
+- Where is normalization performed, before or after validation, and what value is passed to the next layer?
+- What error do invalid values produce, is it predictable, and does it leak sensitive data?
+- Does the result have any invariants, such as "normalized, non-null, non-blank name"?
+- Is maximum length measured in UTF-16 code units, Unicode code points, or another rule?
+- Do examples, schemas, tests, and client documentation use the same policy?
 
-**Kết luận:** `null`, `""` và chuỗi chỉ chứa whitespace có ý nghĩa khác nhau. Java cung cấp `isEmpty()`, `isBlank()`, `trim()`, `strip()` và `Objects.requireNonNull()`, nhưng **chính API phải quyết định lúc nào từ chối, chuẩn hóa hay giữ nguyên**. Viết hợp đồng rõ ràng giúp caller dự đoán chính xác dữ liệu được chấp nhận, lưu giữ và trả về, đặc biệt khi có Unicode, cập nhật từng phần và nhiều tầng hệ thống.
+**Conclusion:** `null`, `""`, and whitespace-only strings have distinct meanings. Java provides `isEmpty()`, `isBlank()`, `trim()`, `strip()`, and `Objects.requireNonNull()`, but **the API itself must decide when to reject, normalize, or preserve**. Writing a clear contract helps callers accurately predict what data is accepted, stored, and returned, especially with Unicode, partial updates, and multi-layered systems.
 
-**Tài liệu tham khảo:** [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [Java SE 17 — Character.isWhitespace](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html#isWhitespace(int)), [Java SE 17 — Objects.requireNonNull](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#requireNonNull(T,java.lang.String)), [Java SE 17 — Optional](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html).
+**References:** [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [Java SE 17 — Character.isWhitespace](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html#isWhitespace(int)), [Java SE 17 — Objects.requireNonNull](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#requireNonNull(T,java.lang.String)), [Java SE 17 — Optional](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html).

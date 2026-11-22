@@ -1,14 +1,14 @@
-# `String.trim()` và tập ký tự không vượt `U+0020` trong Java
+# `String.trim()` and the Character Set Up to `U+0020` in Java
 
-## 1. `trim()` dùng để làm gì?
+## 1. What is `trim()` used for?
 
-Khi nhận chuỗi có khoảng trắng hoặc một số ký tự điều khiển ở **đầu và cuối**, ta thường cần loại bỏ chúng trước khi hiển thị, kiểm tra hoặc xử lý tiếp. Lớp `java.lang.String` có phương thức:
+When receiving a string with whitespace or certain control characters at the **beginning and end**, we often need to remove them before displaying, validating, or further processing. The `java.lang.String` class provides the method:
 
 ```java
 public String trim()
 ```
 
-`trim()` trả về một chuỗi có nội dung được cắt bỏ từ **đầu** và **cuối** theo quy tắc xác định bởi Java: loại bỏ liên tiếp những `char` có giá trị **không lớn hơn `U+0020`** (tức `0x0000` đến `0x0020`, bao gồm hai đầu). Phương thức không xóa các ký tự tương tự nếu chúng nằm **ở giữa** nội dung.
+`trim()` returns a string whose content is trimmed from the **beginning** and **end** according to a rule defined by Java: consecutively removing `char` values **less than or equal to `U+0020`** (i.e., `0x0000` through `0x0020`, inclusive). The method does not remove similar characters if they appear **in the middle** of the content.
 
 ```java
 String original = " \tJava Core\n ";
@@ -17,96 +17,96 @@ String cleaned = original.trim();
 System.out.println("[" + cleaned + "]"); // [Java Core]
 ```
 
-Giá trị trả về là `"Java Core"`; dấu cách đầu, tab `\t`, ký tự xuống dòng `\n` và dấu cách cuối bị loại. Dấu cách **giữa** hai từ vẫn còn.
+The return value is `"Java Core"`; the leading space, tab `\t`, newline character `\n`, and trailing space are removed. The space **between** the two words remains.
 
-**Điểm mấu chốt:** Tên `trim` dễ làm ta nghĩ nó xử lý toàn bộ “khoảng trắng Unicode”. Thực tế, tiêu chí của `String.trim()` chính là giá trị số của **UTF-16 `char`**, không phải một phép phân loại “whitespace” theo Unicode.
+**Key point:** The name `trim` easily leads people to think it handles all “Unicode whitespace.” In reality, `String.trim()` uses a numeric threshold on **UTF-16 `char`** values, not a Unicode “whitespace” classification.
 
-## 2. Quy tắc chính xác: mọi `char` có giá trị `<= U+0020`
+## 2. The exact rule: every `char` with value `<= U+0020`
 
-`U+0020` là Unicode code point của dấu cách ASCII thông thường (`SPACE`), tương ứng giá trị thập phân `32`. Với `String.trim()`, những `char` có giá trị **từ `0` đến `32`** được xem là có thể cắt bỏ ở rìa chuỗi.
+`U+0020` is the Unicode code point of the regular ASCII space (`SPACE`), corresponding to the decimal value `32`. For `String.trim()`, `char` values **from `0` to `32`** are considered trimmable at the edges of the string.
 
-Nói cách khác:
+In other words:
 
 ```text
-Khoảng giá trị char bị trim ở đầu/cuối:
+Range of char values trimmed at the start/end:
 
 U+0000  U+0001  ...  U+001F  U+0020
   0       1              31      32
 |----------------------------------|
-         Được loại bỏ ở rìa
+         Removed at the edges
 ```
 
-Một số ví dụ:
+Some examples:
 
-| Ký tự / mã | Giá trị | `trim()` loại ở đầu/cuối? | Ý nghĩa |
+| Character / code | Value | Removed by `trim()` at start/end? | Meaning |
 |---|---:|---|---|
-| `U+0000` (NUL) | 0 | Có | Ký tự điều khiển NUL, không phải dấu cách |
-| `U+0009` (`\t`) | 9 | Có | Tab ngang |
-| `U+000A` (`\n`) | 10 | Có | Line feed |
-| `U+000D` (`\r`) | 13 | Có | Carriage return |
-| `U+001F` | 31 | Có | Ký tự điều khiển |
-| `U+0020` (`' '`) | 32 | Có | Dấu cách ASCII |
-| `U+0021` (`'!'`) | 33 | Không | Dấu chấm than |
-| `U+00A0` | 160 | Không | NO-BREAK SPACE (NBSP) |
-| `U+2003` | 8195 | Không | EM SPACE |
-| `U+3000` | 12288 | Không | IDEOGRAPHIC SPACE |
+| `U+0000` (NUL) | 0 | Yes | NUL control character, not a space |
+| `U+0009` (`\t`) | 9 | Yes | Horizontal tab |
+| `U+000A` (`\n`) | 10 | Yes | Line feed |
+| `U+000D` (`\r`) | 13 | Yes | Carriage return |
+| `U+001F` | 31 | Yes | Control character |
+| `U+0020` (`' '`) | 32 | Yes | ASCII space |
+| `U+0021` (`'!'`) | 33 | No | Exclamation mark |
+| `U+00A0` | 160 | No | NO-BREAK SPACE (NBSP) |
+| `U+2003` | 8195 | No | EM SPACE |
+| `U+3000` | 12288 | No | IDEOGRAPHIC SPACE |
 
-**Không chỉ có space, tab và newline:** Ký tự NUL (`U+0000`) cũng nằm trong khoảng bị `trim()` xóa, dù nó **không được coi là whitespace** theo `Character.isWhitespace(...)`. Đây là lý do định nghĩa “xóa whitespace” tuy thuận tiện nhưng chưa mô tả đúng toàn bộ hợp đồng của `trim()`.
+**Not just spaces, tabs, and newlines:** The NUL character (`U+0000`) also falls within the range deleted by `trim()`, even though it is **not considered whitespace** by `Character.isWhitespace(...)`. This is why saying “removes whitespace” is convenient yet does not accurately describe the full contract of `trim()`.
 
-Ngược lại, NBSP hoặc EM SPACE có thể nhìn giống dấu cách, nhưng giá trị `char` của chúng **lớn hơn** `U+0020`; `trim()` không xóa chúng.
+Conversely, NBSP or EM SPACE may look like a space, but their `char` values are **greater than** `U+0020`; `trim()` does not remove them.
 
-### Vì sao nói về `char`, không chỉ “ký tự Unicode”?
+### Why talk about `char`, and not just “Unicode characters”?
 
-Các API chỉ số và phép xử lý cơ bản của `String` trong Java được diễn đạt theo đơn vị mã **UTF-16** (`char`). Một `char` có giá trị không dấu từ `0` đến `65535`. `trim()` kiểm tra những đơn vị `char` ở rìa theo ngưỡng `U+0020`. Các ký tự Unicode bổ trợ như nhiều emoji được biểu diễn bằng hai `char` surrogate với giá trị lớn hơn ngưỡng này, vì vậy không bị cắt bỏ chỉ vì chúng là ký tự đặc biệt.
+The fundamental indexing and processing APIs of `String` in Java are expressed in **UTF-16** code units (`char`). A `char` has an unsigned value from `0` to `65535`. `trim()` checks the `char` units at the edges against the `U+0020` threshold. Supplementary Unicode characters such as many emojis are represented by two surrogate `char`s with values above this threshold, so they are not trimmed away just because they are special characters.
 
-## 3. `trim()` kiểm tra từ hai đầu vào giữa
+## 3. `trim()` checks inward from both ends
 
-Có thể hình dung phương thức tiến hành theo các bước:
+You can think of the method as proceeding in these steps:
 
-1. Bắt đầu từ ký tự đầu tiên. Khi ký tự đó có giá trị `<= U+0020`, bỏ qua và tiếp tục với ký tự sau.
-2. Xét từ cuối chuỗi về phía trước, bỏ qua liên tiếp các ký tự có giá trị `<= U+0020`.
-3. Giữ lại **đoạn liên tục nằm giữa hai ranh giới còn lại** và trả về dưới dạng `String`.
+1. Start from the first character. While that character has a value `<= U+0020`, skip it and move to the next character.
+2. Scan backward from the end of the string, skipping consecutive characters with values `<= U+0020`.
+3. Keep the **contiguous slice between the two remaining boundaries** and return it as a `String`.
 
-Đây là **mô hình diễn giải hành vi**, không phải yêu cầu rằng mọi bản JDK phải cài đặt thuật toán theo đúng số bước hoặc luôn sao chép dữ liệu.
+This is a **behavioral mental model**, not a requirement that every JDK version implement the algorithm in this exact number of steps or always copy data.
 
 ```text
-Giá trị đầu vào:
+Input value:
 
 [TAB] [SPACE] [SPACE] J a v a [SPACE] C o r e [LF] [SPACE]
  \__________________/ |________________| \__________/
-     trim ở đầu          Giữ nguyên       trim ở cuối
+   trimmed at start        Preserved       trimmed at end
 
-Giá trị trả về:
+Return value:
 
 J a v a [SPACE] C o r e
 ```
 
-Vì chỉ cắt **đầu và cuối**, một chuỗi có nhiều khoảng trắng giữa hai từ vẫn giữ nguyên phần ở giữa:
+Because it only trims at the **start and end**, a string with multiple whitespace characters between two words keeps the middle portion intact:
 
 ```java
 String s = " \tA \t B\n";
 String result = s.trim();
 
-// result chứa: A, dấu cách, tab, dấu cách, B
+// result contains: A, space, tab, space, B
 ```
 
-`trim()` **không** chuẩn hóa nhiều dấu cách giữa các từ thành một, không xóa mọi khoảng trắng trong văn bản và không thực hiện “clean” toàn bộ chuỗi.
+`trim()` **does not** collapse multiple spaces between words into one, does not remove all whitespace inside the text, and does not “clean” the entire string.
 
-### Ba trường hợp ranh giới
+### Three boundary cases
 
 ```java
-"Java".trim()     // "Java": không có ký tự đầu/cuối cần cắt
-" \t ".trim()     // "": chỉ chứa các ký tự thuộc tập cần cắt
-"".trim()         // "": chuỗi đầu vào vốn rỗng
+"Java".trim()     // "Java": no leading/trailing characters to trim
+" \t ".trim()     // "": contains only characters in the trimmable set
+"".trim()         // "": input string is already empty
 ```
 
-Nếu toàn bộ chuỗi chỉ có các `char` không vượt `U+0020`, kết quả là chuỗi rỗng `""`. Đây là một chuỗi hợp lệ có `length() == 0`, **khác `null`**.
+If the entire string consists only of `char` values not exceeding `U+0020`, the result is the empty string `""`. This is a valid string with `length() == 0`, **distinct from `null`**.
 
-## 4. Ví dụ Java 17+ chạy được và nhìn thấy ký tự vô hình
+## 4. Runnable Java 17+ example that makes invisible characters visible
 
-Các dấu cách, tab, NUL và EM SPACE rất khó phân biệt trong stdout. Vì vậy ví dụ sau định nghĩa `visible(...)` để đổi những ký tự đang quan sát thành nhãn dễ đọc; việc đổi nhãn này **chỉ phục vụ in kết quả**.
+Spaces, tabs, NUL, and EM SPACE are very hard to distinguish in stdout. Therefore, the following example defines `visible(...)` to convert the observed characters into readable labels; this label replacement **is solely for printing output**.
 
-Lưu thành **`TrimU0020Demo.java`**:
+Save as **`TrimU0020Demo.java`**:
 
 ```java
 public class TrimU0020Demo {
@@ -143,7 +143,7 @@ public class TrimU0020Demo {
         System.out.println("middle=" + visible(middle.trim()));
 
         String source = "  Java  ";
-        source.trim(); // Bỏ qua giá trị trả về
+        source.trim(); // Ignore return value
         System.out.println("discard=" + visible(source));
         source = source.trim();
         System.out.println("saved=" + visible(source));
@@ -151,14 +151,14 @@ public class TrimU0020Demo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 17 trở lên**:
+Compile and run with **JDK 17 or later**:
 
 ```bash
 javac -encoding UTF-8 TrimU0020Demo.java
 java TrimU0020Demo
 ```
 
-**Stdout (nhãn trong ngoặc vuông là cách minh họa ký tự vô hình):**
+**Stdout (labels in square brackets illustrate invisible characters):**
 
 ```text
 ASCII original=[TAB][SPACE][SPACE]Java[SPACE][SPACE][LF]
@@ -178,27 +178,27 @@ discard=[SPACE][SPACE]Java[SPACE][SPACE]
 saved=Java
 ```
 
-**Đọc kết quả:**
+**Reading the output:**
 
-- **ASCII:** tab, dấu cách và line feed ở rìa đều có mã `<= U+0020`, nên `trim()` và `strip()` cùng cho `"Java"`.
-- **NUL:** `trim()` xóa ký tự `U+0000` ở hai đầu. `strip()` giữ lại vì NUL không thỏa `Character.isWhitespace(...)`.
-- **NBSP:** cả hai phương thức trong ví dụ đều giữ NBSP (`U+00A0`), mặc dù trông giống khoảng trắng. Đây là giới hạn dễ bị bỏ sót khi xử lý văn bản sao chép từ trang web.
-- **EM SPACE:** `trim()` giữ `U+2003` vì lớn hơn ngưỡng; `strip()` loại bỏ vì `Character.isWhitespace` nhận diện ký tự này là whitespace.
-- **middle:** `trim()` không động đến khoảng trắng và tab ở giữa hai ký tự `A` và `B`.
-- **discard / saved:** `trim()` trả về chuỗi kết quả; nếu không sử dụng giá trị trả về, biến `source` không đổi.
+- **ASCII:** tabs, spaces, and line feeds at the edges all have codes `<= U+0020`, so `trim()` and `strip()` both produce `"Java"`.
+- **NUL:** `trim()` deletes `U+0000` at both ends. `strip()` keeps it because NUL does not satisfy `Character.isWhitespace(...)`.
+- **NBSP:** both methods in the example preserve NBSP (`U+00A0`), even though it looks like a space. This is an easily overlooked limitation when processing text copied from web pages.
+- **EM SPACE:** `trim()` keeps `U+2003` because it exceeds the threshold; `strip()` removes it because `Character.isWhitespace` recognizes it as whitespace.
+- **middle:** `trim()` leaves the spaces and tab between `A` and `B` untouched.
+- **discard / saved:** `trim()` returns the resulting string; if the return value is not used, the `source` variable remains unchanged.
 
-## 5. Phân biệt `trim()` với `strip()` trong Java 11+
+## 5. Distinguishing `trim()` from `strip()` in Java 11+
 
-Đây là hai phương thức khác nhau về **tiêu chí phân loại ký tự**:
+These are two methods that differ in **character classification criteria**:
 
-| Phương thức | Tiêu chí xóa ở hai đầu | Hệ quả đáng nhớ |
+| Method | Edge-removal criterion | Memorable consequence |
 |---|---|---|
-| `trim()` | `char` có giá trị `<= U+0020` | Xóa dấu cách ASCII, một số control char kể cả NUL |
-| `strip()` | Unicode code point thỏa `Character.isWhitespace(...)` | Xóa nhiều whitespace Unicode như EM SPACE |
-| `stripLeading()` | Tiêu chí như `strip()`, chỉ xét **đầu** | Giữ nguyên phần cuối |
-| `stripTrailing()` | Tiêu chí như `strip()`, chỉ xét **cuối** | Giữ nguyên phần đầu |
+| `trim()` | `char` with value `<= U+0020` | Removes ASCII space and some control chars including NUL |
+| `strip()` | Unicode code point satisfying `Character.isWhitespace(...)` | Removes many Unicode whitespaces such as EM SPACE |
+| `stripLeading()` | Same criterion as `strip()`, **start** only | Preserves the end |
+| `stripTrailing()` | Same criterion as `strip()`, **end** only | Preserves the start |
 
-`strip()`, `stripLeading()` và `stripTrailing()` có từ Java 11. Cả ba cũng trả về giá trị `String`; chúng **không thay đổi** đối tượng ban đầu.
+`strip()`, `stripLeading()`, and `stripTrailing()` have been available since Java 11. All three also return a `String` value; they **do not modify** the original object.
 
 ```java
 String s = "  Java  ";
@@ -208,19 +208,19 @@ System.out.println("[" + s.stripTrailing() + "]"); // [  Java]
 System.out.println("[" + s.strip() + "]");         // [Java]
 ```
 
-### `strip()` không xóa mọi thứ nhìn giống khoảng trắng
+### `strip()` does not remove everything that looks like whitespace
 
-Tên “Unicode-aware” có thể dẫn đến suy luận quá mức. `strip()` dựa vào **`Character.isWhitespace`**, và Java không coi mọi ký tự phân cách hoặc dấu cách không ngắt dòng là `isWhitespace == true`.
+The label “Unicode-aware” can lead to overgeneralization. `strip()` relies on **`Character.isWhitespace`**, and Java does not consider every separator or non-breaking space to have `isWhitespace == true`.
 
-Ví dụ: `U+00A0` (NBSP), `U+2007` (FIGURE SPACE) và `U+202F` (NARROW NO-BREAK SPACE) không thỏa quy tắc `Character.isWhitespace` của Java. Bởi vậy **đổi `trim()` thành `strip()` không có nghĩa đã xử lý hết các loại khoảng trắng trong dữ liệu nhập**.
+For example: `U+00A0` (NBSP), `U+2007` (FIGURE SPACE), and `U+202F` (NARROW NO-BREAK SPACE) do not satisfy Java's `Character.isWhitespace` rule. Therefore, **switching from `trim()` to `strip()` does not mean all kinds of whitespace in input data are handled**.
 
-Phân biệt thêm `Character.isSpaceChar(...)`: nó có phạm vi nhận diện khác `Character.isWhitespace(...)`, bao gồm một số ký tự space separator mà `isWhitespace` loại trừ. Tuy nhiên, `String.strip()` **không dùng** `Character.isSpaceChar` làm điều kiện của nó.
+Distinguish `Character.isSpaceChar(...)` as well: it has a different recognition scope from `Character.isWhitespace(...)`, including certain space separator characters that `isWhitespace` excludes. However, `String.strip()` **does not use** `Character.isSpaceChar` as its condition.
 
-### `isBlank()` cũng không tương đương `trim().isEmpty()`
+### `isBlank()` is not equivalent to `trim().isEmpty()` either
 
-Từ Java 11, `String.isBlank()` trả `true` khi chuỗi rỗng hoặc mọi code point thuộc tập `Character.isWhitespace(...)`. Điều này khác với việc kiểm tra xem có còn ký tự sau `trim()` hay không.
+Since Java 11, `String.isBlank()` returns `true` when the string is empty or every code point belongs to `Character.isWhitespace(...)`. This differs from checking whether any characters remain after `trim()`.
 
-Ví dụ, các biểu thức dưới đây có kết quả khác nhau:
+For example, the following expressions produce different results:
 
 ```java
 String nul = String.valueOf((char) 0x0000);
@@ -233,13 +233,13 @@ System.out.println(em.trim().isEmpty());  // false
 System.out.println(em.isBlank());         // true
 ```
 
-**Chọn API dựa trên định nghĩa “trắng” của nghiệp vụ**, thay vì nghĩ tất cả các phương thức này có cùng quy tắc.
+**Choose the API based on your business definition of “blank”**, rather than assuming all of these methods follow the same rule.
 
-## 6. Tính bất biến: `trim()` không cập nhật biến tự động
+## 6. Immutability: `trim()` does not update the variable automatically
 
-`String` là immutable. Phương thức `trim()` trả về giá trị cần được **sử dụng**, ví dụ bằng phép gán lại, tạo biến mới, `return` hoặc truyền trực tiếp cho một phương thức khác.
+`String` is immutable. The value returned by `trim()` must be **used**, for example by reassigning it, storing it in a new variable, `return`ing it, or passing it directly to another method.
 
-**Sai ý định nếu muốn cập nhật biến:**
+**Wrong intent if you want to update the variable:**
 
 ```java
 String username = "  Alice  ";
@@ -247,33 +247,33 @@ username.trim();
 System.out.println("[" + username + "]"); // [  Alice  ]
 ```
 
-Lời gọi thứ hai tính kết quả nhưng **bỏ qua** nó. Cách đúng:
+The second call computes the result and **discards** it. The right way:
 
 ```java
 username = username.trim();
 System.out.println("[" + username + "]"); // [Alice]
 ```
 
-Hoặc giữ nguyên chuỗi gốc:
+Or keep the original string intact:
 
 ```java
 String rawUsername = "  Alice  ";
 String normalizedUsername = rawUsername.trim();
 ```
 
-Khi muốn dùng trực tiếp:
+When using the result directly:
 
 ```java
 System.out.println("[" + rawUsername.trim() + "]");
 ```
 
-Đây cũng là cách dùng hợp lệ: giá trị trả về được chuyển vào `println`, nên không bị bỏ phí.
+This is also valid usage: the return value is passed to `println`, so it is not wasted.
 
-Không nên suy đoán danh tính đối tượng chỉ từ lời gọi `trim()`. JDK có thể trả lại chính tham chiếu cũ nếu không có nội dung cần cắt; ở trường hợp khác có thể trả đối tượng `String` mới. **Điều cần dựa vào là nội dung kết quả, không phải `==`**.
+Do not guess object identity from a `trim()` call. The JDK may return the same reference if there is nothing to trim; in other cases it may return a new `String` object. **What you should rely on is the resulting content, not `==`**.
 
-## 7. Những tình huống áp dụng và giới hạn
+## 7. Applicable scenarios and limitations
 
-### Tình huống 1: dữ liệu từ biểu mẫu có dấu cách ASCII thừa
+### Scenario 1: form data with extra ASCII spaces
 
 ```java
 String entered = "   learner@example.com   ";
@@ -282,9 +282,9 @@ String email = entered.trim();
 System.out.println(email); // learner@example.com
 ```
 
-Phù hợp khi chỉ muốn bỏ dấu cách ASCII ở rìa. Tuy nhiên, xử lý input thật có thể cần xác thực cú pháp, giới hạn chiều dài, chuẩn hóa Unicode theo chính sách và kiểm soát các ký tự không mong muốn. `trim()` **không phải một bước kiểm tra tính hợp lệ tổng quát**.
+Suitable when you only want to drop ASCII spaces at the edges. However, handling real input may require syntax validation, length limits, policy-driven Unicode normalization, and control over unwanted characters. `trim()` **is not a general-purpose validation step**.
 
-### Tình huống 2: đọc dòng văn bản có ký tự xuống dòng
+### Scenario 2: reading text lines with line endings
 
 ```java
 String rawLine = "\tstatus=OK\r\n";
@@ -293,11 +293,11 @@ String status = rawLine.trim();
 System.out.println(status); // status=OK
 ```
 
-`trim()` có thể loại CR/LF và tab ở hai đầu. Nhưng nếu chương trình cần bảo toàn chính xác định dạng file hoặc khoảng trắng có ý nghĩa, việc tự ý `trim()` có thể làm **mất dữ liệu**.
+`trim()` can remove CR/LF and tabs at both ends. But if a program needs to preserve exact file formatting or meaningful whitespace, blindly calling `trim()` can cause **data loss**.
 
-Ví dụ, trong một giá trị bí mật, chuỗi đã được ký số, dữ liệu fixed-width hoặc văn bản cần giữ nguyên whitespace, không nên loại bỏ ký tự đầu/cuối nếu đặc tả dữ liệu không cho phép.
+For instance, in a secret value, digitally signed string, fixed-width data, or text where whitespace must be preserved, you should not remove leading/trailing characters unless the data specification permits it.
 
-### Tình huống 3: văn bản sao chép từ trang web có NBSP
+### Scenario 3: text copied from a web page containing NBSP
 
 ```java
 String nbsp = String.valueOf((char) 0x00A0);
@@ -306,11 +306,11 @@ String copied = nbsp + "Java" + nbsp;
 System.out.println(copied.trim().length()); // 6
 ```
 
-NBSP ở hai đầu **không bị `trim()` loại**, vì vậy chuỗi kết quả vẫn dài `6` UTF-16 code unit: `NBSP` + `Java` (4) + `NBSP`.
+The NBSPs at both ends **are not removed by `trim()`**, so the resulting string still has a length of `6` UTF-16 code units: `NBSP` + `Java` (4) + `NBSP`.
 
-Ngay cả `strip()` cũng không xóa NBSP theo `Character.isWhitespace`. Nếu yêu cầu là “loại thêm NBSP ở hai đầu”, cần xác định và triển khai một chính sách chuẩn hóa riêng, có kiểm thử; tránh âm thầm coi mọi ký tự Unicode là dấu cách thông thường.
+Even `strip()` does not remove NBSP under `Character.isWhitespace`. If the requirement is to “also remove NBSP at both ends,” you need to define and implement a dedicated, tested normalization policy; avoid silently treating every Unicode character as an ordinary space.
 
-### Tình huống 4: chuẩn hóa trong phương thức xử lý
+### Scenario 4: normalization inside a helper method
 
 ```java
 static String normalizeLabel(String label) {
@@ -321,35 +321,35 @@ static String normalizeLabel(String label) {
 }
 ```
 
-Trong ví dụ này, `null` được chuyển thành chuỗi rỗng theo **quyết định thiết kế của phương thức**, không phải hành vi có sẵn của `trim()`. Nếu `label` là `null`, gọi trực tiếp `label.trim()` sẽ ném `NullPointerException`.
+In this example, `null` is converted to an empty string by **the method's design decision**, not by built-in behavior of `trim()`. If `label` is `null`, calling `label.trim()` directly throws `NullPointerException`.
 
-## 8. Lỗi thường gặp
+## 8. Common mistakes
 
-| Lỗi | Vì sao là lỗi | Cách xử lý |
+| Mistake | Why it is a mistake | How to handle it |
 |---|---|---|
-| Nghĩ `trim()` chỉ xóa `' '` | Nó còn xóa những `char` có giá trị nhỏ hơn `U+0020` | Hiểu chính xác ngưỡng `U+0020` |
-| Nghĩ `trim()` xóa mọi Unicode space | NBSP, EM SPACE, IDEOGRAPHIC SPACE có giá trị lớn hơn ngưỡng | Chọn `strip()` hoặc chính sách riêng tùy dữ liệu |
-| Nghĩ `strip()` xóa mọi dấu cách đặc biệt | `Character.isWhitespace` vẫn không gồm một số non-breaking space | Kiểm tra đúng tập ký tự cần xử lý |
-| Gọi `s.trim()` rồi vẫn in `s` | `String` bất biến; kết quả trả về không tự gán | Dùng `s = s.trim()` hoặc lưu biến mới |
-| Tưởng `trim()` xóa khoảng trắng ở giữa | Nó chỉ xét hai rìa | Xử lý nội dung giữa theo yêu cầu riêng |
-| Gọi `trim()` trên `null` | `null` không có phương thức | Kiểm tra `null` khi cần |
-| Dùng `trim()` cho dữ liệu cần giữ nguyên byte/ký tự | Có thể xóa ký tự đầu/cuối mang ý nghĩa | Làm theo hợp đồng định dạng dữ liệu |
-| Dùng `==` để so kết quả | So sánh danh tính đối tượng `String` | Dùng `.equals(...)` để so nội dung |
+| Thinking `trim()` only removes `' '` | It also removes `char` values below `U+0020` | Understand the exact `U+0020` threshold |
+| Thinking `trim()` removes all Unicode spaces | NBSP, EM SPACE, and IDEOGRAPHIC SPACE have values above the threshold | Choose `strip()` or a custom policy depending on the data |
+| Thinking `strip()` removes all special spaces | `Character.isWhitespace` still excludes several non-breaking spaces | Verify the exact character set that needs handling |
+| Calling `s.trim()` and still printing `s` | `String` is immutable; the return value is not auto-assigned | Use `s = s.trim()` or store in a new variable |
+| Assuming `trim()` removes whitespace in the middle | It only inspects the two edges | Process internal content according to specific requirements |
+| Calling `trim()` on `null` | `null` has no methods | Check for `null` when needed |
+| Using `trim()` on data that must preserve bytes/chars | May delete meaningful leading/trailing characters | Follow the data format contract |
+| Using `==` to compare results | Compares `String` object identity | Use `.equals(...)` to compare content |
 
-### Phân biệt khoảng trắng có ý nghĩa và ký tự thừa
+### Distinguishing meaningful whitespace from extraneous characters
 
-Các trường hợp sau khác nhau về yêu cầu:
+The following cases differ in requirements:
 
-- Tên người dùng được cho phép có dấu cách ở đầu hoặc cuối hay không?
-- Trong một biểu mẫu, hai ký tự `U+0020` ở đầu thường là dữ liệu thừa; trong một văn bản định dạng, chúng có thể là dấu thụt dòng.
-- Dữ liệu đọc từ hệ thống ngoài có thể chứa NBSP hoặc whitespace Unicode; không nên giả định `trim()` sẽ làm nó giống với văn bản gõ bằng bàn phím.
-- Một hệ thống đôi khi cần chỉ báo lỗi cho đầu vào có ký tự điều khiển thay vì đơn giản xóa đi. `trim()` loại cả một số control char, nên có thể che giấu đầu vào không hợp lệ nếu dùng tùy tiện.
+- Is a username allowed to have leading or trailing spaces?
+- In a form, two leading `U+0020` characters are usually extraneous input; in formatted text, they may represent indentation.
+- Data read from external systems may contain NBSP or Unicode whitespace; do not assume `trim()` will make it identical to keyboard-typed text.
+- A system sometimes needs to report an error for input containing control characters rather than silently deleting them. `trim()` removes several control characters too, so it can mask invalid input if used indiscriminately.
 
-Vì vậy cần biết rõ **định nghĩa khoảng trắng hợp lệ** trong nghiệp vụ trước khi chọn `trim`, `strip` hay cách xử lý riêng.
+Therefore, you must clearly know the **valid definition of whitespace** in your domain before choosing `trim`, `strip`, or custom handling.
 
-## 9. Kiểm tra chương trình bằng những ca biên
+## 9. Verifying your program with edge cases
 
-Để bảo đảm không nhầm tiêu chí của `trim()`, có thể viết các khẳng định đơn giản trong phương thức `main`:
+To ensure you do not confuse `trim()` criteria, you can write simple assertions inside `main`:
 
 ```java
 String nul = String.valueOf((char) 0x0000);
@@ -357,62 +357,62 @@ String nbsp = String.valueOf((char) 0x00A0);
 String emSpace = String.valueOf((char) 0x2003);
 
 if (!"Java".equals(("\t Java \n").trim())) {
-    throw new AssertionError("Không trim đúng ASCII whitespace");
+    throw new AssertionError("Failed to trim ASCII whitespace");
 }
 
 if (!"Java".equals((nul + "Java" + nul).trim())) {
-    throw new AssertionError("Không trim đúng NUL");
+    throw new AssertionError("Failed to trim NUL");
 }
 
 if (!(nbsp + "Java" + nbsp).equals(
         (nbsp + "Java" + nbsp).trim())) {
-    throw new AssertionError("NBSP không nên bị trim");
+    throw new AssertionError("NBSP should not be trimmed");
 }
 
 if (!(emSpace + "Java" + emSpace).equals(
         (emSpace + "Java" + emSpace).trim())) {
-    throw new AssertionError("EM SPACE không nên bị trim");
+    throw new AssertionError("EM SPACE should not be trimmed");
 }
 
 if (!"Java".equals((emSpace + "Java" + emSpace).strip())) {
-    throw new AssertionError("strip phải loại EM SPACE");
+    throw new AssertionError("strip must remove EM SPACE");
 }
 ```
 
-Các đoạn ở phần này là mã **nằm trong một phương thức** và có thể chèn vào `main` của lớp Java ở phần 4; riêng lẻ chúng không phải tệp Java hoàn chỉnh. Nếu mọi điều kiện đều đúng, chương trình đi qua khối kiểm tra mà không ném `AssertionError`. Khẳng định thủ công bằng `throw` ở ví dụ này không phụ thuộc tùy chọn JVM `-ea`.
+The snippets in this section are code **inside a method** and can be inserted into `main` of the Java class in Section 4; on their own they are not a complete Java file. If every condition holds, the program passes through the checks without throwing `AssertionError`. Manual assertions via `throw` in this example do not depend on the JVM `-ea` flag.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-check questions
 
-**Câu 1.** `"\t Java \n".trim()` trả về gì?
+**Question 1.** What does `"\t Java \n".trim()` return?
 
-**Đáp án:** `"Java"`. Tab, dấu cách và newline đều thuộc khoảng `<= U+0020` ở hai đầu.
+**Answer:** `"Java"`. Tab, space, and newline at both ends all fall within `<= U+0020`.
 
-**Câu 2.** `("A " + " B").trim()` có tự xóa hai dấu cách ở giữa không?
+**Question 2.** Does `("A " + " B").trim()` automatically remove the two spaces in the middle?
 
-**Đáp án:** Không. Kết quả vẫn là `"A  B"`, vì các dấu cách đó **không nằm ở rìa**.
+**Answer:** No. The result is still `"A  B"`, because those spaces **are not at the edges**.
 
-**Câu 3.** Chuỗi chỉ chứa các ký tự `U+0000`, `U+0009` và `U+0020` có kết quả `trim()` như thế nào?
+**Question 3.** What does `trim()` return for a string containing only `U+0000`, `U+0009`, and `U+0020`?
 
-**Đáp án:** Chuỗi rỗng `""`, vì tất cả ký tự đều thuộc tập có thể cắt bỏ.
+**Answer:** The empty string `""`, because all characters belong to the trimmable set.
 
-**Câu 4.** Vì sao `"\u00A0Java\u00A0".trim()` không trả `"Java"`?
+**Question 4.** Why does `"\u00A0Java\u00A0".trim()` not return `"Java"`?
 
-**Đáp án:** `U+00A0` là NBSP có giá trị lớn hơn `U+0020`. `trim()` không loại bỏ nó. (Trong Java, Unicode escape `\u00A0` được chuyển sớm trong quá trình xử lý mã nguồn; ở ví dụ này nó đại diện cho NBSP hợp lệ trong literal chuỗi.)
+**Answer:** `U+00A0` is NBSP, which has a value greater than `U+0020`. `trim()` does not remove it. (In Java, the Unicode escape `\u00A0` is processed early during source parsing; in this example it represents a valid NBSP in the string literal.)
 
-**Câu 5.** Khi hai đầu chứa EM SPACE (`U+2003`), nên dùng `trim()` hay `strip()` để bỏ ký tự ấy?
+**Question 5.** When both ends contain EM SPACE (`U+2003`), should you use `trim()` or `strip()` to remove it?
 
-**Đáp án:** Với ngữ nghĩa mặc định của Java, dùng `strip()` vì `Character.isWhitespace(U+2003)` là `true`; `trim()` giữ nguyên EM SPACE.
+**Answer:** With Java's default semantics, use `strip()` because `Character.isWhitespace(U+2003)` is `true`; `trim()` keeps EM SPACE.
 
-**Câu 6.** Vì sao `s.trim();` có thể chạy bình thường nhưng không làm biến `s` thay đổi?
+**Question 6.** Why can `s.trim();` run normally without changing the variable `s`?
 
-**Đáp án:** `String` bất biến, `trim()` trả giá trị mới hoặc giá trị hiện tại phù hợp quy tắc; nếu kết quả bị bỏ qua, biến `s` vẫn tham chiếu đến chuỗi trước lời gọi.
+**Answer:** `String` is immutable, and `trim()` returns a new value or the existing value matching the rule; if the result is ignored, `s` still references the string from before the call.
 
-**Câu 7.** `trim()` và `isBlank()` có nhận diện ký tự NUL (`U+0000`) giống nhau không?
+**Question 7.** Do `trim()` and `isBlank()` recognize the NUL character (`U+0000`) in the same way?
 
-**Đáp án:** Không. `trim()` xóa NUL ở rìa do mã `0 <= U+0020`, trong khi `isBlank()` dùng `Character.isWhitespace` và không xem NUL là whitespace.
+**Answer:** No. `trim()` removes NUL at the edges because code `0 <= U+0020`, whereas `isBlank()` uses `Character.isWhitespace` and does not consider NUL to be whitespace.
 
-## 11. Ghi nhớ
+## 11. Summary
 
-`String.trim()` loại bỏ từ **hai đầu chuỗi** những đơn vị UTF-16 `char` có giá trị **không vượt `U+0020`**; nó không sửa nội dung ở giữa và không thay đổi đối tượng `String` ban đầu. Ngưỡng này bao gồm cả ký tự điều khiển như NUL và bỏ qua nhiều khoảng trắng Unicode có mã lớn hơn `U+0020`.
+`String.trim()` removes from **both ends of a string** UTF-16 `char` units with values **not exceeding `U+0020`**; it does not alter middle content and does not mutate the original `String` object. This threshold includes control characters such as NUL and skips many Unicode whitespaces with code values above `U+0020`.
 
-`String.strip()` (Java 11+) dùng `Character.isWhitespace`, xử lý được nhiều Unicode whitespace hơn nhưng vẫn không bao gồm mọi dấu cách không ngắt dòng. Khi làm việc với dữ liệu đầu vào, hãy xác định tập ký tự cần loại bỏ, giữ kết quả trả về của phương thức và kiểm thử những ca biên như NUL, NBSP và EM SPACE.
+`String.strip()` (Java 11+) uses `Character.isWhitespace`, handling more Unicode whitespace while still excluding some non-breaking spaces. When working with input data, define the exact set of characters to remove, keep the method's return value, and test edge cases like NUL, NBSP, and EM SPACE.

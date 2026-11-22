@@ -1,27 +1,27 @@
-# Chuyển thư viện sang module path từng phần
+# Moving Libraries to the Module Path Incrementally
 
-Khi một dự án Java lâu năm dùng classpath, các JAR thường được đặt chung vào một danh sách đường dẫn và ứng dụng có thể tham chiếu những class public của chúng mà không khai báo quan hệ module rõ ràng. Java Platform Module System (JPMS), được giới thiệu từ Java 9, bổ sung **module path**, **named module**, **module descriptor** và các quy tắc về readability, exports và service loading.
+When a long-lived Java project uses the classpath, JARs are usually placed together in a single list of paths and the application can reference their public classes without declaring explicit module relationships. The Java Platform Module System (JPMS), introduced in Java 9, adds the **module path**, **named modules**, **module descriptors**, and rules for readability, exports, and service loading.
 
-Trong thực tế, hiếm khi có thể chuyển tất cả thư viện sang JPMS trong một lần. Một số JAR đã có `module-info.class`, một số chỉ có `Automatic-Module-Name`, còn nhiều thư viện vẫn là JAR truyền thống. Cách tiếp cận thực dụng là **di chuyển từng phần**, giữ ứng dụng chạy được qua từng giai đoạn và biến các dependency thành named module khi đã đủ điều kiện.
+In practice, it is rarely possible to migrate all libraries to JPMS in one go. Some JARs already have `module-info.class`, some only have `Automatic-Module-Name`, and many libraries are still traditional JARs. A pragmatic approach is **incremental migration**: keeping the application running through each stage and converting dependencies into named modules once conditions are met.
 
-Bài học này mô tả một lộ trình từng bước: **classpath → automatic module trên module path → ứng dụng có module-info.java → thư viện explicit module**, cùng phương pháp kiểm tra sau mỗi lần chuyển.
+This lesson describes a step-by-step roadmap: **classpath → automatic modules on the module path → application with module-info.java → explicit module libraries**, along with verification methods after each step.
 
-## Mục tiêu
+## Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt classpath, unnamed module, module path, automatic module và explicit named module.
-- Chuyển một JAR truyền thống sang module path mà chưa cần viết ngay `module-info.java`.
-- Kiểm tra tên module thật của JAR và cố định tên bằng `Automatic-Module-Name`.
-- Chạy ứng dụng classpath có sử dụng thư viện trên module path.
-- Chuyển ứng dụng thành explicit named module với `requires`.
-- Hiểu khi nào phải tiếp tục di chuyển dependency còn nằm trên classpath.
-- Phát hiện split package, thiếu module, sai tên module và rắc rối về exports/services.
-- Lập kế hoạch migration có bước kiểm chứng và đường quay lui rõ ràng.
+- Distinguish classpath, unnamed module, module path, automatic module, and explicit named module.
+- Move a traditional JAR onto the module path without needing to write `module-info.java` immediately.
+- Verify a JAR's actual module name and pin it with `Automatic-Module-Name`.
+- Run a classpath application that consumes libraries on the module path.
+- Convert the application into an explicit named module with `requires`.
+- Understand when remaining dependencies on the classpath must also be migrated.
+- Detect split packages, missing modules, mismatched module names, and exports/services issues.
+- Plan a migration with verification steps and clear rollback paths.
 
-## 1. Vì sao nên chuyển dần?
+## 1. Why Migrate Incrementally?
 
-Một ứng dụng có thể có đồ thị dependency như sau:
+An application might have a dependency graph like this:
 
 ~~~text
 com.acme.app
@@ -32,55 +32,55 @@ com.acme.app
         └── thirdparty-util.jar
 ~~~
 
-Trong mô hình classpath, các JAR có thể được cung cấp bằng một tham số `-cp`:
+In the classpath model, JARs can be supplied with a `-cp` argument:
 
 ~~~bash
 java -cp "app.jar:libs/*" com.acme.app.Main
 ~~~
 
-Trên Windows, dấu phân cách classpath là dấu chấm phẩy:
+On Windows, the classpath separator is a semicolon:
 
 ~~~powershell
 java -cp "app.jar;libs/*" com.acme.app.Main
 ~~~
 
-Khi dùng JPMS, các module được resolve với tên và dependency. Nếu đồng thời yêu cầu mọi JAR chuyển thành explicit module, dự án có thể vướng:
+When using JPMS, modules are resolved by name and dependencies. Requiring every JAR to become an explicit module simultaneously can hit snags:
 
-- Thư viện chưa phát hành descriptor.
-- Tên module chưa ổn định.
-- Package trùng giữa các dependency.
-- Dependency chỉ hoạt động qua reflection hoặc SPI.
-- Framework trông đợi thread context class loader.
-- Mã ứng dụng đang trực tiếp gọi class thuộc classpath mà named module không đọc được.
+- Libraries that have not yet published descriptors.
+- Unstable module names.
+- Overlapping packages across dependencies.
+- Dependencies that only work through reflection or SPI.
+- Frameworks expecting the thread context class loader.
+- Application code directly calling classes on the classpath that a named module cannot read.
 
-Chuyển từng phần giúp khoanh vùng lỗi: mỗi lần di chuyển một nhóm JAR, biên dịch, chạy smoke test và kiểm tra graph trước khi chuyển nhóm tiếp theo.
+Moving incrementally helps isolate errors: move one group of JARs at a time, compile, run smoke tests, and inspect the graph before moving the next group.
 
-## 2. Năm khái niệm cần tách bạch
+## 2. Five Concepts to Keep Distinct
 
-| Khái niệm | Ý nghĩa thực tế |
+| Concept | Practical meaning |
 |---|---|
-| Classpath | Tập thư mục/JAR truyền thống, thường được cung cấp bằng `-cp` hoặc `--class-path` |
-| Unnamed module | Các class do một class loader nạp từ classpath thuộc unnamed module của loader đó |
-| Module path | Nguồn tìm các named module, cung cấp bằng `-p` hoặc `--module-path` |
-| Automatic module | JAR không có descriptor, được đặt trên module path và tự nhận danh tính named module |
-| Explicit named module | Module có descriptor `module-info.class` xác định tên và các chỉ thị như `requires`, `exports` |
+| Classpath | Traditional set of directories/JARs, typically provided with `-cp` or `--class-path` |
+| Unnamed module | Classes loaded by a class loader from the classpath belong to that loader's unnamed module |
+| Module path | Source for locating named modules, provided with `-p` or `--module-path` |
+| Automatic module | A JAR without a descriptor placed on the module path that assumes a named module identity |
+| Explicit named module | A module with a `module-info.class` descriptor defining its name and directives like `requires`, `exports` |
 
-### 2.1. Automatic module là cầu nối migration
+### 2.1. Automatic Modules Are a Migration Bridge
 
-Một JAR truyền thống không có `module-info.class` có thể được đặt trên module path để Java coi nó là **automatic module**.
+A traditional JAR without `module-info.class` can be placed on the module path so Java treats it as an **automatic module**.
 
-Automatic module:
+An automatic module:
 
-- Có module name do manifest hoặc filename xác định.
-- Được xem là export các package của nó.
-- Có khả năng đọc các module đã được resolve và unnamed module, tạo thuận lợi cho migration.
-- Không có các chỉ thị `requires`/`exports` được khai báo tường minh như explicit module.
+- Has a module name determined by the manifest or filename.
+- Is treated as exporting all of its packages.
+- Can read all resolved modules and the unnamed module, easing migration.
+- Lacks explicitly declared `requires`/`exports` directives like an explicit module.
 
-Điều đó **không có nghĩa JAR đã được modular hóa hoàn chỉnh**. Automatic module vẫn thiếu hợp đồng module rõ ràng, và tên module suy ra từ filename có thể thay đổi khi nhà phát hành đổi cách đặt tên artifact.
+That **does not mean the JAR is fully modularized**. An automatic module still lacks an explicit module contract, and a module name derived from the filename can change when a publisher changes artifact naming.
 
-### 2.2. Explicit named module có ranh giới chặt hơn
+### 2.2. Explicit Named Modules Have Stricter Boundaries
 
-Ví dụ một thư viện explicit module:
+Example of an explicit module library:
 
 ~~~java
 module com.acme.math {
@@ -88,7 +88,7 @@ module com.acme.math {
 }
 ~~~
 
-Ứng dụng modular sử dụng nó:
+A modular application using it:
 
 ~~~java
 module com.acme.app {
@@ -96,13 +96,13 @@ module com.acme.app {
 }
 ~~~
 
-Named module không thể khai báo `requires` tới unnamed module thông thường. Vì thế, khi chuyển **ứng dụng** thành explicit named module, phải đảm bảo các thư viện mà ứng dụng trực tiếp dùng có thể được nhìn thấy dưới dạng named module (explicit hoặc automatic), hoặc có giải pháp chuyển tiếp được kiểm soát.
+A named module cannot declare `requires` on the regular unnamed module. Therefore, when turning the **application** into an explicit named module, ensure the libraries the application directly uses are visible as named modules (explicit or automatic), or have a controlled transitional solution.
 
-## 3. Nguyên tắc chọn thứ tự chuyển thư viện
+## 3. Principles for Ordering Library Migration
 
-Nên bắt đầu từ **dependency nằm thấp trong graph**, thường là các utility hoặc library ít phụ thuộc module khác. Sau khi chúng ổn định trên module path, mới chuyển các thư viện cấp cao hơn và cuối cùng là ứng dụng chính.
+Start from **dependencies low in the graph**, usually utilities or libraries with few dependencies on other modules. Once they are stable on the module path, move higher-level libraries, and finally the main application.
 
-Ví dụ:
+Example:
 
 ~~~text
                  com.acme.app
@@ -114,69 +114,69 @@ Ví dụ:
             legacy-http  thirdparty-util
 ~~~
 
-Thứ tự hợp lý có thể là:
+A sensible order might be:
 
-1. Kiểm kê tên module và package của `legacy-http`, `thirdparty-util`.
-2. Chuyển các dependency thấp tầng lên module path nếu không xung đột.
-3. Chuyển `acme-client` và `acme-report` thành automatic/explicit module.
-4. Chuyển `com.acme.app` thành explicit module khi các kiểu app dùng trực tiếp đã nằm trong named modules.
-5. Thay thế automatic module bằng explicit module theo từng thư viện khi có descriptor phù hợp.
+1. Inventory module names and packages of `legacy-http` and `thirdparty-util`.
+2. Move lower-layer dependencies onto the module path if there are no conflicts.
+3. Convert `acme-client` and `acme-report` into automatic/explicit modules.
+4. Convert `com.acme.app` into an explicit module once types the app uses directly are in named modules.
+5. Replace automatic modules with explicit modules library by library as suitable descriptors become available.
 
-Đây là **chiến lược gợi ý**, không phải quy tắc buộc mọi dự án phải chuyển chính xác theo thứ tự trên. Một library có split package hoặc framework đặc biệt có thể phải xử lý trước.
+This is a **recommended strategy**, not a rigid rule forcing every project to migrate in that exact order. A library with split packages or a special framework might need attention first.
 
-## 4. Kiểm kê trước khi migration
+## 4. Pre-Migration Inventory
 
-Trước khi thay đổi lệnh chạy, lập bảng cho mỗi dependency:
+Before changing launch commands, build a table for each dependency:
 
-| Thông tin | Cách xác định |
+| Information | How to determine |
 |---|---|
-| JAR đang ở classpath hay module path? | Lệnh chạy thật, cấu hình IDE và build |
-| Có `module-info.class` không? | `jar --describe-module` |
-| Tên module thực tế là gì? | `jar --describe-module --file ...` |
-| Có `Automatic-Module-Name` không? | Manifest của JAR |
-| Các package được chứa? | `jar tf ...` |
-| Có service provider/resource/reflection không? | Mã nguồn và runtime configuration |
-| Dependency phụ thuộc library nào? | `jdeps`, Maven/Gradle dependency graph |
+| Is the JAR on the classpath or module path? | Actual launch commands, IDE and build configs |
+| Does it have `module-info.class`? | `jar --describe-module` |
+| What is its actual module name? | `jar --describe-module --file ...` |
+| Does it have `Automatic-Module-Name`? | The JAR's manifest |
+| Which packages does it contain? | `jar tf ...` |
+| Are there service providers/resources/reflection? | Source code and runtime configuration |
+| Which libraries does the dependency depend on? | `jdeps`, Maven/Gradle dependency graph |
 
-Kiểm tra descriptor hoặc tên automatic module:
+Inspect descriptor or automatic module name:
 
 ~~~bash
 jar --describe-module --file libs/acme-math.jar
 ~~~
 
-Liệt kê class trong JAR:
+List classes in the JAR:
 
 ~~~bash
 jar tf libs/acme-math.jar
 ~~~
 
-Phân tích dependency tĩnh của ứng dụng classpath:
+Analyze static dependencies of a classpath application:
 
 ~~~bash
 jdeps --print-module-deps --class-path "libs/*" app.jar
 ~~~
 
-`jdeps` không phát hiện mọi dependency được nạp bằng tên class, reflection hoặc plugin; cần kết hợp với cấu hình runtime và test thực tế.
+`jdeps` does not detect every dependency loaded by class name, reflection, or plugins; combine it with runtime configurations and real tests.
 
-Với Maven:
+With Maven:
 
 ~~~bash
 mvn dependency:tree
 ~~~
 
-Với Gradle:
+With Gradle:
 
 ~~~bash
 ./gradlew dependencies --configuration runtimeClasspath
 ~~~
 
-Trên Windows có thể dùng `gradlew.bat`. Mục tiêu của bước này là xác định rõ artifact nào đang được dùng, tránh giữ hai bản cùng thư viện trên các path khác nhau.
+On Windows, you can use `gradlew.bat`. The goal of this step is to identify exactly which artifacts are in use and avoid keeping two copies of the same library on different paths.
 
-## 5. Ví dụ thực hành: thư viện math cũ
+## 5. Hands-On Example: A Legacy Math Library
 
-Ta sẽ tạo một thư viện JAR truyền thống, sau đó lần lượt chuyển nó và ứng dụng sang JPMS. Ví dụ dùng Java 17 trở lên và chạy từ thư mục dự án.
+We will create a traditional library JAR, then incrementally migrate both it and the application to JPMS. The example uses Java 17+ and runs from the project directory.
 
-Ban đầu:
+Initially:
 
 ~~~text
 project/
@@ -188,7 +188,7 @@ project/
 └── out/
 ~~~
 
-Thư viện:
+Library:
 
 ~~~java
 // legacy-src/com/acme/math/TaxCalculator.java
@@ -203,7 +203,7 @@ public final class TaxCalculator {
 }
 ~~~
 
-Ứng dụng:
+Application:
 
 ~~~java
 // app-src/com/acme/app/Main.java
@@ -218,51 +218,51 @@ public class Main {
 }
 ~~~
 
-### 5.1. Biên dịch JAR theo cách classpath
+### 5.1. Compiling the JAR the Classpath Way
 
-Biên dịch thư viện:
+Compile the library:
 
 ~~~bash
 javac -d out/math legacy-src/com/acme/math/TaxCalculator.java
 ~~~
 
-Đóng gói JAR truyền thống:
+Package a traditional JAR:
 
 ~~~bash
 jar --create --file libs/acme-math.jar -C out/math .
 ~~~
 
-Biên dịch ứng dụng:
+Compile the application:
 
 ~~~bash
 javac -cp libs/acme-math.jar -d out/app app-src/com/acme/app/Main.java
 ~~~
 
-Chạy trên Linux/macOS:
+Run on Linux/macOS:
 
 ~~~bash
 java -cp "out/app:libs/acme-math.jar" com.acme.app.Main
 ~~~
 
-Chạy trên Windows:
+Run on Windows:
 
 ~~~powershell
 java -cp "out/app;libs/acme-math.jar" com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 110
 ~~~
 
-Đây là trạng thái khởi đầu để so sánh khi chuyển sang module path.
+This is the starting baseline for comparison when moving to the module path.
 
-## 6. Bước 1: gán tên module ổn định cho thư viện
+## 6. Step 1: Assigning a Stable Module Name to the Library
 
-Nếu đưa `acme-math.jar` không có descriptor vào module path, Java có thể suy tên automatic module từ filename. Tên suy ra có thể gây bất ngờ hoặc thay đổi theo cách đặt tên file.
+If you put `acme-math.jar` without a descriptor onto the module path, Java can derive the automatic module name from the filename. A derived name can be surprising or change with filename conventions.
 
-Để kiểm soát migration, nhà phát hành thư viện có thể thêm manifest:
+To control migration, the library publisher can add a manifest:
 
 ~~~text
 Manifest-Version: 1.0
@@ -270,7 +270,7 @@ Automatic-Module-Name: com.acme.math
 
 ~~~
 
-Lưu nội dung vào file `math.mf` (có dòng kết thúc phù hợp), sau đó tạo lại JAR:
+Save the content to `math.mf` (with an appropriate trailing newline), then recreate the JAR:
 
 ~~~bash
 jar --create --file libs/acme-math.jar \
@@ -278,27 +278,27 @@ jar --create --file libs/acme-math.jar \
     -C out/math .
 ~~~
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ~~~powershell
 jar --create --file libs/acme-math.jar --manifest math.mf -C out/math .
 ~~~
 
-Xác minh:
+Verify:
 
 ~~~bash
 jar --describe-module --file libs/acme-math.jar
 ~~~
 
-JAR chưa có `module-info.class` nhưng giờ có tên automatic module ổn định là `com.acme.math`.
+The JAR does not have `module-info.class` yet, but now has a stable automatic module name of `com.acme.math`.
 
-**Lưu ý:** `Automatic-Module-Name` chỉ cung cấp tên module. Nó không khai báo `requires` hoặc `exports` thực sự, cũng không tự sửa split package.
+**Note:** `Automatic-Module-Name` only supplies a module name. It does not declare actual `requires` or `exports`, nor does it fix split packages.
 
-## 7. Bước 2: chuyển JAR sang module path, app vẫn ở classpath
+## 7. Step 2: Moving the JAR to the Module Path, App Still on Classpath
 
-Giữ mã và class của ứng dụng trong classpath, nhưng đặt JAR `acme-math.jar` trên module path.
+Keep the application's code and classes on the classpath, while placing `acme-math.jar` on the module path.
 
-Lệnh chạy trên Linux/macOS:
+Launch command on Linux/macOS:
 
 ~~~bash
 java --module-path libs/acme-math.jar \
@@ -307,61 +307,61 @@ java --module-path libs/acme-math.jar \
      com.acme.app.Main
 ~~~
 
-Lệnh tương đương một dòng (dùng được trên Windows):
+Equivalent single-line command (works on Windows):
 
 ~~~powershell
 java --module-path libs/acme-math.jar --add-modules com.acme.math --class-path out/app com.acme.app.Main
 ~~~
 
-Kết quả mong đợi vẫn là:
+Expected output is still:
 
 ~~~text
 110
 ~~~
 
-### 7.1. Vì sao cần --add-modules?
+### 7.1. Why Is --add-modules Needed?
 
-Khi chạy main class từ classpath, ứng dụng nằm trong unnamed module. Một application module đặt trên module path **không nhất thiết tự được resolve** chỉ vì JAR xuất hiện trên path.
+When running a main class from the classpath, the application lives in the unnamed module. An application module placed on the module path **is not automatically resolved** merely because its JAR appears on the path.
 
-`--add-modules com.acme.math` bổ sung automatic module đó làm root cần resolve, cho phép classpath application sử dụng các class mà module đã công bố.
+`--add-modules com.acme.math` adds that automatic module as a root to resolve, allowing the classpath application to use classes published by the module.
 
-Nếu thư viện không nằm trong tập module được resolve, lệnh chạy có thể không tìm được class dù JAR có mặt trên module path. Bởi vậy cần kiểm tra cả **module path** và **root modules**.
+If the library is not in the resolved module set, the launch command can fail to find the class even though the JAR is on the module path. Thus, you must check both the **module path** and **root modules**.
 
-### 7.2. Có cần đổi import không?
+### 7.2. Do Imports Need to Change?
 
-Không. Tên Java class vẫn là:
+No. The Java class name remains:
 
 ~~~java
 import com.acme.math.TaxCalculator;
 ~~~
 
-Việc chuyển JAR từ classpath sang module path không tự đổi tên package hoặc class.
+Moving a JAR from the classpath to the module path does not rename packages or classes.
 
-### 7.3. Những gì đã thay đổi?
+### 7.3. What Changed?
 
-Trước:
+Before:
 
 ~~~text
 Unnamed module (app + acme-math)
 ~~~
 
-Sau:
+After:
 
 ~~~text
 Unnamed module (app)
         |
-        | sử dụng public API
+        | uses public API
         v
 Automatic named module: com.acme.math
 ~~~
 
-Đây là bước trung gian quan trọng: ứng dụng chưa cần `module-info.java` nhưng đã kiểm chứng rằng thư viện có thể tham gia module graph.
+This is an important intermediate step: the application does not yet need `module-info.java`, but you have already verified that the library can participate in the module graph.
 
-## 8. Bước 3: chuyển ứng dụng thành explicit named module
+## 8. Step 3: Converting the Application to an Explicit Named Module
 
-Khi các thư viện app sử dụng trực tiếp đã có tên module ổn định, có thể bổ sung `module-info.java` cho ứng dụng.
+Once the libraries the app directly uses have stable module names, you can add `module-info.java` to the application.
 
-Chuyển mã app sang cấu trúc module source path:
+Move the app code to a module source path layout:
 
 ~~~text
 project/
@@ -379,7 +379,7 @@ module com.acme.app {
 }
 ~~~
 
-`Main.java` vẫn như trước:
+`Main.java` remains unchanged:
 
 ~~~java
 package com.acme.app;
@@ -393,7 +393,7 @@ public class Main {
 }
 ~~~
 
-Biên dịch app với thư viện automatic module:
+Compile the app with the automatic module library:
 
 ~~~bash
 javac --module-path libs/acme-math.jar \
@@ -402,49 +402,49 @@ javac --module-path libs/acme-math.jar \
       -m com.acme.app
 ~~~
 
-Lệnh một dòng:
+Single-line command:
 
 ~~~bash
 javac --module-path libs/acme-math.jar --module-source-path src -d out/mods -m com.acme.app
 ~~~
 
-Chạy trên Linux/macOS:
+Run on Linux/macOS:
 
 ~~~bash
 java --module-path "out/mods:libs/acme-math.jar" \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Chạy trên Windows:
+Run on Windows:
 
 ~~~powershell
 java --module-path "out/mods;libs/acme-math.jar" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 110
 ~~~
 
-Ở giai đoạn này:
+At this stage:
 
-- Ứng dụng đã là explicit named module `com.acme.app`.
-- Thư viện vẫn là automatic named module `com.acme.math`.
-- App có quan hệ đọc rõ ràng nhờ `requires com.acme.math;`.
-- Package của thư viện automatic được export theo quy tắc automatic module.
+- The application is now the explicit named module `com.acme.app`.
+- The library is still the automatic named module `com.acme.math`.
+- The app has an explicit readability relationship via `requires com.acme.math;`.
+- The automatic library's packages are exported according to automatic module rules.
 
-### 8.1. Tại sao không giữ mọi dependency trên classpath?
+### 8.1. Why Not Leave All Dependencies on the Classpath?
 
-Named module `com.acme.app` không thể khai báo một dòng `requires` hợp lệ tới unnamed module. Nếu app trực tiếp dùng class ở JAR còn nằm trên classpath, compiler có thể báo package không hiển thị hoặc module không đọc được unnamed module.
+The named module `com.acme.app` cannot declare a valid `requires` clause pointing to the unnamed module. If the app directly uses classes from a JAR still on the classpath, the compiler may report that the package is not visible or that the module does not read the unnamed module.
 
-Do đó trước khi chuyển app, phải xử lý ít nhất các dependency mà mã app truy cập trực tiếp: di chuyển chúng lên module path dưới dạng explicit/automatic module hoặc thay đổi kiến trúc để chúng nằm sau một abstraction phù hợp.
+Therefore, before converting the app, you must address at least the dependencies that app code accesses directly: move them onto the module path as explicit/automatic modules or refactor the architecture so they sit behind a suitable abstraction.
 
-Có thể tồn tại workaround như `--add-reads com.acme.app=ALL-UNNAMED` trong một số tình huống legacy, nhưng không nên xem đây là thiết kế cuối cùng vì nó bỏ qua lợi ích của dependency được khai báo rõ ràng.
+Workarounds like `--add-reads com.acme.app=ALL-UNNAMED` exist for some legacy scenarios, but should not be treated as the final design because they bypass the benefits of explicitly declared dependencies.
 
-## 9. Bước 4: đổi thư viện automatic thành explicit module
+## 9. Step 4: Converting the Automatic Library to an Explicit Module
 
-Sau khi app hoạt động ổn định với automatic module, ta có thể modular hóa chính thư viện. Ví dụ, chuyển source thư viện về:
+Once the app runs reliably with the automatic module, you can modularize the library itself. For example, organize the library source as:
 
 ~~~text
 lib-src/
@@ -453,7 +453,7 @@ lib-src/
     └── com/acme/math/TaxCalculator.java
 ~~~
 
-Descriptor của thư viện:
+The library's descriptor:
 
 ~~~java
 module com.acme.math {
@@ -461,9 +461,9 @@ module com.acme.math {
 }
 ~~~
 
-`TaxCalculator.java` giữ nguyên package và public API.
+`TaxCalculator.java` keeps its package and public API.
 
-Biên dịch thư viện:
+Compile the library:
 
 ~~~bash
 javac --module-source-path lib-src \
@@ -471,20 +471,20 @@ javac --module-source-path lib-src \
       -m com.acme.math
 ~~~
 
-Đóng gói modular JAR:
+Package the modular JAR:
 
 ~~~bash
 jar --create --file libs/acme-math-modular.jar \
     -C out/libs/com.acme.math .
 ~~~
 
-Xác minh descriptor:
+Verify the descriptor:
 
 ~~~bash
 jar --describe-module --file libs/acme-math-modular.jar
 ~~~
 
-Biên dịch lại app bằng modular JAR mới:
+Recompile the app with the new modular JAR:
 
 ~~~bash
 javac --module-path libs/acme-math-modular.jar \
@@ -493,32 +493,32 @@ javac --module-path libs/acme-math-modular.jar \
       -m com.acme.app
 ~~~
 
-Chạy trên Linux/macOS:
+Run on Linux/macOS:
 
 ~~~bash
 java --module-path "out/mods:libs/acme-math-modular.jar" \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 java --module-path "out/mods;libs/acme-math-modular.jar" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả vẫn là:
+The output is still:
 
 ~~~text
 110
 ~~~
 
-**Quan trọng:** Khi chuyển sang explicit module, các package không khai báo `exports` sẽ không còn tự được export như automatic module. Vì thế, cần thiết kế public API cẩn thận và cập nhật descriptor phù hợp.
+**Important:** When moving to an explicit module, packages not listed in `exports` are no longer automatically exported as they were in an automatic module. Hence, design the public API carefully and update the descriptor accordingly.
 
-Không đặt **cả** `acme-math.jar` và `acme-math-modular.jar` trên cùng module path khi chúng cùng cung cấp module `com.acme.math`. Loại bỏ bản cũ khỏi cấu hình trước khi kiểm tra phiên bản mới.
+Do not place **both** `acme-math.jar` and `acme-math-modular.jar` on the same module path when both provide module `com.acme.math`. Remove the old version from your configuration before testing the new version.
 
-## 10. Khi còn nhiều thư viện chưa modular hóa
+## 10. When Many Unmodularized Libraries Remain
 
-Trong ứng dụng thực tế, cấu trúc trung gian có thể là:
+In a real application, an intermediate structure might look like:
 
 ~~~text
                 Explicit named module: com.acme.app
@@ -533,46 +533,46 @@ Trong ứng dụng thực tế, cấu trúc trung gian có thể là:
                     (classpath)
 ~~~
 
-Automatic module được thiết kế để hỗ trợ một số dependency legacy từ unnamed module, nên có thể đóng vai trò cầu nối trong giai đoạn chuyển đổi. Tuy nhiên, explicit named module của app không nên trực tiếp dựa vào class trong unnamed module nếu muốn có graph bền vững.
+Automatic modules are designed to support some legacy dependencies from the unnamed module, so they can act as a bridge during the transition. However, the app's explicit named module should not directly rely on classes in the unnamed module if you want a sustainable graph.
 
-Hãy phân biệt:
+Distinguish these cases:
 
-- **App trực tiếp import class trong JAR còn ở classpath:** cần chuyển JAR hoặc thiết kế lại dependency trước khi modular hóa app.
-- **App chỉ gọi API của automatic module, còn implementation của module này dùng classpath dependency:** có thể là trạng thái migration tạm thời, nhưng cần kiểm thử thật.
-- **Library chuyển từ automatic sang explicit:** thư viện không còn tự nhận quyền đọc unnamed module như trước; các dependency thực tế phải được khai báo và di chuyển phù hợp.
+- **App directly imports classes in a JAR still on the classpath:** move that JAR or redesign the dependency before modularizing the app.
+- **App only calls the automatic module's API, while that module's implementation uses classpath dependencies:** can be a temporary migration state, though thorough testing is needed.
+- **Library transitions from automatic to explicit:** the library no longer inherits automatic access to the unnamed module; actual dependencies must be declared and moved appropriately.
 
-Một lộ trình an toàn là lập danh sách các dependency trực tiếp và gián tiếp, rồi chuyển dần cho đến khi graph chính không còn phụ thuộc vào cơ chế truy cập từ automatic module đến classpath.
+A safe path is listing direct and indirect dependencies, then migrating gradually until the main graph no longer depends on automatic-module-to-classpath access.
 
-## 11. Những lỗi thường gặp khi chuyển từng phần
+## 11. Common Errors During Incremental Migration
 
 ### 11.1. Module not found
 
-Ví dụ:
+Example:
 
 ~~~text
 error: module not found: com.acme.math
 ~~~
 
-Nguyên nhân có thể là:
+Possible causes:
 
-- JAR không nằm trên `--module-path` trong lệnh biên dịch/chạy.
-- Tên module khác với tên được viết trong `requires`.
-- Build đang dùng JAR khác hoặc phiên bản khác.
-- Dependency chỉ xuất hiện trong cấu hình IDE, không có trong lệnh chạy thực tế.
+- The JAR is not on `--module-path` in the compile/run command.
+- The module name differs from what is written in `requires`.
+- The build uses a different JAR or version.
+- The dependency exists only in IDE configuration, not in the actual launch command.
 
-Kiểm tra:
+Check:
 
 ~~~bash
 jar --describe-module --file libs/acme-math.jar
 ~~~
 
-Và kiểm tra lại toàn bộ `--module-path`.
+And double-check the entire `--module-path`.
 
-### 11.2. NoClassDefFoundError hoặc ClassNotFoundException
+### 11.2. NoClassDefFoundError or ClassNotFoundException
 
-Trường hợp một JAR đã lên module path nhưng chưa được resolve có thể khiến class không được tìm thấy từ ứng dụng classpath.
+When a JAR has been placed on the module path without being resolved, classes may not be found by a classpath application.
 
-Nếu app vẫn chạy từ classpath, xem xét root modules qua `--add-modules`:
+If the app still runs from the classpath, check root modules via `--add-modules`:
 
 ~~~bash
 java --module-path libs/acme-math.jar \
@@ -580,13 +580,13 @@ java --module-path libs/acme-math.jar \
      --class-path out/app com.acme.app.Main
 ~~~
 
-Nếu module đã được resolve, tiếp tục kiểm tra class có nằm trong JAR không, class loader nào đang nạp class và dependency bắc cầu có đầy đủ không.
+If the module is resolved, next check whether the class is inside the JAR, which class loader is loading it, and whether transitive dependencies are complete.
 
 ### 11.3. Package is not visible
 
-Với explicit module, một package phải được export từ module cung cấp và module sử dụng phải đọc module đó.
+With explicit modules, a package must be exported by the providing module and the consuming module must read that module.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.math {
@@ -600,11 +600,11 @@ module com.acme.app {
 }
 ~~~
 
-Nếu app import package `com.acme.math.internal` mà thư viện không export, compiler có thể từ chối. Đây là ranh giới đóng gói của JPMS, không phải dấu hiệu JAR hỏng.
+If the app imports `com.acme.math.internal` and the library does not export it, the compiler will reject it. This is JPMS encapsulation, not a sign of a broken JAR.
 
 ### 11.4. Split package
 
-Hai JAR có thể chứa cùng một package, ví dụ:
+Two JARs may contain the same package, for example:
 
 ~~~text
 acme-core.jar
@@ -614,21 +614,21 @@ acme-extra.jar
 └── com/acme/shared/Helper.class
 ~~~
 
-Khi cùng trở thành named module và tham gia graph, split package có thể gây lỗi resolution hoặc truy cập. Hãy xác định module nào sở hữu package, sau đó đổi package, hợp nhất module hoặc nâng cấp dependency phù hợp.
+When both become named modules and join the graph, split packages can cause resolution or access errors. Identify which module owns the package, then rename the package, merge modules, or upgrade the dependency as appropriate.
 
-`--add-exports` không tự giải quyết split package, vì nó thay đổi quyền export chứ không đổi ownership của package.
+`--add-exports` does not solve split packages, because it alters export visibility rather than package ownership.
 
 ### 11.5. Duplicate module name
 
-Hai JAR trên module path có thể có tên module trùng nhau, ví dụ cả hai khai báo `Automatic-Module-Name: com.acme.math`. Kết quả phụ thuộc nguồn tìm và thứ tự cấu hình, nhưng có thể dẫn đến module bị che khuất hoặc lỗi cấu hình.
+Two JARs on the module path may share the same module name, for example both declaring `Automatic-Module-Name: com.acme.math`. The outcome depends on finder order and configuration, and can cause a module to be shadowed or a configuration failure.
 
-Không nên giữ đồng thời hai version của cùng một module. Kiểm tra artifact và loại bỏ bản trùng để graph rõ ràng.
+Do not keep two versions of the same module simultaneously. Inspect artifacts and remove duplicates to keep the graph clean.
 
-### 11.6. Reflection thất bại
+### 11.6. Reflection failures
 
-Framework dùng reflection có thể gặp `InaccessibleObjectException` sau khi một thư viện trở thành explicit module.
+Frameworks using reflection may encounter `InaccessibleObjectException` after a library becomes an explicit module.
 
-Khi đó, xem xét package nào cần được mở cho framework:
+In that case, determine which packages need to be opened to the framework:
 
 ~~~java
 module com.acme.app {
@@ -638,15 +638,15 @@ module com.acme.app {
 }
 ~~~
 
-`exports` dành cho quyền truy cập public API thông thường; `opens` phục vụ deep reflection vào thành viên không public theo điều kiện thích hợp.
+`exports` is for normal public API access; `opens` is for deep reflection into non-public members under appropriate conditions.
 
-Dùng qualified opens nếu chỉ một framework module cần truy cập, tránh mở toàn bộ implementation.
+Use qualified opens when only one framework module needs access, avoiding opening the entire implementation.
 
-### 11.7. ServiceLoader không tìm thấy provider
+### 11.7. ServiceLoader fails to find providers
 
-Các hệ thống plugin thường dùng `ServiceLoader`. Khi chuyển sang explicit named module, service contract nên được mô tả rõ:
+Plugin systems often use `ServiceLoader`. When moving to explicit named modules, the service contract should be declared explicitly:
 
-Module sử dụng service:
+Module using the service:
 
 ~~~java
 module com.acme.app {
@@ -655,7 +655,7 @@ module com.acme.app {
 }
 ~~~
 
-Module cung cấp implementation:
+Module providing the implementation:
 
 ~~~java
 module com.acme.payment.impl {
@@ -665,11 +665,11 @@ module com.acme.payment.impl {
 }
 ~~~
 
-Để provider được tìm thấy, provider module phải có mặt trong configuration/layer phù hợp và được giải quyết theo cách tương thích với cơ chế service loading.
+For a provider to be discovered, the provider module must be present in the appropriate configuration/layer and resolved in a manner compatible with service loading.
 
-Đừng chỉ chuyển JAR giữa các path mà không kiểm tra lại `META-INF/services`, descriptor và cơ chế khởi tạo provider.
+Do not just move JARs between paths without re-checking `META-INF/services`, descriptors, and provider instantiation.
 
-## 12. Các công cụ theo dõi migration
+## 12. Tools for Monitoring Migration
 
 ### 12.1. jar --describe-module
 
@@ -677,7 +677,7 @@ module com.acme.payment.impl {
 jar --describe-module --file libs/acme-math.jar
 ~~~
 
-Dùng để biết JAR là explicit hay automatic module và tên module thực tế.
+Used to check whether a JAR is an explicit or automatic module and see its actual module name.
 
 ### 12.2. java --list-modules
 
@@ -685,7 +685,7 @@ Dùng để biết JAR là explicit hay automatic module và tên module thực 
 java --module-path libs --list-modules
 ~~~
 
-Liệt kê các module observable từ runtime/module path của lệnh gọi. Một module có tên trong danh sách không nhất thiết đã được resolve vào boot layer của ứng dụng.
+Lists modules observable from the runtime/module path of the invocation. A module appearing in this list is not necessarily resolved into the application's boot layer.
 
 ### 12.3. --show-module-resolution
 
@@ -695,7 +695,7 @@ java --module-path "out/mods:libs" \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trên Windows, thay `:` bằng `;`. Dùng log để xác định module root, dependency và module nào thực sự tham gia graph khởi động.
+On Windows, replace `:` with `;`. Use the log to identify root modules, dependencies, and which modules actually participate in the startup graph.
 
 ### 12.4. java --validate-modules
 
@@ -703,84 +703,84 @@ Trên Windows, thay `:` bằng `;`. Dùng log để xác định module root, de
 java --module-path libs --validate-modules
 ~~~
 
-Hữu ích để phát hiện một số vấn đề module path, chẳng hạn các module gây xung đột hoặc che khuất nhau.
+Useful for detecting module path problems such as conflicting or shadowed modules.
 
 ### 12.5. jdeps
 
-Với application JAR truyền thống:
+For a traditional application JAR:
 
 ~~~bash
 jdeps --class-path "libs/*" --print-module-deps app.jar
 ~~~
 
-Với named module:
+For a named module:
 
 ~~~bash
 jdeps --module-path "out/mods:libs" --check com.acme.app
 ~~~
 
-Trên Windows, dùng `;` thay vì `:` trong danh sách nhiều vị trí module path. Kết quả `jdeps` giúp phân tích dependency tĩnh nhưng không thay thế runtime smoke test.
+On Windows, use `;` instead of `:` in multi-entry module paths. `jdeps` output helps analyze static dependencies, but does not replace runtime smoke tests.
 
-### 12.6. Kiểm tra nội dung JAR
+### 12.6. Inspecting JAR Contents
 
 ~~~bash
 jar tf libs/acme-math.jar
 ~~~
 
-Tìm package và class được đóng gói thật. Nếu JAR rỗng, class sai package hoặc còn bytecode cũ, việc thay module path không giải quyết được vấn đề.
+Find the packages and classes actually packaged. If a JAR is empty, has classes in the wrong package, or contains stale bytecode, changing the module path will not solve the problem.
 
-## 13. Migration trong Maven và Gradle
+## 13. Migration in Maven and Gradle
 
 ### 13.1. Maven
 
-Kiểm tra dependencies:
+Inspect dependencies:
 
 ~~~bash
 mvn dependency:tree
 ~~~
 
-Biên dịch và kiểm thử sau mỗi giai đoạn:
+Compile and test after each phase:
 
 ~~~bash
 mvn clean verify
 ~~~
 
-Trong dự án Maven, compiler plugin cần dùng cấu hình module path phù hợp với phiên bản JDK và cấu trúc module hiện tại. Đừng giả định mọi plugin hoặc profile của dự án sẽ tự chuyển toàn bộ dependency sang module path đúng như ý muốn.
+In Maven projects, the compiler plugin needs a module-path configuration matching the JDK version and current module structure. Do not assume every project plugin or profile will automatically route all dependencies to the module path as intended.
 
-Nếu có nhiều module Maven tương ứng nhiều JPMS module, hãy phân biệt:
+If multiple Maven modules correspond to multiple JPMS modules, distinguish:
 
-- Maven module: một đơn vị build thuộc reactor.
-- JPMS module: một named module được xác định bằng module descriptor hoặc automatic module name.
+- Maven module: a build unit within the reactor.
+- JPMS module: a named module identified by a module descriptor or automatic module name.
 
-Hai khái niệm có thể liên hệ nhưng không đồng nghĩa.
+These two concepts can be related, but are not synonymous.
 
 ### 13.2. Gradle
 
-Kiểm tra dependency graph:
+Inspect the dependency graph:
 
 ~~~bash
 ./gradlew dependencies --configuration runtimeClasspath
 ~~~
 
-Kiểm thử:
+Test:
 
 ~~~bash
 ./gradlew clean test
 ~~~
 
-Một số phiên bản Gradle có khả năng suy luận module path từ `module-info.java` và dependency metadata, nhưng cách xử lý chính xác còn phụ thuộc plugin/cấu hình build. Vì vậy, cần quan sát lệnh compiler và launcher thực tế, không chỉ dựa vào danh sách dependency của build tool.
+Some Gradle versions can infer the module path from `module-info.java` and dependency metadata, though exact behavior depends on plugins/build configuration. Therefore, inspect the actual compiler and launcher commands rather than relying solely on the build tool's dependency list.
 
-### 13.3. Giữ một nguồn sự thật cho dependency
+### 13.3. Maintaining a Single Source of Truth for Dependencies
 
-Khi chuyển từng phần, tránh cùng một JAR xuất hiện cả trên classpath và module path trong một lần chạy. Tình huống này dễ tạo class identity khác nhau, nhầm version hoặc khiến việc chẩn đoán khó hơn.
+During incremental migration, avoid having the same JAR appear on both the classpath and the module path in a single run. That situation easily creates split class identities, version mismatches, or harder diagnostics.
 
-Nên ghi nhận rõ dependency nào ở classpath, dependency nào ở module path và bước migration tiếp theo của từng artifact.
+Explicitly document which dependencies are on the classpath, which are on the module path, and the next migration step for each artifact.
 
-## 14. Khi nào nên dùng requires transitive?
+## 14. When Should You Use requires transitive?
 
-Sau khi chuyển một library thành explicit module, nếu public API của library bộc lộ kiểu từ một module khác, cân nhắc `requires transitive`.
+After converting a library into an explicit module, if its public API exposes types from another module, consider `requires transitive`.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.client {
@@ -789,115 +789,115 @@ module com.acme.client {
 }
 ~~~
 
-Nếu class trong `com.acme.client.api` có method trả về kiểu public từ `com.acme.model`, các client đọc `com.acme.client` cũng cần nhìn thấy các kiểu model trong API.
+If a class in `com.acme.client.api` has a method returning a public type from `com.acme.model`, clients reading `com.acme.client` also need to see the model types in the API.
 
-`requires transitive` truyền readability; nó không tự export các package không được công bố từ module model.
+`requires transitive` propagates readability; it does not automatically export unexported packages from the model module.
 
-Không khai báo mọi dependency là transitive một cách máy móc. Chỉ dùng khi module dependency thực sự thuộc hợp đồng API công khai.
+Do not mechanically declare every dependency as transitive. Use it only when the dependency module is genuinely part of the public API contract.
 
-## 15. Những điều không nên làm
+## 15. What Not to Do
 
-**Chuyển tất cả JAR lên module path ngay lập tức.**
+**Moving all JARs onto the module path at once.**
 
-Một thao tác hàng loạt có thể làm lộ nhiều xung đột cùng lúc. Chuyển từng nhóm dependency nhỏ giúp tìm nguyên nhân rõ ràng hơn.
+A bulk move can expose many conflicts simultaneously. Moving small groups of dependencies makes root causes easier to pinpoint.
 
-**Tự suy tên module từ filename.**
+**Guessing module names from filenames.**
 
-Tên automatic module có thể được quyết định bởi manifest. Dùng `jar --describe-module` để xác nhận trước khi viết `requires`.
+Automatic module names may be determined by the manifest. Use `jar --describe-module` to verify before writing `requires`.
 
-**Dùng --add-exports thay cho thiết kế module.**
+**Using --add-exports as a substitute for module design.**
 
-Flag này chỉ thay đổi quyền export ở một số ngữ cảnh. Nó không sửa thiếu JAR, duplicate module name hoặc split package.
+This flag only changes export visibility in specific contexts. It does not fix missing JARs, duplicate module names, or split packages.
 
-**Cho rằng automatic module đã có encapsulation tốt.**
+**Assuming automatic modules already have good encapsulation.**
 
-Automatic module được xem là export mọi package. Khi chuyển thành explicit module, hãy xác định package API thật sự và chỉ export những package cần công bố.
+Automatic modules export all packages by default. When converting to an explicit module, identify true API packages and export only what needs to be published.
 
-**Quên kiểm tra service provider và reflection.**
+**Forgetting to check service providers and reflection.**
 
-Một dự án có thể biên dịch thành công nhưng chỉ gặp lỗi lúc framework quét annotation, nạp plugin hoặc service provider. Cần có runtime/integration tests.
+A project can compile successfully yet fail when a framework scans annotations, loads plugins, or discovers service providers. Runtime/integration tests are required.
 
-**Quên clean build và phân biệt compile/runtime path.**
+**Forgetting clean builds and distinguishing compile/runtime paths.**
 
-Class cũ còn trong output hoặc dependency chỉ có ở compile classpath có thể khiến lỗi xuất hiện sau khi triển khai. Dùng đúng runtime artifact để kiểm tra.
+Stale classes left in output or compile-only dependencies can cause failures after deployment. Verify with the exact runtime artifact.
 
-**Xem workaround như kiến trúc cuối cùng.**
+**Treating workarounds as the final architecture.**
 
-`--add-reads` hoặc `--add-exports` có thể hữu ích cho migration khó nhưng nên giới hạn phạm vi và có kế hoạch loại bỏ.
+`--add-reads` or `--add-exports` can be useful for difficult migrations, but should be narrowly scoped and scheduled for removal.
 
-## 16. Kế hoạch chuyển đổi theo các mốc kiểm chứng
+## 16. Migration Plan with Verification Milestones
 
-Một kế hoạch triển khai thực tế có thể chia thành các mốc sau:
+A practical rollout plan can be divided into the following milestones:
 
-| Mốc | Trạng thái | Điều kiện chuyển tiếp |
+| Milestone | State | Transition condition |
 |---|---|---|
-| M0 | Toàn bộ app và dependency chạy trên classpath | Build và smoke test hiện tại chạy ổn định |
-| M1 | Một thư viện thấp tầng là automatic module trên module path | App classpath chạy được với `--add-modules` phù hợp |
-| M2 | Nhiều dependency đã lên module path | Không có split package/duplicate module trong graph cần dùng |
-| M3 | App là explicit named module | `requires` đầy đủ; không phụ thuộc trực tiếp vào unnamed module |
-| M4 | Thư viện quan trọng có explicit descriptor | API package được export đúng; reflection/services hoạt động |
-| M5 | Build và deployment ổn định trên JPMS | CI và runtime production sử dụng module graph đã kiểm chứng |
+| M0 | Entire app and dependencies run on the classpath | Current build and smoke tests run stably |
+| M1 | One low-level library is an automatic module on the module path | Classpath app runs with appropriate `--add-modules` |
+| M2 | Multiple dependencies are on the module path | No split packages/duplicate modules in the required graph |
+| M3 | App is an explicit named module | Complete `requires`; no direct dependency on the unnamed module |
+| M4 | Key libraries have explicit descriptors | API packages exported cleanly; reflection/services work |
+| M5 | Build and deployment stable on JPMS | CI and production runtime use the verified module graph |
 
-### 16.1. Kiểm chứng sau mỗi mốc
+### 16.1. Verification After Each Milestone
 
-Sau mỗi lần chuyển JAR:
+After each JAR migration:
 
-1. Ghi lại tên và version artifact mới.
-2. Dùng `jar --describe-module` xác nhận module name.
-3. Chạy compile theo đúng JDK và module path.
-4. Chạy `--show-module-resolution` để xem graph.
-5. Chạy test liên quan và smoke test ứng dụng.
-6. Kiểm tra class/service loading nếu thư viện có plugin hoặc reflection.
-7. Chỉ tiếp tục chuyển dependency tiếp theo khi bước hiện tại chạy ổn định.
+1. Record the new artifact name and version.
+2. Run `jar --describe-module` to confirm the module name.
+3. Compile with the exact target JDK and module path.
+4. Run `--show-module-resolution` to inspect the graph.
+5. Run relevant tests and application smoke tests.
+6. Verify class/service loading if the library uses plugins or reflection.
+7. Proceed to the next dependency only when the current step runs stably.
 
-Nếu gặp lỗi, quay lại cấu hình classpath/module path của mốc gần nhất đã kiểm chứng, thay vì thêm nhiều flag vá lỗi cùng lúc.
+If an error occurs, roll back to the classpath/module-path configuration of the most recent verified milestone instead of piling on multiple patch flags at once.
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-Check Questions
 
-**Câu 1.** Một JAR chưa có `module-info.class` nhưng được đặt trên module path. Java có thể coi nó là module không?
+**Question 1.** A JAR does not yet have `module-info.class` but is placed on the module path. Can Java treat it as a module?
 
-**Trả lời:** Có. JAR có thể trở thành automatic module; tên module được lấy từ manifest `Automatic-Module-Name` hoặc suy ra theo quy tắc của JDK.
+**Answer:** Yes. The JAR can become an automatic module; its module name is taken from the `Automatic-Module-Name` manifest entry or derived according to JDK rules.
 
-**Câu 2.** App còn chạy từ classpath. Sau khi chuyển `acme-math.jar` lên module path, vì sao có thể cần `--add-modules com.acme.math`?
+**Question 2.** The app still runs from the classpath. After moving `acme-math.jar` onto the module path, why might `--add-modules com.acme.math` be needed?
 
-**Trả lời:** Vì việc JAR nằm trên module path không đảm bảo module đó là root đã được resolve. `--add-modules` yêu cầu Java resolve module được nêu.
+**Answer:** Because having the JAR on the module path does not guarantee that module is resolved as a root. `--add-modules` instructs Java to resolve the named module.
 
-**Câu 3.** Có thể viết `requires unnamed;` trong `module-info.java` của ứng dụng không?
+**Question 3.** Can you write `requires unnamed;` in the application's `module-info.java`?
 
-**Trả lời:** Không. Unnamed module không có tên để khai báo `requires` như named module.
+**Answer:** No. The unnamed module has no name to declare in `requires` the way a named module does.
 
-**Câu 4.** Thư viện automatic module đã hoạt động. Khi chuyển thành explicit module, điều gì có thể khiến app không biên dịch?
+**Question 4.** An automatic module library was already working. When converting it to an explicit module, what could cause the app to fail compilation?
 
-**Trả lời:** Các package trước đây được export tự động có thể không còn được export. Cần thiết kế `exports` cho API cần công bố và cập nhật dependency tương ứng.
+**Answer:** Packages that were previously exported automatically may no longer be exported. You need to design `exports` for the APIs to expose and update dependencies accordingly.
 
-**Câu 5.** Hai JAR trên module path cùng chứa package `com.acme.common`. Có thể chỉ thêm `--add-exports` để giải quyết không?
+**Question 5.** Two JARs on the module path both contain package `com.acme.common`. Can you solve it simply by adding `--add-exports`?
 
-**Trả lời:** Không. Cần xử lý split package, xác định package thuộc module nào hoặc đổi package/phiên bản dependency thích hợp.
+**Answer:** No. You must resolve the split package by determining which module owns the package or by changing packages/dependency versions appropriately.
 
-**Câu 6.** Tại sao nên di chuyển thư viện ít phụ thuộc trước?
+**Question 6.** Why should libraries with fewer dependencies be migrated first?
 
-**Trả lời:** Vì có thể kiểm chứng lớp dependency thấp trước, sau đó chuyển các thư viện phụ thuộc ở tầng cao hơn, giúp khoanh vùng lỗi dễ hơn.
+**Answer:** Because you can verify lower dependency layers first and then migrate higher-level dependent libraries, making errors easier to isolate.
 
-**Câu 7.** Lệnh nào giúp xem tên module thực tế của một JAR?
+**Question 7.** Which command shows a JAR's actual module name?
 
-**Trả lời:** `jar --describe-module --file path/to/library.jar`.
+**Answer:** `jar --describe-module --file path/to/library.jar`.
 
-**Câu 8.** Ứng dụng đã chuyển thành named module nhưng vẫn trực tiếp import class của JAR chỉ có trên classpath. Đây có phải trạng thái bền vững không?
+**Question 8.** The application has become a named module, yet still directly imports classes from a JAR that exists only on the classpath. Is this a sustainable state?
 
-**Trả lời:** Thường không. App không thể khai báo `requires` tới unnamed module; nên chuyển dependency trực tiếp lên module path hoặc điều chỉnh thiết kế cho phù hợp.
+**Answer:** Generally no. The app cannot declare `requires` on the unnamed module; you should move direct dependencies to the module path or adjust the design accordingly.
 
-**Câu 9.** Automatic module có phải là sandbox an toàn cho code không tin cậy?
+**Question 9.** Is an automatic module a secure sandbox for untrusted code?
 
-**Trả lời:** Không. JPMS là cơ chế tổ chức và đóng gói module; không nên coi module path hoặc class loader là cơ chế cách ly bảo mật.
+**Answer:** No. JPMS is a mechanism for module organization and encapsulation; the module path or class loaders should not be treated as a security isolation mechanism.
 
-**Câu 10.** Sau khi di chuyển một thư viện, build thành công nhưng `ServiceLoader` không tìm thấy provider. Nên kiểm tra gì?
+**Question 10.** After migrating a library, the build succeeds but `ServiceLoader` fails to find providers. What should you check?
 
-**Trả lời:** Kiểm tra `uses`/`provides`, service descriptor, provider module có được resolve trong layer phù hợp không và runtime configuration có đầy đủ module không.
+**Answer:** Check `uses`/`provides`, service descriptors, whether the provider module is resolved in the right layer, and whether the runtime configuration includes all required modules.
 
-## Tổng kết
+## Summary
 
-**Chuyển thư viện sang module path từng phần** là quá trình đưa một ứng dụng classpath truyền thống sang JPMS mà không buộc toàn bộ dependency phải có `module-info.java` ngay lập tức.
+**Moving libraries to the module path incrementally** is the process of bringing a traditional classpath application into JPMS without forcing every dependency to have `module-info.java` immediately.
 
-Lộ trình phổ biến là: kiểm kê dependency → đưa một số JAR lên module path dưới dạng automatic module → chạy app classpath với root module phù hợp → chuyển app sang explicit named module → lần lượt chuyển thư viện thành explicit module và thu hẹp API exports.
+A common roadmap is: inventory dependencies → move some JARs onto the module path as automatic modules → run the classpath app with suitable root modules → convert the app into an explicit named module → convert libraries one by one into explicit modules and narrow API exports.
 
-Trong mỗi giai đoạn, hãy xác minh **tên module thực tế, nguồn JAR, các module đã resolve, quyền truy cập package và runtime behavior**. Điều này giúp tránh nhầm lẫn giữa lỗi classpath, lỗi tìm module, split package và lỗi encapsulation, đồng thời giảm rủi ro khi triển khai migration trong hệ thống lớn.
+At each stage, verify the **actual module name, JAR source, resolved modules, package access permissions, and runtime behavior**. This prevents confusion between classpath errors, module lookup errors, split packages, and encapsulation failures while reducing migration risk in large systems.

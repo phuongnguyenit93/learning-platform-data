@@ -1,28 +1,28 @@
-# String.lines() và các kiểu kết thúc dòng CR, LF, CRLF
+# String.lines() and CR, LF, CRLF Line Endings
 
 
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Một chuỗi Java có thể chứa nhiều dòng văn bản: nội dung tệp cấu hình, thông điệp HTTP đã tải về, kết quả lệnh hoặc dữ liệu sao chép từ hệ điều hành khác. “Xuống dòng” trong dữ liệu này không nhất thiết là một ký tự duy nhất. Ba dạng thường gặp là **LF**, **CR** và **CRLF**. Khi xử lý nhiều dòng, ta cần biết chuỗi chứa ký tự gì, phương thức nào xem chúng là ranh giới dòng và liệu dòng trống có bị giữ lại không.
+A Java string can contain multiple lines of text: configuration file contents, downloaded HTTP messages, command outputs, or data copied from another operating system. A “line break” in this data is not necessarily a single character. The three common forms are **LF**, **CR**, and **CRLF**. When processing multiple lines, we need to know what characters the string contains, which methods treat them as line boundaries, and whether blank lines are preserved.
 
-Từ **Java 11**, `String.lines()` cho phép duyệt các dòng trong một `String` thông qua `Stream<String>`. Bài này tập trung vào:
-- Hiểu chính xác `\n` (LF), `\r` (CR), `\r\n` (CRLF).
-- Biết `String.lines()` trả về những chuỗi nào và loại bỏ ký tự kết thúc dòng ra sao.
-- Dự đoán các trường hợp **dòng trống giữa văn bản**, **chuỗi rỗng** và **ký tự kết thúc dòng ở cuối**.
-- Xử lý dòng bằng Stream, so sánh với `split("\\R")`, và chọn cách xử lý phù hợp cho dữ liệu đa nền tảng.
+Since **Java 11**, `String.lines()` lets you iterate over the lines in a `String` via a `Stream<String>`. This lesson focuses on:
+- Understanding `\n` (LF), `\r` (CR), and `\r\n` (CRLF) accurately.
+- Knowing which strings `String.lines()` returns and how it removes line terminators.
+- Predicting cases with **blank lines in the middle of text**, **empty strings**, and **trailing line terminators**.
+- Processing lines with Stream, comparing with `split("\\R")`, and choosing the right approach for cross-platform data.
 
-## 2. CR, LF và CRLF là gì?
+## 2. What Are CR, LF, and CRLF?
 
-| Tên | Tên đầy đủ | Escape trong chuỗi Java | Mã Unicode | Ký tự |
+| Name | Full Name | Escape in Java String | Unicode Code | Character |
 | --- | --- | --- | --- | --- |
-| LF | Line Feed | `\n` | `U+000A` | Một ký tự điều khiển xuống dòng |
-| CR | Carriage Return | `\r` | `U+000D` | Một ký tự điều khiển đưa đầu in về đầu dòng theo lịch sử |
-| CRLF | Carriage Return + Line Feed | `\r\n` | `U+000D U+000A` | **Hai ký tự liên tiếp**, thường được xem như **một lần** kết thúc dòng |
+| LF | Line Feed | `\n` | `U+000A` | A line feed control character |
+| CR | Carriage Return | `\r` | `U+000D` | A control character that historically returns the print head to the start of a line |
+| CRLF | Carriage Return + Line Feed | `\r\n` | `U+000D U+000A` | **Two consecutive characters**, usually treated as **a single** line ending |
 
-Trong thực tế, văn bản kiểu Unix/Linux thường sử dụng LF, văn bản Windows thường sử dụng CRLF, còn CR đơn từng được dùng phổ biến trên hệ Macintosh cũ. Đây là quy ước hay gặp, không phải quy tắc bất biến: tệp có thể được tạo, đồng bộ hoặc truyền qua hệ thống khác và chứa bất kỳ dạng nào.
+In practice, Unix/Linux-style text commonly uses LF, Windows text commonly uses CRLF, and standalone CR was formerly common on classic Macintosh systems. These are common conventions, not immutable rules: a file can be created, synced, or transferred across other systems and contain any form.
 
-Chú ý `"\r\n"` có độ dài **2** trong `String` Java, nhưng nhiều API xử lý văn bản coi cặp này là **một ranh giới dòng**. Không nên hiểu CR và LF trong cặp CRLF như hai dòng độc lập.
+Note that `"\r\n"` has length **2** in a Java `String`, but many text-processing APIs treat this pair as **a single line boundary**. You should not treat CR and LF inside a CRLF pair as two independent lines.
 
 ```java
 String lf = "A\nB";
@@ -34,41 +34,41 @@ System.out.println(cr.length());   // 3
 System.out.println(crlf.length()); // 4
 ```
 
-Ba chuỗi đều thể hiện hai dòng theo `String.lines()`, nhưng số ký tự bên trong khác nhau. Escape `\n` và `\r` được viết trong **mã nguồn Java**; giá trị runtime chứa ký tự điều khiển thực, không chứa hai ký tự `\` và `n`/`r`.
+All three strings represent two lines according to `String.lines()`, but the number of characters inside differs. The escapes `\n` and `\r` are written in **Java source code**; the runtime value contains actual control characters, not the two characters `\` and `n`/`r`.
 
-## 3. String.lines() hoạt động như thế nào?
+## 3. How Does String.lines() Work?
 
-Chữ ký API:
+API signature:
 
 ```java
 public Stream<String> lines()
 ```
 
-Đây là **phương thức instance** của `java.lang.String`, có từ Java 11. Nó trả về một `Stream<String>` chứa các dòng của chuỗi nguồn theo đúng thứ tự xuất hiện. Mỗi phần tử là nội dung dòng, **không bao gồm ký tự kết thúc dòng**.
+This is an **instance method** of `java.lang.String`, available since Java 11. It returns a `Stream<String>` containing the lines of the source string in order of appearance. Each element is the line content, **excluding line terminators**.
 
-Trong định nghĩa của `String.lines()`, một *line terminator* là **một trong ba dạng**: LF (`\n`), CR (`\r`) hoặc CRLF (`\r\n`). Cặp CRLF được tiêu thụ cùng nhau như một dấu kết thúc dòng, dù gồm hai ký tự.
+In the definition of `String.lines()`, a *line terminator* is **one of three forms**: LF (`\n`), CR (`\r`), or CRLF (`\r\n`). A CRLF pair is consumed together as a single line terminator, even though it consists of two characters.
 
-Về trực giác, một dòng là:
-1. Không hoặc nhiều ký tự nằm trước một line terminator, **hoặc**
-2. Không hoặc nhiều ký tự ở cuối chuỗi, sau line terminator cuối cùng nếu còn ký tự.
+Intuitively, a line is:
+1. Zero or more characters preceding a line terminator, **or**
+2. Zero or more characters at the end of the string, after the last line terminator if any characters remain.
 
-Tuy nhiên, **ký tự kết thúc dòng ở cuối chuỗi không tự sinh thêm một dòng trống cuối cùng**. Đây là điểm dễ nhầm khi so sánh với `String.split(..., -1)`.
+However, **a trailing line terminator at the end of a string does not by itself produce an extra final blank line**. This is a common point of confusion when comparing with `String.split(..., -1)`.
 
 ```java
 import java.util.List;
 
-String text = "đầu\ncuối";
+String text = "start\nend";
 List<String> lines = text.lines().toList();
 
-System.out.println(lines);       // [đầu, cuối]
+System.out.println(lines);       // [start, end]
 System.out.println(lines.size()); // 2
 ```
 
-`Stream.toList()` có từ Java 16, nên ví dụ này phù hợp với Java 17+. Trên Java 11, có thể thay `.toList()` bằng `.collect(Collectors.toList())`.
+`Stream.toList()` has been available since Java 16, so this example is suitable for Java 17+. On Java 11, you can replace `.toList()` with `.collect(Collectors.toList())`.
 
-## 4. Ví dụ thực hành: trộn CR, LF và CRLF
+## 4. Practical Example: Mixing CR, LF, and CRLF
 
-Tạo tệp `LinesDemo.java` (lưu UTF-8) với mã đầy đủ sau:
+Create a file `LinesDemo.java` (saved as UTF-8) with the following complete code:
 
 ```java
 import java.util.List;
@@ -76,7 +76,7 @@ import java.util.List;
 public class LinesDemo {
     private static void show(String label, String input) {
         List<String> lines = input.lines().toList();
-        System.out.println(label + " = " + lines.size() + " dòng");
+        System.out.println(label + " = " + lines.size() + " lines");
 
         for (int i = 0; i < lines.size(); i++) {
             System.out.println("  " + i + ": [" + lines.get(i) + "]");
@@ -87,7 +87,7 @@ public class LinesDemo {
         show("LF", "A\nB");
         show("CR", "A\rB");
         show("CRLF", "A\r\nB");
-        show("mixed", "một\nhai\r\nba\rbốn");
+        show("mixed", "one\ntwo\r\nthree\rfour");
         show("blank middle", "A\n\nB");
         show("trailing LF", "A\n");
         show("empty", "");
@@ -95,7 +95,7 @@ public class LinesDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 LinesDemo.java
@@ -105,55 +105,55 @@ java LinesDemo
 Stdout:
 
 ```text
-LF = 2 dòng
+LF = 2 lines
   0: [A]
   1: [B]
-CR = 2 dòng
+CR = 2 lines
   0: [A]
   1: [B]
-CRLF = 2 dòng
+CRLF = 2 lines
   0: [A]
   1: [B]
-mixed = 4 dòng
-  0: [một]
-  1: [hai]
-  2: [ba]
-  3: [bốn]
-blank middle = 3 dòng
+mixed = 4 lines
+  0: [one]
+  1: [two]
+  2: [three]
+  3: [four]
+blank middle = 3 lines
   0: [A]
   1: []
   2: [B]
-trailing LF = 1 dòng
+trailing LF = 1 lines
   0: [A]
-empty = 0 dòng
+empty = 0 lines
 ```
 
-Chương trình in `[ ]` xung quanh mỗi dòng để dễ thấy nội dung rỗng; trong kết quả, `[]` chính là một chuỗi dòng có độ dài 0. Thứ tự dòng được giữ nguyên khi đi qua Stream.
+The program prints `[ ]` around each line so empty content is easy to spot; in the output, `[]` is a line string of length 0. Line order is preserved as elements pass through the Stream.
 
-Quan sát sự khác biệt:
-- `"A\nB"`, `"A\rB"` và `"A\r\nB"` đều tạo hai dòng `"A"` và `"B"`.
-- `"A\n\nB"` chứa **hai dấu kết thúc dòng liên tiếp**; khoảng giữa chúng là một dòng rỗng hợp lệ.
-- `"A\n"` kết thúc ngay sau một dấu LF; `lines()` chỉ trả `"A"`.
-- `""` không có ký tự nào và không có dòng nào; Stream rỗng.
+Observe the differences:
+- `"A\nB"`, `"A\rB"`, and `"A\r\nB"` all produce two lines `"A"` and `"B"`.
+- `"A\n\nB"` contains **two consecutive line terminators**; the gap between them is a valid blank line.
+- `"A\n"` ends right after an LF; `lines()` returns only `"A"`.
+- `""` has no characters and no lines; the Stream is empty.
 
-### Ranh giới với các bài chuyên sâu
+### Scope Boundaries with Deep-Dive Lessons
 
-Bảng dòng trống và ký tự xuống dòng cuối được kiểm chứng chi tiết ở bài **Chuỗi rỗng và ký tự xuống dòng ở cuối**. Nếu cần phân biệt `split(regex, 0)`, `split(regex, -1)` và `lines().limit(n)`, xem bài **Khác biệt giữa lines và split với limit**. Ở bài hiện tại, điểm trọng tâm là cách LF, CR và CRLF được nhận diện như ranh giới dòng và tác động của việc chuẩn hóa chúng.
+The table of blank lines and trailing newline characters is examined in detail in the lesson **Empty Strings and Trailing Line Endings**. If you need to distinguish `split(regex, 0)`, `split(regex, -1)`, and `lines().limit(n)`, see the lesson **Differences Between lines and split with limit**. In the current lesson, the main focus is how LF, CR, and CRLF are recognized as line boundaries and the impact of normalizing them.
 
-## 5. Xử lý các dòng bằng Stream
+## 5. Processing Lines with Stream
 
-Vì `lines()` trả `Stream<String>`, có thể kết hợp trực tiếp `map`, `filter`, `count`, `forEach`, `limit`, `collect`... để thực hiện các thao tác theo dòng.
+Because `lines()` returns `Stream<String>`, you can directly chain `map`, `filter`, `count`, `forEach`, `limit`, `collect`, etc. to perform line-by-line operations.
 
-### Đếm số dòng
+### Counting Lines
 
 ```java
 String text = "alpha\nbeta\r\ngamma";
 long count = text.lines().count(); // 3
 ```
 
-Giá trị ở đây là **số phần tử dòng** do `lines()` sinh ra, không phải số lần xuất hiện của ký tự `\n`. Trong chuỗi trên, CRLF là một lần kết thúc dòng; tổng có ba dòng.
+The value here is the **number of line elements** produced by `lines()`, not the number of occurrences of the `\n` character. In the string above, CRLF is a single line ending; there are three lines in total.
 
-### Lọc các dòng trống hoặc chỉ chứa khoảng trắng
+### Filtering Out Empty or Whitespace-Only Lines
 
 ```java
 import java.util.List;
@@ -167,14 +167,14 @@ List<String> nonBlank = text.lines()
 System.out.println(nonBlank); // [Java, Stream]
 ```
 
-Trong ví dụ này:
-- `strip()` loại khoảng trắng Unicode theo quy tắc `Character.isWhitespace` ở hai đầu chuỗi (Java 11+).
-- `filter(...)` bỏ những dòng trở thành rỗng sau khi strip.
-- `toList()` gom kết quả thành danh sách (Java 16+).
+In this example:
+- `strip()` removes Unicode whitespace according to `Character.isWhitespace` from both ends of the string (Java 11+).
+- `filter(...)` drops lines that become empty after stripping.
+- `toList()` collects the results into a list (Java 16+).
 
-Nếu cần **giữ lại** các dòng trống để bảo toàn bố cục gốc, đừng áp dụng `filter`. Nếu chỉ cần bỏ dòng trống theo định nghĩa `String.isBlank()` mà vẫn giữ khoảng trắng ở những dòng khác, có thể dùng `.filter(line -> !line.isBlank())`.
+If you need to **keep** blank lines to preserve the original layout, do not apply `filter`. If you only want to skip blank lines according to `String.isBlank()` while preserving whitespace on other lines, you can use `.filter(line -> !line.isBlank())`.
 
-### Thêm số thứ tự dòng
+### Adding Line Numbers
 
 ```java
 import java.util.List;
@@ -189,9 +189,9 @@ System.out.println(numbered);
 // [1. first, 2. second, 3. third]
 ```
 
-Đây là đoạn mã minh họa đặt trong một phương thức hoặc `main`; ví dụ hoàn chỉnh chạy độc lập đã có tại mục 4.
+This is an illustrative snippet placed inside a method or `main`; a complete standalone runnable example was already shown in section 4.
 
-### Nối lại các dòng
+### Joining Lines Back Together
 
 ```java
 import java.util.stream.Collectors;
@@ -203,26 +203,26 @@ String normalized = original.lines()
 System.out.println(normalized.equals("A\nB\nC")); // true
 ```
 
-Sau khi tách, các dấu CR, LF hoặc CRLF **không còn nằm trong phần tử dòng**. Để nối lại, bạn phải chủ động chọn dấu phân cách mới. Kết quả này không giữ nguyên chính xác các dấu kết thúc dòng gốc. Nếu văn bản ban đầu kết thúc bằng newline, việc nối các dòng thường sẽ **không** tái tạo newline cuối cùng. Nếu cần bảo toàn từng byte của văn bản nguồn, đừng dùng `lines()` rồi tự join mà không ghi lại thông tin dấu kết thúc dòng.
+After splitting, the CR, LF, or CRLF characters **are no longer present in the line elements**. To join them back together, you must actively choose a new separator. This result does not preserve the exact original line terminators. If the original text ended with a newline, joining the lines will normally **not** recreate the trailing newline. If you need to preserve every byte of the source text, do not call `lines()` and then join without recording the line-terminator information.
 
-## 6. Tránh nhầm với System.lineSeparator()
+## 6. Avoid Confusing with System.lineSeparator()
 
-`System.lineSeparator()` trả về chuỗi kết thúc dòng **mặc định của nền tảng đang chạy**. Thường trên Windows là `"\r\n"`, còn trên Linux/macOS hiện đại là `"\n"`. Giá trị này phục vụ **việc tạo đầu ra theo nền tảng**, không quyết định loại terminator mà `String.lines()` có thể đọc.
+`System.lineSeparator()` returns the **default line-ending string of the running platform**. Typically on Windows this is `"\r\n"`, while on modern Linux/macOS it is `"\n"`. This value is meant for **generating platform-appropriate output**, not for determining which terminators `String.lines()` can read.
 
 ```java
 String output = String.join(
         System.lineSeparator(), "first", "second");
 ```
 
-Đoạn trên tạo văn bản theo dấu xuống dòng hệ thống. Nhưng nếu một `String` đã chứa CRLF hoặc CR từ nguồn khác, `lines()` vẫn nhận diện chúng, bất kể máy đang chạy thuộc hệ điều hành nào.
+The snippet above creates text using the system line separator. However, if a `String` already contains CRLF or CR from another source, `lines()` still recognizes them, regardless of which operating system the machine is running on.
 
-Tương tự, `%n` trong `String.format(...)`/`Formatter` in ký tự xuống dòng theo nền tảng, và `println(...)` cũng phát sinh dấu xuống dòng của môi trường. Các cách **tạo xuống dòng** này khác với quy tắc **đọc/tách xuống dòng** của `String.lines()`.
+Similarly, `%n` in `String.format(...)`/`Formatter` prints the platform-specific line separator, and `println(...)` also emits the environment's line ending. These ways of **generating line breaks** are different from the **reading/splitting line break** rules of `String.lines()`.
 
-## 7. Lines, stream và tài nguyên
+## 7. Lines, Streams, and Resources
 
-`String.lines()` hoạt động trên một **chuỗi đã có trong bộ nhớ**. Nó không tự đọc tệp, không mở kết nối và không đóng luồng hệ điều hành. Stream trả về hỗ trợ thao tác theo chuỗi bước (pipeline), có thứ tự theo văn bản nguồn và việc tìm ranh giới dòng diễn ra khi Stream được sử dụng.
+`String.lines()` operates on a **string already in memory**. It does not read files on its own, open connections, or close OS streams. The returned Stream supports pipelined operations, preserves the order of the source text, and finds line boundaries lazily as the Stream is consumed.
 
-Ví dụ chỉ lấy hai dòng đầu:
+Example taking only the first two lines:
 
 ```java
 import java.util.List;
@@ -233,7 +233,7 @@ List<String> firstTwo = text.lines().limit(2).toList();
 System.out.println(firstTwo); // [one, two]
 ```
 
-Stream được sử dụng bởi một terminal operation như `toList()` hoặc `count()`; **không được tái sử dụng cùng một đối tượng Stream** sau khi terminal operation đã chạy:
+A Stream is consumed by a terminal operation such as `toList()` or `count()`; **you must not reuse the same Stream object** after a terminal operation has run:
 
 ```java
 import java.util.stream.Stream;
@@ -242,23 +242,23 @@ String text = "A\nB";
 Stream<String> stream = text.lines();
 
 long count = stream.count(); // 2
-// stream.toList(); // Sai: Stream đã được sử dụng
+// stream.toList(); // Error: Stream has already been operated upon
 ```
 
-Muốn xử lý lần hai, hãy gọi `text.lines()` lần nữa. `String.lines()` tạo Stream từ một `String`; bản thân `String` là immutable nên không thay đổi vì hoạt động đọc dòng.
+To process the text a second time, call `text.lines()` again. `String.lines()` creates a Stream from a `String`; `String` itself is immutable, so it is not altered by reading lines.
 
-**Đối với tệp rất lớn:** đọc toàn bộ tệp vào một `String` có thể tốn bộ nhớ. Khi cần xử lý tăng dần, chọn `Files.lines(path, charset)` hoặc `BufferedReader.lines()` rồi quản lý vòng đời tệp/reader bằng `try-with-resources`. `Files.lines` cần đóng Stream vì nó nắm tài nguyên I/O; `String.lines` không có tài nguyên tệp cần đóng. Những API đọc dòng từ tệp và `String.lines` có cùng mục tiêu khai thác dòng văn bản, nhưng chi phí và vòng đời tài nguyên khác nhau.
+**For very large files:** reading an entire file into a `String` can consume a lot of memory. When incremental processing is needed, choose `Files.lines(path, charset)` or `BufferedReader.lines()` and manage the file/reader lifecycle with `try-with-resources`. `Files.lines` needs its Stream closed because it holds I/O resources; `String.lines` has no file resources to close. File-reading line APIs and `String.lines` share the goal of working with lines of text, but their cost and resource lifecycles differ.
 
-## 8. Quy tắc thực hành khi chuẩn hóa xuống dòng
+## 8. Practical Rules for Normalizing Line Endings
 
-Khi nhận văn bản từ nhiều nguồn, hãy xác định **yêu cầu đầu ra** trước khi chuyển đổi:
-1. **Chỉ cần tính toán theo dòng** (đếm, lọc, tìm kiếm): `String.lines()` thường phù hợp.
-2. **Cần chuẩn hóa nội dung để hiển thị hoặc so sánh:** dùng `lines()` rồi join với `"\n"` hoặc quy tắc đầu ra đã chọn, chấp nhận việc thay đổi dấu xuống dòng gốc và khả năng mất newline cuối.
-3. **Cần giữ nguyên định dạng gốc, kể cả CRLF/CR/LF hỗn hợp hoặc newline cuối:** lưu nguyên chuỗi; nếu phải phân tích, dùng thuật toán giữ kèm delimiter hoặc cơ chế đọc bảo toàn dấu kết thúc dòng.
-4. **Cần xử lý nhiều loại Unicode linebreak:** cân nhắc regex `\R` và kiểm tra yêu cầu về các phần tử rỗng ở cuối.
-5. **Cần phân tích theo chuẩn cụ thể** (CSV nhiều dòng trong trường có quote, HTTP headers, log có nhiều dòng): không mặc định mỗi dấu xuống dòng là ranh giới record; hãy dùng parser tuân thủ chuẩn.
+When receiving text from multiple sources, determine the **output requirements** before converting:
+1. **Only need line-based computation** (counting, filtering, searching): `String.lines()` is usually appropriate.
+2. **Need to normalize content for display or comparison:** use `lines()` and join with `"\n"` or your chosen output rule, accepting changes to original line endings and the potential loss of a trailing newline.
+3. **Need to preserve the exact original format, including mixed CRLF/CR/LF or trailing newline:** keep the original string; if parsing is required, use an algorithm that retains delimiters or a reading mechanism that preserves line terminators.
+4. **Need to handle multiple Unicode linebreak types:** consider regex `\R` and check requirements regarding trailing empty elements.
+5. **Need to parse according to a specific standard** (multiline CSV inside quoted fields, HTTP headers, multiline logs): do not assume every line break is a record boundary; use a standards-compliant parser.
 
-Một ví dụ điển hình: nếu cần kiểm tra xem cấu hình có bao nhiêu **dòng không rỗng**, có thể viết:
+A typical example: if you need to check how many **non-blank lines** a configuration has, you can write:
 
 ```java
 String config = "# sample\r\nhost=localhost\n\r\nport=8080\n";
@@ -269,11 +269,11 @@ long nonBlankLines = config.lines()
 System.out.println(nonBlankLines); // 3
 ```
 
-Đây là bài toán **đếm dòng hiển thị không rỗng**, không phải parse ngữ nghĩa của tệp cấu hình. Nếu cần đọc key/value, bình luận hay escape đúng chuẩn định dạng, phải dùng parser tương ứng.
+This is a task of **counting non-blank visible lines**, not parsing the semantics of a configuration file. If you need to read keys/values, comments, or escapes according to a format specification, you must use the corresponding parser.
 
-## 9. Bài tự luyện có đáp án
+## 9. Practice Exercises with Answers
 
-**Bài 1.** Dự đoán số phần tử của ba Stream:
+**Exercise 1.** Predict the number of elements in the three Streams:
 
 ```java
 "A\r\nB".lines().count();
@@ -281,13 +281,13 @@ System.out.println(nonBlankLines); // 3
 "A\n".lines().count();
 ```
 
-Đáp án lần lượt: **2**, **3**, **1**. CRLF là một dấu kết thúc dòng; hai LF liên tiếp tạo một dòng rỗng ở giữa; LF cuối không thêm dòng mới.
+Answers respectively: **2**, **3**, **1**. CRLF is a single line terminator; two consecutive LFs create a blank line in between; a trailing LF does not add a new line.
 
-**Bài 2.** `"\r\n\n".lines()` có bao nhiêu dòng và nội dung của từng dòng là gì?
+**Exercise 2.** How many lines does `"\r\n\n".lines()` have and what is the content of each line?
 
-Đáp án: **2 dòng**, cả hai đều là `""`. CRLF tạo dòng rỗng thứ nhất; LF tiếp theo tạo dòng rỗng thứ hai.
+Answer: **2 lines**, both are `""`. CRLF creates the first empty line; the following LF creates the second empty line.
 
-**Bài 3.** Với `String text = "x\r\ny\n";`, hãy lấy danh sách dòng không chứa terminator.
+**Exercise 3.** Given `String text = "x\r\ny\n";`, retrieve a list of lines without terminators.
 
 ```java
 import java.util.List;
@@ -297,18 +297,18 @@ List<String> values = text.lines().toList();
 // ["x", "y"]
 ```
 
-**Bài 4.** Muốn giữ lại cả phần tử trống **sau LF cuối** để phân biệt `"A"` và `"A\n"`, nên dùng cách nào?
+**Exercise 4.** If you want to keep the empty element **after the trailing LF** to distinguish `"A"` from `"A\n"`, which approach should you use?
 
-Một cách đơn giản khi dữ liệu phù hợp với các linebreak regex nhận diện:
+A simple way when the data matches the linebreaks recognized by regex:
 
 ```java
 String[] values = "A\n".split("\\R", -1);
 // ["A", ""]
 ```
 
-Với yêu cầu bảo toàn chính xác CR/LF/CRLF gốc để tái xuất, `split("\\R", -1)` vẫn **không giữ loại delimiter**: phải dùng giải pháp lưu cả delimiter.
+When you must preserve the exact original CR/LF/CRLF for re-export, `split("\\R", -1)` still **does not preserve the delimiter type**: you must use a solution that stores the delimiters as well.
 
-**Bài 5.** Cần xác định một chuỗi có bao nhiêu dòng không rỗng sau khi loại khoảng trắng đầu/cuối.
+**Exercise 5.** Determine how many non-empty lines a string has after stripping leading/trailing whitespace.
 
 ```java
 String text = "A\n   \r\n B \n";
@@ -319,18 +319,18 @@ long count = text.lines()
 // 2
 ```
 
-**Bài 6.** So sánh trên chuỗi `"A\u2028B"`: `lines()` và `split("\\R")` có cùng số phần tử không?
+**Exercise 6.** Compare on the string `"A\u2028B"`: do `lines()` and `split("\\R")` produce the same number of elements?
 
-Đáp án: **không**. `lines()` tạo một dòng; `split("\\R")` tạo hai phần tử, vì regex `\R` nhận diện Unicode LINE SEPARATOR (`U+2028`).
+Answer: **no**. `lines()` produces one line; `split("\\R")` produces two elements, because regex `\R` recognizes Unicode LINE SEPARATOR (`U+2028`).
 
-## 10. Ghi nhớ
+## 10. Key Takeaways
 
-- **LF = `\n`**, **CR = `\r`**, **CRLF = `\r\n`**; CRLF gồm hai ký tự nhưng được coi là một line terminator.
-- **`String.lines()` từ Java 11** tạo `Stream<String>` theo thứ tự dòng, tự bỏ LF/CR/CRLF khỏi từng phần tử.
-- **Chuỗi rỗng → 0 dòng; một terminator đơn → 1 dòng rỗng; terminator ở cuối sau nội dung → không phát sinh thêm dòng cuối**.
-- **Dòng trống ở đầu/giữa vẫn được giữ**, trừ khi bạn chủ động lọc bằng Stream.
-- **`split("\\R")` nhận nhiều Unicode linebreak hơn; `split("\\R", -1)` giữ phần tử trống sau terminator cuối**, nhưng không bảo toàn chính loại dấu kết thúc dòng.
-- **`System.lineSeparator()` là lựa chọn dấu xuống dòng khi tạo văn bản** theo nền tảng, không giới hạn những terminator mà `String.lines()` nhận diện.
-- Nếu phải tái tạo văn bản **chính xác**, bao gồm newline cuối và CR/LF/CRLF hỗn hợp, hãy giữ nguyên nguồn hoặc lưu cả delimiter.
+- **LF = `\n`**, **CR = `\r`**, **CRLF = `\r\n`**; CRLF consists of two characters but is treated as a single line terminator.
+- **`String.lines()` from Java 11** creates a `Stream<String>` in line order, automatically removing LF/CR/CRLF from each element.
+- **Empty string → 0 lines; a single terminator alone → 1 empty line; a trailing terminator after content → does not produce an extra final line**.
+- **Leading/middle blank lines are preserved**, unless you explicitly filter them out with Stream.
+- **`split("\\R")` recognizes more Unicode linebreaks; `split("\\R", -1)` keeps empty elements after a trailing terminator**, but does not preserve the exact line-terminator type.
+- **`System.lineSeparator()` is a choice of line ending when generating text** for the current platform, and does not restrict which terminators `String.lines()` recognizes.
+- If you must reconstruct text **exactly**, including trailing newlines and mixed CR/LF/CRLF, keep the original source or store the delimiters as well.
 
-Tham khảo chính thức: [Java SE 17 — String.lines()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#lines()), [Java SE 17 — Pattern (\\R)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html), [Java SE 17 — Files.lines()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#lines(java.nio.file.Path)).
+Official references: [Java SE 17 — String.lines()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#lines()), [Java SE 17 — Pattern (\\R)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html), [Java SE 17 — Files.lines()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#lines(java.nio.file.Path)).

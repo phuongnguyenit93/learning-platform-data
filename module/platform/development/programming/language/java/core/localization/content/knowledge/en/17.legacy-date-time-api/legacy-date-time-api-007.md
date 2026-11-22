@@ -1,57 +1,57 @@
-# Chuyển đổi giữa Date, Instant và các kiểu java.time trong Java
+# Converting Between Date, Instant, and java.time Types in Java
 
-## 1. Vì sao cần chuyển đổi giữa hai thế hệ API?
+## 1. Why convert between the two API generations?
 
-Trong nhiều hệ thống Java, dữ liệu thời gian đi qua cả mã cũ lẫn mã mới:
+In many Java systems, temporal data passes through both legacy and modern code:
 
-- API cũ, driver hoặc một số thư viện có thể dùng `java.util.Date` và `java.util.Calendar`.
-- Code hiện đại thường dùng các kiểu trong `java.time` như `Instant`, `LocalDate`, `LocalTime`, `LocalDateTime`, `ZonedDateTime` và `OffsetDateTime`.
-- Dữ liệu SQL đôi khi dùng `java.sql.Date`, `java.sql.Time` hoặc `java.sql.Timestamp`, vốn **không** nên bị đồng nhất với `java.util.Date` dù có quan hệ kế thừa.
+- Legacy APIs, drivers, or certain libraries may use `java.util.Date` and `java.util.Calendar`.
+- Modern code typically uses types in `java.time` such as `Instant`, `LocalDate`, `LocalTime`, `LocalDateTime`, `ZonedDateTime`, and `OffsetDateTime`.
+- SQL data sometimes uses `java.sql.Date`, `java.sql.Time`, or `java.sql.Timestamp`, which must **not** be equated with `java.util.Date` despite inheritance relationships.
 
-Mục tiêu của việc chuyển đổi là **giữ nguyên ý nghĩa thời gian**, tránh nhầm thời điểm tuyệt đối với giờ hiển thị của một vùng. Một dòng code biên dịch được chưa chắc đúng nghiệp vụ nếu bỏ qua múi giờ, độ chính xác hoặc daylight saving time (DST).
+The goal of conversion is to **preserve temporal meaning**, avoiding confusing an absolute instant with the displayed wall time of a region. A line of code that compiles is not necessarily business-correct if it ignores time zone, precision, or daylight saving time (DST).
 
-Ví dụ một thời điểm UTC:
+For example, a UTC instant:
 
 ```text
 2024-02-29T23:30:00Z
 ```
 
-là **cùng một thời điểm** với giờ địa phương tại `Asia/Ho_Chi_Minh`:
+is the **exact same instant** as local time in `Asia/Ho_Chi_Minh`:
 
 ```text
 2024-03-01T06:30:00+07:00
 ```
 
-Hai chuỗi có **ngày tháng khác nhau** nhưng cùng trỏ đến một instant. Vì vậy, chuyển từ `Date` sang `LocalDate` **bắt buộc có chính sách múi giờ**; Java không thể suy ra một ngày địa phương duy nhất chỉ từ epoch time.
+The two strings have **different calendar dates** yet point to the same instant. Therefore, converting from `Date` to `LocalDate` **requires a time zone policy**; Java cannot deduce a unique local date from epoch time alone.
 
-## 2. Bản đồ các kiểu thời gian cần nhớ
+## 2. Map of temporal types to remember
 
-| Kiểu | Biểu diễn gì? | Có múi giờ/offset? | Dùng khi nào? |
+| Type | What does it represent? | Has time zone / offset? | When to use? |
 |---|---|---|---|
-| `java.util.Date` | Một thời điểm trên trục thời gian, độ phân giải API theo mili-giây | Bản thân đối tượng không giữ zone | Tương thích thư viện cũ |
-| `Instant` | Một điểm trên timeline UTC, độ chính xác nano-giây | Là thời điểm tuyệt đối; không giữ tên zone | Timestamps, log, giao tiếp hệ thống |
-| `LocalDate` | Năm-tháng-ngày trong lịch | Không | Ngày sinh, ngày đặt lịch, ngày nghiệp vụ |
-| `LocalTime` | Giờ-phút-giây trong một ngày | Không | Giờ mở cửa hoặc giờ hẹn theo ngày |
-| `LocalDateTime` | Ngày và giờ “trên đồng hồ” | Không | Lịch địa phương chưa gắn zone |
-| `OffsetDateTime` | Ngày/giờ kèm offset cố định như `+07:00` | Có offset | Thời gian có offset trong API |
-| `ZonedDateTime` | Ngày/giờ gắn `ZoneId` như `Europe/Paris`, sử dụng zone rules | Có zone và offset tại thời điểm cụ thể | Lịch, sự kiện xuyên DST |
-| `ZoneId` | Bộ quy tắc của vùng giờ | Chính nó đại diện zone | Diễn giải giờ địa phương |
-| `ZoneOffset` | Độ lệch cố định so với UTC | Có offset | Giao tiếp dạng `+07:00`, `Z` |
+| `java.util.Date` | A point on the timeline, API resolution in milliseconds | The object itself holds no zone | Legacy library compatibility |
+| `Instant` | A point on the UTC timeline, nanosecond precision | Absolute instant; holds no zone name | Timestamps, logs, system communication |
+| `LocalDate` | Year-month-day on a calendar | No | Birthdates, booking dates, business dates |
+| `LocalTime` | Hour-minute-second within a day | No | Opening hours or daily appointment times |
+| `LocalDateTime` | Date and time "on a clock" | No | Local schedule not yet bound to a zone |
+| `OffsetDateTime` | Date/time with a fixed offset like `+07:00` | Has offset | Times carrying an offset in APIs |
+| `ZonedDateTime` | Date/time bound to a `ZoneId` like `Europe/Paris`, using zone rules | Has zone and offset at that instant | Schedules, events spanning DST |
+| `ZoneId` | Rule set for a time zone region | Represents the zone itself | Interpreting local time |
+| `ZoneOffset` | Fixed offset relative to UTC | Has offset | Communication like `+07:00`, `Z` |
 
-**Chốt ngữ nghĩa:** `Date` và `Instant` nói về “**khi nào**”; `LocalDateTime` nói về “**đồng hồ hiển thị mấy giờ**” nhưng không xác định được một instant duy nhất nếu chưa gắn vùng giờ.
+**Semantic anchor:** `Date` and `Instant` answer "**when**"; `LocalDateTime` answers "**what time the clock shows**", yet cannot identify a unique instant until bound to a time zone.
 
-`Instant` không phải là “thời gian local dùng GMT”; nó là một điểm tuyệt đối trên timeline. `Date.toString()` có thể hiển thị theo múi giờ mặc định JVM, nhưng điều đó **không biến Date thành đối tượng lưu timezone**.
+`Instant` is not "local time using GMT"; it is an absolute point on the timeline. `Date.toString()` may display using the JVM default time zone, but that **does not make Date an object that stores a timezone**.
 
-## 3. Chuyển đổi chuẩn giữa java.util.Date và Instant
+## 3. Standard conversion between java.util.Date and Instant
 
-Hai API trực tiếp nhất:
+The two most direct APIs:
 
 ```java
 Instant instant = legacyDate.toInstant(); // Date -> Instant
 Date legacyDate = Date.from(instant);     // Instant -> Date
 ```
 
-Với `Date`, cần import đúng `java.util.Date` và `java.time.Instant`. Khi hai đoạn được dùng chung, khai báo biến theo thứ tự hợp lý:
+With `Date`, import `java.util.Date` and `java.time.Instant` properly. When both statements are used together, declare variables in logical order:
 
 ```java
 Instant instant = Instant.parse("2024-02-29T23:30:00Z");
@@ -59,30 +59,30 @@ Date legacyDate = Date.from(instant);
 Instant restored = legacyDate.toInstant();
 ```
 
-Các lệnh này không phụ thuộc múi giờ mặc định JVM để xác định **instant**. Dữ liệu epoch được giữ, **trong giới hạn độ chính xác và phạm vi của Date**.
+These statements do not depend on the JVM default time zone to determine the **instant**. Epoch data is preserved, **within the precision and range limits of Date**.
 
-### Tại sao Instant -> Date có thể mất độ chính xác?
+### Why can Instant -> Date lose precision?
 
-`Instant` có nano-giây; `java.util.Date` biểu diễn thời điểm bằng số mili-giây từ epoch, thông qua `getTime()`. Khi tạo `Date` từ một `Instant` có phần nano-giây không chia hết cho 1 triệu, **phần dưới mili-giây không được giữ lại**.
+`Instant` has nanoseconds; `java.util.Date` represents an instant as milliseconds since epoch via `getTime()`. When constructing a `Date` from an `Instant` whose nanosecond part is not divisible by 1,000,000, **the sub-millisecond fraction is not preserved**.
 
-Ví dụ:
+Example:
 
 ```text
-Instant gốc:             2024-02-29T23:30:00.123456789Z
-Sau Date.from(...):      2024-02-29T23:30:00.123Z
+Original Instant:        2024-02-29T23:30:00.123456789Z
+After Date.from(...):    2024-02-29T23:30:00.123Z
 ```
 
-Đây không phải lỗi timezone mà là **mất độ chính xác** do chuyển sang kiểu có granularity mili-giây. Nếu ứng dụng cần nano-giây, không thể yêu cầu một `java.util.Date` bảo toàn chúng; hãy giữ `Instant` hoặc dùng kiểu lưu trữ thích hợp.
+This is not a timezone bug, but **precision loss** caused by converting to a type with millisecond granularity. If an application requires nanoseconds, a `java.util.Date` cannot preserve them; keep `Instant` or use an appropriate storage type.
 
-`Date.from(Instant)` cũng có thể ném `IllegalArgumentException` nếu `Instant` nằm ngoài phạm vi biểu diễn của `Date`; tránh giả định mọi `Instant.MIN/MAX` đều chuyển được.
+`Date.from(Instant)` can also throw `IllegalArgumentException` if `Instant` lies outside `Date`'s representable range; do not assume every `Instant.MIN/MAX` value can be converted.
 
-### Tại sao không nên dùng Date.toString để kiểm chứng?
+### Why should Date.toString not be used for verification?
 
-`System.out.println(date)` gọi `Date.toString()`, mà chuỗi hiển thị phụ thuộc timezone/default của môi trường. Để có kết quả ổn định khi so sánh, log `date.toInstant()`, `date.getTime()` hoặc dùng formatter có `ZoneId` tường minh.
+`System.out.println(date)` calls `Date.toString()`, whose string output depends on the environment's default timezone. For stable comparisons, log `date.toInstant()`, `date.getTime()`, or use a formatter with an explicit `ZoneId`.
 
-## 4. Chương trình Java 17+: Date ⇄ Instant với timestamp cố định
+## 4. Java 17+ program: Date ⇄ Instant with a fixed timestamp
 
-Lưu thành `DateInstantDemo.java`:
+Save as `DateInstantDemo.java`:
 
 ```java
 import java.time.Instant;
@@ -104,14 +104,14 @@ public class DateInstantDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac DateInstantDemo.java
 java DateInstantDemo
 ```
 
-Kết quả kiểm chứng trên Java 17+:
+Verified output on Java 17+:
 
 ```text
 instant=2024-02-29T23:30:00.123456789Z
@@ -120,21 +120,21 @@ restored=2024-02-29T23:30:00.123Z
 same=false
 ```
 
-Giải thích:
+Explanation:
 
-1. `Instant.parse(...)` tạo điểm trên timeline UTC.
-2. `Date.from(original)` chuyển sang đối tượng legacy với mili-giây.
-3. `Date.getTime()` trả số mili-giây kể từ Unix epoch (`1970-01-01T00:00:00Z`).
-4. `Date.toInstant()` tái tạo một instant từ mili-giây đã giữ lại.
-5. `original.equals(restored)` là `false` do phần `456789` nano-giây bị mất.
+1. `Instant.parse(...)` creates a point on the UTC timeline.
+2. `Date.from(original)` converts it to the legacy object with milliseconds.
+3. `Date.getTime()` returns milliseconds since the Unix epoch (`1970-01-01T00:00:00Z`).
+4. `Date.toInstant()` reconstructs an instant from the retained milliseconds.
+5. `original.equals(restored)` is `false` because the `456789` nanosecond remainder was lost.
 
-Nếu `Instant` ban đầu chỉ có precision mili-giây và nằm trong phạm vi được hỗ trợ, round-trip thông thường sẽ giữ nguyên instant.
+If the initial `Instant` only has millisecond precision and falls within the supported range, a round-trip normally preserves the instant.
 
-**Lưu ý về giá trị âm trước epoch:** Khi chuyển đổi epoch sub-millisecond quanh `1970-01-01T00:00:00Z`, không nên tự thay thế `Date.from(instant)` bằng phép chia số nano/1.000.000 theo kiểu truncate-toward-zero, vì các phép chuyển đổi epoch có quy tắc đối với số âm. Dùng API chuẩn thay cho toán tử tự xây dựng.
+**Note on negative pre-epoch values:** When converting sub-millisecond epochs around `1970-01-01T00:00:00Z`, do not replace `Date.from(instant)` with truncate-toward-zero division of nanos/1,000,000, because epoch conversions have specific rules for negative numbers. Use standard APIs rather than hand-rolled arithmetic.
 
-## 5. Date / Instant sang ZonedDateTime và LocalDateTime
+## 5. Date / Instant to ZonedDateTime and LocalDateTime
 
-Từ một `Instant` muốn hiển thị ngày giờ của một khu vực cụ thể, hãy gắn `ZoneId`:
+To display the local date and time of a specific region from an `Instant`, attach a `ZoneId`:
 
 ```java
 ZoneId zone = ZoneId.of("Asia/Ho_Chi_Minh");
@@ -146,17 +146,17 @@ LocalDateTime localDateTime =
         zoned.toLocalDateTime();
 ```
 
-Công thức:
+Formula:
 
 ```text
 Date -> Instant -> ZonedDateTime(zone) -> LocalDateTime
 ```
 
-Với instant `2024-02-29T23:30:00.123Z`, tại `Asia/Ho_Chi_Minh` sẽ thành `2024-03-01T06:30:00.123`.
+For the instant `2024-02-29T23:30:00.123Z`, in `Asia/Ho_Chi_Minh` it becomes `2024-03-01T06:30:00.123`.
 
-### Ví dụ Java 17+ độc lập
+### Standalone Java 17+ example
 
-Lưu `DateToLocalDemo.java`:
+Save `DateToLocalDemo.java`:
 
 ```java
 import java.time.Instant;
@@ -187,14 +187,14 @@ public class DateToLocalDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac DateToLocalDemo.java
 java DateToLocalDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 local=2024-03-01T06:30:00.123
@@ -202,13 +202,13 @@ date=2024-03-01
 utcLocal=2024-02-29T23:30:00.123
 ```
 
-Cùng một `Date`, nhưng ngày địa phương ở UTC và Việt Nam khác nhau. Nếu doanh nghiệp hỏi “ngày của sự kiện” mà không có zone, bài toán **chưa đủ thông tin**.
+For the same `Date`, the local date in UTC and Vietnam differs. If the business asks for "the date of the event" without a zone, the problem is **underspecified**.
 
-**Không nên** lấy `LocalDateTime` bằng cách cắt `Date.toString()`; định dạng chuỗi phụ thuộc JVM và locale. Cũng không dùng `LocalDateTime.now()` để “chuyển” một `Date` đã có: `now()` lấy thời điểm hiện tại, không phải timestamp của đầu vào.
+**Do not** obtain a `LocalDateTime` by slicing `Date.toString()`; string formatting depends on the JVM and locale. Nor should you call `LocalDateTime.now()` to "convert" an existing `Date`: `now()` reads the current time, not the input timestamp.
 
-## 6. LocalDateTime / ZonedDateTime / OffsetDateTime trở lại Date
+## 6. LocalDateTime / ZonedDateTime / OffsetDateTime back to Date
 
-Muốn có `Date` từ một ngày giờ địa phương, phải xác định **zone hoặc offset** để chuyển sang instant:
+To obtain a `Date` from a local date and time, you must supply a **zone or offset** to convert to an instant:
 
 ```java
 ZoneId zone = ZoneId.of("Asia/Ho_Chi_Minh");
@@ -218,29 +218,29 @@ LocalDateTime local =
 Date date = Date.from(local.atZone(zone).toInstant());
 ```
 
-Kết quả:
+Result:
 
 ```text
 2024-02-29T23:30:00.123Z
 ```
 
-Khi viết mã hoàn chỉnh, dùng `date.toInstant()` để hiển thị kết quả ổn định.
+When writing a complete program, use `date.toInstant()` for stable display of the result.
 
-Các đường chuyển đổi hay dùng:
+Common conversion paths:
 
-| Nguồn | Chuyển về Instant | Sau đó |
+| Source | Convert to Instant | Then |
 |---|---|---|
 | `ZonedDateTime` | `zoned.toInstant()` | `Date.from(...)` |
 | `OffsetDateTime` | `offsetDateTime.toInstant()` | `Date.from(...)` |
 | `LocalDateTime` | `localDateTime.atZone(zone).toInstant()` | `Date.from(...)` |
 | `LocalDate` | `localDate.atStartOfDay(zone).toInstant()` | `Date.from(...)` |
-| `LocalTime` | Cần ghép với một `LocalDate` và zone/offset | Không đủ để tự có Instant |
+| `LocalTime` | Must be combined with a `LocalDate` and zone/offset | Cannot form an Instant on its own |
 
-**Tránh tự gọi `localDateTime.toEpochSecond(ZoneOffset.UTC)`** nếu giờ địa phương đó thực sự thuộc khu vực có offset khác UTC. Lệnh này chỉ đúng nếu bạn **chủ động định nghĩa** giờ trong `LocalDateTime` là giờ UTC.
+**Avoid blindly calling `localDateTime.toEpochSecond(ZoneOffset.UTC)`** if that local time actually belongs to a region with a non-UTC offset. That call is only valid if you **deliberately define** the time in `LocalDateTime` as UTC.
 
-### LocalDate sang Date: không có một chuyển đổi duy nhất
+### LocalDate to Date: no single universal conversion
 
-Một `LocalDate` ví dụ `2024-03-01` có nhiều thời điểm ứng với cùng ngày trong các zone khác nhau. Nếu cần “đầu ngày theo quy tắc zone”, dùng:
+A `LocalDate` such as `2024-03-01` corresponds to many instants across different zones. If you need "start of day per zone rules", use:
 
 ```java
 LocalDate localDate = LocalDate.of(2024, 3, 1);
@@ -250,15 +250,15 @@ Date startOfDay =
         Date.from(localDate.atStartOfDay(zone).toInstant());
 ```
 
-`atStartOfDay(zone)` xử lý quy tắc múi giờ cho ngày đó. Nó không luôn đơn giản bằng việc ghép `LocalTime.MIDNIGHT` và giả định mọi ngày địa phương có mốc 00:00 hợp lệ: trong một số vùng có chuyển DST lúc nửa đêm hoặc biến động lịch sử, giờ đầu ngày có thể được điều chỉnh tới thời điểm hợp lệ sớm nhất.
+`atStartOfDay(zone)` handles the time zone rules for that day. It is not always as simple as combining `LocalTime.MIDNIGHT` and assuming every local day has a valid 00:00: in some regions with midnight DST transitions or historical adjustments, the start of day may be adjusted to the earliest valid instant.
 
-Nếu miền dữ liệu là **ngày sinh, ngày hết hạn, ngày lễ** và hoàn toàn không yêu cầu một thời điểm tuyệt đối, tốt nhất là **giữ `LocalDate`**. Chuyển thành `Date` chỉ khi API đích thực sự bắt buộc và nghiệp vụ đã chọn zone/quy tắc ngày.
+If the data domain is **birthdates, expiration dates, or holidays** and has no need for an absolute instant, it is best to **keep `LocalDate`**. Convert to `Date` only when the target API strictly requires it and the business has defined the zone/day rule.
 
-## 7. ZonedDateTime khác OffsetDateTime ở điểm nào?
+## 7. How does ZonedDateTime differ from OffsetDateTime?
 
-Một offset `+07:00` là độ lệch cố định so với UTC tại một thời điểm, nhưng `ZoneId` như `Europe/Paris` chứa **quy tắc lịch sử và thay đổi theo mùa**.
+An offset like `+07:00` is a fixed difference from UTC at a point in time, whereas a `ZoneId` like `Europe/Paris` contains **historical rules and seasonal changes**.
 
-Ví dụ:
+Example:
 
 ```java
 Instant moment = Instant.parse("2024-02-29T23:30:00Z");
@@ -268,28 +268,28 @@ ZonedDateTime zoned = moment.atZone(zone);
 OffsetDateTime offset = moment.atOffset(ZoneOffset.ofHours(7));
 ```
 
-Cả hai có thể hiện cùng giờ đồng hồ, nhưng:
+Both may show the same wall-clock time, yet:
 
-- `zoned` mang `ZoneId` của vùng, có thể tính toán theo các chuyển đổi offset trong tương lai.
-- `offset` chỉ mang offset cố định `+07:00`.
-- Cả hai `toInstant()` trở về cùng thời điểm tuyệt đối.
+- `zoned` carries the region's `ZoneId`, enabling calculations across future offset transitions.
+- `offset` carries only the fixed `+07:00` offset.
+- Both return the same absolute instant from `toInstant()`.
 
-Khi format API giao tiếp, `OffsetDateTime` thường phù hợp cho timestamp có offset, còn các lịch hẹn lặp theo “9 giờ sáng tại Paris” cần `ZoneId` vì offset có thể đổi theo mùa. Đừng thay toàn bộ zone bằng offset hiện tại rồi giả định offset đó đúng cho mọi ngày trong quá khứ và tương lai.
+When formatting API payloads, `OffsetDateTime` is often suitable for timestamps with an offset, whereas recurring schedules like "9 AM in Paris" need `ZoneId` because the offset can change seasonally. Do not replace an entire zone with its current offset and assume that offset holds for every past and future date.
 
-`Instant` không chứa `ZoneId` gốc. Chuyển `ZonedDateTime -> Instant -> ZonedDateTime` bằng **zone khác** vẫn giữ thời điểm, nhưng không bảo toàn cách hiển thị địa phương và tên zone ban đầu.
+`Instant` does not retain the original `ZoneId`. Converting `ZonedDateTime -> Instant -> ZonedDateTime` with a **different zone** still preserves the instant, but does not preserve the original local display or zone name.
 
-## 8. Daylight Saving Time: gap và overlap làm đổi kết quả
+## 8. Daylight Saving Time: gaps and overlaps change results
 
-Một số zone có **DST**. Khi đồng hồ được chỉnh tiến, một khoảng giờ địa phương **không tồn tại** (*gap*). Khi đồng hồ lùi, một khoảng giờ địa phương có thể diễn ra **hai lần** với hai offset khác nhau (*overlap*).
+Some zones observe **DST**. When clocks spring forward, a span of local time **does not exist** (*gap*). When clocks fall back, a span of local time occurs **twice** with two different offsets (*overlap*).
 
-`LocalDateTime` chỉ có ngày/giờ đồng hồ, vì vậy chuyển `LocalDateTime.atZone(zone)` có thể cần áp dụng quy tắc mặc định của zone:
+`LocalDateTime` only holds wall-clock date/time, so calling `LocalDateTime.atZone(zone)` may apply the zone's default resolution rules:
 
-- **Gap:** thời gian địa phương không tồn tại được điều chỉnh tiến tới thời gian hợp lệ, thường bằng độ dài khoảng gap.
-- **Overlap:** thời gian địa phương có hai offset hợp lệ; `atZone` thường chọn offset sớm hơn theo quy tắc Java. Có thể dùng `withLaterOffsetAtOverlap()` để chọn offset còn lại.
+- **Gap:** the nonexistent local time is shifted forward to a valid time, usually by the length of the gap.
+- **Overlap:** the local time has two valid offsets; `atZone` normally picks the earlier offset per Java rules. You can call `withLaterOffsetAtOverlap()` to select the other offset.
 
-### Chương trình Java 17+ minh họa DST
+### Java 17+ program demonstrating DST
 
-Lưu `DstConversionDemo.java`:
+Save `DstConversionDemo.java`:
 
 ```java
 import java.time.LocalDateTime;
@@ -316,14 +316,14 @@ public class DstConversionDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac DstConversionDemo.java
 java DstConversionDemo
 ```
 
-Kết quả trên Java 17 với quy tắc múi giờ tương ứng:
+Output on Java 17 with corresponding time zone rules:
 
 ```text
 gap=2024-03-31T03:30+02:00[Europe/Paris]
@@ -331,32 +331,32 @@ overlap=2024-10-27T02:30+02:00[Europe/Paris]
 later=2024-10-27T02:30+01:00[Europe/Paris]
 ```
 
-Ngày 31/03/2024 ở Paris, `02:30` không tồn tại do đồng hồ nhảy từ 02 giờ lên 03 giờ, nên Java điều chỉnh thành `03:30+02:00`. Ngày 27/10/2024, `02:30` xảy ra hai lần: lần đầu ở `+02:00`, lần sau ở `+01:00`.
+On March 31, 2024 in Paris, `02:30` does not exist because clocks jump from 2 AM to 3 AM, so Java adjusts it to `03:30+02:00`. On October 27, 2024, `02:30` occurs twice: first at `+02:00`, then again at `+01:00`.
 
-Để yêu cầu người dùng chọn một thời điểm **chính xác** trong overlap, cần thông tin offset hay chính sách bổ sung. Với dữ liệu lịch quan trọng, nên kiểm tra `zone.getRules().getValidOffsets(localDateTime)` trước khi gắn zone nếu muốn từ chối gap/overlap thay vì dùng mặc định.
+To let users choose an **exact** instant during an overlap, additional offset information or policy is required. For critical schedule data, check `zone.getRules().getValidOffsets(localDateTime)` before attaching a zone if you want to reject gaps/overlaps instead of using defaults.
 
-**Sai lầm phổ biến:** viết “`LocalDateTime` và `Instant` chuyển qua lại một-một”. Không đúng: có những `LocalDateTime` không ánh xạ tới instant nào trong zone nhất định (gap), và có những giờ ánh xạ tới hai instant (overlap).
+**Common misconception:** stating "`LocalDateTime` and `Instant` convert one-to-one." That is false: some `LocalDateTime` values map to zero instants in a given zone (gap), and some map to two instants (overlap).
 
-## 9. java.util.Date khác java.sql.Date và java.sql.Timestamp
+## 9. java.util.Date vs. java.sql.Date and java.sql.Timestamp
 
-Tên `Date` trùng nhau dễ gây nhầm lẫn.
+Sharing the name `Date` easily causes confusion.
 
 ### `java.util.Date`
 
-Đây là class legacy biểu diễn một instant với mili-giây. Sử dụng:
+This is the legacy class representing an instant in milliseconds. Usage:
 
 ```java
 Instant instant = utilDate.toInstant();
 java.util.Date converted = java.util.Date.from(instant);
 ```
 
-Đây là đoạn code minh họa có biến `utilDate` đã khai báo.
+This is an illustrative snippet with `utilDate` already declared.
 
 ### `java.sql.Date`
 
-`java.sql.Date` được thiết kế cho SQL `DATE` — một **ngày trong lịch**, không phải timestamp có giờ chính xác. Dù là lớp con của `java.util.Date`, nó **ghi đè `toInstant()` để ném `UnsupportedOperationException`**.
+`java.sql.Date` is designed for SQL `DATE` — a **calendar date**, not a timestamp with precise time of day. Although it subclasses `java.util.Date`, it **overrides `toInstant()` to throw `UnsupportedOperationException`**.
 
-Vì vậy, mã sau **không an toàn**:
+Therefore, the following code is **unsafe**:
 
 ```java
 java.sql.Date sqlDate =
@@ -364,20 +364,20 @@ java.sql.Date sqlDate =
 Instant instant = sqlDate.toInstant(); // UnsupportedOperationException
 ```
 
-Nếu dữ liệu SQL là một ngày không có giờ, dùng:
+If the SQL data is a date without time, use:
 
 ```java
 LocalDate day = sqlDate.toLocalDate();
 java.sql.Date converted = java.sql.Date.valueOf(day);
 ```
 
-Khi làm việc với JDBC hiện đại, nếu driver hỗ trợ JDBC 4.2, có thể đọc SQL DATE trực tiếp bằng `ResultSet.getObject(column, LocalDate.class)` thay vì chuyển vòng qua legacy class. Hãy kiểm tra khả năng hỗ trợ thực tế của driver.
+When working with modern JDBC, if the driver supports JDBC 4.2, you can read SQL DATE directly via `ResultSet.getObject(column, LocalDate.class)` instead of detouring through the legacy class. Verify actual driver support.
 
-**Không ép `java.sql.Date` thành `java.util.Date` để rồi gọi `toInstant()` với hy vọng né lỗi.** Gọi phương thức ảo vẫn thực thi bản override của `java.sql.Date`.
+**Do not cast `java.sql.Date` to `java.util.Date` and call `toInstant()` hoping to avoid the error.** Virtual method dispatch still executes `java.sql.Date`'s override.
 
 ### `java.sql.Timestamp`
 
-`java.sql.Timestamp` phục vụ SQL TIMESTAMP và có phần nano-giây bổ sung so với `java.util.Date`. Có các phương thức:
+`java.sql.Timestamp` serves SQL TIMESTAMP and adds a nanosecond component beyond `java.util.Date`. Methods include:
 
 ```java
 java.sql.Timestamp timestamp =
@@ -386,20 +386,20 @@ java.sql.Timestamp timestamp =
 Instant restored = timestamp.toInstant();
 ```
 
-Với ví dụ `Instant` `2024-02-29T23:30:00.123456789Z`, `Timestamp.from(instant).toInstant()` có thể giữ nguyên độ chính xác nano-giây. Tuy vậy, **kiểu cột SQL và cơ sở dữ liệu** có thể chỉ hỗ trợ một độ chính xác nhất định hoặc có ngữ nghĩa timezone khác, nên lưu rồi đọc lại DB không được bảo đảm luôn giữ chính xác mọi nano-giây.
+For the `Instant` example `2024-02-29T23:30:00.123456789Z`, `Timestamp.from(instant).toInstant()` can preserve nanosecond precision in memory. However, **SQL column types and databases** may only support limited precision or have different timezone semantics, so round-tripping through a DB is not guaranteed to retain every nanosecond.
 
-Phân biệt SQL `TIMESTAMP WITHOUT TIME ZONE` với `TIMESTAMP WITH TIME ZONE` theo **ngữ nghĩa của driver/DB cụ thể**; không được tự suy ra mọi `Timestamp` luôn là instant UTC đúng nghĩa. Nếu SQL column là local date-time không zone, dùng `LocalDateTime` có thể phù hợp hơn khi JDBC hỗ trợ.
+Distinguish SQL `TIMESTAMP WITHOUT TIME ZONE` from `TIMESTAMP WITH TIME ZONE` according to **specific driver/DB semantics**; never assume every `Timestamp` is a true UTC instant. If the SQL column is a zoneless local date-time, `LocalDateTime` may be more appropriate when supported by JDBC.
 
-## 10. Calendar sang java.time và ngược lại
+## 10. Calendar to java.time and back
 
-`java.util.Calendar` chứa thêm cấu hình timezone, lịch, trạng thái mutable; muốn lấy thời điểm:
+`java.util.Calendar` holds additional timezone, calendar-system, and mutable state; to extract the instant:
 
 ```java
 Calendar calendar = Calendar.getInstance();
 Instant instant = calendar.toInstant();
 ```
 
-Nếu muốn giữ thông tin zone của một `GregorianCalendar`:
+If you want to preserve zone information from a `GregorianCalendar`:
 
 ```java
 java.util.GregorianCalendar calendar =
@@ -410,20 +410,20 @@ java.time.ZonedDateTime zoned =
         calendar.toZonedDateTime();
 ```
 
-Khi cần bridge từ `ZonedDateTime` sang legacy GregorianCalendar, có:
+When bridging from `ZonedDateTime` back to legacy GregorianCalendar:
 
 ```java
 java.util.GregorianCalendar restored =
         java.util.GregorianCalendar.from(zoned);
 ```
 
-Hai đoạn trên là **mảnh mã minh họa**, không phải chương trình hoàn chỉnh và không khẳng định mọi đặc tính cấu hình của `Calendar` được bảo toàn. Ví dụ, tuần đầu năm, lịch và các tùy chọn leniency của legacy Calendar có thể cần kiểm soát riêng.
+The two snippets above are **illustrative fragments**, not complete programs, and do not claim that every `Calendar` configuration property is preserved. For example, first week of year, chronology, and legacy Calendar leniency options may need separate handling.
 
-Cẩn thận với `Calendar.MONTH` trong API cũ: thường dùng chỉ số tháng 0–11, còn `LocalDate.getMonthValue()` là 1–12. Không chuyển bằng cách sao chép số tháng mà quên khác biệt.
+Beware of `Calendar.MONTH` in the legacy API: it uses 0–11 indices, whereas `LocalDate.getMonthValue()` is 1–12. Never transfer month numbers by copying them directly without accounting for the difference.
 
-## 11. Chọn default ZoneId hay zone tường minh?
+## 11. Default ZoneId or explicit zone?
 
-Một đoạn code có thể trông tiện:
+Code like this can look convenient:
 
 ```java
 LocalDateTime local =
@@ -432,29 +432,29 @@ LocalDateTime local =
                 .toLocalDateTime();
 ```
 
-`ZoneId.systemDefault()` đọc zone mặc định của môi trường JVM. Nó có thể phù hợp cho ứng dụng **chỉ phục vụ một zone đã cấu hình cố định**, nhưng dễ gây lỗi trên hệ thống cloud, container, CI hoặc dịch vụ nhiều người dùng:
+`ZoneId.systemDefault()` reads the JVM environment's default zone. It may be acceptable for an application **serving only one fixed configured zone**, yet easily causes bugs on cloud, container, CI, or multi-user services:
 
-- Máy phát triển dùng `Asia/Ho_Chi_Minh`, container dùng `UTC`.
-- Dữ liệu lịch của một khách hàng ở Paris lại được diễn giải theo zone của server tại Việt Nam.
-- Một thay đổi cấu hình môi trường làm ngày địa phương bị lệch qua nửa đêm.
+- A developer laptop uses `Asia/Ho_Chi_Minh`, while a container uses `UTC`.
+- A Paris customer's schedule data gets interpreted in a server's zone in Vietnam.
+- An environment configuration change shifts local dates across midnight.
 
-**Khuyến nghị:** luân chuyển `ZoneId` có ý nghĩa nghiệp vụ qua tham số hoặc cấu hình rõ ràng. Với timestamp dùng cho lưu trữ/trao đổi, giữ `Instant` càng lâu càng tốt; chỉ áp zone ở ranh giới hiển thị hoặc khi tính logic ngày địa phương.
+**Recommendation:** pass a business-meaningful `ZoneId` explicitly via parameters or configuration. For timestamps used in storage/exchange, keep `Instant` as long as possible; apply a zone only at the display boundary or when evaluating local-date logic.
 
-Không nên gọi `TimeZone.setDefault(...)` trên mỗi request: đó là trạng thái toàn cục có thể ảnh hưởng các luồng khác. Trong test, tạo `ZoneId` tường minh để kết quả ổn định.
+Do not call `TimeZone.setDefault(...)` per request: it is global state that can affect other threads. In tests, construct explicit `ZoneId`s for stable results.
 
-## 12. Sai lệch precision: nano, milli và độ lớn phạm vi
+## 12. Precision discrepancies: nano, milli, and range bounds
 
-Các kiểu có độ chính xác khác nhau:
+Types have different precision capabilities:
 
-| Kiểu | Khả năng biểu diễn thời gian |
+| Type | Temporal representation capability |
 |---|---|
-| `Instant` | Nano-giây theo mô hình java.time |
-| `LocalDateTime` | Nano-giây, **chưa có instant** |
-| `ZonedDateTime` | Nano-giây cộng quy tắc zone |
-| `java.util.Date` | Mili-giây |
-| `java.sql.Timestamp` | Có phần nano-giây bổ sung, nhưng độ chính xác lưu DB có thể thấp hơn |
+| `Instant` | Nanoseconds per the java.time model |
+| `LocalDateTime` | Nanoseconds, **no instant yet** |
+| `ZonedDateTime` | Nanoseconds plus zone rules |
+| `java.util.Date` | Milliseconds |
+| `java.sql.Timestamp` | Has extra nanosecond field, though DB storage precision may be lower |
 
-Nên ghi rõ ranh giới làm mất precision trong code và test:
+Document precision-loss boundaries clearly in code and tests:
 
 ```java
 Instant original =
@@ -466,27 +466,27 @@ Instant afterLegacy =
 // afterLegacy = 2024-02-29T23:30:00.123Z
 ```
 
-Mili-giây không phải chỉ là “hiển thị 3 chữ số thập phân”; đó là **mức độ phân giải của giá trị Date**. Nếu hệ thống dùng timestamp để sắp xếp nhiều sự kiện xảy ra sát nhau, việc đi qua legacy `Date` có thể làm hai sự kiện khác nhau trở thành cùng mili-giây.
+Milliseconds are not just "displaying 3 decimal digits"; they are the **resolution of a Date value**. If a system uses timestamps to order events occurring closely together, passing through legacy `Date` can collapse two distinct events onto the same millisecond.
 
-Ngoài độ phân giải, miền ngày mà các kiểu hỗ trợ cũng không hoàn toàn trùng nhau. Các chuyển đổi giữa kiểu phạm vi rất rộng và `Date`/epoch milliseconds có thể thất bại. Đừng tự biến timestamp lớn thành phép nhân mili-giây mà không kiểm tra overflow.
+Beyond resolution, supported date ranges across types do not completely overlap either. Conversions between very wide-range types and `Date`/epoch milliseconds can fail. Never convert large timestamps via manual millisecond multiplication without checking for overflow.
 
-## 13. Giữ đúng ngữ nghĩa khi chuyển đổi trong ứng dụng
+## 13. Preserving semantics across application conversions
 
-### Sự kiện xảy ra ở một thời điểm
+### An event occurring at an instant
 
-Ví dụ “Thanh toán đã xác nhận tại 2024-02-29T23:30Z”. Đó là instant. Dùng `Instant` ở domain/API; khi bắt buộc tương thích legacy, dùng `Date.from(instant)` và chấp nhận giới hạn milli. Hiển thị bằng `instant.atZone(userZone)`.
+For example, "Payment confirmed at 2024-02-29T23:30Z". That is an instant. Use `Instant` in the domain/API; when legacy compatibility is mandatory, use `Date.from(instant)` and accept millisecond limits. Display via `instant.atZone(userZone)`.
 
-### Lịch hẹn theo giờ địa phương
+### Appointments in local time
 
-Ví dụ “hẹn lúc 09:00 ngày 27/10/2024 tại Paris”. Để xác định chính xác thời điểm, cần `LocalDateTime` **cùng** `ZoneId`, và trong ngày DST overlap có thể cần offset/chính sách xử lý. Chỉ lưu epoch milliseconds sau khi đã quyết định instant, nếu domain thực sự cần một thời điểm duy nhất.
+For example, "appointment at 09:00 on Oct 27, 2024 in Paris". To pinpoint the exact instant, you need `LocalDateTime` **plus** `ZoneId`, and on a DST overlap day you may need an offset or resolution policy. Store epoch milliseconds only after resolving the instant, if the domain truly requires a unique point in time.
 
-### Ngày sinh/ngày hết hạn
+### Birthdates / expiration dates
 
-Ví dụ “ngày 01/03/2024” không có thời gian trong ngày. Nên dùng `LocalDate`. Việc chuyển qua `Date` bằng đầu ngày UTC rồi hiển thị ở vùng giờ âm có thể biến thành ngày trước đó, gây lỗi lịch. Chỉ chuyển sang instant nếu nghiệp vụ đã định nghĩa “đầu ngày ở zone nào”.
+For example, "2024-03-01" with no time of day. Use `LocalDate`. Converting through `Date` as midnight UTC and then displaying in a negative-offset zone can shift it to the previous day, causing calendar errors. Convert to an instant only if business rules define "start of day in which zone."
 
-### API trả timestamp có offset
+### APIs returning timestamps with offsets
 
-Ví dụ `2024-03-01T06:30:00+07:00` có thể parse bằng `OffsetDateTime.parse(...)`, rồi `toInstant()` để so sánh thời điểm:
+For example, `2024-03-01T06:30:00+07:00` can be parsed with `OffsetDateTime.parse(...)`, then `.toInstant()` to compare points in time:
 
 ```java
 OffsetDateTime fromApi =
@@ -496,82 +496,82 @@ Instant timestamp = fromApi.toInstant();
 // timestamp = 2024-02-29T23:30:00Z
 ```
 
-Không gọi `LocalDateTime.parse(...)` trên chuỗi chứa offset rồi bỏ offset đi. Nếu cần giữ đúng thông tin nguồn để hiển thị lại, hãy lưu offset/zone riêng theo yêu cầu nghiệp vụ.
+Do not call `LocalDateTime.parse(...)` on a string containing an offset and discard the offset. If you need to preserve source offset/zone details for re-display, store them separately per business requirements.
 
-## 14. Kiểm thử những ca dễ sai
+## 14. Testing error-prone cases
 
-Một bộ kiểm thử chuyển đổi nên bao gồm:
+A conversion test suite should cover:
 
-| Kiểm thử | Điều cần xác nhận |
+| Test case | What to verify |
 |---|---|
-| `Date.from(instant).toInstant()` với mili-giây tròn | Giữ nguyên instant |
-| Instant có nano phần lẻ dưới milli | Xác nhận precision bị giảm |
-| Instant sát nửa đêm UTC | LocalDate khác nhau giữa UTC và vùng khác |
-| `LocalDateTime.atZone(...)` trong DST gap | Biết rõ chính sách điều chỉnh hoặc từ chối |
-| LocalDateTime trong DST overlap | Chọn offset nào và có cần người dùng xác nhận |
-| `ZoneId.of("Europe/Paris")` vs offset `+01:00` | Không đánh đồng zone với offset cố định |
-| `java.sql.Date.toInstant()` | Biết phương thức này ném `UnsupportedOperationException` |
-| `java.sql.Date.toLocalDate()` | Chuyển ngày lịch đúng kiểu |
-| `Timestamp.from(instant).toInstant()` | Nano-giây trong bộ nhớ và precision thực tế của DB |
-| Hệ thống chạy ở `UTC` và `Asia/Ho_Chi_Minh` | Kết quả không đổi nếu đã chọn zone tường minh |
-| Số tháng legacy `Calendar` | Không nhầm chỉ số tháng 0–11 với 1–12 |
+| `Date.from(instant).toInstant()` with whole milliseconds | Preserves the instant |
+| Instant with sub-millisecond nanoseconds | Confirms precision truncation |
+| Instant near UTC midnight | Different LocalDates between UTC and other regions |
+| `LocalDateTime.atZone(...)` in a DST gap | Explicit adjustment or rejection policy verified |
+| LocalDateTime in a DST overlap | Which offset is chosen and whether user confirmation is needed |
+| `ZoneId.of("Europe/Paris")` vs. `+01:00` offset | Never equate a zone with a fixed offset |
+| `java.sql.Date.toInstant()` | Knows this method throws `UnsupportedOperationException` |
+| `java.sql.Date.toLocalDate()` | Extracts calendar date with the right type |
+| `Timestamp.from(instant).toInstant()` | In-memory nanoseconds vs. actual DB precision |
+| System running in `UTC` and `Asia/Ho_Chi_Minh` | Output unchanged when zone is explicit |
+| Legacy `Calendar` month numbers | Never confuse 0–11 with 1–12 |
 
-Với code mới, unit tests nên dùng **dữ liệu thời gian cố định** như `Instant.parse("...Z")` và `ZoneId.of("...")`. Tránh `Instant.now()` hoặc `ZoneId.systemDefault()` trong test cần output tuyệt đối, vì kết quả sẽ phụ thuộc máy và thời điểm chạy.
+In new code, unit tests should use **fixed temporal inputs** like `Instant.parse("...Z")` and `ZoneId.of("...")`. Avoid `Instant.now()` or `ZoneId.systemDefault()` in tests expecting deterministic output, as results will depend on the host machine and execution time.
 
-## 15. Các lỗi thường gặp
+## 15. Common mistakes
 
-1. **Nhầm Date có timezone.** `java.util.Date` giữ một instant; `toString()` định dạng theo timezone môi trường.
-2. **Chuyển Date trực tiếp thành LocalDate không chọn zone.** Ngày địa phương phụ thuộc zone.
-3. **Dùng `LocalDateTime.now()` để chuyển một Date cũ.** Nó lấy thời gian hiện tại, không dùng đầu vào.
-4. **Coi LocalDateTime là instant UTC.** LocalDateTime không mang zone/offset.
-5. **Cố dùng một offset cố định thay ZoneId.** Không giữ được lịch sử/quy tắc DST.
-6. **Bỏ qua gap và overlap của DST.** Có thể tự điều chỉnh giờ không tồn tại hoặc chọn một offset trong hai offset.
-7. **Mong `Date.from(instant)` bảo toàn nano-giây.** Date chỉ giữ mili-giây.
-8. **Dùng Date.toString() làm serializer.** Chuỗi phụ thuộc default timezone và không phải hợp đồng ổn định.
-9. **Đánh đồng `java.sql.Date` với `java.util.Date`.** `java.sql.Date.toInstant()` ném `UnsupportedOperationException`; dùng `toLocalDate()` cho SQL DATE.
-10. **Cho rằng SQL TIMESTAMP luôn có zone.** Ngữ nghĩa phụ thuộc kiểu cột và driver.
-11. **Lưu ngày sinh như đầu ngày UTC rồi hiển thị ở zone khác.** Ngày có thể lùi một ngày.
-12. **Dùng default timezone của server cho mọi người dùng.** Kết quả thay đổi theo môi trường, không theo địa điểm/ngữ nghĩa dữ liệu.
-13. **Không test precision milli vs nano.** Round-trip qua legacy Date có thể mất dữ liệu.
-14. **Dùng `Calendar.MONTH` như tháng 1–12.** Legacy Calendar thường đánh số tháng bắt đầu từ 0.
-15. **Tự tính epoch bằng phép nhân/cộng int/long không có kiểm tra.** Dễ overflow hoặc sai với số âm trước 1970.
+1. **Thinking Date has a timezone.** `java.util.Date` holds an instant; `toString()` formats it in the environment's timezone.
+2. **Converting Date directly to LocalDate without choosing a zone.** Local date depends on the zone.
+3. **Using `LocalDateTime.now()` to convert an old Date.** It reads current time, ignoring the input.
+4. **Treating LocalDateTime as a UTC instant.** LocalDateTime carries no zone/offset.
+5. **Using a fixed offset instead of ZoneId.** Loses DST history and transition rules.
+6. **Ignoring DST gaps and overlaps.** Nonexistent times get shifted or one of two offsets gets picked silently.
+7. **Expecting `Date.from(instant)` to keep nanoseconds.** Date holds only milliseconds.
+8. **Using Date.toString() as a serializer.** Output depends on default timezone and is not a stable contract.
+9. **Equating `java.sql.Date` with `java.util.Date`.** `java.sql.Date.toInstant()` throws `UnsupportedOperationException`; use `toLocalDate()` for SQL DATE.
+10. **Assuming SQL TIMESTAMP always has a zone.** Semantics depend on column type and driver.
+11. **Storing birthdates as UTC midnight and displaying in another zone.** Dates can shift backward by one day.
+12. **Using the server's default timezone for all users.** Output changes with the environment rather than user location or data meaning.
+13. **Not testing milli vs. nano precision.** Round-tripping through legacy Date can drop data.
+14. **Using `Calendar.MONTH` as 1–12.** Legacy Calendar numbers months starting from 0.
+15. **Computing epoch manually with unchecked int/long math.** Prone to overflow or bugs with negative pre-1970 values.
 
-## 16. Tự kiểm tra kiến thức
+## 16. Self-check questions
 
-**Câu 1.** Từ `java.util.Date` sang `Instant` dùng phương thức nào?
+**Question 1.** Which method converts from `java.util.Date` to `Instant`?
 
-**Đáp án:** `date.toInstant()`.
+**Answer:** `date.toInstant()`.
 
-**Câu 2.** Từ `Instant` sang `java.util.Date` dùng gì, và có điểm hạn chế gì?
+**Question 2.** What converts from `Instant` to `java.util.Date`, and what is the limitation?
 
-**Đáp án:** `Date.from(instant)`; có thể mất nano-giây dưới mức mili-giây.
+**Answer:** `Date.from(instant)`; sub-millisecond nanoseconds can be lost.
 
-**Câu 3.** Có thể chuyển một `Date` sang `LocalDate` mà không biết zone không?
+**Question 3.** Can you convert a `Date` to a `LocalDate` without knowing a zone?
 
-**Đáp án:** Không thể xác định **ngày địa phương mong muốn** một cách duy nhất; cần `date.toInstant().atZone(zone).toLocalDate()` với zone đúng nghiệp vụ.
+**Answer:** You cannot uniquely determine the **intended local date**; you need `date.toInstant().atZone(zone).toLocalDate()` with the business-appropriate zone.
 
-**Câu 4.** Tại `Asia/Ho_Chi_Minh`, `2024-02-29T23:30:00Z` là ngày nào?
+**Question 4.** In `Asia/Ho_Chi_Minh`, what date is `2024-02-29T23:30:00Z`?
 
-**Đáp án:** `2024-03-01`, lúc 06:30 local.
+**Answer:** `2024-03-01`, at 06:30 local time.
 
-**Câu 5.** Nếu `LocalDateTime` rơi vào DST overlap, nó có luôn xác định đúng một instant không?
+**Question 5.** If a `LocalDateTime` falls inside a DST overlap, does it always identify a single instant?
 
-**Đáp án:** Không. Có thể có hai offset/instant hợp lệ; cần quy tắc chọn.
+**Answer:** No. Two valid offsets/instants exist; a selection rule is required.
 
-**Câu 6.** `java.sql.Date.toInstant()` có giống `java.util.Date.toInstant()` không?
+**Question 6.** Is `java.sql.Date.toInstant()` the same as `java.util.Date.toInstant()`?
 
-**Đáp án:** Không. SQL Date override và ném `UnsupportedOperationException`; dùng `toLocalDate()` để nhận ngày.
+**Answer:** No. SQL Date overrides it to throw `UnsupportedOperationException`; use `toLocalDate()` to get the date.
 
-**Câu 7.** Có thể dùng `LocalDate.atStartOfDay(zone).toInstant()` để lưu ngày sinh mà không giữ zone không?
+**Question 7.** Should `LocalDate.atStartOfDay(zone).toInstant()` be used to store a birthdate without retaining the zone?
 
-**Đáp án:** Không nên. Ngày sinh là `LocalDate`; nếu buộc chuyển thành instant phải định nghĩa rõ zone và tránh mất ngữ nghĩa ngày.
+**Answer:** No. A birthdate is a `LocalDate`; if forced to convert to an instant, the zone must be explicitly defined and care taken not to lose date semantics.
 
-**Câu 8.** `Timestamp.from(instant).toInstant()` giữ nano-giây trong Java; có thể chắc chắn DB cũng giữ nano-giây không?
+**Question 8.** `Timestamp.from(instant).toInstant()` keeps nanoseconds in Java; can you be sure the DB also keeps nanoseconds?
 
-**Đáp án:** Không. Precision và semantics của cột/driver DB có thể thấp hơn.
+**Answer:** No. Column and DB driver precision and semantics may be lower.
 
-## 17. Ghi nhớ
+## 17. Key takeaways
 
-Hãy chọn kiểu thời gian theo **nghĩa của dữ liệu** trước khi chuyển đổi: `Instant`/`Date` cho thời điểm tuyệt đối, `LocalDate` cho ngày lịch, `LocalDateTime` cho giờ địa phương chưa gắn zone, `ZonedDateTime` cho thời gian theo vùng có quy tắc DST. Bridge trực tiếp **`Date.toInstant()`** và **`Date.from(Instant)`** đơn giản nhưng có giới hạn mili-giây. Chuyển từ instant sang dạng local cần **`ZoneId` tường minh**. Đối với SQL DATE, dùng `LocalDate` thay vì cố biến nó thành instant.
+Choose the temporal type based on **data semantics** before converting: `Instant`/`Date` for absolute instants, `LocalDate` for calendar dates, `LocalDateTime` for unzoned local time, and `ZonedDateTime` for zoned times with DST rules. The direct bridges **`Date.toInstant()`** and **`Date.from(Instant)`** are straightforward, subject to millisecond precision limits. Converting from an instant to a local representation requires an **explicit `ZoneId`**. For SQL DATE, use `LocalDate` instead of trying to turn it into an instant.
 
-**Tài liệu chính thức:** [Java SE 17 — java.util.Date](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Date.html) · [Java SE 17 — Instant](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Instant.html) · [Java SE 17 — LocalDateTime](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDateTime.html) · [Java SE 17 — ZonedDateTime](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZonedDateTime.html) · [Java SE 17 — java.sql.Date](https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/Date.html) · [Java SE 17 — Timestamp](https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/Timestamp.html).
+**Official documentation:** [Java SE 17 — java.util.Date](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Date.html) · [Java SE 17 — Instant](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/Instant.html) · [Java SE 17 — LocalDateTime](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDateTime.html) · [Java SE 17 — ZonedDateTime](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/ZonedDateTime.html) · [Java SE 17 — java.sql.Date](https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/Date.html) · [Java SE 17 — Timestamp](https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/Timestamp.html).

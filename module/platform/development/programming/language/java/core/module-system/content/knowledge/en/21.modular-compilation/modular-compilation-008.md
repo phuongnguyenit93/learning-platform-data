@@ -1,15 +1,15 @@
-# Compile error do requires hoặc exports thiếu
+# Compile Errors Due to Missing requires or exports
 
-## 1. Hai ranh giới cần phân biệt trong JPMS
+## 1. Two Boundaries to Distinguish in JPMS
 
-Khi biên dịch một ứng dụng modular, Java kiểm tra cả **module readability** và **package accessibility**. Hai cơ chế này liên quan nhưng giải quyết hai câu hỏi khác nhau:
+When compiling a modular application, Java checks both **module readability** and **package accessibility**. These two mechanisms are related, yet they answer two different questions:
 
-- `requires` xác định module nào được module hiện tại đọc. Nếu module A cần sử dụng kiểu nằm trong module B, A thường phải khai báo `requires B`.
-- `exports` xác định package nào của một module được module khác truy cập. Dù A đã đọc B, A vẫn không thể sử dụng một package của B nếu package đó không được export cho A.
+- `requires` determines which modules the current module reads. If module A needs to use a type located in module B, A generally must declare `requires B`.
+- `exports` determines which packages of a module can be accessed by other modules. Even if A reads B, A still cannot use a package of B if that package is not exported to A.
 
-Vì vậy, một dependency có thể đã nằm trên module path nhưng source vẫn không biên dịch được vì thiếu `requires`, hoặc module đã được đọc nhưng package chứa kiểu cần dùng chưa được export.
+Therefore, a dependency may already be on the module path, yet the source still fails to compile due to a missing `requires`, or the module is already read, yet the package containing the needed type has not been exported.
 
-Ví dụ:
+Example:
 
 ```text
 com.acme.app  --requires-->  com.acme.api
@@ -17,11 +17,11 @@ com.acme.app  --requires-->  com.acme.api
                                   +-- exports com.acme.api
 ```
 
-Muốn sử dụng public type `com.acme.api.Customer`, consumer cần đọc module `com.acme.api` và package `com.acme.api` phải được export.
+To use the public type `com.acme.api.Customer`, the consumer must read the `com.acme.api` module and the `com.acme.api` package must be exported.
 
-## 2. Ví dụ module API và consumer
+## 2. Example API Module and Consumer
 
-Cấu trúc source:
+Source structure:
 
 ```text
 src/
@@ -33,7 +33,7 @@ src/
     └── com/acme/app/Main.java
 ```
 
-Module API:
+API module:
 
 ```java
 module com.acme.api {
@@ -41,7 +41,7 @@ module com.acme.api {
 }
 ```
 
-Class trong package được export:
+Class in the exported package:
 
 ```java
 package com.acme.api;
@@ -59,7 +59,7 @@ public class Customer {
 }
 ```
 
-Module consumer:
+Consumer module:
 
 ```java
 module com.acme.app {
@@ -67,7 +67,7 @@ module com.acme.app {
 }
 ```
 
-Consumer sử dụng API:
+Consumer using the API:
 
 ```java
 package com.acme.app;
@@ -82,14 +82,14 @@ public class Main {
 }
 ```
 
-Ở đây hai điều kiện đã được đáp ứng:
+Here, both conditions are met:
 
-1. `com.acme.app` đọc `com.acme.api` thông qua `requires`.
-2. `com.acme.api` công khai package `com.acme.api` thông qua `exports`.
+1. `com.acme.app` reads `com.acme.api` via `requires`.
+2. `com.acme.api` exposes the `com.acme.api` package via `exports`.
 
-## 3. Lỗi thiếu requires: module không đọc dependency
+## 3. Missing requires Error: Module Does Not Read Dependency
 
-Giả sử module descriptor của consumer bị bỏ directive:
+Suppose the consumer's module descriptor omits the directive:
 
 ```java
 module com.acme.app {
@@ -97,13 +97,13 @@ module com.acme.app {
 }
 ```
 
-Dù `com.acme.api` có trên module path và đã export package, consumer vẫn không đọc module đó. Khi biên dịch dòng:
+Even though `com.acme.api` is on the module path and has exported its package, the consumer still does not read that module. When compiling the line:
 
 ```java
 import com.acme.api.Customer;
 ```
 
-Compiler có thể báo:
+The compiler may report:
 
 ```text
 package com.acme.api is not visible
@@ -111,7 +111,7 @@ package com.acme.api is not visible
 but module com.acme.app does not read it)
 ```
 
-Cách sửa là thêm dependency vào `module-info.java` của consumer:
+The fix is to add the dependency to the consumer's `module-info.java`:
 
 ```java
 module com.acme.app {
@@ -119,30 +119,30 @@ module com.acme.app {
 }
 ```
 
-Đừng sửa module API để export thêm package khi thông báo lỗi nói rõ consumer không đọc module. Đây là lỗi về readability, được điều khiển từ phía module cần sử dụng dependency.
+Do not modify the API module to export more packages when the error message clearly states that the consumer does not read the module. This is a readability error, controlled from the side of the module that needs to use the dependency.
 
-### Phân biệt lỗi module not found
+### Distinguishing the module not found Error
 
-Nếu consumer đã có:
+If the consumer already has:
 
 ```java
 requires com.acme.api;
 ```
 
-nhưng compiler báo:
+but the compiler reports:
 
 ```text
 module not found: com.acme.api
 ```
 
-thì module descriptor đã yêu cầu dependency, nhưng compiler không tìm thấy module tương ứng. Hãy kiểm tra:
+then the module descriptor already requested the dependency, but the compiler cannot locate the corresponding module. Check:
 
-- JAR hoặc thư mục module có thực sự tồn tại không.
-- Module path có trỏ tới đúng thư mục chứa module không.
-- Tên module trong `requires` có khớp với tên khai báo trong `module-info.java` hoặc tên module được suy ra từ JAR không.
-- Dependency có bị đặt nhầm trên classpath thay vì module path không.
+- Does the JAR or module directory actually exist?
+- Does the module path point to the right directory containing the module?
+- Does the module name in `requires` match the name declared in `module-info.java` or the module name derived from the JAR?
+- Was the dependency mistakenly placed on the classpath instead of the module path?
 
-Ví dụ biên dịch khi API đã được đóng gói trong thư mục `mods`:
+Example of compiling when the API has already been packaged in the `mods` directory:
 
 ```bash
 javac --module-path mods \
@@ -151,9 +151,9 @@ javac --module-path mods \
   -m com.acme.app
 ```
 
-## 4. Lỗi thiếu exports: module đã được đọc nhưng package bị đóng
+## 4. Missing exports Error: Module Is Read but Package Is Encapsulated
 
-Giả sử API module có descriptor:
+Suppose the API module has the descriptor:
 
 ```java
 module com.acme.api {
@@ -161,7 +161,7 @@ module com.acme.api {
 }
 ```
 
-Consumer vẫn khai báo đúng:
+The consumer still declares correctly:
 
 ```java
 module com.acme.app {
@@ -169,9 +169,9 @@ module com.acme.app {
 }
 ```
 
-Nhưng khi import `com.acme.api.Customer`, compiler có thể báo package được khai báo trong module `com.acme.api` nhưng module này không export package đó.
+However, when importing `com.acme.api.Customer`, the compiler may report that the package is declared in module `com.acme.api` but that module does not export the package.
 
-Cách sửa là export đúng package trong module sở hữu API:
+The fix is to export the right package in the module that owns the API:
 
 ```java
 module com.acme.api {
@@ -179,13 +179,13 @@ module com.acme.api {
 }
 ```
 
-`exports` là directive của module chứa package. Consumer không thể tự export package thuộc module khác bằng cách thêm một dòng vào module descriptor của mình.
+`exports` is a directive of the module containing the package. A consumer cannot export a package belonging to another module by adding a line to its own module descriptor.
 
-Cũng cần nhớ rằng export package không đồng nghĩa mọi thành viên đều công khai. Consumer vẫn chỉ truy cập được các type và member theo quy tắc truy cập Java thông thường; thành viên package-private vẫn không trở thành public.
+Also remember that exporting a package does not mean every member is public. Consumers can still only access types and members according to standard Java access rules; package-private members do not become public.
 
-## 5. Qualified exports: chỉ export cho một số module
+## 5. Qualified exports: Exporting Only to Selected Modules
 
-Một module có thể giới hạn package chỉ cho một số consumer cụ thể:
+A module can restrict a package to only specific consumers:
 
 ```java
 module com.acme.api {
@@ -193,9 +193,9 @@ module com.acme.api {
 }
 ```
 
-Đây là **qualified export**. Package `com.acme.api` chỉ được export cho module `com.acme.app` được nêu tên. Module khác có thể đọc `com.acme.api` nhưng vẫn không truy cập được package đó.
+This is a **qualified export**. The `com.acme.api` package is exported only to the named `com.acme.app` module. Other modules may read `com.acme.api`, yet still cannot access that package.
 
-Nếu consumer mới là `com.acme.report`, cần cân nhắc thêm module này vào danh sách:
+If a new consumer is `com.acme.report`, you need to consider adding this module to the list:
 
 ```java
 module com.acme.api {
@@ -205,19 +205,19 @@ module com.acme.api {
 }
 ```
 
-Chỉ nên dùng qualified exports khi thực sự muốn giới hạn tập consumer. Nếu package là API công khai cho mọi module, dùng unqualified export:
+Only use qualified exports when you genuinely want to restrict the set of consumers. If the package is a public API for all modules, use an unqualified export:
 
 ```java
 exports com.acme.api;
 ```
 
-Tên trong danh sách qualified export phải là module name, không phải package name, artifact name tùy ý hay tên class.
+Names in a qualified export list must be module names, not package names, arbitrary artifact names, or class names.
 
-## 6. requires transitive: khi API công khai làm lộ dependency
+## 6. requires transitive: When a Public API Exposes a Dependency
 
-Có trường hợp module trung gian sử dụng type từ dependency trong public API của chính nó. Khi đó consumer của module trung gian có thể cần đọc dependency đó.
+Sometimes an intermediate module uses a type from a dependency in its own public API. In that case, consumers of the intermediate module may need to read that dependency.
 
-Ví dụ:
+Example:
 
 ```text
 com.acme.app
@@ -231,7 +231,7 @@ com.acme.facade
 com.acme.api
 ```
 
-Giả sử public method của facade trả về `com.acme.api.Customer`:
+Suppose a public method on the facade returns `com.acme.api.Customer`:
 
 ```java
 package com.acme.facade;
@@ -246,7 +246,7 @@ public class CustomerFacade {
 }
 ```
 
-Nếu descriptor của facade chỉ khai báo:
+If the facade's descriptor only declares:
 
 ```java
 module com.acme.facade {
@@ -255,9 +255,9 @@ module com.acme.facade {
 }
 ```
 
-thì module `com.acme.app` khai báo `requires com.acme.facade` không tự động đọc `com.acme.api`. Khi consumer cần gọi `findCustomer` và sử dụng kiểu trả về `Customer`, compiler có thể báo dependency không được đọc hoặc package không visible.
+then the `com.acme.app` module declaring `requires com.acme.facade` does not automatically read `com.acme.api`. When the consumer needs to call `findCustomer` and use the `Customer` return type, the compiler may report that the dependency is not read or the package is not visible.
 
-Nếu facade chủ ý đưa type của API dependency vào public API và muốn truyền readability cho consumer, dùng:
+If the facade intentionally puts types from the API dependency into its public API and wants to propagate readability to consumers, use:
 
 ```java
 module com.acme.facade {
@@ -266,30 +266,30 @@ module com.acme.facade {
 }
 ```
 
-`requires transitive` khiến các module đọc facade cũng đọc module API. Đây là quyết định về hợp đồng công khai của facade, không phải cách sửa mặc định cho mọi lỗi `requires`. Nếu consumer trực tiếp sử dụng một dependency không được facade tái xuất có chủ ý, consumer nên khai báo `requires` dependency đó.
+`requires transitive` causes modules that read the facade to also read the API module. This is a decision about the facade's public contract, not a default fix for every `requires` error. If a consumer directly uses a dependency that is not intentionally re-exported by the facade, the consumer should declare `requires` for that dependency.
 
-## 7. requires static và dependency tùy chọn
+## 7. requires static and Optional Dependencies
 
-Directive:
+The directive:
 
 ```java
 requires static com.acme.annotations;
 ```
 
-khai báo một dependency cần có khi biên dịch nhưng có thể không bắt buộc ở runtime theo quy tắc của `requires static`. Nó thường phù hợp với annotation hoặc dependency chỉ phục vụ compile-time.
+declares a dependency required at compile time that may be optional at runtime according to the rules of `requires static`. It is commonly suited for annotations or compile-time-only dependencies.
 
-`requires static` không phải cách thay thế cho `requires` thông thường khi ứng dụng thực sự cần module ở runtime. Cũng không thể dùng nó để che giấu việc thiếu module trên module path trong lúc biên dịch: compiler vẫn cần tìm thấy dependency compile-time đó.
+`requires static` is not a substitute for regular `requires` when the application actually needs the module at runtime. Nor can it be used to hide a missing module on the module path during compilation: the compiler still needs to locate that compile-time dependency.
 
-## 8. exports và opens không giống nhau
+## 8. exports and opens Are Not the Same
 
-Hai directive này thường bị nhầm:
+These two directives are often confused:
 
-- `exports package.name;` cho phép module khác truy cập các public type và public/protected API trong package theo quy tắc Java.
-- `opens package.name;` cho phép truy cập reflective sâu vào package ở runtime, ví dụ framework cần đọc hoặc thay đổi private member bằng reflection.
+- `exports package.name;` allows other modules to access public types and public/protected APIs in the package according to Java access rules.
+- `opens package.name;` allows deep reflective access to the package at runtime, for example when a framework needs to read or modify private members via reflection.
 
-Nếu lỗi xảy ra khi biên dịch một import hoặc tham chiếu type, hãy kiểm tra `requires` và `exports`. Thêm `opens` thường không sửa được compile error do package chưa được export.
+If an error occurs while compiling an import or type reference, check `requires` and `exports`. Adding `opens` usually will not fix a compile error caused by an unexported package.
 
-Ví dụ mở package cho framework:
+Example of opening a package to a framework:
 
 ```java
 module com.acme.model {
@@ -299,11 +299,11 @@ module com.acme.model {
 }
 ```
 
-Package API được export để code khác biên dịch và gọi public API. Package internal chỉ mở reflective access cho framework đã chỉ định.
+The API package is exported so other code can compile against and call the public API. The internal package only opens reflective access to the specified framework.
 
-## 9. Biên dịch modular và đọc thông báo lỗi
+## 9. Modular Compilation and Reading Error Messages
 
-Khi compile nhiều module từ source tree:
+When compiling multiple modules from a source tree:
 
 ```bash
 javac --module-source-path src \
@@ -311,7 +311,7 @@ javac --module-source-path src \
   -m com.acme.api,com.acme.app
 ```
 
-Khi compile consumer và lấy dependency từ thư mục JAR/module đã build:
+When compiling a consumer and taking dependencies from a built JAR/module directory:
 
 ```bash
 javac --module-path mods \
@@ -320,51 +320,51 @@ javac --module-path mods \
   -m com.acme.app
 ```
 
-Có thể chạy ứng dụng:
+You can run the application:
 
 ```bash
 java --module-path out:mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Trên Windows, dấu phân cách nhiều phần tử của module path là dấu chấm phẩy (`;`) thay cho dấu hai chấm (`:`).
+On Windows, the separator between multiple entries in the module path is a semicolon (`;`) instead of a colon (`:`).
 
-Khi đọc compiler output, phân loại thông báo trước khi sửa:
+When reading compiler output, classify the message before fixing:
 
-| Thông báo hoặc dấu hiệu | Nguyên nhân thường gặp | Hướng xử lý |
+| Message or Symptom | Common Cause | Resolution |
 |---|---|---|
-| `module not found: X` | Không tìm thấy module X | Kiểm tra module path, tên module và artifact |
-| Package is not visible vì module hiện tại does not read module X | Thiếu readability | Thêm `requires X` ở consumer |
-| Package is declared in module X, which does not export it | Package chưa được export | Thêm `exports` ở module sở hữu package |
-| Package is not exported to module Y | Qualified export không bao gồm consumer | Cập nhật danh sách module đích hoặc dùng export không giới hạn |
-| Public API dùng type từ module khác nhưng consumer không đọc được module đó | Dependency chưa được truyền qua API module | Consumer thêm `requires` hoặc API module dùng `requires transitive` nếu phù hợp |
-| Reflection bị chặn ở runtime | Package chưa được mở cho reflective access | Dùng `opens` hoặc `--add-opens` cho tình huống phù hợp |
+| `module not found: X` | Module X cannot be found | Check the module path, module name, and artifact |
+| Package is not visible because current module does not read module X | Missing readability | Add `requires X` in the consumer |
+| Package is declared in module X, which does not export it | Package has not been exported | Add `exports` in the module owning the package |
+| Package is not exported to module Y | Qualified export does not include the consumer | Update the target module list or use an unqualified export |
+| Public API uses types from another module but consumer cannot read that module | Dependency is not propagated through the API module | Consumer adds `requires` or the API module uses `requires transitive` if appropriate |
+| Reflection blocked at runtime | Package has not been opened for reflective access | Use `opens` or `--add-opens` for the appropriate situation |
 
-Tên thông báo có thể thay đổi theo phiên bản JDK và vị trí lỗi. Hãy dựa vào phần giải thích đầy đủ của compiler, đặc biệt tên module sở hữu package và tên module đang biên dịch.
+Exact message wording may vary by JDK version and error site. Rely on the compiler's full explanation, especially the name of the module owning the package and the name of the module being compiled.
 
-## 10. Quy trình chẩn đoán ngắn
+## 10. Short Diagnostic Workflow
 
-Khi gặp compile error trong dự án modular, thực hiện theo thứ tự:
+When encountering a compile error in a modular project, follow this order:
 
-1. Xác định type đang import thuộc package và module nào. Có thể xem descriptor bằng `jar --describe-module --file dependency.jar`.
-2. Xác nhận module dependency có trên module path của lệnh `javac`.
-3. Kiểm tra module consumer có `requires` đúng module chưa.
-4. Kiểm tra module sở hữu package có `exports` package đó cho consumer không; nếu là qualified export, kiểm tra đúng module name.
-5. Nếu type xuất hiện trong public API của module trung gian, xem xét `requires transitive`.
-6. Nếu vấn đề chỉ xuất hiện khi framework truy cập private member lúc runtime, kiểm tra `opens`, không nhầm với lỗi compile-time.
-7. Biên dịch lại toàn bộ module liên quan từ cùng một cấu hình module path để tránh dùng nhầm artifact cũ.
+1. Identify which package and module the imported type belongs to. You can inspect the descriptor with `jar --describe-module --file dependency.jar`.
+2. Confirm the dependency module is on the module path of the `javac` command.
+3. Check whether the consumer module declares `requires` for the right module.
+4. Check whether the module owning the package has `exports` for that package to the consumer; if it is a qualified export, verify the exact module name.
+5. If the type appears in an intermediate module's public API, consider `requires transitive`.
+6. If the issue only occurs when a framework accesses private members at runtime, check `opens` rather than confusing it with a compile-time error.
+7. Recompile all related modules using the same module path configuration to avoid using stale artifacts.
 
-Có thể dùng `jdeps --check` để xem xét module descriptor và dependency của một module:
+You can use `jdeps --check` to inspect a module's descriptor and dependencies:
 
 ```bash
 jdeps --check com.acme.app --module-path mods
 ```
 
-## Ghi nhớ
+## Key Takeaways
 
-- `requires` tạo readability giữa các module.
-- `exports` công khai package từ module sở hữu package.
-- Đọc được module không có nghĩa mọi package của module đều truy cập được.
-- `requires transitive` truyền readability qua module trung gian khi public API cần điều đó.
-- `requires static` là dependency compile-time tùy chọn ở runtime, không phải cách bỏ qua dependency khi biên dịch.
-- `opens` phục vụ reflective access ở runtime; nó không thay thế `exports` cho compile-time access.
+- `requires` establishes readability between modules.
+- `exports` exposes a package from the module that owns the package.
+- Being able to read a module does not mean every package in that module is accessible.
+- `requires transitive` propagates readability through an intermediate module when its public API demands it.
+- `requires static` is a compile-time dependency that is optional at runtime, not a way to skip a dependency during compilation.
+- `opens` serves reflective access at runtime; it does not replace `exports` for compile-time access.

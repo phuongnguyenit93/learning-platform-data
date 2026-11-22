@@ -1,65 +1,65 @@
-# `LongAdder`, `DoubleAdder` và bài toán thống kê có tranh chấp trong Java
+# `LongAdder`, `DoubleAdder`, and Contended Statistics Counting in Java
 
-## 1. Bài toán: rất nhiều luồng cùng tăng một bộ đếm
+## 1. The Problem: Very Many Threads Incrementing One Counter
 
-Trong một máy chủ Java, nhiều luồng có thể cùng thống kê lượt request, số lỗi, cache hit hoặc tổng thời gian xử lý. Nếu dùng biến `long` và lệnh `count++`, nhiều cập nhật có thể bị **mất** vì `++` thực chất gồm đọc, tính, ghi. Hai luồng cùng đọc 10, tính 11 và ghi 11, trong khi kết quả đúng sau hai lần tăng phải là 12.
+In a Java server, many threads may concurrently track request counts, error counts, cache hits, or total processing time. If you use a `long` variable and `count++`, many updates can be **lost** because `++` actually consists of reading, computing, and writing. Two threads can both read 10, compute 11, and write 11, whereas the correct result after two increments must be 12.
 
-`volatile long count` không giải quyết được phép cộng: `volatile` cung cấp bảo đảm về hiển thị và thứ tự bộ nhớ, **không làm read-modify-write trở thành nguyên tử**. Khi cần đếm đồng thời, các cách tiếp cận thường là `synchronized`/`Lock`, `AtomicLong` hoặc `LongAdder`.
+`volatile long count` does not solve incrementing: `volatile` provides visibility and memory ordering guarantees, **not atomicity for read-modify-write**. When concurrent counting is needed, common approaches are `synchronized`/`Lock`, `AtomicLong`, or `LongAdder`.
 
-`LongAdder` và `DoubleAdder` (gói `java.util.concurrent.atomic`, có từ Java 8) được thiết kế cho kiểu công việc **nhiều luồng liên tục cộng vào một đại lượng thống kê**, đặc biệt khi có tranh chấp (*contention*) trên cùng một biến.
+`LongAdder` and `DoubleAdder` (package `java.util.concurrent.atomic`, available since Java 8) are designed for workloads where **many threads continuously add to a statistical quantity**, especially under *contention* on the same variable.
 
-Sau bài này, bạn sẽ biết:
+After this lesson, you will know:
 
-- Vì sao một bộ đếm `AtomicLong` có thể trở thành điểm nóng khi nhiều luồng cùng cập nhật.
-- `LongAdder` và `DoubleAdder` giảm tranh chấp bằng cách phân tán phép cộng như thế nào.
-- Chạy ví dụ nhiều luồng và đọc kết quả đáng tin sau `join()`.
-- Phân biệt thread-safe updates với **đọc snapshot nguyên tử**.
-- Dùng `ConcurrentHashMap<K, LongAdder>` để đếm theo nhãn.
-- Chọn cách xử lý đúng cho reset thống kê, quota nghiêm ngặt và giá trị `double` xấp xỉ.
+- Why an `AtomicLong` counter can become a hotspot when many threads update concurrently.
+- How `LongAdder` and `DoubleAdder` reduce contention by distributing additions.
+- How to run a multithreaded example and read reliable results after `join()`.
+- How to distinguish thread-safe updates from **reading an atomic snapshot**.
+- How to use `ConcurrentHashMap<K, LongAdder>` to count by label.
+- How to handle metric resets, strict quotas, and approximate `double` values properly.
 
-## 2. Cơ chế: phân tán phép ghi để giảm cạnh tranh
+## 2. Mechanism: Distributing Writes to Reduce Contention
 
-`AtomicLong` giữ một trạng thái nguyên tử dùng chung; nhiều luồng thường thử cập nhật trạng thái đó bằng CAS (*compare-and-set*) hoặc các primitive nguyên tử tương đương. Khi cùng tranh một điểm nóng, các lần thử có thể bị thất bại và phải thử lại.
+`AtomicLong` maintains a single shared atomic state; many threads repeatedly attempt to update that state via CAS (*compare-and-set*) or equivalent atomic primitives. When competing over a single hotspot, attempts can fail and have to retry.
 
-`LongAdder` được tối ưu cho tình huống một lượng lớn thao tác `add`/`increment` cạnh tranh. Về mặt ý tưởng, nó có tổng cơ sở và có thể mở rộng các ô (*cells*) để trải phép ghi:
+`LongAdder` is optimized for scenarios with a large volume of competing `add`/`increment` operations. Conceptually, it maintains a base sum and can expand internal *cells* to spread writes:
 
 ```text
 Worker A ---> [cell A] --+
-Worker B ---> [cell B] --+---> sum() = base + tổng cell
+Worker B ---> [cell B] --+---> sum() = base + sum of cells
 Worker C ---> [cell C] --+
 Worker D ---> [base] ----+
 ```
 
-Sơ đồ chỉ minh họa cơ chế: **không đảm bảo mỗi luồng sở hữu riêng một cell**, cũng không đảm bảo số ô cố định. Việc phân phối và mở rộng là chi tiết triển khai JDK. Điểm đánh đổi là cộng vào các phần độc lập có thể giảm contention khi ghi, nhưng `sum()` phải đọc/gộp các phần, có thể tốn công hơn so với `AtomicLong.get()`.
+The diagram only illustrates the mechanism: **each thread is not guaranteed its own dedicated cell**, nor is the number of cells fixed. Distribution and expansion are JDK implementation details. The trade-off is that adding to independent parts can reduce write contention, while `sum()` must read/combine the parts, which can be more expensive than `AtomicLong.get()`.
 
-`DoubleAdder` áp dụng ý tưởng tương tự cho tổng `double`. Cả hai không phải lựa chọn nhanh nhất trong mọi hoàn cảnh: với rất ít tranh chấp, cập nhật thưa, bộ nhớ hạn chế hoặc đọc thường xuyên, `AtomicLong` có thể đơn giản và phù hợp hơn. Hiệu năng thực tế cần đo trên workload cụ thể.
+`DoubleAdder` applies a similar idea to `double` totals. Neither is the fastest choice in every situation: with very low contention, sparse updates, tight memory, or frequent reads, `AtomicLong` may be simpler and better suited. Actual performance should be measured on your specific workload.
 
-### Ba yêu cầu cần phân biệt
+### Three Requirements to Distinguish
 
-1. **Mọi lần cộng hoàn thành đều được ghi nhận** theo hợp đồng đồng thời của adder, miễn không có reset cạnh tranh và không có vấn đề tràn/precision liên quan.
-2. **Đọc tổng sau khi đã ngừng cập nhật**: `sum()` phản ánh số lần cộng đã hoàn tất, phù hợp để nghiệm thu kết quả các worker.
-3. **Đọc snapshot nguyên tử trong lúc các worker vẫn cộng**: `sum()` **không cam kết điều này**; có thể lấy trạng thái của các cell ở những thời điểm khác nhau.
+1. **Every completed addition is recorded** under the adder's concurrency contract, provided there is no competing reset and no related overflow/precision issue.
+2. **Reading the total after updates have stopped**: `sum()` reflects all completed additions, suitable for verifying worker results.
+3. **Reading an atomic snapshot while workers are still adding**: `sum()` **does not promise this**; it may read states of different cells at different moments.
 
-## 3. API và khác biệt quan trọng
+## 3. API and Key Differences
 
-| Thao tác | `LongAdder` | `DoubleAdder` |
+| Operation | `LongAdder` | `DoubleAdder` |
 |---|---|---|
-| Khởi tạo | `new LongAdder()` | `new DoubleAdder()` |
-| Cộng một lượng | `add(long delta)` | `add(double delta)` |
-| Cộng/trừ 1 | `increment()`, `decrement()` | `add(1.0)`, `add(-1.0)` |
-| Đọc tổng | `sum(): long` | `sum(): double` |
-| Đọc rồi reset | `sumThenReset()` | `sumThenReset()` |
-| Reset không lấy tổng | `reset()` | `reset()` |
-| Lấy qua `Number` | `longValue()` tương ứng với tổng | `doubleValue()` tương ứng với tổng |
-| Có `get()`, `compareAndSet()`? | Không | Không |
+| Construction | `new LongAdder()` | `new DoubleAdder()` |
+| Add a delta | `add(long delta)` | `add(double delta)` |
+| Add/subtract 1 | `increment()`, `decrement()` | `add(1.0)`, `add(-1.0)` |
+| Read total | `sum(): long` | `sum(): double` |
+| Read then reset | `sumThenReset()` | `sumThenReset()` |
+| Reset without reading | `reset()` | `reset()` |
+| Read via `Number` | `longValue()` matching the sum | `doubleValue()` matching the sum |
+| Has `get()`, `compareAndSet()`? | No | No |
 
-Các thao tác `add` có thể nhận giá trị âm; adder không chỉ đếm số dương. Giá trị khởi đầu của cả hai là 0. `LongAdder.sum()` trả về `long`, nên vẫn có khả năng **tràn số nguyên 64 bit**, không tự kiểm tra `Math.addExact`.
+`add` operations can take negative values; adders do not count only positive numbers. Both start at 0. `LongAdder.sum()` returns a `long`, so **64-bit integer overflow** is still possible without automatic `Math.addExact` checks.
 
-Cần lưu ý: `LongAdder` **không có phương thức `get()`** giống `AtomicLong`; muốn lấy tổng dùng `sum()`. `LongAdder.longValue()` cũng không làm snapshot trở nên nguyên tử.
+Note: `LongAdder` **has no `get()` method** like `AtomicLong`; use `sum()` to obtain the total. `LongAdder.longValue()` does not make the snapshot atomic either.
 
-## 4. Ví dụ hoàn chỉnh: bốn luồng cùng tăng `LongAdder`
+## 4. Complete Example: Four Threads Incrementing a `LongAdder`
 
-**Tệp `LongAdderDemo.java`**, chạy Java 17+:
+**File `LongAdderDemo.java`**, running on Java 17+:
 
 ```java
 import java.util.concurrent.atomic.LongAdder;
@@ -91,25 +91,25 @@ public class LongAdderDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac LongAdderDemo.java
 java LongAdderDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 expected=400000
 actual=400000
 ```
 
-`join()` ở đây rất quan trọng. Nó bảo đảm tác vụ của các worker đã kết thúc trước khi main đọc tổng, đồng thời cung cấp quan hệ *happens-before* cho hành động của worker. Vì không còn ghi đồng thời, `sum()` lúc này cung cấp tổng của 400.000 lần `increment()` theo ví dụ.
+`join()` is crucial here. It ensures worker tasks have finished before main reads the total, while also providing the *happens-before* relationship for worker actions. With no concurrent writes remaining, `sum()` now returns the total of the 400,000 `increment()` calls in the example.
 
-Nếu đọc `sum()` ngay sau khi gọi `start()`, kết quả có thể nhỏ hơn 400.000 vì các worker chưa xong. Đó không tự chứng minh có lỗi mất cập nhật; khác biệt có thể chỉ do thời điểm quan sát.
+If you read `sum()` right after calling `start()`, the result may be less than 400,000 because workers are not done yet. That alone does not prove a lost-update bug; the difference may simply be due to observation timing.
 
-Ví dụ thao tác cơ bản (đặt trong một phương thức khi chạy):
+Basic operations example (placed inside a method when running):
 
 ```java
 LongAdder pending = new LongAdder();
@@ -119,13 +119,13 @@ pending.decrement(); // -1
 System.out.println(pending.sum()); // 5
 ```
 
-Với biến đã chia sẻ cho nhiều luồng, `increment()`, `decrement()` và `add(long)` hỗ trợ cập nhật đồng thời. Nhưng việc đọc tổng trong khi vẫn đang ghi vẫn mang tính thống kê.
+When shared across multiple threads, `increment()`, `decrement()`, and `add(long)` support concurrent updates. Reading the total while writes are still ongoing remains statistical.
 
-## 5. Ví dụ `DoubleAdder`: tổng thời gian xử lý và số mẫu
+## 5. `DoubleAdder` Example: Total Processing Time and Sample Count
 
-`DoubleAdder` dùng `double` để cộng dồn những đại lượng **chấp nhận độ chính xác dấu phẩy động**, ví dụ tổng latency hoặc phép đo. Muốn tính trung bình, thường dùng thêm một `LongAdder` đếm mẫu.
+`DoubleAdder` uses `double` to accumulate quantities where **floating-point precision is acceptable**, such as total latency or measurements. To compute an average, you typically pair it with a `LongAdder` counting samples.
 
-**Tệp `DoubleAdderDemo.java`:**
+**File `DoubleAdderDemo.java`:**
 
 ```java
 import java.util.concurrent.atomic.DoubleAdder;
@@ -174,44 +174,44 @@ total=30000.0
 average=0.75
 ```
 
-Ví dụ chọn `0.75`, một số biểu diễn chính xác trong nhị phân, để giá trị hiển thị không bị nhiễu do làm tròn. Với `0.1`, không nên giả định tổng được biểu diễn thập phân chính xác.
+The example chooses `0.75`, a number representable exactly in binary, so displayed values are free of rounding noise. With `0.1`, do not assume the sum is represented with exact decimal precision.
 
-**Lưu ý về tính nhất quán:** Mỗi worker gọi `total.add(0.75)` rồi `count.increment()`. Nếu dashboard đọc `count.sum()` và `total.sum()` giữa lúc các worker chạy, hai kết quả có thể tương ứng những thời điểm khác nhau. Tính trung bình như vậy chỉ là một quan sát best effort. Sau khi `join()` tất cả worker, hai tổng mới ổn định theo giới hạn số học ví dụ.
+**Consistency note:** Each worker calls `total.add(0.75)` then `count.increment()`. If a dashboard reads `count.sum()` and `total.sum()` while workers are running, the two values may correspond to different instants. An average computed that way is only a best-effort observation. After `join()` finishes on all workers, both totals stabilize within the example's arithmetic bounds.
 
-Một trung bình có `n == 0` phải được xử lý riêng. Nếu tính `totalTime / n` với `double` và `n == 0`, kết quả có thể là `NaN` hoặc vô cực, không phải giá trị trung bình hợp lệ. Trong ứng dụng thực, chỉ chia khi có mẫu.
+An average with `n == 0` must be handled separately. Computing `totalTime / n` with `double` when `n == 0` can yield `NaN` or infinity, not a valid average. In real applications, divide only when samples exist.
 
-## 6. `sum()` thread-safe nhưng không phải snapshot nguyên tử
+## 6. `sum()` Is Thread-Safe, Not an Atomic Snapshot
 
-Một số tài liệu dùng từ “thread-safe” khiến người đọc suy ra rằng **mọi lần đọc đều nhìn thấy một trạng thái toàn cục nhất quán**. Điều đó không đúng với `LongAdder.sum()`/`DoubleAdder.sum()`.
+Some materials use the term "thread-safe" in a way that leads readers to infer **every read sees a globally consistent state**. That is not true for `LongAdder.sum()`/`DoubleAdder.sum()`.
 
-Khi đang ghi đồng thời, một lời gọi `sum()` có thể cộng phần base và từng cell ở những thời điểm khác nhau. Kết quả hữu ích cho thống kê gần thời điểm đọc, nhưng không có bảo đảm nó đại diện cho một khoảnh khắc đơn nhất theo mô hình linearizable.
+During concurrent writes, a call to `sum()` may sum the base and individual cells at different moments in time. The result is useful for near-read-time statistics, but comes with no guarantee that it represents a single instant in a linearizable model.
 
-Ví dụ dashboard hiển thị “khoảng 10.000 request đã xử lý” có thể chấp nhận độ trễ quan sát. Nhưng tính toán **quota cứng** như giới hạn phát hành tối đa 100 mã phải dùng cơ chế có atomic check-then-update.
+For example, a dashboard showing "roughly 10,000 requests processed" can tolerate observation skew. However, enforcing a **hard quota** such as issuing at most 100 tokens must use a mechanism with atomic check-then-update.
 
-Đoạn mã sai về mặt quota:
+Broken code for quota enforcement:
 
 ```java
-// Minh họa, quota là LongAdder dùng chung.
+// Illustrative: quota is a shared LongAdder.
 if (quota.sum() < 100) {
     quota.increment();
-    // Cấp quyền cho request này.
+    // Grant permission to this request.
 }
 ```
 
-Hai luồng có thể cùng thấy `99` rồi cùng cấp quyền và tăng, làm vượt 100. Thay `LongAdder` bằng `AtomicLong` rồi vẫn thực hiện `get() < 100` và `incrementAndGet()` riêng lẻ **cũng chưa đủ**: cặp kiểm tra và cập nhật phải được gắn thành một giao thức nguyên tử, chẳng hạn vòng CAS hoặc lock/transaction thích hợp.
+Two threads can both see `99`, both grant permission, and both increment, exceeding 100. Replacing `LongAdder` with `AtomicLong` while still calling `get() < 100` and `incrementAndGet()` separately **is still insufficient**: the check and update pair must be bound into one atomic protocol, such as a CAS loop or an appropriate lock/transaction.
 
-`AtomicLong.get()` cung cấp phép đọc nguyên tử trên **một biến**; `AtomicLong.compareAndSet()` giúp triển khai phép cập nhật có điều kiện. `LongAdder` thiếu CAS trên toàn tổng, nên không dùng làm sequencer tạo số thứ tự duy nhất hoặc cơ chế quota chính xác.
+`AtomicLong.get()` provides an atomic read on **a single variable**; `AtomicLong.compareAndSet()` enables conditional updates. `LongAdder` lacks CAS over the total sum, so do not use it as a unique-sequence generator or exact quota mechanism.
 
-## 7. `reset()` và `sumThenReset()`: thận trọng với cập nhật đang diễn ra
+## 7. `reset()` and `sumThenReset()`: Caution with Ongoing Updates
 
-Cả hai adder có hai phương thức đáng chú ý:
+Both adders provide two notable methods:
 
-- `reset()`: đặt bộ cộng dồn về zero.
-- `sumThenReset()`: trả tổng đang quan sát rồi đặt lại về zero.
+- `reset()`: resets the accumulator to zero.
+- `sumThenReset()`: returns the observed sum and resets it to zero.
 
-Chúng **không cung cấp phép cắt một cửa sổ thống kê nguyên tử** trong khi nhiều luồng đang `add()`. Theo hợp đồng API, dùng chúng phù hợp nhất khi **không có cập nhật đồng thời**. Nếu cạnh tranh với lần reset, các cập nhật có thể bị quan sát lệch cửa sổ hoặc không được bảo toàn theo yêu cầu thống kê chính xác.
+They **do not provide an atomic statistical window cut** while multiple threads are calling `add()`. By the API contract, they are best used when **no concurrent updates are happening**. If competing with a reset, updates may be observed across the wrong window or fail to be preserved under strict accounting requirements.
 
-**Tệp `AdderResetDemo.java`** (không có ghi đồng thời):
+**File `AdderResetDemo.java`** (no concurrent writes):
 
 ```java
 import java.util.concurrent.atomic.LongAdder;
@@ -245,21 +245,21 @@ after=0
 afterReset=0
 ```
 
-Ứng dụng muốn thống kê theo từng phút có thể dùng reset best effort nếu chấp nhận sai số; nếu phải đảm bảo **không mất sự kiện**, cần điều phối worker dừng ghi vào bộ đếm cũ, thiết kế epoch hoặc dùng hệ thống event/metric có cơ chế cắt cửa sổ theo hợp đồng.
+An application collecting per-minute metrics can use best-effort resets if minor skew is acceptable; if **zero lost events** is mandatory, coordinate workers to stop writing to the old counter, design epochs, or use an event/metric system with contracted window boundaries.
 
-Hoán đổi `AtomicReference<LongAdder>` **không tự động giải quyết toàn bộ**: worker có thể đọc tham chiếu adder cũ trước thời điểm hoán đổi, sau đó cập nhật adder cũ khi luồng thu thập đã lấy tổng. Vì vậy hệ thống vẫn cần quy tắc phối hợp và trạng thái kết thúc ghi.
+Swapping an `AtomicReference<LongAdder>` **does not automatically solve everything**: a worker can read the old adder reference before the swap and then update the old adder after the collector already drained its sum. Thus, systems still need coordination rules and write-completion states.
 
-## 8. Thống kê theo nhãn bằng `ConcurrentHashMap` và `LongAdder`
+## 8. Label-Based Statistics with `ConcurrentHashMap` and `LongAdder`
 
-Khi một ứng dụng ghi nhận nhiều loại sự kiện, một cách dùng phổ biến là mỗi khóa map giữ một adder riêng:
+When an application records multiple event types, a common pattern holds a separate adder per map key:
 
 ```text
-"ok"     ---> LongAdder (số request thành công)
-"retry"  ---> LongAdder (số request thử lại)
-"failed" ---> LongAdder (số request thất bại)
+"ok"     ---> LongAdder (successful request count)
+"retry"  ---> LongAdder (retried request count)
+"failed" ---> LongAdder (failed request count)
 ```
 
-**Tệp `ConcurrentMetricsDemo.java`:**
+**File `ConcurrentMetricsDemo.java`:**
 
 ```java
 import java.util.concurrent.ConcurrentHashMap;
@@ -310,23 +310,23 @@ ok=40000
 retry=20000
 ```
 
-`ConcurrentHashMap.computeIfAbsent()` phối hợp việc tạo giá trị cho **khóa chưa có**; các luồng sau đó tăng cùng đối tượng `LongAdder`. Dùng `if (!map.containsKey(key)) { map.put(key, new LongAdder()); }` là không an toàn nếu có cạnh tranh vì hai luồng có thể tạo ra hai bộ đếm rồi ghi đè tham chiếu của nhau.
+`ConcurrentHashMap.computeIfAbsent()` coordinates creating the value for a **missing key**; threads then increment the same `LongAdder` instance. Using `if (!map.containsKey(key)) { map.put(key, new LongAdder()); }` is unsafe under contention because two threads can create two counters and overwrite each other's reference.
 
-Tuy vậy, `computeIfAbsent(...).increment()` là hai bước, **không phải một transaction nguyên tử cho cả map và bộ đếm**. Nếu một luồng đồng thời `remove` hoặc thay giá trị của khóa, worker đang giữ adder cũ vẫn có thể cộng vào một đối tượng không còn nằm trong map. Khi reset/đổi thế hệ metrics, cần quy tắc sở hữu và đồng bộ riêng.
+However, `computeIfAbsent(...).increment()` is two steps, **not an atomic transaction spanning both the map and the counter**. If another thread concurrently calls `remove` or replaces the key's value, a worker holding the old adder can still increment an object no longer in the map. When resetting or rotating metric generations, separate ownership and synchronization rules are needed.
 
-Đồng thời, đừng cho phép tên nhãn là chuỗi vô hạn sinh từ input tùy ý của người dùng; mỗi nhãn tạo ít nhất một counter và có thể tiêu hao nhiều bộ nhớ. Thiết kế nên giới hạn số nhãn (*cardinality*).
+Also, never allow label names to be unbounded strings generated from arbitrary user input; each label allocates at least one counter and can exhaust memory. Design should bound label *cardinality*.
 
-## 9. `DoubleAdder` và sai số dấu phẩy động
+## 9. `DoubleAdder` and Floating-Point Error
 
-`DoubleAdder` không làm phép cộng `double` trở nên chính xác thập phân. Hai vấn đề chính là:
+`DoubleAdder` does not make `double` addition decimally exact. Two main issues apply:
 
-### 9.1. `0.1` không được biểu diễn chính xác bằng `double`
+### 9.1. `0.1` Is Not Represented Exactly in `double`
 
-Các số như `0.1` có biểu diễn nhị phân vô hạn, nên cộng dồn có thể tạo sai lệch so với phép tính thập phân lý tưởng. Với phép đo thống kê, có thể chấp nhận sai số theo dung sai đã định. Với tiền, khối lượng phải khớp tuyệt đối hoặc đối soát kế toán, `DoubleAdder` không phù hợp làm nguồn dữ liệu chính xác.
+Numbers like `0.1` have infinite binary expansions, so repeated addition can accumulate drift relative to ideal decimal math. For statistical measurements, error within a defined tolerance may be acceptable. For money, quantities requiring exact match, or accounting reconciliation, `DoubleAdder` is unsuitable as an exact source of truth.
 
-### 9.2. Thứ tự cộng ảnh hưởng kết quả
+### 9.2. Addition Order Affects the Result
 
-Phép cộng floating-point không kết hợp (*non-associative*) khi có làm tròn. Ví dụ mảnh mã sau có thể đặt trong `main`:
+Floating-point addition is *non-associative* when rounding occurs. For example, this snippet can be placed in `main`:
 
 ```java
 double a = 1.0e16;
@@ -337,88 +337,88 @@ System.out.println((a + b) + c); // 1.0
 System.out.println(a + (b + c)); // 0.0
 ```
 
-Số `1.0` có thể bị mất khi cộng vào `-1e16` do hạn chế chữ số hữu hiệu. Trong `DoubleAdder`, việc các luồng cập nhật các cell khác nhau có thể làm thay đổi thứ tự gom tổng, nên không nên đòi hỏi kết quả **giống nhau đến bit cuối** giữa mọi lần chạy đối với dữ liệu nhạy cảm với thứ tự cộng.
+`1.0` can be lost when added to `-1e16` due to limited significant digits. In `DoubleAdder`, threads updating different cells can alter the order in which partial sums are combined, so you should not require **bit-for-bit identical** results across runs for order-sensitive data.
 
-### 9.3. Xử lý dữ liệu không hữu hạn
+### 9.3. Handling Non-Finite Inputs
 
-`DoubleAdder` có thể nhận `Double.NaN`, `Double.POSITIVE_INFINITY`, `Double.NEGATIVE_INFINITY`; các giá trị này có thể khiến tổng trở thành `NaN` hoặc vô cực. Nếu yêu cầu thống kê là tổng số đo hữu hạn, cần xác thực đầu vào trước khi cộng:
+`DoubleAdder` accepts `Double.NaN`, `Double.POSITIVE_INFINITY`, and `Double.NEGATIVE_INFINITY`; these values can turn the sum into `NaN` or infinity. If statistics require summing finite measurements, validate inputs before adding:
 
 ```java
-// Mảnh mã bên trong phương thức; sample là double,
-// total là DoubleAdder đã khởi tạo.
+// Snippet inside a method; sample is a double,
+// total is an initialized DoubleAdder.
 if (!Double.isFinite(sample)) {
     throw new IllegalArgumentException("Non-finite sample");
 }
 total.add(sample);
 ```
 
-Nếu số đo không được âm, kiểm tra thêm `sample >= 0.0`.
+If measurements must be non-negative, also check `sample >= 0.0`.
 
-### 9.4. Chọn biểu diễn cho tiền
+### 9.4. Choosing a Representation for Money
 
-Khi cần lưu tiền một cách chính xác, có thể dùng `BigDecimal` kết hợp transaction/đồng bộ hoặc biểu diễn bằng số nguyên của **đơn vị tiền nhỏ nhất** (với chính sách quy đổi, kiểm tra tràn số và phần lẻ rõ ràng). Chỉ dùng `LongAdder` cộng tiền nguyên đơn vị cho thống kê khi chấp nhận kiểu snapshot của nó; nó không thay thế cơ chế giao dịch kế toán.
+When money must be stored accurately, use `BigDecimal` combined with transactions/synchronization, or represent values as integers of the **smallest currency unit** (with clear conversion, overflow-check, and remainder policies). Only use `LongAdder` to sum integer currency units for statistics when its snapshot semantics are acceptable; it does not replace accounting transaction mechanisms.
 
-## 10. So sánh chọn công cụ
+## 10. Tool Selection Comparison
 
-| Nhu cầu | Lựa chọn thường phù hợp | Ghi chú |
+| Need | Commonly suitable choice | Notes |
 |---|---|---|
-| Nhiều luồng ghi một bộ đếm metrics | `LongAdder` | Giảm điểm tranh chấp trong một số tải |
-| Nhiều luồng cộng `double` cho số đo xấp xỉ | `DoubleAdder` | Có giới hạn precision, rounding |
-| Cần `get()`, `compareAndSet()`, cấp sequence | `AtomicLong` | Thao tác nguyên tử trên một biến |
-| Cần check-then-update quota hoặc nhiều trường nhất quán | CAS/lock/transaction | Thiết kế toàn bộ thao tác nguyên tử |
-| Cần thống kê theo khóa | `ConcurrentHashMap<K,LongAdder>` | Giới hạn cardinality, chú ý xóa/thay counter |
-| Cần phân cửa sổ mà không mất sự kiện | Giao thức đồng bộ hoặc metric hệ thống hỗ trợ bucket | `sumThenReset` không đủ khi cạnh tranh |
-| Ít contention, đọc nhiều, tài nguyên giới hạn | Cân nhắc `AtomicLong` | Đơn giản, có thể ít overhead |
-| Tiền hoặc thập phân cần đúng tuyệt đối | `BigDecimal`/đơn vị nguyên + giao dịch | Thread safety không đảm bảo độ chính xác thập phân |
+| Many threads writing one metric counter | `LongAdder` | Reduces contention hotspots in some workloads |
+| Many threads summing `double` for approximate measurements | `DoubleAdder` | Subject to precision and rounding limits |
+| Need `get()`, `compareAndSet()`, sequence generation | `AtomicLong` | Atomic operations on a single variable |
+| Need check-then-update quota or multi-field consistency | CAS / lock / transaction | Make the entire operation atomic |
+| Need statistics by key | `ConcurrentHashMap<K,LongAdder>` | Bound cardinality; watch counter removal/replacement |
+| Need windowing without losing events | Synchronization protocol or metric system with buckets | `sumThenReset` is insufficient under contention |
+| Low contention, read-heavy, limited resources | Consider `AtomicLong` | Simpler, potentially lower overhead |
+| Money or decimals needing exact precision | `BigDecimal` / integer units + transactions | Thread safety does not guarantee decimal accuracy |
 
-Không tuyên bố adder luôn nhanh hơn atomics: benchmark cần dùng JMH, warm-up JIT, số luồng, tỷ lệ đọc/ghi, kích thước khóa và môi trường đại diện. `System.nanoTime()` quanh một vòng lặp đơn giản thường chưa đủ bằng chứng để lựa chọn cơ chế đồng thời.
+Do not claim adders are always faster than atomics: benchmarks require JMH, JIT warm-up, thread counts, read/write ratios, lock/object sizes, and a representative environment. `System.nanoTime()` around a simple loop is usually insufficient evidence to select a concurrency mechanism.
 
-## 11. Lỗi thường gặp
+## 11. Common Mistakes
 
-| Sai lầm | Hệ quả | Cách sửa |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| `long++` hoặc `volatile long++` giữa nhiều worker | Lost update | Adder, atomic hoặc lock |
-| Gọi `adder.get()` | Không có API này | Dùng `sum()` |
-| Cho rằng `sum()` nguyên tử | Snapshot nhiều cell thiếu tính nhất quán | Chỉ dùng cho metrics best effort, hoặc đợi writer |
-| Dùng `sum() < limit` rồi `increment()` để giữ quota | Hai worker có thể cùng được cấp | CAS/lock/transaction |
-| Gọi `sumThenReset()` khi worker vẫn cộng | Sai lệch cửa sổ, có thể không giữ mọi cập nhật | Điều phối cập nhật và reset |
-| Xem `DoubleAdder` là `BigDecimal` đa luồng | `double` có sai số | Chọn biểu diễn phù hợp |
-| Kỳ vọng kết quả floating-point luôn giống bit | Thứ tự cộng không cố định | Kiểm tra sai số phù hợp |
-| Thay map counter đang được worker dùng | Worker có thể ghi vào counter cũ | Quy tắc ownership/epoch |
-| Không giới hạn nhãn map | Tăng bộ nhớ vô hạn | Giới hạn miền nhãn |
-| Cho rằng `LongAdder` không tràn | Vẫn là `long` | Đánh giá miền giá trị và điều kiện tràn |
+| `long++` or `volatile long++` across workers | Lost updates | Adder, atomic, or lock |
+| Calling `adder.get()` | No such API | Use `sum()` |
+| Assuming `sum()` is atomic | Multi-cell snapshot lacks consistency | Use only for best-effort metrics, or wait for writers |
+| Using `sum() < limit` then `increment()` to enforce quota | Two workers can both be granted | CAS / lock / transaction |
+| Calling `sumThenReset()` while workers still add | Window skew; may not preserve all updates | Coordinate updates and resets |
+| Treating `DoubleAdder` as multithreaded `BigDecimal` | `double` has precision error | Choose an appropriate representation |
+| Expecting floating-point results to be bit-identical | Addition order varies | Use appropriate error tolerances |
+| Replacing a map counter actively used by workers | Workers may write to the old counter | Ownership / epoch rules |
+| Unbounded map labels | Unbounded memory growth | Bound label domain |
+| Assuming `LongAdder` never overflows | Still a `long` | Evaluate value range and overflow conditions |
 
-## 12. Bài tập tự kiểm tra kèm lời giải
+## 12. Self-Check Exercises with Solutions
 
-1. **8 worker gọi `LongAdder.increment()` mỗi worker 10.000 lần. Khi nào `sum()` chắc chắn đạt 80.000?**  
-   Sau khi tất cả worker hoàn tất và không có cập nhật/reset nào khác, với điều kiện không tràn số.
+1. **8 workers each call `LongAdder.increment()` 10,000 times. When is `sum()` guaranteed to reach 80,000?**  
+   After all workers finish and no other updates/resets occur, provided no overflow happens.
 
-2. **`LongAdder` có trả số thứ tự duy nhất trong lần `increment()` không?**  
-   Không. `increment()` không trả giá trị; `sum()` không phải số thứ tự gắn với chính phép cập nhật. Có thể cân nhắc `AtomicLong.incrementAndGet()` cho cấp sequence.
+2. **Does `LongAdder` return a unique sequence number during `increment()`?**  
+   No. `increment()` returns nothing; `sum()` is not a sequence number tied to that update. Consider `AtomicLong.incrementAndGet()` for sequence generation.
 
-3. **Vì sao `LongAdder.sum()` không thích hợp để kiểm tra quota chính xác?**  
-   Không có snapshot nguyên tử, và riêng thao tác kiểm tra rồi cập nhật cũng cần được đồng bộ chung.
+3. **Why is `LongAdder.sum()` unsuitable for exact quota checks?**  
+   There is no atomic snapshot, and the check-then-update pair itself must be synchronized together.
 
-4. **`DoubleAdder` có `increment()` không?**  
-   Không. Dùng `add(1.0)`.
+4. **Does `DoubleAdder` have `increment()`?**  
+   No. Use `add(1.0)`.
 
-5. **Sau khi worker kết thúc, `DoubleAdder` nhận 100 lần `0.75` cho tổng bao nhiêu?**  
-   `75.0`. Đây là dữ liệu nhị phân biểu diễn chính xác và phép cộng trong miền không làm mất phần lẻ theo ví dụ.
+5. **After workers finish, what total does `DoubleAdder` give after receiving `0.75` 100 times?**  
+   `75.0`. This is an exact binary-representable value, and addition in this range loses no fractional part in the example.
 
-6. **Tại sao gọi `sumThenReset()` trong lúc writer hoạt động không phù hợp để thống kê bắt buộc chính xác?**  
-   Vì đọc và reset không phải thao tác nguyên tử trên toàn cấu trúc; cập nhật cạnh tranh có thể không được gắn đúng vào một kỳ thống kê.
+6. **Why is calling `sumThenReset()` while writers are active unsuitable for strictly accurate accounting?**  
+   Because reading and resetting are not atomic across the entire structure; concurrent updates may not be cleanly assigned to a single reporting period.
 
-7. **Vì sao kết hợp `ConcurrentHashMap.computeIfAbsent(k, ...)` với `LongAdder` thường được dùng?**  
-   Nó tạo/tra cứu counter dùng chung theo khóa an toàn ở cấp map, rồi mỗi lần `increment()` có thể thực hiện đồng thời.
+7. **Why is combining `ConcurrentHashMap.computeIfAbsent(k, ...)` with `LongAdder` commonly used?**  
+   It safely creates/looks up the shared counter per key at the map level, and then each `increment()` can run concurrently.
 
-8. **Nếu `DoubleAdder` tính tiền, điều gì sai về mặt số học?**  
-   `double` không biểu diễn chính xác mọi số thập phân và thứ tự cộng có thể thay đổi kết quả. Dùng mô hình số thập phân/chia đơn vị chính xác hơn.
+8. **If `DoubleAdder` sums money, what goes wrong arithmetically?**  
+   `double` cannot represent all decimal numbers accurately and addition order can change the result. Use a decimal model or exact integer units instead.
 
-## 13. Ghi nhớ và tài liệu
+## 13. Key Takeaways and Documentation
 
-`LongAdder` và `DoubleAdder` giúp các luồng **cộng dồn số liệu thống kê** khi có contention. Lợi ích chủ yếu là giảm áp lực cập nhật trên một vị trí nguyên tử. Đổi lại, `sum()` không cam kết một snapshot nguyên tử khi đang ghi; `sumThenReset()` không tạo ranh giới kỳ thống kê chính xác khi cạnh tranh; `DoubleAdder` vẫn tuân theo giới hạn IEEE 754.
+`LongAdder` and `DoubleAdder` help threads **accumulate statistical metrics** under contention. The main benefit is reducing update pressure on a single atomic location. In return, `sum()` does not promise an atomic snapshot while writes are occurring; `sumThenReset()` does not establish an exact period boundary under contention; `DoubleAdder` remains subject to IEEE 754 limits.
 
-Tài liệu API chính thức:
+Official API documentation:
 
 - [Java 21 — `LongAdder`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html)
 - [Java 21 — `DoubleAdder`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/atomic/DoubleAdder.html)

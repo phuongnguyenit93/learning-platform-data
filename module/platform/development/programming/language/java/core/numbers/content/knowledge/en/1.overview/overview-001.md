@@ -1,117 +1,117 @@
-# Số trong Java là gì và những bài toán cần biểu diễn?
+# What Are Numbers in Java and What Problems Need Representation?
 
-## 1. Số trong chương trình là gì?
+## 1. What Is a Number in a Program?
 
-Trong toán học, số nguyên và số thực là những khái niệm có miền giá trị rất rộng. Trong Java, một **giá trị số** được biểu diễn bằng một kiểu dữ liệu có giới hạn xác định: số bit, miền giá trị, độ chính xác và phép toán được hỗ trợ. Vì bộ nhớ hữu hạn, không một kiểu nguyên thủy nào biểu diễn chính xác mọi số toán học.
+In mathematics, integers and real numbers are concepts with a very broad value domain. In Java, a **numeric value** is represented by a data type with defined limits: bit count, value range, precision, and supported operations. Because memory is finite, no primitive type can represent every mathematical number with exactness.
 
-Hãy nhìn vào những giá trị đều gồm chữ số nhưng khác ý nghĩa:
+Look at these values that all consist of digits but have different meanings:
 
-- `27` học viên: một **số lượng nguyên**, cần đếm, cộng và so sánh.
-- `36.5` °C: một **đại lượng đo**, thường có phần thập phân và sai số.
-- `19.90` USD: một **giá tiền**, cần chính sách chính xác thập phân và làm tròn.
-- `00123`: có thể là **mã khách hàng**, phải giữ nguyên số 0 đầu, không cần phép cộng.
-- `20261027`: có thể là cách viết ngày, không thích hợp cho phép toán số học tùy tiện.
+- `27` learners: an **integer quantity**, needing counting, addition, and comparison.
+- `36.5` °C: a **measured quantity**, usually with a fractional part and measurement error.
+- `19.90` USD: a **price**, needing decimal precision and rounding policies.
+- `00123`: could be a **customer code**, which must preserve leading zeros and does not need addition.
+- `20261027`: could be a date format, unsuitable for arbitrary arithmetic operations.
 
-Vì vậy, trước khi chọn `int` hay `double`, hãy xác định **ý nghĩa dữ liệu**, miền hợp lệ, độ chính xác cần thiết, phép toán, đơn vị và định dạng. Một chuỗi ký tự toàn chữ số chưa chắc nên lưu bằng kiểu số.
+Therefore, before choosing `int` or `double`, determine the **data meaning**, valid range, required precision, operations, units, and formatting. A character string consisting entirely of digits should not necessarily be stored using a numeric type.
 
-## 2. Những kiểu số chủ yếu của Java
+## 2. Java's Primary Numeric Types
 
-Sáu kiểu nguyên thủy thường dùng để tính số học là `byte`, `short`, `int`, `long`, `float` và `double`. Java còn có `char` (một kiểu *integral* theo đặc tả, nhưng ý nghĩa chính là đơn vị mã UTF-16) và `boolean` (không phải kiểu số).
+The six primitive types commonly used for arithmetic are `byte`, `short`, `int`, `long`, `float`, and `double`. Java also has `char` (an *integral* type according to the specification, though its primary meaning is a UTF-16 code unit) and `boolean` (not a numeric type).
 
-| Kiểu | Kích thước | Miền hoặc đặc điểm | Mục đích |
+| Type | Size | Range or Characteristics | Purpose |
 |---|---:|---|---|
-| `byte` | 8 bit | −128 đến 127 | Byte/giao thức, dữ liệu nhị phân |
-| `short` | 16 bit | −32.768 đến 32.767 | Tương thích giao thức, định dạng 16 bit |
-| `int` | 32 bit | −2.147.483.648 đến 2.147.483.647 | Số lượng, chỉ số, phép toán nguyên thông thường |
-| `long` | 64 bit | −9.223.372.036.854.775.808 đến 9.223.372.036.854.775.807 | Bộ đếm, số nguyên lớn |
-| `float` | 32 bit | Dấu phẩy động nhị phân IEEE 754, khoảng 6–9 chữ số thập phân có nghĩa | Dữ liệu 32 bit có thể chấp nhận sai số |
-| `double` | 64 bit | Dấu phẩy động nhị phân IEEE 754, khoảng 15–17 chữ số thập phân có nghĩa | Đo lường và tính toán khoa học thông thường |
+| `byte` | 8 bits | −128 to 127 | Bytes/protocols, binary data |
+| `short` | 16 bits | −32,768 to 32,767 | Protocol compatibility, 16-bit formats |
+| `int` | 32 bits | −2,147,483,648 to 2,147,483,647 | Quantities, indices, general integer arithmetic |
+| `long` | 64 bits | −9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 | Counters, large integers |
+| `float` | 32 bits | IEEE 754 binary floating-point, about 6–9 significant decimal digits | 32-bit data where inaccuracy is acceptable |
+| `double` | 64 bits | IEEE 754 binary floating-point, about 15–17 significant decimal digits | General measurement and scientific computation |
 
-Độ chính xác của `float`/`double` là **số chữ số có nghĩa**, không phải luôn chính xác đến một số cố định chữ số sau dấu phẩy. Đây là kiểu **xấp xỉ nhị phân**: các giá trị như `0.1` thập phân thường không được lưu chính xác tuyệt đối. `float` và `double` còn có `NaN`, vô cực và số 0 có dấu.
+The precision of `float`/`double` is the **number of significant digits**, not always exactness to a fixed number of digits after the decimal point. These are **binary approximation** types: values like decimal `0.1` are generally not stored with absolute exactness. `float` and `double` also have `NaN`, infinity, and signed zero.
 
-Hai lớp `java.math` đặc biệt quan trọng:
+Two `java.math` classes are especially important:
 
-- **`BigInteger`**: số nguyên chính xác có độ lớn tùy ý trong giới hạn tài nguyên máy; dùng khi `long` cũng không đủ.
-- **`BigDecimal`**: số thập phân chính xác theo phần trị nguyên và *scale* (số chữ số theo thang thập phân). Phù hợp cho giá, thuế, phép tính có yêu cầu thập phân và quy tắc làm tròn rõ ràng.
+- **`BigInteger`**: exact integers of arbitrary magnitude within machine resource limits; used when even `long` is not enough.
+- **`BigDecimal`**: exact decimal numbers represented by an integer unscaled value and a *scale* (number of digits on the decimal scale). Suitable for prices, taxes, and calculations with explicit decimal and rounding requirements.
 
-`BigInteger` và `BigDecimal` là **đối tượng**, không phải primitive; dùng các phương thức như `add`, `multiply`, `divide` thay vì toán tử số học thông thường. Các lớp bao `Integer`, `Long`, `Double`... dành cho các tình huống cần đối tượng/generic/collection; cần nhớ có boxing/unboxing và giá trị `null` có thể gây lỗi khi unboxing.
+`BigInteger` and `BigDecimal` are **objects**, not primitives; use methods like `add`, `multiply`, and `divide` instead of regular arithmetic operators. Wrapper classes `Integer`, `Long`, `Double`, etc., are for situations requiring objects/generics/collections; keep in mind boxing/unboxing and that a `null` value can cause an error during unboxing.
 
-## 3. Ba chiều quan trọng của biểu diễn số
+## 3. Three Important Dimensions of Numeric Representation
 
-### 3.1. Miền giá trị: số lớn đến đâu?
+### 3.1. Value Range: How Large Can the Number Be?
 
-`int` chứa số nguyên có dấu 32 bit. `long` chứa số nguyên có dấu 64 bit. Một phép cộng, trừ hoặc nhân số nguyên primitive có thể **tràn miền (overflow)**: ví dụ `Integer.MAX_VALUE + 1` thành `Integer.MIN_VALUE`. Java không tự mở rộng kết quả thành `long` và phép cộng nguyên bình thường không tự ném lỗi.
+`int` holds 32-bit signed integers. `long` holds 64-bit signed integers. A primitive integer addition, subtraction, or multiplication can **overflow**: for example, `Integer.MAX_VALUE + 1` becomes `Integer.MIN_VALUE`. Java does not automatically widen the result to `long`, and normal integer addition does not automatically throw an error.
 
-Khi cần phát hiện tràn số, sử dụng `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`; chúng ném `ArithmeticException` khi vượt miền. Khi cần miền rộng hơn, chuyển toán hạng sang `long` **trước phép tính**, ví dụ `(long) a * b`; viết `(long) (a * b)` có thể đã quá muộn nếu `a * b` là phép nhân `int` bị tràn. Nếu `long` không đủ, cân nhắc `BigInteger` và đánh giá chi phí bộ nhớ/hiệu năng.
+When overflow detection is needed, use `Math.addExact`, `Math.subtractExact`, and `Math.multiplyExact`; they throw `ArithmeticException` when exceeding the range. When a wider range is needed, convert an operand to `long` **before the calculation**, e.g., `(long) a * b`; writing `(long) (a * b)` may already be too late if `a * b` is an `int` multiplication that overflows. If `long` is not enough, consider `BigInteger` and evaluate memory/performance costs.
 
-### 3.2. Độ chính xác: số có đúng bằng giá trị mong muốn?
+### 3.2. Precision: Does the Number Equal the Intended Value Exactly?
 
-`double` dùng biểu diễn nhị phân có độ chính xác hữu hạn. Giá trị thập phân `0.1` thường chỉ được lưu xấp xỉ, nên `0.1 + 0.2 == 0.3` là `false`. Điều này không làm `double` vô dụng: nó rất phù hợp cho nhiều phép đo và thuật toán số có mô hình sai số được kiểm soát.
+`double` uses a binary representation with finite precision. The decimal value `0.1` is typically stored only approximately, so `0.1 + 0.2 == 0.3` is `false`. This does not make `double` useless: it is very well suited for many measurements and numerical algorithms with controlled error models.
 
-Nếu bài toán đòi **đúng theo thập phân**, như cộng tiền `0.10 + 0.20 = 0.30`, hãy dùng `BigDecimal` được tạo từ chuỗi, ví dụ `new BigDecimal("0.10")`. Tránh `new BigDecimal(0.1)`: constructor nhận giá trị nhị phân xấp xỉ sẵn có của literal `double`. `BigDecimal.valueOf(0.1)` thường mang ý nghĩa thập phân mong muốn khi bắt đầu từ literal `double`, nhưng tốt nhất dữ liệu tiền nên đi từ chuỗi hoặc đơn vị nhỏ nhất rõ ràng.
+If the problem requires **decimal exactness**, such as adding money `0.10 + 0.20 = 0.30`, use a `BigDecimal` created from a string, e.g., `new BigDecimal("0.10")`. Avoid `new BigDecimal(0.1)`: that constructor receives the pre-existing approximate binary value of the `double` literal. `BigDecimal.valueOf(0.1)` usually carries the intended decimal meaning when starting from a `double` literal, but ideally monetary data should come from a string or an explicit smallest unit.
 
-### 3.3. Ngữ nghĩa và đơn vị: đó có thật là đại lượng số học?
+### 3.3. Semantics and Units: Is It Truly an Arithmetic Quantity?
 
-Một mã bưu chính `"00123"`, mã nhân viên `"000045"` hay số điện thoại nên dùng `String` để bảo toàn ký tự, số 0 đầu, dấu `+` và định dạng. Ngày tháng dùng `LocalDate`, thời điểm dùng `Instant` và khoảng thời gian dùng `Duration` trong `java.time` khi phù hợp; tránh số nguyên “trần” không rõ là giây, mili giây hay ngày lịch.
+A postal code `"00123"`, employee code `"000045"`, or phone number should use `String` to preserve characters, leading zeros, `+` signs, and formatting. Dates should use `LocalDate`, instants `Instant`, and durations `Duration` in `java.time` when appropriate; avoid "raw" integers where it is unclear whether they mean seconds, milliseconds, or calendar days.
 
-Số `5` mét khác `5` giây. Nếu phải nhận số nguyên thủy qua API, đặt tên kèm đơn vị (ví dụ `timeoutMillis`), kiểm tra miền dữ liệu và chuyển đổi ở biên hệ thống.
+The number `5` meters is different from `5` seconds. If an API must accept primitive numbers, name them with units (e.g., `timeoutMillis`), validate data ranges, and convert at system boundaries.
 
-## 4. Literal và phép toán cơ bản
+## 4. Literals and Basic Operations
 
-Các dạng literal thường gặp:
+Common literal forms:
 
 ~~~java
-int learners = 27;                // hệ thập phân
-int oneMillion = 1_000_000;       // _ để dễ đọc
-int bits = 0b1010;                // nhị phân: 10
-int hex = 0xFF;                   // thập lục phân: 255
-long views = 3_000_000_000L;      // hậu tố L cho long
-double ratio = 0.125;             // literal thập phân mặc định double
-float sample = 0.125f;            // f hoặc F cho float
+int learners = 27;                // decimal system
+int oneMillion = 1_000_000;       // _ for readability
+int bits = 0b1010;                // binary: 10
+int hex = 0xFF;                   // hexadecimal: 255
+long views = 3_000_000_000L;      // L suffix for long
+double ratio = 0.125;             // decimal literal defaults to double
+float sample = 0.125f;            // f or F for float
 double distance = 6.02e3;         // 6020.0
 ~~~
 
-Literal nguyên thập phân không có `L` thường có kiểu `int`, trong khi literal có dấu chấm thập phân thường có kiểu `double` (trừ khi có hậu tố `f`/`F`). Dấu `_` chỉ được đặt giữa các chữ số ở vị trí hợp lệ; `1_.0` là cú pháp sai. Java cũng có literal bát phân với tiền tố `0`: `010` mang giá trị thập phân `8`, dễ gây bất ngờ nếu người đọc tưởng số thập phân.
+Decimal integer literals without `L` normally have type `int`, while literals with a decimal point normally have type `double` (unless suffixed with `f`/`F`). The `_` character may only be placed between digits in valid positions; `1_.0` is invalid syntax. Java also has octal literals with a `0` prefix: `010` carries decimal value `8`, which can easily surprise readers expecting a decimal number.
 
-Một số quy tắc ảnh hưởng trực tiếp đến kết quả:
+Several rules directly affect results:
 
-- `5 / 2` bằng `2` vì hai toán hạng là số nguyên; `5.0 / 2` và `(double) 5 / 2` bằng `2.5`.
-- `byte`, `short` và `char` thường được nâng lên `int` trong biểu thức số học (*numeric promotion*).
-- `int` có thể mở rộng sang `long` và `double`, nhưng **chuyển sang dấu phẩy động vẫn có thể mất độ chính xác**, nhất là số nguyên lớn.
-- Ép kiểu từ `double` sang `int` bỏ phần thập phân đối với giá trị hữu hạn trong miền; ngoài miền hữu hạn kết quả bão hòa ở biên, còn `NaN` thành 0. Không coi cast là bảo đảm không mất thông tin.
-- Literal `byte b = 100;` được chấp nhận vì hằng số `int` nằm trong miền `byte`, nhưng không thể tự động chuyển mọi **biến** `int` sang `byte`.
+- `5 / 2` equals `2` because both operands are integers; `5.0 / 2` and `(double) 5 / 2` equal `2.5`.
+- `byte`, `short`, and `char` are normally promoted to `int` in arithmetic expressions (*numeric promotion*).
+- `int` can be widened to `long` and `double`, but **converting to floating-point can still lose precision**, especially for large integers.
+- Casting from `double` to `int` drops the fractional part for finite values in range; outside the finite range the result saturates at the boundary, and `NaN` becomes 0. Do not treat a cast as a guarantee of lossless conversion.
+- The literal `byte b = 100;` is accepted because the `int` constant fits in `byte`, but not every `int` **variable** can be automatically converted to `byte`.
 
-Khi nhập số từ văn bản, có thể dùng `Integer.parseInt("42")`, `Long.parseLong("3000000000")`, `new BigInteger("12345678901234567890")` hoặc `new BigDecimal("19.90")`. Đầu vào không hợp lệ hoặc vượt miền sẽ tạo lỗi như `NumberFormatException`; cần kiểm tra và xử lý ở biên ứng dụng. Với số hiển thị theo khu vực (dấu phẩy/dấu chấm phân cách), định nghĩa `Locale` và công cụ parse/format tương ứng; không tự thay ký tự một cách mơ hồ.
+When reading numbers from text, you can use `Integer.parseInt("42")`, `Long.parseLong("3000000000")`, `new BigInteger("12345678901234567890")`, or `new BigDecimal("19.90")`. Invalid or out-of-range input produces errors such as `NumberFormatException`; validate and handle at the application boundary. For locale-formatted numbers (comma/dot separators), define the `Locale` and corresponding parse/format tools; do not replace characters ad hoc in an ambiguous way.
 
-## 5. Bài toán nào chọn kiểu nào?
+## 5. Which Problem Calls for Which Type?
 
-| Dữ liệu cần biểu diễn | Ví dụ | Lựa chọn khởi đầu | Điều cần xác định |
+| Data to Represent | Example | Starting Choice | What to Determine |
 |---|---|---|---|
-| Số lượng thông thường | 27 học viên; chỉ số mảng | `int` | Có âm không, giới hạn lớn nhất? |
-| Bộ đếm lớn | 3 tỷ lượt truy cập | `long` | Có cộng dồn gây tràn không? |
-| Dữ liệu nhị phân/giao thức | Byte, số nguyên 16 bit | `byte`, `short` | Signedness, cách giải mã, thứ tự byte |
-| Giá/tiền/thuế | 19.90 × 3 | `BigDecimal` hoặc `long` lưu đơn vị nhỏ nhất theo hợp đồng | Tiền tệ, scale, làm tròn |
-| Phép đo vật lý | 36.5 °C; 2.75 m | `double` | Sai số thiết bị, đơn vị và cách so sánh |
-| Số nguyên cực lớn | Số nguyên 100 chữ số | `BigInteger` | Thời gian và bộ nhớ |
-| Tỉ lệ, xác suất | 17/23; 12.5% | `double` nếu cho phép xấp xỉ; `BigDecimal` khi thập phân phải chính xác | Miền 0..1, cách làm tròn/hiển thị |
-| Định danh | `"00123"`; số điện thoại | `String` | Bảo toàn số 0 đầu và ký tự |
-| Thời gian | 90 phút; thời điểm UTC | `Duration`; `Instant` | Đơn vị, lịch, múi giờ |
+| Regular counts | 27 learners; array index | `int` | Can it be negative, what is the max limit? |
+| Large counters | 3 billion views | `long` | Could accumulation cause overflow? |
+| Binary/protocol data | Bytes, 16-bit integers | `byte`, `short` | Signedness, decoding method, byte order |
+| Price/money/tax | 19.90 × 3 | `BigDecimal` or `long` storing smallest unit by contract | Currency, scale, rounding |
+| Physical measurements | 36.5 °C; 2.75 m | `double` | Instrument error, units, and comparison method |
+| Extremely large integers | 100-digit integer | `BigInteger` | Time and memory |
+| Ratios, probabilities | 17/23; 12.5% | `double` if approximation allowed; `BigDecimal` when decimal must be exact | 0..1 range, rounding/display method |
+| Identifiers | `"00123"`; phone number | `String` | Preserving leading zeros and characters |
+| Time | 90 minutes; UTC instant | `Duration`; `Instant` | Units, calendar, time zone |
 
-Bảng là **gợi ý bắt đầu**, chưa thay thế quy tắc nghiệp vụ. Chẳng hạn, hóa đơn không chỉ cần `BigDecimal`: còn phải quy định tiền tệ, thời điểm làm tròn, số chữ số sau dấu phẩy và cách phân bổ phần lẻ. Tỉ lệ trong thống kê có thể cần `double`, trong hệ thống tài chính có thể cần phương pháp chính xác thập phân.
+The table is a **starting suggestion**, not a replacement for business rules. For instance, an invoice does not just need `BigDecimal`: it must also specify currency, when rounding occurs, number of decimal places, and how to allocate remainders. Ratios in statistics might need `double`, while financial systems might need decimal-exact methods.
 
-### Một kịch bản bán vé
+### A Ticketing Scenario
 
-- `seatCount = 120` là số lượng ghế, `int` thường phù hợp.
-- `ticketPrice = 149.90` là giá tiền, biểu diễn bằng `BigDecimal("149.90")`.
-- `bookingCode = "000120"` là mã đặt chỗ; dùng `String`, không làm mất `00`.
-- `elapsed = 90 phút` là khoảng thời gian; dùng `Duration.ofMinutes(90)`.
-- `successRate = 0.973` là tỷ lệ đo thống kê; `double` có thể phù hợp nếu sai số được chấp nhận.
+- `seatCount = 120` is a seat count; `int` is usually appropriate.
+- `ticketPrice = 149.90` is a monetary price, represented with `BigDecimal("149.90")`.
+- `bookingCode = "000120"` is a booking code; use `String` so `00` is not lost.
+- `elapsed = 90 minutes` is a time duration; use `Duration.ofMinutes(90)`.
+- `successRate = 0.973` is a statistical rate; `double` can be appropriate if error is acceptable.
 
-Cùng là chữ số, năm trường hợp đòi năm cách hiểu dữ liệu khác nhau.
+All five contain digits, yet the five cases require five different interpretations of the data.
 
-## 6. Ví dụ Java 17+ độc lập: biểu diễn đúng từng đại lượng
+## 6. Standalone Java 17+ Example: Representing Each Quantity Properly
 
-Tạo tệp `NumberRepresentationDemo.java`:
+Create the file `NumberRepresentationDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -141,14 +141,14 @@ public class NumberRepresentationDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac NumberRepresentationDemo.java
 java NumberRepresentationDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 students=27
@@ -159,11 +159,11 @@ huge+1=123456789012345678901234567891
 customerCode=00123
 ~~~
 
-`views` vượt miền `int` nên dùng `long`; `temperature` là phép đo cho phép biểu diễn floating-point. `BigDecimal` giữ hai chữ số thập phân trong phép nhân `19.90 × 3 = 59.70`. `BigInteger` cho phép cộng số nguyên lớn hơn miền `long`. `customerCode` bảo toàn số 0 đầu vì nó là mã định danh.
+`views` exceeds the `int` range so `long` is used; `temperature` is a measurement that permits floating-point representation. `BigDecimal` preserves two decimal digits in the multiplication `19.90 × 3 = 59.70`. `BigInteger` allows adding integers larger than the `long` range. `customerCode` preserves leading zeros because it is an identifier.
 
-## 7. Ví dụ Java 17+ độc lập: lỗi phổ biến
+## 7. Standalone Java 17+ Example: Common Mistakes
 
-Tạo tệp `NumberPitfalls.java`:
+Create the file `NumberPitfalls.java`:
 
 ~~~java
 public class NumberPitfalls {
@@ -190,7 +190,7 @@ javac NumberPitfalls.java
 java NumberPitfalls
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 5 / 2 (int) = 2
@@ -200,13 +200,13 @@ int overflow = -2147483648
 overflow detected
 ~~~
 
-Ba hiện tượng **khác nhau**: chia nguyên bỏ phần lẻ, phép cộng nguyên tràn miền, và floating-point chỉ lưu xấp xỉ. Cách xử lý phụ thuộc bài toán: dùng toán hạng floating-point khi muốn thương xấp xỉ, `Math.addExact` hoặc kiểu rộng hơn để xử lý số nguyên, `BigDecimal` khi cần chính xác thập phân. So sánh `double` gần đúng bằng dung sai chỉ phù hợp khi dung sai được xác định theo đơn vị, độ lớn và sai số của bài toán; không chọn một `epsilon` cố định cho mọi trường hợp.
+These are three **distinct** phenomena: integer division drops the fractional part, integer addition overflows the range, and floating-point stores only an approximation. How you handle them depends on the problem: use floating-point operands when an approximate quotient is wanted, `Math.addExact` or a wider type to handle integers, and `BigDecimal` when decimal exactness is required. Approximate `double` comparison using a tolerance is only appropriate when the tolerance is determined by the units, magnitude, and error of the problem; do not pick one fixed `epsilon` for every case.
 
-## 8. BigDecimal, phép chia và làm tròn
+## 8. BigDecimal, Division, and Rounding
 
-`BigDecimal` không hỗ trợ toán tử `+`/`*`/`/` như primitive; nó có `add`, `subtract`, `multiply`, `divide`. Phép chia `10 / 3` là thập phân vô hạn: gọi `new BigDecimal("10").divide(new BigDecimal("3"))` sẽ ném `ArithmeticException` vì không thể biểu diễn chính xác bằng số chữ số hữu hạn. Hãy xác định scale và quy tắc làm tròn theo nghiệp vụ.
+`BigDecimal` does not support `+`/`*`/`/` operators like primitives; it has `add`, `subtract`, `multiply`, and `divide`. The division `10 / 3` is a non-terminating decimal: calling `new BigDecimal("10").divide(new BigDecimal("3"))` will throw `ArithmeticException` because it cannot be represented exactly with a finite number of digits. Specify scale and rounding rules according to business requirements.
 
-Ví dụ tạo tệp `DecimalRoundingDemo.java`:
+For example, create the file `DecimalRoundingDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -226,44 +226,44 @@ javac DecimalRoundingDemo.java
 java DecimalRoundingDemo
 ~~~
 
-Kết quả:
+Result:
 
 ~~~text
 3.33
 ~~~
 
-Thêm một chi tiết: `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` là `false` vì `equals` xem xét cả *scale*. `compareTo` giữa hai giá trị đó trả 0 vì bằng nhau về mặt số học. Cần chọn cách so sánh phù hợp, đặc biệt khi dùng làm khóa bản đồ hoặc kiểm tra điều kiện nghiệp vụ.
+One more detail: `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` is `false` because `equals` considers *scale* as well. `compareTo` between those two values returns 0 because they are numerically equal. Choose the appropriate comparison method, especially when using them as map keys or checking business conditions.
 
-Một hệ thống cũng có thể lưu giá bằng số **đơn vị tiền nhỏ nhất** với `long`, ví dụ giá quy ra xu. Cách này phù hợp nếu đơn vị, khoảng giá trị và quy tắc chuyển đổi được quy định rõ; nó không tự giải quyết các phép chia, tỷ giá hoặc làm tròn tùy ý.
+A system can also store prices in counts of the **smallest currency unit** using `long`, such as price converted to cents. This approach is appropriate if the unit, value range, and conversion rules are clearly specified; it does not automatically solve division, exchange rates, or arbitrary rounding.
 
-## 9. Checklist chọn cách biểu diễn
+## 9. Representation Selection Checklist
 
-1. **Bản chất dữ liệu:** đó là số lượng để tính toán, phép đo, tỷ lệ, số tiền, mã định danh hay ngày/giờ?
-2. **Miền giá trị:** nhỏ nhất/lớn nhất, có âm không, có thể tăng không giới hạn không, giá trị trung gian có vượt miền không?
-3. **Độ chính xác:** cần số nguyên chính xác, thập phân chính xác hay xấp xỉ floating-point? Có dung sai được đo/thiết kế không?
-4. **Phép toán:** có chia, cộng dồn, tính thuế, nhân nhiều lần hoặc so sánh bằng không? Quy tắc overflow/làm tròn là gì?
-5. **Đơn vị và định dạng:** mét hay km, giây hay mili giây, VND hay USD, ký tự mã cần bảo toàn, locale nhập/xuất?
-6. **Giá trị biên:** thử với 0, số âm, cực đại, số rất lớn, mẫu số bằng 0, dữ liệu sai, sai số tích lũy và các phép toán trung gian.
+1. **Nature of data:** Is it a quantity to calculate, a measurement, a ratio, money, an identifier, or a date/time?
+2. **Value range:** Minimum/maximum, can it be negative, can it grow without bound, could intermediate values exceed the range?
+3. **Precision:** Do you need exact integers, exact decimals, or floating-point approximation? Is there a measured/designed tolerance?
+4. **Operations:** Is there division, accumulation, tax calculation, repeated multiplication, or equality comparison? What are the overflow/rounding rules?
+5. **Units and formatting:** Meters or km, seconds or milliseconds, VND or USD, code characters to preserve, input/output locale?
+6. **Boundary values:** Test with 0, negative numbers, maximums, very large numbers, denominator 0, invalid input, accumulated error, and intermediate operations.
 
-### Những hiểu lầm thường gặp
+### Common Misconceptions
 
-- “`double` có 64 bit nên tiền luôn chính xác”: sai, vì đó là dấu phẩy động **nhị phân**.
-- “`int` tràn thì Java tự đổi sang `long`”: sai, cần nâng kiểu trước phép tính hoặc kiểm tra overflow.
-- “Toàn chữ số thì phải lưu bằng số”: sai, mã định danh và số điện thoại thường là văn bản.
-- “`BigDecimal` tự chọn cách làm tròn như kế toán”: sai, phải đặt scale và `RoundingMode` theo hợp đồng.
-- “`float` có bảy chữ số **sau dấu phẩy**”: sai, cần hiểu số chữ số **có nghĩa**.
-- “Cast là chuyển đổi không mất dữ liệu”: sai, thu hẹp kiểu và chuyển sang floating-point có thể mất thông tin.
-- “`BigInteger` vô hạn hoàn toàn”: sai, nó bị giới hạn bởi bộ nhớ và chi phí tính toán của môi trường chạy.
+- "`double` has 64 bits so money is always exact": false, because it is **binary** floating-point.
+- "When `int` overflows, Java automatically switches to `long`": false; you must widen the type before the operation or check for overflow.
+- "All digits means it must be stored as a number": false; identifiers and phone numbers are usually text.
+- "`BigDecimal` automatically chooses accounting rounding": false; you must set scale and `RoundingMode` according to the contract.
+- "`float` has seven digits **after the decimal point**": false; you must understand **significant** digits.
+- "A cast is a lossless conversion": false; narrowing types and converting to floating-point can lose information.
+- "`BigInteger` is completely infinite": false; it is bounded by memory and computation cost of the runtime environment.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-1. Bộ đếm có thể tăng đến 4 tỷ: `int` hay `long` phù hợp hơn? Vì sao?
-2. Vì sao `"000045"` là mã nhân viên nên giữ dưới dạng `String`?
-3. Khi cộng tiền `0.10` và `0.20`, vì sao không mặc nhiên dùng `double`?
-4. `5 / 2` và `5.0 / 2` khác nhau thế nào?
-5. Một cảm biến có sai số ±0,1 °C: cần làm rõ gì trước khi so sánh hai số đo?
-6. Với `int a, b`, tại sao `(long) (a * b)` có thể đã mất thông tin, còn `(long) a * b` có thể tránh được?
+1. A counter can grow up to 4 billion: is `int` or `long` more appropriate? Why?
+2. Why should `"000045"` as an employee code be kept as a `String`?
+3. When adding money `0.10` and `0.20`, why should you not default to `double`?
+4. How do `5 / 2` and `5.0 / 2` differ?
+5. A sensor has ±0.1 °C error: what needs to be clarified before comparing two measurements?
+6. Given `int a, b`, why might `(long) (a * b)` already lose information, whereas `(long) a * b` can avoid it?
 
-**Gợi ý đáp án:** (1) `long` vì 4 tỷ vượt `int`; (2) phải giữ số 0 đầu và mã không dùng phép toán số học; (3) `double` biểu diễn xấp xỉ nhị phân còn `BigDecimal` phù hợp yêu cầu thập phân chính xác; (4) một biểu thức chia nguyên nhận `2`, biểu thức kia nhận `2.5`; (5) đơn vị, độ chính xác cảm biến và dung sai so sánh; (6) phép nhân `int` có thể tràn **trước khi** ép kiểu, nên cần nâng toán hạng trước.
+**Answer hints:** (1) `long` because 4 billion exceeds `int`; (2) leading zeros must be kept and codes do not use arithmetic operations; (3) `double` uses binary approximation while `BigDecimal` fits exact decimal requirements; (4) one expression does integer division yielding `2`, the other yields `2.5`; (5) units, sensor accuracy, and comparison tolerance; (6) the `int` multiplication can overflow **before** the cast, so an operand must be widened first.
 
-**Ghi nhớ:** Chọn kiểu số trong Java là chọn **mô hình biểu diễn** của đại lượng: ý nghĩa, miền giá trị, độ chính xác, đơn vị, phép toán và quy tắc làm tròn đều ảnh hưởng đến tính đúng đắn của chương trình.
+**Takeaway:** Choosing a numeric type in Java is choosing a **representation model** for a quantity: meaning, value range, precision, units, operations, and rounding rules all affect program correctness.

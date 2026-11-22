@@ -1,95 +1,95 @@
-# Chuyển mẫu bit trở lại giá trị `float` hoặc `double` trong Java
+# Converting Bit Patterns Back to `float` or `double` Values in Java
 
-## 1. Hai việc khác nhau: đổi giá trị số và diễn giải lại bit
+## 1. Two Different Tasks: Numeric Value Conversion vs. Bit Reinterpretation
 
-Một giá trị dấu phẩy động (*floating-point*) có thể được lưu dưới dạng mẫu bit theo IEEE 754. Để phục hồi **giá trị `float` hoặc `double` từ chính mẫu bit đó**, Java cung cấp hai phương thức:
+A floating-point value can be stored as an IEEE 754 bit pattern. To recover **the `float` or `double` value from that exact bit pattern**, Java provides two methods:
 
-- `Float.intBitsToFloat(int bits)`: xem 32 bit của một `int` như biểu diễn nhị phân của một `float`.
-- `Double.longBitsToDouble(long bits)`: xem 64 bit của một `long` như biểu diễn nhị phân của một `double`.
+- `Float.intBitsToFloat(int bits)`: treats the 32 bits of an `int` as the binary representation of a `float`.
+- `Double.longBitsToDouble(long bits)`: treats the 64 bits of a `long` as the binary representation of a `double`.
 
-Điểm quan trọng nhất: **diễn giải lại mẫu bit khác hoàn toàn với ép kiểu số học**.
+The most important point: **reinterpreting a bit pattern is completely different from numeric casting**.
 
 ```java
-int bits = 0x3F80_0000; // 1065353216 nếu hiểu là int có dấu
+int bits = 0x3F80_0000; // 1065353216 if interpreted as a signed int
 float reconstructed = Float.intBitsToFloat(bits); // 1.0f
-float converted = (float) bits; // giá trị số 1065353216 được đổi sang float
+float converted = (float) bits; // numeric value 1065353216 converted to float
 ```
 
-`Float.intBitsToFloat` lấy nguyên mẫu 32 bit `0x3F800000` và diễn giải theo IEEE 754, thu được **1.0**. Trong khi đó, `(float) bits` chuyển **giá trị số nguyên** 1_065_353_216 sang kiểu `float`. Hai phép toán có ý nghĩa khác nhau dù cùng xuất phát từ một biến `int`.
+`Float.intBitsToFloat` takes the raw 32-bit pattern `0x3F800000` and interprets it according to IEEE 754, producing **1.0**. By contrast, `(float) bits` converts the **integer value** 1_065_353_216 to `float`. The two operations have different meanings even though both start from the same `int` variable.
 
-Đối với 64 bit, `Double.longBitsToDouble(bits)` khác `(double) bits` tương tự. Khi xử lý file nhị phân, giao thức mạng, log hex, kiểm thử hoặc phân tích bit, cần xác định dữ liệu đang là **bit pattern** hay **giá trị số nguyên cần chuyển đổi**.
+For 64 bits, `Double.longBitsToDouble(bits)` differs from `(double) bits` in the same way. When handling binary files, network protocols, hex logs, tests, or bit analysis, determine whether your data is a **bit pattern** or an **integer value to convert**.
 
-## 2. Những API cần biết
+## 2. APIs to Know
 
-| Mục đích | API Java | Kiểu đầu vào | Kiểu trả về |
+| Purpose | Java API | Input Type | Return Type |
 |---|---|---|---|
-| Bit pattern → `float` | `Float.intBitsToFloat(bits)` | `int`, 32 bit | `float` |
-| Bit pattern → `double` | `Double.longBitsToDouble(bits)` | `long`, 64 bit | `double` |
-| `float` → bit pattern nguyên bản | `Float.floatToRawIntBits(value)` | `float` | `int` |
-| `double` → bit pattern nguyên bản | `Double.doubleToRawLongBits(value)` | `double` | `long` |
-| `float` → bit pattern chuẩn hóa NaN | `Float.floatToIntBits(value)` | `float` | `int` |
-| `double` → bit pattern chuẩn hóa NaN | `Double.doubleToLongBits(value)` | `double` | `long` |
+| Bit pattern → `float` | `Float.intBitsToFloat(bits)` | `int`, 32-bit | `float` |
+| Bit pattern → `double` | `Double.longBitsToDouble(bits)` | `long`, 64-bit | `double` |
+| `float` → raw bit pattern | `Float.floatToRawIntBits(value)` | `float` | `int` |
+| `double` → raw bit pattern | `Double.doubleToRawLongBits(value)` | `double` | `long` |
+| `float` → NaN-canonicalized bit pattern | `Float.floatToIntBits(value)` | `float` | `int` |
+| `double` → NaN-canonicalized bit pattern | `Double.doubleToLongBits(value)` | `double` | `long` |
 
-Các phương thức `intBitsToFloat` và `longBitsToDouble` là `static`, có thể gọi trực tiếp từ tên lớp bao mà không tạo đối tượng `Float`/`Double`.
+`intBitsToFloat` and `longBitsToDouble` are `static` methods and can be called directly on the wrapper class name without creating `Float`/`Double` objects.
 
-**Phân biệt hai họ phương thức đi từ giá trị sang bit:** phương thức có chữ `Raw` cố gắng trả về mẫu bit thực tế của giá trị, kể cả thông tin payload NaN khi biểu diễn cho phép. Phương thức không có `Raw` chuẩn hóa mọi NaN thành một mẫu NaN chuẩn:
+**Distinguishing the two value-to-bits method families:** methods with `Raw` attempt to return the actual bit pattern of the value, including NaN payload information when representation permits. Methods without `Raw` canonicalize all NaNs to a standard NaN pattern:
 
-- `Float.floatToIntBits(Float.NaN)` trả `0x7FC00000`.
-- `Double.doubleToLongBits(Double.NaN)` trả `0x7FF8000000000000L`.
+- `Float.floatToIntBits(Float.NaN)` returns `0x7FC00000`.
+- `Double.doubleToLongBits(Double.NaN)` returns `0x7FF8000000000000L`.
 
-Vì NaN có nhiều biểu diễn bit, không nên mặc định một phép đi-về sẽ giữ **mọi bit NaN** trong mọi tình huống; phần này được giải thích kỹ hơn ở mục 7.
+Because NaN has multiple bit representations, do not assume a round-trip will preserve **all NaN bits** in every situation; this is explained further in section 7.
 
-## 3. Cấu trúc biểu diễn IEEE 754 binary32 và binary64
+## 3. IEEE 754 binary32 and binary64 Representation Structure
 
-Java `float` dùng **binary32**, còn `double` dùng **binary64** của IEEE 754:
+Java `float` uses IEEE 754 **binary32**, and `double` uses **binary64**:
 
-| Thành phần | `float` (32 bit) | `double` (64 bit) |
+| Component | `float` (32-bit) | `double` (64-bit) |
 |---|---:|---:|
-| Bit dấu (*sign*) | 1 | 1 |
-| Số bit số mũ (*exponent*) | 8 | 11 |
-| Số bit phần phân số (*fraction/significand field*) | 23 | 52 |
-| Độ lệch số mũ (*bias*) | 127 | 1023 |
-| Tổng | 32 | 64 |
+| Sign bit (*sign*) | 1 | 1 |
+| Exponent bits (*exponent*) | 8 | 11 |
+| Fraction bits (*fraction/significand field*) | 23 | 52 |
+| Exponent offset (*bias*) | 127 | 1023 |
+| Total | 32 | 64 |
 
-Cách bố trí từ bit cao xuống bit thấp:
+Layout from highest bit to lowest bit:
 
 ```text
-float (32 bit):
+float (32 bits):
 S | EEEEEEEE | FFFFFFFFFFFFFFFFFFFFFFF
 1 |    8     |           23
 
-double (64 bit):
+double (64 bits):
 S | EEEEEEEEEEE | FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 1 |     11      |                         52
 ```
 
-Ở đây:
+Here:
 
-- **S**: dấu, bằng 0 khi số không âm và bằng 1 khi số âm.
-- **E**: trường số mũ được lưu có độ lệch (*biased exponent*).
-- **F**: trường phân số, lưu các bit sau dấu chấm của phần trị; số chuẩn hóa có **bit 1 ẩn** đứng trước phần phân số.
+- **S**: sign, 0 when non-negative and 1 when negative.
+- **E**: stored exponent field with bias (*biased exponent*).
+- **F**: fraction field, storing the bits after the binary point of the significand; normal numbers have an **implicit 1 bit** preceding the fraction.
 
-Với số **chuẩn hóa** (*normal*) có trường số mũ nằm giữa 0 và giá trị toàn bit 1, giá trị toán học là:
+For a **normal** number whose exponent field lies between 0 and all 1-bits, the mathematical value is:
 
 \[
 (-1)^S \times \left(1+\frac{F}{2^p}\right) \times 2^{E-\text{bias}}
 \]
 
-Trong đó `p = 23` cho `float`, `p = 52` cho `double`, còn `F` là số nguyên không dấu do các bit phần phân số biểu diễn.
+Where `p = 23` for `float`, `p = 52` for `double`, and `F` is the unsigned integer represented by the fraction bits.
 
-Với trường số mũ bằng **0**, công thức đổi thành số **dưới chuẩn** (*subnormal*) khi `F != 0`:
+When the exponent field is **0**, the formula changes to **subnormal** when `F != 0`:
 
 \[
 (-1)^S \times \frac{F}{2^p} \times 2^{1-\text{bias}}
 \]
 
-Nếu `E = 0` và `F = 0`, kết quả là **+0.0 hoặc -0.0**, tùy bit dấu. Nếu `E` gồm toàn bit 1, cách diễn giải đặc biệt được mô tả ở mục 6: **vô cực** hoặc **NaN**.
+If `E = 0` and `F = 0`, the result is **+0.0 or -0.0**, depending on the sign bit. If `E` consists of all 1-bits, the special interpretations described in section 6 apply: **infinity** or **NaN**.
 
-**Lưu ý:** không phải mọi mẫu 32/64 bit đều biểu diễn một số thực hữu hạn. Mọi mẫu đều có thể được diễn giải bằng API, nhưng kết quả có thể là số hữu hạn, ±0.0, ±Infinity hoặc NaN.
+**Note:** not every 32/64-bit pattern represents a finite real number. Every pattern can be interpreted by the API, though the result may be a finite number, ±0.0, ±Infinity, or NaN.
 
-## 4. Phân tích một mẫu bit `float` cụ thể
+## 4. Analyzing a Concrete `float` Bit Pattern
 
-Xét `0x40400000`, gồm 32 bit:
+Consider `0x40400000`, consisting of 32 bits:
 
 ```text
 Hex:     0x40400000
@@ -98,40 +98,40 @@ Fields:  0 | 10000000 | 10000000000000000000000
          S |     E    |           F
 ```
 
-Tính theo từng trường:
+Compute field by field:
 
-1. Bit dấu `S = 0`, nên kết quả dương.
-2. Trường số mũ nhị phân `10000000` bằng 128, số mũ thực là \(128 - 127 = 1\).
-3. Phần phân số có bit đầu là 1 và còn lại là 0, nên \(F/2^{23} = 1/2\).
-4. Phần trị chuẩn hóa là \(1 + 1/2 = 1.5\).
-5. Giá trị cuối: \(1.5 \times 2^1 = 3.0\).
+1. Sign bit `S = 0`, so the result is positive.
+2. Binary exponent field `10000000` equals 128, so actual exponent is \(128 - 127 = 1\).
+3. The fraction has leading bit 1 and the rest 0, so \(F/2^{23} = 1/2\).
+4. Normalized significand is \(1 + 1/2 = 1.5\).
+5. Final value: \(1.5 \times 2^1 = 3.0\).
 
-Trong Java:
+In Java:
 
 ```java
 float value = Float.intBitsToFloat(0x4040_0000);
 System.out.println(value); // 3.0
 ```
 
-Đổi bit dấu thành 1 mà giữ nguyên số mũ và phân số cho `0xC0400000`, được **-3.0**:
+Flipping the sign bit to 1 while keeping the same exponent and fraction gives `0xC0400000`, yielding **-3.0**:
 
 ```java
 float negative = Float.intBitsToFloat(0xC040_0000);
 System.out.println(negative); // -3.0
 ```
 
-Đối với `double`, mẫu `0x4008000000000000L` cũng biểu diễn 3.0, nhưng phân bố bit và độ lệch số mũ khác:
+For `double`, pattern `0x4008000000000000L` also represents 3.0, though the bit allocation and exponent bias differ:
 
 ```java
 double d = Double.longBitsToDouble(0x4008_0000_0000_0000L);
 System.out.println(d); // 3.0
 ```
 
-Có thể thấy **giá trị số 3.0 có bit pattern khác nhau** trong `float` và `double`. Không thể đưa trực tiếp mẫu 32 bit dành cho `float` vào `Double.longBitsToDouble` rồi kỳ vọng lấy đúng cùng giá trị.
+As shown, **the numeric value 3.0 has different bit patterns** in `float` and `double`. You cannot pass a 32-bit pattern intended for `float` directly into `Double.longBitsToDouble` and expect the same value.
 
-## 5. Ví dụ Java 17+: phục hồi giá trị từ mẫu bit
+## 5. Java 17+ Example: Reconstructing Values from Bit Patterns
 
-Tạo tệp `BitsToFloatingDemo.java`:
+Create the file `BitsToFloatingDemo.java`:
 
 ```java
 public class BitsToFloatingDemo {
@@ -167,14 +167,14 @@ public class BitsToFloatingDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac BitsToFloatingDemo.java
 java BitsToFloatingDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 float 1 = 1.0
@@ -187,49 +187,49 @@ double pi = 3.141592653589793
 double pi bits = 400921FB54442D18
 ```
 
-Giá trị π ở đây là **xấp xỉ binary64 gần nhất**, không phải π toán học vô hạn chữ số. Dòng in bit cho thấy mẫu binary64 đã được phục hồi từ một giá trị hữu hạn bình thường.
+The π value here is the **nearest binary64 approximation**, not infinite-digit mathematical π. The bit printout shows that the binary64 pattern was recovered from an ordinary finite value.
 
-## 6. Các mẫu đặc biệt: ±0.0, số dưới chuẩn, ±Infinity và NaN
+## 6. Special Patterns: ±0.0, Subnormals, ±Infinity, and NaN
 
-Dịch nghĩa trường số mũ và phần phân số:
+Decoding exponent and fraction fields:
 
-| Trường số mũ E | Phân số F | Giá trị |
+| Exponent Field E | Fraction F | Value |
 |---|---|---|
-| 0 | 0 | +0.0 hoặc -0.0 theo bit dấu |
-| 0 | khác 0 | Số dưới chuẩn (*subnormal*) |
-| Từ 1 đến giá trị gần toàn-1 | Bất kỳ | Số chuẩn hóa hữu hạn |
-| Toàn-1 | 0 | +Infinity hoặc -Infinity |
-| Toàn-1 | khác 0 | NaN (*Not a Number*) |
+| 0 | 0 | +0.0 or -0.0 depending on sign bit |
+| 0 | nonzero | Subnormal (*subnormal*) |
+| From 1 to one below all-1s | Any | Finite normal number |
+| All-1s | 0 | +Infinity or -Infinity |
+| All-1s | nonzero | NaN (*Not a Number*) |
 
-### 6.1. Các mẫu `float` quen thuộc
+### 6.1. Familiar `float` Patterns
 
-| Mẫu 32 bit | Ý nghĩa |
+| 32-Bit Pattern | Meaning |
 |---|---|
 | `0x00000000` | +0.0f |
 | `0x80000000` | -0.0f |
-| `0x00000001` | Số dưới chuẩn dương nhỏ nhất |
-| `0x00800000` | Số chuẩn hóa dương nhỏ nhất |
+| `0x00000001` | Smallest positive subnormal |
+| `0x00800000` | Smallest positive normal |
 | `0x3F800000` | 1.0f |
 | `0x7F800000` | +Infinity |
 | `0xFF800000` | -Infinity |
-| `0x7FC00000` | NaN chuẩn |
+| `0x7FC00000` | Canonical NaN |
 
-### 6.2. Các mẫu `double` tương ứng
+### 6.2. Corresponding `double` Patterns
 
-| Mẫu 64 bit | Ý nghĩa |
+| 64-Bit Pattern | Meaning |
 |---|---|
 | `0x0000000000000000L` | +0.0 |
 | `0x8000000000000000L` | -0.0 |
-| `0x0000000000000001L` | Số dưới chuẩn dương nhỏ nhất |
-| `0x0010000000000000L` | Số chuẩn hóa dương nhỏ nhất |
+| `0x0000000000000001L` | Smallest positive subnormal |
+| `0x0010000000000000L` | Smallest positive normal |
 | `0x3FF0000000000000L` | 1.0 |
 | `0x7FF0000000000000L` | +Infinity |
 | `0xFFF0000000000000L` | -Infinity |
-| `0x7FF8000000000000L` | NaN chuẩn |
+| `0x7FF8000000000000L` | Canonical NaN |
 
-Dạng hex có hậu tố `L` là literal `long`, kể cả khi bit cao nhất là 1 khiến giá trị `long` mang dấu âm. `Double.longBitsToDouble` **chỉ xét toàn bộ 64 bit**, không coi giá trị số `long` âm là yêu cầu trả `double` âm. Dấu `double` được xác định từ bit dấu của chính mẫu IEEE 754.
+Hex forms with suffix `L` are `long` literals, even when the top bit is 1 making the `long` value carry a negative sign. `Double.longBitsToDouble` **examines all 64 bits purely as bits**, rather than treating a negative `long` value as a request to return a negative `double`. The `double`'s sign is determined by the sign bit of the IEEE 754 pattern itself.
 
-### 6.3. Hai số 0 có cùng so sánh số học nhưng khác mẫu bit
+### 6.3. Two Zeros Compare Equal Numerically Yet Differ in Bit Pattern
 
 ```java
 float plusZero = Float.intBitsToFloat(0x0000_0000);
@@ -240,43 +240,43 @@ System.out.println(1.0f / plusZero);       // Infinity
 System.out.println(1.0f / minusZero);      // -Infinity
 ```
 
-Dù `+0.0f == -0.0f` là `true` theo toán tử số học, bit pattern của chúng **không giống nhau**. Điều này quan trọng khi serialize chính xác, ký số theo byte, debug số học hoặc nghiên cứu dấu của giá trị 0.
+Although `+0.0f == -0.0f` is `true` under arithmetic comparison, their bit patterns **are not identical**. This matters for exact serialization, byte-level signing/hashing, numeric debugging, or inspecting the sign of zero.
 
-### 6.4. Phân biệt NaN qua phép kiểm tra
+### 6.4. Identifying NaN via Predicate Checks
 
-`NaN` là kết quả không phải số, ví dụ `0.0 / 0.0` trong số học dấu phẩy động. Java có các phương thức:
+`NaN` represents a non-numeric result, such as `0.0 / 0.0` in floating-point arithmetic. Java provides:
 
-- `Float.isNaN(value)` hoặc `Double.isNaN(value)`.
-- `Float.isInfinite(value)` hoặc `Double.isInfinite(value)`.
-- `Float.isFinite(value)` hoặc `Double.isFinite(value)`.
+- `Float.isNaN(value)` or `Double.isNaN(value)`.
+- `Float.isInfinite(value)` or `Double.isInfinite(value)`.
+- `Float.isFinite(value)` or `Double.isFinite(value)`.
 
-Một mẫu có số mũ toàn-1 và phân số khác 0 là NaN, bất kể bit dấu là 0 hay 1. Các bit phân số có thể chứa *NaN payload*, nhưng không nên coi đó là dữ liệu số bình thường.
+A pattern with an all-1s exponent and a nonzero fraction is NaN, regardless of whether the sign bit is 0 or 1. The fraction bits can contain a *NaN payload*, though this should not be treated as ordinary numeric data.
 
-## 7. Round-trip và vấn đề NaN payload
+## 7. Round-Trip and the NaN Payload Issue
 
-Với giá trị hữu hạn, ±0.0 và ±Infinity, hai phép chuyển đổi thường cho phép kiểm tra bit nguyên bản chính xác:
+For finite values, ±0.0, and ±Infinity, the pair of conversions normally supports exact raw-bit checking:
 
 ```java
-int bits = 0xBF80_0000; // mẫu float -1.0
+int bits = 0xBF80_0000; // float pattern for -1.0
 float value = Float.intBitsToFloat(bits);
 int back = Float.floatToRawIntBits(value);
 
 System.out.println(back == bits); // true
 ```
 
-Với NaN, phải phân biệt **giá trị được phân loại là NaN** với **mọi bit payload có được bảo toàn không**:
+For NaN, you must separate **whether the value is classified as NaN** from **whether all payload bits are preserved**:
 
-1. `Float.intBitsToFloat(bits)` và `Double.longBitsToDouble(bits)` diễn giải mẫu bit theo IEEE 754.
-2. `Float.floatToIntBits(value)` và `Double.doubleToLongBits(value)` **chuẩn hóa NaN** về một mẫu NaN chuẩn; không giữ payload gốc.
-3. `floatToRawIntBits` và `doubleToRawLongBits` dành cho việc đọc bit nguyên bản đang có. Tuy vậy, một số cấu trúc phần cứng hoặc thao tác có thể **quiet** một *signaling NaN* khi mẫu bit được chuyển thành giá trị floating-point. Không thể cam kết bit-perfect round-trip cho **mọi mẫu NaN báo hiệu** trên mọi môi trường thực thi.
+1. `Float.intBitsToFloat(bits)` and `Double.longBitsToDouble(bits)` interpret the bit pattern under IEEE 754.
+2. `Float.floatToIntBits(value)` and `Double.doubleToLongBits(value)` **canonicalize NaN** to a canonical NaN pattern; they do not preserve the original payload.
+3. `floatToRawIntBits` and `doubleToRawLongBits` read the raw bits currently present. However, some hardware architectures or operations can **quiet** a *signaling NaN* when a bit pattern is converted into a floating-point value. A bit-perfect round-trip cannot be guaranteed for **every signaling NaN pattern** across all runtime environments.
 
-Bởi vậy, nếu mục tiêu là **lưu/truyền payload bit đúng tuyệt đối**, ví dụ lưu file nhị phân với một payload NaN cụ thể, giải pháp chắc chắn nhất là **giữ mẫu gốc ở `int`/`long` hoặc mảng byte** trong suốt quá trình truyền; chỉ gọi `intBitsToFloat` hoặc `longBitsToDouble` khi thực sự cần tính toán trên giá trị số.
+Therefore, if the goal is **exact bit-level storage/transmission of payloads**, such as storing a binary file with a specific NaN payload, the safest approach is to **keep the original pattern in `int`/`long` or a byte array** throughout transport; call `intBitsToFloat` or `longBitsToDouble` only when numeric calculation is truly required.
 
-Nếu mục tiêu chỉ là kiểm tra dữ liệu có phải NaN hay không, dùng `isNaN`; không cần so trực tiếp bit với một mẫu NaN duy nhất. Phép so sánh `NaN == NaN` cho `false` theo quy tắc dấu phẩy động.
+If the goal is simply checking whether data is NaN, use `isNaN`; do not compare bits directly against a single NaN pattern. The comparison `NaN == NaN` evaluates to `false` under floating-point rules.
 
-### Ví dụ runnable cho NaN và zero
+### Runnable Example for NaN and Zero
 
-Lưu file `SpecialFloatingBitsDemo.java`:
+Save the file `SpecialFloatingBitsDemo.java`:
 
 ```java
 public class SpecialFloatingBitsDemo {
@@ -307,14 +307,14 @@ public class SpecialFloatingBitsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac SpecialFloatingBitsDemo.java
 java SpecialFloatingBitsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 zeros equal = true
@@ -330,13 +330,13 @@ canonical NaN bits = 7FC00000
 double smallest positive = 4.9E-324
 ```
 
-Mẫu `0x7FC00000` được dùng ở ví dụ là NaN chuẩn, nên kết quả của `floatToIntBits` là xác định. Ví dụ **không khẳng định** payload bất kỳ của signaling NaN sẽ giữ nguyên khi đưa qua giá trị `float`.
+The `0x7FC00000` pattern used in the example is a canonical NaN, so `floatToIntBits`'s output is deterministic. The example **does not claim** that an arbitrary signaling NaN payload will remain unchanged when passed through a `float` value.
 
-## 8. Chuyển chuỗi hex/binary nhập vào thành mẫu bit
+## 8. Converting Input Hex/Binary Strings to Bit Patterns
 
-Một công cụ debug thường hiển thị mẫu IEEE 754 dưới dạng chuỗi, chẳng hạn `"40400000"` hoặc `"4008000000000000"`. Cần **parse chuỗi thành `int`/`long` mang bit tương ứng**, rồi mới gọi API diễn giải mẫu.
+Debugging tools often display IEEE 754 patterns as strings, such as `"40400000"` or `"4008000000000000"`. You must **parse the string into an `int`/`long` holding the corresponding bits** before calling the bit-interpretation API.
 
-Ví dụ:
+Example:
 
 ```java
 int floatBits = Integer.parseUnsignedInt("40400000", 16);
@@ -346,11 +346,11 @@ long doubleBits = Long.parseUnsignedLong("4008000000000000", 16);
 double b = Double.longBitsToDouble(doubleBits); // 3.0
 ```
 
-Tại sao dùng `parseUnsignedInt`/`parseUnsignedLong`?
+Why use `parseUnsignedInt`/`parseUnsignedLong`?
 
-- Các mẫu 32 bit hoặc 64 bit có thể bật bit cao nhất.
-- `Integer.parseInt("FF800000", 16)` không thể parse như một giá trị `int` dương có dấu, nhưng `Integer.parseUnsignedInt("FF800000", 16)` có thể lưu đúng **mẫu 32 bit** trong `int` (giá trị `int` có thể âm).
-- Tương tự, `Long.parseUnsignedLong("FFF0000000000000", 16)` giữ đúng **64 bit**, dù giá trị `long` khi xem là số có dấu là âm.
+- 32-bit or 64-bit patterns can have the highest bit set.
+- `Integer.parseInt("FF800000", 16)` cannot parse as a positive signed `int` value, whereas `Integer.parseUnsignedInt("FF800000", 16)` stores the exact **32-bit pattern** in `int` (the `int` value itself may appear negative).
+- Similarly, `Long.parseUnsignedLong("FFF0000000000000", 16)` retains the exact **64 bits**, even though the `long` value is negative when viewed as a signed number.
 
 ```java
 int negativeInfinityBits =
@@ -359,13 +359,13 @@ float negativeInfinity =
         Float.intBitsToFloat(negativeInfinityBits); // -Infinity
 ```
 
-API parse không tự bỏ mọi tiền tố một cách tùy ý: ví dụ `Integer.parseUnsignedInt("0x40400000", 16)` không phải cú pháp hợp lệ vì chứa `0x`. Nếu dữ liệu nhận có tiền tố, hãy kiểm tra đầu vào rồi bỏ tiền tố theo định dạng quy ước trước khi parse.
+The parse APIs do not arbitrarily strip prefixes: for example, `Integer.parseUnsignedInt("0x40400000", 16)` is invalid syntax because it contains `0x`. If incoming data includes a prefix, validate the input and strip the prefix per your format rules before parsing.
 
-Nếu nguồn là chuỗi nhị phân 32 bit, dùng `Integer.parseUnsignedInt(text, 2)`; với 64 bit dùng `Long.parseUnsignedLong(text, 2)`. Luôn xác thực độ dài, cơ số và định dạng khi đọc dữ liệu từ nguồn không đáng tin, tránh âm thầm chấp nhận số ký tự hoặc độ rộng không đúng giao thức.
+If the source is a 32-bit binary string, use `Integer.parseUnsignedInt(text, 2)`; for 64-bit, use `Long.parseUnsignedLong(text, 2)`. Always validate length, radix, and format when reading untrusted sources to avoid silently accepting malformed character counts or widths outside the protocol.
 
-### Ví dụ runnable: parse mẫu 32/64 bit
+### Runnable Example: Parsing 32/64-Bit Patterns
 
-Tạo file `ParseFloatingBitsDemo.java`:
+Create the file `ParseFloatingBitsDemo.java`:
 
 ```java
 public class ParseFloatingBitsDemo {
@@ -394,14 +394,14 @@ public class ParseFloatingBitsDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac ParseFloatingBitsDemo.java
 java ParseFloatingBitsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 float: 3.0
@@ -411,16 +411,16 @@ roundtrip float: 40400000
 roundtrip double: 4008000000000000
 ```
 
-## 9. Byte order: khi mẫu bit nằm trong file hoặc gói mạng
+## 9. Byte Order: When Bit Patterns Reside in Files or Network Packets
 
-Các API `Float.intBitsToFloat` và `Double.longBitsToDouble` nhận **sẵn một `int`/`long`**, không tự đọc byte hay quyết định thứ tự byte. Khi mẫu bit được truyền dưới dạng 4 hoặc 8 byte, phải ghép đúng theo **endianness**:
+`Float.intBitsToFloat` and `Double.longBitsToDouble` accept **an already-assembled `int`/`long`**, without reading bytes or deciding byte order. When bit patterns arrive as 4 or 8 bytes, you must assemble them according to **endianness**:
 
-- **Big-endian**: byte trọng số cao đứng trước. Mẫu `0x3F800000` có các byte `3F 80 00 00`.
-- **Little-endian**: byte trọng số thấp đứng trước. Mẫu `0x3F800000` có các byte `00 00 80 3F`.
+- **Big-endian**: most-significant byte comes first. Pattern `0x3F800000` has bytes `3F 80 00 00`.
+- **Little-endian**: least-significant byte comes first. Pattern `0x3F800000` has bytes `00 00 80 3F`.
 
-Java NIO `ByteBuffer` hỗ trợ `ByteOrder.BIG_ENDIAN` và `ByteOrder.LITTLE_ENDIAN`. Khi gọi `getFloat()`/`getDouble()`, thư viện đọc byte theo thứ tự đã cấu hình và diễn giải chúng thành dấu phẩy động.
+Java NIO `ByteBuffer` supports `ByteOrder.BIG_ENDIAN` and `ByteOrder.LITTLE_ENDIAN`. When calling `getFloat()`/`getDouble()`, the library reads bytes in the configured order and interprets them as floating-point.
 
-Ví dụ chạy được, file `FloatingByteOrderDemo.java`:
+Runnable example, file `FloatingByteOrderDemo.java`:
 
 ```java
 import java.nio.ByteBuffer;
@@ -449,14 +449,14 @@ public class FloatingByteOrderDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FloatingByteOrderDemo.java
 java FloatingByteOrderDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 big endian: 1.0
@@ -464,13 +464,13 @@ little endian: 1.0
 same value: true
 ```
 
-Nếu cấu hình sai thứ tự byte, cùng bốn byte có thể tạo giá trị rất khác, dù chương trình không báo lỗi. Với `double`, cần đủ 8 byte và chọn order tương ứng. Ngoài ra, phải kiểm tra số byte còn lại, cấu trúc gói tin và phiên bản định dạng, vì `getFloat()`/`getDouble()` không tự biết bạn đang đọc đúng vị trí dữ liệu hay chưa.
+Configuring the wrong byte order causes the exact same four bytes to produce a drastically different value without raising an error. For `double`, 8 bytes and the corresponding byte order are needed. Additionally, check remaining byte count, packet structure, and format version, because `getFloat()`/`getDouble()` does not automatically know whether you are reading at the right offset.
 
-## 10. Có thể tự tách ba trường bit để kiểm tra
+## 10. Manually Extracting the Three Bit Fields for Inspection
 
-Khi cần phân tích vì sao một bit pattern tạo ra giá trị nào, có thể dùng phép dịch logic `>>>` và AND theo bit `&` để tách dấu, số mũ, phân số.
+When analyzing why a bit pattern produces a particular value, you can use logical right shift `>>>` and bitwise AND `&` to isolate sign, exponent, and fraction.
 
-### Float 32 bit
+### 32-Bit Float
 
 ```java
 int bits = 0x4040_0000;
@@ -482,7 +482,7 @@ int fraction = bits & 0x7F_FFFF;
 // sign=0, exponent=128, fraction=0x400000
 ```
 
-### Double 64 bit
+### 64-Bit Double
 
 ```java
 long bits = 0x4008_0000_0000_0000L;
@@ -494,29 +494,29 @@ long fraction = bits & 0x000F_FFFF_FFFF_FFFFL;
 // sign=0, exponent=1024, fraction=0x8000000000000
 ```
 
-Đây là **những đoạn mã minh họa** cần đặt trong phương thức hoặc chương trình Java để chạy. Chúng hữu ích khi debug biểu diễn, nhưng trong chương trình thông thường hãy ưu tiên `Float.intBitsToFloat`/`Double.longBitsToDouble` vì các API này xử lý đúng cả số dưới chuẩn và những giá trị đặc biệt.
+These are **illustrative snippets** that must be placed inside a method or Java program to run. They are useful when debugging representation, yet in normal code prefer `Float.intBitsToFloat`/`Double.longBitsToDouble` because those APIs handle subnormals and special values properly.
 
-**Bẫy phổ biến khi tự tính công thức:** số dưới chuẩn không có bit 1 ẩn, số mũ được diễn giải khác trường hợp chuẩn hóa, và tất cả mẫu có `E` toàn-1 phải xử lý Infinity/NaN riêng. Chỉ áp dụng công thức của số chuẩn hóa cho mọi mẫu sẽ cho kết quả sai.
+**Common pitfall when computing the formula manually:** subnormals lack the implicit 1 bit, their exponent is interpreted differently from normals, and all patterns with all-1s `E` require dedicated Infinity/NaN handling. Blindly applying the normal formula to every pattern yields wrong results.
 
-## 11. Những nhầm lẫn và lỗi thường gặp
+## 11. Common Confusions and Errors
 
-| Hiện tượng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Solution |
 |---|---|---|
-| `(float) bits` không ra giá trị từ IEEE 754 | Cast là đổi giá trị số, không phải reinterpret bit | Dùng `Float.intBitsToFloat(bits)` |
-| `(double) bits` không đọc đúng mẫu 64 bit | Cast `long → double` là chuyển số học | Dùng `Double.longBitsToDouble(bits)` |
-| Mẫu có bit dấu 1 hiển thị như `int/long` âm | Primitive integer có dấu, nhưng bit pattern vẫn nguyên | Giữ nguyên bit, dùng API diễn giải IEEE 754 |
-| Parse chuỗi `FF800000` bằng `parseInt` bị lỗi | Vượt miền `int` có dấu ở dạng dương | Dùng `parseUnsignedInt(..., 16)` |
-| `parseUnsignedInt("0x...",16)` báo lỗi | API parse không nhận tiền tố literal `0x` | Bỏ tiền tố sau khi xác thực |
-| `+0.0 == -0.0` nhưng bit khác nhau | IEEE 754 có hai số 0 có dấu | So mẫu qua `floatToRawIntBits` nếu cần đúng bit |
-| NaN round-trip mất payload | API không Raw chuẩn hóa NaN; signaling NaN có thể bị quiet | Giữ mẫu nguyên `int/long` nếu đòi bit-perfect |
-| Diễn giải byte ra giá trị sai | Sai endian, sai offset hoặc sai độ rộng | Kiểm tra giao thức, `ByteOrder`, chiều dài dữ liệu |
-| Tưởng `float` 64 bit | `float` dùng 32 bit, `double` dùng 64 bit | Chọn đúng API và độ rộng |
-| Tự tách bit cho Infinity như số thường | `E` toàn-1 có quy tắc đặc biệt | Xử lý Infinity/NaN trước công thức |
-| Kết quả mất precision dù bit đúng | Binary32/binary64 chỉ biểu diễn hữu hạn độ chính xác | Giữ nguyên định dạng nguồn hoặc chọn cách biểu diễn phù hợp |
+| `(float) bits` does not produce the IEEE 754 value | Cast converts the numeric value, not reinterpret bits | Use `Float.intBitsToFloat(bits)` |
+| `(double) bits` does not decode the 64-bit pattern | Cast `long → double` is a numeric conversion | Use `Double.longBitsToDouble(bits)` |
+| Pattern with sign bit 1 displays as negative `int/long` | Integer primitives are signed, though the bit pattern is intact | Keep the bits and use the IEEE 754 decoding API |
+| Parsing `"FF800000"` with `parseInt` fails | Exceeds positive signed `int` range | Use `parseUnsignedInt(..., 16)` |
+| `parseUnsignedInt("0x...",16)` throws an error | Parse API does not accept `0x` literal prefix | Strip the prefix after validation |
+| `+0.0 == -0.0` yet bits differ | IEEE 754 has two signed zeros | Compare patterns via `floatToRawIntBits` if exact bits matter |
+| NaN round-trip loses payload | Non-Raw API canonicalizes NaN; signaling NaN may be quieted | Keep raw `int/long` pattern if bit-perfect preservation is required |
+| Decoding bytes produces wrong value | Wrong endianness, offset, or width | Check protocol, `ByteOrder`, and data length |
+| Thinking `float` is 64-bit | `float` uses 32 bits, `double` uses 64 bits | Choose the matching API and width |
+| Decoding Infinity bits like a normal number | All-1s `E` follows special rules | Handle Infinity/NaN before the normal formula |
+| Result loses precision even with exact bits | Binary32/binary64 represent only finite precision | Keep the source format or choose an appropriate representation |
 
-## 12. Kiểm tra giá trị sau khi phục hồi
+## 12. Validating Values After Reconstruction
 
-Nếu mẫu bit đến từ dữ liệu bên ngoài, bạn có thể **phục hồi đúng bit** nhưng kết quả lại là NaN hoặc Infinity mà nghiệp vụ không cho phép. Hãy kiểm tra sau khi diễn giải:
+If a bit pattern comes from external data, you may **recover the exact bits** yet obtain NaN or Infinity disallowed by business rules. Validate after decoding:
 
 ```java
 static float requireFiniteFloat(int bits) {
@@ -528,57 +528,57 @@ static float requireFiniteFloat(int bits) {
 }
 ```
 
-Đây là **phương thức minh họa**, đặt trong class Java để sử dụng. Tương tự dùng `Double.isFinite(Double.longBitsToDouble(bits))` đối với `double`.
+This is an **illustrative method** to place in a Java class for use. Analogously, use `Double.isFinite(Double.longBitsToDouble(bits))` for `double`.
 
-`isFinite` chấp nhận cả số dưới chuẩn và ±0.0; nó chỉ loại NaN và ±Infinity. Nếu nghiệp vụ không cho phép các trường hợp khác (ví dụ số âm, số dưới chuẩn, quá lớn/nhỏ về mặt ứng dụng), cần kiểm tra thêm các ràng buộc cụ thể.
+`isFinite` accepts subnormals and ±0.0; it only rejects NaN and ±Infinity. If business logic prohibits additional cases (such as negative numbers, subnormals, or values too large/small for the application), enforce those specific constraints as well.
 
-Khi yêu cầu là kiểm tra dữ liệu **thô** mà không mất NaN payload, nên kiểm tra cấu trúc bit trên `int/long` trước khi chuyển thành `float/double`. Chẳng hạn kiểm tra exponent toàn-1 và fraction khác 0 để nhận diện NaN ngay trên mẫu gốc; cách này tránh dựa vào payload sau một số thao tác floating-point.
+When the requirement is checking **raw** data without losing NaN payloads, inspect the bit structure directly on `int/long` before converting to `float/double`. For example, check for an all-1s exponent and nonzero fraction to detect NaN on the raw pattern; this avoids depending on the payload surviving floating-point operations.
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-Check Exercises
 
-**Câu 1.** `Float.intBitsToFloat(0x3F800000)` bằng bao nhiêu?  
-**Đáp án:** 1.0f, vì đó là mẫu binary32 của 1.
+**Q1.** What does `Float.intBitsToFloat(0x3F800000)` equal?  
+**Answer:** 1.0f, because that is the binary32 pattern for 1.
 
-**Câu 2.** `(float) 0x3F800000` có bằng `Float.intBitsToFloat(0x3F800000)` không?  
-**Đáp án:** Không. Phép cast chuyển **số nguyên** 1_065_353_216 thành `float`; phương thức kia diễn giải lại **32 bit** thành 1.0f.
+**Q2.** Does `(float) 0x3F800000` equal `Float.intBitsToFloat(0x3F800000)`?  
+**Answer:** No. The cast converts the **integer** 1_065_353_216 to `float`; the method reinterprets **32 bits** into 1.0f.
 
-**Câu 3.** `Double.longBitsToDouble(0x4008000000000000L)` bằng bao nhiêu?  
-**Đáp án:** 3.0.
+**Q3.** What does `Double.longBitsToDouble(0x4008000000000000L)` equal?  
+**Answer:** 3.0.
 
-**Câu 4.** `0x7F800000` và `0xFF800000` biểu diễn gì khi được chuyển bằng `Float.intBitsToFloat`?  
-**Đáp án:** +Infinity và -Infinity.
+**Q4.** What do `0x7F800000` and `0xFF800000` represent when converted with `Float.intBitsToFloat`?  
+**Answer:** +Infinity and -Infinity.
 
-**Câu 5.** `0x00000001` là mẫu `float` nào?  
-**Đáp án:** Số dưới chuẩn dương nhỏ nhất, xấp xỉ 1.4E-45.
+**Q5.** Which `float` pattern is `0x00000001`?  
+**Answer:** The smallest positive subnormal, approximately 1.4E-45.
 
-**Câu 6.** Hai số `+0.0f` và `-0.0f` có bằng nhau qua `==` không? Mẫu bit có giống nhau không?  
-**Đáp án:** `==` là true, nhưng bit khác: lần lượt `0x00000000` và `0x80000000`.
+**Q6.** Are `+0.0f` and `-0.0f` equal under `==`? Are their bit patterns identical?  
+**Answer:** `==` is true, yet their bits differ: `0x00000000` and `0x80000000`, respectively.
 
-**Câu 7.** Vì sao `Float.floatToIntBits` không đủ để lưu chính xác một NaN payload tùy ý?  
-**Đáp án:** Vì phương thức đó chuẩn hóa mọi NaN về mẫu NaN chuẩn. Nếu phải giữ đúng payload, cần làm việc với dữ liệu raw và chú ý signaling NaN có thể bị quiet.
+**Q7.** Why is `Float.floatToIntBits` insufficient for accurately storing an arbitrary NaN payload?  
+**Answer:** Because that method canonicalizes all NaNs to a canonical NaN pattern. To preserve payloads, work with raw data and note that signaling NaNs can be quieted.
 
-**Câu 8.** Chuỗi hex `"FF800000"` nên đọc thế nào để phục hồi `float` -Infinity?  
-**Đáp án:** `int bits = Integer.parseUnsignedInt("FF800000", 16); float value = Float.intBitsToFloat(bits);`.
+**Q8.** How should the hex string `"FF800000"` be parsed to recover `float` -Infinity?  
+**Answer:** `int bits = Integer.parseUnsignedInt("FF800000", 16); float value = Float.intBitsToFloat(bits);`.
 
-**Câu 9.** Nếu file chứa byte `00 00 80 3F` để biểu diễn 1.0f thì đó là thứ tự nào?  
-**Đáp án:** Little-endian. Dùng `ByteBuffer.order(ByteOrder.LITTLE_ENDIAN)` khi đọc.
+**Q9.** If a file contains bytes `00 00 80 3F` representing 1.0f, which byte order is that?  
+**Answer:** Little-endian. Use `ByteBuffer.order(ByteOrder.LITTLE_ENDIAN)` when reading.
 
-**Câu 10.** Tại sao không thể dùng công thức số chuẩn hóa cho bit pattern có exponent toàn 1?  
-**Đáp án:** Exponent toàn-1 được dành cho Infinity (fraction bằng 0) và NaN (fraction khác 0), không phải số chuẩn hóa hữu hạn.
+**Q10.** Why can't the normal-number formula be used for a bit pattern with an all-1s exponent?  
+**Answer:** An all-1s exponent is reserved for Infinity (zero fraction) and NaN (nonzero fraction), not finite normal numbers.
 
-**Câu 11.** Muốn lấy bit pattern nguyên bản từ `double value`, dùng gì?  
-**Đáp án:** `Double.doubleToRawLongBits(value)`. Nếu muốn mọi NaN chuẩn hóa thành một mẫu chung, dùng `Double.doubleToLongBits(value)`.
+**Q11.** To retrieve the raw bit pattern from `double value`, what should you use?  
+**Answer:** `Double.doubleToRawLongBits(value)`. To canonicalize all NaNs to a single pattern, use `Double.doubleToLongBits(value)`.
 
-**Câu 12.** Nếu mục tiêu là kiểm tra bit pattern đã truyền qua mạng giữ nguyên 100% kể cả signaling NaN, có nên buộc nó đi qua `float` rồi mới so không?  
-**Đáp án:** Không. Giữ và so trực tiếp các byte hoặc `int/long` gốc, vì trong một số môi trường signaling NaN có thể bị quiet khi đi qua giá trị dấu phẩy động.
+**Q12.** If the goal is verifying that a bit pattern transmitted over a network stays 100% intact including signaling NaNs, should you pass it through `float` first before comparing?  
+**Answer:** No. Keep and compare the original bytes or `int/long` directly, because in some environments a signaling NaN can be quieted when passed through a floating-point value.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- **`Float.intBitsToFloat(int)`** diễn giải đúng 32 bit theo binary32; **`Double.longBitsToDouble(long)`** diễn giải đúng 64 bit theo binary64.
-- **Cast `(float)`/`(double)` là đổi giá trị số**, khác với việc diễn giải lại mẫu bit.
-- Mẫu IEEE 754 gồm **sign, exponent, fraction**; phải phân biệt giá trị chuẩn hóa, dưới chuẩn, ±0.0, ±Infinity và NaN.
-- Với dữ liệu cần bảo toàn **mọi bit**, lưu giữ mẫu thô bằng `int/long` hoặc byte; chú ý chuẩn hóa hoặc quiet NaN.
-- Khi đọc byte từ file/mạng, **endianness và độ rộng** phải đúng trước khi dùng API.
-- Với đầu vào từ bên ngoài, phục hồi mẫu bit thành giá trị là một bước kỹ thuật; **kiểm tra finite và miền nghiệp vụ** là bước riêng.
+- **`Float.intBitsToFloat(int)`** interprets 32 bits as binary32; **`Double.longBitsToDouble(long)`** interprets 64 bits as binary64.
+- **Casting `(float)`/`(double)` converts a numeric value**, unlike reinterpreting a bit pattern.
+- IEEE 754 patterns contain **sign, exponent, fraction**; distinguish normal, subnormal, ±0.0, ±Infinity, and NaN values.
+- For data requiring **all bits** preserved, store raw patterns in `int/long` or bytes; watch out for NaN canonicalization or quieting.
+- When reading bytes from files/networks, **endianness and width** must be right before calling the APIs.
+- For external inputs, reconstructing a value from a bit pattern is one technical step; **checking finiteness and domain bounds** is a separate step.
 
-Tài liệu chuẩn: [Float.intBitsToFloat — Java API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Float.html#intBitsToFloat(int)) và [Double.longBitsToDouble — Java API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html#longBitsToDouble(long)).
+Official documentation: [Float.intBitsToFloat — Java API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Float.html#intBitsToFloat(int)) and [Double.longBitsToDouble — Java API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html#longBitsToDouble(long)).

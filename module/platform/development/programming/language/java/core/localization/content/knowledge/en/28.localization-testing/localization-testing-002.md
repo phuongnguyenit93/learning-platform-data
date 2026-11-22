@@ -1,14 +1,14 @@
-# Kiểm thử khóa tài nguyên và tham số mẫu giữa các bản dịch
+# Testing Resource Keys and Pattern Arguments Across Translations
 
-Ứng dụng Java có thể chạy ổn với `ResourceBundle` tiếng Anh nhưng lỗi khi người dùng đổi sang tiếng Việt, Pháp hoặc Nhật. Một khóa bị gõ sai, một placeholder `{0}` bị đổi thành `{1}`, hoặc một thông điệp dùng `{0,date}` thay cho `{0,number}` đều có thể làm UI hiển thị sai — đôi khi không ném ngoại lệ. Do đó, **kiểm thử nội dung localization là một phần của hợp đồng giữa code và người dịch**.
+A Java application may run fine with an English `ResourceBundle` yet break when users switch to Vietnamese, French, or Japanese. A mistyped key, a placeholder `{0}` changed to `{1}`, or a message using `{0,date}` instead of `{0,number}` can all cause the UI to display wrong output — sometimes without throwing an exception. Therefore, **testing localization content is part of the contract between code and translators**.
 
-Bài học tập trung vào ba mục tiêu: **tập khóa giữa các bản dịch**, **tập chỉ số/thông tin kiểu tham số trong `MessageFormat`**, và **kiểm chứng trên đường chạy thực tế**. Các ví dụ Java 17+ sử dụng `.properties`, `PropertyResourceBundle`, `MessageFormat` và một chương trình kiểm thử không cần thư viện ngoài.
+This lesson focuses on three goals: **key sets across translations**, **argument index/type metadata in `MessageFormat`**, and **verification on the actual runtime path**. The Java 17+ examples use `.properties`, `PropertyResourceBundle`, `MessageFormat`, and a standalone test program with no external libraries.
 
-Điều cần nhớ từ đầu: **`ResourceBundle` có cơ chế fallback**, nên việc `getString` thành công không chứng minh file locale được dịch đầy đủ. Đồng thời **`MessageFormat` dùng ngữ pháp riêng cho dấu nháy đơn, ngoặc nhọn và nested `choice`**, vì vậy một regex tìm `{số}` không phải bộ phân tích pattern tổng quát.
+Remember from the start: **`ResourceBundle` has a fallback mechanism**, so a successful `getString` call does not prove a locale file is completely translated. At the same time, **`MessageFormat` uses its own grammar for single quotes, braces, and nested `choice`**, so a regex searching for `{number}` is not a general pattern parser.
 
-## 1. Một bộ bundle và hợp đồng cần giữ
+## 1. A Bundle Set and the Contract to Preserve
 
-Giả sử dự án có hai tệp:
+Suppose a project has two files:
 
 **`Messages_en.properties`**
 
@@ -26,21 +26,21 @@ items={0} có {1,number,integer} mặt hàng.
 created=Được tạo ngày {0,date,medium}.
 ~~~
 
-Các tệp có **ba key giống nhau**, nhưng văn bản và trật tự từ có thể khác. Hợp đồng của từng thông điệp gồm:
+The files share the **same three keys**, though wording and word order may differ. Each message's contract includes:
 
-| Key | Đối số bắt buộc | Kiểu/ý nghĩa |
+| Key | Required arguments | Type/meaning |
 | --- | --- | --- |
-| `welcome` | `{0}` | Tên người |
-| `items` | `{0}` và `{1}` | Tên người và số lượng |
-| `created` | `{0}` | Ngày tạo, dùng định dạng ngày |
+| `welcome` | `{0}` | Person's name |
+| `items` | `{0}` and `{1}` | Person's name and item count |
+| `created` | `{0}` | Creation date, formatted as a date |
 
-Không cần hai bản dịch dùng cùng vị trí placeholder trong câu. Ví dụ câu dịch có thể đặt `{1}` trước `{0}` để đúng ngữ pháp, miễn giữ cùng **hợp đồng đối số**.
+Two translations do not need placeholders in the same sentence position. For instance, a translated sentence can place `{1}` before `{0}` for natural grammar, as long as it preserves the same **argument contract**.
 
-Kiểm thử đáng tin cần kiểm tra cả **đầy đủ key**, **đối số** và **định dạng thực tế**, không chỉ mở file xem bằng mắt.
+Reliable testing must check **key completeness**, **arguments**, and **actual formatting**, rather than just eyeballing the files.
 
-## 2. Vì sao fallback dễ che một key bị thiếu?
+## 2. Why Fallback Easily Hides a Missing Key
 
-Nếu dự án có:
+If a project has:
 
 ~~~text
 Messages.properties
@@ -48,9 +48,9 @@ Messages_en.properties
 Messages_vi.properties
 ~~~
 
-và `Messages_vi.properties` thiếu `created` nhưng `Messages.properties` vẫn có key đó, `ResourceBundle.getBundle("Messages", locale)` có thể trả giá trị từ bundle cha/root.
+and `Messages_vi.properties` is missing `created` while `Messages.properties` still has that key, `ResourceBundle.getBundle("Messages", locale)` can return the value from the parent/root bundle.
 
-Chương trình:
+The program:
 
 ~~~java
 ResourceBundle vi = ResourceBundle.getBundle(
@@ -59,15 +59,15 @@ ResourceBundle vi = ResourceBundle.getBundle(
 String text = vi.getString("created");
 ~~~
 
-có thể vẫn chạy, nhưng `text` là câu mặc định chưa được dịch.
+may still run, yet `text` is the untranslated default message.
 
-**`ResourceBundle.keySet()` bao gồm những key có thể truy xuất từ parent**, không chỉ key khai báo tại file hiện tại. Vì vậy `en.keySet().equals(vi.keySet())` trên các bundle đã qua fallback **không chứng minh** các file gốc có cùng tập khóa.
+**`ResourceBundle.keySet()` includes keys reachable from parent bundles**, not only keys declared in the current file. Thus `en.keySet().equals(vi.keySet())` on fallback-resolved bundles **does not prove** the source files have the same key set.
 
-Giải pháp: đối với bài kiểm thử **parity của nguồn**, hãy nạp **từng file bản dịch độc lập**, không dùng `getBundle` có fallback. Sau đó có thêm test runtime để kiểm tra đường tìm tài nguyên thực tế.
+Solution: for **source parity** tests, load **each translation file independently**, without calling `getBundle` with fallback. Then add runtime tests to verify the actual resource lookup path.
 
-## 3. Kiểm thử raw keys bằng `PropertyResourceBundle(Reader)`
+## 3. Testing Raw Keys with `PropertyResourceBundle(Reader)`
 
-Có thể đọc trực tiếp file UTF-8:
+You can read a UTF-8 file directly:
 
 ~~~java
 try (Reader reader = Files.newBufferedReader(
@@ -79,43 +79,43 @@ try (Reader reader = Files.newBufferedReader(
 }
 ~~~
 
-Đây là **snippet** trong method có `throws IOException`, cần import `Reader`, `Files`, `Path`, `StandardCharsets`, `ResourceBundle`, `PropertyResourceBundle` và `Set`.
+This is a **snippet** inside a method declaring `throws IOException`, requiring imports for `Reader`, `Files`, `Path`, `StandardCharsets`, `ResourceBundle`, `PropertyResourceBundle`, and `Set`.
 
-Đối tượng mới tạo từ file trực tiếp không được thuật toán `ResourceBundle.getBundle` gán parent locale, nên `keySet` phản ánh nội dung file đó.
+An object constructed directly from a file is not assigned a parent locale by the `ResourceBundle.getBundle` algorithm, so `keySet` reflects that file's contents.
 
-Lưu ý encoding: `Properties.load(InputStream)` có quy tắc ISO-8859-1 truyền thống, trong khi `Reader` cho phép chọn UTF-8 tường minh. Hãy dùng đúng đường đọc phù hợp build và nội dung thật.
+Encoding note: `Properties.load(InputStream)` follows traditional ISO-8859-1 rules, whereas `Reader` lets you select UTF-8 explicitly. Use the read path matching your build and actual file contents.
 
-## 4. Chính sách kiểm thử exact parity hay có ngoại lệ
+## 4. Test Policy: Exact Parity vs. Allowed Exceptions
 
-Có hai lựa chọn:
+There are two options:
 
-**Exact parity:** mọi locale đã phát hành phải có tập key bằng canonical.
+**Exact parity:** every released locale must have the exact same key set as the canonical bundle.
 
 ~~~text
 keys(en) = keys(vi) = keys(fr)
 ~~~
 
-**Partial coverage được kiểm soát:** locale thử nghiệm có thể chỉ có một tập con.
+**Controlled partial coverage:** an experimental locale may contain only a subset.
 
 ~~~text
 requiredKeys ⊆ keys(locale)
-exceptions(locale) có chủ sở hữu và lý do rõ ràng
+exceptions(locale) have an owner and explicit reason
 ~~~
 
-Với locale dạng vùng `fr_CA`, dự án có thể chủ động chỉ lưu những key **override** so với `fr`; exact parity áp lên riêng file `fr_CA` khi đó là chính sách sai. Kiểm thử phải nhận biết **layer bản dịch** và chính sách fallback được phê duyệt.
+For regional locales like `fr_CA`, a project may intentionally store only **override** keys on top of `fr`; applying exact parity to the `fr_CA` file alone would be the wrong policy. Tests must understand **translation layers** and approved fallback policies.
 
-Dù chọn cách nào, hãy báo cụ thể:
-- **Missing key**: canonical có, locale thiếu.
-- **Extra key**: locale có, canonical không có.
-- **Empty value**: key có nhưng value trống/không đạt chính sách.
-- **Duplicate key**: nhiều lần khai báo cùng key.
-- **Stale key**: không còn nơi nào trong code cần key.
+Whichever policy you choose, report clearly:
+- **Missing key**: present in canonical, missing in locale.
+- **Extra key**: present in locale, missing in canonical.
+- **Empty value**: key exists, but its value is blank or fails policy.
+- **Duplicate key**: the same key is declared multiple times.
+- **Stale key**: no code references the key anymore.
 
-Tập key sau parse **không phát hiện duplicate declarations** nếu parser chỉ giữ giá trị cuối. Muốn cấm duplicate, cần linter nguồn biết dấu continuation, escapes và cấu trúc `.properties`.
+The parsed key set **does not detect duplicate declarations** if the parser simply keeps the last value. To forbid duplicates, you need a source linter that understands line continuations, escapes, and `.properties` structure.
 
-## 5. Các placeholder của `MessageFormat`
+## 5. `MessageFormat` Placeholders
 
-`java.text.MessageFormat` dùng **đối số có index**:
+`java.text.MessageFormat` uses **indexed arguments**:
 
 ~~~text
 {0}
@@ -125,7 +125,7 @@ Tập key sau parse **không phát hiện duplicate declarations** nếu parser 
 {0,choice,0#none|1#one|1<many}
 ~~~
 
-Ví dụ runnable **`MessageArgumentsDemo.java`**:
+Runnable example **`MessageArgumentsDemo.java`**:
 
 ~~~java
 import java.text.MessageFormat;
@@ -148,17 +148,17 @@ javac MessageArgumentsDemo.java
 java MessageArgumentsDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hello Lan, you have 5 files.
 ~~~
 
-`{0}` lấy đối số đầu tiên và `{1}` lấy đối số thứ hai. **Một bản dịch có quyền sắp xếp lại trật tự xuất hiện**, nhưng không nên tự ý gắn nghĩa `{0}` cho số lượng nếu code đang truyền tên vào đó.
+`{0}` takes the first argument and `{1}` takes the second. **A translation may reorder their positions**, but must not reassign `{0}` to mean the count if code passes the name there.
 
-## 6. Thiếu đối số không nhất thiết báo lỗi
+## 6. Missing Arguments Do Not Necessarily Throw Errors
 
-Ví dụ:
+Example:
 
 ~~~java
 MessageFormat f = new MessageFormat(
@@ -168,49 +168,49 @@ System.out.println(
         f.format(new Object[]{"Lan"}));
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hi Lan {1}
 ~~~
 
-Java có thể để **placeholder chưa có đối số** nguyên dạng `{1}`, không nhất thiết ném exception. Nếu test chỉ format rồi không kiểm output hoặc tập chỉ số, lỗi có thể lọt đến UI.
+Java can leave an **unprovided placeholder** literally as `{1}` without necessarily throwing an exception. If a test only calls `format` without inspecting the output or index set, bugs can slip through to the UI.
 
-Vì vậy cần **đối chiếu các index được dùng với chữ ký hàm/fixture**. Đối số index cao như `{7}` có thể được người dịch vô tình thêm dù ứng dụng chỉ truyền hai đối số.
+Therefore, **cross-check used indexes against the method signature/fixture**. A high argument index like `{7}` may be accidentally introduced by a translator even though the app passes only two arguments.
 
-## 7. Không nên so thứ tự hoặc số lần xuất hiện
+## 7. Do Not Compare Order or Occurrence Count
 
-Hai bản:
+Two versions:
 
 ~~~text
 English: {0} sent {1,number} messages.
 Other:   {1,number} messages were sent by {0}.
 ~~~
 
-có cùng **tập index `{0,1}`**, nên về mặt vị trí đối số chúng tương thích. Một bản khác có thể nhắc lại `{0}` hai lần theo ngữ pháp. Đừng coi lặp index là lỗi mặc định.
+have the same **index set `{0,1}`**, so they are compatible in terms of argument positions. Another translation might repeat `{0}` twice for grammar. Do not treat repeated indexes as an error by default.
 
-Nên kiểm tra:
-1. Tập index được dùng.
-2. Vai trò dữ liệu ở từng index.
-3. Các định dạng tương thích với kiểu đối số.
-4. Các yêu cầu riêng như plural hoặc giới tính.
+Instead, check:
+1. The set of indexes used.
+2. The data role at each index.
+3. Formats compatible with the argument types.
+4. Language-specific requirements such as plurals or gender.
 
-Không dùng phép so sánh nguyên chuỗi hai locale để kiểm tra sự tương thích.
+Do not use raw string comparison between two locales to check compatibility.
 
-## 8. Cùng index nhưng sai formatter type
+## 8. Same Index, Wrong Formatter Type
 
-Ví dụ:
+Example:
 
 ~~~text
 en: Created on {0,date,medium}.
 vi: Được tạo ngày {0,number,integer}.
 ~~~
 
-Hai bên dùng cùng index `0`, nhưng khác formatter. Nếu `{0}` nhận `Date`, bản tiếng Việt có thể lỗi khi format số; nếu nhận `Number`, bản tiếng Anh có thể lỗi.
+Both use the same index `0`, but different formatters. If `{0}` receives a `Date`, the Vietnamese version may fail when formatting it as a number; if it receives a `Number`, the English version may fail.
 
-**Kiểm tra index parity là điều kiện cần, không phải đủ.** Test cần có **fixture đúng kiểu dữ liệu thực sự** và — khi yêu cầu nghiệp vụ rõ — kiểm tra `number`/`date`/`time`/`choice` của từng key.
+**Checking index parity is necessary, not sufficient.** Tests need **fixtures with the actual data types** and—when business rules require it—checks on `number`/`date`/`time`/`choice` for each key.
 
-Ví dụ runnable **`FormatTypeDemo.java`**:
+Runnable example **`FormatTypeDemo.java`**:
 
 ~~~java
 import java.text.MessageFormat;
@@ -237,26 +237,26 @@ javac FormatTypeDemo.java
 java FormatTypeDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 5
 Wrong argument type
 ~~~
 
-Không dùng một `String "X"` làm fixture cho mọi parameter: điều đó tạo lỗi giả ở pattern `number`/`date` hoàn toàn hợp lệ.
+Do not use a dummy `String "X"` as the fixture for every parameter: that produces false errors on perfectly valid `number`/`date` patterns.
 
-## 9. Quote của `MessageFormat` rất dễ bị linter hiểu sai
+## 9. `MessageFormat` Quoting Is Easily Misread by Linters
 
-Trong `MessageFormat`, dấu nháy đơn `'` có vai trò **quote literal**. Hai dấu `''` tạo một apostrophe thật.
+In `MessageFormat`, the single quote `'` acts as a **literal quote**. Two quotes `''` produce a real apostrophe.
 
-| Pattern | Khi đối số `{0} = "ready"` |
+| Pattern | When argument `{0} = "ready"` |
 | --- | --- |
 | `It''s {0}` | `It's ready` |
 | `'{0}'` | `{0}` (literal) |
 | `''{0}''` | `'ready'` |
 
-Ví dụ runnable **`QuotedArgumentsDemo.java`**:
+Runnable example **`QuotedArgumentsDemo.java`**:
 
 ~~~java
 import java.text.MessageFormat;
@@ -284,7 +284,7 @@ javac QuotedArgumentsDemo.java
 java QuotedArgumentsDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 It's ready
@@ -292,13 +292,13 @@ It's ready
 'ready'
 ~~~
 
-Một regex quét mọi `{0}` có thể đếm cả placeholder literal trong `'{0}'`, gây false positive. Ngược lại, apostrophe sai có thể làm placeholder đáng lẽ được format biến thành literal. Khi kiểm thử cần hiểu cú pháp quote của parser thật.
+A regex scanning for every `{0}` may count literal placeholders inside `'{0}'`, causing false positives. Conversely, a wrong apostrophe can turn a placeholder meant to be formatted into a literal. Testing must respect the quoting syntax of the real parser.
 
-## 10. Pattern syntax và lỗi thời điểm parse
+## 10. Pattern Syntax and Parse-Time Errors
 
-`new MessageFormat(pattern, locale)` phân tích cú pháp. Pattern bị thiếu ngoặc, format type không hợp lệ hoặc chỉ số không đúng có thể ném `IllegalArgumentException`.
+`new MessageFormat(pattern, locale)` parses the pattern syntax. Missing braces, invalid format types, or malformed indexes can throw `IllegalArgumentException`.
 
-Một kiểm thử phù hợp:
+An appropriate test check:
 
 ~~~java
 try {
@@ -310,38 +310,38 @@ try {
 }
 ~~~
 
-Đây là **snippet trong method** với biến `pattern`, `locale` và `key` đã có.
+This is a **snippet inside a method** assuming `pattern`, `locale`, and `key` are already defined.
 
-**Parse thành công không chứng minh mọi thứ đúng**: parser không biết hợp đồng code yêu cầu `{0}` là tên, `{1}` là số, bản dịch đã dùng thiếu index hay không, hoặc câu đã đúng nghĩa.
+**Successful parsing does not prove everything is right**: the parser does not know the code contract requires `{0}` to be a name and `{1}` a number, whether the translation omitted an index, or whether the sentence reads accurately.
 
-## 11. `getFormatsByArgumentIndex` không phải bộ liệt kê index hoàn chỉnh
+## 11. `getFormatsByArgumentIndex` Is Not a Complete Index Enumerator
 
-`MessageFormat.getFormatsByArgumentIndex()` trả mảng `Format[]` được sắp theo index, có thể dùng để quan sát thông tin format. Nhưng với pattern:
+`MessageFormat.getFormatsByArgumentIndex()` returns a `Format[]` array indexed by argument position, which can be inspected for format info. However, for the pattern:
 
 ~~~text
 {2} and {0}
 ~~~
 
-mảng có thể dài **3** do index lớn nhất bằng 2, trong khi `{1}` **không xuất hiện**. Các entry `null` có thể tương ứng tham số không khai báo formatter, không đủ để phân biệt tất cả trường hợp.
+the array can have length **3** because the highest index is 2, even though `{1}` **does not appear**. `null` entries can correspond to arguments without a declared formatter, which is insufficient to distinguish all cases.
 
-Nếu có nested `choice`, formatter outer còn không phản ánh toàn bộ tham số dùng trong các nhánh được parse lại.
+If nested `choice` exists, the outer formatter also does not reflect all arguments used inside sub-patterns re-parsed per branch.
 
-Do đó **không lấy độ dài mảng để khẳng định số tham số cần**, và không mặc định regex sẽ giải quyết đủ mọi cú pháp MessageFormat.
+Therefore, **do not use array length to claim which arguments are required**, and do not assume regex will handle all `MessageFormat` syntax.
 
-## 12. Bộ test Java 17+ cho file properties và pattern phẳng
+## 12. A Java 17+ Test Suite for Properties Files and Flat Patterns
 
-Chương trình sau đủ để dùng làm điểm khởi đầu trong dự án có **pattern phẳng**. Nó:
-- nạp `Messages_en.properties` và `Messages_vi.properties` độc lập bằng UTF-8;
-- so sánh exact key sets;
-- dùng `MessageFormat` phân tích syntax;
-- quét các placeholder top-level với quy tắc apostrophe;
-- so sánh set index;
-- format các fixture đúng kiểu;
-- dừng bằng `AssertionError` nếu phát hiện vấn đề.
+The following program is solid enough as a starting point for projects with **flat patterns**. It:
+- loads `Messages_en.properties` and `Messages_vi.properties` independently as UTF-8;
+- compares exact key sets;
+- uses `MessageFormat` to validate syntax;
+- scans top-level placeholders honoring apostrophe quoting rules;
+- compares index sets;
+- formats typed fixtures;
+- fails with `AssertionError` if an issue is found.
 
-**Giới hạn của scanner:** nó cố tình từ chối `{...}` lồng bên trong format element, bao gồm nested `choice`. Nó không là parser đầy đủ của grammar MessageFormat; dự án dùng pattern phức tạp phải sử dụng parser chuyên dụng hoặc test các nhánh có kiểm soát.
+**Scanner limitation:** it intentionally rejects `{...}` nested inside format elements, including nested `choice`. It is not a full `MessageFormat` grammar parser; projects using complex patterns must use a dedicated parser or controlled branch-level tests.
 
-Tạo **`BundleContractTest.java`**:
+Create **`BundleContractTest.java`**:
 
 ~~~java
 import java.io.Reader;
@@ -367,7 +367,7 @@ public final class BundleContractTest {
         }
     }
 
-    // Chỉ dùng cho pattern phẳng, không nested choice.
+    // Only for flat patterns, no nested choice.
     private static Set<Integer> indexes(String pattern) {
         new MessageFormat(pattern, Locale.ROOT);
 
@@ -495,73 +495,73 @@ public final class BundleContractTest {
 }
 ~~~
 
-Trong thư mục chứa ba tệp, dùng:
+In the directory containing the three files, run:
 
 ~~~bash
 javac -encoding UTF-8 BundleContractTest.java
 java BundleContractTest
 ~~~
 
-Với hai file properties ở phần 1:
+With the two properties files from Section 1:
 
 ~~~text
 PASS keys=3 patterns=6
 ~~~
 
-**Phạm vi kiểm tra rõ ràng:** chương trình kiểm tra syntax, index và việc format fixture mẫu, **không** kiểm tra đầy đủ mọi kiểu format, cú pháp lồng nhau hoặc tính đúng của câu dịch. Nếu một bản thay `{0,date}` thành `{0}`, cả hai có thể format thành công, nhưng điều đó vẫn cần review bằng quy tắc về định dạng ngày.
+**Explicit test scope:** the program checks syntax, indexes, and formatting sample fixtures; it **does not** validate all format types, nested syntax, or translation accuracy. If one version replaces `{0,date}` with `{0}`, both may format without throwing, so that still needs checks via date formatting rules.
 
-## 13. Minh họa lỗi mà test phát hiện
+## 13. Demonstrating Bugs Caught by the Test
 
-Đổi từng trường hợp trong `Messages_vi.properties`:
+Modify each case in `Messages_vi.properties`:
 
-**Thiếu khóa:**
+**Missing key:**
 
 ~~~properties
 welcome=Xin chào {0}!
 items={0} có {1,number,integer} mặt hàng.
 ~~~
 
-Test báo thiếu `created`. Lưu ý đó là kiểm tra file thô, không có fallback.
+The test reports `created` missing. Note this inspects the raw file, with no fallback.
 
-**Sai index:**
+**Wrong index:**
 
 ~~~properties
 items={0} có {2,number,integer} mặt hàng.
 ~~~
 
-Test có thể báo:
+The test may report:
 
 ~~~text
 items: [0, 1] != [0, 2]
 ~~~
 
-**Sai kiểu tại runtime:**
+**Runtime type mismatch:**
 
 ~~~properties
 items={0} có {1,date,medium} mặt hàng.
 ~~~
 
-Index giống nhau nhưng fixture truyền `5` (Number) vào date formatter; có thể phát sinh `IllegalArgumentException`.
+The indexes match, but the fixture passes `5` (`Number`) into a date formatter; `IllegalArgumentException` may be thrown.
 
-**Lỗi không được scanner hỗ trợ:**
+**Construct unsupported by the scanner:**
 
 ~~~properties
 items={1,choice,0#không có|1#có một|1<có {1} mục}
 ~~~
 
-Scanner từ chối nested brace. Đây là hành vi **fail-closed**, không phải chứng minh bản dịch sai: dự án cần kiểm tra pattern bằng công cụ thích hợp với cú pháp choice.
+The scanner rejects nested braces. This is **fail-closed** behavior, not proof the translation is invalid: the project needs to validate patterns with a tool suited for `choice` syntax.
 
-## 14. ChoiceFormat và pattern lồng nhau
+## 14. ChoiceFormat and Nested Patterns
 
-`MessageFormat` cho phép:
+`MessageFormat` supports:
 
 ~~~text
 {0,choice,0#no files|1#one file|1<{0,number,integer} files}
 ~~~
 
-Nhánh của `ChoiceFormat` có thể được parse thêm nếu chứa ngoặc nhọn MessageFormat. Do vậy, placeholder trong nhánh **không hẳn** được tìm qua một lượt quét top-level đơn giản.
+A `ChoiceFormat` branch can be parsed further if it contains `MessageFormat` braces. Consequently, placeholders inside branches are **not necessarily** found by a single top-level scan.
 
-Ví dụ **`ChoiceBranchesDemo.java`**:
+Example **`ChoiceBranchesDemo.java`**:
 
 ~~~java
 import java.text.MessageFormat;
@@ -586,7 +586,7 @@ javac ChoiceBranchesDemo.java
 java ChoiceBranchesDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 no files
@@ -594,83 +594,83 @@ one file
 5 files
 ~~~
 
-Muốn kiểm thử pattern choice, cần dữ liệu tại **các ranh giới** (0, 1, 2, số lớn), kiểm tra **mọi nhánh có thể chọn** và đối số lồng. Một bản dịch có thể dùng số nhánh khác do ngữ pháp; đó không nhất thiết là sai index, nhưng cần đánh giá ngữ nghĩa.
+To test choice patterns, supply data at **boundaries** (0, 1, 2, large numbers), check **every selectable branch**, and check nested arguments. A translation may use a different number of branches due to grammar; that is not necessarily an index error, though it needs semantic review.
 
-Với plural phức tạp theo các ngôn ngữ có nhiều loại số lượng, `ChoiceFormat` không tự đại diện đầy đủ quy tắc CLDR. Có thể dùng ICU MessageFormat/plural, nhưng **cú pháp ICU khác `java.text.MessageFormat`**; chọn parser và test đúng format thật của sản phẩm.
+For complex plurals in languages with multiple plural categories, `ChoiceFormat` does not natively represent all CLDR rules. You can use ICU MessageFormat/plural, but **ICU syntax differs from `java.text.MessageFormat`**; choose your parser and test against the product's actual format.
 
-## 15. Regex đơn giản chỉ phù hợp cho quy ước đơn giản
+## 15. Simple Regexes Only Suit Simple Conventions
 
-Regex:
+The regex:
 
 ~~~java
 Pattern.compile("\\{(\\d+)\\}");
 ~~~
 
-chỉ nhìn ra các placeholder không có format type, dễ bỏ sót `{1,number}`, `{2,date,medium}` và `choice`.
+only matches untyped placeholders, easily missing `{1,number}`, `{2,date,medium}`, and `choice`.
 
-Regex rộng hơn để tìm mọi `{số` vẫn có thể:
-- đếm nhầm placeholder literal `'{0}'`;
-- không phân biệt nested syntax;
-- xử lý sai apostrophe;
-- không phát hiện ngoặc nhọn không cân bằng hoặc chỉ số ngoài giới hạn;
-- không biết kiểu dữ liệu thực của một arg.
+A broader regex matching every `{digit` can still:
+- falsely count literal placeholders `'{0}'`;
+- fail to distinguish nested syntax;
+- mishandle apostrophes;
+- miss unbalanced braces or out-of-range indexes;
+- have no knowledge of an argument's actual data type.
 
-**Không nên “fix” bằng cách tăng dần độ phức tạp regex và xem đó là parser đầy đủ.** Nếu dự án chuẩn hóa một subset pattern, scanner có thể kiểm tra subset và từ chối phần còn lại; với đầy đủ cú pháp phải dùng parser tương ứng hoặc thư viện được kiểm thử.
+**Do not "fix" this by progressively complicating a regex and treating it as a full parser.** If the project standardizes on a pattern subset, a scanner can enforce that subset and reject everything else; for full syntax, use a proper parser or tested library.
 
-## 16. Kiểm tra type contract và fixture có chủ đích
+## 16. Testing Type Contracts and Intentional Fixtures
 
-Với các thông điệp nghiệp vụ, nên có một registry khai báo:
+For business messages, maintain a declarative registry:
 
 ~~~text
 welcome  → {0: String name}
 items    → {0: String name, 1: Number count}
 created  → {0: Date createdAt}
-price    → {0: Number amount, currency policy riêng}
+price    → {0: Number amount, separate currency policy}
 ~~~
 
-Đó là mô tả hợp đồng, không phải cú pháp `MessageFormat`.
+This is a contract description, not `MessageFormat` syntax.
 
-Kiểm thử động:
-1. Truyền `String` cho tên.
-2. Truyền `Integer`/`BigDecimal` khi formatter yêu cầu `number`.
-3. Truyền `java.util.Date` hoặc kiểu được adapter của ứng dụng hỗ trợ cho `date/time` chuẩn.
-4. Với `choice`, truyền `Number` và chạy nhiều giá trị biên.
-5. Kiểm tra độ dài mảng args đủ cho **max index thực sự dùng**.
-6. Kiểm tra output không để lộ placeholder bị thiếu, nhưng nhớ rằng một literal `'{0}'` hợp lệ cũng có thể tạo chuỗi `{0}` — không được kết luận bằng string search đơn lẻ.
+Dynamic checks:
+1. Pass `String` for names.
+2. Pass `Integer`/`BigDecimal` when the formatter requires `number`.
+3. Pass `java.util.Date` or an app-supported adapted type for standard `date/time`.
+4. For `choice`, pass `Number` and run multiple boundary values.
+5. Verify the args array length covers the **maximum index actually used**.
+6. Check that output does not leak missing placeholders, keeping in mind that a valid literal `'{0}'` can also emit the string `{0}` — do not decide by a naive string search alone.
 
-Không dùng một mảng fixture cố định cho mọi key nếu hợp đồng tham số của chúng khác nhau.
+Do not reuse one fixed fixture array for every key if their parameter contracts differ.
 
-## 17. Kiểm thử bản dịch theo locale nhưng không so chuỗi literal
+## 17. Testing Translations per Locale Without Comparing String Literals
 
-`MessageFormat` tạo đối tượng formatter theo `Locale`. Ví dụ số có dấu phân cách khác giữa `Locale.US` và `Locale.GERMANY`; ngày/tháng cũng có thứ tự khác.
+`MessageFormat` creates formatters using `Locale`. For instance, numbers use different separators between `Locale.US` and `Locale.GERMANY`; dates and months also differ in order.
 
-Kiểm thử đúng:
-- Truyền **locale tương ứng**.
-- Xác nhận formatter chạy với kiểu đối số đúng.
-- Kiểm các thành phần nghiệp vụ quan trọng có mặt.
-- Dùng snapshot chỉ khi cố định JDK/CLDR/provider và hiểu khác biệt Unicode whitespace.
-- Không yêu cầu output giữa các locale phải giống chuỗi.
+Proper testing:
+- Pass the **corresponding locale**.
+- Verify the formatter runs with the right argument types.
+- Check that critical business components are present.
+- Use snapshots only when pinning JDK/CLDR/provider and accounting for Unicode whitespace differences.
+- Do not require outputs across different locales to match string-for-string.
 
-Nếu formatter date/time dùng `Date` và timezone mặc định, snapshot có thể thay đổi theo máy. Cần cố định timezone cho test có ngày giờ hoặc kiểm tra thuộc tính không phụ thuộc timezone khi chỉ muốn test độ tương thích.
+If a date/time formatter uses `Date` and the default time zone, snapshots can vary across machines. Pin the time zone in date/time tests or assert time-zone-independent properties when testing compatibility only.
 
-## 18. Empty values, duplicate keys và encoding
+## 18. Empty Values, Duplicate Keys, and Encoding
 
-Tập key giống nhau vẫn không bảo đảm chất lượng:
+Identical key sets still do not guarantee quality:
 
-- `welcome=` có thể là **empty value** không hợp lệ cho một màn hình, dù key tồn tại.
-- Một key khai báo hai lần có thể bị map parser ghi đè; `keySet` không báo duplicate.
-- `.properties` có line continuation và `\uXXXX` escape; linter dòng đơn giản cần hiểu cú pháp ấy.
-- Dữ liệu UTF-8 không hợp lệ có thể bị thay ký tự nếu API decoder dùng replacement.
-- Giá trị có newline hoặc HTML markup cần validation theo ngữ cảnh hiển thị.
-- String có NFC/NFD khác nhau không phải lỗi key parity, nhưng có thể ảnh hưởng tìm kiếm/so sánh.
+- `welcome=` may be an invalid **empty value** for a screen even though the key exists.
+- A key declared twice can be overwritten by a map parser; `keySet` does not report duplicates.
+- `.properties` supports line continuation and `\uXXXX` escapes; a simple line-by-line linter must understand that syntax.
+- Invalid UTF-8 data may be replaced silently if a decoder uses replacement mode.
+- Values containing newlines or HTML markup require validation per display context.
+- Strings differing in NFC/NFD are not a key-parity error, yet can affect search and comparison.
 
-Tách kiểm tra **source syntax/encoding** khỏi **MessageFormat syntax**: một file được đọc đúng chưa chắc pattern hợp lệ; một pattern hợp lệ chưa chắc bản dịch được trình bày đúng.
+Separate **source syntax/encoding** checks from **`MessageFormat` syntax** checks: a file that reads cleanly does not guarantee valid patterns, and a valid pattern does not guarantee an accurate translation.
 
-## 19. Không chỉ parity: kiểm tra key đang được code dùng
+## 19. Beyond Parity: Checking Keys Used by Code
 
-Một số key có trong mọi file nhưng không còn nơi nào sử dụng. Ngược lại, code có thể gọi một key chưa tồn tại.
+Some keys appear in every file yet are no longer used anywhere. Conversely, code may look up a key that does not exist.
 
-Có thể tạo registry key dạng enum:
+You can create an enum key registry:
 
 ~~~java
 enum MessageKey {
@@ -685,68 +685,68 @@ enum MessageKey {
 }
 ~~~
 
-Đây là **snippet enum**, không có `main`. Registry làm giảm typo, nhưng không tự biến `ResourceBundle` thành type-safe.
+This is an **enum snippet**, with no `main`. A registry reduces typos, though it does not automatically make `ResourceBundle` type-safe.
 
-Nếu project tạo key động, ví dụ `"status." + status.name()`, một công cụ tìm text thuần có thể bỏ sót. Hãy test các tổ hợp value hoặc tạo registry cho những key được xây động.
+If the project builds keys dynamically, such as `"status." + status.name()`, plain-text search tools may miss them. Test all value combinations or maintain a registry for dynamically constructed keys.
 
-## 20. Named module và integration tests
+## 20. Named Modules and Integration Tests
 
-Java 9+ hỗ trợ named modules và đóng gói tài nguyên theo JPMS. Unit test nạp file trực tiếp không chứng minh rằng file `.properties` đã được copy đúng vào JAR hoặc ứng dụng production có thể tải nó.
+Java 9+ supports named modules and JPMS resource packaging. Unit tests loading files directly do not prove that `.properties` files were copied properly into the JAR or that the production app can load them.
 
-Nên có integration test:
-- chạy trên module path như môi trường triển khai;
-- kiểm tra các locale quan trọng;
-- xác nhận `ResourceBundle.getBundle` tìm được bundle;
-- xác nhận fallback/parent đúng chính sách;
-- xác nhận key có giá trị runtime như mong muốn.
+Include integration tests that:
+- run on the module path like the deployment environment;
+- test key locales;
+- confirm `ResourceBundle.getBundle` locates the bundle;
+- verify fallback/parent resolution matches policy;
+- confirm keys return expected values at runtime.
 
-Các overload `ResourceBundle.getBundle(..., Control)` không được hỗ trợ khi gọi từ named module; đừng dùng chúng như một cách mặc định để “tắt fallback” trong integration test modular. Để kiểm tra parity của file nguồn, đọc raw files như ở trên; để kiểm tra runtime, dùng API/module/provider phù hợp.
+The `ResourceBundle.getBundle(..., Control)` overloads are unsupported when called from a named module; do not rely on them by default to "disable fallback" in modular integration tests. To test source file parity, read raw files as shown above; to test runtime resolution, use the appropriate API/module/provider.
 
-## 21. Ma trận thử nghiệm cần có
+## 21. Required Test Matrix
 
-| Trường hợp | Cách kiểm tra | Kỳ vọng |
+| Case | How to test | Expectation |
 | --- | --- | --- |
-| Key thiếu | Xóa `created` khỏi vi | Báo missing |
-| Key thừa | Thêm `unknown` | Báo extra |
-| Index đảo thứ tự | `{1}` trước `{0}` | Hợp lệ nếu vai trò giữ nguyên |
-| Index thiếu | Bỏ `{1}` | Phát hiện sai lệch |
-| Index lạ | Đổi `{1}` → `{2}` | Phát hiện sai lệch |
-| Literal quote | `'{0}'` | Không đếm là arg thật |
-| Apostrophe | `It''s {0}` | Hiển thị apostrophe đúng |
-| Sai kiểu number | Truyền String vào number format | Báo lỗi |
-| Nested choice | 0, 1, 2, 5 | Mỗi nhánh hoạt động |
-| Date/time | Fixture thích hợp | Format không lỗi |
-| Fallback | Key chỉ tồn tại ở root | Báo coverage thiếu trong locale |
-| Duplicate key | Hai khai báo cùng key | Source linter cảnh báo |
-| Encoding | Vietnamese UTF-8 | Không mojibake |
-| Module packaging | Runtime module path | Tải bundle thành công |
-| Empty value | `key=` | Theo policy lỗi/cho phép |
+| Missing key | Remove `created` from `vi` | Reports missing |
+| Extra key | Add `unknown` | Reports extra |
+| Reordered indexes | `{1}` before `{0}` | Valid if roles are preserved |
+| Missing index | Drop `{1}` | Detects mismatch |
+| Unexpected index | Change `{1}` → `{2}` | Detects mismatch |
+| Literal quote | `'{0}'` | Not counted as real arg |
+| Apostrophe | `It''s {0}` | Renders apostrophe properly |
+| Wrong number type | Pass `String` to number format | Fails/throws error |
+| Nested choice | 0, 1, 2, 5 | Every branch works |
+| Date/time | Appropriate fixture | Formats without error |
+| Fallback | Key exists only in root | Reports missing locale coverage |
+| Duplicate key | Two declarations of same key | Source linter warns |
+| Encoding | Vietnamese UTF-8 | No mojibake |
+| Module packaging | Runtime module path | Bundle loads successfully |
+| Empty value | `key=` | Error/allowed per policy |
 
-## 22. CI pipeline và báo cáo lỗi
+## 22. CI Pipeline and Failure Reporting
 
-Một pipeline hợp lý:
+A sensible pipeline:
 
 ~~~text
-Pull request thay bản dịch
+Pull request modifies translations
     ↓
-Đọc raw resource + xác thực UTF-8
+Read raw resources + validate UTF-8
     ↓
-Kiểm duplicate/empty/key naming
+Check duplicate/empty/key naming
     ↓
-So sánh tập key theo chính sách
+Compare key sets per policy
     ↓
 Parse MessageFormat
     ↓
-So sánh placeholder indexes/types
+Compare placeholder indexes/types
     ↓
-Format fixtures và các nhánh choice
+Format fixtures and choice branches
     ↓
-Integration test ResourceBundle runtime
+Integration test ResourceBundle at runtime
     ↓
-Review văn bản dịch/UI khi cần
+Review translated text/UI when needed
 ~~~
 
-Đối với locale bắt buộc, thiếu key hoặc sai index nên **fail CI**. Với locale preview, có thể cảnh báo theo ngoại lệ có thời hạn. Một thông báo đủ rõ:
+For required locales, missing keys or mismatched indexes should **fail CI**. For preview locales, they can warn under a time-bounded exception. A clear report:
 
 ~~~text
 locale=vi key=items
@@ -755,78 +755,78 @@ expected=[0, 1]
 actual=[0, 2]
 ~~~
 
-Điều này hữu ích hơn báo `IllegalArgumentException` không có ngữ cảnh. Tránh log dữ liệu nhạy cảm từ fixture hoặc nội dung người dùng thật.
+This is far more actionable than an `IllegalArgumentException` with no context. Avoid logging sensitive fixture data or real user content.
 
-## 23. Sai lầm phổ biến
+## 23. Common Mistakes
 
-1. **Chỉ thử `getString`**: fallback có thể che key thiếu.
-2. **So sánh `ResourceBundle.keySet` sau khi có parent**: key thừa từ parent làm kiểm tra không chính xác.
-3. **Chỉ kiểm số placeholder**: `{1}` và `{2}` khác nghĩa dù cùng số lượng.
-4. **So thứ tự placeholder**: có thể đánh lỗi một bản dịch đảo trật tự câu hợp lệ.
-5. **Bỏ type checking**: index giống nhau chưa chắc format number/date đúng.
-6. **Dùng regex vạn năng**: quote, typed format, nested choice gây sai.
-7. **Tin constructor `MessageFormat` chứng minh đủ đối số**: không có dữ liệu thực thì chưa kiểm được.
-8. **Không test giới hạn plural/choice**: chỉ một giá trị mẫu không đủ.
-9. **Dùng cùng chuỗi đầu ra để so các locale**: quy ước số/ngày khác nhau.
-10. **Để test dùng default charset/locale bất định**: có thể khác môi trường.
-11. **Quên test resource sau build**: resource có trên source tree nhưng thiếu trong JAR.
-12. **Tự động “sửa” câu dịch theo regex**: có thể phá ngữ pháp.
-13. **Không công bố chính sách exact/partial coverage**: cảnh báo sai hoặc bỏ sót bản dịch chưa hoàn tất.
-14. **Không review nghĩa của câu**: parity kỹ thuật không đảm bảo chất lượng ngôn ngữ.
+1. **Testing only `getString`**: fallback can mask missing keys.
+2. **Comparing `ResourceBundle.keySet` with a parent present**: inherited keys skew the comparison.
+3. **Checking only placeholder count**: `{1}` and `{2}` differ in meaning even though the count is the same.
+4. **Comparing placeholder order**: may wrongly reject a valid reordered translation.
+5. **Skipping type checking**: matching indexes do not guarantee `number`/`date` formatting works.
+6. **Using an all-purpose regex**: quotes, typed formats, and nested `choice` break it.
+7. **Trusting the `MessageFormat` constructor to prove arguments match**: without real data, runtime formatting isn't verified.
+8. **Not testing plural/choice boundaries**: a single sample value is insufficient.
+9. **Comparing exact output strings across locales**: number and date conventions differ.
+10. **Letting tests depend on nondeterministic default charset/locale**: results may vary across environments.
+11. **Forgetting to test resources after build**: files exist in the source tree yet are missing from the JAR.
+12. **Auto-"fixing" translations via regex**: can break grammar.
+13. **Not declaring an exact/partial coverage policy**: causes false warnings or misses incomplete translations.
+14. **Skipping semantic review of sentences**: technical parity does not guarantee linguistic quality.
 
-## 24. Bài tập tự kiểm tra
+## 24. Self-Check Exercises
 
-**Câu 1.** Vì sao `getString("created")` thành công không chứng minh `Messages_vi.properties` có key `created`?
+**Question 1.** Why does `getString("created")` succeeding not prove `Messages_vi.properties` contains key `created`?
 
-**Đáp án:** Giá trị có thể được lấy từ bundle cha/root qua fallback.
+**Answer:** The value may have been retrieved from the parent/root bundle via fallback.
 
-**Câu 2.** Bản Anh có `{0} {1}`, bản Việt có `{1} {0}`. Có phải lỗi không?
+**Question 2.** The English version has `{0} {1}`, and the Vietnamese version has `{1} {0}`. Is that an error?
 
-**Đáp án:** Không nhất thiết; thứ tự xuất hiện có thể thay đổi, miễn giữ cùng vai trò đối số.
+**Answer:** Not necessarily; appearance order can change as long as the argument roles remain the same.
 
-**Câu 3.** Hai bản đều dùng `{0}` nhưng một bên là `number`, bên kia là `date`. Kiểm tra index có đủ không?
+**Question 3.** Both versions use `{0}`, yet one uses `number` and the other uses `date`. Is checking indexes enough?
 
-**Đáp án:** Không, cần kiểm tra kiểu định dạng và chạy fixture đúng loại.
+**Answer:** No, you must check format types and run fixtures of the right data types.
 
-**Câu 4.** Pattern `'{0}'` có thực sự cần arg `0` không?
+**Question 4.** Does the pattern `'{0}'` actually require argument `0`?
 
-**Đáp án:** Không. Trong `MessageFormat`, dấu nháy quote biến đoạn đó thành literal.
+**Answer:** No. In `MessageFormat`, single quotes turn that segment into a literal.
 
-**Câu 5.** `MessageFormat` có luôn ném exception khi thiếu arg `{1}` không?
+**Question 5.** Does `MessageFormat` always throw an exception when argument `{1}` is missing?
 
-**Đáp án:** Không; nó có thể hiển thị `{1}` nguyên dạng.
+**Answer:** No; it may render `{1}` literally.
 
-**Câu 6.** Vì sao bộ scanner trong ví dụ từ chối nested `choice`?
+**Question 6.** Why does the scanner in the example reject nested `choice`?
 
-**Đáp án:** Vì nó chỉ triển khai grammar phẳng; từ chối cú pháp ngoài phạm vi an toàn hơn báo PASS giả.
+**Answer:** Because it only implements a flat grammar; rejecting out-of-scope syntax is safer than reporting a false PASS.
 
-**Câu 7.** Có thể khẳng định ngữ pháp plural đúng bằng key/index parity không?
+**Question 7.** Can plural grammar correctness be proved by key/index parity?
 
-**Đáp án:** Không; cần kiểm tra nhánh, quy tắc ngôn ngữ và có thể cần ICU/CLDR.
+**Answer:** No; you must test branches, language rules, and potentially use ICU/CLDR.
 
-**Câu 8.** Khi nào exact parity không phù hợp với file `fr_CA`?
+**Question 8.** When is exact parity inappropriate for a `fr_CA` file?
 
-**Đáp án:** Khi file vùng chỉ chủ động chứa override và kế thừa `fr`.
+**Answer:** When the regional file intentionally contains only overrides and inherits from `fr`.
 
-**Câu 9.** Tại sao cần unit test lẫn integration test?
+**Question 9.** Why are both unit tests and integration tests needed?
 
-**Đáp án:** Unit test kiểm tra nguồn file/pattern, integration test xác nhận ResourceBundle thực sự tải được sau build/module packaging.
+**Answer:** Unit tests verify source files and patterns, while integration tests verify `ResourceBundle` actually loads after build/module packaging.
 
-**Câu 10.** CI nên báo gì khi thiếu placeholder?
+**Question 10.** What should CI report when a placeholder is missing?
 
-**Đáp án:** Locale, key, reason và tập expected/actual, không chỉ một stack trace chung chung.
+**Answer:** Locale, key, reason, and expected/actual sets, not just a generic stack trace.
 
-## 25. Tổng kết và nguyên tắc áp dụng
+## 25. Summary and Application Principles
 
-1. Đặt **một canonical bundle** và chính sách coverage cho từng locale.
-2. Kiểm tra **raw locale entries**, không dựa vào fallback để chứng minh bản dịch đủ key.
-3. So sánh **set placeholder index**, không ép thứ tự câu hay số lần lặp.
-4. Bổ sung **type/semantic contract** cho number, date, time, choice và các tham số nghiệp vụ.
-5. Dùng `MessageFormat` để kiểm tra syntax và format fixture; với nested pattern, dùng parser hoặc bài test riêng theo nhánh.
-6. Ghi rõ giới hạn của linter, **fail-closed** khi gặp cú pháp không hỗ trợ.
-7. Test encoding, duplicate key, empty value, locale fallback, build packaging và JPMS.
-8. Tích hợp vào **CI**, nhưng giữ **người review ngôn ngữ** cho plural, ngữ nghĩa và bố cục giao diện.
+1. Define **one canonical bundle** and a coverage policy per locale.
+2. Inspect **raw locale entries** rather than relying on fallback to prove key completeness.
+3. Compare **placeholder index sets**, without enforcing sentence order or repetition count.
+4. Add **type/semantic contracts** for `number`, `date`, `time`, `choice`, and business arguments.
+5. Use `MessageFormat` to check syntax and format fixtures; for nested patterns, use a dedicated parser or branch-specific tests.
+6. Document linter limitations and **fail-closed** on unsupported syntax.
+7. Test encoding, duplicate keys, empty values, locale fallback, build packaging, and JPMS.
+8. Integrate into **CI**, while keeping **human language reviewers** for plurals, meaning, and UI layout.
 
-**Ghi nhớ:** Kiểm thử localization không chỉ là “có file dịch”. Một bộ bản dịch đáng tin phải đồng bộ **khóa tài nguyên, đối số mẫu, định dạng kiểu và hành vi runtime**. `ResourceBundle` fallback có thể che nội dung thiếu; `MessageFormat` có thể giữ placeholder khi thiếu tham số. Chỉ khi phối hợp kiểm tra tĩnh, fixture đúng kiểu, test nhánh và integration test, hệ thống mới có thể phát hiện sớm lỗi giữa các bản dịch.
+**Key takeaway:** Localization testing is more than "having translation files." A reliable translation set must stay synchronized in **resource keys, pattern arguments, type formatting, and runtime behavior**. `ResourceBundle` fallback can hide missing content; `MessageFormat` can leave unformatted placeholders when arguments are missing. Only by combining static checks, typed fixtures, branch tests, and integration tests can a system catch discrepancies across translations early.
 
-**Tài liệu Java SE 17:** [ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html), [PropertyResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html), [MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html), [ChoiceFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ChoiceFormat.html).
+**Java SE 17 Documentation:** [ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html), [PropertyResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html), [MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html), [ChoiceFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ChoiceFormat.html).

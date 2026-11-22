@@ -1,24 +1,24 @@
-# So sánh với null phải trả về false — hợp đồng equals(Object)
+# Comparing with null Must Return false — The equals(Object) Contract
 
-## 1. Quy tắc và phạm vi áp dụng
+## 1. Rule and Scope
 
-Trong Java, lớp java.lang.Object quy định rằng: **với mọi tham chiếu x khác null, biểu thức x.equals(null) phải trả về false**. Đây là một điều khoản chính thức trong hợp đồng của phương thức equals(Object), bên cạnh tính phản xạ, đối xứng, bắc cầu và nhất quán.
+In Java, the java.lang.Object class specifies that: **for any non-null reference x, the expression x.equals(null) must return false**. This is a formal clause in the contract of the equals(Object) method, alongside reflexivity, symmetry, transitivity, and consistency.
 
-Ý nghĩa: null biểu thị sự vắng mặt của tham chiếu đến đối tượng; nó không phải một đối tượng có thể bằng với một đối tượng đang tồn tại. Dù lớp định nghĩa bình đẳng theo mã định danh, dữ liệu nghiệp vụ hay toàn bộ trạng thái, không được coi null là bằng một đối tượng khác null.
+Meaning: null represents the absence of an object reference; it is not an object that can be equal to an existing object. Regardless of whether a class defines equality by identifier, business data, or full state, null must never be considered equal to a non-null object.
 
-Cần phân biệt ba trường hợp:
+Distinguish three cases:
 
-| Biểu thức | Kết quả | Lý do |
+| Expression | Result | Reason |
 | --- | --- | --- |
-| x.equals(null), với x khác null và triển khai đúng | false | Điều khoản “non-nullity” của equals |
-| x.equals(y), với x và y đều khác null | Phụ thuộc quy tắc bình đẳng của lớp | Kiểm tra dữ liệu hoặc danh tính theo hợp đồng |
-| missing.equals(x), với missing == null | Ném NullPointerException | Không thể gọi phương thức thể hiện trên tham chiếu null |
+| x.equals(null), with non-null x and proper implementation | false | The "non-nullity" clause of equals |
+| x.equals(y), with both x and y non-null | Depends on the class's equality rule | Checks data or identity per the contract |
+| missing.equals(x), with missing == null | Throws NullPointerException | Cannot invoke an instance method on a null reference |
 
-Quy tắc chỉ nói về **đối số null khi đối tượng nhận lời gọi khác null**. Nó không có nghĩa là mọi phép so sánh có null đều phải trả về false: hai tham chiếu cùng null có thể được một hàm tiện ích xác định là “cùng vắng mặt”.
+The rule speaks only about a **null argument when the receiver object is non-null**. It does not mean every comparison involving null must return false: two references that are both null can be deemed "equally absent" by a utility function.
 
-## 2. Triển khai equals(Object) đúng và an toàn
+## 2. Correct and Safe Implementation of equals(Object)
 
-Trong Java 17+, phép kiểm tra kiểu bằng instanceof có một thuộc tính rất hữu ích: **null instanceof MộtKiểu luôn là false**. Vì vậy, kiểm tra kiểu trước khi đọc thuộc tính đối tượng vừa đáp ứng điều khoản null, vừa xử lý đối số không cùng kiểu.
+In Java 17+, the instanceof type check has a very useful property: **null instanceof SomeType is always false**. Therefore, checking the type before reading object properties both satisfies the null clause and handles arguments of different types.
 
 ~~~java
 import java.util.Objects;
@@ -37,7 +37,7 @@ public class EqualsNullDemo {
                 return true;
             }
             if (!(other instanceof Account account)) {
-                return false; // Bao gồm other == null
+                return false; // Includes other == null
             }
             return number.equals(account.number);
         }
@@ -66,14 +66,14 @@ public class EqualsNullDemo {
 }
 ~~~
 
-Lưu với tên **EqualsNullDemo.java**, rồi thực thi trên JDK 17 trở lên:
+Save as **EqualsNullDemo.java**, then run on JDK 17 or later:
 
 ~~~bash
 javac EqualsNullDemo.java
 java EqualsNullDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 a.equals(null): false
@@ -85,16 +85,16 @@ constant.equals(status): false
 missing == null: true
 ~~~
 
-Diễn giải theo đúng thứ tự xử lý của equals:
+Step-by-step explanation in the exact order equals executes:
 
-1. Khi other trỏ tới chính a, biểu thức this == other trả về true; điều này bảo đảm tính phản xạ.
-2. Khi other là null, this == other là false; instanceof cũng trả về false, nên phương thức dừng an toàn.
-3. Khi other là Account khác, việc so sánh number quyết định hai đối tượng có bằng nhau hay không.
-4. Việc ghi đè hashCode là bắt buộc về mặt hợp đồng khi ghi đè equals: các đối tượng bằng nhau phải có cùng giá trị hashCode. Trong ví dụ, cùng number luôn dẫn tới cùng hashCode.
+1. When other points to a itself, `this == other` returns true; this ensures reflexivity.
+2. When other is null, `this == other` is false; `instanceof` also returns false, so the method stops safely.
+3. When other is another Account, comparing number determines whether the two objects are equal.
+4. Overriding hashCode is contractually mandatory when overriding equals: equal objects must have the same hashCode value. In the example, the same number always leads to the same hashCode.
 
-Vì Account là final nên không có lớp con gây bất đồng về quy tắc bình đẳng. Trong thiết kế cho phép kế thừa, cần chủ động xem xét chính sách so sánh kiểu và tính đối xứng: lựa chọn instanceof hay getClass() có thể ảnh hưởng tới tính tương thích của các lớp cha/con, nhưng **không thay đổi** quy tắc đối số null phải cho kết quả false.
+Because Account is final, there are no subclasses causing disagreement over equality rules. In a design allowing inheritance, you must deliberately consider the type comparison policy and symmetry: choosing instanceof vs. getClass() can affect compatibility between superclass and subclass, but **does not change** the rule that a null argument must return false.
 
-Một cách triển khai khác cũng hợp lệ là kiểm tra null tường minh trước:
+Another valid implementation is to perform an explicit null check first:
 
 ~~~java
 @Override
@@ -112,46 +112,46 @@ public boolean equals(Object other) {
 }
 ~~~
 
-Đây là **đoạn thay thế riêng phương thức equals trong lớp Account bên trên**, không phải chương trình Java độc lập. Nhánh other == null giúp người đọc dễ nhận thấy hợp đồng; trong trường hợp này nó không cần thiết về mặt kỹ thuật vì instanceof đã xử lý null. Nếu thuộc tính dùng làm khóa bình đẳng cho phép null, có thể dùng Objects.equals(number, account.number) thay cho number.equals(account.number) để so sánh thuộc tính an toàn.
+This is a **replacement snippet for the equals method alone inside the Account class above**, not a standalone Java program. The `other == null` branch makes the contract easy for readers to spot; in this case it is technically unnecessary because instanceof already handles null. If the field used as the equality key allows null, you can use `Objects.equals(number, account.number)` instead of `number.equals(account.number)` to compare the field safely.
 
-## 3. equals(Object) khác với Objects.equals(a, b)
+## 3. equals(Object) Differs from Objects.equals(a, b)
 
-**Objects.equals(a, b)** là phương thức tiện ích tĩnh giúp so sánh hai tham chiếu có thể null. Về mặt hành vi, nó tương đương với:
+**Objects.equals(a, b)** is a static utility method for comparing two potentially null references. Behaviorally, it is equivalent to:
 
 ~~~java
 return a == b || (a != null && a.equals(b));
 ~~~
 
-Đây là **biểu thức minh họa phần thân logic của phương thức tiện ích**, không phải phương thức tự chạy. Trường hợp hai đối số đều null, a == b trả về true. Trường hợp chỉ một đối số null, kết quả là false. Nếu a khác null và hai tham chiếu không trùng nhau, tiện ích gọi a.equals(b).
+This is an **illustrative expression showing the logic body of the utility method**, not a self-contained runnable method. When both arguments are null, `a == b` returns true. When only one argument is null, the result is false. If `a` is non-null and the two references are not identical, the utility calls `a.equals(b)`.
 
-Vì thế:
+Therefore:
 
-- **new Account("A1").equals(null)** → false: đối tượng không bằng null.
-- **Objects.equals(new Account("A1"), null)** → false: chỉ một tham chiếu null.
-- **Objects.equals(null, null)** → true: cùng tham chiếu null, không gọi equals trên null.
-- **"READY".equals(status)** khi status == null → false: mẫu so sánh an toàn khi chuỗi hằng ở bên trái.
+- **new Account("A1").equals(null)** → false: an object is not equal to null.
+- **Objects.equals(new Account("A1"), null)** → false: only one reference is null.
+- **Objects.equals(null, null)** → true: both references are null, without calling equals on null.
+- **"READY".equals(status)** when `status == null` → false: a safe comparison idiom when a constant string is on the left.
 
-Không có mâu thuẫn giữa việc Objects.equals(null, null) là true và hợp đồng của Object.equals(Object): điều khoản của hợp đồng chỉ xét lời gọi phương thức trên một đối tượng **khác null**.
+There is no contradiction between `Objects.equals(null, null)` returning true and the contract of `Object.equals(Object)`: the contract clause applies only to method calls on a **non-null** object.
 
-Khi chỉ muốn kiểm tra tham chiếu có vắng mặt hay không, viết **value == null** hoặc **value != null** cho rõ ý. Khi cần so sánh bình đẳng giữa hai tham chiếu có thể null, dùng Objects.equals(left, right); khi chắc chắn đối tượng nhận khác null, có thể dùng receiver.equals(value).
+When you only want to check whether a reference is absent, write **value == null** or **value != null** for clarity. When comparing equality between two potentially null references, use `Objects.equals(left, right)`; when certain the receiver object is non-null, you can use `receiver.equals(value)`.
 
-## 4. Những lỗi thường gặp
+## 4. Common Mistakes
 
-### 4.1. Trả về true cho đối số null
+### 4.1. Returning true for a null Argument
 
 ~~~java
 @Override
 public boolean equals(Object other) {
     if (other == null) {
-        return true; // Sai hợp đồng equals
+        return true; // Violates the equals contract
     }
-    // ... so sánh phần còn lại
+    // ... compare remaining fields
 }
 ~~~
 
-Đây là **mã minh họa lỗi**, không phải ví dụ chạy độc lập. Dù lớp có coi các trường dữ liệu vắng mặt là tương đương, một đối tượng tồn tại vẫn không được bằng chính tham chiếu null. Hãy trả về false và chỉ so sánh dữ liệu sau khi đã kiểm tra kiểu.
+This is **buggy illustrative code**, not a standalone runnable example. Even if a class treats absent data fields as equivalent, an existing object must still never equal the null reference itself. Return false and compare data only after checking the type.
 
-### 4.2. Ép kiểu hoặc truy cập trường trước khi kiểm tra null
+### 4.2. Casting or Accessing Fields Before Checking for null
 
 ~~~java
 @Override
@@ -161,9 +161,9 @@ public boolean equals(Object other) {
 }
 ~~~
 
-Đây cũng là **mã minh họa lỗi** bên trong Account. Khi other == null, phép ép kiểu vẫn cho null nhưng việc truy cập account.number sẽ gây NullPointerException. Khi other là đối tượng khác kiểu, phép ép kiểu có thể gây ClassCastException. Cả hai trường hợp đều cần được loại trừ bằng kiểm tra kiểu trước khi truy cập thuộc tính.
+This is also **buggy illustrative code** inside Account. When `other == null`, the cast still produces null, and accessing `account.number` throws a NullPointerException. When `other` is an object of a different type, the cast can throw a ClassCastException. Both cases must be excluded via a type check before accessing properties.
 
-### 4.3. Chỉ nạp chồng equals(Account) thay vì ghi đè equals(Object)
+### 4.3. Overloading equals(Account) Instead of Overriding equals(Object)
 
 ~~~java
 public boolean equals(Account other) {
@@ -171,34 +171,34 @@ public boolean equals(Account other) {
 }
 ~~~
 
-Đoạn mã trên khai báo **một overload**, không ghi đè Object.equals(Object). Lời gọi a.equals(null) có thể được trình biên dịch chọn overload nhận Account (vì tham số cụ thể hơn Object), rồi gây NullPointerException; trong khi lời gọi qua tham chiếu kiểu Object lại đi theo phương thức khác. Hãy dùng đúng chữ ký **public boolean equals(Object other)** kèm **@Override** để trình biên dịch kiểm tra.
+The snippet above declares **an overload**, not an override of `Object.equals(Object)`. Calling `a.equals(null)` can cause the compiler to select the overload accepting Account (because the parameter type is more specific than Object), throwing a NullPointerException; meanwhile, calling through an Object-typed reference routes to a different method. Use the exact signature **public boolean equals(Object other)** along with **@Override** so the compiler checks it.
 
-### 4.4. Nhầm lẫn với lời gọi trên null
+### 4.4. Confusing This with Calling on null
 
 ~~~java
 Account missing = null;
 Account a = new Account("A1");
-// missing.equals(a); // Ném NullPointerException nếu bỏ dấu chú thích
+// missing.equals(a); // Throws NullPointerException if uncommented
 boolean safe = Objects.equals(missing, a); // false
 ~~~
 
-Đây là **đoạn minh họa đặt trong ngữ cảnh có lớp Account**, không phải chương trình độc lập. Việc viết đúng equals trong Account không thể làm cho missing.equals(a) trở nên an toàn: Java phải tìm đối tượng nhận phương thức trước khi thực thi thân equals.
+This is an **illustrative snippet placed in the context of the Account class**, not a standalone program. Writing `equals` properly inside Account cannot make `missing.equals(a)` safe: Java must resolve the receiver object before executing the body of `equals`.
 
-Ngoài ra, không nên viết **return Objects.equals(this, other)** bên trong chính equals(Object): khi this và other đều khác null, không cùng tham chiếu, phương thức tiện ích sẽ gọi lại this.equals(other), dẫn tới đệ quy vô hạn cho cặp không bằng nhau và cuối cùng là StackOverflowError.
+Also, do not write **return Objects.equals(this, other)** inside `equals(Object)` itself: when `this` and `other` are both non-null and not the same reference, the utility method calls `this.equals(other)` again, leading to infinite recursion for unequal pairs and ultimately a StackOverflowError.
 
-## 5. Kiểm tra hợp đồng khi tự viết equals
+## 5. Checking the Contract When Writing equals Yourself
 
-Một phép kiểm tra tối thiểu, chạy trên mọi đối tượng khác null của lớp, là:
+A minimal check, run on any non-null object of the class, is:
 
 ~~~java
 Account a = new Account("A1");
 if (a.equals(null)) {
-    throw new AssertionError("equals(null) phải trả về false");
+    throw new AssertionError("equals(null) must return false");
 }
 ~~~
 
-Đoạn kiểm tra này cần đặt trong phương thức main hoặc một phương thức kiểm thử có quyền truy cập Account. Với JUnit 5, ý tưởng tương đương là **assertFalse(a.equals(null))**.
+This check needs to be placed inside `main` or a test method that has access to Account. In JUnit 5, the equivalent idea is **assertFalse(a.equals(null))**.
 
-Nên kiểm tra cùng lúc các thuộc tính khác của equals: a.equals(a) là true; hai Account có number giống nhau phải bằng nhau ở cả hai chiều và có hashCode bằng nhau; number khác nhau cho false; đầu vào không cùng kiểu cho false; lặp lại so sánh khi trạng thái không thay đổi phải cho kết quả ổn định. Đặc biệt, nếu dùng các đối tượng làm khóa HashMap hoặc phần tử HashSet, thuộc tính tham gia equals/hashCode nên ổn định trong suốt thời gian ở trong cấu trúc dữ liệu.
+You should also check the other properties of `equals` at the same time: `a.equals(a)` is true; two Accounts with the same `number` must be equal in both directions and have equal `hashCode`; different numbers return false; inputs of another type return false; repeating the comparison while state is unchanged must yield stable results. Especially if objects are used as HashMap keys or HashSet elements, properties participating in `equals`/`hashCode` should remain stable for the entire time they are in the data structure.
 
-**Ghi nhớ:** Với mọi x khác null, **x.equals(null) == false**. Đặt kiểm tra null/kiểu ở đầu phương thức equals(Object), hoặc dùng instanceof một cách an toàn; chỉ dùng Objects.equals khi bạn cần so sánh hai giá trị mà mỗi bên có thể null.
+**Key takeaway:** For any non-null `x`, **x.equals(null) == false**. Place the null/type check at the beginning of `equals(Object)`, or use `instanceof` safely; use `Objects.equals` only when you need to compare two values where either side may be null.

@@ -1,77 +1,77 @@
-# Nhận diện record bằng `isRecord()` và `getRecordComponents()`
+# Identifying records with `isRecord()` and `getRecordComponents()`
 
-Một công cụ tổng quát không phải lúc nào cũng biết trước các kiểu dữ liệu của ứng dụng. Khi nhận `Class<?>`, công cụ có thể cần phân biệt record với lớp thông thường, tìm tên các thành phần dữ liệu và đọc giá trị từ một đối tượng.
+A general-purpose tool does not always know an application's data types in advance. When receiving a `Class<?>`, the tool may need to distinguish records from ordinary classes, find the names of data components, and read values from an object.
 
-Java cung cấp hai điểm bắt đầu: **`isRecord()` xác định kiểu có phải record không**, còn **`getRecordComponents()` mô tả các thành phần được khai báo trong header của record**. Từ mô tả đó, chương trình có thể tìm phương thức truy cập tương ứng để đọc dữ liệu.
+Java provides two starting points: **`isRecord()` determines whether a type is a record**, and **`getRecordComponents()` describes the components declared in the record header**. From that description, a program can find the corresponding accessor method to read the data.
 
-Các API này có từ Java 16; ví dụ trong bài dùng Java 17 trở lên, không cần tính năng preview.
+These APIs have existed since Java 16; the examples in this article use Java 17 or later and do not require preview features.
 
-## 1. Record và thành phần record là gì?
+## 1. What are records and record components?
 
-Xét khai báo:
+Consider the declaration:
 
 ```java
 record Ticket(String title, int priority, boolean ready) {
 }
 ```
 
-`title`, `priority`, `ready` là ba **thành phần record (record component)**. Chúng được khai báo trong phần header giữa hai dấu ngoặc tròn, theo thứ tự đó.
+`title`, `priority`, and `ready` are three **record components**. They are declared in the header between the parentheses, in that order.
 
-Đối với mỗi thành phần, record có trường dữ liệu tương ứng và một phương thức truy cập công khai. Chẳng hạn, thành phần `title` liên hệ với trường `title` và phương thức `title()`. Đây là quan hệ trong mô hình [record của Java](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html).
+For each component, the record has a corresponding data field and a public accessor method. For example, the `title` component is associated with the `title` field and the `title()` method. This is the relationship in [Java's record model](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Record.html).
 
-Trong Reflection, ba đối tượng có vai trò riêng:
+In Reflection, three objects each have their own role:
 
-| Đối tượng metadata | Mô tả điều gì? |
+| Metadata object | What does it describe? |
 | --- | --- |
-| `RecordComponent` | Một thành phần trong header của record |
-| `Field` | Một trường dữ liệu của lớp |
-| `Method` | Một phương thức, gồm cả accessor của record |
+| `RecordComponent` | A component in the record header |
+| `Field` | A data field of the class |
+| `Method` | A method, including the record's accessor |
 
-`RecordComponent` không phải giá trị `title` của một đối tượng cụ thể. Nó mô tả rằng kiểu record có thành phần tên `title`, kiểu gì và accessor nào.
+`RecordComponent` is not the `title` value of a specific object. It describes that the record type has a component named `title`, what type it has, and which accessor it uses.
 
-## 2. Hai API trên `Class<?>`
+## 2. The two APIs on `Class<?>`
 
-Chữ ký:
+Signatures:
 
 ```java
 public boolean isRecord()
 public RecordComponent[] getRecordComponents()
 ```
 
-Đây là chữ ký để tra cứu API, không phải các phương thức cần tự cài đặt.
+These are signatures for API lookup, not methods you need to implement yourself.
 
-Theo [hợp đồng `Class.getRecordComponents()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getRecordComponents()), mảng kết quả giữ thứ tự khai báo trong header. Nếu là record không có thành phần, mảng có độ dài `0`; nếu không phải record, kết quả là `null`.
+According to [the `Class.getRecordComponents()` contract](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getRecordComponents()), the resulting array preserves the declaration order in the header. If it is a record with no components, the array has length `0`; if it is not a record, the result is `null`.
 
-| Kiểu đang xét | `isRecord()` | `getRecordComponents()` |
+| Type under inspection | `isRecord()` | `getRecordComponents()` |
 | --- | --- | --- |
-| Record có thành phần | `true` | Mảng metadata thành phần |
-| Record có header rỗng | `true` | Mảng rỗng |
-| Lớp thông thường, interface, enum, kiểu mảng hoặc kiểu nguyên thủy | `false` | `null` |
-| Chính lớp cơ sở `java.lang.Record` | `false` | `null` |
+| Record with components | `true` | Array of component metadata |
+| Record with an empty header | `true` | Empty array |
+| Ordinary class, interface, enum, array type, or primitive type | `false` | `null` |
+| The base class `java.lang.Record` itself | `false` | `null` |
 
-Vì vậy, không được gọi `.length` hoặc duyệt trực tiếp kết quả khi chưa xử lý trường hợp `null`. Đồng thời, không xem mảng rỗng như bằng chứng rằng kiểu không phải record.
+Therefore, do not access `.length` or iterate directly over the result without handling the `null` case. At the same time, do not treat an empty array as evidence that a type is not a record.
 
-Bạn có thể kiểm tra `isRecord()` trước để rẽ nhánh theo loại kiểu, hoặc lấy mảng một lần rồi kiểm tra `null`. Trong một công cụ chỉ đọc thành phần record, cách thứ hai thường giúp gom điều kiện và dữ liệu cần dùng vào cùng một chỗ.
+You can check `isRecord()` first to branch by type kind, or obtain the array once and then check for `null`. In a tool that only reads record components, the second approach often keeps the condition and the needed data in one place.
 
-## 3. Đọc thông tin từ `RecordComponent`
+## 3. Reading information from `RecordComponent`
 
-Mỗi phần tử cung cấp các thông tin sau qua [API `RecordComponent`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/RecordComponent.html):
+Each element provides the following information via [the `RecordComponent` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/RecordComponent.html):
 
-| Phương thức | Thông tin nhận được |
+| Method | Information obtained |
 | --- | --- |
-| `getName()` | Tên thành phần |
-| `getType()` | Kiểu được biểu diễn bằng `Class<?>` |
-| `getGenericType()` | Kiểu khai báo được biểu diễn bằng `Type`, gồm thông tin generic nếu có |
-| `getAccessor()` | Đối tượng `Method` của phương thức truy cập |
-| `getDeclaringRecord()` | Lớp record khai báo thành phần |
+| `getName()` | Component name |
+| `getType()` | Type represented as a `Class<?>` |
+| `getGenericType()` | Declared type represented as a `Type`, including generic information if any |
+| `getAccessor()` | `Method` object of the accessor method |
+| `getDeclaringRecord()` | Record class that declares the component |
 
-Ví dụ, với thành phần `List<String> labels`, `getType()` cho `List.class`, còn `getGenericType()` biểu diễn `List<String>`. Metadata kiểu khai báo và giá trị đang chứa trong một đối tượng là hai tầng thông tin khác nhau.
+For example, for the component `List<String> labels`, `getType()` gives `List.class`, while `getGenericType()` represents `List<String>`. The declared type metadata and the value held inside an object are two different layers of information.
 
-## 4. Thí nghiệm đầy đủ trên Java 17+
+## 4. Complete experiment on Java 17+
 
-Chương trình dưới đây có record có dữ liệu, record rỗng, record generic và một lớp thông thường có cấu trúc gần giống record. Nó vừa đọc metadata của kiểu, vừa đọc giá trị từ đối tượng.
+The program below contains a record with data, an empty record, a generic record, and an ordinary class with a structure similar to a record. It both reads the type's metadata and reads values from objects.
 
-Lưu toàn bộ vào **`RecordInspectionDemo.java`**:
+Save the entire code into **`RecordInspectionDemo.java`**:
 
 ```java
 import java.lang.reflect.RecordComponent;
@@ -180,14 +180,14 @@ public class RecordInspectionDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 --release 17 -Xlint:all -Werror RecordInspectionDemo.java
 java RecordInspectionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Ticket isRecord = true
@@ -216,109 +216,109 @@ Box runtime class = true
 Read ordinary class = IllegalArgumentException
 ```
 
-## 5. Hiểu kết quả của thí nghiệm
+## 5. Understanding the experiment output
 
-### Thứ tự thành phần đến từ header
+### Component order comes from the header
 
-Header của `Ticket` khai báo `title`, `priority`, `ready`, `labels`. Vòng lặp đi theo đúng thứ tự đó. `priority` không được đưa lên trước chỉ vì kiểu của nó là `int`, và `labels` không được đưa lên đầu theo bảng chữ cái.
+`Ticket`'s header declares `title`, `priority`, `ready`, `labels`. The loop follows that exact order. `priority` is not placed first just because its type is `int`, and `labels` is not placed first alphabetically.
 
-Thứ tự này hữu ích khi trình bày cấu trúc dữ liệu, ghép dữ liệu với chữ ký constructor chuẩn hoặc giữ thứ tự cột theo khai báo. Khi dùng metadata cho định dạng lưu trữ lâu dài, vẫn cần quản lý thay đổi cấu trúc; đổi vị trí thành phần trong mã nguồn không phải một thay đổi vô hình đối với công cụ phụ thuộc vào vị trí.
+This order is useful when presenting data structures, matching data with the canonical constructor signature, or preserving column order as declared. When using metadata for long-term storage formats, structural changes still need to be managed; reordering components in source code is not an invisible change to tools that depend on position.
 
-### Trường tĩnh không phải thành phần record
+### Static fields are not record components
 
-`Ticket` có trường tĩnh `KIND`. Vì vậy, danh sách trường dữ liệu được in trong thí nghiệm gồm `KIND` cùng bốn trường tương ứng các thành phần. Mảng `getRecordComponents()` chỉ có bốn thành phần trong header.
+`Ticket` has a static field `KIND`. Therefore, the field list printed in the experiment includes `KIND` along with the four fields corresponding to the components. The `getRecordComponents()` array contains only the four components in the header.
 
-Danh sách trường được **chủ động sắp xếp theo tên** trước khi in, nên dòng `[KIND, labels, priority, ready, title]` không thể được dùng làm bằng chứng về thứ tự mặc định của Reflection.
+The field list was **intentionally sorted by name** before printing, so the line `[KIND, labels, priority, ready, title]` cannot be used as evidence of Reflection's default order.
 
-Nếu mục tiêu là hiểu cấu trúc record, hãy lấy danh sách thành phần trực tiếp. Không lấy tất cả trường rồi tự giả định rằng mọi trường đều là một thành phần hoặc tự dựa vào thứ tự trường.
+If the goal is to understand the record's structure, retrieve the component list directly. Do not retrieve all fields and assume every field is a component or rely on field order.
 
-### Record rỗng và lớp không phải record
+### Empty records and non-record classes
 
-`Marker` có header `()` nên `isRecord()` cho `true`, số thành phần bằng `0`, và hàm đọc giá trị tạo bản đồ rỗng `{}`.
+`Marker` has the header `()`, so `isRecord()` returns `true`, the component count is `0`, and the value-reading method produces an empty map `{}`.
 
-`PlainTicket` có một trường `title` và phương thức `title()`, nhưng vẫn là lớp thông thường. Nó không trở thành record chỉ vì đặt tên phương thức theo cùng quy ước. Kết quả là `isRecord()` bằng `false` và mảng thành phần bằng `null`.
+`PlainTicket` has a `title` field and a `title()` method, yet it is still an ordinary class. It does not become a record just by naming its method following the same convention. The result is `isRecord()` equal to `false` and the component array equal to `null`.
 
-`Record.class` cũng cho kết quả tương tự: đây là lớp cơ sở, không phải một record cụ thể có header. Không dùng tên lớp, việc có accessor, hoặc phép kiểm tra kế thừa quá rộng để thay cho `isRecord()`.
+`Record.class` produces the same result: it is the base class, not a concrete record with a header. Do not use the class name, the presence of an accessor, or an overly broad inheritance check as a substitute for `isRecord()`.
 
-## 6. Metadata không tự chứa giá trị của đối tượng
+## 6. Metadata does not hold an object's values on its own
 
-`describe(Ticket.class)` không cần tạo `Ticket`, vì nó chỉ đọc cấu trúc kiểu. Ngược lại, muốn biết `title` đang bằng gì, bạn cần một đối tượng, như biến `ticket` trong ví dụ.
+`describe(Ticket.class)` does not need to create a `Ticket`, because it only reads the type structure. Conversely, to know what `title` currently equals, you need an object, such as the `ticket` variable in the example.
 
-Hàm `readRecord` thực hiện quy trình:
+The `readRecord` method follows this process:
 
-1. Từ chối đối tượng `null`.
-2. Lấy lớp thực tế bằng `value.getClass()`.
-3. Lấy metadata thành phần và từ chối lớp không phải record.
-4. Lấy accessor từ từng `RecordComponent`.
-5. Gọi accessor trên đúng đối tượng `value` rồi lưu kết quả theo tên thành phần.
+1. Reject `null` objects.
+2. Obtain the runtime class with `value.getClass()`.
+3. Obtain component metadata and reject non-record classes.
+4. Retrieve the accessor from each `RecordComponent`.
+5. Invoke the accessor on the exact `value` object and store the result by component name.
 
-`LinkedHashMap` trong thí nghiệm giữ thứ tự thêm khóa, nên dòng kết quả `Read values` có thứ tự giống header.
+`LinkedHashMap` in the experiment preserves insertion order, so the `Read values` output line has the same order as the header.
 
-Đoạn cốt lõi là:
+The core line is:
 
 ```java
 Object componentValue = component.getAccessor().invoke(value);
 ```
 
-Đây là đoạn trích trong hàm đã có đầy đủ ở chương trình. `component` là metadata, còn `value` là đối tượng nhận lời gọi. Kiểu trả về của lời gọi động là `Object`; với thành phần nguyên thủy như `int` hoặc `boolean`, kết quả được đóng gói thành đối tượng tương ứng.
+This is an excerpt from the full method already shown in the program. `component` is the metadata, and `value` is the target object receiving the call. The return type of the reflective call is `Object`; for primitive components such as `int` or `boolean`, the result is boxed into its corresponding wrapper object.
 
-### Accessor của record không theo tiền tố JavaBean
+### Record accessors do not use JavaBean prefixes
 
-`ready` trong ví dụ có accessor `ready()`, không phải `getReady()` hay `isReady()`. Dòng `isReady lookup = NoSuchMethodException` chứng minh không nên tự ghép tiền tố khi tìm accessor mặc định của record.
+`ready` in the example has the accessor `ready()`, not `getReady()` or `isReady()`. The line `isReady lookup = NoSuchMethodException` proves you should not prepend prefixes yourself when looking up a record's default accessor.
 
-`getAccessor()` trả đúng `Method` tương ứng, giúp công cụ không phải đoán tên. Quy tắc tên, tham số rỗng và kiểu trả về của accessor được xác định trong [JLS về thành viên record](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.3).
+`getAccessor()` returns the exact corresponding `Method`, saving tools from guessing names. The naming rules, empty parameter list, and return type of an accessor are defined in [the JLS on record members](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.3).
 
-### Gọi accessor vẫn là gọi phương thức
+### Calling an accessor is still calling a method
 
-Record có thể khai báo accessor tường minh. Vì vậy, gọi accessor là thực thi hành vi của phương thức đó, không phải luôn đọc trực tiếp trường dữ liệu thô. Công cụ cần hiểu hợp đồng đọc dữ liệu của mình.
+A record can declare an explicit accessor. Therefore, calling an accessor executes that method's behavior, rather than always reading the raw data field directly. Tools must understand their own data-reading contract.
 
-Ví dụ dùng record lồng công khai nên có thể gọi accessor mà không mở quyền truy cập đặc biệt. Khi dùng với record từ nơi khác, quyền truy cập lớp, package và module vẫn có thể ảnh hưởng đến lời gọi. Tìm được metadata không tự cấp quyền vượt mọi ranh giới truy cập.
+The example uses public nested records so accessors can be called without opening special access. When used with records from elsewhere, class, package, and module access rules can still affect the call. Finding metadata does not automatically grant permission to cross all access boundaries.
 
-`readRecord` khai báo `throws ReflectiveOperationException` để người gọi biết việc gọi động có thể thất bại. Trong mã thực tế, cần phân biệt lỗi truy cập với ngoại lệ do accessor ném ra và giữ thông tin nguyên nhân; không âm thầm bỏ qua một thành phần khi đọc thất bại.
+`readRecord` declares `throws ReflectiveOperationException` so callers know the reflective call can fail. In real code, distinguish access errors from exceptions thrown by the accessor and preserve the cause information; do not silently skip a component when reading fails.
 
-## 7. Record generic và giới hạn thông tin kiểu
+## 7. Generic records and type information limits
 
-`Box<T>(T value)` cho kết quả:
+`Box<T>(T value)` produces:
 
-- `getType()` của `value` là `Object` vì `T` không có giới hạn cụ thể hơn.
-- `getGenericType()` biểu diễn biến kiểu `T` trong khai báo.
-- Đọc đối tượng `new Box<String>("hello")` cho giá trị `hello`.
+- `getType()` of `value` is `Object` because `T` has no more specific bound.
+- `getGenericType()` represents the type variable `T` in the declaration.
+- Reading the object `new Box<String>("hello")` yields the value `hello`.
 
-Điều đó không có nghĩa metadata của `Box.class` đã đổi `T` thành `String` theo từng đối tượng. Biểu thức `box.getClass() == Box.class` vẫn cho `true`. Cùng một metadata lớp được dùng cho các cách gán tham số kiểu khác nhau của `Box`.
+That does not mean `Box.class`'s metadata changes `T` to `String` per object. The expression `box.getClass() == Box.class` still evaluates to `true`. The same class metadata is shared across different type argument assignments of `Box`.
 
-Nếu một thư viện cần biết tham số kiểu cụ thể của ngữ cảnh sử dụng, nó phải nhận thêm thông tin kiểu từ ngữ cảnh đó. Chỉ nhìn vào giá trị đang chứa hoặc vào `getClass()` không phải giải pháp tổng quát để phục hồi toàn bộ thông tin generic.
+If a library needs to know the concrete type arguments of a usage context, it must receive additional type information from that context. Looking only at the contained value or at `getClass()` is not a general solution for recovering full generic information.
 
-Phân biệt hai câu hỏi khi thiết kế công cụ:
+Distinguish two questions when designing a tool:
 
-- Kiểu được **khai báo** của thành phần là gì?
-- Giá trị của thành phần trên **đối tượng đang xét** là gì?
+- What is the **declared** type of the component?
+- What is the value of the component on the **object under inspection**?
 
-Hai câu hỏi bổ sung cho nhau; không thay thế được cho nhau.
+The two questions complement each other; neither replaces the other.
 
-## 8. Áp dụng và lỗi thường gặp
+## 8. Application and common pitfalls
 
-Cặp API này phù hợp cho công cụ hiển thị cấu trúc dữ liệu, ánh xạ theo tên thành phần, trình kiểm tra dữ liệu hoặc thư viện cần có một nhánh xử lý riêng cho record. Nó giúp tránh suy luận loại kiểu từ hình dáng lớp.
+This pair of APIs is suitable for tools that display data structures, map by component name, validate data, or libraries that need a separate handling branch for records. It avoids inferring type kinds from class shape.
 
-| Lỗi thường gặp | Cách xử lý đúng |
+| Common pitfall | Correct handling |
 | --- | --- |
-| Gọi `.length` trên kết quả của lớp thông thường | Kiểm tra `null` hoặc rẽ nhánh bằng `isRecord()` |
-| Xem record rỗng như không phải record | Phân biệt mảng rỗng với `null` |
-| Xem `Record.class` như record cụ thể | Dùng kết quả `isRecord()` |
-| Lấy tất cả trường làm thành phần record | Dùng `getRecordComponents()` cho cấu trúc header |
-| Tự sắp xếp thành phần rồi nghĩ đó là thứ tự khai báo | Giữ nguyên thứ tự API khi cần thứ tự header |
-| Coi `RecordComponent` là dữ liệu của một instance | Dùng accessor trên một đối tượng phù hợp |
-| Tự thêm tiền tố `get` hoặc `is` | Dùng `getAccessor()` |
-| Cho rằng đọc metadata đồng nghĩa có quyền gọi mọi accessor | Xử lý các ràng buộc truy cập và lỗi gọi động |
-| Cho rằng generic của đối tượng đã thay thế `T` trong metadata lớp | Phân biệt kiểu khai báo với ngữ cảnh tham số kiểu |
+| Calling `.length` on the result for an ordinary class | Check for `null` or branch using `isRecord()` |
+| Treating an empty record as not a record | Distinguish an empty array from `null` |
+| Treating `Record.class` as a concrete record | Use the result of `isRecord()` |
+| Taking all fields as record components | Use `getRecordComponents()` for header structure |
+| Sorting components yourself and assuming it is declaration order | Preserve the API's order when header order is needed |
+| Treating `RecordComponent` as an instance's data | Call the accessor on an appropriate object |
+| Prepending `get` or `is` prefixes yourself | Use `getAccessor()` |
+| Assuming reading metadata implies permission to call every accessor | Handle access restrictions and reflective invocation errors |
+| Assuming an object's generics replace `T` in class metadata | Distinguish declared types from type argument context |
 
-Record cũng không tự làm toàn bộ cây đối tượng bên trong trở nên bất biến. Nếu một thành phần tham chiếu tới dữ liệu có thể thay đổi, công cụ đọc không nên tự ý sửa dữ liệu đó chỉ vì đã lấy được nó qua accessor.
+Records also do not automatically make the entire inner object graph immutable. If a component references mutable data, a reading tool should not arbitrarily modify that data just because it obtained it through an accessor.
 
-### Tự kiểm tra
+### Self-check
 
-1. Vì sao `Marker.class.getRecordComponents()` cho mảng rỗng, còn `PlainTicket.class.getRecordComponents()` cho `null`?
-2. Thêm một trường tĩnh vào `Ticket` có làm số thành phần tăng lên không?
-3. Đổi thứ tự `priority` và `ready` trong header ảnh hưởng đến kết quả metadata như thế nào?
-4. Vì sao có `Class<?>` đã đủ để mô tả thành phần nhưng chưa đủ để biết giá trị `title`?
-5. Với `Box<String>`, tại sao kiểu generic khai báo của `value` vẫn là `T`?
+1. Why does `Marker.class.getRecordComponents()` return an empty array, whereas `PlainTicket.class.getRecordComponents()` returns `null`?
+2. Does adding a static field to `Ticket` increase the number of components?
+3. How does swapping the order of `priority` and `ready` in the header affect the metadata output?
+4. Why is having `Class<?>` sufficient to describe a component, yet insufficient to know the value of `title`?
+5. For `Box<String>`, why is the declared generic type of `value` still `T`?
 
-Cần nắm được luồng: **nhận diện record → lấy metadata thành phần theo header → chọn thông tin kiểu hoặc accessor → đọc giá trị trên đúng đối tượng khi cần**.
+Grasp the flow: **identify the record → retrieve component metadata in header order → choose type information or the accessor → read the value on the right object when needed**.

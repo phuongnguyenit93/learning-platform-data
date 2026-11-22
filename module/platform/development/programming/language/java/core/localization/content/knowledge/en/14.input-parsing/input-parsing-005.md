@@ -1,65 +1,65 @@
-# Dấu phân nhóm, khoảng trắng và chữ số Unicode khi phân tích đầu vào
+# Grouping Separators, Whitespace, and Unicode Digits When Parsing Input
 
-## 1. Vì sao một số “nhìn đúng” vẫn có thể bị đọc sai?
+## 1. Why Can a Number That “Looks Right” Still Be Parsed Wrong?
 
-Trong một ứng dụng Java đa ngôn ngữ, dữ liệu nhập từ biểu mẫu không chỉ gồm các chữ số ASCII `0–9` và dấu chấm. Người dùng có thể nhập số như:
+In a multilingual Java application, form input does not consist only of ASCII digits `0–9` and periods. Users may enter numbers such as:
 
-| Chuỗi người dùng nhìn thấy | Locale/ngữ cảnh minh họa | Những ký tự đáng chú ý |
+| String the User Sees | Illustrative Locale/Context | Notable Characters |
 | --- | --- | --- |
-| `1,234.50` | `en-US` | Dấu phẩy `,` nhóm nghìn, dấu chấm `.` thập phân |
-| `1.234,50` | `de-DE` | Dấu chấm nhóm nghìn, dấu phẩy thập phân |
-| `1 234,50` | `fr-FR`, dữ liệu CLDR thông dụng | Dấu phân nhóm **NNBSP** `U+202F`, không phải ASCII space |
-| `1 234,50` | Một số dữ liệu/cách nhập sử dụng NBSP | Dấu phân nhóm **NBSP** `U+00A0` |
-| `١٬٢٣٤٫٥٠` | Dữ liệu số chữ Ả Rập | Chữ số Ả Rập `U+0660–U+0669`, dấu nhóm `U+066C`, dấu thập phân `U+066B` |
-| `１２３４．５０` | Chữ số fullwidth | Không thể tùy ý suy ra mọi parser đều chấp nhận cả dấu câu fullwidth |
+| `1,234.50` | `en-US` | Comma `,` thousands grouping, dot `.` decimal |
+| `1.234,50` | `de-DE` | Dot thousands grouping, comma decimal |
+| `1 234,50` | `fr-FR`, common CLDR data | Grouping separator **NNBSP** `U+202F`, not an ASCII space |
+| `1 234,50` | Some data/input methods using NBSP | Grouping separator **NBSP** `U+00A0` |
+| `١٬٢٣٤٫٥٠` | Arabic-Indic numeral data | Arabic-Indic digits `U+0660–U+0669`, grouping `U+066C`, decimal `U+066B` |
+| `１２３４．５０` | Fullwidth digits | Do not assume every parser accepts fullwidth punctuation too |
 
-Hai chuỗi nhìn tương tự có thể chứa **các Unicode code point khác nhau**. Khi phân tích số (*parsing*), parser không chỉ nhìn hình dạng ký tự: nó có quy tắc dấu nhóm, dấu thập phân, chữ số và quy ước từ `Locale`/`DecimalFormatSymbols`. Một sự thay đổi nhỏ, ví dụ thay dấu nhóm NNBSP bằng dấu cách thường, có thể làm parser dừng giữa chừng.
+Two strings that look identical can contain **different Unicode code points**. When parsing numbers, the parser does not just look at visual glyph shapes: it applies rules for grouping separators, decimal separators, digits, and conventions from `Locale`/`DecimalFormatSymbols`. A small difference—such as replacing an NNBSP grouping separator with an ordinary space—can cause the parser to stop partway through.
 
-**Mục tiêu của bài:** đọc số bản địa hóa bằng Java 17+ đúng ngữ cảnh, phân biệt các loại khoảng trắng và chữ số Unicode, kiểm tra kết quả phân tích **đã tiêu thụ toàn bộ input**, đồng thời không nhầm việc parse thành công với xác thực cấu trúc dữ liệu nghiêm ngặt.
+**Lesson goal:** parse localized numbers in Java 17+ in the right context, distinguish different kinds of whitespace and Unicode digits, verify that parsing **consumed the entire input**, and avoid confusing a successful parse with strict data structure validation.
 
-## 2. Phân biệt giá trị số với chuỗi biểu diễn
+## 2. Distinguishing the Numeric Value from Its String Representation
 
-Giá trị `1234.50` là một số thập phân; `"1,234.50"` và `"1.234,50"` là hai cách **viết** có thể biểu đạt giá trị đó. Nếu ứng dụng nhận chuỗi `"1.234,50"` rồi gọi:
+The value `1234.50` is a decimal number; `"1,234.50"` and `"1.234,50"` are two **textual representations** that can express that value. If an application receives `"1.234,50"` and calls:
 
 ~~~java
 new BigDecimal("1.234,50")
 ~~~
 
-thì mã sẽ thất bại vì `BigDecimal(String)` **không phải parser số theo locale**. Constructor này nhận dạng số thập phân theo cú pháp chuẩn của nó, không nhận dấu nhóm/chấm phẩy bản địa hóa.
+the code fails because `BigDecimal(String)` **is not a locale-aware number parser**. That constructor accepts a canonical decimal syntax and does not understand localized grouping or decimal commas.
 
-Đối với dữ liệu người dùng đã bản địa hóa, thông thường nên dùng:
+For localized user input, you should normally use:
 
 ~~~java
 NumberFormat format = NumberFormat.getNumberInstance(locale);
 Number parsed = format.parse(input);
 ~~~
 
-Đây là **mảnh mã trong một phương thức**, cần import `java.text.NumberFormat` và `java.util.Locale`, có biến `locale`/`input` và xử lý `ParseException`. Tuy nhiên, cách gọi đơn giản này chưa đủ để kiểm tra **toàn bộ** chuỗi nhập đã hợp lệ.
+This is a **code snippet inside a method**, requiring imports for `java.text.NumberFormat` and `java.util.Locale`, existing `locale`/`input` variables, and handling for `ParseException`. However, this simple call alone is not enough to validate that the **entire** input string is valid.
 
-### Ba bước không nên trộn vào nhau
+### Three Steps That Must Not Be Mixed Together
 
-1. **Xác định quy ước nguồn:** người dùng đang nhập theo locale nào, ví dụ `de-DE` hay `en-US`?
-2. **Chuyển đổi văn bản thành số:** bộ phân tích hiểu dấu nhóm, dấu thập phân, ký hiệu và chữ số nào?
-3. **Xác thực nghiệp vụ:** cú pháp nhóm có nghiêm ngặt không, có ký tự dư không, giá trị có trong phạm vi cho phép không, precision/scale có hợp lệ không?
+1. **Determine the source convention:** which locale is the user entering data in, such as `de-DE` or `en-US`?
+2. **Convert text into a number:** which grouping separators, decimal separators, signs, and digits does the parser understand?
+3. **Validate business rules:** is grouping syntax strict, are there trailing characters, is the value in the allowed range, and are precision/scale valid?
 
-Một bộ phân tích thành công ở bước 2 **không có nghĩa** bạn có thể bỏ qua bước 3.
+Succeeding at step 2 **does not mean** you can skip step 3.
 
-## 3. `Locale` và `DecimalFormatSymbols` quyết định điều gì?
+## 3. What Do `Locale` and `DecimalFormatSymbols` Control?
 
-`java.text.NumberFormat.getNumberInstance(locale)` trả về một formatter/parser với quy ước số tương ứng. Trong các JDK thông dụng, đó thường là `DecimalFormat`. `DecimalFormatSymbols` lưu các ký hiệu cụ thể cho một định dạng:
+`java.text.NumberFormat.getNumberInstance(locale)` returns a formatter/parser configured with the corresponding numeric conventions. In standard JDKs, this is typically a `DecimalFormat`. `DecimalFormatSymbols` holds the concrete symbols for a format:
 
-| API | Vai trò |
+| API | Role |
 | --- | --- |
-| `DecimalFormatSymbols.getInstance(locale)` | Lấy các ký hiệu số của locale |
-| `getGroupingSeparator()` | Ký tự được dùng làm dấu phân nhóm nghìn |
-| `getDecimalSeparator()` | Ký tự thập phân |
-| `getZeroDigit()` | Ký tự chữ số zero mặc định của hệ chữ số |
-| `getMinusSign()` | Ký hiệu dấu âm |
-| `NumberFormat.getNumberInstance(locale)` | Bộ định dạng/phân tích số theo locale |
-| `NumberFormat.parse(...)` | Phân tích chuỗi thành `Number` |
-| `DecimalFormat.setParseBigDecimal(true)` | Yêu cầu parser `DecimalFormat` trả `BigDecimal` khi phù hợp thay vì `Double` thông thường |
+| `DecimalFormatSymbols.getInstance(locale)` | Retrieve the numeric symbols for the locale |
+| `getGroupingSeparator()` | Character used as the thousands grouping separator |
+| `getDecimalSeparator()` | Decimal separator character |
+| `getZeroDigit()` | Default zero digit character of the numeral system |
+| `getMinusSign()` | Minus sign symbol |
+| `NumberFormat.getNumberInstance(locale)` | Locale-aware number formatter/parser |
+| `NumberFormat.parse(...)` | Parse a string into a `Number` |
+| `DecimalFormat.setParseBigDecimal(true)` | Instruct `DecimalFormat` to return `BigDecimal` when appropriate instead of a typical `Double` |
 
-Ví dụ tường minh:
+Explicit example:
 
 ~~~java
 Locale locale = Locale.FRANCE;
@@ -70,13 +70,13 @@ char grouping = symbols.getGroupingSeparator();
 char decimal = symbols.getDecimalSeparator();
 ~~~
 
-Đây là **mảnh mã trong phương thức**, cần import `java.util.Locale` và `java.text.DecimalFormatSymbols`.
+This is a **code snippet inside a method**, requiring imports for `java.util.Locale` and `java.text.DecimalFormatSymbols`.
 
-Với dữ liệu CLDR phổ biến trong JDK hiện đại, `fr-FR` thường có dấu nhóm `U+202F` và dấu thập phân `,`. Nhưng JDK/provider và dữ liệu locale có thể thay đổi. **Không suy từ tên locale rằng ký tự luôn cố định**, khi cần biết chính xác, hãy xem `DecimalFormatSymbols` thực tế và kiểm thử trong môi trường deploy.
+With the CLDR data commonly shipped in modern JDKs, `fr-FR` typically uses `U+202F` as the grouping separator and `,` as the decimal separator. However, JDKs, providers, and locale data can vary. **Do not assume from a locale name that its characters are always fixed**; when you need certainty, inspect the actual `DecimalFormatSymbols` and test in your deployment environment.
 
-### Nhìn vào code point, đừng chỉ nhìn giao diện
+### Look at Code Points, Not Just Visual Appearance
 
-Khi debug, thay vì in một dấu cách mơ hồ, in dạng `U+XXXX`:
+When debugging, instead of printing an ambiguous space, print `U+XXXX`:
 
 ~~~java
 System.out.printf(
@@ -86,30 +86,30 @@ System.out.printf(
 );
 ~~~
 
-Đoạn trên là **mảnh mã trong phương thức**, có biến `symbols` và import `java.util.Locale`. Nếu in `U+202F` thì đó là NNBSP chứ không phải ASCII space `U+0020`.
+This is a **code snippet inside a method**, assuming `symbols` is declared and `java.util.Locale` is imported. If it prints `U+202F`, that character is NNBSP, not ASCII space `U+0020`.
 
-## 4. ASCII space, NBSP và NNBSP không tương đương
+## 4. ASCII Space, NBSP, and NNBSP Are Not Equivalent
 
-Ba ký tự dưới đây thường trông như “khoảng trắng”, nhưng có mã Unicode và tính chất khác nhau:
+The three characters below often look like “whitespace,” but they have different Unicode code points and properties:
 
-| Tên | Code point | Tên tiếng Anh | Tình huống |
+| Name | Code Point | English Name | Typical Context |
 | --- | --- | --- | --- |
-| Space thông thường | `U+0020` | SPACE | Gõ từ phím Space |
-| Khoảng trắng không ngắt | `U+00A0` | NO-BREAK SPACE (NBSP) | Văn bản không muốn tách dòng, số/tài nguyên bản địa hóa |
-| Khoảng trắng hẹp không ngắt | `U+202F` | NARROW NO-BREAK SPACE (NNBSP) | Dấu nhóm nghìn trong một số locale, điển hình `fr-FR` với CLDR hiện đại |
+| Regular space | `U+0020` | SPACE | Typed from the Spacebar |
+| Non-breaking space | `U+00A0` | NO-BREAK SPACE (NBSP) | Text that should not wrap, localized numbers/resources |
+| Narrow non-breaking space | `U+202F` | NARROW NO-BREAK SPACE (NNBSP) | Thousands grouping separator in some locales, notably `fr-FR` in modern CLDR |
 
-Điều này quan trọng khi người dùng **copy/paste** một con số từ trang web, PDF, bảng tính hoặc email. Ví dụ, `1 234,50` và `1 234,50` có thể chỉ khác ký tự ở giữa `1` và `2` nhưng parser sẽ xử lý khác nhau.
+This matters when users **copy and paste** a number from web pages, PDFs, spreadsheets, or emails. For example, `1 234,50` and `1 234,50` may differ only in the character between `1` and `2`, yet the parser will handle them differently.
 
-### Đừng nghĩ `trim()`/`strip()` loại hết mọi khoảng trắng Unicode
+### Do Not Assume `trim()`/`strip()` Removes All Unicode Spaces
 
-Trong Java 17:
+In Java 17:
 
-- `String.trim()` loại một tập ký tự đầu/cuối dựa trên giá trị mã ký tự truyền thống.
-- `String.strip()` dùng `Character.isWhitespace`.
-- `Character.isWhitespace` **không coi NBSP `U+00A0` hoặc NNBSP `U+202F` là whitespace**.
-- `Character.isSpaceChar` **có** nhận diện hai ký tự NBSP và NNBSP này.
+- `String.trim()` strips a traditional range of leading/trailing characters based on character code values.
+- `String.strip()` uses `Character.isWhitespace`.
+- `Character.isWhitespace` **does not treat NBSP `U+00A0` or NNBSP `U+202F` as whitespace**.
+- `Character.isSpaceChar` **does** recognize both NBSP and NNBSP.
 
-Ví dụ chạy độc lập, lưu `SpaceCodePointDemo.java`:
+Standalone runnable example—save as `SpaceCodePointDemo.java`:
 
 ~~~java
 public class SpaceCodePointDemo {
@@ -137,14 +137,14 @@ public class SpaceCodePointDemo {
 }
 ~~~
 
-Chạy bằng JDK 17+:
+Run with JDK 17+:
 
 ~~~bash
 javac -encoding UTF-8 SpaceCodePointDemo.java
 java SpaceCodePointDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 SPACE whitespace: true
@@ -156,13 +156,13 @@ Original length: 5
 After strip length: 5
 ~~~
 
-Do đó, thao tác `strip()` **không loại bỏ** NBSP/NNBSP ở đầu/cuối. Tuy nhiên, điều này không có nghĩa nên xóa **mọi** `Character.isSpaceChar` vô điều kiện: trong một con số, NBSP/NNBSP có thể chính là **dấu nhóm hợp lệ**. Xóa nó trước khi parse có thể làm mất thông tin về cấu trúc nhập.
+Thus `strip()` **does not remove** leading or trailing NBSP/NNBSP. However, that does not mean you should unconditionally delete **every** `Character.isSpaceChar`: inside a number, NBSP/NNBSP can be a **valid grouping separator**. Stripping it before parsing can discard structural input information.
 
-**Cách đúng:** xác định liệu những ký tự đó là dấu nhóm ở bên trong số, khoảng trắng thừa ở hai đầu, hay dữ liệu không hợp lệ. Thiết kế quy tắc xử lý cụ thể cho từng vị trí.
+**The right approach:** distinguish whether those characters are grouping separators inside a number, extra surrounding whitespace, or invalid data. Design explicit handling rules for each position.
 
-## 5. Ví dụ đầy đủ: `fr-FR` và dấu phân nhóm Unicode
+## 5. Complete Example: `fr-FR` and Unicode Grouping Separators
 
-Tạo `FrenchGroupingDemo.java`:
+Create `FrenchGroupingDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -215,14 +215,14 @@ public class FrenchGroupingDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 FrenchGroupingDemo.java
 java FrenchGroupingDemo
 ~~~
 
-Trên JDK dùng dữ liệu CLDR với dấu nhóm `U+202F`, kết quả minh họa là:
+On a JDK using CLDR data with grouping separator `U+202F`, illustrative output is:
 
 ~~~text
 Grouping separator: U+202F
@@ -233,21 +233,21 @@ Parsed: 1234.50
 Fully consumed: true
 ~~~
 
-Nếu provider dùng một ký tự nhóm khác, dòng `Grouping separator`, `Formatted` và `Code points` có thể khác. Dù vậy, chương trình lấy ký hiệu **từ cùng locale/provider**, format và parse bằng chính formatter, nên ví dụ giúp kiểm chứng được cách làm phù hợp môi trường chạy.
+If the provider uses a different grouping character, the `Grouping separator`, `Formatted`, and `Code points` lines may differ. Even so, because the program obtains symbols **from the same locale/provider**, formats, and parses using that formatter, the example verifies behavior appropriate to the runtime environment.
 
-**Điểm học tập:** `DecimalFormatSymbols.getGroupingSeparator()` cho biết ký tự thực tế được cấu hình, thay vì suy luận chỉ từ ký hiệu giống dấu cách trên màn hình.
+**Key takeaway:** `DecimalFormatSymbols.getGroupingSeparator()` reveals the actual configured character instead of guessing from a space-like glyph on screen.
 
-### Tại sao không đơn giản viết `replace(" ", "")`?
+### Why Not Simply Write `replace(" ", "")`?
 
-Đối với `"1 234,50"`, ký tự nhóm là NNBSP, **không phải** `" "`. `replace(" ", "")` không xử lý ký tự đó. Ngược lại, một phép xóa tất cả khoảng trắng Unicode có thể khiến đầu vào có dấu nhóm **đặt sai vị trí** trở thành dãy số trông hợp lệ, làm mất dấu hiệu cần xác thực.
+In `"1 234,50"`, the grouping character is NNBSP, **not** `" "`. `replace(" ", "")` does not touch that character. Conversely, deleting all Unicode spaces indiscriminately can turn an input with **misplaced grouping separators** into a seemingly valid digit string, erasing the signal needed for validation.
 
-Nếu sản phẩm có chính sách chấp nhận nhiều dạng khoảng trắng khi nhập số, việc **chuẩn hóa** phải được giới hạn vào những vị trí hợp lệ và sau đó kiểm tra cấu trúc theo locale, thay vì “xóa hết để parser chạy”.
+If a product has a policy allowing multiple space forms in numeric input, **normalization** must be restricted to valid positions and followed by locale-aware structure validation, rather than “stripping everything just to make the parser succeed.”
 
-## 6. `NumberFormat.parse` có thể chỉ đọc tiền tố
+## 6. `NumberFormat.parse` Can Read Only a Prefix
 
-Một rủi ro lớn là `NumberFormat.parse(String)` hoặc `parse(String, ParsePosition)` **không có nghĩa kiểm tra cú pháp toàn chuỗi theo yêu cầu biểu mẫu**. Một parser có thể chấp nhận phần đầu rồi dừng.
+A major risk is that `NumberFormat.parse(String)` or `parse(String, ParsePosition)` **does not check full-string syntax as required by a form**. A parser can accept the leading portion and stop.
 
-Ví dụ với locale Mỹ:
+Example with US locale:
 
 ~~~java
 NumberFormat parser =
@@ -255,11 +255,11 @@ NumberFormat parser =
 Number number = parser.parse("1,234.50abc");
 ~~~
 
-Đây là **mảnh mã trong phương thức**, cần import `java.text.NumberFormat` và `java.util.Locale`. Một số implementation có thể trả số `1234.5` dù còn chuỗi `abc`. Nếu chỉ kiểm tra `number != null`, hệ thống có thể chấp nhận input không hợp lệ.
+This is a **code snippet inside a method**, requiring imports for `java.text.NumberFormat` and `java.util.Locale`. Implementations can return `1234.5` even though `abc` remains. If you only check `number != null`, the system can accept invalid input.
 
-### Kiểm tra vị trí kết thúc bằng ParsePosition
+### Checking Ending Position with `ParsePosition`
 
-Tạo `PrefixParsingDemo.java`:
+Create `PrefixParsingDemo.java`:
 
 ~~~java
 import java.text.DecimalFormat;
@@ -288,14 +288,14 @@ public class PrefixParsingDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 PrefixParsingDemo.java
 java PrefixParsingDemo
 ~~~
 
-Với JDK thông dụng, kết quả:
+With standard JDKs, the output is:
 
 ~~~text
 Parsed: 1234.50
@@ -304,9 +304,9 @@ Input length: 11
 Valid full input: false
 ~~~
 
-Giải thích: phần `"1,234.50"` dài 8 ký tự đã được phân tích; `"abc"` không được tiêu thụ. `ParsePosition.getIndex()` cho biết vị trí kết thúc (theo chỉ số ký tự UTF-16), còn `getErrorIndex()` có thể cung cấp vị trí lỗi khi phân tích thất bại.
+Explanation: the 8-character `"1,234.50"` portion was parsed; `"abc"` was not consumed. `ParsePosition.getIndex()` reports the ending position (in UTF-16 character indices), while `getErrorIndex()` can report an error position when parsing fails.
 
-Mẫu kiểm tra đáng dùng cho form:
+A reliable check pattern for forms:
 
 ~~~java
 ParsePosition position = new ParsePosition(0);
@@ -317,25 +317,25 @@ if (result == null || position.getIndex() != input.length()) {
 }
 ~~~
 
-Đây là **mảnh mã** với các biến `parser` và `input` có sẵn. Trong ứng dụng thật, cũng nên giới hạn độ dài input và có chính sách đối với các dấu âm, số không, phạm vi và độ chính xác.
+This is a **code snippet** assuming `parser` and `input` already exist. In production applications, also cap input length and enforce policies for signs, zero, range, and precision.
 
-**Quan trọng:** kiểm tra tiêu thụ toàn bộ chỉ phát hiện ký tự dư. Nó **không** chứng minh dấu nhóm được đặt đúng chuẩn hay input tuân thủ toàn bộ luật nghiệp vụ.
+**Important:** checking full consumption only catches trailing characters. It **does not** prove that grouping separators are positioned strictly or that input satisfies all business rules.
 
-## 7. Parser có thể chấp nhận dấu phân nhóm đặt sai chỗ
+## 7. Parsers Can Accept Misplaced Grouping Separators
 
-`DecimalFormat` được thiết kế để phân tích số theo nhiều cách nhập, và nhiều implementation không xác thực chặt cách đặt dấu nhóm theo nhóm ba chữ số. Một số input không chuẩn vẫn có thể được parse ra số.
+`DecimalFormat` is built to parse numbers across varied user inputs, and many implementations do not strictly enforce three-digit grouping placement. Non-standard inputs can still parse into a number.
 
-Ví dụ dưới đây minh họa sự khác biệt giữa **parsing** và **validation** trong JDK thông dụng:
+The example below illustrates the difference between **parsing** and **validation** in standard JDKs:
 
 ~~~text
 Input:       12,34,567.89
-Meaning:     dấu nhóm không theo kiểu en-US chuẩn
+Meaning:     grouping does not follow standard en-US style
 Parsed:      1234567.89
 Full input:  true
-Strict UI:   phải từ chối nếu sản phẩm yêu cầu nhóm ba chữ số
+Strict UI:   must reject if product requires three-digit grouping
 ~~~
 
-Tạo `GroupingValidationDemo.java`:
+Create `GroupingValidationDemo.java`:
 
 ~~~java
 import java.text.DecimalFormat;
@@ -368,14 +368,14 @@ public class GroupingValidationDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 GroupingValidationDemo.java
 java GroupingValidationDemo
 ~~~
 
-Kết quả với parser JDK thường gặp:
+Output with common JDK parsers:
 
 ~~~text
 Parsed: 1234567.89
@@ -383,21 +383,21 @@ Entire input consumed: true
 Strict en-US shape: false
 ~~~
 
-**Tại sao regex này không dùng cho mọi locale?**
+**Why can this regex not be used for every locale?**
 
-- Nó được viết **riêng cho yêu cầu biểu mẫu en-US**: số không âm, chỉ ASCII `0–9`, dấu `,` nhóm ba chữ số, `.` làm dấu thập phân, tối đa hai chữ số lẻ, không có exponent.
-- Nó chấp nhận cả dạng không nhóm `1234567.89` và dạng nhóm chuẩn `1,234,567.89`.
-- Nó cố ý từ chối `12,34,567.89` dù parser có thể đọc thành số.
-- Nó **không** phải regex chung của `Locale`: các vùng có quy tắc nhóm khác nhau, dấu Unicode, phần âm, chữ số ngoài ASCII, hoặc yêu cầu cho phép nhiều hơn hai chữ số lẻ.
-- Không nên chuẩn hóa bừa `12,34,567.89` thành `1234567.89` mà không cảnh báo người nhập nếu sản phẩm yêu cầu dấu nhóm nghiêm ngặt.
+- It was written **specifically for an en-US form requirement**: non-negative numbers, ASCII `0–9` only, comma `,` three-digit grouping, `.` decimal separator, at most two fractional digits, and no exponent.
+- It accepts both ungrouped `1234567.89` and standard grouped `1,234,567.89`.
+- It intentionally rejects `12,34,567.89` even though the parser can read it as a number.
+- It is **not** a generic `Locale` regex: regions differ in grouping rules, Unicode signs, negative parts, non-ASCII digits, or allowances for more than two fractional digits.
+- Do not silently normalize `12,34,567.89` into `1234567.89` without warning the user if the product requires strict grouping.
 
-Trong nghiệp vụ nhạy cảm (tài chính, thuế, kế toán), nên xác định một **hợp đồng đầu vào** rõ ràng, xác thực cấu trúc trước hoặc cùng quá trình parse, kiểm tra range/scale và ghi log lỗi theo chính sách riêng tư. Không xem `setGroupingUsed(true)` là chế độ “strict grouping”; nó chỉ liên quan đến việc dùng dấu phân nhóm, **không tự đảm bảo mọi vị trí nhóm được kiểm tra nghiêm ngặt**.
+In sensitive domains (finance, tax, accounting), define an explicit **input contract**, validate structure before or alongside parsing, check range/scale, and log errors under privacy policies. Never treat `setGroupingUsed(true)` as a “strict grouping” mode; it only controls whether grouping is used, **without guaranteeing strict validation of every separator position**.
 
-## 8. Chữ số Unicode: không chỉ có `0–9`
+## 8. Unicode Digits: Not Only `0–9`
 
-Trong Java, một chữ số có thể thuộc nhiều hệ chữ viết:
+In Java, a digit can belong to many writing systems:
 
-| Hệ chữ số | Minh họa | Unicode thường gặp |
+| Numeral System | Illustration | Common Unicode Range |
 | --- | --- | --- |
 | Latin/ASCII | `0123456789` | `U+0030–U+0039` |
 | Arabic-Indic | `٠١٢٣٤٥٦٧٨٩` | `U+0660–U+0669` |
@@ -405,7 +405,7 @@ Trong Java, một chữ số có thể thuộc nhiều hệ chữ viết:
 | Devanagari | `०१२३४५६७८९` | `U+0966–U+096F` |
 | Fullwidth | `０１２３４５６７８９` | `U+FF10–U+FF19` |
 
-`Character.digit(int codePoint, int radix)` có thể xác định **giá trị số** của nhiều ký tự chữ số Unicode. Ví dụ:
+`Character.digit(int codePoint, int radix)` can determine the **numeric value** of many Unicode digit characters. For example:
 
 ~~~java
 System.out.println(Character.digit('3', 10));  // 3
@@ -414,19 +414,19 @@ System.out.println(Character.digit('३', 10));  // 3
 System.out.println(Character.digit('３', 10)); // 3
 ~~~
 
-Đây là **mảnh mã trong method**. `Character.digit` ở đây minh họa *giá trị số học* của một ký tự; nó **không** chứng minh `NumberFormat` của **mọi locale** sẽ chấp nhận mọi loại chữ số, dấu thập phân hoặc dấu nhóm đi kèm.
+This is a **code snippet inside a method**. Here `Character.digit` illustrates the *arithmetic value* of a character; it **does not** prove that `NumberFormat` for **every locale** will accept every digit script or its accompanying decimal/grouping separators.
 
-Một locale như `ar-EG` có thể dùng chữ số Arabic-Indic và các dấu phân cách dành riêng cho hệ chữ số đó, trong khi parser `en-US` có thể không chấp nhận chính những ký tự này. Quy tắc đọc của parser còn phụ thuộc `DecimalFormatSymbols`, provider và cú pháp input.
+A locale such as `ar-EG` may use Arabic-Indic digits and separators specific to that numeral system, whereas an `en-US` parser may reject those very characters. Parser behavior also depends on `DecimalFormatSymbols`, the provider, and input syntax.
 
-### Không nhầm số “trông giống nhau” với byte/chuỗi giống nhau
+### Do Not Confuse Numbers That “Look Alike” with Identical Bytes/Strings
 
-Hai chuỗi `"123"` và `"١٢٣"` mang các code point khác nhau. Dù cùng biểu đạt giá trị một trăm hai mươi ba trong một ngữ cảnh, so sánh `String.equals` giữa chúng cho kết quả `false`.
+`"123"` and `"١٢٣"` carry different code points. Even if both denote one hundred twenty-three in a given context, `String.equals` between them returns `false`.
 
-Hơn nữa, chuỗi có thể trộn nhiều hệ chữ số, dấu nhóm của một locale với dấu thập phân của locale khác, hoặc ký tự confusable. Nếu hệ thống xác thực mã tài khoản, mã định danh, khóa truy cập hay trường dữ liệu giao thức, **không nên tự động cho phép mọi chữ số Unicode chỉ vì chúng có giá trị 0–9**. Những trường đó thường cần cú pháp ASCII cụ thể, không phải parser số cho UI.
+Furthermore, a string can mix multiple numeral systems, pair one locale's grouping separator with another's decimal separator, or contain confusable characters. When a system validates account codes, identifiers, access keys, or protocol fields, **do not automatically allow arbitrary Unicode digits just because they have numeric values 0–9**. Such fields usually require explicit ASCII syntax rather than a UI number parser.
 
-## 9. Ví dụ chạy được: chữ số Arabic-Indic với `ar-EG`
+## 9. Runnable Example: Arabic-Indic Digits with `ar-EG`
 
-Tạo `ArabicDigitsDemo.java`:
+Create `ArabicDigitsDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -469,14 +469,14 @@ public class ArabicDigitsDemo {
 }
 ~~~
 
-Lệnh chạy:
+Run commands:
 
 ~~~bash
 javac -encoding UTF-8 ArabicDigitsDemo.java
 java ArabicDigitsDemo
 ~~~
 
-Với provider CLDR dùng hệ chữ số Arabic-Indic cho `ar-EG`, đầu ra minh họa:
+With a CLDR provider using Arabic-Indic digits for `ar-EG`, illustrative output is:
 
 ~~~text
 Zero digit: U+0660
@@ -487,38 +487,38 @@ Parsed: 1234.5
 Full input: true
 ~~~
 
-Đây là kết quả phụ thuộc dữ liệu locale; các bộ dữ liệu khác có thể lựa chọn hệ chữ số khác hoặc cho phép cấu hình Unicode locale extension như `u-nu-latn`. Mục đích là thấy **formatter và parser phải dùng một chính sách locale/hệ chữ số nhất quán**, thay vì tự đổi ký tự theo mắt nhìn.
+This output depends on locale data; other datasets may choose a different numeral system or support Unicode locale extensions such as `u-nu-latn`. The point is that **the formatter and parser must share a consistent locale/numeral-system policy**, rather than swapping characters by eye.
 
-### Khi nào cần Unicode locale extension?
+### When Is a Unicode Locale Extension Needed?
 
-Một thẻ như `ar-EG-u-nu-latn` thể hiện mong muốn sử dụng chữ số Latin trong ngữ cảnh tiếng Ả Rập tại Ai Cập. `Locale` có thể lưu keyword `nu`, nhưng API/provider cụ thể phải hỗ trợ nó để tác động đến định dạng số. Nếu ứng dụng bắt buộc dùng Latin digits, hãy kiểm thử `NumberFormat` thực tế hoặc thiết lập chính sách hiển thị riêng; **không** giả định mọi thư viện đều tôn trọng mọi extension.
+A tag like `ar-EG-u-nu-latn` expresses a preference for Latin digits within an Arabic (Egypt) locale context. `Locale` can store the `nu` keyword, but the specific API/provider must honor it to affect number formatting. If your application mandates Latin digits, test the actual `NumberFormat` or configure an explicit display policy; do **not** assume every library honors every extension.
 
-## 10. Chiến lược chuẩn hóa đầu vào Unicode an toàn
+## 10. Safe Unicode Input Normalization Strategies
 
-Một số người dùng copy chuỗi từ tài liệu có NBSP/NNBSP; một số gõ ASCII space thay cho dấu nhóm theo locale. Ứng dụng có thể chọn **strict input** hoặc **lenient input**, nhưng phải nói rõ quy tắc.
+Some users paste strings containing NBSP/NNBSP from documents; others type an ASCII space in place of a locale's space grouping separator. An application may choose **strict input** or **lenient input**, as long as it specifies the rules clearly.
 
-### Phương án A — Strict locale input
+### Option A — Strict Locale Input
 
-- Xác định locale người nhập.
-- Lấy đúng dấu nhóm/dấu thập phân của locale.
-- Chấp nhận một dạng nhóm đã tài liệu hóa và một tập chữ số được phép.
-- Xác thực toàn bộ chuỗi, vị trí dấu âm và nhóm, số chữ số thập phân.
-- Parse và xác minh miền giá trị, precision/scale.
-- Hiển thị lỗi rõ nếu nhập ký tự giống nhưng không đúng quy định.
+- Determine the user's input locale.
+- Obtain the exact grouping/decimal separators for that locale.
+- Accept one documented grouping form and one allowed digit set.
+- Validate the entire string, minus-sign and separator positions, and fractional digit count.
+- Parse and verify value range and precision/scale.
+- Display a clear error if visually similar but non-compliant characters were entered.
 
-Phù hợp với trường hợp số tiền hoặc dữ liệu pháp lý cần kiểm soát.
+Suitable for monetary amounts or regulated data requiring strict control.
 
-### Phương án B — Lenient input có chuẩn hóa kiểm soát
+### Option B — Lenient Input with Controlled Normalization
 
-Một sản phẩm có thể cho phép người dùng nhập dấu space thường thay cho NNBSP, nhưng phải giới hạn:
+A product might let users type a regular space instead of NNBSP, subject to strict boundaries:
 
-1. Chỉ thay **ký tự được cho phép** ở vị trí **dấu nhóm**, không thay tất cả khoảng trắng.
-2. Trước hoặc sau thay thế, kiểm tra kích cỡ nhóm theo locale và có quy tắc cho giá trị âm/decimal.
-3. Không thay dấu thập phân chỉ bằng cách “đoán” nếu một ký tự có thể vừa là dấu nhóm ở locale này vừa là dấu thập phân ở locale khác.
-4. Phân tích bằng locale đã xác định và xác nhận toàn bộ input đã được tiêu thụ.
-5. Nếu dữ liệu cần audit, cân nhắc giữ bản input thô có kiểm soát quyền riêng tư để giải thích nguồn lỗi.
+1. Replace only **permitted characters** at **grouping separator positions**, never all whitespace everywhere.
+2. Before or after replacement, validate group sizes per locale and enforce rules for negative signs/decimals.
+3. Never replace a decimal separator by “guessing” if a character can act as a grouping separator in one locale and a decimal separator in another.
+4. Parse using the determined locale and confirm full input consumption.
+5. If auditability is required, consider retaining the raw input under privacy controls to explain error sources.
 
-**Không nên làm điều sau cho mọi locale:**
+**Do not do the following across all locales:**
 
 ~~~java
 String guessed = input
@@ -526,19 +526,19 @@ String guessed = input
         .replace(",", ".");
 ~~~
 
-Đây là **mảnh mã có biến `input`**, minh họa cách làm dễ sai. Với `de-DE`, `"1.234,50"` nếu chỉ đổi dấu phẩy thành dấu chấm sẽ thành `"1.234.50"`, không hợp lệ theo cú pháp số chuẩn. Với `en-US`, `"1,234.50"` khi đổi phẩy thành chấm cũng bị sai. Với `fr-FR`, xóa ASCII space không loại được NNBSP.
+This is a **code snippet with an `input` variable** illustrating an error-prone approach. For `de-DE`, `"1.234,50"` with commas simply replaced by dots becomes `"1.234.50"`, which is syntactically invalid as a standard number. For `en-US`, `"1,234.50"` also breaks when commas become dots. For `fr-FR`, deleting ASCII spaces fails to remove NNBSP.
 
-### Tại sao phải thận trọng với Unicode normalization?
+### Why Be Cautious with Unicode Normalization?
 
-`java.text.Normalizer` có thể áp dụng NFC/NFKC, nhưng **không nên gọi `Normalizer.normalize(input, Form.NFKC)` lên mọi giá trị số và mặc định nó đã sạch**. NFKC có thể đổi một số ký tự tương thích (ví dụ chữ số fullwidth), **không** đồng nghĩa với việc xử lý đúng mọi dấu nhóm, dấu thập phân và quy tắc an toàn theo locale.
+`java.text.Normalizer` can apply NFC/NFKC, but **do not call `Normalizer.normalize(input, Form.NFKC)` on every numeric input and assume it is clean**. NFKC can convert certain compatibility characters (such as fullwidth digits), which **does not** automatically handle every locale's grouping separators, decimal separators, and safety rules.
 
-Nếu chọn chuẩn hóa NFKC trong sản phẩm, hãy nêu rõ lý do, danh mục ký tự được cho phép trước/sau chuẩn hóa, cách tránh mơ hồ và test các trường hợp trộn hệ chữ số. Không dùng normalization để thay cho validation.
+If you adopt NFKC normalization in a product, document the rationale, the allowed character set before and after normalization, how ambiguities are prevented, and test mixed-script cases. Never use normalization as a substitute for validation.
 
-## 11. Parse đúng nhưng vẫn cần kiểm tra miền giá trị và độ chính xác
+## 11. Accurate Parsing Still Requires Range and Precision Checks
 
-Một giá trị số hợp cú pháp có thể **không hợp nghiệp vụ**, chẳng hạn tiền âm ở biểu mẫu chỉ cho phép dương hoặc giá trị có quá nhiều chữ số thập phân.
+A syntactically valid number can still be **invalid for the business domain**, such as a negative amount in a positive-only form or a number with too many fractional digits.
 
-Dùng `BigDecimal` khi cần giá trị thập phân chính xác:
+Use `BigDecimal` when exact decimal values are required:
 
 ~~~java
 DecimalFormat parser =
@@ -561,75 +561,75 @@ if (amount.scale() > 2) {
 }
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.math.BigDecimal`, `java.text.DecimalFormat`, `java.text.NumberFormat`, `java.text.ParsePosition` và `java.util.Locale`. Biến `input` là chuỗi cần parse. Kiểm tra `scale()` là một lựa chọn chính sách minh họa; nếu muốn chấp nhận số như `1.230` ở trường tối đa hai chữ số phần lẻ, hãy quyết định xử lý các số 0 thừa trước khi áp dụng giới hạn. `scale` không phải chỉ tiêu duy nhất để xác thực tiền.
+This is a **code snippet inside a method**, requiring imports for `java.math.BigDecimal`, `java.text.DecimalFormat`, `java.text.NumberFormat`, `java.text.ParsePosition`, and `java.util.Locale`. `input` is the string to parse. Checking `scale()` is an illustrative policy choice; if you want to accept inputs like `1.230` in a field capped at two fractional digits, decide how to handle trailing zeros before enforcing the limit. `scale` is not the sole criterion for validating money.
 
-**Không suy rằng `setParseBigDecimal(true)` tự tạo parser strict.** Nó chủ yếu tác động kiểu số trả về/độ chính xác. Luật nhập liệu vẫn phải kiểm soát separately.
+**Do not infer that `setParseBigDecimal(true)` creates a strict parser.** It primarily affects return type and precision. Input syntax rules still must be enforced separately.
 
-### Parsing và formatting không nhất thiết là phép đảo tuyệt đối
+### Parsing and Formatting Are Not Strict Inverses
 
-Nếu formatter làm tròn số từ `1234.567` thành `1,234.57`, parse ngược sẽ nhận `1234.57`, **không** phải `1234.567`. Nếu biến đổi Unicode hoặc chấp nhận nhiều cách đặt dấu nhóm, nhiều chuỗi khác nhau cũng có thể chuyển thành cùng một giá trị.
+If a formatter rounds `1234.567` to `1,234.57`, parsing it back produces `1234.57`, **not** `1234.567`. When normalizing Unicode or accepting varied grouping styles, different input strings can also parse into the same value.
 
-Vì thế, không dùng chuỗi đã format làm dữ liệu lưu trữ chính. Hãy lưu số ở dạng có kiểu (ví dụ `BigDecimal`), còn chuỗi bản địa hóa dành cho hiển thị và nhận input.
+Therefore, never use formatted strings as your primary stored representation. Store numbers in typed form (such as `BigDecimal`), and reserve localized strings for display and user input.
 
-## 12. Trường hợp không nên dùng parser số theo Locale
+## 12. Cases Where Locale-Aware Number Parsers Should Not Be Used
 
-**Số phục vụ giao tiếp giữa các dịch vụ** (JSON number, cấu hình chuẩn, dữ liệu máy) thường cần cú pháp xác định, **không** phụ thuộc người đang xem. Ví dụ JSON number dùng dấu chấm làm dấu thập phân và không dùng dấu nhóm theo locale.
+**Numbers used for service-to-service communication** (JSON numbers, canonical configs, machine data) usually require a deterministic syntax **independent** of who is viewing them. For example, JSON numbers use a dot as the decimal separator and never use locale grouping separators.
 
-**Mã định danh** như số tài khoản, mã bưu chính, số điện thoại, mã đơn hàng có thể chứa chữ số và dấu nhưng **không phải đại lượng số học**. Không đưa chúng vào `NumberFormat`: có thể mất số 0 đầu, làm thay đổi cấu trúc ký tự hoặc chấp nhận input không đúng hợp đồng.
+**Identifiers** such as account numbers, postal codes, phone numbers, and order codes may contain digits and separators, yet they are **not arithmetic quantities**. Never pass them through `NumberFormat`: you can lose leading zeros, alter character structure, or accept invalid contract inputs.
 
-Nếu thông tin là mã ID hoặc dữ liệu bảo mật, thường cần **chuỗi với validation riêng**, có thể giới hạn ASCII `[0-9]` một cách có chủ đích; không đồng nhất nó với dữ liệu định dạng số địa phương.
+If the data is an ID or security-sensitive token, you typically need **strings with dedicated validation**, intentionally restricted to ASCII `[0-9]` if appropriate; do not conflate them with localized numeric formatting.
 
-## 13. Bảng so sánh lỗi thường gặp
+## 13. Common Mistakes Comparison Table
 
-| Sai lầm | Hậu quả | Hướng khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Nghĩ `" "`, NBSP, NNBSP là cùng một ký tự | Không nhận được số copy từ web/PDF | Kiểm tra code point, dùng `DecimalFormatSymbols` |
-| Cho rằng `strip()` loại mọi khoảng trắng | NBSP/NNBSP vẫn tồn tại | Xử lý loại ký tự cụ thể theo chính sách |
-| Xóa mọi khoảng trắng trước khi parse | Có thể hợp thức hóa dấu nhóm đặt sai | Xác thực vị trí nhóm trước khi chuẩn hóa |
-| Gọi `new BigDecimal("1.234,50")` | Thất bại vì constructor không hiểu locale | Dùng parser theo locale rồi kiểm tra |
-| Chỉ kiểm tra `parse(...) != null` | Có thể nhận tiền tố của chuỗi lỗi | Dùng `ParsePosition`, yêu cầu tiêu thụ toàn bộ |
-| Nghĩ full consumption đồng nghĩa nhóm hợp lệ | Có thể chấp nhận `12,34,567.89` | Thêm validation nghiêm ngặt theo hợp đồng |
-| Dùng cùng một regex ASCII cho mọi locale | Từ chối dữ liệu hợp lệ ở locale khác | Thiết kế validation cho locale thực sự được hỗ trợ |
-| Giả định `Character.digit` có nghĩa mọi parser chấp nhận mọi chữ số | Parser từ chối chữ số hoặc dấu khác hệ | Kiểm thử `NumberFormat` theo locale/provider |
-| Tự thay `,` bằng `.` trên input đa locale | Có thể đảo nghĩa dấu nhóm/thập phân | Xác định nguồn locale và parse đúng quy tắc |
-| Không kiểm tra precision/range sau parse | Nhận số tiền quá lớn, quá nhiều phần lẻ | Dùng `BigDecimal` và kiểm tra nghiệp vụ |
-| Dùng `NumberFormat` cho mã ID có số 0 đầu | Mất cấu trúc của định danh | Giữ chuỗi gốc và validation theo schema |
-| Chia sẻ `DecimalFormat` giữa nhiều request không đồng bộ | Có thể rò trạng thái/cấu hình giữa luồng | Tạo parser theo request hoặc đồng bộ/copy phù hợp |
+| Assuming `" "`, NBSP, and NNBSP are the same character | Fails to parse numbers pasted from web/PDF | Inspect code points and use `DecimalFormatSymbols` |
+| Assuming `strip()` removes all whitespace | NBSP/NNBSP remain untouched | Handle specific character classes per policy |
+| Deleting all whitespace before parsing | Can turn misplaced grouping into valid-looking input | Validate group positions before normalizing |
+| Calling `new BigDecimal("1.234,50")` | Fails because constructor is locale-unaware | Use a locale-aware parser and validate |
+| Checking only `parse(...) != null` | May accept only the prefix of a bad string | Use `ParsePosition` and require full consumption |
+| Assuming full consumption implies valid grouping | May accept `12,34,567.89` | Add strict validation per contract |
+| Applying one ASCII regex to every locale | Rejects valid inputs in other locales | Design validation for each supported locale |
+| Assuming `Character.digit` means every parser accepts all digits | Parser rejects digits or separators from another script | Test `NumberFormat` per locale/provider |
+| Blindly replacing `,` with `.` on multi-locale input | Can flip decimal and grouping meanings | Identify source locale and parse by its rules |
+| Skipping precision/range checks after parsing | Accepts oversized amounts or excess decimals | Use `BigDecimal` and enforce business checks |
+| Using `NumberFormat` for IDs with leading zeros | Loses identifier structure | Keep the original string and validate against schema |
+| Sharing a `DecimalFormat` across requests unsynchronized | State/config leakage across threads | Create per-request parsers or synchronize/copy safely |
 
-`NumberFormat` và `DecimalFormat` **không có bảo đảm thread-safe khi dùng chung không đồng bộ**. `Locale` bất biến, nhưng formatter/parser có trạng thái và có thể được cấu hình lại. Trong ứng dụng đa người dùng, truyền `Locale` từ ngữ cảnh request và tạo parser phù hợp.
+`NumberFormat` and `DecimalFormat` are **not guaranteed thread-safe when shared without synchronization**. `Locale` is immutable, whereas formatters/parsers hold mutable state and can be reconfigured. In multi-user applications, pass `Locale` from the request context and create appropriate parser instances.
 
-## 14. Checklist kiểm thử và bài tập
+## 14. Testing Checklist and Exercises
 
-### Checklist QA
+### QA Checklist
 
-1. Với mỗi locale được hỗ trợ, kiểm tra dấu nhóm, dấu thập phân và chữ số thực tế bằng `DecimalFormatSymbols`.
-2. Test các chuỗi có SPACE `U+0020`, NBSP `U+00A0`, NNBSP `U+202F`; lưu ý chúng khác nhau.
-3. Test chữ số ASCII, Arabic-Indic và trường hợp trộn hệ chữ số theo chính sách sản phẩm.
-4. Test chuỗi được parse toàn bộ so với chỉ parse tiền tố, ví dụ `"1,234.50abc"`.
-5. Test nhóm không chuẩn như `"12,34,567.89"`; đừng phụ thuộc mặc định lenient cho validation nghiệp vụ.
-6. Test số âm, số không, giá trị rất lớn, nhiều chữ số phần thập phân và input quá dài.
-7. Test đúng JDK và locale provider ở production; dấu nhóm `fr-FR` và quy tắc Unicode có thể biến đổi theo dữ liệu locale.
-8. Test độ chính xác với `BigDecimal`; không cho format rồi parse đè giá trị nguồn khi có làm tròn.
-9. Kiểm thử parser đa luồng hoặc phạm vi sống của parser để không dùng chung instance mutable sai cách.
+1. For each supported locale, verify actual grouping separator, decimal separator, and zero digit using `DecimalFormatSymbols`.
+2. Test strings with SPACE `U+0020`, NBSP `U+00A0`, and NNBSP `U+202F`; remember they differ.
+3. Test ASCII digits, Arabic-Indic digits, and mixed-script inputs per product policy.
+4. Test fully parsed strings versus prefix-only parses such as `"1,234.50abc"`.
+5. Test irregular grouping such as `"12,34,567.89"`; do not rely on lenient defaults for business validation.
+6. Test negative numbers, zero, very large values, many fractional digits, and overly long inputs.
+7. Test on the exact JDK and locale provider used in production; `fr-FR` grouping and Unicode rules can vary across locale data versions.
+8. Test precision with `BigDecimal`; do not let format-then-parse overwrite rounded source values.
+9. Test multithreaded parser usage or lifecycle scope so mutable instances are not shared improperly.
 
-### Bài tập tự kiểm tra
+### Self-Check Exercises
 
-1. Viết chương trình in `DecimalFormatSymbols.getGroupingSeparator()` cho `Locale.US`, `Locale.GERMANY` và `Locale.FRANCE` theo dạng `U+XXXX`; tại sao nhìn bằng mắt chưa đủ?
-2. Cho chuỗi có NNBSP `"1 234,50"`. Vì sao `replace(" ", "")` không xóa được dấu nhóm? Vì sao vẫn không nên xóa mọi khoảng trắng Unicode?
-3. Dùng `ParsePosition` parse `"1,234.50abc"` theo `en-US`. Phân tích `getIndex()` và giải thích vì sao không thể chấp nhận toàn bộ input.
-4. Dùng `GroupingValidationDemo` thử `"12,34,567.89"`, `"1,234,567.89"` và `"1234567.89"`. Loại nào hợp lệ theo regex của bài, loại nào được parser lenient chấp nhận?
-5. Với locale `ar-EG`, kiểm tra chữ số zero, dấu nhóm, dấu thập phân và format số `1234.5`. Vì sao không thể tự động suy rằng parser `en-US` chấp nhận cùng input?
-6. Giải thích khác nhau giữa `Character.isWhitespace(0x202F)` và `Character.isSpaceChar(0x202F)`. `String.strip()` có loại ký tự này ở hai đầu không?
-7. Thiết kế parser cho biểu mẫu số tiền theo locale có tối đa hai chữ số lẻ. Hãy phân biệt validation cú pháp, `BigDecimal`, phạm vi hợp lệ và currency của giao dịch.
-8. Tại sao không nên định dạng/phân tích mã đơn hàng `"001234"` bằng `NumberFormat`?
+1. Write a program printing `DecimalFormatSymbols.getGroupingSeparator()` for `Locale.US`, `Locale.GERMANY`, and `Locale.FRANCE` in `U+XXXX` notation; why is visual inspection insufficient?
+2. Given the NNBSP string `"1 234,50"`, why does `replace(" ", "")` fail to remove the grouping separator? Why should you still avoid deleting all Unicode spaces?
+3. Use `ParsePosition` to parse `"1,234.50abc"` under `en-US`. Inspect `getIndex()` and explain why the full input cannot be accepted.
+4. Run `GroupingValidationDemo` with `"12,34,567.89"`, `"1,234,567.89"`, and `"1234567.89"`. Which are valid under the article's regex, and which are accepted by the lenient parser?
+5. For locale `ar-EG`, inspect the zero digit, grouping separator, decimal separator, and format of `1234.5`. Why can you not assume an `en-US` parser accepts the same input?
+6. Explain the difference between `Character.isWhitespace(0x202F)` and `Character.isSpaceChar(0x202F)`. Does `String.strip()` remove this character from either end?
+7. Design a parser for a localized monetary amount form allowing at most two fractional digits. Distinguish syntax validation, `BigDecimal`, valid range, and transaction currency.
+8. Why should order code `"001234"` not be formatted or parsed with `NumberFormat`?
 
-**Ghi nhớ:** dấu phân nhóm không đơn giản là phẩy hoặc khoảng trắng; nó có thể là **NBSP `U+00A0`**, **NNBSP `U+202F`**, hoặc ký tự đặc thù hệ chữ số. Chữ số Unicode có thể có giá trị số tương đương ASCII nhưng không cùng mã ký tự và không được mọi parser chấp nhận như nhau. Hãy **xác định locale nguồn, đọc đúng `DecimalFormatSymbols`, kiểm tra parse hết chuỗi và xác thực cú pháp/nghiệp vụ riêng**. Trong dữ liệu trao đổi máy hoặc mã định danh, dùng schema có cú pháp tường minh thay vì phụ thuộc định dạng số của người dùng.
+**Key takeaway:** grouping separators are not simply commas or spaces; they can be **NBSP `U+00A0`**, **NNBSP `U+202F`**, or script-specific characters. Unicode digits may carry the same numeric values as ASCII digits while having different code points and differing parser support. Always **identify the source locale, read the actual `DecimalFormatSymbols`, verify full string consumption, and validate syntax and business rules separately**. For machine interchange or identifiers, use schemas with explicit syntax rather than user-facing number formats.
 
-### Tài liệu tham khảo
+### References
 
-- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) — cách định dạng và phân tích số theo locale.
-- [Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html) — phân nhóm, parsing, pattern và `setParseBigDecimal`.
-- [Java SE 17 — DecimalFormatSymbols](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormatSymbols.html) — dấu nhóm, dấu thập phân, chữ số zero.
-- [Java SE 17 — ParsePosition](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ParsePosition.html) — vị trí đọc được và lỗi phân tích.
-- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html) — `digit`, `isWhitespace`, `isSpaceChar` và Unicode.
-- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html) — `strip` và thao tác chuỗi Unicode.
+- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) — locale-aware number formatting and parsing.
+- [Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html) — grouping, parsing, patterns, and `setParseBigDecimal`.
+- [Java SE 17 — DecimalFormatSymbols](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormatSymbols.html) — grouping separator, decimal separator, zero digit.
+- [Java SE 17 — ParsePosition](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ParsePosition.html) — parsed position and parse error offset.
+- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html) — `digit`, `isWhitespace`, `isSpaceChar`, and Unicode.
+- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html) — `strip` and Unicode string operations.

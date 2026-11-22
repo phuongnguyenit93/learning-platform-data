@@ -1,14 +1,14 @@
-# Giới hạn ép kiểu từ NumberFormat sang DecimalFormat trong Java
+# Limits of Casting from NumberFormat to DecimalFormat in Java
 
-`java.text.NumberFormat` là lớp trừu tượng để **định dạng và phân tích số theo locale**. `java.text.DecimalFormat` là một lớp con cụ thể có thêm pattern, bộ ký hiệu dấu thập phân/phân nhóm, cách xử lý parse `BigDecimal`, prefix/suffix và nhiều cấu hình riêng. Khi nhận một `NumberFormat` từ factory, lập trình viên thường muốn chuyển sang `DecimalFormat` để dùng những tính năng này. Nhưng **không phải mọi `NumberFormat` đều là `DecimalFormat`**, và Java **không cam kết** tất cả factory đều trả về lớp con đó.
+`java.text.NumberFormat` is an abstract class for **locale-aware number formatting and parsing**. `java.text.DecimalFormat` is a concrete subclass adding patterns, decimal/grouping symbol sets, `BigDecimal` parsing support, prefixes/suffixes, and many dedicated configurations. When obtaining a `NumberFormat` from a factory, developers often want to cast it to `DecimalFormat` to use those features. Yet **not every `NumberFormat` is a `DecimalFormat`**, and Java **does not promise** all factories return that subclass.
 
-Quy tắc quan trọng nhất: **chỉ ép kiểu khi đối tượng thực sự là `DecimalFormat`**, kiểm tra bằng `instanceof`; nếu chức năng cần thiết đã có ở `NumberFormat` thì **không cần ép kiểu**. Nếu ứng dụng bắt buộc phải có pattern và các phương thức đặc thù của `DecimalFormat`, có thể **khởi tạo `DecimalFormat` tường minh với `DecimalFormatSymbols` phù hợp**, nhưng cần hiểu sự khác biệt với formatter được factory tự lựa chọn.
+The golden rule: **only cast when the object is genuinely a `DecimalFormat`**, verified with `instanceof`; if the needed functionality already exists on `NumberFormat`, **do not cast at all**. If an application strictly requires patterns and `DecimalFormat`-specific methods, you can **instantiate `DecimalFormat` explicitly with matching `DecimalFormatSymbols`**, while understanding how it differs from a factory-chosen formatter.
 
-Bài học áp dụng cho **Java 17+**, minh họa lỗi biên dịch, `ClassCastException`, pattern matching cho `instanceof`, trường hợp `CompactNumberFormat`, sự phụ thuộc vào locale provider và các lựa chọn thiết kế an toàn.
+This lesson targets **Java 17+**, demonstrating compile errors, `ClassCastException`, pattern matching for `instanceof`, the `CompactNumberFormat` case, locale provider dependencies, and safe design choices.
 
-## 1. Quan hệ kế thừa không có nghĩa ép kiểu luôn hợp lệ
+## 1. Inheritance does not mean casting is always valid
 
-Cấu trúc các lớp liên quan:
+Hierarchy of related classes:
 
 ```text
 java.lang.Object
@@ -17,20 +17,20 @@ java.lang.Object
                   ├── java.text.DecimalFormat
                   ├── java.text.CompactNumberFormat
                   └── java.text.ChoiceFormat
-                       (+ subclass/provider khác)
+                       (+ other subclasses/providers)
 ```
 
-Có hai hướng khác nhau:
+There are two directions:
 
-- **Upcast** (lớp con → lớp cha): `NumberFormat f = new DecimalFormat();`, được Java cho phép và an toàn. Đối tượng thực vẫn là `DecimalFormat`, chỉ kiểu của biến tham chiếu rộng hơn.
-- **Downcast** (lớp cha → lớp con): `DecimalFormat d = (DecimalFormat) f;`, chỉ chạy được khi đối tượng thực trong `f` là một `DecimalFormat` hoặc lớp con của nó. Nếu không, JVM ném `ClassCastException`.
+- **Upcast** (subclass → superclass): `NumberFormat f = new DecimalFormat();`, allowed by Java and safe. The actual object remains a `DecimalFormat`, only the reference variable has a broader type.
+- **Downcast** (superclass → subclass): `DecimalFormat d = (DecimalFormat) f;`, succeeds only when the actual object inside `f` is a `DecimalFormat` or a subclass of it. Otherwise, the JVM throws `ClassCastException`.
 
-Không thể suy ra đối tượng thực chỉ từ khai báo biến `NumberFormat`. Một tham chiếu cùng kiểu có thể lần lượt trỏ tới một `DecimalFormat`, một `CompactNumberFormat`, một `ChoiceFormat`, hoặc một subclass do nhà cung cấp dịch vụ triển khai.
+You cannot deduce the actual object type solely from a `NumberFormat` variable declaration. A reference of the same type may point in turn to a `DecimalFormat`, a `CompactNumberFormat`, a `ChoiceFormat`, or a subclass implemented by a service provider.
 
-**Phân biệt kiểu khai báo và kiểu thực tế:**
+**Distinguishing declared type from runtime type:**
 
 ```java
-// Đoạn mã minh họa, cần import java.text.*.
+// Illustrative snippet; requires importing java.text.*.
 NumberFormat number = new DecimalFormat("0.00"); // upcast
 boolean ok = number instanceof DecimalFormat;   // true
 
@@ -40,11 +40,11 @@ NumberFormat choice = new ChoiceFormat(
 boolean notDecimal = choice instanceof DecimalFormat; // false
 ```
 
-`number` và `choice` đều có kiểu khai báo là `NumberFormat`. Nhưng chúng thuộc **hai lớp con khác nhau**. Java không “biến” một formatter thành formatter khác khi ta cast: phép cast chỉ **kiểm tra kiểu runtime** và trả lại một tham chiếu có kiểu hẹp hơn nếu kiểm tra thành công.
+`number` and `choice` both have declared type `NumberFormat`. Yet they belong to **two different subclasses**. Java does not "convert" one formatter into another when you cast: casting only **checks the runtime type** and returns a narrower-typed reference if the check passes.
 
-## 2. Vì sao factory NumberFormat không bảo đảm DecimalFormat?
+## 2. Why NumberFormat factories do not guarantee DecimalFormat
 
-Các factory phổ biến:
+Common factories:
 
 ```java
 NumberFormat number = NumberFormat.getNumberInstance(locale);
@@ -56,48 +56,48 @@ NumberFormat compact = NumberFormat.getCompactNumberInstance(
         locale, NumberFormat.Style.SHORT);
 ```
 
-Đây là **fragment**: biến `locale` phải là một `Locale` đã khai báo, và cần `import java.text.NumberFormat;`.
+This is a **fragment**: the `locale` variable must be a declared `Locale`, and `import java.text.NumberFormat;` is required.
 
-Các phương thức này có **kiểu trả về khai báo là `NumberFormat`**, cho phép JDK chọn triển khai phù hợp theo kiểu định dạng, locale, dữ liệu locale và nhà cung cấp dịch vụ (`NumberFormatProvider`). Trong nhiều bản JDK chuẩn, các factory số thường/tiền tệ/phần trăm thường trả `DecimalFormat`. Tuy nhiên, đó **không phải hợp đồng mà ứng dụng nên dựa vào một cách tuyệt đối**.
+These methods have a **declared return type of `NumberFormat`**, allowing the JDK to choose an appropriate implementation based on formatting style, locale, locale data, and service providers (`NumberFormatProvider`). On many standard JDK builds, regular number/currency/percent factories often return `DecimalFormat`. However, that is **not a contract an application should rely on unconditionally**.
 
-Đặc biệt, từ Java 12 có `getCompactNumberInstance(...)` để định dạng rút gọn như số nghìn/triệu. Triển khai chuẩn của factory này sử dụng `CompactNumberFormat` — một **lớp con khác** của `NumberFormat`, **không kế thừa `DecimalFormat`**. Chưa kể các locale service provider có thể trả về lớp con phù hợp khác.
+Notably, since Java 12 there is `getCompactNumberInstance(...)` for compact forms such as thousands/millions. Its standard implementation uses `CompactNumberFormat` — a **different subclass** of `NumberFormat` that **does not extend `DecimalFormat`**. Furthermore, locale service providers may return other suitable subclasses.
 
-Tài liệu Oracle của `DecimalFormat` hướng dẫn kiểm tra kiểu trước khi dùng các tính năng riêng của nó. Do đó, lời khuyên “cứ cast, với Locale.US chắc chắn được” không phải một nguyên tắc viết code có tính di động.
+Oracle's `DecimalFormat` documentation advises checking the type before using its specialized features. Hence, the advice "just cast it, with Locale.US it's definitely fine" is not a portable coding principle.
 
-### Ba tầng cần nhớ
+### Three layers to remember
 
-| Tầng | Điều ta biết chắc | Điều không nên tự suy diễn |
+| Layer | What we know for sure | What not to assume |
 | --- | --- | --- |
-| **Compile-time** | Factory khai báo trả về `NumberFormat` | Không có phép gán ngầm sang `DecimalFormat` |
-| **Runtime** | `instanceof` và cast kiểm tra lớp thật của object | Không phải mọi object `NumberFormat` là `DecimalFormat` |
-| **Triển khai/locale** | Factory tìm formatter phù hợp với môi trường | Không thể coi một class cụ thể là bảo đảm trên mọi JDK/provider |
+| **Compile-time** | Factory declares return type `NumberFormat` | No implicit assignment to `DecimalFormat` |
+| **Runtime** | `instanceof` and cast check the object's real class | Not every `NumberFormat` object is a `DecimalFormat` |
+| **Implementation/locale** | Factory finds a formatter fitting the environment | A specific class cannot be guaranteed across all JDKs/providers |
 
-**`getClass().getName()`** có thể dùng để chẩn đoán lớp thực khi chạy, nhưng không dùng so sánh tên class để quyết định ép kiểu: điều kiện `instanceof DecimalFormat` mới là đúng về mặt hệ kiểu, kể cả với subclass của `DecimalFormat`.
+**`getClass().getName()`** can be used to diagnose the runtime class, but never compare class names to decide casting: `instanceof DecimalFormat` is what is type-system sound, including for subclasses of `DecimalFormat`.
 
-## 3. Lỗi biên dịch so với lỗi lúc chạy
+## 3. Compile-time errors vs. runtime errors
 
-Đoạn sau **không biên dịch**:
+The following **does not compile**:
 
 ```java
-// KHÔNG HỢP LỆ: return type của factory là NumberFormat.
+// INVALID: the factory's return type is NumberFormat.
 DecimalFormat bad = NumberFormat.getNumberInstance(Locale.US);
 ```
 
-Trình biên dịch không được phép gán tự động một giá trị kiểu cha `NumberFormat` vào biến kiểu con `DecimalFormat`. Nếu thêm cast:
+The compiler is not allowed to implicitly assign a value of parent type `NumberFormat` into a variable of child type `DecimalFormat`. Adding a cast:
 
 ```java
-// Biên dịch được; runtime vẫn phụ thuộc class thực tế.
+// Compiles; runtime still depends on the actual class.
 DecimalFormat maybe =
         (DecimalFormat) NumberFormat.getNumberInstance(Locale.US);
 ```
 
-thì chỉ **chuyển trách nhiệm kiểm tra xuống runtime**. Khi factory trả một subclass khác, câu lệnh này ném `ClassCastException`.
+merely **defers checking to runtime**. When the factory returns a different subclass, this statement throws `ClassCastException`.
 
-Nguy cơ tăng lên nếu nhiều môi trường dùng locale provider khác nhau, JDK/vendor khác nhau, hoặc code sau này đổi từ `getNumberInstance` sang `getCompactNumberInstance` nhưng giữ nguyên cast cũ.
+The risk rises when environments use different locale providers, different JDKs/vendors, or later code switches from `getNumberInstance` to `getCompactNumberInstance` while leaving the old cast intact.
 
-### Ví dụ chắc chắn tạo ClassCastException mà không phụ thuộc provider
+### Example guaranteed to produce ClassCastException without provider dependence
 
-Lưu **`CastFailureDemo.java`**:
+Save **`CastFailureDemo.java`**:
 
 ```java
 import java.text.ChoiceFormat;
@@ -125,7 +125,7 @@ public class CastFailureDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 CastFailureDemo.java
@@ -140,11 +140,11 @@ DecimalFormat: false
 Cast failed: ClassCastException
 ```
 
-Đây là ví dụ **cố ý tạo một formatter không phải DecimalFormat**, không cần đoán provider nào đang được cài. `ChoiceFormat` vẫn là một `NumberFormat` nhưng cast xuống một sibling class (`DecimalFormat`) là sai. Việc bắt `ClassCastException` minh họa lỗi, **không phải** khuyến nghị dùng ngoại lệ để chọn nhánh ở code thông thường.
+This example **intentionally creates a non-DecimalFormat formatter**, without needing to guess which provider is installed. `ChoiceFormat` is still a `NumberFormat`, yet casting across to a sibling class (`DecimalFormat`) is invalid. Catching `ClassCastException` illustrates the error; it is **not** a recommendation to use exceptions for control flow in ordinary code.
 
-## 4. Cách an toàn nhất: instanceof kết hợp pattern matching Java 17
+## 4. Safest approach: instanceof with Java 17 pattern matching
 
-Từ Java 16, cú pháp **pattern matching for `instanceof`** có thể khai báo biến đã được kiểm tra kiểu trong nhánh `if`. Java 17 hỗ trợ cú pháp này bình thường:
+Since Java 16, **pattern matching for `instanceof`** can declare a type-checked variable inside the `if` branch. Java 17 supports this syntax natively:
 
 ```java
 NumberFormat formatter =
@@ -158,9 +158,9 @@ if (formatter instanceof DecimalFormat decimal) {
 }
 ```
 
-Đây là **fragment trong một phương thức**, cần `import java.text.NumberFormat;`, `DecimalFormat;` và `java.util.Locale;`. Không đưa ra stdout cố định cho toàn bộ chương trình này: nếu object là `DecimalFormat`, dấu thập phân được buộc xuất hiện; nếu không, code dùng khả năng chung của `NumberFormat`.
+This is a **fragment inside a method**, requiring `import java.text.NumberFormat;`, `DecimalFormat;`, and `java.util.Locale;`. No fixed stdout is asserted for this snippet as a whole: if the object is a `DecimalFormat`, the decimal separator is forced to appear; otherwise, the code uses `NumberFormat`'s common capabilities.
 
-Tương đương với cú pháp trước Java 16:
+Equivalent pre-Java 16 syntax:
 
 ```java
 if (formatter instanceof DecimalFormat) {
@@ -169,22 +169,22 @@ if (formatter instanceof DecimalFormat) {
 }
 ```
 
-Nhánh `if` là bằng chứng rằng cast trong nhánh được thực hiện trên **đúng cùng đối tượng** đã kiểm tra. Nếu gọi lại factory lần thứ hai rồi cast object khác, phép kiểm tra ban đầu không bảo đảm gì cho object vừa nhận:
+The `if` branch proves that the cast inside the branch operates on **the exact same object** that was checked. Calling the factory a second time and casting the new object gives no guarantee from the earlier check:
 
 ```java
-// Không nên kiểm tra một object rồi cast một object mới.
+// Do not check one object and then cast a new object.
 if (formatter instanceof DecimalFormat) {
-    // Đừng coi kết quả factory sau đây chắc chắn có cùng subtype:
+    // Do not assume the following factory result is guaranteed to have the same subtype:
     // DecimalFormat other = (DecimalFormat)
     //         NumberFormat.getNumberInstance(Locale.US);
 }
 ```
 
-Hãy giữ formatter trong một biến, kiểm tra một lần và thao tác đúng object đó.
+Keep the formatter in one variable, check once, and operate on that same object.
 
-### Chương trình hoàn chỉnh: hỗ trợ cả hai nhánh
+### Complete program: supporting both branches
 
-Lưu **`SafeFactoryDemo.java`**:
+Save **`SafeFactoryDemo.java`**:
 
 ```java
 import java.text.DecimalFormat;
@@ -217,35 +217,35 @@ javac -encoding UTF-8 SafeFactoryDemo.java
 java SafeFactoryDemo
 ```
 
-Chương trình luôn in hai dòng, nhưng **không có một stdout bất biến chung** cho mọi JDK/provider. Với triển khai `DecimalFormat` thông dụng cho `Locale.US`, hai dòng thường là:
+The program always prints two lines, though there is **no single invariant stdout** across all JDKs/providers. With the standard `DecimalFormat` implementation for `Locale.US`, the two lines are typically:
 
 ```text
 Decimal-specific settings applied
 Formatted value: 1,234.50
 ```
 
-Nếu factory trả subclass khác, nhánh `else` vẫn chạy và định dạng số thông qua `NumberFormat`; chuỗi có thể theo quy tắc của provider đó. Không dùng `formatter.getClass() == DecimalFormat.class`: một lớp **kế thừa `DecimalFormat`** cũng có thể được cast hợp lệ, nhưng phép so sánh class tuyệt đối lại từ chối nó.
+If the factory returns another subclass, the `else` branch still runs and formats the number via `NumberFormat`; the string follows that provider's rules. Never use `formatter.getClass() == DecimalFormat.class`: a class **extending `DecimalFormat`** can also be validly cast, yet exact class equality rejects it.
 
-## 5. Khi chỉ cần tính năng NumberFormat thì không nên cast
+## 5. When only NumberFormat features are needed, do not cast
 
-`NumberFormat` đã có nhiều phương thức phục vụ công việc phổ biến:
+`NumberFormat` already provides many methods for common tasks:
 
-| Nhu cầu | API có sẵn trên NumberFormat |
+| Need | API available on NumberFormat |
 | --- | --- |
-| Định dạng số | `format(long)`, `format(double)`, `format(Object)` |
-| Đọc số từ chuỗi | `parse(String)` |
-| Bật/tắt nhóm hàng nghìn | `setGroupingUsed(boolean)` |
-| Chữ số phần nguyên tối thiểu/tối đa | `setMinimumIntegerDigits(int)`, `setMaximumIntegerDigits(int)` |
-| Chữ số phần lẻ tối thiểu/tối đa | `setMinimumFractionDigits(int)`, `setMaximumFractionDigits(int)` |
-| Giới hạn parse ở phần nguyên | `setParseIntegerOnly(boolean)` |
-| Đơn vị tiền (nếu implementation hỗ trợ) | `setCurrency(Currency)` |
-| Chế độ làm tròn (nếu implementation hỗ trợ) | `setRoundingMode(RoundingMode)` |
+| Format numbers | `format(long)`, `format(double)`, `format(Object)` |
+| Parse numbers from strings | `parse(String)` |
+| Toggle thousands grouping | `setGroupingUsed(boolean)` |
+| Min/max integer digits | `setMinimumIntegerDigits(int)`, `setMaximumIntegerDigits(int)` |
+| Min/max fractional digits | `setMinimumFractionDigits(int)`, `setMaximumFractionDigits(int)` |
+| Limit parsing to integer part | `setParseIntegerOnly(boolean)` |
+| Currency unit (if supported by implementation) | `setCurrency(Currency)` |
+| Rounding mode (if supported by implementation) | `setRoundingMode(RoundingMode)` |
 
-Nên viết code theo interface khả năng cần thiết thay vì phụ thuộc một class cụ thể.
+Write code against the required capability interface rather than coupling to a concrete class.
 
-**Lưu ý quan trọng về hỗ trợ:** việc một phương thức được *khai báo* trên `NumberFormat` không có nghĩa mọi subclass triển khai được nó. Ví dụ, `NumberFormat.setRoundingMode` trong lớp cơ sở có implementation ném `UnsupportedOperationException`; subclass có hỗ trợ rounding mode phải override. Tương tự, `setCurrency` mặc định ở lớp cơ sở có thể không được hỗ trợ. Vì vậy, “không cần cast” không đồng nghĩa “mọi cấu hình đều được đảm bảo bởi mọi provider”. Nếu tính năng rất quan trọng, phải kiểm tra hành vi/capability của implementation hoặc chọn một đối tượng cụ thể đã biết.
+**Important note on support:** just because a method is *declared* on `NumberFormat` does not mean every subclass implements it. For instance, `NumberFormat.setRoundingMode` in the base class throws `UnsupportedOperationException`; subclasses supporting rounding modes must override it. Likewise, `setCurrency` in the base class may not be supported by default. Thus, "no cast needed" does not mean "every setting is guaranteed by every provider." If a feature is critical, verify the implementation's behavior/capabilities or select a known concrete object.
 
-**Chương trình chạy độc lập — `BaseApiDemo.java`**:
+**Standalone runnable program — `BaseApiDemo.java`**:
 
 ```java
 import java.text.NumberFormat;
@@ -275,7 +275,7 @@ javac -encoding UTF-8 BaseApiDemo.java
 java BaseApiDemo
 ```
 
-Với triển khai số thường của JDK cho `Locale.US`, kết quả là:
+With the JDK's standard number implementation for `Locale.US`, the output is:
 
 ```text
 Min fraction: 2
@@ -283,53 +283,53 @@ Max fraction: 2
 Value: 12.50
 ```
 
-Ưu điểm là mã vẫn sử dụng chung những khả năng có sẵn ngay cả khi factory thay đổi subtype. Nếu chỉ cần tối đa hai chữ số thập phân và grouping, **đừng ép kiểu chỉ để gọi những setter đã có trong `NumberFormat`**.
+The advantage is that code continues using shared capabilities even if a factory changes subtypes. If you only need up to two decimal places and grouping, **do not cast just to call setters already present on `NumberFormat`**.
 
-## 6. Những chức năng riêng của DecimalFormat đòi hỏi kiểm tra subtype
+## 6. DecimalFormat-only features that require checking the subtype
 
-`DecimalFormat` cung cấp các phương thức không có ở `NumberFormat`:
+`DecimalFormat` provides methods absent from `NumberFormat`:
 
-| Nhu cầu nâng cao | API DecimalFormat | Ghi chú |
+| Advanced need | DecimalFormat API | Note |
 | --- | --- | --- |
-| Áp dụng pattern không theo địa phương | `applyPattern("#,##0.00")` | Pattern ký hiệu `.`/`,` chuẩn, ký hiệu hiển thị do symbols/locale quyết định |
-| Xuất pattern hiện tại | `toPattern()` | Không dùng như ID ổn định hoặc quy tắc nghiệp vụ |
-| Áp dụng pattern cục bộ | `applyLocalizedPattern(...)` | Ký hiệu pattern phải đúng theo symbols hiện hành |
-| Điều chỉnh dấu phân cách và chữ số | `getDecimalFormatSymbols()`, `setDecimalFormatSymbols(...)` | Cần biết ảnh hưởng đến grouping, tiền tệ, số âm |
-| Luôn in dấu phân cách thập phân | `setDecimalSeparatorAlwaysShown(true)` | Ví dụ số nguyên có thể thành `100.` |
-| Kích thước nhóm hàng | `setGroupingSize(int)` | Chi tiết riêng của DecimalFormat |
-| Prefix/suffix | `setPositivePrefix(...)`, `setNegativeSuffix(...)` | Có thể thay đổi nội dung báo hiệu dấu âm |
-| Chọn parse thành BigDecimal | `setParseBigDecimal(true)` | Có ích cho parsing thập phân với độ chính xác decimal |
-| Hệ số nhân | `setMultiplier(int)` | Có thể làm thay đổi ý nghĩa số (như percent) |
+| Apply non-localized pattern | `applyPattern("#,##0.00")` | Standard `.`/`,` pattern syntax; display symbols come from symbols/locale |
+| Export current pattern | `toPattern()` | Do not use as a stable ID or business rule |
+| Apply localized pattern | `applyLocalizedPattern(...)` | Pattern symbols must match current symbols |
+| Adjust separators and digits | `getDecimalFormatSymbols()`, `setDecimalFormatSymbols(...)` | Be aware of impact on grouping, currency, negatives |
+| Always print decimal separator | `setDecimalSeparatorAlwaysShown(true)` | E.g., an integer can become `100.` |
+| Grouping size | `setGroupingSize(int)` | DecimalFormat-specific detail |
+| Prefix/suffix | `setPositivePrefix(...)`, `setNegativeSuffix(...)` | Can change how negative signs are indicated |
+| Opt into BigDecimal parsing | `setParseBigDecimal(true)` | Useful for decimal parsing with decimal precision |
+| Multiplier | `setMultiplier(int)` | Can change numeric meaning (like percent) |
 
-Nếu chỉ cần ví dụ `setParseBigDecimal(true)`, đừng viết:
+If you only want `setParseBigDecimal(true)`, never write:
 
 ```java
-// KHÔNG BIÊN DỊCH vì NumberFormat không khai báo setParseBigDecimal.
+// DOES NOT COMPILE because NumberFormat does not declare setParseBigDecimal.
 NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 nf.setParseBigDecimal(true);
 ```
 
-Muốn dùng nó, phải có biến mà compiler biết là `DecimalFormat`, thông qua `instanceof` hoặc tạo `new DecimalFormat(...)`.
+To use it, you must have a variable the compiler knows is `DecimalFormat`, via `instanceof` or `new DecimalFormat(...)`.
 
-### Ví dụ có kiểm tra kiểu: cấu hình parse BigDecimal
+### Type-checked example: configuring BigDecimal parsing
 
 ```java
 NumberFormat number = NumberFormat.getNumberInstance(Locale.US);
 if (number instanceof DecimalFormat decimal) {
     decimal.setParseBigDecimal(true);
-    // Từ đây dùng decimal.parse(...) theo chính sách kiểm tra input.
+    // From here use decimal.parse(...) according to the input validation policy.
 } else {
-    // Subclass khác: không giả định nó có cùng cơ chế parse BigDecimal.
+    // Another subclass: do not assume it shares the same BigDecimal parsing mechanism.
 }
 ```
 
-Đây là **fragment**, không phải chương trình đầy đủ. Khi triển khai thực tế, `DecimalFormat.parse(String)` có thể không tiêu thụ toàn bộ chuỗi đầu vào. Nếu cần validation, dùng `ParsePosition` và xác nhận `pos.getIndex() == input.length()` cùng `pos.getErrorIndex()` thích hợp, bên cạnh kiểm tra phạm vi và scale.
+This is a **fragment**, not a full program. In real usage, `DecimalFormat.parse(String)` may not consume the entire input string. When validation is needed, use `ParsePosition` and confirm `pos.getIndex() == input.length()` along with appropriate `pos.getErrorIndex()`, in addition to range and scale checks.
 
-## 7. Trường hợp CompactNumberFormat: subclass có thật, không phải DecimalFormat
+## 7. The CompactNumberFormat case: a real subclass that is not DecimalFormat
 
-`CompactNumberFormat` được dùng trong các định dạng rút gọn theo locale. Nó là một **lớp con của `NumberFormat`**, không phải subclass của `DecimalFormat`. Factory `NumberFormat.getCompactNumberInstance(locale, style)` được thiết kế cho dạng compact.
+`CompactNumberFormat` is used for locale-aware compact formatting. It is a **subclass of `NumberFormat`**, not a subclass of `DecimalFormat`. The factory `NumberFormat.getCompactNumberInstance(locale, style)` is designed for compact forms.
 
-Chương trình **`CompactTypeDemo.java`**:
+Program **`CompactTypeDemo.java`**:
 
 ```java
 import java.text.CompactNumberFormat;
@@ -362,19 +362,19 @@ javac -encoding UTF-8 CompactTypeDemo.java
 java CompactTypeDemo
 ```
 
-Trên JDK 17/21 dùng triển khai compact thông thường, dòng phân loại thường là `CompactNumberFormat implementation`, tiếp theo:
+On JDK 17/21 using the standard compact implementation, the classification line is typically `CompactNumberFormat implementation`, followed by:
 
 ```text
 Assignable to NumberFormat: true
 ```
 
-Dòng đầu có thể khác nếu môi trường sử dụng triển khai khác, nên đoạn stdout ở trên chỉ trích **dòng thứ hai luôn đúng** chứ không phải stdout liên tiếp đầy đủ. Đây là minh họa vì sao **định dạng compact không nên bị ép sang `DecimalFormat`** để gọi `applyPattern`. Chọn API chuyên biệt của subtype thực tế (nếu cần và phù hợp), hoặc sử dụng các thao tác chung của `NumberFormat`.
+The first line can vary if an environment uses a different implementation, so the stdout snippet above quotes only **the second line that always holds**, rather than the full consecutive stdout. This demonstrates why **compact formatters must not be cast to `DecimalFormat`** to call `applyPattern`. Choose specialized APIs of the actual subtype (if needed and appropriate), or use common `NumberFormat` operations.
 
-Nếu một thư viện chỉ nhận `DecimalFormat`, đừng cố giả mạo compact formatter bằng cast. Hãy chuyển đổi giao diện của thư viện để nhận `NumberFormat`/`Format` nếu nghiệp vụ cho phép, hoặc cung cấp một `DecimalFormat` được cấu hình riêng và chấp nhận rằng nó **không tương đương** định dạng compact.
+If a library accepts only `DecimalFormat`, do not try to fake a compact formatter with a cast. Either change the library's interface to accept `NumberFormat`/`Format` if business rules permit, or supply a separately configured `DecimalFormat` while accepting that it is **not equivalent** to compact formatting.
 
-## 8. Khi thật sự cần DecimalFormat: tạo đối tượng tường minh
+## 8. When you truly need DecimalFormat: instantiate explicitly
 
-Nếu chức năng bắt buộc là pattern `"#,##0.00"` hoặc `setParseBigDecimal`, bạn có thể tạo đúng lớp yêu cầu:
+If `"#,##0.00"` patterns or `setParseBigDecimal` are mandatory, you can construct the required class directly:
 
 ```java
 Locale locale = Locale.forLanguageTag("en-US");
@@ -382,9 +382,9 @@ DecimalFormat decimal = new DecimalFormat(
         "#,##0.00", DecimalFormatSymbols.getInstance(locale));
 ```
 
-Đây là **fragment** cần `import java.text.DecimalFormat;`, `DecimalFormatSymbols;`, `java.util.Locale;`. Không có phép cast nào. Constructor hai tham số cho phép kiểm soát **pattern** và **ký hiệu theo locale**.
+This is a **fragment** requiring `import java.text.DecimalFormat;`, `DecimalFormatSymbols;`, `java.util.Locale;`. No cast is involved. The two-argument constructor lets you control the **pattern** and **locale-specific symbols**.
 
-**Ví dụ chạy độc lập — `ExplicitDecimalDemo.java`**:
+**Standalone runnable example — `ExplicitDecimalDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -427,27 +427,27 @@ Parse as BigDecimal: true
 Pattern: #,##0.00
 ```
 
-Kết quả này được kiểm soát bằng **pattern cụ thể**, `DecimalFormatSymbols` của `Locale.US` và `HALF_UP`. Dùng constructor tường minh là lựa chọn đúng khi bạn cần bảo đảm **subtype `DecimalFormat`**, nhưng không phải lúc nào nó cũng giữ được mọi quy tắc mà factory locale cung cấp.
+These results are governed by the **specific pattern**, `Locale.US` `DecimalFormatSymbols`, and `HALF_UP`. Using the explicit constructor is the right choice when you must guarantee the **`DecimalFormat` subtype**, though it will not always preserve every rule provided by locale factories.
 
-### Đánh đổi với factory
+### Trade-offs against factories
 
-| Tiêu chí | Factory `NumberFormat.getNumberInstance(locale)` | `new DecimalFormat(pattern, symbols)` |
+| Criterion | Factory `NumberFormat.getNumberInstance(locale)` | `new DecimalFormat(pattern, symbols)` |
 | --- | --- | --- |
-| Kiểu khai báo/trả về | `NumberFormat` | Chắc chắn là `DecimalFormat` |
-| Tự chọn kiểu format phù hợp locale/provider | Có | Không — bạn chọn pattern/chữ số |
-| Có thể cast sang DecimalFormat | Chỉ sau `instanceof` | Không cần cast |
-| Hỗ trợ pattern DecimalFormat | Nếu subtype đúng | Có |
-| Kiểm soát quy tắc ký hiệu | Theo locale/provider | Qua `DecimalFormatSymbols` |
-| Mức độ thích hợp khi cần currency chuẩn theo locale | Thường nên lấy từ factory chuyên biệt | Cần tự cấu hình pattern/currency và xem xét quy tắc |
+| Declared/return type | `NumberFormat` | Guaranteed `DecimalFormat` |
+| Auto-selects locale/provider format style | Yes | No — you choose pattern/digits |
+| Can cast to DecimalFormat | Only after `instanceof` | No cast needed |
+| Supports DecimalFormat patterns | If subtype matches | Yes |
+| Controls symbol rules | By locale/provider | Via `DecimalFormatSymbols` |
+| Suitability for locale-standard currency | Usually better from currency factory | Requires configuring pattern/currency and reviewing rules manually |
 
-Nếu muốn một **định dạng số chung bản địa hóa trước**, sau đó chỉ chỉnh nhẹ, ưu tiên factory rồi kiểm tra subtype. Nếu muốn một **pattern bắt buộc** và không cần giữ chính xác mọi quyết định format của provider, tạo `DecimalFormat` trực tiếp với ký hiệu locale. Với giá trị tiền, cần thêm mã tiền tệ nghiệp vụ và chính sách làm tròn; đừng mặc định pattern `"#,##0.00"` biểu diễn tiền tệ đúng ở mọi nước.
+If you want a **standard localized number format first** and only minor adjustments, prefer the factory and check the subtype. If you want a **mandatory pattern** and do not need to retain every provider formatting choice, instantiate `DecimalFormat` directly with locale symbols. For monetary values, add the business currency code and rounding policy; never assume pattern `"#,##0.00"` renders currency properly in every country.
 
-## 9. Một mẫu thiết kế có fallback rõ ràng
+## 9. A design pattern with an explicit fallback
 
-Trong mã sản phẩm, nếu tùy chỉnh đặc thù là **tùy chọn**, có thể giữ formatter nhà cung cấp:
+In production code, if subtype-specific customization is **optional**, keep the provider's formatter:
 
 ```java
-// Fragment trong phương thức đã import NumberFormat, DecimalFormat, Locale.
+// Fragment inside a method with NumberFormat, DecimalFormat, Locale imported.
 NumberFormat format = NumberFormat.getNumberInstance(locale);
 format.setMinimumFractionDigits(2);
 format.setMaximumFractionDigits(2);
@@ -455,15 +455,15 @@ format.setMaximumFractionDigits(2);
 if (format instanceof DecimalFormat decimal) {
     decimal.setDecimalSeparatorAlwaysShown(true);
 }
-// Format tiếp bằng NumberFormat; không thay bằng object khác chỉ vì cast lỗi.
+// Continue formatting via NumberFormat; do not swap in another object just because the cast skipped.
 ```
 
-Nếu pattern là **bắt buộc về mặt hợp đồng hiển thị**, có hai lựa chọn có chủ đích:
+If a pattern is **contractually mandatory for display**, there are two deliberate choices:
 
-1. **Cần giữ formatter factory:** yêu cầu subtype `DecimalFormat` và báo lỗi cấu hình có ý nghĩa nếu không đáp ứng; điều này phù hợp khi ứng dụng chỉ chấp nhận một tập runtime/provider được kiểm soát.
-2. **Được phép tự quyết định pattern:** tạo `new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(locale))`. Khi đó app không còn sử dụng đầy đủ các quy tắc định dạng mặc định do factory/provider chọn.
+1. **Need to keep the factory formatter:** require the `DecimalFormat` subtype and throw a meaningful configuration error if unmet; suitable when the app accepts only a controlled set of runtimes/providers.
+2. **Allowed to dictate the pattern yourself:** instantiate `new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(locale))`. The app then no longer uses all default formatting rules selected by the factory/provider.
 
-Ví dụ hàm xây dựng formatter chỉ khi bắt buộc subtype:
+Example builder enforcing the subtype only when mandatory:
 
 ```java
 import java.text.DecimalFormat;
@@ -488,42 +488,42 @@ public class FormatterFactoryGuard {
                 NumberFormat.getNumberInstance(locale);
         System.out.println("NumberFormat available: "
                 + (format != null));
-        // Khi ứng dụng bắt buộc phải có DecimalFormat:
+        // When the application strictly requires DecimalFormat:
         // DecimalFormat decimal = requireDecimal(locale);
     }
 }
 ```
 
-Lưu file **`FormatterFactoryGuard.java`** và chạy:
+Save **`FormatterFactoryGuard.java`** and run:
 
 ```bash
 javac -encoding UTF-8 FormatterFactoryGuard.java
 java FormatterFactoryGuard
 ```
 
-Stdout của `main`:
+Stdout of `main`:
 
 ```text
 NumberFormat available: true
 ```
 
-Hàm `requireDecimal` được biên dịch và có thể được gọi từ code khác; `main` chủ ý không gọi hàm yêu cầu subtype để có stdout ổn định trên các provider. Nếu gọi `requireDecimal` và provider không trả `DecimalFormat`, nó ném `IllegalStateException` **có nội dung chẩn đoán**, không để một `ClassCastException` khó hiểu xuất hiện từ cast mù. Ở nơi subtype là tùy chọn, **không cần ném lỗi**, chỉ dùng formatter gốc và chức năng chung.
+`requireDecimal` compiles and can be called from other code; `main` intentionally avoids calling the subtype-enforcing method to keep stdout stable across providers. If `requireDecimal` is called and a provider does not return `DecimalFormat`, it throws `IllegalStateException` **with diagnostic details**, rather than letting a cryptic `ClassCastException` emerge from a blind cast. Where the subtype is optional, **do not throw**; simply use the original formatter and common functionality.
 
-## 10. Locale, pattern và bộ ký hiệu: không đánh đồng
+## 10. Locale, pattern, and symbol sets: do not conflate them
 
-`DecimalFormatSymbols.getInstance(locale)` cung cấp các ký hiệu như dấu thập phân, dấu grouping, chữ số, dấu âm theo locale. Với constructor `DecimalFormat("#,##0.00", symbols)`, pattern dùng **ký hiệu cú pháp chuẩn không localize**; ký tự thực tế xuất ra theo `symbols`.
+`DecimalFormatSymbols.getInstance(locale)` supplies symbols such as decimal separator, grouping separator, digits, and minus sign for a locale. With `DecimalFormat("#,##0.00", symbols)`, the pattern uses **non-localized standard syntax symbols**; actual output characters follow `symbols`.
 
-Ví dụ `"#,##0.00"` khi dùng ký hiệu en-US thường ra `1,234.50`; với de-DE có thể ra `1.234,50`. Đừng viết pattern `"#.##0,00"` cho de-DE vào `applyPattern(...)` rồi nghĩ Java sẽ tự hiểu đó là cú pháp locale Đức: `applyPattern` nhận pattern theo **quy ước chuẩn**. Nếu thực sự xử lý **localized pattern**, dùng `applyLocalizedPattern(...)` và kiểm soát `DecimalFormatSymbols` tương ứng.
+For instance, `"#,##0.00"` with en-US symbols typically yields `1,234.50`; with de-DE it can yield `1.234,50`. Do not write `"#.##0,00"` for de-DE into `applyPattern(...)` assuming Java automatically treats it as German syntax: `applyPattern` accepts **standard convention** patterns. If genuinely processing a **localized pattern**, use `applyLocalizedPattern(...)` and manage `DecimalFormatSymbols` accordingly.
 
-**Đặc biệt với currency:** `getCurrencyInstance(locale)` không chỉ thay một dấu `$`, mà còn có thể chọn pattern, grouping, ký hiệu âm và quy ước tiền tệ. Một `new DecimalFormat("#,##0.00", symbols)` không đương nhiên giữ được lựa chọn tiền tệ của factory. Khi cần cách in tiền, ưu tiên nhận formatter currency từ factory, sử dụng API chung khi đủ và chỉ tùy chỉnh `DecimalFormat` sau `instanceof`.
+**Especially for currency:** `getCurrencyInstance(locale)` does not merely swap in a `$` sign; it can also pick patterns, grouping, negative signs, and currency conventions. A `new DecimalFormat("#,##0.00", symbols)` does not automatically preserve the factory's currency choices. When monetary formatting is needed, prefer obtaining a currency formatter from the factory, use the common API where sufficient, and customize `DecimalFormat` only after `instanceof`.
 
-**Đặc biệt với BigDecimal:** `DecimalFormat` có hỗ trợ định dạng và parse decimal theo khả năng riêng của nó. `NumberFormat` có hợp đồng chung nhưng các subclass có thể xử lý `Number` khác nhau; không giả định mọi subclass tự bảo toàn precision của `BigDecimal` khi gọi `format(Object)`. Việc tiền được tính chính xác nên nằm ở tầng nghiệp vụ `BigDecimal`, formatter chỉ chịu trách nhiệm biểu diễn.
+**Especially for BigDecimal:** `DecimalFormat` supports formatting and parsing decimals within its capabilities. `NumberFormat` has a general contract, while subclasses can handle `Number` differently; do not assume every subclass preserves `BigDecimal` precision when calling `format(Object)`. Exact monetary calculations belong in the `BigDecimal` business layer; formatters are responsible only for presentation.
 
-## 11. Phân tích số không phải lúc nào cũng là phân tích BigDecimal
+## 11. Parsing numbers is not always BigDecimal parsing
 
-`NumberFormat.parse(String)` trả `Number`, không bảo đảm kiểu cụ thể như `BigDecimal`. Ngay cả khi đối tượng thật là `DecimalFormat`, nếu chưa gọi `setParseBigDecimal(true)`, giá trị parse có thể là `Long` hoặc `Double` tùy nội dung và cấu hình.
+`NumberFormat.parse(String)` returns `Number`, without guaranteeing a specific type like `BigDecimal`. Even when the actual object is a `DecimalFormat`, unless `setParseBigDecimal(true)` was called, the parsed value can be `Long` or `Double` depending on content and configuration.
 
-**Ví dụ chạy độc lập — `ParseBigDecimalDemo.java`**:
+**Standalone runnable example — `ParseBigDecimalDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -567,16 +567,16 @@ Parsed: 1234.50
 Type: BigDecimal
 ```
 
-Ví dụ sử dụng `ParsePosition` để từ chối các ký tự thừa sau số; tùy chính sách input, có thể cần kiểm tra thêm dấu phân cách, cách viết nhóm hàng, ký tự whitespace, số âm, giá trị trong phạm vi, scale và ký tự Unicode. `setParseBigDecimal` chỉ điều khiển **kiểu giá trị parse** của `DecimalFormat`, không thay thế validation.
+The example uses `ParsePosition` to reject trailing characters after the number; depending on input policy, you may also need to validate separators, grouping layout, whitespace, negatives, value range, scale, and Unicode characters. `setParseBigDecimal` only controls `DecimalFormat`'s **parsed value type**; it does not replace validation.
 
-Nếu chỉ có một `NumberFormat` không phải `DecimalFormat`, đừng ép nó thành `DecimalFormat` chỉ để lấy `BigDecimal`. Hoặc bạn áp dụng một parser được lựa chọn rõ ràng, hoặc bạn dùng API `parse` chung và kiểm soát chuyển đổi theo chính sách độ chính xác, thay vì gọi `new BigDecimal(parsed.doubleValue())` một cách tùy tiện.
+If you only have a `NumberFormat` that is not a `DecimalFormat`, do not force-cast it to `DecimalFormat` just to get `BigDecimal`. Either adopt an explicitly chosen parser, or use the common `parse` API and control conversion per precision policy rather than calling `new BigDecimal(parsed.doubleValue())` carelessly.
 
-## 12. Điều gì xảy ra khi dùng clone và truyền qua nhiều lớp?
+## 12. What happens when cloning and passing across layers?
 
-Ví dụ một service nhận tham số kiểu `NumberFormat`, trong khi caller tạo `DecimalFormat`. Việc truyền vào một phương thức khai báo tham số `NumberFormat` **không làm mất kiểu thật** của object; bạn vẫn có thể dùng `instanceof` ở phía nhận.
+Suppose a service accepts a `NumberFormat` parameter while the caller creates a `DecimalFormat`. Passing it into a method with a `NumberFormat` parameter **does not erase the object's runtime type**; you can still use `instanceof` on the receiving side.
 
 ```java
-// Fragment trong lớp Java (không phải file độc lập):
+// Fragment inside a Java class (not a standalone file):
 static void render(NumberFormat format) {
     if (format instanceof DecimalFormat decimal) {
         decimal.setGroupingSize(3);
@@ -585,75 +585,75 @@ static void render(NumberFormat format) {
 }
 ```
 
-Tuy nhiên, làm thay đổi formatter **của caller** trong phương thức `render` có thể gây tác dụng phụ, nhất là khi formatter được dùng lại. `NumberFormat`/`DecimalFormat` là các đối tượng **mutable** và không được bảo đảm thread-safe nếu chia sẻ giữa những request khác nhau. Để tránh điều đó, cân nhắc truyền cấu hình bất biến, tạo formatter mới cho mỗi thao tác hoặc clone/copy có kiểm soát trước khi sửa.
+However, mutating **the caller's** formatter inside `render` can cause side effects, especially when the formatter is reused. `NumberFormat`/`DecimalFormat` are **mutable** objects and are not guaranteed thread-safe if shared across concurrent requests. To avoid this, consider passing immutable configuration, creating a fresh formatter per operation, or performing controlled `clone()`/copy before mutating.
 
-Việc `clone()` của một formatter thường bảo toàn kiểu runtime là đặc điểm của một đối tượng được clone, **không chứng minh** đối tượng ban đầu là `DecimalFormat`. Không dùng cast trên bản clone nếu chưa biết subtype thật, và không chia sẻ các formatter mutable giữa nhiều thread mà không có cơ chế đồng bộ thích hợp.
+That `clone()` on a formatter normally preserves its runtime type is a property of cloning, **not proof** that the original object was a `DecimalFormat`. Do not cast a clone without knowing the actual subtype, and never share mutable formatters across multiple threads without proper synchronization.
 
-Nếu cần kiến trúc dài hạn, hãy để tầng UI làm việc với một interface hẹp như `Function<Number, String>` hoặc `NumberFormat` nếu đủ, thay vì mọi service phải nhận `DecimalFormat`. Chỉ nơi thực sự cần `applyPattern` mới phụ thuộc lớp cụ thể và xử lý nhánh không hỗ trợ một cách rõ ràng.
+For long-term architecture, let the UI layer depend on a narrow interface such as `Function<Number, String>` or `NumberFormat` when sufficient, rather than requiring every service to accept `DecimalFormat`. Only code that genuinely needs `applyPattern` should depend on the concrete class and explicitly handle unsupported branches.
 
-## 13. Các lựa chọn thiết kế theo tình huống
+## 13. Design choices by scenario
 
-| Tình huống | Cách nên làm | Lý do |
+| Scenario | Recommended approach | Reason |
 | --- | --- | --- |
-| Hiển thị số theo locale, tối đa hai chữ số lẻ | Dùng `NumberFormat.getNumberInstance(locale)`, setter chung | Không cần subtype |
-| Muốn dấu thập phân luôn xuất hiện với số nguyên | `instanceof DecimalFormat` rồi `setDecimalSeparatorAlwaysShown(true)`, có fallback | Tính năng riêng DecimalFormat |
-| Bắt buộc một pattern chuẩn xác để xuất báo cáo | `new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(locale))` | Bảo đảm object và pattern |
-| Định dạng số rút gọn (`1K`, `2M`...) | `getCompactNumberInstance(...)` | Không tương đương DecimalFormat thường |
-| Parser phải tạo `BigDecimal` | Chọn `DecimalFormat` có `setParseBigDecimal(true)`, kiểm tra toàn input | Tránh giả định kiểu Number trả về |
-| Nhận formatter từ thư viện/provider không kiểm soát | Dùng `instanceof`, không cast mù | Thay đổi implementation không làm crash ngẫu nhiên |
-| Formatter currency nghiệp vụ | Factory currency + kiểm soát mã tiền và rounding riêng | Không thay tiền tệ bằng một pattern đơn giản |
-| Xử lý server nhiều luồng | Formatter riêng cho lần render/request hoặc đồng bộ | Formatter mutable, không bảo đảm thread-safe |
-| API của bạn chỉ cần `format` | Nhận `NumberFormat`/`Format` thay vì `DecimalFormat` | Giảm coupling |
+| Display locale numbers, max two fractional digits | Use `NumberFormat.getNumberInstance(locale)`, common setters | No subtype needed |
+| Force decimal point on integers | `instanceof DecimalFormat` then `setDecimalSeparatorAlwaysShown(true)`, with fallback | DecimalFormat-specific feature |
+| Enforce an exact standard pattern for reports | `new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(locale))` | Guarantees object and pattern |
+| Format compact numbers (`1K`, `2M`...) | `getCompactNumberInstance(...)` | Not equivalent to ordinary DecimalFormat |
+| Parser must produce `BigDecimal` | Choose `DecimalFormat` with `setParseBigDecimal(true)`, check full input | Avoids guessing returned Number type |
+| Receiving formatter from uncontrolled library/provider | Use `instanceof`, never blind cast | Implementation changes will not crash randomly |
+| Business currency formatter | Currency factory + separate currency code and rounding control | Do not replace currency with a simple pattern |
+| Multi-threaded server processing | Dedicated formatter per render/request or synchronization | Formatters are mutable, not thread-safe |
+| Your API only needs `format` | Accept `NumberFormat`/`Format` instead of `DecimalFormat` | Reduces coupling |
 
-### Câu hỏi phân loại nhanh
+### Quick triage checklist
 
-Trước khi cast, nên tự hỏi:
+Before casting, ask yourself:
 
-1. **Tôi có thật sự cần một phương thức chỉ có ở `DecimalFormat` không?** Nếu không, cứ dùng `NumberFormat`.
-2. **Tôi có biết object được tạo từ đâu không?** Nếu từ factory/provider, kiểm tra subtype; nếu do chính code gọi `new DecimalFormat`, biết rõ kiểu ngay từ đầu.
-3. **Nếu không phải `DecimalFormat`, ứng dụng phải làm gì?** Bỏ qua tùy chỉnh, dùng fallback chung, tự tạo `DecimalFormat` khác hay báo lỗi cấu hình? Hãy quyết định trước.
-4. **Tính năng này có phụ thuộc locale/currency/provider không?** Tạo một formatter mới bằng pattern có thể thay đổi quy ước mà factory đã chọn.
-5. **Có bị chia sẻ qua thread/request không?** Dù cast thành công, việc mutating object vẫn có thể sai về concurrency.
+1. **Do I truly need a method exclusive to `DecimalFormat`?** If not, stick with `NumberFormat`.
+2. **Do I know where the object came from?** If from a factory/provider, check the subtype; if your own code called `new DecimalFormat`, the type is already known.
+3. **If it is not `DecimalFormat`, what should the app do?** Skip customization, use a common fallback, instantiate a separate `DecimalFormat`, or report a configuration error? Decide up front.
+4. **Does this feature depend on locale/currency/provider?** Creating a new formatter from a pattern can override conventions chosen by the factory.
+5. **Is it shared across threads/requests?** Even if a cast succeeds, mutating the object can still introduce concurrency bugs.
 
-## 14. Bài tập thực hành
+## 14. Practice exercises
 
-**Bài 1 — Dự đoán ClassCastException.** Với `NumberFormat first = new DecimalFormat("0.00");` và `NumberFormat second = new ChoiceFormat(new double[]{0,1}, new String[]{"zero","one+"});`, dự đoán `instanceof DecimalFormat` cho mỗi biến. Thử downcast cả hai; giải thích vì sao chỉ một trường hợp hợp lệ.
+**Exercise 1 — Predicting ClassCastException.** Given `NumberFormat first = new DecimalFormat("0.00");` and `NumberFormat second = new ChoiceFormat(new double[]{0,1}, new String[]{"zero","one+"});`, predict `instanceof DecimalFormat` for each variable. Try downcasting both; explain why only one case is valid.
 
-**Bài 2 — Kiểm tra factory.** Chạy `SafeFactoryDemo` với `Locale.US` rồi thay bằng `Locale.GERMANY`. In thêm `formatter.getClass().getName()` để quan sát runtime class; dùng `instanceof` thay vì dựa vào tên class. Nếu có provider khác, nhánh nào chạy? Chương trình có tiếp tục định dạng được không?
+**Exercise 2 — Inspecting factories.** Run `SafeFactoryDemo` with `Locale.US` and then switch to `Locale.GERMANY`. Print `formatter.getClass().getName()` as well to observe the runtime class; use `instanceof` rather than relying on class names. If another provider were active, which branch would execute? Would the program still format numbers?
 
-**Bài 3 — Compact format.** Tạo `NumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.SHORT)`. Kiểm tra `instanceof DecimalFormat` và `instanceof CompactNumberFormat`; không cast xuống `DecimalFormat` nếu điều kiện không đúng. So sánh ý nghĩa của định dạng compact với pattern `"#,##0.00"`.
+**Exercise 3 — Compact format.** Create `NumberFormat.getCompactNumberInstance(Locale.US, NumberFormat.Style.SHORT)`. Check `instanceof DecimalFormat` and `instanceof CompactNumberFormat`; do not downcast to `DecimalFormat` if the condition is false. Compare the purpose of compact formatting with the `"#,##0.00"` pattern.
 
-**Bài 4 — Pattern bắt buộc.** Xây hàm tạo `DecimalFormat("#,##0.000", DecimalFormatSymbols.getInstance(Locale.US))`, đặt `RoundingMode.HALF_UP`. Định dạng `new BigDecimal("12.3456")`, giải thích vì sao output có ba chữ số lẻ và vì sao số `BigDecimal` nguồn không thay đổi.
+**Exercise 4 — Mandatory pattern.** Write a builder creating `DecimalFormat("#,##0.000", DecimalFormatSymbols.getInstance(Locale.US))` and set `RoundingMode.HALF_UP`. Format `new BigDecimal("12.3456")`, explain why the output has three fractional digits, and explain why the source `BigDecimal` remains unchanged.
 
-**Bài 5 — Parser chính xác.** Lấy ví dụ `ParseBigDecimalDemo` rồi đưa input `"1,234.50xyz"`. Xác nhận phần còn lại không được tiêu thụ nên validation từ chối. Sau đó thử `"1,234.50"` và ghi nhận kiểu `BigDecimal`; giải thích vì sao một lệnh cast ngẫu nhiên từ `NumberFormat` không giải quyết được kiểm tra input.
+**Exercise 5 — Exact parser.** Take the `ParseBigDecimalDemo` example and pass `"1,234.50xyz"`. Confirm the trailing portion is not consumed, causing validation to reject it. Then try `"1,234.50"` and verify the `BigDecimal` type; explain why an arbitrary cast from `NumberFormat` does not solve input validation.
 
-## 15. Lỗi phổ biến
+## 15. Common mistakes
 
-| Lỗi | Vì sao sai | Hướng sửa |
+| Mistake | Why it is wrong | Fix |
 | --- | --- | --- |
-| `DecimalFormat d = NumberFormat.getInstance(locale)` | Incompatible types ở compile time | Giữ `NumberFormat` hoặc kiểm tra và cast |
-| `(DecimalFormat) NumberFormat.getCompactNumberInstance(...)` | Compact formatter chuẩn thuộc subtype khác | Dùng NumberFormat/CompactNumberFormat phù hợp |
-| Cast factory không kiểm tra | Phụ thuộc provider/JDK và có thể ném `ClassCastException` | `instanceof DecimalFormat` |
-| So `getClass() == DecimalFormat.class` | Bỏ qua subclass hợp lệ của DecimalFormat | `instanceof` |
-| Nghĩ cast chuyển đổi formatter | Cast không đổi kiểu runtime hay cách định dạng | Tạo formatter mới nếu cần hành vi khác |
-| Cast chỉ để chỉnh số chữ số thập phân | Các setter đã nằm trên NumberFormat | Dùng interface chung |
-| Tin `setRoundingMode` luôn hoạt động ở mọi NumberFormat | Base implementation có thể ném `UnsupportedOperationException` | Kiểm tra hỗ trợ của implementation |
-| Dùng `new DecimalFormat(pattern)` và nghĩ đã theo locale của user | Constructor một tham số dùng default FORMAT locale cho symbols | Truyền `DecimalFormatSymbols.getInstance(locale)` |
-| Dùng `applyPattern` với ký hiệu pattern đã localize | API này dùng pattern syntax chuẩn | Dùng `applyLocalizedPattern` khi phù hợp |
-| Dùng constructor thường thay formatter currency mà không xét quy tắc | Có thể làm mất pattern/currency conventions của provider | Chọn factory currency hoặc cấu hình đầy đủ |
-| `parse` rồi cast mặc định thành `BigDecimal` | `NumberFormat.parse` trả `Number` đa kiểu | Kiểm tra subtype parser + `setParseBigDecimal` |
-| Dùng formatter chung mutable trên nhiều request | Race condition, cấu hình rò giữa user | Tạo formatter theo request hoặc đồng bộ |
-| Chỉ kiểm thử trên máy dev | Provider/JDK khác có thể chọn subclass khác | Kiểm thử fallback branch và các runtime hỗ trợ |
+| `DecimalFormat d = NumberFormat.getInstance(locale)` | Incompatible types at compile time | Keep `NumberFormat` or check and cast |
+| `(DecimalFormat) NumberFormat.getCompactNumberInstance(...)` | Standard compact formatter is a different subtype | Use `NumberFormat`/`CompactNumberFormat` appropriately |
+| Casting factory result without checking | Depends on provider/JDK and can throw `ClassCastException` | `instanceof DecimalFormat` |
+| Comparing `getClass() == DecimalFormat.class` | Excludes valid subclasses of `DecimalFormat` | `instanceof` |
+| Thinking a cast converts the formatter | Casting changes neither runtime type nor formatting behavior | Instantiate a new formatter if different behavior is needed |
+| Casting just to set fractional digits | Setters already exist on `NumberFormat` | Use the common interface |
+| Assuming `setRoundingMode` works on every `NumberFormat` | Base implementation can throw `UnsupportedOperationException` | Verify implementation support |
+| Using `new DecimalFormat(pattern)` assuming it follows user locale | Single-arg constructor uses default FORMAT locale for symbols | Pass `DecimalFormatSymbols.getInstance(locale)` |
+| Using `applyPattern` with localized pattern symbols | This API expects standard pattern syntax | Use `applyLocalizedPattern` when appropriate |
+| Using plain constructor instead of currency formatter without checking rules | Can lose provider pattern/currency conventions | Use currency factory or configure completely |
+| `parse` followed by blind cast to `BigDecimal` | `NumberFormat.parse` returns polymorphic `Number` | Check parser subtype + `setParseBigDecimal` |
+| Sharing mutable formatter across multiple requests | Race conditions, settings leaking between users | Create formatter per request or synchronize |
+| Testing only on dev machine | Other providers/JDKs may return other subtypes | Test fallback branches and supported runtimes |
 
-## 16. Tài liệu chính thức
+## 16. Official documentation
 
-- [Java SE 21 — NumberFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/NumberFormat.html): factory methods, superclass API, giới hạn subtype và các phương thức có thể không được hỗ trợ.
-- [Java SE 21 — DecimalFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormat.html): `instanceof`, constructor, pattern, `DecimalFormatSymbols`, parsing `BigDecimal`.
-- [Java SE 21 — CompactNumberFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/CompactNumberFormat.html): subtype riêng của `NumberFormat` và định dạng rút gọn.
-- [Java SE 21 — NumberFormatProvider](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/spi/NumberFormatProvider.html): khả năng cung cấp các định dạng số cho locale từ nhà cung cấp.
+- [Java SE 21 — NumberFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/NumberFormat.html): factory methods, superclass API, subtype limits, and optionally unsupported methods.
+- [Java SE 21 — DecimalFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormat.html): `instanceof`, constructors, patterns, `DecimalFormatSymbols`, `BigDecimal` parsing.
+- [Java SE 21 — CompactNumberFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/CompactNumberFormat.html): distinct `NumberFormat` subclass and compact formatting.
+- [Java SE 21 — NumberFormatProvider](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/spi/NumberFormatProvider.html): provider capability for supplying locale-specific number formats.
 
-## 17. Ghi nhớ
+## 17. Key takeaways
 
-**`NumberFormat` không đồng nghĩa `DecimalFormat`.** Factory khai báo trả `NumberFormat` và có thể cung cấp lớp con khác tùy loại định dạng, locale hay provider. **Chỉ downcast sau khi kiểm tra `instanceof`**, hoặc tạo hẳn một `DecimalFormat` nếu sản phẩm thật sự cần pattern/tính năng của lớp đó. Những thiết lập như số chữ số thập phân hay grouping đã có ở `NumberFormat` thì không cần cast.
+**`NumberFormat` is not synonymous with `DecimalFormat`.** Factories declare a `NumberFormat` return type and may supply other subclasses depending on format kind, locale, or provider. **Downcast only after checking `instanceof`**, or construct a `DecimalFormat` directly if the product truly needs that class's patterns/features. Settings like fractional digit counts or grouping already live on `NumberFormat` and require no cast.
 
-Một phép ép kiểu thành công không phải phép chuyển đổi và cũng không bảo đảm mọi quy tắc về locale, currency, precision hay thread-safety. Hãy chọn abstraction **hẹp nhất đáp ứng nhu cầu**, có nhánh xử lý khi subtype không được hỗ trợ, và dùng formatter tường minh khi muốn kiểm soát pattern.
+A successful cast is neither a conversion nor a guarantee of locale, currency, precision, or thread-safety rules. Choose the **narrowest abstraction that meets your needs**, include handling when a subtype is unsupported, and use explicit formatters when you want direct pattern control.

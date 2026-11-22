@@ -1,41 +1,41 @@
-# Launcher script và module main
+# Launcher Scripts and Module Main
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích vai trò của module main class khi khởi chạy modular application.
-- Tạo launcher script gọi `java -m` và truyền arguments cho ứng dụng.
-- Tạo launcher riêng trong custom runtime image bằng `jlink --launcher`.
-- Đóng gói launcher ứng dụng bằng `jpackage`.
-- Phân biệt module main class, main class chỉ định trên command line và launcher script.
-- Chọn cách đóng gói phù hợp cho ứng dụng cần runtime riêng hoặc cần nhiều entry point.
+- Explain the role of the module main class when launching a modular application.
+- Create a launcher script that invokes `java -m` and forwards arguments to the application.
+- Create a custom launcher in a custom runtime image using `jlink --launcher`.
+- Package an application launcher using `jpackage`.
+- Distinguish between the module main class, a main class specified on the command line, and a launcher script.
+- Choose an appropriate packaging approach for applications that need their own runtime or multiple entry points.
 
-## 1. Module main và launcher script
+## 1. Module Main and Launcher Scripts
 
-Một modular application có thể được khởi chạy bằng module name:
+A modular application can be launched by module name:
 
 ~~~bash
 java --module-path app-modules \
      --module com.example.app
 ~~~
 
-Khi command line chỉ có module name, Java launcher cần biết main class của module. Thông tin này có thể được lưu trong binary module descriptor dưới dạng `ModuleMainClass` attribute, thường được thiết lập khi đóng gói modular JAR bằng `jar --main-class`.
+When the command line only has the module name, the Java launcher needs to know the module's main class. This information can be stored in the binary module descriptor as the `ModuleMainClass` attribute, typically set when packaging a modular JAR with `jar --main-class`.
 
-Nếu module descriptor chưa có main class, hãy chỉ rõ main class trong command line:
+If the module descriptor does not yet have a main class, specify the main class explicitly on the command line:
 
 ~~~bash
 java --module-path app-modules \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Trong môi trường triển khai, người dùng cuối thường không muốn phải nhớ module path, module name, main class hoặc đường dẫn runtime. Launcher script giải quyết phần giao diện khởi chạy này: nó xác định thư mục cài đặt, gọi đúng Java runtime, truyền module entry point và chuyển tiếp arguments cho ứng dụng.
+In a deployment environment, end users generally do not want to memorize the module path, module name, main class, or runtime path. A launcher script solves this startup interface: it locates the installation directory, invokes the right Java runtime, passes the module entry point, and forwards arguments to the application.
 
-Một launcher script không thay thế module descriptor. Nó là một lớp khởi chạy bên ngoài, còn module main vẫn được quyết định bởi descriptor hoặc command line mà script gọi.
+A launcher script does not replace the module descriptor. It is an external launch layer, while the module main is still determined by the descriptor or the command line that the script invokes.
 
-## 2. Chuẩn bị modular application
+## 2. Preparing a Modular Application
 
-Giả sử ứng dụng có cấu trúc:
+Suppose an application has the structure:
 
 ~~~text
 customer-app/
@@ -76,7 +76,7 @@ public class Main {
 }
 ~~~
 
-Biên dịch module:
+Compile the module:
 
 ~~~bash
 javac --module-source-path src \
@@ -84,7 +84,7 @@ javac --module-source-path src \
       -m com.example.app
 ~~~
 
-Output là một exploded module tại `build/mods/com.example.app`. Bạn có thể chạy trực tiếp bằng cách chỉ định module và main class:
+The output is an exploded module at `build/mods/com.example.app`. You can run it directly by specifying the module and main class:
 
 ~~~bash
 java --module-path build/mods \
@@ -92,11 +92,11 @@ java --module-path build/mods \
      --config conf/app.properties
 ~~~
 
-Arguments nằm sau module entry point được chuyển vào `main(String[] args)`.
+Arguments after the module entry point are passed into `main(String[] args)`.
 
-## 3. Lưu module main class vào modular JAR
+## 3. Storing the Module Main Class in a Modular JAR
 
-Nếu muốn launcher chỉ cần biết module name, hãy đóng gói ứng dụng thành modular JAR và lưu main class:
+If you want the launcher to only need the module name, package the application into a modular JAR and store the main class:
 
 ~~~bash
 jar --create \
@@ -105,14 +105,14 @@ jar --create \
     -C build/mods/com.example.app .
 ~~~
 
-`--main-class` (hoặc `-e`) ghi tên main class vào module descriptor nhị phân. Có thể kiểm tra bằng:
+`--main-class` (or `-e`) writes the main class name into the binary module descriptor. You can inspect it with:
 
 ~~~bash
 jar --describe-module \
     --file build/mods/com.example.app.jar
 ~~~
 
-Kết quả có thể hiển thị:
+The output may display:
 
 ~~~text
 com.example.app
@@ -121,7 +121,7 @@ requires java.logging
 main-class com.example.app.Main
 ~~~
 
-Giờ đây có thể chạy module mà không phải viết tên class:
+Now you can run the module without typing the class name:
 
 ~~~bash
 java --module-path build/mods \
@@ -129,11 +129,11 @@ java --module-path build/mods \
      --config conf/app.properties
 ~~~
 
-Nếu command line chỉ định `com.example.app/com.example.app.AdminMain`, class đó sẽ được dùng thay cho main class mặc định đã lưu. Điều này hữu ích khi một module cung cấp nhiều entry point.
+If the command line specifies `com.example.app/com.example.app.AdminMain`, that class will be used instead of the stored default main class. This is useful when a module provides multiple entry points.
 
-## 4. Tạo launcher script trên Linux và macOS
+## 4. Creating a Launcher Script on Linux and macOS
 
-Giả sử thư mục triển khai có cấu trúc:
+Suppose the deployment directory has the structure:
 
 ~~~text
 customer-app/
@@ -163,29 +163,29 @@ exec "$JAVA" \
     "$@"
 ~~~
 
-Cấp quyền thực thi cho script:
+Grant execute permission to the script:
 
 ~~~bash
 chmod +x bin/customer-app
 ~~~
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~bash
 bin/customer-app --config "conf/customer settings.properties" --verbose
 ~~~
 
-Script hoạt động như sau:
+The script works as follows:
 
-1. Xác định thư mục chứa script.
-2. Tìm thư mục cài đặt gốc từ vị trí script, không phụ thuộc current working directory của người chạy.
-3. Dùng Java runtime được đóng gói cùng ứng dụng.
-4. Đặt module path tới thư mục chứa modular JAR.
-5. Khởi chạy module bằng module main class đã lưu.
-6. Chuyển tiếp từng argument qua `"$@"`, giữ nguyên ranh giới giữa các argument, kể cả khi có khoảng trắng.
-7. `exec` thay tiến trình shell bằng Java process để exit code của ứng dụng được trả về trực tiếp.
+1. Determines the directory containing the script.
+2. Finds the root installation directory from the script's location, independent of the caller's current working directory.
+3. Uses the Java runtime packaged with the application.
+4. Sets the module path to the directory containing modular JARs.
+5. Launches the module using the stored module main class.
+6. Forwards each argument via `"$@"`, preserving argument boundaries even when spaces are present.
+7. `exec` replaces the shell process with the Java process so the application's exit code is returned directly.
 
-Nếu JAR chưa lưu module main class, script có thể chỉ rõ entry point:
+If the JAR does not store a module main class, the script can specify the entry point explicitly:
 
 ~~~bash
 exec "$JAVA" \
@@ -194,11 +194,11 @@ exec "$JAVA" \
     "$@"
 ~~~
 
-Khi triển khai runtime riêng, hãy kiểm tra file `runtime/bin/java` tồn tại và có quyền thực thi. Không nên giả định máy người dùng đã cài đúng phiên bản JDK chỉ vì môi trường build có JDK.
+When deploying a bundled runtime, verify that `runtime/bin/java` exists and has execute permission. Do not assume the user's machine has the right JDK version installed just because the build environment has a JDK.
 
-## 5. Tạo launcher script trên Windows
+## 5. Creating a Launcher Script on Windows
 
-Với cùng cấu trúc triển khai, tạo file `bin/customer-app.bat`:
+With the same deployment structure, create the file `bin/customer-app.bat`:
 
 ~~~bat
 @echo off
@@ -215,33 +215,33 @@ set "APP_EXIT=%ERRORLEVEL%"
 endlocal & exit /b %APP_EXIT%
 ~~~
 
-Giải thích:
+Explanation:
 
-- `%~dp0` là thư mục chứa batch file.
-- `for %%I ... %%~fI` chuẩn hóa đường dẫn thư mục cài đặt.
-- Đường dẫn runtime và module path được đặt trong dấu ngoặc kép để xử lý khoảng trắng.
-- `%*` chuyển tiếp command-line arguments mà người dùng đã truyền.
-- Exit code được lưu trước khi `endlocal`, sau đó trả lại cho tiến trình gọi.
+- `%~dp0` is the directory containing the batch file.
+- `for %%I ... %%~fI` normalizes the installation directory path.
+- Runtime and module path strings are enclosed in double quotes to handle spaces.
+- `%*` forwards the command-line arguments passed by the user.
+- The exit code is saved before `endlocal`, then returned to the calling process.
 
-Chạy:
+Run:
 
 ~~~bat
 bin\customer-app.bat --config "conf\customer settings.properties" --verbose
 ~~~
 
-Nếu dùng main class tường minh, thay phần module argument bằng:
+If using an explicit main class, replace the module argument with:
 
 ~~~bat
 --module com.example.app/com.example.app.Main
 ~~~
 
-Khi viết batch launcher, hãy kiểm tra cách gọi thực tế với arguments có khoảng trắng, dấu ngoặc kép và ký tự đặc biệt. Cú pháp xử lý argument của `cmd.exe` khác shell trên Unix.
+When writing a batch launcher, test actual invocations with arguments containing spaces, double quotes, and special characters. Argument parsing syntax in `cmd.exe` differs from Unix shells.
 
-## 6. Dùng jlink tạo runtime image có launcher riêng
+## 6. Using jlink to Create a Runtime Image with a Custom Launcher
 
-Nếu muốn phân phối runtime chỉ chứa các module cần thiết, có thể dùng `jlink`.
+If you want to distribute a runtime containing only the necessary modules, you can use `jlink`.
 
-Trước hết, đóng gói ứng dụng thành modular JAR như phần trước. Sau đó tạo runtime image:
+First, package the application into a modular JAR as in the previous section. Then create the runtime image:
 
 ~~~bash
 jlink \
@@ -251,20 +251,20 @@ jlink \
     --output build/customer-runtime
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- `--module-path` cung cấp JDK modules và application modules.
-- `--add-modules com.example.app` chọn module gốc để đưa vào image; dependency của nó cũng được resolve.
-- `--launcher customer-app=com.example.app` tạo launcher tên `customer-app`.
-- `--output` xác định thư mục runtime image.
+- `--module-path` supplies JDK modules and application modules.
+- `--add-modules com.example.app` selects the root module to include in the image; its dependencies are also resolved.
+- `--launcher customer-app=com.example.app` creates a launcher named `customer-app`.
+- `--output` specifies the runtime image directory.
 
-Nếu module descriptor có `ModuleMainClass`, có thể chỉ cần module name trong khai báo launcher. Nếu descriptor chưa lưu main class, chỉ định rõ:
+If the module descriptor has `ModuleMainClass`, you may only need the module name in the launcher declaration. If the descriptor does not store a main class, specify it explicitly:
 
 ~~~bash
 --launcher customer-app=com.example.app/com.example.app.Main
 ~~~
 
-Sau khi tạo thành công, runtime image có dạng tổng quát:
+After successful creation, the runtime image has the general form:
 
 ~~~text
 build/customer-runtime/
@@ -277,17 +277,17 @@ build/customer-runtime/
 └── lib/
 ~~~
 
-Khởi chạy ứng dụng bằng launcher đã tạo:
+Launch the application using the created launcher:
 
 ~~~bash
 build/customer-runtime/bin/customer-app --config conf/app.properties
 ~~~
 
-Launcher được tạo bởi `jlink` là executable phù hợp với nền tảng, không phải shell script `.sh` hoặc batch `.bat` mà bạn tự viết. Nó sử dụng runtime image đi kèm và entry point đã cấu hình.
+The launcher generated by `jlink` is a platform-appropriate executable, not a `.sh` shell script or `.bat` batch file that you wrote yourself. It uses the bundled runtime image and the configured entry point.
 
-### 6.1. Module path khi chạy runtime image
+### 6.1. Module Path When Running a Runtime Image
 
-Khi application module đã được link vào image, launcher không cần chỉ lại module path của JAR bên ngoài:
+When the application module has already been linked into the image, the launcher does not need to specify the external JAR module path again:
 
 ~~~bash
 build/customer-runtime/bin/java \
@@ -295,21 +295,21 @@ build/customer-runtime/bin/java \
     --config conf/app.properties
 ~~~
 
-Nếu application module được link cùng runtime image và descriptor đã lưu main class, chỉ module name là đủ. Nếu cần một entry point khác, chỉ định `module/mainclass` trên command line hoặc tạo launcher riêng cho entry point đó.
+If the application module is linked with the runtime image and its descriptor already stores the main class, the module name alone is sufficient. If you need a different entry point, specify `module/mainclass` on the command line or create a separate launcher for that entry point.
 
-### 6.2. Provider module và service binding
+### 6.2. Provider Modules and Service Binding
 
-Nếu ứng dụng sử dụng service provider và muốn `jlink` tự đưa các provider module phù hợp vào image, cân nhắc option:
+If the application uses service providers and you want `jlink` to automatically include matching provider modules in the image, consider the option:
 
 ~~~bash
 --bind-services
 ~~~
 
-Provider vẫn phải có mặt trong module path đầu vào và được phát hiện thông qua service declaration. `--bind-services` hỗ trợ service binding khi tạo image; nó không tự tải provider JAR từ một thư mục bất kỳ ngoài module path.
+Providers must still be present in the input module path and discovered via service declarations. `--bind-services` assists service binding when creating the image; it does not automatically load provider JARs from an arbitrary directory outside the module path.
 
-## 7. Đóng gói application launcher bằng jpackage
+## 7. Packaging an Application Launcher with jpackage
 
-`jpackage` tạo application image hoặc installer phù hợp với nền tảng. Nó có thể tạo launcher cho modular application trực tiếp:
+`jpackage` creates a platform-appropriate application image or installer. It can create a launcher for a modular application directly:
 
 ~~~bash
 jpackage \
@@ -320,13 +320,13 @@ jpackage \
     --module com.example.app
 ~~~
 
-Nếu module descriptor đã lưu module main class, `--module` chỉ cần tên module. Nếu chưa có, chỉ rõ module và main class:
+If the module descriptor already stores the module main class, `--module` only needs the module name. If not, specify both the module and main class:
 
 ~~~bash
 --module com.example.app/com.example.app.Main
 ~~~
 
-Kết quả là application image có launcher cho người dùng chạy. Tùy hệ điều hành và loại package, launcher có thể là executable hoặc app bundle. Nếu muốn dùng runtime image đã tạo bằng `jlink`, có thể truyền `--runtime-image` cho `jpackage`:
+The result is an application image with a launcher for users to run. Depending on the operating system and package type, the launcher may be an executable or an app bundle. If you want to use a runtime image already created with `jlink`, you can pass `--runtime-image` to `jpackage`:
 
 ~~~bash
 jpackage \
@@ -337,13 +337,13 @@ jpackage \
     --module com.example.app
 ~~~
 
-Không truyền đồng thời các tùy chọn tạo runtime riêng không tương thích với `--runtime-image`; hãy để image đã tạo cung cấp runtime cho package.
+Do not simultaneously pass runtime-creation options that are incompatible with `--runtime-image`; let the created image supply the runtime for the package.
 
-### 7.1. Nhiều launcher cho nhiều module main
+### 7.1. Multiple Launchers for Multiple Module Mains
 
-Một ứng dụng có thể cung cấp nhiều lệnh khởi chạy khác nhau, ví dụ launcher chính và launcher quản trị. Với `jpackage`, dùng `--add-launcher` cùng file properties cho launcher bổ sung.
+An application can provide multiple different launch commands, such as a main launcher and an administration launcher. With `jpackage`, use `--add-launcher` along with a properties file for the additional launcher.
 
-Ví dụ `admin-launcher.properties`:
+Example `admin-launcher.properties`:
 
 ~~~properties
 module=com.example.app/com.example.app.AdminMain
@@ -352,7 +352,7 @@ java-options=--add-opens=com.example.app/com.example.app.internal=ALL-UNNAMED
 win-console=true
 ~~~
 
-Đóng gói launcher bổ sung:
+Package the additional launcher:
 
 ~~~bash
 jpackage \
@@ -364,47 +364,47 @@ jpackage \
     --add-launcher admin=admin-launcher.properties
 ~~~
 
-Trong ví dụ, launcher chính dùng module main class mặc định; launcher `admin` chỉ định một main class khác và thêm arguments/options riêng. File properties cần được điều chỉnh theo module và quyền truy cập thực tế của ứng dụng.
+In the example, the primary launcher uses the default module main class; the `admin` launcher specifies a different main class and adds custom arguments/options. The properties file should be adjusted to match the actual modules and access requirements of the application.
 
-## 8. Chọn launcher script, jlink hay jpackage
+## 8. Choosing Launcher Script, jlink, or jpackage
 
-| Cách triển khai | Phù hợp khi | Kết quả |
+| Deployment Approach | Best Suited When | Result |
 |---|---|---|
-| Script `.sh` / `.bat` tự viết | Muốn kiểm soát cách tìm runtime, cấu hình và arguments | File script mỏng gọi `java -m` |
-| `jlink --launcher` | Muốn custom runtime image nhỏ và launcher riêng | Runtime image có executable launcher |
-| `jpackage` | Muốn application image hoặc installer cho người dùng cuối | App image/installer theo nền tảng |
+| Custom `.sh` / `.bat` script | You want control over how the runtime, config, and arguments are located | Thin script file invoking `java -m` |
+| `jlink --launcher` | You want a small custom runtime image and a dedicated launcher | Runtime image with executable launcher |
+| `jpackage` | You want an application image or installer for end users | Platform-specific app image/installer |
 
-Có thể kết hợp các cách. Ví dụ, dùng `jlink` để tạo runtime image, sau đó dùng `jpackage --runtime-image` để đóng gói ứng dụng. Một script tự viết cũng có thể gọi runtime image do `jlink` tạo ra.
+Approaches can be combined. For example, use `jlink` to create a runtime image, then use `jpackage --runtime-image` to package the application. A custom script can also invoke a runtime image created by `jlink`.
 
-Hãy chọn theo nhu cầu triển khai:
+Choose based on deployment needs:
 
-- Nếu môi trường đích đã có Java phù hợp và ứng dụng đơn giản, script gọi `java -m` có thể đủ.
-- Nếu cần mang theo runtime riêng và kiểm soát module được đóng gói, dùng `jlink`.
-- Nếu cần app image hoặc installer dễ cài đặt, dùng `jpackage`.
-- Nếu có nhiều entry point, dùng `jlink --launcher` hoặc `jpackage --add-launcher` để đặt tên riêng cho từng lệnh.
+- If the target environment already has a suitable Java installation and the application is simple, a script calling `java -m` may suffice.
+- If you need to ship a dedicated runtime and control which modules are packaged, use `jlink`.
+- If you need an easy-to-install app image or installer, use `jpackage`.
+- If there are multiple entry points, use `jlink --launcher` or `jpackage --add-launcher` to assign a distinct name to each command.
 
-## 9. Lỗi thường gặp
+## 9. Common Errors
 
-| Triệu chứng | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common Cause | Resolution |
 |---|---|---|
-| `Module ... not found` | Module path hoặc module image thiếu module ứng dụng | Kiểm tra `--module-path`, `--add-modules` và tên module |
-| Không tìm thấy main class khi chỉ truyền module name | Module descriptor chưa lưu `ModuleMainClass` | Dùng `jar --main-class` hoặc chỉ rõ `module/mainclass` |
-| Launcher chạy class không mong đợi | Script hoặc launcher khai báo main class khác với descriptor | Kiểm tra phần module argument sau dấu `/` |
-| Script chạy được khi đứng trong thư mục dự án nhưng lỗi ở nơi khác | Script dựa vào current working directory | Tính `APP_HOME` từ vị trí file script |
-| Không tìm thấy Java runtime | Đường dẫn runtime đóng gói không đúng hoặc image chưa đầy đủ | Kiểm tra `runtime/bin/java` hoặc `image/bin/java` |
-| `jlink` báo thiếu module | Dependency hoặc provider module không nằm trong module path | Bổ sung module vào input path và kiểm tra module graph |
-| Launcher Windows không nhận đúng argument | Batch file xử lý quoting/space không đúng | Kiểm tra `%*` với argument có khoảng trắng và dấu ngoặc kép |
-| Installer thiếu runtime | `jpackage` không được cấp runtime image và không tạo runtime theo cấu hình mong muốn | Kiểm tra `--runtime-image` hoặc module path đầu vào |
+| `Module ... not found` | Module path or module image is missing the application module | Check `--module-path`, `--add-modules`, and the module name |
+| Main class not found when passing only module name | Module descriptor does not store `ModuleMainClass` | Use `jar --main-class` or explicitly specify `module/mainclass` |
+| Launcher runs an unexpected class | Script or launcher specifies a main class different from the descriptor | Check the module argument part after `/` |
+| Script works inside project directory but fails elsewhere | Script relies on current working directory | Compute `APP_HOME` from the script file's location |
+| Java runtime not found | Bundled runtime path is wrong or image is incomplete | Check `runtime/bin/java` or `image/bin/java` |
+| `jlink` reports missing module | Dependency or provider module is not on the module path | Add the module to the input path and check the module graph |
+| Windows launcher does not receive arguments properly | Batch file handles quoting/spaces improperly | Test `%*` with arguments containing spaces and quotes |
+| Installer is missing runtime | `jpackage` was not given a runtime image and did not build one per desired config | Check `--runtime-image` or input module path |
 
-Khi debug, hãy in hoặc kiểm tra command line thực tế mà script/launcher sử dụng. Đường dẫn module, module name và main class là ba giá trị cần đối chiếu đầu tiên.
+When debugging, print or inspect the actual command line used by the script/launcher. Module path, module name, and main class are the first three values to verify.
 
-## 10. Tóm tắt
+## 10. Summary
 
-Module main class xác định entry point mặc định của modular application. Launcher script đóng gói các tham số cần thiết để gọi `java -m`, tìm đúng runtime và chuyển tiếp arguments. Nếu cần runtime image riêng, `jlink` có thể tạo image cùng launcher qua `--launcher`; nếu cần application image hoặc installer, `jpackage` tạo launcher và có thể thêm nhiều entry point bằng `--add-launcher`.
+The module main class defines the default entry point of a modular application. A launcher script wraps the parameters needed to invoke `java -m`, find the right runtime, and forward arguments. If a dedicated runtime image is needed, `jlink` can create an image with a launcher via `--launcher`; if an application image or installer is needed, `jpackage` creates launchers and can add multiple entry points with `--add-launcher`.
 
-Hãy giữ module name và main class rõ ràng trong cấu hình đóng gói. Nếu descriptor đã lưu `ModuleMainClass`, launcher có thể chỉ cần module name; nếu cần entry point riêng, chỉ định `module/mainclass` một cách tường minh.
+Keep the module name and main class clear in your packaging configuration. If the descriptor stores `ModuleMainClass`, the launcher may only need the module name; if a separate entry point is needed, explicitly specify `module/mainclass`.
 
-Tài liệu tham khảo:
+References:
 
 - [The java Command — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)
 - [The jar Command — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jar.html)

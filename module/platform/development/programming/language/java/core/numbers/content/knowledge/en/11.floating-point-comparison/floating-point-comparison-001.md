@@ -1,30 +1,30 @@
-# Toán tử `==`, `!=`, `<`, `<=`, `>` và `>=` khi so sánh số thực trong Java
+# The `==`, `!=`, `<`, `<=`, `>`, and `>=` Operators When Comparing Floating-Point Numbers in Java
 
-Java cho phép so sánh các giá trị `float` và `double` bằng sáu toán tử: **`==`, `!=`, `<`, `<=`, `>` và `>=`**. Chúng trả về `boolean` và sử dụng **ngữ nghĩa so sánh số dấu phẩy động** của Java, không phải cách so sánh xấp xỉ theo suy luận toán học.
+Java allows comparing `float` and `double` values using six operators: **`==`, `!=`, `<`, `<=`, `>`, and `>=`**. They return a `boolean` and use Java's **floating-point comparison semantics**, not approximate comparison based on mathematical intuition.
 
-Các điểm cốt lõi:
+Key points:
 
-- `==` kiểm tra **hai giá trị số học có bằng nhau theo so sánh dấu phẩy động hay không**, chứ không phải “hai số gần nhau”.
-- `!=` trả về kết quả phủ định của `==`, kể cả với `NaN`.
-- `<`, `<=`, `>`, `>=` kiểm tra quan hệ thứ tự. **Nếu có toán hạng `NaN`, cả bốn phép so sánh thứ tự đều là `false`.**
-- **`NaN == NaN` là `false`**, nhưng **`NaN != NaN` là `true`**.
-- **`+0.0 == -0.0` là `true`**, dù hai mẫu bit khác nhau.
-- Các giá trị `float`/`double` có độ chính xác nhị phân hữu hạn. Vì vậy `0.1 + 0.2 == 0.3` có thể là `false`, không phải lỗi trình biên dịch.
+- `==` checks whether **two numeric values are equal according to floating-point comparison**, not whether "two numbers are close to each other."
+- `!=` returns the negation of `==`, even for `NaN`.
+- `<`, `<=`, `>`, and `>=` check ordering relationships. **If either operand is `NaN`, all four ordering comparisons evaluate to `false`.**
+- **`NaN == NaN` is `false`**, whereas **`NaN != NaN` is `true`**.
+- **`+0.0 == -0.0` is `true`**, even though their bit patterns differ.
+- `float`/`double` values have finite binary precision. Therefore, `0.1 + 0.2 == 0.3` can be `false`, which is not a compiler bug.
 
-Để so sánh giá trị tính toán có sai số, cần **quy tắc dung sai do bài toán quyết định**. Để sắp xếp tất cả giá trị, kể cả `NaN` và `-0.0`, có thể dùng `Double.compare`/`Float.compare` với quy tắc thứ tự **khác** các toán tử primitive.
+To compare computed values that have rounding error, you need a **tolerance rule determined by the problem domain**. To sort all values, including `NaN` and `-0.0`, you can use `Double.compare`/`Float.compare` with ordering rules that **differ** from the primitive operators.
 
-## 1. Sáu toán tử hoạt động như thế nào?
+## 1. How Do the Six Operators Work?
 
-| Toán tử | Ý nghĩa | Ví dụ | Kết quả |
+| Operator | Meaning | Example | Result |
 | --- | --- | --- | --- |
-| `==` | Bằng nhau về giá trị theo so sánh primitive | `1.5 == 1.5` | `true` |
-| `!=` | Không bằng nhau | `1.5 != 2.5` | `true` |
-| `<` | Nhỏ hơn | `1.5 < 2.5` | `true` |
-| `<=` | Nhỏ hơn hoặc bằng | `2.5 <= 2.5` | `true` |
-| `>` | Lớn hơn | `2.5 > 1.5` | `true` |
-| `>=` | Lớn hơn hoặc bằng | `2.5 >= 2.5` | `true` |
+| `==` | Equal in value according to primitive comparison | `1.5 == 1.5` | `true` |
+| `!=` | Not equal | `1.5 != 2.5` | `true` |
+| `<` | Less than | `1.5 < 2.5` | `true` |
+| `<=` | Less than or equal to | `2.5 <= 2.5` | `true` |
+| `>` | Greater than | `2.5 > 1.5` | `true` |
+| `>=` | Greater than or equal to | `2.5 >= 2.5` | `true` |
 
-Khi hai toán hạng là các số hữu hạn không phải `NaN`, chúng tuân theo thứ tự số học quen thuộc. Các toán tử trả `boolean`, không trả số -1/0/1.
+When both operands are finite non-`NaN` numbers, they follow the familiar arithmetic ordering. The operators return `boolean`, not -1/0/1.
 
 ```java
 double x = 1.5;
@@ -38,11 +38,11 @@ boolean e = x > y;  // false
 boolean f = x >= y; // false
 ```
 
-Với các phép `<`, `<=`, `>`, `>=`, hai toán hạng phải là kiểu số có thể so sánh bằng phép quan hệ. Java không hỗ trợ so sánh thứ tự hai `String` bằng `<`; `String` dùng cách so sánh riêng như `compareTo` nếu bài toán cần.
+For `<`, `<=`, `>`, and `>=`, both operands must be numeric types that can be compared with relational operators. Java does not support ordering comparison of two `String` values with `<`; `String` uses its own comparison method such as `compareTo` if the problem requires it.
 
-## 2. Quy tắc nâng kiểu toán hạng trước khi so sánh
+## 2. Operand Promotion Rules Before Comparison
 
-Khi so sánh hai giá trị thuộc kiểu số primitive khác nhau, Java áp dụng **binary numeric promotion**. Nếu một toán hạng là `double`, toán hạng còn lại được đưa sang `double`; nếu có `float` mà không có `double`, phép so sánh dùng `float`; với các kiểu số nguyên thì quy tắc nâng kiểu số nguyên áp dụng.
+When comparing two values of different primitive numeric types, Java applies **binary numeric promotion**. If one operand is `double`, the other is converted to `double`; if there is a `float` and no `double`, the comparison uses `float`; for integer types, the integer promotion rules apply.
 
 ```java
 float f = 0.1f;
@@ -51,24 +51,24 @@ double d = 0.1;
 boolean equal = f == d; // false
 ```
 
-Tại sao `equal` là false? Literal `0.1f` đã được làm tròn theo độ chính xác `float` (24 bit phần trị hiệu dụng). Khi `f` được mở rộng sang `double` để so sánh, nó mang giá trị `float` đã làm tròn chứ **không khôi phục** đúng cùng mẫu giá trị của literal `double 0.1`. Do vậy, dù mã nguồn đều viết gần “0.1”, hai giá trị có thể khác.
+Why is `equal` false? The literal `0.1f` is already rounded to `float` precision (24 bits of effective significand). When `f` is widened to `double` for comparison, it carries the rounded `float` value and does **not restore** the exact same value pattern as the `double` literal `0.1`. Thus, even though both look like "0.1" in source code, the two values can differ.
 
-Ví dụ khác:
+Another example:
 
 ```java
 int i = 16_777_217;
 float f = 16_777_216f;
 
-boolean same = i == f; // true: int được đổi thành float và bị làm tròn
+boolean same = i == f; // true: int is converted to float and rounded
 ```
 
-`16_777_217` không biểu diễn chính xác trong `float`, nên khi chuyển kiểu để so sánh với `f`, nó có thể được làm tròn thành `16_777_216f`. Vì vậy **`==` không bảo đảm phát hiện khác biệt giữa mọi số nguyên** khi trộn `float` với `int`/`long` lớn. Tránh trộn kiểu khi yêu cầu so sánh số nguyên chính xác; chuyển về loại phù hợp trước khi mất độ chính xác.
+`16_777_217` cannot be represented exactly in `float`, so when converted for comparison with `f`, it can be rounded to `16_777_216f`. Therefore, **`==` is not guaranteed to detect differences between all integers** when mixing `float` with large `int`/`long` values. Avoid mixing types when exact integer comparison is required; convert to an appropriate type before losing precision.
 
-Trong `Double`/`Float` wrapper, cần xem thêm quy tắc unboxing và `equals` (mục 8). Không nên suy diễn rằng mọi đối tượng chứa số đều dùng cùng ngữ nghĩa với các toán tử primitive.
+For the `Double`/`Float` wrappers, you also need to consider unboxing rules and `equals` (Section 8). Do not assume that all objects holding numbers use the same semantics as primitive operators.
 
-## 3. Vì sao `0.1 + 0.2 == 0.3` là `false`?
+## 3. Why Is `0.1 + 0.2 == 0.3` `false`?
 
-`float` và `double` dùng biểu diễn nhị phân có độ chính xác hữu hạn. Nhiều phân số thập phân như `0.1`, `0.2`, `0.3` không biểu diễn chính xác dưới dạng nhị phân hữu hạn. Một phép cộng sẽ làm tròn kết quả theo quy tắc dấu phẩy động.
+`float` and `double` use a binary representation with finite precision. Many decimal fractions such as `0.1`, `0.2`, and `0.3` cannot be represented exactly in finite binary form. An addition rounds the result according to floating-point rules.
 
 ```java
 double actual = 0.1 + 0.2;
@@ -79,28 +79,28 @@ System.out.println(actual == expected); // false
 System.out.println(actual != expected); // true
 ```
 
-Lúc này, `==` đang **hoạt động đúng**: hai giá trị `double` cuối cùng thực sự không đồng nhất. Sai lầm nằm ở việc mong muốn số học `double` tạo ra biểu diễn thập phân hoàn toàn chính xác.
+In this case, `==` is **working correctly**: the two resulting `double` values are genuinely not identical. The mistake lies in expecting `double` arithmetic to produce exact decimal representations.
 
-**Không có nghĩa là không bao giờ dùng `==` với `double`.** Có những trường hợp `==` là lựa chọn đúng: kiểm tra giá trị sentinel hữu hạn được thiết kế rõ ràng, so sánh hai giá trị cùng quy trình biểu diễn khi cần đúng tính bằng nhau, hoặc so với `0.0` khi ngữ nghĩa bằng 0 phù hợp và xử lý `NaN` riêng. Vấn đề là **mục tiêu so sánh**: bằng nhau chính xác của giá trị `double` hay gần bằng theo sai số cho phép.
+**This does not mean you should never use `==` with `double`.** There are cases where `==` is the right choice: checking a clearly designed finite sentinel value, comparing two values produced through the same representation process when exact equality is needed, or comparing with `0.0` when equality to zero is semantically appropriate and `NaN` is handled separately. The key question is the **goal of the comparison**: exact equality of `double` values or proximity within an allowed tolerance.
 
-### Độ chính xác hữu hạn còn ảnh hưởng phép so sánh thứ tự
+### Finite Precision Also Affects Ordering Comparisons
 
 ```java
 float big = 16_777_216f;
 boolean stillSame = (big + 1 == big); // true
 ```
 
-Ở vùng này, khoảng cách giữa hai giá trị `float` biểu diễn được liên tiếp là 2. Khi cộng 1, kết quả nằm ở chính giữa hai giá trị biểu diễn được và có thể làm tròn quay về `big` theo quy tắc round-to-nearest, ties-to-even. Do đó phép so sánh cho `true`, mặc dù về số học thực `x + 1 > x`.
+In this range, the spacing between two consecutive representable `float` values is 2. When adding 1, the result falls halfway between two representable values and rounds back to `big` under the round-to-nearest, ties-to-even rule. Therefore, the comparison yields `true`, even though in real arithmetic $x + 1 > x$.
 
-Chọn đúng miền và loại số rất quan trọng trước khi kết luận các phép so sánh số thực có phản ánh thứ tự của **giá trị toán học ban đầu** hay không.
+Choosing the right domain and numeric type is essential before concluding whether floating-point comparisons reflect the ordering of the **original mathematical values**.
 
-## 4. `NaN` làm thay đổi trực giác về `==`, `!=` và thứ tự
+## 4. How `NaN` Changes Intuition About `==`, `!=`, and Ordering
 
-`NaN` (*Not a Number*) là giá trị đặc biệt có thể sinh từ các phép toán không có kết quả số thực xác định, ví dụ `0.0 / 0.0`. Cả `Float.NaN` và `Double.NaN` đều là NaN.
+`NaN` (*Not a Number*) is a special value that can result from operations with no well-defined real numeric result, such as `0.0 / 0.0`. Both `Float.NaN` and `Double.NaN` are NaN.
 
-Trong các phép so sánh primitive dấu phẩy động, NaN được coi là **unordered** (không có thứ tự) so với mọi giá trị, **kể cả chính NaN**:
+In primitive floating-point comparisons, NaN is considered **unordered** with respect to every value, **including NaN itself**:
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 | --- | --- |
 | `Double.NaN == Double.NaN` | `false` |
 | `Double.NaN != Double.NaN` | `true` |
@@ -111,13 +111,13 @@ Trong các phép so sánh primitive dấu phẩy động, NaN được coi là *
 | `1.0 < Double.NaN` | `false` |
 | `1.0 >= Double.NaN` | `false` |
 
-Điều này cũng đúng với các phép so sánh `float` khi có `Float.NaN`.
+This also holds for `float` comparisons involving `Float.NaN`.
 
-**Hệ quả logic rất dễ nhầm:** Với giá trị NaN, `!(a < b)` là `true` nhưng `a >= b` lại `false`. Vì vậy biến đổi điều kiện `!(x < y)` thành `x >= y` **không tương đương** nếu `x` hoặc `y` có thể là NaN. Tương tự, `!(x <= y)` không đồng nghĩa với `x > y` khi có NaN. Quy tắc “không nhỏ hơn thì phải lớn hơn hoặc bằng” chỉ đúng khi dữ liệu được bảo đảm **không NaN**.
+**An easily overlooked logical consequence:** With NaN, `!(a < b)` is `true`, whereas `a >= b` is `false`. Therefore, rewriting `!(x < y)` as `x >= y` is **not equivalent** if `x` or `y` can be NaN. Similarly, `!(x <= y)` is not synonymous with `x > y` when NaN is present. The rule "not less than implies greater than or equal to" holds only when data is guaranteed to be **non-NaN**.
 
-`!=` là phủ định trực tiếp của `==`, vì thế khi xuất hiện NaN, `!=` là `true` ngay cả khi hai biến chứa cùng một đối tượng NaN theo cách lưu trữ số thực.
+`!=` is the direct negation of `==`, so when NaN is involved, `!=` is `true` even if both variables hold the same NaN value in floating-point storage.
 
-### Kiểm tra NaN đúng cách
+### Checking for NaN Properly
 
 ```java
 double value = Double.NaN;
@@ -126,13 +126,13 @@ boolean wrong = value == Double.NaN; // false
 boolean isNan = Double.isNaN(value);  // true
 ```
 
-Không dùng `value == Double.NaN` để nhận biết NaN. Có thể dựa vào `value != value` theo tính chất NaN, nhưng `Double.isNaN(value)`/`Float.isNaN(value)` diễn đạt rõ ý định hơn và dễ đọc hơn.
+Do not use `value == Double.NaN` to detect NaN. You could rely on `value != value` based on NaN's property, but `Double.isNaN(value)`/`Float.isNaN(value)` expresses intent more clearly and is easier to read.
 
-Nếu phải loại cả NaN lẫn vô cực, dùng `Double.isFinite(value)` hoặc `Float.isFinite(value)` trước khi tính toán/so sánh thứ tự.
+If you need to exclude both NaN and infinity, use `Double.isFinite(value)` or `Float.isFinite(value)` before performing computations or ordering comparisons.
 
-## 5. `+0.0` và `-0.0`: bằng nhau về toán tử, khác mẫu bit
+## 5. `+0.0` and `-0.0`: Equal Under Operators, Different Bit Patterns
 
-IEEE 754 có hai biểu diễn zero: **zero dương** và **zero âm**. Java coi chúng là bằng nhau trong các toán tử primitive:
+IEEE 754 has two representations of zero: **positive zero** and **negative zero**. Java treats them as equal under primitive operators:
 
 ```java
 double positive = +0.0;
@@ -146,26 +146,26 @@ boolean gt = (negative > positive);  // false
 boolean ge = (negative >= positive); // true
 ```
 
-Tuy nhiên, dấu bit của zero có thể ảnh hưởng đến phép tính khác:
+However, the sign bit of zero can affect other operations:
 
 ```java
 double p = 1.0 / +0.0; // +Infinity
 double n = 1.0 / -0.0; // -Infinity
 ```
 
-`Double.doubleToLongBits(0.0)` và `Double.doubleToLongBits(-0.0)` trả hai mẫu bit khác nhau. Tương tự với `Float.floatToIntBits`. **Nếu chỉ dùng `==`, bạn đang chọn ngữ nghĩa số học rằng cả hai số zero bằng nhau**; đó không phải công cụ nhận diện dấu bit.
+`Double.doubleToLongBits(0.0)` and `Double.doubleToLongBits(-0.0)` return two different bit patterns. The same applies to `Float.floatToIntBits`. **If you only use `==`, you are choosing the arithmetic semantics that both zeros are equal**; it is not a tool for inspecting the sign bit.
 
-Khi cần nhận dạng bit vì định dạng nhị phân hay tính toán có dấu zero, sử dụng API bit hoặc `Double.compare`/`Float.compare` với quy tắc thứ tự bổ sung, thay vì kết luận từ `==`.
+When you need to distinguish bits for binary formats or calculations sensitive to the sign of zero, use the bit APIs or `Double.compare`/`Float.compare` with its additional ordering rules instead of relying on `==`.
 
-## 6. `+Infinity` và `-Infinity`: có thứ tự nếu không có NaN
+## 6. `+Infinity` and `-Infinity`: Ordered When There Is No NaN
 
-Khác với NaN, vô cực tham gia thứ tự số thực theo quy tắc quen thuộc:
+Unlike NaN, infinities participate in floating-point ordering according to the familiar rule:
 
 \[
--\infty < \text{mọi số hữu hạn} < +\infty
+-\infty < \text{every finite number} < +\infty
 \]
 
-Ví dụ:
+Examples:
 
 ```java
 boolean a = Double.POSITIVE_INFINITY > Double.MAX_VALUE; // true
@@ -174,30 +174,30 @@ boolean c = Double.POSITIVE_INFINITY == (1.0 / 0.0);     // true
 boolean d = Double.POSITIVE_INFINITY == Double.NEGATIVE_INFINITY; // false
 ```
 
-Dù có quan hệ thứ tự, vô cực thường **không phải dữ liệu đầu vào hợp lệ** cho tỷ lệ, giá cả, số đo hay bộ đếm thực tế. Nhiều phép toán có thể biến dữ liệu hữu hạn thành vô cực do overflow hoặc chia cho zero theo kiểu dấu phẩy động; cần quyết định rõ có cho phép trạng thái này hay không.
+Even though they have an ordering relationship, infinities are usually **not valid input data** for real-world ratios, prices, measurements, or counters. Many operations can turn finite data into infinity via overflow or floating-point division by zero; you must decide explicitly whether this state is allowed.
 
-**Không nhầm** chia dấu phẩy động cho zero với chia nguyên cho zero: `1.0 / 0.0` trả `Infinity`, còn phép chia nguyên `1 / 0` (khi được thực hiện) gây `ArithmeticException`; Java có thể báo lỗi sớm nếu đó là biểu thức hằng không hợp lệ trong ngữ cảnh yêu cầu hằng số.
+**Do not confuse** floating-point division by zero with integer division by zero: `1.0 / 0.0` returns `Infinity`, whereas integer division `1 / 0` (when executed) throws `ArithmeticException`; Java may report an error earlier if it is an invalid constant expression in a context requiring a constant.
 
-## 7. Khi nào dùng so sánh gần đúng thay vì `==`?
+## 7. When to Use Approximate Comparison Instead of `==`?
 
-Với kết quả của nhiều phép tính `double`, đôi khi cần coi hai giá trị là “gần bằng” trong **ngưỡng sai số ứng dụng cho phép**, thay vì yêu cầu `==`.
+For the results of many `double` calculations, you sometimes need to treat two values as "nearly equal" within an **application-defined error threshold**, instead of requiring `==`.
 
-Một cách thông dụng kết hợp **dung sai tuyệt đối** và **dung sai tương đối**:
+A common approach combines **absolute tolerance** and **relative tolerance**:
 
 \[
 |a-b| \leq \max(\text{absTol},\ \text{relTol}\cdot\max(|a|,|b|)).
 \]
 
-- `absTol` phù hợp với mức sai số cố định, đặc biệt **gần số 0**.
-- `relTol` phù hợp khi độ lớn của số thay đổi nhiều bậc, giúp giới hạn sai số theo tỉ lệ.
-- Các ngưỡng phải **được xác định từ đơn vị đo, yêu cầu nghiệp vụ và đặc tính thuật toán**; không có một epsilon cố định đúng cho mọi bài toán.
+- `absTol` suits a fixed error bound, especially **near 0**.
+- `relTol` suits cases where number magnitudes vary over many orders of magnitude, helping bound error proportionally.
+- Thresholds must **be determined from the unit of measurement, business requirements, and algorithm characteristics**; there is no single fixed epsilon that works for every problem.
 
-Ví dụ phương thức minh họa:
+Illustrative method example:
 
 ```java
 static boolean nearlyEqual(double a, double b, double absTol, double relTol) {
     if (Double.isNaN(a) || Double.isNaN(b)) return false;
-    if (a == b) return true; // Bao gồm hai vô cực cùng dấu và ±0.0
+    if (a == b) return true; // Includes two infinities of the same sign and ±0.0
     if (!Double.isFinite(a) || !Double.isFinite(b)) return false;
 
     double delta = Math.abs(a - b);
@@ -206,61 +206,61 @@ static boolean nearlyEqual(double a, double b, double absTol, double relTol) {
 }
 ```
 
-Đây là **mảnh phương thức** cần đặt trong class. Nó giả định người gọi truyền ngưỡng **hữu hạn, không âm, đã lựa chọn hợp lý**. Nếu đây là API dùng cho dữ liệu không tin cậy, nên xác thực `absTol` và `relTol` (không NaN/Infinity, không âm), đồng thời xét nguy cơ tràn số trong phép trừ hay nhân tạo ngưỡng khi trị tuyệt đối rất lớn.
+This is a **method snippet** that needs to be placed inside a class. It assumes the caller passes **finite, non-negative, appropriately chosen** thresholds. If this is an API for untrusted data, you should validate `absTol` and `relTol` (not NaN/Infinity, non-negative), and also consider the risk of overflow in subtraction or in multiplying to form the threshold when absolute values are very large.
 
-**Quan trọng:** `nearlyEqual` không phải thay thế phổ quát cho `==`:
+**Important:** `nearlyEqual` is not a universal replacement for `==`:
 
-- Quan hệ “gần bằng” với dung sai dương **thường không có tính bắc cầu**. Có thể `a` gần `b` và `b` gần `c`, nhưng `a` không gần `c`.
-- Vì thế không dùng trực tiếp gần bằng để định nghĩa `equals`/`hashCode` hoặc comparator sắp xếp, vốn đòi hợp đồng nhất quán.
-- Không nên dùng `Double.MIN_VALUE` làm một epsilon tuyệt đối mặc định: nó là **số dương subnormal nhỏ nhất**, không phải sai số đại diện khi cộng trừ nhiều giá trị `double`.
-- Gần bằng **0** cần giới hạn tuyệt đối phù hợp; chỉ dùng tương đối có thể phản trực giác khi hai số đều rất nhỏ.
-- Với tiền tệ và yêu cầu chính xác chữ số thập phân, `BigDecimal` với `RoundingMode` phù hợp hơn trong nhiều trường hợp, nhưng phải khai báo chính sách chính xác.
+- A "nearly equal" relation with positive tolerance is **generally not transitive**. It is possible for `a` to be close to `b` and `b` close to `c`, while `a` is not close to `c`.
+- Therefore, do not use approximate equality directly to define `equals`/`hashCode` or sorting comparators, which require a consistent contract.
+- Do not use `Double.MIN_VALUE` as a default absolute epsilon: it is the **smallest positive subnormal number**, not a representative error when adding and subtracting multiple `double` values.
+- Proximity near **0** requires an appropriate absolute bound; using relative tolerance alone can be counterintuitive when both numbers are very small.
+- For currency and exact decimal-digit requirements, `BigDecimal` with `RoundingMode` is more appropriate in many cases, though an explicit precision policy must be declared.
 
-Nếu mục tiêu là phát hiện **bit thay đổi**, dùng API bit. Nếu mục tiêu là so sánh **giá trị chính xác theo kiểu `double`**, dùng `==`. Nếu cần so sánh **độ gần theo phép đo**, dùng tolerance được định nghĩa cụ thể. Ba yêu cầu khác nhau.
+If the goal is to detect **bit changes**, use the bit APIs. If the goal is to compare **exact `double` values**, use `==`. If you need to compare **closeness according to a measurement**, use a specifically defined tolerance. These are three different requirements.
 
-## 8. So sánh primitive khác `Double.compare`, `Float.compare` và wrapper `equals`
+## 8. Comparing Primitives vs. `Double.compare`, `Float.compare`, and Wrapper `equals`
 
-Khi cần **sắp xếp** danh sách chứa NaN hay signed zero, các toán tử primitive không tạo được thứ tự toàn phần hợp lệ cho mọi giá trị: NaN làm tất cả phép `<`/`>` thành `false`.
+When you need to **sort** a list containing NaN or signed zero, primitive operators cannot establish a valid total order over all values: NaN makes all `<`/`>` comparisons `false`.
 
-Java cung cấp:
+Java provides:
 
 ```java
 int orderDouble = Double.compare(a, b);
 int orderFloat = Float.compare(x, y);
 ```
 
-Giá trị trả về **âm, zero hoặc dương** (không cần chính xác -1, 0, 1 trong mọi API so sánh) theo thứ tự được định nghĩa. Với `Double.compare`/`Float.compare`:
+The return value is **negative, zero, or positive** (not necessarily strictly -1, 0, or 1 in every comparison API) according to a defined ordering. For `Double.compare`/`Float.compare`:
 
-- `-Infinity` nhỏ hơn mọi số hữu hạn, `+Infinity` lớn hơn mọi số hữu hạn.
-- **`-0.0` nhỏ hơn `+0.0`**, dù phép primitive `-0.0 == +0.0` là `true`.
-- **NaN được coi lớn hơn mọi giá trị khác**, kể cả `+Infinity`.
-- Các NaN được xem là **bằng nhau trong phép compare** vì các mẫu NaN được xử lý theo ngữ nghĩa canonical.
+- `-Infinity` is less than every finite number, and `+Infinity` is greater than every finite number.
+- **`-0.0` is less than `+0.0`**, even though primitive `-0.0 == +0.0` is `true`.
+- **NaN is considered greater than all other values**, including `+Infinity`.
+- NaNs are considered **equal in comparison** because NaN bit patterns are treated under canonical semantics.
 
-Ví dụ:
+Examples:
 
 ```java
-int z = Double.compare(-0.0, +0.0); // Giá trị âm (-1 trong JDK hiện hành)
-int n = Double.compare(Double.NaN, Double.POSITIVE_INFINITY); // Giá trị dương
+int z = Double.compare(-0.0, +0.0); // Negative value (-1 in current JDK)
+int n = Double.compare(Double.NaN, Double.POSITIVE_INFINITY); // Positive value
 int bothNaN = Double.compare(Double.NaN, Double.NaN); // 0
 ```
 
-`Double.valueOf(0.0).equals(Double.valueOf(-0.0))` là `false`; `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` là `true`. Wrapper `equals` sử dụng ngữ nghĩa nhất quán với `Double.compare` cho giá trị tương ứng, **khác** primitive `==` đối với signed zero/NaN.
+`Double.valueOf(0.0).equals(Double.valueOf(-0.0))` is `false`; `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` is `true`. Wrapper `equals` uses semantics consistent with `Double.compare` for the corresponding values, which **differs** from primitive `==` for signed zero and NaN.
 
-Nếu cả hai toán hạng là object wrapper `Double`, toán tử `==` giữa chúng có thể **so sánh tham chiếu**, không phải số học. Khi một bên là primitive và Java áp dụng unboxing, có thể thành so sánh số học; unboxing `null` sẽ ném `NullPointerException`. Khi làm việc với collection, phải chọn `equals` hoặc comparator phù hợp thay vì dùng `==` trên hai object wrapper.
+If both operands are `Double` wrapper objects, the `==` operator between them can perform **reference comparison**, not numeric comparison. When one side is primitive and Java applies unboxing, it becomes a numeric comparison; unboxing `null` throws `NullPointerException`. When working with collections, choose `equals` or an appropriate comparator instead of using `==` on two wrapper objects.
 
-**Sắp xếp đúng:**
+**Sorting properly:**
 
 ```java
 double[] values = { Double.NaN, +0.0, -0.0, Double.POSITIVE_INFINITY };
 java.util.Arrays.sort(values);
-// [-0.0, 0.0, Infinity, NaN] theo thứ tự của Double.compare
+// [-0.0, 0.0, Infinity, NaN] according to Double.compare ordering
 ```
 
-Không viết comparator bằng `(int) (a - b)`, bởi phép trừ có thể là số rất nhỏ bị cast thành 0, có thể overflow thành infinity, và với NaN cho 0 theo quy tắc cast sang nguyên. Comparator như thế có thể vi phạm yêu cầu sắp xếp.
+Do not write a comparator using `(int) (a - b)`, because the difference may be a very small number that casts to 0, may overflow to infinity, and for NaN produces 0 under integer casting rules. Such a comparator can violate sorting requirements.
 
-## 9. Chương trình Java 17+ kiểm chứng sáu toán tử và trường hợp biên
+## 9. Java 17+ Program Verifying the Six Operators and Edge Cases
 
-Lưu vào tệp `FloatingComparisonDemo.java`:
+Save to `FloatingComparisonDemo.java`:
 
 ```java
 public class FloatingComparisonDemo {
@@ -319,7 +319,7 @@ public class FloatingComparisonDemo {
 }
 ```
 
-Biên dịch/chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac FloatingComparisonDemo.java
@@ -357,13 +357,13 @@ boxed zeros equals: false
 boxed NaNs equals: true
 ```
 
-**Đọc kết quả:** Các dòng đầu cho thấy phép so sánh chính xác giữa hai giá trị `double` đã làm tròn khác với so sánh theo tolerance. Các dòng `NaN` chứng minh mọi phép quan hệ thứ tự đều false, `==` false và `!=` true. Các dòng `±0` và vô cực cho thấy sự khác biệt giữa bằng nhau về giá trị số học với dấu zero. Cuối cùng, `Double.compare` và wrapper `equals` thể hiện quy tắc phục vụ sắp xếp/collection, không đồng nhất với primitive `==`.
+**Reading the output:** The first lines show how exact comparison between two rounded `double` values differs from tolerance-based comparison. The `NaN` lines demonstrate that all ordering relational operators are false, `==` is false, and `!=` is true. The `±0` and infinity lines illustrate the difference between numeric value equality and the sign of zero. Finally, `Double.compare` and wrapper `equals` demonstrate rules for sorting and collections, which are not identical to primitive `==`.
 
-## 10. Thiết kế điều kiện so sánh an toàn
+## 10. Designing Safe Comparison Conditions
 
-### Kiểm tra miền đầu vào
+### Input Domain Validation
 
-Nếu hệ thống chỉ chấp nhận kết quả số hữu hạn, **xác thực trước**:
+If the system only accepts finite numeric results, **validate upfront**:
 
 ```java
 static boolean inRange(double value, double min, double max) {
@@ -373,11 +373,11 @@ static boolean inRange(double value, double min, double max) {
 }
 ```
 
-Đoạn này là **mảnh mã minh họa**: chỉ dùng khi `min` và `max` là các ngưỡng hữu hạn được kiểm chứng và `min <= max`. Việc kiểm tra `isFinite` diễn đạt rõ yêu cầu không chấp nhận NaN/Infinity; riêng toán tử `>=` và `<=` đã trả false với NaN, nhưng không loại vô cực trong mọi miền nếu ngưỡng không hữu hạn.
+This is an **illustrative code snippet**: use it only when `min` and `max` are verified finite bounds with `min <= max`. Checking `isFinite` clearly expresses the requirement to reject NaN/Infinity; while `>=` and `<=` already return false for NaN, they do not exclude infinities across all domains if the bounds are not finite.
 
-### Tránh đảo điều kiện bất cẩn khi có NaN
+### Avoid Carelessly Inverting Conditions When NaN Is Possible
 
-Nếu muốn bác bỏ mọi giá trị **không nhỏ hơn ngưỡng** hoặc NaN, đừng mặc định đổi `!(x < threshold)` thành `x >= threshold` vì chúng khác nhau với NaN.
+If you want to reject every value **not less than a threshold** or NaN, do not blindly rewrite `!(x < threshold)` as `x >= threshold` because they behave differently with NaN.
 
 ```java
 double x = Double.NaN;
@@ -385,44 +385,44 @@ boolean notLess = !(x < 10.0); // true
 boolean greaterOrEqual = x >= 10.0; // false
 ```
 
-Khi muốn điều kiện độc lập với NaN, hãy viết tường minh:
+When you want a condition that behaves predictably with NaN, write it explicitly:
 
 ```java
 boolean accepted = Double.isFinite(x) && x >= 0.0 && x <= 10.0;
 ```
 
-### Khi cần kiểm tra gần bằng
+### When Approximate Equality Checks Are Needed
 
-Đặt tên có chủ đích như `nearlyEqual`, `withinTolerance` và truyền các tham số `absTol`/`relTol` theo đơn vị đo. Không áp dụng tolerance tùy ý để so sánh khóa map, mã định danh, mã giao dịch hoặc mọi giá trị trong bài toán.
+Use purposeful names such as `nearlyEqual` or `withinTolerance` and pass `absTol`/`relTol` parameters according to the unit of measurement. Do not apply an arbitrary tolerance to compare map keys, identifiers, transaction IDs, or every value in a problem.
 
-### Khi cần thứ tự ổn định để sắp xếp
+### When a Stable Ordering for Sorting Is Needed
 
-Dùng `Double.compare`/`Float.compare`, hoặc `Comparator.comparingDouble` khi làm việc với object và trường dữ liệu `double`. Nếu dữ liệu có thể chứa `NaN`, hãy quyết định liệu quy tắc “NaN xếp cuối” của comparator này có phù hợp, hay cần lọc dữ liệu trước.
+Use `Double.compare`/`Float.compare`, or `Comparator.comparingDouble` when working with objects and `double` fields. If the data may contain `NaN`, decide whether this comparator's "NaN sorts last" rule is appropriate, or whether you should filter the data first.
 
-## 11. Những nhầm lẫn thường gặp
+## 11. Common Misconceptions
 
-1. **“Hai biểu thức thập phân giống nhau về toán học phải so sánh `==` bằng nhau.”** Sai: `double` có sai số biểu diễn và làm tròn.
-2. **“`!=` cũng false khi có NaN vì không so sánh được.”** Sai: `NaN != NaN` là true.
-3. **“Không nhỏ hơn thì chắc chắn lớn hơn hoặc bằng.”** Sai với NaN: `!(x < y)` có thể true trong khi `x >= y` false.
-4. **“`NaN == NaN` là true vì hai bên đều là NaN.”** Sai: primitive `==` trả false; dùng `Double.isNaN` để kiểm tra.
-5. **“`+0.0` và `-0.0` khác nhau theo `==` vì bit dấu khác.”** Sai: `+0.0 == -0.0` true.
-6. **“`Double.compare` hoạt động y hệt `<`, `>` và `==` trên mọi giá trị.”** Sai: nó phân biệt signed zero và quy định vị trí cho NaN.
-7. **“Chỉ cần dùng `Double.MIN_VALUE` làm epsilon khi so sánh gần đúng.”** Sai: đây là số dương nhỏ nhất, thường không phù hợp sai số của thuật toán.
-8. **“Tolerance gần đúng có thể thay thế `equals` và `hashCode`.”** Sai: gần bằng thường không bắc cầu nên không phải quan hệ tương đương hợp lệ cho nhiều collection.
-9. **“`0.1f` và `0.1` chắc chắn bằng nhau sau khi nâng kiểu.”** Sai: `float` đã bị làm tròn theo độ chính xác thấp hơn trước khi sang `double`.
-10. **“So sánh số thực bằng cách ép phép trừ về `int` là comparator tốt.”** Sai: mất sai khác nhỏ, xử lý NaN sai và có thể phá hợp đồng comparator.
-11. **“Vô cực luôn không có quan hệ thứ tự.”** Sai: chỉ NaN unordered; `-Infinity` và `+Infinity` có thứ tự.
-12. **“Dùng toán tử `==` trên hai wrapper `Double` luôn so sánh giá trị số.”** Sai: hai object có thể bị so sánh tham chiếu; `equals` và unboxing có quy tắc riêng.
+1. **"Two expressions that are mathematically equal in decimal must compare equal with `==`."** False: `double` has representation and rounding errors.
+2. **"`!=` is also false with NaN because it cannot be compared."** False: `NaN != NaN` is true.
+3. **"Not less than definitely means greater than or equal to."** False with NaN: `!(x < y)` can be true while `x >= y` is false.
+4. **"`NaN == NaN` is true because both sides are NaN."** False: primitive `==` returns false; use `Double.isNaN` to check.
+5. **"`+0.0` and `-0.0` differ under `==` because their sign bits differ."** False: `+0.0 == -0.0` is true.
+6. **"`Double.compare` works identically to `<`, `>`, and `==` for all values."** False: it distinguishes signed zero and defines a position for NaN.
+7. **"Just use `Double.MIN_VALUE` as the epsilon for approximate comparison."** False: it is the smallest positive number and is usually inappropriate for algorithmic error bounds.
+8. **"Approximate tolerance can replace `equals` and `hashCode`."** False: approximate equality is generally not transitive, so it is not a valid equivalence relation for many collections.
+9. **"`0.1f` and `0.1` are definitely equal after promotion."** False: `float` was already rounded at lower precision before being widened to `double`.
+10. **"Comparing floating-point numbers by casting their difference to `int` makes a good comparator."** False: it loses small differences, handles NaN incorrectly, and can break the comparator contract.
+11. **"Infinities are always unordered."** False: only NaN is unordered; `-Infinity` and `+Infinity` are ordered.
+12. **"Using `==` on two `Double` wrappers always compares numeric values."** False: two objects may undergo reference comparison; `equals` and unboxing have separate rules.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-- `Double.NaN == Double.NaN` có kết quả gì? **false**.
-- `Double.NaN != Double.NaN` có kết quả gì? **true**.
-- Với `x = Double.NaN`, `!(x < 3.0)` và `x >= 3.0` bằng nhau không? **Không**: kết quả lần lượt true và false.
-- `-0.0 == 0.0` có đúng không? **Đúng**; tuy nhiên `Double.compare(-0.0, 0.0)` cho kết quả âm.
-- `Double.POSITIVE_INFINITY > Double.MAX_VALUE` là gì? **true**.
-- `float a = 0.1f; double b = 0.1;` thì `a == b` chắc chắn true không? **Không**: trong ví dụ này là false vì làm tròn `float`.
-- Nếu muốn “gần bằng” theo sai số đo cụ thể, nên dùng gì? **Một hàm so sánh với tolerance được chọn theo miền/đơn vị**, kiểm tra NaN và vô cực theo chính sách.
-- Nếu cần sắp xếp một danh sách chứa NaN và signed zero, nên dùng gì? **`Double.compare`/`Float.compare`** hoặc comparator theo quy tắc thứ tự nghiệp vụ, không dùng `(int)(a-b)`.
+- What is the result of `Double.NaN == Double.NaN`? **false**.
+- What is the result of `Double.NaN != Double.NaN`? **true**.
+- With `x = Double.NaN`, are `!(x < 3.0)` and `x >= 3.0` equal? **No**: the results are true and false, respectively.
+- Is `-0.0 == 0.0` true? **True**; however, `Double.compare(-0.0, 0.0)` returns a negative value.
+- What is `Double.POSITIVE_INFINITY > Double.MAX_VALUE`? **true**.
+- Given `float a = 0.1f; double b = 0.1;`, is `a == b` guaranteed to be true? **No**: in this example it is false due to `float` rounding.
+- If you want "nearly equal" within a specific measurement error, what should you use? **A comparison function with tolerance chosen for the domain/units**, checking NaN and infinity according to policy.
+- If you need to sort a list containing NaN and signed zero, what should you use? **`Double.compare`/`Float.compare`** or a comparator following business ordering rules, not `(int)(a-b)`.
 
-**Ghi nhớ:** Sáu toán tử trên `float`/`double` so sánh **giá trị số thực đã được biểu diễn**, không tự áp dụng ngưỡng sai số. `NaN` làm `==` và bốn phép quan hệ thứ tự thành false, nhưng `!=` thành true. `+0.0` và `-0.0` bằng nhau theo primitive `==`, còn các comparator chuẩn phân biệt chúng. Khi cần so sánh gần đúng hoặc sắp xếp, hãy chọn **quy tắc riêng phù hợp mục tiêu**, thay vì suy diễn trực tiếp từ toán học số thực vô hạn độ chính xác.
+**Remember:** The six operators on `float`/`double` compare the **represented floating-point values**, without automatically applying an error tolerance. `NaN` makes `==` and the four ordering relational operators evaluate to false, while `!=` evaluates to true. `+0.0` and `-0.0` are equal under primitive `==`, whereas standard comparators distinguish them. When approximate comparison or sorting is needed, choose **a dedicated rule suited to your goal**, rather than extrapolating directly from infinite-precision real-number mathematics.

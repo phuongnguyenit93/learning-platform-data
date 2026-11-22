@@ -1,24 +1,24 @@
-# Đánh giá toán hạng và đối số từ trái sang phải — Java 17+
+# Left-to-Right Evaluation of Operands and Arguments — Java 17+
 
-Trong Java, **thứ tự đánh giá** (*evaluation order*) quyết định thời điểm các biểu thức con được thực thi. Đối với toán hạng của phép toán thông thường và đối số của lời gọi phương thức, Java quy định **đánh giá từ trái sang phải**. Quy tắc này đặc biệt quan trọng khi biểu thức con gọi phương thức, thay đổi biến, đọc mảng hoặc ném ngoại lệ.
+In Java, **evaluation order** determines when sub-expressions are executed. For operands of ordinary operations and arguments of method invocations, Java mandates **left-to-right evaluation**. This rule is especially important when a sub-expression invokes a method, mutates a variable, reads an array, or throws an exception.
 
 ~~~java
 int result = first() + second() * third();
 ~~~
 
-Mặc dù `*` có **độ ưu tiên** cao hơn `+`, các lời gọi được đánh giá theo thứ tự `first()`, `second()`, `third()`. Phép nhân vẫn thuộc biểu thức con bên phải của phép cộng. **Độ ưu tiên quyết định cách nhóm; thứ tự đánh giá quyết định lúc thực thi.**
+Even though `*` has higher **precedence** than `+`, the calls are evaluated in the order `first()`, `second()`, `third()`. Multiplication still belongs to the right-hand sub-expression of addition. **Precedence determines grouping; evaluation order determines execution timing.**
 
-> Phạm vi: các quy tắc đánh giá của biểu thức Java 17. Không suy diễn rằng **mọi toán hạng/nhánh** đều bắt buộc chạy; `&&`, `||`, `?:` và tình huống ném ngoại lệ có thể làm bỏ qua phần còn lại.
+> Scope: evaluation rules for Java 17 expressions. Do not infer that **every operand/branch** is forced to run; `&&`, `||`, `?:`, and thrown exceptions can cause the remaining parts to be skipped.
 
-## 1. Phân biệt ba khái niệm
+## 1. Distinguishing Three Concepts
 
-| Khái niệm | Câu hỏi trả lời | Ví dụ |
+| Concept | Question answered | Example |
 | --- | --- | --- |
-| **Precedence** (độ ưu tiên) | Toán tử nào nhóm chặt hơn? | `a + b * c` nhóm thành `a + (b * c)` |
-| **Associativity** (tính kết hợp) | Các toán tử cùng mức được nhóm thế nào? | `a - b - c` nhóm thành `(a - b) - c` |
-| **Evaluation order** (thứ tự đánh giá) | Biểu thức con nào được đánh giá trước? | Trong `f() + g() * h()` gọi `f()` rồi `g()` rồi `h()` |
+| **Precedence** | Which operator binds more tightly? | `a + b * c` groups as `a + (b * c)` |
+| **Associativity** | How are operators at the same level grouped? | `a - b - c` groups as `(a - b) - c` |
+| **Evaluation order** | Which sub-expression is evaluated first? | In `f() + g() * h()`, calls `f()`, then `g()`, then `h()` |
 
-Với biểu thức có lời gọi phương thức:
+For an expression with method calls:
 
 ~~~text
                        +
@@ -27,25 +27,25 @@ Với biểu thức có lời gọi phương thức:
                         / \
                       g() h()
 
-Cây nhóm:  f() + (g() * h())
-Thứ tự đánh giá lời gọi: f() -> g() -> h()
+Grouping tree:  f() + (g() * h())
+Call evaluation order: f() -> g() -> h()
 ~~~
 
-Cây biểu thức mô tả **sự phụ thuộc về kết quả**, không phải lịch gọi các hàm theo thứ tự toán tử có độ ưu tiên cao nhất.
+The expression tree describes **value dependencies**, not a schedule calling functions in highest-precedence operator order.
 
-## 2. Quy tắc cốt lõi và ngoại lệ
+## 2. Core Rules and Exceptions
 
-- Với các **toán tử hai ngôi thông thường**, Java đánh giá toán hạng trái trước toán hạng phải. Giá trị của toán hạng trái được giữ để sử dụng sau khi đánh giá toán hạng phải, ngay cả khi vế phải làm thay đổi biến liên quan.
-- Với **lời gọi phương thức**, biểu thức chọn đối tượng nhận lời gọi (nếu có) được đánh giá theo quy tắc của lời gọi, rồi các **đối số** được đánh giá từ trái sang phải; sau đó phương thức mới được gọi.
-- Nếu một toán hạng hoặc đối số **hoàn thành bất thường**, ví dụ ném ngoại lệ, các phần cần đánh giá **sau đó** không tiếp tục chạy.
-- Với `&&` và `||`, toán hạng phải chỉ được đánh giá khi cần để quyết định kết quả; với `?:`, chỉ một trong hai nhánh kết quả được chọn.
-- Với `&` và `|` trên `boolean`, **cả hai toán hạng** được đánh giá khi không có ngoại lệ; chúng không có hành vi ngắn mạch giống `&&` và `||`.
+- For **ordinary binary operators**, Java evaluates the left operand before the right operand. The left operand's value is retained for use after evaluating the right operand, even if the right side modifies a related variable.
+- For **method invocations**, the receiver selection expression (if any) is evaluated according to invocation rules, then the **arguments** are evaluated from left to right; only then is the method invoked.
+- If an operand or argument **completes abruptly**—for example, throws an exception—parts to be evaluated **afterward** do not continue running.
+- For `&&` and `||`, the right operand is evaluated only when needed to determine the result; for `?:`, only one of the two result branches is selected.
+- For `&` and `|` on `boolean`, **both operands** are evaluated when no exception occurs; they lack the short-circuit behavior of `&&` and `||`.
 
-**Đừng viết mã dựa vào việc tác dụng phụ ẩn trong biểu thức dài.** Dù thứ tự được Java quy định, tách bước thường giúp người đọc dễ hiểu hơn.
+**Do not write code relying on hidden side effects inside long expressions.** Even though Java specifies the order, splitting steps usually makes code easier for readers to follow.
 
-## 3. Demo Java 17+ hoàn chỉnh
+## 3. Complete Java 17+ Demo
 
-Tạo tệp UTF-8 tên **`LeftToRightDemo.java`**:
+Create a UTF-8 file named **`LeftToRightDemo.java`**:
 
 ~~~java
 public class LeftToRightDemo {
@@ -160,7 +160,7 @@ public class LeftToRightDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) tại thư mục chứa tệp. Dùng **JDK 17 trở lên**:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the folder containing the file. Use **JDK 17 or newer**:
 
 ~~~bash
 java -version
@@ -169,7 +169,7 @@ javac -encoding UTF-8 LeftToRightDemo.java
 java LeftToRightDemo
 ~~~
 
-**Exact expected output** của lệnh `java LeftToRightDemo`:
+**Exact expected output** of `java LeftToRightDemo`:
 
 ~~~text
 == binary ==
@@ -214,24 +214,24 @@ visit=failure
 caught=stop
 ~~~
 
-Kết quả `java -version` và `javac -version` tùy JDK và không nằm trong khối stdout cố định trên.
+The output of `java -version` and `javac -version` depends on the JDK and is not part of the fixed stdout block above.
 
-## 4. Đọc demo theo nhóm
+## 4. Reading the Demo by Group
 
-### 4.1. Toán hạng: thứ tự gọi khác thứ tự nhóm
+### 4.1. Operands: Call Order Differs from Grouping Order
 
 ~~~java
 int binary = mark("left", 2)
         + mark("middle", 3) * mark("right", 4);
 ~~~
 
-- Java đánh giá `mark("left", 2)` trước, ghi dấu `visit=left` và thu được giá trị 2.
-- Tiếp theo, để đánh giá toán hạng phải của `+`, Java đánh giá `mark("middle", 3)` rồi `mark("right", 4)`.
-- Toán tử nhân xử lý `3 * 4 = 12`; sau đó cộng `2 + 12 = 14`.
+- Java evaluates `mark("left", 2)` first, recording `visit=left` and obtaining the value 2.
+- Next, to evaluate the right operand of `+`, Java evaluates `mark("middle", 3)` and then `mark("right", 4)`.
+- The multiplication operator computes `3 * 4 = 12`; then addition computes `2 + 12 = 14`.
 
-**Không suy luận rằng `mark("middle", ...)` phải chạy trước `mark("left", ...)` chỉ vì `*` ưu tiên cao hơn `+`.**
+**Do not deduce that `mark("middle", ...)` must run before `mark("left", ...)` merely because `*` has higher precedence than `+`.**
 
-### 4.2. Đối số của phương thức: trái sang phải
+### 4.2. Method Arguments: Left to Right
 
 ~~~java
 int value = digits(
@@ -240,18 +240,18 @@ int value = digits(
         mark("arg-3", 3));
 ~~~
 
-Các biểu thức đối số được đánh giá lần lượt **1 → 2 → 3**. Khi cả ba biểu thức hoàn thành bình thường, Java gọi `digits(1, 2, 3)` và trả **123**.
+Argument expressions are evaluated in order **1 → 2 → 3**. Once all three expressions complete normally, Java calls `digits(1, 2, 3)` and returns **123**.
 
-Đối với **lời gọi lồng nhau**:
+For **nested invocations**:
 
 ~~~java
 add(mark("outer", 4),
     add(mark("inner-left", 5), mark("inner-right", 6)));
 ~~~
 
-Java đánh giá đối số thứ nhất của lời gọi ngoài trước (in `visit=outer`), rồi mới đi vào biểu thức đối số thứ hai: các đối số bên trong được đánh giá từ trái sang phải (in `inner-left`, `inner-right`). Sau đó `add(5, 6)` trả 11 và `add(4, 11)` trả **15**.
+Java evaluates the first argument of the outer call first (printing `visit=outer`), then enters the second argument expression: the inner arguments are evaluated left to right (printing `inner-left`, `inner-right`). Afterward `add(5, 6)` returns 11 and `add(4, 11)` returns **15**.
 
-### 4.3. Biểu thức chọn đối tượng trước các đối số
+### 4.3. Receiver Selection Expression Before Arguments
 
 ~~~java
 makeReceiver().addToBase(
@@ -259,58 +259,58 @@ makeReceiver().addToBase(
         mark("method-2", 3));
 ~~~
 
-`makeReceiver()` được đánh giá để xác định đối tượng nhận lời gọi, nên dấu `visit=receiver` xuất hiện **trước** `visit=method-1` và `visit=method-2`. Sau đó `addToBase(2, 3)` dùng `base=10` để trả **15**.
+`makeReceiver()` is evaluated to determine the target object of the call, so `visit=receiver` appears **before** `visit=method-1` and `visit=method-2`. Then `addToBase(2, 3)` uses `base=10` to return **15**.
 
-Đây là quy tắc trong ngữ cảnh gọi phương thức instance có biểu thức đối tượng nhận lời gọi. Nếu bản thân biểu thức tạo/tra cứu đối tượng thất bại, lời gọi có thể không diễn ra.
+This is the rule in the context of invoking an instance method that has a receiver expression. If the object creation/lookup expression itself fails, the invocation may not happen.
 
-### 4.4. Giá trị đã đánh giá không bị “đọc lại” sau tác dụng phụ
+### 4.4. Already-Evaluated Values Are Not "Re-read" After Side Effects
 
 ~~~java
 int current = 10;
 int result = current + (current = 20);
 ~~~
 
-Toán hạng trái `current` được đọc và giữ giá trị **10**. Sau đó, toán hạng phải gán `current = 20` và có giá trị 20. Kết quả `result = 10 + 20 = 30`, trong khi biến `current` sau biểu thức bằng **20**.
+The left operand `current` is read and keeps the value **10**. Next, the right operand assigns `current = 20` and evaluates to 20. The result is `result = 10 + 20 = 30`, while `current` after the expression equals **20**.
 
-Tương tự:
+Similarly:
 
 ~~~java
 int counter = 1;
 int value = digits(counter++, counter++, counter++);
 ~~~
 
-Mỗi đối số đánh giá từ trái sang phải. Hậu tố `++` lấy **giá trị cũ** trước khi tăng, nên các đối số lần lượt là **1, 2, 3**, biến sau đó bằng **4**, và `digits(1, 2, 3)` trả 123.
+Each argument is evaluated from left to right. Postfix `++` takes the **old value** before incrementing, so the arguments are **1, 2, 3** respectively, the variable becomes **4** afterward, and `digits(1, 2, 3)` returns 123.
 
-Đây là ví dụ để **hiểu quy tắc**, không phải lời khuyên nên lồng nhiều thao tác tăng biến vào một lời gọi: mã như vậy khó rà soát và sửa lỗi.
+This example is for **understanding the rule**, not advice to nest multiple variable increments into a single call: such code is hard to review and debug.
 
-### 4.5. Ngắn mạch và chọn nhánh
+### 4.5. Short-Circuiting and Branch Selection
 
 ~~~java
 boolean a = false && check("unused", true);
 boolean b = true || check("also-unused", false);
 ~~~
 
-Với `&&`, nếu toán hạng trái đã false, toán hạng phải **không được đánh giá**. Với `||`, nếu toán hạng trái đã true, toán hạng phải **không được đánh giá**.
+With `&&`, if the left operand is false, the right operand **is not evaluated**. With `||`, if the left operand is true, the right operand **is not evaluated**.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 boolean c = false & check("executed", true);
 ~~~
 
-Toán tử boolean `&` vẫn đánh giá phía phải, vì nó **không ngắn mạch**. Giá trị `c` là false nhưng phương thức vẫn được gọi.
+The boolean `&` operator still evaluates the right side because it **does not short-circuit**. The value `c` is false, yet the method is still invoked.
 
-Với `?:`:
+With `?:`:
 
 ~~~java
 int value = true ? mark("selected", 7) : mark("ignored", 8);
 ~~~
 
-Java đánh giá điều kiện trước, rồi **chỉ nhánh được chọn**. Vì điều kiện true, chỉ `visit=selected` xuất hiện.
+Java evaluates the condition first, then **only the chosen branch**. Because the condition is true, only `visit=selected` appears.
 
-Các ngoại lệ này không phủ nhận quy tắc trái-sang-phải; chúng xác định **biểu thức nào thật sự cần được đánh giá**.
+These exceptions do not contradict the left-to-right rule; they define **which expressions actually need to be evaluated**.
 
-### 4.6. Truy cập mảng và chuỗi
+### 4.6. Array Access and Strings
 
 ~~~java
 int index = 0;
@@ -318,27 +318,27 @@ int[] values = {10, 20, 30};
 int sum = values[index++] + values[index++];
 ~~~
 
-Ở phép cộng, toán hạng trái được đánh giá trọn vẹn trước: lấy `values[0] = 10` và tăng `index` lên 1. Toán hạng phải sau đó lấy `values[1] = 20` và tăng `index` lên 2. Tổng bằng **30**.
+In the addition, the left operand is evaluated completely first: reading `values[0] = 10` and incrementing `index` to 1. The right operand then reads `values[1] = 20` and increments `index` to 2. The sum is **30**.
 
-Với nối chuỗi:
+With string concatenation:
 
 ~~~java
 String text = "" + mark("first", 1) + mark("second", 2);
 ~~~
 
-Hai lời gọi vẫn được đánh giá theo thứ tự trái-sang-phải; các phép `+` sau khi bắt đầu từ `String` thực hiện nối chuỗi, nên kết quả là `"12"`, không phải số 3.
+The two calls are still evaluated in left-to-right order; the `+` operations starting from a `String` perform string concatenation, so the result is `"12"`, not the number 3.
 
-### 4.7. Ngoại lệ chặn phần đánh giá phía sau
+### 4.7. Exceptions Prevent Subsequent Evaluation
 
 ~~~java
 int result = mark("before", 1) + fail() + mark("after", 2);
 ~~~
 
-Nếu `fail()` ném ngoại lệ, `mark("after", 2)` **không chạy**, và không có giá trị kết quả bình thường cho phép cộng. Khối `catch` có thể xử lý ngoại lệ, nhưng không làm những biểu thức còn lại tự động chạy tiếp.
+If `fail()` throws an exception, `mark("after", 2)` **does not run**, and there is no normal result value for the addition. A `catch` block can handle the exception, but it does not cause the remaining expressions to automatically resume.
 
-## 5. Cách viết mã dễ kiểm tra hơn khi có tác dụng phụ
+## 5. Writing More Testable Code When Side Effects Exist
 
-Dù Java đã xác định thứ tự đánh giá, vẫn nên **tách lệnh** trong mã nghiệp vụ để người đọc không phải mô phỏng các bước tăng biến hoặc lời gọi có tác dụng phụ:
+Even though Java defines evaluation order, you should still **split statements** in business code so readers do not have to simulate variable increments or side-effecting calls:
 
 ~~~java
 int first = nextNumber();
@@ -347,52 +347,52 @@ int third = nextNumber();
 int result = digits(first, second, third);
 ~~~
 
-Ví dụ này thể hiện cách tổ chức; để chạy độc lập, cần có định nghĩa phù hợp cho `nextNumber()` và `digits(...)`. Trong demo mục 3, mọi phương thức đều đã được khai báo đầy đủ.
+This example shows how to structure code; to run standalone, suitable definitions for `nextNumber()` and `digits(...)` are needed. In the section 3 demo, all methods are already fully declared.
 
-Nên đặc biệt tách bước khi có thao tác I/O, đổi trạng thái dùng chung, tăng bộ đếm, xử lý lỗi hoặc khi thứ tự thao tác là một phần hợp đồng nghiệp vụ.
+Splitting steps is especially worthwhile when there is I/O, shared state mutation, counter increments, error handling, or when operation order is part of the business contract.
 
-### Không nhầm với xử lý song song
+### Do Not Confuse This with Concurrent Execution
 
-Quy tắc ngôn ngữ quy định thứ tự đánh giá trong **một luồng thực thi biểu thức**. Nó **không** đảm bảo thứ tự xuất hiện của tác dụng phụ từ các luồng khác nếu chương trình dùng concurrency. Muốn phối hợp luồng cần quy tắc đồng bộ và memory model phù hợp; việc viết phép cộng không thay thế synchronization.
+The language rule defines evaluation order within **a single thread executing the expression**. It does **not** guarantee the visibility order of side effects across other threads if the program uses concurrency. Coordinating threads requires proper synchronization rules and memory-model guarantees; writing an addition does not replace synchronization.
 
-## 6. Những hiểu nhầm phổ biến
+## 6. Common Misconceptions
 
-| Ngộ nhận | Điều đúng trong Java |
+| Misconception | What is true in Java |
 | --- | --- |
-| “Toán tử `*` ưu tiên cao nên hàm trong phép nhân luôn được gọi trước.” | Precedence quy định **nhóm toán tử**, không đảo thứ tự đánh giá trái-sang-phải |
-| “Đối số có thể chạy theo thứ tự bất kỳ để tối ưu.” | Java quy định **đối số lời gọi được đánh giá từ trái sang phải** |
-| “Biểu thức bên trái có thể bị đọc lại sau khi vế phải gán biến.” | Giá trị toán hạng trái đã đánh giá được giữ theo ngữ nghĩa toán tử |
-| “`counter++` trong ba đối số đều trả cùng số.” | Đối số lần lượt thấy giá trị đã tăng từ đối số trước |
-| “`&&` và `&` đều bỏ qua vế phải khi vế trái false.” | Chỉ `&&` ngắn mạch; `&` boolean đánh giá hai vế nếu bình thường |
-| “`?:` đánh giá cả hai nhánh rồi chọn kết quả.” | Chỉ nhánh được chọn được đánh giá |
-| “Nếu một đối số ném exception, các đối số còn lại vẫn chạy.” | Không đánh giá tiếp các đối số phía sau |
-| “Java quyết định thứ tự gọi theo cách trình biên dịch thích.” | Thứ tự quan sát được phải tuân theo ngữ nghĩa được đặc tả |
+| "The `*` operator has high precedence, so functions inside multiplication are always called first." | Precedence determines **operator grouping**, not reversing left-to-right evaluation order |
+| "Arguments can run in any order for optimization." | Java specifies that **invocation arguments are evaluated from left to right** |
+| "The left expression can be re-read after the right side assigns a variable." | The already-evaluated left operand value is retained per operator semantics |
+| "`counter++` in three arguments all return the same number." | Each argument sees the value already incremented by the previous argument |
+| "`&&` and `&` both skip the right side when the left side is false." | Only `&&` short-circuits; boolean `&` evaluates both sides when normal |
+| "`?:` evaluates both branches and then picks a result." | Only the selected branch is evaluated |
+| "If one argument throws an exception, the remaining arguments still run." | Subsequent arguments are not evaluated |
+| "Java picks call order however the compiler prefers." | Observed order must conform to the specified semantics |
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-1. **Precedence:** Trong `a() + b() * c()`, thứ tự gọi là gì nếu cả ba chạy bình thường?  
-   *Đáp án:* `a()`, `b()`, `c()`; giá trị vẫn được nhóm như `a() + (b() * c())`.
-2. **Đối số:** `show(mark("A", 1), mark("B", 2))` in dấu nào trước?  
-   *Đáp án:* `A` trước `B`.
-3. **Tác dụng phụ:** `int n = 10; int x = n + (n = 20);` cho `x`, `n` bao nhiêu?  
-   *Đáp án:* `x = 30`, `n = 20`.
-4. **Tăng hậu tố:** `int n = 1; digits(n++, n++, n++);` nhận ba đối số nào và `n` sau đó là gì?  
-   *Đáp án:* 1, 2, 3 và `n = 4`.
-5. **Ngắn mạch:** `false && sideEffect()` có gọi `sideEffect()` không?  
-   *Đáp án:* Không.
-6. **Không ngắn mạch:** `false & sideEffect()` có gọi `sideEffect()` không, nếu phương thức trả `boolean`?  
-   *Đáp án:* Có, nếu không có ngoại lệ.
-7. **Ngoại lệ:** Nếu đối số thứ hai ném ngoại lệ, đối số thứ ba có được đánh giá không?  
-   *Đáp án:* Không; lời gọi phương thức không được thực hiện theo cách bình thường.
+1. **Precedence:** In `a() + b() * c()`, what is the call order if all three complete normally?  
+   *Answer:* `a()`, `b()`, `c()`; the value is still grouped as `a() + (b() * c())`.
+2. **Arguments:** Which label does `show(mark("A", 1), mark("B", 2))` print first?  
+   *Answer:* `A` before `B`.
+3. **Side effects:** What are `x` and `n` in `int n = 10; int x = n + (n = 20);`?  
+   *Answer:* `x = 30`, `n = 20`.
+4. **Postfix increment:** What three arguments does `int n = 1; digits(n++, n++, n++);` receive, and what is `n` afterward?  
+   *Answer:* 1, 2, 3, and `n = 4`.
+5. **Short-circuiting:** Does `false && sideEffect()` call `sideEffect()`?  
+   *Answer:* No.
+6. **Non-short-circuiting:** Does `false & sideEffect()` call `sideEffect()`, assuming the method returns `boolean`?  
+   *Answer:* Yes, if no exception occurs.
+7. **Exceptions:** If the second argument throws an exception, is the third argument evaluated?  
+   *Answer:* No; the method invocation is not executed normally.
 
 ## Checklist
 
-- [ ] Tách biệt **độ ưu tiên/tính kết hợp** với **thứ tự đánh giá**.
-- [ ] Với toán hạng và đối số thông thường, nắm quy tắc **trái sang phải**.
-- [ ] Khi gọi phương thức instance, xem xét biểu thức receiver trước danh sách đối số.
-- [ ] Hiểu giá trị đã đánh giá được giữ khi vế sau có tác dụng phụ.
-- [ ] Nhận diện ngoại lệ ngắn mạch `&&`, `||` và chọn nhánh `?:`.
-- [ ] Hiểu exception có thể ngăn phần biểu thức phía sau được đánh giá.
-- [ ] Ưu tiên tách các biểu thức có nhiều tác dụng phụ thành các lệnh rõ ràng.
+- [ ] Separate **precedence/associativity** from **evaluation order**.
+- [ ] For ordinary operands and arguments, apply the **left-to-right** rule.
+- [ ] On instance method calls, consider the receiver expression before the argument list.
+- [ ] Understand that an already-evaluated value is preserved when a later side has side effects.
+- [ ] Recognize short-circuit exceptions `&&`, `||`, and branch selection `?:`.
+- [ ] Understand that an exception prevents subsequent parts of the expression from being evaluated.
+- [ ] Prefer splitting expressions with multiple side effects into clear statements.
 
-**Kết luận:** Java quy định rõ thứ tự đánh giá toán hạng và đối số **từ trái sang phải** trong các ngữ cảnh tương ứng. Hãy phân biệt điều đó với **cách nhóm phép toán**, và nhớ rằng ngắn mạch, chọn nhánh và ngoại lệ có thể làm bỏ qua các biểu thức không cần hoặc không thể tiếp tục.
+**Conclusion:** Java clearly defines left-to-right evaluation order for operands and arguments in their respective contexts. Distinguish that from **operator grouping**, and remember that short-circuiting, branch selection, and exceptions can skip expressions that are unnecessary or cannot continue.

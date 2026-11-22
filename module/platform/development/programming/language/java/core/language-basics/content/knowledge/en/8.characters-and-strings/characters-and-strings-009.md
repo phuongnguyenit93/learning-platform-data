@@ -1,20 +1,20 @@
-# Giới thiệu StringBuilder khi cần ghép chuỗi lặp lại — Java 17+
+# Introducing StringBuilder for Repeated String Concatenation — Java 17+
 
-## 1. Khi nào việc nối String trong vòng lặp thành vấn đề?
+## 1. When does concatenating Strings in a loop become a problem?
 
-`String` trong Java là **bất biến** (*immutable*): sau khi tạo, nội dung của một đối tượng `String` không thể thay đổi. Biểu thức `text + value` tạo **giá trị chuỗi mới**. Nếu một vòng lặp liên tục tích lũy dữ liệu theo cách này, chương trình có thể phải sao chép ngày càng nhiều nội dung trung gian:
+`String` in Java is **immutable**: once created, the content of a `String` object cannot be changed. The expression `text + value` produces a **new string value**. If a loop continuously accumulates data this way, the program may have to copy increasingly large intermediate contents:
 
 ~~~java
 String result = "";
 for (int i = 1; i <= 5; i++) {
-    result += i; // Giá trị String mới được tạo và gán lại cho result
+    result += i; // A new String value is created and reassigned to result
 }
 System.out.println(result); // 12345
 ~~~
 
-Đoạn trên **đúng chức năng**, nhất là với dữ liệu nhỏ. Tuy nhiên, khi số vòng lặp và độ dài chuỗi tăng, kiểu ghép lặp lại bằng `+=` có thể tạo nhiều chuỗi trung gian, làm tăng cấp phát và chi phí sao chép. Đây là một lý do quan trọng để dùng **`StringBuilder`**.
+The snippet above is **functionally correct**, especially for small data. However, as the number of iterations and string length grow, repeated concatenation with `+=` can create many intermediate strings, increasing allocations and copying overhead. This is an important reason to use **`StringBuilder`**.
 
-`StringBuilder` (thuộc `java.lang`) là một **đối tượng lưu dãy ký tự có thể thay đổi** (*mutable sequence of characters*). Nó hỗ trợ thêm dữ liệu vào cùng bộ dựng chuỗi thông qua `append(...)`, thay vì dùng `String` bất biến để lưu kết quả tạm sau từng vòng lặp.
+`StringBuilder` (in `java.lang`) is a **mutable sequence of characters**. It supports appending data into the same string builder via `append(...)`, rather than using immutable `String`s to store temporary results after every iteration.
 
 ~~~java
 StringBuilder builder = new StringBuilder();
@@ -25,15 +25,15 @@ String result = builder.toString();
 System.out.println(result); // 12345
 ~~~
 
-**Quy tắc thực tế:** dùng `+` cho vài thành phần đơn giản vì dễ đọc; cân nhắc `StringBuilder` khi xây dựng nội dung qua nhiều lần lặp, nhiều nhánh hoặc một quá trình có kích thước thay đổi.
+**Practical rule:** use `+` for a few simple parts because it is easy to read; consider `StringBuilder` when building content across many loop iterations, multiple branches, or a process with variable output size.
 
-## 2. Quy trình sử dụng StringBuilder
+## 2. Workflow for using StringBuilder
 
-Ba bước cơ bản:
+Three basic steps:
 
-1. **Tạo bộ dựng**: `new StringBuilder()` hoặc `new StringBuilder("prefix")`.
-2. **Thêm nội dung**: gọi `append(...)` trong vòng lặp; mỗi lời gọi cập nhật nội dung của builder.
-3. **Chốt kết quả**: gọi `toString()` để nhận một giá trị `String` dùng cho API, hiển thị hoặc trả về.
+1. **Create the builder**: `new StringBuilder()` or `new StringBuilder("prefix")`.
+2. **Add content**: call `append(...)` inside the loop; each call updates the builder's content.
+3. **Finalize the result**: call `toString()` to obtain a `String` value for an API, display, or return value.
 
 ~~~java
 StringBuilder builder = new StringBuilder("Order:");
@@ -44,9 +44,9 @@ String message = builder.toString();
 System.out.println(message); // Order: 7, paid=true
 ~~~
 
-Các `append(...)` có thể **gọi nối tiếp** vì `append` trả về chính builder đang sử dụng. Java cung cấp overload cho `char`, `int`, `long`, `double`, `boolean`, `String`, `Object`, mảng ký tự và nhiều kiểu khác.
+`append(...)` calls can be **chained** because `append` returns the same builder being used. Java provides overloads for `char`, `int`, `long`, `double`, `boolean`, `String`, `Object`, character arrays, and many other types.
 
-Điều cần phân biệt:
+What to distinguish:
 
 ~~~java
 StringBuilder builder = new StringBuilder("A");
@@ -57,11 +57,11 @@ System.out.println(builder); // AB
 System.out.println(text);    // A
 ~~~
 
-`text` là giá trị `String` **không đổi**. Việc sửa builder sau đó không làm chuỗi đã lấy ra bằng `toString()` đổi theo.
+`text` is an **unchanging** `String` value. Editing the builder afterward does not change the string already extracted via `toString()`.
 
-## 3. Ghép danh sách trong vòng lặp: xử lý dấu phân cách
+## 3. Joining a list in a loop: handling delimiters
 
-Một tình huống phổ biến là tạo văn bản từ nhiều phần tử, giữa chúng có dấu phẩy:
+A common scenario is building text from multiple elements separated by commas:
 
 ~~~java
 static String joinNames(String[] names) {
@@ -76,27 +76,27 @@ static String joinNames(String[] names) {
 }
 ~~~
 
-Nếu `names = {"Lan", "Minh", "An"}`, kết quả là `Lan, Minh, An`.
+If `names = {"Lan", "Minh", "An"}`, the result is `Lan, Minh, An`.
 
-**Vì sao kiểm tra `i > 0`?** Dấu phân cách chỉ xuất hiện **trước phần tử thứ hai trở đi**, nên không có dấu phẩy ở đầu hoặc cuối. Dùng chỉ số cũng xử lý ổn định trường hợp có phần tử là chuỗi rỗng (nếu được chấp nhận).
+**Why check `i > 0`?** The delimiter only appears **before the second element onward**, so there is no leading or trailing comma. Using an index also handles empty-string elements consistently (if accepted).
 
 | Input | Output |
 |---|---|
 | `{"Lan", "Minh", "An"}` | `Lan, Minh, An` |
 | `{"Lan"}` | `Lan` |
-| Mảng rỗng `{}` | Chuỗi rỗng `""` |
+| Empty array `{}` | Empty string `""` |
 | `{"A", "", "B"}` | `A, , B` |
 
-Nếu **chỉ** cần nối những phần tử sẵn có bằng dấu phân cách, Java còn có API chuyên dụng:
+If you **only** need to join existing elements with a delimiter, Java also has a dedicated API:
 
 ~~~java
 String value = String.join(", ", "Lan", "Minh", "An");
 System.out.println(value); // Lan, Minh, An
 ~~~
 
-Không cần viết builder thủ công khi `String.join` hoặc `Collectors.joining` đáp ứng đủ yêu cầu. Builder hữu ích hơn khi phải thêm nội dung theo điều kiện, từng vòng lặp hoặc trộn nhiều kiểu dữ liệu.
+There is no need to write a manual builder when `String.join` or `Collectors.joining` meets the requirements. A builder is more useful when adding content conditionally, per loop iteration, or mixing multiple data types.
 
-## 4. StringBuilder mutable, String immutable: khác nhau ở đâu?
+## 4. StringBuilder is mutable, String is immutable: where do they differ?
 
 ~~~java
 String first = "A";
@@ -106,7 +106,7 @@ System.out.println(first);  // A
 System.out.println(second); // AB
 ~~~
 
-Biểu thức `first + "B"` tạo kết quả là một `String` khác về giá trị; `first` vẫn giữ văn bản `A`.
+The expression `first + "B"` creates a result that is a different `String` in value; `first` still holds the text `A`.
 
 ~~~java
 StringBuilder builder = new StringBuilder("A");
@@ -115,7 +115,7 @@ builder.append("B");
 System.out.println(builder); // AB
 ~~~
 
-Lời gọi `append` **thay đổi nội dung builder**. Nếu hai biến tham chiếu cùng một builder, thay đổi sẽ được thấy qua cả hai:
+The `append` call **mutates the builder's content**. If two variables reference the same builder, changes will be visible through both:
 
 ~~~java
 StringBuilder a = new StringBuilder("Hi");
@@ -125,34 +125,34 @@ alias.append("!");
 System.out.println(a); // Hi!
 ~~~
 
-Mã này không tạo bản sao builder; `alias = a` chỉ sao chép **giá trị tham chiếu**.
+This code does not create a copy of the builder; `alias = a` only copies the **reference value**.
 
-`final` cũng không khiến nội dung builder bất biến:
+`final` does not make the builder's content immutable either:
 
 ~~~java
 final StringBuilder b = new StringBuilder("A");
-b.append("B"); // Hợp lệ
-// b = new StringBuilder("C"); // Lỗi: không gán lại biến final
+b.append("B"); // Valid
+// b = new StringBuilder("C"); // Error: cannot reassign a final variable
 ~~~
 
-**Kết luận:** `StringBuilder` có thể sửa nội dung; `String` không thể sửa nội dung. Đừng truyền builder cho những đoạn mã có thể thay đổi nó nếu bạn muốn giữ nguyên dữ liệu.
+**Conclusion:** `StringBuilder` can modify its content; `String` cannot modify its content. Do not pass a builder to code that might mutate it if you want to preserve your data unchanged.
 
-## 5. Những method nên biết đầu tiên
+## 5. Methods to learn first
 
-| Method | Công dụng | Ví dụ |
+| Method | Purpose | Example |
 |---|---|---|
-| `append(value)` | Thêm văn bản/giá trị cuối builder | `b.append(42)` |
-| `toString()` | Lấy kết quả dạng `String` | `String s = b.toString();` |
-| `length()` | Số UTF-16 code unit đang chứa | `b.length()` |
-| `charAt(index)` | Đọc một code unit tại chỉ số | `b.charAt(0)` |
-| `setCharAt(index, ch)` | Thay code unit tại chỉ số | `b.setCharAt(0, 'J')` |
-| `insert(index, value)` | Chèn trước vị trí `index` | `b.insert(0, "Hi ")` |
-| `delete(start, end)` | Xóa đoạn `[start, end)` | `b.delete(0, 3)` |
-| `setLength(newLength)` | Đổi độ dài logic; có thể cắt ngắn hoặc mở rộng | `b.setLength(0)` |
-| `capacity()` | Sức chứa hiện tại tính theo UTF-16 code unit | `b.capacity()` |
-| `ensureCapacity(n)` | Yêu cầu sức chứa tối thiểu | `b.ensureCapacity(100)` |
+| `append(value)` | Append text/value to the end of the builder | `b.append(42)` |
+| `toString()` | Get the result as a `String` | `String s = b.toString();` |
+| `length()` | Number of UTF-16 code units currently held | `b.length()` |
+| `charAt(index)` | Read one code unit at index | `b.charAt(0)` |
+| `setCharAt(index, ch)` | Replace code unit at index | `b.setCharAt(0, 'J')` |
+| `insert(index, value)` | Insert before position `index` | `b.insert(0, "Hi ")` |
+| `delete(start, end)` | Delete range `[start, end)` | `b.delete(0, 3)` |
+| `setLength(newLength)` | Change logical length; can truncate or expand | `b.setLength(0)` |
+| `capacity()` | Current capacity in UTF-16 code units | `b.capacity()` |
+| `ensureCapacity(n)` | Request minimum capacity | `b.ensureCapacity(100)` |
 
-Ví dụ chỉnh sửa:
+Editing example:
 
 ~~~java
 StringBuilder b = new StringBuilder("Java");
@@ -164,14 +164,14 @@ b.setCharAt(0, 'j');   // java 17
 System.out.println(b); // java 17
 ~~~
 
-**Lưu ý về chỉ số:** `charAt`, `setCharAt`, `insert`, `delete` sử dụng chỉ số **UTF-16 code unit**, không phải “mỗi ký tự người nhìn thấy = 1 vị trí”. Nếu nội dung có emoji hoặc ký tự Unicode ngoài BMP, một code point có thể chiếm hai code unit. Chỉnh sửa ở giữa surrogate pair có thể khiến văn bản không còn đúng như ý định.
+**Note on indices:** `charAt`, `setCharAt`, `insert`, and `delete` use **UTF-16 code unit** indices, not “one visible character = 1 position”. If the content includes emoji or supplementary Unicode characters outside the BMP, one code point can occupy two code units. Editing in the middle of a surrogate pair can make the text malformed.
 
-`StringBuilder` có thêm API khác như `replace`, `reverse`, `indexOf`, `substring`. Người mới học chỉ cần nắm vững `append`, `toString`, `length` và cách quản lý dấu phân cách trước khi mở rộng sang nhiều thao tác.
+`StringBuilder` has additional APIs such as `replace`, `reverse`, `indexOf`, and `substring`. Beginners only need to master `append`, `toString`, `length`, and delimiter management before branching out to more operations.
 
-## 6. Length và capacity không giống nhau
+## 6. Length and capacity are not the same
 
-- `length()`: **số UTF-16 code unit của nội dung đang có**.
-- `capacity()`: **sức chứa hiện tại** của bộ đệm, thường lớn hơn hoặc bằng `length()`.
+- `length()`: **number of UTF-16 code units in the current content**.
+- `capacity()`: **current capacity** of the buffer, always greater than or equal to `length()`.
 
 ~~~java
 StringBuilder b = new StringBuilder(32);
@@ -183,21 +183,21 @@ System.out.println(b.length());   // 2
 System.out.println(b.capacity()); // 32
 ~~~
 
-`new StringBuilder(32)` **không tạo chuỗi dài 32 ký tự**; nó tạo builder rỗng với sức chứa ban đầu 32 UTF-16 code unit.
+`new StringBuilder(32)` **does not create a 32-character string**; it creates an empty builder with an initial capacity of 32 UTF-16 code units.
 
-Nếu biết tương đối kích thước kết quả, chỉ định dung lượng ban đầu giúp tránh một số lần mở rộng bộ đệm:
+If you roughly know the result size, specifying an initial capacity avoids several buffer expansions:
 
 ~~~java
 StringBuilder report = new StringBuilder(128);
 ~~~
 
-Tuy nhiên, không đoán một kích thước rất lớn vô cớ; hãy dựa vào dữ liệu thực tế. Việc nội bộ cấp phát/copy khi vượt capacity là chi tiết triển khai và thường được quản lý tự động.
+However, do not arbitrarily guess a huge size; base it on actual data. Internal reallocation/copying when exceeding capacity is an implementation detail and is normally managed automatically.
 
-Khi gọi `setLength(0)`, nội dung logic được xóa, nhưng **không được coi đó là thao tác xóa an toàn dữ liệu bí mật khỏi mọi vùng nhớ**. `StringBuilder` không phải cơ chế lưu trữ bí mật chuyên dụng.
+Calling `setLength(0)` clears the logical content, but **should not be treated as a secure wipe of secret data from all memory**. `StringBuilder` is not a dedicated secret-storage mechanism.
 
-## 7. Lỗi ghép lặp lại bằng String: nhìn bằng ví dụ, không đoán benchmark
+## 7. The repeated String concatenation pitfall: see via example, don't guess benchmarks
 
-Xem hai cách tạo kết quả tương tự:
+Look at two ways to produce the same result:
 
 ~~~java
 static String withPlus(int count) {
@@ -217,20 +217,20 @@ static String withBuilder(int count) {
 }
 ~~~
 
-Với `count = 5`, cả hai trả `"12345"`.
+With `count = 5`, both return `"12345"`.
 
-Khác biệt là **cách xây dựng**:
+The difference is **how they build it**:
 
-- `withPlus`: biến `text` lần lượt nhận các `String` kết quả qua phép nối trong nhiều lượt; với chuỗi tích lũy dài, cách này có thể gây nhiều chi phí cấp phát/sao chép trung gian.
-- `withBuilder`: đối tượng builder được tạo một lần; các lần `append` thay đổi nội dung trong bộ đệm đang dùng.
+- `withPlus`: the `text` variable repeatedly receives new `String` results from concatenation across iterations; with long accumulated strings, this can incur heavy intermediate allocation/copying costs.
+- `withBuilder`: the builder object is created once; `append` calls modify the content in the existing buffer.
 
-Không nên khẳng định “`StringBuilder` luôn nhanh hơn trong mọi biểu thức”: compiler/JVM Java 17 có tối ưu hóa cho những phép nối đơn giản. Cần **benchmark đúng cách** nếu hiệu năng là mối quan tâm thực sự; phần này chủ yếu hướng dẫn **lựa chọn cấu trúc code phù hợp**.
+You should not claim “`StringBuilder` is always faster in every expression”: the Java 17 compiler/JVM optimizes simple concatenations. You must **benchmark properly** if performance is a real concern; this section mainly guides **choosing an appropriate code structure**.
 
-Trong trường hợp ghép lặp lại với số phần tử tăng theo `n`, tổng công việc sao chép có thể tăng đáng kể nếu mỗi vòng phải xử lý cả phần nội dung đã ghép. Builder giúp giảm kiểu tăng trưởng chi phí đó bằng bộ đệm mutable.
+In repeated concatenation where the number of items grows with `n`, total copying work can grow substantially if each iteration has to process the entire accumulated string so far. A builder avoids that cost growth using a mutable buffer.
 
-## 8. Khi nào không cần StringBuilder?
+## 8. When is StringBuilder unnecessary?
 
-**Một biểu thức ghép ngắn và rõ ràng:**
+**A short, clear concatenation expression:**
 
 ~~~java
 String userName = "Lan";
@@ -239,16 +239,16 @@ String message = "Hello " + userName + ", count=" + count;
 System.out.println(message); // Hello Lan, count=3
 ~~~
 
-Ở đây `+` đọc đơn giản và phù hợp. Sửa sang builder không nhất thiết tốt hơn về mặt rõ nghĩa.
+Here `+` reads simply and fits well. Rewriting it with a builder does not necessarily improve clarity.
 
-**Nối sẵn danh sách bằng dấu phân cách:**
+**Joining an existing list with a delimiter:**
 
 ~~~java
 String csv = String.join(",", "A", "B", "C");
 System.out.println(csv); // A,B,C
 ~~~
 
-**Định dạng theo mẫu:**
+**Formatting from a template:**
 
 ~~~java
 String summary = String.format(
@@ -256,20 +256,20 @@ String summary = String.format(
 System.out.println(summary); // count=3, ratio=0.50
 ~~~
 
-Khi cần định dạng số, căn lề, locale hay phần thập phân, `String.format` có thể phù hợp hơn hàng loạt lời gọi `append`.
+When you need number formatting, alignment, locale, or decimal precision, `String.format` can be a better fit than a series of `append` calls.
 
-**Lựa chọn theo ý định:**
+**Choosing by intent:**
 
-| Tình huống | Thường nên chọn |
+| Situation | Usually prefer |
 |---|---|
-| Ghép 2–5 thành phần trong một câu lệnh | `+` |
-| Nối các chuỗi sẵn có bằng dấu phân cách | `String.join` |
-| Xây nội dung qua vòng lặp/nhánh, thêm nhiều lần | `StringBuilder` |
-| Định dạng theo mẫu có quy tắc trình bày | `String.format` hoặc formatter thích hợp |
+| Combining 2–5 parts in a single statement | `+` |
+| Joining existing strings with a delimiter | `String.join` |
+| Building content across loops/branches, appending many times | `StringBuilder` |
+| Formatting by a template with presentation rules | `String.format` or an appropriate formatter |
 
-## 9. Ví dụ Java 17 hoàn chỉnh, chạy được
+## 9. Complete, runnable Java 17 example
 
-Lưu vào file đúng tên **`StringBuilderLoopDemo.java`**:
+Save into a file named **`StringBuilderLoopDemo.java`**:
 
 ~~~java
 public final class StringBuilderLoopDemo {
@@ -337,7 +337,7 @@ public final class StringBuilderLoopDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 hoặc mới hơn, terminal đặt trong thư mục chứa `StringBuilderLoopDemo.java`.
+**Requirements:** JDK 17 or newer, terminal opened in the directory containing `StringBuilderLoopDemo.java`.
 
 **Bash (Linux/macOS):**
 
@@ -353,7 +353,7 @@ javac --release 17 -encoding UTF-8 .\StringBuilderLoopDemo.java
 java -cp . StringBuilderLoopDemo
 ~~~
 
-**Expected output (chính xác):**
+**Exact expected output:**
 
 ~~~text
 joined=Lan, Minh, An
@@ -371,34 +371,34 @@ after append length=2
 typed=ok=true, count=3
 ~~~
 
-**Giải thích những dòng dễ nhầm:**
+**Explanation of easily confused lines:**
 
-- `insert(5, "Core ")` chèn trước index 5 của `"java 17!"`, thành `"java Core 17!"`.
-- `delete(5, 10)` xóa đoạn `[5, 10)`, trả nội dung về `"java 17!"`.
-- `snapshot` giữ văn bản tại thời điểm `toString()`, không đổi khi builder được thêm `" again"`.
-- `new StringBuilder(32)` có `capacity() == 32`, nhưng `length() == 0` trước khi `append`.
-- Cả `withPlus(5)` và `withBuilder(5)` cho cùng văn bản; mục đích minh họa là **cấu trúc xây chuỗi**, không đo tốc độ.
+- `insert(5, "Core ")` inserts before index 5 of `"java 17!"`, becoming `"java Core 17!"`.
+- `delete(5, 10)` deletes the range `[5, 10)`, returning the content to `"java 17!"`.
+- `snapshot` preserves the text at the time of `toString()`, remaining unchanged when `" again"` is appended to the builder.
+- `new StringBuilder(32)` has `capacity() == 32`, yet `length() == 0` before `append`.
+- Both `withPlus(5)` and `withBuilder(5)` produce the same text; the illustration demonstrates **string-building structure**, not speed measurement.
 
-Chương trình độc lập, không cần Maven, Gradle hay thư viện bên ngoài JDK.
+The program is standalone, requiring no Maven, Gradle, or libraries outside the JDK.
 
-## 10. Các lỗi thường gặp
+## 10. Common mistakes
 
-| Cách làm / lỗi | Vì sao cần chú ý? | Hướng xử lý |
+| Practice / mistake | Why pay attention? | How to handle |
 |---|---|---|
-| `String s = ""; for (...) s += value;` | Có thể lặp lại cấp phát/copy khi tích lũy nội dung lớn | Tạo `StringBuilder` bên ngoài vòng lặp |
-| `new StringBuilder()` bên trong mỗi lần lặp | Mất lợi ích tái sử dụng một builder | Khởi tạo một lần **trước** vòng lặp nếu mục tiêu là một kết quả |
-| Quên `toString()` khi API yêu cầu `String` | `StringBuilder` và `String` là hai kiểu khác nhau | Trả `builder.toString()` |
-| `builder = builder.append(x)` trong mọi vòng | Hợp lệ nhưng gán lại biến không cần thiết | Gọi `builder.append(x)` trực tiếp |
-| Gọi `String.join` nhưng vẫn tự viết builder cho danh sách đơn giản | Tăng code không cần thiết | Dùng API sẵn có khi rõ ý |
-| Quên phân cách giữa các phần tử | Kết quả dính vào nhau, khó đọc | Thêm `", "` theo chỉ số hoặc trạng thái |
-| Dùng `capacity()` để lấy chiều dài nội dung | Capacity không phải length | Dùng `length()` |
-| Nghĩ `final StringBuilder` không thể append | final khóa biến tham chiếu, không khóa object | Có thể append, không thể gán lại biến |
-| Dùng `charAt`/ `delete` với index sai | Có thể gặp `IndexOutOfBoundsException` | Kiểm tra phạm vi theo `length()` |
-| Coi index bằng số ký tự hiển thị | UTF-16 code unit có thể khác Unicode code point | Chọn API theo đơn vị Unicode cần xử lý |
-| Chia sẻ builder mutable giữa nhiều thread | Không có đồng bộ nội tại | Giữ builder cục bộ một thread hoặc phối hợp đồng bộ |
-| Dùng builder chung cho nhiều dữ liệu cần cách ly | Nội dung có thể bị thay đổi ngoài ý muốn | Tạo builder riêng theo mỗi tác vụ |
+| `String s = ""; for (...) s += value;` | Can repeatedly allocate/copy when accumulating large content | Create a `StringBuilder` outside the loop |
+| `new StringBuilder()` inside every iteration | Loses the benefit of reusing one builder | Initialize once **before** the loop if the goal is one result |
+| Forgetting `toString()` when an API expects `String` | `StringBuilder` and `String` are two different types | Return `builder.toString()` |
+| `builder = builder.append(x)` in every iteration | Valid, but reassigning the variable is unnecessary | Call `builder.append(x)` directly |
+| Writing a manual builder instead of `String.join` for simple lists | Adds unnecessary code | Use built-in APIs when intent is clear |
+| Forgetting separators between elements | Results stick together and are hard to read | Add `", "` based on index or state |
+| Using `capacity()` to get content length | Capacity is not length | Use `length()` |
+| Thinking `final StringBuilder` cannot append | final locks the reference variable, not the object | Can append, cannot reassign the variable |
+| Calling `charAt`/`delete` with invalid indices | Can throw `IndexOutOfBoundsException` | Check bounds against `length()` |
+| Treating index as visible character count | UTF-16 code units may differ from Unicode code points | Choose APIs by the Unicode unit to process |
+| Sharing a mutable builder across multiple threads | No internal synchronization | Keep builders thread-local or synchronize explicitly |
+| Reusing a shared builder across tasks requiring isolation | Content may be altered unexpectedly | Create a separate builder per task |
 
-### Một bẫy Java dễ bỏ sót: append `null`
+### A subtle Java trap: appending `null`
 
 ~~~java
 StringBuilder builder = new StringBuilder();
@@ -406,15 +406,15 @@ builder.append((Object) null);
 System.out.println(builder); // null
 ~~~
 
-`append((Object) null)` thêm **bốn ký tự** `n`, `u`, `l`, `l`. Nhưng một số overload, đặc biệt với mảng ký tự null, có hành vi khác; khi dữ liệu có thể null, hãy chọn overload và chính sách hiển thị rõ ràng thay vì truyền giá trị null một cách mơ hồ.
+`append((Object) null)` appends **four characters**: `n`, `u`, `l`, `l`. However, some overloads, especially with a null character array, behave differently; when data can be null, choose the overload and display policy explicitly rather than passing an ambiguous null value.
 
-## 11. Bài tập kèm đáp án
+## 11. Exercises with answers
 
-### Bài A — ghép số bằng builder
+### Exercise A — joining numbers with a builder
 
-Tạo chuỗi `1-2-3-4` bằng vòng lặp.
+Create the string `1-2-3-4` using a loop.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 StringBuilder b = new StringBuilder();
@@ -427,7 +427,7 @@ for (int i = 1; i <= 4; i++) {
 System.out.println(b.toString()); // 1-2-3-4
 ~~~
 
-### Bài B — String snapshot
+### Exercise B — String snapshot
 
 ~~~java
 StringBuilder b = new StringBuilder("A");
@@ -437,16 +437,16 @@ System.out.println(snapshot);
 System.out.println(b);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 A
 AB
 ~~~
 
-Vì snapshot là String bất biến đã nhận từ builder trước khi thêm `B`.
+Because `snapshot` is an immutable String obtained from the builder before appending `B`.
 
-### Bài C — length hay capacity?
+### Exercise C — length or capacity?
 
 ~~~java
 StringBuilder b = new StringBuilder(50);
@@ -455,22 +455,22 @@ System.out.println(b.length());
 System.out.println(b.capacity());
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 2
 50
 ~~~
 
-### Bài D — có cần builder không?
+### Exercise D — is a builder needed?
 
 ~~~java
 String greeting = "Hello, " + name + "!";
 ~~~
 
-**Đáp án:** thường **không cần** nếu chỉ ghép vài thành phần một lần. Đây là một biểu thức rõ ràng và compiler/JVM Java hiện đại có thể tối ưu. Hãy dùng builder khi có lý do như lặp nhiều lần hoặc xây dựng nhiều bước.
+**Answer:** usually **not needed** if only combining a few components once. This is a clear expression and modern Java compilers/JVMs can optimize it. Use a builder when there is a reason such as looping many times or multi-step construction.
 
-### Bài E — sửa phần tử của chuỗi đã chốt?
+### Exercise E — modifying an element of an already finalized string?
 
 ~~~java
 StringBuilder builder = new StringBuilder("Java");
@@ -480,25 +480,25 @@ System.out.println(s);
 System.out.println(builder);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 Java
 Kava
 ~~~
 
-## 12. Checklist tự đánh giá
+## 12. Self-assessment checklist
 
-- [ ] Hiểu vì sao `String += value` lặp nhiều lần có thể tốn chi phí.
-- [ ] Biết tạo `StringBuilder` **một lần trước vòng lặp**.
-- [ ] Dùng `append` để thêm giá trị và `toString()` để lấy String cuối.
-- [ ] Hiểu `StringBuilder` mutable, `String` immutable và snapshot không tự thay đổi.
-- [ ] Biết thêm dấu phân cách không thừa ở đầu/cuối.
-- [ ] Phân biệt `length()` và `capacity()`; hiểu constructor nhận capacity.
-- [ ] Nắm các method cơ bản `append`, `insert`, `delete`, `setCharAt`.
-- [ ] Chọn `+` hoặc `String.join` khi đơn giản hơn.
-- [ ] Nhận biết chỉ số thao tác ký tự theo UTF-16 code units.
-- [ ] Không chia sẻ mutable builder không kiểm soát giữa các luồng.
-- [ ] Biên dịch và chạy `StringBuilderLoopDemo.java` bằng JDK 17+, so với expected output.
+- [ ] Understand why repeated `String += value` can be costly.
+- [ ] Know how to create `StringBuilder` **once before the loop**.
+- [ ] Use `append` to add values and `toString()` to obtain the final String.
+- [ ] Understand `StringBuilder` is mutable, `String` is immutable, and snapshots do not change along with the builder.
+- [ ] Know how to add delimiters without extra leading/trailing separators.
+- [ ] Distinguish `length()` from `capacity()`; understand the capacity constructor.
+- [ ] Know the basic methods `append`, `insert`, `delete`, `setCharAt`.
+- [ ] Choose `+` or `String.join` when simpler.
+- [ ] Recognize that character indices operate on UTF-16 code units.
+- [ ] Do not share a mutable builder unsynchronized across threads.
+- [ ] Compile and run `StringBuilderLoopDemo.java` with JDK 17+, comparing with expected output.
 
-**Kết luận:** `StringBuilder` hữu ích khi phải **ghép chuỗi lặp lại hoặc xây nội dung qua nhiều bước**, bởi nó cập nhật một bộ dựng mutable bằng `append` rồi tạo `String` cuối qua `toString()`. Dùng đúng nơi sẽ giúp code rõ ý và thường giảm chi phí tạo chuỗi trung gian; với vài phép nối ngắn, `+` vẫn là lựa chọn dễ đọc và hợp lý.
+**Conclusion:** `StringBuilder` is useful when you need to **concatenate strings repeatedly or build content across multiple steps**, because it updates a mutable buffer via `append` and then creates the final `String` via `toString()`. Using it in the right places keeps code clear and typically reduces intermediate string allocations; for a few short concatenations, `+` remains a readable and sensible choice.

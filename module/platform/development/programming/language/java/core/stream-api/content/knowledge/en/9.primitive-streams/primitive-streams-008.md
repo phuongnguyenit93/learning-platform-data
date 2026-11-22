@@ -1,28 +1,28 @@
-# Tính `sum`, `average`, `min`, `max` và `summaryStatistics`
+# Computing `sum`, `average`, `min`, `max`, and `summaryStatistics`
 
-> **Chương:** Stream kiểu nguyên thủy  
-> **Module:** `JAVA_STREAM_API` — học xử lý dữ liệu khai báo bằng Java Stream API qua pipeline lazy, `filter`, `map`, `reduce`, `collect`; mở rộng tới grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers, đồng thời hiểu giới hạn về trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Primitive Streams  
+> **Module:** `JAVA_STREAM_API` — learn declarative data processing with the Java Stream API through lazy pipelines, `filter`, `map`, `reduce`, `collect`; extending to grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers, while understanding limits on state, resources, and performance.
 
-Trong báo cáo doanh thu, điểm thi, nhiệt độ hay số lượng hàng tồn, các yêu cầu thường là **tính tổng**, **trung bình**, **giá trị nhỏ nhất**, **giá trị lớn nhất** và **nhiều thống kê cùng lúc**. Java cung cấp các phép toán kết thúc (*terminal operations*) chuyên dụng trên `IntStream`, `LongStream` và `DoubleStream`. Chúng giúp diễn đạt rõ ý định và xử lý trực tiếp kiểu nguyên thủy, giảm nhu cầu boxing/unboxing so với `Stream<Integer>`, `Stream<Long>` hay `Stream<Double>`.
+In revenue reports, exam scores, temperatures, or inventory counts, common requirements are **summing**, **averaging**, finding the **minimum**, finding the **maximum**, and computing **multiple statistics at once**. Java provides dedicated *terminal operations* on `IntStream`, `LongStream`, and `DoubleStream`. They express intent clearly and operate directly on primitive types, reducing boxing/unboxing demand compared to `Stream<Integer>`, `Stream<Long>`, or `Stream<Double>`.
 
-Mục tiêu của bài:
+Lesson objectives:
 
-1. Chọn đúng phép toán và hiểu kiểu trả về của `sum()`, `average()`, `min()`, `max()`, `summaryStatistics()`.
-2. Lấy kết quả an toàn khi luồng không có phần tử.
-3. Tính nhiều thống kê trong một lần duyệt.
-4. Nhận diện sai số số thực, nguy cơ tràn số nguyên và các giới hạn khi xử lý dữ liệu lớn hoặc song song.
+1. Choose the right operation and understand the return types of `sum()`, `average()`, `min()`, `max()`, and `summaryStatistics()`.
+2. Retrieve results safely when a stream has no elements.
+3. Compute multiple statistics in a single traversal.
+4. Recognize floating-point rounding error, integer overflow risk, and limits when processing large or parallel datasets.
 
-## 1. Ba loại primitive stream và cách tạo nguồn
+## 1. Three primitive stream types and how to create sources
 
-Khác với `Stream<T>` chứa tham chiếu tới đối tượng, primitive stream thao tác trực tiếp trên một trong ba kiểu `int`, `long` hoặc `double`:
+Unlike `Stream<T>`, which holds object references, primitive streams operate directly on one of three types—`int`, `long`, or `double`:
 
-| Loại luồng | Dữ liệu phần tử | Ví dụ nguồn | Trường hợp điển hình |
+| Stream Type | Element Data | Source Example | Typical Use Cases |
 | --- | --- | --- | --- |
-| `IntStream` | `int` | `IntStream.of(2, 4, 6)` | Điểm số, số lượng, chỉ số. |
-| `LongStream` | `long` | `LongStream.of(100L, 200L)` | Số lượng hoặc tổng lớn hơn miền `int`, mili giây. |
-| `DoubleStream` | `double` | `DoubleStream.of(1.5, 2.5)` | Phép đo, giá trị số thực chấp nhận sai số. |
+| `IntStream` | `int` | `IntStream.of(2, 4, 6)` | Scores, quantities, indices. |
+| `LongStream` | `long` | `LongStream.of(100L, 200L)` | Counts or sums exceeding `int` range, milliseconds. |
+| `DoubleStream` | `double` | `DoubleStream.of(1.5, 2.5)` | Measurements, floating-point values tolerating rounding error. |
 
-Có nhiều cách đi từ dữ liệu đã có tới primitive stream:
+There are several ways to go from existing data to a primitive stream:
 
 ```java
 import java.util.Arrays;
@@ -38,7 +38,7 @@ LongStream orderIds = LongStream.of(1001L, 1002L, 1003L);
 DoubleStream temperatures = DoubleStream.of(28.5, 29.0, 30.25);
 ```
 
-Khi dữ liệu ở dạng đối tượng, `mapToInt`, `mapToLong` và `mapToDouble` trích xuất khóa số:
+When data is in object form, `mapToInt`, `mapToLong`, and `mapToDouble` extract numeric keys:
 
 ```java
 record Product(String name, int quantity, long revenueCents) {}
@@ -57,11 +57,11 @@ long totalRevenueCents = products.stream()
         .sum(); // 375000
 ```
 
-Các khai báo ở đoạn trên độc lập và minh họa cú pháp. Ở những đoạn có sử dụng lại `Product`, `products` hoặc biến khác, hãy đặt chúng trong cùng phạm vi khi chạy. Phần 3 có chương trình Java hoàn chỉnh.
+The declarations above are standalone syntax illustrations. In snippets that reuse `Product`, `products`, or other variables, place them in the same scope when running. Section 3 provides a complete Java program.
 
-**Nguyên tắc vòng đời:** gọi một terminal operation sẽ tiêu thụ Stream. Không gọi `sum()` rồi `average()` trên **cùng một đối tượng** `IntStream`; hãy tạo Stream mới từ nguồn có thể duyệt lại hoặc dùng `summaryStatistics()` nếu cần nhiều giá trị trong một lượt.
+**Lifecycle rule:** invoking a terminal operation consumes the Stream. Do not call `sum()` and then `average()` on **the same** `IntStream` instance; create a new Stream from a re-traversable source or use `summaryStatistics()` when multiple metrics are needed in one pass.
 
-## 2. API tổng hợp và kiểu kết quả
+## 2. Aggregation APIs and return types
 
 | Terminal operation | `IntStream` | `LongStream` | `DoubleStream` |
 | --- | --- | --- | --- |
@@ -71,9 +71,9 @@ Các khai báo ở đoạn trên độc lập và minh họa cú pháp. Ở nh�
 | `max()` | `OptionalInt` | `OptionalLong` | `OptionalDouble` |
 | `summaryStatistics()` | `IntSummaryStatistics` | `LongSummaryStatistics` | `DoubleSummaryStatistics` |
 
-Tất cả là **phép toán kết thúc**. Khi chưa có terminal operation, các bước trung gian như `filter` hoặc `mapToInt` thường chưa thực hiện duyệt nguồn. Khi gọi `sum` hay `summaryStatistics`, pipeline được duyệt để tạo kết quả.
+All are **terminal operations**. Until a terminal operation is present, intermediate steps such as `filter` or `mapToInt` generally have not traversed the source yet. Once `sum` or `summaryStatistics` is called, the pipeline is traversed to produce the result.
 
-### Tính tổng với `sum()`
+### Summing with `sum()`
 
 ```java
 int sum = java.util.stream.IntStream.of(5, 10, 15).sum();
@@ -88,9 +88,9 @@ double doubleSum = java.util.stream.DoubleStream.of(1.5, 2.0, 3.5)
 // 7.0
 ```
 
-`sum()` trả trực tiếp kiểu số. Với nguồn rỗng, `sum()` trả **0** (hoặc `0.0`) vì 0 là phần tử trung hòa của phép cộng.
+`sum()` returns the numeric type directly. For an empty source, `sum()` returns **0** (or `0.0`) because 0 is the additive identity.
 
-### Tính trung bình với `average()`
+### Averaging with `average()`
 
 ```java
 import java.util.OptionalDouble;
@@ -100,9 +100,9 @@ OptionalDouble avg = IntStream.of(7, 8, 10).average();
 System.out.println(avg.orElseThrow()); // 8.333333333333334
 ```
 
-`average()` trả `OptionalDouble` **cho cả ba loại primitive stream**. Kết quả có thể chứa phần lẻ, kể cả khi nguồn là `IntStream` hoặc `LongStream`. Trên nguồn rỗng, không có trung bình cộng nên kết quả là `OptionalDouble.empty()`, không phải số 0.
+`average()` returns `OptionalDouble` **for all three primitive stream types**. The result can have a fractional part even when the source is `IntStream` or `LongStream`. On an empty source, there is no arithmetic mean, so the result is `OptionalDouble.empty()`, not 0.
 
-### Tìm nhỏ nhất và lớn nhất
+### Finding minimum and maximum
 
 ```java
 import java.util.OptionalInt;
@@ -115,11 +115,11 @@ System.out.println(minimum.orElseThrow()); // 2
 System.out.println(maximum.orElseThrow()); // 9
 ```
 
-Trên primitive stream, `min()` và `max()` **không cần `Comparator`** vì chúng dùng thứ tự số học của kiểu nguyên thủy. Nếu cần tìm chính **đối tượng** có giá trị thuộc tính lớn nhất, hãy dùng `Stream<T>.max(Comparator.comparingInt(...))` để giữ lại đối tượng, thay vì `mapToInt(...).max()` chỉ còn trả về số.
+On primitive streams, `min()` and `max()` **do not require a `Comparator`** because they use the numeric ordering of the primitive type. If you need to find the **object** with the largest property value, use `Stream<T>.max(Comparator.comparingInt(...))` to retain the object instead of `mapToInt(...).max()`, which returns only the number.
 
-## 3. Chương trình Java 17+ hoàn chỉnh: thống kê điểm
+## 3. Complete Java 17+ program: score statistics
 
-Ví dụ dưới đây minh họa cả năm phép toán trên một nguồn `int[]`. Lưu nội dung vào `PrimitiveStatisticsDemo.java`:
+The example below demonstrates all five operations on an `int[]` source. Save the contents into `PrimitiveStatisticsDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -131,7 +131,7 @@ public class PrimitiveStatisticsDemo {
     public static void main(String[] args) {
         int[] scores = {12, 18, 24, 30, 36};
 
-        // Mỗi lần Arrays.stream(scores) tạo một Stream mới.
+        // Each Arrays.stream(scores) call creates a new Stream.
         int sum = Arrays.stream(scores).sum();
         OptionalDouble average = Arrays.stream(scores).average();
         OptionalInt min = Arrays.stream(scores).min();
@@ -142,7 +142,7 @@ public class PrimitiveStatisticsDemo {
         System.out.println("min = " + min.orElseThrow());
         System.out.println("max = " + max.orElseThrow());
 
-        // Một lần duyệt cho count, sum, min, max, average.
+        // One pass for count, sum, min, max, average.
         IntSummaryStatistics stats = Arrays.stream(scores)
                 .summaryStatistics();
 
@@ -155,7 +155,7 @@ public class PrimitiveStatisticsDemo {
 }
 ```
 
-Đầu ra:
+Output:
 
 ```text
 sum = 120
@@ -169,17 +169,17 @@ stats.min = 12
 stats.max = 36
 ```
 
-Lưu ý điểm khác biệt về **kiểu dữ liệu**: `IntStream.sum()` trả `int`, còn `IntSummaryStatistics.getSum()` trả `long`. Điều này trở nên quan trọng khi tổng các phần tử có thể vượt phạm vi 32-bit.
+Notice the **data type difference**: `IntStream.sum()` returns `int`, while `IntSummaryStatistics.getSum()` returns `long`. This becomes crucial when the sum of elements can exceed the 32-bit range.
 
-## 4. `summaryStatistics()`: nhiều chỉ số trong một lần duyệt
+## 4. `summaryStatistics()`: multiple metrics in one pass
 
-Nếu cần cả tổng, trung bình, nhỏ nhất và lớn nhất, gọi bốn terminal operations độc lập trên một nguồn tái sử dụng được sẽ dẫn đến bốn lần duyệt (trong trường hợp tổng quát). `summaryStatistics()` trả về một đối tượng tích lũy **count, sum, min, max và average** khi nguồn được duyệt một lần:
+If you need sum, average, minimum, and maximum together, calling four independent terminal operations on a reusable source results in four traversals (in the general case). `summaryStatistics()` returns an accumulator object holding **count, sum, min, max, and average** while traversing the source once:
 
 ```text
-Nguồn dữ liệu
+Data source
     │
     ▼
- filter / mapToInt     ← các bước trung gian nếu có
+ filter / mapToInt     ← intermediate steps if any
     │
     ▼
  summaryStatistics()   ← terminal operation
@@ -191,15 +191,15 @@ Nguồn dữ liệu
     └── average
 ```
 
-Ba lớp thống kê có các phương thức tương đương nhau:
+The three statistics classes have corresponding methods:
 
-| Lớp | `getCount()` | `getSum()` | `getMin()` / `getMax()` | `getAverage()` |
+| Class | `getCount()` | `getSum()` | `getMin()` / `getMax()` | `getAverage()` |
 | --- | --- | --- | --- | --- |
 | `IntSummaryStatistics` | `long` | `long` | `int` | `double` |
 | `LongSummaryStatistics` | `long` | `long` | `long` | `double` |
 | `DoubleSummaryStatistics` | `long` | `double` | `double` | `double` |
 
-Ví dụ với số lớn:
+Example with large numbers:
 
 ```java
 import java.util.LongSummaryStatistics;
@@ -216,7 +216,7 @@ System.out.println(stats.getMax());     // 3000000000
 System.out.println(stats.getAverage()); // 2.0E9
 ```
 
-Với `DoubleStream`, có lớp `DoubleSummaryStatistics` và các getter tương tự:
+With `DoubleStream`, there is `DoubleSummaryStatistics` and corresponding getters:
 
 ```java
 import java.util.DoubleSummaryStatistics;
@@ -233,17 +233,17 @@ System.out.println(temperatures.getMax());     // 30.0
 System.out.println(temperatures.getAverage()); // 29.333333333333332
 ```
 
-Giá trị `average` trên `double` là xấp xỉ biểu diễn nhị phân của `88 / 3`; không nên so sánh bình quân số thực bằng `==` trong các yêu cầu cần chính xác tuyệt đối.
+The `average` value on `double` is a binary approximation of `88 / 3`; never compare floating-point averages using `==` when exact precision is required.
 
-### `summaryStatistics` không phải bộ sưu tập phần tử
+### `summaryStatistics` is not an element collection
 
-Đối tượng statistics chỉ lưu các chỉ số tổng hợp, **không giữ danh sách gốc**. Nếu muốn thống kê theo từng nhóm (ví dụ mỗi phòng ban hoặc từng loại sản phẩm), cần phân nhóm bằng `collect(groupingBy(...))` và các downstream collector phù hợp. Đây là bài toán khác với thống kê một dãy primitive duy nhất.
+The statistics object stores only summary metrics and **does not retain the original elements**. If you want statistics per group (e.g., per department or product category), group using `collect(groupingBy(...))` with appropriate downstream collectors. That is a different problem from summarizing a single primitive sequence.
 
-## 5. Stream rỗng: phân biệt “không có dữ liệu” với số 0
+## 5. Empty streams: distinguishing “no data” from zero
 
-Các hành vi trên **nguồn rỗng** rất quan trọng khi một bước `filter` loại hết các phần tử.
+Behavior on an **empty source** is crucial whenever a `filter` step eliminates all elements.
 
-| Phép toán | Với `IntStream.empty()` |
+| Operation | On `IntStream.empty()` |
 | --- | --- |
 | `sum()` | `0` |
 | `average()` | `OptionalDouble.empty()` |
@@ -255,7 +255,7 @@ Các hành vi trên **nguồn rỗng** rất quan trọng khi một bước `fil
 | `summaryStatistics().getMax()` | `Integer.MIN_VALUE` |
 | `summaryStatistics().getAverage()` | `0.0` |
 
-Các giá trị `getMin()` và `getMax()` của statistics rỗng là **giá trị khởi tạo**, không phải cực trị thực tế. Tương tự, `getAverage() == 0.0` không chứng minh đã có số 0 trong dữ liệu.
+`getMin()` and `getMax()` on an empty statistics object are **initial sentinel values**, not real extrema. Likewise, `getAverage() == 0.0` does not prove there was a 0 in the data.
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -266,7 +266,7 @@ IntSummaryStatistics emptyStats = IntStream.empty()
         .summaryStatistics();
 
 if (emptyStats.getCount() == 0) {
-    System.out.println("Không có dữ liệu để tính cực trị hoặc trung bình");
+    System.out.println("No data to compute extrema or average");
 } else {
     System.out.println("Min: " + emptyStats.getMin());
     System.out.println("Average: " + emptyStats.getAverage());
@@ -276,9 +276,9 @@ OptionalDouble average = IntStream.empty().average();
 System.out.println(average.isPresent()); // false
 ```
 
-Với `LongSummaryStatistics` rỗng, `getMin()` là `Long.MAX_VALUE`, `getMax()` là `Long.MIN_VALUE`. Với `DoubleSummaryStatistics` rỗng, `getMin()` là `Double.POSITIVE_INFINITY` và `getMax()` là `Double.NEGATIVE_INFINITY`. Trong cả ba trường hợp, **kiểm tra `getCount() > 0`** trước khi diễn giải min/max/average.
+For an empty `LongSummaryStatistics`, `getMin()` is `Long.MAX_VALUE` and `getMax()` is `Long.MIN_VALUE`. For an empty `DoubleSummaryStatistics`, `getMin()` is `Double.POSITIVE_INFINITY` and `getMax()` is `Double.NEGATIVE_INFINITY`. In all three cases, **check `getCount() > 0`** before interpreting min/max/average.
 
-### Sử dụng `Optional` khi có thể thiếu kết quả
+### Using `Optional` when a result may be absent
 
 ```java
 import java.util.OptionalDouble;
@@ -286,28 +286,28 @@ import java.util.stream.IntStream;
 
 OptionalDouble maybeAverage = IntStream.of().average();
 
-// Cho phép lớp gọi biết là không có trung bình:
+// Let the caller know there is no average:
 if (maybeAverage.isPresent()) {
     System.out.println(maybeAverage.getAsDouble());
 } else {
-    System.out.println("Chưa có điểm");
+    System.out.println("No scores yet");
 }
 
-// Chỉ dùng giá trị mặc định 0 khi nghiệp vụ quy định rõ như vậy:
+// Use default 0 only when business rules explicitly specify so:
 double averageForDashboard = maybeAverage.orElse(0.0);
 ```
 
-Không dùng `getAsInt()` hoặc `getAsDouble()` khi Optional tương ứng có thể rỗng mà chưa kiểm tra: các phương thức này có thể ném `NoSuchElementException`. Khi dữ liệu bắt buộc phải tồn tại, có thể dùng `orElseThrow()`.
+Do not call `getAsInt()` or `getAsDouble()` when the corresponding Optional may be empty without checking first: these methods can throw `NoSuchElementException`. When data is required to exist, `orElseThrow()` can be used.
 
-## 6. Tràn số nguyên: `sum()` có thể sai dù từng phần tử hợp lệ
+## 6. Integer overflow: `sum()` can be wrong even when every element is valid
 
-Phép cộng `int` trong Java có miền `[-2^{31}, 2^{31}-1]`. Nếu tổng vượt phạm vi đó, số nguyên bị **tràn (overflow)** mà `IntStream.sum()` không tự ném ngoại lệ.
+Java `int` addition has the domain `[-2^{31}, 2^{31}-1]`. If the sum exceeds this range, the integer **overflows** without `IntStream.sum()` throwing an exception.
 
 ```java
 import java.util.stream.IntStream;
 
 int wrong = IntStream.of(2_000_000_000, 2_000_000_000).sum();
-System.out.println(wrong); // -294967296 (tràn int)
+System.out.println(wrong); // -294967296 (int overflow)
 
 long correct = IntStream.of(2_000_000_000, 2_000_000_000)
         .asLongStream()
@@ -320,9 +320,9 @@ long fromStats = IntStream.of(2_000_000_000, 2_000_000_000)
 System.out.println(fromStats); // 4000000000
 ```
 
-`asLongStream()` đổi cách cộng sang `long`. `IntSummaryStatistics` cũng tích lũy tổng bằng `long`, dù `IntStream.sum()` trả `int`. Tuy nhiên, `long` vẫn có giới hạn: `LongStream.sum()` và `LongSummaryStatistics.getSum()` cũng có thể tràn khi tổng vượt phạm vi `long`.
+`asLongStream()` switches addition to `long`. `IntSummaryStatistics` also accumulates the sum in `long`, even though `IntStream.sum()` returns `int`. However, `long` still has a limit: `LongStream.sum()` and `LongSummaryStatistics.getSum()` can also overflow when the total exceeds the `long` range.
 
-Khi cần **phát hiện** overflow thay vì chỉ tăng miền số, có thể dùng `Math.addExact` cho reduction tuần tự hoặc song song với phép cộng có kiểm tra:
+When you need to **detect** overflow rather than merely widening the numeric domain, `Math.addExact` can be used for sequential or parallel reduction with checked addition:
 
 ```java
 long exact = java.util.stream.LongStream
@@ -331,20 +331,20 @@ long exact = java.util.stream.LongStream
 // 17000000000
 ```
 
-Ví dụ này nằm trong phạm vi `long` nên không ném lỗi. Nếu tổng vượt `long`, `Math.addExact` sẽ ném `ArithmeticException`. Với số nguyên cực lớn, có thể chuyển giá trị sang `BigInteger` và tính bằng `reduce` trên `Stream<BigInteger>`, đổi lại không còn là primitive stream.
+This example fits within `long` and throws no error. If the sum exceeds `long`, `Math.addExact` throws `ArithmeticException`. For arbitrarily large integers, values can be converted to `BigInteger` and reduced over `Stream<BigInteger>`, at the cost of no longer being a primitive stream.
 
-## 7. Sai số `double`, NaN, vô cực và số 0 có dấu
+## 7. `double` error, NaN, infinity, and signed zero
 
-Không giống số nguyên, `double` dùng biểu diễn dấu chấm động nhị phân. Nhiều số thập phân không biểu diễn chính xác được, nên `sum()` và `average()` có thể chỉ là **giá trị gần đúng**:
+Unlike integers, `double` uses binary floating-point representation. Many decimals cannot be represented exactly, so `sum()` and `average()` can be **approximations**:
 
 ```java
 double total = java.util.stream.DoubleStream.of(0.1, 0.2).sum();
-System.out.println(total); // thường hiển thị 0.30000000000000004
+System.out.println(total); // typically prints 0.30000000000000004
 ```
 
-Triển khai `DoubleStream.sum()` có thể dùng kỹ thuật cộng bù (*compensated summation*) để giảm lỗi trong một số trường hợp. Tuy nhiên, thứ tự cộng có thể khác nhau theo cách thực thi và kết quả **không bảo đảm chính xác tuyệt đối**. Tương tự, `DoubleSummaryStatistics` không phải công cụ tính tiền chính xác đến từng đơn vị.
+`DoubleStream.sum()` implementations may use *compensated summation* to reduce error in some cases. However, addition order can vary by execution strategy and results are **not guaranteed to be strictly exact**. Likewise, `DoubleSummaryStatistics` is not a tool for unit-exact monetary calculations.
 
-Khi phải tính tiền có quy tắc làm tròn chính xác, nên lưu số tiền theo đơn vị nhỏ nhất dưới dạng số nguyên nếu không thể tràn, hoặc dùng `BigDecimal`:
+When calculating money with exact rounding rules, store amounts in the smallest currency unit as integers if overflow cannot occur, or use `BigDecimal`:
 
 ```java
 import java.math.BigDecimal;
@@ -358,15 +358,15 @@ BigDecimal totalMoney = List.of(
 System.out.println(totalMoney); // 0.30
 ```
 
-Đây là `Stream<BigDecimal>`, không phải `DoubleStream`, vì loại dữ liệu và yêu cầu chính xác quyết định giải pháp phù hợp.
+This is a `Stream<BigDecimal>`, not a `DoubleStream`, because data type and precision requirements dictate the proper solution.
 
-### Các giá trị đặc biệt
+### Special values
 
-`DoubleStream` có một số quy tắc cần biết:
+`DoubleStream` has several rules to know:
 
-- Nếu luồng chứa `Double.NaN`, `min()` và `max()` sẽ cho kết quả chứa `NaN` theo hợp đồng của các phép toán này.
-- Với `+0.0` và `-0.0`, `min()` xem `-0.0` nhỏ hơn `+0.0`; `max()` xem `+0.0` lớn hơn `-0.0`.
-- Khi cộng các giá trị vô cực trái dấu hoặc có `NaN`, kết quả `sum` có thể là `NaN`. Cách sắp xếp và cộng `double` ảnh hưởng độ chính xác của giá trị hữu hạn.
+- If the stream contains `Double.NaN`, `min()` and `max()` yield a result containing `NaN` per their operation contracts.
+- For `+0.0` and `-0.0`, `min()` treats `-0.0` as smaller than `+0.0`; `max()` treats `+0.0` as greater than `-0.0`.
+- Adding opposite infinities or `NaN` can make `sum` evaluate to `NaN`. Ordering and summation strategy on `double` affect precision of finite results.
 
 ```java
 import java.util.stream.DoubleStream;
@@ -381,7 +381,7 @@ System.out.println(Double.isNaN(
 // true
 ```
 
-Nếu ứng dụng chỉ chấp nhận các giá trị hữu hạn, hãy **quy định chính sách lọc** trước khi thống kê:
+If an application accepts only finite values, **define a filtering policy** before computing statistics:
 
 ```java
 double[] measurements = {1.2, Double.NaN, 2.4, Double.POSITIVE_INFINITY};
@@ -392,14 +392,14 @@ java.util.DoubleSummaryStatistics finiteStats = java.util.Arrays
         .summaryStatistics();
 
 System.out.println(finiteStats.getCount()); // 2
-System.out.println(finiteStats.getSum());   // xấp xỉ 3.6
+System.out.println(finiteStats.getSum());   // approximately 3.6
 ```
 
-Việc loại `NaN` hoặc `Infinity` thay đổi tập dữ liệu được báo cáo, vì vậy chỉ áp dụng khi quy tắc nghiệp vụ coi chúng là dữ liệu không hợp lệ.
+Removing `NaN` or `Infinity` changes the reported dataset, so apply it only when business rules treat them as invalid data.
 
-## 8. Ví dụ thực tế: thống kê tồn kho sau khi lọc
+## 8. Practical example: inventory statistics after filtering
 
-Giả sử hệ thống cần thống kê **số lượng của các sản phẩm đang bán**. Kết hợp `filter` (trung gian, lazy) với `mapToInt` (chuyển sang `IntStream`) và `summaryStatistics()`:
+Suppose a system needs statistics on **stock quantities of active products**. Combine `filter` (intermediate, lazy) with `mapToInt` (converting to `IntStream`) and `summaryStatistics()`:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -421,42 +421,42 @@ public class InventoryStatisticsDemo {
                 .mapToInt(Item::stock)
                 .summaryStatistics();
 
-        System.out.println("Số mặt hàng: " + stats.getCount());
-        System.out.println("Tổng tồn: " + stats.getSum());
-        System.out.println("Ít nhất: " + stats.getMin());
-        System.out.println("Nhiều nhất: " + stats.getMax());
-        System.out.println("Bình quân: " + stats.getAverage());
+        System.out.println("Item count: " + stats.getCount());
+        System.out.println("Total stock: " + stats.getSum());
+        System.out.println("Min: " + stats.getMin());
+        System.out.println("Max: " + stats.getMax());
+        System.out.println("Average: " + stats.getAverage());
     }
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
-Số mặt hàng: 3
-Tổng tồn: 40
-Ít nhất: 8
-Nhiều nhất: 20
-Bình quân: 13.333333333333334
+Item count: 3
+Total stock: 40
+Min: 8
+Max: 20
+Average: 13.333333333333334
 ```
 
-Điểm cần chú ý:
+Key points to note:
 
-- `filter(Item::active)` bỏ mặt hàng không hoạt động **trước khi** thống kê.
-- `mapToInt(Item::stock)` chỉ lấy số tồn kho; từ bước này không còn đối tượng `Item` trong luồng.
-- `stats.getCount()` đếm **mặt hàng được giữ lại**, không phải tổng số đơn vị hàng.
-- Nếu cần tìm **mặt hàng nào có tồn kho lớn nhất**, dùng `items.stream().filter(Item::active).max(Comparator.comparingInt(Item::stock))`; kết quả là `Optional<Item>`.
-- Nếu toàn bộ mặt hàng không hoạt động, kết quả thống kê có `getCount() == 0` và không nên trình bày `getMin()`/`getMax()` như cực trị thật.
+- `filter(Item::active)` drops inactive items **before** statistics are computed.
+- `mapToInt(Item::stock)` extracts only stock counts; from this point on, `Item` objects are no longer in the stream.
+- `stats.getCount()` counts **retained items**, not total product units.
+- If you need to find **which item has the highest stock**, use `items.stream().filter(Item::active).max(Comparator.comparingInt(Item::stock))`; the result is `Optional<Item>`.
+- If all items are inactive, the statistics result has `getCount() == 0`, and `getMin()`/`getMax()` should not be presented as real extrema.
 
-## 9. Hiệu năng, nguồn dữ liệu và xử lý song song
+## 9. Performance, data sources, and parallel processing
 
-### Một lần duyệt cho nhiều chỉ số
+### One pass for multiple metrics
 
-Với các phép tổng hợp trên nguồn hữu hạn chưa có kết quả tính sẵn, chi phí điển hình là **O(n)** để duyệt n phần tử. `summaryStatistics()` gộp nhiều phép tích lũy trong một lượt, nên có thể giảm các lần đọc nguồn nếu cùng lúc cần `count`, `sum`, `min`, `max`, `average`.
+For aggregations over a finite source without precomputed results, typical cost is **O(n)** to traverse n elements. `summaryStatistics()` combines multiple accumulators in one pass, reducing source reads when `count`, `sum`, `min`, `max`, and `average` are all needed at once.
 
-Đừng suy ra `summaryStatistics()` luôn nhanh hơn mọi phương án khác: nếu chỉ cần tổng, `sum()` trực tiếp thường đơn giản và tránh tính thêm chỉ số không cần. Hãy đo bằng dữ liệu đại diện khi hiệu năng thực sự quan trọng.
+Do not assume `summaryStatistics()` is always faster than every alternative: if only the sum is needed, direct `sum()` is simpler and avoids computing extra unneeded metrics. Measure with representative data when performance truly matters.
 
-### Stream không dùng lại được
+### Streams cannot be reused
 
 ```java
 import java.util.stream.IntStream;
@@ -464,32 +464,32 @@ import java.util.stream.IntStream;
 IntStream stream = IntStream.of(1, 2, 3);
 int total = stream.sum(); // 6
 
-// Không hợp lệ: cùng stream đã bị tiêu thụ.
+// Invalid: the same stream has already been consumed.
 // double avg = stream.average().orElseThrow();
 ```
 
-Tạo Stream mới từ một `List` hoặc mảng có thể duyệt lại, hoặc dùng `summaryStatistics()` nếu dữ liệu chỉ nên đọc một lần. Với các nguồn gắn tài nguyên như tệp hoặc kết nối I/O, cần tôn trọng vòng đời tài nguyên, đóng luồng đúng chỗ và tránh tự ý duyệt nhiều lần.
+Create a new Stream from a re-traversable `List` or array, or use `summaryStatistics()` if data should only be read once. For resource-backed sources like files or I/O connections, respect resource lifecycles, close streams properly, and avoid reading multiple times arbitrarily.
 
-### Nguồn vô hạn và short-circuit
+### Unbounded sources and short-circuiting
 
-`sum`, `average`, `min`, `max`, `summaryStatistics` đều cần **xét hết dữ liệu** của nguồn hữu hạn để trả kết quả tổng quát. Chúng thường không kết thúc nếu nguồn vô hạn không bị giới hạn:
+`sum`, `average`, `min`, `max`, and `summaryStatistics` all must **inspect all data** of a finite source to return an overall result. They generally do not terminate if an unbounded source is not bounded:
 
 ```java
 import java.util.stream.IntStream;
 
-// Có điểm dừng rõ ràng:
+// Clear stopping point:
 int total = IntStream.iterate(1, n -> n + 1)
         .limit(5)
         .sum();
 System.out.println(total); // 15
 
-// Không được chạy không giới hạn trên nguồn vô hạn:
+// Must not run unbounded on an infinite source:
 // IntStream.iterate(1, n -> n + 1).sum();
 ```
 
-`limit` đứng trước terminal operation tạo phạm vi hữu hạn. Trên một nguồn vô hạn có thể tạo số rất lớn, còn phải cân nhắc overflow như mục 6.
+`limit` before the terminal operation establishes a finite bound. On an unbounded source capable of generating huge numbers, also consider overflow as in section 6.
 
-### Song song và độ ổn định kết quả
+### Parallelism and result stability
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -503,37 +503,37 @@ System.out.println(stats.getCount()); // 1000000
 System.out.println(stats.getSum());   // 500000500000
 ```
 
-Các phép tổng hợp của Stream có cơ chế kết hợp kết quả nhánh khi chạy song song. Với `int`/`long`, vẫn phải xét khả năng overflow. Với `double`, thay đổi thứ tự cộng làm kết quả thập phân có thể khác nhau giữa cách chạy hoặc giữa các lần thực thi. `parallel()` cũng không mặc nhiên nhanh hơn, vì có chi phí chia nguồn, quản lý tác vụ và gộp kết quả.
+Stream aggregations provide mechanisms to combine branch results when running in parallel. For `int`/`long`, overflow must still be considered. For `double`, changing addition order can cause fractional results to differ across execution strategies or runs. `parallel()` is not automatically faster either, because it incurs source splitting, task management, and result merging overhead.
 
-**Quy tắc thực hành:** chọn `mapToInt`/`mapToLong`/`mapToDouble` đúng loại dữ liệu; chỉ dùng song song sau khi có số đo hiệu năng và bảo đảm pipeline không có lambda phụ thuộc trạng thái dùng chung.
+**Practical rule:** choose `mapToInt`/`mapToLong`/`mapToDouble` matching the data type; enable parallelism only after performance measurement and ensure the pipeline has no lambdas relying on shared mutable state.
 
-## 10. Lỗi thường gặp và cách xử lý
+## 10. Common errors and fixes
 
-| Lỗi | Hậu quả | Cách xử lý |
+| Error | Consequence | Fix |
 | --- | --- | --- |
-| Gọi `average().getAsDouble()` trên Stream rỗng | `NoSuchElementException` | Kiểm tra `isPresent()`, dùng `orElse` nếu có chính sách mặc định. |
-| Hiểu `getMin() == Integer.MAX_VALUE` là giá trị thật khi rỗng | Báo cáo sai cực trị | Kiểm tra `stats.getCount() > 0`. |
-| Dùng `IntStream.sum()` cho tổng vượt `int` | Tràn số nguyên, kết quả sai | Chuyển sang `asLongStream().sum()` hoặc `IntSummaryStatistics.getSum()` nếu vừa miền `long`. |
-| Dùng `LongStream.sum()` cho tổng vượt `long` | Có thể tràn số nguyên | Dùng chiến lược `BigInteger`/kiểm tra overflow. |
-| Dùng `double` để tính tiền chính xác | Sai số biểu diễn và làm tròn | Dùng đơn vị nguyên với miền số phù hợp hoặc `BigDecimal`. |
-| Dùng lại một Stream cho `sum` và `average` | `IllegalStateException` | Tạo Stream mới hoặc dùng `summaryStatistics`. |
-| Dùng `mapToInt` khi getter trả `Integer` có thể null | Auto-unboxing có thể ném `NullPointerException` | Lọc `null` hoặc quyết định giá trị mặc định theo nghiệp vụ. |
-| Dùng `max()` trên primitive stream khi cần đối tượng gốc | Chỉ có giá trị số, mất thông tin đối tượng | Dùng `Stream<T>.max(Comparator.comparingInt(...))`. |
-| Chạy thống kê trên nguồn vô hạn chưa giới hạn | Không kết thúc | Giới hạn nguồn hoặc thiết kế phân đoạn/cửa sổ hữu hạn. |
-| Nghĩ `summaryStatistics()` tự phân nhóm | Chỉ có tổng hợp toàn luồng | Dùng collector thích hợp khi cần nhiều nhóm. |
+| Calling `average().getAsDouble()` on an empty Stream | `NoSuchElementException` | Check `isPresent()`, or use `orElse` if a default policy exists. |
+| Treating `getMin() == Integer.MAX_VALUE` as a real value when empty | Incorrect extrema reported | Check `stats.getCount() > 0`. |
+| Using `IntStream.sum()` for sums exceeding `int` | Integer overflow, wrong result | Switch to `asLongStream().sum()` or `IntSummaryStatistics.getSum()` if within `long`. |
+| Using `LongStream.sum()` for sums exceeding `long` | Possible integer overflow | Use a `BigInteger` strategy / overflow check. |
+| Using `double` for exact monetary calculations | Representation and rounding error | Use integer minor units with adequate range or `BigDecimal`. |
+| Reusing one Stream for `sum` and `average` | `IllegalStateException` | Create a new Stream or use `summaryStatistics`. |
+| Using `mapToInt` when getter returns nullable `Integer` | Auto-unboxing can throw `NullPointerException` | Filter `null` or define a business default value. |
+| Using `max()` on a primitive stream when the original object is needed | Only numeric value remains, object lost | Use `Stream<T>.max(Comparator.comparingInt(...))`. |
+| Running statistics on an unbounded infinite source | Never terminates | Limit the source or design finite partitions/windows. |
+| Thinking `summaryStatistics()` groups automatically | Only aggregates the entire stream | Use appropriate collectors when multiple groups are needed. |
 
-## 11. Tự luyện tập
+## 11. Self-practice
 
-**Bài 1 — Tính tổng và bình quân.** Cho `int[] numbers = {3, 6, 9, 12}`. Tổng và trung bình là bao nhiêu?
+**Exercise 1 — Sum and average.** Given `int[] numbers = {3, 6, 9, 12}`, what are the sum and average?
 
 ```java
 int total = java.util.Arrays.stream(numbers).sum(); // 30
 double avg = java.util.Arrays.stream(numbers).average().orElseThrow(); // 7.5
 ```
 
-**Bài 2 — Lọc trước khi thống kê.** Với `IntStream.of(-3, 2, 5, 8)`, chỉ xét số dương. `min`, `max` và `sum` bằng bao nhiêu?
+**Exercise 2 — Filter before statistics.** Given `IntStream.of(-3, 2, 5, 8)`, consider only positive numbers. What are `min`, `max`, and `sum`?
 
-**Đáp án:** Các phần tử còn lại là `2, 5, 8`; `min = 2`, `max = 8`, `sum = 15`. Có thể lấy chúng cùng lúc bằng:
+**Answer:** The remaining elements are `2, 5, 8`; `min = 2`, `max = 8`, `sum = 15`. You can obtain them together with:
 
 ```java
 var stats = java.util.stream.IntStream.of(-3, 2, 5, 8)
@@ -541,22 +541,22 @@ var stats = java.util.stream.IntStream.of(-3, 2, 5, 8)
         .summaryStatistics();
 ```
 
-**Bài 3 — Dữ liệu rỗng.** `IntStream.empty().sum()` và `IntStream.empty().average()` có giống nhau về ý nghĩa không?
+**Exercise 3 — Empty data.** Do `IntStream.empty().sum()` and `IntStream.empty().average()` have the same meaning?
 
-**Đáp án:** Không. Tổng của tập rỗng là `0` theo giá trị trung hòa của phép cộng; trung bình không xác định và được biểu diễn bằng `OptionalDouble.empty()`.
+**Answer:** No. The sum of an empty set is `0` by the additive identity; the average is undefined and represented by `OptionalDouble.empty()`.
 
-**Bài 4 — Tràn số.** `IntStream.of(2_000_000_000, 2_000_000_000).sum()` trả `4_000_000_000` không?
+**Exercise 4 — Overflow.** Does `IntStream.of(2_000_000_000, 2_000_000_000).sum()` return `4_000_000_000`?
 
-**Đáp án:** Không, `int` không chứa được giá trị đó; hãy dùng `.asLongStream().sum()` để có `4_000_000_000L`.
+**Answer:** No, `int` cannot hold that value; use `.asLongStream().sum()` to get `4_000_000_000L`.
 
-**Bài 5 — Chọn API.** Chỉ cần tổng doanh thu chính xác tính bằng số nguyên xu, có nên chuyển sang `DoubleStream` không?
+**Exercise 5 — Choosing the API.** If only exact total revenue in whole cents is needed, should you convert to `DoubleStream`?
 
-**Đáp án:** Không nhất thiết. Nếu giá trị và tổng nằm trong miền `long`, lưu theo `long` và `mapToLong(...).sum()` là phù hợp hơn. Nếu có nguy cơ vượt `long` hoặc cần quy tắc thập phân phức tạp, cân nhắc `BigInteger`/`BigDecimal` và chính sách làm tròn rõ ràng.
+**Answer:** Not necessarily. If values and sum fit in `long`, storing as `long` and using `mapToLong(...).sum()` is more appropriate. If there is overflow risk beyond `long` or complex decimal rules apply, consider `BigInteger`/`BigDecimal` with an explicit rounding policy.
 
-## Ghi nhớ
+## Takeaways
 
-- `sum()` trả số trực tiếp; `average()` trả `OptionalDouble`; `min()`/`max()` trả Optional chuyên biệt theo kiểu primitive.
-- `summaryStatistics()` lấy `count`, `sum`, `min`, `max`, `average` **trong một lần duyệt** và trả về lớp thống kê tương ứng với `int`, `long` hoặc `double`.
-- Với thống kê từ luồng rỗng, **kiểm tra `getCount() > 0`** trước khi tin giá trị min/max/average; các getter dùng giá trị khởi tạo.
-- `IntStream.sum()` có thể tràn `int`; `IntSummaryStatistics.getSum()` dùng `long`. `DoubleStream` có sai số dấu chấm động, nên không thay thế phép tính tiền chính xác.
-- Chọn đúng nguồn primitive, giới hạn nguồn vô hạn và cân nhắc chi phí duyệt cùng độ chính xác trước khi chọn cách tổng hợp hay xử lý song song.
+- `sum()` returns a number directly; `average()` returns `OptionalDouble`; `min()`/`max()` return primitive-specific Optional types.
+- `summaryStatistics()` retrieves `count`, `sum`, `min`, `max`, and `average` **in a single traversal** and returns the statistics class matching `int`, `long`, or `double`.
+- On statistics from an empty stream, **check `getCount() > 0`** before trusting min/max/average; getters hold initial sentinel values.
+- `IntStream.sum()` can overflow `int`; `IntSummaryStatistics.getSum()` uses `long`. `DoubleStream` has floating-point error, so it does not replace exact monetary arithmetic.
+- Choose the right primitive source, bound infinite sources, and weigh traversal cost and precision before selecting an aggregation approach or parallel execution.

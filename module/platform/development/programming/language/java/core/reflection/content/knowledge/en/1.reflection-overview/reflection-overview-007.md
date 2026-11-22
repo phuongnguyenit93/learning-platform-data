@@ -1,38 +1,38 @@
-# Một ví dụ xuyên suốt: khám phá và sử dụng một kiểu chưa biết trước
+# An End-to-End Example: Discovering and Using a Previously Unknown Type
 
-Trong Java thông thường, ta viết `new HelloPlugin(...)` và gọi `plugin.greet(...)` khi mã nguồn đã biết lớp cùng phương thức. Reflection giải quyết tình huống khác: ứng dụng nhận **tên lớp dưới dạng dữ liệu lúc chạy**, rồi tìm hiểu kiểu đó, tạo đối tượng và gọi phương thức. Ví dụ xuyên suốt dưới đây đặt toàn bộ quá trình vào một chương trình chạy được.
+In regular Java, we write `new HelloPlugin(...)` and call `plugin.greet(...)` when the source code already knows the class and method. Reflection solves a different scenario: the application receives **a class name as data at runtime**, then inspects that type, creates an object, and invokes a method. The end-to-end example below puts the entire process into a single runnable program.
 
-## 1. Tình huống và luồng xử lý
+## 1. Scenario and Processing Flow
 
-Giả sử có một chương trình chủ (host) nhận tên một thành phần mở rộng (plugin) từ tham số dòng lệnh. Host chưa biết trước sẽ chọn `HelloPlugin` hay `LoudPlugin`; nó chỉ biết **quy ước**: lớp được chọn phải có constructor `public (String)` và phương thức `public String greet(String)`.
+Suppose there is a host program that receives the name of an extension component (plugin) from command-line arguments. The host does not know in advance whether `HelloPlugin` or `LoudPlugin` will be chosen; it only knows the **convention**: the selected class must have a `public (String)` constructor and a `public String greet(String)` method.
 
 ~~~text
-Tên lớp nhận lúc chạy (String)
+Class name received at runtime (String)
        │
        ▼
-Class.forName(...)                 → Class<?>: mô tả kiểu
+Class.forName(...)                 → Class<?>: type descriptor
        │
        ├── getName(), getSuperclass(), getDeclaredFields()
-       ├── getAnnotation(...)      → đọc metadata
+       ├── getAnnotation(...)      → read metadata
        │
        ▼
 getConstructor(String.class)       → Constructor<?>
        │
        ▼
-newInstance("Xin chào")            → Object: đối tượng thật
+newInstance("Hello")               → Object: actual object
        │
        ▼
 getMethod("greet", String.class)   → Method
        │
        ▼
-invoke(instance, "Lan")            → kết quả trả về
+invoke(instance, "Lan")            → return result
 ~~~
 
-Reflection nằm trong các API `java.lang.Class` và `java.lang.reflect`. `Class<?>` là đối tượng mô tả **một kiểu**; còn `Object` nhận từ `newInstance` là **một instance của kiểu đó**. Hai khái niệm này khác nhau và đều cần trong ví dụ.
+Reflection resides in the `java.lang.Class` and `java.lang.reflect` APIs. `Class<?>` is an object describing **a type**, whereas the `Object` returned by `newInstance` is **an instance of that type**. These two concepts are distinct and both are needed in the example.
 
-## 2. Chương trình Java 17+ hoàn chỉnh
+## 2. Complete Java 17+ Program
 
-Lưu tất cả nội dung sau vào **`ReflectionWalkthrough.java`**. Hai plugin được đặt trong cùng tệp dưới dạng lớp lồng tĩnh (`static nested class`) để chạy độc lập mà không cần thư viện hay JAR bên ngoài. Đây là môi trường mô phỏng plugin; trong ứng dụng thật, lớp được chọn có thể ở dependency riêng.
+Save all of the following content into **`ReflectionWalkthrough.java`**. Both plugins are placed in the same file as `static nested class`es so it runs standalone without external libraries or JARs. This is a simulated plugin environment; in a real application, the selected class may live in a separate dependency.
 
 ~~~java
 import java.lang.annotation.Retention;
@@ -82,9 +82,9 @@ public class ReflectionWalkthrough {
                 : args[0];
 
         Class<?> type = Class.forName(className);
-        System.out.println("Tên lớp: " + type.getName());
-        System.out.println("Lớp cha: " + type.getSuperclass().getName());
-        System.out.println("Là interface: " + type.isInterface());
+        System.out.println("Class name: " + type.getName());
+        System.out.println("Superclass: " + type.getSuperclass().getName());
+        System.out.println("Is interface: " + type.isInterface());
 
         for (Field field : type.getDeclaredFields()) {
             System.out.println("Field: " + Modifier.toString(field.getModifiers())
@@ -92,60 +92,60 @@ public class ReflectionWalkthrough {
         }
 
         ComponentInfo info = type.getAnnotation(ComponentInfo.class);
-        System.out.println("Vai trò: " + (info == null ? "(không có)" : info.role()));
+        System.out.println("Role: " + (info == null ? "(none)" : info.role()));
 
         Constructor<?> constructor = type.getConstructor(String.class);
-        Object instance = constructor.newInstance("Xin chào");
+        Object instance = constructor.newInstance("Hello");
 
         Method method = type.getMethod("greet", String.class);
         System.out.println("Method: " + method.getReturnType().getSimpleName()
                 + " " + method.getName() + "(String)");
         Object result = method.invoke(instance, "Lan");
-        System.out.println("Kết quả: " + result);
+        System.out.println("Result: " + result);
     }
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 ReflectionWalkthrough.java
 java ReflectionWalkthrough
 ~~~
 
-Đầu ra (stdout):
+Output (stdout):
 
 ~~~text
-Tên lớp: ReflectionWalkthrough$HelloPlugin
-Lớp cha: java.lang.Object
-Là interface: false
+Class name: ReflectionWalkthrough$HelloPlugin
+Superclass: java.lang.Object
+Is interface: false
 Field: private final String prefix
-Vai trò: greeting
+Role: greeting
 Method: String greet(String)
-Kết quả: Xin chào, Lan!
+Result: Hello, Lan!
 ~~~
 
-Chạy với tên plugin còn lại:
+Run with the other plugin name:
 
 ~~~bash
 java 'ReflectionWalkthrough$LoudPlugin'
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
-Tên lớp: ReflectionWalkthrough$LoudPlugin
-Lớp cha: java.lang.Object
-Là interface: false
+Class name: ReflectionWalkthrough$LoudPlugin
+Superclass: java.lang.Object
+Is interface: false
 Field: private final String prefix
-Vai trò: loud
+Role: loud
 Method: String greet(String)
-Kết quả: XIN CHÀO, LAN!
+Result: HELLO, LAN!
 ~~~
 
-**Lưu ý về shell:** Dấu nháy đơn quanh tên có ký tự `$` dành cho Bash/Zsh và PowerShell, giúp chuyển nguyên tên lớp lồng vào Java (không để shell diễn giải `$LoudPlugin`). Trên Windows CMD có thể dùng `java "ReflectionWalkthrough$LoudPlugin"`. Nếu chỉ dùng lệnh `java ReflectionWalkthrough`, chương trình tự chọn plugin mặc định.
+**Note on shells:** Single quotes around a name containing `$` are for Bash/Zsh and PowerShell so the nested class name is passed literally to Java (preventing the shell from expanding `$LoudPlugin`). On Windows CMD you can use `java "ReflectionWalkthrough$LoudPlugin"`. If you simply run `java ReflectionWalkthrough`, the program automatically chooses the default plugin.
 
-## 3. Khám phá kiểu từ tên nhận lúc chạy
+## 3. Discovering a Type from a Runtime Name
 
 ~~~java
 String className = args.length == 0
@@ -154,17 +154,17 @@ String className = args.length == 0
 Class<?> type = Class.forName(className);
 ~~~
 
-- `className` là **chuỗi** cấu hình/đầu vào; host không gọi `new HelloPlugin(...)` và không tham chiếu `HelloPlugin.class` để quyết định plugin.
-- `Class.forName(String)` tìm lớp bằng tên nhị phân (*binary name*) qua cơ chế nạp lớp tương ứng và, nếu cần, khởi tạo lớp. Không tìm thấy sẽ ném `ClassNotFoundException`; lỗi khởi tạo tĩnh có thể là `ExceptionInInitializerError`.
-- `Class<?>` nghĩa là “một đối tượng `Class` với kiểu tham số chưa biết”. Dấu `?` không biến nó thành một instance; nó biểu diễn thông tin kiểu tại runtime.
-- Tên nhị phân của lớp lồng là `ReflectionWalkthrough$HelloPlugin`. Với lớp độc lập có package, chẳng hạn `com.example.plugins.HelloPlugin`, dùng tên đầy đủ theo package thay vì tên đơn giản.
-- `getName()` cho tên nhị phân; `getSimpleName()` cho tên đơn giản; `getSuperclass()` cho lớp cha trực tiếp (có thể trả `null` với `Object`, interface hoặc một số trường hợp khác). `isInterface()` phân biệt interface và class.
+- `className` is a configuration/input **string**; the host neither calls `new HelloPlugin(...)` nor references `HelloPlugin.class` to decide the plugin.
+- `Class.forName(String)` locates the class by its *binary name* via the corresponding class-loading mechanism and, if needed, initializes the class. If not found, it throws `ClassNotFoundException`; static initialization errors can produce `ExceptionInInitializerError`.
+- `Class<?>` means "a `Class` object with an unknown type parameter." The `?` does not turn it into an instance; it represents type information at runtime.
+- The binary name of the nested class is `ReflectionWalkthrough$HelloPlugin`. For a standalone class in a package, such as `com.example.plugins.HelloPlugin`, use the fully qualified package name rather than the simple name.
+- `getName()` gives the binary name; `getSimpleName()` gives the simple name; `getSuperclass()` gives the direct superclass (which may return `null` for `Object`, interfaces, or certain other cases). `isInterface()` distinguishes interfaces from classes.
 
-Điểm cốt lõi: **biết tên để tải lớp không đồng nghĩa với biết API của lớp tại thời điểm biên dịch**. Ví dụ vẫn yêu cầu quy ước constructor/phương thức; Reflection không tự đoán ý nghĩa của mọi phương thức.
+Key point: **knowing a name to load a class does not mean knowing the class's API at compile time**. The example still requires a constructor/method convention; Reflection does not automatically guess the meaning of every method.
 
-## 4. Đọc metadata trước khi sử dụng
+## 4. Reading Metadata Before Using the Class
 
-Dòng lặp trong chương trình:
+The loop in the program:
 
 ~~~java
 for (Field field : type.getDeclaredFields()) {
@@ -173,75 +173,75 @@ for (Field field : type.getDeclaredFields()) {
 }
 ~~~
 
-`getDeclaredFields()` trả các field **khai báo trực tiếp** trên lớp, kể cả `private`; nó không có nghĩa host được phép truy cập giá trị các field đó. Mảng trả về không có thứ tự được bảo đảm, vì vậy nếu cần danh sách ổn định cho nhiều field, phải tự sắp xếp theo tên. Ví dụ này mỗi plugin chỉ có một field: `private final String prefix`.
+`getDeclaredFields()` returns fields **declared directly** on the class, including `private` ones; it does not mean the host is allowed to access those fields' values. The returned array has no guaranteed order, so if you need a stable list across multiple fields, sort them by name yourself. In this example each plugin has only one field: `private final String prefix`.
 
-Một số phép khám phá thường gặp:
+Some common discovery operations:
 
-| Nhu cầu | API | Điều cần nhớ |
+| Need | API | What to Remember |
 |---|---|---|
-| Kiểm tra tên/loại lớp | `getName()`, `getSimpleName()`, `isInterface()` | Metadata về kiểu |
-| Xem lớp cha và interface | `getSuperclass()`, `getInterfaces()` | Quan hệ kế thừa/triển khai trực tiếp |
-| Xem field khai báo trên lớp | `getDeclaredFields()` | Có cả field không public; không bao gồm field kế thừa |
-| Xem method public gồm kế thừa | `getMethods()` | Chỉ các method public có thể nhìn thấy theo API này |
-| Xem method khai báo trực tiếp | `getDeclaredMethods()` | Có thể gồm private; không bao gồm method kế thừa |
-| Tìm method public theo chữ ký | `getMethod("greet", String.class)` | Tên + **kiểu tham số**, không tìm theo kiểu trả về |
-| Tìm constructor public | `getConstructor(String.class)` | Chữ ký phải khớp chính xác |
-| Đọc annotation runtime | `getAnnotation(ComponentInfo.class)` | Annotation phải tồn tại ở runtime |
+| Check class name/kind | `getName()`, `getSimpleName()`, `isInterface()` | Type metadata |
+| Inspect superclass and interfaces | `getSuperclass()`, `getInterfaces()` | Direct inheritance/implementation relationships |
+| Inspect fields declared on the class | `getDeclaredFields()` | Includes non-public fields; excludes inherited fields |
+| Inspect public methods including inherited | `getMethods()` | Only public methods visible under this API |
+| Inspect directly declared methods | `getDeclaredMethods()` | May include private; excludes inherited methods |
+| Find a public method by signature | `getMethod("greet", String.class)` | Name + **parameter types**, does not search by return type |
+| Find a public constructor | `getConstructor(String.class)` | Signature must match exactly |
+| Read a runtime annotation | `getAnnotation(ComponentInfo.class)` | The annotation must be retained at runtime |
 
-Tương ứng, `getDeclaredMethod(...)` và `getDeclaredConstructor(...)` có thể tìm thành viên khai báo trực tiếp dù không public; **tìm được không đảm bảo được phép gọi**. Quyền truy cập vẫn do Java và hệ thống module kiểm soát.
+Correspondingly, `getDeclaredMethod(...)` and `getDeclaredConstructor(...)` can find directly declared members even when non-public; **finding them does not guarantee permission to invoke them**. Access permissions are still enforced by Java and the module system.
 
-Trong ví dụ, annotation `@ComponentInfo(role = "...")` được khai báo với `@Retention(RetentionPolicy.RUNTIME)` nên có thể đọc khi chạy:
+In the example, the annotation `@ComponentInfo(role = "...")` is declared with `@Retention(RetentionPolicy.RUNTIME)` so it can be read at runtime:
 
 ~~~java
 ComponentInfo info = type.getAnnotation(ComponentInfo.class);
-String role = info == null ? "(không có)" : info.role();
+String role = info == null ? "(none)" : info.role();
 ~~~
 
-Không có annotation thì `getAnnotation` trả `null`. Nếu retention chỉ là `SOURCE` hoặc `CLASS`, không thể mong đọc annotation đó bằng lời gọi Reflection trên. Annotation cung cấp metadata; bản thân nó không tự tạo hoặc kích hoạt plugin.
+If the annotation is absent, `getAnnotation` returns `null`. If retention is only `SOURCE` or `CLASS`, you cannot expect to read that annotation with the Reflection call above. Annotations provide metadata; by themselves they do not instantiate or activate a plugin.
 
-## 5. Tạo instance bằng constructor được tìm ở runtime
+## 5. Creating an Instance via a Constructor Found at Runtime
 
 ~~~java
 Constructor<?> constructor = type.getConstructor(String.class);
-Object instance = constructor.newInstance("Xin chào");
+Object instance = constructor.newInstance("Hello");
 ~~~
 
-`getConstructor(String.class)` tìm constructor **public nhận đúng một `String`**. Không có constructor như vậy sẽ ném `NoSuchMethodException`. Nếu tìm constructor nhận `int` thì phải dùng `int.class` (không tự thay bằng `Integer.class` ở bước tra cứu chữ ký). `newInstance(...)` thật sự gọi constructor, có thể chạy logic và phát sinh lỗi.
+`getConstructor(String.class)` finds a **public constructor taking exactly one `String`**. Missing such a constructor throws `NoSuchMethodException`. If looking for a constructor taking `int`, you must use `int.class` (do not substitute `Integer.class` during signature lookup). `newInstance(...)` actually invokes the constructor, which can execute logic and raise errors.
 
-Vì biến `type` là `Class<?>`, kết quả lưu trong `Object`. Java không thể bảo đảm tại compile time rằng đối tượng ấy có `greet(String)`. Chương trình phải kiểm tra và gọi phương thức tiếp bằng Reflection. Đừng dùng cách cũ `Class.newInstance()`: API này đã deprecated, yêu cầu constructor không đối số và có cách xử lý ngoại lệ kém rõ ràng; `getDeclaredConstructor().newInstance()` là lối thay thế phù hợp khi cần constructor không đối số.
+Because `type` is `Class<?>`, the result is stored in `Object`. Java cannot guarantee at compile time that the object has `greet(String)`. The program must check and invoke the method via Reflection. Do not use the legacy `Class.newInstance()`: that API is deprecated, requires a no-argument constructor, and has unclear exception handling; `getDeclaredConstructor().newInstance()` is the proper replacement when a no-argument constructor is needed.
 
-## 6. Tìm và gọi phương thức trên instance
+## 6. Finding and Invoking a Method on an Instance
 
 ~~~java
 Method method = type.getMethod("greet", String.class);
 Object result = method.invoke(instance, "Lan");
 ~~~
 
-Ở đây `getMethod` chọn method public tên `greet` có một tham số `String`. Kiểu trả về có thể đọc bằng `method.getReturnType()`. `invoke` cần **đối tượng đích** đối với phương thức instance; tham số tiếp theo là các đối số gửi tới phương thức được gọi. Giá trị trả về được đóng hộp nếu là primitive, hoặc là `null` khi phương thức trả `void`. Trong ví dụ, `result` thực chất là `String`; in bằng `println` không cần ép kiểu.
+Here `getMethod` selects a public method named `greet` with one `String` parameter. Its return type can be read via `method.getReturnType()`. `invoke` requires a **target object** for an instance method; subsequent arguments are passed to the invoked method. The return value is boxed if primitive, or `null` when the method returns `void`. In the example, `result` is actually a `String`; printing with `println` requires no cast.
 
-Với phương thức `static`, đối tượng đích truyền cho `invoke` có thể là `null`. Nếu đích sai kiểu, đối số không tương thích hoặc sai số lượng, có thể gặp `IllegalArgumentException`; nếu method tự ném ngoại lệ, `invoke` bọc nó trong `InvocationTargetException`. Để hiểu nguyên nhân nghiệp vụ, đọc `getCause()` của wrapper này.
+For `static` methods, the target object passed to `invoke` can be `null`. If the target has the wrong type or arguments are incompatible or have the wrong count, `IllegalArgumentException` may occur; if the method itself throws an exception, `invoke` wraps it in `InvocationTargetException`. To understand the underlying business cause, inspect `getCause()` on this wrapper.
 
-**Ranh giới quan trọng:** `getDeclaredMethod` hoặc `getDeclaredField` có thể trả về thành viên private, nhưng việc gọi/đọc không mặc nhiên hợp lệ. Đừng thêm `setAccessible(true)` như một “bước bắt buộc” của Reflection: trong ứng dụng dùng Java Platform Module System (JPMS), việc mở quyền truy cập sâu còn phụ thuộc package có được `opens` cho module gọi hay không; ngay cả trên classpath cũng cần cân nhắc giới hạn đóng gói và quyền truy cập.
+**Important boundary:** `getDeclaredMethod` or `getDeclaredField` can return private members, yet invoking/reading them is not implicitly permitted. Do not add `setAccessible(true)` as a "mandatory step" of Reflection: in applications using the Java Platform Module System (JPMS), opening deep access also depends on whether the package is `opens` to the calling module; even on the classpath, encapsulation boundaries and access permissions must be respected.
 
-## 7. Những lỗi thường gặp và cách xử lý
+## 7. Common Errors and How to Handle Them
 
-| Triệu chứng | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common Cause | How to Handle |
 |---|---|---|
-| `ClassNotFoundException` | Sai tên nhị phân, thiếu JAR/module, class loader không nhìn thấy lớp | Kiểm tra tên, classpath/module path và loader |
-| `NoSuchMethodException` | Constructor/method không tồn tại với đúng tên, visibility hoặc danh sách kiểu tham số | Kiểm tra API thực tế và chữ ký |
-| `InstantiationException` | Không thể tạo instance, ví dụ cố khởi tạo abstract class | Chọn lớp concrete có constructor phù hợp |
-| `IllegalAccessException` | Thành viên không thể được truy cập từ nơi gọi | Thiết kế API public/module exports; tránh phá đóng gói |
-| `InvocationTargetException` | Code bên trong constructor hoặc method đã ném lỗi | Xem `getCause()` và xử lý nguyên nhân thực |
-| `IllegalArgumentException` | Truyền đích/đối số không tương thích lúc `invoke`/`newInstance` | So đúng số lượng và kiểu tham số |
-| `ExceptionInInitializerError` | Khởi tạo tĩnh của lớp thất bại | Kiểm tra static initializer và nguyên nhân lỗi |
+| `ClassNotFoundException` | Wrong binary name, missing JAR/module, class loader cannot see the class | Check the name, classpath/module path, and loader |
+| `NoSuchMethodException` | Constructor/method does not exist with the exact name, visibility, or parameter type list | Verify the actual API and signature |
+| `InstantiationException` | Cannot create an instance, e.g., attempting to instantiate an abstract class | Choose a concrete class with an appropriate constructor |
+| `IllegalAccessException` | Member is not accessible from the call site | Design public APIs/module exports; avoid breaking encapsulation |
+| `InvocationTargetException` | Code inside the constructor or method threw an error | Inspect `getCause()` and handle the real cause |
+| `IllegalArgumentException` | Incompatible target/arguments passed to `invoke`/`newInstance` | Match exact parameter count and types |
+| `ExceptionInInitializerError` | Static initialization of the class failed | Check the static initializer and underlying error cause |
 
-Chương trình demo khai báo `throws ReflectiveOperationException` để giữ luồng học tập rõ ràng; chương trình sản xuất cần bắt lỗi theo ngữ cảnh, báo plugin nào hỏng và lý do, đồng thời xử lý riêng lỗi runtime như `ExceptionInInitializerError` khi thích hợp. Không nên nuốt ngoại lệ rồi tiếp tục như thể plugin đã tải thành công.
+The demo program declares `throws ReflectiveOperationException` to keep the learning flow clear; production programs need to catch errors with context, report which plugin failed and why, and handle runtime errors like `ExceptionInInitializerError` appropriately. Never swallow exceptions and continue as if the plugin loaded successfully.
 
-## 8. Từ demo sang thiết kế thực tế
+## 8. From Demo to Real-World Design
 
-**Khi dùng Reflection?** Framework DI, serializer, công cụ kiểm thử, plugin loader và công cụ phân tích cấu trúc mã thường cần khám phá type/annotation/member lúc chạy. Nhưng Reflection đánh đổi một số lợi ích: mất kiểm tra kiểu tại compile time, dễ lỗi do chuỗi tên/chữ ký, chịu giới hạn truy cập module và có chi phí tra cứu/gọi động. Đừng chọn Reflection chỉ để gọi một lớp đã biết rõ trong source.
+**When to use Reflection?** DI frameworks, serializers, testing tools, plugin loaders, and code-structure analyzers often need to discover types/annotations/members at runtime. Yet Reflection trades off several benefits: loss of compile-time type checking, fragility from string names/signatures, module access restrictions, and dynamic lookup/call overhead. Do not choose Reflection just to call a class already clearly known in source code.
 
-Nếu có thể định nghĩa hợp đồng Java chung, hướng ổn định hơn cho plugin là interface:
+When a shared Java contract can be defined, a more stable direction for plugins is an interface:
 
 ~~~java
 public interface GreetingService {
@@ -249,16 +249,16 @@ public interface GreetingService {
 }
 ~~~
 
-Đoạn trên là **mảnh thiết kế minh họa**, không phải chương trình chạy độc lập. Khi plugin triển khai `GreetingService`, host có thể dùng `GreetingService.class.isAssignableFrom(type)` để kiểm tra tương thích trước khi tạo instance, rồi ép kiểu bằng `GreetingService.class.cast(instance)` và gọi `service.greet("Lan")` như Java thông thường. Không nên ép kiểu trực tiếp từ đối tượng vừa nạp nếu chưa xác minh interface; tên method giống nhau không khiến lớp tự động triển khai interface. Khi cần khám phá provider theo hợp đồng trên classpath/module path, `ServiceLoader` thường phù hợp hơn cơ chế tự lưu tên class trong cấu hình.
+The snippet above is an **illustrative design fragment**, not a standalone runnable program. When a plugin implements `GreetingService`, the host can use `GreetingService.class.isAssignableFrom(type)` to check compatibility before creating an instance, then cast via `GreetingService.class.cast(instance)` and call `service.greet("Lan")` like normal Java. Do not cast directly from a newly loaded object without verifying the interface; having the same method name does not make a class implement an interface. When discovering contract-based providers on the classpath/module path, `ServiceLoader` is usually more suitable than manually storing class names in configuration.
 
-**Giới hạn an toàn:** Chỉ tải plugin từ nguồn được tin cậy; `Class.forName` có thể kích hoạt khởi tạo lớp và `newInstance`/`invoke` thực thi mã thật, không phải thao tác chỉ đọc metadata. Không lấy tên class tùy ý từ người dùng bên ngoài để rồi tùy tiện khởi chạy. Khi kiểm tra hiệu năng, đo trước khi tối ưu; có thể cache `Class`, `Constructor` hoặc `Method` đã xác minh thay vì tra cứu lặp lại, nhưng cache phải tuân theo vòng đời của class loader.
+**Safety boundaries:** Only load plugins from trusted sources; `Class.forName` can trigger class initialization and `newInstance`/`invoke` executes real code, not metadata-only inspection. Never take arbitrary class names from untrusted external users and execute them indiscriminately. When checking performance, measure before optimizing; verified `Class`, `Constructor`, or `Method` objects can be cached instead of looked up repeatedly, provided the cache respects class-loader lifecycles.
 
-## 9. Tự kiểm tra trên chính ví dụ
+## 9. Self-Check on This Example
 
-1. Đổi tham số dòng lệnh giữa `ReflectionWalkthrough$HelloPlugin` và `ReflectionWalkthrough$LoudPlugin`. Xác định phần nào của host giữ nguyên, phần nào thay đổi theo metadata và hành vi plugin.
-2. Đổi `getConstructor(String.class)` thành `getConstructor()`. Vì sao hiện tại ném `NoSuchMethodException`? Hãy bổ sung constructor không đối số vào một plugin rồi thử lại.
-3. Đổi `getDeclaredFields()` thành `getFields()`. Vì sao trường `prefix` biến mất khỏi kết quả? Hãy giải thích sự khác biệt giữa “được khai báo” và “public”.
-4. Bỏ `@Retention(RetentionPolicy.RUNTIME)` khỏi `ComponentInfo` rồi quan sát `getAnnotation(...)`. Tìm hiểu retention mặc định và lý do host không đọc được role.
-5. Viết thêm một plugin có cùng constructor/method public, chạy bằng tên nhị phân mới; sau đó cố tình đổi tên `greet` để xác nhận lỗi và cách chẩn đoán.
+1. Switch the command-line argument between `ReflectionWalkthrough$HelloPlugin` and `ReflectionWalkthrough$LoudPlugin`. Identify which parts of the host stay unchanged and which parts vary by plugin metadata and behavior.
+2. Change `getConstructor(String.class)` to `getConstructor()`. Why does it currently throw `NoSuchMethodException`? Add a no-argument constructor to one plugin and try again.
+3. Change `getDeclaredFields()` to `getFields()`. Why does the `prefix` field disappear from the output? Explain the difference between "declared" and "public."
+4. Remove `@Retention(RetentionPolicy.RUNTIME)` from `ComponentInfo` and observe `getAnnotation(...)`. Look up the default retention and why the host can no longer read the role.
+5. Write another plugin with the same public constructor/method and run it using the new binary name; then intentionally rename `greet` to verify the error and how to diagnose it.
 
-**Điểm cần nắm:** Tên lớp ở runtime → `Class<?>` để khám phá → xác minh chữ ký/metadata → `Constructor.newInstance` tạo đối tượng → `Method.invoke` gọi hành vi. Reflection đưa quyết định về kiểu sang runtime, nên trách nhiệm xác minh hợp đồng, xử lý lỗi và kiểm soát nguồn mã được tải cũng chuyển sang runtime.
+**Key takeaway:** Runtime class name → `Class<?>` for discovery → verify signatures/metadata → `Constructor.newInstance` creates an object → `Method.invoke` invokes behavior. Reflection moves type decisions to runtime, so responsibility for contract verification, error handling, and controlling loaded code sources also shifts to runtime.

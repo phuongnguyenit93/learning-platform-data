@@ -1,20 +1,20 @@
-# Vì sao dùng phép % tùy tiện có thể tạo thiên lệch khi sinh số ngẫu nhiên?
+# Why Can Arbitrary Use of % Create Bias When Generating Random Numbers?
 
-Khi cần tạo một giá trị ngẫu nhiên trong khoảng `0` đến `n - 1`, mã như `randomNumber % n` trông có vẻ hợp lý: phép chia lấy dư đưa một số lớn về một số nhỏ hơn `n`. Nhưng **giới hạn miền giá trị không đồng nghĩa với phân phối đều**. Nếu miền các giá trị ban đầu không chia hết thành các nhóm có cùng số phần tử, một số kết quả sẽ xuất hiện thường xuyên hơn các kết quả còn lại. Đó là **modulo bias** (thiên lệch khi lấy dư).
+When you need a random value from `0` to `n - 1`, code like `randomNumber % n` looks reasonable: the modulo operator reduces a large integer into a number smaller than `n`. However, **constraining the value range is not the same as producing a uniform distribution**. If the original range of values cannot be divided evenly into groups of equal size, some outcomes will occur more often than others. That is **modulo bias** (bias from taking the remainder).
 
-Ví dụ tạo mặt xúc xắc từ một nguồn giả định sinh đều một trong tám số nguyên `0, 1, ..., 7`:
+Example simulating a die face from a hypothetical source that uniformly generates one of the eight integers `0, 1, ..., 7`:
 
 ```java
-int face = source % 6; // source nằm trong [0, 8), đồng đều
+int face = source % 6; // source is in [0, 8), uniform
 ```
 
-Mã luôn trả một trong `0..5`, nhưng kết quả **không đồng đều**: `0` và `1` có hai tiền ảnh, các số còn lại có một. Nếu mục tiêu là xúc xắc sáu mặt công bằng, không thể dùng trực tiếp phép `% 6` này.
+This code always returns one of `0..5`, yet the outcome is **not uniform**: `0` and `1` have two preimages, while the rest have one. If the goal is a fair six-sided die, you cannot apply `% 6` directly like this.
 
-## 1. Chứng minh bằng cách đếm: nguồn có 8 giá trị, đích có 6 giá trị
+## 1. Proof by counting: source has 8 values, target has 6 values
 
-Giả sử nguồn thật sự đồng đều trên `[0, 8)`, nghĩa là mỗi số nguyên từ 0 đến 7 có xác suất `1/8`. Bảng ánh xạ:
+Suppose the source is truly uniform on `[0, 8)`, meaning every integer from 0 to 7 has probability `1/8`. Mapping table:
 
-| Giá trị nguồn `x` | `x % 6` | Kết quả cuối |
+| Source value `x` | `x % 6` | Final outcome |
 |---:|---:|---|
 | 0 | 0 | 0 |
 | 1 | 1 | 1 |
@@ -22,102 +22,102 @@ Giả sử nguồn thật sự đồng đều trên `[0, 8)`, nghĩa là mỗi s
 | 3 | 3 | 3 |
 | 4 | 4 | 4 |
 | 5 | 5 | 5 |
-| 6 | 0 | 0 (trùng kết quả của 0) |
-| 7 | 1 | 1 (trùng kết quả của 1) |
+| 6 | 0 | 0 (duplicates outcome of 0) |
+| 7 | 1 | 1 (duplicates outcome of 1) |
 
-Phân phối sau ánh xạ:
+Distribution after mapping:
 
-| Kết quả | Số giá trị nguồn tạo ra nó | Xác suất sau `% 6` | Xác suất mong muốn |
+| Outcome | Number of source values producing it | Probability after `% 6` | Desired probability |
 |---:|---:|---:|---:|
-| 0 | 2 | 2/8 = 25% | 1/6 ≈ 16,67% |
-| 1 | 2 | 2/8 = 25% | 1/6 ≈ 16,67% |
-| 2 | 1 | 1/8 = 12,5% | 1/6 ≈ 16,67% |
-| 3 | 1 | 1/8 = 12,5% | 1/6 ≈ 16,67% |
-| 4 | 1 | 1/8 = 12,5% | 1/6 ≈ 16,67% |
-| 5 | 1 | 1/8 = 12,5% | 1/6 ≈ 16,67% |
+| 0 | 2 | 2/8 = 25% | 1/6 ≈ 16.67% |
+| 1 | 2 | 2/8 = 25% | 1/6 ≈ 16.67% |
+| 2 | 1 | 1/8 = 12.5% | 1/6 ≈ 16.67% |
+| 3 | 1 | 1/8 = 12.5% | 1/6 ≈ 16.67% |
+| 4 | 1 | 1/8 = 12.5% | 1/6 ≈ 16.67% |
+| 5 | 1 | 1/8 = 12.5% | 1/6 ≈ 16.67% |
 
-Như vậy kết quả 0 xuất hiện **gấp đôi** kết quả 2 dù các số đầu vào đều có xác suất bằng nhau. Tăng số lần mô phỏng chỉ làm tỷ lệ đo được tiến gần phân phối **đã bị lệch**; chạy nhiều hơn không tự sửa thuật toán.
+Thus outcome `0` appears **twice as often** as outcome `2`, even though all input numbers have equal probability. Increasing the number of simulations only drives measured frequencies closer to the **biased** distribution; running more trials does not fix the algorithm.
 
-### Điều kiện tổng quát
+### General condition
 
-Giả sử nguồn đồng đều gồm `N` giá trị nguyên liên tiếp từ `0` đến `N - 1`; cần ánh xạ vào `n` kết quả từ `0` đến `n - 1`. Đặt:
+Suppose a uniform source consists of `N` consecutive integers from `0` to `N - 1`, and must be mapped onto `n` outcomes from `0` to `n - 1`. Write:
 
 ```text
-N = q × n + r, trong đó 0 ≤ r < n
-q = N / n (chia nguyên)
+N = q × n + r, where 0 ≤ r < n
+q = N / n (integer division)
 r = N % n
 ```
 
-Nếu lấy `x % n` trực tiếp:
+If you take `x % n` directly:
 
-- `r` kết quả đầu tiên (`0 .. r - 1`) có `q + 1` giá trị nguồn dẫn đến chúng.
-- `n - r` kết quả còn lại (`r .. n - 1`) có `q` giá trị nguồn dẫn đến chúng.
-- Khi `r = 0`, mọi kết quả có cùng `q` tiền ảnh: **không có modulo bias do phép ánh xạ này**, với điều kiện nguồn thật sự đồng đều.
-- Khi `r ≠ 0`, phân phối bị lệch.
+- The first `r` outcomes (`0 .. r - 1`) have `q + 1` source values mapping to them.
+- The remaining `n - r` outcomes (`r .. n - 1`) have `q` source values mapping to them.
+- When `r = 0`, every outcome has the same `q` preimages: **there is no modulo bias from this mapping**, provided the source itself is truly uniform.
+- When `r ≠ 0`, the distribution is biased.
 
-Với `N = 8`, `n = 6`: `q = 1`, `r = 2`. Hai kết quả 0, 1 nhận mỗi kết quả hai tiền ảnh; bốn kết quả còn lại mỗi kết quả một tiền ảnh.
+For `N = 8`, `n = 6`: `q = 1`, `r = 2`. Two outcomes (`0`, `1`) receive two preimages each; the other four outcomes receive one preimage each.
 
-Phép đếm trên là chứng minh trong **miền hữu hạn có phân phối đồng đều**; nó không chứng minh nguồn giả ngẫu nhiên nói chung là chất lượng cao, độc lập hoặc an toàn mật mã.
+The counting argument above is a proof in **a finite uniform domain**; it does not prove that a pseudorandom source in general has high quality, independence, or cryptographic security.
 
-## 2. Trường hợp quen thuộc: byte ngẫu nhiên rồi `% 10`
+## 2. Familiar case: random byte followed by `% 10`
 
-Một byte lấy ngẫu nhiên đồng đều có `256` khả năng: `0..255`. Giả sử muốn sinh chữ số thập phân `0..9`:
+A uniformly random byte has `256` possibilities: `0..255`. Suppose you want to generate a decimal digit `0..9`:
 
 ```java
-int digit = unsignedByte % 10; // unsignedByte ở [0, 255]
+int digit = unsignedByte % 10; // unsignedByte in [0, 255]
 ```
 
-Ta có:
+We have:
 
 ```text
 256 = 25 × 10 + 6
 ```
 
-Vì thế các chữ số `0..5` có **26** giá trị nguồn tương ứng, còn `6..9` chỉ có **25** giá trị nguồn tương ứng:
+Therefore, digits `0..5` have **26** corresponding source values, while `6..9` have only **25** corresponding source values:
 
-| Chữ số | Số tiền ảnh | Xác suất |
+| Digit | Number of preimages | Probability |
 |---|---:|---:|
-| 0, 1, 2, 3, 4, 5 | 26 mỗi chữ số | 26/256 ≈ 10,15625% |
-| 6, 7, 8, 9 | 25 mỗi chữ số | 25/256 ≈ 9,765625% |
+| 0, 1, 2, 3, 4, 5 | 26 per digit | 26/256 ≈ 10.15625% |
+| 6, 7, 8, 9 | 25 per digit | 25/256 ≈ 9.765625% |
 
-Phân phối công bằng phải là `10%` cho **mỗi** chữ số. Mức lệch ở đây nhỏ hơn ví dụ 8 → 6, nhưng vẫn là lệch có tính hệ thống. Điều này quan trọng khi sinh nhiều token, chọn phần thưởng, lấy mẫu thống kê hoặc khi yêu cầu bảo mật phải tránh sai lệch biết trước.
+A fair distribution should be `10%` for **each** digit. The skew here is smaller than in the `8 → 6` example, yet it is still a systematic bias. This matters when generating many tokens, selecting rewards, statistical sampling, or when security requirements forbid predictable biases.
 
-**Mức độ thiên lệch phụ thuộc cả kích thước miền nguồn và số lượng kết quả**, không thể kết luận mọi phép `%` đều lệch nhiều hoặc luôn lệch. Chẳng hạn nguồn 256 giá trị lấy `% 16` có đúng 16 tiền ảnh cho mỗi kết quả; còn `% 10` lệch vì 256 không chia hết cho 10.
+**The magnitude of bias depends on both the source domain size and the number of outcomes**; you cannot conclude every `%` is heavily biased or always biased. For instance, a 256-value source with `% 16` gives exactly 16 preimages per outcome; `% 10` is biased because 256 is not divisible by 10.
 
-## 3. Cách sửa bằng rejection sampling (lấy mẫu và loại giá trị dư)
+## 3. Fixing it with rejection sampling
 
-Một cách chuẩn để giữ phân phối đều là **chỉ chấp nhận một miền đầu vào có kích thước chia hết cho `n`**, còn các giá trị ngoài miền thì bốc lại.
+A standard way to preserve uniformity is to **accept only an input range whose size is divisible by `n`**, and redraw if a value falls outside that range.
 
-Với nguồn 8 giá trị và `n = 6`:
+For an 8-value source and `n = 6`:
 
-1. Lấy một số đồng đều từ `0..7`.
-2. Nếu bằng 6 hoặc 7 thì **loại và lấy lại**.
-3. Nếu là `0..5` thì trả chính số đó.
+1. Draw a number uniformly from `0..7`.
+2. If it is `6` or `7`, **discard it and draw again**.
+3. If it is `0..5`, return that number as-is.
 
-Trong số các lần lấy **được chấp nhận**, mỗi kết quả 0..5 có đúng một tiền ảnh, nên xác suất bằng `1/6`. Mỗi lần thử có xác suất được chấp nhận `6/8 = 75%`, và số lần thử kỳ vọng cho một kết quả hợp lệ là `8/6 = 4/3`.
+Among **accepted** draws, each outcome `0..5` has exactly one preimage, so its probability is `1/6`. Each attempt has acceptance probability `6/8 = 75%`, and the expected number of attempts for one valid result is `8/6 = 4/3`.
 
-Mã minh họa thuật toán:
+Code illustrating the algorithm:
 
 ```java
 int value;
 do {
     value = rng.nextInt(8);
 } while (value >= 6);
-// value đồng đều trong [0, 6), nếu mỗi lần rng.nextInt(8)
-// đồng đều và các lần lấy đáp ứng giả định của nguồn
+// value is uniform in [0, 6), if each rng.nextInt(8)
+// is uniform and draws satisfy the source's assumptions
 ```
 
-Đây là **đoạn mã trong ngữ cảnh đã khai báo biến `rng`**; với Java thông thường, lời giải đơn giản hơn là **gọi thẳng `rng.nextInt(6)`**.
+This is a **snippet in a context where `rng` is already declared**; in ordinary Java, the simpler solution is to **call `rng.nextInt(6)` directly**.
 
-### Công thức rejection tổng quát cho một byte không dấu
+### General rejection formula for an unsigned byte
 
-Đối với nguồn nguyên đồng đều `[0, 256)`, nếu cần `n` kết quả và `1 ≤ n ≤ 256`, đặt:
+For a uniform integer source `[0, 256)`, if `n` outcomes are needed with `1 ≤ n ≤ 256`, set:
 
 ```text
 limit = 256 - (256 % n)
 ```
 
-Giá trị `limit` là bội số lớn nhất của `n` không vượt 256. Lặp:
+`limit` is the largest multiple of `n` not exceeding 256. Loop:
 
 ```java
 static int uniformFromByte(java.util.Random rng, int n) {
@@ -128,30 +128,30 @@ static int uniformFromByte(java.util.Random rng, int n) {
     int limit = 256 - (256 % n);
     int sample;
     do {
-        sample = rng.nextInt(256); // nguồn đồng đều 0..255
+        sample = rng.nextInt(256); // uniform source 0..255
     } while (sample >= limit);
 
-    return sample % n; // lúc này mỗi kết quả có số tiền ảnh như nhau
+    return sample % n; // now every outcome has the same number of preimages
 }
 ```
 
-Đây là **phương thức** cần đặt trong một lớp; nó minh họa toán học chứ không phải cách cần tự triển khai cho hầu hết chương trình Java. Ví dụ `n = 10`: `limit = 250`; loại `250..255`, chấp nhận `0..249`. Mỗi chữ số nhận đúng **25** tiền ảnh, nên xác suất đều bằng `1/10`. Xác suất chấp nhận mỗi lần là `250/256`, số lần thử kỳ vọng `256/250 ≈ 1,024`.
+This is a **method** to place inside a class; it illustrates the mathematics rather than something you need to implement manually for most Java programs. For `n = 10`: `limit = 250`; discard `250..255`, accept `0..249`. Each digit gets exactly **25** preimages, so every probability equals `1/10`. Acceptance probability per attempt is `250/256`, and expected attempts are `256/250 ≈ 1.024`.
 
-Tại sao ở cuối vẫn dùng `% n`? Vì **sau khi từ chối các mẫu dư, số giá trị được chấp nhận đã chia hết cho `n`**. Phép chia lấy dư khi đó không tạo thiên lệch. Vấn đề nằm ở việc dùng `%` trước khi xử lý miền đầu vào có phần dư, không nằm ở toán tử `%` trong mọi hoàn cảnh.
+Why is `% n` still used at the end? Because **after rejecting the leftover samples, the number of accepted values is now divisible by `n`**. Taking the remainder at that point introduces no bias. The issue lies in applying `%` before trimming the remainder from the input domain, not in the `%` operator under all circumstances.
 
-### Những điều cần kiểm tra khi tự triển khai
+### What to check when implementing yourself
 
-- Biết chính xác **miền đầu vào** và giả định phân phối đồng đều; không đoán nguồn dựa vào tên API.
-- Miền chấp nhận phải có kích thước là bội số của `n`.
-- Phải **lấy mẫu mới** sau khi từ chối, không đổi mẫu bị từ chối thành một kết quả tùy ý.
-- Tránh tràn số khi tính bội số, ngưỡng hoặc giá trị tuyệt đối trên miền lớn như 32/64 bit.
-- Nếu nguồn không đồng đều sẵn, rejection sampling đơn giản trên tiền ảnh cũng **không tự chữa** mọi khuyết điểm của nguồn.
+- Know the exact **input domain** and uniformity assumptions; do not guess the source from an API name.
+- The accepted domain's size must be a multiple of `n`.
+- You must **draw a fresh sample** after rejection, never map a rejected sample to an arbitrary outcome.
+- Avoid integer overflow when computing multiples, thresholds, or absolute values on large domains like 32/64-bit integers.
+- If the source is not uniform to begin with, simple rejection sampling over preimages will **not cure** all source flaws on its own.
 
-Với ứng dụng thực tế, nên dùng **API bounded random** của JDK đã xử lý các tình huống này thay vì tự viết thuật toán.
+For real applications, use the JDK's **bounded random APIs** that already handle these cases instead of rolling your own algorithm.
 
-## 4. Java nên dùng API nào?
+## 4. Which API should Java code use?
 
-Khi cần số nguyên ngẫu nhiên **trong một khoảng**, ưu tiên API cung cấp trực tiếp khoảng hoặc cận trên:
+When you need a random integer **within a range**, prefer APIs that accept the range or upper bound directly:
 
 ```java
 import java.util.Random;
@@ -159,29 +159,29 @@ import java.util.concurrent.ThreadLocalRandom;
 
 Random random = new Random();
 
-// Đồng đều trên các giá trị 0..5 theo hợp đồng API:
+// Uniform over 0..5 per the API contract:
 int zeroBasedDie = random.nextInt(6);
 
-// Mặt xúc xắc 1..6:
+// Die face 1..6:
 int die = random.nextInt(6) + 1;
 
-// Sinh trong khoảng [10, 20) = 10..19:
+// Generate in [10, 20) = 10..19:
 int value = ThreadLocalRandom.current().nextInt(10, 20);
 ```
 
-Đoạn mã trên minh họa các phép gọi bên trong một phương thức; nó không phải một chương trình `main` độc lập. Với Java 17 trở lên, giao diện `java.util.random.RandomGenerator` còn định nghĩa các biến thể bounded như `nextInt(bound)` và `nextInt(origin, bound)`.
+The snippet above illustrates calls inside a method; it is not a standalone `main` program. In Java 17 and above, `java.util.random.RandomGenerator` also defines bounded variants such as `nextInt(bound)` and `nextInt(origin, bound)`.
 
-| Nhu cầu | API điển hình | Khoảng kết quả |
+| Need | Typical API | Output range |
 |---|---|---|
-| Sinh chỉ số cho `List` có `size > 0` | `random.nextInt(size)` | `0..size-1` |
-| Xúc xắc 6 mặt | `random.nextInt(6) + 1` | `1..6` |
-| Khoảng nguyên bất kỳ có `origin < bound` | `ThreadLocalRandom.current().nextInt(origin, bound)` | `[origin, bound)` |
-| Nhiều tác vụ đồng thời thông thường | `ThreadLocalRandom` hoặc bộ sinh thích hợp với nhu cầu chia sẻ trạng thái | Theo tham số bounded |
-| Sinh giá trị khó đoán phục vụ bảo mật | `new SecureRandom().nextInt(bound)` | `0..bound-1` với nguồn ngẫu nhiên mật mã |
+| Picking an index for a `List` with `size > 0` | `random.nextInt(size)` | `0..size-1` |
+| 6-sided die | `random.nextInt(6) + 1` | `1..6` |
+| Any integer interval with `origin < bound` | `ThreadLocalRandom.current().nextInt(origin, bound)` | `[origin, bound)` |
+| Many ordinary concurrent tasks | `ThreadLocalRandom` or a generator suited to state-sharing needs | Per bounded arguments |
+| Unpredictable values for security | `new SecureRandom().nextInt(bound)` | `0..bound-1` from a cryptographic random source |
 
-**`bound` là cận trên loại trừ**: `nextInt(6)` cho 0 đến 5, không phải 1 đến 6. `nextInt(0)` hoặc cận không hợp lệ không có nghĩa là “lấy số bất kỳ”; thông thường sẽ ném `IllegalArgumentException`.
+**`bound` is an exclusive upper bound**: `nextInt(6)` returns 0 through 5, not 1 through 6. Passing `nextInt(0)` or invalid bounds does not mean “pick any number”; it normally throws `IllegalArgumentException`.
 
-`Random` và `ThreadLocalRandom` phục vụ sinh giả ngẫu nhiên thông thường, **không được dùng để tạo mã bí mật, token xác thực hoặc giá trị bảo mật khó đoán**. Với trường hợp bảo mật, chọn `SecureRandom`:
+`Random` and `ThreadLocalRandom` serve general pseudorandom generation and **must not be used for secret codes, authentication tokens, or unpredictable security values**. For security cases, choose `SecureRandom`:
 
 ```java
 import java.security.SecureRandom;
@@ -190,11 +190,11 @@ SecureRandom secureRandom = new SecureRandom();
 int secureDigit = secureRandom.nextInt(10); // 0..9
 ```
 
-Ở đây `SecureRandom` giúp bảo vệ tính **khó dự đoán**; việc dùng `nextInt(10)` giúp ánh xạ vào khoảng kết quả theo hợp đồng bounded API. Hai yêu cầu **khó dự đoán** và **phân phối đều** có liên quan nhưng không đồng nhất. Việc lấy một byte ngẫu nhiên mật mã rồi lập tức `% 10` vẫn có modulo bias theo lập luận 256 = 25×10 + 6.
+Here `SecureRandom` protects **unpredictability**, while `nextInt(10)` maps to the result range under the bounded API contract. The two requirements—**unpredictability** and **uniform distribution**—are related but not identical. Drawing a cryptographically random byte and immediately taking `% 10` still introduces modulo bias by the `256 = 25×10 + 6` argument.
 
-## 5. Ví dụ Java 17+ độc lập, dễ kiểm chứng
+## 5. Standalone, easily verifiable Java 17+ example
 
-Lưu chương trình vào `ModuloBiasDemo.java`. Ví dụ **đếm toàn bộ các trạng thái** thay vì dựa vào mô phỏng may rủi nên cho kết quả xác định ở mỗi lần chạy.
+Save the program as `ModuloBiasDemo.java`. The example **counts all states exhaustively** rather than relying on chance-based simulation, so it produces deterministic output on every run.
 
 ```java
 import java.util.Arrays;
@@ -261,7 +261,7 @@ public class ModuloBiasDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac ModuloBiasDemo.java
@@ -282,89 +282,89 @@ Rejected from 256: 6
 floorMod(-5, 6) = 1
 ```
 
-**Cách đọc kết quả:**
+**How to read the output:**
 
-1. Hai mảng `8 states` xác nhận bằng phép đếm rằng phép `% 6` trực tiếp cho hai kết quả được ưu ái, còn từ chối `6, 7` tạo số tiền ảnh đồng đều.
-2. Hai mảng `256 states` thể hiện chính xác mức lệch của phép `% 10` và cách ngưỡng `250` loại sáu giá trị dư.
-3. Vòng lặp `10_000` kiểm tra **giới hạn kết quả** của API và ví dụ rejection, không phải chứng minh bằng thực nghiệm rằng một PRNG bất kỳ có phân phối đều. Chứng minh loại bỏ modulo bias nằm ở phép **đếm miền tiền ảnh**.
-4. Dòng `-5 % 6` cho thấy toán tử `%` trong Java là **phép dư mang dấu**, không tự bảo đảm kết quả từ 0 đến 5 khi số đầu vào âm.
+1. The two `8 states` arrays confirm by counting that direct `% 6` favors two outcomes, whereas rejecting `6, 7` produces uniform preimage counts.
+2. The two `256 states` arrays show the exact bias of `% 10` and how the `250` threshold removes the six excess values.
+3. The `10_000` loop checks **result bounds** of the API and rejection example, not an empirical proof that an arbitrary PRNG is uniform. The proof of eliminating modulo bias lies in **counting preimages**.
+4. The `-5 % 6` line shows that Java's `%` operator is a **signed remainder**, not guaranteed to return 0 through 5 when the dividend is negative.
 
-## 6. Các bẫy Java liên quan
+## 6. Related Java pitfalls
 
-### Bẫy A: `random.nextInt() % n` có thể âm
+### Pitfall A: `random.nextInt() % n` can be negative
 
-`Random.nextInt()` không có đối số trả về số nguyên 32 bit có dấu. Trong Java, phép `%` giữ dấu theo số bị chia:
+`Random.nextInt()` without arguments returns a signed 32-bit integer. In Java, `%` preserves the sign of the dividend:
 
 ```java
 int remainder = -5 % 6;        // -5
 int wrapped = Math.floorMod(-5, 6); // 1
 ```
 
-`Math.floorMod(x, n)` khi `n > 0` giải quyết bài toán **kết quả âm**, nhưng **không tự loại modulo bias** trên một miền nguồn không chia hết cho `n`. Đừng xem “không âm” là bằng chứng phân phối đều.
+`Math.floorMod(x, n)` when `n > 0` solves the **negative result** issue, yet **does not eliminate modulo bias** on a source domain not divisible by `n`. Never mistake “non-negative” for proof of uniform distribution.
 
-### Bẫy B: `Math.abs(random.nextInt()) % n` không phải cách sửa
+### Pitfall B: `Math.abs(random.nextInt()) % n` is not a fix
 
-`Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE` vì giá trị tuyệt đối của `-2147483648` không biểu diễn được bằng `int`. Do đó kết quả có thể vẫn âm, ngay cả trước khi `% n`. Ngoài ra, lấy trị tuyệt đối làm gộp các giá trị đối nhau và có thể tạo phân phối không đều; nó không bảo đảm số lần xuất hiện cân bằng.
+`Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE` because the positive magnitude of `-2147483648` cannot be represented in `int`. Consequently, the result can still be negative, even before `% n`. Moreover, taking absolute values folds opposite values together and can create an uneven distribution; it does not ensure balanced frequencies.
 
 ```java
-int value = Math.abs(random.nextInt()) % 6; // tránh
-int correct = random.nextInt(6);            // ưu tiên
+int value = Math.abs(random.nextInt()) % 6; // avoid
+int correct = random.nextInt(6);            // prefer
 ```
 
-Không nên dùng mẹo `(x % n + n) % n` làm lời giải cho modulo bias: biểu thức đó chỉ chuẩn hóa **phần dư âm** nếu phép tính không gây vấn đề tràn và `n` hợp lệ; nó vẫn không sửa sự khác nhau về số lượng tiền ảnh.
+Do not use the `(x % n + n) % n` trick as a solution for modulo bias either: that expression only normalizes **negative remainders** when arithmetic does not overflow and `n` is valid; it still fails to fix unequal preimage counts.
 
-### Bẫy C: Chỉ thử vài nghìn lần rồi kết luận “đều”
+### Pitfall C: Testing a few thousand draws and concluding “uniform”
 
-Ngay cả một thuật toán không thiên lệch cũng có dao động ngẫu nhiên trong mẫu hữu hạn; một thuật toán có thiên lệch nhỏ cũng có thể trông tương đối đều trong vài lần thử. Để đánh giá cần:
+Even an unbiased algorithm exhibits random fluctuation in finite samples; a slightly biased algorithm can also look fairly even over a few trials. To evaluate properly, you need:
 
-- Lý luận về **miền đầu vào, số lượng tiền ảnh và thuật toán ánh xạ**.
-- Kiểm tra hợp đồng API và chất lượng bộ sinh phù hợp mục đích.
-- Dùng kiểm định thống kê khi cần đánh giá thực nghiệm, với giả thuyết và kích thước mẫu phù hợp. Kết quả thống kê không thay thế chứng minh về phép ánh xạ.
+- Reasoning over **the input domain, preimage counts, and mapping algorithm**.
+- Verification of the API contract and generator quality appropriate for the purpose.
+- Statistical hypothesis tests when empirical evaluation is needed, with suitable hypotheses and sample sizes. Statistical results do not replace a proof of the mapping.
 
-### Bẫy D: `%` vừa hết không đủ để khẳng định cả bộ sinh tốt
+### Pitfall D: Divisible `%` alone does not prove the whole generator is good
 
-Nếu `N` chia hết cho `n`, riêng bước ánh xạ `x % n` không gây sai lệch tần suất **khi nguồn đồng đều**. Nhưng nếu generator tạo quy luật tuần hoàn dễ đoán, có tương quan hoặc các bit thấp chất lượng kém, việc chỉ lấy phần dư (đặc biệt với lũy thừa của 2) vẫn có thể phơi bày các nhược điểm đó. Do đó hãy dùng API bounded của bộ sinh đáp ứng nhu cầu ứng dụng và đừng suy diễn rằng `%` “an toàn” chỉ vì `n` là lũy thừa của 2.
+If `N` is divisible by `n`, the mapping step `x % n` itself introduces no frequency skew **assuming a uniform source**. However, if a generator produces predictable periodic patterns, correlations, or weak low-order bits, simply taking the remainder (especially for powers of 2) can expose those flaws. Therefore, use the bounded API of a generator suited to your application and do not assume `%` is “safe” just because `n` is a power of 2.
 
-### Bẫy E: Mỗi lần làm tròn/mapping đều thay đổi phân phối
+### Pitfall E: Every rounding/mapping alters distribution
 
-Các lối tắt khác như `Math.round(Math.random() * 5)` cũng có thể không đều: các điểm ở mép phạm vi nhận độ dài khoảng làm tròn khác điểm ở giữa. Nên tránh suy từ việc “đầu ra nằm trong khoảng” thành “đầu ra đồng đều”. Nếu dùng số nguyên bounded, hãy gọi API nguyên trực tiếp.
+Other shortcuts like `Math.round(Math.random() * 5)` can also be non-uniform: points at the edges of the range receive rounding interval widths different from interior points. Avoid jumping from “output lies in range” to “output is uniform”. When bounded integers are needed, call integer APIs directly.
 
-## 7. Trường hợp thực tế và lựa chọn phù hợp
+## 7. Practical cases and appropriate choices
 
-| Tình huống | Cách tiếp cận |
+| Scenario | Approach |
 |---|---|
-| Chọn ngẫu nhiên một phần tử trong danh sách có `size > 0` | `list.get(rng.nextInt(list.size()))` |
-| Mô phỏng xúc xắc công bằng 1 đến 6 | `rng.nextInt(6) + 1` |
-| Tạo số nguyên trong `[min, max)` | API `nextInt(min, max)`; chú ý cận trên loại trừ và miền hợp lệ |
-| Tạo mã xác thực/token bảo mật bằng bảng ký tự | Dùng `SecureRandom` và API bounded; quản lý thêm độ dài, entropy và chính sách token |
-| Có sẵn byte ngẫu nhiên đồng đều, cần chữ số 0..9 | Loại `250..255` rồi lấy `% 10`, hoặc dùng trực tiếp API sinh số trong `[0, 10)` |
-| Dữ liệu mẫu thiên lệch theo chủ đích | Xác định và triển khai phân phối mong muốn; không vô tình tạo thiên lệch bằng phép dư |
+| Randomly picking an element from a list with `size > 0` | `list.get(rng.nextInt(list.size()))` |
+| Simulating a fair 1-to-6 die | `rng.nextInt(6) + 1` |
+| Generating integers in `[min, max)` | `nextInt(min, max)` API; watch exclusive upper bound and valid domain |
+| Generating secure verification codes/tokens from a character alphabet | Use `SecureRandom` and bounded API; also manage length, entropy, and token policy |
+| Having uniform random bytes and needing digits `0..9` | Reject `250..255` before `% 10`, or directly use an API generating in `[0, 10)` |
+| Intentionally skewed sample data | Define and implement the desired distribution; do not accidentally introduce bias via remainder |
 
-Hai yêu cầu cần tách biệt:
+Keep two requirements distinct:
 
-- **Đồng đều:** các kết quả trong miền đích có cùng xác suất.
-- **Khó đoán:** người quan sát không thể suy ra kết quả tiếp theo với khả năng thực tế đáng kể.
+- **Uniformity:** outcomes in the target domain share equal probability.
+- **Unpredictability:** an observer cannot deduce the next outcome with meaningful practical probability.
 
-`Random.nextInt(bound)` có thể phù hợp mô phỏng thông thường nhưng không cung cấp cam kết bảo mật của `SecureRandom`. Ngược lại, nguồn khó đoán vẫn có thể bị ánh xạ sai thành phân phối có thiên lệch nếu dùng `%` một cách tùy tiện.
+`Random.nextInt(bound)` may fit ordinary simulations without providing `SecureRandom`'s security guarantees. Conversely, an unpredictable source can still be mapped into a biased distribution if `%` is applied carelessly.
 
-## 8. Tự kiểm tra
+## 8. Self-check
 
-**Câu 1.** Nguồn đồng đều `0..9`, dùng `x % 4`: kết quả nào xuất hiện nhiều hơn?  
-**Đáp án:** `10 = 2×4 + 2`; kết quả `0` và `1` có ba tiền ảnh mỗi số, `2` và `3` có hai tiền ảnh mỗi số. Xác suất lần lượt 30%, 30%, 20%, 20%; phân phối không đều.
+**Question 1.** Uniform source `0..9`, using `x % 4`: which outcomes appear more often?  
+**Answer:** `10 = 2×4 + 2`; outcomes `0` and `1` each have three preimages, while `2` and `3` each have two preimages. Probabilities are 30%, 30%, 20%, 20% respectively; the distribution is biased.
 
-**Câu 2.** Nguồn đồng đều `0..15`, dùng `x % 4` có modulo bias không?  
-**Đáp án:** Không có bias do ánh xạ này vì `16` chia hết `4`. Mỗi kết quả có đúng bốn tiền ảnh. Điều này không tự nói lên chất lượng hoặc an toàn của nguồn.
+**Question 2.** Uniform source `0..15`, using `x % 4`: is there modulo bias?  
+**Answer:** No bias from this mapping because `16` is divisible by `4`. Every outcome has exactly four preimages. By itself, this does not speak to the source's overall quality or security.
 
-**Câu 3.** Tại sao loại `250..255` trước khi lấy `% 10` trên byte ngẫu nhiên đều lại hợp lý?  
-**Đáp án:** Miền chấp nhận `0..249` có 250 giá trị, chia hết cho 10; mỗi chữ số 0..9 có 25 tiền ảnh. Mẫu bị loại phải được **lấy mới**.
+**Question 3.** Why is discarding `250..255` before taking `% 10` on a uniform random byte valid?  
+**Answer:** The accepted domain `0..249` has 250 values, divisible by 10; each digit `0..9` has 25 preimages. Rejected samples must be **redrawn**.
 
-**Câu 4.** `Math.floorMod(random.nextInt(), 6)` đã loại được modulo bias chưa?  
-**Đáp án:** Chưa. Hàm giải quyết phần dư âm; miền nguồn nguyên 32 bit có `2^32` giá trị, không chia hết cho 6, nên vẫn tồn tại độ lệch tần suất do ánh xạ.
+**Question 4.** Does `Math.floorMod(random.nextInt(), 6)` eliminate modulo bias?  
+**Answer:** No. It fixes negative remainders; the 32-bit signed integer domain has `2^32` values, which is not divisible by 6, so mapping frequency skew remains.
 
-**Câu 5.** Vì sao `Math.abs(random.nextInt())` không bảo đảm không âm?  
-**Đáp án:** `Integer.MIN_VALUE` không có trị tuyệt đối biểu diễn được bằng kiểu `int`, nên `Math.abs(Integer.MIN_VALUE)` vẫn âm.
+**Question 5.** Why does `Math.abs(random.nextInt())` not guarantee a non-negative result?  
+**Answer:** `Integer.MIN_VALUE` has no representable positive absolute value in `int`, so `Math.abs(Integer.MIN_VALUE)` remains negative.
 
-**Câu 6.** Với Java, nên viết gì để chọn đều một chỉ số từ danh sách có 10 phần tử?  
-**Đáp án:** `rng.nextInt(10)`. Nếu lựa chọn liên quan bí mật hoặc bảo mật, dùng bộ sinh phù hợp như `SecureRandom.nextInt(10)`.
+**Question 6.** In Java, what should you write to uniformly select an index from a 10-element list?  
+**Answer:** `rng.nextInt(10)`. If the choice involves secrets or security, use an appropriate generator such as `SecureRandom.nextInt(10)`.
 
-**Ghi nhớ:** `x % n` đưa giá trị về một số dư nhưng **không tự bảo đảm phân phối đều**. Nếu số trạng thái nguồn không chia hết cho `n`, phần dư có nhiều tiền ảnh hơn sẽ được ưu ái. Dùng **bounded RNG API** của Java hoặc **rejection sampling** đúng cách để tránh thiên lệch này.
+**Key takeaway:** `x % n` reduces a value to a remainder, but **does not automatically ensure a uniform distribution**. Whenever the source state count is not divisible by `n`, remainders with more preimages are favored. Use Java's **bounded RNG APIs** or proper **rejection sampling** to avoid this bias.

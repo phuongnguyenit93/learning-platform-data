@@ -1,110 +1,110 @@
-# Reproducible module image và cache build
+# Reproducible Module Images and Build Cache
 
-## 1. Reproducible build là gì?
+## 1. What Is a Reproducible Build?
 
-Một build được xem là reproducible khi cùng một source revision và cùng tập hợp input đã khai báo tạo ra output tương đương theo tiêu chí đã chọn. Với artifact có thể đóng gói, mục tiêu mạnh nhất là tạo ra cùng nội dung byte-for-byte khi build lại trong môi trường được kiểm soát.
+A build is considered reproducible when the same source revision and the same set of declared inputs produce equivalent outputs according to chosen criteria. For packagable artifacts, the strongest goal is producing identical byte-for-byte contents when rebuilt in a controlled environment.
 
-Đối với Java Platform Module System (JPMS), reproducibility cần bao phủ cả module JAR và runtime image được tạo bằng \`jlink\`. Kết quả phụ thuộc vào nhiều yếu tố:
+For the Java Platform Module System (JPMS), reproducibility needs to cover both module JARs and runtime images built with \`jlink\`. The result depends on many factors:
 
-- Source code, resource, \`module-info.java\` và generated source.
-- Phiên bản JDK, vendor, compiler và công cụ \`jlink\`.
-- Phiên bản Gradle/Maven, build plugins và dependency artifacts.
-- Module path, dependency graph, service provider và các tùy chọn linker.
-- Hệ điều hành, kiến trúc CPU, thư viện native và môi trường build.
-- Timestamp, thứ tự file, locale, timezone và các biến môi trường được dùng trong quá trình build.
+- Source code, resources, \`module-info.java\`, and generated sources.
+- JDK version, vendor, compiler, and the \`jlink\` tool.
+- Gradle/Maven version, build plugins, and dependency artifacts.
+- Module path, dependency graph, service providers, and linker options.
+- Operating system, CPU architecture, native libraries, and build environment.
+- Timestamps, file ordering, locale, timezone, and environment variables used during the build.
 
-Nếu một trong các input này thay đổi mà build không ghi nhận, hai lần build có thể cho ra image khác nhau dù source revision giống nhau. Khi đó, cache có thể trả lại output cũ hoặc CI tạo ra artifact khác với máy developer.
+If one of these inputs changes without the build tracking it, two builds can produce different images even from the same source revision. When that happens, a cache may return stale output or CI may produce artifacts different from a developer's machine.
 
-**Reproducible** không chỉ có nghĩa là build chạy thành công hai lần. Cần xác định tiêu chí so sánh: cùng dependency graph, cùng module list, cùng nội dung class/resource, cùng manifest hash hay cùng toàn bộ bytes của gói phát hành.
+**Reproducible** does not merely mean a build succeeds twice. You must define the comparison criteria: same dependency graph, same module list, same class/resource contents, same manifest hash, or identical bytes across the entire release package.
 
-## 2. Phân biệt các loại cache của Gradle
+## 2. Distinguishing Gradle's Cache Types
 
-Gradle có nhiều cơ chế cache với mục đích khác nhau. Không nên gọi chung tất cả là build cache.
+Gradle has multiple caching mechanisms for different purposes. Do not refer to all of them collectively as the build cache.
 
-| Cơ chế | Nội dung được lưu | Tác dụng |
+| Mechanism | Stored Content | Effect |
 | --- | --- | --- |
-| Dependency cache | Metadata và artifact dependency đã tải | Tránh tải lại dependency từ repository. |
-| Build cache | Output của task dựa trên input và task implementation | Có thể khôi phục output của task đã chạy trước đó. |
-| Configuration cache | Kết quả cấu hình build và task graph | Giảm thời gian cấu hình ở lần chạy tiếp theo. |
-| Incremental build | Trạng thái input/output của task trong workspace | Bỏ qua task khi input/output chưa thay đổi. |
+| Dependency cache | Downloaded dependency metadata and artifacts | Avoids re-downloading dependencies from repositories. |
+| Build cache | Task outputs keyed by inputs and task implementation | Can restore outputs of previously executed tasks. |
+| Configuration cache | Build configuration result and task graph | Reduces configuration time on subsequent runs. |
+| Incremental build | Task input/output state in the workspace | Skips a task when inputs/outputs have not changed. |
 
-### 2.1. Dependency cache
+### 2.1. Dependency Cache
 
-Gradle lưu metadata và artifact tải từ Maven/Ivy repositories. Khi chạy offline:
+Gradle stores metadata and artifacts downloaded from Maven/Ivy repositories. When running offline:
 
 ~~~bash
 ./gradlew --offline build
 ~~~
 
-Gradle chỉ sử dụng dependency đã có trong cache cục bộ. Nếu artifact hoặc metadata cần thiết chưa được cache, build sẽ thất bại. Offline mode không khôi phục output của task đã chạy trước đó; nó chỉ hạn chế truy cập repository.
+Gradle only uses dependencies already present in the local cache. If a required artifact or metadata is not cached yet, the build fails. Offline mode does not restore outputs from previously executed tasks; it only restricts repository access.
 
-Dependency cache không thay thế dependency locking hoặc verification. Nếu khai báo dependency bằng version động như \`1.+\`, kết quả resolve có thể thay đổi theo thời điểm và metadata repository.
+The dependency cache does not replace dependency locking or verification. If you declare dependencies with dynamic versions such as \`1.+\`, resolution results can change over time and with repository metadata.
 
-### 2.2. Build cache
+### 2.2. Build Cache
 
-Build cache lưu output của các task cacheable. Khi một task có cùng implementation và cùng input đã khai báo, Gradle có thể lấy output từ cache thay vì thực thi task.
+The build cache stores outputs of cacheable tasks. When a task has the same implementation and the same declared inputs, Gradle can fetch outputs from the cache instead of executing the task.
 
-Bật build cache:
+Enable the build cache:
 
 ~~~bash
 ./gradlew --build-cache build
 ~~~
 
-Hoặc cấu hình trong \`gradle.properties\`:
+Or configure it in \`gradle.properties\`:
 
 ~~~properties
 org.gradle.caching=true
 ~~~
 
-Build cache hữu ích cho các task compile, test hoặc tạo artifact khi task được mô hình hóa đúng và output có thể tái tạo từ input đã khai báo.
+The build cache is useful for compile, test, or packaging tasks when tasks are modeled properly and outputs can be reproduced from declared inputs.
 
-Một task chỉ chạy nhanh hơn khi cache hit. Nếu input thay đổi, task implementation thay đổi hoặc task không cacheable, Gradle phải thực thi task.
+A task only runs faster on a cache hit. If inputs change, the task implementation changes, or the task is not cacheable, Gradle must execute the task.
 
-### 2.3. Configuration cache
+### 2.3. Configuration Cache
 
-Configuration cache lưu kết quả cấu hình build để giảm thời gian thực hiện các bước cấu hình ở lần chạy tiếp theo:
+The configuration cache stores the build configuration result to reduce time spent on configuration steps in subsequent runs:
 
 ~~~bash
 ./gradlew --configuration-cache build
 ~~~
 
-Configuration cache không lưu output của task. Build cache lưu output của task. Hai cơ chế có thể được dùng cùng lúc:
+The configuration cache does not store task outputs. The build cache stores task outputs. Both mechanisms can be used together:
 
 ~~~bash
 ./gradlew --configuration-cache --build-cache build
 ~~~
 
-Nếu build script hoặc custom task không tương thích configuration cache, Gradle sẽ báo vấn đề khi lưu hoặc tái sử dụng configuration state. Cần xử lý các vấn đề đó theo hướng dẫn của Gradle thay vì giả định configuration cache sẽ sửa được task không xác định input/output.
+If a build script or custom task is incompatible with the configuration cache, Gradle reports issues when saving or reusing configuration state. Address those issues following Gradle's guidance rather than assuming the configuration cache will fix tasks with undeclared inputs/outputs.
 
-## 3. Khóa toolchain và dependency
+## 3. Locking Toolchains and Dependencies
 
-Muốn build tái lập, phải kiểm soát phiên bản công cụ và dependency trước khi tối ưu cache.
+To make builds reproducible, control tool and dependency versions before optimizing caches.
 
 ### 3.1. Gradle Wrapper
 
-Commit các file Wrapper vào repository và cố định phiên bản Gradle. Trong \`gradle/wrapper/gradle-wrapper.properties\`, khai báo distribution cụ thể và checksum:
+Commit the Wrapper files to the repository and pin the Gradle version. In \`gradle/wrapper/gradle-wrapper.properties\`, declare a specific distribution and checksum:
 
 ~~~properties
 distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip
 distributionSha256Sum=<verified-sha256-of-the-distribution>
 ~~~
 
-Thay placeholder bằng checksum chính thức đã xác minh của distribution được chọn. Không tự tạo hoặc đoán checksum. Wrapper giúp developer và CI dùng cùng phiên bản Gradle, còn checksum bảo vệ tính toàn vẹn của file distribution tải về.
+Replace the placeholder with the official verified checksum of the chosen distribution. Do not invent or guess a checksum. The Wrapper ensures developers and CI use the same Gradle version, while the checksum protects the integrity of the downloaded distribution file.
 
-### 3.2. Java toolchain và release target
+### 3.2. Java Toolchain and Release Target
 
-Khai báo toolchain thay vì phụ thuộc vào Java đang nằm trong PATH:
+Declare a toolchain instead of relying on whatever Java happens to be on PATH:
 
 ~~~groovy
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
-        // Có thể chỉ định vendor nếu tổ chức yêu cầu một JDK vendor cụ thể.
+        // You can specify a vendor if the organization requires a specific JDK vendor.
     }
 }
 ~~~
 
-Đặt release target cho compiler:
+Set the release target for the compiler:
 
 ~~~groovy
 tasks.withType(JavaCompile).configureEach {
@@ -112,13 +112,13 @@ tasks.withType(JavaCompile).configureEach {
 }
 ~~~
 
-Toolchain chọn JDK thực thi compile/test theo cấu hình. \`options.release\` giới hạn API và bytecode target. Hai thiết lập phục vụ mục đích khác nhau; không nên chỉ dựa vào \`JAVA_HOME\` trên máy developer.
+The toolchain selects the JDK executing compilation/tests according to configuration. \`options.release\` constrains the target API and bytecode. The two settings serve different purposes; do not rely solely on \`JAVA_HOME\` on developer machines.
 
-Nếu build tạo runtime image, phải khóa cả JDK chứa \`jlink\` và các file module trong \`jmods\`. Cùng major version 21 vẫn chưa đảm bảo byte-for-byte giống nhau nếu vendor hoặc patch release khác nhau.
+If the build creates a runtime image, lock the JDK containing \`jlink\` and the module files in \`jmods\` as well. The same major version 21 does not guarantee byte-for-byte identity if vendors or patch releases differ.
 
-### 3.3. Khóa dependency version
+### 3.3. Locking Dependency Versions
 
-Tránh dynamic version và version range cho dependency phát hành. Dùng dependency locking để ghi lại phiên bản đã resolve:
+Avoid dynamic versions and version ranges for release dependencies. Use dependency locking to record resolved versions:
 
 ~~~groovy
 dependencyLocking {
@@ -126,31 +126,31 @@ dependencyLocking {
 }
 ~~~
 
-Tạo hoặc cập nhật lock state bằng:
+Generate or update lock state with:
 
 ~~~bash
 ./gradlew dependencies --write-locks
 ~~~
 
-Commit lockfiles do Gradle tạo ra. Khi dependency graph thay đổi có chủ đích, cập nhật lock state trong một thay đổi được review.
+Commit the lockfiles generated by Gradle. When the dependency graph changes intentionally, update lock state in a reviewed change.
 
-### 3.4. Xác minh dependency artifacts
+### 3.4. Verifying Dependency Artifacts
 
-Dependency locking kiểm soát version được resolve; dependency verification kiểm tra nội dung artifact tải về. Có thể khởi tạo metadata checksum:
+Dependency locking controls which versions are resolved; dependency verification checks the contents of downloaded artifacts. You can initialize checksum metadata:
 
 ~~~bash
 ./gradlew --write-verification-metadata sha256 help
 ~~~
 
-Review \`gradle/verification-metadata.xml\` rồi commit file đó. Không tự động tin mọi checksum mới nếu chưa xác minh nguồn và thay đổi dependency. CI nên thực thi verification để phát hiện artifact bị thay đổi ngoài dự kiến.
+Review \`gradle/verification-metadata.xml\` and commit it. Do not blindly trust every new checksum without verifying the source and dependency change. CI should enforce verification to catch unexpected artifact tampering or changes.
 
-Với plugin Gradle, cũng cố định version plugin trong \`plugins { }\` hoặc version catalog. Build logic và plugin là input của quá trình tạo artifact, vì vậy không nên để version plugin trôi theo repository.
+For Gradle plugins, also pin plugin versions in \`plugins { }\` or a version catalog. Build logic and plugins are inputs to artifact creation, so plugin versions should not drift with repository updates.
 
-## 4. Làm cho archive output có tính xác định
+## 4. Making Archive Outputs Deterministic
 
-JAR là archive. Nếu thứ tự entry hoặc timestamp thay đổi, hai JAR có thể khác bytes dù class/resource giống nhau.
+A JAR is an archive. If entry order or timestamps change, two JARs can differ in bytes even when classes/resources are identical.
 
-Với Gradle archive tasks:
+For Gradle archive tasks:
 
 ~~~groovy
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
@@ -161,15 +161,15 @@ tasks.withType(AbstractArchiveTask).configureEach {
 }
 ~~~
 
-Cấu hình này loại bỏ timestamp gốc của file khỏi archive và yêu cầu thứ tự entry ổn định. Nó giúp các JAR/ZIP do các archive task hỗ trợ tạo ra có thể so sánh ổn định hơn.
+This configuration strips original file timestamps from the archive and enforces a stable entry order. It helps make JARs/ZIPs produced by supported archive tasks more consistently comparable.
 
-Tuy nhiên, đây không phải bảo đảm duy nhất cho reproducibility. Manifest, generated resource, build metadata, plugin, JDK và các task tùy biến vẫn có thể ghi timestamp hoặc nội dung phụ thuộc môi trường vào output.
+However, this is not the sole guarantee of reproducibility. Manifests, generated resources, build metadata, plugins, the JDK, and custom tasks can still write timestamps or environment-dependent content into outputs.
 
-Không ghi thời gian hiện tại, absolute path hoặc tên máy build vào resource được đóng gói nếu các giá trị đó không phải input có chủ đích. Nếu cần build version hoặc commit id, hãy đưa chúng thành input rõ ràng và thống nhất cách tạo.
+Do not write the current time, absolute paths, or build machine hostnames into packaged resources unless those values are intentional inputs. If a build version or commit ID is needed, make it an explicit input and standardize how it is generated.
 
-## 5. Tạo runtime image bằng jlink
+## 5. Building a Runtime Image with jlink
 
-Ví dụ tạo image từ module ứng dụng và các module phụ thuộc:
+Example building an image from the application module and its dependent modules:
 
 ~~~bash
 jlink \\
@@ -180,18 +180,18 @@ jlink \\
   --output build/runtime-image
 ~~~
 
-Các input quan trọng cần kiểm soát:
+Key inputs to control:
 
-- JDK distribution chứa \`jlink\` và thư mục \`jmods\`.
-- Tất cả modular JAR/exploded modules trên module path.
-- Module gốc trong \`--add-modules\`.
-- Service declarations và lựa chọn \`--bind-services\`.
-- Launcher name, main module/class và các tùy chọn linker.
-- OS, CPU architecture và môi trường native của target.
+- JDK distribution containing \`jlink\` and the \`jmods\` directory.
+- All modular JARs/exploded modules on the module path.
+- Root modules in \`--add-modules\`.
+- Service declarations and the \`--bind-services\` choice.
+- Launcher name, main module/class, and linker options.
+- Target OS, CPU architecture, and native environment.
 
-\`jlink\` tạo image phụ thuộc nền tảng. Không dùng một runtime image Linux để thay cho image Windows hoặc image của kiến trúc CPU khác. Hãy tạo image trên JDK phù hợp với target và kiểm thử image đó trong môi trường tương ứng.
+\`jlink\` produces a platform-dependent image. Do not substitute a Linux runtime image for a Windows image or an image for another CPU architecture. Build the image on a JDK matching the target and test that image in the corresponding environment.
 
-Có thể giảm kích thước bằng các tùy chọn như:
+Size can be reduced with options such as:
 
 ~~~bash
 --strip-debug
@@ -200,56 +200,56 @@ Có thể giảm kích thước bằng các tùy chọn như:
 --compress=2
 ~~~
 
-Chỉ bật các tùy chọn sau khi xác định yêu cầu runtime và test xác nhận ứng dụng vẫn hoạt động. Nếu ứng dụng dùng locale data, font, service provider hoặc module được nạp động, phải bảo đảm image vẫn chứa đủ thành phần cần thiết.
+Enable these options only after identifying runtime requirements and testing that the application still works. If the application uses locale data, fonts, service providers, or dynamically loaded modules, ensure the image still contains all required components.
 
-### 5.1. Khóa module set
+### 5.1. Locking the Module Set
 
-Dùng \`--add-modules\` với tập module gốc có chủ đích và để linker resolve dependency. Khi ứng dụng dùng service provider, kiểm tra module consumer có \`uses\` và provider có \`provides\`; \`--bind-services\` giúp liên kết provider quan sát được trên module path.
+Use \`--add-modules\` with an intentional set of root modules and let the linker resolve dependencies. When the application uses service providers, verify that consumer modules declare \`uses\` and providers declare \`provides\`; \`--bind-services\` helps link observable providers on the module path.
 
-Không lấy danh sách module từ một lần chạy ngẫu nhiên rồi hard-code mà không hiểu lý do. Module được dùng qua reflection, JDBC driver, logging provider hoặc plugin có thể không xuất hiện trong dependency graph tĩnh theo cách dễ nhận biết. Hãy kiểm thử các luồng chức năng và cấu hình thực tế.
+Do not take a module list from an arbitrary run and hard-code it without understanding why. Modules used via reflection, JDBC drivers, logging providers, or plugins may not appear in a static dependency graph in an obvious way. Test realistic functional flows and configurations.
 
-### 5.2. Kiểm tra image
+### 5.2. Verifying the Image
 
-Sau khi link:
+After linking:
 
 ~~~bash
 build/runtime-image/bin/java -version
 build/runtime-image/bin/java --list-modules
 ~~~
 
-Dùng Java executable bên trong image. Nếu gọi \`java\` từ PATH, có thể đang kiểm tra JDK khác trên máy build.
+Use the Java executable inside the image. Invoking \`java\` from PATH may end up testing a different JDK on the build machine.
 
-Kiểm tra launcher:
+Test the launcher:
 
 ~~~bash
 build/runtime-image/bin/app
 ~~~
 
-Kiểm tra cả module resolution, service discovery, cấu hình, native dependency và luồng nghiệp vụ tối thiểu. Build image thành công chỉ chứng minh linker đã tạo được output; nó không chứng minh image đã đủ điều kiện production.
+Verify module resolution, service discovery, configuration, native dependencies, and minimal business flows. A successful image build only proves the linker produced output; it does not prove the image is production-ready.
 
-## 6. Reproducibility của runtime image
+## 6. Reproducibility of the Runtime Image
 
-Để hai lần tạo runtime image có thể so sánh, phải cố định mọi input của linker và bước chuẩn bị module path.
+For two runtime image builds to be comparable, every linker input and module-path preparation step must be pinned.
 
-Một bộ input nên ghi nhận:
+A set of inputs to track:
 
-| Input | Cách kiểm soát |
+| Input | How to Control |
 | --- | --- |
-| Source revision | Ghi commit SHA và trạng thái working tree. |
-| Gradle distribution | Dùng Wrapper version cố định và checksum đã xác minh. |
-| JDK | Cố định vendor, version/update và platform. |
-| Dependencies | Dùng lockfiles và dependency verification. |
-| Module artifacts | Ghi hash của từng modular JAR hoặc artifact đầu vào. |
-| jlink arguments | Quản lý trong build logic, không nhập thủ công tùy môi trường. |
-| OS/architecture | Tách cache/image theo target platform. |
-| Environment | Cố định các biến có ảnh hưởng tới generated content. |
-| Output | Sinh vào thư mục sạch và so sánh manifest hash. |
+| Source revision | Record commit SHA and working tree state. |
+| Gradle distribution | Use a pinned Wrapper version and verified checksum. |
+| JDK | Pin vendor, version/update, and platform. |
+| Dependencies | Use lockfiles and dependency verification. |
+| Module artifacts | Record hashes of each input modular JAR or artifact. |
+| jlink arguments | Manage in build logic, not entered manually per environment. |
+| OS/architecture | Separate caches/images by target platform. |
+| Environment | Pin variables that affect generated content. |
+| Output | Generate into a clean directory and compare manifest hashes. |
 
-Không nên khẳng định mọi output \`jlink\` đều byte-for-byte giống nhau giữa các JDK vendor, patch release hoặc OS khác nhau. Hãy xác định reproducibility trong cùng toolchain/platform trước; nếu cần so sánh cross-platform, so sánh các thuộc tính có ý nghĩa như module list, version, cấu hình và behavior thay vì kỳ vọng toàn bộ bytes giống nhau.
+Do not claim all \`jlink\` outputs are byte-for-byte identical across different JDK vendors, patch releases, or OSes. Establish reproducibility within the same toolchain/platform first; if cross-platform comparison is needed, compare meaningful properties such as module list, versions, configuration, and behavior rather than expecting identical raw bytes.
 
-### 6.1. Tạo manifest hash
+### 6.1. Generating a Manifest Hash
 
-Có thể tạo danh sách file và SHA-256 để so sánh hai image. Ví dụ trên Linux:
+You can generate a file list and SHA-256 digests to compare two images. Example on Linux:
 
 ~~~bash
 find build/runtime-image -type f -print0 \\
@@ -257,31 +257,31 @@ find build/runtime-image -type f -print0 \\
   | xargs -0 sha256sum > runtime-image.sha256
 ~~~
 
-Manifest này ghi nhận nội dung file. Nếu cần kiểm tra cả file mode, symbolic link hoặc metadata khác, bổ sung các thuộc tính đó vào manifest theo quy ước của dự án.
+This manifest records file contents. If file modes, symbolic links, or other metadata also need verification, include those attributes in the manifest per project conventions.
 
-Để so sánh hai image, tạo manifest theo cùng quy trình và so sánh:
+To compare two images, generate manifests via the same process and diff them:
 
 ~~~bash
 diff -u image-a.sha256 image-b.sha256
 ~~~
 
-Nếu hash khác, tìm file đầu tiên khác nhau và xác định input tạo ra file đó. Đừng chỉ so sánh kích thước thư mục vì hai image có thể cùng kích thước nhưng nội dung khác.
+If hashes differ, locate the first differing file and identify the input that produced it. Do not compare only directory sizes, since two images can have the same size with different contents.
 
-Với Windows, dùng PowerShell để liệt kê file và \`Get-FileHash -Algorithm SHA256\`; chuẩn hóa đường dẫn tương đối và thứ tự trước khi tạo manifest.
+On Windows, use PowerShell to list files and \`Get-FileHash -Algorithm SHA256\`; normalize relative paths and ordering before generating the manifest.
 
-## 7. Đưa jlink task vào Gradle build cache
+## 7. Integrating the jlink Task into the Gradle Build Cache
 
-Gradle chỉ có thể cache output một cách an toàn nếu task khai báo đầy đủ input và output. Với custom task tạo runtime image, cần mô hình hóa tối thiểu:
+Gradle can only cache outputs safely when a task declares complete inputs and outputs. For a custom task that creates a runtime image, model at minimum:
 
-- Module artifacts và JDK \`jmods\` là file inputs.
-- Executable \`jlink\` hoặc toolchain identity là input.
-- Module names, launcher, linker arguments, OS/architecture và các tùy chọn là scalar inputs.
-- Runtime image directory là output.
-- Task implementation và logic build là một phần của cache key.
+- Module artifacts and JDK \`jmods\` as file inputs.
+- The \`jlink\` executable or toolchain identity as an input.
+- Module names, launcher, linker arguments, OS/architecture, and options as scalar inputs.
+- The runtime image directory as output.
+- Task implementation and build logic as part of the cache key.
 
-Một custom task có thể dùng \`@CacheableTask\` khi output thực sự chỉ phụ thuộc vào những input đã khai báo. Các property file inputs nên khai báo path sensitivity phù hợp; thường dùng relative paths khi absolute workspace path không ảnh hưởng kết quả.
+A custom task can use \`@CacheableTask\` when outputs truly depend only on the declared inputs. File input properties should declare appropriate path sensitivity; relative paths are typically used when absolute workspace paths do not affect results.
 
-Ví dụ về hợp đồng input/output của task:
+Example of a task input/output contract:
 
 ~~~kotlin
 @CacheableTask
@@ -305,55 +305,55 @@ abstract class LinkRuntimeImage : DefaultTask() {
 }
 ~~~
 
-Đây là phần khai báo contract; task implementation phải thực thi đúng executable, dùng đúng module artifacts và tạo output trong \`imageDirectory\`. Nếu toolchain phụ thuộc vào các file JDK khác như \`jmods\`, phải khai báo chúng là inputs hoặc mô hình hóa một toolchain input tương đương đủ để cache key thay đổi khi JDK thay đổi.
+This is the contract declaration; the task implementation must run the exact executable, use the declared module artifacts, and write output inside \`imageDirectory\`. If the toolchain depends on other JDK files such as \`jmods\`, declare them as inputs or model an equivalent toolchain input sufficient for the cache key to change when the JDK changes.
 
-Không khai báo executable path hoặc JDK version bằng một chuỗi cố định rồi bỏ qua nội dung toolchain. Hai JDK có cùng version string nhưng khác vendor/build có thể tạo output khác nhau.
+Do not declare only an executable path or JDK version string while ignoring toolchain contents. Two JDKs with the same version string but different vendors/builds can produce different outputs.
 
-### 7.1. Khi nào task không nên cache?
+### 7.1. When Should a Task Not Be Cached?
 
-Không cache task nếu nó có side effect không được biểu diễn trong output, ví dụ:
+Do not cache a task if it has side effects not represented in its outputs, such as:
 
-- Gửi request hoặc ghi dữ liệu vào hệ thống bên ngoài.
-- Đọc trạng thái thời gian thực mà không khai báo input.
-- Tạo output phụ thuộc vào random value hoặc current timestamp.
-- Ghi vào một thư mục ngoài output directory đã khai báo.
-- Dựa vào biến môi trường hoặc file cấu hình không được khai báo.
-- Tạo image khác nhau theo máy build nhưng cache key không phân biệt platform/toolchain.
+- Sending requests or writing data to external systems.
+- Reading real-time state without declaring inputs.
+- Producing output dependent on random values or current timestamps.
+- Writing to a directory outside the declared output directory.
+- Relying on undeclared environment variables or configuration files.
+- Producing different images per build machine while the cache key does not distinguish platform/toolchain.
 
-Một cache hit có nghĩa Gradle bỏ qua action và khôi phục output đã lưu. Nếu task còn có side effect cần xảy ra mỗi lần chạy, cache có thể làm hành vi sai. Hãy tách task tạo artifact thuần túy khỏi task deploy/publish có side effect.
+A cache hit means Gradle skips the action and restores saved outputs. If the task also has side effects that must occur on every run, caching can cause incorrect behavior. Separate pure artifact-building tasks from deploy/publish tasks that have side effects.
 
-## 8. Tránh cache key sai hoặc cache miss không cần thiết
+## 8. Avoiding Broken Cache Keys or Unnecessary Cache Misses
 
-### 8.1. Khai báo đầy đủ input
+### 8.1. Declare All Inputs
 
-Mỗi giá trị có thể làm thay đổi output phải được khai báo. Với task tạo image, không được bỏ qua:
+Every value capable of changing the output must be declared. For an image-building task, do not omit:
 
-- Nội dung module JAR và resource.
-- Module path order nếu thứ tự có ý nghĩa.
-- JDK executable và JDK modules.
+- Contents of module JARs and resources.
+- Module path ordering if order is significant.
+- JDK executable and JDK modules.
 - Linker arguments.
-- Environment variables ảnh hưởng tới output.
-- OS/architecture nếu output phụ thuộc nền tảng.
+- Environment variables affecting output.
+- OS/architecture if output is platform-dependent.
 
-Nếu thiếu input, Gradle có thể trả output cũ cho một build có kết quả đáng lẽ phải khác. Đây là cache correctness bug, nguy hiểm hơn cache miss vì build vẫn có vẻ thành công.
+If an input is missing, Gradle may return stale output for a build whose result should have differed. This is a cache correctness bug, more dangerous than a cache miss because the build still appears to succeed.
 
-### 8.2. Tránh input không ổn định
+### 8.2. Avoid Unstable Inputs
 
-Không đưa absolute path của workspace, thời gian build hoặc tên máy vào input nếu chúng không ảnh hưởng nội dung output. Dùng relative path normalization thích hợp để cùng source checkout ở các thư mục khác nhau vẫn có thể tái sử dụng cache.
+Do not include absolute workspace paths, build timestamps, or machine hostnames in inputs if they do not affect output contents. Use proper relative path normalization so identical source checkouts in different directories can still reuse the cache.
 
-Tuy nhiên, không được loại bỏ một path khỏi cache key nếu output thật sự phụ thuộc vào vị trí đó. Path sensitivity phải phản ánh đúng semantics của task.
+However, never strip a path from the cache key if the output genuinely depends on that location. Path sensitivity must accurately reflect the task's semantics.
 
-### 8.3. Output phải được tạo xác định
+### 8.3. Outputs Must Be Produced Deterministically
 
-Task cần ghi output vào vị trí được khai báo, xóa hoặc thay thế output cũ theo quy tắc rõ ràng và không để lại file stale. Không ghi thêm log, temporary file hoặc generated artifact ngoài output directory mà Gradle không biết.
+The task must write outputs to the declared location, delete or replace old outputs according to clear rules, and leave no stale files behind. Do not write extra logs, temporary files, or generated artifacts outside the output directory unknown to Gradle.
 
-Nếu task sử dụng thư mục output, hãy bảo đảm nội dung cuối cùng phản ánh chính xác input của lần chạy. Một file cũ còn sót lại có thể làm image trông đầy đủ dù task hiện tại không tạo ra nó.
+If a task uses an output directory, ensure the final contents reflect only the inputs of the current run. A leftover stale file can make an image look complete even though the current task did not produce it.
 
-## 9. Local và remote build cache
+## 9. Local and Remote Build Cache
 
-Local build cache hữu ích cho developer build lại trên cùng máy. Remote build cache cho phép CI và nhiều developer chia sẻ output task đã cache.
+The local build cache is useful when developers rebuild on the same machine. A remote build cache enables CI and multiple developers to share cached task outputs.
 
-Ví dụ cấu hình remote HTTP cache trong \`settings.gradle\`:
+Example remote HTTP cache configuration in \`settings.gradle\`:
 
 ~~~groovy
 buildCache {
@@ -364,7 +364,7 @@ buildCache {
 }
 ~~~
 
-CI đáng tin cậy có thể được cấu hình push:
+Trusted CI can be configured to push:
 
 ~~~groovy
 buildCache {
@@ -375,90 +375,90 @@ buildCache {
 }
 ~~~
 
-Đây chỉ là minh họa; endpoint, authentication và quyền push/pull phải theo hệ thống cache của tổ chức. Không hard-code credential vào repository. Dùng secret store hoặc cơ chế authentication được build infrastructure hỗ trợ.
+This is illustrative only; endpoints, authentication, and push/pull permissions must follow your organization's cache infrastructure. Do not hard-code credentials in the repository. Use a secret store or authentication mechanism supported by your build infrastructure.
 
-Một mô hình thường dùng:
+A common pattern:
 
-- CI trên branch tin cậy build và push cache.
-- Pull request có thể đọc cache nhưng không được ghi cache dùng chung nếu contributor chưa được tin cậy.
-- Developer đọc remote cache và dùng local cache cho output riêng.
-- Cache được quản lý retention và dung lượng, tránh tăng vô hạn.
-- Cache key chứa platform/toolchain nên image Linux và Windows không dùng nhầm output của nhau.
+- CI on trusted branches builds and pushes to the cache.
+- Pull requests can read from the cache but cannot write to the shared cache if contributors are untrusted.
+- Developers read the remote cache and use the local cache for their own outputs.
+- Cache retention and capacity are managed to avoid unbounded growth.
+- Cache keys include platform/toolchain so Linux and Windows images do not mistakenly reuse each other's outputs.
 
-Remote cache là một nguồn artifact build. Chỉ cho phép writer đáng tin cậy; nếu một actor không đáng tin cậy có thể ghi output tùy ý vào cache dùng chung, build khác có thể khôi phục artifact không mong muốn.
+A remote cache is a source of build artifacts. Permit only trusted writers; if an untrusted actor can write arbitrary outputs to the shared cache, other builds could restore unwanted artifacts.
 
-## 10. Kiểm chứng cache có hoạt động đúng
+## 10. Verifying the Cache Works Correctly
 
-Chạy build lần đầu:
+Run the first build:
 
 ~~~bash
 ./gradlew --build-cache clean build
 ~~~
 
-Chạy lại:
+Run again:
 
 ~~~bash
 ./gradlew --build-cache build
 ~~~
 
-Gradle có thể hiển thị task được khôi phục từ cache với trạng thái \`FROM-CACHE\`. Task \`UP-TO-DATE\` có nghĩa output hiện tại vẫn hợp lệ trong workspace; nó không đồng nghĩa với cache hit.
+Gradle may display tasks restored from cache with the \`FROM-CACHE\` outcome. An \`UP-TO-DATE\` task means existing workspace outputs are still valid; it is not the same as a cache hit.
 
-Để kiểm tra cache correctness, thay đổi lần lượt từng input quan trọng và xác nhận task phải chạy lại:
+To verify cache correctness, change each key input one at a time and confirm the task must re-run:
 
-- Thay đổi một class/resource trong module input.
-- Thay đổi linker argument.
-- Thay JDK/toolchain.
-- Thay module set hoặc service provider.
-- Thay target OS/architecture.
+- Modify a class/resource in an input module.
+- Change a linker argument.
+- Change the JDK/toolchain.
+- Change the module set or service providers.
+- Change the target OS/architecture.
 
-Sau mỗi thay đổi, kiểm tra task không khôi phục output của input cũ. Khi khôi phục về input ban đầu, cache có thể hit lại nếu key và output tương ứng còn tồn tại.
+After each change, verify the task does not restore output from the old inputs. When reverting to the original inputs, the cache can hit again if the corresponding key and output still exist.
 
-Không đánh giá cache chỉ bằng việc build nhanh hơn. Cần xác nhận output sau cache hit giống output của một lần thực thi thật với cùng input.
+Do not judge a cache solely by faster builds. Confirm that output after a cache hit matches the output of an actual execution with the same inputs.
 
-## 11. Kiểm thử reproducibility trong CI
+## 11. Testing Reproducibility in CI
 
-Một pipeline có thể tạo hai output độc lập từ cùng commit trong hai workspace sạch:
+A pipeline can produce two independent outputs from the same commit in two clean workspaces:
 
-1. Resolve dependency bằng lockfiles và verification.
-2. Dùng đúng Gradle Wrapper và JDK toolchain.
-3. Build module JAR.
-4. Tạo runtime image từ cùng module set và jlink arguments.
-5. Tạo manifest hash của JAR và runtime image.
-6. So sánh hai manifest.
-7. Nếu khác, lưu manifest và log toolchain để xác định input bị bỏ sót.
-8. Chạy smoke/integration tests trên image sau khi kiểm tra nội dung.
+1. Resolve dependencies using lockfiles and verification.
+2. Use the exact Gradle Wrapper and JDK toolchain.
+3. Build module JARs.
+4. Create the runtime image from the same module set and jlink arguments.
+5. Generate manifest hashes of the JARs and runtime image.
+6. Compare the two manifests.
+7. If they differ, archive the manifests and toolchain logs to identify omitted inputs.
+8. Run smoke/integration tests on the image after verifying contents.
 
-Có thể dùng hai runner cùng OS/architecture và cùng toolchain để kiểm tra bit-for-bit. Nếu runner khác nhau, cần xác định trước thuộc tính nào phải giống và thuộc tính nào được phép khác.
+You can use two runners with the same OS/architecture and the same toolchain to check bit-for-bit identity. If runners differ, define upfront which properties must match and which are permitted to differ.
 
-CI cũng nên có một job build không dùng build cache định kỳ để đối chiếu output thật với output được cache. Điều này giúp phát hiện task khai báo thiếu input hoặc cache entry không còn phù hợp. Không cần tắt cache trong mọi build; chỉ cần có một đường kiểm chứng độc lập.
+CI should also include a periodic build job with the build cache disabled to cross-check real outputs against cached outputs. This catches tasks with missing input declarations or stale cache entries. You do not need to disable caching on every build; you just need an independent verification path.
 
-## 12. Chẩn đoán lỗi reproducibility và cache
+## 12. Diagnosing Reproducibility and Cache Failures
 
-| Dấu hiệu | Nguyên nhân có thể | Hướng kiểm tra |
+| Symptom | Possible Cause | What to Check |
 | --- | --- | --- |
-| Hai JAR khác hash nhưng class giống nhau | Timestamp, archive order hoặc manifest khác | Cố định archive timestamp/order và kiểm tra resource metadata. |
-| Hai runtime image có module list khác nhau | JDK/module path hoặc service binding khác | So sánh JDK, module artifacts, \`--add-modules\`, \`--bind-services\`. |
-| Cache hit nhưng output không đúng | Task thiếu input hoặc output có side effect | Kiểm tra task annotations, inputs/outputs và cache key. |
-| Task luôn chạy lại | Input path/metadata thay đổi hoặc task không cacheable | Xem build scan/task outcome và chuẩn hóa input hợp lý. |
-| Developer hit cache, CI miss | Toolchain, OS, absolute path hoặc plugin khác | So sánh cache key inputs và build environment. |
-| Build offline thất bại | Dependency chưa có trong dependency cache | Chạy online để tải dependency đã khóa và xác minh. |
-| Configuration cache không được tái sử dụng | Build logic chưa tương thích hoặc configuration input thay đổi | Đọc configuration cache problems và sửa build logic. |
-| Runtime image thiếu provider | Module/provider không được link hoặc module path khác | Kiểm tra \`uses\`, \`provides\`, \`--bind-services\` và module list. |
-| Image chỉ chạy trên máy build | Image khác OS/architecture hoặc thiếu native dependency | Build/test trên platform target. |
-| Remote cache có output không tin cậy | Quyền push cache quá rộng | Giới hạn writer, xác thực nguồn và tách cache theo trust boundary. |
+| Two JARs have different hashes despite identical classes | Different timestamps, archive order, or manifests | Pin archive timestamps/order and inspect resource metadata. |
+| Two runtime images have different module lists | Different JDK/module path or service binding | Compare JDK, module artifacts, \`--add-modules\`, \`--bind-services\`. |
+| Cache hit yet wrong output | Task missing inputs or output has side effects | Check task annotations, inputs/outputs, and cache key. |
+| Task always re-runs | Input path/metadata changes or task is not cacheable | Inspect build scan/task outcome and normalize inputs appropriately. |
+| Developer hits cache, CI misses | Different toolchain, OS, absolute path, or plugin | Compare cache key inputs and build environment. |
+| Offline build fails | Dependency not yet in dependency cache | Run online to download and verify locked dependencies. |
+| Configuration cache cannot be reused | Build logic incompatible or configuration input changed | Read configuration cache problems report and fix build logic. |
+| Runtime image missing provider | Module/provider not linked or different module path | Check \`uses\`, \`provides\`, \`--bind-services\`, and module list. |
+| Image only runs on build machine | Image mismatches target OS/architecture or lacks native dependencies | Build/test on the target platform. |
+| Remote cache contains untrusted output | Push permissions too broad | Restrict writers, authenticate sources, and isolate caches by trust boundary. |
 
-## 13. Quy trình đề xuất cho module image có cache
+## 13. Recommended Workflow for Cached Module Images
 
-1. Khóa Gradle Wrapper, plugin, JDK vendor/version và dependency versions.
-2. Bật dependency verification và commit lockfiles.
-3. Cấu hình archive tasks để loại bỏ timestamp không cần thiết và sắp xếp entry ổn định.
-4. Xác định module roots, module path, service binding và jlink arguments.
-5. Tạo runtime image trong output directory sạch.
-6. Nếu muốn cache jlink task, khai báo đầy đủ JDK, jmods, module artifacts, arguments, target platform và output.
-7. Bật build cache; cấu hình remote cache với quyền push/pull phù hợp.
-8. Bật configuration cache riêng và xử lý các vấn đề tương thích.
-9. Build hai lần trong workspace sạch trên cùng platform, so sánh manifest hash.
-10. Kiểm thử runtime image bằng chính executable trong image và trong container target.
-11. Lưu toolchain identity, commit SHA, dependency verification state và artifact hashes cùng bản phát hành.
+1. Lock Gradle Wrapper, plugins, JDK vendor/version, and dependency versions.
+2. Enable dependency verification and commit lockfiles.
+3. Configure archive tasks to strip unnecessary timestamps and order entries deterministically.
+4. Define module roots, module path, service binding, and jlink arguments.
+5. Build the runtime image in a clean output directory.
+6. If caching the jlink task, declare the full JDK, jmods, module artifacts, arguments, target platform, and output.
+7. Enable the build cache; configure remote cache with appropriate push/pull permissions.
+8. Enable the configuration cache separately and resolve compatibility issues.
+9. Build twice in clean workspaces on the same platform and compare manifest hashes.
+10. Test the runtime image using the executable inside the image and inside the target container.
+11. Archive toolchain identity, commit SHA, dependency verification state, and artifact hashes alongside the release.
 
-Build cache tăng tốc việc tạo lại output; reproducible build giúp xác định output có thực sự được tạo từ cùng input. Hai mục tiêu hỗ trợ nhau nhưng không thay thế nhau. Cache chỉ an toàn khi task có input/output contract đầy đủ, còn reproducibility cần khóa toàn bộ toolchain, dependency, môi trường và quy tắc tạo artifact.
+The build cache accelerates reproducing outputs; reproducible builds verify whether outputs are truly generated from the same inputs. The two goals support each other rather than replacing one another. Caching is only safe when tasks have complete input/output contracts, while reproducibility requires locking the entire toolchain, dependencies, environment, and artifact generation rules.

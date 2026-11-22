@@ -1,40 +1,40 @@
-# `new String` tạo đối tượng và quan hệ với literal có sẵn trong Java
+# How `new String` Creates Objects and Its Relationship to Existing Literals in Java
 
-Khi gặp hai cách viết `String a = "Java";` và `String b = new String("Java");`, cả `a` và `b` đều biểu diễn nội dung `Java`, nhưng **khác nhau về danh tính đối tượng (object identity)**. Literal được Java quản lý theo cơ chế **string pool**; biểu thức `new String(...)` tạo một đối tượng `String` mới theo ngữ nghĩa của ngôn ngữ, ngay cả khi pool đã có một đối tượng chứa cùng nội dung.
+When you see two ways of writing `String a = "Java";` and `String b = new String("Java");`, both `a` and `b` represent the content `Java`, yet they **differ in object identity**. Literals are managed by Java through the **string pool** mechanism; the expression `new String(...)` creates a new `String` object according to language semantics, even when the pool already holds an object with the same content.
 
-Bài này làm rõ điều gì được tái sử dụng, điều gì được tạo mới, cách `==`, `equals()` và `intern()` liên quan với nhau, và khi nào thực sự cần dùng constructor `String`.
+This lesson clarifies what is reused, what is newly created, how `==`, `equals()`, and `intern()` relate to one another, and when the `String` constructor is actually needed.
 
-## 1. Hai kiểu khởi tạo: literal và `new String(...)`
+## 1. Two Initialization Styles: Literal and `new String(...)`
 
-### Dùng literal
+### Using a literal
 
 ```java
 String a = "Java";
 String b = "Java";
 ```
 
-- `"Java"` là một **string literal** (chuỗi literal) trong mã nguồn.
-- Các string literal có cùng dãy ký tự được **intern**: trong cùng một lần chạy chương trình Java, các tham chiếu đến giá trị literal tương đương sẽ sử dụng đại diện chuẩn (canonical representation) của string pool.
-- Với ví dụ này, `a == b` là `true` vì cả hai biến cùng tham chiếu một đối tượng `String` chuẩn.
-- Việc gán `b = "Java"` không yêu cầu tạo thêm một đối tượng `String` mới có nội dung `Java`.
+- `"Java"` is a **string literal** in source code.
+- String literals with the same character sequence are **interned**: within the same Java program execution, references to equivalent literal values use the canonical representation from the string pool.
+- In this example, `a == b` is `true` because both variables reference the same canonical `String` object.
+- Assigning `b = "Java"` does not require creating another `String` object with content `Java`.
 
-### Dùng constructor `new String(String original)`
+### Using the constructor `new String(String original)`
 
 ```java
 String a = "Java";
 String b = new String("Java");
 ```
 
-- Literal `"Java"` là đầu vào của constructor và có đại diện trong string pool.
-- `new String("Java")` biểu thị việc **tạo một đối tượng `String` khác** với đối tượng tham chiếu bởi literal. Giá trị nội dung của đối tượng mới bằng giá trị literal.
-- `a == b` là `false`, còn `a.equals(b)` là `true`.
-- Constructor không tự đưa đối tượng `b` trở thành đại diện chuẩn của pool. Muốn lấy đại diện chuẩn, có thể gọi `b.intern()`.
+- The literal `"Java"` is the input to the constructor and has a representation in the string pool.
+- `new String("Java")` denotes **creating a different `String` object** from the object referenced by the literal. The content value of the new object equals the literal's value.
+- `a == b` is `false`, while `a.equals(b)` is `true`.
+- The constructor does not automatically make the object `b` the pool's canonical representation. To obtain the canonical representation, you can call `b.intern()`.
 
-Cần phân biệt **ngữ nghĩa tạo đối tượng** với việc JVM phải cấp phát bao nhiêu bộ nhớ tại thời điểm thực thi. Trình biên dịch JIT có thể loại bỏ một cấp phát không quan sát được khi tối ưu hóa, nhưng chương trình vẫn phải biểu hiện đúng quy tắc danh tính và so sánh đối tượng của Java. Vì thế không nên khẳng định chung chung rằng một dòng `new String("Java")` *luôn* làm JVM cấp phát chính xác hai đối tượng mới: literal có thể đã tồn tại trong pool từ trước, còn cách cấp phát vật lý có thể được tối ưu.
+It is important to distinguish **object creation semantics** from how much memory the JVM has to allocate at runtime. A JIT compiler may eliminate an unobservable allocation during optimization, yet the program must still exhibit Java's object identity and comparison rules. Therefore, you should not make a blanket claim that a line `new String("Java")` *always* causes the JVM to allocate exactly two new objects: the literal may already exist in the pool beforehand, and physical allocation may be optimized.
 
-## 2. String pool, heap và tham chiếu: sơ đồ tư duy
+## 2. String Pool, Heap, and References: A Mental Model
 
-Hình dung ví dụ:
+Consider the example:
 
 ```java
 String literal = "Java";
@@ -43,25 +43,25 @@ String constructed = new String("Java");
 String copied = new String(literal);
 ```
 
-Quan hệ tham chiếu theo **ngữ nghĩa Java**:
+Reference relationships according to **Java semantics**:
 
 ```text
 literal -----------+
                    |
-sameLiteral -------+----> [String chuẩn: "Java"]  (đại diện trong pool)
+sameLiteral -------+----> [Canonical String: "Java"]  (representation in pool)
 
-constructed ------------> [String khác: "Java"]
+constructed ------------> [Another String: "Java"]
 
-copied -----------------> [String khác nữa: "Java"]
+copied -----------------> [Yet another String: "Java"]
 ```
 
-Hai đối tượng tạo bởi `new` có nội dung bằng với literal nhưng là các đối tượng `String` riêng biệt về danh tính. Không được nhầm sơ đồ danh tính đối tượng với sơ đồ cấp phát vùng nhớ nội bộ. Trên các JVM hiện đại, đối tượng trong pool cũng được quản lý như những đối tượng Java; pool không phải một khu vực bộ nhớ “ngoài heap” dành riêng cho literal. Ngoài ra, các đối tượng `String` bất biến có thể sử dụng các cách lưu trữ dữ liệu bên trong tùy JVM mà không làm thay đổi hợp đồng API.
+The two objects created by `new` have content equal to the literal, but are distinct `String` objects in identity. Do not confuse an object identity diagram with a physical internal memory-region layout. On modern JVMs, objects in the pool are also managed like Java objects; the pool is not an "off-heap" memory region reserved exclusively for literals. In addition, immutable `String` objects may use internal data representations that vary by JVM without changing the API contract.
 
-**Điểm cốt lõi:** String pool lưu và trả về tham chiếu đại diện cho nội dung chuỗi, còn `new String(...)` là yêu cầu tạo một đối tượng khác để giữ cùng giá trị.
+**Core point:** The String pool stores and returns the canonical reference for string content, whereas `new String(...)` requests creating another object to hold the same value.
 
-## 3. Ví dụ Java 17+: kiểm tra `==`, `equals()` và `intern()`
+## 3. Java 17+ Example: Checking `==`, `equals()`, and `intern()`
 
-Tạo tệp `NewStringVsLiteral.java`:
+Create the file `NewStringVsLiteral.java`:
 
 ```java
 public class NewStringVsLiteral {
@@ -93,14 +93,14 @@ public class NewStringVsLiteral {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 NewStringVsLiteral.java
 java NewStringVsLiteral
 ```
 
-Kết quả:
+Output:
 
 ```text
 literal == sameLiteral: true
@@ -113,54 +113,54 @@ constructed.intern() == literal: true
 copied.intern() == literal: true
 ```
 
-Giải thích từng nhóm kết quả:
+Explanation by group of results:
 
-1. Hai biến dùng cùng literal `"Java"` cùng trỏ đến tham chiếu chuẩn nên `==` trả về `true`.
-2. Mỗi lần thực thi biểu thức `new String(...)` tạo một đối tượng riêng theo ngữ nghĩa Java; `constructed` và `copied` khác tham chiếu nhau và khác `literal`.
-3. `equals()` do `String` triển khai để so sánh **chuỗi ký tự**; vì ba đối tượng có cùng nội dung nên kết quả bằng `true`.
-4. `intern()` trả về tham chiếu chuẩn trong pool cho chuỗi cùng nội dung. Vì literal `"Java"` đã có đại diện chuẩn, `constructed.intern()` và `copied.intern()` cùng trỏ đến đối tượng đó.
+1. Two variables using the same literal `"Java"` point to the canonical reference, so `==` returns `true`.
+2. Each execution of `new String(...)` creates a distinct object under Java semantics; `constructed` and `copied` have different references from each other and from `literal`.
+3. `equals()` is implemented by `String` to compare **character sequences**; because all three objects have the same content, the result is `true`.
+4. `intern()` returns the canonical reference in the pool for a string with the same content. Since the literal `"Java"` already has a canonical representation, `constructed.intern()` and `copied.intern()` both point to that object.
 
-Bạn có thể thay chuỗi `"Java"` bằng một nội dung khác và áp dụng cùng quy tắc. Điều được đảm bảo là **quan hệ giữa các tham chiếu**, không phải một con số cố định về đối tượng thực tế nằm trong bộ nhớ JVM tại mọi thời điểm.
+You can replace the string `"Java"` with another content and apply the same rules. What is guaranteed is **the relationship among references**, not a fixed count of physical objects residing in JVM memory at all times.
 
-## 4. Vì sao `==` và `equals()` cho kết quả khác nhau?
+## 4. Why Do `==` and `equals()` Give Different Results?
 
-| Phép kiểm tra | So sánh gì? | Ví dụ với literal và đối tượng `new` |
+| Check | What does it compare? | Example with literal and `new` object |
 | --- | --- | --- |
-| `a == b` | Hai biến có trỏ đến **cùng một đối tượng** không? | `"Java"` và `new String("Java")` → `false` |
-| `a.equals(b)` | Hai chuỗi có **cùng dãy ký tự** không? | `"Java"` và `new String("Java")` → `true` |
-| `a.equalsIgnoreCase(b)` | Nội dung có tương đương theo quy tắc so sánh không phân biệt hoa/thường của phương thức không? | `"Java"` và `"JAVA"` → `true` |
-| `a.intern() == b.intern()` | Hai giá trị có cùng đại diện chuẩn trong pool không? | Hai chuỗi bằng nội dung → `true` sau khi intern |
+| `a == b` | Do the two variables point to **the same object**? | `"Java"` and `new String("Java")` → `false` |
+| `a.equals(b)` | Do the two strings have **the same character sequence**? | `"Java"` and `new String("Java")` → `true` |
+| `a.equalsIgnoreCase(b)` | Are the contents equivalent under the method's case-insensitive comparison rules? | `"Java"` and `"JAVA"` → `true` |
+| `a.intern() == b.intern()` | Do the two values share the same canonical representation in the pool? | Two strings with equal content → `true` after interning |
 
-Trong phần lớn logic nghiệp vụ, mục tiêu là so sánh **giá trị văn bản**, nên dùng `equals()` hoặc `Objects.equals(a, b)` nếu có thể có `null`. Sự tình cờ `==` trả về `true` với literal không khiến `==` trở thành cách đúng để so sánh nội dung mọi `String`.
+In most business logic, the goal is to compare **text values**, so use `equals()`, or `Objects.equals(a, b)` if `null` is possible. The coincidence that `==` returns `true` for literals does not make `==` the right way to compare the content of arbitrary `String` values.
 
-Ví dụ dễ gây lỗi:
+Error-prone example:
 
 ```java
 String expected = "OK";
 String actual = new String("OK");
 
-// Sai mục đích nếu muốn so sánh nội dung:
+// Wrong intent if you want to compare content:
 if (actual == expected) {
     System.out.println("Match");
 }
 
-// Đúng mục đích:
+// Right intent:
 if (expected.equals(actual)) {
     System.out.println("Match");
 }
 ```
 
-Đây là đoạn minh họa đặt trong một phương thức. Chỉ nhánh dùng `equals()` in `Match`. Việc `expected.equals(actual)` đặt literal/giá trị đã biết không null ở phía trước cũng tránh lỗi `NullPointerException` nếu `actual` bất ngờ là `null`.
+This is an illustrative snippet placed inside a method. Only the branch using `equals()` prints `Match`. Placing the known non-null literal/value first in `expected.equals(actual)` also avoids a `NullPointerException` if `actual` happens to be `null`.
 
-## 5. `String.intern()` trả về gì khi đã có literal?
+## 5. What Does `String.intern()` Return When a Literal Already Exists?
 
-Phương thức `String.intern()` tìm đại diện chuẩn trong string pool cho **nội dung** của đối tượng nhận lời gọi:
+The `String.intern()` method looks up the canonical representation in the string pool for the **content** of the target object:
 
-- Nếu pool đã có một `String` có nội dung bằng nhau theo `equals()`, `intern()` trả về đối tượng đã có.
-- Nếu chưa có, đối tượng tương ứng sẽ được đưa vào pool và trở thành đại diện chuẩn, theo hợp đồng `intern()`.
-- `intern()` **không đổi nội dung** của `String` và không có nghĩa rằng biến nhận lời gọi tự chuyển sang tham chiếu mới.
+- If the pool already contains a `String` whose content is equal according to `equals()`, `intern()` returns the existing object.
+- If not, the corresponding object is placed into the pool and becomes the canonical representation, per the `intern()` contract.
+- `intern()` **does not change the content** of the `String` and does not mean the variable on which the method was called automatically switches to the new reference.
 
-Với `String a = new String("Java");`, literal `"Java"` đã có trong mã nguồn và được intern. Do đó:
+With `String a = new String("Java");`, the literal `"Java"` is already in the source code and interned. Therefore:
 
 ```java
 String literal = "Java";
@@ -172,19 +172,19 @@ System.out.println(canonical == literal);       // true
 System.out.println(differentObject == canonical); // false
 ```
 
-Các dòng trên là ví dụ minh họa có thể đặt trong `main`. Nếu muốn biến `differentObject` sau đó trỏ đến tham chiếu chuẩn, cần **gán lại**: `differentObject = differentObject.intern();`. Lời gọi `intern()` đơn lẻ không thay đổi biến gốc.
+The lines above are an illustrative snippet that can be placed inside `main`. If you want the variable `differentObject` to subsequently point to the canonical reference, you must **reassign** it: `differentObject = differentObject.intern();`. A standalone `intern()` call does not modify the original variable.
 
-Khi không có literal tương ứng trong mã và nội dung được tạo động, không nên đoán trước **đại diện chuẩn là đối tượng nào** hoặc cố xác định chính xác thời điểm một chuỗi bắt đầu có trong pool. Điều chắc chắn để dùng là: hai chuỗi bằng nội dung, sau khi intern, sẽ tham chiếu đến cùng một đại diện chuẩn.
+When there is no corresponding literal in the code and the content is generated dynamically, you should not predict **which object is the canonical representation** or try to pinpoint the exact moment a string enters the pool. What you can reliably rely on is: two strings with equal content, once interned, will reference the same canonical representation.
 
-**Không nên gọi `intern()` cho mọi chuỗi** theo thói quen. Pool cần quản lý các giá trị chuẩn, và intern một tập rất lớn các chuỗi động ít trùng lặp có thể làm tăng chi phí bộ nhớ hoặc xử lý. Hãy chỉ cân nhắc khi có nhu cầu thực tế về chuẩn hóa tham chiếu cho nhiều giá trị lặp và đã đo lường tác động.
+**You should not call `intern()` on every string** out of habit. The pool has to manage canonical values, and interning a very large set of low-duplication dynamic strings can increase memory or processing overhead. Consider it only when there is a genuine need to canonicalize references for many repeated values and you have measured the impact.
 
-## 6. Literal, biểu thức hằng lúc biên dịch và nối chuỗi khi chạy
+## 6. Literals, Compile-Time Constant Expressions, and Runtime Concatenation
 
-Java có thêm quy tắc quan trọng: **string constant expressions** (biểu thức hằng kiểu `String`) cũng được intern. Ví dụ `"Ja" + "va"` là biểu thức hằng tại thời điểm biên dịch nên tương ứng với literal `"Java"`.
+Java has another important rule: **string constant expressions** (constant expressions of type `String`) are also interned. For example, `"Ja" + "va"` is a compile-time constant expression and therefore corresponds to the literal `"Java"`.
 
-Nhưng phép nối có một toán hạng không phải biểu thức hằng được thực hiện lúc chạy, tạo ra giá trị `String` có nội dung tương ứng và thường khác tham chiếu với literal, cho đến khi bạn chủ động `intern()`.
+By contrast, concatenation with an operand that is not a constant expression executes at runtime, producing a `String` value with the corresponding content that usually has a different reference from the literal until you explicitly call `intern()`.
 
-Tệp `ConstantVsRuntime.java`:
+File `ConstantVsRuntime.java`:
 
 ```java
 public class ConstantVsRuntime {
@@ -207,14 +207,14 @@ public class ConstantVsRuntime {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 ConstantVsRuntime.java
 java ConstantVsRuntime
 ```
 
-Kết quả:
+Output:
 
 ```text
 folded == literal: true
@@ -223,9 +223,9 @@ joinedAtRuntime.equals(literal): true
 joinedAtRuntime.intern() == literal: true
 ```
 
-Lý do: `folded` là kết quả nối **hai literal**; trình biên dịch xác định giá trị hằng `"Java"` và dùng đại diện chuẩn. Ngược lại, `suffix` được nhận từ biểu thức khởi tạo đối tượng `new String("va")`, nên `"Ja" + suffix` không phải biểu thức hằng theo quy tắc ngôn ngữ. Kết quả nối có nội dung `"Java"` nhưng không tự trở thành tham chiếu chuẩn của literal.
+Reason: `folded` is the result of concatenating **two literals**; the compiler determines the constant value `"Java"` and uses the canonical representation. Conversely, `suffix` comes from the object creation expression `new String("va")`, so `"Ja" + suffix` is not a constant expression under the language rules. The concatenation result has content `"Java"` but does not automatically become the literal's canonical reference.
 
-Một biến `final String` được khởi tạo bằng biểu thức hằng cũng có thể là **constant variable**:
+A `final String` variable initialized with a constant expression can also be a **constant variable**:
 
 ```java
 final String prefix = "Ja";
@@ -233,13 +233,13 @@ String stillConstant = prefix + "va";
 System.out.println(stillConstant == "Java"); // true
 ```
 
-Ngược lại, không phải cứ đặt `final` là mọi phép nối đều trở thành hằng tại lúc biên dịch: giá trị khởi tạo còn phải thỏa điều kiện *constant expression*. Đây là nguyên nhân khiến một số bài kiểm tra `==` với nối chuỗi có vẻ cho kết quả “lúc true, lúc false”. Vì thế, hãy dùng `equals()` cho nội dung.
+Conversely, simply adding `final` does not make every concatenation a compile-time constant: the initializer must also satisfy the *constant expression* rules. This is why some `==` tests on string concatenation appear to give "sometimes true, sometimes false." That is why you should use `equals()` for content.
 
-## 7. `new String` với nguồn không phải literal
+## 7. `new String` with Non-Literal Sources
 
-Phạm vi của constructor không chỉ có literal. Java cũng hỗ trợ tạo `String` từ một đối tượng `String` đã có, từ `char[]`, từ các đoạn của mảng hoặc từ byte kèm bộ mã hóa phù hợp.
+The scope of constructors goes beyond literals. Java also supports creating a `String` from an existing `String` object, from `char[]`, from array slices, or from bytes with an appropriate character encoding.
 
-### Tạo từ một `String` có sẵn
+### Creating from an existing `String`
 
 ```java
 String original = "data";
@@ -249,13 +249,13 @@ System.out.println(original == copy);      // false
 System.out.println(original.equals(copy)); // true
 ```
 
-Cả hai có nội dung bằng nhau, nhưng constructor vẫn tạo một đối tượng mới theo ngữ nghĩa Java. Tuy vậy, vì `String` **bất biến**, việc tạo đối tượng mới chỉ để “bảo vệ nội dung” khỏi bị sửa là không cần thiết. Cũng không nên tự suy luận rằng constructor này bắt buộc tạo bản sao độc lập của toàn bộ vùng nhớ chứa ký tự nội bộ; đó là chi tiết triển khai JVM, không phải lý do để dùng constructor.
+Both have equal content, yet the constructor still creates a new object according to Java semantics. However, because `String` is **immutable**, creating a new object merely to "protect the content" from being modified is unnecessary. Nor should you assume that this constructor necessarily makes an independent copy of the entire internal character storage; that is a JVM implementation detail, not a reason to use the constructor.
 
-### Tạo từ `char[]`: lấy một bản nội dung tại thời điểm tạo
+### Creating from `char[]`: taking a snapshot of content at creation time
 
-Một mảng `char[]` **có thể thay đổi**, nên trường hợp này có ý nghĩa khác.
+A `char[]` array **is mutable**, so this case has a different meaning.
 
-Tệp `NewStringFromArray.java`:
+File `NewStringFromArray.java`:
 
 ```java
 public class NewStringFromArray {
@@ -274,14 +274,14 @@ public class NewStringFromArray {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 NewStringFromArray.java
 java NewStringFromArray
 ```
 
-Kết quả:
+Output:
 
 ```text
 array=Xava
@@ -290,23 +290,23 @@ sameContent=true
 sameReference=false
 ```
 
-`new String(letters)` lấy nội dung mảng tại thời điểm tạo. Sửa `letters` sau đó không sửa `fromArray`; đây là hợp đồng quan trọng giữa nguồn mutable `char[]` và đích immutable `String`. Giá trị `fromArray` vẫn bằng literal `"Java"`, nhưng vì được tạo qua `new` nên không cùng tham chiếu với literal.
+`new String(letters)` captures the array's content at creation time. Modifying `letters` afterward does not modify `fromArray`; this is an important contract between a mutable `char[]` source and an immutable `String` target. The value of `fromArray` still equals the literal `"Java"`, but because it was created via `new`, it does not share the literal's reference.
 
-Tương tự, có constructor `new String(StringBuilder)` hoặc `new String(StringBuffer)` để tạo `String` từ nội dung hiện tại của vùng đệm. Tuy nhiên, khi đã có một `String` hợp lệ, `new String(existingString)` thường không cung cấp thêm giá trị.
+Similarly, there are constructors `new String(StringBuilder)` and `new String(StringBuffer)` to create a `String` from the current content of a buffer. However, when you already have a valid `String`, `new String(existingString)` rarely provides additional value.
 
-### Tạo từ byte cần biết charset
+### Creating from bytes requires knowing the charset
 
-`new String(bytes, StandardCharsets.UTF_8)` có nhiệm vụ **giải mã byte** theo UTF-8; đây không phải là thao tác “copy một literal”. Khi sử dụng các constructor từ byte, cần truyền charset rõ ràng phù hợp với dữ liệu đầu vào để tránh sai ký tự. Các constructor nhận `String` và `char[]` không giải quyết bài toán giải mã byte.
+`new String(bytes, StandardCharsets.UTF_8)` has the job of **decoding bytes** according to UTF-8; this is not an operation for "copying a literal." When using byte constructors, pass an explicit charset matching the input data to avoid corrupted characters. Constructors accepting `String` and `char[]` do not solve byte decoding.
 
-## 8. Có nên dùng `new String("literal")` trong ứng dụng?
+## 8. Should You Use `new String("literal")` in Applications?
 
-**Thông thường không cần.** Nếu chỉ muốn sử dụng một nội dung văn bản cố định, gán trực tiếp literal vừa ngắn gọn vừa tận dụng cơ chế tái sử dụng đại diện chuẩn:
+**Usually no.** If you simply want to use fixed text content, assigning the literal directly is both concise and takes advantage of canonical reference reuse:
 
 ```java
-String status = "READY"; // Phù hợp cho giá trị hằng đã biết
+String status = "READY"; // Suitable for a known constant value
 ```
 
-Nếu đã có đối tượng `String` từ một phương thức hay tham số, chỉ cần dùng lại giá trị đó:
+If you already have a `String` object from a method or parameter, just reuse that value:
 
 ```java
 static String normalizeStatus(String status) {
@@ -314,44 +314,44 @@ static String normalizeStatus(String status) {
 }
 ```
 
-Đây là phương thức minh họa đặt trong một lớp. Dùng `new String(status)` trước hoặc sau `trim()` không giúp so sánh chuỗi an toàn hơn và không ngăn người khác sửa nội dung của `String` (vì nội dung vốn đã bất biến).
+This is an illustrative method placed in a class. Using `new String(status)` before or after `trim()` does not make string comparison safer and does not prevent others from modifying the `String`'s content (since the content is already immutable).
 
-Các lý do **không hợp lệ** để thêm `new String("...")` tùy tiện:
+**Invalid** reasons to arbitrarily add `new String("...")`:
 
-- “Để chuỗi không bị sửa từ bên ngoài”: `String` vốn bất biến.
-- “Để luôn tạo chuỗi khác nội dung”: constructor tạo khác **đối tượng**, không làm nội dung khác.
-- “Để so sánh bằng `==` cho chính xác”: làm việc so sánh tham chiếu khác đi; so sánh giá trị vẫn cần `equals()`.
-- “Để tiết kiệm bộ nhớ nhờ string pool”: `new` không phải cơ chế tái sử dụng đại diện chuẩn.
-- “Để copy chắc chắn các byte/char nội bộ”: chi tiết chia sẻ hay sao chép dữ liệu bên trong `String` không phải hợp đồng của constructor nhận `String`.
+- "So the string cannot be modified from outside": `String` is already immutable.
+- "To always create a string with different content": the constructor creates a different **object**, not different content.
+- "To make `==` comparison accurate": it changes reference comparison; value comparison still needs `equals()`.
+- "To save memory via the string pool": `new` is not the mechanism for reusing canonical representations.
+- "To definitely copy the internal bytes/chars": whether internal data inside `String` is shared or copied is not part of the `String(String)` constructor's contract.
 
-**Dùng constructor khi đầu vào thực sự cần chuyển đổi sang `String`**, như `char[]`, `StringBuilder`, `StringBuffer`, hay byte đã xác định charset. Với nguồn đã là `String`, constructor sao chép theo ngữ nghĩa đối tượng hiếm khi cần thiết.
+**Use a constructor when the input genuinely needs conversion to `String`**, such as `char[]`, `StringBuilder`, `StringBuffer`, or bytes with a specified charset. When the source is already a `String`, the copy constructor for object-identity semantics is rarely needed.
 
-## 9. `null`, identity và các lỗi thường gặp
+## 9. `null`, Identity, and Common Pitfalls
 
-### Truyền `null` vào constructor
+### Passing `null` to a constructor
 
-Một tham chiếu `String` bằng `null` không phải đối tượng chuỗi rỗng:
+A `String` reference equal to `null` is not an empty string object:
 
 ```java
 String absent = null;
-// String copy = new String(absent); // Ném NullPointerException khi chạy
+// String copy = new String(absent); // Throws NullPointerException at runtime
 ```
 
-Đây là đoạn minh họa bên trong một phương thức. Việc viết trực tiếp `new String(null)` cũng không nên dùng để thử nghiệm, bởi `String` có nhiều constructor quá tải nên literal `null` trần có thể gây lỗi **không xác định được overload** ngay lúc biên dịch. Nếu cần chuỗi rỗng theo quy ước nghiệp vụ, hãy kiểm tra `null` và trả về `""` một cách tường minh.
+This is an illustrative snippet inside a method. Writing `new String(null)` directly should also not be used for testing, because `String` has multiple overloaded constructors, so a bare `null` literal causes an **ambiguous overload** error at compile time. If business rules require an empty string, check for `null` and explicitly return `""`.
 
-### Những lỗi thiết kế phổ biến
+### Common design mistakes
 
-1. **Giả định hai chuỗi bằng nội dung luôn `==` nhau.** Chỉ có thể dựa vào quan hệ tham chiếu khi bạn chủ động làm việc với pool/identity; để so sánh văn bản, dùng `equals()`.
-2. **Tưởng `new String("x")` làm xuất hiện một nội dung mới.** Giá trị vẫn là `"x"`; khác biệt là danh tính đối tượng.
-3. **Đếm số đối tượng từ số literal và số chữ `new` trong mã nguồn.** Pool có thể đã chứa giá trị, literal có thể xuất hiện nhiều nơi, và JVM có quyền tối ưu hóa cấp phát nếu không thay đổi hành vi quan sát được.
-4. **Tưởng `intern()` thay đổi biến gốc.** `intern()` trả về một tham chiếu; cần nhận và dùng giá trị trả về nếu mục tiêu là dùng tham chiếu chuẩn.
-5. **Dùng `new String(existingString)` để phòng vệ với dữ liệu immutable.** Bản thân `String` không bị sửa tại chỗ; việc tạo object mới thường thừa.
-6. **Tưởng mọi phép nối chuỗi đều dùng string pool.** Biểu thức hằng được intern; nối có toán hạng động tuân theo quy tắc khác và không tự chuyển thành đại diện chuẩn.
-7. **Tự động intern tất cả giá trị đầu vào.** Cần cân nhắc số chuỗi duy nhất, số lượng trùng lặp và tài nguyên thực tế; intern không thay thế việc thiết kế cache/deduplication có giới hạn.
+1. **Assuming two strings with equal content are always `==`.** You can rely on reference relationships only when you intentionally manage pooling/identity; for text comparison, use `equals()`.
+2. **Thinking `new String("x")` creates new content.** The value is still `"x"`; the difference is object identity.
+3. **Counting objects from the number of literals and `new` keywords in source code.** The pool may already contain the value, literals may appear in multiple places, and the JVM may optimize allocations as long as observable behavior is unchanged.
+4. **Thinking `intern()` modifies the original variable.** `intern()` returns a reference; you must capture and use the return value if the goal is to use the canonical reference.
+5. **Using `new String(existingString)` defensively on immutable data.** `String` itself cannot be mutated in place; creating a new object is usually redundant.
+6. **Thinking every string concatenation uses the string pool.** Constant expressions are interned; concatenation with dynamic operands follows different rules and does not automatically yield a canonical representation.
+7. **Automatically interning all input values.** You must consider the number of unique strings, duplication rate, and actual resources; interning does not replace designing a bounded cache/deduplication mechanism.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Câu 1.** Đoạn sau in gì?
+**Question 1.** What does the following snippet print?
 
 ```java
 String a = "hello";
@@ -362,18 +362,18 @@ System.out.println(a.equals(b));
 System.out.println(a == b.intern());
 ```
 
-**Trả lời:** lần lượt là `false`, `true`, `true`. Constructor tạo đối tượng khác; nội dung bằng nhau; `intern()` trả về đại diện chuẩn của literal có sẵn.
+**Answer:** `false`, `true`, `true` respectively. The constructor creates a different object; the content is equal; `intern()` returns the canonical representation of the existing literal.
 
-**Câu 2.** Tại sao `String a = "J" + "ava";` có thể `==` với `"Java"` nhưng `String b = "J" + someVariable;` thì không nên kiểm tra theo cách này?
+**Question 2.** Why can `String a = "J" + "ava";` be `==` to `"Java"`, whereas `String b = "J" + someVariable;` should not be tested this way?
 
-**Trả lời:** `"J" + "ava"` là biểu thức hằng tại lúc biên dịch và có đại diện chuẩn trong pool. Nếu `someVariable` không phải constant variable, phép nối được thực hiện lúc chạy, cho nội dung có thể bằng `"Java"` nhưng tham chiếu không nên dùng làm điều kiện so sánh nội dung.
+**Answer:** `"J" + "ava"` is a compile-time constant expression and has a canonical representation in the pool. If `someVariable` is not a constant variable, concatenation occurs at runtime, producing content that may equal `"Java"` but whose reference should not be used as a content-equality check.
 
-**Câu 3.** `new String("Java")` có tự trả về đúng đối tượng nằm trong pool không?
+**Question 3.** Does `new String("Java")` automatically return the exact object residing in the pool?
 
-**Trả lời:** Không. `new String("Java")` tạo đối tượng `String` riêng; gọi `intern()` trên đối tượng đó mới lấy đại diện chuẩn đã có cho literal `"Java"`.
+**Answer:** No. `new String("Java")` creates a separate `String` object; calling `intern()` on that object retrieves the existing canonical representation for the literal `"Java"`.
 
-**Câu 4.** Vì sao `new String(charArray)` hữu ích hơn `new String(existingString)` khi mục tiêu là bảo toàn nội dung trước thay đổi của nguồn?
+**Question 4.** Why is `new String(charArray)` more useful than `new String(existingString)` when the goal is preserving content against source mutations?
 
-**Trả lời:** `char[]` có thể bị sửa sau khi truyền, còn `String` bất biến. Constructor nhận mảng cung cấp một giá trị chuỗi độc lập với các thay đổi tiếp theo của mảng; tạo thêm `String` từ một `String` đã có thường không cần thiết.
+**Answer:** `char[]` can be modified after being passed in, whereas `String` is immutable. The array constructor provides a string value independent of subsequent changes to the array; creating an extra `String` from an existing `String` is usually unnecessary.
 
-**Ghi nhớ:** Literal và biểu thức hằng kiểu `String` được intern, có thể tái sử dụng tham chiếu chuẩn. `new String("...")` tạo một đối tượng chuỗi khác nhưng có nội dung bằng literal. Dùng `equals()` cho so sánh văn bản; chỉ dùng `intern()` khi thật sự cần đại diện chuẩn và đã cân nhắc chi phí.
+**Remember:** Literals and constant expressions of type `String` are interned, allowing canonical references to be reused. `new String("...")` creates a different string object with the same content as the literal. Use `equals()` for text comparison; use `intern()` only when you genuinely need a canonical representation and have weighed the cost.

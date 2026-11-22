@@ -1,23 +1,23 @@
-# requires và cạnh phụ thuộc module
+# requires and Module Dependency Edges
 
-Trong Java Platform Module System (JPMS), một module khai báo dependency bằng chỉ thị `requires` trong file `module-info.java`. Mỗi khai báo tạo một quan hệ phụ thuộc có hướng từ module đang khai báo đến module được yêu cầu. Tập hợp các quan hệ này tạo thành đồ thị phụ thuộc module và được Java dùng khi biên dịch, giải quyết module và chạy ứng dụng.
+In the Java Platform Module System (JPMS), a module declares a dependency using the `requires` directive in the `module-info.java` file. Each declaration creates a directed dependency relationship from the declaring module to the required module. The collection of these relationships forms a module dependency graph and is used by Java during compilation, module resolution, and application execution.
 
-Hiểu đúng `requires` giúp bạn biết module nào cần có mặt, module nào được đọc, vì sao một dependency được truyền đến client, và cách xử lý lỗi khi module descriptor thiếu hoặc khai báo sai phụ thuộc.
+Properly understanding `requires` helps you know which modules must be present, which modules are read, why a dependency is propagated to clients, and how to troubleshoot errors when a module descriptor is missing or declares dependencies incorrectly.
 
-## Mục tiêu
+## Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Viết và đọc chỉ thị `requires` trong `module-info.java`.
-- Giải thích hướng của cạnh phụ thuộc giữa module sử dụng và module được yêu cầu.
-- Phân biệt `requires`, `requires transitive` và `requires static`.
-- Hiểu vai trò của dependency trong quá trình module resolution.
-- Phân biệt việc module đọc được một module với việc package của module đó được export.
-- Biên dịch và chạy ví dụ gồm hai named module có quan hệ phụ thuộc trực tiếp.
+- Write and read the `requires` directive in `module-info.java`.
+- Explain the direction of the dependency edge between a consuming module and a required module.
+- Distinguish between `requires`, `requires transitive`, and `requires static`.
+- Understand the role of dependencies in the module resolution process.
+- Distinguish between a module reading another module and that module's packages being exported.
+- Compile and run an example consisting of two named modules with a direct dependency relationship.
 
-## 1. Cú pháp của requires
+## 1. Syntax of requires
 
-Chỉ thị `requires` được đặt bên trong module declaration:
+The `requires` directive is placed inside a module declaration:
 
 ~~~java
 module com.acme.application {
@@ -25,30 +25,30 @@ module com.acme.application {
 }
 ~~~
 
-Trong ví dụ này, `com.acme.application` là module khai báo dependency, còn `com.acme.logging` là module được yêu cầu.
+In this example, `com.acme.application` is the module declaring the dependency, and `com.acme.logging` is the required module.
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~java
 requires [static] [transitive] module.name;
 ~~~
 
-Hai modifier `static` và `transitive` là tùy chọn. Chúng có thể được dùng riêng hoặc kết hợp để xác định cách dependency được xử lý và truyền tới module phụ thuộc.
+The two modifiers `static` and `transitive` are optional. They can be used individually or combined to specify how the dependency is processed and propagated to dependent modules.
 
-Một số quy tắc cơ bản:
+Some basic rules:
 
-- Tên sau `requires` là tên module, không phải tên package hay tên file JAR.
-- Module được yêu cầu phải có thể được tìm thấy trong cấu hình module tương ứng, thường qua module path.
-- Một module không thể khai báo `requires` chính nó.
-- Một module chỉ nên khai báo một quan hệ requires cho mỗi tên module.
-- Quan hệ phụ thuộc giữa các named module phải tạo thành đồ thị không có chu trình.
-- Mỗi named module, ngoại trừ `java.base`, mặc định đọc `java.base`; vì vậy thường không cần ghi `requires java.base;`.
+- The name after `requires` is a module name, not a package name or a JAR file name.
+- The required module must be findable in the corresponding module configuration, usually via the module path.
+- A module cannot declare `requires` on itself.
+- A module should declare only one requires relationship per module name.
+- Dependency relationships between named modules must form an acyclic graph.
+- Every named module, except `java.base`, reads `java.base` by default; therefore, it is usually unnecessary to write `requires java.base;`.
 
-Tên module có phân biệt chữ hoa và chữ thường. Tên được dùng trong `requires` phải khớp với tên module đã được khai báo hoặc tên module mà Java xác định cho dependency đó.
+Module names are case-sensitive. The name used in `requires` must match the declared module name or the module name that Java determines for that dependency.
 
-## 2. Cạnh phụ thuộc có hướng
+## 2. Directed Dependency Edges
 
-Giả sử module A sử dụng API do module B cung cấp và khai báo:
+Suppose module A uses an API provided by module B and declares:
 
 ~~~java
 module A {
@@ -56,23 +56,23 @@ module A {
 }
 ~~~
 
-Ta có thể biểu diễn quan hệ này như sau:
+We can represent this relationship as follows:
 
 ~~~text
 A  ──requires──>  B
-    module A đọc B
+    module A reads B
 ~~~
 
-Trong bài học này, mũi tên đi từ module phụ thuộc đến module được yêu cầu:
+In this lesson, the arrow goes from the dependent module to the required module:
 
-- A là module phụ thuộc.
-- B là dependency của A.
-- A có quan hệ đọc trực tiếp với B.
-- B không cần khai báo `requires A;` chỉ vì A phụ thuộc vào B.
+- A is the dependent module.
+- B is a dependency of A.
+- A has a direct readability relationship with B.
+- B does not need to declare `requires A;` just because A depends on B.
 
-Đây là quan hệ có hướng. Nếu A yêu cầu B, điều đó không có nghĩa B cũng tự động đọc A.
+This is a directed relationship. If A requires B, that does not mean B automatically reads A as well.
 
-Khi có nhiều module:
+When there are multiple modules:
 
 ~~~text
 com.acme.app ──requires──> com.acme.service
@@ -80,33 +80,33 @@ com.acme.app ──requires──> com.acme.logging
 com.acme.service ────────> com.acme.model
 ~~~
 
-Đồ thị cho biết app phụ thuộc trực tiếp vào service và logging; service phụ thuộc vào model. Mỗi module khai báo dependency của chính nó trong module descriptor của mình.
+The graph indicates that app depends directly on service and logging; service depends on model. Each module declares its own dependencies in its own module descriptor.
 
-### 2.1. requires trực tiếp không tự truyền khả năng đọc
+### 2.1. Direct requires does not automatically propagate readability
 
-Giả sử có ba module:
+Suppose there are three modules:
 
 ~~~text
 A ──requires──> B ──requires──> C
 ~~~
 
-Module B khai báo `requires C;`, còn A chỉ khai báo `requires B;`.
+Module B declares `requires C;`, while A only declares `requires B;`.
 
-Khi đó:
+In this case:
 
-- B đọc C vì B khai báo dependency trực tiếp.
-- A đọc B vì A khai báo dependency trực tiếp.
-- A không tự động đọc C chỉ vì B đọc C.
+- B reads C because B declares a direct dependency.
+- A reads B because A declares a direct dependency.
+- A does not automatically read C just because B reads C.
 
-Nếu mã nguồn A cần tham chiếu kiểu thuộc C, A phải khai báo `requires C;` hoặc B phải công bố dependency C bằng `requires transitive C;`.
+If A's source code needs to reference types belonging to C, A must declare `requires C;` or B must expose dependency C using `requires transitive C;`.
 
-Điểm này phân biệt **đồ thị dependency** với **tập module mà một module được phép đọc**. Module resolution có thể cần tìm và đưa C vào cấu hình vì B phụ thuộc C, nhưng việc đó không tự tạo quan hệ đọc từ A đến C.
+This point distinguishes the **dependency graph** from the **set of modules that a module is allowed to read**. Module resolution may need to find and include C in the configuration because B depends on C, but that does not automatically create a readability relationship from A to C.
 
-## 3. requires transitive: truyền dependency đến client
+## 3. requires transitive: Propagating Dependencies to Clients
 
-Một module có thể dùng kiểu của dependency trong API public. Khi các module khác phụ thuộc vào API đó, chúng thường cũng cần đọc module chứa kiểu được công bố.
+A module may use types from a dependency in its public API. When other modules depend on that API, they often also need to read the module containing the exposed types.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.service {
@@ -115,9 +115,9 @@ module com.acme.service {
 }
 ~~~
 
-Module service đọc model và khai báo quan hệ đó là transitive. Module nào đọc service cũng được hưởng quan hệ đọc tới model.
+The service module reads model and declares that relationship as transitive. Any module that reads service also receives a readability relationship to model.
 
-Đồ thị:
+Graph:
 
 ~~~text
 com.acme.app ──requires──> com.acme.service
@@ -125,7 +125,7 @@ com.acme.app ──requires──> com.acme.service
                                   └──requires transitive──> com.acme.model
 ~~~
 
-Module app chỉ cần:
+The app module only needs:
 
 ~~~java
 module com.acme.app {
@@ -133,13 +133,13 @@ module com.acme.app {
 }
 ~~~
 
-App có thể đọc cả service và model. Điều này hữu ích khi API public của service sử dụng kiểu thuộc model, chẳng hạn kiểu tham số, kiểu trả về, kiểu generic hoặc interface cha.
+App can read both service and model. This is useful when service's public API uses types belonging to model, such as parameter types, return types, generic types, or parent interfaces.
 
-Không nên dùng `requires transitive` cho mọi dependency. Nếu dependency chỉ phục vụ triển khai nội bộ và không cần được client đọc, dùng `requires` thông thường sẽ giữ đồ thị phụ thuộc gọn hơn.
+You should not use `requires transitive` for every dependency. If a dependency only serves internal implementation and does not need to be read by clients, using regular `requires` keeps the dependency graph cleaner.
 
-## 4. requires static: dependency tùy chọn lúc chạy
+## 4. requires static: Compile-Time Only / Runtime-Optional Dependencies
 
-Modifier `static` dùng để khai báo dependency bắt buộc trong quá trình biên dịch nhưng có thể không cần hiện diện khi chạy:
+The `static` modifier is used to declare a dependency that is mandatory during compilation but may be absent at runtime:
 
 ~~~java
 module com.acme.tool {
@@ -147,16 +147,16 @@ module com.acme.tool {
 }
 ~~~
 
-Cách khai báo này thường phù hợp với dependency chỉ phục vụ compile time, ví dụ một thư viện annotation mà ứng dụng không cần sử dụng khi runtime.
+This declaration is typically suitable for compile-time-only dependencies, such as an annotation library that the application does not need to use at runtime.
 
-Cần phân biệt:
+It is important to distinguish:
 
-- Khi biên dịch, module được khai báo bằng `requires static` vẫn phải được tìm thấy để compiler kiểm tra dependency.
-- Khi chạy, dependency đó có thể vắng mặt mà không bị yêu cầu như một dependency runtime bắt buộc.
-- Nếu code thực thi vẫn cố nạp hoặc sử dụng class từ dependency đã vắng mặt, ứng dụng có thể gặp lỗi nạp class hoặc liên kết.
-- `requires static` không có nghĩa là package của dependency được export.
+- At compile time, a module declared with `requires static` must still be found so the compiler can verify the dependency.
+- At runtime, that dependency may be absent without being required as a mandatory runtime dependency.
+- If executed code still attempts to load or use classes from the absent dependency, the application may encounter class loading or linkage errors.
+- `requires static` does not mean that the dependency's packages are exported.
 
-Nếu cần kết hợp cả hai hành vi, module có thể khai báo dependency static và transitive:
+If both behaviors need to be combined, a module can declare a static and transitive dependency:
 
 ~~~java
 module com.acme.api {
@@ -164,21 +164,21 @@ module com.acme.api {
 }
 ~~~
 
-Hãy dùng kết hợp này khi dependency vừa cần được truyền trong quan hệ đọc ở giai đoạn biên dịch vừa có thể không cần ở runtime. Xem xét cách client sử dụng API để bảo đảm việc thiếu dependency lúc chạy là hợp lệ.
+Use this combination when a dependency both needs to be propagated in the readability relationship at compile time and may be unnecessary at runtime. Review how clients use the API to ensure that the absence of the dependency at runtime is valid.
 
-## 5. Module resolution sử dụng requires như thế nào?
+## 5. How does module resolution use requires?
 
-Khi biên dịch hoặc chạy một ứng dụng modular, Java cần xác định tập module tạo thành cấu hình ứng dụng. Quá trình này thường được gọi là **module resolution**.
+When compiling or running a modular application, Java needs to determine the set of modules that form the application configuration. This process is commonly called **module resolution**.
 
-Ở mức khái quát, Java thực hiện các việc sau:
+At a high level, Java performs the following steps:
 
-1. Xác định module gốc cần biên dịch hoặc chạy.
-2. Tìm các module được yêu cầu trực tiếp trong module descriptor.
-3. Tìm tiếp các dependency của những module vừa được tìm thấy.
-4. Kiểm tra tên module, khả năng quan sát và tính hợp lệ của các quan hệ phụ thuộc.
-5. Xây dựng cấu hình module để biên dịch hoặc chạy.
+1. Identifies the root modules to compile or run.
+2. Finds the modules directly required in module descriptors.
+3. Continues finding the dependencies of those newly found modules.
+4. Checks module names, observability, and the validity of dependency relationships.
+5. Builds the module configuration for compilation or execution.
 
-Ví dụ, nếu app yêu cầu service và service yêu cầu model:
+For example, if app requires service and service requires model:
 
 ~~~text
 Root module: app
@@ -190,50 +190,50 @@ Root module: app
       model
 ~~~
 
-Java cần giải quyết cả service và model để tạo cấu hình chạy hợp lệ. Tuy nhiên, việc model được giải quyết vào cấu hình không đồng nghĩa app luôn được phép đọc model; cần xem modifier của quan hệ requires giữa service và model.
+Java needs to resolve both service and model to create a valid runtime configuration. However, model being resolved into the configuration does not mean app is always allowed to read model; the modifier of the requires relationship between service and model must be checked.
 
-### 5.1. Module path cung cấp nơi tìm module
+### 5.1. The module path provides where to find modules
 
-Ví dụ biên dịch ứng dụng modular:
+Example of compiling a modular application:
 
 ~~~bash
 javac --module-path libs -d out --module-source-path src -m com.acme.app
 ~~~
 
-Ví dụ chạy:
+Example of running:
 
 ~~~bash
 java --module-path "out;libs" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong lệnh chạy trên, dấu chấm phẩy là dấu phân cách module path trên Windows. Trên Linux và macOS, dùng dấu hai chấm:
+In the run command above, the semicolon is the module path separator on Windows. On Linux and macOS, use a colon:
 
 ~~~bash
 java --module-path "out:libs" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Module path cho Java biết nơi tìm các module có thể quan sát. Chỉ thị `requires` cho biết module nào cần dependency nào. Hai phần này phối hợp với nhau trong quá trình resolution.
+The module path tells Java where to find observable modules. The `requires` directive tells Java which module needs which dependency. These two parts work together during resolution.
 
-Đặt một JAR vào thư mục `libs` không tự tạo ra quan hệ phụ thuộc trong module descriptor. Nếu module app cần module logging, app vẫn phải khai báo `requires com.acme.logging;`.
+Placing a JAR in the `libs` directory does not automatically create a dependency relationship in the module descriptor. If the app module needs the logging module, app must still declare `requires com.acme.logging;`.
 
-### 5.2. Quan sát quá trình resolution
+### 5.2. Observing the resolution process
 
-Có thể yêu cầu JVM hiển thị thông tin module resolution khi chạy:
+You can ask the JVM to display module resolution information when running:
 
 ~~~bash
 java --show-module-resolution --module-path out -m com.acme.app/com.acme.app.Main
 ~~~
 
-Thông tin hiển thị giúp nhận biết các module gốc và dependency mà JVM đã giải quyết. Đây là công cụ hữu ích khi một module không được tìm thấy hoặc cấu hình module có kết quả khác với dự kiến.
+The displayed information helps identify the root modules and dependencies that the JVM resolved. This is a useful tool when a module is not found or the module configuration produces a different result than expected.
 
-## 6. Ví dụ hoàn chỉnh: app requires service
+## 6. Complete Example: app requires service
 
-Ta tạo hai named module:
+Let's create two named modules:
 
-- `com.acme.service` cung cấp class `GreetingService`.
-- `com.acme.app` sử dụng class đó.
+- `com.acme.service` provides the `GreetingService` class.
+- `com.acme.app` uses that class.
 
-Cấu trúc thư mục:
+Directory structure:
 
 ~~~text
 src/
@@ -245,7 +245,7 @@ src/
     └── com/acme/app/Main.java
 ~~~
 
-### 6.1. Module service
+### 6.1. The service module
 
 File `src/com.acme.service/module-info.java`:
 
@@ -267,9 +267,9 @@ public class GreetingService {
 }
 ~~~
 
-Service export package `com.acme.service.api` để module khác có thể truy cập API public trong package đó.
+Service exports the `com.acme.service.api` package so other modules can access public APIs in that package.
 
-### 6.2. Module app
+### 6.2. The app module
 
 File `src/com.acme.app/module-info.java`:
 
@@ -294,42 +294,42 @@ public class Main {
 }
 ~~~
 
-App khai báo `requires com.acme.service;` để đọc module service. Service export package chứa class cần dùng. Hai điều kiện này phối hợp để mã nguồn app có thể import và gọi `GreetingService`.
+App declares `requires com.acme.service;` to read the service module. Service exports the package containing the needed class. These two conditions work together so app's source code can import and call `GreetingService`.
 
-### 6.3. Biên dịch và chạy
+### 6.3. Compiling and running
 
-Đứng tại thư mục chứa `src`:
+From the directory containing `src`:
 
 ~~~bash
 javac --module-source-path src -d out -m com.acme.service,com.acme.app
 ~~~
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~bash
 java --module-path out -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hello, Lan
 ~~~
 
-Ví dụ này thể hiện một cạnh dependency trực tiếp từ app đến service. Nếu app bỏ `requires com.acme.service;`, compiler không có quan hệ đọc cần thiết để app tham chiếu API của service.
+This example demonstrates a direct dependency edge from app to service. If app omits `requires com.acme.service;`, the compiler does not have the readability relationship needed for app to reference service's API.
 
-## 7. requires không thay thế exports
+## 7. requires does not replace exports
 
-Một nhầm lẫn thường gặp là cho rằng chỉ cần khai báo `requires B;` thì module A có thể sử dụng mọi class của B. Thực tế, hai chỉ thị giải quyết hai việc khác nhau:
+A common misconception is thinking that simply declaring `requires B;` allows module A to use every class of B. In reality, the two directives solve two different things:
 
-| Chỉ thị | Ý nghĩa |
+| Directive | Meaning |
 |---|---|
-| `requires B;` | Module hiện tại đọc module B và khai báo dependency trực tiếp |
-| `exports p;` trong B | Công bố package p cho các module khác đọc B |
-| `exports p to A;` trong B | Chỉ công bố package p cho module A |
-| `opens p;` trong B | Cho phép deep reflection trên package p lúc chạy |
+| `requires B;` | The current module reads module B and declares a direct dependency |
+| `exports p;` in B | Exposes package p to other modules that read B |
+| `exports p to A;` in B | Exposes package p only to module A |
+| `opens p;` in B | Allows deep reflection on package p at runtime |
 
-Ví dụ app đã khai báo:
+For example, app has declared:
 
 ~~~java
 module com.acme.app {
@@ -337,15 +337,15 @@ module com.acme.app {
 }
 ~~~
 
-Nhưng nếu service không export package `com.acme.service.api`, app vẫn không thể import class trong package đó qua API Java thông thường.
+But if service does not export the `com.acme.service.api` package, app still cannot import classes in that package through regular Java APIs.
 
-Ngược lại, service export package không tự làm app đọc service. App vẫn cần quan hệ `requires` phù hợp.
+Conversely, service exporting a package does not automatically make app read service. App still needs the appropriate `requires` relationship.
 
-Ngay cả khi module đọc được và package đã export, class hoặc member còn phải đáp ứng quy tắc truy cập của Java. Một class cấp cao nhất không public không trở thành public chỉ vì package được export.
+Even when a module is readable and the package is exported, classes or members must still satisfy Java's access rules. A non-public top-level class does not become public just because the package is exported.
 
-## 8. Chu trình dependency và cách tổ chức module
+## 8. Dependency Cycles and Module Organization
 
-Các named module cần có đồ thị dependency không chu trình. Ví dụ sau là thiết kế không hợp lệ:
+Named modules must have an acyclic dependency graph. The following example is an invalid design:
 
 ~~~text
 module A requires B
@@ -353,90 +353,90 @@ module B requires C
 module C requires A
 ~~~
 
-Một vòng phụ thuộc làm cho các module không thể được giải quyết theo đồ thị module hợp lệ. Compiler hoặc công cụ module sẽ báo lỗi về cyclic dependence.
+A dependency cycle prevents the modules from being resolved as a valid module graph. The compiler or module tool will report an error about cyclic dependence.
 
-Khi gặp tình huống này:
+When encountering this situation:
 
-1. Xác định module nào đang phụ thuộc vòng lại vào module ban đầu.
-2. Tìm phần API chung mà các module đang cần.
-3. Cân nhắc tách phần API hoặc abstraction đó sang module riêng.
-4. Đảo chiều phụ thuộc thông qua interface hoặc service provider khi phù hợp.
-5. Giữ module descriptor thể hiện chiều phụ thuộc rõ ràng.
+1. Identify which module is cyclically depending back on the original module.
+2. Find the shared API portion that the modules need.
+3. Consider extracting that API or abstraction into a separate module.
+4. Invert the dependency direction through interfaces or service providers when appropriate.
+5. Keep module descriptors reflecting a clear dependency direction.
 
-Ví dụ, nếu A và B cùng cần một abstraction, có thể đưa abstraction vào module C:
+For example, if A and B both need an abstraction, that abstraction can be placed into module C:
 
 ~~~text
 A ──requires──> C
 B ──requires──> C
 ~~~
 
-Cách này loại bỏ cạnh vòng và giúp các module phụ thuộc vào một hợp đồng chung.
+This approach eliminates the cyclic edge and helps modules depend on a shared contract.
 
-## 9. Các lỗi thường gặp với requires
+## 9. Common Errors with requires
 
 ### Module not found
 
-Java không tìm thấy module được yêu cầu.
+Java cannot find the required module.
 
-Kiểm tra:
+Check:
 
-- Tên module trong `requires` có chính xác không.
-- Module path có chứa thư mục hoặc JAR cung cấp module không.
-- JAR có phải là module có tên hợp lệ hoặc automatic module không.
-- Module đang biên dịch/chạy có nhận đúng cấu hình module path không.
+- Whether the module name in `requires` is accurate.
+- Whether the module path contains the directory or JAR providing the module.
+- Whether the JAR is a module with a valid name or an automatic module.
+- Whether the module being compiled/run receives the correct module path configuration.
 
-### Package không hiển thị dù đã requires
+### Package not visible despite requires
 
-Module sử dụng đã đọc module cung cấp nhưng package cần dùng chưa được export, hoặc qualified export không dành cho module hiện tại.
+The consuming module reads the providing module, but the needed package has not been exported, or a qualified export is not aimed at the current module.
 
-Kiểm tra `exports` trong module descriptor của bên cung cấp.
+Check `exports` in the provider's module descriptor.
 
-### Module phụ thuộc gián tiếp nhưng mã nguồn cần kiểu của dependency
+### Indirectly dependent module, but source code needs types from the dependency
 
-Nếu A yêu cầu B, B yêu cầu C bằng `requires` thường, A không tự động đọc C. Thêm `requires C;` ở A hoặc cân nhắc `requires transitive C;` ở B nếu C là một phần của API mà B công bố.
+If A requires B and B requires C with a regular `requires`, A does not automatically read C. Add `requires C;` in A or consider `requires transitive C;` in B if C is part of the API that B exposes.
 
-### Dependency chỉ cần lúc biên dịch
+### Dependency only needed at compile time
 
-Cân nhắc `requires static` nếu dependency không bắt buộc phải hiện diện ở runtime và code runtime có thể hoạt động khi dependency vắng mặt.
+Consider `requires static` if the dependency is not mandatory at runtime and runtime code can operate when the dependency is absent.
 
 ### Cyclic dependence
 
-Rà soát lại chiều dependency và tách abstraction chung nếu cần. Không cố giải quyết chu trình bằng cách thêm nhiều chỉ thị `requires` hơn.
+Review dependency directions and extract shared abstractions if needed. Do not try to resolve a cycle by adding more `requires` directives.
 
-## 10. Nguyên tắc khai báo dependency
+## 10. Principles for Declaring Dependencies
 
-- Khai báo dependency trực tiếp trong module thực sự sử dụng nó.
-- Giữ cạnh phụ thuộc một chiều và tránh chu trình.
-- Dùng `requires transitive` khi client của module cần đọc dependency như một phần hợp đồng API.
-- Dùng `requires static` khi dependency chỉ bắt buộc ở compile time và có thể vắng mặt lúc chạy.
-- Không khai báo transitive chỉ để làm cho lỗi biên dịch biến mất; hãy xác định dependency có thực sự thuộc API public không.
-- Kết hợp `requires` với `exports`: một bên xác định module được đọc, bên còn lại xác định package được công bố.
-- Giữ module path nhất quán giữa compile và runtime để tránh cấu hình resolution khác nhau.
+- Declare dependencies directly in the module that actually uses them.
+- Keep dependency edges unidirectional and avoid cycles.
+- Use `requires transitive` when clients of the module need to read the dependency as part of the API contract.
+- Use `requires static` when a dependency is only mandatory at compile time and may be absent at runtime.
+- Do not declare transitive just to make compilation errors disappear; determine whether the dependency truly belongs to the public API.
+- Combine `requires` with `exports`: one specifies which module is read, and the other specifies which package is exposed.
+- Keep the module path consistent between compile time and runtime to avoid differing resolution configurations.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Tình huống 1:** Module A khai báo `requires B;`. Cạnh dependency được hiểu theo hướng nào?
+**Scenario 1:** Module A declares `requires B;`. In which direction is the dependency edge understood?
 
-**Trả lời:** Từ A đến B. A là module phụ thuộc và B là module được yêu cầu; A đọc B.
+**Answer:** From A to B. A is the dependent module and B is the required module; A reads B.
 
-**Tình huống 2:** A yêu cầu B, B yêu cầu C bằng `requires C;` thông thường. A có thể import class từ C chỉ nhờ quan hệ đó không?
+**Scenario 2:** A requires B, and B requires C using a regular `requires C;`. Can A import classes from C solely through that relationship?
 
-**Trả lời:** Không. A đọc B nhưng không tự động đọc C. A cần khai báo dependency trực tiếp vào C hoặc B phải dùng `requires transitive C;` nếu muốn truyền khả năng đọc.
+**Answer:** No. A reads B but does not automatically read C. A needs to declare a direct dependency on C, or B must use `requires transitive C;` if readability is meant to be propagated.
 
-**Tình huống 3:** Vì sao một dependency phải có mặt trên module path?
+**Scenario 3:** Why must a dependency be present on the module path?
 
-**Trả lời:** Module path là nơi Java tìm các module có thể quan sát để giải quyết dependency. Chỉ thị `requires` nêu tên module cần dùng, nhưng không tự cung cấp file module.
+**Answer:** The module path is where Java looks for observable modules to resolve dependencies. The `requires` directive names the needed module, but does not itself supply the module file.
 
-**Tình huống 4:** Module app đã `requires com.acme.service;` nhưng compiler không cho import class trong package nội bộ của service. Cần kiểm tra gì?
+**Scenario 4:** The app module already has `requires com.acme.service;`, but the compiler does not allow importing a class in an internal package of service. What should be checked?
 
-**Trả lời:** Kiểm tra service có export package đó không và kiểu, thành viên có mức truy cập phù hợp không. Readability không thay thế package export.
+**Answer:** Check whether service exports that package and whether the type and its members have appropriate access levels. Readability does not replace package exports.
 
-**Tình huống 5:** Một module chỉ cần dependency cho compile time. Modifier nào có thể phù hợp?
+**Scenario 5:** A module only needs a dependency at compile time. Which modifier may be appropriate?
 
-**Trả lời:** `requires static dependency;`, với điều kiện code runtime không cần class của dependency khi dependency không có mặt.
+**Answer:** `requires static dependency;`, provided that runtime code does not need classes of the dependency when the dependency is absent.
 
-**Tình huống 6:** A yêu cầu B, B yêu cầu A. Có thể giải quyết bằng cách thêm module path không?
+**Scenario 6:** A requires B, and B requires A. Can this be solved by adding to the module path?
 
-**Trả lời:** Không. Đây là chu trình dependency trong named module graph. Cần thiết kế lại chiều phụ thuộc hoặc tách abstraction chung.
+**Answer:** No. This is a dependency cycle in the named module graph. The dependency direction must be redesigned or a shared abstraction extracted.
 
-Khi đọc một module descriptor, hãy xem mỗi dòng `requires` như một cạnh có hướng: module hiện tại phụ thuộc vào module được nêu tên. Sau đó kiểm tra modifier, module path, package export và cấu hình resolution để hiểu đầy đủ cách dependency được sử dụng.
+When reading a module descriptor, treat each `requires` line as a directed edge: the current module depends on the named module. Then check modifiers, the module path, package exports, and the resolution configuration to fully understand how the dependency is used.

@@ -1,77 +1,77 @@
-# BigInteger.divideAndRemainder và kiểm tra chia hết trong Java
+# BigInteger.divideAndRemainder and Divisibility Checks in Java
 
-## 1. Mục tiêu và bài toán
+## 1. Goal and Problem
 
-Java cung cấp kiểu `java.math.BigInteger` để làm việc với số nguyên có độ lớn vượt miền `int` và `long`. Khi cần xác định một số lớn có chia hết cho số khác hay không, phép chia nguyên và phép lấy **số dư** là công cụ chính. Phương thức `divideAndRemainder(BigInteger divisor)` trả về **cả thương lẫn số dư** trong một lần gọi.
+Java provides the `java.math.BigInteger` type to work with integers whose magnitudes exceed the `int` and `long` ranges. When determining whether a large number is divisible by another, integer division and **remainder** operations are the primary tools. The `divideAndRemainder(BigInteger divisor)` method returns **both the quotient and the remainder** in a single call.
 
-Sau bài học, bạn sẽ:
+After this lesson, you will:
 
-- Biết cách sử dụng `divideAndRemainder`, `divide` và `remainder` đúng hợp đồng.
-- Đọc được `BigInteger[]` trả về: `result[0]` là thương, `result[1]` là số dư.
-- Kiểm tra chia hết chính xác bằng điều kiện số dư bằng `BigInteger.ZERO`.
-- Hiểu quy tắc với số âm: thương cắt về **0**, số dư cùng dấu với số bị chia nếu khác 0.
-- Phân biệt `remainder` với `mod`: cùng làm việc với số dư, nhưng **quy tắc dấu và miền đối số không giống nhau**.
-- Xử lý trường hợp chia cho 0, phép chia trong các bài toán đếm/lập lịch, dữ liệu nhập từ chuỗi và các phép tính trên số rất lớn.
-- Biết khi nào nên lấy cả thương và số dư, và khi nào chỉ cần kiểm tra chia hết.
+- Know how to use `divideAndRemainder`, `divide`, and `remainder` according to their contracts.
+- Read the returned `BigInteger[]`: `result[0]` is the quotient, `result[1]` is the remainder.
+- Check divisibility accurately using the condition that the remainder equals `BigInteger.ZERO`.
+- Understand the rules for negative numbers: quotient truncated toward **0**, remainder matching the sign of the dividend if nonzero.
+- Distinguish `remainder` from `mod`: both deal with remainders, but **their sign rules and argument domains differ**.
+- Handle division by zero, division in counting/scheduling problems, string inputs, and calculations on very large numbers.
+- Know when to obtain both quotient and remainder, and when only a divisibility check is needed.
 
-Ví dụ dùng **Java 17+**. Không cần thư viện bên ngoài hoặc tính năng preview.
+Examples use **Java 17+**. No external libraries or preview features are needed.
 
-## 2. BigInteger là gì và tại sao không dùng long?
+## 2. What Is `BigInteger` and Why Not Use `long`?
 
-`long` có dấu, chứa được các giá trị từ `-9223372036854775808` đến `9223372036854775807`. Nếu số cần tính vượt miền này, phép toán nguyên primitive có thể bị tràn, cho kết quả không còn đúng.
+`long` is signed and holds values from `-9223372036854775808` to `9223372036854775807`. If numbers in a calculation exceed this range, primitive integer arithmetic can overflow, producing wrong results.
 
-`BigInteger` biểu diễn số nguyên với độ chính xác tùy ý, chịu giới hạn bộ nhớ và khả năng xử lý thực tế của JVM. Nó là một **lớp bất biến (immutable)**: các phép toán trả về kết quả mới hoặc một instance hợp lệ khác, không sửa số nguồn.
+`BigInteger` represents integers with arbitrary precision, subject to JVM memory and practical processing capacity. It is an **immutable class**: operations return a new result or another valid instance without modifying the source number.
 
 ~~~java
 import java.math.BigInteger;
 
-// Các lệnh sau đặt trong phương thức:
+// Place the following statements inside a method:
 BigInteger huge = new BigInteger("123456789012345678901234567890");
 BigInteger divisor = BigInteger.valueOf(9L);
 
 BigInteger[] result = huge.divideAndRemainder(divisor);
-System.out.println(result[0]); // Thương
-System.out.println(result[1]); // Số dư
+System.out.println(result[0]); // Quotient
+System.out.println(result[1]); // Remainder
 ~~~
 
-Chú ý cách tạo số lớn: ưu tiên `new BigInteger("...")` từ **chuỗi ký tự** khi giá trị vượt miền `long`. Không viết một literal nguyên quá lớn rồi đưa vào `BigInteger.valueOf(...)` vì literal đã không hợp lệ ở thời điểm biên dịch.
+Pay attention to how large numbers are created: prefer `new BigInteger("...")` from a **character string** when the value exceeds the `long` range. Never write an oversized integer literal and pass it to `BigInteger.valueOf(...)`, as the literal is already invalid at compile time.
 
 ~~~java
 BigInteger a = new BigInteger("1000000000000000000000000");
 BigInteger b = BigInteger.valueOf(8);
 ~~~
 
-Hai giá trị trên biểu diễn chính xác số nguyên, không chịu lỗi làm tròn nhị phân như `double`.
+Both values above represent exact integers, free from binary rounding errors like `double`.
 
-## 3. Quy tắc chia nguyên: a = q × b + r
+## 3. Integer Division Rule: `a = q × b + r`
 
-Với hai số nguyên `a` và `b`, trong đó `b != 0`, Java định nghĩa thương và số dư thỏa:
+For two integers `a` and `b`, where `b != 0`, Java defines quotient and remainder satisfying:
 
 \[
 a = q \times b + r
 \]
 
-Trong BigInteger:
+In `BigInteger`:
 
 \[
 q = a.\operatorname{divide}(b),\qquad
 r = a.\operatorname{remainder}(b)
 \]
 
-Ngoài đẳng thức quan trọng trên, phép chia BigInteger có các tính chất:
+Beyond that key identity, `BigInteger` division has these properties:
 
-1. **Thương `q` được cắt về 0** (*truncation toward zero*), không phải luôn làm tròn xuống theo `floor`.
-2. **`|r| < |b|`**: độ lớn số dư luôn nhỏ hơn độ lớn của số chia khi `b` khác 0.
-3. Nếu `r != 0`, dấu của `r` giống dấu của `a` (số bị chia).
-4. Nếu `a` chia hết cho `b`, thì `r = 0`.
+1. **Quotient `q` is truncated toward 0** (*truncation toward zero*), not always rounded down by `floor`.
+2. **`|r| < |b|`**: the magnitude of the remainder is always strictly less than the magnitude of the divisor when `b` is nonzero.
+3. If `r != 0`, the sign of `r` is the same as the sign of `a` (the dividend).
+4. If `a` is divisible by `b`, then `r = 0`.
 
-Ví dụ `17 / 5`:
+Example `17 / 5`:
 
 \[
 17 = 3\times5 + 2.
 \]
 
-Trong Java:
+In Java:
 
 ~~~java
 BigInteger a = BigInteger.valueOf(17);
@@ -82,24 +82,24 @@ System.out.println(qr[0]); // 3
 System.out.println(qr[1]); // 2
 ~~~
 
-Một phép chia nguyên có thể có **thương bằng 0** nhưng số dư vẫn khác 0: `3 / 5` có thương 0, dư 3. Vì vậy tuyệt đối không dùng `q.equals(BigInteger.ZERO)` để kết luận có chia hết.
+An integer division can have a **quotient of 0** while the remainder is still nonzero: `3 / 5` has quotient 0, remainder 3. Therefore, never use `q.equals(BigInteger.ZERO)` to conclude divisibility.
 
-## 4. Cách sử dụng BigInteger.divideAndRemainder
+## 4. How to Use `BigInteger.divideAndRemainder`
 
-Chữ ký phương thức:
+Method signature:
 
 ~~~java
 public BigInteger[] divideAndRemainder(BigInteger val)
 ~~~
 
-Phương thức là instance method của `BigInteger`. Nó trả một **mảng gồm hai phần tử** theo thứ tự cố định:
+This is an instance method on `BigInteger`. It returns a **two-element array** in fixed order:
 
-| Chỉ số | Ý nghĩa | Tương ứng |
+| Index | Meaning | Equivalent |
 | --- | --- | --- |
-| `result[0]` | Thương nguyên | `a.divide(b)` |
-| `result[1]` | Số dư nguyên | `a.remainder(b)` |
+| `result[0]` | Integer quotient | `a.divide(b)` |
+| `result[1]` | Integer remainder | `a.remainder(b)` |
 
-Ví dụ:
+Example:
 
 ~~~java
 BigInteger amount = new BigInteger("12345");
@@ -114,7 +114,7 @@ System.out.println(fullGroups); // 123
 System.out.println(leftover);   // 45
 ~~~
 
-Bạn cũng có thể xác minh phép chia:
+You can also verify the division:
 
 ~~~java
 BigInteger reconstructed = fullGroups.multiply(groupSize)
@@ -123,17 +123,17 @@ BigInteger reconstructed = fullGroups.multiply(groupSize)
 System.out.println(reconstructed.equals(amount)); // true
 ~~~
 
-**Vì sao dùng `divideAndRemainder`?** Khi cần **cả thương lẫn số dư**, phương thức thể hiện mục đích trực tiếp và API cho phép tính hai kết quả cùng nhau. Nếu chỉ cần thương hoặc chỉ cần số dư, các phương thức `divide` và `remainder` thường diễn đạt mục đích rõ hơn. Không nên khẳng định rằng `divideAndRemainder` luôn nhanh hơn trong mọi JVM/dữ liệu mà không có đo kiểm phù hợp.
+**Why use `divideAndRemainder`?** When needing **both quotient and remainder**, the method expresses intent directly and the API allows computing both results together. If only the quotient or only the remainder is needed, `divide` and `remainder` usually express intent more clearly. Do not claim `divideAndRemainder` is always faster across all JVMs/inputs without appropriate benchmarking.
 
-## 5. Kiểm tra chia hết bằng số dư bằng 0
+## 5. Checking Divisibility by Zero Remainder
 
-Số nguyên `a` chia hết cho số nguyên khác 0 `b` khi và chỉ khi:
+An integer `a` is divisible by a nonzero integer `b` if and only if:
 
 \[
 a\bmod b=0
 \]
 
-Trong ngữ cảnh Java, nên phát biểu thực thi bằng `a.remainder(b).signum() == 0` hoặc `BigInteger.ZERO.equals(a.remainder(b))`. Cách kiểm tra này không mất độ chính xác, kể cả với số có hàng trăm hoặc hàng nghìn chữ số.
+In Java code, this should be executed as `a.remainder(b).signum() == 0` or `BigInteger.ZERO.equals(a.remainder(b))`. This check loses no precision, even for numbers with hundreds or thousands of digits.
 
 ~~~java
 BigInteger value = new BigInteger("1000000000000000000000000");
@@ -143,7 +143,7 @@ boolean divisible = value.remainder(divisor).signum() == 0;
 System.out.println(divisible); // true
 ~~~
 
-Với kết quả `divideAndRemainder`:
+With `divideAndRemainder` results:
 
 ~~~java
 BigInteger[] qr = value.divideAndRemainder(divisor);
@@ -152,11 +152,11 @@ boolean divisible = qr[1].equals(BigInteger.ZERO);
 System.out.println(divisible); // true
 ~~~
 
-**Không dùng toán tử `%` với `BigInteger`:** đây là đối tượng, không phải primitive. `a % b` là cú pháp không hợp lệ nếu `a` và `b` là `BigInteger`. Thay vào đó, gọi `a.remainder(b)`.
+**Do not use the `%` operator with `BigInteger`:** these are objects, not primitives. `a % b` is invalid syntax when `a` and `b` are `BigInteger`. Instead, call `a.remainder(b)`.
 
-**Không dùng `==` để kiểm tra số dư bằng BigInteger.ZERO:** `==` so sánh reference, không phải giá trị số. `equals` hoặc `signum() == 0` mới đúng mục đích.
+**Do not use `==` to check if the remainder equals `BigInteger.ZERO`:** `==` compares references, not numeric values. `equals` or `signum() == 0` serves the right purpose.
 
-### Hàm kiểm tra chia hết an toàn
+### Safe Divisibility Check Function
 
 ~~~java
 static boolean isDivisible(BigInteger dividend, BigInteger divisor) {
@@ -170,16 +170,16 @@ static boolean isDivisible(BigInteger dividend, BigInteger divisor) {
 }
 ~~~
 
-Đây là **phương thức ở cấp lớp**; để chạy độc lập, hãy đặt nó trong một class Java và gọi từ `main`. Hàm trên cố ý báo lỗi khi đầu vào `null` hoặc chia cho 0, thay vì đánh đồng trường hợp dữ liệu sai với kết quả “không chia hết”.
+This is a **class-level method**; to run standalone, place it inside a Java class and call it from `main`. The function intentionally throws an error on `null` input or division by 0, rather than conflating invalid data with "not divisible."
 
-## 6. Chia hết không phụ thuộc dấu của số chia
+## 6. Divisibility Does Not Depend on the Divisor's Sign
 
-Đối với số nguyên, dấu của số chia không làm thay đổi tính chia hết:
+For integers, the sign of the divisor does not change divisibility:
 
-- 20 chia hết cho 5.
-- 20 chia hết cho −5.
-- −20 chia hết cho 5.
-- −20 chia hết cho −5.
+- 20 is divisible by 5.
+- 20 is divisible by −5.
+- −20 is divisible by 5.
+- −20 is divisible by −5.
 
 ~~~java
 BigInteger twenty = BigInteger.valueOf(20);
@@ -192,15 +192,15 @@ System.out.println(qr[1]);                       // 0
 System.out.println(qr[1].signum() == 0);          // true
 ~~~
 
-Với số chia `-5`, thương là `-4`, số dư bằng 0 và đẳng thức `20 = (-4) × (-5) + 0` vẫn đúng.
+With divisor `-5`, the quotient is `-4`, the remainder is 0, and the identity `20 = (-4) × (-5) + 0` still holds.
 
-Để so sánh số dư của các phép chia có dấu khác nhau, cần hiểu rõ hành vi `remainder`. Một số dư không bằng 0 có thể là số âm; **điều kiện chia hết vẫn chỉ là số dư bằng 0**, không quan tâm dấu của thương hay số chia.
+To compare remainders of divisions with different signs, you need a clear grasp of `remainder` behavior. A nonzero remainder can be negative; **the divisibility condition is still just remainder equal to 0**, regardless of the signs of the quotient or divisor.
 
-## 7. Chia số âm: thương cắt về 0, dư theo số bị chia
+## 7. Dividing Negative Numbers: Quotient Toward 0, Remainder Follows Dividend
 
-Bảng dưới dùng `divideAndRemainder` với các số nhỏ để thấy rõ quy tắc dấu:
+The table below uses `divideAndRemainder` with small numbers to clearly show the sign rules:
 
-| `a` | `b` | Thương `q` | Số dư `r` | Kiểm chứng |
+| `a` | `b` | Quotient `q` | Remainder `r` | Verification |
 | ---: | ---: | ---: | ---: | --- |
 | 17 | 5 | 3 | 2 | `17 = 3 × 5 + 2` |
 | −17 | 5 | −3 | −2 | `−17 = −3 × 5 − 2` |
@@ -209,7 +209,7 @@ Bảng dưới dùng `divideAndRemainder` với các số nhỏ để thấy rõ
 | 15 | −5 | −3 | 0 | `15 = −3 × (−5)` |
 | 3 | 5 | 0 | 3 | `3 = 0 × 5 + 3` |
 
-Ví dụ chạy:
+Runnable snippet:
 
 ~~~java
 BigInteger a = BigInteger.valueOf(-17);
@@ -220,18 +220,18 @@ System.out.println(qr[0]); // -3
 System.out.println(qr[1]); // -2
 ~~~
 
-Lưu ý `floor(-17 / 5)` theo số thực là −4, nhưng phép chia nguyên BigInteger trả −3, vì nó **cắt về 0**. Không tự thay thế phép chia BigInteger bằng công thức floor nếu bài toán cần đúng hợp đồng Java.
+Note that `floor(-17 / 5)` over real numbers is −4, whereas `BigInteger` integer division returns −3 because it **truncates toward 0**. Do not replace `BigInteger` division with a floor formula if the problem requires Java's exact contract.
 
-**Remainder âm không phải lỗi:** đó là kết quả hợp lệ của phép `remainder` với số bị chia âm. Nếu bài toán cần một phần dư không âm (ví dụ chỉ số vòng tròn hoặc phép toán đồng dư), hãy cân nhắc `mod` với modulus dương; xem phần tiếp theo.
+**A negative remainder is not an error:** it is the valid result of `remainder` with a negative dividend. If the problem requires a non-negative remainder (for example, circular indices or modular arithmetic), consider `mod` with a positive modulus; see the next section.
 
-## 8. Phân biệt remainder và mod
+## 8. Distinguishing `remainder` and `mod`
 
-`BigInteger` cung cấp hai phương thức nhìn giống nhau:
+`BigInteger` provides two similar-looking methods:
 
-- `a.remainder(b)`: phép lấy số dư đi kèm **thương cắt về 0**. Số chia `b` có thể âm, miễn khác 0. Số dư khác 0 mang dấu của **a**.
-- `a.mod(m)`: cho **số dư không âm** với **modulus phải dương** (`m > 0`). Nếu `m <= 0`, Java ném `ArithmeticException`.
+- `a.remainder(b)`: remainder operation paired with **quotient truncated toward 0**. The divisor `b` can be negative as long as it is nonzero. A nonzero remainder carries the sign of **`a`**.
+- `a.mod(m)`: returns a **non-negative remainder** with a **strictly positive modulus** (`m > 0`). If `m <= 0`, Java throws `ArithmeticException`.
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 | --- | ---: |
 | `BigInteger.valueOf(17).remainder(BigInteger.valueOf(5))` | 2 |
 | `BigInteger.valueOf(-17).remainder(BigInteger.valueOf(5))` | −2 |
@@ -248,20 +248,20 @@ System.out.println(n.remainder(five)); // -2
 System.out.println(n.mod(five));       // 3
 ~~~
 
-Hai kết quả `−2` và `3` tương đương nhau **theo modulo 5**, nhưng không bằng nhau dưới dạng số nguyên. Vì `-17 = -4 × 5 + 3`, kết quả `mod(5)` chính là đại diện không âm 3.
+The two results `−2` and `3` are equivalent **modulo 5**, yet not equal as integers. Since `-17 = -4 × 5 + 3`, the result of `mod(5)` is the non-negative representative 3.
 
-### Khi nào dùng phương thức nào?
+### When to Use Which Method?
 
-- **Kiểm tra chia hết:** `remainder(divisor).signum() == 0` là cách đơn giản, kể cả khi divisor âm. `mod` cũng kiểm tra được với divisor dương, nhưng không nhận số chia âm.
-- **Muốn cả thương và dư:** `divideAndRemainder` trả cặp tuân quy tắc cắt về 0.
-- **Chỉ số xoay vòng, lớp đồng dư, thuật toán số học modulo:** dùng `mod(m)` khi xác định `m > 0` để nhận kết quả trong `[0, m)`.
-- **Cần thương kiểu floor với divisor dương:** `divideAndRemainder` không trực tiếp có cùng quy tắc khi dividend âm; phải tính theo yêu cầu toán học riêng.
+- **Checking divisibility:** `remainder(divisor).signum() == 0` is the simplest way, even when the divisor is negative. `mod` also checks divisibility for positive divisors, but rejects negative divisors.
+- **Wanting both quotient and remainder:** `divideAndRemainder` returns the pair following truncation-toward-0 rules.
+- **Circular indices, congruence classes, modular arithmetic algorithms:** use `mod(m)` when `m > 0` is assured to obtain results in `[0, m)`.
+- **Needing floor-style quotient with positive divisor:** `divideAndRemainder` does not directly share the same rule when the dividend is negative; you must compute according to separate mathematical requirements.
 
-Đừng dùng `remainder` và `mod` thay thế lẫn nhau chỉ vì các ví dụ số dương thường cho cùng kết quả.
+Do not use `remainder` and `mod` interchangeably just because positive examples give the same result.
 
-## 9. Chia cho 0: một lỗi bắt buộc xử lý
+## 9. Division by 0: A Mandatory Error to Handle
 
-Phép chia cho 0 không xác định. Với `BigInteger`, các lời gọi sau ném `ArithmeticException`:
+Division by 0 is undefined. With `BigInteger`, the following calls throw `ArithmeticException`:
 
 ~~~java
 BigInteger ten = BigInteger.TEN;
@@ -270,10 +270,10 @@ BigInteger zero = BigInteger.ZERO;
 // ten.divide(zero);             // ArithmeticException
 // ten.remainder(zero);          // ArithmeticException
 // ten.divideAndRemainder(zero); // ArithmeticException
-// ten.mod(zero);                // ArithmeticException (modulus phải dương)
+// ten.mod(zero);                // ArithmeticException (modulus must be positive)
 ~~~
 
-Nếu chuỗi dữ liệu đầu vào có thể chứa `"0"` cho số chia, nên kiểm tra sớm để báo lỗi có ngữ cảnh, thay vì để exception của phép toán xảy ra sâu trong xử lý:
+If input data streams may contain `"0"` for the divisor, validate early to produce contextual error messages rather than letting the arithmetic exception surface deep inside processing:
 
 ~~~java
 static BigInteger[] divideNonZero(BigInteger a, BigInteger b) {
@@ -287,13 +287,13 @@ static BigInteger[] divideNonZero(BigInteger a, BigInteger b) {
 }
 ~~~
 
-Đây là phương thức minh họa ở cấp lớp. **Không** trả một cặp thương/dư `[0, 0]` khi divisor bằng 0; như vậy là tạo kết quả giả và che lỗi nghiệp vụ.
+This is an illustrative class-level method. **Do not** return a quotient/remainder pair `[0, 0]` when the divisor is 0; doing so fabricates results and hides business errors.
 
-Riêng số bị chia bằng 0 là hợp lệ nếu số chia khác 0: `0 / 7` có thương 0 và dư 0. Vì vậy `0` chia hết cho **mọi số nguyên khác 0**, còn `0 / 0` không được phép.
+By contrast, a dividend of 0 is valid if the divisor is nonzero: `0 / 7` has quotient 0 and remainder 0. Thus `0` is divisible by **every nonzero integer**, while `0 / 0` is disallowed.
 
-## 10. Chương trình Java 17+ hoàn chỉnh
+## 10. Complete Java 17+ Program
 
-Lưu vào file `BigIntegerDivisionDemo.java`:
+Save to file `BigIntegerDivisionDemo.java`:
 
 ~~~java
 import java.math.BigInteger;
@@ -349,14 +349,14 @@ public class BigIntegerDivisionDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 BigIntegerDivisionDemo.java
 java BigIntegerDivisionDemo
 ~~~
 
-Kết quả stdout:
+Stdout output:
 
 ~~~text
 17/5 => q=3, r=2, divisible=false
@@ -374,19 +374,19 @@ reconstructed=true
 divide by zero: ArithmeticException
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Bốn trường hợp của `±17 / ±5` có thương được cắt về 0 và số dư theo dấu của số bị chia.
-2. `15 / -5` có số dư 0 nên chia hết, dù số chia âm.
-3. `0 / 7` cũng chia hết, nhưng phép chia cho 0 là không hợp lệ.
-4. `10²⁴ / 8` có thương nguyên chính xác `125000000000000000000000`. Số vượt miền `long` nhưng `BigInteger` vẫn xử lý được.
-5. `-17.remainder(5)` theo nghĩa toán tử phương thức cho `-2`; `-17.mod(5)` cho `3` không âm.
-6. `q.multiply(b).add(r).equals(a)` là phép đối chiếu đẳng thức thương–dư.
-7. Chia cho `BigInteger.ZERO` ném `ArithmeticException`, được bắt và xử lý trong ví dụ.
+1. The four cases of `±17 / ±5` have quotients truncated toward 0 and remainders matching the sign of the dividend.
+2. `15 / -5` has remainder 0 so it is divisible, even though the divisor is negative.
+3. `0 / 7` is also divisible, whereas division by 0 is invalid.
+4. `10²⁴ / 8` has exact integer quotient `125000000000000000000000`. The number exceeds `long` range yet `BigInteger` still handles it.
+5. `-17.remainder(5)` under method semantics gives `-2`; `-17.mod(5)` gives non-negative `3`.
+6. `q.multiply(b).add(r).equals(a)` verifies the quotient–remainder identity.
+7. Dividing by `BigInteger.ZERO` throws `ArithmeticException`, which is caught and handled in the example.
 
-## 11. Kiểm tra dữ liệu chuỗi trước khi thực hiện phép chia
+## 11. Validating String Data Before Performing Division
 
-Trong API và file dữ liệu, số thường được nhận dưới dạng chuỗi. `new BigInteger(text)` parse số nguyên thập phân hợp lệ; nếu không hợp lệ sẽ ném `NumberFormatException`. Một hàm cơ bản:
+In APIs and data files, numbers are often received as strings. `new BigInteger(text)` parses valid decimal integers; if invalid, it throws `NumberFormatException`. A basic function:
 
 ~~~java
 static BigInteger parseRequiredInteger(String text, String fieldName) {
@@ -402,21 +402,21 @@ static BigInteger parseRequiredInteger(String text, String fieldName) {
 }
 ~~~
 
-Đây là method minh họa đặt trong một lớp. Cách viết này nhận số nguyên theo cú pháp `BigInteger(String)`, không nhận số thực hay ký hiệu dấu phân cách grouping như `"1,000"`.
+This is an illustrative method placed inside a class. This implementation accepts integers matching `BigInteger(String)` syntax, not floating-point numbers or grouping separators such as `"1,000"`.
 
-Tùy hợp đồng, ứng dụng có thể:
+Depending on the contract, the application may:
 
-- Cho phép dấu `-` hoặc dấu `+` của số nguyên.
-- Quy định whitespace được bỏ qua bằng bước chuẩn hóa rõ ràng.
-- Dùng `new BigInteger(text, radix)` cho biểu diễn hệ 2, hệ 16 hoặc radix hợp lệ.
-- Giới hạn số ký tự đầu vào để bảo vệ tài nguyên, vì `BigInteger` rất lớn có chi phí CPU/bộ nhớ.
-- Kiểm tra số chia khác 0 và các giới hạn nghiệp vụ trước khi tính.
+- Allow `-` or `+` signs on integers.
+- Specify whitespace trimming via an explicit normalization step.
+- Use `new BigInteger(text, radix)` for binary, hex, or other valid radix representations.
+- Limit input character count to protect resources, as very large `BigInteger`s carry CPU/memory cost.
+- Check for a nonzero divisor and business bounds before computing.
 
-Không nên dùng `Double.parseDouble` để đọc một số nguyên lớn rồi cast/round; `double` có thể đã làm mất chữ số nguyên. Chuỗi decimal ban đầu nên được parse trực tiếp thành `BigInteger`.
+Do not use `Double.parseDouble` to read a large integer and then cast/round; `double` may already have lost integer digits. The original decimal string should be parsed directly into `BigInteger`.
 
-## 12. BigInteger.ZERO, equals và signum
+## 12. `BigInteger.ZERO`, `equals`, and `signum`
 
-Ba cách kiểm tra số dư bằng 0 phổ biến:
+Three common ways to check for a zero remainder:
 
 ~~~java
 BigInteger remainder = BigInteger.valueOf(25)
@@ -429,62 +429,62 @@ boolean c = remainder.signum() == 0;
 System.out.println(a && b && c); // true
 ~~~
 
-Tất cả đều đúng khi `remainder` là một `BigInteger` khác null. Trong phép `divideAndRemainder` thành công, cả hai phần tử mảng không phải null. Với một nguồn có thể null từ bên ngoài, `BigInteger.ZERO.equals(value)` là cách so sánh an toàn trước null; `value.signum()` cần null guard.
+All are correct when `remainder` is a non-null `BigInteger`. In a successful `divideAndRemainder` call, neither array element is null. For an external source that might be null, `BigInteger.ZERO.equals(value)` is a null-safe check; `value.signum()` needs a null guard.
 
-**Sai lầm phổ biến:**
+**Common mistake:**
 
 ~~~java
-// Sai mục đích: == so sánh identity của đối tượng BigInteger
+// Wrong intent: == compares BigInteger object identity
 // if (remainder == BigInteger.ZERO) { ... }
 ~~~
 
-Một kết quả tình cờ cùng reference với `BigInteger.ZERO` không phải hợp đồng để xác định hai số có cùng giá trị. Hãy dùng `equals` hoặc `signum`.
+A result coincidentally sharing a reference with `BigInteger.ZERO` is not a contract for checking whether two numbers have the same value. Use `equals` or `signum`.
 
-### Vì sao signum hữu ích?
+### Why Is `signum` Useful?
 
-`signum()` trả:
+`signum()` returns:
 
-- `-1` khi số âm;
-- `0` khi số bằng 0;
-- `1` khi số dương.
+- `-1` when the number is negative;
+- `0` when the number equals 0;
+- `1` when the number is positive.
 
-Nó kiểm tra dấu trên các số nguyên rất lớn mà không cần đổi sang `int` hay `long`. Một số dư bằng 0 sẽ có `signum()==0` bất kể số bị chia/số chia ban đầu có dấu gì.
+It checks the sign on very large integers without converting to `int` or `long`. A zero remainder has `signum()==0` regardless of the signs of the original dividend/divisor.
 
-## 13. So sánh cách dùng divideAndRemainder, divide và remainder
+## 13. Comparing `divideAndRemainder`, `divide`, and `remainder` Usage
 
-Cả ba API đều thực hiện phép chia nguyên, nhưng mục đích biểu đạt khác nhau.
+All three APIs perform integer division, but express different intents.
 
 ~~~java
 BigInteger a = new BigInteger("12345");
 BigInteger b = BigInteger.valueOf(100);
 
-// Cần cả hai:
+// Need both:
 BigInteger[] qr = a.divideAndRemainder(b);
 BigInteger quotient = qr[0];
 BigInteger remainder = qr[1];
 
-// Chỉ cần thương:
+// Need quotient only:
 BigInteger qOnly = a.divide(b);
 
-// Chỉ cần dư:
+// Need remainder only:
 BigInteger rOnly = a.remainder(b);
 ~~~
 
-| Nhu cầu | API nên cân nhắc |
+| Need | API to consider |
 | --- | --- |
-| Chia thành các nhóm đầy và số còn lại | `divideAndRemainder` |
-| Lấy thương nguyên | `divide` |
-| Kiểm tra chia hết | `remainder` rồi kiểm tra zero |
-| Lấy số dư không âm với modulus dương | `mod` |
-| Kiểm tra đồng dư trong mô hình modulo m > 0 | `mod` hoặc `subtract` + `mod` |
+| Splitting into full groups and leftover | `divideAndRemainder` |
+| Obtaining integer quotient | `divide` |
+| Checking divisibility | `remainder` then check zero |
+| Obtaining non-negative remainder with positive modulus | `mod` |
+| Checking congruence in a modulo m > 0 model | `mod` or `subtract` + `mod` |
 
-**Khi cần cả thương lẫn dư, hãy gọi `divideAndRemainder` một lần** để mã ngắn và thể hiện ý đồ. Khi chỉ muốn kiểm tra chia hết, chỉ lấy remainder là đủ; không cần tính hoặc giữ thương.
+**When needing both quotient and remainder, call `divideAndRemainder` once** to keep code concise and show intent. When only checking divisibility, taking `remainder` alone suffices; no need to compute or hold the quotient.
 
-Không tự convert `BigInteger` sang `long` chỉ để dùng `%` primitive. Nếu giá trị vượt miền `long`, `longValue()` có thể cắt mất bit cao và cho dữ liệu sai. Khi bắt buộc chuyển kiểu, cân nhắc `longValueExact()` để phát hiện giá trị ngoài miền bằng `ArithmeticException`.
+Do not convert `BigInteger` to `long` just to use primitive `%`. If the value exceeds the `long` range, `longValue()` can truncate high bits and return wrong results. When conversion is mandatory, consider `longValueExact()` to detect out-of-range values via `ArithmeticException`.
 
-## 14. Chia thành các lô hàng hoặc nhóm
+## 14. Splitting into Batches or Groups
 
-Giả sử có số lượng vật phẩm `items` và mỗi thùng chứa tối đa `capacity` món. Cần biết số thùng **đầy** và số vật phẩm **còn lại**:
+Suppose we have `items` objects and each box holds at most `capacity` items. We need to know the number of **full** boxes and **leftover** items:
 
 ~~~java
 BigInteger items = new BigInteger("12345");
@@ -498,7 +498,7 @@ System.out.println(fullBoxes);    // 123
 System.out.println(leftoverItems); // 45
 ~~~
 
-Nếu cần số thùng **tổng cộng**, bao gồm thùng cuối chưa đầy, và các giá trị đều **không âm** với `capacity > 0`:
+If the **total** number of boxes is needed, including a partially filled last box, and values are **non-negative** with `capacity > 0`:
 
 ~~~java
 BigInteger boxesNeeded = qr[1].signum() == 0
@@ -508,13 +508,13 @@ BigInteger boxesNeeded = qr[1].signum() == 0
 System.out.println(boxesNeeded); // 124
 ~~~
 
-Mẫu này tương đương phép chia lấy **ceil** với `items >= 0` và `capacity > 0`. Không áp dụng nguyên xi cho số âm, nơi thương BigInteger cắt về 0 và khái niệm “thùng hàng” không còn phù hợp. Việc kiểm tra miền nghiệp vụ nên diễn ra trước khi tính.
+This pattern corresponds to **ceil** division for `items >= 0` and `capacity > 0`. Do not apply it verbatim to negative numbers, where `BigInteger` quotients truncate toward 0 and the "box" concept no longer fits. Business range checks should happen before computing.
 
-## 15. Áp dụng cho chu kỳ, phân trang, hệ thống batch
+## 15. Applying to Cycles, Pagination, and Batch Systems
 
-Một tình huống thường gặp khác là phân chia một tổng công việc thành từng batch có kích thước cố định.
+Another common scenario is splitting a total workload into fixed-size batches.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigInteger records = new BigInteger("1001");
@@ -525,20 +525,20 @@ System.out.println("full batches=" + qr[0]); // full batches=10
 System.out.println("remainder=" + qr[1]);    // remainder=1
 ~~~
 
-Nếu câu hỏi là “có thể chia đều thành các batch cùng kích thước không?”, chỉ cần:
+If the question is "can it be divided evenly into equal-sized batches?", all you need is:
 
 ~~~java
 boolean evenBatches = qr[1].signum() == 0;
 System.out.println(evenBatches); // false
 ~~~
 
-Khi làm phân trang hoặc đánh số vị trí từ 0, hãy chú ý yêu cầu rõ ràng của chỉ số (có âm hay không, kích thước trang có dương hay không). `remainder` âm với chỉ số âm có thể khiến việc truy cập mảng thất bại. Với yêu cầu **chỉ số vòng tròn không âm**, `mod` với modulus dương là cách phù hợp hơn.
+When doing pagination or 0-based indexing, pay attention to explicit index requirements (whether negative is possible, whether page size is positive). A negative `remainder` on negative indices can cause array access to fail. For **non-negative circular indices**, `mod` with a positive modulus is the better fit.
 
-## 16. Kiểm tra chia hết cho một số cụ thể
+## 16. Checking Divisibility by a Specific Number
 
-### Chẵn hay lẻ
+### Even or Odd
 
-Kiểm tra tính chẵn bằng số dư 2:
+Check evenness via remainder by 2:
 
 ~~~java
 BigInteger huge = new BigInteger("1000000000000000000000000");
@@ -547,11 +547,11 @@ boolean even = huge.remainder(BigInteger.TWO).signum() == 0;
 System.out.println(even); // true
 ~~~
 
-`BigInteger.TWO` có sẵn trong Java 17. Với phép toán bit, `!huge.testBit(0)` cũng kiểm tra bit thấp nhất bằng 0, nhưng sử dụng `remainder(BigInteger.TWO)` bộc lộ ý nghĩa chia hết dễ đọc cho người mới học.
+`BigInteger.TWO` is available in Java 17. With bitwise operations, `!huge.testBit(0)` also checks whether the lowest bit is 0, but using `remainder(BigInteger.TWO)` exposes divisibility intent clearly for beginners.
 
-### Chia hết cho một tích hoặc bội
+### Divisibility by a Product or Multiple
 
-Giả sử muốn kiểm tra `n` chia hết cho `12`:
+Suppose you want to check if `n` is divisible by `12`:
 
 ~~~java
 BigInteger n = new BigInteger("123456");
@@ -560,62 +560,62 @@ BigInteger twelve = BigInteger.valueOf(12);
 System.out.println(n.remainder(twelve).signum() == 0); // true
 ~~~
 
-Không nên tự thay một phép chia cho 12 bằng nhiều điều kiện số dư nếu không có lý do rõ ràng: một tiêu chí trực tiếp bằng `remainder(12)` là đầy đủ và chính xác. Các quy tắc toán học như “chia hết cho 3 và 4 thì chia hết cho 12” dựa trên quan hệ bội nguyên tố cùng nhau; nên chứng minh trước khi tối ưu theo chúng.
+Do not replace a single division by 12 with multiple remainder conditions without a clear reason: a direct check using `remainder(12)` is complete and exact. Mathematical rules like "divisible by 3 and 4 means divisible by 12" rely on coprime multiple properties; prove them before optimizing with them.
 
-### Số bị chia bằng 0
+### Dividend Equal to 0
 
 ~~~java
 System.out.println(BigInteger.ZERO.remainder(BigInteger.TEN)); // 0
 ~~~
 
-Số 0 chia hết cho mọi số khác 0. Nhưng **không thể chia cho 0**. Quy tắc này cần phân biệt trong validation, nhất là khi người dùng nhập một “ước số” vào form.
+Zero is divisible by every nonzero number. However, **you cannot divide by 0**. This rule must be separated in validation, especially when users enter a "divisor" into a form.
 
-## 17. Những giới hạn và lỗi cần chú ý
+## 17. Limits and Pitfalls to Watch For
 
-| Trường hợp | Điều cần biết |
+| Case | What to know |
 | --- | --- |
-| `a.divideAndRemainder(BigInteger.ZERO)` | Ném `ArithmeticException` |
-| `a.remainder(BigInteger.ZERO)` | Ném `ArithmeticException` |
-| `a.mod(BigInteger.ZERO)` | Ném `ArithmeticException` vì modulus không dương |
-| `a.mod(negative)` | Ném `ArithmeticException`, dù `remainder(negative)` hợp lệ |
-| `a.divideAndRemainder(null)` | Đầu vào null không phải divisor hợp lệ; cần null guard |
-| `result[0] == 0` | Thương bằng 0 không chứng minh phép chia hết |
-| `result[1].signum() == 0` | Đúng điều kiện chia hết với divisor khác 0 |
-| `result[1] == BigInteger.ZERO` | So sánh object identity, không dùng làm kiểm tra giá trị |
-| `result[1].intValue()` | Có thể mất dữ liệu với số dư lớn; không cần thiết để kiểm tra zero |
-| `BigInteger.valueOf(veryLargeLiteral)` | Literal/`long` có miền hữu hạn; parse chuỗi trực tiếp |
-| `BigDecimal.divide` | Là phép chia decimal với quy tắc scale/rounding khác; không thay cho phép chia nguyên BigInteger |
-| `a.mod(m)` và `a.remainder(m)` | Khác kết quả khi `a` âm và `m` dương |
-| `a.divide(b)` so với `Math.floorDiv` | BigInteger cắt thương về 0; floor division primitive có quy tắc khác với số âm |
+| `a.divideAndRemainder(BigInteger.ZERO)` | Throws `ArithmeticException` |
+| `a.remainder(BigInteger.ZERO)` | Throws `ArithmeticException` |
+| `a.mod(BigInteger.ZERO)` | Throws `ArithmeticException` because modulus is non-positive |
+| `a.mod(negative)` | Throws `ArithmeticException`, even though `remainder(negative)` is valid |
+| `a.divideAndRemainder(null)` | Null input is not a valid divisor; needs null guard |
+| `result[0] == 0` | A zero quotient does not prove divisibility |
+| `result[1].signum() == 0` | Correct divisibility condition for a nonzero divisor |
+| `result[1] == BigInteger.ZERO` | Compares object identity, do not use as value check |
+| `result[1].intValue()` | Can lose data for large remainders; unnecessary for checking zero |
+| `BigInteger.valueOf(veryLargeLiteral)` | Literals/`long` have finite range; parse string directly |
+| `BigDecimal.divide` | Decimal division with different scale/rounding rules; does not replace `BigInteger` integer division |
+| `a.mod(m)` and `a.remainder(m)` | Differ when `a` is negative and `m` is positive |
+| `a.divide(b)` vs `Math.floorDiv` | `BigInteger` truncates quotient toward 0; primitive floor division has different rules for negatives |
 
-### BigInteger là immutable
+### `BigInteger` Is Immutable
 
-Các lời gọi như `a.divide(b)`, `a.remainder(b)` hay `a.divideAndRemainder(b)` **không sửa `a` hoặc `b`**. Mảng trả về là một container bạn có thể gán lại phần tử, nhưng các đối tượng `BigInteger` trong mảng vẫn bất biến.
+Calls like `a.divide(b)`, `a.remainder(b)`, or `a.divideAndRemainder(b)` **do not modify `a` or `b`**. The returned array is a container whose elements you can reassign, but the `BigInteger` objects inside the array remain immutable.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigInteger a = BigInteger.valueOf(17);
 BigInteger b = BigInteger.valueOf(5);
 BigInteger[] qr = a.divideAndRemainder(b);
 
-qr[0] = BigInteger.ZERO; // Gán lại mảng, không sửa a hoặc b.
+qr[0] = BigInteger.ZERO; // Reassigns array element, does not modify a or b.
 System.out.println(a);   // 17
 ~~~
 
-Đừng suy rằng vì mảng có thể thay đổi nên bản thân số nguồn đã được thay đổi.
+Do not assume that because the array is mutable, the source numbers themselves were modified.
 
-## 18. Kiểm chứng bằng tính chất toán học
+## 18. Verifying Using Mathematical Properties
 
-Một cách kiểm thử tốt là đối chiếu **đồng thời** cả thương và số dư với định nghĩa. Với `b != 0`:
+A good testing strategy is to verify **both** the quotient and remainder simultaneously against the definition. For `b != 0`:
 
 \[
 a = q b + r,\qquad |r|<|b|
 \]
 
-và nếu `r != 0`, `sign(r) = sign(a)`.
+and if `r != 0`, `sign(r) = sign(a)`.
 
-Ví dụ phương thức kiểm thử:
+Example test method:
 
 ~~~java
 static boolean validQuotientRemainder(
@@ -638,66 +638,66 @@ static boolean validQuotientRemainder(
 }
 ~~~
 
-Đây là **phương thức minh họa cấp lớp**, có thể bổ sung vào các bài kiểm thử tự động. Các tính chất trên mạnh hơn việc chỉ kiểm tra một vài ví dụ dương và giúp phát hiện những giả định sai khi mở rộng thuật toán.
+This is an **illustrative class-level method**, which can be added to automated tests. These properties are stronger than checking just a few positive examples and help catch wrong assumptions when scaling algorithms.
 
-Có thể thử nhiều bộ đầu vào:
+You can test many input combinations:
 
-- Cả `a` và `b` dương.
-- `a` âm, `b` dương.
-- `a` dương, `b` âm.
-- Cả hai âm.
-- `a` bằng 0, `b` khác 0.
-- `|a| < |b|`, thương bằng 0.
-- `a` là bội của `b`, số dư bằng 0.
-- Số có hàng trăm chữ số.
-- `b` bằng 0: kiểm tra ngoại lệ, không tìm thương/dư.
+- Both `a` and `b` positive.
+- `a` negative, `b` positive.
+- `a` positive, `b` negative.
+- Both negative.
+- `a` equal to 0, `b` nonzero.
+- `|a| < |b|`, quotient equal to 0.
+- `a` a multiple of `b`, remainder equal to 0.
+- Numbers with hundreds of digits.
+- `b` equal to 0: check exception, do not look for quotient/remainder.
 
-## 19. Các câu hỏi tự kiểm tra
+## 19. Self-Check Questions
 
-**Câu 1.** `BigInteger.valueOf(17).divideAndRemainder(BigInteger.valueOf(5))` trả gì?
+**Question 1.** What does `BigInteger.valueOf(17).divideAndRemainder(BigInteger.valueOf(5))` return?
 
-**Đáp án:** Mảng `[3, 2]`, trong đó thương 3 và dư 2. Vì dư khác 0 nên 17 không chia hết cho 5.
+**Answer:** The array `[3, 2]`, where quotient is 3 and remainder is 2. Since the remainder is nonzero, 17 is not divisible by 5.
 
-**Câu 2.** `-17` chia cho `5` trong BigInteger có thương và dư nào?
+**Question 2.** What quotient and remainder does `-17` divided by `5` produce in `BigInteger`?
 
-**Đáp án:** Thương `-3`, dư `-2`; `−17 = (−3) × 5 + (−2)`. Không dùng `floor(-17/5)` để suy thương.
+**Answer:** Quotient `-3`, remainder `-2`; `−17 = (−3) × 5 + (−2)`. Do not use `floor(-17/5)` to infer the quotient.
 
-**Câu 3.** Kiểm tra chia hết bằng `qr[0].equals(BigInteger.ZERO)` có đúng không?
+**Question 3.** Is checking divisibility with `qr[0].equals(BigInteger.ZERO)` correct?
 
-**Đáp án:** Không. Đó là kiểm tra thương bằng 0. Chia hết khi **`qr[1].signum() == 0`**, với divisor khác 0.
+**Answer:** No. That checks if the quotient is 0. Divisibility holds when **`qr[1].signum() == 0`**, with a nonzero divisor.
 
-**Câu 4.** Tại sao `BigInteger.valueOf(-17).remainder(BigInteger.valueOf(5))` bằng `-2`, còn `mod(BigInteger.valueOf(5))` bằng `3`?
+**Question 4.** Why does `BigInteger.valueOf(-17).remainder(BigInteger.valueOf(5))` equal `-2`, while `mod(BigInteger.valueOf(5))` equals `3`?
 
-**Đáp án:** `remainder` giữ quy tắc thương cắt về 0 và dư có dấu của số bị chia; `mod` chuẩn hóa kết quả về `[0, m)` khi `m > 0`.
+**Answer:** `remainder` follows the rule of quotient truncated toward 0 and remainder carrying the dividend's sign; `mod` normalizes the result into `[0, m)` when `m > 0`.
 
-**Câu 5.** `BigInteger.ZERO` có chia hết cho `BigInteger.valueOf(7)` không?
+**Question 5.** Is `BigInteger.ZERO` divisible by `BigInteger.valueOf(7)`?
 
-**Đáp án:** Có, vì `0 = 0 × 7 + 0`. Nhưng phép chia `0 / 0` không được định nghĩa.
+**Answer:** Yes, because `0 = 0 × 7 + 0`. However, `0 / 0` division is undefined.
 
-**Câu 6.** Khi cần số thùng đầy **và** số món còn lại, nên dùng phương thức nào?
+**Question 6.** When needing both the number of full boxes **and** the number of leftover items, which method should be used?
 
-**Đáp án:** `divideAndRemainder`; phần tử `[0]` là thương/số thùng đầy, `[1]` là số còn lại. Kiểm tra số lượng không âm và sức chứa dương trước khi dùng công thức thùng hàng.
+**Answer:** `divideAndRemainder`; element `[0]` is the quotient/full boxes, `[1]` is the leftover. Validate non-negative quantity and positive capacity before applying the box formula.
 
-**Câu 7.** Nếu chỉ kiểm tra chia hết với một số rất lớn, có nên dùng `longValue()` để lấy `%` không?
+**Question 7.** If only checking divisibility for a very large number, should you use `longValue()` to take `%`?
 
-**Đáp án:** Không. Chuyển `BigInteger` ngoài miền `long` có thể mất phần bit cao. Dùng `remainder` trực tiếp để đảm bảo chính xác.
+**Answer:** No. Narrowing a `BigInteger` outside the `long` range can drop high-order bits. Use `remainder` directly to guarantee accuracy.
 
-**Câu 8.** Tại sao `BigInteger.mod` không cho modulus âm?
+**Question 8.** Why does `BigInteger.mod` disallow a negative modulus?
 
-**Đáp án:** Hợp đồng của `mod` yêu cầu modulus **dương**, để số dư không âm trong `[0, m)`. Muốn lấy dư với divisor âm theo phép chia nguyên, dùng `remainder`.
+**Answer:** The contract of `mod` requires a **positive** modulus, so that the remainder is non-negative in `[0, m)`. To get the integer-division remainder with a negative divisor, use `remainder`.
 
-## 20. Tóm tắt và tài liệu tham khảo
+## 20. Summary and References
 
-- **`divideAndRemainder(divisor)`** trả cặp `[quotient, remainder]`; cả hai chính xác trên `BigInteger`.
-- Với divisor khác 0: `a = q.multiply(b).add(r)`, `|r| < |b|`; thương **cắt về 0**, dư mang dấu số bị chia nếu khác 0.
-- **Kiểm tra chia hết:** `a.remainder(b).signum() == 0`, sau khi xác thực `b != 0`.
-- Dùng **`equals` hoặc `signum`**, không dùng `==` cho giá trị của `BigInteger`.
-- **`remainder` khác `mod`** khi số bị chia âm; `mod` yêu cầu modulus dương.
-- **Chia cho 0 ném `ArithmeticException`**; đừng biến lỗi thành kết quả giả.
-- Với số vượt miền `long`, tạo `BigInteger` từ chuỗi và tránh đổi sang primitive chỉ để tính toán.
+- **`divideAndRemainder(divisor)`** returns the pair `[quotient, remainder]`; both are exact on `BigInteger`.
+- For a nonzero divisor: `a = q.multiply(b).add(r)`, `|r| < |b|`; quotient is **truncated toward 0**, remainder takes the dividend's sign if nonzero.
+- **Divisibility check:** `a.remainder(b).signum() == 0`, after verifying `b != 0`.
+- Use **`equals` or `signum`**, never `==`, for `BigInteger` value checks.
+- **`remainder` differs from `mod`** when the dividend is negative; `mod` requires a positive modulus.
+- **Division by 0 throws `ArithmeticException`**; never turn the error into a fake result.
+- For numbers beyond the `long` range, create `BigInteger` from strings and avoid converting to primitives just for arithmetic.
 
-Tài liệu chính thức:
+Official documentation:
 
-- [BigInteger — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): `divideAndRemainder`, `divide`, `remainder`, `mod`, `ZERO`, `signum` và quy tắc ngoại lệ.
-- [Java Language Specification 17 — Integer Division](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.2): cơ sở đối chiếu quy tắc thương nguyên cắt về 0.
-- [Java Language Specification 17 — Remainder Operator](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.3): quan hệ thương/dư trong toán tử primitive để hiểu dấu số dư.
+- [BigInteger — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): `divideAndRemainder`, `divide`, `remainder`, `mod`, `ZERO`, `signum`, and exception rules.
+- [Java Language Specification 17 — Integer Division](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.2): reference for the integer quotient truncation-toward-zero rule.
+- [Java Language Specification 17 — Remainder Operator](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.3): quotient/remainder relationship in primitive operators to understand remainder sign.

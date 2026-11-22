@@ -1,20 +1,20 @@
-# VarHandle trong Java: Plain, Volatile, Acquire–Release và Atomic Access Modes
+# VarHandle in Java: Plain, Volatile, Acquire–Release, and Atomic Access Modes
 
-`VarHandle` (từ Java 9) cho phép thao tác lên **một biến cụ thể** như field của đối tượng, static field hoặc phần tử mảng, đồng thời chỉ định **quy tắc đọc/ghi bộ nhớ**. Các quy tắc này gọi là *access modes*: `get`/`set` (plain), `getVolatile`/`setVolatile`, `getAcquire`/`setRelease` và những thao tác cập nhật nguyên tử như `compareAndSet`, `getAndAdd`.
+`VarHandle` (since Java 9) enables operations on **a specific variable** such as an object field, static field, or array element, while specifying **memory read/write rules**. These rules are called *access modes*: `get`/`set` (plain), `getVolatile`/`setVolatile`, `getAcquire`/`setRelease`, and atomic update operations such as `compareAndSet` and `getAndAdd`.
 
-Điều quan trọng cần phân biệt ngay:
+It is important to distinguish immediately:
 
-- **Memory ordering/visibility**: một luồng có được phép quan sát thao tác của luồng khác theo thứ tự nào? Thao tác khác trên các field có được xuất bản an toàn không?
-- **Atomicity**: một phép cập nhật có diễn ra như một bước không thể chen vào hay không? Chẳng hạn hai luồng tăng cùng bộ đếm có thể mất lần tăng không?
-- **Access mode** chỉ định một phần hoặc cả hai thuộc tính trên, tùy phép toán. `volatile` không tự biến biểu thức `x++` thành nguyên tử; `getAndAdd` mới là một phép *read-modify-write* nguyên tử.
+- **Memory ordering/visibility**: in what order is one thread permitted to observe another thread's operations? Are writes to other fields safely published?
+- **Atomicity**: does an update occur as an indivisible step that cannot be interleaved? For instance, can two threads incrementing the same counter lose an increment?
+- **Access modes** specify one or both of these properties, depending on the operation. `volatile` does not automatically turn `x++` into an atomic operation; `getAndAdd` is an atomic *read-modify-write* operation.
 
-Bài này tập trung vào cách chọn mode và lý do lựa chọn đó đúng theo Java Memory Model (JMM), không coi `VarHandle` là công cụ thay thế vô điều kiện cho `synchronized`, `Lock` hay `AtomicInteger`.
+This lesson focuses on how to choose a mode and why that choice is sound under the Java Memory Model (JMM), rather than treating `VarHandle` as an unconditional replacement for `synchronized`, `Lock`, or `AtomicInteger`.
 
-## 1. VarHandle trỏ tới biến nào?
+## 1. Which Variable Does VarHandle Point To?
 
-Một `VarHandle` là một tham chiếu có kiểu động mạnh (*dynamically strongly typed*) tới vị trí lưu trữ. Nó không lưu giá trị của biến. Khi gọi access mode, chương trình cung cấp **tọa độ** để chỉ ra biến cần thao tác.
+A `VarHandle` is a *dynamically strongly typed* reference to a storage location. It does not store the variable's value. When invoking an access mode, the program supplies **coordinates** to identify the variable to operate on.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 import java.lang.invoke.MethodHandles;
@@ -30,136 +30,136 @@ class Example {
                 .findVarHandle(Holder.class, "count", int.class);
         Holder holder = new Holder();
 
-        countHandle.set(holder, 10);              // Tọa độ: holder
+        countHandle.set(holder, 10);              // Coordinate: holder
         int n = (int) countHandle.get(holder);      // n = 10
     }
 }
 ```
 
-- `findVarHandle` tra cứu một **instance field**, nên lời gọi cần đối tượng `holder` làm tọa độ; `findStaticVarHandle` áp dụng cho static field và không yêu cầu instance.
-- `MethodHandles.arrayElementVarHandle(int[].class)` tạo handle cho phần tử mảng, với tọa độ là `(mảng, chỉ số)`.
-- `VarHandle` không bỏ qua quyền truy cập. `MethodHandles.lookup()` và các cơ chế lookup khác phải có quyền phù hợp khi tạo handle.
-- `get`/`set`, `getAcquire`/`setRelease` và các phép atomic có chữ ký thực tế theo kiểu biến và tọa độ, dù tài liệu API biểu diễn bằng `Object...`. Sai kiểu/tọa độ có thể gây `WrongMethodTypeException` hoặc lỗi ép kiểu.
-- Handle trỏ đến field `final` không hỗ trợ các mode ghi hoặc atomic update; gọi mode không hỗ trợ ném `UnsupportedOperationException`.
+- `findVarHandle` looks up an **instance field**, so the call needs the `holder` object as a coordinate; `findStaticVarHandle` applies to static fields and takes no instance.
+- `MethodHandles.arrayElementVarHandle(int[].class)` creates a handle for array elements, with coordinates `(array, index)`.
+- `VarHandle` does not bypass access permissions. `MethodHandles.lookup()` and other lookup mechanisms must hold appropriate permissions when creating the handle.
+- `get`/`set`, `getAcquire`/`setRelease`, and atomic operations have actual signatures matching the variable type and coordinates, even though API docs display `Object...`. Wrong types/coordinates can cause `WrongMethodTypeException` or cast errors.
+- A handle pointing to a `final` field does not support write or atomic update modes; invoking an unsupported mode throws `UnsupportedOperationException`.
 
-## 2. So sánh các nhóm access mode
+## 2. Comparing Access Mode Groups
 
-| Nhóm | Đọc | Ghi/cập nhật | Bảo đảm cần nhớ | Khi phù hợp |
+| Group | Read | Write/Update | Key Guarantees | When Appropriate |
 | --- | --- | --- | --- | --- |
-| **Plain (thường)** | `get` | `set` | Không tạo ràng buộc thứ tự liên luồng bổ sung như `volatile` | Dữ liệu chỉ dùng trong một luồng hoặc đã đồng bộ bằng cơ chế khác |
-| **Opaque** (mức trung gian) | `getOpaque` | `setOpaque` | Atomic đối với giá trị biến và có tính nhất quán theo thứ tự truy cập cùng biến; **không** xuất bản các field khác bằng release/acquire | Trường hợp rất đặc thù chỉ cần quan sát biến riêng lẻ |
-| **Acquire–Release** | `getAcquire` | `setRelease` | Có thứ tự một chiều cho các truy cập trước/sau khi một giá trị được chuyển giao phù hợp | Publish/consume dữ liệu qua cờ trạng thái |
-| **Volatile** | `getVolatile` | `setVolatile` | Hiệu ứng đọc/ghi như field `volatile`; các thao tác volatile có thứ tự tổng thể tương ứng trong mô hình bộ nhớ | Cờ chia sẻ, trạng thái cần ngữ nghĩa volatile |
-| **Atomic update** | Đọc và sửa trong cùng phép toán | `compareAndSet`, `compareAndExchange`, `getAndSet`, `getAndAdd`… | Cập nhật không bị xen vào ở giữa; mỗi API có memory ordering riêng | Bộ đếm, state machine, cập nhật có cạnh tranh |
+| **Plain** | `get` | `set` | Adds no cross-thread ordering constraints like `volatile` | Data used in a single thread or already synchronized by another mechanism |
+| **Opaque** (intermediate level) | `getOpaque` | `setOpaque` | Atomic for the variable's value and coherent in access order on that same variable; does **not** publish other fields via release/acquire | Very specialized cases needing only single-variable observation |
+| **Acquire–Release** | `getAcquire` | `setRelease` | One-way ordering for accesses before/after a value is properly handed off | Publishing/consuming data via a state flag |
+| **Volatile** | `getVolatile` | `setVolatile` | Read/write effects like a `volatile` field; volatile operations have a corresponding total order in the memory model | Shared flags, state requiring volatile semantics |
+| **Atomic update** | Reads and modifies in one operation | `compareAndSet`, `compareAndExchange`, `getAndSet`, `getAndAdd`… | Update cannot be interleaved; each API has its own memory ordering | Counters, state machines, contended updates |
 
-Đừng hiểu bảng như một trục duy nhất mà ở đó “atomic mạnh hơn volatile”. **Atomicity và ordering là hai chiều khác nhau**: `compareAndSet` có hiệu ứng volatile, nhưng `compareAndExchangeAcquire` hoặc `getAndAddRelease` chủ động dùng ordering yếu hơn ở một phía.
+Do not read the table as a single axis where "atomic is stronger than volatile". **Atomicity and ordering are two orthogonal dimensions**: `compareAndSet` has volatile effects, whereas `compareAndExchangeAcquire` or `getAndAddRelease` intentionally uses weaker ordering on one side.
 
-### 2.1. Plain: `get` và `set`
+### 2.1. Plain: `get` and `set`
 
-`get(receiver)`/`set(receiver, value)` có ngữ nghĩa như đọc/ghi một field thông thường không `volatile`.
+`get(receiver)`/`set(receiver, value)` have the semantics of reading/writing an ordinary non-`volatile` field.
 
 ```java
-// Giả sử COUNT là VarHandle tới field int count của đối tượng counter.
+// Suppose COUNT is a VarHandle to the int field count on counter.
 COUNT.set(counter, 10);
 int x = (int) COUNT.get(counter);
 ```
 
-Nếu `counter` chỉ được một luồng dùng, hoặc mọi truy cập của các luồng đều nằm trong cùng một giao thức đồng bộ đúng, plain thường đủ. Nếu hai luồng trao đổi dữ liệu không đồng bộ bằng plain read/write, JMM **không bảo đảm** luồng đọc thấy cập nhật mới hoặc quan sát những field khác theo thứ tự mong muốn.
+If `counter` is only used by one thread, or all accesses across threads sit inside a proper synchronization protocol, plain is usually sufficient. If two threads exchange data without synchronization using plain reads/writes, the JMM **does not guarantee** the reading thread sees the new update or observes other fields in the expected order.
 
-Về tính atomic của thao tác đơn lẻ: tham chiếu đối tượng và primitive tối đa 32 bit có bảo đảm đọc/ghi nguyên vẹn; với `long`/`double` plain trên một số nền tảng 32 bit có ngoại lệ. Dù một `get` đơn lẻ là atomic, phép ghép `get` rồi `set` **không** trở thành atomic read-modify-write.
+Regarding atomicity of a single operation: object references and primitives up to 32 bits have intact read/write guarantees; plain `long`/`double` has exceptions on some 32-bit platforms. Even when a single `get` is atomic, pairing `get` followed by `set` **does not** become an atomic read-modify-write.
 
-**Lưu ý khó bỏ qua:** mode điều khiển ngữ nghĩa truy cập **ngay cả khi field khai báo `volatile`**. Dùng `get` qua VarHandle tới một volatile field không đồng nghĩa với `getVolatile`. Pha trộn những mode khác nhau trên cùng biến mà không có thiết kế rõ ràng dễ tạo lỗi bộ nhớ rất khó tái hiện.
+**Important caveat:** the mode governs access semantics **even when the field is declared `volatile`**. Calling `get` through a VarHandle on a volatile field is not equivalent to `getVolatile`. Mixing different modes on the same variable without a clear design easily causes hard-to-reproduce memory bugs.
 
-### 2.2. Opaque chỉ là điểm tham chiếu
+### 2.2. Opaque Is Only a Reference Point
 
-`getOpaque`/`setOpaque` có bảo đảm mạnh hơn plain cho riêng biến được truy cập nhưng không thiết lập giao thức publish/consume cho dữ liệu liên quan. Đừng thay `setRelease` bằng `setOpaque` khi cần xuất bản payload ở một field khác. Bài này chỉ nhắc opaque để đặt acquire/release và volatile vào đúng bối cảnh.
+`getOpaque`/`setOpaque` provide stronger guarantees than plain for the accessed variable alone, but do not establish a publish/consume protocol for related data. Do not replace `setRelease` with `setOpaque` when you need to publish a payload in another field. This lesson mentions opaque only to place acquire/release and volatile in proper context.
 
-## 3. Volatile: quan sát trạng thái và thứ tự liên luồng
+## 3. Volatile: Observing State and Cross-Thread Ordering
 
-`setVolatile` và `getVolatile` có hiệu ứng bộ nhớ tương ứng ghi/đọc field khai báo `volatile`:
+`setVolatile` and `getVolatile` have memory effects corresponding to writing/reading a `volatile` field:
 
 ```java
-// FLAG là VarHandle của field boolean ready.
+// FLAG is a VarHandle for the boolean field ready.
 FLAG.setVolatile(message, true);
 boolean ready = (boolean) FLAG.getVolatile(message);
 ```
 
-Tương tự cặp ghi/đọc volatile trên cùng biến, ghi volatile đứng trước một lần đọc volatile phù hợp trong *synchronization order* tạo quan hệ đồng bộ để những ghi xảy ra trước được quan sát đúng theo happens-before. Nó rất hữu ích cho cờ `shutdown`, `ready` hoặc một giá trị trạng thái được thay mới nguyên khối.
+Like a volatile write/read pair on the same variable, a volatile write preceding a matching volatile read in *synchronization order* creates a synchronization edge so prior writes are properly observed via happens-before. This is very useful for `shutdown` or `ready` flags, or a state value replaced wholesale.
 
-Nhưng:
+However:
 
-- `volatile` **không** làm cho `value++` hoặc `getVolatile` rồi `setVolatile` trở thành một phép atomic. Hai luồng có thể cùng đọc 4 rồi cùng ghi 5, làm mất một lần tăng.
-- Volatile không bảo đảm một luồng luôn “thấy ngay lập tức” giá trị khác tại một thời điểm giới hạn cụ thể, cũng không giải quyết race logic kiểu kiểm tra rồi hành động.
-- Dùng volatile cho **mọi** field không tạo thành một transaction có nhiều field nhất quán; muốn duy trì bất biến giữa nhiều biến có thể vẫn phải dùng khóa hoặc cách gói trạng thái phù hợp.
+- `volatile` **does not** make `value++` or `getVolatile` followed by `setVolatile` an atomic operation. Two threads can both read 4 and both write 5, losing an increment.
+- Volatile does not guarantee that another thread always sees the new value within a specific bounded time, nor does it solve check-then-act race logic.
+- Marking **every** field volatile does not create a consistent multi-field transaction; maintaining invariants across multiple variables may still require locks or proper state encapsulation.
 
-Ví dụ tăng sai với tranh chấp:
+Broken increment example under contention:
 
 ```java
 int current = (int) COUNT.getVolatile(counter);
-COUNT.setVolatile(counter, current + 1); // Hai thao tác riêng; có thể mất cập nhật.
+COUNT.setVolatile(counter, current + 1); // Two separate operations; updates can be lost.
 ```
 
-Phép thay thế đúng, nếu handle hỗ trợ kiểu `int`, là `COUNT.getAndAdd(counter, 1)`.
+The proper replacement, if the handle supports `int`, is `COUNT.getAndAdd(counter, 1)`.
 
-## 4. Acquire–Release: xuất bản và tiếp nhận dữ liệu
+## 4. Acquire–Release: Publishing and Consuming Data
 
-`setRelease` có hiệu ứng **release**: các phép đọc/ghi trước nó trong cùng luồng không được đẩy xuống sau nó theo các ràng buộc bộ nhớ được bảo đảm. `getAcquire` có hiệu ứng **acquire**: những phép đọc/ghi sau nó không được kéo lên trước nó. Khi một luồng acquire quan sát giá trị được xuất bản qua release **trên cùng biến đồng bộ**, các ghi payload trước release có thể được tiếp nhận an toàn sau acquire theo giao thức giao tiếp đó.
+`setRelease` has **release** semantics: prior reads/writes in the same thread are not reordered after it under the guaranteed memory constraints. `getAcquire` has **acquire** semantics: subsequent reads/writes are not reordered before it. When an acquiring thread observes the value published via release **on the same synchronization variable**, payload writes before the release can be safely consumed after the acquire according to that communication protocol.
 
-Sơ đồ một thông điệp chỉ xuất bản một lần:
+Diagram of a one-time published message:
 
 ```text
 Producer                         Consumer
 ---------                        ---------------------------
 message.payload = 42             while (!READY.getAcquire(message))
-READY.setRelease(message, true)       chờ cờ true
+READY.setRelease(message, true)       wait for flag true
                                  int x = message.payload
-                                 // x = 42 theo giao thức
+                                 // x = 42 by protocol
 ```
 
-Vì sao phải có cả hai phía?
+Why are both sides needed?
 
-1. Producer ghi `payload` trước rồi release cờ `ready`.
-2. Consumer kiểm tra cờ bằng acquire. Khi đọc được giá trị do release xuất bản, nó có được thứ tự bộ nhớ cần thiết để đọc `payload`.
-3. `payload` có thể là field bình thường (**plain**) nếu nó được ghi trước release và không bị sửa đồng thời bên ngoài giao thức. Đây là trường hợp *safe publication*, không phải quyền đọc mọi field không đồng bộ.
+1. Producer writes `payload` first and then releases the `ready` flag.
+2. Consumer checks the flag with acquire. Once it reads the value published by the release, it gains the memory ordering required to read `payload`.
+3. `payload` can be an ordinary (**plain**) field if it is written before the release and not concurrently modified outside the protocol. This is a case of *safe publication*, not a license to read arbitrary unsynchronized fields.
 
-Một số giới hạn:
+Some limitations:
 
-- `getAcquire` **không** có tác dụng “lấy bản mới nhất” của biến tùy ý; nó chỉ tạo những ordering effect tương ứng. Lần đọc cờ có thể thấy `false` và phải thử lại.
-- `setRelease` không làm dữ liệu tự động sẵn sàng ở mọi luồng nếu không có phía đọc phù hợp; cũng không bắt buộc phía đọc được lập lịch trong thời gian hữu hạn.
-- Khi flag được dùng lại cho nhiều vòng đời thông điệp, cần thêm giao thức để tránh ghi đè payload khi consumer đang đọc. Ví dụ đơn giản ở đây chỉ publish **một lần**.
-- Một lệnh đọc release hay ghi acquire không phải cặp cần dùng: trong mô hình này, **ghi release** phối hợp với **đọc acquire**.
-- Spin loop chỉ nhằm trình diễn memory ordering; production thường dùng `BlockingQueue`, `CountDownLatch`, `Lock`/`Condition`, hoặc cấu trúc đồng bộ có sẵn để tránh đốt CPU và dễ quản lý hủy/chờ.
+- `getAcquire` **does not** force reading "the latest version" of an arbitrary variable; it only establishes the corresponding ordering effects. Reading the flag may still see `false` and have to retry.
+- `setRelease` does not automatically make data visible to every thread without a matching read side, nor does it force the reader thread to be scheduled in bounded time.
+- When a flag is reused across multiple message lifecycles, an additional protocol is required to avoid overwriting `payload` while the consumer is reading. The simple example here publishes **only once**.
+- A release read or acquire write is not the pair to use here: in this pattern, **release write** pairs with **acquire read**.
+- The spin loop is solely to demonstrate memory ordering; production code typically uses `BlockingQueue`, `CountDownLatch`, `Lock`/`Condition`, or built-in synchronizers to avoid burning CPU and to simplify cancellation/waiting.
 
-### Acquire–release khác volatile như thế nào?
+### How Does Acquire–Release Differ from Volatile?
 
-Một cặp release/acquire chủ yếu ràng buộc thứ tự quanh việc **trao thông tin theo một chiều** (publish → consume); volatile bổ sung những bảo đảm mạnh hơn, bao gồm thứ tự tổng thể giữa các truy cập volatile. Vì vậy, nếu chỉ cần producer công bố một payload rồi consumer nhận, acquire/release có thể là lựa chọn phù hợp. Không nên tự suy ra chúng tương đương volatile trong thuật toán có nhiều biến và nhiều kiểu thao tác xen kẽ.
+A release/acquire pair primarily constrains ordering around **one-way handoff of information** (publish → consume); volatile adds stronger guarantees, including a total order among volatile accesses. Therefore, if a producer simply needs to publish a payload and a consumer needs to receive it, acquire/release can be an appropriate choice. Do not assume they are equivalent to volatile in algorithms with multiple variables and interleaved operation types.
 
-## 5. Atomic access modes: đọc–sửa–ghi thành một phép
+## 5. Atomic Access Modes: Read–Modify–Write in One Step
 
-`VarHandle` có các phương thức atomic update. Các phương thức phổ biến:
+`VarHandle` provides atomic update methods. Common ones include:
 
-| Phương thức | Giá trị trả về | Ý nghĩa |
+| Method | Return Value | Meaning |
 | --- | --- | --- |
-| `compareAndSet(receiver, expected, update)` | `boolean` | Chỉ ghi nếu giá trị hiện tại bằng `expected` theo phép so sánh của biến; có hiệu ứng volatile |
-| `compareAndExchange(receiver, expected, update)` | Giá trị đã quan sát (*witness*) | Trả giá trị thực tế tại thời điểm CAS; ghi khi witness bằng expected |
-| `getAndSet(receiver, update)` | Giá trị cũ | Đổi giá trị nguyên tử và trả bản cũ |
-| `getAndAdd(receiver, delta)` | Giá trị cũ | Cộng nguyên tử vào kiểu số được hỗ trợ, như `int`/`long` |
-| `getAndBitwiseOr` / `getAndBitwiseAnd` / `getAndBitwiseXor` | Giá trị cũ | Cập nhật bit nguyên tử cho kiểu hỗ trợ |
-| `weakCompareAndSetPlain` và các biến thể `weakCompareAndSet...` | `boolean` | CAS yếu, **có thể thất bại giả** dù giá trị so sánh khớp; yêu cầu kiểm tra/retry phù hợp |
+| `compareAndSet(receiver, expected, update)` | `boolean` | Writes only if current value equals `expected` per the variable's equality; has volatile effects |
+| `compareAndExchange(receiver, expected, update)` | Observed value (*witness*) | Returns the actual value at CAS time; writes when witness equals expected |
+| `getAndSet(receiver, update)` | Old value | Atomically replaces value and returns the old one |
+| `getAndAdd(receiver, delta)` | Old value | Atomically adds for supported numeric types such as `int`/`long` |
+| `getAndBitwiseOr` / `getAndBitwiseAnd` / `getAndBitwiseXor` | Old value | Atomic bitwise updates for supported types |
+| `weakCompareAndSetPlain` and `weakCompareAndSet...` variants | `boolean` | Weak CAS, **can fail spuriously** even when the comparison matches; requires appropriate checking/retry |
 
-**Đọc đúng kết quả CAS:**
+**Reading CAS results properly:**
 
 ```java
-boolean updated = COUNT.compareAndSet(counter, 4, 5); // true nếu đang là 4
+boolean updated = COUNT.compareAndSet(counter, 4, 5); // true if currently 4
 int observed = (int) COUNT.compareAndExchange(counter, 5, 6);
-// observed = 5 nếu CAS thành công; nếu đang là giá trị khác thì không ghi và trả giá trị đó
+// observed = 5 if CAS succeeded; if currently another value, does not write and returns that value
 ```
 
-Với biến kiểu tham chiếu, phép so sánh expected của CAS dùng **đồng nhất tham chiếu (`==`)**, không gọi `equals()`. Ví dụ, hai đối tượng khác nhau dù `equals` trả true vẫn không khớp trong CAS.
+For reference-typed variables, CAS's expected comparison uses **reference identity (`==`)**, not `equals()`. For example, two distinct objects whose `equals` returns true will still not match in CAS.
 
-### Vì sao CAS thường cần vòng lặp?
+### Why Does CAS Often Need a Loop?
 
-Khi nhiều luồng cùng cập nhật một trạng thái phụ thuộc giá trị cũ, một luồng có thể đọc giá trị cũ rồi bị luồng khác thay đổi trước khi CAS. `compareAndSet` thất bại là tín hiệu thử lại với trạng thái mới:
+When multiple threads update state that depends on the previous value, one thread may read the old value and have another thread change it before the CAS. A failed `compareAndSet` is the signal to retry with the new state:
 
 ```java
 static void addTen(VarHandle handle, Counter counter) {
@@ -173,22 +173,22 @@ static void addTen(VarHandle handle, Counter counter) {
 }
 ```
 
-Đây là **đoạn minh họa**, giả định đã có lớp `Counter` với field `int value` và một `VarHandle` trỏ đúng field đó. Với phép cộng đơn giản, `getAndAdd(counter, 10)` ngắn gọn và thường phù hợp hơn. Với phép tính phức tạp, cần cân nhắc side effect, contention và việc biểu thức tính lại sau thất bại CAS.
+This is an **illustrative snippet**, assuming a `Counter` class with an `int value` field and a `VarHandle` pointing to that field. For simple addition, `getAndAdd(counter, 10)` is shorter and usually preferable. For complex computations, consider side effects, contention, and re-evaluating the expression after a CAS failure.
 
-**ABA:** CAS chỉ biết giá trị hiện tại có bằng expected hay không. Nếu một biến lần lượt đổi A → B → A, CAS so với A vẫn có thể thành công dù đã có thay đổi trung gian. Thuật toán cần phát hiện chuyện đó phải lưu thêm version/stamp hoặc áp dụng cơ chế thích hợp khác.
+**ABA:** CAS only checks whether the current value equals expected. If a variable changes A → B → A in between, a CAS comparing against A can still succeed despite the intermediate changes. Algorithms that must detect this need to store an extra version/stamp or apply another suitable mechanism.
 
-### Memory ordering của các phép atomic
+### Memory Ordering of Atomic Operations
 
-- `compareAndSet`, `compareAndExchange`, `getAndSet` và `getAndAdd` (bản không hậu tố) có hiệu ứng đọc/ghi volatile theo đặc tả riêng.
-- Các biến thể `...Acquire` thường chỉ áp dụng ordering acquire ở phía đọc; `...Release` thường chỉ áp dụng ordering release ở phía ghi. Không giả định mọi biến thể mang đầy đủ hiệu ứng volatile.
-- `weakCompareAndSetPlain` dùng ngữ nghĩa plain và có thể thất bại giả; những biến thể khác có hiệu ứng tương ứng trong tên.
-- Atomicity không đồng nghĩa thuật toán không bao giờ bị tranh chấp, tự bảo đảm fairness, hay luôn kết thúc sau số bước cố định.
+- `compareAndSet`, `compareAndExchange`, `getAndSet`, and `getAndAdd` (the unsuffixed forms) have volatile read/write effects per their specifications.
+- `...Acquire` variants generally apply acquire ordering only on the read side; `...Release` variants generally apply release ordering only on the write side. Do not assume every variant carries full volatile effects.
+- `weakCompareAndSetPlain` uses plain semantics and may fail spuriously; other variants have the effects indicated by their names.
+- Atomicity does not mean an algorithm is contention-free, automatically guarantees fairness, or always finishes in a fixed number of steps.
 
-Nếu không rõ mode thấp hơn có đủ cho bất biến và quan hệ happens-before của thuật toán hay không, ưu tiên API atomic tiêu chuẩn hoặc phép có ngữ nghĩa volatile dễ lý giải hơn, rồi tối ưu theo bằng chứng.
+If you are unsure whether a weaker mode suffices for your algorithm's invariants and happens-before edges, prefer standard atomic APIs or operations with volatile semantics that are easier to reason about, then optimize based on evidence.
 
-## 6. Chương trình Java 17+: so sánh mode và chạy đa luồng
+## 6. Java 17+ Program: Comparing Modes and Running Multi-Threaded
 
-Tạo file **`VarHandleModesDemo.java`**:
+Create **`VarHandleModesDemo.java`**:
 
 ```java
 import java.lang.invoke.MethodHandles;
@@ -213,15 +213,15 @@ public class VarHandleModesDemo {
 
         Cell cell = new Cell();
 
-        // 1. Plain: thao tác đơn luồng, chưa có chia sẻ.
+        // 1. Plain: single-threaded operation, no sharing yet.
         value.set(cell, 3);
         System.out.println("plain=" + (int) value.get(cell));
 
-        // 2. Volatile: đọc/ghi riêng lẻ với hiệu ứng volatile.
+        // 2. Volatile: individual read/write with volatile effects.
         value.setVolatile(cell, 4);
         System.out.println("volatile=" + (int) value.getVolatile(cell));
 
-        // 3. Atomic compare-and-set và read-modify-write.
+        // 3. Atomic compare-and-set and read-modify-write.
         boolean updated = value.compareAndSet(cell, 4, 5);
         System.out.println("CAS=" + updated
                 + ", value=" + (int) value.getVolatile(cell));
@@ -234,7 +234,7 @@ public class VarHandleModesDemo {
         System.out.println("exchange witness=" + witness
                 + ", value=" + (int) value.getVolatile(cell));
 
-        // 4. Nhiều luồng tăng cùng biến bằng phép atomic.
+        // 4. Multiple threads incrementing the same variable via atomic operation.
         value.setVolatile(cell, 0);
         Thread[] workers = new Thread[4];
         for (int i = 0; i < workers.length; i++) {
@@ -251,11 +251,11 @@ public class VarHandleModesDemo {
         System.out.println("atomic counter="
                 + (int) value.getVolatile(cell));
 
-        // 5. Producer/consumer: publish một payload bằng release/acquire.
+        // 5. Producer/consumer: publish a payload with release/acquire.
         Message message = new Message();
         Thread reader = new Thread(() -> {
             while (!(boolean) ready.getAcquire(message)) {
-                Thread.onSpinWait(); // Chỉ dùng spin để minh họa.
+                Thread.onSpinWait(); // Spin used solely for demonstration.
             }
             System.out.println("published payload=" + message.payload);
         });
@@ -268,14 +268,14 @@ public class VarHandleModesDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac VarHandleModesDemo.java
 java VarHandleModesDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 plain=3
@@ -287,58 +287,58 @@ atomic counter=40000
 published payload=42
 ```
 
-**Vì sao kết quả đúng?**
+**Why is the output correct?**
 
-1. Plain và volatile ở đầu ví dụ chạy tuần tự trong `main`, nên lần đọc thấy giá trị vừa ghi. Không dùng những thao tác plain đó để suy ra quy tắc chia sẻ giữa các luồng.
-2. CAS thấy `4` rồi đổi thành `5`. `getAndAdd` thêm `2`, trả lại giá trị cũ `5`; `compareAndExchange` thấy `7` rồi đổi thành `9`.
-3. Bốn worker, mỗi worker tăng `10_000` lần bằng `getAndAdd` trên cùng field. Các phép tăng không bị mất cập nhật, nên tổng là `40_000` sau khi `join` cả bốn luồng.
-4. Producer ghi `message.payload = 42` trước `ready.setRelease(message, true)`. Reader chỉ đọc payload sau khi `getAcquire` đã thấy cờ `true`. Đây là một giao thức publish/consume một lần; cờ ban đầu mặc định `false`.
-5. `Thread.join()` khiến luồng main đợi kết thúc worker và reader, nhờ đó kết quả in không bị bỏ sót. Vòng chờ trong reader không nhằm làm mẫu cho production.
+1. Plain and volatile at the start run sequentially in `main`, so each read sees the value just written. Do not use those plain operations to infer cross-thread sharing rules.
+2. CAS sees `4` and changes it to `5`. `getAndAdd` adds `2`, returning old value `5`; `compareAndExchange` sees `7` and changes it to `9`.
+3. Four workers each increment `10_000` times using `getAndAdd` on the same field. No updates are lost, so the total is `40_000` after `join`ing all four threads.
+4. Producer writes `message.payload = 42` before `ready.setRelease(message, true)`. Reader reads `payload` only after `getAcquire` sees the `true` flag. This is a one-time publish/consume protocol; the flag defaults to `false`.
+5. `Thread.join()` makes the main thread wait for the workers and reader to finish, ensuring no output is missed. The reader's wait loop is not intended as a production pattern.
 
-Đoạn code dùng `Thread.onSpinWait()` từ Java 9, `VarHandle` từ Java 9 và không cần thư viện bên ngoài.
+The code uses `Thread.onSpinWait()` from Java 9 and `VarHandle` from Java 9 without external libraries.
 
-## 7. Lựa chọn mode theo bài toán
+## 7. Choosing a Mode for the Problem
 
-| Tình huống | Gợi ý | Lý do |
+| Scenario | Suggestion | Reason |
 | --- | --- | --- |
-| Dữ liệu cục bộ trong một luồng | `get`/`set` (hoặc truy cập field trực tiếp) | Không cần synchronization bổ sung |
-| Flag dừng hoặc trạng thái chia sẻ đơn giản | `getVolatile`/`setVolatile`, hoặc field `volatile` | Dễ diễn giải hiệu ứng volatile |
-| Producer xuất bản payload một lần | `setRelease` + `getAcquire` trên flag | Tạo ordering cần thiết khi consumer thấy flag được publish |
-| Nhiều luồng cộng chung một bộ đếm | `getAndAdd` hoặc `AtomicInteger` | Mỗi lần cộng nguyên tử, không mất cập nhật |
-| Cập nhật nếu trạng thái chưa đổi | `compareAndSet`, hoặc `compareAndExchange` nếu cần witness | Kiểm tra và ghi trong một phép atomic |
-| Phải đồng bộ bất biến của nhiều field hoặc một critical section | `synchronized`/`Lock` hoặc thiết kế trạng thái bất biến | Atomic một field không đủ bảo vệ cả nhóm |
+| Thread-local data | `get`/`set` (or direct field access) | No extra synchronization needed |
+| Stop flag or simple shared state | `getVolatile`/`setVolatile`, or a `volatile` field | Volatile effects are easy to reason about |
+| Producer publishes a payload once | `setRelease` + `getAcquire` on the flag | Establishes the needed ordering when the consumer sees the flag published |
+| Multiple threads adding to a shared counter | `getAndAdd` or `AtomicInteger` | Each addition is atomic; no lost updates |
+| Update if state has not changed | `compareAndSet`, or `compareAndExchange` if the witness is needed | Checks and writes in one atomic operation |
+| Must synchronize invariants across multiple fields or a critical section | `synchronized`/`Lock` or immutable state design | Single-field atomicity cannot protect the whole group |
 
-`VarHandle` hữu ích trong mã thư viện hiệu năng thấp tầng và xây dựng primitive đồng bộ. Ứng dụng thông thường nên ưu tiên `AtomicInteger`, `AtomicReference`, `BlockingQueue`, `Lock`, `synchronized` hoặc các cấu trúc `java.util.concurrent` khi chúng đáp ứng trực tiếp nhu cầu. Chúng dễ review hơn và giảm rủi ro sử dụng sai ngữ nghĩa bộ nhớ.
+`VarHandle` is valuable in low-level library code and building synchronization primitives. Typical applications should prefer `AtomicInteger`, `AtomicReference`, `BlockingQueue`, `Lock`, `synchronized`, or `java.util.concurrent` constructs when they meet the need directly. They are easier to review and reduce the risk of misusing memory semantics.
 
-## 8. Lỗi phổ biến và cách kiểm tra
+## 8. Common Mistakes and How to Check
 
-**Lỗi 1 — Tưởng `volatile` làm `++` nguyên tử.** Truy cập volatile riêng lẻ chỉ bảo đảm ngữ nghĩa cho lần đọc/ghi đó. Để tăng an toàn khi tranh chấp, dùng `getAndAdd` hoặc cập nhật CAS hợp lệ.
+**Mistake 1 — Assuming `volatile` makes `++` atomic.** A single volatile access only guarantees semantics for that individual read or write. For safe increments under contention, use `getAndAdd` or a proper CAS update.
 
-**Lỗi 2 — Dùng plain để báo hiệu giữa các luồng.** Nếu consumer chỉ gọi `get` để xem flag mà không có một cơ chế đồng bộ khác, chương trình thiếu bảo đảm visibility/order mong muốn. Dùng acquire/release hoặc volatile theo đúng giao thức.
+**Mistake 2 — Using plain access to signal between threads.** If the consumer only calls `get` to check a flag without another synchronization mechanism, the program lacks the desired visibility/ordering guarantees. Use acquire/release or volatile according to the protocol.
 
-**Lỗi 3 — Viết payload sau release.** Nếu producer gọi `setRelease(ready, true)` trước rồi mới gán payload, consumer có thể quan sát cờ mà chưa có giá trị payload mới. Luôn thiết lập dữ liệu cần xuất bản **trước** release.
+**Mistake 3 — Writing payload after release.** If the producer calls `setRelease(ready, true)` first and assigns `payload` afterward, the consumer may observe the flag without the new payload value. Always set the data to publish **before** releasing.
 
-**Lỗi 4 — Acquire từ biến A nhưng release ở biến B.** Không tự động có quan hệ đồng bộ mong muốn. Cần một giao thức kết nối trên đúng vị trí và đúng sự kiện publish/consume.
+**Mistake 4 — Acquiring from variable A while releasing variable B.** The intended synchronization relationship does not arise automatically. A protocol must connect the exact same variable and publish/consume events.
 
-**Lỗi 5 — Trộn mode trên cùng biến theo cảm tính.** `get` qua `VarHandle` không tự kế thừa volatile từ khai báo field. Hãy chọn một giao thức nhất quán và xem lại đặc tả khi phối hợp modes.
+**Mistake 5 — Mixing modes on the same variable on intuition.** `get` via `VarHandle` does not inherit `volatile` from the field declaration. Pick a consistent protocol and check the specification when combining modes.
 
-**Lỗi 6 — Cho rằng CAS thành công nghĩa là trạng thái chưa từng đổi.** Hiện tượng ABA cho thấy trạng thái có thể thay đổi trung gian rồi quay về giá trị dự kiến.
+**Mistake 6 — Assuming a successful CAS means the state never changed.** The ABA phenomenon shows that state can change in between and return to the expected value.
 
-**Lỗi 7 — Gọi mode không được hỗ trợ.** Handle cho `final` không cho phép ghi; không phải mọi thao tác số/bit đều hợp lệ với mọi kiểu. Kiểm tra `isAccessModeSupported(VarHandle.AccessMode.XXX)` khi dùng handle trừu tượng.
+**Mistake 7 — Calling an unsupported mode.** A handle for a `final` field forbids writes; not every arithmetic/bitwise operation is valid for every type. Check `isAccessModeSupported(VarHandle.AccessMode.XXX)` when handling abstract handles.
 
-**Lỗi 8 — Sai kiểu kết quả do các lời gọi signature-polymorphic.** Với field `int`, viết `(int) handle.get(obj)`; với field `boolean`, viết `(boolean) handle.getAcquire(obj)`. Sai kiểu/tọa độ có thể khiến chương trình lỗi lúc chạy.
+**Mistake 8 — Wrong return type on signature-polymorphic calls.** For an `int` field, write `(int) handle.get(obj)`; for a `boolean` field, write `(boolean) handle.getAcquire(obj)`. Mismatched types/coordinates can fail at runtime.
 
-### Tự kiểm tra
+### Self-Check
 
-1. Vì sao hai luồng cùng dùng `getVolatile` + `setVolatile` để tăng counter vẫn có thể mất cập nhật?
-2. Khi consumer thấy `ready == true` bằng `getAcquire`, những ghi nào của producer được publish qua `setRelease`?
-3. `compareAndSet` và `compareAndExchange` khác nhau về giá trị trả về như thế nào?
-4. Nếu một thuật toán cần bảo vệ đồng thời `balance` và `version`, cập nhật atomic một field riêng lẻ đã đủ chưa?
-5. Vì sao có thể dùng field `payload` bình thường trong ví dụ producer/consumer, nhưng không được ghi lại payload tùy ý sau khi đã publish?
-6. Nếu không cần tối ưu thấp tầng, vì sao `AtomicInteger` thường dễ dùng hơn tự quản lý `VarHandle`?
+1. Why can two threads using `getVolatile` + `setVolatile` to increment a counter still lose updates?
+2. When the consumer observes `ready == true` via `getAcquire`, which writes by the producer are published through `setRelease`?
+3. How do `compareAndSet` and `compareAndExchange` differ in their return values?
+4. If an algorithm must protect `balance` and `version` together, is updating one field atomically enough?
+5. Why can a plain `payload` field be used in the producer/consumer example, yet `payload` must not be arbitrarily overwritten after publication?
+6. When low-level tuning is unnecessary, why is `AtomicInteger` usually easier to use than managing a `VarHandle` manually?
 
-### Tài liệu tra cứu
+### Reference Documentation
 
-- [Java SE 17 — `VarHandle` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/VarHandle.html): danh sách các access mode, tính atomic và memory ordering.
-- [Java SE 17 — `MethodHandles` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.html): tạo handle và yêu cầu quyền lookup.
-- [Java Language Specification `17.4 — Memory Model](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.4): `happens-before`, `synchronization order` và các quy tắc bộ nhớ liên quan.
+- [Java SE 17 — `VarHandle` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/VarHandle.html): list of access modes, atomicity, and memory ordering.
+- [Java SE 17 — `MethodHandles` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.html): creating handles and lookup permission requirements.
+- [Java Language Specification `17.4 — Memory Model](https://docs.oracle.com/en/java/javase/17/docs/specs/jls/se17/html/jls-17.html#jls-17.4): `happens-before`, `synchronization order`, and related memory rules.

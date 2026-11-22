@@ -1,34 +1,34 @@
-# Hậu tố `L` và kiểu mặc định của literal số nguyên trong Java
+# The `L` Suffix and Default Type of Integer Literals in Java
 
-## 1. Literal số nguyên có kiểu gì?
+## 1. What type does an integer literal have?
 
-**Integer literal** là cách viết trực tiếp một giá trị số nguyên trong mã Java, ví dụ `10`, `1_000`, `0xFF` hay `42L`. Trong **Java 17+**, kiểu của literal số nguyên được xác định ngay khi compiler phân tích biểu thức, **không phải chờ xem biến bên trái có kiểu gì**.
+An **integer literal** is a way of writing an integer value directly in Java code, such as `10`, `1_000`, `0xFF`, or `42L`. In **Java 17+**, the type of an integer literal is determined immediately when the compiler parses the expression, **without waiting to see what type the variable on the left has**.
 
-Quy tắc quan trọng:
+Key rules:
 
-- **Không có hậu tố `L` hoặc `l`**: literal số nguyên có kiểu **`int`** (32 bit).
-- **Có hậu tố `L` hoặc `l`**: literal số nguyên có kiểu **`long`** (64 bit).
-- Nên viết **`L` hoa**: `1L`, `100_000L` thay vì `1l`, vì chữ `l` thường dễ nhầm với số `1`.
-- Chọn kiểu **`long` cho biến nhận** không tự chuyển một literal quá lớn không có `L` thành literal `long`.
+- **Without an `L` or `l` suffix**: an integer literal has type **`int`** (32 bits).
+- **With an `L` or `l` suffix**: an integer literal has type **`long`** (64 bits).
+- Prefer writing **uppercase `L`**: `1L`, `100_000L` instead of `1l`, because lowercase `l` is easily confused with the digit `1`.
+- Choosing **`long` for the receiving variable** does not automatically turn an oversized literal without `L` into a `long` literal.
 
 ~~~java
-int a = 42;              // Literal 42 có kiểu int
-long b = 42;             // Hợp lệ: int được widening sang long
-long c = 42L;            // Literal 42L có kiểu long
-long d = 3_000_000_000L; // Hợp lệ: có L, vượt phạm vi int
-// long bad = 3_000_000_000; // Lỗi compile: literal int quá lớn
+int a = 42;              // Literal 42 has type int
+long b = 42;             // Valid: int is widened to long
+long c = 42L;            // Literal 42L has type long
+long d = 3_000_000_000L; // Valid: has L, exceeds int range
+// long bad = 3_000_000_000; // Compile error: int literal too large
 ~~~
 
-Ở dòng `long b = 42;`, **bản thân `42` vẫn là literal `int`**. Sau đó Java cho phép chuyển mở rộng (*widening primitive conversion*) từ `int` sang `long` khi gán. Cần phân biệt **kiểu của literal** và **kiểu của biến**.
+In the line `long b = 42;`, **`42` itself is still an `int` literal**. Java then allows a *widening primitive conversion* from `int` to `long` during assignment. It is necessary to distinguish between the **type of the literal** and the **type of the variable**.
 
-## 2. Phạm vi giá trị của int và long
+## 2. Value ranges of int and long
 
-| Kiểu | Kích thước | Giá trị nhỏ nhất | Giá trị lớn nhất |
+| Type | Size | Minimum value | Maximum value |
 |---|---:|---:|---:|
-| `int` | 32 bit | −2.147.483.648 | 2.147.483.647 |
-| `long` | 64 bit | −9.223.372.036.854.775.808 | 9.223.372.036.854.775.807 |
+| `int` | 32 bits | −2,147,483,648 | 2,147,483,647 |
+| `long` | 64 bits | −9,223,372,036,854,775,808 | 9,223,372,036,854,775,807 |
 
-Các giá trị có thể truy cập bằng `Integer.MIN_VALUE`, `Integer.MAX_VALUE`, `Long.MIN_VALUE` và `Long.MAX_VALUE`.
+These values can be accessed via `Integer.MIN_VALUE`, `Integer.MAX_VALUE`, `Long.MIN_VALUE`, and `Long.MAX_VALUE`.
 
 ~~~java
 int largestInt = 2_147_483_647;
@@ -36,52 +36,52 @@ long firstBeyondInt = 2_147_483_648L;
 long largestLong = 9_223_372_036_854_775_807L;
 ~~~
 
-**Tại sao dòng thứ hai cần `L`?** Vì `2_147_483_648` không có hậu tố bị phân tích như một decimal `int` literal, quá phạm vi của `int`, nên chương trình bị từ chối ở bước biên dịch. Biến đích có kiểu `long` không chữa được literal đã sai.
+**Why does the second line need `L`?** Because `2_147_483_648` without a suffix is parsed as a decimal `int` literal, which exceeds the range of `int`, so the program is rejected at the compilation step. A target variable of type `long` cannot fix an already invalid literal.
 
-**`L` không làm `long` vô hạn.** Viết một giá trị dương lớn hơn `Long.MAX_VALUE`, kể cả có `L`, cũng bị compiler từ chối:
-
-~~~java
-// long tooBig = 9_223_372_036_854_775_808L; // Sai
-~~~
-
-Nếu thật sự cần số nguyên có độ lớn vượt `long`, hãy dùng `java.math.BigInteger` và khởi tạo từ chuỗi; không có hậu tố integer literal nào tự biến nó thành `BigInteger`.
-
-## 3. Số âm và hai giá trị MIN_VALUE đặc biệt
-
-Dấu `-` là **toán tử một ngôi** (*unary minus*), không phải ký tự thuộc một integer literal dương. Ví dụ `-5L` được hiểu là toán tử `-` áp dụng lên literal `5L`.
-
-Java dành trường hợp đặc biệt cho giới hạn âm của `int` và `long` khi literal decimal tương ứng nằm ngay dưới toán tử unary minus:
+**`L` does not make `long` infinite.** Writing a positive value larger than `Long.MAX_VALUE`, even with `L`, is also rejected by the compiler:
 
 ~~~java
-int minInt = -2147483648;                 // Hợp lệ
-long minLong = -9223372036854775808L;    // Hợp lệ
-
-// int invalid = 2147483648;            // Sai, literal int dương quá lớn
-// long invalidLong = 9223372036854775808L; // Sai, literal long dương quá lớn
+// long tooBig = 9_223_372_036_854_775_808L; // Invalid
 ~~~
 
-**Vì sao có sự bất đối xứng?** Miền số nguyên có dấu kiểu bù hai (*two's complement*) có một giá trị âm nhiều hơn số giá trị dương. Nhờ quy tắc về toán tử `-`, Java cho phép viết trực tiếp `Integer.MIN_VALUE` và `Long.MIN_VALUE`.
+If you genuinely need integers whose magnitude exceeds `long`, use `java.math.BigInteger` and initialize it from a string; no integer literal suffix turns a literal into a `BigInteger`.
 
-Không áp dụng ngoại lệ này cho phép cộng thông thường hoặc biến đích `long`. Ví dụ `long x = 2147483648;` vẫn là lỗi. Nếu chỉ cần giá trị nhỏ nhất, viết `Integer.MIN_VALUE` hoặc `Long.MIN_VALUE` thường dễ đọc hơn.
+## 3. Negative numbers and the two special MIN_VALUE values
 
-## 4. Kiểu mặc định không chỉ áp dụng cho hệ thập phân
+The `-` sign is a **unary operator** (*unary minus*), not a character belonging to a positive integer literal. For example, `-5L` is interpreted as the `-` operator applied to the literal `5L`.
 
-Integer literal Java có nhiều cách viết:
+Java makes a special case for the negative limits of `int` and `long` when the corresponding decimal literal appears directly under the unary minus operator:
 
-| Cách viết | Literal | Giá trị theo hệ 10 | Kiểu khi không có hậu tố |
+~~~java
+int minInt = -2147483648;                 // Valid
+long minLong = -9223372036854775808L;    // Valid
+
+// int invalid = 2147483648;            // Invalid, positive int literal too large
+// long invalidLong = 9223372036854775808L; // Invalid, positive long literal too large
+~~~
+
+**Why is there an asymmetry?** A signed integer range in two's complement (*two's complement*) has one more negative value than positive values. Thanks to the rule for the `-` operator, Java allows writing `Integer.MIN_VALUE` and `Long.MIN_VALUE` directly.
+
+Do not apply this exception to ordinary addition or a `long` target variable. For example, `long x = 2147483648;` is still an error. If you only need the minimum value, writing `Integer.MIN_VALUE` or `Long.MIN_VALUE` is usually easier to read.
+
+## 4. Default types do not apply only to decimal
+
+Java integer literals have multiple notations:
+
+| Notation | Literal | Decimal value | Type when unsuffixed |
 |---|---|---:|---|
-| Thập phân | `26` | 26 | `int` |
-| Thập lục phân | `0x1A` hoặc `0X1A` | 26 | `int` |
-| Nhị phân | `0b11010` hoặc `0B11010` | 26 | `int` |
-| Bát phân | `032` | 26 | `int` |
-| Thập phân có hậu tố | `26L` | 26 | `long` |
-| Thập lục phân có hậu tố | `0x1AL` | 26 | `long` |
+| Decimal | `26` | 26 | `int` |
+| Hexadecimal | `0x1A` or `0X1A` | 26 | `int` |
+| Binary | `0b11010` or `0B11010` | 26 | `int` |
+| Octal | `032` | 26 | `int` |
+| Decimal with suffix | `26L` | 26 | `long` |
+| Hexadecimal with suffix | `0x1AL` | 26 | `long` |
 
-**Lưu ý số 0 đầu:** `010` là literal **bát phân**, mang giá trị **8**, không phải 10. Viết `08` là sai vì chữ số 8 không hợp lệ trong hệ bát phân.
+**Note on leading zero:** `010` is an **octal** literal with value **8**, not 10. Writing `08` is invalid because the digit 8 is not valid in octal.
 
-### Khi literal khác hệ thập phân tràn phần dấu
+### When non-decimal literals overflow into the sign part
 
-Với literal **thập lục phân, nhị phân hoặc bát phân**, Java cho phép biểu diễn trực tiếp mẫu bit trong độ rộng `int` hoặc `long`. Mẫu bit có bit dấu bằng 1 được hiểu thành số âm theo biểu diễn bù hai.
+For **hexadecimal, binary, or octal** literals, Java allows directly representing a bit pattern within the width of `int` or `long`. A bit pattern whose sign bit is 1 is interpreted as a negative number in two's complement representation.
 
 ~~~java
 int intBits = 0xFFFF_FFFF;
@@ -93,13 +93,13 @@ System.out.println(longBits);     // 4294967295
 System.out.println(allLongBits);  // -1
 ~~~
 
-**Điểm tinh tế:** cùng các chữ số `0xFFFF_FFFF`, literal không hậu tố là `int` 32 bit (giá trị `-1`), còn `0xFFFF_FFFFL` là `long` 64 bit (giá trị `4_294_967_295`). Vì độ rộng đã đổi, bit cao nhất của `long` này không phải bit dấu.
+**Subtle point:** with the same digits `0xFFFF_FFFF`, the unsuffixed literal is a 32-bit `int` (value `-1`), whereas `0xFFFF_FFFFL` is a 64-bit `long` (value `4_294_967_295`). Because the width changed, the highest bit of this `long` is not the sign bit.
 
-Không khái quát sai rằng “literal hex luôn dương” hoặc “chỉ decimal mới có thể âm”.
+Do not wrongly generalize that "hex literals are always positive" or "only decimals can be negative".
 
-## 5. Dấu gạch dưới `_` giúp dễ đọc, không đổi kiểu
+## 5. Underscores `_` aid readability without changing type
 
-Java cho phép dùng dấu gạch dưới **giữa các chữ số** của nhiều dạng literal:
+Java allows underscores **between digits** of many kinds of literals:
 
 ~~~java
 int population = 1_000_000;
@@ -108,22 +108,22 @@ int mask = 0b1010_1100;
 long colorCode = 0xAB_CD_EFL;
 ~~~
 
-`1_000_000` vẫn là `int`; `12_345_678_901L` vẫn là `long`. Gạch dưới không làm tăng giới hạn kiểu hoặc thay thế hậu tố `L`.
+`1_000_000` is still an `int`; `12_345_678_901L` is still a `long`. Underscores do not increase type limits or replace the `L` suffix.
 
-Ví dụ cú pháp **không hợp lệ**:
+Examples of **invalid** syntax:
 
 ~~~java
-// int a = _123;          // Đây là tên định danh _123, không phải số 123
-// int b = 123_;          // Không đặt _ ở cuối literal
-// int c = 0x_FF;         // Không đặt _ ngay sau tiền tố 0x
-// long d = 123_L;        // Không đặt _ ngay trước hậu tố L
+// int a = _123;          // This is the identifier _123, not the number 123
+// int b = 123_;          // Cannot place _ at the end of a literal
+// int c = 0x_FF;         // Cannot place _ immediately after the 0x prefix
+// long d = 123_L;        // Cannot place _ immediately before the L suffix
 ~~~
 
-Để giữ mã dễ đọc, nhóm chữ số theo ý nghĩa (`1_000_000L`, `0xFF_00_00_00L`) thay vì đặt dấu `_` tùy ý.
+To keep code readable, group digits meaningfully (`1_000_000L`, `0xFF_00_00_00L`) rather than placing `_` arbitrarily.
 
-## 6. Kiểu của biểu thức được quyết định trước khi gán
+## 6. Expression type is determined before assignment
 
-Đây là một trong những lỗi Java phổ biến nhất khi học hậu tố `L`.
+This is one of the most common Java mistakes when learning the `L` suffix.
 
 ~~~java
 long wrong = 2_000_000_000 + 2_000_000_000;
@@ -133,37 +133,37 @@ System.out.println(wrong);   // -294967296
 System.out.println(correct); // 4000000000
 ~~~
 
-Vì cả hai toán hạng đầu tiên là literal `int`, biểu thức `int + int` được tính bằng **32 bit** và tràn trước khi chuyển sang `long`. Java vẫn cho phép gán kết quả `int` đã tràn sang `long`; nó **không tính lại phép cộng bằng 64 bit**.
+Because both operands on the first line are `int` literals, the expression `int + int` is evaluated in **32 bits** and overflows before being converted to `long`. Java still allows assigning the overflowed `int` result to `long`; it **does not recompute the addition in 64 bits**.
 
-Ở dòng `correct`, một toán hạng có hậu tố `L`, nên phép cộng dùng `long` do **binary numeric promotion**. Kết quả 4 tỷ nằm trong phạm vi `long`.
+In the `correct` line, one operand has the `L` suffix, so the addition uses `long` due to **binary numeric promotion**. The result of 4 billion fits within the `long` range.
 
-Hai cách đúng cho phép tính này:
+Two correct ways to write this calculation:
 
 ~~~java
 long bySuffix = 2_000_000_000L + 2_000_000_000;
 long byCast = (long) 2_000_000_000 + 2_000_000_000;
 ~~~
 
-**Vị trí ép kiểu quyết định kết quả:**
+**Where the cast is placed determines the result:**
 
 ~~~java
 long stillWrong = (long) (2_000_000_000 + 2_000_000_000);
-// Đã tràn int bên trong ngoặc rồi mới chuyển sang long.
+// Overflowed int inside the parentheses before converting to long.
 ~~~
 
-Với phép nhân, nguyên tắc tương tự:
+With multiplication, the same principle applies:
 
 ~~~java
 long wrongProduct = 1_500_000_000 * 3;
 long rightProduct = 1_500_000_000L * 3;
-// rightProduct = 4500000000; wrongProduct đã tràn int.
+// rightProduct = 4500000000; wrongProduct already overflowed int.
 ~~~
 
-Khi xử lý số lượng lớn hoặc tiền bạc, đừng nghĩ “khai báo biến `long` là đủ”. Cần kiểm soát **kiểu của phép tính** ngay từ toán hạng.
+When handling large counts or money, do not assume "declaring a `long` variable is enough." You must control the **type of the operation** starting from the operands.
 
-## 7. Ví dụ Java 17 hoàn chỉnh và kết quả chạy
+## 7. Complete Java 17 example and run output
 
-Tạo tệp **`IntegerLiteralDemo.java`** với nội dung:
+Create the file **`IntegerLiteralDemo.java`** with the following content:
 
 ~~~java
 public final class IntegerLiteralDemo {
@@ -195,7 +195,7 @@ public final class IntegerLiteralDemo {
         int minInt = -2147483648;
         long minLong = -9223372036854775808L;
 
-        byte small = 127; // int constant được thu hẹp hợp lệ
+        byte small = 127; // int constant is validly narrowed
         var inferredInt = 7;
         var inferredLong = 7L;
 
@@ -219,7 +219,7 @@ public final class IntegerLiteralDemo {
 }
 ~~~
 
-Mở terminal trong thư mục chứa file và dùng **JDK 17 hoặc mới hơn**.
+Open a terminal in the directory containing the file and use **JDK 17 or newer**.
 
 **Bash (Linux/macOS):**
 
@@ -239,7 +239,7 @@ javac --release 17 -encoding UTF-8 .\IntegerLiteralDemo.java
 java -cp . IntegerLiteralDemo
 ~~~
 
-**Kết quả dự kiến:**
+**Expected output:**
 
 ~~~text
 int default: 42
@@ -260,91 +260,91 @@ int: 7
 long: 7
 ~~~
 
-Ba điểm nên tự kiểm chứng:
+Three points you should verify yourself:
 
-1. `42` và `42L` có thể in **cùng một giá trị**, nhưng mang **kiểu khác nhau**.
-2. `0xFFFF_FFFF` khác `0xFFFF_FFFFL` do độ rộng `int`/ `long`.
-3. Hai overload `overload(int)` và `overload(long)` cho thấy `var inferredInt = 7` có kiểu `int`, còn `var inferredLong = 7L` có kiểu `long`.
+1. `42` and `42L` can print **the same value**, yet carry **different types**.
+2. `0xFFFF_FFFF` differs from `0xFFFF_FFFFL` due to the bit width of `int`/`long`.
+3. The two overloads `overload(int)` and `overload(long)` show that `var inferredInt = 7` has type `int`, while `var inferredLong = 7L` has type `long`.
 
-Ví dụ được thiết kế có thể chạy độc lập; đầu ra trên là **kỳ vọng cần đối chiếu sau khi tự chạy**, không phải một khẳng định đã thực thi chương trình trên máy của bạn.
+The example is designed to be standalone; the output above is the **expected result to verify after running it yourself**, not a claim that the program has already been executed on your machine.
 
-## 8. Vì sao byte hoặc short có thể nhận literal không có hậu tố?
+## 8. Why can byte or short accept an unsuffixed literal?
 
-Dù integer literal không hậu tố có kiểu `int`, compiler cho phép **narrowing conversion đặc biệt của biểu thức hằng** trong một số ngữ cảnh gán/khởi tạo, nếu giá trị nằm trong phạm vi kiểu đích:
+Although an unsuffixed integer literal has type `int`, the compiler permits a **special narrowing conversion for constant expressions** in certain assignment/initialization contexts, provided the value fits within the target type's range:
 
 ~~~java
-byte a = 127;      // Hợp lệ dù 127 là int literal
-short b = 30_000;  // Hợp lệ dù 30000 là int literal
-char c = 65;       // Hợp lệ: ký tự 'A'
+byte a = 127;      // Valid even though 127 is an int literal
+short b = 30_000;  // Valid even though 30000 is an int literal
+char c = 65;       // Valid: character 'A'
 
-// byte invalid = 128;       // Lỗi: ngoài phạm vi byte
-// short invalid2 = 40_000;  // Lỗi: ngoài phạm vi short
-// byte invalid3 = 127L;     // Lỗi: không tự thu hẹp long literal như vậy
+// byte invalid = 128;       // Error: outside byte range
+// short invalid2 = 40_000;  // Error: outside short range
+// byte invalid3 = 127L;     // Error: long literal does not narrow automatically like this
 ~~~
 
-Điều này **không thay đổi kiểu mặc định của literal**: `127` vẫn là `int`. Quy tắc chuyển kiểu khi gán giải thích vì sao đoạn đầu hợp lệ.
+This **does not change the default type of the literal**: `127` is still an `int`. Assignment conversion rules explain why the first lines are valid.
 
-Với biến hoặc biểu thức không phải hằng thích hợp, compiler không nhất thiết cho phép thu hẹp:
+With variables or non-constant expressions, the compiler does not automatically allow narrowing:
 
 ~~~java
 int source = 127;
-// byte target = source; // Lỗi vì source là int variable
-byte target = (byte) source; // Ép kiểu tường minh; chỉ dùng khi đã kiểm tra miền
+// byte target = source; // Error because source is an int variable
+byte target = (byte) source; // Explicit cast; only use after checking range
 ~~~
 
-Không dùng cast để “che” một giá trị ngoài phạm vi: cast số nguyên quá lớn xuống kiểu nhỏ có thể cắt bớt bit và làm sai dữ liệu.
+Do not use a cast to "hide" an out-of-range value: casting an overly large integer down to a smaller type can truncate bits and corrupt data.
 
-## 9. Các lỗi thường gặp và cách sửa đúng
+## 9. Common mistakes and how to fix them
 
-| Tình huống | Vì sao sai hoặc bất ngờ? | Cách sửa |
+| Situation | Why is it wrong or surprising? | How to fix |
 |---|---|---|
-| `long n = 3_000_000_000;` | Decimal int literal quá lớn dù biến đích là long | `3_000_000_000L` |
-| `int n = 3_000_000_000L;` | Long literal không tự thu hẹp thành int | Chọn `long` nếu dữ liệu thực sự lớn |
-| `long sum = 2_000_000_000 + 2_000_000_000;` | Phép cộng int tràn trước khi gán | Dùng `L` ở một toán hạng, hoặc cast trước phép tính |
-| `long n = 9223372036854775808L;` | Vượt `Long.MAX_VALUE` | Chọn miền dữ liệu hợp lệ hoặc `BigInteger` |
-| `int n = 08;` | `0` đầu mở đầu cách viết bát phân | Viết `8` cho hệ thập phân |
-| `long n = 0xFFFF_FFFF;` | Literal int có bit dấu 1, thành `-1` trước khi mở rộng | `0xFFFF_FFFFL` nếu muốn 4.294.967.295 |
-| `int n = 123_L;` | Dấu `_` không được ngay trước hậu tố | `123L` hoặc `1_23L` |
-| Dùng `1l` | Hợp lệ nhưng dễ đọc nhầm `l` và `1` | Dùng `1L` |
-| `var value = 1;` rồi mong long | `var` suy ra int từ initializer | `var value = 1L;` |
+| `long n = 3_000_000_000;` | Decimal int literal is too large even though target variable is long | `3_000_000_000L` |
+| `int n = 3_000_000_000L;` | Long literal does not narrow automatically to int | Choose `long` if the data is genuinely large |
+| `long sum = 2_000_000_000 + 2_000_000_000;` | int addition overflows before assignment | Use `L` on one operand, or cast before the operation |
+| `long n = 9223372036854775808L;` | Exceeds `Long.MAX_VALUE` | Choose a valid data range or `BigInteger` |
+| `int n = 08;` | Leading `0` starts an octal literal | Write `8` for decimal |
+| `long n = 0xFFFF_FFFF;` | int literal has sign bit 1, becoming `-1` before widening | `0xFFFF_FFFFL` if you want 4,294,967,295 |
+| `int n = 123_L;` | `_` cannot appear immediately before the suffix | `123L` or `1_23L` |
+| Using `1l` | Valid, but `l` is easily misread as `1` | Use `1L` |
+| `var value = 1;` while expecting long | `var` infers int from the initializer | `var value = 1L;` |
 
-**Phân biệt hai giai đoạn:** một literal nằm ngoài phạm vi hợp lệ thường gây **lỗi biên dịch**; nhưng phép toán trên các literal `int` hợp lệ vẫn có thể **tràn lúc đánh giá** mà không tự ném exception. Với phép cộng hoặc nhân cần phát hiện tràn, xem `Math.addExact` và `Math.multiplyExact` theo yêu cầu dữ liệu.
+**Distinguish the two stages:** a literal outside its valid range usually causes a **compile-time error**; however, arithmetic operations on valid `int` literals can still **overflow during evaluation** without automatically throwing an exception. For addition or multiplication where overflow must be detected, look at `Math.addExact` and `Math.multiplyExact` depending on data requirements.
 
-## 10. Bài tập thực hành kèm đáp án
+## 10. Practice exercises with answers
 
-### Bài A — xác định kiểu và giá trị
+### Exercise A — identify type and value
 
-Phân loại `100`, `100L`, `0b1010`, `0xFFL`, `010`.
+Classify `100`, `100L`, `0b1010`, `0xFFL`, `010`.
 
-**Đáp án:** `100` là int 100; `100L` là long 100; `0b1010` là int 10; `0xFFL` là long 255; `010` là int 8 (hệ bát phân).
+**Answer:** `100` is int 100; `100L` is long 100; `0b1010` is int 10; `0xFFL` is long 255; `010` is int 8 (octal).
 
-### Bài B — lỗi dù đích là long
+### Exercise B — error despite long target
 
 ~~~java
 long population = 4_000_000_000;
 ~~~
 
-**Đáp án:** lỗi compile vì literal `4_000_000_000` không có hậu tố và vượt miền `int`. Sửa thành `long population = 4_000_000_000L;`.
+**Answer:** compile error because the literal `4_000_000_000` has no suffix and exceeds the `int` range. Fix it to `long population = 4_000_000_000L;`.
 
-### Bài C — dự đoán phép nhân
+### Exercise C — predict multiplication
 
 ~~~java
 long x = 1_500_000_000 * 3;
 long y = 1_500_000_000L * 3;
 ~~~
 
-**Đáp án:** `x = 205032704` (phép nhân int 4.500.000.000 bị tràn theo modulo 2³², sau đó mở rộng sang long); `y = 4500000000`. Nếu phép tính cần đúng 4,5 tỷ, phải làm phép nhân bằng `long` trước.
+**Answer:** `x = 205032704` (the int multiplication 4,500,000,000 overflows modulo 2³², then widens to long); `y = 4500000000`. If the calculation requires the exact 4.5 billion value, you must perform the multiplication using `long` first.
 
-### Bài D — phân biệt cùng mẫu hex
+### Exercise D — distinguish the same hex pattern
 
 ~~~java
 int a = 0xFFFF_FFFF;
 long b = 0xFFFF_FFFFL;
 ~~~
 
-**Đáp án:** `a == -1`, `b == 4294967295L`. Cùng các chữ số hex nhưng khác **độ rộng và bit dấu** của kiểu literal.
+**Answer:** `a == -1`, `b == 4294967295L`. Same hex digits, but different **bit width and sign bit** of the literal type.
 
-### Bài E — sửa ba dòng không hợp lệ
+### Exercise E — fix three invalid lines
 
 ~~~java
 // long a = 2147483648;
@@ -352,19 +352,19 @@ long b = 0xFFFF_FFFFL;
 // long c = 9223372036854775808L;
 ~~~
 
-**Đáp án gợi ý:** với `a`, thêm `L`. Với `b`, đổi biến sang `long` nếu cần giá trị đó. Với `c`, số vượt miền `long`, nên phải thay đổi yêu cầu dữ liệu, dùng `BigInteger` hoặc xử lý đầu vào ngoài phạm vi — **không có hậu tố số nguyên lớn hơn `L` trong Java**.
+**Suggested answers:** for `a`, add `L`. For `b`, change the variable to `long` if that value is needed. For `c`, the number exceeds the `long` range, so you must change the data requirement, use `BigInteger`, or handle out-of-range input — **there is no integer suffix larger than `L` in Java**.
 
-## 11. Checklist và kết luận
+## 11. Checklist and conclusion
 
-- [ ] Hiểu literal số nguyên **không `L` có kiểu `int`**, có `L` có kiểu `long`.
-- [ ] Không nhầm kiểu của literal với kiểu biến bên trái phép gán.
-- [ ] Nhớ giới hạn `int` 32 bit và `long` 64 bit.
-- [ ] Biết cách viết `Integer.MIN_VALUE` và `Long.MIN_VALUE` bằng toán tử âm với literal tương ứng.
-- [ ] Nhận ra decimal, hex, binary, octal và ảnh hưởng của bit dấu.
-- [ ] Dùng `L` hoa; dùng `_` giữa chữ số chỉ để dễ đọc.
-- [ ] Biết phép cộng/nhân `int` có thể tràn **trước khi gán sang long**.
-- [ ] Hiểu `var x = 1` suy ra int, còn `var x = 1L` suy ra long.
-- [ ] Không nhầm quy tắc thu hẹp hằng `byte b = 127;` với kiểu literal byte.
-- [ ] Biên dịch và chạy `IntegerLiteralDemo.java`, đối chiếu toàn bộ output.
+- [ ] Understand that an integer literal **without `L` has type `int`**, and with `L` has type `long`.
+- [ ] Do not confuse the literal's type with the variable's type on the left-hand side of an assignment.
+- [ ] Remember the limits of 32-bit `int` and 64-bit `long`.
+- [ ] Know how to write `Integer.MIN_VALUE` and `Long.MIN_VALUE` using the unary minus operator with the corresponding literal.
+- [ ] Recognize decimal, hex, binary, and octal notations and the effect of the sign bit.
+- [ ] Use uppercase `L`; use `_` between digits strictly for readability.
+- [ ] Know that `int` addition/multiplication can overflow **before assignment to long**.
+- [ ] Understand that `var x = 1` infers int, while `var x = 1L` infers long.
+- [ ] Do not confuse the constant narrowing rule `byte b = 127;` with a byte literal type.
+- [ ] Compile and run `IntegerLiteralDemo.java`, verifying the entire output.
 
-**Kết luận:** Trong Java, hậu tố **`L` quyết định literal số nguyên có kiểu `long` thay vì `int`**. Kiểu được xác định **trước** khi áp dụng phép gán hoặc phép toán. Viết `L` đúng chỗ không chỉ giúp biểu diễn các số vượt `int`, mà còn đảm bảo những biểu thức cần độ rộng 64 bit được tính bằng `long` thay vì tràn `int` rồi mới được chuyển kiểu.
+**Conclusion:** In Java, the **`L` suffix determines that an integer literal has type `long` instead of `int`**. The type is decided **before** assignment or arithmetic operations are applied. Placing `L` in the right spot not only lets you represent numbers beyond `int`, but also ensures expressions requiring 64-bit width are computed as `long` rather than overflowing `int` before conversion.

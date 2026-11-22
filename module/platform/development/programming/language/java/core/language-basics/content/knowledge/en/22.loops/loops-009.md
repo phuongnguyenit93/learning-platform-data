@@ -1,10 +1,10 @@
-# Duy trì điều kiện bất biến đơn giản qua mỗi lần lặp — Java 17+
+# Maintaining a simple loop invariant across iterations — Java 17+
 
-## 1. Điều kiện bất biến vòng lặp là gì?
+## 1. What is a loop invariant?
 
-**Bất biến vòng lặp** (*loop invariant*) là một mệnh đề về trạng thái chương trình được giữ đúng **mỗi lần chuẩn bị kiểm tra điều kiện lặp**, kể cả lần kiểm tra cuối cùng khi vòng lặp kết thúc bình thường.
+A **loop invariant** (*loop invariant*) is a statement about program state that holds true **every time the loop condition is about to be checked**, including the final check when the loop terminates normally.
 
-Ví dụ, khi tính tổng mảng từ trái sang phải:
+For example, when summing an array from left to right:
 
 ~~~java
 int[] numbers = {2, -1, 4, 3};
@@ -23,38 +23,38 @@ System.out.println(sum);
 8
 ~~~
 
-Một bất biến hữu ích ở **đầu mỗi lượt** là:
+A useful invariant at the **start of each iteration** is:
 
-> `sum` bằng tổng của **đúng `i` phần tử đầu tiên**: `numbers[0]` đến `numbers[i-1]`.
+> `sum` equals the sum of **exactly the first `i` elements**: `numbers[0]` through `numbers[i-1]`.
 
-Với `i = 0`, chưa xử lý phần tử nào nên `sum = 0`. Với `i = 2`, đã xử lý `2` và `-1` nên `sum = 1`. Khi vòng lặp hoàn tất với `i = numbers.length`, bất biến cho biết `sum` là tổng của toàn mảng.
+For `i = 0`, no elements have been processed so `sum = 0`. For `i = 2`, `2` and `-1` have been processed so `sum = 1`. When the loop finishes with `i = numbers.length`, the invariant tells us `sum` is the sum of the entire array.
 
-Bất biến không phải từ khóa hay cú pháp Java; đó là **khẳng định logic** do người viết code xác định, lý giải và có thể kiểm tra trong lúc debug/test.
+An invariant is not a Java keyword or syntax; it is a **logical assertion** defined, reasoned about, and optionally verified during debugging/testing by the author.
 
-## 2. Ba bước chứng minh một bất biến
+## 2. Three steps to prove an invariant
 
-| Bước | Câu hỏi cần trả lời | Ví dụ tính tổng tiền tố |
+| Step | Question to answer | Prefix sum example |
 |---|---|---|
-| **Khởi tạo** (*initialization*) | Mệnh đề có đúng trước lượt đầu? | `i=0`, `sum=0` là tổng tiền tố rỗng |
-| **Bảo toàn** (*maintenance*) | Nếu đúng trước lượt này, chạy body và update xong có còn đúng? | Cộng `numbers[i]`, rồi `i++`; tổng ứng với tiền tố dài hơn một phần tử |
-| **Kết thúc** (*termination*) | Khi điều kiện lặp sai, bất biến suy ra kết quả gì? | `i=n` nên `sum` là tổng của `n` phần tử |
+| **Initialization** (*initialization*) | Does the statement hold before the first pass? | `i=0`, `sum=0` is the sum of an empty prefix |
+| **Maintenance** (*maintenance*) | If it holds before this pass, does it still hold after running the body and update? | Add `numbers[i]`, then `i++`; sum corresponds to a prefix one element longer |
+| **Termination** (*termination*) | When the loop condition becomes false, what result does the invariant imply? | `i=n`, so `sum` is the sum of `n` elements |
 
 ~~~mermaid
 flowchart TD
-    A["Khởi tạo: bất biến đúng"] --> B{"Điều kiện lặp đúng?"}
-    B -- "Đúng" --> C["Thực thi thân vòng lặp"]
-    C --> D["Cập nhật biến đếm"]
-    D --> E["Bất biến vẫn đúng"]
+    A["Initialization: invariant holds"] --> B{"Loop condition true?"}
+    B -- "True" --> C["Execute loop body"]
+    C --> D["Update counter variable"]
+    D --> E["Invariant still holds"]
     E --> B
-    B -- "Sai" --> F["Bất biến + điều kiện dừng"]
-    F --> G["Suy ra hậu điều kiện/kết quả"]
+    B -- "False" --> F["Invariant + stopping condition"]
+    F --> G["Derive postcondition/result"]
 ~~~
 
-**Phân biệt quan trọng:** Ba bước trên chủ yếu chứng minh **tính đúng từng phần**: nếu vòng lặp kết thúc, kết quả là đúng. Để chứng minh nó **chắc chắn kết thúc**, cần thêm lập luận về sự tiến triển, thường dùng một đại lượng giảm dần (*loop variant*).
+**Important distinction:** The three steps above primarily prove **partial correctness**: if the loop terminates, the result is right. To prove it **definitely terminates**, an additional progress argument is needed, usually using a decreasing quantity (*loop variant*).
 
-## 3. Xác định thời điểm bất biến phải đúng
+## 3. Identifying when the invariant must hold
 
-Xét:
+Consider:
 
 ~~~java
 for (int i = 0; i < numbers.length; i++) {
@@ -62,56 +62,56 @@ for (int i = 0; i < numbers.length; i++) {
 }
 ~~~
 
-Bất biến được mô tả tại **đầu vòng lặp, trước kiểm tra điều kiện**. Sau dòng `sum += numbers[i]` nhưng **trước khi `i++` chạy**, biến `sum` đã là tổng `i+1` phần tử, còn `i` vẫn có giá trị cũ. Vì vậy mệnh đề “`sum` là tổng `i` phần tử” không nhất thiết đúng **tại mọi dòng trung gian**.
+The invariant is stated at the **top of the loop, before checking the condition**. After the line `sum += numbers[i]` but **before `i++` runs**, `sum` is already the sum of `i+1` elements while `i` still has its old value. Therefore the statement “`sum` is the sum of `i` elements” does not necessarily hold **at every intermediate line**.
 
-Sau update `i++`, đầu lượt kế tiếp ta lại có:
+After the `i++` update, at the start of the next iteration we again have:
 
-- `i` mới = `i` cũ + 1.
-- `sum` = tổng của `i` mới phần tử đầu tiên.
-- Bất biến được **khôi phục đúng tại điểm kiểm tra**.
+- new `i` = old `i` + 1.
+- `sum` = sum of the first new `i` elements.
+- The invariant is **restored right at the check point**.
 
-Điểm này giúp tránh lỗi lập luận: bất biến phải đúng ở **các điểm kiểm tra đã xác định**, không cần bất biến đúng sau từng phép gán trong body.
+This point helps avoid reasoning mistakes: an invariant must hold at **the designated check points**, not necessarily after every assignment inside the body.
 
-## 4. Truy vết bất biến tổng tiền tố
+## 4. Tracing the prefix sum invariant
 
-Mảng `{2, -1, 4, 3}`, khởi tạo `sum = 0`:
+Array `{2, -1, 4, 3}`, initialized `sum = 0`:
 
-| Đầu lượt / khi dừng | `i` | Tiền tố đã xử lý | `sum` |
+| Start of pass / at stop | `i` | Processed prefix | `sum` |
 |---|---:|---|---:|
-| Trước lượt đầu | 0 | Rỗng | 0 |
-| Trước lượt thứ 2 | 1 | `[2]` | 2 |
-| Trước lượt thứ 3 | 2 | `[2, -1]` | 1 |
-| Trước lượt thứ 4 | 3 | `[2, -1, 4]` | 5 |
-| Khi `i < 4` sai | 4 | `[2, -1, 4, 3]` | 8 |
+| Before pass 1 | 0 | Empty | 0 |
+| Before pass 2 | 1 | `[2]` | 2 |
+| Before pass 3 | 2 | `[2, -1]` | 1 |
+| Before pass 4 | 3 | `[2, -1, 4]` | 5 |
+| When `i < 4` is false | 4 | `[2, -1, 4, 3]` | 8 |
 
-**Cách bảo toàn:**
+**How it is maintained:**
 
-Giả sử trước lượt có `0 <= i < n` và `sum = numbers[0] + ... + numbers[i-1]`.
+Assume before a pass that `0 <= i < n` and `sum = numbers[0] + ... + numbers[i-1]`.
 
-1. Thân vòng lặp thực hiện `sum += numbers[i]`.
-2. Update của `for` thực hiện `i++`.
-3. Tại đầu lượt kế, `sum` là tổng phần tử có chỉ số từ 0 đến `i-1` theo `i` mới.
+1. The loop body executes `sum += numbers[i]`.
+2. The `for` update executes `i++`.
+3. At the start of the next pass, `sum` is the sum of elements at indices 0 through `i-1` for the new `i`.
 
-**Kết thúc:** điều kiện `i < n` sai và `i` được tăng từng đơn vị từ 0. Khi không có thay đổi bất thường hoặc overflow chỉ số, `i=n`. Kết hợp bất biến, kết quả đúng bằng tổng cả mảng.
+**Termination:** the condition `i < n` is false and `i` was incremented by 1 from 0. Without abnormal changes or index overflow, `i=n`. Combined with the invariant, the result equals the sum of the entire array.
 
-**Giả định dữ liệu:** ví dụ dùng `long` làm tổng để có miền lớn hơn `int`. Với dữ liệu thực tế có thể khiến `long` tràn, cần phép toán được kiểm tra hoặc `BigInteger`; không thể dùng phép cộng tràn mà vẫn coi kết quả là tổng toán học chính xác.
+**Data assumption:** the example uses `long` for the sum to have a wider range than `int`. For real-world data that could overflow `long`, checked arithmetic or `BigInteger` is needed; you cannot let addition overflow and still claim the result is the exact mathematical sum.
 
-## 5. Chọn bất biến đủ mạnh để suy ra kết quả
+## 5. Choosing an invariant strong enough to imply the result
 
-Một mệnh đề như “`i >= 0`” thường đúng trong vòng duyệt mảng, nhưng **không đủ** để chứng minh tổng tính được là đúng.
+A statement like “`i >= 0`” is usually true in an array traversal loop, yet **insufficient** to prove that the computed sum is correct.
 
-Với thuật toán tính tổng, ta nên duy trì đồng thời:
+For a summing algorithm, we should simultaneously maintain:
 
-- **Giới hạn biến đếm:** `0 <= i <= n`.
-- **Quan hệ với dữ liệu đã xử lý:** `sum` là tổng tiền tố dài `i`.
+- **Counter bounds:** `0 <= i <= n`.
+- **Relation to processed data:** `sum` is the sum of the prefix of length `i`.
 
-Khi điều kiện dừng cho `i == n`, cả hai mệnh đề kết hợp mới suy ra `sum` là tổng toàn bộ mảng.
+When the stopping condition yields `i == n`, both statements together imply `sum` is the sum of the whole array.
 
-**Mẹo thiết kế:** từ **hậu điều kiện mong muốn** (“tổng của tất cả phần tử”), thay cụm “tất cả” thành “những phần tử đã xử lý” và gắn với biến đếm `i`. Đó thường là một bất biến đơn giản, dễ chứng minh.
+**Design tip:** starting from the **desired postcondition** (“sum of all elements”), replace “all” with “those elements processed so far” and tie it to counter `i`. That is usually a simple, easy-to-prove invariant.
 
-## 6. Ví dụ thứ hai: tìm phần tử lớn nhất
+## 6. Second example: finding the maximum element
 
-Với một mảng **không rỗng**:
+For a **non-empty** array:
 
 ~~~java
 int[] data = {-3, 5, 1, 7, 7};
@@ -132,17 +132,17 @@ System.out.println(best);
 7
 ~~~
 
-**Bất biến tại đầu mỗi lượt:** `best` là **giá trị lớn nhất** trong tiền tố `data[0..i-1]`, với `1 <= i <= data.length`.
+**Invariant at the start of each pass:** `best` is the **maximum value** in the prefix `data[0..i-1]`, with `1 <= i <= data.length`.
 
-- **Khởi tạo:** trước lượt đầu `i=1`, tiền tố gồm một phần tử `data[0]`; `best=data[0]` là lớn nhất của tiền tố đó.
-- **Bảo toàn:** ở lượt `i`, so `data[i]` với `best`; sau khi cập nhật, `best` là max của tiền tố dài `i+1`. Sau `i++`, bất biến đúng với chỉ số mới.
-- **Kết thúc:** khi `i=data.length`, tiền tố chính là toàn bộ mảng, nên `best` là giá trị lớn nhất của mảng.
+- **Initialization:** before the first pass `i=1`, the prefix has one element `data[0]`; `best=data[0]` is the maximum of that prefix.
+- **Maintenance:** on pass `i`, compare `data[i]` with `best`; after updating, `best` is the max of the prefix of length `i+1`. After `i++`, the invariant holds for the new index.
+- **Termination:** when `i=data.length`, the prefix is the entire array, so `best` is the maximum value of the array.
 
-**Biên quan trọng:** mảng rỗng không có `data[0]`; phải từ chối đầu vào rỗng hoặc định nghĩa một API kết quả tùy chọn. Đặt `best = 0` cho mọi mảng là **sai** với mảng chỉ chứa số âm.
+**Important boundary:** an empty array has no `data[0]`; empty input must be rejected or an optional-result API defined. Setting `best = 0` for all arrays is **wrong** for arrays containing only negative numbers.
 
-Nếu có nhiều phần tử cùng lớn nhất, code trên trả về **giá trị lớn nhất**, không cam kết chỉ số của lần xuất hiện cuối hay đầu. Muốn trả vị trí, cần một bất biến có thêm biến chỉ số.
+If multiple elements tie for largest, the code above returns the **maximum value**, without promising the index of the first or last occurrence. To return a position, an invariant with an additional index variable is needed.
 
-## 7. Ví dụ thứ ba: tìm vị trí xuất hiện đầu tiên
+## 7. Third example: finding the first occurrence
 
 ~~~java
 static int findFirst(int[] data, int target) {
@@ -155,14 +155,14 @@ static int findFirst(int[] data, int target) {
 }
 ~~~
 
-**Bất biến tại đầu lượt `i`:** không có phần tử nào trong **các vị trí `0..i-1`** bằng `target`.
+**Invariant at the start of pass `i`:** no element in **positions `0..i-1`** equals `target`.
 
-- **Khởi tạo:** `i=0` thì tiền tố rỗng, mệnh đề đúng.
-- **Bảo toàn:** nếu `data[i] != target`, tiếp tục sang `i+1` và tiền tố chưa tìm thấy được mở rộng thêm một vị trí.
-- **Nếu tìm thấy:** `data[i] == target`; mọi vị trí trước `i` đã được chứng minh khác target, nên `i` là **vị trí đầu tiên**.
-- **Nếu duyệt hết:** `i=n`, tất cả vị trí đều khác target; trả `-1` là đúng.
+- **Initialization:** for `i=0`, the prefix is empty, so the statement holds.
+- **Maintenance:** if `data[i] != target`, advance to `i+1` and the unfound prefix expands by one position.
+- **If found:** `data[i] == target`; all positions before `i` have been proven different from target, so `i` is the **first position**.
+- **If traversal finishes:** `i=n`, all positions differ from target; returning `-1` is correct.
 
-Ví dụ:
+Example:
 
 ~~~java
 int[] data = {4, 6, 2, 6};
@@ -170,18 +170,18 @@ System.out.println(findFirst(data, 6)); // 1
 System.out.println(findFirst(data, 9)); // -1
 ~~~
 
-Mã trên minh họa logic; phương thức `findFirst` cần nằm cùng lớp hoặc được gọi qua tên lớp chứa phương thức.
+The snippet above illustrates the logic; the `findFirst` method needs to reside in the same class or be invoked via the class containing it.
 
-**Chú ý:** một `return` khi tìm thấy là **kết thúc sớm hợp lệ**. Lập luận đúng đắn khi đó dùng bất biến của tiền tố cộng với điều kiện tìm thấy, không phụ thuộc việc vòng lặp phải chạy đến `i=n`.
+**Note:** a `return` upon finding a match is a **valid early exit**. Correctness reasoning then uses the prefix invariant combined with the found condition, without relying on the loop running all the way to `i=n`.
 
-## 8. Bất biến không đồng nghĩa điều kiện dừng
+## 8. Invariant is not synonymous with stopping condition
 
-Hai điều khác nhau:
+Two different things:
 
-- **Loop invariant:** điều luôn đúng ở điểm kiểm tra được chọn, dùng để chứng minh **tính đúng kết quả**.
-- **Loop variant** (*đại lượng tiến triển*): một đại lượng không âm và giảm dần theo mỗi lượt tiếp tục, thường dùng để chứng minh **kết thúc**.
+- **Loop invariant:** what always holds at the chosen check point, used to prove **correctness of the result**.
+- **Loop variant** (*progress measure*): a non-negative quantity that decreases with each continuing iteration, usually used to prove **termination**.
 
-Ví dụ:
+Example:
 
 ~~~java
 for (int remaining = 3; remaining > 0; remaining--) {
@@ -189,7 +189,7 @@ for (int remaining = 3; remaining > 0; remaining--) {
 }
 ~~~
 
-**Exact stdout:**
+**Exact expected stdout:**
 
 ~~~text
 remaining=3
@@ -197,28 +197,28 @@ remaining=2
 remaining=1
 ~~~
 
-Bất biến: `0 <= remaining && remaining <= 3` ở mỗi đầu lượt, kể cả lúc `remaining=0` và điều kiện đã false. Variant có thể chọn chính `remaining`: khi vẫn lặp, nó là số nguyên dương và mỗi lần update giảm 1, nên cuối cùng đạt 0.
+Invariant: `0 <= remaining && remaining <= 3` at the start of every pass, including when `remaining=0` and the condition has become false. The variant can be `remaining` itself: while still looping, it is a positive integer and each update decreases it by 1, so it eventually reaches 0.
 
-Bất biến **một mình** không ngăn vòng lặp vô hạn:
+An invariant **by itself** does not prevent an infinite loop:
 
 ~~~java
 int i = 0;
 // while (i >= 0) {
-//     // i không đổi, điều kiện luôn true, bất biến i >= 0 vẫn đúng.
+//     // i does not change, condition is always true, invariant i >= 0 still holds.
 // }
 ~~~
 
-Để bảo đảm dừng, phải có **tiến triển thực sự** và xét tác động của `break`, `continue`, phép cập nhật cũng như khả năng tràn số.
+To guarantee stopping, there must be **real progress** and consideration of the effects of `break`, `continue`, updates, and potential overflow.
 
-## 9. `break`, `continue` và bất biến
+## 9. `break`, `continue`, and invariants
 
-Với `for` ba phần:
+For a three-part `for`:
 
-- `continue;` bỏ phần body còn lại nhưng **vẫn chạy update** rồi kiểm tra lượt kế. Bất biến cần được bảo toàn cho mọi đường đi dùng `continue`.
-- `break;` thoát vòng ngay, **không chạy update cuối**. Nếu cần một hậu điều kiện cho nhánh `break`, hãy chứng minh riêng rằng điều kiện tại vị trí break là đủ.
-- `return` kết thúc phương thức; hậu điều kiện của giá trị trả về phải được chứng minh theo đường đi đó.
+- `continue;` skips the rest of the body but **still runs the update** before checking the next iteration. The invariant must be preserved across every path using `continue`.
+- `break;` exits the loop immediately, **without running the final update**. If a postcondition is needed for the `break` branch, prove separately that the condition at the break site is sufficient.
+- `return` exits the method; the return value's postcondition must be proved along that path.
 
-Một lỗi phổ biến:
+A common mistake:
 
 ~~~java
 int[] data = {3, -1, 4};
@@ -232,13 +232,13 @@ for (int i = 0; i < data.length; i++) {
 }
 ~~~
 
-Code này trả **7**, không phải tổng **6** của mảng. Nếu mục tiêu thật sự là **tổng phần tử không âm**, bất biến đúng phải được viết lại: `sum` bằng tổng các giá trị không âm trong tiền tố đã xử lý.
+This code returns **7**, not the array sum **6**. If the actual goal is the **sum of non-negative elements**, the proper invariant must be rewritten: `sum` equals the sum of non-negative values in the processed prefix.
 
-**Bất biến phải phản ánh đúng yêu cầu bài toán và các nhánh điều khiển**, không chỉ giống một mẫu có sẵn.
+**The invariant must accurately reflect the problem requirements and control branches**, not merely resemble a stock template.
 
-## 10. Tác dụng của kiểm tra bất biến khi debug
+## 10. Value of invariant checks during debugging
 
-Bạn có thể tạm tạo một hàm **tính lại tổng tiền tố** rồi so sánh với trạng thái trong mỗi lượt:
+You can temporarily create a method that **recomputes the prefix sum** and compare it with the state on each iteration:
 
 ~~~java
 static long prefixSum(int[] data, int limit) {
@@ -256,7 +256,7 @@ static void requireInvariant(boolean condition) {
 }
 ~~~
 
-Trong thuật toán tính tổng:
+In the summing algorithm:
 
 ~~~java
 for (int i = 0; i < data.length; i++) {
@@ -266,23 +266,23 @@ for (int i = 0; i < data.length; i++) {
 requireInvariant(sum == prefixSum(data, data.length));
 ~~~
 
-- Mỗi lần kiểm tra đầu lượt xác nhận mệnh đề đang được duy trì.
-- Lần kiểm tra **sau vòng lặp** xác nhận mệnh đề ở trạng thái kết thúc.
-- Nếu sai, `IllegalStateException` giúp phát hiện lỗi sớm.
+- Each check at the start of an iteration confirms the statement is being maintained.
+- The check **after the loop** confirms the statement in the terminal state.
+- If false, `IllegalStateException` helps detect bugs early.
 
-**Giới hạn:** phép kiểm tra này chạy một vòng lặp phụ để tính tổng tiền tố, nên tổng chi phí debug có thể từ `O(n)` thành **`O(n²)`**. Chỉ dùng cho bài học, test hoặc dữ liệu nhỏ; trong production nên bỏ hoặc chỉ bật có kiểm soát.
+**Limitation:** this check runs an extra loop to recompute the prefix sum, so total debugging cost can turn from `O(n)` into **`O(n²)`**. Use it only for study, tests, or small data; in production, remove it or enable it only selectively.
 
-Bạn cũng có thể dùng `assert` của Java:
+You can also use Java's `assert`:
 
 ~~~java
 assert sum == prefixSum(data, i) : "bad prefix sum";
 ~~~
 
-Tuy nhiên, Java **tắt assertions theo mặc định**; phải chạy với `java -ea ...` mới kiểm tra. Không dùng `assert` làm cơ chế xác thực dữ liệu bắt buộc hoặc để thay lập luận đúng đắn.
+However, Java **disables assertions by default**; you must run with `java -ea ...` for them to check. Do not use `assert` as mandatory data validation or as a substitute for correctness reasoning.
 
-## 11. Chương trình Java 17 hoàn chỉnh
+## 11. Complete Java 17 program
 
-Tạo file đúng tên **`LoopInvariantDemo.java`**:
+Create a file with the exact name **`LoopInvariantDemo.java`**:
 
 ~~~java
 public final class LoopInvariantDemo {
@@ -404,7 +404,7 @@ public final class LoopInvariantDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal tại thư mục chứa `LoopInvariantDemo.java`. Chỉ dùng thư viện tiêu chuẩn JDK; không cần Maven, Gradle hoặc preview feature.
+**Requirements:** JDK 17 or later, terminal in the directory containing `LoopInvariantDemo.java`. Uses only the JDK standard library; no Maven, Gradle, or preview features required.
 
 **Bash (Linux/macOS):**
 
@@ -455,34 +455,34 @@ remaining=1
 ticks=3
 ~~~
 
-**Đọc kết quả:**
+**Reading the output:**
 
-1. `sum`: trước mỗi lượt, `total` đúng bằng tổng tiền tố đã xử lý; sau vòng, tổng bằng 8.
-2. `max`: `best` là max của các phần tử đã xét; chạy với mảng toàn âm vẫn đúng; mảng rỗng được từ chối.
-3. `findFirst`: trước mỗi lượt kiểm tra rằng không có kết quả ở tiền tố trước `i`; thấy 6 tại vị trí 1 thì trả ngay; không có 9 nên trả -1.
-4. `countdown`: bất biến giới hạn `remaining` được giữ; variant giảm từ 3 xuống 0 nên vòng kết thúc.
-5. Các hàm `prefixSum`/`prefixMax`/vòng kiểm tra tiền tố dùng để **xác minh trong demo**, làm tăng chi phí chạy. Khi tối ưu, giữ nguyên lập luận bất biến nhưng bỏ kiểm tra lặp thừa.
+1. `sum`: before each iteration, `total` equals the sum of the processed prefix; after the loop, the sum is 8.
+2. `max`: `best` is the max of the examined elements; works correctly even with all-negative arrays; empty arrays are rejected.
+3. `findFirst`: before each iteration checks that there is no match in the prefix before `i`; finds 6 at index 1 and returns immediately; 9 is absent so returns -1.
+4. `countdown`: the bound invariant on `remaining` is preserved; the variant decreases from 3 to 0 so the loop terminates.
+5. The `prefixSum`/`prefixMax`/prefix-checking loops serve for **verification in the demo**, increasing runtime cost. When optimizing, keep the invariant reasoning while removing redundant checks.
 
-## 12. Những sai lầm thường gặp
+## 12. Common pitfalls
 
-| Sai lầm | Hệ quả | Cách sửa |
+| Pitfall | Consequence | Fix |
 |---|---|---|
-| Gọi `i < n` là bất biến | Nó sai khi vòng kết thúc bình thường | Dùng `0 <= i <= n` cho giới hạn chỉ số |
-| Viết bất biến chỉ là `sum >= 0` | Không đúng nếu mảng có số âm; không chứng minh tổng | Dùng mệnh đề tổng tiền tố |
-| Giả định bất biến đúng ngay sau mọi câu lệnh | Có thể sai giữa body và update | Xác định rõ điểm kiểm tra đầu lượt |
-| Bỏ qua bước khởi tạo | Mệnh đề không chắc đúng trước lượt đầu | Chứng minh trường hợp tiền tố rỗng/1 phần tử |
-| Chỉ chứng minh bảo toàn mà không nối với hậu điều kiện | Chưa chứng minh kết quả cuối | Ghép bất biến với điều kiện dừng |
-| Có bất biến nhưng không có tiến triển | Vẫn có thể lặp vô hạn | Chọn variant giảm dần, kiểm tra update |
-| Khởi tạo max bằng 0 | Sai với mảng chỉ có số âm | Lấy phần tử đầu, xử lý mảng rỗng |
-| Thêm `continue` nhưng giữ bất biến cũ không phù hợp | Bất biến không phản ánh phần tử bị bỏ | Định nghĩa lại tiền tố đã xử lý / yêu cầu |
-| Dùng `break` rồi kết luận như trường hợp `i=n` | Kết thúc sớm có điều kiện khác | Chứng minh riêng đường `break`/`return` |
-| Kiểm tra bất biến bằng vòng phụ ở mọi lượt trong production | Dễ làm thuật toán `O(n)` thành `O(n²)` | Chỉ dùng trong test/debug |
-| Tin rằng `assert` luôn hoạt động | Mặc định JVM không bật assertions | Dùng `-ea` trong test, không dùng làm kiểm tra bắt buộc |
-| Không xét overflow ở tổng số nguyên | Kết quả có thể khác tổng toán học | Dùng kiểu đủ lớn hoặc kiểm tra overflow |
+| Calling `i < n` an invariant | It becomes false when the loop ends normally | Use `0 <= i <= n` for index bounds |
+| Writing the invariant only as `sum >= 0` | False if the array has negatives; does not prove the sum | Use the prefix-sum statement |
+| Assuming the invariant holds right after every statement | Can be false between body and update | Clearly designate the start-of-pass check point |
+| Skipping the initialization step | Statement is not guaranteed before the first pass | Prove the empty / 1-element prefix case |
+| Proving maintenance without connecting to the postcondition | Does not prove the final result yet | Combine the invariant with the stopping condition |
+| Having an invariant without progress | Can still loop infinitely | Pick a decreasing variant and verify the update |
+| Initializing max to 0 | Wrong for arrays with only negative numbers | Take the first element and handle empty arrays |
+| Adding `continue` while keeping an incompatible old invariant | Invariant does not reflect skipped elements | Redefine the processed prefix / requirement |
+| Using `break` and concluding as if `i=n` | Early exit has a different condition | Prove the `break`/`return` path separately |
+| Checking the invariant with an auxiliary loop on every pass in production | Easily turns an `O(n)` algorithm into `O(n²)` | Use only in tests/debugging |
+| Believing `assert` is always active | By default the JVM disables assertions | Use `-ea` in tests, never rely on assert for mandatory checks |
+| Ignoring overflow in integer sums | Result can differ from the mathematical sum | Use a wide enough type or check for overflow |
 
-## 13. Bài tập có đáp án
+## 13. Exercises with answers
 
-### Bài A — viết bất biến của tổng tiền tố
+### Exercise A — write the prefix sum invariant
 
 ~~~java
 long total = 0;
@@ -491,18 +491,18 @@ for (int i = 0; i < data.length; i++) {
 }
 ~~~
 
-**Đáp án:** tại đầu mỗi lượt, `0 <= i <= data.length` và `total` là tổng `data[0..i-1]`. Sau điều kiện dừng `i=data.length`, tổng là toàn mảng (giả định phép cộng không overflow).
+**Answer:** at the start of each pass, `0 <= i <= data.length` and `total` is the sum of `data[0..i-1]`. After the stopping condition `i=data.length`, the sum covers the entire array (assuming addition does not overflow).
 
-### Bài B — vì sao khởi tạo max bằng 0 sai?
+### Exercise B — why is initializing max to 0 wrong?
 
 ~~~java
 int[] data = {-8, -3, -10};
-int best = 0; // Sai nếu bài toán là max của toàn mảng.
+int best = 0; // Wrong if the problem is max of the entire array.
 ~~~
 
-**Đáp án:** 0 không phải phần tử của mảng và lớn hơn tất cả giá trị. Khởi tạo `best=data[0]`, duyệt từ `i=1`; kết quả đúng là `-3`.
+**Answer:** 0 is not an element of the array and is greater than all its values. Initialize `best=data[0]`, traverse from `i=1`; the right result is `-3`.
 
-### Bài C — bất biến khi tìm phần tử đầu tiên
+### Exercise C — invariant when finding the first element
 
 ~~~java
 for (int i = 0; i < data.length; i++) {
@@ -511,18 +511,18 @@ for (int i = 0; i < data.length; i++) {
 return -1;
 ~~~
 
-**Đáp án:** trước lượt `i`, không phần tử nào trong `data[0..i-1]` bằng target. Khi gặp target, `i` là vị trí đầu tiên; khi duyệt hết, target không có trong mảng.
+**Answer:** before pass `i`, no element in `data[0..i-1]` equals target. When target is encountered, `i` is the first position; when traversal completes, target is not in the array.
 
-### Bài D — bất biến có bảo đảm dừng không?
+### Exercise D — does an invariant guarantee termination?
 
 ~~~java
 int i = 0;
-// while (i == 0) { /* không đổi i */ }
+// while (i == 0) { /* does not change i */ }
 ~~~
 
-**Đáp án:** mệnh đề `i == 0` vẫn đúng nhưng vòng có thể chạy mãi. Muốn chứng minh kết thúc phải có biến tiến triển và điều kiện dừng đạt được.
+**Answer:** the statement `i == 0` stays true, yet the loop can run forever. To prove termination, there must be a progressing variable and a reachable stopping condition.
 
-### Bài E — `continue` thay đổi mục tiêu tính tổng
+### Exercise E — `continue` changes the summing goal
 
 ~~~java
 int[] data = {3, -1, 4};
@@ -534,20 +534,20 @@ for (int i = 0; i < data.length; i++) {
 System.out.println(total);
 ~~~
 
-**Đáp án:** in `7`. Bất biến phù hợp là “tổng các phần tử **không âm** đã xử lý”, không phải tổng mọi phần tử tiền tố.
+**Answer:** prints `7`. The appropriate invariant is “sum of **non-negative** elements processed so far”, not the sum of all prefix elements.
 
-## 14. Checklist và kết luận
+## 14. Checklist and conclusion
 
-- [ ] Phân biệt bất biến vòng lặp với **điều kiện tiếp tục lặp**.
-- [ ] Xác định rõ **điểm** mà bất biến phải đúng (đầu mỗi lượt).
-- [ ] Chứng minh **khởi tạo**, **bảo toàn**, **kết thúc**.
-- [ ] Viết bất biến gắn trực tiếp với kết quả mong muốn, ví dụ tổng/max của tiền tố đã xử lý.
-- [ ] Dùng điều kiện dừng cùng bất biến để suy ra kết quả.
-- [ ] Phân biệt bất biến với **loop variant** dùng để chứng minh kết thúc.
-- [ ] Kiểm tra đường `continue`, `break`, `return` để không giả định sai trạng thái.
-- [ ] Xét trường hợp mảng rỗng, chỉ số biên, số âm và overflow.
-- [ ] Biết công cụ debug có thể xác nhận bất biến trên bộ test nhưng không thay thế chứng minh logic.
-- [ ] Hiểu bật assertions bằng `-ea`; không phụ thuộc assert cho validation bắt buộc.
-- [ ] Chạy `LoopInvariantDemo.java` bằng Java 17+ và đối chiếu exact stdout.
+- [ ] Distinguish a loop invariant from the **loop continuation condition**.
+- [ ] Clearly identify the **point** where the invariant must hold (start of each iteration).
+- [ ] Prove **initialization**, **maintenance**, and **termination**.
+- [ ] Write an invariant tied directly to the desired result, such as sum/max of the processed prefix.
+- [ ] Combine the stopping condition with the invariant to deduce the result.
+- [ ] Distinguish an invariant from a **loop variant** used to prove termination.
+- [ ] Inspect `continue`, `break`, and `return` paths so state is not wrongly assumed.
+- [ ] Consider empty arrays, boundary indices, negative numbers, and overflow.
+- [ ] Know that debugging tools can verify invariants on test suites, but do not replace logical proof.
+- [ ] Understand enabling assertions with `-ea`; do not rely on assert for mandatory validation.
+- [ ] Run `LoopInvariantDemo.java` with Java 17+ and verify exact stdout.
 
-**Kết luận:** Bất biến vòng lặp là **mối liên hệ được giữ qua từng lượt** giữa trạng thái tích lũy và phần dữ liệu đã xử lý. Thiết kế bất biến đủ mạnh, chứng minh nó đúng ở đầu lượt, bảo toàn qua body/update, rồi kết hợp với điều kiện dừng sẽ giải thích **tại sao thuật toán đúng**, chứ không chỉ cho thấy ví dụ chạy đúng.
+**Conclusion:** A loop invariant is **the relationship preserved across every iteration** between accumulated state and the portion of data already processed. Designing a strong enough invariant, proving it holds at the start of a pass, maintaining it across body/update, and combining it with the stopping condition explains **why the algorithm is correct**, rather than merely showing an example that happens to run right.

@@ -1,12 +1,12 @@
-# Thông tin kiểu từ lớp con có superclass được tham số hóa
+# Type Information from a Subclass with a Parameterized Superclass
 
-Khi một lớp kế thừa từ superclass generic và cung cấp tham số kiểu cụ thể, Java có thể lưu **thông tin kiểu của quan hệ kế thừa** trong metadata class file. Reflection cho phép đọc thông tin này bằng `Class.getGenericSuperclass()` và phân tích đối tượng `java.lang.reflect.Type`. Nhờ đó, một framework có thể biết `StringRepository extends Repository<String>` đã khai báo `String` làm đối số kiểu cho `Repository<T>`, dù thông tin đối số kiểu thường bị xóa khỏi kiểu đối tượng ở runtime bởi **type erasure**.
+When a class extends a generic superclass and supplies concrete type arguments, Java can store **type information of the inheritance relationship** in class-file metadata. Reflection lets you read this information via `Class.getGenericSuperclass()` and inspect the `java.lang.reflect.Type` object. As a result, a framework can tell that `StringRepository extends Repository<String>` declared `String` as the type argument for `Repository<T>`, even though type argument information is usually erased from object types at runtime by **type erasure**.
 
-Tuy nhiên, kết quả không phải lúc nào cũng là `Class<?>`: nó có thể là `ParameterizedType`, chứa tiếp `TypeVariable`, `WildcardType` hoặc `GenericArrayType`. Nếu có nhiều cấp kế thừa, Reflection **không tự thay thế** mọi biến kiểu từ các lớp trung gian; muốn suy ra kiểu cuối cùng phải lần theo chuỗi kế thừa và thực hiện ánh xạ biến kiểu.
+However, the result is not always a `Class<?>`: it may be a `ParameterizedType`, which in turn contains `TypeVariable`, `WildcardType`, or `GenericArrayType`. When there are multiple levels of inheritance, Reflection **does not automatically substitute** all type variables from intermediate classes; inferring the final type requires walking the inheritance chain and performing type variable mapping.
 
-## 1. Bài toán: đọc lại đối số kiểu trên quan hệ extends
+## 1. The problem: reading back type arguments on an extends relationship
 
-Xét hai khai báo:
+Consider two declarations:
 
 ```java
 class Repository<T> {
@@ -16,14 +16,14 @@ class StringRepository extends Repository<String> {
 }
 ```
 
-Ở mã nguồn, `StringRepository` đã cố định đối số `T` của superclass thành `String`. Vì vậy ta muốn biết:
+In source code, `StringRepository` fixes the superclass argument `T` to `String`. Thus we want to know:
 
-- Superclass thô (raw superclass) của `StringRepository` là gì?
-- Quan hệ kế thừa có chứa đối số kiểu nào?
-- Đối số đó đã là class cụ thể, hay vẫn là biến kiểu?
-- Có thể suy ra kiểu ở tầng `Repository<T>` nếu có một vài lớp trung gian không?
+- What is the raw superclass of `StringRepository`?
+- Which type arguments does the inheritance relationship contain?
+- Is that argument already a concrete class, or still a type variable?
+- Can we infer the type at the `Repository<T>` level if there are several intermediate classes?
 
-Hai API `Class` có mục đích khác nhau:
+Two `Class` APIs serve different purposes:
 
 ```java
 Class<?> raw = StringRepository.class.getSuperclass();
@@ -31,28 +31,28 @@ java.lang.reflect.Type generic =
         StringRepository.class.getGenericSuperclass();
 ```
 
-Kết quả có ý nghĩa:
+Meaning of the results:
 
-- `getSuperclass()` trả `Repository.class`, là đối tượng `Class<?>` cho superclass trực tiếp; **không giữ đối số `String`**.
-- `getGenericSuperclass()` trả một `Type` đại diện cho `Repository<String>`; trong trường hợp này nó là `ParameterizedType`.
-- Hai cách đọc chỉ xét **superclass trực tiếp**, không tự tìm kiểu generic sâu hơn mọi cấp trong cây kế thừa.
-- Nếu class là `Object.class` hoặc interface không có superclass tương ứng, `getGenericSuperclass()` trả `null`. Nếu superclass được dùng ở dạng raw, kết quả có thể là một `Class<?>` thay vì `ParameterizedType`.
+- `getSuperclass()` returns `Repository.class`, the `Class<?>` object for the direct superclass; it **does not preserve the `String` argument**.
+- `getGenericSuperclass()` returns a `Type` representing `Repository<String>`; in this case it is a `ParameterizedType`.
+- Both approaches inspect only the **direct superclass** and do not automatically search for generic types deeper across all levels of the inheritance tree.
+- If the class is `Object.class` or an interface without a corresponding superclass, `getGenericSuperclass()` returns `null`. If the superclass is used in raw form, the result may be a `Class<?>` instead of a `ParameterizedType`.
 
-Thông tin generic tồn tại trên **declaration** như quan hệ `extends Repository<String>`. Điều này khác việc hỏi một đối tượng `new Repository<String>()` ở runtime xem đối số `T` của nó là gì: với class generic thông thường, `new Repository<String>().getClass()` vẫn chỉ trả `Repository.class`, và không có đối số `String` trong đối tượng `Class` đó.
+Generic information exists on a **declaration** such as the `extends Repository<String>` relationship. This differs from asking an object `new Repository<String>()` at runtime what its `T` argument is: for an ordinary generic class, `new Repository<String>().getClass()` still only returns `Repository.class`, and there is no `String` argument inside that `Class` object.
 
-## 2. Những nhánh cần phân biệt của Type
+## 2. Variants of Type to distinguish
 
-`java.lang.reflect.Type` là giao diện chung cho metadata kiểu. Khi đọc `getGenericSuperclass()`, kết quả cần được kiểm tra bằng `instanceof` rồi mới ép kiểu.
+`java.lang.reflect.Type` is the common interface for type metadata. When reading `getGenericSuperclass()`, the result should be checked with `instanceof` before casting.
 
-| Dạng `Type` | Ví dụ | Ý nghĩa |
+| `Type` variant | Example | Meaning |
 | --- | --- | --- |
-| `Class<?>` | `Object`, `String`, superclass raw | Kiểu được biểu diễn trực tiếp bằng đối tượng `Class`, không kèm đối số tham số hóa ở chính vị trí này |
-| `ParameterizedType` | `Repository<String>`, `List<Integer>` | Raw type cộng các đối số kiểu, và có thể cả owner type |
-| `TypeVariable<?>` | `T` trong `Repository<T>` hoặc `U` từ lớp trung gian | Tham chiếu tới biến kiểu do class, interface hoặc method/constructor khai báo |
-| `WildcardType` | `? extends Number`, `? super Integer` | Đối số kiểu wildcard với giới hạn trên/dưới |
-| `GenericArrayType` | `U[]` trong một khai báo generic | Kiểu mảng mà component là kiểu generic không thể biểu diễn bằng `Class<?>` thông thường |
+| `Class<?>` | `Object`, `String`, raw superclass | A type represented directly by a `Class` object, without parameterized arguments at this exact position |
+| `ParameterizedType` | `Repository<String>`, `List<Integer>` | A raw type plus type arguments, and possibly an owner type |
+| `TypeVariable<?>` | `T` in `Repository<T>` or `U` from an intermediate class | A reference to a type variable declared by a class, interface, or method/constructor |
+| `WildcardType` | `? extends Number`, `? super Integer` | A wildcard type argument with upper/lower bounds |
+| `GenericArrayType` | `U[]` in a generic declaration | An array type whose component is a generic type that cannot be represented by an ordinary `Class<?>` |
 
-Một `ParameterizedType` cung cấp:
+A `ParameterizedType` provides:
 
 ```java
 ParameterizedType p = (ParameterizedType) generic;
@@ -62,18 +62,18 @@ Type[] arguments = p.getActualTypeArguments();
 Type owner = p.getOwnerType();
 ```
 
-Đây là đoạn minh họa khi biến `generic` đã được xác định là `ParameterizedType` và đã import `java.lang.reflect.*`.
+This is an illustrative snippet assuming the variable `generic` has already been verified to be a `ParameterizedType` and `java.lang.reflect.*` has been imported.
 
-- `getRawType()` thường là một `Class<?>`, chẳng hạn `Repository.class`.
-- `getActualTypeArguments()` trả đối số kiểu của quan hệ tham số hóa, ví dụ `String.class` cho `Repository<String>`. Đối số có thể là các dạng `Type` lồng nhau, nên **không được ép mọi phần tử thành `Class<?>`**.
-- `getOwnerType()` có thể quan trọng cho kiểu thành viên nằm bên trong kiểu bao ngoài; các ví dụ top-level/nested static thông thường không cần dựa vào owner.
-- Số đối số của một `ParameterizedType` có thể bằng 0 trong một số cấu trúc owner/nested type; không nên giả định mọi `ParameterizedType` đều có đúng một đối số.
+- `getRawType()` is typically a `Class<?>`, such as `Repository.class`.
+- `getActualTypeArguments()` returns the type arguments of the parameterized relationship, e.g., `String.class` for `Repository<String>`. Arguments may be nested `Type` forms, so **do not cast every element to `Class<?>`**.
+- `getOwnerType()` can matter for a member type nested inside an enclosing type; typical top-level/static nested examples do not need to rely on owner.
+- The number of arguments of a `ParameterizedType` can be 0 in certain owner/nested type structures; do not assume every `ParameterizedType` has exactly one argument.
 
-Với `TypeVariable<?> v`, `v.getName()` cho biết tên biến; `v.getBounds()` cho biết upper bounds khai báo. Nhưng **bounds không phải giá trị kiểu cụ thể được cung cấp bởi lớp con**. Ví dụ `T extends Number` chỉ nêu ràng buộc, không cho phép tự kết luận `T = Integer`.
+For a `TypeVariable<?> v`, `v.getName()` gives the variable name; `v.getBounds()` gives the declared upper bounds. However, **bounds are not the concrete type value supplied by a subclass**. For example, `T extends Number` only states a constraint and does not allow concluding `T = Integer`.
 
-## 3. Chương trình Java 17+ hoàn chỉnh
+## 3. Complete Java 17+ program
 
-Tạo file `GenericSuperclassDemo.java` như sau:
+Create the file `GenericSuperclassDemo.java` as follows:
 
 ```java
 import java.lang.reflect.GenericArrayType;
@@ -217,14 +217,14 @@ public class GenericSuperclassDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or higher:
 
 ```bash
 javac GenericSuperclassDemo.java
 java GenericSuperclassDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 StringBox: raw=Box, generic=Box<String>
@@ -246,26 +246,26 @@ mapping: U -> Integer
 resolved Box argument: List<Integer>
 ```
 
-Chương trình tự định dạng `Type` để hiển thị tên ngắn, tránh phụ thuộc vào tên class nội bộ của JDK dùng để hiện thực `ParameterizedType` và tránh in thứ tự mảng Reflection không được bảo đảm. Khi xử lý ứng dụng thật, nên giữ nguyên `Type` để phân tích cấu trúc, chỉ chuyển thành chuỗi khi hiển thị.
+The program formats `Type` itself to display short names, avoiding reliance on JDK internal class names used to implement `ParameterizedType` and avoiding printing unguaranteed Reflection array ordering. In real applications, keep the `Type` intact for structural analysis and only convert to strings for display.
 
-## 4. Phân tích chi tiết output
+## 4. Detailed output analysis
 
-### Trường hợp superclass được tham số hóa cụ thể
+### Case of a concretely parameterized superclass
 
-`StringBox extends Box<String>` nên:
+`StringBox extends Box<String>`, so:
 
 ```java
 Type type = StringBox.class.getGenericSuperclass();
 boolean hasTypeArguments = type instanceof ParameterizedType; // true
 ```
 
-Ở đây `((ParameterizedType) type).getRawType() == Box.class` và `getActualTypeArguments()[0] == String.class`. Loại đối số là `Class<?>`.
+Here `((ParameterizedType) type).getRawType() == Box.class` and `getActualTypeArguments()[0] == String.class`. The argument kind is `Class<?>`.
 
-### Trường hợp lớp trung gian vẫn generic
+### Case where an intermediate class is still generic
 
-`Layer<U> extends Box<List<U>>` cho `getGenericSuperclass()` là `Box<List<U>>`, nhưng đối số đầu tiên không phải `Class<List>`. Nó là **`ParameterizedType` biểu diễn `List<U>`**. Trong đối số của `List<U>`, `U` là **`TypeVariable<?>`**.
+`Layer<U> extends Box<List<U>>` yields `Box<List<U>>` from `getGenericSuperclass()`, but the first argument is not `Class<List>`. It is a **`ParameterizedType` representing `List<U>`**. Inside the argument of `List<U>`, `U` is a **`TypeVariable<?>`**.
 
-Cách ép:
+Casting as:
 
 ```java
 Class<?> wrong =
@@ -274,27 +274,27 @@ Class<?> wrong =
                 .getActualTypeArguments()[0];
 ```
 
-là **sai tại runtime**: phần tử ở vị trí đó là `ParameterizedType`, do đó có thể ném `ClassCastException`. Phải kiểm tra `instanceof` và duyệt các tầng `Type` lồng nhau.
+is **wrong at runtime**: the element at that position is a `ParameterizedType`, so it will throw `ClassCastException`. You must check with `instanceof` and traverse nested `Type` layers.
 
-### Trường hợp raw superclass
+### Case of a raw superclass
 
-`RawBox extends Box` cố ý dùng raw type. `getGenericSuperclass()` trả về `Box.class` — một `Class<?>`, không có `getActualTypeArguments()` để truy ngược kiểu `T`.
+`RawBox extends Box` intentionally uses a raw type. `getGenericSuperclass()` returns `Box.class` — a `Class<?>`, which has no `getActualTypeArguments()` to trace back the type `T`.
 
-Không được giả sử `T = Object` là “đối số kiểu khai báo từ lớp con”. Khi dùng raw type, thông tin đối số đã không được ghi ở quan hệ `extends`. Bounds của `T` có thể gợi ý tính hợp lệ của kiểu, nhưng không phục hồi giá trị generic đã bị bỏ.
+Do not assume `T = Object` is "the type argument declared by the subclass". When using a raw type, type argument information was never recorded on the `extends` relationship. The bounds of `T` may hint at type validity, but they do not recover a generic value that was omitted.
 
-### Mảng generic và mảng kiểu cụ thể
+### Generic arrays and concrete-type arrays
 
-`ArrayBox extends Box<String[]>` có đối số `String[].class`, chính là một `Class<?>` của array type.
+`ArrayBox extends Box<String[]>` has argument `String[].class`, which is itself a `Class<?>` of an array type.
 
-`GenericArrayBox<U> extends Box<U[]>` lại có đối số kiểu `GenericArrayType`, với component type là biến kiểu `U`. Sự khác biệt này quan trọng khi viết serializer hoặc type resolver cho generic arrays. Không thể ép `U[]` thành `Class<?>` khi `U` còn chưa được ràng buộc.
+`GenericArrayBox<U> extends Box<U[]>` instead has a `GenericArrayType` argument, whose component type is the type variable `U`. This distinction matters when writing serializers or type resolvers for generic arrays. You cannot cast `U[]` to `Class<?>` while `U` is still unbound.
 
-### Wildcard lồng nhau
+### Nested wildcards
 
-`NumberListBox extends Box<List<? extends Number>>` có đối số cấp ngoài là `ParameterizedType` mô tả `List<? extends Number>`. Phần tử bên trong `List` là `WildcardType`. Sử dụng `getUpperBounds()` và `getLowerBounds()` để biết giới hạn; không coi wildcard là một `Class<?>` hoặc kiểu thực tế duy nhất.
+`NumberListBox extends Box<List<? extends Number>>` has an outer argument that is a `ParameterizedType` describing `List<? extends Number>`. The element inside `List` is a `WildcardType`. Use `getUpperBounds()` and `getLowerBounds()` to inspect bounds; do not treat a wildcard as a `Class<?>` or a single concrete type.
 
-## 5. Qua nhiều cấp kế thừa: tự ánh xạ TypeVariable
+## 5. Across multiple inheritance levels: mapping TypeVariable manually
 
-Đây là phần dễ gây nhầm nhất:
+This is the most confusing part:
 
 ```java
 class Box<T> {
@@ -307,28 +307,28 @@ class IntegerLayer extends Layer<Integer> {
 }
 ```
 
-Gọi:
+Calling:
 
 ```java
 Type type = IntegerLayer.class.getGenericSuperclass();
 ```
 
-chỉ nhận được **`Layer<Integer>`**, do superclass trực tiếp của `IntegerLayer` là `Layer`. Gọi tiếp:
+only receives **`Layer<Integer>`**, because `IntegerLayer`'s direct superclass is `Layer`. Calling next:
 
 ```java
 Type type2 = Layer.class.getGenericSuperclass();
 ```
 
-nhận **`Box<List<U>>`**, với `U` vẫn là biến kiểu, chứ không tự thành `Box<List<Integer>>`. Đó là hai declaration riêng, Reflection không thay biến của declaration thứ hai theo mapping phát hiện được ở declaration thứ nhất.
+receives **`Box<List<U>>`**, where `U` is still a type variable rather than automatically becoming `Box<List<Integer>>`. Those are two separate declarations, and Reflection does not substitute variables of the second declaration using mappings discovered in the first.
 
-Để suy ra đối số cuối cùng của `Box<T>`, thực hiện:
+To infer the final argument of `Box<T>`, perform:
 
-1. Đọc `IntegerLayer extends Layer<Integer>`: đối số của `Layer<U>` là `Integer`, do đó lập mapping **`U → Integer`**.
-2. Đọc `Layer<U> extends Box<List<U>>`: đối số của `Box<T>` là biểu thức kiểu **`List<U>`**.
-3. Thay `U` bằng `Integer` trong biểu thức trên: **`List<Integer>`**.
-4. Kết luận đối số `T` của `Box<T>` ở quan hệ kế thừa được suy ra là **`List<Integer>`**.
+1. Read `IntegerLayer extends Layer<Integer>`: the argument of `Layer<U>` is `Integer`, so establish the mapping **`U → Integer`**.
+2. Read `Layer<U> extends Box<List<U>>`: the argument of `Box<T>` is the type expression **`List<U>`**.
+3. Substitute `U` with `Integer` in the expression above: **`List<Integer>`**.
+4. Conclude that the argument `T` of `Box<T>` in the inheritance relationship resolves to **`List<Integer>`**.
 
-Trong chương trình chạy được ở mục 3, ví dụ chỉ giải một cấp mapping đơn giản. Với công cụ tổng quát, cần xử lý nhiều biến và nhiều cấp, chẳng hạn:
+In the runnable program in section 3, the example only resolves one simple mapping level. For a general-purpose tool, multiple variables and multiple levels must be handled, for instance:
 
 ```java
 class Pair<A, B> {
@@ -341,24 +341,24 @@ class FinalPair extends Intermediate<String, Integer> {
 }
 ```
 
-Đây là đoạn minh họa. Mapping ban đầu là `X → String` và `Y → Integer`, nên `FinalPair` nhìn từ `Pair<A,B>` tương ứng `Pair<Integer, List<String>>`.
+This is an illustrative snippet. The initial mappings are `X → String` and `Y → Integer`, so `FinalPair` viewed from `Pair<A,B>` corresponds to `Pair<Integer, List<String>>`.
 
-Để xây resolver đúng cho lớp bất kỳ, nên giữ một `Map<TypeVariable<?>, Type>` thay vì chỉ dựa vào tên biến như `"T"`. Hai class khác nhau có thể cùng khai báo biến `T` nhưng đó là **hai `TypeVariable` thuộc hai `GenericDeclaration` khác nhau**. Nếu chỉ map chuỗi tên, dễ thay sai biến.
+To build a correct resolver for an arbitrary class, maintain a `Map<TypeVariable<?>, Type>` instead of relying solely on variable names like `"T"`. Two different classes may both declare a variable `T`, yet those are **two distinct `TypeVariable`s belonging to two different `GenericDeclaration`s**. Mapping by name string alone easily substitutes the wrong variable.
 
-Một thuật toán tổng quát:
+A general algorithm:
 
-- Bắt đầu từ `Class<?>` lớp con.
-- Ở mỗi bước, lấy `getGenericSuperclass()`. Nếu là `ParameterizedType`, lấy raw superclass và ghép danh sách `rawClass.getTypeParameters()` với `getActualTypeArguments()` theo vị trí.
-- Trước khi lưu mapping mới, **thay thế đệ quy** những `TypeVariable` đã có mapping từ các cấp con trong từng đối số.
-- Tiếp tục tới superclass tiếp theo cho tới lớp generic đích hoặc `Object`.
-- Khi gặp `ParameterizedType`, `GenericArrayType` hoặc `WildcardType` lồng nhau, phải thay thế trong cấu trúc con; không chỉ thay nếu đối số trực tiếp là `TypeVariable`.
-- Nếu gặp raw edge, biến không có mapping hoặc chuỗi kế thừa không đi tới target, **giữ trạng thái chưa phân giải** thay vì đoán một `Class<?>` cụ thể.
+- Start from the subclass `Class<?>`.
+- At each step, call `getGenericSuperclass()`. If it is a `ParameterizedType`, obtain the raw superclass and pair `rawClass.getTypeParameters()` with `getActualTypeArguments()` by position.
+- Before storing new mappings, **recursively substitute** any `TypeVariable`s already mapped from child levels inside each argument.
+- Continue to the next superclass until reaching the target generic class or `Object`.
+- When encountering nested `ParameterizedType`, `GenericArrayType`, or `WildcardType`, substitute inside their sub-structures as well; do not substitute only when an argument is directly a `TypeVariable`.
+- If you hit a raw edge, an unmapped variable, or an inheritance chain that does not reach the target, **preserve the unresolved state** rather than guessing a concrete `Class<?>`.
 
-Nếu công cụ cần xuất ra một đối tượng `Type` hoàn chỉnh sau thay thế, hãy dùng biểu diễn Type phù hợp hoặc thư viện resolver đã được kiểm chứng, đồng thời kiểm tra compatibility với JDK/module path. Việc tạo string `"List<Integer>"` chỉ để in demo **không tương đương** đã xây xong một `ParameterizedType` đúng ngữ nghĩa.
+If a tool needs to output a complete `Type` object after substitution, use an appropriate `Type` representation or a proven resolver library, and check compatibility with the JDK/module path. Constructing a string `"List<Integer>"` solely for demo printing **is not equivalent** to building a semantically valid `ParameterizedType`.
 
-## 6. Phân biệt TypeVariable, bounds và đối số thực tế
+## 6. Distinguishing TypeVariable, bounds, and actual arguments
 
-Xét:
+Consider:
 
 ```java
 class NumericBox<T extends Number> {
@@ -371,27 +371,27 @@ class StillGeneric<N extends Number> extends NumericBox<N> {
 }
 ```
 
-Các trường hợp:
+Cases:
 
-- `LongBox.class.getGenericSuperclass()` là `NumericBox<Long>`; argument là `Long.class`, đã cụ thể.
-- `StillGeneric.class.getGenericSuperclass()` là `NumericBox<N>`; argument là `TypeVariable<N>`, chưa chọn `Integer`, `Long` hay loại số nào.
-- `N.getBounds()` chỉ cho biết upper bound `Number`. Nó **không nói** lớp con đã chọn `Number` làm actual type argument.
-- Với `NumericBox<T>`, `NumericBox.class.getTypeParameters()` trả về danh sách biến kiểu do `NumericBox` khai báo, ví dụ `T`. Đây là **type parameter declaration**, khác `getActualTypeArguments()` của quan hệ `extends NumericBox<Long>`.
+- `LongBox.class.getGenericSuperclass()` is `NumericBox<Long>`; the argument is `Long.class`, already concrete.
+- `StillGeneric.class.getGenericSuperclass()` is `NumericBox<N>`; the argument is `TypeVariable<N>`, without choosing `Integer`, `Long`, or any specific numeric type.
+- `N.getBounds()` only reports the upper bound `Number`. It **does not say** the subclass chose `Number` as the actual type argument.
+- For `NumericBox<T>`, `NumericBox.class.getTypeParameters()` returns the list of type variables declared by `NumericBox`, e.g., `T`. This is the **type parameter declaration**, distinct from `getActualTypeArguments()` of the `extends NumericBox<Long>` relationship.
 
-Trong code generic có nhiều cấp, có thể một biến kiểu vẫn chưa được giải xong. Trường hợp đó, kết quả hợp lệ của resolver có thể là một `TypeVariable<?>`, không nhất thiết là `Class<?>`. Chỉ ép về class khi chắc chắn đã đạt một concrete type là `Class<?>`.
+In multi-level generic code, a type variable may remain unresolved. In that case, a valid resolver result can be a `TypeVariable<?>`, not necessarily a `Class<?>`. Only narrow to a class when you are certain a concrete `Class<?>` type has been reached.
 
-## 7. Anonymous subclass và kỹ thuật type token
+## 7. Anonymous subclasses and the type token technique
 
-Cách tạo object trực tiếp:
+Direct object instantiation:
 
 ```java
 Box<String> value = new Box<String>();
 Type generic = value.getClass().getGenericSuperclass();
 ```
 
-không khôi phục được đối số `String`: lớp runtime của `value` vẫn là `Box.class`, và superclass của `Box` là `Object`.
+cannot recover the `String` argument: the runtime class of `value` is still `Box.class`, and `Box`'s superclass is `Object`.
 
-Nhưng nếu tạo **anonymous subclass** có superclass generic cụ thể:
+However, if you create an **anonymous subclass** with a concrete generic superclass:
 
 ```java
 Box<String> value = new Box<String>() {};
@@ -400,7 +400,7 @@ Type generic = value.getClass().getGenericSuperclass();
 boolean captured = generic instanceof ParameterizedType; // true
 ```
 
-đây là đoạn minh họa có lớp `Box<T>` từ ví dụ trước. Anonymous class thực sự **extends `Box<String>`**, nên generic superclass signature của chính anonymous class có thể chứa `String`. Kỹ thuật này là nền tảng cho các **type token**:
+this is an illustrative snippet using the `Box<T>` class from the earlier example. The anonymous class actually **extends `Box<String>`**, so the generic superclass signature of the anonymous class itself can contain `String`. This technique is the foundation for **type tokens**:
 
 ```java
 abstract class TypeToken<T> {
@@ -421,20 +421,20 @@ abstract class TypeToken<T> {
 }
 ```
 
-Đây là lớp **minh họa** cần import `java.lang.reflect.Type` và `ParameterizedType`. Ví dụ sử dụng:
+This is an **illustrative** class requiring `import java.lang.reflect.Type` and `ParameterizedType`. Usage example:
 
 ```java
 TypeToken<List<String>> token = new TypeToken<List<String>>() {};
-Type captured = token.type(); // Metadata của List<String>
+Type captured = token.type(); // Metadata of List<String>
 ```
 
-**Giới hạn cần hiểu:** type token này đọc **superclass trực tiếp của anonymous subclass**, đúng với mẫu khởi tạo đã nêu. Nếu thêm một lớp trung gian giữa anonymous class và `TypeToken<T>`, cần resolver qua nhiều cấp. Một type token kiểu này cũng không thể tự biến biến kiểu chưa ràng buộc ở nơi gọi thành kiểu cụ thể; ví dụ nếu mã bao ngoài vẫn generic `<U>` thì token có thể chứa `TypeVariable<U>`.
+**Important limitation to understand:** this type token reads the **direct superclass of the anonymous subclass**, matching the shown instantiation pattern. If you add an intermediate class between the anonymous class and `TypeToken<T>`, a multi-level resolver is required. A type token like this also cannot turn an unbound type variable at the call site into a concrete type; for example, if the enclosing code is still generic in `<U>`, the token may contain `TypeVariable<U>`.
 
-Type erasure vẫn tồn tại. Type token chỉ tận dụng metadata của **generic superclass declaration cụ thể**, không làm mọi instance generic tự mang runtime type arguments.
+Type erasure still exists. A type token only leverages metadata from a **concrete generic superclass declaration**; it does not make every generic instance automatically carry runtime type arguments.
 
-## 8. Superclass khác interface generic
+## 8. Superclasses differ from generic interfaces
 
-`getGenericSuperclass()` đi theo **nhánh class extends**, không thay thế việc đọc quan hệ implements hoặc extends interface.
+`getGenericSuperclass()` follows the **class extends branch** and does not replace reading `implements` or interface `extends` relationships.
 
 ```java
 interface Handler<T> {
@@ -444,19 +444,19 @@ class TextHandler implements Handler<String> {
 }
 ```
 
-Đây là đoạn minh họa. `TextHandler.class.getGenericSuperclass()` trả `Object.class` vì superclass trực tiếp của class là `Object`. Muốn xem `Handler<String>`, hãy dùng:
+This is an illustrative snippet. `TextHandler.class.getGenericSuperclass()` returns `Object.class` because the class's direct superclass is `Object`. To inspect `Handler<String>`, use:
 
 ```java
 Type[] interfaces = TextHandler.class.getGenericInterfaces();
 ```
 
-Kết quả có một `ParameterizedType` tương ứng `Handler<String>`. Với interface kế thừa nhiều interface khác, cần duyệt riêng cây superinterfaces và ánh xạ type variables dọc các cạnh đó.
+The result contains a `ParameterizedType` corresponding to `Handler<String>`. When an interface extends multiple other interfaces, you must traverse the superinterface tree separately and map type variables along those edges.
 
-Nếu mục tiêu là tìm một supertype generic bất kể nó nằm trong đường `extends class` hay `implements interface`, resolver phải xem **cả `getGenericSuperclass()` và `getGenericInterfaces()`**, và tránh lặp khi một interface xuất hiện qua nhiều nhánh.
+If the goal is to find a generic supertype regardless of whether it lies on an `extends class` path or an `implements interface` path, the resolver must inspect **both `getGenericSuperclass()` and `getGenericInterfaces()`**, and avoid infinite loops or redundant work when an interface appears through multiple paths.
 
-## 9. Kiểm tra trước khi lấy actual type arguments
+## 9. Checks before retrieving actual type arguments
 
-Một lỗi phổ biến:
+A common mistake:
 
 ```java
 ParameterizedType p = (ParameterizedType)
@@ -465,13 +465,13 @@ Class<?> argument = (Class<?>)
         p.getActualTypeArguments()[0];
 ```
 
-Đây là đoạn minh họa; nó chỉ chạy an toàn nếu:
+This is an illustrative snippet; it only runs safely if:
 
-1. `getGenericSuperclass()` thực sự trả `ParameterizedType`, không phải `Class<?>` hoặc `null`.
-2. Mảng actual type arguments đủ dài để truy cập chỉ số 0.
-3. Đối số đầu là `Class<?>`, không phải nested `ParameterizedType`, `TypeVariable<?>` hay `GenericArrayType`.
+1. `getGenericSuperclass()` actually returns a `ParameterizedType`, not `Class<?>` or `null`.
+2. The actual type arguments array is long enough to access index 0.
+3. The first argument is a `Class<?>`, not a nested `ParameterizedType`, `TypeVariable<?>`, or `GenericArrayType`.
 
-Viết code có kiểm tra:
+Write checked code:
 
 ```java
 Type parent = child.getGenericSuperclass();
@@ -489,59 +489,59 @@ if (parent instanceof ParameterizedType p) {
 }
 ```
 
-Đây là **đoạn minh họa**, biến `child` cần là `Class<?>` hợp lệ và đã import `java.lang.reflect.Type`, `ParameterizedType`. Khi thư viện yêu cầu một kiểu cụ thể, không nên âm thầm fallback về `Object.class` đối với `TypeVariable` chưa giải được; cần trả lỗi rõ ràng hoặc giữ `Type` để tầng gọi quyết định.
+This is an **illustrative snippet**; `child` must be a valid `Class<?>` and `java.lang.reflect.Type` and `ParameterizedType` must be imported. When a library requires a concrete type, it should not silently fall back to `Object.class` for an unresolved `TypeVariable`; it should report a clear error or preserve the `Type` for the calling layer to decide.
 
-Khi đọc generic signature từ bytecode, Reflection có thể gặp `GenericSignatureFormatError` nếu chữ ký không hợp lệ, `TypeNotPresentException` nếu metadata nhắc tới kiểu không có sẵn, hoặc `MalformedParameterizedTypeException` với cấu trúc tham số không tạo được. Vì vậy công cụ xử lý class bên ngoài hoặc plugin phải có đường báo lỗi metadata, thay vì giả định mọi class file luôn có chữ ký hợp lệ và đầy đủ.
+When reading generic signatures from bytecode, Reflection can encounter `GenericSignatureFormatError` if the signature is invalid, `TypeNotPresentException` if the metadata references an unavailable type, or `MalformedParameterizedTypeException` for a parameterized structure that cannot be instantiated. Therefore, tools processing external classes or plugins must have metadata error-reporting paths instead of assuming every class file always has a valid and complete signature.
 
-## 10. Phân biệt type erasure và metadata đã lưu
+## 10. Distinguishing type erasure from stored metadata
 
-Type erasure không có nghĩa *mọi* thông tin generic đều bị xóa sạch. JVM thường thực thi trên raw classes, nhưng compiler có thể lưu **generic signature** trong class file để Reflection đọc lại:
+Type erasure does not mean *all* generic information is wiped out. The JVM usually executes on raw classes, yet the compiler can store **generic signatures** in the class file for Reflection to read back:
 
-| Tình huống | Reflection có thể biết gì? |
+| Situation | What can Reflection know? |
 | --- | --- |
-| `new Box<String>()` | Runtime class là `Box.class`; không biết riêng đối số `String` từ chính instance |
-| `class StringBox extends Box<String>` | Có thể đọc `Box<String>` từ `StringBox.class.getGenericSuperclass()` |
-| `class Layer<U> extends Box<List<U>>` | Đọc `Box<List<U>>` nhưng `U` vẫn là biến kiểu |
-| `class IntegerLayer extends Layer<Integer>` | Đọc `Layer<Integer>`; muốn đi sâu phải thay thế `U` trên cạnh tiếp theo |
-| `class RawBox extends Box` | Không có actual type argument được khai báo trên raw edge |
-| `class StringHandler implements Handler<String>` | Phải đọc qua `getGenericInterfaces()` |
+| `new Box<String>()` | Runtime class is `Box.class`; cannot know the `String` argument from the instance itself |
+| `class StringBox extends Box<String>` | Can read `Box<String>` from `StringBox.class.getGenericSuperclass()` |
+| `class Layer<U> extends Box<List<U>>` | Reads `Box<List<U>>`, though `U` remains a type variable |
+| `class IntegerLayer extends Layer<Integer>` | Reads `Layer<Integer>`; going deeper requires substituting `U` along the next edge |
+| `class RawBox extends Box` | No actual type argument is declared on the raw edge |
+| `class StringHandler implements Handler<String>` | Must be read via `getGenericInterfaces()` |
 
-Đối với framework serializer/ORM/DI, vấn đề thiết kế thường là **giữ được `Type` đúng biểu thức** trước khi cố lấy `Class<?>`. Các kiểu như `List<String>` và `List<Integer>` có cùng raw type `List.class` nhưng khác type argument, có thể ảnh hưởng quy tắc deserialize và validation.
+For serializer/ORM/DI frameworks, the design problem is usually **preserving the exact `Type` expression** before attempting to extract `Class<?>`. Types such as `List<String>` and `List<Integer>` share the same raw type `List.class` yet differ in type arguments, which can affect deserialization and validation rules.
 
-## 11. Những nhầm lẫn thường gặp
+## 11. Common misconceptions
 
-| Nhầm lẫn | Sự thật |
+| Misconception | Fact |
 | --- | --- |
-| `getSuperclass()` trả đối số generic của superclass | Nó trả `Class<?>` raw; muốn giữ signature dùng `getGenericSuperclass()` |
-| `getGenericSuperclass()` luôn là `ParameterizedType` | Có thể là `Class<?>` hoặc `null` |
-| Mọi `getActualTypeArguments()[i]` đều là `Class<?>` | Có thể là `ParameterizedType`, `TypeVariable`, `GenericArrayType`, `WildcardType` |
-| `Layer<U> extends Box<List<U>>` có đối số `List.class` | Đối số thực là biểu thức `List<U>`, tức `ParameterizedType` |
-| `IntegerLayer extends Layer<Integer>` khiến `Layer.class.getGenericSuperclass()` tự đổi thành `Box<List<Integer>>` | Metadata của `Layer.class` vẫn là `Box<List<U>>`; phải ánh xạ `U → Integer` |
-| Bound `T extends Number` có nghĩa actual type là `Number` | Bounds là ràng buộc của biến kiểu, không phải giá trị type argument lớp con đã chọn |
-| Lớp raw `extends Box` có thể suy ra argument chính xác từ `Box.class` | Raw edge không ghi actual type argument |
-| `new Box<String>().getClass()` nhớ được `String` | Runtime class vẫn là `Box.class`; khác với anonymous subclass type token |
-| `getGenericSuperclass()` tự xử lý `implements Handler<String>` | Muốn đọc interface dùng `getGenericInterfaces()` |
-| Dùng tên biến `"T"` làm khóa resolver | Biến `T` ở hai generic declarations khác nhau có thể là hai biến khác nhau |
-| Một `Type.getTypeName()` đủ để dùng làm runtime class | Type có thể chứa cấu trúc generic chưa giải; đừng coi chuỗi hiển thị là `Class<?>` |
-| Class file luôn chứa metadata generic hợp lệ | Metadata có thể thiếu/hỏng hoặc nhắc tới type không tìm thấy; cần xử lý lỗi |
+| `getSuperclass()` returns the generic arguments of the superclass | It returns the raw `Class<?>`; to keep the signature use `getGenericSuperclass()` |
+| `getGenericSuperclass()` is always a `ParameterizedType` | It can be `Class<?>` or `null` |
+| Every `getActualTypeArguments()[i]` is a `Class<?>` | It may be `ParameterizedType`, `TypeVariable`, `GenericArrayType`, or `WildcardType` |
+| `Layer<U> extends Box<List<U>>` has argument `List.class` | The actual argument is the expression `List<U>`, i.e. a `ParameterizedType` |
+| `IntegerLayer extends Layer<Integer>` makes `Layer.class.getGenericSuperclass()` automatically become `Box<List<Integer>>` | `Layer.class` metadata is still `Box<List<U>>`; you must map `U → Integer` |
+| Bound `T extends Number` means the actual type is `Number` | Bounds are constraints on the type variable, not the type argument chosen by the subclass |
+| A raw `extends Box` class can infer the exact argument from `Box.class` | A raw edge records no actual type argument |
+| `new Box<String>().getClass()` remembers `String` | The runtime class is still `Box.class`; unlike an anonymous subclass type token |
+| `getGenericSuperclass()` automatically handles `implements Handler<String>` | To read interfaces use `getGenericInterfaces()` |
+| Using variable name `"T"` as the resolver key | Variable `T` in two different generic declarations can be two distinct variables |
+| A `Type.getTypeName()` suffices as a runtime class | A Type may hold unresolved generic structure; do not treat the display string as `Class<?>` |
+| Class files always contain valid generic metadata | Metadata may be missing/corrupt or reference a missing type; error handling is needed |
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-Dựa trên các lớp ở mục 3:
+Based on the classes in section 3:
 
-1. **`StringBox.class.getSuperclass()` trả gì?** `Box.class`, không có đối số kiểu.
-2. **`StringBox.class.getGenericSuperclass()` thuộc dạng nào?** `ParameterizedType` biểu diễn `Box<String>`.
-3. **Đối số đầu của `Layer.class.getGenericSuperclass()` là gì?** `ParameterizedType` biểu diễn `List<U>`; bên trong có `TypeVariable<U>`.
-4. **`IntegerLayer.class.getGenericSuperclass()` có phải `Box<List<Integer>>` không?** Không; nó chỉ là superclass trực tiếp `Layer<Integer>`.
-5. **Muốn suy ra argument của `Box<T>` nhìn từ `IntegerLayer`, cần làm gì?** Lần theo `IntegerLayer → Layer → Box` và thay `U → Integer` để nhận biểu thức `List<Integer>`.
-6. **`RawBox.class.getGenericSuperclass()` có `getActualTypeArguments()` không?** Không, kết quả là `Class<?>` biểu diễn `Box`.
-7. **Đối số của `Box<U[]>` có bắt buộc là `Class<?>` không?** Không; `U[]` được mô tả bằng `GenericArrayType` khi `U` chưa được ràng buộc.
-8. **`new Box<String>()` và `new Box<String>() {}` khác nhau ở đâu?** Vế thứ hai tạo anonymous subclass khai báo `extends Box<String>`; generic superclass metadata của anonymous class có thể lưu `String`.
-9. **Một class `implements Handler<String>` nhưng không extends class generic, đọc thông tin kiểu ở đâu?** `getGenericInterfaces()`.
+1. **What does `StringBox.class.getSuperclass()` return?** `Box.class`, with no type arguments.
+2. **What kind is `StringBox.class.getGenericSuperclass()`?** A `ParameterizedType` representing `Box<String>`.
+3. **What is the first argument of `Layer.class.getGenericSuperclass()`?** A `ParameterizedType` representing `List<U>`; inside it is `TypeVariable<U>`.
+4. **Is `IntegerLayer.class.getGenericSuperclass()` equal to `Box<List<Integer>>`?** No; it is only the direct superclass `Layer<Integer>`.
+5. **To infer the argument of `Box<T>` viewed from `IntegerLayer`, what must you do?** Follow `IntegerLayer → Layer → Box` and substitute `U → Integer` to obtain the expression `List<Integer>`.
+6. **Does `RawBox.class.getGenericSuperclass()` have `getActualTypeArguments()`?** No, the result is a `Class<?>` representing `Box`.
+7. **Must the argument of `Box<U[]>` be a `Class<?>`?** No; `U[]` is described by a `GenericArrayType` when `U` is still unbound.
+8. **Where do `new Box<String>()` and `new Box<String>() {}` differ?** The second creates an anonymous subclass declaring `extends Box<String>`; the generic superclass metadata of the anonymous class can retain `String`.
+9. **If a class `implements Handler<String>` without extending a generic class, where do you read the type information?** `getGenericInterfaces()`.
 
-**Ghi nhớ:** `getGenericSuperclass()` cho bạn **biểu thức generic của superclass trực tiếp**. Khi biểu thức đó được tham số hóa, `ParameterizedType.getActualTypeArguments()` cho các `Type` thành phần. Với nhiều tầng kế thừa, giữ cấu trúc `Type` và ánh xạ `TypeVariable` qua từng cạnh; chỉ kết luận một `Class<?>` cụ thể khi metadata thật sự đủ căn cứ.
+**Remember:** `getGenericSuperclass()` gives you the **generic expression of the direct superclass**. When that expression is parameterized, `ParameterizedType.getActualTypeArguments()` gives its component `Type`s. Across multiple inheritance levels, preserve the `Type` structure and map `TypeVariable`s across each edge; only conclude a concrete `Class<?>` when the metadata truly justifies it.
 
-### Tài liệu tham khảo
+### References
 
 - [Java SE 17 — Class.getGenericSuperclass()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getGenericSuperclass())
 - [Java SE 17 — ParameterizedType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/ParameterizedType.html)

@@ -1,6 +1,6 @@
-# Switch expression trả về một giá trị — Java 17+
+# Switch Expressions Returning a Value — Java 17+
 
-Từ Java 14, `switch` không chỉ là **câu lệnh rẽ nhánh** (*switch statement*) mà còn có dạng **biểu thức** (*switch expression*) để **tạo ra một giá trị**. Java 17 hỗ trợ đầy đủ tính năng này, không cần bật preview.
+Since Java 14, `switch` is no longer only a **branching statement** (*switch statement*) — it also has an **expression** form (*switch expression*) to **produce a value**. Java 17 supports this feature in full without needing to enable preview.
 
 ~~~java
 int month = 7;
@@ -14,11 +14,11 @@ String season = switch (month) {
 // season == "summer"
 ~~~
 
-Biểu thức `switch` có thể đứng bên phải phép gán, trong `return` hoặc làm đối số cho phương thức. **Điểm khác với switch statement:** toàn bộ cấu trúc `switch (...) { ... }` được đánh giá thành **một giá trị**, chứ không chỉ điều khiển các câu lệnh.
+A `switch` expression can appear on the right-hand side of an assignment, inside a `return`, or as an argument to a method. **Difference from a switch statement:** the entire `switch (...) { ... }` construct evaluates to **a single value**, rather than merely controlling statements.
 
-## 1. Cú pháp và quy tắc chính
+## 1. Syntax and Core Rules
 
-Dạng thông dụng nhất là các **switch rule** dùng dấu mũi tên `->`:
+The most common form uses **switch rules** with the arrow `->`:
 
 ~~~java
 String label = switch (number) {
@@ -28,23 +28,23 @@ String label = switch (number) {
 };
 ~~~
 
-Java đánh giá `number`, chọn đúng nhãn tương ứng rồi đánh giá biểu thức sau `->`. **Không xảy ra fall-through** từ nhánh này sang nhánh sau và **không cần `break`** để tránh rơi tiếp.
+Java evaluates `number`, selects the matching label, and then evaluates the expression after `->`. **No fall-through occurs** from one branch to the next, and **no `break` is needed** to stop falling through.
 
-| Thuộc tính | Switch expression |
+| Property | Switch expression |
 | --- | --- |
-| Vai trò | Biểu thức tạo giá trị, có thể gán hoặc `return` |
-| Giá trị nhánh đơn | `case X -> expression;` |
-| Nhánh nhiều câu lệnh | `case X -> { ... yield value; }` |
-| Nhiều nhãn cùng kết quả | `case A, B -> value;` |
-| Tính đầy đủ | Phải **exhaustive**: mọi giá trị đầu vào có đường xử lý |
-| Fall-through với dạng `->` | Không |
-| Dấu `;` sau `}` | Cần khi toàn bộ cấu trúc nằm trong câu lệnh gán |
+| Role | Value-producing expression, can be assigned or used in `return` |
+| Single-branch value | `case X -> expression;` |
+| Multi-statement branch | `case X -> { ... yield value; }` |
+| Multiple labels with same result | `case A, B -> value;` |
+| Exhaustiveness | Must be **exhaustive**: every input value has a handling path |
+| Fall-through with `->` form | No |
+| Semicolon `;` after `}` | Required when the whole construct sits inside an assignment statement |
 
-Những nhánh có kiểu khác nhau phải thỏa mãn **quy tắc kiểu của switch expression** và ngữ cảnh sử dụng. Không thể tùy ý trả một kiểu bất kỳ ở từng nhánh rồi giả định Java luôn chuyển chúng thành cùng kiểu.
+Branches with different types must satisfy the **type rules of switch expressions** and the usage context. You cannot arbitrarily return any type per branch and assume Java will always convert them to the same type.
 
-## 2. Demo Java 17+ chạy trực tiếp
+## 2. Directly Runnable Java 17+ Demo
 
-Tạo file UTF-8 tên **`SwitchExpressionDemo.java`**:
+Create a UTF-8 file named **`SwitchExpressionDemo.java`**:
 
 ~~~java
 public class SwitchExpressionDemo {
@@ -173,7 +173,7 @@ public class SwitchExpressionDemo {
 }
 ~~~
 
-Mở PowerShell hoặc Bash tại thư mục chứa file; yêu cầu **JDK 17 trở lên**:
+Open PowerShell or Bash in the directory containing the file; requires **JDK 17 or higher**:
 
 ~~~bash
 java -version
@@ -182,7 +182,7 @@ javac -encoding UTF-8 SwitchExpressionDemo.java
 java SwitchExpressionDemo
 ~~~
 
-**Exact expected stdout** của lệnh `java SwitchExpressionDemo` (không tính thông tin phiên bản JDK):
+**Exact expected stdout** of `java SwitchExpressionDemo` (excluding JDK version info):
 
 ~~~text
 == arrow rules ==
@@ -213,32 +213,32 @@ caught=negative
 inferred=yes
 ~~~
 
-Chương trình sử dụng Java chuẩn; không cần thư viện bên thứ ba. Kết quả trên được xác định theo các nhánh và thứ tự thực thi của Java 17.
+The program uses standard Java; no third-party libraries are required. The output above is determined by Java 17's branch selection and execution order.
 
-## 3. Nhánh có nhiều lệnh trả kết quả thế nào?
+## 3. How Does a Multi-Statement Branch Return a Result?
 
-Với `case -> expression`, chính biểu thức sau mũi tên là kết quả. Nếu cần tính toán hoặc ghi log, dùng block và `yield`: `case 1 -> { int x = 10; yield x * 2; }`. `yield` kết thúc **switch expression**, không rời toàn bộ phương thức như `return`.
+With `case -> expression`, the expression right after the arrow is the result. If you need calculations or logging, use a block and `yield`: `case 1 -> { int x = 10; yield x * 2; }`. `yield` exits the **switch expression**, not the entire method like `return`.
 
-Switch expression cũng cho phép nhãn `case:`, ví dụ `case 1: yield "ONE";`. Bài chuyên về từ khóa `yield` đi sâu vào đường đi có điều kiện và lỗi thiếu kết quả.
+Switch expressions also allow `case:` labels, e.g., `case 1: yield "ONE";`. The dedicated lesson on `yield` goes deeper into conditional paths and missing-value errors.
 
-## 4. Biểu thức phải bao phủ mọi trường hợp
+## 4. Expressions Must Cover All Cases
 
-Với `int` và `String`, thông thường cần `default` để xử lý giá trị chưa liệt kê. Với enum, liệt kê đủ mọi hằng có thể làm switch expression exhaustive mà không cần `default`. Việc thêm hằng enum sau này có thể khiến mã phải bổ sung case khi biên dịch lại. Quy tắc chứng minh độ bao phủ và chọn kiểu kết quả được phân tích ở bài riêng.
+For `int` and `String`, `default` is normally required to handle unlisted values. For an enum, listing all constants can make a switch expression exhaustive without `default`. Adding an enum constant later can prompt recompilation errors where switch expressions need an added case. Rules for proving exhaustiveness and choosing result types are analyzed in a separate lesson.
 
-## 5. Dạng `->` khác `case:` và switch statement
+## 5. How `->` Differs from `case:` and Switch Statements
 
-| Cấu trúc | Có tạo ra giá trị? | Có fall-through? | Cách kết thúc |
+| Construct | Produces a value? | Has fall-through? | How it completes |
 | --- | --- | --- | --- |
-| `switch (x) { case 1: ... break; }` | Không: **statement** | Có thể | `break`, `return` hoặc hết khối |
-| `switch (x) { case 1 -> ... }` | Không nếu dùng như **statement** | Không | Kết thúc switch rule |
-| `var y = switch (x) { case 1 -> v; ... };` | Có: **expression** | Không | Giá trị biểu thức hoặc `yield` |
-| `var y = switch (x) { case 1: yield v; ... };` | Có: **expression** | Dạng dấu hai chấm có luồng thực thi tuần tự | `yield`/`throw` hoặc đường thực thi hợp lệ khác |
+| `switch (x) { case 1: ... break; }` | No: **statement** | Possible | `break`, `return`, or end of block |
+| `switch (x) { case 1 -> ... }` | No if used as a **statement** | No | End of switch rule |
+| `var y = switch (x) { case 1 -> v; ... };` | Yes: **expression** | No | Expression value or `yield` |
+| `var y = switch (x) { case 1: yield v; ... };` | Yes: **expression** | Colon form has sequential execution flow | `yield`/`throw` or other valid execution path |
 
-Dấu mũi tên `->` **không đồng nghĩa switch expression**: Java 17 cũng cho phép switch **statement** với `case ->`. Phân biệt dựa vào **ngữ cảnh có đang lấy một giá trị từ switch hay không**.
+The arrow `->` **is not synonymous with switch expression**: Java 17 also allows switch **statements** with `case ->`. Distinguish them by **whether the context consumes a value from the switch**.
 
-Trong một khối `switch`, không trộn nhãn `case ...:` với `case ... ->`. Với switch expression dạng dấu hai chấm, mọi đường chạy bình thường phải tạo được giá trị theo quy tắc Java.
+Inside one `switch` block, do not mix `case ...:` labels with `case ... ->`. In a colon-style switch expression, every normal path must produce a value according to Java's rules.
 
-## 6. Kiểu kết quả, `var` và `null`
+## 6. Result Types, `var`, and `null`
 
 ~~~java
 var label = switch (option) {
@@ -247,9 +247,9 @@ var label = switch (option) {
 };
 ~~~
 
-Ở đây `label` suy ra kiểu `String` từ switch expression; `var` không “đổi kiểu linh hoạt” theo nhánh được chạy. Trình biên dịch quyết định kiểu theo **các nhánh và ngữ cảnh đích**.
+Here `label` infers type `String` from the switch expression; `var` does not "change type dynamically" based on whichever branch runs. The compiler determines the type from **the branches and the target context**.
 
-`switch` Java 17 thông thường không xem `String null` hay wrapper số null như một nhãn mặc định:
+Standard Java 17 `switch` does not treat a `null` `String` or wrapper number as matching a default label:
 
 ~~~java
 String value = null;
@@ -257,50 +257,50 @@ String value = null;
 //     case "ON" -> "enabled";
 //     default -> "unknown";
 // };
-// Khi chạy: NullPointerException với selector null.
+// At runtime: NullPointerException on a null selector.
 ~~~
 
-Nếu cần xử lý null, kiểm tra **trước** khi đưa vào `switch`; phương thức `safeStatus` trong demo làm điều này.
+If you need to handle null, check **before** passing it into `switch`; the `safeStatus` method in the demo does this.
 
-## 7. Bẫy thường gặp
+## 7. Common Pitfalls
 
-| Hiểu nhầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “`switch` luôn là statement.” | Java 17 còn có switch **expression** |
-| “Có dấu `->` nghĩa là chắc chắn switch expression.” | Switch statement cũng dùng được `->` |
-| “Nhánh `->` cần `break`.” | Không có fall-through, thường không cần |
-| “Trong khối `-> { ... }` dùng `return` để tạo giá trị.” | Dùng **`yield`** |
-| “`yield` tương đương `return` khỏi phương thức.” | `yield` trả giá trị từ switch expression |
-| “Switch expression có thể bỏ mọi nhánh còn lại mà không cần default.” | Phải **exhaustive** |
-| “`default` tự bắt null selector.” | Không trong switch truyền thống Java 17 |
-| “`var` thay đổi kiểu ở runtime theo case.” | Kiểu xác định khi biên dịch |
-| “Có thể trộn `case X:` và `case Y ->`.” | Không được trộn trong cùng switch |
+| "`switch` is always a statement." | Java 17 also has switch **expressions** |
+| "Having `->` means it is definitely a switch expression." | Switch statements can also use `->` |
+| "A `->` branch needs `break`." | No fall-through occurs, so it is normally unnecessary |
+| "Inside `-> { ... }`, use `return` to produce a value." | Use **`yield`** |
+| "`yield` is equivalent to `return` from the method." | `yield` returns a value from the switch expression |
+| "A switch expression can omit remaining cases without default." | It must be **exhaustive** |
+| "`default` automatically catches a null selector." | Not in standard Java 17 switch |
+| "`var` changes type at runtime depending on the case." | Type is determined at compile time |
+| "You can mix `case X:` and `case Y ->`." | They cannot be mixed in the same switch |
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-1. `int n = switch (2) { case 1 -> 10; case 2 -> 20; default -> 0; };` cho gì?  
-   *Đáp án:* `20`.
-2. Nhánh `case 1 -> { int x = 5; yield x * 2; }` tạo giá trị nào?  
-   *Đáp án:* `10`.
-3. `yield` có thoát luôn phương thức bao ngoài không?  
-   *Đáp án:* Không; nó đưa giá trị ra khỏi switch expression.
-4. Có thể dùng `case 1: yield "one";` trong switch expression không?  
-   *Đáp án:* Có.
-5. Switch expression trên `int` có một nhánh `case 1` nhưng không có `default` có đầy đủ không?  
-   *Đáp án:* Không.
-6. Dạng `case 1 -> System.out.println("x");` có nhất thiết là switch expression không?  
-   *Đáp án:* Không; đó có thể là switch statement.
-7. Vì sao cần xử lý `String null` trước switch Java 17 thường?  
-   *Đáp án:* Selector null có thể gây `NullPointerException`.
+1. What does `int n = switch (2) { case 1 -> 10; case 2 -> 20; default -> 0; };` produce?  
+   *Answer:* `20`.
+2. What value does the branch `case 1 -> { int x = 5; yield x * 2; }` produce?  
+   *Answer:* `10`.
+3. Does `yield` also exit the enclosing method?  
+   *Answer:* No; it supplies a value out of the switch expression.
+4. Can you use `case 1: yield "one";` in a switch expression?  
+   *Answer:* Yes.
+5. Is a switch expression on `int` with one `case 1` branch and no `default` exhaustive?  
+   *Answer:* No.
+6. Is `case 1 -> System.out.println("x");` necessarily a switch expression?  
+   *Answer:* No; it can be a switch statement.
+7. Why must a `null` `String` be handled before a standard Java 17 switch?  
+   *Answer:* A null selector can cause `NullPointerException`.
 
 ## Checklist
 
-- [ ] Hiểu switch **expression** tạo giá trị để gán, `return` hoặc truyền vào hàm.
-- [ ] Dùng `case -> value` cho nhánh đơn; dùng `yield` khi nhánh là khối nhiều lệnh.
-- [ ] Nhớ dạng `->` không rơi tiếp xuống case sau.
-- [ ] Bảo đảm nhánh bao phủ đầy đủ; chọn `default` hoặc liệt kê toàn bộ enum.
-- [ ] Phân biệt `yield` với `return` và `break`.
-- [ ] Không nhầm switch statement dùng `->` với switch expression.
-- [ ] Hiểu kiểu kết quả xác định khi biên dịch và xử lý selector null khi cần.
+- [ ] Understand that a switch **expression** produces a value for assignment, `return`, or passing to a method.
+- [ ] Use `case -> value` for single-expression branches; use `yield` when the branch is a multi-statement block.
+- [ ] Remember that the `->` form does not fall through to the next case.
+- [ ] Ensure exhaustive branch coverage; choose `default` or list every enum constant.
+- [ ] Distinguish `yield` from `return` and `break`.
+- [ ] Do not confuse a switch statement using `->` with a switch expression.
+- [ ] Understand that the result type is determined at compile time and handle null selectors when needed.
 
-**Kết luận:** Switch expression giúp lựa chọn **một giá trị** trực tiếp từ nhiều trường hợp, giảm việc khai báo biến rồi gán trong từng nhánh. Trong Java 17, hãy ưu tiên `->` cho nhánh độc lập, dùng `yield` khi cần khối xử lý, và giữ tính **đầy đủ** của các trường hợp.
+**Conclusion:** Switch expressions let you select **a single value** directly across multiple cases, reducing the pattern of declaring a variable and assigning it in every branch. In Java 17, prefer `->` for independent branches, use `yield` when a processing block is needed, and maintain **exhaustiveness** across cases.

@@ -1,20 +1,20 @@
-# Xác định module boundary theo capability
+# Defining Module Boundaries by Capability
 
-Khi thiết kế ứng dụng modular, một câu hỏi quan trọng là nên chia hệ thống thành những module nào. Cách chia theo layer kỹ thuật như controller, service, repository thường khiến module phụ thuộc chéo rộng và khó thay đổi. Một hướng phù hợp hơn là xác định module boundary theo **business capability**: mỗi module chịu trách nhiệm cho một năng lực nghiệp vụ có ý nghĩa, sở hữu quy tắc và dữ liệu của năng lực đó, đồng thời cung cấp một API rõ ràng cho phần còn lại của hệ thống.
+When designing a modular application, an important question is how to divide the system into modules. Organizing by technical layers such as controller, service, and repository often leads to broad cross-dependencies between modules and makes changes difficult. A more suitable approach is to define module boundaries by **business capability**: each module is responsible for a meaningful business capability, owns the rules and data for that capability, and exposes a clear API to the rest of the system.
 
-Capability là điều hệ thống cần làm cho người dùng hoặc tổ chức, chẳng hạn quản lý khách hàng, xử lý thanh toán, quản lý đơn hàng, lập hóa đơn hoặc gửi thông báo. Module boundary được đặt quanh capability giúp gom những quyết định thường thay đổi cùng nhau vào một đơn vị và giới hạn những chi tiết mà module khác được phép biết.
+A capability is something the system needs to do for a user or organization, such as managing customers, processing payments, managing orders, issuing invoices, or sending notifications. Placing module boundaries around capabilities groups decisions that tend to change together into a single unit and restricts the details that other modules are allowed to know.
 
-## 1. Module boundary theo capability là gì?
+## 1. What is a capability-based module boundary?
 
-Một module boundary xác định:
+A module boundary defines:
 
-- Những class, package và resource nào thuộc quyền sở hữu của module.
-- Những API nào module công khai để module khác sử dụng.
-- Những dependency nào module được phép khai báo.
-- Dữ liệu và quy tắc nghiệp vụ nào module tự quản lý.
-- Những tương tác nào phải đi qua contract thay vì truy cập implementation trực tiếp.
+- Which classes, packages, and resources belong to the module.
+- Which APIs the module exposes for other modules to use.
+- Which dependencies the module is allowed to declare.
+- Which data and business rules the module manages on its own.
+- Which interactions must go through a contract rather than accessing an implementation directly.
 
-Ví dụ một hệ thống thương mại điện tử có thể được chia thành:
+For example, an e-commerce system can be divided into:
 
 ~~~text
 com.example.shop
@@ -38,13 +38,13 @@ com.example.shop
     |-- internal
 ~~~
 
-Mỗi capability sở hữu các quy tắc và model riêng. Order quản lý vòng đời đơn hàng; Payment quản lý việc authorize, capture và refund; Shipping quản lý việc tạo và theo dõi vận chuyển.
+Each capability owns its own rules and models. Order manages the order lifecycle; Payment manages authorization, capture, and refund; Shipping manages creating and tracking shipments.
 
-Một module không cần biết cách module khác lưu dữ liệu. Order có thể yêu cầu Payment xử lý thanh toán qua API, nhưng không truy cập trực tiếp PaymentRepository hoặc bảng dữ liệu nội bộ của Payment.
+A module does not need to know how another module stores its data. Order can ask Payment to process a payment through an API, without directly accessing `PaymentRepository` or Payment's internal database tables.
 
-## 2. Bắt đầu từ business capability, không bắt đầu từ framework layer
+## 2. Start from business capabilities, not framework layers
 
-Một cách chia theo layer kỹ thuật thường có cấu trúc:
+A technical-layer split typically has the following structure:
 
 ~~~text
 application
@@ -55,9 +55,9 @@ application
 |-- clients
 ~~~
 
-Cách này gom class theo loại công nghệ. Một thay đổi trong capability Order có thể buộc sửa nhiều package hoặc module khác nhau. Ngược lại, một capability thường trải qua nhiều layer: API, application logic, persistence, integration và domain model.
+This approach groups classes by technology type. A change in the Order capability may force edits across many different packages or modules. Conversely, a single capability typically spans multiple layers: API, application logic, persistence, integration, and domain model.
 
-Chia theo capability:
+Splitting by capability:
 
 ~~~text
 application
@@ -78,56 +78,56 @@ application
     |-- integration
 ~~~
 
-Layer kỹ thuật vẫn có thể tồn tại bên trong module. Điểm khác biệt là chúng nằm trong phạm vi ownership của capability, không trở thành các module dùng chung mà mọi capability đều phụ thuộc.
+Technical layers can still exist inside a module. The difference is that they remain within the capability's scope of ownership, rather than becoming shared modules that every capability depends on.
 
-Hãy bắt đầu bằng câu hỏi: “Năng lực nghiệp vụ nào có thể được mô tả, phát triển và thay đổi tương đối độc lập?”. Sau đó mới quyết định package, module-info.java và cấu trúc build.
+Start by asking: "Which business capabilities can be described, developed, and changed relatively independently?" Only then decide on packages, `module-info.java`, and build structure.
 
-## 3. Tìm capability và ranh giới trách nhiệm
+## 3. Identifying capabilities and responsibility boundaries
 
-Có thể dùng các nguồn sau để xác định capability:
+The following sources can be used to identify capabilities:
 
-1. **Ngôn ngữ nghiệp vụ:** các danh từ, động từ và quy tắc được chuyên gia nghiệp vụ sử dụng.
-2. **Quy trình nghiệp vụ:** các bước có đầu vào, đầu ra và trạng thái riêng.
-3. **Quyền sở hữu dữ liệu:** bộ phận hoặc nhóm chịu trách nhiệm về tính đúng đắn của dữ liệu.
-4. **Lý do thay đổi:** những quy tắc thường thay đổi cùng nhau.
-5. **Tác nhân và hệ thống bên ngoài:** những tương tác có contract riêng như payment gateway, tax service hoặc shipping provider.
+1. **Business language:** nouns, verbs, and rules used by domain experts.
+2. **Business processes:** steps with distinct inputs, outputs, and states.
+3. **Data ownership:** the team or unit responsible for data correctness.
+4. **Reasons for change:** rules that tend to change together.
+5. **External actors and systems:** interactions that have their own contracts, such as a payment gateway, tax service, or shipping provider.
 
-Ví dụ, “đặt hàng” có thể bao gồm xác thực giỏ hàng, kiểm tra giá, giữ tồn kho, thanh toán và tạo vận đơn. Không nhất thiết tất cả các bước đó thuộc một module Order. Hãy xác định capability sở hữu từng quy tắc:
+For example, "placing an order" may involve validating the cart, checking prices, reserving inventory, processing payment, and creating a shipment. Not all of these steps necessarily belong to a single Order module. Identify the capability that owns each rule:
 
-| Quy tắc hoặc dữ liệu | Capability có thể sở hữu |
+| Rule or data | Capability that may own it |
 |---|---|
-| Trạng thái đơn hàng, tổng tiền đơn | Order |
-| Giá bán, mô tả sản phẩm | Catalog |
-| Số lượng tồn và giữ hàng | Inventory |
+| Order status, order total | Order |
+| Selling price, product description | Catalog |
+| Stock quantity and reservations | Inventory |
 | Authorization, capture, refund | Payment |
-| Địa chỉ giao hàng, trạng thái vận chuyển | Shipping |
+| Shipping address, shipment status | Shipping |
 
-Một use case có thể điều phối nhiều capability. Module điều phối không nên lấy quyền sở hữu tất cả dữ liệu và quy tắc của những module mà nó gọi.
+A single use case may orchestrate multiple capabilities. The orchestrating module should not take ownership of all the data and rules of the modules it calls.
 
-## 4. Dùng cohesion và coupling để kiểm tra boundary
+## 4. Using cohesion and coupling to validate boundaries
 
-Một boundary hợp lý có cohesion cao và coupling có kiểm soát.
+A well-defined boundary has high cohesion and controlled coupling.
 
-**Cohesion cao** nghĩa là các class trong module cùng phục vụ một capability và thay đổi vì những lý do nghiệp vụ liên quan. Module Payment có thể chứa payment policy, payment transaction, gateway adapter và API payment nếu chúng cùng phục vụ năng lực thanh toán.
+**High cohesion** means the classes inside a module serve the same capability and change for related business reasons. The Payment module can contain payment policies, payment transactions, gateway adapters, and the payment API if they all serve the payment capability.
 
-**Coupling thấp** nghĩa là module khác chỉ phụ thuộc vào contract cần thiết. Nếu Order phải biết tên bảng, entity persistence, implementation class và cấu hình nội bộ của Payment thì boundary đang bị rò rỉ.
+**Low coupling** means other modules depend only on the required contract. If Order has to know table names, persistence entities, implementation classes, and internal configuration of Payment, the boundary is leaking.
 
-Một số dấu hiệu boundary chưa tốt:
+Signs of a poor boundary:
 
-- Nhiều module phải import package internal của nhau.
-- Thay đổi một quy tắc trong capability buộc sửa nhiều module không sở hữu quy tắc đó.
-- Module A và B có dependency vòng.
-- Một module chỉ chứa một vài class nhưng không có trách nhiệm nghiệp vụ rõ ràng.
-- Một module dùng chung trở thành nơi tập trung mọi model và tiện ích.
-- Nhiều capability cùng ghi trực tiếp vào dữ liệu do capability khác sở hữu.
+- Multiple modules must import each other's internal packages.
+- Changing a rule in one capability forces edits in multiple modules that do not own that rule.
+- Module A and B have a cyclic dependency.
+- A module contains only a few classes with no clear business responsibility.
+- A shared module becomes a dumping ground for all models and utilities.
+- Multiple capabilities write directly to data owned by another capability.
 
-Không có số lượng class hay package tối ưu cho mọi module. Kích thước không phải tiêu chí duy nhất. Một module nhỏ vẫn hợp lý nếu nó có contract và lý do thay đổi độc lập; một module lớn có thể hợp lý nếu các phần bên trong cùng một capability và không tạo coupling khó kiểm soát.
+There is no optimal number of classes or packages for every module. Size is not the sole criterion. A small module is still justified if it has an independent contract and reason to change; a large module can be justified if its parts belong to the same capability and do not create unmanageable coupling.
 
-## 5. Thiết kế API công khai của module
+## 5. Designing the module's public API
 
-Module descriptor là nơi thể hiện một phần boundary bằng cơ chế của Java Module System. Chỉ export package chứa contract cần thiết.
+The module descriptor is where part of the boundary is expressed using the mechanisms of the Java Module System. Export only the packages that contain required contracts.
 
-Ví dụ:
+For example:
 
 ~~~java
 module com.example.payment {
@@ -137,7 +137,7 @@ module com.example.payment {
 }
 ~~~
 
-Cấu trúc package:
+Package structure:
 
 ~~~text
 com.example.payment
@@ -151,7 +151,7 @@ com.example.payment
     |-- GatewayClient.java
 ~~~
 
-Module Order có thể khai báo:
+The Order module can declare:
 
 ~~~java
 module com.example.order {
@@ -159,7 +159,7 @@ module com.example.order {
 }
 ~~~
 
-Và sử dụng contract:
+And use the contract:
 
 ~~~java
 package com.example.payment.api;
@@ -169,15 +169,15 @@ public interface PaymentService {
 }
 ~~~
 
-Implementation ở package internal không được export. Module khác không thể truy cập trực tiếp các kiểu public nằm trong package không export theo quy tắc truy cập thông thường của named module.
+The implementation in the `internal` package is not exported. Other modules cannot directly access public types in non-exported packages under the normal access rules of named modules.
 
-Đừng export toàn bộ package chỉ để sửa một lỗi biên dịch. Mỗi export là một phần contract mà module phải cân nhắc duy trì. Khi cần mở package cho reflection, hãy phân biệt opens với exports và chỉ mở đúng package cho framework hoặc module cần thiết.
+Do not export an entire package just to fix a compilation error. Every export is part of a contract that the module must consider maintaining. When a package needs to be opened for reflection, distinguish `opens` from `exports` and only open the specific package to the framework or module that requires it.
 
-## 6. Sở hữu model và dữ liệu theo capability
+## 6. Owning models and data by capability
 
-Một boundary không chỉ giới hạn class access mà còn xác định ai sở hữu dữ liệu và quy tắc của dữ liệu đó.
+A boundary not only restricts class access, it also defines who owns the data and the rules governing that data.
 
-Ví dụ, Order cần thông tin thanh toán nhưng không nên phụ thuộc vào entity Payment được ánh xạ trực tiếp từ database. Payment nên trả về một contract phù hợp với nhu cầu của Order:
+For example, Order needs payment information but should not depend on a Payment entity mapped directly from the database. Payment should return a contract tailored to Order's needs:
 
 ~~~java
 public record PaymentResult(
@@ -187,17 +187,17 @@ public record PaymentResult(
 }
 ~~~
 
-Order giữ dữ liệu đơn hàng của mình và lưu tham chiếu tới transaction ID hoặc kết quả cần thiết. Payment vẫn sở hữu chi tiết gateway, token, trạng thái đối soát và quy tắc retry.
+Order keeps its own order data and stores a reference to the transaction ID or required result. Payment continues to own gateway details, tokens, reconciliation status, and retry rules.
 
-Tránh tạo một module common chứa tất cả entity dùng chung. Một model dùng chung có thể khiến nhiều capability phải thay đổi cùng lúc và làm mờ quyền sở hữu. Chỉ chia sẻ kiểu dữ liệu khi nó thực sự là contract ổn định, có ý nghĩa ở ranh giới giữa các capability.
+Avoid creating a `common` module containing all shared entities. A shared model can force multiple capabilities to change at the same time and blur ownership. Share a data type only when it is genuinely a stable contract that makes sense at the boundary between capabilities.
 
-Nếu hai capability cần cùng một khái niệm nhưng có ngữ nghĩa khác nhau, hãy cân nhắc định nghĩa model riêng ở mỗi boundary và chuyển đổi qua adapter. Ví dụ Customer trong Order có thể chỉ là snapshot tên và địa chỉ tại thời điểm đặt hàng; Customer trong Customer Management có thể chứa hồ sơ và trạng thái hiện tại. Hai model cùng nhắc tới khách hàng nhưng phục vụ hai quy tắc khác nhau.
+If two capabilities need the same concept but with different semantics, consider defining separate models at each boundary and translating via an adapter. For example, Customer in Order may simply be a snapshot of the name and address at the time the order was placed; Customer in Customer Management may contain the full profile and current status. Both models refer to a customer, yet they serve two different sets of rules.
 
-## 7. Dùng service interface để giảm phụ thuộc implementation
+## 7. Using service interfaces to reduce implementation dependency
 
-Một module có thể cung cấp API trực tiếp qua interface được export. Khi cần khả năng thay thế implementation hoặc plugin, Java ServiceLoader là một lựa chọn.
+A module can expose an API directly through an exported interface. When replaceable implementations or plugins are needed, Java `ServiceLoader` is an option.
 
-Module định nghĩa service contract:
+The module defining the service contract:
 
 ~~~java
 module com.example.tax.api {
@@ -213,7 +213,7 @@ public interface TaxCalculator {
 }
 ~~~
 
-Module consumer khai báo uses:
+The consumer module declares `uses`:
 
 ~~~java
 module com.example.invoice {
@@ -222,7 +222,7 @@ module com.example.invoice {
 }
 ~~~
 
-Module provider khai báo provides:
+The provider module declares `provides`:
 
 ~~~java
 module com.example.tax.provider {
@@ -233,7 +233,7 @@ module com.example.tax.provider {
 }
 ~~~
 
-Consumer tìm implementation:
+The consumer locates the implementation:
 
 ~~~java
 TaxCalculator calculator = ServiceLoader
@@ -243,13 +243,13 @@ TaxCalculator calculator = ServiceLoader
                 new IllegalStateException("No tax provider available"));
 ~~~
 
-Service contract nên thuộc một module API ổn định. Provider module phụ thuộc vào API; consumer cũng phụ thuộc vào API. Consumer không cần phụ thuộc vào package implementation của provider.
+The service contract should belong to a stable API module. The provider module depends on the API; the consumer also depends on the API. The consumer does not need to depend on the provider's implementation package.
 
-ServiceLoader phù hợp khi cần chọn provider theo runtime hoặc mở rộng hệ thống bằng plugin. Nếu chỉ có một dependency cố định và không cần discovery, một interface được inject qua constructor có thể đơn giản hơn.
+`ServiceLoader` is suitable when selecting a provider at runtime or extending the system with plugins. If there is only a single fixed dependency and discovery is not needed, an interface injected via a constructor can be simpler.
 
-## 8. Quản lý dependency giữa các capability
+## 8. Managing dependencies between capabilities
 
-Vẽ dependency graph trước khi hoàn thiện module descriptor. Ví dụ:
+Draw the dependency graph before finalizing module descriptors. For example:
 
 ~~~text
                   application
@@ -263,48 +263,48 @@ Vẽ dependency graph trước khi hoàn thiện module descriptor. Ví dụ:
                 v
            payment-api
 
-shipping  <--- order-api hoặc event contract
+shipping  <--- order-api or event contract
 ~~~
 
-Sơ đồ thực tế cần phản ánh hướng dependency của contract. Một module nên phụ thuộc vào API mà nó cần, không phụ thuộc ngược vào implementation của module cung cấp API.
+The actual diagram should reflect the direction of contract dependencies. A module should depend on the API it needs, not back on the implementation of the module providing that API.
 
-Các nguyên tắc hữu ích:
+Useful principles:
 
-- Dependency hướng vào contract ổn định.
-- Tránh dependency vòng giữa các capability.
-- Không tạo một module common làm trung tâm của mọi module.
-- Dùng adapter để cô lập thư viện hoặc hệ thống bên ngoài.
-- Dùng event hoặc service contract khi cần giảm coupling giữa các capability.
-- Chỉ dùng requires transitive khi module consumer thực sự cần readability được truyền tiếp qua API công khai.
+- Dependencies point toward stable contracts.
+- Avoid cyclic dependencies between capabilities.
+- Do not create a `common` module as the hub for every module.
+- Use adapters to isolate external libraries or systems.
+- Use events or service contracts when coupling between capabilities needs to be reduced.
+- Use `requires transitive` only when consumer modules genuinely need propagated readability through the public API.
 
-Nếu module A cần kiểu public từ module B, A có thể khai báo requires B. Nếu B chỉ là dependency implementation, không nên tự động dùng requires transitive. Modifier transitive làm dependency được truyền tới module đọc A, nên chỉ dùng khi contract công khai của A thực sự làm lộ kiểu thuộc B.
+If module A needs public types from module B, A can declare `requires B`. If B is only an implementation dependency, `requires transitive` should not be used automatically. The `transitive` modifier propagates the dependency to modules that read A, so use it only when A's public contract actually exposes types belonging to B.
 
-## 9. Tách module theo capability nhưng không tách quá mức
+## 9. Split modules by capability, but do not over-split
 
-Một số dấu hiệu nên gộp module:
+Signs that modules should be merged:
 
-- Hai module luôn được triển khai và thay đổi cùng nhau.
-- Một module không có contract độc lập.
-- Các class liên tục gọi qua lại và dependency vòng khó loại bỏ.
-- Boundary chỉ phản ánh package kỹ thuật, không phản ánh quyền sở hữu nghiệp vụ.
+- Two modules are always deployed and changed together.
+- A module has no independent contract.
+- Classes continuously call back and forth and cyclic dependencies are hard to eliminate.
+- Boundaries reflect only technical packages rather than business ownership.
 
-Một số dấu hiệu nên tách module:
+Signs that a module should be split:
 
-- Một phần có quy tắc nghiệp vụ và nhịp thay đổi riêng.
-- Một phần cần được dùng bởi nhiều capability qua API ổn định.
-- Một phần có thể thay thế hoặc mở rộng độc lập.
-- Một phần cần được giới hạn quyền truy cập hoặc dependency rõ ràng.
-- Việc thay đổi một phần hiện buộc các capability không liên quan phải biết implementation của nó.
+- A part has its own business rules and cadence of change.
+- A part needs to be used by multiple capabilities through a stable API.
+- A part can be replaced or extended independently.
+- A part requires explicit access restrictions or dependencies.
+- Changing one part currently forces unrelated capabilities to know about its implementation.
 
-Đừng chia module chỉ vì một package đã có nhiều class. Cũng đừng giữ tất cả trong một module chỉ vì ứng dụng hiện đang được build thành một artifact. Boundary là quyết định về ownership và dependency; số file JAR có thể được quyết định riêng theo cách triển khai.
+Do not split a module simply because a package has accumulated many classes. Conversely, do not keep everything in one module just because the application is currently built as a single artifact. Boundaries are decisions about ownership and dependencies; the number of JAR files can be decided separately according to how deployment is structured.
 
-## 10. Kiểm thử boundary bằng Java Module System
+## 10. Verifying boundaries with the Java Module System
 
-Module system có thể giúp biến boundary thành quy tắc mà compiler và runtime thực thi.
+The module system helps turn boundaries into rules enforced by the compiler and runtime.
 
-### Kiểm tra exports
+### Checking exports
 
-Đảm bảo module chỉ export package API:
+Ensure the module exports only API packages:
 
 ~~~java
 module com.example.payment {
@@ -312,23 +312,23 @@ module com.example.payment {
 }
 ~~~
 
-Các package internal không được export. Một module khác thử import kiểu trong package internal sẽ gặp lỗi truy cập khi biên dịch theo module path.
+Internal packages are not exported. Another module attempting to import a type in an internal package will encounter an access error when compiled on the module path.
 
-### Kiểm tra dependency graph
+### Checking the dependency graph
 
-Dùng jdeps để xem dependency:
+Use `jdeps` to inspect dependencies:
 
 ~~~bash
 jdeps --module-path mods --module com.example.order
 ~~~
 
-Dùng Java launcher để kiểm tra cấu hình module:
+Use the Java launcher to validate module configuration:
 
 ~~~bash
 java --module-path mods --validate-modules
 ~~~
 
-Có thể xem module được resolve khi chạy:
+You can view how modules are resolved at runtime:
 
 ~~~bash
 java --show-module-resolution \
@@ -336,64 +336,64 @@ java --show-module-resolution \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Các công cụ này giúp phát hiện dependency không mong muốn, module thiếu và một số xung đột cấu hình. Chúng không thay thế test nghiệp vụ hoặc kiểm tra quyền sở hữu dữ liệu.
+These tools help detect unwanted dependencies, missing modules, and certain configuration conflicts. They do not replace business tests or data ownership checks.
 
-### Kiểm thử API contract
+### Testing the API contract
 
-Viết test cho API công khai của module, không kiểm thử implementation qua reflection vào package internal. Test consumer nên biên dịch như một module riêng trên module path để xác nhận contract thực sự sử dụng được từ bên ngoài.
+Write tests against the module's public API rather than testing the implementation via reflection into internal packages. Consumer tests should compile as a separate module on the module path to confirm the contract is genuinely usable from the outside.
 
-Nếu test cần truy cập package internal, hãy cân nhắc liệu đó có phải test nội bộ của module hay đang kiểm tra một implementation detail không nên trở thành contract.
+If a test needs access to an internal package, consider whether it is an internal unit test of the module or whether it is testing an implementation detail that should not become part of the contract.
 
-## 11. Ví dụ quy trình thiết kế từ use case
+## 11. Example design workflow from a use case
 
-Giả sử use case “đặt hàng” gồm:
+Suppose the "place order" use case consists of:
 
-1. Khách hàng gửi yêu cầu tạo đơn.
-2. Order kiểm tra thông tin và giá trị đơn.
-3. Inventory giữ hàng.
-4. Payment authorize thanh toán.
-5. Order chuyển trạng thái sang đã xác nhận.
-6. Shipping nhận yêu cầu tạo vận đơn.
+1. The customer submits an order creation request.
+2. Order validates the order details and total.
+3. Inventory reserves stock.
+4. Payment authorizes the payment.
+5. Order transitions its state to confirmed.
+6. Shipping receives a request to create a shipment.
 
-Có thể phân trách nhiệm:
+Responsibilities can be assigned as follows:
 
-| Capability | Trách nhiệm sở hữu | Contract cung cấp |
+| Capability | Owned responsibility | Contract provided |
 |---|---|---|
-| Customer | Hồ sơ và trạng thái khách hàng | CustomerLookup |
-| Catalog | Sản phẩm, giá và thông tin bán | ProductQuery |
-| Inventory | Tồn kho và reservation | InventoryReservation |
-| Order | Đơn hàng và trạng thái vòng đời | OrderService |
-| Payment | Transaction, authorization, refund | PaymentService |
-| Shipping | Shipment và tracking | ShippingService |
+| Customer | Customer profile and status | `CustomerLookup` |
+| Catalog | Products, pricing, and sales info | `ProductQuery` |
+| Inventory | Stock levels and reservations | `InventoryReservation` |
+| Order | Orders and lifecycle status | `OrderService` |
+| Payment | Transactions, authorization, refund | `PaymentService` |
+| Shipping | Shipments and tracking | `ShippingService` |
 
-Order điều phối use case nhưng không tự cập nhật bảng Inventory hoặc Payment. Mỗi capability thay đổi trạng thái nội bộ thông qua API của chính nó.
+Order orchestrates the use case but does not directly update Inventory or Payment tables. Each capability modifies its internal state through its own API.
 
-Trong hệ thống modular đơn tiến trình, các module có thể giao tiếp bằng Java interface và lời gọi trực tiếp. Nếu sau này một capability được triển khai thành service riêng, contract có thể được chuyển qua HTTP, messaging hoặc RPC. Boundary rõ ràng giúp thay đổi cách giao tiếp dễ hơn, nhưng module boundary không tự động biến module thành microservice.
+In a single-process modular system, modules can communicate via Java interfaces and direct method calls. If a capability is later deployed as a separate service, the contract can be moved over HTTP, messaging, or RPC. Clear boundaries make changing the communication mechanism easier, though a module boundary does not automatically turn a module into a microservice.
 
-## 12. Checklist xác định module boundary
+## 12. Checklist for defining module boundaries
 
-Trước khi tạo hoặc tách module, trả lời các câu hỏi:
+Before creating or splitting a module, answer these questions:
 
-- Capability này chịu trách nhiệm cho kết quả nghiệp vụ nào?
-- Quy tắc và dữ liệu nào thuộc quyền sở hữu của nó?
-- Những class nào thay đổi cùng nhau vì cùng một lý do?
-- Module khác cần biết chính xác những API nào?
-- Có package internal nào đang bị export không cần thiết?
-- Có dependency vòng hoặc dependency tới implementation của module khác không?
-- Có model dùng chung nào đang làm mờ ownership không?
-- Contract có thể được kiểm thử độc lập không?
-- Có cần ServiceLoader, hay dependency injection trực tiếp đã đủ?
-- Có thể thay đổi implementation bên trong mà không buộc consumer sửa code không?
+- Which business outcome is this capability responsible for?
+- Which rules and data belong to its ownership?
+- Which classes change together for the same reason?
+- Exactly which APIs do other modules need to know?
+- Are any internal packages being exported unnecessarily?
+- Are there any cyclic dependencies or dependencies on another module's implementation?
+- Is any shared model blurring ownership?
+- Can the contract be tested independently?
+- Is `ServiceLoader` needed, or is direct dependency injection sufficient?
+- Can the internal implementation be changed without forcing consumers to modify code?
 
-Nếu chưa trả lời được các câu hỏi về ownership và contract, chưa nên quyết định module chỉ dựa trên tên package hoặc framework.
+If you cannot yet answer the questions about ownership and contracts, do not decide on modules based solely on package names or frameworks.
 
-## 13. Ghi nhớ
+## 13. Key takeaways
 
-Xác định module boundary theo capability nghĩa là tổ chức module quanh năng lực nghiệp vụ và quyền sở hữu của nó. Module giữ domain rule, dữ liệu và implementation riêng; chỉ export contract mà capability khác thực sự cần. Module khác tương tác qua API hoặc service contract, thay vì truy cập repository, entity và package internal.
+Defining module boundaries by capability means organizing modules around business capabilities and their ownership. A module keeps its domain rules, data, and implementation private, exporting only the contracts that other capabilities genuinely need. Other modules interact through APIs or service contracts rather than accessing repositories, entities, and internal packages.
 
-Hãy dùng cohesion, coupling, dependency graph và module descriptor để kiểm tra boundary. Chia theo capability giúp hệ thống dễ thay đổi độc lập và giữ ranh giới rõ ràng, nhưng không có nghĩa mỗi capability phải trở thành một microservice hoặc một JAR riêng. Mục tiêu là quyền sở hữu rõ, contract nhỏ và dependency có hướng.
+Use cohesion, coupling, dependency graphs, and module descriptors to validate boundaries. Splitting by capability helps the system change independently and maintain clear boundaries, though it does not mean every capability must become a microservice or a separate JAR. The goal is clear ownership, small contracts, and directed dependencies.
 
-## Tài liệu tham khảo
+## References
 
 - Java Language Specification — Modules: https://docs.oracle.com/javase/specs/jls/se26/html/jls-7.html
 - Java Platform Module System — Module API: https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/module/package-summary.html

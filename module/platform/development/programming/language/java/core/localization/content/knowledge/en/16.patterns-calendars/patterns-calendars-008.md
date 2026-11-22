@@ -1,65 +1,65 @@
-# ResolverStyle.STRICT, SMART, LENIENT và phân tích ngày hợp lệ trong Java
+# ResolverStyle.STRICT, SMART, LENIENT and Valid Date Parsing in Java
 
-## 1. Một chuỗi ngày đúng mẫu chưa chắc là ngày hợp lệ
+## 1. A String Matching a Date Pattern Is Not Necessarily a Valid Date
 
-Một ứng dụng nhập ngày sinh, ngày hẹn, hạn thanh toán hoặc ngày hiệu lực thường nhận chuỗi như `2024-02-29`. Việc chuỗi có đúng thứ tự và số lượng chữ số **không đủ** để kết luận ngày có tồn tại trong lịch.
+Applications accepting birth dates, appointment dates, payment due dates, or effective dates often receive strings like `2024-02-29`. Having the expected digit counts and order is **not enough** to conclude that the date exists on the calendar.
 
-Ví dụ:
+For example:
 
-| Chuỗi | Đúng hình dạng `uuuu-MM-dd`? | Ngày lịch ISO có tồn tại? |
+| String | Matches `uuuu-MM-dd` shape? | Does the ISO calendar date exist? |
 | --- | --- | --- |
-| `2024-02-29` | Có | Có: năm 2024 nhuận |
-| `2023-02-29` | Có | Không: năm 2023 không nhuận |
-| `2023-02-30` | Có | Không: tháng 2 không có ngày 30 |
-| `2023-13-40` | Có (vẫn có 2 chữ số cho tháng/ngày) | Không: tháng/ngày vượt giới hạn |
-| `2023-2-9` | Không, nếu mẫu yêu cầu chính xác `MM` và `dd` | Có thể diễn đạt ngày thực, nhưng **sai mẫu** |
-| `abc` | Không | Không |
+| `2024-02-29` | Yes | Yes: 2024 is a leap year |
+| `2023-02-29` | Yes | No: 2023 is not a leap year |
+| `2023-02-30` | Yes | No: February has no day 30 |
+| `2023-13-40` | Yes (still 2 digits for month/day) | No: month/day out of bounds |
+| `2023-2-9` | No, if the pattern strictly requires `MM` and `dd` | Can express a real date, but **wrong pattern** |
+| `abc` | No | No |
 
-Java có `java.time.format.ResolverStyle` để quy định cách **giải quyết các trường ngày/giờ đã parse** thành đối tượng thời gian có nghĩa. Ba lựa chọn:
+Java provides `java.time.format.ResolverStyle` to govern how **parsed date/time fields are resolved** into meaningful temporal objects. The three options are:
 
-- `ResolverStyle.STRICT`: xác thực chặt chẽ theo lịch; từ chối ngày không tồn tại.
-- `ResolverStyle.SMART`: điều chỉnh một số trường hợp thiếu chính xác theo quy tắc “hợp lý” của từng trường và từng lịch.
-- `ResolverStyle.LENIENT`: chấp nhận nhiều giá trị vượt phạm vi khi resolve và chuẩn hóa bằng cộng/trừ thời gian.
+- `ResolverStyle.STRICT`: validates strictly against the calendar; rejects nonexistent dates.
+- `ResolverStyle.SMART`: adjusts certain imprecise cases according to "sensible" per-field and per-calendar rules.
+- `ResolverStyle.LENIENT`: accepts many out-of-range values during resolution and normalizes them via date/time arithmetic.
 
-**Điều quan trọng nhất:** cả ba đều là **chính sách phân giải ngày**, không phải ba kiểu biểu thức chính quy, không phải ba định dạng văn bản và không phải ba mức “an toàn” áp dụng chung cho mọi nghiệp vụ. Nếu người dùng nhập ngày sinh thực tế, `STRICT` thường hợp lý; nếu dữ liệu mô tả phép cộng ngày tương đối, `LENIENT` có thể hữu ích nhưng phải là lựa chọn có chủ đích.
+**Most importantly:** all three are **date resolution policies**, not three regular-expression modes, not three text formats, and not three "safety levels" interchangeable across domains. If users enter a real birth date, `STRICT` usually makes sense; if data represents relative day additions, `LENIENT` can be useful, provided it is an intentional choice.
 
-## 2. Java parse theo hai giai đoạn
+## 2. Java Parses in Two Phases
 
-Với `DateTimeFormatter`, việc phân tích văn bản thực hiện theo hai pha:
+In `DateTimeFormatter`, text parsing happens in two phases:
 
-1. **Parse văn bản theo cấu trúc formatter:** đọc chữ số, dấu phân cách, tên tháng, tùy chọn, vùng thời gian… thành các cặp `TemporalField → value` và thông tin liên quan. Ở pha này `"2023-02-29"` có thể được phân tích thành `YEAR=2023`, `MONTH_OF_YEAR=2`, `DAY_OF_MONTH=29`, dù tổ hợp đó không phải một ngày ISO hợp lệ.
-2. **Resolve các trường thành ngày/giờ:** kiểm tra hoặc chuẩn hóa các trường theo `ResolverStyle` và `Chronology` đang áp dụng. Pha này quyết định ngày 29/02/2023 bị từ chối, được chỉnh thành 28/02 hoặc trở thành 01/03.
+1. **Parse text against the formatter structure:** reads digits, separators, month names, optional sections, time zones, etc., into `TemporalField → value` pairs and related metadata. In this phase, `"2023-02-29"` can be parsed into `YEAR=2023`, `MONTH_OF_YEAR=2`, `DAY_OF_MONTH=29`, even though that combination is not a valid ISO date.
+2. **Resolve fields into a date/time:** validates or normalizes the fields according to the active `ResolverStyle` and `Chronology`. This phase decides whether February 29, 2023 is rejected, clamped to February 28, or turned into March 1.
 
 ~~~text
 Input "2023-02-29"
        |
        v
-Pha 1: parse theo "uuuu-MM-dd"
+Phase 1: parse with "uuuu-MM-dd"
        |
        +--> YEAR = 2023
        +--> MONTH_OF_YEAR = 2
        +--> DAY_OF_MONTH = 29
        |
        v
-Pha 2: resolve theo ResolverStyle
+Phase 2: resolve with ResolverStyle
        |
-       +--> STRICT  : từ chối (2023 không nhuận)
+       +--> STRICT  : reject (2023 is not a leap year)
        +--> SMART   : 2023-02-28
        +--> LENIENT : 2023-03-01
 ~~~
 
-Vì `ResolverStyle` chỉ điều khiển **pha resolve**, thay sang `LENIENT` **không tự làm mọi chuỗi sai định dạng được chấp nhận**. Ví dụ pattern `uuuu-MM-dd` vẫn có thể từ chối `2023-2-9` do thiếu độ rộng cần thiết, và `abc` không chứa các trường số phù hợp.
+Because `ResolverStyle` controls only the **resolve phase**, switching to `LENIENT` **does not make malformed strings parse automatically**. For example, `uuuu-MM-dd` still rejects `2023-2-9` for lacking the required width, and `abc` lacks valid numeric fields.
 
-Hai khái niệm cần tách bạch:
+Keep these two concepts separate:
 
-- `DateTimeFormatterBuilder.parseStrict()` / `parseLenient()` điều khiển **độ chặt ở pha đọc văn bản** trong builder.
-- `DateTimeFormatter.withResolverStyle(...)` điều khiển **pha phân giải trường**. Đặt resolver `LENIENT` không tương đương tự động gọi `parseLenient()` cho builder.
+- `DateTimeFormatterBuilder.parseStrict()` / `parseLenient()` controls **strictness during the text-parsing phase** in the builder.
+- `DateTimeFormatter.withResolverStyle(...)` controls **the field-resolution phase**. Setting the resolver to `LENIENT` is not equivalent to calling `parseLenient()` on the builder.
 
-Java còn cung cấp `parseUnresolved(...)` để xem phần dữ liệu sau pha 1 mà chưa resolve; đây là API cấp thấp hữu ích khi debug, **không** phải kết quả hợp lệ cuối cùng để nhập thẳng vào domain.
+Java also offers `parseUnresolved(...)` to inspect phase-1 results before resolution; this is a low-level debugging API, **not** a validated final value ready to enter your domain model.
 
-## 3. STRICT: từ chối ngày lịch không tồn tại
+## 3. STRICT: Rejecting Nonexistent Calendar Dates
 
-Với lịch ISO, `ResolverStyle.STRICT` yêu cầu giá trị trường nằm trong phạm vi hợp lệ và tổ hợp **năm–tháng–ngày phải có thật**.
+In the ISO calendar, `ResolverStyle.STRICT` requires field values to be within valid ranges and **the year–month–day combination to actually exist**.
 
 ~~~java
 DateTimeFormatter strict = DateTimeFormatter
@@ -69,89 +69,89 @@ DateTimeFormatter strict = DateTimeFormatter
 LocalDate valid = LocalDate.parse("2024-02-29", strict);
 ~~~
 
-Đây là **đoạn minh họa bên trong một phương thức**; cần import `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, `java.time.format.ResolverStyle` và `java.util.Locale`. Chương trình độc lập ở mục 7.
+This is an **illustrative snippet inside a method**; it requires imports `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, `java.time.format.ResolverStyle`, and `java.util.Locale`. A standalone program appears in section 7.
 
-Kết quả:
+Results:
 
-- `2024-02-29` → ngày hợp lệ.
+- `2024-02-29` → valid date.
 - `2023-02-29` → `DateTimeParseException`.
 - `2023-02-30` → `DateTimeParseException`.
 - `2023-13-40` → `DateTimeParseException`.
 - `2023-00-10` → `DateTimeParseException`.
 
-**Khi nào nên dùng?** Ngày sinh, ngày phát hành, hạn hợp đồng, ngày hóa đơn, input lịch làm việc, ngày kế toán hoặc bất kỳ trường hợp nào mà điều kiện quan trọng là **ngày đã nhập phải tồn tại**, không được âm thầm đổi ngày.
+**When should you use it?** Birth dates, issue dates, contract deadlines, invoice dates, work schedule inputs, accounting dates, or any scenario where the key requirement is that **the entered date must exist** and never be silently altered.
 
-Tuy vậy, `STRICT` mới xác thực theo **lịch**; nó không xác thực mọi quy tắc nghiệp vụ. Một ngày `2099-12-31` có thể là ngày ISO hợp lệ nhưng nằm ngoài kỳ đăng ký, kỳ nghỉ, năm được hỗ trợ hoặc giới hạn tuổi cho phép. Sau parse vẫn phải kiểm tra **miền giá trị và quy tắc domain**.
+However, `STRICT` only validates against the **calendar**; it does not enforce business rules. A date like `2099-12-31` may be a valid ISO date yet lie outside the registration window, holiday schedule, supported year range, or allowed age limits. After parsing, you must still validate **domain bounds and business rules**.
 
-## 4. SMART: hợp lý hóa một số ngày trong tháng, không tự sửa mọi trường
+## 4. SMART: Adjusting Certain Days Within a Month, Not Fixing Everything
 
-`ResolverStyle.SMART` là chính sách thông minh do **từng trường và chronology** quyết định. Trong trường hợp tổ hợp năm/tháng/ngày theo lịch ISO, Java kiểm tra ngày-of-month thuộc phạm vi tổng quát **1 đến 31**, nhưng nếu ngày đó lớn hơn ngày cuối cùng của **tháng cụ thể**, nó có thể chọn ngày cuối tháng.
+`ResolverStyle.SMART` is a smart policy defined **per field and per chronology**. When combining year/month/day in the ISO calendar, Java checks that day-of-month falls within the general **1 to 31** range, and if it exceeds the last day of **that specific month**, it can clamp to the last day of the month.
 
-Với pattern `uuuu-MM-dd`:
+With the pattern `uuuu-MM-dd`:
 
-| Đầu vào | `SMART` | Giải thích |
+| Input | `SMART` | Explanation |
 | --- | --- | --- |
-| `2024-02-29` | `2024-02-29` | Có thật, giữ nguyên |
-| `2023-02-29` | `2023-02-28` | Điều chỉnh về cuối tháng 2 |
-| `2023-02-30` | `2023-02-28` | Ngày 30 nằm trong 1–31 nhưng không tồn tại ở tháng 2 |
-| `2023-02-32` | Từ chối | Ngày vượt phạm vi tổng quát 1–31 |
-| `2023-13-40` | Từ chối | Tháng 13 và ngày 40 không hợp lệ |
-| `2023-00-10` | Từ chối | Tháng 0 không hợp lệ |
+| `2024-02-29` | `2024-02-29` | Exists, kept as-is |
+| `2023-02-29` | `2023-02-28` | Clamped to the end of February |
+| `2023-02-30` | `2023-02-28` | Day 30 is in 1–31 but does not exist in February |
+| `2023-02-32` | Rejected | Day exceeds general 1–31 range |
+| `2023-13-40` | Rejected | Month 13 and day 40 are invalid |
+| `2023-00-10` | Rejected | Month 0 is invalid |
 
-**Không nên dùng `SMART` làm bộ kiểm tra tính đúng nguyên bản input** khi bản thân việc người dùng nhập `2023-02-29` là lỗi cần họ sửa. Trong ví dụ trên, `LocalDate.parse` không báo lỗi: ứng dụng sẽ thấy `2023-02-28`, mặc dù đầu vào khác ngày được lưu.
+**Do not use `SMART` to validate verbatim user input** when entering `2023-02-29` is an error the user should fix. In the example above, `LocalDate.parse` does not throw: the application receives `2023-02-28`, even though the input differed from what is stored.
 
-`SMART` có thể phù hợp nếu nghiệp vụ **có hợp đồng rõ ràng** rằng ngày vượt cuối tháng được dồn về ngày cuối tháng. Ví dụ một số quy tắc lập lịch tháng có thể mong muốn điều đó, nhưng thường nên diễn đạt chính sách bằng phép toán ngày như `YearMonth.atEndOfMonth()` hoặc `TemporalAdjusters.lastDayOfMonth()` thay vì dựa vào hệ quả ngầm của parse.
+`SMART` can fit if the domain **explicitly contracts** that days past month-end clamp to the last day of the month. For instance, certain monthly billing schedules expect this, though it is usually clearer to express that policy via explicit date operations such as `YearMonth.atEndOfMonth()` or `TemporalAdjusters.lastDayOfMonth()` rather than relying on an implicit side effect of parsing.
 
-**Không khẳng định SMART luôn “làm tròn ngày”**: cách xử lý phụ thuộc trường, chronology và loại dữ liệu. Ví dụ một số tình huống giờ `24:00` được xử lý khác các giá trị ngày-of-month, nhưng cần kiểm tra hợp đồng cụ thể thay vì áp quy tắc tháng 2 cho mọi trường thời gian.
+**Do not claim SMART always "rounds dates"**: handling depends on the field, chronology, and data type. For example, certain cases like `24:00` are handled differently from day-of-month values, so check each field's specific contract rather than extrapolating February's rule to every temporal field.
 
-## 5. LENIENT: chuẩn hóa số tháng/ngày vượt phạm vi
+## 5. LENIENT: Normalizing Out-of-Range Months and Days
 
-`ResolverStyle.LENIENT` cho phép nhiều trường vượt phạm vi thông thường và giải quyết bằng phép cộng/trừ trong lịch.
+`ResolverStyle.LENIENT` allows many out-of-range fields and resolves them via calendar addition/subtraction.
 
-Với lịch ISO và `uuuu-MM-dd`, có thể hình dung:
+For the ISO calendar and `uuuu-MM-dd`, you can visualize it as:
 
-1. Bắt đầu từ ngày đầu tiên của năm/tháng được xác định sau chuẩn hóa.
-2. Dịch chuyển theo giá trị tháng và ngày được đọc, kể cả vượt phạm vi.
-3. Trả về một `LocalDate` có thực sau khi dịch chuyển.
+1. Start at the first day of the normalized year/month.
+2. Offset by the parsed month and day values, even when out of bounds.
+3. Return the resulting real `LocalDate`.
 
-Ví dụ đã kiểm thử:
+Verified examples:
 
-| Đầu vào | `LENIENT` | Phân tích |
+| Input | `LENIENT` | Breakdown |
 | --- | --- | --- |
-| `2024-02-29` | `2024-02-29` | Ngày hợp lệ, không đổi |
-| `2023-02-29` | `2023-03-01` | Ngày kế tiếp 28/02/2023 |
-| `2023-02-30` | `2023-03-02` | Hai ngày sau 28/02/2023 |
-| `2023-13-40` | `2024-02-09` | Tháng 13/2023 → 01/2024, ngày 40 → 09/02/2024 |
-| `2023-00-10` | `2022-12-10` | Tháng 0 → tháng 12 năm trước |
-| `2023-02-32` | `2023-03-04` | Ngày 32/02 vượt sang tháng 3 |
-| `abc` | Từ chối | Không vượt qua pha parse văn bản |
+| `2024-02-29` | `2024-02-29` | Valid date, unchanged |
+| `2023-02-29` | `2023-03-01` | Day after 2023-02-28 |
+| `2023-02-30` | `2023-03-02` | Two days after 2023-02-28 |
+| `2023-13-40` | `2024-02-09` | Month 13/2023 → 01/2024, day 40 → 2024-02-09 |
+| `2023-00-10` | `2022-12-10` | Month 0 → December of previous year |
+| `2023-02-32` | `2023-03-04` | Day 32/02 rolls over into March |
+| `abc` | Rejected | Fails the text-parsing phase |
 
-`LENIENT` không có nghĩa “bỏ qua lỗi rồi dùng ngày hiện tại”. Nó **chuẩn hóa một số trường thành ngày khác** có thể cách xa ngày người dùng nghĩ mình đã nhập. Điều này đặc biệt nguy hiểm với hạn nộp, deadline, ngày sinh hoặc chứng từ: `2023-13-40` có thể thành `2024-02-09` mà người dùng không hề nhận ra input có vấn đề.
+`LENIENT` does not mean "ignore errors and fall back to today". It **normalizes out-of-range fields into a different date** that can be far from what the user thought they entered. This is especially hazardous for due dates, deadlines, birth dates, or legal documents: `2023-13-40` can turn into `2024-02-09` without the user ever realizing their input was broken.
 
-**Khi dùng?** Các công cụ biến đổi dữ liệu có quy tắc rollover đã công bố, kiểm thử lịch tự động, hoặc phép tính tương đối mà input là các trường có thể vượt phạm vi. Trong hầu hết API nhận **ngày tuyệt đối** do người dùng gõ, chọn `STRICT` và báo lỗi cụ thể sẽ ít gây ngạc nhiên hơn.
+**When to use it?** Data transformation tools with documented rollover semantics, automated calendar tests, or relative calculations whose inputs intentionally exceed normal field ranges. In almost all APIs accepting **user-typed absolute dates**, choosing `STRICT` and reporting specific errors avoids nasty surprises.
 
-Nếu mục tiêu là cộng 40 ngày, nên dùng API tính ngày rõ nghĩa:
+If the goal is adding 40 days, use explicit date-arithmetic APIs:
 
 ~~~java
 LocalDate result = LocalDate.of(2024, 1, 1).plusDays(39);
 ~~~
 
-Đây là đoạn minh họa, không phải file chạy độc lập. Cách này minh bạch hơn việc tạo chuỗi tháng 13/ngày 40 rồi phụ thuộc vào `LENIENT`.
+This is an illustrative snippet, not a standalone file. This is far more transparent than constructing a month-13/day-40 string and relying on `LENIENT`.
 
-## 6. Default resolver style và bẫy yyyy so với uuuu
+## 6. Default Resolver Style and the yyyy vs. uuuu Pitfall
 
-### 6.1. Mặc định không phải formatter nào cũng STRICT
+### 6.1. Not every default formatter is STRICT
 
-Java SE 17 có các factory/formatter với mặc định khác nhau:
+Java SE 17 factories and predefined formatters have different defaults:
 
-| Formatter | Resolver style mặc định |
+| Formatter | Default Resolver Style |
 | --- | --- |
 | `DateTimeFormatter.ofPattern("uuuu-MM-dd")` | **SMART** |
 | `DateTimeFormatter.ofPattern("uuuu-MM-dd", locale)` | **SMART** |
 | `DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)` | **SMART** |
 | `DateTimeFormatter.ISO_LOCAL_DATE` | **STRICT** |
 
-Vì vậy:
+Therefore:
 
 ~~~java
 LocalDate parsed = LocalDate.parse(
@@ -159,7 +159,7 @@ LocalDate parsed = LocalDate.parse(
         DateTimeFormatter.ofPattern("uuuu-MM-dd"));
 ~~~
 
-Đây là đoạn minh họa. **Kết quả có thể là `2023-02-28`**, chứ không ném lỗi như nhiều người mong đợi. Đặt rõ resolver style nếu mục tiêu là xác thực ngày người dùng đã nhập.
+This is an illustrative snippet. **The result can be `2023-02-28`**, rather than throwing an exception as many developers expect. Explicitly set the resolver style whenever the goal is validating user-entered dates.
 
 ~~~java
 DateTimeFormatter strict = DateTimeFormatter
@@ -167,17 +167,17 @@ DateTimeFormatter strict = DateTimeFormatter
         .withResolverStyle(ResolverStyle.STRICT);
 ~~~
 
-`withResolverStyle` trả về **formatter mới** vì `DateTimeFormatter` bất biến; nếu gọi mà bỏ qua đối tượng trả về, cấu hình không thay đổi.
+`withResolverStyle` returns a **new formatter** because `DateTimeFormatter` is immutable; if you call it and discard the return value, the configuration does not change.
 
-### 6.2. `yyyy` không đồng nghĩa `uuuu` trong STRICT
+### 6.2. `yyyy` is not equivalent to `uuuu` in STRICT
 
-Đây là một lỗi phổ biến khác khi chuyển formatter từ `SMART` sang `STRICT`:
+This is another common pitfall when switching a formatter from `SMART` to `STRICT`:
 
-- `u` / `uuuu`: **proleptic year** (`ChronoField.YEAR`), có thể diễn đạt năm 0 và năm âm theo lịch ISO proleptic.
-- `y` / `yyyy`: **year-of-era** (`ChronoField.YEAR_OF_ERA`), cần ngữ cảnh **era** (`G`) để xác định năm trên trục năm.
-- `G`: tên/giá trị **era** (ví dụ AD/BC ở lịch ISO theo locale).
+- `u` / `uuuu`: **proleptic year** (`ChronoField.YEAR`), capable of representing year 0 and negative years in the proleptic ISO calendar.
+- `y` / `yyyy`: **year-of-era** (`ChronoField.YEAR_OF_ERA`), requiring an **era** (`G`) context to locate the year on the timeline.
+- `G`: **era** name/value (e.g., AD/BC in the ISO calendar per locale).
 
-Đối chiếu với `ResolverStyle.STRICT`:
+Comparing with `ResolverStyle.STRICT`:
 
 ~~~java
 DateTimeFormatter wrongForStrict = DateTimeFormatter
@@ -189,23 +189,23 @@ DateTimeFormatter correctForIso = DateTimeFormatter
         .withResolverStyle(ResolverStyle.STRICT);
 ~~~
 
-Cả hai đoạn là minh họa. Với input `2024-02-29`:
+Both snippets are illustrative. With input `2024-02-29`:
 
-- Formatter `uuuu-MM-dd` giải được `YEAR=2024`, `MONTH=2`, `DAY=29` → `LocalDate` hợp lệ.
-- Formatter `yyyy-MM-dd` chỉ có `YEAR_OF_ERA=2024` mà **không có era**, nên trong `STRICT` không đủ dữ liệu để lấy `LocalDate`. Kết quả là `DateTimeParseException` ngay cả khi ngày lịch này thực sự hợp lệ.
-- Nếu muốn dùng year-of-era, hãy cung cấp era như pattern `G yyyy-MM-dd` (ví dụ `AD 2024-02-29` ở locale tiếng Anh) hoặc cấu hình parse default cho era một cách có chủ đích.
+- `uuuu-MM-dd` resolves `YEAR=2024`, `MONTH=2`, `DAY=29` → valid `LocalDate`.
+- `yyyy-MM-dd` has only `YEAR_OF_ERA=2024` and **no era**, so under `STRICT` it lacks enough data to produce a `LocalDate`. The result is `DateTimeParseException` even though that calendar date is completely valid.
+- If you intend year-of-era, supply an era such as `G yyyy-MM-dd` (e.g. `AD 2024-02-29` in an English locale) or intentionally configure a parse default for the era.
 
-**Với ngày ISO dạng số dùng làm dữ liệu đầu vào**, thường ưu tiên `uuuu-MM-dd` cùng `STRICT`, hoặc dùng sẵn `DateTimeFormatter.ISO_LOCAL_DATE`. Đừng đổi ngẫu nhiên `yyyy` thành `uuuu` ở mọi formatter hiển thị vì `yyyy` có ý nghĩa hợp lệ khi sử dụng năm theo niên hiệu.
+**For numeric ISO dates used as input**, prefer `uuuu-MM-dd` with `STRICT`, or use the built-in `DateTimeFormatter.ISO_LOCAL_DATE`. Do not randomly replace `yyyy` with `uuuu` in every display formatter when `yyyy` has valid semantics with era-based years.
 
-### 6.3. Chronology có thể thay đổi kết quả resolve
+### 6.3. Chronology can change resolution outcomes
 
-Ví dụ trên dùng **lịch ISO** (`LocalDate`). Với các `Chronology` khác (Japanese, Hijrah, Thai Buddhist...), các trường lịch, leap year, era và giới hạn có thể khác. `ResolverStyle` là chính sách resolve, nhưng chính chronology thực hiện việc kết hợp các trường vào ngày.
+The examples above use the **ISO calendar** (`LocalDate`). Under other `Chronology` systems (Japanese, Hijrah, Thai Buddhist...), calendar fields, leap years, eras, and bounds can differ. `ResolverStyle` sets the resolution policy, while the chronology actually combines fields into a date.
 
-Không nên kết luận `SMART` luôn chuyển `29/02` về ngày 28 cho **mọi chronology**; đó là kết quả ví dụ của **ISO**. Nếu yêu cầu một lịch cụ thể, hãy áp dụng chronology tường minh và kiểm thử các dữ liệu biên phù hợp.
+Do not conclude that `SMART` always clamps `29/02` to the 28th in **every chronology**; that is an **ISO** example. When requiring a specific calendar, apply its chronology explicitly and test appropriate boundary inputs.
 
-## 7. Chương trình Java 17 hoàn chỉnh và kết quả kiểm chứng
+## 7. Complete Java 17 Program and Verified Output
 
-Đặt nội dung sau trong tệp **`ResolverStyleDemo.java`**:
+Place the following in **`ResolverStyleDemo.java`**:
 
 ~~~java
 import java.time.LocalDate;
@@ -270,14 +270,14 @@ public class ResolverStyleDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng **JDK 17+**:
+Compile and run with **JDK 17+**:
 
 ~~~bash
 javac -encoding UTF-8 ResolverStyleDemo.java
 java ResolverStyleDemo
 ~~~
 
-**Stdout được kiểm tra** với ví dụ Java:
+**Verified stdout** for the Java example:
 
 ~~~text
 2024-02-29 | STRICT=2024-02-29 | SMART=2024-02-29 | LENIENT=2024-02-29
@@ -292,23 +292,23 @@ ofPattern default=SMART
 ISO_LOCAL_DATE default=STRICT
 ~~~
 
-Cách đọc output:
+How to read the output:
 
-1. `2024-02-29` là ngày nhuận hợp lệ, ba mode cùng tạo ra một ngày.
-2. `2023-02-29` bị `STRICT` từ chối; `SMART` dùng cuối tháng 2, `LENIENT` chuyển sang 1/3.
-3. `2023-02-30` tiếp tục cho thấy `SMART` **dồn về 28/2**, nhưng `LENIENT` chuyển sang 2/3.
-4. `2023-13-40` hoặc `2023-00-10` minh họa `LENIENT` chuẩn hóa cả tháng và ngày vượt phạm vi.
-5. `abc` không cung cấp dữ liệu theo pattern nên ba mode đều từ chối ở pha parse văn bản.
-6. `STRICT yyyy` bị từ chối do thiếu **era**, chứ không phải vì 29/2/2024 sai; `STRICT uuuu` thành công.
-7. `ofPattern` mặc định `SMART`, còn `ISO_LOCAL_DATE` là `STRICT`.
+1. `2024-02-29` is a valid leap-day; all three modes produce the same date.
+2. `2023-02-29` is rejected by `STRICT`; `SMART` picks the end of February, while `LENIENT` moves to March 1.
+3. `2023-02-30` again shows `SMART` **clamping to February 28**, whereas `LENIENT` moves to March 2.
+4. `2023-13-40` and `2023-00-10` illustrate `LENIENT` normalizing out-of-range months and days.
+5. `abc` provides no fields matching the pattern, so all three modes reject it in the text-parsing phase.
+6. `STRICT yyyy` is rejected due to the missing **era**, not because 2024-02-29 is invalid; `STRICT uuuu` succeeds.
+7. `ofPattern` defaults to `SMART`, whereas `ISO_LOCAL_DATE` is `STRICT`.
 
-Chương trình in `REJECTED` thay cho thông điệp ngoại lệ thật để kết quả ổn định giữa các phiên bản Java. Trong ứng dụng, bạn nên xử lý `DateTimeParseException` theo chính sách thông báo lỗi rõ ràng, không để stack trace nội bộ xuất hiện trực tiếp trước người dùng.
+The program prints `REJECTED` instead of raw exception messages so the output stays stable across Java versions. In real applications, handle `DateTimeParseException` with a clear error policy and never expose internal stack traces directly to users.
 
-## 8. Xây hàm xác thực ngày nhập đáng tin cậy
+## 8. Building Reliable Date-Input Validators
 
-### 8.1. Parse chặt theo mẫu ISO khi nguồn dữ liệu cần ngày thật
+### 8.1. Parse strictly with an ISO pattern when the source requires real dates
 
-Với API nhận input `yyyy-MM-dd` theo cách đặt tên thông thường, mẫu Java thích hợp cho năm ISO **proleptic** là `uuuu-MM-dd`:
+For APIs accepting `yyyy-MM-dd`-style input under common naming conventions, the proper Java pattern for ISO **proleptic** year is `uuuu-MM-dd`:
 
 ~~~java
 public static LocalDate requireIsoDate(String raw) {
@@ -319,27 +319,27 @@ public static LocalDate requireIsoDate(String raw) {
 }
 ~~~
 
-Đây là **một phương thức minh họa**, không phải chương trình độc lập. Nó cần được đặt trong class có các import `LocalDate`, `DateTimeFormatter`, `ResolverStyle`, `Locale`. Người gọi cần bắt `DateTimeParseException` khi dữ liệu không hợp lệ và xử lý input `null` theo hợp đồng riêng.
+This is an **illustrative method**, not a standalone program. It must live in a class with imports `LocalDate`, `DateTimeFormatter`, `ResolverStyle`, and `Locale`. Callers should catch `DateTimeParseException` for invalid data and handle `null` inputs per their contract.
 
-Nếu giao thức **chỉ** cho phép định dạng ISO chuẩn, thường có thể dùng ngắn gọn:
+If the protocol **strictly** mandates standard ISO format, you can often write concisely:
 
 ~~~java
 LocalDate date = LocalDate.parse(raw, DateTimeFormatter.ISO_LOCAL_DATE);
 ~~~
 
-Đây là đoạn minh họa, `raw` là chuỗi đầu vào. `ISO_LOCAL_DATE` có resolver `STRICT` và chronology ISO được khai báo. Tuy nhiên, **`STRICT` không tự đồng nghĩa với "input chỉ gồm năm 4 chữ số không có dấu" trong mọi cách tạo formatter**; độ rộng, dấu cộng/trừ và chính sách lexical thuộc pattern/builder. Nếu API yêu cầu chính xác các byte hoặc ký tự trong một dạng khác, hãy kiểm tra theo hợp đồng giao thức và dùng pattern/builder tương ứng.
+This is an illustrative snippet where `raw` is the input string. `ISO_LOCAL_DATE` has `STRICT` resolution and ISO chronology declared. However, **`STRICT` does not automatically mean "input has only 4 unsigned year digits" under every formatter construction**; width, sign prefixes, and lexical policies belong to the pattern/builder. If an API requires exact byte or character shapes in a narrower form, validate against the protocol contract and build the matching pattern/builder.
 
-### 8.2. Tách xác thực lịch và xác thực nghiệp vụ
+### 8.2. Separate calendar validation from business validation
 
-Sau khi có `LocalDate` hợp lệ, còn phải kiểm tra:
+Once you have a valid `LocalDate`, you still need to check:
 
-- Ngày có nằm trong **khoảng thời gian hệ thống hỗ trợ** hay không?
-- Ngày có vượt deadline, cutoff, thời gian đặt trước hoặc ngày đóng sổ không?
-- Ngày có phải ngày làm việc và có nằm trong lịch nghỉ/holiday được sản phẩm hỗ trợ không?
-- Người dùng có quyền chọn ngày này không?
-- Nếu là ngày giờ, có múi giờ, DST gap/overlap hoặc offset nào cần xử lý không?
+- Does the date fall within the **supported system range**?
+- Does the date violate deadlines, cutoffs, booking windows, or closing dates?
+- Is the date a business day, and does it fall on a product-configured holiday?
+- Does the user have permission to select this date?
+- If date-time is involved, are there time zones, DST gaps/overlaps, or offsets to resolve?
 
-Ví dụ:
+Example:
 
 ~~~java
 if (date.isBefore(LocalDate.of(2000, 1, 1))
@@ -348,92 +348,92 @@ if (date.isBefore(LocalDate.of(2000, 1, 1))
 }
 ~~~
 
-Đây là đoạn minh họa, `date` đã parse thành công. **ResolverStyle không thay thế business validator**. Ngày `2024-02-29` hợp lệ theo lịch vẫn có thể bị từ chối nếu không thuộc miền ngày hợp đồng cho phép.
+This is an illustrative snippet assuming `date` already parsed successfully. **ResolverStyle does not replace a business validator**. A calendar-valid `2024-02-29` can still be rejected if it falls outside the contract's allowed date range.
 
-### 8.3. Parse và format là hai thao tác khác nhau
+### 8.3. Parsing and formatting are two distinct operations
 
-`DateTimeFormatter.withResolverStyle(...)` chỉ ảnh hưởng **parsing**, không thay đổi giá trị ngày khi formatter **format** một `LocalDate` đã hợp lệ. Trong khi đó, `withLocale` có thể đổi tên tháng, tên thứ hoặc pattern bản địa; `withChronology` và `withZone` mang ý nghĩa khác.
+`DateTimeFormatter.withResolverStyle(...)` affects **parsing** only; it does not alter the date value when the formatter **formats** an already valid `LocalDate`. Meanwhile, `withLocale` changes month names, weekday names, or localized patterns; `withChronology` and `withZone` serve separate roles.
 
-Không sử dụng `format(date)` rồi đọc chuỗi lại bằng `SMART` để “sửa” một dữ liệu nghiệp vụ đã sai. Dữ liệu thời gian cần được xác thực tại ranh giới nhập, lưu bằng kiểu `java.time` thích hợp và chỉ format ở tầng hiển thị.
+Never call `format(date)` and re-parse the string with `SMART` to "fix" invalid business data. Temporal data should be validated at the input boundary, stored in the appropriate `java.time` type, and formatted only at the presentation layer.
 
-## 9. Các trường hợp biên và lỗi hay gặp
+## 9. Edge Cases and Common Mistakes
 
-| Hiểu lầm/lỗi | Hậu quả | Cách xử lý |
+| Misconception / Error | Consequence | How to Handle It |
 | --- | --- | --- |
-| Cho rằng `ofPattern` mặc định `STRICT` | `2023-02-29` có thể thành `2023-02-28` | Gọi `withResolverStyle(STRICT)` |
-| Dùng `yyyy` với `STRICT` nhưng không có era | Ngày đúng cũng không resolve được sang `LocalDate` | Dùng `uuuu` cho năm ISO hoặc cung cấp `G` |
-| Dùng `LENIENT` cho ngày sinh/hạn hợp đồng | Input sai có thể bị chuyển sang ngày khác | Dùng `STRICT` và báo lỗi |
-| Nghĩ `SMART` tự sửa mọi ngày/tháng | Tháng 13, ngày 32 vẫn có thể bị từ chối | Hiểu đúng quy tắc SMART của chronology |
-| Nghĩ `LENIENT` chấp nhận mọi văn bản | Sai lexical pattern vẫn bị từ chối | Phân biệt parse phase và resolve phase |
-| Đặt `formatter.withResolverStyle(STRICT)` nhưng bỏ kết quả | Formatter gốc vẫn `SMART` | Gán lại hoặc dùng formatter mới |
-| Không phân biệt `parseStrict` với `ResolverStyle.STRICT` | Cấu hình sai giai đoạn | Chọn đúng parse lexical hoặc resolve |
-| Xử lý mọi `DateTimeParseException` bằng default `LocalDate.now()` | Lỗi dữ liệu bị che, nghiệp vụ sai | Báo input không hợp lệ, yêu cầu chỉnh sửa |
-| Cho rằng STRICT đảm bảo ngày hợp nghiệp vụ | Vẫn có thể ngoài khoảng, lịch nghỉ hoặc cutoff | Validate domain sau parse |
-| Dùng `SimpleDateFormat` như `DateTimeFormatter` | Hai API có khác biệt về mặc định và thread safety | Ưu tiên `java.time` trong code mới |
-| Thay locale/zone để “sửa” ngày sai | Không giải quyết được ngày lịch không tồn tại | Kiểm tra chronology, pattern, resolver |
-| Bắt ngoại lệ rồi trả nguyên thông báo nội bộ cho UI | Lộ chi tiết implementation, khó bản địa hóa thông báo | Trả mã lỗi và message phù hợp locale |
+| Assuming `ofPattern` defaults to `STRICT` | `2023-02-29` can become `2023-02-28` | Call `withResolverStyle(STRICT)` |
+| Using `yyyy` with `STRICT` and no era | Even valid dates fail to resolve to `LocalDate` | Use `uuuu` for ISO years or provide `G` |
+| Using `LENIENT` for birth dates / contract deadlines | Invalid input silently shifts to another date | Use `STRICT` and report an error |
+| Thinking `SMART` fixes any bad month/day | Month 13 or day 32 is still rejected | Understand the chronology's exact SMART rules |
+| Thinking `LENIENT` accepts arbitrary text | Lexical pattern mismatches are still rejected | Separate the parse phase from the resolve phase |
+| Calling `formatter.withResolverStyle(STRICT)` and ignoring the result | Original formatter remains `SMART` | Reassign or use the returned formatter |
+| Confusing `parseStrict` with `ResolverStyle.STRICT` | Wrong phase configured | Choose lexical parsing vs. field resolution properly |
+| Catching `DateTimeParseException` and defaulting to `LocalDate.now()` | Bad data is masked, corrupting business state | Report invalid input and ask for correction |
+| Assuming STRICT guarantees business validity | Dates may still violate bounds, holidays, or cutoffs | Run domain validation after parsing |
+| Treating `SimpleDateFormat` like `DateTimeFormatter` | Different defaults and thread-safety semantics | Prefer `java.time` in new code |
+| Changing locale/zone to "fix" an invalid date | Cannot repair nonexistent calendar dates | Check chronology, pattern, and resolver |
+| Catching the exception and returning raw internal message to UI | Leaks implementation details, hard to localize | Return an error code and locale-appropriate message |
 
-### 9.1. Trường hợp tháng/ngày một chữ số
+### 9.1. Single-digit month/day case
 
-Với pattern cố định `uuuu-MM-dd`, input `2023-2-9` bị từ chối kể cả với `LENIENT` trong ví dụ JDK đã kiểm tra. Muốn hỗ trợ cách gõ một hoặc hai chữ số, hãy dùng formatter có pattern/builder phù hợp với input đó, rồi **vẫn** áp dụng `STRICT` khi nghiệp vụ cần ngày hợp lệ. Không biến `LENIENT` thành cách vá lỗi cú pháp.
+With fixed pattern `uuuu-MM-dd`, input `2023-2-9` is rejected even under `LENIENT` in the tested JDK example. To support typing one or two digits, build a formatter whose pattern/builder accepts that input, and **still** apply `STRICT` whenever the domain needs valid dates. Never turn `LENIENT` into a patch for syntax mismatches.
 
-### 9.2. Trường hợp trailing garbage
+### 9.2. Trailing garbage case
 
-Input `2023-02-29extra` không thể được coi là một ngày hoàn chỉnh chỉ vì có tiền tố giống `uuuu-MM-dd`. Các overload `LocalDate.parse(text, formatter)` dùng để tạo đối tượng ngày và yêu cầu giải thích thích hợp toàn văn bản; hãy để lỗi parse được báo rõ.
+Input `2023-02-29extra` cannot be treated as a complete date merely because it has a prefix matching `uuuu-MM-dd`. `LocalDate.parse(text, formatter)` overloads create date objects and require full-text consumption; let parse failures surface clearly.
 
-Nếu dùng API thấp hơn với `ParsePosition`, phải kiểm tra phần text đã được tiêu thụ. Đừng nhận một chuỗi mà parser chỉ đọc được vài ký tự đầu rồi âm thầm bỏ phần còn lại.
+If using lower-level APIs with `ParsePosition`, verify that the entire text was consumed. Never accept a string where the parser only read the leading characters and silently ignored the rest.
 
-### 9.3. Múi giờ, DST và thời điểm
+### 9.3. Time zones, DST, and instants
 
-`ResolverStyle.STRICT` kiểm tra trường lịch trong context của formatter, nhưng **không tự xác nhận** một `LocalDateTime` địa phương có thể ánh xạ một-một đến `Instant` tại `ZoneId` cho trước. Trong ngày chuyển giờ mùa hè (DST), có thể có giờ địa phương **không tồn tại** hoặc **trùng lặp**.
+`ResolverStyle.STRICT` checks calendar fields within the formatter's context, yet **does not verify** that a local `LocalDateTime` maps one-to-one to an `Instant` in a given `ZoneId`. On DST transition days, local wall times can **fail to exist** or **occur twice**.
 
-Nếu nghiệp vụ cần xác thực giờ họp, giờ thanh toán, giờ bay hoặc sự kiện theo một vùng, phải xác định `ZoneId` và xử lý gap/overlap bằng quy tắc cụ thể. `ResolverStyle` không thay thế việc xét `ZoneRules`.
+When the domain validates meeting times, payment timestamps, flight schedules, or regional events, determine the `ZoneId` and handle gaps/overlaps with explicit rules. `ResolverStyle` does not replace checking `ZoneRules`.
 
-### 9.4. Với SimpleDateFormat thì sao?
+### 9.4. What about SimpleDateFormat?
 
-`java.text.SimpleDateFormat` có cơ chế `setLenient(boolean)` trên nền `Calendar`, không phải ba mode của `java.time.ResolverStyle`. Trong dự án mới, ưu tiên `java.time` để có formatter immutable, thread-safe và semantics parsing tường minh. Nếu tích hợp legacy, phải kiểm thử lại việc parse/normalize thay vì giả định `SimpleDateFormat.setLenient(false)` chính xác bằng mọi hành vi của `ResolverStyle.STRICT`.
+`java.text.SimpleDateFormat` relies on `setLenient(boolean)` backed by `Calendar`, not the three modes of `java.time.ResolverStyle`. In new projects, prefer `java.time` for immutable, thread-safe formatters and explicit parsing semantics. When integrating legacy code, test parsing/normalization behavior directly rather than assuming `SimpleDateFormat.setLenient(false)` matches `ResolverStyle.STRICT` in every detail.
 
-## 10. Kiểm thử cần thiết
+## 10. Essential Testing
 
-Một bộ test phù hợp cho input ngày thực tế nên có:
+A proper test suite for real-world date input should include:
 
-1. **Năm nhuận:** `2024-02-29` hợp lệ; `2023-02-29` phải bị `STRICT` từ chối.
-2. **Ngày cuối tháng:** `2023-04-30` hợp lệ; `2023-04-31` phải bị `STRICT` từ chối.
-3. **Tháng vượt biên:** `2023-13-10`, `2023-00-10` không được âm thầm chuẩn hóa trong API nhận ngày tuyệt đối.
-4. **Ngày vượt biên:** `2023-02-30`, `2023-02-32`, giá trị âm nếu pattern cho phép; kiểm tra phân biệt SMART/LENIENT.
-5. **Độ rộng/cú pháp:** `2023-2-9`, `2023/02/09`, khoảng trắng ở đầu/cuối và ký tự lạ.
-6. **Năm và niên hiệu:** `uuuu` so với `yyyy` trong STRICT; nếu dùng era, cần kiểm tra `G`.
-7. **Default formatter:** xác nhận `ofPattern` `SMART`, `ISO_LOCAL_DATE` `STRICT`.
-8. **Locale:** tên tháng theo ngôn ngữ được yêu cầu, nhưng hiệu lực lịch/chronology phải được khai báo rõ ràng.
-9. **Giới hạn nghiệp vụ:** ngày trước/sau miền cho phép, ngày lễ, ngày nghỉ, cutoff, quyền truy cập.
-10. **DST và timezone:** khi dữ liệu là local date-time, test gap/overlap với `ZoneId` liên quan.
-11. **Không sửa input:** ứng dụng phải lưu **ngày đã được người dùng xác nhận**, không tự làm lệch deadline vì SMART/LENIENT.
-12. **Ngoại lệ:** `DateTimeParseException` được chuyển thành thông báo có thể hiểu; không lộ stack trace.
+1. **Leap years:** `2024-02-29` valid; `2023-02-29` must be rejected by `STRICT`.
+2. **Month ends:** `2023-04-30` valid; `2023-04-31` must be rejected by `STRICT`.
+3. **Out-of-range months:** `2023-13-10` and `2023-00-10` must not be silently normalized in APIs expecting absolute dates.
+4. **Out-of-range days:** `2023-02-30`, `2023-02-32`, and negative values if the pattern allows them; verify SMART vs. LENIENT distinctions.
+5. **Width/syntax:** `2023-2-9`, `2023/02/09`, leading/trailing whitespace, and trailing garbage.
+6. **Year and era:** `uuuu` vs. `yyyy` under STRICT; when using eras, test `G`.
+7. **Default formatters:** verify `ofPattern` is `SMART` and `ISO_LOCAL_DATE` is `STRICT`.
+8. **Locale:** month names follow the requested language, while calendar validity/chronology is explicitly declared.
+9. **Business bounds:** dates before/after allowed range, holidays, weekends, cutoffs, and authorization checks.
+10. **DST and time zones:** when data is a local date-time, test gaps/overlaps against the relevant `ZoneId`.
+11. **Do not alter input:** the app must store **the date confirmed by the user**, never silently shifting deadlines via SMART/LENIENT.
+12. **Exceptions:** `DateTimeParseException` maps to an understandable message without leaking stack traces.
 
-Với test tự động, hãy so **LocalDate** chính xác sau parse, không chỉ so việc hàm có ném exception hay không. Đặc biệt SMART có thể “thành công” bằng cách thay giá trị, nên test phải kiểm tra ngày cuối cùng.
+In automated tests, assert the exact parsed **`LocalDate`**, not just whether an exception was thrown. Because `SMART` can "succeed" by changing the value, tests must verify the resulting date.
 
-## 11. Bài tập thực hành
+## 11. Practice Exercises
 
-- Thử ba mode với `2023-04-31`, giải thích vì sao `SMART` về 30/4 còn `LENIENT` sang 1/5.
-- Thử `2024-02-30`: kiểm tra kết quả theo năm nhuận.
-- Thay pattern `uuuu-MM-dd` bằng `yyyy-MM-dd` và giữ `STRICT`; suy luận vì sao lỗi xảy ra cả với `2024-02-29`.
-- Thêm era qua `G yyyy-MM-dd` và thử `AD 2024-02-29` ở `Locale.US`; kiểm tra ngày trả về.
-- Tạo formatter dùng `DateTimeFormatterBuilder` với cách parse linh hoạt về số chữ số, nhưng giữ `ResolverStyle.STRICT`; xác minh input một chữ số tháng vẫn được hiểu mà ngày sai vẫn bị bác bỏ.
-- So `DateTimeFormatter.ISO_LOCAL_DATE` với `ofPattern("uuuu-MM-dd").withResolverStyle(STRICT)` trên ngày biên và pattern ký hiệu năm.
-- Viết validator `requireDueDate(String input)` parse STRICT rồi so ngày với `LocalDate.now(clock)` được inject để test ổn định.
-- Với lịch hẹn, thử một `LocalDateTime` ở ngày chuyển DST của một `ZoneId` cụ thể; phân biệt lỗi ngày lịch với việc thời điểm không tồn tại theo zone.
+- Test all three modes with `2023-04-31`, explaining why `SMART` yields April 30 while `LENIENT` moves to May 1.
+- Test `2024-02-30`: inspect the results in a leap year.
+- Replace `uuuu-MM-dd` with `yyyy-MM-dd` while keeping `STRICT`; deduce why it fails even for `2024-02-29`.
+- Add the era via `G yyyy-MM-dd` and test `AD 2024-02-29` with `Locale.US`; inspect the returned date.
+- Build a formatter using `DateTimeFormatterBuilder` that parses single- or two-digit months flexibly while keeping `ResolverStyle.STRICT`; verify single-digit months are accepted while nonexistent dates are still rejected.
+- Compare `DateTimeFormatter.ISO_LOCAL_DATE` against `ofPattern("uuuu-MM-dd").withResolverStyle(STRICT)` on boundary dates and year pattern symbols.
+- Write a validator `requireDueDate(String input)` that parses in `STRICT` mode and compares against an injected `LocalDate.now(clock)` for deterministic tests.
+- For appointments, test a `LocalDateTime` on a DST transition day in a specific `ZoneId`; distinguish a calendar-date error from an instant not existing in that zone.
 
-## 12. Tổng kết
+## 12. Summary
 
-`ResolverStyle` kiểm soát **pha resolve** của `DateTimeFormatter`, không tự thay đổi mọi quy tắc đọc ký tự. Với ngày ISO:
+`ResolverStyle` controls the **resolve phase** of `DateTimeFormatter`, without altering all character-reading rules. For ISO dates:
 
-- **STRICT** chỉ nhận tổ hợp lịch thực sự hợp lệ.
-- **SMART** có thể điều chỉnh ngày vượt cuối tháng về ngày cuối tháng, nhưng không chấp nhận mọi giá trị vô lý.
-- **LENIENT** có thể chuẩn hóa tháng/ngày vượt phạm vi bằng rollover, vì vậy dễ tạo ra **ngày khác input**.
+- **STRICT** accepts only calendar combinations that genuinely exist.
+- **SMART** can clamp days past month-end to the last day of that month, while still rejecting completely absurd values.
+- **LENIENT** can normalize out-of-range months/days by rolling over, easily producing **a different date from the input**.
 
-Đối với biểu mẫu cần một ngày thực đúng như người dùng nhập, hãy chọn `DateTimeFormatter.ISO_LOCAL_DATE` hoặc mẫu `uuuu-MM-dd` có `ResolverStyle.STRICT`, xử lý lỗi rõ ràng và tiếp tục kiểm tra ràng buộc nghiệp vụ. Đặc biệt nhớ **`yyyy` là year-of-era, `uuuu` là proleptic year**: khi dùng STRICT, khác biệt đó có thể quyết định một ngày hợp lệ có parse được hay không.
+For forms requiring a real date matching exactly what the user entered, choose `DateTimeFormatter.ISO_LOCAL_DATE` or `uuuu-MM-dd` with `ResolverStyle.STRICT`, handle errors explicitly, and continue with business-rule validation. Most importantly, remember **`yyyy` is year-of-era and `uuuu` is proleptic year**: under STRICT mode, that difference can decide whether a valid date parses at all.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `ResolverStyle`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/ResolverStyle.html
 - Java SE 17, `DateTimeFormatter`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html

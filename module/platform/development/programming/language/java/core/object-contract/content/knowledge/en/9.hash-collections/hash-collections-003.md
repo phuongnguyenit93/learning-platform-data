@@ -1,21 +1,21 @@
-# Thêm hai đối tượng bằng nhau vào `HashSet` trong Java
+# Adding Two Equal Objects to a `HashSet` in Java
 
-Khi đưa hai đối tượng **khác instance nhưng bằng nhau về giá trị** vào một `HashSet`, tập hợp chỉ giữ **một phần tử** — **nếu** lớp đối tượng thực hiện đúng hợp đồng `equals()` và `hashCode()`. Lần thêm đầu thường trả `true`; lần thêm đối tượng thứ hai, vốn được coi là trùng phần tử, trả `false`. Đây là hành vi cốt lõi của một **set**: không chứa phần tử trùng theo tiêu chí bằng nhau của nó.
+When inserting two objects that are **different instances but equal by value** into a `HashSet`, the set keeps only **one element** — **if** the object's class properly implements the `equals()` and `hashCode()` contract. The first addition typically returns `true`; adding the second object, which is considered a duplicate element, returns `false`. This is the core behavior of a **set**: containing no duplicate elements according to its equality criterion.
 
-Tuy nhiên, câu trả lời phụ thuộc vào nghĩa cụ thể của từ **“bằng nhau”**. Hai object có cùng nội dung chưa chắc `equals()` trả `true`, và dù `equals()` trả `true`, một `hashCode()` sai hợp đồng vẫn có thể khiến `HashSet` nhận cả hai. Bài học sẽ phân tích từng trường hợp, cùng các ví dụ Java 17 chạy được.
+However, the answer depends on the specific meaning of the word **"equal"**. Two objects with the same content do not necessarily have `equals()` return `true`, and even if `equals()` returns `true`, a contract-violating `hashCode()` can still cause `HashSet` to accept both. This lesson analyzes each case, along with runnable Java 17 examples.
 
-## 1. Kết quả chuẩn khi hai object bằng nhau
+## 1. Standard Result When Two Objects Are Equal
 
-Giả sử có hai instance của cùng một kiểu, với cùng giá trị:
+Suppose we have two instances of the same type, with the same values:
 
 ~~~java
 Book first = new Book("978-1", "Java");
 Book second = new Book("978-1", "Java");
 ~~~
 
-Đây là **đoạn minh họa**; định nghĩa `Book` hoàn chỉnh xuất hiện ở chương trình bên dưới.
+This is an **illustrative snippet**; the complete `Book` definition appears in the program below.
 
-Hai biến `first` và `second` được tạo bằng hai lần `new`, nên `first == second` là `false`. Nếu `Book.equals()` so sánh hai trường `isbn`, `title`, thì `first.equals(second)` là `true`. Khi đưa chúng vào cùng một `HashSet<Book>`:
+The two variables `first` and `second` are created with two separate `new` calls, so `first == second` is `false`. If `Book.equals()` compares the two fields `isbn` and `title`, then `first.equals(second)` is `true`. When adding them to the same `HashSet<Book>`:
 
 ~~~java
 Set<Book> books = new HashSet<>();
@@ -24,58 +24,58 @@ System.out.println(books.add(second)); // false
 System.out.println(books.size());      // 1
 ~~~
 
-Hai đoạn trên có thể đặt trong `main` với các import và định nghĩa `Book` phù hợp. Chúng minh họa ba điểm quan trọng:
+The two snippets above can be placed inside `main` with appropriate imports and the `Book` definition. They illustrate three key points:
 
-- **`add(first) == true`:** tập hợp chưa chứa phần tử nào tương đương `first`, nên thêm thành công.
-- **`add(second) == false`:** tập hợp đã chứa một phần tử tương đương `second`, nên không thêm bản sao logic.
-- **`size() == 1`:** chỉ có một phần tử phân biệt theo quy tắc equality, mặc dù đã tạo hai instance.
+- **`add(first) == true`:** the set does not yet contain any element equivalent to `first`, so adding succeeds.
+- **`add(second) == false`:** the set already contains an element equivalent to `second`, so no logical duplicate is added.
+- **`size() == 1`:** there is only one distinct element according to the equality rule, even though two instances were created.
 
-Lần thêm trùng không làm tăng `size()` và **không thay thế instance đang có bằng instance truyền vào**. `HashSet` không phải bộ lưu tất cả các instance, và cũng không tự gộp thuộc tính từ hai đối tượng tương đương.
+The duplicate addition does not increase `size()` and **does not replace the existing instance with the passed-in instance**. `HashSet` is not a store of all instances, nor does it automatically merge attributes from two equivalent objects.
 
-## 2. “Bằng nhau” không có nghĩa là `==`
+## 2. "Equal" Does Not Mean `==`
 
-Với biến thuộc kiểu **tham chiếu**:
+For variables of **reference** types:
 
-| Phép kiểm tra | Ý nghĩa | Hai instance khác nhau cùng nội dung |
+| Check | Meaning | Two different instances with the same content |
 |---|---|---|
-| `first == second` | Hai biến có trỏ tới cùng một object? | `false` |
-| `first.equals(second)` | Hai object có bằng nhau theo định nghĩa của kiểu? | Có thể `true` |
-| `first.hashCode() == second.hashCode()` | Hai object có mã băm trùng nhau? | **Bắt buộc `true` nếu equals là true** |
-| `books.add(second)` | Có thêm được một phần tử mới, không trùng? | `false` khi set đã có phần tử tương đương và hợp đồng được tuân thủ |
+| `first == second` | Do both variables point to the same object? | `false` |
+| `first.equals(second)` | Are the two objects equal by the type's definition? | Can be `true` |
+| `first.hashCode() == second.hashCode()` | Do the two objects have matching hash codes? | **Must be `true` if equals is true** |
+| `books.add(second)` | Is a new, non-duplicate element added? | `false` when the set already has an equivalent element and the contract is followed |
 
-`Object.equals()` mặc định chỉ coi hai tham chiếu cùng trỏ một instance là bằng nhau. Một lớp tự tạo **không** ghi đè `equals()` sẽ thừa hưởng nghĩa mặc định đó; khi ấy hai lần `new` dù cùng dữ liệu thường được coi là hai phần tử khác nhau của `HashSet`.
+The default `Object.equals()` only considers two references pointing to the same instance as equal. A custom class that **does not** override `equals()` inherits that default meaning; in that case, two `new` calls even with identical data are usually treated as two distinct elements by `HashSet`.
 
-`String`, các wrapper thông thường, `BigInteger`, nhiều value object và Java `record` có định nghĩa equality theo nội dung. `record` tự sinh `equals()` và `hashCode()` theo các component. **Record không tự so sánh sâu phần tử của một component kiểu mảng**: nếu component là array, equality của array mặc định vẫn theo tham chiếu, trừ khi nhà phát triển có xử lý riêng.
+`String`, common wrapper types, `BigInteger`, many value objects, and Java `record`s define equality by content. A `record` automatically generates `equals()` and `hashCode()` from its components. **A `record` does not automatically deep-compare elements of an array component**: if a component is an array, the array's default equality remains reference-based unless the developer handles it explicitly.
 
-## 3. Vai trò phối hợp của `hashCode()` và `equals()`
+## 3. The Cooperative Role of `hashCode()` and `equals()`
 
-`HashSet` được triển khai dựa trên cấu trúc băm (`HashMap` trong JDK thông dụng). Khi thêm một phần tử khác `null`, tập hợp sử dụng `hashCode()` để định hướng vùng lưu/truy tìm, rồi dùng `equals()` để xác định khóa tương đương khi cần.
+`HashSet` is implemented on top of a hash structure (`HashMap` in standard JDKs). When adding a non-`null` element, the set uses `hashCode()` to route to a storage/search region, and then uses `equals()` to determine an equivalent key when needed.
 
-Có thể hình dung:
+You can picture it as:
 
-1. Tính hash của đối tượng định thêm.
-2. Xác định vị trí/bucket ứng với hash theo tổ chức nội bộ hiện tại.
-3. Kiểm tra trong vị trí phù hợp xem có phần tử trùng theo equality hay không.
-4. Nếu **đã có phần tử trùng**, `add` trả `false`; nếu **chưa có**, ghi phần tử mới và trả `true`.
+1. Compute the hash of the object to be added.
+2. Determine the position/bucket corresponding to the hash under the current internal organization.
+3. Check in the appropriate position whether a duplicate element by equality already exists.
+4. If **a duplicate element already exists**, `add` returns `false`; if **none exists yet**, record the new element and return `true`.
 
-Đây là **mô hình khái niệm** để hiểu hành vi, không phải cam kết rằng mọi phiên bản JDK luôn dùng một số bucket hay một thứ tự gọi phương thức cố định. Chính sách tính bucket, xử lý collision, chuyển sang cấu trúc cây khi va chạm nhiều có thể là chi tiết triển khai.
+This is a **conceptual model** for understanding behavior, not a promise that every JDK version always uses a fixed number of buckets or a fixed method-call order. Policies for computing buckets, handling collisions, or switching to a tree structure under heavy collisions can be implementation details.
 
-Hợp đồng bắt buộc:
+Mandatory contract:
 
-> Nếu `a.equals(b)` là `true` thì `a.hashCode() == b.hashCode()` **phải** đúng.
+> If `a.equals(b)` is `true` then `a.hashCode() == b.hashCode()` **must** hold.
 
-Chiều ngược lại **không đúng**: nếu hash giống nhau, `a` và `b` vẫn có thể khác nhau. Collision là bình thường; `HashSet` không loại một phần tử chỉ vì `hashCode()` trùng, mà phải đối chiếu equality phù hợp.
+The converse is **not true**: if hashes are the same, `a` and `b` can still be different. Collisions are normal; `HashSet` does not reject an element merely because `hashCode()` matches, but must compare equality appropriately.
 
-Nếu ghi đè `equals()` nhưng **quên** ghi đè `hashCode()` tương ứng, tập hợp có thể lưu nhiều đối tượng mà ứng dụng cho là bằng nhau. Kết quả đó là hệ quả của **lớp vi phạm hợp đồng**, không phải quy tắc bình thường của `HashSet`.
+If you override `equals()` yet **forget** to override `hashCode()` accordingly, the set can store multiple objects that the application considers equal. That outcome is a consequence of **the class violating the contract**, not a normal rule of `HashSet`.
 
-## 4. Ví dụ Java 17 đầy đủ: trường hợp đúng, hash sai, collision và khóa mutable
+## 4. Complete Java 17 Example: Valid Case, Broken Hash, Collision, and Mutable Key
 
-Lưu chương trình sau vào **`HashSetEqualityDemo.java`**. Nó có bốn tình huống độc lập:
+Save the following program to **`HashSetEqualityDemo.java`**. It contains four independent scenarios:
 
-- `Book` là `record`, có equality/hash đúng theo hai thành phần.
-- `BrokenKey` **cố ý viết sai**: `equals` theo `id` nhưng hash theo `salt`. Chỉ dùng để minh họa lỗi.
-- `CollidingKey` luôn trả cùng hash `7` nhưng equality vẫn phân biệt `id`; đây là collision **hợp lệ**.
-- `MutableKey` có trường được dùng làm hash có thể thay đổi; ví dụ minh họa lý do không sửa khóa sau khi thêm vào set.
+- `Book` is a `record`, with valid equality/hash based on both components.
+- `BrokenKey` is **intentionally written wrong**: `equals` checks `id` while hash uses `salt`. Used only to demonstrate the bug.
+- `CollidingKey` always returns the same hash `7` while equality still distinguishes `id`; this is a **valid** collision.
+- `MutableKey` has a field used for hashing that can mutate; the example illustrates why you must not modify a key after adding it to a set.
 
 ~~~java
 import java.util.HashSet;
@@ -104,14 +104,14 @@ public class HashSetEqualityDemo {
 
         @Override
         public int hashCode() {
-            return salt; // SAI: equals không so salt.
+            return salt; // WRONG: equals does not compare salt.
         }
     }
 
     record CollidingKey(String id) {
         @Override
         public int hashCode() {
-            return 7; // Hợp lệ: object bằng nhau vẫn có cùng hash.
+            return 7; // Valid: equal objects still have the same hash.
         }
     }
 
@@ -178,7 +178,7 @@ public class HashSetEqualityDemo {
         Set<MutableKey> mutableSet = new HashSet<>();
         mutableSet.add(mutable);
         System.out.println("mutable before: " + mutableSet.contains(mutable));
-        mutable.setId(2); // Đổi cả equals/hash sau khi thêm vào set.
+        mutable.setId(2); // Change both equals/hash after adding to the set.
         System.out.println("mutable after: " + mutableSet.contains(mutable));
 
         Set<Book> withDuplicates = new HashSet<>(
@@ -188,14 +188,14 @@ public class HashSetEqualityDemo {
 }
 ~~~
 
-Biên dịch/chạy với **JDK 17 trở lên**:
+Compile/run with **JDK 17 or higher**:
 
 ~~~bash
 javac HashSetEqualityDemo.java
 java HashSetEqualityDemo
 ~~~
 
-Kết quả trên Java 17:
+Output on Java 17:
 
 ~~~text
 same reference: false
@@ -221,20 +221,20 @@ mutable after: false
 from list size: 2
 ~~~
 
-**Giải thích các kết quả:**
+**Explanation of the results:**
 
-1. Hai `Book` khác instance (`== false`), nhưng `equals true` và hash bằng nhau. Vì vậy lần thêm thứ hai trả `false`; set chỉ có một `Book("978-1", "Java")`. `contains` với **instance thứ ba** có cùng giá trị cũng trả `true`.
-2. `differentBook` có ISBN và tên khác nên thêm thành công, đưa `size` lên 2.
-3. `BrokenKey`: hai khóa có cùng ID nên `equals true`, nhưng hash là 1 và 2. Ở trường hợp cụ thể trên Java 17, chúng được đưa vào hai vị trí băm khác nhau; cả hai lần `add` trả `true` và `size == 2`. Đây là **triển khai sai**, không phải cách đạt được chức năng lưu trùng.
-4. `CollidingKey`: cả `"A"` và `"B"` cùng hash nhưng `equals false` nên vẫn là hai phần tử hợp lệ. Một `"A"` khác có cùng giá trị bị từ chối. Hash trùng **không** đồng nghĩa object trùng.
-5. `MutableKey`: sau khi thêm với `id = 1`, object bị đổi thành `id = 2`. Trong ví dụ Java 17 này, `contains(mutable)` trả `false` vì vị trí tra cứu theo hash mới không khớp vị trí ghi ban đầu. Hành vi tra cứu khi sửa key như vậy không còn đáng tin cậy.
-6. Constructor nhận collection `new HashSet<>(List.of(...))` cũng loại bản sao logic theo equality/hash hợp lệ. Khác nhau ở cú pháp tạo set; quy tắc trùng lặp không đổi.
+1. The two `Book`s are different instances (`== false`), yet `equals` is `true` and their hashes match. Therefore, the second addition returns `false`; the set contains only one `Book("978-1", "Java")`. `contains` with a **third instance** having the same value also returns `true`.
+2. `differentBook` has a different ISBN and title so adding it succeeds, bringing `size` to 2.
+3. `BrokenKey`: the two keys have the same ID so `equals` is `true`, yet their hashes are 1 and 2. In this specific case on Java 17, they are placed into different hash positions; both `add` calls return `true` and `size == 2`. This is a **broken implementation**, not a way to achieve duplicate storage functionality.
+4. `CollidingKey`: both `"A"` and `"B"` share the same hash yet `equals` is `false`, so they remain two valid elements. Another `"A"` with the same value is rejected. Matching hashes do **not** mean duplicate objects.
+5. `MutableKey`: after being added with `id = 1`, the object is changed to `id = 2`. In this Java 17 example, `contains(mutable)` returns `false` because the lookup position for the new hash does not match the original insertion position. Lookup behavior when mutating keys like this is no longer reliable.
+6. The constructor accepting a collection `new HashSet<>(List.of(...))` also removes logical duplicates according to valid equality/hash. Only the set creation syntax differs; the duplication rule stays the same.
 
-**Không dựa vào thứ tự phần tử khi in `HashSet`:** tập hợp này không bảo đảm thứ tự duyệt theo thứ tự thêm, theo hash hay theo thứ tự tăng dần. Ví dụ in các giá trị boolean, kích thước và kết quả `contains`, thay vì in nguyên `HashSet` rồi khẳng định một thứ tự cụ thể.
+**Do not rely on element order when printing a `HashSet`:** this set does not guarantee iteration order by insertion order, hash, or ascending order. For example, print boolean values, sizes, and `contains` results rather than printing the entire `HashSet` and asserting a specific order.
 
-## 5. Vậy thêm hai đối tượng bằng nhau có “mất” dữ liệu không?
+## 5. So Does Adding Two Equal Objects "Lose" Data?
 
-Điều cần phân biệt là **instance** và **giá trị phần tử**.
+What must be distinguished is **instance** vs. **element value**.
 
 ~~~java
 Book first = new Book("978-1", "Java");
@@ -245,15 +245,15 @@ books.add(first);   // true
 books.add(second);  // false
 ~~~
 
-Trong ví dụ này, `HashSet` chỉ lưu một đại diện cho **lớp tương đương** gồm các object mà `equals` coi là bằng nhau. Nó không lưu hai bản ghi trùng chỉ để nhớ rằng có hai lần `new`.
+In this example, `HashSet` stores only one representative for the **equivalence class** of objects that `equals` considers equal. It does not store two duplicate records just to remember that `new` was called twice.
 
-Khi `add(second)` trả `false`, **phần tử cũ vẫn nằm trong set**; `second` không được dùng để thay thế `first`. Trong cấu trúc dữ liệu, một phần tử có thể đại diện cho nhiều object bằng nhau theo quy tắc equality; set không hứa sẽ lưu số lần xuất hiện.
+When `add(second)` returns `false`, **the old element stays in the set**; `second` is not used to replace `first`. In the data structure, one element can represent multiple objects equal by the equality rule; a set does not promise to store occurrence counts.
 
-Nếu bài toán cần **ghi nhận từng lần xuất hiện**, chọn `List` hoặc collection phù hợp. Nếu cần **đếm số lần**, dùng một map đếm theo giá trị, ví dụ `Map<Book, Integer>` với `merge(book, 1, Integer::sum)`. Nếu cần **chọn object mới thay object cũ**, phải tự định nghĩa nghiệp vụ thay thế; `HashSet.add` không cung cấp hành vi đó.
+If the problem requires **recording every occurrence**, choose a `List` or an appropriate collection. If you need to **count occurrences**, use a map counting by value, such as `Map<Book, Integer>` with `merge(book, 1, Integer::sum)`. If you need to **choose the new object over the old object**, you must define the replacement logic yourself; `HashSet.add` does not provide that behavior.
 
-## 6. Điều gì xảy ra nếu chỉ cùng dữ liệu nhưng `equals()` chưa được ghi đè?
+## 6. What Happens If Only Data Matches, Without Overriding `equals()`?
 
-Xét một lớp tự tạo chỉ có constructor và trường `id`:
+Consider a custom class with only a constructor and an `id` field:
 
 ~~~java
 final class PlainItem {
@@ -265,30 +265,30 @@ final class PlainItem {
 }
 ~~~
 
-Đây là định nghĩa lớp có thể biên dịch; nó không chứa `main`. Khi thêm `new PlainItem(42)` hai lần, `PlainItem` thừa hưởng `Object.equals()`, vốn dùng identity. Vì vậy hai instance khác nhau **không được xem là bằng nhau**, dù cùng `id = 42`. Một `HashSet<PlainItem>` thường có kích thước 2 sau hai lần thêm.
+This is a compilable class definition; it does not contain `main`. When adding `new PlainItem(42)` twice, `PlainItem` inherits `Object.equals()`, which uses identity. Thus, two distinct instances **are not considered equal**, even with the same `id = 42`. A `HashSet<PlainItem>` will typically have size 2 after two additions.
 
-Đó **không phải lỗi của `HashSet`**: lớp đã định nghĩa equality mặc định là cùng instance. Nếu khái niệm nghiệp vụ yêu cầu hai item cùng ID là một, cần định nghĩa `equals()` theo ID và viết `hashCode()` nhất quán, hoặc dùng value type như record khi phù hợp.
+That is **not a bug in `HashSet`**: the class defined its default equality as same-instance identity. If business logic requires two items with the same ID to be one, you must define `equals()` by ID and write a consistent `hashCode()`, or use a value type like a record when appropriate.
 
-Cũng cần nhớ: ghi đè `equals` theo **chỉ một số trường** nghĩa là các trường còn lại không quyết định trùng lặp. Ví dụ nếu `Book.equals()` chỉ xét ISBN, hai cuốn cùng ISBN nhưng có tên mô tả khác cũng được xem là một phần tử. Định nghĩa equality là quyết định **mô hình dữ liệu**, không phải chi tiết cú pháp.
+Also remember: overriding `equals` on **only a subset of fields** means the remaining fields do not determine duplication. For instance, if `Book.equals()` only checks ISBN, two books with the same ISBN but different descriptive titles are also considered one element. Defining equality is a **data-modeling** decision, not a syntax detail.
 
-## 7. Vì sao `hashCode()` sai làm hai object bằng nhau cùng tồn tại?
+## 7. Why Does a Wrong `hashCode()` Cause Two Equal Objects to Coexist?
 
-Giả sử:
+Suppose:
 
 - `a.equals(b) == true`.
-- `a.hashCode() == 1` nhưng `b.hashCode() == 2`.
+- `a.hashCode() == 1` yet `b.hashCode() == 2`.
 
-Đây là mâu thuẫn trực tiếp với hợp đồng Java. Dù `equals` nói chúng bằng nhau, bước định vị dựa trên hash có thể đưa chúng đến các vùng khác nhau, dẫn đến **không kiểm tra equality với phần tử đã có**. Khi ấy set có thể lưu cả `a` và `b`. Tùy kiểu va chạm, dung lượng và cách cài đặt, kết quả lỗi có thể biến thiên; không nên dùng nó như một quy tắc chức năng được bảo đảm.
+This is a direct contradiction with the Java contract. Even though `equals` says they are equal, the hash-based locating step can send them to different regions, resulting in **not checking equality against the already existing element**. The set can then store both `a` and `b`. Depending on collision types, capacity, and implementation, the failure outcome can vary; it must not be used as a guaranteed functional rule.
 
-Cách khắc phục là:
+The fix is:
 
-1. Quyết định rõ những trường nào xác định hai object bằng nhau.
-2. Triển khai `equals()` theo đúng các trường đó, tuân thủ phản xạ, đối xứng, bắc cầu và nhất quán.
-3. Triển khai `hashCode()` từ **cùng dữ liệu có liên quan** để mọi cặp bằng nhau chắc chắn có hash bằng nhau. Hash không cần duy nhất.
-4. Ưu tiên bất biến cho những trường ảnh hưởng equality/hash của phần tử khi nằm trong `HashSet`.
-5. Kiểm tra bằng ví dụ tạo hai instance khác nhau có giá trị bằng nhau; xác minh `equals`, mã băm, `add`, `size`, `contains`.
+1. Clearly decide which fields determine whether two objects are equal.
+2. Implement `equals()` on those exact fields, obeying reflexivity, symmetry, transitivity, and consistency.
+3. Implement `hashCode()` from **the same relevant data** so that every equal pair is guaranteed to have equal hashes. Hashes do not need to be unique.
+4. Prefer immutability for fields affecting an element's equality/hash while inside a `HashSet`.
+5. Test with an example creating two distinct instances with equal values; verify `equals`, hash code, `add`, `size`, and `contains`.
 
-### Mẫu lớp giá trị tự viết
+### Hand-written value class pattern
 
 ~~~java
 import java.util.Objects;
@@ -314,13 +314,13 @@ final class ProductCode {
 }
 ~~~
 
-Trong ví dụ này, `ProductCode` là `final` và `code` bất biến. Hai instance có cùng `code` bằng nhau và có cùng hash; cách kiểm tra `instanceof` an toàn với vấn đề lớp con bổ sung trạng thái vì **không thể kế thừa từ lớp `final`**. Chương trình sử dụng lớp này cần cung cấp `main` nếu muốn chạy độc lập.
+In this example, `ProductCode` is `final` and `code` is immutable. Two instances with the same `code` are equal and have the same hash; the `instanceof` check is safe from subclasses adding state because **you cannot inherit from a `final` class**. A program using this class needs to provide `main` if you want to run it standalone.
 
-## 8. Trường hợp `null`, collision và cùng tham chiếu
+## 8. `null` Cases, Collisions, and Same Reference
 
-### Thêm `null` hai lần
+### Adding `null` twice
 
-`HashSet` cho phép **một phần tử `null`**. Với set ban đầu trống:
+`HashSet` allows **one `null` element**. Starting with an empty set:
 
 ~~~java
 Set<String> names = new HashSet<>();
@@ -329,53 +329,53 @@ System.out.println(names.add(null)); // false
 System.out.println(names.size());    // 1
 ~~~
 
-Đoạn này đặt trong `main` và cần `import java.util.Set;` cùng `import java.util.HashSet;`. `null` thứ hai không làm tăng kích thước. Không gọi `null.equals(...)`; cấu trúc xử lý `null` theo cách riêng.
+This snippet belongs inside `main` and needs `import java.util.Set;` along with `import java.util.HashSet;`. The second `null` does not increase the size. `null.equals(...)` is not called; the structure handles `null` in its own way.
 
-### Thêm cùng một instance hai lần
+### Adding the exact same instance twice
 
-Nếu `Book book = new Book(...)` và gọi `set.add(book)` hai lần, kết quả là `true` rồi `false`. Không cần hai instance riêng để minh họa tính duy nhất; ngay cả cùng một tham chiếu cũng không được ghi hai lần. Điều đó không chứng minh rằng `==` là tiêu chí duy nhất của set.
+If `Book book = new Book(...)` and you call `set.add(book)` twice, the results are `true` then `false`. You do not need two separate instances to demonstrate uniqueness; even the exact same reference is not recorded twice. That does not prove that `==` is the set's sole criterion.
 
-### Hai object khác nhau nhưng hash giống nhau
+### Two different objects with the same hash
 
-Không có yêu cầu rằng hai object khác nhau phải có mã băm khác nhau. Một `hashCode()` luôn trả `7` về mặt **tính đúng** vẫn có thể hợp đồng, vì mọi cặp bằng nhau đều nhận 7; tuy nhiên phân phối hash kém làm nhiều collision, có thể khiến hiệu năng giảm. `HashSet` vẫn cần dùng `equals()` để phân biệt những object **không** bằng nhau.
+There is no requirement that two different objects must have different hash codes. A `hashCode()` that always returns `7` is still contract-compliant in terms of **correctness**, because every equal pair receives 7; however, poor hash distribution causes many collisions, which can hurt performance. `HashSet` still needs `equals()` to distinguish objects that are **not** equal.
 
-## 9. Các hệ quả thường gặp khi dùng `HashSet`
+## 9. Common Consequences When Using `HashSet`
 
-**Thứ tự:** `HashSet` không có cam kết về thứ tự duyệt. Nếu muốn thứ tự chèn, cân nhắc `LinkedHashSet`; nếu muốn thứ tự sắp xếp, cân nhắc `TreeSet`, nhưng `TreeSet` coi `compare(...) == 0` là trùng phần tử theo comparator, có thể khác `equals()`.
+**Ordering:** `HashSet` makes no commitment regarding iteration order. If you want insertion order, consider `LinkedHashSet`; if you want sorted order, consider `TreeSet`, though `TreeSet` treats `compare(...) == 0` as a duplicate element per the comparator, which can differ from `equals()`.
 
-**Đồng thời:** `HashSet` thông thường không tự đồng bộ. Nếu nhiều thread cùng thay đổi set, cần phương án phối hợp/collection phù hợp; điều này độc lập với hợp đồng equality.
+**Concurrency:** Standard `HashSet` is not automatically synchronized. If multiple threads modify the set concurrently, you need an appropriate coordination mechanism/collection; this is independent of the equality contract.
 
-**Không đổi trường dùng làm khóa:** Nếu một phần tử đã được thêm mà các trường dùng để tính hash thay đổi, `contains`, `remove` hay `add` sau đó có thể cho kết quả khó đoán. Đặc biệt, `equals()` và `hashCode()` đúng ở từng thời điểm chưa đủ: tính ổn định của khóa **trong suốt thời gian nằm trong set** cũng quan trọng.
+**Do not mutate fields used as keys:** If an element has already been added and the fields used to compute its hash change, subsequent `contains`, `remove`, or `add` calls can yield unpredictable results. In particular, `equals()` and `hashCode()` being valid at each instant is not enough: key stability **throughout the time it resides in the set** is also crucial.
 
-**Giới hạn của kiểm tra bằng kích thước:** Một set có kích thước 1 sau hai lần thêm chỉ chứng minh rằng theo cơ chế equality hiện tại, lần thêm thứ hai không tạo phần tử mới; không tự chứng minh rằng hai object trùng dữ liệu theo mọi tiêu chí nghiệp vụ. Ngược lại, kích thước 2 có thể xuất phát từ định nghĩa equality khác mong đợi hoặc hợp đồng hash bị phá.
+**Limits of size-based checks:** A set having size 1 after two additions only proves that under the current equality mechanism, the second addition did not create a new element; it does not automatically prove that two objects have identical data by every business criterion. Conversely, size 2 can stem from an unexpected equality definition or a broken hash contract.
 
-## 10. Lỗi phổ biến và cách sửa
+## 10. Common Mistakes and Fixes
 
-| Hiện tượng | Nguyên nhân có thể | Cách kiểm tra/khắc phục |
+| Symptom | Possible cause | How to check/fix |
 |---|---|---|
-| Hai object trông giống nhau nhưng `size == 2` | Không override `equals`, hoặc `equals` xét thêm trường | In/kiểm tra `equals`; xác định các trường quyết định giá trị |
-| `equals == true` nhưng vẫn thêm được cả hai | `hashCode` sai hợp đồng | Kiểm tra hash của cặp bằng nhau; sửa hash nhất quán |
-| Hai object khác nhau cùng hash bị coi là một | `equals` triển khai quá rộng hoặc sai | Hash collision **không** đủ để loại trùng; sửa equality |
-| `contains` không tìm thấy object đã thêm | Trường hash/equality bị thay đổi hoặc hợp đồng hỏng | Dùng khóa bất biến; tránh sửa trường định danh khi đã thêm |
-| Mong phần tử mới thay phần tử cũ khi `add` trùng | Hiểu sai `HashSet.add` | `add` trả `false` và giữ phần tử cũ |
-| Kết quả hiển thị mỗi lần in set khác thứ tự | `HashSet` không bảo đảm thứ tự duyệt | Chỉ dựa vào membership/`size`; chọn collection có thứ tự nếu cần |
-| Tưởng record so sánh sâu array | Component array vẫn dùng equality của array | Thiết kế riêng nếu muốn so từng phần tử, hoặc thay cấu trúc dữ liệu |
+| Two objects look alike yet `size == 2` | `equals` not overridden, or `equals` checks extra fields | Print/check `equals`; determine the fields defining value |
+| `equals == true` yet both still get added | `hashCode` violates contract | Check hashes of the equal pair; fix hash to be consistent |
+| Two different objects with the same hash treated as one | `equals` implemented too broadly or wrongly | Hash collision is **not** enough to deduplicate; fix equality |
+| `contains` fails to find an added object | Hash/equality field mutated or contract broken | Use immutable keys; avoid mutating identity fields once added |
+| Expecting new element to replace old on duplicate `add` | Misunderstanding `HashSet.add` | `add` returns `false` and keeps the old element |
+| Output order differs every time the set is printed | `HashSet` does not guarantee iteration order | Rely only on membership/`size`; pick an ordered collection if needed |
+| Assuming a record deep-compares arrays | Array component still uses array equality | Write custom logic to compare element-by-element, or change data structure |
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**Câu 1.** `a != b` theo tham chiếu, `a.equals(b)` là `true`, hash của hai đối tượng bằng nhau. Thêm `a` rồi `b` vào một `HashSet` ban đầu trống có kết quả gì?  
-**Đáp án:** `add(a)` trả `true`, `add(b)` trả `false`, kích thước là 1.
+**Question 1.** `a != b` by reference, `a.equals(b)` is `true`, and both objects have equal hashes. What happens when adding `a` then `b` to an initially empty `HashSet`?  
+**Answer:** `add(a)` returns `true`, `add(b)` returns `false`, size is 1.
 
-**Câu 2.** Hai object có `hashCode() == 7`, nhưng `equals() == false`. `HashSet` có giữ được cả hai không?  
-**Đáp án:** Có; hash collision không đồng nghĩa equality. Khi phần tử khác nhau theo equality và hợp đồng hợp lệ, set có thể giữ cả hai.
+**Question 2.** Two objects have `hashCode() == 7`, yet `equals() == false`. Can `HashSet` hold both?  
+**Answer:** Yes; hash collision does not mean equality. When elements differ by equality and the contract is valid, the set can hold both.
 
-**Câu 3.** Hai object được ứng dụng coi là bằng nhau nhưng `hashCode()` khác nhau. Nên làm gì?  
-**Đáp án:** Sửa lớp để tuân thủ hợp đồng: những object bằng nhau bắt buộc có mã băm giống nhau. Không dựa vào hành vi tình cờ của `HashSet` khi hợp đồng bị vi phạm.
+**Question 3.** Two objects are considered equal by the application, yet their `hashCode()` values differ. What should be done?  
+**Answer:** Fix the class to obey the contract: equal objects must have the same hash code. Do not rely on incidental behavior of `HashSet` when the contract is violated.
 
-**Câu 4.** Nếu `HashSet.add(second)` trả `false`, set có tự thay `first` thành `second` không?  
-**Đáp án:** Không. Phần tử tương đương đã tồn tại được giữ lại.
+**Question 4.** If `HashSet.add(second)` returns `false`, does the set automatically replace `first` with `second`?  
+**Answer:** No. The already existing equivalent element is retained.
 
-**Câu 5.** Dùng `new HashSet<>(list)` có loại được bản sao logic trong `list` không?  
-**Đáp án:** Có, theo định nghĩa `equals()`/`hashCode()` của phần tử và giả sử hợp đồng được giữ đúng.
+**Question 5.** Does using `new HashSet<>(list)` remove logical duplicates in `list`?  
+**Answer:** Yes, according to the elements' `equals()`/`hashCode()` definitions and assuming the contract is properly maintained.
 
-**Ghi nhớ:** Thêm hai object **bằng nhau theo `equals()` và có `hashCode()` hợp lệ** vào `HashSet` thì chỉ một phần tử được giữ. Hãy kiểm tra `add` trả `true` hay `false`, cùng `size()`, thay vì dựa vào `==` hoặc thứ tự in ra của tập hợp.
+**Remember:** Adding two objects that are **equal according to `equals()` and have a valid `hashCode()`** to a `HashSet` retains only one element. Check whether `add` returns `true` or `false`, along with `size()`, instead of relying on `==` or the set's printed order.

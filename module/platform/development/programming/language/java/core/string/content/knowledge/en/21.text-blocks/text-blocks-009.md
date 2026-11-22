@@ -1,51 +1,51 @@
-# Java Text Block không tự nội suy biến và không tự escape cho định dạng đích
+# Java Text Blocks Do Not Interpolate Variables or Escape for Target Formats Automatically
 
-## 1. Text block là chuỗi ký tự, không phải template tự chạy
+## 1. Text blocks are string literals, not self-executing templates
 
-Từ Java 15 (ổn định), **text block** là cú pháp để viết chuỗi nhiều dòng bằng ba dấu nháy kép (`"""`). Giá trị tạo ra vẫn là một đối tượng `String`. Text block giúp mã nguồn dễ đọc khi cần viết HTML, JSON, SQL, XML hoặc thông báo dài; **nó không tự nội suy biến, không tự chạy biểu thức, cũng không tự bảo vệ nội dung cho định dạng bên ngoài**.
+Since Java 15 (stable), a **text block** is syntax for writing multiline strings using triple double quotes (`"""`). The resulting value is still a `String` object. Text blocks make source code easier to read when writing HTML, JSON, SQL, XML, or long messages; **they do not automatically interpolate variables, execute expressions, or protect content for external formats**.
 
-Ví dụ:
+Example:
 
 ```java
 String name = "Lan";
 
 String message = """
-        Xin chào, {{name}}!
+        Hello, {{name}}!
         """;
 
-System.out.println(message.strip()); // Xin chào, {{name}}!
+System.out.println(message.strip()); // Hello, {{name}}!
 ```
 
-`{{name}}` chỉ là các ký tự có trong chuỗi. Java không lấy biến `name` để thay vào đó. Tương tự, các ký hiệu `%s`, `$name`, `#{name}` hay `{{expression}}` nằm trong text block **không có tác dụng đặc biệt với bản thân text block**. Chúng chỉ trở thành placeholder nếu lập trình viên chủ động dùng một API có quy ước xử lý chúng.
+`{{name}}` is merely characters inside the string. Java does not look up the variable `name` to substitute it there. Likewise, notations like `%s`, `$name`, `#{name}`, or `{{expression}}` inside a text block **have no special meaning to the text block itself**. They only act as placeholders if a developer explicitly uses an API designed to process them.
 
-**Hai câu hỏi cần tách biệt:**
+**Two questions to keep separate:**
 
-1. **Nội suy/chèn dữ liệu:** Làm sao đưa giá trị một biến vào chuỗi? Có thể dùng `String.formatted`, `String.format`, `String.replace`, hoặc trình dựng template phù hợp.
-2. **Escape/encode theo định dạng đích:** Giá trị đó phải được biểu diễn ra sao để không phá cú pháp hoặc đổi ý nghĩa HTML, JSON, SQL, XML, URI…? Cần bộ mã hóa, serializer, tham số hóa hoặc parser đúng cho *ngữ cảnh đích*.
+1. **Interpolation / inserting data:** How do we put a variable's value into a string? We can use `String.formatted`, `String.format`, `String.replace`, or an appropriate template engine.
+2. **Escaping / encoding for the target format:** How must that value be represented so it does not break syntax or alter the meaning of HTML, JSON, SQL, XML, URI…? We need the right encoder, serializer, parameterization, or parser for the *target context*.
 
-Giải được câu hỏi (1) **không đồng nghĩa** với giải được câu hỏi (2).
+Solving question (1) **does not mean** you have solved question (2).
 
-## 2. Text block được Java xử lý như thế nào?
+## 2. How does Java process a text block?
 
-Cú pháp thông thường:
+Typical syntax:
 
 ```java
 String lines = """
-        Dòng thứ nhất
-        Dòng thứ hai
+        First line
+        Second line
         """;
 ```
 
-Một text block hợp lệ yêu cầu có dòng mới sau dấu mở `"""`. Java thực hiện quy tắc xử lý text block khi biên dịch: chuẩn hóa ký tự kết thúc dòng, loại mức thụt lề chung không cần thiết (*incidental indentation*), rồi xử lý escape sequence của Java. Vì vậy, text block **không phải raw string** theo nghĩa “ký tự nào viết ra sẽ được giữ y nguyên”.
+A valid text block requires a newline after the opening `"""`. Java applies text block processing rules at compile time: normalizing line terminators, stripping unnecessary common indentation (*incidental indentation*), and then processing Java escape sequences. Therefore, a text block is **not a raw string** in the sense that "every character written is preserved verbatim."
 
-Những điều cần nhớ:
+Things to remember:
 
-- Nếu dấu đóng `"""` nằm trên **dòng riêng** thì LF ngay trước dấu đóng thuộc nội dung. Nếu chỉ cần bỏ đúng một LF cuối, hãy điều chỉnh dấu đóng hoặc loại đúng ký tự đó sau khi kiểm tra `endsWith`; `stripTrailing()` có thể bỏ cả whitespace khác.
-- Java vẫn xử lý các escape như LF, tab, một dấu backslash, dấu cách `\s` và dấu backslash nối dòng. Đây là escape của Java, chưa phải escape của định dạng HTML, JSON hay SQL.
-- Text block dễ viết dấu `"` trong nội dung hơn chuỗi Java thông thường, nhưng chuỗi ba dấu nháy liên tiếp dùng làm delimiter cần escape thích hợp nếu muốn xuất hiện như dữ liệu.
-- Text block trả về `String`; không có tính năng tự gọi biểu thức Java, lấy biến từ scope, làm template động, hay chuyển đổi định dạng.
+- If the closing `"""` is on **its own line**, the LF immediately before the closing delimiter belongs to the content. If you only need to strip a single trailing LF, adjust the closing delimiter or remove that exact character after checking `endsWith`; `stripTrailing()` can remove other whitespace as well.
+- Java still processes escapes such as LF, tab, a single backslash, the `\s` space escape, and backslash line continuation. These are Java escapes, not HTML, JSON, or SQL escapes.
+- Text blocks make writing `"` inside content easier than regular Java strings, yet three consecutive double quotes used as the delimiter require appropriate escaping if they need to appear as data.
+- A text block evaluates to a `String`; it has no built-in feature to invoke Java expressions, capture variables from scope, act as a dynamic template, or perform format conversion.
 
-Một chuỗi đường dẫn minh họa:
+An illustrative path string:
 
 ```java
 String path = """
@@ -53,37 +53,37 @@ String path = """
         """;
 ```
 
-Trong ví dụ, mỗi **hai dấu backslash liên tiếp** ở mã Java được giải mã thành **một backslash** trong chuỗi. Một backslash đơn trước chữ `t` có thể tạo tab, còn trước chữ `n` có thể tạo newline. Text block vẫn tuân theo quy tắc escape của Java.
+In the example, every **two consecutive backslashes** in Java source are decoded into **one backslash** in the string. A single backslash before `t` can produce a tab, and before `n` can produce a newline. Text blocks still follow Java's escape rules.
 
-## 3. Chèn giá trị bằng `formatted()` hoặc API tương tự
+## 3. Inserting values with `formatted()` or similar APIs
 
-Một phương thức tiện dụng từ Java 15 là `String.formatted(Object... args)`. Nó thực hiện định dạng theo quy ước của `Formatter`, tương tự `String.format`. Cú pháp này vẫn là **lời gọi phương thức tường minh**, không phải khả năng tự nội suy của text block:
+A convenient method since Java 15 is `String.formatted(Object... args)`. It formats according to `Formatter` rules, just like `String.format`. This syntax is still an **explicit method call**, not an automatic interpolation feature of text blocks:
 
 ```java
 String name = "Lan";
 int score = 95;
 
 String report = """
-        Người học: %s
-        Điểm: %d
+        Learner: %s
+        Score: %d
         """.formatted(name, score);
 
 System.out.print(report);
-// Người học: Lan
-// Điểm: 95
+// Learner: Lan
+// Score: 95
 ```
 
-Ở đây `%s` và `%d` chỉ được xử lý **khi gọi** `formatted(name, score)`. Nếu bỏ lời gọi đó, text block vẫn chứa `%s` và `%d` nguyên văn. Nếu định dạng có dấu phần trăm nguyên văn, khi gọi `formatted` cần viết `%%` trong format string; ví dụ `"Tiến độ: 80%%".formatted()` trả `"Tiến độ: 80%"`. Định dạng sai hoặc thiếu tham số có thể phát sinh `IllegalFormatException` và các lớp con của nó.
+Here `%s` and `%d` are only processed **when calling** `formatted(name, score)`. Without that call, the text block still contains literal `%s` and `%d`. If the formatted text needs a literal percent sign when calling `formatted`, write `%%` in the format string; for instance, `"Progress: 80%%".formatted()` returns `"Progress: 80%"`. Invalid format specifiers or missing arguments can throw `IllegalFormatException` and its subclasses.
 
-Có thể dùng `replace("{{name}}", name)` cho dữ liệu đơn giản, vì `String.replace` thay chuỗi nguyên văn. Nhưng cách đó cũng **không tự escape** nội dung được chèn. Ngoài ra, một hệ thống template thực thụ có thể cần xử lý điều kiện, vòng lặp, tên biến hợp lệ và ngữ cảnh HTML; không nên biến `replace` thành bộ template tổng quát mà không có thiết kế rõ ràng.
+You can use `replace("{{name}}", name)` for simple cases, since `String.replace` substitutes literal substrings. Yet that approach also **does not escape** the inserted content automatically. Furthermore, a real template system may need conditionals, loops, valid variable names, and HTML contexts; do not turn `replace` into a general template engine without an explicit design.
 
-## 4. Chương trình Java 17+ chạy độc lập
+## 4. Standalone Java 17+ program
 
-Tạo file `TextBlockContextDemo.java`:
+Create `TextBlockContextDemo.java`:
 
 ```java
 public class TextBlockContextDemo {
-    // Chỉ dùng khi chèn vào text node HTML, không phải mọi ngữ cảnh HTML.
+    // Only use when inserting into an HTML text node, not every HTML context.
     private static String escapeHtmlText(String input) {
         return input.replace("&", "&amp;")
                     .replace("<", "&lt;")
@@ -93,24 +93,24 @@ public class TextBlockContextDemo {
     public static void main(String[] args) {
         String name = "Lan <Admin> & Co";
 
-        // Không nội suy: placeholder vẫn nguyên vẹn.
+        // No interpolation: placeholder remains intact.
         String literal = """
                 Hello, {{name}}!
                 """;
         System.out.println("Literal placeholder: " + literal.strip());
 
-        // Có chèn dữ liệu nhưng chưa escape HTML.
+        // Inserts data, but does not escape HTML yet.
         String htmlTemplate = """
                 <p>Hi, %s!</p>
                 """;
         System.out.println("HTML raw: "
                 + htmlTemplate.formatted(name).strip());
 
-        // Escape theo ngữ cảnh text node HTML trước khi chèn.
+        // Escape for the HTML text node context before inserting.
         System.out.println("HTML escaped: "
                 + htmlTemplate.formatted(escapeHtmlText(name)).strip());
 
-        // Chèn thẳng tên chứa dấu " sẽ phá cú pháp chuỗi JSON.
+        // Inserting a name with " directly breaks JSON string syntax.
         String jsonTemplate = """
                 {"name":"%s"}
                 """;
@@ -118,13 +118,13 @@ public class TextBlockContextDemo {
         System.out.println("JSON raw: "
                 + jsonTemplate.formatted(jsonName).strip());
 
-        // Text block vẫn xử lý escape của Java.
+        // Text blocks still process Java escapes.
         String path = """
                 C:\\temp\\notes.txt
                 """;
         System.out.println("Path: " + path.strip());
 
-        // Với dấu đóng trên dòng riêng, text block có newline cuối.
+        // With the closing delimiter on its own line, the text block has a trailing newline.
         System.out.println("Trailing newline: "
                 + literal.endsWith("\n"));
 
@@ -134,14 +134,14 @@ public class TextBlockContextDemo {
 }
 ```
 
-Biên dịch, chạy (Java 17 hoặc mới hơn):
+Compile and run (Java 17 or newer):
 
 ```bash
 javac TextBlockContextDemo.java
 java TextBlockContextDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 Literal placeholder: Hello, {{name}}!
@@ -153,18 +153,18 @@ Trailing newline: true
 Placeholder unchanged: true
 ```
 
-Phần `HTML raw` cho thấy việc đưa `name` vào `%s` chỉ chèn dữ liệu. Nếu hiển thị như HTML, các ký tự `<` và `&` trong dữ liệu có thể bị diễn giải thành markup hoặc entity, thay vì được hiển thị theo nghĩa văn bản. Hàm `escapeHtmlText` chủ đích minh họa **ngữ cảnh text node**, nơi các ký tự `&`, `<`, `>` được mã hóa tương ứng. Nó không phải bộ mã hóa cho mọi ngữ cảnh HTML như thuộc tính, URL, JavaScript hoặc CSS.
+The `HTML raw` line shows that passing `name` into `%s` only inserts data. If rendered as HTML, characters like `<` and `&` in the data can be interpreted as markup or entities instead of being displayed as plain text. The `escapeHtmlText` helper intentionally demonstrates the **text node context**, where `&`, `<`, and `>` are encoded accordingly. It is not an encoder for every HTML context such as attributes, URLs, JavaScript, or CSS.
 
-Phần `JSON raw` tạo văn bản **JSON không hợp lệ** vì dấu nháy kép trong `jsonName` không được escape theo JSON. Không nên xem chuỗi vừa tạo là đối tượng JSON đã được serialize đúng.
+The `JSON raw` line produces **invalid JSON** because the double quotes inside `jsonName` are not JSON-escaped. You should not treat the resulting string as a properly serialized JSON object.
 
-## 5. Java escape khác escape của định dạng đích
+## 5. Java escapes differ from target format escapes
 
-Khi viết JSON, HTML hoặc câu truy vấn trong text block, có thể có **hai tầng xử lý**:
+When writing JSON, HTML, or queries inside a text block, there can be **two processing layers**:
 
-1. **Tầng Java source:** Văn bản trong text block được Java biến thành `String`, có xử lý dấu xuống dòng, thụt lề và escape sequence Java.
-2. **Tầng định dạng đích:** Nội dung `String` được đưa cho một bộ đọc khác (trình duyệt HTML, parser JSON, cơ sở dữ liệu, v.v.), nên phải tuân thủ cú pháp và quy tắc mã hóa của hệ thống nhận.
+1. **Java source layer:** The text inside the text block is turned into a `String` by Java, handling newlines, indentation, and Java escape sequences.
+2. **Target format layer:** The `String` contents are handed to another reader (an HTML browser, JSON parser, database, etc.), so they must obey the syntax and encoding rules of the receiving system.
 
-Một ví dụ với dấu `\\` trong JSON:
+An example with `\\` in JSON:
 
 ```java
 String jsonLiteral = """
@@ -174,27 +174,27 @@ System.out.println(jsonLiteral.strip());
 // {"path":"C:\\data\\file.txt"}
 ```
 
-Trong ví dụ này, **bốn dấu backslash liên tiếp** ở Java source trở thành **hai dấu backslash** trong văn bản JSON. Hai dấu backslash của JSON biểu diễn một backslash trong giá trị đường dẫn sau khi JSON được parse. Đây chỉ là ví dụ với nội dung cố định; với dữ liệu động, nên dùng JSON serializer.
+In this example, **four consecutive backslashes** in Java source become **two backslashes** in the JSON text. The two backslashes in JSON represent one backslash in the path value once the JSON is parsed. This is only an example with static content; for dynamic data, use a JSON serializer.
 
-Với dữ liệu **động**, nên giao việc tạo JSON cho thư viện serializer: truyền giá trị Java như `String`, số, list hoặc object vào API của thư viện, để serializer phát sinh dấu nháy và escape đúng chuẩn. `String.formatted` không biết phần chèn vào nằm trong JSON string, JSON number hay bên ngoài một JSON value.
+For **dynamic** data, delegate JSON generation to a serializer library: pass Java values such as `String`, numbers, lists, or objects into the library's API so the serializer produces quotes and standard-compliant escapes. `String.formatted` does not know whether the insertion sits inside a JSON string, a JSON number, or outside a JSON value.
 
-## 6. Escape theo đúng ngữ cảnh mà dữ liệu sẽ xuất hiện
+## 6. Escape according to the exact context where data appears
 
-| Định dạng đích | Rủi ro khi chèn thẳng dữ liệu vào text block | Cách làm đúng |
+| Target format | Risk when inserting data directly into a text block | Right approach |
 | --- | --- | --- |
-| HTML **text node** | `<`, `&` có thể bị hiểu là markup/entity. | Escape văn bản theo HTML text context, hoặc API tạo text node an toàn. |
-| Thuộc tính HTML | Dấu `"` hoặc `'` có thể đóng giá trị thuộc tính; URL attribute còn có chính sách scheme riêng. | Encoder theo ngữ cảnh thuộc tính và kiểm tra URL/scheme khi cần; ưu tiên API DOM/template có auto-escaping đúng ngữ cảnh. |
-| JSON | `"`, `\\`, ký tự điều khiển và newline trong dữ liệu làm hỏng chuỗi JSON nếu chèn thẳng. | Serializer JSON hoặc API viết JSON có phân biệt value/object/array. |
-| XML | Các ký tự đặc biệt và vị trí text/attribute khác nhau có quy tắc riêng. | API XML/serializer; tránh xây XML bằng nối chuỗi tùy tiện. |
-| SQL | Dữ liệu chứa `'` hoặc cú pháp SQL có thể thay đổi câu truy vấn khi nối/chèn vào SQL text. | `PreparedStatement` với **tham số bind**, không dùng `formatted` để chèn giá trị SQL. |
-| URI / URL | Khoảng trắng, `?`, `&`, `#` có vai trò phân tách các thành phần URI. | Dùng API xây URI và encode đúng từng thành phần (path, query parameter, v.v.). |
-| Regular expression | `.`, `*`, `[`, `\\` là toán tử regex; replacement còn có `$`. | `Pattern.quote` cho mẫu tìm nguyên văn, `Matcher.quoteReplacement` cho replacement nguyên văn. |
+| HTML **text node** | `<`, `&` can be parsed as markup/entities. | Escape text for the HTML text context, or use an API that creates safe text nodes. |
+| HTML attribute | `"` or `'` can close the attribute value; URL attributes also have scheme policies. | Use an attribute-context encoder and validate URLs/schemes when needed; prefer DOM/template APIs with context-aware auto-escaping. |
+| JSON | `"`, `\\`, control characters, and newlines in data corrupt the JSON string if inserted raw. | A JSON serializer or JSON writer API that distinguishes values/objects/arrays. |
+| XML | Special characters and text vs. attribute positions have distinct rules. | XML APIs/serializers; avoid building XML with ad-hoc string concatenation. |
+| SQL | Data containing `'` or SQL syntax can alter the query when concatenated/formatted into SQL text. | `PreparedStatement` with **bound parameters**, do not use `formatted` to insert SQL values. |
+| URI / URL | Spaces, `?`, `&`, `#` act as URI component delimiters. | Use URI-building APIs and encode each component properly (path, query parameter, etc.). |
+| Regular expression | `.`, `*`, `[`, `\\` are regex operators; replacement strings also treat `$` specially. | `Pattern.quote` for literal search patterns, `Matcher.quoteReplacement` for literal replacements. |
 
-Lưu ý một giá trị “đã escape HTML” **không vì thế mà an toàn trong JavaScript hoặc SQL**. Quy tắc escape thuộc về ngôn ngữ/ngữ cảnh **nhận**, không thuộc về cú pháp text block. Không mã hóa tùy tiện nhiều lượt hoặc áp cùng một encoder cho mọi nơi, vì điều đó có thể làm sai dữ liệu hoặc tạo lỗi double encoding.
+Note that a value that has been "HTML-escaped" is **not thereby safe in JavaScript or SQL**. Escaping rules belong to the **receiving** language/context, not to text block syntax. Do not encode arbitrarily multiple times or apply the same encoder everywhere, as that can corrupt data or introduce double-encoding bugs.
 
-### SQL: text block giúp đọc câu truy vấn, tham số bind giúp truyền dữ liệu
+### SQL: text blocks make queries readable, bound parameters pass data safely
 
-Đây là đoạn minh họa bên trong một phương thức đã có `Connection connection` và `String username` từ `java.sql`:
+This is an illustrative snippet inside a method that already has `Connection connection` and `String username` from `java.sql`:
 
 ```java
 String sql = """
@@ -213,11 +213,11 @@ try (PreparedStatement statement = connection.prepareStatement(sql)) {
 }
 ```
 
-Các kiểu `PreparedStatement` và `ResultSet` cần import từ `java.sql`. Đây là mã minh họa có phụ thuộc vào kết nối/cơ sở dữ liệu, **không phải chương trình chạy độc lập**. `?` là placeholder dành cho **giá trị SQL được bind**, không phải ký hiệu được text block tự nội suy. Dù `username` chứa dấu nháy hoặc ký tự SQL, `setString` truyền nó theo cơ chế tham số của JDBC. Với **tên bảng hoặc cột động**, placeholder giá trị không thay thế được identifier; phải dùng danh sách tên hợp lệ được cho phép rõ ràng, không nối identifier tùy ý từ đầu vào.
+The `PreparedStatement` and `ResultSet` types must be imported from `java.sql`. This is illustrative code that depends on a connection/database, **not a standalone runnable program**. `?` is a placeholder for **a bound SQL value**, not a symbol interpolated by the text block. Even if `username` contains quotes or SQL characters, `setString` passes it through JDBC's parameter mechanism. For **dynamic table or column names**, value placeholders cannot replace identifiers; use an explicit allowlist of valid names rather than concatenating arbitrary identifiers from input.
 
-### JSON: ưu tiên serializer khi giá trị đến từ bên ngoài
+### JSON: prefer a serializer when values come from outside
 
-Với:
+With:
 
 ```java
 String name = "Lan \"A\"";
@@ -226,30 +226,30 @@ String json = """
         """.formatted(name);
 ```
 
-`json` chứa `{"name":"Lan "A""}` và không hợp lệ. Việc thay `"` bằng `\\"` trong riêng một ví dụ chưa giải quyết đầy đủ escape `\\`, ký tự điều khiển, xuống dòng và kiểu dữ liệu phức tạp. Dùng JSON serializer, đưa `name` như một **giá trị String**, và để thư viện tạo văn bản JSON hợp lệ thay vì tự nối/format chuỗi.
+`json` contains `{"name":"Lan "A""}` and is invalid. Replacing `"` with `\\"` in a single ad-hoc case still fails to cover `\\`, control characters, newlines, and complex data types. Use a JSON serializer, pass `name` as a **`String` value**, and let the library generate valid JSON text instead of concatenating or formatting strings manually.
 
-## 7. Các sai lầm thường gặp
+## 7. Common misconceptions
 
-**Tưởng `{{name}}` hoặc `%s` được thay ngay khi khai báo.** Text block không xử lý template. Chỉ có lời gọi `formatted`, `replace` hoặc template engine được thiết kế riêng mới chủ động thực hiện phép chèn.
+**Thinking `{{name}}` or `%s` is substituted right at declaration.** Text blocks do not process templates. Only an explicit call to `formatted`, `replace`, or a dedicated template engine performs substitution.
 
-**Tưởng `formatted` tự escape HTML/JSON.** `formatted` dùng quy tắc `Formatter`, không biết ngữ cảnh cú pháp đích; giá trị có `<`, `"`, `$`, dấu xuống dòng hoặc escape của định dạng có thể làm kết quả sai hoặc nguy hiểm.
+**Thinking `formatted` escapes HTML/JSON automatically.** `formatted` follows `Formatter` rules and is unaware of target syntax contexts; values containing `<`, `"`, `$`, newlines, or format escapes can make the result broken or unsafe.
 
-**Tưởng text block là raw string.** Java vẫn xử lý escape Java, bỏ thụt lề chung và có thể giữ LF cuối. Hãy kiểm tra giá trị chuỗi thực tế trước khi gửi sang parser của định dạng đích.
+**Thinking text blocks are raw strings.** Java still processes Java escapes, strips common indentation, and may keep a trailing LF. Verify the actual string value before passing it to a target-format parser.
 
-**Lẫn lộn escape Java với escape JSON.** Mẫu dấu `\\` trong Java source phải đi qua tầng Java **trước** khi văn bản được parser JSON đọc. Nếu cố tự tạo JSON, rất dễ thiếu hoặc thừa escape; ưu tiên serializer JSON.
+**Confusing Java escapes with JSON escapes.** A `\\` sequence in Java source must go through the Java layer **before** the text is read by a JSON parser. When hand-crafting JSON, it is very easy to under- or over-escape; prefer a JSON serializer.
 
-**Dùng text block như cơ chế chống SQL injection.** Text block chỉ giúp câu SQL nhiều dòng dễ đọc. Chèn `username` bằng `formatted(username)` bên trong SQL không có cơ chế tham số hóa; phải bind tham số qua `PreparedStatement`.
+**Using text blocks as SQL injection protection.** Text blocks only make multiline SQL easier to read. Inserting `username` via `formatted(username)` inside SQL provides no parameterization; parameters must be bound via `PreparedStatement`.
 
-**Đặt dữ liệu vào sai ngữ cảnh HTML.** Mã hóa dành cho HTML text node không tự động hợp lệ cho thuộc tính HTML, URL, JS hay CSS. Chọn encoder hoặc template engine phù hợp với vị trí dữ liệu.
+**Placing data in the wrong HTML context.** Encoding meant for an HTML text node is not automatically valid for HTML attributes, URLs, JS, or CSS. Choose an encoder or template engine appropriate for the data's position.
 
-**Quên dấu phần trăm khi gọi `formatted`.** Chuỗi `"Đạt 90%"` ở text block là chuỗi bình thường, nhưng khi đưa cho `formatted()` dấu `%` được xem như bắt đầu một format specifier. Nếu muốn ký hiệu phần trăm nguyên văn trong chuỗi định dạng, dùng `%%`.
+**Forgetting percent signs when calling `formatted`.** The string `"Scored 90%"` in a text block is a normal string, yet when passed to `formatted()`, `%` is treated as starting a format specifier. If you want a literal percent sign in a format string, use `%%`.
 
-## 8. Bài tập kiểm tra
+## 8. Check-your-understanding exercises
 
-1. Cho `String user = "Mai"; String s = """` rồi nội dung `Hi, {{user}}!` và dấu đóng trên dòng riêng. `s` có tự trở thành `"Hi, Mai!"` không? Vì sao?
-2. Viết một text block làm phần trình bày HTML `<p>Xin chào, %s</p>`. Nêu rõ thời điểm `formatted` chèn dữ liệu và bước nào phải thực hiện để bảo vệ **HTML text node**.
-3. Với biến `name = "Lan \\"A\\""`, giải thích vì sao `{"name":"%s"}`.formatted(name) không tự sinh JSON hợp lệ.
-4. Cho SQL có text block `WHERE email = ?`, giải thích vai trò của `PreparedStatement.setString` và vì sao không nên chuyển thành `WHERE email = '%s'` rồi `formatted(email)`.
-5. Với đường dẫn chứa dấu `\\`, giải thích khác nhau giữa **escape trong Java source** và **escape của JSON runtime**.
+1. Given `String user = "Mai"; String s = """` followed by content `Hi, {{user}}!` and the closing delimiter on its own line. Does `s` automatically become `"Hi, Mai!"`? Why?
+2. Write a text block representing the HTML snippet `<p>Hello, %s</p>`. Explain when `formatted` inserts data and what step must be performed to protect the **HTML text node**.
+3. Given `name = "Lan \\"A\\""`, explain why `{"name":"%s"}`.formatted(name) does not automatically produce valid JSON.
+4. Given SQL in a text block `WHERE email = ?`, explain the role of `PreparedStatement.setString` and why you should not change it to `WHERE email = '%s'` with `formatted(email)`.
+5. For a path containing `\\`, explain the difference between **escaping in Java source** and **escaping in runtime JSON**.
 
-**Ghi nhớ:** Text block là cú pháp viết `String` nhiều dòng dễ đọc. Việc chèn biến phải gọi API tường minh; việc escape hoặc tham số hóa phải dựa trên **định dạng và ngữ cảnh đích**. Hai trách nhiệm này không được nhầm lẫn.
+**Remember:** Text blocks are syntax for writing readable multiline `String` values. Variable insertion requires calling an explicit API; escaping or parameterization must match **the target format and context**. These two responsibilities must never be confused.

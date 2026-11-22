@@ -1,32 +1,32 @@
-# Phân biệt compile classpath với processor path
+# Distinguishing Compile Classpath from Processor Path
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể phân biệt đường dẫn thư viện mà javac dùng để biên dịch mã nguồn với đường dẫn mà javac dùng để nạp annotation processor; cấu hình hai đường dẫn bằng tùy chọn phù hợp; và hiểu cách processor được phát hiện, chạy, tạo mã nguồn rồi tham gia quá trình biên dịch.
+After this lesson, you will be able to distinguish the library path that `javac` uses to compile source code from the path that `javac` uses to load annotation processors; configure both paths using the appropriate options; and understand how processors are discovered, executed, generate source code, and participate in the compilation process.
 
-## 1. Hai đường dẫn phục vụ hai vai trò khác nhau
+## 1. Two Paths Serving Two Different Roles
 
-Khi biên dịch Java, javac có thể cần tìm hai nhóm thành phần:
+When compiling Java, `javac` may need to find two groups of components:
 
-1. **Compile classpath**: các class hoặc JAR mà mã nguồn đang biên dịch tham chiếu tới, chẳng hạn thư viện chứa kiểu dữ liệu, interface, annotation hoặc superclass.
-2. **Processor path**: các class hoặc JAR chứa annotation processor mà chính trình biên dịch cần nạp và chạy trong quá trình xử lý annotation.
+1. **Compile classpath**: classes or JARs that the source code being compiled references, such as libraries containing data types, interfaces, annotations, or superclasses.
+2. **Processor path**: classes or JARs containing annotation processors that the compiler itself must load and run during annotation processing.
 
-Hai nhóm này có thể đều là JAR, nhưng chúng không có cùng nhiệm vụ.
+Both groups may consist of JARs, yet they do not share the same responsibility.
 
-| Tiêu chí | Compile classpath | Processor path |
+| Criterion | Compile classpath | Processor path |
 |---|---|---|
-| Mục đích | Tìm kiểu và class cần thiết để kiểm tra, biên dịch mã nguồn | Tìm lớp annotation processor và dependency của processor |
-| Javac option | -classpath, --class-path hoặc -cp | -processorpath hoặc --processor-path |
-| Thành phần thường có | Thư viện API, model, annotation, thư viện bên thứ ba mà source sử dụng | JAR triển khai javax.annotation.processing.Processor và các thư viện mà processor cần |
-| Được dùng để | Phân giải kiểu, kiểm tra chữ ký phương thức, kiểu tham số, kế thừa và tham chiếu trong source | Nạp processor, gọi các vòng xử lý annotation và tạo source/class/resource |
-| Có thay thế đường dẫn kia không? | Không thay thế processor path | Không thay thế compile classpath |
-| Có tự trở thành dependency runtime của ứng dụng không? | Không; runtime cần được cấu hình riêng | Không; processor thường chỉ cần trong lúc build |
+| Purpose | Find types and classes needed to check and compile source code | Find annotation processor classes and processor dependencies |
+| Javac option | -classpath, --class-path, or -cp | -processorpath or --processor-path |
+| Typical contents | API libraries, models, annotations, third-party libraries used by source | JARs implementing javax.annotation.processing.Processor and libraries needed by the processor |
+| Used to | Resolve types, check method signatures, parameter types, inheritance, and references in source | Load processors, invoke annotation processing rounds, and create sources/classes/resources |
+| Does it replace the other path? | Does not replace processor path | Does not replace compile classpath |
+| Does it automatically become an application runtime dependency? | No; runtime must be configured separately | No; processors are typically needed only during the build |
 
-Hãy nhớ: compile classpath giúp javac hiểu mã nguồn đang biên dịch; processor path giúp javac biết phải nạp công cụ xử lý annotation nào.
+Remember: the compile classpath helps `javac` understand the source code being compiled; the processor path tells `javac` which annotation processing tools to load.
 
-## 2. Compile classpath dùng để làm gì?
+## 2. What Is the Compile Classpath Used For?
 
-Giả sử ứng dụng sử dụng kiểu com.acme.model.Customer nằm trong JAR model-api.jar:
+Suppose an application uses the type `com.acme.model.Customer` located in the JAR `model-api.jar`:
 
 ~~~java
 package com.acme.app;
@@ -41,7 +41,7 @@ public class Main {
 }
 ~~~
 
-Javac cần tìm Customer.class để kiểm tra constructor, kiểu trả về, phương thức và các quy tắc kiểu liên quan. Ta đặt JAR chứa kiểu đó trên compile classpath:
+`javac` needs to find `Customer.class` to verify constructors, return types, methods, and related type rules. We place the JAR containing that type on the compile classpath:
 
 ~~~bash
 javac \
@@ -50,33 +50,33 @@ javac \
     src/com/acme/app/Main.java
 ~~~
 
-Các tùy chọn:
+The options:
 
-- -classpath (viết ngắn là -cp, hoặc tên đầy đủ --class-path) chỉ định nơi javac tìm class và JAR phục vụ việc biên dịch.
-- -d chỉ định thư mục chứa class file đầu ra.
-- File nguồn được đưa vào cuối lệnh.
+- `-classpath` (short form `-cp`, or full form `--class-path`) specifies where `javac` looks for classes and JARs used for compilation.
+- `-d` specifies the directory for output class files.
+- Source files are passed at the end of the command.
 
-Nếu có nhiều thư viện, phân tách các đường dẫn bằng ký tự phân tách path của hệ điều hành:
+If there are multiple libraries, separate the paths with the operating system's path separator:
 
 ~~~bash
-# Linux hoặc macOS: dấu hai chấm
+# Linux or macOS: colon
 javac -cp "lib/model-api.jar:lib/logging.jar" -d build/classes src/com/acme/app/Main.java
 ~~~
 
 ~~~powershell
-# Windows: dấu chấm phẩy
+# Windows: semicolon
 javac -cp "lib\model-api.jar;lib\logging.jar" -d build\classes src\com\acme\app\Main.java
 ~~~
 
-Compile classpath chỉ phục vụ lần gọi javac đó. Khi chạy ứng dụng, lệnh java có classpath riêng; các thư viện cần ở runtime phải được cung cấp cho tiến trình chạy. Việc một JAR xuất hiện trong javac -cp không tự động đóng gói JAR đó vào ứng dụng.
+The compile classpath only applies to that `javac` invocation. When running the application, the `java` command has its own classpath; libraries needed at runtime must be provided to the running process. A JAR appearing in `javac -cp` does not automatically package that JAR into the application.
 
-Nếu source được tổ chức thành named module, hãy cân nhắc --module-path để tìm module dependency. --class-path và --module-path phục vụ hai mô hình phân giải khác nhau; một JAR modular đặt trên classpath sẽ không được phân giải như named module theo JPMS.
+If the sources are organized as named modules, consider `--module-path` to locate module dependencies. `--class-path` and `--module-path` serve two different resolution models; a modular JAR placed on the classpath will not be resolved as a named module under JPMS.
 
-## 3. Annotation processor là gì?
+## 3. What Is an Annotation Processor?
 
-Annotation processor là một thành phần chạy trong quá trình biên dịch. Nó đọc annotation và thông tin cấu trúc chương trình do compiler cung cấp, sau đó có thể kiểm tra quy ước hoặc sinh thêm mã nguồn, class file và tài nguyên.
+An annotation processor is a component that runs during compilation. It reads annotations and program structure information provided by the compiler, and can then validate conventions or generate additional source code, class files, and resources.
 
-Ví dụ, một thư viện có annotation:
+For example, a library has an annotation:
 
 ~~~java
 package com.acme.annotations;
@@ -92,7 +92,7 @@ public @interface GenerateBuilder {
 }
 ~~~
 
-Lập trình viên đánh dấu lớp cần sinh builder:
+A developer marks a class that needs a generated builder:
 
 ~~~java
 package com.acme.app;
@@ -111,13 +111,13 @@ public class Customer {
 }
 ~~~
 
-Một processor có thể phát hiện @GenerateBuilder, đọc các thành phần của lớp Customer rồi sinh thêm CustomerBuilder.java. Compiler sẽ đưa source được sinh vào các vòng xử lý tiếp theo và biên dịch nó cùng các source khác khi quá trình hoàn tất.
+A processor can detect `@GenerateBuilder`, inspect the members of the `Customer` class, and then generate `CustomerBuilder.java`. The compiler feeds the generated source into subsequent processing rounds and compiles it alongside other sources when the process finishes.
 
-Annotation processor không phải là thư viện mà ứng dụng gọi như một phương thức khi chạy. Nó là mã thực thi được javac nạp trong môi trường build. Processor có thể tạo ra mã được ứng dụng sử dụng, nhưng bản thân JAR processor thường không cần có mặt ở runtime.
+An annotation processor is not a library that the application calls as a method at runtime. It is executable code loaded by `javac` in the build environment. A processor may generate code used by the application, yet the processor JAR itself typically does not need to be present at runtime.
 
-## 4. Processor path dùng để làm gì?
+## 4. What Is the Processor Path Used For?
 
-Javac cần biết vị trí của lớp triển khai javax.annotation.processing.Processor. Với processor nằm trong JAR riêng, ta dùng -processorpath:
+`javac` needs to know the location of classes implementing `javax.annotation.processing.Processor`. When the processor resides in a separate JAR, we use `-processorpath`:
 
 ~~~bash
 javac \
@@ -129,15 +129,15 @@ javac \
     src/com/acme/app/Customer.java
 ~~~
 
-Ở đây:
+Here:
 
-- -classpath cung cấp các kiểu mà source sử dụng, gồm model API và annotation API.
-- -processorpath chỉ nơi javac tìm implementation của processor.
-- -processor chỉ định tên đầy đủ của processor cần chạy. Khi dùng tùy chọn này, không cần dựa vào việc tự phát hiện processor qua file service.
-- -s chỉ định thư mục chứa source được sinh.
-- -d chỉ định thư mục chứa class file.
+- `-classpath` provides the types used by the source, including the model API and annotation API.
+- `-processorpath` tells `javac` where to find the processor implementation.
+- `-processor` specifies the fully qualified name of the processor to run. When using this option, there is no need to rely on automatic processor discovery via a service file.
+- `-s` specifies the directory containing generated sources.
+- `-d` specifies the directory containing class files.
 
-Nếu processor phụ thuộc vào thư viện khác, các JAR đó cũng phải có trên processor path. Ví dụ:
+If the processor depends on other libraries, those JARs must also be on the processor path. For example:
 
 ~~~bash
 javac \
@@ -149,13 +149,13 @@ javac \
     src/com/acme/app/Customer.java
 ~~~
 
-Trên Windows, thay dấu : trong danh sách đường dẫn bằng dấu ;. Đường dẫn processor chỉ phục vụ javac nạp công cụ và dependency của nó; nó không làm các thư viện trên processor path tự động trở thành compile dependency của ứng dụng.
+On Windows, replace `:` in the path list with `;`. The processor path only serves `javac` in loading the tool and its dependencies; it does not automatically make libraries on the processor path compile dependencies of the application.
 
-## 5. Javac tìm processor như thế nào?
+## 5. How Does javac Find Processors?
 
-Có hai cách thường gặp để chọn processor:
+There are two common ways to select processors:
 
-**Chỉ định trực tiếp bằng -processor**
+**Specifying directly with -processor**
 
 ~~~bash
 javac \
@@ -165,29 +165,29 @@ javac \
     src/com/acme/app/Customer.java
 ~~~
 
-Cách này nêu rõ processor class cần chạy. Nó hữu ích khi dự án có nhiều processor nhưng chỉ muốn kích hoạt một nhóm cụ thể.
+This explicitly names the processor class to run. It is useful when a project has multiple processors and you only want to activate a specific subset.
 
-**Tự phát hiện qua service provider configuration**
+**Automatic discovery via service provider configuration**
 
-Với processor đóng gói trên classpath của processor, JAR có thể chứa file:
+For a processor packaged on the processor classpath, the JAR can contain the file:
 
 ~~~text
 META-INF/services/javax.annotation.processing.Processor
 ~~~
 
-Nội dung file là tên đầy đủ của từng processor, mỗi tên trên một dòng:
+The file contents list the fully qualified name of each processor, one per line:
 
 ~~~text
 com.acme.processor.CustomerProcessor
 ~~~
 
-Khi javac được cấu hình để thực hiện annotation processing và quét đường dẫn processor tương ứng, cơ chế service provider sẽ tìm các lớp được đăng ký trong file này.
+When `javac` is configured to perform annotation processing and scans the corresponding processor path, the service provider mechanism finds the classes registered in this file.
 
-Nếu JAR processor không có file service, có thể chỉ định tên processor bằng -processor. Ngược lại, nếu dùng discovery, cần bảo đảm file service nằm đúng đường dẫn và tên lớp trong đó chính xác.
+If the processor JAR has no service file, you can specify the processor name with `-processor`. Conversely, if using discovery, ensure the service file is at the exact path and the class names inside it are accurate.
 
-## 6. Một processor đơn giản trông như thế nào?
+## 6. What Does a Simple Processor Look Like?
 
-Processor thường kế thừa AbstractProcessor:
+A processor typically extends `AbstractProcessor`:
 
 ~~~java
 package com.acme.processor;
@@ -219,8 +219,8 @@ public class CustomerProcessor extends AbstractProcessor {
                 element
             );
 
-            // Có thể dùng processingEnv.getFiler()
-            // để tạo source, class hoặc resource.
+            // You can use processingEnv.getFiler()
+            // to create sources, classes, or resources.
         }
 
         return true;
@@ -228,51 +228,51 @@ public class CustomerProcessor extends AbstractProcessor {
 }
 ~~~
 
-Các thành phần đáng chú ý:
+Notable components:
 
-- @SupportedAnnotationTypes khai báo các annotation mà processor quan tâm.
-- @SupportedSourceVersion khai báo phiên bản ngôn ngữ Java mà processor hỗ trợ.
-- process(...) được gọi trong mỗi vòng xử lý annotation.
-- RoundEnvironment cho biết các phần tử được đánh dấu trong vòng hiện tại.
-- processingEnv.getMessager() gửi thông báo hoặc lỗi về compiler.
-- processingEnv.getFiler() tạo source file, class file hoặc resource.
+- `@SupportedAnnotationTypes` declares the annotations the processor cares about.
+- `@SupportedSourceVersion` declares the Java language version the processor supports.
+- `process(...)` is called in each annotation processing round.
+- `RoundEnvironment` provides the elements annotated in the current round.
+- `processingEnv.getMessager()` sends notes or errors back to the compiler.
+- `processingEnv.getFiler()` creates source files, class files, or resources.
 
-Một processor cần được biên dịch và đóng gói trước khi một lệnh javac khác có thể nạp nó qua processor path. Trong một dự án thực tế, thường có hai phần build: build JAR processor trước, sau đó dùng JAR đó khi biên dịch ứng dụng.
+A processor must be compiled and packaged before another `javac` command can load it via the processor path. In a real project, there are usually two build parts: build the processor JAR first, then use that JAR when compiling the application.
 
-## 7. Annotation processing diễn ra theo các vòng
+## 7. Annotation Processing Happens in Rounds
 
-Annotation processing không chỉ là một lần gọi phương thức. Javac có thể chạy nhiều vòng:
+Annotation processing is not just a single method call. `javac` can run multiple rounds:
 
-1. Compiler phân tích source và tìm các annotation processor được cấu hình.
-2. Processor nhận các annotation và phần tử chương trình liên quan trong vòng hiện tại.
-3. Processor có thể tạo source hoặc resource mới qua Filer.
-4. Source được tạo sẽ được đưa vào vòng tiếp theo để compiler và processor xử lý.
-5. Khi không còn source mới cần xử lý, quá trình annotation processing kết thúc và compiler hoàn tất biên dịch.
+1. The compiler analyzes the sources and locates configured annotation processors.
+2. Processors receive the relevant annotations and program elements in the current round.
+3. Processors can generate new sources or resources via `Filer`.
+4. Generated sources are fed into the next round for the compiler and processors to process.
+5. When there are no more new sources to process, annotation processing finishes and the compiler completes compilation.
 
-Ví dụ: vòng đầu processor phát hiện @GenerateBuilder trên Customer và tạo CustomerBuilder.java. Ở vòng tiếp theo, javac có thể phân tích CustomerBuilder.java và các processor khác cũng có thể nhìn thấy mã nguồn mới.
+For example: in the first round, the processor detects `@GenerateBuilder` on `Customer` and creates `CustomerBuilder.java`. In the next round, `javac` can analyze `CustomerBuilder.java`, and other processors can also see the new source code.
 
-Processor nên tránh tạo đi tạo lại cùng một file ở nhiều vòng. Filer sẽ báo lỗi nếu một file đã được tạo lại trong cùng một lần biên dịch. Nên kiểm tra annotation và trạng thái vòng để chỉ tạo nội dung cần thiết.
+A processor should avoid recreating the same file across multiple rounds. `Filer` will report an error if a file is created again within the same compilation. You should check annotations and round state so only necessary content is created.
 
-## 8. Phân biệt các tùy chọn javac liên quan
+## 8. Distinguishing Related javac Options
 
-| Tùy chọn | Vai trò |
+| Option | Role |
 |---|---|
-| -classpath, -cp, --class-path | Tìm class/JAR mà source cần để biên dịch |
-| -processorpath, --processor-path | Tìm annotation processor và dependency của processor |
-| --processor-module-path | Tìm annotation processor được đóng gói dưới dạng named module |
-| -processor | Chọn rõ tên các processor cần chạy |
-| -proc:none | Tắt annotation processing |
-| -proc:only | Chạy annotation processing mà không biên dịch các source thành class |
-| -proc:full | Thực hiện annotation processing và biên dịch |
-| -s | Chọn thư mục chứa source được processor sinh |
-| -d | Chọn thư mục chứa class file đầu ra |
-| -Akey=value | Truyền tùy chọn riêng cho processor |
+| -classpath, -cp, --class-path | Find classes/JARs that sources need to compile |
+| -processorpath, --processor-path | Find annotation processors and processor dependencies |
+| --processor-module-path | Find annotation processors packaged as named modules |
+| -processor | Explicitly select the names of processors to run |
+| -proc:none | Disable annotation processing |
+| -proc:only | Run annotation processing without compiling sources into classes |
+| -proc:full | Perform annotation processing and compilation |
+| -s | Choose directory for processor-generated sources |
+| -d | Choose directory for output class files |
+| -Akey=value | Pass custom options to processors |
 
-Lưu ý về phiên bản JDK: từ JDK 23, không nên dựa vào việc javac tự động dò và chạy processor chỉ vì JAR processor có mặt trên classpath. Hãy cấu hình tường minh processor bằng -processor, -processorpath, --processor-module-path, hoặc yêu cầu chế độ xử lý phù hợp bằng -proc:full hay -proc:only. Điều này giúp build rõ ràng và tránh việc vô tình thực thi processor không được dự định.
+JDK version note: starting from JDK 23, you should not rely on `javac` automatically detecting and running processors simply because a processor JAR is present on the classpath. Configure processors explicitly with `-processor`, `-processorpath`, `--processor-module-path`, or request the appropriate processing mode with `-proc:full` or `-proc:only`. This keeps builds explicit and avoids unintentionally executing unintended processors.
 
-## 9. Processor dạng named module
+## 9. Processors as Named Modules
 
-Trong dự án dùng JPMS, annotation processor cũng có thể được đóng gói thành explicit module. Khi đó module descriptor đăng ký service provider:
+In a project using JPMS, an annotation processor can also be packaged as an explicit module. In that case, the module descriptor registers the service provider:
 
 ~~~java
 module com.acme.processor {
@@ -283,9 +283,9 @@ module com.acme.processor {
 }
 ~~~
 
-java.compiler chứa API annotation processing như Processor, AbstractProcessor, RoundEnvironment và ProcessingEnvironment.
+`java.compiler` contains annotation processing APIs such as `Processor`, `AbstractProcessor`, `RoundEnvironment`, and `ProcessingEnvironment`.
 
-Khi biên dịch ứng dụng, dùng processor module path:
+When compiling the application, use the processor module path:
 
 ~~~bash
 javac \
@@ -296,17 +296,17 @@ javac \
     src/com/acme/app/Customer.java
 ~~~
 
-Khác biệt chính:
+Key differences:
 
-- --processor-path thường dùng cho processor được tìm như các class/JAR trên classpath.
-- --processor-module-path dùng cho processor được tổ chức thành named module và có khai báo service trong module descriptor.
-- --module-path là nơi tìm các module dependency mà source đang biên dịch cần đọc; không nên nhầm nó với processor module path.
+- `--processor-path` is typically used for processors located as classes/JARs on a classpath.
+- `--processor-module-path` is used for processors organized as named modules with a service declaration in their module descriptor.
+- `--module-path` is where dependency modules needed by the sources being compiled are located; do not confuse it with the processor module path.
 
-Trong một build modular, có thể cần đồng thời module path cho dependency của source và processor module path cho processor. Mỗi đường dẫn phục vụ một vai trò riêng.
+In a modular build, you may need both a module path for source dependencies and a processor module path for processors. Each path serves its own role.
 
-## 10. Ví dụ so sánh hai cấu hình
+## 10. Example Comparing Two Configurations
 
-Giả sử có ba JAR:
+Suppose there are three JARs:
 
 ~~~text
 lib/
@@ -316,9 +316,9 @@ tools/
   customer-processor.jar
 ~~~
 
-Source ứng dụng sử dụng Customer từ customer-api.jar và annotation từ customer-annotations.jar. Processor implementation nằm trong customer-processor.jar.
+The application source uses `Customer` from `customer-api.jar` and the annotation from `customer-annotations.jar`. The processor implementation resides in `customer-processor.jar`.
 
-Cấu hình tách biệt:
+Separated configuration:
 
 ~~~bash
 javac \
@@ -330,22 +330,22 @@ javac \
     src/com/acme/app/Customer.java
 ~~~
 
-Trong lệnh này:
+In this command:
 
-- Nếu bỏ customer-api.jar khỏi compile classpath, javac có thể báo không tìm thấy kiểu Customer hoặc các kiểu mà source tham chiếu.
-- Nếu bỏ customer-processor.jar khỏi processor path và không có processor ở một đường dẫn được cấu hình khác, javac không thể nạp CustomerProcessor.
-- Nếu bỏ customer-annotations.jar khỏi compile classpath, source không thể tham chiếu @GenerateBuilder.
-- Đưa customer-processor.jar vào compile classpath không phải cách cấu hình rõ ràng để bảo đảm processor chạy; hãy dùng processor path hoặc chọn processor trực tiếp.
+- If `customer-api.jar` is omitted from the compile classpath, `javac` may report that it cannot find the `Customer` type or other types referenced by the source.
+- If `customer-processor.jar` is omitted from the processor path and there is no processor on another configured path, `javac` cannot load `CustomerProcessor`.
+- If `customer-annotations.jar` is omitted from the compile classpath, the source cannot reference `@GenerateBuilder`.
+- Putting `customer-processor.jar` onto the compile classpath is not an explicit configuration to guarantee the processor runs; use the processor path or select the processor directly.
 
-Tách đường dẫn cũng giúp dễ xem xét dependency nào chỉ dành cho build và dependency nào thực sự cần để biên dịch ứng dụng.
+Separating paths also makes it easy to inspect which dependencies are build-only and which dependencies are genuinely required to compile the application.
 
-## 11. Cấu hình trong Maven và Gradle
+## 11. Configuration in Maven and Gradle
 
-Các build tool thường cung cấp cấu hình riêng cho annotation processor để không phải tự viết toàn bộ lệnh javac.
+Build tools usually provide dedicated configuration for annotation processors so you do not have to write the entire `javac` command manually.
 
 **Maven**
 
-Trong maven-compiler-plugin, có thể khai báo processor dependency bằng annotationProcessorPaths:
+In `maven-compiler-plugin`, processor dependencies can be declared using `annotationProcessorPaths`:
 
 ~~~xml
 <plugin>
@@ -364,11 +364,11 @@ Trong maven-compiler-plugin, có thể khai báo processor dependency bằng ann
 </plugin>
 ~~~
 
-Các thư viện mà source ứng dụng cần vẫn được khai báo trong dependencies theo scope phù hợp. annotationProcessorPaths mô tả nơi plugin compiler tìm processor; nó không thay thế dependency của source.
+Libraries needed by the application's sources are still declared in `dependencies` with the appropriate scope. `annotationProcessorPaths` describes where the compiler plugin finds processors; it does not replace source dependencies.
 
 **Gradle**
 
-Với Java plugin, có thể tách annotation API và processor:
+With the Java plugin, you can separate the annotation API and the processor:
 
 ~~~groovy
 dependencies {
@@ -377,25 +377,25 @@ dependencies {
 }
 ~~~
 
-compileOnly làm annotation có sẵn khi biên dịch nhưng không tự thêm vào runtime classpath. annotationProcessor đưa processor vào cấu hình processor path của tác vụ biên dịch.
+`compileOnly` makes the annotation available during compilation without automatically adding it to the runtime classpath. `annotationProcessor` places the processor in the compile task's processor path configuration.
 
-Tùy thư viện, annotation API có thể cần ở runtime hoặc được đóng gói cùng ứng dụng; hãy chọn scope theo retention và cách ứng dụng sử dụng annotation. Processor implementation thường chỉ cần trong build.
+Depending on the library, the annotation API may be needed at runtime or packaged with the application; choose the scope according to retention and how the application uses the annotation. The processor implementation is usually only needed during the build.
 
-## 12. Các lỗi thường gặp
+## 12. Common Errors
 
-| Hiện tượng | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common Cause | Resolution |
 |---|---|---|
-| package ... does not exist hoặc cannot find symbol ở source | Thiếu thư viện trên compile classpath hoặc module path | Thêm đúng dependency vào classpath/module path của source |
-| Processor không chạy | Processor không có trên processor path, chưa được chọn, thiếu service registration hoặc annotation processing bị tắt | Kiểm tra -processorpath, -processor, file service và -proc |
-| Annotation processor ... not found | Tên processor sai hoặc JAR không nằm trên processor path | Kiểm tra tên đầy đủ của lớp và vị trí JAR |
-| NoClassDefFoundError khi nạp processor | Thiếu dependency mà chính processor cần | Thêm dependency đó vào processor path hoặc processor module path |
-| Annotation không được nhận diện | Thiếu JAR annotation trên compile classpath/module path hoặc dùng sai tên annotation | Kiểm tra import và dependency của source |
-| Generated source không xuất hiện ở nơi mong đợi | Chưa cấu hình -s hoặc build tool dùng thư mục generated khác | Kiểm tra thư mục đầu ra source của javac/build tool |
-| Processor tạo file trùng | Nhiều vòng hoặc nhiều processor cùng tạo một tên file | Đảm bảo mỗi file chỉ được tạo một lần và tên file không xung đột |
-| Build chạy processor trên JDK mới nhưng trước đây không chạy | Hành vi kích hoạt annotation processing thay đổi theo phiên bản JDK | Cấu hình processor tường minh và kiểm tra tùy chọn -proc |
+| package ... does not exist or cannot find symbol in source | Missing library on compile classpath or module path | Add the right dependency to the source's classpath/module path |
+| Processor does not run | Processor not on processor path, not selected, missing service registration, or annotation processing disabled | Check -processorpath, -processor, service file, and -proc |
+| Annotation processor ... not found | Wrong processor name or JAR not on processor path | Check the fully qualified class name and JAR location |
+| NoClassDefFoundError when loading processor | Missing dependency needed by the processor itself | Add that dependency to the processor path or processor module path |
+| Annotation not recognized | Missing annotation JAR on compile classpath/module path or wrong annotation name used | Check imports and source dependencies |
+| Generated source does not appear where expected | -s not configured or build tool uses a different generated directory | Check the source output directory of javac/build tool |
+| Processor creates duplicate files | Multiple rounds or multiple processors create the same filename | Ensure each file is created only once and filenames do not conflict |
+| Build runs processor on a newer JDK but did not run previously | Annotation processing activation behavior changed across JDK versions | Configure the processor explicitly and check the -proc option |
 
-Khi chẩn đoán, hãy xác định lỗi thuộc nhóm nào trước: source không tìm thấy kiểu, hay compiler không tìm thấy processor. Lỗi thứ nhất thường liên quan compile classpath/module path; lỗi thứ hai liên quan processor path, service registration hoặc chế độ annotation processing.
+When diagnosing, determine which category the error belongs to first: the source cannot find a type, or the compiler cannot find the processor. The first relates to the compile classpath/module path; the second relates to the processor path, service registration, or annotation processing mode.
 
-## Ghi nhớ
+## Key Takeaways
 
-Compile classpath (-cp/--class-path) cung cấp các kiểu mà source cần để biên dịch. Processor path (-processorpath/--processor-path) cung cấp implementation và dependency của annotation processor để javac nạp trong lúc build. Với processor dạng named module, dùng --processor-module-path. Processor có thể kiểm tra annotation và sinh source qua Filer; source sinh ra được đưa vào các vòng xử lý tiếp theo. Hãy tách dependency của ứng dụng và công cụ build thành các đường dẫn riêng để build dễ kiểm soát, dễ tái lập và không vô tình thực thi processor ngoài dự định.
+The compile classpath (`-cp`/`--class-path`) provides the types that sources need to compile. The processor path (`-processorpath`/`--processor-path`) provides the annotation processor implementation and its dependencies for `javac` to load during the build. For processors packaged as named modules, use `--processor-module-path`. Processors can inspect annotations and generate sources via `Filer`; generated sources are fed into subsequent processing rounds. Separate application dependencies and build tools into distinct paths so builds are easy to control, reproducible, and do not accidentally execute unintended processors.

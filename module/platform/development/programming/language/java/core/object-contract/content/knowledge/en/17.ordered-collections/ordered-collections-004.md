@@ -1,38 +1,38 @@
-# Khác biệt kết quả giữa HashSet với TreeSet
+# Differences in Results Between HashSet and TreeSet
 
-## 1. Cùng là Set, vì sao kết quả có thể khác?
+## 1. Both are Sets, so why can results differ?
 
-Trong Java, cả `HashSet<E>` và `TreeSet<E>` đều triển khai giao diện `Set<E>`: một tập hợp không chứa các phần tử được xem là trùng nhau. Tuy nhiên, chúng xác định phần tử “trùng” và tổ chức dữ liệu theo những cơ chế khác nhau.
+In Java, both `HashSet<E>` and `TreeSet<E>` implement the `Set<E>` interface: a collection containing no elements considered duplicates. However, they identify “duplicate” elements and organize data through different mechanisms.
 
-- **`HashSet`** dựa vào `hashCode()` để xác định nhóm ứng viên và `equals(Object)` để nhận diện phần tử bằng nhau. Nó **không bảo đảm thứ tự duyệt**, dù trong một lần chạy bạn thấy phần tử tình cờ được in theo thứ tự nào đó.
-- **`TreeSet`** là một `NavigableSet` có thứ tự, dùng **`compareTo()`** theo thứ tự tự nhiên hoặc **`Comparator.compare()`** được truyền vào. Hai phần tử được coi là cùng một phần tử của cây khi phép so sánh trả về **0**.
+- **`HashSet`** relies on `hashCode()` to identify candidate buckets and `equals(Object)` to recognize equal elements. It **does not guarantee iteration order**, even if in one run elements happen to print in a particular order.
+- **`TreeSet`** is an ordered `NavigableSet` that uses **`compareTo()`** under natural ordering or a passed-in **`Comparator.compare()`**. Two elements are treated as the same element in the tree when the comparison returns **0**.
 
-Vì thế, với một tập đầu vào giống nhau, hai set có thể khác **thứ tự duyệt**, khác **số phần tử**, khác kết quả `contains()` hoặc `remove()`, đặc biệt khi `compareTo`/`Comparator` không nhất quán với `equals`.
+Therefore, given the same input set, the two sets can differ in **iteration order**, differ in **element count**, and differ in `contains()` or `remove()` results, especially when `compareTo`/`Comparator` is inconsistent with `equals`.
 
-**Điểm cần nhớ:** Không thể kết luận “HashSet và TreeSet chỉ khác nhau ở chỗ TreeSet tự sắp xếp”. Cách nhận diện phần tử trùng nhau cũng là khác biệt mang tính hợp đồng.
+**Key point:** You cannot conclude that “HashSet and TreeSet only differ in that TreeSet sorts automatically”. How duplicate elements are recognized is also a contractual difference.
 
-## 2. So sánh nhanh hai cấu trúc
+## 2. Quick comparison of the two structures
 
-| Tiêu chí | `HashSet` | `TreeSet` |
+| Criterion | `HashSet` | `TreeSet` |
 | --- | --- | --- |
-| Cơ chế tổ chức | Bảng băm, dựa trên `HashMap` | Cây tìm kiếm cân bằng, dựa trên `TreeMap` |
-| Tiêu chí nhận diện trùng | Cùng tham chiếu hoặc bằng nhau theo `equals(Object)` trong cơ chế băm | `compareTo == 0` hoặc `Comparator.compare == 0` |
-| Hợp đồng liên quan | `equals()` và `hashCode()` phải nhất quán | Thứ tự so sánh phải hợp lệ; nên nhất quán với `equals()` |
-| Thứ tự duyệt | Không bảo đảm | Theo thứ tự tăng dần của natural ordering hoặc comparator |
-| Thêm, tìm, xóa thông thường | Trung bình gần `O(1)` với băm phân bố tốt | `O(log n)` |
-| Tìm phần tử gần nhất (`lower`, `floor`, `ceiling`, `higher`) | Không có API này trực tiếp | Có qua `NavigableSet` |
-| `null` | Cho phép tối đa một phần tử `null` | Thứ tự tự nhiên thường không chấp nhận `null`; comparator riêng có thể quy định cách xử lý |
-| Khi thích hợp | Cần kiểm tra tồn tại hoặc khử trùng theo equality, không cần thứ tự | Cần dữ liệu luôn theo thứ tự và các truy vấn khoảng, phần tử lân cận |
+| Organization mechanism | Hash table, backed by `HashMap` | Balanced search tree, backed by `TreeMap` |
+| Duplicate detection criterion | Same reference or equal by `equals(Object)` in hashing mechanism | `compareTo == 0` or `Comparator.compare == 0` |
+| Relevant contract | `equals()` and `hashCode()` must be consistent | Ordering comparison must be valid; should be consistent with `equals()` |
+| Iteration order | Not guaranteed | Ascending order of natural ordering or comparator |
+| Typical add, find, remove | Average near `O(1)` with well-distributed hash | `O(log n)` |
+| Finding nearest element (`lower`, `floor`, `ceiling`, `higher`) | No direct API for this | Available via `NavigableSet` |
+| `null` | Allows at most one `null` element | Natural ordering typically rejects `null`; a custom comparator may define handling |
+| When appropriate | Need existence checks or equality-based deduplication, no ordering needed | Need data always ordered plus range and neighbor queries |
 
-Các độ phức tạp trên là đánh giá thông thường, không phải cam kết mọi thao tác luôn mất đúng một lượng thời gian cố định. Hiệu năng thực tế còn phụ thuộc dữ liệu, số lần va chạm hash, chi phí tính hash, equality và comparator.
+The complexities above are general assessments, not a guarantee that every operation always takes an exact constant amount of time. Actual performance also depends on data, hash collision count, and the cost of computing hash, equality, and comparator.
 
-Nếu cần giữ **thứ tự chèn** chứ không phải thứ tự sắp xếp, hãy cân nhắc `LinkedHashSet`. Nó là một lựa chọn khác với `TreeSet`.
+If you need to preserve **insertion order** rather than sort order, consider `LinkedHashSet`. It is a different option from `TreeSet`.
 
-## 3. Trường hợp đơn giản: phần tử số nguyên có thứ tự tự nhiên
+## 3. Simple case: integer elements with natural ordering
 
-Với các `Integer` thông thường, `equals()` và `compareTo()` nhất quán: hai số nguyên có cùng giá trị thì bằng nhau theo cả hai cách. Vì vậy hai set sẽ khử trùng giống nhau, nhưng thứ tự duyệt có thể khác.
+For standard `Integer` values, `equals()` and `compareTo()` are consistent: two integers with the same value are equal both ways. Hence both sets deduplicate identically, though iteration order may differ.
 
-Tạo tệp `HashSetTreeSetDemo.java`:
+Create file `HashSetTreeSetDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -81,14 +81,14 @@ public class HashSetTreeSetDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac HashSetTreeSetDemo.java
 java HashSetTreeSetDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 4
@@ -105,53 +105,53 @@ false
 true
 ```
 
-Giải thích nửa đầu chương trình:
+Explanation of the first half of the program:
 
-1. Dãy đầu vào có năm lần thêm, trong đó số `3` lặp hai lần. Cả hai set đều có kích thước **4**.
-2. `sorted` in thành `[1, 2, 3, 4]` vì `TreeSet<Integer>` dùng thứ tự tăng dần của `Integer`.
-3. `first()` trả phần tử nhỏ nhất `1`; `ceiling(3)` trả phần tử nhỏ nhất lớn hơn hoặc bằng 3, tức `3`; `higher(3)` trả phần tử nhỏ nhất lớn hơn 3, tức `4`.
-4. Cả hai `contains(3)` đều trả `true`.
+1. The input sequence performs five additions, where `3` repeats twice. Both sets have size **4**.
+2. `sorted` prints as `[1, 2, 3, 4]` because `TreeSet<Integer>` uses ascending order of `Integer`.
+3. `first()` returns the smallest element `1`; `ceiling(3)` returns the smallest element greater than or equal to 3, i.e., `3`; `higher(3)` returns the smallest element strictly greater than 3, i.e., `4`.
+4. Both `contains(3)` calls return `true`.
 
-Ví dụ **cố ý không in trực tiếp `hash`**: thứ tự duyệt của `HashSet` không được Java bảo đảm. Ngay cả nếu tình cờ hiện ra `[1, 2, 3, 4]`, bạn cũng không được dựa vào đó trong chương trình.
+The example **intentionally does not print `hash` directly**: `HashSet` iteration order is not guaranteed by Java. Even if `[1, 2, 3, 4]` happens to appear, you must not rely on it in your program.
 
-Nửa sau chương trình minh họa khác biệt sâu hơn về **định nghĩa phần tử trùng**, không chỉ về thứ tự. Phần tiếp theo giải thích nguyên nhân.
+The second half of the program illustrates a deeper difference in **the definition of duplicate elements**, not merely ordering. The next section explains why.
 
-## 4. BigDecimal: compareTo bằng 0 nhưng equals là false
+## 4. BigDecimal: compareTo is 0 but equals is false
 
-`BigDecimal` lưu cả giá trị số học và **scale** (số chữ số thập phân theo cách biểu diễn nội bộ):
+`BigDecimal` stores both numeric value and **scale** (the number of decimal digits in internal representation):
 
 ```java
 BigDecimal a = new BigDecimal("2.0");  // scale = 1
 BigDecimal b = new BigDecimal("2.00"); // scale = 2
 ```
 
-Đoạn trên là minh họa và cần `import java.math.BigDecimal;`.
+The snippet above is illustrative and requires `import java.math.BigDecimal;`.
 
 ```text
 a.compareTo(b) == 0  → true
 a.equals(b)          → false
 ```
 
-Lý do: `compareTo()` xét hai số bằng nhau về **giá trị toán học**, còn `BigDecimal.equals()` xét cả **giá trị và scale**.
+Reason: `compareTo()` treats two numbers as equal in **mathematical value**, whereas `BigDecimal.equals()` checks both **value and scale**.
 
-Điều này tác động trực tiếp đến set:
+This directly affects sets:
 
-- `HashSet<BigDecimal>` dùng equality theo `equals/hashCode`, nên hai phần tử `2.0` và `2.00` **khác nhau**: kích thước là **2**.
-- `TreeSet<BigDecimal>` theo natural ordering dùng `compareTo == 0`, nên hai giá trị này được xem là **tương đương trong cây**: kích thước là **1**.
-- `decimalHash.contains(new BigDecimal("2.000"))` là `false` vì scale 3 khác hai scale 1 và 2.
-- `decimalTree.contains(new BigDecimal("2.000"))` là `true` vì giá trị số học bằng 2, so sánh với phần tử đã có trả 0.
+- `HashSet<BigDecimal>` uses equality via `equals/hashCode`, so `2.0` and `2.00` are **distinct**: size is **2**.
+- `TreeSet<BigDecimal>` under natural ordering uses `compareTo == 0`, so these two values are treated as **equivalent in the tree**: size is **1**.
+- `decimalHash.contains(new BigDecimal("2.000"))` is `false` because scale 3 differs from scales 1 and 2.
+- `decimalTree.contains(new BigDecimal("2.000"))` is `true` because the numeric value is 2, so comparing with the stored element returns 0.
 
-`BigDecimal` là ví dụ tiêu biểu có **natural ordering inconsistent with equals**, được JavaDoc ghi nhận. Nó không phải lỗi của `HashSet` hoặc `TreeSet`: mỗi lớp đang thực hiện đúng cơ chế của mình.
+`BigDecimal` is a classic example with **natural ordering inconsistent with equals**, documented in the JavaDoc. It is not a bug in `HashSet` or `TreeSet`: each class is executing its own mechanism properly.
 
-Nếu nghiệp vụ xem `2.0`, `2.00` và `2` là **cùng một giá trị**, cần chọn rõ tiêu chí ở lớp xử lý dữ liệu. Nếu dùng `HashSet` và muốn khử trùng theo giá trị số học, có thể chuẩn hóa các `BigDecimal` bằng `stripTrailingZeros()` trước khi thêm và tra cứu. Tuy nhiên, phép chuẩn hóa có thể thay đổi scale, kể cả thành scale âm đối với số như `1000.00`; không áp dụng tùy tiện khi scale có ý nghĩa nghiệp vụ.
+If business logic views `2.0`, `2.00`, and `2` as **the same value**, clearly choose the criterion in the data-processing layer. If using `HashSet` and wanting deduplication by numeric value, you can normalize `BigDecimal` values with `stripTrailingZeros()` before adding and looking up. However, normalization can change scale, even producing a negative scale for numbers such as `1000.00`; do not apply it indiscriminately when scale carries business meaning.
 
-## 5. Comparator có thể khiến TreeSet “mất” phần tử khác nhau
+## 5. A Comparator can cause TreeSet to “lose” distinct elements
 
-Ngay cả khi kiểu phần tử có `equals` và natural ordering nhất quán, một `TreeSet` với **comparator do lập trình viên cung cấp** vẫn có thể coi những object khác nhau là trùng.
+Even when an element type has consistent `equals` and natural ordering, a `TreeSet` with a **developer-supplied comparator** can still treat distinct objects as duplicates.
 
-Ví dụ: mỗi học viên có một `id` và một `score`. Nếu comparator **chỉ** so điểm, hai học viên khác mã nhưng cùng điểm được so sánh bằng 0. `TreeSet` sẽ chỉ giữ một học viên đại diện cho nhóm điểm đó.
+For example: each student has an `id` and a `score`. If the comparator compares **only** score, two students with different IDs but the same score compare as 0. `TreeSet` will keep only one representative student for that score group.
 
-Tạo tệp `ComparatorSetDemo.java`:
+Create file `ComparatorSetDemo.java`:
 
 ```java
 import java.util.Comparator;
@@ -193,14 +193,14 @@ public class ComparatorSetDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ComparatorSetDemo.java
 java ComparatorSetDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 false
@@ -213,100 +213,100 @@ true
 true
 ```
 
-Phân tích:
+Analysis:
 
-- Record `Student` tự cung cấp `equals` và `hashCode` theo cả `id` lẫn `score`. `a.equals(b)` là `false`, nên `HashSet` chứa 2 học viên.
-- `byScore.compare(a, b) == 0` vì cả hai đạt 90 điểm. `byScoreOnly.add(b)` trả `false` dù `b` khác `a` theo `equals`. `TreeSet` chỉ có 1 phần tử.
-- `byScoreOnly.contains(b)` trả `true` vì đã có học viên **tương đương theo comparator**; nó không khẳng định chính đối tượng `b` đang được lưu.
-- `byScoreThenId` phá hòa theo `id` sau `score`. Vì hai đối tượng khác mã, `fullOrder` chứa cả hai và vẫn giữ dữ liệu theo thứ tự điểm rồi mã.
+- Record `Student` automatically provides `equals` and `hashCode` across both `id` and `score`. `a.equals(b)` is `false`, so `HashSet` holds 2 students.
+- `byScore.compare(a, b) == 0` because both scored 90. `byScoreOnly.add(b)` returns `false` even though `b` differs from `a` by `equals`. `TreeSet` has only 1 element.
+- `byScoreOnly.contains(b)` returns `true` because a student **equivalent by comparator** is already present; it does not affirm that object `b` itself is stored.
+- `byScoreThenId` breaks ties by `id` after `score`. Since the two objects have different IDs, `fullOrder` keeps both and preserves data ordered by score then ID.
 
-**Quy tắc thiết kế:** Nếu mục tiêu là **sắp xếp theo điểm nhưng vẫn giữ mọi học viên**, comparator của `TreeSet` phải phá hòa bằng tiêu chí phân biệt đúng các đối tượng logic. Hoặc dùng một `List<Student>` rồi gọi `sort(byScore)` khi cần giữ nhiều học viên cùng điểm.
+**Design rule:** If the goal is to **sort by score while keeping every student**, the `TreeSet` comparator must break ties using criteria that properly distinguish logical objects. Or use a `List<Student>` and call `sort(byScore)` when multiple students with the same score must be kept.
 
-Dùng comparator chỉ theo điểm có thể hợp lý nếu **nghiệp vụ thật sự muốn tối đa một học viên cho mỗi mức điểm**, nhưng lúc ấy phải công bố rõ chính sách loại trùng.
+Using a score-only comparator can be reasonable if **business logic genuinely wants at most one student per score level**, though in that case the deduplication policy should be stated explicitly.
 
-## 6. Yêu cầu nhất quán giữa compareTo và equals
+## 6. Consistency requirement between compareTo and equals
 
-Với một lớp triển khai `Comparable<T>`, Java **khuyến nghị mạnh**:
+For a class implementing `Comparable<T>`, Java **strongly recommends**:
 
 ```text
 x.compareTo(y) == 0  ⇔  x.equals(y) == true
 ```
 
-Với `TreeSet` dùng comparator, yêu cầu tương ứng là:
+For `TreeSet` using a comparator, the corresponding requirement is:
 
 ```text
 comparator.compare(x, y) == 0  ⇔  x.equals(y) == true
 ```
 
-Ở đây ký hiệu `⇔` nghĩa là điều kiện đúng theo **cả hai chiều**. Khi điều đó được bảo đảm:
+Here the `⇔` symbol means the condition holds in **both directions**. When that is guaranteed:
 
-1. Hai object bằng nhau theo `equals` không bị `TreeSet` coi là hai phần tử khác nhau.
-2. Hai object khác nhau theo `equals` không bị `TreeSet` gộp do comparator trả 0.
-3. `HashSet` và `TreeSet` có thể đồng thuận về tiêu chí phần tử trùng, dù cách sắp xếp và độ phức tạp khác nhau.
+1. Two objects equal by `equals` are not treated by `TreeSet` as two distinct elements.
+2. Two objects distinct by `equals` are not merged by `TreeSet` due to the comparator returning 0.
+3. `HashSet` and `TreeSet` can agree on duplicate-element criteria, even though ordering and complexity differ.
 
-Một thứ tự **không nhất quán với equals** vẫn có thể tạo ra cây hoạt động theo thứ tự đã chỉ định, nhưng hành vi có thể không phù hợp với hợp đồng bình đẳng chung của `Set`. Đây là lý do tài liệu `TreeSet` đặc biệt lưu ý comparator hoặc natural ordering cần nhất quán với `equals` nếu muốn đáp ứng hợp đồng `Set` đầy đủ.
+An ordering **inconsistent with equals** can still yield a tree operating by the specified order, yet behavior may not match the general `Set` equality contract. This is why `TreeSet` documentation specifically notes that the comparator or natural ordering needs to be consistent with `equals` if full `Set` contract compliance is desired.
 
-Cũng cần phân biệt **thứ tự so sánh hợp lệ** với **nhất quán cùng equals**. Một comparator phải có tính nhất quán, bắc cầu và dấu đối xứng theo các quy tắc của `Comparator`. Comparator sai các quy tắc đó còn gây vấn đề nghiêm trọng hơn chỉ lệch equality.
+Also distinguish **valid comparison ordering** from **consistency with equals**. A comparator must be consistent, transitive, and sign-symmetric under `Comparator` rules. A comparator violating those rules causes even more severe issues than merely diverging from equality.
 
-## 7. Null, khả năng so sánh và lỗi thường thấy khi thêm phần tử
+## 7. Null, comparability, and common errors when adding elements
 
-`HashSet` cho phép **một phần tử `null`**. Thêm `null` lần hai không làm thay đổi kích thước set.
+`HashSet` allows **one `null` element**. Adding `null` a second time does not change the set size.
 
-Với `TreeSet`, cây cần biết cách so sánh phần tử. Do đó:
+For `TreeSet`, the tree must know how to compare elements. Therefore:
 
-- Khi dùng thứ tự tự nhiên như `TreeSet<String>` hoặc `TreeSet<Integer>`, thêm `null` sẽ gây `NullPointerException` trong triển khai tiêu chuẩn.
-- Một comparator như `Comparator.nullsFirst(...)` có thể định nghĩa thứ tự cho `null` nếu nghiệp vụ cần; khi đó một `TreeSet` được tạo với comparator phù hợp có thể chứa `null`.
-- Nếu các phần tử không có natural ordering tương thích, hoặc không so sánh được với nhau, `TreeSet` có thể ném `ClassCastException`. Ví dụ record `Student` ở trên không triển khai `Comparable`, nên phải dùng `new TreeSet<>(comparator)` nếu muốn chứa nhiều học viên.
+- When using natural ordering such as `TreeSet<String>` or `TreeSet<Integer>`, adding `null` causes `NullPointerException` in standard implementations.
+- A comparator such as `Comparator.nullsFirst(...)` can define an ordering for `null` if business logic needs it; in that case a `TreeSet` constructed with an appropriate comparator can hold `null`.
+- If elements do not have a compatible natural ordering, or are not mutually comparable, `TreeSet` may throw `ClassCastException`. For example, the `Student` record above does not implement `Comparable`, so `new TreeSet<>(comparator)` must be used to hold multiple students.
 
-Không được suy rằng `TreeSet` tự biết cách so sánh hai object tùy ý. Muốn `TreeSet` nhận dữ liệu, phải cung cấp **thứ tự tự nhiên** hoặc một **comparator** rõ ràng.
+Do not assume `TreeSet` automatically knows how to compare two arbitrary objects. For `TreeSet` to accept data, either **natural ordering** or an explicit **comparator** must be provided.
 
-## 8. Thay đổi trạng thái object sau khi thêm vào set
+## 8. Mutating object state after adding to a set
 
-Nếu object được sử dụng làm phần tử set mà các trường liên quan đến equality hoặc ordering có thể thay đổi, hành vi tìm kiếm có thể trở nên sai lệch:
+If an object used as a set element has fields involved in equality or ordering that can change, lookup behavior can become erroneous:
 
-- Trong `HashSet`, nếu `hashCode()`/ `equals()` thay đổi do sửa trường của phần tử sau khi chèn, việc `contains` hoặc `remove` có thể không tìm được đối tượng như kỳ vọng.
-- Trong `TreeSet`, nếu tiêu chí `compareTo` hoặc `Comparator` thay đổi sau khi chèn, vị trí của phần tử trong cây có thể không còn phù hợp thứ tự; thao tác tìm, xóa hoặc duyệt có thể cho kết quả khó dự đoán.
+- In `HashSet`, if `hashCode()`/`equals()` changes due to mutating an element's field after insertion, `contains` or `remove` may fail to find the object as expected.
+- In `TreeSet`, if `compareTo` or `Comparator` criteria change after insertion, the element's position in the tree may no longer fit the order; find, remove, or traversal operations can yield unpredictable results.
 
-Với khóa và phần tử được sử dụng lâu dài, nên **ưu tiên dữ liệu bất biến**. Nếu thật sự cần thay đổi tiêu chí định danh hoặc thứ tự, hãy xóa phần tử khỏi set **trước khi** sửa rồi thêm lại, hoặc tạo một object bất biến mới.
+For long-lived keys and elements, **prefer immutable data**. If changing identity or ordering criteria is genuinely needed, remove the element from the set **before** modifying and re-add it, or create a new immutable object.
 
-`Comparator` cũng cần dựa trên tiêu chí ổn định. Nếu nó phụ thuộc vào trạng thái bên ngoài thay đổi (ví dụ cấu hình động), cấu trúc cây có thể mất tính nhất quán ngay cả khi object không đổi.
+`Comparator` also needs to rely on stable criteria. If it depends on mutable external state (e.g., dynamic configuration), the tree structure can lose consistency even if objects do not change.
 
-## 9. Chọn HashSet hay TreeSet trong tình huống thực tế?
+## 9. Choosing HashSet or TreeSet in practical scenarios?
 
-**Chọn `HashSet` khi:**
+**Choose `HashSet` when:**
 
-- Mục tiêu là kiểm tra tồn tại, loại trùng, thêm/xóa theo equality của đối tượng.
-- Không cần thứ tự duyệt hay truy vấn phần tử gần nhất.
-- Bạn muốn chi phí trung bình thấp cho các thao tác thông thường, với `equals/hashCode` hợp lệ và hash phân bố tốt.
+- The goal is existence checking, deduplication, and add/remove by object equality.
+- Iteration order or nearest-element queries are not needed.
+- You want low average cost for standard operations, with valid `equals/hashCode` and a well-distributed hash.
 
-**Chọn `TreeSet` khi:**
+**Choose `TreeSet` when:**
 
-- Cần các phần tử **luôn có thứ tự** mà không phải sort lại mỗi lần truy cập.
-- Cần `first`, `last`, `floor`, `ceiling`, `lower`, `higher`, `headSet`, `tailSet`, `subSet` hoặc truy vấn khoảng.
-- Bạn có `Comparable` hoặc `Comparator` hợp lệ và hiểu rõ quan hệ `compare == 0` với `equals`.
+- Elements must **always remain ordered** without re-sorting on every access.
+- You need `first`, `last`, `floor`, `ceiling`, `lower`, `higher`, `headSet`, `tailSet`, `subSet`, or range queries.
+- You have a valid `Comparable` or `Comparator` and clearly understand the relationship between `compare == 0` and `equals`.
 
-**Chọn `LinkedHashSet` khi:** bạn cần tính duy nhất như set và **duy trì thứ tự thêm**. Nó không thay thế khả năng truy vấn theo giá trị thứ tự của `TreeSet`.
+**Choose `LinkedHashSet` when:** you need set uniqueness and **to preserve insertion order**. It does not replace `TreeSet`'s order-value query capabilities.
 
-**Chọn `List` rồi sort khi:** bạn muốn giữ **mọi bản ghi**, kể cả các bản ghi cùng tiêu chí sắp xếp, và cần hiển thị theo một comparator. `TreeSet` là tập hợp, vì vậy `compare == 0` sẽ làm các phần tử bị coi là trùng.
+**Choose `List` then sort when:** you want to retain **every record**, including records sharing the same sort criterion, and need display ordered by a comparator. `TreeSet` is a set, so `compare == 0` causes elements to be treated as duplicates.
 
-Cả `HashSet` và `TreeSet` thông thường đều không tự bảo đảm an toàn khi nhiều luồng đồng thời sửa set; cần sử dụng cơ chế đồng bộ hoặc cấu trúc concurrent phù hợp theo yêu cầu.
+Neither standard `HashSet` nor `TreeSet` automatically guarantees safety when multiple threads concurrently modify the set; appropriate synchronization mechanisms or concurrent structures must be used as required.
 
-## 10. Checklist kiểm thử hai set
+## 10. Checklist for testing both sets
 
-1. **Kiểm tra hai object cùng giá trị logic:** `equals` và `hashCode` có nhất quán không? `compareTo` hoặc comparator có trả 0 không?
-2. **Kiểm tra hai object khác giá trị logic:** comparator có tiêu chí phá hòa đủ để không gộp nhầm chúng không?
-3. **Thử phần tử trùng và số lượng:** sau khi `add`, đối chiếu kết quả `boolean` và `size()` của mỗi set.
-4. **Kiểm tra thứ tự:** chỉ kỳ vọng thứ tự từ `TreeSet` (hoặc `LinkedHashSet` theo thứ tự thêm); không viết kiểm thử giả định thứ tự duyệt `HashSet`.
-5. **Kiểm tra contains/remove:** đặc biệt với các cặp `BigDecimal("2.0")` và `BigDecimal("2.00")`, hoặc comparator chỉ so một trường.
-6. **Kiểm tra `null` và dữ liệu không so sánh được:** cân nhắc loại phần tử, natural ordering và chính sách comparator.
-7. **Kiểm tra dữ liệu mutable:** giữ bất biến các trường tham gia equality và ordering khi object còn trong set.
-8. **Kiểm tra mục tiêu nghiệp vụ:** cần tập phần tử duy nhất, tập phần tử có thứ tự, thứ tự chèn hay danh sách có thể chứa giá trị trùng?
+1. **Test two objects with the same logical value:** are `equals` and `hashCode` consistent? Do `compareTo` or the comparator return 0?
+2. **Test two objects with different logical values:** does the comparator have sufficient tie-breaking criteria not to accidentally merge them?
+3. **Test duplicate elements and counts:** after `add`, compare the `boolean` return value and `size()` of each set.
+4. **Test ordering:** expect ordering only from `TreeSet` (or `LinkedHashSet` by insertion order); do not write tests assuming `HashSet` iteration order.
+5. **Test contains/remove:** especially with pairs like `BigDecimal("2.0")` and `BigDecimal("2.00")`, or comparators checking a single field.
+6. **Test `null` and non-comparable data:** consider element types, natural ordering, and comparator policy.
+7. **Test mutable data:** keep fields participating in equality and ordering immutable while the object remains in the set.
+8. **Verify business objective:** do you need a set of unique elements, an ordered set of elements, insertion order, or a list that can hold duplicate values?
 
-**Tự kiểm tra:**
+**Self-check:**
 
-- Thêm `2.0` và `2.00` dạng `BigDecimal` vào `HashSet` và `TreeSet` theo thứ tự tự nhiên: kích thước lần lượt bao nhiêu? **2 và 1.**
-- Hai `Student` khác `id` nhưng cùng `score`; `TreeSet` chỉ so `score` giữ bao nhiêu phần tử? **1.**
-- `HashSet` in ra theo thứ tự tăng dần trong một lần chạy thì có bảo đảm lần sau vẫn vậy không? **Không.**
-- Muốn giữ mọi bản ghi cùng điểm và chỉ sắp xếp để hiển thị, nên dùng gì? **Một `List` và `sort` hoặc comparator phù hợp với yêu cầu giữ đủ bản ghi.**
+- Add `2.0` and `2.00` as `BigDecimal` into `HashSet` and `TreeSet` with natural ordering: what are their respective sizes? **2 and 1.**
+- Two `Student`s have different `id`s yet the same `score`; how many elements does a `TreeSet` comparing only `score` keep? **1.**
+- If `HashSet` prints in ascending order on one run, is the same order guaranteed on the next run? **No.**
+- Wanting to keep every record with the same score and only sort for display, what should be used? **A `List` and `sort` or a comparator fitting the requirement to retain all records.**
 
-**Ghi nhớ:** `HashSet` nhận diện phần tử trùng bằng `equals/hashCode`, còn `TreeSet` dùng kết quả so sánh bằng 0. Vì vậy chúng không chỉ khác nhau ở thứ tự duyệt: **số lượng phần tử và kết quả tìm kiếm cũng có thể khác**, đặc biệt với `BigDecimal` hoặc comparator không nhất quán với `equals`.
+**Takeaway:** `HashSet` recognizes duplicate elements by `equals/hashCode`, whereas `TreeSet` uses a comparison result of 0. Therefore they do not differ only in iteration order: **element counts and lookup results can also differ**, especially with `BigDecimal` or comparators inconsistent with `equals`.

@@ -1,20 +1,20 @@
-# Triển khai tryAdvance và forEachRemaining
+# Implementing tryAdvance and forEachRemaining
 
-## 1. Spliterator đứng ở đâu trong Java Stream API?
+## 1. Where Does Spliterator Sit in the Java Stream API?
 
-Trong **Java Stream API**, người học thường bắt đầu từ `Collection.stream()`, sử dụng pipeline lazy với `filter`, `map`, `reduce` và `collect`. Với các nguồn dữ liệu tự định nghĩa, câu hỏi khó hơn là: **Stream lấy lần lượt từng phần tử từ đâu, và biết khi nào đã hết dữ liệu?**
+In the **Java Stream API**, learners typically start with `Collection.stream()`, using lazy pipelines with `filter`, `map`, `reduce`, and `collect`. For custom data sources, the harder question is: **where does the Stream obtain elements one by one, and how does it know when the data is exhausted?**
 
-Một giao diện trung tâm giải quyết việc duyệt nguồn là **`Spliterator<T>`** (*splitable iterator*). Nó vừa mô tả cách **tiến qua các phần tử**, vừa có khả năng **tách phần dữ liệu còn lại** để Stream có thể cân nhắc xử lý song song.
+A central interface that solves source traversal is **`Spliterator<T>`** (*splittable iterator*). It describes both how to **advance through elements** and how to **split off the remaining data** so that a Stream can consider parallel processing.
 
 ```text
-Nguồn tùy chỉnh (mảng, vùng dữ liệu, tệp, bộ sinh...)
+Custom source (array, data range, file, generator...)
                        |
                        v
                  Spliterator<T>
                  /       |       \
          tryAdvance  forEachRemaining  trySplit
              |             |             |
-        một phần tử    phần còn lại   chia phần việc
+        one element   remaining items  split work
                  \       |       /
                        v
                StreamSupport.stream(...)
@@ -24,35 +24,35 @@ Nguồn tùy chỉnh (mảng, vùng dữ liệu, tệp, bộ sinh...)
                  collect / count / ...
 ```
 
-Chương **Spliterator và nguồn tự định nghĩa** tập trung vào hai phương thức duyệt:
+The **Spliterators and Custom Sources** chapter focuses on two traversal methods:
 
-- `tryAdvance`: thử lấy **một** phần tử tiếp theo rồi đưa nó cho một `Consumer`.
-- `forEachRemaining`: đưa **tất cả các phần tử còn lại** cho cùng một `Consumer`.
+- `tryAdvance`: attempts to take **one** next element and pass it to a `Consumer`.
+- `forEachRemaining`: passes **all remaining elements** to the same `Consumer`.
 
-Hai phương thức phải dùng chung **trạng thái tiến độ duyệt**. Nếu `tryAdvance` đã lấy phần tử đầu tiên thì `forEachRemaining` phải tiếp tục từ phần tử thứ hai, không lặp lại phần tử đầu và không bỏ sót phần tử.
+Both methods must share the same **traversal progress state**. If `tryAdvance` has already taken the first element, `forEachRemaining` must continue from the second element, without repeating the first element or skipping any element.
 
-**Mục tiêu bài học:** hiểu hợp đồng và giá trị trả về của `tryAdvance`, biết vì sao `forEachRemaining` có triển khai mặc định, tự viết Spliterator có con trỏ đúng, kết hợp với `trySplit`/`estimateSize`/`characteristics`, tạo Stream bằng `StreamSupport` và nhận diện lỗi thường gặp khi xử lý song song, dữ liệu mutable hoặc nguồn I/O.
+**Lesson objectives:** understand the contract and return value of `tryAdvance`, know why `forEachRemaining` has a default implementation, write a custom Spliterator with a proper cursor, combine it with `trySplit`/`estimateSize`/`characteristics`, create a Stream via `StreamSupport`, and recognize common pitfalls with parallel processing, mutable data, or I/O sources.
 
-Các API `Spliterator` và `StreamSupport` đã có từ **Java 8**. Những ví dụ độc lập bên dưới chạy được với **Java 17+**, chủ yếu để thống nhất với các ví dụ hiện đại trong module `JAVA_STREAM_API`.
+The `Spliterator` and `StreamSupport` APIs have existed since **Java 8**. The standalone examples below run on **Java 17+**, mainly for consistency with modern examples in the `JAVA_STREAM_API` module.
 
-## 2. Đọc hợp đồng của tryAdvance
+## 2. Reading the Contract of tryAdvance
 
-Chữ ký trên `Spliterator<T>`:
+Signature on `Spliterator<T>`:
 
 ```java
 boolean tryAdvance(Consumer<? super T> action);
 ```
 
-Nó thử lấy một phần tử tiếp theo **nếu còn**, gọi `action.accept(element)`, sau đó báo kết quả:
+It attempts to take the next element **if one remains**, invokes `action.accept(element)`, and then reports the result:
 
-| Giá trị trả về | Ý nghĩa | Có gọi `action` không? |
+| Return Value | Meaning | Is `action` called? |
 | --- | --- | --- |
-| `true` | Đã xử lý được một phần tử | Có, đúng một lần trong một lời gọi thành công |
-| `false` | Không còn phần tử nào | Không |
+| `true` | Processed one element | Yes, exactly once per successful call |
+| `false` | No elements remaining | No |
 
-Khi đã hết nguồn, các lần gọi `tryAdvance` tiếp theo cũng phải báo `false`; không được tự động quay lại phần tử đầu hoặc phát thêm phần tử tưởng tượng.
+Once the source is exhausted, subsequent calls to `tryAdvance` must also return `false`; it must not automatically wrap back to the first element or emit imaginary elements.
 
-Ví dụ dùng Spliterator sẵn có của một `List`:
+Example using the built-in Spliterator of a `List`:
 
 ```java
 import java.util.List;
@@ -61,10 +61,10 @@ import java.util.Spliterator;
 Spliterator<String> cursor =
         List.of("A", "B", "C").spliterator();
 
-boolean first = cursor.tryAdvance(System.out::println);  // In A
-boolean second = cursor.tryAdvance(System.out::println); // In B
-boolean third = cursor.tryAdvance(System.out::println);  // In C
-boolean fourth = cursor.tryAdvance(System.out::println); // Không in
+boolean first = cursor.tryAdvance(System.out::println);  // Prints A
+boolean second = cursor.tryAdvance(System.out::println); // Prints B
+boolean third = cursor.tryAdvance(System.out::println);  // Prints C
+boolean fourth = cursor.tryAdvance(System.out::println); // Prints nothing
 
 System.out.println(first);  // true
 System.out.println(second); // true
@@ -72,74 +72,74 @@ System.out.println(third);  // true
 System.out.println(fourth); // false
 ```
 
-**`tryAdvance` không trả về phần tử** mà trả về `boolean`. Phần tử được chuyển đến `Consumer` do caller cung cấp. Nếu cần đưa phần tử vào List, có thể dùng `list::add` làm action; trong pipeline Stream thông thường, framework sẽ cung cấp consumer tương ứng.
+**`tryAdvance` does not return the element**, it returns a `boolean`. The element is passed to the `Consumer` supplied by the caller. If you need to collect elements into a List, you can pass `list::add` as the action; in a regular Stream pipeline, the framework supplies the corresponding consumer.
 
-### Action không được là null
+### Action must not be null
 
-Hợp đồng API yêu cầu `action` khác `null`. Một triển khai tự viết nên kiểm tra ngay:
+The API contract requires `action` to be non-`null`. A custom implementation should check immediately:
 
 ```java
 Objects.requireNonNull(action, "action");
 ```
 
-Nếu action bằng `null`, ném `NullPointerException` kể cả khi nguồn đã hết. Tránh code chỉ kiểm tra action sau khi đã xác định hết dữ liệu vì có thể làm sai hợp đồng.
+If action is `null`, throw `NullPointerException` even when the source is already exhausted. Avoid code that only checks action after determining whether data remains, as that can violate the contract.
 
-### Không được dựa vào tác dụng phụ để kiểm soát nguồn
+### Do not rely on side effects to control the source
 
-`Consumer` có thể in, ghi dữ liệu hoặc thay đổi biến của caller. Tuy nhiên, trong pipeline Stream, các hành động có tác dụng phụ có thể khiến ứng dụng khó dự đoán; không nên dùng log trong `tryAdvance`/mapper như một phần của kết quả nghiệp vụ. Lỗi của `action.accept(...)` sẽ truyền ra caller, và hợp đồng Spliterator **không bảo đảm trạng thái cụ thể sau khi action ném ngoại lệ**.
+A `Consumer` can print, write data, or mutate caller variables. However, in a Stream pipeline, side-effecting actions can make the application unpredictable; do not use logging inside `tryAdvance`/mappers as part of business output. Any exception thrown by `action.accept(...)` propagates to the caller, and the Spliterator contract **does not guarantee a specific state after an action throws an exception**.
 
-## 3. forEachRemaining: duyệt phần chưa được tiêu thụ
+## 3. forEachRemaining: Traversing Unconsumed Elements
 
-Chữ ký:
+Signature:
 
 ```java
 void forEachRemaining(Consumer<? super T> action);
 ```
 
-`forEachRemaining` không trả về số lượng hay danh sách. Nó gọi action cho **từng phần tử chưa được xử lý** theo thứ tự duyệt thích hợp và kết thúc khi nguồn hết.
+`forEachRemaining` does not return a count or a list. It invokes the action for **every unprocessed element** in the appropriate traversal order and finishes when the source is exhausted.
 
 ```java
 Spliterator<Integer> numbers =
         List.of(10, 20, 30, 40).spliterator();
 
-numbers.tryAdvance(n -> System.out.println("Lần đầu: " + n));
-// Lần đầu: 10
+numbers.tryAdvance(n -> System.out.println("First: " + n));
+// First: 10
 
-numbers.forEachRemaining(n -> System.out.println("Còn lại: " + n));
-// Còn lại: 20
-// Còn lại: 30
-// Còn lại: 40
+numbers.forEachRemaining(n -> System.out.println("Remaining: " + n));
+// Remaining: 20
+// Remaining: 30
+// Remaining: 40
 
 System.out.println(numbers.tryAdvance(System.out::println));
 // false
 ```
 
-Nếu gọi `forEachRemaining` ngay từ đầu, nó duyệt toàn bộ nguồn. Nếu gọi sau ba lần `tryAdvance` thành công, nó chỉ xử lý phần còn lại kể từ phần tử thứ tư. Nếu nguồn đã hết, `forEachRemaining` không gọi action lần nào.
+If `forEachRemaining` is called from the beginning, it traverses the entire source. If called after three successful `tryAdvance` calls, it processes only the remaining elements starting from the fourth. If the source is already exhausted, `forEachRemaining` never calls the action.
 
-Điều kiện `action` khác `null` cũng áp dụng cho `forEachRemaining`. Tương tự `tryAdvance`, nếu action ném ngoại lệ, không được tự suy đoán rằng Spliterator vẫn ở một trạng thái có thể khôi phục và tiếp tục chính xác.
+The non-`null` requirement for `action` also applies to `forEachRemaining`. Similarly to `tryAdvance`, if the action throws an exception, you should not assume the Spliterator remains in a recoverable state to continue accurately.
 
-### forEachRemaining có sẵn triển khai mặc định
+### forEachRemaining comes with a default implementation
 
-Trong `Spliterator`, `forEachRemaining` là một **default method** có logic tương đương:
+In `Spliterator`, `forEachRemaining` is a **default method** with equivalent logic:
 
-Logic của default implementation có thể diễn đạt đơn giản bằng:
+The default implementation's logic can be expressed simply as:
 
 ```java
 default void forEachRemaining(Consumer<? super T> action) {
     Objects.requireNonNull(action, "action");
     while (tryAdvance(action)) {
-        // tryAdvance đã chuyển một phần tử cho action.
+        // tryAdvance has already passed one element to action.
     }
 }
 ```
 
-Đoạn trên minh họa logic **bên trong interface**, không phải phương thức phải chép vào lớp triển khai. Vì `forEachRemaining` đã có default implementation, một lớp triển khai `Spliterator` có thể chỉ cần viết `tryAdvance` cùng các phương thức bắt buộc khác.
+The snippet above illustrates the logic **inside the interface**, not a method you need to copy into your implementation class. Because `forEachRemaining` already has a default implementation, a class implementing `Spliterator` can simply implement `tryAdvance` along with the other required methods.
 
-**Vì sao vẫn override?** Khi nguồn có cách duyệt liên tục hiệu quả hơn (ví dụ mảng hoặc bộ đệm với con trỏ), có thể override `forEachRemaining` để giảm chi phí lặp qua nhiều lời gọi `tryAdvance`. Lúc đó phải bảo đảm cả hai cách duyệt **cùng cập nhật con trỏ**, không đọc lại từ đầu.
+**Why override it anyway?** When a source has a more efficient sequential traversal (such as an array or buffer with a cursor), you can override `forEachRemaining` to reduce the loop overhead across many `tryAdvance` calls. When doing so, ensure both traversal methods **update the same cursor** rather than re-reading from the start.
 
-## 4. Bắt đầu với một Spliterator tuần tự tối giản
+## 4. Starting with a Minimal Sequential Spliterator
 
-Giả sử ta quản lý một mảng chuỗi nội bộ. Một Spliterator đầu tiên có thể **không hỗ trợ tách**; `trySplit()` trả `null`. Đây là lựa chọn hợp lệ nếu nguồn nhỏ, tuần tự hoặc khó tách:
+Suppose we manage an internal string array. An initial Spliterator may **not support splitting**; `trySplit()` returns `null`. This is a valid choice if the source is small, sequential, or hard to split:
 
 ```java
 import java.util.Objects;
@@ -168,7 +168,7 @@ final class SimpleArraySpliterator implements Spliterator<String> {
 
     @Override
     public Spliterator<String> trySplit() {
-        return null; // Không hỗ trợ chia phần còn lại.
+        return null; // Splitting the remaining part is not supported.
     }
 
     @Override
@@ -183,18 +183,18 @@ final class SimpleArraySpliterator implements Spliterator<String> {
 }
 ```
 
-Đây là một class minh họa độc lập có thể đặt cùng file với lớp chạy ví dụ (không được khai báo hai lớp `public` trong cùng một file Java). Những điểm cần thấy:
+This is a standalone illustrative class that can be placed in the same file as the runner class (two `public` classes cannot be declared in the same Java file). Key points to notice:
 
-1. `data` chứa bản sao của mảng nguồn để tránh bị code gọi sửa cấu trúc mảng phía ngoài trong lúc duyệt.
-2. `cursor` đánh dấu **chỉ số phần tử kế tiếp**; phần đã qua là khoảng `[0, cursor)`.
-3. Nếu `cursor >= data.length`, `tryAdvance` trả `false` và không gọi action.
-4. Sau một lượt thành công, con trỏ tăng lên đúng một.
-5. `estimateSize()` đếm **số phần tử còn lại**, không phải số phần tử ban đầu.
-6. `trySplit() == null` có nghĩa là không thể chia tiếp. Việc có `SUBSIZED` vẫn nhất quán ở đây vì Spliterator hiện tại luôn biết kích thước chính xác và không tạo Spliterator con.
+1. `data` holds a copy of the source array to prevent caller code from mutating the array structure externally during traversal.
+2. `cursor` marks **the index of the next element**; the already-visited portion is `[0, cursor)`.
+3. If `cursor >= data.length`, `tryAdvance` returns `false` and does not call the action.
+4. After a successful step, the cursor increments by exactly one.
+5. `estimateSize()` counts **the remaining elements**, not the initial count.
+6. `trySplit() == null` means no further splitting is possible. Including `SUBSIZED` remains consistent here because the current Spliterator always knows its exact size and produces no child Spliterators.
 
-`ORDERED` tuyên bố nguồn có encounter order theo chỉ số mảng; `SIZED` tuyên bố `estimateSize` chính xác; `SUBSIZED` yêu cầu các phần tách có kích thước chính xác; `IMMUTABLE` được dùng vì mảng nguồn đã được sao chép riêng và không bị thay đổi trong quá trình duyệt. Không khai báo `NONNULL` vì các phần tử của mảng `String[]` **có thể chứa null** nếu caller truyền vào.
+`ORDERED` declares that the source has an encounter order by array index; `SIZED` declares that `estimateSize` is exact; `SUBSIZED` requires split parts to have exact sizes; `IMMUTABLE` is used because the source array is privately cloned and cannot change during traversal. `NONNULL` is not declared because elements of `String[]` **may contain null** if the caller passes them in.
 
-### Thử kết hợp hai phương thức duyệt
+### Trying both traversal methods together
 
 ```java
 SimpleArraySpliterator spliterator =
@@ -203,16 +203,16 @@ SimpleArraySpliterator spliterator =
 spliterator.tryAdvance(System.out::println); // A
 System.out.println(spliterator.estimateSize()); // 2
 
-spliterator.forEachRemaining(System.out::println); // B, rồi C
+spliterator.forEachRemaining(System.out::println); // B, then C
 System.out.println(spliterator.estimateSize()); // 0
 System.out.println(spliterator.tryAdvance(System.out::println)); // false
 ```
 
-Ví dụ này dùng **default `forEachRemaining`** của interface. Dù không override, nó vẫn tiếp tục từ đúng vị trí vì gọi lặp `tryAdvance` đã cập nhật con trỏ.
+This example uses the interface's **default `forEachRemaining`**. Even without overriding it, it continues from the right position because repeated `tryAdvance` calls updated the cursor.
 
-## 5. Override forEachRemaining mà không phá trạng thái
+## 5. Overriding forEachRemaining Without Breaking State
 
-Nếu muốn duyệt hết phần tử còn lại bằng vòng lặp trực tiếp, thêm phương thức sau vào class:
+If you want to traverse all remaining elements with a direct loop, add the following method to the class:
 
 ```java
 @Override
@@ -225,7 +225,7 @@ public void forEachRemaining(Consumer<? super String> action) {
 }
 ```
 
-Đoạn này là một **phương thức thành viên** của `SimpleArraySpliterator` ở mục trước. Vì `cursor` là cùng trường với `tryAdvance` nên hai phương thức có thể gọi xen kẽ:
+This snippet is a **member method** of `SimpleArraySpliterator` from the previous section. Because `cursor` is the same field used by `tryAdvance`, both methods can be interleaved:
 
 ```text
 data = [A, B, C, D], cursor = 0
@@ -234,39 +234,39 @@ tryAdvance()          -> A          cursor = 1
 tryAdvance()          -> B          cursor = 2
 forEachRemaining()    -> C, D       cursor = 4
 tryAdvance()          -> false      cursor = 4
-forEachRemaining()    -> không phát gì
+forEachRemaining()    -> emits nothing
 ```
 
-Một số lỗi nguy hiểm cần tránh:
+Dangerous bugs to avoid:
 
 ```java
-// SAI: bắt đầu lại từ 0 thay vì cursor, gây lặp A/B.
+// WRONG: restarts from 0 instead of cursor, causing A/B to repeat.
 for (int i = 0; i < data.length; i++) {
     action.accept(data[i]);
 }
 
-// SAI: tăng cursor sau cả vòng lặp thay vì theo phần tử,
-// có thể phát sai hoặc không kết thúc đúng.
+// WRONG: updates cursor after the entire loop instead of per element,
+// which can emit wrong items or fail to terminate properly.
 ```
 
-Trong ví dụ chính, `action.accept(data[cursor++])` tăng cursor trước khi lời gọi action hoàn tất. Nếu action ném ngoại lệ, trạng thái có thể đã thay đổi; điều này nằm trong giới hạn hợp đồng Spliterator, vốn không cam kết khả năng tiếp tục sau lỗi của action.
+In the main example, `action.accept(data[cursor++])` increments the cursor before the action call finishes. If the action throws an exception, the state may have already changed; this falls within the Spliterator contract, which does not guarantee continuation after an action error.
 
-Không nhất thiết override `forEachRemaining` với mọi Spliterator. Trước tiên hãy có `tryAdvance` **đúng**, sau đó tối ưu khi đo được nhu cầu. Logic duyệt tối ưu phải được kiểm tra với các trường hợp: nguồn rỗng, phần còn lại rỗng, chỉ còn một phần tử, đã gọi `tryAdvance` trước đó và action ném lỗi.
+Overriding `forEachRemaining` is not required for every Spliterator. First make `tryAdvance` **correct**, then optimize when measurements show a need. Optimized traversal logic must be tested against edge cases: empty source, empty remainder, single remaining element, prior `tryAdvance` calls, and an action throwing an exception.
 
-## 6. Spliterator khác Iterator như thế nào?
+## 6. How Does Spliterator Differ from Iterator?
 
-`Iterator<T>` tập trung vào `hasNext()` và `next()`. `Spliterator<T>` gộp kiểm tra và xử lý phần tử trong một lời gọi `tryAdvance(action)`, cung cấp thông tin về kích thước và đặc tính, đồng thời cho phép tách phần còn lại:
+`Iterator<T>` centers on `hasNext()` and `next()`. `Spliterator<T>` combines checking and processing an element in a single `tryAdvance(action)` call, provides size and characteristic metadata, and enables splitting the remaining work:
 
-| Khía cạnh | `Iterator<T>` | `Spliterator<T>` |
+| Aspect | `Iterator<T>` | `Spliterator<T>` |
 | --- | --- | --- |
-| Lấy phần tử | `hasNext()` và `next()` | `tryAdvance(action)` |
-| Duyệt hết phần còn lại | `forEachRemaining(action)` | `forEachRemaining(action)` |
-| Chia nguồn thành phần việc | Không có giao thức `trySplit` | `trySplit()` |
-| Ước lượng số phần tử còn lại | Không có API chung | `estimateSize()` |
-| Mô tả thứ tự/kích thước/tính chất | Không có bit đặc tính chuẩn như Spliterator | `characteristics()`, `hasCharacteristics(...)` |
-| Phục vụ StreamSupport | Có thể bọc qua helper | Là nguồn trực tiếp để tạo Stream |
+| Retrieving elements | `hasNext()` and `next()` | `tryAdvance(action)` |
+| Traversing remaining elements | `forEachRemaining(action)` | `forEachRemaining(action)` |
+| Splitting source into tasks | No `trySplit` protocol | `trySplit()` |
+| Estimating remaining count | No common API | `estimateSize()` |
+| Describing order/size/properties | No standard characteristic bits like Spliterator | `characteristics()`, `hasCharacteristics(...)` |
+| Feeding StreamSupport | Can be wrapped via helper | Direct source for creating a Stream |
 
-Đừng xây dựng Spliterator riêng nếu đã có API phù hợp. Với `Collection`, dùng `collection.spliterator()`. Với nguồn chỉ có `Iterator`, `Spliterators.spliteratorUnknownSize(iterator, characteristics)` là một lựa chọn có sẵn.
+Do not build a custom Spliterator if a suitable API already exists. For a `Collection`, use `collection.spliterator()`. For a source that only exposes an `Iterator`, `Spliterators.spliteratorUnknownSize(iterator, characteristics)` is a built-in option.
 
 ```java
 import java.util.Iterator;
@@ -284,11 +284,11 @@ long count = StreamSupport.stream(source, false).count();
 System.out.println(count); // 3
 ```
 
-Helper trên tạo Spliterator khi chưa biết trước chính xác kích thước; không tự gắn `SIZED` hoặc `SUBSIZED` chỉ vì dữ liệu ví dụ ngắn. Việc viết Spliterator tùy chỉnh đáng cân nhắc khi phải kiểm soát cách phân chia nguồn, trạng thái duyệt hoặc characteristics đặc biệt.
+The helper above creates a Spliterator when the exact size is unknown beforehand; do not attach `SIZED` or `SUBSIZED` merely because the sample data is short. Writing a custom Spliterator is worth considering when you need to control how the source is partitioned, traversal state, or specialized characteristics.
 
-## 7. Kết nối Spliterator với StreamSupport
+## 7. Connecting Spliterator with StreamSupport
 
-Hai cách phổ biến:
+Two common approaches:
 
 ```java
 Stream<T> StreamSupport.stream(
@@ -302,9 +302,9 @@ IntStream StreamSupport.intStream(
 );
 ```
 
-Đây là chữ ký minh họa; `StreamSupport` còn có overload nhận `Supplier` để trì hoãn việc lấy Spliterator đến lúc terminal operation bắt đầu.
+These are illustrative signatures; `StreamSupport` also has overloads accepting a `Supplier` to defer obtaining the Spliterator until the terminal operation begins.
 
-Tạo Stream đối tượng từ Spliterator tự viết:
+Creating an object Stream from a custom Spliterator:
 
 ```java
 import java.util.Arrays;
@@ -322,23 +322,23 @@ List<String> names = StreamSupport.stream(source, false)
 System.out.println(names); // [An, Bình, Chi]
 ```
 
-Tham số `false` nghĩa là tạo **Stream tuần tự**; `true` nghĩa là tạo Stream có chế độ xử lý **song song**. Truyền `true` không bảo đảm chạy nhanh hơn hoặc bắt buộc nguồn phải được chia.
+The `false` argument creates a **sequential Stream**; `true` creates a Stream configured for **parallel** processing. Passing `true` does not guarantee faster execution or force the source to be split.
 
-**Không tái sử dụng Spliterator sau khi đã tiêu thụ nguồn.** Tương tự Stream, đối tượng Spliterator có con trỏ và một chiều tiến. Nếu đã bị duyệt hết, tạo Stream mới từ **chính Spliterator đó** sẽ không mang lại các phần tử ban đầu. Muốn xử lý lại, tạo Spliterator mới từ nguồn.
+**Do not reuse a Spliterator after it has consumed the source.** Like a Stream, a Spliterator object has a cursor and moves forward only. Once exhausted, creating a new Stream from **that same Spliterator** will not yield the original elements. To process again, create a new Spliterator from the source.
 
-## 8. Implement trySplit: mỗi phần xử lý một khoảng không giao nhau
+## 8. Implementing trySplit: Each Part Handles a Disjoint Range
 
-`tryAdvance` và `forEachRemaining` giải quyết việc tiến qua phần dữ liệu hiện tại; `trySplit` giúp **chia phạm vi chưa duyệt** thành hai Spliterator khi nguồn phù hợp.
+`tryAdvance` and `forEachRemaining` handle advancing through current data; `trySplit` **divides the untraversed range** into two Spliterators when the source is suitable.
 
-Với một dải chỉ số `[origin, fence)`, triển khai tốt thường:
+For an index range `[origin, fence)`, a good implementation typically:
 
-1. Xác định điểm giữa `mid` chỉ từ phần **chưa duyệt**.
-2. Trả một Spliterator mới quản lý nửa đầu `[origin, mid)`.
-3. Cập nhật Spliterator hiện tại để quản lý nửa sau `[mid, fence)`.
-4. Không làm trùng, mất hoặc đảo không cần thiết các phần tử khi ghép theo encounter order.
+1. Determines a midpoint `mid` solely from the **untraversed** portion.
+2. Returns a new Spliterator managing the first half `[origin, mid)`.
+3. Updates the current Spliterator to manage the second half `[mid, fence)`.
+4. Never duplicates, drops, or unnecessarily reorders elements when reassembled in encounter order.
 
 ```text
-Trước khi tách (cursor = 0, fence = 8):
+Before split (cursor = 0, fence = 8):
 [0 1 2 3 4 5 6 7]
 
 trySplit()
@@ -347,10 +347,10 @@ trySplit()
    |
    +-- current:        [4 5 6 7]   (suffix)
 
-Mỗi Spliterator tự duy trì cursor/fence của mình.
+Each Spliterator maintains its own cursor/fence.
 ```
 
-Ví dụ `trySplit` cho một Spliterator đã có các trường `data`, `cursor` và `fence`:
+Example `trySplit` for a Spliterator that already has `data`, `cursor`, and `fence` fields:
 
 ```java
 @Override
@@ -359,43 +359,43 @@ public Spliterator<String> trySplit() {
     int mid = low + (fence - low) / 2;
 
     if (mid == low) {
-        return null; // Còn 0 hoặc 1 phần tử, không tách thêm.
+        return null; // 0 or 1 elements left, do not split further.
     }
 
-    cursor = mid; // Spliterator hiện tại giữ [mid, fence).
+    cursor = mid; // Current Spliterator keeps [mid, fence).
     return new RangeStringSpliterator(data, low, mid);
 }
 ```
 
-Đoạn này thuộc mô hình **`RangeStringSpliterator`** đầy đủ ở mục 12, không phải có thể dán nguyên xi vào `SimpleArraySpliterator` (vì class đơn giản không có trường `fence` và constructor phạm vi).
+This snippet belongs to the full **`RangeStringSpliterator`** model in section 12; it cannot be pasted verbatim into `SimpleArraySpliterator` (since the simpler class lacks the `fence` field and range constructor).
 
-**Lưu ý:** không bắt buộc mọi Spliterator phải tách được. Với một nguồn I/O tuần tự hoặc dữ liệu phát sinh từng bước mà không biết cách chia đúng, trả `null` thường đơn giản và an toàn hơn việc giả lập `trySplit` sai.
+**Note:** Not every Spliterator must be splittable. For a sequential I/O source or step-by-step generated data without a sound way to split, returning `null` is usually simpler and safer than faking a broken `trySplit`.
 
-## 9. estimateSize và characteristics phải nói đúng sự thật
+## 9. estimateSize and characteristics Must Tell the Truth
 
-Hai phương thức quan trọng khác:
+Two other important methods:
 
 ```java
 long estimateSize();
 int characteristics();
 ```
 
-`estimateSize` trả về **ước lượng số phần tử còn lại**. Nếu không thể biết kích thước, nguồn có thể báo `Long.MAX_VALUE`; nếu gắn đặc tính `SIZED`, giá trị đó phải là số phần tử còn lại **chính xác** theo hợp đồng.
+`estimateSize` returns **an estimate of the remaining elements**. If size cannot be known, the source may report `Long.MAX_VALUE`; if the `SIZED` characteristic is set, this value must be the **exact** remaining element count per the contract.
 
-`characteristics` trả về các bit đặc tính bằng cách OR các hằng số:
+`characteristics` returns characteristic bits by ORing constants:
 
-| Đặc tính | Ý nghĩa thường gặp | Cần lưu ý |
+| Characteristic | Common Meaning | Important Note |
 | --- | --- | --- |
-| `ORDERED` | Có encounter order xác định | `trySplit` phải giữ tiền tố đúng khi chia nguồn có thứ tự. |
-| `SIZED` | Biết chính xác số phần tử còn lại | `estimateSize()` phải đúng, không được trả số tùy ý. |
-| `SUBSIZED` | Mọi phần tách đều `SIZED` và `SUBSIZED` | Chỉ dùng khi giữ đúng hợp đồng cho các split con. |
-| `IMMUTABLE` | Nguồn không thể bị sửa cấu trúc trong lúc duyệt | Không được gắn nếu nguồn có thể bị thay đổi ngoài ý muốn. |
-| `CONCURRENT` | Nguồn hỗ trợ sửa đồng thời theo hợp đồng của nó | Không đồng nghĩa Spliterator có con trỏ thread-safe. |
-| `NONNULL` | Không phát phần tử `null` | Không gắn với nguồn có khả năng chứa null. |
-| `DISTINCT` | Không có hai phần tử trùng theo `equals` | Không tự suy ra chỉ vì nguồn là một mảng. |
-| `SORTED` | Phần tử theo thứ tự sắp xếp được tuyên bố | Phải tuân thủ quy tắc comparator/`getComparator()`. |
+| `ORDERED` | Has a defined encounter order | `trySplit` must preserve a valid prefix when splitting an ordered source. |
+| `SIZED` | Exact remaining element count is known | `estimateSize()` must be exact, not an arbitrary number. |
+| `SUBSIZED` | Every split part is also `SIZED` and `SUBSIZED` | Only use when maintaining the contract across child splits. |
+| `IMMUTABLE` | Source cannot be structurally modified during traversal | Do not attach if the source may be mutated unexpectedly. |
+| `CONCURRENT` | Source supports concurrent modification under its contract | Does not mean the Spliterator cursor itself is thread-safe. |
+| `NONNULL` | Emits no `null` elements | Do not attach to a source that may contain null. |
+| `DISTINCT` | No two elements are equal per `equals` | Do not assume this merely because the source is an array. |
+| `SORTED` | Elements follow a declared sort order | Must follow comparator/`getComparator()` rules. |
 
-Ví dụ với mảng `String[]` được sao chép riêng, truy cập theo chỉ số, không cho phép nguồn đổi:
+Example for a privately cloned `String[]` array, indexed access, immutable source:
 
 ```java
 @Override
@@ -409,16 +409,16 @@ public long estimateSize() {
 }
 ```
 
-Hai phương thức trên nằm trong `RangeStringSpliterator` ở mục 12. Không gắn `NONNULL` nếu chưa bảo đảm mọi phần tử đều khác null, và không gắn `SORTED` nếu mảng chưa được sắp theo một comparator phù hợp.
+These two methods belong in `RangeStringSpliterator` in section 12. Do not attach `NONNULL` unless every element is guaranteed non-null, and do not attach `SORTED` unless the array is sorted according to an appropriate comparator.
 
-**Khai báo sai đặc tính có thể khiến Stream đưa ra tối ưu không phù hợp.** Ví dụ, khi một nguồn thực ra còn phần tử không đếm được nhưng lại tuyên bố `SIZED` với estimate sai, một số terminal operation như `count` có thể dựa vào thông tin kích thước mà không cần duyệt các phần tử như mong đợi. Do đó, đặc tính là một phần **hợp đồng nguồn**, không phải nhãn trang trí để tăng tốc.
+**Misdeclaring characteristics can cause a Stream to make invalid optimizations.** For example, when a source actually has uncounted elements yet declares `SIZED` with a wrong estimate, terminal operations like `count` may rely on size metadata without traversing elements as expected. Therefore, characteristics are part of the **source contract**, not decorative flags for speedups.
 
-## 10. Quan hệ giữa tryAdvance, forEachRemaining và trySplit
+## 10. Relationship Between tryAdvance, forEachRemaining, and trySplit
 
-Một Spliterator tuân thủ hợp đồng phải bảo đảm phần tử không bị lặp hoặc mất khi caller sử dụng nhiều cách duyệt:
+A compliant Spliterator must ensure no elements are duplicated or lost when callers mix traversal methods:
 
 ```text
-Phạm vi ban đầu: [A, B, C, D, E, F]
+Initial range: [A, B, C, D, E, F]
 
 tryAdvance()  -> A
 remaining     -> [B, C, D, E, F]
@@ -430,27 +430,27 @@ returned.forEachRemaining() -> B, C
 current.tryAdvance()        -> D
 current.forEachRemaining()  -> E, F
 
-Tất cả phần tử đầu vào xuất hiện đúng một lần:
+Every input element appears exactly once:
 A, B, C, D, E, F
 ```
 
-Việc tách chỉ được phép tác động tới **phần chưa duyệt** của Spliterator đang được gọi. Phần đã tiêu thụ `[A]` không thể bất ngờ xuất hiện trong một split con.
+Splitting may affect only the **untraversed portion** of the Spliterator being called. The already-consumed part `[A]` must never unexpectedly reappear in a child split.
 
-Trong ví dụ có encounter order, khi `trySplit()` trả về một split con, nó phải đại diện cho **tiền tố** của phần chưa duyệt; Spliterator hiện tại giữ phần hậu tố còn lại. Điều này cho phép framework bảo toàn thứ tự logic của một nguồn ordered khi cần.
+In an example with encounter order, when `trySplit()` returns a child split, it must represent a **prefix** of the untraversed portion; the current Spliterator retains the remaining suffix. This allows the framework to preserve the logical order of an ordered source when needed.
 
-### Nguyên tắc an toàn cho trạng thái
+### State safety rules
 
-- Mỗi instance của Spliterator có cursor riêng, không chia sẻ một biến `cursor` có thể bị hai split sửa đồng thời.
-- Có thể chia sẻ vùng lưu dữ liệu **chỉ đọc** nếu mọi split chỉ đọc dữ liệu và duyệt các khoảng không giao nhau.
-- `forEachRemaining` của một split không được duyệt vào khoảng của split khác.
-- Không để một nguồn mutable thay đổi cấu trúc trong khi Splitter đang duyệt, trừ khi nguồn và characteristics có hợp đồng concurrent rõ ràng.
-- Không dựa vào việc gọi `tryAdvance` hoặc `trySplit` từ nhiều thread **đồng thời trên chính một Spliterator instance**. Spliterator không mặc nhiên là cấu trúc thread-safe.
+- Each Spliterator instance has its own cursor; do not share a single `cursor` variable that two splits could mutate concurrently.
+- A **read-only** backing buffer can be shared if all splits only read data and traverse disjoint ranges.
+- One split's `forEachRemaining` must never stray into another split's range.
+- Do not allow a mutable source to be structurally modified while a Spliterator is traversing it, unless the source and characteristics have an explicit concurrent contract.
+- Do not rely on calling `tryAdvance` or `trySplit` from multiple threads **concurrently on the exact same Spliterator instance**. A Spliterator is not thread-safe by default.
 
-## 11. Vì sao Stream có thể dùng forEachRemaining?
+## 11. Why Can a Stream Use forEachRemaining?
 
-Stream framework có thể lấy phần tử từ Spliterator bằng `tryAdvance`, hoặc dùng `forEachRemaining` khi xử lý tuần tự phần còn lại của một phần việc. Nó **không cam kết** số lần gọi mỗi phương thức cụ thể cho từng terminal operation.
+The Stream framework may pull elements from a Spliterator using `tryAdvance`, or use `forEachRemaining` when sequentially processing the rest of a work unit. It **does not promise** a specific call count for either method on any given terminal operation.
 
-Ví dụ sau minh họa cách **caller trực tiếp** sử dụng hai phương thức:
+The following example illustrates how a **direct caller** uses both methods:
 
 ```java
 Spliterator<String> s =
@@ -465,13 +465,13 @@ System.out.println(gotOne);    // true
 System.out.println(processed); // [alpha, beta, gamma]
 ```
 
-Trong pipeline Stream thực tế, framework có quyền lựa chọn chiến lược duyệt và tối ưu theo đặc tính nguồn. Vì vậy **không dùng biến đếm trong `tryAdvance`** để suy ra số phần tử đã qua `map` hoặc số phần tử terminal operation chắc chắn đã xử lý.
+In an actual Stream pipeline, the framework is free to choose traversal strategies and optimizations based on source characteristics. Therefore, **do not use a counter inside `tryAdvance`** to infer how many elements passed through `map` or how many the terminal operation definitely processed.
 
-Một pipeline có `limit` hoặc `findFirst` có thể dừng sớm mà không yêu cầu duyệt toàn bộ nguồn. Ngược lại, các thao tác như `sorted` có thể phải thu thập dữ liệu trung gian. Khi thiết kế nguồn tùy chỉnh, hãy tập trung vào hợp đồng duyệt đúng trước khi tìm cách tối ưu.
+A pipeline with `limit` or `findFirst` can stop early without requesting traversal of the entire source. Conversely, operations like `sorted` may need to collect intermediate data. When designing a custom source, focus on a correct traversal contract before optimizing.
 
-## 12. Ví dụ đầy đủ: RangeStringSpliterator có cả bốn thao tác
+## 12. Full Example: RangeStringSpliterator with All Four Operations
 
-Đoạn chương trình Java 17+ dưới đây là một triển khai độc lập cho mảng chuỗi **được sao chép**, có `tryAdvance`, `forEachRemaining`, `trySplit`, `estimateSize` và `characteristics`. Nó giữ encounter order theo chỉ số và có thể chia mảng thành các khoảng không giao nhau.
+The Java 17+ program below is a standalone implementation for a **cloned** string array, featuring `tryAdvance`, `forEachRemaining`, `trySplit`, `estimateSize`, and `characteristics`. It preserves index-based encounter order and can split the array into disjoint ranges.
 
 ```java
 import java.util.Arrays;
@@ -545,14 +545,14 @@ public class CustomSpliteratorDemo {
     public static void main(String[] args) {
         String[] source = {"  An ", " Bình ", " Chi ", "Dũng"};
 
-        // 1. Trực tiếp thử duyệt một phần tử rồi phần còn lại.
+        // 1. Directly test traversing one element then the remainder.
         Spliterator<String> cursor =
                 new RangeStringSpliterator(source);
-        cursor.tryAdvance(name -> System.out.println("Đầu: " + name));
-        cursor.forEachRemaining(name -> System.out.println("Sau: " + name));
+        cursor.tryAdvance(name -> System.out.println("First: " + name));
+        cursor.forEachRemaining(name -> System.out.println("After: " + name));
         System.out.println(cursor.estimateSize()); // 0
 
-        // 2. Dùng một Spliterator mới để tạo Stream tuần tự.
+        // 2. Use a fresh Spliterator to create a sequential Stream.
         List<String> normalized = StreamSupport.stream(
                         new RangeStringSpliterator(source), false)
                 .map(String::strip)
@@ -560,14 +560,14 @@ public class CustomSpliteratorDemo {
                 .toList();
         System.out.println(normalized); // [An, Bình, Chi, Dũng]
 
-        // 3. Chạy ở chế độ song song trên một nguồn tách được.
+        // 3. Run in parallel mode on a splittable source.
         List<String> parallel = StreamSupport.stream(
                         new RangeStringSpliterator(source), true)
                 .map(String::strip)
                 .toList();
         System.out.println(parallel); // [An, Bình, Chi, Dũng]
 
-        // 4. Nguồn ban đầu có thể đổi nhưng snapshot mảng đã giữ riêng.
+        // 4. Original source may change, but the array snapshot stays isolated.
         Spliterator<String> snapshot =
                 new RangeStringSpliterator(source);
         source[0] = "Changed";
@@ -577,28 +577,28 @@ public class CustomSpliteratorDemo {
 }
 ```
 
-**Giải thích chính:**
+**Key explanations:**
 
-1. Constructor public ở phạm vi package (không có `public`) **sao chép mảng một lần**. Các split con chia sẻ cùng mảng đã sao chép, chỉ khác cursor/fence, nên không cần tạo bản sao mảng ở mỗi lần tách.
-2. `tryAdvance` xử lý tối đa một phần tử và trả `true` chỉ khi đã chuyển phần tử cho action.
-3. `forEachRemaining` dùng **cùng cursor** nên không lặp lại phần đã duyệt.
-4. `trySplit` trả một tiền tố của phần chưa duyệt, cập nhật instance hiện tại giữ hậu tố.
-5. `estimateSize` luôn bằng `fence - cursor` cho từng split; mọi split biết kích thước chính xác.
-6. `characteristics` tuyên bố các thuộc tính thật của nguồn. Không gắn `NONNULL` vì có thể có giá trị `null` bên trong mảng `String[]`.
-7. Khi sử dụng `StreamSupport.stream(..., true)`, framework có thể tách và chạy các phần dữ liệu song song, nhưng kết quả `toList` vẫn giữ encounter order cho nguồn `ORDERED`.
+1. The package-private constructor (without `public`) **clones the array once**. Child splits share the same cloned array, differing only in cursor/fence, avoiding array copies on every split.
+2. `tryAdvance` processes at most one element and returns `true` only when it has passed an element to the action.
+3. `forEachRemaining` uses the **same cursor**, so it never repeats already-traversed elements.
+4. `trySplit` returns a prefix of the untraversed portion and updates the current instance to hold the suffix.
+5. `estimateSize` is always `fence - cursor` for each split; every split knows its exact size.
+6. `characteristics` declares the true properties of the source. `NONNULL` is omitted because `null` values could exist inside the `String[]` array.
+7. When using `StreamSupport.stream(..., true)`, the framework can split and run chunks in parallel, yet `toList` still preserves encounter order for an `ORDERED` source.
 
-**Giới hạn:** Đây là nguồn chứa toàn bộ mảng trong bộ nhớ; thao tác clone ban đầu có chi phí `O(n)`. Với mảng rất lớn hoặc dữ liệu phát sinh theo thời gian, cần thiết kế nguồn và vòng đời tài nguyên khác, không đơn giản copy mọi thứ. Ví dụ cũng không thay thế cơ chế validate chuỗi nếu phần tử có thể là `null` rồi pipeline gọi `String::strip`.
+**Limitations:** This source holds the entire array in memory; the initial clone has `O(n)` cost. For very large arrays or data generated over time, you need a different source and resource lifecycle design rather than simply copying everything. The example also does not replace string validation if elements can be `null` and the pipeline calls `String::strip`.
 
-## 13. Primitive Spliterator: tránh boxing khi duyệt số
+## 13. Primitive Spliterators: Avoiding Boxing When Traversing Numbers
 
-Nếu nguồn tùy chỉnh chỉ chứa số, các giao diện `Spliterator.OfInt`, `Spliterator.OfLong` và `Spliterator.OfDouble` cung cấp thao tác duyệt nguyên thủy và kết nối với `IntStream`, `LongStream`, `DoubleStream`.
+If a custom source contains only numbers, the `Spliterator.OfInt`, `Spliterator.OfLong`, and `Spliterator.OfDouble` interfaces provide primitive traversal operations and integrate with `IntStream`, `LongStream`, and `DoubleStream`.
 
 ```java
 boolean tryAdvance(IntConsumer action);
 void forEachRemaining(IntConsumer action);
 ```
 
-Ví dụ `Spliterator.OfInt` cho dãy từ `start` (bao gồm) đến `endExclusive` (không bao gồm):
+Example `Spliterator.OfInt` for a sequence from `start` (inclusive) to `endExclusive` (exclusive):
 
 ```java
 import java.util.Objects;
@@ -655,7 +655,7 @@ final class IntRangeSpliterator implements Spliterator.OfInt {
 
     @Override
     public Comparator<? super Integer> getComparator() {
-        return null; // SORTED theo thứ tự tự nhiên.
+        return null; // SORTED in natural order.
     }
 }
 
@@ -664,31 +664,31 @@ long total = StreamSupport.intStream(
 System.out.println(total); // 10 (1+2+3+4)
 ```
 
-Nguồn này có các số tăng liên tục, không lặp và có thứ tự tự nhiên, nên các bit `DISTINCT` và `SORTED` được khai báo có căn cứ. Khi tuyên bố `SORTED`, lớp phải thực hiện đúng `getComparator()`: trả `null` nếu dùng thứ tự tự nhiên. Nếu không override, triển khai mặc định của `Spliterator.getComparator()` ném `IllegalStateException`, trái với đặc tính đã tuyên bố. Thao tác trên kiểu `int` không yêu cầu boxing thành `Integer` cho từng phần tử.
+This source has strictly increasing, non-repeating numbers in natural order, so the `DISTINCT` and `SORTED` bits are legitimately declared. When declaring `SORTED`, the class must implement `getComparator()` properly: returning `null` when using natural ordering. Without overriding it, `Spliterator.getComparator()`'s default implementation throws `IllegalStateException`, contradicting the declared characteristic. Operating on primitive `int` avoids boxing each element into `Integer`.
 
-**Quan trọng:** ví dụ này không nên được dùng thay cho `IntStream.range(start, endExclusive)` khi chỉ cần dải số đơn giản; thư viện đã cung cấp nguồn chuẩn. Mục đích là minh họa cách triển khai các phương thức với `IntConsumer` và đặc tính hợp lệ của một primitive Spliterator.
+**Important:** This example should not be used instead of `IntStream.range(start, endExclusive)` when you just need a simple numeric range; the standard library already provides that source. Its purpose is to demonstrate implementing the methods with `IntConsumer` and valid characteristics for a primitive Spliterator.
 
-## 14. Những lỗi thường gặp khi tự viết Spliterator
+## 14. Common Mistakes When Writing a Custom Spliterator
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách khắc phục |
+| Symptom | Common Cause | How to Fix |
 | --- | --- | --- |
-| `tryAdvance` báo `true` mãi mãi | Không tăng con trỏ hoặc không kiểm tra điều kiện kết thúc | Cập nhật cursor đúng một lần mỗi phần tử và trả `false` khi cạn nguồn |
-| `tryAdvance` trả `false` nhưng vẫn gọi action | Sai hợp đồng hết nguồn | Kiểm tra cạn trước khi gọi `action.accept` |
-| `forEachRemaining` lặp phần tử đã qua | Bắt đầu duyệt lại từ đầu thay vì con trỏ hiện tại | Chia sẻ cùng trạng thái tiến độ với `tryAdvance` |
-| Mất phần tử khi xen kẽ hai phương thức | `forEachRemaining` có cursor riêng không đồng bộ | Dùng cùng cursor/fence, không tạo vòng duyệt độc lập |
-| Gọi `trySplit` làm trùng hoặc thiếu phần tử | Hai split quản lý các phạm vi chồng nhau hoặc bỏ sót | Tách phần **chưa duyệt** thành các khoảng không giao nhau |
-| Stream song song không phân chia | `trySplit()` luôn trả `null` | Chỉ triển khai tách khi nguồn hỗ trợ đúng và lợi ích phù hợp |
-| `count()` trả số không đúng | Gắn `SIZED` nhưng `estimateSize()` sai | Đếm đúng phần tử còn lại hoặc bỏ `SIZED` |
-| `NullPointerException` khi action null không nhất quán | Chỉ validate action nếu còn dữ liệu | Gọi `Objects.requireNonNull(action)` ngay đầu phương thức |
-| `String::strip` ném `NullPointerException` | Mảng có phần tử null nhưng pipeline không xử lý | Lọc `null` hoặc validate nguồn trước biến đổi |
-| Dữ liệu sai khi nguồn bị sửa | Spliterator duyệt nguồn mutable mà không đồng bộ/snapshot | Sao chép, khóa, hoặc dùng nguồn concurrent với hợp đồng phù hợp |
-| Dữ liệu sai khi nhiều thread gọi cùng cursor | Cho phép hai thread thao tác cùng một instance Spliterator | Mỗi split giữ state riêng, không chia sẻ cursor mutable |
-| `CONCURRENT`/`IMMUTABLE` bị khai báo tùy tiện | Hiểu nhầm characteristics là cờ tăng tốc | Chỉ gắn đặc tính có bảo đảm đúng từ nguồn |
-| Dùng `StreamSupport.stream` hai lần với cùng cursor | Spliterator đã bị tiêu thụ | Tạo Spliterator mới khi cần duyệt lại |
+| `tryAdvance` returns `true` forever | Not advancing cursor or missing end condition | Advance cursor once per element and return `false` when exhausted |
+| `tryAdvance` returns `false` yet still calls action | Broken exhaustion contract | Check exhaustion before calling `action.accept` |
+| `forEachRemaining` repeats past elements | Restarting from index 0 instead of current cursor | Share the same progress state with `tryAdvance` |
+| Missing elements when interleaving both methods | `forEachRemaining` uses a separate unsynchronized cursor | Use the same cursor/fence, not an independent loop state |
+| Calling `trySplit` duplicates or skips elements | Two splits manage overlapping or gapped ranges | Split the **untraversed** part into disjoint ranges |
+| Parallel Stream does not split | `trySplit()` always returns `null` | Implement splitting only when the source supports it soundly and it pays off |
+| `count()` returns wrong number | Declared `SIZED` with inaccurate `estimateSize()` | Report exact remaining elements or omit `SIZED` |
+| Inconsistent `NullPointerException` on null action | Validating action only when data remains | Call `Objects.requireNonNull(action)` at the top of the method |
+| `String::strip` throws `NullPointerException` | Array contains null elements unhandled by pipeline | Filter `null` or validate source before transformation |
+| Wrong data when source is mutated | Spliterator traverses mutable source without sync/snapshot | Clone, lock, or use a concurrent source with proper contract |
+| Wrong data when multiple threads call same cursor | Allowing two threads to operate on one Spliterator instance | Keep separate state per split, never share a mutable cursor |
+| `CONCURRENT`/`IMMUTABLE` declared arbitrarily | Mistaking characteristics for speedup flags | Only set characteristics backed by source guarantees |
+| Calling `StreamSupport.stream` twice with same cursor | Spliterator is already consumed | Create a new Spliterator when re-traversing |
 
-## 15. Bài tập thực hành
+## 15. Practice Exercise
 
-Cho dữ liệu:
+Given the data:
 
 ```java
 String[] logs = {
@@ -700,17 +700,17 @@ String[] logs = {
 };
 ```
 
-**Yêu cầu 1 — tryAdvance:** Viết `LogSpliterator` chứa mảng và con trỏ. Mỗi lời gọi `tryAdvance` thành công chỉ phát một dòng log, trả `true`; hết dữ liệu trả `false`.
+**Task 1 — tryAdvance:** Write `LogSpliterator` holding the array and a cursor. Each successful `tryAdvance` call emits only one log line and returns `true`; when exhausted, return `false`.
 
-**Yêu cầu 2 — forEachRemaining:** Override `forEachRemaining` để phát đúng những log còn lại. Gọi `tryAdvance` hai lần rồi `forEachRemaining`; dự kiến kết quả theo thứ tự là `OPEN, FETCH` trước, sau đó `PROCESS, CLOSE, ARCHIVE`.
+**Task 2 — forEachRemaining:** Override `forEachRemaining` to emit the exact remaining logs. Call `tryAdvance` twice, then `forEachRemaining`; expected output in order is `OPEN, FETCH` first, then `PROCESS, CLOSE, ARCHIVE`.
 
-**Yêu cầu 3 — kích thước:** Viết `estimateSize` để sau hai lần `tryAdvance` thành công báo `3`, sau `forEachRemaining` báo `0`.
+**Task 3 — size:** Implement `estimateSize` so that after two successful `tryAdvance` calls it reports `3`, and after `forEachRemaining` it reports `0`.
 
-**Yêu cầu 4 — characteristics:** Khai báo đặc tính đúng với mảng được sao chép riêng và duyệt theo chỉ số. Giải thích vì sao không mặc nhiên gắn `DISTINCT` hay `SORTED`.
+**Task 4 — characteristics:** Declare the proper characteristics for a privately cloned array traversed by index. Explain why `DISTINCT` or `SORTED` should not be attached by default.
 
-**Yêu cầu 5 — mở rộng:** Nếu muốn xử lý song song, bổ sung `trySplit` tạo hai khoảng không giao nhau; kiểm chứng rằng gộp kết quả theo encounter order có đúng năm phần tử, không trùng hoặc thiếu.
+**Task 5 — extension:** To support parallel processing, add `trySplit` producing two disjoint ranges; verify that merging results in encounter order yields all five elements with no duplicates or omissions.
 
-### Lời giải tham khảo cho ba phương thức duyệt
+### Reference solution for the three traversal methods
 
 ```java
 import java.util.Objects;
@@ -743,7 +743,7 @@ final class LogSpliterator implements Spliterator<String> {
 
     @Override
     public Spliterator<String> trySplit() {
-        return null; // Thử nghiệm tự bổ sung ở yêu cầu 5.
+        return null; // Try adding this yourself in task 5.
     }
 
     @Override
@@ -766,25 +766,25 @@ cursor.forEachRemaining(System.out::println);
 System.out.println(cursor.estimateSize()); // 0
 ```
 
-Ở phần mở rộng, có thể tham khảo cách chia dải `[origin, fence)` ở mục 12. Đừng sửa trực tiếp mảng `logs` khi một Stream đang duyệt nó. Với dữ liệu có thể có phần tử trùng hoặc chưa được sắp xếp, `DISTINCT` và `SORTED` sẽ là những cam kết sai.
+For the extension, refer to the `[origin, fence)` range-splitting approach in section 12. Do not mutate the `logs` array directly while a Stream is traversing it. When data may contain duplicate or unsorted elements, `DISTINCT` and `SORTED` would be false guarantees.
 
-## 16. Checklist tự kiểm tra trước khi dùng nguồn tùy chỉnh
+## 16. Self-Check Checklist Before Using a Custom Source
 
-1. **Điểm dừng:** `tryAdvance` chắc chắn trả `false` khi đã cạn nguồn chưa?
-2. **Một phần tử:** mỗi lần trả `true` có gọi action cho đúng một phần tử không?
-3. **Con trỏ:** `forEachRemaining` có bắt đầu từ vị trí hiện tại và kết thúc ở vị trí cuối không?
-4. **Null:** `action == null` có bị từ chối ngay bằng `NullPointerException` không?
-5. **Tách nguồn:** `trySplit` có chỉ chia phần chưa duyệt thành những phạm vi không giao nhau không?
-6. **Kích thước:** `estimateSize` có phản ánh số còn lại? Nếu gắn `SIZED`/`SUBSIZED`, có đúng sau mọi thao tác không?
-7. **Đặc tính:** các cờ `ORDERED`/`IMMUTABLE`/`NONNULL`/`SORTED` có thật sự đúng với nguồn và từng split không?
-8. **Tài nguyên:** nếu nguồn gắn với tệp/đường truyền/kết nối, đã có chính sách đóng tài nguyên bằng `onClose` hoặc `try-with-resources` thích hợp chưa?
-9. **Song song:** mỗi split quản lý state riêng và dữ liệu nguồn đủ ổn định để duyệt chưa?
-10. **Kiểm thử:** đã xét nguồn rỗng, nguồn một phần tử, xen kẽ hai phương thức, gọi sau khi cạn, tách sau khi đã tiến và action ném ngoại lệ chưa?
+1. **Termination:** Does `tryAdvance` reliably return `false` once the source is exhausted?
+2. **Single element:** Does every `true` return invoke the action for exactly one element?
+3. **Cursor:** Does `forEachRemaining` start from the current position and stop at the end?
+4. **Null:** Is `action == null` rejected immediately with `NullPointerException`?
+5. **Splitting:** Does `trySplit` split only the untraversed portion into disjoint ranges?
+6. **Size:** Does `estimateSize` reflect the remaining count? If `SIZED`/`SUBSIZED` are set, is it exact after every operation?
+7. **Characteristics:** Are `ORDERED`/`IMMUTABLE`/`NONNULL`/`SORTED` truly accurate for the source and each split?
+8. **Resources:** If the source is backed by a file/stream/connection, is there an appropriate resource-closing policy via `onClose` or `try-with-resources`?
+9. **Parallelism:** Does each split maintain its own state, and is the underlying data stable enough for traversal?
+10. **Testing:** Have you tested empty sources, single-element sources, interleaving both methods, calling after exhaustion, splitting after advancing, and actions throwing exceptions?
 
-Với nguồn có vòng đời tài nguyên, chỉ trả `false` khi không còn phần tử không phải lúc nào cũng đồng nghĩa đã giải phóng tệp hoặc kết nối. Nếu tự tạo Stream từ một Spliterator dựa trên I/O, hãy thiết kế cơ chế đóng riêng và sử dụng `try-with-resources` ở nơi tiêu thụ.
+For sources with a resource lifecycle, merely returning `false` when no elements remain does not always release the file or connection. If you build a Stream from an I/O-backed Spliterator, design an explicit closing mechanism and use `try-with-resources` at the call site.
 
-## Ghi nhớ
+## Remember
 
-`tryAdvance(action)` là thao tác duyệt **tối đa một phần tử**: trả `true` sau khi chuyển một phần tử cho action, trả `false` khi đã hết nguồn và không gọi action nữa. `forEachRemaining(action)` xử lý **toàn bộ phần chưa duyệt**, thường có thể dựa trên default implementation gọi lặp `tryAdvance`; chỉ override khi có lợi ích rõ ràng và phải dùng cùng trạng thái con trỏ.
+`tryAdvance(action)` is the traversal operation for **at most one element**: it returns `true` after passing one element to the action, and returns `false` when the source is exhausted without calling the action again. `forEachRemaining(action)` processes **all untraversed elements**, and can usually rely on the default implementation that repeatedly calls `tryAdvance`; override it only when there is a clear benefit, and ensure it shares the same cursor state.
 
-Để dùng Spliterator làm nguồn cho Stream, ngoài hai phương thức duyệt còn cần khai báo đúng `trySplit`, `estimateSize` và `characteristics`. Mọi khoảng được tách phải không chồng nhau; các đặc tính như `SIZED`, `ORDERED` hay `IMMUTABLE` phải phản ánh hợp đồng thật của nguồn. Ưu tiên **tính đúng đắn của việc duyệt và không mất/lặp phần tử**, rồi mới tối ưu `forEachRemaining` hoặc xử lý song song bằng `StreamSupport`.
+To use a Spliterator as a Stream source, besides the two traversal methods you also need to properly define `trySplit`, `estimateSize`, and `characteristics`. All split ranges must be non-overlapping; characteristics such as `SIZED`, `ORDERED`, or `IMMUTABLE` must reflect the source's true contract. Prioritize **correct traversal with no lost or duplicated elements** before optimizing `forEachRemaining` or parallelizing via `StreamSupport`.

@@ -1,85 +1,85 @@
-# Bẫy số 0 ở đầu literal bát phân trong Java
+# The Leading-Zero Octal Literal Pitfall in Java
 
-Trong Java, **một số nguyên viết trực tiếp trong mã nguồn với chữ số `0` ở đầu có thể là literal hệ bát phân (octal, cơ số 8)**. Vì vậy, `010` trong mã Java **không phải số thập phân 10**: nó có giá trị **8**. Ngược lại, `08` không phải cách viết hợp lệ của một literal số nguyên Java, vì chữ số `8` không tồn tại trong hệ bát phân.
+In Java, **an integer written directly in source code with a leading `0` digit can be an octal (base-8) literal**. Thus, `010` in Java code **is not decimal 10**: it has the value **8**. Conversely, `08` is not a valid way to write a Java integer literal, because the digit `8` does not exist in octal.
 
-Đây là một bẫy dễ bỏ qua khi người lập trình thêm số 0 để căn chỉnh, sao chép một mã có số 0 đầu vào biểu thức số học, hoặc nhầm lẫn giữa **cú pháp literal trong source code** và **chuỗi số đọc lúc chạy**. Bài học này tập trung vào nguyên nhân, lỗi thường gặp và cách xử lý chính xác trong Java.
+This is an easily overlooked trap when a programmer adds zeros for alignment, copies a zero-padded code into an arithmetic expression, or confuses **literal syntax in source code** with **numeric strings read at runtime**. This lesson focuses on the cause, common errors, and how to handle them accurately in Java.
 
-## 1. Literal số nguyên là gì và số 0 đầu có nghĩa gì?
+## 1. What Is an Integer Literal and What Does a Leading Zero Mean?
 
-**Literal** là cách viết trực tiếp một giá trị trong mã nguồn. Ví dụ:
+A **literal** is a value written directly in source code. For example:
 
 ```java
-int decimal = 10;  // Hệ thập phân: 10
-int octal = 010;   // Hệ bát phân: 8
+int decimal = 10;  // Decimal: 10
+int octal = 010;   // Octal: 8
 ```
 
-Hai biến đều có kiểu `int`, nhưng giữ **hai giá trị khác nhau**. Trình biên dịch Java diễn giải ký hiệu literal **ngay khi biên dịch**, trước khi chương trình chạy.
+Both variables have type `int`, yet they hold **two different values**. The Java compiler interprets literal notation **at compile time**, before the program runs.
 
-Các cú pháp số nguyên thường gặp:
+Common integer notations:
 
-| Cách viết trong Java | Hệ cơ số | Giá trị hệ thập phân | Nhận xét |
+| Written in Java | Base | Decimal Value | Notes |
 | --- | ---: | ---: | --- |
-| `10` | 10 | 10 | Literal thập phân thông thường |
-| `010` | 8 | 8 | Số `0` đầu kích hoạt cách viết bát phân |
+| `10` | 10 | 10 | Ordinary decimal literal |
+| `010` | 8 | 8 | Leading `0` triggers octal notation |
 | `012` | 8 | 10 | `1 × 8 + 2 = 10` |
 | `077` | 8 | 63 | `7 × 8 + 7 = 63` |
 | `0123` | 8 | 83 | `1 × 64 + 2 × 8 + 3 = 83` |
-| `0` | Giá trị 0 | 0 | Một số 0 đơn lẻ không gây bẫy chuyển giá trị |
-| `000` | 8 | 0 | Có thể viết được nhưng dễ gây hiểu nhầm |
-| `0b1010` | 2 | 10 | Nhị phân có tiền tố `0b`/`0B` |
-| `0xA` | 16 | 10 | Thập lục phân có tiền tố `0x`/`0X` |
-| `010L` | 8 | 8 | Literal bát phân kiểu `long` |
+| `0` | Value 0 | 0 | A single 0 does not cause a value-conversion trap |
+| `000` | 8 | 0 | Valid syntax, though misleading |
+| `0b1010` | 2 | 10 | Binary with `0b`/`0B` prefix |
+| `0xA` | 16 | 10 | Hexadecimal with `0x`/`0X` prefix |
+| `010L` | 8 | 8 | Octal literal of type `long` |
 
-**Quy tắc nhận diện:** một literal **nguyên** không có `0x`/`0X` hoặc `0b`/`0B`, bắt đầu bằng `0` và còn chữ số phía sau, được đọc theo cú pháp bát phân. Các chữ số hợp lệ của hệ bát phân chỉ là `0` đến `7`.
+**Recognition rule:** an **integer** literal without `0x`/`0X` or `0b`/`0B`, starting with `0` and followed by more digits, is parsed using octal syntax. The only valid digits in octal are `0` through `7`.
 
-Java không có tiền tố `0o` cho literal bát phân như một số ngôn ngữ khác. Viết `0o12` trong Java là lỗi biên dịch. Cách viết bát phân thông dụng trong source Java là `012`, nhưng khi mục đích chỉ là giá trị thập phân, hãy viết `10`.
+Java does not have a `0o` prefix for octal literals like some other languages. Writing `0o12` in Java is a compile error. The standard octal notation in Java source is `012`, but when the intent is simply the decimal value, write `10`.
 
-## 2. Tại sao 010 lại bằng 8?
+## 2. Why Does 010 Equal 8?
 
-Ở hệ thập phân, mỗi vị trí là một lũy thừa của 10. Ở hệ bát phân, mỗi vị trí là một lũy thừa của 8. Chữ số `0` phía trước đánh dấu cách diễn giải literal, không thêm một hàng thập phân.
+In decimal, each place is a power of 10. In octal, each place is a power of 8. The leading `0` marks how the literal is interpreted; it does not add a decimal place.
 
-Với `010`:
-
-```text
-Literal Java: 010
-Chữ số bát phân: 1 0
-Giá trị thập phân: 1 × 8¹ + 0 × 8⁰ = 8
-```
-
-Với `0123`:
+For `010`:
 
 ```text
-Literal Java: 0123
-Chữ số bát phân: 1 2 3
-Giá trị thập phân: 1 × 8² + 2 × 8¹ + 3 × 8⁰
-                  = 64 + 16 + 3
-                  = 83
+Java literal: 010
+Octal digits: 1 0
+Decimal value: 1 × 8¹ + 0 × 8⁰ = 8
 ```
 
-Do đó, `010 == 8` là `true` nhưng `010 == 10` là `false`. Điều này không phải lỗi của toán tử so sánh và không liên quan đến tràn số. Trình biên dịch đã gán cho literal `010` giá trị 8 từ đầu.
+For `0123`:
 
-Một nhầm lẫn có thể len vào ứng dụng:
+```text
+Java literal: 0123
+Octal digits: 1 2 3
+Decimal value: 1 × 8² + 2 × 8¹ + 3 × 8⁰
+             = 64 + 16 + 3
+             = 83
+```
+
+Consequently, `010 == 8` is `true` whereas `010 == 10` is `false`. This is not a bug in the comparison operator and has nothing to do with overflow. The compiler assigned the literal `010` the value 8 from the start.
+
+A mistake like this can slip into an application:
 
 ```java
-int retries = 03;      // Thực tế là 3; vô tình chưa thấy lỗi.
-int timeout = 010;     // Thực tế là 8, không phải 10.
-int limit = 012;       // Thực tế là 10, không phải 12.
+int retries = 03;      // Actually 3; error happens to go unnoticed.
+int timeout = 010;     // Actually 8, not 10.
+int limit = 012;       // Actually 10, not 12.
 ```
 
-Các dòng trên là ví dụ khai báo độc lập. Chính sự trùng hợp ở `03` khiến kiểu viết số 0 đầu có thể qua code review mà không bị phát hiện, trước khi xuất hiện giá trị `010` hoặc `012` cho kết quả khác mong đợi.
+The lines above are standalone declaration examples. It is precisely the coincidence in `03` that allows leading-zero style to pass code review undetected before values like `010` or `012` appear and produce unexpected results.
 
-## 3. Lỗi biên dịch: 08 và 09 không hợp lệ trong literal số nguyên
+## 3. Compile Error: 08 and 09 Are Invalid in Integer Literals
 
-Hệ bát phân chỉ sử dụng tám chữ số `0, 1, 2, 3, 4, 5, 6, 7`. Các literal số nguyên sau **không biên dịch được**:
+Octal uses only the eight digits `0, 1, 2, 3, 4, 5, 6, 7`. The following integer literals **fail to compile**:
 
 ```java
-// Ví dụ lỗi có chủ đích; KHÔNG đưa vào file demo hợp lệ.
-int august = 08;  // LỖI: chữ số 8 không hợp lệ trong literal bát phân.
-int year = 09;    // LỖI: chữ số 9 không hợp lệ trong literal bát phân.
-int value = 018;  // LỖI: có chữ số 8 trong literal bát phân.
+// Intentional error examples; DO NOT include in a valid demo file.
+int august = 08;  // ERROR: digit 8 is invalid in an octal literal.
+int year = 09;    // ERROR: digit 9 is invalid in an octal literal.
+int value = 018;  // ERROR: contains digit 8 in an octal literal.
 ```
 
-**Sửa đúng:** nếu ý định là số nguyên thập phân tám, chín, mười tám, viết:
+**Correct fix:** if the intent is the decimal integers eight, nine, and eighteen, write:
 
 ```java
 int august = 8;
@@ -87,34 +87,34 @@ int year = 9;
 int value = 18;
 ```
 
-Đừng sửa lỗi bằng cách đổi `08` sang `008`; chữ số `8` vẫn không hợp lệ. Đừng mặc định sửa bằng cách chuyển kiểu sang `long`: `08L` vẫn không hợp lệ vì hậu tố `L` chỉ xác định **kiểu**, không thay đổi cơ số.
+Do not try to fix the error by changing `08` to `008`; digit `8` is still invalid. Do not blindly try to fix it by switching to `long`: `08L` is still invalid because the `L` suffix only determines **type**, not base.
 
-### Ngoại lệ quan trọng: 08.0 là literal số thực hợp lệ
+### Important Exception: 08.0 Is a Valid Floating-Point Literal
 
-Bẫy trên áp dụng cho **literal số nguyên**. Khi có dấu chấm thập phân hoặc cú pháp số thực thích hợp, `08.0` được phân tích là literal dấu phẩy động thập phân và hợp lệ:
+The trap above applies to **integer literals**. When a decimal point or proper floating-point syntax is present, `08.0` is parsed as a decimal floating-point literal and is valid:
 
 ```java
-double decimalFloating = 08.0; // Hợp lệ: 8.0 (double)
-float decimalFloat = 08.0f;    // Hợp lệ: 8.0f (float)
+double decimalFloating = 08.0; // Valid: 8.0 (double)
+float decimalFloat = 08.0f;    // Valid: 8.0f (float)
 ```
 
-Việc `08.0` biên dịch được không có nghĩa `08` là literal nguyên hợp lệ. Cũng không có nghĩa nên thêm `.0` để “sửa” mọi biểu thức: làm như vậy đổi kiểu và có thể thay đổi semantics tính toán (ví dụ chia nguyên so với chia thực). Nếu muốn số nguyên tám, dùng `8`.
+The fact that `08.0` compiles does not mean `08` is a valid integer literal. Nor does it mean you should add `.0` to "fix" arbitrary expressions: doing so changes the type and can alter calculation semantics (such as integer division versus floating-point division). If you want the integer eight, use `8`.
 
-## 4. Số 0 đầu xuất hiện ở đâu, và chỗ nào không gây hiểu theo bát phân?
+## 4. Where Leading Zeros Appear, and Where They Are Not Treated as Octal
 
-Cần phân biệt bốn ngữ cảnh sau:
+Distinguish these four contexts:
 
-| Ngữ cảnh | Cách viết | Giá trị hoặc hành vi |
+| Context | Notation | Value or Behavior |
 | --- | --- | --- |
-| Literal số nguyên trong mã nguồn | `int x = 010;` | `x == 8` |
-| Chuỗi ký tự trong mã nguồn | `String s = "010";` | Ba ký tự `0`, `1`, `0` |
-| Chuyển chuỗi sang số nguyên thập phân | `Integer.parseInt("010")` | `10`, vì radix mặc định là 10 |
-| Chuyển chuỗi với radix 8 | `Integer.parseInt("010", 8)` | `8` |
-| Dùng parser tự phát hiện tiền tố | `Integer.decode("010")` | `8`, vì `decode` nhận biết số 0 đầu là bát phân |
+| Integer literal in source code | `int x = 010;` | `x == 8` |
+| String literal in source code | `String s = "010";` | Three characters `0`, `1`, `0` |
+| Convert string to decimal integer | `Integer.parseInt("010")` | `10`, because default radix is 10 |
+| Convert string with radix 8 | `Integer.parseInt("010", 8)` | `8` |
+| Use auto-detecting prefix parser | `Integer.decode("010")` | `8`, because `decode` treats leading 0 as octal |
 
-**Đây là điểm mấu chốt:** **`010`** là ký pháp số nguyên được trình biên dịch xử lý, còn **`"010"`** chỉ là chuỗi. Không có một quy tắc “mọi chuỗi bắt đầu bằng 0 đều là bát phân” trong Java.
+**Here is the key point:** **`010`** is integer notation processed by the compiler, whereas **`"010"`** is just a string. There is no rule in Java stating "every string starting with 0 is octal."
 
-Ví dụ hợp lệ:
+Valid example:
 
 ```java
 String text = "010";
@@ -124,64 +124,64 @@ int octal = Integer.parseInt(text, 8);     // 8
 int decoded = Integer.decode(text);        // 8
 ```
 
-`Integer.parseInt` **không tự dò cơ số**. `Integer.decode` thì có cơ chế phát hiện ký hiệu `0x`/`0X`, `#` cho hex và số 0 đầu cho bát phân. Nếu người dùng nhập `"08"`, `Integer.parseInt("08")` trả 8, nhưng `Integer.decode("08")` ném `NumberFormatException` vì `decode` diễn giải đầu vào theo bát phân. `Long.parseLong` và `Long.decode` cũng có sự phân biệt tương ứng.
+`Integer.parseInt` **does not auto-detect the base**. `Integer.decode` has a mechanism to detect `0x`/`0X`, `#` for hex, and a leading 0 for octal. If a user inputs `"08"`, `Integer.parseInt("08")` returns 8, whereas `Integer.decode("08")` throws `NumberFormatException` because `decode` interprets the input as octal. `Long.parseLong` and `Long.decode` have the corresponding distinction.
 
-Khi đầu vào luôn là **số thập phân**, gọi `Integer.parseInt(text, 10)` hoặc `Long.parseLong(text, 10)` sẽ rõ ý định và dễ bảo trì hơn dùng `decode`. Chỉ dùng `decode` khi đặc tả thực sự yêu cầu người dùng được nhập nhiều cơ số với các tiền tố quy ước.
+When input is always **decimal**, calling `Integer.parseInt(text, 10)` or `Long.parseLong(text, 10)` states the intent more clearly and is easier to maintain than using `decode`. Only use `decode` when the specification genuinely requires users to enter multiple bases with conventional prefixes.
 
-## 5. Cần giữ số 0 đầu: mã định danh hay số lượng?
+## 5. Preserving Leading Zeros: Identifier Code or Quantity?
 
-Thử xét hai dữ liệu đều viết là `0010`:
+Consider two pieces of data both written as `0010`:
 
-- **Số lượng 10 sản phẩm:** giá trị toán học là mười; kiểu `int` và literal `10` là phù hợp. Khi cần hiển thị đủ bốn chữ số, định dạng lại ở **lớp hiển thị**, chẳng hạn `String.format("%04d", 10)`.
-- **Mã vé `"0010"`:** dãy ký tự, không phải số lượng. Dùng `String` để giữ đầy đủ số 0 đầu. Chuyển mã sang `int` làm mất hình thức nhận diện; không thể suy ra có bao nhiêu số 0 ban đầu nếu chưa có quy định chiều dài.
+- **Quantity of 10 items:** the mathematical value is ten; `int` and the literal `10` are appropriate. When you need to display four digits, format it in the **presentation layer**, such as `String.format("%04d", 10)`.
+- **Ticket code `"0010"`:** a sequence of characters, not a quantity. Use `String` to preserve all leading zeros. Converting a code to `int` loses its identifying format; you cannot infer how many leading zeros existed initially without a length specification.
 
 ```java
-String ticketCode = "0010"; // Giữ nguyên định danh.
-int count = 10;            // Giá trị số học.
+String ticketCode = "0010"; // Preserve the identifier as-is.
+int count = 10;            // Numeric value.
 String countLabel = String.format(
         java.util.Locale.ROOT, "%04d", count); // "0010"
 ```
 
-Ví dụ trên là mảnh mã Java. **Chọn `String`** cho mã bưu chính, mã khách hàng, số điện thoại, mã đơn hàng, ID có số 0 đầu hoặc chuỗi mà các ký tự mang ý nghĩa riêng. Đừng dùng `int postalCode = 01234;`: ngoài việc làm mất định dạng gốc, giá trị đó còn bị diễn giải thành bát phân và tương đương **668 thập phân**, không phải 1234.
+The snippet above is a Java code fragment. **Choose `String`** for postal codes, customer codes, phone numbers, order codes, IDs with leading zeros, or strings whose individual characters carry meaning. Do not use `int postalCode = 01234;`: besides losing the original formatting, that value is interpreted as octal and equals **668 in decimal**, not 1234.
 
-Nếu trường nhập là số lượng có thể cho phép người dùng gõ `"0010"`, hãy quyết định rõ có chấp nhận số 0 đệm hay không: `Integer.parseInt("0010", 10)` nhận và trả 10. Nếu chính sách nhập yêu cầu dạng chuẩn không có số 0 thừa, phải xác thực cú pháp trước khi parse; parser thập phân không tự áp đặt quy tắc nghiệp vụ đó.
+If a quantity input field allows users to type `"0010"`, decide explicitly whether zero-padding is accepted: `Integer.parseInt("0010", 10)` accepts it and returns 10. If input policy requires a canonical form without extra leading zeros, validate the syntax before parsing; the decimal parser does not enforce that business rule on its own.
 
-## 6. Số 0 đầu trong literal không phải quy tắc chung của JSON, CSV hay cơ sở dữ liệu
+## 6. Leading Zeros in Literals Are Not a Universal Rule in JSON, CSV, or Databases
 
-Bẫy này thuộc **cú pháp mã nguồn Java**. Không được suy rộng rằng mọi dữ liệu bên ngoài mang chữ số `0` đầu đều phải đọc là bát phân:
+This pitfall belongs to **Java source-code syntax**. Do not generalize that all external data with a leading `0` must be read as octal:
 
-- Trong **CSV**, giá trị `0010` là dữ liệu văn bản ban đầu; cách chuyển sang kiểu số phụ thuộc thư viện nhập, schema và radix được chỉ định.
-- Trong **JSON chuẩn**, number `010` không hợp lệ vì ngữ pháp JSON không cho số nguyên có số 0 dư ở đầu. Dùng `10` nếu là số lượng, hoặc `"0010"` nếu phải bảo toàn mã.
-- Trong **cơ sở dữ liệu**, một trường `VARCHAR` giữ chuỗi theo cách lưu trữ; trường số nguyên lưu giá trị số. Cách truyền dữ liệu qua driver, SQL dialect và cách format kết quả có thể khác nhau; đừng suy ra rằng DB sẽ diễn giải số 0 đầu giống literal Java.
-- Trong **cấu hình**, cách hiểu `010` tùy định dạng và thư viện parser. Ví dụ, các phiên bản/quy tắc YAML khác nhau từng có khác biệt về số 0 đầu. Hãy cấu hình rõ kiểu và quy tắc đọc, tránh giả định.
+- In **CSV**, the value `0010` is initially text data; how it converts to a numeric type depends on the import library, schema, and specified radix.
+- In **standard JSON**, the number `010` is invalid because JSON grammar forbids integers with extraneous leading zeros. Use `10` if it is a quantity, or `"0010"` if the code must be preserved.
+- In **databases**, a `VARCHAR` column stores the string according to its storage format; an integer column stores the numeric value. How data is passed through drivers, SQL dialects, and result formatting can differ; do not assume the DB interprets leading zeros like Java literals.
+- In **configuration files**, how `010` is understood depends on the format and parser library. For instance, different YAML versions/specifications have differed on leading zeros. Explicitly configure types and parsing rules to avoid assumptions.
 
-Khi nhận giá trị từ API hoặc file, tốt nhất là **xác định schema**: trường là số lượng thập phân, mã định danh hay một literal có cơ số cho phép chọn? Một lần parse sai ở biên hệ thống có thể lặng lẽ biến dữ liệu hợp lệ thành một con số khác.
+When receiving values from an API or file, it is best to **define the schema**: is the field a decimal quantity, an identifier code, or a literal with selectable base? One wrong parse at a system boundary can silently turn valid data into a different number.
 
-## 7. Phép tính, số âm và kiểu long vẫn chịu quy tắc literal
+## 7. Arithmetic, Negative Numbers, and `long` Still Follow Literal Rules
 
-Hậu tố `L` trên literal nguyên chỉ thay đổi kiểu từ `int` sang `long` (khi thích hợp), không thay cơ số:
+The `L` suffix on an integer literal only changes the type from `int` to `long` (where applicable), without changing the base:
 
 ```java
 long expectedDecimal = 10L;
 long octalLong = 010L;       // 8L
 ```
 
-Dấu trừ là **toán tử một ngôi** áp dụng lên giá trị literal: `-010` là âm tám (`-8`), không phải âm mười. Tương tự, `+010` có giá trị tám.
+The minus sign is a **unary operator** applied to the literal's value: `-010` is negative eight (`-8`), not negative ten. Similarly, `+010` has the value eight.
 
 ```java
-int a = 010 + 1;       // 9, vì 010 == 8
+int a = 010 + 1;       // 9, because 010 == 8
 int b = 10 + 1;        // 11
 boolean same = 010 == 8;  // true
 int negative = -010;   // -8
 ```
 
-Khi kết quả bị lệch, hãy xem **literal ở đầu vào** trước khi nghi ngờ phép cộng, phép trừ hay ép kiểu. In ra số bằng `System.out.println` thường cho biểu diễn thập phân của **giá trị đã lưu**, nên chương trình `System.out.println(010);` in `8`.
+When a result is off, check the **input literals** before suspecting addition, subtraction, or casting. Printing numbers with `System.out.println` normally outputs the decimal representation of **the stored value**, so `System.out.println(010);` prints `8`.
 
-Literal `0` đơn lẻ có giá trị 0 và không tạo sai khác số học; `00`, `000` vẫn có giá trị 0. Nhưng thói quen thêm số 0 đầu là rủi ro vì các chữ số khác 0 có thể đổi nghĩa hoặc làm mã không biên dịch.
+A standalone `0` literal has value 0 and causes no arithmetic discrepancy; `00` and `000` still have value 0. However, the habit of adding leading zeros is risky because non-zero digits can change the meaning or stop the code from compiling.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh để tự kiểm chứng
+## 8. Complete Java 17+ Example to Verify Yourself
 
-Tạo file **`OctalLeadingZeroDemo.java`** với nội dung sau. Chương trình chỉ dùng các literal **hợp lệ**; những dòng `08`/`09` sai cú pháp ở phần trước đã được tách ra khỏi chương trình chạy được.
+Create the file **`OctalLeadingZeroDemo.java`** with the following content. The program uses only **valid** literals; the syntactically invalid `08`/`09` lines from earlier have been excluded from the runnable program.
 
 ```java
 import java.util.Locale;
@@ -222,14 +222,14 @@ public class OctalLeadingZeroDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 hoặc phiên bản mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac OctalLeadingZeroDemo.java
 java OctalLeadingZeroDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 decimal-10=10
@@ -249,42 +249,42 @@ padded-count=0010
 decode-08=NumberFormatException
 ```
 
-Giải thích các điểm dễ lẫn:
+Explanation of easily confused points:
 
-1. `010` và `010L` có giá trị 8 vì là bát phân; hậu tố `L` chỉ làm kết quả mang kiểu `long`.
-2. `012`, `0b1010`, `0xA` và `10` đều có giá trị thập phân 10 dù ký pháp khác nhau.
-3. `08.0` là literal `double` hợp lệ và in `8.0`; `08` nguyên thì không hợp lệ.
-4. Cùng chuỗi `"010"`, `parseInt` mặc định ra 10 còn `decode` ra 8.
-5. `Integer.toOctalString(10)` cho chuỗi `"12"` vì 10 thập phân tương đương 12 bát phân. Chuỗi kết quả không tự thêm số 0 đầu theo cú pháp literal Java.
-6. Mã `"0010"` giữ đúng ký tự; phần định dạng `%04d` tạo chuỗi có số 0 đệm cho giá trị số mười, nhưng không đổi giá trị số nguyên trong bộ nhớ.
+1. `010` and `010L` have value 8 because they are octal; the `L` suffix only makes the result type `long`.
+2. `012`, `0b1010`, `0xA`, and `10` all have decimal value 10 despite their different notations.
+3. `08.0` is a valid `double` literal and prints `8.0`; integer `08` is invalid.
+4. Given the same string `"010"`, `parseInt` defaults to 10 while `decode` yields 8.
+5. `Integer.toOctalString(10)` returns `"12"` because decimal 10 equals octal 12. The resulting string does not automatically prepend a leading 0 per Java literal syntax.
+6. The code `"0010"` keeps its exact characters; `%04d` formatting creates a zero-padded string for the numeric value ten without changing the integer value in memory.
 
-## 9. Phân biệt lỗi khi biên dịch và lỗi khi chạy
+## 9. Distinguishing Compile-Time Errors vs. Runtime Errors
 
-| Mã hoặc thao tác | Thời điểm phát hiện | Nguyên nhân |
+| Code or Operation | When Detected | Cause |
 | --- | --- | --- |
-| `int x = 08;` | Biên dịch | Chữ số 8 không hợp lệ trong literal nguyên bát phân |
-| `int x = 09;` | Biên dịch | Chữ số 9 không hợp lệ trong literal nguyên bát phân |
-| `int x = 010;` | Không lỗi; có thể **sai logic** khi chạy | Hợp lệ nhưng giá trị thực là 8 |
-| `Integer.parseInt("08", 10)` | Không lỗi; trả 8 | Parse chuỗi với cơ số thập phân |
-| `Integer.parseInt("08", 8)` | Runtime: `NumberFormatException` | Đầu vào có chữ số không thuộc radix 8 |
-| `Integer.decode("08")` | Runtime: `NumberFormatException` | Tự nhận dạng cơ số 8 do số 0 đầu |
-| `Integer.parseInt("0010", 10)` | Không lỗi; trả 10 | Phân tích số và bỏ các số 0 thừa về mặt giá trị |
-| `String code = "0010";` | Không lỗi; giữ `"0010"` | Dữ liệu chuỗi, không phải literal số nguyên |
+| `int x = 08;` | Compile time | Digit 8 is invalid in an octal integer literal |
+| `int x = 09;` | Compile time | Digit 9 is invalid in an octal integer literal |
+| `int x = 010;` | No error; may cause **logic bug** at runtime | Valid, but actual value is 8 |
+| `Integer.parseInt("08", 10)` | No error; returns 8 | Parses string using decimal radix |
+| `Integer.parseInt("08", 8)` | Runtime: `NumberFormatException` | Input contains a digit not belonging to radix 8 |
+| `Integer.decode("08")` | Runtime: `NumberFormatException` | Auto-detects base 8 due to leading 0 |
+| `Integer.parseInt("0010", 10)` | No error; returns 10 | Parses number and discards redundant leading zeros by value |
+| `String code = "0010";` | No error; keeps `"0010"` | String data, not an integer literal |
 
-Điều nguy hiểm nhất là trường hợp **không báo lỗi**: `010` hợp lệ nên unit test chỉ kiểm tra biên dịch, hoặc test data chỉ dùng `01` đến `07`, có thể không phát hiện sai lệch. Đây là lỗi **ngữ nghĩa** của code.
+The most dangerous case is **no error reported**: `010` is valid, so unit tests that only check compilation, or test data using only `01` through `07`, may miss the discrepancy. This is a **semantic** bug in the code.
 
-## 10. Cách phòng tránh trong code thật
+## 10. How to Prevent This in Real Code
 
-### 10.1. Viết literal theo ý nghĩa muốn thể hiện
+### 10.1. Write Literals According to Intended Meaning
 
-- Nếu ý định là số thập phân, **không viết số 0 ở đầu**: `8`, `10`, `123`.
-- Nếu ý định là giá trị bit/permission hoặc cơ số đặc biệt, có thể dùng ký pháp phù hợp và thêm chú thích về ý nghĩa; đối với bitmask, `0b...` hoặc `0x...` thường dễ đọc hơn.
-- Nếu ý định là **định dạng có số 0 đệm**, dùng `String` và định dạng ở nơi nhập/xuất; không dùng literal nguyên bắt đầu bằng 0.
-- Khi đọc chuỗi số, **chỉ rõ radix** nếu đầu vào có thể bị hiểu nhầm: `Integer.parseInt(text, 10)`.
+- If a decimal number is intended, **do not write leading zeros**: `8`, `10`, `123`.
+- If a bit/permission value or special base is intended, use the appropriate notation and add a comment explaining its meaning; for bitmasks, `0b...` or `0x...` is usually easier to read.
+- If **zero-padded formatting** is intended, use `String` and format at input/output boundaries; do not use integer literals starting with 0.
+- When parsing numeric strings, **specify the radix explicitly** if the input could be misinterpreted: `Integer.parseInt(text, 10)`.
 
-### 10.2. Kiểm tra dữ liệu đầu vào và radix
+### 10.2. Validate Input Data and Radix
 
-Một parser đơn giản cho **số đếm không âm, dạng thập phân chuẩn, không cho số 0 thừa** có thể viết như sau:
+A simple parser for **non-negative counts in canonical decimal form without extra leading zeros** can be written as:
 
 ```java
 static int parseCanonicalCount(String text) {
@@ -295,42 +295,42 @@ static int parseCanonicalCount(String text) {
 }
 ```
 
-Đây là phương thức minh họa, đặt bên trong một class Java. Theo hợp đồng này, `"0"`, `"8"`, `"10"` hợp lệ, còn `"08"`, `"010"`, `"-1"`, chuỗi trống hoặc giá trị chứa khoảng trắng bị từ chối. Một chuỗi toàn chữ số quá lớn vẫn có thể khiến `Integer.parseInt` ném `NumberFormatException` do vượt miền `int`; có thể bắt và chuyển thành lỗi validation thống nhất tại biên API.
+This is an illustrative method placed inside a Java class. Under this contract, `"0"`, `"8"`, and `"10"` are valid, whereas `"08"`, `"010"`, `"-1"`, empty strings, or values containing whitespace are rejected. An all-digit string that is too large can still cause `Integer.parseInt` to throw `NumberFormatException` for exceeding the `int` range; you can catch it and convert it into a unified validation error at the API boundary.
 
-Nếu yêu cầu nghiệp vụ **cho phép số 0 đầu**, không áp dụng regex này: dùng parser thập phân với radix 10, hoặc giữ chuỗi nếu đó là mã. Kiểm tra dữ liệu phải dựa trên đặc tả, không mặc định một chính sách cho tất cả trường.
+If business requirements **allow leading zeros**, do not apply this regex: use a decimal parser with radix 10, or keep a string if it is a code. Data validation must be based on the specification rather than defaulting to one policy for every field.
 
-### 10.3. Test đặc biệt tại các mốc 07, 08, 09, 010
+### 10.3. Test Specifically at Boundaries 07, 08, 09, 010
 
-Trong review và kiểm thử, chú ý những vùng dữ liệu tuần tự có padding, đặc biệt ngày, tháng, phiên bản và mã từ `01` đến `12`. Ví dụ, ghi `int month = 010;` với ý định tháng 10 sẽ thực sự lưu 8; còn `int month = 08;` không biên dịch. Kiểm thử tháng 1–7 không thể chứng minh cách viết đó đúng cho tháng 8–12.
+During reviews and testing, pay attention to padded sequential data ranges, especially days, months, versions, and codes from `01` to `12`. For example, writing `int month = 010;` intending October actually stores 8; while `int month = 08;` does not compile. Testing months 1–7 cannot prove that notation works for months 8–12.
 
-Các mẫu tìm kiếm số 0 đầu trong source có thể hỗ trợ review, nhưng cần đọc ngữ cảnh: số 0 trong **chuỗi**, số thực `08.0`, các literal `0x...`/`0b...`, các giá trị 0 và các comment không nên bị đánh đồng với lỗi. Static analysis và code review cần nêu rõ ý định của literal trước khi sửa.
+Search patterns for leading zeros in source code can assist reviews, but context must be read: zeros inside **strings**, floating-point numbers `08.0`, `0x...`/`0b...` literals, zero values, and comments should not be lumped together as errors. Static analysis and code reviews should clarify the literal's intent before changing it.
 
-### 10.4. Đừng tự động “sửa” dữ liệu mã thành số
+### 10.4. Do Not Automatically "Fix" Code Identifiers into Numbers
 
-Nếu người dùng gửi `"00123"`, ứng dụng cần biết đây là **mã** hay **số lượng** trước khi parse. Chuyển thành số 123 rồi ghi lại chuỗi `"123"` có thể làm mất tính định danh, kể cả khi không hề dùng octal. Ngược lại, một phép tính đếm không nên giữ số 0 đầu chỉ để “giống màn hình”; trình bày tách biệt khỏi giá trị.
+If a user submits `"00123"`, the application needs to know whether this is a **code** or a **quantity** before parsing. Converting it to 123 and writing back `"123"` can destroy its identity even without octal being involved. Conversely, a count should not keep leading zeros just to "match the screen"; keep presentation separate from value.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-1. Tính giá trị thập phân của `010`, `012`, `077`, `0123` mà không chạy Java. Giải thích bằng tổng các lũy thừa của 8.
-2. Trong bốn biểu thức `08`, `08.0`, `010L`, `0o10`, biểu thức nào là literal Java hợp lệ? Biểu thức nào không biên dịch được và vì sao?
-3. Cho `String s = "010";`, dự đoán kết quả `Integer.parseInt(s)`, `Integer.parseInt(s, 8)`, `Integer.decode(s)`. Trường hợp nào phù hợp để xử lý một chuỗi số lượng nhập theo hệ thập phân?
-4. Vì sao `int month = 010;` là bẫy khó thấy hơn `int month = 08;`? Test hoặc công cụ nào có thể giúp phát hiện?
-5. Một mã khách hàng `"000123"` phải giữ nguyên khi gửi qua API và lưu vào database. Bạn chọn kiểu Java nào, loại cột/schema nào và định dạng JSON nào? Vì sao dùng `int` có thể làm mất thông tin?
-6. Sửa chương trình sau để giữ ý định “giới hạn mười” mà không đổi sang kiểu thực:
+1. Calculate the decimal values of `010`, `012`, `077`, and `0123` without running Java. Explain using sums of powers of 8.
+2. Among the four expressions `08`, `08.0`, `010L`, and `0o10`, which are valid Java literals? Which fail to compile and why?
+3. Given `String s = "010";`, predict the results of `Integer.parseInt(s)`, `Integer.parseInt(s, 8)`, and `Integer.decode(s)`. Which case is suitable for processing a decimal quantity input string?
+4. Why is `int month = 010;` a subtler pitfall than `int month = 08;`? What tests or tools can help catch it?
+5. A customer code `"000123"` must be preserved when sent through an API and saved to a database. What Java type, column/schema type, and JSON format would you choose? Why can using `int` lose information?
+6. Fix the following program to preserve the intent of "limit ten" without changing to a floating-point type:
 
 ```java
 int limit = 010;
 System.out.println(limit + 2);
 ```
 
-Đáp án: đổi literal thành `10`, khi đó chương trình in `12`. Mã ban đầu in `10` vì `010` là 8.
+Answer: change the literal to `10`, so the program prints `12`. The original code prints `10` because `010` is 8.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-- **Trong mã nguồn Java, `010` là literal nguyên bát phân có giá trị 8**, còn `10` là literal thập phân có giá trị 10.
-- **`08` và `09` không phải literal số nguyên hợp lệ**, nhưng `08.0` là literal số thực thập phân hợp lệ.
-- **`"010"` là chuỗi**, không được tự diễn giải thành bát phân. `Integer.parseInt("010")` trả 10; `Integer.decode("010")` trả 8.
-- Giữ số 0 đầu bằng **chuỗi/định dạng**, không bằng cách thêm số 0 vào literal nguyên.
-- Khi review code, kiểm tra ý nghĩa của dữ liệu, đặc biệt các giá trị tuần tự có padding, và viết rõ radix ở biên nhập liệu khi cần.
+- **In Java source code, `010` is an octal integer literal with value 8**, whereas `10` is a decimal literal with value 10.
+- **`08` and `09` are not valid integer literals**, but `08.0` is a valid decimal floating-point literal.
+- **`"010"` is a string**, not automatically interpreted as octal. `Integer.parseInt("010")` returns 10; `Integer.decode("010")` returns 8.
+- Preserve leading zeros using **strings/formatting**, not by adding zeros to integer literals.
+- When reviewing code, verify the meaning of the data—especially padded sequential values—and specify the radix explicitly at input boundaries when needed.
 
-Chỉ một chữ số `0` được đặt sai chỗ có thể biến giá trị thập phân dự định thành giá trị bát phân mà Java vẫn biên dịch thành công. Cách phòng tránh hiệu quả nhất là tách **giá trị số học**, **cơ số biểu diễn** và **dạng văn bản của dữ liệu** ngay từ thiết kế.
+A single misplaced `0` digit can turn an intended decimal value into an octal value while Java still compiles cleanly. The most effective prevention is separating **numeric value**, **representation base**, and **textual data format** right from the design stage.

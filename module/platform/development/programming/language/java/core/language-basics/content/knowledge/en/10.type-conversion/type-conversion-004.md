@@ -1,56 +1,56 @@
-# Thu hẹp số nguyên và phần bit bị loại bỏ — Java 17+
+# Integer Narrowing and Discarded Bits — Java 17+
 
-Khi chuyển một giá trị số nguyên sang kiểu nguyên **hẹp hơn** trong Java, kết quả không được bảo đảm giữ nguyên giá trị. Với các phép chuyển `long -> int`, `int/long -> short`, `int/long -> byte` hoặc `int/long -> char`, Java **loại bỏ các bit cao** và giữ các bit thấp phù hợp với độ rộng kiểu đích. Sau đó, giá trị được diễn giải theo quy tắc **có dấu hoặc không dấu** của kiểu đích.
+When converting an integer value to a **narrower** integer type in Java, the result is not guaranteed to preserve the value. For `long -> int`, `int/long -> short`, `int/long -> byte`, or `int/long -> char` conversions, Java **discards the higher-order bits** and keeps the low-order bits matching the width of the target type. Then, the value is interpreted according to the **signed or unsigned** rule of the target type.
 
-Đây là hành vi được ngôn ngữ quy định, **không phải ngoại lệ tràn số**. Viết cast `(byte)` hoặc `(short)` chỉ yêu cầu chuyển kiểu; nó không kiểm tra giá trị có nằm trong miền đích hay không.
+This is behavior defined by the language, **not an overflow exception**. Writing a `(byte)` or `(short)` cast only requests a type conversion; it does not check whether the value falls within the target range.
 
-## 1. Nhớ miền giá trị và số bit
+## 1. Recall value ranges and bit widths
 
-| Kiểu | Độ rộng | Diễn giải | Miền |
+| Type | Width | Interpretation | Range |
 | --- | ---: | --- | --- |
-| `byte` | 8 bit | Số nguyên có dấu, bù hai | −128 đến 127 |
-| `short` | 16 bit | Số nguyên có dấu, bù hai | −32.768 đến 32.767 |
-| `char` | 16 bit | Đơn vị mã UTF-16 **không dấu** | 0 đến 65.535 |
-| `int` | 32 bit | Số nguyên có dấu, bù hai | −2.147.483.648 đến 2.147.483.647 |
-| `long` | 64 bit | Số nguyên có dấu, bù hai | −2⁶³ đến 2⁶³−1 |
+| `byte` | 8 bits | Signed integer, two's complement | −128 to 127 |
+| `short` | 16 bits | Signed integer, two's complement | −32,768 to 32,767 |
+| `char` | 16 bits | **Unsigned** UTF-16 code unit | 0 to 65,535 |
+| `int` | 32 bits | Signed integer, two's complement | −2,147,483,648 to 2,147,483,647 |
+| `long` | 64 bits | Signed integer, two's complement | −2⁶³ to 2⁶³−1 |
 
-**Đặc biệt:** `short` và `char` cùng có 16 bit nhưng diễn giải **khác nhau**. Cùng một mẫu bit `0xABCD` sẽ là `-21555` nếu nhìn như `short`, nhưng là `43981` nếu nhìn như `char`.
+**Notably:** `short` and `char` both have 16 bits, but their interpretations are **different**. The exact same bit pattern `0xABCD` is `-21555` when viewed as `short`, yet `43981` when viewed as `char`.
 
-## 2. Quy tắc giữ bit thấp
+## 2. Rule for keeping low bits
 
-Khi thu hẹp số nguyên xuống `n` bit:
+When narrowing an integer to `n` bits:
 
-1. Lấy biểu diễn nhị phân của giá trị nguồn.
-2. **Giữ đúng `n` bit thấp nhất**, bỏ tất cả bit cao hơn.
-3. Đọc mẫu bit còn lại theo kiểu đích: `byte`/`short`/`int` có dấu; `char` không dấu.
+1. Take the binary representation of the source value.
+2. **Keep the lowest `n` bits**, discarding all higher bits.
+3. Read the remaining bit pattern according to the target type: `byte`/`short`/`int` are signed; `char` is unsigned.
 
-Ví dụ `int 130` có 16 bit thấp như sau:
+For example, `int 130` has the following low 16 bits:
 
 ~~~text
-Giá trị gốc 130:      00000000 10000010
-Giữ 8 bit thấp:                10000010
-Bỏ 8 bit cao:         xxxxxxxx
+Original value 130:       00000000 10000010
+Keep low 8 bits:                   10000010
+Discard high 8 bits:      xxxxxxxx
                                      
-(byte) 130:                    10000010  →  -126
-Diễn giải không dấu:           10000010  →   130
+(byte) 130:                        10000010  →  -126
+Unsigned interpretation:           10000010  →   130
 ~~~
 
-Mẫu bit `10000010` có bit cao nhất bằng 1, nên `byte` diễn giải theo bù hai thành `-126`. Trong khi đó, `Byte.toUnsignedInt((byte) 130)` cho `130` vì diễn giải tám bit đó như số **không dấu**.
+The bit pattern `10000010` has its most significant bit equal to 1, so `byte` interprets it in two's complement as `-126`. Meanwhile, `Byte.toUnsignedInt((byte) 130)` gives `130` because it interprets those eight bits as an **unsigned** number.
 
-Ví dụ thứ hai, `int 0x1234ABCD` chuyển sang 16 bit:
+Second example, `int 0x1234ABCD` converted to 16 bits:
 
 ~~~text
-int 32 bit:    0x1234 ABCD
-Loại bit cao:  0x1234 ----
-Giữ bit thấp:  0x---- ABCD
+32-bit int:         0x1234 ABCD
+Discard high bits:  0x1234 ----
+Keep low bits:      0x---- ABCD
 
 (short) 0x1234ABCD → -21555
 (char)  0x1234ABCD →  43981
 ~~~
 
-## 3. Chương trình Java 17+ chạy được
+## 3. Runnable Java 17+ program
 
-Tạo tệp UTF-8 tên **`NarrowingBitsDemo.java`**:
+Create a UTF-8 file named **`NarrowingBitsDemo.java`**:
 
 ~~~java
 public class NarrowingBitsDemo {
@@ -107,7 +107,7 @@ public class NarrowingBitsDemo {
 }
 ~~~
 
-Mở **PowerShell** (Windows) hoặc **Bash** (Linux/macOS) trong thư mục chứa file. Cần JDK 17 hoặc mới hơn:
+Open **PowerShell** (Windows) or **Bash** (Linux/macOS) in the directory containing the file. JDK 17 or newer is required:
 
 ~~~bash
 java -version
@@ -116,7 +116,7 @@ javac -encoding UTF-8 NarrowingBitsDemo.java
 java NarrowingBitsDemo
 ~~~
 
-**Expected output chính xác của lệnh `java NarrowingBitsDemo`:**
+**Exact expected output of the `java NarrowingBitsDemo` command:**
 
 ~~~text
 130.binary16=0000000010000010
@@ -136,17 +136,17 @@ toIntExact=overflow
 fitsByte130=false
 ~~~
 
-Các lệnh `java -version` và `javac -version` hiển thị thông tin phụ thuộc môi trường; khối trên chỉ mô tả kết quả chương trình.
+The `java -version` and `javac -version` commands display environment-dependent information; the block above only describes the program output.
 
-## 4. Giải thích từng nhóm kết quả
+## 4. Explaining each group of results
 
-### Từ `int` sang `byte`
+### From `int` to `byte`
 
-`130` viết dưới dạng 16 bit là `0000000010000010`. Ép thành `byte` giữ tám bit thấp `10000010`, được Java diễn giải có dấu thành `-126`.
+`130` written in 16 bits is `0000000010000010`. Casting to `byte` keeps the low eight bits `10000010`, which Java interprets as signed `-126`.
 
-`Byte.toUnsignedInt(narrowed)` **không đổi lại đối tượng hay bit trong byte**. Phương thức này tạo giá trị `int` biểu diễn chính tám bit của `byte` như số nguyên không dấu từ 0 đến 255.
+`Byte.toUnsignedInt(narrowed)` **does not mutate the object or bits inside the byte**. This method produces an `int` value representing those exact eight bits of the `byte` as an unsigned integer from 0 to 255.
 
-| Giá trị nguồn | 8 bit thấp | Giá trị `byte` sau cast |
+| Source value | Low 8 bits | `byte` value after cast |
 | ---: | --- | ---: |
 | `127` | `01111111` | 127 |
 | `128` | `10000000` | −128 |
@@ -155,31 +155,31 @@ Các lệnh `java -version` và `javac -version` hiển thị thông tin phụ t
 | `256` | `00000000` | 0 |
 | `-129` | `01111111` | 127 |
 
-Có thể hình dung kết quả không dấu là phần dư theo `2^8 = 256`, sau đó nếu bit dấu bằng 1 thì `byte` diễn giải kết quả trong miền âm. **Không** hiểu phép cast là “chặn giá trị ở −128 hoặc 127”: Java không làm điều đó cho phép thu hẹp số nguyên.
+You can think of the unsigned result as the remainder modulo `2^8 = 256`, and then if the sign bit is 1, `byte` interprets the result in the negative range. **Do not** think of a cast as “clamping the value at −128 or 127”: Java does not do that for integer narrowing.
 
-### Từ `int` sang `short` và `char`
+### From `int` to `short` and `char`
 
-Giá trị nguồn `0x1234ABCD` gồm 32 bit. Hai kiểu đích chỉ giữ **16 bit thấp** là `0xABCD`.
+The source value `0x1234ABCD` consists of 32 bits. Both target types keep only the **low 16 bits**, `0xABCD`.
 
-- Với `short`, `0xABCD` bằng 43981 nếu xem không dấu, nhưng vì bit dấu 16 bit bằng 1, giá trị có dấu là `43981 - 65536 = -21555`.
-- Với `char`, `0xABCD` được đọc **không dấu**, nên giá trị là `43981`. Đây là một UTF-16 code unit, không mặc định là một ký tự hiển thị hoàn chỉnh.
+- For `short`, `0xABCD` equals 43981 when viewed unsigned, but because the 16-bit sign bit is 1, the signed value is `43981 - 65536 = -21555`.
+- For `char`, `0xABCD` is read **unsigned**, so the value is `43981`. This is a UTF-16 code unit, not necessarily a complete printable character by default.
 
-Chỉ việc ép sang `char` không làm giá trị trở thành chuỗi `String`. Để in mã số của `char`, ví dụ dùng `(int) (char) hex` như chương trình.
+Merely casting to `char` does not turn the value into a `String`. To print the numeric code of a `char`, for example, use `(int) (char) hex` as in the program.
 
-### Từ `long` sang `int`
+### From `long` to `int`
 
-`0x1_0000_0001L` tương đương `4294967297` (một lớn hơn `2^32`). Khi ép sang `int`, Java giữ 32 bit thấp `0x00000001`, nên kết quả bằng **1**. Việc mất bit cao này có thể khiến mã định danh, bộ đếm hoặc phép tính sai nghiêm trọng nếu lập trình viên không kiểm tra miền.
+`0x1_0000_0001L` equals `4294967297` (one more than `2^32`). When cast to `int`, Java keeps the low 32 bits `0x00000001`, so the result is **1**. Losing these high bits can cause identifiers, counters, or calculations to go severely wrong if the programmer does not check ranges.
 
-## 5. Ép kiểu tường minh không có nghĩa “an toàn”
+## 5. Explicit casting does not mean “safe”
 
 ~~~java
 int source = 130;
-byte b = (byte) source; // Hop le ve cu phap, nhung b = -126.
+byte b = (byte) source; // Syntactically valid, but b = -126.
 ~~~
 
-Compiler chấp nhận cast vì người lập trình đã yêu cầu chuyển đổi. Nhưng compiler **không suy ra đây là lựa chọn đúng về nghiệp vụ**.
+The compiler accepts the cast because the programmer requested the conversion. However, the compiler **does not infer that this is a business-correct choice**.
 
-Cách kiểm tra trước khi ép về `byte`:
+How to check before casting to `byte`:
 
 ~~~java
 int value = 130;
@@ -191,86 +191,86 @@ if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
 byte narrowed = (byte) value;
 ~~~
 
-Cách tương tự áp dụng cho `short` (`Short.MIN_VALUE`/`Short.MAX_VALUE`), `char` (0 đến `Character.MAX_VALUE`) và các kiểu số nguyên khác. Khi thu hẹp `long` sang `int`, Java 17 hỗ trợ:
+A similar approach applies to `short` (`Short.MIN_VALUE`/`Short.MAX_VALUE`), `char` (0 to `Character.MAX_VALUE`), and other integer types. When narrowing `long` to `int`, Java 17 provides:
 
 ~~~java
 int exact = Math.toIntExact(42L); // 42.
 
-// Math.toIntExact(0x1_0000_0001L) nem ArithmeticException.
+// Math.toIntExact(0x1_0000_0001L) throws ArithmeticException.
 ~~~
 
-`Math.toIntExact` kiểm tra **toàn bộ giá trị `long` có nằm trong miền `int` không**, không chỉ lấy các bit thấp. Không có phương thức `Math.toByteExact` chuẩn tương đương; muốn ép `int` về `byte` cần kiểm tra miền như trên hoặc dùng thư viện được lựa chọn rõ ràng.
+`Math.toIntExact` checks whether the **entire `long` value fits within the `int` range**, not just taking the low bits. There is no equivalent standard `Math.toByteExact` method; to cast `int` to `byte`, check the range as shown above or use an explicitly chosen library.
 
-## 6. Phép gán hằng và phép toán gán kết hợp
+## 6. Constant assignment and compound assignment operators
 
-Hai quy tắc Java dễ khiến người học nhầm là Java luôn tự động thu hẹp:
+Two Java rules easily mislead learners into thinking Java always narrows automatically:
 
-**A. Hằng số nguyên nằm trong miền:**
+**A. In-range integer constants:**
 
 ~~~java
-byte ok = 100;          // Hop le: hang int 100 nam trong mien byte.
-// byte bad = 130;      // Loi bien dich: vuot mien byte.
-byte casted = (byte) 130; // Hop le, gia tri -126.
+byte ok = 100;          // Valid: int constant 100 is within byte range.
+// byte bad = 130;      // Compile error: exceeds byte range.
+byte casted = (byte) 130; // Valid, value is -126.
 ~~~
 
-Compiler cho phép một số biểu thức hằng kiểu `int` được gán cho `byte`/`short`/`char` nếu giá trị nằm trong miền. Nhưng một biến `int` bất kỳ **không** tự được gán sang `byte`:
+The compiler allows certain `int` constant expressions to be assigned to `byte`/`short`/`char` if the value is within range. Yet an arbitrary `int` variable **cannot** automatically be assigned to `byte`:
 
 ~~~java
 int n = 100;
-// byte x = n;      // Loi: can cast.
-byte x = (byte) n;  // Hop le.
+// byte x = n;      // Error: requires cast.
+byte x = (byte) n;  // Valid.
 ~~~
 
-**B. Phép gán kết hợp có ép kiểu ngầm:**
+**B. Compound assignment has an implicit cast:**
 
 ~~~java
 byte count = 127;
-count += 1; // Hop le: ket qua ve byte -> -128.
+count += 1; // Valid: result narrows to byte -> -128.
 
-// count = count + 1; // Loi bien dich: phep cong la int.
+// count = count + 1; // Compile error: addition is int.
 ~~~
 
-Ở biểu thức số học `count + 1`, `count` được nâng thành `int` và kết quả có kiểu `int`. Với `count += 1`, Java áp dụng phép toán gán kết hợp và chuyển về kiểu bên trái, tương đương về hiệu ứng kiểu với phép cast xuống `byte`. Vì vậy phép tăng này **cũng có thể làm mất bit**.
+In the arithmetic expression `count + 1`, `count` is promoted to `int` and the result has type `int`. With `count += 1`, Java applies compound assignment and converts back to the left-hand side's type, equivalent in type effect to casting down to `byte`. Thus, this increment **can also lose bits**.
 
-## 7. Phân biệt hai cơ chế thường bị lẫn
+## 7. Distinguish two commonly confused mechanisms
 
-**Thu hẹp số nguyên → số nguyên:** giữ các bit thấp và diễn giải kiểu đích theo quy tắc có dấu/không dấu; ví dụ `(byte) 130 == -126`.
+**Integer → integer narrowing:** keeps the low bits and interprets the target type according to signed/unsigned rules; e.g., `(byte) 130 == -126`.
 
-**Ép số thực → số nguyên:** **không** đơn giản lấy bit thấp của biểu diễn số thực. Java áp dụng quy tắc chuyển từ floating-point sang integral, gồm cắt phần thập phân về 0, xử lý `NaN` và giới hạn giá trị khi vượt miền. Ví dụ `(int) 12.9 == 12`.
+**Floating-point → integer casting:** does **not** simply take the low bits of the floating-point representation. Java applies floating-point-to-integral conversion rules, including truncating the fractional part toward 0, handling `NaN`, and clamping out-of-range values. For example, `(int) 12.9 == 12`.
 
-Bài này tập trung vào **phần bit bị loại bỏ khi thu hẹp giữa các kiểu số nguyên**. Không dùng mô hình “giữ bit thấp” để giải thích mọi phép cast trong Java.
+This lesson focuses on **discarded bits when narrowing between integer types**. Do not use the “keep low bits” model to explain every cast in Java.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-check exercises
 
-**Bài 1.** Kết quả `(byte) 128` và `(byte) 256` là bao nhiêu?
+**Exercise 1.** What are the results of `(byte) 128` and `(byte) 256`?
 
-*Đáp án:* `-128` và `0`, vì tám bit thấp lần lượt là `10000000` và `00000000`.
+*Answer:* `-128` and `0`, because the low eight bits are `10000000` and `00000000`, respectively.
 
-**Bài 2.** Tại sao `(short) 0x1234ABCD` là `-21555`?
+**Exercise 2.** Why is `(short) 0x1234ABCD` equal to `-21555`?
 
-*Đáp án:* Chỉ giữ 16 bit thấp `0xABCD`; diễn giải 16 bit có dấu thành `43981 - 65536 = -21555`.
+*Answer:* Only the low 16 bits `0xABCD` are kept; interpreting 16 signed bits yields `43981 - 65536 = -21555`.
 
-**Bài 3.** Với cùng nguồn trên, `(int) (char) 0x1234ABCD` bằng bao nhiêu?
+**Exercise 3.** With the same source above, what is `(int) (char) 0x1234ABCD`?
 
-*Đáp án:* `43981`, vì `char` giữ 16 bit thấp và không có dấu.
+*Answer:* `43981`, because `char` keeps the low 16 bits and is unsigned.
 
-**Bài 4.** `(int) 0x1_0000_0001L` trả giá trị nào? Có ném exception không?
+**Exercise 4.** What value does `(int) 0x1_0000_0001L` return? Does it throw an exception?
 
-*Đáp án:* Trả **1**, không tự ném ngoại lệ khi cast. `Math.toIntExact` mới báo `ArithmeticException` do vượt miền `int`.
+*Answer:* It returns **1**, and does not automatically throw an exception on cast. Only `Math.toIntExact` reports `ArithmeticException` due to exceeding the `int` range.
 
-**Bài 5.** `byte b = 127; b += 1;` cho kết quả gì? Tại sao?
+**Exercise 5.** What result does `byte b = 127; b += 1;` produce? Why?
 
-*Đáp án:* `-128`. Phép cộng tính bằng `int` nhưng `+=` có chuyển về kiểu `byte`, làm mất các bit cao hơn tám bit.
+*Answer:* `-128`. The addition is computed in `int`, but `+=` converts back to `byte`, discarding bits higher than eight bits.
 
-## Checklist ghi nhớ
+## Memory checklist
 
-- [ ] Xác định **độ rộng bit** của kiểu nguồn và kiểu đích.
-- [ ] Thu hẹp **nguyên → nguyên** giữ các bit thấp, loại bit cao.
-- [ ] `byte`/`short`/`int` có dấu; `char` là 16 bit không dấu.
-- [ ] Cast hợp lệ về cú pháp không có nghĩa giá trị không thay đổi.
-- [ ] Kiểm tra miền trước khi cast khi việc mất dữ liệu là lỗi.
-- [ ] `Math.toIntExact` giúp kiểm tra `long -> int`.
-- [ ] Lưu ý chuyển kiểu ở `+=` và các phép toán số học với `byte`, `short`.
-- [ ] Không áp dụng quy tắc giữ bit thấp để giải thích cast `double -> int`.
+- [ ] Determine the **bit width** of the source and target types.
+- [ ] **Integer → integer** narrowing keeps low bits and discards high bits.
+- [ ] `byte`/`short`/`int` are signed; `char` is 16-bit unsigned.
+- [ ] A syntactically valid cast does not mean the value stays unchanged.
+- [ ] Check range before casting when data loss is an error.
+- [ ] `Math.toIntExact` helps check `long -> int`.
+- [ ] Note type conversion in `+=` and arithmetic operations with `byte`, `short`.
+- [ ] Do not apply the keep-low-bits rule to explain `double -> int` casting.
 
-**Kết luận:** Khi thu hẹp giữa các kiểu số nguyên của Java, câu hỏi chính là **“những bit nào bị bỏ và những bit còn lại sẽ được diễn giải có dấu hay không dấu?”**. Nếu cần dữ liệu chính xác, đừng cast mù; hãy kiểm tra miền hoặc chọn kiểu đủ rộng từ đầu.
+**Conclusion:** When narrowing between Java integer types, the key question is **“which bits are discarded, and will the remaining bits be interpreted as signed or unsigned?”** If exact data is needed, do not cast blindly; check the range or choose a wide-enough type from the start.

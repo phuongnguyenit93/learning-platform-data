@@ -1,12 +1,12 @@
-# Nạp chồng phương thức và những thành phần tạo chữ ký trong Java
+# Method Overloading and What Forms a Method Signature in Java
 
-> **Java core — language-basics / Phương thức**  
-> **Môi trường:** JDK 17+, không cần preview hoặc thư viện ngoài.  
-> **Mục tiêu:** Nhận diện những khai báo **overload hợp lệ**, biết thành phần nào thực sự phân biệt **chữ ký phương thức**, hiểu cách Java chọn overload tại thời điểm biên dịch và tránh trùng chữ ký hoặc lời gọi mơ hồ.
+> **Java core — language-basics / Methods**  
+> **Environment:** JDK 17+, no preview features or external libraries needed.  
+> **Objective:** Recognize **valid overload** declarations, know which components truly distinguish a **method signature**, understand how Java selects an overload at compile time, and avoid duplicate signatures or ambiguous calls.
 
-## 1. Nạp chồng phương thức là gì?
+## 1. What Is Method Overloading?
 
-*Nạp chồng phương thức* (*method overloading*) cho phép một lớp có nhiều phương thức **cùng tên** nhưng có **danh sách kiểu tham số khác nhau**, để biểu diễn những thao tác cùng ý tưởng:
+*Method overloading* allows a class to have multiple methods with the **same name** but **different parameter type lists**, to express operations with the same conceptual purpose:
 
 ~~~java
 static String render(int number) {
@@ -26,7 +26,7 @@ static String render(int left, int right) {
 }
 ~~~
 
-Những lời gọi sau được phân giải đến các khai báo tương ứng:
+The following calls resolve to their corresponding declarations:
 
 ~~~java
 render(7);        // "int:7"
@@ -35,27 +35,27 @@ render("7");      // "String:7"
 render(3, 4);     // "pair:7"
 ~~~
 
-Tất cả được gọi bằng tên `render`, nhưng trình biên dịch chọn phương thức dựa trên **số đối số, kiểu của biểu thức đối số và quy tắc chọn overload của Java**. Việc sử dụng cùng tên không có nghĩa các phương thức có thể khai báo tùy ý.
+All are invoked using the name `render`, yet the compiler selects the method based on **argument count, types of argument expressions, and Java's overload resolution rules**. Using the same name does not mean methods can be declared arbitrarily.
 
-Overloading là **chọn giữa các khai báo có chữ ký khác nhau**; không phải *overriding* (ghi đè), nơi lớp con định nghĩa lại phương thức được kế thừa theo các quy tắc riêng.
+Overloading is **choosing among declarations with different signatures**; it is not *overriding*, where a subclass redefines an inherited method under its own rules.
 
-## 2. Thành phần nào tạo nên chữ ký (*method signature*)?
+## 2. Which Components Form a Method Signature?
 
-Trong trường hợp phương thức không generic ở mức nhập môn, hãy xác định chữ ký bằng **tên phương thức + danh sách kiểu tham số theo đúng thứ tự**.
+For non-generic methods at an introductory level, identify the signature by **method name + ordered list of parameter types**.
 
-| Thay đổi trong khai báo | Tạo overload khác? | Ví dụ |
+| Change in declaration | Creates a different overload? | Example |
 | --- | --- | --- |
-| Tên giống nhau, **số tham số khác** | Có | `print(int)` và `print(int, int)` |
-| Tên giống nhau, **kiểu tham số khác** | Có | `print(int)` và `print(long)` |
-| Tên giống nhau, **thứ tự kiểu tham số khác** | Có | `show(int, String)` và `show(String, int)` |
-| Chỉ đổi **tên biến tham số** | Không | `calc(int x)` và `calc(int y)` |
-| Chỉ đổi **kiểu trả về** | Không | `int calc(int)` và `long calc(int)` |
-| Chỉ đổi `public`/`private`, `static` hay `final` | Không | `static calc(int)` và instance `calc(int)` |
-| Chỉ đổi khai báo `throws` | Không | `work(int)` và `work(int) throws IOException` |
+| Same name, **different number of parameters** | Yes | `print(int)` and `print(int, int)` |
+| Same name, **different parameter types** | Yes | `print(int)` and `print(long)` |
+| Same name, **different order of parameter types** | Yes | `show(int, String)` and `show(String, int)` |
+| Changing only **parameter variable names** | No | `calc(int x)` and `calc(int y)` |
+| Changing only **return type** | No | `int calc(int)` and `long calc(int)` |
+| Changing only `public`/`private`, `static`, or `final` | No | `static calc(int)` and instance `calc(int)` |
+| Changing only `throws` clause | No | `work(int)` and `work(int) throws IOException` |
 
-Hai phương thức cùng lớp không thể tồn tại chỉ nhờ đổi những thành phần **không phân biệt chữ ký**. Ngay cả `static` và instance cũng **không** được khai báo cùng tên, cùng danh sách tham số trong một lớp.
+Two methods in the same class cannot coexist merely by changing components that **do not distinguish a signature**. Even `static` and instance methods **cannot** be declared with the same name and parameter list in the same class.
 
-Ví dụ hợp lệ vì **thứ tự tham số khác**:
+Valid example due to **different parameter order**:
 
 ~~~java
 static String combine(int count, String label) {
@@ -67,33 +67,33 @@ static String combine(String label, int count) {
 }
 ~~~
 
-Tham số kiểu `int, String` và `String, int` tạo hai chữ ký khác nhau dù cùng có hai tham số. Chỉ hoán đổi **tên** `count`/`label` nhưng giữ nguyên kiểu theo vị trí thì **không** tạo overload.
+Parameter types `int, String` and `String, int` produce two distinct signatures even though both have two parameters. Swapping only the **names** `count`/`label` while keeping the types in the same positions **does not** create an overload.
 
-**Lưu ý phạm vi đặc tả:** Với phương thức *generic*, định nghĩa chữ ký theo Java Language Specification còn xét các tham số kiểu và quy tắc tương đương của kiểu; việc kiểm tra trùng tên/kiểu sau *type erasure* cũng quan trọng. Quy tắc tên + các kiểu tham số ở trên là mô hình đúng cho những ví dụ không generic trong bài.
+**Specification scope note:** For *generic* methods, the signature definition in the Java Language Specification also considers type parameters and type equivalence rules; checking for name/type collisions after *type erasure* is also important. The name + parameter types rule above is the accurate model for the non-generic examples in this lesson.
 
-## 3. Những khai báo không hợp lệ do trùng chữ ký
+## 3. Invalid Declarations Due to Duplicate Signatures
 
-Các cặp sau là **ví dụ lỗi biên dịch**; không đặt chung vào chương trình runnable:
+The following pairs are **compile-time error examples**; do not place them together in a runnable program:
 
 ~~~java
-// LỖI 1: chỉ đổi tên tham số.
+// ERROR 1: changing only parameter name.
 // static int size(int count) { return count; }
 // static int size(int amount) { return amount; }
 
-// LỖI 2: chỉ đổi kiểu trả về.
+// ERROR 2: changing only return type.
 // static int value(int x) { return x; }
 // static String value(int x) { return "" + x; }
 
-// LỖI 3: chỉ đổi static hoặc phạm vi truy cập.
+// ERROR 3: changing only static or access modifier.
 // static int code(int x) { return x; }
 // int code(int x) { return x; }
 
-// LỖI 4: chỉ khác throws.
+// ERROR 4: differing only in throws.
 // static int load(int x) { return x; }
 // static int load(int x) throws java.io.IOException { return x; }
 ~~~
 
-Kiểu trả về khác nhau **được phép** nếu danh sách tham số đã khác:
+Different return types **are allowed** if the parameter lists already differ:
 
 ~~~java
 static int parseValue(int value) {
@@ -105,33 +105,33 @@ static String parseValue(String value) {
 }
 ~~~
 
-Trong hai phương thức trên, sự khác biệt `int` so với `String` ở **tham số** mới là lý do overload hợp lệ; khác kiểu trả về chỉ là lựa chọn của từng phương thức.
+In the two methods above, the `int` vs. `String` difference in the **parameter** is what makes the overload valid; differing return types is simply each method's choice.
 
-**Mảng và varargs:** `int... values` được xem như tham số mảng `int[]` trong chữ ký; không thể khai báo đồng thời `sum(int[])` và `sum(int...)` cùng tên trong cùng lớp:
+**Arrays and varargs:** `int... values` is treated as an `int[]` array parameter in the signature; you cannot simultaneously declare `sum(int[])` and `sum(int...)` with the same name in the same class:
 
 ~~~java
-// Chỉ chọn MỘT trong hai khai báo sau:
+// Choose ONLY ONE of the two declarations below:
 // static int sum(int[] values) { ... }
-// static int sum(int... values) { ... } // Trùng chữ ký với bản trên.
+// static int sum(int... values) { ... } // Duplicate signature with the version above.
 ~~~
 
-**Generics và erasure:** `process(List<String>)` không thể overload với `process(List<Integer>)` trong cùng lớp chỉ nhờ đối số kiểu `String`/`Integer`. Cả hai có cùng *erasure* của tham số là `List` và gây *name clash*:
+**Generics and erasure:** `process(List<String>)` cannot overload `process(List<Integer>)` in the same class solely via the `String`/`Integer` type arguments. Both have the same parameter *erasure* `List` and cause a *name clash*:
 
 ~~~java
-// KHÔNG BIÊN DỊCH nếu có cả hai trong cùng lớp:
+// DOES NOT COMPILE if both are in the same class:
 // static void process(java.util.List<String> a) {}
 // static void process(java.util.List<Integer> b) {}
 ~~~
 
-## 4. Java chọn overload tại thời điểm biên dịch như thế nào?
+## 4. How Does Java Select an Overload at Compile Time?
 
-Trình biên dịch xét các phương thức có tên phù hợp, kiểm tra khả năng áp dụng cho kiểu đối số và chọn phương thức cụ thể nhất theo quy tắc của Java. Có thể ghi nhớ thứ tự xem xét các pha quan trọng:
+The compiler examines methods with a matching name, checks applicability for the argument types, and selects the most specific method according to Java's rules. You can remember the order in which key phases are considered:
 
-1. **Lời gọi số đối số cố định, không cần boxing/unboxing** (có thể dùng mở rộng primitive/reference).
-2. **Lời gọi cố định cho phép boxing/unboxing** khi pha trước không có phương thức áp dụng.
-3. **Lời gọi varargs** khi những pha trước không chọn được phương thức phù hợp.
+1. **Fixed-arity call without boxing/unboxing** (primitive/reference widening may be used).
+2. **Fixed-arity call allowing boxing/unboxing** when the previous phase has no applicable method.
+3. **Varargs call** when the previous phases fail to select an applicable method.
 
-Ví dụ với mở rộng primitive `int → long` và boxing `int → Integer`:
+Example with primitive widening `int → long` and boxing `int → Integer`:
 
 ~~~java
 static String select(long value) {
@@ -143,20 +143,20 @@ static String select(Integer value) {
 }
 ~~~
 
-| Lời gọi | Chọn overload | Vì sao |
+| Call | Selected overload | Why |
 | --- | --- | --- |
-| `select(5)` | `select(long)` | Mở rộng `int` thành `long` được xét trước boxing |
-| `select(5L)` | `select(long)` | Khớp `long` |
-| `select(Integer.valueOf(5))` | `select(Integer)` | Khớp tham chiếu `Integer` |
-| `select((Integer) null)` | `select(Integer)` | Kiểu biểu thức là `Integer`; không unbox null |
+| `select(5)` | `select(long)` | Widening `int` to `long` is considered before boxing |
+| `select(5L)` | `select(long)` | Exact match `long` |
+| `select(Integer.valueOf(5))` | `select(Integer)` | Exact reference match `Integer` |
+| `select((Integer) null)` | `select(Integer)` | Expression type is `Integer`; does not unbox null |
 
-**Đừng đoán theo “kiểu runtime của đối tượng”:** Lựa chọn overload thông thường dựa trên **kiểu tĩnh của biểu thức ở nơi gọi**. Nếu có `Object value = "Hi";`, lời gọi `label(value)` chọn overload `label(Object)` chứ không tự chuyển sang `label(String)` vì đối tượng thực sự là chuỗi.
+**Do not guess by “runtime type of the object”:** Normal overload selection is based on the **static type of the expression at the call site**. If you have `Object value = "Hi";`, the call `label(value)` selects overload `label(Object)` rather than switching to `label(String)` because the actual object is a string.
 
-Với các overload cùng áp dụng, Java còn dùng quy tắc **most specific**. Nếu không chọn được một phương thức cụ thể nhất, lời gọi bị lỗi **ambiguous** thay vì chạy thử ngẫu nhiên.
+Among equally applicable overloads, Java also applies the **most specific** rule. If a single most specific method cannot be chosen, the call fails with an **ambiguous** error rather than guessing at random.
 
-## 5. `null`, ép kiểu và lời gọi mơ hồ
+## 5. `null`, Casting, and Ambiguous Calls
 
-Giả sử có hai phương thức:
+Suppose there are two methods:
 
 ~~~java
 static String label(Object value) {
@@ -168,33 +168,33 @@ static String label(String value) {
 }
 ~~~
 
-Vì `String` là subtype của `Object`, các kết quả là:
+Because `String` is a subtype of `Object`, the results are:
 
 ~~~java
 label("Hi");              // "String:Hi"
 label((Object) "Hi");     // "Object:Hi"
-label(null);              // "String:null" (String cụ thể hơn Object).
+label(null);              // "String:null" (String is more specific than Object).
 ~~~
 
-Dùng **cast** để làm rõ kiểu biểu thức ở nơi gọi khi cần. Nhưng cast không nên thay thế thiết kế API rõ ràng.
+Use a **cast** to clarify the expression type at the call site when needed. However, casts should not replace clear API design.
 
-Nếu khai báo một cặp overload có các kiểu **không liên quan theo quan hệ subtype**:
+If you declare a pair of overloads whose types are **unrelated by a subtype relationship**:
 
 ~~~java
-// Giả sử đã khai báo:
+// Suppose these are declared:
 // static void choose(String text) {}
 // static void choose(Integer number) {}
 
-// choose(null);             // LỖI: ambiguous.
-// choose((String) null);    // HỢP LỆ: chọn String.
-// choose((Integer) null);   // HỢP LỆ: chọn Integer.
+// choose(null);             // ERROR: ambiguous.
+// choose((String) null);    // VALID: selects String.
+// choose((Integer) null);   // VALID: selects Integer.
 ~~~
 
-Java không thể chọn một cách duy nhất cho `choose(null)` giữa `String` và `Integer`. Đó là lỗi **ngay khi biên dịch**, không phải `NullPointerException` lúc chạy.
+Java cannot uniquely choose for `choose(null)` between `String` and `Integer`. That is an error **at compile time**, not a `NullPointerException` at runtime.
 
-## 6. Varargs và thứ tự pha phân giải overload
+## 6. Varargs and Overload Resolution Phases
 
-Trong chữ ký, `int... values` tương ứng tham số mảng `int[]`: không được khai báo cả `f(int...)` và `f(int[])` cùng tên trong một lớp.
+In a signature, `int... values` corresponds to an `int[]` array parameter: you cannot declare both `f(int...)` and `f(int[])` with the same name in a single class.
 
 ~~~java
 static String choose(int value) { return "single:" + value; }
@@ -207,14 +207,14 @@ System.out.println(choose(4, 5)); // count=2.
 System.out.println(choose());     // count=0.
 ~~~
 
-Lời gọi một `int` chọn overload **cố định** khi có phương thức áp dụng ở pha fixed-arity, trước khi cần tới varargs. Nhiều overload varargs với kiểu phần tử không liên quan có thể khiến `f()` hoặc `f(null)` **mơ hồ tại biên dịch**.
+A call with one `int` selects the **fixed** overload when a method is applicable in the fixed-arity phase, before needing varargs. Multiple varargs overloads with unrelated element types can make `f()` or `f(null)` **ambiguous at compile time**.
 
-Bài này chỉ cần biết varargs **không tạo chữ ký mới** và ảnh hưởng tới lựa chọn overload. Bài varargs/mảng tập trung vào mảng được truyền, `null`, kiểu phần tử là mảng và rủi ro generic varargs.
+For this lesson, you only need to know that varargs **does not create a new signature** and affects overload selection. The varargs/arrays lesson focuses on passed arrays, `null`, array element types, and generic varargs risks.
 
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Runnable Java 17+ Program
 
-Tạo file **MethodOverloadDemo.java**:
+Create the file **MethodOverloadDemo.java**:
 
 ~~~java
 public final class MethodOverloadDemo {
@@ -270,7 +270,7 @@ public final class MethodOverloadDemo {
         return "single:" + value;
     }
 
-    // Hợp lệ: overload main, nhưng launcher chọn main(String[]).
+    // Valid: overloads main, though the launcher selects main(String[]).
     public static String main(int value) {
         return "main(int):" + value;
     }
@@ -303,14 +303,14 @@ public final class MethodOverloadDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 MethodOverloadDemo.java
 java MethodOverloadDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 int=int:7
@@ -332,33 +332,33 @@ fixedOne=single:4
 otherMain=main(int):3
 ~~~
 
-`widen=long:5` minh họa mở rộng primitive ưu tiên hơn boxing; `referenceStaticType` cho thấy overload được chọn dựa trên kiểu của biểu thức. `fixedOne` cho thấy bản cố định có thể được ưu tiên hơn varargs. Launcher vẫn chạy `main(String[])` dù lớp có thêm `main(int)`.
+`widen=long:5` illustrates primitive widening taking priority over boxing; `referenceStaticType` shows overload selection is based on the expression's type. `fixedOne` shows the fixed-arity version can take priority over varargs. The launcher still runs `main(String[])` even though the class also has `main(int)`.
 
-## 8. Checklist và bài tập
+## 8. Checklist and Exercises
 
-| Trước khi khai báo overload | Cần kiểm tra |
+| Before declaring an overload | What to check |
 | --- | --- |
-| Tên có trùng nhau không? | Muốn overload thì dùng cùng tên |
-| Kiểu/số lượng/thứ tự tham số có khác thật không? | Đây là yếu tố quyết định ở mức nhập môn |
-| Chỉ đổi return type hoặc tên tham số? | Không tạo overload hợp lệ |
-| Chỉ đổi `static`, access modifier, `throws`? | Không phân biệt chữ ký |
-| `int...` so với `int[]`? | Trùng chữ ký, không khai báo cả hai |
-| Generic `List<String>` và `List<Integer>`? | Đụng name clash vì erasure |
-| Truyền `null` cho hai kiểu tham số không liên quan? | Có thể ambiguous; cân nhắc cast hoặc API rõ hơn |
-| Quá nhiều overload nhận kiểu gần nhau? | Thử lời gọi với literal, cast, boxing và varargs |
+| Are the names identical? | To overload, use the same name |
+| Do parameter types/count/order genuinely differ? | This is the deciding factor at an introductory level |
+| Changed only return type or parameter names? | Does not create a valid overload |
+| Changed only `static`, access modifier, `throws`? | Does not distinguish signatures |
+| `int...` vs. `int[]`? | Duplicate signature, do not declare both |
+| Generic `List<String>` and `List<Integer>`? | Hits a name clash due to erasure |
+| Passing `null` to two unrelated parameter types? | Can be ambiguous; consider casting or a clearer API |
+| Too many overloads taking closely related types? | Test calls with literals, casts, boxing, and varargs |
 
-**Bài 1.** Viết `area(int side)` và `area(int width, int height)` để tính diện tích hình vuông/hình chữ nhật. Nêu hai chữ ký khác nhau ở đâu.
+**Exercise 1.** Write `area(int side)` and `area(int width, int height)` to compute the area of a square/rectangle. State where the two signatures differ.
 
-**Bài 2.** Viết `describe(int)`, `describe(long)` và `describe(String)`. Dự đoán lựa chọn khi truyền `4`, `4L` và `"4"`.
+**Exercise 2.** Write `describe(int)`, `describe(long)`, and `describe(String)`. Predict the choice when passing `4`, `4L`, and `"4"`.
 
-**Bài 3.** Giải thích vì sao `void test(int x)` và `int test(int y)` không thể cùng khai báo dù kiểu trả về khác nhau.
+**Exercise 3.** Explain why `void test(int x)` and `int test(int y)` cannot both be declared even though their return types differ.
 
-**Bài 4.** Viết hai overload nhận `(int, String)` và `(String, int)`; thử truyền đúng và sai thứ tự để thấy kiểm tra tại biên dịch.
+**Exercise 4.** Write two overloads taking `(int, String)` and `(String, int)`; test passing arguments in the right and wrong order to observe compile-time checking.
 
-**Bài 5.** Tạo `print(Object)` và `print(String)`. Dự đoán lời gọi `print(null)`, `print((Object) "x")` và `print("x")`. Sau đó phân tích lỗi mơ hồ nếu thay `Object` thành `Integer`.
+**Exercise 5.** Create `print(Object)` and `print(String)`. Predict the calls `print(null)`, `print((Object) "x")`, and `print("x")`. Then analyze the ambiguity error if `Object` is replaced with `Integer`.
 
-**Bài 6.** Viết `total(int... values)` và gọi với 0, 1, nhiều phần tử hoặc một `int[]`; giải thích vì sao không thể khai báo thêm `total(int[])` với cùng tên.
+**Exercise 6.** Write `total(int... values)` and call it with 0, 1, multiple elements, or an `int[]`; explain why you cannot additionally declare `total(int[])` with the same name.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Overloading phân biệt phương thức theo tên và danh sách kiểu tham số (số lượng, kiểu, thứ tự)**; không thể chỉ thay return type, tên tham số, `static` hay `throws`. Java chọn overload dựa vào **kiểu đối số tại thời điểm biên dịch**, theo quy tắc áp dụng và mức độ cụ thể. Chú ý `null` mơ hồ, boxing/varargs và trùng chữ ký sau generic erasure.
+**Overloading distinguishes methods by name and parameter type list (count, types, order)**; you cannot change only return type, parameter names, `static`, or `throws`. Java selects overloads based on **argument types at compile time**, following applicability and specificity rules. Watch out for ambiguous `null`, boxing/varargs, and signature collisions after generic erasure.

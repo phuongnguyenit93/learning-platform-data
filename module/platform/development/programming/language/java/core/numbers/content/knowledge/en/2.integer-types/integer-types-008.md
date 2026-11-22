@@ -1,50 +1,50 @@
-# Vì sao `boolean` không phải kiểu số trong Java?
+# Why Is `boolean` Not a Numeric Type in Java?
 
-Trong Java, `boolean` là **kiểu dữ liệu nguyên thủy (primitive type) dành riêng cho giá trị logic**: chỉ có hai giá trị `true` và `false`. Nó không thuộc nhóm **kiểu số (numeric types)**, kể cả nhóm **kiểu số nguyên (integral types)**. Vì vậy, Java không hiểu `true` là số `1`, `false` là số `0`, cũng không tự coi một số khác `0` là điều kiện đúng.
+In Java, `boolean` is a **primitive data type dedicated exclusively to logical values**: it has only two values, `true` and `false`. It does not belong to the **numeric types**, including the **integral types**. Therefore, Java does not treat `true` as the number `1`, `false` as the number `0`, nor automatically treat a non-zero number as a true condition.
 
-## 1. Phân loại kiểu nguyên thủy: vị trí của `boolean`
+## 1. Classification of Primitive Types: Where `boolean` Sits
 
-Java có tám kiểu nguyên thủy, chia theo ý nghĩa và quy tắc ngôn ngữ:
+Java has eight primitive types, divided by meaning and language rules:
 
-| Nhóm | Kiểu | Giá trị/ý nghĩa |
+| Group | Types | Values / Meaning |
 | --- | --- | --- |
-| Số nguyên (*integral*) | `byte`, `short`, `int`, `long` | Các số nguyên có dấu, với các độ rộng lần lượt 8, 16, 32 và 64 bit. |
-| Số nguyên (*integral*) | `char` | Giá trị không dấu 16 bit, thường biểu diễn một đơn vị mã UTF-16; có thể tham gia một số phép toán số. |
-| Số thực (*floating-point*) | `float`, `double` | Các giá trị dấu phẩy động theo quy tắc IEEE 754 của Java. |
-| Logic | `boolean` | Chỉ `true` hoặc `false`; **không phải số**. |
+| Integral | `byte`, `short`, `int`, `long` | Signed integers with widths of 8, 16, 32, and 64 bits respectively. |
+| Integral | `char` | 16-bit unsigned value, typically representing a UTF-16 code unit; can participate in some numeric operations. |
+| Floating-point | `float`, `double` | Floating-point values following Java's IEEE 754 rules. |
+| Logical | `boolean` | Only `true` or `false`; **not a number**. |
 
-Điểm dễ nhầm: tên nhóm “số nguyên” trong ngữ cảnh *Java Language Specification* có cả `char`, dù ta thường dùng `char` cho ký tự. Ngược lại, `boolean` **không** thuộc nhóm này. Khả năng chứa hai trạng thái không đồng nghĩa với khả năng chứa hai số nguyên.
+An easy point of confusion: the “integral” group in the *Java Language Specification* includes `char`, even though we usually use `char` for characters. In contrast, `boolean` does **not** belong to this group. Having two states does not mean having two integer values.
 
-Ví dụ, `int count = 0;` nói về **số lượng**, còn `boolean empty = true;` nói về **một mệnh đề đúng/sai**. Hai biến có thể liên hệ qua biểu thức `count == 0`, nhưng vẫn có kiểu và phép toán khác nhau.
+For example, `int count = 0;` expresses a **quantity**, whereas `boolean empty = true;` expresses a **true/false proposition**. Both variables can be related through an expression like `count == 0`, yet still have distinct types and operations.
 
-## 2. Vì sao Java tách `boolean` khỏi số?
+## 2. Why Does Java Separate `boolean` from Numbers?
 
-**Khác miền giá trị.** Một giá trị số mô tả lượng có thể tính toán, so sánh lớn/nhỏ, cộng, trừ, nhân, chia. Một giá trị `boolean` mô tả kết quả của điều kiện hoặc trạng thái logic. Không có ý nghĩa ngôn ngữ cho `true + 1` hay `false < true`.
+**Different value domains.** A numeric value describes a quantity that can be calculated, compared as greater/less, added, subtracted, multiplied, and divided. A `boolean` value describes the outcome of a condition or a logical state. There is no language-defined meaning for `true + 1` or `false < true`.
 
-**Kiểm tra kiểu ngay khi biên dịch.** Java yêu cầu biểu thức trong `if`, `while` và các điều kiện tương tự có kiểu `boolean` (có thể tự mở hộp từ `Boolean`). Java không có quy tắc “*truthy/falsy*” cho số như một số ngôn ngữ khác. Quy tắc này ngăn những lỗi như vô tình viết `if (count)` khi thật ra cần `if (count > 0)`.
+**Compile-time type checking.** Java requires the condition in `if`, `while`, and similar control statements to have type `boolean` (which can be unboxed from `Boolean`). Java has no “*truthy/falsy*” rule for numbers as some other languages do. This rule prevents bugs such as accidentally writing `if (count)` when `if (count > 0)` was actually meant.
 
-**Tường minh tại ranh giới dữ liệu.** Khi một API hoặc hệ thống cũ quy ước `0`/`1` biểu thị tắt/bật, mã Java cần ánh xạ rõ ràng giữa số và logic. Cách đó khiến ý nghĩa các trường hợp ngoài `0` và `1` phải được quyết định, tránh giả định âm thầm.
+**Explicitness at data boundaries.** When an API or legacy system uses the convention `0`/`1` for off/on, Java code must explicitly map between numbers and logic. That forces the meaning of values outside `0` and `1` to be decided explicitly, avoiding silent assumptions.
 
-Đây là **quy tắc của hệ thống kiểu Java**, không phải kết luận rằng máy tính không thể lưu trạng thái đúng/sai bằng các bit.
+This is a **rule of Java's type system**, not a claim that computers cannot store true/false states using bits.
 
-## 3. Những gán, ép kiểu và điều kiện nào hợp lệ?
+## 3. Which Assignments, Casts, and Conditions Are Valid?
 
-Các câu lệnh sau **không biên dịch được** trong Java (mỗi dòng là ví dụ riêng về lỗi kiểu):
+The following statements **do not compile** in Java (each line is a separate example of a type error):
 
 ```java
-boolean active = 1;        // Lỗi: int không chuyển thành boolean.
-int value = true;          // Lỗi: boolean không chuyển thành int.
-boolean flag = (boolean) 1; // Lỗi: không tồn tại phép cast int -> boolean.
-int n = (int) false;       // Lỗi: không tồn tại phép cast boolean -> int.
-if (1) {                   // Lỗi: điều kiện if phải là boolean.
+boolean active = 1;        // Error: int does not convert to boolean.
+int value = true;          // Error: boolean does not convert to int.
+boolean flag = (boolean) 1; // Error: no cast exists from int -> boolean.
+int n = (int) false;       // Error: no cast exists from boolean -> int.
+if (1) {                   // Error: if condition must be boolean.
     System.out.println("run");
 }
-boolean result = true + false; // Lỗi: phép cộng không áp dụng cho boolean.
+boolean result = true + false; // Error: addition does not apply to boolean.
 ```
 
-Không có chuyển đổi số `byte`/`short`/`int`/`long`/`float`/`double` ↔ `boolean`, dù dùng gán ngầm, cast tường minh hay *numeric promotion*. **Autoboxing** cũng không biến `boolean` thành `Integer` hoặc `Number`.
+There is no numeric conversion `byte`/`short`/`int`/`long`/`float`/`double` ↔ `boolean`, whether by implicit assignment, explicit cast, or *numeric promotion*. **Autoboxing** does not turn `boolean` into `Integer` or `Number` either.
 
-Muốn suy ra một trạng thái từ số, hãy viết **một phép so sánh tạo `boolean`**:
+To derive a state from a number, write **a comparison that produces `boolean`**:
 
 ```java
 int count = 3;
@@ -52,77 +52,77 @@ boolean hasItems = count > 0; // true
 boolean isZero = count == 0;  // false
 
 if (count > 0) {
-    System.out.println("Có phần tử");
+    System.out.println("Has items");
 }
 ```
 
-Ở đây, hai toán hạng của `>` và `==` là số, nhưng **kết quả so sánh** là `boolean`. Với cờ có hai trạng thái, dùng `if (hasItems)` thay vì so sánh thừa `if (hasItems == true)`.
+Here, the two operands of `>` and `==` are numbers, while the **comparison result** is `boolean`. For a two-state flag, use `if (hasItems)` instead of the redundant comparison `if (hasItems == true)`.
 
-Nếu phải biểu diễn logic bằng `0`/`1` để giao tiếp với hệ thống bên ngoài, hãy **mã hóa/giải mã** tường minh:
+If you must represent logic as `0`/`1` to communicate with an external system, **encode/decode** explicitly:
 
 ```java
-int encoded = hasItems ? 1 : 0; // boolean -> int theo quy ước của ứng dụng
-boolean decoded = encoded == 1; // int -> boolean bằng phép so sánh
+int encoded = hasItems ? 1 : 0; // boolean -> int by application convention
+boolean decoded = encoded == 1; // int -> boolean via comparison
 ```
 
-Hai dòng này dùng toán tử điều kiện và so sánh; **không** phải chuyển kiểu `boolean` ↔ `int`. Quy ước `0`/`1` là do ứng dụng hoặc giao thức đặt ra, không phải giá trị số tự có của `false`/`true`.
+These two lines use the conditional operator and comparison; they are **not** type conversions `boolean` ↔ `int`. The `0`/`1` convention is defined by the application or protocol, not an inherent numeric value of `false`/`true`.
 
-## 4. Toán tử được phép: phân biệt logic với số
+## 4. Allowed Operators: Distinguishing Logic from Numbers
 
-| Phép toán | Với `boolean` | Với kiểu số |
+| Operator | With `boolean` | With Numeric Types |
 | --- | --- | --- |
-| `!` | Phủ định logic, ví dụ `!true` là `false`. | Không dùng cho số. |
-| `&&`, `||` | AND/OR có **đoản mạch** (*short-circuit*). | Không dùng trực tiếp cho hai số. |
-| `&`, `\|`, `^` | AND/OR/XOR logic, **luôn đánh giá cả hai vế**. | Là các toán tử theo bit cho các kiểu số nguyên phù hợp. |
-| `==`, `!=` | So sánh hai giá trị logic. | So sánh các toán hạng số phù hợp. |
-| `+`, `-`, `*`, `/`, `%` | Không áp dụng cho `boolean`. | Các phép toán số. |
-| `<`, `<=`, `>`, `>=` | Không áp dụng cho `boolean`. | So sánh thứ tự số, trả về `boolean`. |
-| `~`, `<<`, `>>`, `>>>` | Không áp dụng cho `boolean`. | Các toán tử theo bit/dịch bit cho kiểu số nguyên. |
+| `!` | Logical negation, e.g., `!true` is `false`. | Not applicable to numbers. |
+| `&&`, `||` | **Short-circuiting** logical AND/OR. | Not applicable directly to two numbers. |
+| `&`, `\|`, `^` | Logical AND/OR/XOR, **always evaluating both sides**. | Bitwise operators for suitable integral types. |
+| `==`, `!=` | Compares two logical values. | Compares suitable numeric operands. |
+| `+`, `-`, `*`, `/`, `%` | Not applicable to `boolean`. | Arithmetic operations. |
+| `<`, `<=`, `>`, `>=` | Not applicable to `boolean`. | Numeric ordering comparisons, returning `boolean`. |
+| `~`, `<<`, `>>`, `>>>` | Not applicable to `boolean`. | Bitwise/shift operators for integral types. |
 
-*Chú ý:* Phép `+` trong `"active=" + true` là **nối chuỗi**, không phải phép cộng số trên `boolean`.
+*Note:* The `+` in `"active=" + true` is **string concatenation**, not numeric addition on `boolean`.
 
-Ví dụ về đoản mạch:
+Short-circuiting example:
 
 ```java
 int denominator = 0;
 boolean canDivide = denominator != 0 && 10 / denominator > 1;
-System.out.println(canDivide); // false; vế chia không được đánh giá
+System.out.println(canDivide); // false; division side is not evaluated
 ```
 
-Nếu thay `&&` bằng `&` trong ví dụ trên, vế phải vẫn được đánh giá và gây `ArithmeticException` do chia cho `0`. Sự khác nhau này xuất phát từ **cách đánh giá toán tử logic**, không liên quan đến chuyển `boolean` thành số.
+If you replace `&&` with `&` in the example above, the right-hand side is still evaluated and throws `ArithmeticException` due to division by `0`. This difference comes from **how logical operators are evaluated**, not from converting `boolean` to a number.
 
-## 5. JVM có thể dùng 0/1, nhưng ngôn ngữ vẫn xem `boolean` là logic
+## 5. The JVM May Use 0/1, Yet the Language Still Treats `boolean` as Logical
 
-Ở tầng triển khai, máy ảo Java có thể biểu diễn giá trị logic bằng bit hoặc byte trong bộ nhớ; các lệnh bytecode xử lý biểu thức `boolean` trên *operand stack* thường sử dụng biểu diễn dựa trên `int`. Trình biên dịch có thể phát sinh hằng `0` cho `false` và `1` cho `true` ở tầng bytecode.
+At the implementation level, the Java Virtual Machine may represent logical values as bits or bytes in memory; bytecode instructions operating on `boolean` expressions on the *operand stack* often use an `int`-based representation. The compiler may emit constant `0` for `false` and `1` for `true` at the bytecode level.
 
-Nhưng cần tách ba tầng:
+However, three layers must be kept separate:
 
-1. **Mã nguồn Java:** quy tắc kiểu chỉ cho phép `true`/`false`, không có cast giữa `boolean` và `int`.
-2. **Bytecode/JVM:** biểu diễn và tập lệnh vận hành theo đặc tả JVM; một số hoạt động trên boolean dựa vào lệnh số nguyên.
-3. **Bộ nhớ/hệ điều hành/hệ thống bên ngoài:** cách đóng gói bit, byte hay `0`/`1` có thể tùy triển khai hoặc giao thức.
+1. **Java source code:** type rules only allow `true`/`false`, with no cast between `boolean` and `int`.
+2. **Bytecode/JVM:** representation and instruction set operate per the JVM specification; some boolean operations rely on integer instructions.
+3. **Memory/OS/external systems:** packing of bits, bytes, or `0`/`1` may depend on the implementation or protocol.
 
-Không suy ra từ bytecode rằng `boolean` “thực chất là `int`” trong Java. Cũng **không được giả định** mọi biến `boolean` chiếm đúng 1 bit hay 1 byte trong bộ nhớ: Java không định nghĩa kích thước lưu trữ cố định của `boolean` như đối với độ rộng giá trị của các kiểu số nguyên.
+Do not conclude from bytecode that `boolean` “is really an `int`” in Java. Nor should you **assume** every `boolean` variable occupies exactly 1 bit or 1 byte in memory: Java does not define a fixed storage size for `boolean` the way it defines value widths for integer types.
 
-Giá trị mặc định của **trường** kiểu `boolean` và phần tử của `boolean[]` là `false`. Biến cục bộ không tự được gán giá trị mặc định để có thể đọc tùy ý; trước khi đọc, nó phải được gán chắc chắn (*definite assignment*).
+The default value of a `boolean` **field** and an element of `boolean[]` is `false`. A local variable is not automatically given a default value to be read arbitrarily; before reading, it must be definitely assigned (*definite assignment*).
 
-## 6. `Boolean` và `Number` cũng là hai nhánh khác nhau
+## 6. `Boolean` and `Number` Are Also Two Separate Hierarchies
 
-`boolean` là kiểu nguyên thủy; `java.lang.Boolean` là lớp bọc (*wrapper*) cho nó. `Boolean` **không kế thừa `java.lang.Number`**, trong khi các lớp bọc số như `Integer`, `Long`, `Double` là những lớp con của `Number`.
+`boolean` is a primitive type; `java.lang.Boolean` is its *wrapper* class. `Boolean` **does not extend `java.lang.Number`**, whereas numeric wrapper classes such as `Integer`, `Long`, and `Double` are subclasses of `Number`.
 
 ```java
-Boolean boxed = Boolean.TRUE; // Hợp lệ: Boolean chứa giá trị logic.
-boolean unboxed = boxed;      // Hợp lệ: tự mở hộp.
-Number amount = Integer.valueOf(1); // Hợp lệ.
- // Number wrong = Boolean.TRUE;    // Không biên dịch: Boolean không là Number.
+Boolean boxed = Boolean.TRUE; // Valid: Boolean holds a logical value.
+boolean unboxed = boxed;      // Valid: auto-unboxing.
+Number amount = Integer.valueOf(1); // Valid.
+ // Number wrong = Boolean.TRUE;    // Does not compile: Boolean is not a Number.
 ```
 
-`Boolean.parseBoolean("true")` trả về `true` (không phân biệt hoa/thường cho chữ `true`); `Boolean.parseBoolean("1")` trả về `false`. Đây là thao tác đọc **chuỗi theo quy tắc của API**, không phải phép chuyển số `1` sang `true`.
+`Boolean.parseBoolean("true")` returns `true` (case-insensitive for the word `true`); `Boolean.parseBoolean("1")` returns `false`. This is parsing a **string according to the API's rule**, not converting the number `1` to `true`.
 
-Lưu ý thêm: biến `Boolean` là tham chiếu nên có thể là `null`; tự mở hộp một giá trị `null` sẽ gây `NullPointerException`. Dùng `boolean` nguyên thủy cho cờ hai trạng thái nếu không cần biểu thị trạng thái `null`.
+Additional note: a `Boolean` variable is a reference, so it can be `null`; auto-unboxing a `null` value throws `NullPointerException`. Use primitive `boolean` for two-state flags when you do not need to represent a `null` state.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Runnable Java 17+ Example
 
-Tạo tệp **`BooleanNumberDemo.java`**:
+Create the file **`BooleanNumberDemo.java`**:
 
 ```java
 public class BooleanNumberDemo {
@@ -150,14 +150,14 @@ public class BooleanNumberDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac BooleanNumberDemo.java
 java BooleanNumberDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 hasPending=false
@@ -166,17 +166,17 @@ flagForLegacyApi=1
 fromLegacyApi=true
 ```
 
-Đọc lần lượt: `pending > 0` tạo một giá trị logic; `&&` kết hợp hai điều kiện; `enabled ? 1 : 0` mã hóa cờ thành số theo quy ước; `decodeZeroOne` kiểm tra đầu vào đúng miền `{0, 1}` trước khi biến nó thành điều kiện logic bằng `==`. Nếu đầu vào là `2` hoặc `-1`, hàm chủ động báo lỗi thay vì ngầm coi mọi số khác `0` là `true`.
+Reading step by step: `pending > 0` produces a logical value; `&&` combines two conditions; `enabled ? 1 : 0` encodes the flag as a number by convention; `decodeZeroOne` validates that the input is in `{0, 1}` before turning it into a logical condition with `==`. If the input is `2` or `-1`, the method explicitly throws an error instead of silently treating every non-zero number as `true`.
 
-## 8. Những nhầm lẫn cần tránh
+## 8. Misconceptions to Avoid
 
-- **“Vì boolean chỉ có hai giá trị nên nó là số nguyên 1 bit.”** Sai về loại dữ liệu: nó có hai giá trị logic; kích thước lưu trữ là vấn đề triển khai.
-- **“`true` có nghĩa là `1` trong Java.”** Sai ở mã nguồn Java. Một giao thức hay đoạn bytecode có thể dùng `1` để biểu diễn `true`, nhưng điều đó không tạo ra phép chuyển kiểu Java.
-- **“Có thể viết `if (n)` vì `n` là số.”** Sai. Hãy phát biểu điều kiện rõ ràng, ví dụ `if (n != 0)` hoặc `if (n > 0)`, tùy ý nghĩa.
-- **“Không thể dùng `&`/`\|`/`^` với boolean.”** Sai. Các toán tử này có dạng áp dụng cho boolean, nhưng không đoản mạch như `&&`/`||`.
-- **“`Boolean` là một kiểu `Number`.”** Sai. `Boolean` là wrapper của kiểu logic, đứng ngoài hệ phân cấp `Number`.
-- **“Chuyển chuỗi `"1"` qua `Boolean.parseBoolean` sẽ được `true`.”** Sai. Phải tự xác định quy ước chuyển đổi hoặc kiểm tra đầu vào.
+- **“Because `boolean` only has two values, it is a 1-bit integer.”** Wrong about data kind: it has two logical values; storage size is an implementation detail.
+- **“`true` means `1` in Java.”** False in Java source code. A protocol or bytecode instruction may use `1` to represent `true`, but that does not create a Java type conversion.
+- **“You can write `if (n)` because `n` is a number.”** False. State the condition explicitly, such as `if (n != 0)` or `if (n > 0)`, depending on the meaning.
+- **“You cannot use `&`/`\|`/`^` with `boolean`.”** False. These operators have forms applicable to `boolean`, though they do not short-circuit like `&&`/`||`.
+- **“`Boolean` is a kind of `Number`.”** False. `Boolean` is the wrapper of the logical type, outside the `Number` hierarchy.
+- **“Passing `"1"` to `Boolean.parseBoolean` returns `true`.”** False. You must define the conversion convention yourself or validate the input.
 
-**Ghi nhớ:** `boolean` dùng để biểu diễn một mệnh đề **đúng/sai**; các kiểu số dùng để biểu diễn **lượng**. Dùng **so sánh** để tạo logic từ số, dùng **quy ước mã hóa tường minh** khi phải chuyển logic sang số cho hệ thống bên ngoài; không dựa vào biểu diễn ở JVM để vượt qua quy tắc kiểu của Java.
+**Remember:** `boolean` represents a **true/false** proposition; numeric types represent **quantities**. Use **comparisons** to produce logic from numbers, and use **explicit encoding conventions** when converting logic to numbers for external systems; do not rely on JVM representation to bypass Java's type rules.
 
-Nguồn đặc tả tham khảo: [Java Language Specification, §4.2 (Primitive Types and Values)](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.2) và [Java Virtual Machine Specification, §2.3.4 (The boolean Type)](https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-2.html#jvms-2.3.4).
+Specification references: [Java Language Specification, §4.2 (Primitive Types and Values)](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.2) and [Java Virtual Machine Specification, §2.3.4 (The boolean Type)](https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-2.html#jvms-2.3.4).

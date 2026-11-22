@@ -1,33 +1,33 @@
-# StringBuilder: `equals`, `compareTo` và giới hạn chia sẻ giữa nhiều luồng
+# StringBuilder: `equals`, `compareTo`, and Multi-Thread Sharing Limitations
 
-`StringBuilder` là lớp **chuỗi có thể thay đổi (mutable)** trong Java. Nó phù hợp để tạo hoặc chỉnh sửa văn bản qua các thao tác `append`, `insert`, `replace`, `delete` mà không cần tạo một giá trị `String` mới cho từng lần nối. Nhưng tính mutable kéo theo ba vấn đề cần phân biệt: **so sánh đối tượng bằng `equals`**, **so sánh nội dung có thứ tự bằng `compareTo`**, và **an toàn khi nhiều luồng cùng truy cập**.
+`StringBuilder` is a **mutable string** class in Java. It is well suited for creating or editing text via `append`, `insert`, `replace`, and `delete` without creating a new `String` value for each concatenation. However, mutability brings three issues you must distinguish: **object comparison with `equals`**, **ordered content comparison with `compareTo`**, and **safety under concurrent multi-threaded access**.
 
-Điểm quan trọng nhất:
+The most important points:
 
-- `StringBuilder` **không ghi đè `Object.equals(Object)`**. Hai builder riêng biệt, dù chứa cùng nội dung, vẫn không bằng nhau theo `equals`.
-- Trên Java 11 trở lên, `StringBuilder` có `compareTo(StringBuilder)` để **so sánh nội dung theo thứ tự từ điển**. Hai builder khác đối tượng nhưng cùng nội dung trả kết quả `0`.
-- `StringBuilder` **không cung cấp đồng bộ hóa cho truy cập đồng thời**. Nếu chia sẻ một builder có thể bị thay đổi cho nhiều luồng, chương trình phải tự tổ chức đồng bộ và quy tắc sở hữu rõ ràng.
+- `StringBuilder` **does not override `Object.equals(Object)`**. Two separate builders, even with identical content, are not equal under `equals`.
+- On Java 11 and later, `StringBuilder` provides `compareTo(StringBuilder)` to **compare content in lexicographic order**. Two different builder objects with the same content return `0`.
+- `StringBuilder` **provides no synchronization for concurrent access**. If a mutable builder is shared across multiple threads, the program must establish explicit synchronization and clear ownership rules.
 
-Đây không phải mâu thuẫn của Java: `equals` và `compareTo` thực hiện **hai hợp đồng khác nhau**, còn an toàn luồng phụ thuộc việc đọc/ghi được phối hợp ra sao.
+This is not a contradiction in Java: `equals` and `compareTo` implement **two different contracts**, while thread safety depends on how reads and writes are coordinated.
 
-## 1. `StringBuilder` khác `String` như thế nào?
+## 1. How Does `StringBuilder` Differ from `String`?
 
-| Tiêu chí | `String` | `StringBuilder` |
+| Criterion | `String` | `StringBuilder` |
 | --- | --- | --- |
-| Dữ liệu văn bản | Bất biến sau khi tạo | Có thể thêm, xóa, thay thế ký tự |
-| Dùng cho | Giá trị văn bản, khóa so sánh, tham số API | Xây dựng/chỉnh sửa văn bản tại một nơi |
-| `equals(Object)` | So sánh nội dung hai `String` | Kế thừa `Object.equals`: so sánh cùng tham chiếu |
-| `compareTo(...)` | So sánh từ điển hai `String` | So sánh từ điển hai `StringBuilder` trên Java 11+ |
-| `hashCode()` | Dựa trên nội dung | Kế thừa `Object.hashCode`: không phải mã băm dựa trên nội dung |
-| Khả năng chia sẻ giữa luồng | Giá trị bất biến thuận tiện để chia sẻ sau khi công bố an toàn | Cần bảo vệ khi các luồng có thể cùng đọc/ghi |
+| Text data | Immutable after creation | Can append, delete, and replace characters |
+| Used for | Text values, comparison keys, API arguments | Building/editing text in one place |
+| `equals(Object)` | Compares content of two `String`s | Inherits `Object.equals`: compares reference identity |
+| `compareTo(...)` | Lexicographic comparison of two `String`s | Lexicographic comparison of two `StringBuilder`s on Java 11+ |
+| `hashCode()` | Content-based | Inherits `Object.hashCode`: not a content-based hash code |
+| Sharing across threads | Immutable value convenient to share after safe publication | Requires protection when threads may read/write concurrently |
 
-Ví dụ, `StringBuilder sb = new StringBuilder("Java");` tạo builder có nội dung ban đầu là `Java`; `sb.append(" Core")` làm thay đổi chính builder thành `Java Core`. Đây là hành vi khác với `String`: gọi `text.concat(" Core")` không sửa `text`, mà tạo một giá trị chuỗi tương ứng để bên gọi sử dụng.
+For example, `StringBuilder sb = new StringBuilder("Java");` creates a builder with initial content `Java`; `sb.append(" Core")` mutates that builder itself into `Java Core`. This behaves differently from `String`: calling `text.concat(" Core")` does not mutate `text`, instead returning a corresponding string value for the caller to use.
 
-`StringBuilder` **không phải** một `String`: dù cả hai chứa văn bản, không thể truyền builder trực tiếp vào mọi API yêu cầu `String`. Khi cần giá trị `String` để so sánh nội dung hoặc truyền đi, dùng `sb.toString()`.
+A `StringBuilder` is **not** a `String`: even though both hold text, you cannot pass a builder directly into every API expecting `String`. When you need a `String` value for content comparison or passing onward, use `sb.toString()`.
 
-## 2. `equals(Object)` của `StringBuilder` là so sánh danh tính
+## 2. `StringBuilder.equals(Object)` Is Identity Comparison
 
-Khác với `String`, lớp `StringBuilder` **không override `equals(Object)`**. Nó thừa hưởng hành vi từ `Object`: phương thức chỉ trả về `true` khi đối tượng được so sánh là **chính cùng một đối tượng**.
+Unlike `String`, `StringBuilder` **does not override `equals(Object)`**. It inherits `Object`'s behavior: the method returns `true` only when the compared object is **the exact same object**.
 
 ```java
 StringBuilder first = new StringBuilder("Java");
@@ -40,19 +40,19 @@ System.out.println(first == alias);        // true
 System.out.println(first.equals(alias));   // true
 ```
 
-Đoạn trên là mã minh họa đặt bên trong một phương thức Java. Hai builder `first` và `second` được tạo độc lập nên khác tham chiếu; `alias` chỉ là một tham chiếu khác trỏ tới đối tượng của `first`.
+The snippet above is illustrative code placed inside a Java method. Both `first` and `second` are independently created builders, so their references differ; `alias` is simply another reference pointing to `first`'s object.
 
-Nếu muốn kiểm tra **nội dung** hai builder, đừng gọi `first.equals(second)` rồi kỳ vọng nó hoạt động như `String.equals`. Có thể tạo hai giá trị `String` bất biến:
+If you want to compare the **content** of two builders, do not call `first.equals(second)` expecting it to behave like `String.equals`. You can create two immutable `String` values:
 
 ```java
 boolean sameText = first.toString().equals(second.toString());
 ```
 
-Kết quả là `true` nếu nội dung bằng nhau tại thời điểm chụp mỗi giá trị. Nếu đang có nhiều luồng thay đổi builder, cần đồng bộ hóa để có được snapshot phù hợp; bản thân `toString()` không làm mọi thao tác trên builder trở nên thread-safe.
+The result is `true` if the contents are equal at the moment each value is captured. If multiple threads are mutating the builders, synchronization is required to obtain a consistent snapshot; `toString()` itself does not make all builder operations thread-safe.
 
-### Thử nghiệm hoàn chỉnh
+### Complete Experiment
 
-Tệp `BuilderEqualityDemo.java`:
+File `BuilderEqualityDemo.java`:
 
 ```java
 public class BuilderEqualityDemo {
@@ -78,14 +78,14 @@ public class BuilderEqualityDemo {
 }
 ```
 
-Biên dịch và chạy trên JDK 17 trở lên:
+Compile and run on JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 BuilderEqualityDemo.java
 java BuilderEqualityDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 a == b: false
@@ -98,25 +98,25 @@ alias sees change: abc!
 now strings equal: false
 ```
 
-`a.equals("abc")` cũng trả `false` vì đối số là một `String`, không phải cùng đối tượng `a`. `alias` cùng trỏ đến `a` nên nhìn thấy thay đổi khi `a.append('!')` được gọi.
+`a.equals("abc")` also returns `false` because the argument is a `String`, not the same object as `a`. `alias` points to `a`, so it sees the change when `a.append('!')` is called.
 
-## 3. `compareTo(StringBuilder)`: so sánh nội dung theo thứ tự từ điển
+## 3. `compareTo(StringBuilder)`: Lexicographic Content Comparison
 
-Từ **Java 11**, `StringBuilder` triển khai `Comparable<StringBuilder>` và cung cấp phương thức:
+Since **Java 11**, `StringBuilder` implements `Comparable<StringBuilder>` and provides the method:
 
 ```java
 public int compareTo(StringBuilder another)
 ```
 
-Phương thức dùng **thứ tự từ điển (lexicographic order)** của các đơn vị ký tự UTF-16 trong nội dung builder:
+The method uses **lexicographic order** of the UTF-16 character units in the builders' contents:
 
-- Trả về **số âm** nếu nội dung builder bên trái đứng trước nội dung bên phải.
-- Trả về **`0`** nếu hai dãy UTF-16 code unit có cùng nội dung.
-- Trả về **số dương** nếu nội dung bên trái đứng sau nội dung bên phải.
+- Returns a **negative number** if the left builder's content precedes the right's.
+- Returns **`0`** if both UTF-16 code unit sequences have the same content.
+- Returns a **positive number** if the left content follows the right's.
 
-Không nên đặt điều kiện `compareTo(...) == -1` hoặc `== 1` để nhận biết lớn/nhỏ. Hợp đồng cần dùng là **dấu của kết quả** (`< 0`, `== 0`, `> 0`), không phải một độ lớn cụ thể.
+Do not check `compareTo(...) == -1` or `== 1` to test ordering. The contract to rely on is the **sign of the result** (`< 0`, `== 0`, `> 0`), not a specific magnitude.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder a = new StringBuilder("apple");
@@ -129,11 +129,11 @@ System.out.println(a.compareTo(c) == 0); // true
 System.out.println(a.equals(c));         // false
 ```
 
-`a.compareTo(c) == 0` có nghĩa **nội dung đang bằng nhau**, không có nghĩa `a` và `c` là cùng đối tượng. Chính vì vậy, Java API cảnh báo **thứ tự tự nhiên này không nhất quán với `equals`** (`natural ordering inconsistent with equals`).
+`a.compareTo(c) == 0` means **the contents are currently equal**, not that `a` and `c` are the same object. For this exact reason, the Java API warns that **this natural ordering is inconsistent with `equals`** (`natural ordering inconsistent with equals`).
 
-### Chương trình minh họa có kết quả kiểm chứng được
+### Demonstrative Program with Verifiable Output
 
-Tệp `BuilderComparisonDemo.java`:
+File `BuilderComparisonDemo.java`:
 
 ```java
 public class BuilderComparisonDemo {
@@ -161,14 +161,14 @@ public class BuilderComparisonDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 BuilderComparisonDemo.java
 java BuilderComparisonDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 left < right: true
@@ -179,43 +179,43 @@ after change comparison: 0
 after change equals: false
 ```
 
-Lời gọi `right.setLength(0)` xóa nội dung hiệu dụng của builder, rồi `append("apple")` ghi lại văn bản `apple`. Nội dung thay đổi khiến `compareTo` trả về giá trị mới, trong khi `equals` vẫn là so sánh danh tính và không đổi kết quả vì hai đối tượng vẫn khác nhau.
+Calling `right.setLength(0)` clears the builder's effective content, and `append("apple")` writes the text `apple`. The content change causes `compareTo` to return a new value, whereas `equals` remains an identity check and does not change its result because the two objects are still distinct.
 
-Không có phép so sánh nội dung “đóng băng” mặc định đối với builder mutable: sau mỗi thay đổi, thứ tự của nó so với builder khác **có thể** đổi.
+There is no default "frozen" content comparison for mutable builders: after any edit, its ordering relative to another builder **can** change.
 
-## 4. `compareTo` không thay thế `equals` và không so sánh được trực tiếp với `String`
+## 4. `compareTo` Does Not Replace `equals` and Cannot Compare Directly Against `String`
 
-Đây là hai thao tác khác nhau:
+These are distinct operations:
 
 ```java
 StringBuilder builder = new StringBuilder("hello");
 StringBuilder otherBuilder = new StringBuilder("hello");
 String stringValue = "hello";
 
-// Theo danh tính đối tượng:
+// By object identity:
 boolean sameBuilderObject = builder.equals(otherBuilder); // false
 
-// Theo thứ tự nội dung hai builder:
+// By content ordering of two builders:
 boolean sameBuilderContent = builder.compareTo(otherBuilder) == 0; // true
 
-// Theo nội dung dạng String:
+// By String content:
 boolean sameAsString = builder.toString().equals(stringValue); // true
 ```
 
-Đây là mã minh họa nằm trong một phương thức. `compareTo` nhận `StringBuilder`, **không nhận `String`**. Vì vậy `builder.compareTo(stringValue)` không hợp lệ về kiểu; bạn cần quyết định so sánh hai builder bằng `compareTo`, hoặc tạo `String` và dùng `equals`/`compareTo` của `String`.
+This is illustrative code inside a method. `compareTo` takes a `StringBuilder`, **not a `String`**. Thus `builder.compareTo(stringValue)` is not type-valid; you must decide whether to compare two builders with `compareTo`, or create a `String` and use `String`'s `equals`/`compareTo`.
 
-Để tìm một chuỗi con, hãy dùng các API văn bản thích hợp như `indexOf` (nếu áp dụng cho builder) hoặc snapshot `toString()`, thay vì lấy `compareTo` để suy ra có chứa một từ. `compareTo` chỉ trả về **quan hệ thứ tự giữa toàn bộ nội dung hai đối tượng**.
+To search for a substring, use appropriate text APIs such as `indexOf` (when applicable to the builder) or a `toString()` snapshot, instead of inferring containment from `compareTo`. `compareTo` returns only the **ordering relation between the entire contents of two objects**.
 
-`StringBuilder.compareTo` cũng không phải bộ so sánh ngôn ngữ tự nhiên: nó dựa trên thứ tự UTF-16 của dữ liệu ký tự và phân biệt hoa/thường. Nếu cần sắp xếp tên người theo quy tắc ngôn ngữ, phải xác định locale và bộ so sánh văn bản phù hợp, thường làm việc với các giá trị `String` bất biến.
+`StringBuilder.compareTo` is also not a natural-language comparator: it relies on UTF-16 code unit order and is case-sensitive. If you need to sort people's names according to language rules, specify an appropriate locale and text comparator, usually working with immutable `String` values.
 
-## 5. Vì sao `HashSet` và `TreeSet` xử lý builder có cùng nội dung khác nhau?
+## 5. Why Do `HashSet` and `TreeSet` Handle Same-Content Builders Differently?
 
-Điểm không nhất quán giữa `equals` và `compareTo` có hệ quả khi dùng tập hợp:
+The inconsistency between `equals` and `compareTo` has consequences when using collections:
 
-- `HashSet` xác định trùng nhau bằng `hashCode` và `equals`. `StringBuilder` không override hai phương thức này để dựa trên nội dung, nên **hai builder khác đối tượng** là hai phần tử khác nhau.
-- `TreeSet` với thứ tự tự nhiên xác định các phần tử tương đương theo **`compareTo(...) == 0`**. Hai builder có cùng nội dung có thể được xem là một phần tử trong tập dù `equals` của chúng là `false`.
+- `HashSet` determines duplicates using `hashCode` and `equals`. `StringBuilder` does not override those two methods to be content-based, so **two distinct builder objects** are two distinct elements.
+- `TreeSet` with natural ordering determines equivalence using **`compareTo(...) == 0`**. Two builders with identical content can be treated as a single element in the set even though their `equals` returns `false`.
 
-Tệp `BuilderSetDemo.java`:
+File `BuilderSetDemo.java`:
 
 ```java
 import java.util.HashSet;
@@ -244,14 +244,14 @@ public class BuilderSetDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 BuilderSetDemo.java
 java BuilderSetDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 equals: false
@@ -260,37 +260,37 @@ HashSet size: 2
 TreeSet size: 1
 ```
 
-Sự khác biệt **không phải lỗi ngẫu nhiên** của tập hợp; nó xuất phát từ hợp đồng so sánh của `StringBuilder`. `SortedSet` và `SortedMap` dựa vào thứ tự để xác định tương đương, nên việc dùng loại dữ liệu có thứ tự tự nhiên không nhất quán với `equals` có thể gây hành vi ngược kỳ vọng của lập trình viên.
+The difference is **not a random bug** in collections; it comes from `StringBuilder`'s comparison contract. `SortedSet` and `SortedMap` rely on ordering to define equivalence, so using a type whose natural ordering is inconsistent with `equals` can produce behavior opposite to a developer's expectations.
 
-**Không nên dùng builder mutable làm khóa để sắp xếp hoặc định danh theo nội dung.** Nếu cần tập hợp các chuỗi duy nhất theo nội dung, lựa chọn tự nhiên là chuyển sang `String`:
+**Do not use mutable builders as keys for sorting or content-based identification.** If you need a set of unique strings by content, the natural choice is converting to `String`:
 
 ```java
 Set<String> texts = new HashSet<>();
 texts.add(first.toString());
-texts.add(second.toString()); // Cùng nội dung, HashSet giữ một giá trị
+texts.add(second.toString()); // Same content, HashSet keeps one value
 
 System.out.println(texts.size()); // 1
 ```
 
-Đoạn ví dụ nằm trong phương thức có import `java.util.Set` và `java.util.HashSet`. `String` có `equals`/`hashCode` theo nội dung và bất biến, nên thích hợp hơn khi làm khóa tập hợp/map cho văn bản.
+This snippet belongs inside a method with `java.util.Set` and `java.util.HashSet` imported. `String` has content-based `equals`/`hashCode` and is immutable, making it far better suited as a text key in sets and maps.
 
-## 6. Mutable builder không phải khóa sắp xếp ổn định
+## 6. A Mutable Builder Is Not a Stable Sort Key
 
-Giả sử `TreeSet<StringBuilder>` đã sắp xếp nội dung builder lúc thêm vào tập. Sau đó một builder bị sửa từ `"a"` thành `"z"`. Cây tìm kiếm **không tự sắp xếp lại** vì nội dung phần tử thay đổi tại chỗ. Những thao tác `contains`, `remove` hoặc duyệt theo thứ tự sau đó có thể không còn phản ánh quan hệ thứ tự mà cấu trúc dữ liệu giả định.
+Suppose a `TreeSet<StringBuilder>` sorted builder contents at insertion time. Later, one builder is mutated from `"a"` to `"z"`. The search tree **does not automatically re-sort** when an element's content changes in place. Subsequent `contains`, `remove`, or ordered iteration operations may no longer reflect the ordering invariant assumed by the data structure.
 
-Đây là lý do không nên thêm builder rồi tiếp tục `append` hoặc `delete` trên cùng đối tượng làm khóa:
+That is why you should not insert a builder and then continue calling `append` or `delete` on that same object as a key:
 
 ```java
-// Minh họa THIẾT KẾ CẦN TRÁNH:
+// Illustrates a DESIGN TO AVOID:
 TreeSet<StringBuilder> values = new TreeSet<>();
 StringBuilder key = new StringBuilder("abc");
 values.add(key);
-key.append("xyz"); // Thay đổi khóa sau khi đã chèn vào TreeSet
+key.append("xyz"); // Modifies the key after insertion into TreeSet
 ```
 
-Đoạn trên cần import `java.util.TreeSet` và nằm trong phương thức; không nên suy ra một kết quả cụ thể cố định cho mọi lần tìm kiếm sau khi khóa bị sửa. Vấn đề là **bất biến sắp xếp của cấu trúc có thể bị phá vỡ**.
+This snippet requires importing `java.util.TreeSet` and belongs inside a method; you should not infer a fixed deterministic lookup result after mutating the key. The problem is that **the structure's ordering invariant can be broken**.
 
-Cách an toàn hơn là dùng bản chụp bất biến `String` ngay khi thêm vào tập:
+A safer approach is using an immutable `String` snapshot right when adding to the set:
 
 ```java
 TreeSet<String> values = new TreeSet<>();
@@ -303,27 +303,27 @@ System.out.println(values.contains("abc"));    // true
 System.out.println(values.contains("abcxyz")); // false
 ```
 
-Vì tập lưu chuỗi đã chụp tại thời điểm `add`, việc sửa `input` về sau không làm đổi khóa bên trong `TreeSet`.
+Because the set stores the string captured at `add` time, mutating `input` afterward does not alter the key inside `TreeSet`.
 
-## 7. `StringBuilder` không đồng bộ hóa cho nhiều luồng
+## 7. `StringBuilder` Is Not Synchronized for Multiple Threads
 
-Theo tài liệu Java, `StringBuilder` được thiết kế để dùng khi thao tác xây dựng chuỗi **không cần đồng bộ hóa**. Nó phù hợp với code ở **một luồng** hoặc một builder chỉ thuộc sở hữu riêng của một đơn vị xử lý, giúp giảm chi phí đồng bộ so với `StringBuffer` trong các tình huống tương ứng.
+According to the Java documentation, `StringBuilder` is designed for use when string-building operations **do not require synchronization**. It fits **single-threaded** code or a builder exclusively owned by a single processing unit, reducing synchronization overhead compared to `StringBuffer` in those scenarios.
 
-Nhưng `StringBuilder` là mutable. Nếu **cùng một đối tượng** bị nhiều luồng gọi `append`/`delete`/`insert`/`setCharAt` hoặc một luồng đang ghi trong khi luồng khác đọc nội dung mà không có quan hệ đồng bộ phù hợp, có thể xảy ra **data race**:
+However, `StringBuilder` is mutable. If **the same object** is mutated by multiple threads calling `append`/`delete`/`insert`/`setCharAt`, or one thread writes while another reads content without a proper synchronization relationship, a **data race** can occur:
 
-- Cập nhật từ luồng này có thể không được luồng khác quan sát như mong đợi.
-- Các thao tác xen kẽ có thể gây **mất dữ liệu, sai thứ tự hoặc trạng thái trung gian không mong muốn**.
-- Đọc `length()`, `charAt()`, `toString()` hoặc `compareTo()` trong lúc luồng khác sửa builder không tự bảo đảm một snapshot nhất quán.
-- Không có bảo đảm kết quả cụ thể hoặc một ngoại lệ cố định: một chương trình sai đồng bộ có thể *có vẻ chạy đúng* ở nhiều lần thử nhưng vẫn không an toàn.
+- Updates from one thread may not be observed as expected by another thread.
+- Interleaved operations can cause **lost data, wrong ordering, or unexpected intermediate states**.
+- Reading `length()`, `charAt()`, `toString()`, or `compareTo()` while another thread mutates the builder does not automatically guarantee a consistent snapshot.
+- There is no guaranteed specific result or fixed exception: an unsynchronized program might *appear to work* across many runs yet still be unsafe.
 
-**Không phải cứ có hai luồng trong chương trình là mọi builder đều nguy hiểm.** Vấn đề xuất hiện khi các luồng **cùng truy cập đối tượng mutable với ít nhất một thao tác ghi** mà không có phối hợp theo Java Memory Model. Nếu mỗi luồng sở hữu builder riêng, không có việc chia sẻ mutable builder nên không phát sinh rủi ro đó.
+**Having two threads in a program does not make every builder dangerous.** The issue arises when threads **access the same mutable object with at least one write** without coordination under the Java Memory Model. If each thread owns its own builder, no mutable builder is shared and that risk does not arise.
 
-### Không nên coi `append` là phép toán nguyên tử khi dùng chung
+### Do Not Treat `append` as Atomic When Shared
 
-Đoạn sau không phù hợp để dựa vào trong chương trình nhiều luồng:
+The following is unsafe to rely on in a multi-threaded program:
 
 ```java
-// Mã minh họa hành vi cần TRÁNH: shared dùng chung giữa các luồng.
+// Illustrates behavior TO AVOID: shared across threads.
 StringBuilder shared = new StringBuilder();
 
 Runnable action = () -> {
@@ -333,13 +333,13 @@ Runnable action = () -> {
 };
 ```
 
-Đây là fragment minh họa, không phải chương trình đầy đủ. Nếu tạo hai luồng thực thi `action` đồng thời **không khóa**, không có bảo đảm rằng kết quả luôn có đúng 2000 ký tự. Không nên kèm một “stdout mẫu” cố định cho chương trình có data race, vì đầu ra phụ thuộc thực thi và có thể khác từng lần.
+This is an illustrative fragment, not a complete program. If two threads execute `action` concurrently **without locking**, there is no guarantee the result always has exactly 2000 characters. You should not attach a fixed "sample stdout" for a program with a data race, because output depends on execution and can vary from run to run.
 
-## 8. Ví dụ an toàn: khóa chung bảo vệ mọi thao tác với builder
+## 8. Safe Example: A Shared Lock Protecting Every Operation on the Builder
 
-Một cách phối hợp hợp lệ là bảo vệ mọi lần **đọc và ghi** trên cùng builder bằng **cùng một đối tượng khóa** qua `synchronized`. Khi cần lấy kết quả để xử lý ngoài vùng khóa, tạo một giá trị `String` bất biến trong vùng được bảo vệ.
+One valid coordination approach is protecting every **read and write** on the same builder with **the same lock object** via `synchronized`. When you need to extract the result for use outside the locked region, create an immutable `String` inside the protected block.
 
-Tệp `SynchronizedBuilderDemo.java`:
+File `SynchronizedBuilderDemo.java`:
 
 ```java
 public class SynchronizedBuilderDemo {
@@ -386,14 +386,14 @@ public class SynchronizedBuilderDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 SynchronizedBuilderDemo.java
 java SynchronizedBuilderDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 length=2000
@@ -401,22 +401,22 @@ countA=1000
 countB=1000
 ```
 
-Thứ tự các ký tự `A`/`B` **không được cố định** vì hai luồng có thể lấy khóa theo những thứ tự khác nhau. Nhưng mọi `append` được bảo vệ bằng cùng khóa, hai luồng đều hoàn thành trước lúc tạo snapshot, nên **tổng số và số lượng từng loại** là xác định như đầu ra trên.
+The order of `'A'`/`'B'` characters **is not fixed** because the two threads can acquire the lock in different orders. Yet every `append` is protected by the same lock and both threads finish before taking the snapshot, so **the total length and per-character counts** are deterministic as shown above.
 
-`synchronized(lock)` là một cơ chế phối hợp đơn giản. Quan trọng là **tất cả những nơi cùng truy cập mutable builder phải tuân thủ cùng quy ước đồng bộ**, kể cả đọc. Chỉ khóa một số thao tác ghi mà để các đoạn code khác đọc/ghi tự do sẽ không tạo ra bảo đảm đầy đủ.
+`synchronized(lock)` is a straightforward coordination mechanism. Crucially, **all code paths accessing the mutable builder must follow the same synchronization convention**, including reads. Locking only some writes while letting other code read or write freely provides no complete guarantee.
 
-## 9. Nếu chỉ cần gửi kết quả sang luồng khác, nên chụp `String` bất biến
+## 9. If You Only Need to Send the Result to Another Thread, Capture an Immutable `String`
 
-Phần lớn ứng dụng không cần chia sẻ một builder mutable cho các luồng khác cùng chỉnh sửa. Một mô hình dễ quản lý hơn:
+Most applications do not need to share a mutable builder for multiple threads to edit together. A more manageable pattern:
 
-1. Tạo `StringBuilder` như biến cục bộ trong một phương thức/luồng.
-2. Dùng nó để lắp ráp văn bản.
-3. Gọi `toString()` để thu được giá trị bất biến.
-4. Chuyển kết quả `String` sang các thành phần/luồng khác bằng cơ chế công bố phù hợp.
+1. Create `StringBuilder` as a local variable in one method/thread.
+2. Use it to assemble the text.
+3. Call `toString()` to obtain an immutable value.
+4. Pass the `String` result to other components/threads using a proper publication mechanism.
 
-Ví dụ:
+Example:
 
-Tệp `BuilderSnapshotDemo.java`:
+File `BuilderSnapshotDemo.java`:
 
 ```java
 public class BuilderSnapshotDemo {
@@ -434,14 +434,14 @@ public class BuilderSnapshotDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 BuilderSnapshotDemo.java
 java BuilderSnapshotDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 builder=Hi there
@@ -449,26 +449,26 @@ snapshot=Hi
 equalContents=false
 ```
 
-`snapshot` không phải một “cửa sổ sống” vào builder. Nó giữ giá trị chuỗi tại thời điểm gọi `toString()`. Nếu builder sau đó đổi nội dung, `snapshot` không đổi.
+`snapshot` is not a "live window" into the builder. It preserves the string value at the time `toString()` was called. If the builder changes content afterward, `snapshot` does not change.
 
-Bản thân `String` bất biến thuận tiện để chia sẻ; tuy nhiên, ứng dụng vẫn cần **cơ chế truyền/công bố tham chiếu đúng** khi tổ chức đa luồng (ví dụ `Thread.start`, kết quả task `Future`, hàng đợi đồng thời, `volatile` hay đồng bộ tùy trường hợp). Không nên lấy tính bất biến làm lý do bỏ qua hoàn toàn các quy tắc công bố trong Java Memory Model.
+An immutable `String` itself is convenient to share; however, an application still needs a **proper reference transfer/publication mechanism** in multi-threaded designs (such as `Thread.start`, `Future` task results, concurrent queues, `volatile`, or synchronization as appropriate). Do not use immutability as an excuse to ignore Java Memory Model publication rules entirely.
 
-## 10. `StringBuffer` giúp được gì, và vẫn giới hạn ở đâu?
+## 10. What Does `StringBuffer` Help With, and Where Are Its Limits?
 
-`StringBuffer` là lớp mutable tương tự `StringBuilder` nhưng các phương thức chính được đồng bộ hóa. Khi thực sự cần một vùng đệm dùng chung với nhiều thao tác được đồng bộ ở mức phương thức, `StringBuffer` có thể là lựa chọn phù hợp.
+`StringBuffer` is a mutable class similar to `StringBuilder` whose main methods are synchronized. When you genuinely need a shared buffer with method-level synchronized operations, `StringBuffer` can be an appropriate choice.
 
-Tuy nhiên, **đồng bộ từng phương thức không làm toàn bộ chuỗi hành động trở thành một thao tác nguyên tử**. Ví dụ logic:
+However, **synchronizing individual methods does not make an entire sequence of actions atomic**. Logic example:
 
 ```java
-// Mã minh họa logic KHÔNG nguyên tử:
+// Illustrates NON-ATOMIC logic:
 if (buffer.length() < 100) {
     buffer.append("data");
 }
 ```
 
-Nếu `buffer` là `StringBuffer` và nhiều luồng đồng thời thực thi, một luồng có thể đọc độ dài, rồi luồng khác thay đổi nội dung trước lần `append` tiếp theo. Muốn cả hai bước **kiểm tra + cập nhật** là một giao dịch đồng nhất, cần bảo vệ chúng bằng cùng một vùng đồng bộ hoặc thiết kế cấu trúc xử lý khác.
+If `buffer` is a `StringBuffer` and multiple threads execute concurrently, one thread can read the length while another mutates the content before the subsequent `append`. To make both steps (**check + update**) a single unified transaction, protect them with a single synchronized block or redesign the processing structure.
 
-Có thể phối hợp bên ngoài:
+You can coordinate externally:
 
 ```java
 synchronized (buffer) {
@@ -478,35 +478,35 @@ synchronized (buffer) {
 }
 ```
 
-Đây là fragment minh họa bên trong một phương thức với `buffer` đã khai báo. Khi dùng giải pháp khóa ngoài, mọi nơi tham gia thao tác tổng hợp phải dùng một quy ước phù hợp.
+This is an illustrative fragment inside a method with `buffer` already declared. When using external locking, every participant in the composite operation must follow a consistent convention.
 
-Cũng không nên diễn giải “`StringBuffer` là synchronized” thành “mọi kiểu sử dụng nhiều luồng đều luôn cho nội dung đúng theo yêu cầu nghiệp vụ”. **Tính thread-safe từng thao tác** và **tính nguyên tử của cả quy trình** là hai mức bảo đảm khác nhau.
+Also, do not interpret "`StringBuffer` is synchronized" as "every multi-threaded usage pattern always produces business-correct content". **Per-operation thread safety** and **atomicity of an entire workflow** are two different levels of guarantee.
 
-## 11. So sánh khi builder bị thay đổi đồng thời
+## 11. Comparing When a Builder Is Concurrently Modified
 
-Một chương trình có thể tránh các phép `append` đua nhau bằng cách chỉ một luồng ghi, nhưng vẫn mắc lỗi khi **luồng đọc** gọi `compareTo` hoặc `toString()` không được phối hợp với luồng ghi.
+A program can avoid racing `append` calls by having only one writer thread, yet still fail when a **reader thread** calls `compareTo` or `toString()` without coordinating with the writer thread.
 
-Giả sử:
+Suppose:
 
-- Luồng A đang sửa `StringBuilder orderCode`.
-- Luồng B gọi `orderCode.compareTo(expected)` để quyết định có khớp hay không.
+- Thread A is modifying `StringBuilder orderCode`.
+- Thread B calls `orderCode.compareTo(expected)` to decide whether it matches.
 
-Nếu không có đồng bộ/happens-before phù hợp, luồng B không được bảo đảm nhận một nội dung nhất quán. Việc `compareTo` tự nó chỉ đọc không khiến toàn bộ đối tượng trở thành thread-safe. Đừng xây dựng logic kiểm tra hoặc điều kiện bảo mật từ một snapshot có thể bị cập nhật đồng thời.
+Without proper synchronization/happens-before, Thread B is not guaranteed to observe consistent content. The fact that `compareTo` itself only reads does not make the whole object thread-safe. Never build validation logic or security checks on top of a snapshot that can be updated concurrently.
 
-Các cách thiết kế thường đáng cân nhắc:
+Design patterns worth considering:
 
-- Chuyển nội dung thành một `String` bất biến dưới đồng bộ rồi so sánh snapshot.
-- Chỉ cho **một luồng sở hữu** builder; các luồng khác trao đổi qua các thông điệp/giá trị bất biến.
-- Nếu cần thật sự truy cập builder chung, dùng khóa nhất quán cho quá trình đọc, sửa và so sánh.
-- Khi chỉ cần ghép các đoạn độc lập, để mỗi luồng xây dựng đoạn riêng rồi kết hợp kết quả tại một nơi.
+- Convert content to an immutable `String` under synchronization and compare snapshots.
+- Give **only one thread ownership** of the builder; other threads communicate via immutable messages/values.
+- If a shared builder must truly be accessed concurrently, use consistent locking across reads, writes, and comparisons.
+- When merely joining independent segments, let each thread build its own segment and combine results in one place.
 
-Đây là giới hạn về **truy cập đối tượng mutable**, không phải một lỗi riêng của `equals` hoặc `compareTo`.
+This is a limitation of **mutable object access**, not a flaw specific to `equals` or `compareTo`.
 
-## 12. Lưu ý với Unicode và việc sắp xếp theo `compareTo`
+## 12. Notes on Unicode and Ordering with `compareTo`
 
-`StringBuilder` lưu dãy UTF-16 code unit. Thứ tự từ điển của `compareTo` dựa trên **đơn vị mã UTF-16**; đây không phải thứ tự từ điển tự nhiên của mọi ngôn ngữ và cũng không có ý nghĩa phân đoạn grapheme cluster.
+`StringBuilder` stores a sequence of UTF-16 code units. The lexicographic ordering of `compareTo` is based on **UTF-16 code units**; it is neither the natural dictionary order of every language nor aware of grapheme cluster segmentation.
 
-Ví dụ chữ viết hoa/thường:
+Upper/lowercase example:
 
 ```java
 StringBuilder upper = new StringBuilder("A");
@@ -516,56 +516,56 @@ System.out.println(upper.compareTo(lower) < 0); // true
 System.out.println(upper.compareTo(lower) == 0); // false
 ```
 
-Vì các code unit của `A` và `a` khác nhau, kết quả không bằng 0. `compareTo` cũng không tự bỏ dấu, chuẩn hóa Unicode hay áp dụng `Locale` cụ thể.
+Because the code units of `A` and `a` differ, the result is non-zero. `compareTo` also does not strip accents, normalize Unicode, or apply a specific `Locale`.
 
-Khi cần **sắp xếp văn bản cho người dùng**, phải xác định các yêu cầu ngôn ngữ và hiển thị trước; có thể chuyển builder sang `String` và dùng `java.text.Collator` với locale thích hợp, hoặc một giải pháp chuẩn hóa/collation khác theo yêu cầu. Khi chỉ cần kiểm tra cùng nội dung UTF-16, `a.compareTo(b) == 0` là cách biểu đạt phù hợp cho hai builder đơn luồng/ổn định, nhưng không biến `equals` của builder thành phép so sánh nội dung.
+When you need **user-facing text sorting**, identify language and display requirements first; you can convert the builder to `String` and use `java.text.Collator` with an appropriate locale, or another normalization/collation solution as required. When you only need to check identical UTF-16 content, `a.compareTo(b) == 0` is an accurate expression for two single-threaded/stable builders, though it does not turn the builder's `equals` into a content comparison.
 
-## 13. Những lỗi phổ biến
+## 13. Common Mistakes
 
-**Lỗi 1 — Dùng `a.equals(b)` để so sánh hai `StringBuilder` cùng nội dung.** `StringBuilder` kế thừa `Object.equals`, nên hai đối tượng khác nhau trả `false`. Dùng `compareTo(b) == 0` khi cả hai là builder hoặc chụp `String` rồi so nội dung.
+**Mistake 1 — Using `a.equals(b)` to compare two `StringBuilder`s with the same content.** `StringBuilder` inherits `Object.equals`, so two different objects return `false`. Use `compareTo(b) == 0` when both are builders, or capture `String`s and compare content.
 
-**Lỗi 2 — Hiểu `compareTo(b) == 0` là `a.equals(b) == true`.** Với builder, hai biểu thức **không tương đương**. Natural ordering của builder được ghi nhận là không nhất quán với `equals`.
+**Mistake 2 — Interpreting `compareTo(b) == 0` as `a.equals(b) == true`.** For builders, the two expressions are **not equivalent**. A builder's natural ordering is documented as inconsistent with `equals`.
 
-**Lỗi 3 — Giả định `HashSet<StringBuilder>` sẽ loại các giá trị văn bản trùng nhau.** `HashSet` dùng `hashCode` và `equals` của đối tượng builder; hai builder có cùng nội dung vẫn là hai phần tử riêng.
+**Mistake 3 — Assuming `HashSet<StringBuilder>` deduplicates equal text values.** `HashSet` uses the builder object's `hashCode` and `equals`; two builders with the same content remain two distinct elements.
 
-**Lỗi 4 — Giả định `TreeSet<StringBuilder>` và `HashSet<StringBuilder>` có cùng khái niệm trùng nhau.** `TreeSet` dùng thứ tự tự nhiên, nên hai builder có `compareTo == 0` được xem là tương đương, trái với phép `equals`.
+**Mistake 4 — Assuming `TreeSet<StringBuilder>` and `HashSet<StringBuilder>` have the same duplicate semantics.** `TreeSet` uses natural ordering, so two builders with `compareTo == 0` are treated as equivalent, contrary to `equals`.
 
-**Lỗi 5 — Sửa builder sau khi đưa làm khóa của `TreeSet` hoặc `TreeMap`.** Nội dung thay đổi có thể phá vỡ bất biến về thứ tự; chuyển sang `String` bất biến trước khi dùng làm khóa.
+**Mistake 5 — Mutating a builder after using it as a key in `TreeSet` or `TreeMap`.** Changing content can break the ordering invariant; convert to immutable `String` before using as a key.
 
-**Lỗi 6 — Dùng một `StringBuilder` chung để nhiều luồng gọi `append` mà không đồng bộ.** Đây là data race; không thể dựa vào kết quả đúng dù có thể thử vài lần không thấy lỗi.
+**Mistake 6 — Using a shared `StringBuilder` across multiple threads calling `append` without synchronization.** This is a data race; you cannot rely on correct results even if a few test runs show no error.
 
-**Lỗi 7 — Chỉ khóa luồng ghi rồi để luồng khác tự do đọc hoặc so sánh.** Việc đọc/trích xuất snapshot cũng phải tham gia quy ước đồng bộ nếu cùng builder đang thay đổi.
+**Mistake 7 — Locking only the writer thread while letting other threads freely read or compare.** Reading/capturing a snapshot must also participate in the synchronization protocol if the same builder is being mutated.
 
-**Lỗi 8 — Nghĩ `StringBuffer` khiến một loạt bước kiểm tra và cập nhật trở thành nguyên tử.** Phương thức synchronized riêng lẻ không đảm bảo tổ hợp nhiều phương thức có tính nguyên tử.
+**Mistake 8 — Thinking `StringBuffer` makes a check-then-update sequence atomic.** Synchronized individual methods do not make multi-method combinations atomic.
 
-**Lỗi 9 — Dùng `compareTo` để sắp xếp theo tiếng Việt hoặc văn bản tự nhiên mà không xét locale.** `compareTo` là so sánh mã UTF-16, không thay thế collation theo ngôn ngữ.
+**Mistake 9 — Using `compareTo` to sort Vietnamese or natural-language text without considering locale.** `compareTo` compares UTF-16 code units, not language-specific collation.
 
-**Lỗi 10 — Giữ builder mutable để chia sẻ khi chỉ cần gửi một kết quả văn bản.** Tạo `String` snapshot thường đơn giản và an toàn hơn, đồng thời cần công bố tham chiếu đúng giữa các luồng.
+**Mistake 10 — Keeping a mutable builder shared when you only need to send a text result.** Creating a `String` snapshot is usually simpler and safer, alongside proper reference publication across threads.
 
-## 14. Câu hỏi tự kiểm tra
+## 14. Self-Check Questions
 
-**Câu 1.** Hai builder riêng biệt cùng chứa `"java"` thì `equals` và `compareTo` trả về điều gì?
+**Question 1.** Given two separate builders both containing `"java"`, what do `equals` and `compareTo` return?
 
-**Đáp án:** `a.equals(b)` là `false` vì khác đối tượng, còn `a.compareTo(b) == 0` là `true` vì cùng nội dung.
+**Answer:** `a.equals(b)` is `false` because they are different objects, whereas `a.compareTo(b) == 0` is `true` because they have the same content.
 
-**Câu 2.** Vì sao `HashSet<StringBuilder>` có thể chứa hai builder cùng văn bản trong khi `TreeSet<StringBuilder>` chỉ giữ một?
+**Question 2.** Why can `HashSet<StringBuilder>` contain two builders with the same text while `TreeSet<StringBuilder>` keeps only one?
 
-**Đáp án:** `HashSet` dùng `Object.equals`/`hashCode` theo danh tính builder; `TreeSet` dùng `compareTo` theo nội dung để xác định tương đương.
+**Answer:** `HashSet` uses `Object.equals`/`hashCode` by builder identity; `TreeSet` uses `compareTo` by content to determine equivalence.
 
-**Câu 3.** Có nên thay đổi nội dung builder sau khi chèn nó vào `TreeSet` không?
+**Question 3.** Should you mutate a builder's content after inserting it into a `TreeSet`?
 
-**Đáp án:** Không. Thứ tự phần tử dựa vào nội dung tại thời điểm chèn, và cây không tự tái sắp xếp khi bạn sửa builder. Hãy dùng khóa kiểu `String` bất biến.
+**Answer:** No. Element ordering relies on the content at insertion time, and the tree does not automatically re-sort when you mutate the builder. Use immutable `String` keys.
 
-**Câu 4.** Hai luồng cùng `append` vào một `StringBuilder` có bảo đảm không mất dữ liệu không?
+**Question 4.** Are two threads concurrently calling `append` on one `StringBuilder` guaranteed not to lose data?
 
-**Đáp án:** Không. Các thao tác trên `StringBuilder` không được đồng bộ hóa; phải tránh chia sẻ mutable builder hoặc dùng khóa/phối hợp phù hợp cho mọi truy cập liên quan.
+**Answer:** No. Operations on `StringBuilder` are unsynchronized; avoid sharing mutable builders or use appropriate locking/coordination for all related accesses.
 
-**Câu 5.** `StringBuffer` có bảo đảm cặp hành động `length()` rồi `append()` luôn nguyên tử không?
+**Question 5.** Does `StringBuffer` guarantee that `length()` followed by `append()` is always atomic?
 
-**Đáp án:** Không. Đồng bộ hóa từng phương thức không tự ghép hai lời gọi thành một giao dịch. Muốn “kiểm tra rồi cập nhật” nguyên tử phải tổ chức đồng bộ bên ngoài hoặc dùng cấu trúc khác.
+**Answer:** No. Per-method synchronization does not merge two calls into one transaction. To make "check-then-update" atomic, coordinate externally or use a different structure.
 
-**Câu 6.** Nếu gọi `String snapshot = builder.toString();` rồi `builder.append("!")`, nội dung `snapshot` có đổi theo không?
+**Question 6.** If you call `String snapshot = builder.toString();` and then `builder.append("!");`, does the content of `snapshot` change?
 
-**Đáp án:** Không. `snapshot` là `String` bất biến chứa nội dung tại thời điểm được tạo; nó không tham chiếu đến builder như một góc nhìn có thể thay đổi.
+**Answer:** No. `snapshot` is an immutable `String` holding the content at the time it was created; it does not reference the builder as a mutable view.
 
-**Ghi nhớ:** `StringBuilder.equals` so **danh tính**, `StringBuilder.compareTo` (Java 11+) so **nội dung theo thứ tự từ điển** và hai hợp đồng này không nhất quán với nhau. `StringBuilder` là **mutable, không synchronized**: ưu tiên sở hữu trong một luồng, dùng `String` snapshot khi cần chia sẻ giá trị, và bảo vệ mọi truy cập chung bằng cơ chế đồng bộ thống nhất nếu thực sự cần dùng đa luồng.
+**Key takeaway:** `StringBuilder.equals` compares **identity**, `StringBuilder.compareTo` (Java 11+) compares **lexicographic content**, and these two contracts are inconsistent with each other. `StringBuilder` is **mutable and unsynchronized**: prefer single-thread ownership, use `String` snapshots when sharing values, and protect all shared accesses with consistent synchronization if multi-threading is genuinely needed.

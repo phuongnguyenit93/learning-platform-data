@@ -1,50 +1,50 @@
-# Chuyển đổi trong phép gán, lời gọi phương thức và biểu thức — Java 17+
+# Conversions in Assignment, Method Invocation, and Expressions — Java 17+
 
-## 1. Mục tiêu: cùng một giá trị, ba ngữ cảnh chuyển kiểu
+## 1. Objective: the same value, three conversion contexts
 
-Java không áp dụng một quy tắc “tự đổi kiểu” duy nhất ở mọi nơi. Compiler xét **ngữ cảnh** của giá trị:
+Java does not apply a single “auto-convert” rule everywhere. The compiler inspects the **context** of the value:
 
-1. **Phép gán (assignment context)**: đưa giá trị vào biến, field hoặc phần tử mảng có kiểu xác định.
-2. **Lời gọi phương thức (method invocation context)**: truyền biểu thức đối số cho tham số, đồng thời xử lý lựa chọn overload.
-3. **Biểu thức (expression context)**: xác định kiểu và cách chuyển đổi các toán hạng của phép cộng, nhân, so sánh, nối chuỗi, toán tử điều kiện, v.v.
+1. **Assignment context**: placing a value into a variable, field, or array element with a defined type.
+2. **Method invocation context**: passing an argument expression to a parameter, while also handling overload selection.
+3. **Expression context**: determining the types and conversions of operands in addition, multiplication, comparison, string concatenation, conditional operators, etc.
 
 ~~~java
-byte value = 7;              // Phép gán với hằng int vừa miền byte
-long wide = value;            // Phép gán: byte -> long
-System.out.println(value + 1); // Biểu thức: byte được nâng thành int
+byte value = 7;              // Assignment with an int constant within byte range
+long wide = value;            // Assignment: byte -> long
+System.out.println(value + 1); // Expression: byte is promoted to int
 ~~~
 
-Ba dòng có cùng biến `value` nhưng ý nghĩa chuyển đổi **không giống nhau**. Một chương trình chạy đúng khi kiểu được compiler chấp nhận **và** giá trị sau chuyển đổi vẫn đáp ứng nghiệp vụ.
+The three lines involve the same `value` variable, yet the conversion semantics are **not the same**. A program behaves correctly when the types are accepted by the compiler **and** the converted value still satisfies business requirements.
 
-Bài này tập trung vào các quy tắc thường dùng trong Java 17+, đặc biệt là **widening**, **narrowing**, **boxing/unboxing**, biểu thức số học và lời gọi method có overload.
+This lesson focuses on rules commonly used in Java 17+, especially **widening**, **narrowing**, **boxing/unboxing**, arithmetic expressions, and overloaded method calls.
 
-## 2. Nền tảng: widening, narrowing, boxing và unboxing
+## 2. Foundations: widening, narrowing, boxing, and unboxing
 
-| Cơ chế | Ví dụ | Ý nghĩa |
+| Mechanism | Example | Meaning |
 |---|---|---|
-| Identity conversion | `int x = 5;` | Kiểu nguồn khớp kiểu đích |
-| Widening primitive | `long x = 5;` | `int` chuyển thành `long` |
-| Narrowing primitive | `byte b = (byte) 130;` | Ép về kiểu nhỏ, có thể mất dữ liệu |
-| Boxing | `Integer x = 5;` | Chuyển giá trị `int` thành `Integer` |
-| Unboxing | `int x = Integer.valueOf(5);` | Lấy `int` từ `Integer` |
-| Widening reference | `Object o = "Hi";` | Tham chiếu String gán cho kiểu Object |
+| Identity conversion | `int x = 5;` | Source type matches target type |
+| Widening primitive | `long x = 5;` | `int` converts to `long` |
+| Narrowing primitive | `byte b = (byte) 130;` | Cast to a smaller type, may lose data |
+| Boxing | `Integer x = 5;` | Converts `int` value to `Integer` |
+| Unboxing | `int x = Integer.valueOf(5);` | Extracts `int` from `Integer` |
+| Widening reference | `Object o = "Hi";` | `String` reference assigned to `Object` type |
 | Boxing + widening reference | `Number n = 5;` | `int` → `Integer` → `Number` |
 | Unboxing + widening primitive | `long n = Integer.valueOf(5);` | `Integer` → `int` → `long` |
 
-Không phải mọi cách kết hợp đều được thực hiện tự động. Chẳng hạn:
+Not every combination is performed automatically. For instance:
 
 ~~~java
 Long good = 5L;
-// Long wrong = 5; // Sai: int không tự widening sang long rồi boxing thành Long
+// Long wrong = 5; // Invalid: int does not auto-widen to long and then box to Long
 ~~~
 
-`5` là literal `int`, còn `5L` là literal `long`. Java không tự cho phép **widening primitive rồi boxing sang Long** trong phép gán này.
+`5` is an `int` literal, while `5L` is a `long` literal. Java does not automatically allow **primitive widening followed by boxing to `Long`** in this assignment.
 
-`boolean` không chuyển sang/từ các kiểu số bằng widening hoặc narrowing primitive. `String` cũng không phải kiểu nguyên thủy: `Integer.parseInt("5")` là gọi API phân tích chuỗi, không phải conversion ngầm từ String sang int.
+`boolean` does not convert to/from numeric types via primitive widening or narrowing. `String` is also not a primitive type: `Integer.parseInt("5")` is a string-parsing API call, not an implicit conversion from `String` to `int`.
 
-## 3. Ngữ cảnh phép gán (assignment context)
+## 3. Assignment context
 
-Khi bên trái phép gán có kiểu xác định, compiler phải kiểm tra biểu thức bên phải có thể chuyển thành kiểu đó hay không.
+When the left-hand side of an assignment has a defined type, the compiler must check whether the expression on the right-hand side can be converted to that type.
 
 ~~~java
 byte small = 8;
@@ -53,92 +53,92 @@ long asLong = asInt;     // int -> long
 double asDouble = asLong; // long -> double
 ~~~
 
-Những phép gán trên hợp lệ mà không cần cast. Nhưng **hợp lệ không luôn đồng nghĩa chính xác tuyệt đối**: một giá trị `long` rất lớn chuyển thành `double` có thể mất các chữ số cuối vì độ chính xác significand hữu hạn.
+The assignments above are valid without a cast. However, **valid does not always mean strictly exact**: a very large `long` value converted to `double` can lose trailing digits due to finite significand precision.
 
-Phép gán thu hẹp thường **không được tự thực hiện** với biến runtime:
+Narrowing assignments are generally **not performed automatically** on runtime variables:
 
 ~~~java
 int source = 130;
-// byte b = source;   // Lỗi biên dịch: possible lossy conversion
+// byte b = source;   // Compile error: possible lossy conversion
 byte b = (byte) source;
 System.out.println(b); // -126
 ~~~
 
-Cast `(byte)` chỉ yêu cầu chuyển kiểu, **không** kiểm tra rằng giá trị 130 vừa miền -128..127. Sau narrowing, giá trị bị thay đổi thành -126.
+The `(byte)` cast only requests the conversion, **without** checking whether 130 fits in -128..127. After narrowing, the value changes to -126.
 
-### Các nơi áp dụng ý tưởng phép gán
+### Places where assignment context applies
 
-Ngoài câu lệnh `x = expression`, quy tắc assignment context xuất hiện trong khởi tạo biến, field, phần tử mảng và các ngữ cảnh trả về giá trị tương ứng với kiểu khai báo:
+In addition to `x = expression` statements, assignment context rules appear in variable initializers, fields, array elements, and return contexts matching the declared return type:
 
 ~~~java
-long[] values = {1, 2, 3}; // Các int literal có thể gán vào phần tử long
+long[] values = {1, 2, 3}; // int literals can be assigned to long elements
 
 static long getCount() {
     int count = 7;
-    return count; // int -> long trong ngữ cảnh return
+    return count; // int -> long in return context
 }
 ~~~
 
-Không được suy từ việc một phép gán được phép narrowing hằng số rằng **mọi ngữ cảnh Java** đều cho phép tương tự.
+Do not infer from an assignment allowing constant narrowing that **every Java context** allows the same thing.
 
 
-**Riêng hằng `int` vừa miền `byte`/`short`/`char`**, phép gán có một ngoại lệ thu hẹp tại compile time (`byte b = 7;` hợp lệ); đối số method `takeByte(7)` thì không được hưởng ngoại lệ này. Phân biệt hai ngữ cảnh trước khi thêm cast.
+**Specifically for `int` constants within `byte`/`short`/`char` range**, assignment has a compile-time narrowing exception (`byte b = 7;` is valid); the method argument `takeByte(7)` does not get this exception. Distinguish the two contexts before adding casts.
 
-## 4. Ngữ cảnh lời gọi phương thức: đối số phải hợp kiểu tham số
+## 4. Method invocation context: arguments must match parameter types
 
-Method khai báo kiểu tham số. Khi gọi, Java xét kiểu biểu thức đối số để tìm method có thể áp dụng.
+A method declares parameter types. At a call site, Java inspects the argument expression types to find an applicable method.
 
 ~~~java
 static void acceptLong(long value) {
     System.out.println("long=" + value);
 }
 
-// Trong main:
+// In main:
 byte b = 7;
-acceptLong(b); // Hợp lệ: byte -> long
+acceptLong(b); // Valid: byte -> long
 ~~~
 
-Đây là **widening primitive trong method invocation context**.
+This is **primitive widening in method invocation context**.
 
-Ngược lại, **quy tắc gán hằng int vừa miền không tự áp dụng cho tham số byte**:
+Conversely, **the in-range `int` constant assignment rule does not apply automatically to a `byte` parameter**:
 
 ~~~java
 static void acceptByte(byte value) {
     System.out.println("byte=" + value);
 }
 
-// acceptByte(7);       // Lỗi biên dịch: int không tự narrowing thành byte
-acceptByte((byte) 7);   // Hợp lệ: cast tường minh
+// acceptByte(7);       // Compile error: int does not auto-narrow to byte
+acceptByte((byte) 7);   // Valid: explicit cast
 ~~~
 
-Phân biệt rõ:
+Distinguish clearly:
 
-| Cú pháp | Có biên dịch? | Vì sao |
+| Syntax | Compiles? | Why |
 |---|---|---|
-| `byte b = 7;` | Có | Ngoại lệ narrowing constant expression trong phép gán |
-| `acceptByte(7);` | Không | Method invocation không cho narrowing hằng int thành byte |
-| `acceptByte((byte) 7);` | Có | Đối số sau cast đã có kiểu byte |
-| `acceptLong(7);` | Có | int widening sang long |
-| `acceptLong((byte) 7);` | Có | byte widening sang long |
+| `byte b = 7;` | Yes | Constant expression narrowing exception in assignment |
+| `acceptByte(7);` | No | Method invocation does not narrow `int` constants to `byte` |
+| `acceptByte((byte) 7);` | Yes | Argument after cast already has type `byte` |
+| `acceptLong(7);` | Yes | `int` widens to `long` |
+| `acceptLong((byte) 7);` | Yes | `byte` widens to `long` |
 
-**Cách viết tốt:** truyền đúng kiểu tham số bằng literal/hàm sinh giá trị tương ứng; chỉ dùng cast khi có lý do và đã xét miền giá trị.
+**Good practice:** pass the exact parameter type using appropriate literals or value-producing functions; only use a cast when justified and after checking the value range.
 
-## 5. Boxing và unboxing trong lời gọi method
+## 5. Boxing and unboxing in method calls
 
-Từ Java 5, Java hỗ trợ **autoboxing** và **unboxing** trong những ngữ cảnh thích hợp; Java 17 vẫn dùng cơ chế này.
+Since Java 5, Java has supported **autoboxing** and **unboxing** in appropriate contexts; Java 17 continues to use this mechanism.
 
 ~~~java
 static void showNumber(Number number) {
     System.out.println(number.getClass().getSimpleName());
 }
 
-// Trong main:
-showNumber(5); // In Integer
+// In main:
+showNumber(5); // Prints Integer
 ~~~
 
-`5` ban đầu là `int`. Trong lời gọi trên, Java có thể boxing thành `Integer`, rồi widening reference thành `Number`.
+`5` starts as an `int`. In the call above, Java can box it to `Integer`, then apply reference widening to `Number`.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 static void takeLong(long value) {
@@ -146,21 +146,21 @@ static void takeLong(long value) {
 }
 
 Integer boxed = Integer.valueOf(42);
-takeLong(boxed); // Integer unboxing -> int, rồi widening thành long
+takeLong(boxed); // Integer unboxing -> int, then widening to long
 ~~~
 
-**Bẫy null:** unboxing tham chiếu `null` gây `NullPointerException` lúc chạy:
+**Null pitfall:** unboxing a `null` reference causes a `NullPointerException` at runtime:
 
 ~~~java
 Integer missing = null;
-// long value = missing; // Biên dịch được, nhưng chạy sẽ ném NullPointerException
+// long value = missing; // Compiles, but throws NullPointerException at runtime
 ~~~
 
-Compiler kiểm tra kiểu chuyển đổi, không bảo đảm wrapper khác `null` tại runtime.
+The compiler checks conversion compatibility, not whether the wrapper is non-`null` at runtime.
 
-## 6. Overloading: chọn method trước khi thực thi chuyển đổi
+## 6. Overloading: choosing a method before performing conversions
 
-Khi có nhiều method **cùng tên** nhưng khác tham số, compiler giải quyết overload dựa trên kiểu đối số và các giai đoạn tìm method phù hợp. Về cơ bản, Java ưu tiên xét những lời gọi áp dụng bằng các chuyển đổi *strict* như widening trước; nếu chưa tìm được thì mới xét những khả năng có boxing/unboxing, rồi các trường hợp varargs phù hợp.
+When there are multiple methods with the **same name** but different parameters, the compiler resolves overloading based on argument types and phases of finding applicable methods. Essentially, Java prioritizes calls applicable via *strict* conversions such as widening first; only if none is found does it consider options involving boxing/unboxing, and then suitable varargs cases.
 
 ~~~java
 static void choose(long value) {
@@ -172,80 +172,80 @@ static void choose(Integer value) {
 }
 ~~~
 
-Với:
+With:
 
 ~~~java
 choose(7);                  // choose(long)
 choose(Integer.valueOf(7)); // choose(Integer)
 ~~~
 
-Vì sao?
+Why?
 
-- `7` có kiểu **`int`**; `int -> long` là widening primitive, nên method `choose(long)` được chọn trong giai đoạn áp dụng strict.
-- `Integer.valueOf(7)` có kiểu **`Integer`**; method `choose(Integer)` nhận đúng kiểu tham chiếu, được chọn trước khả năng unboxing rồi widening.
+- `7` has type **`int`**; `int -> long` is primitive widening, so `choose(long)` is selected during the strict invocation phase.
+- `Integer.valueOf(7)` has type **`Integer`**; `choose(Integer)` takes the exact reference type, so it is chosen before unboxing-then-widening.
 
-Đây không phải quy tắc đơn giản “luôn ưu tiên primitive”. **Kiểu đối số và các overload hiện diện** mới quyết định. Overload với nhiều tham số, subtype, varargs hoặc generic còn có các quy tắc lựa chọn cụ thể hơn.
+This is not a simplistic “always prefer primitive” rule. **The argument type and available overloads** decide. Overloads with multiple parameters, subtypes, varargs, or generics have even more specific selection rules.
 
-**Thực hành:** tránh tạo bộ overload có ý nghĩa nghiệp vụ khác nhau chỉ vì boxing/ví dụ số hạng; API dễ gây hiểu nhầm khi người gọi đổi từ primitive sang wrapper.
+**Practice:** avoid creating overloads with different business meanings solely based on boxing vs. numeric primitives; the API easily becomes confusing when callers switch from primitive to wrapper.
 
-## 7. Ngữ cảnh biểu thức: số học tự nâng kiểu
+## 7. Expression context: arithmetic auto-promotes types
 
-Trong biểu thức số học với các toán hạng số nguyên nhỏ, Java áp dụng **numeric promotion**. Cụ thể, `byte`, `short`, `char` thường được nâng thành `int` trước các phép cộng, trừ, nhân hoặc chia số học thông thường.
+In arithmetic expressions with small integer operands, Java applies **numeric promotion**. Specifically, `byte`, `short`, and `char` are normally promoted to `int` before ordinary arithmetic addition, subtraction, multiplication, or division.
 
 ~~~java
 byte a = 100;
 byte b = 20;
 
-int sum = a + b; // a+b có kiểu int
+int sum = a + b; // a+b has type int
 System.out.println(sum); // 120
 
-// byte wrong = a + b; // Lỗi: kết quả biểu thức là int
-byte castResult = (byte) (a + b); // Chỉ an toàn nếu giá trị vừa byte
+// byte wrong = a + b; // Error: expression result is int
+byte castResult = (byte) (a + b); // Only safe if value fits in byte
 ~~~
 
-Ngoại lệ gán hằng lại khác:
+The constant assignment exception is different again:
 
 ~~~java
-byte constantSum = 100 + 20; // Hợp lệ vì đây là constant expression int = 120
+byte constantSum = 100 + 20; // Valid because this is an int constant expression = 120
 ~~~
 
-**Hai dòng cùng ra 120 nhưng compiler xử lý khác nhau:**
+**Both lines produce 120, yet the compiler handles them differently:**
 
-- `byte constantSum = 100 + 20;`: biểu thức hằng, cho phép narrowing theo assignment context.
-- `byte s = a + b;`: biểu thức dựa trên các biến byte, kết quả `int` và không tự narrowing về byte.
+- `byte constantSum = 100 + 20;`: constant expression, allowing narrowing in assignment context.
+- `byte s = a + b;`: expression based on `byte` variables, result is `int` and does not auto-narrow to `byte`.
 
-Khi có toán hạng `long`, `float` hoặc `double`, kết quả được tính theo những quy tắc nâng kiểu tương ứng. Ví dụ:
+When there is a `long`, `float`, or `double` operand, the result is computed under the corresponding promotion rules. For example:
 
 ~~~java
 double result = 3 + 0.5;
 System.out.println(result); // 3.5
 ~~~
 
-Một toán hạng kiểu `double` làm phép cộng được thực hiện theo dấu phẩy động double.
+A `double` operand causes addition to be performed in `double` floating-point.
 
-## 8. Bảng so sánh ba ngữ cảnh
+## 8. Comparison table of the three contexts
 
-| Tình huống | Code ví dụ | Hợp lệ? | Điểm cần nhớ |
+| Situation | Example code | Valid? | Key takeaway |
 |---|---|---|---|
-| Gán widening | `long n = 7;` | Có | int → long |
-| Gán hằng int vừa miền byte | `byte b = 7;` | Có | Quy tắc đặc biệt assignment |
-| Gán biến int sang byte | `byte b = intValue;` | Thường không | Cần cast/kiểm tra |
-| Gán boxed rồi widening reference | `Number n = 7;` | Có | int → Integer → Number |
-| Gán int vào Long | `Long n = 7;` | Không | Không tự int → long → Long |
-| Truyền int literal vào tham số byte | `acceptByte(7);` | Không | Method invocation không narrowing hằng |
-| Truyền byte vào tham số long | `acceptLong((byte) 7);` | Có | Widening primitive |
-| Gọi tham số Number bằng int | `acceptNumber(7);` | Có | Boxing + widening reference |
-| Biểu thức byte + byte | `int s = a + b;` | Có | Numeric promotion ra int |
-| Gán kết quả byte + byte vào byte | `byte s = a + b;` | Không | Không tự narrowing kết quả runtime |
-| Gán biểu thức hằng vào byte | `byte s = 100 + 20;` | Có | Constant expression vừa miền |
-| Compound assignment byte | `b += 10;` | Có | Có narrowing ngầm, có thể tràn |
-| Nối String với số | `"n=" + 7` | Có | Kết quả String `"n=7"` |
+| Widening assignment | `long n = 7;` | Yes | `int` → `long` |
+| In-range `int` constant assignment to `byte` | `byte b = 7;` | Yes | Special assignment rule |
+| Assigning `int` variable to `byte` | `byte b = intValue;` | Usually no | Needs cast/check |
+| Boxed assignment then reference widening | `Number n = 7;` | Yes | `int` → `Integer` → `Number` |
+| Assigning `int` to `Long` | `Long n = 7;` | No | Does not auto `int` → `long` → `Long` |
+| Passing `int` literal to `byte` parameter | `acceptByte(7);` | No | Method invocation does not narrow constants |
+| Passing `byte` to `long` parameter | `acceptLong((byte) 7);` | Yes | Primitive widening |
+| Calling `Number` parameter with `int` | `acceptNumber(7);` | Yes | Boxing + reference widening |
+| Expression `byte + byte` | `int s = a + b;` | Yes | Numeric promotion to `int` |
+| Assigning `byte + byte` result to `byte` | `byte s = a + b;` | No | Does not auto-narrow runtime results |
+| Assigning constant expression to `byte` | `byte s = 100 + 20;` | Yes | In-range constant expression |
+| Compound assignment on `byte` | `b += 10;` | Yes | Implicit narrowing, can overflow |
+| Concatenating `String` with number | `"n=" + 7` | Yes | Result is `String` `"n=7"` |
 
-Không phải mọi phép chuyển đổi chỉ thuộc đúng một ô trong bảng: một biểu thức có thể trải qua **numeric promotion trước**, rồi được **assignment conversion sau**. Hãy phân tích theo từng bước.
+Not every conversion falls into just a single cell in the table: an expression can undergo **numeric promotion first**, and then **assignment conversion afterwards**. Analyze step by step.
 
-## 9. Chương trình Java 17 chạy độc lập
+## 9. Standalone runnable Java 17 program
 
-Tạo tệp đúng tên **`ConversionContextsDemo.java`**:
+Create a file with the exact name **`ConversionContextsDemo.java`**:
 
 ~~~java
 public final class ConversionContextsDemo {
@@ -339,7 +339,7 @@ public final class ConversionContextsDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal mở tại thư mục chứa file. Không cần Maven, Gradle hay thư viện ngoài JDK.
+**Requirements:** JDK 17 or later, terminal opened in the directory containing the file. No Maven, Gradle, or libraries outside the JDK needed.
 
 **Bash (Linux/macOS):**
 
@@ -383,22 +383,22 @@ explicit double cast=8
 null unboxing=NullPointerException
 ~~~
 
-**Điểm quan trọng để đối chiếu:**
+**Key points to verify:**
 
-1. `byte constant = 120` và `byte fromFinalConstant = KNOWN` hợp lệ nhờ ngoại lệ hằng int trong assignment context.
-2. `acceptByte((byte) 7)` cần cast vì method invocation không tự thu hẹp literal int thành byte.
-3. `choose(7)` chọn `long` theo strict invocation; `choose(Integer.valueOf(7))` chọn `Integer`.
-4. `a + b` có kiểu `int` dù hai biến là byte; `100 + 20` là constant expression có thể gán byte.
-5. `wrong` cho kết quả tràn int trước khi gán long; `correct` dùng long ngay lúc cộng.
-6. `counter += 10` có narrowing ngầm và biến thành -126.
-7. `"concat=" + 1 + 2` nối String ra `12`, khác phép cộng số trong ngoặc.
-8. `missing` là `Integer` null; unboxing lúc chạy gây `NullPointerException`, được catch theo chủ đích.
+1. `byte constant = 120` and `byte fromFinalConstant = KNOWN` are valid thanks to the `int` constant exception in assignment context.
+2. `acceptByte((byte) 7)` requires a cast because method invocation does not automatically narrow an `int` literal to `byte`.
+3. `choose(7)` picks `long` via strict invocation; `choose(Integer.valueOf(7))` picks `Integer`.
+4. `a + b` has type `int` even though both variables are `byte`; `100 + 20` is a constant expression assignable to `byte`.
+5. `wrong` produces an overflowed `int` result before assigning to `long`; `correct` uses `long` right at addition.
+6. `counter += 10` performs implicit narrowing and becomes -126.
+7. `"concat=" + 1 + 2` concatenates Strings into `12`, unlike numeric addition in parentheses.
+8. `missing` is a null `Integer`; runtime unboxing throws `NullPointerException`, which is intentionally caught.
 
-## 10. Bài tập và đáp án
+## 10. Exercises and answers
 
-### Bài A — cùng giá trị nhưng khác context
+### Exercise A — same value, different contexts
 
-Giả sử có:
+Suppose we have:
 
 ~~~java
 static void takeByte(byte value) {}
@@ -408,9 +408,9 @@ takeByte(a);
 // takeByte(100);
 ~~~
 
-**Đáp án:** `byte a = 100` hợp lệ bởi ngoại lệ hằng int trong phép gán. `takeByte(a)` hợp lệ vì đối số đã có kiểu byte; `takeByte(100)` không hợp lệ vì method invocation không tự narrowing literal int. Có thể viết `takeByte((byte) 100)`.
+**Answer:** `byte a = 100` is valid due to the `int` constant exception in assignment. `takeByte(a)` is valid because the argument already has type `byte`; `takeByte(100)` is invalid because method invocation does not automatically narrow an `int` literal. You can write `takeByte((byte) 100)`.
 
-### Bài B — hằng hay biến runtime?
+### Exercise B — constant or runtime variable?
 
 ~~~java
 byte a = 100 + 20;
@@ -419,9 +419,9 @@ byte y = 20;
 // byte b = x + y;
 ~~~
 
-**Đáp án:** dòng đầu hợp lệ vì `100+20` là hằng int bằng 120. Dòng `byte b = x+y` lỗi vì toán tử cộng nâng cả byte lên int, kết quả không tự thu hẹp về byte.
+**Answer:** the first line is valid because `100+20` is an `int` constant equal to 120. The line `byte b = x+y` errors because the addition operator promotes both `byte`s to `int`, and the result does not auto-narrow to `byte`.
 
-### Bài C — boxing và widening
+### Exercise C — boxing and widening
 
 ~~~java
 Number a = 5;
@@ -430,9 +430,9 @@ long c = b;
 // Long d = 5;
 ~~~
 
-**Đáp án:** `a` hợp lệ qua boxing `int -> Integer` rồi widening reference; `b` hợp lệ qua boxing; `c` hợp lệ qua unboxing rồi widening int → long. `Long d = 5` không hợp lệ; viết `5L`.
+**Answer:** `a` is valid via boxing `int -> Integer` then reference widening; `b` is valid via boxing; `c` is valid via unboxing then widening `int → long`. `Long d = 5` is invalid; write `5L`.
 
-### Bài D — quá trình cộng xảy ra trước phép gán
+### Exercise D — addition occurs before assignment
 
 ~~~java
 int x = 2_000_000_000;
@@ -442,34 +442,34 @@ System.out.println(a);
 System.out.println(b);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 -294967296
 4000000000
 ~~~
 
-`a` nhận kết quả int đã tràn, còn `b` thực hiện phép cộng long vì toán hạng đầu đã được cast trước.
+`a` receives the overflowed `int` result, while `b` performs `long` addition because the first operand was cast beforehand.
 
-### Bài E — chọn overload
+### Exercise E — overload selection
 
 ~~~java
 static void choose(long x) { System.out.println("long"); }
 static void choose(Integer x) { System.out.println("Integer"); }
 
-// Trong main:
+// In main:
 choose(3);
 choose(Integer.valueOf(3));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 long
 Integer
 ~~~
 
-### Bài F — gán kết hợp
+### Exercise F — compound assignment
 
 ~~~java
 byte b = 127;
@@ -477,22 +477,22 @@ b += 1;
 System.out.println(b);
 ~~~
 
-**Đáp án:** `-128`. Toán tử `+=` có chuyển kiểu thu hẹp về byte; không tự báo overflow. Nếu không cho phép giá trị âm bất ngờ, hãy tính bằng int và kiểm tra miền trước.
+**Answer:** `-128`. The `+=` operator includes a narrowing conversion to `byte` and does not report overflow automatically. If unexpected negative values are unacceptable, compute in `int` and check range beforehand.
 
-## 11. Checklist tổng kết
+## 11. Summary checklist
 
-- [ ] Phân biệt **assignment**, **method invocation** và **expression context**.
-- [ ] Biết widening primitive cho phép gán hoặc truyền đối số khi kiểu tương thích.
-- [ ] Biết ngoại lệ gán hằng int vừa miền vào byte/short/char.
-- [ ] Hiểu ngoại lệ đó **không** đồng nghĩa method nhận byte cho phép truyền literal int tự động.
-- [ ] Biết boxing/unboxing và rủi ro unboxing null.
-- [ ] Hiểu `Number n = 5` hợp lệ nhưng `Long n = 5` không.
-- [ ] Biết overload resolution có thể chọn widening trước boxing.
-- [ ] Nhớ byte/short/char được nâng thành int trong phép tính số học.
-- [ ] Phân biệt compound assignment với phép gán `=` thông thường.
-- [ ] Xác định kiểu toán hạng **trước** khi cộng để tránh overflow.
-- [ ] Không nhầm phép nối String với phép cộng số.
-- [ ] Dùng cast sau khi kiểm tra giá trị và đúng yêu cầu nghiệp vụ.
-- [ ] Chạy `ConversionContextsDemo.java` trên JDK 17+ và so từng dòng expected output.
+- [ ] Distinguish **assignment**, **method invocation**, and **expression context**.
+- [ ] Know that primitive widening allows assigning or passing arguments when types are compatible.
+- [ ] Know the exception for assigning in-range `int` constants into `byte`/`short`/`char`.
+- [ ] Understand that the exception does **not** mean a method taking `byte` automatically accepts `int` literals.
+- [ ] Know boxing/unboxing and the risk of unboxing `null`.
+- [ ] Understand `Number n = 5` is valid whereas `Long n = 5` is not.
+- [ ] Know overload resolution can choose widening before boxing.
+- [ ] Remember `byte`/`short`/`char` are promoted to `int` in arithmetic operations.
+- [ ] Distinguish compound assignment from ordinary `=` assignment.
+- [ ] Determine operand types **before** adding to avoid overflow.
+- [ ] Do not confuse `String` concatenation with numeric addition.
+- [ ] Use casts after checking values and matching business requirements.
+- [ ] Run `ConversionContextsDemo.java` on JDK 17+ and verify every line of expected output.
 
-**Kết luận:** Java quyết định chuyển đổi theo **nơi giá trị được sử dụng**. Phép gán cho phép một số narrowing hằng int đặc biệt; lời gọi method dùng quy tắc thích ứng kiểu tham số và phân giải overload; biểu thức lại có numeric promotion và ngữ nghĩa toán tử riêng. Muốn code đúng, hãy đọc **kiểu nguồn → ngữ cảnh → chuyển đổi → giá trị thực tế**, thay vì chỉ nhìn kiểu của biến nhận.
+**Conclusion:** Java decides conversions based on **where the value is used**. Assignment allows special `int` constant narrowing; method calls use parameter type adaptation and overload resolution rules; expressions have numeric promotion and operator-specific semantics. To write correct code, trace **source type → context → conversion → actual value**, instead of looking only at the receiving variable's type.

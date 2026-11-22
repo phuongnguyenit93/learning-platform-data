@@ -1,59 +1,59 @@
-# Cache Field, Method và Constructor theo ngữ cảnh phù hợp
+# Caching `Field`, `Method`, and `Constructor` in the Appropriate Context
 
-## 1. Vì sao và khi nào nên cache metadata Reflection?
+## 1. Why and When Should You Cache Reflection Metadata?
 
-Trong Java Reflection, một chương trình có thể tìm metadata của class bằng những API như `Class.getDeclaredField(...)`, `getDeclaredMethod(...)`, `getDeclaredConstructor(...)`, sau đó dùng đối tượng `Field`, `Method` hoặc `Constructor` để đọc/ghi field, gọi phương thức hoặc tạo object.
+In Java Reflection, a program can look up class metadata using APIs such as `Class.getDeclaredField(...)`, `getDeclaredMethod(...)`, and `getDeclaredConstructor(...)`, then use the resulting `Field`, `Method`, or `Constructor` objects to read/write fields, invoke methods, or instantiate objects.
 
-Nếu một framework lặp đi lặp lại thao tác **tra cứu đúng cùng một thành viên** khi xử lý hàng nghìn đối tượng, việc tìm metadata nhiều lần có thể tạo chi phí không cần thiết. Cache cho phép tách hai việc:
+If a framework repeatedly **looks up the exact same member** while processing thousands of objects, resolving metadata over and over can create unnecessary overhead. Caching lets you separate two tasks:
 
-1. **Khám phá thành viên một lần** trong một ngữ cảnh cụ thể: tên class, tên thành viên, kiểu tham số, quyền truy cập.
-2. **Sử dụng metadata đã tìm** cho những receiver hoặc đối số phù hợp trong các lần thao tác tiếp theo.
+1. **Discovering the member once** within a specific context: class name, member name, parameter types, access rights.
+2. **Using the discovered metadata** for appropriate receivers or arguments in subsequent operations.
 
-Ví dụ, một serializer ghi giá trị field `name` cho rất nhiều đối tượng `Person` có thể tra cứu `Field` đó một lần rồi dùng `field.get(person)` trên từng instance. Một dependency injector có thể cache constructor đã lựa chọn theo loại component; một router có thể cache method tương ứng với endpoint cố định.
+For example, a serializer writing the `name` field for many `Person` objects can look up that `Field` once and then call `field.get(person)` on each instance. A dependency injector can cache the selected constructor per component type; a router can cache the method corresponding to a fixed endpoint.
 
-Tuy nhiên **cache không mặc nhiên làm lời gọi Reflection nhanh như lời gọi Java trực tiếp**. Nó chủ yếu tránh chi phí tra cứu metadata lặp lại. `Method.invoke(...)` vẫn có chi phí gọi gián tiếp, kiểm tra kiểu, boxing/unboxing hoặc xử lý ngoại lệ phù hợp. Cơ chế thực thi Reflection và JIT có thể khác nhau giữa các phiên bản JDK. Hãy tối ưu dựa trên profile/benchmark khi performance là yêu cầu thật.
+However, **caching does not automatically make reflective calls as fast as direct Java calls**. It primarily avoids repeated metadata lookup costs. `Method.invoke(...)` still carries indirection overhead, type checking, boxing/unboxing, or corresponding exception handling. Reflection execution mechanisms and JIT behavior can also vary across JDK versions. Optimize based on profiling/benchmarks when performance is a real requirement.
 
-### Mô hình ba lớp
+### Three-Layer Model
 
 ```text
-Đặc tả cần truy cập
-  └── Class + loại thành viên + tên + chữ ký + chính sách quyền
+Access specification
+  └── Class + member kind + name + signature + access policy
         ↓
-Tra cứu/kiểm tra một lần
+Look up/check once
   └── Field / Method / Constructor
         ↓
-Cache theo ngữ cảnh phù hợp
-  └── Metadata đã được chọn
+Cache in the appropriate scope
+  └── Selected metadata
         ↓
-Dùng cho từng object/lần gọi
+Use per object/invocation
   └── Field.get/set | Method.invoke | Constructor.newInstance
 ```
 
-Điều quan trọng nhất không phải “đưa mọi thứ vào static Map”, mà là chọn **đúng đơn vị tái sử dụng, khóa cache và vòng đời cache**.
+The most important thing is not “putting everything into a static Map,” but choosing **the right unit of reuse, cache key, and cache lifecycle**.
 
-## 2. Thông tin cần lưu của Field, Method, Constructor
+## 2. What to Store for `Field`, `Method`, and `Constructor`
 
-Ba loại metadata đều thuộc Reflection nhưng có quy tắc tra cứu và sử dụng khác nhau:
+All three metadata types belong to Reflection, yet they have different lookup and usage rules:
 
-| Loại | Tra cứu thông thường | Khóa nhận diện cần thiết | Sử dụng sau khi cache |
+| Kind | Typical Lookup | Required Identifying Key | Usage After Caching |
 | --- | --- | --- | --- |
-| `Field` | `getDeclaredField("name")` / `getField("name")` | Lớp/ngữ cảnh khai báo, tên field, chính sách tìm declared/public | `field.get(receiver)`, `field.set(receiver, value)` |
-| `Method` | `getDeclaredMethod("save", String.class)` / `getMethod(...)` | Lớp/ngữ cảnh tìm, **tên và danh sách kiểu tham số theo đúng thứ tự**, chính sách tìm | `method.invoke(receiver, args...)` |
-| `Constructor` | `getDeclaredConstructor(String.class)` / `getConstructor(...)` | Lớp cần tạo và **danh sách kiểu tham số**, chính sách tìm | `constructor.newInstance(args...)` |
+| `Field` | `getDeclaredField("name")` / `getField("name")` | Declaring/lookup class context, field name, declared/public lookup policy | `field.get(receiver)`, `field.set(receiver, value)` |
+| `Method` | `getDeclaredMethod("save", String.class)` / `getMethod(...)` | Class/lookup context, **name and ordered parameter type list**, lookup policy | `method.invoke(receiver, args...)` |
+| `Constructor` | `getDeclaredConstructor(String.class)` / `getConstructor(...)` | Target class and **parameter type list**, lookup policy | `constructor.newInstance(args...)` |
 
-- **Instance receiver không phải một phần của khóa metadata** nếu cùng một `Field`/`Method` có thể dùng với nhiều instance cùng loại phù hợp. Đừng cache từng đối tượng nghiệp vụ chỉ để tránh tra cứu cùng field.
-- **Field** được tra cứu theo tên. Kiểu field có thể được kiểm tra qua `field.getType()` khi cần, nhưng tên cùng chính sách tra cứu/lớp là cơ sở nhận diện trong các API nói trên.
-- **Method** có thể overload. Ví dụ `parse(String)` và `parse(int)` là hai method khác nhau; cache chỉ theo tên `"parse"` là sai. Khi dùng `getDeclaredMethod` hay `getMethod`, danh sách tham số quyết định overload. Các API tra cứu Java Reflection này không nhận kiểu trả về làm tham số; nếu hệ thống yêu cầu kiểm tra return type, so sánh thêm `method.getReturnType()` theo hợp đồng của hệ thống.
-- **Constructor** không có tên riêng để truyền vào API tra cứu. Khóa cần lớp và các kiểu tham số; `getDeclaredConstructor()` không đồng nghĩa với “chọn constructor bất kỳ”.
-- `getDeclaredXxx` tra cứu thành viên **khai báo trực tiếp** ở lớp được hỏi, kể cả non-public, nhưng không tự duyệt toàn bộ cấp cha cho mọi loại thành viên. `getXxx` công khai tìm public member theo quy tắc kế thừa. Hai chiến lược tra cứu này không được dùng chung cache key khi ý nghĩa khác nhau.
+- **The receiver instance is not part of the metadata key** if the same `Field`/`Method` can be used across many instances of a compatible type. Do not cache per business object just to avoid looking up the same field.
+- **`Field`** is looked up by name. The field's type can be checked via `field.getType()` when needed, but the name together with the lookup policy/class forms the identifying basis in the APIs above.
+- **`Method`** can be overloaded. For instance, `parse(String)` and `parse(int)` are two distinct methods; caching by `"parse"` alone is wrong. When using `getDeclaredMethod` or `getMethod`, the parameter list determines the overload. These Java Reflection lookup APIs do not accept a return type as a parameter; if a system requires checking the return type, also compare `method.getReturnType()` according to your system's contract.
+- **`Constructor`** has no distinct name to pass to the lookup API. The key requires the class and parameter types; `getDeclaredConstructor()` does not mean “pick any constructor.”
+- `getDeclaredXxx` looks up members **declared directly** on the queried class, including non-public ones, without automatically walking the entire superclass chain for every member kind. Public `getXxx` finds public members according to inheritance rules. These two lookup strategies must not share a cache key when their semantics differ.
 
-Cũng phải phân biệt **cache đối tượng mô tả** với **cache kết quả đọc dữ liệu**. Cache `Field` có thể hợp lệ; cache `field.get(person)` thì sẽ giữ một giá trị từ một thời điểm, có thể đã lỗi thời nếu field thay đổi.
+You must also distinguish **caching descriptor objects** from **caching read data values**. Caching a `Field` may be valid; caching `field.get(person)` holds a value from one point in time, which may become stale if the field changes.
 
-## 3. Thiết kế khóa cache an toàn
+## 3. Designing Safe Cache Keys
 
-Nếu cache phục vụ một class cố định cùng danh sách thành viên cố định, có thể tạo một bộ metadata gắn với class đó. Nếu cache dùng cho nhiều class, overload và chiến lược lookup, cần khóa mô tả đầy đủ.
+If a cache serves a fixed class with a fixed list of members, you can create a metadata bundle attached to that class. If a cache serves multiple classes, overloads, and lookup strategies, a complete descriptive key is required.
 
-Một khóa cho method động có thể được định nghĩa như sau:
+A dynamic method key can be defined like this:
 
 ```java
 record MethodKey(
@@ -63,7 +63,7 @@ record MethodKey(
         boolean declaredOnly) {}
 ```
 
-Đoạn này chỉ minh họa khai báo khóa, không phải chương trình độc lập. Khi tạo key, dùng một danh sách **bất biến được copy từ các kiểu tham số**, chẳng hạn:
+This snippet only illustrates key declaration, not a standalone program. When constructing the key, use an **immutable copy of the parameter types**, for example:
 
 ```java
 MethodKey key = new MethodKey(
@@ -74,22 +74,22 @@ MethodKey key = new MethodKey(
 );
 ```
 
-Những điểm cần xem xét khi triển khai cache thật:
+Points to consider when implementing a real cache:
 
-1. **Lớp `Class<?>` xác định theo identity, gồm cả classloader**. Hai lớp có cùng tên đầy đủ nhưng do hai classloader khác nhau nạp là hai `Class` khác nhau; dùng `getName()` làm toàn bộ khóa có thể gây nhầm metadata.
-2. **Overload phải có đầy đủ signature**. Đối với danh sách tham số do caller cung cấp, sao chép sang danh sách bất biến trước khi đưa vào khóa; đừng giữ một array có thể bị thay đổi làm nguồn hash/equality.
-3. **Phạm vi tìm thành viên** phải được cố định: declared-only, public/inherited hoặc thuật toán tìm thủ công trên cây lớp. Cùng tên và signature nhưng lookup policy khác có thể cho kết quả khác.
-4. **Quyền và ngữ cảnh caller** không tự suy ra chỉ từ tên lớp. Nếu framework tạo metadata đã được `setAccessible(true)` hoặc tạo handle bằng lookup có đặc quyền, đừng phát tán đối tượng đó qua một cache toàn cục mà code ít tin cậy cũng đọc được.
-5. **Chính sách chọn constructor** phải ổn định: nếu framework chọn theo annotation, visibility hay config, những yếu tố ấy thuộc hợp đồng của cache. Thay đổi quy tắc chọn phải làm mất hiệu lực entry thích hợp.
+1. **`Class<?>` is determined by identity, including its classloader**. Two classes with the same fully qualified name loaded by two different classloaders are two distinct `Class` objects; using `getName()` as the entire key can mix up metadata.
+2. **Overloads must include the full signature**. For a parameter list supplied by callers, copy it into an immutable list before putting it into the key; do not keep a mutable array as the source of hash/equality.
+3. **Member lookup scope** must be fixed: declared-only, public/inherited, or a custom traversal algorithm over the class hierarchy. The same name and signature with different lookup policies can yield different results.
+4. **Permissions and caller context** cannot be inferred from the class name alone. If a framework produces metadata on which `setAccessible(true)` was called or creates handles with a privileged lookup, do not expose those objects through a global cache readable by less-trusted code.
+5. **Constructor selection policy** must be stable: if a framework selects by annotation, visibility, or configuration, those factors are part of the cache contract. Changing selection rules must invalidate the relevant entries.
 
-Ví dụ sai:
+Incorrect example:
 
 ```java
-// Sai: hai overload save(String) và save(int) bị gộp vào cùng key.
+// Wrong: the two overloads save(String) and save(int) are collapsed into the same key.
 java.util.Map<String, java.lang.reflect.Method> methodsByName;
 ```
 
-Ví dụ tốt hơn về cấu trúc, khi mỗi class có cache riêng:
+Better structural example when each class has its own cache:
 
 ```java
 record Signature(String name, java.util.List<Class<?>> params) {}
@@ -97,66 +97,66 @@ record Signature(String name, java.util.List<Class<?>> params) {}
 java.util.concurrent.ConcurrentMap<Signature, java.lang.reflect.Method> methods;
 ```
 
-Hai khai báo trên là các mảnh của một thiết kế, chưa khởi tạo biến hay xử lý ngoại lệ. Class chủ sở hữu có thể là khóa ở lớp ngoài; khi cache theo class, inner key chỉ cần mô tả các method **bên trong** đúng lớp/ngữ cảnh đó.
+The two declarations above are design fragments, without variable initialization or exception handling. The owning class can serve as the outer key; when caching per class, the inner key only needs to describe methods **within** that exact class/context.
 
-## 4. Chọn phạm vi cache theo vòng đời hệ thống
+## 4. Choosing Cache Scope Based on System Lifecycle
 
-Có nhiều phạm vi hợp lệ. Chọn theo mức ổn định của class, quyền truy cập và thời gian tồn tại:
+There are several valid scopes. Choose based on class stability, access permissions, and lifetime:
 
-| Phạm vi | Khi phù hợp | Lưu ý |
+| Scope | When Appropriate | Notes |
 | --- | --- | --- |
-| Biến local trong một đợt xử lý | Chỉ dùng lặp lại trong một request/batch | Dễ kiểm soát, không giữ class/object lâu hơn batch |
-| Một service hoặc component | Service cố định một vài kiểu DTO/domain | Cache sống theo vòng đời service, dễ invalidation |
-| Theo mỗi `Class<?>` với `ClassValue<T>` | Thư viện xử lý nhiều lớp, muốn dữ liệu gắn với lớp và vòng đời lớp | Phù hợp hơn static map mạnh trong môi trường classloader thay đổi |
-| Cache dùng chung theo key đầy đủ | Nhiều entry động, công việc thực sự tái sử dụng metadata | Cần kiểm soát quyền, đồng thời, kích thước và classloader |
+| Local variable in a processing batch | Repeatedly used only within one request/batch | Easy to control, does not retain classes/objects beyond the batch |
+| A service or component | Service works with a few fixed DTO/domain types | Cache lives with the service lifecycle, easy to invalidate |
+| Per `Class<?>` with `ClassValue<T>` | Library processing many classes that wants data tied to the class and its lifecycle | Better suited than a strong static map in environments with changing classloaders |
+| Shared cache by full key | Many dynamic entries where work genuinely reuses metadata | Needs control over permissions, concurrency, size, and classloaders |
 
-### Nguy cơ static Map giữ classloader
+### Risk of a Static Map Retaining Classloaders
 
-Một cache cấp ứng dụng như:
+An application-level cache like:
 
 ```java
 static final java.util.Map<Class<?>, Object> CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 ```
 
-có **strong reference** tới `Class<?>` và giá trị. Nếu cache sống lâu hơn plugin, deployment hoặc classloader chứa class, nó có thể ngăn các class/classloader đó được thu gom. Đây là vấn đề thực tế với application server có hot deploy, plugin system, IDE, framework dùng generated classes.
+holds **strong references** to `Class<?>` and values. If the cache outlives a plugin, deployment, or classloader containing the class, it can prevent those classes/classloaders from being garbage collected. This is a real issue in application servers with hot deploy, plugin systems, IDEs, and frameworks that generate classes.
 
-Chuyển khóa sang `WeakHashMap<Class<?>, Field>` **không tự động giải quyết mọi leak**: giá trị `Field`/`Method` có thể tham chiếu ngược tới declaring class, tạo đường strong reference từ map đến chính khóa qua value. Dùng `ClassValue` hoặc cache được quản lý theo vòng đời component/classloader thường rõ ràng hơn. Nếu vẫn dùng map lâu sống, cần có lifecycle cleanup, giới hạn số entry phù hợp và kiểm tra tham chiếu giữ lại.
+Switching the key to `WeakHashMap<Class<?>, Field>` **does not automatically solve every leak**: the `Field`/`Method` value can hold a reference back to its declaring class, creating a strong reference path from the map to the key itself via the value. Using `ClassValue` or a cache managed by component/classloader lifecycle is usually clearer. If a long-lived map is still used, ensure proper lifecycle cleanup, appropriate entry bounds, and retained-reference checks.
 
 ### `ClassValue<T>`
 
-`ClassValue<T>` cung cấp ánh xạ giá trị **theo từng `Class<?>`**, hữu ích khi muốn giữ metadata thuộc về một class mà không xây một static map mạnh theo class. Khi `ClassValue.get(type)` chưa có giá trị cho class ấy, `computeValue(type)` sẽ được gọi để tính.
+`ClassValue<T>` provides a value mapping **per `Class<?>`**, useful when you want to keep metadata belonging to a class without building a strong static map keyed by class. When `ClassValue.get(type)` does not yet have a value for that class, `computeValue(type)` is called to compute it.
 
 ```java
 ClassValue<SomeMetadata> cache = new ClassValue<>() {
     @Override
     protected SomeMetadata computeValue(Class<?> type) {
-        // Khám phá và tạo metadata cho chính type này.
+        // Discover and build metadata for this specific type.
         return buildMetadata(type);
     }
 };
 ```
 
-Đây là **pseudocode Java theo hợp đồng**: `SomeMetadata` và `buildMetadata` phải được định nghĩa trong ứng dụng; ví dụ hoàn chỉnh ở mục 6.
+This is **contractual Java pseudocode**: `SomeMetadata` and `buildMetadata` must be defined in the application; a complete example is in section 6.
 
-`ClassValue` hỗ trợ truy cập đồng thời, nhưng **`computeValue` có thể bị gọi nhiều lần cho cùng một class khi có cạnh tranh**; chỉ một giá trị phù hợp được xuất bản cho các `get` thành công. Vì vậy, hàm compute nên thuần hoặc có tác dụng phụ an toàn, không khởi chạy một lần duy nhất các hành động không thể lặp. `ClassValue.remove(type)` cho phép bỏ giá trị của class, nhưng khi có thread đang tính hoặc đọc đồng thời, cần thiết kế lại quy trình invalidation thật cẩn thận.
+`ClassValue` supports concurrent access, but **`computeValue` may be called multiple times for the same class under contention**; only one matching value is published to successful `get` calls. Therefore, the compute function should be pure or have safe side effects, and must not trigger one-time non-repeatable actions. `ClassValue.remove(type)` removes the value for a class, but when other threads may be computing or reading concurrently, invalidation procedures must be designed carefully.
 
-## 5. Quyền truy cập: cache metadata không phải giấy phép vượt private/module
+## 5. Access Permissions: Caching Metadata Is Not a License to Bypass Private/Module Rules
 
-Mỗi `Field`, `Method` và `Constructor` là một đối tượng phản chiếu. Tra cứu được một member **không có nghĩa** mọi caller đều được phép thao tác trên member đó.
+Each `Field`, `Method`, and `Constructor` is a reflective descriptor. Being able to look up a member **does not mean** every caller is allowed to operate on that member.
 
-- Với member public ở class public/package exported hợp lệ, thường có thể dùng các phương thức `getField`, `getMethod`, `getConstructor` mà không cần nới quyền.
-- Với member private/package-private, thao tác reflective có thể bị chặn vì access control. `setAccessible(true)` chỉ thành công khi Java language/module rules cho phép mở quyền; trong named modules, `opens` và quan hệ module có thể quyết định kết quả.
-- Nếu không có quyền mở truy cập, `setAccessible(true)` có thể ném `InaccessibleObjectException`, một unchecked exception. Tùy nhu cầu có thể sử dụng `trySetAccessible()` để nhận tín hiệu `false` khi không thể bật, rồi phản hồi phù hợp.
-- **Cờ accessible của đối tượng `AccessibleObject` là trạng thái mutable**. Nếu một thành phần đã bật quyền rồi chia sẻ cùng `Method`/`Field` cho code không tin cậy, đó có thể là vấn đề bảo mật. Cache metadata nên nằm trong phạm vi dịch vụ tin cậy sử dụng nó.
-- Reflection không làm mất đi cơ chế bảo vệ riêng của module, cũng không khiến field `final` bình thường trở thành điểm cập nhật tùy ý theo mọi hoàn cảnh.
+- For public members in public classes/valid exported packages, you can usually use `getField`, `getMethod`, and `getConstructor` without relaxing access checks.
+- For private/package-private members, reflective operations may be blocked by access control. `setAccessible(true)` only succeeds when Java language/module rules permit opening access; in named modules, `opens` and module relationships can determine the outcome.
+- If access cannot be opened, `setAccessible(true)` may throw `InaccessibleObjectException`, an unchecked exception. Depending on requirements, you can use `trySetAccessible()` to receive `false` when it cannot be enabled and respond appropriately.
+- **The accessible flag on an `AccessibleObject` is mutable state**. If one component enables access and then shares the same `Method`/`Field` with untrusted code, that can become a security issue. Metadata caches should stay within the trusted service that uses them.
+- Reflection does not remove module encapsulation guarantees, nor does it make ordinary `final` fields arbitrarily updatable in every circumstance.
 
-**Quy trình khuyến nghị:** cache khi đã xác định chắc chắn member cần thao tác và quyền cần thiết; tập trung logic truy cập vào component có trách nhiệm. Đừng gọi `setAccessible(true)` đại trà lên mọi field của mọi class, vì dễ vi phạm chính sách module và tạo bề mặt truy cập rộng.
+**Recommended workflow:** cache once you have clearly identified the target member and required permissions; centralize access logic in the responsible component. Do not blindly call `setAccessible(true)` on every field of every class, as this easily violates module policies and widens the access surface.
 
-## 6. Ví dụ độc lập Java 17+: cache ba loại member bằng ClassValue
+## 6. Standalone Java 17+ Example: Caching All Three Member Kinds with `ClassValue`
 
-Ví dụ dưới đây có một lớp `Person` với constructor, field và method private. Cache chứa cả ba metadata, mỗi lần gọi `CACHE.get(Person.class)` đều nhận bộ member cho đúng `Person`. Việc mở quyền thành công trong ví dụ vì `Person` là nested class cùng **nest** với lớp truy cập, nên Java cho phép ngữ cảnh này truy cập private member; không được mặc định điều đó khi đổi sang class thuộc module khác.
+The example below defines a `Person` class with a private constructor, field, and method. The cache holds all three pieces of metadata, and each `CACHE.get(Person.class)` call returns the member set for `Person`. Enabling access succeeds in this example because `Person` is a nested class in the same **nest** as the accessing class, so Java permits this context to access private members; do not assume the same when switching to a class in another module.
 
-Lưu file **`ReflectionCacheDemo.java`**:
+Save the file as **`ReflectionCacheDemo.java`**:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -221,14 +221,14 @@ public class ReflectionCacheDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 ReflectionCacheDemo.java
 java ReflectionCacheDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Lan
@@ -237,18 +237,18 @@ Hi, Minh
 true
 ```
 
-Giải thích:
+Explanation:
 
-1. Lần đầu `CACHE.get(Person.class)` cần tạo `Accessors` bằng `computeValue`: tìm constructor `Person(String)`, field `name` và method `greet(String)`.
-2. Bộ metadata được dùng để tạo một object `Person("Lan")`, đọc field và gọi method. Không cần tra cứu lại mỗi lần gọi `get`/`invoke`.
-3. Sau khi đổi field trên instance thành `"Minh"`, gọi method đã cache sẽ thấy **giá trị hiện tại** của instance; cache metadata không đóng băng dữ liệu nghiệp vụ.
-4. Trong lần chạy tuần tự này, `CACHE.get(Person.class)` lần sau trả cùng tham chiếu `Accessors`, nên so sánh bằng `==` in `true`.
+1. On the first `CACHE.get(Person.class)`, `Accessors` must be created via `computeValue`: looking up constructor `Person(String)`, field `name`, and method `greet(String)`.
+2. The metadata bundle is used to create a `Person("Lan")` object, read the field, and invoke the method. There is no need to re-lookup on every `get`/`invoke`.
+3. After changing the field on the instance to `"Minh"`, calling the cached method sees the instance's **current value**; metadata caching does not freeze business data.
+4. In this sequential run, the second `CACHE.get(Person.class)` returns the same `Accessors` reference, so comparing with `==` prints `true`.
 
-Vì `setAccessible(true)` có thể không hợp lệ ở các ngữ cảnh khác, ví dụ này **không** khuyến khích cấp quyền private cho mọi class. Với member public, nên ưu tiên tra cứu/truy cập public thông thường. Trong triển khai thực tế, việc bắt `ReflectiveOperationException` trong `computeValue` chưa xử lý `InaccessibleObjectException` (unchecked) nếu cấu hình module không cho phép; cần báo rõ lỗi cấu hình thay vì che giấu.
+Because `setAccessible(true)` may be invalid in other contexts, this example does **not** encourage granting private access to arbitrary classes. For public members, prefer normal public lookup/access. In real implementations, catching `ReflectiveOperationException` inside `computeValue` does not catch `InaccessibleObjectException` (unchecked) if module configuration forbids access; configuration errors should be reported clearly rather than hidden.
 
-## 7. Cache nhiều member của cùng một lớp
+## 7. Caching Multiple Members of the Same Class
 
-Trong serializer hoặc framework, mỗi lớp có thể có hàng chục field và method. Khi đó một `ClassValue` có thể giữ **bảng metadata riêng cho từng class**:
+In a serializer or framework, each class may have dozens of fields and methods. In that case, a `ClassValue` can hold a **separate metadata table per class**:
 
 ```text
 ClassValue<PerClassCache>
@@ -264,16 +264,16 @@ ClassValue<PerClassCache>
            +-- Constructor ([long])
 ```
 
-Thiết kế một `PerClassCache` gồm nhiều `ConcurrentHashMap`, mỗi map dùng kiểu khóa phù hợp. Cách này:
+Design a `PerClassCache` containing multiple `ConcurrentHashMap` instances, each using an appropriate key type. This approach:
 
-- Giảm việc giữ trực tiếp `Class<?>` trong static map toàn cục.
-- Tập trung chính sách tìm member và quyền truy cập trong mỗi class.
-- Cho phép lazy lookup theo tên/signature thay vì khám phá toàn bộ member khi chưa cần.
-- Dễ gắn metrics về số cache hit/miss nếu thật sự cần tối ưu.
+- Avoids holding `Class<?>` directly in a global static map.
+- Centralizes member lookup and access policy within each class.
+- Enables lazy lookup by name/signature instead of discovering all members upfront when not yet needed.
+- Makes it easy to attach cache hit/miss metrics if optimization is genuinely needed.
 
-### ConcurrentHashMap và checked exception
+### `ConcurrentHashMap` and Checked Exceptions
 
-Lệnh `computeIfAbsent` tiện lợi nhưng hàm mapping không được khai báo ném checked `NoSuchMethodException`. Một ví dụ rút gọn minh họa cách bọc lỗi:
+`computeIfAbsent` is convenient, but its mapping function cannot be declared to throw a checked `NoSuchMethodException`. A condensed example illustrates wrapping the error:
 
 ```java
 Method result = methods.computeIfAbsent(key, k -> {
@@ -288,66 +288,66 @@ Method result = methods.computeIfAbsent(key, k -> {
 });
 ```
 
-Đây là **đoạn minh họa trong một implementation `PerClassCache`**, không phải file Java chạy độc lập. Nó giả định có `methods: ConcurrentHashMap<Signature,Method>`, `key: Signature`, `owner: Class<?>` và `Signature` cung cấp `name()`/`parameterTypes()`. Một hệ thống thật cần quyết định trước cách xử lý lỗi: `computeIfAbsent` không cache kết quả `null` hay exception; truy vấn luôn thất bại có thể tiếp tục tốn chi phí nếu được gọi đi gọi lại.
+This is an **illustrative snippet inside a `PerClassCache` implementation**, not a standalone runnable Java file. It assumes `methods: ConcurrentHashMap<Signature,Method>`, `key: Signature`, `owner: Class<?>`, and `Signature` providing `name()`/`parameterTypes()`. A real system must decide upfront how to handle failures: `computeIfAbsent` does not cache `null` results or exceptions; queries that always fail can keep costing time if called repeatedly.
 
-Khi concurrency cao, mapping function có thể tạo tranh chấp khóa. Không đặt tác vụ I/O, truy vấn mạng, gọi lại vòng vào cùng map hoặc tác dụng phụ nặng trong compute. Xây key bất biến rồi cache thành viên có giá trị hợp lệ; khi metadata hết hiệu lực theo lifecycle, hủy cả cache liên quan.
+Under high concurrency, the mapping function can cause lock contention. Do not put I/O, network queries, recursive calls back into the same map, or heavy side effects inside compute. Build immutable keys and cache valid members; when metadata expires according to lifecycle, discard the entire related cache.
 
-## 8. Những trường hợp phải cẩn thận
+## 8. Cases Requiring Caution
 
-### a) Method overload và method được kế thừa
+### a) Overloaded Methods and Inherited Methods
 
-Với `UserService.save(User)` và `UserService.save(String)`, khóa `(name="save")` không đủ. Nếu dùng `getDeclaredMethod` trên subclass, member kế thừa không nhất thiết hiện diện trong danh sách declared. Hãy cố định thuật toán tra cứu và chữ ký; nếu chuyển sang `getMethod` hoặc duyệt superclass thủ công, cần khóa/cấu hình phân biệt đúng hành vi.
+For `UserService.save(User)` and `UserService.save(String)`, the key `(name="save")` is insufficient. When calling `getDeclaredMethod` on a subclass, inherited members are not necessarily present in the declared list. Fix your lookup algorithm and signature; if switching to `getMethod` or manually walking superclasses, use keys/configuration that accurately distinguish the behavior.
 
-### b) Proxy và nhiều classloader
+### b) Proxies and Multiple Classloaders
 
-Framework tạo proxy class có thể sử dụng nhiều `Class<?>` dù các class có cấu trúc tương tự. `Method` tìm cho class A không tự nhiên phù hợp với mọi proxy hoặc class cùng tên do loader khác nạp. Với `Method.invoke`, receiver thực tế phải tương thích với **declaring class** của method đó. Cache theo classloader chỉ bằng string như `"com.example.User"` là thiếu an toàn.
+Frameworks that generate proxy classes may produce multiple `Class<?>` instances even when the classes have similar structure. A `Method` looked up for class A does not automatically fit every proxy or a class with the same name loaded by another loader. With `Method.invoke`, the actual receiver must be compatible with that method's **declaring class**. Caching across classloaders using only a string like `"com.example.User"` is unsafe.
 
-### c) Truy cập bất đồng bộ và đối tượng metadata dùng chung
+### c) Concurrent Access and Shared Metadata Objects
 
-`Field`, `Method` và `Constructor` có thể được tái sử dụng khi nhiều thread cùng gọi thông qua Reflection; điều đó không có nghĩa **đối tượng nghiệp vụ được truy cập tự động thread-safe**. Ví dụ `field.set(...)` cùng field trên một object không tạo atomicity/happens-before theo ý muốn. Nếu bài toán cần kiểm soát memory ordering hay CAS, xem `VarHandle` hoặc primitive đồng bộ tương ứng, không chỉ cache `Field`.
+`Field`, `Method`, and `Constructor` can be reused when multiple threads invoke through Reflection concurrently; that does not mean **the business object being accessed is automatically thread-safe**. For example, calling `field.set(...)` on the same field of an object does not provide desired atomicity or happens-before guarantees. If your problem requires memory-ordering control or CAS, look at `VarHandle` or appropriate synchronization primitives, not just caching `Field`.
 
-### d) Cache stale hoặc thay đổi mô hình runtime
+### d) Stale Caches or Runtime Model Changes
 
-Thay một class bằng phiên bản nạp từ classloader mới tạo ra **Class object khác**. Cần tìm metadata từ class mới. Với plugin reload, hot redeploy, instrumentation hoặc schema mapping thay đổi, định nghĩa rõ lúc nào bỏ cache theo loader/component/phiên bản. `ClassValue.remove(type)` chỉ loại entry gắn với `type` đó; không có nghĩa xóa mọi cấu trúc tham chiếu liên quan bên ngoài.
+Replacing a class with a version loaded from a new classloader creates a **different `Class` object**. Metadata must be looked up from the new class. With plugin reloads, hot redeploys, instrumentation, or changing mapping schemas, clearly define when caches are dropped per loader/component/version. `ClassValue.remove(type)` only removes the entry attached to that `type`; it does not clear external referencing structures.
 
-### e) Memory cost và lợi ích nhỏ
+### e) Memory Cost and Small Gains
 
-Nếu thành viên chỉ được gọi một lần, tạo map, key, synchronization và entry cache có thể tốn nhiều hơn việc tra cứu trực tiếp. Nếu một ứng dụng quét rất nhiều class nhưng chỉ sử dụng một phần nhỏ member, cache tất cả có thể tốn bộ nhớ. Với hot loop, cần đo riêng **chi phí tìm metadata** và **chi phí gọi member**, thay vì chỉ benchmark chung và gán mọi cải thiện cho cache.
+If a member is only called once, creating maps, keys, synchronization, and cache entries can cost more than direct lookup. If an application scans many classes but only uses a small subset of members, eagerly caching everything can waste memory. For hot loops, measure **metadata lookup cost** and **member invocation cost** separately, instead of running one combined benchmark and attributing every gain to caching.
 
-### f) Dữ liệu nhạy cảm và phạm vi tin cậy
+### f) Sensitive Data and Trust Boundaries
 
-Một shared cache cho phép truy cập metadata private đã mở quyền có thể vô tình tạo khả năng truy cập từ component khác. Thiết kế ownership rõ ràng: chỉ code có quyền mới lấy hoặc nhận member đặc quyền; không công khai map member được bật accessible thành một service đa tenant mà không có kiểm tra quyền.
+A shared cache exposing metadata whose private access has been opened can accidentally grant access to other components. Design clear ownership: only authorized code should retrieve or receive privileged members; do not expose an accessible-enabled member map as a multi-tenant service without permission checks.
 
-## 9. Đo hiệu năng đúng cách
+## 9. Measuring Performance Correctly
 
-Nếu mục tiêu là giảm độ trễ, hãy thử hai đường đi:
+If the goal is to reduce latency, test two paths:
 
-- **Không cache:** mỗi vòng gọi `getDeclaredMethod(...)` rồi `invoke(...)`.
-- **Có cache:** tìm một lần hoặc lấy `Method` từ cache rồi `invoke(...)`.
+- **Without cache:** call `getDeclaredMethod(...)` then `invoke(...)` on every iteration.
+- **With cache:** look up once or retrieve `Method` from the cache, then call `invoke(...)`.
 
-Nhưng cần tách các chi phí: tạo key, cache hit/miss, lookup, invocation, autoboxing, kết quả và độ trễ của chính method được gọi. Nếu method làm I/O vài mili giây, tối ưu metadata có thể không đáng kể. Nếu call site rất nóng, cân nhắc giao diện trực tiếp hoặc `MethodHandle` sau khi đã đo và khi thiết kế cho phép.
+However, separate the costs: key creation, cache hit/miss, lookup, invocation, autoboxing, result handling, and the latency of the target method itself. If the method performs several milliseconds of I/O, metadata optimization may be negligible. If the call site is very hot, consider direct interfaces or `MethodHandle` after measuring and when the design allows.
 
-Nên dùng JMH hoặc công cụ đo phù hợp có warmup, nhiều lần chạy, fork JVM, kiểm soát Dead Code Elimination và GC. Tránh kết luận từ một vòng `System.nanoTime()` đơn lẻ. Đặc biệt, **thời gian cache hit không bằng 0**: concurrent map lookup, key construction và memory footprint đều có giá.
+Use JMH or a suitable measurement tool with warmup, multiple iterations, JVM forks, and Dead Code Elimination and GC controls. Avoid drawing conclusions from a single `System.nanoTime()` loop. In particular, **a cache hit does not take zero time**: concurrent map lookups, key construction, and memory footprint all have costs.
 
-Metrics hữu ích có thể gồm: số lớp/entry đang cache, số lần build metadata, cache hit/miss, số lỗi access/lookup, thời gian xử lý mỗi loại request, tổng heap giữ bởi cache và số classloader được giữ lại sau redeploy. Chọn số đo gắn với câu hỏi hiệu năng thực tế, không thêm cache chỉ vì mã “trông nhanh hơn”.
+Useful metrics can include: number of cached classes/entries, metadata build count, cache hit/miss rates, access/lookup failure counts, per-request-type processing time, total heap retained by the cache, and number of classloaders retained after redeploy. Choose measurements tied to real performance questions rather than adding a cache just because the code “looks faster.”
 
-## 10. Quy trình quyết định và thực hành
+## 10. Decision Process and Practice
 
-Trước khi cache một thành viên Reflection, lần lượt trả lời:
+Before caching a Reflection member, answer these questions in order:
 
-1. **Có lặp lại đủ nhiều không?** Nếu chỉ tra cứu một lần, chưa cần cache.
-2. **Khóa đã xác định đúng member chưa?** Với method/constructor phải có tham số đúng thứ tự; phân biệt declared và public lookup.
-3. **Phạm vi và vòng đời là gì?** Request, component, class hay classloader; có plugin/redeploy không?
-4. **Quyền của người dùng cache có thống nhất không?** Tránh đưa member đã nới quyền vào cache dùng bởi nhiều vùng tin cậy khác nhau.
-5. **Cạnh tranh và invalidation ra sao?** Dùng cấu trúc concurrency phù hợp; xử lý lookup thất bại rõ ràng, không side effect nhạy cảm trong compute.
-6. **Đã đo đúng nút thắt chưa?** Nếu chi phí nằm ở invoke hoặc công việc nghiệp vụ, cache lookup có thể chưa đủ.
+1. **Is it repeated often enough?** If looked up only once, caching is not needed yet.
+2. **Does the key uniquely identify the member?** For methods/constructors, include parameters in exact order; distinguish declared vs. public lookup.
+3. **What are the scope and lifecycle?** Request, component, class, or classloader; are there plugins/redeploys?
+4. **Are the cache consumers' permissions uniform?** Avoid putting access-widened members into a cache shared across different trust zones.
+5. **How are contention and invalidation handled?** Use appropriate concurrency structures; handle failed lookups clearly without sensitive side effects inside compute.
+6. **Have you measured the real bottleneck?** If the cost lies in invocation or business logic, caching lookups may not be enough.
 
-### Bài tập tự kiểm tra
+### Self-Check Exercises
 
-- Tạo hai method overload `convert(String)` và `convert(int)`. Giải thích vì sao map theo chuỗi `"convert"` là sai và thiết kế khóa phân biệt cả hai.
-- Trong ví dụ `ReflectionCacheDemo`, dùng cùng `Accessors` trên hai object `Person` khác nhau. Cache lưu metadata nào, và giá trị `name` của từng object có ảnh hưởng nhau không?
-- Chuyển `Person` sang một named module khác không `opens` package cho bên gọi. Giải thích vì sao `setAccessible(true)` có thể thất bại ngay cả khi lookup member thành công.
-- Một plugin được nạp và gỡ liên tục. Vì sao static `ConcurrentHashMap<Class<?>,Method>` có thể giữ classloader cũ, và `ClassValue` giải quyết bài toán quản lý metadata theo class ra sao?
-- Nếu một ứng dụng xử lý 100 request nhưng chỉ có 2 request dùng một method hiếm, cache eager toàn bộ method của class có chắc hiệu quả không? Bạn sẽ đo điều gì?
+- Create two overloaded methods `convert(String)` and `convert(int)`. Explain why a map keyed by the string `"convert"` is wrong and design a key that distinguishes both.
+- In the `ReflectionCacheDemo` example, use the same `Accessors` on two different `Person` objects. What metadata does the cache store, and do the `name` values of the two objects affect each other?
+- Move `Person` into a different named module that does not `opens` its package to the caller. Explain why `setAccessible(true)` can fail even when member lookup succeeds.
+- A plugin is repeatedly loaded and unloaded. Why might a static `ConcurrentHashMap<Class<?>,Method>` retain the old classloader, and how does `ClassValue` solve managing per-class metadata?
+- If an application handles 100 requests and only 2 requests use a rare method, is eagerly caching all methods of the class necessarily effective? What would you measure?
 
-**Kết quả cần đạt:** biết khi nào cache `Field`/`Method`/`Constructor` có lợi, xây khóa cache phù hợp với chữ ký và chiến lược lookup, giữ đúng phạm vi quyền truy cập, tránh rò rỉ classloader và kiểm chứng hiệu năng bằng dữ liệu đo thực tế.
+**Expected outcome:** know when caching `Field`/`Method`/`Constructor` pays off, build cache keys matching signatures and lookup strategies, maintain proper access-permission scope, avoid classloader leaks, and verify performance with real measurement data.

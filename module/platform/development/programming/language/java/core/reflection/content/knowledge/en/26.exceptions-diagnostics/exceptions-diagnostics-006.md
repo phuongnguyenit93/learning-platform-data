@@ -1,32 +1,32 @@
-# InvocationTargetException và cách giữ nguyên cause khi dùng Java Reflection
+# InvocationTargetException and Preserving the Cause in Java Reflection
 
-Khi gọi một phương thức qua Java Reflection, lỗi do **chính phương thức được gọi** ném ra thường không đi thẳng tới khối `catch` ở bên ngoài. API `Method.invoke(...)` bọc lỗi gốc trong `InvocationTargetException`. Cơ chế tương tự áp dụng khi constructor thực thi qua `Constructor.newInstance(...)` thất bại vì code bên trong constructor ném ngoại lệ.
+When invoking a method via Java Reflection, an error thrown by **the invoked method itself** usually does not travel straight to an outer `catch` block. The `Method.invoke(...)` API wraps the original error in `InvocationTargetException`. The same mechanism applies when a constructor executed via `Constructor.newInstance(...)` fails because code inside the constructor throws an exception.
 
-Điều cần làm khi chẩn đoán là phân biệt **lỗi thực thi bên trong đối tượng đích** với **lỗi do thao tác Reflection**, đọc ngoại lệ gốc qua `getCause()` và **giữ liên kết cause** khi bổ sung thông tin ngữ cảnh hoặc ném lại ngoại lệ. Nếu chỉ in thông điệp lỗi rồi tạo một exception mới không có cause, thông tin về nơi phát sinh lỗi ban đầu sẽ bị mất khỏi chuỗi chẩn đoán.
+What you need to do during diagnosis is distinguish **an execution error inside the target object** from **an error caused by the Reflection operation**, read the original exception via `getCause()`, and **preserve the cause link** when adding contextual information or rethrowing. If you only print the error message and construct a new exception without a cause, information about where the original error arose is lost from the diagnostic chain.
 
-Bài này thuộc nhóm **Ngoại lệ và chẩn đoán** của Java Reflection. Các ví dụ dùng Java 17+ và được trình bày đầy đủ để tự biên dịch và chạy.
+This guide belongs to the **Exceptions and Diagnostics** section of Java Reflection. Examples use Java 17+ and are presented in full so you can compile and run them yourself.
 
-## 1. InvocationTargetException thực sự đại diện cho điều gì?
+## 1. What Does InvocationTargetException Actually Represent?
 
-Giả sử một phương thức nghiệp vụ có thể thất bại:
+Suppose a business method can fail:
 
 ~~~java
 public String read(String key) throws IOException {
     if ("bad".equals(key)) {
-        throw new IOException("không đọc được");
+        throw new IOException("unable to read");
     }
     return "value:" + key;
 }
 ~~~
 
-Nếu gọi trực tiếp `target.read("bad")`, mã gọi phải xử lý `IOException` theo hợp đồng `throws IOException`. Nhưng khi gọi bằng Reflection:
+If called directly as `target.read("bad")`, the caller must handle `IOException` per the `throws IOException` contract. Yet when called via Reflection:
 
 ~~~java
 Method method = Target.class.getMethod("read", String.class);
 Object result = method.invoke(target, "bad");
 ~~~
 
-`Method.invoke` công bố các ngoại lệ liên quan đến thao tác gọi động, trong đó có **checked exception** `InvocationTargetException`. Khi body của `read` ném `IOException`, lớp wrapper được tạo và chứa chính `IOException` đó làm cause:
+`Method.invoke` declares exceptions related to dynamic invocation, including the **checked exception** `InvocationTargetException`. When the body of `read` throws `IOException`, the wrapper is created holding that exact `IOException` as its cause:
 
 ~~~text
 Call site
@@ -37,7 +37,7 @@ Method.invoke(target, "bad")
    v
 Target.read("bad")
    |
-   +-- throws IOException("không đọc được")    [lỗi gốc]
+   +-- throws IOException("unable to read")    [original error]
    |
    v
 Method.invoke throws InvocationTargetException
@@ -47,44 +47,44 @@ Method.invoke throws InvocationTargetException
    v
 catch (InvocationTargetException ex)
    |
-   +-- xem / ghi log ngoại lệ gốc
-   +-- ném lại lỗi gốc hoặc tạo wrapper mới có cause
+   +-- inspect / log original exception
+   +-- rethrow original error or create a new wrapper with cause
 ~~~
 
-Điểm quan trọng:
+Key points:
 
-- `InvocationTargetException` **không tự nói rằng Reflection API bị hỏng**; nó cho biết phần mã được gọi đã ném ngoại lệ.
-- `ex.getCause()` trả đối tượng `Throwable` được phương thức hoặc constructor đích ném ra. Lỗi gốc có thể là checked exception (ví dụ `IOException`), `RuntimeException` hoặc `Error`.
-- `ex.getTargetException()` cũng trả ngoại lệ đích; đây là phương thức có từ trước cơ chế exception chaining chung. **Ưu tiên `getCause()`**.
-- Javadoc cho phép `getCause()` trả `null` (có thể tự tạo `InvocationTargetException` không kèm target). Khi `Method.invoke` thực sự vừa bắt lỗi từ target, thông thường sẽ có cause; mã thư viện phòng thủ vẫn nên tránh dereference nếu cause là `null`.
-- Wrapper có stack trace riêng của nó; cause cũng mang stack trace ở nơi lỗi nghiệp vụ phát sinh. Hai lớp thông tin phục vụ hai mục đích chẩn đoán khác nhau.
+- `InvocationTargetException` **does not by itself mean the Reflection API is broken**; it indicates that the invoked code threw an exception.
+- `ex.getCause()` returns the `Throwable` thrown by the target method or constructor. The original error can be a checked exception (e.g., `IOException`), a `RuntimeException`, or an `Error`.
+- `ex.getTargetException()` also returns the target exception; it predates the general exception-chaining mechanism. **Prefer `getCause()`**.
+- Javadoc allows `getCause()` to return `null` (an `InvocationTargetException` can be constructed manually without a target). When `Method.invoke` actually just caught an error from the target, a cause will normally be present; defensive library code should still avoid dereferencing if the cause is `null`.
+- The wrapper has its own stack trace; the cause also carries the stack trace where the business error originated. The two layers of information serve two different diagnostic purposes.
 
-`InvocationTargetException` kế thừa `ReflectiveOperationException` và là **checked exception**. Không thể dùng một lệnh `catch (RuntimeException ex)` để bắt riêng wrapper này.
+`InvocationTargetException` extends `ReflectiveOperationException` and is a **checked exception**. You cannot use `catch (RuntimeException ex)` alone to catch this wrapper.
 
-## 2. Nhận diện hai nhóm lỗi: target exception và Reflection exception
+## 2. Identifying Two Error Groups: Target Exceptions vs. Reflection Exceptions
 
-Không phải mọi lỗi xảy ra quanh một lời gọi `invoke` đều là `InvocationTargetException`.
+Not every error occurring around an `invoke` call is an `InvocationTargetException`.
 
-| Tình huống | Ngoại lệ điển hình | Điểm phát sinh và cách hiểu |
+| Scenario | Typical Exception | Origin and interpretation |
 |---|---|---|
-| Body phương thức ném `IOException` | `InvocationTargetException` với cause là `IOException` | Target đã chạy và thất bại |
-| Body phương thức ném `IllegalStateException` | `InvocationTargetException` với cause là `IllegalStateException` | Target đã chạy và thất bại |
-| Body constructor ném `IllegalArgumentException` | `InvocationTargetException` với cause là `IllegalArgumentException` | Constructor đã chạy và thất bại |
-| Sai số lượng/kiểu đối số truyền vào `Method.invoke` | `IllegalArgumentException` | API từ chối lời gọi trước khi thực thi target |
-| Đối tượng nhận (`receiver`) không phù hợp với method instance | `IllegalArgumentException` | Sai đối tượng đích |
-| Dùng `null` làm receiver của method instance | `NullPointerException` | Không có đối tượng đích để gọi |
-| Thành viên không thể truy cập theo quy tắc Java | `IllegalAccessException` | Lỗi quyền truy cập Reflection |
-| `getMethod`/`getDeclaredMethod` không tìm được chữ ký | `NoSuchMethodException` | Lỗi bước tra cứu trước lời gọi |
-| Class initialization do lời gọi kích hoạt thất bại | `ExceptionInInitializerError` | Lỗi khởi tạo lớp, có thể xuất hiện ngoài wrapper |
-| Constructor không thể tạo instance của abstract class | `InstantiationException` | Không thể khởi tạo kiểu đó |
+| Method body throws `IOException` | `InvocationTargetException` with `IOException` cause | Target ran and failed |
+| Method body throws `IllegalStateException` | `InvocationTargetException` with `IllegalStateException` cause | Target ran and failed |
+| Constructor body throws `IllegalArgumentException` | `InvocationTargetException` with `IllegalArgumentException` cause | Constructor ran and failed |
+| Wrong argument count/types passed to `Method.invoke` | `IllegalArgumentException` | API rejected the call before executing target |
+| Receiver object does not match the instance method | `IllegalArgumentException` | Wrong target object |
+| `null` used as receiver for an instance method | `NullPointerException` | No target object to invoke on |
+| Member inaccessible under Java access rules | `IllegalAccessException` | Reflection access permission error |
+| `getMethod`/`getDeclaredMethod` cannot find the signature | `NoSuchMethodException` | Lookup-step error before invocation |
+| Class initialization triggered by the call fails | `ExceptionInInitializerError` | Class initialization error, may appear outside the wrapper |
+| Constructor cannot instantiate an abstract class | `InstantiationException` | That type cannot be instantiated |
 
-Vì thế đừng viết `catch (Exception e) { throw new RuntimeException("Target lỗi"); }` cho toàn bộ đoạn Reflection. Cách đó làm mờ ranh giới giữa **chương trình đích lỗi** và **host gọi sai hoặc không có quyền**. Có thể xử lý trong một tầng chung khi cần, nhưng thông điệp và cause nên đủ để phân biệt từng nhóm.
+Therefore, do not write `catch (Exception e) { throw new RuntimeException("Target failed"); }` around the entire Reflection block. That blurs the boundary between **target program failure** and **incorrect or unauthorized host invocation**. You can handle them in a shared layer if needed, provided the message and cause remain sufficient to distinguish each group.
 
-Một lưu ý kỹ thuật: `Class.newInstance()` đã deprecated từ Java 9 và có cách lan truyền ngoại lệ constructor khác. Khi cần tạo đối tượng từ `Class`, ưu tiên `getDeclaredConstructor(...).newInstance(...)` để có hành vi exception wrapping rõ ràng.
+One technical note: `Class.newInstance()` was deprecated in Java 9 and propagates constructor exceptions differently. When instantiating from a `Class`, prefer `getDeclaredConstructor(...).newInstance(...)` for consistent exception-wrapping behavior.
 
-## 3. Chương trình Java 17+ chạy được: thấy nguyên nhân và giữ cause
+## 3. Runnable Java 17+ Program: Seeing the Cause and Preserving It
 
-Lưu nguyên khối mã sau thành **`ReflectionFailureDemo.java`**. Nó minh họa năm bước: gọi thành công, thêm ngữ cảnh và giữ nguyên cause, lan truyền lại checked exception đúng kiểu, bắt lỗi constructor, và phân biệt lỗi sai đối số Reflection.
+Save the entire code block below as **`ReflectionFailureDemo.java`**. It demonstrates five steps: a successful call, adding context while preserving the cause, rethrowing a checked exception with its exact type, catching constructor failures, and distinguishing wrong-argument Reflection errors.
 
 ~~~java
 import java.io.IOException;
@@ -96,13 +96,13 @@ public class ReflectionFailureDemo {
     static class Target {
         public Target(String token) {
             if (token.isBlank()) {
-                throw new IllegalStateException("token rỗng");
+                throw new IllegalStateException("empty token");
             }
         }
 
         public String read(String key) throws IOException {
             if ("bad".equals(key)) {
-                throw new IOException("không đọc được");
+                throw new IOException("unable to read");
             }
             return "value:" + key;
         }
@@ -113,10 +113,10 @@ public class ReflectionFailureDemo {
             return (String) method.invoke(target, key);
         } catch (InvocationTargetException ex) {
             throw new IllegalStateException(
-                    "Không gọi được Target.read", ex.getCause());
+                    "Failed to invoke Target.read", ex.getCause());
         } catch (IllegalAccessException ex) {
             throw new IllegalStateException(
-                    "Không có quyền truy cập method", ex);
+                    "No permission to access method", ex);
         }
     }
 
@@ -135,10 +135,10 @@ public class ReflectionFailureDemo {
             if (cause instanceof Error error) {
                 throw error;
             }
-            throw new IllegalStateException("Lỗi ngoài hợp đồng", cause);
+            throw new IllegalStateException("Error outside contract", cause);
         } catch (IllegalAccessException ex) {
             throw new IllegalStateException(
-                    "Không có quyền truy cập method", ex);
+                    "No permission to access method", ex);
         }
     }
 
@@ -184,63 +184,63 @@ public class ReflectionFailureDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 ReflectionFailureDemo.java
 java ReflectionFailureDemo
 ~~~
 
-**Stdout thực tế của ví dụ (đã kiểm chứng):**
+**Actual stdout of the example (verified):**
 
 ~~~text
 success = value:a
 wrapper = IllegalStateException
-cause = IOException: không đọc được
+cause = IOException: unable to read
 origin = read
-preserve = IOException: không đọc được
-constructor = IllegalStateException: token rỗng
+preserve = IOException: unable to read
+constructor = IllegalStateException: empty token
 argument = IllegalArgumentException
 ~~~
 
-Giải thích kết quả:
+Explaining the output:
 
-1. Khi `key = "a"`, `read` trả `"value:a"`; Reflection hoàn thành bình thường.
-2. Khi `key = "bad"`, `IOException` được `Method.invoke` bọc thành `InvocationTargetException`. `callAndWrap` tạo `IllegalStateException` có ngữ cảnh nhưng truyền **đúng đối tượng cause** vào constructor của wrapper mới.
-3. `origin = read` chứng minh stack trace của cause vẫn bắt đầu từ phương thức `read` nơi `IOException` được tạo/ném (trong ví dụ cụ thể này).
-4. `callAndPreserve` dùng pattern matching `instanceof` của Java 17 để nhận diện `IOException` và ném lại chính ngoại lệ đó. Chữ ký hàm vẫn khai báo `throws IOException`, giữ hợp đồng checked exception cho caller.
-5. Constructor `Target(String)` ném `IllegalStateException` khi token rỗng. `Constructor.newInstance("")` trả lỗi qua `InvocationTargetException`, và cause vẫn là `IllegalStateException` của constructor.
-6. `method.invoke(target, 42)` vi phạm chữ ký `read(String)` nên ném **`IllegalArgumentException` trực tiếp**, không tạo `InvocationTargetException` cho tình huống này.
+1. When `key = "a"`, `read` returns `"value:a"`; Reflection completes normally.
+2. When `key = "bad"`, `IOException` is wrapped by `Method.invoke` into `InvocationTargetException`. `callAndWrap` creates a contextual `IllegalStateException` while passing **the exact cause object** into the new wrapper's constructor.
+3. `origin = read` proves the cause's stack trace still starts from the `read` method where the `IOException` was created/thrown (in this specific example).
+4. `callAndPreserve` uses Java 17 `instanceof` pattern matching to recognize `IOException` and rethrow that exact exception. The method signature still declares `throws IOException`, preserving the checked-exception contract for callers.
+5. Constructor `Target(String)` throws `IllegalStateException` on a blank token. `Constructor.newInstance("")` reports the failure via `InvocationTargetException`, and the cause remains the constructor's `IllegalStateException`.
+6. `method.invoke(target, 42)` violates the `read(String)` signature and thus throws **`IllegalArgumentException` directly**, without creating an `InvocationTargetException` for this case.
 
-Các phương thức trong `Target` được công bố `public` cho mục đích demo, còn lớp `Target` là nested class cùng phạm vi với mã gọi. Với mã chạy khác package/module, phải tuân thủ quy tắc truy cập Java và JPMS; không suy luận rằng cứ tìm thấy `Method` là có thể gọi.
+The methods in `Target` are declared `public` for demo purposes, and `Target` is a nested class in the same scope as the calling code. For code running across different packages/modules, you must follow Java and JPMS access rules; do not assume that merely finding a `Method` guarantees you can invoke it.
 
-## 4. Hai chiến lược giữ nguyên nguyên nhân: wrap có cause hoặc ném lại đúng kiểu
+## 4. Two Strategies for Preserving the Cause: Wrap with Cause or Rethrow the Exact Type
 
-### 4.1. Bổ sung ngữ cảnh bằng wrapper mới
+### 4.1. Adding Context with a New Wrapper
 
-Một tầng tích hợp có thể không muốn đưa `IOException` của thư viện nội bộ ra API. Thay vào đó, nó cung cấp ngoại lệ ở cấp ứng dụng:
+An integration layer may not want to expose an internal library's `IOException` on its API. Instead, it provides an application-level exception:
 
 ~~~java
 catch (InvocationTargetException ex) {
     Throwable cause = ex.getCause();
-    throw new IllegalStateException("Không gọi được phương thức đồng bộ", cause);
+    throw new IllegalStateException("Failed to invoke sync method", cause);
 }
 ~~~
 
-Khối trên là **đoạn mã đặt trong một lệnh `try` gọi Reflection**, không phải chương trình độc lập. Constructor `IllegalStateException(String, Throwable)` lưu lại mối quan hệ:
+The block above is a **code snippet placed inside a `try` block calling Reflection**, not a standalone program. The `IllegalStateException(String, Throwable)` constructor records the relationship:
 
 ~~~text
-IllegalStateException: Không gọi được phương thức đồng bộ
-    Caused by: IOException: không đọc được
+IllegalStateException: Failed to invoke sync method
+    Caused by: IOException: unable to read
         at Target.read(...)
         ...
 ~~~
 
-Khi log đầy đủ `IllegalStateException`, Java có thể in cả chuỗi `Caused by` và các stack frame liên quan. Wrapper mới tạo vị trí/nhãn chẩn đoán ở tầng tích hợp; cause giữ nguyên dấu vết gốc.
+When logging the full `IllegalStateException`, Java prints both the `Caused by` chain and the relevant stack frames. The new wrapper provides the diagnostic location/label at the integration layer; the cause preserves the original trace.
 
-Nếu muốn **giữ toàn bộ đường đi qua Reflection**, có thể gắn `ex` làm cause thay vì `ex.getCause()`. Khi đó chuỗi là `ApplicationException -> InvocationTargetException -> IOException`. Cách này không làm mất cause nhưng dài hơn một tầng; chọn theo mức độ cần debug cơ chế Reflection. Khi phân loại lỗi nghiệp vụ, thường cần lấy nguyên nhân đích qua `getCause()`.
+If you want to **retain the entire path through Reflection**, you can attach `ex` as the cause rather than `ex.getCause()`. The chain then becomes `ApplicationException -> InvocationTargetException -> IOException`. This does not lose any cause but adds one extra layer; choose based on how deeply you need to debug the Reflection mechanism. When classifying business errors, you usually need the target cause via `getCause()`.
 
-**Sai lầm phổ biến:**
+**Common mistake:**
 
 ~~~java
 catch (InvocationTargetException ex) {
@@ -248,19 +248,19 @@ catch (InvocationTargetException ex) {
 }
 ~~~
 
-Đây cũng chỉ là mảnh mã minh họa trong khối `try/catch`. Nó **chỉ lấy chuỗi thông điệp**, tạo một exception mới **không có cause**. Lúc log wrapper mới, đường stack trace của `IOException` gốc không còn nối qua `getCause()`.
+This too is just an illustrative snippet inside a `try/catch` block. It **copies only the message string**, creating a new exception **with no cause**. When logging the new wrapper, the original `IOException`'s stack trace is no longer linked via `getCause()`.
 
-Tương tự, chỉ ghi `logger.error("{}", ex.getMessage())` có thể làm mất stack trace hoặc chi tiết cause nếu logger không được truyền đối tượng `Throwable`. Dùng API logging của thư viện thực tế để truyền exception làm đối số throwable; ví dụ với SLF4J:
+Similarly, logging only `logger.error("{}", ex.getMessage())` can lose the stack trace or cause details if the logger is not passed the `Throwable` object. Use your actual logging library's API to pass the exception as a throwable argument; for example with SLF4J:
 
 ~~~java
-logger.error("Lỗi gọi phương thức {}", method.getName(), ex.getCause());
+logger.error("Error invoking method {}", method.getName(), ex.getCause());
 ~~~
 
-Đây là **mảnh minh họa phụ thuộc SLF4J**, không thuộc chương trình Java độc lập phía trên. Cần bảo đảm dữ liệu trong exception message/log không làm lộ bí mật, thông tin cá nhân hoặc tham số nhạy cảm.
+This is an **SLF4J-dependent illustrative snippet**, not part of the standalone Java program above. Make sure data in exception messages/logs does not leak secrets, personal data, or sensitive parameters.
 
-### 4.2. Giữ nguyên checked exception đã công bố
+### 4.2. Preserving a Declared Checked Exception
 
-Nếu API của tầng gọi đã khai báo `throws IOException`, bạn có thể giữ nguyên loại và đối tượng ngoại lệ:
+If the calling layer's API already declares `throws IOException`, you can preserve the original exception type and instance:
 
 ~~~java
 Throwable cause = ex.getCause();
@@ -273,26 +273,26 @@ if (cause instanceof RuntimeException re) {
 if (cause instanceof Error error) {
     throw error;
 }
-throw new IllegalStateException("Lỗi ngoài hợp đồng", cause);
+throw new IllegalStateException("Error outside contract", cause);
 ~~~
 
-Đoạn trên thuộc **nhánh `catch (InvocationTargetException ex)`**. Kiểu `Throwable` là tổng quát; bạn không thể viết `throw cause;` trong mọi method mà không quan tâm chữ ký `throws`. Nếu phương thức hiện tại chỉ cho phép `IOException`, cần phân loại các nhánh như ví dụ. Có thể dùng `throws Throwable` ở những tầng hạ thấp có chủ ý, nhưng nó làm API khó dùng vì caller phải xử lý quá rộng.
+The snippet above belongs inside a **`catch (InvocationTargetException ex)` branch**. The `Throwable` type is general; you cannot write `throw cause;` in every method regardless of its `throws` signature. If the current method only allows `IOException`, you must branch as shown in the example. Using `throws Throwable` in intentionally low-level layers is possible, but it makes APIs harder to use because callers must handle too broad a type.
 
-Trong nhánh `IOException`, `throw io` ném **chính đối tượng nguyên nhân gốc**; không tạo wrapper mới và không đổi loại ngoại lệ. Các nhánh `RuntimeException` và `Error` được lan truyền nguyên dạng. Một exception checked khác ngoài hợp đồng được gói trong `IllegalStateException` với cause được giữ lại.
+In the `IOException` branch, `throw io` throws **the exact original cause object**; no new wrapper is created and the exception type is unchanged. The `RuntimeException` and `Error` branches propagate as-is. Any other checked exception outside the contract is wrapped in `IllegalStateException` with its cause preserved.
 
-**Không nên tự động bao `Error`** hoặc nuốt những lỗi nghiêm trọng trong một wrapper nghiệp vụ. Chính sách xử lý `Error` phụ thuộc ứng dụng, nhưng khi chọn lan truyền, việc phân biệt nó với lỗi kiểm tra dữ liệu bình thường là quan trọng.
+**Do not automatically wrap `Error`** or swallow critical errors inside a business wrapper. `Error` handling policy depends on the application, yet when choosing to propagate, distinguishing it from ordinary data-validation errors is important.
 
-## 5. Khai thác cause chain và stack trace khi chẩn đoán
+## 5. Leveraging the Cause Chain and Stack Trace During Diagnosis
 
-Một số câu hỏi hữu ích khi gặp `InvocationTargetException` trong log:
+Helpful questions when seeing `InvocationTargetException` in logs:
 
-1. **Lỗi nào thực sự đầu tiên?** Xem `getCause()`, rồi nếu nó còn cause thì tiếp tục đi theo chuỗi.
-2. **Lỗi phát sinh ở đâu?** Xem stack trace của ngoại lệ gốc, tìm frame thuộc code đích thay vì dừng ở `Method.invoke`.
-3. **Lỗi thuộc domain hay do host gọi sai?** `InvocationTargetException` nghĩa là target đã ném lỗi; `IllegalAccessException`/`NoSuchMethodException`/`IllegalArgumentException` có thể chỉ ra sai hợp đồng Reflection, cấu hình hoặc quyền.
-4. **Có wrapper bổ sung ở tầng trung gian?** Một số framework có thể thêm wrapper để cung cấp context. Đừng giả định rằng `getCause()` chỉ cần gọi đúng một lần là luôn tới root cause.
-5. **Có suppressed exception không?** Khi có lỗi đóng tài nguyên trong `try-with-resources`, thông tin này có thể được lưu qua `Throwable.getSuppressed()`; log đầy đủ giúp giữ cả cause và suppressed.
+1. **Which error actually came first?** Inspect `getCause()`, and if it also has a cause, keep walking the chain.
+2. **Where did the error originate?** Inspect the stack trace of the root exception, finding frames in target code instead of stopping at `Method.invoke`.
+3. **Is it a domain error or a host call mistake?** `InvocationTargetException` means the target threw an error; `IllegalAccessException`/`NoSuchMethodException`/`IllegalArgumentException` may point to a Reflection contract, configuration, or permission mistake.
+4. **Are there intermediate wrappers added by another layer?** Some frameworks add wrappers to provide context. Do not assume calling `getCause()` just once always reaches the root cause.
+5. **Are there suppressed exceptions?** When resource closing fails in `try-with-resources`, that information may be stored via `Throwable.getSuppressed()`; full logging retains both causes and suppressed exceptions.
 
-Có thể viết hàm tiện ích duyệt cause chain:
+You can write a helper method to traverse the cause chain:
 
 ~~~java
 static Throwable deepestCause(Throwable throwable) {
@@ -306,31 +306,31 @@ static Throwable deepestCause(Throwable throwable) {
 }
 ~~~
 
-Đây là **phương thức hỗ trợ minh họa**, đặt trong một lớp Java. Nếu có ngoại lệ tự tạo ra chu trình cause phức tạp hơn vòng tự tham chiếu, thuật toán thực tế nên theo dõi tập đối tượng đã gặp để tránh lặp vô hạn. Không luôn thay thế exception bên ngoài bằng deepest cause khi hiển thị: wrapper ngoài còn mang **bối cảnh hoạt động**. Thường log full exception sẽ hữu ích hơn chỉ log root message.
+This is an **illustrative helper method** placed in a Java class. If custom exceptions construct a cause cycle more complex than a self-reference, a production algorithm should track a set of visited objects to avoid infinite loops. Do not always replace the outer exception with the deepest cause when displaying: the outer wrapper still carries **operational context**. Usually logging the full exception is more useful than logging only the root message.
 
-Ví dụ một chuỗi đầy đủ có thể là:
+An example of a complete chain might look like:
 
 ~~~text
-IllegalStateException: Không gọi được Target.read
-  Caused by: IOException: không đọc được
-      tại Target.read(...)
+IllegalStateException: Failed to invoke Target.read
+  Caused by: IOException: unable to read
+      at Target.read(...)
 ~~~
 
-Nếu thay bằng `new RuntimeException("Lỗi")` không truyền cause, chuỗi quan trọng này biến mất. Nếu truyền `new RuntimeException("Lỗi", cause)`, nó vẫn có thể được lần theo.
+If replaced by `new RuntimeException("Error")` without passing the cause, this crucial chain disappears. If passed as `new RuntimeException("Error", cause)`, it can still be traced.
 
-### Vị trí catch và thông tin context
+### Where to Catch and Add Context Information
 
-Bắt lỗi ở ranh giới giữa hai tầng có thể là hợp lý:
+Catching errors at the boundary between two layers can make sense:
 
-- **Adapter Reflection:** Có tên method, class và input context; có thể chuyển exception sang API ổn định của adapter.
-- **Service/application boundary:** Có thông tin nghiệp vụ như operation hoặc request ID; có thể thêm context nhưng không log trùng lặp ở mọi tầng.
-- **Top-level handler:** Quyết định phản hồi cho caller, log đầy đủ với chính sách ẩn thông tin nhạy cảm.
+- **Reflection adapter:** Knows the method name, class, and input context; can translate exceptions into the adapter's stable API.
+- **Service/application boundary:** Holds business context such as operation or request ID; can attach context without duplicating logs at every layer.
+- **Top-level handler:** Decides the response to the caller and logs thoroughly under sensitive-data masking policies.
 
-Không cần `catch` ở mọi tầng chỉ để thêm một dòng `logger.error` giống nhau. Một log được ghi đúng nơi với cause chain đầy đủ thường dễ hiểu hơn nhiều log lặp cùng stack trace.
+There is no need to `catch` at every layer just to emit the same `logger.error` line. One log recorded at the right place with the complete cause chain is far clearer than multiple logs repeating the same stack trace.
 
-## 6. Constructor, checked exception, runtime exception và Error
+## 6. Constructors, Checked Exceptions, Runtime Exceptions, and Errors
 
-`Constructor.newInstance(...)` cũng dùng `InvocationTargetException` nếu **body constructor** ném exception:
+`Constructor.newInstance(...)` also uses `InvocationTargetException` if the **constructor body** throws an exception:
 
 ~~~java
 Constructor<Target> constructor = Target.class.getDeclaredConstructor(String.class);
@@ -338,75 +338,75 @@ try {
     constructor.newInstance("");
 } catch (InvocationTargetException ex) {
     Throwable original = ex.getCause();
-    // original là IllegalStateException("token rỗng") trong demo.
+    // original is IllegalStateException("empty token") in the demo.
 }
 ~~~
 
-Đoạn trên dùng lớp `Target` đã khai báo trong chương trình hoàn chỉnh. Không nhầm với `NoSuchMethodException` của `getDeclaredConstructor(...)` hoặc `InstantiationException` của bước khởi tạo lớp trừu tượng. Các lỗi đó thuộc cơ chế Reflection.
+The snippet above uses the `Target` class declared in the complete program. Do not confuse this with `NoSuchMethodException` from `getDeclaredConstructor(...)` or `InstantiationException` from trying to instantiate an abstract class. Those belong to the Reflection mechanism itself.
 
-Với lời gọi `Method.invoke`, việc target ném `RuntimeException` hay một `Error` cũng có thể đi qua `InvocationTargetException`. Vì wrapper là checked exception, ở điểm bắt bạn nhận cùng kiểu wrapper để phân loại bên trong. Khi ném lại:
+For `Method.invoke` calls, whether the target throws a `RuntimeException` or an `Error`, it can also arrive via `InvocationTargetException`. Because the wrapper is a checked exception, at the catch site you receive the same wrapper type to classify internally. When rethrowing:
 
-- Checked cause được phép lan truyền nếu API gọi khai báo phù hợp.
-- Runtime cause có thể được ném lại theo đúng loại.
-- `Error` cần chính sách xử lý riêng; nhiều hệ thống lan truyền thay vì biến thành lỗi nghiệp vụ bình thường.
+- Checked causes may propagate if the calling API declares them appropriately.
+- Runtime causes can be rethrown with their exact type.
+- `Error` needs a dedicated policy; many systems propagate it rather than turning it into an ordinary business error.
 
-Trường hợp class initializer (`static`) bị lỗi khi khởi tạo lớp **không nhất thiết** đi qua wrapper target; Java có thể trực tiếp ném `ExceptionInInitializerError`. Vì thế không đưa mọi `ExceptionInInitializerError` vào nhánh xử lý `InvocationTargetException`.
+When a class initializer (`static`) fails during class initialization, it does **not necessarily** go through the target wrapper; Java may throw `ExceptionInInitializerError` directly. Therefore, do not route every `ExceptionInInitializerError` into the `InvocationTargetException` handling branch.
 
-Mã nguồn cũ có thể sử dụng:
+Legacy source code might use:
 
 ~~~java
 Class<?> type = Class.forName("example.Plugin");
 Object instance = type.newInstance(); // deprecated
 ~~~
 
-Đây là **mảnh minh họa API cũ**, không yêu cầu chạy: nếu class không tồn tại, `Class.forName` thất bại; và `Class.newInstance()` đã deprecated. Nó có đặc điểm exception propagation khác với `Constructor.newInstance()`. Khi viết code mới, ưu tiên tìm constructor phù hợp rồi gọi `newInstance(...)` trên đối tượng `Constructor<?>`.
+This is a **legacy API illustrative snippet**, not meant to be run: if the class does not exist, `Class.forName` fails; and `Class.newInstance()` is deprecated. It has different exception propagation characteristics than `Constructor.newInstance()`. When writing new code, prefer looking up the appropriate constructor and calling `newInstance(...)` on the `Constructor<?>` object.
 
-## 7. Các lỗi thiết kế thường gặp và cách sửa
+## 7. Common Design Mistakes and Fixes
 
-| Lối làm dễ lỗi | Hệ quả | Hướng xử lý |
+| Error-prone practice | Consequence | Fix |
 |---|---|---|
-| `throw new RuntimeException(ex.getMessage())` | Chỉ giữ chuỗi, mất chuỗi cause | `throw new RuntimeException("...", ex.getCause())` hoặc `throw new RuntimeException("...", ex)` nếu muốn giữ wrapper |
-| `throw new RuntimeException(ex.getCause().getMessage())` | Mất loại và stack trace ngoại lệ gốc | Truyền đối tượng `Throwable` vào constructor có cause |
-| Chỉ `printStackTrace` rồi `return null` | Host tưởng gọi thành công, lỗi gốc bị che | Trả kết quả thật hoặc lan truyền lỗi có nghĩa |
-| Bắt mọi `Exception` rồi báo “method nghiệp vụ lỗi” | Che `NoSuchMethodException`, `IllegalAccessException`, lỗi đối số | Tách lỗi Reflection khỏi lỗi target |
-| Dùng `catch (RuntimeException)` để bắt wrapper | `InvocationTargetException` là checked | `catch (InvocationTargetException ex)` hoặc bắt theo hợp đồng checked |
-| Luôn viết `throw ex.getCause()` trong API khai báo hẹp | Lỗi compile nếu cause kiểu `Throwable` chưa được khai báo | Phân loại checked/runtime/error hoặc định nghĩa hợp đồng `throws` rõ |
-| Luôn dùng `ex.getTargetException()` | API cũ, không đồng nhất với idiom chung | Ưu tiên `ex.getCause()` |
-| Chỉ log `ex.getCause().getMessage()` | Thiếu stack trace/cause chain | Log exception object, kiểm soát dữ liệu nhạy cảm |
-| Cho rằng `getCause()` không thể `null` trong mọi trường hợp | Có constructor `InvocationTargetException` với target null | Xử lý phòng thủ trong thư viện tổng quát |
-| Cố bypass access bằng `setAccessible(true)` mọi nơi | Có thể bị chặn bởi JPMS; che lỗi thiết kế quyền | Ưu tiên API public, `exports`/`opens` phù hợp khi cần |
+| `throw new RuntimeException(ex.getMessage())` | Keeps only the string, loses the cause chain | `throw new RuntimeException("...", ex.getCause())` or `throw new RuntimeException("...", ex)` if you want to keep the wrapper |
+| `throw new RuntimeException(ex.getCause().getMessage())` | Loses the original exception type and stack trace | Pass the `Throwable` object to a constructor taking a cause |
+| Only `printStackTrace` then `return null` | Host thinks the call succeeded; root error is hidden | Return a real result or propagate a meaningful error |
+| Catching all `Exception` and reporting “business method failed” | Masks `NoSuchMethodException`, `IllegalAccessException`, argument errors | Separate Reflection errors from target errors |
+| Using `catch (RuntimeException)` to catch the wrapper | `InvocationTargetException` is checked | `catch (InvocationTargetException ex)` or catch per checked contract |
+| Always writing `throw ex.getCause()` in a narrow API | Compile error since `Throwable` is undeclared | Branch checked/runtime/error or define a clear `throws` contract |
+| Always using `ex.getTargetException()` | Legacy API, inconsistent with standard idiom | Prefer `ex.getCause()` |
+| Logging only `ex.getCause().getMessage()` | Missing stack trace/cause chain | Log the exception object, controlling sensitive data |
+| Assuming `getCause()` can never be `null` | `InvocationTargetException` has a constructor with a null target | Handle defensively in general-purpose libraries |
+| Trying to bypass access with `setAccessible(true)` everywhere | Can be blocked by JPMS; masks permission design flaws | Prefer public APIs, `exports`/`opens` appropriately when needed |
 
-Cũng cần lưu ý lời gọi phản chiếu có thể đi qua **Java Dynamic Proxy**, callback hoặc tầng framework. Trong Dynamic Proxy, nếu `InvocationHandler.invoke` ném một checked exception **không tương thích `throws` trên interface method**, phía caller có thể gặp `UndeclaredThrowableException`. Đây là cơ chế khác với `Method.invoke` nhưng có thể tạo thêm tầng wrapper. Khi debug, tiếp tục duyệt cause chain thay vì kết luận chỉ từ tên ngoại lệ ngoài cùng.
+Also note that reflective calls may pass through **Java Dynamic Proxy**, callbacks, or framework layers. In Dynamic Proxy, if `InvocationHandler.invoke` throws a checked exception **incompatible with `throws` on the interface method**, the caller may see `UndeclaredThrowableException`. That is a different mechanism from `Method.invoke`, yet it can add another wrapper layer. When debugging, keep walking the cause chain rather than concluding from the outermost exception name alone.
 
-## 8. Checklist xử lý Reflection trong ứng dụng thực tế
+## 8. Checklist for Handling Reflection in Real Applications
 
-Trước khi gọi Reflection, xác minh tên lớp, tên method, chữ ký tham số, receiver và khả năng truy cập. Dùng `getMethod` cho method public phù hợp, `getDeclaredMethod` khi cần xét member được khai báo trực tiếp; tìm được private member không đồng nghĩa được phép gọi nó trong mọi module.
+Before making a Reflection call, verify the class name, method name, parameter signature, receiver, and accessibility. Use `getMethod` for appropriate public methods, `getDeclaredMethod` when you need directly declared members; finding a private member does not mean you are permitted to invoke it across every module.
 
-Khi xử lý exception, nên theo thứ tự:
+When handling exceptions, follow this order:
 
-1. **Bắt đúng `InvocationTargetException`** ở ranh giới `invoke`/`newInstance` nếu bạn cần xử lý lỗi target.
-2. **Lấy `Throwable cause = ex.getCause()`**; đừng rút nó thành thông điệp rồi bỏ object.
-3. **Chọn chính sách API:** rethrow đúng loại đã khai báo, hay tạo wrapper mới truyền `cause`.
-4. **Xử lý các lỗi Reflection khác một cách riêng biệt** để không đánh đồng sai hợp đồng với sai dữ liệu nghiệp vụ.
-5. **Log với Throwable đầy đủ**, kèm ngữ cảnh hữu ích (class, method, operation), và giới hạn nội dung nhạy cảm.
-6. **Kiểm thử cả trường hợp lỗi**, bao gồm checked exception từ method, runtime exception từ constructor, đối số sai và quyền truy cập.
+1. **Catch `InvocationTargetException` specifically** at the `invoke`/`newInstance` boundary if you need to handle target failures.
+2. **Retrieve `Throwable cause = ex.getCause()`**; do not reduce it to a message and discard the object.
+3. **Choose an API policy:** rethrow the exact declared type, or construct a new wrapper passing `cause`.
+4. **Handle other Reflection errors separately** so contract violations are not conflated with business-data failures.
+5. **Log with the full `Throwable`**, along with useful context (class, method, operation), while limiting sensitive content.
+6. **Test failure cases too**, including checked exceptions from methods, runtime exceptions from constructors, wrong arguments, and access permissions.
 
-Khi chỉ cần gọi trực tiếp một kiểu đã biết ở compile time, dùng lời gọi Java thường sẽ có kiểm tra kiểu và xử lý `throws` rõ ràng hơn. Reflection phù hợp khi quyết định kiểu/method nằm ở runtime, nhưng sẽ chuyển trách nhiệm phát hiện lỗi sang phía code tích hợp.
+When you only need to invoke a type known at compile time directly, normal Java calls provide clearer type checking and `throws` handling. Reflection fits when the type/method decision happens at runtime, shifting error-detection responsibility to integration code.
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-Check Exercises
 
-1. Đổi `Target.read` từ `IOException` sang `IllegalArgumentException` trong body. Khi gọi qua `Method.invoke`, ngoại lệ nào ở ngoài cùng? `getCause()` là gì?
-2. Đổi `method.invoke(target, 42)` thành `method.invoke(target, "bad")`. Vì sao trường hợp sau có `InvocationTargetException` còn trường hợp đầu ném `IllegalArgumentException` trực tiếp?
-3. Sửa `callAndWrap` thành `throw new IllegalStateException("Không gọi được")`. Phần nào của cause chain bị mất? Cách sửa ra sao?
-4. Viết thêm một constructor nhận `int` và chủ động ném `IOException`. Gọi bằng `Constructor.newInstance` và xác nhận cause của wrapper. Điều gì khác với lỗi không tìm được constructor đúng chữ ký?
-5. Viết một phương thức `callAndPreserve` cho target có thể ném `SQLException`; cập nhật `throws` theo hợp đồng và kiểm tra khả năng bắt trực tiếp `SQLException` ở caller.
-6. Tìm trong stack trace hoàn chỉnh hai lớp vị trí: điểm host gọi Reflection và điểm body target ném ngoại lệ. Giải thích vì sao thông điệp của lớp wrapper và message của cause phục vụ hai mục đích khác nhau.
+1. Change `Target.read` from throwing `IOException` to `IllegalArgumentException` inside its body. When called via `Method.invoke`, what is the outermost exception? What is `getCause()`?
+2. Change `method.invoke(target, 42)` to `method.invoke(target, "bad")`. Why does the second case produce `InvocationTargetException` while the first throws `IllegalArgumentException` directly?
+3. Change `callAndWrap` to `throw new IllegalStateException("Failed to invoke")`. Which part of the cause chain is lost? How do you fix it?
+4. Add a constructor taking `int` that explicitly throws `IOException`. Invoke it via `Constructor.newInstance` and verify the wrapper's cause. How does this differ from failing to find a constructor with the right signature?
+5. Write a `callAndPreserve` method for a target that may throw `SQLException`; update `throws` per the contract and test catching `SQLException` directly at the caller.
+6. Locate two distinct layers in the full stack trace: where the host invokes Reflection and where the target body throws the exception. Explain why the wrapper's message and the cause's message serve two different purposes.
 
-**Điểm cần nhớ:** `InvocationTargetException` là wrapper của lỗi phát sinh trong **method/constructor được gọi**. `getCause()` dẫn tới ngoại lệ thật. Muốn chẩn đoán tốt, giữ nguyên đối tượng cause khi rethrow hoặc thêm wrapper bằng constructor nhận `Throwable`; đồng thời xử lý riêng các lỗi Reflection như sai đối số, sai chữ ký hoặc thiếu quyền.
+**Key point:** `InvocationTargetException` is a wrapper for an error originating inside the **invoked method/constructor**. `getCause()` leads to the real exception. To diagnose well, keep the cause object intact when rethrowing or wrap using a constructor that accepts `Throwable`; meanwhile, handle Reflection errors such as wrong arguments, wrong signatures, or insufficient access separately.
 
-### Tài liệu chính thức (Java 17)
+### Official Documentation (Java 17)
 
-- [`InvocationTargetException` — `getCause()` và `getTargetException()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html)
-- [`Method.invoke` — các ngoại lệ được công bố](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...))
-- [`Constructor.newInstance` — wrapper khi constructor ném lỗi](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...))
-- [`Class.newInstance` đã deprecated](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#newInstance())
+- [`InvocationTargetException` — `getCause()` and `getTargetException()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html)
+- [`Method.invoke` — declared exceptions](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...))
+- [`Constructor.newInstance` — wrapper when constructor throws](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...))
+- [Deprecated `Class.newInstance`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#newInstance())

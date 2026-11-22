@@ -1,10 +1,10 @@
-# Phân giải generic của một lớp con qua nhiều tầng kế thừa trong Java
+# Resolving a Subclass's Generic Type Across Multiple Inheritance Levels in Java
 
-## 1. Bài toán thực tế
+## 1. Practical Problem
 
-Trong Java, generic phần lớn bị **type erasure** khi chạy. Tuy nhiên, thông tin về **kiểu cha được khai báo** thường còn trong class file và có thể đọc qua reflection. Nhờ đó, một framework có thể xác định tham số kiểu cụ thể mà lớp con đã cung cấp qua nhiều tầng kế thừa, chẳng hạn để xây serializer, repository, mapper hoặc bộ đăng ký handler.
+In Java, generics largely undergo **type erasure** at runtime. However, information about the **declared superclass type** often remains in the class file and can be read via reflection. Thanks to this, a framework can determine the concrete type argument supplied by a subclass across multiple inheritance levels — for example, to build serializers, repositories, mappers, or handler registries.
 
-Xét chuỗi:
+Consider the chain:
 
 ```java
 class Base<T> {}
@@ -12,41 +12,41 @@ class Middle<U> extends Base<java.util.List<U>> {}
 class End extends Middle<String> {}
 ```
 
-Điều muốn tìm là: khi nhìn từ `End`, `T` của `Base<T>` thực sự là `List<String>`. Không thể chỉ xem một lớp cha rồi kết luận, vì `Middle` truyền `List<U>`, còn `U` mới được `End` cố định thành `String`.
+What we want to find is: when viewed from `End`, `T` of `Base<T>` is actually `List<String>`. Looking at just one parent class is not enough to conclude this, because `Middle` passes `List<U>`, and `U` is only fixed to `String` by `End`.
 
-Kết quả mong muốn là **phân giải có ngữ cảnh**:
+The desired outcome is **contextual resolution**:
 
 ```text
 Base.T = java.util.List<java.lang.String>
 ```
 
-Phải giữ đúng danh tính của từng `TypeVariable` và lần theo liên kết qua các cấp. Chỉ tìm tên biến `T`/`U` hoặc dùng `getSuperclass()` là chưa đủ.
+We must preserve the identity of each `TypeVariable` and trace links across levels. Simply looking up variable names `T`/`U` or calling `getSuperclass()` is insufficient.
 
-## 2. Cần đọc API nào?
+## 2. Which APIs Should We Read?
 
-| API | Giá trị nhận được | Vai trò |
+| API | Value returned | Role |
 | --- | --- | --- |
-| `Class.getSuperclass()` | `Class<?>` của lớp cha trực tiếp | Cho biết quan hệ raw, **không chứa** đối số generic như `String` |
-| `Class.getGenericSuperclass()` | `Type` mô tả kiểu cha đã khai báo | Có thể là `ParameterizedType` nếu lớp con khai báo đối số generic |
-| `Class.getTypeParameters()` | `TypeVariable<?>[]` | Liệt kê biến kiểu mà chính lớp đó khai báo, đúng thứ tự |
-| `ParameterizedType.getRawType()` | `Type` (thường là `Class<?>`) | Xác định lớp generic gốc như `Middle.class` |
-| `ParameterizedType.getActualTypeArguments()` | `Type[]` | Các đối số như `String.class`, `List<U>`, `U[]` |
-| `TypeVariable.getGenericDeclaration()` | `GenericDeclaration` | Phân biệt hai biến cùng tên nhưng từ hai khai báo khác nhau |
-| `TypeVariable.getBounds()` | `Type[]` | Ràng buộc trên của biến chưa được cố định, **không phải** đối số đã truyền |
+| `Class.getSuperclass()` | `Class<?>` of the direct superclass | Shows the raw relationship, **does not contain** generic arguments like `String` |
+| `Class.getGenericSuperclass()` | `Type` describing the declared parent type | May be a `ParameterizedType` if the subclass declares generic arguments |
+| `Class.getTypeParameters()` | `TypeVariable<?>[]` | Lists the type variables declared by that class itself, in order |
+| `ParameterizedType.getRawType()` | `Type` (typically `Class<?>`) | Identifies the underlying generic class such as `Middle.class` |
+| `ParameterizedType.getActualTypeArguments()` | `Type[]` | Arguments such as `String.class`, `List<U>`, `U[]` |
+| `TypeVariable.getGenericDeclaration()` | `GenericDeclaration` | Distinguishes two variables with the same name from two different declarations |
+| `TypeVariable.getBounds()` | `Type[]` | Upper bounds of an unfixed variable, **not** the passed argument |
 
-Những đối tượng có thể gặp khi duyệt `Type`:
+Objects you may encounter when traversing `Type`:
 
-- `Class<?>`: kiểu cụ thể, primitive hoặc array không có biến generic cần giải tiếp.
-- `ParameterizedType`: kiểu có đối số, như `List<U>` hoặc `Map<String, ? extends U>`.
-- `TypeVariable<?>`: biến kiểu như `T`, `U`, `Z`.
-- `GenericArrayType`: kiểu mảng mà thành phần là kiểu generic, ví dụ `X[]`.
+- `Class<?>`: a concrete class, primitive, or array with no generic variables left to resolve.
+- `ParameterizedType`: a type with arguments, such as `List<U>` or `Map<String, ? extends U>`.
+- `TypeVariable<?>`: a type variable such as `T`, `U`, or `Z`.
+- `GenericArrayType`: an array type whose component is a generic type, e.g., `X[]`.
 - `WildcardType`: `?`, `? extends U`, `? super U`.
 
-**Sai lầm thường gặp:** `Base.class.getTypeParameters()[0]` sẽ vẫn là biến `T`. Nó không tự biết một lớp con nào đang được xét. Muốn nhận `List<String>`, phải xây **bảng thay thế từ lớp con cụ thể lên lớp cha**.
+**Common mistake:** `Base.class.getTypeParameters()[0]` will still be the variable `T`. It does not automatically know which subclass is under inspection. To obtain `List<String>`, you must build a **substitution table from the concrete subclass up to the ancestor class**.
 
-## 3. Cách lần theo nhiều tầng bằng bảng ánh xạ biến kiểu
+## 3. Tracing Multiple Levels with a Type Variable Binding Map
 
-Giả sử:
+Suppose:
 
 ```java
 class Three<A, B, C> {}
@@ -58,38 +58,38 @@ class One<Z> extends Two<String, Z> {}
 class Concrete extends One<Integer> {}
 ```
 
-Các đối số khi đi ngược từ `Concrete` lên `Three`:
+The arguments when walking up from `Concrete` to `Three`:
 
-| Cạnh kế thừa | Ánh xạ theo khai báo kiểu cha |
+| Inheritance edge | Mapping per parent type declaration |
 | --- | --- |
 | `Concrete extends One<Integer>` | `One.Z → Integer` |
 | `One<Z> extends Two<String,Z>` | `Two.X → String`, `Two.Y → One.Z` |
 | `Two<X,Y> extends Three<List<Y>,X[],Map<String,? extends Y>>` | `Three.A → List<Two.Y>`, `Three.B → Two.X[]`, `Three.C → Map<String, ? extends Two.Y>` |
 
-Từ đó áp dụng **đệ quy**:
+From there, apply **recursion**:
 
 - `Three.A → List<Two.Y> → List<One.Z> → List<Integer>`.
 - `Three.B → Two.X[] → String[]`.
 - `Three.C → Map<String,? extends Two.Y> → Map<String,? extends One.Z> → Map<String,? extends Integer>`.
 
-Từng tên biến chỉ là ký hiệu mô tả. Trong code, khóa bảng ánh xạ phải là **đối tượng `TypeVariable<?>`**, không phải chuỗi `"X"` hay `"Z"`. Vì hai lớp bất kỳ có thể đều khai báo `T`, một `Map<String,Type>` có thể vô tình ghi đè ánh xạ của lớp khác.
+Each variable name is merely a descriptive symbol. In code, the map key must be the **`TypeVariable<?>` object**, not the string `"X"` or `"Z"`. Since any two classes can both declare `T`, a `Map<String,Type>` could accidentally overwrite another class's binding.
 
-### Thuật toán cho chuỗi kế thừa lớp đơn
+### Algorithm for a single-class inheritance chain
 
-1. Bắt đầu với `Class<?> leaf` là lớp con đang khảo sát.
-2. Lấy `leaf.getGenericSuperclass()`.
-3. Nếu là `ParameterizedType`, lấy raw class của cha cùng mảng type arguments; ghép từng `rawClass.getTypeParameters()[i]` với `getActualTypeArguments()[i]` trong bảng ánh xạ.
-4. Nếu là `Class<?>`, đó là cạnh không tham số hóa cần đi tiếp; **không tự suy ra một đối số kiểu cụ thể**.
-5. Tiếp tục lên các lớp cha cho tới `Object` hoặc hết cha.
-6. Khi cần biết một biến kiểu của lớp tổ tiên, **thay thế đệ quy** qua bảng vừa thu thập. Với các kiểu phức hợp, phải đi vào `ParameterizedType`, `GenericArrayType` và `WildcardType` thay vì dừng ở tầng ngoài.
+1. Start with `Class<?> leaf` as the subclass being inspected.
+2. Get `leaf.getGenericSuperclass()`.
+3. If it is a `ParameterizedType`, take the parent's raw class and its type arguments array; pair each `rawClass.getTypeParameters()[i]` with `getActualTypeArguments()[i]` in the binding map.
+4. If it is a `Class<?>`, that is an unparameterized edge to continue walking up; **do not invent a concrete type argument**.
+5. Continue up parent classes until reaching `Object` or having no parent left.
+6. When you need to know an ancestor class's type variable, **recursively substitute** through the collected map. For composite types, descend into `ParameterizedType`, `GenericArrayType`, and `WildcardType` instead of stopping at the outer layer.
 
-Bảng ở ví dụ có thể tạm giữ `Three.A → List<Two.Y>`. Không cần “đóng băng” kết quả ngay lúc gặp `Three`; đến cuối quá trình mới giải mọi liên kết sẽ cho kết quả đúng sau khi các biến ở cấp thấp hơn đã được ghi nhận.
+The map in the example can temporarily store `Three.A → List<Two.Y>`. There is no need to "freeze" the result the moment `Three` is visited; resolving all links at the end produces the right answer once lower-level variables have been recorded.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh: giải chữ ký qua ba cấp
+## 4. Complete Java 17+ Example: Resolving Signatures Across Three Levels
 
-Ví dụ sau cố tình **trả về chuỗi biểu diễn kiểu đã phân giải**, thay vì tạo các triển khai tự viết của `ParameterizedType`/`WildcardType`. Cách này phù hợp khi mục tiêu là chẩn đoán và học thuật toán. Nếu chương trình cần một đối tượng `Type` đã thay thế thực sự cho framework, cần thêm phần hiện thực `Type` hoặc dùng thư viện xử lý type token có hợp đồng rõ ràng.
+The following example intentionally **returns string representations of resolved types**, rather than building custom implementations of `ParameterizedType`/`WildcardType`. This approach fits when the goal is diagnostics and learning the algorithm. If a program needs an actual substituted `Type` object for a framework, you must add `Type` implementations or use a type-token library with clear contracts.
 
-Lưu tệp `GenericHierarchyResolverDemo.java`:
+Save the file `GenericHierarchyResolverDemo.java`:
 
 ```java
 import java.lang.reflect.*;
@@ -106,7 +106,7 @@ public class GenericHierarchyResolverDemo {
 
     static final class Concrete extends One<Integer> {}
 
-    // Từ lớp chưa cố định R: không được tự coi bound Number là kiểu thực tế.
+    // From class with unfixed R: must not treat bound Number as the actual type.
     static class Open<R extends Number> extends One<R> {}
 
     static Map<TypeVariable<?>, Type> collectBindings(Class<?> leaf) {
@@ -254,7 +254,7 @@ public class GenericHierarchyResolverDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 -encoding UTF-8 GenericHierarchyResolverDemo.java
@@ -273,22 +273,22 @@ rawParent=One
 checks=PASS
 ```
 
-### Đọc ví dụ theo từng bước
+### Reading the Example Step by Step
 
-- `Concrete` kế thừa `One<Integer>`: `getGenericSuperclass()` là `ParameterizedType`, từ đó thu được `One.Z → Integer`.
-- `One<Z>` kế thừa `Two<String,Z>`: thu được `Two.X → String` và `Two.Y → One.Z`.
-- `Two<X,Y>` kế thừa `Three<List<Y>,X[],Map<String,? extends Y>>`: ghi ánh xạ cho `Three.A`, `Three.B`, `Three.C`.
-- Khi in `Three.A`, hàm `describe` đi từ `TypeVariable` vào `ParameterizedType` rồi theo hai biến `Y` và `Z`; kết quả là `List<Integer>`.
-- `Three.B` dùng `GenericArrayType` (mảng có thành phần là biến kiểu `X`), sau thay thế trở thành `String[]`.
-- `Three.C` buộc resolver đi vào một `ParameterizedType` chứa `WildcardType`; nếu chỉ gọi `Type.getTypeName()` của cấu trúc gốc, kết quả vẫn là `? extends Y` và **chưa phân giải hoàn toàn**.
-- `Open<R extends Number>` cho ra `List<R>` vì `R` **chưa được cố định** bởi lớp con cụ thể. Không được tự thay `R` bằng `Number`: bound chỉ là giới hạn kiểu, không phải đối số thực tế.
-- `requireEquals` làm chương trình **tự kiểm chứng** các kết quả, không chỉ hiển thị chuỗi mô tả.
+- `Concrete` extends `One<Integer>`: `getGenericSuperclass()` is a `ParameterizedType`, yielding `One.Z → Integer`.
+- `One<Z>` extends `Two<String,Z>`: yielding `Two.X → String` and `Two.Y → One.Z`.
+- `Two<X,Y>` extends `Three<List<Y>,X[],Map<String,? extends Y>>`: records bindings for `Three.A`, `Three.B`, and `Three.C`.
+- When printing `Three.A`, `describe` descends from `TypeVariable` into `ParameterizedType` and follows both variables `Y` and `Z`; the result is `List<Integer>`.
+- `Three.B` uses `GenericArrayType` (an array whose component is type variable `X`), which after substitution becomes `String[]`.
+- `Three.C` forces the resolver into a `ParameterizedType` containing a `WildcardType`; simply calling `Type.getTypeName()` on the original structure would still leave `? extends Y` **only partially resolved**.
+- `Open<R extends Number>` produces `List<R>` because `R` **has not been fixed** by a concrete subclass. Never automatically replace `R` with `Number`: a bound is a type constraint, not an actual argument.
+- `requireEquals` makes the program **self-verify** the results, rather than just printing descriptive strings.
 
-Hàm `collectBindings` được thiết kế cho **chuỗi superclass**. Nó không tự đi vào `getGenericInterfaces()`, không đưa owner type của lớp lồng non-static vào chuỗi in và không tái tạo một cây đối tượng `Type` có thể dùng thay thế trong mọi framework. Những giới hạn này phải được xử lý trước khi dùng như một thư viện generic resolution toàn diện.
+The `collectBindings` method is designed for a **superclass chain**. It does not walk `getGenericInterfaces()`, does not include the owner type of a non-static nested class in the output string, and does not reconstruct a `Type` object tree usable across every framework. Those limitations must be addressed before using it as a full generic resolution library.
 
-## 5. Vì sao `TypeVariable` phải được phân biệt theo nơi khai báo?
+## 5. Why Must `TypeVariable` Be Distinguished by Declaration Site?
 
-Ví dụ:
+Example:
 
 ```java
 class Parent<T> {}
@@ -296,48 +296,48 @@ class Child<T> extends Parent<T> {}
 class Fixed extends Child<String> {}
 ```
 
-`Parent.T` và `Child.T` đều có tên `"T"`, nhưng là **hai biến kiểu khác nhau** vì khai báo tại hai class khác nhau. Ánh xạ đúng là:
+`Parent.T` and `Child.T` both have the name `"T"`, yet they are **two distinct type variables** because they are declared on two different classes. The proper mapping is:
 
 ```text
 Parent.T -> Child.T
 Child.T  -> java.lang.String
-Kết quả Parent.T = java.lang.String
+Result Parent.T = java.lang.String
 ```
 
-Nếu dùng `Map<String, Type>` với key `"T"`, bước thứ hai có thể ghi đè bước thứ nhất và làm mất cấu trúc liên kết; với nhánh phức tạp, kết quả dễ sai hoặc gặp vòng lặp giả. Dùng `Map<TypeVariable<?>,Type>` bảo toàn danh tính và bối cảnh khai báo. Có thể kiểm tra `variable.getGenericDeclaration()` để biết biến thuộc class, interface, method hay constructor nào.
+If you use `Map<String, Type>` keyed by `"T"`, the second step can overwrite the first and break the link structure; in complex branches, results become wrong or hit spurious loops. Using `Map<TypeVariable<?>,Type>` preserves identity and declaration context. You can inspect `variable.getGenericDeclaration()` to tell which class, interface, method, or constructor owns the variable.
 
-Hàm `describe` còn có `Set<TypeVariable<?>> visiting` nhằm tránh lặp không kết thúc khi gặp ánh xạ tạo vòng. Đây là biện pháp phòng vệ của trình phân giải, **không** có nghĩa generic bất kỳ đều được phép tạo một lớp cha vòng lặp trong Java.
+The `describe` method also takes `Set<TypeVariable<?>> visiting` to prevent non-terminating recursion on cyclic mappings. This is a defensive guard in the resolver, **not** an indication that arbitrary generics can create a cyclic superclass in Java.
 
-## 6. Generic array, wildcard, raw type và kiểu chưa biết
+## 6. Generic Arrays, Wildcards, Raw Types, and Unknown Types
 
-### Generic array và wildcard
+### Generic arrays and wildcards
 
-Kiểu `X[]` trong khai báo `Two<X,Y>` thường xuất hiện dưới dạng `GenericArrayType` vì thành phần `X` là `TypeVariable`. Một generic resolver không đọc nhánh này sẽ trả nguyên `X[]` thay vì `String[]`.
+The type `X[]` in `Two<X,Y>` typically appears as a `GenericArrayType` because the component `X` is a `TypeVariable`. A generic resolver that skips this branch will return raw `X[]` instead of `String[]`.
 
-Tương tự, `Map<String, ? extends Y>` là `ParameterizedType` chứa `WildcardType`. Đối số `? extends Y` phải được giải tiếp để ra `? extends Integer`. Với `? super Y`, cần xử lý `getLowerBounds()`; với wildcard không giới hạn, `getUpperBounds()` thường là `Object.class` và biểu diễn là `?`.
+Similarly, `Map<String, ? extends Y>` is a `ParameterizedType` containing a `WildcardType`. The argument `? extends Y` must be resolved further to become `? extends Integer`. For `? super Y`, handle `getLowerBounds()`; for an unbounded wildcard, `getUpperBounds()` is typically `Object.class` and renders as `?`.
 
-**Không lẫn bound và type argument**: `class Open<R extends Number>` không có nghĩa `R` là `Number`. Một instance của `Open<Long>` là hợp lệ, vì thế `R` chỉ được thay bằng `Long` khi có một lớp con/đường kế thừa thực sự cung cấp đối số tương ứng.
+**Do not confuse a bound with a type argument**: `class Open<R extends Number>` does not mean `R` is `Number`. An instance of `Open<Long>` is valid, so `R` should only be replaced by `Long` when an actual subclass or inheritance path supplies that argument.
 
-### Raw type làm mất thông tin
+### Raw types erase information
 
 ```java
 class Box<T> {}
-class Raw extends Box {} // Raw type, không cung cấp T cụ thể.
+class Raw extends Box {} // Raw type, does not provide a concrete T.
 ```
 
-Đây là đoạn minh họa. `Raw.class.getGenericSuperclass()` có thể là `Class<?>` dạng raw thay vì `ParameterizedType`; không có dữ liệu để kết luận `T` là `String` hay `Integer`. Với framework nghiêm ngặt, nên **báo unresolved hoặc từ chối**, không tự đoán `Object` là đối số cụ thể chỉ vì type erasure hoặc bound mặc định là `Object`.
+This is an illustrative snippet. `Raw.class.getGenericSuperclass()` may be a raw `Class<?>` rather than a `ParameterizedType`; there is no data to conclude whether `T` is `String` or `Integer`. In a strict framework, **report unresolved or reject it**, rather than guessing `Object` as the concrete argument simply because of type erasure or the default `Object` bound.
 
-### Runtime object không khôi phục `List<String>` tùy ý
+### Runtime objects cannot recover arbitrary `List<String>`
 
-`new ArrayList<String>().getClass()` chỉ cho lớp runtime `ArrayList`; cú pháp `new ArrayList<String>()` không tạo một subclass mang `String` trong `generic superclass` của `ArrayList`. Reflection có thể giải đối số từ **khai báo kiểu cha** trên một lớp con có chữ ký ghi trong class file; nó không thể đọc mọi type argument từ một object thông thường.
+`new ArrayList<String>().getClass()` only yields the runtime class `ArrayList`; the expression `new ArrayList<String>()` does not create a subclass carrying `String` in `ArrayList`'s `generic superclass`. Reflection can resolve arguments from **parent type declarations** on a subclass whose signature is recorded in the class file; it cannot read arbitrary type arguments from an ordinary object.
 
-Một cách khác để mang thông tin generic là **anonymous subclass/type token**, ví dụ `new TypeReference<List<String>>() {}`, nơi superclass được tham số hóa trong class file. Type token là một kỹ thuật khác, không đồng nghĩa với việc mọi object đều giữ generic khi chạy.
+Another way to carry generic info is an **anonymous subclass / type token**, such as `new TypeReference<List<String>>() {}`, where the superclass is parameterized in the class file. Type tokens are a separate technique, not evidence that every object retains generics at runtime.
 
-## 7. Interface, owner type và những giới hạn cần mở rộng
+## 7. Interfaces, Owner Types, and Areas to Extend
 
-Java cho phép một class **kế thừa một superclass** nhưng **implements nhiều interface**. Nếu mục tiêu là generic được khai báo bởi interface, cần mở rộng sang `Class.getGenericInterfaces()` và duyệt đồ thị interface/superclass.
+Java allows a class to **extend one superclass** yet **implement multiple interfaces**. If your goal is generics declared by an interface, you must expand to `Class.getGenericInterfaces()` and traverse the interface/superclass graph.
 
-Ví dụ:
+Example:
 
 ```java
 interface Handler<E> {}
@@ -345,7 +345,7 @@ interface NamedHandler<X> extends Handler<java.util.List<X>> {}
 class NamedStringHandler implements NamedHandler<String> {}
 ```
 
-Muốn giải `Handler.E` trong ngữ cảnh `NamedStringHandler`, phải đi qua cạnh interface:
+To resolve `Handler.E` in the context of `NamedStringHandler`, you must traverse interface edges:
 
 ```text
 NamedStringHandler
@@ -354,49 +354,49 @@ NamedStringHandler
   -> Handler.E = List<String>
 ```
 
-**Không** thể dùng duy nhất `getGenericSuperclass()` để tìm các cạnh này. Với resolver tổng quát, mỗi nhánh traversal nên mang theo **môi trường ánh xạ riêng**; tránh dùng một map toàn cục để trộn các đường khác nhau. Cần tránh thăm lặp, kiểm tra quan hệ `target.isAssignableFrom(candidate)` thích hợp và giải quyết đường kế thừa tới đúng khai báo.
+You **cannot** use only `getGenericSuperclass()` to discover these edges. In a general resolver, each traversal branch should carry its **own binding environment**; avoid using a single global map that mixes distinct paths. Avoid revisiting nodes, check `target.isAssignableFrom(candidate)` appropriately, and resolve inheritance paths down to the exact declaration.
 
-Ngoài ra, một non-static member class có thể sử dụng biến kiểu từ lớp ngoài qua **owner type** (`ParameterizedType.getOwnerType()`). Nếu mô tả kết quả phải đầy đủ, hãy giải cả owner và biểu diễn tên nested class chính xác. Ví dụ code chạy ở mục 4 **không tuyên bố hỗ trợ trường hợp này**.
+Additionally, a non-static member class can use type variables from its enclosing class via **owner type** (`ParameterizedType.getOwnerType()`). If the description must be complete, resolve the owner as well and format nested class names accurately. The runnable example in Section 4 **does not claim to support this case**.
 
-Một `ParameterizedType`/`TypeVariable` được trả về từ metadata cũng có thể dẫn tới `TypeNotPresentException` hay `MalformedParameterizedTypeException` nếu chữ ký tham chiếu tới kiểu thiếu hoặc metadata lỗi. Thư viện production nên xử lý rõ ràng, kèm class/module/loader đang phân tích để chẩn đoán.
+A `ParameterizedType`/`TypeVariable` returned from metadata can also lead to `TypeNotPresentException` or `MalformedParameterizedTypeException` if the signature references a missing type or malformed metadata. Production libraries should handle these explicitly, logging the class/module/loader being analyzed for diagnosis.
 
-## 8. Những lỗi phổ biến
+## 8. Common Mistakes
 
-| Lỗi | Vì sao sai | Cách sửa |
+| Mistake | Why it is wrong | Fix |
 | --- | --- | --- |
-| Chỉ dùng `getSuperclass()` | Mất type arguments của cạnh cha | Dùng `getGenericSuperclass()` |
-| Chỉ xét một cấp | Lấy `List<U>` thay vì `List<String>` | Theo bảng thế biến tới lớp cuối |
-| Thay biến bằng tên chuỗi | Hai class đều có thể khai báo `T` | Dùng khóa `TypeVariable<?>` |
-| Cast mọi `Type` sang `ParameterizedType` | Cha raw, tham số concrete, wildcard, array không phải dạng đó | Kiểm tra `instanceof` theo từng nhánh |
-| Chỉ thay `TypeVariable` ở tầng ngoài | `List<U>`/`Map<?,U>` còn giữ biến bên trong | Duyệt đệ quy `ParameterizedType`, wildcard, array |
-| Dùng `getBounds()` làm kiểu thực tế của biến chưa gắn | Bound không phải actual argument | Giữ trạng thái unresolved |
-| Mặc định raw type là `Object` chính xác | Không có thông tin type argument thực | Báo thiếu thông tin; quyết định fallback theo contract |
-| Trộn superclass với interface mà không duyệt interface | Mất đường tới generic interface | Duyệt `getGenericInterfaces()` theo môi trường từng nhánh |
-| Coi `new List<String>()`-style object giữ type arguments | Type erasure không cho suy từ object thông thường | Dựa vào signature khai báo hoặc type token |
-| Không kiểm soát class loader | Tên class giống nhau từ hai loader không nhất thiết cùng kiểu | So `Class<?>`/`Type` thực, ghi bối cảnh loader khi debug |
+| Using only `getSuperclass()` | Loses type arguments of the parent edge | Use `getGenericSuperclass()` |
+| Inspecting only one level | Gets `List<U>` instead of `List<String>` | Follow the variable substitution map down to the leaf class |
+| Keying variables by string name | Two classes can both declare `T` | Key by `TypeVariable<?>` |
+| Casting every `Type` to `ParameterizedType` | Raw parents, concrete types, wildcards, and arrays are not that type | Check `instanceof` per branch |
+| Substituting `TypeVariable` only at the top level | `List<U>`/`Map<?,U>` still retain inner variables | Recursively walk `ParameterizedType`, wildcards, and arrays |
+| Using `getBounds()` as the concrete type of an unbound variable | A bound is not an actual argument | Preserve unresolved state |
+| Assuming raw types mean exact `Object` | No actual type argument information exists | Report missing info; decide fallback per contract |
+| Mixing superclasses and interfaces without walking interfaces | Misses paths to generic interfaces | Walk `getGenericInterfaces()` with per-branch environments |
+| Assuming `new List<String>()`-style objects retain type arguments | Type erasure prevents inferring from ordinary objects | Rely on declared signatures or type tokens |
+| Ignoring class loaders | Identical class names from two loaders are not necessarily the same type | Compare actual `Class<?>`/`Type` instances and record loader context when debugging |
 
-## 9. Bài tập tự luyện
+## 9. Practice Exercises
 
-**Bài 1.** `class A<T> {}`; `class B<U> extends A<U[]> {}`; `class C extends B<Long> {}`. Giải `A.T` trong ngữ cảnh `C`.
+**Exercise 1.** `class A<T> {}`; `class B<U> extends A<U[]> {}`; `class C extends B<Long> {}`. Resolve `A.T` in the context of `C`.
 
-**Đáp án:** `java.lang.Long[]`. Biến `U` của `B` được cố định thành `Long`, nên `U[]` thành `Long[]`.
+**Answer:** `java.lang.Long[]`. Variable `U` of `B` is fixed to `Long`, so `U[]` becomes `Long[]`.
 
-**Bài 2.** `class A<T> {}`; `class B<T> extends A<List<T>> {}`; `class C extends B<String> {}`. Có được dùng `Map<String,Type>` chứa `"T"` không?
+**Exercise 2.** `class A<T> {}`; `class B<T> extends A<List<T>> {}`; `class C extends B<String> {}`. Is it safe to use `Map<String,Type>` keyed by `"T"`?
 
-**Đáp án:** Không an toàn. `A.T` và `B.T` khác nhau dù tên giống. Dùng `TypeVariable<?>` làm khóa.
+**Answer:** Unsafe. `A.T` and `B.T` are distinct despite having the same name. Use `TypeVariable<?>` as the key.
 
-**Bài 3.** `class A<T extends Number> {}`; `class B<U extends Number> extends A<U> {}`. `A.T` có tự giải thành `Number` không?
+**Exercise 3.** `class A<T extends Number> {}`; `class B<U extends Number> extends A<U> {}`. Does `A.T` automatically resolve to `Number`?
 
-**Đáp án:** Không. Trong `B` chưa cố định `U`; kết quả vẫn là biến `U` với bound `Number`.
+**Answer:** No. `B` has not fixed `U`; the result remains the variable `U` with bound `Number`.
 
-**Bài 4.** Lớp triển khai `interface Handler<T>` bằng một chuỗi interface trung gian có thể giải bằng chỉ `getGenericSuperclass()` không?
+**Exercise 4.** Can a class implementing `interface Handler<T>` through a chain of intermediate interfaces be resolved using only `getGenericSuperclass()`?
 
-**Đáp án:** Không. Cần duyệt `getGenericInterfaces()` và ánh xạ biến theo các cạnh interface.
+**Answer:** No. You must traverse `getGenericInterfaces()` and map variables along the interface edges.
 
-**Bài 5.** Sau khi giải `List<? extends U>` với `U=Integer`, có thể bỏ wildcard và xem là `List<Integer>` không?
+**Exercise 5.** After resolving `List<? extends U>` with `U=Integer`, can you drop the wildcard and treat it as `List<Integer>`?
 
-**Đáp án:** Không. `List<? extends Integer>` và `List<Integer>` không phải cùng một kiểu generic; resolver phải giữ wildcard.
+**Answer:** No. `List<? extends Integer>` and `List<Integer>` are not the same generic type; the resolver must preserve the wildcard.
 
-**Ghi nhớ:** Muốn phân giải generic qua nhiều tầng, hãy đi theo **đường kế thừa đúng**, tạo bản đồ **TypeVariable theo khai báo → Type argument**, rồi thay thế **đệ quy cả kiểu lồng, mảng generic và wildcard**. Chỉ kết luận một kiểu cụ thể khi chuỗi khai báo thực sự cung cấp đủ thông tin.
+**Key takeaway:** To resolve generics across multiple levels, follow the **right inheritance path**, build a **declaration-scoped TypeVariable → Type argument** map, and recursively substitute **nested types, generic arrays, and wildcards**. Conclude a concrete type only when the declaration chain genuinely provides sufficient information.
 
-Tham khảo API Java 17: [`Class.getGenericSuperclass()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getGenericSuperclass()), [`ParameterizedType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/ParameterizedType.html), [`TypeVariable`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/TypeVariable.html), [`GenericArrayType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/GenericArrayType.html), [`WildcardType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/WildcardType.html).
+Java 17 API References: [`Class.getGenericSuperclass()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getGenericSuperclass()), [`ParameterizedType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/ParameterizedType.html), [`TypeVariable`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/TypeVariable.html), [`GenericArrayType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/GenericArrayType.html), [`WildcardType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/WildcardType.html).

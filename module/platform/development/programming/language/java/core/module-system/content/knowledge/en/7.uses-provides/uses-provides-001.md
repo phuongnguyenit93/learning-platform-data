@@ -1,36 +1,16 @@
-# uses khai báo service consumer
+# uses Declares a Service Consumer
 
-## 1. Service consumer và vai trò của uses
+## 1. Service Consumer and the Role of uses
 
-Java Platform Module System (JPMS) hỗ trợ mô hình **service** để một module có thể sử dụng chức năng do module khác cung cấp mà không phải phụ thuộc trực tiếp vào class triển khai cụ thể.
+The Java Platform Module System (JPMS) supports the **service** model so that one module can use functionality provided by another module without directly depending on a specific implementation class.
 
-Trong mô hình này có ba thành phần:
+In this model, there are three components:
 
-- **Service type**: interface hoặc abstract class mô tả hợp đồng mà các implementation phải tuân theo.
-- **Service consumer**: module cần sử dụng chức năng và khai báo chỉ thị uses cho service type.
-- **Service provider**: module cung cấp implementation và đăng ký nó bằng chỉ thị provides ... with ....
+- **Service type**: an interface or abstract class that describes the contract implementations must follow.
+- **Service consumer**: a module that needs to use the functionality and declares a uses directive for the service type.
+- **Service provider**: a module that provides an implementation and registers it using the provides ... with ... directive.
 
-Chỉ thị **uses** trong module descriptor khai báo rằng module hiện tại là consumer của một service type:
-
-~~~java
-module com.acme.application {
-    requires com.acme.greeting.api;
-    uses com.acme.greeting.api.GreetingService;
-}
-~~~
-
-Khai báo này cho biết module ứng dụng cần service GreetingService. Nó không chỉ định implementation nào sẽ được dùng và cũng không tạo requires trực tiếp tới từng module provider.
-
-Nhờ vậy, consumer phụ thuộc vào hợp đồng service ổn định. Provider có thể được thay thế hoặc bổ sung mà không cần sửa mã consumer, miễn là implementation tuân thủ hợp đồng và được đăng ký hợp lệ.
-
-## 2. uses khác requires như thế nào?
-
-Hai chỉ thị có mục đích khác nhau:
-
-- **requires** tạo quan hệ đọc giữa module hiện tại và module khác. Consumer cần requires module chứa service type để có thể tham chiếu interface hoặc abstract class trong mã nguồn.
-- **uses** khai báo nhu cầu sử dụng một service type. Nó cho phép cơ chế service loading biết module nào đang tiêu thụ service và là một phần của hợp đồng module.
-
-Ví dụ:
+The **uses** directive in a module descriptor declares that the current module is a consumer of a service type:
 
 ~~~java
 module com.acme.application {
@@ -39,9 +19,29 @@ module com.acme.application {
 }
 ~~~
 
-Consumer cần requires com.acme.greeting.api vì GreetingService là type nằm trong module API. Consumer không cần requires com.acme.greeting.provider chỉ để tìm implementation.
+This declaration states that the application module needs the GreetingService service. It does not specify which implementation will be used, nor does it create a direct requires to each provider module.
 
-Quan hệ khái quát:
+As a result, the consumer depends on a stable service contract. Providers can be replaced or added without modifying the consumer code, as long as the implementation complies with the contract and is validly registered.
+
+## 2. How does uses differ from requires?
+
+The two directives serve different purposes:
+
+- **requires** establishes a readability relationship between the current module and another module. The consumer needs to require the module containing the service type so it can reference the interface or abstract class in source code.
+- **uses** declares the need to use a service type. It lets the service loading mechanism know which module is consuming the service and is part of the module contract.
+
+Example:
+
+~~~java
+module com.acme.application {
+    requires com.acme.greeting.api;
+    uses com.acme.greeting.api.GreetingService;
+}
+~~~
+
+The consumer needs `requires com.acme.greeting.api` because GreetingService is a type located in the API module. The consumer does not need `requires com.acme.greeting.provider` just to discover the implementation.
+
+Overview of the relationships:
 
 ~~~text
 com.acme.application
@@ -49,25 +49,25 @@ com.acme.application
     v
 com.acme.greeting.api
     |
-    | exports package chứa GreetingService
+    | exports package containing GreetingService
     v
 GreetingService (service contract)
 
 com.acme.greeting.application
     | uses GreetingService
     |
-    | ServiceLoader tìm provider
+    | ServiceLoader discovers providers
     v
-Provider được đăng ký bởi module triển khai
+Provider registered by implementation module
 ~~~
 
-uses không thay thế requires tới module chứa service type. Ngược lại, requires module API cũng không tự khai báo rằng consumer muốn sử dụng service qua ServiceLoader.
+uses does not replace requires to the module containing the service type. Conversely, requiring the API module does not automatically declare that the consumer wants to use the service via ServiceLoader.
 
-## 3. Khai báo service type trong module API
+## 3. Declaring a Service Type in the API Module
 
-Service type nên là một hợp đồng nhỏ, ổn định và được đặt trong package công khai của module API.
+The service type should be a small, stable contract placed in a public package of the API module.
 
-Ví dụ cấu trúc:
+Example structure:
 
 ~~~text
 src/
@@ -95,21 +95,21 @@ public interface GreetingService {
 }
 ~~~
 
-Module API export package để consumer và provider có thể tham chiếu GreetingService. Module API không cần biết implementation nào sẽ được nạp.
+The API module exports the package so that consumers and providers can reference GreetingService. The API module does not need to know which implementation will be loaded.
 
-Service type cũng có thể là abstract class nếu hợp đồng cần kế thừa trạng thái hoặc hành vi dùng chung. Tuy nhiên, interface thường phù hợp hơn cho một điểm mở rộng service vì nó tách hợp đồng khỏi implementation.
+A service type can also be an abstract class if the contract needs to inherit shared state or behavior. However, an interface is usually more suitable for a service extension point because it separates the contract from the implementation.
 
-Một service contract tốt nên:
+A good service contract should:
 
-- Chỉ chứa những method mà consumer thực sự cần.
-- Dùng kiểu dữ liệu công khai và ổn định trong chữ ký method.
-- Hạn chế phụ thuộc vào package nội bộ của provider.
-- Định nghĩa rõ ý nghĩa tham số, kết quả và lỗi có thể phát sinh.
-- Tránh để consumer phải biết class triển khai hoặc cách khởi tạo provider.
+- Contain only the methods that consumers actually need.
+- Use public and stable data types in method signatures.
+- Avoid depending on internal packages of providers.
+- Clearly define the meaning of parameters, results, and potential errors.
+- Avoid requiring consumers to know the implementation class or how providers are instantiated.
 
-## 4. Consumer khai báo uses và gọi ServiceLoader
+## 4. Consumer Declaring uses and Calling ServiceLoader
 
-Consumer khai báo phụ thuộc tới module API và service mà nó sử dụng:
+The consumer declares a dependency on the API module and the service it uses:
 
 ~~~text
 src/
@@ -128,7 +128,7 @@ module com.acme.greeting.consumer {
 }
 ~~~
 
-Mã consumer dùng ServiceLoader để tìm các implementation:
+The consumer code uses ServiceLoader to locate implementations:
 
 ~~~java
 package com.acme.greeting.consumer;
@@ -149,21 +149,21 @@ public class Main {
         }
 
         if (!found) {
-            System.out.println("Chưa có GreetingService provider");
+            System.out.println("No GreetingService provider available");
         }
     }
 }
 ~~~
 
-ServiceLoader là API chuẩn của Java để tìm và nạp các provider đã đăng ký. Consumer không cần tự quét classpath, tự tìm tên class implementation hoặc gọi constructor của một class cụ thể.
+ServiceLoader is Java's standard API for locating and loading registered providers. The consumer does not need to manually scan the classpath, look up implementation class names, or invoke the constructor of a specific class.
 
-Trong named module, module gọi ServiceLoader phải khai báo uses cho service type. Nếu thiếu uses, việc tải service có thể thất bại với ServiceConfigurationError vì module chưa khai báo nhu cầu sử dụng service đó.
+In a named module, the module calling ServiceLoader must declare uses for the service type. If uses is missing, loading the service may fail with a ServiceConfigurationError because the module has not declared its need to use that service.
 
-Có thể duyệt tất cả provider bằng vòng lặp như ví dụ trên. ServiceLoader tải provider theo nhu cầu khi duyệt, nên không nhất thiết khởi tạo tất cả implementation ngay tại thời điểm gọi load.
+All providers can be iterated using a loop as shown above. ServiceLoader loads providers on demand during iteration, so it does not necessarily instantiate all implementations immediately when load is called.
 
-## 5. Provider đăng ký implementation bằng provides
+## 5. Provider Registering an Implementation with provides
 
-Module provider phụ thuộc vào module API vì implementation phải triển khai GreetingService:
+The provider module depends on the API module because its implementation must implement GreetingService:
 
 ~~~text
 src/
@@ -173,7 +173,7 @@ src/
         └── VietnameseGreetingService.java
 ~~~
 
-Module descriptor đăng ký implementation:
+Module descriptor registering the implementation:
 
 ~~~java
 module com.acme.greeting.provider {
@@ -199,20 +199,20 @@ public final class VietnameseGreetingService
 
     @Override
     public String greet(String name) {
-        return "Xin chào, " + name + "!";
+        return "Xin chao, " + name + "!";
     }
 }
 ~~~
 
-Chỉ thị provides ... with ... nằm trong module descriptor của provider. Nó đăng ký rằng module này cung cấp implementation cho service type đã nêu.
+The provides ... with ... directive resides in the provider's module descriptor. It registers that this module provides an implementation for the specified service type.
 
-Với provider class theo cách triển khai thông thường, class implementation phải public, không abstract và có public constructor không tham số để ServiceLoader có thể tạo instance. Java cũng hỗ trợ provider method public static tên provider trong provider class; cách này hữu ích khi việc tạo service cần factory hoặc cấu hình riêng.
+For a conventional provider class, the implementation class must be public, non-abstract, and have a public no-argument constructor so ServiceLoader can create an instance. Java also supports a public static provider method named provider in the provider class; this approach is useful when creating the service requires a factory or custom configuration.
 
-Package chứa implementation không cần export chỉ để ServiceLoader tìm provider của named module. Consumer chỉ cần biết service type công khai; chi tiết implementation vẫn có thể được giữ bên trong module provider.
+The package containing the implementation does not need to be exported just for ServiceLoader to find a named module's provider. The consumer only needs to know the public service type; implementation details can remain encapsulated inside the provider module.
 
-## 6. Quan hệ giữa ba module
+## 6. Relationship Between the Three Modules
 
-Một ví dụ đầy đủ có ba module độc lập:
+A complete example has three independent modules:
 
 ~~~text
 com.acme.greeting.api
@@ -229,18 +229,18 @@ com.acme.greeting.consumer
     └── Main -> ServiceLoader
 ~~~
 
-Điểm quan trọng là consumer và provider cùng phụ thuộc vào API module, nhưng không phụ thuộc trực tiếp vào nhau:
+The key point is that both the consumer and the provider depend on the API module, but do not depend directly on each other:
 
-- API module sở hữu service contract.
-- Consumer module khai báo nhu cầu qua uses.
-- Provider module đăng ký implementation qua provides.
-- ServiceLoader kết nối consumer với các provider có sẵn trong môi trường module layer.
+- The API module owns the service contract.
+- The consumer module declares its need via uses.
+- The provider module registers its implementation via provides.
+- ServiceLoader connects the consumer to available providers in the module layer environment.
 
-Có thể có nhiều provider cho cùng một service type. Consumer có thể duyệt tất cả, chọn theo metadata hoặc áp dụng chính sách riêng. Không nên dựa vào thứ tự provider được tìm thấy nếu thứ tự đó không phải một phần của hợp đồng ứng dụng.
+There can be multiple providers for the same service type. The consumer can iterate over all of them, select based on metadata, or apply its own policy. You should not rely on the order in which providers are found unless that order is part of the application contract.
 
-## 7. Biên dịch và chạy ví dụ modular
+## 7. Compiling and Running the Modular Example
 
-Với cấu trúc nguồn đặt trong các thư mục module như trên, có thể biên dịch cả ba module bằng:
+With the source structure placed in module directories as shown above, all three modules can be compiled using:
 
 ~~~bash
 javac --module-source-path src \
@@ -248,7 +248,7 @@ javac --module-source-path src \
       -m com.acme.greeting.api,com.acme.greeting.consumer,com.acme.greeting.provider
 ~~~
 
-Sau khi biên dịch, thư mục mods có các thư mục module tương ứng:
+After compiling, the mods directory contains the corresponding module directories:
 
 ~~~text
 mods/
@@ -257,7 +257,7 @@ mods/
 └── com.acme.greeting.provider/
 ~~~
 
-Chạy consumer:
+Running the consumer:
 
 ~~~bash
 java --show-module-resolution \
@@ -265,34 +265,34 @@ java --show-module-resolution \
      --module com.acme.greeting.consumer/com.acme.greeting.consumer.Main
 ~~~
 
-Trong quá trình phân giải module, Java có thể thực hiện service binding để đưa các module provider phù hợp vào cấu hình khi chúng nằm trên module path và cung cấp service mà module đã phân giải sử dụng. Tùy cấu hình chạy và module layer tự tạo, có thể cần bổ sung provider module làm root hoặc cấu hình rõ các module cần đưa vào layer.
+During module resolution, Java can perform service binding to include matching provider modules in the configuration when they are on the module path and provide a service used by a resolved module. Depending on the runtime configuration and custom module layers, it may be necessary to add provider modules as roots or explicitly configure the modules to include in the layer.
 
-Tùy chọn --show-module-resolution giúp quan sát module nào được phân giải và hỗ trợ chẩn đoán khi provider không xuất hiện như mong đợi.
+The --show-module-resolution option helps observe which modules are resolved and assists in diagnosing cases where a provider does not appear as expected.
 
-## 8. ServiceLoader và module layer
+## 8. ServiceLoader and Module Layers
 
-ServiceLoader không chỉ làm việc với boot layer. Ứng dụng có thể tạo module layer riêng để nạp plugin hoặc nhóm provider độc lập.
+ServiceLoader does not work only with the boot layer. An application can create custom module layers to load plugins or independent groups of providers.
 
-Khi đã có một ModuleLayer, có thể tìm service trong layer đó:
+Once you have a ModuleLayer, you can locate services within that layer:
 
 ~~~java
 ServiceLoader<GreetingService> services =
         ServiceLoader.load(pluginLayer, GreetingService.class);
 ~~~
 
-Cách này hữu ích khi ứng dụng cần nạp plugin sau khi khởi động, tách nhóm provider theo module layer hoặc kiểm soát vòng đời của cấu hình module.
+This approach is useful when an application needs to load plugins after startup, isolate groups of providers by module layer, or control the lifecycle of a module configuration.
 
-Cần phân biệt:
+It is important to distinguish:
 
-- Module layer chứa cấu hình module đã được phân giải.
-- ServiceLoader tìm provider được đăng ký trong phạm vi layer hoặc class loader tương ứng với overload được sử dụng.
-- Việc một JAR nằm trên đĩa không tự đảm bảo provider sẽ được nhìn thấy trong layer đang truy vấn.
+- A module layer holds a resolved module configuration.
+- ServiceLoader searches for providers registered within the layer or class loader corresponding to the overload used.
+- Simply having a JAR on disk does not guarantee that the provider will be visible in the layer being queried.
 
-Khi tự tạo layer, cần xác định module root, module finder, configuration và class loader đúng với thiết kế plugin. Nếu provider không được tìm thấy, hãy kiểm tra layer mà ServiceLoader đang truy vấn và xem provider module đã được đưa vào cấu hình layer chưa.
+When creating a custom layer, you must specify the module roots, module finder, configuration, and class loader appropriate for the plugin design. If a provider is not found, check which layer ServiceLoader is querying and whether the provider module has been included in that layer's configuration.
 
-## 9. Nhiều provider và xử lý trường hợp không có provider
+## 9. Multiple Providers and Handling the No-Provider Case
 
-Một service có thể có nhiều implementation:
+A service can have multiple implementations:
 
 ~~~java
 ServiceLoader<GreetingService> services =
@@ -303,94 +303,94 @@ for (GreetingService service : services) {
 }
 ~~~
 
-Nếu ứng dụng cần chọn đúng một provider, hãy xác định chính sách chọn rõ ràng. Ví dụ, có thể dùng cấu hình ứng dụng để chọn provider theo tên hoặc đặc tính nghiệp vụ, thay vì phụ thuộc thứ tự duyệt.
+If the application needs to select a single provider, define an explicit selection policy. For example, you can use application configuration to select a provider by name or business attribute, rather than relying on iteration order.
 
-Nếu không tìm thấy provider, ServiceLoader không nhất thiết ném lỗi chỉ vì danh sách rỗng. Consumer nên quyết định hành vi phù hợp: dùng fallback, bỏ qua chức năng tùy chọn hoặc báo lỗi cấu hình nếu service là bắt buộc.
+If no provider is found, ServiceLoader does not necessarily throw an error simply because the list is empty. The consumer should decide the appropriate behavior: use a fallback, skip the optional feature, or report a configuration error if the service is required.
 
-Khi duyệt provider, các lỗi cấu hình hoặc lỗi tạo instance có thể xuất hiện dưới dạng ServiceConfigurationError. Cần xem nguyên nhân gốc, chẳng hạn provider class không hợp lệ, thiếu constructor phù hợp, không triển khai service type hoặc dependency của provider không có trong runtime.
+During provider iteration, configuration errors or instantiation failures may surface as a ServiceConfigurationError. You should inspect the root cause, such as an invalid provider class, missing suitable constructor, failure to implement the service type, or a provider dependency missing at runtime.
 
-## 10. Service trên classpath và META-INF/services
+## 10. Services on the Classpath and META-INF/services
 
-Mô hình service có trước JPMS vẫn hoạt động với ứng dụng classpath. Khi consumer và provider nằm trên classpath, consumer thường không khai báo uses trong module descriptor vì classpath thuộc unnamed module.
+The service model predates JPMS and still works with classpath applications. When the consumer and provider reside on the classpath, the consumer typically does not declare uses in a module descriptor because the classpath belongs to the unnamed module.
 
-Provider truyền thống đăng ký bằng file cấu hình:
+Traditional providers register using a configuration file:
 
 ~~~text
 META-INF/services/com.acme.greeting.api.GreetingService
 ~~~
 
-Nội dung file liệt kê tên đầy đủ của từng implementation, mỗi dòng một provider:
+The file lists the fully qualified name of each implementation, one provider per line:
 
 ~~~text
 com.acme.greeting.provider.impl.VietnameseGreetingService
 com.acme.greeting.provider.impl.EnglishGreetingService
 ~~~
 
-Consumer vẫn có thể dùng:
+The consumer can still use:
 
 ~~~java
 ServiceLoader<GreetingService> services =
         ServiceLoader.load(GreetingService.class);
 ~~~
 
-Khi chuyển sang named modules, việc đăng ký provider được thể hiện rõ trong module-info.java bằng provides ... with ..., còn nhu cầu của consumer được thể hiện bằng uses. Đây là metadata có cấu trúc, giúp công cụ Java và module system hiểu quan hệ service mà không phải dựa hoàn toàn vào file cấu hình trong JAR.
+When migrating to named modules, provider registration is expressed explicitly in module-info.java using provides ... with ..., and consumer demand is expressed using uses. This is structured metadata that helps Java tools and the module system understand service relationships without relying solely on configuration files inside JARs.
 
-Không nên đăng ký cùng một provider theo nhiều cách một cách tùy tiện. Hãy chọn mô hình phù hợp với cách đóng gói và class loader/module layer mà ứng dụng sử dụng.
+You should not arbitrarily register the same provider in multiple ways. Choose the model that matches the packaging and class loader/module layer setup your application uses.
 
-## 11. Lỗi thường gặp khi dùng uses
+## 11. Common Mistakes When Using uses
 
-**Consumer quên khai báo uses**
+**Consumer forgets to declare uses**
 
-Module gọi ServiceLoader cho một service nhưng module descriptor không có uses tương ứng. Bổ sung đúng service type vào module-info.java của consumer.
+A module calls ServiceLoader for a service, but its module descriptor lacks the corresponding uses directive. Add the exact service type to the consumer's module-info.java.
 
-**Consumer thiếu requires tới module API**
+**Consumer lacks requires for the API module**
 
-Consumer khai báo uses nhưng không đọc được module chứa service type. Bổ sung requires tới module API và bảo đảm module API export package chứa service type.
+The consumer declares uses but cannot read the module containing the service type. Add a requires to the API module and ensure the API module exports the package containing the service type.
 
-**Provider không khai báo provides**
+**Provider does not declare provides**
 
-Implementation class tồn tại trong JAR nhưng named module không đăng ký service bằng provides. Thêm provides ServiceType with ProviderImplementation vào module descriptor của provider.
+The implementation class exists in the JAR, but the named module does not register the service with provides. Add provides ServiceType with ProviderImplementation to the provider's module descriptor.
 
-**Provider module không được phân giải hoặc không nằm trong layer đang tìm kiếm**
+**Provider module is not resolved or not in the searched layer**
 
-Kiểm tra module path, module root, service binding và module layer được truyền cho ServiceLoader. Một provider ở layer khác sẽ không tự động xuất hiện trong mọi lần truy vấn.
+Check the module path, module roots, service binding, and the module layer passed to ServiceLoader. A provider in a different layer will not automatically appear in every query.
 
-**Provider implementation không hợp lệ**
+**Invalid provider implementation**
 
-Kiểm tra implementation có tương thích với service type và có cách tạo instance hợp lệ hay không. Với provider class thông thường, cần public class và public constructor không tham số; với provider method, kiểm tra phương thức provider public static không tham số và kiểu trả về phù hợp.
+Check whether the implementation is compatible with the service type and has a valid instantiation mechanism. For a standard provider class, a public class and a public no-argument constructor are required; for a provider method, verify there is a public static no-argument provider method with an appropriate return type.
 
-**Service type không phải API dùng chung**
+**Service type is not a shared API**
 
-Nếu package chứa service type không được export hoặc provider/consumer không đọc được module API, các module không thể cùng tham chiếu hợp đồng. Đặt service type trong package API được export và khai báo requires ở cả consumer lẫn provider.
+If the package containing the service type is not exported or the provider/consumer cannot read the API module, the modules cannot reference the same contract. Place the service type in an exported API package and declare requires in both consumer and provider.
 
-**Consumer phụ thuộc trực tiếp vào implementation**
+**Consumer depends directly on the implementation**
 
-Nếu consumer import implementation class hoặc tự gọi constructor provider, tính thay thế của service bị mất. Consumer nên chỉ tham chiếu service type và dùng ServiceLoader để tìm provider.
+If the consumer imports the implementation class or invokes the provider constructor directly, the substitutability of the service is lost. The consumer should reference only the service type and use ServiceLoader to locate providers.
 
-## 12. Nguyên tắc thiết kế service consumer
+## 12. Service Consumer Design Principles
 
-Khi viết module consumer, nên áp dụng các nguyên tắc:
+When writing a consumer module, apply these principles:
 
-- Khai báo uses cho đúng service type mà module thực sự tiêu thụ.
-- Chỉ requires module chứa service contract và những dependency trực tiếp khác mà mã cần.
-- Không khai báo requires tới từng provider chỉ để dùng ServiceLoader.
-- Định nghĩa hành vi rõ ràng khi không có provider hoặc có nhiều provider.
-- Không giả định thứ tự provider là ổn định nếu không có hợp đồng quy định.
-- Dùng module layer rõ ràng khi cần plugin có vòng đời hoặc phạm vi riêng.
-- Giữ service type trong package API được export và hạn chế để lộ implementation detail.
-- Xử lý ServiceConfigurationError để thông báo lỗi đăng ký provider có ý nghĩa.
+- Declare uses for the exact service type that the module actually consumes.
+- Only require the module containing the service contract and other direct dependencies the code needs.
+- Do not declare requires on individual providers just to use ServiceLoader.
+- Define clear behavior when no provider is present or when multiple providers exist.
+- Do not assume provider order is stable unless an explicit contract guarantees it.
+- Use explicit module layers when plugins need their own lifecycle or scope.
+- Keep the service type in an exported API package and avoid exposing implementation details.
+- Handle ServiceConfigurationError to report meaningful provider registration errors.
 
-Một consumer tốt biết nó cần chức năng nào và hợp đồng nào, nhưng không cần biết class cụ thể nào sẽ thực hiện chức năng đó.
+A good consumer knows what capability and contract it needs, without needing to know which specific class will perform that capability.
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-- uses khai báo service consumer trong module descriptor.
-- requires tạo quan hệ đọc tới module chứa service type; uses khai báo nhu cầu sử dụng service.
-- Provider đăng ký implementation bằng provides ServiceType with Implementation.
-- ServiceLoader tìm và nạp provider, giúp consumer không phụ thuộc trực tiếp vào class triển khai.
-- Package chứa service type cần được export để consumer và provider truy cập hợp đồng.
-- Package implementation của provider có thể giữ không export.
-- Named module cần khai báo uses; ứng dụng classpath truyền thống có thể đăng ký provider bằng META-INF/services.
-- Module layer quyết định phạm vi provider có thể được tìm thấy khi dùng ServiceLoader với layer cụ thể.
+- uses declares a service consumer in a module descriptor.
+- requires establishes a readability relationship to the module containing the service type; uses declares the need to use the service.
+- Providers register implementations with provides ServiceType with Implementation.
+- ServiceLoader discovers and loads providers, keeping consumers decoupled from concrete implementation classes.
+- The package containing the service type must be exported so consumers and providers can access the contract.
+- A provider's implementation package can remain unexported.
+- Named modules must declare uses; traditional classpath applications can register providers using META-INF/services.
+- The module layer determines the scope of providers that can be found when using ServiceLoader with a specific layer.
 
-Khi cần mở rộng ứng dụng bằng plugin hoặc nhiều implementation, hãy thiết kế service contract độc lập, khai báo uses ở consumer và provides ở provider. Cách tổ chức này giúp thay đổi implementation mà không phải sửa mã sử dụng service.
+When you need to extend an application with plugins or multiple implementations, design an independent service contract, declare uses in the consumer, and declare provides in the provider. This organization allows implementations to change without modifying the code that uses the service.

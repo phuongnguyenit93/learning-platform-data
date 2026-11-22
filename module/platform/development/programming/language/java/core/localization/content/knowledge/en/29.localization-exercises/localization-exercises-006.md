@@ -1,59 +1,59 @@
-# Sắp xếp tên tiếng Việt bằng Collator trong Java
+# Sorting Vietnamese Names with Collator in Java
 
-## 1. Tình huống thực tế và mục tiêu
+## 1. Practical Scenario and Objectives
 
-Một ứng dụng quản lý học viên, nhân sự hoặc khách hàng có danh sách tên: **Nguyễn Văn An**, **Trần Thị Ánh**, **Phạm Bảo Ân**, **Đặng Thu Đào**, **Đỗ Gia Dũng**, **Võ Quốc Đức**. Người dùng muốn danh sách được sắp xếp một cách hợp lý theo tiếng Việt. Nếu chỉ dùng `String.compareTo()`, các chuỗi được đối chiếu theo thứ tự UTF-16 code units, **không phải quy tắc so sánh chữ cái của ngôn ngữ**. Chữ có dấu, chữ `Đ`, âm chính, dấu thanh, cách viết hoa/thường và tên ghép có thể cho thứ tự khó hiểu.
+A student, HR, or customer management application holds a list of names: **Nguyễn Văn An**, **Trần Thị Ánh**, **Phạm Bảo Ân**, **Đặng Thu Đào**, **Đỗ Gia Dũng**, **Võ Quốc Đức**. Users expect the list to be sorted sensibly in Vietnamese. If you use `String.compareTo()`, strings are compared by UTF-16 code units, **not by the language's alphabetic collation rules**. Accented letters, the letter `Đ`, base vowels, tone marks, upper/lower casing, and compound names can produce confusing ordering.
 
-Java core có `java.text.Collator` để so sánh chuỗi **phù hợp với một locale**, như `vi-VN`. Tuy nhiên, chỉ thay `compareTo` bằng `Collator.compare` chưa đủ cho một tính năng danh bạ hoàn chỉnh: trước hết phải xác định **sắp xếp theo họ hay theo tên gọi**, cách lưu họ/tên đệm/tên chính, cách xử lý nhiều bản ghi tương đương theo collation, và cách giữ kết quả có thể kiểm tra được.
+Core Java provides `java.text.Collator` to compare strings **according to a locale**, such as `vi-VN`. However, simply swapping `compareTo` for `Collator.compare` is not enough for a complete directory feature: you must first decide **whether to sort by given name or family name**, how to store family/middle/given name components, how to handle multiple records that collate as equivalent, and how to keep the results testable.
 
-**Bài thực hành này** trình bày từ việc tạo Collator, viết `Comparator` cho dữ liệu có cấu trúc, chạy thử Java 17+, đọc kết quả, cho đến những lỗi dữ liệu Unicode và cách kiểm thử trong sản phẩm thật.
+**This hands-on guide** walks through creating a `Collator`, writing a `Comparator` for structured data, running on Java 17+, interpreting the output, handling Unicode data pitfalls, and testing in production.
 
-### Sau bài học bạn sẽ làm được gì?
+### What Will You Be Able to Do After This Lesson?
 
-1. Tạo `Collator` với `Locale.forLanguageTag("vi-VN")` và giải thích vì sao nó khác `String.compareTo`.
-2. Chọn `Collator.``PRIMARY`/`SECONDARY`/`TERTIARY`/`IDENTICAL` và `CANONICAL_DECOMPOSITION` phù hợp với nhu cầu.
-3. Sắp xếp một danh sách theo **tên gọi**, sau đó theo họ, tên đệm và mã ID — hoặc đổi chính sách để sắp xếp **theo họ**.
-4. Viết chương trình Java 17+ độc lập, có lệnh biên dịch và đầu ra kiểm chứng được.
-5. Phân biệt **tương đương theo Collator** với `String.equals` và danh tính người trong database.
-6. Không làm mất người hoặc ghi đè dữ liệu khi dùng `TreeSet`/`TreeMap` với comparator không nhất quán với equals.
-7. Nhận diện vấn đề chuẩn hóa Unicode (dựng sẵn so với tổ hợp), whitespace, trường hợp tên ghép, các độ mạnh so sánh và dữ liệu nguồn.
-8. Thiết kế bộ test đủ các lớp tên tiếng Việt và kiểm soát thay đổi khi nâng JDK/CLDR.
+1. Create a `Collator` with `Locale.forLanguageTag("vi-VN")` and explain how it differs from `String.compareTo`.
+2. Choose `Collator.PRIMARY`/`SECONDARY`/`TERTIARY`/`IDENTICAL` and `CANONICAL_DECOMPOSITION` to match your requirements.
+3. Sort a list by **given name**, then family name, middle name, and ID — or switch the policy to sort **by family name**.
+4. Write a standalone Java 17+ program with compilation commands and verifiable output.
+5. Distinguish **Collator equivalence** from `String.equals` and person identity in a database.
+6. Avoid dropping people or overwriting entries when using `TreeSet`/`TreeMap` with a comparator inconsistent with `equals`.
+7. Recognize Unicode normalization issues (precomposed vs. decomposed), whitespace, compound names, comparison strengths, and source data edge cases.
+8. Design a test suite covering all Vietnamese name categories and manage changes across JDK/CLDR upgrades.
 
-## 2. “Sắp xếp tên tiếng Việt” là yêu cầu nghiệp vụ cần xác định
+## 2. "Sorting Vietnamese Names" Is a Business Requirement to Specify
 
-Không có một phép `sort` duy nhất luôn đúng cho mọi danh sách người Việt. Tối thiểu phải chọn rõ một trong hai cách:
+There is no single `sort` that is universally right for every Vietnamese directory. At minimum, you must explicitly pick one of two approaches:
 
-- **Sắp xếp theo họ, rồi tên đệm, rồi tên gọi:** hữu ích cho một số danh mục hồ sơ hoặc bản in theo họ. Ví dụ các tên mang họ Bùi, Đặng, Đỗ, Hồ, Lê, Nguyễn, Phạm, Trần, Võ được nhóm theo trường họ và thứ tự collation.
-- **Sắp xếp theo tên gọi, sau đó phân giải trùng:** thường gặp ở danh sách lớp hoặc danh bạ tiếng Việt, nơi “An”, “Anh”, “Ánh”, “Bình”, “Dung”, “Dũng”, “Đào”, “Đức” được tra cứu bằng tên gọi. Dù vậy, cách sắp xếp theo trường tên gọi là **quy ước của sản phẩm**, không phải điều Collator tự biết từ họ tên đầy đủ.
+- **Sort by family name, then middle name, then given name:** useful for certain record directories or printouts grouped by surname. For example, names with family names Bùi, Đặng, Đỗ, Hồ, Lê, Nguyễn, Phạm, Trần, Võ are grouped by family name and collation order.
+- **Sort by given name, then resolve ties:** common in Vietnamese class rosters or contact lists, where "An", "Anh", "Ánh", "Bình", "Dung", "Dũng", "Đào", "Đức" are looked up by given name. Even so, sorting by the given-name field is a **product convention**, not something `Collator` automatically infers from a full name string.
 
-Một chính sách dữ liệu rõ ràng có thể là:
+An explicit data policy might look like:
 
 ```text
 Sort by:
-  1. givenName (theo Collator vi-VN)
-  2. familyName (theo Collator vi-VN)
-  3. middleName (theo Collator vi-VN)
-  4. immutable person ID (thứ tự số, để có kết quả quyết định)
+  1. givenName (with vi-VN Collator)
+  2. familyName (with vi-VN Collator)
+  3. middleName (with vi-VN Collator)
+  4. immutable person ID (numeric order, for deterministic results)
 ```
 
-Nếu sản phẩm cần nhóm họ trước, thay thứ tự các khóa so sánh. Quan trọng là **không suy đoán quy tắc** chỉ từ việc chuỗi có dấu tiếng Việt.
+If the product needs family-name grouping first, reorder the comparison keys. Crucially, **never guess the rule** merely from the presence of Vietnamese diacritics.
 
-### Họ tên không phải lúc nào cũng tách bằng từ cuối
+### Full Names Cannot Always Be Split by the Last Word
 
-`"Nguyễn Thị Minh Anh"` có thể có tên gọi ghép `"Minh Anh"`. Những tên như `"Thị Hồng"` hoặc cấu trúc đặt tên đặc biệt, tên quốc tế, tên chỉ có một từ, dữ liệu thiếu tên đệm cũng cần chính sách. Vì vậy, không nên mặc định:
+`"Nguyễn Thị Minh Anh"` may have the compound given name `"Minh Anh"`. Names like `"Thị Hồng"` or special naming structures, international names, single-word names, and entries missing a middle name also need a clear policy. Therefore, never default to:
 
 ```java
 String givenName =
         fullName.substring(fullName.lastIndexOf(' ') + 1);
 ```
 
-Đây là **mẫu dễ sai có chủ ý**, không phải parser tên tiếng Việt đáng tin. Nó luôn lấy **từ cuối**, không nhất thiết là trường tên gọi mà người dùng xác nhận.
+This is an **intentionally error-prone anti-pattern**, not a reliable Vietnamese name parser. It always extracts the **last token**, which is not necessarily the user-confirmed given-name field.
 
-**Thiết kế phù hợp hơn:** thu thập/lưu các trường `familyName`, `middleName`, `givenName` hoặc một cấu trúc tên đã được chuẩn hóa theo nghiệp vụ. Có thể có thêm `displayName` giữ chính xác cách người dùng muốn hiển thị và `sortName` do người dùng/nhân sự xác nhận nếu danh mục phức tạp.
+**Better design:** collect and store `familyName`, `middleName`, `givenName` fields or a business-normalized name structure. You can also store `displayName` to preserve exact user-preferred rendering and `sortName` confirmed by the user or HR when directories are complex.
 
-## 3. Collator là gì và khác String.compareTo như thế nào?
+## 3. What Is Collator and How Does It Differ from String.compareTo?
 
-`java.text.Collator` là một `Comparator<Object>` có khả năng so sánh văn bản theo dữ liệu/ngữ cảnh ngôn ngữ. Với `String`, ta dùng:
+`java.text.Collator` is a `Comparator<Object>` capable of comparing text according to linguistic rules and locale data. For `String`, use:
 
 ```java
 Locale vietnamese = Locale.forLanguageTag("vi-VN");
@@ -62,51 +62,51 @@ Collator collator = Collator.getInstance(vietnamese);
 int result = collator.compare("Dung", "Đung");
 ```
 
-Đoạn này nằm trong phương thức Java, cần import `java.text.Collator` và `java.util.Locale`. Kết quả âm/0/dương cho biết thứ tự tương đối theo Collator được cài trên runtime.
+This snippet lives inside a Java method and requires importing `java.text.Collator` and `java.util.Locale`. Negative/0/positive results indicate relative ordering under the runtime's configured `Collator`.
 
-So sánh với:
+Compare with:
 
 ```java
 int natural = "Dung".compareTo("Đung");
 ```
 
-`String.compareTo` so theo các UTF-16 code units; nó không hiểu thứ tự chữ cái tiếng Việt, dấu thanh hoặc các mức khác biệt ngôn ngữ. Chỉ vì một ký tự có code point lớn hơn không có nghĩa nó phải đứng sau mọi chữ cái khác khi sắp xếp cho người đọc Việt.
+`String.compareTo` compares UTF-16 code units; it has no knowledge of Vietnamese alphabet order, tone marks, or linguistic weight levels. Just because one character has a higher code point does not mean it belongs after all other letters when sorting for Vietnamese readers.
 
-**Chú ý:** Collator có thể phụ thuộc bản JDK, nguồn dữ liệu locale và cấu hình provider. Kết quả cụ thể của những cặp chữ có dấu cần được kiểm thử trên phiên bản Java triển khai; không viết luật thủ công kiểu “mọi dấu sắc luôn xếp sau mọi dấu huyền” rồi khẳng định đó là hợp đồng của API.
+**Note:** `Collator` behavior can depend on the JDK version, locale data source, and provider configuration. Specific orderings for accented pairs must be tested on the deployed Java version; never hardcode manual rules like "acute tone always comes after grave tone" and claim that is an API guarantee.
 
-### Khởi tạo locale tường minh
+### Explicit Locale Initialization
 
-Nên viết:
+Write:
 
 ```java
 Locale vi = Locale.forLanguageTag("vi-VN");
 Collator collator = Collator.getInstance(vi);
 ```
 
-thay vì `Collator.getInstance()` nếu dữ liệu đang được sắp xếp theo tiếng Việt. Factory không có tham số dùng locale mặc định của JVM, có thể khác giữa máy phát triển, CI và server.
+instead of `Collator.getInstance()` when sorting Vietnamese data. The no-arg factory uses the JVM default locale, which can differ across developer machines, CI, and production servers.
 
-Không đổi `Locale.setDefault(...)` cho từng request chỉ để sort. Đây là global state ảnh hưởng các luồng khác. Hãy truyền locale và giữ rõ phạm vi comparator.
+Never call `Locale.setDefault(...)` per request just to sort. That mutates global state affecting other threads. Pass the locale explicitly and keep the comparator's scope clear.
 
-### Collator không sửa tên
+### Collator Does Not Modify Names
 
-`collator.compare(a,b)` trả kết quả so sánh; nó không trả một chuỗi “đã chuẩn hóa” và không tự biến đổi `a`, `b` trong database. Các thao tác như đổi hoa/thường, NFC, loại bỏ khoảng trắng thừa hay tách phần họ-tên thuộc **những chính sách dữ liệu riêng**, không phải side effect của `compare`.
+`collator.compare(a, b)` returns a comparison integer; it does not return a "normalized" string and does not mutate `a` or `b` in the database. Operations like case folding, NFC normalization, collapsing extra whitespace, or splitting name parts belong to **separate data policies**, not side effects of `compare`.
 
-## 4. Chọn strength: khác biệt nào có ảnh hưởng đến thứ tự?
+## 4. Choosing Strength: Which Differences Affect Ordering?
 
-`Collator` hỗ trợ các mức strength:
+`Collator` supports four strength levels:
 
-| Mức | Ý nghĩa khái quát | Khi nào cân nhắc |
+| Level | General Meaning | When to Consider |
 | --- | --- | --- |
-| `Collator.PRIMARY` | Phân biệt trọng số nền tảng; nhiều khác biệt viết hoa hoặc dấu thanh có thể bị xem nhẹ, tùy locale. | Nhóm kết quả tìm kiếm rất mềm dẻo, **không mặc định là identity**. |
-| `Collator.SECONDARY` | Xét thêm khác biệt thứ cấp, thường liên quan dấu/biến thể ký tự. | Khi cần phân biệt nhiều dạng có dấu hơn PRIMARY. |
-| `Collator.TERTIARY` | Xét thêm khác biệt cấp ba, thường có case. | Một mức thông dụng cho sort hiển thị phân biệt hơn; vẫn phải kiểm thử. |
-| `Collator.IDENTICAL` | Mức phân biệt mạnh nhất theo implementation. | Khi cần phân biệt sâu hơn trong collation, nhưng không tự suy ra nhất quán với `String.equals`. |
+| `Collator.PRIMARY` | Distinguishes primary base weights; many casing or tone differences may be ignored depending on locale. | Very loose search grouping; **never assume this defines identity**. |
+| `Collator.SECONDARY` | Considers secondary differences, typically diacritics/character variants. | When more accented forms must be distinguished than `PRIMARY`. |
+| `Collator.TERTIARY` | Considers tertiary differences, typically letter case. | Common choice for display sorting with finer distinction; still test thoroughly. |
+| `Collator.IDENTICAL` | Strongest level of distinction in the implementation. | When deeper collation distinction is needed, though still not guaranteed identical to `String.equals`. |
 
-Ánh xạ cụ thể từ dấu tiếng Việt sang các cấp trọng số **phụ thuộc dữ liệu collation**. Một số dấu cấu thành chữ cái khác biệt theo thứ tự gốc; các dấu thanh có thể là trọng số khác. Đừng phát biểu mọi dấu tiếng Việt luôn thuộc đúng một cấp như nhau ở mọi JDK/provider.
+The exact mapping from Vietnamese diacritics to collation weight levels **depends on collation data**. Some marks form distinct base letters at the primary level, while tone marks may occupy another weight level. Never claim all Vietnamese diacritics always fall at the exact same weight level across every JDK/provider.
 
-### Lựa chọn cho bài thực hành
+### Choice for This Practice
 
-Ví dụ dùng:
+The example uses:
 
 ```java
 Collator vi = Collator.getInstance(
@@ -115,11 +115,11 @@ vi.setStrength(Collator.TERTIARY);
 vi.setDecomposition(Collator.CANONICAL_DECOMPOSITION);
 ```
 
-Mức `TERTIARY` giúp minh họa sort có phân biệt case/dấu theo dữ liệu runtime; `CANONICAL_DECOMPOSITION` hỗ trợ các dạng Unicode dựng sẵn và tổ hợp theo quy tắc chuẩn tắc.
+`TERTIARY` demonstrates sorting that distinguishes case and diacritics per runtime data; `CANONICAL_DECOMPOSITION` aligns precomposed and decomposed Unicode forms under canonical equivalence rules.
 
-Nếu sản phẩm là ô tìm kiếm “không phân biệt hoa/thường, ít phân biệt dấu”, có thể cần một comparator khác hoặc một search index riêng, **không nhất thiết dùng cùng comparator để xác định danh tính dữ liệu**.
+If your product needs a "case-insensitive, diacritic-insensitive" search box, use a separate comparator or dedicated search index, **rather than reusing the same comparator to define record identity**.
 
-### Thử trực tiếp các mức strength
+### Testing Strength Levels Directly
 
 ```java
 Collator primary = (Collator) vi.clone();
@@ -129,92 +129,92 @@ int p = primary.compare("An", "an");
 int t = vi.compare("An", "an");
 ```
 
-Với runtime được dùng để kiểm tra bài này, `p == 0` còn `t != 0`. Nhưng hãy đặt test trên JDK mục tiêu thay vì lấy một cặp làm bằng chứng cho toàn bộ bảng chữ cái tiếng Việt.
+On the runtime used to verify this lesson, `p == 0` while `t != 0`. Always test on your target JDK rather than treating one pair as proof for the entire Vietnamese alphabet.
 
-### Không sửa Collator đã được dùng làm comparator của cây
+### Do Not Mutate a Collator Already Used in a Tree Collection
 
-`Collator` là đối tượng có thể cấu hình lại bằng `setStrength`, `setDecomposition`. Nếu bạn đã dùng nó để xây `TreeSet`/`TreeMap` chứa dữ liệu, **không đổi luật so sánh giữa chừng**, vì cấu trúc cây không tự xây lại theo luật mới. Hãy tạo/clone một Collator khác hoặc dựng collection mới từ dữ liệu nguồn khi thay chính sách.
+`Collator` is mutable via `setStrength` and `setDecomposition`. Once you pass it to a `TreeSet`/`TreeMap` holding entries, **never change its comparison rules mid-flight**, because the tree structure will not rebuild itself to match the new ordering. Create or clone a new `Collator` and build a new collection from source data when changing policies.
 
-## 5. Unicode dựng sẵn và dấu tổ hợp
+## 5. Precomposed Unicode vs. Combining Marks
 
-Nhiều chữ tiếng Việt có thể được biểu diễn bằng các dãy code point khác nhau. Ví dụ `á`:
+Many Vietnamese characters can be represented by different code-point sequences. For example, `á`:
 
 ```text
-Dạng dựng sẵn:    U+00E1
-Dạng tổ hợp:      U+0061 U+0301
+Precomposed form: U+00E1
+Decomposed form:  U+0061 U+0301
 ```
 
-Với Java:
+In Java:
 
 ```java
 String precomposed = "\u00E1";
 String decomposed = "a\u0301";
 
 System.out.println(precomposed.equals(decomposed));
-// false: dãy UTF-16 khác nhau.
+// false: different UTF-16 sequences.
 ```
 
-Hai chuỗi có thể trông giống nhau, nhưng `String.equals` so sánh dữ liệu code unit. Khi dùng `Collator` có `CANONICAL_DECOMPOSITION`, ví dụ Java của bài cho kết quả `compare(precomposed,decomposed)==0` trên runtime kiểm thử.
+Two strings can look identical while `String.equals` compares UTF-16 code units. When using `Collator` with `CANONICAL_DECOMPOSITION`, this lesson's Java example yields `compare(precomposed, decomposed) == 0` on the tested runtime.
 
-**Không nhầm hai việc:**
+**Do not confuse two distinct operations:**
 
-- `Collator` so sánh hai chuỗi theo quan hệ collation đã chọn.
-- `Normalizer.normalize(text, Normalizer.Form.NFC)` thay đổi cách biểu diễn của **một chuỗi** sang dạng chuẩn hóa khi thích hợp.
+- `Collator` compares two strings under a chosen collation relation.
+- `Normalizer.normalize(text, Normalizer.Form.NFC)` transforms the representation of **a single string** into normalized form where appropriate.
 
-Một ứng dụng có thể chọn chuẩn hóa tên lúc nhập để dễ tìm, nhưng cần quyết định rõ: giữ nguyên spelling nguồn hay không, sửa dữ liệu cũ thế nào, và cần giữ lịch sử/audit hay không. **NFC không phải loại bỏ dấu**; nó không biến `Nguyễn` thành `Nguyen`.
+An application may normalize names upon ingestion for easier lookup, but must clearly decide whether to preserve original spelling, how to migrate legacy data, and whether audit trails are required. **NFC does not strip diacritics**; it never turns `Nguyễn` into `Nguyen`.
 
-### Nguy cơ so sánh tên có Unicode khác nhau
+### Risks When Comparing Names Across Different Unicode Forms
 
-Nếu dữ liệu nhập từ nhiều nền tảng, một tên có thể chứa:
+When data arrives from multiple platforms, a name may contain:
 
-- Unicode dựng sẵn hoặc các ký tự tổ hợp.
-- Non-breaking space hoặc khoảng trắng đặc biệt.
-- Chữ hoa/thường không đồng đều.
-- Dấu câu trong tên, gạch nối, apostrophe.
-- Ký tự zero-width, ký tự không nhìn thấy.
-- Tên có ký tự chữ viết khác như Latin, Han hoặc Arabic.
+- Precomposed Unicode or combining marks.
+- Non-breaking spaces or special whitespace characters.
+- Inconsistent upper/lower casing.
+- Punctuation in names, hyphens, or apostrophes.
+- Zero-width characters or invisible control characters.
+- Characters from other scripts such as Latin extensions, Han, or Arabic.
 
-Đừng áp `replaceAll("[^a-zA-Z]","")` để “làm sạch” họ tên tiếng Việt — phép này xóa hoặc biến dạng ký tự hợp lệ. Nếu muốn chính sách chuẩn hóa khoảng trắng hoặc kiểm soát ký tự lạ, hãy viết validation/test riêng, giải thích cho người dùng và tránh âm thầm làm mất thông tin.
+Never run `replaceAll("[^a-zA-Z]", "")` to "clean" Vietnamese names—that deletes or corrupts valid characters. If you need whitespace normalization or unexpected-character checks, write dedicated validation/tests, communicate clearly to users, and avoid silently discarding information.
 
-## 6. Mô hình dữ liệu: lưu họ, đệm, tên và ID riêng
+## 6. Data Model: Storing Family, Middle, Given Name, and ID Separately
 
-Dùng `record` Java 17 cho ví dụ:
+Using a Java 17 `record` for the example:
 
 ```java
 record Person(int id, String family,
               String middle, String given) {}
 ```
 
-Ở đây:
+Here:
 
-- `id` là định danh của một người trong tập dữ liệu mẫu, giữ nguyên dù đổi tên.
-- `family` là họ như `Nguyễn`, `Trần`, `Lê`, `Đặng`.
-- `middle` là thành phần tên đệm đã được dữ liệu xác nhận.
-- `given` là tên gọi đã được dữ liệu xác nhận; có thể nhiều từ nếu hợp đồng cho phép.
-- Thứ tự các trường lưu không bắt buộc chính là thứ tự sort của UI.
+- `id` identifies a person in the sample dataset and stays constant even if their name changes.
+- `family` is the family name such as `Nguyễn`, `Trần`, `Lê`, `Đặng`.
+- `middle` is the validated middle-name component.
+- `given` is the validated given name; it may contain multiple words if the contract allows.
+- The storage order of fields does not dictate the UI sort order.
 
-**Record không tự xử lý tên người.** Mỗi field phải được tạo đúng từ form hoặc nguồn dữ liệu đáng tin; không suy ra chắc chắn từ cách tách string trắng.
+**A `record` does not parse names automatically.** Each field must come cleanly from a form or trusted data source rather than being guessed by splitting on spaces.
 
-Nếu nghiệp vụ cần full name:
+If business logic needs a full name:
 
 ```java
 String fullName = String.join(
         " ", person.family(), person.middle(), person.given());
 ```
 
-Đây chỉ là một ví dụ trong phương thức khi cả ba trường đều có giá trị thích hợp. Sản phẩm thật cần quy tắc cho tên đệm rỗng, quốc gia khác, viết hoa/honorific và cách hiển thị từng locale. **Tên gọi để sort và tên đầy đủ để hiển thị là hai nhu cầu khác nhau.**
+This is merely an in-method example when all three fields hold appropriate values. Production products need rules for empty middle names, other countries, capitalization/honorifics, and locale-specific display conventions. **Sort keys and display names serve two different needs.**
 
-### Vì sao có mã ID trong comparator?
+### Why Include the ID in the Comparator?
 
-Khi hai người đều có `given="An"` và cùng họ/tên đệm gần giống, sort theo tên có thể trả 0. Để danh sách có thứ tự **quyết định** ngay cả khi trường tên trùng theo Collator, có thể thêm ID làm tie-breaker cuối.
+When two people both have `given="An"` and similar family/middle names, sorting by name alone can return `0`. To keep list ordering **deterministic** even when names collide under `Collator`, append the ID as a final tie-breaker.
 
-Tuy nhiên, record có `equals` dựa trên **tất cả component**. Comparator tên + ID **không tự chứng minh nhất quán với record.equals** cho mọi đối tượng nếu hai record trùng ID nhưng trường tên khác nhau mà collation coi bằng nhau. Vì thế chương trình dùng comparator cho **`List.sort`**, không dùng nó làm danh tính của `TreeSet<Person>`.
+However, a record's `equals` depends on **all components**. A name + ID comparator **does not automatically prove consistency with `record.equals`** for all possible instances if two records shared an ID while having distinct names that collate equally. That is why this program uses the comparator for **`List.sort`**, not as the identity comparator of a `TreeSet<Person>`.
 
-Trong sản phẩm, giữ danh tính ở `Map<Integer, Person>` theo ID (hoặc bảng có primary key), và dùng bản sao `List<Person>` cho hiển thị.
+In production, maintain identity in a `Map<Integer, Person>` keyed by ID (or a table with a primary key), and use a `List<Person>` copy for sorted display.
 
-## 7. Comparator cho hai cách sắp xếp thông dụng
+## 7. Comparators for Two Common Sort Orders
 
-### 7.1. Theo tên gọi trước
+### 7.1. Given Name First
 
 ```java
 Comparator<String> viText = collator::compare;
@@ -226,18 +226,18 @@ Comparator<Person> byGiven =
                 .thenComparingInt(Person::id);
 ```
 
-Đây là đoạn Java trong một phương thức có biến `collator` đã được khởi tạo và record `Person` đã định nghĩa.
+This Java snippet resides in a method with an initialized `collator` and the `Person` record defined.
 
-Luồng so sánh:
+Comparison flow:
 
-1. So `given` theo quy tắc tiếng Việt.
-2. Nếu cùng nhóm collation, so tiếp `family`.
-3. Nếu vẫn tương đương, so tiếp `middle`.
-4. Nếu vẫn tương đương, so `id` số nguyên.
+1. Compare `given` using Vietnamese collation rules.
+2. If collation-equivalent, compare `family`.
+3. If still equivalent, compare `middle`.
+4. If still equivalent, compare integer `id`.
 
-Không cần tự viết `if/else` phức tạp và không dùng `compareTo` của toàn bộ họ tên làm khóa duy nhất.
+No complex manual `if/else` chain is needed, and full-name `compareTo` is never used as the sole key.
 
-### 7.2. Theo họ trước
+### 7.2. Family Name First
 
 ```java
 Comparator<Person> byFamily =
@@ -247,9 +247,9 @@ Comparator<Person> byFamily =
                 .thenComparingInt(Person::id);
 ```
 
-Chỉ đổi thứ tự field là có **quy ước sắp xếp khác**. Hai comparator đều dùng dữ liệu collation tiếng Việt nhưng trả danh sách khác nhau. Đây là bằng chứng quan trọng rằng **Collator không tự quyết định “sắp theo họ hay tên”**.
+Merely reordering the fields produces a **different sorting convention**. Both comparators use the exact same Vietnamese collation data yet yield different lists. This clearly demonstrates that **`Collator` does not decide "sort by family name or given name."**
 
-### 7.3. So sánh với natural String order
+### 7.3. Comparison with Natural String Order
 
 ```java
 Comparator<Person> byUnicode =
@@ -257,13 +257,13 @@ Comparator<Person> byUnicode =
                 .thenComparingInt(Person::id);
 ```
 
-Đoạn này dùng thứ tự `String.compareTo`, không phải locale-specific collation. Nó hữu ích làm đối chứng khi test, nhưng không nên coi thứ tự Unicode natural là tương đương thứ tự đọc tên tiếng Việt.
+This uses `String.compareTo`, not locale-specific collation. It is useful as a test baseline, but natural Unicode order must never be mistaken for Vietnamese alphabetical order.
 
-### 7.4. Dùng List.sort thay vì biến danh bạ thành TreeSet
+### 7.4. Use List.sort Instead of Turning a Directory into a TreeSet
 
-`List.sort(comparator)` **chỉ thay đổi thứ tự phần tử**, không tự xóa phần tử khi comparator trả 0. `TreeSet` và `TreeMap` lại coi `compare==0` là trùng, có thể mất bản ghi.
+`List.sort(comparator)` **only reorders elements**; it never drops elements when the comparator returns `0`. `TreeSet` and `TreeMap`, by contrast, treat `compare == 0` as duplicate keys and can drop records.
 
-Ví dụ một nhóm tên tương đương dưới một Collator mềm:
+Example of names colliding under a loose `Collator`:
 
 ```java
 Collator primary = (Collator) collator.clone();
@@ -272,14 +272,14 @@ primary.setStrength(Collator.PRIMARY);
 TreeSet<String> names = new TreeSet<>(primary);
 names.add("An");
 names.add("an");
-// Có thể chỉ còn một phần tử nếu compare("An","an")==0.
+// Only one element may remain if compare("An", "an") == 0.
 ```
 
-Trong demo runtime đã kiểm tra, `TreeSet` này có size `1`; còn `HashSet<String>` chứa cả hai tên (size `2`) vì `String.equals` phân biệt case. Nếu phải bảo toàn từng người, dùng ID làm identity rồi sort một `List`.
+In the verified runtime demo, this `TreeSet` has size `1`, whereas `HashSet<String>` retains both names (size `2`) because `String.equals` is case-sensitive. When every person must be preserved, key identity by ID and sort a `List`.
 
-## 8. Chương trình Java 17+ độc lập: sắp xếp 12 tên tiếng Việt
+## 8. Standalone Java 17+ Program: Sorting 12 Vietnamese Names
 
-Tạo file **`VietnameseNameSortDemo.java`** bằng UTF-8. Ví dụ cố tình **in danh sách ID** chứ không in trực tiếp chữ có dấu trong stdout kiểm tra, để tránh nhầm lỗi font/encoding của terminal với lỗi thuật toán sắp xếp. Dữ liệu `family`, `middle`, `given` vẫn là chuỗi tiếng Việt thực tế trong code.
+Create **`VietnameseNameSortDemo.java`** encoded in UTF-8. The example intentionally **prints ID lists** rather than printing accented characters directly in verification stdout, avoiding confusion between terminal font/encoding issues and sorting bugs. The `family`, `middle`, and `given` fields remain real Vietnamese strings in code.
 
 ```java
 import java.text.Collator;
@@ -374,14 +374,14 @@ public class VietnameseNameSortDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn trong thư mục chứa file:
+Compile and run with JDK 17 or later in the file's directory:
 
 ```bash
 javac -encoding UTF-8 VietnameseNameSortDemo.java
 java VietnameseNameSortDemo
 ```
 
-**Stdout đã kiểm tra bằng JShell trên môi trường OpenJDK hiện có, với Collator được cấu hình như ví dụ:**
+**Stdout verified with JShell on the available OpenJDK environment with the configured Collator:**
 
 ```text
 givenIds=[112, 101, 103, 111, 102, 104, 109, 107, 106, 105, 110, 108]
@@ -395,11 +395,11 @@ treePrimarySize=1
 hashSetSize=2
 ```
 
-**Phạm vi của stdout:** ba danh sách ID là kết quả thực nghiệm từ môi trường Java có locale data tương ứng. Thứ tự những tên có dấu có thể thay đổi theo JDK/vendor/locale provider và thuật toán collation được tích hợp. Code chạy theo Java 17+, nhưng khi cần snapshot test chính xác toàn bộ ID trên một JDK khác, hãy xác nhận dữ liệu collation và môi trường build/deploy. Những invariant quan trọng như `List.sort` không làm mất record, hoặc `String.equals` của hai dạng Unicode khác nhau là false, có ý nghĩa độc lập hơn với phiên bản runtime.
+**Scope of stdout:** the three ID lists are empirical results from a Java environment with matching locale data. The ordering of accented names can vary across JDK/vendor/locale providers and bundled collation algorithms. The code runs on Java 17+, and if exact ID-list snapshot tests are required on another JDK, verify the collation data and build/deploy environment. Fundamental invariants—such as `List.sort` never dropping records, or `String.equals` returning `false` for distinct Unicode encodings—hold more independently of runtime version.
 
-### Bảng tra ID để đọc kết quả
+### ID Lookup Table for Reading Results
 
-| ID | Họ | Đệm | Tên gọi |
+| ID | Family | Middle | Given |
 | ---: | --- | --- | --- |
 | 101 | Nguyễn | Văn | An |
 | 102 | Trần | Thị | Ánh |
@@ -414,21 +414,21 @@ hashSetSize=2
 | 111 | Nguyễn | Thị | Anh |
 | 112 | Nguyễn | Thị | An |
 
-### Giải thích từng dòng output
+### Line-by-Line Explanation of Output
 
-- `givenIds`: dùng **tên gọi trước**; nếu tương đương thì đối chiếu thêm họ, đệm, ID. Cặp cùng tên `An` (101 và 112) có thể được phân giải dựa vào họ/đệm thay vì giữ nguyên thứ tự nhập.
-- `familyIds`: cùng Collator nhưng dùng **họ trước**, nên nhóm ID và thứ tự khác đáng kể.
-- `naturalIds`: dùng `String.compareTo` cho tên gọi, cho thứ tự khác do xét code units thay vì collation tiếng Việt.
-- `utf16Equals=false`: `á` dựng sẵn và `a + dấu sắc` là hai chuỗi UTF-16 khác nhau.
-- `collatorEquivalent=true`: với `CANONICAL_DECOMPOSITION`, Collator của runtime coi hai dạng ấy tương đương.
-- `primaryCaseEquivalent=true` và `tertiaryDistinguishesCase=true`: các mức strength cho quan hệ so sánh khác nhau giữa `An` và `an` trong runtime thử.
-- `treePrimarySize=1`: một TreeSet ở PRIMARY gộp hai spelling theo comparator; `hashSetSize=2`: HashSet giữ cả hai theo `String.equals`.
+- `givenIds`: sorts by **given name first**, breaking ties by family, middle, and ID. The two entries named `An` (101 and 112) are resolved by family/middle name rather than keeping insertion order.
+- `familyIds`: uses the same `Collator` but sorts by **family name first**, producing substantially different grouping and order.
+- `naturalIds`: uses `String.compareTo` on given names, giving a different order because it compares UTF-16 code units rather than Vietnamese collation.
+- `utf16Equals=false`: precomposed `á` and `a` + combining acute accent are two distinct UTF-16 strings.
+- `collatorEquivalent=true`: with `CANONICAL_DECOMPOSITION`, the runtime's `Collator` treats both forms as equivalent.
+- `primaryCaseEquivalent=true` and `tertiaryDistinguishesCase=true`: different strength levels produce different comparison relations between `An` and `an` on the tested runtime.
+- `treePrimarySize=1`: a `TreeSet` at `PRIMARY` merges both spellings under its comparator; `hashSetSize=2`: `HashSet` retains both under `String.equals`.
 
-**Ví dụ không thay đổi JVM default locale, không đọc tệp nguồn khác, không gọi mạng và không ghi database.** Nó dùng hai bản copy riêng để tránh một phép sort ảnh hưởng đầu vào cho phép sort sau.
+**The example does not mutate the JVM default locale, read external files, make network calls, or write to a database.** It makes two separate copies so one sort never alters the input of the next.
 
-## 9. Muốn hiển thị tên thay vì ID thì làm thế nào?
+## 9. How to Display Names Instead of IDs
 
-Trong ứng dụng thực, bạn có thể hiển thị danh sách sau sort bằng một phương thức:
+In a real application, you can display the sorted list in a method:
 
 ```java
 for (Person p : givenSorted) {
@@ -437,22 +437,22 @@ for (Person p : givenSorted) {
 }
 ```
 
-Đây là **đoạn code trong phương thức** đang có `givenSorted`; không phải chương trình độc lập. Khi terminal dùng UTF-8 và font hỗ trợ, các tên tiếng Việt sẽ được hiển thị. Nếu output thành dấu hỏi hoặc ô vuông, hãy kiểm tra **console encoding, byte stream và font** trước khi quy lỗi cho Collator.
+This is an **in-method code snippet** assuming `givenSorted` exists; it is not a standalone program. When the terminal uses UTF-8 and a supporting font, Vietnamese names render properly. If output turns into question marks or boxes, check **console encoding, byte streams, and fonts** before blaming `Collator`.
 
-Để dữ liệu giữ nghĩa:
+To preserve data integrity:
 
-- File mã nguồn cần được lưu UTF-8; `javac -encoding UTF-8` khai báo charset của file nguồn.
-- `System.out` và terminal cần cấu hình phù hợp để nhìn thấy glyph.
-- Hệ thống ghi log/CSV cần encoding tường minh và font/reader phù hợp.
-- `Collator` làm nhiệm vụ **so sánh**, không sửa encoding hoặc tự chèn Unicode normalization vào String.
+- Source files must be saved as UTF-8; `javac -encoding UTF-8` declares source file charset.
+- `System.out` and the terminal must be properly configured to render glyphs.
+- Log and CSV writers need explicit encodings and compatible fonts/readers.
+- `Collator` performs **comparison**, not encoding repair or automatic Unicode normalization on Strings.
 
-Không tự loại dấu khi xuất file chỉ để tránh vấn đề console; đó là **mất dữ liệu tên riêng**.
+Never strip diacritics during export merely to dodge console issues; that **destroys proper-noun data**.
 
-## 10. Tránh lỗi mất người khi dùng TreeSet/TreeMap
+## 10. Avoiding Lost Records in TreeSet/TreeMap
 
-Tương đương theo `Collator.compare(a,b)==0` **không nhất thiết giống bằng nhau theo `String.equals`**. Với `TreeSet`/`TreeMap`, comparator quyết định khóa nào trùng.
+Equivalence under `Collator.compare(a, b) == 0` **does not necessarily match `String.equals`**. In `TreeSet`/`TreeMap`, the comparator alone decides which keys are duplicates.
 
-Ví dụ:
+Example:
 
 ```java
 Collator primary = Collator.getInstance(
@@ -464,19 +464,19 @@ set.add("An");
 set.add("an");
 ```
 
-Nếu primary comparator cho hai chuỗi bằng nhau, `set.size()` chỉ là 1 dù `"An".equals("an")` là false.
+If the primary comparator treats both strings as equal, `set.size()` is only 1 even though `"An".equals("an")` is `false`.
 
-Đây là **hành vi theo contract của TreeSet**, không phải lỗi runtime. Nhưng nếu cả hai tên thuộc hai người khác nhau thì dùng `TreeSet` như nguồn dữ liệu duy nhất sẽ làm mất một người.
+This is **expected behavior per `TreeSet`'s contract**, not a runtime bug. However, if both names belong to two distinct people, using `TreeSet` as the single source of truth will drop one person.
 
-### Cách làm rõ trách nhiệm
+### Separating Responsibilities Clearly
 
-- **Dữ liệu gốc:** `Map<Integer, Person>` hoặc database theo ID.
-- **UI sắp xếp:** `List<Person>` + `sort`.
-- **Tìm kiếm mềm theo tên:** search index hoặc `Collator` cấu hình theo yêu cầu tìm kiếm.
-- **Danh tính:** ID hoặc quy tắc entity equality của sản phẩm, không phải tên hiển thị.
-- **Thứ tự quyết định:** comparator có tie-break phù hợp.
+- **Source of truth:** `Map<Integer, Person>` or database keyed by ID.
+- **UI sorting:** `List<Person>` + `sort`.
+- **Fuzzy name search:** search index or `Collator` configured for search requirements.
+- **Identity:** ID or domain entity equality rules, never display names.
+- **Deterministic order:** comparator with a proper tie-breaker.
 
-Nếu thật sự cần `TreeSet<String>` để vừa sort theo ngôn ngữ vừa giữ mọi spelling khác nhau theo `String.equals`, có thể thêm natural-order tie-break:
+If you genuinely need a `TreeSet<String>` that both sorts linguistically and retains every spelling distinct under `String.equals`, add a natural-order tie-breaker:
 
 ```java
 Comparator<String> safeOrder =
@@ -486,15 +486,15 @@ Comparator<String> safeOrder =
 TreeSet<String> distinct = new TreeSet<>(safeOrder);
 ```
 
-Khi Collator trả 0, `String.compareTo` phân biệt các String khác nhau; điều này tạo comparator nhất quán với `String.equals` khi các thành phần tuân thủ hợp đồng và không đổi. Nhưng đây chỉ là giải pháp cho **`String` identity**. Đối với `Person`, phải xét đúng định nghĩa `equals` của kiểu đối tượng; ID tie-break có thể phù hợp trong List sort mà chưa đủ cho TreeSet chứa record có equals dựa trên cả bốn field.
+When `Collator` returns `0`, `String.compareTo` separates distinct strings; this creates a comparator consistent with `String.equals` when components obey the contract and remain immutable. However, this solves only **`String` identity**. For `Person`, you must consider the object's `equals` definition; an ID tie-breaker works in `List.sort` but is still insufficient for a `TreeSet` holding records whose `equals` inspects all four fields.
 
-### Đừng thay comparator sau khi đưa vào cây
+### Never Mutate a Comparator After Inserting into a Tree
 
-`Collator` là mutable. Đổi `setStrength` từ TERTIARY sang PRIMARY sau khi TreeSet đã có phần tử có thể làm cấu trúc cây không còn tương thích với thứ tự mới. Không mutate Collator đang được dùng làm comparator của collection có dữ liệu; tạo bản mới và dựng lại collection từ bản gốc khi đổi chính sách.
+`Collator` is mutable. Changing `setStrength` from `TERTIARY` to `PRIMARY` after a `TreeSet` holds elements breaks the tree's ordering invariant. Never mutate a `Collator` used as the comparator of a populated collection; create a new instance and rebuild the collection from source data when changing policy.
 
-## 11. Tối ưu sort: CollationKey khi nhiều lần so sánh cùng một tên
+## 11. Optimizing Sorts: CollationKey for Repeated Comparisons
 
-`Collator.compare(a,b)` có thể phải tính trọng số collation mỗi lần. Khi sort rất nhiều tên hoặc lặp nhiều lần trên cùng dữ liệu, `CollationKey` có thể giúp giảm công việc lặp:
+`Collator.compare(a, b)` may recompute collation weights on every comparison. When sorting large name lists or comparing the same strings repeatedly, `CollationKey` avoids redundant work:
 
 ```java
 Collator vi = Collator.getInstance(
@@ -507,61 +507,61 @@ CollationKey b = vi.getCollationKey("Trần");
 int comparison = a.compareTo(b);
 ```
 
-Đây là đoạn Java trong phương thức, cần import `java.text.CollationKey` và `java.text.Collator`. Key được tạo theo **cùng Collator và cùng configuration** để so sánh. Nó không phải một ID Unicode chung hay một khóa lưu lâu dài cho mọi phiên bản JDK.
+This Java snippet resides inside a method and requires importing `java.text.CollationKey` and `java.text.Collator`. Keys are generated under **the same `Collator` and configuration** for comparison. They are neither a universal Unicode ID nor a durable storage key across JDK versions.
 
-### Cách cache hợp lý
+### Sensible Caching Strategy
 
-Nếu danh sách lớn và tính toán nhiều lần:
+If lists are large and re-sorted frequently:
 
-1. Quy định locale và strength/decomposition **trước khi** tạo key.
-2. Tạo `CollationKey` cho từng trường cần sort khi load hoặc xây view model.
-3. Cache theo một khóa thể hiện **version của dữ liệu tên và cấu hình comparator**.
-4. Khi tên hoặc locale/config thay đổi, vô hiệu hóa cache và tạo lại key.
-5. Chỉ so key tạo bởi Collator có cùng cấu hình; không coi byte `toByteArray()` là protocol bền vững giữa JDK/CLDR versions.
+1. Fix locale, strength, and decomposition **before** generating keys.
+2. Generate `CollationKey` for each sortable field when loading or building the view model.
+3. Cache under a key capturing **both the name data version and comparator configuration**.
+4. Whenever names or locale/config change, invalidate the cache and regenerate keys.
+5. Compare only keys generated by a `Collator` with identical settings; never treat `toByteArray()` bytes as a durable cross-JDK/CLDR protocol.
 
-`CollationKey` là tối ưu cần benchmark. Với vài chục/hàng trăm tên, một comparator dùng Collator trực tiếp thường đơn giản hơn và đủ nhanh. Không tối ưu sớm rồi làm cache sai trong một danh sách tên thường xuyên được cập nhật.
+`CollationKey` is an optimization that warrants benchmarking. For dozens or hundreds of names, a direct `Collator` comparator is simpler and fast enough. Do not prematurely optimize and introduce stale caches on frequently updated name lists.
 
-## 12. Null, chuỗi trống, tên ghép và dấu câu
+## 12. Nulls, Empty Strings, Compound Names, and Punctuation
 
-Dữ liệu thực không đẹp như mười hai record của bài. Trước khi dùng Comparator, quyết định:
+Real-world data is messier than twelve sample records. Before using a `Comparator`, decide on:
 
-### 12.1. Tên null
+### 12.1. Null Names
 
-`Collator.compare` không được thiết kế để nhận null như một tên hợp lệ. Có hai lựa chọn rõ ràng:
+`Collator.compare` is not designed to accept `null` as a valid name. Two clear options exist:
 
-- Validation ở tầng nhập: yêu cầu trường tên không null, không rỗng theo nghiệp vụ.
-- Nếu domain cho phép thiếu tên, dùng comparator xử lý null tường minh như `Comparator.nullsLast(viText)`, nhưng phải test và quyết định cách hiển thị “chưa có tên”.
+- Input-layer validation: require non-null, non-empty name fields per business rules.
+- If the domain permits missing names, wrap with an explicit null-handling comparator such as `Comparator.nullsLast(viText)`, while testing and deciding how "unnamed" entries display.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 Comparator<String> optionalName =
         Comparator.nullsLast(viText);
 ```
 
-Cú pháp chỉ hợp lý khi `viText` là comparator dùng cho String được tạo trước đó. **Không tự biến null thành chuỗi rỗng** rồi xem đây là họ tên thật nếu sản phẩm cần phân biệt hai trạng thái.
+This syntax is valid when `viText` is an already-created `String` comparator. **Never silently coerce `null` into an empty string** and treat it as a real name if the product must distinguish those two states.
 
-### 12.2. Chuỗi rỗng và whitespace
+### 12.2. Empty Strings and Whitespace
 
-`""`, `" "`, `"Nguyễn  Văn"`, `"Nguyễn\u00A0Văn"` có thể đến từ những nguồn khác nhau. Nếu sản phẩm muốn gom các khoảng trắng thừa, thực hiện ở bước **validation/normalization đã định nghĩa**, không hy vọng Collator tự giải quyết mọi loại whitespace Unicode.
+`""`, `" "`, `"Nguyễn  Văn"`, and `"Nguyễn\u00A0Văn"` can originate from different input sources. If the product wants to collapse redundant whitespace, do so in a **documented validation/normalization step**, rather than expecting `Collator` to handle every kind of Unicode whitespace.
 
-`String.trim()`, `strip()` và regex `\\s+` có giới hạn về lớp whitespace và không nhất thiết xử lý toàn bộ Unicode spacing giống nhau. Nếu yêu cầu đặc biệt, dùng chính sách dựa trên code point và test NBSP/thin spaces; quan trọng nhất là **không làm mất tên gốc** khi xử lý dữ liệu có giá trị pháp lý.
+`String.trim()`, `strip()`, and regex `\\s+` differ in which whitespace classes they match and do not treat all Unicode spacing identically. If strict control is required, define a code-point-based policy and test NBSP/thin spaces; above all, **never silently lose original name characters** in legally binding records.
 
-### 12.3. Tên ghép
+### 12.3. Compound Names
 
-Một người có thể được gọi bằng tên hai từ, ví dụ `"Minh Anh"`. Nếu cấu trúc `given` chứa hai từ thì Collator so sánh cả cụm. Không chỉ lấy từ cuối rồi làm thay đổi tên gọi người dùng đã xác nhận. Nếu sản phẩm cần sort theo từ cuối, đó là một **chính sách mới** cần được mô tả riêng, không tự suy từ cách dùng Collator.
+A person may go by a two-word given name such as `"Minh Anh"`. When `given` holds two words, `Collator` compares the full phrase. Never slice off only the final word and alter the user's confirmed given name. If a product specifically wants sorting by the final token, treat that as a **separate documented policy**, not something `Collator` implies.
 
-### 12.4. Số và mã lẫn trong tên
+### 12.4. Numbers and Codes Embedded in Names
 
-Các nhãn như `"Lớp 2"` và `"Lớp 10"` không nhất thiết được so theo số học bằng Collator văn bản thông thường. Nếu có hậu tố số dùng làm dữ liệu nghiệp vụ, nên tách trường số rồi dùng comparator kiểu số. Không tự tách chữ số trong họ tên nếu schema không quy định.
+Labels such as `"Lớp 2"` and `"Lớp 10"` are not necessarily ordered numerically by a general text `Collator`. When numeric suffixes carry business ordering, extract the numeric field and use a numeric comparator. Do not arbitrarily split digits out of personal names unless the schema defines it.
 
-### 12.5. Không loại bỏ chữ Đ hoặc dấu thanh
+### 12.5. Do Not Strip Đ or Tone Marks
 
-Một số cách “sửa tiếng Việt” bằng `toLowerCase(Locale.ROOT)` cộng loại dấu có thể khiến `D`/`Đ` hoặc các nguyên âm khác bị gộp sai theo mong đợi người dùng. **Đừng thay bộ quy tắc Collator bằng một bảng thay thế dấu thủ công** khi chưa có tài liệu văn hóa/nghiệp vụ, test đầy đủ và chính sách tương thích.
+Ad-hoc "Vietnamese normalization" via `toLowerCase(Locale.ROOT)` plus accent stripping can merge `D`/`Đ` or distinct vowels in ways users find wrong. **Never replace `Collator` rules with a manual accent-stripping table** without cultural/business documentation, comprehensive tests, and a clear compatibility policy.
 
-## 13. Kiểm thử locale provider và phiên bản JDK
+## 13. Testing Locale Providers and JDK Versions
 
-`Collator.getInstance(Locale.forLanguageTag("vi-VN"))` trả một instance từ locale service của runtime. Có thể kiểm tra locale khả dụng bằng:
+`Collator.getInstance(Locale.forLanguageTag("vi-VN"))` returns an instance from the runtime's locale services. You can check listed availability via:
 
 ```java
 Locale vi = Locale.forLanguageTag("vi-VN");
@@ -570,176 +570,176 @@ boolean listed = java.util.Arrays.stream(
         .anyMatch(vi::equals);
 ```
 
-Đoạn này nằm trong phương thức Java, cần import `java.util.Arrays` nếu dùng tên ngắn. `getAvailableLocales()` cho biết runtime công bố các locale có sẵn qua API, **không phải giấy chứng nhận mọi dữ liệu collation tiếng Việt đã được kiểm tra đúng mong đợi sản phẩm**.
+This snippet belongs inside a method (import `java.util.Arrays` if using the short name). `getAvailableLocales()` reports locales exposed by the runtime API—**it does not certify that all Vietnamese collation data matches your product's exact expectations**.
 
-Nếu locale không có implementation/data cụ thể, Java có thể áp cơ chế fallback; đừng suy rằng factory nhất định ném exception để báo “không hỗ trợ”. Khi QA, test những cặp tên tiếng Việt mà sản phẩm xem quan trọng, và ghi Java vendor/version.
+If a locale lacks dedicated data, Java may apply fallback; never assume the factory throws an exception for "unsupported" locales. During QA, test the Vietnamese name pairs your product cares about and record the Java vendor and version.
 
 ### java.locale.providers
 
-Thứ tự nguồn locale có thể được cấu hình lúc khởi động JVM, ví dụ:
+Locale provider order can be configured at JVM startup, for example:
 
 ```bash
 java -Djava.locale.providers=CLDR VietnameseNameSortDemo
 ```
 
-Tùy JDK và dịch vụ, `Collator` có thể dùng implementation/dữ liệu không giống provider của `NumberFormat` hay `DateFormat`. Một số dữ liệu collation có ngoại lệ giữa CLDR và legacy providers; không khẳng định đặt `CLDR` khiến mọi API cùng dùng một thuật toán CLDR cụ thể. Ngoài ra, dữ liệu locale của JDK có thể thay đổi theo phiên bản.
+Depending on the JDK and services, `Collator` may use implementations/data independent of `NumberFormat` or `DateFormat` providers. Some collation rules differ between CLDR and legacy providers; do not claim setting `CLDR` forces every API onto one identical algorithm. Moreover, JDK locale data evolves across releases.
 
-**Quy tắc vận hành:** nếu kết quả sort có ý nghĩa pháp lý hoặc thứ tự báo cáo cần tái lập chính xác lâu dài, kiểm soát runtime, dữ liệu/nguyên tắc so sánh và regression tests; đừng lưu binary collation keys rồi giả định vẫn tương thích sau mọi nâng cấp.
+**Operational rule:** when sort order carries legal weight or reports demand strict long-term reproducibility, pin runtime versions, document comparison policies, and run regression tests—never store binary collation keys assuming eternal compatibility across upgrades.
 
-### Kiểm thử nhiều ngôn ngữ
+### Multilingual Testing
 
-Nếu một danh sách có cả tên tiếng Việt và tên quốc tế, cần chính sách cho:
+If a list mixes Vietnamese and international names, define policies for:
 
-- Người mang tên có ký tự không thuộc tiếng Việt, chữ Latin mở rộng, dấu phụ lạ.
-- Tên Hán, Nhật, Hàn, Arabic hoặc chữ viết khác.
-- Tên nhiều thành phần, không có họ, thứ tự tên khác văn hóa.
-- Người dùng chọn giao diện tiếng Anh nhưng dữ liệu là tên tiếng Việt — **locale của nội dung và locale UI không nhất thiết trùng nhau**.
+- Names with non-Vietnamese Latin extensions or unfamiliar diacritics.
+- Chinese, Japanese, Korean, Arabic, or other scripts.
+- Multi-part names, mononyms, or culturally reversed name orders.
+- Users viewing an English UI while browsing Vietnamese name data — **content locale and UI locale need not match**.
 
-Có thể chọn `vi-VN` để sắp xếp một danh mục được xác định là danh sách tên Việt ngay cả khi UI hiện tiếng Anh; hoặc cho phép tùy chọn thứ tự sort theo locale người xem. Cần trình bày rõ lựa chọn, vì hai người dùng có thể thấy thứ tự khác nếu sản phẩm cố tình sort theo locale riêng.
+You may choose `vi-VN` to sort a directory known to contain Vietnamese names even when the UI is in English, or allow sorting according to the viewer's locale. Document the choice explicitly, since two viewers could see different orders if the product intentionally sorts per viewer locale.
 
-## 14. Các lỗi thường gặp và cách xử lý
+## 14. Common Mistakes and How to Avoid Them
 
-| Sai lầm | Vì sao sai | Cách làm phù hợp |
+| Mistake | Why It Is Wrong | Proper Approach |
 | --- | --- | --- |
-| Dùng `String.compareTo` và nghĩ là thứ tự chữ cái tiếng Việt | So sánh theo UTF-16 code units. | Dùng Collator vi-VN và test đúng locale. |
-| Chỉ dùng `Collator.getInstance()` | Phụ thuộc locale mặc định JVM. | Truyền `Locale.forLanguageTag("vi-VN")`. |
-| Sắp xếp full name nhưng nghiệp vụ muốn theo tên gọi | Chuỗi bắt đầu bằng họ; Collator không tự tách tên. | Lưu field given/family/middle; sort đúng khóa. |
-| Lấy từ cuối làm tên gọi cho mọi người | Tên ghép và dữ liệu đa văn hóa bị xử lý sai. | Thu thập/kiểm tra thành phần tên theo domain. |
-| Xóa dấu để sắp xếp cho dễ | Có thể thay đổi/đánh mất identity tên. | Dùng collation; phân biệt sort với normalization. |
-| Đổi `setStrength` khi TreeSet đang dùng Collator | Cây không rebuild theo thứ tự mới. | Tạo comparator/collection mới. |
-| Dùng `TreeSet` làm danh sách người độc nhất theo Collator | `compare==0` có thể gộp hai người khác nhau. | Lưu theo ID, sort List. |
-| Tie-break bằng một trường không duy nhất | Các bản ghi khác nhau vẫn có thể compare==0. | Thêm ID ổn định để thứ tự List quyết định; định nghĩa equals riêng cho Set. |
-| Dùng Collator strength PRIMARY cho mọi mục đích | Có thể gộp case/dấu cần phân biệt. | Chọn strength cho sort/search riêng. |
-| Không test Unicode decomposed | Hai tên trông giống nhưng khác String.equals. | Kiểm tra normalization, CANONICAL_DECOMPOSITION. |
-| Thay `Locale.setDefault` trên từng request | Ảnh hưởng luồng khác. | Truyền Locale tường minh. |
-| Thấy ký tự tiếng Việt in sai trong terminal rồi kết luận sort sai | Có thể do console encoding/font. | In ID/code point để tách vấn đề. |
-| Cache CollationKey qua nhiều version | Dữ liệu/thuật toán collation có thể thay đổi. | Cache có version và invalidation rõ. |
-| Nghĩ mọi JDK trả đúng một thứ tự tên | Dữ liệu locale provider/JDK khác nhau. | Regression test trên runtime triển khai. |
-| Dùng comparator dựa vào trường thay đổi sau khi chèn TreeMap | Cây có thể không còn đúng thứ tự. | Không mutate sort key trong sorted collection. |
+| Using `String.compareTo` assuming Vietnamese alphabetical order | Compares UTF-16 code units. | Use a `vi-VN` `Collator` and test on the target locale. |
+| Calling `Collator.getInstance()` | Depends on JVM default locale. | Pass `Locale.forLanguageTag("vi-VN")`. |
+| Sorting full names when business requires given-name order | Strings start with family name; `Collator` does not split names. | Store `given`/`family`/`middle` fields and sort on the right key. |
+| Taking the last word as everyone's given name | Mishandles compound names and multicultural data. | Collect/validate name components per domain. |
+| Stripping accents to simplify sorting | Alters or destroys name identity. | Use collation; separate sorting from normalization. |
+| Calling `setStrength` on a `Collator` active in a `TreeSet` | Tree does not rebuild to match new ordering. | Create a new comparator/collection. |
+| Using `TreeSet` as a unique person directory via `Collator` | `compare == 0` can merge distinct people. | Key storage by ID; sort a `List`. |
+| Breaking ties with a non-unique field | Distinct records can still yield `compare == 0`. | Append a stable ID for deterministic `List` order; define `equals` properly for `Set`. |
+| Using `PRIMARY` strength for all purposes | Collapses case/diacritics that may need distinction. | Choose separate strengths for sort vs. search. |
+| Neglecting decomposed Unicode in tests | Identical-looking names fail `String.equals`. | Test normalization and `CANONICAL_DECOMPOSITION`. |
+| Mutating `Locale.setDefault` per request | Corrupts concurrent threads. | Pass `Locale` explicitly. |
+| Seeing garbled Vietnamese in terminal and blaming sort logic | Likely console encoding/font issue. | Print IDs/code points to isolate concerns. |
+| Caching `CollationKey` bytes across JDK versions | Collation data/algorithms can change. | Version caches and invalidate explicitly. |
+| Assuming all JDKs return identical name orderings | Locale providers and JDK data differ. | Run regression tests on the deployment runtime. |
+| Mutating sort keys inside a `TreeMap` | Breaks tree ordering invariants. | Never mutate keys in sorted collections. |
 
-## 15. Ma trận kiểm thử cho danh sách người Việt
+## 15. Test Matrix for Vietnamese Directories
 
-| Nhóm test | Mẫu nên có | Điều cần kiểm tra |
+| Test Category | Sample Inputs | What to Verify |
 | --- | --- | --- |
-| Chữ cái khác nhau | `An`, `Bình`, `Dung`, `Đức` | Thứ tự có lý theo quy tắc sort ứng dụng. |
-| Chữ Đ và D | `Dung`, `Đung` | Sự khác biệt được Collator/runtime xử lý ra sao. |
-| Nguyên âm khác dấu | `An`, `Ân`, `Ăn`, `Án` | Các mức strength và dữ liệu vi-VN. |
-| Dấu thanh | `Hà`, `Há`, `Hả`, `Hã`, `Hạ` | Thứ tự khi các chữ nền giống nhau. |
-| Chữ hoa/thường | `An`, `an`, `AN` | PRIMARY/TERTIARY khác nhau; chính sách tìm kiếm. |
-| Unicode normalization | `á` và `a + U+0301` | Collator có decomposition và equality policy. |
-| Hai người trùng tên | Hai ID khác nhưng cùng given/family | Cả hai còn trong List; có tie-break quyết định. |
-| Tên gọi ghép | `Minh Anh`, `Hồng Nhung` | Không tự phân tích sai từ cuối. |
-| Họ gần giống | `Đặng`, `Đỗ`, `Dương` | Sort theo họ khi yêu cầu, không dùng given comparator. |
-| Dữ liệu thiếu | null/chuỗi rỗng/space | Validator hoặc null policy rõ ràng. |
-| Whitespace đặc biệt | U+0020, U+00A0, U+202F | Có chính sách chuẩn hóa và dữ liệu nguồn bất biến. |
-| Tên quốc tế | Tên Latin khác hoặc chữ viết khác | Support/fallback và trải nghiệm người dùng. |
-| Lượng dữ liệu lớn | 10.000–100.000 bản ghi kiểm thử | Hiệu năng, tính ổn định, cân nhắc CollationKey. |
-| Nhiều JDK | JDK 17, 21, 23+ theo môi trường | Snapshot/fallback/provider changes nếu cần. |
+| Distinct letters | `An`, `Bình`, `Dung`, `Đức` | Sensible ordering under app sort rules. |
+| `Đ` and `D` | `Dung`, `Đung` | How the runtime `Collator` orders them. |
+| Accented vowels | `An`, `Ân`, `Ăn`, `Án` | Strength levels and `vi-VN` data behavior. |
+| Tone marks | `Hà`, `Há`, `Hả`, `Hã`, `Hạ` | Ordering when base letters match. |
+| Upper/lower case | `An`, `an`, `AN` | `PRIMARY` vs. `TERTIARY`; search policy. |
+| Unicode normalization | `á` and `a + U+0301` | `Collator` decomposition and equality rules. |
+| Duplicate names | Different IDs, identical given/family | Both remain in `List`; deterministic tie-break. |
+| Compound given names | `Minh Anh`, `Hồng Nhung` | Not mis-split on the last word. |
+| Similar family names | `Đặng`, `Đỗ`, `Dương` | Sorted by family name when requested, not given comparator. |
+| Missing data | `null`, empty string, spaces | Validator or explicit null policy. |
+| Special whitespace | `U+0020`, `U+00A0`, `U+202F` | Normalization policy without mutating source data. |
+| International names | Other Latin characters or scripts | Support/fallback and user experience. |
+| Large datasets | 10,000–100,000 test records | Performance, stability, `CollationKey` evaluation. |
+| Multiple JDKs | JDK 17, 21, 23+ per target | Snapshot/fallback/provider changes if applicable. |
 
-### Kiểm thử hợp đồng Comparator
+### Testing the Comparator Contract
 
-Bên cạnh test thứ tự mong muốn, cần kiểm tra:
+Beyond verifying expected sort orders, check the mathematical contract:
 
 ```text
 compare(a, a) == 0
 
 sign(compare(a, b)) == -sign(compare(b, a))
 
-Nếu compare(a,b) > 0 và compare(b,c) > 0
-thì compare(a,c) > 0.
+If compare(a,b) > 0 and compare(b,c) > 0
+then compare(a,c) > 0.
 
-Nếu compare(a,b) == 0 thì dấu compare(a,z)
-phải bằng dấu compare(b,z) với mọi z.
+If compare(a,b) == 0 then sign(compare(a,z))
+must equal sign(compare(b,z)) for all z.
 ```
 
-Đây là **pseudocode test**, không phải cú pháp Java chạy nguyên xi. Với comparator cho đối tượng `Person`, test thêm:
+This is **test pseudocode**, not literal Java syntax. For `Person` comparators, also assert:
 
-- Nếu ID được kỳ vọng duy nhất trong nguồn, hai record khác ID phải có kết quả khác 0 sau tie-break.
-- Một danh sách có N người đầu vào phải giữ nguyên N phần tử sau `List.sort`.
-- Thứ tự không phụ thuộc thứ tự map/hash iteration khi các khóa so sánh đã được phân giải bằng ID.
-- Không sửa `Collator` hoặc các field quyết định thứ tự khi phép sort đang chạy.
-- Các tên lỗi/null nên được reject hoặc đặt vị trí rõ trước khi gọi Collator.
+- If IDs are unique in the source, two records with distinct IDs must never return `0` after the tie-breaker.
+- An input list of `N` people must retain all `N` elements after `List.sort`.
+- Order must not depend on map/hash iteration order once ties are broken by ID.
+- Neither `Collator` nor key fields may be mutated while sorting is in progress.
+- Invalid/`null` names must be rejected or placed deterministically before invoking `Collator`.
 
-**Quan trọng:** so sánh sau sort về mặt hiển thị và so sánh theo identity nghiệp vụ là hai phép test khác nhau.
+**Important:** comparing display sort order and comparing business identity are two separate tests.
 
-## 16. Gợi ý thiết kế cho ứng dụng thật
+## 16. Design Recommendations for Real Applications
 
-Một pipeline tương đối an toàn là:
+A reasonably safe pipeline looks like:
 
 ```text
 UI/Form/Input
     |
     v
-Validation (tên có đủ các thành phần theo domain?)
+Validation (does the name have all domain-required parts?)
     |
     v
 Data model (ID, family, middle, given, displayName)
     |
-    +----> Storage theo ID (không phụ thuộc collation)
+    +----> Storage by ID (collation-independent)
     |
-    +----> Search index (có chính sách dấu/case rõ)
+    +----> Search index (explicit diacritic/case policy)
     |
     +----> UI sorting: Collator(vi-VN) + Comparator fields + ID
                  |
                  v
-            List<Person> đã sắp xếp
+            Sorted List<Person>
                  |
                  v
-       Render tên theo displayName, giữ Unicode gốc
+       Render name via displayName, preserving original Unicode
 ```
 
-Những quyết định cần viết thành tài liệu:
+Decisions to document clearly:
 
-1. UI mặc định sắp theo **given** hay **family**? Người dùng có thể chuyển chế độ không?
-2. Nếu given có nhiều từ, dùng toàn bộ cụm hay một “sort key” khác do người dùng chỉ định?
-3. Cùng tên, khác họ: dùng họ rồi đệm, hay dùng một thứ tự khác?
-4. Hai người trùng mọi trường tên: ID nào quyết định thứ tự?
-5. Tên được phép chỉnh sửa: có cần invalidate sort cache hoặc index không?
-6. Có chuẩn hóa Unicode NFC ở biên dữ liệu không? Giữ raw display name như thế nào?
-7. Search không dấu có dùng cùng quan hệ tương đương như sort không? Nếu khác, UI giải thích ra sao?
-8. Locale/JDK thay đổi: danh sách lưu sẵn theo thứ tự nào, cache tái dựng khi nào?
-9. Dữ liệu tên hiển thị trong Excel/CSV/API có cần giữ nguyên Unicode và encoding UTF-8 không?
-10. Có cần so sánh theo nơi cư trú/ngôn ngữ người xem thay vì locale Việt cố định không?
+1. Does the default UI sort by **given** or **family** name? Can users switch modes?
+2. If `given` has multiple words, is the entire phrase used or a user-specified sort key?
+3. Same given name, different family name: sort by family then middle, or another order?
+4. Two people with identical name fields: which ID breaks ties?
+5. Editable names: must sort caches or search indexes be invalidated?
+6. Is Unicode NFC normalization applied at ingestion? How is the raw `displayName` preserved?
+7. Does accent-insensitive search use the same equivalence relation as sorting? If not, how does the UI communicate it?
+8. Locale/JDK upgrades: are lists persisted in a fixed order, and when are caches rebuilt?
+9. Do Excel/CSV/API exports preserve original Unicode and UTF-8 encoding?
+10. Should sorting follow the viewer's locale/residence rather than a fixed Vietnamese locale?
 
-Không nên ép logic sắp xếp, tìm kiếm, xác thực danh tính và lưu trữ cùng dùng một comparator chỉ vì tất cả đều “liên quan đến tên”.
+Never force sorting, searching, identity validation, and storage onto one shared comparator just because all of them "involve names."
 
-## 17. Bài tập thực hành
+## 17. Practice Exercises
 
-**Bài 1 — Chạy mẫu:** biên dịch và chạy `VietnameseNameSortDemo.java` bằng JDK 17+. Dùng bảng ID để đọc `givenIds` và `familyIds`. Giải thích tại sao chúng khác nhau và ghi phiên bản JDK đang dùng.
+**Exercise 1 — Run the sample:** compile and run `VietnameseNameSortDemo.java` on JDK 17+. Use the ID table to decode `givenIds` and `familyIds`. Explain why they differ and record your JDK version.
 
-**Bài 2 — So sánh với String.compareTo:** thêm vài tên `An`, `Án`, `Ăn`, `Ân`, `Anh` rồi sort bằng `String.compareTo` và `Collator vi-VN`. Không đoán kết quả dựa trên bảng mã Unicode; hãy in ID/code point để so.
+**Exercise 2 — Compare with `String.compareTo`:** add names `An`, `Án`, `Ăn`, `Ân`, `Anh` and sort with both `String.compareTo` and `vi-VN` `Collator`. Do not guess results from Unicode charts; print IDs/code points to compare.
 
-**Bài 3 — Các mức strength:** clone Collator, lần lượt đặt PRIMARY/SECONDARY/TERTIARY/IDENTICAL; so `An`/`an`, `An`/`Án`, `Dung`/`Đung`. Ghi cặp nào cho compare==0 và lý giải nhu cầu dùng từng strength.
+**Exercise 3 — Strength levels:** clone the `Collator`, set `PRIMARY`, `SECONDARY`, `TERTIARY`, and `IDENTICAL` in turn; compare `An`/`an`, `An`/`Án`, `Dung`/`Đung`. Record which pairs return `compare == 0` and explain when each strength applies.
 
-**Bài 4 — Tên gọi ghép:** thay một record bằng tên gọi `Minh Anh`, thêm một record có `given="Anh"`. Sắp theo given đã được lưu đầy đủ. Trả lời vì sao lấy từ cuối của fullName làm given sẽ tạo kết quả sai theo yêu cầu của dữ liệu.
+**Exercise 4 — Compound given names:** replace one record with given name `Minh Anh` and add another with `given="Anh"`. Sort by the stored full `given` field. Explain why slicing the last token of `fullName` produces wrong results for the data requirements.
 
-**Bài 5 — Hai cách Unicode viết á:** tạo `"\u00E1"` và `"a\u0301"`. So `String.equals` và Collator có `CANONICAL_DECOMPOSITION`. Thử `Normalizer.Form.NFC` nếu sản phẩm cần dạng lưu chuẩn hóa.
+**Exercise 5 — Two Unicode encodings of `á`:** construct `"\u00E1"` and `"a\u0301"`. Compare `String.equals` against `Collator` with `CANONICAL_DECOMPOSITION`. Try `Normalizer.Form.NFC` if the product requires normalized storage.
 
-**Bài 6 — Không mất người:** chèn hai Person khác ID nhưng trùng tên vào `List`, sort rồi xác nhận đủ hai ID. So sánh với TreeSet chỉ so tên; thiết kế lại bằng Map theo ID + List đã sort.
+**Exercise 6 — Never drop people:** insert two `Person` records with different IDs but identical names into a `List`, sort, and confirm both IDs remain. Compare with a name-only `TreeSet`, then redesign using a `Map` by ID plus a sorted `List`.
 
-**Bài 7 — Null và whitespace:** chuẩn bị tên có null, rỗng, NBSP và dấu cách thừa. Viết validator/canonicalization với policy tường minh; đừng âm thầm biến dữ liệu khác nghĩa thành cùng tên.
+**Exercise 7 — Null and whitespace:** prepare names with `null`, empty strings, NBSP, and extra spaces. Write a validator/canonicalizer with an explicit policy without silently collapsing semantically distinct values.
 
-**Bài 8 — Hiệu năng:** tạo 50.000 bản ghi từ dữ liệu mẫu mở rộng, benchmark comparator trực tiếp và giải pháp cache `CollationKey`. Test checksum/thứ tự như nhau, memory footprint và điều kiện cache invalidation.
+**Exercise 8 — Performance:** generate 50,000 records from expanded sample data, benchmark a direct comparator against a `CollationKey` cache, and test checksum/order equivalence, memory footprint, and cache invalidation.
 
-**Bài 9 — Hợp đồng API:** thiết kế một endpoint trả người theo ID và các trường tên gốc, cho UI lựa chọn sort theo given/family. Không gửi chuỗi tên đã đảo, loại dấu hoặc lưu collation key như ID.
+**Exercise 9 — API contract:** design an endpoint returning people by ID and raw name fields, letting the UI choose `given` or `family` sorting. Never send reversed name strings, stripped accents, or collation keys as IDs.
 
-**Bài 10 — Regression đa phiên bản:** chạy cùng sample trên các JDK/vendor mà sản phẩm sẽ deploy. So sánh thứ tự và chú thích khác biệt; xác định nhóm cặp tên tối quan trọng cần giữ thứ tự dự kiến nếu ứng dụng yêu cầu luật riêng.
+**Exercise 10 — Multi-version regression:** run the same sample across all JDKs/vendors your product targets. Compare orderings, annotate differences, and identify critical name pairs if the application requires custom rules.
 
-### Checklist cuối bài
+### Final Checklist
 
-- [ ] Tạo Collator cho `vi-VN` một cách tường minh.
-- [ ] Hiểu Collator so sánh theo locale khác `String.compareTo` theo UTF-16.
-- [ ] Phân biệt sắp xếp theo tên gọi và theo họ — là quyết định nghiệp vụ.
-- [ ] Có data model chứa ID, family, middle, given, không giả định từ cuối luôn là tên.
-- [ ] Biết chọn strength và decomposition phù hợp, có test cho tên Unicode.
-- [ ] Xây được comparator theo given/family/middle/ID và sắp xếp List mà không mất record.
-- [ ] Biết TreeSet/TreeMap dựa trên compare==0, có thể gộp tên khác nhau.
-- [ ] Giữ Unicode gốc; không loại dấu để chữa lỗi console, không trộn encoding với collation.
-- [ ] Có test null, dấu, hoa/thường, tên ghép, trùng tên và dữ liệu lớn.
-- [ ] Không thay đổi Collator đang dùng trong sorted collection, không cache CollationKey xuyên version một cách mù quáng.
-- [ ] Kiểm chứng trên JDK/provider triển khai nếu thứ tự từng tên cần tính tái lập cao.
+- [ ] Instantiate `Collator` explicitly for `vi-VN`.
+- [ ] Understand how locale-aware `Collator` differs from UTF-16 `String.compareTo`.
+- [ ] Distinguish sorting by given name vs. family name as a business decision.
+- [ ] Model `ID`, `family`, `middle`, and `given` without assuming the last token is always the given name.
+- [ ] Choose appropriate strength and decomposition, and test Unicode forms.
+- [ ] Build comparators on `given`/`family`/`middle`/`ID` and sort a `List` without losing records.
+- [ ] Know that `TreeSet`/`TreeMap` rely on `compare == 0` and can merge distinct names.
+- [ ] Preserve original Unicode; never strip diacritics to work around console issues or confuse encoding with collation.
+- [ ] Test nulls, diacritics, casing, compound names, duplicate names, and large datasets.
+- [ ] Never mutate a `Collator` inside a sorted collection or blindly cache `CollationKey` across versions.
+- [ ] Verify on the deployment JDK/provider when strict reproducibility of name order is required.
 
-## 18. Tài liệu tham khảo
+## 18. References
 
 - Java 17 `Collator` API: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html
 - Java 17 `CollationKey` API: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/CollationKey.html
@@ -747,4 +747,4 @@ Không nên ép logic sắp xếp, tìm kiếm, xác thực danh tính và lưu 
 - Java 17 `TreeSet` API: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TreeSet.html
 - Java 17 `Normalizer` API: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html
 
-**Kết luận:** Để **sắp xếp tên tiếng Việt bằng Collator**, cần kết hợp hai tầng: **Collator vi-VN** quyết định thứ tự giữa các chuỗi theo locale, còn **Comparator theo các trường họ/đệm/tên/ID** quyết định nghiệp vụ muốn sắp theo đâu và phân giải các bản ghi trùng. Lưu tên theo logical Unicode và identity độc lập, dùng List để hiển thị, test strength/decomposition và runtime. Đừng giao việc phân tích họ tên, xóa dấu hoặc xác định danh tính người cho Collator — API này chỉ so sánh chuỗi, không thay thế mô hình dữ liệu.
+**Conclusion:** To **sort Vietnamese names with `Collator`**, combine two layers: **`vi-VN` `Collator`** determines linguistic string ordering by locale, while a **`Comparator` over `family`/`middle`/`given`/`ID`** encodes business sort preference and tie-breaking. Store names in logical Unicode with independent identities, sort a `List` for display, and test strength, decomposition, and target runtimes. Never delegate name parsing, accent stripping, or person identity to `Collator`—it only compares strings, never replacing a proper data model.

@@ -1,31 +1,31 @@
-# NumberFormat cho số thông thường và số nguyên trong Java
+# NumberFormat for General Numbers and Integers in Java
 
-## 1. Mục tiêu: cùng một giá trị, nhiều cách biểu diễn
+## 1. Goal: One Value, Many Representations
 
-Trong ứng dụng Java hỗ trợ nhiều ngôn ngữ/khu vực, cùng giá trị số có thể được **hiển thị khác nhau**: tiếng Anh (Mỹ) thường dùng dấu phẩy phân nhóm nghìn và dấu chấm thập phân; tiếng Đức (Đức) thường đảo hai dấu đó. Dữ liệu số bên trong chương trình vẫn giữ nguyên ý nghĩa, còn cách biểu diễn phục vụ người đọc phụ thuộc vào `Locale`.
+In Java applications supporting multiple languages/regions, the same numeric value can be **displayed differently**: US English typically uses a comma for thousands grouping and a period for the decimal point; German (Germany) typically swaps those two separators. The numeric data inside the program retains the same meaning, while the representation for the reader depends on the `Locale`.
 
-Lớp trừu tượng `java.text.NumberFormat` cung cấp các factory để tạo đối tượng **định dạng số** và **phân tích chuỗi thành số** phù hợp với locale:
+The abstract class `java.text.NumberFormat` provides factory methods to create objects for **formatting numbers** and **parsing strings into numbers** appropriate for a locale:
 
-- `NumberFormat.getNumberInstance(locale)`: số thông thường, có thể có phần thập phân.
-- `NumberFormat.getIntegerInstance(locale)`: kiểu trình bày **số nguyên**, không hiển thị chữ số thập phân, đồng thời mặc định **chỉ parse phần nguyên**.
-- `NumberFormat.getNumberInstance()` và `getIntegerInstance()`: dùng locale mặc định cho category `Locale.Category.FORMAT`.
-- `NumberFormat.getInstance(locale)`: tương đương factory số thông thường `getNumberInstance(locale)`.
+- `NumberFormat.getNumberInstance(locale)`: general numbers, which may have a fractional part.
+- `NumberFormat.getIntegerInstance(locale)`: **integer** presentation style, displaying no fractional digits and by default **parsing only the integer part**.
+- `NumberFormat.getNumberInstance()` and `getIntegerInstance()`: use the default locale for the `Locale.Category.FORMAT` category.
+- `NumberFormat.getInstance(locale)`: equivalent to the general number factory `getNumberInstance(locale)`.
 
-Hai kiểu số trong đề bài là **kiểu định dạng**. `NumberFormat` không thay đổi kiểu dữ liệu `int`/`long`/`BigDecimal` trong domain và không tự đặt quy tắc làm tròn nghiệp vụ.
+The two number styles in this topic are **formatting styles**. `NumberFormat` does not change the `int`/`long`/`BigDecimal` data type in the domain and does not establish business rounding rules on its own.
 
-Ví dụ khái niệm:
+Conceptual example:
 
-| Dữ liệu số | `getNumberInstance(Locale.US)` với 2 chữ số lẻ | `getIntegerInstance(Locale.US)` với HALF_UP |
+| Numeric data | `getNumberInstance(Locale.US)` with 2 fractional digits | `getIntegerInstance(Locale.US)` with HALF_UP |
 | --- | --- | --- |
 | 12345.678 | `12,345.68` | `12,346` |
-| 1234 | `1,234.00` nếu yêu cầu ít nhất 2 số lẻ | `1,234` |
-| 12.5 | `12.50` nếu yêu cầu ít nhất 2 số lẻ | `13` |
+| 1234 | `1,234.00` if at least 2 fractional digits are required | `1,234` |
+| 12.5 | `12.50` if at least 2 fractional digits are required | `13` |
 
-Trong bảng, hai cột đầu ra đã có **cấu hình minh họa riêng**; đừng giả định factory mặc định luôn hiển thị đúng hai chữ số lẻ hoặc sử dụng HALF_UP. Khi tự triển khai, cần đặt quy tắc định dạng rõ ràng.
+In the table, the two output columns already have **specific illustrative configurations**; do not assume a default factory always displays exactly two fractional digits or uses HALF_UP. When implementing on your own, set explicit formatting rules.
 
-## 2. Factory dành cho số thông thường
+## 2. Factory for General Numbers
 
-### 2.1. Tạo formatter theo Locale tường minh
+### 2.1. Creating a Formatter with an Explicit Locale
 
 ~~~java
 import java.text.NumberFormat;
@@ -35,58 +35,58 @@ NumberFormat us = NumberFormat.getNumberInstance(Locale.US);
 NumberFormat de = NumberFormat.getNumberInstance(Locale.GERMANY);
 ~~~
 
-Đoạn trên là **minh họa các câu lệnh**, cần nằm trong một phương thức hoặc khối khởi tạo của lớp Java; chương trình chạy độc lập có đầy đủ ở mục 7.
+The snippet above **illustrates statements** that need to be inside a method or initializer block of a Java class; a complete standalone runnable program is in section 7.
 
-`NumberFormat` trừu tượng hóa quy ước định dạng. Cùng số `12345.678` có thể cho ra `12,345.678` ở `en-US`, `12.345,678` ở `de-DE` với cấu hình phần lẻ cho phép ba chữ số. Tên dấu, cách nhóm và ký tự Unicode cụ thể có thể thay đổi theo locale, provider hoặc phiên bản dữ liệu CLDR; cần kiểm thử trên môi trường mục tiêu.
+`NumberFormat` abstracts formatting conventions. The same number `12345.678` can produce `12,345.678` in `en-US` and `12.345,678` in `de-DE` with a configuration allowing three fractional digits. Specific symbol names, grouping behavior, and Unicode characters may vary by locale, provider, or CLDR data version; test in your target environment.
 
-`Locale` ảnh hưởng nhiều yếu tố:
+`Locale` affects multiple aspects:
 
-- Ký tự phân cách phần thập phân, ký tự phân nhóm nghìn.
-- Quy ước phân nhóm và số chữ số.
-- Hệ chữ số (có thể là chữ số không phải ASCII, tùy locale và Unicode extension).
-- Cách hiển thị dấu âm và một số ký hiệu đặc biệt.
+- Decimal separator character and thousands grouping character.
+- Grouping rules and digit counts.
+- Numbering system (which may use non-ASCII digits, depending on the locale and Unicode extensions).
+- Negative sign display and certain special symbols.
 
-Đừng dùng `String.format("%,.2f", value)` với default locale không kiểm soát nếu đầu ra phải ổn định theo người dùng. Nếu dùng `String.format(locale, ...)`, cũng phải truyền locale tường minh; `NumberFormat` phù hợp hơn khi cần thay đổi kiểu định dạng và parse hai chiều theo locale.
+Do not use `String.format("%,.2f", value)` with an uncontrolled default locale if the output must be consistent per user. If you use `String.format(locale, ...)`, you must also pass an explicit locale; `NumberFormat` is more suitable when you need to switch formatting styles and perform locale-aware two-way parsing.
 
-### 2.2. Cấu hình số chữ số lẻ
+### 2.2. Configuring Fractional Digits
 
-Các phương thức thường dùng:
+Commonly used methods:
 
 ~~~java
 formatter.setMinimumFractionDigits(2);
 formatter.setMaximumFractionDigits(2);
 ~~~
 
-`formatter` là `NumberFormat` đã tạo. **Minimum** đảm bảo thêm số 0 nếu cần, **maximum** giới hạn số chữ số lẻ được hiển thị, nên có thể phải **làm tròn**. Khi áp dụng min/max, đối tượng formatter có thể điều chỉnh giá trị còn lại để thỏa quan hệ min ≤ max. Nên đặt cả hai bằng quy tắc rõ ràng nếu cần hiển thị chính xác 2 chữ số lẻ.
+`formatter` is an already created `NumberFormat`. **Minimum** ensures trailing zeros are padded if needed, and **maximum** limits the number of fractional digits displayed, so **rounding** may be required. When applying min/max, the formatter object may adjust the other value to satisfy min ≤ max. You should explicitly set both according to clear rules if you need to display exactly 2 fractional digits.
 
-Ví dụ với `en-US`:
+Example with `en-US`:
 
-| Giá trị | min = 2, max = 2 | Lý do |
+| Value | min = 2, max = 2 | Reason |
 | --- | --- | --- |
-| `12` | `12.00` | Thêm hai số 0 |
-| `12.3` | `12.30` | Thêm một số 0 |
-| `12.345` | `12.35` khi HALF_UP | Làm tròn đến 2 chữ số |
-| `-12.345` | `-12.35` khi HALF_UP | Làm tròn theo độ lớn theo quy tắc HALF_UP |
+| `12` | `12.00` | Pads two zeros |
+| `12.3` | `12.30` | Pads one zero |
+| `12.345` | `12.35` with HALF_UP | Rounds to 2 digits |
+| `-12.345` | `-12.35` with HALF_UP | Rounds away from zero (by magnitude) under HALF_UP |
 
-Phải phân biệt **làm tròn để hiển thị** và **làm tròn kết quả nghiệp vụ**. `NumberFormat` chỉ tạo chuỗi; nếu hệ thống tính tiền hay lưu số lượng, hãy dùng `BigDecimal` với scale và `RoundingMode` phù hợp ở lớp nghiệp vụ.
+You must distinguish between **rounding for display** and **rounding business results**. `NumberFormat` only produces a string; if the system calculates money or stores quantities, use `BigDecimal` with an appropriate scale and `RoundingMode` in the business layer.
 
-### 2.3. Cấu hình grouping
+### 2.3. Configuring Grouping
 
 ~~~java
-formatter.setGroupingUsed(true);   // Bật nhóm nghìn theo quy tắc locale.
-formatter.setGroupingUsed(false);  // Không nhóm nghìn.
+formatter.setGroupingUsed(true);   // Enable thousands grouping according to locale rules.
+formatter.setGroupingUsed(false);  // Disable thousands grouping.
 ~~~
 
-Ví dụ số `12345.68` ở `Locale.US`, cấu hình hai chữ số lẻ:
+Example of the number `12345.68` in `Locale.US`, configured with two fractional digits:
 
-- Grouping bật: `12,345.68`.
-- Grouping tắt: `12345.68`.
+- Grouping enabled: `12,345.68`.
+- Grouping disabled: `12345.68`.
 
-Một số locale sử dụng **khoảng trắng không ngắt dòng** hoặc loại khoảng trắng Unicode khác để phân nhóm. Không tự dùng `replace(",", "")` để “bỏ phân nhóm”: dấu phẩy có thể là dấu thập phân ở locale khác.
+Some locales use a **non-breaking space** or another Unicode whitespace character for grouping. Do not blindly use `replace(",", "")` to "remove grouping": a comma may be the decimal separator in another locale.
 
-## 3. NumberFormat cho số nguyên
+## 3. NumberFormat for Integers
 
-`NumberFormat.getIntegerInstance(locale)` được thiết kế cho kiểu **đầu ra số nguyên**. Trên các formatter chuẩn của JDK, factory này cấu hình giới hạn phần thập phân bằng 0 và `isParseIntegerOnly()` là `true`:
+`NumberFormat.getIntegerInstance(locale)` is designed for **integer output** style. On standard JDK formatters, this factory configures the fractional digit limit to 0 and `isParseIntegerOnly()` to `true`:
 
 ~~~java
 NumberFormat integers = NumberFormat.getIntegerInstance(Locale.US);
@@ -94,11 +94,11 @@ System.out.println(integers.getMaximumFractionDigits()); // 0
 System.out.println(integers.isParseIntegerOnly());        // true
 ~~~
 
-Đây là **đoạn minh họa** nằm bên trong phương thức, với import `NumberFormat` và `Locale`.
+This is an **illustrative snippet** inside a method, with `NumberFormat` and `Locale` imported.
 
-### 3.1. Khi format: làm tròn để hiển thị số nguyên
+### 3.1. When Formatting: Rounding for Integer Display
 
-Với `getIntegerInstance(Locale.US)`, định dạng một giá trị có phần lẻ **không có nghĩa Java cắt bỏ phần thập phân**. Giá trị có thể được làm tròn theo quy tắc của formatter. Nếu muốn kết quả dễ dự đoán trong bài học, cấu hình rõ ràng:
+With `getIntegerInstance(Locale.US)`, formatting a value with a fractional part **does not mean Java truncates the fractional part**. The value may be rounded according to the formatter's rules. To make results predictable in this lesson, configure it explicitly:
 
 ~~~java
 integers.setRoundingMode(java.math.RoundingMode.HALF_UP);
@@ -106,31 +106,31 @@ System.out.println(integers.format(
         new java.math.BigDecimal("12345.5"))); // 12,346
 ~~~
 
-Cần nhớ:
+Keep in mind:
 
-- `format(12345.5)` tạo `String` `"12,346"` theo cấu hình trên. Nó **không trả về** một `int` hoặc tự biến số gốc thành `12346`.
-- Với quy tắc HALF_EVEN mặc định phổ biến của `DecimalFormat`, các số nằm đúng điểm giữa có thể cho kết quả khác HALF_UP. Nếu ứng dụng đòi hỏi một quy tắc cụ thể, hãy đặt `RoundingMode` và kiểm thử.
-- `getIntegerInstance` phù hợp để hiển thị số lượng nguyên, số bản ghi, điểm nguyên hoặc bộ đếm; **không** dùng để ép kiểu dữ liệu, xác thực input nguyên tuyệt đối hoặc tạo ID kỹ thuật.
+- `format(12345.5)` produces the `String` `"12,346"` under the configuration above. It **does not return** an `int` or mutate the original number into `12346`.
+- With the common default HALF_EVEN rule of `DecimalFormat`, exact midpoint values can yield different results than HALF_UP. If the application requires a specific rule, set `RoundingMode` and write tests.
+- `getIntegerInstance` is suitable for displaying integer quantities, record counts, integer scores, or counters; do **not** use it to cast data types, validate strict integer input, or generate technical IDs.
 
-### 3.2. Khi parse: chỉ lấy tiền tố số nguyên
+### 3.2. When Parsing: Only Takes the Integer Prefix
 
-Quan trọng hơn, `getIntegerInstance` thường đặt `parseIntegerOnly = true`. Khi gặp chuỗi `12,345.67` theo `en-US`, parser có thể dừng **trước dấu thập phân** và trả `12345` dù vẫn còn `.67` chưa được tiêu thụ.
+More importantly, `getIntegerInstance` typically sets `parseIntegerOnly = true`. When encountering `"12,345.67"` in `en-US`, the parser may stop **before the decimal point** and return `12345` even though `.67` remains unconsumed.
 
-Điều này **không phải** cơ chế kiểm tra rằng toàn bộ chuỗi đầu vào là một số nguyên hợp lệ. `parse` có thể thành công với **một phần** input.
+This is **not** a mechanism to validate that the entire input string is a valid integer. `parse` can succeed on a **portion** of the input.
 
-Nếu API nhận số lượng hàng hoặc số sản phẩm, chuỗi `12,345.67` phải bị từ chối hoặc được xử lý theo quy tắc input đã công bố; không im lặng nhận `12345`.
+If an API accepts an item quantity or product count, the string `"12,345.67"` must be rejected or handled according to published input rules; do not silently accept `12345`.
 
-### 3.3. `setParseIntegerOnly(true)` không thay độ chính xác khi format
+### 3.3. `setParseIntegerOnly(true)` Does Not Change Formatting Precision
 
-Đây là hai cấu hình độc lập:
+These are two independent settings:
 
-| Cấu hình | Ảnh hưởng chính |
+| Setting | Primary effect |
 | --- | --- |
-| `setMaximumFractionDigits(0)` | Giới hạn phần lẻ khi **format** |
-| `setParseIntegerOnly(true)` | Dừng khi gặp phần thập phân trong bước **parse** |
-| `getIntegerInstance(locale)` | Factory cấu hình phù hợp cả định dạng số nguyên và parse phần nguyên |
+| `setMaximumFractionDigits(0)` | Limits fractional digits when **formatting** |
+| `setParseIntegerOnly(true)` | Stops when encountering a decimal part during **parsing** |
+| `getIntegerInstance(locale)` | Factory configured appropriately for both integer formatting and integer-part parsing |
 
-Ví dụ:
+Example:
 
 ~~~java
 NumberFormat parserMode =
@@ -139,24 +139,24 @@ parserMode.setParseIntegerOnly(true);
 System.out.println(parserMode.format(12.75)); // 12.75
 ~~~
 
-Thay đổi `parseIntegerOnly` **không làm mất** phần lẻ trong chuỗi đã format. Hai phương thức điều chỉnh hai hành vi khác nhau; đoạn mã này được kiểm tra trong chương trình hoàn chỉnh ở mục 7.
+Changing `parseIntegerOnly` **does not remove** the fractional part in the formatted string. The two methods control two different behaviors; this code snippet is verified in the complete program in section 7.
 
-## 4. Parse chuỗi theo locale: đầu vào là dữ liệu, không phải định dạng hiển thị
+## 4. Locale-Aware String Parsing: Input Is Data, Not Display Formatting
 
-`NumberFormat.parse(String)` cố chuyển một đoạn đầu của chuỗi thành `Number` theo locale đã chọn. Nó có thể ném `ParseException` nếu **không parse được gì** từ vị trí đầu, nhưng không mặc nhiên yêu cầu toàn bộ chuỗi được tiêu thụ.
+`NumberFormat.parse(String)` attempts to convert a prefix of the string into a `Number` according to the selected locale. It may throw `ParseException` if **nothing can be parsed** from the starting position, but it does not inherently require the entire string to be consumed.
 
-Với `Locale.US`:
+With `Locale.US`:
 
 ~~~java
 NumberFormat us = NumberFormat.getNumberInstance(Locale.US);
 Number value = us.parse("12,345.67");
 ~~~
 
-Đây là đoạn minh họa trong phương thức đã khai báo hoặc xử lý `ParseException`. Giá trị được parse tương ứng với số `12345.67`, nhưng kiểu kết quả có thể là `Long`, `Double` hoặc kiểu khác tùy parser và cấu hình. Không ép kiểu thẳng thành `Double` hay `Long` khi chưa xác định hợp đồng API.
+This is an illustrative snippet inside a method that declares or handles `ParseException`. The parsed value corresponds to the number `12345.67`, but the result type may be `Long`, `Double`, or another type depending on the parser and configuration. Do not cast directly to `Double` or `Long` without verifying the API contract.
 
-### 4.1. Kiểm tra toàn bộ input bằng ParsePosition
+### 4.1. Checking the Entire Input with ParsePosition
 
-`java.text.ParsePosition` cho biết parser đã tiêu thụ đến ký tự nào:
+`java.text.ParsePosition` indicates how far the parser has consumed into the string:
 
 ~~~java
 ParsePosition position = new ParsePosition(0);
@@ -165,35 +165,35 @@ boolean fullyConsumed =
         parsed != null && position.getIndex() == input.length();
 ~~~
 
-Đoạn này giả định `formatter` là `NumberFormat` và `input` là `String`, nằm trong một phương thức. Với chuỗi `"12,345.67"` dài 9 ký tự:
+This snippet assumes `formatter` is a `NumberFormat` and `input` is a `String`, inside a method. With the 9-character string `"12,345.67"`:
 
-- Number formatter `en-US`: parse `12345.67`, tiêu thụ 9/9.
-- Integer formatter `en-US`: parse `12345`, tiêu thụ 6/9 (dừng trước dấu chấm).
+- Number formatter `en-US`: parses `12345.67`, consumes 9/9.
+- Integer formatter `en-US`: parses `12345`, consumes 6/9 (stops before the period).
 
-Kết quả `6/9` cho biết không thể chấp nhận input như một **số nguyên đầy đủ**. Nếu chưa tiêu thụ đủ hoặc `parsed == null`, thông báo lỗi cho người dùng.
+The `6/9` result indicates the input cannot be accepted as a **complete integer**. If it is not fully consumed or `parsed == null`, report an error to the user.
 
-**Giới hạn quan trọng:** kiểm tra `position.getIndex() == input.length()` chỉ đảm bảo tiêu thụ toàn chuỗi, **không đủ** để đảm bảo cú pháp grouping nghiêm ngặt hay phù hợp quy tắc nghiệp vụ. Một số parser có thể chấp nhận cách phân nhóm không chuẩn; ứng dụng nên có thêm chính sách validate riêng (ví dụ không cho phép grouping, kiểm tra dấu, khoảng giá trị, độ dài, toàn bộ biểu diễn). Đừng dùng parse như một bộ xác thực “đúng mọi định dạng địa phương”.
+**Important limitation:** checking `position.getIndex() == input.length()` only ensures the entire string was consumed; it is **not sufficient** to guarantee strict grouping syntax or business rule compliance. Some parsers may accept non-standard grouping; applications should add their own validation policy (for example, disallowing grouping, checking signs, value ranges, length, or the full representation). Do not use parsing as a "strictly valid for every local format" validator.
 
-### 4.2. Cần giữ độ chính xác thập phân?
+### 4.2. Need to Preserve Decimal Precision?
 
-Trong nhiều triển khai JDK, `NumberFormat.getNumberInstance(locale)` trả về `DecimalFormat`. `DecimalFormat` hỗ trợ `setParseBigDecimal(true)` để tạo `BigDecimal` thay vì phụ thuộc vào biểu diễn nhị phân `double` cho giá trị thập phân. Nếu cần:
+In many JDK implementations, `NumberFormat.getNumberInstance(locale)` returns a `DecimalFormat`. `DecimalFormat` supports `setParseBigDecimal(true)` to produce a `BigDecimal` instead of relying on binary `double` representation for decimal values. If needed:
 
 ~~~java
 NumberFormat format = NumberFormat.getNumberInstance(Locale.US);
 if (format instanceof java.text.DecimalFormat decimalFormat) {
     decimalFormat.setParseBigDecimal(true);
     Number number = decimalFormat.parse("12345.67");
-    // Trong trường hợp số hữu hạn thông thường trên, number là BigDecimal.
+    // In the normal finite-number case above, number is a BigDecimal.
 }
 ~~~
 
-Đây là **đoạn minh họa**, với xử lý `ParseException` thích hợp. Không giả định mọi `NumberFormat` của mọi provider đều là `DecimalFormat`; nếu code cần trực tiếp `DecimalFormat`, hãy kiểm tra kiểu và hợp đồng của provider.
+This is an **illustrative snippet**, with appropriate `ParseException` handling. Do not assume every `NumberFormat` from every provider is a `DecimalFormat`; if the code directly needs `DecimalFormat`, check the type and the provider's contract.
 
-Đối với số tiền, định dạng và phân tích phải dựa trên quy tắc tiền tệ, scale và nguồn dữ liệu; không nên dùng `NumberFormat` như bộ lưu trữ giá trị. `getCurrencyInstance` là factory riêng của cách hiển thị tiền tệ, còn bài này tập trung vào số thông thường và số nguyên.
+For monetary amounts, formatting and parsing must rely on currency rules, scale, and the source of truth; `NumberFormat` should not be used as a value store. `getCurrencyInstance` is the dedicated factory for currency display, whereas this lesson focuses on general numbers and integers.
 
-## 5. Locale mặc định so với Locale tường minh
+## 5. Default Locale vs. Explicit Locale
 
-Hai cách tạo đối tượng:
+Two ways to create an object:
 
 ~~~java
 NumberFormat implicit = NumberFormat.getNumberInstance();
@@ -201,20 +201,20 @@ NumberFormat explicit =
         NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
 ~~~
 
-Trong đó:
+Where:
 
-- `implicit` dùng locale mặc định cho category `Locale.Category.FORMAT` của JVM.
-- `explicit` có locale cụ thể, nên không phụ thuộc vào lựa chọn mặc định của máy chạy đối với việc chọn dấu và mẫu formatter.
+- `implicit` uses the JVM's default locale for the `Locale.Category.FORMAT` category.
+- `explicit` has a specific locale, so it does not depend on the host machine's default choice for selecting separators and formatter patterns.
 
-Với chương trình CLI một ngôn ngữ, default locale có thể hữu ích. Với website, server và ứng dụng có nhiều người dùng cùng lúc, **không gọi `Locale.setDefault(...)` trên mỗi request** để chuyển dấu phân cách số: `Locale.setDefault` thay đổi trạng thái toàn JVM, các thread/request khác có thể bị ảnh hưởng. Thay vào đó, chọn locale tại input/UI boundary và truyền nó vào lớp trình bày.
+For a single-language CLI program, the default locale can be useful. For websites, servers, and applications with multiple concurrent users, **do not call `Locale.setDefault(...)` per request** to switch number separators: `Locale.setDefault` mutates JVM-wide state, and other threads/requests can be affected. Instead, determine the locale at the input/UI boundary and pass it into the presentation layer.
 
-`Locale` **không** xác định duy nhất loại tiền tệ hoặc múi giờ. Dùng `ZoneId` riêng cho thời điểm và `Currency` cùng giá trị khi xử lý tiền.
+`Locale` does **not** uniquely determine a currency or time zone. Use a separate `ZoneId` for instants/times and a `Currency` alongside the value when handling money.
 
-## 6. Cấu hình NumberFormat có thể thay đổi đối tượng
+## 6. NumberFormat Configuration Mutates the Object
 
-Các setter như `setGroupingUsed`, `setMinimumFractionDigits`, `setMaximumFractionDigits`, `setParseIntegerOnly` và `setRoundingMode` **thay đổi trạng thái của formatter**. `NumberFormat` nói chung không đảm bảo thread-safe: không chia sẻ một instance mutable giữa nhiều request/thread nếu không có cơ chế đồng bộ phù hợp.
+Setters such as `setGroupingUsed`, `setMinimumFractionDigits`, `setMaximumFractionDigits`, `setParseIntegerOnly`, and `setRoundingMode` **mutate the state of the formatter**. `NumberFormat` in general is not guaranteed to be thread-safe: do not share a mutable instance across multiple requests/threads without proper synchronization.
 
-Một mẫu an toàn cho lớp trình bày:
+A safe pattern for the presentation layer:
 
 ~~~java
 static String formatQuantity(Number quantity, Locale locale) {
@@ -224,13 +224,13 @@ static String formatQuantity(Number quantity, Locale locale) {
 }
 ~~~
 
-Đoạn này là **một phương thức minh họa**, cần `import java.text.NumberFormat;` và `import java.util.Locale;` ở class chứa nó. Để dùng thực tế, quy tắc làm tròn số lượng phải được domain xác định trước; nếu số lượng bắt buộc nguyên tuyệt đối, hãy validate số lượng trước khi formatter nhận nó.
+This snippet is an **illustrative method**, requiring `import java.text.NumberFormat;` and `import java.util.Locale;` in its enclosing class. For real-world use, the quantity rounding rule must be defined by the domain beforehand; if a quantity must strictly be an integer, validate the quantity before passing it to the formatter.
 
-Đừng trả `NumberFormat` ở dạng singleton rồi thay locale/cấu hình “cho request hiện tại”. Hãy tạo formatter theo ngữ cảnh hoặc sử dụng bản sao/chiến lược quản lý riêng đảm bảo không chia sẻ state mutable.
+Do not keep a `NumberFormat` as a singleton and mutate its locale/settings "for the current request." Create a formatter per context or use a copy/management strategy that ensures mutable state is never shared.
 
-## 7. Chương trình Java 17 chạy độc lập
+## 7. Standalone Runnable Java 17 Program
 
-Đặt mã sau trong file **`NumberFormatDemo.java`**. Ví dụ chọn rõ locale, số chữ số lẻ và `RoundingMode.HALF_UP`; không phụ thuộc default locale của máy chạy.
+Place the following code in a file named **`NumberFormatDemo.java`**. The example explicitly selects the locale, fractional digit counts, and `RoundingMode.HALF_UP`; it does not depend on the host machine's default locale.
 
 ~~~java
 import java.math.BigDecimal;
@@ -283,14 +283,14 @@ public class NumberFormatDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 NumberFormatDemo.java
 java NumberFormatDemo
 ~~~
 
-**Stdout chính xác của ví dụ** trên JDK chuẩn với dữ liệu định dạng `Locale.US`/`Locale.GERMANY` thông dụng:
+**Exact stdout of the example** on a standard JDK with common `Locale.US`/`Locale.GERMANY` formatting data:
 
 ~~~text
 US number: 12,345.68
@@ -303,80 +303,80 @@ parseIntegerOnly format: 12.75
 without grouping: 12345.68
 ~~~
 
-Ý nghĩa của kết quả:
+Meaning of the output:
 
-1. Cùng một `BigDecimal("12345.678")` được trình bày theo hai quy ước phân cách.
-2. `getIntegerInstance` hiển thị `12345.5` thành `12,346` khi yêu cầu HALF_UP; số gốc không bị thay đổi.
-3. Cùng chuỗi nhập `12,345.67`, parser số thường tiêu thụ 9/9 ký tự, còn parser số nguyên chỉ tiêu thụ 6/9.
-4. Chỉ gọi `setParseIntegerOnly(true)` không làm thay kết quả `format(12.75)`.
-5. `setGroupingUsed(false)` tắt phân nhóm của formatter US đã tạo.
+1. The same `BigDecimal("12345.678")` is presented according to two separator conventions.
+2. `getIntegerInstance` displays `12345.5` as `12,346` when HALF_UP is requested; the original number is unchanged.
+3. For the same input string `12,345.67`, the general number parser consumes 9/9 characters, while the integer parser consumes only 6/9.
+4. Calling only `setParseIntegerOnly(true)` does not change the result of `format(12.75)`.
+5. `setGroupingUsed(false)` disables grouping on the created US formatter.
 
-Kết quả định dạng của một số locale có thể khác giữa nguồn dữ liệu CLDR, provider hoặc phiên bản JDK; nếu dùng snapshot test, hãy chỉ khẳng định output trong môi trường được kiểm soát.
+Formatting results for some locales may differ across CLDR data sources, providers, or JDK versions; if writing snapshot tests, only assert exact output in a controlled environment.
 
-## 8. Chọn loại NumberFormat theo nhu cầu
+## 8. Choosing a NumberFormat Type for Your Needs
 
-| Nhu cầu | Gợi ý | Điều cần kiểm tra thêm |
+| Need | Recommendation | Additional things to check |
 | --- | --- | --- |
-| Hiển thị số đo có phần lẻ | `getNumberInstance(locale)` | Min/max fraction, đơn vị đo, rounding |
-| Hiển thị số lượng nguyên đã được domain validate | `getIntegerInstance(locale)` | Grouping và rounding cho giá trị đầu vào |
-| Parse số thập phân người dùng gõ | `getNumberInstance(locale)` + `ParsePosition` | Tiêu thụ đủ chuỗi, grouping, miền giá trị |
-| Parse input **bắt buộc nguyên** | Parser theo locale + xác thực riêng | Không chấp nhận phần lẻ, overflow, dấu sai |
-| Hiển thị phần trăm | `getPercentInstance(locale)` | Quy tắc nhân 100 và fraction digits |
-| Hiển thị tiền | `getCurrencyInstance(locale)` | `Currency`, scale, rounding, tỷ giá |
-| Lưu/trao đổi số máy đọc (JSON/API) | Biểu diễn số chuẩn hóa theo contract | Không dùng chuỗi phân nhóm theo locale |
+| Display measurements with fractional parts | `getNumberInstance(locale)` | Min/max fraction digits, unit of measurement, rounding |
+| Display integer quantities already domain-validated | `getIntegerInstance(locale)` | Grouping and rounding for input values |
+| Parse user-entered decimal numbers | `getNumberInstance(locale)` + `ParsePosition` | Full string consumption, grouping, value range |
+| Parse **strictly integer** input | Locale-aware parser + custom validation | Reject fractional parts, overflow, invalid signs |
+| Display percentages | `getPercentInstance(locale)` | Multiply-by-100 rule and fraction digits |
+| Display money | `getCurrencyInstance(locale)` | `Currency`, scale, rounding, exchange rate |
+| Store/exchange machine-readable numbers (JSON/API) | Canonical numeric representation per contract | Do not use locale-grouped strings |
 
-Đối với **ID, mã khách hàng, số điện thoại, mã bưu chính**, không dùng formatter số nguyên để “làm đẹp”: các giá trị đó có thể có số 0 ở đầu, dấu cộng, dấu gạch hoặc nhiều chữ số vượt phạm vi số nguyên. Chúng là **định danh**, nên nên giữ dưới dạng chuỗi và kiểm tra theo quy tắc riêng.
+For **IDs, customer codes, phone numbers, and postal codes**, do not use an integer formatter to "prettify" them: those values may have leading zeros, plus signs, hyphens, or more digits than fit in an integer range. They are **identifiers**, so they should be kept as strings and validated with their own rules.
 
-## 9. Lỗi thường gặp
+## 9. Common Mistakes
 
-| Lỗi | Hệ quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| `getIntegerInstance` được dùng để cắt phần thập phân | Formatter **làm tròn** khi hiển thị | Xác thực/đổi kiểu ở domain trước; đặt rounding khi format |
-| Dùng `setParseIntegerOnly(true)` rồi tưởng `format` sẽ là số nguyên | Hai hành vi độc lập | Dùng `getIntegerInstance` hoặc đặt maxFractionDigits=0 |
-| Chỉ kiểm tra `parse` không ném `ParseException` | Chuỗi có thể chỉ được parse một phần | Dùng `ParsePosition`, kiểm tra đã dùng hết input |
-| Dùng `ParsePosition` rồi tin input tuân thủ mọi quy tắc grouping | Parser có thể dễ dãi với grouping | Thêm validator theo contract |
-| Lấy `Number` trả về rồi ép `(Long)` hoặc `(Double)` tùy tiện | `ClassCastException` hoặc mất thông tin | Kiểm tra kiểu và quy tắc dữ liệu |
-| Dùng `double` cho số tiền cần chính xác thập phân | Sai số nhị phân khi tính toán | `BigDecimal` trong domain; kiểm soát scale |
-| Hardcode `,` là dấu thập phân hay grouping | Sai với locale khác | Dùng `NumberFormat` theo locale |
-| Dùng `Locale.setDefault` theo request | Trạng thái chung JVM gây nhiễu request khác | Truyền locale tường minh |
-| Chia sẻ một `NumberFormat` mutable giữa thread | Race/định dạng không ổn định | Tạo theo ngữ cảnh hoặc quản lý thread-safe |
-| Dùng formatter để chuẩn hóa ID/số điện thoại | Mất số 0 đầu hoặc làm biến đổi ký tự | Giữ định danh là chuỗi |
+| Using `getIntegerInstance` to truncate fractional parts | The formatter **rounds** on display | Validate/convert types in the domain first; set rounding when formatting |
+| Calling `setParseIntegerOnly(true)` expecting `format` to output integers | The two behaviors are independent | Use `getIntegerInstance` or set maxFractionDigits=0 |
+| Only checking that `parse` does not throw `ParseException` | The string may have been only partially parsed | Use `ParsePosition` and verify the entire input was consumed |
+| Using `ParsePosition` and assuming the input obeys all grouping rules | The parser can be lenient with grouping | Add a validator per contract |
+| Blindly casting the returned `Number` to `(Long)` or `(Double)` | `ClassCastException` or data loss | Check the type and data rules |
+| Using `double` for monetary values requiring decimal precision | Binary floating-point error during calculations | Use `BigDecimal` in the domain; control scale |
+| Hardcoding `,` as decimal or grouping separator | Wrong for other locales | Use locale-aware `NumberFormat` |
+| Calling `Locale.setDefault` per request | Shared JVM state interferes with other requests | Pass locale explicitly |
+| Sharing a mutable `NumberFormat` across threads | Race conditions / unstable formatting | Create per context or manage thread-safely |
+| Using a formatter to normalize IDs/phone numbers | Loses leading zeros or alters characters | Keep identifiers as strings |
 
-## 10. Kiểm thử nên viết
+## 10. Tests You Should Write
 
-Với một thành phần hiển thị hoặc nhận số theo locale, nên kiểm thử:
+For a component that displays or parses numbers by locale, you should test:
 
-- **Khác locale:** số `12345.678` ở `en-US` và `de-DE`, kiểm tra dấu/grouping theo môi trường có dữ liệu locale đã định.
-- **Minimum/maximum fraction:** `12`, `12.3`, `12.345`, giá trị âm, `0`, số rất lớn và `BigDecimal` có scale cao.
-- **Rounding:** giá trị đúng giữa (ví dụ `2.5`, `3.5`, `-2.5`) với HALF_UP/HALF_EVEN hoặc quy tắc nghiệp vụ đã chọn.
-- **Integer display:** formatter số nguyên không còn chữ số lẻ nhưng có làm tròn.
-- **Integer parsing:** nhập `12,345.67` phải bị validator cho input nguyên từ chối vì chỉ tiêu thụ 6/9 ký tự.
-- **Chuỗi lỗi:** trống, chỉ dấu phân cách, nhiều dấu âm, grouping lạ, chữ số Unicode không mong muốn, trailing garbage và số vượt miền.
-- **Đa luồng:** không chia sẻ mutable formatter hoặc default locale do request thay đổi.
-- **Định danh:** các mã `00123` và số điện thoại giữ nguyên ký tự dù locale thay đổi.
+- **Different locales:** the number `12345.678` in `en-US` and `de-DE`, verifying separators/grouping in an environment with defined locale data.
+- **Minimum/maximum fraction:** `12`, `12.3`, `12.345`, negative values, `0`, very large numbers, and `BigDecimal` with high scale.
+- **Rounding:** exact midpoint values (e.g., `2.5`, `3.5`, `-2.5`) with HALF_UP/HALF_EVEN or the chosen business rule.
+- **Integer display:** integer formatter has no fractional digits left but performs rounding.
+- **Integer parsing:** entering `12,345.67` must be rejected by the integer-input validator because only 6/9 characters are consumed.
+- **Malformed strings:** empty string, separator only, multiple minus signs, unusual grouping, unexpected Unicode digits, trailing garbage, and out-of-range numbers.
+- **Concurrency:** do not share mutable formatters or mutate default locale per request.
+- **Identifiers:** codes like `00123` and phone numbers preserve exact characters regardless of locale changes.
 
-Một test được thiết kế tốt so sánh **giá trị parse và số ký tự tiêu thụ**, không dựa vào `NumberFormat` như một bộ xác thực nhập liệu nghiêm ngặt mà thư viện chưa hứa cung cấp.
+A well-designed test compares the **parsed value and consumed character count**, rather than relying on `NumberFormat` as a strict input validator that the library does not promise to provide.
 
-## 11. Bài tập thực hành
+## 11. Practice Exercises
 
-1. Thay `Locale.GERMANY` bằng `Locale.forLanguageTag("vi-VN")`, quan sát separator và chữ số trên JDK đang dùng.
-2. Đổi `setMinimumFractionDigits(2)` thành `0`, giữ `setMaximumFractionDigits(2)`; giải thích khác biệt giữa `12` và `12.345`.
-3. Thử HALF_EVEN khi format `2.5` và `3.5` bằng integer formatter, so với HALF_UP. Hãy kiểm tra tác động của dấu âm.
-4. Tạo `NumberFormat.getNumberInstance(Locale.US)`, đặt `setParseIntegerOnly(true)` và kiểm tra parse `12,345.67`; sau đó thử format `12.75`.
-5. Dùng `ParsePosition` kiểm tra `"12,345.67abc"`, `"12,345.67"` và `"12,345.67 "`; xác định phần nào parser tiêu thụ.
-6. Thử `DecimalFormat.setParseBigDecimal(true)` với giá trị có nhiều chữ số thập phân; so sánh kiểu trả về với khi không bật.
-7. Tắt grouping và so sánh `us.format(new BigDecimal("1234567.89"))` trước/sau.
-8. Viết hàm `formatCount(long count, Locale locale)` tạo formatter mới tại mỗi lần gọi, rồi thử với nhiều locale trong các thread khác nhau.
+1. Replace `Locale.GERMANY` with `Locale.forLanguageTag("vi-VN")` and observe the separators and digits on your current JDK.
+2. Change `setMinimumFractionDigits(2)` to `0` while keeping `setMaximumFractionDigits(2)`; explain the difference between `12` and `12.345`.
+3. Try HALF_EVEN when formatting `2.5` and `3.5` with the integer formatter, compared to HALF_UP. Check the effect of negative signs.
+4. Create `NumberFormat.getNumberInstance(Locale.US)`, set `setParseIntegerOnly(true)`, and test parsing `12,345.67`; then try formatting `12.75`.
+5. Use `ParsePosition` to check `"12,345.67abc"`, `"12,345.67"`, and `"12,345.67 "`; determine which portion the parser consumes.
+6. Try `DecimalFormat.setParseBigDecimal(true)` with a value having many decimal digits; compare the returned type against when it is disabled.
+7. Disable grouping and compare `us.format(new BigDecimal("1234567.89"))` before and after.
+8. Write a method `formatCount(long count, Locale locale)` that creates a new formatter on every call, then test with multiple locales across different threads.
 
-Qua các bài tập này, cần nhớ rằng **format là chuyển số thành chuỗi cho người đọc**, còn **parse là chuyển chuỗi thành số**, và hai hoạt động có thể được cấu hình khác nhau ngay trên một đối tượng `NumberFormat`.
+Through these exercises, remember that **formatting turns a number into a string for human readers**, while **parsing turns a string into a number**, and the two operations can be configured differently even on the same `NumberFormat` instance.
 
-## 12. Tổng kết
+## 12. Summary
 
-`NumberFormat.getNumberInstance(locale)` phù hợp để định dạng và parse **số thông thường**, có thể có phần thập phân. `NumberFormat.getIntegerInstance(locale)` phục vụ **cách trình bày số nguyên** và mặc định chỉ parse **phần nguyên**; điều này không biến nó thành validator cho input chỉ gồm số nguyên.
+`NumberFormat.getNumberInstance(locale)` is suitable for formatting and parsing **general numbers** that may have a fractional part. `NumberFormat.getIntegerInstance(locale)` serves **integer presentation** and by default parses only the **integer part**; this does not turn it into a validator for integer-only input.
 
-Hãy tạo formatter với `Locale` tường minh, quyết định grouping/min/max/rounding theo yêu cầu, kiểm tra phần input được tiêu thụ khi parse và giữ dữ liệu nghiệp vụ ở kiểu số thích hợp. Với các yêu cầu độ chính xác cao, kết hợp `BigDecimal` và chính sách parse/rounding rõ ràng, không dùng chuỗi đã bản địa hóa làm dữ liệu nguồn.
+Create formatters with an explicit `Locale`, decide grouping/min/max/rounding according to requirements, check how much input was consumed when parsing, and keep business data in an appropriate numeric type. For high-precision requirements, combine `BigDecimal` with explicit parsing/rounding policies, and never use localized strings as the source of truth.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `java.text.NumberFormat`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html
 - Java SE 17, `java.text.DecimalFormat`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html

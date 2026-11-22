@@ -1,37 +1,37 @@
-# Kiểm tra kiểu bằng `instanceof` hoặc `getClass()` khi cài đặt `equals()` trong Java
+# Type Checking with `instanceof` or `getClass()` When Implementing `equals()` in Java
 
-## 1. Vì sao việc kiểm tra kiểu ảnh hưởng đến `equals()`?
+## 1. Why Does Type Checking Affect `equals()`?
 
-Trong Java, `equals(Object other)` quyết định khi nào hai **đối tượng** được coi là bằng nhau theo ý nghĩa của lớp. Trước khi so sánh các trường dữ liệu, phương thức thường kiểm tra xem đối tượng bên phải có thuộc **miền đối tượng được phép so sánh bằng nhau** với đối tượng bên trái hay không.
+In Java, `equals(Object other)` determines when two **objects** are considered equal according to the meaning of the class. Before comparing data fields, the method usually checks whether the right-hand object belongs to the **domain of objects allowed to be compared for equality** with the left-hand object.
 
-Khi một lớp có thể được kế thừa, hai cách kiểm tra thường dẫn đến chính sách khác nhau:
+When a class can be inherited, two checking approaches lead to different policies:
 
-- `other instanceof Point`: chấp nhận đối tượng của `Point` **và mọi lớp con** của `Point` (nếu không `null`). Đây là kiểm tra **cùng kiểu hoặc kiểu con**.
-- `getClass() == other.getClass()`: chỉ chấp nhận hai đối tượng có **chính xác cùng lớp lúc chạy**. Đây là kiểm tra **lớp thực tế giống hệt nhau**.
+- `other instanceof Point`: accepts instances of `Point` **and any subclass** of `Point` (if non-`null`). This is a **same-type or subtype** check.
+- `getClass() == other.getClass()`: accepts only two objects that have the **exact same runtime class**. This is an **identical actual-class** check.
 
-Sự khác biệt quan trọng nhất xuất hiện khi lớp con bổ sung trường dữ liệu hoặc ghi đè `equals()`. Một lớp cha có thể xem lớp con là bằng nhau theo các trường của cha, trong khi lớp con lại cần so sánh thêm trường riêng. Nếu triển khai thiếu nhất quán, `equals()` có thể vi phạm tính **đối xứng** hoặc **bắc cầu**.
+The most important difference emerges when a subclass adds data fields or overrides `equals()`. A parent class may consider a subclass equal based on the parent's fields, while the subclass also needs to compare its own field. If implemented inconsistently, `equals()` can violate **symmetry** or **transitivity**.
 
-Chủ đề này nói về **chọn miền so sánh kiểu trong `equals()`**. Toán tử `==` giữa hai biến tham chiếu vẫn kiểm tra **danh tính đối tượng**, không phải tiêu chí bằng nhau do `equals()` định nghĩa.
+This topic is about **choosing the type-comparison domain in `equals()`**. The `==` operator between two reference variables still checks **object identity**, not the equality criterion defined by `equals()`.
 
-## 2. Phân biệt chính xác `instanceof` và `getClass()`
+## 2. Precisely Distinguishing `instanceof` and `getClass()`
 
-### `instanceof`: chấp nhận quan hệ kế thừa hoặc triển khai interface
+### `instanceof`: Accepts Inheritance or Interface Implementation
 
-Với biểu thức `obj instanceof T`, kết quả là `true` nếu đối tượng lúc chạy là thể hiện của `T`, lớp con của `T`, hoặc lớp triển khai interface `T` (theo quan hệ kiểu phù hợp); nếu `obj == null`, kết quả luôn `false`.
+For the expression `obj instanceof T`, the result is `true` if the runtime object is an instance of `T`, a subclass of `T`, or a class implementing interface `T` (under the appropriate type relationship); if `obj == null`, the result is always `false`.
 
-Java 17 hỗ trợ **pattern matching cho `instanceof`**:
+Java 17 supports **pattern matching for `instanceof`**:
 
 ```java
 if (other instanceof Point point) {
-    // point đã có kiểu Point, không cần ép kiểu thủ công.
+    // point already has type Point, no manual cast needed.
 }
 ```
 
-Pattern chỉ khai báo biến `point` ở nơi trình biên dịch xác định phép kiểm tra đã thành công. Ví dụ `if (!(other instanceof Point point)) return false;` cho phép dùng `point` sau câu `if` vì nhánh thất bại đã thoát.
+Pattern matching only declares the `point` variable where the compiler determines the check has succeeded. For example, `if (!(other instanceof Point point)) return false;` allows using `point` after the `if` statement because the failing branch has returned.
 
-### `getClass()`: yêu cầu lớp lúc chạy trùng khớp hoàn toàn
+### `getClass()`: Requires an Exact Runtime Class Match
 
-`Object.getClass()` trả về đối tượng `Class<?>` đại diện cho **lớp thực tế lúc chạy**, không phải kiểu khai báo của biến. So sánh hai đối tượng `Class` bằng `==` là phù hợp vì cùng lớp trong cùng ngữ cảnh nạp lớp được đại diện bởi cùng đối tượng `Class`.
+`Object.getClass()` returns a `Class<?>` object representing the **actual runtime class**, not the declared type of the variable. Comparing two `Class` objects with `==` is appropriate because the same class in the same class-loading context is represented by the same `Class` object.
 
 ```java
 if (other == null || getClass() != other.getClass()) {
@@ -39,11 +39,11 @@ if (other == null || getClass() != other.getClass()) {
 }
 ```
 
-Phải kiểm tra `other == null` trước khi gọi `other.getClass()`: nếu không sẽ có `NullPointerException`. Trái lại, `null instanceof Point` đơn giản trả về `false`.
+You must check `other == null` before calling `other.getClass()`; otherwise a `NullPointerException` will occur. By contrast, `null instanceof Point` simply returns `false`.
 
-### Ví dụ chạy được: kiểu khai báo không quyết định `getClass()`
+### Runnable Example: Declared Type Does Not Determine `getClass()`
 
-Tạo tệp `TypeCheckDemo.java`:
+Create the file `TypeCheckDemo.java`:
 
 ```java
 public class TypeCheckDemo {
@@ -69,7 +69,7 @@ public class TypeCheckDemo {
 }
 ```
 
-Biên dịch và chạy (Java 17+):
+Compile and run (Java 17+):
 
 ```bash
 javac -encoding UTF-8 TypeCheckDemo.java
@@ -88,27 +88,27 @@ parent exact Parent: true
 null instanceof Parent: false
 ```
 
-Biến `polymorphic` khai báo là `Parent` nhưng chứa đối tượng `Child`. Vì thế `instanceof Parent` là `true`, còn `polymorphic.getClass() == Parent.class` là `false`. Trong trường hợp này, `getClass()` có kết quả `Child.class`.
+The `polymorphic` variable is declared as `Parent` but holds a `Child` object. Therefore `instanceof Parent` is `true`, whereas `polymorphic.getClass() == Parent.class` is `false`. In this case, `getClass()` yields `Child.class`.
 
-## 3. Nhắc lại hợp đồng `equals()` trước khi chọn cách kiểm tra kiểu
+## 3. Reviewing the `equals()` Contract Before Choosing a Type Check
 
-Với các tham chiếu đối tượng không `null`, một cách triển khai `equals()` đúng phải thỏa mãn:
+For non-`null` object references, a correct `equals()` implementation must satisfy:
 
-1. **Phản xạ (reflexive):** `x.equals(x)` luôn `true`.
-2. **Đối xứng (symmetric):** `x.equals(y)` và `y.equals(x)` luôn có cùng giá trị.
-3. **Bắc cầu (transitive):** nếu `x.equals(y)` và `y.equals(z)` đều `true`, thì `x.equals(z)` cũng phải `true`.
-4. **Nhất quán (consistent):** nhiều lần so sánh cho cùng kết quả khi trạng thái có liên quan không thay đổi.
-5. **Với `null`:** `x.equals(null)` là `false`.
+1. **Reflexive:** `x.equals(x)` is always `true`.
+2. **Symmetric:** `x.equals(y)` and `y.equals(x)` always have the same value.
+3. **Transitive:** if both `x.equals(y)` and `y.equals(z)` are `true`, then `x.equals(z)` must also be `true`.
+4. **Consistent:** repeated comparisons return the same result when relevant state does not change.
+5. **Against `null`:** `x.equals(null)` is `false`.
 
-Hợp đồng đi kèm của `hashCode()`: **nếu `x.equals(y)` là `true`, thì `x.hashCode() == y.hashCode()` phải đúng**. Điều ngược lại không bắt buộc: hai đối tượng khác nhau vẫn có thể trùng mã băm.
+The companion contract of `hashCode()`: **if `x.equals(y)` is `true`, then `x.hashCode() == y.hashCode()` must hold**. The converse is not required: two unequal objects may still share the same hash code.
 
-Các collection như `HashSet` và `HashMap` cần cả `equals()` và `hashCode()` vận hành nhất quán. Chọn `instanceof` hay `getClass()` chưa đủ để bảo đảm toàn bộ hợp đồng: còn phải xem trường nào tham gia so sánh, tính bất biến của dữ liệu và cách lớp con ghi đè phương thức.
+Collections such as `HashSet` and `HashMap` require both `equals()` and `hashCode()` to operate consistently. Choosing `instanceof` or `getClass()` alone is not enough to guarantee the entire contract: you must also consider which fields participate in comparison, data immutability, and how subclasses override methods.
 
-## 4. Rủi ro khi lớp cha dùng `instanceof`, lớp con bổ sung tiêu chí bằng nhau
+## 4. Risk When the Parent Uses `instanceof` and the Subclass Adds Equality Criteria
 
-Giả sử lớp `Point` chỉ quan tâm tọa độ `x, y`. Lớp con `ColoredPoint` có thêm `color` và muốn màu sắc cũng tham gia định nghĩa bằng nhau.
+Suppose class `Point` only cares about coordinates `x, y`. Subclass `ColoredPoint` adds `color` and wants color to also participate in the equality definition.
 
-Tạo tệp `BadInstanceofDemo.java`:
+Create the file `BadInstanceofDemo.java`:
 
 ```java
 import java.util.Objects;
@@ -177,19 +177,19 @@ plain.equals(red): true
 red.equals(plain): false
 ```
 
-Đây là **ví dụ CỐ Ý SAI** để nhìn thấy lỗi:
+This is an **INTENTIONALLY WRONG example** to make the bug visible:
 
-- `plain.equals(red)` kiểm tra `red instanceof Point`, điều kiện đúng, rồi chỉ so `x, y`: kết quả `true`.
-- `red.equals(plain)` kiểm tra `plain instanceof ColoredPoint`, điều kiện sai: kết quả `false`.
-- Hợp đồng **đối xứng** bị phá vỡ. Hai `hashCode()` còn có thể khác nhau dù phép so sánh từ phía `plain` trả `true`, làm thiết kế càng không phù hợp với collection dựa trên hash.
+- `plain.equals(red)` checks `red instanceof Point`, which is true, and then compares only `x, y`: result is `true`.
+- `red.equals(plain)` checks `plain instanceof ColoredPoint`, which is false: result is `false`.
+- The **symmetry** contract is broken. The two `hashCode()` values can also differ even though the comparison from `plain`'s side returned `true`, making the design even more unsuitable for hash-based collections.
 
-Không nên “vá” lỗi đơn thuần bằng cách cho lớp con bỏ qua màu khi gặp `Point`. Nếu `Point(1,2)` được coi bằng cả điểm đỏ và điểm xanh, nhưng hai điểm có màu khác nhau lại không bằng nhau, tính **bắc cầu** cũng có thể bị phá vỡ. Cần chọn một chính sách bằng nhau nhất quán cho toàn bộ phân cấp lớp.
+You should not merely “patch” the bug by letting the subclass ignore color when encountering a `Point`. If `Point(1,2)` is considered equal to both a red point and a blue point, while the two differently colored points are not equal to each other, **transitivity** can also be broken. You must choose a consistent equality policy for the entire class hierarchy.
 
-## 5. Giải pháp dùng `getClass()`: chỉ bằng nhau khi cùng lớp thực tế
+## 5. Solution Using `getClass()`: Equal Only When Actual Classes Match
 
-Khi `Point` và `ColoredPoint` đại diện cho **hai kiểu giá trị khác nhau**, không cho chúng bằng nhau qua ranh giới lớp là một lựa chọn rõ ràng. Mỗi lớp trước tiên so `getClass()`, rồi mới so những trường xác định giá trị của lớp đó.
+When `Point` and `ColoredPoint` represent **two distinct value types**, disallowing equality across class boundaries is a clear option. Each class first compares `getClass()`, and only then compares the fields that define that class's value.
 
-Tạo tệp `ExactClassEqualityDemo.java`:
+Create the file `ExactClassEqualityDemo.java`:
 
 ```java
 import java.util.Objects;
@@ -270,22 +270,22 @@ red.equals(blue): false
 equal hash: true
 ```
 
-Ở đây:
+Here:
 
-- `Point` và `ColoredPoint` **không bao giờ bằng nhau** dù tọa độ giống nhau. Hai chiều so sánh đều `false`, nên tránh được lỗi đối xứng trong ví dụ trước.
-- Hai `ColoredPoint` được so theo cả `x, y` (thông qua `super.equals(other)`) và `color`.
-- `hashCode()` của `ColoredPoint` kết hợp cùng những phần dữ liệu mà `equals()` dùng. Hai điểm màu bằng nhau chắc chắn có mã băm bằng nhau.
-- Việc `super.equals(other)` vẫn đúng trong ví dụ này vì cả `this` và `other` đều là `ColoredPoint` tại thời điểm gọi phương thức của `Point`; kiểm tra `getClass()` ở lớp cha vì thế thành công.
+- `Point` and `ColoredPoint` **are never equal** even when their coordinates match. Both comparison directions return `false`, avoiding the symmetry bug in the previous example.
+- Two `ColoredPoint` instances are compared by both `x, y` (via `super.equals(other)`) and `color`.
+- `ColoredPoint`'s `hashCode()` combines the exact data parts that `equals()` uses. Two equal colored points are guaranteed to have equal hash codes.
+- Calling `super.equals(other)` remains valid in this example because both `this` and `other` are `ColoredPoint` when the `Point` method runs; the `getClass()` check in the parent class therefore succeeds.
 
-**Lưu ý về thiết kế:** `getClass()` không tự động làm `equals()` đúng. Nếu một lớp con có trạng thái ảnh hưởng đến danh tính giá trị mà lại kế thừa nguyên `equals()` của lớp cha, hai thể hiện cùng lớp con vẫn có thể bị xem là bằng nhau dù trạng thái bổ sung khác nhau. Lớp con phải định nghĩa lại chính sách so sánh và `hashCode()` một cách nhất quán, hoặc phân cấp cần được thiết kế để không cho lớp con thêm dữ liệu ảnh hưởng đến equality.
+**Design note:** `getClass()` does not automatically make `equals()` correct. If a subclass has state affecting value identity yet simply inherits the parent's `equals()`, two instances of the same subclass may still be treated as equal despite differing in the added state. The subclass must redefine the comparison policy and `hashCode()` consistently, or the hierarchy must be designed so subclasses cannot add data affecting equality.
 
-## 6. Khi nào `instanceof` lại là lựa chọn hợp lệ?
+## 6. When Is `instanceof` a Valid Choice?
 
-`instanceof` **không sai về bản chất**. Nó hữu ích khi chính sách nghiệp vụ muốn coi các đối tượng trong cùng một phân cấp là bằng nhau theo **một tập thuộc tính chung**, bất kể lớp con cụ thể. Nhưng không thể cho lớp con tùy ý thay đổi tiêu chí equality.
+`instanceof` **is not inherently wrong**. It is useful when the domain policy wants objects in the same hierarchy to be considered equal based on **a shared set of attributes**, regardless of the concrete subclass. However, subclasses cannot be allowed to arbitrarily change the equality criterion.
 
-Một cách đảm bảo điều đó là để lớp cha định nghĩa `equals()` và `hashCode()` là `final`, đồng thời quy định rõ các trường bổ sung của lớp con **không góp phần vào equality**.
+One way to guarantee that is for the parent class to define `equals()` and `hashCode()` as `final`, while explicitly specifying that extra subclass fields **do not contribute to equality**.
 
-Tạo tệp `HierarchyEqualityDemo.java`:
+Create the file `HierarchyEqualityDemo.java`:
 
 ```java
 public class HierarchyEqualityDemo {
@@ -347,51 +347,51 @@ a.equals(b): true
 same hash: true
 ```
 
-Ở đây hai tọa độ bằng nhau khi cùng `x, y`, **nhãn chỉ là thông tin hiển thị**. Do equality ở lớp cha là `final`, lớp con không thể ghi đè với quy tắc riêng và phá đối xứng. Điều này chỉ phù hợp khi yêu cầu thực sự cho phép bỏ qua `label`; nếu nhãn phân biệt giá trị, cần chính sách equality khác.
+Here two coordinates are equal when they share `x, y`, **and label is merely display information**. Because equality in the parent class is `final`, the subclass cannot override it with its own rule and break symmetry. This is only appropriate when requirements genuinely allow ignoring `label`; if the label distinguishes values, a different equality policy is required.
 
-Với một **lớp `final` không có lớp con**, hai cách kiểm tra kiểu thường có miền chấp nhận tương đương khi so với chính lớp ấy: `other instanceof MyFinalType` và `other != null && other.getClass() == MyFinalType.class`. Trong trường hợp này, `instanceof` thường ngắn gọn hơn; quyết định chủ yếu cần cân nhắc khi lớp có thể được kế thừa.
+For a **`final` class with no subclasses**, the two type checks usually have an equivalent acceptance domain when comparing against that class itself: `other instanceof MyFinalType` and `other != null && other.getClass() == MyFinalType.class`. In this case, `instanceof` is usually more concise; the choice mainly requires careful thought when the class can be inherited.
 
-## 7. Những tình huống cần xét trước khi quyết định
+## 7. Situations to Consider Before Deciding
 
-### Kiểu runtime, proxy và framework
+### Runtime Type, Proxies, and Frameworks
 
-Một số framework có thể tạo **lớp con proxy** của entity hay domain class. `getClass()` đối chiếu lớp runtime một cách nghiêm ngặt, nên một đối tượng proxy và đối tượng thật của lớp gốc có thể bị đánh giá khác lớp dù cùng dữ liệu. Tuy nhiên, thay ngay bằng `instanceof` cũng không tự giải quyết toàn bộ bài toán equality của entity (ví dụ định danh khi chưa lưu, proxy, trạng thái có thể thay đổi). Nếu dùng framework như ORM, hãy theo chính sách equality phù hợp với cơ chế proxy/identity của framework và kiểm tra hai chiều so sánh.
+Some frameworks may generate **proxy subclasses** of entity or domain classes. `getClass()` compares runtime classes strictly, so a proxy object and a real object of the base class may be evaluated as different classes even with identical data. However, immediately switching to `instanceof` does not automatically solve the entire entity equality problem either (such as unsaved identity, proxies, and mutable state). When using a framework like an ORM, follow an equality policy aligned with the framework's proxy/identity mechanism and test both comparison directions.
 
-### So sánh với interface hoặc nhiều nhánh kế thừa
+### Comparing Against an Interface or Multiple Inheritance Branches
 
-`instanceof` có thể chấp nhận đối tượng thuộc các lớp runtime khác nhau cùng triển khai một interface. Điều này hữu ích để **kiểm tra khả năng sử dụng** của đối tượng, nhưng không mặc định có nghĩa mọi hiện thực của interface đều có cùng **ngữ nghĩa bằng nhau**. Trước khi dùng trong `equals()`, phải xác định trường/thuộc tính nào được so sánh và bảo đảm tất cả nhánh tuân cùng tiêu chí.
+`instanceof` can accept objects belonging to different runtime classes that implement the same interface. This is useful for **checking an object's capability**, but does not by default mean every implementation of the interface has the same **equality semantics**. Before using it in `equals()`, you must determine which fields/properties are compared and ensure all branches follow the same criterion.
 
-### Tính ổn định của dữ liệu tham gia equality
+### Stability of Data Participating in Equality
 
-Dù chọn cách kiểm tra kiểu nào, dùng các trường **mutable** làm cơ sở cho cả `equals()` và `hashCode()` có thể gây vấn đề sau khi đưa đối tượng vào `HashSet` hoặc làm khóa `HashMap`: sửa trường có thể khiến mã băm hoặc vị trí logic thay đổi. Với value object, nên ưu tiên dữ liệu bất biến và equality nhất quán. Với entity, xác định chính sách riêng theo vòng đời định danh.
+Regardless of which type check you choose, using **mutable** fields as the basis for both `equals()` and `hashCode()` can cause issues after inserting the object into a `HashSet` or using it as a `HashMap` key: mutating a field can cause its hash code or logical bucket to change. For value objects, prefer immutable data and consistent equality. For entities, define a specific policy aligned with the identity lifecycle.
 
-### `equals()` không thay thế `==`
+### `equals()` Does Not Replace `==`
 
-`this == other` ở đầu `equals()` là tối ưu hợp lệ: cùng một đối tượng luôn bằng chính nó nếu tuân đúng hợp đồng. Nó không thay thế phần kiểm tra kiểu và so trường đối với **hai đối tượng khác nhau**. Ngược lại, `getClass() == other.getClass()` so sánh **đại diện lớp runtime**, không so xem hai đối tượng dữ liệu có cùng danh tính.
+`this == other` at the start of `equals()` is a valid optimization: the same object is always equal to itself if the contract is respected. It does not replace type checking and field comparison for **two distinct objects**. Conversely, `getClass() == other.getClass()` compares the **runtime class representation**, not whether two data objects share the same identity.
 
-## 8. Bảng chọn nhanh `instanceof` và `getClass()`
+## 8. Quick Selection Table: `instanceof` vs `getClass()`
 
-| Câu hỏi thiết kế | Hướng lựa chọn |
+| Design Question | Selection Guidance |
 | --- | --- |
-| Hai lớp khác nhau trong phân cấp có được coi bằng nhau không? | Nếu **không**, kiểm tra lớp chính xác bằng `getClass()` là chính sách dễ diễn đạt. |
-| Mọi lớp con chỉ là những cách trình bày của cùng một giá trị cơ sở? | Có thể dùng `instanceof` với equality chung ở lớp cha; cân nhắc `final equals()` và `final hashCode()`. |
-| Lớp con cần bổ sung trường tham gia equality? | Tránh để lớp cha dùng `instanceof` chấp nhận lớp con trong khi lớp con lại thu hẹp so sánh; cần chính sách toàn phân cấp bảo toàn hợp đồng. |
-| Lớp là `final`, không thể kế thừa? | `instanceof` thường đơn giản; `getClass()` cũng có thể đúng nhưng không mang thêm lợi ích rõ rệt. |
-| Có proxy/runtime subclass do framework tạo? | Xác minh cách lấy lớp/định danh phù hợp framework trước khi dùng `getClass()` trực tiếp. |
-| Đối tượng bên phải có thể là `null`? | `instanceof` tự trả `false`; với `getClass()` phải kiểm tra `null` trước. |
+| May two different classes in the hierarchy be considered equal? | If **no**, exact class checking with `getClass()` is an easy policy to express. |
+| Are all subclasses merely different representations of the same underlying value? | `instanceof` can be used with shared equality in the parent; consider `final equals()` and `final hashCode()`. |
+| Does a subclass need to add a field participating in equality? | Avoid having the parent use `instanceof` to accept subclasses while the subclass narrows the comparison; a hierarchy-wide contract-preserving policy is needed. |
+| Is the class `final` and non-inheritable? | `instanceof` is usually simple; `getClass()` can also be correct but brings no clear extra benefit. |
+| Are there framework-generated proxies/runtime subclasses? | Verify the framework-appropriate way to obtain class/identity before using `getClass()` directly. |
+| Can the right-hand object be `null`? | `instanceof` returns `false` automatically; with `getClass()`, you must check `null` first. |
 
-## 9. Checklist kiểm thử `equals()` trong phân cấp kế thừa
+## 9. Testing Checklist for `equals()` in an Inheritance Hierarchy
 
-Với các lớp `Base`, `ChildA`, `ChildB`, kiểm thử ít nhất:
+With classes `Base`, `ChildA`, and `ChildB`, test at least:
 
-1. **Cùng đối tượng:** `a.equals(a)` là `true`.
-2. **Null:** `a.equals(null)` là `false`.
-3. **Cùng lớp:** các đối tượng khác nhau nhưng có cùng trường được coi là giá trị có kết quả equality phù hợp.
-4. **Khác lớp:** so cả `base.equals(child)` **và** `child.equals(base)`; chúng phải nhất quán.
-5. **Hai lớp con:** so hai thể hiện cùng lớp con và các thể hiện thuộc hai lớp con khác nhau theo chính sách đã chọn.
-6. **Bắc cầu:** lập bộ ba `x, y, z` ở những kiểu runtime khác nhau; nếu hai quan hệ đầu là `true`, quan hệ thứ ba phải là `true`.
-7. **Hash:** với mọi cặp `x.equals(y)` đúng, kiểm tra `x.hashCode() == y.hashCode()`; thử thêm thao tác với `HashSet`/`HashMap` khi phù hợp.
-8. **Trạng thái:** kiểm tra cách đối tượng ứng xử khi dữ liệu tham gia equality có thể bị thay đổi, đặc biệt sau khi dùng làm khóa hash.
-9. **Proxy (nếu có):** kiểm tra các cặp đối tượng thật/proxy theo chính sách thực tế của framework.
+1. **Same object:** `a.equals(a)` is `true`.
+2. **Null:** `a.equals(null)` is `false`.
+3. **Same class:** distinct objects with matching value fields have the expected equality result.
+4. **Different classes:** compare both `base.equals(child)` **and** `child.equals(base)`; they must be consistent.
+5. **Two subclasses:** compare two instances of the same subclass and instances of two different subclasses according to the chosen policy.
+6. **Transitivity:** form triples `x, y, z` across different runtime types; if the first two relations are `true`, the third must be `true`.
+7. **Hash:** for every pair where `x.equals(y)` is true, check `x.hashCode() == y.hashCode()`; also test operations with `HashSet`/`HashMap` when applicable.
+8. **State:** test how objects behave if data participating in equality can be mutated, especially after being used as hash keys.
+9. **Proxies (if any):** test real/proxy object pairs according to the framework's actual policy.
 
-**Ghi nhớ:** `instanceof` trả lời “đối tượng này thuộc kiểu được yêu cầu hoặc một kiểu con/triển khai phù hợp không?”, còn `getClass()` trả lời “lớp runtime chính xác là gì?”. Khi viết `equals()`, điều quyết định là **ngữ nghĩa bằng nhau trên cả phân cấp lớp**. Phương án đúng phải giữ được đối xứng, bắc cầu và hợp đồng với `hashCode()`, kể cả khi lớp con được bổ sung sau này.
+**Takeaway:** `instanceof` answers “does this object belong to the requested type or a compatible subtype/implementation?”, whereas `getClass()` answers “what is the exact runtime class?”. When writing `equals()`, what decides the design is **equality semantics across the entire class hierarchy**. The right approach must preserve symmetry, transitivity, and the `hashCode()` contract, even when subclasses are added later.

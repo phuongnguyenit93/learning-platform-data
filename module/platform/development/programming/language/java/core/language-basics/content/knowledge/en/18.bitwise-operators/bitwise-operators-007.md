@@ -1,12 +1,12 @@
-# Mặt nạ bit để đọc, bật, tắt và đảo cờ — Java 17+
+# Bit Masks to Read, Set, Clear, and Toggle Flags — Java 17+
 
-## 1. Mặt nạ bit là gì?
+## 1. What Is a Bit Mask?
 
-**Mặt nạ bit** (*bit mask*) là một số nguyên có các bit 0/1 được dùng để chọn hoặc thao tác một số vị trí bit trong một số nguyên khác. Mỗi bit có thể biểu diễn một **cờ** (*flag*) độc lập: một tính năng đang bật, một trạng thái, hoặc một thuộc tính.
+A **bit mask** is an integer whose 0/1 bits are used to select or manipulate specific bit positions in another integer. Each bit can represent an independent **flag**: an enabled feature, a state, or an attribute.
 
-Ví dụ lưu bốn cờ trong một biến `int`:
+Example storing four flags in a single `int` variable:
 
-| Cờ | Bit số | Giá trị thập phân | Nhị phân 4 bit |
+| Flag | Bit index | Decimal value | 4-bit binary |
 |---|---:|---:|---|
 | `READ` | 0 | 1 | `0001` |
 | `WRITE` | 1 | 2 | `0010` |
@@ -22,111 +22,111 @@ static final int ADMIN   = 1 << 3;
 int flags = READ | WRITE; // 0001 | 0010 = 0011 (3)
 ~~~
 
-Mỗi cờ có **một bit 1 riêng**, nên có thể ghép bằng `|` mà không làm mất thông tin về các cờ khác. `flags` lúc này là 3, nghĩa là READ và WRITE cùng bật.
+Each flag has **its own dedicated `1` bit**, so they can be combined using `|` without losing information about the other flags. `flags` is now 3, meaning both READ and WRITE are set.
 
-**Bốn thao tác cốt lõi:**
+**Four core operations:**
 
-- **Đọc/kiểm tra:** `flags & mask`.
-- **Bật:** `flags | mask`.
-- **Tắt:** `flags & ~mask`.
-- **Đảo:** `flags ^ mask`.
+- **Read/check:** `flags & mask`.
+- **Set:** `flags | mask`.
+- **Clear:** `flags & ~mask`.
+- **Toggle:** `flags ^ mask`.
 
-Các phép toán dùng trên số nguyên `byte`, `short`, `char`, `int`, `long` theo quy tắc nâng kiểu của Java; ví dụ chính của bài dùng `int`.
+These operations apply to integral types `byte`, `short`, `char`, `int`, and `long` under Java's numeric promotion rules; the primary examples in this lesson use `int`.
 
-## 2. Từ phép toán từng bit đến thao tác cờ
+## 2. From Bitwise Operations to Flag Operations
 
-Bốn công thức dựa trực tiếp vào cách mỗi toán tử xử lý bit tại cùng vị trí: AND (`&`) chỉ giữ 1 khi cả hai bit là 1; OR (`|`) bật 1 nếu một bit là 1; XOR (`^`) đảo bit khi mask bằng 1; NOT (`~`) đảo mọi bit của toán hạng đã nâng kiểu.
+The four formulas follow directly from how each operator handles bits at the same position: AND (`&`) keeps 1 only when both bits are 1; OR (`|`) sets 1 if either bit is 1; XOR (`^`) flips the bit where the mask is 1; NOT (`~`) inverts every bit of the promoted operand.
 
 ~~~text
   flags      0101
   mask       0011
-  &          0001   (lọc các bit chung)
-  |          0111   (bật bit đã chọn)
-  ^          0110   (đảo bit đã chọn)
+  &          0001   (filter common bits)
+  |          0111   (set selected bits)
+  ^          0110   (toggle selected bits)
 ~~~
 
-Bảng chân trị đầy đủ thuộc bài về AND/OR/XOR/NOT. Ở đây điều quan trọng là **tác động lên trạng thái cờ**: dùng `&` để kiểm tra, `|` để bật, `& ~mask` để tắt, và `^` để đảo. `~` trên `int` đảo 32 bit, vì vậy thường được kết hợp với `&` hoặc một mask giới hạn vùng cần thao tác.
+The full truth tables belong to the lesson on AND/OR/XOR/NOT. What matters here is the **effect on flag state**: use `&` to check, `|` to set, `& ~mask` to clear, and `^` to toggle. On `int`, `~` inverts all 32 bits, so it is usually paired with `&` or a mask limiting the target bit region.
 
-## 3. Đọc một cờ: AND với mask
+## 3. Reading a Single Flag: AND with a Mask
 
-Muốn biết cờ READ có bật:
+To check whether the READ flag is set:
 
 ~~~java
 boolean canRead = (flags & READ) != 0;
 ~~~
 
-Nếu `flags = 0b0101` (READ và EXECUTE), ta có:
+If `flags = 0b0101` (READ and EXECUTE), we have:
 
 ~~~text
 flags = 0101
 READ  = 0001
-&     = 0001  -> khác 0 -> READ bật
+&     = 0001  -> non-zero -> READ is set
 ~~~
 
-Với WRITE:
+For WRITE:
 
 ~~~text
 flags = 0101
 WRITE = 0010
-&     = 0000  -> bằng 0 -> WRITE tắt
+&     = 0000  -> zero -> WRITE is cleared
 ~~~
 
-**Dấu ngoặc rất quan trọng để rõ ý:** viết `(flags & READ) != 0`, không viết mơ hồ `flags & READ != 0`. Trong Java, `!=` có ưu tiên cao hơn `&`; dạng không ngoặc có thể trở thành phép bitwise AND giữa `int` và `boolean` và bị lỗi biên dịch.
+**Parentheses are critical for clarity:** write `(flags & READ) != 0`, never the ambiguous `flags & READ != 0`. In Java, `!=` has higher precedence than `&`; without parentheses, the expression attempts a bitwise AND between an `int` and a `boolean` and fails to compile.
 
-Nếu mask là **một bit**, hai cách sau tương đương để kiểm tra nó:
+If the mask is a **single bit**, the following two checks are equivalent:
 
 ~~~java
 (flags & READ) != 0
 (flags & READ) == READ
 ~~~
 
-Nhưng với **mask nhiều bit**, ý nghĩa của hai cách khác nhau, xem phần sau.
+With a **multi-bit mask**, however, the two expressions mean different things, as shown next.
 
-## 4. Đọc nhiều cờ: phân biệt “bất kỳ” và “tất cả”
+## 4. Reading Multiple Flags: Distinguishing "Any" vs. "All"
 
-Giả sử:
+Suppose:
 
 ~~~java
 int flags = READ | WRITE;       // 0011
 int required = READ | EXECUTE;  // 0101
 ~~~
 
-**Có ít nhất một cờ trong mask:** (*any*):
+**Has at least one flag in the mask:** (*any*):
 
 ~~~java
-boolean any = (flags & required) != 0; // true: READ đang bật
+boolean any = (flags & required) != 0; // true: READ is set
 ~~~
 
-**Có đầy đủ tất cả cờ trong mask:** (*all*):
+**Has every flag in the mask:** (*all*):
 
 ~~~java
-boolean all = (flags & required) == required; // false: EXECUTE chưa bật
+boolean all = (flags & required) == required; // false: EXECUTE is not set
 ~~~
 
-| Kiểm tra | Công thức | Khi nào true? |
+| Check | Formula | When is it true? |
 |---|---|---|
-| **Một cờ** | `(flags & FLAG) != 0` | Bit của FLAG bật |
-| **Bất kỳ cờ nào** | `(flags & mask) != 0` | Ít nhất một bit thuộc mask bật |
-| **Tất cả cờ** | `(flags & mask) == mask` | Mọi bit thuộc mask đều bật |
-| **Không có cờ nào** | `(flags & mask) == 0` | Không bit nào thuộc mask bật |
+| **Single flag** | `(flags & FLAG) != 0` | The bit for FLAG is set |
+| **Any flag** | `(flags & mask) != 0` | At least one bit in `mask` is set |
+| **All flags** | `(flags & mask) == mask` | Every bit in `mask` is set |
+| **No flags** | `(flags & mask) == 0` | No bit in `mask` is set |
 
-**Bẫy với mask bằng 0:** `(flags & 0) == 0` **luôn true**, kể cả `flags == 0`. Vì vậy `hasAll(flags, 0)` có thể trả true theo định nghĩa toán học (không có cờ bắt buộc). Nếu API nghiệp vụ không cho phép mask rỗng, **phải validate `mask != 0`**, đừng coi kết quả true là một trạng thái quyền hợp lệ.
+**Zero-mask pitfall:** `(flags & 0) == 0` is **always true**, even when `flags == 0`. Thus `hasAll(flags, 0)` can return true vacuously (no required flags). If your business API does not permit an empty mask, **validate `mask != 0`**, and never treat a vacuous `true` as a valid permission state.
 
-## 5. Bật cờ bằng OR
+## 5. Setting Flags with OR
 
-Bật những bit được chọn nhưng giữ nguyên các bit khác:
+Turn on selected bits while leaving all other bits unchanged:
 
 ~~~java
 flags = flags | READ;
-flags |= READ; // Viết gọn, cùng mục đích với biến int đơn giản
+flags |= READ; // Shorthand, same intent for a simple int variable
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~text
 flags  = 0100   (EXECUTE)
 mask   = 0011   (READ | WRITE)
-OR     = 0111   (cả ba bật)
+OR     = 0111   (all three set)
 ~~~
 
 ~~~java
@@ -135,24 +135,24 @@ flags |= READ | WRITE;
 System.out.println(flags); // 7
 ~~~
 
-**Tính chất idempotent:** bật một cờ đã bật **không làm thay đổi giá trị**:
+**Idempotence:** setting a flag that is already set **does not change the value**:
 
 ~~~java
 flags |= READ;
-flags |= READ; // vẫn giữ READ bật, không chuyển nó thành tắt
+flags |= READ; // still keeps READ set, does not turn it off
 ~~~
 
-Nếu cần **đảo** trạng thái mỗi lần gọi thì dùng XOR `^`, không dùng OR.
+If you want to **flip** the state on every call, use XOR `^`, not OR.
 
-## 6. Tắt cờ bằng AND với NOT
+## 6. Clearing Flags with AND NOT
 
-Muốn tắt các bit thuộc mask mà **giữ nguyên mọi bit khác**:
+To clear the bits in `mask` while **preserving all other bits**:
 
 ~~~java
 flags &= ~WRITE;
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~text
 flags        = 0111   (READ | WRITE | EXECUTE)
@@ -161,7 +161,7 @@ WRITE        = 0010
 AND          = 0101   (READ | EXECUTE)
 ~~~
 
-Trong thực tế Java, `~WRITE` là toán tử 32 bit với `int`, không chỉ đảo 4 bit. Nhưng thao tác `flags & ~WRITE` vẫn đúng vì bit WRITE bị 0 hóa, còn những vị trí bit khác trong mask `~WRITE` là 1, nên được giữ nguyên.
+In actual Java execution, `~WRITE` is a 32-bit `int` operation, not just a 4-bit inversion. Still, `flags & ~WRITE` works correctly because the WRITE bit becomes 0 while all other bit positions in `~WRITE` are 1, preserving those bits.
 
 ~~~java
 int flags = READ | WRITE | EXECUTE;
@@ -169,37 +169,37 @@ flags &= ~WRITE;
 System.out.println(flags); // 5
 ~~~
 
-Tắt nhiều cờ cùng lúc:
+Clearing multiple flags at once:
 
 ~~~java
 flags &= ~(READ | EXECUTE);
 ~~~
 
-**Tính chất idempotent:** tắt cờ đã tắt sẽ không làm thay đổi giá trị.
+**Idempotence:** clearing a flag that is already cleared leaves the value unchanged.
 
-**Không dùng `flags &= WRITE` khi muốn tắt WRITE:** thao tác đó **chỉ giữ lại** bit WRITE và xóa các bit khác. Muốn xóa WRITE phải dùng `~WRITE`.
+**Do not use `flags &= WRITE` when trying to clear WRITE:** that operation **keeps only** the WRITE bit and clears all other bits. To remove WRITE, you must use `~WRITE`.
 
-## 7. Đảo cờ bằng XOR
+## 7. Toggling Flags with XOR
 
-XOR làm bit thuộc mask **đổi trạng thái**:
+XOR flips the state of every bit in `mask`:
 
-- 0 thành 1.
-- 1 thành 0.
+- 0 becomes 1.
+- 1 becomes 0.
 
 ~~~java
 int flags = READ; // 0001
-flags ^= EXECUTE; // 0101: bật EXECUTE
-flags ^= EXECUTE; // 0001: tắt EXECUTE
+flags ^= EXECUTE; // 0101: turn EXECUTE on
+flags ^= EXECUTE; // 0001: turn EXECUTE off
 ~~~
 
-Bảng ý nghĩa:
+Meaning table:
 
-| Trạng thái ban đầu của một bit | OR với 1 | AND với 0 | XOR với 1 |
+| Initial state of a bit | OR with 1 | AND with 0 | XOR with 1 |
 |---|---|---|---|
-| 0 (tắt) | Bật (1) | Tắt (0) | Bật (1) |
-| 1 (bật) | Giữ bật (1) | Tắt (0) | Tắt (0) |
+| 0 (off) | On (1) | Off (0) | On (1) |
+| 1 (on) | Stays on (1) | Off (0) | Off (0) |
 
-XOR **không idempotent** đối với bit trong mask: gọi hai lần sẽ quay về trạng thái đầu.
+XOR is **not idempotent** for bits in the mask: applying it twice returns to the initial state.
 
 ~~~java
 int state = 0;
@@ -208,27 +208,27 @@ state ^= READ;
 System.out.println(state); // 0
 ~~~
 
-**Không dùng XOR để “bật chắc chắn” một cờ**, vì nếu cờ đã bật thì XOR sẽ tắt nó.
+**Do not use XOR to "ensure a flag is enabled"**, because if the flag is already on, XOR will turn it off.
 
-## 8. Quy trình quản lý cờ minh họa
+## 8. Illustrative Flag Management Flow
 
 ~~~mermaid
 flowchart TD
-    A["Bắt đầu: flags = 0000"] --> B["flags |= READ | WRITE"]
-    B --> C["0011: READ và WRITE bật"]
+    A["Start: flags = 0000"] --> B["flags |= READ | WRITE"]
+    B --> C["0011: READ and WRITE set"]
     C --> D["flags &= ~WRITE"]
-    D --> E["0001: chỉ READ bật"]
+    D --> E["0001: only READ set"]
     E --> F["flags ^= EXECUTE"]
-    F --> G["0101: READ và EXECUTE bật"]
+    F --> G["0101: READ and EXECUTE set"]
     G --> H["flags ^= EXECUTE"]
-    H --> I["0001: EXECUTE lại tắt"]
+    H --> I["0001: EXECUTE cleared again"]
 ~~~
 
-Đây là thao tác **bitmask trên một biến số nguyên**, không tự tạo hệ thống cấp quyền thực tế. Nếu flags biểu diễn quyền truy cập thật, việc xác thực, phân quyền, dữ liệu đầu vào đáng tin cậy và đồng bộ trạng thái vẫn cần được thiết kế riêng.
+This is **bitmask manipulation on an integer variable**, not a complete real-world authorization system by itself. If flags represent actual access permissions, authentication, authorization checks, trusted input handling, and state synchronization must still be designed separately.
 
-## 9. Chọn vị trí cờ bằng phép dịch `1 << position`
+## 9. Defining Flag Positions Using `1 << position`
 
-Thay vì viết các số magic:
+Instead of writing magic numbers:
 
 ~~~java
 static final int READ    = 1 << 0;
@@ -237,30 +237,30 @@ static final int EXECUTE = 1 << 2;
 static final int ADMIN   = 1 << 3;
 ~~~
 
-Với `int`, vị trí bit hợp lệ là **0 đến 31**; với `long`, vị trí là **0 đến 63**:
+For `int`, valid bit positions are **0 to 31**; for `long`, positions are **0 to 63**:
 
 ~~~java
 int highestIntBit = 1 << 31;
 long highLongBit = 1L << 40;
 ~~~
 
-**Hai cảnh báo:**
+**Two warnings:**
 
-1. `1 << 31` bằng `Integer.MIN_VALUE`, tức một số **âm** do bit dấu được bật. Nó vẫn là một mask bit hợp lệ. Kiểm tra `(flags & highestIntBit) != 0`, **không dùng `> 0`**, vì AND có thể trả giá trị âm.
-2. Khoảng dịch của int lấy **5 bit thấp**, của long lấy **6 bit thấp**. `1 << 32` thực chất là `1 << 0` → kết quả 1, dễ khiến **trùng cờ**. `1L << 32` mới tạo bit thứ 32 trên long.
+1. `1 << 31` equals `Integer.MIN_VALUE`, which is a **negative** number because the sign bit is set. It is still a valid bit mask. Test it with `(flags & highestIntBit) != 0`, **never `> 0`**, because AND can return a negative value.
+2. `int` shift distances use only the **low 5 bits**, and `long` uses the **low 6 bits**. `1 << 32` actually evaluates as `1 << 0` → 1, easily causing **flag collisions**. You must use `1L << 32` to create bit 32 in a `long`.
 
-Nếu `position` đến từ dữ liệu động, cần tự kiểm tra `0 <= position && position < 32` (hoặc `< 64` cho long); Java không tự ném lỗi nếu dịch quá phạm vi.
+If `position` comes from dynamic data, explicitly validate `0 <= position && position < 32` (or `< 64` for `long`); Java will not throw an error if you shift out of range.
 
-## 10. `~` đảo toàn bộ chiều rộng: nhớ giới hạn vùng bit cần dùng
+## 10. `~` Inverts the Entire Width: Remember to Bound the Target Bit Region
 
 ~~~java
 int flag = READ; // 0001
 System.out.println(~flag); // -2
 ~~~
 
-`~1` của int không phải `1110` đơn thuần; nó đảo **32 bit**, trở thành `0xFFFFFFFE` hay -2.
+`~1` on `int` is not simply `1110`; it inverts **all 32 bits**, becoming `0xFFFFFFFE` or -2.
 
-Nếu chỉ quan tâm **4 bit thấp**, mask lại:
+If you only care about the **low 4 bits**, mask it again:
 
 ~~~java
 int FOUR_BITS = 0b1111;
@@ -268,11 +268,11 @@ int invertedWithin4Bits = (~READ) & FOUR_BITS;
 System.out.println(invertedWithin4Bits); // 14 = 1110
 ~~~
 
-**Đừng nhầm:** `~mask` đơn lẻ tạo giá trị có các bit cao bật; đó là bình thường trong `flags & ~mask` khi mục tiêu là **giữ nguyên tất cả bit khác**. Chỉ giới hạn lại bằng `& allowedBits` khi muốn một kết quả thực sự bị ràng buộc trong một vùng bit xác định.
+**Do not be misled:** `~mask` by itself produces a value with high bits set to 1; that is normal inside `flags & ~mask` when the goal is to **preserve all other bits**. Only restrict it with `& allowedBits` when you want a standalone result constrained to a specific bit region.
 
-## 11. `byte`, bit dấu và cách đọc 8 bit không dấu
+## 11. `byte`, the Sign Bit, and Reading 8 Unsigned Bits
 
-Các phép bitwise với `byte`, `short` và `char` thường **nâng toán hạng lên `int`** trước khi tính. Một `byte` âm được sign-extend khi chuyển sang int.
+Bitwise operations on `byte`, `short`, and `char` generally **promote operands to `int`** before computing. A negative `byte` is sign-extended when widened to `int`.
 
 ~~~java
 byte encoded = (byte) 0b1111_0000;
@@ -280,14 +280,14 @@ System.out.println(encoded);         // -16
 System.out.println(encoded & 0xFF);  // 240
 ~~~
 
-- Dưới dạng `byte` có dấu, bit `11110000` là -16.
-- `encoded & 0xFF` chỉ giữ 8 bit thấp, trả `int` có giá trị 240 (diễn giải byte theo kiểu unsigned).
+- As a signed `byte`, bits `11110000` represent -16.
+- `encoded & 0xFF` retains only the low 8 bits, returning an `int` equal to 240 (interpreting the byte as unsigned).
 
-Với `byte`, phép gán kết hợp như `byteVar |= mask` có thể **thu hẹp ngầm** từ kết quả int về byte. Nếu cần xử lý flags 8 bit nhưng muốn biểu diễn các giá trị 128–255 không âm, dùng `int` sau khi mask `& 0xFF`, hoặc một mô hình dữ liệu khác có kiểm soát miền.
+With `byte`, compound assignments such as `byteVar |= mask` can **implicitly narrow** the `int` result back to `byte`. If you are handling 8-bit flags and want non-negative values 128–255, work in `int` after masking with `& 0xFF`, or use another data model with explicit bounds checking.
 
-## 12. Viết helper rõ ý và kiểm tra mask
+## 12. Writing Clear Helper Methods and Validating Masks
 
-Một nhóm hàm đơn giản giúp tránh lặp công thức và nhầm **any** với **all**:
+A small set of helper methods avoids repeating formulas and confusing **any** with **all**:
 
 ~~~java
 static boolean hasAny(int flags, int mask) {
@@ -307,13 +307,13 @@ static int toggle(int flags, int mask) {
 }
 ~~~
 
-Các helper trên **không thay đổi biến đầu vào** (Java truyền `int` theo giá trị); chúng trả trạng thái mới khi bật/tắt/đảo. Người gọi phải gán kết quả trở lại nếu muốn cập nhật:
+These helpers **do not mutate the caller's variable** (Java passes `int` by value); they return the new state after enabling/disabling/toggling. Callers must assign the return value back if they want to update their variable:
 
 ~~~java
 flags = enable(flags, READ);
 ~~~
 
-Đối với API có tập cờ hợp lệ `allowed`, nên **từ chối mask bằng 0 hoặc chứa bit lạ**:
+For APIs with a valid flag set `allowed`, **reject masks that are 0 or contain unknown bits**:
 
 ~~~java
 static void requireValidMask(int mask, int allowed) {
@@ -323,30 +323,30 @@ static void requireValidMask(int mask, int allowed) {
 }
 ~~~
 
-- `mask == 0`: ngăn trường hợp kiểm tra “all” trả true một cách rỗng.
-- `(mask & ~allowed) != 0`: phát hiện **ít nhất một bit ngoài tập cho phép**.
-- Hàm không tự chứng minh người dùng có quyền bật cờ; nó chỉ **validate hình dạng mask**.
+- `mask == 0`: prevents an "all" check from returning true vacuously.
+- `(mask & ~allowed) != 0`: detects **at least one bit outside the allowed set**.
+- This method does not prove a user has permission to enable flags; it only **validates the shape of the mask**.
 
-## 13. Lỗi thường gặp
+## 13. Common Pitfalls
 
-| Nhầm lẫn | Hậu quả | Cách đúng |
+| Misconception | Consequence | Correct approach |
 |---|---|---|
-| Kiểm tra nhiều cờ bằng `(flags & mask) != 0` rồi hiểu là “đủ hết” | Chỉ cần một bit bật đã true | Dùng `(flags & mask) == mask` |
-| `hasAll(flags, 0)` có nghĩa đã được cấp quyền | Kết quả true rỗng | Cấm mask 0 nếu không hợp lệ |
-| Tắt cờ bằng `flags &= mask` | Xóa các bit khác, giữ bit mask | `flags &= ~mask` |
-| Bật cờ bằng `flags ^= mask` | Có thể tắt cờ đang bật | `flags |= mask` |
-| Dùng `flags & mask > 0` | Nhầm ưu tiên toán tử và bit dấu | `(flags & mask) != 0` |
-| `~READ` chỉ đảo 4 bit | `~` đảo toàn bộ 32 bit của int | `(~READ) & 0b1111` khi cần 4 bit |
-| `1 << 31` không hợp lệ vì âm | Bit dấu có thể dùng làm cờ | Kiểm tra `!= 0`, không `> 0` |
-| `1 << 32` tạo bit thứ 32 | Shift của int mask 5 bit; thành bit 0 | Dùng `1L << 32` hoặc validate vị trí |
-| `byte` lưu `0xF0` là 240 | byte có dấu trả -16 | `byteValue & 0xFF` để đọc unsigned |
-| Dùng `&&` giữa hai giá trị int | Không biên dịch: `&&` cần boolean | Dùng `&` bitwise, sau đó so 0 |
-| Nghĩ `flags |= mask` tự thread-safe | Read–modify–write không tự nguyên tử | Đồng bộ/`AtomicInteger` nếu chia sẻ đa luồng |
-| Xem bitmask là hệ thống phân quyền đủ an toàn | Bitmask chỉ mô tả trạng thái | Kiểm tra quyền phía đáng tin cậy |
+| Checking multiple flags with `(flags & mask) != 0` and treating it as "all present" | Returns true if even one bit is set | Use `(flags & mask) == mask` |
+| Treating `hasAll(flags, 0)` as meaning permissions were granted | Vacuously true result | Forbid mask 0 if invalid |
+| Clearing a flag with `flags &= mask` | Clears all other bits and keeps only `mask` | `flags &= ~mask` |
+| Setting a flag with `flags ^= mask` | Can turn off a flag that was already on | `flags |= mask` |
+| Writing `flags & mask > 0` | Operator precedence and sign-bit bugs | `(flags & mask) != 0` |
+| Thinking `~READ` inverts only 4 bits | `~` inverts all 32 bits of `int` | `(~READ) & 0b1111` when 4 bits are wanted |
+| Thinking `1 << 31` is invalid because it is negative | The sign bit can be used as a flag | Check `!= 0`, never `> 0` |
+| Thinking `1 << 32` creates bit 32 | `int` shifts mask 5 bits; becomes bit 0 | Use `1L << 32` or validate position |
+| Assuming a `byte` storing `0xF0` equals 240 | Signed `byte` returns -16 | `byteValue & 0xFF` to read unsigned |
+| Using `&&` between two `int` values | Won't compile: `&&` requires booleans | Use bitwise `&`, then compare with 0 |
+| Thinking `flags |= mask` is automatically thread-safe | Read–modify–write is not atomic | Synchronize or use `AtomicInteger` if shared across threads |
+| Treating a bitmask as a complete security authorization system | A bitmask only represents state | Enforce permission checks on a trusted boundary |
 
-## 14. Chương trình Java 17 hoàn chỉnh
+## 14. Complete Java 17 Program
 
-Lưu file đúng tên **`BitMaskFlagsDemo.java`**:
+Save the file with the exact name **`BitMaskFlagsDemo.java`**:
 
 ~~~java
 public final class BitMaskFlagsDemo {
@@ -455,7 +455,7 @@ public final class BitMaskFlagsDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; mở terminal tại thư mục chứa `BitMaskFlagsDemo.java`. Chương trình không dùng thư viện ngoài JDK, không cần Maven/Gradle.
+**Requirements:** JDK 17 or later; open a terminal in the directory containing `BitMaskFlagsDemo.java`. The program uses no libraries outside the JDK and requires no Maven/Gradle.
 
 **Bash (Linux/macOS):**
 
@@ -504,23 +504,23 @@ zero mask=invalid flag mask
 unknown mask=invalid flag mask
 ~~~
 
-### Giải thích nhóm kết quả
+### Explaining Each Output Group
 
-1. **Bật:** `READ|WRITE = 3`; sau khi tắt WRITE còn 1.
-2. **Đọc:** `hasAny(3, WRITE|EXECUTE)` đúng vì WRITE bật, nhưng `hasAll(3, READ|EXECUTE)` sai vì EXECUTE tắt.
-3. **Đảo:** XOR với EXECUTE hai lần biến `1 → 5 → 1`.
-4. **Tắt nhiều:** xóa READ và ADMIN sau khi flags là 9 đưa flags về 0.
-5. **Mask rỗng:** `hasAll(0,0)` true theo phép so mask; `hasAny(0,0)` false.
-6. **Biểu diễn:** `flags = 5` có nhị phân `101`; `ALL_ALLOWED = 15` là `1111`.
-7. **NOT:** `~1` là -2 vì đảo 32 bit; giới hạn lại 4 bit tạo 14.
-8. **Byte:** mẫu bit `11110000` có `byte` ký hiệu -16, sau `& 0xFF` là 240.
-9. **Bit dấu:** mask `1 << 31` mang giá trị `int` âm; kiểm tra `!= 0` vẫn chính xác.
-10. **Khoảng dịch:** `1 << 32` quay lại bit 0 với `int`, còn `1L << 32` tạo bit thứ 32 trên `long`.
-11. **Validation:** mask thuộc tập cho phép được chấp nhận, mask bằng 0 hoặc có bit lạ bị từ chối.
+1. **Set:** `READ|WRITE = 3`; after disabling WRITE, 1 remains.
+2. **Read:** `hasAny(3, WRITE|EXECUTE)` is true because WRITE is set, whereas `hasAll(3, READ|EXECUTE)` is false because EXECUTE is off.
+3. **Toggle:** XOR with EXECUTE twice cycles `1 → 5 → 1`.
+4. **Clear multiple:** removing READ and ADMIN when flags is 9 resets flags to 0.
+5. **Empty mask:** `hasAll(0,0)` is true under the mask comparison; `hasAny(0,0)` is false.
+6. **Representation:** `flags = 5` is `101` in binary; `ALL_ALLOWED = 15` is `1111`.
+7. **NOT:** `~1` is -2 because all 32 bits are inverted; masking to 4 bits yields 14.
+8. **Byte:** bit pattern `11110000` is -16 as a signed `byte`, and 240 after `& 0xFF`.
+9. **Sign bit:** mask `1 << 31` has a negative `int` value; testing `!= 0` still works accurately.
+10. **Shift distance:** `1 << 32` wraps back to bit 0 for `int`, while `1L << 32` creates bit 32 on `long`.
+11. **Validation:** masks within the allowed set are accepted; a zero mask or one with unknown bits is rejected.
 
-## 15. Bài tập có đáp án
+## 15. Exercises with Answers
 
-### Bài A — bật và kiểm tra hai cờ
+### Exercise A — Setting and Checking Two Flags
 
 ~~~java
 int flags = 0;
@@ -529,14 +529,14 @@ System.out.println((flags & READ) != 0);
 System.out.println((flags & WRITE) != 0);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 true
 false
 ~~~
 
-### Bài B — any khác all
+### Exercise B — "Any" vs. "All"
 
 ~~~java
 int flags = READ | WRITE;
@@ -546,14 +546,14 @@ System.out.println((flags & mask) != 0);
 System.out.println((flags & mask) == mask);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 true
 false
 ~~~
 
-### Bài C — xóa một cờ, giữ cờ còn lại
+### Exercise C — Clearing One Flag, Keeping the Rest
 
 ~~~java
 int flags = READ | WRITE | EXECUTE;
@@ -561,9 +561,9 @@ flags &= ~WRITE;
 System.out.println(flags);
 ~~~
 
-**Đáp án:** `5`, gồm READ và EXECUTE.
+**Answer:** `5`, containing READ and EXECUTE.
 
-### Bài D — đảo hai lần
+### Exercise D — Toggling Twice
 
 ~~~java
 int flags = READ;
@@ -572,9 +572,9 @@ flags ^= ADMIN;
 System.out.println(flags);
 ~~~
 
-**Đáp án:** `1`. XOR hai lần cùng mask trả về trạng thái đầu.
+**Answer:** `1`. XORing twice with the same mask restores the initial state.
 
-### Bài E — mask cao nhất của `int`
+### Exercise E — Highest Mask Bit of `int`
 
 ~~~java
 int highest = 1 << 31;
@@ -583,7 +583,7 @@ System.out.println((highest & highest) != 0);
 System.out.println((highest & highest) > 0);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 -2147483648
@@ -591,29 +591,29 @@ true
 false
 ~~~
 
-Cờ bit dấu vẫn bật, nên **không dùng `> 0` để kiểm tra bitmask**.
+The sign-bit flag is still set, so **never use `> 0` to test a bitmask**.
 
-### Bài F — mask zero và vị trí bit sai
+### Exercise F — Zero Mask and Invalid Bit Position
 
-Vì sao `hasAll(flags, 0)` luôn true? Vì sao `1 << 32` không đại diện bit thứ 32 của `int`?
+Why is `hasAll(flags, 0)` always true? Why does `1 << 32` not represent bit 32 of an `int`?
 
-**Đáp án:** `flags & 0` luôn bằng 0, nên so với mask 0 cho true. Với int 32 bit, Java chỉ dùng 5 bit thấp của lượng dịch: `32 & 31 = 0`, nên `1 << 32` bằng `1 << 0`. Cần validate mask/vị trí theo miền hợp lệ.
+**Answer:** `flags & 0` is always 0, so comparing it with mask 0 returns true. For 32-bit `int`, Java uses only the low 5 bits of the shift count: `32 & 31 = 0`, so `1 << 32` equals `1 << 0`. You must validate masks and bit positions against valid bounds.
 
-## 16. Checklist và kết luận
+## 16. Checklist and Conclusion
 
-- [ ] Biết tạo cờ riêng bằng `1 << position` hoặc `1L << position`.
-- [ ] Biết ghép các cờ bằng OR `|`.
-- [ ] Biết đọc một/ít nhất một cờ bằng `(flags & mask) != 0`.
-- [ ] Biết kiểm tra đủ mọi cờ bằng `(flags & mask) == mask`.
-- [ ] Biết bật bằng `flags |= mask`, tắt bằng `flags &= ~mask`, đảo bằng `flags ^= mask`.
-- [ ] Hiểu OR bật và AND-NOT tắt là idempotent; XOR đảo mỗi lần gọi.
-- [ ] Không nhầm `~` bitwise với `!` boolean.
-- [ ] Hiểu `~` đảo mọi bit của int/long; dùng mask bổ sung khi chỉ cần vùng bit thấp.
-- [ ] Biết trường hợp `hasAll(flags, 0)` true và vì sao phải validate mask rỗng.
-- [ ] Nhận diện bit dấu `1 << 31` và chỉ kiểm tra `!= 0`, không `> 0`.
-- [ ] Hiểu `byte` có dấu và `& 0xFF` để diễn giải 8 bit không dấu.
-- [ ] Validate vị trí bit: int 0–31, long 0–63.
-- [ ] Không nhầm bitmask với giải pháp bảo mật hoặc đồng bộ đa luồng đầy đủ.
-- [ ] Biên dịch và chạy `BitMaskFlagsDemo.java` trên Java 17+; đối chiếu chính xác stdout.
+- [ ] Know how to define individual flags using `1 << position` or `1L << position`.
+- [ ] Know how to combine flags using OR `|`.
+- [ ] Know how to check a single flag / at least one flag using `(flags & mask) != 0`.
+- [ ] Know how to verify all flags are present using `(flags & mask) == mask`.
+- [ ] Know how to set with `flags |= mask`, clear with `flags &= ~mask`, and toggle with `flags ^= mask`.
+- [ ] Understand that OR-setting and AND-NOT-clearing are idempotent, whereas XOR toggles on every call.
+- [ ] Do not confuse bitwise `~` with boolean `!`.
+- [ ] Understand that `~` inverts every bit of `int`/`long`; apply an extra mask when you need only a low bit region.
+- [ ] Know the vacuous `hasAll(flags, 0)` true case and why empty masks must be validated.
+- [ ] Recognize the sign bit `1 << 31` and test only with `!= 0`, never `> 0`.
+- [ ] Understand signed `byte` and `& 0xFF` to interpret 8 bits as unsigned.
+- [ ] Validate bit positions: 0–31 for `int`, 0–63 for `long`.
+- [ ] Do not mistake bitmasks for a full security or thread-safety solution.
+- [ ] Compile and run `BitMaskFlagsDemo.java` on Java 17+ and verify exact stdout.
 
-**Kết luận:** Mặt nạ bit giúp lưu nhiều cờ độc lập trong một biến số nguyên. Hãy nhớ bốn quy tắc **đọc bằng `&`**, **bật bằng `|`**, **tắt bằng `& ~`**, **đảo bằng `^`**. Khi triển khai, phân biệt kiểm tra *any/all*, kiểm soát mask 0 và bit không hợp lệ, hiểu bit dấu/độ rộng số nguyên và giữ rõ ý định nghiệp vụ.
+**Conclusion:** Bit masks allow storing multiple independent flags in a single integer variable. Remember the four rules: **read with `&`**, **set with `|`**, **clear with `& ~`**, and **toggle with `^`**. When implementing them, distinguish *any/all* checks, guard against zero masks and invalid bits, account for sign bits and integer widths, and keep your business intent clear.

@@ -1,10 +1,10 @@
-# Tên module và quy tắc đặt tên
+# Module Names and Naming Rules
 
-Tên module là định danh mà Java Platform Module System (JPMS) dùng để nhận diện một module trong module graph. Tên này xuất hiện trong khai báo `module` của `module-info.java`, trong mệnh đề `requires` của module phụ thuộc và trong các lệnh chạy ứng dụng trên module path. Vì vậy, tên module cần hợp lệ theo cú pháp Java, dễ hiểu và ổn định theo thời gian.
+A module name is the identifier that the Java Platform Module System (JPMS) uses to identify a module in the module graph. This name appears in the `module` declaration of `module-info.java`, in the `requires` clauses of dependent modules, and in commands that run applications on the module path. Therefore, a module name must be syntactically valid in Java, easy to understand, and stable over time.
 
-## 1. Tên module được khai báo ở đâu?
+## 1. Where Is a Module Name Declared?
 
-Một module tường minh khai báo tên trong file `module-info.java` đặt tại thư mục gốc của module source:
+An explicit module declares its name in the `module-info.java` file located at the root directory of the module source:
 
 ```java
 module com.acme.orders {
@@ -13,41 +13,41 @@ module com.acme.orders {
 }
 ```
 
-Trong ví dụ này:
+In this example:
 
-- `com.acme.orders` là **tên module**.
-- `java.sql` là tên một module mà module hiện tại phụ thuộc.
-- `com.acme.orders.api` là tên package được công khai cho module khác sử dụng.
+- `com.acme.orders` is the **module name**.
+- `java.sql` is the name of a module on which the current module depends.
+- `com.acme.orders.api` is the name of a package exposed for other modules to use.
 
-Tên module và tên package là hai loại định danh khác nhau. Mệnh đề `requires` nhận tên module; mệnh đề `exports` nhận tên package. Một module có thể chứa nhiều package và không bắt buộc tên module phải trùng với một package cụ thể.
+Module names and package names are two different kinds of identifiers. The `requires` clause takes a module name; the `exports` clause takes a package name. A module can contain multiple packages, and a module name is not required to match a specific package.
 
-## 2. Cú pháp hợp lệ
+## 2. Valid Syntax
 
-Tên module là một hoặc nhiều Java identifier, ngăn cách bằng dấu chấm (`.`). Mỗi thành phần nằm giữa hai dấu chấm phải tự nó là một identifier hợp lệ.
+A module name is one or more Java identifiers separated by dots (`.`). Each component between two dots must itself be a valid identifier.
 
-Ví dụ:
+Examples:
 
-| Tên | Hợp lệ? | Giải thích |
+| Name | Valid? | Explanation |
 |---|---|---|
-| `com.acme.orders` | Có | Các thành phần đều là identifier hợp lệ |
-| `org.example.billing.api` | Có | Có thể dùng nhiều thành phần để thể hiện phạm vi |
-| `com.acme2.orders` | Có | Identifier có thể chứa chữ số sau ký tự đầu |
-| `com.2orders` | Không | Thành phần `2orders` bắt đầu bằng chữ số |
-| `com.acme-orders` | Không | Dấu gạch nối không thuộc cú pháp identifier |
-| `com..orders` | Không | Có một thành phần rỗng giữa hai dấu chấm |
-| `com acme.orders` | Không | Tên module không chứa khoảng trắng |
+| `com.acme.orders` | Yes | All components are valid identifiers |
+| `org.example.billing.api` | Yes | Multiple components can be used to express scope |
+| `com.acme2.orders` | Yes | Identifiers can contain digits after the first character |
+| `com.2orders` | No | The component `2orders` starts with a digit |
+| `com.acme-orders` | No | Hyphens are not part of identifier syntax |
+| `com..orders` | No | There is an empty component between two dots |
+| `com acme.orders` | No | Module names cannot contain whitespace |
 
-Một Java identifier thường bắt đầu bằng chữ cái, dấu gạch dưới hoặc ký hiệu `$`; các ký tự tiếp theo có thể bao gồm chữ số. Tuy nhiên, từ khóa Java không thể được dùng như identifier. Từ Java 9, `_` đứng riêng là từ khóa và không được dùng làm một thành phần tên.
+A Java identifier usually starts with a letter, an underscore, or a `$` symbol; subsequent characters may include digits. However, Java keywords cannot be used as identifiers. Since Java 9, `_` alone is a keyword and cannot be used as a name component.
 
-Về mặt ngôn ngữ, Java cho phép identifier Unicode và một số ký tự ít gặp. Trong dự án thông thường, nên ưu tiên chữ cái Latin không dấu, chữ số và dấu chấm để tên dễ đọc, dễ gõ và ít gây khác biệt giữa môi trường.
+At the language level, Java allows Unicode identifiers and some uncommon characters. In ordinary projects, prefer unaccented Latin letters, digits, and dots so names are easy to read, easy to type, and less likely to vary across environments.
 
-Tên module phân biệt chữ hoa và chữ thường. Dù `com.acme.orders` và `com.acme.Orders` là hai tên khác nhau, quy ước phổ biến là viết toàn bộ bằng chữ thường để nhất quán với cách đặt tên package Java.
+Module names are case-sensitive. Although `com.acme.orders` and `com.acme.Orders` are two different names, the common convention is to write them entirely in lowercase to stay consistent with Java package naming.
 
-## 3. Quy ước đặt tên nên dùng
+## 3. Recommended Naming Conventions
 
-### Dùng thứ tự tên miền đảo ngược
+### Use Reverse Domain Order
 
-Cách phổ biến là đảo ngược tên miền của tổ chức hoặc dự án, sau đó thêm tên sản phẩm hay chức năng:
+A common practice is to reverse the domain name of the organization or project, then append the product or feature name:
 
 - `com.acme.orders`
 - `com.acme.orders.api`
@@ -55,80 +55,80 @@ Cách phổ biến là đảo ngược tên miền của tổ chức hoặc dự
 - `vn.example.inventory`
 - `org.example.reporting`
 
-Tên miền đảo ngược giúp giảm nguy cơ trùng tên giữa các thư viện do những nhóm khác nhau phát triển. Đây là quy ước đặt tên, không phải yêu cầu module phải có một tên miền Internet đang hoạt động.
+Reverse domain naming helps reduce the risk of name collisions between libraries developed by different teams. This is a naming convention, not a requirement that the module must correspond to an active Internet domain.
 
-Nếu dự án không sở hữu tên miền riêng, hãy chọn một namespace ổn định mà nhóm kiểm soát, chẳng hạn namespace của tổ chức hoặc dự án mã nguồn mở. Tránh chọn một tên quá phổ biến như `util`, `common` hay `core` làm tên module độc lập vì dễ va chạm với module khác.
+If the project does not own its own domain name, choose a stable namespace controlled by the team, such as the namespace of the organization or open-source project. Avoid choosing overly generic names like `util`, `common`, or `core` as standalone module names because they easily collide with other modules.
 
-### Thể hiện trách nhiệm của module
+### Express the Module's Responsibility
 
-Tên nên cho người đọc biết module phục vụ miền nghiệp vụ hoặc trách nhiệm kỹ thuật nào. Ví dụ, trong hệ thống bán hàng:
+The name should tell readers which business domain or technical responsibility the module serves. For example, in a sales system:
 
-- `com.acme.orders` quản lý đơn hàng.
-- `com.acme.catalog` quản lý danh mục sản phẩm.
-- `com.acme.billing` xử lý thanh toán và hóa đơn.
+- `com.acme.orders` manages orders.
+- `com.acme.catalog` manages the product catalog.
+- `com.acme.billing` handles payments and invoices.
 
-Chỉ tách thêm các module con như `com.acme.orders.api` hoặc `com.acme.orders.persistence` khi chúng đại diện cho ranh giới phụ thuộc có ý nghĩa. Không cần tạo một module cho mỗi package hoặc mỗi class.
+Only split out submodules such as `com.acme.orders.api` or `com.acme.orders.persistence` when they represent meaningful dependency boundaries. There is no need to create a module for every package or every class.
 
-### Giữ tên ổn định
+### Keep Names Stable
 
-Tên module được các module khác tham chiếu trong `requires`. Đổi tên module vì thế có thể làm hỏng cấu hình biên dịch, module path và các module phụ thuộc. Hãy chọn tên có thể tồn tại lâu dài.
+Module names are referenced by other modules in `requires`. Renaming a module can therefore break build configurations, the module path, and dependent modules. Choose a name that can endure over the long term.
 
-Không nên đưa thông tin thay đổi theo lần phát hành hoặc môi trường vào tên module, ví dụ:
+Do not include information that changes per release or environment in the module name, for example:
 
-- Tránh `com.acme.orders.v2` chỉ để biểu thị phiên bản phát hành.
-- Tránh `com.acme.orders.dev` hoặc `com.acme.orders.prod` chỉ để phân biệt môi trường.
-- Tránh đưa tên file JAR hoặc ngày build vào tên module.
+- Avoid `com.acme.orders.v2` just to indicate a release version.
+- Avoid `com.acme.orders.dev` or `com.acme.orders.prod` just to distinguish environments.
+- Avoid putting the JAR filename or build date into the module name.
 
-Phiên bản phát hành, cấu hình môi trường và tên artifact nên được quản lý ở các cơ chế tương ứng. Nếu cần thay đổi API hoặc ranh giới module, hãy thực hiện như một thay đổi tương thích có chủ đích.
+Release versions, environment configurations, and artifact names should be managed through their respective mechanisms. If you need to change the API or module boundaries, do so as an intentional compatibility change.
 
-### Tránh namespace của nền tảng
+### Avoid Platform Namespaces
 
-Không tự đặt tên module ứng dụng dưới các tiền tố `java.*` hoặc `jdk.*`; đây là các namespace gắn với Java Platform và JDK. Dùng namespace của tổ chức hoặc dự án để tránh gây nhầm lẫn và xung đột.
+Do not name application modules under the `java.*` or `jdk.*` prefixes; these are namespaces reserved for the Java Platform and JDK. Use your organization's or project's namespace to avoid confusion and conflicts.
 
-## 4. Tên module khác tên package và tên file JAR
+## 4. Module Names Differ from Package Names and JAR Filenames
 
-Ba loại tên này có liên quan nhưng không đồng nhất:
+These three kinds of names are related but not identical:
 
-| Thành phần | Ví dụ | Dùng ở đâu |
+| Component | Example | Where It Is Used |
 |---|---|---|
-| Tên module | `com.acme.orders` | `module`, `requires`, module path |
-| Tên package | `com.acme.orders.api` | `package`, `exports`, `opens` |
-| Tên file JAR | `orders-service-2.1.0.jar` | Tên artifact trên filesystem hoặc trong kho lưu trữ |
+| Module name | `com.acme.orders` | `module`, `requires`, module path |
+| Package name | `com.acme.orders.api` | `package`, `exports`, `opens` |
+| JAR filename | `orders-service-2.1.0.jar` | Artifact name on the filesystem or in a repository |
 
-Ví dụ, file JAR có thể tên `orders-service-2.1.0.jar` trong khi module bên trong có tên `com.acme.orders`. Với một JAR có `module-info.class`, tên module được xác định bởi module descriptor; không cần suy ra từ tên file.
+For example, the JAR file may be named `orders-service-2.1.0.jar` while the module inside is named `com.acme.orders`. For a JAR with `module-info.class`, the module name is determined by the module descriptor; it does not need to be inferred from the filename.
 
-Khi thiết kế nhiều module, nên đặt package theo namespace của dự án và tránh để các named module cùng chứa một package. Việc chia sẻ package giữa nhiều named module trong cùng cấu hình có thể gây lỗi split package khi module graph được phân giải.
+When designing multiple modules, place packages under the project's namespace and avoid having multiple named modules contain the same package. Sharing a package across multiple named modules in the same configuration can cause a split package error when the module graph is resolved.
 
-## 5. Tên của automatic module
+## 5. Automatic Module Names
 
-Một thư viện JAR chưa có `module-info.class` vẫn có thể được đặt trên module path. Khi đó, JPMS có thể xem nó là **automatic module**.
+A library JAR without `module-info.class` can still be placed on the module path. When that happens, JPMS can treat it as an **automatic module**.
 
-Tên automatic module được xác định theo thứ tự sau:
+The automatic module name is determined in the following order:
 
-1. Nếu JAR có thuộc tính manifest `Automatic-Module-Name`, giá trị của thuộc tính đó được dùng làm tên module.
-2. Nếu không có thuộc tính này, tên được suy ra từ tên file JAR: bỏ phần mở rộng `.jar`, loại bỏ hậu tố phiên bản được nhận diện, thay các chuỗi ký tự không phải chữ hoặc số bằng dấu chấm, gộp các dấu chấm liên tiếp và bỏ dấu chấm ở đầu/cuối.
+1. If the JAR has the `Automatic-Module-Name` manifest attribute, the value of that attribute is used as the module name.
+2. If that attribute is absent, the name is derived from the JAR filename: strip the `.jar` extension, remove recognized version suffixes, replace sequences of non-alphanumeric characters with dots, collapse consecutive dots, and trim leading/trailing dots.
 
-Ví dụ, `commons-lang3-3.12.0.jar` có thể được suy ra thành tên `commons.lang3`. Cách suy ra này phụ thuộc tên file, vì vậy đổi tên artifact có thể làm thay đổi tên module mà module khác đang `requires`.
+For example, `commons-lang3-3.12.0.jar` can be derived into the name `commons.lang3`. This derivation depends on the filename, so renaming the artifact can change the module name that other modules `requires`.
 
-Đối với thư viện muốn hỗ trợ người dùng JPMS nhưng chưa phát hành module descriptor, nên khai báo tên ổn định trong manifest:
+For libraries that want to support JPMS users without yet shipping a module descriptor, declare a stable name in the manifest:
 
 ```text
 Automatic-Module-Name: org.example.reporting
 ```
 
-Khi thư viện được nâng cấp thành explicit module bằng `module-info.java`, tên trong module descriptor sẽ xác định danh tính module. Tên đã công bố nên được giữ tương thích để các ứng dụng phụ thuộc không phải đổi `requires` chỉ vì thư viện chuyển từ automatic module sang explicit module.
+When the library is upgraded to an explicit module via `module-info.java`, the name in the module descriptor will establish the module's identity. The published name should be kept compatible so dependent applications do not have to change `requires` solely because the library moved from an automatic module to an explicit module.
 
-Có thể kiểm tra tên mà JDK nhận diện bằng lệnh:
+You can check the name recognized by the JDK with the command:
 
 ```bash
 jar --describe-module --file libs/commons-lang3-3.12.0.jar
 ```
 
-Lệnh này hữu ích khi gặp lỗi không tìm thấy module hoặc khi cần xác nhận một thư viện cũ được nhận diện dưới tên nào.
+This command is useful when encountering module-not-found errors or when you need to confirm what name a legacy library is recognized under.
 
-## 6. Ví dụ cấu trúc source và module descriptor
+## 6. Example Source Structure and Module Descriptor
 
-Một dự án có hai module có thể tổ chức source như sau:
+A project with two modules can organize its sources as follows:
 
 ```text
 src/
@@ -158,30 +158,30 @@ module com.acme.billing {
 }
 ```
 
-Ở đây, `com.acme.billing` phụ thuộc vào module `com.acme.orders` bằng đúng tên module đã khai báo. Package được export vẫn được ghi đầy đủ trong mệnh đề `exports`. Tên thư mục source trong ví dụ phản ánh tên module để dễ tổ chức dự án, nhưng chính nội dung module descriptor mới là nơi khai báo tên của explicit module.
+Here, `com.acme.billing` depends on the `com.acme.orders` module using the exact declared module name. Exported packages are still written out in full in the `exports` clause. The source directory names in the example mirror the module names to make organizing the project easier, but it is the content of the module descriptor itself that declares the name of an explicit module.
 
-## 7. Lỗi thường gặp
+## 7. Common Mistakes
 
-- **Dùng dấu gạch nối trong tên module:** `com.acme.order-service` không phải tên module hợp lệ theo cú pháp identifier. Dùng `com.acme.order.service` hoặc một tên có thành phần hợp lệ khác.
-- **Dùng tên package trong `requires`:** `requires` cần tên module, không phải tên package được export.
-- **Viết sai chữ hoa/chữ thường:** tên module phân biệt hoa thường, nên `com.acme.orders` khác `com.acme.Orders`.
-- **Đổi tên JAR của automatic module mà không kiểm tra:** tên suy ra từ filename có thể đổi và làm hỏng các khai báo `requires`. Dùng `Automatic-Module-Name` để cố định tên cho thư viện chưa có descriptor.
-- **Dùng tên quá chung:** tên như `common` khó phân biệt và dễ trùng với thư viện khác. Thêm namespace của tổ chức và trách nhiệm cụ thể.
-- **Nhầm tên module với tên package:** `exports com.acme.orders.api;` export package; nó không tạo hoặc đổi tên module.
+- **Using hyphens in a module name:** `com.acme.order-service` is not a valid module name according to identifier syntax. Use `com.acme.order.service` or another name with valid components.
+- **Using a package name in `requires`:** `requires` expects a module name, not the name of an exported package.
+- **Getting capitalization wrong:** module names are case-sensitive, so `com.acme.orders` differs from `com.acme.Orders`.
+- **Renaming an automatic module's JAR without checking:** the filename-derived name may change and break `requires` declarations. Use `Automatic-Module-Name` to pin the name for a library without a descriptor.
+- **Using overly generic names:** names like `common` are hard to distinguish and easily collide with other libraries. Add your organization's namespace and a specific responsibility.
+- **Confusing module names with package names:** `exports com.acme.orders.api;` exports a package; it does not create or rename a module.
 
-Khi gặp lỗi `module not found`, hãy kiểm tra ba điểm: tên trong `requires` có khớp chính xác với tên module được khai báo hay không, module có thực sự nằm trên module path hay không, và tên automatic module có bị suy ra khác dự kiến từ tên JAR hay không.
+When encountering a `module not found` error, check three things: whether the name in `requires` matches the declared module name exactly, whether the module is actually on the module path, and whether an automatic module name was derived differently than expected from the JAR filename.
 
-## 8. Checklist đặt tên
+## 8. Naming Checklist
 
-Trước khi chốt tên module, hãy kiểm tra:
+Before finalizing a module name, check:
 
-- [ ] Mỗi thành phần ngăn cách bằng dấu chấm là một Java identifier hợp lệ.
-- [ ] Tên dùng chữ thường và dễ đọc.
-- [ ] Namespace có khả năng duy nhất, ưu tiên tên miền đảo ngược hoặc namespace do tổ chức kiểm soát.
-- [ ] Tên thể hiện trách nhiệm của module và không quá chung chung.
-- [ ] Tên không chứa phiên bản phát hành, môi trường hoặc thông tin build.
-- [ ] Tên không sử dụng namespace `java.*` hoặc `jdk.*` dành cho nền tảng.
-- [ ] Tên trong `requires` khớp chính xác với tên module được cung cấp trên module path.
-- [ ] Với thư viện automatic module, tên được công bố ổn định bằng `Automatic-Module-Name` nếu có thể.
+- [ ] Each dot-separated component is a valid Java identifier.
+- [ ] The name uses lowercase and is easy to read.
+- [ ] The namespace is likely to be unique, preferring reverse domain order or an organization-controlled namespace.
+- [ ] The name expresses the module's responsibility and is not overly generic.
+- [ ] The name does not contain release versions, environments, or build information.
+- [ ] The name does not use the platform-reserved `java.*` or `jdk.*` namespaces.
+- [ ] Names in `requires` match the module names provided on the module path exactly.
+- [ ] For automatic module libraries, a stable name is published via `Automatic-Module-Name` if possible.
 
-Một tên module tốt thường ngắn gọn, có namespace rõ ràng, mô tả đúng ranh giới trách nhiệm và không cần thay đổi theo từng phiên bản phát hành.
+A good module name is usually concise, has a clear namespace, accurately describes its responsibility boundary, and does not need to change across release versions.

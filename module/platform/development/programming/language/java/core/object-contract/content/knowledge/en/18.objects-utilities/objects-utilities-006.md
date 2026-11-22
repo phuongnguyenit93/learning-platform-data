@@ -1,47 +1,47 @@
-# `Objects.requireNonNull()` và thông báo lỗi tường minh
+# `Objects.requireNonNull()` and explicit error messages
 
-## 1. Mục đích: kiểm tra điều kiện không-null ngay tại điểm nhận dữ liệu
+## 1. Objective: checking the non-null condition right at the data entry point
 
-Trong Java, một tham chiếu có thể bằng `null`, tức là không trỏ đến đối tượng nào. Nếu chương trình gọi phương thức hoặc truy cập trường qua tham chiếu `null`, JVM thường ném `NullPointerException` (NPE). Lỗi có thể phát sinh ở một vị trí rất xa nơi giá trị không hợp lệ đi vào ứng dụng, khiến việc xác định nguyên nhân khó khăn.
+In Java, a reference can be `null`, meaning it points to no object. If a program invokes a method or accesses a field through a `null` reference, the JVM typically throws `NullPointerException` (NPE). The error may arise very far from where the invalid value entered the application, making it difficult to pinpoint the root cause.
 
-`java.util.Objects.requireNonNull()` là công cụ chuẩn để **khẳng định một tham chiếu bắt buộc khác `null`** và thất bại sớm, ngay tại constructor, phương thức, hoặc điểm thiết lập trạng thái:
+`java.util.Objects.requireNonNull()` is the standard tool to **assert that a required reference is non-`null`** and fail fast, right in the constructor, method, or state-setting point:
 
 ```java
 this.customerId =
         Objects.requireNonNull(customerId, "customerId must not be null");
 ```
 
-Nếu `customerId` khác null, phương thức trả về **chính tham chiếu đã truyền vào**. Nếu bằng null, nó ném `NullPointerException` kèm thông báo mà lập trình viên chỉ định. Nhờ đó lỗi được phát hiện ở ranh giới rõ ràng, thay vì chờ đến lần gọi `customerId.toString()` ở sâu trong ứng dụng.
+If `customerId` is non-null, the method returns **the exact reference passed in**. If it is null, it throws `NullPointerException` with the message specified by the developer. As a result, the error is detected at a clear boundary, rather than waiting for a `customerId.toString()` call deep inside the application.
 
-Đây là quy tắc dành cho **trường/tham số bắt buộc**. Nếu `null` là một trạng thái có ý nghĩa hợp lệ, đừng áp `requireNonNull` một cách máy móc; hãy thiết kế chính sách xử lý giá trị tùy chọn phù hợp.
+This rule is for **required fields/parameters**. If `null` is a valid meaningful state, do not apply `requireNonNull` mechanically; design an appropriate policy for optional values.
 
-## 2. Các overload của `Objects.requireNonNull`
+## 2. Overloads of `Objects.requireNonNull`
 
-`Objects` trong package `java.util` cung cấp ba overload phổ biến:
+`Objects` in the `java.util` package provides three common overloads:
 
-| Phương thức | Khi đối số khác null | Khi đối số bằng null |
+| Method | When the argument is non-null | When the argument is null |
 | --- | --- | --- |
-| `Objects.requireNonNull(obj)` | Trả về chính `obj` | Ném `NullPointerException`, không đặt thông báo tùy chỉnh |
-| `Objects.requireNonNull(obj, String message)` | Trả về chính `obj` | Ném `NullPointerException` với thông báo `message` |
-| `Objects.requireNonNull(obj, Supplier<String> messageSupplier)` | Trả về chính `obj`, không gọi supplier | Gọi supplier để tạo thông báo và ném `NullPointerException` |
+| `Objects.requireNonNull(obj)` | Returns `obj` itself | Throws `NullPointerException` with no custom message |
+| `Objects.requireNonNull(obj, String message)` | Returns `obj` itself | Throws `NullPointerException` with message `message` |
+| `Objects.requireNonNull(obj, Supplier<String> messageSupplier)` | Returns `obj` itself, does not call supplier | Calls supplier to build the message and throws `NullPointerException` |
 
-Mỗi overload có thể dùng trực tiếp trong câu lệnh gán vì kết quả có kiểu generic `T` tương ứng với đối số:
+Each overload can be used directly in an assignment statement because the return value has generic type `T` matching the argument:
 
 ```java
 String id = Objects.requireNonNull(rawId, "rawId is required");
 ```
 
-Đây là fragment giả định biến `rawId` đã được khai báo. `requireNonNull` **không tạo bản sao, không chuyển chuỗi, không chuẩn hóa dữ liệu**; nó chỉ giữ nguyên đối tượng khác null hoặc ném ngoại lệ.
+This is a fragment assuming the variable `rawId` has already been declared. `requireNonNull` **does not make a copy, does not convert strings, and does not normalize data**; it simply keeps the non-null object intact or throws an exception.
 
-### Overload 1: không có thông báo tùy chỉnh
+### Overload 1: no custom message
 
 ```java
 Objects.requireNonNull(value);
 ```
 
-Cách này hữu ích khi điều kiện đủ hiển nhiên tại điểm gọi. Nhưng thông báo trong exception có thể không giúp xác định tên tham số nghiệp vụ. Phân biệt với **Helpful NullPointerExceptions** từ JVM khi dereference trực tiếp: đừng mặc định một NPE do `Objects.requireNonNull` ném sẽ có chính phần diễn giải mà JVM sinh ra cho mọi biểu thức dereference. Nếu cần nêu rõ tham số, chọn overload có message.
+This is useful when the condition is obvious enough at the call site. However, the exception message may not help identify the business parameter name. Distinguish this from **Helpful NullPointerExceptions** generated by the JVM on direct dereference: do not assume an NPE thrown by `Objects.requireNonNull` will carry the same explanation the JVM generates for direct dereference expressions. If you need to name the parameter explicitly, choose an overload with a message.
 
-### Overload 2: thông báo `String`
+### Overload 2: `String` message
 
 ```java
 Objects.requireNonNull(
@@ -49,7 +49,7 @@ Objects.requireNonNull(
         "customerId must not be null");
 ```
 
-Ở thời điểm gọi, Java **đánh giá các đối số** trước khi vào phương thức. Vì vậy nếu xây thông báo bằng phép nối chuỗi, truy vấn hay một hàm tốn kém, chi phí đó xảy ra cả khi `customerId` khác null.
+At call time, Java **evaluates arguments** before entering the method. Therefore, if you build the message with string concatenation, a query, or an expensive function, that cost occurs even when `customerId` is non-null.
 
 ```java
 Objects.requireNonNull(
@@ -57,9 +57,9 @@ Objects.requireNonNull(
         "Invalid customer: " + buildDiagnosticContext());
 ```
 
-Fragment trên giả định `buildDiagnosticContext()` tồn tại và minh họa cách đánh giá tham số. Nó được gọi trước `requireNonNull`, ngay cả khi `customerId` hợp lệ. Nếu phần xây message đơn giản và hầu như không tốn chi phí, overload `String` thường dễ đọc nhất.
+The fragment above assumes `buildDiagnosticContext()` exists and illustrates argument evaluation. It is called before `requireNonNull`, even when `customerId` is valid. If building the message is simple and virtually free, the `String` overload is usually the most readable.
 
-### Overload 3: thông báo sinh lười bằng `Supplier<String>`
+### Overload 3: lazily generated message via `Supplier<String>`
 
 ```java
 Objects.requireNonNull(
@@ -67,18 +67,18 @@ Objects.requireNonNull(
         () -> "Invalid customer: " + buildDiagnosticContext());
 ```
 
-`Supplier<String>` là functional interface; biểu thức lambda được truyền vào, và `get()` chỉ được gọi khi `customerId == null`. Nhờ đó, quá trình tạo thông báo phức tạp chỉ chạy ở nhánh lỗi.
+`Supplier<String>` is a functional interface; the lambda expression is passed in, and `get()` is only called when `customerId == null`. Consequently, complex message construction only runs on the error path.
 
-Điều kiện cần hiểu chính xác:
+Conditions to understand accurately:
 
-- Java vẫn phải **tạo/đánh giá biểu thức supplier** tại thời điểm gọi. Thứ được trì hoãn là **thân supplier** (`get()`), chứ không phải toàn bộ quá trình chuẩn bị argument.
-- Lambda có thể giữ tham chiếu tới các biến được capture; việc capture phải tuân thủ yêu cầu biến local là final hoặc effectively final.
-- Nếu xây message không tốn kém, `String` overload có thể rõ ràng hơn. `Supplier` chủ yếu có giá trị khi tạo message cần tính toán hoặc khi cần tránh thực hiện thao tác lỗi trên đường thành công.
-- Nếu supplier tự ném ngoại lệ, ngoại lệ đó có thể xuất hiện thay vì NPE dự kiến. Hãy giữ thao tác tạo diagnostic đơn giản, an toàn và không có side effect ngoài ý muốn.
+- Java still must **create/evaluate the supplier expression** at call time. What is deferred is **the supplier body** (`get()`), not the entire argument preparation.
+- The lambda can hold references to captured variables; capturing must obey the requirement that local variables be final or effectively final.
+- If building the message is inexpensive, the `String` overload can be clearer. `Supplier` is mainly valuable when message creation requires computation or when avoiding an operation that could fail on the success path.
+- If the supplier itself throws an exception, that exception may appear instead of the expected NPE. Keep diagnostic generation simple, safe, and free of unintended side effects.
 
-## 3. Ví dụ Java 17 đầy đủ, có stdout
+## 3. Complete Java 17 example with stdout
 
-Lưu mã vào tệp `RequireNonNullDemo.java`:
+Save the code into `RequireNonNullDemo.java`:
 
 ```java
 import java.util.Objects;
@@ -164,14 +164,14 @@ public class RequireNonNullDemo {
 }
 ```
 
-Dùng JDK 17 hoặc mới hơn; từ thư mục chứa tệp, biên dịch và chạy:
+Use JDK 17 or newer; from the directory containing the file, compile and run:
 
 ```bash
 javac RequireNonNullDemo.java
 java RequireNonNullDemo
 ```
 
-Stdout kỳ vọng chính xác:
+Exact expected stdout:
 
 ```text
 same reference: true
@@ -187,38 +187,38 @@ lazy evaluations after null: 1
 fallback: anonymous
 ```
 
-Cách đọc chương trình:
+How to read the program:
 
-1. `Objects.requireNonNull(id, "...") == id` là `true` vì trả nguyên cùng tham chiếu `String` `id`, không copy.
-2. `requireNonNull(null)` ném NPE không có custom message; `e.getMessage() == null` là `true` trong ví dụ.
-3. Constructor chặn `tenantId` null ngay khi tạo `OrderService`. Do đó instance được tạo thành công giữ invariant `tenantId != null`.
-4. Phương thức `send` dùng message supplier để thêm ngữ cảnh `tenantId` khi `orderId` null. Đường thành công trả `sent:t1/o7` mà không cần sinh lỗi.
-5. Lời gọi với `String` message đánh giá `buildDiagnostic(eagerCounter)` ngay, khiến counter lên `1` dù đối tượng `"present"` không null.
-6. Lời gọi với lambda supplier và đối tượng `"present"` không chạy `buildDiagnostic`, nên counter vẫn `0`. Khi đầu vào null, supplier chạy đúng một lần trong tình huống này, thông báo `diagnostic created` xuất hiện và counter trở thành `1`.
-7. `requireNonNullElse(null, "anonymous")` là API **khác**: trả giá trị mặc định khác null thay vì ném NPE. Chỉ dùng khi nghiệp vụ **cho phép mặc định hóa**, không dùng để che mất dữ liệu bắt buộc.
+1. `Objects.requireNonNull(id, "...") == id` is `true` because it returns the exact same `String` reference `id`, without copying.
+2. `requireNonNull(null)` throws an NPE without a custom message; `e.getMessage() == null` is `true` in the example.
+3. The constructor blocks a null `tenantId` immediately when creating `OrderService`. Therefore, any successfully constructed instance preserves the invariant `tenantId != null`.
+4. The `send` method uses a message supplier to add `tenantId` context when `orderId` is null. The success path returns `sent:t1/o7` without generating any error.
+5. The call with a `String` message evaluates `buildDiagnostic(eagerCounter)` immediately, raising the counter to `1` even though `"present"` is non-null.
+6. The call with a lambda supplier and `"present"` does not run `buildDiagnostic`, so the counter stays `0`. When the input is null, the supplier runs once in this scenario, the message `diagnostic created` appears, and the counter becomes `1`.
+7. `requireNonNullElse(null, "anonymous")` is a **different** API: it returns a non-null default value instead of throwing NPE. Only use it when business rules **permit defaulting**, not to hide missing required data.
 
-Đoạn `try/catch` ở đây chỉ để quan sát lỗi và so sánh các overload. Trong service thật, không nên bắt rồi bỏ qua `NullPointerException` do vi phạm tiền điều kiện; để exception nổi lên tới nơi xử lý lỗi phù hợp hoặc chuyển thành lỗi API có chủ đích ở ranh giới hệ thống.
+The `try/catch` blocks here are solely to observe the errors and compare the overloads. In a real service, do not catch and ignore a `NullPointerException` caused by a precondition violation; let the exception propagate to the appropriate error handler or translate it into an intentional API error at the system boundary.
 
-## 4. Thông báo lỗi tường minh nên viết như thế nào?
+## 4. How should explicit error messages be written?
 
-Một thông báo hữu ích cần chỉ ra **giá trị nào** bị thiếu và **điều kiện nào** đã bị vi phạm:
+A helpful message should indicate **which value** is missing and **which condition** was violated:
 
-| Thông báo | Đánh giá |
+| Message | Evaluation |
 | --- | --- |
-| `"null"` | Quá chung chung |
-| `"Invalid input"` | Không biết input nào |
-| `"orderId must not be null"` | Chỉ rõ tham số và yêu cầu |
-| `"orderId must not be null for tenant=t1"` | Có ngữ cảnh nghiệp vụ khi cần tra cứu |
+| `"null"` | Too generic |
+| `"Invalid input"` | Does not say which input |
+| `"orderId must not be null"` | Clearly identifies the parameter and requirement |
+| `"orderId must not be null for tenant=t1"` | Provides business context when needed for investigation |
 
-Thông điệp tiếng Việt hay tiếng Anh đều được; dự án nên có một quy ước nhất quán. Một số gợi ý:
+Messages in Vietnamese or English are both fine; a project should follow a consistent convention. A few tips:
 
-- Gọi đúng tên tham số hoặc trường (`orderId`, `customerId`, `config`).
-- Nêu quy tắc bị vi phạm (ví dụ “must not be null”).
-- Chỉ bổ sung ngữ cảnh không nhạy cảm thực sự giúp gỡ lỗi, chẳng hạn tên thao tác hoặc id kỹ thuật khi được phép.
-- Tránh đưa mật khẩu, access token, dữ liệu cá nhân nhạy cảm, hoặc dump toàn bộ object vào message. Exception thường được log và có thể đi qua nhiều hệ thống.
-- Thông báo lỗi không phải định dạng hợp đồng trả về cho người dùng cuối. Nếu có tầng REST/API, tầng đó cần chuyển exception sang phản hồi đúng theo chính sách của hệ thống.
+- Name the exact parameter or field (`orderId`, `customerId`, `config`).
+- State the violated rule (for example, "must not be null").
+- Only add non-sensitive context that genuinely aids debugging, such as an operation name or technical ID when permitted.
+- Avoid putting passwords, access tokens, sensitive personal data, or dumping whole objects into messages. Exceptions are often logged and may pass through multiple systems.
+- Error messages are not the response contract returned to end users. If there is a REST/API layer, that layer should map exceptions to responses according to system policy.
 
-Ví dụ tham số bắt buộc:
+Example with required parameters:
 
 ```java
 public void approve(String requestId, String reviewerId) {
@@ -227,15 +227,15 @@ public void approve(String requestId, String reviewerId) {
     Objects.requireNonNull(reviewerId,
             "reviewerId must not be null");
 
-    // Tiếp tục xử lý khi cả hai tham số hợp lệ.
+    // Continue processing when both parameters are valid.
 }
 ```
 
-Đây là một **phương thức minh họa**, không phải chương trình chạy độc lập. Lợi ích thực tế là caller biết chính xác tham số sai, ngay cả trước khi business logic truy cập đến nó.
+This is an **illustrative method**, not a standalone runnable program. The practical benefit is that the caller knows the exact invalid parameter even before business logic accesses it.
 
-## 5. Dùng trong constructor để bảo vệ invariant
+## 5. Using in constructors to protect invariants
 
-Một invariant là điều kiện luôn phải đúng đối với instance đã được tạo thành công. Nếu `Order` không thể tồn tại hợp lệ khi thiếu `id`, hãy chặn `null` trong constructor và lưu trường `final`:
+An invariant is a condition that must always hold for a successfully created instance. If `Order` cannot validly exist without `id`, block `null` in the constructor and store a `final` field:
 
 ```java
 final class Order {
@@ -248,9 +248,9 @@ final class Order {
 }
 ```
 
-Fragment này cần `import java.util.Objects;`. Cách viết không cho phép tạo một instance `Order` có `id == null` qua constructor ấy. Nó không kiểm tra các trường hợp khác như `id.isBlank()`: **khác null chưa chắc có giá trị hợp lệ**.
+This fragment requires `import java.util.Objects;`. This style makes it impossible to construct an `Order` instance with `id == null` via that constructor. It does not check other cases like `id.isBlank()`: **non-null does not guarantee a valid value**.
 
-Nếu nghiệp vụ yêu cầu mã khác rỗng, thêm kiểm tra riêng sau bước null:
+If business rules require a non-blank code, add a separate check after the null step:
 
 ```java
 this.id = Objects.requireNonNull(id, "id required");
@@ -259,57 +259,57 @@ if (this.id.isBlank()) {
 }
 ```
 
-Đây là fragment đặt trong constructor. `String.isBlank()` có từ Java 11 và hoạt động khi tham chiếu khác null. Việc phân biệt “không được null” và “không được rỗng” giúp điều kiện rõ ràng hơn.
+This is a fragment placed in a constructor. `String.isBlank()` has existed since Java 11 and operates on a non-null reference. Distinguishing "must not be null" from "must not be blank" makes conditions clearer.
 
-Nếu object có nhiều tham số, check những trường bắt buộc tại ranh giới constructor/factory, thay vì hy vọng mọi lời gọi sau đó tự kiểm tra null. Tuy nhiên đừng lặp lại check tốn kém ở mọi nơi nếu invariant đã được đảm bảo.
+If an object has many parameters, check required fields at the constructor/factory boundary instead of hoping every subsequent caller checks for null. However, avoid repeating expensive checks everywhere once the invariant is already guaranteed.
 
-## 6. Chọn `NullPointerException` hay `IllegalArgumentException`?
+## 6. Choosing `NullPointerException` or `IllegalArgumentException`?
 
-`Objects.requireNonNull` **luôn chủ đích dùng `NullPointerException`** khi đối tượng bắt buộc không tồn tại; nó không có overload cho phép chọn kiểu exception khác.
+`Objects.requireNonNull` **always intentionally uses `NullPointerException`** when a required object is missing; it has no overload allowing you to pick a different exception type.
 
-- `NullPointerException` phù hợp và phổ biến khi tham chiếu null vi phạm tiền điều kiện của một API Java.
-- `IllegalArgumentException` thường dùng khi đối tượng không null nhưng giá trị không đạt điều kiện, ví dụ số lượng âm hoặc `String` rỗng trái quy tắc.
-- Một số hệ thống có convention exception riêng và có thể cần phân loại lỗi tại lớp boundary. Hãy giữ chính sách nhất quán; không phải mọi null đều bắt buộc được xử lý cùng một kiểu lỗi nghiệp vụ.
+- `NullPointerException` is appropriate and standard when a null reference violates a Java API precondition.
+- `IllegalArgumentException` is typically used when the object is non-null yet the value fails validation, such as a negative quantity or an empty `String` against the rules.
+- Some systems have custom exception conventions and may categorize errors at the boundary layer. Keep the policy consistent; not every null has to be mapped to the exact same business error type.
 
-Nếu API thiết kế coi null là input hợp lệ mang ý nghĩa “không có yêu cầu”, đừng ném NPE. Ngược lại, nếu null là lỗi lập trình của caller, việc báo lỗi sớm bằng `requireNonNull` có giá trị hơn một NPE phát sinh vô tình tại dòng truy cập sau đó.
+If an API design treats null as valid input meaning "no request", do not throw NPE. Conversely, if null is a caller programming error, failing early with `requireNonNull` is much more valuable than an accidental NPE triggered later at an access line.
 
-### `requireNonNull` không biến mất khi chạy production
+### `requireNonNull` does not disappear in production
 
-`Objects.requireNonNull` là lời gọi phương thức thông thường. Khác với kiểm tra bằng `assert`, nó không phụ thuộc bật/tắt assertion trên JVM. Nếu `null` đi tới đó, phương thức vẫn ném NPE theo hợp đồng ngay cả khi không bật `-ea`.
+`Objects.requireNonNull` is a normal method call. Unlike `assert` checks, it does not depend on enabling/disabling assertions on the JVM. If `null` reaches it, the method still throws NPE per contract even without `-ea`.
 
 ```java
 assert customerId != null;
 Objects.requireNonNull(customerId, "customerId required");
 ```
 
-Đoạn trên chỉ dùng để so sánh ý nghĩa; không nên dùng cả hai chỉ để kiểm tra cùng một tiền điều kiện trong ứng dụng. `assert` dành cho giả định nội bộ phục vụ phát triển, và mặc định thường không được kích hoạt; `requireNonNull` phù hợp để cưỡng chế một tiền điều kiện bắt buộc ở runtime.
+The snippet above is only for comparing intent; you should not use both just to check the same precondition in an application. `assert` is for internal development assumptions and is usually disabled by default; `requireNonNull` is suited for enforcing a mandatory precondition at runtime.
 
-## 7. So sánh với `requireNonNullElse` và `requireNonNullElseGet`
+## 7. Comparing with `requireNonNullElse` and `requireNonNullElseGet`
 
-Cùng thuộc `Objects` nhưng hai phương thức sau chọn **giá trị thay thế**, không đơn thuần thông báo lỗi:
+Also in `Objects`, these two methods choose a **replacement value**, rather than simply reporting an error:
 
-| API | Nếu đầu vào khác null | Nếu đầu vào null |
+| API | If input is non-null | If input is null |
 | --- | --- | --- |
-| `requireNonNull(obj, message)` | Trả chính `obj` | Ném NPE với message |
-| `requireNonNullElse(obj, defaultObj)` | Trả chính `obj` | Trả `defaultObj`, yêu cầu default khác null |
-| `requireNonNullElseGet(obj, supplier)` | Trả chính `obj` | Lấy giá trị từ supplier, yêu cầu giá trị trả về khác null |
+| `requireNonNull(obj, message)` | Returns `obj` itself | Throws NPE with message |
+| `requireNonNullElse(obj, defaultObj)` | Returns `obj` itself | Returns `defaultObj`, requires default to be non-null |
+| `requireNonNullElseGet(obj, supplier)` | Returns `obj` itself | Obtains value from supplier, requires returned value to be non-null |
 
-Các overload `Else` có mặt từ Java 9. Chọn theo ý nghĩa:
+The `Else` overloads have been available since Java 9. Choose by intent:
 
 ```java
 String displayName =
         Objects.requireNonNullElse(inputName, "Anonymous");
 ```
 
-Fragment này giả định `inputName` đã khai báo. Khi nghiệp vụ cho phép tên hiển thị mặc định, đây là lựa chọn phù hợp. Khi `orderId` bắt buộc, tự động thay `"UNKNOWN"` có thể biến dữ liệu sai thành trạng thái khó truy vết; lúc đó `requireNonNull` báo lỗi rõ ràng hơn.
+This fragment assumes `inputName` is already declared. When business logic allows a default display name, this is an appropriate choice. When `orderId` is required, silently substituting `"UNKNOWN"` can turn bad data into hard-to-trace state; in that case, `requireNonNull` reports the error clearly.
 
-Một khác biệt nữa: `requireNonNullElseGet` **trì hoãn tạo giá trị mặc định** khi đầu vào không null, nhưng nó phải sinh **giá trị hợp lệ** khi đầu vào null; `requireNonNull(obj, Supplier<String>)` trì hoãn tạo **thông báo lỗi** và vẫn ném NPE nếu đầu vào null. Đừng nhầm hai hành vi.
+Another difference: `requireNonNullElseGet` **defers creating the default value** when the input is non-null, yet it must produce a **valid value** when the input is null; `requireNonNull(obj, Supplier<String>)` defers creating **the error message** and still throws NPE if the input is null. Do not confuse the two behaviors.
 
-## 8. Những bẫy phổ biến
+## 8. Common pitfalls
 
-### a. Nghĩ `requireNonNull` kiểm tra luôn chuỗi rỗng, danh sách rỗng, số âm
+### a. Thinking `requireNonNull` also checks empty strings, empty lists, or negative numbers
 
-`requireNonNull("")`, `requireNonNull(List.of())` và `requireNonNull(-1)` đều có thể thành công vì các giá trị/đối tượng đó không null. Cần thêm quy tắc validation riêng:
+`requireNonNull("")`, `requireNonNull(List.of())`, and `requireNonNull(-1)` all succeed because those values/objects are non-null. Separate validation rules must be added:
 
 ```java
 String name = Objects.requireNonNull(
@@ -319,29 +319,29 @@ if (name.isBlank()) {
 }
 ```
 
-Đây là fragment. Không nên dùng message `"name must not be blank"` cho riêng `requireNonNull` vì exception đó chỉ kích hoạt khi `name == null`; message phải mô tả đúng điều kiện thực sự được kiểm tra.
+This is a fragment. Do not use the message `"name must not be blank"` for `requireNonNull` alone because that exception only triggers when `name == null`; the message must describe the exact condition actually checked.
 
-### b. Đánh giá message tốn kém trên đường thành công
+### b. Evaluating an expensive message on the success path
 
-`requireNonNull(obj, buildMessage())` gọi `buildMessage()` trước khi biết `obj` null hay không, vì đây là đối số thông thường. Muốn tránh đánh giá thân hàm ở đường thành công, truyền `() -> buildMessage()` vào overload supplier.
+`requireNonNull(obj, buildMessage())` calls `buildMessage()` before knowing whether `obj` is null, because it is a regular argument. To avoid evaluating the function body on the success path, pass `() -> buildMessage()` to the supplier overload.
 
-Cũng không nên đưa những side effect quan trọng (ghi DB, thay đổi state, cập nhật metrics nghiệp vụ) vào supplier tạo thông báo: supplier chỉ được chạy trên nhánh null nên logic sẽ bị phụ thuộc lỗi input.
+Also avoid putting significant side effects (DB writes, state mutations, updating business metrics) into the message-building supplier: the supplier only runs on the null branch, so logic would become tied to input errors.
 
-### c. Truyền literal `null` làm tham số message không rõ overload
+### c. Passing a `null` literal as the message parameter causing overload ambiguity
 
-Vì Java có overload thứ hai là `String` và `Supplier<String>`, cách gọi `Objects.requireNonNull(value, null)` có thể **không biên dịch** do overload mơ hồ. Nếu thực sự muốn không có thông báo tùy chỉnh, dùng `Objects.requireNonNull(value)`. Nếu muốn cố ý truyền message null (không được khuyến khích), cần ép kiểu rõ ràng, chẳng hạn `(String) null`.
+Because Java has both `String` and `Supplier<String>` second overloads, calling `Objects.requireNonNull(value, null)` may **fail to compile** due to an ambiguous overload. If you genuinely want no custom message, use `Objects.requireNonNull(value)`. If you intentionally want to pass a null message (not recommended), cast explicitly, such as `(String) null`.
 
-### d. Lạm dụng thông báo có dữ liệu nhạy cảm
+### d. Misusing messages containing sensitive data
 
-`() -> "token=" + token` có thể vô tình làm lộ credential vào log khi check thất bại. Message nên mô tả **tên trường, loại yêu cầu và ngữ cảnh không nhạy cảm**, tránh in giá trị bí mật.
+`() -> "token=" + token` can inadvertently leak credentials into logs when the check fails. Messages should describe **the field name, requirement type, and non-sensitive context**, avoiding printing secret values.
 
-### e. Bắt NPE quá rộng để đoán điều kiện null
+### e. Catching NPE too broadly to guess a null condition
 
-Một `try` bao trùm toàn bộ nghiệp vụ rồi bắt mọi `NullPointerException` và báo “missing orderId” có thể che giấu một lỗi lập trình ở nơi khác. Hãy kiểm tra tại **điểm nhận dữ liệu**, để lỗi cung cấp đúng thông tin, và chỉ bắt/chuyển ngoại lệ ở ranh giới đã định nghĩa.
+A `try` wrapping an entire business flow and catching every `NullPointerException` to report "missing orderId" can mask a programming bug elsewhere. Check at **the data entry point** so the error provides accurate information, and only catch/translate exceptions at defined boundaries.
 
-### f. Trả về kết quả mà không duy trì invariant
+### f. Returning a result without maintaining an invariant
 
-`Objects.requireNonNull(dto.getId())` chỉ đảm bảo giá trị của **lời gọi getter tại thời điểm check** khác null. Nếu getter phụ thuộc trạng thái mutable hoặc tính toán, gọi lại sau đó có thể cho kết quả khác. Khi cần giá trị ổn định cho xử lý tiếp, hãy giữ kết quả trả về trong biến local hoặc trường `final`:
+`Objects.requireNonNull(dto.getId())` only ensures that the value of **the getter call at check time** is non-null. If the getter depends on mutable state or computation, calling it again later may return a different result. When a stable value is needed for subsequent processing, keep the returned result in a local variable or a `final` field:
 
 ```java
 String id = Objects.requireNonNull(
@@ -349,7 +349,7 @@ String id = Objects.requireNonNull(
 process(id);
 ```
 
-Đây là fragment và giả định `dto` không null; nếu `dto == null` thì gọi `dto.getId()` sẽ ném NPE **trước** khi `requireNonNull` nhận đối số. Khi chuỗi truy cập có thể null, kiểm tra từng ranh giới thích hợp:
+This is a fragment and assumes `dto` is non-null; if `dto == null`, calling `dto.getId()` will throw NPE **before** `requireNonNull` receives its argument. When a chain of accesses can be null, check each appropriate boundary:
 
 ```java
 Objects.requireNonNull(dto, "dto required");
@@ -357,48 +357,48 @@ String id = Objects.requireNonNull(
         dto.getId(), "dto.id required");
 ```
 
-### g. Hiểu sai việc giá trị generic được trả về
+### g. Misunderstanding the returned generic value
 
-`requireNonNull` giữ lại đúng kiểu generic `T` cho tham chiếu đầu vào và trả **chính tham chiếu**. Nó không tự động chuyển `Optional.empty()` thành lỗi: một `Optional` khác null vẫn thỏa `requireNonNull` kể cả khi chính Optional không chứa giá trị. Muốn bắt buộc giá trị nằm bên trong `Optional`, phải dùng API thích hợp như `orElseThrow` theo yêu cầu nghiệp vụ.
+`requireNonNull` preserves the exact generic type `T` of the input reference and returns **the reference itself**. It does not automatically convert `Optional.empty()` into an error: a non-null `Optional` still satisfies `requireNonNull` even when the Optional itself holds no value. To require a value inside an `Optional`, use an appropriate API such as `orElseThrow` per business requirements.
 
-## 9. Checklist khi review code
+## 9. Code review checklist
 
-1. Tham số/trường đang kiểm tra có thật sự **bắt buộc khác null** theo hợp đồng API không?
-2. Đã đặt `requireNonNull` tại constructor, factory hoặc boundary đủ sớm để lỗi được gắn với nguồn input chưa?
-3. Message có nêu tên trường và điều kiện chính xác, chẳng hạn `"orderId must not be null"`?
-4. Có nguy cơ message chứa dữ liệu nhạy cảm hoặc gọi logic dễ ném lỗi phụ không?
-5. Tạo message có tốn chi phí đến mức nên dùng `Supplier<String>` không?
-6. Có cần kiểm tra giá trị khác null nhưng chưa hợp lệ (rỗng, blank, sai format, sai miền) riêng không?
-7. Có lẫn `requireNonNull` với API lấy giá trị mặc định `requireNonNullElse...` hoặc hiểu nhầm null-safe `Objects.equals` không?
-8. Có đang giả định check một lần đảm bảo trạng thái mãi mãi dù tham chiếu hoặc dữ liệu liên quan có thể thay đổi không?
-9. Khi xảy ra exception, hệ thống có ghi nhận và hiển thị theo đúng chính sách API/log, thay vì nuốt lỗi hoặc làm lộ dữ liệu không?
+1. Is the parameter/field being checked truly **required to be non-null** under the API contract?
+2. Is `requireNonNull` placed at the constructor, factory, or boundary early enough for the error to be tied to the input source?
+3. Does the message state the field name and exact condition, such as `"orderId must not be null"`?
+4. Is there any risk of the message containing sensitive data or calling logic prone to secondary errors?
+5. Is building the message expensive enough to warrant `Supplier<String>`?
+6. Should non-null yet invalid values (empty, blank, malformed, out-of-range) be validated separately?
+7. Is `requireNonNull` being confused with defaulting APIs `requireNonNullElse...` or null-safe `Objects.equals`?
+8. Is the code assuming a single check guarantees the state forever even though the reference or underlying data can change?
+9. When an exception occurs, does the system log and surface it according to API/log policy rather than swallowing the error or exposing data?
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-**Câu 1.** `Objects.requireNonNull("x", "required")` trả gì?
+**Question 1.** What does `Objects.requireNonNull("x", "required")` return?
 
-**Đáp án:** Trả lại **cùng tham chiếu** đến chuỗi `"x"`; không ném ngoại lệ.
+**Answer:** Returns **the same reference** to the string `"x"`; does not throw an exception.
 
-**Câu 2.** `Objects.requireNonNull(null, "userId required")` ném gì?
+**Question 2.** What does `Objects.requireNonNull(null, "userId required")` throw?
 
-**Đáp án:** `NullPointerException` với message `"userId required"`.
+**Answer:** `NullPointerException` with the message `"userId required"`.
 
-**Câu 3.** Vì sao `Objects.requireNonNull(nonNull, expensiveMessage())` vẫn gọi `expensiveMessage()`?
+**Question 3.** Why does `Objects.requireNonNull(nonNull, expensiveMessage())` still call `expensiveMessage()`?
 
-**Đáp án:** Java đánh giá tất cả đối số của lời gọi thông thường trước khi thực hiện phương thức. Đổi thành `() -> expensiveMessage()` để trì hoãn thân xây thông báo.
+**Answer:** Java evaluates all arguments of a regular call before executing the method. Change it to `() -> expensiveMessage()` to defer the message-building body.
 
-**Câu 4.** `Objects.requireNonNull(null, () -> "missing")` có ném NPE không?
+**Question 4.** Does `Objects.requireNonNull(null, () -> "missing")` throw NPE?
 
-**Đáp án:** Có; supplier chỉ cung cấp **thông báo** `"missing"`, không phải giá trị thay thế.
+**Answer:** Yes; the supplier only provides **the message** `"missing"`, not a replacement value.
 
-**Câu 5.** `Objects.requireNonNullElse(null, "guest")` khác gì `Objects.requireNonNull(null, "guest")`?
+**Question 5.** How does `Objects.requireNonNullElse(null, "guest")` differ from `Objects.requireNonNull(null, "guest")`?
 
-**Đáp án:** Phương thức `Else` trả `"guest"` như giá trị mặc định; phương thức `requireNonNull` ném NPE mang message `"guest"`.
+**Answer:** The `Else` method returns `"guest"` as a default value; `requireNonNull` throws an NPE carrying the message `"guest"`.
 
-**Câu 6.** `Objects.requireNonNull("")` có ném NPE không?
+**Question 6.** Does `Objects.requireNonNull("")` throw NPE?
 
-**Đáp án:** Không. Chuỗi rỗng là một đối tượng khác null; phải kiểm tra rỗng/blank riêng nếu không hợp lệ.
+**Answer:** No. An empty string is a non-null object; empty/blank checks must be written separately if invalid.
 
-## Kết luận
+## Conclusion
 
-`Objects.requireNonNull()` là cách ngắn gọn, rõ ý định để **cưỡng chế tiền điều kiện “tham chiếu này phải khác null”**. Dùng overload `String` cho message đơn giản và `Supplier<String>` khi cần trì hoãn tính toán message đến lúc xảy ra lỗi. Đặt check ở ranh giới đầu vào, viết thông báo nêu rõ trường vi phạm, tránh lộ dữ liệu nhạy cảm và phân biệt kiểm tra null với validation giá trị hay lựa chọn fallback.
+`Objects.requireNonNull()` is a concise, expressive way to **enforce the precondition "this reference must not be null"**. Use the `String` overload for simple messages and `Supplier<String>` when message computation should be deferred until an error occurs. Place checks at input boundaries, write messages naming the violating field, avoid leaking sensitive data, and distinguish null checks from value validation or fallback selection.

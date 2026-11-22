@@ -1,32 +1,32 @@
-# Tạo BigDecimal từ String, BigInteger, long và unscaled value trong Java
+# Creating BigDecimal from String, BigInteger, long, and Unscaled Value in Java
 
-`java.math.BigDecimal` là kiểu số thập phân có độ chính xác tùy ý, thích hợp khi cần biểu diễn các giá trị decimal mà `float`/`double` không thể giữ chính xác, chẳng hạn số tiền, đơn giá, tỷ lệ hoặc dữ liệu số thập phân do hệ thống bên ngoài gửi tới. Khi tạo `BigDecimal`, một lựa chọn constructor tưởng như nhỏ có thể **thay đổi scale, độ chính xác, ý nghĩa của dữ liệu và kết quả `equals`**.
+`java.math.BigDecimal` is an arbitrary-precision decimal number type, well-suited when decimal values must be represented that `float`/`double` cannot hold accurately, such as monetary amounts, unit prices, rates, or decimal numeric data sent by external systems. When creating a `BigDecimal`, a seemingly minor constructor choice can **change the scale, precision, meaning of the data, and `equals` results**.
 
-Bốn hướng khởi tạo chính trong bài:
+Four primary construction approaches in this lesson:
 
-1. **Từ chuỗi decimal:** `new BigDecimal("12.3400")` — giữ chính xác các chữ số thập phân đã nhập và scale.
-2. **Từ số nguyên lớn `BigInteger`:** `new BigDecimal(new BigInteger("123400"))` — tạo decimal có scale bằng 0.
-3. **Từ `long`:** `new BigDecimal(123400L)` hoặc `BigDecimal.valueOf(123400L)` — cũng có scale bằng 0.
-4. **Từ *unscaled value* cùng *scale*:** `new BigDecimal(new BigInteger("123400"), 4)` hoặc `BigDecimal.valueOf(123400L, 4)` — tạo giá trị `12.3400`.
+1. **From a decimal string:** `new BigDecimal("12.3400")` — preserves the exact entered decimal digits and scale.
+2. **From a large integer `BigInteger`:** `new BigDecimal(new BigInteger("123400"))` — creates a decimal with scale equal to 0.
+3. **From `long`:** `new BigDecimal(123400L)` or `BigDecimal.valueOf(123400L)` — also has scale equal to 0.
+4. **From *unscaled value* and *scale*:** `new BigDecimal(new BigInteger("123400"), 4)` or `BigDecimal.valueOf(123400L, 4)` — creates the value `12.3400`.
 
-Điểm cốt lõi là công thức:
+The core point is the formula:
 
 \[
 \boxed{\text{BigDecimal value}=\text{unscaledValue}\times 10^{-\text{scale}}}
 \]
 
-**Giữ nguyên giá trị số** chưa đủ để giữ nguyên mô hình `BigDecimal`: hai đối tượng có cùng giá trị toán học nhưng khác scale có thể cho `equals() == false`. Chọn cách xây dựng phù hợp với *ngữ nghĩa dữ liệu đầu vào*, không chỉ chọn cách nào biên dịch được.
+**Preserving the numeric value** is not enough to preserve the `BigDecimal` model: two objects with the same mathematical value but different scales can yield `equals() == false`. Choose the construction method that fits the *semantics of the input data*, not just whatever compiles.
 
-## 1. Mô hình nội tại: unscaledValue × 10^(-scale)
+## 1. Internal Model: unscaledValue × 10^(-scale)
 
-Một `BigDecimal` về bản chất có hai thành phần:
+A `BigDecimal` essentially has two components:
 
-- Một **giá trị nguyên không scale** (*unscaled value*) với độ chính xác tùy ý, có thể lấy qua `unscaledValue()`.
-- Một **scale** kiểu `int`, có thể lấy qua `scale()`.
+- An **unscaled integer value** (*unscaled value*) with arbitrary precision, accessible via `unscaledValue()`.
+- An `int` **scale**, accessible via `scale()`.
 
-Ví dụ:
+Examples:
 
-| Cách biểu diễn | Unscaled value | Scale | Giá trị toán học |
+| Representation | Unscaled value | Scale | Mathematical value |
 | --- | ---: | ---: | ---: |
 | `"12.34"` | 1234 | 2 | 12.34 |
 | `"12.3400"` | 123400 | 4 | 12.3400 |
@@ -36,9 +36,9 @@ Ví dụ:
 | `"0.000"` | 0 | 3 | 0.000 |
 | `"-12.34"` | -1234 | 2 | -12.34 |
 
-Với `scale = 4`, lấy `123400 × 10^-4 = 12.3400`. Với `scale = -2`, lấy `123 × 10^2 = 12300`. **Scale có thể âm**, không phải lúc nào cũng là “số chữ số sau dấu chấm”. Đây là lỗi suy luận thường gặp khi đọc dữ liệu ở ký hiệu khoa học.
+With `scale = 4`, take `123400 × 10^-4 = 12.3400`. With `scale = -2`, take `123 × 10^2 = 12300`. **Scale can be negative**, and is not always "the number of digits after the decimal point". This is a common inference error when reading data in scientific notation.
 
-Quan sát trực tiếp:
+Direct observation:
 
 ```java
 import java.math.BigDecimal;
@@ -49,13 +49,13 @@ System.out.println(x.scale());         // 4
 System.out.println(x.precision());     // 6
 ```
 
-`precision()` là số chữ số có nghĩa của **unscaled value** trong cách biểu diễn thập phân, khác `scale()`. `123400` có sáu chữ số, nên precision bằng 6. Không nhầm precision với tổng số chữ số ở phần lẻ.
+`precision()` is the number of significant digits of the **unscaled value** in decimal representation, distinct from `scale()`. `123400` has six digits, so precision is 6. Do not confuse precision with the total number of digits in the fractional part.
 
-`BigDecimal` là **immutable**: constructor tạo giá trị mới, còn các phép cộng/nhân/`setScale` trả giá trị mới, không sửa đối tượng cũ.
+`BigDecimal` is **immutable**: constructors create new values, and addition/multiplication/`setScale` return new values without modifying the old object.
 
-## 2. Tạo từ String: giữ đúng giá trị decimal nhập vào
+## 2. Creating from String: Preserving the Exact Entered Decimal Value
 
-Khi nguồn đã là **chuỗi thập phân**, lựa chọn trực tiếp nhất là:
+When the source is already a **decimal string**, the most direct choice is:
 
 ```java
 BigDecimal price = new BigDecimal("12.3400");
@@ -63,9 +63,9 @@ BigDecimal tiny = new BigDecimal("0.000000001");
 BigDecimal large = new BigDecimal("123456789012345678901234567890.123");
 ```
 
-Constructor `BigDecimal(String)` **phân tích giá trị decimal chính xác** của chuỗi; nó không đi qua `double`, nên không nhận thêm sai số nhị phân. Các số có rất nhiều chữ số vẫn được biểu diễn theo precision cần thiết trong giới hạn tài nguyên.
+The `BigDecimal(String)` constructor **parses the exact decimal value** of the string; it does not pass through `double`, so it incurs no binary rounding error. Numbers with very many digits are still represented with the required precision within resource limits.
 
-### Chuỗi quyết định scale
+### The String Determines Scale
 
 ```java
 BigDecimal a = new BigDecimal("12.34");
@@ -73,15 +73,15 @@ BigDecimal b = new BigDecimal("12.3400");
 
 System.out.println(a.scale()); // 2
 System.out.println(b.scale()); // 4
-System.out.println(a.compareTo(b)); // 0: bằng nhau về giá trị số
-System.out.println(a.equals(b));    // false: scale khác
+System.out.println(a.compareTo(b)); // 0: equal in numeric value
+System.out.println(a.equals(b));    // false: different scales
 ```
 
-Các số 0 ở cuối **có thể mang thông tin biểu diễn**. Nếu hệ thống yêu cầu lưu số đo đến bốn chữ số sau dấu thập phân hoặc lưu đơn giá với scale chuẩn, giá trị `"12.3400"` khác `"12.34"` về biểu diễn, mặc dù hai số so sánh bằng nhau theo `compareTo`.
+Trailing zeros **can carry representation information**. If a system requires storing measurements to four decimal places or storing unit prices at a standard scale, the value `"12.3400"` differs from `"12.34"` in representation, even though the two numbers compare equal by `compareTo`.
 
-### Cú pháp chuỗi decimal
+### Decimal String Syntax
 
-Những chuỗi sau được hỗ trợ:
+The following strings are supported:
 
 ```java
 new BigDecimal("+12.5");
@@ -92,7 +92,7 @@ new BigDecimal("1.23E+4");
 new BigDecimal("1e-7");
 ```
 
-Hậu tố exponent `e`/`E` có thể tạo **scale âm hoặc dương** tùy vị trí dấu chấm và độ lớn số mũ. Ví dụ:
+The `e`/`E` exponent suffix can produce a **negative or positive scale** depending on the decimal point position and exponent magnitude. Example:
 
 ```java
 BigDecimal scientific = new BigDecimal("1.23E+4");
@@ -102,19 +102,19 @@ System.out.println(scientific.toString());      // 1.23E+4
 System.out.println(scientific.toPlainString()); // 12300
 ```
 
-Constructor nhận String **không phải parser số địa phương** và không tự động làm sạch mọi dữ liệu:
+The String constructor is **not a locale-aware number parser** and does not automatically sanitize arbitrary data:
 
-- `new BigDecimal("1,5")` gây `NumberFormatException`, không phụ thuộc vào Locale máy.
-- `new BigDecimal("1_000")` gây `NumberFormatException`; dấu gạch dưới có thể hợp lệ trong literal nguồn Java, nhưng **không** trong chuỗi BigDecimal.
-- `new BigDecimal("NaN")` và `new BigDecimal("Infinity")` không tạo giá trị BigDecimal đặc biệt; cả hai đều sai cú pháp.
-- `new BigDecimal(" 12.5 ")` không tự động loại khoảng trắng đầu/cuối. Nếu hợp đồng cho phép khoảng trắng, có thể chuẩn hóa **có kiểm soát** trước khi parse.
-- Tham số String `null` không đại diện cho số 0; cần kiểm tra null trước khi parse, thay vì tự nhận là 0.
+- `new BigDecimal("1,5")` throws `NumberFormatException`, regardless of the machine's Locale.
+- `new BigDecimal("1_000")` throws `NumberFormatException`; underscores may be valid in Java source literals, but **not** in BigDecimal strings.
+- `new BigDecimal("NaN")` and `new BigDecimal("Infinity")` do not create special BigDecimal values; both are invalid syntax.
+- `new BigDecimal(" 12.5 ")` does not automatically strip leading/trailing whitespace. If the contract allows whitespace, perform **controlled** normalization before parsing.
+- A `null` String argument does not represent 0; check for null before parsing instead of silently treating it as 0.
 
-**Không âm thầm xóa dấu, separator hoặc ký tự lạ**. Với dữ liệu đầu vào từ API/CSV, hãy định nghĩa rõ ngữ pháp được phép rồi báo lỗi khi không hợp lệ.
+**Do not silently strip signs, separators, or unexpected characters**. For input data from APIs/CSVs, define the allowed grammar explicitly and report an error when invalid.
 
-## 3. Tạo từ BigInteger: scale mặc định là 0
+## 3. Creating from BigInteger: Default Scale Is 0
 
-`BigInteger` là số nguyên có dấu với precision tùy ý. Constructor:
+`BigInteger` is a signed integer with arbitrary precision. Constructor:
 
 ```java
 import java.math.BigInteger;
@@ -127,9 +127,9 @@ System.out.println(decimal.unscaledValue()); // 123400
 System.out.println(decimal.scale());         // 0
 ```
 
-**Đừng suy luận số nguyên `123400` có dấu thập phân ẩn.** `new BigDecimal(BigInteger)` đặt **scale 0**, nên đại diện cho **123400**, không phải `12.3400`. Nếu `BigInteger` lưu số tiền ở đơn vị cent, micro-unit hoặc tỷ lệ đã nhân hệ số, cần **chuyển scale theo contract**.
+**Do not infer that the integer `123400` has an implicit decimal point.** `new BigDecimal(BigInteger)` sets **scale 0**, so it represents **123400**, not `12.3400`. If `BigInteger` stores monetary amounts in cents, micro-units, or scaled rates, you must **pass the scale per contract**.
 
-Ví dụ dữ liệu đầu vào chứa 123400 **đơn vị nhỏ nhất 1/10000**:
+Example where input data holds 123400 **smallest units of 1/10000**:
 
 ```java
 BigInteger storedUnits = new BigInteger("123400");
@@ -137,15 +137,15 @@ BigDecimal restored = new BigDecimal(storedUnits, 4);
 // 12.3400
 ```
 
-Dùng số nguyên lớn là cách tốt khi dữ liệu upstream đã lưu bằng **unscaled integer**, chẳng hạn số lượng micro-unit vượt phạm vi `long`. Đó là mô hình **số nguyên + scale**, không phải phép “làm tròn sang số thực”.
+Using a large integer is good when upstream data is already stored as an **unscaled integer**, such as micro-unit quantities exceeding the `long` range. That is an **integer + scale** model, not "rounding to a floating-point number".
 
-### Khác nhau giữa toString(2) và chuỗi decimal
+### Difference Between toString(2) and a Decimal String
 
-`new BigInteger("101101", 2)` tạo số 45 từ chuỗi nhị phân; `new BigDecimal(theBigInteger)` cho **45** decimal với scale 0. `new BigDecimal("101101")` lại tạo số thập phân một trăm linh một nghìn một trăm linh một. **Radix** là một phần của constructor `BigInteger`, không tự được áp dụng cho chuỗi truyền vào `BigDecimal(String)`.
+`new BigInteger("101101", 2)` creates the number 45 from a binary string; `new BigDecimal(theBigInteger)` gives decimal **45** with scale 0. `new BigDecimal("101101")` instead creates the decimal number one hundred one thousand one hundred one. **Radix** is part of the `BigInteger` constructor, not automatically applied to strings passed to `BigDecimal(String)`.
 
-## 4. Tạo từ long: số nguyên đúng giá trị, scale bằng 0
+## 4. Creating from long: Exact Integer Value, Scale Equals 0
 
-Đối với một `long` đã có:
+For an existing `long`:
 
 ```java
 long units = 123400L;
@@ -154,23 +154,23 @@ BigDecimal fromConstructor = new BigDecimal(units);
 BigDecimal fromFactory = BigDecimal.valueOf(units);
 ```
 
-Cả hai cách đều có giá trị số **123400** và `scale() == 0`. Vì `long` chứa giá trị nguyên chính xác trong miền \([-2^{63}, 2^{63}-1]\), việc chuyển từ `long` sang `BigDecimal` không làm mất chữ số nguyên nào.
+Both approaches produce the numeric value **123400** and `scale() == 0`. Because `long` holds an exact integer value in the range \([-2^{63}, 2^{63}-1]\), converting from `long` to `BigDecimal` loses no integer digits.
 
-`BigDecimal.valueOf(long)` là factory thuận tiện và **có thể tái sử dụng các đối tượng đã tạo**, nên thường được ưu tiên khi không cần constructor trực tiếp. Tuy nhiên, **không dựa vào identity của object** khi viết nghiệp vụ:
+`BigDecimal.valueOf(long)` is a convenient factory and **may reuse cached objects**, so it is generally preferred when direct constructor invocation is not required. However, **do not rely on object identity** in business logic:
 
 ```java
 BigDecimal a = BigDecimal.valueOf(7L);
 BigDecimal b = BigDecimal.valueOf(7L);
 
 System.out.println(a.equals(b)); // true
-// Đừng dùng a == b để kiểm tra hai giá trị số bằng nhau.
+// Do not use a == b to check whether two numeric values are equal.
 ```
 
-`BigDecimal` là đối tượng. `a == b` hỏi chúng có cùng tham chiếu hay không, không phải hai số có cùng giá trị.
+`BigDecimal` is an object. `a == b` asks whether they share the same reference, not whether the two numbers have the same value.
 
-### Nếu long là đơn vị nhỏ nhất, phải truyền scale
+### If long Represents the Smallest Unit, You Must Pass Scale
 
-Giả sử 12345 là số cent và 1 đơn vị chính chứa 100 cent:
+Suppose 12345 is a number of cents and 1 main unit contains 100 cents:
 
 ```java
 long cents = 12345L;
@@ -178,32 +178,32 @@ BigDecimal amount = BigDecimal.valueOf(cents, 2);
 // 123.45
 ```
 
-Nếu viết `BigDecimal.valueOf(cents)` không truyền scale, kết quả là `12345` — **lệch 100 lần** so với giá trị thật. Đây là lỗi dữ liệu, không phải lỗi làm tròn.
+If you write `BigDecimal.valueOf(cents)` without passing scale, the result is `12345` — **off by a factor of 100** from the true value. This is a data error, not a rounding error.
 
-Không chuyển số rất lớn vượt `long` thành `long` chỉ để gọi factory; khi giá trị unscaled vượt miền `long`, hãy giữ nó trong `BigInteger`.
+Do not cast a huge number exceeding `long` into `long` just to call the factory; when an unscaled value exceeds the `long` range, keep it in `BigInteger`.
 
-## 5. Tạo từ unscaled value: truyền đúng scale
+## 5. Creating from Unscaled Value: Passing the Right Scale
 
-`BigDecimal` có hai cách thuận tiện để gắn decimal scale lên **một giá trị nguyên**:
+`BigDecimal` provides two convenient ways to attach a decimal scale to **an integer value**:
 
 ```java
-// Với BigInteger không giới hạn phạm vi long:
+// For BigInteger not limited by long range:
 BigDecimal a = new BigDecimal(new BigInteger("123400"), 4);
 
-// Với giá trị unscaled đã nằm trong long:
+// For an unscaled value already fitting in long:
 BigDecimal b = BigDecimal.valueOf(123400L, 4);
 
 System.out.println(a.toPlainString()); // 12.3400
 System.out.println(b.toPlainString()); // 12.3400
 ```
 
-Với unscaled value `123400` và scale `4`:
+With unscaled value `123400` and scale `4`:
 
 \[
 123400\times10^{-4}=12.3400.
 \]
 
-Hãy coi `scale` là **tham số mang ngữ nghĩa**, không phải một gợi ý định dạng tùy ý. Chỉ cần đổi scale từ 4 thành 2, giá trị toán học sẽ đổi từ `12.3400` thành `1234.00` dù unscaled value không đổi.
+Treat `scale` as a **semantic parameter**, not an arbitrary formatting hint. Simply changing scale from 4 to 2 changes the mathematical value from `12.3400` to `1234.00` even though the unscaled value does not change.
 
 | Unscaled | Scale | `toPlainString()` |
 | ---: | ---: | --- |
@@ -214,7 +214,7 @@ Hãy coi `scale` là **tham số mang ngữ nghĩa**, không phải một gợi 
 | 123 | -2 | `12300` |
 | -123400 | 4 | `-12.3400` |
 
-`BigDecimal.valueOf(long unscaledVal, int scale)` chấp nhận cả **scale âm**. Ví dụ:
+`BigDecimal.valueOf(long unscaledVal, int scale)` also accepts **negative scales**. Example:
 
 ```java
 BigDecimal x = BigDecimal.valueOf(123L, -2);
@@ -224,11 +224,11 @@ System.out.println(x.unscaledValue()); // 123
 System.out.println(x.scale());         // -2
 ```
 
-**Scale âm không phải lỗi**: có nghĩa nhân với \(10^{|\text{scale}|}\). Khi xuất chuỗi, `toString()` và `toPlainString()` có thể khác định dạng. Nếu phải truyền giá trị cùng scale giữa các hệ thống, nên truyền riêng unscaled value + scale, hoặc chọn biểu diễn văn bản có quy tắc round-trip rõ ràng.
+**A negative scale is not an error**: it means multiplying by \(10^{|\text{scale}|}\). When outputting strings, `toString()` and `toPlainString()` may differ in format. If you must transmit values along with scale between systems, pass unscaled value + scale separately, or choose a text representation with clear round-trip rules.
 
-## 6. Mối quan hệ với setScale và movePointLeft
+## 6. Relationship with setScale and movePointLeft
 
-Ba thao tác có thể cùng cho `12.3400` nhưng mang **đầu vào và mục đích khác nhau**:
+Three operations can all yield `12.3400` yet carry **different inputs and purposes**:
 
 ```java
 BigDecimal x = new BigDecimal(new BigInteger("123400"), 4);
@@ -236,13 +236,13 @@ BigDecimal y = BigDecimal.valueOf(123400L, 4);
 BigDecimal z = BigDecimal.valueOf(123400L).movePointLeft(4);
 ```
 
-Với `x`, `y`, `z`, kết quả số đều bằng `12.3400` và trong trường hợp cụ thể này có cùng scale 4. Tuy nhiên, các phương thức không có ý nghĩa chung cho mọi đầu vào:
+For `x`, `y`, and `z`, the numeric result is `12.3400` in all three and in this specific case they share scale 4. However, the methods do not share a universal meaning for all inputs:
 
-- **Constructor/factory với unscaled + scale:** diễn giải cặp dữ liệu lưu trữ thành đúng một BigDecimal.
-- **`movePointLeft(n)`:** biến đổi giá trị số có sẵn bằng nhân \(10^{-n}\); scale mới còn phụ thuộc ngữ nghĩa đặc tả của phương thức, đặc biệt khi đang có scale âm.
-- **`setScale(newScale, mode)`:** đổi **scale biểu diễn** nhưng giữ cùng giá trị toán học nếu có thể; khi phải loại chữ số có nghĩa, cần chính sách **rounding**.
+- **Constructor/factory with unscaled + scale:** interprets a stored data pair into the exact BigDecimal.
+- **`movePointLeft(n)`:** transforms an existing numeric value by multiplying by \(10^{-n}\); the new scale also depends on the method's specification semantics, especially when a negative scale is already present.
+- **`setScale(newScale, mode)`:** changes the **representation scale** while keeping the same mathematical value if possible; when significant digits must be dropped, a **rounding** policy is needed.
 
-Ví dụ không được coi `setScale(4)` giống `movePointLeft(4)`:
+For example, do not equate `setScale(4)` with `movePointLeft(4)`:
 
 ```java
 BigDecimal value = BigDecimal.valueOf(123400L);
@@ -250,13 +250,13 @@ BigDecimal changedScale = value.setScale(4); // 123400.0000
 BigDecimal shiftedPoint = value.movePointLeft(4); // 12.3400
 ```
 
-`setScale(4)` thêm bốn số 0 phần lẻ để giữ nguyên **giá trị 123400**; `movePointLeft(4)` thực sự chia giá trị cho \(10^4\).
+`setScale(4)` appends four fractional zeros to preserve the **value 123400**; `movePointLeft(4)` actually divides the value by \(10^4\).
 
-Nếu mục đích là khôi phục từ unscaled value, cách rõ nhất vẫn là constructor hoặc factory **hai tham số**.
+If the goal is to reconstruct from an unscaled value, the clearest approach remains the **two-parameter** constructor or factory.
 
-## 7. Khi có MathContext: constructor có thể làm tròn ngay lúc khởi tạo
+## 7. With MathContext: Constructors Can Round at Initialization Time
 
-Các overload nhận `MathContext` như `new BigDecimal(String, MathContext)`, `new BigDecimal(BigInteger, MathContext)` và `new BigDecimal(long, MathContext)` **khác** constructor không truyền context: chúng có thể chủ động giới hạn **precision** và làm tròn giá trị.
+Overloads that accept `MathContext` such as `new BigDecimal(String, MathContext)`, `new BigDecimal(BigInteger, MathContext)`, and `new BigDecimal(long, MathContext)` **differ** from constructors without context: they can actively limit **precision** and round the value.
 
 ```java
 import java.math.MathContext;
@@ -270,25 +270,25 @@ System.out.println(exact.toString());   // 12345
 System.out.println(rounded.toString()); // 1.23E+4
 ```
 
-Giá trị mới `1.23E+4` là `12300`; **không còn giữ nguyên giá trị 12345**. Vì vậy lời gọi constructor không phải lúc nào chỉ “chuyển kiểu” mà không đổi số.
+The new value `1.23E+4` is `12300`; **it no longer preserves the exact value 12345**. Thus a constructor call does not always merely "convert types" without altering the number.
 
-| Dạng constructor | Scale khi không dùng MathContext | Có thể làm tròn trong lúc tạo? |
+| Constructor form | Scale without MathContext | Can round during creation? |
 | --- | --- | --- |
-| `BigDecimal(String)` | Suy ra từ cú pháp decimal | Không, giữ giá trị decimal chính xác |
-| `BigDecimal(BigInteger)` | 0 | Không |
-| `BigDecimal(long)` | 0 | Không |
-| `BigDecimal(BigInteger, int)` | Scale truyền vào | Không |
-| `BigDecimal(String, MathContext)` | Theo kết quả sau round | Có |
-| `BigDecimal(BigInteger, MathContext)` | Theo kết quả sau round | Có |
-| `BigDecimal(long, MathContext)` | Theo kết quả sau round | Có |
+| `BigDecimal(String)` | Inferred from decimal syntax | No, preserves exact decimal value |
+| `BigDecimal(BigInteger)` | 0 | No |
+| `BigDecimal(long)` | 0 | No |
+| `BigDecimal(BigInteger, int)` | Passed-in scale | No |
+| `BigDecimal(String, MathContext)` | Per post-rounding result | Yes |
+| `BigDecimal(BigInteger, MathContext)` | Per post-rounding result | Yes |
+| `BigDecimal(long, MathContext)` | Per post-rounding result | Yes |
 
-`MathContext.precision()` **không phải** số chữ số sau dấu chấm. Nó giới hạn số **chữ số có nghĩa**. Nếu mục tiêu nghiệp vụ là làm tròn số tiền đến 2 chữ số decimal, không tự dùng `new MathContext(2)` thay cho `setScale(2, roundingMode)`.
+`MathContext.precision()` is **not** the number of digits after the decimal point. It limits the number of **significant digits**. If the business goal is to round a monetary amount to 2 decimal places, do not casually use `new MathContext(2)` instead of `setScale(2, roundingMode)`.
 
-Nếu cần lưu giá trị gốc chính xác rồi chỉ làm tròn tại bước chốt, hãy tạo BigDecimal chính xác trước và tách bước làm tròn riêng.
+If you need to store the exact original value and round only at the finalization step, create the exact BigDecimal first and separate the rounding step.
 
-## 8. Giá trị BigDecimal bằng nhau nhưng scale có thể khác
+## 8. Equal BigDecimal Values Can Have Different Scales
 
-`BigDecimal.compareTo` so sánh **giá trị số**; `BigDecimal.equals` yêu cầu **cùng giá trị và cùng scale**.
+`BigDecimal.compareTo` compares **numeric value**; `BigDecimal.equals` requires **same value and same scale**.
 
 ```java
 BigDecimal a = new BigDecimal("1.0");
@@ -300,12 +300,12 @@ System.out.println(a.scale());      // 1
 System.out.println(b.scale());      // 2
 ```
 
-Điều này có ảnh hưởng trực tiếp khi dùng `BigDecimal` làm khóa trong collection:
+This directly impacts using `BigDecimal` as a key in collections:
 
-- `HashSet<BigDecimal>` sử dụng `equals`/`hashCode`, nên có thể giữ **hai phần tử** `1.0` và `1.00`.
-- `TreeSet<BigDecimal>` với thứ tự tự nhiên sử dụng `compareTo` nên thường xem hai giá trị ấy là **trùng nhau**.
+- `HashSet<BigDecimal>` uses `equals`/`hashCode`, so it can keep **two elements** `1.0` and `1.00`.
+- `TreeSet<BigDecimal>` with natural ordering uses `compareTo` and typically treats those two values as **duplicates**.
 
-Nếu nghiệp vụ muốn bỏ qua trailing zeros để so sánh khóa, có thể dùng chuẩn hóa `stripTrailingZeros()`, nhưng phải hiểu rằng **scale có thể trở thành số âm**:
+If business logic wants to ignore trailing zeros when comparing keys, `stripTrailingZeros()` normalization can be used, but you must understand that **scale can become a negative number**:
 
 ```java
 BigDecimal x = new BigDecimal("1000.00");
@@ -314,11 +314,11 @@ System.out.println(normalized.toString()); // 1E+3
 System.out.println(normalized.scale());    // -3
 ```
 
-Chuẩn hóa là **quyết định nghiệp vụ**, không phải bước bắt buộc sau mọi constructor. Nếu scale mang ý nghĩa như độ chính xác đo lường hoặc đơn vị tiền tệ, đừng vô tình loại bỏ nó.
+Normalization is a **business decision**, not a mandatory step after every constructor. If scale carries meaning such as measurement precision or currency units, do not accidentally strip it away.
 
-## 9. Tránh bẫy tạo BigDecimal qua double
+## 9. Avoiding the Trap of Creating BigDecimal via double
 
-Lý do thường xuyên cần `BigDecimal(String)` là nhiều phân số thập phân **không thể biểu diễn chính xác bằng double**.
+A frequent reason `BigDecimal(String)` is needed is that many decimal fractions **cannot be represented accurately by double**.
 
 ```java
 BigDecimal exact = new BigDecimal("0.1");
@@ -326,11 +326,11 @@ BigDecimal fromDoubleConstructor = new BigDecimal(0.1);
 BigDecimal fromDoubleFactory = BigDecimal.valueOf(0.1);
 ```
 
-Ba cách không hoàn toàn tương đương:
+The three ways are not fully equivalent:
 
-- `new BigDecimal("0.1")`: giá trị decimal đúng bằng một phần mười.
-- `new BigDecimal(0.1)`: biểu diễn **chính xác giá trị nhị phân xấp xỉ 0.1** đang nằm trong `double`; thường có rất nhiều chữ số decimal.
-- `BigDecimal.valueOf(0.1)`: dùng chuỗi biểu diễn chuẩn của `double` (`Double.toString`) để tạo BigDecimal; với `0.1` cho `0.1`, nhưng **không hồi phục mọi chữ số decimal đã mất trước đó**.
+- `new BigDecimal("0.1")`: decimal value equal to exactly one tenth.
+- `new BigDecimal(0.1)`: represents **the exact binary approximation of 0.1** residing in `double`; typically has very many decimal digits.
+- `BigDecimal.valueOf(0.1)`: uses the canonical string representation of `double` (`Double.toString`) to construct BigDecimal; for `0.1` it gives `0.1`, but **cannot recover any decimal digits already lost earlier**.
 
 ```java
 System.out.println(new BigDecimal("0.1").toPlainString());
@@ -341,11 +341,11 @@ System.out.println(new BigDecimal(0.1).toPlainString());
 // 0.1000000000000000055511151231257827021181583404541015625
 ```
 
-Nếu dữ liệu gốc là decimal từ JSON, database hoặc chuỗi người dùng, giữ **dữ liệu gốc dạng chuỗi hoặc dạng số nguyên + scale** đến khi tạo BigDecimal. Đừng đưa qua `double` rồi hy vọng constructor `BigDecimal` sẽ tái dựng precision đã mất.
+If the original data is decimal from JSON, database, or user strings, keep the **original data as string or integer + scale** until creating BigDecimal. Do not pass it through `double` and hope the `BigDecimal` constructor will reconstruct lost precision.
 
-## 10. Số 0, số âm và exponent
+## 10. Zero, Negative Numbers, and Exponents
 
-### Zero có scale vẫn có ý nghĩa biểu diễn
+### Zero with Scale Still Carries Representation Meaning
 
 ```java
 BigDecimal a = new BigDecimal("0");
@@ -353,7 +353,7 @@ BigDecimal b = new BigDecimal("0.00");
 BigDecimal c = BigDecimal.valueOf(0L, 2);
 ```
 
-Tất cả có **giá trị số 0**, nhưng `a.scale() == 0`, còn `b.scale() == 2` và `c.scale() == 2`. Nếu đầu vào `"-0.00"`, `BigDecimal` không bảo tồn “âm zero” theo cách `double` làm: kết quả có giá trị **zero với signum() bằng 0**, scale vẫn 2.
+All have **numeric value 0**, yet `a.scale() == 0`, while `b.scale() == 2` and `c.scale() == 2`. If the input is `"-0.00"`, `BigDecimal` does not preserve "negative zero" the way `double` does: the result has value **zero with signum() equal to 0**, while scale stays 2.
 
 ```java
 BigDecimal negativeZeroText = new BigDecimal("-0.00");
@@ -362,9 +362,9 @@ System.out.println(negativeZeroText.signum());        // 0
 System.out.println(negativeZeroText.scale());         // 2
 ```
 
-Nếu hệ thống cần lưu **dấu âm nguyên văn người dùng đã nhập** ở zero, phải lưu thông tin văn bản/dấu đó riêng, không chỉ lưu BigDecimal.
+If the system needs to retain the **literal minus sign the user typed** on zero, store that text/sign information separately, not solely in BigDecimal.
 
-### Exponent ảnh hưởng scale
+### Exponents Affect Scale
 
 ```java
 BigDecimal a = new BigDecimal("1.23E+4");
@@ -376,11 +376,11 @@ System.out.println(a.scale());      // -2
 System.out.println(b.scale());      // 0
 ```
 
-Dù `a.toPlainString()` và `b.toPlainString()` đều có thể in `"12300"`, biến `a` lưu scale âm. Muốn round-trip cả **giá trị và scale**, `toString()` có quy tắc biểu diễn chuẩn phù hợp hơn `toPlainString()` trong các trường hợp scale âm. Hoặc truyền **unscaledValue và scale thành hai trường dữ liệu riêng**.
+Even though `a.toPlainString()` and `b.toPlainString()` can both print `"12300"`, variable `a` stores a negative scale. To round-trip both **value and scale**, `toString()` has canonical representation rules more suitable than `toPlainString()` in negative-scale cases. Or pass **unscaledValue and scale as two separate data fields**.
 
-## 11. Chương trình Java 17+ chạy độc lập
+## 11. Standalone Runnable Java 17+ Program
 
-Lưu thành tệp **`BigDecimalConstructionDemo.java`**:
+Save as file **`BigDecimalConstructionDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -497,14 +497,14 @@ public class BigDecimalConstructionDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac BigDecimalConstructionDemo.java
 java BigDecimalConstructionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 fromString=12.3400
@@ -547,40 +547,40 @@ decimalFromDoubleConstructor=0.1000000000000000055511151231257827021181583404541
 invalidComma=detected
 ```
 
-Chương trình cho thấy **giá trị toán học**, **unscaled value**, **scale** và **representation equality** là những khái niệm khác nhau. Chú ý cặp `fromBigInteger=123400` và `unscaledBig=12.3400`: cùng `BigInteger("123400")` nhưng **scale được chọn khác**, nên khác giá trị theo hệ số \(10^4\).
+The program demonstrates that **mathematical value**, **unscaled value**, **scale**, and **representation equality** are distinct concepts. Notice the pair `fromBigInteger=123400` and `unscaledBig=12.3400`: same `BigInteger("123400")` yet **different chosen scales**, resulting in values differing by a factor of \(10^4\).
 
-## 12. Các lỗi phổ biến và checklist chọn constructor
+## 12. Common Mistakes and Constructor Selection Checklist
 
-| Hiểu nhầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “`BigDecimal("12.3400")` tự bỏ trailing zero khi tạo.” | Constructor từ String giữ scale 4 theo cú pháp gốc. |
-| “`new BigDecimal(BigInteger("123400"))` tạo 12.3400.” | Không: không truyền scale thì giá trị là 123400, scale 0. |
-| “`BigDecimal.valueOf(12345L)` hiểu đó là cent và trả 123.45.” | Không: chỉ `valueOf(12345L,2)` mới mang scale 2. |
-| “Scale luôn không âm.” | Sai: `BigDecimal.valueOf(123L,-2)` có giá trị 12300 và scale -2. |
-| “`setScale(4)` giống `movePointLeft(4)`.” | Sai: `setScale` giữ giá trị số (hoặc làm tròn nếu cần); movePointLeft thay đổi giá trị. |
-| “`equals` và `compareTo` đều chỉ so sánh giá trị số.” | Sai: `equals` xét cả scale, `compareTo` xét giá trị. |
-| “`precision=scale`.” | Không: precision là chữ số có nghĩa, scale là độ lớn lũy thừa 10. |
-| “BigDecimal lưu âm zero như `double`.” | Không: `new BigDecimal("-0.00")` có `signum()==0` và in `0.00`. |
-| “Constructor với `MathContext` không bao giờ làm tròn.” | Có thể giới hạn precision và làm tròn ngay lúc tạo. |
-| “`new BigDecimal(0.1)` tái tạo số thập phân 0.1 chính xác.” | Nó tạo giá trị đúng của xấp xỉ nhị phân `double`, không phải decimal 0.1. |
-| “`BigDecimal.valueOf(0.1)` khôi phục mọi decimal đã mất trước đó.” | Nó đi qua `Double.toString`; không thể lấy lại precision nguồn đã mất. |
-| “BigDecimal(String) đọc theo Locale tiếng Việt mặc định.” | Không: dùng cú pháp decimal, không tự nhận dấu phẩy thập phân. |
-| “`toPlainString()` luôn round-trip cả scale.” | Với scale âm, chuỗi plain có thể mất thông tin scale khi parse lại. |
-| “`==` thích hợp so sánh hai BigDecimal.” | `==` so sánh reference identity, không phải cùng giá trị số. |
+| "`BigDecimal("12.3400")` automatically drops trailing zeros on creation." | The String constructor retains scale 4 per the original syntax. |
+| "`new BigDecimal(BigInteger("123400"))` creates 12.3400." | No: without passing scale, the value is 123400, scale 0. |
+| "`BigDecimal.valueOf(12345L)` treats it as cents and returns 123.45." | No: only `valueOf(12345L,2)` carries scale 2. |
+| "Scale is always non-negative." | False: `BigDecimal.valueOf(123L,-2)` has value 12300 and scale -2. |
+| "`setScale(4)` is like `movePointLeft(4)`." | False: `setScale` preserves numeric value (or rounds if needed); movePointLeft changes the value. |
+| "`equals` and `compareTo` both only compare numeric value." | False: `equals` considers scale too; `compareTo` considers value. |
+| "`precision=scale`." | No: precision is significant digits; scale is power-of-10 magnitude. |
+| "BigDecimal stores negative zero like `double`." | No: `new BigDecimal("-0.00")` has `signum()==0` and prints `0.00`. |
+| "Constructors with `MathContext` never round." | They can limit precision and round immediately upon creation. |
+| "`new BigDecimal(0.1)` recreates the exact decimal 0.1." | It creates the exact value of the binary `double` approximation, not decimal 0.1. |
+| "`BigDecimal.valueOf(0.1)` recovers any decimal lost earlier." | It goes through `Double.toString`; it cannot retrieve lost source precision. |
+| "BigDecimal(String) parses using Vietnamese Locale by default." | No: it uses decimal syntax and does not automatically accept decimal commas. |
+| "`toPlainString()` always round-trips scale as well." | For negative scales, the plain string can lose scale information when parsed back. |
+| "`==` is suitable for comparing two BigDecimals." | `==` compares reference identity, not numeric equality. |
 
-Để chọn cách tạo cho đúng:
+To choose the right construction approach:
 
-1. **Nguồn là String decimal chính xác?** Dùng `new BigDecimal(text)`; xác thực cú pháp và giữ precision đầu vào.
-2. **Nguồn là BigInteger với giá trị nguyên thực sự?** Dùng `new BigDecimal(integer)` để có scale 0.
-3. **Nguồn là long nguyên thực sự?** Dùng `BigDecimal.valueOf(value)` hoặc `new BigDecimal(value)`, scale 0.
-4. **Nguồn là unscaled value có đơn vị ngầm?** Dùng `new BigDecimal(bigInteger, scale)` hoặc `BigDecimal.valueOf(longUnscaled, scale)`; **đừng quên scale**.
-5. **Có cần giữ trailing zeros hoặc độ phân giải phép đo không?** Xem `scale()` và chọn canonicalization có chủ đích.
-6. **Có cần rounding khi tạo không?** Chỉ truyền `MathContext` nếu đó là yêu cầu; đừng mặc định giới hạn precision ở bước parse.
-7. **Dữ liệu đã đi qua double?** Xác định xem có chấp nhận mất precision hay phải quay về decimal string gốc.
-8. **Giá trị được lưu/truyền ra hệ ngoài thế nào?** Cân nhắc cặp `unscaledValue + scale` để giữ đầy đủ ngữ nghĩa, và phân biệt `toString` với `toPlainString`.
-9. **So sánh hoặc làm khóa collection?** Hiểu khác nhau giữa `equals` và `compareTo`; nếu scale là phần của identity dữ liệu, không tự strip.
-10. **Dữ liệu có thể rất lớn hoặc xấu?** Đặt giới hạn độ dài chuỗi và scale hợp lệ theo yêu cầu ứng dụng để tránh xử lý tốn tài nguyên.
+1. **Source is an exact decimal String?** Use `new BigDecimal(text)`; validate syntax and preserve input precision.
+2. **Source is a BigInteger with an actual integer value?** Use `new BigDecimal(integer)` to get scale 0.
+3. **Source is an actual integer long?** Use `BigDecimal.valueOf(value)` or `new BigDecimal(value)`, scale 0.
+4. **Source is an unscaled value with an implicit unit?** Use `new BigDecimal(bigInteger, scale)` or `BigDecimal.valueOf(longUnscaled, scale)`; **do not forget the scale**.
+5. **Need to preserve trailing zeros or measurement resolution?** Inspect `scale()` and choose canonicalization intentionally.
+6. **Need rounding during creation?** Pass `MathContext` only if that is a requirement; do not limit precision at the parsing step by default.
+7. **Data already passed through double?** Determine whether precision loss is acceptable or if you must go back to the original decimal string.
+8. **How is the value stored/transmitted to external systems?** Consider an `unscaledValue + scale` pair to preserve full semantics, and distinguish `toString` from `toPlainString`.
+9. **Comparing or using as a collection key?** Understand the difference between `equals` and `compareTo`; if scale is part of data identity, do not automatically strip it.
+10. **Data could be huge or malformed?** Enforce limits on string length and valid scale per application requirements to avoid resource-heavy processing.
 
-**Ghi nhớ:** `BigDecimal` không chỉ là “một số có nhiều chữ số” mà là **unscaled integer cùng scale**. `String` giữ ý nghĩa thập phân của văn bản, `BigInteger` và `long` tạo số nguyên scale 0 khi không chỉ định khác, còn các overload nhận **unscaled value + scale** diễn giải đúng dữ liệu theo đơn vị đã quy định. Chọn constructor đúng giúp tránh lỗi nhân/chia lệch hệ số 10, mất scale và nhầm lẫn trong so sánh.
+**Takeaway:** `BigDecimal` is not just "a number with many digits", but an **unscaled integer together with a scale**. `String` preserves the decimal meaning of text, `BigInteger` and `long` create scale-0 integers unless specified otherwise, while overloads taking **unscaled value + scale** accurately interpret data according to the specified unit. Choosing the right constructor prevents factor-of-10 multiplication/division bugs, scale loss, and comparison confusion.
 
-Tài liệu tham khảo: [Oracle Java 17 — BigDecimal Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html).
+Reference: [Oracle Java 17 — BigDecimal Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html).

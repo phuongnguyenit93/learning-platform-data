@@ -1,105 +1,105 @@
-# Precision nhị phân và số chữ số thập phân có thể tin cậy trong Java
+# Binary Precision and Reliable Decimal Digits in Java
 
-Khi viết `double x = 0.1;`, nhiều người nghĩ máy tính đã lưu đúng **một phần mười**. Thực tế `float` và `double` của Java dùng biểu diễn dấu phẩy động **nhị phân**, nên đa số phân số thập phân như 0,1 không thể lưu chính xác. Giá trị được làm tròn tới một số nhị phân biểu diễn được gần nhất.
+When writing `double x = 0.1;`, many people assume the computer has stored an exact **one-tenth**. In reality, Java's `float` and `double` use **binary** floating-point representation, so most decimal fractions like 0.1 cannot be stored exactly. The value is rounded to the nearest representable binary number.
 
-Một câu hỏi quan trọng hơn câu “`double` có bao nhiêu chữ số?” là: **số chữ số nào có thể tin cậy cho phép tính, và cần bao nhiêu chữ số thập phân để ghi ra rồi đọc lại đúng cùng giá trị bit?** Hai con số này khác nhau.
+A more important question than “How many digits does `double` have?” is: **how many digits can be relied upon in calculations, and how many decimal digits are needed to write a value out and read back the exact same bit value?** Those two numbers are different.
 
-Bài học làm rõ *precision* (độ chính xác của phần trị), sai số làm tròn, khoảng cách giữa các số biểu diễn được (*ULP*), ý nghĩa của khoảng “6–9 chữ số” với `float`, “15–17 chữ số” với `double` và cách sử dụng các con số ấy khi lập trình Java 17+.
+This lesson clarifies *precision* (significand accuracy), rounding error, spacing between representable numbers (*ULP*), the meaning of “6–9 digits” for `float` and “15–17 digits” for `double`, and how to apply those numbers when programming in Java 17+.
 
-## 1. `float` và `double` lưu số bằng các bit như thế nào?
+## 1. How Do `float` and `double` Store Numbers in Bits?
 
-Java sử dụng biểu diễn dấu phẩy động nhị phân IEEE 754 cho hai kiểu:
+Java uses IEEE 754 binary floating-point representation for both types:
 
-| Đặc điểm | `float` | `double` |
+| Characteristic | `float` | `double` |
 | --- | ---: | ---: |
-| Tổng số bit | 32 | 64 |
-| Bit dấu | 1 | 1 |
-| Bit số mũ lưu trữ (*exponent field*) | 8 | 11 |
-| Bit phần phân số lưu trữ (*fraction field*) | 23 | 52 |
-| Độ chính xác phần trị (*significand precision*) cho số chuẩn hóa | **24 bit** | **53 bit** |
-| Số chữ số thập phân có nghĩa thường có thể tin cậy | **khoảng 6–7** | **khoảng 15–16** |
-| Số chữ số thập phân có nghĩa tối đa đủ để ghi mọi giá trị rồi đọc lại đúng bit | **9** | **17** |
+| Total bits | 32 | 64 |
+| Sign bit | 1 | 1 |
+| Stored exponent bits (*exponent field*) | 8 | 11 |
+| Stored fraction bits (*fraction field*) | 23 | 52 |
+| Significand precision (*significand precision*) for normal numbers | **24 bits** | **53 bits** |
+| Significant decimal digits typically reliable | **about 6–7** | **about 15–16** |
+| Maximum significant decimal digits sufficient to write any value and read back exact bits | **9** | **17** |
 
-Tại sao có 24 bit nhưng chỉ lưu 23 bit phân số? Với **số chuẩn hóa** (*normal number*), IEEE 754 có một bit 1 đầu tiên được **ngầm hiểu** trong phần trị nhị phân. Vì vậy `float` có độ chính xác 24 bit và `double` có 53 bit. Với **số dưới chuẩn** (*subnormal*) rất gần 0, bit 1 ngầm định không còn nữa; số bit có nghĩa thực tế có thể ít hơn.
+Why are there 24 bits when only 23 fraction bits are stored? For **normal numbers**, IEEE 754 has an **implicit** leading 1 bit in the binary significand. Thus, `float` has 24-bit precision and `double` has 53-bit precision. For **subnormal** numbers very close to 0, the implicit 1 bit is no longer present; the effective number of significant bits can be smaller.
 
-Về ý tưởng, số chuẩn hóa có dạng:
+Conceptually, a normal number has the form:
 
 ```text
 (-1)^sign × (1.fractionBits)_2 × 2^exponent
 ```
 
-Số mũ cho phép biểu diễn số rất lớn hoặc rất nhỏ; **số bit phần trị** mới quyết định khoảng cách giữa hai giá trị liên tiếp và độ chi tiết có thể giữ lại. Đừng nhầm **range** (miền độ lớn) với **precision** (độ phân giải số).
+The exponent allows representing very large or very small numbers; it is the **number of significand bits** that determines the spacing between adjacent values and the detail that can be retained. Do not confuse **range** (magnitude span) with **precision** (numeric resolution).
 
-Ví dụ `double` có thể có trị tuyệt đối đến khoảng `1.8 × 10^308` nhưng không thể phân biệt được mọi cặp số nguyên liên tiếp tại khoảng `10^16`.
+For example, `double` can reach magnitudes up to roughly `1.8 × 10^308`, yet cannot distinguish every pair of consecutive integers around `10^16`.
 
-## 2. Vì sao 0,1 thập phân không được lưu chính xác?
+## 2. Why Is Decimal 0.1 Not Stored Exactly?
 
-Hệ nhị phân biểu diễn chính xác các phân số có mẫu số là lũy thừa của 2 sau khi rút gọn:
+Binary exactly represents fractions whose reduced denominators are powers of 2:
 
-- `0.5 = 1/2 = 0.1₂` được lưu chính xác.
-- `0.25 = 1/4 = 0.01₂` được lưu chính xác.
-- `0.125 = 1/8 = 0.001₂` được lưu chính xác.
-- `0.1 = 1/10` có mẫu số chứa thừa số 5, nên khai triển nhị phân kéo dài vô hạn và không thể lưu đúng bằng hữu hạn bit.
+- `0.5 = 1/2 = 0.1₂` is stored exactly.
+- `0.25 = 1/4 = 0.01₂` is stored exactly.
+- `0.125 = 1/8 = 0.001₂` is stored exactly.
+- `0.1 = 1/10` has a factor of 5 in its denominator, so its binary expansion continues infinitely and cannot be stored exactly in finite bits.
 
-Giá trị `double` gần `0.1` thực sự là:
+The actual `double` value nearest to `0.1` is:
 
 ```text
 0.1000000000000000055511151231257827021181583404541015625
 ```
 
-Đây là giá trị thập phân **chính xác của số nhị phân được lưu**, không phải kết quả Java mặc định in ra cho literal. Với `System.out.println(0.1)`, Java thường in `0.1` vì chuỗi ngắn đó đủ để đọc ngược lại ra cùng giá trị `double`.
+This is the **exact decimal value of the stored binary number**, not what Java prints by default for the literal. For `System.out.println(0.1)`, Java prints `0.1` because that short string is sufficient to parse back to the exact same `double` value.
 
 ```java
-System.out.println(0.1);       // 0.1 (định dạng ngắn có thể round-trip)
+System.out.println(0.1);       // 0.1 (short format capable of round-trip)
 System.out.println(0.1 + 0.2); // 0.30000000000000004
 System.out.println(0.1 + 0.2 == 0.3); // false
 ```
 
-Cả `0.1`, `0.2` và `0.3` đều đã được làm tròn về nhị phân, và phép cộng được làm tròn thêm. Vì thế kết quả cộng hai giá trị lưu gần `0.1` và `0.2` không nhất thiết bằng bit của giá trị lưu gần `0.3`.
+`0.1`, `0.2`, and `0.3` have all been rounded to binary, and the addition rounds further. Consequently, the result of adding the stored values near `0.1` and `0.2` does not necessarily match the bits of the stored value near `0.3`.
 
-Quan trọng: **sai số không có nghĩa JVM tính “sai chuẩn Java”**. Chính phép tính trên `double` tuân theo biểu diễn và quy tắc làm tròn được quy định; khác biệt xuất hiện khi đối chiếu với số học thập phân chính xác mà con người kỳ vọng.
+Important: **this discrepancy does not mean the JVM is computing “against the Java standard.”** The `double` operations strictly follow the specified representation and rounding rules; the discrepancy arises when comparing against the exact decimal arithmetic humans expect.
 
-## 3. Precision nhị phân: 24 bit và 53 bit phần trị
+## 3. Binary Precision: 24 Bits and 53 Bits of Significand
 
-Độ chính xác phần trị `p` bit có nghĩa là, quanh một số chuẩn hóa, phần trị chứa khoảng `p` bit thông tin nhị phân. Đổi sang chữ số thập phân có nghĩa bằng phép ước lượng:
+`p`-bit significand precision means that around a normal number, the significand carries roughly `p` bits of binary information. Converting to significant decimal digits by approximation:
 
 ```text
-float:  24 × log10(2) ≈ 7.2247 chữ số
-double: 53 × log10(2) ≈ 15.9546 chữ số
+float:  24 × log10(2) ≈ 7.2247 digits
+double: 53 × log10(2) ≈ 15.9546 digits
 ```
 
-Vì vậy thường nói **`float` có khoảng 7 chữ số có nghĩa**, **`double` có khoảng 15–16 chữ số có nghĩa**. Đây là hướng dẫn thực tế về độ chính xác tương đối của số chuẩn hóa, **không phải cam kết rằng mọi giá trị in ra có đúng 7 hoặc 16 chữ số đáng tin**.
+This is why we commonly say **`float` has about 7 significant digits** and **`double` has about 15–16 significant digits**. This is a practical guideline for the relative accuracy of normal numbers, **not a guarantee that every printed value has exactly 7 or 16 trustworthy digits**.
 
-Ví dụ:
+Example:
 
 ```java
 float f = 16_777_216f;
 float changed = f + 1f;
-// f và changed bằng nhau: tại 2^24, ULP phía trên là 2 nên +1 bị làm tròn trở lại
+// f and changed are equal: at 2^24, the ULP above is 2 so +1 rounds back
 ```
 
-Ở độ lớn lớn hơn, đơn vị nhỏ không còn phân biệt được. Cần luôn xét **độ lớn của số**, **độ chênh cần đo** và **các phép toán đã diễn ra**, không chỉ đếm chữ số sau dấu phẩy.
+At larger magnitudes, smaller units can no longer be distinguished. Always consider **the magnitude of the numbers**, **the differences you need to measure**, and **the operations performed**, rather than merely counting digits after the decimal point.
 
-## 4. Khác biệt giữa số chữ số đáng tin và số chữ số để round-trip
+## 4. Difference Between Trustworthy Digits and Round-Trip Digits
 
-Hai hướng chuyển đổi dữ liệu là:
+The two data conversion directions are:
 
-1. **Decimal → Binary → Decimal:** ta nhập một số thập phân có số chữ số có nghĩa nhất định, lưu bằng `float`/`double` rồi muốn diễn tả lại con số ban đầu với độ chính xác đã chọn.
-2. **Binary → Decimal → Binary:** ta đã có một giá trị bit bất kỳ của `float`/`double`, ghi ra chuỗi thập phân, rồi muốn parse chuỗi trở lại **đúng giá trị bit ban đầu**.
+1. **Decimal → Binary → Decimal:** we enter a decimal number with a certain number of significant digits, store it in `float`/`double`, and want to express the original number back to the chosen accuracy.
+2. **Binary → Decimal → Binary:** we already have an arbitrary `float`/`double` bit value, write it out as a decimal string, and want to parse the string back to the **exact original bit value**.
 
-Hai mục tiêu yêu cầu số chữ số khác nhau.
+The two goals require different numbers of digits.
 
-| Câu hỏi | `float` | `double` |
+| Question | `float` | `double` |
 | --- | ---: | ---: |
-| Số chữ số có nghĩa thập phân bảo thủ thường dùng khi cần giữ độ chính xác | **6** | **15** |
-| Giới hạn chữ số dùng để **đảm bảo mọi giá trị hữu hạn** có thể round-trip dạng nhị phân → chuỗi đủ chính xác → nhị phân | **9** | **17** |
-| Hướng dẫn gần đúng về độ chính xác có nghĩa trong bài tính | **6–7** | **15–16** |
+| Conservative significant decimal digits commonly used when preserving accuracy | **6** | **15** |
+| Digit limit used to **guarantee every finite value** can round-trip binary → sufficiently accurate string → binary | **9** | **17** |
+| Approximate guideline for significant precision in calculations | **6–7** | **15–16** |
 
-**9 hoặc 17 không phải số chữ số “đều chính xác so với giá trị toán học ban đầu”.** Chúng là số chữ số thập phân có nghĩa đủ để **phân biệt các giá trị nhị phân** khi chuyển đổi văn bản với cách làm tròn phù hợp.
+**9 or 17 are not digits that are “all accurate relative to the original mathematical value.”** They are the number of significant decimal digits sufficient to **distinguish binary values** during text conversion with proper rounding.
 
-Ngược lại, **6 và 15** là những mốc bảo thủ để thảo luận việc duy trì các chữ số thập phân có nghĩa qua chuyển đổi; chúng không tuyên bố rằng chữ số thứ 7 hay 16 luôn sai. Từng giá trị như `0.5` có thể được biểu diễn chính xác, còn số như `0.1` không.
+Conversely, **6 and 15** are conservative thresholds for discussing the preservation of significant decimal digits across conversions; they do not claim that the 7th or 16th digit is always wrong. Specific values like `0.5` can be represented exactly, whereas numbers like `0.1` cannot.
 
-Trong Java, `Float.toString` và `Double.toString` chọn biểu diễn thập phân ngắn cần thiết theo quy tắc chuyển đổi của Java; khi cần lưu/đọc lại các giá trị, nên dùng các API ấy và `parseFloat`/`parseDouble` thay vì tự cắt cố định 6 hoặc 15 chữ số.
+In Java, `Float.toString` and `Double.toString` choose the short decimal representation needed under Java's conversion rules; when you need to save and restore values, use those APIs and `parseFloat`/`parseDouble` instead of truncating to a fixed 6 or 15 digits yourself.
 
 ```java
 double original = Math.PI;
@@ -112,20 +112,20 @@ boolean sameBits =
 // true
 ```
 
-Với chương trình thực tế, nếu có `NaN` mang payload đặc biệt, nhiều chi tiết bit không được bảo toàn qua văn bản; ví dụ ở trên dùng giá trị hữu hạn bình thường. `Double.toString` xuất `-0.0` riêng, nhưng đừng mở rộng nhận xét round-trip đơn giản này thành bảo đảm giữ mọi payload `NaN`.
+In real programs, if a `NaN` carries a special payload, many bit details are not preserved through text; the example above uses a normal finite value. `Double.toString` outputs `-0.0` distinctly, but do not extend this simple round-trip observation into a guarantee that all `NaN` payloads are preserved.
 
-## 5. ULP: khoảng cách giữa các giá trị biểu diễn được
+## 5. ULP: Spacing Between Representable Values
 
-**ULP** (*unit in the last place*) có thể hiểu thực dụng là độ lớn của một bước lưới số ở độ lớn đang xét. Với số chuẩn hóa thuộc vùng `[2^e, 2^(e+1))`, khoảng cách giữa các số cùng vùng xấp xỉ:
+**ULP** (*unit in the last place*) can be understood practically as the size of one numeric grid step at the magnitude under consideration. For a normal number in the interval `[2^e, 2^(e+1))`, the spacing between numbers in that interval is approximately:
 
 ```text
 ULP ≈ 2^(e - (p - 1))
-p = 24 đối với float; p = 53 đối với double
+p = 24 for float; p = 53 for double
 ```
 
-Khi số lớn dần, **khoảng cách giữa các số biểu diễn được cũng tăng**. Vì vậy ta không thể nói `double` luôn chính xác đến “15 chữ số sau dấu chấm”: con số đáng quan tâm là **chữ số có nghĩa**, và độ phân giải tuyệt đối phụ thuộc vào độ lớn giá trị.
+As numbers grow larger, **the spacing between representable numbers also grows**. Therefore, we cannot say `double` is always accurate to “15 decimal places”: what matters is **significant digits**, and absolute resolution depends on the magnitude of the value.
 
-Java cung cấp `Math.ulp` và `Math.nextUp` để quan sát:
+Java provides `Math.ulp` and `Math.nextUp` for inspection:
 
 ```java
 System.out.println(Math.ulp(1.0f)); // 1.1920929E-7
@@ -133,29 +133,29 @@ System.out.println(Math.ulp(1.0));  // 2.220446049250313E-16
 System.out.println(Math.nextUp(1.0)); // 1.0000000000000002
 ```
 
-Tại chính `1.0`, `Math.ulp(1.0)` là khoảng từ 1.0 đến số `double` lớn hơn gần nhất. Về phía dưới 1.0, bước có thể nhỏ hơn do ranh giới giữa hai vùng số mũ.
+At `1.0` itself, `Math.ulp(1.0)` is the gap from 1.0 to the closest larger `double`. Below 1.0, the step can be smaller due to the boundary between two exponent intervals.
 
-### Số nguyên liên tiếp bắt đầu “dính” vào nhau ở đâu?
+### Where Do Consecutive Integers Start “Sticking Together”?
 
-`float` có 24 bit phần trị, nên mọi số nguyên từ `-2^24` đến `2^24` đều biểu diễn chính xác; nhưng `2^24 + 1` không biểu diễn được dưới dạng `float`.
+`float` has 24 significand bits, so every integer from `-2^24` to `2^24` is represented exactly; however, `2^24 + 1` cannot be represented as a `float`.
 
 ```java
 int originalInt = 16_777_217; // 2^24 + 1
 float roundedFloat = originalInt; // 16777216.0f
 ```
 
-`double` có 53 bit phần trị, nên mọi số nguyên từ `-2^53` đến `2^53` đều biểu diễn chính xác; `2^53 + 1` không biểu diễn được dưới dạng `double`:
+`double` has 53 significand bits, so every integer from `-2^53` to `2^53` is represented exactly; `2^53 + 1` cannot be represented as a `double`:
 
 ```java
 long originalLong = 9_007_199_254_740_993L; // 2^53 + 1
 double roundedDouble = originalLong; // 9.007199254740992E15
 ```
 
-**Đây đều là widening hợp lệ của Java**, không cần cast và không ném exception, nhưng có mất một đơn vị giá trị. Nếu dữ liệu là ID, số lượng nguyên lớn, bộ đếm hoặc giá trị cần so sánh tuyệt đối, đừng tự ý chuyển `long` qua `double`.
+**Both are valid Java widening conversions**, requiring no cast and throwing no exception, yet they lose one unit of value. If your data represents IDs, large integer counts, counters, or values requiring exact comparison, do not convert `long` to `double` casually.
 
-## 6. Số thực có rất nhiều chữ số sau dấu phẩy không có nghĩa là tin cậy hết
+## 6. Having Many Decimal Digits Does Not Mean All of Them Are Trustworthy
 
-Việc dùng một định dạng in rất dài, hoặc chuyển `double` thành biểu diễn thập phân chính xác của chính các bit đang lưu, có thể tạo ra hàng chục chữ số sau dấu chấm. Điều đó **không biến những chữ số ấy thành độ chính xác mới** so với con số người dùng đã định nhập.
+Using a very long print format, or converting a `double` into the exact decimal representation of its stored bits, can produce dozens of digits after the decimal point. That **does not turn those digits into new accuracy** relative to the number the user intended to input.
 
 ```java
 double x = 0.1;
@@ -164,9 +164,9 @@ System.out.println(new java.math.BigDecimal(x));
 // 0.1000000000000000055511151231257827021181583404541015625
 ```
 
-`Double.toString(x)` hiển thị biểu diễn thập phân phù hợp để parse lại cùng giá trị binary; `new BigDecimal(x)` lấy **chính xác giá trị nhị phân đang có** rồi diễn tả thành thập phân, phơi bày sai khác.
+`Double.toString(x)` displays a decimal representation suitable for parsing back to the same binary value; `new BigDecimal(x)` takes **the exact binary value currently held** and expresses it in decimal, exposing the discrepancy.
 
-Ngược lại:
+Conversely:
 
 ```java
 java.math.BigDecimal decimal =
@@ -175,13 +175,13 @@ java.math.BigDecimal fromValueOf =
         java.math.BigDecimal.valueOf(0.1);
 ```
 
-Cả hai ở ví dụ trên biểu diễn giá trị thập phân `0.1` theo dạng decimal; `BigDecimal.valueOf(double)` dựa trên chuỗi mà `Double.toString` tạo ra, **không** làm lộ toàn bộ phân số nhị phân như constructor `new BigDecimal(double)`.
+Both in the example above represent the decimal value `0.1` in decimal form; `BigDecimal.valueOf(double)` relies on the string produced by `Double.toString`, **not** exposing the full binary fraction like the `new BigDecimal(double)` constructor.
 
-Nếu dữ liệu được nhập dưới dạng thập phân và phải giữ chính xác số thập phân đó, tạo `BigDecimal` từ **chuỗi** hoặc từ số nguyên cùng *scale* là cách rõ ràng hơn việc đi vòng qua `double`.
+If data is entered as decimal and must retain that exact decimal value, constructing `BigDecimal` from a **string** or from an integer with a *scale* is clearer than detouring through `double`.
 
-## 7. Sai số tích lũy và hiện tượng triệt tiêu chữ số có nghĩa
+## 7. Accumulated Error and Loss of Significance (Cancellation)
 
-Sai số không chỉ xuất hiện khi tạo literal: mỗi phép cộng, trừ, nhân, chia số thực có thể làm tròn. Nhiều phép toán liên tiếp có thể tích lũy sai lệch:
+Error does not occur only when creating literals: every floating-point addition, subtraction, multiplication, or division can round. Many consecutive operations can accumulate drift:
 
 ```java
 double sum = 0.0;
@@ -191,31 +191,31 @@ for (int i = 0; i < 10; i++) {
 System.out.println(sum); // 0.9999999999999999
 ```
 
-Tổng toán học là 1, nhưng từng lần cộng và lưu kết quả đều có thể làm tròn. **10 phép toán không bảo đảm sai số gấp đúng 10 lần**: sai số có thể bù trừ hoặc tăng tùy dữ liệu và thứ tự tính.
+The mathematical sum is 1, but each addition and assignment can round. **10 operations do not guarantee an error of exactly 10 times**: errors can cancel out or grow depending on the data and order of evaluation.
 
-Một hiện tượng đáng chú ý là **cancellation** (mất chữ số có nghĩa khi trừ hai số gần nhau):
+A notable phenomenon is **cancellation** (loss of significant digits when subtracting two nearly equal numbers):
 
 ```java
 double large = 1e16;
 double tinyAddition = (large + 1.0) - large;
-System.out.println(tinyAddition); // 0.0, không phải 1.0
+System.out.println(tinyAddition); // 0.0, not 1.0
 ```
 
-Tại khoảng `1e16`, bước lưới của `double` lớn hơn 1, nên phép `large + 1.0` đã làm tròn thành `large`. Phép trừ phía sau không thể phục hồi phần đã mất.
+Around `1e16`, the grid spacing of `double` is larger than 1, so `large + 1.0` rounds to `large`. The subsequent subtraction cannot recover the lost part.
 
-Còn với một phép trừ hai số lớn gần bằng nhau, sai số đã có trong từng toán hạng cũng có thể lộ rõ ở kết quả nhỏ. Đây là lý do các bài toán số cần xem xét **độ ổn định số học (*numerical stability*)** ngoài việc chọn `float` hay `double`.
+Furthermore, when subtracting two large, nearly equal numbers, existing errors in each operand can dominate the small result. This is why numerical problems require evaluating **numerical stability** in addition to choosing between `float` and `double`.
 
-## 8. So sánh hai số `double`: khi nào dùng `==`?
+## 8. Comparing Two `double` Values: When to Use `==`?
 
-`==` là phép so sánh chính xác theo ngữ nghĩa dấu phẩy động, không áp dụng “ngưỡng gần bằng” tự động:
+`==` is an exact comparison under floating-point semantics and does not apply an automatic “approximately equal threshold”:
 
 ```java
 System.out.println(0.1 + 0.2 == 0.3); // false
 ```
 
-Nếu hai phép tính độc lập phải tạo **đúng một giá trị bit**, `==` có thể phù hợp. Nhưng nếu mục tiêu là “hai kết quả số học đủ gần”, có thể dùng ngưỡng sai số được thiết kế theo miền dữ liệu.
+If two independent calculations must yield **the exact same bit value**, `==` can be appropriate. However, if the goal is “two numeric results are close enough,” you can use an error tolerance designed for the data domain.
 
-Một hàm so sánh cho **hai giá trị hữu hạn**:
+A comparison helper for **two finite values**:
 
 ```java
 static boolean approximatelyEqual(double a, double b,
@@ -226,38 +226,38 @@ static boolean approximatelyEqual(double a, double b,
 }
 ```
 
-Method này là **đoạn minh họa bên trong class**, giả định `a`, `b` hữu hạn và `absTol`/`relTol` không âm; ứng dụng cần xử lý thêm `NaN`, vô cực, và tình huống trung gian bị tràn khi trừ hoặc tính ngưỡng. Không có một ngưỡng cố định tốt cho mọi ứng dụng.
+This method is an **illustrative snippet inside a class**, assuming `a`, `b` are finite and `absTol`/`relTol` are non-negative; real applications also need to handle `NaN`, infinity, and intermediate overflow during subtraction or threshold calculation. No single fixed tolerance works well for all applications.
 
-Ví dụ ngưỡng tương đối thường hợp lý với số lớn, còn ngưỡng tuyệt đối có thể hữu ích gần 0. Với các bài toán tiền tệ, lựa chọn thường không phải “`double` + epsilon”, mà là **`BigDecimal`** hoặc số nguyên đơn vị nhỏ nhất kèm kiểm tra tràn.
+For example, a relative tolerance is usually sensible for large numbers, while an absolute tolerance can be useful near 0. For monetary calculations, the right choice is usually not “`double` + epsilon,” but **`BigDecimal`** or integer smallest units with overflow checks.
 
-### Các giá trị đặc biệt
+### Special Values
 
-- `Double.NaN == Double.NaN` cho `false`; `Double.isNaN` dùng kiểm tra NaN.
-- `Double.POSITIVE_INFINITY`/`NEGATIVE_INFINITY` cần được xử lý theo miền dữ liệu; phép tính có vô cực không có cùng ý nghĩa với phép đo hữu hạn.
-- `0.0 == -0.0` cho `true`, nhưng biểu diễn bit và một số phép toán có thể phân biệt dấu của zero.
-- `Double.compare` cung cấp cách so sánh thứ tự theo quy tắc Java, khác với ngữ nghĩa so sánh số học thông thường ở NaN và zero có dấu.
+- `Double.NaN == Double.NaN` evaluates to `false`; use `Double.isNaN` to check for NaN.
+- `Double.POSITIVE_INFINITY`/`NEGATIVE_INFINITY` must be handled according to the data domain; calculations involving infinity do not carry the same meaning as finite measurements.
+- `0.0 == -0.0` evaluates to `true`, though bit representations and some operations can distinguish the sign of zero.
+- `Double.compare` provides ordering under Java's rules, differing from ordinary arithmetic comparison semantics on NaN and signed zero.
 
-Đối với khóa map, sort, serialization hoặc kiểm tra bit chính xác, cần chọn quy tắc so sánh phù hợp, không tự thay tất cả `==` bằng một công thức epsilon.
+For map keys, sorting, serialization, or exact bit checks, choose the appropriate comparison rule rather than blindly replacing every `==` with an epsilon formula.
 
-## 9. `float` so với `double`: chọn kiểu theo độ chính xác thực sự
+## 9. `float` vs. `double`: Choosing a Type Based on Real Precision Needs
 
-`double` thường là lựa chọn mặc định cho tính toán số thực trong Java. Literal `0.1` có kiểu `double`, literal `0.1f` có kiểu `float`:
+`double` is usually the default choice for real-number computation in Java. The literal `0.1` has type `double`, and the literal `0.1f` has type `float`:
 
 ```java
 double d = 0.1;
 float f = 0.1f;
-// float invalid = 0.1; // lỗi: double literal không tự narrowing sang float
+// float invalid = 0.1; // error: a double literal does not automatically narrow to float
 ```
 
-`double` có độ chính xác phần trị cao hơn, nhưng vẫn **không đại diện cho số học thập phân chính xác**.
+`double` has higher significand precision, yet still **does not represent exact decimal arithmetic**.
 
-Với đồ họa, dữ liệu sensor, học máy hoặc tập hợp lớn mà nhu cầu precision cho phép, `float` có thể hợp lý về bộ nhớ và băng thông. Với mô phỏng/tính toán cần độ chính xác tương đối cao hơn, `double` thường phù hợp. Đối với giá tiền, lãi, thuế hoặc phép tính tài chính phải đúng quy tắc thập phân, dùng `BigDecimal` với `RoundingMode` phù hợp thay vì dựa trên độ chính xác của `double`.
+For graphics, sensor data, machine learning, or large collections where precision requirements allow, `float` can be sensible for memory and bandwidth. For simulations/computations needing higher relative accuracy, `double` is typically suitable. For prices, interest, taxes, or financial calculations that must follow decimal rules exactly, use `BigDecimal` with an appropriate `RoundingMode` instead of relying on `double` precision.
 
-**Đừng dùng “số chữ số in ra” làm thước đo duy nhất.** Cần xác định sai số tuyệt đối, sai số tương đối, giá trị lớn/nhỏ nhất, điều kiện tính toán, và cách người dùng sẽ sử dụng kết quả.
+**Do not use “number of printed digits” as the sole metric.** You need to determine absolute error, relative error, min/max values, computation conditions, and how consumers will use the result.
 
-## 10. Chương trình Java 17+ hoàn chỉnh và output có thể kiểm chứng
+## 10. Complete Java 17+ Program and Verifiable Output
 
-Lưu nội dung sau thành **`BinaryPrecisionDemo.java`**:
+Save the following as **`BinaryPrecisionDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -309,14 +309,14 @@ public class BinaryPrecisionDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac BinaryPrecisionDemo.java
 java BinaryPrecisionDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 floatBits=32
@@ -341,30 +341,30 @@ nanSelfEqual=false
 signedZeroEqual=true
 ```
 
-Điểm bất ngờ là `longEqualsDouble=true`: trong phép so sánh `long == double`, `long` được widening sang `double` và làm tròn, nên so sánh có thể cho `true` dù `long` ban đầu không được giữ nguyên khi chuyển đổi. Không nên dùng so sánh giữa `long` lớn và `double` để xác minh ID bằng nhau.
+A surprising detail is `longEqualsDouble=true`: in the comparison `long == double`, `long` is widened to `double` and rounded, so the comparison can return `true` even though the original `long` was not preserved during conversion. You should not compare large `long` values against `double` to verify ID equality.
 
-## 11. Các lỗi thường gặp
+## 11. Common Mistakes
 
-| Hiểu nhầm | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| “`double` có 15 chữ số sau dấu phẩy.” | Nó có **53 bit phần trị**, tương đương khoảng 15–16 **chữ số thập phân có nghĩa** cho số chuẩn hóa; không cố định theo số chữ số sau dấu phẩy. |
-| “9 chữ số với `float`, 17 chữ số với `double` đều là chữ số toán học chính xác.” | 9/17 là giới hạn cho **round-trip nhị phân → chuỗi đủ chính xác → nhị phân**, không phải độ chính xác của phép đo ban đầu. |
-| “Nếu Java in `0.1` thì đã lưu chính xác 0,1.” | `Double.toString` in biểu diễn ngắn đủ khôi phục cùng giá trị nhị phân, chứ không in toàn bộ số thập phân chính xác của bit lưu. |
-| “`float` không thể giữ được số nguyên lớn vì tối đa chỉ ~3,4 × 10^38.” | `float` có miền **độ lớn** rộng, nhưng precision 24 bit nên nhiều số nguyên liên tiếp gần 2^24 không phân biệt được. |
-| “Nâng `long` lên `double` là luôn chính xác vì 64 bit.” | `double` dùng 53 bit precision, nên `long` lớn có thể bị làm tròn. |
-| “`==` luôn dùng tốt sau các phép cộng số thực.” | Có thể khác do làm tròn; chọn cách so sánh dựa trên yêu cầu của bài toán. |
-| “Cộng mười lần 0,1 chắc chắn ra 1,0.” | Mỗi phép cộng có thể làm tròn, thứ tự tính ảnh hưởng đến sai số. |
-| “Thêm chữ số khi in ra sẽ tăng độ chính xác lưu trữ.” | Định dạng chỉ thay đổi chuỗi hiển thị; không bổ sung bit thông tin đã mất. |
-| “`BigDecimal.valueOf(0.1)` giống hoàn toàn `new BigDecimal(0.1)`.” | `valueOf` dùng biểu diễn chuỗi chuẩn của `double`; constructor `double` diễn tả chính xác giá trị nhị phân đã lưu. |
-| “Có thể chọn epsilon 1e-9 cho mọi phép so sánh.” | Sai số hợp lý phụ thuộc thang đo, miền dữ liệu, sai số phép đo và thuật toán; cần chính sách cụ thể. |
+| “`double` has 15 digits after the decimal point.” | It has **53 significand bits**, equivalent to roughly 15–16 **significant decimal digits** for normal numbers; it is not fixed by digits after the decimal point. |
+| “9 digits for `float` and 17 digits for `double` are all mathematically exact digits.” | 9/17 are bounds for **binary → sufficiently accurate string → binary round-trips**, not the accuracy of the original measurement. |
+| “If Java prints `0.1`, it stored 0.1 exactly.” | `Double.toString` prints a short representation sufficient to recover the same binary value, rather than printing the full exact decimal value of the stored bits. |
+| “`float` cannot hold large integers only because its max is ~3.4 × 10^38.” | `float` has a wide **magnitude** range, but 24-bit precision means many consecutive integers near 2^24 cannot be distinguished. |
+| “Promoting `long` to `double` is always exact because both are 64 bits.” | `double` uses 53-bit precision, so large `long` values can be rounded. |
+| “`==` always works well after floating-point additions.” | Values can differ due to rounding; choose the comparison method based on the problem's requirements. |
+| “Adding 0.1 ten times definitely yields 1.0.” | Each addition can round, and evaluation order affects the error. |
+| “Printing more digits increases storage accuracy.” | Formatting only changes the display string; it does not add back lost information bits. |
+| “`BigDecimal.valueOf(0.1)` is identical to `new BigDecimal(0.1)`.” | `valueOf` uses the canonical string representation of `double`; the `double` constructor expresses the exact binary value stored. |
+| “An epsilon of 1e-9 can be chosen for every comparison.” | Reasonable tolerance depends on scale, data domain, measurement error, and algorithm; a specific policy is required. |
 
-### Checklist thực hành
+### Practice Checklist
 
-1. **Chọn kiểu theo độ chính xác, không chỉ theo độ lớn.** `float` 24 bit, `double` 53 bit significand; cần thập phân chính xác thì cân nhắc `BigDecimal`.
-2. **Phân biệt precision và round-trip:** khoảng 6–7/15–16 chữ số có nghĩa là hướng dẫn độ chính xác; 9/17 chữ số đủ để lưu chuỗi round-trip của mọi giá trị hữu hạn tương ứng.
-3. **Đừng đếm chữ số sau dấu chấm:** sai số tuyệt đối và khoảng cách ULP thay đổi theo độ lớn.
-4. **Kiểm tra phép cộng/trừ/multiplication nhiều bước:** sai số có thể tích lũy hoặc khuếch đại do mất chữ số có nghĩa; xem tính ổn định của thuật toán.
-5. **Không mặc định dùng `==` cho kết quả số học gần đúng:** xác định miền dữ liệu, ngưỡng và cách xử lý NaN/vô cực phù hợp.
-6. **Khi lưu và phục hồi bit số thực:** dùng `Float.toString`/`Double.toString` và parse tương ứng; khi cần giá trị decimal toán học chính xác, đừng đi vòng qua `double`.
+1. **Choose the type by precision, not just magnitude.** `float` has 24-bit and `double` has 53-bit significand; if exact decimal is required, consider `BigDecimal`.
+2. **Distinguish precision from round-trip:** about 6–7/15–16 significant digits is an accuracy guideline; 9/17 digits suffice to store round-trip strings for all finite values of the respective types.
+3. **Do not count digits after the decimal point:** absolute error and ULP spacing vary with magnitude.
+4. **Check multi-step addition/subtraction/multiplication:** errors can accumulate or amplify due to loss of significance; evaluate algorithm stability.
+5. **Do not default to `==` for approximate arithmetic results:** define the data domain, tolerances, and handling for NaN/infinity appropriately.
+6. **When saving and restoring floating-point bits:** use `Float.toString`/`Double.toString` and the corresponding parsers; when exact mathematical decimal values are needed, do not detour through `double`.
 
-**Ghi nhớ:** `float` và `double` lưu một lưới giá trị **nhị phân hữu hạn**. Quy tắc 6–9 hoặc 15–17 chữ số chỉ có nghĩa khi nói rõ mục tiêu: **độ chính xác của phép tính** hay **độ dài chuỗi cần để round-trip giá trị đang lưu**. Hiểu khác biệt này giúp tránh nhầm các chữ số hiển thị với độ tin cậy thực sự của dữ liệu.
+**Remember:** `float` and `double` store a **finite binary** grid of values. The 6–9 or 15–17 digit rules only make sense when specifying the goal: **calculation accuracy** or **the string length needed to round-trip the stored value**. Understanding this distinction prevents confusing displayed digits with actual data reliability.

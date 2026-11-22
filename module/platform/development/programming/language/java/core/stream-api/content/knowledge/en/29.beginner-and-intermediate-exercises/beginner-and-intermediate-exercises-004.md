@@ -1,52 +1,52 @@
-# Phân biệt kết quả giữa filter, takeWhile và dropWhile
+# Distinguishing Results Between `filter`, `takeWhile`, and `dropWhile`
 
-## 1. Mục tiêu bài học và bài tập
+## 1. Lesson and Exercise Objectives
 
-Trong chương **Bài tập nền tảng và trung cấp** của **JAVA_STREAM_API**, người học đã biết xây dựng pipeline khai báo bằng `filter`, `map`, `reduce` và `collect`. Bài này tập trung vào một khác biệt rất dễ gây lỗi: cùng một `Predicate` nhưng `filter`, `takeWhile` và `dropWhile` có thể tạo ra **ba tập kết quả khác nhau**.
+In the **Beginner and Intermediate Exercises** chapter of **JAVA_STREAM_API**, you have already learned to build declarative pipelines with `filter`, `map`, `reduce`, and `collect`. This lesson focuses on a distinction that easily causes bugs: with the exact same `Predicate`, `filter`, `takeWhile`, and `dropWhile` can produce **three different result sets**.
 
-Sau khi hoàn thành, bạn có thể:
+After completing this lesson, you will be able to:
 
-- Dự đoán chính xác kết quả của ba operation trên **Stream có encounter order**.
-- Xác định **tiền tố liên tiếp** thỏa điều kiện và **hậu tố** bắt đầu từ phần tử không thỏa đầu tiên.
-- Giải thích khi nào `filter` và `takeWhile` trùng kết quả, và khi nào hoàn toàn khác nhau.
-- Chọn operation phù hợp cho bài toán cảm biến, sự kiện, nhật ký, dữ liệu thời gian.
-- Xử lý nguồn rỗng, phần tử `null`, điều kiện luôn đúng/luôn sai và nguồn vô hạn.
-- Hiểu ràng buộc của `unordered()` và chi phí phối hợp trong parallel stream.
-- Viết kiểm thử dựa trên **kết quả**, không dựa vào số lần callback được gọi.
+- Accurately predict the output of all three operations on a **Stream with encounter order**.
+- Identify the **contiguous matching prefix** and the **suffix** starting from the first non-matching element.
+- Explain when `filter` and `takeWhile` yield identical results, and when they diverge completely.
+- Select the right operation for sensor readings, event streams, logs, and time-series data.
+- Handle empty sources, `null` elements, always-true/always-false predicates, and infinite sources.
+- Understand `unordered()` contracts and coordination costs in parallel streams.
+- Write tests based on **output assertions**, not callback invocation counts.
 
-Các ví dụ sử dụng **Java 17+**. `filter` có từ Java 8; `takeWhile` và `dropWhile` được bổ sung từ **Java 9**, áp dụng cả cho `Stream<T>` và các primitive stream như `IntStream`, `LongStream`, `DoubleStream`.
+Examples use **Java 17+**. `filter` has existed since Java 8; `takeWhile` and `dropWhile` were added in **Java 9**, and apply to both `Stream<T>` and primitive streams such as `IntStream`, `LongStream`, and `DoubleStream`.
 
-### Bảng nhớ nhanh
+### Quick Reference Table
 
-| Operation | Xử lý trên Stream có thứ tự | Khi gặp phần tử đầu tiên không thỏa `P` | Kết quả |
+| Operation | Behavior on Ordered Stream | Upon First Element Failing `P` | Result |
 | --- | --- | --- | --- |
-| `filter(P)` | Kiểm tra từng phần tử của toàn nguồn | Vẫn tiếp tục xét các phần tử sau | **Mọi phần tử** thỏa `P` |
-| `takeWhile(P)` | Lấy tiền tố liên tiếp thỏa `P` | Dừng lấy phần tử | **Tiền tố thỏa `P`** |
-| `dropWhile(P)` | Bỏ tiền tố liên tiếp thỏa `P` | Bắt đầu giữ phần tử này và toàn bộ phần sau | **Hậu tố còn lại** |
+| `filter(P)` | Tests every element across the whole source | Continues checking subsequent elements | **All elements** matching `P` |
+| `takeWhile(P)` | Takes contiguous prefix matching `P` | Stops taking elements | **Matching prefix** |
+| `dropWhile(P)` | Drops contiguous prefix matching `P` | Begins keeping this element and everything after | **Remaining suffix** |
 
-**Điểm cần nhớ:** Khi `dropWhile` đã gặp phần tử đầu tiên không thỏa `P`, nó **không tiếp tục lọc bằng `P`**. Những phần tử ở hậu tố có thể đúng hoặc sai theo predicate, nhưng đều được giữ.
+**Key point:** Once `dropWhile` encounters the first element that fails `P`, it **stops filtering by `P`**. Elements in the suffix may pass or fail the predicate, yet all of them are kept.
 
-## 2. Mô hình tư duy: một nguồn, một predicate, ba đáp án
+## 2. Mental Model: One Source, One Predicate, Three Answers
 
-Xét nguồn có thứ tự:
+Consider an ordered source:
 
 ~~~text
-Nguồn:  [2, 4, 7, 3, 8, 1]
+Source: [2, 4, 7, 3, 8, 1]
 P(x):    x < 5
 
-Từng phần tử:
+Element by element:
          2✓  4✓  7✗  3✓  8✗  1✓
                 │
-                └── Ranh giới đầu tiên không thỏa P
+                └── First boundary failing P
 
 filter(P):     [2, 4, 3, 1]
 takeWhile(P):  [2, 4]
 dropWhile(P):  [7, 3, 8, 1]
 ~~~
 
-`filter` chọn tất cả số nhỏ hơn 5 dù chúng nằm ở đầu, giữa hay cuối nguồn. `takeWhile` chỉ chọn `2` và `4` vì `7` là điểm phá vỡ chuỗi liên tiếp. `dropWhile` bỏ đúng tiền tố `[2,4]` rồi giữ cả `7`, `3`, `8`, `1`.
+`filter` selects every number less than 5 whether at the start, middle, or end. `takeWhile` selects only `2` and `4` because `7` breaks the contiguous prefix. `dropWhile` discards the prefix `[2,4]` and keeps all of `7`, `3`, `8`, `1`.
 
-### Ví dụ hoàn chỉnh chạy được
+### Complete Runnable Example
 
 ~~~java
 import java.util.Arrays;
@@ -75,27 +75,27 @@ public class CompareThreeOperations {
 }
 ~~~
 
-Ta tạo một Stream mới ở **mỗi** phép toán. Stream được thiết kế để tiêu thụ một lần; không tạo một biến Stream rồi gọi ba terminal operation trên nó.
+We create a fresh Stream for **each** operation. Streams are designed for single-use consumption; never create one Stream variable and invoke three terminal operations on it.
 
-### Câu hỏi suy nghĩ trước khi làm bài
+### Warm-Up Question Before Starting
 
-Nếu thay `n < 5` bằng `n >= 5` thì `takeWhile` trả gì? Vì phần tử đầu tiên là `2` và không thỏa điều kiện, kết quả là **danh sách rỗng**. Còn `dropWhile` sẽ giữ **toàn bộ nguồn**.
+If we replace `n < 5` with `n >= 5`, what does `takeWhile` return? Since the first element is `2` and fails the condition, the result is an **empty list**. Meanwhile, `dropWhile` retains the **entire source**.
 
-## 3. Bài tập 1 — Dự đoán kết quả trên dữ liệu chưa sắp xếp
+## 3. Exercise 1 — Predicting Output on Unsorted Data
 
-**Mức độ:** Cơ bản.
+**Level:** Beginner.
 
-**Đề bài:** Với dãy `[1, 3, 6, 2, 7, 4]` và điều kiện `n < 5`, hãy viết ra kết quả của `filter`, `takeWhile`, `dropWhile` trước khi chạy chương trình.
+**Prompt:** Given the sequence `[1, 3, 6, 2, 7, 4]` and the condition `n < 5`, write down the results of `filter`, `takeWhile`, and `dropWhile` before running the program.
 
-**Đáp án:**
+**Answer:**
 
-| Operation | Kết quả | Giải thích |
+| Operation | Result | Explanation |
 | --- | --- | --- |
-| `filter(n -> n < 5)` | `[1, 3, 2, 4]` | Chọn tất cả số nhỏ hơn 5. |
-| `takeWhile(n -> n < 5)` | `[1, 3]` | Dừng ở `6`, phần tử đầu tiên không nhỏ hơn 5. |
-| `dropWhile(n -> n < 5)` | `[6, 2, 7, 4]` | Chỉ bỏ tiền tố `[1,3]`. |
+| `filter(n -> n < 5)` | `[1, 3, 2, 4]` | Selects all numbers less than 5. |
+| `takeWhile(n -> n < 5)` | `[1, 3]` | Stops at `6`, the first element not less than 5. |
+| `dropWhile(n -> n < 5)` | `[6, 2, 7, 4]` | Drops only the prefix `[1,3]`. |
 
-**Lời giải Java:**
+**Java Solution:**
 
 ~~~java
 import java.util.List;
@@ -119,13 +119,13 @@ public class Exercise01 {
 }
 ~~~
 
-**Lỗi thường gặp:** cho rằng `dropWhile(n -> n < 5)` tương đương `filter(n -> n >= 5)`. Với dãy này, filter theo phủ định chỉ cho `[6,7]`, còn `dropWhile` giữ cả `2` và `4` ở hậu tố.
+**Common mistake:** assuming `dropWhile(n -> n < 5)` is equivalent to `filter(n -> n >= 5)`. On this sequence, the negated filter produces `[6,7]`, whereas `dropWhile` also keeps `2` and `4` in the suffix.
 
-## 4. Bài tập 2 — Dữ liệu đã sắp xếp tăng dần
+## 4. Exercise 2 — Data Sorted in Ascending Order
 
-**Mức độ:** Cơ bản.
+**Level:** Beginner.
 
-**Đề bài:** Cho `[1, 2, 2, 4, 5, 7, 9]` đã sắp tăng. Hãy tách các số **nhỏ hơn 5** khỏi các số từ 5 trở lên; so sánh ba operation.
+**Prompt:** Given `[1, 2, 2, 4, 5, 7, 9]` sorted ascending, separate numbers **less than 5** from numbers 5 or greater; compare the three operations.
 
 ~~~java
 import java.util.List;
@@ -153,34 +153,34 @@ public class Exercise02 {
 }
 ~~~
 
-**Tại sao `filter` và `takeWhile` bằng nhau trong trường hợp này?**
+**Why are `filter` and `takeWhile` equal in this case?**
 
-Vì dữ liệu được sắp tăng và điều kiện `n < 5` có tính **đơn điệu theo thứ tự**: một khi đã thấy số `>= 5`, không thể xuất hiện số nhỏ hơn 5 ở phía sau. Tất cả phần tử thỏa predicate tạo thành **một tiền tố**.
+Because the data is sorted ascending and the predicate `n < 5` is **monotonic with respect to that order**: once a number `>= 5` appears, no number less than 5 can appear afterward. Every matching element forms **a single prefix**.
 
-Điều kiện tổng quát để `filter(P)` và `takeWhile(P)` cho cùng kết quả trên Stream ordered là: **không có phần tử thỏa `P` xuất hiện sau phần tử đầu tiên không thỏa `P`**.
+The general condition for `filter(P)` and `takeWhile(P)` to yield the same result on an ordered Stream is: **no element satisfying `P` appears after the first element that fails `P`**.
 
-Tương tự, nếu mọi phần tử không thỏa `P` đều nằm trong một hậu tố, `dropWhile(P)` tương đương `filter(P.negate())` trên dãy đó. Đây là tính chất của **dữ liệu và predicate**, không phải sự đồng nghĩa của API.
+Similarly, if all elements failing `P` form a single suffix, `dropWhile(P)` equals `filter(P.negate())` on that sequence. This is a property of the **data and predicate**, not an API equivalence.
 
-### Cẩn thận với predicate khác
+### Be Careful with Other Predicates
 
-Một danh sách tăng dần **không bảo đảm** mọi predicate đều đơn điệu. Ví dụ `n % 2 == 0` có thể đúng, sai, rồi đúng lại dù danh sách đã được sắp:
+An ascending list **does not guarantee** that every predicate is monotonic. For instance, `n % 2 == 0` can alternate true, false, and true again even on a sorted list:
 
 ~~~text
-Nguồn: [2, 3, 4, 5, 6]
-P: số chẵn
+Source: [2, 3, 4, 5, 6]
+P: even number
 
 filter       → [2, 4, 6]
 takeWhile    → [2]
 dropWhile    → [3, 4, 5, 6]
 ~~~
 
-Chỉ được thay `filter` bằng `takeWhile` khi hiểu rõ **quy luật thứ tự của dữ liệu so với predicate**.
+Only replace `filter` with `takeWhile` when you know for certain how the **data ordering interacts with the predicate**.
 
-## 5. Bài tập 3 — Phần tử đầu tiên đã sai điều kiện
+## 5. Exercise 3 — First Element Already Fails the Condition
 
-**Mức độ:** Cơ bản.
+**Level:** Beginner.
 
-**Đề bài:** Dự đoán kết quả khi nguồn là `[9, 1, 2, 3]` và `P(n) = n < 5`.
+**Prompt:** Predict the output when the source is `[9, 1, 2, 3]` and `P(n) = n < 5`.
 
 ~~~java
 import java.util.List;
@@ -197,23 +197,23 @@ System.out.println(numbers.stream()
     .dropWhile(n -> n < 5).toList()); // [9, 1, 2, 3]
 ~~~
 
-**Giải thích:** `takeWhile` không có một phần tử đầu tiên hợp lệ nào để giữ. `dropWhile` không có tiền tố hợp lệ nào cần bỏ, nên trả lại toàn bộ dãy. Trong khi đó, `filter` vẫn thấy các số `1, 2, 3` ở cuối và chọn chúng.
+**Explanation:** `takeWhile` has no initial valid element to keep. `dropWhile` has no valid prefix to drop, so it returns the entire sequence. Meanwhile, `filter` still sees `1, 2, 3` later and selects them.
 
-**Bài thử mở rộng:** Nếu chỉ đổi thứ tự nguồn thành `[1,2,3,9]`, `takeWhile` trả `[1,2,3]`, còn `dropWhile` trả `[9]`. Cùng tập giá trị nhưng **encounter order khác** đã làm kết quả khác.
+**Extension experiment:** If you simply reorder the source to `[1,2,3,9]`, `takeWhile` returns `[1,2,3]`, and `dropWhile` returns `[9]`. The same set of values with a **different encounter order** produces different results.
 
-## 6. Bài tập 4 — Điều kiện luôn đúng, luôn sai và nguồn rỗng
+## 6. Exercise 4 — Always-True, Always-False, and Empty Sources
 
-**Mức độ:** Cơ bản.
+**Level:** Beginner.
 
-**Đề bài:** Lập bảng kết quả của ba operation khi predicate luôn trả `true`, luôn trả `false`, hoặc Stream không có phần tử.
+**Prompt:** Fill in a table of results for all three operations when the predicate always returns `true`, always returns `false`, or the Stream has no elements.
 
-| Nguồn | Predicate | `filter` | `takeWhile` | `dropWhile` |
+| Source | Predicate | `filter` | `takeWhile` | `dropWhile` |
 | --- | --- | --- | --- | --- |
 | `[1,2,3]` | `n -> true` | `[1,2,3]` | `[1,2,3]` | `[]` |
 | `[1,2,3]` | `n -> false` | `[]` | `[]` | `[1,2,3]` |
-| `[]` | Bất kỳ predicate hợp lệ | `[]` | `[]` | `[]` |
+| `[]` | Any valid predicate | `[]` | `[]` | `[]` |
 
-**Lời giải kiểm chứng:**
+**Verification Solution:**
 
 ~~~java
 import java.util.List;
@@ -246,15 +246,15 @@ public class Exercise04 {
 }
 ~~~
 
-Dùng `List.<Integer>of()` giúp kiểu generic của Stream rỗng rõ ràng. Nếu pipeline có terminal `findFirst()` sau đó, mọi trường hợp không còn phần tử sẽ trả `Optional.empty()`.
+Using `List.<Integer>of()` makes the generic element type of the empty Stream explicit. If a terminal `findFirst()` follows, any pipeline with no remaining elements returns `Optional.empty()`.
 
-## 7. Bài tập 5 — Phân định ranh giới bằng <= và <
+## 7. Exercise 5 — Defining Boundaries with `<=` vs. `<`
 
-**Mức độ:** Cơ bản → Trung cấp.
+**Level:** Beginner → Intermediate.
 
-**Đề bài:** Với dãy tăng `[10,20,30,40,50]`, lấy tất cả phần tử **trước** mốc 30 rồi lấy tất cả phần tử **từ** mốc 30 trở đi. Sửa predicate nếu muốn đưa mốc 30 vào nhóm đầu.
+**Prompt:** Given the ascending sequence `[10,20,30,40,50]`, take all elements **before** threshold 30, then take all elements **from** threshold 30 onward. Modify the predicate if you want to include 30 in the first group.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -282,12 +282,12 @@ public class BoundaryExercise {
 }
 ~~~
 
-Điểm ranh giới **đầu tiên không thỏa predicate** nằm trong kết quả của `dropWhile`, chứ không phải bị bỏ. Với `n < 30`, số 30 chính là phần tử đầu hậu tố.
+The **first element that fails the predicate** is included in the result of `dropWhile`, rather than discarded. With `n < 30`, the value 30 becomes the first element of the suffix.
 
-### Kiểm tra khi có giá trị trùng ranh giới
+### Checking Duplicate Boundary Values
 
 ~~~text
-Nguồn: [10, 20, 30, 30, 40]
+Source: [10, 20, 30, 30, 40]
 
 takeWhile(n < 30) → [10, 20]
 dropWhile(n < 30) → [30, 30, 40]
@@ -296,21 +296,21 @@ takeWhile(n <= 30) → [10, 20, 30, 30]
 dropWhile(n <= 30) → [40]
 ~~~
 
-**Câu hỏi:** Vì sao `dropWhile(n -> n < 30)` giữ cả hai số 30? Vì một khi gặp số 30 đầu tiên không thỏa, nó giữ **mọi phần tử còn lại** chứ không tiếp tục đánh giá điều kiện để loại từng phần tử.
+**Question:** Why does `dropWhile(n -> n < 30)` keep both 30s? Because once it encounters the first 30 that fails the predicate, it keeps **all remaining elements** without continuing to evaluate the predicate per element.
 
-## 8. Bài tập 6 — Giữ kết quả theo thứ tự đọc sự kiện
+## 8. Exercise 6 — Preserving Results in Event-Log Order
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Đề bài:** Một hệ thống ghi nhật ký các trạng thái theo đúng thứ tự thời gian. Ta muốn biết:
+**Prompt:** A system logs statuses in chronological order. We want to find:
 
-1. Những sự kiện **trước lỗi đầu tiên**.
-2. Những sự kiện **từ lỗi đầu tiên trở về sau**.
-3. Mọi sự kiện **không phải lỗi** trong toàn bộ nhật ký.
+1. Events **before the first error**.
+2. Events **from the first error onward**.
+3. All **non-error** events across the entire log.
 
-Ba câu hỏi này khác nhau; hãy chọn operation tương ứng.
+These three questions are distinct; select the corresponding operation for each.
 
-**Lời giải:**
+**Solution:**
 
 ~~~java
 import java.util.List;
@@ -320,11 +320,11 @@ public class EventLogExercise {
 
     public static void main(String[] args) {
         List<Event> log = List.of(
-            new Event(1, "INFO",  "Bắt đầu"),
-            new Event(2, "WARN",  "Chờ tài nguyên"),
-            new Event(3, "ERROR", "Mất kết nối"),
-            new Event(4, "INFO",  "Đang thử lại"),
-            new Event(5, "ERROR", "Hết lượt thử")
+            new Event(1, "INFO",  "Started"),
+            new Event(2, "WARN",  "Waiting for resource"),
+            new Event(3, "ERROR", "Connection lost"),
+            new Event(4, "INFO",  "Retrying"),
+            new Event(5, "ERROR", "Retries exhausted")
         );
 
         List<Event> beforeFirstError = log.stream()
@@ -351,13 +351,13 @@ public class EventLogExercise {
 }
 ~~~
 
-**Giải thích:** `takeWhile` trả **tiền tố** không có lỗi. `dropWhile` trả **hậu tố** từ lỗi đầu tiên; hậu tố có thể chứa các sự kiện INFO/WARN sau lỗi. `filter` trả tất cả sự kiện không lỗi, kể cả sự kiện ở **sau lỗi**.
+**Explanation:** `takeWhile` returns the error-free **prefix**. `dropWhile` returns the **suffix** starting at the first error; that suffix may contain INFO/WARN events after the error. `filter` returns all non-error events, including events **after the error**.
 
-Đây là một ví dụ điển hình mà dùng `filter` thay `takeWhile` sẽ phá ý nghĩa nghiệp vụ: câu hỏi “trước lỗi đầu tiên” không phải “mọi sự kiện không lỗi”.
+This is a classic example where substituting `filter` for `takeWhile` breaks business semantics: "before the first error" is not "all non-error events".
 
-### Nếu log không được sắp theo thời gian?
+### What If the Log Is Not Chronologically Ordered?
 
-`takeWhile` và `dropWhile` dựa trên **encounter order của Stream**, không tự kiểm tra timestamp hoặc trường `sequence`. Nếu dữ liệu đến không đúng thứ tự mà yêu cầu nghiệp vụ là “trước lỗi theo thời gian”, hãy sắp xếp theo khóa thời gian đủ rõ trước khi tìm ranh giới:
+`takeWhile` and `dropWhile` rely on the **Stream's encounter order**; they do not inspect timestamps or `sequence` fields automatically. If records arrive out of order and business rules require "before the first error in time", sort by a clear time key before finding the boundary:
 
 ~~~java
 List<Event> chronological = log.stream()
@@ -369,17 +369,17 @@ List<Event> beforeError = chronological.stream()
     .toList();
 ~~~
 
-Sắp xếp có thể tốn thêm thời gian và bộ nhớ. Không thêm `sorted()` chỉ để làm một bài toán vốn chỉ cần `filter`.
+Sorting adds extra time and memory overhead. Do not add `sorted()` if the problem only actually needs `filter`.
 
-## 9. Bài tập 7 — Đọc chuỗi phép đo trước và sau ngưỡng
+## 9. Exercise 7 — Reading Measurement Sequences Before and After a Threshold
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Đề bài:** Một thiết bị gửi dãy nhiệt độ theo **thứ tự thời gian**: `[65,68,72,82,75,90]`. Ngưỡng cảnh báo là 80. Hãy lấy:
+**Prompt:** A sensor sends a sequence of temperatures in **chronological order**: `[65,68,72,82,75,90]`. The alarm threshold is 80. Extract:
 
-- Tất cả phép đo dưới ngưỡng trong toàn bộ phiên.
-- Những phép đo liên tiếp **trước cảnh báo đầu tiên**.
-- Những phép đo **từ cảnh báo đầu tiên** tới cuối phiên.
+- All measurements below threshold across the entire session.
+- Contiguous measurements **before the first alarm**.
+- Measurements **from the first alarm** to the end of the session.
 
 ~~~java
 import java.util.List;
@@ -408,20 +408,20 @@ public class TemperatureExercise {
 }
 ~~~
 
-Sau khi vượt ngưỡng tại 82, nhiệt độ trở về 75 nhưng **vẫn thuộc hậu tố** của `dropWhile`. Nếu muốn **chỉ** các số đo từ 80 trở lên, dùng `filter(t -> t >= 80)`, kết quả `[82,90]`.
+After crossing the threshold at 82, the temperature drops back to 75, yet **75 remains in the `dropWhile` suffix**. If you want **only** readings of 80 or above, use `filter(t -> t >= 80)`, producing `[82,90]`.
 
-### Bài mở rộng
+### Extension Exercise
 
-Viết hàm trả về chỉ số (hoặc timestamp) của cảnh báo đầu tiên. Nếu dữ liệu không chứa cảnh báo, hãy giữ trạng thái **vắng mặt**, ví dụ bằng `OptionalInt` hoặc `Optional<Reading>`, thay vì trả một timestamp giả dễ gây hiểu nhầm.
+Write a function returning the index (or timestamp) of the first alarm. If the data contains no alarm, represent **absence** explicitly—for instance with `OptionalInt` or `Optional<Reading>`—rather than returning a misleading dummy timestamp.
 
-## 10. Bài tập 8 — Ghép operation: thứ tự các bước quan trọng
+## 10. Exercise 8 — Composing Operations: Step Order Matters
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Đề bài:** Xét `[2,5,4,1,6]`. So sánh hai pipeline:
+**Prompt:** Given `[2,5,4,1,6]`, compare two pipelines:
 
-- Lọc số chẵn, **sau đó** lấy các số nhỏ hơn 5 cho đến phần tử không phù hợp đầu tiên.
-- Lấy tiền tố nhỏ hơn 5, **sau đó** lọc số chẵn.
+- Filter even numbers, **then** take numbers less than 5 until the first non-matching element.
+- Take the prefix less than 5, **then** filter even numbers.
 
 ~~~java
 import java.util.List;
@@ -446,30 +446,30 @@ public class CompositionExercise {
 }
 ~~~
 
-**Giải thích chi tiết:**
+**Detailed trace:**
 
 ~~~text
-Nguồn ban đầu:               [2, 5, 4, 1, 6]
+Original source:             [2, 5, 4, 1, 6]
 
-filter(số chẵn):             [2, 4, 6]
+filter(even):                [2, 4, 6]
 takeWhile(n < 5):            [2, 4]
 
-takeWhile(n < 5) trước:      [2]
-filter(số chẵn) sau:         [2]
+takeWhile(n < 5) first:      [2]
+filter(even) after:          [2]
 ~~~
 
-Việc loại số 5 ở bước `filter` trước khiến `takeWhile` **không còn thấy điểm ranh giới này** và tiếp tục lấy được số 4. Khi đặt `takeWhile` trước, số 5 kết thúc tiền tố, nên số 4 ở sau không được xét để giữ.
+Removing 5 in the earlier `filter` step prevents `takeWhile` from **seeing that boundary**, allowing it to continue and keep 4. When `takeWhile` comes first, 5 ends the prefix, so 4 is never considered.
 
-**Kết luận:** Không tùy tiện đổi chỗ `filter` với `takeWhile` hay `dropWhile`. Chúng không phải các phép biến đổi có thể hoán đổi tự do như một số bộ lọc độc lập.
+**Conclusion:** Never reorder `filter` relative to `takeWhile` or `dropWhile` arbitrarily. They do not commute like independent filters.
 
-## 11. Bài tập 9 — Nguồn rỗng, phần tử null và ranh giới null
+## 11. Exercise 9 — Empty Sources, `null` Elements, and `null` Boundaries
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Đề bài:** Nguồn `List<Integer>` có thể chứa `null`. Với `[1,2,null,3,4]`, quyết định hai chính sách khác nhau:
+**Prompt:** A `List<Integer>` source may contain `null`. On `[1,2,null,3,4]`, implement two different policies:
 
-- **Chính sách A:** gặp `null` coi như **kết thúc đoạn hợp lệ**.
-- **Chính sách B:** bỏ `null` rồi xét các giá trị số như bình thường.
+- **Policy A:** encountering `null` **ends the valid segment**.
+- **Policy B:** discard `null` and evaluate numbers normally.
 
 ~~~java
 import java.util.Arrays;
@@ -481,7 +481,7 @@ public class NullBoundaryExercise {
         List<Integer> values =
             Arrays.asList(1, 2, null, 3, 4);
 
-        // A: null là ranh giới.
+        // A: null acts as a boundary.
         List<Integer> beforeGap = values.stream()
             .takeWhile(n -> n != null && n < 4)
             .toList();
@@ -490,7 +490,7 @@ public class NullBoundaryExercise {
             .dropWhile(n -> n != null && n < 4)
             .toList();
 
-        // B: bỏ null trước khi áp predicate.
+        // B: strip null before applying predicate.
         List<Integer> afterCleaning = values.stream()
             .filter(Objects::nonNull)
             .takeWhile(n -> n < 4)
@@ -503,21 +503,21 @@ public class NullBoundaryExercise {
 }
 ~~~
 
-**Chú ý:**
+**Notes:**
 
-- `n -> n < 4` **tự động unbox** `Integer` thành `int`; nếu `n == null` thì có thể ném `NullPointerException`.
-- Khi `null` là ranh giới, predicate phải kiểm tra `n != null` trước phép so sánh.
-- Khi muốn bỏ `null` khỏi nguồn, có thể `filter(Objects::nonNull)` trước khi `takeWhile`.
-- `Stream.toList()` có thể chứa phần tử null nhưng kết quả không sửa đổi được; `Collectors.toUnmodifiableList()` cấm null.
+- `n -> n < 4` **automatically unboxes** `Integer` to `int`; if `n == null`, this can throw `NullPointerException`.
+- When `null` is a boundary, the predicate must check `n != null` before comparing.
+- When stripping `null` from the source, you can call `filter(Objects::nonNull)` before `takeWhile`.
+- `Stream.toList()` can contain null elements while still being unmodifiable; `Collectors.toUnmodifiableList()` forbids nulls.
 
-Hai chính sách A và B **không tương đương**. Hãy chọn dựa trên dữ liệu thiếu có nghĩa là “đứt đoạn” hay chỉ là “bản ghi không cần xét”.
+Policies A and B are **not equivalent**. Choose based on whether missing data signifies a "break in continuity" or merely a "record to skip".
 
-### Nguồn tham chiếu null khác với phần tử null
+### Null Source Reference Differs from Null Elements
 
 ~~~java
 List<Integer> source = null;
 
-// Không được gọi source.stream().
+// Do not call source.stream().
 List<Integer> safeSource =
     java.util.Optional.ofNullable(source).orElseGet(List::of);
 
@@ -525,17 +525,17 @@ System.out.println(safeSource.stream()
     .takeWhile(n -> n < 4).toList()); // []
 ~~~
 
-Chỉ dùng chính sách “nguồn null = nguồn rỗng” khi hợp đồng nghiệp vụ cho phép. Nếu nguồn bắt buộc có, hãy dùng `Objects.requireNonNull(source, "...")` để báo lỗi rõ ràng.
+Use the "null source equals empty source" rule only when the business contract allows it. If the source is required, use `Objects.requireNonNull(source, "...")` to fail explicitly.
 
-## 12. Bài tập 10 — Stream vô hạn và nguy cơ không kết thúc
+## 12. Exercise 10 — Infinite Streams and Non-Termination Risk
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Đề bài:** Một nguồn số nguyên liên tục bắt đầu từ 0. Hãy tạo:
+**Prompt:** An unbounded integer stream starts at 0. Produce:
 
-1. Năm số đầu tiên nhỏ hơn 5.
-2. Ba số liên tiếp bắt đầu từ 5.
-3. Giải thích vì sao không thể thay mọi trường hợp bằng `filter` trên nguồn vô hạn.
+1. The first five integers less than 5.
+2. Three consecutive integers starting at 5.
+3. Explain why `filter` cannot replace `takeWhile` in all infinite-stream cases.
 
 ~~~java
 import java.util.Arrays;
@@ -558,38 +558,38 @@ public class InfiniteStreamExercise {
 }
 ~~~
 
-Ở đây `takeWhile(n < 5)` có thể kết thúc vì nguồn cuối cùng phát một số không nhỏ hơn 5. `dropWhile(n < 5)` bỏ các giá trị 0–4; `limit(3)` ở phía sau giúp terminal kết thúc sau ba kết quả được giữ.
+Here `takeWhile(n < 5)` terminates because the source eventually emits a number not less than 5. `dropWhile(n < 5)` skips 0–4; `limit(3)` afterward ensures the terminal operation finishes after retaining three elements.
 
-### Không chạy những ví dụ sau trên nguồn vô hạn không giới hạn
+### Do Not Run These Examples on an Unbounded Infinite Source
 
 ~~~java
-// Tránh chạy: không kết thúc vì filter liên tục đọc nguồn
-// để tìm thêm các phần tử thỏa n < 5, sau khi đã qua ranh giới.
+// Avoid running: never terminates because filter keeps reading
+// looking for more elements matching n < 5 after passing the threshold.
 // IntStream.iterate(0, n -> n + 1)
 //     .filter(n -> n < 5)
 //     .toArray();
 
-// Tránh chạy: hậu tố sau ranh giới là vô hạn.
+// Avoid running: the suffix after the boundary is infinite.
 // IntStream.iterate(0, n -> n + 1)
 //     .dropWhile(n -> n < 5)
 //     .toArray();
 ~~~
 
-`filter` không có quyền tự dừng toàn bộ pipeline vì gặp một phần tử sai điều kiện; các phần tử sau đó **về lý thuyết có thể thỏa lại**. `takeWhile` có thể dừng ở điểm phá vỡ tiền tố đối với nguồn có thứ tự. `dropWhile` không cắt hậu tố, nên cần một terminal hoặc operation khác có khả năng giới hạn kết quả.
+`filter` is not permitted to halt the entire pipeline just because one element failed; subsequent elements **could theoretically match again**. `takeWhile` can stop at the prefix break on an ordered source. `dropWhile` does not bound the suffix, so it needs another limiting operation or terminal condition.
 
-**Ngoại lệ cần hiểu:** `filter(P).limit(k)` vẫn có thể kết thúc nếu nguồn cuối cùng cho **đủ k phần tử** thỏa `P`. Không đánh đồng “filter trên nguồn vô hạn” với “mọi pipeline chứa filter đều vô hạn”.
+**Important exception:** `filter(P).limit(k)` can still terminate if the source eventually supplies **at least k elements** matching `P`. Do not equate "filter on an infinite stream" with "every pipeline using filter hangs forever".
 
-### Nếu predicate không bao giờ sai?
+### What If the Predicate Never Fails?
 
-`takeWhile(n -> true)` trên một nguồn vô hạn **không thể** tự tạo kết quả `toList()` hữu hạn. Điều kiện dừng phải tồn tại trong dữ liệu hoặc trong các operation khác.
+`takeWhile(n -> true)` on an infinite source **cannot** produce a finite `toList()` result on its own. A stopping condition must exist either in the data or in another bounding operation.
 
-## 13. Bài tập 11 — Song song và unordered: không còn một tiền tố xác định
+## 13. Exercise 11 — Parallel and `unordered`: No Single Deterministic Prefix
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Đề bài:** Chạy ba operation trên `IntStream.rangeClosed(1,8)` ở chế độ song song. Sau đó thêm `unordered()` và giải thích vì sao **không được viết kiểm thử dựa vào một đầu ra cụ thể** cho `takeWhile`/`dropWhile` khi nguồn không còn encounter order.
+**Prompt:** Run all three operations on `IntStream.rangeClosed(1,8)` in parallel. Then add `unordered()` and explain why **you must not write tests asserting one fixed output** for `takeWhile`/`dropWhile` once encounter order is dropped.
 
-### 13.1. Ordered parallel stream
+### 13.1. Ordered Parallel Stream
 
 ~~~java
 import java.util.Arrays;
@@ -619,9 +619,9 @@ public class OrderedParallelExercise {
 }
 ~~~
 
-`parallel()` **không tự hủy encounter order**. `IntStream.rangeClosed` có encounter order xác định; các operation vẫn phải duy trì ngữ nghĩa ordered dù các nhánh được thực hiện trên nhiều thread.
+`parallel()` **does not automatically discard encounter order**. `IntStream.rangeClosed` has a defined encounter order; operations must still preserve ordered semantics even when splits run across multiple threads.
 
-### 13.2. Unordered stream
+### 13.2. Unordered Stream
 
 ~~~java
 import java.util.Arrays;
@@ -643,22 +643,22 @@ public class UnorderedWhileExercise {
 
         System.out.println(Arrays.toString(taken));
         System.out.println(Arrays.toString(dropped));
-        // Không dựa vào hai mảng có nội dung/thứ tự cố định.
+        // Do not rely on fixed contents or ordering for these arrays.
     }
 }
 ~~~
 
-Trên **unordered stream**, Java cho phép:
+On an **unordered stream**, Java allows:
 
-- `takeWhile(P)` lấy **bất kỳ tập con** nào của các phần tử thỏa `P`. Không bảo đảm lấy toàn bộ `[1,2,3,4]`.
-- `dropWhile(P)` bỏ **bất kỳ tập con** nào của các phần tử thỏa `P`. Các phần tử không thỏa `P` vẫn thuộc kết quả; một số phần tử thỏa `P` cũng có thể còn lại.
-- `filter(P)` vẫn có nhiệm vụ giữ **tất cả phần tử thỏa `P`** về mặt tập giá trị, dù thứ tự duyệt có thể không xác định.
+- `takeWhile(P)` to take **any subset** of elements matching `P`. It is not guaranteed to return all of `[1,2,3,4]`.
+- `dropWhile(P)` to drop **any subset** of elements matching `P`. Elements failing `P` must remain in the result; some elements matching `P` may also remain.
+- `filter(P)` must still keep **all elements matching `P`** as a multiset of values, even though encounter order may be unspecified.
 
-`unordered()` **không phải shuffle**. Việc một lần chạy tạo cùng kết quả như nguồn ordered không tạo ra bảo đảm cho những lần sau.
+`unordered()` **is not a shuffle**. Observing one run match the ordered output creates no guarantee for future runs.
 
-### 13.3. Những bất biến có thể kiểm thử
+### 13.3. Invariants You Can Test
 
-Với `taken` sau `takeWhile(n < 5)`, ta chỉ được dựa vào mọi phần tử đều nhỏ hơn 5; số phần tử có thể thay đổi. Với `dropped`, phải giữ mọi phần tử từ 5 đến 8, nhưng có thể còn các số từ 1 đến 4.
+For `taken` after `takeWhile(n < 5)`, you can rely only on every returned element being less than 5; the count may vary. For `dropped`, all elements from 5 to 8 must remain, while numbers from 1 to 4 may still be present.
 
 ~~~java
 import java.util.Arrays;
@@ -673,7 +673,7 @@ boolean allTakenMatch = Arrays.stream(taken)
     .allMatch(n -> n < 5);
 
 if (!allTakenMatch) {
-    throw new AssertionError("takeWhile phát phần tử không hợp lệ");
+    throw new AssertionError("takeWhile emitted an invalid element");
 }
 
 int[] dropped = IntStream.rangeClosed(1, 8)
@@ -684,18 +684,18 @@ int[] dropped = IntStream.rangeClosed(1, 8)
 for (int mustRemain = 5; mustRemain <= 8; mustRemain++) {
     final int value = mustRemain;
     if (Arrays.stream(dropped).noneMatch(n -> n == value)) {
-        throw new AssertionError("dropWhile làm mất " + value);
+        throw new AssertionError("dropWhile lost " + value);
     }
 }
 ~~~
 
-Kết quả này chỉ kiểm tra những bất biến được hợp đồng đảm bảo; không suy ra tốc độ hay lịch thread. Nếu bài toán là **giữ tiền tố của dữ liệu thời gian**, phải giữ encounter order và không dùng `unordered()`.
+These assertions test only invariants guaranteed by the contract; they do not infer speed or thread scheduling. If the problem requires **preserving a chronological prefix**, keep encounter order and do not use `unordered()`.
 
-## 14. Bài tập 12 — Ghép with limit, skip và findFirst
+## 14. Exercise 12 — Combining with `limit`, `skip`, and `findFirst`
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Đề bài:** Cho dãy `[1,2,3,8,4,9]`. Hãy so sánh việc lấy hai phần tử đầu tiên bằng `limit` và việc lấy tiền tố theo điều kiện. Sau đó tìm **phần tử đầu tiên không thỏa `n < 5`**.
+**Prompt:** Given `[1,2,3,8,4,9]`, compare taking the first two elements via `limit` against taking a conditional prefix. Then find the **first element failing `n < 5`**.
 
 ~~~java
 import java.util.List;
@@ -730,14 +730,14 @@ public class TerminalCompositionExercise {
 }
 ~~~
 
-- `limit(k)` giới hạn theo **số lượng**, không theo một predicate.
-- `takeWhile(P)` giới hạn theo **ranh giới đầu tiên** không thỏa `P`.
-- `dropWhile(P).findFirst()` lấy phần tử **phá vỡ tiền tố** nếu có.
-- `dropWhile(P).skip(1)` bỏ thêm chính phần tử phá vỡ tiền tố, giữ những phần tử sau nó.
+- `limit(k)` limits by **element count**, not by a predicate.
+- `takeWhile(P)` limits by the **first boundary** failing `P`.
+- `dropWhile(P).findFirst()` retrieves the element that **breaks the prefix**, if any.
+- `dropWhile(P).skip(1)` skips that boundary element itself, keeping everything after it.
 
-Nếu mọi phần tử đều thỏa `P`, `dropWhile(P).findFirst()` trả `Optional.empty()`. Đừng gọi `get()` khi không có kết quả; dùng `orElse`, `orElseGet` hoặc `orElseThrow` tùy chính sách nghiệp vụ.
+If every element satisfies `P`, `dropWhile(P).findFirst()` returns `Optional.empty()`. Do not call `get()` when no result exists; use `orElse`, `orElseGet`, or `orElseThrow` per business policy.
 
-### Không nhầm với filter tìm mọi phần tử sai
+### Do Not Confuse This with `filter` Finding All Failing Elements
 
 ~~~java
 List<Integer> allFailures = values.stream()
@@ -747,21 +747,21 @@ List<Integer> allFailures = values.stream()
 System.out.println(allFailures); // [8, 9]
 ~~~
 
-`filter(n -> n >= 5)` trả **mọi** số vượt ngưỡng, không phải **số đầu tiên vượt ngưỡng cùng tất cả phần tử sau nó**.
+`filter(n -> n >= 5)` returns **all** numbers exceeding the threshold, not **the first threshold-crossing number plus everything after it**.
 
-## 15. Bài tập tổng hợp — Phân tích phiên kiểm thử đến sự cố đầu tiên
+## 15. Capstone Exercise — Analyzing a Test Session Up to the First Failure
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-**Tình huống:** Một hệ thống kiểm thử ghi lại những bước chạy theo đúng thứ tự. Mỗi bản ghi có `sequence`, `durationMs` và `passed`. Nhóm vận hành cần:
+**Scenario:** A test runner records execution steps in order. Each record has `sequence`, `durationMs`, and `passed`. Operations needs:
 
-1. Danh sách các bước **đã qua** ở bất kỳ vị trí nào.
-2. Danh sách các bước **liên tiếp đã qua trước lỗi đầu tiên**.
-3. Danh sách các bước **từ lỗi đầu tiên đến cuối phiên**.
-4. Mã (sequence) của **lỗi đầu tiên**, ở dạng `OptionalInt` nếu có thể thiếu.
-5. Tổng thời gian của các bước **trước lỗi đầu tiên** bằng `long`.
+1. A list of steps that **passed** at any point.
+2. A list of **contiguous passing steps before the first failure**.
+3. A list of steps **from the first failure to the end of the session**.
+4. The `sequence` of the **first failure**, as an `OptionalInt` since failures may be absent.
+5. The total duration of steps **before the first failure** as a `long`.
 
-**Lời giải hoàn chỉnh:**
+**Complete Solution:**
 
 ~~~java
 import java.util.List;
@@ -847,38 +847,38 @@ public class SessionAnalysis {
 }
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-- `filter(Step::passed)` giữ cả bước `4`, dù nó diễn ra sau lỗi đầu tiên.
-- `takeWhile(Step::passed)` chỉ giữ tiền tố `1,2`.
-- `dropWhile(Step::passed)` bắt đầu ở bước `3` và bao gồm cả bước thành công `4` phía sau.
-- `firstFailureSequence` là Optional vì phiên có thể **không có lỗi nào**.
-- `mapToLong` tính tổng thời lượng ở kiểu `long`, tránh tràn sớm khi cộng `int` trên nhiều bước.
+- `filter(Step::passed)` retains step `4` even though it occurs after the first failure.
+- `takeWhile(Step::passed)` retains only the prefix `1,2`.
+- `dropWhile(Step::passed)` starts at step `3` and includes the passing step `4` afterward.
+- `firstFailureSequence` is an Optional because a session may have **no failures at all**.
+- `mapToLong` sums durations as `long`, avoiding early overflow when summing `int` values across many steps.
 
-**Lưu ý về kiểu:** `suffix.stream().mapToInt(Step::sequence).findFirst()` trả `OptionalInt`. Không gọi `mapToInt` sau `findFirst()` trên `Stream<Step>`, vì khi đó kết quả đã là `Optional<Step>`, không còn là Stream. Trên nguồn rỗng hoặc phiên không có lỗi, `OptionalInt.empty()` biểu diễn chính xác việc không có sự cố.
+**Type note:** `suffix.stream().mapToInt(Step::sequence).findFirst()` returns `OptionalInt`. Do not call `mapToInt` after `findFirst()` on `Stream<Step>`, because at that point the result is already `Optional<Step>`, not a Stream. On an empty source or a failure-free session, `OptionalInt.empty()` accurately represents no incident.
 
-### Chính sách dữ liệu đầu vào
+### Input Data Policy
 
-Bài giả định:
+This exercise assumes:
 
-- Danh sách `steps` không phải null; các phần tử `Step` không null.
-- Bản ghi đã nằm theo **thứ tự thực thi**. Nếu có thể lệch thứ tự, phải sắp bằng `sequence` hoặc timestamp rõ ràng trước.
-- `durationMs` không âm; nếu có giá trị âm, nên báo lỗi hoặc xử lý theo quy tắc nghiệp vụ trước khi tính tổng.
-- Một `Step` có `passed = true` sau lỗi đầu tiên vẫn phải xuất hiện trong hậu tố, vì báo cáo cần phân tích những gì xảy ra **sau sự cố**.
+- The `steps` list is non-null; `Step` elements are non-null.
+- Records are already in **execution order**. If order may be scrambled, sort explicitly by `sequence` or timestamp first.
+- `durationMs` is non-negative; if negative values are possible, fail fast or handle per business rules before summing.
+- A `Step` with `passed = true` after the first failure must remain in the suffix because the report analyzes what happened **after the incident**.
 
-Không sửa `steps` bên trong callback; không dùng `parallel().unordered()` khi báo cáo phụ thuộc thứ tự sự kiện.
+Do not mutate `steps` inside callbacks; do not use `parallel().unordered()` when reporting depends on event order.
 
-### Bài mở rộng
+### Extension Exercise
 
-Hãy bổ sung `long totalFailureDurationMs`: tính tổng thời gian của **mọi bước thất bại** qua `filter(step -> !step.passed())` rồi `mapToLong(Step::durationMs).sum()`. Chỉ tiêu đó khác với tổng thời gian của hậu tố, vì hậu tố có thể gồm cả bước đã qua sau sự cố.
+Add `long totalFailureDurationMs`: compute the total duration of **all failed steps** via `filter(step -> !step.passed())` followed by `mapToLong(Step::durationMs).sum()`. That metric differs from the total duration of the suffix, because the suffix can contain passing steps after the incident.
 
-## 16. Kiểm thử có hệ thống: không dựa vào log callback
+## 16. Systematic Testing: Do Not Rely on Callback Logs
 
-**Mức độ:** Trung cấp.
+**Level:** Intermediate.
 
-Một bộ kiểm thử tốt phải kiểm tra kết quả của ba phép toán trong nhiều kịch bản, không đếm số lần predicate được gọi. Stream API có thể tối ưu pipeline; với parallel stream, thời điểm và thứ tự thực thi callback không phải hợp đồng để xây dựng đúng/sai.
+A solid test suite verifies the outputs of all three operations across multiple scenarios rather than counting predicate invocations. The Stream API can optimize pipelines; in parallel streams, callback timing and execution order are not contracts for correctness.
 
-Dùng một phương thức kiểm thử thuần Java:
+Use a pure Java verification helper:
 
 ~~~java
 import java.util.Arrays;
@@ -907,23 +907,23 @@ public class WhileOperationsChecks {
             .toArray();
 
         if (!Arrays.equals(filtered, expectedFilter)) {
-            throw new AssertionError("filter sai");
+            throw new AssertionError("filter is wrong");
         }
         if (!Arrays.equals(taken, expectedTake)) {
-            throw new AssertionError("takeWhile sai");
+            throw new AssertionError("takeWhile is wrong");
         }
         if (!Arrays.equals(dropped, expectedDrop)) {
-            throw new AssertionError("dropWhile sai");
+            throw new AssertionError("dropWhile is wrong");
         }
 
-        // Với nguồn ordered, take + drop tái tạo đúng input.
+        // For an ordered source, take + drop reconstructs the exact input.
         int[] joined = IntStream.concat(
             IntStream.of(taken),
             IntStream.of(dropped)
         ).toArray();
 
         if (!Arrays.equals(joined, input)) {
-            throw new AssertionError("Mất hoặc lặp phần tử");
+            throw new AssertionError("Missing or duplicate elements");
         }
     }
 
@@ -965,54 +965,54 @@ public class WhileOperationsChecks {
 }
 ~~~
 
-### Một bất biến quan trọng của ordered stream
+### An Important Invariant of Ordered Streams
 
-Với cùng một ordered source và cùng predicate thuần, kết quả của `takeWhile(P)` nối với kết quả của `dropWhile(P)` phải khôi phục lại nguồn:
+Given the same ordered source and the same pure predicate, concatenating `takeWhile(P)` with `dropWhile(P)` must reconstruct the source:
 
 ~~~text
 source = concat(takeWhile(P), dropWhile(P))
 ~~~
 
-Bất biến này không có nghĩa hai operation tự chia sẻ một lần duyệt. Chúng là **hai pipeline độc lập** (trong ví dụ, mỗi lần tạo Stream mới từ mảng). Khi nguồn thay đổi giữa hai lần duyệt hoặc predicate có trạng thái/tác dụng phụ, so sánh không còn đáng tin.
+This invariant does not mean the two operations share one traversal automatically. They are **two independent pipelines** (in the example, each creates a fresh Stream from the array). When the source mutates between traversals or the predicate has state/side effects, this comparison is no longer reliable.
 
-### Checklist các trường hợp biên
+### Edge-Case Checklist
 
-| Trường hợp | Kết quả cần xác nhận |
+| Case | Result to Verify |
 | --- | --- |
-| Nguồn rỗng | Cả ba đều rỗng |
-| Phần tử đầu tiên sai | `takeWhile` rỗng, `dropWhile` giữ cả nguồn |
-| Tất cả đều đúng | `takeWhile` giữ cả nguồn, `dropWhile` rỗng |
-| Tất cả đều sai | `filter`, `takeWhile` rỗng; `dropWhile` giữ cả nguồn |
-| Dữ liệu đúng rồi sai rồi đúng | `takeWhile` **không** lấy những phần tử đúng ở cuối |
-| Có nhiều phần tử bằng mốc | Kiểm tra rõ toán tử `<` hay `<=` |
-| Nguồn có phần tử null | Chọn chính sách bỏ null hoặc xem null là ranh giới |
-| Nguồn unordered | Không assert đúng một tiền tố/hậu tố theo thứ tự gốc |
-| Parallel ordered | Ngữ nghĩa kết quả vẫn theo encounter order |
-| Nguồn vô hạn | Chứng minh pipeline có thể kết thúc hoặc thêm giới hạn hợp lý |
+| Empty source | All three are empty |
+| First element fails | `takeWhile` empty; `dropWhile` keeps entire source |
+| All elements pass | `takeWhile` keeps entire source; `dropWhile` empty |
+| All elements fail | `filter`, `takeWhile` empty; `dropWhile` keeps entire source |
+| Pass, then fail, then pass | `takeWhile` **does not** capture trailing passing elements |
+| Multiple elements equal threshold | Verify `<` vs. `<=` carefully |
+| Source contains `null` | Choose either skip-null policy or null-as-boundary policy |
+| Unordered source | Do not assert a single prefix/suffix in original order |
+| Parallel ordered | Result semantics still follow encounter order |
+| Infinite source | Prove pipeline terminates or add an explicit bound |
 
-## 17. Hiệu năng, lazy evaluation và rủi ro với callback có trạng thái
+## 17. Performance, Lazy Evaluation, and Risks of Stateful Callbacks
 
-### 17.1. filter là stateless; takeWhile/dropWhile là stateful
+### 17.1. `filter` Is Stateless; `takeWhile`/`dropWhile` Are Stateful
 
-`filter` là **stateless intermediate operation**: kết quả chấp nhận hay loại một phần tử không đòi nhớ đã thấy phần tử nào trước đó.
+`filter` is a **stateless intermediate operation**: deciding whether to keep or reject an element requires no memory of earlier elements.
 
-`takeWhile` và `dropWhile` là **stateful intermediate operations** đối với ordered stream: chúng cần xác định vị trí xảy ra **lần đầu tiên predicate không thỏa** để quyết định tiền tố/hậu tố.
+`takeWhile` and `dropWhile` are **stateful intermediate operations** on ordered streams: they must track where **the predicate first failed** to determine the prefix/suffix split.
 
-`takeWhile` còn là operation **short-circuiting**: khi gặp ranh giới phù hợp trên ordered stream, nó có thể kết thúc lấy dữ liệu từ nguồn trước khi tiêu thụ toàn bộ nguồn. `dropWhile` không làm hậu tố biến mất; nếu terminal muốn toàn bộ hậu tố, các phần tử sau ranh giới vẫn phải được xử lý.
+`takeWhile` is also **short-circuiting**: upon hitting the boundary on an ordered stream, it can stop pulling elements from the source before consuming everything. `dropWhile` does not make the suffix disappear; if the terminal operation consumes the whole suffix, elements after the boundary still flow through.
 
-### 17.2. Parallel không đảm bảo tăng tốc
+### 17.2. Parallel Does Not Guarantee Speedup
 
-Trên nguồn ordered, xác định tiền tố chính xác trong parallel stream có thể tốn phối hợp giữa các nhánh. Điều này đặc biệt đáng chú ý với `takeWhile`, `dropWhile`, `limit` và `skip`. Nếu yêu cầu nghiệp vụ cho phép không cần encounter order, `unordered()` có thể tạo cơ hội tối ưu, **nhưng nó thay đổi hợp đồng của hai phép while**.
+On an ordered source, finding the exact prefix boundary in parallel can incur coordination overhead across splits. This is particularly noticeable for `takeWhile`, `dropWhile`, `limit`, and `skip`. If business rules do not require encounter order, `unordered()` can unlock optimizations, **but it alters the contract of both while operations**.
 
-Không có một ngưỡng phần tử cố định để kết luận parallel nhanh hơn. Phải đo với kích thước và phân bố dữ liệu đại diện, đặc biệt khi ranh giới xuất hiện rất sớm hoặc rất muộn.
+There is no universal element-count threshold where parallel becomes faster. Benchmark with representative data sizes and distributions, especially when the boundary occurs very early or very late.
 
-### 17.3. Không đưa state bên ngoài vào predicate
+### 17.3. Never Put External State Inside a Predicate
 
 ~~~java
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-// Không nên xây ngữ nghĩa ranh giới dựa vào counter mutable bên ngoài:
+// Do not build boundary semantics on an external mutable counter:
 AtomicInteger calls = new AtomicInteger();
 
 int[] result = IntStream.range(0, 20)
@@ -1021,101 +1021,101 @@ int[] result = IntStream.range(0, 20)
     .toArray();
 ~~~
 
-`AtomicInteger` làm phép tăng nguyên tử, **không** làm cho số lần/ thứ tự gọi predicate trở thành một quy tắc ổn định theo encounter order. Với parallel, kết quả có thể phụ thuộc lịch chia việc và thực thi; ý định “chỉ lấy bốn phần tử đầu” phải viết bằng `limit(4)` trên nguồn ordered, không bằng biến đếm trong predicate.
+`AtomicInteger` makes the increment atomic, **not** the count/order of predicate calls stable under encounter order. In parallel, the output can vary with work-splitting and scheduling; the intent "take only the first four elements" must be written with `limit(4)` on an ordered source, never a counter inside a predicate.
 
-### 17.4. Đừng so sánh qua side effect của peek
+### 17.4. Do Not Compare Operations via `peek` Side Effects
 
 ~~~java
-// Không dùng số lần in ra từ peek để khẳng định
-// Stream bắt buộc duyệt hết hay bỏ qua chính xác bao nhiêu phần tử.
+// Do not use print counts from peek to claim
+// a Stream must traverse everything or skip an exact number of elements.
 ~~~
 
-Một số terminal operation có thể tối ưu hoặc dừng sớm; callback của các intermediate operation không phải giao thức audit đáng tin cậy. Hãy kiểm tra đầu ra và hợp đồng nguồn. Nếu cần đo hiệu năng, dùng công cụ benchmark phù hợp và số liệu đại diện.
+Some terminal operations may optimize or short-circuit; intermediate callbacks are not a reliable auditing protocol. Verify outputs and source contracts instead. To measure performance, use a proper benchmarking tool and representative datasets.
 
-## 18. Những nhầm lẫn cần tránh
+## 18. Misconceptions to Avoid
 
-### Nhầm lẫn 1: takeWhile là filter có tốc độ cao hơn
+### Misconception 1: `takeWhile` Is a Faster `filter`
 
-Không. `takeWhile` chỉ lấy tiền tố thỏa predicate, nên khác `filter` nếu có phần tử thỏa phía sau một phần tử không thỏa. Sự khác biệt **ngữ nghĩa** phải được quyết định trước câu chuyện hiệu năng.
+No. `takeWhile` takes only the matching prefix, so it differs from `filter` whenever matching elements appear after a non-matching element. **Semantic** differences must be settled before performance questions.
 
-### Nhầm lẫn 2: dropWhile luôn loại mọi phần tử thỏa predicate
+### Misconception 2: `dropWhile` Always Drops Every Element Matching the Predicate
 
-Không. Nó chỉ bỏ **tiền tố liên tiếp**. Khi bắt đầu giữ hậu tố, những phần tử còn lại đều được giữ dù có thể thỏa predicate.
+No. It drops only the **contiguous prefix**. Once it begins keeping the suffix, all remaining elements are retained even if some match the predicate.
 
-### Nhầm lẫn 3: takeWhile tự sắp dữ liệu
+### Misconception 3: `takeWhile` Automatically Sorts Data
 
-Không. Nó phụ thuộc encounter order của nguồn. Nếu bài toán cần “mọi phần tử nhỏ hơn mốc” mà dữ liệu không bảo đảm thứ tự, `filter` mới là lựa chọn đúng.
+No. It depends on the source's encounter order. If the task is "all elements below threshold" and the data is not guaranteed to be ordered, `filter` is the right choice.
 
-### Nhầm lẫn 4: đặt filter trước takeWhile luôn tương đương làm ngược lại
+### Misconception 4: Putting `filter` Before `takeWhile` Always Equals the Reverse
 
-Không. Bước `filter` có thể xóa một phần tử phá vỡ tiền tố, làm `takeWhile` đi xa hơn. Bài tập 8 đã chỉ ra kết quả khác nhau.
+No. An earlier `filter` can remove an element that would have terminated the prefix, letting `takeWhile` advance further. Exercise 8 demonstrated the different outputs.
 
-### Nhầm lẫn 5: parallel đồng nghĩa unordered
+### Misconception 5: `parallel` Means `unordered`
 
-Không. `parallel()` chọn chế độ thực thi; `unordered()` bỏ ràng buộc encounter order. Parallel ordered stream vẫn duy trì ngữ nghĩa tiền tố/hậu tố theo thứ tự nguồn.
+No. `parallel()` selects parallel execution; `unordered()` drops encounter-order constraints. A parallel ordered stream still preserves prefix/suffix semantics according to source order.
 
-### Nhầm lẫn 6: takeWhile trên nguồn vô hạn luôn kết thúc
+### Misconception 6: `takeWhile` on an Infinite Source Always Terminates
 
-Không. Nó chỉ có thể kết thúc nếu cuối cùng gặp phần tử không thỏa predicate (hoặc terminal phía sau dừng sớm). Nếu predicate luôn đúng và không có giới hạn khác, pipeline có thể không bao giờ hoàn tất.
+No. It terminates only if an element eventually fails the predicate (or a downstream operation stops early). If the predicate is always true with no other bound, the pipeline may never finish.
 
-### Nhầm lẫn 7: dropWhile(P).findFirst() luôn có giá trị
+### Misconception 7: `dropWhile(P).findFirst()` Always Has a Value
 
-Không. Nếu nguồn rỗng hoặc **toàn bộ phần tử đều thỏa `P`**, hậu tố rỗng và `findFirst()` trả `Optional.empty()`.
+No. If the source is empty or **every element satisfies `P`**, the suffix is empty and `findFirst()` returns `Optional.empty()`.
 
-### Nhầm lẫn 8: có thể dùng lại một Stream cho cả ba phép
+### Misconception 8: One Stream Can Be Reused for All Three Operations
 
-Không. Mỗi terminal operation tiêu thụ Stream. Muốn so sánh, tạo ba Stream mới từ cùng nguồn ổn định hoặc một `Supplier<Stream<T>>` tạo Stream mới mỗi lần.
+No. Each terminal operation consumes the Stream. To compare them, create three fresh Streams from a stable source or use a `Supplier<Stream<T>>` that supplies a new Stream each time.
 
-### Nhầm lẫn 9: phương thức takeWhile có trên Java 8
+### Misconception 9: `takeWhile` Exists in Java 8
 
-Không. `takeWhile` và `dropWhile` được bổ sung ở **Java 9**. Nếu dự án bắt buộc chạy Java 8, cần cách tiếp cận khác hoặc thư viện phù hợp, không thể biên dịch trực tiếp những lời gọi này bằng Java 8.
+No. `takeWhile` and `dropWhile` were introduced in **Java 9**. If a project must run on Java 8, use another approach or suitable library; these calls will not compile directly under Java 8.
 
-## 19. Bảng ra quyết định và bài tự kiểm tra
+## 19. Decision Table and Self-Check Questions
 
-| Yêu cầu thực tế | Operation phù hợp | Lý do |
+| Practical Requirement | Appropriate Operation | Reason |
 | --- | --- | --- |
-| Lấy mọi giao dịch có số tiền lớn hơn ngưỡng | `filter` | Xét toàn nguồn, không phụ thuộc ranh giới |
-| Lấy các bước thành công **trước lần lỗi đầu tiên** | `takeWhile` | Chính xác là tiền tố liên tiếp |
-| Xem nhật ký **từ lỗi đầu tiên** trở đi | `dropWhile` | Giữ hậu tố kể cả các bước thành công sau lỗi |
-| Lấy mọi phép đo nhiệt độ dưới ngưỡng | `filter` | Có thể có số đo dưới ngưỡng sau lần vượt ngưỡng |
-| Lấy các giá trị ban đầu của dãy tăng trước cutoff | `takeWhile` | Predicate theo cutoff đơn điệu theo thứ tự nguồn |
-| Bỏ toàn bộ giá trị ban đầu trước cutoff trong dãy tăng | `dropWhile` | Bắt đầu tại phần tử không thỏa đầu tiên |
-| Lấy đúng `k` phần tử đầu, không liên quan predicate | `limit(k)` | Ràng buộc số lượng thay vì điều kiện |
-| Lấy phần tử phá vỡ tiền tố | `dropWhile(P).findFirst()` | Trả Optional, có thể vắng mặt |
-| Lấy bất kỳ phần tử phù hợp trong nguồn không thứ tự | `filter(P).findAny()` | Không yêu cầu tiền tố |
-| Yêu cầu phân trang ổn định | Thứ tự xác định + `skip/limit` hoặc cơ chế phân trang chuyên dụng | `unordered().takeWhile` không có ranh giới cố định |
+| Get all transactions above a threshold | `filter` | Evaluates entire source, independent of boundaries |
+| Get passing steps **before the first failure** | `takeWhile` | Exactly the contiguous prefix |
+| Inspect logs **from the first error** onward | `dropWhile` | Keeps suffix including passing steps after the error |
+| Get all temperature readings below threshold | `filter` | Readings below threshold can recur after a spike |
+| Get initial values of an ascending sequence before cutoff | `takeWhile` | Cutoff predicate is monotonic with source order |
+| Drop all initial values before cutoff in an ascending sequence | `dropWhile` | Starts at the first failing element |
+| Get exactly the first `k` elements regardless of predicate | `limit(k)` | Count-based rather than condition-based |
+| Get the element that breaks the prefix | `dropWhile(P).findFirst()` | Returns Optional; may be absent |
+| Get any matching element from an unordered source | `filter(P).findAny()` | No prefix requirement |
+| Stable pagination requirement | Deterministic order + `skip/limit` or dedicated pagination | `unordered().takeWhile` has no fixed boundary |
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-1. **Với `[1,4,7,2]` và `P(n) = n < 5`, `filter(P)` trả gì?** `[1,4,2]`.
-2. **Cùng nguồn đó, `takeWhile(P)` trả gì?** `[1,4]`.
-3. **Cùng nguồn đó, `dropWhile(P)` trả gì?** `[7,2]`.
-4. **Có đúng `dropWhile(P) = filter(P.negate())` không?** Không nói chung; chỉ có thể trùng trên nguồn có cấu trúc thỏa predicate rồi không thỏa liên tục.
-5. **Khi nào `takeWhile(P)` bằng `filter(P)`?** Khi không có phần tử thỏa predicate nào xuất hiện sau phần tử đầu tiên không thỏa trong encounter order.
-6. **Nếu phần tử đầu tiên không thỏa `P`, `takeWhile` trả gì?** Stream rỗng.
-7. **Nếu tất cả phần tử thỏa `P`, `dropWhile` trả gì?** Stream rỗng.
-8. **`dropWhile(P).findFirst()` có thể trả `Optional.empty()` không?** Có.
-9. **`parallel()` có làm `takeWhile` trên List tự trở thành unordered không?** Không.
-10. **`unordered().takeWhile(P)` có buộc giữ toàn bộ phần tử thỏa `P` không?** Không; có thể giữ bất kỳ tập con nào.
-11. **`unordered().dropWhile(P)` có được bỏ phần tử không thỏa `P` không?** Không; nó chỉ được bỏ một tập con của những phần tử thỏa predicate.
-12. **Vì sao `filter(Objects::nonNull)` đôi khi cần đứng trước `takeWhile(n -> n < 5)`?** Để tránh NPE do autounboxing null, nhưng điều này cũng làm thay đổi ranh giới nếu null vốn được coi là dấu ngắt.
-13. **Với nguồn vô hạn tăng dần, `takeWhile(n < 5)` có kết thúc không?** Có, nếu nguồn phát đến 5.
-14. **`filter(n < 5).toArray()` trên nguồn vô hạn tăng dần có kết thúc không?** Không; filter vẫn đọc tiếp để kiểm tra có số thỏa phía sau hay không.
-15. **Có nên dùng bộ đếm mutable trong predicate để mô tả ranh giới số lượng không?** Không; dùng `limit` hoặc mô hình dữ liệu rõ ràng.
-16. **Nếu muốn giữ tất cả dữ liệu kể từ một sự cố trở đi, dùng gì?** `dropWhile` với predicate mô tả trạng thái “chưa xảy ra sự cố”.
-17. **Nếu muốn giữ mọi phần tử không lỗi, kể cả sau lần lỗi đầu, dùng gì?** `filter`.
-18. **Dữ liệu phải đáp ứng điều gì để `takeWhile` có ý nghĩa “trước mốc thời gian”?** Có encounter order tương ứng với thời gian, hoặc được sắp đúng theo thời gian trước đó.
-19. **Có thể gọi ba terminal operation trên một Stream đã tạo sẵn không?** Không; phải tạo Stream mới mỗi lần.
-20. **Java tối thiểu cho `Stream.takeWhile`/`dropWhile` là phiên bản nào?** Java 9.
+1. **Given `[1,4,7,2]` and `P(n) = n < 5`, what does `filter(P)` return?** `[1,4,2]`.
+2. **On the same source, what does `takeWhile(P)` return?** `[1,4]`.
+3. **On the same source, what does `dropWhile(P)` return?** `[7,2]`.
+4. **Is `dropWhile(P) = filter(P.negate())` always true?** Not in general; they match only when the source satisfies the predicate contiguously and then fails it contiguously.
+5. **When does `takeWhile(P)` equal `filter(P)`?** When no element matching the predicate appears after the first element failing it in encounter order.
+6. **If the first element fails `P`, what does `takeWhile` return?** An empty Stream.
+7. **If all elements satisfy `P`, what does `dropWhile` return?** An empty Stream.
+8. **Can `dropWhile(P).findFirst()` return `Optional.empty()`?** Yes.
+9. **Does `parallel()` make `takeWhile` on a List automatically unordered?** No.
+10. **Must `unordered().takeWhile(P)` keep all elements matching `P`?** No; it may return any subset.
+11. **May `unordered().dropWhile(P)` drop elements that fail `P`?** No; it may only drop a subset of elements that satisfy the predicate.
+12. **Why is `filter(Objects::nonNull)` sometimes needed before `takeWhile(n -> n < 5)`?** To avoid NPE from auto-unboxing null, though doing so alters the boundary if null was meant to stop the prefix.
+13. **On an infinite ascending source, does `takeWhile(n < 5)` terminate?** Yes, if the source reaches 5.
+14. **Does `filter(n < 5).toArray()` on an infinite ascending source terminate?** No; filter keeps reading to check whether later numbers satisfy the predicate.
+15. **Should you use a mutable counter inside a predicate to express a count limit?** No; use `limit` or an explicit data model.
+16. **If you want all data from an incident onward, what do you use?** `dropWhile` with a predicate describing the "no incident yet" state.
+17. **If you want all error-free items, even after the first error, what do you use?** `filter`.
+18. **What property must data satisfy for `takeWhile` to mean "before a timestamp cutoff"?** Encounter order must match chronological order, or the data must be sorted chronologically beforehand.
+19. **Can you invoke three terminal operations on one already-created Stream?** No; create a fresh Stream each time.
+20. **What is the minimum Java version for `Stream.takeWhile`/`dropWhile`?** Java 9.
 
-### Bài mở rộng
+### Extension Exercises
 
-**Bài A:** Cho dãy số `[4,6,8,3,10,12]`. Dự đoán ba kết quả với `P(n) = n % 2 == 0`. Giải thích vì sao `dropWhile` giữ cả `10` và `12` dù chúng là số chẵn.
+**Exercise A:** Given `[4,6,8,3,10,12]`, predict all three results for `P(n) = n % 2 == 0`. Explain why `dropWhile` keeps both `10` and `12` even though they are even.
 
-**Bài B:** Một danh sách phiên kết nối có cờ `connected`. Tính tổng thời lượng của **đoạn kết nối liên tiếp ban đầu** và so sánh với tổng thời lượng của **tất cả phiên connected**; dùng `takeWhile` và `filter` tương ứng.
+**Exercise B:** A list of connection sessions has a `connected` flag. Compute the total duration of the **initial contiguous connected streak** and compare it with the total duration of **all connected sessions**; use `takeWhile` and `filter`, respectively.
 
-**Bài C:** Sửa ví dụ nhật ký để trả về `Optional<Event> firstError` bằng `dropWhile(e -> !"ERROR".equals(e.level())).findFirst()`. Kiểm tra nhật ký không có lỗi và nhật ký bắt đầu bằng lỗi.
+**Exercise C:** Modify the log example to return `Optional<Event> firstError` using `dropWhile(e -> !"ERROR".equals(e.level())).findFirst()`. Test logs with no errors and logs starting with an error.
 
-**Bài D:** Viết kiểm thử cho `IntStream.rangeClosed(1,1000).parallel().takeWhile(n -> n < 100)`, xác minh kết quả ordered. Sau đó thêm `unordered()` và chỉ kiểm tra các bất biến đúng theo đặc tả, không khẳng định đúng 99 phần tử.
+**Exercise D:** Write tests for `IntStream.rangeClosed(1,1000).parallel().takeWhile(n -> n < 100)`, verifying the ordered result. Then add `unordered()` and check only invariants guaranteed by the specification, without asserting exactly 99 elements.
 
-**Ghi nhớ:** `filter(P)` chọn **mọi phần tử thỏa `P`**. Trên nguồn có thứ tự, `takeWhile(P)` chỉ giữ **tiền tố liên tiếp** thỏa `P`, còn `dropWhile(P)` bỏ tiền tố đó và giữ **toàn bộ hậu tố**, kể cả những phần tử thỏa `P` xuất hiện sau ranh giới. Ba operation có thể trùng kết quả trong các trường hợp đặc biệt nhưng không thể thay thế tùy ý. Hãy xác định yêu cầu nghiệp vụ, encounter order, chính sách dữ liệu thiếu và điều kiện kết thúc trước khi chọn operation hoặc bật xử lý song song.
+**Key takeaway:** `filter(P)` selects **every element matching `P`**. On an ordered source, `takeWhile(P)` keeps only the **contiguous prefix** matching `P`, while `dropWhile(P)` discards that prefix and keeps **the entire suffix**, including elements matching `P` that appear after the boundary. The three operations can coincide in special cases, but they cannot be substituted freely. Always confirm business semantics, encounter order, missing-data policy, and termination conditions before choosing an operation or enabling parallel execution.

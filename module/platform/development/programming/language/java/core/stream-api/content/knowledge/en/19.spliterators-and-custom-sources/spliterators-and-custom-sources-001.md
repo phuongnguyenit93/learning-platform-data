@@ -1,58 +1,58 @@
-# Vai trò của Spliterator trong duyệt và chia nguồn
+# Role of Spliterator in Traversing and Splitting Sources
 
-## 1. Spliterator nằm ở đâu trong Java Stream API?
+## 1. Where Does Spliterator Sit in the Java Stream API?
 
-Trong **JAVA_STREAM_API**, lập trình viên thường xây dựng pipeline bằng `filter`, `map`, `reduce` và `collect`, nhưng ít khi phải tự viết vòng lặp đọc từng phần tử. Việc lấy dữ liệu từ một `List`, một mảng hay một nguồn tự định nghĩa được Stream API tổ chức qua một giao diện nền tảng: **`java.util.Spliterator<T>`**.
+In **JAVA_STREAM_API**, developers typically build pipelines using `filter`, `map`, `reduce`, and `collect`, rarely needing to write loops to read individual elements manually. Retrieving data from a `List`, an array, or a custom source is organized by the Stream API through a foundational interface: **`java.util.Spliterator<T>`**.
 
-Tên `Spliterator` ghép từ *split* (chia) và *iterator* (duyệt). Nó có hai trách nhiệm chính:
+The name `Spliterator` combines *split* and *iterator*. It has two primary responsibilities:
 
-1. **Duyệt phần tử:** lần lượt cung cấp phần tử cho một `Consumer` khi được yêu cầu.
-2. **Chia nguồn:** tách phần việc còn lại thành các phần có thể được duyệt độc lập, để hệ thống có cơ hội thực thi song song.
+1. **Traversing elements:** sequentially delivering elements to a `Consumer` when requested.
+2. **Splitting the source:** partitioning the remaining work into parts that can be traversed independently, giving the system an opportunity for parallel execution.
 
-Ngoài ra, Spliterator còn **mô tả đặc tính của nguồn**, chẳng hạn nguồn có thứ tự hay không, có biết chính xác kích thước hay không, có phần tử trùng hay `null` hay không. Những thông tin này giúp Stream API lựa chọn cách thực thi phù hợp.
+Additionally, a Spliterator **describes characteristics of the source**, such as whether the source is ordered, whether its exact size is known, or whether it may contain duplicates or `null` values. This information helps the Stream API choose an appropriate execution strategy.
 
 ~~~text
-                List / Set / mảng / nguồn tùy chỉnh
-                              │
-                              ▼
-                         Spliterator
-                ┌─────────────┼──────────────┐
-                ▼             ▼              ▼
-           tryAdvance     trySplit()    characteristics()
-           duyệt phần tử  chia phần     khai báo tính chất
-                │             │              │
-                └─────────────┴──────────────┘
-                              │
-                              ▼
+                List / Set / array / custom source
+                               │
+                               ▼
+                          Spliterator
+                 ┌─────────────┼──────────────┐
+                 ▼             ▼              ▼
+            tryAdvance     trySplit()    characteristics()
+         traverse elements split parts   declare properties
+                 │             │              │
+                 └─────────────┴──────────────┘
+                               │
+                               ▼
                   StreamSupport / Stream API
-                              │
-                      filter → map → ...
-                              │
+                               │
+                       filter → map → ...
+                               │
                     collect / reduce / sum
 ~~~
 
-**Phân biệt quan trọng:** Spliterator không phải một terminal operation và cũng không phải phép biến đổi như `map`. Nó là **cơ chế truy cập và phân chia nguồn** phía dưới pipeline. Nếu nguồn được chia tốt, parallel stream có thể xử lý các phần độc lập; nếu không chia được, chỉ gọi `parallel()` không tự biến bài toán thành nhiều phần việc hữu ích.
+**Important distinction:** A Spliterator is neither a terminal operation nor a transformation like `map`. It is the **underlying source access and partitioning mechanism** beneath the pipeline. If a source splits well, a parallel stream can process parts independently; if it cannot be split, simply calling `parallel()` will not automatically turn the problem into useful parallel tasks.
 
-Bài thuộc chương **Spliterator và nguồn tự định nghĩa**; ví dụ dùng Java 17+ và tập trung vào ngữ nghĩa duyệt/chia nguồn, hợp đồng đặc tính, hiệu năng và vòng đời dữ liệu.
+This article belongs to the **Spliterators and Custom Sources** chapter; examples use Java 17+ and focus on traversal/splitting semantics, characteristic contracts, performance, and data lifecycle.
 
-## 2. Spliterator so với Iterator và Stream
+## 2. Spliterator Compared to Iterator and Stream
 
-`Iterator<T>` thường chỉ cung cấp thao tác lấy phần tử tiếp theo. `Spliterator<T>` bổ sung khả năng chia công việc và thông báo đặc tính nguồn.
+`Iterator<T>` generally only provides operations to retrieve the next element. `Spliterator<T>` adds the ability to split work and report source characteristics.
 
-| Khía cạnh | `Iterator<T>` | `Spliterator<T>` | `Stream<T>` |
+| Aspect | `Iterator<T>` | `Spliterator<T>` | `Stream<T>` |
 | --- | --- | --- | --- |
-| Duyệt từng phần tử | `hasNext()`, `next()` | `tryAdvance(action)` | Pipeline xử lý nội bộ |
-| Duyệt phần còn lại | Vòng lặp hoặc `forEachRemaining` | `forEachRemaining(action)` | `forEach` / terminal khác |
-| Chia nguồn | Không có API chuẩn tương ứng | `trySplit()` | Hệ thống có thể tận dụng khi parallel |
-| Ước lượng kích thước còn lại | Không có hợp đồng chung | `estimateSize()` | Có thể suy ra qua nguồn/Spliterator |
-| Đặc tính về thứ tự/kích thước | Không có bộ cờ chuẩn | `characteristics()` | Có thể dựa vào hoặc thay đổi thông qua operation |
-| Mục tiêu | Duyệt trực tiếp | Duyệt và phân hoạch nguồn | Mô tả phép biến đổi và tổng hợp khai báo |
+| Element-by-element traversal | `hasNext()`, `next()` | `tryAdvance(action)` | Internal pipeline processing |
+| Remaining traversal | Loop or `forEachRemaining` | `forEachRemaining(action)` | `forEach` / other terminals |
+| Source splitting | No standard equivalent API | `trySplit()` | System can leverage when parallel |
+| Remaining size estimate | No common contract | `estimateSize()` | May be inferred via source/Spliterator |
+| Ordering/size characteristics | No standard flag set | `characteristics()` | Can rely on or alter via operations |
+| Purpose | Direct traversal | Traversing and partitioning sources | Declarative transformation and aggregation |
 
-Không nên dùng `Spliterator` trực tiếp chỉ vì muốn viết vòng lặp thay `Iterator`. Với nhu cầu xử lý dữ liệu thông thường, `stream()` và các operation cấp cao vẫn rõ ràng hơn. Làm việc trực tiếp với Spliterator có ý nghĩa khi cần **hiểu hoặc định nghĩa nguồn**, nhất là nguồn có quy tắc chia đặc biệt.
+You should not use `Spliterator` directly just to write a loop instead of `Iterator`. For typical data processing needs, `stream()` and higher-level operations remain clearer. Working directly with `Spliterator` makes sense when you need to **understand or define a source**, especially a source with custom splitting rules.
 
-## 3. Các phương thức cốt lõi của Spliterator
+## 3. Core Methods of Spliterator
 
-Chữ ký rút gọn:
+Abbreviated signature:
 
 ~~~java
 public interface Spliterator<T> {
@@ -62,29 +62,29 @@ public interface Spliterator<T> {
     long estimateSize();
     int characteristics();
 
-    // API liên quan:
+    // Related APIs:
     long getExactSizeIfKnown();
     boolean hasCharacteristics(int characteristics);
     Comparator<? super T> getComparator();
 }
 ~~~
 
-| Phương thức | Ý nghĩa | Giá trị hoặc tác dụng |
+| Method | Meaning | Return Value or Effect |
 | --- | --- | --- |
-| `tryAdvance(action)` | Nếu còn phần tử, chuyển **đúng một** phần tử vào action | `true` nếu một phần tử được chuyển; `false` nếu hết |
-| `forEachRemaining(action)` | Duyệt phần tử còn lại và gọi action cho từng phần tử | Không trả kết quả |
-| `trySplit()` | Cố tách một phần của công việc chưa duyệt | Trả Spliterator con hoặc `null` |
-| `estimateSize()` | Ước lượng số phần tử còn lại | `long` không âm, có thể là `Long.MAX_VALUE` khi chưa biết |
-| `characteristics()` | Bitmask các đặc tính được **bảo đảm** | Tổ hợp cờ `ORDERED`, `SIZED`, ... |
-| `getExactSizeIfKnown()` | Kích thước chính xác nếu có `SIZED` | Số lượng còn lại, hoặc `-1` |
-| `hasCharacteristics(flags)` | Kiểm tra có đủ các cờ được hỏi không | `boolean` |
-| `getComparator()` | Comparator cho Spliterator có `SORTED` | Comparator, hoặc `null` nếu thứ tự tự nhiên |
+| `tryAdvance(action)` | If elements remain, pass **exactly one** element to action | `true` if an element was passed; `false` if exhausted |
+| `forEachRemaining(action)` | Traverse remaining elements and invoke action for each | Returns nothing |
+| `trySplit()` | Attempt to split off part of the untraversed work | Returns a child Spliterator or `null` |
+| `estimateSize()` | Estimate the number of remaining elements | Non-negative `long`, may be `Long.MAX_VALUE` if unknown |
+| `characteristics()` | Bitmask of **guaranteed** characteristics | Combination of flags `ORDERED`, `SIZED`, ... |
+| `getExactSizeIfKnown()` | Exact size if `SIZED` is present | Remaining count, or `-1` |
+| `hasCharacteristics(flags)` | Check whether all queried flags are present | `boolean` |
+| `getComparator()` | Comparator for a `SORTED` Spliterator | Comparator, or `null` for natural ordering |
 
-`tryAdvance` và `trySplit` là hai phương thức trung tâm của bài. Một Spliterator có thể **duyệt đúng** mà không chia được; khi đó `trySplit()` có thể trả `null`. Giao diện không đòi mọi nguồn phải phân chia được hoặc chia thành hai phần bằng nhau.
+`tryAdvance` and `trySplit` are the two central methods in this article. A Spliterator can **traverse correctly** without being splittable; in that case `trySplit()` may return `null`. The interface does not require every source to be splittable or to split into two equal halves.
 
-## 4. Duyệt một nguồn bằng tryAdvance và forEachRemaining
+## 4. Traversing a Source with tryAdvance and forEachRemaining
 
-### 4.1. tryAdvance: một lần gọi, tối đa một phần tử
+### 4.1. tryAdvance: one call, at most one element
 
 ~~~java
 import java.util.List;
@@ -96,27 +96,27 @@ public class TraverseWithSpliterator {
             List.of("An", "Bình", "Chi").spliterator();
 
         boolean first = cursor.tryAdvance(
-            value -> System.out.println("Đầu tiên: " + value)
+            value -> System.out.println("First: " + value)
         );
         System.out.println(first); // true
 
         boolean second = cursor.tryAdvance(System.out::println);
-        System.out.println(second); // true; đã chuyển phần tử "Bình"
+        System.out.println(second); // true; passed element "Bình"
 
         boolean third = cursor.tryAdvance(System.out::println);
-        System.out.println(third); // true; đã chuyển phần tử "Chi"
+        System.out.println(third); // true; passed element "Chi"
 
         boolean done = cursor.tryAdvance(System.out::println);
-        System.out.println(done); // false; không còn phần tử
+        System.out.println(done); // false; no elements remaining
     }
 }
 ~~~
 
-`tryAdvance` khác `Iterator.next()`: ta cung cấp **action** để Spliterator đưa phần tử vào, thay vì yêu cầu nó trả về phần tử cho người gọi. Mỗi lần trả `true`, action được gọi cho đúng một phần tử; khi trả `false`, không có phần tử nào được phát.
+`tryAdvance` differs from `Iterator.next()`: you supply an **action** for the Spliterator to pass the element into, rather than asking it to return the element to the caller. Each time it returns `true`, the action is invoked for exactly one element; when it returns `false`, no element is emitted.
 
-Nếu `action` là `null`, Spliterator có thể ném `NullPointerException` khi được dùng để xử lý phần tử. Để code tự định nghĩa dễ dự đoán, nên kiểm tra `Objects.requireNonNull(action)` trước khi gọi action.
+If `action` is `null`, the Spliterator may throw `NullPointerException` when used to process an element. To make custom code predictable, check `Objects.requireNonNull(action)` before invoking the action.
 
-### 4.2. forEachRemaining: duyệt toàn bộ phần còn lại
+### 4.2. forEachRemaining: traversing all remaining elements
 
 ~~~java
 import java.util.List;
@@ -133,35 +133,35 @@ cursor.forEachRemaining(System.out::println);
 // D
 ~~~
 
-`forEachRemaining` được định nghĩa mặc định qua các lần gọi `tryAdvance`, tuy nhiên một implementation có thể tối ưu cách duyệt hàng loạt.
+`forEachRemaining` is defined by default via repeated calls to `tryAdvance`, though an implementation may optimize bulk traversal.
 
-**Quan trọng:** Spliterator là bộ duyệt có **trạng thái tiến lên**. Sau khi `tryAdvance` hoặc `forEachRemaining` tiêu thụ một phần, các lần duyệt sau chỉ thấy phần **chưa tiêu thụ**. Muốn duyệt lại từ đầu, thường phải xin một Spliterator mới từ nguồn.
+**Important:** A Spliterator is a traversal cursor with **forward-moving state**. Once `tryAdvance` or `forEachRemaining` consumes part of it, subsequent traversals only see the **unconsumed** portion. To traverse again from the beginning, you typically need to obtain a new Spliterator from the source.
 
-### 4.3. Không nhầm side effect với kết quả pipeline
+### 4.3. Do not confuse side effects with pipeline results
 
-Mục tiêu của ví dụ trên là quan sát cách duyệt. Trong pipeline thực, không dựa vào việc callback của `peek` hay `map` chắc chắn được gọi cho từng phần tử để ghi audit hoặc thực hiện nghiệp vụ. Stream có thể kết thúc sớm hoặc tối ưu các bước trung gian; việc quản lý tác dụng phụ cần được thiết kế riêng.
+The goal of the examples above is to observe traversal behavior. In a real pipeline, do not rely on `peek` or `map` callbacks definitely being called for every element to write audit logs or perform business side effects. A Stream may short-circuit or optimize intermediate steps; side-effect management should be designed separately.
 
-## 5. Chia nguồn bằng trySplit
+## 5. Splitting a Source with trySplit
 
-`trySplit()` có thể tạo **một Spliterator mới** bao phủ một phần các phần tử chưa duyệt. Spliterator ban đầu tiếp tục đại diện cho phần còn lại.
+`trySplit()` can create **a new Spliterator** covering a portion of the untraversed elements. The original Spliterator continues to represent the remaining part.
 
 ~~~text
-Trước chia:
+Before splitting:
      original = [A, B, C, D, E, F, G, H]
 
-Gọi original.trySplit()
+Call original.trySplit()
                  │
                  ├── prefix = [A, B, C, D]
-                 └── original còn [E, F, G, H]
+                 └── original keeps [E, F, G, H]
 
-Có thể tiếp tục chia:
-     prefix.trySplit()  → [A, B] + [C, D]
+Can split further:
+     prefix.trySplit()   → [A, B] + [C, D]
      original.trySplit() → [E, F] + [G, H]
 ~~~
 
-Đây là **một kiểu chia minh họa**. API không cam kết chia chính xác ở giữa, không cam kết luôn chia được, và không cam kết số lần chia cụ thể. Với Spliterator có `ORDERED`, Spliterator được trả về phải bao phủ một **tiền tố** của phần tử chưa duyệt theo encounter order, còn đối tượng gốc giữ phần tiếp theo.
+This is **an illustrative split pattern**. The API does not guarantee splitting exactly in the middle, does not guarantee always being able to split, and does not guarantee a specific number of splits. For an `ORDERED` Spliterator, the returned Spliterator must cover a **prefix** of the untraversed elements in encounter order, while the original object retains the subsequent part.
 
-### 5.1. Ví dụ thực tế với List
+### 5.1. Practical example with List
 
 ~~~java
 import java.util.ArrayList;
@@ -188,32 +188,32 @@ public class SplitListDemo {
 }
 ~~~
 
-Khi kết hợp **tiền tố trước, phần còn lại sau**, ta nhận lại đúng encounter order của nguồn `List`. Chú ý: một số Spliterator không chia được, vì thế kiểm tra `prefix != null` là bắt buộc.
+When combining **the prefix first, followed by the remaining part**, you recover the exact encounter order of the `List` source. Note: some Spliterators cannot split, so checking `prefix != null` is mandatory.
 
-### 5.2. Một lần split không nhất thiết tạo hai thread
+### 5.2. One split does not necessarily create two threads
 
-`trySplit()` chỉ trả ra khả năng chia công việc. Nó **không tự tạo thread**. Việc lên lịch và chạy nhiều nhánh là trách nhiệm của framework hoặc chương trình gọi. Parallel stream có thể sử dụng cơ chế chia đệ quy, nhưng không có bảo đảm “mỗi Spliterator con tương ứng một thread”.
+`trySplit()` merely exposes the ability to divide work. It **does not create threads on its own**. Scheduling and running multiple branches is the responsibility of the calling framework or program. Parallel streams may use recursive splitting, but there is no guarantee that "each child Spliterator corresponds to one thread."
 
-### 5.3. Quy tắc không làm mất hoặc lặp phần tử
+### 5.3. Rule against losing or duplicating elements
 
-Với một lần chia hợp lệ, tập hợp phần tử chưa duyệt ban đầu phải được phân thành các phần **không chồng lặp và không thất lạc**. Nếu nguồn có encounter order, thứ tự nối tiền tố và phần còn lại phải biểu diễn đúng trình tự còn lại của nguồn. Đây là bất biến quan trọng nhất khi thiết kế `trySplit` cho nguồn tự định nghĩa.
+For a valid split, the initial set of untraversed elements must be partitioned into **non-overlapping parts with no lost elements**. If the source has an encounter order, concatenating the prefix and the remaining part must represent the exact remaining sequence of the source. This is the most important invariant when designing `trySplit` for a custom source.
 
-## 6. Ước lượng kích thước và các characteristics
+## 6. Size Estimation and Characteristics
 
-Spliterator mô tả đặc điểm nguồn qua các cờ bit. Đây là **lời cam kết về nguồn**, không phải gợi ý tùy tiện để “bật tối ưu hóa”.
+A Spliterator describes source properties through bit flags. These are **guarantees about the source**, not arbitrary hints to "enable optimizations."
 
-| Cờ | Ý nghĩa cam kết | Tình huống điển hình |
+| Flag | Guaranteed Meaning | Typical Scenario |
 | --- | --- | --- |
-| `ORDERED` | Phần tử có encounter order xác định | `List`, dãy tăng dần |
-| `DISTINCT` | Các phần tử không trùng theo `equals` | `Set`, dãy số nguyên không lặp |
-| `SORTED` | Các phần tử có thứ tự theo comparator hoặc tự nhiên; đồng thời có `ORDERED` | Dãy số đã sắp |
-| `SIZED` | `estimateSize()` chính xác trước khi duyệt/chia, theo hợp đồng kích thước | Mảng cố định, `List` ổn định |
-| `SUBSIZED` | Mọi Spliterator con sinh từ `trySplit` đều có `SIZED` và `SUBSIZED` | Mảng, dải số chia theo khoảng |
-| `NONNULL` | Phần tử do nguồn phát ra không phải `null` | `IntStream` và một số nguồn tham chiếu |
-| `IMMUTABLE` | Không thể sửa cấu trúc nguồn trong khi duyệt | Nguồn dữ liệu cố định |
-| `CONCURRENT` | Nguồn có cơ chế hỗ trợ sửa cấu trúc đồng thời khi duyệt | Một số collection concurrent |
+| `ORDERED` | Elements have a defined encounter order | `List`, ascending sequence |
+| `DISTINCT` | Elements are unique according to `equals` | `Set`, non-repeating integer sequence |
+| `SORTED` | Elements are ordered by a comparator or natural order; also implies `ORDERED` | Sorted number sequence |
+| `SIZED` | `estimateSize()` is exact before traversal/splitting, per the size contract | Fixed array, stable `List` |
+| `SUBSIZED` | All child Spliterators produced by `trySplit` also have `SIZED` and `SUBSIZED` | Arrays, interval-split numeric ranges |
+| `NONNULL` | Elements emitted by the source are never `null` | `IntStream` and certain reference sources |
+| `IMMUTABLE` | The source structure cannot be modified during traversal | Fixed data source |
+| `CONCURRENT` | The source supports concurrent structural modification during traversal | Certain concurrent collections |
 
-Một nguồn có thể khai báo nhiều cờ:
+A source can declare multiple flags:
 
 ~~~java
 import java.util.List;
@@ -234,16 +234,16 @@ System.out.println(ordered); // true
 System.out.println(sized);   // true
 ~~~
 
-**Không suy diễn quá mức:**
+**Do not over-infer:**
 
-- `ORDERED` không có nghĩa phải xử lý các callback theo thứ tự thời gian khi chạy song song; nó nói về encounter order và ngữ nghĩa kết quả của các operation có ràng buộc thứ tự.
-- `SORTED` phải gắn với `ORDERED` và quy tắc comparator phù hợp. Với nguồn sắp theo thứ tự tự nhiên, `getComparator()` trả `null`. Nếu Spliterator không có `SORTED`, `getComparator()` ném `IllegalStateException`.
-- `DISTINCT` phải đúng với giá trị thực tế do nguồn phát, không chỉ đúng với khóa mà ta hy vọng là duy nhất.
-- `IMMUTABLE` nói về **cấu trúc nguồn**, không cam kết mọi object bên trong là bất biến sâu.
-- `CONCURRENT` không làm cho lambda cập nhật `ArrayList` hoặc biến dùng chung trở nên thread-safe.
-- `SIZED` và `SUBSIZED` không có nghĩa toàn bộ pipeline sau `filter` vẫn biết chính xác số phần tử đầu ra.
+- `ORDERED` does not mean callbacks must execute in chronological order when running in parallel; it refers to encounter order and the result semantics of order-sensitive operations.
+- `SORTED` must be paired with `ORDERED` and an appropriate comparator rule. For a source sorted in natural order, `getComparator()` returns `null`. If a Spliterator does not have `SORTED`, `getComparator()` throws `IllegalStateException`.
+- `DISTINCT` must hold for the actual values emitted by the source, not just for keys you hope are unique.
+- `IMMUTABLE` refers to **the source structure**, not a guarantee that every object inside is deeply immutable.
+- `CONCURRENT` does not make a lambda updating an `ArrayList` or shared variable thread-safe.
+- `SIZED` and `SUBSIZED` do not mean the pipeline after `filter` still knows the exact output element count.
 
-### 6.1. estimateSize và getExactSizeIfKnown
+### 6.1. estimateSize and getExactSizeIfKnown
 
 ~~~java
 import java.util.List;
@@ -258,21 +258,21 @@ s.tryAdvance(value -> {});
 System.out.println(s.estimateSize());        // 2
 ~~~
 
-Nếu nguồn **không có `SIZED`**, `getExactSizeIfKnown()` trả `-1`. `estimateSize()` vẫn phải cung cấp một ước lượng theo hợp đồng; có thể dùng `Long.MAX_VALUE` cho nguồn không giới hạn hoặc không biết kích thước.
+If the source **does not have `SIZED`**, `getExactSizeIfKnown()` returns `-1`. `estimateSize()` must still provide an estimate per the contract; `Long.MAX_VALUE` can be used for unbounded sources or unknown sizes.
 
-Đánh dấu `SIZED` sai rất nguy hiểm: một terminal như `count()` có thể dựa vào kích thước được khai báo để tối ưu, dẫn đến số đếm sai mà không cần duyệt từng phần tử. Không bao giờ dùng `SIZED` để “giúp Stream nhanh hơn” nếu không thể bảo đảm số lượng thực sự.
+Falsely marking `SIZED` is dangerous: a terminal operation like `count()` can rely on the declared size to optimize, leading to an incorrect count without traversing individual elements. Never use `SIZED` to "help the Stream run faster" if the actual count cannot be guaranteed.
 
-## 7. Spliterator của Stream nguyên thủy
+## 7. Primitive Stream Spliterators
 
-Để tránh boxing, Java cung cấp các giao diện chuyên biệt:
+To avoid boxing, Java provides specialized interfaces:
 
-| Kiểu dữ liệu | Spliterator | Action của tryAdvance | Stream tương ứng |
+| Data Type | Spliterator | `tryAdvance` Action | Corresponding Stream |
 | --- | --- | --- | --- |
 | `int` | `Spliterator.OfInt` | `IntConsumer` | `IntStream` |
 | `long` | `Spliterator.OfLong` | `LongConsumer` | `LongStream` |
 | `double` | `Spliterator.OfDouble` | `DoubleConsumer` | `DoubleStream` |
 
-Ví dụ lấy Spliterator từ một `IntStream`:
+Example of getting a Spliterator from an `IntStream`:
 
 ~~~java
 import java.util.Spliterator;
@@ -288,14 +288,14 @@ cursor.forEachRemaining((int n) -> System.out.println(n));
 // 4
 ~~~
 
-Primitive Spliterator có những phương thức chuyên biệt để tránh phải tạo `Integer`, `Long` hay `Double` cho mỗi phần tử. Khi tự định nghĩa nguồn số lớn, chọn đúng Spliterator primitive có thể giảm chi phí cấp phát và cho phép nối tiếp các terminal operation như `sum`, `average`, `summaryStatistics`.
+Primitive Spliterators have specialized methods to avoid creating `Integer`, `Long`, or `Double` objects for each element. When defining large numeric sources, choosing the right primitive Spliterator can reduce allocation overhead and allow chaining terminal operations such as `sum`, `average`, and `summaryStatistics`.
 
-## 8. Ví dụ đầy đủ: Spliterator.OfInt cho dải số tự định nghĩa
+## 8. Complete Example: Spliterator.OfInt for a Custom Integer Range
 
-Ta sẽ xây một Spliterator cho dải số nguyên **từ `startInclusive` đến trước `endExclusive`**, tương tự `IntStream.range`. Điểm cần quan sát là hai phần của hợp đồng:
+We will build a Spliterator for an integer range **from `startInclusive` up to (excluding) `endExclusive`**, similar to `IntStream.range`. Notice the two parts of the contract:
 
-- `tryAdvance` duyệt từng số đúng một lần.
-- `trySplit` chia dải còn lại thành một **tiền tố** và phần còn lại, không tạo trùng hoặc mất số.
+- `tryAdvance` traverses each number exactly once.
+- `trySplit` splits the remaining range into a **prefix** and the remaining part, without duplicating or losing numbers.
 
 ~~~java
 import java.util.Arrays;
@@ -336,12 +336,12 @@ public class CustomIntRangeDemo {
                 return null;
             }
 
-            // Tính bằng long để không tràn khi current âm và fence dương.
+            // Compute using long to prevent overflow when current is negative and fence is positive.
             int middle = (int) ((long) current + remaining / 2);
 
             RangeSpliterator prefix =
                 new RangeSpliterator(current, middle);
-            current = middle; // Đối tượng gốc giữ nửa sau.
+            current = middle; // The original instance keeps the second half.
 
             return prefix;
         }
@@ -359,7 +359,7 @@ public class CustomIntRangeDemo {
 
         @Override
         public Comparator<? super Integer> getComparator() {
-            // Có SORTED và sắp theo thứ tự tự nhiên.
+            // Has SORTED and uses natural ordering.
             return null;
         }
     }
@@ -367,7 +367,7 @@ public class CustomIntRangeDemo {
     public static void main(String[] args) {
         int[] numbers = StreamSupport.intStream(
                 new RangeSpliterator(2, 11),
-                true // Cho phép Stream chạy song song.
+                true // Allow the Stream to run in parallel.
             )
             .filter(n -> n % 2 == 0)
             .toArray();
@@ -378,35 +378,35 @@ public class CustomIntRangeDemo {
 }
 ~~~
 
-### 8.1. Vì sao tryAdvance đúng?
+### 8.1. Why is tryAdvance correct?
 
-`current` biểu diễn số tiếp theo chưa phát; `fence` là giới hạn trên, không bao gồm. Nếu `current < fence`, ta phát một số và tăng cursor. Khi `current >= fence`, hàm trả `false`. Mỗi giá trị trong dải được phát đúng một lần nếu Spliterator được dùng đúng hợp đồng.
+`current` represents the next unemitted number; `fence` is the exclusive upper bound. If `current < fence`, we emit one number and increment the cursor. When `current >= fence`, the method returns `false`. Each value in the range is emitted exactly once if the Spliterator is used according to its contract.
 
-Ví dụ `RangeSpliterator(2, 5)` phát `2, 3, 4` rồi kết thúc.
+For example, `RangeSpliterator(2, 5)` emits `2, 3, 4` and then terminates.
 
-### 8.2. Vì sao trySplit đúng?
+### 8.2. Why is trySplit correct?
 
-Giả sử phần còn lại là `[2, 3, 4, 5, 6, 7, 8, 9, 10]`. `middle` tính gần điểm giữa. Spliterator mới nhận `[2, middle)`, còn Spliterator gốc chuyển `current = middle` để nắm `[middle, 11)`. Hai dải **không chồng lặp**, và nối theo thứ tự trả về tiền tố rồi phần còn lại sẽ khôi phục toàn bộ dải cũ.
+Suppose the remaining elements are `[2, 3, 4, 5, 6, 7, 8, 9, 10]`. `middle` is computed near the midpoint. The new Spliterator receives `[2, middle)`, while the original Spliterator updates `current = middle` to hold `[middle, 11)`. The two ranges are **non-overlapping**, and concatenating the returned prefix followed by the remaining part restores the entire original range.
 
-Nếu còn 0 hoặc 1 số, `trySplit` trả `null` vì không có lợi ích chia tiếp. Dùng `long` để tính hiệu số và điểm giữa, tránh tràn `int` nếu hai đầu dải cách xa nhau. Việc chia không tạo luồng dữ liệu trước; nó chỉ chuyển ranh giới của các phần việc chưa duyệt.
+If 0 or 1 numbers remain, `trySplit` returns `null` because splitting further yields no benefit. Using `long` to compute the difference and midpoint prevents `int` overflow if the two endpoints of the range are far apart. Splitting does not pre-materialize a stream of data; it only shifts the boundaries of untraversed work segments.
 
-### 8.3. Vì sao các cờ characteristics hợp lệ?
+### 8.3. Why are the characteristics flags valid?
 
-- `ORDERED`: các số trong dải tăng dần.
-- `DISTINCT`: không có số lặp.
-- `SORTED`: theo thứ tự tự nhiên; `getComparator()` trả `null`.
-- `SIZED`: `estimateSize()` luôn bằng số phần tử còn lại.
-- `SUBSIZED`: các dải con đều đáp ứng `SIZED` và `SUBSIZED`.
-- `NONNULL`: primitive `int` không thể là `null`.
-- `IMMUTABLE`: nguồn là các khoảng số cố định, không có cấu trúc dữ liệu nền có thể sửa.
+- `ORDERED`: the numbers in the range are ascending.
+- `DISTINCT`: there are no duplicate numbers.
+- `SORTED`: follows natural ordering; `getComparator()` returns `null`.
+- `SIZED`: `estimateSize()` always equals the number of remaining elements.
+- `SUBSIZED`: all sub-ranges satisfy `SIZED` and `SUBSIZED`.
+- `NONNULL`: primitive `int` cannot be `null`.
+- `IMMUTABLE`: the source consists of fixed numeric bounds, with no underlying mutable data structure.
 
-Vì các đặc tính được khai báo dựa vào đúng quy tắc sinh dữ liệu, Stream có thể sử dụng chúng để thực thi hoặc tối ưu hóa pipeline. Nếu một phiên bản tùy chỉnh sau này bỏ số hoặc đổi thứ tự, cần xem lại các cờ được công bố.
+Because the declared characteristics match the actual data generation rules, the Stream can use them to execute or optimize the pipeline. If a later custom version skips numbers or changes the ordering, the announced flags must be re-evaluated.
 
-## 9. Kiểm thử việc chia: không trùng, không mất và đúng encounter order
+## 9. Testing Splitting: No Duplicates, No Losses, and Correct Encounter Order
 
-Một cách kiểm tra đơn giản là chia thủ công trước, duyệt **Spliterator được trả về trước** rồi duyệt Spliterator gốc.
+A simple way to test is to split manually first, traverse the **returned Spliterator first**, and then traverse the original Spliterator.
 
-Đoạn sau đặt trong cùng lớp `CustomIntRangeDemo`, nơi có `RangeSpliterator`:
+The following snippet belongs in the same `CustomIntRangeDemo` class where `RangeSpliterator` is defined:
 
 ~~~java
 import java.util.Arrays;
@@ -432,15 +432,15 @@ int[] combined = IntStream.concat(
 int[] expected = IntStream.range(0, 10).toArray();
 
 if (!Arrays.equals(combined, expected)) {
-    throw new AssertionError("trySplit đã mất, lặp hoặc đảo phần tử");
+    throw new AssertionError("trySplit lost, duplicated, or reordered elements");
 }
 
-System.out.println("PASS"); // Đã tái tạo đúng dãy 0..9.
+System.out.println("PASS"); // Reconstructed sequence 0..9 accurately.
 ~~~
 
-Với Spliterator này, chia một lần tạo tiền tố khoảng `[0,5)` và phần gốc khoảng `[5,10)`. Tuy nhiên, không viết test chung cho **mọi loại** Spliterator mà bắt buộc phải chia đúng ở giữa: kích thước và vị trí chia là quyền quyết định của implementation.
+With this Spliterator, a single split produces a prefix around `[0,5)` and a remaining part around `[5,10)`. However, do not write generic tests for **all kinds** of Spliterators that require splitting strictly in the middle: the split size and position are at the implementation's discretion.
 
-### Kiểm tra kết quả tuần tự và song song
+### Checking sequential and parallel results
 
 ~~~java
 long serialSum = StreamSupport.intStream(
@@ -458,17 +458,17 @@ long parallelSum = StreamSupport.intStream(
     .sum();
 
 if (serialSum != parallelSum || serialSum != 4_999_950_000L) {
-    throw new AssertionError("Tổng không khớp");
+    throw new AssertionError("Sum mismatch");
 }
 ~~~
 
-Mỗi terminal dùng **một Spliterator mới**, vì Spliterator cũ đã tiêu thụ. `asLongStream()` chuyển sang `long` trước khi tính tổng để tránh tràn số `int`.
+Each terminal operation uses **a new Spliterator**, since the old Spliterator is already consumed. `asLongStream()` converts to `long` before summing to avoid `int` overflow.
 
-Những kiểm tra quan trọng khác cho nguồn tùy chỉnh: dải rỗng, dải một phần tử, các dải có số âm, ranh giới gần `Integer.MIN_VALUE` và `Integer.MAX_VALUE`, nhiều lần chia liên tiếp, cùng phép tính với các kích thước nguồn khác nhau. Các kiểm tra này cần làm trong bước QA/test chuyên biệt; ở đây ta minh họa hợp đồng thiết kế.
+Other important checks for custom sources: empty ranges, single-element ranges, ranges with negative numbers, boundaries near `Integer.MIN_VALUE` and `Integer.MAX_VALUE`, multiple consecutive splits, and the same computation across different source sizes. These checks belong in a dedicated QA/testing step; here we illustrate the design contract.
 
-## 10. Nối Spliterator với StreamSupport
+## 10. Connecting Spliterator with StreamSupport
 
-`StreamSupport` có các phương thức tạo Stream từ Spliterator đã có:
+`StreamSupport` provides methods to create a Stream from an existing Spliterator:
 
 ~~~java
 Stream<T> StreamSupport.stream(
@@ -482,7 +482,7 @@ IntStream StreamSupport.intStream(
 );
 ~~~
 
-Ví dụ với List:
+Example with a List:
 
 ~~~java
 import java.util.List;
@@ -499,11 +499,11 @@ List<String> result = StreamSupport.stream(source, false)
 System.out.println(result); // [java, stream, api]
 ~~~
 
-`parallel = true` cho phép pipeline parallel; **không cam kết** sẽ nhanh hơn hay bắt buộc phải có nhiều thread thực sự xử lý dữ liệu. Tính hữu ích của parallel phụ thuộc khả năng chia, chi phí mỗi phần tử, số lõi CPU, tải hệ thống và các ràng buộc thứ tự.
+`parallel = true` enables a parallel pipeline; it **does not guarantee** it will be faster or force multiple threads to actually process the data. Parallel effectiveness depends on splittability, per-element cost, CPU core count, system load, and ordering constraints.
 
-### 10.1. Phiên bản nhận Supplier của Spliterator
+### 10.1. Overload accepting a Spliterator Supplier
 
-`StreamSupport.stream(...)` và `StreamSupport.intStream(...)` còn có overload nhận **Supplier** cùng tập characteristics:
+`StreamSupport.stream(...)` and `StreamSupport.intStream(...)` also have overloads that accept a **Supplier** along with characteristics flags:
 
 ~~~java
 import java.util.Spliterator;
@@ -511,7 +511,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
-// RangeSpliterator được định nghĩa ở mục 8.
+// RangeSpliterator is defined in section 8.
 int flags = Spliterator.ORDERED | Spliterator.DISTINCT
     | Spliterator.SORTED | Spliterator.SIZED
     | Spliterator.SUBSIZED | Spliterator.NONNULL
@@ -529,13 +529,13 @@ IntStream values = StreamSupport.intStream(
 long count = values.count(); // 100
 ~~~
 
-Supplier được gọi khi terminal operation bắt đầu, nên thích hợp cho những nguồn cần ràng buộc việc tạo Spliterator vào thời điểm tiêu thụ. Đặc tính truyền cho overload Supplier **phải khớp với** `characteristics()` của Spliterator mà Supplier tạo ra; khai báo sai có thể làm hành vi của Stream trở nên không xác định theo hợp đồng API.
+The Supplier is invoked when the terminal operation starts, making it suitable for sources that need to bind Spliterator creation to consumption time. The characteristics passed to the Supplier overload **must match** the `characteristics()` of the Spliterator produced by the Supplier; misdeclaring them can cause undefined Stream behavior under the API contract.
 
-Không dùng Supplier như cách ngầm mở nhiều kết nối hoặc lặp lại một Stream cũ: một Stream vẫn là **đối tượng dùng một lần**.
+Do not use a Supplier as a way to implicitly open multiple connections or replay an old Stream: a Stream remains a **single-use object**.
 
-### 10.2. Các factory có sẵn từ Spliterators
+### 10.2. Built-in factories from Spliterators
 
-Nếu dữ liệu đã nằm trong mảng, collection hoặc iterator, hãy cân nhắc API có sẵn trước khi tự viết:
+If your data is already in an array, collection, or iterator, consider existing APIs before writing your own:
 
 ~~~java
 import java.util.Iterator;
@@ -552,25 +552,25 @@ Spliterator<String> source = Spliterators.spliteratorUnknownSize(
 );
 ~~~
 
-`spliteratorUnknownSize` bọc một Iterator có kích thước không biết trước. Đừng khai báo `SIZED` hoặc `SUBSIZED` nếu không có hợp đồng kích thước chính xác; implementation có thể chia theo các lô nội bộ, nhưng không biến nguồn thành dữ liệu được truy cập ngẫu nhiên.
+`spliteratorUnknownSize` wraps an Iterator whose size is not known in advance. Do not declare `SIZED` or `SUBSIZED` without an exact size contract; the implementation may split in internal batches, but it does not turn the source into random-access data.
 
-Với mảng hoặc collection chuẩn, `Arrays.spliterator(...)`, `Collection.spliterator()` và các phương thức `stream()` có sẵn thường đủ cho ứng dụng. Tự viết Spliterator chỉ khi cần nguồn/chiến lược chia mà các lựa chọn chuẩn chưa mô tả đúng.
+For standard arrays or collections, `Arrays.spliterator(...)`, `Collection.spliterator()`, and built-in `stream()` methods are usually sufficient for applications. Write a custom Spliterator only when you need a source or splitting strategy that standard options do not properly express.
 
-## 11. Encounter order, split và các operation phía sau
+## 11. Encounter Order, Splitting, and Downstream Operations
 
-Đặc tính `ORDERED` của nguồn có ý nghĩa khi các operation phụ thuộc thứ tự:
+A source's `ORDERED` characteristic matters when operations depend on order:
 
-- `findFirst()` chọn phần tử đầu tiên theo encounter order, nếu có.
-- `limit(n)` trên nguồn ordered lấy `n` phần tử đầu tiên.
-- `forEachOrdered` thực thi action theo encounter order nếu Stream có thứ tự.
-- `sorted()` có thể thiết lập thứ tự mới ở đầu ra.
-- `unordered()` **bỏ ràng buộc** về encounter order; nó không tạo phép xáo trộn ngẫu nhiên.
+- `findFirst()` selects the first element according to encounter order, if present.
+- `limit(n)` on an ordered source takes the first `n` elements.
+- `forEachOrdered` executes the action in encounter order if the Stream is ordered.
+- `sorted()` can establish a new order on the output.
+- `unordered()` **removes the constraint** on encounter order; it does not perform a random shuffle.
 
 ~~~java
 import java.util.List;
 import java.util.stream.StreamSupport;
 
-// RangeSpliterator từ mục 8.
+// RangeSpliterator from section 8.
 List<Integer> firstFive = StreamSupport.intStream(
         new RangeSpliterator(0, 100),
         true
@@ -582,11 +582,11 @@ List<Integer> firstFive = StreamSupport.intStream(
 System.out.println(firstFive); // [0, 1, 2, 3, 4]
 ~~~
 
-Vì nguồn khai báo `ORDERED` và `trySplit` trả tiền tố, pipeline có thể giữ ngữ nghĩa “5 phần tử đầu”. Nếu bỏ `ORDERED` hoặc triển khai `trySplit` sai (ví dụ trẻ em nhận một đoạn không đúng tiền tố mà vẫn báo `ORDERED`), những operation yêu cầu thứ tự có thể cho kết quả sai.
+Because the source declares `ORDERED` and `trySplit` returns a prefix, the pipeline can preserve the "first 5 elements" semantics. If you omit `ORDERED` or implement `trySplit` incorrectly (for instance, the child receives a segment that is not a proper prefix while still reporting `ORDERED`), order-sensitive operations may produce wrong results.
 
-### 11.1. Ràng buộc thứ tự có thể hạn chế tốc độ song song
+### 11.1. Ordering constraints can limit parallel speed
 
-Với parallel stream, `limit` và `skip` trên nguồn ordered có thể yêu cầu phối hợp để xác định chính xác tiền tố. Nếu nghiệp vụ cho phép “lấy bất kỳ 5 phần tử” thì `unordered()` có thể nới ràng buộc, nhưng sẽ **thay đổi ngữ nghĩa**:
+With a parallel stream, `limit` and `skip` on an ordered source may require coordination to determine the exact prefix. If business logic allows "taking any 5 elements," `unordered()` can relax the constraint, though it will **change the semantics**:
 
 ~~~java
 List<Integer> anyFive = StreamSupport.intStream(
@@ -598,16 +598,16 @@ List<Integer> anyFive = StreamSupport.intStream(
     .boxed()
     .toList();
 
-// Có 5 số thuộc dải, không cam kết là 0..4.
+// Contains 5 numbers from the range, not guaranteed to be 0..4.
 ~~~
 
-Không dùng `unordered().limit(...)` cho phân trang, lấy bản ghi sớm nhất hay top-N theo tiêu chí. Muốn top-N, cần sắp xếp theo tiêu chí rồi mới giới hạn.
+Do not use `unordered().limit(...)` for pagination, fetching the earliest records, or top-N by criteria. For top-N, sort by the criteria first and then limit.
 
-## 12. Late-binding, fail-fast và việc thay đổi nguồn
+## 12. Late-Binding, Fail-Fast, and Source Mutation
 
-Một số Spliterator là **late-binding**: chúng chỉ ràng buộc vào trạng thái nguồn tại lần duyệt/chia/tính kích thước đầu tiên. Một số implementation khác ràng buộc sớm hơn. Với collection thông thường, nếu có sửa đổi cấu trúc không được cho phép **sau khi đã bắt đầu duyệt**, kết quả có thể không xác định hoặc bị phát hiện bằng ngoại lệ.
+Some Spliterators are **late-binding**: they bind to the source's state only upon the first traversal, split, or size calculation. Other implementations bind earlier. For regular collections, if an unauthorized structural modification occurs **after traversal has begun**, the result may be undefined or detected via an exception.
 
-Ví dụ `ArrayList` có Spliterator late-binding, đồng thời có cơ chế phát hiện sửa đổi cấu trúc kiểu fail-fast theo hướng *best effort*:
+For example, `ArrayList` has a late-binding Spliterator along with a *best-effort* fail-fast structural modification detection mechanism:
 
 ~~~java
 import java.util.ArrayList;
@@ -617,49 +617,49 @@ import java.util.Spliterator;
 ArrayList<String> source = new ArrayList<>(List.of("A"));
 
 Spliterator<String> s = source.spliterator();
-source.add("B"); // Trước khi bắt đầu sử dụng s.
+source.add("B"); // Before starting to use s.
 
 s.forEachRemaining(System.out::println);
-// Với ArrayList, lần ràng buộc muộn sẽ nhìn thấy A và B.
+// With ArrayList, late binding sees both A and B.
 ~~~
 
-Đây là đặc điểm của `ArrayList`, **không phải bảo đảm chung cho mọi Spliterator**. Khi đã bắt đầu duyệt, không sửa cấu trúc nguồn nếu hợp đồng nguồn không cho phép. Đặc biệt, fail-fast không phải cơ chế đồng bộ hoặc kiểm tra tính đúng đắn đáng tin cậy; nó chỉ hỗ trợ phát hiện một số lỗi sử dụng.
+This is a property of `ArrayList`, **not a universal guarantee for all Spliterators**. Once traversal has started, do not structurally modify the source unless the source contract allows it. In particular, fail-fast is not a synchronization mechanism or a reliable correctness check; it only helps detect certain misuse bugs.
 
-**`IMMUTABLE`** và **`CONCURRENT`** có ý nghĩa khác nhau:
+**`IMMUTABLE`** and **`CONCURRENT`** have different meanings:
 
-- `IMMUTABLE`: nguồn không bị sửa cấu trúc trong lúc duyệt; không đồng nghĩa phần tử con bất biến sâu.
-- `CONCURRENT`: nguồn hỗ trợ sửa cấu trúc đồng thời với traversal theo hợp đồng riêng của nguồn; không suy ra encounter order hay snapshot cố định.
-- Nguồn không có hai cờ trên thường cần tránh can thiệp cấu trúc từ bên ngoài trong lúc pipeline xử lý.
+- `IMMUTABLE`: the source is not structurally modified during traversal; this does not mean child elements are deeply immutable.
+- `CONCURRENT`: the source supports structural modifications concurrent with traversal under the source's own contract; it does not imply encounter order or a fixed snapshot.
+- Sources without these two flags should generally avoid external structural interference while the pipeline is running.
 
-Khi tạo Stream từ một nguồn mutable tùy chỉnh, overload `StreamSupport.stream(supplier, characteristics, parallel)` có thể giúp hoãn thời điểm nhận Spliterator. Tuy nhiên, **nó không làm một nguồn vốn không thread-safe trở thành an toàn**; cần tuân thủ quy tắc sửa đổi nguồn và đồng bộ của kiểu dữ liệu.
+When creating a Stream from a custom mutable source, the `StreamSupport.stream(supplier, characteristics, parallel)` overload can defer obtaining the Spliterator. However, **it does not make an inherently non-thread-safe source safe**; you must still adhere to the data type's mutation and synchronization rules.
 
-## 13. Chất lượng chia nguồn quyết định hiệu quả parallel stream
+## 13. Split Quality Determines Parallel Stream Effectiveness
 
-Một Spliterator có `trySplit` hợp lệ chưa chắc tạo parallel stream nhanh.
+A Spliterator with a valid `trySplit` does not necessarily produce a fast parallel stream.
 
-### Các yếu tố ảnh hưởng
+### Influencing factors
 
-| Yếu tố | Hệ quả có thể gặp |
+| Factor | Possible Consequence |
 | --- | --- |
-| `trySplit()` luôn trả `null` | Không tạo được nhiều phần việc từ nguồn này |
-| Chia quá lệch, một nhánh rất lớn | Khó cân bằng tải giữa các worker |
-| Chia thành quá nhiều phần rất nhỏ | Overhead tạo/quản lý tác vụ tăng |
-| `estimateSize()` không hợp lý | Framework khó chọn ngưỡng chia tốt |
-| `ORDERED` khi bài toán không cần thứ tự | Có thể làm một số operation như `limit`/`distinct` tốn phối hợp hơn |
-| Mapper thực hiện I/O chậm hoặc ghi state chung | Tranh chấp/tắc nghẽn có thể lấn át lợi ích chia nguồn |
-| Nguồn nhỏ, phép biến đổi rẻ | Parallel overhead có thể lớn hơn chi phí xử lý |
+| `trySplit()` always returns `null` | Cannot generate multiple work units from this source |
+| Highly skewed split, one branch very large | Difficult to load-balance across workers |
+| Splitting into too many tiny chunks | Task creation/management overhead increases |
+| Unreasonable `estimateSize()` | Framework struggles to pick a good splitting threshold |
+| `ORDERED` when the task does not need order | May cause operations like `limit`/`distinct` to require more coordination |
+| Mapper performs slow I/O or writes shared state | Contention/bottlenecks can outweigh splitting benefits |
+| Small source, cheap transformation | Parallel overhead may exceed processing cost |
 
-Ví dụ `RangeSpliterator` chia gần đôi phần còn lại mỗi lần, một chiến lược thường phù hợp với dữ liệu có chi phí xử lý tương đối đồng đều. Với dữ liệu có chi phí rất lệch theo phần tử, chia đều **số lượng** chưa chắc cân bằng **thời gian xử lý**.
+For example, `RangeSpliterator` splits the remaining elements roughly in half each time, a strategy that usually works well for data with relatively uniform processing cost. For data whose per-element cost is heavily skewed, splitting **element count** evenly may not balance **processing time**.
 
-### Không cố tối ưu bằng cách khai báo sai characteristics
+### Do not try to optimize by misdeclaring characteristics
 
-Việc thêm `SIZED`, `DISTINCT` hoặc `SORTED` dù nguồn không đáp ứng hợp đồng có thể khiến Stream **tính sai** chứ không chỉ “hiển thị sai metadata”. Ví dụ, `count()` có thể bỏ qua việc duyệt nếu số lượng đã biết; `distinct()` có thể tận dụng `DISTINCT` để tránh công việc; `sorted()` có thể tận dụng `SORTED`. Chỉ khai báo những gì implementation thực sự bảo đảm.
+Adding `SIZED`, `DISTINCT`, or `SORTED` when the source does not satisfy the contract can cause a Stream to **compute wrong results** rather than merely "displaying wrong metadata." For example, `count()` may skip traversal if the count is known; `distinct()` may leverage `DISTINCT` to skip work; `sorted()` may leverage `SORTED`. Only declare what the implementation actually guarantees.
 
-## 14. Nguồn gắn với tài nguyên: Spliterator không tự đóng file
+## 14. Resource-Backed Sources: Spliterator Does Not Auto-Close Files
 
-Spliterator mô tả **duyệt và chia**, không phải giao thức quản lý tài nguyên. Nếu Stream nguồn mở file, socket hoặc cursor cơ sở dữ liệu, chỉ hoàn thành terminal operation chưa chắc tự đóng tài nguyên.
+A Spliterator describes **traversal and splitting**, not a resource management protocol. If a Stream source opens a file, socket, or database cursor, merely completing a terminal operation may not automatically close the resource.
 
-Với file, dùng API và cơ chế đóng chuẩn:
+For files, use standard APIs and closing mechanisms:
 
 ~~~java
 import java.io.IOException;
@@ -678,57 +678,57 @@ public class FileStreamExample {
 }
 ~~~
 
-`Files.lines(path)` trả một Stream gắn với tài nguyên file cần đóng bằng `try-with-resources`. Không tự xây Spliterator đọc file chỉ để thử parallel mà bỏ qua quy tắc đóng reader, exception I/O và an toàn truy cập nguồn.
+`Files.lines(path)` returns a Stream backed by a file resource that must be closed with `try-with-resources`. Do not build a custom file-reading Spliterator just to try parallelism while ignoring reader closing rules, I/O exceptions, and source access safety.
 
-Khi một nguồn tùy chỉnh phải mở và đóng tài nguyên, cần thiết kế rõ **ai sở hữu tài nguyên**, **ai đóng**, **khi nào đóng**, và liệu nhiều nhánh sau `trySplit` có thể sử dụng an toàn cùng một nguồn hay không. `StreamSupport.stream(...)` không tự phát minh quy tắc đóng cho nguồn; có thể tích hợp đóng qua `Stream.onClose(...)` và `try-with-resources` nếu thiết kế cho phép.
+When a custom source must open and close resources, clearly design **who owns the resource**, **who closes it**, **when it closes**, and whether multiple branches after `trySplit` can safely share the same source. `StreamSupport.stream(...)` does not invent closing rules for a source; closing can be integrated via `Stream.onClose(...)` and `try-with-resources` if the design permits.
 
-## 15. Những sai lầm thường gặp khi tự viết hoặc sử dụng Spliterator
+## 15. Common Mistakes When Writing or Using a Spliterator
 
-### Sai lầm 1: tryAdvance trả true nhưng không phát phần tử
+### Mistake 1: tryAdvance returns true without emitting an element
 
 ~~~java
-// KHÔNG ĐÚNG hợp đồng:
+// VIOLATES contract:
 // public boolean tryAdvance(Consumer<? super T> action) {
-//     return true; // Không gọi action.accept(...)
+//     return true; // Does not call action.accept(...)
 // }
 ~~~
 
-Nếu trả `true`, phải chuyển đúng một phần tử cho action. Nếu đã hết, trả `false`. Không dùng `true` để biểu diễn “vẫn còn khả năng sinh phần tử trong tương lai” khi chưa phát gì.
+If it returns `true`, it must pass exactly one element to the action. If exhausted, return `false`. Do not use `true` to indicate "more elements may still be generated in the future" when nothing has been emitted.
 
-### Sai lầm 2: trySplit làm mất hoặc lặp dữ liệu
+### Mistake 2: trySplit loses or duplicates data
 
 ~~~text
-Nguồn chưa duyệt: [0, 1, 2, 3, 4, 5]
+Untraversed source: [0, 1, 2, 3, 4, 5]
 
-Sai:   child = [0, 1, 2, 3]   original = [3, 4, 5]
-                                        ↑ lặp số 3
+Wrong: child = [0, 1, 2, 3]   original = [3, 4, 5]
+                                         ↑ duplicated 3
 
-Sai:   child = [0, 1]         original = [3, 4, 5]
-                                ↑ mất số 2
+Wrong: child = [0, 1]         original = [3, 4, 5]
+                                ↑ lost 2
 
-Đúng:  child = [0, 1, 2]      original = [3, 4, 5]
+Right: child = [0, 1, 2]      original = [3, 4, 5]
 ~~~
 
-Với nguồn ordered, Spliterator con trả về còn phải là **tiền tố đúng thứ tự** của phần chưa duyệt. Khi nhiều lần split, bảo đảm này phải tiếp tục đúng đệ quy.
+For an ordered source, the returned child Spliterator must also be an **in-order prefix** of the untraversed portion. Across multiple splits, this guarantee must continue to hold recursively.
 
-### Sai lầm 3: chia cùng một Spliterator từ nhiều thread
+### Mistake 3: sharing the same Spliterator across multiple threads
 
-Spliterator nói chung **không được bảo đảm thread-safe** cho thao tác duyệt/chia đồng thời trên **cùng một instance**. Mẫu dùng đúng là phân hoạch trước, rồi mỗi nhánh được quản lý riêng; không gọi `tryAdvance` hoặc `trySplit` đồng thời trên một cursor dùng chung nếu implementation không có hợp đồng hỗ trợ điều đó.
+A Spliterator is generally **not guaranteed to be thread-safe** for concurrent traversal/splitting on **the same instance**. The right pattern is to partition first, then manage each branch separately; do not call `tryAdvance` or `trySplit` concurrently on a shared cursor unless the implementation has a contract supporting it.
 
-### Sai lầm 4: khai báo SIZED cho nguồn không biết kích thước
+### Mistake 4: declaring SIZED for a source with unknown size
 
 ~~~java
-// Không khai báo SIZED nếu estimateSize() chỉ là một dự đoán.
-// Không khai báo SUBSIZED nếu Spliterator con không có kích thước chính xác.
+// Do not declare SIZED if estimateSize() is only a guess.
+// Do not declare SUBSIZED if child Spliterators do not have exact sizes.
 ~~~
 
-`SIZED` là cam kết số lượng, không phải “kích thước có vẻ gần đúng”. Sửa bằng cách chỉ khai báo đặc tính thực sự có và trả ước lượng phù hợp.
+`SIZED` is an exact count commitment, not "a roughly accurate size." Fix this by only declaring characteristics that truly hold and returning an appropriate estimate.
 
-### Sai lầm 5: khai báo SORTED nhưng không xử lý getComparator
+### Mistake 5: declaring SORTED without handling getComparator
 
-Spliterator có `SORTED` phải có quy tắc thứ tự đúng và hỗ trợ `getComparator()`: trả `null` cho natural ordering hoặc trả comparator tương ứng. Đừng đánh dấu `SORTED` cho nguồn chỉ “thường trông đã sắp”.
+A `SORTED` Spliterator must have a valid ordering rule and support `getComparator()`: returning `null` for natural ordering or returning the corresponding comparator. Do not mark `SORTED` on a source that merely "usually looks sorted."
 
-### Sai lầm 6: dùng parallel để sửa source mutable
+### Mistake 6: using parallel to mutate a mutable source
 
 ~~~java
 import java.util.ArrayList;
@@ -736,17 +736,17 @@ import java.util.List;
 
 List<Integer> source = new ArrayList<>(List.of(1, 2, 3));
 
-// Sai: sửa cấu trúc nguồn trong khi Stream đang duyệt nó.
+// Wrong: modifying source structure while the Stream traverses it.
 // source.parallelStream().forEach(source::add);
 ~~~
 
-Việc can thiệp nguồn trong pipeline có thể gây lỗi, bỏ dữ liệu, lặp dữ liệu hoặc hành vi không xác định. `CONCURRENT` chỉ áp dụng khi **chính nguồn** hỗ trợ sửa đồng thời theo hợp đồng riêng, không hợp thức hóa mọi callback có tác dụng phụ.
+Interfering with the source inside a pipeline can cause errors, dropped data, duplicated data, or undefined behavior. `CONCURRENT` only applies when **the source itself** supports concurrent modification under its own contract, and does not legitimize arbitrary side-effecting callbacks.
 
-### Sai lầm 7: nghĩ Spliterator tự động chạy song song
+### Mistake 7: thinking Spliterator runs in parallel automatically
 
-`trySplit` chỉ cho phép tách. Để tạo parallel stream từ Spliterator, dùng `StreamSupport.stream(s, true)` hoặc `StreamSupport.intStream(s, true)`; framework mới quyết định cách chạy. Và nếu nguồn không thể chia, chỉ bật cờ parallel không đem lại công việc độc lập.
+`trySplit` only enables splitting. To create a parallel stream from a Spliterator, use `StreamSupport.stream(s, true)` or `StreamSupport.intStream(s, true)`; the framework decides how to run it. And if the source cannot be split, simply enabling the parallel flag brings no independent work units.
 
-### Sai lầm 8: tiêu thụ Spliterator trước rồi muốn tạo Stream đầy đủ từ nó
+### Mistake 8: consuming a Spliterator first and then expecting a full Stream from it
 
 ~~~java
 import java.util.List;
@@ -754,46 +754,46 @@ import java.util.Spliterator;
 import java.util.stream.StreamSupport;
 
 Spliterator<Integer> source = List.of(1, 2, 3).spliterator();
-source.tryAdvance(value -> {}); // Đã tiêu thụ 1.
+source.tryAdvance(value -> {}); // Already consumed 1.
 
 List<Integer> remaining = StreamSupport.stream(source, false)
     .toList();
 
-// remaining chỉ còn [2, 3], không phải [1, 2, 3].
+// remaining only has [2, 3], not [1, 2, 3].
 ~~~
 
-Một Spliterator không tự rewind. Khi cần tái duyệt từ đầu, lấy Spliterator mới từ nguồn hoặc thiết kế một factory cho các phiên chạy độc lập.
+A Spliterator does not rewind automatically. When you need to traverse again from the start, obtain a new Spliterator from the source or design a factory for independent runs.
 
-## 16. Cách chọn tiếp cận cho nguồn dữ liệu
+## 16. Choosing an Approach for a Data Source
 
-| Nhu cầu | Giải pháp thường nên chọn |
+| Need | Recommended Solution |
 | --- | --- |
-| Xử lý `List`, `Set` hoặc mảng thông thường | Dùng `collection.stream()` hoặc `Arrays.stream(...)` |
-| Duyệt trực tiếp một lần, không cần pipeline | `Iterator` hoặc vòng lặp |
-| Tạo Stream từ một Spliterator tự định nghĩa | `StreamSupport.stream(s, parallel)` |
-| Nguồn sinh số `int`, `long`, `double` | `Spliterator.OfInt/OfLong/OfDouble` hoặc primitive Stream có sẵn |
-| Bọc Iterator chưa biết số phần tử | `Spliterators.spliteratorUnknownSize(...)` |
-| Cần hỗ trợ song song từ nguồn tùy chỉnh | Thiết kế `trySplit`, kích thước và đặc tính đúng; benchmark |
-| Cần bảo đảm thứ tự lấy phần tử | Nguồn có `ORDERED`, `trySplit` trả tiền tố, giữ ràng buộc thứ tự trong pipeline |
-| Nguồn gắn với file/tài nguyên I/O | API đã quản lý tài nguyên và `try-with-resources`; tránh tự chia nguồn khi không an toàn |
-| Chỉ cần lọc/map/gộp dữ liệu thông thường | Ưu tiên các operation cấp cao thay vì tự viết Spliterator |
+| Processing a regular `List`, `Set`, or array | Use `collection.stream()` or `Arrays.stream(...)` |
+| Direct single-pass traversal, no pipeline needed | `Iterator` or loop |
+| Creating a Stream from a custom Spliterator | `StreamSupport.stream(s, parallel)` |
+| Source emitting `int`, `long`, `double` values | `Spliterator.OfInt/OfLong/OfDouble` or built-in primitive Stream |
+| Wrapping an Iterator of unknown size | `Spliterators.spliteratorUnknownSize(...)` |
+| Supporting parallelism from a custom source | Design `trySplit`, size, and characteristics properly; benchmark |
+| Guaranteeing element retrieval order | Source has `ORDERED`, `trySplit` returns prefix, preserve order constraints in pipeline |
+| Source backed by files/I/O resources | Resource-managed APIs and `try-with-resources`; avoid custom splitting if unsafe |
+| Standard filtering/mapping/aggregation | Prefer high-level operations over writing a custom Spliterator |
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-Check Questions
 
-1. **Spliterator giải quyết hai trách nhiệm nào?** Duyệt phần tử và chia phần chưa duyệt thành các phần độc lập.
-2. **`tryAdvance(action)` trả `true` thì phải xảy ra điều gì?** Action được gọi để nhận đúng một phần tử.
-3. **`trySplit()` trả `null` có nghĩa là nguồn đã hết không?** Không nhất thiết; có thể còn phần tử nhưng nguồn không thể hoặc không muốn chia tiếp.
-4. **Với `ORDERED`, Spliterator trả từ `trySplit` phải đại diện cho phần nào?** Một tiền tố của phần tử chưa duyệt.
-5. **`estimateSize()` trả `Long.MAX_VALUE` có nghĩa nguồn chắc chắn có từng đó phần tử không?** Không. Nó có thể đại diện cho ước lượng chưa biết hoặc nguồn vô hạn.
-6. **`getExactSizeIfKnown()` trả gì nếu không có `SIZED`?** `-1`.
-7. **`SIZED` khác `SUBSIZED` thế nào?** `SIZED` cam kết kích thước chính xác ở Spliterator hiện tại; `SUBSIZED` mở rộng cam kết này tới các Spliterator con do split tạo ra.
-8. **`SORTED` có thể dùng với nguồn unordered không?** Không. `SORTED` bao hàm `ORDERED`.
-9. **Với Spliterator có `SORTED` theo thứ tự tự nhiên, `getComparator()` trả gì?** `null`.
-10. **`Spliterator.OfInt` có lợi thế nào?** Duyệt số `int` qua `IntConsumer`, tránh boxing cho từng phần tử.
-11. **Gọi `parallel()` có đảm bảo nhiều thread làm việc hiệu quả nếu Spliterator không chia được không?** Không.
-12. **Tại sao khai báo `DISTINCT` hoặc `SIZED` sai có thể làm chương trình tính sai?** Stream có thể tin đặc tính và bỏ qua một số bước xử lý/duyệt.
-13. **Một Spliterator đã dùng một phần có tự bắt đầu lại được không?** Không; cần nguồn hoặc Spliterator mới.
-14. **`CONCURRENT` có khiến callback ghi vào `ArrayList` dùng chung an toàn không?** Không; đặc tính đó nói về hợp đồng nguồn.
-15. **`StreamSupport.stream(s, true)` có tự đóng file do nguồn tùy chỉnh mở không?** Không; việc quản lý tài nguyên phải được thiết kế và đóng rõ ràng.
+1. **What two responsibilities does Spliterator address?** Traversing elements and splitting untraversed elements into independent parts.
+2. **If `tryAdvance(action)` returns `true`, what must happen?** The action is called to receive exactly one element.
+3. **Does `trySplit()` returning `null` mean the source is exhausted?** Not necessarily; elements may remain, but the source cannot or chooses not to split further.
+4. **With `ORDERED`, which portion must the Spliterator returned by `trySplit` represent?** A prefix of the untraversed elements.
+5. **Does `estimateSize()` returning `Long.MAX_VALUE` mean the source definitely has that many elements?** No. It may represent an unknown estimate or an infinite source.
+6. **What does `getExactSizeIfKnown()` return if `SIZED` is absent?** `-1`.
+7. **How does `SIZED` differ from `SUBSIZED`?** `SIZED` guarantees exact size on the current Spliterator; `SUBSIZED` extends this guarantee to child Spliterators created by splitting.
+8. **Can `SORTED` be used with an unordered source?** No. `SORTED` implies `ORDERED`.
+9. **For a `SORTED` Spliterator in natural order, what does `getComparator()` return?** `null`.
+10. **What advantage does `Spliterator.OfInt` have?** Traverses `int` values via `IntConsumer`, avoiding per-element boxing.
+11. **Does calling `parallel()` guarantee multiple threads do useful work if the Spliterator cannot split?** No.
+12. **Why can misdeclaring `DISTINCT` or `SIZED` cause a program to compute wrong results?** The Stream may trust those characteristics and skip certain processing/traversal steps.
+13. **Can a partially consumed Spliterator automatically restart?** No; a new source or Spliterator is needed.
+14. **Does `CONCURRENT` make a callback writing into a shared `ArrayList` safe?** No; that characteristic describes the source's contract.
+15. **Does `StreamSupport.stream(s, true)` automatically close a file opened by a custom source?** No; resource management must be designed and closed explicitly.
 
-**Ghi nhớ:** `Spliterator` là cầu nối giữa **nguồn dữ liệu** và khả năng **duyệt, phân hoạch** của Java Stream API. `tryAdvance` phát từng phần tử, `trySplit` tạo công việc độc lập, còn `estimateSize` và `characteristics` mô tả những bảo đảm mà framework có thể tận dụng. Chỉ tự định nghĩa Spliterator khi thật sự cần, bảo đảm không mất/trùng phần tử, khai báo đặc tính trung thực và luôn kiểm soát thứ tự, trạng thái nguồn, tài nguyên và hiệu năng trước khi song song hóa.
+**Remember:** `Spliterator` is the bridge between **a data source** and the **traversal and partitioning** capabilities of the Java Stream API. `tryAdvance` emits individual elements, `trySplit` creates independent work units, and `estimateSize` and `characteristics` describe guarantees that the framework can leverage. Only define a custom Spliterator when truly needed, ensure no elements are lost or duplicated, declare characteristics honestly, and always verify ordering, source state, resources, and performance before parallelizing.

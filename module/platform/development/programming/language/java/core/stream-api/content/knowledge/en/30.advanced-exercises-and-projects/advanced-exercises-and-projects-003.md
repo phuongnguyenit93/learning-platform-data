@@ -1,140 +1,140 @@
-# Thiết kế Spliterator cho nguồn dữ liệu chia theo lô
+# Designing a Spliterator for Batch-Split Data Sources
 
-## 1. Bài toán và mục tiêu của dự án
+## 1. Problem Statement and Project Goals
 
-Trong module **`JAVA_STREAM_API`**, ta đã dùng pipeline khai báo với nguồn dữ liệu, các thao tác lazy như `filter`, `map` và các terminal operation như `reduce`, `collect`. Ở phần nâng cao, muốn xử lý một nguồn lớn bằng `parallelStream`, ta phải hiểu cách **chia dữ liệu thành những phần công việc có thể xử lý độc lập**.
+In the **`JAVA_STREAM_API`** module, we have used declarative pipelines with data sources, lazy operations such as `filter` and `map`, and terminal operations such as `reduce` and `collect`. At an advanced level, to process a large source with `parallelStream`, we must understand how to **split data into independently processable units of work**.
 
-Giả sử một chương trình nhận 40.000 bản ghi từ một danh sách đã tải sẵn. Nghiệp vụ cần chuyển đổi từng bản ghi, lọc dữ liệu hợp lệ và tính tổng. Ta muốn mỗi lần thử tách nguồn chỉ tạo một **lô tối đa B phần tử** để kiểm soát kích thước phần công việc.
+Suppose a program receives 40,000 records from a preloaded list. Business logic needs to transform each record, filter valid data, and compute a sum. We want each split attempt on the source to produce a **batch of at most B elements** to control work unit size.
 
-Chúng ta sẽ thiết kế một `Spliterator<T>` tùy chỉnh mang tên `BatchSpliterator<T>`, kết nối nó với `StreamSupport.stream(...)`, rồi kiểm tra:
+We will design a custom `Spliterator<T>` named `BatchSpliterator<T>`, wire it into `StreamSupport.stream(...)`, and verify:
 
-- Có **đủ tất cả phần tử** không?
-- Có **phần tử nào bị lặp** giữa các lô không?
-- Nếu nguồn có thứ tự, các lô có bảo toàn **encounter order** không?
-- `estimateSize` có chính xác sau mỗi lần tách và tiêu thụ không?
-- Kết quả `reduce` / `collect` của stream song song có giống kết quả đúng từ nguồn không?
-- Lô lớn, lô nhỏ và chính sách sao chép nguồn ảnh hưởng hiệu năng, bộ nhớ như thế nào?
+- Are **all elements present**?
+- Is **any element duplicated** across batches?
+- If the source is ordered, do batches preserve **encounter order**?
+- Is `estimateSize` accurate after each split and consumption?
+- Do `reduce` / `collect` results on a parallel stream match the true result from the source?
+- How do large batches, small batches, and source-copying policies affect performance and memory?
 
-**Kết quả học tập:** không chỉ biết cài `trySplit`, bạn còn hiểu hợp đồng `ORDERED`, `SIZED`, `SUBSIZED`, cách Stream runtime có thể chia công việc, và cách thiết kế thử nghiệm có khả năng bắt lỗi bỏ sót hoặc xử lý trùng dữ liệu.
+**Learning outcome:** not only will you know how to implement `trySplit`, you will also understand the `ORDERED`, `SIZED`, and `SUBSIZED` contracts, how the Stream runtime splits work, and how to design tests capable of catching dropped or duplicated data.
 
-Bài thuộc chương **Bài tập nâng cao và dự án**. Đây là bài tích hợp về Spliterator, parallel stream, `filter`, `map`, `reduce`, `collect` và giới hạn về trạng thái, tài nguyên, hiệu năng. Hướng dẫn không giả định việc chạy song song luôn nhanh hơn tuần tự.
+This lesson belongs to the **Advanced Exercises and Projects** chapter. It is an integrative project covering Spliterator, parallel streams, `filter`, `map`, `reduce`, `collect`, and constraints around state, resources, and performance. This guide does not assume parallel execution is always faster than sequential execution.
 
-## 2. Thế nào là “chia theo lô”?
+## 2. What Does "Splitting by Batch" Mean?
 
-Một **lô** (*batch*) trong bài này là một **đoạn phần tử liên tiếp** của nguồn có thứ tự. Mỗi lần `trySplit()` thành công sẽ tách một **tiền tố** (*prefix*) có không quá `batchSize` phần tử ra thành spliterator mới.
+A **batch** in this lesson is a **contiguous slice of elements** from an ordered source. Each successful `trySplit()` splits off a **prefix** of at most `batchSize` elements into a new spliterator.
 
-Ví dụ nguồn:
+Example source:
 
 ```text
-Nguồn ordered: [1, 2, 3, 4, 5, 6, 7, 8]
+Ordered source: [1, 2, 3, 4, 5, 6, 7, 8]
 batchSize = 3
 
-Spliterator ban đầu: [1, 2, 3, 4, 5, 6, 7, 8]
-  ├─ lần tách 1 → [1, 2, 3]     | phần còn lại [4, 5, 6, 7, 8]
-  └─ lần tách 2 → [4, 5]        | phần còn lại [6, 7, 8]
+Initial Spliterator: [1, 2, 3, 4, 5, 6, 7, 8]
+  ├─ split 1 -> [1, 2, 3]     | remaining [4, 5, 6, 7, 8]
+  └─ split 2 -> [4, 5]        | remaining [6, 7, 8]
 
-Các đoạn cuối: [1, 2, 3] | [4, 5] | [6, 7, 8]
+Final chunks: [1, 2, 3] | [4, 5] | [6, 7, 8]
 ```
 
-Với thuật toán được dùng trong bài, **batchSize là kích thước tối đa của một phần công việc sau khi chia hết**, không có nghĩa mọi lô phải chứa chính xác `batchSize` phần tử. Sự phân chia ở ví dụ chỉ minh họa thuật toán cụ thể; runtime Stream không cam kết sẽ thực hiện đúng hai lần tách.
+With the algorithm used in this lesson, **`batchSize` is the maximum size of a work chunk once splitting finishes**; it does not mean every batch must contain exactly `batchSize` elements. The split in the example only illustrates this specific algorithm; the Stream runtime does not guarantee performing exactly two splits.
 
-Cần phân biệt:
+Distinguish between:
 
-1. **Lô để chia việc (`trySplit`):** quyết định mỗi spliterator con sở hữu những phần tử nào.
-2. **Phần tử để tiêu thụ (`tryAdvance`):** vẫn cung cấp **từng phần tử** cho pipeline `filter`, `map`.
-3. **Lô I/O hoặc lô mạng:** một cơ chế lấy dữ liệu theo nhóm từ cơ sở dữ liệu/dịch vụ, có vòng đời tài nguyên riêng. BatchSpliterator trên `List` của bài này **chưa tự thực hiện truy vấn theo batch**.
+1. **Batching for work splitting (`trySplit`):** determines which elements each child spliterator owns.
+2. **Element-by-element consumption (`tryAdvance`):** still delivers **one element at a time** to the `filter`, `map` pipeline.
+3. **I/O or network batching:** a mechanism for fetching groups of records from a database or service, with its own resource lifecycle. The `List`-backed `BatchSpliterator` in this lesson **does not itself perform batched queries**.
 
-### Đặt yêu cầu trước khi viết code
+### Setting Requirements Before Writing Code
 
-| Yêu cầu | Bất biến cần giữ |
+| Requirement | Invariant to Maintain |
 | --- | --- |
-| Không mất phần tử | Hợp của tất cả phần tách và phần còn lại đúng bằng tập vị trí ban đầu. |
-| Không lặp phần tử | Các vùng chỉ số của hai spliterator con không giao nhau. |
-| Giữ thứ tự | Với `ORDERED`, `trySplit` trả tiền tố của vùng chưa duyệt. |
-| Biết kích thước | `estimateSize()` bằng số vị trí còn lại trong vùng. |
-| Chia hữu hạn | Khi vùng còn tối đa B phần tử, `trySplit()` trả `null`. |
-| Không chia sẻ con trỏ | Mỗi spliterator có `index` riêng; chỉ chia sẻ dữ liệu đọc ổn định. |
-| Không giấu lỗi | `batchSize` không hợp lệ phải bị từ chối rõ ràng. |
+| No lost elements | The union of all split parts and the remainder equals the original index set. |
+| No duplicate elements | Index ranges of any two child spliterators are disjoint. |
+| Order preserved | With `ORDERED`, `trySplit` returns a prefix of the untraversed range. |
+| Known size | `estimateSize()` equals the number of remaining positions in the range. |
+| Finite splitting | When a range has at most B elements left, `trySplit()` returns `null`. |
+| No shared cursor | Each spliterator has its own `index`; only stable read-only data is shared. |
+| No hidden errors | Invalid `batchSize` must be rejected explicitly. |
 
-Nếu thiếu một trong các bất biến, lỗi có thể không xuất hiện trên `stream()` tuần tự mà chỉ bộc lộ khi `StreamSupport.stream(spliterator, true)` song song hóa.
+If any invariant is missing, bugs might not show up in sequential `stream()` and only surface when parallelized via `StreamSupport.stream(spliterator, true)`.
 
-## 3. Những phương thức và characteristics phải hiểu
+## 3. Methods and Characteristics You Must Understand
 
-`Spliterator<T>` có các phương thức then chốt:
+`Spliterator<T>` has five core methods:
 
-| API | Hợp đồng |
+| API | Contract |
 | --- | --- |
-| `boolean tryAdvance(Consumer<? super T> action)` | Phát tối đa một phần tử, trả `true` nếu đã phát, `false` nếu hết. |
-| `void forEachRemaining(Consumer<? super T> action)` | Phát tất cả phần tử còn lại. |
-| `Spliterator<T> trySplit()` | Thử tách một vùng phần tử để xử lý riêng; trả `null` nếu không chia. |
-| `long estimateSize()` | Ước lượng số phần tử chưa tiêu thụ; chính xác khi cam kết `SIZED`. |
-| `int characteristics()` | Khai báo đặc tính của nguồn và các phần tách. |
+| `boolean tryAdvance(Consumer<? super T> action)` | Emits at most one element; returns `true` if emitted, `false` if exhausted. |
+| `void forEachRemaining(Consumer<? super T> action)` | Emits all remaining elements. |
+| `Spliterator<T> trySplit()` | Attempts to split off a partition for independent processing; returns `null` if not split. |
+| `long estimateSize()` | Estimates unconsumed element count; exact when `SIZED` is declared. |
+| `int characteristics()` | Declares properties of the source and its splits. |
 
-Các cờ quan trọng:
+Important flags:
 
-- **`ORDERED`:** nguồn có thứ tự gặp; spliterator được tách phải có quan hệ tiền tố/hậu tố phù hợp.
-- **`SIZED`:** số phần tử còn lại được biết chính xác.
-- **`SUBSIZED`:** các spliterator từ `trySplit` cũng có `SIZED` và `SUBSIZED`.
-- **`NONNULL`:** chỉ dùng khi chắc chắn **không có giá trị `null`**.
-- **`DISTINCT`:** chỉ dùng khi biết các phần tử duy nhất theo `equals`.
-- **`SORTED`:** chỉ dùng khi dữ liệu thực sự theo comparator phù hợp và spliterator đáp ứng hợp đồng `getComparator()`.
-- **`IMMUTABLE`:** chỉ khai báo khi nguồn không thể bị sửa cấu trúc trong lúc duyệt theo hợp đồng phù hợp; không đánh đồng lời hứa “người gọi đừng sửa” với bất biến được đảm bảo.
+- **`ORDERED`:** the source has an encounter order; split spliterators must maintain proper prefix/suffix relationships.
+- **`SIZED`:** the exact number of remaining elements is known.
+- **`SUBSIZED`:** spliterators returned by `trySplit` are also `SIZED` and `SUBSIZED`.
+- **`NONNULL`:** use only when guaranteed **there are no `null` values**.
+- **`DISTINCT`:** use only when elements are known to be unique under `equals`.
+- **`SORTED`:** use only when data truly follows an appropriate comparator and the spliterator honors the `getComparator()` contract.
+- **`IMMUTABLE`:** declare only when the source cannot be structurally modified during traversal under an appropriate contract; do not equate "callers promise not to modify" with a guaranteed invariant.
 
-Không nên bật `CONCURRENT` chỉ vì dùng `parallel()`. `CONCURRENT` có nghĩa nguồn **hỗ trợ thay đổi cấu trúc đồng thời theo hợp đồng**, không phải “có thể xử lý nhiều vùng dữ liệu tách biệt”.
+Do not enable `CONCURRENT` merely because `parallel()` is used. `CONCURRENT` means the source **supports concurrent structural modification under contract**, not "multiple disjoint data partitions can be processed concurrently".
 
-Với thiết kế dùng **một bản sao `ArrayList` riêng, không bị lớp này sửa đổi**, ta chọn tối thiểu:
+With a design using **a private `ArrayList` copy not mutated by this class**, we choose at minimum:
 
 ```java
 Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED
 ```
 
-Không khai báo `NONNULL` vì dữ liệu đầu vào có thể có `null`; không khai báo `SORTED` hay `DISTINCT` vì không kiểm chứng những tính chất đó. Chỉ định đúng các cờ đã đủ để Stream runtime nhận biết khả năng chia mà không cần “tối ưu hóa” bằng các tuyên bố sai.
+Do not declare `NONNULL` because input data might contain `null`; do not declare `SORTED` or `DISTINCT` because those properties are not verified. Declaring only the accurate flags is enough for the Stream runtime to recognize splittability without "optimizing" via false claims.
 
-## 4. Chọn biểu diễn vùng [index, fence)
+## 4. Choosing the [index, fence) Range Representation
 
-Thay vì tạo list con cho mỗi phép chia, phiên bản đầu dùng các **khoảng chỉ số nửa mở**:
+Instead of creating sublists on every split, the first version uses **half-open index intervals**:
 
 ```text
 data:  [A, B, C, D, E, F, G, H]
 index:  0
 fence:  8
-vùng sở hữu: [0, 8) = A..H
+owned range: [0, 8) = A..H
 
-Sau trySplit:
-  phần trả ra:    [0, 3) = A, B, C
-  phần còn lại:   [3, 8) = D, E, F, G, H
+After trySplit:
+  returned part:   [0, 3) = A, B, C
+  remaining part:  [3, 8) = D, E, F, G, H
 ```
 
-Các trường:
+Fields:
 
-- `data`: danh sách chụp lại từ đầu vào để đọc ổn định.
-- `index`: vị trí phần tử tiếp theo của **spliterator hiện tại**.
-- `fence`: vị trí kết thúc **không bao gồm**.
-- `batchSize`: giới hạn kích thước phần việc sau khi chia.
+- `data`: list snapshotted from input for stable reads.
+- `index`: position of the next element for the **current spliterator**.
+- `fence`: **exclusive** end position.
+- `batchSize`: upper bound on work chunk size after splitting.
 
-Bất biến kích thước:
+Size invariant:
 
 ```text
 0 <= index <= fence <= data.size()
 estimateSize() == fence - index
 ```
 
-Nếu tách tại vị trí `cut`, ta phải duy trì:
+If splitting at `cut`, we must maintain:
 
 ```text
 [index_old, fence)
      = [index_old, cut)  +  [cut, fence)
 
-hai phần không chồng lấn, tổng kích thước không đổi
+two non-overlapping partitions, total size unchanged
 ```
 
-**Lựa chọn nguồn `List`:** ta tạo bản sao `ArrayList` bằng `new ArrayList<>(source)`. Điều đó giúp `get(index)` nhanh và không phụ thuộc việc người gọi tiếp tục thêm/xóa phần tử từ danh sách ban đầu sau khi tạo spliterator. Đây chỉ là **bản sao nông**: nếu các phần tử là đối tượng có thể sửa, nội dung của chúng vẫn có thể thay đổi ngoài ý muốn.
+**Choosing the `List` source:** we create an `ArrayList` copy via `new ArrayList<>(source)`. That makes `get(index)` fast and prevents interference if the caller adds/removes elements from the original list after creating the spliterator. This is only a **shallow copy**: if elements are mutable objects, their internal contents can still change unexpectedly.
 
-Việc sao chép tốn **O(n) bộ nhớ và thời gian khởi tạo**. Với nguồn đã nằm trong `ArrayList` bất biến theo cách sử dụng, spliterator có sẵn có thể hiệu quả hơn. Mục tiêu của phiên bản tùy chỉnh là học **hợp đồng chia lô**, không khẳng định nó tối ưu cho mọi nguồn.
+Copying costs **O(n) memory and initialization time**. If the source is already an `ArrayList` used immutably, the built-in spliterator may be more efficient. The goal of this custom version is learning the **batch-splitting contract**, not claiming it is optimal for every source.
 
-## 5. Cài đặt `BatchSpliterator<T>` hoàn chỉnh (Java 8+)
+## 5. Complete `BatchSpliterator<T>` Implementation (Java 8+)
 
-Đặt chương trình sau vào `BatchDemo.java`. Nó có thể biên dịch và chạy với Java 8 trở lên.
+Place the following program in `BatchDemo.java`. It compiles and runs on Java 8 or later.
 
 ```java
 import java.util.ArrayList;
@@ -173,11 +173,11 @@ public class BatchDemo {
 
             if (batchSize <= 0) {
                 throw new IllegalArgumentException(
-                    "batchSize phai > 0"
+                    "batchSize must be > 0"
                 );
             }
 
-            // Chụp cấu trúc danh sách trước khi chia.
+            // Snapshot list structure before splitting.
             List<T> snapshot = new ArrayList<>(source);
             return new BatchSpliterator<>(
                 snapshot, 0, snapshot.size(), batchSize
@@ -213,14 +213,14 @@ public class BatchDemo {
         public Spliterator<T> trySplit() {
             int remaining = fence - index;
 
-            // Vùng <= batchSize là một phần việc cuối.
+            // Range <= batchSize is one final work chunk.
             if (remaining <= batchSize) {
                 return null;
             }
 
-            // Trả tiền tố có tối đa batchSize phần tử.
-            // Không tách tất cả vào prefix để phần còn lại
-            // vẫn có dữ liệu cho phép chia tiếp.
+            // Return prefix of at most batchSize elements.
+            // Do not move everything into prefix so the remainder
+            // still has data allowing further splits.
             int prefixSize = Math.min(
                 batchSize, remaining / 2
             );
@@ -231,7 +231,7 @@ public class BatchDemo {
                     data, index, cut, batchSize
                 );
 
-            // Spliterator hiện tại chỉ còn đoạn [cut, fence).
+            // Current spliterator keeps only [cut, fence).
             index = cut;
             return prefix;
         }
@@ -273,30 +273,30 @@ public class BatchDemo {
 }
 ```
 
-Điểm quan trọng trong mã:
+Key points in the code:
 
-1. `snapshotOf` từ chối lô có kích thước 0 hoặc âm và sao chép danh sách gốc.
-2. `tryAdvance` cung cấp một giá trị rồi tăng `index` đúng một lần.
-3. `trySplit` chỉ tách khi vùng còn nhiều hơn `batchSize` phần tử; phần mới là **tiền tố**, phần hiện tại trở thành hậu tố.
-4. `estimateSize` được tính từ khoảng còn lại, nên giảm sau `tryAdvance` hoặc `trySplit`.
-5. Mỗi spliterator con sở hữu `index` / `fence` riêng; chúng chỉ **đọc** cùng một danh sách snapshot.
-6. `StreamSupport.stream(..., true)` yêu cầu chế độ song song; nó **không bảo đảm** luôn có nhiều thread thực sự chạy hoặc tạo một tác vụ riêng cho từng lô.
+1. `snapshotOf` rejects zero or negative batch sizes and copies the original list.
+2. `tryAdvance` delivers one value and increments `index` exactly once.
+3. `trySplit` splits only when the range has more than `batchSize` elements; the new part is the **prefix**, and the current instance becomes the suffix.
+4. `estimateSize` is computed from the remaining span, so it shrinks after `tryAdvance` or `trySplit`.
+5. Each child spliterator owns its own `index` / `fence`; they only **read** the shared snapshot list.
+6. `StreamSupport.stream(..., true)` requests parallel mode; it **does not guarantee** multiple threads will actually run or one task will be created per batch.
 
-Cả hai pipeline `collect` và `sum` trong `main` tạo **spliterator mới**. Không dùng lại spliterator đã tiêu thụ để chạy terminal operation thứ hai.
+Both `collect` and `sum` pipelines in `main` create a **new spliterator**. Never reuse a consumed spliterator to run a second terminal operation.
 
-### Vì sao `prefixSize = min(batchSize, remaining / 2)`?
+### Why `prefixSize = min(batchSize, remaining / 2)`?
 
-Nếu luôn lấy cố định `batchSize` phần tử khi phần còn lại chỉ lớn hơn B một chút, có thể tạo một phần rất lớn và phần chỉ một phần tử. Công thức trên lấy không quá B và không quá nửa số phần tử còn lại, giúp tránh lô cuối quá lệch trong trường hợp gần ngưỡng.
+If you always take a fixed `batchSize` elements when the remainder is only slightly larger than B, you can end up with one very large chunk and a leftover of just one element. The formula above takes at most B and at most half the remaining elements, avoiding heavily skewed final batches near the threshold.
 
-Với `remaining > batchSize >= 1`, `remaining / 2` ít nhất bằng 1, nên `trySplit` luôn tạo hai vùng **không rỗng**. Khi mọi vùng còn tối đa B phần tử, không còn tách thêm.
+For `remaining > batchSize >= 1`, `remaining / 2` is at least 1, so `trySplit` always produces two **non-empty** ranges. Once every range has at most B elements left, no further splitting occurs.
 
-Ví dụ với tám phần tử và B = 3, các lô cuối có thể là kích thước `3, 2, 3`. Không có cam kết **chính xác B phần tử mỗi lô**, chỉ có cam kết mỗi vùng cuối `<= B`.
+For example, with eight elements and B = 3, final batches can have sizes `3, 2, 3`. There is no guarantee of **exactly B elements per batch**, only that every final chunk is `<= B`.
 
-## 6. Kiểm thử chia lô mà không cần thread
+## 6. Testing Batch Splitting Without Threads
 
-Trước khi chạy song song, hãy kiểm tra `trySplit` trực tiếp. Đó là cách tốt để tìm lỗi **mất phần tử, lặp phần tử, sai thứ tự và sai estimateSize** mà không bị nhiễu bởi lịch thực thi.
+Before running in parallel, test `trySplit` directly. That is the best way to catch **lost elements, duplicate elements, wrong order, and inaccurate `estimateSize`** without scheduling noise.
 
-Đặt lớp kiểm thử sau bên cạnh `BatchDemo.java` (mã Java 8+):
+Place the following test class alongside `BatchDemo.java` (Java 8+):
 
 ```java
 import java.util.ArrayList;
@@ -316,7 +316,7 @@ public class BatchSplitCheck {
             return;
         }
 
-        // Phần prefix phải đứng trước phần còn lại.
+        // Prefix must precede the remaining partition.
         tachHet(prefix, leaves);
         tachHet(current, leaves);
     }
@@ -331,7 +331,7 @@ public class BatchSplitCheck {
 
         long initial = root.estimateSize();
         if (initial != source.size()) {
-            throw new AssertionError("Sai estimateSize ban dau");
+            throw new AssertionError("Incorrect initial estimateSize");
         }
 
         List<Spliterator<Integer>> leaves = new ArrayList<>();
@@ -343,20 +343,20 @@ public class BatchSplitCheck {
         for (Spliterator<Integer> leaf : leaves) {
             long size = leaf.estimateSize();
             if (size < 0 || size > batchSize) {
-                throw new AssertionError("Sai kich thuoc lo: " + size);
+                throw new AssertionError("Incorrect batch size: " + size);
             }
             totalSizes += size;
             leaf.forEachRemaining(merged::add);
             if (leaf.estimateSize() != 0L) {
-                throw new AssertionError("Chua tieu thu het lo");
+                throw new AssertionError("Batch not fully consumed");
             }
         }
 
         if (totalSizes != source.size()) {
-            throw new AssertionError("Mat/lap vi tri khi tach");
+            throw new AssertionError("Lost/duplicated positions on split");
         }
         if (!merged.equals(source)) {
-            throw new AssertionError("Mat/lap/sai thu tu phan tu");
+            throw new AssertionError("Lost/duplicated/misordered elements");
         }
     }
 
@@ -369,24 +369,24 @@ public class BatchSplitCheck {
         kiemTra(Arrays.asList(
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10), 4);
 
-        System.out.println("PASS: split khong mat/lap/sai thu tu");
+        System.out.println("PASS: split without loss/duplication/misordering");
     }
 }
 ```
 
-Dự kiến:
+Expected output:
 
 ```text
-PASS: split khong mat/lap/sai thu tu
+PASS: split without loss/duplication/misordering
 ```
 
-Kiểm tra danh sách có phần tử trùng là có chủ ý. Nếu chỉ so sánh `Set` của kết quả, một thuật toán làm mất một phần tử nhưng thêm lại giá trị bằng nhau ở vị trí khác **vẫn có thể vượt kiểm thử**. So sánh nguyên `List` theo thứ tự giúp phát hiện cả số lượng lẫn vị trí.
+Testing a list with duplicate values is deliberate. If you only compare `Set`s of results, a buggy algorithm that drops one element while duplicating an equal value elsewhere **could still pass**. Comparing the full `List` in order detects both counts and positions.
 
-Hàm `tachHet` dùng đệ quy để minh họa dễ đọc; chỉ sử dụng với dữ liệu kiểm thử nhỏ. Với hàng triệu lô, cần viết kiểm thử lặp bằng cấu trúc quản lý công việc thay vì đệ quy quá sâu.
+`tachHet` uses recursion for readability; use it only with small test inputs. For millions of batches, write an iterative test using a worklist structure instead of deep recursion.
 
-## 7. Kiểm thử song song: tính đúng trước khi đo hiệu năng
+## 7. Parallel Testing: Correctness Before Performance Measurement
 
-Giữ nguyên `BatchDemo.BatchSpliterator`, có thể kiểm tra thêm các ca tuần tự và song song:
+Keeping `BatchDemo.BatchSpliterator` unchanged, you can add sequential and parallel test cases:
 
 ```java
 import java.util.Arrays;
@@ -426,86 +426,86 @@ public class BatchParallelCheck {
             .collect(Collectors.toList());
 
         check(transformed(source, 1, false).equals(expected),
-            "Sai tuan tu, batch 1");
+            "Incorrect sequential, batch 1");
         check(transformed(source, 1, true).equals(expected),
-            "Sai song song, batch 1");
+            "Incorrect parallel, batch 1");
         check(transformed(source, 7, true).equals(expected),
-            "Sai song song, batch 7");
+            "Incorrect parallel, batch 7");
         check(transformed(source, 100, true).equals(expected),
-            "Sai song song, batch 100");
+            "Incorrect parallel, batch 100");
 
         List<Integer> empty = Arrays.<Integer>asList();
         check(transformed(empty, 4, true).isEmpty(),
-            "Sai voi nguon rong");
+            "Incorrect on empty source");
 
         List<Integer> one = Arrays.asList(8);
         check(transformed(one, 4, true)
-            .equals(Arrays.asList(64)), "Sai mot phan tu");
+            .equals(Arrays.asList(64)), "Incorrect on single element");
 
         long sum = StreamSupport.stream(
                 BatchDemo.BatchSpliterator.snapshotOf(source, 7), true)
             .mapToLong(Integer::longValue)
             .reduce(0L, Long::sum);
 
-        check(sum == 820L, "Sai tong");
-        System.out.println("PASS: sequential/parallel dung");
+        check(sum == 820L, "Incorrect sum");
+        System.out.println("PASS: sequential/parallel correct");
     }
 }
 ```
 
-Chương trình đối chiếu bằng **kết quả mong đợi độc lập** từ pipeline tuần tự trên một `List`, rồi thử nhiều kích thước lô để bắt lỗi biên. Kết quả dự kiến:
+The program cross-checks against an **independent expected result** from a sequential `List` pipeline, then tries multiple batch sizes to catch boundary bugs. Expected output:
 
 ```text
-PASS: sequential/parallel dung
+PASS: sequential/parallel correct
 ```
 
-Chỉ quan sát một lần chạy thành công **không chứng minh** mọi đặc tính do spliterator khai báo đều đúng. Với spliterator tự viết, luôn cần xem xét cả hợp đồng phương thức và thử các trường hợp biên, không chỉ so sánh đầu ra.
+Observing a single successful run **does not prove** every declared spliterator characteristic is valid. For custom spliterators, always inspect method contracts and test edge cases, not just output equality.
 
-## 8. Bất biến bảo toàn vị trí sau mỗi lần chia
+## 8. Position-Preserving Invariants on Every Split
 
-Gọi `L = [index, fence)` là vùng còn lại. Nếu `trySplit()` trả `P = [index, cut)` thì sau thao tác:
+Let `L = [index, fence)` be the remaining range. If `trySplit()` returns `P = [index, cut)`, then after the operation:
 
 ```text
-L trước = P sau  ∪  L còn lại sau
-P ∩ L còn lại = ∅
-|L trước| = |P| + |L còn lại|
+L before = P after  ∪  L remaining after
+P ∩ L remaining = ∅
+|L before| = |P| + |L remaining|
 ```
 
-Với ví dụ `[0, 8)`, tách tại `cut = 3`:
+With the example `[0, 8)`, splitting at `cut = 3`:
 
 ```text
-Trước: [0,1,2,3,4,5,6,7]
+Before: [0,1,2,3,4,5,6,7]
 Prefix: [0,1,2]
 Remain: [3,4,5,6,7]
 3 + 5 = 8
 ```
 
-Các lỗi dễ gây sai khi song song:
+Bugs that commonly break parallel execution:
 
-- **Không cập nhật `index` của phần còn lại:** prefix và phần gốc đọc cùng vị trí → lặp phần tử.
-- **Đặt `cut` vượt `fence`:** đọc ngoài phạm vi.
-- **Tăng `index` hai lần trong `tryAdvance`:** bỏ sót phần tử.
-- **Trả suffix thay vì prefix nhưng vẫn khai `ORDERED`:** có thể đảo thứ tự kết quả khi collector cần giữ encounter order.
-- **`estimateSize` không giảm sau `trySplit`:** vi phạm `SIZED`/`SUBSIZED`, có thể phá các tối ưu hóa.
-- **Thực hiện một phép chia luôn tạo hai vùng quá nhỏ:** nhiều tác vụ hơn cần thiết.
+- **Forgetting to update `index` of the remainder:** prefix and original read the same positions -> duplicate elements.
+- **Setting `cut` past `fence`:** out-of-bounds reads.
+- **Incrementing `index` twice in `tryAdvance`:** skipped elements.
+- **Returning a suffix instead of a prefix while declaring `ORDERED`:** can reverse result order when a collector preserves encounter order.
+- **Not decreasing `estimateSize` after `trySplit`:** violates `SIZED`/`SUBSIZED` and can break optimizations.
+- **Splitting in a way that always leaves tiny ranges:** creates more tasks than necessary.
 
-Vì `trySplit` có thể được gọi khi đã tiêu thụ một phần vùng hiện tại, thuật toán phải dùng **`index` đang còn lại**, không dùng một `origin` bất biến từ lúc tạo spliterator để tính vị trí prefix mới.
+Because `trySplit` may be called after part of the current range has already been consumed, the algorithm must use the **current `index`**, not an immutable initial `origin` saved at construction time, to calculate the new prefix boundary.
 
 
-## 9. Khi nguồn là `Iterator`: lấy từng lô theo nhu cầu
+## 9. When the Source Is an `Iterator`: Fetching Batches on Demand
 
-Phiên bản `BatchSpliterator` ở trên đã sao chép toàn bộ `List` vào bộ nhớ. Nhưng các dự án thực tế có thể đọc dữ liệu từ:
+The `BatchSpliterator` above copies the entire `List` into memory. Real-world projects, however, may read data from:
 
-- Một `Iterator<T>` tạo bản ghi tuần tự.
-- Một cursor của cơ sở dữ liệu.
-- Một luồng dòng văn bản.
-- Một API phân trang mà mỗi lần yêu cầu trả một nhóm bản ghi.
+- An `Iterator<T>` generating records sequentially.
+- A database cursor.
+- A stream of text lines.
+- A paginated API where each request returns a group of records.
 
-Đối với nguồn **không hỗ trợ truy cập ngẫu nhiên** hoặc **không biết tổng số phần tử**, ta cần một chiến lược khác. Một lựa chọn là: khi `trySplit()` được yêu cầu, đọc trước **tối đa B phần tử** từ iterator và trả một spliterator độc lập cho lô vừa đọc.
+For sources **without random access** or **with unknown total size**, we need a different strategy. One option is: when `trySplit()` is requested, prefetch **at most B elements** from the iterator and return an independent spliterator for that batch.
 
-### 9.1. Mẫu `IteratorBatchSpliterator<T>`
+### 9.1. `IteratorBatchSpliterator<T>` Pattern
 
-Đoạn sau là lớp Java 8+ có thể đặt vào file `IteratorBatchSpliterator.java`:
+The following is a Java 8+ class you can place in `IteratorBatchSpliterator.java`:
 
 ```java
 import java.util.ArrayList;
@@ -528,7 +528,7 @@ public final class IteratorBatchSpliterator<T>
 
         if (batchSize <= 0) {
             throw new IllegalArgumentException(
-                "batchSize phai > 0"
+                "batchSize must be > 0"
             );
         }
 
@@ -550,37 +550,37 @@ public final class IteratorBatchSpliterator<T>
 
     @Override
     public Spliterator<T> trySplit() {
-        // Lấy trước tối đa batchSize phần tử.
+        // Prefetch up to batchSize elements.
         List<T> batch = new ArrayList<>(batchSize);
 
         while (batch.size() < batchSize && source.hasNext()) {
             batch.add(source.next());
         }
 
-        // Không còn dữ liệu để tách.
+        // No more data to split.
         if (batch.isEmpty()) {
             return null;
         }
 
-        // Spliterator của ArrayList này độc lập với cursor gốc.
+        // This ArrayList's spliterator is independent of the original cursor.
         return batch.spliterator();
     }
 
     @Override
     public long estimateSize() {
-        // Iterator tổng quát không biết chính xác số phần tử.
+        // A general Iterator does not know the exact element count.
         return Long.MAX_VALUE;
     }
 
     @Override
     public int characteristics() {
-        // Chỉ dùng nếu nguồn Iterator có thứ tự gặp có ý nghĩa.
+        // Use only if the Iterator source has a meaningful encounter order.
         return Spliterator.ORDERED;
     }
 }
 ```
 
-Sử dụng với một `List` để kiểm thử trước:
+Test it first with a `List`:
 
 ```java
 import java.util.Arrays;
@@ -606,35 +606,35 @@ public class IteratorBatchExample {
 }
 ```
 
-Với iterator có thứ tự, lô được lấy ra cũng là **tiền tố** của phần chưa đọc. `trySplit` trả spliterator trên `ArrayList` con, nên có thể xử lý lô đó độc lập, trong khi spliterator gốc tiếp tục giữ iterator nguồn.
+With an ordered iterator, the extracted batch is also a **prefix** of the unread portion. `trySplit` returns a spliterator over the sub-`ArrayList`, so that batch can be processed independently while the root spliterator keeps the source iterator.
 
-**Giới hạn quan trọng của phiên bản này:**
+**Important limitations of this version:**
 
-1. `Iterator` tổng quát không cho biết tổng số phần tử. Do đó spliterator gốc trả `Long.MAX_VALUE` ở `estimateSize` như một **giá trị ước lượng không biết trước**, **không được khai báo `SIZED` hoặc `SUBSIZED`**.
-2. Mỗi lô tách ra có thể dùng bộ nhớ O(B). Nếu runtime tạo nhiều lô trước khi hoàn thành việc xử lý, tổng bộ nhớ vẫn có thể tăng theo số lô đang chờ.
-3. `trySplit` **đọc trước phần tử**. Một terminal operation short-circuit như `findAny` hoặc `limit` có thể khiến nguồn đã đọc nhiều phần tử hơn lượng kết quả thực sự cần.
-4. `Iterator` dùng chung không tự an toàn khi nhiều thread gọi `next()`. Không cho nhiều caller tự ý cùng gọi `tryAdvance` / `trySplit` của **chính một spliterator**. Phân chia có kiểm soát của Stream runtime là mô hình sử dụng khác với việc tự đồng thời gọi phương thức trên một instance.
-5. Lớp giả định iterator có **thứ tự gặp ổn định**. Nếu nguồn là iterator từ `HashSet` không có encounter order được bảo đảm, không nên quảng bá `ORDERED` như một hợp đồng nghiệp vụ.
-6. Đây là phiên bản minh họa **không tự đóng tài nguyên I/O**: nếu iterator bọc tệp hoặc kết nối, tầng sở hữu nguồn phải đóng tài nguyên bên ngoài.
+1. A general `Iterator` does not expose total element count. Therefore, the root spliterator returns `Long.MAX_VALUE` from `estimateSize` as an **unknown size estimate**, and **must not declare `SIZED` or `SUBSIZED`**.
+2. Each split batch can use O(B) memory. If the runtime creates many batches before processing completes, total memory can still grow with the number of queued batches.
+3. `trySplit` **prefetches elements**. A short-circuiting terminal operation like `findAny` or `limit` may cause the source to read more elements than strictly needed for the output.
+4. A shared `Iterator` is not thread-safe for concurrent `next()` calls. Never let multiple callers invoke `tryAdvance` / `trySplit` concurrently on **the same spliterator instance**. Controlled splitting by the Stream runtime is a different usage model from calling methods concurrently on one instance.
+5. The class assumes the iterator has a **stable encounter order**. If the source is an iterator from `HashSet` without guaranteed encounter order, do not advertise `ORDERED` as a business contract.
+6. This demonstration version **does not automatically close I/O resources**: if the iterator wraps a file or connection, the resource-owning layer must close it externally.
 
-### 9.2. So sánh hai cách chia theo lô
+### 9.2. Comparing the Two Batch-Splitting Approaches
 
-| Khía cạnh | `BatchSpliterator` trên snapshot `List` | `IteratorBatchSpliterator` |
+| Aspect | `BatchSpliterator` on `List` Snapshot | `IteratorBatchSpliterator` |
 | --- | --- | --- |
-| Nguồn | `List` được sao chép thành `ArrayList` | `Iterator` tuần tự |
-| Khi chia | Tạo vùng chỉ số mới, không sao chép phần tử mỗi lần tách | Đọc trước tối đa B phần tử vào một list |
-| Tổng số phần tử | Biết chính xác | Có thể không biết |
-| `SIZED` / `SUBSIZED` | Được phép với các vùng chỉ số ổn định | Không được khai trên spliterator gốc tổng quát |
-| Chi phí bộ nhớ | O(N) để chụp list ban đầu | O(B) cho mỗi lô đang được giữ |
-| Độ phức tạp khi truy cập | `get(index)` của `ArrayList` | Gọi `hasNext()` / `next()` |
-| Khả năng cắt ngắn đọc nguồn | Không cần đọc I/O mới; dữ liệu đã nằm trong list | Có thể đã đọc trước nhiều phần tử |
-| Phạm vi ứng dụng | Dữ liệu trong bộ nhớ, minh họa các vùng rời nhau | Nguồn tuần tự, chưa biết kích thước, cấp theo lô |
+| Source | `List` copied into an `ArrayList` | Sequential `Iterator` |
+| On split | Creates a new index range without copying elements per split | Prefetches up to B elements into a list |
+| Total element count | Known exactly | May be unknown |
+| `SIZED` / `SUBSIZED` | Allowed for fixed index ranges | Must not be declared on general root spliterator |
+| Memory cost | O(N) to snapshot initial list | O(B) per retained batch |
+| Access complexity | `ArrayList.get(index)` | `hasNext()` / `next()` calls |
+| Ability to short-circuit source reads | No new I/O needed; data is already in the list | May have already prefetched extra elements |
+| Applicability | In-memory data, demonstrating disjoint index ranges | Sequential, unsized sources supplied in batches |
 
-Đây là **hai chiến lược khác nhau**, không phải hai cách viết tương đương về tài nguyên. Nếu nguồn vốn là `ArrayList` ổn định, spliterator tích hợp của JDK thường là lựa chọn đơn giản và có thể nhanh hơn giải pháp tùy chỉnh.
+These are **two different strategies**, not resource-equivalent ways to write the same thing. If the source is already a stable `ArrayList`, the JDK's built-in spliterator is usually simpler and often faster than a custom solution.
 
-## 10. Kết nối với `StreamSupport.stream` và tính lazy
+## 10. Connecting to `StreamSupport.stream` and Laziness
 
-Chữ ký cần biết:
+Signature to know:
 
 ```java
 static <T> Stream<T> stream(
@@ -643,11 +643,11 @@ static <T> Stream<T> stream(
 )
 ```
 
-- `parallel = false`: yêu cầu thực thi tuần tự.
-- `parallel = true`: yêu cầu thực thi song song, nhưng **không bảo đảm** có một số thread hoặc số lần `trySplit` cố định.
-- Stream nhận nguồn từ spliterator; các phép `filter`, `map` thường **chỉ chạy khi terminal operation tiêu thụ**.
+- `parallel = false`: requests sequential execution.
+- `parallel = true`: requests parallel execution, but **does not guarantee** a fixed thread count or number of `trySplit` calls.
+- The Stream draws from the spliterator; `filter` and `map` typically **execute only when a terminal operation consumes elements**.
 
-Ví dụ với `BatchDemo.BatchSpliterator`:
+Example with `BatchDemo.BatchSpliterator`:
 
 ```java
 import java.util.Arrays;
@@ -663,24 +663,24 @@ Stream<Integer> pipeline = StreamSupport.stream(
     .filter(n -> n > 2)
     .map(n -> n * 10);
 
-// Chưa tiêu thụ pipeline.
+// Pipeline has not been consumed yet.
 System.out.println(pipeline.isParallel()); // true
 
 long count = pipeline.count();
 System.out.println(count); // 2
 ```
 
-Không nên chèn các tác dụng phụ nghiệp vụ vào `map` hoặc `peek` rồi kỳ vọng chúng luôn chạy. Với một số pipeline mà kích thước nguồn đã biết, terminal operation như `count()` có thể dùng thông tin `SIZED` để tối ưu hóa và bỏ các bước không ảnh hưởng đến số lượng.
+Do not embed business side effects inside `map` or `peek` and expect them to always run. For some pipelines where the source size is known, terminal operations like `count()` can exploit `SIZED` to optimize away steps that do not affect the count.
 
-### Lưu ý về `SIZED` sau `filter`
+### Note on `SIZED` After `filter`
 
-`BatchSpliterator` gốc có `SIZED` vì biết chính xác số **phần tử nguồn còn lại**. Nhưng sau `filter`, số phần tử **đầu ra** thường không biết trước. Stream runtime xử lý thay đổi đặc tính này; **không** nên suy ra `filter(...).count()` sẽ luôn trả ngay kích thước nguồn.
+The root `BatchSpliterator` has `SIZED` because it knows the exact number of **remaining source elements**. After `filter`, however, the **output** element count is generally unknown in advance. The Stream runtime handles this characteristic change; **do not** assume `filter(...).count()` will simply return the source size immediately.
 
-Trong ví dụ trên, `filter(n -> n > 2)` thật sự thay đổi số lượng nên kết quả đúng là 2, không phải 4.
+In the example above, `filter(n -> n > 2)` genuinely changes the count, so the right answer is 2, not 4.
 
-### Hai đường đời khác nhau: nguồn trong bộ nhớ và nguồn I/O
+### Two Different Lifecycles: In-Memory Sources vs. I/O Sources
 
-Spliterator trên một bản sao `ArrayList` không giữ tệp hoặc kết nối, nên bản thân nó không đòi hỏi `try-with-resources`. Với nguồn tệp, database hoặc cursor, **phải có hợp đồng sở hữu tài nguyên riêng**:
+A spliterator over an `ArrayList` copy holds no file or connection, so by itself it does not require `try-with-resources`. For files, databases, or cursors, **an explicit resource-ownership contract is mandatory**:
 
 ```java
 import java.io.IOException;
@@ -709,15 +709,15 @@ static long demDongCoChu(
 }
 ```
 
-Ở đây `Files.lines` tạo nguồn gắn với I/O; **khối `try` sở hữu và đóng `lines`**. Iterator chỉ được dùng khi nguồn còn mở. Ví dụ cố ý đặt `parallel = false` để không quảng bá việc đọc đĩa qua iterator như một chiến lược song song hóa mặc định.
+Here `Files.lines` creates an I/O-backed source; **the `try` block owns and closes `lines`**. The iterator is used only while the source remains open. The example deliberately sets `parallel = false` so disk reading through an iterator is not promoted as a default parallelization strategy.
 
-Nếu ứng dụng cần xử lý CPU song song trên những lô đã đọc, phải đánh giá tốc độ đọc, buffering, số tác vụ, backpressure và chính sách đóng tệp; không chỉ chuyển `false` thành `true` rồi giả định an toàn và nhanh hơn.
+If an application needs parallel CPU processing on read batches, it must evaluate read throughput, buffering, task count, backpressure, and file-closing policy—never just flip `false` to `true` assuming it is safe and faster.
 
-## 11. Encounter order, `forEach` và các phép kết thúc
+## 11. Encounter Order, `forEach`, and Terminal Operations
 
-`ORDERED` không nói rằng nhiều thread sẽ gọi callback **theo đúng thứ tự gặp**. Nó nói rằng **nguồn có thứ tự logic** mà một số terminal operation phải tôn trọng.
+`ORDERED` does not mean multiple threads invoke callbacks **in exact encounter order**. It means **the source has a logical order** that certain terminal operations must respect.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.Arrays;
@@ -737,7 +737,7 @@ List<Integer> output = StreamSupport.stream(
 System.out.println(output); // [70, 30, 50, 10, 90]
 ```
 
-`Collectors.toList()` giữ encounter order của ordered stream. Nhưng:
+`Collectors.toList()` preserves the encounter order of an ordered stream. However:
 
 ```java
 StreamSupport.stream(
@@ -746,7 +746,7 @@ StreamSupport.stream(
 ).forEach(System.out::println);
 ```
 
-`forEach` không hứa thứ tự in; dùng `forEachOrdered` nếu phải thực hiện hành động cuối theo thứ tự gặp:
+`forEach` makes no ordering promise when printing; use `forEachOrdered` if the final action must execute in encounter order:
 
 ```java
 StreamSupport.stream(
@@ -755,9 +755,9 @@ StreamSupport.stream(
 ).forEachOrdered(System.out::println);
 ```
 
-Khi kết quả cần là danh sách, **`collect` thường phù hợp hơn** việc tự thêm vào `ArrayList` dùng chung trong `forEach`. `forEachOrdered` có thể làm giảm mức đồng thời để tôn trọng thứ tự.
+When a list is needed as the result, **`collect` is usually better** than appending to a shared `ArrayList` inside `forEach`. `forEachOrdered` may reduce concurrency in order to honor ordering.
 
-### `findFirst` khác `findAny`
+### `findFirst` Differs from `findAny`
 
 ```java
 int first = StreamSupport.stream(
@@ -772,16 +772,16 @@ int any = StreamSupport.stream(
         true)
     .filter(n -> n > 2)
     .findAny()
-    .orElse(-1); // 7, 3, 5 hoặc 9
+    .orElse(-1); // 7, 3, 5, or 9
 ```
 
-`findFirst` phải tôn trọng phần tử đầu theo encounter order; `findAny` được phép trả phần tử phù hợp bất kỳ. Vì vậy `ORDERED` có thể tạo chi phí phối hợp cho những phép toán cần kết quả đầu tiên.
+`findFirst` must honor the first matching element in encounter order; `findAny` is allowed to return any matching element. Consequently, `ORDERED` can add coordination overhead for operations requiring the first element.
 
-## 12. Có Spliterator đúng vẫn phải có `reduce` đúng
+## 12. Even with a Correct Spliterator, `reduce` Must Still Be Right
 
-Thiết kế `trySplit` chính xác không thể sửa một phép giảm sai về đại số. Khi các lô xử lý song song, `reduce` có thể gộp kết quả cục bộ theo nhiều cách.
+An accurate `trySplit` design cannot fix an algebraically broken reduction. When batches run in parallel, `reduce` may combine partial results in various ways.
 
-Ví dụ đúng:
+Valid example:
 
 ```java
 long sum = StreamSupport.stream(
@@ -791,9 +791,9 @@ long sum = StreamSupport.stream(
     .reduce(0L, Long::sum);
 ```
 
-`0L` là identity của phép cộng; `Long::sum` có tính kết hợp trong ngữ nghĩa số nguyên Java (kể cả quy tắc tràn dạng hai bù của Java). Nếu nghiệp vụ không chấp nhận tràn số, vẫn cần chọn miền tính toán hoặc kiểu `BigInteger` phù hợp.
+`0L` is the additive identity; `Long::sum` is associative under Java integer semantics (including Java's two's-complement overflow rules). If business rules cannot tolerate overflow, you still must choose an appropriate numeric domain or `BigInteger`.
 
-Ví dụ sai:
+Invalid example:
 
 ```java
 int wrong = StreamSupport.stream(
@@ -802,29 +802,29 @@ int wrong = StreamSupport.stream(
     .reduce(0, (a, b) -> a - b);
 ```
 
-Phép trừ không kết hợp:
+Subtraction is not associative:
 
 ```text
 (10 - 3) - 2 = 5
 10 - (3 - 2) = 9
 ```
 
-Vì vậy không thể dự đoán một kết quả nhất quán giữa mọi cách chia. **Đúng Spliterator** và **đúng accumulator/combiner** là hai điều kiện độc lập.
+Thus, you cannot expect consistent results across arbitrary splits. **A correct Spliterator** and **a valid accumulator/combiner** are two independent requirements.
 
-### Thu thập danh sách đúng cách
+### Collecting Lists Properly
 
-Không dùng:
+Do not use:
 
 ```java
 List<Integer> output = new ArrayList<>();
 
-// KHÔNG NÊN: thêm vào ArrayList dùng chung từ nhiều thread.
+// AVOID: adding into a shared ArrayList from multiple threads.
 StreamSupport.stream(
     BatchDemo.BatchSpliterator.snapshotOf(source, 2), true)
     .forEach(output::add);
 ```
 
-Dùng:
+Use:
 
 ```java
 List<Integer> output = StreamSupport.stream(
@@ -832,74 +832,74 @@ List<Integer> output = StreamSupport.stream(
     .collect(Collectors.toList());
 ```
 
-Collector có cơ chế supplier, accumulator, combiner phù hợp. Nếu muốn một `ArrayList` cụ thể, chọn `Collectors.toCollection(ArrayList::new)`.
+A Collector provides proper supplier, accumulator, and combiner mechanics. If you specifically want an `ArrayList`, choose `Collectors.toCollection(ArrayList::new)`.
 
-### Chia lô không tự làm batch kết quả
+### Batch Splitting Does Not Automatically Batch Results
 
-`trySplit` trả từng vùng để xử lý, nhưng Stream vẫn là `Stream<T>`, **không phải `Stream<List<T>>`**. Nếu bài toán cần đầu ra là các nhóm B phần tử (để gửi API hoặc ghi batch vào cơ sở dữ liệu), cần một thuật toán/collector riêng để **gộp phần tử thành list**. Không lạm dụng `trySplit` như thao tác tạo batch nghiệp vụ; ranh giới chia có thể thay đổi theo runtime.
+`trySplit` hands out ranges for processing, yet the Stream remains `Stream<T>`, **not `Stream<List<T>>`**. If the problem requires output grouped into B-element lists (for API requests or database batch writes), you need a separate algorithm or collector to **group elements into lists**. Do not abuse `trySplit` as a business batching operation; split boundaries may vary at runtime.
 
-## 13. Hiệu năng: chọn `batchSize` như thế nào?
+## 13. Performance: How to Choose `batchSize`?
 
-Không có một kích thước lô tối ưu cho mọi workload. Các yếu tố liên quan:
+There is no single optimal batch size for all workloads. Relevant factors:
 
-| Khi B rất nhỏ | Khi B rất lớn |
+| When B Is Very Small | When B Is Very Large |
 | --- | --- |
-| Có thể tạo nhiều vùng/tác vụ hơn cần thiết | Có thể tạo quá ít phần việc để tận dụng nhiều lõi |
-| Chi phí `trySplit` và điều phối tăng | Một số worker có thể chờ việc, tải lệch |
-| Với nguồn Iterator, cấp phát nhiều list nhỏ | Với nguồn Iterator, mỗi lô giữ nhiều phần tử trong bộ nhớ |
-| Có thể chia tải mịn hơn khi chi phí mỗi phần tử lệch nhau | Giảm overhead nếu tác vụ trên mỗi phần tử rất rẻ |
+| May create more regions/tasks than needed | May create too few work units to utilize multiple cores |
+| `trySplit` and scheduling overhead increases | Some workers may sit idle; uneven load |
+| With Iterator sources, allocates many small lists | With Iterator sources, each batch retains many elements in memory |
+| Can balance load more finely when per-element cost varies | Reduces overhead when per-element work is very cheap |
 
-**Không đồng nhất số lô với số thread.** Runtime có thể dừng chia trước ngưỡng B vì kích thước nguồn, chiến lược lập lịch và chi phí đánh giá. Ngược lại, phiên bản Iterator có thể lấy trước các lô khiến bộ nhớ tăng nếu tốc độ đọc nhanh hơn xử lý.
+**Do not equate batch count with thread count.** The runtime may stop splitting before threshold B due to source size, scheduling strategy, and cost estimation. Conversely, the Iterator version may prefetch batches, increasing memory if reading outpaces processing.
 
-### Khung thí nghiệm đề xuất
+### Recommended Experimental Framework
 
-1. Xác nhận tính đúng trên dữ liệu nhỏ với B = 1, 2, 7 và B lớn hơn kích thước nguồn.
-2. Xây dựng nguồn đủ lớn và xác định công việc **CPU-bound thuần** trên mỗi phần tử.
-3. Thử một dải lô, ví dụ B = 64, 256, 1024, 4096, thay vì đoán một giá trị.
-4. So sánh với `source.stream()`, `source.parallelStream()` sử dụng spliterator tích hợp và phiên bản tùy chỉnh.
-5. Đo throughput/latency, mức dùng CPU, phân bổ bộ nhớ và tần suất GC trên máy thực tế.
-6. Dùng benchmark có warm-up và nhiều vòng, ví dụ JMH; không kết luận từ một lần gọi `System.nanoTime()`.
+1. Verify correctness on small data with B = 1, 2, 7, and B larger than source size.
+2. Build a sufficiently large source and define **pure CPU-bound** work per element.
+3. Test a range of batch sizes, e.g. B = 64, 256, 1024, 4096, instead of guessing one number.
+4. Compare `source.stream()`, `source.parallelStream()` using the built-in spliterator, and the custom version.
+5. Measure throughput/latency, CPU utilization, memory allocation, and GC frequency on realistic hardware.
+6. Use a benchmark with warm-up and multiple iterations, such as JMH; never draw conclusions from one `System.nanoTime()` call.
 
-Nếu phép tính rất nhẹ, **chi phí tạo snapshot O(N)** trong `BatchSpliterator.snapshotOf` có thể lớn hơn lợi ích chia lô. Khi nguồn là `ArrayList` sẵn có, `ArrayList.spliterator()` thường là chuẩn so sánh rất quan trọng.
+If per-element computation is very light, the **O(N) snapshot cost** in `BatchSpliterator.snapshotOf` can outweigh any batch-splitting benefit. When the source is already an `ArrayList`, `ArrayList.spliterator()` is always an essential baseline.
 
-**Thay đổi B không làm phép tính sai trở thành đúng.** Phép `reduce` phải thỏa identity và associativity; các lambda phải stateless/non-interfering, dù chọn lô lớn hay nhỏ.
+**Changing B does not make an invalid computation valid.** `reduce` must still satisfy identity and associativity, and lambdas must remain stateless/non-interfering regardless of batch size.
 
-## 14. Các lỗi thiết kế dễ bỏ sót
+## 14. Design Mistakes Easy to Overlook
 
-| Hiện tượng | Lý do | Cách khắc phục |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Một số phần tử bị xử lý hai lần | `trySplit` tạo prefix nhưng không cập nhật `index` của phần còn lại | Cắt hai đoạn không giao nhau, luôn cập nhật cursor. |
-| Mất phần tử cuối | Nhầm khoảng `[index, fence)` với khoảng đóng | Dùng điều kiện `index < fence` và kiểm thử 0, 1, B, B+1 phần tử. |
-| Kết quả list song song bị đảo | Tách suffix trước mà vẫn khai `ORDERED` | Trả prefix của vùng chưa duyệt. |
-| `count()` cho kết quả không đúng | Khai `SIZED` sai hoặc `estimateSize` không cập nhật | Chỉ khai khi biết kích thước chính xác, kiểm tra sau split/advance. |
-| `SUBSIZED` báo sai trên nguồn động | Kích thước các split không ổn định | Bỏ cờ hoặc dùng snapshot/range cố định. |
-| `NONNULL` nhưng input có `null` | Khai đặc tính không đúng | Không khai `NONNULL` nếu không kiểm chứng. |
-| `batchSize = 0` làm vòng lặp không tiến | Không xác thực tham số | Ném `IllegalArgumentException`. |
-| Iterator source bị đọc cạnh tranh | Cùng instance được nhiều thread gọi trực tiếp | Quản lý quyền sở hữu, chỉ tách rồi xử lý các split độc lập. |
-| Dùng `List.get(i)` trên `LinkedList` khổng lồ | Truy cập theo chỉ số có thể O(n) | Sao chép thành `ArrayList` hoặc dùng nguồn Iterator phù hợp. |
-| Nguồn quá lớn làm hết RAM | Sao chép cả nguồn hoặc tạo nhiều lô chờ | Bounded batching và kiểm soát tài nguyên/backpressure. |
-| `findFirst` trên dữ liệu Iterator đọc quá nhiều | `trySplit` lấy trước một lô | Cân nhắc kích thước lô và chiến lược short-circuit. |
-| `forEach` ghi sai thứ tự | Thứ tự thực thi không phải encounter order | Dùng `collect`, hoặc `forEachOrdered` khi thích hợp. |
-| `reduce` trên phép trừ cho kết quả khác | Phép toán không kết hợp | Đổi thuật toán gộp, không sửa bằng cách đổi batch. |
-| Nguồn I/O không được đóng | Spliterator không tự quản lý lifecycle | Dùng `try-with-resources` ở tầng sở hữu stream/connection. |
-| Chạy song song nhưng chậm hơn | Overhead split/merge hoặc thao tác quá nhẹ | Benchmark, xem lại B và nguồn; cân nhắc spliterator JDK. |
+| Some elements processed twice | `trySplit` creates prefix without updating `index` of remainder | Cut disjoint intervals; always advance cursor. |
+| Last element lost | Confusing half-open `[index, fence)` with closed interval | Use `index < fence` and test 0, 1, B, B+1 elements. |
+| Parallel list output out of order | Splitting off suffix first while declaring `ORDERED` | Return prefix of untraversed region. |
+| `count()` returns wrong value | Misdeclaring `SIZED` or failing to update `estimateSize` | Declare only when exact size is known; verify after split/advance. |
+| `SUBSIZED` misreported on dynamic source | Split sizes are unstable | Drop the flag or use a fixed snapshot/range. |
+| `NONNULL` declared yet input has `null` | Incorrect characteristic | Never declare `NONNULL` unless verified. |
+| `batchSize = 0` causes non-progressing loop | Unvalidated parameter | Throw `IllegalArgumentException`. |
+| Iterator source read concurrently | Same instance called directly by multiple threads | Manage ownership; split first, then process independent splits. |
+| Calling `List.get(i)` on a huge `LinkedList` | Indexed access can be O(n) | Copy to `ArrayList` or use an appropriate Iterator source. |
+| Source too large exhausts RAM | Copying entire source or queuing too many batches | Bounded batching and resource/backpressure control. |
+| `findFirst` on Iterator data reads too much | `trySplit` prefetches a batch | Weigh batch size and short-circuit strategy. |
+| `forEach` outputs in wrong order | Execution order is not encounter order | Use `collect`, or `forEachOrdered` when appropriate. |
+| `reduce` with subtraction gives varying results | Non-associative operation | Fix reduction logic; changing batch size will not fix it. |
+| I/O source not closed | Spliterator does not manage lifecycle itself | Use `try-with-resources` in the stream/connection-owning layer. |
+| Parallel runs slower | Split/merge overhead or overly cheap work | Benchmark, revisit B and source; consider JDK spliterator. |
 
-## 15. Bài tập thực hành theo cấp độ
+## 15. Tiered Practice Exercises
 
-### Bài 1 — Vẽ các lô
+### Exercise 1 — Trace the Batches
 
-Với nguồn `[1, 2, ..., 10]`, `batchSize = 4` và thuật toán:
+Given source `[1, 2, ..., 10]`, `batchSize = 4`, and the algorithm:
 
 ```java
 if (remaining <= batchSize) return null;
 int prefixSize = Math.min(batchSize, remaining / 2);
 ```
 
-Hãy mô phỏng các lần tách liên tiếp trên **phần còn lại**, ghi kích thước mọi đoạn cuối. Các đoạn đó có bị trùng vị trí không?
+Trace consecutive splits on the **remainder** and record the size of every final chunk. Do any chunks overlap in position?
 
-### Bài 2 — Sửa lỗi thiếu cập nhật con trỏ
+### Exercise 2 — Fix the Missing Cursor Update
 
-Đoạn sai:
+Faulty snippet:
 
 ```java
 public Spliterator<T> trySplit() {
@@ -913,49 +913,49 @@ public Spliterator<T> trySplit() {
 }
 ```
 
-Vì sao mã này có thể làm lặp phần tử? Dòng nào còn thiếu?
+Why can this code duplicate elements? Which line is missing?
 
-### Bài 3 — Khi nào dùng `SIZED`?
+### Exercise 3 — When to Use `SIZED`?
 
-Một Spliterator đọc bản ghi từ `Iterator<T>` không biết tổng số phần tử. `estimateSize()` trả `Long.MAX_VALUE`. Có được khai `SIZED | SUBSIZED` như phiên bản dùng snapshot `ArrayList` không? Giải thích.
+A Spliterator reads records from an `Iterator<T>` with unknown total count. `estimateSize()` returns `Long.MAX_VALUE`. May it declare `SIZED | SUBSIZED` like the `ArrayList` snapshot version? Explain.
 
-### Bài 4 — Đảm bảo tính đúng khi song song
+### Exercise 4 — Ensuring Parallel Correctness
 
-Đề xuất tối thiểu năm ca thử giúp phát hiện lỗi cắt lô: nguồn rỗng, một phần tử, đúng B phần tử, B+1 phần tử, có giá trị trùng. Nêu cách dùng `List.equals` thay vì `Set.equals` để phát hiện trùng vị trí.
+Propose at least five test cases that catch batch-cutting bugs: empty source, single element, exact B elements, B+1 elements, and duplicate values. Explain why `List.equals` is used instead of `Set.equals` to detect positional duplication.
 
-### Bài 5 — Chuyển đổi pipeline
+### Exercise 5 — Pipeline Transformation
 
-Sử dụng `BatchDemo.BatchSpliterator.snapshotOf(data, 8)` với danh sách số nguyên có thứ tự. Viết pipeline song song để lọc số dương, nhân 10 và thu thành `List<Integer>` đúng thứ tự gặp. Giải thích vì sao không dùng `parallel().forEach(result::add)`.
+Use `BatchDemo.BatchSpliterator.snapshotOf(data, 8)` with an ordered list of integers. Write a parallel pipeline to filter positive numbers, multiply by 10, and collect into `List<Integer>` preserving encounter order. Explain why not to use `parallel().forEach(result::add)`.
 
-### Bài 6 — Đọc lô từ nguồn I/O
+### Exercise 6 — Reading Batches from an I/O Source
 
-Nguồn là `Files.lines(path)`. Ai có trách nhiệm đóng tài nguyên? Nếu dùng `IteratorBatchSpliterator` để đọc trước B dòng mỗi lần tách, `limit(10)` có chắc chắn chỉ đọc 10 dòng của tệp không? Vì sao?
+The source is `Files.lines(path)`. Who is responsible for closing the resource? If `IteratorBatchSpliterator` prefetches B lines on each split, is `limit(10)` guaranteed to read only 10 lines from the file? Why or why not?
 
-### Bài 7 — Đo hiệu năng
+### Exercise 7 — Performance Measurement
 
-Nêu lý do vì sao phiên bản snapshot trên `ArrayList` có thể chậm hơn spliterator của JDK dù cả hai trả kết quả đúng. Thiết kế thử nghiệm với ít nhất ba kích thước B và hai mức chi phí tính toán cho mỗi phần tử.
+Explain why the snapshot version over an `ArrayList` can be slower than the JDK's built-in spliterator even when both return correct results. Design an experiment with at least three values of B and two levels of per-element computational cost.
 
-## 16. Gợi ý và đáp án tham khảo
+## 16. Hints and Reference Solutions
 
-**Bài 1.** Lúc đầu còn 10 phần tử, `prefixSize = min(4,5) = 4`, nên tách `[1,2,3,4]`. Còn sáu phần tử `[5,6,7,8,9,10]`, tách thêm `min(4,3) = 3` là `[5,6,7]`. Đoạn cuối `[8,9,10]` có ba phần tử, không tách thêm vì `remaining = 3 <= 4`. Kích thước các lô là `[4,3,3]`; không trùng vị trí.
+**Exercise 1.** Initially 10 elements remain; `prefixSize = min(4,5) = 4`, splitting `[1,2,3,4]`. Six elements remain `[5,6,7,8,9,10]`; another split of `min(4,3) = 3` gives `[5,6,7]`. The final slice `[8,9,10]` has three elements and does not split further because `remaining = 3 <= 4`. Batch sizes are `[4,3,3]`; there is no positional overlap.
 
-**Bài 2.** Mã thiếu:
+**Exercise 2.** Missing code:
 
 ```java
 BatchSpliterator<T> prefix =
     new BatchSpliterator<>(data, index, cut, batchSize);
 
-index = cut; // Quan trọng: loại prefix khỏi phần còn lại.
+index = cut; // Crucial: remove the prefix from the remaining range.
 return prefix;
 ```
 
-Nếu không tăng `index` của instance hiện tại, phần gốc vẫn sở hữu cả đoạn đã tách, có thể phát lại những phần tử mà prefix đã xử lý.
+Without advancing `index` on the current instance, the original retains the split-off range and can emit elements already processed by the prefix.
 
-**Bài 3.** Không. Với iterator không biết số phần tử, `Long.MAX_VALUE` chỉ là ước lượng, không phải kích thước chính xác. Spliterator gốc không được khai `SIZED` / `SUBSIZED`. Một `ArrayList` con tạo từ B phần tử cụ thể có thể có những đặc tính kích thước riêng vì bản thân list con đã biết số phần tử.
+**Exercise 3.** No. For an unsized iterator, `Long.MAX_VALUE` is only an unknown estimate, not an exact size. The root spliterator must not declare `SIZED` / `SUBSIZED`. A sub-`ArrayList` built from a specific batch of B elements can have its own size characteristics because that sublist itself knows its element count.
 
-**Bài 4.** Các ca nên bao gồm `[]`, `[7]`, `[1..B]`, `[1..B+1]`, và danh sách như `[1,1,2,2,3]`. Sau khi tách hết, tiêu thụ các phần prefix theo đúng thứ tự trước phần còn lại; so sánh toàn bộ list kết quả với list nguồn. `Set.equals` chỉ so giá trị duy nhất, không xác nhận số lần xuất hiện và vị trí.
+**Exercise 4.** Cases should include `[]`, `[7]`, `[1..B]`, `[1..B+1]`, and a list such as `[1,1,2,2,3]`. After exhausting all splits, consume prefixes in order before the remainder; compare the resulting list with the source list. `Set.equals` compares only unique values and fails to verify multiplicities and positions.
 
-**Bài 5.**
+**Exercise 5.**
 
 ```java
 List<Integer> output = StreamSupport.stream(
@@ -966,58 +966,58 @@ List<Integer> output = StreamSupport.stream(
     .collect(Collectors.toList());
 ```
 
-`Collectors.toList()` thu theo encounter order của nguồn ordered. `forEach` trong parallel stream không giữ thứ tự thực thi; việc thêm đồng thời vào `ArrayList` ngoài pipeline còn không an toàn.
+`Collectors.toList()` collects in the ordered source's encounter order. `forEach` in a parallel stream does not preserve execution order, and concurrently adding to an external `ArrayList` is thread-unsafe.
 
-**Bài 6.** Tầng tạo `Files.lines` phải đóng stream, thường bằng `try-with-resources`. `IteratorBatchSpliterator.trySplit` có thể đọc trước một lô B dòng; runtime còn có thể tách thêm các lô trước khi `limit(10)` kết thúc. Vì vậy không được cam kết chỉ có 10 dòng được đọc từ tệp, ngay cả khi đầu ra có tối đa 10 dòng.
+**Exercise 6.** The layer creating `Files.lines` must close the stream, typically via `try-with-resources`. `IteratorBatchSpliterator.trySplit` can prefetch a batch of B lines, and the runtime may even split multiple batches before `limit(10)` terminates. Therefore, it cannot be guaranteed that only 10 lines are read from the file, even though at most 10 lines are output.
 
-**Bài 7.** Snapshot tạo bản sao toàn `List`, tốn O(N) bộ nhớ/thời gian; `trySplit` có thể tạo nhiều object và lô quá nhỏ phát sinh overhead. Có thể thử B = 64, 512, 4096 với hai phép tính: (a) phép nhân cộng rất nhẹ và (b) thuật toán CPU-bound độc lập tương đối nặng. So sánh với `source.stream()`, `source.parallelStream()` theo cùng dữ liệu và kết quả; dùng benchmark có warm-up, đo nhiều vòng và theo dõi cấp phát/GC.
+**Exercise 7.** Snapshotting copies the entire `List`, costing O(N) memory/time; `trySplit` allocates additional objects and overly small batches incur overhead. You can test B = 64, 512, 4096 with two workloads: (a) a trivial multiply-add and (b) a relatively heavy independent CPU-bound algorithm. Compare against `source.stream()` and `source.parallelStream()` on identical data and outputs; use a benchmark with warm-up, multiple iterations, and allocation/GC monitoring.
 
-## 17. Checklist triển khai trong dự án thực tế
+## 17. Production Deployment Checklist
 
-Trước khi đưa một spliterator tùy chỉnh vào hệ thống, kiểm tra:
+Before shipping a custom spliterator into production, verify:
 
-- [ ] Nguồn có **ordered** thực sự không? Nếu không, không tuyên bố `ORDERED`.
-- [ ] `trySplit` trả phần **không giao nhau** với phần hiện tại, không làm rơi phần tử.
-- [ ] Nếu có `ORDERED`, phần tách là tiền tố của phần còn lại.
-- [ ] `tryAdvance` chỉ phát đúng một phần tử, `forEachRemaining` phát hết phần chưa duyệt.
-- [ ] `estimateSize` giảm phù hợp sau khi tiêu thụ và tách; `SIZED` / `SUBSIZED` chỉ khai khi đúng.
-- [ ] Không khai `NONNULL` / `DISTINCT` / `SORTED` / `CONCURRENT` nếu không đáp ứng hợp đồng.
-- [ ] `batchSize > 0` được kiểm tra và kích thước cuối phù hợp chính sách lô.
-- [ ] Nguồn không bị sửa cấu trúc trong quá trình duyệt; nếu dùng snapshot, hiểu giới hạn **sao chép nông**.
-- [ ] Không tự gọi cùng spliterator từ nhiều thread; mỗi split có quyền sở hữu trạng thái duyệt riêng.
-- [ ] Lambda trong pipeline **stateless**, **non-interfering**.
-- [ ] `reduce` và collector dùng identity, accumulator, combiner hợp lệ.
-- [ ] Kiểm tra nguồn rỗng, một phần tử, B, B+1, dữ liệu trùng, và kết quả tuần tự/song song.
-- [ ] Nếu nguồn gắn với I/O, đã định rõ ai **đóng tài nguyên** và điều gì xảy ra khi short-circuit.
-- [ ] Đã đo tốc độ/bộ nhớ so với spliterator có sẵn của Java; không tối ưu theo suy đoán.
+- [ ] Is the source genuinely **ordered**? If not, do not declare `ORDERED`.
+- [ ] Does `trySplit` return a partition **disjoint** from the current one without dropping elements?
+- [ ] If `ORDERED` is set, is the split-off part a prefix of the remainder?
+- [ ] Does `tryAdvance` emit exactly one element and `forEachRemaining` emit all unconsumed elements?
+- [ ] Does `estimateSize` decrease properly after consumption and splitting, with `SIZED` / `SUBSIZED` declared only when accurate?
+- [ ] Are `NONNULL` / `DISTINCT` / `SORTED` / `CONCURRENT` omitted unless their contracts are fulfilled?
+- [ ] Is `batchSize > 0` validated and do final chunk sizes match batch policy?
+- [ ] Is the source free from structural modification during traversal; if snapshotting, are **shallow-copy** limits understood?
+- [ ] Is the same spliterator never accessed concurrently by multiple threads, with each split owning its traversal state?
+- [ ] Are pipeline lambdas **stateless** and **non-interfering**?
+- [ ] Do `reduce` and collectors use valid identity, accumulator, and combiner functions?
+- [ ] Have empty source, single element, B, B+1, duplicates, and sequential/parallel equivalence been tested?
+- [ ] If I/O-backed, is **resource closing** ownership clear and short-circuit behavior understood?
+- [ ] Have speed and memory been measured against Java's built-in spliterator rather than guessing optimizations?
 
-## 18. Tổng kết
+## 18. Summary
 
-Tư duy thiết kế một Spliterator chia theo lô có thể tóm tắt:
+The design mindset for a batch-splitting Spliterator can be summarized as:
 
 ```text
-Nguồn dữ liệu có thứ tự
+Ordered data source
           |
     BatchSpliterator
           |
         trySplit
       /     |     \
-    lô A   lô B   lô C    (vùng chỉ số không giao nhau)
+  batch A batch B batch C   (disjoint index ranges)
       \     |     /
   map / filter / process
           |
   reduce / collect
           |
-       Kết quả
+        Result
 ```
 
-Mấu chốt không nằm ở việc “chia được nhiều lô” mà ở **hợp đồng của nguồn và phép ghép kết quả**:
+The crux is not "splitting into many batches", but honoring **source contracts and result-combining rules**:
 
-- `trySplit` phải chia đúng, trả tiền tố nếu nguồn ordered và giữ các phần không chồng lấn.
-- `estimateSize` cùng `SIZED` / `SUBSIZED` phải chính xác khi được khai báo.
-- `StreamSupport.stream(spliterator, true)` cho phép runtime xử lý song song, **không hứa** số tác vụ hoặc tốc độ tăng.
-- `reduce` và `collect` phải có phép gộp hợp lệ; Spliterator đúng không cứu được các lambda có trạng thái dùng chung.
-- Nguồn Iterator/I/O đòi hỏi cân nhắc **đọc trước**, kích thước không biết trước và quyền sở hữu tài nguyên.
-- Đo hiệu năng sau khi đã xác minh đủ **độ phủ phần tử, thứ tự, dữ liệu biên và tính đúng**.
+- `trySplit` must split properly, return prefixes for ordered sources, and keep partitions non-overlapping.
+- `estimateSize` along with `SIZED` / `SUBSIZED` must be accurate whenever declared.
+- `StreamSupport.stream(spliterator, true)` enables parallel execution by the runtime without promising task count or speedup.
+- `reduce` and `collect` must use valid combining operations; a right Spliterator cannot rescue lambdas with shared mutable state.
+- Iterator/I/O sources demand accounting for **prefetching**, unknown sizes, and resource ownership.
+- Measure performance only after verifying **element coverage, order, boundary cases, and correctness**.
 
-Hoàn thành dự án này, bạn có thể tiếp cận các nguồn dữ liệu lớn bằng Java Stream API có hệ thống hơn: biết khi nào nên dùng spliterator có sẵn, khi nào cần viết bộ chia lô riêng và cách đánh giá an toàn, tài nguyên cũng như hiệu năng trước khi xử lý song song.
+By completing this project, you can approach large data sources with the Java Stream API more systematically: knowing when to rely on built-in spliterators, when to write a custom batch splitter, and how to evaluate safety, resources, and performance before running in parallel.

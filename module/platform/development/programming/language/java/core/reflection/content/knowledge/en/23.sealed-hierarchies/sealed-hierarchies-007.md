@@ -1,101 +1,101 @@
-# Giới hạn dùng danh sách permits để quyết định toàn bộ cách khởi tạo
+# Limits of Using the permits List to Decide All Object Creation
 
-## 1. Permits trả lời về quan hệ kiểu, không phải công thức tạo đối tượng
+## 1. Permits Answers Type Relationships, Not Object Creation Recipes
 
-Một kiểu sealed khai báo những lớp hoặc interface được phép làm kiểu con trực tiếp. Reflection có thể đọc các nhánh đó bằng:
+A sealed type declares which classes or interfaces are permitted as direct subtypes. Reflection can read those branches with:
 
 ~~~java
 Class<?>[] direct = root.getPermittedSubclasses();
 ~~~
 
-Thông tin này rất hữu ích khi vẽ sơ đồ phân cấp, khảo sát một mô hình miền dữ liệu hoặc kiểm tra quan hệ giữa các kiểu.
+This information is very useful when drawing hierarchy diagrams, exploring a domain model, or checking relationships between types.
 
-Nhưng từ danh sách đó chưa thể trả lời đầy đủ:
+However, that list alone cannot fully answer:
 
-- Cần chọn nhánh nào cho một dữ liệu đầu vào?
-- Nhánh đó có phải một lớp cụ thể có thể tạo instance không?
-- Cần constructor, factory, builder hay một đối tượng đã tồn tại?
-- Các đối số khởi tạo lấy từ đâu và phải qua kiểm tra gì?
-- Có đủ quyền truy cập và các phụ thuộc cần thiết không?
-- Một nhánh `non-sealed` còn có những cách triển khai nào ngoài danh sách trực tiếp?
+- Which branch should be chosen for a given input?
+- Is that branch a concrete class that can be instantiated?
+- Is a constructor, factory, builder, or an existing object needed?
+- Where do initialization arguments come from and what validation must they pass?
+- Are the necessary access rights and dependencies available?
+- What implementations exist on a `non-sealed` branch beyond the direct list?
 
-**Được phép làm kiểu con** không đồng nghĩa với **được chọn cho dữ liệu này**, và cũng không đồng nghĩa với **có thể gọi constructor không tham số để tạo ngay**.
+**Being permitted as a subtype** is not the same as **being selected for this data**, nor is it the same as **being able to call a no-arg constructor to create one immediately**.
 
-Cách thiết kế rõ ràng là tách ba việc:
-
-~~~text
-Khảo sát phân cấp
-    -> hiểu các quan hệ kiểu
-
-Chọn biến thể
-    -> xác định kiểu hoặc ý nghĩa cần có từ dữ liệu/ngữ cảnh
-
-Tạo hoặc lấy đối tượng
-    -> thực thi chiến lược phù hợp với biến thể đã chọn
-~~~
-
-Không gộp cả ba việc vào một vòng lặp trên mảng permitted.
-
-## 2. Chính xác thì API cung cấp những gì?
-
-`Class.getPermittedSubclasses()` trả về các lớp hoặc interface con **trực tiếp** được một kiểu sealed cho phép mà API thu được.
-
-Những thuộc tính quan trọng của kết quả:
-
-- Chỉ là các đối tượng `Class<?>`, không phải các instance.
-- Có thể chứa interface hoặc lớp trừu tượng.
-- Không tự mở rộng thành toàn bộ hậu duệ gián tiếp.
-- Không cam kết thứ tự phần tử.
-- Với kiểu không sealed, kết quả là `null`.
-- Nếu một kiểu ghi trong metadata không lấy được đối tượng `Class` phù hợp, nó có thể bị bỏ qua theo hợp đồng API.
-
-Tài liệu [Class.getPermittedSubclasses](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getPermittedSubclasses()) mô tả phạm vi này.
-
-Vì vậy, danh sách permitted không phải:
+A clean design separates three concerns:
 
 ~~~text
-Danh sách mọi lớp cụ thể có thể tạo
-    +
-Constructor nên dùng
-    +
-Dữ liệu đối số
-    +
-Thứ tự ưu tiên chọn nhánh
+Inspect hierarchy
+    -> understand type relationships
+
+Select variant
+    -> determine the type or meaning required from data/context
+
+Create or obtain object
+    -> execute the strategy suited to the selected variant
 ~~~
 
-Một kiểu sealed có thể có nhiều kiểu con hợp lệ về mặt ngôn ngữ nhưng ứng dụng chỉ công bố một số biến thể trong giao thức của nó. Phân cấp Java và danh mục biến thể ứng dụng có quan hệ, nhưng không tự là một danh sách duy nhất.
+Do not collapse all three concerns into a single loop over the permitted array.
 
-## 3. Những điều không suy ra được chỉ từ một Class trong permits
+## 2. What Exactly Does the API Provide?
 
-| Kiểu nhánh hoặc thiết kế | Vì sao danh sách permits chưa đủ? |
+`Class.getPermittedSubclasses()` returns the **direct** subclasses or subinterfaces permitted by a sealed type that the API obtains.
+
+Important properties of the result:
+
+- Only `Class<?>` objects, not instances.
+- May include interfaces or abstract classes.
+- Does not automatically expand into all indirect descendants.
+- Makes no guarantee about element order.
+- For unsealed types, the result is `null`.
+- If a type recorded in metadata cannot have a suitable `Class` object obtained, it may be omitted per the API contract.
+
+The [`Class.getPermittedSubclasses`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getPermittedSubclasses()) documentation describes this scope.
+
+Therefore, the permitted list is not:
+
+~~~text
+List of every concrete instantiable class
+    +
+Constructor to use
+    +
+Argument data
+    +
+Branch selection priority order
+~~~
+
+A sealed type may have multiple language-valid subtypes while the application only exposes certain variants in its protocol. The Java hierarchy and the application's variant catalog are related, yet are not automatically one and the same list.
+
+## 3. Things That Cannot Be Inferred Solely from a Class in permits
+
+| Branch kind or design | Why is the permits list not enough? |
 | --- | --- |
-| Interface | Không thể tạo instance trực tiếp bằng constructor |
-| Lớp trừu tượng | Có thể có constructor nhưng không tạo trực tiếp instance của chính lớp đó |
-| Lớp final | Chỉ cấm tạo lớp con; không bảo đảm có constructor không tham số |
-| Record | Cần constructor phù hợp với các thành phần, thường kèm kiểm tra dữ liệu |
-| Lớp dùng factory | API tạo có thể là một phương thức tĩnh; constructor riêng tư không phải hợp đồng dành cho người gọi |
-| Enum | Cần chọn một hằng hiện có; `Constructor.newInstance()` không cho tạo thêm instance enum |
-| Nhánh non-sealed | Tập triển khai tiếp theo mở rộng; permitted của chính nhánh đó không liệt kê toàn bộ hậu duệ |
-| Lớp thành viên không static | Khi gọi constructor bằng Reflection có thể cần đối tượng bao quanh |
-| Kiểu cần phụ thuộc bên ngoài | Metadata không tự cung cấp cấu hình, dịch vụ, tài nguyên hoặc ngữ cảnh cần thiết |
+| Interface | Cannot instantiate directly via a constructor |
+| Abstract class | May have constructors, yet cannot directly instantiate that class itself |
+| `final` class | Only forbids subclassing; does not guarantee a no-arg constructor |
+| Record | Needs a constructor matching its components, often with data validation |
+| Factory-backed class | Creation API may be a static method; a private constructor is not a contract for callers |
+| Enum | Must select an existing constant; `Constructor.newInstance()` does not allow creating additional enum instances |
+| `non-sealed` branch | Further implementations remain open; that branch's own permitted list does not enumerate all descendants |
+| Non-static member class | Calling a constructor via Reflection may require an enclosing instance |
+| Type needing external dependencies | Metadata does not automatically provide needed configuration, services, resources, or context |
 
-Ngay cả khi một lớp cụ thể có một constructor gọi được, việc chọn constructor đó còn phải theo ý nghĩa mô hình. Một constructor “không ném lỗi ở lần thử này” không tự là constructor đúng cho ánh xạ dữ liệu.
+Even when a concrete class has an invocable constructor, choosing that constructor still depends on model semantics. A constructor that "does not throw on this attempt" is not automatically the right constructor for data mapping.
 
-Hợp đồng [Constructor.newInstance](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)) phân biệt các điều kiện như lớp trừu tượng, enum, quyền truy cập, kiểu đối số và ngoại lệ trong thân constructor.
+The [`Constructor.newInstance`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)) contract distinguishes conditions such as abstract classes, enums, accessibility, argument types, and exceptions inside constructor bodies.
 
-## 4. Chương trình đầy đủ: cùng một phân cấp, nhiều cách tạo
+## 4. Complete Program: One Hierarchy, Multiple Creation Mechanisms
 
-Ví dụ dưới đây có năm nhánh trực tiếp của `Message`:
+The example below has five direct branches of `Message`:
 
-- `Ping`: record có một thành phần.
-- `Data`: lớp có constructor riêng tư và factory tĩnh.
-- `Failure`: lớp trừu tượng sealed, dù có constructor công khai không tham số.
-- `Provider`: interface non-sealed.
-- `Mode`: enum có các hằng sẵn có.
+- `Ping`: a single-component record.
+- `Data`: a class with a private constructor and static factory.
+- `Failure`: an abstract sealed class, despite having a public no-arg constructor.
+- `Provider`: a `non-sealed` interface.
+- `Mode`: an enum with pre-existing constants.
 
-Hai kiểu `NotFound` và `PluginMessage` là hậu duệ gián tiếp của `Message`.
+The two types `NotFound` and `PluginMessage` are indirect descendants of `Message`.
 
-Lưu mã vào `PermitsAndCreationDemo.java`:
+Save the code to `PermitsAndCreationDemo.java`:
 
 ~~~java
 import java.lang.reflect.Modifier;
@@ -301,14 +301,14 @@ public class PermitsAndCreationDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 PermitsAndCreationDemo.java
 java PermitsAndCreationDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 Data -> class; publicNoArg=false
@@ -331,35 +331,35 @@ unknown: Unknown kind: other
 missing input: Missing field: trace
 ~~~
 
-Khi in thông tin nhánh trực tiếp, chương trình chủ động sắp xếp tên. Nó không dùng thứ tự mảng permitted làm thứ tự ưu tiên tạo đối tượng.
+When printing direct-branch info, the program explicitly sorts names. It does not use the permitted array order as an object-creation priority order.
 
-## 5. Đọc các giới hạn qua thí nghiệm
+## 5. Reading the Limits Through the Experiment
 
-### 5.1. Có constructor công khai không tham số vẫn chưa đủ
+### 5.1. Having a public no-arg constructor is still not enough
 
-Dòng:
+The line:
 
 ~~~text
 Failure -> abstract class; publicNoArg=true
 ~~~
 
-cho biết `Failure` có một constructor công khai không tham số.
+shows that `Failure` has a public no-arg constructor.
 
-Tuy nhiên:
+However:
 
 ~~~java
 Failure.class.getConstructor().newInstance();
 ~~~
 
-ném `InstantiationException`, vì `Failure` là lớp trừu tượng. Constructor tồn tại để phục vụ việc khởi tạo phần lớp cha trong các đối tượng lớp con; nó không làm bản thân lớp trừu tượng trở thành lớp cụ thể.
+throws `InstantiationException`, because `Failure` is an abstract class. The constructor exists to initialize the superclass portion in subclass objects; it does not make the abstract class itself concrete.
 
-Vì thế, kiểm tra “có constructor không tham số” không thể thay thế kiểm tra bản chất của kiểu và lựa chọn một lớp cụ thể.
+Therefore, checking "has a no-arg constructor" cannot replace checking the nature of the type and choosing a concrete class.
 
-### 5.2. Record cần dữ liệu thành phần
+### 5.2. Records need component data
 
-`Ping` không có constructor không tham số trong ví dụ. Nó cần `trace`.
+`Ping` has no no-arg constructor in the example. It needs `trace`.
 
-Compact constructor còn chuẩn hóa và kiểm tra giá trị:
+The compact constructor also normalizes and validates the value:
 
 ~~~java
 public Ping {
@@ -370,204 +370,204 @@ public Ping {
 }
 ~~~
 
-Đây là phần trích từ chương trình đầy đủ.
+This is an excerpt from the full program.
 
-Permitted cho biết `Ping` là một nhánh trực tiếp hợp lệ. Nó không tự cho biết chuỗi `trace` trong yêu cầu lấy từ đâu hoặc chính sách khi chuỗi bị thiếu.
+Permitted metadata indicates `Ping` is a valid direct branch. It does not specify where the `trace` string in a request comes from or the policy when the string is missing.
 
-Nếu công cụ tạo record qua Reflection, nó cần xác định canonical constructor từ các thành phần, chuẩn bị đúng thứ tự và chuyển đổi đối số, rồi giữ logic kiểm tra của constructor. Quy tắc constructor record được mô tả tại [JLS §8.10.4](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4).
+If a tool instantiates a record via Reflection, it must determine the canonical constructor from the components, prepare the right argument order and conversions, and preserve the constructor's validation logic. Record constructor rules are described in [JLS §8.10.4](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4).
 
-### 5.3. Lớp có thể công bố factory thay vì constructor
+### 5.3. A class can expose a factory instead of a constructor
 
-`Data` có constructor riêng tư và factory `Data.of(...)`. Factory chuẩn hóa payload bằng `strip()` và từ chối payload rỗng.
+`Data` has a private constructor and the factory `Data.of(...)`. The factory normalizes the payload with `strip()` and rejects empty payloads.
 
-Danh sách permitted không đánh dấu rằng `of` là phương thức tạo cần dùng. Cũng không xác định được một factory chỉ bằng cách tìm phương thức tĩnh đầu tiên trả về kiểu phù hợp: một lớp có thể có nhiều phương thức tĩnh với vai trò khác nhau.
+The permitted list does not mark `of` as the creation method to use. Nor can a factory be identified merely by finding the first static method returning a matching type: a class can have multiple static methods with different roles.
 
-Trong ví dụ, chiến lược `data` đăng ký tường minh việc gọi `Data.of(...)`. Kết quả:
+In the example, the `data` strategy explicitly registers calling `Data.of(...)`. The result:
 
 ~~~text
 factory data: data:hello
 ~~~
 
-cho thấy chuỗi `" hello "` đã được xử lý qua factory.
+shows that the string `" hello "` was processed through the factory.
 
-Việc có thể tìm thấy một constructor riêng tư bằng Reflection không tự làm constructor đó thành hợp đồng khởi tạo mà công cụ nên chọn. Quyền truy cập và ý nghĩa API của mô hình cần được xem riêng.
+Being able to find a private constructor via Reflection does not make that constructor the initialization contract a tool should pick. Accessibility and model API semantics must be considered separately.
 
-### 5.4. Enum cần chọn hằng, không tạo một hằng mới
+### 5.4. Enums require selecting a constant, not creating a new one
 
-`Mode` là một kiểu con trực tiếp của `Message`, nhưng không phải một lớp để tạo instance mới theo cách thông thường.
+`Mode` is a direct subtype of `Message`, yet not a class for creating new instances in the usual way.
 
-Factory `mode` dùng:
+The `mode` factory uses:
 
 ~~~java
 Enum.valueOf(Mode.class, required(fields, "name"))
 ~~~
 
-để chọn hằng có tên khai báo tương ứng. Dòng kiểm tra:
+to select the constant with the matching declared name. The check line:
 
 ~~~text
 mode uses existing constant: true
 ~~~
 
-xác nhận kết quả là chính `Mode.ON`, không phải một đối tượng enum mới.
+confirms the result is `Mode.ON` itself, not a new enum object.
 
-Tài liệu [Enum.valueOf](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html#valueOf(java.lang.Class,java.lang.String)) quy định việc tra cứu hằng hiện có theo tên. Nếu không có hằng mang tên đó, đây là lỗi tra cứu; không nên dùng constructor Reflection làm nhánh “tạo bù”.
+The [`Enum.valueOf`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html#valueOf(java.lang.Class,java.lang.String)) documentation specifies looking up an existing constant by name. If no constant has that name, it is a lookup error; you should not use a Reflection constructor as a "fallback creation" branch.
 
-### 5.5. Nhánh gián tiếp vẫn thuộc họ kiểu
+### 5.5. Indirect branches still belong to the type family
 
-`Message` cho phép trực tiếp `Provider`; `Provider` là non-sealed. `PluginMessage` triển khai `Provider`, nên là một `Message` hợp lệ.
+`Message` directly permits `Provider`; `Provider` is `non-sealed`. `PluginMessage` implements `Provider`, so it is a valid `Message`.
 
-Kết quả:
+The results:
 
 ~~~text
 PluginMessage is a Message: true
 PluginMessage directly permitted: false
 ~~~
 
-không mâu thuẫn. Hai phép kiểm tra hỏi hai quan hệ khác nhau:
+do not contradict each other. The two checks ask about two different relationships:
 
-- `Message.class.isAssignableFrom(PluginMessage.class)` xét khả năng dùng một đối tượng kiểu đó như `Message`.
-- Kiểm tra thành viên trong permitted của `Message` chỉ xét các nhánh trực tiếp được liệt kê.
+- `Message.class.isAssignableFrom(PluginMessage.class)` checks whether an object of that type can be used as a `Message`.
+- Checking membership in `Message`'s permitted list checks only the listed direct branches.
 
-Nếu một công cụ yêu cầu mọi kiểu tạo được phải nằm **trực tiếp** trong permitted của gốc, nó sẽ từ chối nhầm những hậu duệ gián tiếp như `NotFound` hoặc `PluginMessage`.
+If a tool requires every instantiable type to appear **directly** in the root's permitted list, it will wrongly reject indirect descendants like `NotFound` or `PluginMessage`.
 
-Ngược lại, chỉ có quan hệ assignable cũng chưa có nghĩa ứng dụng muốn công bố mọi hậu duệ đó cho người dùng. Chính sách đăng ký biến thể vẫn cần tồn tại.
+Conversely, merely having an assignable relationship does not mean the application wants to expose all such descendants to users. A variant registration policy must still exist.
 
-## 6. Vì sao không chọn nhánh bằng thứ tự hoặc hình dạng dữ liệu?
+## 6. Why Not Choose a Branch by Order or Data Shape?
 
-Một cách làm dễ sai là duyệt permitted rồi thử tạo lần lượt:
+An error-prone approach is iterating over the permitted list and trying to instantiate each in turn:
 
 ~~~java
-// Minh họa thuật toán không đủ điều kiện, không phải factory hoàn chỉnh.
+// Illustrates an inadequate algorithm, not a complete factory.
 for (Class<?> candidate : Message.class.getPermittedSubclasses()) {
     Object value = candidate.getDeclaredConstructor().newInstance();
 }
 ~~~
 
-Các vấn đề không chỉ là cần thêm một khối `try/catch`:
+The issues go beyond needing a `try/catch` block:
 
-- Mảng permitted không có thứ tự ưu tiên được API cam kết.
-- Interface và lớp trừu tượng không phải đích tạo trực tiếp.
-- Một số lớp không có constructor không tham số.
-- Enum không được tạo theo cách đó.
-- Lớp dùng factory có quy tắc khởi tạo riêng.
-- Thử chạy nhiều constructor có thể gây tác động phụ trước khi có kết quả cuối cùng.
+- The permitted array has no API-guaranteed priority order.
+- Interfaces and abstract classes are not direct instantiation targets.
+- Some classes lack a no-arg constructor.
+- Enums are not created that way.
+- Factory-backed classes have their own initialization rules.
+- Speculatively running multiple constructors can cause side effects before reaching a final result.
 
-Ngay cả khi dựa vào tên trường để đoán, dữ liệu vẫn có thể mơ hồ. Trong chương trình, cả biến thể `data` và `plugin` đều nhận khóa `payload`, nhưng có ý nghĩa và cách tạo khác nhau.
+Even relying on field names to guess can leave the data ambiguous. In the program, both the `data` and `plugin` variants accept a `payload` key, yet have different meanings and creation mechanisms.
 
-Không có đủ thông tin để quyết định chỉ từ:
+There is not enough information to decide solely from:
 
 ~~~text
 {payload: "..."}
 ~~~
 
-Nếu chọn `Data` chỉ vì tên lớp được sắp trước `PluginMessage`, kết quả là một quy tắc tình cờ, không phải ý nghĩa mà dữ liệu yêu cầu.
+If `Data` is chosen merely because its class name sorts before `PluginMessage`, the result is an accidental rule, not the meaning required by the data.
 
-Một giao thức có thể dùng **nhãn phân biệt biến thể (discriminator)**, chẳng hạn `kind = "data"` hoặc `kind = "plugin"`. Một hệ thống khác có thể chọn bằng ngữ cảnh hoặc cấu hình tường minh. Dù chọn cách nào, đó là một phần hợp đồng ứng dụng, không được suy ra đầy đủ từ `permits`.
+A protocol can use a **variant discriminator**, such as `kind = "data"` or `kind = "plugin"`. Another system might choose by context or explicit configuration. Whichever approach is chosen, it is part of the application contract and cannot be fully inferred from `permits`.
 
-## 7. Danh mục factory tường minh giải quyết phần còn thiếu
+## 7. An Explicit Factory Catalog Supplies the Missing Part
 
-`FACTORIES` trong chương trình ánh xạ:
+`FACTORIES` in the program maps:
 
 ~~~text
-nhãn biến thể -> chiến lược đọc đầu vào và trả về Message
+variant label -> strategy to read input and return Message
 ~~~
 
-| Nhãn | Chiến lược |
+| Label | Strategy |
 | --- | --- |
-| `ping` | Đọc `trace`, gọi constructor record |
-| `data` | Đọc `payload`, gọi factory tĩnh |
-| `missing` | Đọc `resource`, tạo lớp cụ thể dưới nhánh trừu tượng |
-| `plugin` | Đọc `payload`, tạo triển khai dưới nhánh non-sealed |
-| `mode` | Đọc `name`, trả về hằng enum có sẵn |
+| `ping` | Read `trace`, invoke record constructor |
+| `data` | Read `payload`, invoke static factory |
+| `missing` | Read `resource`, construct concrete class under abstract branch |
+| `plugin` | Read `payload`, construct implementation under `non-sealed` branch |
+| `mode` | Read `name`, return existing enum constant |
 
-Mỗi hàm được khai báo trả về `Message`, nên việc lắp ghép trong ví dụ đã được compiler kiểm tra về họ kiểu.
+Each function is declared to return `Message`, so the wiring in the example is already checked by the compiler for type-family compatibility.
 
-Lợi ích của cách tách này:
+Benefits of this separation:
 
-1. Nhãn có ý nghĩa đối với giao thức, không phụ thuộc tên nhị phân lớp Java.
-2. Một biến thể có một chiến lược rõ ràng.
-3. Dữ liệu thiếu được báo tại factory liên quan.
-4. Biến thể không đăng ký bị từ chối rõ ràng.
-5. Các hậu duệ gián tiếp có thể được hỗ trợ khi ứng dụng chủ động đăng ký.
-6. Một chiến lược có thể tạo mới, gọi factory hoặc trả về đối tượng đã có.
+1. Labels have protocol meaning, independent of Java binary class names.
+2. Each variant has one clear strategy.
+3. Missing data is reported at the relevant factory.
+4. Unregistered variants are rejected explicitly.
+5. Indirect descendants can be supported when the application actively registers them.
+6. A strategy can construct anew, call a factory, or return an existing object.
 
-Ví dụ không lấy một tên lớp tùy ý từ đầu vào rồi tự gọi `Class.forName` và thử mọi constructor. Danh mục trong mã xác định những biến thể mà ứng dụng hỗ trợ.
+The example does not take an arbitrary class name from input, call `Class.forName`, and try every constructor. The catalog in code defines which variants the application supports.
 
-Ở công cụ có cơ chế đăng ký động, cần kiểm tra quan hệ kiểu khi đăng ký, chẳng hạn bằng `root.isAssignableFrom(candidate)` hoặc `candidate.asSubclass(root)`. Sau đó vẫn cần một chiến lược tạo cụ thể; quan hệ kiểu không thay thế chiến lược đó.
+In tools with dynamic registration, check the type relationship at registration time, for example with `root.isAssignableFrom(candidate)` or `candidate.asSubclass(root)`. A concrete creation strategy is still needed afterward; the type relationship does not replace that strategy.
 
-## 8. Permits vẫn có vai trò hữu ích
+## 8. Permits Still Has a Useful Role
 
-Không nên bỏ metadata sealed chỉ vì nó không giải quyết toàn bộ khởi tạo. Nó có thể hỗ trợ:
+Sealed metadata should not be discarded just because it does not solve all of object creation. It can assist with:
 
-- Tạo tài liệu về các nhánh trực tiếp.
-- Phát hiện một kiểu được đăng ký có quan hệ phân cấp ngoài dự kiến.
-- Tổ chức các nhóm biến thể trong giao diện chọn.
-- Kiểm tra độ bao phủ của một danh mục theo một chính sách đã được xác định.
-- Phát hiện rằng một nhánh là sealed tiếp, final hoặc đã mở bằng non-sealed.
+- Generating documentation for direct branches.
+- Detecting a registered type with an unexpected hierarchy relationship.
+- Organizing variant groups in selection interfaces.
+- Checking coverage of a catalog against a defined policy.
+- Detecting whether a branch is further `sealed`, `final`, or opened via `non-sealed`.
 
-Tuy nhiên, khi nói “đã hỗ trợ đủ mọi biến thể”, phải xác định rõ phạm vi:
+However, when stating "all variants are supported", the scope must be defined clearly:
 
-- Chỉ các nhánh trực tiếp hay các lớp cụ thể ở sâu hơn?
-- Có tính một lớp trừu tượng là một biến thể tạo được không?
-- Có đi tiếp vào nhánh sealed con không?
-- Với nhánh non-sealed, danh mục là cố định theo cấu hình hay cho phép đăng ký thêm?
-- Enum được tính theo kiểu enum hay theo các hằng của nó?
-- Một lớp có nhiều factory hoặc nhiều chế độ cấu hình được tính thế nào?
+- Direct branches only or deeper concrete classes?
+- Is an abstract class counted as an instantiable variant?
+- Should nested sealed branches be traversed further?
+- For a `non-sealed` branch, is the catalog fixed by configuration or open to additional registrations?
+- Is an enum counted as its enum type or by its constants?
+- How is a class with multiple factories or configuration modes counted?
 
-Ngay cả khi mọi nhánh đều đóng và có thể duyệt hết một phân cấp hữu hạn, danh sách lớp vẫn không chứa đầy đủ dữ liệu đối số hoặc hợp đồng chọn factory.
+Even when every branch is closed and a finite hierarchy can be traversed completely, the class list still does not contain full argument data or factory-selection contracts.
 
-Trong môi trường đóng gói hoặc class loader không cung cấp đủ các kiểu ghi trong metadata, cũng không nên xem một mảng Reflection ngắn hơn là bằng chứng rằng các nhánh còn lại không tồn tại trong bản thiết kế. Phải tách kết quả quan sát lúc chạy với hợp đồng phân cấp và cấu hình mà ứng dụng kỳ vọng.
+In packaging or class-loader environments that do not supply every type recorded in metadata, a shorter Reflection array should also not be treated as proof that the remaining branches do not exist in the design. Runtime observations must be separated from the hierarchy contract and configuration expected by the application.
 
-## 9. Thiết kế quy trình tạo đối tượng theo từng trách nhiệm
+## 9. Designing an Object Creation Pipeline by Responsibility
 
-Một quy trình cho công cụ ánh xạ hoặc đọc dữ liệu đa hình có thể là:
+A pipeline for a polymorphic data mapper or reader might look like:
 
 ~~~text
-1. Nhận kiểu gốc và dữ liệu
-2. Đọc nhãn biến thể hoặc ngữ cảnh lựa chọn
-3. Tìm chiến lược đã đăng ký
-4. Kiểm tra schema và chuyển đổi dữ liệu
-5. Chuẩn bị phụ thuộc hoặc đối số
-6. Gọi constructor/factory hoặc lấy đối tượng hiện có
-7. Kiểm tra kết quả và trả về theo kiểu gốc
+1. Receive root type and data
+2. Read variant label or selection context
+3. Look up registered strategy
+4. Validate schema and convert data
+5. Prepare dependencies or arguments
+6. Invoke constructor/factory or retrieve existing object
+7. Validate result and return as root type
 ~~~
 
-Metadata sealed có thể được dùng khi lập kế hoạch hoặc kiểm tra quan hệ ở các bước trên. Nó không tự thực hiện những bước còn thiếu.
+Sealed metadata can be used when planning or checking relationships in the steps above. It does not perform the remaining steps on its own.
 
-Trong ví dụ, `required(...)` kiểm tra các trường bắt buộc mà từng factory đọc. Những chính sách như từ chối trường dư, xử lý giá trị `null`, chuyển chuỗi thành số hoặc xác minh cấu trúc lồng nhau cần được bổ sung vào hợp đồng schema khi ứng dụng cần chúng.
+In the example, `required(...)` checks the required fields read by each factory. Policies such as rejecting extra fields, handling `null` values, converting strings to numbers, or validating nested structures should be added to the schema contract when the application needs them.
 
-Nếu lời gọi được thực hiện qua Reflection:
+If invocation is performed via Reflection:
 
-- Lấy đúng chữ ký constructor hoặc phương thức factory.
-- Xem đúng quy tắc truy cập của lớp, package và module.
-- Không coi `setAccessible(true)` là cách thay thế toàn bộ thiết kế tạo đối tượng.
-- Giữ nguyên nhân khi constructor hoặc factory ném lỗi, thay vì thử nhánh khác một cách âm thầm.
-- Không công bố đối tượng hợp lệ giả tạo khi dữ liệu chưa đáp ứng điều kiện của mô hình.
+- Obtain the exact constructor or factory method signature.
+- Respect class, package, and module access rules.
+- Do not treat `setAccessible(true)` as a substitute for the entire object-creation design.
+- Preserve the cause when a constructor or factory throws an error, instead of silently trying another branch.
+- Do not expose a bogus valid object when data has not met the model's conditions.
 
-Lỗi thiếu dữ liệu và lỗi chọn biến thể nên được phát hiện trước khi chạy mã khởi tạo. Lỗi do mã khởi tạo thực thi vẫn có thể xảy ra; metadata không chứng minh rằng một constructor hoặc factory sẽ luôn thành công.
+Missing-data errors and variant-selection errors should be caught before running initialization code. Errors from executing initialization code can still happen; metadata does not prove that a constructor or factory will always succeed.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. Một lớp có mặt trong permitted và có constructor công khai không tham số. Điều đó đủ để khẳng định tạo instance thành công chưa?
-2. Vì sao `Failure` trong chương trình có `publicNoArg=true` nhưng `newInstance()` thất bại?
-3. Vì sao `Ping` không có constructor không tham số vẫn là một biến thể hợp lệ?
-4. Nếu `Data` công bố `Data.of(...)`, permitted có tự chỉ ra phương thức đó không?
-5. `PluginMessage` không nằm trực tiếp trong permitted của `Message`. Vì sao nó vẫn là một `Message`?
-6. Với enum `Mode`, chiến lược `mode` tạo một đối tượng mới hay chọn hằng hiện có?
-7. Nếu hai biến thể cùng nhận khóa `payload`, có thể chọn đúng chỉ bằng cách sắp xếp tên lớp không?
-8. Nếu mọi nhánh của phân cấp đều đóng, có thể bỏ hoàn toàn schema đối số và chính sách factory không?
-9. Vì sao không nên bắt mọi lỗi khởi tạo rồi tự thử nhánh tiếp theo?
-10. Kiểm tra assignable có tự có nghĩa là ứng dụng phải cho phép công bố kiểu đó qua giao thức không?
+1. A class appears in `permitted` and has a public no-arg constructor. Is that enough to assert instantiation will succeed?
+2. Why does `Failure` in the program have `publicNoArg=true` yet `newInstance()` fails?
+3. Why is `Ping`, which has no no-arg constructor, still a valid variant?
+4. If `Data` exposes `Data.of(...)`, does `permitted` automatically point to that method?
+5. `PluginMessage` is not directly in `Message`'s `permitted` list. Why is it still a `Message`?
+6. For enum `Mode`, does the `mode` strategy create a new object or select an existing constant?
+7. If two variants both accept a `payload` key, can the right one be selected simply by sorting class names?
+8. If all branches of the hierarchy are closed, can the argument schema and factory policy be omitted completely?
+9. Why should you not catch all instantiation errors and automatically try the next branch?
+10. Does passing an assignable check automatically mean the application must allow exposing that type over its protocol?
 
-Đáp án:
+Answers:
 
-1. Chưa. Còn bản chất kiểu, quyền truy cập, điều kiện khởi tạo và hành vi constructor.
-2. Nó là lớp trừu tượng; constructor tồn tại không cho phép tạo trực tiếp instance của chính lớp đó.
-3. Nó được khai báo là nhánh hợp lệ; việc tạo cần đối số `trace` cho constructor record.
-4. Không. Factory cần được xác định bằng cấu hình, đăng ký hoặc hợp đồng rõ ràng.
-5. Nó triển khai `Provider`, là một nhánh non-sealed trực tiếp của `Message`.
-6. Chọn hằng hiện có; chương trình xác nhận kết quả là chính `Mode.ON`.
-7. Không. Cần nhãn phân biệt hoặc một quy tắc chọn có ý nghĩa.
-8. Không. Đóng phân cấp không cung cấp đầy đủ dữ liệu hay ý nghĩa khởi tạo.
-9. Có thể chọn sai biến thể, che mất lỗi dữ liệu và gây tác động phụ từ các lần thử trước.
-10. Không. Quan hệ kiểu và danh mục biến thể được ứng dụng hỗ trợ là hai quyết định khác nhau.
+1. Not yet. Type nature, accessibility, initialization conditions, and constructor behavior also matter.
+2. It is an abstract class; having a constructor does not allow directly instantiating that class itself.
+3. It is declared as a valid branch; instantiation needs the `trace` argument for the record constructor.
+4. No. A factory must be identified via configuration, registration, or an explicit contract.
+5. It implements `Provider`, which is a direct `non-sealed` branch of `Message`.
+6. Selects an existing constant; the program confirms the result is `Mode.ON` itself.
+7. No. A discriminator label or a meaningful selection rule is needed.
+8. No. Closing a hierarchy does not supply full input data or creation semantics.
+9. It can pick the wrong variant, hide data errors, and cause side effects from earlier attempts.
+10. No. Type relationships and the catalog of application-supported variants are two separate decisions.

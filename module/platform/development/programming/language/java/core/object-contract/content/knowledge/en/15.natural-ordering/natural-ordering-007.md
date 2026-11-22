@@ -1,85 +1,85 @@
-# So sánh với `null` và kiểu không tương thích trong thứ tự tự nhiên
+# Comparing with `null` and Incompatible Types in Natural Ordering
 
-Khi một lớp Java cài đặt `Comparable<T>`, phương thức `compareTo(T other)` định nghĩa **thứ tự tự nhiên (natural ordering)** giữa các đối tượng cùng miền so sánh. Kết quả không đơn giản là `true`/`false`: số âm nghĩa là đứng trước, `0` nghĩa là tương đương theo thứ tự, số dương nghĩa là đứng sau.
+When a Java class implements `Comparable<T>`, the `compareTo(T other)` method defines the **natural ordering** among objects within the same comparison domain. The result is not simply `true`/`false`: negative means comes before, `0` means equivalent in ordering, positive means comes after.
 
-Hai trường hợp biên cần có chính sách rõ ràng là **đối số `null`** và **đối tượng không thuộc kiểu có thể so sánh**. Theo hợp đồng của `Comparable`, lời gọi `x.compareTo(null)` trên một `x` khác `null` phải ném `NullPointerException`; nếu đối tượng không thể so sánh với `x` theo kiểu được hỗ trợ, phép so sánh có thể ném `ClassCastException`. Đây là hành vi khác với `equals(null)`, vốn phải trả về `false`.
+Two boundary cases requiring clear policies are a **`null` argument** and an **object not belonging to a comparable type**. Under the `Comparable` contract, calling `x.compareTo(null)` on a non-`null` `x` must throw `NullPointerException`; if the object cannot be compared with `x` by supported types, the comparison may throw `ClassCastException`. This behavior differs from `equals(null)`, which must return `false`.
 
-Mục tiêu: biết **khi nào phép so sánh nên ném ngoại lệ**, cách generic giúp phát hiện lỗi kiểu sớm, và cách dùng `Comparator` nếu **thực sự cần** sắp xếp cả giá trị `null`.
+Goal: know **when a comparison should throw an exception**, how generics help catch type errors early, and how to use `Comparator` if you **genuinely need** to sort `null` values as well.
 
-## 1. `compareTo` biểu diễn thứ tự, không phải phép kiểm tra kiểu tùy ý
+## 1. `compareTo` expresses ordering, not an arbitrary type check
 
-Một dạng khai báo phổ biến:
+A common declaration form:
 
 ```java
 public final class Lesson implements Comparable<Lesson> {
     @Override
     public int compareTo(Lesson other) {
-        // So sánh các thuộc tính quyết định thứ tự.
-        throw new UnsupportedOperationException("Phần thân chỉ minh họa");
+        // Compare attributes that determine ordering.
+        throw new UnsupportedOperationException("Body is for illustration only");
     }
 }
 ```
 
-Đây chỉ là **khung minh họa API**, không phải cài đặt hoàn chỉnh: phần thân phải được thay bằng quy tắc so sánh thật. Khi đã dùng `Comparable<Lesson>`, một biến kiểu `Lesson` chỉ được gọi `compareTo` với đối số kiểu `Lesson` (hoặc subtype phù hợp) hay `null` ở mức kiểm tra kiểu tĩnh.
+This is only an **API illustration skeleton**, not a complete implementation: the body must be replaced by real comparison rules. Once `Comparable<Lesson>` is used, a variable of type `Lesson` can only invoke `compareTo` with an argument of type `Lesson` (or a compatible subtype) or `null` at static type-checking time.
 
-Các điều kiện đáng nhớ của `compareTo`:
+Conditions worth remembering for `compareTo`:
 
-- `x.compareTo(y) < 0`: `x` đứng trước `y`; `== 0`: bằng nhau theo *thứ tự*; `> 0`: `x` đứng sau `y`. **Không giả định kết quả luôn là đúng `-1`, `0`, `1`**; chỉ dấu của kết quả có ý nghĩa.
-- Phải giữ tính đối xứng dấu: `signum(x.compareTo(y)) == -signum(y.compareTo(x))` với các đối tượng so sánh được. Nếu một chiều ném ngoại lệ vì không so sánh được, chiều còn lại cũng không được vô cớ trở thành một phép so sánh hợp lệ.
-- Thứ tự phải có tính bắc cầu và nhất quán với các trường hợp so sánh tương đương theo thứ tự. Nếu `x.compareTo(y) == 0`, kết quả so sánh `x` và `y` với một `z` khác phải có cùng dấu khi các phép so sánh đó hợp lệ.
-- Nhất quán với `equals` **được khuyến nghị mạnh**: `x.compareTo(y) == 0` nên tương đương với `x.equals(y)`. Tuy nhiên, API `Comparable` không bắt buộc mọi lớp phải giữ sự tương đương này; trường hợp `BigDecimal` được trình bày ở phần sau.
+- `x.compareTo(y) < 0`: `x` comes before `y`; `== 0`: equal in *ordering*; `> 0`: `x` comes after `y`. **Do not assume the result is always strictly `-1`, `0`, `1`**; only the sign of the result matters.
+- Sign symmetry must hold: `signum(x.compareTo(y)) == -signum(y.compareTo(x))` for comparable objects. If one direction throws an exception because it is incomparable, the opposite direction must not arbitrarily become a valid comparison either.
+- Ordering must be transitive and consistent with ordering-equivalent comparisons. If `x.compareTo(y) == 0`, the results of comparing `x` and `y` against another `z` must share the same sign when those comparisons are valid.
+- Consistency with `equals` **is strongly recommended**: `x.compareTo(y) == 0` should correspond to `x.equals(y)`. However, the `Comparable` API does not require every class to preserve this equivalence; the `BigDecimal` case is presented later.
 
-Phép `compareTo` chỉ có ý nghĩa trong miền đối tượng mà lớp thực sự biết sắp thứ tự. Nó không phải bộ chuyển đổi dữ liệu, cũng không nên dựa vào việc tự trả `0` cho mọi đối tượng không hợp lệ.
+`compareTo` only makes sense within the domain of objects that the class actually knows how to order. It is not a data converter, nor should it rely on returning `0` for every invalid object.
 
-## 2. Đối số `null`: `compareTo(null)` phải ném `NullPointerException`
+## 2. `null` argument: `compareTo(null)` must throw `NullPointerException`
 
-Một lớp cài đặt `Comparable` đúng hợp đồng không xem `null` như phần tử thuộc thứ tự tự nhiên của nó:
+A contract-compliant `Comparable` class does not treat `null` as an element of its natural ordering:
 
 ```java
-// Minh họa khi value khác null:
-value.equals(null);     // false nếu equals tuân thủ hợp đồng
-value.compareTo(null);  // ném NullPointerException
+// Illustration when value is non-null:
+value.equals(null);     // false if equals obeys the contract
+value.compareTo(null);  // throws NullPointerException
 ```
 
-Lý do: `null` không phải instance của một lớp, nên việc một đối tượng có đứng trước hay sau `null` không được `Comparable` tự định nghĩa. Trong một `compareTo` tự viết, có thể dùng `Objects.requireNonNull(other)` ngay đầu phương thức để khẳng định điều kiện này; sau đó so sánh các trường theo chính sách của lớp.
+Reason: `null` is not an instance of a class, so whether an object comes before or after `null` is not defined by `Comparable` itself. In a custom `compareTo`, you can use `Objects.requireNonNull(other)` at the top of the method to assert this condition; afterward compare fields per the class policy.
 
-Nếu chỉ viết `other.field`, việc truy cập đó cũng ném `NullPointerException` khi `other == null`, nhưng cách kiểm tra tường minh giúp ý định rõ hơn và tránh vô tình xử lý `null` như một đối tượng hợp lệ.
+If you merely write `other.field`, that access also throws `NullPointerException` when `other == null`, yet an explicit check makes intent clearer and avoids accidentally treating `null` as a valid object.
 
-**Không sửa `compareTo` để trả `0` khi `other == null`**. Làm vậy khiến `null` bị coi là tương đương theo thứ tự với một instance có thật, trái với hợp đồng `Comparable` và gây ngữ nghĩa khó hiểu cho các cấu trúc dựa trên thứ tự.
+**Do not modify `compareTo` to return `0` when `other == null`**. Doing so makes `null` appear ordering-equivalent to a real instance, violating the `Comparable` contract and causing confusing semantics for order-based structures.
 
-Cũng phân biệt hai tình huống:
+Also distinguish two situations:
 
-- **Đối số `null`:** `someValue.compareTo(null)` có receiver hợp lệ và phải ném `NullPointerException`.
-- **Receiver `null`:** `someNullableVariable.compareTo(x)` cũng có thể ném `NullPointerException`, nhưng vì cố gọi instance method trên tham chiếu `null` ngay trước khi có thể chạy thân `compareTo`; đây là lỗi gọi phương thức, không phải một thứ tự được định nghĩa cho `null`.
+- **`null` argument:** `someValue.compareTo(null)` has a valid receiver and must throw `NullPointerException`.
+- **`null` receiver:** `someNullableVariable.compareTo(x)` can also throw `NullPointerException`, yet because it attempts to invoke an instance method on a `null` reference before the `compareTo` body can ever run; this is a method invocation error, not an ordering defined for `null`.
 
-## 3. Kiểu không tương thích và vai trò của generic
+## 3. Incompatible types and the role of generics
 
-Với lớp `Lesson implements Comparable<Lesson>`, Java kiểm tra kiểu đối số ngay lúc biên dịch:
+With class `Lesson implements Comparable<Lesson>`, Java checks the argument type at compile time:
 
 ```java
-// Chỉ là đoạn minh họa; giả sử first có kiểu Lesson:
-first.compareTo(anotherLesson); // Hợp lệ nếu anotherLesson là Lesson
-first.compareTo(null);          // Hợp lệ khi biên dịch; NPE khi chạy
-// first.compareTo("java");     // Không biên dịch: String không phải Lesson
+// Illustrative snippet only; assume first has type Lesson:
+first.compareTo(anotherLesson); // Valid if anotherLesson is a Lesson
+first.compareTo(null);          // Valid at compile time; NPE at runtime
+// first.compareTo("java");     // Does not compile: String is not Lesson
 ```
 
-Dấu comment ở dòng cuối cố ý giữ ví dụ có thể đặt trong mã nguồn hợp lệ; nếu bỏ comment, compiler sẽ phát hiện sai kiểu. Nhưng với **raw type** (`Comparable` không có tham số generic), ép kiểu không an toàn, hoặc Java code cũ, lỗi có thể lọt qua compiler rồi xuất hiện tại runtime:
+The comment marker on the final line intentionally keeps the example embeddable in valid source code; if uncommented, the compiler catches the type mismatch. Yet with **raw types** (`Comparable` without generic parameters), unsafe casts, or legacy Java code, errors can slip past the compiler and appear at runtime:
 
 ```java
-// Minh họa code cũ/không an toàn, không nên dùng trong API bình thường:
+// Illustrates legacy/unsafe code, should not be used in normal APIs:
 Comparable raw = first;
-raw.compareTo("java"); // Có thể biên dịch với unchecked warning; CCE khi chạy
+raw.compareTo("java"); // May compile with unchecked warning; CCE at runtime
 ```
 
-Một lớp triển khai `Comparable<Lesson>` thông thường sinh ra bridge method cho cơ chế type erasure. Khi raw caller đưa vào một `String`, runtime không thể chuyển `String` thành `Lesson`, nên ném `ClassCastException` trước khi đi vào logic sắp thứ tự thông thường.
+A class implementing `Comparable<Lesson>` normally generates a bridge method for the type erasure mechanism. When a raw caller supplies a `String`, the runtime cannot cast `String` to `Lesson`, so it throws `ClassCastException` before entering normal ordering logic.
 
-**`ClassCastException` khác `NullPointerException`:** ngoại lệ đầu tiên báo đối tượng không thể so sánh vì kiểu, ngoại lệ thứ hai báo tham chiếu không tồn tại. Không nên bắt cả hai rồi im lặng coi như `compareTo` trả `0`; như vậy che giấu vi phạm hợp đồng và có thể làm `TreeSet`, `TreeMap` mất hoặc gộp sai dữ liệu.
+**`ClassCastException` differs from `NullPointerException`:** the former indicates the object cannot be compared due to type, while the latter indicates a missing reference. Never catch both and silently treat `compareTo` as returning `0`; doing so hides contract violations and can cause `TreeSet`, `TreeMap` to lose or wrongly merge data.
 
-## 4. Chương trình Java 17+ hoàn chỉnh
+## 4. Complete Java 17+ program
 
-Ví dụ sau xây dựng một thứ tự tự nhiên rõ ràng cho `LessonOrder`: trước tiên sắp theo `priority` tăng dần, nếu trùng thì so `title` bằng thứ tự từ điển của `String`. Constructor từ chối `title == null`, nên các trường dùng trong `compareTo` luôn hợp lệ.
+The following example builds a clear natural ordering for `LessonOrder`: first sort by ascending `priority`, and on ties compare `title` using `String`'s lexicographical order. The constructor rejects `title == null`, so fields used in `compareTo` are always valid.
 
-Lưu vào tệp **`NaturalOrderBoundariesDemo.java`**:
+Save to file **`NaturalOrderBoundariesDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -189,14 +189,14 @@ public class NaturalOrderBoundariesDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac NaturalOrderBoundariesDemo.java
 java NaturalOrderBoundariesDemo
 ```
 
-Kết quả stdout xác định:
+Deterministic stdout output:
 
 ```text
 compare equal values: 0
@@ -212,19 +212,19 @@ BigDecimal equals: false
 BigDecimal TreeSet size: 1
 ```
 
-Giải thích:
+Explanation:
 
-1. Hai `LessonOrder(1, "Core")` là hai instance độc lập nhưng bằng nhau theo `equals` và tương đương theo `compareTo`, vì cả hai phương thức dùng cùng cặp trường.
-2. `LessonOrder(1, "Core")` đứng trước `LessonOrder(2, "Advanced")` vì `priority` nhỏ hơn; không cần quan tâm `title` khi đã phân định được theo `priority`.
-3. `first.equals(null)` trả `false`, trong khi `first.compareTo(null)` ném `NullPointerException`. Đây là hai hợp đồng khác nhau, đều đúng.
-4. Hàm `compareWithWrongType` cố tình dùng raw `Comparable`. Runtime từ chối `String` bằng `ClassCastException`, thay vì đưa ra một kết quả thứ tự giả.
-5. `naturalSet` dùng thứ tự tự nhiên. Vì `first.compareTo(same) == 0`, `TreeSet` coi chúng là một phần tử theo thứ tự sắp xếp.
-6. `nullableSet` có **`Comparator.nullsFirst` rõ ràng**, nên có thể chứa `null` và đặt nó trước các đối tượng hợp lệ. Không cần sửa `LessonOrder.compareTo(null)`.
-7. `BigDecimal("1.0")` và `BigDecimal("1.00")` bằng nhau theo giá trị số học khi gọi `compareTo`, nhưng khác `scale` nên `equals` là `false`. `TreeSet` dùng quan hệ `compareTo == 0` làm tương đương khi sắp xếp, vì vậy chỉ giữ một phần tử.
+1. The two `LessonOrder(1, "Core")` objects are independent instances yet equal by `equals` and equivalent by `compareTo`, because both methods use the same pair of fields.
+2. `LessonOrder(1, "Core")` comes before `LessonOrder(2, "Advanced")` because `priority` is smaller; there is no need to inspect `title` once `priority` already distinguishes them.
+3. `first.equals(null)` returns `false`, whereas `first.compareTo(null)` throws `NullPointerException`. These are two different contracts, both correct.
+4. Function `compareWithWrongType` intentionally uses raw `Comparable`. The runtime rejects `String` with `ClassCastException`, rather than returning a fake ordering result.
+5. `naturalSet` uses natural ordering. Since `first.compareTo(same) == 0`, `TreeSet` treats them as a single element in sorted order.
+6. `nullableSet` has an **explicit `Comparator.nullsFirst`**, so it can contain `null` and place it before valid objects. No modification to `LessonOrder.compareTo(null)` is needed.
+7. `BigDecimal("1.0")` and `BigDecimal("1.00")` are equal in numerical value when calling `compareTo`, yet differ in `scale`, so `equals` is `false`. `TreeSet` uses `compareTo == 0` as equivalence when sorting, thus retaining only one element.
 
-## 5. `Comparator.nullsFirst`/`nullsLast`: cách định nghĩa thứ tự có `null`
+## 5. `Comparator.nullsFirst`/`nullsLast`: how to define an ordering with `null`
 
-Nếu ứng dụng thật sự có danh sách chứa `null` cần sắp xếp, hãy định nghĩa chính sách **ở bên ngoài thứ tự tự nhiên**, qua `Comparator`:
+If an application genuinely has a list containing `null` that needs sorting, define the policy **outside natural ordering**, via a `Comparator`:
 
 ```java
 Comparator<LessonOrder> nullFirst =
@@ -233,21 +233,21 @@ Comparator<LessonOrder> nullLast =
         Comparator.nullsLast(Comparator.naturalOrder());
 ```
 
-Với `nullFirst`, `null` được xếp trước đối tượng không `null`; với `nullLast`, `null` được xếp sau. Khi hai đối số đều không `null`, comparator ủy quyền cho `compareTo` tự nhiên. Khi cả hai cùng `null`, comparator coi chúng bằng nhau theo thứ tự.
+With `nullFirst`, `null` is placed before non-`null` objects; with `nullLast`, `null` is placed after. When both arguments are non-`null`, the comparator delegates to natural `compareTo`. When both are `null`, the comparator treats them as equal in ordering.
 
-| So sánh | Thứ tự tự nhiên `x.compareTo(y)` | `nullsFirst(naturalOrder())` | `nullsLast(naturalOrder())` |
+| Comparison | Natural ordering `x.compareTo(y)` | `nullsFirst(naturalOrder())` | `nullsLast(naturalOrder())` |
 | --- | --- | --- | --- |
-| `x` khác `null`, `y` khác `null` | Theo `compareTo` | Theo `compareTo` | Theo `compareTo` |
-| `x == null`, `y != null` | Không gọi instance method được | `null` đứng trước | `null` đứng sau |
-| `x != null`, `y == null` | `compareTo(null)` ném NPE | `x` đứng sau | `x` đứng trước |
-| `x == null`, `y == null` | Không có receiver hợp lệ | `0` | `0` |
+| `x` non-`null`, `y` non-`null` | Per `compareTo` | Per `compareTo` | Per `compareTo` |
+| `x == null`, `y != null` | Cannot call instance method | `null` comes first | `null` comes after |
+| `x != null`, `y == null` | `compareTo(null)` throws NPE | `x` comes after | `x` comes first |
+| `x == null`, `y == null` | No valid receiver | `0` | `0` |
 
-Chọn một trong hai tùy nghiệp vụ (ví dụ dữ liệu thiếu cần ưu tiên đầu danh sách hay đặt cuối). `Comparator` giúp chính sách này tường minh mà vẫn giữ hợp đồng `Comparable`.
+Choose one of the two depending on business needs (e.g., whether missing data belongs at the top of the list or at the bottom). `Comparator` makes this policy explicit while preserving the `Comparable` contract.
 
-**Cảnh báo về `null` ở hai cấp:** `Comparator.nullsFirst(Comparator.comparing(Person::getName))` chỉ xử lý **đối tượng `Person` có thể `null`**, không tự xử lý **`getName()` trả về `null`**. Nếu cả phần tử lẫn khóa so sánh có thể `null`, cần chọn comparator ở mỗi cấp:
+**Warning about two-level `null`:** `Comparator.nullsFirst(Comparator.comparing(Person::getName))` only handles **the `Person` object potentially being `null`**, not **`getName()` returning `null`**. If both the element and the comparison key can be `null`, you must select a comparator at each level:
 
 ```java
-// Minh họa đặt tại nơi đã định nghĩa lớp Person có getName():
+// Illustration placed where class Person with getName() is defined:
 Comparator<Person> byName = Comparator.nullsFirst(
         Comparator.comparing(
                 Person::getName,
@@ -256,50 +256,50 @@ Comparator<Person> byName = Comparator.nullsFirst(
 );
 ```
 
-Đây là đoạn minh họa kiểu `Person` do ứng dụng cung cấp, **không phải ví dụ biên dịch độc lập**. `nullsFirst` ngoài cùng xử lý `Person == null`; `nullsLast` bên trong xử lý `Person.getName() == null`.
+This snippet illustrates an application-provided `Person` type, **not a standalone compilable example**. The outer `nullsFirst` handles `Person == null`; the inner `nullsLast` handles `Person.getName() == null`.
 
-Một `TreeSet`/`TreeMap` dùng thứ tự tự nhiên thường không nhận khóa `null`, vì cần phép so sánh tự nhiên. Chúng có thể nhận `null` nếu comparator do ứng dụng cung cấp **thật sự định nghĩa được** cách so với `null`. Không suy ra rằng mọi `SortedSet` hoặc mọi comparator đều chấp nhận `null`.
+A `TreeSet`/`TreeMap` using natural ordering normally rejects `null` keys, because natural comparison is required. They can accept `null` if an application-provided comparator **actually defines** how to compare against `null`. Do not assume every `SortedSet` or every comparator accepts `null`.
 
-## 6. Kiểu khác nhau: `equals` có thể trả `false`, còn `compareTo` có thể ném CCE
+## 6. Different types: `equals` may return `false`, whereas `compareTo` may throw CCE
 
-Mục đích của `equals(Object)` là kiểm tra bằng nhau với một đối số `Object` bất kỳ; nếu khác kiểu và không thuộc quan hệ bằng nhau hợp lệ, kết quả thường là `false`:
+The purpose of `equals(Object)` is testing equality against an arbitrary `Object` argument; if the type differs and does not belong to a valid equality relation, the result is normally `false`:
 
 ```java
-// Giả sử lesson là LessonOrder:
-lesson.equals("Core"); // false: String không phải LessonOrder
+// Assume lesson is LessonOrder:
+lesson.equals("Core"); // false: String is not LessonOrder
 ```
 
-Ngược lại, `compareTo` không phải phương thức có nghĩa “khác kiểu thì trả `1`”. Việc trả một số âm hoặc dương cho mọi kiểu không có quy tắc sắp xếp chung có thể phá tính đối xứng và bắc cầu. Tránh cố tạo quan hệ thứ tự tùy tiện chỉ để không ném ngoại lệ.
+Conversely, `compareTo` is not a method meaning "different types return `1`". Returning a negative or positive number for arbitrary types lacking a common ordering rule can break symmetry and transitivity. Avoid fabricating an arbitrary ordering relation just to avoid throwing an exception.
 
-Generics tạo ra một đường ranh giới rõ:
+Generics draw a clear boundary:
 
-- **Đúng kiểu tại compile time:** `Comparable<LessonOrder>` chỉ cho phép đối số `LessonOrder` hoặc `null`; compiler loại bỏ nhiều lời gọi sai.
-- **Raw type/unchecked cast/reflection hoặc mã cũ:** có thể đưa đối số sai kiểu tại runtime; lúc này `ClassCastException` là tín hiệu phù hợp.
-- **Khi cần so các kiểu khác nhau theo quy tắc ứng dụng:** dùng **`Comparator` trên một miền chung đã xác định**, ví dụ chuyển các dạng dữ liệu sang một key chung trước khi so. Không tự động trộn `String`, số và đối tượng nghiệp vụ trong một natural ordering vô căn cứ.
+- **Correct type at compile time:** `Comparable<LessonOrder>` allows only `LessonOrder` or `null` arguments; the compiler eliminates many bad calls.
+- **Raw types/unchecked casts/reflection or legacy code:** can pass a wrong-typed argument at runtime; here `ClassCastException` is the appropriate signal.
+- **When needing to compare different types by application rules:** use a **`Comparator` over a defined common domain**, such as mapping different forms of data to a shared key before comparing. Do not automatically mix `String`, numbers, and domain objects in an ungrounded natural ordering.
 
-Không bắt ngoại lệ để thay bằng `0`; `0` có ý nghĩa **cùng thứ hạng** và có thể khiến `TreeSet` xem hai phần tử như một.
+Do not catch exceptions to substitute `0`; `0` means **same rank** and can cause `TreeSet` to treat two elements as one.
 
-## 7. Ảnh hưởng đối với `TreeSet`, `TreeMap`, `Collections.sort`
+## 7. Impact on `TreeSet`, `TreeMap`, `Collections.sort`
 
-Các API sắp xếp/dựa trên thứ tự sử dụng `compareTo` hoặc `Comparator.compare`:
+Sorting and order-based APIs rely on `compareTo` or `Comparator.compare`:
 
-- `TreeSet` dùng dấu của phép so sánh để xác định vị trí và tương đương theo thứ tự. Nếu hai phần tử có kết quả so sánh `0`, thường không thể lưu như hai phần tử phân biệt theo semantics của set đó.
-- `TreeMap` dùng thứ tự để phân biệt khóa; nếu comparator coi hai khóa là tương đương (`0`), thêm khóa thứ hai sẽ tác động vào cùng entry logic theo thứ tự của map.
-- `Collections.sort(list)` hoặc `list.sort(null)` dùng thứ tự tự nhiên; nếu có `null` hoặc phần tử không thể so sánh với nhau, thao tác có thể ném NPE/CCE. Với danh sách có `null` hợp lệ, hãy truyền comparator minh thị qua `list.sort(Comparator.nullsLast(...))`.
+- `TreeSet` uses the comparison sign to determine position and ordering equivalence. If two elements compare to `0`, they generally cannot be stored as two distinct elements under that set's semantics.
+- `TreeMap` uses ordering to distinguish keys; if the comparator considers two keys equivalent (`0`), inserting the second key affects the same logical map entry by ordering.
+- `Collections.sort(list)` or `list.sort(null)` uses natural ordering; if `null` is present or elements cannot be compared against each other, the operation may throw NPE/CCE. For lists where `null` is valid, pass an explicit comparator via `list.sort(Comparator.nullsLast(...))`.
 
-Đặc biệt, cấu trúc `SortedSet` và `SortedMap` có hành vi đúng theo quy tắc tập hợp/map thông thường khi thứ tự của chúng **nhất quán với `equals`**. Trong ví dụ `BigDecimal`, `compareTo` có thể trả `0` trong khi `equals` trả `false`, làm `TreeSet` có hành vi khác `HashSet` trên cùng dữ liệu. Đây là điều cần biết để chọn mô hình và tránh nhầm số lượng phần tử.
+Specifically, `SortedSet` and `SortedMap` structures behave according to standard set/map rules when their ordering is **consistent with `equals`**. In the `BigDecimal` example, `compareTo` can return `0` while `equals` returns `false`, making `TreeSet` behave differently from `HashSet` on the same data. This is important to know to choose the right model and avoid miscounting elements.
 
-Nếu một lớp custom được dùng làm khóa `TreeMap` hoặc phần tử `TreeSet`, nên đặt các trường quyết định thứ tự là **bất biến** trong thời gian lưu. Nếu thay đổi trường tham gia `compareTo` sau khi chèn, cấu trúc cây có thể không còn sắp xếp và tra cứu đúng như kỳ vọng.
+If a custom class is used as a `TreeMap` key or `TreeSet` element, fields determining ordering should be made **immutable** for the duration of storage. If a field participating in `compareTo` is modified after insertion, the tree structure may no longer sort and look up as expected.
 
-## 8. Checklist khi viết hoặc sử dụng `Comparable<T>`
+## 8. Checklist when writing or using `Comparable<T>`
 
-1. **Miền kiểu:** lớp chỉ chấp nhận những đối tượng nào? `Comparable<T>` đã biểu diễn đúng miền này chưa?
-2. **Null:** `x.compareTo(null)` có ném `NullPointerException` không? Có vô tình coi `null` là bằng một giá trị thật không?
-3. **Kiểu không tương thích:** lời gọi sai kiểu qua raw/unchecked path có bị từ chối bằng `ClassCastException` thay vì trả một thứ tự giả không?
-4. **Thứ tự toán học:** phép so sánh có giữ đối xứng dấu, bắc cầu và ngữ nghĩa `compareTo == 0` ổn định không?
-5. **Quan hệ với `equals`:** nếu `compareTo == 0` khác `equals == true`, hành vi `TreeSet`/`TreeMap` có được hiểu và chấp nhận không?
-6. **Chính sách null của collection:** nếu dữ liệu hợp lệ có `null`, đã dùng `Comparator.nullsFirst` hoặc `nullsLast` ở đúng cấp phần tử hoặc khóa chưa?
-7. **Trạng thái mutable:** các trường tham gia thứ tự có được giữ ổn định khi đối tượng đang nằm trong cấu trúc sắp xếp không?
-8. **Giá trị trả về:** phần code sử dụng có kiểm tra `< 0`, `== 0`, `> 0` thay vì so đúng `-1` hoặc `1` không?
+1. **Type domain:** which objects does the class accept? Does `Comparable<T>` accurately represent this domain?
+2. **Null:** does `x.compareTo(null)` throw `NullPointerException`? Does it accidentally treat `null` as equal to a real value?
+3. **Incompatible types:** are wrong-type calls via raw/unchecked paths rejected with `ClassCastException` rather than returning a fake order?
+4. **Mathematical ordering:** does the comparison preserve sign symmetry, transitivity, and stable `compareTo == 0` semantics?
+5. **Relation with `equals`:** if `compareTo == 0` differs from `equals == true`, is the `TreeSet`/`TreeMap` behavior understood and accepted?
+6. **Collection null policy:** if valid data contains `null`, is `Comparator.nullsFirst` or `nullsLast` applied at the right element or key level?
+7. **Mutable state:** are fields participating in ordering kept stable while the object resides in a sorted structure?
+8. **Return values:** does calling code check `< 0`, `== 0`, `> 0` instead of checking strictly `-1` or `1`?
 
-**Ghi nhớ:** `Comparable.compareTo` định nghĩa thứ tự **giữa các giá trị thuộc miền so sánh**. `compareTo(null)` ném **`NullPointerException`**; kiểu không tương thích bị từ chối, thường bằng **`ClassCastException`** nếu vượt qua kiểm tra generic. Khi nghiệp vụ muốn sắp xếp cả `null`, hãy viết quy tắc riêng bằng **`Comparator.nullsFirst`/`nullsLast`**, và cân nhắc sự tương thích với `equals` trong `TreeSet`/`TreeMap`.
+**Remember:** `Comparable.compareTo` defines ordering **among values within the comparison domain**. `compareTo(null)` throws **`NullPointerException`**; incompatible types are rejected, typically with **`ClassCastException`** if generic checks are bypassed. When business logic requires sorting `null` as well, write an explicit rule using **`Comparator.nullsFirst`/`nullsLast`**, and consider compatibility with `equals` in `TreeSet`/`TreeMap`.

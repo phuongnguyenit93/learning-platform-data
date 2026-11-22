@@ -1,14 +1,14 @@
-# AnnotatedElement và các đối tượng hỗ trợ annotation trong Java Reflection
+# AnnotatedElement and Annotation-Supporting Objects in Java Reflection
 
-Trong Java, annotation là metadata gắn với khai báo hoặc với vị trí sử dụng một kiểu. Reflection có thể đọc các annotation được giữ ở runtime thông qua giao diện **`java.lang.reflect.AnnotatedElement`**. Thay vì mỗi loại đối tượng Reflection có một cách đọc hoàn toàn khác nhau, giao diện này thống nhất các thao tác như `getAnnotation(...)`, `getAnnotations()`, `getDeclaredAnnotations()` và `getAnnotationsByType(...)`.
+In Java, an annotation is metadata attached to a declaration or to a use site of a type. Reflection can read annotations retained at runtime through the **`java.lang.reflect.AnnotatedElement`** interface. Rather than each kind of Reflection object having a completely different way to read annotations, this interface unifies operations such as `getAnnotation(...)`, `getAnnotations()`, `getDeclaredAnnotations()`, and `getAnnotationsByType(...)`.
 
-Bài học trả lời ba câu hỏi: **đối tượng nào triển khai `AnnotatedElement`**, **cách tra cứu annotation chính xác ở runtime**, và **vì sao kết quả thay đổi theo retention, inheritance, repeatable annotation và vị trí annotation**.
+This lesson answers three questions: **which objects implement `AnnotatedElement`**, **how to look up annotations accurately at runtime**, and **why results vary depending on retention, inheritance, repeatable annotations, and annotation location**.
 
-## 1. AnnotatedElement là gì?
+## 1. What is AnnotatedElement?
 
-`AnnotatedElement` là interface thuộc package `java.lang.reflect`. Nó mô tả một phần tử có thể mang annotation và cung cấp API đọc metadata annotation bằng Reflection.
+`AnnotatedElement` is an interface in the `java.lang.reflect` package. It describes an element that can carry annotations and provides an API for reading annotation metadata via Reflection.
 
-Một số phương thức quan trọng:
+Some important methods:
 
 ```java
 <T extends Annotation> T getAnnotation(Class<T> annotationType);
@@ -20,40 +20,40 @@ Annotation[] getDeclaredAnnotations();
 boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 ```
 
-Đây là các chữ ký **minh họa rút gọn** để học API, không phải đoạn source độc lập để biên dịch. `Annotation` là interface `java.lang.annotation.Annotation`.
+These are **abbreviated illustrative** signatures for learning the API, not standalone source code to compile. `Annotation` is the `java.lang.annotation.Annotation` interface.
 
-Điểm quan trọng:
+Key points:
 
-- Mọi phương thức đọc annotation trả về dữ liệu **có thể quan sát ở runtime**; `@Retention(RetentionPolicy.SOURCE)` và `CLASS` không bảo đảm có thể đọc bằng Reflection runtime.
-- `getAnnotation(T.class)` trả **một annotation** thuộc kiểu `T` hoặc `null` nếu kiểu đó không “present” theo định nghĩa API.
-- `isAnnotationPresent(T.class)` tương đương về mặt kết quả với `getAnnotation(T.class) != null`.
-- `getAnnotations()` trả mảng các annotation “present”. `getDeclaredAnnotations()` chỉ lấy annotation **trực tiếp hiện diện** trên chính phần tử.
-- `getAnnotationsByType(T.class)` và `getDeclaredAnnotationsByType(T.class)` hỗ trợ đặc biệt cho **repeatable annotation**: chúng có thể mở container annotation để lấy nhiều phần tử `T`.
-- Các mảng annotation trả về có thể được người gọi sửa mà không thay đổi kết quả trả về từ những lần tra cứu khác; đối tượng annotation là immutable và serializable theo hợp đồng API.
+- Every annotation-reading method returns data that is **observable at runtime**; `@Retention(RetentionPolicy.SOURCE)` and `CLASS` are not guaranteed to be readable via runtime Reflection.
+- `getAnnotation(T.class)` returns **a single annotation** of type `T`, or `null` if that type is not “present” as defined by the API.
+- `isAnnotationPresent(T.class)` is equivalent in result to `getAnnotation(T.class) != null`.
+- `getAnnotations()` returns an array of “present” annotations. `getDeclaredAnnotations()` returns only annotations **directly present** on the element itself.
+- `getAnnotationsByType(T.class)` and `getDeclaredAnnotationsByType(T.class)` provide special support for **repeatable annotations**: they can unpack container annotations to retrieve multiple `T` elements.
+- Returned annotation arrays can be modified by the caller without altering the results returned by subsequent lookups; annotation objects are immutable and serializable by API contract.
 
-Khái niệm “present”, “directly present”, “indirectly present” và “associated” có ý nghĩa kỹ thuật, đặc biệt khi annotation được phép kế thừa hoặc lặp lại. Vì vậy không được coi tất cả các phương thức trên là từ đồng nghĩa.
+The concepts “present”, “directly present”, “indirectly present”, and “associated” have technical meanings, especially when annotations are allowed to be inherited or repeated. Therefore, all of the methods above must not be treated as synonyms.
 
-## 2. Những đối tượng Reflection nào hỗ trợ AnnotatedElement?
+## 2. Which Reflection objects support AnnotatedElement?
 
-Không chỉ `Class<?>`, nhiều đối tượng metadata khác cũng triển khai `AnnotatedElement`:
+Not only `Class<?>`, many other metadata objects also implement `AnnotatedElement`:
 
-| Loại đối tượng | Cách lấy ví dụ | Annotation đọc được ở đâu? |
+| Object type | Example of how to obtain | Where are annotations read from? |
 | --- | --- | --- |
-| `Class<?>` | `Book.class` | Khai báo class, interface, enum, annotation type hoặc record |
-| `Method` | `Book.class.getDeclaredMethod("read")` | Khai báo method |
-| `Constructor<?>` | `Book.class.getDeclaredConstructor()` | Khai báo constructor |
-| `Field` | `Book.class.getDeclaredField("title")` | Khai báo field |
-| `Parameter` | `method.getParameters()[0]` | Khai báo formal parameter |
-| `Package` | `Book.class.getPackage()` | Annotation đặt trên package, thường trong `package-info.java` |
-| `Module` | `Book.class.getModule()` | Annotation áp dụng cho module declaration |
-| `RecordComponent` | `Person.class.getRecordComponents()[0]` | Annotation của record component (Java 16+) |
-| `AnnotatedType` và các subtype | `method.getAnnotatedReturnType()` | Annotation ở **vị trí sử dụng kiểu** (type-use) |
+| `Class<?>` | `Book.class` | Declaration of a class, interface, enum, annotation type, or record |
+| `Method` | `Book.class.getDeclaredMethod("read")` | Method declaration |
+| `Constructor<?>` | `Book.class.getDeclaredConstructor()` | Constructor declaration |
+| `Field` | `Book.class.getDeclaredField("title")` | Field declaration |
+| `Parameter` | `method.getParameters()[0]` | Formal parameter declaration |
+| `Package` | `Book.class.getPackage()` | Annotations placed on a package, usually in `package-info.java` |
+| `Module` | `Book.class.getModule()` | Annotations applied to a module declaration |
+| `RecordComponent` | `Person.class.getRecordComponents()[0]` | Record component annotations (Java 16+) |
+| `AnnotatedType` and its subtypes | `method.getAnnotatedReturnType()` | Annotations at a **type-use site** (type-use) |
 
-`Method` và `Constructor<?>` cùng kế thừa `Executable`; các đối tượng thuộc nhóm này còn có `getParameters()`, `getParameterAnnotations()`, `getAnnotatedParameterTypes()`, `getAnnotatedExceptionTypes()` và API metadata chữ ký khác. `Field` có `getAnnotatedType()` để lấy type-use annotation trên kiểu của field.
+`Method` and `Constructor<?>` both extend `Executable`; objects in this group also have `getParameters()`, `getParameterAnnotations()`, `getAnnotatedParameterTypes()`, `getAnnotatedExceptionTypes()`, and other signature metadata APIs. `Field` has `getAnnotatedType()` to retrieve type-use annotations on the field's type.
 
-Một điểm phân biệt quan trọng: **annotation trên khai báo method** không đồng nhất với **annotation trên kiểu trả về của method**. Cả `Method` lẫn `AnnotatedType` đều là `AnnotatedElement`, nhưng mỗi đối tượng đại diện cho **một vị trí khác nhau** trong source/class file.
+An important distinction: **an annotation on a method declaration** is not identical to **an annotation on a method's return type**. Both `Method` and `AnnotatedType` are `AnnotatedElement`, but each object represents **a different location** in the source/class file.
 
-Ví dụ:
+Example:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -65,7 +65,7 @@ public @NonBlank String getName() {
 }
 ```
 
-Đây là đoạn minh họa cần import `java.lang.annotation.*` và đặt trong một class hợp lệ. `@NonBlank` gắn với **việc dùng kiểu trả về `String`**. Muốn đọc, truy cập:
+This is an illustrative snippet that requires importing `java.lang.annotation.*` and placing inside a valid class. `@NonBlank` is attached to **the use of the return type `String`**. To read it, access:
 
 ```java
 Method m = SomeClass.class.getDeclaredMethod("getName");
@@ -73,11 +73,11 @@ boolean found =
         m.getAnnotatedReturnType().isAnnotationPresent(NonBlank.class);
 ```
 
-Đây là đoạn minh họa; `SomeClass` phải được thay bằng class chứa `getName`, xử lý checked exception và import `Method`. Nếu chỉ gọi `m.isAnnotationPresent(NonBlank.class)`, bạn đang hỏi về **method declaration**, không phải return type-use annotation.
+This is an illustrative snippet; `SomeClass` must be replaced with the class containing `getName`, handling checked exceptions and importing `Method`. If you only call `m.isAnnotationPresent(NonBlank.class)`, you are querying the **method declaration**, not the return type-use annotation.
 
-## 3. Retention và Target quyết định annotation có thể được đọc ở đâu
+## 3. Retention and Target determine where an annotation can be read
 
-Một annotation type thường được khai báo với các **meta-annotation**:
+An annotation type is typically declared with **meta-annotations**:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -92,23 +92,23 @@ import java.lang.annotation.Target;
 }
 ```
 
-Đây là khai báo annotation có thể đặt trong source hợp lệ. `@Target` xác định vị trí cú pháp được phép gắn; `@Retention` xác định mức giữ lại metadata.
+This is an annotation declaration that can be placed in valid source code. `@Target` specifies the allowed syntactic locations; `@Retention` specifies the metadata retention level.
 
-| RetentionPolicy | Có trong source | Có trong class file | Reflection runtime tiêu chuẩn đọc được? |
+| RetentionPolicy | Present in source | Present in class file | Readable by standard runtime Reflection? |
 | --- | --- | --- | --- |
-| `SOURCE` | Có | Không cần được lưu | Không |
-| `CLASS` | Có | Được lưu trong class file | Không phải runtime-visible qua API chuẩn |
-| `RUNTIME` | Có | Được lưu | Có, trên đối tượng/phần tử tương ứng |
+| `SOURCE` | Yes | Does not need to be stored | No |
+| `CLASS` | Yes | Stored in class file | Not runtime-visible via standard APIs |
+| `RUNTIME` | Yes | Stored | Yes, on the corresponding object/element |
 
-Nếu **không khai báo `@Retention`**, retention mặc định của annotation type là `CLASS`, không phải `RUNTIME`.
+If **`@Retention` is not declared**, the default retention of an annotation type is `CLASS`, not `RUNTIME`.
 
-Một số `ElementType` thường gặp: `TYPE`, `METHOD`, `FIELD`, `CONSTRUCTOR`, `PARAMETER`, `PACKAGE`, `MODULE`, `RECORD_COMPONENT`, `TYPE_USE`, `TYPE_PARAMETER` và `ANNOTATION_TYPE`.
+Some common `ElementType` values: `TYPE`, `METHOD`, `FIELD`, `CONSTRUCTOR`, `PARAMETER`, `PACKAGE`, `MODULE`, `RECORD_COMPONENT`, `TYPE_USE`, `TYPE_PARAMETER`, and `ANNOTATION_TYPE`.
 
-Phân biệt `TYPE` (annotation của khai báo kiểu), `TYPE_USE` (annotation của vị trí sử dụng kiểu) và `TYPE_PARAMETER` (annotation của khai báo type parameter như `<@X T>`). Một annotation type có thể khai báo nhiều target. Trong nhiều ngữ cảnh, một annotation `TYPE_USE` xuất hiện cạnh khai báo có thể còn được trình biên dịch xử lý theo quy tắc target liên quan; do đó khi cần quan sát chuẩn xác, hãy kiểm tra đúng đối tượng `AnnotatedElement`, không suy luận chỉ dựa vào chỗ chữ `@` xuất hiện trên dòng.
+Distinguish `TYPE` (annotation on a type declaration), `TYPE_USE` (annotation on a type-use site), and `TYPE_PARAMETER` (annotation on a type parameter declaration such as `<@X T>`). An annotation type can declare multiple targets. In many contexts, a `TYPE_USE` annotation appearing next to a declaration may also be processed by the compiler according to related target rules; therefore, to observe accurately, always inspect the exact `AnnotatedElement` object rather than inferring solely from where `@` appears on the line.
 
-## 4. Chương trình Java 17+ hoàn chỉnh: Class, Method, Field, Parameter và AnnotatedType
+## 4. Complete Java 17+ program: Class, Method, Field, Parameter, and AnnotatedType
 
-Tạo tệp **`AnnotatedElementDemo.java`**:
+Create the file **`AnnotatedElementDemo.java`**:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -215,14 +215,14 @@ public class AnnotatedElementDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac AnnotatedElementDemo.java
 java AnnotatedElementDemo
 ```
 
-Stdout dự kiến:
+Expected stdout:
 
 ```text
 base label: base
@@ -240,21 +240,21 @@ method declaration has NonBlank: false
 label retention: RUNTIME
 ```
 
-Giải thích:
+Explanation:
 
-1. `Base.class` có `@Label("base")` nên có thể được gán cho biến kiểu `AnnotatedElement` và gọi `getAnnotation(Label.class)`.
-2. `Role` có `@Inherited` và được gắn trên `Base`. `Child.class.getAnnotation(Role.class)` nhận metadata role từ superclass; `Child.class.getDeclaredAnnotation(Role.class)` trả `null` vì `Child` không trực tiếp khai báo nó.
-3. `Label` không có `@Inherited`. Vì vậy `Child.class.getAnnotation(Label.class)` là `null` dù `Base` mang nhãn đó.
-4. Hai annotation `@Tag` có thể lặp. Compiler lưu chúng qua container `@Tags`; `getAnnotationsByType(Tag.class)` mở container được hai phần tử, trong khi `getAnnotation(Tag.class)` không tự mở container theo cùng cách.
-5. `Method`, `Field` và `Parameter` đều là `AnnotatedElement`. Mỗi đối tượng cho annotation trên đúng khai báo mà nó đại diện.
-6. `getAnnotatedReturnType()` trả đối tượng `AnnotatedType` có thể mang `@NonBlank`, còn chính khai báo `Method` không mang annotation declaration `NonBlank`.
-7. Annotation type `Label.class` cũng là một `Class`, nên Reflection có thể hỏi meta-annotation `@Retention` của chính annotation type; kết quả là enum `RUNTIME`.
+1. `Base.class` has `@Label("base")`, so it can be assigned to a variable of type `AnnotatedElement` and have `getAnnotation(Label.class)` called on it.
+2. `Role` has `@Inherited` and is attached to `Base`. `Child.class.getAnnotation(Role.class)` receives the role metadata from the superclass; `Child.class.getDeclaredAnnotation(Role.class)` returns `null` because `Child` does not declare it directly.
+3. `Label` does not have `@Inherited`. Therefore, `Child.class.getAnnotation(Label.class)` is `null` even though `Base` carries that label.
+4. The two `@Tag` annotations are repeatable. The compiler stores them via the `@Tags` container; `getAnnotationsByType(Tag.class)` unpacks the container into two elements, whereas `getAnnotation(Tag.class)` does not automatically unpack the container in the same way.
+5. `Method`, `Field`, and `Parameter` are all `AnnotatedElement`. Each object provides annotations on the exact declaration it represents.
+6. `getAnnotatedReturnType()` returns an `AnnotatedType` object that can carry `@NonBlank`, whereas the `Method` declaration itself does not carry the `NonBlank` declaration annotation.
+7. The annotation type `Label.class` is also a `Class`, so Reflection can query the `@Retention` meta-annotation on the annotation type itself; the result is the enum `RUNTIME`.
 
-Chương trình dùng `getParameters()` để lấy đối tượng `Parameter`. **Không cần tùy chọn `javac -parameters` chỉ để đọc annotation parameter**; tùy chọn đó chủ yếu giúp lưu tên parameter nguồn để `Parameter.getName()` có thể hiển thị đúng tên khai báo thay vì tên tổng hợp.
+The program uses `getParameters()` to obtain the `Parameter` object. **The `javac -parameters` option is not required just to read parameter annotations**; that option primarily stores source parameter names so that `Parameter.getName()` can display the declared name instead of a synthesized name.
 
-## 5. Phân biệt getAnnotation và getDeclaredAnnotation
+## 5. Distinguishing getAnnotation and getDeclaredAnnotation
 
-`getAnnotation(T.class)` và `getDeclaredAnnotation(T.class)` khác nhau khi có **annotation được kế thừa trên class**:
+`getAnnotation(T.class)` and `getDeclaredAnnotation(T.class)` differ when there is **an inherited annotation on a class**:
 
 ```java
 @Inherited
@@ -272,9 +272,9 @@ class DerivedType extends BaseType {
 }
 ```
 
-Đây là ví dụ khai báo cần import `java.lang.annotation.*`, không chứa `main`.
+This is a declaration example requiring `import java.lang.annotation.*`, without `main`.
 
-Kết quả:
+Result:
 
 ```java
 Category inherited = DerivedType.class.getAnnotation(Category.class);
@@ -284,28 +284,28 @@ System.out.println(inherited.value()); // base
 System.out.println(direct == null);      // true
 ```
 
-Mã này chỉ chạy khi đặt trong phương thức có thể truy cập các type đã khai báo. `@Inherited` **không** có nghĩa method, field hoặc interface luôn truyền annotation cho phần tử tương ứng ở class con:
+This code only runs when placed inside a method that can access the declared types. `@Inherited` does **not** mean methods, fields, or interfaces always pass annotations down to corresponding elements in a subclass:
 
-- `@Inherited` chỉ ảnh hưởng cơ chế inheritance annotation **khi phần tử được kiểm tra là class**, theo superclass chain.
-- Annotation trên interface không được class implementing “thừa kế” theo `@Inherited`.
-- Một method override không tự nhận annotation của method bị override. Nếu công cụ cần fallback lên method lớp cha, phải tự thiết kế bước tra cứu theo chữ ký.
-- Field che khuất field khác cũng không được tự gán annotation của field lớp cha.
+- `@Inherited` only affects the annotation inheritance mechanism **when the inspected element is a class**, along the superclass chain.
+- Annotations on an interface are not “inherited” by an implementing class via `@Inherited`.
+- An overriding method does not automatically receive annotations from the overridden method. If a tool needs to fall back to a superclass method, it must design the lookup step by signature itself.
+- A field hiding another field is also not automatically assigned the superclass field's annotations.
 
-Nếu một class con có annotation cùng kiểu được khai báo trực tiếp, annotation đó thắng đường inheritance đối với kiểu annotation đó; không cộng gộp tùy ý các khai báo trực tiếp và inherited trong API tra cứu một annotation.
+If a subclass has an annotation of the same type declared directly, that annotation wins over the inheritance path for that annotation type; direct and inherited declarations are not arbitrarily combined in the single-annotation lookup API.
 
-## 6. getAnnotations / getDeclaredAnnotations: tập nào được trả?
+## 6. getAnnotations / getDeclaredAnnotations: which set is returned?
 
-`getAnnotations()` trả các annotation “present”; `getDeclaredAnnotations()` chỉ trả những annotation “directly present”. Hai mảng có thể khác nhau khi một class kế thừa annotation được đánh dấu `@Inherited`.
+`getAnnotations()` returns “present” annotations; `getDeclaredAnnotations()` returns only “directly present” annotations. The two arrays can differ when a class inherits an annotation marked with `@Inherited`.
 
-Trong chương trình ở mục 4, `Child.class.getAnnotations()` nhìn thấy `Role` được kế thừa; `Child.class.getDeclaredAnnotations()` không chứa `Role`.
+In the program in section 4, `Child.class.getAnnotations()` sees the inherited `Role`; `Child.class.getDeclaredAnnotations()` does not contain `Role`.
 
-Nếu một annotation type là repeatable, các bản xuất hiện lặp nhiều lần có thể được mã hóa bằng một **container annotation**; khi đó `getAnnotations()` hoặc `getDeclaredAnnotations()` có thể cho bạn **container** chứ không phải từng annotation thành phần. Vì thế khi muốn đọc tất cả `@Tag`, dùng `getAnnotationsByType(Tag.class)` thay vì tự ép mảng `getAnnotations()` sang `Tag[]`.
+If an annotation type is repeatable, multiple occurrences may be encoded as a **container annotation**; in that case, `getAnnotations()` or `getDeclaredAnnotations()` may give you the **container** rather than each individual component annotation. Therefore, when you want to read all `@Tag` annotations, use `getAnnotationsByType(Tag.class)` instead of casting the `getAnnotations()` array to `Tag[]`.
 
-Không dựa vào thứ tự mảng `getAnnotations()` làm phần cốt lõi của logic chung. Nếu xuất báo cáo hoặc tạo UI, hãy sắp xếp/định danh theo annotation type và thuộc tính có ý nghĩa thay vì phụ thuộc thứ tự tình cờ.
+Do not rely on the order of the `getAnnotations()` array as a core part of general logic. When generating reports or building a UI, sort/identify by annotation type and meaningful attributes rather than depending on incidental order.
 
-## 7. Repeatable annotation và hai biến thể ByType
+## 7. Repeatable annotations and the two ByType variants
 
-Một annotation được lặp lại khi khai báo `@Repeatable(Container.class)` và có container hợp lệ:
+An annotation is repeatable when declared with `@Repeatable(Container.class)` and having a valid container:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -322,7 +322,7 @@ Một annotation được lặp lại khi khai báo `@Repeatable(Container.class
 }
 ```
 
-Đây là snippet độc lập về khai báo annotation type, cần import `java.lang.annotation.*`. Ví dụ sử dụng:
+This is a standalone snippet of annotation type declarations, requiring `import java.lang.annotation.*`. Usage example:
 
 ```java
 @Flag("fast")
@@ -331,26 +331,26 @@ class Task {
 }
 ```
 
-Phân biệt:
+Distinction:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `getAnnotation(Flag.class)` | Tìm một `Flag` “present”; không tự mở container để trả hai `Flag` |
-| `getDeclaredAnnotation(Flag.class)` | Tìm một `Flag` trực tiếp hiện diện; không tự mở container |
-| `getAnnotationsByType(Flag.class)` | Lấy các `Flag` “associated”, có mở container và có áp dụng inheritance nếu điều kiện thỏa |
-| `getDeclaredAnnotationsByType(Flag.class)` | Lấy `Flag` trực tiếp hoặc gián tiếp qua container **trên chính phần tử**, không tìm superclass |
+| `getAnnotation(Flag.class)` | Finds one “present” `Flag`; does not automatically unpack the container to return two `Flag`s |
+| `getDeclaredAnnotation(Flag.class)` | Finds one directly present `Flag`; does not automatically unpack the container |
+| `getAnnotationsByType(Flag.class)` | Retrieves “associated” `Flag`s, unpacking the container and applying inheritance if conditions are met |
+| `getDeclaredAnnotationsByType(Flag.class)` | Retrieves `Flag` directly or indirectly via the container **on the element itself**, without searching superclasses |
 
-`Task.class.getAnnotationsByType(Flag.class)` và `Task.class.getDeclaredAnnotationsByType(Flag.class)` đều cho hai phần tử trong ví dụ vì cả hai được khai báo trên chính `Task`.
+Both `Task.class.getAnnotationsByType(Flag.class)` and `Task.class.getDeclaredAnnotationsByType(Flag.class)` yield two elements in the example because both are declared on `Task` itself.
 
-Nếu muốn repeatable annotation **cũng kế thừa** từ superclass, phải thiết kế tương thích `@Inherited` cho annotation thành phần và container theo yêu cầu Java, rồi xét quy tắc “associated”. Đừng giả định đơn giản rằng khi class con có thêm annotation cùng type thì kết quả ByType tự ghép toàn bộ các annotation của superclass: annotation trực tiếp hoặc gián tiếp tại lớp con có thể **che kết quả từ superclass** đối với cùng kiểu annotation.
+If you want a repeatable annotation to **also be inherited** from a superclass, you must design `@Inherited` compatibility for both the component annotation and the container according to Java requirements, and then consider the “associated” rules. Do not simply assume that when a subclass adds an annotation of the same type, the ByType result automatically merges all annotations from the superclass: an annotation directly or indirectly present on the subclass can **shadow the result from the superclass** for the same annotation type.
 
-## 8. Annotation trên declaration khác annotation trên type use
+## 8. Declaration annotations differ from type-use annotations
 
-Đây là điểm dễ nhầm nhất vì cả hai được truy cập qua `AnnotatedElement`.
+This is the easiest point to confuse because both are accessed through `AnnotatedElement`.
 
-### Annotation khai báo
+### Declaration annotations
 
-Một annotation có target `METHOD`:
+An annotation with target `METHOD`:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -359,7 +359,7 @@ Một annotation có target `METHOD`:
 }
 ```
 
-gắn với khai báo method:
+attaches to the method declaration:
 
 ```java
 @Logged
@@ -368,11 +368,11 @@ public String find() {
 }
 ```
 
-Đây là các snippet minh họa cần đặt trong ngữ cảnh class thích hợp. Để đọc, lấy `Method` rồi gọi `method.isAnnotationPresent(Logged.class)`.
+These are illustrative snippets that must be placed in an appropriate class context. To read it, obtain the `Method` and call `method.isAnnotationPresent(Logged.class)`.
 
-### Annotation ở vị trí sử dụng kiểu
+### Type-use annotations
 
-Một annotation có target `TYPE_USE`:
+An annotation with target `TYPE_USE`:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -381,55 +381,55 @@ Một annotation có target `TYPE_USE`:
 }
 ```
 
-có thể gắn với kiểu trả về, kiểu field, kiểu của parameter, type argument trong generic, array component, wildcard, superclass/interface use tùy cú pháp hợp lệ.
+can attach to a return type, field type, parameter type, generic type argument, array component, wildcard, or superclass/interface use depending on valid syntax.
 
-| Vị trí | API phù hợp |
+| Location | Appropriate API |
 | --- | --- |
-| Kiểu trả về method | `Method.getAnnotatedReturnType()` |
-| Kiểu của field | `Field.getAnnotatedType()` |
-| Kiểu formal parameter | `Executable.getAnnotatedParameterTypes()` |
-| Kiểu throws được khai báo | `Executable.getAnnotatedExceptionTypes()` |
-| Kiểu superclass | `Class.getAnnotatedSuperclass()` |
-| Các kiểu interface | `Class.getAnnotatedInterfaces()` |
-| Kiểu parameterized và type arguments | `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` |
-| Kiểu array có annotation | `AnnotatedArrayType.getAnnotatedGenericComponentType()` |
-| Wildcard bounds mang annotation | `AnnotatedWildcardType.getAnnotatedLowerBounds()` / `getAnnotatedUpperBounds()` |
+| Method return type | `Method.getAnnotatedReturnType()` |
+| Field type | `Field.getAnnotatedType()` |
+| Formal parameter type | `Executable.getAnnotatedParameterTypes()` |
+| Declared throws type | `Executable.getAnnotatedExceptionTypes()` |
+| Superclass type | `Class.getAnnotatedSuperclass()` |
+| Interface types | `Class.getAnnotatedInterfaces()` |
+| Parameterized type and type arguments | `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` |
+| Annotated array type | `AnnotatedArrayType.getAnnotatedGenericComponentType()` |
+| Annotated wildcard bounds | `AnnotatedWildcardType.getAnnotatedLowerBounds()` / `getAnnotatedUpperBounds()` |
 
-Ví dụ `List<@ImportantType String>` không có nghĩa toàn bộ khai báo `Field` được đánh dấu `@ImportantType`. Để tìm annotation trên **type argument `String`**, cần đi từ `field.getAnnotatedType()`, kiểm tra `AnnotatedParameterizedType`, rồi đọc phần tử `getAnnotatedActualTypeArguments()[0]`. Truy cập đơn thuần `field.getAnnotation(ImportantType.class)` là đang hỏi sai vị trí.
+For example, `List<@ImportantType String>` does not mean the entire `Field` declaration is marked with `@ImportantType`. To find the annotation on the **type argument `String`**, you need to start from `field.getAnnotatedType()`, check `AnnotatedParameterizedType`, and then read the element `getAnnotatedActualTypeArguments()[0]`. Simply calling `field.getAnnotation(ImportantType.class)` is querying the wrong location.
 
-Sự khác biệt còn xuất hiện ở type parameter declaration như `class Box<@Tag T>` nếu `Tag` cho phép `TYPE_PARAMETER`. Khi đó có thể đọc annotation từ `TypeVariable<?>` hoặc vị trí type-use phù hợp theo metadata; không lấy bằng `Box.class.getAnnotation(Tag.class)` và mong đó là annotation của class.
+The difference also appears on type parameter declarations such as `class Box<@Tag T>` if `Tag` allows `TYPE_PARAMETER`. In that case, the annotation can be read from `TypeVariable<?>` or the appropriate type-use position according to metadata; do not call `Box.class.getAnnotation(Tag.class)` and expect it to be a class annotation.
 
-## 9. Package, Module, RecordComponent và annotations ở các vị trí khác
+## 9. Package, Module, RecordComponent, and annotations in other locations
 
 ### Package
 
-Package annotation thường được khai báo trong tệp `package-info.java`:
+Package annotations are typically declared in the `package-info.java` file:
 
 ```java
 @com.example.annotations.PublicPackage
 package com.example.domain;
 ```
 
-Đây là ví dụ **mô tả cấu trúc**; annotation type phải tồn tại, có `@Target(PACKAGE)` và `@Retention(RUNTIME)` để quan sát runtime qua `Package`. Trong chương trình có class thuộc package:
+This is a **structure-describing** example; the annotation type must exist and have `@Target(PACKAGE)` and `@Retention(RUNTIME)` to be observed at runtime via `Package`. In a program that has a class belonging to the package:
 
 ```java
 Package p = SomeDomainClass.class.getPackage();
 boolean present = p.isAnnotationPresent(PublicPackage.class);
 ```
 
-Đây là snippet, không phải chương trình độc lập. `getPackage()` có thể cần xử lý null/điều kiện class loader khi viết công cụ chung, và không nên tìm annotation package bằng cách lấy annotation trên một class bất kỳ trong package.
+This is a snippet, not a standalone program. `getPackage()` may need null/class-loader handling when writing general-purpose tools, and you should not look for package annotations by retrieving annotations on an arbitrary class in the package.
 
 ### Module
 
-`java.lang.Module` triển khai `AnnotatedElement`. Các annotation với target `MODULE` có thể đặt trên module declaration trong `module-info.java` (tuân theo cú pháp). Ví dụ `SomeClass.class.getModule().getAnnotations()` đọc annotation của module, **không phải** của class.
+`java.lang.Module` implements `AnnotatedElement`. Annotations with target `MODULE` can be placed on a module declaration in `module-info.java` (following syntax rules). For example, `SomeClass.class.getModule().getAnnotations()` reads annotations of the module, **not** of the class.
 
 ### Record component
 
-`RecordComponent` (Java 16+) là đối tượng Reflection từ `Class.getRecordComponents()`. Nó đại diện cho một **thành phần record**, khác với backing field, accessor method hoặc constructor parameter dù compiler tạo các thành phần liên quan. Nếu muốn xem annotation trên record component, hãy chọn đúng `RecordComponent` và xác định `@Target(RECORD_COMPONENT)`. Java cũng có các quy tắc lan truyền annotation hợp lệ trên các phần tử được suy ra từ record component; công cụ không nên mặc định rằng kết quả khi đọc field, accessor, constructor parameter và record component sẽ luôn giống nhau.
+`RecordComponent` (Java 16+) is a Reflection object from `Class.getRecordComponents()`. It represents a **record component**, distinct from the backing field, accessor method, or constructor parameter even though the compiler generates the related members. If you want to inspect annotations on a record component, choose the exact `RecordComponent` and specify `@Target(RECORD_COMPONENT)`. Java also has rules for propagating valid annotations onto elements derived from a record component; tools should not assume that the results when reading the field, accessor, constructor parameter, and record component will always be identical.
 
-## 10. Các đối tượng annotation và thuộc tính bên trong
+## 10. Annotation objects and internal attributes
 
-Khi có được một annotation:
+Once an annotation is obtained:
 
 ```java
 Label label = Base.class.getAnnotation(Label.class);
@@ -437,58 +437,58 @@ String value = label.value();
 Class<? extends Annotation> annotationType = label.annotationType();
 ```
 
-Đây là snippet dùng `Label`/`Base` trong ví dụ mục 4 và import `java.lang.annotation.Annotation`. Annotation instance hiện thực giao diện annotation tương ứng, vì vậy các phần tử như `value()` được gọi như method đọc thuộc tính.
+This is a snippet using `Label`/`Base` from the example in section 4 and importing `java.lang.annotation.Annotation`. An annotation instance implements the corresponding annotation interface, so elements like `value()` are invoked as attribute-reading methods.
 
-API `Annotation` còn có `annotationType()`, `equals(...)`, `hashCode()` và `toString()`. Không nên dựa vào tên runtime class thực thi annotation; implementation có thể dùng proxy hoặc chi tiết nội bộ JDK. Hãy dựa vào annotation interface và các giá trị attribute được tài liệu hóa.
+The `Annotation` API also has `annotationType()`, `equals(...)`, `hashCode()`, and `toString()`. Do not rely on the runtime class name implementing the annotation; implementations may use proxies or internal JDK details. Rely on the annotation interface and the documented attribute values.
 
-Một annotation attribute có thể là primitive, String, Class, enum, annotation hoặc mảng của các kiểu hợp lệ. Nếu dùng class file hoặc thư viện thay đổi không đồng bộ, đọc attribute có thể gặp lỗi metadata như `TypeNotPresentException`, `EnumConstantNotPresentException`, `AnnotationTypeMismatchException`, `IncompleteAnnotationException` hoặc `AnnotationFormatError` tùy nguyên nhân. Công cụ xử lý plugin/class file do bên khác cung cấp nên có đường chẩn đoán thích hợp, không coi mọi annotation luôn có cấu trúc hoàn hảo.
+An annotation attribute can be a primitive, String, Class, enum, annotation, or an array of valid types. If class files or libraries change out of sync, reading an attribute can encounter metadata errors such as `TypeNotPresentException`, `EnumConstantNotPresentException`, `AnnotationTypeMismatchException`, `IncompleteAnnotationException`, or `AnnotationFormatError` depending on the cause. Tools processing third-party plugins/class files should have proper diagnostic paths rather than assuming every annotation always has a well-formed structure.
 
-## 11. Quy trình khám phá annotation đúng mục tiêu
+## 11. Workflow for targeting annotation discovery accurately
 
-Khi phát triển framework/validator/documentation generator:
+When developing a framework/validator/documentation generator:
 
-1. **Chọn phần tử:** class, method, constructor, field, parameter, package, module, record component hoặc type-use. Đây là bước quan trọng nhất.
-2. **Xác minh retention:** annotation type bạn muốn đọc phải có `@Retention(RUNTIME)`; nếu metadata không runtime-visible, Reflection sẽ không thấy như mong đợi.
-3. **Chọn phạm vi:** `getDeclaredAnnotation(s)` nếu chỉ xét trực tiếp; `getAnnotation(s)` nếu muốn semantics “present” và chấp nhận inheritance trên class khi áp dụng.
-4. **Chọn số lượng:** với annotation repeatable, dùng `getAnnotationsByType` hoặc `getDeclaredAnnotationsByType` để đọc được các phần tử trong container.
-5. **Kiểm tra khai báo hay type-use:** method annotation nằm ở `Method`, còn return type annotation ở `Method.getAnnotatedReturnType()`.
-6. **Xét cấu trúc kế thừa:** override method không tự kế thừa annotation method của cha; hãy viết chính sách quét hierarchy nếu framework yêu cầu.
-7. **Phân biệt metadata với quyền thực thi:** đọc annotation không tự cấp quyền gọi private method, thay đổi field, hay vượt quyền JPMS.
-8. **Đọc attribute an toàn:** chú ý annotation có thể thiếu ở runtime, chỉ có mặt ở vị trí khác hoặc cấu trúc class file không tương thích.
-9. **Kiểm thử với nhiều kiểu phần tử:** ít nhất thử annotation trực tiếp, annotation không kế thừa, repeatable container, method/parameter và type-use.
+1. **Choose the element:** class, method, constructor, field, parameter, package, module, record component, or type-use. This is the most important step.
+2. **Verify retention:** the annotation type you want to read must have `@Retention(RUNTIME)`; if the metadata is not runtime-visible, Reflection will not see it as expected.
+3. **Choose the scope:** `getDeclaredAnnotation(s)` if considering only direct annotations; `getAnnotation(s)` if you want “present” semantics and accept class inheritance where applicable.
+4. **Choose cardinality:** for repeatable annotations, use `getAnnotationsByType` or `getDeclaredAnnotationsByType` to read the elements inside the container.
+5. **Check declaration vs. type-use:** a method annotation lives on `Method`, while a return type annotation lives on `Method.getAnnotatedReturnType()`.
+6. **Consider inheritance structure:** an overriding method does not automatically inherit the parent method's annotations; write a hierarchy-scanning policy if the framework requires it.
+7. **Distinguish metadata from execution access:** reading annotations does not automatically grant permission to invoke private methods, modify fields, or bypass JPMS access rules.
+8. **Read attributes safely:** note that an annotation may be missing at runtime, present only at a different location, or have an incompatible class file structure.
+9. **Test across multiple element kinds:** test at least direct annotations, non-inherited annotations, repeatable containers, method/parameter annotations, and type-use annotations.
 
-## 12. Những lỗi phổ biến
+## 12. Common mistakes
 
-| Ngộ nhận | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| Mọi annotation ở source đều đọc được bằng Reflection | Chỉ annotation được giữ ở runtime và tại vị trí phù hợp mới nhìn thấy qua API |
-| `@Retention` mặc định là RUNTIME | Mặc định là CLASS |
-| `Class<?>` là kiểu duy nhất hỗ trợ `AnnotatedElement` | `Method`, `Field`, `Constructor`, `Parameter`, `Package`, `Module`, `RecordComponent`, `AnnotatedType`… cũng hỗ trợ |
-| `getAnnotations()` và `getDeclaredAnnotations()` luôn giống nhau | Class có thể kế thừa annotation `@Inherited` mà không khai báo trực tiếp |
-| `@Inherited` có hiệu lực cho method override | Chỉ áp dụng cho quy tắc inheritance annotation trên class qua superclass |
-| `getAnnotation(Tag.class)` trả hết repeatable tags | Dùng `getAnnotationsByType(Tag.class)` để mở container |
-| Lớp con tự động gộp repeatable annotations của cha | Quy tắc “associated” không đơn giản là nối mọi cấp; annotation tại class con có thể che kết quả cha |
-| Annotation của kiểu trả về nằm trên Method declaration | Phải đọc `method.getAnnotatedReturnType()` |
-| Annotation của parameter cần `javac -parameters` | Tùy chọn đó chủ yếu cho tên parameter; annotation runtime của parameter có API riêng |
-| Annotation trên superclass method tự xuất hiện khi class con override | Method override là khai báo mới; cần chính sách tìm qua hierarchy nếu nghiệp vụ yêu cầu |
-| Đọc được private method annotation tức có quyền invoke method | Khả năng đọc metadata và khả năng truy cập gọi method là hai câu hỏi riêng |
-| Có thể ép mọi object `AnnotatedElement` thành `Class<?>` | Các loại metadata khác nhau cùng implement interface; cần `instanceof` hoặc contract chung |
+| Every annotation in source code can be read via Reflection | Only annotations retained at runtime and at the matching location are visible through the API |
+| `@Retention` defaults to RUNTIME | The default is CLASS |
+| `Class<?>` is the only type supporting `AnnotatedElement` | `Method`, `Field`, `Constructor`, `Parameter`, `Package`, `Module`, `RecordComponent`, `AnnotatedType`, etc. also support it |
+| `getAnnotations()` and `getDeclaredAnnotations()` are always identical | A class can inherit an `@Inherited` annotation without declaring it directly |
+| `@Inherited` works on method overrides | It applies only to class annotation inheritance rules via superclasses |
+| `getAnnotation(Tag.class)` returns all repeatable tags | Use `getAnnotationsByType(Tag.class)` to unpack the container |
+| A subclass automatically merges repeatable annotations from its parent | The “associated” rule is not simply concatenating all levels; annotations on the subclass can shadow the parent's result |
+| An annotation on the return type is on the Method declaration | You must read `method.getAnnotatedReturnType()` |
+| Parameter annotations require `javac -parameters` | That option is mainly for parameter names; runtime parameter annotations have their own API |
+| Annotations on a superclass method automatically appear when a subclass overrides it | An overriding method is a new declaration; a hierarchy lookup policy is needed if business logic requires it |
+| Being able to read a private method's annotations means having permission to invoke it | Metadata readability and method invocation accessibility are two separate questions |
+| Any `AnnotatedElement` object can be cast to `Class<?>` | Different metadata types implement the same interface; use `instanceof` or a common contract |
 
-## 13. Tự kiểm tra
+## 13. Self-check
 
-1. **Vì sao `Child.class.getAnnotation(Role.class)` thấy `Role` nhưng `getDeclaredAnnotation(Role.class)` không thấy?** Vì `Role` có `@Inherited` trên `Base` và `Child` không tự khai báo nó.
-2. **Nếu annotation type dùng `@Retention(CLASS)`, có dùng `getAnnotation(...)` trên class đang chạy để đọc ổn định không?** Không. Metadata đó không phải runtime-visible qua Reflection chuẩn.
-3. **Hai `@Tag` trên cùng class có phải trả một phần tử từ `getAnnotation(Tag.class)` không?** Không; repeatable annotations thường được lưu qua container và phải đọc bằng `getAnnotationsByType(Tag.class)`.
-4. **`Field` và `Method` có thể được lưu trong cùng biến interface `AnnotatedElement` không?** Có. Cả hai triển khai interface.
-5. **Annotation `@NonBlank` gắn vào return type `String` phải đọc ở đâu?** `method.getAnnotatedReturnType()`, không phải trực tiếp annotation declaration của `Method`.
-6. **Muốn tìm annotation trên kiểu `String` trong `List<@X String>` phải làm gì?** Đi qua `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` từ annotated type của phần tử chứa kiểu đó.
-7. **Một method override không mang `@Label` của method lớp cha, phải làm gì nếu framework muốn fallback?** Duyệt method hierarchy theo chữ ký và chính sách rõ ràng; đừng giả định `@Inherited` áp dụng cho method.
-8. **Tại sao đọc `Parameter.getAnnotation(...)` không cần tên parameter trong class file?** Vì annotation metadata của parameter được lưu và đọc tách khỏi việc lưu tên nguồn bằng `-parameters`.
-9. **Có được phép dùng `getAnnotation(...)` làm cách vượt quyền gọi method không public không?** Không. Metadata annotation không sửa quyền truy cập Reflection hoặc module.
+1. **Why does `Child.class.getAnnotation(Role.class)` see `Role` while `getDeclaredAnnotation(Role.class)` does not?** Because `Role` has `@Inherited` on `Base` and `Child` does not declare it itself.
+2. **If an annotation type uses `@Retention(CLASS)`, can `getAnnotation(...)` on a running class read it reliably?** No. That metadata is not runtime-visible via standard Reflection.
+3. **Do two `@Tag` annotations on the same class return one element from `getAnnotation(Tag.class)`?** No; repeatable annotations are normally stored via a container and must be read with `getAnnotationsByType(Tag.class)`.
+4. **Can `Field` and `Method` be stored in the same `AnnotatedElement` interface variable?** Yes. Both implement the interface.
+5. **Where must an `@NonBlank` annotation attached to the return type `String` be read?** `method.getAnnotatedReturnType()`, not directly as a `Method` declaration annotation.
+6. **What must be done to find an annotation on the type `String` in `List<@X String>`?** Traverse `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` from the annotated type of the element containing that type.
+7. **An overriding method does not carry `@Label` from the superclass method; what should be done if a framework wants fallback behavior?** Walk the method hierarchy by signature with an explicit policy; do not assume `@Inherited` applies to methods.
+8. **Why does reading `Parameter.getAnnotation(...)` not require parameter names in the class file?** Because parameter annotation metadata is stored and read separately from storing source names via `-parameters`.
+9. **Is it allowed to use `getAnnotation(...)` as a way to bypass access restrictions for calling non-public methods?** No. Annotation metadata does not alter Reflection or module access permissions.
 
-**Ghi nhớ:** `AnnotatedElement` là giao diện thống nhất để **đọc annotation của đúng phần tử**. Chọn đúng đối tượng (declaration hay type-use), xác nhận runtime retention, phân biệt trực tiếp/kế thừa và dùng API `ByType` cho repeatable annotation để tránh bỏ sót metadata.
+**Key takeaway:** `AnnotatedElement` is the unified interface for **reading annotations of the right element**. Pick the right object (declaration or type-use), verify runtime retention, distinguish direct vs. inherited annotations, and use the `ByType` APIs for repeatable annotations to avoid missing metadata.
 
-### Tài liệu chính thức
+### Official references
 
 - [Java SE 17 — AnnotatedElement](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedElement.html)
 - [Java SE 17 — AnnotatedType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedType.html)

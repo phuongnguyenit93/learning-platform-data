@@ -1,35 +1,35 @@
-# String.matches(): kiểm tra toàn bộ chuỗi bằng biểu thức chính quy
+# String.matches(): Validating the Entire String with Regular Expressions
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể giải thích vì sao `String.matches(regex)` chỉ trả về `true` khi **toàn bộ** giá trị `String` khớp với regex; viết regex trong chuỗi ký tự Java đúng cách; phân biệt kiểm tra toàn chuỗi với tìm đoạn khớp; và chọn `String.matches` hay `Pattern`/`Matcher` cho từng tình huống.
+After this lesson, you will be able to explain why `String.matches(regex)` returns `true` only when the **entire** `String` value matches the regex; write regexes in Java string literals properly; distinguish full-string validation from substring searching; and choose between `String.matches` and `Pattern`/`Matcher` for each situation.
 
-## 1. Nguyên lý: khớp toàn bộ, không tìm chuỗi con
+## 1. Principle: Full-String Match, Not Substring Search
 
-Phương thức có chữ ký:
+The method has the signature:
 
 ~~~java
 public boolean matches(String regex)
 ~~~
 
-`regex` là biểu thức chính quy (regular expression); kết quả là `boolean`. `text.matches(regex)` có cùng kết quả với `Pattern.matches(regex, text)` của `java.util.regex.Pattern`.
+`regex` is a regular expression; the return type is `boolean`. `text.matches(regex)` produces the same result as `Pattern.matches(regex, text)` from `java.util.regex.Pattern`.
 
-Điều kiện thành công là **regex phải bao phủ toàn bộ chuỗi đầu vào**, từ ký tự đầu đến ký tự cuối. Ví dụ:
+The condition for success is that **the regex must cover the entire input string**, from the first character to the last. For example:
 
-| Chuỗi | Regex Java | Kết quả | Lý do |
+| String | Java Regex | Result | Reason |
 | --- | --- | --- | --- |
-| `"abc123"` | `"[a-z]+\\d+"` | `true` | Chữ thường theo sau bởi một hoặc nhiều chữ số, không thừa ký tự |
-| `"abc123!"` | `"[a-z]+\\d+"` | `false` | Dấu `!` không thuộc mẫu |
-| `"12345"` | `"\\d+"` | `true` | Cả chuỗi là chữ số |
-| `"ID-42"` | `"\\d+"` | `false` | Có tiền tố `ID-` |
-| `"abcXYZdef"` | `"XYZ"` | `false` | `XYZ` chỉ xuất hiện ở giữa |
-| `"abcXYZdef"` | `".*XYZ.*"` | `true` | Phần trước và sau `XYZ` được regex cho phép |
+| `"abc123"` | `"[a-z]+\\d+"` | `true` | Lowercase letters followed by one or more digits, with no extra characters |
+| `"abc123!"` | `"[a-z]+\\d+"` | `false` | The `!` character is not part of the pattern |
+| `"12345"` | `"\\d+"` | `true` | The entire string consists of digits |
+| `"ID-42"` | `"\\d+"` | `false` | Has the prefix `ID-` |
+| `"abcXYZdef"` | `"XYZ"` | `false` | `XYZ` appears only in the middle |
+| `"abcXYZdef"` | `".*XYZ.*"` | `true` | The parts before and after `XYZ` are allowed by the regex |
 
-Có thể hình dung `matches` kiểm tra **cả chuỗi có đúng dạng này không?**, còn `Matcher.find()` kiểm tra **có chỗ nào trong chuỗi khớp không?**. Không cần thêm `^` và `$` chỉ để buộc `String.matches` khớp toàn bộ: chính API đã yêu cầu điều đó. Tuy nhiên `^`/`$` là các anchor có ngữ nghĩa riêng trong regex (đặc biệt khi dùng cờ nhiều dòng), nên không nên xem việc thêm anchor là phép biến đổi luôn tương đương trong mọi trường hợp.
+You can think of `matches` as checking **does the whole string have this exact form?**, whereas `Matcher.find()` checks **is there any match somewhere in the string?**. There is no need to add `^` and `$` just to force `String.matches` to match the entire string: the API itself already requires that. However, `^`/`$` are anchors with their own semantics in regex (especially when using the multiline flag), so adding anchors should not be treated as an always-equivalent transformation in every case.
 
-## 2. Ví dụ Java 17+ chạy độc lập
+## 2. Standalone Runnable Java 17+ Example
 
-Lưu vào `StringMatchesDemo.java`:
+Save to `StringMatchesDemo.java`:
 
 ~~~java
 public class StringMatchesDemo {
@@ -53,14 +53,14 @@ public class StringMatchesDemo {
 }
 ~~~
 
-Chạy bằng terminal tại thư mục chứa tệp:
+Run from the terminal in the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 StringMatchesDemo.java
 java StringMatchesDemo
 ~~~
 
-Kết quả chuẩn (theo đúng thứ tự các lệnh `println`):
+Standard output (in exact order of the `println` statements):
 
 ~~~text
 true
@@ -77,38 +77,38 @@ false
 true
 ~~~
 
-Giải thích các trường hợp dễ nhầm:
+Explanation of easily confused cases:
 
-- `"42".matches("\\d")` trả về `false` vì `\d` khớp **một** chữ số, trong khi chuỗi có hai; `\d+` cho phép một hoặc nhiều chữ số.
-- `"".matches("a*")` là `true` vì dấu `*` cho phép **0 lần** xuất hiện; `a+` yêu cầu ít nhất một `a`.
-- `"abcXYZdef".matches("XYZ")` là `false` vì phần `abc` và `def` chưa được mẫu bao phủ.
-- Theo mặc định dấu chấm `.` không khớp ký tự xuống dòng trong ví dụ; `(?s)` bật chế độ DOTALL, nên `"a\nb"` khớp `(?s)a.b`.
+- `"42".matches("\\d")` returns `false` because `\d` matches **one** digit, whereas the string has two; `\d+` allows one or more digits.
+- `"".matches("a*")` is `true` because `*` allows **0 occurrences**; `a+` requires at least one `a`.
+- `"abcXYZdef".matches("XYZ")` is `false` because the `abc` and `def` parts are not covered by the pattern.
+- By default, the dot `.` does not match the newline character in the example; `(?s)` enables DOTALL mode, so `"a\nb"` matches `(?s)a.b`.
 
-## 3. Hai tầng cú pháp: Java String và regex
+## 3. Two Syntax Layers: Java String and Regex
 
-Regex được truyền dưới dạng **chuỗi Java**, nên dấu gạch chéo ngược `\` phải qua hai tầng diễn giải: Java xử lý chuỗi trước, sau đó bộ máy regex mới đọc mẫu. Chẳng hạn để regex nhìn thấy `\d+`, mã nguồn Java phải viết `"\\d+"`.
+A regex is passed as a **Java string**, so the backslash `\` must go through two layers of interpretation: Java processes the string literal first, and then the regex engine reads the pattern. For example, for the regex to see `\d+`, the Java source code must write `"\\d+"`.
 
-| Muốn kiểm tra | Mẫu regex có ý nghĩa | Viết trong mã Java |
+| What to match | Meaningful regex pattern | Written in Java code |
 | --- | --- | --- |
-| Một hoặc nhiều chữ số | `\d+` | `"\\d+"` |
-| Chính xác ba chữ số | `\d{3}` | `"\\d{3}"` |
-| Một dấu chấm thật | `\.` | `"\\."` |
-| Một khoảng trắng regex | `\s` | `"\\s"` |
-| Mã gồm 2 chữ in hoa, dấu gạch ngang và 3 số | `[A-Z]{2}-\d{3}` | `"[A-Z]{2}-\\d{3}"` |
+| One or more digits | `\d+` | `"\\d+"` |
+| Exactly three digits | `\d{3}` | `"\\d{3}"` |
+| A literal dot | `\.` | `"\\."` |
+| A regex whitespace character | `\s` | `"\\s"` |
+| A code with 2 uppercase letters, a hyphen, and 3 digits | `[A-Z]{2}-\d{3}` | `"[A-Z]{2}-\\d{3}"` |
 
-Một số thành phần thường dùng:
+Some commonly used components:
 
-- `[abc]`: một ký tự thuộc tập `a`, `b`, `c`; `[A-Z]`: một chữ cái Latin in hoa trong khoảng chỉ định.
-- `\d`, `\w`, `\s`: lớp ký tự dựng sẵn; ngữ nghĩa Unicode có thể chịu tác động của cờ regex.
-- `?`: 0 hoặc 1 lần; `*`: 0 hoặc nhiều lần; `+`: 1 hoặc nhiều lần; `{n}`: đúng n lần; `{m,n}`: từ m đến n lần.
-- `(...)`: nhóm; `|`: lựa chọn; `.`: ký tự bất kỳ trừ một số dấu kết thúc dòng nếu chưa bật DOTALL.
-- `[0-9]` kiểm tra chữ số ASCII rõ ràng; `\d` mặc định dùng lớp chữ số regex của Java và có thể mở rộng khi bật `UNICODE_CHARACTER_CLASS`/`(?U)`.
+- `[abc]`: one character from the set `a`, `b`, `c`; `[A-Z]`: one uppercase Latin letter in the specified range.
+- `\d`, `\w`, `\s`: predefined character classes; Unicode semantics may be affected by regex flags.
+- `?`: 0 or 1 time; `*`: 0 or more times; `+`: 1 or more times; `{n}`: exactly n times; `{m,n}`: from m to n times.
+- `(...)`: group; `|`: alternation; `.`: any character except certain line terminators unless DOTALL is enabled.
+- `[0-9]` explicitly matches ASCII digits; `\d` by default uses Java's regex digit class and can expand when `UNICODE_CHARACTER_CLASS`/`(?U)` is enabled.
 
-Ví dụ, `"v1x2".matches("v1.2")` là `true` vì dấu `.` đại diện cho một ký tự bất kỳ (ở đây `x`). Muốn so sánh với dấu chấm thật, dùng `"v1\\.2"`. Nếu chuỗi cần so khớp đến từ người dùng và phải được hiểu theo nghĩa **nguyên văn**, dùng `Pattern.quote(text)` thay vì đưa thẳng vào regex.
+For example, `"v1x2".matches("v1.2")` is `true` because `.` represents any single character (`x` here). To match a literal dot, use `"v1\\.2"`. If the string to match comes from user input and must be interpreted **literally**, use `Pattern.quote(text)` instead of embedding it directly into the regex.
 
-## 4. So sánh matches, find, lookingAt và contains
+## 4. Comparing matches, find, lookingAt, and contains
 
-`String.matches` và `Matcher.matches()` đều yêu cầu khớp toàn bộ chuỗi (hoặc toàn bộ *region* được cấu hình trong `Matcher`). `Matcher.lookingAt()` kiểm tra tiền tố, còn `Matcher.find()` quét tìm một đoạn khớp. `String.contains` chỉ tìm đoạn ký tự **nguyên văn**, không hiểu cú pháp regex.
+`String.matches` and `Matcher.matches()` both require matching the entire string (or the entire *region* configured in `Matcher`). `Matcher.lookingAt()` checks a prefix, while `Matcher.find()` scans for a matching subsequence. `String.contains` only searches for a **literal** character sequence and does not interpret regex syntax.
 
 ~~~java
 import java.util.regex.Matcher;
@@ -132,7 +132,7 @@ public class MatchVsFindDemo {
 }
 ~~~
 
-Lưu là `MatchVsFindDemo.java`, biên dịch bằng `javac -encoding UTF-8 MatchVsFindDemo.java` và chạy `java MatchVsFindDemo`. Kết quả:
+Save as `MatchVsFindDemo.java`, compile with `javac -encoding UTF-8 MatchVsFindDemo.java`, and run `java MatchVsFindDemo`. Output:
 
 ~~~text
 false
@@ -143,19 +143,19 @@ true
 true
 ~~~
 
-`matches()` thất bại vì `"Order "` còn dư; `lookingAt()` thất bại vì đầu chuỗi không phải chữ số; `find()` tìm được `42` và `group()` trả về đoạn đã khớp. Ví dụ tạo `Matcher` riêng cho từng kiểu kiểm tra để không phụ thuộc trạng thái của những lần match trước.
+`matches()` fails because `"Order "` is left over; `lookingAt()` fails because the beginning of the string is not a digit; `find()` finds `42`, and `group()` returns the matched substring. The example creates a separate `Matcher` for each check so it does not depend on the state of previous match attempts.
 
-| Nhu cầu | API phù hợp |
+| Requirement | Appropriate API |
 | --- | --- |
-| Kiểm tra toàn bộ giá trị có đúng định dạng regex | `value.matches(regex)` hoặc `pattern.matcher(value).matches()` |
-| Tìm một đoạn phù hợp regex trong văn bản | `pattern.matcher(value).find()` |
-| Kiểm tra phần đầu chuỗi theo regex | `pattern.matcher(value).lookingAt()` |
-| Tìm sự hiện diện của đoạn ký tự cố định | `value.contains(literal)` |
-| So sánh toàn bộ chuỗi với một giá trị cố định | `value.equals(literal)` |
+| Validate whether the entire value conforms to a regex format | `value.matches(regex)` or `pattern.matcher(value).matches()` |
+| Find a regex match anywhere inside text | `pattern.matcher(value).find()` |
+| Check the beginning of the string against a regex | `pattern.matcher(value).lookingAt()` |
+| Check for the presence of a fixed literal substring | `value.contains(literal)` |
+| Compare the entire string with a fixed literal value | `value.equals(literal)` |
 
-## 5. Áp dụng: xác thực định dạng dữ liệu
+## 5. Application: Validating Data Formats
 
-Giả sử một mã có dạng **hai chữ cái ASCII in hoa, một dấu `-`, chính xác ba chữ số ASCII**. Regex phù hợp là `[A-Z]{2}-[0-9]{3}`. Dùng `matches` để ngăn phần dư ở đầu/cuối vô tình được chấp nhận.
+Suppose a code has the form **two uppercase ASCII letters, one `-`, and exactly three ASCII digits**. The appropriate regex is `[A-Z]{2}-[0-9]{3}`. Use `matches` to prevent leading or trailing extra characters from being accidentally accepted.
 
 ~~~java
 import java.util.regex.Pattern;
@@ -177,14 +177,14 @@ public class CodeValidationDemo {
 }
 ~~~
 
-Lưu là `CodeValidationDemo.java` rồi chạy:
+Save as `CodeValidationDemo.java` and run:
 
 ~~~bash
 javac -encoding UTF-8 CodeValidationDemo.java
 java CodeValidationDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 AB-123 -> true
@@ -195,31 +195,31 @@ XY-000 -> true
 null -> false
 ~~~
 
-Ở ví dụ này `Pattern.compile(...)` được gọi một lần rồi dùng lại: hợp lý khi kiểm tra cùng một regex nhiều lần. `String.matches(regex)` tiện cho kiểm tra ngắn, ít lần; mỗi lời gọi thực hiện thao tác tương đương `Pattern.matches(regex, value)`, nên tránh biên dịch lại biểu thức không cần thiết trong vòng lặp lớn.
+In this example, `Pattern.compile(...)` is called once and reused: this makes sense when checking the same regex many times. `String.matches(regex)` is convenient for short, infrequent checks; each call performs an operation equivalent to `Pattern.matches(regex, value)`, so avoid recompiling the expression unnecessarily inside a large loop.
 
-Đây là **kiểm tra hình thức**, chưa khẳng định một mã có tồn tại trong hệ thống. Tương tự, một regex cho email hoặc URL hiếm khi thay thế được mọi quy tắc nghiệp vụ hay bước xác thực thực tế.
+This is **syntactic validation**; it does not confirm that a code actually exists in the system. Similarly, a regex for an email or URL rarely replaces all business rules or real verification steps.
 
-## 6. Lỗi thường gặp và cách xử lý
+## 6. Common Mistakes and How to Handle Them
 
-**1. Nhầm khớp toàn chuỗi với tìm chuỗi con.** Nếu muốn tìm số trong `"Order 42"`, dùng `find()`. Nếu phải xác thực định dạng gồm cả tiền tố và số, viết mẫu phủ cả hai, ví dụ `"Order \\d+"`.
+**1. Confusing full-string matching with substring searching.** If you want to find the number in `"Order 42"`, use `find()`. If you must validate a format consisting of both a prefix and digits, write a pattern covering both, such as `"Order \\d+"`.
 
-**2. Quên escape dấu gạch chéo trong Java.** Mã `"\\d+"` tạo regex `\d+`. Viết `"\d+"` trực tiếp trong chuỗi Java là lỗi biên dịch (*illegal escape character*). Muốn dấu chấm thật phải viết `"\\."`, không phải `"."`.
+**2. Forgetting to escape backslashes in Java.** The code `"\\d+"` produces the regex `\d+`. Writing `"\d+"` directly in a Java string is a compile error (*illegal escape character*). For a literal dot, you must write `"\\."`, not `"."`.
 
-**3. Tưởng `.` khớp mọi thứ kể cả newline.** Mặc định dấu chấm không khớp dấu kết thúc dòng. Dùng `(?s)` khi chủ đích muốn chế độ DOTALL; hoặc chọn tập ký tự chặt chẽ hơn nếu đang xác thực dữ liệu.
+**3. Assuming `.` matches everything including newlines.** By default, the dot does not match line terminators. Use `(?s)` when you intentionally want DOTALL mode, or choose a stricter character set if you are validating data.
 
-**4. Bỏ qua ký tự trắng ở đầu/cuối.** `" AB-123 "` không khớp `[A-Z]{2}-[0-9]{3}`. Chỉ gọi `strip()` trước `matches` nếu quy tắc nhập liệu cho phép bỏ khoảng trắng; nếu khoảng trắng là dữ liệu không hợp lệ, phải giữ nguyên để từ chối.
+**4. Overlooking leading/trailing whitespace.** `" AB-123 "` does not match `[A-Z]{2}-[0-9]{3}`. Only call `strip()` before `matches` if the input rules allow ignoring whitespace; if whitespace is invalid data, keep the input unchanged so it is rejected.
 
-**5. Không xét `null` hoặc regex sai.** Gọi `matches` trên biến `String` đang `null` gây `NullPointerException`. Regex sai cú pháp như `"[abc"` gây `PatternSyntaxException`. Nếu regex lấy từ bên ngoài, cần xử lý lỗi cú pháp và giới hạn độ phức tạp trước khi chạy.
+**5. Not accounting for `null` or invalid regexes.** Calling `matches` on a `null` `String` variable causes a `NullPointerException`. A syntactically invalid regex like `"[abc"` causes a `PatternSyntaxException`. If the regex comes from an external source, handle syntax errors and limit complexity before running it.
 
-**6. Chấp nhận input theo regex quá rộng.** Mẫu `".*"` khớp cả chuỗi rỗng; `".+"` không khớp chuỗi rỗng, nhưng vẫn quá rộng cho mã định danh. Viết lớp ký tự và độ dài thật sự cần (ví dụ `[A-Z]{2}-[0-9]{3}`).
+**6. Accepting overly broad input.** The pattern `".*"` matches even an empty string; `".+"` does not match an empty string, but is still far too broad for an identifier. Write the exact character classes and lengths actually needed (for example, `[A-Z]{2}-[0-9]{3}`).
 
-**7. Xem regex như bộ xác thực mọi ngôn ngữ/ký tự.** `[A-Z]` chỉ nói tới các chữ từ A đến Z; `(?i)` có thể bật so khớp không phân biệt hoa thường theo quy tắc regex, nhưng yêu cầu Unicode/ngôn ngữ khác có thể cần cách xây dựng lớp ký tự và cờ phù hợp. Không giả định một mẫu ASCII bao phủ tiếng Việt hay toàn bộ Unicode.
+**7. Treating regex as a validator for all languages/characters.** `[A-Z]` only refers to letters from A to Z; `(?i)` can enable case-insensitive matching according to regex rules, but Unicode/other-language requirements may need appropriate character classes and flags. Do not assume an ASCII pattern covers Vietnamese or all of Unicode.
 
-**8. Đưa regex không tin cậy vào xử lý dữ liệu dài.** Một số biểu thức có nhánh lặp lồng nhau gây thời gian chạy rất lớn (*catastrophic backtracking*) khi gặp chuỗi gần khớp. Ưu tiên regex đơn giản, có giới hạn; cân nhắc giới hạn đầu vào, hiệu năng và giải pháp parser chuyên biệt nếu cần.
+**8. Feeding untrusted regexes into long input processing.** Some expressions with nested repetitive branches cause huge execution time (*catastrophic backtracking*) on near-matching strings. Prefer simple, bounded regexes; consider input limits, performance, and specialized parser solutions if needed.
 
-## 7. Tự kiểm tra
+## 7. Self-Check
 
-Không cần chạy code, hãy dự đoán:
+Without running the code, predict the results:
 
 1. `"A12".matches("[A-Z]\\d{2}")`
 2. `"A123".matches("[A-Z]\\d{2}")`
@@ -227,11 +227,11 @@ Không cần chạy code, hãy dự đoán:
 4. `"x42y".matches("\\d+")`
 5. `"x42y".matches(".*\\d+.*")`
 
-**Đáp án:** (1) `true`; (2) `false` vì thừa một chữ số; (3) `true` vì `*` cho phép 0 lần; (4) `false` vì có `x` và `y`; (5) `true` vì `.*` ở hai phía bao phủ ký tự không phải chữ số.
+**Answers:** (1) `true`; (2) `false` because there is one extra digit; (3) `true` because `*` allows 0 occurrences; (4) `false` because of `x` and `y`; (5) `true` because `.*` on both sides covers the non-digit characters.
 
-Khi tự thiết kế mẫu để xác thực, luôn thử ít nhất bốn nhóm giá trị: **hợp lệ**, **thừa tiền tố/hậu tố**, **thiếu hoặc sai ký tự**, **rỗng/null**. Đây là cách nhanh để bắt lỗi nhầm lẫn giữa kiểm tra toàn bộ và tìm một phần của chuỗi.
+When designing a pattern for validation yourself, always test at least four categories of values: **valid**, **extra prefix/suffix**, **missing or invalid characters**, and **empty/null**. This is a quick way to catch confusion between full-string validation and partial matching.
 
-## Tham khảo chính thức
+## Official References
 
 - [Java SE 17 — String.matches(String regex)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#matches(java.lang.String))
 - [Java SE 17 — Pattern](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html)

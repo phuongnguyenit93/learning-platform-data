@@ -1,18 +1,18 @@
-# Không đồng nhất dịch phải với chia khi xử lý số âm trong Java
+# Do Not Equate Right Shift with Division on Negative Numbers in Java
 
-Trong Java, **dịch phải số nguyên có dấu** (`>>`) và **chia số nguyên** (`/`) có thể cho hai kết quả khác nhau khi số bị chia âm. Sự khác nhau đến từ **quy tắc làm tròn**, không phải từ việc viết hai phép toán theo hai cách khác nhau. Cần phân biệt thêm dịch phải không dấu (`>>>`), vì nó còn thay đổi cách xử lý bit dấu.
+In Java, **signed integer right shift** (`>>`) and **integer division** (`/`) can yield two different results when the dividend is negative. The difference comes from **rounding rules**, not from writing the two operations in two different ways. You must also distinguish unsigned right shift (`>>>`), because it changes how the sign bit is handled as well.
 
-Bài học thuộc chủ đề **Bit và số không dấu**. Sau khi học, bạn cần biết khi nào dùng `/`, `>>` và `>>>`; có thể tự giải thích kết quả với số âm; và tránh thay phép chia bằng phép dịch bit một cách máy móc.
+This lesson belongs to the topic **Bits and Unsigned Numbers**. After studying it, you should know when to use `/`, `>>`, and `>>>`; be able to explain results for negative numbers yourself; and avoid mechanically replacing division with bit shifting.
 
-## 1. Ba phép toán có ba ý nghĩa
+## 1. Three Operations with Three Meanings
 
-- `x / d` với `x` và `d` là kiểu nguyên (`int` hoặc `long`): Java thực hiện **chia nguyên, bỏ phần thập phân theo hướng 0**. Ví dụ `-3 / 2` được `-1`, vì thương toán học là `-1.5` và được cắt về `-1`. Dấu của số dư (`%`) theo dấu của số bị chia: `-3 % 2 == -1`.
-- `x >> k`: **dịch phải số học** (arithmetic right shift), các bit bên trái được điền bằng bit dấu (0 với số không âm, 1 với số âm). Với `int` và `0 <= k <= 30`, kết quả tương đương **làm tròn xuống âm vô cực** của `x / 2^k` theo nghĩa toán học: `floor(x / 2^k)`.
-- `x >>> k`: **dịch phải logic** (logical/unsigned right shift), luôn điền bit 0 từ bên trái. Với số âm, kết quả thường là một số nguyên dương rất lớn khi nhìn theo kiểu `int`; phép này không tương đương phép chia có dấu.
+- `x / d` where `x` and `d` are integer types (`int` or `long`): Java performs **integer division, truncating toward 0**. For example, `-3 / 2` yields `-1`, because the mathematical quotient is `-1.5` and is truncated toward `-1`. The sign of the remainder (`%`) follows the dividend's sign: `-3 % 2 == -1`.
+- `x >> k`: **arithmetic right shift**, where vacated bits on the left are filled with the sign bit (0 for non-negative numbers, 1 for negative numbers). For `int` and `0 <= k <= 30`, the result is equivalent to **rounding toward negative infinity** of `x / 2^k` mathematically: `floor(x / 2^k)`.
+- `x >>> k`: **logical/unsigned right shift**, always filling `0` bits from the left. For negative numbers, the result is typically a very large positive integer when viewed as `int`; this operation is not equivalent to signed division.
 
-Điểm mấu chốt: `/` làm tròn về **0**, còn `>>` khi dịch số âm với phần dư khác 0 thì làm tròn về **âm vô cực**.
+Key point: `/` rounds toward **0**, whereas `>>` on a negative number with a nonzero remainder rounds toward **negative infinity**.
 
-| Giá trị `x` | `k` | Thương toán học `x / 2^k` | `x / (1 << k)` | `x >> k` |
+| Value `x` | `k` | Mathematical quotient `x / 2^k` | `x / (1 << k)` | `x >> k` |
 | ---: | ---: | ---: | ---: | ---: |
 | 7 | 1 | 3.5 | 3 | 3 |
 | -8 | 2 | -2 | -2 | -2 |
@@ -20,11 +20,11 @@ Bài học thuộc chủ đề **Bit và số không dấu**. Sau khi học, b�
 | -3 | 1 | -1.5 | -1 | -2 |
 | -1 | 1 | -0.5 | 0 | -1 |
 
-Bảng dùng kiểu `int`, `k` từ 0 đến 30 và mẫu số dương `1 << k`. Hai phép chỉ luôn giống nhau trong miền này khi `x >= 0` hoặc `x` âm nhưng **chia hết cho `2^k`**. Chúng khác nhau một đơn vị với số âm không chia hết.
+The table uses type `int`, `k` from 0 to 30, and positive divisor `1 << k`. The two operations always match in this range only when `x >= 0` or when `x` is negative and **divisible by `2^k`**. They differ by 1 for negative numbers that are not evenly divisible.
 
-## 2. Vì sao `-3 >> 1` bằng `-2`?
+## 2. Why Does `-3 >> 1` Equal `-2`?
 
-`int` có 32 bit và biểu diễn số nguyên âm theo bù hai (two's complement). Mẫu bit của `-3` là:
+`int` has 32 bits and represents negative integers in two's complement. The bit pattern of `-3` is:
 
 ~~~text
 -3 (int)       = 11111111 11111111 11111111 11111101 = 0xFFFFFFFD
@@ -33,13 +33,13 @@ Bảng dùng kiểu `int`, `k` từ 0 đến 30 và mẫu số dương `1 << k`.
 -3 / 2         = -1                                      = 0xFFFFFFFF
 ~~~
 
-Khi dùng `>>`, bit 1 bên trái được lặp lại, giữ dấu âm. Bit thấp bị loại bỏ, nên số `-3` chuyển thành `-2`. Trong phép chia `-3 / 2`, Java tính thương `-1.5` rồi bỏ phần lẻ về phía 0, được `-1`; phép chia không được định nghĩa là “dịch bit rồi bỏ bit cuối”.
+With `>>`, the leftmost `1` bit is replicated, preserving the negative sign. The lowest bit is dropped, so `-3` turns into `-2`. In `-3 / 2`, Java computes the quotient `-1.5` and drops the fractional part toward 0, producing `-1`; division is not defined as "shift bits and drop the last bit".
 
-Khi dùng `>>>`, bit 0 được chèn vào trái. Điều này phù hợp với ý nghĩa **dịch một mẫu bit 32 bit như số không dấu**: `0xFFFFFFFD` được hiểu là `4294967293` trong miền unsigned 32 bit, và chia lấy phần nguyên cho 2 được `2147483646`. Tuy nhiên biến `int` trong Java **vẫn là kiểu có dấu**; để xem giá trị unsigned ban đầu, dùng `Integer.toUnsignedLong(-3)`.
+With `>>>`, a `0` bit is inserted on the left. This matches the meaning of **shifting a 32-bit pattern as an unsigned number**: `0xFFFFFFFD` is interpreted as `4294967293` in the unsigned 32-bit range, and integer division by 2 yields `2147483646`. However, an `int` variable in Java **remains a signed type**; to inspect the original unsigned value, use `Integer.toUnsignedLong(-3)`.
 
-## 3. Ví dụ Java 17+ chạy độc lập
+## 3. Standalone Runnable Java 17+ Example
 
-Lưu đúng tên tệp `ShiftVsDivision.java`:
+Save with exact filename `ShiftVsDivision.java`:
 
 ~~~java
 public class ShiftVsDivision {
@@ -69,14 +69,14 @@ public class ShiftVsDivision {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac ShiftVsDivision.java
 java ShiftVsDivision
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 x=-3, k=1: /=-1, >>=-2
@@ -89,20 +89,20 @@ Math.floorDiv(-3, 2) = -2
 -3 unsigned = 4294967293
 ~~~
 
-Quan sát các dòng `-3`, `-7` và `-1`: chia nguyên và dịch phải khác nhau. Dòng `-8` cho thấy số âm **chia hết** cho lũy thừa của 2 thì kết quả vẫn trùng nhau. Dòng `7` minh họa trường hợp số dương.
+Observe the rows for `-3`, `-7`, and `-1`: integer division and right shift differ. The `-8` row shows that when a negative number is **evenly divisible** by a power of 2, the results still match. The `7` row illustrates the positive case.
 
-## 4. Chọn toán tử theo ý nghĩa cần tính
+## 4. Choosing the Operator According to Intended Semantics
 
-**Trường hợp A — muốn thương chia nguyên theo quy tắc Java:** dùng `/`.
+**Case A — you want integer division quotient per Java's rules:** use `/`.
 
 ~~~java
 int quantity = -7;
-int result = quantity / 4; // -1: làm tròn về 0
+int result = quantity / 4; // -1: rounds toward 0
 ~~~
 
-Không thay thành `quantity >> 2`: phép dịch cho `-2`. Đây có thể là lỗi khó thấy nếu thử nghiệm chỉ với số dương hoặc số âm chia hết.
+Do not replace this with `quantity >> 2`: the shift produces `-2`. This can be a subtle bug if testing only uses positive numbers or evenly divisible negative numbers.
 
-**Trường hợp B — muốn làm tròn xuống khi chia cho lũy thừa của 2:** dùng `Math.floorDiv(x, divisor)` để thể hiện rõ ý định, hoặc `x >> k` nếu thật sự đang làm phép toán bit và hiểu giới hạn của `k`.
+**Case B — you want floor rounding when dividing by a power of 2:** use `Math.floorDiv(x, divisor)` to express intent clearly, or `x >> k` if you are genuinely doing bit-level math and understand the constraints on `k`.
 
 ~~~java
 int x = -7;
@@ -110,9 +110,9 @@ int floorByApi = Math.floorDiv(x, 4); // -2
 int floorByBits = x >> 2;             // -2
 ~~~
 
-`Math.floorDiv` còn dùng được với các số chia dương khác 2, 4, 8, ...; `>>` chỉ có quan hệ trên với phép chia cho lũy thừa của 2. Trong công thức `floor(x / 2^k)`, ký hiệu `floor` là phép làm tròn toán học, **không phải** một phép chia nguyên Java.
+`Math.floorDiv` also works with positive divisors other than 2, 4, 8, ...; `>>` only corresponds to division by powers of 2. In `floor(x / 2^k)`, `floor` denotes mathematical floor rounding, **not** Java integer division.
 
-**Trường hợp C — đang thao tác mẫu bit hoặc muốn dịch không dấu:** dùng `>>>` khi cần điền 0 từ bên trái; nếu muốn xử lý giá trị `int` như unsigned 32 bit, dùng các API thể hiện rõ cách hiểu unsigned.
+**Case C — you are manipulating bit patterns or want unsigned shifting:** use `>>>` when you need `0` filled from the left; if you want to treat an `int` value as unsigned 32-bit, use APIs that clearly express unsigned semantics.
 
 ~~~java
 int bits = -3; // 0xFFFFFFFD
@@ -121,34 +121,34 @@ long unsigned = Integer.toUnsignedLong(bits); // 4294967293
 int quotient = Integer.divideUnsigned(bits, 2); // 2147483646
 ~~~
 
-`>>>` hữu ích khi tách trường bit, xử lý mặt nạ, dữ liệu nhị phân hoặc một thuật toán chủ động dùng biểu diễn unsigned. Không dùng `>>>` để thay `/` với số âm có dấu.
+`>>>` is useful when extracting bit fields, processing masks, handling binary data, or implementing an algorithm that explicitly uses unsigned representation. Do not use `>>>` to replace `/` on signed negative numbers.
 
-## 5. Các giới hạn dễ bỏ sót
+## 5. Limits Easily Overlooked
 
-1. **Số lần dịch bị rút gọn theo độ rộng kiểu dữ liệu.** Với `int`, Java chỉ dùng 5 bit thấp của số đếm dịch (`k & 31`); với `long` là 6 bit thấp (`k & 63`). Vì vậy `x >> 32` thực chất giống `x >> 0` khi `x` là `int`; nó không biểu diễn chia cho `2^32`. Tương tự `1L >> 64` giống `1L >> 0`.
-2. **Tránh viết `1 << 31` làm số chia dương kiểu `int`.** Giá trị đó là `Integer.MIN_VALUE` (`-2147483648`), do bit dấu được bật lên. Mẫu `x / (1 << k)` trong bảng chỉ dùng `0 <= k <= 30`. Nếu phải tính lũy thừa của 2 lớn hơn, xét `long` hoặc cách biểu diễn phù hợp trước khi chia.
-3. **`byte` và `short` được nâng lên `int` trước khi dịch.** Ví dụ nếu `byte b = -3`, thì `b >>> 1` hoạt động trên `int` 32 bit đã được mở rộng dấu, kết quả là `2147483646`, không phải phép dịch riêng trên mẫu 8 bit `0xFD`. Nếu cần xử lý byte không dấu, chuyển `b & 0xFF` trước rồi mới dịch.
-4. **`long` tuân theo cùng khác biệt làm tròn.** `-3L / 2L` cho `-1L`, còn `-3L >> 1` cho `-2L`. Số đếm dịch của `long` dùng giới hạn 64 bit thay vì 32 bit.
-5. **Đừng suy ra “dịch luôn nhanh hơn chia” để tự thay toán tử.** Hai biểu thức phải có cùng ngữ nghĩa với *mọi* đầu vào hợp lệ trước khi tối ưu; trình biên dịch/JIT có thể tự chọn cách thực hiện phù hợp nhưng chương trình vẫn phải bảo toàn cách làm tròn của `/`. Việc thay sai phép toán là lỗi đúng đắn, bất kể hiệu năng.
-6. **Kiểm tra trường hợp âm sát 0 và số âm lẻ.** `-1 / 2 == 0` nhưng `-1 >> 1 == -1` là phép thử nhỏ nhất làm lộ khác biệt; hãy thêm cả `-3`, `-7` và số âm chia hết như `-8`.
+1. **Shift counts are masked to the data type's width.** For `int`, Java uses only the low 5 bits of the shift count (`k & 31`); for `long`, the low 6 bits (`k & 63`). Thus `x >> 32` is actually the same as `x >> 0` when `x` is `int`; it does not represent division by `2^32`. Similarly `1L >> 64` is the same as `1L >> 0`.
+2. **Avoid writing `1 << 31` as a positive `int` divisor.** That value is `Integer.MIN_VALUE` (`-2147483648`), because the sign bit is set. The pattern `x / (1 << k)` in the table only uses `0 <= k <= 30`. If you must work with larger powers of 2, consider `long` or another suitable representation before dividing.
+3. **`byte` and `short` are promoted to `int` before shifting.** For example, if `byte b = -3`, then `b >>> 1` operates on the sign-extended 32-bit `int`, yielding `2147483646`, rather than shifting only the 8-bit pattern `0xFD`. If you need to handle an unsigned byte, convert with `b & 0xFF` before shifting.
+4. **`long` follows the same rounding difference.** `-3L / 2L` gives `-1L`, whereas `-3L >> 1` gives `-2L`. `long` shift counts use a 64-bit mask rather than 32-bit.
+5. **Do not assume "shift is always faster than division" and swap operators manually.** Two expressions must have identical semantics for *all* valid inputs before optimizing; the compiler/JIT can choose an appropriate lowering automatically while still preserving `/` rounding. Substituting the wrong operation is a correctness bug, regardless of performance.
+6. **Test negative values near 0 and odd negative numbers.** `-1 / 2 == 0` whereas `-1 >> 1 == -1` is the smallest test revealing the difference; include `-3`, `-7`, and evenly divisible negative numbers like `-8`.
 
-Với số chia là `2^k` dương và biểu diễn được, có thể ghi nhớ công thức:
+For a positive representable power-of-2 divisor `2^k`, remember this summary:
 
 ~~~text
 x / (2^k)  = truncateTowardZero(x / 2^k)
 x >> k     = floor(x / 2^k)
 ~~~
 
-Với `x < 0` và có số dư khác 0, kết quả `x >> k` **nhỏ hơn kết quả chia nguyên đúng 1**. Với `x >= 0` hoặc số âm chia hết, chúng trùng nhau. Đây là lý do phép dịch bit không thể mặc định thay thế phép chia trong logic xử lý số nguyên có dấu.
+For `x < 0` with a nonzero remainder, `x >> k` is **exactly 1 less than the integer division result**. For `x >= 0` or evenly divisible negative numbers, they coincide. That is why bit shifting cannot serve as a drop-in replacement for division in signed integer logic.
 
-## 6. Tự kiểm tra
+## 6. Self-Check
 
-Hãy dự đoán trước khi chạy Java:
+Predict before running Java:
 
-- `-9 / 4` và `-9 >> 2` lần lượt bằng bao nhiêu?
-- `-12 / 4` và `-12 >> 2` có bằng nhau không?
-- `-1 >>> 1` là bao nhiêu đối với kiểu `int`, và vì sao nó không phải kết quả của `-1 / 2`?
+- What are `-9 / 4` and `-9 >> 2`, respectively?
+- Are `-12 / 4` and `-12 >> 2` equal?
+- What is `-1 >>> 1` for type `int`, and why is it not the result of `-1 / 2`?
 
-**Đáp án:** `-9 / 4 == -2`, `-9 >> 2 == -3`; cả hai biểu thức với `-12` đều bằng `-3` vì chia hết cho 4; `-1 >>> 1 == 2147483647` vì `-1` có toàn bit 1 và `>>>` chèn 0 vào đầu, trong khi `-1 / 2 == 0`.
+**Answers:** `-9 / 4 == -2`, `-9 >> 2 == -3`; both expressions with `-12` equal `-3` because it is divisible by 4; `-1 >>> 1 == 2147483647` because `-1` has all `1` bits and `>>>` inserts `0` at the front, whereas `-1 / 2 == 0`.
 
-Khi đọc code hiện có, hãy xác định ngay mục đích: **chia số có dấu**, **làm tròn xuống**, hay **dịch mẫu bit không dấu**. Chọn toán tử theo mục đích ấy, đặc biệt khi dữ liệu đầu vào có thể âm.
+When reading existing code, immediately identify the intent: **signed division**, **floor rounding**, or **unsigned bit-pattern shifting**. Choose the operator matching that intent, especially when input data may be negative.

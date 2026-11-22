@@ -1,21 +1,21 @@
-# Chuẩn hóa khóa khác với bảo toàn văn bản hiển thị trong Java Collections
+# Key Normalization vs. Preserving Display Text in Java Collections
 
-## 1. Vấn đề: cùng cách tìm kiếm, khác cách trình bày
+## 1. The Problem: Same Search, Different Presentation
 
-Giả sử ứng dụng lưu tên một sản phẩm, thẻ nội dung hoặc một mục từ điển trong `Map<String, ...>`. Người dùng nhập `"  Café  "`, sau đó tìm bằng `"café"`, `"CAFÉ"` hay chuỗi Unicode `"Cafe\u0301"` (chữ `e` rồi dấu sắc kết hợp). Ứng dụng có thể muốn tất cả lần tra cứu này trỏ đến **cùng mục**, nhưng khi hiển thị lại muốn giữ nguyên tên người dùng đã đặt, gồm chữ hoa, dấu, khoảng trắng hoặc cách viết thương hiệu.
+Suppose an application stores a product name, content tag, or dictionary entry in `Map<String, ...>`. A user enters `"  Café  "`, and later searches with `"café"`, `"CAFÉ"`, or the Unicode string `"Cafe\u0301"` (the letter `e` followed by a combining acute accent). The application may want all of those lookups to point to **the same entry**, yet when displaying it, preserve the exact name the user entered—including capitalization, accents, whitespace, or brand styling.
 
-Đó là hai yêu cầu khác nhau:
+Those are two separate requirements:
 
-- **Khóa tra cứu đã chuẩn hóa (normalized/canonical key)**: biểu diễn được định nghĩa thống nhất để so sánh, tìm kiếm, nhóm hoặc phát hiện trùng lặp.
-- **Văn bản hiển thị (display text)**: chuỗi gốc hoặc phiên bản đã được người dùng duyệt để hiển thị lại đúng ý nghĩa và hình thức mong muốn.
+- **Normalized/canonical lookup key**: a consistently defined representation used for comparison, searching, grouping, or duplicate detection.
+- **Display text**: the original string or user-approved version used to render the intended meaning and appearance accurately.
 
-**Không nên thay văn bản hiển thị bằng khóa đã chuẩn hóa.** Phép chuẩn hóa có thể làm mất thông tin không khôi phục được: chẳng hạn chữ hoa/thường, dấu cách đầu/cuối, hoặc một số phân biệt ký tự nếu chính sách chuẩn hóa quá mạnh.
+**Never replace display text with the normalized key.** Normalization can discard information irreversibly: such as letter case, leading/trailing spaces, or certain character distinctions if the normalization policy is too aggressive.
 
-Ngữ cảnh của bài là **dùng `String` làm khóa trong các collection Java**, đặc biệt `HashMap`, `HashSet` và `TreeMap`. Tùy bài toán, không phải dữ liệu nào cũng nên được chuẩn hóa: tên hiển thị, tên tài khoản, mã sản phẩm, mã định danh và mật khẩu có chính sách khác nhau.
+The context of this lesson is **using `String` as keys in Java collections**, especially `HashMap`, `HashSet`, and `TreeMap`. Depending on the problem, not all data should be normalized: display names, usernames, product codes, identifiers, and passwords each have different policies.
 
-## 2. `String.equals()` và khóa trong `HashMap`
+## 2. `String.equals()` and Keys in `HashMap`
 
-`String.equals()` so sánh nội dung các chuỗi theo chính xác các đơn vị mã UTF-16. `HashMap<String, V>` dựa vào `hashCode()` và `equals()` của khóa khi thêm hoặc tra cứu phần tử; bản thân `HashMap` **không tự bỏ khoảng trắng, chuyển chữ thường hoặc chuẩn hóa Unicode**.
+`String.equals()` compares string content by exact UTF-16 code units. `HashMap<String, V>` relies on the key's `hashCode()` and `equals()` when inserting or looking up entries; `HashMap` itself **does not automatically strip whitespace, lowercase text, or normalize Unicode**.
 
 ```java
 import java.util.HashMap;
@@ -29,15 +29,15 @@ System.out.println(prices.get("café"));   // null
 System.out.println(prices.get("Cafe\u0301")); // null
 ```
 
-`"Café"` ở ví dụ thứ nhất chứa ký tự `é` dựng sẵn; `"Cafe\u0301"` chứa `e` và dấu sắc kết hợp. Chúng có thể trông giống nhau khi render nhưng không nhất thiết `equals()` nhau. Chuỗi chữ thường `"café"` cũng khác `"Café"`.
+`"Café"` in the first example contains a precomposed `é` character; `"Cafe\u0301"` contains `e` and a combining acute accent. They may look identical when rendered, yet they are not `equals()`. The lowercase string `"café"` also differs from `"Café"`.
 
-Tương tự, `HashSet<String>` có thể giữ nhiều chuỗi nhìn giống nhau vì từng chuỗi vẫn là phần tử khác nhau theo `equals()`. Muốn các biến thể được xem là cùng khóa thì phải **định nghĩa và áp dụng một quy tắc chuẩn hóa** trước khi thao tác với collection.
+Similarly, `HashSet<String>` can retain multiple visually identical strings because each remains a distinct element under `equals()`. To treat variants as the same key, you must **define and apply a normalization rule** before interacting with the collection.
 
-## 3. Các tầng chuẩn hóa: chọn theo nhu cầu
+## 3. Normalization Layers: Choose According to Need
 
-### 3.1. Khoảng trắng ở đầu/cuối
+### 3.1. Leading and Trailing Whitespace
 
-`String.strip()` (Java 11+) bỏ các ký tự đầu/cuối mà `Character.isWhitespace` xem là khoảng trắng. `trim()` dùng tiêu chí cũ hơn (`char <= U+0020`), nên hai phương thức không tương đương với mọi ký tự Unicode.
+`String.strip()` (Java 11+) removes leading and trailing characters that `Character.isWhitespace` classifies as whitespace. `trim()` uses an older criterion (`char <= U+0020`), so the two methods are not equivalent for all Unicode characters.
 
 ```java
 String raw = "  Java  ";
@@ -47,11 +47,11 @@ System.out.println(raw.length());     // 8
 System.out.println(keyPart.length()); // 4
 ```
 
-Không phải mọi loại dấu cách Unicode đều được `strip()` loại bỏ; ví dụ non-breaking space (`U+00A0`) cần chính sách riêng nếu dữ liệu của bạn xem nó là khoảng trắng biên. Không nên tự động xóa **mọi** dấu cách trong chuỗi vì `"New York"` và `"NewYork"` có thể mang ý nghĩa khác nhau.
+Not every kind of Unicode space is stripped by `strip()`; for example, a non-breaking space (`U+00A0`) needs its own policy if your data treats it as boundary whitespace. Avoid automatically deleting **all** spaces inside a string because `"New York"` and `"NewYork"` may carry different meanings.
 
-### 3.2. Chữ hoa/thường
+### 3.2. Letter Case
 
-Với khóa tìm kiếm cần hành vi nhất quán, `toLowerCase(Locale.ROOT)` thường phù hợp hơn `toLowerCase()`, vì phiên bản không truyền `Locale` dùng locale mặc định của quá trình chạy và có thể thay đổi kết quả giữa các môi trường.
+For lookup keys requiring consistent behavior, `toLowerCase(Locale.ROOT)` is usually preferable to `toLowerCase()`, because the no-argument version uses the runtime's default locale and can change results across environments.
 
 ```java
 import java.util.Locale;
@@ -60,26 +60,26 @@ String keyPart = "JAVA".toLowerCase(Locale.ROOT);
 System.out.println(keyPart); // java
 ```
 
-`Locale.ROOT` giúp có một quy tắc chung, nhưng **chuyển chữ thường chưa phải Unicode case folding đầy đủ**. Đừng mặc định rằng mọi cặp chuỗi mà người dùng coi là tương đương ở các ngôn ngữ đều trở thành cùng khóa. Chẳng hạn xử lý các chữ cái liên quan đến `I/i` trong tiếng Thổ Nhĩ Kỳ có quy tắc ngôn ngữ riêng. Nếu ứng dụng cần phân loại từ vựng theo ngôn ngữ, phải xác định và kiểm thử chính sách theo ngôn ngữ đó.
+`Locale.ROOT` provides a uniform baseline rule, yet **lowercasing is not full Unicode case folding**. Do not assume that every pair of strings users treat as equivalent across languages becomes the same key. For example, handling `I/i`-related letters in Turkish follows language-specific rules. If an application needs linguistic matching, define and test the policy for that language.
 
-### 3.3. Unicode normalization: NFC và NFKC
+### 3.3. Unicode Normalization: NFC and NFKC
 
-`java.text.Normalizer` cung cấp các dạng chuẩn hóa Unicode, đặc biệt:
+`java.text.Normalizer` provides Unicode normalization forms, notably:
 
-| Dạng | Ý nghĩa tiêu biểu | Khi nào cân nhắc |
+| Form | Typical meaning | When to consider |
 | --- | --- | --- |
-| `Normalizer.Form.NFC` | Chuẩn hóa **tương đương chính tắc** và ưu tiên dạng ký tự kết hợp sẵn | Phù hợp khi muốn thống nhất các cách mã hóa Unicode tương đương mà vẫn giữ nhiều phân biệt có ý nghĩa |
-| `Normalizer.Form.NFD` | Tách thành dạng phân rã chính tắc | Có ích cho một số bước xử lý ký tự có dấu; không phải thao tác mặc định để làm khóa |
-| `Normalizer.Form.NFKC` | Chuẩn hóa **tương đương tương thích** rồi kết hợp | Chỉ dùng khi nghiệp vụ chủ ý coi một số dạng trình bày hoặc ký tự tương thích là cùng nhau |
-| `Normalizer.Form.NFKD` | Phân rã tương thích | Dùng cho mục đích chuyên biệt; có thể làm mất các phân biệt về cách biểu diễn |
+| `Normalizer.Form.NFC` | **Canonical equivalence** normalization preferring precomposed characters | Suitable when unifying canonically equivalent Unicode encodings while preserving meaningful distinctions |
+| `Normalizer.Form.NFD` | Canonical decomposition | Useful for certain accent-processing steps; not the default key form |
+| `Normalizer.Form.NFKC` | **Compatibility equivalence** normalization followed by composition | Use only when business rules intentionally treat presentation forms or compatible characters as identical |
+| `Normalizer.Form.NFKD` | Compatibility decomposition | For specialized purposes; can lose representation distinctions |
 
-NFC thống nhất hai cách biểu diễn chữ `é`:
+NFC unifies the two representations of `é`:
 
 ```java
 import java.text.Normalizer;
 
-String composed = "\u00E9";   // é: một code point
-String decomposed = "e\u0301"; // e và dấu sắc kết hợp
+String composed = "\u00E9";   // é: one code point
+String decomposed = "e\u0301"; // e and combining acute accent
 
 System.out.println(composed.equals(decomposed)); // false
 System.out.println(
@@ -88,17 +88,17 @@ System.out.println(
 ); // true
 ```
 
-**NFC không xóa dấu.** Theo chính sách NFC, `"cafe"` và `"café"` vẫn khác nhau. NFKC có thể gộp thêm một số biểu diễn tương thích (chẳng hạn ký tự toàn chiều rộng với ký tự ASCII tương ứng), nên không được coi là lựa chọn luôn an toàn cho tên riêng, mã nhận diện hoặc nội dung người dùng.
+**NFC does not strip accents.** Under an NFC policy, `"cafe"` and `"café"` remain distinct. NFKC can merge additional compatibility representations (such as full-width characters with their ASCII counterparts), so it should not be assumed universally safe for proper names, identifiers, or user content.
 
-Việc bỏ dấu hoàn toàn là **một chính sách khác**, có thể tạo va chạm không mong muốn giữa các từ hoặc tên khác nghĩa. Không trộn chính sách đó vào NFC nếu không có yêu cầu rõ ràng.
+Stripping diacritics completely is **a different policy**, which can cause unintended collisions between words or names with different meanings. Do not conflate that policy with NFC unless explicitly required.
 
-## 4. Một hàm chuẩn hóa khóa có chủ đích
+## 4. An Intentional Key Normalization Function
 
-Ví dụ sau chọn chính sách cụ thể cho một mục danh mục được tìm kiếm không phân biệt chữ hoa/thường và chấp nhận Unicode tương đương chính tắc:
+The following example chooses a concrete policy for a catalog entry searched case-insensitively while accepting canonically equivalent Unicode:
 
-1. Bỏ khoảng trắng đầu/cuối theo `strip()`.
-2. Chuyển sang chữ thường theo `Locale.ROOT`.
-3. Chuẩn hóa NFC **sau** bước chuyển chữ thường, bảo đảm dạng kết quả cuối cùng được chuẩn hóa chính tắc.
+1. Strip leading/trailing whitespace with `strip()`.
+2. Convert to lowercase using `Locale.ROOT`.
+3. Normalize to NFC **after** lowercasing, ensuring the final output is canonically composed.
 
 ```java
 import java.text.Normalizer;
@@ -113,21 +113,21 @@ static String keyOf(String input) {
 }
 ```
 
-Đây là **đoạn phương thức minh họa**, đặt bên trong một lớp Java. Nó không phải quy tắc bắt buộc cho tất cả hệ thống. Mỗi hệ thống cần quyết định riêng liệu có được bỏ khoảng trắng, bỏ phân biệt chữ hoa/thường, xử lý tương đương Unicode hoặc chấp nhận khóa rỗng hay không.
+This is an **illustrative method snippet** placed inside a Java class. It is not a mandatory rule for all systems. Every system must decide for itself whether stripping whitespace, ignoring case, handling Unicode equivalence, or allowing empty keys is appropriate.
 
-Một vài tính chất quan trọng:
+Several important properties:
 
-- `keyOf("  Café ")` và `keyOf("cafe\u0301")` cho cùng khóa theo chính sách trên.
-- `keyOf("Cafe")` và `keyOf("Café")` **khác nhau** vì NFC không xóa dấu.
-- Hàm không chỉnh sửa `input` vì `String` bất biến; nó trả về một chuỗi đại diện dùng trong cấu trúc dữ liệu.
-- Giá trị `null` không là khóa hợp lệ ở ví dụ: `Objects.requireNonNull` từ chối rõ ràng thay vì tạo khóa đặc biệt ngoài ý muốn.
-- Sau `strip()`, chuỗi có thể trở thành `""`. Nếu khóa rỗng không hợp lệ cho nghiệp vụ, hãy kiểm tra và trả lỗi trước khi lưu.
+- `keyOf("  Café ")` and `keyOf("cafe\u0301")` produce the same key under this policy.
+- `keyOf("Cafe")` and `keyOf("Café")` are **different** because NFC does not remove accents.
+- The function does not mutate `input` because `String` is immutable; it returns a representative string for use in data structures.
+- `null` is not a valid key in this example: `Objects.requireNonNull` rejects it explicitly instead of producing an unintended sentinel key.
+- After `strip()`, a string may become `""`. If an empty key is invalid for business rules, validate and reject it before storing.
 
-Cần **áp dụng đúng cùng hàm** cho cả thao tác ghi, tìm kiếm, cập nhật và xóa. Nếu chỉ chuẩn hóa khi `put` nhưng không chuẩn hóa khi `get`, việc tra cứu vẫn thất bại.
+You must **apply the exact same function** across writes, lookups, updates, and deletes. If you normalize only on `put` and forget on `get`, lookups will still fail.
 
-## 5. Thiết kế dữ liệu: lưu khóa và văn bản hiển thị riêng
+## 5. Data Design: Store Keys and Display Text Separately
 
-Một mô hình đơn giản sử dụng `Map<String, Item>`:
+A simple model using `Map<String, Item>`:
 
 ```java
 record Item(String displayName) {}
@@ -141,36 +141,36 @@ items.put(lookupKey, new Item(submittedName));
 Item found = items.get(keyOf("CAF\u00C9"));
 ```
 
-Trong ví dụ này:
+In this example:
 
-- **Khóa trong `Map`** là kết quả `keyOf(submittedName)`; nó dùng cho so khớp.
-- **Giá trị `Item.displayName`** chứa đúng `submittedName` ban đầu, kể cả hai dấu cách mỗi bên và dạng Unicode phân rã.
-- Khi hiển thị, lấy `found.displayName()`, không dùng chuỗi khóa từ `Map` làm nhãn.
-- Nếu muốn loại bỏ dấu cách *trên giao diện*, hãy xác định yêu cầu đó riêng cho dữ liệu hiển thị; không suy diễn từ phép chuẩn hóa khóa.
+- **The `Map` key** is the result of `keyOf(submittedName)`; it is used for matching.
+- **The `Item.displayName` value** holds the exact original `submittedName`, including the two spaces on each side and the decomposed Unicode form.
+- For display, read `found.displayName()`, never using the `Map` key string as the label.
+- If you want to trim spaces *in the UI*, define that requirement separately for display data; do not infer it from key normalization.
 
-Trong một ứng dụng lớn hơn, có thể dùng `record Item(String id, String displayName, ...)` với **ID ổn định** riêng. Chuỗi chuẩn hóa phù hợp làm khóa chỉ mục tìm kiếm hoặc nhóm; không nhất thiết nên là ID vĩnh viễn của đối tượng.
+In a larger application, you might use `record Item(String id, String displayName, ...)` with a separate **stable ID**. The normalized string works well as a search or grouping index key; it should not necessarily serve as the object's permanent ID.
 
-### Khi có nhiều đầu vào cùng khóa
+### When Multiple Inputs Map to the Same Key
 
-Ví dụ `"  Café  "` và `"cafe\u0301"` có cùng khóa đã chuẩn hóa. Nếu dùng:
+For instance, `"  Café  "` and `"cafe\u0301"` share the same normalized key. If you use:
 
 ```java
 items.put(keyOf(submittedName), new Item(submittedName));
 ```
 
-cho nhiều lượt thêm, lần thêm sau có thể **ghi đè giá trị** ở cùng khóa. `HashMap.put` trả về giá trị cũ (nếu có), nhưng nếu bỏ qua giá trị trả về thì rất dễ mất nhãn hiển thị cũ.
+across multiple insertions, a later insert can **overwrite the value** at the same key. `HashMap.put` returns the previous value (if any), yet ignoring the return value makes it easy to silently lose an older display label.
 
-Một số chiến lược rõ ràng hơn:
+Clearer strategies include:
 
-- **Khóa phải duy nhất:** dùng `putIfAbsent` hoặc kiểm tra va chạm trong tầng lưu trữ và báo cho người dùng khi tên đã tồn tại.
-- **Nhiều mục có thể cùng khóa tìm kiếm:** dùng `Map<String, List<Item>>` hoặc chỉ mục đảo để một khóa trả về nhiều đối tượng.
-- **Mục có ID riêng:** lưu bản ghi theo ID, còn khóa đã chuẩn hóa chỉ để tìm danh sách ID; tên hiển thị không phải nguồn nhận diện duy nhất.
+- **Keys must be unique:** use `putIfAbsent` or check for collisions in the storage layer and notify the user when the name already exists.
+- **Multiple items may share a search key:** use `Map<String, List<Item>>` or an inverted index so one key returns multiple objects.
+- **Items have their own ID:** store records by ID, while the normalized key maps to a list of IDs; the display name is not the sole identity source.
 
-Đối với hệ thống nhiều luồng hoặc có cơ sở dữ liệu, phép kiểm tra trước rồi ghi sau **không tự bảo đảm tính nguyên tử**. `HashMap` không thread-safe cho cập nhật đồng thời. `putIfAbsent` trên `HashMap` hữu ích trong đoạn mã một luồng nhưng không thay thế giao dịch/unique constraint của cơ sở dữ liệu hoặc cấu trúc đồng thời phù hợp.
+In multithreaded or database-backed systems, a check-then-write pattern **does not guarantee atomicity on its own**. `HashMap` is not thread-safe for concurrent updates. `putIfAbsent` on `HashMap` is useful in single-threaded code, not a replacement for database transactions/unique constraints or proper concurrent structures.
 
-## 6. Ví dụ Java 17+ có thể biên dịch và chạy
+## 6. Compilable and Runnable Java 17+ Example
 
-Tạo tệp `KeyNormalizationDemo.java`:
+Create the file `KeyNormalizationDemo.java`:
 
 ```java
 import java.text.Normalizer;
@@ -192,7 +192,7 @@ public class KeyNormalizationDemo {
     }
 
     public static void main(String[] args) {
-        // Cafe + dấu sắc kết hợp; có hai khoảng trắng mỗi bên.
+        // Cafe + combining acute accent; two spaces on each side.
         String original = "  Cafe\u0301  ";
         String query = "CAF\u00C9";
 
@@ -219,14 +219,14 @@ public class KeyNormalizationDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17 trở lên:
+Compile and run with Java 17 or later:
 
 ```bash
 javac -encoding UTF-8 KeyNormalizationDemo.java
 java KeyNormalizationDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 Same key: true
@@ -236,15 +236,15 @@ Collision: true
 Size: 1
 ```
 
-**Vì sao?** `original` có khoảng trắng và dạng Unicode phân rã; `query` viết hoa và dùng `É` dựng sẵn. Sau `strip()`, `toLowerCase(Locale.ROOT)` và `Normalizer.Form.NFC`, hai khóa bằng nhau. `Map.get` tìm được giá trị từ khóa chuẩn hóa; trong khi `displayName` vẫn bằng đúng chuỗi gốc, không bị đổi chữ, cắt khoảng trắng hoặc chuyển dạng Unicode. `putIfAbsent` phát hiện đã có một mục ở khóa đó và không thay giá trị, nên kích thước `Map` vẫn là `1`.
+**Why?** `original` has whitespace and decomposed Unicode; `query` is uppercase and uses a precomposed `É`. After `strip()`, `toLowerCase(Locale.ROOT)`, and `Normalizer.Form.NFC`, the two keys match. `Map.get` locates the entry from the normalized key, while `displayName` remains equal to the exact original string—unchanged in casing, whitespace, or Unicode form. `putIfAbsent` detects an existing item at that key and does not overwrite it, so the `Map` size stays `1`.
 
-Ở đây `record` được khai báo lồng trong lớp; cú pháp hoạt động trong Java 17+.
+Here `record` is nested inside the class; this syntax works in Java 17+.
 
-## 7. `HashSet`, `TreeMap` và comparator
+## 7. `HashSet`, `TreeMap`, and Comparators
 
 ### `HashSet<String>`
 
-Với tập hợp cần coi các biến thể là cùng một phần tử, lưu **khóa chuẩn hóa**:
+For a set that should treat variants as the same element, store **normalized keys**:
 
 ```java
 Set<String> keys = new HashSet<>();
@@ -254,13 +254,13 @@ keys.add(keyOf("cafe\u0301"));
 System.out.println(keys.size()); // 1
 ```
 
-Nếu cần hiển thị các nhãn do người dùng nhập, đừng lấy trực tiếp các phần tử của tập `keys` làm nội dung hiển thị. Hãy lưu chúng ở cấu trúc khác hoặc gắn vào đối tượng dữ liệu.
+If user-entered labels must be displayed, do not pull elements directly from the `keys` set as display content. Store them in a separate structure or attach them to a data object.
 
-### `TreeMap<String, V>` và `TreeSet<String>`
+### `TreeMap<String, V>` and `TreeSet<String>`
 
-Các collection dạng cây dùng `compareTo` hoặc `Comparator` để xác định **thứ tự và khi nào khóa được coi là bằng nhau** (khi `compare(a,b) == 0`). Điều này khác với cơ chế `equals/hashCode` của `HashMap/HashSet`.
+Tree-based collections use `compareTo` or a `Comparator` to determine **both ordering and when keys are considered equal** (when `compare(a,b) == 0`). This differs from the `equals/hashCode` mechanism of `HashMap/HashSet`.
 
-Ví dụ:
+Example:
 
 ```java
 Map<String, Integer> sorted = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -271,56 +271,56 @@ System.out.println(sorted.size()); // 1
 System.out.println(sorted.get("java")); // 2
 ```
 
-Comparator trên so sánh không phân biệt hoa/thường theo quy tắc của Java, nhưng **không thay thế một chính sách chuẩn hóa đầy đủ**: nó không tự loại bỏ khoảng trắng biên, và không bảo đảm tương đương Unicode chính tắc giống NFC. Đừng cho rằng một `TreeMap` với comparator bất kỳ có cùng quy tắc đồng nhất khóa như `HashMap` lưu các khóa đã chuẩn hóa.
+That comparator compares case-insensitively according to Java's rules, yet **does not replace a complete normalization policy**: it does not strip boundary whitespace, and it does not guarantee canonical Unicode equivalence like NFC. Do not assume an arbitrary comparator on a `TreeMap` enforces the same key identity rule as a `HashMap` storing normalized keys.
 
-Nếu muốn dùng cùng một quy tắc giữa các collection, thường dễ hiểu nhất là **lưu và so sánh chính các khóa được tạo bởi `keyOf`**. Khi thiết kế comparator tùy chỉnh, phải bảo đảm tính nhất quán, phản xạ và bắc cầu của quan hệ sắp xếp; comparator coi hai khóa là bằng nhau có thể làm collection chỉ giữ một trong hai mục.
+If you want the exact same rule across collections, it is usually clearest to **store and compare the keys generated by `keyOf` directly**. When designing a custom comparator, ensure consistency, reflexivity, and transitivity of the ordering relation; a comparator treating two keys as equal causes the collection to keep only one of the entries.
 
-## 8. Khi không nên chuẩn hóa khóa theo cách này
+## 8. When Not to Normalize Keys This Way
 
-Định nghĩa `keyOf` ở trên phù hợp với ví dụ **tìm kiếm tên trong danh mục**; nó không phải bộ quy tắc dùng cho mọi `String`.
+The `keyOf` definition above fits the **catalog name search** example; it is not a universal rule for every `String`.
 
-| Dữ liệu | Hướng xử lý cần cân nhắc |
+| Data | Approach to consider |
 | --- | --- |
-| Nhãn hiển thị, tên thương hiệu, tên tác phẩm | Bảo toàn nội dung đã chấp nhận; nếu cần tìm kiếm, lưu thêm khóa chỉ mục |
-| Mã định danh phân biệt hoa/thường, token bí mật, chữ ký, dữ liệu cần kiểm chứng từng byte | Không tự bỏ dấu cách, hạ chữ, chuẩn hóa Unicode; thực hiện đúng đặc tả của hệ thống |
-| Tên đăng nhập mà sản phẩm quy định không phân biệt chữ hoa/thường | Xác định chính sách từ lúc tạo tài khoản; áp dụng ở đăng ký, đăng nhập, thay đổi tên và kiểm tra trùng |
-| Tìm kiếm tiếng Việt không phân biệt dấu | Cần đặc tả riêng cho bỏ dấu, chữ `đ`, chuẩn hóa khoảng trắng và xử lý va chạm; NFC tự nó không bỏ dấu |
-| Tìm kiếm theo ngôn ngữ tự nhiên | Cân nhắc `Collator` với locale phù hợp, full-text search hoặc chỉ mục chuyên dụng; không mặc định lowercase luôn đúng |
-| Dữ liệu Unicode có ký tự dễ gây nhầm hình dạng | NFC không giải quyết toàn bộ vấn đề ký tự trông giống nhau (confusables); cần thêm kiểm tra phù hợp nếu đây là rủi ro nghiệp vụ |
+| Display labels, brand names, work titles | Preserve the accepted content; if search is needed, store an additional index key |
+| Case-sensitive identifiers, secret tokens, signatures, byte-exact data | Do not auto-strip spaces, lowercase, or normalize Unicode; follow the exact system specification |
+| Usernames defined by the product as case-insensitive | Establish the policy at account creation; apply at registration, login, renaming, and duplicate checks |
+| Accent-insensitive Vietnamese search | Requires an explicit spec for diacritic removal, `đ`, whitespace normalization, and collision handling; NFC alone does not strip accents |
+| Natural-language search | Consider a locale-appropriate `Collator`, full-text search, or dedicated index; do not assume lowercasing is always right |
+| Unicode data with visually similar characters | NFC does not solve all visual confusables; add appropriate checks if that poses a business risk |
 
-**Cẩn thận với chuẩn hóa mất dữ liệu.** `strip()` bỏ khoảng trắng ở hai đầu; `toLowerCase(Locale.ROOT)` bỏ phân biệt kiểu chữ; `NFKC` và bỏ dấu có thể gộp thêm các đầu vào khác nhau. Nếu hai mục phân biệt có ý nghĩa nghiệp vụ rơi vào cùng khóa thì phải xử lý va chạm có chủ đích, không tùy tiện ghi đè hay tự gộp bản ghi.
+**Beware of lossy normalization.** `strip()` discards leading/trailing whitespace; `toLowerCase(Locale.ROOT)` drops case distinctions; `NFKC` and diacritic removal merge even more distinct inputs. If two business-distinct items fall onto the same key, collisions must be handled intentionally rather than silently overwriting or merging records.
 
-Đặc biệt, xác định chính sách **trước khi có dữ liệu thật**. Nếu sau này sửa hàm chuẩn hóa, khóa cũ trong bộ nhớ, tệp, cache hoặc cơ sở dữ liệu có thể không khớp khóa mới. Hãy thiết kế việc tính lại chỉ mục và giải quyết va chạm khi cần migration; với hệ thống lưu trữ lâu dài có thể ghi phiên bản chính sách để hỗ trợ chuyển đổi an toàn.
+In particular, decide the policy **before real data accumulates**. If you later change the normalization function, old keys in memory, files, caches, or databases may no longer match new keys. Plan re-indexing and collision resolution for migrations; for long-lived storage systems, you can record the policy version to support safe transitions.
 
-## 9. Những lỗi thường gặp
+## 9. Common Mistakes
 
-1. **Chỉ chuẩn hóa lúc lưu.** `map.put(keyOf(name), item)` nhưng `map.get(userInput)` khiến các biến thể không tìm thấy. Phải dùng `map.get(keyOf(userInput))`.
-2. **Dùng khóa làm văn bản hiển thị.** Một nhãn do người dùng đặt như `"  Cafe\u0301  "` bị đổi thành `"café"` nếu luôn hiển thị khóa. Lưu nhãn gốc ở giá trị hoặc trường riêng.
-3. **Cho rằng `equalsIgnoreCase` hoặc `CASE_INSENSITIVE_ORDER` là Unicode normalization.** Chúng giải quyết một phần khác của bài toán; vẫn cần xác định dạng Unicode, khoảng trắng và locale.
-4. **Tự động dùng `toLowerCase()`.** Locale mặc định có thể thay đổi theo máy/chạy ứng dụng. Với chính sách khóa độc lập locale, truyền `Locale.ROOT`.
-5. **Xem `NFKC`, bỏ dấu và NFC là như nhau.** Chúng có phạm vi biến đổi khác nhau; chuẩn hóa rộng hơn có thể làm hai tên riêng hoặc mã khác nhau trở thành cùng khóa.
-6. **Ghi đè im lặng khi hai nhãn cùng khóa.** Nếu tính duy nhất không được đảm bảo, hãy giữ danh sách mục hoặc báo rõ va chạm.
-7. **Dùng tên hiển thị chuẩn hóa làm ID vĩnh viễn.** Tên có thể đổi và chính sách chuẩn hóa có thể đổi. Với bản ghi dài hạn, thường cần một ID độc lập ổn định.
-8. **Thay đổi chính sách mà không di chuyển dữ liệu.** Key ở cache/database tính bằng quy tắc cũ có thể gây tìm thiếu hoặc tạo trùng sau nâng cấp.
+1. **Normalizing only on write.** Calling `map.put(keyOf(name), item)` but `map.get(userInput)` causes variants not to be found. Always use `map.get(keyOf(userInput))`.
+2. **Using the key as display text.** A user-entered label like `"  Cafe\u0301  "` turns into `"café"` if you display the key. Store the original label in the value or a separate field.
+3. **Treating `equalsIgnoreCase` or `CASE_INSENSITIVE_ORDER` as Unicode normalization.** They address a different part of the problem; Unicode form, whitespace, and locale still need explicit rules.
+4. **Calling `toLowerCase()` by default.** The default locale can vary by machine or runtime. For a locale-independent key policy, pass `Locale.ROOT`.
+5. **Treating `NFKC`, diacritic removal, and NFC as identical.** They transform different scopes of characters; broader normalization can collapse distinct proper names or codes into the same key.
+6. **Silently overwriting when two labels share a key.** If uniqueness is not guaranteed, keep a list of items or report collisions explicitly.
+7. **Using a normalized display name as a permanent ID.** Names can change and normalization policies can evolve. Long-lived records usually need an independent, stable ID.
+8. **Changing policy without migrating data.** Keys in caches/databases computed under old rules can cause missed lookups or duplicates after an upgrade.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Với hàm `keyOf` ở trên, `keyOf("Cafe")` có bằng `keyOf("Café")` không?
+**Question 1.** With `keyOf` above, does `keyOf("Cafe")` equal `keyOf("Café")`?
 
-**Đáp án:** Không. NFC thống nhất dạng ký tự tương đương chính tắc, nhưng không xóa dấu sắc của `é`.
+**Answer:** No. NFC unifies canonically equivalent character forms, but it does not strip the acute accent from `é`.
 
-**Câu 2.** Vì sao lưu `Map<String, Item>` thường tốt hơn chỉ lưu `Set<String>` các khóa chuẩn hóa khi ứng dụng có yêu cầu hiển thị nguyên văn?
+**Question 2.** Why is storing `Map<String, Item>` usually better than storing only a `Set<String>` of normalized keys when the application must display the original text?
 
-**Đáp án:** `Map` giữ khóa để tra cứu và một giá trị mang nhãn hiển thị riêng. Chỉ lưu khóa đã chuẩn hóa sẽ không đủ thông tin để khôi phục chữ hoa, khoảng trắng hoặc những khác biệt đã bị bỏ.
+**Answer:** `Map` keeps the key for lookup and a separate value carrying the display label. Storing only normalized keys loses the information needed to recover letter case, whitespace, or other stripped distinctions.
 
-**Câu 3.** Hai tên `"Café"` và `"cafe\u0301"` trùng sau chuẩn hóa. Có nên dùng `put` để mục sau ghi đè mục trước?
+**Question 3.** Two names `"Café"` and `"cafe\u0301"` collide after normalization. Should `put` be used so the second overwrites the first?
 
-**Đáp án:** Chỉ khi nghiệp vụ chủ ý cho phép thay thế. Nếu cần duy nhất, báo trùng; nếu cần nhiều mục, lưu nhiều giá trị theo một khóa; nếu cần ID, gắn từng bản ghi với ID ổn định.
+**Answer:** Only when business rules intentionally allow replacement. If uniqueness is required, report a duplicate; if multiple items are allowed, store multiple values under one key; if IDs are needed, give each record a stable ID.
 
-**Câu 4.** Có nên chuẩn hóa mật khẩu bằng `strip().toLowerCase(Locale.ROOT)` theo bài này không?
+**Question 4.** Should passwords be normalized with `strip().toLowerCase(Locale.ROOT)` as in this lesson?
 
-**Đáp án:** Không áp dụng tự động. Mật khẩu/token cần giữ đúng quy ước đầu vào của cơ chế xác thực; việc biến đổi thêm có thể thay đổi ý nghĩa bí mật và hành vi xác minh.
+**Answer:** Do not apply this automatically. Passwords/tokens must follow the authentication mechanism's exact input rules; extra transformations can alter secret semantics and verification behavior.
 
-## Ghi nhớ
+## Remember
 
-**Khóa chuẩn hóa dùng để xác định “khi nào các chuỗi được coi là cùng nhau”; văn bản hiển thị dùng để giữ “người dùng muốn nhìn thấy chuỗi như thế nào”.** Với `String` trong collection, hãy định nghĩa một hàm `keyOf` phù hợp nghiệp vụ, áp dụng nhất quán trên mọi đường đọc/ghi, xử lý va chạm rõ ràng và lưu riêng nhãn hiển thị cần bảo toàn.
+**A normalized key defines "when strings are considered the same"; display text preserves "how the user expects to see the string."** For `String` in collections, define a business-appropriate `keyOf` function, apply it consistently across all read/write paths, handle collisions explicitly, and store display labels separately when preservation is required.

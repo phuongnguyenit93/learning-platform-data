@@ -1,56 +1,56 @@
-# Named module và package uniqueness
+# Named Modules and Package Uniqueness
 
-Trong Java Platform Module System (JPMS), một named module sở hữu một tập hợp package. Khi nhiều named module được resolve cùng trong một module configuration, quy tắc package uniqueness giúp xác định rõ package thuộc về module nào. Vì vậy, việc chia cùng một package giữa nhiều named module (split package) là nguồn gây xung đột khi biên dịch hoặc resolve module.
+In the Java Platform Module System (JPMS), a named module owns a set of packages. When multiple named modules are resolved together in a module configuration, the package uniqueness rule clearly determines which module a package belongs to. Therefore, sharing the same package across multiple named modules (split package) is a source of conflicts during module compilation or resolution.
 
-Quy tắc này khác với cách tổ chức JAR truyền thống trên classpath, nơi nhiều JAR có thể đóng góp class vào cùng một package của unnamed module. Khi chuyển ứng dụng sang module path, cấu trúc package cần được thiết kế lại để mỗi package có một chủ sở hữu rõ ràng.
+This rule differs from traditional JAR organization on the classpath, where multiple JARs can contribute classes to the same package in the unnamed module. When migrating an application to the module path, package structure needs to be redesigned so that each package has one clear owner.
 
-## 1. Module và package là hai cấp tổ chức khác nhau
+## 1. Modules and packages are two different levels of organization
 
-Một **package** nhóm các kiểu Java có liên quan, ví dụ:
+A **package** groups related Java types, for example:
 
     com.example.billing.api
     com.example.billing.internal
 
-Một **module** gom nhiều package thành một đơn vị có tên, phụ thuộc và ranh giới truy cập được khai báo trong `module-info.java`.
+A **module** groups multiple packages into a unit with a name, dependencies, and access boundaries declared in `module-info.java`.
 
-Ví dụ:
+Example:
 
     module com.example.billing {
         requires com.example.shared;
         exports com.example.billing.api;
     }
 
-Module `com.example.billing` có thể sở hữu nhiều package. Directive `exports` chỉ định package được module khác truy cập theo quy tắc Java thông thường; nó không tạo package và cũng không chuyển quyền sở hữu package sang module khác.
+Module `com.example.billing` can own multiple packages. The `exports` directive specifies which packages other modules can access under normal Java rules; it does not create packages and does not transfer package ownership to another module.
 
-Tên module và tên package thuộc hai không gian tên riêng. Một module có thể tên `com.example.billing`, trong khi các package bên trong có tên `com.example.billing.api` hoặc `com.example.billing.internal`.
+Module names and package names belong to two separate namespaces. A module can be named `com.example.billing`, while packages inside it are named `com.example.billing.api` or `com.example.billing.internal`.
 
-## 2. Package uniqueness trong named modules
+## 2. Package uniqueness in named modules
 
-Trong cùng một module configuration, một package chỉ có một chủ sở hữu là một named module. Không thể chia các class thuộc cùng package giữa hai named module cùng được resolve trong configuration đó.
+Within the same module configuration, a package has only one owner, which is a single named module. Classes belonging to the same package cannot be split between two named modules resolved together in that configuration.
 
-Ví dụ, module A có:
+For example, module A has:
 
     package com.example.shared.util;
 
     public final class MoneyFormatter {
     }
 
-Trong khi module B cũng có:
+While module B also has:
 
     package com.example.shared.util;
 
     public final class DateFormatter {
     }
 
-Dù hai module không chứa class trùng tên, chúng vẫn cùng khai báo package `com.example.shared.util`. Đây là **split package**: một package bị phân tán qua nhiều module.
+Even though the two modules do not contain classes with the same name, they both declare the `com.example.shared.util` package. This is a **split package**: a single package scattered across multiple modules.
 
-JPMS yêu cầu package có một chủ sở hữu rõ ràng trong module configuration. Vì thế, việc đưa cả hai named module chứa package này vào cùng cấu hình có thể bị từ chối trong quá trình biên dịch hoặc resolve module.
+JPMS requires a package to have one clear owner in a module configuration. Therefore, putting both named modules containing this package into the same configuration may be rejected during compilation or module resolution.
 
-Điểm quan trọng: split package không chỉ là hai JAR chứa một class có cùng tên đầy đủ. Chỉ cần hai module cùng chứa các class khác nhau nhưng khai báo cùng một package, xung đột package đã xuất hiện.
+Important point: a split package is not limited to two JARs containing a class with the same fully qualified name. Simply having two modules contain different classes while declaring the same package already creates a package conflict.
 
-## 3. Ví dụ cấu trúc split package
+## 3. Example of a split package structure
 
-Giả sử có hai module:
+Suppose there are two modules:
 
     src/
     ├── com.example.billing/
@@ -60,13 +60,13 @@ Giả sử có hai module:
         ├── module-info.java
         └── com/example/shared/util/DateFormatter.java
 
-Module billing:
+The billing module:
 
     module com.example.billing {
         exports com.example.shared.util;
     }
 
-File `MoneyFormatter.java`:
+`MoneyFormatter.java` file:
 
     package com.example.shared.util;
 
@@ -76,13 +76,13 @@ File `MoneyFormatter.java`:
         }
     }
 
-Module reporting:
+The reporting module:
 
     module com.example.reporting {
         exports com.example.shared.util;
     }
 
-File `DateFormatter.java`:
+`DateFormatter.java` file:
 
     package com.example.shared.util;
 
@@ -92,22 +92,22 @@ File `DateFormatter.java`:
         }
     }
 
-Hai module đều khai báo và export `com.example.shared.util`. Khi cùng được biên dịch hoặc resolve, module system không thể coi package đó thuộc về cả hai module.
+Both modules declare and export `com.example.shared.util`. When compiled or resolved together, the module system cannot treat that package as belonging to both modules.
 
-Có thể thử biên dịch từ thư mục chứa `src`:
+You can try compiling from the directory containing `src`:
 
     javac --module-source-path src -d out
         -m com.example.billing,com.example.reporting
 
-Trình biên dịch sẽ báo lỗi liên quan đến package đã tồn tại trong module khác hoặc package bị chia giữa các module. Thông báo cụ thể có thể khác theo phiên bản JDK và cách tổ chức module source path.
+The compiler will report an error about the package already existing in another module or the package being split across modules. The exact message may vary depending on the JDK version and how the module source path is structured.
 
-Việc đổi tên module không giải quyết được vấn đề. Hai module vẫn sở hữu cùng package name `com.example.shared.util`.
+Renaming the modules does not solve the problem. Both modules still own the same package name `com.example.shared.util`.
 
-## 4. Cách sửa: chuyển package dùng chung vào một module
+## 4. Fix: move the shared package into one module
 
-Nếu `MoneyFormatter` và `DateFormatter` thực sự thuộc về cùng một nhóm tiện ích dùng chung, hãy tạo module riêng sở hữu package đó.
+If `MoneyFormatter` and `DateFormatter` truly belong to the same group of shared utilities, create a separate module that owns that package.
 
-Cấu trúc sau khi sửa:
+Structure after fixing:
 
     src/
     ├── com.example.shared/
@@ -120,107 +120,107 @@ Cấu trúc sau khi sửa:
     └── com.example.reporting/
         └── module-info.java
 
-Module shared:
+The shared module:
 
     module com.example.shared {
         exports com.example.shared.util;
     }
 
-Module billing:
+The billing module:
 
     module com.example.billing {
         requires com.example.shared;
     }
 
-Module reporting:
+The reporting module:
 
     module com.example.reporting {
         requires com.example.shared;
     }
 
-Bây giờ package `com.example.shared.util` chỉ thuộc về module `com.example.shared`. Hai module billing và reporting đều đọc module shared để sử dụng các kiểu public được export.
+Now the `com.example.shared.util` package belongs solely to the `com.example.shared` module. Both billing and reporting modules read the shared module to use the exported public types.
 
-Biên dịch:
+Compile:
 
     javac --module-source-path src -d out
         -m com.example.shared,com.example.billing,com.example.reporting
 
-Cách này thể hiện rõ quyền sở hữu: module shared chịu trách nhiệm về các kiểu tiện ích, còn module billing và reporting chỉ là các module tiêu thụ.
+This approach clearly expresses ownership: the shared module is responsible for the utility types, while the billing and reporting modules are simply consuming modules.
 
-## 5. Cách sửa khác: tách package theo trách nhiệm
+## 5. Alternative fix: split packages by responsibility
 
-Không phải mọi class trùng package đều thực sự là thành phần dùng chung. Nếu chúng thuộc các miền nghiệp vụ khác nhau, có thể đặt chúng vào package riêng:
+Not every class with a colliding package is truly a shared component. If they belong to different business domains, you can place them into separate packages:
 
     com.example.billing.internal
     com.example.reporting.internal
 
-Ví dụ, module billing sở hữu:
+For example, the billing module owns:
 
     package com.example.billing.internal;
 
     public final class MoneyFormatter {
     }
 
-Module reporting sở hữu:
+The reporting module owns:
 
     package com.example.reporting.internal;
 
     public final class DateFormatter {
     }
 
-Hai package này khác nhau nên có thể thuộc hai named module khác nhau trong cùng configuration.
+These two packages are distinct, so they can belong to two different named modules in the same configuration.
 
-Cách tách package thường phù hợp khi class chỉ phục vụ nội bộ cho một module. Không nên tạo module shared chỉ để gom các class không có quan hệ trách nhiệm hoặc không có nhu cầu được dùng chung.
+Separating packages usually fits when classes only serve internally within one module. Do not create a shared module just to lump together classes that have no shared responsibility or no need to be shared.
 
-## 6. Package con không phải cùng một package
+## 6. A subpackage is not the same package
 
-Tên package trong Java có dạng phân cấp theo quy ước đặt tên, nhưng mỗi tên đầy đủ vẫn đại diện cho một package riêng.
+Package names in Java are hierarchical by naming convention, yet each full name still represents a distinct package.
 
-Ví dụ:
+Example:
 
 - `com.example.billing`
 - `com.example.billing.api`
 - `com.example.billing.internal`
 
-Đây là ba package khác nhau. Vì vậy, `com.example.billing` có thể thuộc một module trong khi `com.example.billing.api` thuộc module khác, nếu cấu trúc được thiết kế như vậy và không có package name trùng nhau.
+These are three separate packages. Therefore, `com.example.billing` can belong to one module while `com.example.billing.api` belongs to another module, if the structure is designed that way and there are no duplicate package names.
 
-Tương tự, export một package không tự động export các package con:
+Similarly, exporting a package does not automatically export its subpackages:
 
     module com.example.billing {
         exports com.example.billing;
     }
 
-Directive trên không export `com.example.billing.api`. Nếu muốn module khác truy cập kiểu public trong package con đó, cần khai báo riêng:
+The directive above does not export `com.example.billing.api`. If you want other modules to access public types in that subpackage, declare it separately:
 
     module com.example.billing {
         exports com.example.billing;
         exports com.example.billing.api;
     }
 
-Quy tắc package uniqueness xét tên package đầy đủ. Việc hai package có chung tiền tố không tự tạo split package.
+The package uniqueness rule evaluates the full package name. Having two packages share a prefix does not automatically create a split package.
 
-## 7. Quan hệ giữa package uniqueness và exports
+## 7. Relationship between package uniqueness and exports
 
-`exports` và package ownership giải quyết hai câu hỏi khác nhau:
+`exports` and package ownership solve two different questions:
 
-- **Package ownership:** package thuộc về named module nào trong configuration?
-- **Exports:** module sở hữu package cho module khác truy cập kiểu public trong package đó hay không?
+- **Package ownership:** which named module in the configuration does the package belong to?
+- **Exports:** does the owning module allow other modules to access public types in that package?
 
-Ví dụ:
+Example:
 
     module com.example.internal {
-        // package com.example.internal.impl tồn tại trong module
+        // package com.example.internal.impl exists in the module
     }
 
-Package có thể thuộc module dù không được export. Module khác không thể import kiểu trong package chưa export, nhưng điều đó không làm package mất quyền sở hữu của module.
+A package can belong to a module even if it is not exported. Other modules cannot import types in an unexported package, but that does not strip the module of package ownership.
 
-Ngược lại, hai module cùng export một package không thể cùng làm chủ package đó trong một module configuration. Việc thêm `exports`, `opens` hay `requires transitive` không phải cách sửa split package; cần sửa cấu trúc package và module sở hữu.
+Conversely, two modules exporting the same package cannot both own that package in a single module configuration. Adding `exports`, `opens`, or `requires transitive` is not a way to fix a split package; you must fix the package structure and owning module.
 
-## 8. Classpath và module path khác nhau như thế nào?
+## 8. How do the classpath and module path differ?
 
-Trước JPMS, ứng dụng thường đặt nhiều JAR trên classpath. Các class trên classpath được gom vào unnamed module của class loader tương ứng. Vì vậy, nhiều JAR có thể đóng góp các class khác nhau vào cùng package.
+Before JPMS, applications often placed many JARs on the classpath. Classes on the classpath were grouped into the unnamed module of the corresponding class loader. Thus, multiple JARs could contribute different classes to the same package.
 
-Ví dụ:
+Example:
 
     legacy-a.jar
       com.example.shared.util.MoneyFormatter
@@ -228,59 +228,59 @@ Ví dụ:
     legacy-b.jar
       com.example.shared.util.DateFormatter
 
-Khi cả hai JAR nằm trên classpath, chúng có thể cùng đóng góp class vào package `com.example.shared.util` của unnamed module.
+When both JARs are on the classpath, they can both contribute classes to the `com.example.shared.util` package of the unnamed module.
 
-Khi chuyển mỗi JAR thành một named module riêng trên module path, package này sẽ bị chia giữa các named module. Cấu trúc vốn hoạt động trên classpath có thể không còn hợp lệ khi resolve thành named modules.
+When turning each JAR into a separate named module on the module path, this package becomes split across named modules. A structure that worked on the classpath may no longer be valid when resolved as named modules.
 
-Đây là lý do cần kiểm kê package trước khi modularize một hệ thống cũ. Đừng chỉ thêm `module-info.java` vào từng JAR mà bỏ qua package đang được chia sẻ giữa các artifact.
+This is why you need to audit packages before modularizing a legacy system. Do not simply add `module-info.java` to each JAR while ignoring packages shared across artifacts.
 
-## 9. Automatic module cũng chịu quy tắc module path
+## 9. Automatic modules also obey module path rules
 
-Một JAR chưa có `module-info.class` khi đặt trên module path có thể trở thành **automatic module**. Tên module thường được suy ra từ tên JAR hoặc từ manifest nếu có khai báo `Automatic-Module-Name`.
+A JAR without `module-info.class`, when placed on the module path, can become an **automatic module**. The module name is usually derived from the JAR name or from the manifest if `Automatic-Module-Name` is declared.
 
-Automatic module vẫn là một named module trong module configuration. Các package của nó được suy ra từ nội dung JAR; vì vậy, nó cũng có thể tham gia vào xung đột split package với một named module khác.
+An automatic module is still a named module in the module configuration. Its packages are inferred from the JAR contents; therefore, it can also participate in a split package conflict with another named module.
 
-Ví dụ, nếu `legacy-util.jar` trở thành automatic module `legacy.util` và chứa package `com.example.shared.util`, trong khi `com.example.shared` cũng chứa package đó, việc đưa cả hai vào cùng module configuration có thể gây xung đột.
+For example, if `legacy-util.jar` becomes automatic module `legacy.util` and contains package `com.example.shared.util`, while `com.example.shared` also contains that package, putting both into the same module configuration can cause a conflict.
 
-Automatic module có một số quy tắc readability và exports rộng hơn explicit module, nhưng điều đó không có nghĩa nó được miễn các ràng buộc package của named-module configuration.
+Automatic modules have broader readability and export rules than explicit modules, but that does not mean they are exempt from the package constraints of a named-module configuration.
 
-## 10. Cách kiểm tra khi gặp lỗi package
+## 10. How to inspect when encountering a package error
 
-Khi module build hoặc runtime báo lỗi package bị trùng, hãy kiểm tra theo thứ tự:
+When a module build or runtime reports a duplicate package error, inspect in order:
 
-1. Xác định package name đầy đủ trong thông báo lỗi, ví dụ `com.example.shared.util`.
-2. Xác định các module hoặc JAR đang chứa package đó.
-3. Kiểm tra module nào nên sở hữu các class dùng chung.
-4. Chuyển class dùng chung về một module hoặc đổi package của class chỉ phục vụ nội bộ.
-5. Cập nhật `requires` và `exports` theo quan hệ mới.
-6. Biên dịch và resolve lại toàn bộ các module liên quan.
+1. Identify the full package name in the error message, e.g. `com.example.shared.util`.
+2. Identify the modules or JARs containing that package.
+3. Determine which module should own the shared classes.
+4. Move the shared classes into one module, or change the package of classes that are only for internal use.
+5. Update `requires` and `exports` according to the new relationship.
+6. Recompile and re-resolve all related modules.
 
-Có thể xem descriptor của một modular JAR:
+You can inspect the descriptor of a modular JAR:
 
     jar --describe-module --file libs/example.jar
 
-Có thể liệt kê nội dung JAR để tìm package:
+You can list the JAR contents to find packages:
 
     jar --list --file libs/example.jar
 
-Với JDK hỗ trợ tùy chọn kiểm tra module, có thể yêu cầu launcher xác thực module path:
+With a JDK supporting the module validation option, you can instruct the launcher to validate the module path:
 
     java --module-path mods --validate-modules
 
-Nếu lỗi chỉ xuất hiện khi chuyển từ classpath sang module path, hãy kiểm tra các JAR phụ thuộc cũ và automatic modules trước. Một package có thể đã bị chia giữa nhiều artifact từ trước khi dự án áp dụng JPMS.
+If the error only appears when switching from the classpath to the module path, inspect legacy dependency JARs and automatic modules first. A package may have already been split across multiple artifacts before the project adopted JPMS.
 
-## 11. Những nhầm lẫn thường gặp
+## 11. Common misconceptions
 
-- **Tưởng hai class khác nhau thì không thể gây split package.** Chúng vẫn xung đột nếu cùng khai báo một package nhưng nằm trong hai named module.
-- **Tưởng chỉ cần đổi module name.** Tên module khác nhau không làm package name trở nên khác nhau.
-- **Tưởng package con là một phần của package cha.** `com.example.api` và `com.example.api.internal` là hai package riêng.
-- **Tưởng chỉ package được export mới được tính.** Package ownership không phụ thuộc việc package có được export hay không.
-- **Tưởng automatic module được miễn package uniqueness.** Automatic module vẫn là named module trên module path.
-- **Tưởng split package trên classpath chứng minh cấu trúc đó hợp lệ trên module path.** Classpath gom các JAR vào unnamed module; named modules có quy tắc ownership chặt chẽ hơn.
-- **Tưởng `exports` hoặc `opens` giải quyết được split package.** Các directive này điều khiển quyền truy cập, không thay đổi module sở hữu package.
+- **Thinking two different classes cannot cause a split package.** They still conflict if they declare the same package across two named modules.
+- **Thinking renaming the module is enough.** Different module names do not make the package names different.
+- **Thinking a subpackage is part of the parent package.** `com.example.api` and `com.example.api.internal` are two separate packages.
+- **Thinking only exported packages count.** Package ownership does not depend on whether the package is exported.
+- **Thinking automatic modules are exempt from package uniqueness.** An automatic module is still a named module on the module path.
+- **Thinking a split package on the classpath proves the layout is valid on the module path.** The classpath groups JARs into the unnamed module; named modules have stricter ownership rules.
+- **Thinking `exports` or `opens` fixes a split package.** These directives control access permissions, not which module owns a package.
 
-## Ghi nhớ
+## Key takeaways
 
-Trong cùng một module configuration, hãy thiết kế để mỗi package có một named module sở hữu rõ ràng. Nếu nhiều module cần dùng các class trong cùng package, chuyển package đó vào một module shared. Nếu các class chỉ thuộc nội bộ từng module, tách chúng thành các package riêng theo trách nhiệm.
+Within the same module configuration, design so that each package has one clear owning named module. If multiple modules need to use classes in the same package, move that package into a shared module. If classes belong only internally to individual modules, separate them into distinct packages by responsibility.
 
-Khi modularize một hệ thống cũ, hãy kiểm tra cả explicit modules lẫn automatic modules trên module path, vì split package thường chỉ bộc lộ sau khi các JAR được đưa vào named-module configuration.
+When modularizing a legacy system, check both explicit modules and automatic modules on the module path, because split packages often only surface after JARs are placed into a named-module configuration.

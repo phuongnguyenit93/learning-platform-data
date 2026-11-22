@@ -1,8 +1,8 @@
-# Chia hai int trước khi chuyển sang double: vì sao mất phần thập phân?
+# Dividing Two ints Before Converting to double: Why Is the Fractional Part Lost?
 
-## 1. Lỗi điển hình
+## 1. The Typical Mistake
 
-Trong Java, đoạn code sau **không cho ra 3.5**:
+In Java, the following code **does not produce 3.5**:
 
 ~~~java
 int numerator = 7;
@@ -12,59 +12,59 @@ double ratio = numerator / denominator;
 System.out.println(ratio); // 3.0
 ~~~
 
-Dù biến đích có kiểu `double`, phép chia `numerator / denominator` được Java thực hiện **trước**, trên **hai toán hạng `int`**, nên dùng **phép chia nguyên** và cho kết quả `3`. Sau đó `3` mới được chuyển thành `3.0` khi gán cho `ratio`. Phần `0.5` đã bị bỏ và phép chuyển đổi về sau không thể khôi phục.
+Even though the target variable has type `double`, Java performs the division `numerator / denominator` **first**, on **two `int` operands**, so it uses **integer division** and produces `3`. Only then is `3` converted to `3.0` when assigned to `ratio`. The `0.5` part has already been discarded, and later conversion cannot recover it.
 
-Cách sửa đúng theo mục tiêu tính tỷ số thực:
+The correct fix for computing a real-number ratio:
 
 ~~~java
 double ratio = (double) numerator / denominator; // 3.5
 ~~~
 
-Dòng trên chuyển **một toán hạng** sang `double` **trước phép chia**. Phép `/` khi đó áp dụng **binary numeric promotion** và tính phép chia dấu phẩy động, cho kết quả `3.5`.
+The line above converts **one operand** to `double` **before the division**. The `/` operator then applies **binary numeric promotion** and performs floating-point division, producing `3.5`.
 
-Bài này tập trung vào thứ tự đánh giá biểu thức, quy tắc ép kiểu, các lỗi xảy ra khi tính trung bình/phần trăm/tiến độ, chia số âm, chia cho 0, các trường hợp overflow, và khi nào `double` vẫn không đủ chính xác.
+This article focuses on expression evaluation order, casting rules, mistakes made when computing averages/percentages/progress, dividing negative numbers, division by zero, overflow cases, and when `double` is still not accurate enough.
 
-## 2. Kiểu toán hạng quyết định kiểu phép chia
+## 2. Operand Types Determine the Division Type
 
-Trong Java, dấu `/` áp dụng cho các kiểu số primitive; trước khi tính, Java thực hiện các quy tắc **binary numeric promotion**. Nói đơn giản:
+In Java, the `/` operator applies to primitive numeric types; before evaluating, Java applies **binary numeric promotion** rules. Simply put:
 
-- Nếu một toán hạng là `double`, phép toán dùng `double`.
-- Nếu không có `double` nhưng có `float`, dùng `float`.
-- Nếu không có `double`/`float` nhưng có `long`, dùng `long`.
-- Còn lại, các kiểu số nguyên nhỏ như `byte`, `short`, `char` được nâng thành `int` và phép toán dùng `int`.
+- If one operand is `double`, the operation uses `double`.
+- If there is no `double` but one operand is `float`, it uses `float`.
+- If there is no `double`/`float` but one operand is `long`, it uses `long`.
+- Otherwise, smaller integer types such as `byte`, `short`, and `char` are promoted to `int`, and the operation uses `int`.
 
-**Điểm quyết định là kiểu của biểu thức ngay tại toán tử `/`**, không phải kiểu của biến được gán kết quả sau đó.
+**The deciding point is the type of the operands directly at the `/` operator**, not the type of the variable receiving the result afterward.
 
-| Biểu thức | Kiểu phép chia | Kết quả | Giải thích |
+| Expression | Division Type | Result | Explanation |
 |---|---|---|---|
-| `7 / 2` | `int` | `3` | Bỏ phần thập phân |
-| `7L / 2` | `long` | `3L` | Có `long` nhưng vẫn là chia nguyên |
-| `7.0 / 2` | `double` | `3.5` | Literal `7.0` là double |
-| `7 / 2.0` | `double` | `3.5` | Literal `2.0` là double |
-| `7f / 2` | `float` | `3.5f` | Literal có hậu tố `f` |
-| `(double) 7 / 2` | `double` | `3.5` | Ép toán hạng trước khi chia |
-| `(double) (7 / 2)` | `int` rồi ép `double` | `3.0` | Ép **kết quả đã bị cắt phần dư** |
-| `7 / (double) 2` | `double` | `3.5` | Ép toán hạng bên phải trước |
-| `7 / 2 * 1.0` | `int` ở phép chia đầu | `3.0` | Phần lẻ mất trước khi nhân |
-| `7 * 1.0 / 2` | `double` ở phép chia | `3.5` | Chuyển sang double từ phép nhân đầu |
+| `7 / 2` | `int` | `3` | Truncates fractional part |
+| `7L / 2` | `long` | `3L` | Has `long` but is still integer division |
+| `7.0 / 2` | `double` | `3.5` | Literal `7.0` is double |
+| `7 / 2.0` | `double` | `3.5` | Literal `2.0` is double |
+| `7f / 2` | `float` | `3.5f` | Literal has suffix `f` |
+| `(double) 7 / 2` | `double` | `3.5` | Casts operand before dividing |
+| `(double) (7 / 2)` | `int` then cast to `double` | `3.0` | Casts **the result whose remainder was already truncated** |
+| `7 / (double) 2` | `double` | `3.5` | Casts right operand first |
+| `7 / 2 * 1.0` | `int` at first division | `3.0` | Fractional part lost before multiplying |
+| `7 * 1.0 / 2` | `double` at division | `3.5` | Converted to double at the first multiplication |
 
-`int` và `long` khác độ rộng số nguyên; tăng độ rộng sang `long` **không tự tạo kết quả thập phân**. `float` và `double` cho phép biểu diễn phân số nhưng là số dấu phẩy động nhị phân với độ chính xác hữu hạn.
+`int` and `long` differ in integer width; widening to `long` **does not produce fractional results**. `float` and `double` allow representing fractions, but they are binary floating-point numbers with finite precision.
 
-### Vì sao kiểu đích không ảnh hưởng ngược lại?
+### Why Doesn't the Target Type Flow Backward?
 
-Xét:
+Consider:
 
 ~~~java
 double result = 7 / 2;
 ~~~
 
-Phân tích theo thứ tự:
+Step-by-step analysis:
 
-1. Java suy ra literal `7` và `2` đều là `int`.
-2. Phép `/` được tính là phép chia `int`: `7 / 2 == 3`.
-3. Gán cho biến `double` kích hoạt widening primitive conversion: `3` thành `3.0`.
+1. Java infers that both literals `7` and `2` are `int`.
+2. `/` is evaluated as `int` division: `7 / 2 == 3`.
+3. Assigning to a `double` variable triggers widening primitive conversion: `3` becomes `3.0`.
 
-Không có bước nào xem `result` rồi “quay lại” thực hiện phép chia bằng double. Tương tự:
+No step inspects `result` and "goes back" to perform the division in `double`. Similarly:
 
 ~~~java
 double result = 7 / 2;           // 3.0
@@ -72,11 +72,11 @@ double result2 = (double) (7 / 2); // 3.0
 double result3 = (double) 7 / 2;   // 3.5
 ~~~
 
-Với ba biểu thức này, Java có thể gán kết quả cho `double` ở cả ba trường hợp; nhưng chỉ biểu thức thứ ba dùng chia dấu phẩy động ngay từ đầu.
+For these three expressions, Java can assign the result to `double` in all three cases; however, only the third expression uses floating-point division from the start.
 
-## 3. Vị trí dấu ngoặc và ép kiểu làm thay đổi kết quả
+## 3. Parentheses and Cast Placement Change the Result
 
-So sánh hai cách đặt dấu ngoặc:
+Compare two ways of placing parentheses:
 
 ~~~java
 int a = 7;
@@ -86,9 +86,9 @@ double wrong = (double) (a / b);  // 3.0
 double right = ((double) a) / b;  // 3.5
 ~~~
 
-Ở `wrong`, ngoặc tròn `(a / b)` buộc thực hiện phép chia nguyên trước. Ở `right`, ngoặc `((double) a)` chỉ bao toán hạng `a`, khiến `a` thành `double` khi dấu `/` được đánh giá.
+In `wrong`, the parentheses `(a / b)` force integer division to run first. In `right`, the parentheses `((double) a)` wrap only operand `a`, making `a` a `double` when `/` is evaluated.
 
-Có thể ép **một trong hai toán hạng**:
+You can cast **either operand**:
 
 ~~~java
 double x = (double) a / b; // 3.5
@@ -96,20 +96,20 @@ double y = a / (double) b; // 3.5
 double z = a / 2.0;        // 3.5
 ~~~
 
-Trường hợp số chia đến từ biến, ép kiểu rõ ràng trên `a` hoặc `b` dễ đọc và tránh vô tình thay đổi công thức khi giá trị literal không còn cố định.
+When the divisor comes from a variable, explicitly casting `a` or `b` is readable and avoids accidentally breaking the formula if a literal value is no longer fixed.
 
-### Toán tử cùng ưu tiên được đánh giá từ trái sang phải
+### Operators of Equal Precedence Evaluate Left-to-Right
 
-Nhân và chia có cùng mức ưu tiên, kết hợp từ trái sang phải:
+Multiplication and division share the same precedence and associate from left to right:
 
 ~~~java
 double lost = 7 / 2 * 100.0; // 300.0
 double good = 7 * 100.0 / 2; // 350.0
 ~~~
 
-Ở `lost`, Java đã thực hiện `7 / 2 == 3` rồi mới nhân `100.0`. Việc xuất hiện `double` ở **phía sau** không cứu phần thập phân đã mất. Trong `good`, phép nhân `7 * 100.0` sinh double trước, nên phép chia tiếp theo cũng dùng double.
+In `lost`, Java already evaluated `7 / 2 == 3` before multiplying by `100.0`. Having a `double` **later** does not save the lost fractional part. In `good`, the multiplication `7 * 100.0` produces a `double` first, so the subsequent division also uses `double`.
 
-Điều tương tự xuất hiện trong code thực tế:
+The same issue appears in real-world code:
 
 ~~~java
 int completed = 3;
@@ -119,20 +119,20 @@ double incorrectPercent = 100.0 * (completed / total); // 0.0
 double correctPercent = 100.0 * completed / total;     // 37.5
 ~~~
 
-Cách có ngoặc đầu tiên tính `3 / 8 == 0`, rồi nhân 100; cách đúng nhân với `100.0` trước, cho tỷ lệ thực `37.5%`.
+The parenthesized form computes `3 / 8 == 0` first and then multiplies by 100; the correct form multiplies by `100.0` first, giving the true percentage `37.5%`.
 
-Để dễ review, còn có thể biểu đạt trực tiếp:
+For easier code review, you can also express this directly:
 
 ~~~java
 double fraction = (double) completed / total;
 double percent = fraction * 100.0;
 ~~~
 
-Với dữ liệu quan trọng, cần quyết định tiếp có chấp nhận độ chính xác của `double` hay dùng số thập phân chính xác như `BigDecimal`.
+For critical data, you should next decide whether `double` precision is acceptable or whether an exact decimal type like `BigDecimal` is needed.
 
-## 4. Chương trình Java 17+ chạy độc lập
+## 4. Standalone Runnable Java 17+ Program
 
-Lưu file tên **`IntegerDivisionDemo.java`**:
+Save the file as **`IntegerDivisionDemo.java`**:
 
 ~~~java
 public class IntegerDivisionDemo {
@@ -180,14 +180,14 @@ public class IntegerDivisionDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17 trở lên:
+Compile and run with Java 17 or later:
 
 ~~~bash
 javac IntegerDivisionDemo.java
 java IntegerDivisionDemo
 ~~~
 
-**Stdout đã kiểm chứng:**
+**Verified stdout:**
 
 ~~~text
 wrong = 3.0
@@ -206,11 +206,11 @@ double zero by zero = NaN
 MAX/MIN edge = -2147483648
 ~~~
 
-Ví dụ vừa chỉ ra thứ tự ép kiểu, vừa phân biệt phép chia nguyên âm và chia số thực cho 0. Kết quả `Integer.MIN_VALUE / -1` là một ngoại lệ overflow của phép chia nguyên có quy tắc riêng trong Java; phần 7 giải thích chi tiết.
+This example demonstrates casting order while also distinguishing negative integer division from floating-point division by zero. The `Integer.MIN_VALUE / -1` result is an integer division overflow exception case with its own rule in Java; section 7 explains it in detail.
 
-## 5. Chia nguyên không làm tròn xuống âm vô cực
+## 5. Integer Division Does Not Round Down Toward Negative Infinity
 
-Khi hai toán hạng `int` hoặc `long`, phép chia dùng thương nguyên **bỏ phần lẻ theo hướng về 0** (truncate toward zero), không phải luôn dùng `Math.floor`.
+When both operands are `int` or `long`, division produces an integer quotient **truncated toward zero**, rather than always using `Math.floor`.
 
 ~~~java
 System.out.println(7 / 2);    // 3
@@ -219,32 +219,32 @@ System.out.println(7 / -2);   // -3
 System.out.println(-7 / -2);  // 3
 ~~~
 
-Theo số thực:
+In real arithmetic:
 
-- `7 / 2 = 3.5`, bỏ phần lẻ được `3`.
-- `-7 / 2 = -3.5`, bỏ phần lẻ về 0 được `-3`. Nếu làm tròn xuống âm vô cực thì là `-4`.
+- `7 / 2 = 3.5`, truncated toward zero gives `3`.
+- `-7 / 2 = -3.5`, truncated toward zero gives `-3`. Rounding down toward negative infinity would give `-4`.
 
-Java cung cấp `Math.floorDiv` khi yêu cầu phép chia **làm tròn xuống âm vô cực**:
+Java provides `Math.floorDiv` when division **rounded down toward negative infinity** is required:
 
 ~~~java
 int truncated = -7 / 2;               // -3
 int floored = Math.floorDiv(-7, 2);   // -4
 ~~~
 
-Nếu cần phần dư tương ứng với thương floor, dùng `Math.floorMod`. Phân biệt:
+If you need the remainder corresponding to the floor quotient, use `Math.floorMod`. Distinguish:
 
 ~~~java
 System.out.println(-7 % 2);            // -1
 System.out.println(Math.floorMod(-7, 2)); // 1
 ~~~
 
-`/` và `%` của `int` tuân theo quy tắc Java: ngoại trừ trường hợp overflow `MIN_VALUE / -1`, phép chia thương `q = a / b` và dư `r = a % b` thỏa `a == b * q + r` trong số học nguyên theo hợp đồng, với `|r| < |b|` và phần dư có cùng dấu với số bị chia hoặc bằng 0. Với `floorDiv`/`floorMod`, chọn cặp đó cùng nhau khi nghiệp vụ đòi phân hoạch theo hướng âm vô cực.
+`/` and `%` on `int` follow Java's contract: except for the overflow case `MIN_VALUE / -1`, quotient `q = a / b` and remainder `r = a % b` satisfy `a == b * q + r` in integer arithmetic under the contract, with `|r| < |b|` and the remainder having the same sign as the dividend or being zero. With `floorDiv`/`floorMod`, choose them together as a pair when business logic requires partitioning toward negative infinity.
 
-**Đừng dùng `(int) ((double) a / b)` để tự triển khai `floorDiv`.** Ép kiểu từ double về int cũng cắt phần lẻ về 0 (và có quy tắc riêng khi overflow/NaN). Nếu cần phép chia nguyên có floor semantics, gọi API phù hợp.
+**Do not use `(int) ((double) a / b)` to implement `floorDiv` yourself.** Casting from `double` to `int` also truncates toward zero (and has special rules for overflow/NaN). If you need integer division with floor semantics, call the appropriate API.
 
-## 6. Lỗi thực tế trong trung bình, phần trăm và các công thức
+## 6. Real-World Bugs in Averages, Percentages, and Formulas
 
-### 6.1. Tính điểm trung bình
+### 6.1. Computing an Average Score
 
 ~~~java
 int totalScore = 17;
@@ -254,9 +254,9 @@ double wrongAverage = totalScore / subjects;          // 4.0
 double correctAverage = (double) totalScore / subjects; // 4.25
 ~~~
 
-Việc gán cho `double` không tự làm biểu thức `totalScore / subjects` trở thành phép chia double. Nếu chỉ muốn phần nguyên, có thể dùng `int quotient = totalScore / subjects` một cách có chủ đích và đặt tên biến thể hiện ý nghĩa.
+Assigning to `double` does not automatically turn `totalScore / subjects` into `double` division. If you only want the integer part, you can intentionally use `int quotient = totalScore / subjects` and name the variable to reflect its meaning.
 
-### 6.2. Tính tỷ lệ hoàn thành
+### 6.2. Computing Completion Ratio
 
 ~~~java
 int done = 3;
@@ -267,34 +267,34 @@ double correctRatio = (double) done / planned; // 0.375
 double correctPercent = correctRatio * 100;   // 37.5
 ~~~
 
-Sai lầm nghiêm trọng khi chỉ có một phần công việc hoàn tất: tỷ lệ đúng khác 0 nhưng phép chia nguyên cho 0, khiến hiển thị **0%**. Với điều kiện `planned == 0`, cần xác định quy tắc ứng dụng: trả trạng thái “chưa có kế hoạch”, báo lỗi, hoặc một giá trị quy ước được tài liệu hóa; không tự chia cho 0.
+A serious bug when only part of the work is done: the true ratio is nonzero, yet integer division yields 0, causing **0%** to be displayed. For `planned == 0`, you must define the application's rule: return a "no plan" status, report an error, or return a documented convention value; never divide by 0 directly.
 
-### 6.3. Trung bình cộng của hai int lớn
+### 6.3. Average of Two Large ints
 
-Ép đúng kiểu ở phép chia vẫn **chưa đủ** nếu phép cộng ở trước đã overflow:
+Casting properly at the division is still **not enough** if the preceding addition has already overflowed:
 
 ~~~java
 int a = Integer.MAX_VALUE;
 int b = Integer.MAX_VALUE;
 
-double wrong = (a + b) / 2.0;        // -1.0: a+b overflow trước
+double wrong = (a + b) / 2.0;        // -1.0: a+b overflows first
 double right = ((double) a + b) / 2.0; // 2.147483647E9
 ~~~
 
-Trong `wrong`, `a + b` là phép cộng `int`, overflow từ `4294967294` (toán học) xuống `-2` theo wraparound 32 bit; `-2 / 2.0` bằng `-1.0`. Biến đích double hoặc divisor 2.0 không sửa được phép cộng đã overflow.
+In `wrong`, `a + b` is `int` addition, overflowing from `4294967294` (mathematically) down to `-2` via 32-bit wraparound; `-2 / 2.0` equals `-1.0`. A `double` target variable or divisor `2.0` cannot fix an already-overflowed addition.
 
-Một cách khác là nâng lên `long` **trước khi cộng**:
+Another approach is to widen to `long` **before adding**:
 
 ~~~java
 double exactSumThenDivide =
         ((long) a + b) / 2.0; // 2.147483647E9
 ~~~
 
-Với hai giá trị kiểu `int`, tổng luôn nằm trong miền `long`, nên tổng không overflow long; phép chia `2.0` sau đó là double. Nhưng nếu ngay từ đầu hai toán hạng đã là long gần cực trị, ngay cả phép cộng long cũng có thể overflow; khi đó cần thiết kế phù hợp hơn, chẳng hạn kiểm soát overflow hoặc dùng `BigInteger`.
+For two `int` values, their sum always fits within `long`, so the sum does not overflow `long`; dividing by `2.0` afterward uses `double`. However, if the two operands are `long`s near the extremes to begin with, even `long` addition can overflow; in that case a better design is needed, such as overflow checking or `BigInteger`.
 
-### 6.4. Phân trang và làm tròn số trang
+### 6.4. Pagination and Rounding Up Page Counts
 
-Với `itemCount = 10` và `pageSize = 3`, số trang cần là **4**, không phải 3.
+With `itemCount = 10` and `pageSize = 3`, the needed page count is **4**, not 3.
 
 ~~~java
 int itemCount = 10;
@@ -305,22 +305,22 @@ int correctPages = itemCount / pageSize
         + (itemCount % pageSize == 0 ? 0 : 1); // 4
 ~~~
 
-Công thức trên đúng khi `itemCount >= 0`, `pageSize > 0`. Nó tránh việc chuyển sang double và tránh overflow của công thức thường gặp `(itemCount + pageSize - 1) / pageSize` khi `itemCount + pageSize - 1` vượt giới hạn int. Nếu chỉ cần số lượng trang nguyên, không có lý do bắt buộc phải dùng double; hãy chọn phép chia nguyên cùng chính sách làm tròn lên thích hợp.
+This formula is correct when `itemCount >= 0` and `pageSize > 0`. It avoids converting to `double` and avoids overflow of the common formula `(itemCount + pageSize - 1) / pageSize` when `itemCount + pageSize - 1` exceeds the `int` limit. If you only need an integer page count, there is no compelling reason to use `double`; choose integer division with an appropriate ceiling policy.
 
-Tương tự, khi tính “bao nhiêu bucket đủ chứa n phần tử”, điều quan trọng không chỉ là sửa sang double mà là xác định **kết quả mong muốn có phải số nguyên làm tròn lên hay không**.
+Similarly, when calculating "how many buckets are needed to hold n items", the key is not just switching to `double`, but determining whether **the desired result is an integer rounded up**.
 
-## 7. Chia cho 0: int và double có hợp đồng khác nhau
+## 7. Dividing by Zero: int and double Have Different Contracts
 
-Với số nguyên:
+For integers:
 
 ~~~java
 int denominator = 0;
-// int invalid = 1 / denominator; // ném ArithmeticException khi thực thi
+// int invalid = 1 / denominator; // throws ArithmeticException at runtime
 ~~~
 
-Phép chia nguyên cho 0 gây `ArithmeticException`. Một biểu thức hằng `1 / 0` cũng không nên đưa vào code như một giá trị hợp lệ; đừng dựa vào việc IDE/compiler phát hiện hay không trong mọi ngữ cảnh để thay thế kiểm tra input.
+Integer division by zero throws `ArithmeticException`. Nor should a constant expression `1 / 0` be put in code as a valid value; do not rely on whether an IDE/compiler flags it in every context as a substitute for input validation.
 
-Khi có toán hạng `double` hoặc `float`, Java tuân theo quy tắc dấu phẩy động IEEE 754 đối với chia cho 0:
+When a `double` or `float` operand is present, Java follows IEEE 754 floating-point rules for division by zero:
 
 ~~~java
 System.out.println(1.0 / 0.0);  // Infinity
@@ -328,9 +328,9 @@ System.out.println(-1.0 / 0.0); // -Infinity
 System.out.println(0.0 / 0.0);  // NaN
 ~~~
 
-Đây là các giá trị dấu phẩy động đặc biệt, **không giống lỗi chia nguyên**. Chính sách nghiệp vụ có thể yêu cầu từ chối divisor 0 trong cả hai trường hợp. Nếu biểu thức thành `Infinity` hoặc `NaN` rồi lan qua các bước sau, báo cáo/tính toán có thể bị hỏng mà không có exception.
+These are special floating-point values, **unlike the integer division error**. Business policy may require rejecting a zero divisor in both cases. If an expression becomes `Infinity` or `NaN` and propagates through later steps, reports or calculations can be corrupted without any exception.
 
-**Luôn quyết định đầu vào 0 có hợp lệ không.** Ví dụ hàm tỷ lệ chỉ có ý nghĩa với tổng lớn hơn 0:
+**Always decide whether a zero input is valid.** For example, a ratio function only makes sense when total is greater than 0:
 
 ~~~java
 static double completionRatio(int completed, int total) {
@@ -341,32 +341,32 @@ static double completionRatio(int completed, int total) {
 }
 ~~~
 
-Đây là **phương thức minh họa**, đặt trong class, không phải chương trình có `main` độc lập. Nếu `completed` có thể âm hoặc lớn hơn `total` thì domain cũng cần quy định có từ chối hay không; việc ép kiểu không thay thế validation.
+This is an **illustrative method** placed inside a class, not a standalone program with `main`. If `completed` can be negative or greater than `total`, the domain must also specify whether to reject it; casting does not replace validation.
 
-## 8. Một toán hạng double có thể gây sai số nhị phân
+## 8. A double Operand Can Introduce Binary Rounding Error
 
-Chuyển toán hạng sang `double` sửa lỗi chia nguyên, nhưng **không biến mọi phân số thành số thập phân chính xác tuyệt đối**.
+Converting an operand to `double` fixes the integer division bug, but **it does not turn every fraction into an exact decimal number**.
 
 ~~~java
 double oneThird = (double) 1 / 3;
 System.out.println(oneThird); // 0.3333333333333333
 ~~~
 
-Số thực 1/3 có khai triển vô hạn, còn double chỉ có số bit độ chính xác hữu hạn nên kết quả là xấp xỉ. Tương tự, các số thập phân như 0.1 và 0.2 thường không có biểu diễn nhị phân chính xác.
+The real number 1/3 has an infinite expansion, whereas `double` only has finite bits of precision, so the result is an approximation. Similarly, decimal numbers like 0.1 and 0.2 generally have no exact binary representation.
 
-Với số nguyên `int`, mọi giá trị riêng lẻ chuyển sang `double` đều biểu diễn chính xác vì double có 53 bit precision nhị phân và int chỉ có 32 bit. Nhưng kết quả **phép chia** giữa chúng vẫn có thể không biểu diễn chính xác bằng double.
+For `int` values, every individual value converted to `double` is represented exactly because `double` has 53 bits of binary precision and `int` only has 32 bits. However, the **division result** between them may still not be exactly representable as a `double`.
 
-Với `long`, không phải mọi số nguyên đều biểu diễn chính xác bằng double. Ví dụ:
+For `long`, not every integer is represented exactly in `double`. For example:
 
 ~~~java
 long large = 9_007_199_254_740_993L;  // 2^53 + 1
 double converted = (double) large;
-// converted là số double gần nhất, không giữ đúng từng đơn vị của large.
+// converted is the nearest double, not preserving every unit of large.
 ~~~
 
-Nếu yêu cầu so sánh/đối soát số nguyên lớn theo giá trị chính xác, đừng chuyển sang double rồi coi mọi số là phân biệt. Dùng `long` khi kết quả thuộc phạm vi long và phép toán không overflow, hoặc `BigInteger` cho số nguyên vượt phạm vi. Với tỷ số yêu cầu độ chính xác thập phân hay quy tắc làm tròn xác định, cân nhắc `BigDecimal`.
+If exact comparison or reconciliation of large integers is required, do not convert to `double` and assume all numbers remain distinct. Use `long` when results stay within `long` range and operations do not overflow, or `BigInteger` for integers beyond that range. For ratios requiring decimal precision or well-defined rounding rules, consider `BigDecimal`.
 
-### Khi cần BigDecimal
+### When BigDecimal Is Needed
 
 ~~~java
 import java.math.BigDecimal;
@@ -383,67 +383,67 @@ BigDecimal oneThird = BigDecimal.ONE.divide(
 System.out.println(oneThird); // 0.3333
 ~~~
 
-Đoạn này nằm trong một phương thức, giả định import đã khai báo. `BigDecimal.divide(divisor)` không truyền rounding mode chỉ thành công khi thương có biểu diễn thập phân hữu hạn; với `1/3` phải chỉ định scale/rounding hoặc MathContext phù hợp. Chọn số chữ số làm tròn dựa trên yêu cầu thực, không mặc định luôn 4.
+This snippet sits inside a method and assumes imports are declared. `BigDecimal.divide(divisor)` without a rounding mode only succeeds when the quotient has a terminating decimal representation; for `1/3` you must specify an appropriate scale/rounding mode or `MathContext`. Choose the number of decimal digits based on actual requirements rather than always defaulting to 4.
 
-**Tránh** khởi tạo tiền bằng `new BigDecimal(0.1)` vì giá trị đầu vào `double` đã gần đúng nhị phân. Đối với dữ liệu tiền tệ, ưu tiên parse chuỗi thập phân, đơn vị nguyên nhỏ nhất, hoặc phép tính BigDecimal được thiết kế ngay từ đầu.
+**Avoid** constructing monetary amounts with `new BigDecimal(0.1)` because the `double` input is already a binary approximation. For monetary data, prefer parsing decimal strings, using the smallest integer unit, or designing `BigDecimal` arithmetic from the start.
 
-## 9. Ép kiểu trước hoặc sau còn ảnh hưởng overflow và precision
+## 9. Casting Before or After Also Affects Overflow and Precision
 
-Quy tắc tổng quát: **mọi phép toán xảy ra trước cast giữ ngữ nghĩa của kiểu đang áp dụng**, kể cả overflow, chia nguyên và sai số float.
+General rule: **any operation occurring before a cast keeps the semantics of the active type**, including overflow, integer division, and float precision loss.
 
-| Biểu thức | Điều gì xảy ra trước | Hậu quả |
+| Expression | What Happens First | Consequence |
 |---|---|---|
-| `(double) (a / b)` | Chia int | Phần lẻ mất |
-| `(double) a / b` | Cast a sang double | Có phần lẻ nếu thương cần |
-| `(double) (a + b) / 2` | Cộng int | Có thể overflow trước cast |
-| `((double) a + b) / 2` | Cast a sang double trước cộng | Tránh overflow int tại phép cộng đó, nhưng dùng số thực |
-| `(long) (a * b)` | Nhân int | Có thể overflow trước cast |
-| `(long) a * b` | Cast a sang long trước nhân | Nhân long, nhưng vẫn có giới hạn long |
-| `(float) a / b` | Chia float | Có phần lẻ nhưng precision thấp hơn double |
-| `a / (long) b` | Chia long | Vẫn cắt phần thập phân |
+| `(double) (a / b)` | `int` division | Fractional part is lost |
+| `(double) a / b` | Cast `a` to `double` | Keeps fractional part if quotient needs it |
+| `(double) (a + b) / 2` | `int` addition | Can overflow before cast |
+| `((double) a + b) / 2` | Cast `a` to `double` before adding | Avoids `int` overflow in that addition, but uses floating point |
+| `(long) (a * b)` | `int` multiplication | Can overflow before cast |
+| `(long) a * b` | Cast `a` to `long` before multiplying | `long` multiplication, still bounded by `long` limits |
+| `(float) a / b` | `float` division | Has fractional part, but lower precision than `double` |
+| `a / (long) b` | `long` division | Still truncates fractional part |
 
-Ví dụ cụ thể lỗi nhân trước khi ép:
+Concrete example of multiplying before casting:
 
 ~~~java
 int a = 50_000;
 int b = 50_000;
 
-long wrong = (long) (a * b);  // -1794967296 vì int overflow
+long wrong = (long) (a * b);  // -1794967296 due to int overflow
 long right = (long) a * b;    // 2500000000
 ~~~
 
-Phần này mở rộng nguyên tắc từ phép chia sang phép nhân để tránh cùng dạng sai lầm: **cast đúng kiểu nhưng quá muộn**. Trong Java, nếu phép toán phải chính xác và có thể vượt kiểu hiện tại, hãy nâng kiểu hoặc dùng phép kiểm tra overflow **trước phép toán**.
+This extends the principle from division to multiplication to prevent the same kind of error: **casting to the right type, but too late**. In Java, if an operation must be exact and might exceed its current type, promote the type or apply overflow checks **before the operation**.
 
-## 10. Chọn cách tính theo ý nghĩa nghiệp vụ
+## 10. Choosing the Calculation Based on Business Meaning
 
-Tùy mục tiêu, không phải lúc nào cũng nên chuyển sang double:
+Depending on the goal, you should not always convert to `double`:
 
-| Mục tiêu | Ví dụ giải pháp | Lý do |
+| Goal | Example Solution | Reason |
 |---|---|---|
-| Lấy thương nguyên và bỏ phần lẻ hướng về 0 | `int q = a / b;` | Đúng khi chỉ cần số lần chia trọn |
-| Tính tỷ lệ thực gần đúng | `double r = (double) a / b;` | Tránh chia nguyên |
-| Tính tỷ lệ phần trăm gần đúng | `100.0 * a / b` | Chuyển sang double trước phép chia |
-| Làm tròn chia nguyên xuống âm vô cực | `Math.floorDiv(a, b)` | Đúng với số âm |
-| Tính số trang cho số lượng không âm | `a / b + (a % b != 0 ? 1 : 0)` | Đếm số nhóm nguyên và làm tròn lên |
-| Tính tiền chính xác theo scale/mode | `BigDecimal.divide(..., scale, mode)` | Quy tắc thập phân rõ ràng |
-| Tính số nguyên lớn chính xác | `BigInteger` và phép chia của nó | Tránh mất độ chính xác khi convert double |
+| Get integer quotient truncated toward zero | `int q = a / b;` | Right when you only need whole-unit counts |
+| Compute approximate real ratio | `double r = (double) a / b;` | Avoids integer division |
+| Compute approximate percentage | `100.0 * a / b` | Converts to double before dividing |
+| Integer division rounded down toward negative infinity | `Math.floorDiv(a, b)` | Correct for negative numbers |
+| Compute page count for non-negative counts | `a / b + (a % b != 0 ? 1 : 0)` | Counts whole groups and rounds up |
+| Exact money calculation by scale/mode | `BigDecimal.divide(..., scale, mode)` | Clear decimal rules |
+| Exact large-integer calculation | `BigInteger` and its divide method | Avoids precision loss from double conversion |
 
-Các biểu thức có `a / b` yêu cầu `b != 0`; công thức đếm trang giả định `a >= 0, b > 0`. Nếu nghiệp vụ xác định trước điều kiện này, kiểm tra input ở biên dễ hiểu và an toàn hơn xử lý ngoại lệ trong nhiều tầng.
+Expressions with `a / b` require `b != 0`; the page-count formula assumes `a >= 0, b > 0`. If business logic defines these conditions upfront, validating inputs at the boundary is clearer and safer than handling exceptions across multiple layers.
 
-## 11. Cách kiểm thử để bắt lỗi từ lần review đầu
+## 11. How to Test to Catch the Bug on the First Review
 
-Không chỉ kiểm thử trường hợp chia hết, vì `6 / 2` cho kết quả `3.0` dù viết sai `double result = 6 / 2`. Một bộ test nên có:
+Do not test only divisible cases, because `6 / 2` gives `3.0` even with the buggy `double result = 6 / 2`. A test suite should include:
 
-1. **Có phần lẻ:** `7/2 → 3.5`, `1/2 → 0.5`, `3/8 → 0.375` khi yêu cầu double.
-2. **Chia hết:** `8/2 → 4.0`; bảo đảm sửa cast không làm sai trường hợp đơn giản.
-3. **Số âm:** `-7/2 == -3` khi dùng chia int; với double là `-3.5`; với `Math.floorDiv` là -4.
-4. **Bằng 0:** `0/5 == 0`; divisor 0 được từ chối theo policy.
-5. **Biên int:** `Integer.MAX_VALUE`, `Integer.MIN_VALUE`, và cộng/nhân trước chia để phát hiện overflow sớm.
-6. **Lỗi thứ tự toán tử:** `100.0 * (3/8) == 0.0` và `100.0 * 3/8 == 37.5`.
-7. **Độ chính xác thực:** các tỷ số khó biểu diễn (1/3) cần so sánh với tolerance phù hợp hoặc với kỳ vọng thập phân theo domain; không dùng `==` bừa bãi giữa hai công thức floating được tính theo đường khác nhau.
-8. **Điểm đến của kết quả:** nếu gọi hàm trả `double` mà phần thân trả `a/b` với hai int, chữ ký hàm vẫn không ngăn lỗi. Test phải kiểm chứng kết quả số học.
+1. **Non-zero fractional part:** `7/2 → 3.5`, `1/2 → 0.5`, `3/8 → 0.375` when `double` is required.
+2. **Exact division:** `8/2 → 4.0`; ensures adding a cast did not break simple cases.
+3. **Negative numbers:** `-7/2 == -3` under `int` division; `-3.5` under `double`; `-4` under `Math.floorDiv`.
+4. **Zero cases:** `0/5 == 0`; a zero divisor is rejected according to policy.
+5. **int boundaries:** `Integer.MAX_VALUE`, `Integer.MIN_VALUE`, and addition/multiplication before division to catch overflow early.
+6. **Operator precedence bugs:** `100.0 * (3/8) == 0.0` and `100.0 * 3/8 == 37.5`.
+7. **Real-number precision:** hard-to-represent ratios (1/3) need comparison with an appropriate tolerance or domain decimal expectations; do not carelessly use `==` between two floating-point formulas computed via different paths.
+8. **Return destination:** if a function returns `double` while its body returns `a/b` with two `int`s, the signature does not prevent the bug. Tests must verify the numerical result.
 
-Ví dụ assertion thuần Java trong một phương thức:
+Plain Java assertion example inside a method:
 
 ~~~java
 int a = 7;
@@ -455,48 +455,48 @@ if (Double.compare(actual, 3.5) != 0) {
 }
 ~~~
 
-Ở đây `3.5` biểu diễn chính xác trong nhị phân nên so sánh trực tiếp đáng tin cho ca đơn lẻ. Với `1/3` hoặc chuỗi phép toán số thực dài, cần chọn cách kiểm tra dung sai hoặc reference chính xác phù hợp yêu cầu.
+Here `3.5` is exactly representable in binary, so direct comparison is reliable for this isolated case. For `1/3` or long floating-point calculation chains, choose a tolerance check or exact reference appropriate for your requirements.
 
-### Tự hỏi khi review một biểu thức chia
+### Questions to Ask When Reviewing a Division Expression
 
-- Hai toán hạng tại dấu `/` hiện có kiểu gì?
-- Có cần **phần lẻ** hay chỉ cần **thương nguyên**?
-- Cast nằm trước phép chia hay bao **toàn bộ kết quả đã tính**?
-- Các phép cộng/nhân trước đó có thể overflow?
-- Divisor có thể bằng 0 không?
-- Nếu dùng double, độ chính xác xấp xỉ có đủ?
-- Với số âm, mong muốn truncate hay floor?
-- Nếu kết quả cần biểu diễn tiền tệ, có quy tắc scale và rounding chưa?
+- What types do the two operands at `/` currently have?
+- Do you need the **fractional part**, or only the **integer quotient**?
+- Is the cast placed before the division, or does it wrap **the entire computed result**?
+- Could preceding additions or multiplications overflow?
+- Can the divisor be 0?
+- If using `double`, is approximate precision sufficient?
+- For negative numbers, do you want truncation or floor?
+- If the result represents currency, are scale and rounding rules defined?
 
-## 12. Các lỗi phổ biến và cách sửa nhanh
+## 12. Common Mistakes and Quick Fixes
 
-**Sai:** `double avg = sum / count;` khi `sum`, `count` đều int và cần kết quả có phần lẻ.
+**Wrong:** `double avg = sum / count;` when `sum` and `count` are both `int` and a fractional result is needed.
 
-**Đúng:** `double avg = (double) sum / count;` khi count khác 0.
+**Right:** `double avg = (double) sum / count;` when `count` is non-zero.
 
-**Sai:** `double avg = (double) (sum / count);` vì cast quá muộn.
+**Wrong:** `double avg = (double) (sum / count);` because the cast is too late.
 
-**Đúng:** `double avg = sum / (double) count;` hoặc cast tử số trước.
+**Right:** `double avg = sum / (double) count;` or cast the numerator first.
 
-**Sai:** `double pct = (done / total) * 100.0;` vì ngoặc ép chia nguyên trước.
+**Wrong:** `double pct = (done / total) * 100.0;` because parentheses force integer division first.
 
-**Đúng:** `double pct = ((double) done / total) * 100.0;` với total khác 0.
+**Right:** `double pct = ((double) done / total) * 100.0;` with `total` non-zero.
 
-**Sai:** `double avg = (a + b) / 2.0;` nếu `a+b` có thể overflow int.
+**Wrong:** `double avg = (a + b) / 2.0;` if `a+b` can overflow `int`.
 
-**Đúng:** `double avg = ((double) a + b) / 2.0;` khi phù hợp semantics double, hoặc nâng lên long trước cộng nếu phạm vi cho phép.
+**Right:** `double avg = ((double) a + b) / 2.0;` when `double` semantics fit, or widen to `long` before adding if range allows.
 
-**Sai:** `double r = (long) a / b;` và cho rằng phép chia sẽ có phần lẻ.
+**Wrong:** `double r = (long) a / b;` thinking the division will now keep a fractional part.
 
-**Đúng:** `double r = (double) a / b;` vì long vẫn là số nguyên.
+**Right:** `double r = (double) a / b;` because `long` is still an integer type.
 
-**Sai:** dùng `Math.floorDiv` chỉ để “lấy số có dấu thập phân”.
+**Wrong:** using `Math.floorDiv` just to "get a number with decimal places".
 
-**Đúng:** `Math.floorDiv` dành cho **thương nguyên làm tròn xuống**, còn để giữ phần lẻ phải có kiểu số thực tại phép chia.
+**Right:** `Math.floorDiv` is for **floor integer quotients**; to keep the fractional part, a floating-point type must participate in the division.
 
-## 13. Bài tập
+## 13. Exercises
 
-**Bài 1.** Dự đoán:
+**Exercise 1.** Predict the output:
 
 ~~~java
 System.out.println(5 / 2);
@@ -505,9 +505,9 @@ System.out.println((double) 5 / 2);
 System.out.println(5 / 2.0);
 ~~~
 
-**Bài 2.** Với `a = -5` và `b = 2`, so sánh `a / b`, `(double) a / b`, `Math.floorDiv(a,b)`, `a % b` và `Math.floorMod(a,b)`.
+**Exercise 2.** With `a = -5` and `b = 2`, compare `a / b`, `(double) a / b`, `Math.floorDiv(a,b)`, `a % b`, and `Math.floorMod(a,b)`.
 
-**Bài 3.** Sửa đoạn code:
+**Exercise 3.** Fix this code:
 
 ~~~java
 static double percentage(int success, int total) {
@@ -515,21 +515,21 @@ static double percentage(int success, int total) {
 }
 ~~~
 
-Yêu cầu trả tỷ lệ `37.5` khi success=3 và total=8; từ chối total=0.
+Requirement: return `37.5` when `success=3` and `total=8`; reject `total=0`.
 
-**Bài 4.** Vì sao `double x = (Integer.MAX_VALUE + Integer.MAX_VALUE) / 2.0;` không ra giá trị trung bình mong muốn? Hãy sửa mà không cộng hai int trước.
+**Exercise 4.** Why doesn't `double x = (Integer.MAX_VALUE + Integer.MAX_VALUE) / 2.0;` give the expected average? Fix it without adding two `int`s first.
 
-**Bài 5.** Nếu số lượng trang cần dùng phép làm tròn lên nguyên cho `items = 10, pageSize = 3`, tại sao chỉ ép sang double chưa hoàn thành yêu cầu? Hãy chọn cách tính số trang trả int.
+**Exercise 5.** If a page count requires integer ceiling division for `items = 10, pageSize = 3`, why is merely casting to `double` incomplete for the requirement? Choose a way to compute the page count returning `int`.
 
-**Đáp án tham khảo:**
+**Reference Answers:**
 
 1. `2`, `2.0`, `2.5`, `2.5`.
 2. `-2`, `-2.5`, `-3`, `-1`, `1`.
-3. Kiểm tra `total != 0` (hoặc `total > 0` theo domain), sau đó `return (double) success / total * 100.0;`.
-4. Phép cộng int overflow trước khi chia. Dùng `((double) Integer.MAX_VALUE + Integer.MAX_VALUE) / 2.0` hoặc cộng long trước.
-5. Số trang phải nguyên làm tròn lên; với items không âm và pageSize dương, dùng `items / pageSize + (items % pageSize == 0 ? 0 : 1)` cho kết quả 4.
+3. Check `total != 0` (or `total > 0` per domain), then `return (double) success / total * 100.0;`.
+4. Integer addition overflows before dividing. Use `((double) Integer.MAX_VALUE + Integer.MAX_VALUE) / 2.0` or add as `long` first.
+5. The page count must be an integer rounded up; with non-negative `items` and positive `pageSize`, use `items / pageSize + (items % pageSize == 0 ? 0 : 1)` to get 4.
 
-## 14. Tài liệu chuẩn Java SE 17
+## 14. Java SE 17 Standard References
 
 - Java Language Specification, ``15.17.2 Division Operator /`: https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.2
 - Java Language Specification, ``5.6 Numeric Contexts` (binary numeric promotion): https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.6
@@ -537,4 +537,4 @@ Yêu cầu trả tỷ lệ `37.5` khi success=3 và total=8; từ chối total=0
 - Java SE 17, `Math.floorDiv`/`floorMod`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html
 - Java SE 17, `BigDecimal`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html
 
-**Ghi nhớ:** `double result = a / b;` với hai `int` là **chia nguyên rồi mới chuyển sang double**. Muốn giữ phần lẻ, hãy đặt `(double)` trước **ít nhất một toán hạng của phép chia** và đảm bảo không có phép toán int trước đó đã làm mất thông tin hoặc overflow.
+**Remember:** `double result = a / b;` with two `int`s performs **integer division first and only then converts to double**. To preserve the fractional part, place `(double)` before **at least one operand of the division** and ensure no preceding `int` operation has lost information or overflowed.

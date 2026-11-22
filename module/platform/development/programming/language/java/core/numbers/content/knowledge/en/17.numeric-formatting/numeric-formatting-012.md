@@ -1,11 +1,11 @@
-# `setParseBigDecimal` và giới hạn an toàn khi dùng formatter đồng thời trong Java
+# `setParseBigDecimal` and Thread-Safety Limits When Using Formatters Concurrently in Java
 
-`java.text.DecimalFormat` là một formatter/parser số thực linh hoạt của Java: nó hỗ trợ **ký hiệu thập phân, phân nhóm hàng nghìn, định dạng theo mẫu và locale**. Tuy nhiên, hai vấn đề cần xử lý cẩn thận khi dùng với dữ liệu quan trọng:
+`java.text.DecimalFormat` is a flexible floating-point formatter/parser in Java: it supports **decimal symbols, thousands grouping, pattern-based formatting, and locales**. However, two issues must be handled carefully when working with critical data:
 
-1. **Kiểu và độ chính xác của kết quả parse.** `DecimalFormat#setParseBigDecimal(true)` yêu cầu parser trả `BigDecimal` cho **các số hữu hạn bình thường**, nhờ đó tránh ép kết quả parse trước hết qua `double`. Điều này đặc biệt hữu ích cho dữ liệu tiền tệ hoặc số thập phân dài.
-2. **An toàn đồng thời (thread safety).** `DecimalFormat` và `NumberFormat` dạng dùng phổ biến **không bảo đảm thread-safe**. Không được chia sẻ một instance mutable để nhiều luồng cùng `format`, `parse` hoặc thay đổi cấu hình mà không có cơ chế đồng bộ phù hợp.
+1. **Type and precision of parse results.** `DecimalFormat#setParseBigDecimal(true)` instructs the parser to return `BigDecimal` for **ordinary finite numbers**, thereby avoiding converting the parse result through `double` first. This is especially useful for monetary data or long decimals.
+2. **Concurrent safety (thread safety).** `DecimalFormat` and `NumberFormat` in standard usage are **not guaranteed to be thread-safe**. You must not share a mutable instance across multiple threads to `format`, `parse`, or mutate configuration concurrently without proper synchronization.
 
-Ví dụ nhập chuỗi theo chuẩn dấu phân cách của Hoa Kỳ:
+Example of parsing a string following US separator conventions:
 
 ```java
 java.text.DecimalFormatSymbols symbols =
@@ -17,19 +17,19 @@ java.text.DecimalFormat df =
 df.setParseBigDecimal(true);
 
 Number result = df.parse("1,234.50");
-// Kiểu thực tế của result: BigDecimal; giá trị thập phân: 1234.50.
+// Actual runtime type of result: BigDecimal; decimal value: 1234.50.
 ```
 
-Đây là **đoạn mã minh họa** trong một phương thức có khai báo/nhận `ParseException` thích hợp. Khi dùng `new DecimalFormat(..., symbols)`, ta quy định rõ ý nghĩa dấu phẩy và dấu chấm thay vì phụ thuộc locale mặc định của môi trường.
+This is an **illustrative code snippet** inside a method that declares/handles `ParseException` appropriately. By using `new DecimalFormat(..., symbols)`, we explicitly specify the meaning of commas and dots instead of relying on the environment's default locale.
 
-**Quan trọng:** Bật `setParseBigDecimal(true)` **không làm formatter trở thành thread-safe**, **không bảo đảm mọi chuỗi đầu vào hợp lệ về nghiệp vụ** và **không biến NaN/vô cực thành `BigDecimal`**. Những giới hạn này độc lập với nhau.
+**Important:** Enabling `setParseBigDecimal(true)` **does not make the formatter thread-safe**, **does not guarantee every input string is valid per business rules**, and **does not turn NaN/infinity into `BigDecimal`**. These limitations are independent of one another.
 
-## 1. Phân biệt định dạng (`format`) và phân tích (`parse`)
+## 1. Distinguishing formatting (`format`) and parsing (`parse`)
 
-`DecimalFormat` có hai hướng sử dụng:
+`DecimalFormat` works in two directions:
 
-- **`format(number)`**: nhận một giá trị số và tạo `String` theo mẫu ký tự, số chữ số thập phân, dấu phân cách, locale và quy tắc làm tròn.
-- **`parse(text)`**: đọc văn bản đã nhập thành `Number` theo ký hiệu của formatter. `Number` là kiểu cha; giá trị thực tế có thể thuộc nhiều class khác nhau.
+- **`format(number)`**: takes a numeric value and produces a `String` per the pattern, fractional digit counts, separators, locale, and rounding rules.
+- **`parse(text)`**: reads entered text into a `Number` using the formatter's symbols. `Number` is a superclass; the actual value can belong to several different classes.
 
 ```java
 java.text.DecimalFormat df = new java.text.DecimalFormat(
@@ -41,17 +41,17 @@ String display = df.format(1234.5); // "1,234.50"
 Number parsed = df.parse("1,234.50");
 ```
 
-Kiểu khai báo của `parse(String)` là **`Number`**, không phải `BigDecimal` hay `Double`. Vì vậy nếu muốn thao tác an toàn dựa trên kiểu cụ thể, cần biết **cấu hình parser** và kiểm tra giá trị trước khi cast.
+The declared return type of `parse(String)` is **`Number`**, not `BigDecimal` or `Double`. Therefore, to operate safely on a concrete type, you must know the **parser's configuration** and inspect the value before casting.
 
-**Đừng suy ra rằng mẫu `#,##0.00` tự ép parser chỉ được nhận đúng hai chữ số thập phân.** Mẫu chủ yếu điều khiển cách format và một số quy tắc parse; parse còn có thể nhận những chuỗi không đúng chính sách nhập của ứng dụng. Nếu cần ràng buộc định dạng cố định, phải kiểm tra đầu vào riêng.
+**Do not infer that the pattern `#,##0.00` automatically forces the parser to accept only exact two fractional digits.** The pattern primarily governs formatting and certain parse rules; parsing can still accept strings that violate an application's input policy. If strict format constraints are needed, validate the input separately.
 
-## 2. `setParseBigDecimal(true)` thay đổi điều gì?
+## 2. What does `setParseBigDecimal(true)` change?
 
-`DecimalFormat#setParseBigDecimal(boolean newValue)` điều khiển cách chuyển chuỗi số thành `Number`:
+`DecimalFormat#setParseBigDecimal(boolean newValue)` controls how numeric strings are turned into `Number`:
 
-- Khi **`true`**: với giá trị số hữu hạn phân tích thông thường, phương thức trả **`java.math.BigDecimal`**. Giá trị được xây từ chữ số thập phân đã nhận, thay vì bắt buộc đi qua một `double`.
-- Khi **`false`** (thông thường là mặc định): parser có thể trả **`Long`** nếu giá trị số nguyên có thể biểu diễn dưới dạng `long`, hoặc **`Double`** khi giá trị không phù hợp kiểu `Long`/mang phần lẻ. Không nên mặc định mọi kết quả đều là `Double`.
-- **Ngoại lệ quan trọng:** `NaN` và `±Infinity` vẫn được biểu diễn bằng **`Double`**, ngay cả khi `setParseBigDecimal(true)`.
+- When **`true`**: for normally parsed finite numeric values, the method returns **`java.math.BigDecimal`**. The value is constructed from the parsed decimal digits rather than being forced through a `double`.
+- When **`false`** (typically the default): the parser may return **`Long`** if the integer value fits in a `long`, or **`Double`** when the value does not fit `Long` or has a fractional part. Do not assume every result is always `Double`.
+- **Important exception:** `NaN` and `±Infinity` are still represented as **`Double`**, even when `setParseBigDecimal(true)` is enabled.
 
 ```java
 java.text.DecimalFormat df = new java.text.DecimalFormat(
@@ -63,28 +63,28 @@ df.setParseBigDecimal(true);
 Number precise = df.parse("1,234.50"); // BigDecimal 1234.50
 
 df.setParseBigDecimal(false);
-Number ordinary = df.parse("42");      // Long 42 trên JDK theo quy tắc parse này
+Number ordinary = df.parse("42");      // Long 42 on the JDK under this parse rule
 ```
 
-Vì khai báo return type `Number` giữ nguyên, **không thể ép kiểu `BigDecimal` một cách mù quáng chỉ dựa trên lời gọi `parse`**. Cần biết instance nào đã được cấu hình và kiểm tra các giá trị đặc biệt.
+Because the declared return type `Number` stays the same, **you cannot blindly cast to `BigDecimal` based solely on calling `parse`**. You must know how the instance is configured and check for special values.
 
-### Vì sao `BigDecimal` hữu ích?
+### Why is `BigDecimal` useful?
 
-`double` chỉ có khoảng 15–17 chữ số thập phân có ý nghĩa, nên các chữ số dài có thể bị làm tròn khi chuyển qua binary floating point. `BigDecimal` biểu diễn số **thập phân** bằng phần nguyên độ chính xác tùy ý và scale.
+`double` has only about 15–17 significant decimal digits, so long numbers can get rounded when passed through binary floating-point. `BigDecimal` represents **decimal** numbers using an arbitrary-precision integer and a scale.
 
-Ví dụ chuỗi:
+Example string:
 
 ```text
 9,007,199,254,740,993.00
 ```
 
-`9007199254740993` là số nguyên lớn hơn `2^53`, không thể biểu diễn **chính xác** bằng `double`. Khi bật `setParseBigDecimal(true)`, parser trả một `BigDecimal` với nội dung thập phân **`9007199254740993.00`**. Nếu chuyển dữ liệu không nguyên rất lớn qua `double`, việc làm tròn có thể làm đổi những chữ số cuối.
+`9007199254740993` is an integer larger than `2^53`, which cannot be represented **exactly** as a `double`. With `setParseBigDecimal(true)` enabled, the parser returns a `BigDecimal` with decimal content **`9007199254740993.00`**. If very large non-integer data goes through `double`, rounding can alter the trailing digits.
 
-**Không nhầm:** Bật chế độ `BigDecimal` chỉ giữ độ chính xác của **các chữ số parser thực sự đọc được**. Nếu dữ liệu đã được làm tròn ở hệ thống gửi, hoặc đầu vào sai định dạng, parser không thể khôi phục chữ số gốc đã mất.
+**Do not misunderstand:** Enabling `BigDecimal` mode only preserves the precision of **the digits the parser actually read**. If data was already rounded by the sending system, or the input was malformed, the parser cannot recover lost original digits.
 
-## 3. `setParseBigDecimal` không phải bộ lọc NaN và vô cực
+## 3. `setParseBigDecimal` is not a NaN and infinity filter
 
-`BigDecimal` không có các giá trị `NaN`, `+Infinity` hoặc `-Infinity` như `double`. Vì thế `DecimalFormat` sử dụng `Double` cho các giá trị đặc biệt này ngay cả khi chế độ parse `BigDecimal` được bật.
+`BigDecimal` does not have `NaN`, `+Infinity`, or `-Infinity` values like `double`. Hence `DecimalFormat` uses `Double` for these special values even when `BigDecimal` parse mode is turned on.
 
 ```java
 df.setParseBigDecimal(true);
@@ -92,12 +92,12 @@ df.setParseBigDecimal(true);
 Number nan = df.parse(df.getDecimalFormatSymbols().getNaN());
 Number infinity = df.parse(df.getDecimalFormatSymbols().getInfinity());
 
-// nan và infinity có kiểu thực tế Double, không phải BigDecimal.
+// nan and infinity have actual runtime type Double, not BigDecimal.
 ```
 
-Các chuỗi ký hiệu NaN/vô cực phụ thuộc cấu hình `DecimalFormatSymbols`/locale. Nếu parser được tạo từ locale khác, không nên mặc định các ký hiệu luôn được viết đúng là `"NaN"` và `"Infinity"` bằng chữ ASCII.
+The NaN/infinity symbol strings depend on the `DecimalFormatSymbols`/locale configuration. If the parser was created from another locale, do not assume the symbols are always written literally as ASCII `"NaN"` and `"Infinity"`.
 
-Với một API bắt buộc trả thập phân hữu hạn, có thể xác thực:
+For an API that requires returning a finite decimal, you can validate:
 
 ```java
 Number number = df.parse(text);
@@ -107,29 +107,29 @@ if (!(number instanceof java.math.BigDecimal)) {
 java.math.BigDecimal value = (java.math.BigDecimal) number;
 ```
 
-Đây là đoạn mã minh họa cần đặt trong phương thức có xử lý `ParseException`. Điều kiện `instanceof` giúp **không cast nhầm `Double.NaN` hoặc vô cực sang `BigDecimal`**.
+This is an illustrative snippet to place in a method that handles `ParseException`. The `instanceof` check prevents **mistakenly casting `Double.NaN` or infinity to `BigDecimal`**.
 
-Ngoài việc chọn kiểu số, ứng dụng còn cần xác định điều gì được phép về **độ lớn, dấu, số chữ số và đơn vị đo**. Parse thành `BigDecimal` không đồng nghĩa với việc dữ liệu đã được nghiệp vụ xác thực.
+Beyond choosing the numeric type, the application must also define what is permitted regarding **magnitude, sign, digit count, and units**. Parsing into `BigDecimal` does not mean the data has been validated by business rules.
 
-## 4. Mất dấu của `-0.0` và những khác biệt về Number
+## 4. Loss of the `-0.0` sign and differences in `Number`
 
-Một góc cạnh tinh tế: kiểu dấu phẩy động có **`+0.0` và `-0.0`** với bit dấu khác nhau, nhưng `BigDecimal` **không lưu dấu zero âm riêng biệt**.
+A subtle edge case: floating-point types have **`+0.0` and `-0.0`** with distinct sign bits, whereas `BigDecimal` **does not store a separate negative zero sign**.
 
 ```java
 df.setParseBigDecimal(true);
 Number zero = df.parse("-0");
-// BigDecimal có giá trị 0, không giữ dấu âm của zero.
+// BigDecimal has value 0, without preserving the negative sign of zero.
 ```
 
-Khi `setParseBigDecimal(false)` và `isParseIntegerOnly()` là `false`, parser có thể trả **`Double(-0.0)`**, giúp giữ dấu zero trong trường hợp này.
+When `setParseBigDecimal(false)` and `isParseIntegerOnly()` is `false`, the parser may return **`Double(-0.0)`**, preserving the zero sign in that case.
 
-Do đó, không thể xem chế độ `BigDecimal` là “luôn bảo toàn mọi khía cạnh biểu diễn của chuỗi”. Nó bảo toàn **giá trị thập phân** cho số hữu hạn nhưng không giữ mọi dấu hiệu văn bản, kiểu dấu phẩy động hay thông tin trình bày ban đầu.
+Therefore, `BigDecimal` mode cannot be viewed as "always preserving every representation aspect of the string". It preserves the **decimal value** for finite numbers, without retaining every textual marker, floating-point type, or original presentation detail.
 
-Nếu cần **giữ chính xác chuỗi mà người dùng đã nhập** để hiển thị lại hoặc kiểm toán, lưu riêng chuỗi gốc cùng giá trị `BigDecimal` đã parse. Giá trị số được phân tích không nhất thiết giữ dấu cộng đầu, chữ số 0 dẫn đầu, cách nhóm dấu phẩy, các ký hiệu locale hoặc sự khác biệt `-0`/`0`.
+If you need to **retain the exact string the user entered** for re-display or auditing, store the original string separately alongside the parsed `BigDecimal` value. The parsed numeric value does not necessarily preserve a leading plus sign, leading zeros, comma grouping, locale symbols, or the `-0`/`0` distinction.
 
-## 5. Cẩn thận với `setParseIntegerOnly` và các cài đặt khác
+## 5. Be careful with `setParseIntegerOnly` and other settings
 
-`setParseBigDecimal(true)` **không ghi đè mọi tùy chọn parser**. Ví dụ, `NumberFormat#setParseIntegerOnly(true)` làm parser chỉ nhận phần nguyên trong nhiều cấu hình:
+`setParseBigDecimal(true)` **does not override every parser option**. For example, `NumberFormat#setParseIntegerOnly(true)` causes the parser to accept only the integer part in many configurations:
 
 ```java
 java.text.DecimalFormat df = new java.text.DecimalFormat(
@@ -140,25 +140,25 @@ df.setParseBigDecimal(true);
 df.setParseIntegerOnly(true);
 
 Number value = df.parse("12.75");
-// Parser có thể dừng tại dấu thập phân và chỉ nhận phần nguyên.
+// The parser may stop at the decimal separator and read only the integer part.
 ```
 
-Không nên xem việc bật `parseBigDecimal` là bảo đảm giữ mọi phần thập phân nếu những cài đặt khác ngăn parser đọc chúng. Ngược lại, `setRoundingMode` điều khiển **làm tròn khi format**; nó không tự biến dữ liệu nhập thập phân thành giá trị đã làm tròn trong quá trình parse.
+Do not treat enabling `parseBigDecimal` as a guarantee that fractional parts are preserved if other settings block the parser from reading them. Conversely, `setRoundingMode` controls **rounding when formatting**; it does not turn decimal input into a rounded value during parsing.
 
-Các cài đặt của `DecimalFormat` như pattern, symbols, grouping, `setParseIntegerOnly`, `setParseBigDecimal`, `setMaximumFractionDigits` và `setRoundingMode` đều nên được xác định **trước khi formatter được dùng** theo nhiệm vụ. Thay đổi chúng trên một instance chia sẻ giữa các luồng sẽ tạo rủi ro logic và thread safety.
+`DecimalFormat` settings such as pattern, symbols, grouping, `setParseIntegerOnly`, `setParseBigDecimal`, `setMaximumFractionDigits`, and `setRoundingMode` should all be established **before the formatter is used** for its task. Mutating them on an instance shared across threads creates logic bugs and thread-safety hazards.
 
-## 6. `parse(String)` có thể chấp nhận phần đầu chuỗi
+## 6. `parse(String)` can accept a leading prefix
 
-Một lỗi dữ liệu nguy hiểm: `DecimalFormat.parse(String)` không nhất thiết buộc **toàn bộ chuỗi đầu vào** phải được tiêu thụ. Nó có thể đọc phần đầu hợp lệ rồi để lại hậu tố mà không ném lỗi.
+A dangerous data bug: `DecimalFormat.parse(String)` does not necessarily require **the entire input string** to be consumed. It can read a valid prefix and leave the trailing suffix without throwing an error.
 
 ```java
 Number parsed = df.parse("1,234.50oops");
-// Có thể parse được 1234.50, dù phần "oops" còn lại.
+// Can parse 1234.50, even though "oops" remains.
 ```
 
-Lời gọi parse thành công **không đủ** chứng minh chuỗi đã phù hợp hợp đồng nhập.
+A parse call that succeeds is **not enough** to prove the string conforms to the input contract.
 
-Nếu phải nhận trọn vẹn đầu vào, dùng **`ParsePosition`**:
+If the full input must be accepted, use **`ParsePosition`**:
 
 ```java
 static java.math.BigDecimal parseAll(
@@ -176,28 +176,28 @@ static java.math.BigDecimal parseAll(
 }
 ```
 
-Hàm yêu cầu caller dùng formatter đã bật `setParseBigDecimal(true)`. Nó kiểm tra ba việc: parse không thất bại ngay, **tiêu thụ hết chuỗi**, và kết quả thực tế là `BigDecimal` (loại NaN/vô cực). `ParsePosition` tránh ngoại lệ `ParseException` do parser trả null cùng vị trí lỗi, nhưng đoạn mã chủ động ném `IllegalArgumentException` nếu không đạt hợp đồng.
+The method requires the caller to pass a formatter with `setParseBigDecimal(true)` enabled. It checks three things: parsing did not fail immediately, **the entire string was consumed**, and the actual result is a `BigDecimal` (excluding NaN/infinity). `ParsePosition` avoids `ParseException` because the parser returns `null` with an error index, while this code explicitly throws `IllegalArgumentException` if the contract is not met.
 
-**Giới hạn:** Tiêu thụ toàn bộ chuỗi **chưa đảm bảo nhóm dấu phẩy đặt đúng mọi vị trí hoặc đúng số chữ số phần thập phân theo chính sách ứng dụng**. Nếu chỉ cho phép hai chữ số thập phân hoặc định dạng nghiêm ngặt, bổ sung bước xác thực chuỗi đầu vào/format grammar tương ứng. Đừng chỉ tin vào pattern formatter như một bộ validator hoàn chỉnh.
+**Limitation:** Consuming the entire string **still does not guarantee commas are grouped properly in every position or that the fractional digit count matches application policy**. If only two decimal digits or strict formatting are allowed, add a corresponding input-string/format-grammar validation step. Do not rely on the formatter pattern alone as a complete validator.
 
-### Khi nào nên dùng `BigDecimal(String)` thay vì `DecimalFormat`?
+### When should you use `BigDecimal(String)` instead of `DecimalFormat`?
 
-Nếu đầu vào là định dạng máy **không phụ thuộc locale** như `"1234.50"`, hãy cân nhắc `new BigDecimal("1234.50")`:
+If the input is a **locale-independent** machine format such as `"1234.50"`, consider `new BigDecimal("1234.50")`:
 
 ```java
 java.math.BigDecimal value = new java.math.BigDecimal("1234.50");
 ```
 
-Constructor này phân tích chuỗi thập phân theo cú pháp của `BigDecimal`, không tự hiểu dấu phân nhóm kiểu `"1,234.50"`. `DecimalFormat` phù hợp hơn khi cần nhập/xuất số theo **locale của người dùng**; `BigDecimal(String)` phù hợp khi có **định dạng decimal canonical** ở API hoặc file cấu hình.
+This constructor parses decimal strings using `BigDecimal` syntax and does not interpret grouping separators like `"1,234.50"`. `DecimalFormat` is better suited when numbers must be read/written in the **user's locale**; `BigDecimal(String)` is better suited when an API or config file uses a **canonical decimal format**.
 
-## 7. DecimalFormat không thread-safe: vấn đề nằm ở đâu?
+## 7. `DecimalFormat` is not thread-safe: where does the problem lie?
 
-`DecimalFormat` là một đối tượng **mutable**, lưu pattern, ký hiệu, chế độ parse và trạng thái liên quan. Tài liệu Java yêu cầu nếu nhiều luồng cùng truy cập một formatter, ứng dụng phải **đồng bộ bên ngoài**.
+`DecimalFormat` is a **mutable** object storing patterns, symbols, parse modes, and related state. The Java documentation requires that if multiple threads access one formatter concurrently, the application must **synchronize externally**.
 
-Ví dụ không an toàn về mặt thiết kế:
+Unsafe design example:
 
 ```java
-// KHÔNG nên dùng chung như thế này:
+// Do NOT share like this:
 static final java.text.DecimalFormat SHARED =
     new java.text.DecimalFormat("#,##0.00");
 
@@ -208,15 +208,15 @@ String output = SHARED.format(1234.5);
 Number number = SHARED.parse("1,234.50");
 ```
 
-Đây là các mảnh mã minh họa, không phải file độc lập. `static final` chỉ làm tham chiếu không thể gán sang formatter khác; **không** làm đối tượng `DecimalFormat` bất biến hoặc biến các phương thức thành thread-safe.
+These are illustrative snippets, not a standalone file. `static final` only makes the reference unable to be reassigned to another formatter; it **does not** make the `DecimalFormat` object immutable or make its methods thread-safe.
 
-Rủi ro khi truy cập cùng lúc không đồng bộ gồm **kết quả parse/format sai, trạng thái nội bộ bị ảnh hưởng hoặc hành vi không xác định ổn định**. Không nên tạo một “ví dụ race” và hứa cứ chạy là tái hiện, vì lỗi đồng thời có thể phụ thuộc lịch chạy, JDK và tải hệ thống.
+Risks of unsynchronized concurrent access include **corrupted parse/format results, corrupted internal state, or non-deterministic behavior**. Do not write a "race demo" promising it reproduces on every run, since concurrency bugs depend on scheduling, JDK internals, and system load.
 
-Việc nhiều thread **chỉ gọi format** cũng không được coi mặc định là an toàn. Một formatter có thể sử dụng trạng thái nội bộ khi làm việc; không dựa vào cảm giác rằng “chỉ đọc” thì thread-safe. Khi vừa format/parse vừa thay đổi pattern, symbols hoặc `setParseBigDecimal` trên một instance chung, nguy cơ càng rõ.
+Even when multiple threads **only call `format`**, it must not be assumed safe by default. A formatter can use mutable internal state while working; do not rely on a hunch that "read-only" means thread-safe. When formatting/parsing happens alongside changing patterns, symbols, or `setParseBigDecimal` on a shared instance, the hazard becomes even clearer.
 
-## 8. Ba cách sử dụng formatter an toàn giữa nhiều luồng
+## 8. Three ways to use formatters safely across multiple threads
 
-### Cách A — tạo instance cục bộ: đơn giản và dễ đúng
+### Approach A — creating local instances: simple and easy to get right
 
 ```java
 static java.math.BigDecimal parseAmount(String input) {
@@ -232,11 +232,11 @@ static java.text.DecimalFormat makeFormatter() {
 }
 ```
 
-Mã minh họa trong một class có các phương thức tương ứng. Mỗi lần gọi có một formatter riêng, không có đối tượng mutable dùng chung giữa threads. Cách này phù hợp khi **độ rõ ràng và an toàn quan trọng hơn chi phí khởi tạo** hoặc số lần gọi vừa phải.
+Illustrative code inside a class containing the corresponding methods. Each call gets its own formatter, with no mutable object shared across threads. This approach fits when **clarity and safety matter more than allocation cost** or when call volume is moderate.
 
-**Ưu điểm:** không cần lock; cấu hình không rò giữa lời gọi. **Nhược điểm:** có chi phí tạo formatter và symbols mỗi lần. Nếu đây là điểm nóng về hiệu năng, hãy đo trước khi tối ưu.
+**Pros:** no locks needed; configuration cannot leak across calls. **Cons:** allocates a formatter and symbols on every call. If this is a performance hotspot, measure before optimizing.
 
-### Cách B — `ThreadLocal<DecimalFormat>`: formatter riêng theo thread
+### Approach B — `ThreadLocal<DecimalFormat>`: one formatter per thread
 
 ```java
 private static final ThreadLocal<java.text.DecimalFormat> LOCAL =
@@ -253,11 +253,11 @@ static java.math.BigDecimal parseLocal(String input) {
 }
 ```
 
-Mỗi luồng nhận một `DecimalFormat` riêng. Cần **không chuyển formatter từ một luồng sang luồng khác** và không thay đổi tùy chọn ở một lời gọi rồi giả định lần sau sẽ tự reset. Nếu sử dụng thread pool dài hạn và đối tượng trong `ThreadLocal` có vòng đời lớn, cân nhắc `LOCAL.remove()` khi phạm vi dùng kết thúc, hoặc đơn giản dùng formatter cục bộ để quản lý vòng đời rõ ràng hơn.
+Each thread receives its own `DecimalFormat`. Make sure **not to pass the formatter from one thread to another** and not to mutate options in one call assuming the next call resets automatically. If using long-lived thread pools and objects in `ThreadLocal` have a broad lifecycle, consider calling `LOCAL.remove()` when the usage scope ends, or simply use local formatters for clearer lifecycle management.
 
-`ThreadLocal` chỉ ngăn *cùng instance* được chia sẻ ngẫu nhiên nếu sử dụng đúng, **không tự biến một formatter mutable thành immutable**. Việc phụ thuộc trạng thái của formatter cục bộ do thread trước trong pool để lại cũng có thể gây lỗi ngữ nghĩa.
+`ThreadLocal` only prevents *the same instance* from being accidentally shared if used properly; it **does not turn a mutable formatter into an immutable one**. Relying on state left behind on a thread-local formatter by a previous task in a pool can also cause semantic bugs.
 
-### Cách C — đồng bộ bên ngoài khi thật sự phải dùng chung
+### Approach C — external synchronization when sharing is truly required
 
 ```java
 private static final java.text.DecimalFormat LOCKED = makeFormatter();
@@ -275,17 +275,17 @@ static String formatLocked(java.math.BigDecimal amount) {
 }
 ```
 
-Mọi truy cập vào cùng instance, **kể cả đọc/đổi cấu hình và lời gọi parse/format**, phải phối hợp sử dụng cùng một lock. Chỉ khóa một phương thức mà bỏ sót các đường dùng khác thì chưa giải quyết được vấn đề.
+Every access to the same instance, **including reading/changing settings and calling parse/format**, must coordinate on the same lock. Locking only one method while leaving other usage paths unlocked does not solve the problem.
 
-**Ưu điểm:** phù hợp khi bắt buộc chia sẻ một formatter. **Nhược điểm:** có lock contention, các luồng phải chờ; dễ mắc lỗi nếu có code khác dùng formatter ngoài lock. Tránh công khai instance `LOCKED` cho mã ngoài có thể gọi trực tiếp.
+**Pros:** fits when sharing a single formatter is mandatory. **Cons:** lock contention, threads waiting; error-prone if other code accesses the formatter outside the lock. Avoid exposing the `LOCKED` instance publicly where external code could call it directly.
 
-**Khuyến nghị thực hành:** Nếu không có lý do đặc biệt để chia sẻ, **tạo formatter riêng mỗi lần hoặc riêng mỗi thread** thường dễ lý giải hơn dùng một formatter chung có lock.
+**Practical recommendation:** Unless there is a specific reason to share, **creating a separate formatter per call or per thread** is usually easier to reason about than sharing one locked formatter.
 
-## 9. Locale, parsing và độ chính xác là ba quyết định độc lập
+## 9. Locale, parsing, and precision are three independent decisions
 
-### Locale xác định dấu thập phân và dấu phân nhóm
+### Locale determines the decimal and grouping separators
 
-`DecimalFormatSymbols` xác định ký hiệu dùng để đọc và hiển thị số. Ví dụ pattern `#,##0.00` với `Locale.US` hiển thị `1234.50` thành `"1,234.50"`, dấu **chấm** làm dấu thập phân, dấu **phẩy** phân nhóm. Trong các locale khác, ký hiệu có thể khác, kể cả ký tự khoảng trắng đặc biệt.
+`DecimalFormatSymbols` determines the symbols used to read and display numbers. For example, the pattern `#,##0.00` with `Locale.US` displays `1234.50` as `"1,234.50"`, using a **dot** for decimal and a **comma** for grouping. In other locales, symbols can differ, including special whitespace characters.
 
 ```java
 var symbols = java.text.DecimalFormatSymbols.getInstance(java.util.Locale.US);
@@ -293,9 +293,9 @@ var df = new java.text.DecimalFormat("#,##0.00", symbols);
 df.setParseBigDecimal(true);
 ```
 
-**Đừng tạo formatter bằng locale mặc định ở nơi gửi rồi parse bằng giả định dấu phân cách US ở nơi nhận.** Định dạng giao tiếp máy nên được định nghĩa độc lập với UI locale; dữ liệu nhập từ người dùng cần gắn đúng locale và chính sách phân tích.
+**Do not build a formatter using the default locale on the sender and parse assuming US separators on the receiver.** Machine communication formats should be defined independently of UI locales; user-entered data must carry the exact locale and parsing policy.
 
-### Parse `BigDecimal` không quyết định làm tròn khi hiển thị
+### Parsing `BigDecimal` does not determine display rounding
 
 ```java
 var df = new java.text.DecimalFormat(
@@ -310,13 +310,13 @@ java.math.BigDecimal amount = new java.math.BigDecimal("1.005");
 String shown = df.format(amount); // "1.01"
 ```
 
-`amount` vẫn là `1.005`; formatter chỉ tạo **chuỗi đã làm tròn cho hiển thị**. Nếu cần lưu giá trị đã làm tròn thành đúng hai chữ số thập phân, dùng API của `BigDecimal`, ví dụ `amount.setScale(2, RoundingMode.HALF_UP)`, và xác định rõ chính sách nghiệp vụ.
+`amount` remains `1.005`; the formatter only produces a **rounded string for display**. If you need to store a value rounded to exact two decimal places, use `BigDecimal`'s API, such as `amount.setScale(2, RoundingMode.HALF_UP)`, and define the business policy clearly.
 
-Đừng lấy `df.format(value)` rồi `df.parse(...)` làm cách làm tròn số học cốt lõi: quá trình round-trip qua string/locale làm tăng tính phức tạp và có thể mất thông tin (ví dụ số chữ số thập phân, negative zero hoặc biểu diễn chuỗi khác). Hãy tách **tính toán số** và **định dạng hiển thị**.
+Do not use `df.format(value)` followed by `df.parse(...)` as a core arithmetic rounding mechanism: round-tripping through strings/locales increases complexity and can lose information (such as fractional digit count, negative zero, or other string representation details). Keep **numeric calculation** separate from **display formatting**.
 
-## 10. Chương trình Java 17+ chạy độc lập
+## 10. Standalone runnable Java 17+ program
 
-Tạo tệp `BigDecimalParseDemo.java`:
+Create the file `BigDecimalParseDemo.java`:
 
 ```java
 public class BigDecimalParseDemo {
@@ -402,14 +402,14 @@ public class BigDecimalParseDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac BigDecimalParseDemo.java
 java BigDecimalParseDemo
 ```
 
-Kết quả stdout đã kiểm chứng bằng JDK:
+Stdout verified with the JDK:
 
 ```text
 precise type: BigDecimal
@@ -429,67 +429,67 @@ formatted: 1.01
 input unchanged: 1.005
 ```
 
-**Giải thích output:**
+**Output explanation:**
 
-1. Parse BigDecimal giữ `9007199254740993.00` và `1234.50` ở dạng thập phân. `-0` trở thành `BigDecimal 0`.
-2. Khi tắt `parseBigDecimal`, giá trị nguyên có thể trả `Long`, không phải lúc nào cũng trả `Double`. Với giá trị có phần lẻ không thể trả `Long`, parser có thể trả `Double` và gây sai số nhị phân.
-3. NaN và vô cực vẫn là `Double`; chế độ parse BigDecimal không biến chúng thành đối tượng thập phân.
-4. Parser đã tiêu thụ 8 ký tự của `"1,234.50oops"` và để lại hậu tố; `parseAll` kiểm tra toàn bộ đầu vào để từ chối.
-5. `RoundingMode.HALF_UP` ảnh hưởng chuỗi **format** `1.005 → "1.01"`, không thay đổi giá trị `BigDecimal` gốc.
+1. `BigDecimal` parsing preserves `9007199254740993.00` and `1234.50` in decimal form. `-0` becomes `BigDecimal 0`.
+2. When `parseBigDecimal` is disabled, integer values can return `Long`, not always `Double`. For values with fractional parts that cannot return `Long`, the parser can return `Double` and introduce binary error.
+3. NaN and infinity remain `Double`; `BigDecimal` parse mode does not convert them into decimal objects.
+4. The parser consumed 8 characters of `"1,234.50oops"` and left the suffix; `parseAll` checks the entire input to reject it.
+5. `RoundingMode.HALF_UP` affects the **formatted** string `1.005 → "1.01"`, without changing the original `BigDecimal` value.
 
-Ví dụ tạo một formatter **cục bộ cho phương thức main**, không đưa cùng instance vào nhiều thread. Đây là cách dùng an toàn về chia sẻ trạng thái ở phạm vi ví dụ; trong dịch vụ nhiều luồng, áp dụng mẫu của mục 8.
+The example creates a formatter **local to `main`**, without sharing the same instance across multiple threads. That is a safe way to avoid state sharing in the example's scope; in multithreaded services, apply the patterns from section 8.
 
-## 11. Checklist thiết kế API parse/format có độ tin cậy
+## 11. Checklist for designing reliable parse/format APIs
 
-- **Định nghĩa định dạng đầu vào:** chuỗi từ người dùng theo locale nào, hay chuỗi canonical cho hệ thống máy?
-- **Quyết định kiểu kết quả:** `BigDecimal` cho số thập phân hữu hạn cần độ chính xác, hay `Double` khi chấp nhận số thực nhị phân?
-- **Kiểm tra đầy đủ chuỗi:** dùng `ParsePosition` và đối chiếu `getIndex() == input.length()`; bổ sung validation nghiêm ngặt nếu yêu cầu dấu nhóm/số chữ số cụ thể.
-- **Từ chối giá trị đặc biệt nếu không hợp lệ:** `NaN` và `Infinity` vẫn có thể trả `Double` dù `setParseBigDecimal(true)`.
-- **Xác định quy tắc làm tròn riêng:** `RoundingMode` cho format/`BigDecimal.setScale` cho kết quả số học theo nghiệp vụ.
-- **Tách formatter khỏi các luồng:** instance cục bộ, `ThreadLocal` dùng đúng, hoặc đồng bộ toàn bộ truy cập cùng một instance.
-- **Tránh cấu hình mutable thay đổi giữa các lời gọi:** không để thread A đổi locale/pattern/parse mode trong khi thread B đang parse.
-- **Kiểm thử đầu vào biên:** chuỗi dài, phần lẻ nhiều chữ số, âm, signed zero, NaN, vô cực, dấu nhóm sai, chuỗi có hậu tố, số lớn hơn độ chính xác của `double`.
-- **Giám sát hiệu năng sau khi đúng:** khởi tạo formatter mỗi lần có chi phí, nhưng dùng shared instance không đồng bộ là cách tối ưu sai. Chỉ chọn phương án khác sau khi đo thực tế.
+- **Define the input format:** which locale's user string is it, or is it a canonical machine-system string?
+- **Decide the result type:** `BigDecimal` for finite decimals requiring precision, or `Double` when binary floating-point is acceptable?
+- **Check the full string:** use `ParsePosition` and compare `getIndex() == input.length()`; add strict validation if specific grouping or digit counts are required.
+- **Reject special values if invalid:** `NaN` and `Infinity` can still return `Double` even with `setParseBigDecimal(true)`.
+- **Specify separate rounding rules:** `RoundingMode` for formatting/`BigDecimal.setScale` for arithmetic results per business rules.
+- **Isolate formatters from threads:** local instances, properly used `ThreadLocal`, or synchronizing all accesses to a shared instance.
+- **Avoid mutating configuration between calls:** do not let thread A change locale/pattern/parse mode while thread B is parsing.
+- **Test boundary inputs:** long strings, many fractional digits, negatives, signed zero, NaN, infinity, invalid grouping, strings with suffixes, numbers larger than `double` precision.
+- **Monitor performance after correctness:** allocating a formatter each time has a cost, but using an unsynchronized shared instance is the wrong optimization. Pick an alternative only after real benchmarking.
 
-Độ an toàn **đồng thời** và độ chính xác **số học** là hai bài toán độc lập: bật `setParseBigDecimal` giúp tránh làm tròn qua `double` khi parse số hữu hạn, nhưng không thể loại data race. Ngược lại, khóa formatter không tự làm dữ liệu thập phân chính xác nếu vẫn parse ra `Double`.
+**Concurrent** safety and **arithmetic** precision are two independent problems: enabling `setParseBigDecimal` avoids rounding through `double` when parsing finite numbers, yet cannot eliminate data races. Conversely, locking a formatter does not make decimal data accurate if it still parses to `Double`.
 
-## 12. Sai lầm thường gặp
+## 12. Common mistakes
 
-1. **“Bật `setParseBigDecimal(true)` thì `parse` luôn trả `BigDecimal`.”** Sai: NaN/vô cực vẫn có thể là `Double`.
-2. **“Tắt `setParseBigDecimal` luôn trả `Double`.”** Sai: giá trị nguyên vừa miền có thể trả `Long`.
-3. **“`parse(String)` thành công thì đã đọc hết chuỗi.”** Sai: parser có thể chỉ nhận prefix; dùng `ParsePosition` nếu yêu cầu đầy đủ.
-4. **“Đúng pattern `#,##0.00` thì chuỗi nhập chắc chắn có đúng hai chữ số phần lẻ.”** Sai: formatter pattern không thay thế validation theo nghiệp vụ.
-5. **“`BigDecimal` tự lưu dấu của zero âm.”** Sai: `BigDecimal` không có signed zero như `double`.
-6. **“`parseBigDecimal` giữ nguyên ký tự dấu phân nhóm và locale input trong object kết quả.”** Sai: đó là parse thành giá trị số; muốn lưu văn bản gốc phải lưu riêng.
-7. **“`setRoundingMode` khiến parser parse các chữ số vào `BigDecimal` đã làm tròn.”** Sai: `setRoundingMode` dùng khi định dạng; muốn làm tròn dữ liệu số dùng `BigDecimal.setScale` rõ ràng.
-8. **“`static final DecimalFormat` an toàn cho nhiều luồng.”** Sai: final chỉ giữ tham chiếu, không biến đối tượng mutable thành thread-safe.
-9. **“Nếu các luồng chỉ gọi `format` thì chia sẻ formatter mặc nhiên an toàn.”** Sai: không có bảo đảm thread-safe chung.
-10. **“`ThreadLocal` luôn phù hợp và không cần quản lý trạng thái.”** Sai: thread pool dài hạn có thể giữ instance và trạng thái qua các nhiệm vụ; nên tránh rò cấu hình/vòng đời.
-11. **“Đồng bộ chỉ riêng lời gọi `parse`, còn `setParseBigDecimal` thì khỏi cần lock.”** Sai: mọi truy cập vào cùng formatter chia sẻ phải phối hợp theo cùng cơ chế.
-12. **“`new BigDecimal(double)` có thể khôi phục chính xác chuỗi thập phân người dùng nhập ban đầu.”** Sai: số `double` đã làm tròn nhị phân không chứa đủ thông tin nguồn.
-13. **“Dùng một formatter singleton sẽ chắc chắn nhanh nhất.”** Sai: đồng bộ gây tranh chấp; chi phí khởi tạo hoặc thread confinement phải được benchmark.
-14. **“Dùng `DecimalFormat` để serialize mọi số sang format máy ổn định mà không chỉ định locale.”** Sai: locale mặc định có thể thay đổi và ảnh hưởng ký tự số.
+1. **"Enabling `setParseBigDecimal(true)` means `parse` always returns `BigDecimal`."** False: NaN/infinity can still be `Double`.
+2. **"Disabling `setParseBigDecimal` always returns `Double`."** False: in-range integer values can return `Long`.
+3. **"If `parse(String)` succeeds, the entire string was read."** False: the parser may accept only a prefix; use `ParsePosition` when full consumption is required.
+4. **"Matching pattern `#,##0.00` guarantees the input string has exact two fractional digits."** False: formatter patterns do not replace business validation.
+5. **"`BigDecimal` automatically stores the sign of negative zero."** False: `BigDecimal` has no signed zero like `double`.
+6. **"`parseBigDecimal` keeps grouping characters and input locale formatting inside the result object."** False: it parses into a numeric value; to keep the original text, store it separately.
+7. **"`setRoundingMode` causes the parser to parse digits into a rounded `BigDecimal`."** False: `setRoundingMode` is used when formatting; to round numeric data, use `BigDecimal.setScale` explicitly.
+8. **"`static final DecimalFormat` is safe for multiple threads."** False: `final` only fixes the reference; it does not make a mutable object thread-safe.
+9. **"If threads only call `format`, sharing a formatter is safe by default."** False: there is no general thread-safety guarantee.
+10. **"`ThreadLocal` is always ideal and needs no state management."** False: long-lived thread pools can retain instances and state across tasks; avoid configuration/lifecycle leaks.
+11. **"Synchronize only the `parse` call, and `setParseBigDecimal` needs no lock."** False: every access to the same shared formatter must coordinate under the same mechanism.
+12. **"`new BigDecimal(double)` can recover the exact decimal string the user originally typed."** False: a binary-rounded `double` does not hold enough source information.
+13. **"Using a singleton formatter is guaranteed to be fastest."** False: synchronization introduces contention; allocation cost vs thread confinement must be benchmarked.
+14. **"Use `DecimalFormat` to serialize all numbers to a stable machine format without specifying a locale."** False: the default locale can change and alter numeric characters.
 
-## 13. Tự kiểm tra
+## 13. Self-check
 
-**1. `DecimalFormat.parse(String)` được khai báo trả kiểu gì?** → `Number`.
+**1. What return type is `DecimalFormat.parse(String)` declared to return?** → `Number`.
 
-**2. Bật `setParseBigDecimal(true)` làm gì?** → Parse các giá trị số hữu hạn thông thường thành `BigDecimal`, tránh đường chuyển qua `double`.
+**2. What does enabling `setParseBigDecimal(true)` do?** → Parses ordinary finite numeric values into `BigDecimal`, avoiding conversion through `double`.
 
-**3. Có trường hợp chế độ đó vẫn trả `Double` không?** → Có: `NaN` và `Infinity`.
+**3. Are there cases where that mode still returns `Double`?** → Yes: `NaN` and `Infinity`.
 
-**4. Nếu tắt `setParseBigDecimal`, kết quả luôn là `Double`?** → Không; parser có thể trả `Long` cho giá trị nguyên.
+**4. If `setParseBigDecimal` is disabled, is the result always `Double`?** → No; the parser can return `Long` for integer values.
 
-**5. `parse("1,234.50oops")` trả số có nghĩa chuỗi hợp lệ hoàn toàn không?** → Không. Cần `ParsePosition` và kiểm tra đã tiêu thụ hết chuỗi.
+**5. Does `parse("1,234.50oops")` returning a number mean the string is completely valid?** → No. You need `ParsePosition` and a check that the entire string was consumed.
 
-**6. Pattern hai số lẻ đảm bảo validate đúng hai số lẻ của chuỗi input không?** → Không; cần xác thực định dạng độc lập nếu đây là điều kiện bắt buộc.
+**6. Does a two-decimal pattern guarantee validating exact two fractional digits in an input string?** → No; independent format validation is needed if that is mandatory.
 
-**7. Parse `"-0"` thành `BigDecimal` có giữ signed zero không?** → Không; giá trị BigDecimal bằng 0.
+**7. Does parsing `"-0"` into `BigDecimal` preserve signed zero?** → No; the `BigDecimal` value equals 0.
 
-**8. Có thể dùng một `static final DecimalFormat` từ nhiều luồng mà không đồng bộ không?** → Không có bảo đảm thread-safe; dùng instance riêng hoặc khóa đầy đủ.
+**8. Can a `static final DecimalFormat` be used from multiple threads without synchronization?** → No thread-safety guarantee exists; use separate instances or full locking.
 
-**9. Cách đơn giản nhất để tránh chia sẻ formatter mutable giữa threads là gì?** → Tạo formatter cục bộ cho từng lời gọi.
+**9. What is the simplest way to avoid sharing a mutable formatter across threads?** → Create a local formatter for each call.
 
-**10. `setRoundingMode(HALF_UP)` có thay đổi object `BigDecimal("1.005")` sau `format` không?** → Không; chỉ chuỗi hiển thị bị làm tròn theo formatter.
+**10. Does `setRoundingMode(HALF_UP)` alter the `BigDecimal("1.005")` object after `format`?** → No; only the displayed string is rounded by the formatter.
 
-**Ghi nhớ:** `setParseBigDecimal(true)` giúp `DecimalFormat` trả **`BigDecimal` cho số thập phân hữu hạn được parse**, nhưng không áp dụng cho `NaN`/vô cực, không tự kiểm tra toàn bộ chuỗi và không bảo vệ khỏi mọi mất mát biểu diễn gốc. `DecimalFormat` là **mutable và không thread-safe**: mỗi luồng/lần gọi cần formatter riêng hoặc mọi truy cập chung phải được đồng bộ. Hãy phân tách **xác thực input, parse chính xác, format làm tròn và quản lý đồng thời** thành bốn trách nhiệm rõ ràng.
+**Takeaway:** `setParseBigDecimal(true)` makes `DecimalFormat` return **`BigDecimal` for parsed finite decimals**, yet does not apply to `NaN`/infinity, does not validate the whole string on its own, and does not protect against all loss of original presentation. `DecimalFormat` is **mutable and not thread-safe**: each thread/call needs its own formatter or all shared accesses must be synchronized. Separate **input validation, exact parsing, rounded formatting, and concurrency management** into four distinct responsibilities.

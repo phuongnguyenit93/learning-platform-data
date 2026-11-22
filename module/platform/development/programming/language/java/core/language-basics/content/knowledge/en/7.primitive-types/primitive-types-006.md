@@ -1,37 +1,37 @@
-# `boolean` chỉ có `true` và `false` trong Java
+# `boolean` Has Only `true` and `false` in Java
 
-> **Java core — language-basics / Kiểu nguyên thủy**  
-> **Môi trường:** JDK 17 trở lên, không cần thư viện ngoài.  
-> **Mục tiêu:** Hiểu hai giá trị của `boolean` nguyên thủy, cách tạo biểu thức điều kiện, toán tử logic và *short-circuit*; phân biệt `boolean` với `Boolean` có thể là `null`.
+> **Java core — language-basics / Primitive Types**  
+> **Environment:** JDK 17 or later, no external libraries required.  
+> **Goal:** Understand the two values of primitive `boolean`, how to form conditional expressions, logical operators, and *short-circuiting*; distinguish `boolean` from `Boolean`, which can be `null`.
 
-## 1. Kiểu `boolean` biểu diễn điều kiện đúng hoặc sai
+## 1. The `boolean` Type Represents True or False Conditions
 
-Trong Java, `boolean` là **kiểu nguyên thủy** (*primitive type*) chỉ có **hai giá trị hợp lệ**:
+In Java, `boolean` is a **primitive type** that has only **two valid values**:
 
-- `true`: đúng.
-- `false`: sai.
+- `true`: true.
+- `false`: false.
 
 ~~~java
 boolean isReady = true;
 boolean isClosed = false;
-isReady = false; // Hợp lệ: giá trị mới vẫn là boolean.
+isReady = false; // Valid: the new value is still boolean.
 ~~~
 
-Hai từ `true` và `false` là **boolean literal** trong mã nguồn Java. Chúng không phải chuỗi `"true"`/`"false"`, và Java **không** coi số `1` là đúng hay số `0` là sai.
+The two words `true` and `false` are **boolean literals** in Java source code. They are not the strings `"true"`/`"false"`, and Java **does not** treat the number `1` as true or `0` as false.
 
 ~~~java
-// Các dòng cố ý SAI, không đưa vào chương trình chạy:
-// boolean ok = 1;       // int không gán được cho boolean.
-// boolean no = 0;       // int không được ngầm chuyển thành boolean.
-// boolean text = "true"; // String khác boolean.
-// boolean missing = null; // primitive boolean không nhận null.
+// Intentionally INVALID lines, do not put into a runnable program:
+// boolean ok = 1;       // int cannot be assigned to boolean.
+// boolean no = 0;       // int is not implicitly converted to boolean.
+// boolean text = "true"; // String is different from boolean.
+// boolean missing = null; // primitive boolean does not accept null.
 ~~~
 
-Một biến kiểu `boolean` không thể giữ giá trị thứ ba như “chưa biết”. Khi cần trạng thái chưa xác định, hãy dùng kiểu tham chiếu `Boolean` có khả năng chứa `null` và xử lý riêng trạng thái đó.
+A `boolean` variable cannot hold a third value such as "unknown." When an undetermined state is needed, use the reference type `Boolean`, which can hold `null`, and handle that state explicitly.
 
-## 2. Biểu thức trả về `boolean`
+## 2. Expressions Returning `boolean`
 
-Kết quả so sánh và phép logic thường có kiểu `boolean`:
+The results of comparisons and logical operations typically have type `boolean`:
 
 ~~~java
 int age = 20;
@@ -41,18 +41,18 @@ boolean notAdult = !adult;      // false
 boolean eligible = adult && exactly20; // true
 ~~~
 
-Những phép toán thường dùng:
+Commonly used operations:
 
-| Nhóm | Toán tử | Ví dụ và kết quả |
+| Category | Operator | Example and result |
 | --- | --- | --- |
-| Phủ định | `!` | `!true` → `false` |
-| VÀ ngắn mạch | `&&` | `true && false` → `false` |
-| HOẶC ngắn mạch | `\|\|` | `true \|\| false` → `true` |
-| XOR logic | `^` | `true ^ false` → `true` |
-| So sánh bằng/khác | `==`, `!=` | `true == false` → `false` |
-| So sánh số | `<`, `<=`, `>`, `>=` | `5 > 3` → `true` |
+| Negation | `!` | `!true` → `false` |
+| Short-circuit AND | `&&` | `true && false` → `false` |
+| Short-circuit OR | `\|\|` | `true \|\| false` → `true` |
+| Logical XOR | `^` | `true ^ false` → `true` |
+| Equality/inequality | `==`, `!=` | `true == false` → `false` |
+| Numeric comparison | `<`, `<=`, `>`, `>=` | `5 > 3` → `true` |
 
-Bảng chân trị đơn giản:
+Simple truth table:
 
 | `a` | `b` | `a && b` | `a \|\| b` | `a ^ b` |
 | --- | --- | --- | --- | --- |
@@ -61,11 +61,11 @@ Bảng chân trị đơn giản:
 | true | false | false | true | true |
 | true | true | true | true | false |
 
-Các phép `&&`, `||`, `!` cần toán hạng phù hợp với ngữ cảnh boolean. Java không cho cộng hai giá trị boolean hoặc dùng toán tử `<`/`>` để so thứ tự `true` và `false`.
+The operators `&&`, `||`, and `!` require operands suitable for a boolean context. Java does not allow adding two boolean values or using `<`/`>` operators to compare the order of `true` and `false`.
 
-## 3. Điều kiện `if`, `while` phải là boolean
+## 3. `if` and `while` Conditions Must Be `boolean`
 
-Java yêu cầu **biểu thức điều kiện** thực sự có kiểu `boolean` (hoặc `Boolean` có thể unbox thành boolean):
+Java requires **conditional expressions** to actually have type `boolean` (or `Boolean` that can unbox to boolean):
 
 ~~~java
 int quantity = 3;
@@ -75,34 +75,34 @@ if (quantity > 0) {
 }
 ~~~
 
-Đầu ra là `Co hang`. Không viết `if (quantity)` như trong các ngôn ngữ coi mọi số khác 0 là đúng:
+The output is `Co hang`. Do not write `if (quantity)` as in languages that treat any non-zero number as true:
 
 ~~~java
-// if (quantity) { } // Sai: quantity là int, không phải boolean.
-// if (1) { }        // Sai: literal số 1 không phải điều kiện boolean.
+// if (quantity) { } // Wrong: quantity is int, not boolean.
+// if (1) { }        // Wrong: numeric literal 1 is not a boolean condition.
 ~~~
 
-**Mẹo dễ đọc:** Khi biến `active` đã là `boolean`, dùng `if (active)` hoặc `if (!active)` thường rõ hơn `if (active == true)` hay `if (active == false)`.
+**Readability tip:** When a variable `active` is already a `boolean`, writing `if (active)` or `if (!active)` is usually clearer than `if (active == true)` or `if (active == false)`.
 
-## 4. `&&`/`||` ngắn mạch; `&`/`|` không ngắn mạch
+## 4. `&&`/`||` Short-Circuit; `&`/`|` Do Not Short-Circuit
 
-Với `a && b`, nếu `a` là `false` thì Java **không đánh giá `b`**: kết quả đã chắc chắn false. Với `a || b`, nếu `a` là `true` thì Java **không đánh giá `b`**: kết quả đã chắc chắn true. Đó là *short-circuit*.
+With `a && b`, if `a` is `false`, Java **does not evaluate `b`**: the result is already guaranteed to be false. With `a || b`, if `a` is `true`, Java **does not evaluate `b`**: the result is already guaranteed to be true. That is *short-circuiting*.
 
-Ngược lại, khi toán hạng là boolean, `&` và `|` **đánh giá cả hai vế**. `^` cũng không ngắn mạch. Khác biệt này đặc biệt quan trọng nếu vế phải gọi method có tác dụng phụ hoặc có thể gây exception.
+Conversely, when the operands are boolean, `&` and `|` **evaluate both sides**. `^` also does not short-circuit. This difference is especially important if the right-hand side calls a method with side effects or one that can throw an exception.
 
-Ví dụ an toàn khi tham chiếu có thể `null`:
+Safe example when a reference might be `null`:
 
 ~~~java
 String name = null;
 boolean nonEmpty = name != null && !name.isEmpty();
-System.out.println(nonEmpty); // false, không gọi name.isEmpty().
+System.out.println(nonEmpty); // false, does not call name.isEmpty().
 ~~~
 
-Không thay `&&` bằng `&` trong trường hợp đó: vế phải có thể vẫn được đánh giá và gây `NullPointerException`.
+Do not replace `&&` with `&` in that case: the right-hand side would still be evaluated and cause a `NullPointerException`.
 
-## 5. Chương trình Java 17+ runnable
+## 5. Runnable Java 17+ Program
 
-Tạo tệp **BooleanDemo.java**:
+Create the file **BooleanDemo.java**:
 
 ~~~java
 public final class BooleanDemo {
@@ -148,14 +148,14 @@ public final class BooleanDemo {
 }
 ~~~
 
-Chạy từ thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Run from the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 BooleanDemo.java
 java BooleanDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 allowed=true
@@ -172,43 +172,43 @@ parseTrue=true
 parseOne=false
 ~~~
 
-Giải thích: `enabled && !blocked` cho true. Hai lời gọi `probe()` ở biểu thức `false && ...` và `true || ...` đều bị bỏ qua nên `checks` vẫn là 0; `false & probe()` **vẫn gọi `probe()`**, làm `checks` thành 1 dù kết quả AND là false. Mảng và field `boolean` mới được khởi tạo mặc định bằng false. `Boolean.parseBoolean("TrUe")` nhận chuỗi không phân biệt hoa/thường; chuỗi `"1"` **không** được hiểu là true.
+Explanation: `enabled && !blocked` yields true. Both calls to `probe()` in `false && ...` and `true || ...` are skipped, so `checks` remains 0; `false & probe()` **still calls `probe()`**, making `checks` equal 1 even though the AND result is false. New `boolean` arrays and fields are initialized by default to false. `Boolean.parseBoolean("TrUe")` accepts the string case-insensitively; the string `"1"` is **not** interpreted as true.
 
-## 6. `boolean` khác `Boolean` ở chỗ nào?
+## 6. How Does `boolean` Differ from `Boolean`?
 
-| Tiêu chí | `boolean` | `Boolean` |
+| Criterion | `boolean` | `Boolean` |
 | --- | --- | --- |
-| Bản chất | Kiểu nguyên thủy | Lớp wrapper tham chiếu |
-| Giá trị của biến đã gán | `true` hoặc `false` | `Boolean.TRUE`, `Boolean.FALSE` hoặc `null` |
-| Field chưa khởi tạo tường minh | `false` | `null` |
-| Phần tử của mảng mới | `false` trong `boolean[]` | `null` trong `Boolean[]` |
-| Dùng làm điều kiện | Trực tiếp | Java unbox về `boolean`; nếu `null` có thể ném `NullPointerException` |
+| Nature | Primitive type | Reference wrapper class |
+| Value of an assigned variable | `true` or `false` | `Boolean.TRUE`, `Boolean.FALSE`, or `null` |
+| Uninitialized field | `false` | `null` |
+| Element of a new array | `false` in `boolean[]` | `null` in `Boolean[]` |
+| Used as a condition | Directly | Java unboxes to `boolean`; if `null`, can throw `NullPointerException` |
 
-Không nhầm “field có mặc định” với **biến cục bộ chưa gán**. Chẳng hạn, `boolean ready; System.out.println(ready);` trong method không hợp lệ vì `ready` chưa được *definitely assigned*. Nếu biến cục bộ đã gán, nó vẫn chỉ giữ true/false.
+Do not confuse "fields have defaults" with **unassigned local variables**. For example, `boolean ready; System.out.println(ready);` inside a method is invalid because `ready` is not *definitely assigned*. Once a local variable is assigned, it can still only hold true/false.
 
-Với dữ liệu nhập dạng chuỗi, `Boolean.parseBoolean(text)` chỉ cho true khi `text` bằng `"true"` (không phân biệt hoa/thường); những chuỗi khác, kể cả `"1"`, `"yes"` hoặc `null`, cho false. Nếu cần báo lỗi khi dữ liệu không hợp lệ, hãy **tự kiểm tra đầu vào** thay vì coi mọi giá trị parse ra false đều là người dùng chọn false.
+For string input, `Boolean.parseBoolean(text)` returns true only when `text` equals `"true"` (case-insensitive); other strings, including `"1"`, `"yes"`, or `null`, return false. If you need to report an error on invalid input, **validate the input yourself** rather than assuming every value parsed as false means the user chose false.
 
-## 7. Lỗi phổ biến và bài tập
+## 7. Common Mistakes and Exercises
 
-| Sai lầm | Cách hiểu đúng |
+| Mistake | Correct understanding |
 | --- | --- |
-| `boolean b = 1;` | Java không ngầm quy đổi số thành boolean |
-| `if (number)` với `number` kiểu `int` | Phải viết một biểu thức boolean, ví dụ `number != 0` |
-| `boolean b = "false";` | Chuỗi khác với literal `false` |
-| `Boolean b = null; if (b) { ... }` | Tự unbox `null` có thể ném `NullPointerException` |
-| Thay `&&` bằng `&` khi cần bảo vệ null | `&` vẫn đánh giá vế phải |
-| Nhầm `Boolean.parseBoolean("yes")` với true | Kết quả là false |
+| `boolean b = 1;` | Java does not implicitly convert numbers to boolean |
+| `if (number)` with `number` of type `int` | Must write a boolean expression, e.g., `number != 0` |
+| `boolean b = "false";` | A string differs from the literal `false` |
+| `Boolean b = null; if (b) { ... }` | Auto-unboxing `null` can throw `NullPointerException` |
+| Replacing `&&` with `&` when null-guarding | `&` still evaluates the right-hand side |
+| Mistaking `Boolean.parseBoolean("yes")` for true | The result is false |
 
-**Bài tập 1.** Dự đoán `!false`, `true && false`, `true || false` và `true ^ true`. Giải thích qua bảng chân trị.
+**Exercise 1.** Predict `!false`, `true && false`, `true || false`, and `true ^ true`. Explain using the truth table.
 
-**Bài tập 2.** Tạo biến `int amount = 0;` và một biến `boolean hasAmount = amount > 0;`. Thử đưa trực tiếp `amount` vào điều kiện `if` để xem lỗi compile.
+**Exercise 2.** Create a variable `int amount = 0;` and a variable `boolean hasAmount = amount > 0;`. Try putting `amount` directly into an `if` condition to observe the compile error.
 
-**Bài tập 3.** Trong `BooleanDemo.java` đổi `false && probe()` thành `true && probe()`, rồi dự đoán `checks` ngay sau hai biểu thức short-circuit và sau biểu thức `&`.
+**Exercise 3.** In `BooleanDemo.java`, change `false && probe()` to `true && probe()`, then predict `checks` right after the two short-circuit expressions and after the `&` expression.
 
-**Bài tập 4.** Viết kiểm tra `String value = null;` bằng `value != null && !value.isBlank()`. Dự đoán điều gì xảy ra nếu dùng `&` thay cho `&&`.
+**Exercise 4.** Write a check for `String value = null;` using `value != null && !value.isBlank()`. Predict what happens if `&` is used instead of `&&`.
 
-**Bài tập 5.** Tạo `Boolean unknown = null;` rồi thử `Boolean.TRUE.equals(unknown)` để so sánh an toàn mà không unbox một giá trị null.
+**Exercise 5.** Create `Boolean unknown = null;` and try `Boolean.TRUE.equals(unknown)` to compare safely without unboxing a null value.
 
-### Ghi nhớ
+### Key Takeaways
 
-**`boolean` chỉ có `true` và `false`; Java không có quy tắc “số 0 là false, số khác 0 là true”.** Phép so sánh sinh boolean, `if`/`while` cần điều kiện boolean, `&&`/`||` có short-circuit. `Boolean` là **wrapper tham chiếu** có thể mang `null`, vì vậy đừng đồng nhất nó với primitive `boolean`.
+**`boolean` only has `true` and `false`; Java has no rule that "0 is false, non-zero is true."** Comparisons produce booleans, `if`/`while` require boolean conditions, and `&&`/`||` short-circuit. `Boolean` is a **reference wrapper** that can hold `null`, so do not equate it with primitive `boolean`.

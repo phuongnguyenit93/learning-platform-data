@@ -1,10 +1,10 @@
-# Thực hành: Xây dựng bộ ánh xạ dữ liệu nhỏ qua accessor hoặc record component
+# Practice: Building a Tiny Data Mapper via Accessors or Record Components
 
-## 1. Bài toán và kết quả mong muốn
+## 1. Problem Statement and Expected Result
 
-Giả sử ứng dụng cần chuyển một object Java thành một bảng dữ liệu có dạng `Map<String, Object>`. Bảng đó có thể phục vụ logging có kiểm soát, tạo dữ liệu hiển thị, chuyển sang một DTO khác hoặc làm bước đầu cho serialization. Với các lớp đã biết từ trước, một method chuyển đổi tường minh thường là lựa chọn đơn giản nhất; bài thực hành này tập trung vào trường hợp **cần khám phá cấu trúc ở runtime bằng Reflection**, nhưng vẫn phải giới hạn phạm vi và xử lý lỗi rõ ràng.
+Suppose an application needs to convert a Java object into a data table shaped like `Map<String, Object>`. That map can be used for controlled logging, generating display data, converting to another DTO, or serving as a first step toward serialization. For classes known in advance, an explicit conversion method is usually the simplest option; this practice exercise focuses on the case where **structure must be discovered at runtime via Reflection**, while still constraining scope and handling errors clearly.
 
-Ta sẽ viết một bộ ánh xạ **một chiều**:
+We will write a **one-way** mapper:
 
 ```text
 Java object
@@ -14,46 +14,46 @@ Java object
     +-- JavaBean? --> PropertyDescriptor[] --> getReadMethod() --> Method.invoke(...)
     |
     v
-Map<String, Object>  (khóa = tên thành phần/property, giá trị = kết quả accessor)
+Map<String, Object>  (key = component/property name, value = accessor result)
 ```
 
-Đầu vào ví dụ gồm:
+Example inputs include:
 
-- `Invoice` là **record** với hai thành phần `code` và `total`.
-- `CustomerView` là **class kiểu JavaBean đọc được** với getter `getName()` và `isActive()`.
-- Bộ ánh xạ nhận **duy nhất hai kiểu đã được cho phép**; không tự đọc bất kỳ class nào do người dùng gửi tên.
-- Bản đồ kết quả sắp xếp theo tên khóa cho dễ kiểm thử và không cho sửa qua API `Map` trả về.
+- `Invoice` is a **record** with two components, `code` and `total`.
+- `CustomerView` is a **readable JavaBean-style class** with getters `getName()` and `isActive()`.
+- The mapper accepts **only two allowlisted types**; it does not read arbitrary classes whose names are sent by a user.
+- The resulting map is sorted by key name for easy testing and cannot be modified through the returned `Map` API.
 
-Kết quả dự kiến:
+Expected output:
 
 ```text
 record = {code=INV-7, total=80}
 bean = {active=true, name=Lan}
 ```
 
-**Phạm vi cố ý nhỏ:** chỉ đọc thuộc tính top-level, giữ nguyên giá trị kiểu Java; không đọc trực tiếp private field, không dựng object từ map, không đi vào object lồng nhau, không xử lý cycle, không tự động chuyển kiểu và **không tạo JSON**. `Map.toString()` là biểu diễn in thử trong Java, không phải JSON hợp lệ.
+**Intentionally small scope:** reads only top-level properties, keeping Java-typed values as-is; does not read private fields directly, does not construct objects from a map, does not recurse into nested objects, does not handle cycles, does not auto-convert types, and **does not generate JSON**. `Map.toString()` is a Java debug printout representation, not valid JSON.
 
-## 2. Hiểu hai kiểu accessor trước khi viết mapper
+## 2. Understanding the Two Accessor Models Before Writing the Mapper
 
-### Record component
+### Record components
 
-Từ Java 16, record là cú pháp mô tả một dạng class được thiết kế để mang dữ liệu với tập component xác định. Ví dụ:
+Since Java 16, a record is syntax describing a class designed to carry data with a fixed set of components. For example:
 
 ```java
 public record Invoice(String code, int total) {}
 ```
 
-Compiler cung cấp các accessor tương ứng: `code()` và `total()`. Chúng **không phải JavaBeans getter tên `getCode()` hay `getTotal()`**. Vì vậy không nên mặc định JavaBeans Introspector sẽ tìm đúng property của record.
+The compiler provides the corresponding accessors: `code()` and `total()`. They **are not JavaBeans getters named `getCode()` or `getTotal()`**. Therefore, do not assume the JavaBeans Introspector will automatically find record properties properly.
 
-Reflection cung cấp:
+Reflection provides:
 
-- `type.isRecord()`: kiểm tra class có phải record.
-- `type.getRecordComponents()`: lấy các `RecordComponent` được khai báo, theo thứ tự component trong header.
-- `component.getName()`: tên component, ví dụ `"code"`.
-- `component.getType()`: kiểu khai báo, ví dụ `String.class` hoặc `int.class`.
-- `component.getAccessor()`: đối tượng `Method` của accessor tương ứng; có thể gọi bằng `Method.invoke(receiver)`.
+- `type.isRecord()`: checks whether the class is a record.
+- `type.getRecordComponents()`: retrieves the declared `RecordComponent`s in header component order.
+- `component.getName()`: component name, e.g., `"code"`.
+- `component.getType()`: declared type, e.g., `String.class` or `int.class`.
+- `component.getAccessor()`: the corresponding accessor `Method` object; can be called with `Method.invoke(receiver)`.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ```java
 RecordComponent[] parts = Invoice.class.getRecordComponents();
@@ -63,13 +63,13 @@ for (RecordComponent part : parts) {
 }
 ```
 
-Đây là **đoạn mã minh họa cần import và khai báo ngữ cảnh**, không phải file chạy riêng. Kiểu primitive như `int` được boxing thành `Integer` khi lưu dưới kiểu `Object` trong map.
+This is an **illustrative code snippet requiring imports and enclosing context**, not a standalone runnable file. Primitive types such as `int` are boxed to `Integer` when stored as `Object` in the map.
 
-Record thường tạo các field final/private và accessor public; mapper sử dụng accessor **thay vì** bật quyền truy cập private field. Tuy nhiên tính “bất biến nông” của record không bảo đảm dữ liệu tham chiếu bên trong bất biến: nếu component chứa `List` có thể thay đổi, map sẽ giữ reference đến cùng đối tượng list.
+Records typically generate private final fields and public accessors; the mapper uses accessors **instead of** enabling access to private fields. However, a record's "shallow immutability" does not guarantee referenced data inside is immutable: if a component holds a mutable `List`, the map will hold a reference to that same list object.
 
-### JavaBean property
+### JavaBean properties
 
-Với class thông thường:
+For ordinary classes:
 
 ```java
 public static final class CustomerView {
@@ -86,43 +86,43 @@ public static final class CustomerView {
 }
 ```
 
-Theo quy ước JavaBeans:
+By JavaBeans convention:
 
-- `getName()` đại diện cho property `name`.
-- `isActive()` đại diện cho property boolean `active`.
-- Property chỉ đọc **vẫn hợp lệ** dù class không có setter.
-- Method tùy ý `calculate()` không tự nhiên là JavaBean property.
-- `getClass()` được kế thừa từ `Object`; không nên đưa metadata class nội bộ vào bản đồ dữ liệu.
+- `getName()` represents the `name` property.
+- `isActive()` represents the boolean `active` property.
+- Read-only properties **are still valid** even if the class has no setters.
+- An arbitrary method `calculate()` is not automatically a JavaBean property.
+- `getClass()` is inherited from `Object`; internal class metadata should not be included in the data map.
 
-`java.beans.Introspector.getBeanInfo(type, Object.class)` khám phá thuộc tính theo quy ước và loại bỏ phần thông tin thuộc superclass `Object`. Mỗi `PropertyDescriptor` có `getName()`, `getPropertyType()` và `getReadMethod()`. Method đọc có thể null nếu property chỉ ghi; mapper bỏ qua trường hợp đó.
+`java.beans.Introspector.getBeanInfo(type, Object.class)` discovers properties by convention and excludes metadata belonging to the `Object` superclass. Each `PropertyDescriptor` has `getName()`, `getPropertyType()`, and `getReadMethod()`. The read method can be null if a property is write-only; the mapper skips that case.
 
-Khác với record component, JavaBean là một **quy ước đặt tên và metadata**, không phải một cú pháp class bắt buộc. Tên property không nhất thiết giống tên field: một getter có thể tính giá trị thay vì đọc trực tiếp field, và có thể có tác dụng phụ hoặc ném ngoại lệ.
+Unlike record components, a JavaBean is a **naming and metadata convention**, not a mandatory class syntax. Property names do not necessarily match field names: a getter may compute a value instead of reading a field directly, and may have side effects or throw exceptions.
 
-**Thông tin module:** `java.beans.Introspector` thuộc module JDK `java.desktop`, không thuộc `java.base`. Ở ứng dụng có file `module-info.java`, cần `requires java.desktop;` khi dùng API JavaBeans này; ứng dụng trên classpath thông thường với một JDK đầy đủ không cần khai báo đó.
+**Module note:** `java.beans.Introspector` belongs to the `java.desktop` JDK module, not `java.base`. In applications with a `module-info.java` file, `requires java.desktop;` is needed when using this JavaBeans API; ordinary classpath applications running on a full JDK do not need that declaration.
 
-## 3. Hợp đồng cụ thể của mini mapper
+## 3. Concrete Contract of the Mini Mapper
 
-Ta chọn interface sử dụng đơn giản:
+We choose a simple interface:
 
 ```java
 Map<String, Object> toMap(Object source);
 ```
 
-Hợp đồng:
+Contract:
 
-1. `source == null` bị từ chối bằng `NullPointerException` với thông báo `"source"`.
-2. Kiểu source được kiểm tra theo **allowlist** gồm `Invoice.class` và `CustomerView.class`; kiểu khác bị từ chối bằng `IllegalArgumentException`. Điều này giữ Reflection trong phạm vi kiểm soát.
-3. Với record, chỉ lấy component do `getRecordComponents()` trả về và gọi accessor tương ứng.
-4. Với JavaBean, chỉ lấy readable property từ `PropertyDescriptor` do Introspector trả về, không tìm field private.
-5. Getter có thể thất bại. Mapper **không nuốt lỗi** mà báo `IllegalStateException` và giữ `cause` gốc.
-6. Giá trị `null` được phép giữ trong map vì dùng `TreeMap` (không dùng `Map.copyOf`, vốn không cho phép null).
-7. Kết quả được bao bởi `Collections.unmodifiableMap(...)`. Caller không thêm, xóa hoặc thay entry qua map đó; điều này không làm bất biến sâu các object được lưu làm value.
+1. `source == null` is rejected with `NullPointerException` with message `"source"`.
+2. The source type is checked against an **allowlist** consisting of `Invoice.class` and `CustomerView.class`; other types are rejected with `IllegalArgumentException`. This keeps Reflection within a controlled scope.
+3. For a record, only retrieve components returned by `getRecordComponents()` and invoke their corresponding accessors.
+4. For a JavaBean, only retrieve readable properties from `PropertyDescriptor` returned by Introspector, without looking up private fields.
+5. Getters can fail. The mapper **does not swallow errors**; instead it throws `IllegalStateException` and preserves the original `cause`.
+6. `null` values are allowed in the map because `TreeMap` is used (unlike `Map.copyOf`, which forbids nulls).
+7. The result is wrapped with `Collections.unmodifiableMap(...)`. Callers cannot add, remove, or replace entries through that map; this does not deeply freeze objects stored as values.
 
-Bài này dùng khóa tên property (`String`) nên không có key null. Thứ tự key của `TreeMap` là thứ tự tự nhiên của chuỗi, không phải thứ tự khai báo record hay thứ tự Reflection/Introspector trả về.
+This exercise uses property name keys (`String`), so there are no null keys. The key order of `TreeMap` is string natural ordering, not the record declaration order or the order returned by Reflection/Introspector.
 
-## 4. Chương trình hoàn chỉnh chạy được trên Java 17+
+## 4. Complete Runnable Program on Java 17+
 
-Tạo file **`TinyMapperDemo.java`**, nội dung:
+Create a file named **`TinyMapperDemo.java`** with the following content:
 
 ```java
 import java.beans.IntrospectionException;
@@ -161,7 +161,7 @@ public class TinyMapperDemo {
         Objects.requireNonNull(source, "source");
         Class<?> type = source.getClass();
 
-        // Không thực thi getter tùy ý trên class từ nguồn không tin cậy.
+        // Do not execute arbitrary getters on classes from untrusted sources.
         if (type != Invoice.class && type != CustomerView.class) {
             throw new IllegalArgumentException(
                     "Unsupported: " + type.getName());
@@ -217,67 +217,67 @@ public class TinyMapperDemo {
 }
 ```
 
-Biên dịch và chạy từ đúng thư mục chứa file:
+Compile and run from the exact directory containing the file:
 
 ```bash
 javac -encoding UTF-8 TinyMapperDemo.java
 java TinyMapperDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 record = {code=INV-7, total=80}
 bean = {active=true, name=Lan}
 ```
 
-Vì sao kết quả như trên?
+Why does it produce this output?
 
-**Với record** `new Invoice("INV-7", 80)`: `isRecord()` trả `true`, vòng lặp lấy hai component `code` và `total`. `getAccessor()` lần lượt dẫn tới `code()` trả `"INV-7"` và `total()` trả `80`. `TreeMap` giữ key theo alphabet nên hiển thị `code` trước `total`.
+**For record** `new Invoice("INV-7", 80)`: `isRecord()` returns `true`, and the loop fetches both `code` and `total` components. `getAccessor()` leads to `code()` returning `"INV-7"` and `total()` returning `80`. `TreeMap` keeps keys in alphabetical order, so `code` appears before `total`.
 
-**Với JavaBean** `new CustomerView("Lan", true)`: kiểu này không phải record nên dùng `Introspector`. `getName()` được đọc thành `name=Lan` và `isActive()` thành `active=true`. Ta chỉ thu nhận readable properties, không thu `class` từ `Object.getClass()` nhờ dùng stop class `Object.class`. `TreeMap` sắp xếp `active` trước `name`.
+**For JavaBean** `new CustomerView("Lan", true)`: this type is not a record, so `Introspector` is used. `getName()` is read as `name=Lan` and `isActive()` as `active=true`. We only collect readable properties and exclude `class` from `Object.getClass()` thanks to the `Object.class` stop class. `TreeMap` orders `active` before `name`.
 
-**Tại sao `read(...)` dùng hai catch khác nhau?** Khi caller không đủ quyền, `Method.invoke` có thể ném `IllegalAccessException`. Khi accessor **được gọi** và tự ném exception, Reflection bọc exception ấy trong `InvocationTargetException`; `getCause()` truy ra lỗi bên trong. Mapper bọc lại bằng `IllegalStateException`, thay vì trả một map thiếu key khiến bug bị che giấu.
+**Why does `read(...)` use two separate catch blocks?** When the caller lacks permission, `Method.invoke` can throw `IllegalAccessException`. When the accessor **is called** and throws an exception itself, Reflection wraps that exception in `InvocationTargetException`; `getCause()` retrieves the underlying error. The mapper wraps it in `IllegalStateException`, rather than returning a map with a missing key that hides bugs.
 
-Các class trong ví dụ là nested type public và các accessor public; không cần `setAccessible(true)`. Với class/module khác, package visibility/module export có thể làm cho một method trông public nhưng không truy cập được từ caller. Đừng biến `setAccessible(true)` thành giải pháp mặc định.
+The classes in this example are public nested types and public accessors; `setAccessible(true)` is unnecessary. With classes/modules elsewhere, package visibility or module exports can make a method appear public yet remain inaccessible to the caller. Do not turn `setAccessible(true)` into the default workaround.
 
-## 5. Đọc kỹ luồng ánh xạ
+## 5. Walking Through the Mapping Flow
 
-### Bước 1: quyết định loại metadata
+### Step 1: decide the metadata kind
 
-`type.isRecord()` là kiểm tra chuyên biệt dành cho record. Khi `true`, dùng `getRecordComponents()` thay vì đoán tên `getXxx()`. Khi `false`, bài này dùng quy ước JavaBeans cho một kiểu cho phép.
+`type.isRecord()` is the specialized check for records. When `true`, use `getRecordComponents()` instead of guessing `getXxx()` names. When `false`, this exercise uses JavaBeans conventions for an allowed type.
 
-Đây là **hai đường ánh xạ riêng**. Không nên trộn một cách tự phát, ví dụ với record vừa lấy `getRecordComponents()` vừa quét `getMethods()` để tự đoán thêm thuộc tính: dễ gây key trùng hoặc gọi những method không thuộc hợp đồng dữ liệu.
+These are **two separate mapping paths**. Do not mix them ad hoc — for example, on a record, both calling `getRecordComponents()` and scanning `getMethods()` to guess extra properties: that risks duplicate keys or invoking methods outside the data contract.
 
-### Bước 2: chỉ giữ accessor có thể gọi
+### Step 2: keep only invokable accessors
 
-Với record, `RecordComponent.getAccessor()` trả method accessor tương ứng. Với JavaBean, `PropertyDescriptor.getReadMethod()` có thể null nên cần kiểm tra.
+For records, `RecordComponent.getAccessor()` returns the corresponding accessor method. For JavaBeans, `PropertyDescriptor.getReadMethod()` can be null, so it must be checked.
 
-Không trực tiếp lấy mọi `Method` theo `getMethods()` rồi tự bỏ tiền tố `get` vì dễ xử lý sai `isXxx`, thuộc tính viết hoa, property chỉ ghi, overload và các chi tiết quy ước JavaBeans. Introspector đã thực hiện một phần quan trọng của việc phân giải quy ước này.
+Do not directly grab every `Method` from `getMethods()` and strip the `get` prefix yourself, as that easily mishandles `isXxx`, capitalized properties, write-only properties, overloads, and JavaBeans naming edge cases. `Introspector` already handles a major portion of resolving this convention.
 
-### Bước 3: invoke với receiver đúng
+### Step 3: invoke with the right receiver
 
-Cả accessor record và JavaBean getter ở đây là **instance method không có đối số**:
+Both record accessors and JavaBean getters here are **no-argument instance methods**:
 
 ```java
 Object value = accessor.invoke(source);
 ```
 
-Đoạn này minh họa khi đã có biến `accessor: Method` và `source`. Đối số `source` là receiver, không phải tham số getter. Nếu receiver sai kiểu, invocation sẽ lỗi. Giá trị kiểu primitive như `int`/`boolean` được boxing khi trả về dưới dạng `Object`.
+This snippet illustrates usage once `accessor: Method` and `source` are available. The argument `source` is the receiver, not a getter parameter. If the receiver has the wrong type, invocation fails. Primitive values such as `int`/`boolean` are boxed when returned as `Object`.
 
-### Bước 4: tạo map theo tên thuộc tính
+### Step 4: build the map by property name
 
-Tên của record component đến từ `getName()`. Tên JavaBean property đến từ `PropertyDescriptor.getName()`, **không cần** tự viết thuật toán xóa `get`/`is` rồi lower-case.
+Record component names come from `getName()`. JavaBean property names come from `PropertyDescriptor.getName()`, **without needing** to hand-write logic stripping `get`/`is` and lowercasing.
 
-Map sử dụng `TreeMap<String,Object>` để có thứ tự hiển thị ổn định. Khi serializer thực tế cần giữ thứ tự khai báo record, `LinkedHashMap` là lựa chọn hợp lý hơn; đầu ra của chương trình mẫu thì chủ ý **sắp xếp alphabet** để làm test rõ ràng.
+The map uses `TreeMap<String,Object>` for stable display ordering. When a real serializer needs to preserve record declaration order, `LinkedHashMap` is a better fit; the sample program's output intentionally **sorts alphabetically** to make tests unambiguous.
 
-### Bước 5: trả map không cho sửa trực tiếp
+### Step 5: return a map that cannot be mutated directly
 
-`Collections.unmodifiableMap(result)` làm người dùng không thể thao tác `put/remove` trên map trả về. Lưu ý nếu các value là list/map/object mutable, việc mutate bên trong value vẫn có thể xảy ra. Nếu cần snapshot bất biến sâu để chia sẻ đa luồng hoặc lưu trữ lâu dài, phải định nghĩa cách copy/serialize phù hợp, không mặc định wrapper map làm được việc đó.
+`Collections.unmodifiableMap(result)` prevents callers from calling `put/remove` on the returned map. Note that if values are mutable lists/maps/objects, mutating inside those values can still occur. If you need a deeply immutable snapshot for multi-threaded sharing or long-term storage, you must define proper copying/serialization rather than assuming the map wrapper does that.
 
-## 6. Thử lỗi và kiểm tra hợp đồng
+## 6. Testing Errors and Verifying the Contract
 
-Với chương trình hoàn chỉnh ở trên, có thể thêm các lệnh sau **vào cuối `main`** để kiểm tra nhánh lỗi:
+With the complete program above, you can append the following statements **at the end of `main`** to test error branches:
 
 ```java
 try {
@@ -300,7 +300,7 @@ try {
 }
 ```
 
-Đoạn này **không phải chương trình chạy độc lập**; đặt nguyên trong `main` của `TinyMapperDemo` và giữ import đã có. Khi ghép đúng, chương trình in thêm:
+This snippet **is not a standalone runnable program**; place it inside `main` of `TinyMapperDemo` while keeping the existing imports. When integrated properly, the program additionally prints:
 
 ```text
 unsupported = true
@@ -308,19 +308,19 @@ null = true
 readOnlyMap = true
 ```
 
-Các ví dụ thể hiện ba giới hạn rõ:
+These examples demonstrate three clear boundaries:
 
-- Kiểu bất kỳ không được tự động introspect; mapper từ chối trước khi Reflection gọi accessor.
-- Không truyền null như đối tượng nguồn.
-- Người dùng không thể dùng `put` để sửa map kết quả.
+- Arbitrary types are not introspected automatically; the mapper rejects them before Reflection invokes any accessor.
+- Null cannot be passed as the source object.
+- Callers cannot use `put` to modify the resulting map.
 
-Trong hệ thống thực tế, dùng unit test/assertion thay vì chỉ quan sát dòng in. Cần test cả object có property trả null, getter ném exception, class khác module, class chứa tham chiếu mutable và thay đổi phiên bản schema.
+In real systems, use unit tests/assertions instead of only observing printed lines. Also test objects with properties returning null, getters throwing exceptions, classes in other modules, classes holding mutable references, and schema version changes.
 
-## 7. Mở rộng ánh xạ mà không phá hợp đồng
+## 7. Extending Mapping Without Breaking the Contract
 
-### a) Ánh xạ nhiều kiểu bằng registry được quản lý
+### a) Mapping multiple types via a managed registry
 
-Allowlist trong ví dụ phù hợp với hai lớp cho sẵn. Khi số kiểu tăng, có thể quản lý adapter đã đăng ký:
+The allowlist in the example fits two preset classes. As the number of types grows, you can manage registered adapters:
 
 ```java
 interface ObjectMapper<T> {
@@ -328,75 +328,75 @@ interface ObjectMapper<T> {
 }
 ```
 
-Đây là **khai báo interface minh họa**. Một registry theo `Class<?>` có thể trỏ mỗi kiểu sang một mapper tường minh; các kiểu không đăng ký bị từ chối. Khi thật sự cần Reflection để hỗ trợ record/JavaBean bất kỳ, hãy đặt quy tắc cho phép class/package, property, annotation và quyền riêng tư ngay tại ranh giới registry.
+This is an **illustrative interface declaration**. A registry keyed by `Class<?>` can point each type to an explicit mapper; unregistered types are rejected. When you genuinely need Reflection to support arbitrary records/JavaBeans, place allowlist rules for classes/packages, properties, annotations, and privacy right at the registry boundary.
 
-### b) Chỉ chọn thuộc tính cho phép công bố
+### b) Selecting only properties approved for disclosure
 
-Không phải getter public nào cũng nên xuất dữ liệu. Ví dụ `getPasswordHash()`, `getAccessToken()` hoặc `getInternalNotes()` có thể có trong class nhưng không phải nội dung trả cho client. Vì vậy serializer thật nên có allowlist property hoặc annotation opt-in, DTO chuyên trách, các phép biến đổi/redaction cụ thể và test bảo vệ dữ liệu.
+Not every public getter should be exported. For instance, `getPasswordHash()`, `getAccessToken()`, or `getInternalNotes()` may exist on a class without being meant for clients. Real serializers should therefore have a property allowlist or opt-in annotations, dedicated DTOs, explicit transforms/redaction, and data-protection tests.
 
-**Reflection giúp tìm được member, không tự quyết định member có được công bố hay không.** Một log/map có dữ liệu nhạy cảm vẫn là rò rỉ dù toàn bộ lời gọi Reflection hợp lệ.
+**Reflection helps find members, not decide whether a member may be disclosed.** A log/map containing sensitive data is still a leak even when every Reflection call is valid.
 
-### c) Field trực tiếp và accessor có ý nghĩa khác nhau
+### c) Direct fields and accessors have different meanings
 
-Dùng `Field.get(...)` đọc field khai báo; dùng `Method.invoke(...)` trên getter thực thi logic của accessor. Getter có thể tính toán, kiểm tra quyền, lazy-load dữ liệu, hoặc ném exception. Trong nhiều domain, dùng accessor là cách hợp đồng API muốn công bố dữ liệu; nhưng với getter tốn chi phí, map toàn bộ có thể gây nhiều lời gọi DB (*N+1 query*) hay side effect.
+Calling `Field.get(...)` reads a declared field; calling `Method.invoke(...)` on a getter executes accessor logic. A getter can compute values, check permissions, lazy-load data, or throw exceptions. In many domains, using accessors matches how the API contract exposes data; however, with expensive getters, mapping everything can trigger many DB queries (*N+1 queries*) or side effects.
 
-Cần phân biệt “đọc value” với “thực thi getter”: mapper tự động gọi getter không an toàn cho mọi đối tượng không biết trước.
+Distinguish "reading a value" from "executing a getter": a mapper that automatically invokes getters is unsafe on unknown objects.
 
-### d) Record mang dữ liệu, nhưng không bắt buộc là schema JSON
+### d) Records carry data, but are not automatically a JSON schema
 
-`RecordComponent.getAccessor()` cung cấp tên kiểu Java. Nếu tên JSON khác tên Java, hoặc cần phiên bản hóa, nullable, nested conversion, ngày/giờ, enum encoding, polymorphism, default values và schema evolution, bạn cần quy tắc mapping bổ sung.
+`RecordComponent.getAccessor()` provides Java-style names. If JSON names differ from Java names, or if you need versioning, nullability, nested conversion, dates/times, enum encoding, polymorphism, default values, and schema evolution, you need additional mapping rules.
 
-Một record như `record User(String firstName, List<String> roles)` không tự động biến thành JSON đúng schema chỉ bằng cách bỏ các value vào map. Cần bộ chuyển đổi có hợp đồng về nested types và null, hoặc thư viện serialization được cấu hình rõ.
+A record like `record User(String firstName, List<String> roles)` does not automatically become schema-compliant JSON simply by dropping values into a map. You need a converter with contracts for nested types and nulls, or a properly configured serialization library.
 
-### e) Ánh xạ chiều ngược
+### e) Reverse mapping
 
-Tạo record từ map cần tìm **canonical constructor** với kiểu và thứ tự component chính xác, lấy giá trị theo tên, kiểm tra null với primitive, ép/chuyển đổi kiểu, xử lý unknown/missing keys và gọi constructor. Với JavaBean, cần biết constructor/setter/builder nào được phép. Đây là một nghiệp vụ riêng, dễ gây lỗi dữ liệu hơn chiều đọc.
+Constructing a record from a map requires locating the **canonical constructor** with the exact component types and order, fetching values by name, checking nulls for primitives, coercing/converting types, handling unknown/missing keys, and invoking the constructor. For a JavaBean, you must know which constructor/setters/builders are permitted. That is a separate task, far more prone to data errors than reading.
 
-Không tự viết chiều ngược bằng cách lấy tất cả private field rồi `setAccessible(true)` để set tùy ý: có thể phá invariants, gặp field final/module restrictions và bỏ qua validation. Nếu cần deserialize trong hệ thống thật, sử dụng DTO/constructor rõ ràng hoặc thư viện có quy tắc schema.
+Do not implement reverse mapping by grabbing all private fields and calling `setAccessible(true)` to assign them arbitrarily: that can break invariants, hit final-field/module restrictions, and bypass validation. When deserialization is needed in production, use explicit DTOs/constructors or a schema-aware library.
 
-## 8. Lỗi Reflection thường gặp
+## 8. Common Reflection Errors
 
-| Lỗi | Nơi có thể gặp | Nguyên nhân/cách xử lý |
+| Error | Where it can occur | Cause / how to handle |
 | --- | --- | --- |
-| `IllegalAccessException` | `Method.invoke` | Accessor hoặc lớp chứa không truy cập được; xem visibility/module và vị trí code gọi |
-| `InvocationTargetException` | `Method.invoke` | Getter đã được gọi nhưng tự ném lỗi; xem `getCause()` |
-| `IntrospectionException` | `Introspector.getBeanInfo` | Không introspect được JavaBeans metadata theo yêu cầu |
-| `IllegalArgumentException` | Kiểm tra allowlist hoặc gọi method sai receiver | Bản ví dụ cố ý từ chối class chưa đăng ký; phân biệt với lỗi kiểu đối số Reflection |
-| `NullPointerException` | `Objects.requireNonNull(source)` | Thiếu đối tượng nguồn |
-| `UnsupportedOperationException` | Caller `put` vào map trả về | Map kết quả bị khóa sửa cấu trúc |
-| Trùng/thiếu property | Mapper thiết kế sai hoặc accessor không có | Dùng đúng `RecordComponent`/`PropertyDescriptor` và xác định chính sách lọc |
-| Value thay đổi ngoài ý muốn | Getter có side effect hoặc trả về object mutable | Không xem giá trị trả về là snapshot bất biến sâu |
+| `IllegalAccessException` | `Method.invoke` | Accessor or enclosing class is inaccessible; check visibility/modules and call site |
+| `InvocationTargetException` | `Method.invoke` | Getter was invoked and threw an error itself; inspect `getCause()` |
+| `IntrospectionException` | `Introspector.getBeanInfo` | Could not introspect JavaBeans metadata as requested |
+| `IllegalArgumentException` | Allowlist check or invoking method with wrong receiver | Sample intentionally rejects unregistered classes; distinguish from Reflection argument-type errors |
+| `NullPointerException` | `Objects.requireNonNull(source)` | Missing source object |
+| `UnsupportedOperationException` | Caller calls `put` on returned map | Resulting map is structurally unmodifiable |
+| Duplicate/missing property | Broken mapper design or missing accessor | Use `RecordComponent`/`PropertyDescriptor` properly and define filtering policy |
+| Unexpectedly mutated values | Getter has side effects or returns mutable object | Do not treat returned values as a deeply immutable snapshot |
 
-Đừng chỉ catch `Exception` rồi bỏ qua property lỗi. Khi mapper tự động lược bỏ một trường, người dùng có thể nhận một bản đồ **có vẻ thành công** nhưng thiếu dữ liệu quan trọng. Nếu sản phẩm yêu cầu best-effort mapping, phải định nghĩa rõ kiểu kết quả chứa cả lỗi theo từng trường; bài này chọn **fail-fast** để không che giấu lỗi.
+Never catch `Exception` and silently skip a failing property. When a mapper quietly omits a field, callers can receive a map that **looks successful** yet is missing critical data. If the product requires best-effort mapping, explicitly define a result type carrying per-field errors; this exercise chooses **fail-fast** so errors are not hidden.
 
-## 9. Một số giới hạn hiệu năng và vòng đời
+## 9. Performance and Lifecycle Boundaries
 
-Lấy `getRecordComponents()` hoặc gọi `Introspector.getBeanInfo(...)` thường không nên lặp lại một cách vô ích trong vòng lặp xử lý lượng lớn object cùng loại. Có thể cache danh sách metadata/accessor theo `Class<?>` hoặc giữ một mapping plan theo schema.
+Calling `getRecordComponents()` or `Introspector.getBeanInfo(...)` generally should not be repeated needlessly inside a loop processing many objects of the same type. You can cache metadata/accessor lists per `Class<?>` or retain a schema-level mapping plan.
 
-Tuy nhiên cache phải quan tâm đến classloader: static `Map<Class<?>, ...>` với strong reference có thể giữ lớp từ plugin/redeploy trong bộ nhớ. Với metadata theo class, `ClassValue<T>` là một lựa chọn thích hợp; cache vòng đời component cũng có thể đơn giản hơn. `Introspector` còn có cơ chế cache nội bộ; khi quản lý lớp động có thể cần xem API `Introspector.flushFromCaches(type)` tại thời điểm phù hợp.
+However, caching must account for class loaders: a static `Map<Class<?>, ...>` with strong references can pin classes from plugins/redeploys in memory. For class-keyed metadata, `ClassValue<T>` is an appropriate option; component-scoped caches can also be simpler. `Introspector` also maintains an internal cache; when managing dynamic classes, consider `Introspector.flushFromCaches(type)` at the right lifecycle point.
 
-Trong phạm vi bài thực hành, không thêm cache để giữ code dễ đọc. Chỉ bổ sung sau khi đo được metadata discovery là điểm nóng. Với ứng dụng production, so sánh mapper Reflection với mapper tường minh, kiểm thử hiệu năng sau JIT warmup và đo cả chi phí getter.
+Within this practice exercise, no cache is added to keep the code readable. Add caching only after profiling shows metadata discovery is a hotspot. In production applications, compare Reflection mappers against explicit mappers, benchmark after JIT warmup, and measure getter costs too.
 
-## 10. Bài tập mở rộng
+## 10. Practice Extensions
 
-1. Tạo `record Point(int x, int y)`. Cho phép thêm record đó vào mapper, in kết quả và giải thích thứ tự các key khi dùng `TreeMap`.
-2. Thêm JavaBean có `getTitle()`, `isPublished()` và method `calculateChecksum()`. Vì sao method thứ ba không trở thành property JavaBeans hợp lệ theo quy ước?
-3. Thêm getter trả null. Chứng minh kết quả vẫn có key với value null và lý giải tại sao đổi sang `Map.copyOf(...)` sẽ không phù hợp.
-4. Thêm getter cố ý ném `IllegalStateException("offline")`. Xác nhận mapper không bỏ qua lỗi, giữ được cause gốc từ `InvocationTargetException`.
-5. Thử gọi `toMap(new Object())`. Giải thích lý do allowlist quan trọng khi dữ liệu nguồn không được tin cậy.
-6. Thay `TreeMap` bằng `LinkedHashMap`. Với record, kiểm tra thứ tự khai báo của component ảnh hưởng thứ tự duyệt map thế nào.
-7. Bổ sung danh sách tên property được cho phép vào mapper; không xuất các property như `passwordHash` hoặc `secretKey` dù getter public.
-8. Thảo luận vì sao ánh xạ ngược `Map → record` cần thêm kiểm tra constructor, type conversion, missing key và validation. Viết đề xuất API rõ ràng trước khi coding.
+1. Create `record Point(int x, int y)`. Allowlist that record in the mapper, print the result, and explain the key order when using `TreeMap`.
+2. Add a JavaBean with `getTitle()`, `isPublished()`, and a `calculateChecksum()` method. Why does the third method not become a valid JavaBeans property by convention?
+3. Add a getter returning null. Demonstrate that the result still retains the key with a null value, and explain why switching to `Map.copyOf(...)` would fail.
+4. Add a getter that intentionally throws `IllegalStateException("offline")`. Verify that the mapper does not swallow the error and preserves the original cause from `InvocationTargetException`.
+5. Try calling `toMap(new Object())`. Explain why an allowlist matters when source data is untrusted.
+6. Replace `TreeMap` with `LinkedHashMap`. For records, check how component declaration order affects map iteration order.
+7. Add an allowlist of permitted property names to the mapper; do not export properties such as `passwordHash` or `secretKey` even if their getters are public.
+8. Discuss why reverse mapping `Map → record` requires additional constructor checks, type conversion, missing-key handling, and validation. Write a clear API proposal before coding.
 
-### Checklist nghiệm thu
+### Acceptance Checklist
 
-- Chương trình biên dịch/chạy trên Java 17+.
-- Record dùng `getRecordComponents()` và `getAccessor()`, JavaBean dùng `Introspector` và `getReadMethod()`.
-- Không dùng `setAccessible(true)` để bỏ qua quyền Java.
-- Không lộ property `class` do `Object.getClass()`.
-- Kết quả của hai kiểu khớp output đã công bố.
-- Input null và loại chưa đăng ký được xử lý tường minh.
-- Lỗi từ accessor được giữ nguyên cause để chẩn đoán.
-- Các giới hạn về nested objects, null, bảo mật dữ liệu và quyền truy cập được mô tả rõ.
+- The program compiles and runs on Java 17+.
+- Records use `getRecordComponents()` and `getAccessor()`, while JavaBeans use `Introspector` and `getReadMethod()`.
+- `setAccessible(true)` is not used to bypass Java access control.
+- The `class` property from `Object.getClass()` is not exposed.
+- Results for both types match the published output.
+- Null input and unregistered types are handled explicitly.
+- Accessor errors preserve their cause for diagnosis.
+- Limitations regarding nested objects, nulls, data security, and access control are clearly documented.
 
-**Kết quả cần đạt:** tự viết được bộ ánh xạ một chiều quy mô nhỏ bằng accessor/record component; đọc đúng metadata của hai mô hình Java, gọi accessor có kiểm soát, xử lý lỗi Reflection và biết khi nào nên thay mini mapper bằng API tường minh hoặc công cụ serialization chuyên dụng.
+**Target outcome:** build a small-scale one-way mapper using accessors/record components; read metadata accurately for both Java models, invoke accessors safely, handle Reflection errors, and know when to replace a mini mapper with an explicit API or dedicated serialization tool.

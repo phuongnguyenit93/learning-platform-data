@@ -1,34 +1,34 @@
-# Vì sao `getMethod` không tự giải overload như trình biên dịch?
+# Why Doesn't `getMethod` Automatically Resolve Overloads Like the Compiler?
 
-## 1. Hai thao tác có mục đích khác nhau
+## 1. Two Operations with Different Purposes
 
-**Overload (nạp chồng phương thức)** là nhiều phương thức cùng tên nhưng khác danh sách kiểu tham số. Với lời gọi `obj.send(value)` trong mã Java, **trình biên dịch** phải xác định một overload thích hợp dựa trên kiểu *tại thời điểm biên dịch* của đối số và quy tắc của ngôn ngữ.
+**Overloading** means multiple methods sharing the same name with different parameter type lists. For a call `obj.send(value)` in Java code, the **compiler** must determine one appropriate overload based on the *compile-time* types of the arguments and the rules of the language.
 
-Ngược lại, `Class.getMethod(String name, Class<?>... parameterTypes)` là API Reflection để **tra cứu một phương thức public có tên và danh sách kiểu tham số khai báo được chỉ rõ**. Những `Class<?>` truyền vào mô tả chữ ký phương thức **cần tìm**; chúng không phải dữ liệu đầu vào để tự chọn overload.
+By contrast, `Class.getMethod(String name, Class<?>... parameterTypes)` is a Reflection API for **looking up a public method with a specified name and declared parameter type list**. The `Class<?>` objects passed describe the method signature **to search for**; they are not input values for automatically picking an overload.
 
-Giả sử có `send(int)` và `send(long)`:
+Suppose there are `send(int)` and `send(long)`:
 
-- `send((short) 7)` trong mã nguồn chọn `send(int)`, nhờ chuyển đổi mở rộng kiểu nguyên thủy (`short` sang `int`).
-- `SomeClass.class.getMethod("send", short.class)` chỉ tìm đúng `send(short)`. Nếu không khai báo chữ ký ấy, nó ném `NoSuchMethodException`, dù `send(int)` nhận được giá trị `short` khi gọi trực tiếp.
+- `send((short) 7)` in source code selects `send(int)`, thanks to primitive widening conversion (`short` to `int`).
+- `SomeClass.class.getMethod("send", short.class)` searches strictly for `send(short)`. If that signature is not declared, it throws `NoSuchMethodException`, even though `send(int)` accepts a `short` value when called directly.
 
-**Tra cứu chữ ký chính xác** và **giải lời gọi overload** là hai bài toán khác nhau.
+**Exact signature lookup** and **overload call resolution** are two different problems.
 
-## 2. Trình biên dịch giải overload như thế nào?
+## 2. How Does the Compiler Resolve Overloads?
 
-Trình biên dịch có thông tin về tên phương thức, số lượng đối số, **kiểu tĩnh của từng biểu thức**, những phương thức có thể nhìn thấy, thông tin generic và ngữ cảnh lời gọi. Theo Java Language Specification, quy trình chọn phương thức có những giai đoạn chính:
+The compiler has information about the method name, argument count, **the static type of each expression**, visible methods, generic information, and call context. According to the Java Language Specification, the method selection process has main phases:
 
-1. Thử các phương thức với số tham số cố định, **chưa cần boxing/unboxing**, nhưng có thể dùng widening primitive (`short → int`) hoặc widening reference (`Integer → Number`).
-2. Nếu chưa tìm được phương thức áp dụng được, xét thêm boxing/unboxing và các phép chuyển đổi được cho phép trong lời gọi.
-3. Nếu vẫn chưa được, xét lời gọi `varargs` theo dạng số đối số biến đổi.
-4. Ở giai đoạn đầu tiên có ứng viên phù hợp, chọn overload *most specific* theo quy tắc Java; nếu không chọn duy nhất được, báo lỗi **ambiguous**.
+1. Try methods with a fixed number of parameters, **without boxing/unboxing**, though primitive widening (`short → int`) or reference widening (`Integer → Number`) can be used.
+2. If no applicable method has been found, additionally consider boxing/unboxing and conversions allowed in method invocations.
+3. If still not found, consider `varargs` calls with variable argument counts.
+4. At the first phase with suitable candidates, pick the *most specific* overload per Java rules; if a unique one cannot be chosen, report an **ambiguous** error.
 
-Quy tắc thực tế còn xét kế thừa, generic type inference và khả năng truy cập; không thể thay bằng mỗi phép `Class.isAssignableFrom()`.
+Actual rules also account for inheritance, generic type inference, and accessibility; they cannot be replaced solely by `Class.isAssignableFrom()`.
 
-**Kiểu tĩnh không luôn giống kiểu runtime.** Nếu có `send(Object)`, `send(String)` và khai báo `Object x = "hello";`, lời gọi `send(x)` được biên dịch sang `send(Object)`, vì kiểu tĩnh của `x` là `Object`. Trong khi đó, `x.getClass()` trả `String.class`: dùng lớp runtime để đoán overload có thể cho kết quả khác trình biên dịch.
+**Static types are not always the same as runtime types.** Given `send(Object)`, `send(String)`, and declaration `Object x = "hello";`, the call `send(x)` is compiled to `send(Object)`, because the static type of `x` is `Object`. Meanwhile, `x.getClass()` returns `String.class`: using the runtime class to guess an overload can yield a different result than the compiler.
 
-## 3. `Class.getMethod` so khớp những gì?
+## 3. What Does `Class.getMethod` Match?
 
-Dạng API:
+API form:
 
 ~~~java
 Method method = SomeClass.class.getMethod(
@@ -38,23 +38,23 @@ Method method = SomeClass.class.getMethod(
 );
 ~~~
 
-Đây là đoạn **minh họa cú pháp**, không phải chương trình Java hoàn chỉnh. `getMethod` so khớp **tên** và **các kiểu tham số khai báo theo đúng thứ tự**. Không thực hiện chuyển đổi kiểu, không xem giá trị đối số, không tự chọn overload “gần nhất”. Ví dụ:
+This is a **syntax illustration**, not a complete Java program. `getMethod` matches the **name** and **declared parameter types in exact order**. It performs no type conversion, inspects no argument values, and does not pick the "closest" overload. For example:
 
-| Tra cứu | Kết quả yêu cầu |
+| Lookup | Required Match |
 | --- | --- |
-| `getMethod("send", int.class)` | Chính xác `send(int)`. |
-| `getMethod("send", Integer.class)` | Chính xác `send(Integer)`, khác `send(int)`. |
-| `getMethod("send", Number.class)` | Chính xác `send(Number)`, không tự chuyển sang `send(Object)`. |
-| `getMethod("batch", String[].class)` | Khớp `batch(String...)`, vì tham số varargs thực chất là mảng. |
-| `getMethod("batch", String.class, String.class)` | Không khớp `batch(String...)`, dù mã nguồn có thể gọi `batch("a", "b")`. |
+| `getMethod("send", int.class)` | Exactly `send(int)`. |
+| `getMethod("send", Integer.class)` | Exactly `send(Integer)`, distinct from `send(int)`. |
+| `getMethod("send", Number.class)` | Exactly `send(Number)`, does not fall back to `send(Object)`. |
+| `getMethod("batch", String[].class)` | Matches `batch(String...)`, because a varargs parameter is actually an array. |
+| `getMethod("batch", String.class, String.class)` | Does not match `batch(String...)`, even though source code can call `batch("a", "b")`. |
 
-`getMethod` tìm các phương thức **public**, bao gồm phương thức public đủ điều kiện được kế thừa. `getDeclaredMethod` vẫn yêu cầu kiểu tham số chính xác, nhưng chỉ tìm phương thức khai báo ngay trong lớp/interface ấy, bao gồm cả thành viên không public. Không tìm thấy chữ ký thì ném `NoSuchMethodException`.
+`getMethod` searches **`public`** methods, including eligible inherited public methods. `getDeclaredMethod` still requires exact parameter types, but searches only methods declared directly in that class/interface, including non-public members. If the signature is not found, `NoSuchMethodException` is thrown.
 
-Với generic, Reflection nhìn chữ ký sau **type erasure**: phương thức `accept(List<String>)` thường phải tra bằng `List.class`; Java không có biểu thức `List<String>.class`. API `getMethod` cũng không nhận kiểu trả về làm tham số lựa chọn. Đôi khi compiler sinh bridge/synthetic methods; nếu duyệt danh sách phương thức, hãy xét `isBridge()` và `isSynthetic()`.
+With generics, Reflection sees the signature after **type erasure**: a method `accept(List<String>)` must usually be looked up with `List.class`; Java has no `List<String>.class` expression. The `getMethod` API also does not accept the return type as a selection parameter. Sometimes the compiler generates bridge/synthetic methods; when traversing method lists, inspect `isBridge()` and `isSynthetic()`.
 
-## 4. Chương trình Java 17+ minh họa đầy đủ
+## 4. Complete Java 17+ Illustrative Program
 
-Lưu thành `ReflectionOverloadDemo.java`:
+Save as `ReflectionOverloadDemo.java`:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -89,19 +89,19 @@ public class ReflectionOverloadDemo {
         ReflectionOverloadDemo target = new ReflectionOverloadDemo();
         short n = 7;
 
-        // Compiler chọn overload từ kiểu tĩnh của lời gọi.
+        // The compiler chooses the overload from the static type of the call.
         target.send(n);
         target.send(Integer.valueOf(7));
         target.send((Number) Integer.valueOf(7));
 
-        // Không có đúng chữ ký send(short).
+        // There is no exact signature send(short).
         try {
             ReflectionOverloadDemo.class.getMethod("send", short.class);
         } catch (NoSuchMethodException e) {
-            System.out.println("Không có send(short)");
+            System.out.println("No send(short)");
         }
 
-        // Reflection yêu cầu ta chỉ rõ chữ ký.
+        // Reflection requires us to specify the exact signature.
         Method intMethod =
                 ReflectionOverloadDemo.class.getMethod("send", int.class);
         intMethod.invoke(target, 7);
@@ -113,10 +113,10 @@ public class ReflectionOverloadDemo {
         try {
             ReflectionOverloadDemo.class.getMethod("send", String.class);
         } catch (NoSuchMethodException e) {
-            System.out.println("Không có send(String)");
+            System.out.println("No send(String)");
         }
 
-        // String... được khai báo dưới dạng String[].
+        // String... is declared as String[].
         Method batchMethod =
                 ReflectionOverloadDemo.class.getMethod("batch", String[].class);
         batchMethod.invoke(target, (Object) new String[]{"a", "b"});
@@ -124,77 +124,77 @@ public class ReflectionOverloadDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ~~~bash
 javac ReflectionOverloadDemo.java
 java ReflectionOverloadDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 send(int): 7
 send(Integer): 7
 send(Number): 7
-Không có send(short)
+No send(short)
 send(int): 7
 send(Number): 7
-Không có send(String)
+No send(String)
 batch: [a, b]
 ~~~
 
-Các quan sát:
+Observations:
 
-- Biến `n` có kiểu `short`, nên lời gọi Java thường chọn `send(int)`, nhưng tra `getMethod("send", short.class)` vẫn thất bại.
-- `int.class` khác `Integer.class`. Giá trị `7` khi truyền cho `Method.invoke(Object, Object...)` được boxing vào `Integer`, rồi Reflection có thể unboxing cho tham số `int` đã chọn.
-- `numberMethod` đã cố định `send(Number)`. Truyền đối số `Integer` cho `invoke` không làm nó chuyển sang overload `send(Integer)`.
-- `String... items` trở thành một tham số `String[]`. Ép `(Object) new String[]{...}` buộc lời gọi `invoke` nhận **một đối số là mảng** thay vì nhầm các phần tử với danh sách đối số của `invoke`.
+- Variable `n` has type `short`, so a normal Java call selects `send(int)`, yet looking up `getMethod("send", short.class)` still fails.
+- `int.class` differs from `Integer.class`. The value `7` passed to `Method.invoke(Object, Object...)` is boxed into an `Integer`, and then Reflection can unbox it for the selected `int` parameter.
+- `numberMethod` is already fixed to `send(Number)`. Passing an `Integer` argument to `invoke` does not switch it to the `send(Integer)` overload.
+- `String... items` becomes a `String[]` parameter. Casting `(Object) new String[]{...}` forces the `invoke` call to receive **one array argument** instead of mistaking its elements for the argument list of `invoke`.
 
-## 5. Vì sao `Method.invoke` nhận được một số chuyển đổi?
+## 5. Why Does `Method.invoke` Accept Some Conversions?
 
-Có hai bước khác nhau:
+There are two separate steps:
 
 ~~~text
 Class.getMethod("send", int.class)
             |
             v
- Method đại diện send(int)     (đã chọn chính xác overload)
+ Method representing send(int)   (exact overload selected)
             |
             v
- method.invoke(target, value) (gọi Method đã chọn)
+ method.invoke(target, value) (invokes the selected Method)
 ~~~
 
-`Method.invoke` **không chạy overload resolution**. Nó chỉ kiểm tra/chuyển đổi các đối số so với kiểu tham số của **Method đang cầm**. Theo JDK, Reflection có thể unboxing và mở rộng kiểu nguyên thủy phù hợp khi thực thi; chuyển đổi thu hẹp kiểu nguyên thủy (*narrowing*) không hợp lệ dẫn tới `IllegalArgumentException`. Method đích có varargs cũng không khiến `Method.invoke` tự gom các đối số của người gọi theo cú pháp Java. Nếu chính phương thức đích ném ngoại lệ, Reflection thường bọc trong `InvocationTargetException`.
+`Method.invoke` **does not run overload resolution**. It only validates/converts arguments against the parameter types of the **Method currently held**. Per the JDK, Reflection can unbox and apply valid primitive widening at execution time; invalid primitive *narrowing* conversions result in `IllegalArgumentException`. Having a varargs target method also does not cause `Method.invoke` to automatically pack the caller's arguments according to Java syntax. If the target method itself throws an exception, Reflection usually wraps it in `InvocationTargetException`.
 
-Do đó, `invoke` có thể gọi `send(int)` với một `Integer` chứa giá trị `7`, **nhưng `getMethod("send", Integer.class)` không vì thế mà tìm thành `send(int)`**.
+Therefore, `invoke` can call `send(int)` with an `Integer` containing `7`, **but `getMethod("send", Integer.class)` does not thereby resolve to `send(int)`**.
 
-## 6. Cách dùng đúng trong thực tế
+## 6. Proper Usage in Practice
 
-**Khi đã biết API:** ghi rõ danh sách kiểu tham số khai báo. Phương thức nhận `int` thì dùng `int.class`; nhận `Number` thì `Number.class`; nhận `String...` thì `String[].class`. Sau đó gọi `invoke` với đúng số lượng đối số và giá trị tương thích.
+**When the API is already known:** write the declared parameter type list explicitly. If a method takes `int`, use `int.class`; if `Number`, use `Number.class`; if `String...`, use `String[].class`. Then call `invoke` with the exact argument count and compatible values.
 
-**Khi phải điều phối từ dữ liệu động:** có thể duyệt `getMethods()`, lọc tên và tự xây bộ chọn overload. Tuy nhiên bộ chọn đủ chính xác phải hiểu primitive/wrapper, widening, reference hierarchy, `null`, varargs, generic/bridge methods và overload mơ hồ. Chỉ dùng `arg.getClass()` hay `isAssignableFrom()` là chưa đủ. Với JSON, HTTP hoặc cấu hình, cách dễ kiểm soát hơn là định nghĩa rõ tên thao tác và chữ ký hợp lệ trong hợp đồng dữ liệu.
+**When dispatching from dynamic data:** you can iterate `getMethods()`, filter by name, and build an overload selector yourself. However, a sufficiently accurate selector must understand primitive/wrapper, widening, reference hierarchy, `null`, varargs, generic/bridge methods, and ambiguous overloads. Using only `arg.getClass()` or `isAssignableFrom()` is not enough. For JSON, HTTP, or configuration, a more controllable approach is to explicitly define operation names and valid signatures in the data contract.
 
-**Khi dùng Method Handles:** `MethodHandles.Lookup.findVirtual` hay `findStatic` cũng đòi hỏi `MethodType` đã xác định; đây không phải bộ giải overload ngầm tương đương compiler.
+**When using Method Handles:** `MethodHandles.Lookup.findVirtual` or `findStatic` also requires a specified `MethodType`; it is not an implicit compiler-equivalent overload resolver either.
 
-### Những lỗi phổ biến
+### Common Mistakes
 
-1. Dùng `Integer.class` để tìm `method(int)`, hoặc dùng `int.class` để tìm `method(Integer)`.
-2. Lấy `arg.getClass()` như thể đó là kiểu tĩnh của biến: primitive bị boxing; đối số `null` không có `getClass()`.
-3. Tìm `method(String...)` bằng nhiều `String.class` thay vì một `String[].class`.
-4. Dùng `getMethod` để tìm `private` method. `getDeclaredMethod` có thể tìm phương thức khai báo không public, nhưng muốn gọi có thể cần quyền truy cập; `setAccessible` còn chịu giới hạn của Java Platform Module System.
-5. Lấy “phương thức đầu tiên” từ `getMethods()`: thứ tự mảng không được dùng như thứ tự ưu tiên overload.
+1. Using `Integer.class` to look up `method(int)`, or `int.class` to look up `method(Integer)`.
+2. Calling `arg.getClass()` as if it were the variable's static type: primitives get boxed; a `null` argument has no `getClass()`.
+3. Looking up `method(String...)` with multiple `String.class` arguments instead of one `String[].class`.
+4. Using `getMethod` to look up a `private` method. `getDeclaredMethod` can find non-public declared methods, though invoking may require access permissions; `setAccessible` is also subject to Java Platform Module System limits.
+5. Taking the "first method" from `getMethods()`: array order is not used as overload priority.
 
-## 7. Câu hỏi tự kiểm tra
+## 7. Self-Check Questions
 
-- Chỉ có `f(long)`: `f(3)` có biên dịch? **Có**, do `int → long`. Vậy `getMethod("f", int.class)` có tìm thấy không? **Không**, vì không hề có `f(int)`.
-- Có `f(String)` và `f(Integer)`: `f(null)` có chọn được overload duy nhất? **Không**, lời gọi mơ hồ vì hai kiểu tham số này không có quan hệ đặc hiệu; Reflection phải chỉ rõ `String.class` hoặc `Integer.class`.
-- Lấy `getMethod("f", String.class)` rồi gọi `invoke(instance, new Object[]{null})`: có thể chuyển sang `f(Integer)` không? **Không**. `Method` đã đại diện `f(String)`.
+- Given only `f(long)`: does `f(3)` compile? **Yes**, due to `int → long`. Then does `getMethod("f", int.class)` find it? **No**, because no `f(int)` exists.
+- Given `f(String)` and `f(Integer)`: can `f(null)` pick a unique overload? **No**, the call is ambiguous because neither parameter type is more specific than the other; Reflection must explicitly specify `String.class` or `Integer.class`.
+- Obtain `getMethod("f", String.class)` and call `invoke(instance, new Object[]{null})`: can it switch to `f(Integer)`? **No**. `Method` already represents `f(String)`.
 
-**Ghi nhớ:** compiler giải **lời gọi** dựa vào kiểu biểu thức và quy tắc Java; `getMethod` tra **chữ ký phương thức chính xác** từ danh sách `Class` bạn cung cấp. `invoke` chỉ thực thi phương thức đã được chọn.
+**Takeaway:** the compiler resolves **a call** based on expression types and Java rules; `getMethod` looks up **an exact method signature** from the `Class` list you provide. `invoke` only executes the already-selected method.
 
-### Đọc thêm tài liệu chuẩn
+### Further Reading in Standard Documentation
 
-- [JDK 17: `Class.getMethod` và `getDeclaredMethod`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getMethod(java.lang.String,java.lang.Class...))
+- [JDK 17: `Class.getMethod` and `getDeclaredMethod`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getMethod(java.lang.String,java.lang.Class...))
 - [JDK 17: `Method.invoke`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...))
 - [Java Language Specification §15.12: Method Invocation Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.12)

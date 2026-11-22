@@ -1,53 +1,53 @@
-# Tên mảng, component type và `Class.descriptorString()` trong Java Reflection
+# Array Names, Component Types, and `Class.descriptorString()` in Java Reflection
 
-## 1. Vì sao tên kiểu mảng khác tên lớp thông thường?
+## 1. Why Do Array Type Names Differ from Ordinary Class Names?
 
-Trong Reflection, mỗi kiểu Java có đối tượng `Class<?>` đại diện tại runtime, kể cả kiểu nguyên thủy (`int.class`), lớp (`String.class`) và **kiểu mảng** (`int[].class`, `String[][].class`). Một kiểu mảng là một kiểu riêng: `int[].class != int.class`; hai mảng `new int[2]` và `new int[10]` có **cùng** `Class` vì độ dài thuộc từng đối tượng mảng, không thuộc định danh kiểu.
+In Reflection, every Java type has a `Class<?>` object representing it at runtime, including primitive types (`int.class`), classes (`String.class`), and **array types** (`int[].class`, `String[][].class`). An array type is a distinct type: `int[].class != int.class`; two arrays `new int[2]` and `new int[10]` have the **same** `Class` because length belongs to each array instance, not to the type identity.
 
-Java dùng một số cách viết tên kiểu cho những mục đích khác nhau:
+Java uses several ways of writing type names for different purposes:
 
-- **Cú pháp nguồn Java**: `java.lang.String[][]` hoặc `String[][]`.
-- **Tên do `Class.getName()` trả về**: mảng dùng dạng bắt đầu bằng `[` và tên lớp tham chiếu dùng dấu chấm, ví dụ `[[Ljava.lang.String;`.
-- **JVM type descriptor** từ `Class.descriptorString()`: mảng vẫn bắt đầu bằng `[` nhưng tên lớp tham chiếu dùng dấu gạch chéo, ví dụ `[[Ljava/lang/String;`.
+- **Java source syntax**: `java.lang.String[][]` or `String[][]`.
+- **Name returned by `Class.getName()`**: arrays use a form starting with `[` and reference class names use dots, for example `[[Ljava.lang.String;`.
+- **JVM type descriptor** from `Class.descriptorString()`: arrays still start with `[`, but reference class names use slashes, for example `[[Ljava/lang/String;`.
 
-Không hoán đổi ba dạng tên này một cách máy móc. Chúng phục vụ hiển thị, tra cứu `Class` hoặc mô tả kiểu theo quy tắc JVM khác nhau.
+Do not interchange these three name forms mechanically. They serve display, `Class` lookup, or type description according to different JVM rules.
 
-## 2. Component type khác element type
+## 2. Component Type Differs from Element Type
 
-Một mảng đa chiều trong Java thực chất là **mảng chứa các mảng khác**. Với `String[][][]`:
+A multidimensional array in Java is actually an **array containing other arrays**. For `String[][][]`:
 
 ```text
-String[][][]                   // kiểu mảng ba chiều
-  └── component: String[][]   // kiểu của một phần tử ở chiều ngoài cùng
+String[][][]                   // three-dimensional array type
+  └── component: String[][]   // type of one element at the outermost dimension
         └── component: String[]
               └── component: String
-                    └── không còn là mảng
+                    └── no longer an array
 ```
 
-- **Component type** là kiểu thành phần trực tiếp của **một cấp mảng**. `String[][][].class.getComponentType() == String[][].class`.
-- **Element type** (kiểu phần tử cơ sở) là kiểu thu được khi bỏ hết các chiều mảng. Với `String[][][]`, đó là `String.class`.
-- `getComponentType()` trả về `null` nếu đối tượng `Class` không biểu diễn mảng, bao gồm lớp thông thường, `int.class` và `void.class`. Luôn kiểm tra `isArray()` trước khi duyệt nhiều cấp.
-- `Class.componentType()` (Java 12+) có cùng hành vi với `getComponentType()`. `Class.arrayType()` (Java 12+) làm chiều ngược lại: `String.class.arrayType() == String[].class`.
+- **Component type** is the direct element type of **one array level**. `String[][][].class.getComponentType() == String[][].class`.
+- **Element type** (base element type) is the type obtained after stripping all array dimensions. For `String[][][]`, that is `String.class`.
+- `getComponentType()` returns `null` if the `Class` object does not represent an array, including ordinary classes, `int.class`, and `void.class`. Always check `isArray()` before traversing multiple levels.
+- `Class.componentType()` (Java 12+) has the same behavior as `getComponentType()`. `Class.arrayType()` (Java 12+) goes in the opposite direction: `String.class.arrayType() == String[].class`.
 
-Đặc điểm quan trọng: `new int[2][]` có kiểu `int[][]` dù chưa tạo các mảng con; thông tin `Class` chỉ cho biết **kiểu**, không cho biết các nhánh đã được cấp phát hay mỗi nhánh dài bao nhiêu.
+Important characteristic: `new int[2][]` has type `int[][]` even before creating the sub-arrays; `Class` information only tells you the **type**, not whether the sub-arrays have been allocated or how long each sub-array is.
 
-## 3. Các API tên và định danh kiểu cần phân biệt
+## 3. Name and Type-Identity APIs to Distinguish
 
-| API trên `Class<?>` | Dùng để làm gì? | Với `String[][].class` |
+| API on `Class<?>` | What is it used for? | For `String[][].class` |
 | --- | --- | --- |
-| `isArray()` | Kiểm tra có phải kiểu mảng | `true` |
-| `getComponentType()` | Kiểu ở **một chiều** phía trong | `String[].class` |
-| `getName()` | Tên lớp/kiểu theo quy tắc của `Class`; mảng dùng tên mã hóa | `[[Ljava.lang.String;` |
-| `getTypeName()` | Tên dễ đọc, mô tả kiểu | `java.lang.String[][]` |
-| `getSimpleName()` | Tên đơn giản, bỏ tên package ở ví dụ thông thường | `String[][]` |
-| `getCanonicalName()` | Tên chuẩn dạng nguồn Java, nếu tồn tại | `java.lang.String[][]` |
-| `descriptorString()` | Descriptor theo cú pháp JVM | `[[Ljava/lang/String;` |
+| `isArray()` | Checks whether it is an array type | `true` |
+| `getComponentType()` | Type **one dimension** inward | `String[].class` |
+| `getName()` | Class/type name per `Class` rules; arrays use encoded name | `[[Ljava.lang.String;` |
+| `getTypeName()` | Readable name describing the type | `java.lang.String[][]` |
+| `getSimpleName()` | Simple name, omitting package name in ordinary examples | `String[][]` |
+| `getCanonicalName()` | Canonical name in Java source form, if it exists | `java.lang.String[][]` |
+| `descriptorString()` | Descriptor in JVM syntax | `[[Ljava/lang/String;` |
 
-Với lớp thường, `getName()` trả về **binary name** (`java.lang.String`, `java.util.Map$Entry`), trong khi `getCanonicalName()` của lớp thành viên có thể là `java.util.Map.Entry`. `getCanonicalName()` có thể trả về `null` cho lớp local/anonymous và mảng có kiểu phần tử cơ sở như vậy; `getSimpleName()` cũng không phải định danh toàn cục đáng tin cậy. Những tên thuận tiện cho giao diện (`getSimpleName()`, `getTypeName()`) không phải lúc nào cũng phù hợp để tải lớp.
+For ordinary classes, `getName()` returns the **binary name** (`java.lang.String`, `java.util.Map$Entry`), whereas `getCanonicalName()` of a member class can be `java.util.Map.Entry`. `getCanonicalName()` can return `null` for local/anonymous classes and arrays with such base element types; `getSimpleName()` is also not a reliable global identifier. Names convenient for UI display (`getSimpleName()`, `getTypeName()`) are not always suitable for loading classes.
 
-## 4. Quy tắc của descriptor JVM
+## 4. Rules of JVM Descriptors
 
-Descriptor mô tả **kiểu** một cách ngắn gọn. Các mã primitive:
+A descriptor describes a **type** concisely. The primitive codes:
 
 | Java type | Descriptor | Java type | Descriptor |
 | --- | --- | --- | --- |
@@ -57,7 +57,7 @@ Descriptor mô tả **kiểu** một cách ngắn gọn. Các mã primitive:
 | `float` | `F` | `double` | `D` |
 | `void` | `V` | | |
 
-`V` biểu diễn `void` nhưng `void` không thể là kiểu phần tử mảng. Với lớp hoặc interface tham chiếu, dạng là **`L<tên-nội-bộ>;`**: tên nội bộ dùng `/` giữa các package, ví dụ `Ljava/lang/String;`, `Ljava/util/List;`. Với mảng, thêm **một dấu `[` cho mỗi chiều** vào trước descriptor của kiểu phần tử cơ sở:
+`V` represents `void`, but `void` cannot be an array element type. For reference classes or interfaces, the form is **`L<internal-name>;`**: the internal name uses `/` between packages, for example `Ljava/lang/String;`, `Ljava/util/List;`. For arrays, prepend **one `[` for each dimension** before the descriptor of the base element type:
 
 | Java type | `getName()` | `descriptorString()` |
 | --- | --- | --- |
@@ -69,11 +69,11 @@ Descriptor mô tả **kiểu** một cách ngắn gọn. Các mã primitive:
 | `String[][].class` | `[[Ljava.lang.String;` | `[[Ljava/lang/String;` |
 | `java.util.Map.Entry[].class` | `[Ljava.util.Map$Entry;` | `[Ljava/util/Map$Entry;` |
 
-**Cách đọc `[[Ljava/lang/String;`**: hai dấu `[` chỉ hai chiều; `L...;` chỉ kiểu tham chiếu; `java/lang/String` là tên lớp nội bộ. Với primitive, `getName()` và `descriptorString()` tình cờ giống nhau cho mảng, nhưng **khác nhau với mảng kiểu tham chiếu**. Descriptor của phương thức JVM có dạng `(tham-số)kiểu-trả-về`, ví dụ `(I)Ljava/lang/String;`; `Class.descriptorString()` chỉ trả **descriptor của một kiểu**, không phải cả method descriptor.
+**How to read `[[Ljava/lang/String;`**: two `[` characters indicate two dimensions; `L...;` indicates a reference type; `java/lang/String` is the internal class name. For primitives, `getName()` and `descriptorString()` happen to match for arrays, but they **differ for arrays of reference types**. A JVM method descriptor has the form `(parameters)return-type`, for example `(I)Ljava/lang/String;`; `Class.descriptorString()` only returns the **descriptor of a single type**, not an entire method descriptor.
 
-## 5. Ví dụ Java 17+ chạy độc lập
+## 5. Standalone Runnable Java 17+ Example
 
-Tạo tệp `ArrayTypeInspection.java`:
+Create the file `ArrayTypeInspection.java`:
 
 ```java
 import java.lang.reflect.Array;
@@ -114,14 +114,14 @@ public class ArrayTypeInspection {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ArrayTypeInspection.java
 java ArrayTypeInspection
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 int
@@ -141,11 +141,11 @@ created=java.lang.String[][]
 roundTrip=true
 ```
 
-Giải thích: vòng `while` tách dần các `component type` nên đếm đúng ba chiều và tìm được phần tử cơ sở `String`. `Array.newInstance(String.class, 2, 3)` tạo một đối tượng mảng hai chiều (giá trị trả về khai báo là `Object`, nhưng kiểu runtime là `String[][]`). Dòng cuối chứng minh tên từ `getName()` của mảng tham chiếu có thể được `Class.forName(...)` dùng để tìm lại chính kiểu đó.
+Explanation: the `while` loop strips away `component type` levels one by one, accurately counting three dimensions and finding the base element `String`. `Array.newInstance(String.class, 2, 3)` creates a two-dimensional array object (the declared return type is `Object`, but the runtime type is `String[][]`). The final line proves that the name from `getName()` of a reference array can be used by `Class.forName(...)` to look up that exact same type.
 
-## 6. Tra cứu lớp mảng: `Class.forName` cần tên nào?
+## 6. Looking Up Array Classes: Which Name Does `Class.forName` Need?
 
-`Class.forName(String)` nhận **binary name** của lớp thường hoặc dạng tên mảng được `Class.getName()` trả về:
+`Class.forName(String)` accepts the **binary name** of an ordinary class or the array name form returned by `Class.getName()`:
 
 ```java
 Class<?> a = Class.forName("[I");                 // int[]
@@ -153,13 +153,13 @@ Class<?> b = Class.forName("[[Ljava.lang.String;"); // String[][]
 boolean ok = a == int[].class && b == String[][].class;
 ```
 
-Đoạn trên là **fragment** dùng trong ngữ cảnh cho phép `ClassNotFoundException` (ví dụ phương thức `throws Exception`). Với mảng tham chiếu, **không** truyền trực tiếp `"[Ljava/lang/String;"` từ `descriptorString()` vào `Class.forName`: cú pháp `/` thuộc descriptor JVM, còn `Class.forName` kỳ vọng tên kiểu mảng với `.` ở binary name thành phần. `Class.forName("java.lang.String[]")` không phải cách tra cứu mảng; `Class.forName("int")` cũng không trả về `int.class`.
+The snippet above is a **fragment** used in a context that allows `ClassNotFoundException` (for example, a method with `throws Exception`). For reference arrays, **do not** pass `"[Ljava/lang/String;"` from `descriptorString()` directly into `Class.forName`: the `/` syntax belongs to JVM descriptors, whereas `Class.forName` expects the array type name with `.` in the component binary name. `Class.forName("java.lang.String[]")` is not how array types are looked up; `Class.forName("int")` also does not return `int.class`.
 
-Khi đã có `Class<?> component` và chỉ muốn lớp mảng tương ứng, dùng `component.arrayType()` hoặc lấy kiểu của mảng vừa tạo bằng `Array.newInstance(component, 0).getClass()`. Không cần tự nối chuỗi tên và không cần tải lớp bằng tên nếu có sẵn đối tượng `Class`.
+When you already have `Class<?> component` and only want the corresponding array class, use `component.arrayType()` or get the class of a newly created array with `Array.newInstance(component, 0).getClass()`. There is no need to concatenate name strings manually or load the class by name if you already have the `Class` object.
 
-## 7. Tạo và truy cập mảng động bằng Reflection
+## 7. Dynamically Creating and Accessing Arrays with Reflection
 
-`java.lang.reflect.Array` làm việc với mảng dù lúc biên dịch không biết kiểu phần tử:
+`java.lang.reflect.Array` works with arrays even when the element type is unknown at compile time:
 
 ```java
 Class<?> component = int.class;
@@ -170,32 +170,32 @@ int size = Array.getLength(values);               // 3
 Class<?> arrayClass = values.getClass();          // int[].class
 ```
 
-Đây là **fragment**, dùng khi đã `import java.lang.reflect.Array;`. Muốn thêm chiều, `Array.newInstance(String.class, 2, 3)` tạo `String[][]`. Nếu `component` bản thân đã là mảng, cấp phát thêm một chiều bằng `Array.newInstance(String[].class, 2)` tạo `String[][]`; các phần tử bên trong ban đầu là `null`, khác với `new String[2][3]`. Dạng `Array.newInstance(component, int... dimensions)` cộng số chiều có sẵn của `component` với số kích thước mới được truyền vào.
+This is a **fragment**, used when `import java.lang.reflect.Array;` is present. To add dimensions, `Array.newInstance(String.class, 2, 3)` creates `String[][]`. If `component` is itself already an array, allocating one more dimension with `Array.newInstance(String[].class, 2)` creates `String[][]`; the inner elements are initially `null`, unlike `new String[2][3]`. The `Array.newInstance(component, int... dimensions)` form adds the existing dimensions of `component` to the number of new dimensions passed in.
 
-`Array.getLength` trả độ dài **một mảng cụ thể**, không trả số chiều của kiểu. Đọc/ghi mảng nhiều chiều phải lấy từng mảng con rồi mới truy cập phần tử; các hàng có thể dài khác nhau hoặc `null`. Với mảng primitive, `Array.get` trả giá trị được boxing; các hàm chuyên biệt như `getInt`/`setInt` tránh nhầm kiểu khi cần thao tác phần tử số nguyên.
+`Array.getLength` returns the length of **a specific array**, not the number of dimensions of a type. Reading/writing multidimensional arrays requires fetching each sub-array first before accessing elements; rows can have different lengths or be `null`. For primitive arrays, `Array.get` returns a boxed value; specialized methods such as `getInt`/`setInt` avoid type confusion when working with integer elements.
 
-Các lỗi dễ gặp:
+Common pitfalls:
 
-- `getComponentType()` trả `null` trên `String.class` và `int.class`: không gọi tiếp trên `null`.
-- `new int[4][5].getClass()` là `int[][].class` nhưng `getComponentType()` chỉ trả `int[].class`, chưa phải `int.class`.
-- `Array.newInstance(void.class, 2)` không hợp lệ; số chiều lớn hơn 255 hoặc độ dài âm cũng bị từ chối.
-- Kiểu mảng và độ dài mảng là hai khái niệm khác nhau. `getName()` và descriptor không chứa độ dài.
-- Đừng dùng `getTypeName()` hay `getSimpleName()` làm khóa định danh duy nhất: class loader khác nhau có thể định nghĩa các lớp trùng tên. Nếu đang có `Class<?>`, ưu tiên so sánh `Class` hoặc làm việc trực tiếp với nó.
-- Reflection bằng `Class<?>` diễn tả **kiểu đã bị erasure**: ví dụ `List<String>[]` ở runtime là kiểu mảng của `List`, descriptor `[Ljava/util/List;`; thông tin tham số generic ở chỗ khai báo, nếu cần, được xem qua API `Type`/`GenericArrayType` thích hợp.
+- `getComponentType()` returns `null` on `String.class` and `int.class`: do not chain further calls on `null`.
+- `new int[4][5].getClass()` is `int[][].class`, but `getComponentType()` only returns `int[].class`, not yet `int.class`.
+- `Array.newInstance(void.class, 2)` is invalid; more than 255 dimensions or negative lengths are also rejected.
+- Array type and array length are two different concepts. `getName()` and descriptors do not contain lengths.
+- Do not use `getTypeName()` or `getSimpleName()` as a unique identifier key: different class loaders can define classes with identical names. If you already have `Class<?>`, prefer comparing `Class` objects or working with them directly.
+- Reflection via `Class<?>` describes the **erased type**: for example, `List<String>[]` at runtime is an array type of `List`, with descriptor `[Ljava/util/List;`; generic parameter information at the declaration site, if needed, is inspected through the appropriate `Type`/`GenericArrayType` APIs.
 
-## 8. Chọn API theo tình huống
+## 8. Choosing an API by Scenario
 
-| Câu hỏi trong chương trình | API nên dùng |
+| Program question | Recommended API |
 | --- | --- |
-| Đầu vào có phải một kiểu mảng? | `type.isArray()` |
-| Kiểu của mỗi phần tử tại cấp ngoài cùng? | `type.getComponentType()` |
-| Mảng có bao nhiêu chiều, element type là gì? | Lặp `getComponentType()` khi `isArray()` |
-| Muốn hiển thị kiểu dễ đọc trong log? | `type.getTypeName()` |
-| Muốn cú pháp descriptor cho JVM/tooling? | `type.descriptorString()` |
-| Muốn tra cứu lại một kiểu mảng bằng tên được Java hỗ trợ? | `Class.forName(type.getName())`, xử lý ngoại lệ |
-| Muốn thêm một chiều từ một `Class` sẵn có? | `type.arrayType()` |
-| Muốn cấp phát mảng lúc runtime? | `Array.newInstance(component, dimensions...)` |
+| Is the input an array type? | `type.isArray()` |
+| What is the type of each element at the outermost level? | `type.getComponentType()` |
+| How many dimensions does the array have, and what is the element type? | Loop `getComponentType()` while `isArray()` |
+| Want to display a readable type in logs? | `type.getTypeName()` |
+| Want JVM/tooling descriptor syntax? | `type.descriptorString()` |
+| Want to look up an array type again by a Java-supported name? | `Class.forName(type.getName())`, handling exceptions |
+| Want to add one dimension from an existing `Class`? | `type.arrayType()` |
+| Want to allocate an array at runtime? | `Array.newInstance(component, dimensions...)` |
 
-**Tự kiểm tra.** (1) `int[][][].class.getComponentType()` trả kiểu nào? **`int[][].class`.** (2) Descriptor của `boolean[][]` là gì? **`[[Z`.** (3) `String[].class.getName()` và `descriptorString()` có giống nhau? **Không:** `[Ljava.lang.String;` so với `[Ljava/lang/String;`. (4) `String.class.getComponentType()` là gì? **`null`.**
+**Self-check.** (1) What type does `int[][][].class.getComponentType()` return? **`int[][].class`.** (2) What is the descriptor of `boolean[][]`? **`[[Z`.** (3) Are `String[].class.getName()` and `descriptorString()` identical? **No:** `[Ljava.lang.String;` versus `[Ljava/lang/String;`. (4) What is `String.class.getComponentType()`? **`null`.**
 
-Tài liệu tham chiếu: [Java SE 21 — `Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html) và [Java SE 21 — `java.lang.reflect.Array`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Array.html).
+Reference documentation: [Java SE 21 — `Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html) and [Java SE 21 — `java.lang.reflect.Array`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Array.html).

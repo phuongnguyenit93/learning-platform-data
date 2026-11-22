@@ -1,64 +1,64 @@
-# Thứ tự kết hợp trái–phải của toán tử `+` với số và chuỗi trong Java
+# Left-to-Right Associativity of the `+` Operator with Numbers and Strings in Java
 
-## 1. Mục tiêu bài học
+## 1. Lesson objectives
 
-Toán tử `+` trong Java có hai vai trò quan trọng:
+The `+` operator in Java has two important roles:
 
-- **Cộng số** khi các toán hạng thuộc loại số và phép cộng số được áp dụng.
-- **Nối chuỗi** khi một trong hai toán hạng của phép `+` là `String`.
+- **Numeric addition** when the operands are numeric types and numeric addition applies.
+- **String concatenation** when one of the two operands of `+` is `String`.
 
-Các phép `+` đứng liên tiếp ở cùng mức ưu tiên có **tính kết hợp trái** (*left associativity*): Java phân nhóm từ trái sang phải, nếu không có dấu ngoặc hoặc toán tử có mức ưu tiên cao hơn làm thay đổi cách nhóm.
+Consecutive `+` operations at the same precedence level have **left associativity**: Java groups them from left to right, unless parentheses or higher-precedence operators change the grouping.
 
-Vì vậy:
+Therefore:
 
 ```java
 System.out.println(1 + 2 + "3");  // 33
 System.out.println("1" + 2 + 3);  // 123
 ```
 
-Hai biểu thức chứa các ký hiệu tương tự nhưng kết quả khác nhau. Điều cần nắm là **mỗi dấu `+` được xử lý dựa trên kiểu kết quả ở vị trí đó trong biểu thức**, chứ không phải cứ nhìn thấy một `String` ở bất kỳ đâu là toàn bộ phép `+` tự động biến thành phép nối.
+The two expressions contain similar symbols, yet produce different results. The key insight is that **each `+` sign is processed based on the type of the result at that point in the expression**, rather than every `+` automatically turning into concatenation just because a `String` appears somewhere.
 
-Sau bài này bạn sẽ:
-1. Đọc đúng phép `+` theo thứ tự kết hợp trái–phải.
-2. Phân biệt cộng số trước khi nối chuỗi và nối chuỗi ngay từ đầu.
-3. Sử dụng dấu ngoặc để chủ động tạo kết quả mong muốn.
-4. Tránh nhầm tính kết hợp với **độ ưu tiên toán tử** hoặc **thứ tự đánh giá toán hạng**.
-5. Nhận biết các trường hợp dễ sai với `char`, `null`, `+=`, kiểu số và tràn số.
+After this lesson you will be able to:
+1. Read `+` expressions accurately in left-to-right associativity order.
+2. Distinguish numeric addition before string concatenation from string concatenation right from the start.
+3. Use parentheses deliberately to produce the desired result.
+4. Avoid confusing associativity with **operator precedence** or **operand evaluation order**.
+5. Recognize error-prone cases with `char`, `null`, `+=`, numeric types, and integer overflow.
 
-## 2. Quy tắc cốt lõi: một phép `+`, hai ngữ nghĩa
+## 2. Core rule: one `+` operator, two semantics
 
-Trong biểu thức Java, phép cộng số áp dụng cho các toán hạng kiểu số phù hợp. Khi **một toán hạng của phép `+` là `String`**, phép toán đó là **string concatenation** (nối chuỗi). Giá trị còn lại được chuyển thành dạng chuỗi theo quy tắc chuyển đổi khi nối chuỗi.
+In a Java expression, numeric addition applies to suitable numeric operands. When **one operand of `+` is `String`**, the operation is **string concatenation**. The other value is converted to string form according to string concatenation conversion rules.
 
-Ví dụ:
+Examples:
 
-| Biểu thức | Ý nghĩa tại dấu `+` | Kết quả |
+| Expression | Meaning at the `+` sign | Result |
 | --- | --- | --- |
-| `1 + 2` | Cộng hai số `int` | Số `3` |
-| `1 + 2.5` | Cộng số, có chuyển đổi kiểu số | Số `3.5` |
-| `"1" + 2` | Nối chuỗi `"1"` và số `2` | Chuỗi `"12"` |
-| `1 + "2"` | Nối chuỗi `"1"` và `"2"` | Chuỗi `"12"` |
-| `"Hi " + "Java"` | Nối hai chuỗi | Chuỗi `"Hi Java"` |
+| `1 + 2` | Add two `int` numbers | Number `3` |
+| `1 + 2.5` | Numeric addition, with numeric type promotion | Number `3.5` |
+| `"1" + 2` | Concatenate string `"1"` and number `2` | String `"12"` |
+| `1 + "2"` | Concatenate `"1"` and `"2"` | String `"12"` |
+| `"Hi " + "Java"` | Concatenate two strings | String `"Hi Java"` |
 
-Khi một phép `+` đã tạo ra `String`, nếu kết quả đó lại đứng ở bên trái một phép `+` tiếp theo, phép tiếp theo thường tiếp tục **nối chuỗi**.
+Once a `+` operation produces a `String`, if that result stands on the left side of a subsequent `+`, the next operation generally continues **string concatenation**.
 
 ```java
 String text = "A" + 1;      // "A1"
 String longer = text + 2;   // "A12"
 ```
 
-Điểm cần lưu ý: `"A" + 1 + 2` không cộng `1 + 2` trước. Các phép `+` cùng mức sẽ được nhóm từ trái sang phải, trừ khi dấu ngoặc hoặc toán tử ưu tiên cao hơn thay đổi việc nhóm.
+Note that `"A" + 1 + 2` does not add `1 + 2` first. `+` operations at the same level are grouped from left to right, unless parentheses or a higher-precedence operator alters the grouping.
 
-## 3. Tính kết hợp trái: đọc từng bước
+## 3. Left associativity: reading step by step
 
-Xét hai biểu thức:
+Consider these expressions:
 
-### Trường hợp A: cộng số trước rồi nối chuỗi
+### Case A: numeric addition first, then string concatenation
 
 ```java
 String a = 1 + 2 + "3";
 ```
 
-Với tính kết hợp trái, cách nhóm là:
+With left associativity, the grouping is:
 
 ```text
 (1 + 2) + "3"
@@ -66,15 +66,15 @@ Với tính kết hợp trái, cách nhóm là:
        "33"
 ```
 
-Ở phép `+` đầu tiên, cả hai toán hạng đều là số nguyên nên kết quả là **số 3**. Phép tiếp theo có `String "3"` nên cho kết quả **chuỗi "33"**.
+At the first `+`, both operands are integers, so the result is the **number 3**. The next operation has `String "3"`, yielding the **string "33"**.
 
-### Trường hợp B: nối chuỗi ngay từ đầu
+### Case B: string concatenation from the start
 
 ```java
 String b = "1" + 2 + 3;
 ```
 
-Cách nhóm:
+Grouping:
 
 ```text
 ("1" + 2) + 3
@@ -82,15 +82,15 @@ Cách nhóm:
        "123"
 ```
 
-Dấu `+` đầu tiên tạo ra `String "12"`. Dấu `+` tiếp theo nối tiếp số `3` thành chuỗi `"123"`, **không** cộng `2 + 3`.
+The first `+` produces `String "12"`. The next `+` concatenates the number `3` into the string `"123"`, **not** adding `2 + 3`.
 
-### Trường hợp C: chuỗi nằm ở giữa
+### Case C: string in the middle
 
 ```java
 String c = 1 + "2" + 3;
 ```
 
-Cách nhóm:
+Grouping:
 
 ```text
 (1 + "2") + 3
@@ -98,11 +98,11 @@ Cách nhóm:
         "123"
 ```
 
-Bởi phép đầu tiên đã có toán hạng kiểu `String`, nó nối chuỗi ngay từ đầu. Kết quả cuối cũng là `"123"`, mặc dù `1` và `3` là số.
+Because the first operation already has a `String` operand, it concatenates strings from the beginning. The final result is also `"123"`, even though `1` and `3` are numbers.
 
-Bảng so sánh:
+Comparison table:
 
-| Biểu thức | Cách hiểu | Kết quả chuỗi |
+| Expression | Interpretation | String result |
 | --- | --- | --- |
 | `1 + 2 + "3"` | `(1 + 2) + "3"` | `"33"` |
 | `"1" + 2 + 3` | `("1" + 2) + 3` | `"123"` |
@@ -110,91 +110,91 @@ Bảng so sánh:
 | `1 + 2 + "3" + 4` | `((1 + 2) + "3") + 4` | `"334"` |
 | `"1" + 2 + 3 + 4` | `((("1" + 2) + 3) + 4)` | `"1234"` |
 
-**Cách dự đoán:** đi từ trái sang phải qua các phép `+` cùng mức, luôn theo dõi kiểu của **kết quả trung gian**: còn là số thì có thể tiếp tục cộng số; đã trở thành `String` thì phép `+` với giá trị tiếp theo nối chuỗi.
+**How to predict:** move from left to right across `+` operations at the same level, always tracking the type of the **intermediate result**: while still numeric, it can continue numeric addition; once it becomes `String`, `+` with the next value performs string concatenation.
 
-## 4. Dấu ngoặc quyết định phép cộng số
+## 4. Parentheses control numeric addition
 
-Muốn hiển thị **tổng** của hai số trong một chuỗi, hãy dùng dấu ngoặc:
+To display the **sum** of two numbers inside a string, use parentheses:
 
 ```java
 int a = 10;
 int b = 20;
 
-System.out.println("Tổng = " + a + b);     // Tổng = 1020
-System.out.println("Tổng = " + (a + b));   // Tổng = 30
+System.out.println("Sum = " + a + b);     // Sum = 1020
+System.out.println("Sum = " + (a + b));   // Sum = 30
 ```
 
-Biểu thức `"Tổng = " + a + b` được hiểu như `("Tổng = " + a) + b`, nên các số được chuyển lần lượt sang chuỗi.
+The expression `"Sum = " + a + b` is interpreted as `("Sum = " + a) + b`, so the numbers are converted to strings one after another.
 
-Trong `"Tổng = " + (a + b)`, Java đánh giá `a + b` trước, tạo ra số `30`, sau đó nối số này vào chuỗi.
+In `"Sum = " + (a + b)`, Java evaluates `a + b` first, producing the number `30`, and then concatenates that number to the string.
 
-Dấu ngoặc cũng có thể tạo kết quả khác trong ví dụ ban đầu:
+Parentheses can also produce different results in the earlier examples:
 
 ```java
 System.out.println(1 + (2 + "3")); // 123
 System.out.println("1" + (2 + 3)); // 15
 ```
 
-Giải thích:
-- `2 + "3"` → `"23"`, rồi `1 + "23"` → `"123"`.
-- `2 + 3` → số `5`, rồi `"1" + 5` → `"15"`.
+Explanation:
+- `2 + "3"` → `"23"`, then `1 + "23"` → `"123"`.
+- `2 + 3` → number `5`, then `"1" + 5` → `"15"`.
 
-**Quy tắc thực hành:** khi muốn nối nhãn và kết quả một biểu thức số học, hãy dùng `"Nhãn: " + (biểuThứcSố)`. Đây là cách viết rõ nghĩa và tránh sai số do đọc nhầm chuỗi phép `+`.
+**Practical rule:** when concatenating a label with the result of a numeric expression, write `"Label: " + (numericExpression)`. This states intent clearly and prevents bugs caused by misreading a chain of `+` operators.
 
-## 5. Độ ưu tiên toán tử khác với tính kết hợp
+## 5. Operator precedence is different from associativity
 
-Tính kết hợp trái áp dụng khi các toán tử `+` có **cùng mức ưu tiên**. Nó không vượt qua độ ưu tiên của toán tử khác.
+Left associativity applies when `+` operators have the **same precedence level**. It does not override the precedence of other operators.
 
-Phép `*` có độ ưu tiên cao hơn `+`:
+The `*` operator has higher precedence than `+`:
 
 ```java
 System.out.println(1 + 2 * 3 + "4");  // 74
 System.out.println("1" + 2 * 3);      // 16
 ```
 
-Trong dòng đầu:
-1. `2 * 3` → số `6`.
-2. `1 + 6` → số `7`.
-3. `7 + "4"` → chuỗi `"74"`.
+In the first line:
+1. `2 * 3` → number `6`.
+2. `1 + 6` → number `7`.
+3. `7 + "4"` → string `"74"`.
 
-Trong dòng hai, `2 * 3` → số `6`, rồi `"1" + 6` → chuỗi `"16"`.
+In the second line, `2 * 3` → number `6`, then `"1" + 6` → string `"16"`.
 
-Dấu ngoặc có thể thay đổi điều này:
+Parentheses can change this:
 
 ```java
 System.out.println((1 + 2) * 3 + "4"); // 94
 System.out.println("1" + (2 + 3));     // 15
 ```
 
-Điều này có nghĩa là không thể dùng quy tắc “đọc toàn bộ biểu thức bằng thứ tự xuất hiện” khi còn `*`, `/`, dấu ngoặc hoặc toán tử khác.
+This means you cannot apply a rule of “reading the entire expression strictly in order of appearance” when `*`, `/`, parentheses, or other operators are present.
 
-### Lưu ý với toán tử trừ
+### Note on the subtraction operator
 
-`+` có thể là phép nối chuỗi, nhưng `-` **không** có phiên bản tương tự dành cho `String`:
-
-```java
-// Không biên dịch:
-// System.out.println("Kết quả: " + 10 - 3);
-```
-
-Java nhóm từ trái sang phải: `("Kết quả: " + 10) - 3`. Sau phép `+` đầu tiên, vế trái của `-` là `String`, nên phép trừ không hợp lệ.
-
-Viết đúng:
+`+` can perform string concatenation, but `-` has **no** equivalent for `String`:
 
 ```java
-System.out.println("Kết quả: " + (10 - 3)); // Kết quả: 7
+// Does not compile:
+// System.out.println("Result: " + 10 - 3);
 ```
 
-Dấu ngoặc vừa thể hiện ý định, vừa ngăn kiểu `String` xuất hiện quá sớm trong phép tính.
+Java groups from left to right: `("Result: " + 10) - 3`. After the first `+`, the left-hand side of `-` is `String`, making subtraction invalid.
 
-## 6. Phân biệt tính kết hợp với thứ tự đánh giá toán hạng
+Correct way to write it:
 
-Hai khái niệm liên quan nhưng **không giống nhau**:
+```java
+System.out.println("Result: " + (10 - 3)); // Result: 7
+```
 
-- **Associativity (tính kết hợp)** cho biết cách nhóm các toán tử cùng mức ưu tiên: `a + b + c` được nhóm như `(a + b) + c`.
-- **Evaluation order (thứ tự đánh giá)** cho biết biểu thức con nào được đánh giá trước khi tính toán. Java bảo đảm đánh giá các toán hạng của toán tử nhị phân theo thứ tự từ trái sang phải.
+Parentheses both express intent and prevent the `String` type from appearing too early in the calculation.
 
-Ví dụ:
+## 6. Distinguishing associativity from operand evaluation order
+
+These two concepts are related, yet **not the same**:
+
+- **Associativity** specifies how operators at the same precedence level are grouped: `a + b + c` is grouped as `(a + b) + c`.
+- **Evaluation order** specifies which subexpression is evaluated first during computation. Java guarantees that operands of binary operators are evaluated in left-to-right order.
+
+Example:
 
 ```java
 static int first() {
@@ -213,30 +213,30 @@ static String third() {
 }
 ```
 
-Khi gọi trong một phương thức:
+When called inside a method:
 
 ```java
 String result = first() + second() + third();
 System.out.println(result);
 ```
 
-Kết quả:
+Output:
 
 ```text
 A B C 33
 ```
 
-Ba phương thức được gọi theo thứ tự trái sang phải: `first`, `second`, `third`. Sau đó giá trị trả về tạo thành `1 + 2 + "3"` → `"33"`.
+The three methods are called in left-to-right order: `first`, `second`, `third`. Then the returned values form `1 + 2 + "3"` → `"33"`.
 
-Chú ý: dù trình biên dịch hoặc JVM có thể tối ưu cách triển khai nối chuỗi, chương trình vẫn phải tuân thủ **hành vi quan sát được** của Java, bao gồm thứ tự và ngoại lệ của các biểu thức con theo đặc tả.
+Note: although the compiler or JVM may optimize how string concatenation is implemented, the program must still preserve Java's **observable behavior**, including subexpression order and exceptions as defined by the specification.
 
-### Dấu ngoặc có thể thay đổi cách nhóm nhưng không có nghĩa mọi thứ đều đổi thứ tự gọi
+### Parentheses can change grouping, but do not necessarily change call order
 
-`a + (b + c)` làm phép `b + c` được nhóm trước phép `+` bên ngoài, nhưng Java vẫn đánh giá toán hạng `a` trước khi đánh giá toán hạng bên phải `(b + c)`. Không nên nhầm **thứ tự phép toán được nhóm** với **thứ tự gọi hàm có tác dụng phụ**.
+`a + (b + c)` causes `b + c` to be grouped before the outer `+`, yet Java still evaluates operand `a` before evaluating the right-hand operand `(b + c)`. Do not confuse **the grouping order of operations** with **the call order of functions with side effects**.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Java 17+ program
 
-Lưu thành file `PlusAssociativityDemo.java`:
+Save as `PlusAssociativityDemo.java`:
 
 ```java
 public class PlusAssociativityDemo {
@@ -286,14 +286,14 @@ public class PlusAssociativityDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 PlusAssociativityDemo.java
 java PlusAssociativityDemo
 ```
 
-Kết quả chuẩn:
+Exact output:
 
 ```text
 A = 33
@@ -310,37 +310,37 @@ normal = x12
 evaluation = A B C 33
 ```
 
-**Giải thích ba điểm dễ nhầm trong chương trình:**
+**Explanation of three easy-to-confuse points in the program:**
 
-1. `'A' + 1` là **cộng số**, vì `char` có thể được nâng kiểu sang `int` trong phép tính số: mã của `'A'` là `65` nên kết quả `66`. Còn `'A' + "1"` là nối chuỗi `"A1"`.
-2. `text += 1 + 2` tạo `"x3"`, bởi biểu thức phía phải `1 + 2` được tính thành `3` trước khi nối với giá trị cũ của `text` trong phép gán kết hợp. Nhưng `other = other + 1 + 2` có các phép `+` cùng chuỗi bên phải, kết hợp trái thành `"x12"`.
-3. `first()`, `second()`, `third()` đều được gọi theo thứ tự từ trái sang phải, rồi giá trị trả về cho kết quả `"33"`.
+1. `'A' + 1` is **numeric addition**, because `char` can be promoted to `int` in numeric operations: the code of `'A'` is `65`, so the result is `66`. Meanwhile `'A' + "1"` is string concatenation `"A1"`.
+2. `text += 1 + 2` produces `"x3"`, because the right-hand expression `1 + 2` is evaluated to `3` before being concatenated with the old value of `text` in the compound assignment. However, `other = other + 1 + 2` has `+` operations chained on the right-hand side, left-associating into `"x12"`.
+3. `first()`, `second()`, and `third()` are all invoked in left-to-right order, and their return values yield `"33"`.
 
-## 8. Trường hợp riêng: `char` kết hợp với `+`
+## 8. Special case: `char` combined with `+`
 
-Khi chưa có `String`, `char` được nâng thành số trước phép cộng; khi có `String`, nó được nối thành ký tự:
+When no `String` is present yet, `char` is promoted to a number before addition; when paired with a `String`, it is concatenated as a character:
 
 ```java
 System.out.println('A' + 'B' + "");  // 131
 System.out.println("" + 'A' + 'B');  // AB
 ```
 
-Các quy tắc thu hẹp hằng số, `char +=`, Unicode code point và lời gọi `println` được thực hành ở bài **Phân biệt ký tự cộng số với nối chuỗi**.
+Constant narrowing rules, `char +=`, Unicode code points, and `println` calls are practiced in the lesson **Distinguishing character arithmetic addition from string concatenation**.
 
-## 9. `null` và giá trị không phải chuỗi
+## 9. `null` and non-string values
 
-Tham chiếu `String` bằng `null` vẫn được chuyển thành văn bản `"null"` khi tham gia phép nối: `"x=" + ((String) null)` cho `"x=null"`. Dấu `+` không tự bỏ giá trị thiếu. Với dữ liệu thực, quyết định thay bằng nhãn, bỏ qua, giữ trạng thái thiếu hay từ chối trước khi nối; bài **concat và khác biệt về đối số null** đào sâu hợp đồng các API.
+A `null` `String` reference is still converted to the text `"null"` when participating in concatenation: `"x=" + ((String) null)` yields `"x=null"`. The `+` sign does not drop missing values automatically. With real data, decide whether to substitute a label, omit, preserve missing state, or reject before concatenation; the lesson **concat and null argument differences** explores API contracts in depth.
 
-## 10. `+=` không giống mọi cách viết có dấu `+`
+## 10. `+=` does not behave like every expression written with `+`
 
-Một câu hỏi dễ nhầm là:
+An easily misunderstood question is:
 
 ```java
 String a = "x";
 a += 1 + 2;
 ```
 
-Nhiều người đoán `"x12"` vì thấy chuỗi đứng bên trái. Nhưng phép `+=` là **gán kết hợp**; vế phải là biểu thức độc lập `1 + 2`, được tính thành **số `3`**. Sau đó Java nối số này vào giá trị cũ của `a`:
+Many people guess `"x12"` because they see a string on the left. However, `+=` is **compound assignment**; the right-hand side is an independent expression `1 + 2`, which evaluates to the **number `3`**. Java then concatenates that number onto the old value of `a`:
 
 ```text
 a += (1 + 2)
@@ -348,7 +348,7 @@ a = "x" + 3
 a = "x3"
 ```
 
-Đối chiếu:
+Comparison:
 
 ```java
 String a = "x";
@@ -361,13 +361,13 @@ String c = "x";
 c = c + (1 + 2);    // "x3"
 ```
 
-Điểm mấu chốt không phải một quy tắc đặc biệt chỉ dành cho `String`, mà là sự khác nhau giữa **biểu thức bên phải phép gán kết hợp** và **chuỗi các phép `+` bình thường**.
+The key point is not a special rule exclusively for `String`, but rather the difference between **the right-hand expression of a compound assignment** and **a plain chain of `+` operations**.
 
-Việc một giá trị `String` bất biến cũng có nghĩa `a += ...` không chỉnh sửa nội dung chuỗi cũ, mà tạo kết quả chuỗi để gán lại biến `a`. Nếu thực hiện rất nhiều lần nối trong vòng lặp, hãy cân nhắc `StringBuilder`.
+The immutability of a `String` value also means `a += ...` does not modify the old string's content; instead, it creates a result string to reassign to variable `a`. If you perform many concatenations in a loop, consider `StringBuilder`.
 
-## 11. Tràn số xảy ra trước khi nối chuỗi
+## 11. Integer overflow happens before string concatenation
 
-Nối chuỗi không làm cho phép cộng số đã diễn ra trước đó trở nên an toàn khỏi tràn số.
+String concatenation does not make numeric addition that happened earlier immune to overflow.
 
 ```java
 int max = Integer.MAX_VALUE;
@@ -376,40 +376,40 @@ System.out.println(max + 1 + ""); // -2147483648
 System.out.println("" + max + 1); // 21474836471
 ```
 
-Giải thích:
-- `max + 1 + ""` cộng `int` trước, nên kết quả `int` tràn từ `2147483647` thành `-2147483648`, sau đó được nối với chuỗi rỗng.
-- `"" + max + 1` bắt đầu bằng nối chuỗi, cho văn bản `"2147483647"` rồi nối chữ số `1`; kết quả `"21474836471"` không phải phép tính số.
+Explanation:
+- `max + 1 + ""` adds `int` values first, so the `int` result overflows from `2147483647` to `-2147483648`, and is then concatenated with the empty string.
+- `"" + max + 1` starts with string concatenation, producing the text `"2147483647"` and then appending the digit `1`; the result `"21474836471"` is not a numeric calculation.
 
-Nếu cần tính toán trong miền số lớn hơn, hãy nâng kiểu **trước khi cộng**, ví dụ:
+If you need to compute in a larger numeric range, promote the type **before adding**, for example:
 
 ```java
 long result = (long) max + 1;
 System.out.println("Result = " + result); // Result = 2147483648
 ```
 
-Đừng dùng việc “nối chuỗi sớm” như một cách thay thế phép tính số: nó chỉ tạo văn bản, không giải quyết phép toán hay lỗi tràn số của nghiệp vụ.
+Do not use “early string concatenation” as a substitute for numeric computation: it only produces text, and does not fix arithmetic or business overflow bugs.
 
-## 12. Các lỗi thường gặp và cách khắc phục
+## 12. Common mistakes and how to fix them
 
-| Sai lầm | Ví dụ dễ sai | Cách viết rõ ý |
+| Mistake | Error-prone example | Clear way to write it |
 | --- | --- | --- |
-| Nghĩ mọi số trong biểu thức có chuỗi sẽ được cộng trước. | `"sum=" + a + b` | `"sum=" + (a + b)` khi cần tổng. |
-| Nghĩ `+` luôn nối trái sang phải bất kể ưu tiên. | `"x" + 2 * 3` | Hiểu `*` thực hiện trước phép nối: `"x6"`. |
-| Không biết khi nào kết quả trung gian thành `String`. | `1 + 2 + "3"` vs `"1" + 2 + 3` | Theo dõi kiểu sau mỗi dấu `+`. |
-| Cố trừ ngay sau kết quả nối chuỗi. | `"x" + 10 - 3` | `"x" + (10 - 3)`. |
-| Xem `char + char` là nối hai ký tự. | `'A' + 'B'` | `"" + 'A' + 'B'` hoặc `StringBuilder`. |
-| Hiểu `+=` như mọi phép `+` cùng chuỗi thông thường. | `text += 1 + 2` | Nhớ vế phải `1 + 2` là phép cộng số trước. |
-| Tin rằng nối chuỗi tránh được tràn số. | `max + 1 + ""` | Dùng `long` hoặc kiểu số phù hợp trước khi cộng. |
-| Cho rằng phép nối làm `null` biến mất. | `"x" + nullable` | Chỉ rõ chính sách `null`. |
-| Ghép chuỗi lặp lại quá nhiều lần trong vòng lặp. | `result = result + part` | Dùng `StringBuilder` khi xây dựng nội dung tăng dần. |
+| Thinking all numbers in an expression with a string are added first. | `"sum=" + a + b` | `"sum=" + (a + b)` when the sum is needed. |
+| Thinking `+` always concatenates left to right regardless of precedence. | `"x" + 2 * 3` | Understand `*` runs before concatenation: `"x6"`. |
+| Not tracking when the intermediate result becomes `String`. | `1 + 2 + "3"` vs `"1" + 2 + 3` | Track the type after each `+` sign. |
+| Trying to subtract directly after a string concatenation result. | `"x" + 10 - 3` | `"x" + (10 - 3)`. |
+| Treating `char + char` as joining two characters. | `'A' + 'B'` | `"" + 'A' + 'B'` or `StringBuilder`. |
+| Treating `+=` like any regular chain of `+` operations. | `text += 1 + 2` | Remember the right-hand side `1 + 2` is numeric addition first. |
+| Believing string concatenation prevents overflow. | `max + 1 + ""` | Use `long` or an appropriate numeric type before adding. |
+| Assuming concatenation makes `null` disappear. | `"x" + nullable` | Specify an explicit `null` policy. |
+| Concatenating strings repeatedly in a loop. | `result = result + part` | Use `StringBuilder` when building content incrementally. |
 
-## 13. Hiệu năng và hành vi trình biên dịch
+## 13. Performance and compiler behavior
 
-Thứ tự kết hợp và nội dung của `+` là quy tắc Java, không phụ thuộc hình dạng bytecode. Compiler có thể gộp hằng và JDK hiện đại có thể dùng `invokedynamic`, nhưng không được đổi hành vi quan sát được. Việc xây chuỗi nhiều lần trong vòng lặp là bài toán hiệu năng khác: xem bài **Nối trong một biểu thức so với tích lũy qua vòng lặp**.
+Associativity and the meaning of `+` are Java language rules, independent of bytecode shape. The compiler may fold constants and modern JDKs may use `invokedynamic`, but observable behavior cannot change. Building strings repeatedly in a loop is a separate performance problem: see the lesson **Concatenation in a single expression vs. accumulation across loops**.
 
-## 14. Bài tập dự đoán kết quả
+## 14. Output prediction exercises
 
-### Bài 1
+### Exercise 1
 
 ```java
 System.out.println(3 + 4 + "5");
@@ -417,7 +417,7 @@ System.out.println("3" + 4 + 5);
 System.out.println(3 + "4" + 5);
 ```
 
-**Đáp án:**
+**Answer:**
 
 ```text
 75
@@ -425,41 +425,41 @@ System.out.println(3 + "4" + 5);
 345
 ```
 
-Dòng đầu cộng số `3 + 4 = 7` rồi nối `"5"`. Hai dòng sau nối chuỗi ngay từ phép `+` đầu tiên.
+The first line adds numbers `3 + 4 = 7` and then concatenates `"5"`. The next two lines concatenate strings starting from the very first `+`.
 
-### Bài 2
+### Exercise 2
 
 ```java
 System.out.println("total=" + 4 * 5 + 2);
 System.out.println("total=" + (4 * 5 + 2));
 ```
 
-**Đáp án:**
+**Answer:**
 
 ```text
 total=202
 total=22
 ```
 
-Ở dòng đầu, `4 * 5` tạo số `20`, rồi phép `+` với chuỗi tạo `"total=20"` và nối số `2` thành `"total=202"`. Dòng thứ hai dùng ngoặc tính `4 * 5 + 2 = 22` trước.
+On the first line, `4 * 5` produces the number `20`, then `+` with the string produces `"total=20"` and concatenates `2` into `"total=202"`. The second line uses parentheses to compute `4 * 5 + 2 = 22` first.
 
-### Bài 3
+### Exercise 3
 
 ```java
 System.out.println('A' + 'B');
 System.out.println("" + 'A' + 'B');
 ```
 
-**Đáp án:**
+**Answer:**
 
 ```text
 131
 AB
 ```
 
-Hai `char` cộng kiểu số ở dòng đầu; dòng hai bắt đầu bằng chuỗi rỗng nên phép `+` chuyển sang nối chuỗi.
+Two `char` values are added numerically on the first line; the second line starts with an empty string, switching `+` to string concatenation.
 
-### Bài 4
+### Exercise 4
 
 ```java
 String x = "N";
@@ -471,60 +471,60 @@ y = y + 2 + 3;
 System.out.println(y);
 ```
 
-**Đáp án:**
+**Answer:**
 
 ```text
 N5
 N23
 ```
 
-`x += 2 + 3` tính vế phải `2 + 3` trước; `y + 2 + 3` nối trái sang phải ngay từ `y`.
+`x += 2 + 3` evaluates the right-hand side `2 + 3` first; `y + 2 + 3` concatenates left to right starting from `y`.
 
-### Bài 5
+### Exercise 5
 
 ```java
 System.out.println(1 + (2 + "3"));
 System.out.println("1" + (2 + 3));
 ```
 
-**Đáp án:**
+**Answer:**
 
 ```text
 123
 15
 ```
 
-Dấu ngoặc thay đổi biểu thức con tạo ra `String` hay số, từ đó thay đổi kết quả phép `+` bên ngoài.
+Parentheses change whether the subexpression yields a `String` or a number, thereby changing the result of the outer `+`.
 
-### Bài 6: sửa lỗi
+### Exercise 6: fix the error
 
-Đoạn sau không biên dịch:
-
-```java
-// String text = "Còn lại = " + 10 - 3;
-```
-
-**Cách sửa:**
+The following snippet does not compile:
 
 ```java
-String text = "Còn lại = " + (10 - 3);
-System.out.println(text); // Còn lại = 7
+// String text = "Remaining = " + 10 - 3;
 ```
 
-Dấu `+` với `String` tạo chuỗi; không thể dùng phép `-` số học trực tiếp trên kết quả đó.
+**Fix:**
 
-## 15. Ghi nhớ
+```java
+String text = "Remaining = " + (10 - 3);
+System.out.println(text); // Remaining = 7
+```
 
-- `+` thực hiện **cộng số** khi hai toán hạng là số phù hợp; khi có toán hạng `String`, nó là **nối chuỗi**.
-- Các phép `+` cùng mức ưu tiên **kết hợp trái**: `a + b + c` được nhóm `(a + b) + c`.
-- `1 + 2 + "3"` → `"33"`, còn `"1" + 2 + 3` → `"123"`.
-- Dấu ngoặc có thể buộc một phép cộng số diễn ra trước phép nối, ví dụ `"sum=" + (a + b)`.
-- Độ ưu tiên (`*` trước `+`), tính kết hợp và thứ tự đánh giá các toán hạng là **ba khái niệm khác nhau**.
-- `char + char` là phép cộng số nếu không có `String`; `+=` có ngữ nghĩa riêng của phép gán kết hợp.
-- Một phép cộng số thực hiện **trước** phép nối chuỗi vẫn có thể tràn số.
-- Với biểu thức có nhiều thành phần, hãy ưu tiên dấu ngoặc và tên biến trung gian để người đọc thấy rõ ý nghĩa.
+`+` with `String` produces a string; arithmetic `-` cannot be applied directly to that result.
 
-## Tài liệu tham khảo
+## 15. Takeaways
+
+- `+` performs **numeric addition** when both operands are suitable numbers; when there is a `String` operand, it is **string concatenation**.
+- `+` operations at the same precedence level are **left-associative**: `a + b + c` is grouped as `(a + b) + c`.
+- `1 + 2 + "3"` → `"33"`, whereas `"1" + 2 + 3` → `"123"`.
+- Parentheses can force a numeric addition to occur before concatenation, e.g., `"sum=" + (a + b)`.
+- Precedence (`*` before `+`), associativity, and operand evaluation order are **three distinct concepts**.
+- `char + char` is numeric addition if no `String` is present; `+=` has its own compound assignment semantics.
+- A numeric addition performed **before** string concatenation can still overflow.
+- For expressions with multiple components, prefer parentheses and intermediate variable names so readers can clearly see the intent.
+
+## References
 
 - [Java Language Specification `15.18 — Additive Operators`](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18)
 - [Java Language Specification `15.7 — Evaluation Order`](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.7)

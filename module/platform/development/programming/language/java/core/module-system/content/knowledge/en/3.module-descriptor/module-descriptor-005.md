@@ -1,12 +1,12 @@
-# Module descriptor trong JAR modular
+# Module Descriptor in a Modular JAR
 
-Một **modular JAR** là file JAR đóng gói một Java module có tên. Thành phần quyết định JAR đó là explicit named module là **module descriptor**: file nhị phân `module-info.class` được đặt ở thư mục gốc của JAR. Descriptor ghi tên module, các phụ thuộc và những package mà module công khai hoặc mở cho reflection.
+A **modular JAR** is a JAR file that packages a named Java module. The component that determines that the JAR is an explicit named module is the **module descriptor**: the binary file `module-info.class` placed at the root directory of the JAR. The descriptor records the module name, its dependencies, and the packages that the module exposes or opens for reflection.
 
-Module descriptor được viết trong mã nguồn bằng `module-info.java`, sau đó trình biên dịch tạo ra `module-info.class`. Khi JAR được đặt trên module path, JVM đọc descriptor để giải quyết module và áp dụng các quy tắc JPMS. Nội dung lớp Java và tài nguyên vẫn được đóng gói trong JAR như bình thường.
+The module descriptor is written in source code as `module-info.java`, and then the compiler generates `module-info.class`. When the JAR is placed on the module path, the JVM reads the descriptor to resolve the module and enforce JPMS rules. Java class contents and resources are still packaged in the JAR as usual.
 
-## 1. Cấu trúc của một modular JAR
+## 1. Structure of a Modular JAR
 
-Một modular JAR đơn giản có thể có cấu trúc như sau:
+A simple modular JAR can have the following structure:
 
 ~~~text
 com.acme.geometry.jar
@@ -20,18 +20,18 @@ com.acme.geometry.jar
                 └── Point.class
 ~~~
 
-Các thành phần có vai trò khác nhau:
+The components serve different roles:
 
-- `module-info.class` là descriptor nhị phân của module. Nó nằm ở thư mục gốc của JAR, không nằm trong package của ứng dụng.
-- Các thư mục package chứa bytecode của lớp Java, ví dụ `com/acme/geometry/api/Point.class`.
-- `META-INF/MANIFEST.MF` chứa metadata của JAR như phiên bản manifest, main class hoặc thuộc tính khác. Manifest không thay thế module descriptor.
-- Các tài nguyên như file cấu hình, ảnh hoặc dữ liệu có thể được đóng gói cùng JAR.
+- `module-info.class` is the binary descriptor of the module. It sits at the root directory of the JAR, not inside an application package.
+- Package directories contain the bytecode of Java classes, such as `com/acme/geometry/api/Point.class`.
+- `META-INF/MANIFEST.MF` contains JAR metadata such as manifest version, main class, or other attributes. The manifest does not replace the module descriptor.
+- Resources such as configuration files, images, or data can be packaged along with the JAR.
 
-Một modular JAR thông thường đại diện cho một named module. Tên module được khai báo bên trong descriptor; nó không bắt buộc phải trùng với tên file JAR. Ví dụ, file `geometry-library-2.1.jar` vẫn có thể khai báo module `com.acme.geometry`.
+A modular JAR typically represents a single named module. The module name is declared inside the descriptor; it does not have to match the JAR filename. For example, the file `geometry-library-2.1.jar` can still declare the module `com.acme.geometry`.
 
-## 2. Tạo module descriptor từ mã nguồn
+## 2. Creating a Module Descriptor from Source Code
 
-Giả sử ta xây dựng module `com.acme.geometry` với một API công khai và một lớp chạy ứng dụng. Cấu trúc mã nguồn:
+Suppose we build the `com.acme.geometry` module with a public API and a class to run the application. Source structure:
 
 ~~~text
 src/
@@ -46,7 +46,7 @@ src/
                     └── Main.java
 ~~~
 
-File `module-info.java`:
+The `module-info.java` file:
 
 ~~~java
 module com.acme.geometry {
@@ -54,9 +54,9 @@ module com.acme.geometry {
 }
 ~~~
 
-Descriptor khai báo tên module là `com.acme.geometry` và export package `com.acme.geometry.api`. Các module khác có thể đọc module này và truy cập các kiểu public trong package được export nếu chúng khai báo phụ thuộc phù hợp.
+The descriptor declares the module name as `com.acme.geometry` and exports the `com.acme.geometry.api` package. Other modules can read this module and access public types in the exported package if they declare an appropriate dependency.
 
-Ví dụ lớp API:
+Example API class:
 
 ~~~java
 package com.acme.geometry.api;
@@ -65,7 +65,7 @@ public record Point(int x, int y) {
 }
 ~~~
 
-Ví dụ lớp chạy ứng dụng nằm trong package nội bộ:
+Example application runner class in an internal package:
 
 ~~~java
 package com.acme.geometry.app;
@@ -80,17 +80,17 @@ public class Main {
 }
 ~~~
 
-Package `com.acme.geometry.app` không được export. Lớp `Main` vẫn có thể được khởi chạy trực tiếp bằng tên module và tên lớp main, nhưng module khác không thể dùng package này như API công khai.
+The `com.acme.geometry.app` package is not exported. The `Main` class can still be launched directly by module name and main class name, but other modules cannot use this package as a public API.
 
-Một module không cần khai báo `requires java.base` vì module `java.base` được yêu cầu ngầm định cho mọi named module.
+A module does not need to declare `requires java.base` because the `java.base` module is implicitly required for every named module.
 
-## 3. Những directive thường có trong descriptor
+## 3. Common Directives in a Descriptor
 
-Module descriptor không chỉ đặt tên module. Các directive mô tả quan hệ phụ thuộc, API và cơ chế dịch vụ.
+A module descriptor does more than name the module. Directives describe dependency relationships, APIs, and service mechanisms.
 
 ### requires
 
-`requires` khai báo module hiện tại cần đọc một module khác:
+`requires` declares that the current module needs to read another module:
 
 ~~~java
 module com.acme.report {
@@ -98,11 +98,11 @@ module com.acme.report {
 }
 ~~~
 
-Trong ví dụ này, module `com.acme.report` phụ thuộc vào `java.sql`. Module được yêu cầu phải có thể được tìm thấy khi biên dịch và khi giải quyết cấu hình chạy, trừ trường hợp dùng biến thể `requires static`.
+In this example, the `com.acme.report` module depends on `java.sql`. The required module must be locatable at compile time and when resolving the runtime configuration, except when using the `requires static` variant.
 
 ### requires transitive
 
-`requires transitive` truyền khả năng đọc module phụ thuộc tới các module phụ thuộc vào module hiện tại:
+`requires transitive` propagates readability of the dependent module to modules that depend on the current module:
 
 ~~~java
 module com.acme.persistence {
@@ -111,13 +111,13 @@ module com.acme.persistence {
 }
 ~~~
 
-Nếu module khác khai báo `requires com.acme.persistence`, module đó cũng đọc được `java.sql`. Cách khai báo này phù hợp khi API public của module hiện tại làm lộ các kiểu thuộc module phụ thuộc, khiến người dùng API cũng cần đọc module đó.
+If another module declares `requires com.acme.persistence`, that module also reads `java.sql`. This declaration is appropriate when the current module's public API exposes types belonging to the dependent module, requiring API consumers to read that module as well.
 
-Không nên dùng `transitive` cho mọi dependency. Chỉ dùng khi module phụ thuộc thực sự là một phần của hợp đồng API cần truyền tới người dùng.
+Do not use `transitive` for every dependency. Use it only when the dependent module is genuinely part of the API contract passed to consumers.
 
 ### requires static
 
-`requires static` biểu thị dependency cần có khi biên dịch nhưng có thể không cần hiện diện ở runtime:
+`requires static` indicates a dependency needed at compile time that may be absent at runtime:
 
 ~~~java
 module com.acme.integration {
@@ -125,11 +125,11 @@ module com.acme.integration {
 }
 ~~~
 
-Directive này thường hữu ích với thư viện annotation hoặc công cụ hỗ trợ biên dịch. Nếu mã thực thi thực sự cần lớp của module đó khi chạy, việc thiếu module vẫn có thể gây lỗi khi lớp được nạp hoặc sử dụng.
+This directive is often useful for annotation libraries or compile-time tooling. If executing code genuinely needs classes from that module at runtime, the absence of the module can still cause errors when the class is loaded or used.
 
 ### exports
 
-`exports` công khai một package cho các module khác:
+`exports` exposes a package to other modules:
 
 ~~~java
 module com.acme.geometry {
@@ -137,9 +137,9 @@ module com.acme.geometry {
 }
 ~~~
 
-Chỉ các kiểu public trong package được export mới có thể được module khác truy cập theo quy tắc JPMS. `exports` không làm các thành viên package-private hoặc private trở thành public.
+Only public types in the exported package can be accessed by other modules under JPMS rules. `exports` does not turn package-private or private members into public ones.
 
-Có thể giới hạn package được export cho một số module cụ thể:
+You can restrict an exported package to specific modules:
 
 ~~~java
 module com.acme.geometry {
@@ -148,11 +148,11 @@ module com.acme.geometry {
 }
 ~~~
 
-Trong ví dụ này, `com.acme.geometry.spi` chỉ được export cho `com.acme.plugin`; `com.acme.geometry.api` vẫn được export không giới hạn.
+In this example, `com.acme.geometry.spi` is exported only to `com.acme.plugin`; `com.acme.geometry.api` remains exported without restriction.
 
 ### opens
 
-`opens` cho phép deep reflection vào package ở runtime:
+`opens` permits deep reflection into a package at runtime:
 
 ~~~java
 module com.acme.domain {
@@ -160,9 +160,9 @@ module com.acme.domain {
 }
 ~~~
 
-Directive này hữu ích khi framework serialization, dependency injection hoặc persistence cần truy cập trường, constructor hay thành viên không public bằng reflection. `opens` không thay thế `exports`: nó không tạo API để module khác import và gọi các kiểu trong package ở thời điểm biên dịch.
+This directive is useful when serialization, dependency injection, or persistence frameworks need to access non-public fields, constructors, or members via reflection. `opens` does not replace `exports`: it does not create an API for other modules to import and call types in the package at compile time.
 
-Có thể mở toàn bộ package của một module bằng khai báo:
+You can open all packages of a module with the declaration:
 
 ~~~java
 open module com.acme.domain {
@@ -170,11 +170,11 @@ open module com.acme.domain {
 }
 ~~~
 
-Một open module cho phép deep reflection vào tất cả package của nó. Chỉ dùng cách này khi thực sự cần phạm vi mở rộng; nếu chỉ một framework cần truy cập một package, `opens package.name to module.name` có phạm vi rõ ràng hơn. Không khai báo các directive `opens` riêng lẻ bên trong một `open module`.
+An open module allows deep reflection into all of its packages. Use this approach only when broad scope is truly required; if only one framework needs access to one package, `opens package.name to module.name` has a clearer scope. Do not declare individual `opens` directives inside an `open module`.
 
-### uses và provides
+### uses and provides
 
-JPMS hỗ trợ cơ chế service provider. Module tiêu thụ dịch vụ khai báo `uses`:
+JPMS supports the service provider mechanism. A service-consuming module declares `uses`:
 
 ~~~java
 module com.acme.app {
@@ -183,7 +183,7 @@ module com.acme.app {
 }
 ~~~
 
-Module cung cấp implementation khai báo `provides ... with ...`:
+A module supplying an implementation declares `provides ... with ...`:
 
 ~~~java
 module com.acme.geometry.provider {
@@ -194,23 +194,23 @@ module com.acme.geometry.provider {
 }
 ~~~
 
-Ứng dụng có thể tìm implementation thông qua `ServiceLoader`. Kiểu provider phải đáp ứng quy tắc của service provider; lớp triển khai không nhất thiết phải được export như một API thông thường.
+The application can discover implementations via `ServiceLoader`. The provider type must satisfy service provider rules; the implementation class does not necessarily have to be exported like a regular API.
 
-## 4. Biên dịch và đóng gói thành modular JAR
+## 4. Compiling and Packaging into a Modular JAR
 
-Với cấu trúc mã nguồn ở phần trên, dùng JDK 21 để biên dịch module:
+With the source structure above, use JDK 21 to compile the module:
 
 ~~~bash
 javac --module-source-path src -d out -m com.acme.geometry
 ~~~
 
-Ý nghĩa các tùy chọn:
+Meaning of the options:
 
-- `--module-source-path src` cho biết thư mục gốc chứa các thư mục mã nguồn theo tên module.
-- `-d out` đặt kết quả biên dịch vào thư mục `out`.
-- `-m com.acme.geometry` yêu cầu biên dịch module có tên tương ứng.
+- `--module-source-path src` specifies the root directory containing module source directories named after modules.
+- `-d out` places compilation outputs into the `out` directory.
+- `-m com.acme.geometry` requests compiling the module with the corresponding name.
 
-Sau khi biên dịch, thư mục output có dạng:
+After compilation, the output directory looks like:
 
 ~~~text
 out/
@@ -225,25 +225,25 @@ out/
                     └── Main.class
 ~~~
 
-Dùng công cụ `jar` để đóng gói toàn bộ nội dung của module đã biên dịch:
+Use the `jar` tool to package the entire contents of the compiled module:
 
 ~~~bash
 jar --create --file com.acme.geometry.jar -C out/com.acme.geometry .
 ~~~
 
-Tùy chọn `-C` chuyển thư mục làm việc của `jar` sang thư mục output của module trước khi thêm nội dung. Nhờ vậy, `module-info.class` được đặt ở gốc file JAR cùng với các package, đúng cấu trúc của modular JAR.
+The `-C` option switches `jar`'s working directory to the module's output directory before adding contents. As a result, `module-info.class` is placed at the root of the JAR file along with the packages, matching the structure of a modular JAR.
 
-Nếu bỏ sót `module-info.class` khi đóng gói, file JAR không còn descriptor tường minh như mong muốn. Khi được đặt trên module path, JAR không có descriptor có thể được coi là automatic module; hành vi đó khác với explicit named module.
+If `module-info.class` is omitted during packaging, the JAR file no longer has the intended explicit descriptor. When placed on the module path, a JAR without a descriptor may be treated as an automatic module; that behavior differs from an explicit named module.
 
-## 5. Kiểm tra descriptor bên trong JAR
+## 5. Inspecting the Descriptor Inside a JAR
 
-Sau khi đóng gói, dùng `jar --describe-module`:
+After packaging, use `jar --describe-module`:
 
 ~~~bash
 jar --describe-module --file com.acme.geometry.jar
 ~~~
 
-Kết quả sẽ cho biết tên module và các thuộc tính mà công cụ nhận diện, ví dụ:
+The output shows the module name and the properties recognized by the tool, for example:
 
 ~~~text
 com.acme.geometry jar:file:///.../com.acme.geometry.jar!/module-info.class
@@ -251,86 +251,86 @@ exports com.acme.geometry.api
 requires java.base mandated
 ~~~
 
-Các dòng này xác nhận:
+These lines confirm:
 
-- Tên module là `com.acme.geometry`.
-- Descriptor được đọc từ `module-info.class` bên trong JAR.
-- Package `com.acme.geometry.api` được export.
-- Module có dependency ngầm định vào `java.base`.
+- The module name is `com.acme.geometry`.
+- The descriptor is read from `module-info.class` inside the JAR.
+- The `com.acme.geometry.api` package is exported.
+- The module has an implicit dependency on `java.base`.
 
-Có thể liệt kê nội dung JAR để kiểm tra file descriptor và các class đã được đóng gói:
+You can list the JAR contents to verify the descriptor file and packaged classes:
 
 ~~~bash
 jar --list --file com.acme.geometry.jar
 ~~~
 
-Trong kết quả cần thấy `module-info.class` ở gốc JAR và các class nằm đúng đường dẫn package. Nếu descriptor không xuất hiện hoặc tên module không đúng, hãy quay lại bước biên dịch/đóng gói để kiểm tra cấu trúc nguồn và thư mục được thêm vào JAR.
+In the output, you should see `module-info.class` at the JAR root and classes in their proper package paths. If the descriptor does not appear or the module name is wrong, revisit the compilation/packaging steps to verify the source structure and directories added to the JAR.
 
-## 6. Chạy modular JAR trên module path
+## 6. Running a Modular JAR on the Module Path
 
-Đặt file JAR trên module path và chỉ rõ module cùng lớp main:
+Place the JAR file on the module path and specify the module along with the main class:
 
 ~~~bash
 java --module-path com.acme.geometry.jar \
      -m com.acme.geometry/com.acme.geometry.app.Main
 ~~~
 
-Phần trước dấu `/` trong đối số `-m` là tên module; phần sau là tên đầy đủ của lớp main. JVM đọc descriptor, giải quyết module rồi khởi chạy lớp được chỉ định.
+The part before the `/` in the `-m` argument is the module name; the part after is the fully qualified name of the main class. The JVM reads the descriptor, resolves the module, and launches the specified class.
 
-Nếu module cần các module khác, những dependency đó cũng phải có mặt trên module path và được khai báo trong descriptor bằng `requires`. Ví dụ khi có nhiều JAR trong thư mục `mods`:
+If the module requires other modules, those dependencies must also be present on the module path and declared in the descriptor with `requires`. For example, when there are multiple JARs in a `mods` directory:
 
 ~~~bash
 java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Không cần đặt modular JAR vào classpath để JVM nhận diện module descriptor. Nếu cùng JAR được đặt trên classpath bằng `-cp`, JVM nạp các lớp của nó vào unnamed module và bỏ qua descriptor JPMS.
+There is no need to place a modular JAR on the classpath for the JVM to recognize the module descriptor. If the same JAR is placed on the classpath using `-cp`, the JVM loads its classes into the unnamed module and ignores the JPMS descriptor.
 
-## 7. Module descriptor và manifest khác nhau thế nào?
+## 7. How Do Module Descriptor and Manifest Differ?
 
-`module-info.class` và `META-INF/MANIFEST.MF` đều là metadata của JAR, nhưng phục vụ các cơ chế khác nhau.
+`module-info.class` and `META-INF/MANIFEST.MF` are both JAR metadata, yet they serve different mechanisms.
 
-| Thành phần | Vai trò |
+| Component | Role |
 |---|---|
-| `module-info.class` | Khai báo tên module, dependency, package export/open và service |
-| `Main-Class` trong manifest | Chỉ định lớp main cho cách chạy executable JAR bằng `java -jar` |
-| `Class-Path` trong manifest | Khai báo các JAR/phần tử classpath liên quan khi chạy theo cơ chế manifest |
-| `Automatic-Module-Name` trong manifest | Đặt tên ổn định cho automatic module khi JAR chưa có descriptor tường minh |
+| `module-info.class` | Declares module name, dependencies, exported/opened packages, and services |
+| `Main-Class` in manifest | Specifies the main class for launching an executable JAR with `java -jar` |
+| `Class-Path` in manifest | Declares related JARs/classpath entries when running via the manifest mechanism |
+| `Automatic-Module-Name` in manifest | Sets a stable name for an automatic module when the JAR lacks an explicit descriptor |
 
-Khi JAR có `module-info.class` hợp lệ, descriptor là nguồn khai báo module. Thuộc tính `Automatic-Module-Name` không thay thế hoặc ghi đè tên module trong descriptor.
+When a JAR has a valid `module-info.class`, the descriptor is the source of the module declaration. The `Automatic-Module-Name` attribute does not replace or override the module name in the descriptor.
 
-Một thư viện cũ chưa có `module-info.class` có thể khai báo `Automatic-Module-Name` để tên automatic module không phụ thuộc vào cách JVM suy ra từ tên file. Tuy nhiên, JAR đó chỉ trở thành automatic module khi được đặt trên module path. Khi đặt trên classpath, các lớp vẫn thuộc unnamed module.
+A legacy library without `module-info.class` can declare `Automatic-Module-Name` so the automatic module name does not depend on how the JVM derives it from the filename. However, that JAR becomes an automatic module only when placed on the module path. When placed on the classpath, its classes still belong to the unnamed module.
 
-## 8. Lỗi thường gặp khi tạo modular JAR
+## 8. Common Errors When Creating a Modular JAR
 
-| Triệu chứng | Nguyên nhân có thể gặp | Cách kiểm tra |
+| Symptom | Possible Cause | How to Check |
 |---|---|---|
-| JVM không nhận ra tên module mong muốn | JAR thiếu `module-info.class` hoặc descriptor không nằm ở gốc JAR | Chạy `jar --list --file ...` và `jar --describe-module --file ...` |
-| `FindException: Module ... not found` | Module phụ thuộc chưa có trên module path hoặc sai tên module | Kiểm tra các directive `requires` và đường dẫn chạy |
-| `IllegalAccessError` hoặc lỗi truy cập package | Package cần dùng chưa được export hoặc module sử dụng chưa đọc module nguồn | Kiểm tra `exports` và `requires` |
-| `InaccessibleObjectException` | Framework cần deep reflection vào package chưa được mở | Kiểm tra `opens` hoặc `open module` |
-| Package không tồn tại khi biên dịch descriptor | Tên package trong `exports`/`opens` không khớp với package thực tế | Kiểm tra cấu trúc source và package declaration |
-| Module chạy được trên classpath nhưng lỗi trên module path | Mã nguồn đang dựa vào truy cập xuyên package hoặc dependency không được khai báo | Kiểm tra module descriptor, API export và module graph |
+| JVM does not recognize the expected module name | JAR is missing `module-info.class` or the descriptor is not at the JAR root | Run `jar --list --file ...` and `jar --describe-module --file ...` |
+| `FindException: Module ... not found` | Dependent module is missing from the module path or wrong module name | Check `requires` directives and the runtime path |
+| `IllegalAccessError` or package access error | Needed package is not exported or consuming module does not read source module | Check `exports` and `requires` |
+| `InaccessibleObjectException` | Framework needs deep reflection into an unopened package | Check `opens` or `open module` |
+| Package does not exist when compiling descriptor | Package name in `exports`/`opens` does not match actual package | Check source structure and package declarations |
+| Module runs on classpath but fails on module path | Code relies on cross-package access or undeclared dependencies | Check module descriptor, exported APIs, and module graph |
 
-Đặc biệt, đừng nhầm việc chạy được JAR trên classpath với việc JAR đã được module hóa. Classpath bỏ qua descriptor nên không kiểm tra đầy đủ các ranh giới module mà ứng dụng sẽ gặp trên module path.
+In particular, do not confuse being able to run a JAR on the classpath with the JAR being properly modularized. The classpath ignores the descriptor and therefore does not fully check the module boundaries the application will encounter on the module path.
 
-## 9. Checklist kiểm tra một modular JAR
+## 9. Checklist for Verifying a Modular JAR
 
-Trước khi phát hành hoặc tích hợp JAR vào ứng dụng JPMS, hãy xác nhận:
+Before publishing or integrating a JAR into a JPMS application, confirm:
 
-- [ ] Mã nguồn có đúng một `module-info.java` cho module đang đóng gói.
-- [ ] Tên module trong descriptor ổn định và phù hợp với dependency khai báo ở các module sử dụng.
-- [ ] Quá trình biên dịch tạo `module-info.class`.
-- [ ] File JAR có `module-info.class` ở thư mục gốc.
-- [ ] `jar --describe-module --file ...` hiển thị đúng tên module và các directive.
-- [ ] Những package cần công khai được `exports` đúng phạm vi.
-- [ ] Những package cần deep reflection được `opens` có giới hạn.
-- [ ] Các dependency cần thiết được khai báo bằng `requires` và có mặt trên module path.
-- [ ] Các directive `uses`/`provides` đúng nếu module sử dụng ServiceLoader.
-- [ ] Ứng dụng được thử chạy bằng `--module-path` và `-m`.
+- [ ] The source code has exactly one `module-info.java` for the module being packaged.
+- [ ] The module name in the descriptor is stable and matches the dependencies declared in consuming modules.
+- [ ] The compilation process produces `module-info.class`.
+- [ ] The JAR file has `module-info.class` at its root directory.
+- [ ] `jar --describe-module --file ...` shows the correct module name and directives.
+- [ ] Packages meant to be public are exported with `exports` at the right scope.
+- [ ] Packages needing deep reflection are opened with scoped `opens`.
+- [ ] Required dependencies are declared with `requires` and present on the module path.
+- [ ] `uses`/`provides` directives are accurate if the module uses ServiceLoader.
+- [ ] The application has been test-run using `--module-path` and `-m`.
 
-## 10. Ghi nhớ
+## 10. Key Takeaways
 
-Module descriptor là hợp đồng JPMS được đóng gói trong `module-info.class` ở gốc modular JAR. Nó cho JVM biết module có tên gì, cần đọc module nào, công khai package nào, mở package nào cho reflection và cung cấp/tiêu thụ service ra sao. Quy trình cơ bản là viết `module-info.java`, biên dịch cùng mã nguồn, đóng gói cả descriptor vào JAR, kiểm tra bằng `jar --describe-module` rồi chạy JAR qua module path.
+The module descriptor is the JPMS contract packaged in `module-info.class` at the root of a modular JAR. It tells the JVM what the module's name is, which modules it needs to read, which packages it exposes, which packages it opens for reflection, and how it provides or consumes services. The basic workflow is to write `module-info.java`, compile it alongside source code, package the descriptor into the JAR, inspect it with `jar --describe-module`, and then run the JAR via the module path.
 
-Khi kiểm tra một file JAR, hãy xem cả vị trí triển khai và nội dung thực tế của nó: descriptor chỉ có ý nghĩa khi JAR được sử dụng theo cơ chế module path. Việc đặt một modular JAR lên classpath vẫn khiến các lớp của nó chạy trong unnamed module và bỏ qua các quy tắc đóng gói mà descriptor đã khai báo.
+When inspecting a JAR file, check both its deployment location and its actual contents: the descriptor matters only when the JAR is used via the module path mechanism. Placing a modular JAR on the classpath still causes its classes to run in the unnamed module and bypasses the encapsulation rules declared by the descriptor.

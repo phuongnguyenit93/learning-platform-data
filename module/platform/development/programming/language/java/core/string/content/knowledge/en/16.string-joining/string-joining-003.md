@@ -1,30 +1,30 @@
-# Chính sách `null` của delimiter, tập phần tử và từng phần tử khi ghép chuỗi Java
+# `null` Policy for the Delimiter, Element Collection, and Individual Elements When Joining Strings in Java
 
-## 1. Vì sao phải phân biệt ba loại `null`?
+## 1. Why Distinguish Three Kinds of `null`?
 
-Khi ghép nhiều phần thành một chuỗi, Java cho phép dùng `String.join(...)` với **delimiter** (chuỗi phân cách) và một **tập phần tử** dưới dạng varargs hoặc `Iterable`. Có ba chỗ độc lập có thể mang giá trị `null`:
+When joining multiple parts into one string, Java lets you use `String.join(...)` with a **delimiter** (separator string) and an **element collection** via varargs or `Iterable`. There are three independent places where `null` can appear:
 
-1. **Delimiter `null`:** chuỗi dùng để ngăn cách các phần tử không tồn tại.
-2. **Tập phần tử `null`:** chính mảng varargs hoặc đối tượng `Iterable` không tồn tại.
-3. **Một phần tử `null`:** tập phần tử có tồn tại nhưng một mục bên trong bằng `null`.
+1. **`null` delimiter:** the string used to separate elements does not exist.
+2. **`null` element collection:** the varargs array or `Iterable` object itself does not exist.
+3. **`null` individual element:** the collection exists, but an item inside it is `null`.
 
-Ba trường hợp **không có cùng hành vi**. Theo API của Java 17:
+The three cases **do not share the same behavior**. According to the Java 17 API:
 
-| Vị trí `null` | Ví dụ | Kết quả |
+| `null` location | Example | Result |
 | --- | --- | --- |
-| Delimiter | `String.join(null, "A", "B")` | Ném `NullPointerException`. |
-| Mảng varargs `elements` | `String.join(",", (CharSequence[]) null)` | Ném `NullPointerException`. |
-| `Iterable elements` | `String.join(",", (Iterable<? extends CharSequence>) null)` | Ném `NullPointerException`. |
-| Một phần tử trong varargs | `String.join(",", "A", null, "B")` | `"A,null,B"`. |
-| Một phần tử trong `Iterable` | `String.join(",", Arrays.asList("A", null, "B"))` | `"A,null,B"`. |
+| Delimiter | `String.join(null, "A", "B")` | Throws `NullPointerException`. |
+| Varargs array `elements` | `String.join(",", (CharSequence[]) null)` | Throws `NullPointerException`. |
+| `Iterable elements` | `String.join(",", (Iterable<? extends CharSequence>) null)` | Throws `NullPointerException`. |
+| An element in varargs | `String.join(",", "A", null, "B")` | `"A,null,B"`. |
+| An element in `Iterable` | `String.join(",", Arrays.asList("A", null, "B"))` | `"A,null,B"`. |
 
-**Quy tắc ngắn gọn:** `String.join` yêu cầu **delimiter và tập phần tử không được `null`**, nhưng nếu **một phần tử riêng lẻ** là `null`, nó sẽ được biểu diễn bằng chuỗi ký tự `"null"`.
+**Short rule:** `String.join` requires **the delimiter and element collection to be non-`null`**, whereas if **an individual element** is `null`, it is represented by the character string `"null"`.
 
-Điều này rất quan trọng khi xuất dữ liệu, tạo log, xây dựng câu lệnh cấu hình, hoặc chuyển danh sách thành chuỗi. Chuỗi chữ `"null"` không nhất thiết có cùng ý nghĩa với giá trị `null` ban đầu của ứng dụng.
+This matters greatly when exporting data, writing logs, constructing configuration strings, or converting lists to strings. The literal string `"null"` does not necessarily carry the same meaning as your application's original `null` value.
 
-## 2. Hai overload của `String.join`
+## 2. Two Overloads of `String.join`
 
-Từ Java 8, `String` có hai overload:
+Since Java 8, `String` has two overloads:
 
 ```java
 public static String join(
@@ -36,16 +36,16 @@ public static String join(
         Iterable<? extends CharSequence> elements)
 ```
 
-### 2.1. Overload varargs
+### 2.1. Varargs Overload
 
 ```java
 String result = String.join(" | ", "Java", "Core", "String");
 System.out.println(result); // Java | Core | String
 ```
 
-`elements` được biểu diễn bằng một mảng `CharSequence[]` khi lời gọi được xử lý. Thông thường người lập trình không phải tự tạo mảng; chỉ cần liệt kê các đối số.
+`elements` is represented as a `CharSequence[]` array when the call is processed. Usually, you do not need to create the array manually; just list the arguments.
 
-### 2.2. Overload `Iterable`
+### 2.2. `Iterable` Overload
 
 ```java
 import java.util.List;
@@ -56,9 +56,9 @@ String result = String.join(" | ", words);
 System.out.println(result); // Java | Core | String
 ```
 
-Đây là một `Iterable` có ba phần tử. Hợp đồng xử lý `null` của các **phần tử** vẫn giống overload varargs: một mục bằng `null` được thêm dưới dạng chữ `"null"`.
+This is an `Iterable` with three elements. The `null`-handling contract for **elements** matches the varargs overload: a `null` item is appended as the text `"null"`.
 
-Chú ý: `List.of(...)` **không chấp nhận phần tử `null`**. Nếu cần minh họa một `Iterable` thực sự chứa `null`, có thể dùng `Arrays.asList(...)` hoặc một collection cho phép `null`:
+Note: `List.of(...)` **does not accept `null` elements**. If you need to demonstrate an `Iterable` that actually contains `null`, you can use `Arrays.asList(...)` or a collection that permits `null`:
 
 ```java
 import java.util.Arrays;
@@ -69,34 +69,34 @@ System.out.println(String.join(" | ", words));
 // Java | null | String
 ```
 
-**Phân biệt rõ:** lỗi khi cố tạo `List.of("A", null)` là do **`List.of`**, không phải do `String.join`. `String.join` chấp nhận mục `null` nếu collection đã chứa nó.
+**Clear distinction:** the error when attempting `List.of("A", null)` comes from **`List.of`**, not from `String.join`. `String.join` accepts `null` items if the collection already holds them.
 
-## 3. Trường hợp thứ nhất: delimiter bằng `null`
+## 3. First Case: A `null` Delimiter
 
-Delimiter là nội dung được chèn **giữa các phần tử liên tiếp**, ví dụ `","`, `"; "` hoặc `" | "`. Nếu delimiter bằng `null`, `String.join` ném `NullPointerException`:
+The delimiter is the text inserted **between consecutive elements**, such as `","`, `"; "`, or `" | "`. If the delimiter is `null`, `String.join` throws `NullPointerException`:
 
 ```java
 String separator = null;
 
-// Ném NullPointerException:
+// Throws NullPointerException:
 String value = String.join(separator, "A", "B");
 ```
 
-Đặc điểm:
-- `null` không được tự hiểu là chuỗi rỗng.
-- `null` không được tự hiểu là dấu phẩy.
-- Không nên dùng biểu diễn chữ `"null"` làm delimiter dự phòng nếu nghiệp vụ không quy định như vậy.
-- **Delimiter rỗng `""` là hợp lệ** và khác delimiter `null`.
+Key characteristics:
+- `null` is not automatically treated as an empty string.
+- `null` is not automatically treated as a comma.
+- You should not use the literal text `"null"` as a fallback delimiter unless business rules explicitly specify it.
+- **An empty delimiter `""` is valid** and is distinct from a `null` delimiter.
 
-Ví dụ delimiter rỗng:
+Empty delimiter example:
 
 ```java
 System.out.println(String.join("", "A", "B", "C")); // ABC
 ```
 
-### Chọn chính sách cho delimiter từ người dùng
+### Choosing a Policy for User-Supplied Delimiters
 
-Nếu việc thiếu delimiter là lỗi của đầu vào, nên **fail fast**:
+If a missing delimiter is an input error, **fail fast**:
 
 ```java
 import java.util.Objects;
@@ -110,9 +110,9 @@ static String joinRequiredDelimiter(
 }
 ```
 
-Đoạn trên là **phương thức hỗ trợ đặt trong lớp Java**, không phải file chạy độc lập. Khi delimiter hoặc tập phần tử là `null`, thông báo lỗi sẽ chỉ ra thành phần vi phạm hợp đồng.
+The snippet above is a **helper method meant to be placed inside a Java class**, not a standalone runnable file. When the delimiter or element collection is `null`, the error message points out which argument violated the contract.
 
-Nếu sản phẩm thực sự muốn coi delimiter thiếu là “không có ký tự phân cách”, hãy chuẩn hóa **có chủ đích** trước:
+If the product genuinely wants a missing delimiter to mean "no separator character," normalize it **deliberately** beforehand:
 
 ```java
 String effectiveDelimiter =
@@ -121,31 +121,31 @@ String effectiveDelimiter =
 String result = String.join(effectiveDelimiter, "A", "B");
 ```
 
-Khi `delimiter == null`, kết quả là `"AB"`. Đây là **chính sách do ứng dụng chọn**, không phải hành vi mặc định của `String.join`.
+When `delimiter == null`, the result is `"AB"`. This is an **application-chosen policy**, not the default behavior of `String.join`.
 
-## 4. Trường hợp thứ hai: toàn bộ tập phần tử bằng `null`
+## 4. Second Case: The Entire Element Collection Is `null`
 
-Tập phần tử có thể được truyền dưới dạng `CharSequence[]` hoặc `Iterable<? extends CharSequence>`. Nếu bản thân đối tượng tập hợp không tồn tại, `String.join` không có nguồn dữ liệu để duyệt và ném `NullPointerException`.
+The element collection can be passed as a `CharSequence[]` or an `Iterable<? extends CharSequence>`. If the collection object itself does not exist, `String.join` has no data source to iterate over and throws `NullPointerException`.
 
-### 4.1. Mảng varargs `null`
+### 4.1. `null` Varargs Array
 
 ```java
 CharSequence[] parts = null;
 
-// Ném NullPointerException:
+// Throws NullPointerException:
 String result = String.join(",", parts);
 ```
 
-### 4.2. `Iterable` bằng `null`
+### 4.2. `null` `Iterable`
 
 ```java
 Iterable<String> parts = null;
 
-// Ném NullPointerException:
+// Throws NullPointerException:
 String result = String.join(",", parts);
 ```
 
-Nhưng **tập phần tử rỗng** hoàn toàn hợp lệ:
+However, an **empty element collection** is completely valid:
 
 ```java
 System.out.println("[" + String.join(",") + "]"); // []
@@ -153,26 +153,26 @@ System.out.println("[" + String.join(",", java.util.List.<String>of()) + "]");
 // []
 ```
 
-Hai dòng trên in `[]` do chúng ta chủ động thêm dấu ngoặc vuông; kết quả của `String.join` thực tế là **chuỗi rỗng `""`**, không phải chuỗi `"[]"`.
+Both lines above print `[]` because we explicitly added square brackets; the actual return value of `String.join` is the **empty string `""`**, not the string `"[]"`.
 
-| Đầu vào | Ví dụ | Kết quả |
+| Input | Example | Result |
 | --- | --- | --- |
-| Tập `null` | `(CharSequence[]) null` | `NullPointerException` |
-| Tập có 0 phần tử | `new CharSequence[0]` | `""` |
-| Tập có 1 phần tử rỗng | `new CharSequence[]{""}` | `""` |
-| Tập có 1 phần tử `null` | `new CharSequence[]{null}` | `"null"` |
+| `null` collection | `(CharSequence[]) null` | `NullPointerException` |
+| Collection with 0 elements | `new CharSequence[0]` | `""` |
+| Collection with 1 empty element | `new CharSequence[]{""}` | `""` |
+| Collection with 1 `null` element | `new CharSequence[]{null}` | `"null"` |
 
-**Quan trọng:** tập rỗng và tập chỉ có một chuỗi rỗng cho cùng văn bản `""` sau khi join. Vì thế `String.join` **không phải một định dạng lưu trữ có khả năng khôi phục đầy đủ danh sách gốc** trong mọi tình huống.
+**Important:** an empty collection and a collection with a single empty string produce the exact same text `""` after joining. Therefore, `String.join` is **not a storage format capable of fully recovering the original list** in all situations.
 
-### Chính sách cho tập `null`
+### Policies for a `null` Collection
 
-Ba lựa chọn phổ biến:
+Three common choices:
 
-- **Báo lỗi:** input bắt buộc phải có; dùng `Objects.requireNonNull(parts)`.
-- **Coi như tập rỗng:** chỉ khi hợp đồng nghiệp vụ cho phép. Ví dụ chuyển `null` thành `List.of()` trước khi join.
-- **Phân biệt “chưa có dữ liệu” và “danh sách rỗng”:** không biến cả hai thành `""` nếu ứng dụng cần giữ thông tin khác biệt. Có thể dùng kiểu dữ liệu hoặc trường trạng thái riêng.
+- **Fail with an error:** the input is required; use `Objects.requireNonNull(parts)`.
+- **Treat as an empty collection:** only when the business contract allows it. For example, convert `null` to `List.of()` before joining.
+- **Distinguish "no data yet" from "empty list":** do not collapse both into `""` if the application needs to preserve that distinction. Use a separate data type or status field.
 
-Ví dụ coi danh sách `null` là rỗng một cách tường minh:
+Example of explicitly treating a `null` list as empty:
 
 ```java
 static String joinOrEmpty(
@@ -185,18 +185,18 @@ static String joinOrEmpty(
 }
 ```
 
-Hàm vẫn báo lỗi nếu delimiter `null`, nhưng cho phép không có `parts` và trả về chuỗi rỗng. Đó là **một thiết kế tùy chọn**; không nên áp dụng mặc định khi dữ liệu bắt buộc.
+The method still fails if the delimiter is `null`, but allows `parts` to be absent and returns an empty string. That is **an optional design**; do not apply it by default when data is mandatory.
 
-## 5. Trường hợp thứ ba: từng phần tử có thể bằng `null`
+## 5. Third Case: Individual Elements May Be `null`
 
-Khi một mục trong tập là `null`, `String.join` thêm **bốn ký tự** `n`, `u`, `l`, `l`:
+When an item in the collection is `null`, `String.join` appends the **four characters** `n`, `u`, `l`, `l`:
 
 ```java
 String result = String.join("|", "A", null, "B");
 System.out.println(result); // A|null|B
 ```
 
-Tương tự với `Iterable`:
+Similarly with `Iterable`:
 
 ```java
 java.util.List<String> parts =
@@ -205,13 +205,13 @@ java.util.List<String> parts =
 System.out.println(String.join("|", parts)); // A|null|B
 ```
 
-Điều đó **không** tương đương với một trong các hành vi sau:
-- Bỏ phần tử `null` → `"A|B"`.
-- Thay phần tử `null` thành chuỗi rỗng → `"A||B"`.
-- Ném ngoại lệ ngay khi gặp phần tử `null`.
-- Chèn một giá trị nullable có thể khôi phục nguyên trạng sau khi split.
+This is **not** equivalent to any of the following behaviors:
+- Skipping the `null` element → `"A|B"`.
+- Replacing the `null` element with an empty string → `"A||B"`.
+- Throwing an exception immediately upon encountering a `null` element.
+- Inserting a nullable value that can be restored verbatim after splitting.
 
-Nếu `"null"` cũng có thể là chuỗi hợp lệ do người dùng nhập, kết quả join **không cho phép phân biệt**:
+If `"null"` can also be a valid user-supplied string, the joined output **cannot tell them apart**:
 
 ```java
 String a = String.join(",", "A", (CharSequence) null);
@@ -222,78 +222,78 @@ System.out.println(b);          // A,null
 System.out.println(a.equals(b)); // true
 ```
 
-**Đây là mất thông tin**, không phải bug của `String.join`. Khi hệ thống cần phân biệt giá trị vắng mặt và chuỗi văn bản `"null"`, hãy dùng một cách mã hóa có quy tắc riêng (ví dụ JSON với `null` đúng kiểu và chuỗi `"null"` được đặt trong dấu nháy), thay vì lấy kết quả join làm định dạng lưu trữ chính.
+**This is information loss**, not a bug in `String.join`. When a system needs to distinguish an absent value from the literal text `"null"`, use an encoding with explicit rules (such as JSON with typed `null` and quoted `"null"` strings) instead of using the joined result as the primary storage format.
 
-### Điểm chú ý về overload khi truyền literal `null`
+### Overload Gotcha When Passing a `null` Literal
 
-Do `String.join` có cả overload varargs và `Iterable`, lời gọi dùng `null` không chỉ rõ kiểu như:
+Because `String.join` has both varargs and `Iterable` overloads, a call using an untyped `null` such as:
 
 ```java
-// Không nên dùng vì dễ mơ hồ overload:
+// Avoid because overload resolution can be ambiguous:
 // String.join(",", null);
 ```
 
-Có thể dẫn đến vấn đề lựa chọn overload hoặc diễn giải `null` là cả mảng/tập thay vì một phần tử. **Hãy khai báo hoặc ép kiểu rõ ý định**:
+Can cause overload resolution issues or interpret `null` as the entire array/collection rather than a single element. **Declare or cast explicitly to state your intent**:
 
 ```java
 System.out.println(String.join("|", (CharSequence) null));
-// null  (một phần tử null được chuyển thành chữ "null")
+// null  (a null element is converted to the text "null")
 
-// Ném NullPointerException: toàn bộ mảng varargs null.
+// Throws NullPointerException: the entire varargs array is null.
 // String.join("|", (CharSequence[]) null);
 
-// Ném NullPointerException: toàn bộ Iterable null.
+// Throws NullPointerException: the entire Iterable is null.
 // String.join("|", (Iterable<? extends CharSequence>) null);
 ```
 
-Điều khác biệt là **kiểu tại vị trí đối số** và overload Java chọn, không chỉ hình thức viết chữ `null`.
+What differs is **the type at the argument position** and which overload Java selects, not merely writing the keyword `null`.
 
-## 6. Phân biệt phần tử rỗng, phần tử `null` và phần tử có dấu phân cách
+## 6. Distinguishing Empty Elements, `null` Elements, and Elements Containing Delimiters
 
-Xét delimiter `","`:
+Consider delimiter `","`:
 
-| Danh sách đầu vào | Kết quả `String.join(",", ...)` | Nhận xét |
+| Input list | `String.join(",", ...)` result | Notes |
 | --- | --- | --- |
-| `["A", "B"]` | `"A,B"` | Bình thường |
-| `["A", null, "B"]` | `"A,null,B"` | Giá trị `null` trở thành chữ `"null"` |
-| `["A", "", "B"]` | `"A,,B"` | Vị trí rỗng vẫn được giữ lại |
-| `["A", "null", "B"]` | `"A,null,B"` | Không phân biệt được với phần tử `null` |
-| `["A,B", "C"]` | `"A,B,C"` | Dữ liệu chứa delimiter, không tự escape |
-| `[]` | `""` | Không có phần tử |
-| `[""]` | `""` | Một phần tử rỗng, cùng kết quả với tập rỗng |
+| `["A", "B"]` | `"A,B"` | Normal |
+| `["A", null, "B"]` | `"A,null,B"` | `null` value becomes the text `"null"` |
+| `["A", "", "B"]` | `"A,,B"` | Empty position is preserved |
+| `["A", "null", "B"]` | `"A,null,B"` | Indistinguishable from a `null` element |
+| `["A,B", "C"]` | `"A,B,C"` | Data contains the delimiter; not escaped automatically |
+| `[]` | `""` | No elements |
+| `[""]` | `""` | One empty element; same result as an empty collection |
 
-`String.join` **không phải một trình mã hóa CSV**. Nó không tự thêm dấu nháy cho giá trị chứa dấu phân cách, không escape dấu nháy, và cũng không tạo cách biểu diễn nullable có thể khôi phục an toàn. Nếu làm CSV, JSON, TSV hoặc dữ liệu trao đổi theo chuẩn cụ thể, hãy dùng bộ mã hóa đúng định dạng đó.
+`String.join` is **not a CSV encoder**. It does not quote values containing delimiters, does not escape quotes, and does not produce a safely recoverable nullable representation. If you are working with CSV, JSON, TSV, or standard data exchange formats, use an encoder built for that format.
 
-Ví dụ dấu phẩy nằm trong dữ liệu:
+Example with a comma inside the data:
 
 ```java
 System.out.println(String.join(",", "New York, NY", "USA"));
 // New York, NY,USA
 ```
 
-Không thể tách lại kết quả này thành chính xác hai phần ban đầu chỉ bằng `split(",")`. Chọn delimiter khác đôi khi giảm va chạm nhưng **không thay thế escape/quoting**.
+You cannot split this result back into the exact two original parts using `split(",")` alone. Choosing a different delimiter sometimes reduces collisions, but **does not replace escaping/quoting**.
 
-## 7. Bốn chính sách phổ biến đối với phần tử `null`
+## 7. Four Common Policies for `null` Elements
 
-Nếu nghiệp vụ có yêu cầu khác mặc định của `String.join`, bạn cần xử lý phần tử **trước khi ghép**.
+If your business requirements differ from `String.join`'s default, you must process elements **before joining**.
 
-Dùng một danh sách có `null` thật sự:
+Using a list that actually contains `null`:
 
 ```java
 java.util.List<String> parts =
         java.util.Arrays.asList("A", null, "B");
 ```
 
-### Chính sách A — Giữ mặc định: chữ `"null"`
+### Policy A — Keep the Default: Literal `"null"`
 
 ```java
 String output = String.join("|", parts);
 System.out.println(output); // A|null|B
 ```
 
-Phù hợp với một số log hoặc mục đích đọc thủ công, nơi bạn chấp nhận `null` chỉ là biểu diễn văn bản, không cần khôi phục kiểu dữ liệu ban đầu.
+Suitable for some logs or manual inspection where you accept `"null"` as plain text and do not need to recover original data types.
 
-### Chính sách B — Bỏ các mục `null`
+### Policy B — Drop `null` Items
 
 ```java
 import java.util.Objects;
@@ -306,9 +306,9 @@ String output = parts.stream()
 System.out.println(output); // A|B
 ```
 
-**Tác động:** số vị trí trong chuỗi xuất ra giảm. Nếu các phần tử là cột dữ liệu cố định (ví dụ mã đơn hàng, ngày, người nhận), bỏ một mục có thể làm lệch vị trí của các cột sau.
+**Impact:** the number of positions in the output string decreases. If elements represent fixed data columns (e.g., order ID, date, recipient), dropping an item shifts subsequent columns out of alignment.
 
-### Chính sách C — Thay `null` bằng chuỗi rỗng
+### Policy C — Replace `null` with an Empty String
 
 ```java
 import java.util.stream.Collectors;
@@ -320,9 +320,9 @@ String output = parts.stream()
 System.out.println(output); // A||B
 ```
 
-Cách này giữ vị trí phần tử giữa hai delimiter, nhưng không phân biệt `null` với một chuỗi rỗng vốn tồn tại trong dữ liệu gốc.
+This keeps the element's slot between delimiters, but cannot distinguish `null` from an empty string that already existed in the original data.
 
-### Chính sách D — Thay bằng placeholder có ý nghĩa
+### Policy D — Replace with a Meaningful Placeholder
 
 ```java
 import java.util.stream.Collectors;
@@ -334,9 +334,9 @@ String output = parts.stream()
 System.out.println(output); // A|<missing>|B
 ```
 
-Placeholder chỉ thích hợp nếu hợp đồng nghiệp vụ xác định rõ nó, và nếu chuỗi `"<missing>"` có thể xuất hiện trong dữ liệu thật thì vẫn cần cơ chế escape/phân biệt.
+A placeholder is appropriate only if the business contract defines it clearly, and if the literal string `"<missing>"` can appear in real data, an escaping/disambiguation mechanism is still required.
 
-### Chính sách E — Cấm phần tử `null` (fail fast)
+### Policy E — Forbid `null` Elements (Fail Fast)
 
 ```java
 import java.util.Objects;
@@ -347,13 +347,13 @@ String output = parts.stream()
         .collect(Collectors.joining("|"));
 ```
 
-Ở danh sách `["A", null, "B"]`, đoạn này ném `NullPointerException` với thông báo `"part"`. Cách xử lý phù hợp khi **mỗi phần tử bắt buộc có dữ liệu** và bạn muốn phát hiện lỗi tại ranh giới nghiệp vụ, thay vì âm thầm tạo văn bản `"null"`.
+For the list `["A", null, "B"]`, this throws `NullPointerException` with message `"part"`. This approach fits when **every element must have data** and you want to catch errors at the business boundary rather than silently emitting the text `"null"`.
 
-**Không có chính sách nào tốt nhất trong mọi tình huống.** Hãy quyết định rõ có cần giữ số lượng phần tử, vị trí cột, thông tin `null`, hoặc khả năng phục hồi giá trị gốc hay không.
+**No single policy is best in all situations.** Decide explicitly whether you need to preserve element count, column positions, `null` information, or recoverability of original values.
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone Java 17+ Program
 
-Lưu nội dung sau vào file `JoinNullPolicyDemo.java`:
+Save the following content into `JoinNullPolicyDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -417,14 +417,14 @@ public class JoinNullPolicyDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac -encoding UTF-8 JoinNullPolicyDemo.java
 java JoinNullPolicyDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 varargs = [A|null|B]
@@ -442,19 +442,19 @@ null as empty = [A||B]
 placeholder = [A|<missing>|B]
 ```
 
-**Giải thích kết quả:**
-- Varargs và `Iterable` cùng chèn chữ `"null"` cho một phần tử `null`.
-- Một `null` được ép kiểu `CharSequence` là **một phần tử**, nên nhận `"null"`.
-- Tập rỗng tạo chuỗi rỗng, nhưng phần tử rỗng ở giữa vẫn giữ hai delimiter.
-- Delimiter, mảng varargs, hoặc đối tượng `Iterable` đều không được bằng `null`.
-- `StringJoiner.add(null)` cũng thêm văn bản `"null"`.
-- Các chính sách `skip`, `asEmpty` và `placeholder` biến đổi danh sách theo cách khác nhau **trước khi nối**.
+**Output explanation:**
+- Both varargs and `Iterable` insert the text `"null"` for a `null` element.
+- A `null` cast to `CharSequence` is **one element**, so it produces `"null"`.
+- An empty collection yields an empty string, while a middle empty element preserves two delimiters.
+- The delimiter, varargs array, and `Iterable` object must not be `null`.
+- `StringJoiner.add(null)` also appends the text `"null"`.
+- The `skip`, `asEmpty`, and `placeholder` policies transform the list differently **before joining**.
 
-Chương trình chủ động bắt `NullPointerException` ở từng thí nghiệm để chứng minh hành vi, chứ không khuyến khích dùng `try/catch` thay thế xác thực đầu vào trong mọi chương trình thực tế.
+The program intentionally catches `NullPointerException` in each experiment to demonstrate behavior; it is not recommending `try/catch` as a replacement for input validation in production code.
 
-## 9. `StringJoiner` và `Collectors.joining` liên quan thế nào?
+## 9. How Do `StringJoiner` and `Collectors.joining` Relate?
 
-`StringJoiner` là công cụ bổ sung hữu ích nếu cần thêm phần tử dần dần hoặc muốn prefix/suffix:
+`StringJoiner` is a useful complementary tool when you need to add elements incrementally or want a prefix/suffix:
 
 ```java
 import java.util.StringJoiner;
@@ -467,13 +467,13 @@ joiner.add("B");
 System.out.println(joiner.toString()); // [A, null, B]
 ```
 
-Với `StringJoiner`:
-- Delimiter truyền vào constructor không được `null`; nếu `null` thì ném `NullPointerException`.
-- `add((CharSequence) null)` chèn văn bản `"null"`.
-- Constructor ba tham số còn yêu cầu `prefix` và `suffix` không `null`.
-- Nếu chưa thêm phần tử, biểu diễn mặc định gồm `prefix + suffix`; có thể cấu hình `setEmptyValue` nếu cần.
+With `StringJoiner`:
+- The delimiter passed to the constructor must not be `null`; if it is `null`, it throws `NullPointerException`.
+- `add((CharSequence) null)` inserts the text `"null"`.
+- The three-argument constructor also requires non-`null` `prefix` and `suffix`.
+- When no elements have been added yet, the default representation is `prefix + suffix`; you can configure `setEmptyValue` if needed.
 
-Ví dụ phân biệt rỗng và một phần tử rỗng:
+Example distinguishing empty vs. one empty element:
 
 ```java
 StringJoiner empty = new StringJoiner(",", "[", "]");
@@ -484,9 +484,9 @@ oneBlank.add("");
 System.out.println(oneBlank); // []
 ```
 
-Dù biểu diễn ngoài giống nhau, trạng thái “đã thêm một phần tử” khác nhau. Khi cần khả năng khôi phục chính xác cấu trúc dữ liệu, không nên xem `StringJoiner` hay `String.join` là một bộ mã hóa cấu trúc.
+Even though the external representation looks identical, the "an element has been added" state differs. When exact structural recovery is required, neither `StringJoiner` nor `String.join` should be treated as a structured encoder.
 
-`Collectors.joining(delimiter)` thường được dùng sau `stream()`. Nó giúp ứng dụng **lọc**, **ánh xạ** hoặc **kiểm tra** đầu vào trước khi nối:
+`Collectors.joining(delimiter)` is commonly used after `stream()`. It lets the application **filter**, **map**, or **validate** inputs before joining:
 
 ```java
 String result = parts.stream()
@@ -494,21 +494,21 @@ String result = parts.stream()
         .collect(java.util.stream.Collectors.joining(","));
 ```
 
-Nếu `parts` bằng `null` thì gọi `parts.stream()` đã gây `NullPointerException` trước khi `Collectors.joining` có cơ hội xử lý. Nếu bạn cần coi danh sách `null` là rỗng, việc lựa chọn đó phải diễn ra **trước lệnh `stream()`**.
+If `parts` is `null`, calling `parts.stream()` already throws `NullPointerException` before `Collectors.joining` ever runs. If you need to treat a `null` list as empty, that choice must happen **before calling `stream()`**.
 
-Không nên suy luận rằng chỉ vì dùng Stream thì các quy tắc về `null` tự thay đổi theo ý muốn. Chính sách rõ ràng nhất là áp dụng `filter`/`map`/validation tường minh theo hợp đồng ứng dụng.
+Do not assume that merely using a Stream changes the `null` rules automatically. The clearest policy is applying explicit `filter`/`map`/validation according to your application contract.
 
-## 10. Thiết kế API có chính sách `null` rõ ràng
+## 10. Designing an API with a Clear `null` Policy
 
-Một thiết kế ghép chuỗi bền vững thường xác định trước ba câu hỏi:
+A robust string-joining design typically settles three questions upfront:
 
-**(A) Delimiter có bắt buộc không?** Nếu có, yêu cầu không `null`. Nếu không, quyết định giá trị mặc định rõ ràng, chẳng hạn `""` hoặc `", "`.
+**(A) Is the delimiter required?** If yes, require non-`null`. If not, decide on an explicit default such as `""` or `", "`.
 
-**(B) Tập phần tử có bắt buộc không?** Phân biệt *thiếu danh sách* (`null`), *có danh sách nhưng rỗng*, và *có phần tử rỗng* nếu nghiệp vụ cần sự khác nhau.
+**(B) Is the element collection required?** Distinguish *missing list* (`null`), *existing empty list*, and *contains empty elements* if business logic cares about the difference.
 
-**(C) `null` ở từng phần tử có ý nghĩa gì?** Phải chọn: lỗi đầu vào, bỏ mục, giữ vị trí với chuỗi rỗng, placeholder, hay biểu diễn kiểu dữ liệu có thể khôi phục.
+**(C) What does `null` on an individual element mean?** Choose among: input error, drop item, keep slot with empty string, placeholder, or typed recoverable representation.
 
-Ví dụ API **cấm `null` ở mọi cấp**, thích hợp cho trường cấu hình cần dữ liệu đầy đủ:
+Example of an API that **forbids `null` at every level**, suitable for configuration fields requiring complete data:
 
 ```java
 static String strictJoin(
@@ -528,9 +528,9 @@ static String strictJoin(
 }
 ```
 
-Đây là **phương thức hỗ trợ**, cần đặt bên trong một lớp Java. Phương thức khác với `String.join` mặc định: nó **báo lỗi** nếu có phần tử `null`, thay vì chuyển thành chữ `"null"`.
+This is a **helper method** to place inside a Java class. Unlike default `String.join`, it **fails with an error** on a `null` element instead of turning it into `"null"`.
 
-Một lựa chọn khác là **bỏ `null`**:
+Another option is **skipping `null`**:
 
 ```java
 static String skipNulls(
@@ -550,28 +550,28 @@ static String skipNulls(
 }
 ```
 
-Ví dụ đầu vào `["A", null, "B"]` tạo `"A,B"` khi delimiter là `","`. Nếu có các trường dữ liệu theo vị trí cố định, **cân nhắc hậu quả bỏ cột** trước khi chọn chính sách này.
+For example, input `["A", null, "B"]` produces `"A,B"` when the delimiter is `","`. If data has positional columns, **weigh the consequences of dropping a column** before choosing this policy.
 
-## 11. Lưu ý khi xử lý dữ liệu ngoài ứng dụng
+## 11. Notes When Handling External Data
 
-Các bài toán thường gặp:
+Common scenarios:
 
-| Tình huống | Chính sách nên cân nhắc | Vì sao? |
+| Scenario | Policy to consider | Why? |
 | --- | --- | --- |
-| Tạo log chỉ để đọc | Placeholder cho `null` hoặc giữ mặc định `"null"`, nếu được chấp nhận | Dễ nhìn nhưng không bảo đảm khôi phục kiểu dữ liệu. |
-| Ghép nhãn người dùng | Có thể lọc `null` hoặc thay bằng văn bản phù hợp | Tránh xuất chữ `"null"` khó hiểu cho người dùng. |
-| Dữ liệu cột theo vị trí | Không âm thầm bỏ `null` | Bỏ một mục sẽ làm thay đổi vị trí các cột. |
-| Cấu hình mà mọi phần bắt buộc | Fail fast khi thiếu delimiter/tập/phần tử | Phát hiện thiếu dữ liệu sớm. |
-| Xuất CSV/JSON | Dùng bộ mã hóa định dạng phù hợp | Cần xử lý escape, ký tự phân cách, dấu nháy và `null` đúng kiểu. |
-| Chuỗi cần phân tích ngược về danh sách | Dùng schema/encoding có thể khôi phục | `String.join` không giữ đủ thông tin để đảo ngược mọi trường hợp. |
+| Read-only logs | Placeholder for `null` or keep default `"null"`, if acceptable | Readable, though it does not preserve data types. |
+| Joining user-facing labels | Filter `null` or replace with user-friendly text | Avoids exposing confusing `"null"` text to users. |
+| Positional column data | Do not silently drop `null` | Dropping an item shifts column positions. |
+| Config where every part is required | Fail fast on missing delimiter/collection/element | Catches missing data early. |
+| CSV/JSON export | Use a format-appropriate encoder | Needs proper escaping, delimiters, quotes, and typed `null`. |
+| Strings that must parse back to a list | Use a recoverable schema/encoding | `String.join` does not preserve enough info to invert every case. |
 
-Một chuỗi như `"A,null,B"` không cho biết phần tử giữa vốn là Java `null` hay chuỗi `"null"`. Tương tự, `"A,,B"` có thể chứa một phần tử rỗng, nhưng nếu delimiter nằm trong dữ liệu thật, việc phân tách bằng `split` cũng không tự bảo đảm dựng lại đúng danh sách ban đầu.
+A string like `"A,null,B"` does not reveal whether the middle element was originally Java `null` or the string `"null"`. Likewise, `"A,,B"` may contain an empty element, yet if the delimiter appears inside real data, splitting with `split` also cannot guarantee reconstructing the original list.
 
-Nếu đầu ra được dùng để xây dựng SQL, câu lệnh shell, CSV hoặc đường dẫn, **đừng xem nối chuỗi là cơ chế escape hoặc bảo vệ injection**. Hãy dùng API có tham số hoặc bộ mã hóa chuyên dụng theo ngữ cảnh.
+If the output is used to build SQL, shell commands, CSV, or file paths, **do not treat string joining as escaping or injection protection**. Use parameterized APIs or context-specific encoders.
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-### Bài 1 — Ba loại `null`
+### Exercise 1 — Three Kinds of `null`
 
 ```java
 String.join(",", (CharSequence) null);
@@ -579,18 +579,18 @@ String.join(",", (CharSequence[]) null);
 String.join(",", (Iterable<? extends CharSequence>) null);
 ```
 
-**Đáp án:** Lời gọi thứ nhất tạo chuỗi `"null"`; lời gọi thứ hai và thứ ba ném `NullPointerException`. Ép kiểu thể hiện **một phần tử** khác **toàn bộ tập phần tử**.
+**Answer:** The first call produces the string `"null"`; the second and third calls throw `NullPointerException`. Casting distinguishes **one element** from **the entire element collection**.
 
-### Bài 2 — Delimiter rỗng so với `null`
+### Exercise 2 — Empty Delimiter vs. `null`
 
 ```java
 System.out.println(String.join("", "A", "B"));
 // String.join(null, "A", "B");
 ```
 
-**Đáp án:** Dòng đầu in `AB`. Dòng bị chú thích nếu chạy sẽ ném `NullPointerException` vì delimiter `null` không hợp lệ.
+**Answer:** The first line prints `AB`. The commented line, if executed, throws `NullPointerException` because a `null` delimiter is invalid.
 
-### Bài 3 — `List.of` và `Arrays.asList`
+### Exercise 3 — `List.of` and `Arrays.asList`
 
 ```java
 java.util.List<String> a =
@@ -598,15 +598,15 @@ java.util.List<String> a =
 // java.util.List<String> b = java.util.List.of("A", null, "B");
 ```
 
-**Đáp án:** `Arrays.asList` tạo danh sách chứa phần tử `null`; `List.of` không cho phép phần tử `null` và sẽ ném `NullPointerException` khi khởi tạo. Đây là hợp đồng của collection factory, không phải của `String.join`.
+**Answer:** `Arrays.asList` creates a list containing a `null` element; `List.of` does not allow `null` elements and throws `NullPointerException` upon creation. That is the contract of the collection factory, not `String.join`.
 
-### Bài 4 — Bỏ phần tử hay giữ vị trí?
+### Exercise 4 — Drop Element or Keep Position?
 
-Đầu vào theo cột `["id-1", null, "ACTIVE"]`. Nếu bỏ `null` trước khi join bằng `";"`, đầu ra là gì, và rủi ro gì?
+Positional input `["id-1", null, "ACTIVE"]`. If you drop `null` before joining with `";"`, what is the output and what is the risk?
 
-**Đáp án:** `"id-1;ACTIVE"`. Vị trí “cột thứ hai” biến mất, có thể khiến bên nhận gán nhầm `ACTIVE` vào cột khác. Nếu định dạng cần giữ số cột, hãy dùng schema và encoding có quy tắc rõ ràng; không tự bỏ mục.
+**Answer:** `"id-1;ACTIVE"`. The "second column" slot disappears, which can cause a receiver to misassign `ACTIVE` to the wrong column. If the format must preserve column count, use a schema and encoding with clear rules; do not drop items on your own.
 
-### Bài 5 — Chuỗi `"null"` có phân biệt được Java `null` không?
+### Exercise 5 — Can the String `"null"` Be Distinguished from Java `null`?
 
 ```java
 String a = String.join(",", "A", (CharSequence) null);
@@ -614,28 +614,28 @@ String b = String.join(",", "A", "null");
 System.out.println(a.equals(b));
 ```
 
-**Đáp án:** `true`. Kết quả văn bản giống nhau. `String.join` không bảo toàn kiểu nullable gốc.
+**Answer:** `true`. Their text results are identical. `String.join` does not preserve the original nullable type.
 
-### Bài 6 — Chọn chính sách cho UI
+### Exercise 6 — Choosing a UI Policy
 
-Một ứng dụng ghép tên hiển thị từ các mục do người dùng nhập. Nếu thiếu một mục, có nên mặc định hiển thị chữ `"null"` không?
+An application joins display names from user-entered items. If an item is missing, should it default to displaying `"null"`?
 
-**Đáp án:** Không nên tự động mặc định. Xác định yêu cầu giao diện: bỏ mục bị thiếu, dùng placeholder dễ hiểu hoặc báo lỗi. Nếu ứng dụng cần lưu và khôi phục dữ liệu gốc, lưu một cấu trúc có thông tin nullable thay vì dựa vào chuỗi join.
+**Answer:** Do not default to that automatically. Define the UI requirement: omit the missing item, use a clear placeholder, or report an error. If the application needs to store and restore original data, store a structure that preserves nullability rather than relying on a joined string.
 
-## 13. Tóm tắt
+## 13. Summary
 
-- `String.join` có hai overload chính: **varargs `CharSequence...`** và **`Iterable<? extends CharSequence>`**.
-- **Delimiter `null` → `NullPointerException`.**
-- **Cả mảng varargs hoặc đối tượng `Iterable` bằng `null` → `NullPointerException`.**
-- **Một phần tử riêng lẻ bằng `null` → thêm chữ `"null"`**, không bỏ phần tử và không tự ném lỗi.
-- **Tập rỗng → chuỗi rỗng**; phần tử rỗng vẫn tham gia ghép và có thể tạo hai delimiter liên tiếp.
-- `StringJoiner.add(null)` cũng nối chữ `"null"`; `Collectors.joining` cho phép áp dụng chính sách `filter`/`map` tường minh trước khi ghép.
-- Phân biệt `null` và chuỗi `"null"`, cũng như giá trị chứa delimiter, nếu cần khôi phục dữ liệu.
-- Hãy định nghĩa chính sách `null` riêng cho **delimiter**, **tập phần tử**, và **từng phần tử** theo hợp đồng nghiệp vụ, thay vì chỉ dựa vào kết quả mặc định.
+- `String.join` has two main overloads: **varargs `CharSequence...`** and **`Iterable<? extends CharSequence>`**.
+- **`null` delimiter → `NullPointerException`.**
+- **Entire varargs array or `Iterable` object is `null` → `NullPointerException`.**
+- **Individual element is `null` → appends the text `"null"`**, neither skipping the element nor throwing an error automatically.
+- **Empty collection → empty string**; empty elements still participate in joining and can produce two consecutive delimiters.
+- `StringJoiner.add(null)` also appends `"null"`; `Collectors.joining` lets you apply explicit `filter`/`map` policies before joining.
+- Distinguish `null` from the string `"null"`, as well as values containing the delimiter, when data recovery is needed.
+- Define separate `null` policies for the **delimiter**, **element collection**, and **individual elements** based on your business contract rather than relying solely on defaults.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — `String.join(CharSequence, CharSequence...)` và `String.join(CharSequence, Iterable)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
-- [Java SE 17 — `StringJoiner`: constructor và `add(CharSequence)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/StringJoiner.html)
+- [Java SE 17 — `String.join(CharSequence, CharSequence...)` and `String.join(CharSequence, Iterable)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
+- [Java SE 17 — `StringJoiner`: constructors and `add(CharSequence)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/StringJoiner.html)
 - [Java SE 17 — `Collectors.joining`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Collectors.html)
-- [Java SE 17 — `List.of` và `Arrays.asList`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html)
+- [Java SE 17 — `List.of` and `Arrays.asList`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html)

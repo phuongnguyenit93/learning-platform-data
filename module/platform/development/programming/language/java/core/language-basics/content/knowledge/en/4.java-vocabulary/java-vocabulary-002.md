@@ -1,53 +1,53 @@
-# Quy tắc tên định danh và phân biệt chữ hoa, chữ thường trong Java
+# Identifier Rules and Case Sensitivity in Java
 
-## 1. Định danh là gì?
+## 1. What is an identifier?
 
-**Định danh (identifier)** là tên lập trình viên đặt cho một thành phần trong mã Java: biến, phương thức, lớp, interface, package, tham số hoặc hằng số. Ví dụ:
+An **identifier** is a name chosen by a programmer for an element in Java code: a variable, method, class, interface, package, parameter, or constant. For example:
 
 ~~~java
-int itemCount = 3;                 // itemCount: tên biến
-String customerName = "Lan";      // customerName: tên biến
+int itemCount = 3;                 // itemCount: variable name
+String customerName = "Lan";      // customerName: variable name
 ~~~
 
-Trong khai báo `public class IdentifierDemo`, `IdentifierDemo` là tên lớp. Trong `System.out.println(itemCount)`, `System`, `out`, `println`, `itemCount` là các tên được dùng để tham chiếu các thành phần khác nhau; dấu chấm `.` là ký hiệu truy cập thành viên, **không phải một phần của định danh đơn**.
+In the declaration `public class IdentifierDemo`, `IdentifierDemo` is a class name. In `System.out.println(itemCount)`, `System`, `out`, `println`, and `itemCount` are names used to reference different components; the dot `.` is a member access symbol, **not part of a single identifier**.
 
-**Hai câu hỏi cần tách biệt:**
+**Two questions to separate:**
 
-1. Tên đó **có hợp lệ theo cú pháp Java** hay không?
-2. Tên đó **có rõ nghĩa và phù hợp quy ước** hay không?
+1. Is the name **valid according to Java syntax**?
+2. Is the name **meaningful and aligned with conventions**?
 
-Một tên có thể hợp lệ nhưng khó đọc, chẳng hạn `a1` hoặc `$x`. Ngược lại, tên `item-count` nhìn giống cách đặt tên trong văn bản nhưng **không phải một định danh đơn hợp lệ** của Java.
+A name can be valid yet hard to read, such as `a1` or `$x`. Conversely, `item-count` looks like a name written in prose, but **is not a valid single Java identifier**.
 
-## 2. Quy tắc ký tự đầu và ký tự tiếp theo
+## 2. First character and subsequent character rules
 
-Một định danh thông thường phải tuân thủ quy tắc ký tự của Java:
+A regular identifier must follow Java's character rules:
 
-- Ký tự đầu phải là ký tự mà Java cho phép **bắt đầu định danh** (thường là chữ cái Unicode, `_` hoặc `$`).
-- Những ký tự tiếp theo có thể gồm các ký tự hợp lệ ở đầu, chữ số và một số ký tự Unicode khác được Java cho phép.
-- Không được có khoảng trắng, dấu `-`, dấu `.`, dấu `@` hoặc các ký hiệu toán tử như một phần của cùng một định danh.
-- Định danh không được là **từ khóa bị cấm ở vị trí đó**, literal `true`, `false`, `null`, hoặc định danh đặc biệt **`_` đứng một mình** (bị dành riêng từ Java 9).
-- Java **phân biệt chữ hoa và chữ thường**: `total`, `Total` và `TOTAL` là ba tên khác nhau.
+- The first character must be one that Java allows to **start an identifier** (typically a Unicode letter, `_`, or `$`).
+- Subsequent characters may include valid starting characters, digits, and certain other Unicode characters allowed by Java.
+- It cannot contain spaces, `-`, `.`, `@`, or operator symbols as part of the same identifier.
+- An identifier cannot be a **keyword prohibited in that position**, the literals `true`, `false`, `null`, or the special identifier **standalone `_`** (reserved since Java 9).
+- Java is **case-sensitive**: `total`, `Total`, and `TOTAL` are three different names.
 
-| Tên đề xuất | Hợp lệ làm tên biến thông thường? | Giải thích |
+| Proposed name | Valid as a regular variable name? | Explanation |
 |---|---|---|
-| `count` | Có | Bắt đầu bằng chữ |
-| `count2` | Có | Chữ số ở vị trí sau |
-| `_count` | Có | Dấu gạch dưới đầu tên được phép |
-| `$count` | Có | `$` được Java cho phép, nhưng không nên lạm dụng |
-| `sốLượng` | Có | Java hỗ trợ nhiều chữ cái Unicode |
-| `2count` | Không | Bắt đầu bằng chữ số |
-| `item-count` | Không | `-` được hiểu là toán tử trừ, không thuộc định danh |
-| `item count` | Không | Có khoảng trắng |
-| `item.count` | Không phải *một* định danh | Gồm hai định danh và dấu `.` |
-| `_ ` | Không | `_` đơn lẻ là ký hiệu dành riêng |
-| `class` | Không | Từ khóa Java |
-| `true`, `null` | Không | Literal dành riêng, không dùng làm tên biến |
+| `count` | Yes | Starts with a letter |
+| `count2` | Yes | Digit in a subsequent position |
+| `_count` | Yes | Leading underscore is allowed |
+| `$count` | Yes | `$` is allowed by Java, though it should not be overused |
+| `sốLượng` | Yes | Java supports many Unicode letters |
+| `2count` | No | Starts with a digit |
+| `item-count` | No | `-` is interpreted as a subtraction operator, not part of the identifier |
+| `item count` | No | Contains whitespace |
+| `item.count` | Not *one* identifier | Consists of two identifiers and `.` |
+| `_ ` | No | Standalone `_` is a reserved symbol |
+| `class` | No | Java keyword |
+| `true`, `null` | No | Reserved literals, cannot be used as variable names |
 
-**Chi tiết:** Các quy tắc Unicode thực tế được mô tả bởi các phép kiểm tra tương đương `Character.isJavaIdentifierStart(int)` và `Character.isJavaIdentifierPart(int)`, nhưng **kiểm tra ký tự thôi chưa đủ**: vẫn phải loại trừ từ khóa, một số tên bị dành riêng và xem ngữ cảnh cú pháp. Không nên dùng một regex ASCII đơn giản để kết luận mọi định danh Unicode đều không hợp lệ.
+**Details:** The actual Unicode rules are described by checks equivalent to `Character.isJavaIdentifierStart(int)` and `Character.isJavaIdentifierPart(int)`, but **character checks alone are not enough**: keywords and certain reserved names must still be excluded, and syntactic context must be considered. Do not use a simple ASCII regex to conclude that all Unicode identifiers are invalid.
 
-## 3. Java phân biệt hoa/thường như thế nào?
+## 3. How is Java case-sensitive?
 
-Java là ngôn ngữ **case-sensitive**. Đổi một ký tự từ hoa sang thường có thể đổi sang **một định danh khác** hoặc gây lỗi vì không tìm được tên.
+Java is a **case-sensitive** language. Changing a single character from uppercase to lowercase can change it into **another identifier** or cause an error because the name cannot be found.
 
 ~~~java
 int price = 100;
@@ -57,49 +57,49 @@ System.out.println(price); // 100
 System.out.println(Price); // 200
 ~~~
 
-Cả hai khai báo có thể cùng tồn tại trong một phạm vi vì tên khác nhau, nhưng cách đặt như vậy dễ gây nhầm lẫn và thường nên tránh.
+Both declarations can coexist in the same scope because their names differ, but naming things this way easily causes confusion and should generally be avoided.
 
-Tương tự:
+Similarly:
 
-- `String` là tên lớp thư viện chuẩn; `string` không tự động được hiểu là `String`.
-- `println` và `printLn` không phải một tên phương thức.
-- `getName` và `getname` là hai tên khác nhau.
-- `Customer` và `customer` là hai tên khác nhau (nếu được khai báo).
-- `TRUE` có thể là một tên biến thông thường, còn `true` là literal boolean.
+- `String` is a standard library class name; `string` is not automatically understood as `String`.
+- `println` and `printLn` are not the same method name.
+- `getName` and `getname` are two different names.
+- `Customer` and `customer` are two different names (if declared).
+- `TRUE` can be a regular variable name, whereas `true` is a boolean literal.
 
-Ví dụ sai tên:
+Example of a mismatched name:
 
 ~~~java
 int total = 10;
-// System.out.println(Total); // Lỗi biên dịch: không có biến Total
+// System.out.println(Total); // Compile error: variable Total does not exist
 ~~~
 
-`javac` thường báo `cannot find symbol` cho `Total`. Cách sửa là dùng **`total`** đúng với khai báo, thay vì đổi tên tùy tiện ở nhiều nơi.
+`javac` usually reports `cannot find symbol` for `Total`. The fix is to use **`total`** matching the declaration, rather than arbitrarily renaming across multiple places.
 
-**Không nhầm `case-sensitive` với cách hệ điều hành lưu tệp.** Hệ thống tệp Windows và Linux có thể xử lý chữ hoa/thường trong tên file khác nhau, nhưng **tên biến/lớp/method trong Java vẫn phân biệt hoa/thường**.
+**Do not confuse `case-sensitive` with how operating systems store files.** Windows and Linux file systems may handle letter casing in filenames differently, yet **variable/class/method names in Java remain case-sensitive**.
 
-## 4. Từ khóa, literal và tên bị hạn chế
+## 4. Keywords, literals, and restricted names
 
-Một tên có thể dùng ký tự hoàn toàn hợp lệ nhưng vẫn bị từ chối vì trùng **từ dành riêng** hoặc xuất hiện ở **ngữ cảnh cú pháp bị hạn chế**:
+A name can use completely valid characters and still be rejected because it collides with a **reserved word** or appears in a **restricted syntactic context**:
 
-- `class`, `int`, `return`, `const`, `goto` là các từ khóa dành riêng, không dùng làm tên biến.
-- `true`, `false`, `null` là **literal**, không phải từ khóa, nhưng cũng không thể làm tên biến.
-- `var`, `record`, `yield`, `sealed`, `permits` chịu những quy tắc theo ngữ cảnh riêng; ví dụ `int var = 7;` hợp lệ, còn `var` bị hạn chế ở vị trí tên kiểu.
-- `_` đứng một mình bị dành riêng từ Java 9, nhưng `_count` và `__` là những tên hợp lệ trên Java 17.
+- `class`, `int`, `return`, `const`, `goto` are reserved keywords and cannot be used as variable names.
+- `true`, `false`, `null` are **literals**, not keywords, yet cannot serve as variable names either.
+- `var`, `record`, `yield`, `sealed`, `permits` are subject to specific contextual rules; for example, `int var = 7;` is valid, while `var` is restricted in a type name position.
+- Standalone `_` has been reserved since Java 9, but `_count` and `__` are valid names on Java 17.
 
 ~~~java
 int _count = 5;
 int __ = 6;
 int var = 7;
-// int _ = 8;      // Sai: _ đứng một mình.
-// int class = 9;  // Sai: class là keyword.
+// int _ = 8;      // Invalid: _ stands alone.
+// int class = 9;  // Invalid: class is a keyword.
 ~~~
 
-Điểm cần nhớ khi **kiểm tra tên định danh** là tách việc kiểm tra ký tự khỏi việc kiểm tra từ dành riêng và vị trí sử dụng. Các bài về keyword theo ngữ cảnh và `_`/`const`/`goto` phân tích sâu hơn những trường hợp này.
+The key point when **checking identifier names** is to separate character validation from checking reserved words and usage position. The lessons on contextual keywords and `_`/`const`/`goto` analyze these cases in greater depth.
 
-## 5. Ví dụ Java 17 chạy được: các tên tương tự nhưng khác nhau
+## 5. Runnable Java 17 example: similar yet distinct names
 
-Tạo tệp tên chính xác **`IdentifierDemo.java`** với nội dung:
+Create a file named **`IdentifierDemo.java`** with exact contents:
 
 ~~~java
 public final class IdentifierDemo {
@@ -121,7 +121,7 @@ public final class IdentifierDemo {
 }
 ~~~
 
-Mở terminal trong thư mục chứa file.
+Open a terminal in the directory containing the file.
 
 **Bash (Linux/macOS):**
 
@@ -141,7 +141,7 @@ javac --release 17 -encoding UTF-8 .\IdentifierDemo.java
 java -cp . IdentifierDemo
 ~~~
 
-Đầu ra dự kiến:
+Expected output:
 
 ~~~text
 count = 2
@@ -151,18 +151,18 @@ $count = 9
 soLuong = 3
 ~~~
 
-Qua chương trình này:
+From this program:
 
-- `count` và `Count` không cùng biến.
-- `_count` và `$count` hợp lệ về mặt cú pháp, dù không phải lựa chọn thông thường để đặt tên biến ứng dụng.
-- `sốLượng` hợp lệ vì Java hỗ trợ Unicode; cờ `-encoding UTF-8` giúp compiler đọc source lưu bằng UTF-8 chính xác.
-- Tên class `IdentifierDemo` phải khớp tệp nguồn `IdentifierDemo.java` vì đây là top-level `public class`. Khi chạy class mode, dùng tên class `IdentifierDemo`, không thêm `.java`.
+- `count` and `Count` are not the same variable.
+- `_count` and `$count` are syntactically valid, though not conventional choices for naming application variables.
+- `sốLượng` is valid because Java supports Unicode; the `-encoding UTF-8` flag helps the compiler read UTF-8-saved source code accurately.
+- The class name `IdentifierDemo` must match the source file `IdentifierDemo.java` because it is a top-level `public class`. When running in class mode, use the class name `IdentifierDemo` without adding `.java`.
 
-**Khuyến nghị thực tế:** mặc dù Java cho phép nhiều ký tự Unicode, trong các dự án nhiều công cụ và nhiều quốc gia, nhóm phát triển thường thống nhất cách đặt tên dễ nhập, dễ tìm kiếm và tương thích với quy ước dự án. Đây là **quy ước**, không phải giới hạn cú pháp của Java.
+**Practical recommendation:** although Java allows many Unicode characters, in projects involving multiple tools and countries, development teams typically agree on naming styles that are easy to type, easy to search, and compatible with project conventions. This is a **convention**, not a Java syntax limitation.
 
-## 6. Tạo lỗi có chủ đích và biết đọc thông báo compiler
+## 6. Intentionally creating errors and reading compiler messages
 
-Tạo một file thử tên **`BadIdentifiers.java`**:
+Create a test file named **`BadIdentifiers.java`**:
 
 ~~~java
 public class BadIdentifiers {
@@ -175,15 +175,15 @@ public class BadIdentifiers {
 }
 ~~~
 
-Lệnh:
+Command:
 
 ~~~bash
 javac --release 17 BadIdentifiers.java
 ~~~
 
-**Kết quả:** `javac` **không tạo được class file mới thành công** cho mã sai này; sẽ báo lỗi cú pháp/từ khóa. Nội dung chi tiết và số dòng báo lỗi có thể khác theo JDK.
+**Result:** `javac` **fails to produce a new class file** for this invalid code; it will report syntax/keyword errors. The exact wording and reported line numbers may vary by JDK.
 
-Cách sửa những khai báo sai:
+How to fix those invalid declarations:
 
 ~~~java
 int items2 = 4;
@@ -192,37 +192,37 @@ int classNumber = 3;
 int _value = 5;
 ~~~
 
-Những tên sửa đều hợp lệ. Tuy nhiên, **không phải đổi tên là đủ để chương trình đúng nghiệp vụ**: vẫn cần đặt tên mang ý nghĩa thực sự của từng giá trị.
+These fixed names are all valid. However, **simply renaming is not enough for the program to be business-logic correct**: you still need to choose names that carry the actual meaning of each value.
 
-### Lỗi do sai chữ hoa/thường
+### Errors from wrong letter casing
 
 ~~~java
 int maxScore = 100;
-// System.out.println(maxscore); // Sai: maxscore chưa khai báo
-System.out.println(maxScore);     // Đúng
+// System.out.println(maxscore); // Invalid: maxscore is not declared
+System.out.println(maxScore);     // Valid
 ~~~
 
-Nếu gặp `cannot find symbol: variable maxscore`, hãy đối chiếu ký tự với dòng khai báo; không tự suy đoán Java đã chuyển tên về chữ thường.
+If you encounter `cannot find symbol: variable maxscore`, compare the characters against the declaration line; do not assume Java converted the name to lowercase.
 
-## 7. Phân biệt quy tắc bắt buộc và quy ước đặt tên
+## 7. Distinguishing mandatory rules from naming conventions
 
-Java cho phép nhiều tên hợp lệ, nhưng code rõ ràng nên dùng quy ước thống nhất. Các quy ước phổ biến trong Java:
+Java permits many valid names, yet clean code should follow consistent conventions. Common conventions in Java:
 
-| Thành phần | Quy ước thường dùng | Ví dụ |
+| Element | Common convention | Example |
 |---|---|---|
-| Biến và tham số | `lowerCamelCase` | `itemCount`, `unitPrice` |
-| Method | `lowerCamelCase` | `calculateTotal()`, `isAvailable()` |
-| Class và interface | `UpperCamelCase` | `OrderService`, `Runnable` |
-| Hằng số `static final` | `UPPER_SNAKE_CASE` | `MAX_RETRIES`, `DEFAULT_PORT` |
-| Package | Chữ thường, các phần ngăn bằng dấu `.` | `com.example.catalog` |
-| Enum type | `UpperCamelCase` | `OrderStatus` |
-| Enum constants | `UPPER_SNAKE_CASE` thường thấy | `PENDING`, `IN_PROGRESS` |
+| Variables and parameters | `lowerCamelCase` | `itemCount`, `unitPrice` |
+| Methods | `lowerCamelCase` | `calculateTotal()`, `isAvailable()` |
+| Classes and interfaces | `UpperCamelCase` | `OrderService`, `Runnable` |
+| `static final` constants | `UPPER_SNAKE_CASE` | `MAX_RETRIES`, `DEFAULT_PORT` |
+| Packages | Lowercase, parts separated by `.` | `com.example.catalog` |
+| Enum types | `UpperCamelCase` | `OrderStatus` |
+| Enum constants | Typically `UPPER_SNAKE_CASE` | `PENDING`, `IN_PROGRESS` |
 
-**Cú pháp hợp lệ không đồng nghĩa bắt buộc đặt tên theo bảng.** Ví dụ biến `MAX_RETRIES` hợp lệ dù không `static final`; nhưng dùng chữ hoa như hằng số sẽ khiến người đọc hiểu nhầm. Ngược lại, compiler không bắt mọi tên class đều bắt đầu bằng chữ hoa.
+**Valid syntax does not mean following the table is mandatory.** For example, a variable named `MAX_RETRIES` is valid even without `static final`; however, using uppercase like a constant will mislead readers. Conversely, the compiler does not require every class name to begin with an uppercase letter.
 
-Tránh những tên quá ngắn hoặc che mất ý nghĩa (`x1`, `aaa`, `temp2`) khi không có lý do rõ ràng. Với vòng lặp rất ngắn, `i` hoặc `j` vẫn có thể chấp nhận khi ngữ cảnh hiển nhiên.
+Avoid overly short or obscured names (`x1`, `aaa`, `temp2`) when there is no clear reason. For very short loops, `i` or `j` remains acceptable when the context is obvious.
 
-### Phân biệt tên đầy đủ và một định danh đơn
+### Distinguishing a qualified name from a single identifier
 
 ~~~java
 package com.example.catalog;
@@ -234,13 +234,13 @@ public class OrderService {
 }
 ~~~
 
-`com.example.catalog` là **tên package đầy đủ**, gồm các định danh `com`, `example`, `catalog` được ngăn bằng dấu `.`. Dấu chấm không biến toàn bộ chuỗi thành một định danh đơn.
+`com.example.catalog` is a **qualified package name**, consisting of the identifiers `com`, `example`, and `catalog` separated by `.`. The dot does not turn the entire sequence into a single identifier.
 
-`OrderService`, `calculateTotal`, `unitPrice`, `quantity` đều là các định danh riêng, mỗi tên có vai trò trong khai báo.
+`OrderService`, `calculateTotal`, `unitPrice`, and `quantity` are all individual identifiers, each playing a role in the declaration.
 
-## 8. Unicode và ký tự đặc biệt: dùng đúng nhưng thận trọng
+## 8. Unicode and special characters: use correctly but cautiously
 
-Java hỗ trợ nhiều ký tự Unicode ngoài ASCII trong tên biến/lớp:
+Java supports many non-ASCII Unicode characters in variable/class names:
 
 ~~~java
 int sốLượng = 2;
@@ -249,65 +249,65 @@ int thànhTiền = sốLượng * giá;
 System.out.println(thànhTiền); // 30
 ~~~
 
-Nếu nguồn lưu UTF-8, hãy biên dịch với `javac -encoding UTF-8` (khi cần có thể kết hợp `--release 17`). Việc console hiển thị Unicode đúng còn phụ thuộc terminal và cấu hình hệ thống; **khả năng đọc tên trong source** và **khả năng hiển thị output** là hai chuyện khác nhau.
+If the source is saved as UTF-8, compile with `javac -encoding UTF-8` (combined with `--release 17` when needed). Whether the console displays Unicode properly also depends on the terminal and system configuration; **readability of names in source code** and **output rendering capability** are two different things.
 
-Không giả định **mọi ký tự nhìn giống chữ** đều được Java chấp nhận hoặc được chuẩn hóa giống nhau. Ví dụ một chữ có dấu có thể có những cách biểu diễn Unicode khác nhau; việc dùng không nhất quán dễ làm mã khó tìm kiếm và review. Trong đội nhóm, dùng bộ ký tự/quy ước nhất quán có thể quan trọng hơn việc tận dụng mọi ký tự Java cho phép.
+Do not assume **every character that looks like a letter** is accepted by Java or normalized identically. For instance, an accented letter may have different Unicode representations; inconsistent usage easily makes code harder to search and review. Within a team, using a consistent character set/convention can be more important than utilizing every character Java permits.
 
-### Vì sao Java cho phép `$`?
+### Why does Java allow `$`?
 
-Ký tự `$` hợp lệ trong tên, nhưng **quy ước Java khuyến khích hạn chế sử dụng trong định danh do lập trình viên tạo**; một số công cụ sinh mã hoặc tên class lồng nhau cũng có thể dùng `$`. Người học nên ưu tiên `itemCount` hơn `$itemCount` để mã dễ đọc và tránh nhập nhằng với tên do công cụ sinh ra.
+The `$` character is valid in names, yet **Java conventions discourage using it in programmer-created identifiers**; some code generation tools or nested class names may also use `$`. Learners should prefer `itemCount` over `$itemCount` to keep code readable and avoid ambiguity with tool-generated names.
 
-## 9. Cùng tên, khác phạm vi: đừng nhầm với phân biệt hoa/thường
+## 9. Same name, different scope: do not confuse with case sensitivity
 
-Trong **một block**, không thể khai báo hai biến cục bộ trùng tên:
+Within **one block**, you cannot declare two local variables with the same name:
 
 ~~~java
 int count = 1;
-// int count = 2; // Sai: biến cục bộ count đã được định nghĩa
-int Count = 2;    // Đúng về cú pháp, nhưng dễ gây nhầm
+// int count = 2; // Invalid: local variable count is already defined
+int Count = 2;    // Valid syntactically, but easily confusing
 ~~~
 
-Ngoài tên, Java còn xét **phạm vi (scope)** và **ngữ cảnh**. Một tham số method, field và biến cục bộ có thể có những quy tắc đặt tên/trùng tên khác nhau.
+Beyond the name, Java also considers **scope** and **context**. A method parameter, field, and local variable may have different naming/collision rules.
 
-Ví dụ về che khuất tên field:
+Example of field name shadowing:
 
 ~~~java
 class Box {
     private int size = 10;
 
     void show(int size) {
-        System.out.println(size);      // Tham số size
-        System.out.println(this.size); // Field của object
+        System.out.println(size);      // Parameter size
+        System.out.println(this.size); // Object's field
     }
 }
 ~~~
 
-Khi gọi `new Box().show(4)`, sẽ in `4` rồi `10`. Cả hai đều tên `size`, nhưng `this.size` chỉ rõ field. Trường hợp này là **name shadowing**, không phải cơ chế Java tự bỏ qua chữ hoa/chữ thường.
+Calling `new Box().show(4)` prints `4` then `10`. Both are named `size`, but `this.size` explicitly refers to the field. This case is **name shadowing**, not a mechanism where Java ignores letter casing.
 
-## 10. Những lỗi thực tế hay gặp
+## 10. Common practical errors
 
-| Triệu chứng | Vấn đề cần kiểm tra | Cách sửa |
+| Symptom | Issue to check | Fix |
 |---|---|---|
-| `cannot find symbol` ở tên biến | Gõ sai chữ hoa/thường, sai chính tả, nằm ngoài scope | Đối chiếu tên khai báo và phạm vi |
-| `';' expected` hoặc lỗi cú pháp gần tên | Tên có dấu `-`, khoảng trắng hoặc ký hiệu lạ | Dùng định danh hợp lệ, ví dụ `totalPrice` |
-| `<identifier> expected` | Tên sai vị trí, bắt đầu bằng số hoặc từ khóa | Chọn tên hợp lệ theo Java |
-| `as of release 9, '_' is a keyword` (hoặc thông báo tương đương) | Dùng `_` đơn lẻ | Đổi thành `_value` hoặc tên có nghĩa |
-| `variable x is already defined` | Khai báo hai biến cùng tên tại vị trí cấm trùng | Đổi tên có ý nghĩa hoặc bỏ khai báo dư |
-| `class IdentifierDemo is public, should be declared ...` | Tên source và top-level public class không khớp | Đặt tệp `IdentifierDemo.java` |
-| Source chứa tên Unicode biên dịch sai | Encoding không khớp | Lưu UTF-8 và dùng `-encoding UTF-8` |
-| Class/method tên khác hoa thường bị thiếu | Java phân biệt `Demo` và `demo`, `run` và `Run` | Sửa đúng tên ở khai báo/lời gọi |
+| `cannot find symbol` on a variable name | Wrong letter case, typo, out of scope | Check the declared name and scope |
+| `';' expected` or syntax error near a name | Name contains `-`, spaces, or unusual symbols | Use a valid identifier, e.g. `totalPrice` |
+| `<identifier> expected` | Name in wrong position, starts with a digit or keyword | Choose a Java-valid name |
+| `as of release 9, '_' is a keyword` (or equivalent message) | Used standalone `_` | Rename to `_value` or a meaningful name |
+| `variable x is already defined` | Declared two variables with the same name where forbidden | Use a meaningful distinct name or remove the duplicate declaration |
+| `class IdentifierDemo is public, should be declared ...` | Source filename and top-level public class do not match | Name the file `IdentifierDemo.java` |
+| Source with Unicode names compiles incorrectly | Encoding mismatch | Save as UTF-8 and use `-encoding UTF-8` |
+| Class/method with different casing is missing | Java distinguishes `Demo` from `demo`, `run` from `Run` | Fix the exact casing at declaration/call site |
 
-Khi sửa một lỗi, **đừng thay hàng loạt tên chỉ để compiler im lặng**. Đổi tên class, method hoặc public API còn có thể yêu cầu cập nhật những nơi tham chiếu và tên file tương ứng.
+When fixing an error, **do not mass-replace names just to silence the compiler**. Renaming a class, method, or public API may also require updating referencing sites and corresponding filenames.
 
-## 11. Bài tập có đáp án
+## 11. Exercises with answers
 
-### Bài A — tên nào hợp lệ?
+### Exercise A — which names are valid?
 
-Phân loại các tên sau khi dùng làm **tên biến** trong Java 17: `age`, `Age`, `age2`, `2age`, `_age`, `_`, `$age`, `class`, `true`, `total-price`.
+Classify the following when used as **variable names** in Java 17: `age`, `Age`, `age2`, `2age`, `_age`, `_`, `$age`, `class`, `true`, `total-price`.
 
-**Đáp án:** hợp lệ: `age`, `Age`, `age2`, `_age`, `$age`. Không hợp lệ: `2age` (đầu là số), `_` (dành riêng), `class` (từ khóa), `true` (literal), `total-price` (chứa dấu trừ).
+**Answer:** valid: `age`, `Age`, `age2`, `_age`, `$age`. Invalid: `2age` (starts with digit), `_` (reserved), `class` (keyword), `true` (literal), `total-price` (contains minus sign).
 
-### Bài B — dự đoán đầu ra
+### Exercise B — predict the output
 
 ~~~java
 int score = 10;
@@ -315,40 +315,40 @@ int Score = 20;
 System.out.println(score + Score);
 ~~~
 
-**Đáp án:** `30`. `score` và `Score` là hai biến riêng, không phải cùng một biến viết khác kiểu.
+**Answer:** `30`. `score` and `Score` are two separate variables, not the same variable written in different casing.
 
-### Bài C — sửa lỗi do case-sensitive
+### Exercise C — fix the case-sensitivity error
 
 ~~~java
 String customerName = "Lan";
 // System.out.println(customername);
 ~~~
 
-**Đáp án:** dùng `customerName` trong lời gọi `println`, hoặc thực hiện đổi tên đồng nhất ở mọi nơi. Không phải Java tự hiểu `customername` trùng `customerName`.
+**Answer:** use `customerName` in the `println` call, or rename consistently everywhere. Java does not treat `customername` as identical to `customerName`.
 
-### Bài D — đặt tên rõ nghĩa
+### Exercise D — meaningful naming
 
-Đổi ba tên `a`, `b`, `c` trong phép tính tiền hàng để người đọc đoán được ý nghĩa.
+Rename `a`, `b`, and `c` in an order total calculation so a reader can infer their meaning.
 
-**Đáp án gợi ý:** `unitPrice`, `quantity`, `subtotal`. Tên có nghĩa phản ánh dữ liệu và công thức, dù bản thân compiler không bắt buộc.
+**Suggested answer:** `unitPrice`, `quantity`, `subtotal`. Meaningful names reflect the data and formula, even though the compiler itself does not enforce them.
 
-### Bài E — Unicode và quy tắc đặt tên
+### Exercise E — Unicode and naming rules
 
-Đoạn `int sốLượng = 2;` có sai chỉ vì tên chứa dấu tiếng Việt không?
+Is `int sốLượng = 2;` invalid solely because the name contains Vietnamese diacritics?
 
-**Đáp án:** Không; đó là định danh hợp lệ. Nên lưu mã nguồn bằng UTF-8, đồng bộ encoding và quy ước nhóm. Không cần đổi sang ASCII chỉ để hợp lệ về cú pháp.
+**Answer:** No; it is a valid identifier. Source code should be saved as UTF-8, with consistent encoding and team conventions. There is no need to switch to ASCII solely for syntactic validity.
 
-## 12. Checklist hoàn thành
+## 12. Completion checklist
 
-- [ ] Giải thích được định danh là gì và khác dấu phân cách/toán tử.
-- [ ] Biết chữ số được đứng sau, nhưng không phải ký tự bắt đầu thông thường của tên.
-- [ ] Phân biệt `count`, `Count`, `COUNT` trong Java.
-- [ ] Nhận ra từ khóa, literal `true`/`false`/`null` và `_` đơn lẻ không hợp lệ làm tên biến.
-- [ ] Biết `_` và `$` có thể là **một phần** của tên, nhưng cần cân nhắc quy ước.
-- [ ] Biết Java hỗ trợ định danh Unicode, không giới hạn trong `A-Z`/`a-z`.
-- [ ] Áp dụng `lowerCamelCase`, `UpperCamelCase`, `UPPER_SNAKE_CASE` đúng vai trò theo quy ước.
-- [ ] Biên dịch và chạy `IdentifierDemo.java` trên JDK 17+; kết quả đúng bảng dự kiến.
-- [ ] Tự tìm lỗi `cannot find symbol` do gõ sai chữ hoa/thường và lỗi đặt tên không hợp lệ.
-- [ ] Phân biệt **sai tên**, **trùng tên trong scope** và **che khuất tên field**.
+- [ ] Explain what an identifier is and how it differs from separators/operators.
+- [ ] Know that digits may appear later, but not as the normal starting character of a name.
+- [ ] Distinguish `count`, `Count`, and `COUNT` in Java.
+- [ ] Recognize that keywords, literals `true`/`false`/`null`, and standalone `_` are invalid as variable names.
+- [ ] Know that `_` and `$` can be **part** of a name, while keeping conventions in mind.
+- [ ] Know that Java supports Unicode identifiers, not limited to `A-Z`/`a-z`.
+- [ ] Apply `lowerCamelCase`, `UpperCamelCase`, and `UPPER_SNAKE_CASE` to the right roles by convention.
+- [ ] Compile and run `IdentifierDemo.java` on JDK 17+; output matches the expected table.
+- [ ] Independently locate `cannot find symbol` errors caused by wrong casing and invalid naming errors.
+- [ ] Distinguish **wrong name**, **duplicate name in scope**, and **field name shadowing**.
 
-**Kết luận:** Một định danh Java phải dùng ký tự hợp lệ, không đụng tên bị dành riêng trong ngữ cảnh cú pháp, và được viết **đúng chữ hoa/chữ thường**. Quy tắc ngôn ngữ cho biết tên nào có thể biên dịch; quy ước đặt tên giúp chương trình rõ nghĩa, nhất quán và dễ bảo trì.
+**Conclusion:** A Java identifier must use valid characters, not collide with words reserved in that syntactic context, and be written with **exact letter casing**. Language rules determine which names can compile; naming conventions make programs clear, consistent, and maintainable.

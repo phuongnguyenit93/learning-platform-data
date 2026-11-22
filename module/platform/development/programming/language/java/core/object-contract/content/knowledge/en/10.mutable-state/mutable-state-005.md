@@ -1,101 +1,101 @@
-# Trường `final` không bảo đảm đối tượng thành phần bất biến trong Java
+# A `final` Field Does Not Guarantee That Component Objects Are Immutable in Java
 
-## 1. Vấn đề: cố định tham chiếu không đồng nghĩa cố định trạng thái
+## 1. The problem: fixing a reference does not mean fixing state
 
-Trong Java, `final` áp dụng cho **biến hoặc trường được khai báo**. Với một trường kiểu tham chiếu, `final` ngăn việc gán lại trường đó sau khi đã khởi tạo hợp lệ; nó **không tự khóa trạng thái** của đối tượng đang được tham chiếu.
+In Java, `final` applies to the **declared variable or field**. For a reference-type field, `final` prevents reassigning that field after valid initialization; it **does not lock the state** of the referenced object.
 
-Xét ví dụ ngắn:
+Consider a short example:
 
 ```java
 final StringBuilder text = new StringBuilder("Java");
-text.append(" 17");          // Hợp lệ: sửa trạng thái StringBuilder.
-// text = new StringBuilder(); // Lỗi biên dịch: không thể gán lại biến final.
+text.append(" 17");          // Valid: modifies StringBuilder state.
+// text = new StringBuilder(); // Compile error: cannot reassign final variable.
 System.out.println(text);     // Java 17
 ```
 
-Đây là **đoạn minh họa** đặt trong một phương thức; dấu chú thích về lỗi biên dịch không phải lệnh chạy. Sau lệnh `append`, chính object `StringBuilder` ban đầu đã đổi nội dung, trong khi biến `text` vẫn trỏ đến object cũ.
+This is an **illustrative snippet** placed inside a method; the comment about a compile error is not an executable statement. After the `append` call, the original `StringBuilder` object itself changed its contents, while the variable `text` still points to the old object.
 
-Nên phân biệt ba câu hỏi:
-1. Có gán lại biến/trường được không? — `final` kiểm soát điều này.
-2. Có thay đổi trạng thái của object được tham chiếu không? — phụ thuộc API và thiết kế của object.
-3. Có thay đổi trạng thái của **các object con** được tham chiếu từ object đó không? — phụ thuộc cấu trúc lồng nhau, khả năng giữ alias và cách sao chép.
+We should distinguish three questions:
+1. Can the variable/field be reassigned? — `final` controls this.
+2. Can the state of the referenced object be modified? — depends on the object's API and design.
+3. Can the state of **child objects** referenced from that object be modified? — depends on nesting structure, alias retention, and copying strategy.
 
-Vấn đề gắn trực tiếp với **Object Contract**: nếu một object dùng dữ liệu từ các thành phần có thể thay đổi để tính `equals()` hoặc `hashCode()`, hai phép này có thể đổi theo thời gian. Khi object đang là phần tử của `HashSet` hoặc khóa của `HashMap`, hậu quả có thể là tra cứu sai hoặc quan hệ trùng lặp thay đổi bất ngờ.
+This issue ties directly to the **Object Contract**: if an object uses data from mutable components to compute `equals()` or `hashCode()`, both operations can change over time. When the object is an element of a `HashSet` or a key of a `HashMap`, the consequence can be failed lookups or unexpected changes in duplicate relationships.
 
-## 2. Những cấp độ bất biến cần phân biệt
+## 2. Levels of immutability to distinguish
 
-| Khái niệm | Ý nghĩa | Điều chưa được bảo đảm |
+| Concept | Meaning | What is not yet guaranteed |
 |---|---|---|
-| Biến tham chiếu `final` | Không thể gán một tham chiếu khác cho chính biến đó | Object đang được trỏ tới vẫn có thể mutable |
-| Trường `private final` | Không thể gán lại trường sau khi đối tượng được xây dựng hợp lệ bằng Java thông thường | Các thuộc tính của object được tham chiếu vẫn có thể thay đổi |
-| Lớp `final` | Không thể tạo subclass của lớp | Các trường hoặc object con vẫn có thể mutable |
-| Collection không cho sửa cấu trúc | Không thêm/xóa/thay phần tử thông qua collection đó | Các phần tử mutable bên trong vẫn có thể thay đổi |
-| Sao chép nông (shallow copy) | Tạo cấu trúc bên ngoài độc lập, thường giữ các tham chiếu phần tử | Object phần tử được chia sẻ có thể thay đổi |
-| Sao chép sâu hoặc snapshot | Sao chép các phần mutable cần bảo vệ theo đồ thị dữ liệu | Cần thiết kế theo mô hình; không có lệnh Java chung tự đóng băng mọi object |
-| Bất biến quan sát được (immutable state) | Sau khi tạo, trạng thái có ý nghĩa của object không thay đổi qua API và alias ngoài | Phải kiểm tra getter, constructor, collection, phần tử lồng và cơ chế khác |
+| `final` reference variable | Cannot assign another reference to that variable itself | The pointed-to object may still be mutable |
+| `private final` field | Cannot reassign the field after the object is validly constructed in normal Java | Properties of the referenced object may still change |
+| `final` class | Cannot create subclasses of the class | Fields or child objects may still be mutable |
+| Structurally unmodifiable collection | Cannot add/remove/replace elements through that collection | Mutable elements inside may still change |
+| Shallow copy | Creates an independent outer structure, usually keeping element references | Shared element objects may change |
+| Deep copy or snapshot | Copies mutable parts needing protection across the data graph | Must be designed per model; there is no universal Java command to freeze every object |
+| Observable immutability (immutable state) | After creation, the object's meaningful state does not change via its API or external aliases | Must inspect getters, constructors, collections, nested elements, and other mechanisms |
 
-Ví dụ:
+Example:
 
 ```java
 final List<String> names = new ArrayList<>();
-names.add("An");             // Hợp lệ: ArrayList mutable.
-names.set(0, "Binh");        // Hợp lệ: thay phần tử.
-// names = List.of("Chi");   // Lỗi biên dịch: gán lại biến final.
+names.add("An");             // Valid: ArrayList is mutable.
+names.set(0, "Binh");        // Valid: replaces element.
+// names = List.of("Chi");   // Compile error: reassigning a final variable.
 ```
 
-Ở đây biến `names` không đổi tham chiếu nhưng nội dung list có thể đổi. Tương tự, `private final Date createdAt` vẫn có thể bị sửa thông qua `Date.setTime(...)` nếu code giữ tham chiếu đến `Date` hoặc getter trả trực tiếp object đó.
+Here, the `names` variable does not change its reference, yet the list contents can change. Similarly, `private final Date createdAt` can still be modified via `Date.setTime(...)` if code holds a reference to the `Date` or a getter returns that object directly.
 
-Ngược lại, các đối tượng như `String`, `Instant`, `LocalDate` là các kiểu bất biến trong những cách sử dụng thông thường: nếu một trường `final` tham chiếu trực tiếp tới chúng và không có trạng thái mutable khác ảnh hưởng ngữ nghĩa, lớp bao ngoài dễ giữ bất biến hơn.
+Conversely, objects like `String`, `Instant`, and `LocalDate` are immutable types in normal usage: if a `final` field points directly to them and there is no other mutable state affecting semantics, the enclosing class is easier to keep immutable.
 
-## 3. Hai con đường làm rò trạng thái mutable
+## 3. Two ways mutable state leaks out
 
-### 3.1. Alias từ constructor: người gọi giữ tham chiếu ban đầu
+### 3.1. Alias from constructor: the caller retains the original reference
 
-Giả sử một lớp như sau:
+Suppose a class looks like this:
 
 ```java
 final class UnsafeTags {
     private final List<String> tags;
 
     UnsafeTags(List<String> tags) {
-        this.tags = tags; // Giữ cùng object List do người gọi truyền vào.
+        this.tags = tags; // Keeps the same List object passed in by the caller.
     }
 }
 ```
 
-Tạo `ArrayList` ở bên ngoài rồi truyền vào constructor không tạo bản sao tự động. Người gọi giữ một **alias**, tức một tham chiếu khác đến cùng list. Sau khi object `UnsafeTags` đã được tạo, người gọi vẫn có thể `add`, `remove` hoặc `set`. Trường `tags` tuy `final` nhưng trạng thái object được tham chiếu đã đổi.
+Creating an `ArrayList` outside and passing it into the constructor does not automatically create a copy. The caller retains an **alias**, meaning another reference to the same list. After the `UnsafeTags` object is created, the caller can still call `add`, `remove`, or `set`. Although the `tags` field is `final`, the referenced object's state has changed.
 
-Trong ứng dụng thực tế, điều này còn xảy ra với array, `Date`, `Calendar`, `StringBuilder`, `ByteBuffer`, đối tượng chứa collection, hoặc một POJO mutable.
+In real applications, this also happens with arrays, `Date`, `Calendar`, `StringBuilder`, `ByteBuffer`, objects containing collections, or a mutable POJO.
 
-### 3.2. Alias từ getter: lớp tự trả ra đối tượng nội bộ
+### 3.2. Alias from getter: the class itself returns its internal object
 
-Ngay cả khi constructor sao chép list, một getter kiểu sau vẫn phá bảo vệ:
+Even if the constructor copies the list, a getter like the following still breaks protection:
 
 ```java
 List<String> tags() {
-    return tags; // Nếu tags là ArrayList nội bộ, caller có thể sửa.
+    return tags; // If tags is an internal ArrayList, the caller can mutate it.
 }
 ```
 
-Nếu đây là list mutable, người gọi có thể dùng `tags().clear()` hoặc `tags().add(...)`. Vì vậy muốn bảo đảm bất biến phải xét **cả đường đưa dữ liệu vào lẫn đường trả dữ liệu ra**.
+If this is a mutable list, the caller can use `tags().clear()` or `tags().add(...)`. Therefore, ensuring immutability requires checking **both the path bringing data in and the path returning data out**.
 
-Một biến thể sai khác là tạo wrapper:
+Another flawed variation is creating a wrapper:
 
 ```java
 this.tags = Collections.unmodifiableList(input);
 ```
 
-Wrapper chặn sửa **qua chính wrapper**, nhưng nếu `input` vẫn là `ArrayList` mà caller giữ, caller có thể sửa `input` và wrapper sẽ nhìn thấy thay đổi. Wrapper này là một **view**, không phải snapshot độc lập. Phải kết hợp copy với wrapper khi muốn chặn cả hai hướng:
+The wrapper blocks edits **through the wrapper itself**, but if `input` is still an `ArrayList` held by the caller, the caller can modify `input` and the wrapper will reflect the change. This wrapper is a **view**, not an independent snapshot. You must combine copying with wrapping when you want to block both directions:
 
 ```java
 this.tags = Collections.unmodifiableList(new ArrayList<>(input));
 ```
 
-Đây là đoạn minh họa trong constructor có biến `input` và trường `tags` tương ứng. Với một danh sách các kiểu bất biến, `List.copyOf(input)` thường ngắn gọn hơn.
+This is an illustrative snippet inside a constructor with the corresponding `input` variable and `tags` field. For a list of immutable types, `List.copyOf(input)` is usually more concise.
 
-## 4. Ví dụ Java 17 độc lập: quan sát sự khác biệt
+## 4. Standalone Java 17 example: observing the difference
 
-Tạo file **`FinalReferenceDemo.java`** với nội dung sau. Ví dụ cố ý giữ reference mutable trong `UnsafeTags`; `SafeTags` chụp snapshot bằng `List.copyOf`; `DeepSnapshot` sao chép từng phần tử mutable sang một record bất biến.
+Create a file **`FinalReferenceDemo.java`** with the following content. The example intentionally retains a mutable reference in `UnsafeTags`; `SafeTags` captures a snapshot with `List.copyOf`; `DeepSnapshot` copies each mutable element into an immutable record.
 
 ```java
 import java.util.ArrayList;
@@ -157,7 +157,7 @@ public class FinalReferenceDemo {
                 + snapshot.parts().get(0).label());
     }
 
-    // CỐ Ý KHÔNG AN TOÀN: final chỉ cố định tham chiếu list.
+    // INTENTIONALLY UNSAFE: final only fixes the list reference.
     static final class UnsafeTags {
         private final List<String> tags;
 
@@ -181,7 +181,7 @@ public class FinalReferenceDemo {
         }
     }
 
-    // Snapshot cấu trúc; an toàn ở đây vì String bất biến.
+    // Structural snapshot; safe here because String is immutable.
     static final class SafeTags {
         private final List<String> tags;
 
@@ -205,7 +205,7 @@ public class FinalReferenceDemo {
         }
     }
 
-    // Đối tượng thành phần cố ý mutable để minh họa alias.
+    // Component object intentionally mutable to illustrate aliasing.
     static final class MutablePart {
         private String label;
 
@@ -222,7 +222,7 @@ public class FinalReferenceDemo {
         }
     }
 
-    // Record gồm String bất biến: biểu diễn giá trị snapshot.
+    // Record containing an immutable String: represents snapshot value.
     record PartValue(String label) {
         PartValue {
             Objects.requireNonNull(label, "label");
@@ -260,14 +260,14 @@ public class FinalReferenceDemo {
 }
 ```
 
-Dùng JDK 17 hoặc mới hơn:
+Use JDK 17 or newer:
 
 ```bash
 javac --release 17 FinalReferenceDemo.java
 java FinalReferenceDemo
 ```
 
-Kết quả dự kiến:
+Expected output:
 
 ```text
 unsafe after caller edit: [java, hash]
@@ -282,73 +282,73 @@ shallow element now: HCM
 deep snapshot keeps: HCM
 ```
 
-**Giải thích từng nhóm kết quả:**
+**Explanation of each group of results:**
 
-- `UnsafeTags` giữ chính `callerTags`; người gọi sửa list sau khi constructor trả về thì `unsafe.tags()` cũng thay đổi. Getter lại trả chính list đó, nên lần sửa qua getter được phản ánh trong `callerTags`.
-- `UnsafeTags.hashCode()` dựa trên `List.hashCode()` và nội dung list. Sau khi thêm `"mutable"`, hash trong bộ dữ liệu ví dụ thay đổi mặc dù trường `tags` vẫn là `final`. Đây là mối nguy nếu object đã được đưa vào `HashSet` hoặc làm khóa `HashMap`.
-- `SafeTags` dùng `List.copyOf`. Vì các phần tử là `String` bất biến, caller sửa `source` sau constructor không đổi trạng thái bên trong. Danh sách kết quả không hỗ trợ `add`, nên ném `UnsupportedOperationException`. Hash dựa trên nội dung ổn định và `HashSet.contains(safe)` vẫn hoạt động.
-- Hai `SafeTags` được tạo từ các list khác nhau nhưng cùng nội dung `["java"]` trả `equals == true`; hash của chúng cũng bằng nhau nhờ cùng thuật toán list.
-- `List.copyOf(List.of(mutablePart))` tạo một danh sách không cho sửa cấu trúc nhưng vẫn giữ **tham chiếu cùng `MutablePart`**. Khi gọi `setLabel("HCM")`, phần tử nhìn qua list shallow cũng đổi.
-- `DeepSnapshot` chuyển `MutablePart` sang `PartValue` (record chứa một `String` bất biến) và lưu list không cho sửa. Vì thế lần đổi tiếp theo của `mutablePart` sang `"Da Nang"` không đổi dữ liệu đã chụp là `"HCM"`.
+- `UnsafeTags` retains `callerTags` itself; when the caller edits the list after the constructor returns, `unsafe.tags()` also changes. The getter returns that same list, so edits through the getter are reflected in `callerTags`.
+- `UnsafeTags.hashCode()` relies on `List.hashCode()` and the list contents. After adding `"mutable"`, the hash in the example dataset changes even though the `tags` field is still `final`. This is a hazard if the object has already been placed into a `HashSet` or used as a `HashMap` key.
+- `SafeTags` uses `List.copyOf`. Because the elements are immutable `String` values, the caller editing `source` after the constructor does not alter internal state. The resulting list does not support `add`, so it throws `UnsupportedOperationException`. Content-based hashing stays stable and `HashSet.contains(safe)` continues to work.
+- Two `SafeTags` created from different lists with the same contents `["java"]` return `equals == true`; their hashes are also equal thanks to the same list algorithm.
+- `List.copyOf(List.of(mutablePart))` creates a structurally unmodifiable list that still keeps **the same `MutablePart` reference**. Calling `setLabel("HCM")` also changes the element seen through the shallow list.
+- `DeepSnapshot` converts `MutablePart` to `PartValue` (a record holding an immutable `String`) and stores an unmodifiable list. Thus, the subsequent change of `mutablePart` to `"Da Nang"` does not alter the captured data `"HCM"`.
 
-**Về kiểm chứng hash collection:** ví dụ in việc hash thay đổi, không dựa vào một kết quả cụ thể của `unsafeSet.contains(unsafe)` sau mutation. Sau khi trường dùng trong hash thay đổi, khả năng lookup không còn được bảo đảm; ở một số cấu hình bucket, truy vấn có thể tình cờ thành công, nên không thể dùng một lần chạy để chứng minh thiết kế an toàn.
+**Regarding verifying hash collections:** the example prints that the hash changed, rather than relying on a specific outcome of `unsafeSet.contains(unsafe)` after mutation. Once a field used in hashing changes, lookup capability is no longer guaranteed; under some bucket configurations, a query might succeed by chance, so a single run cannot be used to prove a design is safe.
 
-## 5. Vì sao vấn đề liên quan trực tiếp đến `equals` và `hashCode`?
+## 5. Why does this directly relate to `equals` and `hashCode`?
 
-Giả sử định nghĩa quan hệ bằng nhau của `UnsafeTags` là `tags.equals(that.tags)`. Khi người gọi thêm hoặc xóa phần tử:
-- Giá trị để tính equality thay đổi.
-- `hashCode` cũng thay đổi vì list hash phụ thuộc thứ tự và các phần tử.
-- Hai object trước đây bằng nhau có thể không còn bằng nhau; hai object trước đây khác nhau cũng có thể trở nên bằng nhau.
+Suppose `UnsafeTags`'s equality relation is defined as `tags.equals(that.tags)`. When a caller adds or removes elements:
+- The value used to compute equality changes.
+- `hashCode` also changes because list hashing depends on order and elements.
+- Two previously equal objects may no longer be equal; two previously unequal objects may also become equal.
 
-Java không cấm một object mutable đổi equality khi trạng thái thay đổi: yêu cầu nhất quán của `equals` phụ thuộc điều kiện thông tin dùng so sánh không đổi. Nhưng việc dùng object đó trong cấu trúc hash có thể phá giả định tra cứu:
+Java does not forbid a mutable object from changing equality when its state changes: `equals`'s consistency requirement is conditioned on the comparison information not changing. However, using that object in a hash structure can break lookup assumptions:
 
-1. `HashSet.add(key)` định vị bucket từ hash lúc chèn.
-2. Caller thay đổi state ảnh hưởng hash.
-3. `HashSet.contains(key)` có thể tìm bucket khác.
-4. Object vẫn có thể đang nằm trong tập nhưng thao tác tìm kiếm/loại bỏ không phản ánh kỳ vọng.
+1. `HashSet.add(key)` locates the bucket from the hash at insertion time.
+2. The caller alters state that affects the hash.
+3. `HashSet.contains(key)` may search a different bucket.
+4. The object may still be sitting in the set while search/removal operations fail to reflect expectations.
 
-Ngay cả khi hash được cố định cố ý, nếu equality của **hai object đã nằm trong Set** thay đổi từ `false` sang `true`, set cũng không tự tái tổ chức và gộp chúng. Vì vậy giải pháp đúng là **ổn định các dữ liệu dùng nhận diện giá trị/khóa trong suốt thời gian lưu trữ**, hoặc không sử dụng object mutable đó trực tiếp làm khóa.
+Even if the hash is intentionally fixed, if the equality of **two objects already inside a Set** flips from `false` to `true`, the set will not reorganize and merge them on its own. Therefore, the right solution is to **stabilize the data used to identify the value/key throughout storage time**, or not use that mutable object directly as a key.
 
-Một số lỗi bổ sung:
-- Với mảng, `array.equals(otherArray)` mặc định so **tham chiếu**, không so nội dung; cần `Arrays.equals` và `Arrays.hashCode` (hoặc phiên bản `deepEquals`/`deepHashCode` thích hợp cho mảng lồng nhau).
-- Nếu dùng `record` có component là mảng, `equals`/`hashCode` được sinh tự động cho component đó cũng dựa trên equality/hash của tham chiếu mảng, không tự động so sâu nội dung. Record không biến mảng thành bất biến.
-- Dùng collection chứa object mutable làm thành phần equality vẫn nguy hiểm dù list không cho thay cấu trúc: list có thể có cùng phần tử trước/sau, nhưng hash của **phần tử** đổi nếu phần tử triển khai hash theo trường mutable.
+Additional pitfalls:
+- For arrays, `array.equals(otherArray)` compares **references** by default, not contents; you need `Arrays.equals` and `Arrays.hashCode` (or the appropriate `deepEquals`/`deepHashCode` variants for nested arrays).
+- If using a `record` with an array component, the auto-generated `equals`/`hashCode` for that component also rely on array-reference equality/hashing, not automatic deep content comparison. A record does not make an array immutable.
+- Using a collection holding mutable objects as an equality component remains dangerous even if the list forbids structural changes: the list may have the same elements before and after, yet an **element's** hash changes if the element implements hashing via mutable fields.
 
-### Mối quan hệ với `toString()`
+### Relationship with `toString()`
 
-Nếu `toString()` đưa nội dung list mutable vào chuỗi hiển thị, hai lần gọi có thể cho hai kết quả khác nhau dù tham chiếu trường là `final`. Đây không nhất thiết là lỗi contract của `toString` vì object thực sự mutable. Tuy nhiên, khi thiết kế value object được kỳ vọng bất biến, log thay đổi bất ngờ là dấu hiệu cần kiểm tra rò rỉ trạng thái.
+If `toString()` includes the contents of a mutable list in its display string, two calls may yield different results even though the field reference is `final`. This is not necessarily a `toString` contract bug because the object is genuinely mutable. However, when designing a value object expected to be immutable, unexpectedly changing logs is a sign to inspect for state leaks.
 
-Không nên dùng `toString` để định nghĩa `equals`, `hashCode` hoặc định danh bền vững.
+You should not use `toString` to define `equals`, `hashCode`, or persistent identifiers.
 
-## 6. Chặn alias để trường `final` thật sự giữ được trạng thái có ý nghĩa
+## 6. Blocking aliases so `final` fields genuinely preserve meaningful state
 
-Sau khi phân biệt tham chiếu `final` với object mutable, hãy kiểm tra cả **đầu vào constructor** lẫn **đầu ra getter**. Nếu giữ nguyên `int[]` từ caller, caller sửa mảng là sửa nội bộ; nếu đã copy-in nhưng getter trả chính mảng nội bộ, caller vẫn sửa được trạng thái. Với một mảng primitive một chiều, dùng `clone()` lúc nhận và lúc trả là cách phòng vệ trực tiếp.
+After distinguishing a `final` reference from a mutable object, inspect both **constructor inputs** and **getter outputs**. If you keep the caller's `int[]` directly, the caller mutating the array mutates internal state; if you copy-in but the getter returns the internal array directly, the caller can still mutate state. For a one-dimensional primitive array, calling `clone()` on both receipt and return is a direct defense.
 
 ```java
-// Các dòng minh họa bên trong một class có field byte[] bytes:
+// Illustrative lines inside a class with a byte[] bytes field:
 this.bytes = input.clone();  // constructor: copy-in
 return bytes.clone();        // getter: copy-out
 ```
 
-Với `List<String>` có phần tử bất biến, `List.copyOf(input)` tạo một danh sách không cho sửa và ổn định về cấu trúc (đồng thời từ chối null). `Collections.unmodifiableList(input)` đơn độc lại là một **view**: sửa `input` qua alias khác vẫn xuất hiện trong view. Nếu phần tử là object mutable, cả `List.copyOf` lẫn bản sao ArrayList đều chỉ sao chép nông; phải chuyển từng phần tử sang kiểu giá trị ổn định nếu trạng thái phần tử tham gia `equals/hashCode`.
+For `List<String>` with immutable elements, `List.copyOf(input)` creates an unmodifiable and structurally stable list (while also rejecting null). `Collections.unmodifiableList(input)` by itself is a **view**: mutating `input` through another alias still shows up in the view. If elements are mutable objects, both `List.copyOf` and an ArrayList copy are only shallow copies; you must convert each element to a stable value type if element state participates in `equals/hashCode`.
 
-Với mảng nhiều chiều, clone mảng ngoài chưa sao chép các hàng; với `Date` hoặc các object mutable khác, cần copy-in/copy-out theo kiểu dữ liệu. Với record, component là `final` nhưng getter tự sinh có thể trả tham chiếu mutable, còn component mảng mặc định so bằng tham chiếu chứ không theo nội dung. Bài *Sao chép phòng vệ để bảo vệ trường mảng hoặc tập hợp* cung cấp ví dụ chạy đầy đủ cho `int[]`, `int[][]`, collection, record, `Arrays.equals/hashCode` và sự khác nhau giữa snapshot và view.
+For multidimensional arrays, cloning the outer array does not copy the rows; for `Date` or other mutable objects, copy-in/copy-out must match the data type. For records, components are `final`, yet auto-generated getters can return mutable references, and array components compare by reference by default rather than by contents. The lesson *Defensive Copying to Protect Array or Collection Fields* provides full runnable examples for `int[]`, `int[][]`, collections, records, `Arrays.equals/hashCode`, and the difference between snapshots and views.
 
-Những bản sao chỉ bảo vệ các đường alias đã kiểm soát; nếu chính class có setter sửa dữ liệu tham gia equality/hash thì object vẫn mutable. `final` và defensive copy cũng không thay cho một chính sách đồng bộ khi bên khác có thể ghi trong lúc chụp snapshot.
+Copies only guard controlled alias paths; if the class itself has a setter modifying data used in equality/hash, the object remains mutable. `final` and defensive copying also do not substitute for a synchronization policy when another party can write while taking a snapshot.
 
-## 7. `final`, `record` và bất biến: các hiểu lầm thường gặp
+## 7. `final`, `record`, and immutability: common misunderstandings
 
-### `final` trên một class
+### `final` on a class
 
-`final class Profile` chỉ chặn kế thừa. Nó vẫn có thể có `private String name` với setter hoặc `private final List<String> tags` trỏ đến `ArrayList` bị sửa từ ngoài. Lớp `final` là một công cụ giúp thiết kế bất biến vì ngăn subclass thêm trạng thái mutable hoặc thay đổi hành vi, nhưng không tự hoàn thành thiết kế.
+`final class Profile` only blocks inheritance. It can still have a `private String name` with a setter or a `private final List<String> tags` pointing to an `ArrayList` modified externally. A `final` class is a tool that aids immutable design because it prevents subclasses from adding mutable state or changing behavior, yet it does not complete the design on its own.
 
-### Trường `private final`
+### `private final` fields
 
-Giữ trường `private final` giúp giới hạn đường sửa tham chiếu và khiến thiết kế dễ suy luận; nhưng phải kết hợp đối tượng thành phần bất biến, defensive copy và getter không làm rò các tham chiếu mutable. Nếu lưu một `List<MutablePart>` bằng `List.copyOf`, trường và list đều không đổi cấu trúc trong khi từng `MutablePart` vẫn đổi được.
+Keeping fields `private final` limits reference-modification paths and makes designs easier to reason about; however, it must be combined with immutable component objects, defensive copying, and getters that do not leak mutable references. If you store a `List<MutablePart>` using `List.copyOf`, the field and list are structurally unmodifiable while each `MutablePart` can still change.
 
-### Record trong Java 17+
+### Records in Java 17+
 
-Một record tự tạo các trường component `private final`, constructor, accessor, `equals`, `hashCode` và `toString`. Nhưng nó chỉ **nông** về khả năng giữ bất biến:
+A record automatically generates `private final` component fields, a constructor, accessors, `equals`, `hashCode`, and `toString`. Yet it is only **shallow** in preserving immutability:
 
 ```java
 record Bag(List<String> tags) { }
@@ -359,7 +359,7 @@ original.add("y");
 System.out.println(bag.tags()); // [x, y]
 ```
 
-Đây là đoạn mã minh họa đặt trong phương thức; record nên khai báo trong phạm vi cho phép. Nếu muốn snapshot an toàn cho danh sách `String`, dùng compact constructor:
+This is an illustrative snippet placed inside a method; the record should be declared in an allowed scope. If you want a safe snapshot for a list of `String`s, use a compact constructor:
 
 ```java
 record SafeBag(List<String> tags) {
@@ -369,108 +369,108 @@ record SafeBag(List<String> tags) {
 }
 ```
 
-Khi chỉ các thành phần trong list là immutable, accessor tự sinh của record trả list không cho sửa nên vẫn giữ trạng thái ổn định. Nhưng nếu record giữ một mảng, getter record sẽ trả cùng tham chiếu mảng; cần tự xử lý defensive copy và chú ý equality/hash của component mảng. Với record có component là object mutable, chỉ dùng `List.copyOf` cũng không đóng băng object con.
+When only immutable components reside inside the list, the record's auto-generated accessor returns an unmodifiable list, keeping state stable. However, if a record holds an array, the record getter returns the same array reference; you must handle defensive copying yourself and pay attention to the array component's equality/hashing. For a record whose component holds mutable objects, `List.copyOf` alone does not freeze child objects either.
 
-### `Collections.unmodifiableList` khác `List.copyOf`
+### `Collections.unmodifiableList` vs `List.copyOf`
 
-| Biểu thức | Caller sửa list gốc có ảnh hưởng view/kết quả không? | Phần tử mutable có thay đổi được không? |
+| Expression | Does caller editing the original list affect the view/result? | Can mutable elements be modified? |
 |---|---|---|
-| `Collections.unmodifiableList(original)` | **Có**: wrapper nhìn thay đổi từ original | Có |
-| `Collections.unmodifiableList(new ArrayList<>(original))` | Không, với thay đổi cấu trúc ở original | Có |
-| `List.copyOf(original)` | Không, với thay đổi cấu trúc ở original | Có |
-| `List.of(element)` | Không sửa cấu trúc list | Có, nếu element là object mutable |
-| `List.copyOf(original.stream().map(copyToImmutable).toList())` | Không, khi các element snapshot thật sự bất biến | Không qua state đã snapshot |
+| `Collections.unmodifiableList(original)` | **Yes**: the wrapper sees changes from original | Yes |
+| `Collections.unmodifiableList(new ArrayList<>(original))` | No, for structural changes on original | Yes |
+| `List.copyOf(original)` | No, for structural changes on original | Yes |
+| `List.of(element)` | Cannot modify list structure | Yes, if element is a mutable object |
+| `List.copyOf(original.stream().map(copyToImmutable).toList())` | No, when snapshot elements are truly immutable | Not through the snapshotted state |
 
-Tính bất biến của collection và tính bất biến của **từng thành phần** là hai vấn đề riêng.
+Collection immutability and **individual element** immutability are two separate issues.
 
-## 8. Bất biến, an toàn thread và Java Memory Model
+## 8. Immutability, thread safety, and the Java Memory Model
 
-`final` còn có ý nghĩa đối với **initialization safety** trong Java Memory Model: nếu object được xây dựng đúng cách (đặc biệt không để `this` thoát khỏi constructor), cơ chế của trường `final` giúp các thread khác thấy giá trị trường đã khởi tạo đúng khi truy cập object được xây dựng. Tuy nhiên:
+`final` also has significance for **initialization safety** in the Java Memory Model: if an object is properly constructed (specifically, without letting `this` escape the constructor), `final` field mechanics ensure other threads see properly initialized field values when accessing the constructed object. However:
 
-- `final` không tự bảo đảm mọi phép sửa trạng thái của object được tham chiếu sau constructor được nhìn thấy đồng bộ giữa thread.
-- `final List` chứa `ArrayList` có thể bị mutate đồng thời, vẫn phải thiết kế đồng bộ hoặc tránh chia sẻ mutable state.
-- Một getter tạo copy tại đúng thời điểm không tự xử lý race nếu nguồn đang bị thread khác sửa song song.
-- Các cơ chế như `synchronized`, lock, collection đồng thời hoặc snapshot bất biến xử lý những vấn đề khác nhau, không nên thay thế lẫn nhau.
+- `final` does not automatically guarantee that subsequent state edits on the referenced object after construction are visibly synchronized across threads.
+- A `final List` containing an `ArrayList` can be mutated concurrently, still requiring synchronization design or avoiding shared mutable state.
+- A getter that creates a copy on demand does not automatically resolve races if the source is being modified simultaneously by another thread.
+- Mechanisms such as `synchronized`, locks, concurrent collections, or immutable snapshots address different problems and should not be substituted for one another.
 
-Một value object có toàn bộ trạng thái có ý nghĩa bất biến sau khởi tạo thường dễ chia sẻ giữa thread hơn vì không cần đồng bộ cho việc **đọc state không đổi**. Nhưng nếu đối tượng có cache lazy mutable hoặc phụ thuộc trạng thái bên ngoài, vẫn cần kiểm tra các đường tương tác ấy.
+A value object whose entire meaningful state is immutable after initialization is usually easier to share across threads because no synchronization is needed for **reading unchanging state**. Yet if the object has a mutable lazy cache or depends on external state, those interaction paths still need inspection.
 
-## 9. Chiến lược thiết kế gắn với Object Contract
+## 9. Design strategies tied to the Object Contract
 
-Khi muốn object làm **giá trị** hay **khóa của map/set**:
-1. Chọn các trường quyết định quan hệ bằng nhau theo ngữ nghĩa miền nghiệp vụ.
-2. Xác định những trường đó hoặc các object con có thể thay đổi không.
-3. Nếu cần trạng thái ổn định, dùng các giá trị immutable; khi nhận mảng/collection/đối tượng mutable, tạo snapshot bảo vệ thích hợp.
-4. Không trả thẳng tham chiếu mutable nội bộ qua getter, callback hay API khác.
-5. Triển khai `equals` và `hashCode` dựa trên cùng các thông tin và kiểm tra hash ổn định trong suốt thời gian object được dùng làm khóa.
-6. Với một entity **cố ý mutable**, tránh dùng các thuộc tính có thể sửa làm identity dài hạn; cân nhắc ID bất biến hoặc khóa bất biến riêng. Cần phân biệt entity identity với value equality.
+When you want an object to serve as a **value** or a **map/set key**:
+1. Choose the fields determining equality according to domain semantics.
+2. Identify whether those fields or child objects can change.
+3. If stable state is needed, use immutable values; when receiving arrays/collections/mutable objects, create appropriate protective snapshots.
+4. Never return internal mutable references directly via getters, callbacks, or other APIs.
+5. Implement `equals` and `hashCode` based on the same information and verify hash stability for as long as the object is used as a key.
+6. For an **intentionally mutable** entity, avoid using editable attributes as long-term identity; consider an immutable ID or separate immutable key. Distinguish entity identity from value equality.
 
-**Khi không cần bất biến:** một object mô hình hóa giỏ hàng đang được chỉnh sửa có thể cố ý mutable. Khi đó không nhất thiết phải làm mọi trường bất biến; quan trọng là hiểu rõ hợp đồng, đặt tên API cập nhật rõ ràng, và tránh dùng toàn bộ trạng thái thay đổi làm khóa hash.
+**When immutability is not needed:** an object modeling a shopping cart currently being edited can be intentionally mutable. In that case, not every field needs to be immutable; what matters is understanding the contract, naming update APIs clearly, and avoiding using the entire changing state as a hash key.
 
-### Bẫy về alias sâu
+### Deep aliasing traps
 
-Một kiểu như `final Map<String, List<Item>>` có ít nhất ba tầng:
-- Map có thể mutable.
-- Các list là giá trị của map có thể mutable.
-- Từng `Item` có thể mutable.
+A type like `final Map<String, List<Item>>` has at least three layers:
+- The map can be mutable.
+- The lists serving as map values can be mutable.
+- Each `Item` can be mutable.
 
-Chỉ `Map.copyOf` chặn sửa cấu trúc map, không tự sao chép các list hay item bên trong. Chỉ `List.copyOf` từng list vẫn còn rủi ro `Item`. Muốn snapshot thật sự ổn định phải xác định rồi khóa hoặc copy **mọi thành phần mutable có ảnh hưởng đến equality hoặc hành vi công khai**.
+`Map.copyOf` alone blocks modifying the map structure, without automatically copying inner lists or items. `List.copyOf` on each list still leaves the `Item` risk. To achieve a genuinely stable snapshot, you must identify and freeze or copy **every mutable component that affects equality or public behavior**.
 
-## 10. Lỗi phổ biến và cách nhận diện
+## 10. Common mistakes and how to recognize them
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | How to fix |
 |---|---|---|
-| Cho rằng `private final List` là immutable | Caller có thể sửa list qua alias | Defensive copy ở constructor và accessor an toàn |
-| Dùng `Collections.unmodifiableList(input)` nhưng giữ `input` bên ngoài | View vẫn phản ánh thay đổi của input | Copy trước khi wrap, hoặc dùng `List.copyOf` |
-| Dùng `List.copyOf` cho list phần tử mutable rồi coi là deep immutable | Trạng thái phần tử vẫn thay đổi | Snapshot từng phần tử hoặc dùng kiểu phần tử immutable |
-| Getter trả thẳng mảng `byte[]` | Caller sửa mảng nội bộ | `clone()` ở cả constructor lẫn getter |
-| Ghi đè `equals` theo nội dung mảng nhưng hash theo địa chỉ mảng | Vi phạm hợp đồng hash | Dùng `Arrays.equals` + `Arrays.hashCode` |
-| Dùng collection mutable trong `hashCode` cho object làm khóa | Hash đổi và tra cứu có thể sai | Ổn định nội dung khóa hoặc dùng khóa riêng bất biến |
-| Dùng record với component mutable và cho rằng record deep immutable | Accessor làm lộ mutable element/array | Compact constructor và defensive copy theo cấu trúc |
-| Dùng `final` để thay đồng bộ luồng | Race và visibility bug khi state con thay đổi | Thiết kế immutable snapshot hoặc đồng bộ rõ ràng |
-| Tự gọi `clone` mà không hiểu clone nông/sâu | Alias còn tồn tại ở các object con | Copy constructor/factory có ngữ nghĩa rõ |
+| Assuming `private final List` is immutable | Caller can modify list via alias | Defensive copy in constructor and safe accessor |
+| Using `Collections.unmodifiableList(input)` while keeping external `input` | View still reflects changes to input | Copy before wrapping, or use `List.copyOf` |
+| Using `List.copyOf` for a list of mutable elements and assuming deep immutability | Element state still changes | Snapshot each element or use immutable element types |
+| Getter returns raw `byte[]` array | Caller mutates internal array | `clone()` in both constructor and getter |
+| Overriding `equals` by array contents but hashing by array address | Violates hash contract | Use `Arrays.equals` + `Arrays.hashCode` |
+| Using a mutable collection in `hashCode` for a key object | Hash changes and lookups can fail | Stabilize key contents or use a separate immutable key |
+| Using a record with mutable components and assuming deep immutability | Accessor exposes mutable element/array | Compact constructor and structural defensive copy |
+| Using `final` as a substitute for thread synchronization | Race and visibility bugs when child state changes | Design immutable snapshots or explicit synchronization |
+| Calling `clone` without understanding shallow vs deep clone | Aliases remain in child objects | Copy constructor/factory with explicit semantics |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-check exercises
 
-### Bài 1 — Dự đoán hành vi của `final`
+### Exercise 1 — Predicting `final` behavior
 
 ```java
 final List<String> data = new ArrayList<>(List.of("a"));
 data.add("b");
-// data = new ArrayList<>(); // Không biên dịch nếu bỏ comment.
+// data = new ArrayList<>(); // Does not compile if uncommented.
 System.out.println(data);
 ```
 
-Dự đoán: `[a, b]`. Dòng gán lại chỉ là chú thích để chỉ ra giới hạn của `final`.
+Prediction: `[a, b]`. The reassignment line is only a comment pointing out the limit of `final`.
 
-### Bài 2 — Snapshot nông và phần tử mutable
+### Exercise 2 — Shallow snapshot and mutable elements
 
-Tạo `List<MutablePart>`; chụp `List.copyOf(list)`; sửa `list.get(0).setLabel(...)`. Giải thích vì sao danh sách mới không thể `add` nhưng giá trị `label` nhìn qua danh sách vẫn thay đổi. Sau đó thay phần tử bằng một `record PartValue(String label)` và kiểm tra sự khác biệt.
+Create a `List<MutablePart>`; capture `List.copyOf(list)`; modify `list.get(0).setLabel(...)`. Explain why the new list cannot `add`, yet the `label` value viewed through the list still changes. Then replace the element with a `record PartValue(String label)` and check the difference.
 
-### Bài 3 — Mảng và object contract
+### Exercise 3 — Arrays and the object contract
 
-Tạo hai mảng `byte[] a = {1, 2}`, `byte[] b = {1, 2}`. So sánh `a == b`, `a.equals(b)` và `Arrays.equals(a, b)`; dự đoán lần lượt `false`, `false`, `true`. Thiết kế một `ByteKey` không làm lộ mảng nội bộ.
+Create two arrays `byte[] a = {1, 2}`, `byte[] b = {1, 2}`. Compare `a == b`, `a.equals(b)`, and `Arrays.equals(a, b)`; predict `false`, `false`, `true` respectively. Design a `ByteKey` that does not expose its internal array.
 
-### Bài 4 — Rò trạng thái qua getter
+### Exercise 4 — State leak through a getter
 
-Đổi constructor `UnsafeTags` thành `new ArrayList<>(tags)` nhưng vẫn giữ getter trả trực tiếp list. Có còn thay đổi được object từ bên ngoài không? Có: getter vẫn trả alias đến list mutable nội bộ. Sau đó sửa getter cho trả `List.copyOf(tags)` hoặc dùng trường lưu list snapshot ngay từ constructor và thử lại.
+Change `UnsafeTags`'s constructor to `new ArrayList<>(tags)` while keeping the getter returning the list directly. Can the object still be mutated from outside? Yes: the getter still returns an alias to the internal mutable list. Next, change the getter to return `List.copyOf(tags)` or use a field storing the snapshot list right from the constructor and test again.
 
-### Bài 5 — Hash collection
+### Exercise 5 — Hash collections
 
-Đưa một `UnsafeTags` vào `HashSet` rồi sửa list tham gia `hashCode`. Đọc hash trước và sau, thử tìm lại object. Nếu `contains` trong một lần chạy vẫn trả `true`, giải thích vì sao điều đó **không chứng minh thiết kế đúng**. Thử thêm nhiều phần tử, nhưng không viết test phụ thuộc vào bucket nội bộ của JDK.
+Insert an `UnsafeTags` into a `HashSet`, then modify the list participating in `hashCode`. Read the hash before and after, and try finding the object again. If `contains` still returns `true` in one run, explain why that **does not prove the design is correct**. Try adding many elements, without writing tests dependent on the JDK's internal buckets.
 
-### Bài 6 — Chính sách miền nghiệp vụ
+### Exercise 6 — Business domain policy
 
-Một đơn hàng có ID bất biến và danh sách sản phẩm mutable. Bạn sẽ xác định `equals`/`hashCode` theo ID hay theo danh sách? Nếu nó là **entity**, thường nhận diện theo identity bền vững, không theo những dòng hàng đang sửa. Nếu nó là **value snapshot**, cần snapshot các dòng hàng và bảo đảm chúng có ngữ nghĩa giá trị ổn định. Phải đưa ra quyết định dựa trên ý nghĩa domain thay vì chỉ vì có `final`.
+An order has an immutable ID and a mutable list of products. Will you define `equals`/`hashCode` by ID or by the list? If it is an **entity**, it is normally identified by persistent identity, not by line items currently being edited. If it is a **value snapshot**, you need to snapshot the line items and ensure they have stable value semantics. You must make the decision based on domain meaning rather than merely because `final` is present.
 
-## 12. Checklist hoàn thành
+## 12. Completion checklist
 
-- Phân biệt được “không được gán lại tham chiếu” với “không được sửa object đang được tham chiếu”.
-- Nhìn thấy ít nhất hai đường alias: đầu vào constructor và đầu ra getter.
-- Biết `List.copyOf` bảo vệ cấu trúc list, còn mutable elements vẫn cần snapshot.
-- Biết mảng phải được sao chép phòng vệ ở cả đầu vào và đầu ra nếu cần bất biến.
-- Không ngộ nhận class `final` hay Java record là bảo đảm bất biến sâu.
-- Giải thích được vì sao việc sửa trường thành phần làm đổi `equals`/`hashCode` và gây rủi ro với `HashSet`/`HashMap`.
-- Phân biệt khái niệm immutable với thread-safe; `final` không thay thế đồng bộ của state mutable.
-- Biên dịch và chạy được `FinalReferenceDemo.java`, dự đoán đúng stdout và giải thích các kết quả.
+- Distinguish "cannot reassign a reference" from "cannot mutate the referenced object."
+- Spot at least two alias paths: constructor input and getter output.
+- Know that `List.copyOf` protects list structure, while mutable elements still need snapshots.
+- Know that arrays must be defensively copied on both input and output if immutability is needed.
+- Do not mistakenly assume a `final` class or Java record guarantees deep immutability.
+- Explain why mutating component fields changes `equals`/`hashCode` and creates risks with `HashSet`/`HashMap`.
+- Distinguish immutable from thread-safe; `final` does not replace synchronization of mutable state.
+- Compile and run `FinalReferenceDemo.java`, accurately predict stdout, and explain the results.
 
-**Ý chính:** `final` chỉ cố định việc gán của biến/trường. Muốn một object bất biến về mặt trạng thái và ổn định theo Object Contract, phải thiết kế cả đồ thị tham chiếu có ý nghĩa: kiểm soát alias, sao chép các thành phần mutable cần thiết và không cho dữ liệu tham gia equality/hash biến đổi ngoài dự kiến.
+**Key point:** `final` only fixes variable/field assignment. To make an object state-immutable and stable under the Object Contract, you must design the entire meaningful reference graph: control aliases, copy necessary mutable components, and prevent data participating in equality/hashing from changing unexpectedly.

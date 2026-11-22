@@ -1,24 +1,24 @@
-# Tạo hai named module với requires và exports
+# Creating Two Named Modules with requires and exports
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Tạo hai named module độc lập bằng Java Platform Module System (JPMS).
-- Viết `module-info.java` cho module cung cấp API và module sử dụng API.
-- Dùng `exports` để công khai package và `requires` để khai báo dependency.
-- Tổ chức source tree theo tên module và package.
-- Biên dịch nhiều module bằng `javac --module-source-path`.
-- Chạy ứng dụng bằng module path và hiểu cách JVM resolve hai module.
+- Create two independent named modules using the Java Platform Module System (JPMS).
+- Write `module-info.java` for an API provider module and an API consumer module.
+- Use `exports` to expose a package and `requires` to declare a dependency.
+- Organize the source tree by module name and package.
+- Compile multiple modules using `javac --module-source-path`.
+- Run the application using the module path and understand how the JVM resolves both modules.
 
-## 1. Bài thực hành sẽ xây dựng gì?
+## 1. What will this lab build?
 
-Ta tạo một ứng dụng nhỏ gồm hai named module:
+We will create a small application consisting of two named modules:
 
-- `com.acme.greetings`: module thư viện, cung cấp class `Greeter`.
-- `com.acme.app`: module ứng dụng, sử dụng `Greeter` để in lời chào.
+- `com.acme.greetings`: library module, providing the `Greeter` class.
+- `com.acme.app`: application module, using `Greeter` to print a greeting.
 
-Module thư viện công khai package `com.acme.greetings.api` bằng `exports`. Module ứng dụng khai báo `requires com.acme.greetings` để có thể đọc và sử dụng API đó.
+The library module exposes the `com.acme.greetings.api` package using `exports`. The application module declares `requires com.acme.greetings` so it can read and use that API.
 
 Dependency direction:
 
@@ -38,11 +38,11 @@ Dependency direction:
 +-----------------------+
 ~~~
 
-Đây là một ví dụ tối thiểu nhưng thể hiện hai directive cốt lõi của named module: module cung cấp quyết định package nào được export; module tiêu thụ khai báo module mà nó cần đọc.
+This is a minimal example, yet it demonstrates the two core directives of named modules: the provider module decides which packages are exported; the consumer module declares which modules it needs to read.
 
-## 2. Tạo cấu trúc thư mục
+## 2. Creating the directory structure
 
-Tạo project với source root riêng cho từng module:
+Create a project with a separate source root for each module:
 
 ~~~text
 two-modules/
@@ -62,17 +62,17 @@ two-modules/
                     └── Main.java
 ~~~
 
-Quy tắc cần nhớ:
+Rules to remember:
 
-- Mỗi named module có một file `module-info.java` ở module root.
-- Tên thư mục module trong module source path nên khớp tên khai báo trong descriptor.
-- Đường dẫn package bên trong module khớp với câu lệnh `package` trong source.
-- `module-info.java` không có khai báo package.
-- Mỗi module có thể chứa nhiều package, nhưng chỉ package được export mới là API truy cập thông thường cho module khác.
+- Each named module has a `module-info.java` file at the module root.
+- The module directory name in the module source path should match the name declared in the descriptor.
+- The package path inside the module matches the `package` statement in the source.
+- `module-info.java` has no package declaration.
+- Each module can contain multiple packages, but only exported packages serve as the normal accessible API for other modules.
 
-## 3. Viết module cung cấp API
+## 3. Writing the API provider module
 
-Trong `src/com.acme.greetings/module-info.java`:
+In `src/com.acme.greetings/module-info.java`:
 
 ~~~java
 module com.acme.greetings {
@@ -80,9 +80,9 @@ module com.acme.greetings {
 }
 ~~~
 
-Directive `exports` công khai package `com.acme.greetings.api` cho các module khác. Nó cho phép module đọc package này truy cập public type và public/protected API theo quy tắc Java.
+The `exports` directive exposes the `com.acme.greetings.api` package to other modules. It allows modules that read this package to access public types and public/protected APIs according to Java rules.
 
-Tạo class `Greeter` trong `src/com.acme.greetings/com/acme/greetings/api/Greeter.java`:
+Create the `Greeter` class in `src/com.acme.greetings/com/acme/greetings/api/Greeter.java`:
 
 ~~~java
 package com.acme.greetings.api;
@@ -99,18 +99,18 @@ public final class Greeter {
 }
 ~~~
 
-Các điểm quan trọng:
+Key points:
 
-- Package của class phải khớp package được export trong descriptor.
-- Class cần là `public` để code ở module khác có thể sử dụng.
-- Method được consumer gọi cũng phải có mức truy cập phù hợp, ở đây là `public`.
-- Class không cần nằm trong package có tên giống module. Module name và package name là hai khái niệm riêng.
+- The class's package must match the package exported in the descriptor.
+- The class must be `public` so code in other modules can use it.
+- Methods called by the consumer must also have appropriate access levels, here `public`.
+- The class does not need to be in a package with the same name as the module. Module name and package name are two separate concepts.
 
-Sau bước này, module `com.acme.greetings` đã có một public API nhỏ.
+After this step, the `com.acme.greetings` module has a small public API.
 
-## 4. Viết module ứng dụng sử dụng API
+## 4. Writing the application module using the API
 
-Trong `src/com.acme.app/module-info.java`:
+In `src/com.acme.app/module-info.java`:
 
 ~~~java
 module com.acme.app {
@@ -118,9 +118,9 @@ module com.acme.app {
 }
 ~~~
 
-Directive `requires` khai báo rằng module ứng dụng cần đọc module `com.acme.greetings`. Đây là một dependency của module graph.
+The `requires` directive declares that the application module needs to read the `com.acme.greetings` module. This is a dependency in the module graph.
 
-Tạo class main trong `src/com.acme.app/com/acme/app/Main.java`:
+Create the main class in `src/com.acme.app/com/acme/app/Main.java`:
 
 ~~~java
 package com.acme.app;
@@ -138,34 +138,34 @@ public class Main {
 }
 ~~~
 
-Ứng dụng có thể import `Greeter` vì hai điều kiện được đáp ứng:
+The application can import `Greeter` because two conditions are met:
 
-1. `com.acme.app` khai báo `requires com.acme.greetings`.
-2. `com.acme.greetings` khai báo `exports com.acme.greetings.api`.
+1. `com.acme.app` declares `requires com.acme.greetings`.
+2. `com.acme.greetings` declares `exports com.acme.greetings.api`.
 
-Nếu thiếu một trong hai điều kiện, compiler không thể sử dụng API qua module boundary theo cách thông thường.
+If either condition is missing, the compiler cannot use the API across the module boundary in the normal way.
 
-## 5. Biên dịch cả hai module bằng javac
+## 5. Compiling both modules with javac
 
-Mở terminal tại thư mục `two-modules/` và chạy:
+Open a terminal in the `two-modules/` directory and run:
 
 ~~~bash
 javac -d out --module-source-path src -m com.acme.greetings,com.acme.app
 ~~~
 
-Ý nghĩa các tùy chọn:
+Meaning of the options:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 |---|---|
-| `javac` | Khởi chạy Java compiler |
-| `-d out` | Chọn `out/` làm thư mục gốc chứa output |
-| `--module-source-path src` | Chỉ định nơi chứa source tree của các module |
-| `-m` | Chọn các module cần biên dịch |
-| `com.acme.greetings,com.acme.app` | Hai module được đưa vào lần biên dịch |
+| `javac` | Launches the Java compiler |
+| `-d out` | Selects `out/` as the root directory for output |
+| `--module-source-path src` | Specifies where the source trees of the modules reside |
+| `-m` | Selects the modules to compile |
+| `com.acme.greetings,com.acme.app` | The two modules included in this compilation |
 
-Compiler đọc descriptor của hai module, tìm dependency từ `requires` và biên dịch các source file cần thiết.
+The compiler reads the descriptors of both modules, finds dependencies from `requires`, and compiles the necessary source files.
 
-Nếu biên dịch thành công, cấu trúc output có dạng:
+If compilation succeeds, the output structure looks like:
 
 ~~~text
 two-modules/
@@ -188,45 +188,45 @@ two-modules/
                     └── Main.class
 ~~~
 
-Mỗi module có thư mục output riêng. `module-info.java` được biên dịch thành `module-info.class`; các class được đặt theo package path.
+Each module has its own output directory. `module-info.java` is compiled into `module-info.class`; classes are placed according to their package paths.
 
-Có thể kiểm tra output bằng cách mở thư mục `out/` hoặc dùng công cụ `jar`/`javap` để xem artifact đã biên dịch.
+You can inspect the output by opening the `out/` directory or using the `jar`/`javap` tools to view the compiled artifacts.
 
-## 6. Chạy ứng dụng bằng module path
+## 6. Running the application using the module path
 
-Dùng output root làm module path:
+Use the output root as the module path:
 
 ~~~bash
 java --module-path out -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong đó:
+Where:
 
-- `--module-path out` yêu cầu JVM tìm các module trong thư mục `out`.
-- `-m` chọn module khởi chạy và main class.
-- `com.acme.app` là tên module ứng dụng.
-- `com.acme.app.Main` là tên đầy đủ của class chứa `main`.
+- `--module-path out` tells the JVM to look for modules in the `out` directory.
+- `-m` selects the startup module and main class.
+- `com.acme.app` is the application module name.
+- `com.acme.app.Main` is the fully qualified name of the class containing `main`.
 
-Kết quả:
+Output:
 
 ~~~text
 Hello, Java Module System!
 ~~~
 
-JVM tìm `com.acme.app`, đọc descriptor để biết module này yêu cầu `com.acme.greetings`, sau đó resolve dependency từ module path. Khi ứng dụng gọi `Greeter.greet`, class thuộc module thư viện được nạp theo cơ chế class loading của module layer.
+The JVM finds `com.acme.app`, reads its descriptor to learn that this module requires `com.acme.greetings`, and then resolves the dependency from the module path. When the application calls `Greeter.greet`, the class belonging to the library module is loaded via the module layer's class loading mechanism.
 
-Lệnh biên dịch và chạy đầy đủ:
+Full compile and run commands:
 
 ~~~bash
 javac -d out --module-source-path src -m com.acme.greetings,com.acme.app
 java --module-path out -m com.acme.app/com.acme.app.Main
 ~~~
 
-## 7. Hiểu đúng requires và exports
+## 7. Understanding requires and exports properly
 
-Hai directive này giải quyết hai câu hỏi khác nhau.
+These two directives solve two different questions.
 
-### 7.1. requires: module nào cần được đọc?
+### 7.1. requires: which module needs to be read?
 
 ~~~java
 module com.acme.app {
@@ -234,11 +234,11 @@ module com.acme.app {
 }
 ~~~
 
-`requires` khai báo dependency giữa module. Nó tạo quan hệ readability cần thiết để module ứng dụng tham chiếu type được cung cấp bởi module thư viện.
+`requires` declares a dependency between modules. It creates the readability relationship needed for the application module to reference types provided by the library module.
 
-`requires` không tự công khai mọi package của module đích. Package vẫn phải được export phù hợp.
+`requires` does not automatically expose all packages of the target module. Packages must still be exported appropriately.
 
-### 7.2. exports: package nào được công khai?
+### 7.2. exports: which package is exposed?
 
 ~~~java
 module com.acme.greetings {
@@ -246,62 +246,62 @@ module com.acme.greetings {
 }
 ~~~
 
-`exports` công khai package cho module khác. Nếu module không export package, module consumer không thể import public type trong package đó theo cách thông thường, dù đã khai báo `requires`.
+`exports` exposes a package to other modules. If a module does not export a package, consumer modules cannot import public types in that package in the normal way, even if they have declared `requires`.
 
-`exports` không mở package cho deep reflection vào private member. Reflection sâu là mục đích của `opens`, một directive khác.
+`exports` does not open a package for deep reflection into private members. Deep reflection is the purpose of `opens`, a different directive.
 
-### 7.3. Cần cả hai phía
+### 7.3. Both sides are needed
 
-| Module cung cấp | Module sử dụng | Kết quả |
+| Provider module | Consumer module | Result |
 |---|---|---|
-| Export package API | Requires module cung cấp | Consumer có thể dùng public API |
-| Không export package | Requires module cung cấp | Consumer vẫn không truy cập được package |
-| Export package | Không requires module cung cấp | Không có readability cần thiết trong module graph thông thường |
-| Export package khác | Requires module cung cấp | Consumer chỉ truy cập package được export phù hợp |
+| Exports API package | Requires provider module | Consumer can use the public API |
+| Does not export package | Requires provider module | Consumer still cannot access the package |
+| Exports package | Does not require provider module | Lacks the necessary readability in the normal module graph |
+| Exports a different package | Requires provider module | Consumer can only access the properly exported package |
 
-Với ví dụ này, `exports` và `requires` phải cùng trỏ tới đúng tên package/module.
+In this example, `exports` and `requires` must together point to the exact package/module names.
 
-## 8. Thử nghiệm khi bỏ một directive
+## 8. Experimenting with removing a directive
 
-Các lỗi dưới đây giúp hiểu vai trò của từng khai báo.
+The errors below help understand the role of each declaration.
 
-### 8.1. Bỏ requires khỏi module ứng dụng
+### 8.1. Removing requires from the application module
 
-Nếu descriptor ứng dụng chỉ còn:
+If the application descriptor only has:
 
 ~~~java
 module com.acme.app {
 }
 ~~~
 
-nhưng source vẫn import `com.acme.greetings.api.Greeter`, compiler sẽ báo package/module không được đọc hoặc không hiển thị. Module ứng dụng chưa khai báo dependency cần thiết.
+but the source still imports `com.acme.greetings.api.Greeter`, the compiler will report that the package/module is not readable or not visible. The application module has not declared the required dependency.
 
-Cách sửa: thêm lại:
+Fix: add back:
 
 ~~~java
 requires com.acme.greetings;
 ~~~
 
-### 8.2. Bỏ exports khỏi module thư viện
+### 8.2. Removing exports from the library module
 
-Nếu descriptor thư viện là:
+If the library descriptor is:
 
 ~~~java
 module com.acme.greetings {
 }
 ~~~
 
-thì `com.acme.greetings.api` không được công khai cho module khác. Dù `com.acme.app` có `requires`, compiler vẫn không cho phép truy cập package API đó.
+then `com.acme.greetings.api` is not exposed to other modules. Even though `com.acme.app` has `requires`, the compiler still disallows access to that API package.
 
-Cách sửa: export đúng package:
+Fix: export the right package:
 
 ~~~java
 exports com.acme.greetings.api;
 ~~~
 
-### 8.3. Export nhầm package
+### 8.3. Exporting the wrong package
 
-Ví dụ descriptor viết:
+For example, the descriptor writes:
 
 ~~~java
 module com.acme.greetings {
@@ -309,31 +309,31 @@ module com.acme.greetings {
 }
 ~~~
 
-nhưng class `Greeter` nằm trong `com.acme.greetings.api`. Export package cha không tự động export subpackage. Cần export chính xác:
+but the `Greeter` class resides in `com.acme.greetings.api`. Exporting a parent package does not automatically export subpackages. You must export accurately:
 
 ~~~java
 exports com.acme.greetings.api;
 ~~~
 
-Đây là lỗi thường gặp khi nghĩ rằng export một package sẽ bao gồm tất cả package con.
+This is a common mistake when assuming that exporting a package includes all its subpackages.
 
-## 9. Thử thêm package nội bộ
+## 9. Trying to add an internal package
 
-Giả sử thư viện có một package triển khai:
+Suppose the library has an implementation package:
 
 ~~~text
 com/acme/greetings/internal/Formatter.java
 ~~~
 
-Nếu descriptor chỉ export `com.acme.greetings.api`, package `com.acme.greetings.internal` vẫn được đóng gói.
+If the descriptor only exports `com.acme.greetings.api`, the `com.acme.greetings.internal` package remains encapsulated.
 
-Consumer không nên import `Formatter` trực tiếp. Đây là cách module bảo vệ implementation khỏi trở thành dependency công khai ngoài ý muốn.
+Consumers should not import `Formatter` directly. This is how modules protect implementation details from accidentally becoming public dependencies.
 
-Nếu một module khác thật sự cần sử dụng một type, hãy xem xét type đó có thuộc API contract hay không. Nếu có, đặt nó trong package API và export rõ ràng. Không export toàn bộ package chỉ để né lỗi compile.
+If another module genuinely needs to use a type, consider whether that type belongs to the API contract. If it does, place it in the API package and export it explicitly. Do not export an entire package just to bypass a compile error.
 
-## 10. Thử nghiệm với qualified exports
+## 10. Experimenting with qualified exports
 
-Nếu chỉ một module consumer được phép truy cập package, có thể dùng qualified export:
+If only one consumer module should be allowed to access a package, you can use a qualified export:
 
 ~~~java
 module com.acme.greetings {
@@ -341,96 +341,96 @@ module com.acme.greetings {
 }
 ~~~
 
-Cách này giới hạn quyền truy cập package cho module `com.acme.app`. Module khác dù có `requires com.acme.greetings` cũng không tự động được truy cập package đó.
+This restricts package access to the `com.acme.app` module. Other modules, even if they have `requires com.acme.greetings`, do not automatically gain access to that package.
 
-Qualified exports hữu ích khi API chỉ dành cho một tập consumer được xác định. Với thư viện công khai cho nhiều ứng dụng, unqualified `exports` thường phù hợp hơn.
+Qualified exports are useful when an API is intended only for a specific set of consumers. For libraries exposed to many applications, unqualified `exports` is usually more appropriate.
 
-## 11. Tách bước compile và run
+## 11. Separating compile and run steps
 
-Trong thực tế, compile và run thường là hai bước riêng.
+In practice, compiling and running are usually two separate steps.
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac -d out --module-source-path src -m com.acme.greetings,com.acme.app
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 java --module-path out -m com.acme.app/com.acme.app.Main
 ~~~
 
-Điều này có nghĩa:
+This means:
 
-- Compiler cần source tree và module descriptor để kiểm tra dependency.
-- JVM cần module đã biên dịch trên module path để resolve và chạy.
-- Source directory `src` không phải module path runtime trong ví dụ này.
-- Output directory `out` chứa các exploded module và được dùng khi chạy.
+- The compiler needs the source tree and module descriptors to check dependencies.
+- The JVM needs the compiled modules on the module path to resolve and run them.
+- The source directory `src` is not the runtime module path in this example.
+- The output directory `out` contains the exploded modules and is used at runtime.
 
-Nếu chạy mà báo không tìm thấy module, hãy kiểm tra module path có trỏ đúng thư mục cha chứa hai module hay không.
+If running reports that a module cannot be found, check whether the module path points to the parent directory containing both modules.
 
-## 12. Đóng gói thành modular JAR (tùy chọn)
+## 12. Packaging into modular JARs (optional)
 
-Sau khi biên dịch, có thể đóng gói từng exploded module thành modular JAR:
+After compiling, each exploded module can be packaged into a modular JAR:
 
 ~~~bash
 jar --create --file dist/com.acme.greetings.jar -C out/com.acme.greetings .
 jar --create --file dist/com.acme.app.jar --main-class com.acme.app.Main -C out/com.acme.app .
 ~~~
 
-Thư mục `dist/` cần tồn tại trước khi chạy lệnh. Các file JAR giữ lại `module-info.class` nên module identity và dependency được bảo toàn.
+The `dist/` directory must exist before running the commands. The JAR files retain `module-info.class`, so module identity and dependencies are preserved.
 
-Chạy từ modular JAR:
+Run from modular JARs:
 
 ~~~bash
 java --module-path dist -m com.acme.app/com.acme.app.Main
 ~~~
 
-Có thể dùng `jar --describe-module` để xem descriptor trong từng JAR:
+You can use `jar --describe-module` to view the descriptor inside each JAR:
 
 ~~~bash
 jar --describe-module --file dist/com.acme.greetings.jar
 jar --describe-module --file dist/com.acme.app.jar
 ~~~
 
-Bước đóng gói không thay đổi quan hệ `requires` và `exports` đã khai báo trong source descriptor.
+The packaging step does not change the `requires` and `exports` relationships declared in the source descriptors.
 
-## 13. Lỗi thường gặp và cách xử lý
+## 13. Common errors and how to handle them
 
-| Hiện tượng | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common cause | Resolution |
 |---|---|---|
-| `module not found` | Module dependency không có trên module path/source path | Kiểm tra tên module và vị trí source/output |
-| `package ... is not visible` | Package chưa export hoặc module chưa readable | Kiểm tra cả `exports` và `requires` |
-| `module ... does not read ...` | Thiếu `requires` hoặc dependency không có trong graph | Khai báo đúng dependency |
-| `package does not exist` | Package name, source path hoặc import sai | Đối chiếu package declaration và folder |
-| JVM không tìm thấy main module | Module path trỏ sai thư mục | Trỏ đến thư mục cha chứa module |
-| Main class không tìm thấy | Tên class sau dấu / sai hoặc class chưa được compile | Kiểm tra package, class name và output |
+| `module not found` | Module dependency is missing from module path/source path | Check module names and source/output locations |
+| `package ... is not visible` | Package is not exported or module is not readable | Check both `exports` and `requires` |
+| `module ... does not read ...` | Missing `requires` or dependency is not in the graph | Declare the dependency properly |
+| `package does not exist` | Wrong package name, source path, or import | Cross-check package declaration and folder |
+| JVM cannot find main module | Module path points to the wrong directory | Point to the parent directory containing the modules |
+| Main class not found | Wrong class name after `/` or class not compiled | Check package, class name, and output |
 
-Khi debug, kiểm tra theo thứ tự:
+When debugging, check in this order:
 
-1. Source tree có đúng module root và package path không?
-2. Mỗi module có `module-info.java` không?
-3. Module cung cấp đã export đúng package chưa?
-4. Module sử dụng đã requires đúng module chưa?
-5. Cả hai module có trong output/module path không?
-6. Tên module và tên main class trong lệnh chạy có chính xác không?
+1. Does the source tree have the right module roots and package paths?
+2. Does each module have a `module-info.java`?
+3. Has the provider module exported the right package?
+4. Has the consumer module required the right module?
+5. Are both modules present in the output/module path?
+6. Are the module name and main class name in the run command accurate?
 
-## 14. Checklist hoàn thành bài thực hành
+## 14. Lab completion checklist
 
-- [ ] Có hai module root riêng dưới `src/`.
-- [ ] Module `com.acme.greetings` có `module-info.java`.
-- [ ] Module thư viện export `com.acme.greetings.api`.
-- [ ] Class `Greeter` nằm trong package đã export và có public method.
-- [ ] Module `com.acme.app` có `module-info.java`.
-- [ ] Module ứng dụng khai báo `requires com.acme.greetings`.
-- [ ] Lệnh javac biên dịch được cả hai module.
-- [ ] Output có `module-info.class` cho mỗi module.
-- [ ] JVM chạy được ứng dụng bằng `--module-path`.
-- [ ] Kết quả hiển thị đúng lời chào mong đợi.
+- [ ] Two separate module roots exist under `src/`.
+- [ ] Module `com.acme.greetings` has `module-info.java`.
+- [ ] The library module exports `com.acme.greetings.api`.
+- [ ] Class `Greeter` is in the exported package and has a public method.
+- [ ] Module `com.acme.app` has `module-info.java`.
+- [ ] The application module declares `requires com.acme.greetings`.
+- [ ] The `javac` command compiles both modules.
+- [ ] The output contains `module-info.class` for each module.
+- [ ] The JVM runs the application using `--module-path`.
+- [ ] The output displays the expected greeting.
 
-## Kết luận
+## Conclusion
 
-Bài thực hành đã tạo hai named module có quan hệ rõ ràng: `com.acme.greetings` cung cấp public API qua `exports`; `com.acme.app` khai báo dependency qua `requires` và sử dụng API đó.
+This lab created two named modules with a clear relationship: `com.acme.greetings` provides a public API via `exports`; `com.acme.app` declares a dependency via `requires` and uses that API.
 
-Hãy ghi nhớ: **requires trả lời module nào cần được đọc; exports trả lời package nào được công khai**. Khi cả hai directive cùng được khai báo chính xác, compiler có thể kiểm tra module dependency và JVM có thể resolve, nạp các module để chạy ứng dụng.
+Remember: **requires answers which module needs to be read; exports answers which package is exposed**. When both directives are declared accurately, the compiler can verify module dependencies and the JVM can resolve and load the modules to run the application.

@@ -1,53 +1,53 @@
-# Giới hạn của ChoiceFormat với quy tắc số nhiều và giới tính ngữ pháp trong Java
+# Limitations of ChoiceFormat with Plural Rules and Grammatical Gender in Java
 
-## 1. Đặt vấn đề: ngưỡng số không phải ngữ pháp
+## 1. Problem Statement: Numeric Thresholds Are Not Grammar
 
-Trong ứng dụng đa ngôn ngữ, cùng một thông báo có thể cần nhiều cách viết tùy theo **số lượng**, **danh từ**, **giới tính ngữ pháp**, **cách (grammatical case)** hoặc những thông tin ngữ cảnh khác. Chẳng hạn, tiếng Anh có thể viết:
+In multilingual applications, the same message may need multiple phrasings depending on **quantity**, **noun**, **grammatical gender**, **grammatical case**, or other contextual information. For example, English might write:
 
 - `0 files` → “no files”
 - `1 file` → “one file”
 - `2 files` → “2 files”
 
-Java cung cấp `java.text.ChoiceFormat` để **chọn một chuỗi theo các khoảng giá trị số**. Khi nhúng vào `java.text.MessageFormat`, cú pháp phổ biến là:
+Java provides `java.text.ChoiceFormat` to **select a string by numeric value ranges**. When embedded in `java.text.MessageFormat`, the common syntax is:
 
 ```text
 {0,choice,0#no files|1#one file|1<{0,number,integer} files}
 ```
 
-Với các số nguyên không âm và câu tiếng Anh đơn giản, cách viết này có thể đáp ứng nhu cầu. Tuy nhiên, nó không đồng nghĩa với bộ máy ngữ pháp đa ngôn ngữ:
+For non-negative integers and simple English sentences, this approach can meet requirements. However, it is not equivalent to a multilingual grammar engine:
 
-1. Nhiều ngôn ngữ có **plural categories** phụ thuộc phép chia lấy dư, số chữ số thập phân và cách biểu diễn số, không phải các khoảng tăng tuyến tính.
-2. **Grammatical gender** của danh từ, đại từ hoặc từ cần hòa hợp không thể suy ra từ số lượng.
-3. **Số nhiều + giới tính + cách ngữ pháp** có thể ảnh hưởng nhiều từ trong cùng câu, thay vì chỉ thay một hậu tố của danh từ.
-4. `ChoiceFormat` không hỗ trợ trực tiếp các biểu thức ngữ pháp như `plural` và `select` của ICU MessageFormat. Đó là hai cơ chế khác nhau.
+1. Many languages have **plural categories** depending on modulo remainders, number of decimal digits, and number representation, rather than linear ascending intervals.
+2. **Grammatical gender** of a noun, pronoun, or agreeing word cannot be inferred from a quantity.
+3. **Plural + gender + grammatical case** can affect multiple words in the same sentence rather than merely changing a noun suffix.
+4. `ChoiceFormat` does not directly support grammatical expressions like `plural` and `select` from ICU MessageFormat. Those are two different mechanisms.
 
-**Mục tiêu:** hiểu chính xác `ChoiceFormat` làm được gì, nhận diện trường hợp dùng sai, và biết cách thiết kế thông điệp bản địa hóa đúng khi có plural rules và grammatical gender.
+**Goal:** understand accurately what `ChoiceFormat` can do, recognize misuse cases, and know how to design proper localized messages when plural rules and grammatical gender are involved.
 
-## 2. ChoiceFormat thực chất chọn theo giới hạn số
+## 2. ChoiceFormat Actually Selects by Numeric Limits
 
-`ChoiceFormat` định nghĩa một tập ranh giới số có thứ tự và thông điệp tương ứng. Một pattern như:
+`ChoiceFormat` defines an ordered set of numeric boundaries and corresponding messages. A pattern like:
 
 ```text
 0#none|1#one|1<many
 ```
 
-được diễn giải theo các ngưỡng sau:
+is interpreted according to the following thresholds:
 
-| Điều kiện đầu vào | Nhánh | Kết quả |
+| Input Condition | Branch | Result |
 | --- | --- | --- |
 | `n = 0` | `0#none` | `none` |
 | `n = 1` | `1#one` | `one` |
 | `n > 1` | `1<many` | `many` |
 
-Ở đây:
+Here:
 
-- `#` (và ký hiệu bao gồm tương ứng trong ChoiceFormat) chỉ nhánh bắt đầu từ **ngưỡng được tính vào**.
-- `<` biểu thị **lớn hơn nghiêm ngặt** ngưỡng.
-- `|` phân tách các nhánh.
-- Những ngưỡng được xem theo thứ tự tăng; mỗi lựa chọn tương ứng một khoảng trên trục số.
-- Với số **nhỏ hơn giới hạn đầu tiên**, `ChoiceFormat` vẫn sử dụng chuỗi của nhánh đầu tiên; nó không tự báo rằng dữ liệu không hợp lệ.
+- `#` (and its corresponding inclusive symbol in ChoiceFormat) marks a branch starting at an **inclusive threshold**.
+- `<` denotes **strictly greater than** the threshold.
+- `|` separates branches.
+- Thresholds are evaluated in ascending order; each choice corresponds to an interval on the number line.
+- For numbers **smaller than the first limit**, `ChoiceFormat` still uses the string of the first branch; it does not report that the data is invalid.
 
-Có thể tạo `ChoiceFormat` độc lập:
+You can instantiate `ChoiceFormat` standalone:
 
 ```java
 ChoiceFormat format =
@@ -55,7 +55,7 @@ ChoiceFormat format =
 System.out.println(format.format(2)); // many
 ```
 
-Hoặc dùng `MessageFormat` để chèn lại số vào kết quả của nhánh:
+Or use `MessageFormat` to insert the number back into the branch result:
 
 ```java
 MessageFormat format = new MessageFormat(
@@ -64,111 +64,111 @@ MessageFormat format = new MessageFormat(
 System.out.println(format.format(new Object[] {2})); // 2 files
 ```
 
-Hai đoạn trên là mã minh họa bên trong phương thức Java, cần import các class tương ứng. Điểm đáng chú ý: `MessageFormat` có thể xử lý **format element lồng trong phần kết quả của choice**, nhưng điều đó chỉ giúp chèn giá trị; nó không tự biết plural rules của tiếng Nga hay tiếng Ả Rập.
+The two snippets above are illustrative code inside a Java method, requiring the corresponding class imports. Notably, `MessageFormat` can process **nested format elements inside a choice result**, but that only helps insert values; it does not magically learn Russian or Arabic plural rules.
 
-### Các ngộ nhận về điều kiện
+### Misconceptions about conditions
 
-`ChoiceFormat` không có API biểu thức điều kiện tổng quát trong pattern:
+`ChoiceFormat` has no general conditional expression API in its pattern:
 
-- Không viết trực tiếp điều kiện kiểu `n % 10 == 1`.
-- Không tự tính ngữ cảnh của từ đếm hoặc gender của danh từ.
-- Không lấy quy tắc số nhiều từ `Locale` để sinh các nhánh `one/few/many`.
-- Không tự giới hạn đầu vào là số nguyên không âm.
-- Không tự bảo đảm số được in lồng trong nhánh `{0,number,integer}` phản ánh đúng giá trị thập phân ban đầu: formatter có thể làm tròn.
+- You cannot write conditions like `n % 10 == 1` directly.
+- It does not compute classifier context or noun gender automatically.
+- It does not fetch plural rules from `Locale` to generate `one/few/many` branches.
+- It does not restrict inputs to non-negative integers automatically.
+- It does not guarantee that a number printed inside `{0,number,integer}` reflects the exact original decimal value: the formatter may round it.
 
-Vì vậy, nên xem `ChoiceFormat` là **bộ chọn khoảng số**, không phải **plural grammar engine**.
+Therefore, treat `ChoiceFormat` as a **numeric range selector**, not a **plural grammar engine**.
 
-## 3. Plural rules: phân loại theo ngôn ngữ, không chỉ theo số
+## 3. Plural Rules: Classification by Language, Not Just by Number
 
-Unicode CLDR định nghĩa các **plural categories** để diễn tả cách dùng số lượng theo locale. Các tên category thường gặp là `zero`, `one`, `two`, `few`, `many` và `other`. Tên này là **nhãn quy tắc**, không phải nghĩa đen rằng giá trị luôn bằng 0, 1, 2. Mỗi ngôn ngữ có thể sử dụng chỉ một tập con.
+Unicode CLDR defines **plural categories** to describe how quantities are used per locale. Common category names are `zero`, `one`, `two`, `few`, `many`, and `other`. These names are **rule labels**, not literal statements that the value always equals 0, 1, or 2. Each language may use only a subset.
 
-Ví dụ khái quát:
+High-level examples:
 
-| Ngôn ngữ/nhóm | Điều cần chú ý |
+| Language / Group | What to Note |
 | --- | --- |
-| Tiếng Anh | Card​​inal singular thường dành cho giá trị nguyên `1`, còn các giá trị khác dùng dạng khác; dữ liệu có chữ số thập phân hiển thị cần xét riêng. |
-| Tiếng Việt | Không dùng biến tố số ít/số nhiều kiểu tiếng Anh cho danh từ; lựa chọn câu vẫn phụ thuộc ngữ cảnh, lượng từ và cách diễn đạt. |
-| Tiếng Nga | Với số nguyên, các dạng phụ thuộc chữ số cuối và **hai chữ số cuối**, không chỉ thứ tự `1, 2, 5, 21...`. |
-| Tiếng Ả Rập | Có các nhóm như `zero`, `one`, `two`, `few`, `many`, `other`, với các điều kiện riêng theo locale. |
-| Tiếng Ba Lan | Có nhiều lớp plural, trong đó các dạng thập phân và quy tắc phần dư có thể khác số nguyên. |
+| English | Cardinal singular typically applies to integer value `1`, while other values use another form; data with displayed decimal digits needs separate consideration. |
+| Vietnamese | Does not use English-style singular/plural noun inflection; sentence choice still depends on context, classifiers, and phrasing. |
+| Russian | For integers, forms depend on the last digit and **last two digits**, not just the progression `1, 2, 5, 21...`. |
+| Arabic | Has groups such as `zero`, `one`, `two`, `few`, `many`, `other`, with locale-specific conditions. |
+| Polish | Has multiple plural classes, where decimal forms and remainder rules can differ from integers. |
 
-CLDR sử dụng các toán hạng như `n` (giá trị tuyệt đối), `i` (phần nguyên), `v` (số chữ số phần thập phân hiển thị), `w` (số chữ số thập phân bỏ số 0 cuối) và các chữ số thập phân để xác định category. Chi tiết quan trọng là **dạng hiển thị có thể ảnh hưởng category**. Các cách viết `1` và `1.0` có thể được phân loại khác nhau bởi các quy tắc xét `v`, mặc dù giá trị số học bằng nhau.
+CLDR uses operands such as `n` (absolute value), `i` (integer part), `v` (count of visible fraction digits), `w` (count of visible fraction digits without trailing zeros), and fractional digits to determine the category. An important detail is that **displayed form can affect the category**. Formats `1` and `1.0` may be classified differently by rules inspecting `v`, even though their numerical values are equal.
 
-Trong hệ thống thực, không thể luôn khôi phục số chữ số thập phân mà người dùng đã nhập chỉ từ `double`. Nếu chính sách plural phụ thuộc biểu diễn, dữ liệu đầu vào hoặc tầng định dạng phải giữ thông tin cần thiết.
+In real systems, you cannot always recover the number of decimal digits a user entered from a `double` alone. If plural policy depends on representation, the input data or formatting layer must preserve the required information.
 
-### Cardinal khác ordinal
+### Cardinal differs from ordinal
 
-Các quy tắc **cardinal** dùng cho đếm số lượng (1 file, 2 files), trong khi **ordinal** dùng cho thứ tự (1st, 2nd, 3rd). Một ngôn ngữ có thể có hệ nhóm ordinal khác cardinal. `ChoiceFormat` không phân biệt hay tự chọn loại quy tắc này từ ngữ cảnh; đó phải là một phần thiết kế message.
+**Cardinal** rules are used for counting quantities (1 file, 2 files), whereas **ordinal** rules are used for order (1st, 2nd, 3rd). A language may have an ordinal grouping system different from its cardinal system. `ChoiceFormat` does not distinguish or choose this rule type from context; it must be part of message design.
 
-## 4. Vì sao các ngưỡng cố định thất bại với tiếng Nga?
+## 4. Why Do Fixed Thresholds Fail for Russian?
 
-Với **số nguyên không âm** trong ví dụ tiếng Nga, một cách phân loại giản lược thường gặp là:
+For **non-negative integers** in a Russian example, a common simplified classification is:
 
-- `one` khi chữ số cuối là 1, **trừ** các số có hai chữ số cuối bằng 11.
-- `few` khi chữ số cuối là 2, 3, 4, **trừ** các số có hai chữ số cuối là 12, 13, 14.
-- `many` cho các số nguyên không âm còn lại, trong ngữ cảnh này.
+- `one` when the last digit is 1, **except** numbers whose last two digits equal 11.
+- `few` when the last digit is 2, 3, or 4, **except** numbers whose last two digits are 12, 13, or 14.
+- `many` for the remaining non-negative integers, in this context.
 
-Vì vậy:
+Thus:
 
-| Số | Nhóm minh họa | Giải thích |
+| Number | Illustrative Group | Explanation |
 | ---: | --- | --- |
-| 1 | `one` | Kết thúc bằng 1, không kết thúc bằng 11. |
-| 2 | `few` | Kết thúc bằng 2, không phải 12. |
-| 5 | `many` | Không thuộc `one/few`. |
-| 11 | `many` | Ngoại lệ với hai chữ số cuối 11. |
-| 21 | `one` | Chữ số cuối 1, hai chữ số cuối 21. |
-| 22 | `few` | Chữ số cuối 2, hai chữ số cuối 22. |
-| 25 | `many` | Chữ số cuối 5. |
+| 1 | `one` | Ends in 1, does not end in 11. |
+| 2 | `few` | Ends in 2, not 12. |
+| 5 | `many` | Does not belong to `one/few`. |
+| 11 | `many` | Exception for last two digits 11. |
+| 21 | `one` | Last digit 1, last two digits 21. |
+| 22 | `few` | Last digit 2, last two digits 22. |
+| 25 | `many` | Last digit 5. |
 
-Hãy thử diễn tả các nhóm này bằng pattern `ChoiceFormat` ngây thơ:
+Try expressing these groups with a naive `ChoiceFormat` pattern:
 
 ```text
 0#many|1#one|2#few|5#many
 ```
 
-Mẫu hoạt động cho 1, 2, 5, 11 nhưng tại **21** vẫn chọn `many`, trong khi nhóm đúng cho số nguyên đó là `one`; tại **22** vẫn chọn `many`, trong khi nhóm đúng là `few`.
+The pattern works for 1, 2, 5, 11, yet at **21** it still selects `many`, whereas the right group for that integer is `one`; at **22** it still selects `many`, whereas the right group is `few`.
 
-Ta có thể thêm các ngưỡng `21`, `22`, `25`, nhưng chu kỳ sẽ lại lặp cho `31`, `32`, `41`, `42`... Một danh sách **hữu hạn những ngưỡng liên tiếp** không biểu diễn tổng quát quy tắc modulo lặp vô hạn trên mọi số nguyên không âm. Đó là hạn chế về mô hình, không phải lỗi cú pháp pattern.
+We could add thresholds `21`, `22`, `25`, but the cycle repeats again for `31`, `32`, `41`, `42`... A **finite list of contiguous thresholds** cannot generally represent an infinitely repeating modulo rule across all non-negative integers. That is a modeling limitation, not a pattern syntax bug.
 
-**Giới hạn của quy tắc minh họa ở trên:** nó chỉ dùng cho các **số nguyên không âm** để cho thấy vấn đề modulo. Với số thập phân, plural rule tiếng Nga có thể chọn `other`; không áp dụng các phép modulo trên `int` rồi coi là engine CLDR hoàn chỉnh. Trong ứng dụng thực, hãy dùng dữ liệu plural rule cho locale tương ứng thay vì tự viết quy tắc dựa trên một vài ví dụ.
+**Scope limitation of the illustrative rule above:** it applies only to **non-negative integers** to demonstrate the modulo problem. For decimal numbers, Russian plural rules may select `other`; do not apply modulo arithmetic on `int` and treat it as a complete CLDR engine. In real applications, use plural rule data for the target locale instead of hand-coding rules from a few examples.
 
-## 5. Grammatical gender: ChoiceFormat không nhận được ngữ cảnh cần thiết
+## 5. Grammatical Gender: ChoiceFormat Cannot Receive the Necessary Context
 
-**Giới tính ngữ pháp** là đặc tính của những từ/cấu trúc trong một ngôn ngữ, ví dụ một danh từ giống đực hoặc giống cái trong tiếng Tây Ban Nha. Đây **không đồng nhất** với giới tính hay bản dạng giới của người dùng.
+**Grammatical gender** is a property of words/structures in a language, such as a masculine or feminine noun in Spanish. This is **not identical** to a user's gender or gender identity.
 
-Ví dụ tiếng Tây Ban Nha:
+Spanish examples:
 
-- `un archivo nuevo` — “một tệp mới”, danh từ `archivo` thuộc giống đực; mạo từ `un` và tính từ `nuevo` tương ứng.
-- `una carpeta nueva` — “một thư mục mới”, danh từ `carpeta` thuộc giống cái; mạo từ `una` và tính từ `nueva` tương ứng.
+- `un archivo nuevo` — “a new file”, the noun `archivo` is masculine; the article `un` and adjective `nuevo` agree accordingly.
+- `una carpeta nueva` — “a new folder”, the noun `carpeta` is feminine; the article `una` and adjective `nueva` agree accordingly.
 
-Giả sử cả hai đều có **số lượng 1**. Nếu chỉ truyền số 1 vào `ChoiceFormat` thì không có đủ dữ liệu để phân biệt `archivo` với `carpeta`, chọn `un/una` hay `nuevo/nueva`. Việc thêm hàng loạt ngưỡng không thể biến dữ liệu numeric thành thông tin về gender của danh từ.
+Suppose both have a **quantity of 1**. Passing only the number 1 into `ChoiceFormat` provides no data to distinguish `archivo` from `carpeta`, or to choose `un/una` and `nuevo/nueva`. Adding any number of thresholds cannot turn numeric data into information about a noun's gender.
 
-Trong một số ngôn ngữ, biến đổi còn liên quan đại từ, động từ, tính từ, cách ngữ pháp, số lượng hoặc vai trò của người được nhắc tới. Lựa chọn hình thái cần **ngữ cảnh ngôn ngữ rõ ràng** và bản dịch phù hợp, không nên đoán từ tên người, địa chỉ hay một thuộc tính không liên quan.
+In some languages, variations also involve pronouns, verbs, adjectives, grammatical case, quantity, or the role of the person referred to. Morphological selection requires **explicit linguistic context** and proper translations, and should not be guessed from a person's name, address, or an unrelated attribute.
 
-### Dữ liệu cần truyền vào message
+### Data to pass into a message
 
-Tùy yêu cầu sản phẩm, một message có thể cần các biến:
+Depending on product requirements, a message may need variables:
 
-| Biến | Ví dụ | Ghi chú |
+| Variable | Example | Notes |
 | --- | --- | --- |
-| `count` | `21` | Cần plural category theo locale, có thể phải giữ biểu diễn thập phân. |
-| `nounKey` | `file`, `folder` | Danh từ có từ vựng và gender ngữ pháp. |
-| `grammaticalGender` | `masculine`, `feminine`, `neuter`, `other` | Có thể thuộc về danh từ; không suy từ số. |
-| `grammaticalCase` | `nominative`, `accusative`... | Chỉ khi ngôn ngữ/câu cần. |
-| `formality` | `formal`, `informal` | Phong cách xưng hô có thể ảnh hưởng câu. |
-| `locale` | `es-ES`, `ru-RU` | Xác định bộ quy tắc/ngôn ngữ của thông điệp. |
+| `count` | `21` | Needs locale plural category; may need to preserve decimal representation. |
+| `nounKey` | `file`, `folder` | Noun has lexical form and grammatical gender. |
+| `grammaticalGender` | `masculine`, `feminine`, `neuter`, `other` | May belong to the noun; not inferred from count. |
+| `grammaticalCase` | `nominative`, `accusative`... | Only when required by the language/sentence. |
+| `formality` | `formal`, `informal` | Register of address may affect the sentence. |
+| `locale` | `es-ES`, `ru-RU` | Determines the rule set/language of the message. |
 
-Không phải sản phẩm nào cũng cần truyền mọi biến. Thiết kế **hợp đồng tham số tối thiểu nhưng đủ** cho từng key dịch giúp tránh code quá tổng quát, đồng thời không làm mất ngữ cảnh quan trọng.
+Not every product needs to pass every variable. Designing a **minimal yet sufficient parameter contract** per translation key avoids over-generalized code while preserving critical context.
 
-## 6. Ví dụ Java 17+ chạy độc lập: điểm mạnh và điểm yếu
+## 6. Standalone Java 17+ Example: Strengths and Weaknesses
 
-Tệp **`ChoiceFormatLimitsDemo.java`** dưới đây có ba phần:
+The file **`ChoiceFormatLimitsDemo.java`** below has three parts:
 
-1. Dùng `MessageFormat` với `choice` để hiển thị thông báo tiếng Anh đơn giản về số tệp.
-2. Dùng `ChoiceFormat` ngưỡng số để tạo nhóm `one/few/many` giả lập, đối chiếu với một phép tính minh họa cho **số nguyên tiếng Nga** nhằm thấy lỗi ở 21 và 22.
-3. Chọn cụm từ Tây Ban Nha dựa trên gender ngữ pháp được truyền tường minh, không dựa trên số.
+1. Uses `MessageFormat` with `choice` to display a simple English file-count message.
+2. Uses numeric-threshold `ChoiceFormat` to simulate `one/few/many` groups, contrasting with an illustrative calculation for **Russian integers** to show the failure at 21 and 22.
+3. Selects Spanish phrases based on explicitly passed grammatical gender rather than number.
 
-**Lưu ý:** hàm `russianIntegerExampleCategory` chỉ giải thích trường hợp số nguyên không âm trong bài học. Nó **không phải** một thư viện plural rules cho production: không xử lý số thập phân, cách viết số, quy tắc các locale khác hoặc thay đổi của dữ liệu CLDR.
+**Note:** the `russianIntegerExampleCategory` method only explains the non-negative integer case in this lesson. It is **not** a production plural-rules library: it does not handle decimals, number formatting, rules for other locales, or CLDR data updates.
 
 ```java
 import java.text.ChoiceFormat;
@@ -182,7 +182,7 @@ public class ChoiceFormatLimitsDemo {
         FEMININE
     }
 
-    // Minh họa giới hạn ở số nguyên không âm.
+    // Illustrates the limitation for non-negative integers.
     private static String russianIntegerExampleCategory(int n) {
         if (n < 0) {
             throw new IllegalArgumentException("count must be >= 0");
@@ -201,8 +201,8 @@ public class ChoiceFormatLimitsDemo {
         return "many";
     }
 
-    // Chỉ là hai ví dụ từ vựng, không phải bộ biến hình
-    // tiếng Tây Ban Nha cho mọi danh từ.
+    // Just two lexical examples, not a Spanish inflection
+    // engine for all nouns.
     private static String spanishPhrase(Gender gender, String noun) {
         return switch (gender) {
             case MASCULINE -> "un " + noun + " nuevo";
@@ -238,14 +238,14 @@ public class ChoiceFormatLimitsDemo {
 }
 ```
 
-Để biên dịch và chạy trong thư mục chứa tệp, dùng JDK 17 hoặc mới hơn:
+To compile and run in the directory containing the file, use JDK 17 or newer:
 
 ```bash
 javac -encoding UTF-8 ChoiceFormatLimitsDemo.java
 java ChoiceFormatLimitsDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 en(0)=no files
@@ -263,51 +263,51 @@ es(m)=un archivo nuevo
 es(f)=una carpeta nueva
 ```
 
-### Phân tích kết quả
+### Result analysis
 
-- Các dòng `en(...)` cho thấy `choice` hữu ích cho thông điệp nhỏ, miền giá trị số nguyên không âm và các nhánh do người dịch xác nhận.
-- `ru(21)` và `ru(22)` là **mâu thuẫn cố ý** giữa phân loại theo khoảng của `ChoiceFormat` và phân loại dựa trên phép chia lấy dư trong ví dụ tiếng Nga.
-- `ru(11)` minh họa ngoại lệ: chữ số cuối 1 nhưng hai chữ số cuối 11, nên không thuộc nhóm `one`.
-- Hai dòng `es(...)` giữ số lượng ngầm là một nhưng thay mạo từ và tính từ do gender ngữ pháp của danh từ được đưa vào hàm. Logic này **được viết riêng**, không phải chức năng native của `ChoiceFormat`.
-- Nếu ứng dụng cần xử lý hàng trăm danh từ, nhiều ngôn ngữ và các hình thái khác, phương thức `spanishPhrase` này không đủ; cần nguồn dữ liệu từ vựng và chuỗi dịch chính xác.
+- The `en(...)` lines show `choice` is useful for small messages, non-negative integer domains, and translator-verified branches.
+- `ru(21)` and `ru(22)` are **intentional mismatches** between `ChoiceFormat`'s interval classification and the modulo-based classification in the Russian example.
+- `ru(11)` illustrates the exception: last digit 1, yet last two digits 11, so it does not belong to the `one` group.
+- Both `es(...)` lines keep the quantity implicitly at one while changing the article and adjective according to the noun's grammatical gender passed into the method. This logic is **custom-written**, not a native capability of `ChoiceFormat`.
+- If an application must handle hundreds of nouns, many languages, and additional inflections, this `spanishPhrase` method is insufficient; lexical data sources and accurate translated strings are needed.
 
-## 7. Ví dụ phản chứng bổ sung: số thập phân và số âm
+## 7. Additional Counterexamples: Decimals and Negative Numbers
 
-Ngay cả với ngôn ngữ có plural tương đối đơn giản, một pattern dùng ngưỡng có thể tạo output gây hiểu nhầm nếu đầu vào không đúng miền đã xác định.
+Even in a language with relatively simple plurals, a threshold-based pattern can produce misleading output if the input falls outside the defined domain.
 
-### Số âm
+### Negative numbers
 
-Với:
+With:
 
 ```text
 0#no files|1#one file|1<many files
 ```
 
-`ChoiceFormat` có thể cho kết quả `no files` ngay cả khi đầu vào là `-1`, vì `-1` nằm dưới giới hạn đầu tiên. Đây không phải một quy tắc ngữ pháp cho số âm, mà là hành vi chọn nhánh ngoài khoảng bắt đầu. Cần quyết định riêng rằng **count phải là số nguyên không âm** và validate trước khi format.
+`ChoiceFormat` can output `no files` even when the input is `-1`, because `-1` lies below the first limit. This is not a grammatical rule for negative numbers, but out-of-lower-bound fallback behavior. You must explicitly decide that **count must be a non-negative integer** and validate before formatting.
 
-### Số thập phân
+### Decimal numbers
 
-Nếu nhánh cho “lớn hơn 1” chứa `{0,number,integer}` và đầu vào là `1.5`, phần số được trình bày dưới dạng số nguyên bằng cơ chế làm tròn của formatter. Như vậy, thông điệp có thể xuất hiện số khác giá trị ban đầu dù việc chọn nhánh `choice` dựa trên `1.5`.
+If the “greater than 1” branch contains `{0,number,integer}` and the input is `1.5`, the numeric part is presented as an integer via the formatter's rounding mechanism. Thus, the message may display a number different from the original value even though `choice` branch selection used `1.5`.
 
-Dữ liệu số nhiều cho sản phẩm có thể bao gồm cân nặng, khối lượng, thời lượng hoặc các đại lượng không nguyên. Không nên ép mọi loại số vào mẫu đếm tệp `integer`. Các quy tắc PLURAL cho số thập phân có thể phụ thuộc cả số chữ số sau dấu thập phân được thể hiện; `ChoiceFormat` đơn giản không quản lý được ngữ nghĩa đó.
+Plural data for products may include weight, volume, duration, or non-integer quantities. Do not force every kind of number into an `integer` file-counting template. Plural rules for decimals can also depend on the number of displayed digits after the decimal separator; simple `ChoiceFormat` cannot manage those semantics.
 
-### Giá trị bị giới hạn trong một domain
+### Values constrained to a domain
 
-Nếu domain thực sự là đúng ba mức `0`, `1`, `>=2` với giá trị đếm nguyên không âm, có thể dùng `ChoiceFormat` sau kiểm tra đầu vào. Vấn đề là **tính đúng của giả định domain**, không phải việc `ChoiceFormat` luôn vô dụng.
+If the domain truly consists of exactly three levels `0`, `1`, `>=2` with non-negative integer counts, `ChoiceFormat` can be used after input validation. The issue is the **validity of the domain assumption**, not that `ChoiceFormat` is always useless.
 
-## 8. Không nên dùng ChoiceFormat để mã hóa giới tính bằng số
+## 8. Do Not Use ChoiceFormat to Encode Gender as Numbers
 
-Một “mẹo” dễ gặp là biến `masculine=0`, `feminine=1` rồi viết pattern `choice` để chọn văn bản theo chỉ số. Cách này chỉ tạo ra một **lookup số giả**, không đem lại khả năng hiểu ngữ pháp:
+A common “trick” is mapping `masculine=0`, `feminine=1` and writing a `choice` pattern to pick text by index. This only creates a **fake numeric lookup** without providing grammatical understanding:
 
-- Khi thêm `neuter` hoặc `other`, các số magic trở nên khó bảo trì.
-- Không mô tả được quan hệ giữa danh từ, mạo từ, tính từ, động từ và cách ngữ pháp.
-- Dễ nhầm `gender` của người dùng với `grammaticalGender` của một từ, dẫn đến suy diễn không phù hợp.
-- Không giúp biên dịch/kiểm tra sự đầy đủ của bản dịch theo locale.
-- Không tự phối hợp với plural categories đúng của ngôn ngữ.
+- When adding `neuter` or `other`, magic numbers become hard to maintain.
+- It cannot describe agreement between nouns, articles, adjectives, verbs, and grammatical cases.
+- It easily confuses a user's `gender` with a word's `grammaticalGender`, leading to inappropriate assumptions.
+- It does not help verify or check translation completeness per locale.
+- It does not automatically coordinate with the language's proper plural categories.
 
-Nếu danh sách lựa chọn hữu hạn và thuộc nghiệp vụ, có thể dùng `enum` hoặc key định danh rõ ràng để chọn **message key** trước khi format. Nhưng các biến thể bản dịch vẫn cần người dịch kiểm tra; không biến `gender` thành chỉ số số học.
+If the list of options is finite and domain-specific, you can use an `enum` or explicit identifier key to pick a **message key** before formatting. Translation variants still need translator review; do not turn `gender` into a numeric index.
 
-Ví dụ một thiết kế key tường minh:
+Example of an explicit key design:
 
 ```text
 file.created.masculine=...
@@ -316,20 +316,20 @@ notification.formal=...
 notification.informal=...
 ```
 
-Đây là **mẫu minh họa cách tổ chức khóa**, không phải quy tắc dịch mọi ngôn ngữ. Trên quy mô lớn, việc tạo mọi tổ hợp key thủ công có thể khó bảo trì. Khi cần plural + gender + select phức tạp, dùng định dạng message hỗ trợ selector là hợp lý hơn.
+This is an **illustrative example of organizing keys**, not a translation rule for every language. At large scale, creating every key combination manually can become hard to maintain. When complex plural + gender + select is required, using a message format with selector support makes more sense.
 
-## 9. Java MessageFormat chuẩn khác ICU MessageFormat
+## 9. Standard Java MessageFormat Differs from ICU MessageFormat
 
-Rất dễ nhầm các API có tên tương tự:
+It is easy to confuse similarly named APIs:
 
-| API/cơ chế | Khả năng chính | Giới hạn |
+| API / Mechanism | Primary Capability | Limitations |
 | --- | --- | --- |
-| `java.text.ChoiceFormat` (JDK) | Chọn văn bản theo giới hạn số. | Không có native CLDR plural/gender selector. |
-| `java.text.MessageFormat` (JDK) | Ghép tham số, định dạng number/date/time, chứa format element `choice`. | Không hỗ trợ sẵn cú pháp ICU `plural`/`select`. |
-| ICU4J `com.ibm.icu.text.MessageFormat` | Hỗ trợ cú pháp ICU MessageFormat với `plural`, `selectordinal` và `select` theo dữ liệu locale. | Là thư viện ngoài JDK; cần dependency và bản dịch phù hợp. |
-| `ResourceBundle` (JDK) | Chọn tệp/nguồn message theo locale và fallback key. | Chỉ tra tài nguyên; không tự giải quyết plural hay giới tính ngữ pháp. |
+| `java.text.ChoiceFormat` (JDK) | Selects text by numeric limits. | No native CLDR plural/gender selectors. |
+| `java.text.MessageFormat` (JDK) | Interpolates arguments, formats number/date/time, supports `choice` format element. | Does not natively support ICU `plural`/`select` syntax. |
+| ICU4J `com.ibm.icu.text.MessageFormat` | Supports ICU MessageFormat syntax with `plural`, `selectordinal`, and `select` using locale data. | External library outside JDK; requires dependency and matching translations. |
+| `ResourceBundle` (JDK) | Selects message file/source by locale and key fallback. | Only looks up resources; does not solve plurals or grammatical gender itself. |
 
-ICU MessageFormat có thể thể hiện ý tưởng:
+ICU MessageFormat can express the idea:
 
 ```text
 {count, plural,
@@ -338,9 +338,9 @@ ICU MessageFormat có thể thể hiện ý tưởng:
 }
 ```
 
-Đây là **cú pháp minh họa cho ICU MessageFormat**, không phải pattern hợp lệ cho `java.text.MessageFormat` tiêu chuẩn. `#` ở trong nhánh plural của ICU có ngữ nghĩa thay bằng số lượng theo quy tắc của nó. Dữ liệu locale quyết định nhánh plural áp dụng, thay vì yêu cầu người viết tự chia các khoảng số.
+This is **illustrative syntax for ICU MessageFormat**, not a valid pattern for standard `java.text.MessageFormat`. Inside an ICU plural branch, `#` means replacing with the formatted quantity per its rules. Locale data decides which plural branch applies, rather than requiring the author to manually partition numeric intervals.
 
-Tương tự, ICU có selector theo thuộc tính phi số:
+Similarly, ICU has a selector for non-numeric attributes:
 
 ```text
 {grammaticalGender, select,
@@ -350,100 +350,100 @@ Tương tự, ICU có selector theo thuộc tính phi số:
 }
 ```
 
-Đây vẫn chỉ là ví dụ với ba thông điệp đã viết trước. **`select` không tự biến đổi mọi danh từ/tính từ**. Nó chọn nhánh theo giá trị selector được cung cấp. Phần đúng ngữ pháp vẫn thuộc bản dịch và hợp đồng dữ liệu đầu vào.
+This is still just an example with three pre-written messages. **`select` does not automatically inflect nouns or adjectives**. It chooses a branch based on the supplied selector value. Grammatical correctness still belongs to the translation and input data contract.
 
-Trong thực tế, pattern chứa plural và select có thể lồng nhau khi thông điệp phụ thuộc cả count và gender. Sự kết hợp đó làm phát sinh **nhiều hình thức ngữ pháp**, và có thể cần cách diễn đạt mới của người dịch thay vì nối mảnh câu. Hãy xem xét các ICU plural category thực sự dùng ở locale đó, không cố viết một pattern “dùng chung cho mọi ngôn ngữ”.
+In practice, patterns containing plural and select can be nested when a message depends on both count and gender. That combination produces **multiple grammatical forms** and may require fresh phrasing from translators rather than concatenating sentence fragments. Inspect the actual ICU plural categories used by that locale instead of trying to write a single pattern “for all languages”.
 
-### Quy tắc chọn công cụ
+### Tool selection rules
 
-- Nếu câu có vài lựa chọn theo **ngưỡng số hữu hạn**, và đã xác thực domain cũng như văn bản của locale: `ChoiceFormat` là lựa chọn phù hợp.
-- Nếu câu cần **plural categories thực** cho nhiều locale, số thập phân hoặc cardinal/ordinal: dùng ICU4J hoặc một localization framework có dữ liệu CLDR tương đương.
-- Nếu câu cần **chọn theo gender, formality, role**: dùng selector theo enum/message key hoặc engine hỗ trợ `select`.
-- Nếu câu cần **hòa hợp phức tạp**, đôi khi nên dịch nguyên câu theo biến thể cụ thể thay vì cố ghép mạo từ, tính từ và danh từ bằng chuỗi con.
+- If a sentence has a few choices by **finite numeric thresholds**, and both the domain and locale text are validated: `ChoiceFormat` is an appropriate choice.
+- If a sentence requires **real plural categories** across many locales, decimals, or cardinal/ordinal forms: use ICU4J or a localization framework with equivalent CLDR data.
+- If a sentence needs **selection by gender, formality, or role**: use an enum/message-key selector or an engine supporting `select`.
+- If a sentence needs **complex agreement**, sometimes it is better to translate complete sentences per specific variant rather than trying to assemble articles, adjectives, and nouns from substrings.
 
-Không cần ICU4J cho mọi chương trình nhỏ; cần nó khi bài toán ngôn ngữ đã vượt khả năng lựa chọn theo khoảng số của JDK.
+You do not need ICU4J for every small program; you need it when the linguistic problem exceeds the JDK's numeric-range selection capability.
 
-## 10. Thiết kế thông điệp và hợp đồng dữ liệu
+## 10. Message Design and Data Contracts
 
-Trước khi tạo một localization key, hãy phân biệt thông tin thuộc từng lớp:
+Before creating a localization key, separate information belonging to each layer:
 
-1. **Nghiệp vụ:** số lượng nào là hợp lệ, count có luôn nguyên không âm không, có một hay nhiều loại đối tượng, số liệu có giữ chữ số thập phân không?
-2. **Ngôn ngữ:** locale nào được hỗ trợ, cần plural cardinal hay ordinal, cần agreement của từ nào, giới tính ngữ pháp thuộc về danh từ nào?
-3. **Hiển thị:** cấu trúc toàn câu, vị trí tham số, có cần rút gọn/chuyển câu cho tự nhiên không, có cần accessibility text riêng không?
-4. **Công cụ:** JDK `MessageFormat` hay ICU4J, phiên bản dữ liệu locale, bộ kiểm thử message tại build time.
+1. **Business logic:** which quantities are valid, is count always a non-negative integer, is there one or multiple object types, must numbers retain decimal digits?
+2. **Linguistics:** which locales are supported, are cardinal or ordinal plurals needed, which words require agreement, which noun owns grammatical gender?
+3. **Presentation:** whole-sentence structure, parameter placement, whether shortening/rephrasing is needed for naturalness, whether separate accessibility text is needed?
+4. **Tooling:** JDK `MessageFormat` or ICU4J, locale data version, build-time message validation tests.
 
-Đừng viết trực tiếp:
+Do not write directly:
 
 ```java
 String message = count + " file" + (count == 1 ? "" : "s");
 ```
 
-cho một sản phẩm đa ngôn ngữ rồi kỳ vọng người dịch có thể sửa đúng. Logic này giả định quy tắc tiếng Anh và cứng hóa thứ tự câu trong code. Nếu chương trình chỉ chạy cho tiếng Anh, domain chỉ là số nguyên không âm, vẫn phải có kiểm thử 0/1/2 và quy định rõ đó là phạm vi có chủ ý.
+in a multilingual product and expect translators to fix it properly. This logic assumes English rules and hardcodes sentence order in code. If a program only runs for English and its domain is strictly non-negative integers, it still needs tests for 0/1/2 and an explicit statement that this scope is intentional.
 
-Một hợp đồng message tốt nên nói rõ:
+A good message contract should specify:
 
-- `count` có kiểu gì, có chấp nhận fractional hay không, đơn vị là gì.
-- `noun` hoặc `entityType` có những giá trị được hỗ trợ nào.
-- `grammaticalGender` lấy từ dữ liệu ngôn ngữ nào; **không suy đoán về con người** từ số đếm.
-- Người dịch được phép đảo thứ tự, đổi cả câu, dùng placeholder như thế nào.
-- Nếu thiếu bản dịch của một category, chính sách fallback và kiểm tra CI ra sao.
+- What type `count` has, whether fractions are accepted, and what the unit is.
+- Which values are supported for `noun` or `entityType`.
+- Which linguistic data provides `grammaticalGender`; **do not guess about people** from counts.
+- How translators are allowed to reorder words, rewrite whole sentences, and use placeholders.
+- If a translation for a category is missing, what the fallback policy and CI checks are.
 
-## 11. Kiểm thử số nhiều: boundary test là chưa đủ
+## 11. Testing Plurals: Boundary Tests Are Not Enough
 
-Với `ChoiceFormat`, test các điểm ngay dưới, đúng bằng, và ngay trên giới hạn sẽ bắt lỗi `#`/`<`. Nhưng khi ứng dụng cần plural theo locale, **chỉ kiểm tra 0, 1, 2, 5 là không đủ**. Những số như 11, 12, 14, 21, 22, 25, 101 có thể phơi bày điều kiện theo modulo; số thập phân phơi bày cách dùng các chữ số phần lẻ.
+For `ChoiceFormat`, testing values just below, equal to, and just above thresholds catches `#`/`<` bugs. However, when an application needs locale-based plurals, **testing only 0, 1, 2, 5 is insufficient**. Numbers like 11, 12, 14, 21, 22, 25, 101 can expose modulo conditions; decimal numbers expose how fractional digits are handled.
 
-Ma trận gợi ý:
+Suggested matrix:
 
-| Nhóm kiểm thử | Giá trị minh họa | Mục đích |
+| Test Group | Illustrative Values | Purpose |
 | --- | --- | --- |
-| Nhánh English đơn giản | 0, 1, 2 | Thấy đúng message và thứ tự placeholder. |
-| Ranh giới choice | -1, 0, 1, 1.0001, 2 | Kiểm tra giới hạn dưới, `#` và `<`; validate miền đầu vào. |
-| Quy tắc chu kỳ Slavic | 1, 2, 5, 11, 12, 14, 21, 22, 25, 101 | Phân biệt phân loại theo modulo với ngưỡng. |
-| Số thập phân | 1.0, 1.5, 2.0, 2.5 | Đánh giá biểu diễn số và quy tắc thập phân của locale. |
-| Arabic cardinal | 0, 1, 2, 3, 11, 100 | Không giả định chỉ có one/other. |
-| Gender của danh từ | Hai danh từ khác giống nhưng có cùng count | Kiểm tra mạo từ/tính từ được lựa chọn theo dữ liệu từ vựng. |
-| Phối hợp count + gender | Mỗi plural category × từng variant liên quan | Kiểm tra nguyên câu, không chỉ hậu tố. |
-| Locale fallback | Bản dịch thiếu một nhánh/key | Bảo đảm không hiển thị nhánh sai hoặc placeholder chưa thay. |
+| Simple English branches | 0, 1, 2 | Verify correct messages and placeholder ordering. |
+| Choice boundaries | -1, 0, 1, 1.0001, 2 | Check lower bound, `#`, and `<`; validate input domain. |
+| Slavic cyclic rules | 1, 2, 5, 11, 12, 14, 21, 22, 25, 101 | Distinguish modulo classification from thresholds. |
+| Decimals | 1.0, 1.5, 2.0, 2.5 | Evaluate number representation and locale decimal rules. |
+| Arabic cardinal | 0, 1, 2, 3, 11, 100 | Avoid assuming only one/other exist. |
+| Noun gender | Two nouns of different gender with the same count | Verify articles/adjectives selected by lexical data. |
+| Count + gender combinations | Each plural category × each relevant variant | Verify the complete sentence, not just a suffix. |
+| Locale fallback | Translation missing a branch/key | Ensure wrong branch or unreplaced placeholder is never shown. |
 
-Với CLDR, nên xây các **golden tests dựa trên category đúng của từng locale**, không lấy output của `ChoiceFormat` làm ground truth. Giữ dữ liệu test ổn định và ghi nhận phiên bản localization library nếu sản phẩm yêu cầu kết quả hoàn toàn tái lập.
+With CLDR, build **golden tests based on the right categories of each locale**, rather than treating `ChoiceFormat` output as ground truth. Keep test data stable and record the localization library version if the product requires strictly reproducible output.
 
-### Chú ý số 1 so với 1.0
+### Note on 1 versus 1.0
 
-Nếu engine xét `v` (số chữ số thập phân được hiển thị), `1` và `1.0` có thể nhận category khác. Một bộ test dùng `double 1.0` mà không lưu precision presentation sẽ không đủ mô tả điều kiện này. Xác định kiểu dữ liệu và API plural-selection phù hợp, đặc biệt khi số lượng lấy từ dữ liệu đo lường hoặc báo cáo.
+If the engine inspects `v` (number of visible decimal digits), `1` and `1.0` may receive different categories. A test suite using `double 1.0` without preserving presentation precision will not adequately describe this condition. Choose the appropriate data type and plural-selection API, especially when quantities come from measurements or reports.
 
-## 12. Những lỗi triển khai phổ biến
+## 12. Common Implementation Mistakes
 
-| Sai lầm | Tại sao sai | Cách làm đúng |
+| Mistake | Why It Is Wrong | Right Approach |
 | --- | --- | --- |
-| Áp `0#...|1#...|1<...` cho mọi locale | Ngôn ngữ khác có thể dùng nhiều category và phép modulo. | Dựa trên plural rules theo locale hoặc dịch nguyên câu. |
-| Nghĩ `one` luôn bằng 1 | Category là nhãn ngữ pháp, có thể phụ thuộc dạng số. | Dùng engine plural đúng và giữ biểu diễn số khi cần. |
-| Dùng `ChoiceFormat` để chọn giống đực/cái bằng số magic | Không thể mô hình hóa agreement và dễ nhầm loại dữ liệu. | Dùng enum/select/message key và văn bản ngữ pháp đúng. |
-| Gộp grammatical gender với giới tính người dùng | Hai khái niệm khác nhau và không thể suy ra thay nhau. | Chỉ sử dụng metadata ngôn ngữ cần thiết, minh bạch. |
-| Đưa danh từ và hậu tố vào các placeholder tách rời | Có thể sai thứ tự từ hoặc sai hòa hợp. | Ưu tiên bản dịch toàn câu và biến thể cụ thể. |
-| Test chỉ 1 và 2 | Bỏ sót 11, 21, 22, 101 và thập phân. | Kiểm thử các tập phản ví dụ theo locale. |
-| Dùng `{0,number,integer}` cho count không nguyên | Có thể làm tròn khi hiển thị. | Kiểm tra domain và chọn formatter phù hợp. |
-| Cho rằng `java.text.MessageFormat` hiểu `plural`/`select` | Đây không phải cú pháp của JDK MessageFormat. | Chọn ICU4J hoặc framework hỗ trợ tương ứng. |
-| Truyền mỗi count, không truyền noun context | Không có đủ dữ liệu chọn mạo từ/tính từ. | Thiết kế hợp đồng message đủ thông tin. |
-| Tự mã hóa bảng plural của mọi locale bằng `if` | Khó bảo trì, dễ thiếu trường hợp và sai với CLDR. | Sử dụng thư viện được cập nhật, kiểm thử trên locale thật. |
+| Applying `0#...|1#...|1<...` to every locale | Other languages may use more categories and modulo arithmetic. | Rely on locale plural rules or translate full sentences. |
+| Thinking `one` always equals 1 | Category is a grammatical label and may depend on number form. | Use a proper plural engine and preserve number representation when needed. |
+| Using `ChoiceFormat` to pick masculine/feminine via magic numbers | Cannot model agreement and confuses data types. | Use enum/select/message keys and grammatically correct text. |
+| Conflating grammatical gender with user gender | Two distinct concepts that cannot substitute for each other. | Use only necessary, transparent linguistic metadata. |
+| Placing nouns and suffixes in separate placeholders | Can break word order or agreement. | Prefer full-sentence translations and specific variants. |
+| Testing only 1 and 2 | Misses 11, 21, 22, 101, and decimals. | Test counterexample sets per locale. |
+| Using `{0,number,integer}` for non-integer counts | May round when displayed. | Validate domain and choose a suitable formatter. |
+| Assuming `java.text.MessageFormat` understands `plural`/`select` | That is not JDK MessageFormat syntax. | Choose ICU4J or a framework supporting it. |
+| Passing only count without noun context | Insufficient data to select articles/adjectives. | Design an informative message contract. |
+| Hardcoding plural tables for all locales with `if` | Hard to maintain, prone to missing cases and CLDR drift. | Use an updated library and test on real locales. |
 
-## 13. Bài tập thực hành
+## 13. Practice Exercises
 
-**Bài 1 — Xác định phạm vi ChoiceFormat:** tạo thông điệp tiếng Anh có ba nhánh `0`, `1` và `>1`. Test các số nguyên 0, 1, 2, 20, đồng thời thử -1 và 1.5. Nêu rõ giá trị nào nằm ngoài domain đếm file và cơ chế kiểm tra cần bổ sung.
+**Exercise 1 — Scope ChoiceFormat:** create an English message with three branches `0`, `1`, and `>1`. Test integers 0, 1, 2, 20, as well as -1 and 1.5. State clearly which values fall outside the file-counting domain and what validation mechanism should be added.
 
-**Bài 2 — Phản ví dụ tiếng Nga:** với pattern `0#many|1#one|2#few|5#many`, thử 1, 2, 5, 11, 21, 22, 25, 101. Phân tích vì sao thêm vài mốc vẫn không tạo thành quy tắc đúng cho **mọi** số nguyên không âm. Không dùng đoạn modulo minh họa cho số thập phân.
+**Exercise 2 — Russian counterexample:** with the pattern `0#many|1#one|2#few|5#many`, test 1, 2, 5, 11, 21, 22, 25, 101. Analyze why adding a few more thresholds still does not produce a right rule for **all** non-negative integers. Do not use the illustrative modulo snippet for decimal numbers.
 
-**Bài 3 — Gender độc lập với count:** cho `archivo` và `carpeta` đều có count=1. Thiết kế một `enum` chứa lexical metadata cần thiết, sau đó chọn bản dịch cho hai danh từ. Giải thích tại sao count không đủ xác định mạo từ và tính từ.
+**Exercise 3 — Gender independent of count:** given `archivo` and `carpeta`, both with count=1. Design an `enum` holding the necessary lexical metadata, then select translations for both nouns. Explain why count is insufficient to determine articles and adjectives.
 
-**Bài 4 — Chọn engine:** ứng dụng cần tiếng Anh, tiếng Việt, tiếng Nga và tiếng Ả Rập; số lượng có thể là 1, 2, 21, 22 và 1.5. So sánh cách xử lý nếu dùng JDK `ChoiceFormat` với dùng framework có CLDR plural/select. Chỉ rõ tình huống nào có thể dùng pattern choice giản đơn và tình huống nào không.
+**Exercise 4 — Choose an engine:** an application needs English, Vietnamese, Russian, and Arabic; quantities can be 1, 2, 21, 22, and 1.5. Compare handling this with JDK `ChoiceFormat` versus a framework with CLDR plural/select. Specify which situations can use a simple choice pattern and which cannot.
 
-**Bài 5 — Thử nghiệm bản dịch:** lấy một message có count và grammatical gender. Viết test matrix bao phủ các category cardinal mà locale thật dùng, các giá trị enum hợp lệ, bản dịch fallback và trường hợp thiếu tham số. Kiểm tra **câu hoàn chỉnh** sau format thay vì chỉ kiểm tra chuỗi chứa count.
+**Exercise 5 — Test translations:** take a message with count and grammatical gender. Write a test matrix covering the cardinal categories actually used by the locale, valid enum values, fallback translations, and missing-argument cases. Verify the **complete sentence** after formatting instead of only checking that the string contains the count.
 
-## 14. Tóm tắt và tiêu chí tự đánh giá
+## 14. Summary and Self-Assessment Criteria
 
-- **`ChoiceFormat` chọn một nhánh theo giới hạn numeric**, không tính CLDR plural category.
-- Các quy tắc plural như tiếng Nga có chu kỳ theo chữ số cuối/hai chữ số cuối; các ngôn ngữ khác có thể xét decimal operands, ordinal hoặc các category khác.
-- **Grammatical gender là dữ liệu từ vựng/ngữ pháp**, không phải giá trị đếm và không đồng nghĩa giới tính người dùng.
-- `java.text.MessageFormat` chuẩn hỗ trợ `choice`, nhưng **không hỗ trợ cú pháp ICU `plural`/`select`**.
-- Với ngữ pháp phức tạp, hãy dùng engine plural/select theo locale, bản dịch toàn câu và hợp đồng tham số rõ ràng; tránh tự “bẻ” `ChoiceFormat` thành bộ ngữ pháp chung.
+- **`ChoiceFormat` selects a branch by numeric limits**, without computing CLDR plural categories.
+- Plural rules such as Russian cycle by the last digit / last two digits; other languages may inspect decimal operands, ordinals, or additional categories.
+- **Grammatical gender is lexical/grammatical data**, not a count value and not synonymous with user gender.
+- Standard `java.text.MessageFormat` supports `choice`, but **does not support ICU `plural`/`select` syntax**.
+- For complex grammar, use a locale-aware plural/select engine, full-sentence translations, and an explicit parameter contract; avoid twisting `ChoiceFormat` into a general-purpose grammar engine.
 
-Người học đạt mục tiêu khi có thể chỉ ra **một trường hợp ChoiceFormat phù hợp**, **một phản ví dụ số nhiều theo modulo**, **một trường hợp gender không thể suy từ số**, và giải thích cách chọn API để xử lý mỗi vấn đề đúng về localization.
+Learners meet the goal when they can identify **a suitable `ChoiceFormat` case**, **a modulo-based plural counterexample**, **a gender case that cannot be inferred from numbers**, and explain how to choose APIs to handle each issue properly for localization.

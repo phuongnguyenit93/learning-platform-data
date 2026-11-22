@@ -1,30 +1,30 @@
-# Quan hệ giữa compile-time, run-time và module graph
+# Relationship between compile-time, run-time, and the module graph
 
-Trong Java Platform Module System (JPMS), một ứng dụng không chỉ có các file `.class` và JAR. Nó còn có **module graph**: tập những named module được chọn và quan hệ phụ thuộc giữa chúng. Graph này ảnh hưởng trực tiếp đến hai thời điểm quan trọng:
+In the Java Platform Module System (JPMS), an application does not consist solely of `.class` files and JARs. It also has a **module graph**: the set of selected named modules and the dependency relationships among them. This graph directly affects two key phases:
 
-- **Compile-time:** `javac` cần tìm được module và API để kiểm tra mã nguồn, kiểu dữ liệu và quyền truy cập.
-- **Run-time:** Java launcher và JVM cần resolve những module cần thiết, tạo module layer, nạp class và thực thi ứng dụng.
+- **Compile-time:** `javac` needs to locate modules and APIs to check source code, types, and access permissions.
+- **Run-time:** the Java launcher and JVM need to resolve required modules, create module layers, load classes, and execute the application.
 
-Compile thành công là điều kiện cần nhưng không bảo đảm runtime có đầy đủ module, đúng phiên bản và cấu hình giống lúc build. Ngược lại, một module có trong JDK runtime nhưng không được resolve vào graph khởi động chưa chắc đã dùng được theo cách mã nguồn đang giả định.
+Successful compilation is a necessary condition, but it does not guarantee that runtime has all modules, matching versions, and the same configuration as build time. Conversely, a module present in the JDK runtime but not resolved into the startup graph may not be usable in the way the source code assumes.
 
-Bài này kết nối ba khái niệm **compile-time, run-time và module graph**, rồi minh họa bằng một ứng dụng JPMS gồm nhiều module.
+This article connects the three concepts **compile-time, run-time, and the module graph**, then illustrates them with a multi-module JPMS application.
 
-## Mục tiêu
+## Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt dependency lúc biên dịch và lúc chạy trong JPMS.
-- Giải thích module resolution tạo graph từ root modules và quan hệ `requires`.
-- Hiểu vai trò của `module-info.java` trong cả `javac` và Java launcher.
-- Phân biệt **observable modules**, **resolved modules**, **readability** và **accessibility**.
-- Giải thích `requires`, `requires transitive` và `requires static` trong hai giai đoạn.
-- Biên dịch và chạy một ví dụ đa module với `--module-source-path` và `--module-path`.
-- Dùng `--show-module-resolution` và Java API để quan sát graph runtime.
-- Nhận diện các lỗi “compile được nhưng chạy lỗi” và “module có mặt nhưng không đọc/truy cập được”.
+- Distinguish compile-time and run-time dependencies in JPMS.
+- Explain how module resolution builds a graph from root modules and `requires` relationships.
+- Understand the role of `module-info.java` in both `javac` and the Java launcher.
+- Distinguish **observable modules**, **resolved modules**, **readability**, and **accessibility**.
+- Explain `requires`, `requires transitive`, and `requires static` across both phases.
+- Compile and run a multi-module example using `--module-source-path` and `--module-path`.
+- Use `--show-module-resolution` and Java APIs to observe the runtime graph.
+- Recognize "compiles fine but fails at runtime" and "module is present but unreadable/inaccessible" errors.
 
-## 1. Ba lớp trong một ứng dụng Java modular
+## 1. Three layers in a modular Java application
 
-Hãy tưởng tượng ứng dụng gồm:
+Imagine an application consisting of:
 
 ~~~text
 com.acme.app
@@ -38,31 +38,31 @@ com.acme.service
 com.acme.model
 ~~~
 
-Mỗi node là một **named module**, không phải đơn thuần một JAR. Mỗi cạnh thể hiện quan hệ module được khai báo hoặc được suy ra theo quy tắc JPMS.
+Each node is a **named module**, not simply a JAR. Each edge represents a module relationship declared or inferred according to JPMS rules.
 
-Để hiểu graph, cần tách ba lớp thông tin:
+To understand the graph, separate three layers of information:
 
-| Lớp | Câu hỏi cần trả lời | Nơi kiểm tra |
+| Layer | Question to answer | Where to check |
 |---|---|---|
-| Artifact | Class/JAR thực sự nằm ở đâu? | Source tree, output folder, module path |
-| Module resolution | Những named module nào tham gia configuration? | `module-info.java`, root modules, resolver |
-| Module access | Module nào đọc được module nào và package nào được truy cập? | `requires`, `exports`, `opens` và quy tắc Java |
+| Artifact | Where do classes/JARs actually reside? | Source tree, output folder, module path |
+| Module resolution | Which named modules participate in the configuration? | `module-info.java`, root modules, resolver |
+| Module access | Which module reads which module and which packages are accessible? | `requires`, `exports`, `opens`, and Java rules |
 
-Một JAR có thể tồn tại trên ổ đĩa nhưng không nằm trên module path. Một module có thể được tìm thấy trên module path nhưng chưa được chọn vào graph. Một module đã resolved vẫn có thể không export package mà mã nguồn muốn import.
+A JAR can exist on disk without being on the module path. A module can be found on the module path without being selected into the graph. A resolved module can still not export the package that source code wants to import.
 
-Đó là lý do cần chẩn đoán đúng tầng, thay vì coi mọi lỗi là “thiếu dependency”.
+That is why you need to diagnose the right layer instead of treating every error as "missing dependency".
 
-## 2. Compile-time diễn ra như thế nào?
+## 2. How does compile-time work?
 
-Ở compile-time, `javac` đọc mã nguồn và module descriptors để kiểm tra:
+At compile-time, `javac` reads source files and module descriptors to check:
 
-1. Module đang biên dịch có tên gì?
-2. Nó khai báo cần đọc những module nào?
-3. Các module dependency có thể được tìm thấy không?
-4. Package được import có được export cho module sử dụng không?
-5. Class, constructor và method có đủ quyền truy cập theo ngôn ngữ Java không?
+1. What is the name of the module being compiled?
+2. Which modules does it declare it needs to read?
+3. Can the dependency modules be found?
+4. Are the imported packages exported to the consuming module?
+5. Do classes, constructors, and methods have sufficient access permissions under the Java language?
 
-Ví dụ descriptor:
+Descriptor example:
 
 ~~~java
 module com.acme.app {
@@ -70,13 +70,13 @@ module com.acme.app {
 }
 ~~~
 
-Khai báo này nói rằng `com.acme.app` phụ thuộc `com.acme.service` ở cấp module. Khi biên dịch app, compiler phải có khả năng tìm được module service, chẳng hạn qua compiled module directory hoặc modular JAR trên `--module-path`.
+This declaration states that `com.acme.app` depends on `com.acme.service` at the module level. When compiling app, the compiler must be able to locate the service module, for example via a compiled module directory or modular JAR on `--module-path`.
 
-Việc một IDE hiển thị dependency trong project không tự bảo đảm compiler chạy ở CI hoặc terminal cũng nhìn thấy module đó.
+An IDE showing a dependency in a project does not automatically guarantee that the compiler running in CI or a terminal also sees that module.
 
-### 2.1. Module path là nguồn tìm module, không phải graph cuối cùng
+### 2.1. The module path is a lookup source, not the final graph
 
-Ví dụ:
+Example:
 
 ~~~bash
 javac --module-path mods -d out/app \
@@ -84,61 +84,61 @@ javac --module-path mods -d out/app \
     src/com.acme.app/com/acme/app/Main.java
 ~~~
 
-`--module-path mods` chỉ định vị trí tìm module dependency. Resolver vẫn cần dựa trên root và `requires` để tạo configuration dùng cho compilation.
+`--module-path mods` specifies where to search for dependency modules. The resolver still relies on roots and `requires` to build the configuration used for compilation.
 
-Không nên diễn giải “JAR nằm trên module path” thành “ứng dụng tự động đọc toàn bộ package của JAR đó”.
+Do not interpret "JAR is on the module path" as "the application automatically reads all packages of that JAR".
 
-### 2.2. Readability khác package export
+### 2.2. Readability differs from package export
 
-Giả sử app đã có:
+Suppose app already has:
 
 ~~~java
 requires com.acme.service;
 ~~~
 
-Nhưng service descriptor là:
+But the service descriptor is:
 
 ~~~java
 module com.acme.service {
 }
 ~~~
 
-Nếu app muốn import public class từ `com.acme.service.api`, compiler có thể báo package không được export.
+If app tries to import a public class from `com.acme.service.api`, the compiler may report that the package is not exported.
 
-Khi đó:
+In that case:
 
-- `requires` của app tạo quan hệ đọc.
-- `exports com.acme.service.api;` trong module service công bố package API.
-- `public` trên class mới cho phép code ngoài package tham chiếu class theo các quy tắc Java thông thường.
+- `requires` in app creates the readability relationship.
+- `exports com.acme.service.api;` in the service module publishes the API package.
+- `public` on the class allows code outside the package to reference the class under standard Java rules.
 
-**Đủ readability mà thiếu exports vẫn có thể không compile được.** Tương tự, package đã export nhưng app không đọc module chứa nó cũng chưa đủ.
+**Having readability without exports can still fail to compile.** Similarly, an exported package without app reading the module containing it is also insufficient.
 
-## 3. Runtime diễn ra như thế nào?
+## 3. How does runtime work?
 
-Khi chạy một ứng dụng modular:
+When running a modular application:
 
 ~~~bash
 java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Java launcher xác định main module `com.acme.app` là một root. Module system tìm module này, đọc descriptor và resolve các dependency bắt buộc. Kết quả là một **resolved module graph** dùng để định nghĩa những module trong boot layer và thực thi ứng dụng.
+The Java launcher identifies the main module `com.acme.app` as a root. The module system finds this module, reads its descriptor, and resolves mandatory dependencies. The result is a **resolved module graph** used to define the modules in the boot layer and execute the application.
 
-Luồng tổng quát:
+Overall flow:
 
 ~~~text
-Lệnh java -m com.acme.app/...
+Command java -m com.acme.app/...
                |
                v
        Root: com.acme.app
                |
                v
-    Tìm module từ runtime image
-    và --module-path
+    Find modules from runtime image
+    and --module-path
                |
                v
        Resolve dependencies
-         từ module-info
+         from module-info
                |
                v
        Runtime configuration
@@ -150,16 +150,16 @@ Lệnh java -m com.acme.app/...
        Class loading + execution
 ~~~
 
-Một số dependency xuất hiện ở compile-time có thể vắng mặt hợp lệ lúc runtime nếu được khai báo bằng `requires static` và ứng dụng thực sự không cần các kiểu đó khi chạy. Những dependency bắt buộc do `requires` thông thường vẫn phải có để graph được resolve.
+Some dependencies present at compile-time may validly be absent at runtime if declared with `requires static` and the executing application does not actually need those types at runtime. Mandatory dependencies from plain `requires` must still be present for the graph to resolve.
 
-### 3.1. Module hiện diện chưa chắc đã resolved
+### 3.1. A present module is not necessarily resolved
 
-Phân biệt hai câu hỏi:
+Distinguish two questions:
 
-- Runtime image **có chứa** `java.sql` không?
-- Boot layer của tiến trình **đã resolve** `java.sql` chưa?
+- Does the runtime image **contain** `java.sql`?
+- Has the process's boot layer **resolved** `java.sql`?
 
-Có thể kiểm tra bằng code:
+You can check in code:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -184,24 +184,24 @@ public class ModuleState {
 }
 ~~~
 
-`ModuleFinder.ofSystem()` tra cứu system modules có trong runtime image; `ModuleLayer.boot().findModule()` tra cứu module trong boot layer. Kết quả có thể khác nhau vì **module có sẵn** không đồng nghĩa nó **đã tham gia graph khởi động**.
+`ModuleFinder.ofSystem()` looks up system modules present in the runtime image; `ModuleLayer.boot().findModule()` looks up modules in the boot layer. Results can differ because **an available module** does not mean it **participated in the startup graph**.
 
-Không nên dùng kết quả của một phép kiểm tra để suy ra kết quả của phép còn lại.
+Do not use the result of one check to infer the result of the other.
 
-## 4. Module graph được xây dựng từ đâu?
+## 4. Where is the module graph built from?
 
-Graph không được tạo bằng cách “đưa toàn bộ JAR vào JVM”. Quá trình resolution bắt đầu từ các **root modules** và đi theo dependency được khai báo.
+The graph is not built by "loading every JAR into the JVM". Resolution starts from **root modules** and follows declared dependencies.
 
-Nguồn thông tin quan trọng:
+Key sources of information:
 
-- `module-info.class` của các explicit named modules.
-- Root modules được chọn bởi chế độ khởi chạy, ví dụ main module với `-m`.
-- Những root bổ sung qua `--add-modules`.
-- System modules của runtime image.
-- Application modules từ `--module-path`.
-- Một số tùy chọn launcher hoặc cấu hình service binding phù hợp.
+- `module-info.class` of explicit named modules.
+- Root modules chosen by the launch mode, such as the main module with `-m`.
+- Additional roots via `--add-modules`.
+- System modules from the runtime image.
+- Application modules from `--module-path`.
+- Certain launcher options or service binding configurations as applicable.
 
-Khi main module yêu cầu service và service yêu cầu model:
+When the main module requires service and service requires model:
 
 ~~~text
 Root com.acme.app
@@ -211,13 +211,13 @@ Root com.acme.app
               +-- requires transitive com.acme.model
 ~~~
 
-Resolver tìm những dependency cần thiết, kiểm tra tính nhất quán và hình thành graph trước khi gọi `Main.main()`.
+The resolver finds required dependencies, verifies consistency, and forms the graph before calling `Main.main()`.
 
-### 4.1. Node và edge có ý nghĩa riêng
+### 4.1. Nodes and edges have distinct meanings
 
-**Node** là một module được resolve. **Edge** mô tả quan hệ phụ thuộc/readability phù hợp theo descriptor hoặc cơ chế bổ sung.
+A **Node** is a resolved module. An **Edge** represents a dependency/readability relationship according to descriptors or supplemental mechanisms.
 
-Với:
+With:
 
 ~~~java
 module com.acme.app {
@@ -225,11 +225,11 @@ module com.acme.app {
 }
 ~~~
 
-App có cạnh phụ thuộc trực tiếp tới service. Nhưng khả năng app sử dụng một public type bên trong service vẫn phụ thuộc package đó có export hay không.
+App has a direct dependency edge to service. Yet whether app can use a public type inside service still depends on whether that package is exported.
 
-### 4.2. Readability không phải quyền truy cập tùy ý
+### 4.2. Readability is not arbitrary access permission
 
-Một module đã đọc module khác không có nghĩa mọi package nội bộ đều được truy cập. JPMS còn thực hiện strong encapsulation:
+One module reading another module does not mean every internal package becomes accessible. JPMS also enforces strong encapsulation:
 
 ~~~java
 module com.acme.service {
@@ -237,19 +237,19 @@ module com.acme.service {
 }
 ~~~
 
-Package `com.acme.service.internal` không tự được export chỉ vì app có `requires com.acme.service;`.
+The `com.acme.service.internal` package is not automatically exported just because app has `requires com.acme.service;`.
 
-Nếu framework cần deep reflection, module cung cấp có thể phải dùng `opens` hoặc qualified opens đúng package và module framework. Đây là một cơ chế khác với compile-time access tới public API.
+If a framework needs deep reflection, the providing module may need to use `opens` or qualified opens for the exact package and framework module. This is a different mechanism from compile-time access to public APIs.
 
-### 4.3. Runtime graph không nhất thiết là toàn bộ hệ thống
+### 4.3. The runtime graph is not necessarily the entire system
 
-Graph của boot layer không phải toàn bộ những module có thể tồn tại trong JVM. Ứng dụng plugin có thể tạo `ModuleLayer` mới từ một `Configuration` đã resolve riêng, hoặc một số class vẫn thuộc unnamed module trên classpath.
+The boot layer's graph does not encompass every module that can exist in the JVM. A plugin application can create a new `ModuleLayer` from a separately resolved `Configuration`, or some classes may still belong to the unnamed module on the classpath.
 
-Do đó, khi nói “module graph của ứng dụng”, nên xác định đang xét **compile-time configuration**, **boot layer** hay **một layer động**.
+Therefore, when speaking of "the application's module graph", specify whether you mean the **compile-time configuration**, the **boot layer**, or **a dynamic layer**.
 
-## 5. Ví dụ hoàn chỉnh gồm ba module
+## 5. Complete three-module example
 
-Ta tạo:
+Let us create:
 
 ~~~text
 project/
@@ -265,7 +265,7 @@ project/
         └── com/acme/app/Main.java
 ~~~
 
-Ví dụ dùng JDK 17 trở lên.
+The example uses JDK 17 or higher.
 
 ### 5.1. Model module
 
@@ -286,7 +286,7 @@ public record Message(String text) {
 }
 ~~~
 
-Model công bố package chứa `Message`. Đây là public API mà các module khác có thể sử dụng khi đã có quan hệ đọc phù hợp.
+Model exposes the package containing `Message`. This is the public API other modules can use once they have an appropriate readability relationship.
 
 ### 5.2. Service module
 
@@ -308,12 +308,12 @@ import com.acme.model.api.Message;
 
 public final class GreetingService {
     public Message greet(String name) {
-        return new Message("Xin chào, " + name);
+        return new Message("Hello, " + name);
     }
 }
 ~~~
 
-Service trả về `Message` từ model trong chữ ký public method. Vì vậy, việc khai báo `requires transitive com.acme.model;` giúp các module đọc service cũng đọc model. Đây là lựa chọn hợp lý khi model nằm trong hợp đồng API của service.
+Service returns `Message` from model in a public method signature. Therefore, declaring `requires transitive com.acme.model;` enables modules reading service to also read model. This is a reasonable choice when model is part of service's API contract.
 
 ### 5.3. App module
 
@@ -342,11 +342,11 @@ public class Main {
 }
 ~~~
 
-App trực tiếp khai báo dependency tới service; readability tới model được truyền qua `requires transitive` của service. Cả service và model đều export package API cần thiết.
+App directly declares a dependency on service; readability to model is propagated via service's `requires transitive`. Both service and model export the required API packages.
 
-### 5.4. Biên dịch toàn bộ module cùng lúc
+### 5.4. Compiling all modules together
 
-Đứng tại thư mục `project`:
+From the `project` directory:
 
 ~~~bash
 javac --module-source-path src \
@@ -354,13 +354,13 @@ javac --module-source-path src \
       -m com.acme.model,com.acme.service,com.acme.app
 ~~~
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ~~~powershell
 javac --module-source-path src -d mods -m com.acme.model,com.acme.service,com.acme.app
 ~~~
 
-Compiler đọc module source path, tìm source theo tên module và đặt compiled output theo module:
+The compiler reads the module source path, finds sources by module name, and places compiled outputs per module:
 
 ~~~text
 mods/
@@ -375,30 +375,30 @@ mods/
     └── com/acme/app/Main.class
 ~~~
 
-### 5.5. Chạy bằng module path
+### 5.5. Running with the module path
 
 ~~~bash
 java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Lệnh một dòng:
+Single-line command:
 
 ~~~bash
 java --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Xin chào, JPMS
+Hello, JPMS
 ~~~
 
-Ứng dụng chỉ chạy sau khi launcher tìm được main module và những dependency bắt buộc. Runtime ở đây dựa trên compiled module descriptors và thư mục `mods` được cung cấp.
+The application runs only after the launcher finds the main module and its mandatory dependencies. Runtime here relies on the compiled module descriptors and the supplied `mods` directory.
 
-## 6. Từ compile graph tới runtime graph
+## 6. From compile graph to runtime graph
 
-Với ví dụ trên, cả hai giai đoạn đều dùng những khai báo module:
+With the example above, both phases use the same module declarations:
 
 ~~~text
 COMPILE TIME
@@ -409,7 +409,7 @@ javac
   +-- com.acme.service ---> com.acme.model
   +-- com.acme.app     ---> com.acme.service
                              |
-                             +-- transitive readability tới model
+                             +-- transitive readability to model
 
 RUNTIME
 
@@ -426,25 +426,25 @@ java -m com.acme.app
   +-- load Main and invoke main()
 ~~~
 
-Điều tương đồng: module descriptor xác định dependency và ranh giới API ở cả compile và runtime.
+Similarity: module descriptors define dependencies and API boundaries at both compile time and runtime.
 
-Điều khác biệt: compiler làm việc với source/compiled artifacts trong một môi trường build; launcher resolve các module hiện diện trong **runtime image và module path của tiến trình**. Nếu hai môi trường không thống nhất, kết quả có thể khác.
+Difference: the compiler works with sources/compiled artifacts in a build environment; the launcher resolves modules present in the **process's runtime image and module path**. If the two environments do not align, results can differ.
 
-| Khía cạnh | Compile-time | Run-time |
+| Aspect | Compile-time | Run-time |
 |---|---|---|
-| Công cụ | `javac`, Maven/Gradle compiler tasks | Java launcher và JVM |
-| Đầu vào | Source, descriptor, compile module path | Compiled descriptors/JAR, runtime image và runtime module path |
-| Root modules | Các module được yêu cầu biên dịch hoặc root do tool xác định | Main module và những root theo chế độ khởi chạy |
-| Mục tiêu | Kiểm tra type, readability, accessibility; tạo bytecode | Resolve configuration, tạo layer, nạp class, thực thi |
-| Lỗi điển hình | `module not found`, `package is not visible` | `FindException`, `LayerInstantiationException`, `NoClassDefFoundError`, lỗi truy cập runtime |
+| Tools | `javac`, Maven/Gradle compiler tasks | Java launcher and JVM |
+| Inputs | Sources, descriptors, compile module path | Compiled descriptors/JARs, runtime image, and runtime module path |
+| Root modules | Modules requested for compilation or roots chosen by tools | Main module and roots per launch mode |
+| Goal | Check types, readability, accessibility; produce bytecode | Resolve configuration, create layers, load classes, execute |
+| Typical errors | `module not found`, `package is not visible` | `FindException`, `LayerInstantiationException`, `NoClassDefFoundError`, runtime access errors |
 
-Đừng coi hai graph luôn có đúng cùng tập node chỉ vì mã nguồn và file `module-info.java` không đổi. Các module ngoài dependency bắt buộc hoặc các plugin/service provider được chọn thêm có thể khác theo môi trường.
+Do not assume the two graphs always contain the exact same set of nodes just because source code and `module-info.java` files have not changed. Modules outside mandatory dependencies or additionally selected plugins/service providers can vary by environment.
 
-## 7. requires, requires transitive và requires static
+## 7. requires, requires transitive, and requires static
 
-Ba chỉ thị này ảnh hưởng khác nhau đến cách đọc graph.
+These three directives affect graph reading differently.
 
-### 7.1. requires: dependency bắt buộc
+### 7.1. requires: mandatory dependency
 
 ~~~java
 module com.acme.app {
@@ -452,18 +452,18 @@ module com.acme.app {
 }
 ~~~
 
-App cần module service để biên dịch với API của service; service cũng là dependency bắt buộc khi resolve app ở runtime.
+App needs the service module to compile against service's API; service is also a mandatory dependency when resolving app at runtime.
 
-Nếu thiếu module service trên runtime module path, launcher có thể thất bại **trước khi gọi main()**:
+If the service module is missing on the runtime module path, the launcher can fail **before calling main()**:
 
 ~~~text
 java.lang.module.FindException:
 Module com.acme.service not found, required by com.acme.app
 ~~~
 
-Thông báo cụ thể phụ thuộc JDK và lệnh khởi chạy, nhưng nguyên nhân là dependency bắt buộc không được giải quyết.
+The exact message depends on the JDK and launch command, but the cause is an unresolved mandatory dependency.
 
-### 7.2. requires transitive: truyền readability
+### 7.2. requires transitive: propagating readability
 
 ~~~java
 module com.acme.service {
@@ -472,21 +472,21 @@ module com.acme.service {
 }
 ~~~
 
-Module app đọc service cũng đọc được model theo quan hệ transitive. Điều này cần thiết trong ví dụ khi public API của service trả về `Message` thuộc model.
+Modules reading service also read model through the transitive relationship. This is needed in the example because service's public API returns `Message` from model.
 
-Nếu thay bằng:
+If replaced with:
 
 ~~~java
 requires com.acme.model;
 ~~~
 
-thì app chỉ có `requires com.acme.service;` không tự có readability tới model. Nếu app trực tiếp dùng `Message`, nên khai báo dependency đọc model hoặc thiết kế lại API phù hợp.
+then app with only `requires com.acme.service;` does not automatically gain readability to model. If app directly uses `Message`, it should declare a dependency reading model or redesign the API appropriately.
 
-**`requires transitive` truyền readability, không tự export những package bị module model giữ nội bộ.**
+**`requires transitive` propagates readability; it does not automatically export packages kept internal by the model module.**
 
-### 7.3. requires static: dependency bắt buộc ở compile-time, tùy chọn ở runtime
+### 7.3. requires static: compile-time mandatory, runtime optional dependency
 
-Ví dụ thư viện annotation:
+Annotation library example:
 
 ~~~java
 module com.acme.app {
@@ -494,53 +494,53 @@ module com.acme.app {
 }
 ~~~
 
-Khi compile, compiler cần nhìn thấy module annotations. Nhưng module này được phép vắng mặt ở runtime, miễn mã thực thi không cần nạp kiểu từ module đó tại thời điểm chạy.
+At compile time, the compiler needs to see the annotations module. However, this module is permitted to be absent at runtime, provided executing code does not need to load types from that module at runtime.
 
-Tình huống phổ biến là annotation chỉ dùng phục vụ compile-time và không cần reflection ở runtime.
+A common situation is annotations used solely at compile time without needing runtime reflection.
 
-Phân biệt:
+Distinction:
 
-| Chỉ thị | Yêu cầu ở compile-time | Bắt buộc hiện diện ở runtime? | Readability tới client phụ thuộc? |
+| Directive | Required at compile-time | Mandatory at runtime? | Readability to dependent clients? |
 |---|---|---|---|
-| `requires M;` | Có | Có | Không tự truyền |
-| `requires transitive M;` | Có | Có | Có, theo quy tắc transitive |
-| `requires static M;` | Có | Không bắt buộc | Không tự truyền như transitive |
+| `requires M;` | Yes | Yes | Not automatically propagated |
+| `requires transitive M;` | Yes | Yes | Yes, per transitive rules |
+| `requires static M;` | Yes | Not mandatory | Not automatically propagated like transitive |
 
-Với dependency tùy chọn, hãy kiểm tra xem runtime có thật sự sử dụng class đó không. `requires static` không làm class tự xuất hiện; nếu mã nạp trực tiếp một kiểu từ module vắng mặt, lỗi runtime vẫn có thể xảy ra.
+For optional dependencies, verify whether runtime actually uses those classes. `requires static` does not make classes magically appear; if code directly loads a type from an absent module, runtime errors can still occur.
 
-### 7.4. Khi static và transitive kết hợp
+### 7.4. When static and transitive combine
 
-JPMS còn cho phép:
+JPMS also permits:
 
 ~~~java
 requires static transitive com.acme.annotations;
 ~~~
 
-Đây là dependency liên quan compilation và khả năng truyền readability khi phù hợp, nhưng vẫn không bắt buộc module đó phải có mặt ở runtime theo ý nghĩa của static dependency. Chỉ dùng tổ hợp này khi API public thật sự phơi bày kiểu từ dependency tùy chọn; đừng dùng để “chữa” mọi lỗi thiếu module.
+This is a dependency relevant to compilation and readability propagation where applicable, yet still does not require the module to be present at runtime in the sense of a static dependency. Only use this combination when a public API genuinely exposes types from an optional dependency; do not use it to "patch over" every missing-module error.
 
-## 8. Ba trạng thái một module có thể có
+## 8. Three states a module can have
 
-Xét module `java.sql` trên một runtime image:
+Consider the `java.sql` module on a runtime image:
 
-1. **Có trong image:** JDK/runtime đã đóng gói module này.
-2. **Observable:** module finder/resolution có thể nhìn thấy module trong ngữ cảnh hiện tại.
-3. **Resolved:** module được chọn vào configuration của ứng dụng.
+1. **Present in the image:** the JDK/runtime has packaged this module.
+2. **Observable:** the module finder/resolution can see the module in the current context.
+3. **Resolved:** the module is selected into the application's configuration.
 
-Một module có thể **có trong image** nhưng chưa tham gia boot layer. Một module JAR có thể tồn tại trong thư mục nhưng không observable nếu không được đưa vào module path.
+A module can be **present in the image** without participating in the boot layer. A module JAR can exist in a directory yet not be observable if it is not placed on the module path.
 
-Kiểm tra các system modules:
+List system modules:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Kiểm tra module descriptor:
+Inspect a module descriptor:
 
 ~~~bash
 java --describe-module java.sql
 ~~~
 
-Kiểm tra graph được resolve khi chạy ứng dụng:
+Inspect the resolved graph when running the application:
 
 ~~~bash
 java --module-path mods \
@@ -548,48 +548,48 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-`--show-module-resolution` phù hợp để xác nhận những module nào được chọn và quan hệ resolution của chính lệnh chạy đó. Ngược lại, `--list-modules` nói về module observable, không phải danh sách những node chắc chắn đã resolve.
+`--show-module-resolution` is suited for confirming which modules were selected and the resolution relationships for that specific launch command. By contrast, `--list-modules` reports observable modules, not the list of nodes guaranteed to be resolved.
 
-## 9. Khi compile thành công nhưng runtime thất bại
+## 9. When compile succeeds but runtime fails
 
-Đây là nhóm lỗi rất quan trọng khi chuyển từ classpath sang JPMS hoặc triển khai lên môi trường khác.
+This is a very important category of errors when migrating from the classpath to JPMS or deploying to another environment.
 
-### 9.1. Runtime module path thiếu dependency
+### 9.1. Runtime module path missing a dependency
 
-Biên dịch thành công:
+Compilation succeeds:
 
 ~~~bash
 javac --module-source-path src -d mods \
       -m com.acme.model,com.acme.service,com.acme.app
 ~~~
 
-Sau đó tạo một môi trường chạy chỉ chứa app, không chứa service hoặc model.
+Then a runtime environment is created containing only app, without service or model.
 
-Lệnh chạy trông có vẻ hợp lệ nhưng sẽ thất bại khi resolve dependency:
+The run command looks valid but will fail during dependency resolution:
 
 ~~~bash
 java --module-path runtime-only-app \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Vấn đề không nằm ở source code nữa mà ở **runtime artifact/module path**. Cần đưa đủ module bắt buộc vào deployment hoặc xây dựng runtime image đúng cấu hình.
+The issue is no longer in the source code, but in the **runtime artifacts/module path**. All required modules must be included in the deployment or a properly configured runtime image must be built.
 
-### 9.2. Phiên bản thư viện runtime khác lúc compile
+### 9.2. Runtime library version differs from compile time
 
-Compile có module `com.acme.service` phiên bản mới, nhưng production dùng JAR cũ cùng tên module. Khi chạy, module có thể vẫn được resolve nhưng bytecode không tương thích với API runtime.
+Compile time has a new version of `com.acme.service`, while production uses an older JAR with the same module name. At runtime, the module may still resolve, yet its bytecode is incompatible with the compile-time API.
 
-Những lỗi có thể xuất hiện:
+Errors that can appear:
 
-- `NoSuchMethodError` khi method từng tồn tại ở compile-time nhưng không có ở runtime.
-- `NoSuchFieldError` khi field bị đổi hoặc thiếu.
-- `IncompatibleClassChangeError` khi hình dạng class/interface không tương thích.
-- `IllegalAccessError` khi bytecode cố truy cập vào API hoặc package không còn được phép.
+- `NoSuchMethodError` when a method existed at compile time but is absent at runtime.
+- `NoSuchFieldError` when a field was changed or is missing.
+- `IncompatibleClassChangeError` when class/interface shapes are incompatible.
+- `IllegalAccessError` when bytecode attempts to access an API or package no longer permitted.
 
-Giải pháp là kiểm tra artifact thực tế, module descriptor và nguồn class được nạp, không chỉ kiểm tra tên module.
+The solution is to check actual artifacts, module descriptors, and the source of loaded classes, not merely module names.
 
-### 9.3. Class khởi tạo thất bại
+### 9.3. Class initialization failure
 
-Một module được resolve đầy đủ nhưng class bên trong vẫn có thể lỗi ở static initializer:
+A module can be fully resolved yet a class inside it can still fail in a static initializer:
 
 ~~~java
 public final class Configuration {
@@ -604,13 +604,13 @@ public final class Configuration {
 }
 ~~~
 
-Lỗi này không chứng minh module graph sai. Nó xuất hiện sau resolution, khi class được khởi tạo. Trong một số trường hợp có thể thấy `ExceptionInInitializerError` hoặc `NoClassDefFoundError: Could not initialize class ...`.
+This error does not prove the module graph is wrong. It occurs after resolution, when the class is initialized. In some cases you may see `ExceptionInInitializerError` or `NoClassDefFoundError: Could not initialize class ...`.
 
-### 9.4. Reflection vào package bị đóng
+### 9.4. Reflection into a closed package
 
-App compile với public API thành công; framework runtime muốn deep reflection vào field private của module khác và bị từ chối.
+App compiles against public APIs cleanly; a runtime framework tries deep reflection into a private field of another module and is rejected.
 
-Lúc đó cần xem:
+In that case check:
 
 ~~~java
 module com.acme.model {
@@ -619,75 +619,75 @@ module com.acme.model {
 }
 ~~~
 
-`opens` chỉ mở đúng package cho framework được chỉ định nếu có nhu cầu thực tế. Không nên đổi thành `open module` chỉ để bỏ qua chẩn đoán.
+`opens` opens only the exact package to the designated framework if there is a genuine need. Do not switch to `open module` just to silence diagnostics.
 
-## 10. Khi compile thất bại dù JAR/module có mặt
+## 10. When compile fails even though JARs/modules are present
 
-### 10.1. Không tìm thấy module
+### 10.1. Module not found
 
-Ví dụ compiler:
+Compiler example:
 
 ~~~text
 error: module not found: com.acme.service
 ~~~
 
-Có thể module path sai, module name không đúng hoặc dependency artifact chưa được build. Hãy kiểm tra:
+The module path may be wrong, the module name incorrect, or the dependency artifact not yet built. Check:
 
 ~~~bash
 jar --describe-module --file libs/service.jar
 ~~~
 
-Nếu project dùng directory compiled module, kiểm tra rằng directory chứa `module-info.class` được đưa vào module path đúng cấp.
+If the project uses compiled module directories, verify that the directory containing `module-info.class` is supplied on the module path at the right level.
 
-### 10.2. Module không đọc được module khác
+### 10.2. Module does not read another module
 
-Ví dụ:
+Example:
 
 ~~~text
 package com.acme.service.api is not visible
   (module com.acme.app does not read com.acme.service)
 ~~~
 
-Tìm `requires com.acme.service;` trong `module-info.java` của app.
+Look for `requires com.acme.service;` in app's `module-info.java`.
 
-### 10.3. Package không export
+### 10.3. Package not exported
 
-Ví dụ:
+Example:
 
 ~~~text
 package com.acme.service.internal is not visible
   (module com.acme.service does not export it)
 ~~~
 
-App có thể đã đọc được service, nhưng package nội bộ không được công bố. Chuyển sang API được hỗ trợ hoặc chủ động export package nếu đó thật sự là hợp đồng công khai.
+App may already read service, but the internal package is not exposed. Switch to a supported API or intentionally export the package if it is genuinely a public contract.
 
 ### 10.4. Split package
 
-Hai module cùng chứa package `com.acme.shared` và app đọc cả hai có thể gây lỗi:
+Two modules both containing the `com.acme.shared` package with app reading both can cause an error:
 
 ~~~text
 module com.acme.app reads package com.acme.shared
 from both com.acme.alpha and com.acme.beta
 ~~~
 
-Sửa bằng cách xác định module sở hữu package, di chuyển class hoặc đổi namespace; việc thêm `requires` hay `--add-exports` không thay đổi ownership của package.
+Fix by deciding which module owns the package, moving classes, or changing namespaces; adding `requires` or `--add-exports` does not change package ownership.
 
-## 11. Maven/Gradle graph khác JPMS graph
+## 11. Maven/Gradle graph differs from the JPMS graph
 
-Trong build đa project, thường tồn tại hai đồ thị đồng thời:
+In a multi-project build, two graphs typically exist simultaneously:
 
 ~~~text
 Maven/Gradle project dependencies
-    -> quyết định build order
-    -> đưa artifact lên compile/runtime paths
+    -> determine build order
+    -> place artifacts onto compile/runtime paths
 
 JPMS module-info.java
-    -> mô tả named module
-    -> quyết định readability và exports
-    -> phục vụ compile/runtime resolution
+    -> describe named module
+    -> determine readability and exports
+    -> serve compile/runtime resolution
 ~~~
 
-Ví dụ Gradle:
+Gradle example:
 
 ~~~groovy
 dependencies {
@@ -695,7 +695,7 @@ dependencies {
 }
 ~~~
 
-và JPMS:
+and JPMS:
 
 ~~~java
 module com.acme.app {
@@ -703,9 +703,9 @@ module com.acme.app {
 }
 ~~~
 
-Hai khai báo này hỗ trợ lẫn nhau nhưng **không thay thế** nhau. Nếu chỉ có Gradle dependency, app chưa tự đọc named module service theo JPMS. Nếu chỉ có `requires` mà Gradle không cung cấp artifact service, compiler có thể không tìm được module.
+These two declarations support each other but **do not replace** each other. If only the Gradle dependency is present, app does not automatically read the named service module under JPMS. If only `requires` is present without Gradle supplying the service artifact, the compiler may fail to find the module.
 
-Với Maven:
+With Maven:
 
 ~~~xml
 <dependency>
@@ -715,36 +715,36 @@ Với Maven:
 </dependency>
 ~~~
 
-Khối dependency của Maven đưa artifact vào build graph, còn `requires com.acme.service;` vẫn cần đúng tên module thực tế trong descriptor.
+Maven's dependency block brings the artifact into the build graph, while `requires com.acme.service;` still needs the exact actual module name in the descriptor.
 
-Một build tool có thể dùng compile module path và runtime module path khác nhau. Cần đối chiếu cả hai khi app compile được nhưng chạy lỗi.
+A build tool can use different compile module paths and runtime module paths. Compare both when app compiles successfully yet fails at runtime.
 
-## 12. Classpath và unnamed module đứng ở đâu?
+## 12. Where do the classpath and unnamed module fit in?
 
-Trước JPMS, classpath là cơ chế phổ biến để đưa class vào ứng dụng:
+Before JPMS, the classpath was the common mechanism for supplying classes to an application:
 
 ~~~bash
 java -cp "app.jar:libs/*" com.acme.app.Main
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 java -cp "app.jar;libs/*" com.acme.app.Main
 ~~~
 
-Các class trên classpath thuộc unnamed module của class loader tương ứng. Khi chuyển sang JPMS, cần hiểu:
+Classes on the classpath belong to the unnamed module of the corresponding class loader. When migrating to JPMS, understand:
 
-- Named module khai báo `requires` tới **named module**, không khai báo `requires` tới unnamed module thông thường.
-- Automatic module là JAR truyền thống nằm trên module path và có tên module theo quy tắc JPMS.
-- Automatic module tạo cầu nối migration, nhưng không có descriptor explicit và có hành vi export rộng.
-- Chuyển một JAR từ classpath sang module path có thể làm lộ split package hoặc dependency khác trước.
+- Named modules declare `requires` on **named modules**, not ordinarily on the unnamed module.
+- An automatic module is a traditional JAR placed on the module path and assigned a module name by JPMS rules.
+- Automatic modules provide a migration bridge, but lack an explicit descriptor and exhibit broad export behavior.
+- Moving a JAR from the classpath to the module path can surface split packages or previously hidden dependencies.
 
-Đừng giả định mọi code đang chạy tốt trên classpath sẽ biên dịch ngay sau khi thêm `module-info.java`. Build có thể cần di chuyển dependency từng bước và cập nhật ranh giới API.
+Do not assume every codebase running cleanly on the classpath will compile immediately after adding `module-info.java`. Builds may need to migrate dependencies incrementally and update API boundaries.
 
-## 13. --add-modules, --limit-modules và các root
+## 13. --add-modules, --limit-modules, and roots
 
-Các tùy chọn launcher có thể làm runtime graph khác với những gì bạn dự đoán chỉ từ source code.
+Launcher options can make the runtime graph differ from what you would predict from source code alone.
 
 ### 13.1. --add-modules
 
@@ -754,7 +754,7 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-`--add-modules` bổ sung root modules cần resolve. Nó phù hợp khi module không phải dependency bắt buộc trực tiếp từ main graph nhưng cần hiện diện theo cấu hình chạy.
+`--add-modules` adds root modules to resolve. It fits when a module is not a direct mandatory dependency from the main graph but needs to be present for a run configuration.
 
 ### 13.2. --limit-modules
 
@@ -762,7 +762,7 @@ java --module-path mods \
 java --limit-modules java.base --list-modules
 ~~~
 
-`--limit-modules` giới hạn universe of observable modules. Lệnh không xóa module khỏi runtime image, và cách tính universe còn xét dependency closure cùng các quy tắc cho main module/roots được bổ sung. Không nên dùng flag này như một cơ chế sandbox bảo mật.
+`--limit-modules` limits the universe of observable modules. The flag does not delete modules from the runtime image, and universe calculation also considers the dependency closure plus rules for the main module/added roots. Do not use this flag as a security sandbox mechanism.
 
 ### 13.3. --show-module-resolution
 
@@ -772,23 +772,23 @@ java --show-module-resolution \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Đây là lựa chọn tốt để kiểm chứng graph thực tế, thay vì suy đoán từ danh sách JAR.
+This is a good option for verifying the actual graph rather than guessing from a list of JARs.
 
 ### 13.4. --add-reads, --add-exports, --add-opens
 
-Trong migration legacy, có thể gặp những tùy chọn bổ sung quyền runtime/compile đặc biệt. Chúng có thể giúp chẩn đoán hoặc chuyển tiếp, nhưng không nên dùng thay thiết kế module rõ ràng:
+In legacy migrations, you may encounter options that add special compile/runtime permissions. They can help with diagnostics or transition, but should not be used in place of a clean module design:
 
-- `--add-reads`: bổ sung quan hệ đọc.
-- `--add-exports`: mở rộng export một package.
-- `--add-opens`: cho phép deep reflection vào package.
+- `--add-reads`: adds a readability relationship.
+- `--add-exports`: widens export of a package.
+- `--add-opens`: permits deep reflection into a package.
 
-Không dùng các flag này để che lỗi thiếu dependency, split package hay deploy sai artifact.
+Do not use these flags to mask missing dependencies, split packages, or misdeployed artifacts.
 
-## 14. ServiceLoader và module graph runtime
+## 14. ServiceLoader and the runtime module graph
 
-Một plugin/service provider có thể không được gọi trực tiếp từ mã nguồn app. Vì vậy, module graph phục vụ dịch vụ có thể cần thêm module provider ở runtime.
+A plugin/service provider might not be referenced directly from app source code. Thus, the module graph serving services may need provider modules added at runtime.
 
-Ví dụ contract:
+Contract example:
 
 ~~~java
 package com.acme.spi;
@@ -798,7 +798,7 @@ public interface Greeter {
 }
 ~~~
 
-Module SPI:
+SPI module:
 
 ~~~java
 module com.acme.spi {
@@ -806,7 +806,7 @@ module com.acme.spi {
 }
 ~~~
 
-Module app:
+App module:
 
 ~~~java
 module com.acme.app {
@@ -815,7 +815,7 @@ module com.acme.app {
 }
 ~~~
 
-Module provider:
+Provider module:
 
 ~~~java
 module com.acme.greeter.impl {
@@ -826,9 +826,9 @@ module com.acme.greeter.impl {
 }
 ~~~
 
-App có thể biên dịch chỉ với module SPI, vì lúc compile nó không tham chiếu trực tiếp class `DefaultGreeter`. Nhưng để `ServiceLoader` tìm provider trong một module layer, module provider phải được đưa vào configuration/layer phù hợp (chẳng hạn qua cấu hình root, service binding hoặc layer dành cho plugin).
+App can compile with only the SPI module, because at compile time it does not directly reference the `DefaultGreeter` class. However, for `ServiceLoader` to find the provider in a module layer, the provider module must be included in the appropriate configuration/layer (for example via root configuration, service binding, or a plugin layer).
 
-Ví dụ sử dụng:
+Usage example:
 
 ~~~java
 ServiceLoader<Greeter> providers =
@@ -839,13 +839,13 @@ for (Greeter provider : providers) {
 }
 ~~~
 
-Điểm cần nhớ: sự hiện diện của interface ở compile-time không tự bảo đảm có provider ở runtime. Đây là một dạng khác biệt giữa compile graph và runtime configuration.
+Point to remember: having the interface present at compile-time does not automatically guarantee providers exist at runtime. This is another form of divergence between the compile graph and the runtime configuration.
 
-## 15. ModuleLayer động và graph riêng
+## 15. Dynamic ModuleLayer and separate graphs
 
-Không phải mọi module đều xuất hiện trong boot layer lúc khởi động. Ứng dụng có thể resolve một nhóm module plugin sau đó tạo layer riêng.
+Not every module appears in the boot layer at startup. An application can resolve a group of plugin modules later and create a separate layer.
 
-Ý tưởng:
+Idea:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -876,40 +876,40 @@ ModuleLayer.Controller controller =
 ModuleLayer pluginLayer = controller.layer();
 ~~~
 
-Ví dụ là một đoạn mã đặt trong ngữ cảnh hợp lệ, chẳng hạn trong method có thể thực thi. Nó cho thấy:
+The example is a snippet placed in a valid context, such as inside an executable method. It demonstrates:
 
-1. Tìm module plugin từ vị trí cụ thể.
-2. Resolve một configuration mới dựa trên boot configuration.
-3. Định nghĩa module đó trong `ModuleLayer` mới.
+1. Finding plugin modules from a specific location.
+2. Resolving a new configuration based on the boot configuration.
+3. Defining those modules in a new `ModuleLayer`.
 
-Khi debug plugin, hỏi **module đã được resolve vào layer nào**, chứ không chỉ kiểm tra `ModuleLayer.boot().findModule()`.
+When debugging plugins, ask **which layer the module was resolved into**, rather than only checking `ModuleLayer.boot().findModule()`.
 
-Layer mới không thay thế boot layer, và class loader của layer cũng ảnh hưởng khả năng nạp class.
+The new layer does not replace the boot layer, and the layer's class loader also affects class loading behavior.
 
-## 16. Cách kiểm tra compile graph và runtime graph
+## 16. How to inspect the compile graph and runtime graph
 
-Một quy trình chẩn đoán hiệu quả:
+An effective diagnostic workflow:
 
-### Bước 1: Xác định JDK và Java executable
+### Step 1: Identify the JDK and Java executable
 
 ~~~bash
 java --version
 javac --version
 ~~~
 
-Nếu IDE, build server và production dùng Java khác nhau, kiểm tra executable thực tế và `java.home` trong tiến trình.
+If the IDE, build server, and production use different Java versions, check the actual executable and `java.home` inside the process.
 
-### Bước 2: Kiểm tra module descriptor
+### Step 2: Inspect the module descriptor
 
 ~~~bash
 jar --describe-module --file libs/service.jar
 ~~~
 
-Xác nhận tên module, `requires` và exports. Với output đã compile thành directory, kiểm tra có `module-info.class` đúng cấp.
+Confirm module name, `requires`, and exports. For outputs compiled into directories, verify `module-info.class` is at the right level.
 
-### Bước 3: Kiểm tra compile module path
+### Step 3: Check the compile module path
 
-Đối chiếu compiler flags trong Maven/Gradle hoặc lệnh `javac`:
+Compare compiler flags in Maven/Gradle or the `javac` command:
 
 ~~~bash
 javac --module-path mods -d out \
@@ -917,17 +917,17 @@ javac --module-path mods -d out \
     src/com.acme.app/com/acme/app/Main.java
 ~~~
 
-Tìm đúng artifact của module dependency. Lỗi `module not found` ở giai đoạn này thường không liên quan tới permission của package.
+Find the exact artifact of the dependency module. A `module not found` error at this stage is usually unrelated to package permissions.
 
-### Bước 4: Kiểm tra runtime module path
+### Step 4: Check the runtime module path
 
 ~~~bash
 java --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Runtime phải thấy những module bắt buộc trong configuration. Kiểm tra các đường dẫn được deploy, không chỉ thư mục build trên máy phát triển.
+Runtime must see all mandatory modules in the configuration. Check deployed paths, not just the build directory on a development machine.
 
-### Bước 5: Hiển thị module resolution
+### Step 5: Display module resolution
 
 ~~~bash
 java --show-module-resolution \
@@ -935,23 +935,23 @@ java --show-module-resolution \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Dùng log để đối chiếu root, dependencies và graph thực tế.
+Use the log to verify roots, dependencies, and the actual graph.
 
-### Bước 6: Phân biệt missing module và missing class
+### Step 6: Distinguish missing module from missing class
 
-Nếu module resolution thành công nhưng runtime báo `ClassNotFoundException` hoặc `NoClassDefFoundError`, tiếp tục kiểm tra:
+If module resolution succeeds yet runtime reports `ClassNotFoundException` or `NoClassDefFoundError`, check further:
 
-- Class nằm trong JAR nào?
-- JAR thực tế có đúng phiên bản không?
-- Class loader nào thực hiện yêu cầu?
-- Module có được resolve ở layer chứa class không?
-- Có dependency bắc cầu hoặc static initialization bị lỗi không?
+- Which JAR contains the class?
+- Is the actual JAR the right version?
+- Which class loader issued the request?
+- Was the module resolved in the layer containing the class?
+- Is there a transitive dependency issue or failed static initialization?
 
-Một `ClassNotFoundException` do gọi `Class.forName()` không tự động có nghĩa module graph chưa resolve.
+A `ClassNotFoundException` from calling `Class.forName()` does not automatically mean the module graph failed to resolve.
 
-### Bước 7: Kiểm tra runtime class loading
+### Step 7: Inspect runtime class loading
 
-Có thể dùng:
+You can use:
 
 ~~~bash
 java -Xlog:class+load=info \
@@ -959,86 +959,86 @@ java -Xlog:class+load=info \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Log hỗ trợ tìm nguồn class được nạp. Nếu module được resolve nhưng class đến từ JAR không mong đợi, lỗi có thể nằm ở build/deploy artifact thay vì `requires`.
+The log helps locate the source of loaded classes. If the module is resolved yet a class comes from an unexpected JAR, the bug may lie in build/deploy artifacts rather than `requires`.
 
-## 17. Các câu hỏi thường gặp
+## 17. Frequently asked questions
 
-### Compile thành công có nghĩa runtime graph chắc chắn giống compile graph?
+### Does a successful compile mean the runtime graph is guaranteed to match the compile graph?
 
-Không. Runtime có module path, runtime image, root selection, service providers và phiên bản artifact riêng. Những khác biệt đó có thể làm module resolution hoặc class loading thất bại.
+No. Runtime has its own module path, runtime image, root selection, service providers, and artifact versions. Those differences can cause module resolution or class loading to fail.
 
-### Một module được liệt kê trong java --list-modules có chắc đã vào boot layer?
+### Is a module listed in java --list-modules guaranteed to be in the boot layer?
 
-Không. Lệnh liệt kê các module observable trong ngữ cảnh gọi; việc module được resolve vào boot layer phụ thuộc roots và dependencies.
+No. The command lists observable modules in the invocation context; whether a module is resolved into the boot layer depends on roots and dependencies.
 
-### Module đã resolve có tự export toàn bộ package không?
+### Does a resolved module automatically export all of its packages?
 
-Không. Explicit named module chỉ export các package mà descriptor công bố (hoặc được điều chỉnh bằng cơ chế phù hợp). Có quan hệ đọc không đồng nghĩa truy cập được implementation nội bộ.
+No. An explicit named module only exports packages advertised by its descriptor (or adjusted by an appropriate mechanism). Having a readability relationship does not mean internal implementations are accessible.
 
-### requires static có phải không cần dependency lúc compile?
+### Does requires static mean the dependency is not needed at compile time?
 
-Không. Từ khóa `static` ở đây làm dependency không bắt buộc tại runtime; compiler vẫn cần module để kiểm tra mã nguồn tham chiếu tới nó.
+No. The `static` keyword here makes the dependency optional at runtime; the compiler still needs the module to check source code referencing it.
 
-### requires transitive có biến model thành dependency runtime tùy chọn?
+### Does requires transitive turn model into an optional runtime dependency?
 
-Không. Nếu chỉ dùng `requires transitive` mà không có `static`, model vẫn là dependency bắt buộc ở runtime. `transitive` chủ yếu thay đổi readability lan tới module consumer.
+No. If only `requires transitive` is used without `static`, model remains a mandatory dependency at runtime. `transitive` primarily changes readability propagated to consuming modules.
 
-### Có nên đặt toàn bộ JAR trên module path rồi cho rằng graph đã đủ?
+### Should you put every JAR on the module path and assume the graph is sufficient?
 
-Không. Module path chỉ cung cấp nơi tìm module. Graph còn phụ thuộc roots, descriptors, khả năng resolution và cách thiết kế module.
+No. The module path only provides places to search for modules. The graph still depends on roots, descriptors, resolution feasibility, and module design.
 
-### Nếu chỉ một plugin bị lỗi, có cần kiểm tra boot layer không?
+### If only one plugin fails, should you check the boot layer?
 
-Cần biết plugin được resolve ở boot layer hay layer động. Nếu được nạp trong `ModuleLayer` riêng, hãy kiểm tra configuration/layer và class loader tương ứng.
+You need to know whether the plugin is resolved in the boot layer or a dynamic layer. If loaded in a separate `ModuleLayer`, check the corresponding configuration/layer and class loader.
 
-## 18. Tự kiểm tra
+## 18. Self-check
 
-**Tình huống 1:** App có `requires com.acme.service;`, nhưng runtime module path chỉ chứa app. Compiler trước đó thành công. Khi chạy có thể xảy ra gì?
+**Scenario 1:** App has `requires com.acme.service;`, but the runtime module path only contains app. The compiler succeeded earlier. What can happen at runtime?
 
-**Trả lời:** Runtime có thể thất bại ở module resolution vì không tìm thấy module service bắt buộc.
+**Answer:** Runtime can fail during module resolution because the mandatory service module is not found.
 
-**Tình huống 2:** Service export package API nhưng app không có `requires` và không có readability gián tiếp. App có import class từ service được không?
+**Scenario 2:** Service exports its API package, yet app has no `requires` and no indirect readability. Can app import classes from service?
 
-**Trả lời:** Không. Export package không tự tạo quan hệ đọc; app cần có readability phù hợp.
+**Answer:** No. Exporting a package does not create a readability relationship; app needs appropriate readability.
 
-**Tình huống 3:** App dùng `Message` từ model qua API của service. Service nên khai báo gì nếu model là một phần public API?
+**Scenario 3:** App uses `Message` from model via service's API. What should service declare if model is part of the public API?
 
-**Trả lời:** Có thể dùng `requires transitive com.acme.model;` để consumer đọc service cũng đọc model; model vẫn phải export package chứa `Message`.
+**Answer:** `requires transitive com.acme.model;` can be used so consumers reading service also read model; model still must export the package containing `Message`.
 
-**Tình huống 4:** Module annotation được khai báo `requires static`, biên dịch thành công. Nó có bắt buộc hiện diện ở runtime không?
+**Scenario 4:** An annotations module is declared with `requires static` and compiles successfully. Must it be present at runtime?
 
-**Trả lời:** Không bắt buộc chỉ vì chỉ thị static. Nhưng nếu mã runtime thực sự cần class từ module đó thì vẫn có thể phát sinh lỗi khi module vắng mặt.
+**Answer:** Not mandatory solely because of the static directive. However, if runtime code actually needs classes from that module, errors can still arise when the module is absent.
 
-**Tình huống 5:** `ModuleFinder.ofSystem().find("java.sql")` có giá trị nhưng `ModuleLayer.boot().findModule("java.sql")` rỗng. Hai kết quả có mâu thuẫn không?
+**Scenario 5:** `ModuleFinder.ofSystem().find("java.sql")` is present, yet `ModuleLayer.boot().findModule("java.sql")` is empty. Do the two results contradict each other?
 
-**Trả lời:** Không. Một module có thể có trong runtime image nhưng không được resolve vào boot layer.
+**Answer:** No. A module can exist in the runtime image without being resolved into the boot layer.
 
-**Tình huống 6:** Module service đã resolved nhưng framework không thể reflection vào một private field. Nguyên nhân có khả năng là gì?
+**Scenario 6:** The service module is resolved, yet a framework cannot reflect on a private field. What is the likely cause?
 
-**Trả lời:** Package chưa được mở cho deep reflection; cần kiểm tra `opens`, qualified opens hoặc cấu hình framework.
+**Answer:** The package has not been opened for deep reflection; check `opens`, qualified opens, or framework configuration.
 
-**Tình huống 7:** App compile được với phiên bản API mới nhưng runtime dùng JAR service cũ thiếu method. Loại lỗi nào có thể xuất hiện?
+**Scenario 7:** App compiles against a new API version, yet runtime uses an older service JAR missing a method. What kind of error can appear?
 
-**Trả lời:** Có thể gặp `NoSuchMethodError` hoặc lỗi liên kết nhị phân khác; không nên kết luận là thiếu `requires`.
+**Answer:** `NoSuchMethodError` or other binary linkage errors may appear; do not conclude that `requires` is missing.
 
-**Tình huống 8:** Hai module cùng chứa `com.acme.shared` và app đọc cả hai. Lỗi liên quan tới graph có thể là gì?
+**Scenario 8:** Two modules both contain `com.acme.shared` and app reads both. What graph-related error can occur?
 
-**Trả lời:** Split package; cần tổ chức lại package ownership thay vì chỉ tăng `exports`.
+**Answer:** Split package; package ownership must be reorganized rather than just adding more `exports`.
 
-**Tình huống 9:** Tại sao `--show-module-resolution` hữu ích hơn `--list-modules` khi debug một lệnh chạy cụ thể?
+**Scenario 9:** Why is `--show-module-resolution` more helpful than `--list-modules` when debugging a specific run command?
 
-**Trả lời:** Vì nó thể hiện module graph thực sự được resolve cho lần khởi chạy, còn `--list-modules` chỉ liệt kê modules observable.
+**Answer:** Because it shows the actual module graph resolved for that launch, whereas `--list-modules` only lists observable modules.
 
-**Tình huống 10:** Một plugin không xuất hiện trong boot layer nhưng vẫn được nạp vào layer riêng. Điều này có bất thường không?
+**Scenario 10:** A plugin does not appear in the boot layer yet is loaded into a separate layer. Is this abnormal?
 
-**Trả lời:** Không. Module có thể được resolve và định nghĩa trong một `ModuleLayer` mới sau khi ứng dụng khởi động.
+**Answer:** No. Modules can be resolved and defined in a new `ModuleLayer` after the application starts.
 
-## Tổng kết
+## Summary
 
-**Compile-time**, **run-time** và **module graph** là ba góc nhìn gắn kết:
+**Compile-time**, **run-time**, and **module graph** are three connected perspectives:
 
-- Ở **compile-time**, `javac` dựa vào source, module descriptors và compile module path để xác thực dependency, kiểu và quyền truy cập.
-- Ở **run-time**, Java launcher và JVM dựa vào runtime image, module path, root modules và descriptors để resolve configuration, tạo layer, nạp class và chạy code.
-- **Module graph** liên kết hai giai đoạn thông qua các node module và quan hệ `requires`/readability. Tuy nhiên, tập module được tìm thấy, được chọn và thực sự có mặt có thể khác theo môi trường.
+- At **compile-time**, `javac` relies on sources, module descriptors, and the compile module path to validate dependencies, types, and access permissions.
+- At **run-time**, the Java launcher and JVM rely on the runtime image, module path, root modules, and descriptors to resolve a configuration, create layers, load classes, and run code.
+- The **module graph** connects the two stages through module nodes and `requires`/readability relationships. However, the sets of modules found, selected, and actually present can differ across environments.
 
-Khi gặp lỗi, đừng vội thêm flag hoặc JAR. Hãy lần lượt xác định **module có tồn tại**, **có observable**, **đã resolved**, **có readability**, **package có export**, rồi **class có được nạp/khởi tạo thành công**. Cách phân tách này giúp chẩn đoán JPMS rõ ràng và thiết kế ứng dụng modular bền vững.
+When encountering errors, do not rush to add flags or JARs. Check in order whether **the module exists**, **is observable**, **is resolved**, **has readability**, **the package is exported**, and **the class loads/initializes successfully**. This separation makes JPMS diagnostics clear and supports building resilient modular applications.

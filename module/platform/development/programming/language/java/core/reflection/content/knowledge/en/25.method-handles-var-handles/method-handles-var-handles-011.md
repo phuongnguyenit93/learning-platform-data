@@ -1,67 +1,67 @@
-# Không mặc định một cơ chế luôn nhanh hơn cơ chế còn lại: Reflection, MethodHandle và VarHandle
+# Do Not Assume One Mechanism Is Always Faster Than Another: Reflection, MethodHandle, and VarHandle
 
-## 1. Kết luận cần hiểu đúng
+## 1. The Conclusion to Understand Accurately
 
-Trong Java, `MethodHandle` và `VarHandle` cung cấp cách truy cập thành viên/biến với chữ ký được JVM xử lý trực tiếp, nhưng **không có quy tắc chung** rằng chúng luôn nhanh hơn `Method.invoke` hoặc `Field.get/set` của Core Reflection. Và cũng không thể nói `MethodHandle` luôn nhanh hơn `VarHandle`: chúng **không giải quyết chính xác cùng một bài toán**.
+In Java, `MethodHandle` and `VarHandle` provide access to members/variables with signatures handled directly by the JVM, yet **there is no universal rule** that they are always faster than `Method.invoke` or `Field.get/set` from Core Reflection. Nor can you say `MethodHandle` is always faster than `VarHandle`: they **do not solve the exact same problem**.
 
-Tốc độ thực tế phụ thuộc đồng thời vào:
-- **Thao tác**: gọi method, đọc field, ghi field, truy cập `volatile`, hay `compareAndSet`.
-- **Độ ổn định của kiểu và call site**: đối tượng `MethodHandle`, `VarHandle`, `Method`, `Field` có được cache, có ổn định qua mỗi lần gọi, có thể được JIT nhận biết và tối ưu không.
-- **Khả năng inline và profile runtime**: call site đơn hình (monomorphic) hay đa hình, lớp receiver và target thay đổi đến đâu.
-- **Chi phí chuyển đổi**: boxing/unboxing, mảng `Object[]` cho arguments, chuyển đổi kiểu của `invoke` so với `invokeExact`, adapters như `asType`, `bindTo` và `filterArguments`.
-- **Ràng buộc bộ nhớ**: plain/opaque/acquire/release/volatile có semantics và chi phí khác nhau; so sánh khác semantics sẽ sai mục tiêu.
-- **Phiên bản JDK/JVM, kiến trúc CPU, tier biên dịch, GC, cấu hình và tải thực tế**.
+Actual speed depends simultaneously on:
+- **Operation**: invoking a method, reading a field, writing a field, `volatile` access, or `compareAndSet`.
+- **Stability of types and call sites**: whether the `MethodHandle`, `VarHandle`, `Method`, or `Field` object is cached, stable across calls, and recognizable/optimizable by the JIT.
+- **Inlining potential and runtime profile**: whether a call site is monomorphic or polymorphic, and how much the receiver and target classes vary.
+- **Conversion overhead**: boxing/unboxing, `Object[]` arrays for arguments, type conversions in `invoke` vs. `invokeExact`, and adapters like `asType`, `bindTo`, and `filterArguments`.
+- **Memory constraints**: plain/opaque/acquire/release/volatile have different semantics and costs; comparing different semantics misses the target.
+- **JDK/JVM version, CPU architecture, compilation tiers, GC, configuration, and actual workload**.
 
-Một benchmark tốt phải xác định **“nhanh hơn khi làm việc gì, trên runtime nào, với semantics gì?”** trước khi đưa ra quyết định. Ưu tiên tính đúng, quyền truy cập và khả năng bảo trì; dùng dữ liệu hiệu năng đo trên đường chạy quan trọng để cân nhắc đổi cơ chế.
+A good benchmark must define **"faster at doing what, on which runtime, with what semantics?"** before making a decision. Prioritize correctness, access control, and maintainability; use performance data measured on critical paths to weigh changing mechanisms.
 
-## 2. Chúng làm gì và không thay thế nhau ra sao?
+## 2. What Do They Do and How Are They Non-Interchangeable?
 
-| Cơ chế | Nhiệm vụ phù hợp | Cách gọi đặc trưng | Điều cần lưu ý khi so hiệu năng |
+| Mechanism | Suitable Task | Typical Invocation | What to Note When Comparing Performance |
 | --- | --- | --- | --- |
-| Gọi Java thông thường | Đã biết kiểu/method ở thời điểm biên dịch | `obj.work(arg)` | Mốc so sánh có ích; JIT có thể inline và loại bỏ phần việc không quan sát được. |
-| `java.lang.reflect.Method` | Tìm/gọi method linh hoạt từ metadata runtime | `method.invoke(obj, args...)` | Trả về `Object`; có thể boxing/unboxing, xử lý argument và kiểm tra truy cập. |
-| `MethodHandle` | Tham chiếu có kiểu tới method/constructor/field, kết hợp thành chuỗi xử lý động | `mh.invokeExact(...)`, `mh.invoke(...)` | Chi phí và khả năng tối ưu phụ thuộc chữ ký, adapter, call site, handle có ổn định hay không. |
-| `java.lang.reflect.Field` | Đọc/ghi field qua metadata Reflection | `field.getInt(obj)`, `field.setInt(obj, v)` | Các API primitive như `getInt` giúp tránh boxing do `get` trả `Object`. |
-| `VarHandle` | Truy cập biến/field/array với các access mode và memory ordering rõ ràng | `vh.get(obj)`, `vh.set(obj,v)`, `vh.compareAndSet(obj,a,b)` | Phải chọn mode tương đương khi so; `getVolatile` không đồng nghĩa `get`. |
+| Ordinary Java call | Type/method already known at compile time | `obj.work(arg)` | Useful baseline; JIT can inline and eliminate unobservable work. |
+| `java.lang.reflect.Method` | Flexibly find/invoke methods from runtime metadata | `method.invoke(obj, args...)` | Returns `Object`; may incur boxing/unboxing, argument handling, and access checks. |
+| `MethodHandle` | Typed reference to a method/constructor/field, composed into dynamic pipelines | `mh.invokeExact(...)`, `mh.invoke(...)` | Cost and optimization potential depend on signature, adapters, call site, and whether the handle is stable. |
+| `java.lang.reflect.Field` | Read/write fields via Reflection metadata | `field.getInt(obj)`, `field.setInt(obj, v)` | Primitive APIs like `getInt` avoid the boxing caused by `get` returning `Object`. |
+| `VarHandle` | Access variables/fields/arrays with explicit access modes and memory ordering | `vh.get(obj)`, `vh.set(obj,v)`, `vh.compareAndSet(obj,a,b)` | Must pick equivalent modes when comparing; `getVolatile` is not equivalent to `get`. |
 
-`MethodHandle` có thể đại diện cho **getter/setter** của field, còn `VarHandle` có thể chuyển một access mode thành `MethodHandle` qua `toMethodHandle(...)`. Như vậy có phần giao nhau nhưng `VarHandle` được thiết kế để biểu diễn **nhiều chế độ truy cập biến** và atomic operations, không phải một cơ chế gọi arbitrary method.
+`MethodHandle` can represent field **getters/setters**, while `VarHandle` can convert an access mode into a `MethodHandle` via `toMethodHandle(...)`. Thus there is overlap, yet `VarHandle` is designed to express **multiple variable access modes** and atomic operations, not as a mechanism for calling arbitrary methods.
 
-Không nên so thời gian của `MethodHandle.invokeExact` để gọi phép cộng với `VarHandle.compareAndSet` để cập nhật biến: hai thao tác tạo ra kết quả và bảo đảm khác nhau. Nếu cần so field read, hãy so `obj.field`, `Field.getInt`, `MethodHandle` getter và `VarHandle.get` cùng một field, trên điều kiện tương đương.
+Do not compare the timing of `MethodHandle.invokeExact` calling an addition method with `VarHandle.compareAndSet` updating a variable: the two operations produce different results and guarantees. If you want to compare field reads, compare `obj.field`, `Field.getInt`, a `MethodHandle` getter, and `VarHandle.get` on the same field under equivalent conditions.
 
-## 3. Điều gì quyết định hiệu năng ở call site?
+## 3. What Determines Performance at the Call Site?
 
-### 3.1. Lookup khác invocation
+### 3.1. Lookup vs. Invocation
 
-`Class.getMethod`, `MethodHandles.Lookup.findVirtual`, `findGetter` và `findVarHandle` dùng để **tìm và kiểm tra khả năng truy cập**. Chi phí lookup không phải chi phí gọi method/đọc field nhiều lần.
+`Class.getMethod`, `MethodHandles.Lookup.findVirtual`, `findGetter`, and `findVarHandle` are used to **look up and verify access permissions**. Lookup cost is not the cost of repeatedly invoking a method or reading a field.
 
-- Nếu ứng dụng chỉ thực hiện vài lần truy cập, chi phí khởi tạo/cấu hình một handle có thể quan trọng hơn thời gian gọi.
-- Nếu chạy hàng triệu lần, cache `Method`/`Field`/`MethodHandle`/`VarHandle` bên ngoài vòng lặp thường giúp đánh giá đúng hot path.
-- Đừng chỉ đặt lookup *bên trong* một phiên bản benchmark còn phiên bản khác đã cache sẵn. Muốn so tổng chi phí khởi tạo + sử dụng thì phải đo **cùng vòng đời** cho tất cả.
+- If an application performs only a few accesses, the setup/configuration cost of a handle can outweigh invocation time.
+- If running millions of times, caching `Method`/`Field`/`MethodHandle`/`VarHandle` outside the loop typically reflects the true hot path.
+- Do not place lookup *inside* one benchmark variant while another variant uses a pre-cached handle. If you want to compare total setup + usage cost, measure **the same lifecycle** for all.
 
-### 3.2. JIT optimization và hằng hóa handle
+### 3.2. JIT Optimization and Constant-Folding Handles
 
-Trong điều kiện JIT nhận diện được target/handle ổn định (ví dụ một trường `static final` hoặc đường truyền dữ liệu đủ rõ), JIT có **cơ hội** inline, chuyên biệt hóa hoặc loại một số bước trung gian. Khi thay target liên tục, lấy từ phần tử mảng hoặc một call site có nhiều loại target, tối ưu hóa có thể khác.
+When the JIT can see a stable target/handle (for instance, a `static final` field or a sufficiently clear dataflow path), the JIT has an **opportunity** to inline, specialize, or fold away intermediate steps. When targets change constantly, are fetched from array elements, or a call site sees many target types, optimizations can differ.
 
-Không được suy luận “`static final` bảo đảm inline” hay “không `final` thì chắc chắn chậm”: đây là kết quả phụ thuộc profile và triển khai JIT. `final` là tín hiệu hữu ích để JVM thấy tham chiếu ổn định, không phải lời hứa về thứ hạng hiệu năng.
+Do not infer "`static final` guarantees inlining" or "non-`final` is guaranteed to be slow": these outcomes depend on runtime profiles and JIT implementation. `final` is a helpful signal to the JVM that a reference is stable, not a performance-ranking promise.
 
-### 3.3. `invokeExact`, `invoke` và adapters
+### 3.3. `invokeExact`, `invoke`, and Adapters
 
-- `MethodHandle.invokeExact` đòi hỏi **chữ ký tại call site khớp chính xác** với `MethodHandle.type()`, gồm kiểu tham số **và kiểu trả về**. Sai kiểu có thể gây `WrongMethodTypeException`.
-- `MethodHandle.invoke` cho phép một số chuyển đổi kiểu như `asType`. JVM có thể tối ưu các chuyển đổi nếu đủ thông tin, nhưng adaptation cũng có thể tạo thêm công việc.
-- `invokeWithArguments` thuận tiện với tham số động dạng `Object[]`/`List<?>`, không đại diện cho cùng cách gọi tối ưu như `invokeExact` cố định chữ ký.
-- `VarHandle` có các access mode dạng signature-polymorphic; `withInvokeExactBehavior()` yêu cầu đối chiếu chữ ký chính xác, còn dạng mặc định có thể cho phép điều chỉnh tương đương `invoke` theo quy tắc API.
+- `MethodHandle.invokeExact` requires the **call-site signature to match `MethodHandle.type()` exactly**, including parameter types **and return type**. Mismatches can throw `WrongMethodTypeException`.
+- `MethodHandle.invoke` permits certain type conversions like `asType`. The JVM may optimize conversions when enough information is available, yet adaptation can also add work.
+- `invokeWithArguments` is convenient for dynamic `Object[]`/`List<?>` arguments and does not represent the same optimized call pattern as fixed-signature `invokeExact`.
+- `VarHandle` has signature-polymorphic access modes; `withInvokeExactBehavior()` requires exact signature matching, whereas the default behavior may allow adaptations equivalent to `invoke` per API rules.
 
-Khi benchmark, ghi chính xác variant được dùng và kiểu tại call site. Đổi `invokeExact` sang `invokeWithArguments` rồi quy chụp toàn bộ `MethodHandle` là kết luận không hợp lệ.
+When benchmarking, record the exact variant used and the call-site types. Switching `invokeExact` to `invokeWithArguments` and blaming `MethodHandle` as a whole is an invalid conclusion.
 
-### 3.4. Core Reflection thay đổi qua các bản Java
+### 3.4. Core Reflection Evolves Across Java Releases
 
-Từ **JDK 18**, [JEP 416](https://openjdk.org/jeps/416) tái triển khai phần lõi Core Reflection (`Method`, `Constructor`, `Field`) dựa trên method handles. Điều này **không** có nghĩa `Method.invoke` và `MethodHandle.invokeExact` là cùng một public API hay có overhead giống hệt nhau. Nhưng nó cho thấy cách tổ chức runtime thay đổi: những so sánh dựa trên cơ chế Reflection cũ không tự áp dụng cho JDK mới.
+Starting in **JDK 18**, [JEP 416](https://openjdk.org/jeps/416) reimplemented the core of Core Reflection (`Method`, `Constructor`, `Field`) on top of method handles. This does **not** mean `Method.invoke` and `MethodHandle.invokeExact` are the same public API or have identical overhead. However, it shows that runtime internals evolve: comparisons based on older Reflection implementations do not automatically apply to newer JDKs.
 
-JEP 416 cũng nêu benchmark cho thấy hiệu năng thay đổi **theo mẫu giữ tham chiếu** (hằng, biến, truy cập mảng...) và theo loại thao tác. Những con số trong một đề xuất JDK chỉ mô tả môi trường và workload của phép đo đó; không phải một tỷ lệ tăng tốc cố định cho ứng dụng khác. **Không suy diễn từ benchmark của một phiên bản sang mọi JDK.**
+JEP 416 also cites benchmarks showing that performance varies **by reference-holding pattern** (constant, variable, array access...) and by operation kind. Numbers in a JDK enhancement proposal describe only that environment and workload; they are not a fixed speedup ratio for another application. **Do not extrapolate one version's benchmark numbers to every JDK.**
 
-## 4. Ví dụ Java 17+ chạy được: giống kết quả, chưa nói ai nhanh hơn
+## 4. Runnable Java 17+ Example: Same Results, Without Claiming Which Is Faster
 
-Lưu toàn bộ chương trình sau thành **`AccessChoicesDemo.java`**. Nó dùng cùng một phương thức `add(int)` và cùng một field `value` để kiểm chứng kết quả tương đương trước khi bàn tới hiệu năng.
+Save the entire program below as **`AccessChoicesDemo.java`**. It uses the same `add(int)` method and the same `value` field to verify equivalent results before discussing performance.
 
 ```java
 import java.lang.invoke.MethodHandle;
@@ -111,14 +111,14 @@ public class AccessChoicesDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 AccessChoicesDemo.java
 java AccessChoicesDemo
 ```
 
-Kết quả đã được kiểm tra thực tế bằng JDK 24 với mã biên dịch ở mức Java 17:
+Verified actual output on JDK 24 with Java 17 bytecode target:
 
 ```text
 Direct call: 5
@@ -132,64 +132,64 @@ VarHandle.compareAndSet: true
 Field after CAS: 9
 ```
 
-Phân tích:
+Analysis:
 
-1. Ba cách gọi `add(3)` đều trả `5`. `Method.invoke` trả `Object` nên khi nối chuỗi sẽ thấy giá trị từ một `Integer` đã được boxing; `invokeExact` ở đây trả nguyên thủy `int` đúng `MethodType`.
-2. Bốn cách đọc field đọc cùng giá trị `2`. `Field.getInt` và `MethodHandle` getter là lựa chọn trực tiếp để so **plain read** với `VarHandle.get`. `MethodHandle getter` có chữ ký tương đương `(Counter)int`.
-3. `compareAndSet` thực hiện một thao tác **nguyên tử** kiểm tra `2` rồi đổi sang `9`; đây là tính năng khác với plain field read và không nên đưa chung vào phép đo “chi phí đọc”.
-4. Tất cả lookup được thực hiện trước phần gọi; **chương trình là kiểm tra correctness chứ không phải benchmark tốc độ**. Thêm `System.nanoTime()` quanh từng dòng này sẽ không cho ra bảng xếp hạng có giá trị.
+1. All three ways of calling `add(3)` return `5`. `Method.invoke` returns `Object`, so string concatenation prints the value from a boxed `Integer`; `invokeExact` here returns primitive `int` matching `MethodType`.
+2. All four field reads observe the same value `2`. `Field.getInt` and a `MethodHandle` getter are direct choices for comparing **plain reads** with `VarHandle.get`. `MethodHandle getter` has a signature equivalent to `(Counter)int`.
+3. `compareAndSet` performs an **atomic** operation checking `2` and swapping to `9`; this is a different feature from a plain field read and must not be lumped into a "read cost" measurement.
+4. All lookups are performed before the calls; **this program verifies correctness, not speed**. Wrapping each line in `System.nanoTime()` will not yield a meaningful ranking.
 
-Ví dụ dùng thành viên `public` để không cần `setAccessible(true)`. Với private member, quyền truy cập của `MethodHandles.Lookup` và Reflection phải được cấu hình theo module/package tương ứng; đừng đem một bản thất bại vì thiếu quyền so với một bản đã mở quyền.
+The example uses `public` members so `setAccessible(true)` is unnecessary. For private members, `MethodHandles.Lookup` and Reflection permissions must be configured per the corresponding module/package; do not compare a version failing due to missing permissions against one with opened access.
 
-## 5. Memory semantics: so cùng công việc rồi mới so thời gian
+## 5. Memory Semantics: Compare the Same Work Before Comparing Time
 
-`VarHandle` có các kiểu thao tác phân biệt rõ:
-- `get` / `set`: truy cập **plain** (ngữ nghĩa đọc/ghi thông thường, không tự thêm cam kết đồng bộ của `volatile`).
-- `getOpaque` / `setOpaque`: opaque access; cung cấp ràng buộc thứ tự yếu hơn acquire/release/volatile.
-- `getAcquire` / `setRelease`: acquire/release ordering, phù hợp một số giao thức publication/consumption.
-- `getVolatile` / `setVolatile`: semantics tương tự đọc/ghi `volatile`.
-- `compareAndSet`, `compareAndExchange`, `getAndAdd`...: các primitive nguyên tử hoặc read-modify-write khi access mode và kiểu biến hỗ trợ.
+`VarHandle` offers clearly separated operation modes:
+- `get` / `set`: **plain** access (ordinary read/write semantics, adding no `volatile` synchronization guarantees).
+- `getOpaque` / `setOpaque`: opaque access; provides weaker ordering constraints than acquire/release/volatile.
+- `getAcquire` / `setRelease`: acquire/release ordering, fitting certain publication/consumption protocols.
+- `getVolatile` / `setVolatile`: semantics equivalent to reading/writing `volatile`.
+- `compareAndSet`, `compareAndExchange`, `getAndAdd`...: atomic or read-modify-write primitives when supported by the access mode and variable type.
 
-`Field.getInt` trên field thông thường và `VarHandle.get` cùng field là cặp hợp lý để bắt đầu so **đọc plain**. Trên field khai báo `volatile`, hãy phân tích lại semantics rồi mới chọn API/mode; đừng so plain read với volatile read và cho rằng phần nhanh hơn vẫn giải quyết được điều kiện đồng bộ. `VarHandle` cũng không tự biến một thuật toán có data race thành an toàn: phải chọn memory ordering/atomicity phù hợp và thiết kế protocol chính xác.
+`Field.getInt` on an ordinary field and `VarHandle.get` on the same field form a sensible pair to start comparing **plain reads**. On a `volatile`-declared field, re-analyze semantics before selecting an API/mode; do not compare a plain read against a volatile read and assume the faster one still satisfies synchronization requirements. `VarHandle` also does not automatically make an algorithm with a data race safe: you must choose appropriate memory ordering/atomicity and design the protocol correctly.
 
-Không phải mọi access mode đều có trên mọi loại biến (ví dụ các thao tác ghi/atomic trên field `final` có hạn chế). Kiểm tra `isAccessModeSupported` và hợp đồng `VarHandle` khi cần thao tác chuyên biệt.
+Not every access mode exists for every variable kind (for example, write/atomic operations on `final` fields are restricted). Check `isAccessModeSupported` and the `VarHandle` contract when specialized operations are needed.
 
-## 6. Đo đúng: JMH, warmup, forks và kiểm soát sai lệch
+## 6. Measuring Properly: JMH, Warm-Up, Forks, and Bias Control
 
-### 6.1. Vì sao một vòng lặp với `nanoTime` chưa đủ?
+### 6.1. Why a Loop with `nanoTime` Is Not Enough
 
-Nếu viết:
+If you write:
 
 ```java
 long start = System.nanoTime();
 for (int i = 0; i < 1_000_000; i++) {
-    handle.invokeExact(counter, 3); // chú ý kiểu trả về!
+    handle.invokeExact(counter, 3); // note the return type!
 }
 long elapsed = System.nanoTime() - start;
 ```
 
-đoạn minh họa này **không phải một chương trình benchmark đúng**: lời gọi `invokeExact` dưới dạng statement có kiểu trả về `void` tại call site trong khi handle ví dụ trả `int`, nên có thể ném `WrongMethodTypeException`. Ngay cả khi ép kiểu/tiêu thụ kết quả đúng, phép đo vẫn có vấn đề như JIT chưa nóng, code bị tối ưu bỏ, phép đo bị nhiễu từ hệ điều hành/GC hoặc thuật toán đang thực hiện các tác vụ không tương đương.
+this illustrative snippet **is not a valid benchmark program**: calling `invokeExact` as a statement gives the call site a `void` return type while the example handle returns `int`, so it can throw `WrongMethodTypeException`. Even when casting/consuming the result properly, the measurement still suffers from issues like cold JIT, dead-code elimination, OS/GC noise, or comparing algorithms doing unequal work.
 
-Sửa tối thiểu cho mặt chữ ký là:
+The minimal signature fix is:
 
 ```java
 int result = (int) addHandle.invokeExact(counter, 3);
 ```
 
-nhưng một lần đo bằng `nanoTime` vẫn **không** thay thế benchmark có thiết kế nghiêm túc.
+yet a single `nanoTime` loop still **cannot** replace a rigorously designed benchmark.
 
-### 6.2. Cách tổ chức benchmark với JMH
+### 6.2. How to Structure Benchmarks with JMH
 
-[JMH (Java Microbenchmark Harness)](https://github.com/openjdk/jmh) là bộ công cụ chuyên dụng của OpenJDK cho microbenchmark JVM. Khi cần quyết định tối ưu trên hot path:
+[JMH (Java Microbenchmark Harness)](https://github.com/openjdk/jmh) is OpenJDK's dedicated toolkit for JVM microbenchmarks. When you need to make optimization decisions on a hot path:
 
-1. **Định nghĩa cùng semantics** và các cặp so sánh: (a) gọi method trực tiếp / `Method.invoke` / `MethodHandle.invokeExact`; (b) field direct read / `Field.getInt` / getter `MethodHandle` / `VarHandle.get`. Đo riêng CAS/volatile operations.
-2. **Chuyển lookup ra pha setup** khi đo invocation ổn định, và tạo benchmark **khác** nếu nghiệp vụ cần đo cả setup + sử dụng một lần.
-3. **Thiết lập warmup, nhiều measurement iterations và nhiều forks**. Ghi JDK vendor/version, JVM flags, CPU/OS, môi trường tải, GC và JMH version.
-4. **Tiêu thụ kết quả** (trả về từ `@Benchmark` hoặc dùng `Blackhole`), cung cấp đầu vào thay đổi đúng nhu cầu và tránh dead-code elimination/constant folding làm workload biến mất. Không in console trong phương thức benchmark.
-5. **Đảm bảo cùng mức đa hình**: một target cố định không thể đem so trực tiếp với target chọn ngẫu nhiên trong từng iteration.
-6. **Xem phân phối kết quả và độ bất định**, độ ổn định giữa forks và profiling. Nếu chênh lệch nhỏ so với nhiễu hoặc không làm thay đổi bottleneck ứng dụng, không có cơ sở để thay API.
+1. **Define identical semantics** and comparison pairs: (a) direct method call / `Method.invoke` / `MethodHandle.invokeExact`; (b) direct field read / `Field.getInt` / getter `MethodHandle` / `VarHandle.get`. Measure CAS/volatile operations separately.
+2. **Move lookups into the setup phase** when measuring steady-state invocation, and build a **separate** benchmark if the use case must measure setup + single use together.
+3. **Configure warm-up, multiple measurement iterations, and multiple forks**. Record JDK vendor/version, JVM flags, CPU/OS, load environment, GC, and JMH version.
+4. **Consume results** (return from `@Benchmark` or use `Blackhole`), supply varying inputs as appropriate, and avoid dead-code elimination or constant folding erasing the workload. Do not print to the console inside benchmark methods.
+5. **Ensure equal polymorphism**: a single fixed target cannot be directly compared against a target chosen randomly on each iteration.
+6. **Inspect result distributions and uncertainty**, fork-to-fork stability, and profiling. If differences are smaller than noise or do not shift the application's bottleneck, there is no basis to switch APIs.
 
-Mẫu *phác thảo cấu trúc*, cần đặt trong class benchmark có các field `MethodHandle addHandle`, `Method reflectedAdd`, `Counter counter` và phụ thuộc JMH; **không phải file Java độc lập**:
+*Structural sketch* template—must be placed inside a benchmark class with `MethodHandle addHandle`, `Method reflectedAdd`, `Counter counter` fields and JMH dependencies; **not a standalone Java file**:
 
 ```java
 @Benchmark
@@ -208,61 +208,61 @@ public int viaHandle() throws Throwable {
 }
 ```
 
-Trước khi chạy mẫu này cần khai báo đầy đủ `@State`, setup handle/method/receiver, import `org.openjdk.jmh.annotations.Benchmark` và cấu hình JMH cùng annotation processor trong công cụ build. Hãy biến `Counter` thành workload có trạng thái/đầu vào phù hợp, để phép tính thật không bị JIT chứng minh là hằng số. **Không tự điền “ns/op dự kiến”**: con số phải xuất phát từ phép đo cụ thể và có thông tin hệ thống đi kèm.
+Before running this template, declare `@State`, set up the handle/method/receiver, import `org.openjdk.jmh.annotations.Benchmark`, and configure JMH and its annotation processor in your build tool. Make `Counter` a workload with appropriate state/input so the real computation is not proven constant by the JIT. **Do not invent "expected ns/op" numbers**: figures must come from an actual measurement accompanied by system details.
 
-### 6.3. Bảng kiểm soát phép đo
+### 6.3. Measurement Checklist
 
-| Câu hỏi | Nếu bỏ qua thì sao? |
+| Question | What Happens If Ignored? |
 | --- | --- |
-| Lookup/cache giống nhau? | Đang đo thêm setup bên này nhưng không đo bên kia. |
-| Chữ ký và chuyển đổi tương đương? | Đang đo overhead boxing/adapters khác nhau mà không nói rõ. |
-| Thao tác field cùng memory ordering? | Đang so hai semantics khác nhau. |
-| Input, target, số kiểu receiver giống nhau? | Profile JIT không thể so được. |
-| Warmup/forks và trạng thái hệ thống hợp lý? | Số liệu ngẫu nhiên, nhiễu hoặc chủ yếu đo JIT startup. |
-| Return value được tiêu thụ và có side effect thật? | JIT có thể loại hoàn toàn công việc. |
-| Chạy trên JDK/CPU tương ứng sản phẩm? | Kết quả thí nghiệm không đại diện deployment. |
-| Hiệu năng end-to-end có cải thiện không? | Tối ưu microbenchmark có thể không đem lợi ích thực tế. |
+| Are lookup and caching identical? | Measuring setup on one side without measuring it on the other. |
+| Are signatures and conversions equivalent? | Measuring different boxing/adapter overhead without stating so. |
+| Do field operations use the same memory ordering? | Comparing two different semantics. |
+| Are inputs, targets, and receiver type counts identical? | JIT profiles are not comparable. |
+| Are warm-up, forks, and system state sound? | Random numbers, noise, or mostly measuring JIT startup. |
+| Is the return value consumed and is there a real side effect? | The JIT may eliminate the work entirely. |
+| Running on production-equivalent JDK/CPU? | Experimental results do not represent deployment. |
+| Does end-to-end performance improve? | Microbenchmark optimization may yield no real-world benefit. |
 
-## 7. Tình huống chọn API dựa trên yêu cầu thực tế
+## 7. Choosing an API Based on Real Requirements
 
-**Framework discovery/plugin/serialization:** Nếu phải khám phá lớp/phương thức theo tên ở runtime và số lượt gọi ít, Core Reflection thường là lựa chọn đơn giản và dễ diễn đạt. Khi một thành viên được gọi cực nhiều lần với chữ ký ổn định, có thể thử cache `MethodHandle` rồi **đo** lợi ích; kết quả còn phụ thuộc JDK và call site.
+**Discovery / plugin / serialization frameworks:** If you must discover classes/methods by name at runtime and call counts are low, Core Reflection is usually simpler and clearer to express. When a member is called very frequently with a stable signature, you can try caching a `MethodHandle` and **measuring** the benefit; outcomes still depend on the JDK and call site.
 
-**Cơ chế gọi hàm động với phép biến đổi chữ ký:** `MethodHandle` là lựa chọn có API thích hợp cho composition (`asType`, `bindTo`, `filterArguments`...), dù mỗi adapter có thể ảnh hưởng tối ưu hóa. Nếu phải tạo adapter một lần và dùng lặp lại, hãy đo mô hình đó thay vì xây lại chuỗi adapter mỗi invocation.
+**Dynamic invocation with signature transformations:** `MethodHandle` has an API built for composition (`asType`, `bindTo`, `filterArguments`...), though each adapter can influence optimization. If an adapter can be built once and reused repeatedly, measure that pattern rather than rebuilding the adapter chain on every invocation.
 
-**Truy cập field với concurrency protocol:** Chọn `VarHandle` khi cần `getAcquire`/`setRelease`/`compareAndSet` hoặc các memory access mode rõ ràng, bởi vì **đúng semantics** là điều kiện bắt buộc. Sau đó tối ưu trong phạm vi các cách cài đặt cùng bảo đảm. Không thay một CAS nguyên tử bằng plain write chỉ để giảm thời gian benchmark.
+**Field access with a concurrency protocol:** Choose `VarHandle` when you need `getAcquire`/`setRelease`/`compareAndSet` or explicit memory access modes, because **correct semantics** are mandatory. Then optimize among implementations with the same guarantees. Do not replace an atomic CAS with a plain write just to shrink benchmark time.
 
-**Mã thông thường biết kiểu tại compile time:** Gọi trực tiếp hoặc dùng cấu trúc Java chuẩn thường dễ hiểu và là mốc so sánh đầu tiên. Không có lý do mặc định chuyển mọi getter thành `MethodHandle`/`VarHandle` với hy vọng tăng tốc.
+**Ordinary code with compile-time known types:** Direct calls or standard Java constructs are usually easy to understand and serve as the baseline. There is no default reason to convert every getter into `MethodHandle`/`VarHandle` hoping for speedups.
 
-**Sau khi nâng JDK:** Đo lại nếu đây là điểm nóng quan trọng. JIT, implementation của Reflection, memory barriers và optimization thay đổi giữa các bản runtime. “Năm trước framework A nhanh hơn B” không phải hợp đồng hiệu năng.
+**After upgrading the JDK:** Re-measure if this is a critical hot spot. The JIT, Reflection implementation, memory barriers, and optimizations change across runtime versions. "Last year framework A beat B" is not a performance contract.
 
-## 8. Những kết luận sai phổ biến
+## 8. Common Wrong Conclusions
 
-| Nhận định sai | Diễn giải đúng |
+| Wrong Claim | Accurate Interpretation |
 | --- | --- |
-| “`MethodHandle` luôn nhanh hơn Reflection.” | Khả năng JIT tối ưu và chi phí phụ thuộc loại thao tác, dạng handle, call site và phiên bản JDK. |
-| “`VarHandle` luôn nhanh hơn `MethodHandle`.” | Chúng khác vai trò; chỉ so khi thực hiện đúng cùng field operation và cùng semantics. |
-| “`invokeExact` luôn nhanh hơn `invoke`.” | `invokeExact` tránh nhu cầu adaptation về mặt semantics, nhưng runtime có thể tối ưu `invoke` trong trường hợp thích hợp; phải đo workload cụ thể. |
-| “Đo `Field.get` rồi so `VarHandle.get` là hoàn toàn công bằng.” | `Field.get` có thể boxing primitive; cân nhắc `Field.getInt` nếu mục tiêu là plain int read. |
-| “Một lần `nanoTime` đủ để kết luận.” | Cần warmup, forks, kiểm soát nhiễu và chống tối ưu mất công việc. |
-| “JDK 18 dùng MethodHandle triển khai Reflection nên hai API có tốc độ bằng nhau.” | Chung một phần cơ chế bên trong không xóa khác biệt API, caller shape và overhead. |
-| “CAS chậm hơn plain set nên dùng plain set cho đồng bộ.” | CAS bảo đảm atomicity khác plain store; phải giữ đúng yêu cầu đồng bộ. |
-| “Kết quả benchmark vượt trội nghĩa là ứng dụng chắc chắn nhanh hơn.” | Bottleneck có thể nằm ở I/O, allocation, locks, GC hoặc thuật toán; cần đo end-to-end. |
+| "`MethodHandle` is always faster than Reflection." | JIT optimization potential and overhead depend on operation type, handle shape, call site, and JDK version. |
+| "`VarHandle` is always faster than `MethodHandle`." | They serve different roles; compare only when performing the exact same field operation with the exact same semantics. |
+| "`invokeExact` is always faster than `invoke`." | `invokeExact` avoids adaptation semantically, yet the runtime may optimize `invoke` in suitable cases; measure the specific workload. |
+| "Measuring `Field.get` vs. `VarHandle.get` is completely fair." | `Field.get` can box primitives; consider `Field.getInt` if the goal is a plain int read. |
+| "One `nanoTime` loop is enough to conclude." | You need warm-up, forks, noise control, and dead-code prevention. |
+| "JDK 18 implements Reflection using MethodHandles, so both APIs have identical speed." | Sharing parts of internal implementation does not erase differences in API, caller shape, and overhead. |
+| "CAS is slower than plain set, so use plain set for synchronization." | CAS guarantees atomicity that a plain store does not; synchronization requirements must be preserved. |
+| "A great benchmark result means the application is definitely faster." | Bottlenecks may lie in I/O, allocation, locks, GC, or algorithms; measure end-to-end. |
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-1. Khi so thời gian `Method.invoke` và `MethodHandle.invokeExact` gọi cùng method, tại sao phải đưa bước tìm `Method`/`MethodHandle` ra ngoài benchmark hoặc đo riêng?
-2. Khi đọc `int field`, vì sao `Field.getInt` là đối chứng hữu ích hơn `Field.get` đối với `VarHandle.get`?
-3. `MethodHandle.invokeExact` trả `int`. Việc gọi như một statement `mh.invokeExact(...)` không ép kiểu trả về có thể tạo vấn đề gì?
-4. Nếu biến chỉ có thể được cập nhật an toàn bằng `compareAndSet`, có hợp lệ dùng `VarHandle.set` làm đối chứng trực tiếp về tốc độ không?
-5. Vì sao `static final MethodHandle` có thể giúp JIT nhưng không bảo đảm nhanh hơn một `Method` được cache?
-6. Sau khi nâng từ JDK 17 lên JDK mới, vì sao các con số microbenchmark cũ phải được đánh giá lại?
+1. When comparing `Method.invoke` and `MethodHandle.invokeExact` on the same method, why should looking up `Method`/`MethodHandle` be moved outside the benchmark or measured separately?
+2. When reading an `int field`, why is `Field.getInt` a more useful baseline than `Field.get` against `VarHandle.get`?
+3. `MethodHandle.invokeExact` returns `int`. What issue can arise from calling it as a statement `mh.invokeExact(...)` without casting the return type?
+4. If a variable can only be safely updated with `compareAndSet`, is it valid to use `VarHandle.set` as a direct speed baseline?
+5. Why can a `static final MethodHandle` help the JIT yet still not guarantee it beats a cached `Method`?
+6. After upgrading from JDK 17 to a newer JDK, why must old microbenchmark figures be re-evaluated?
 
-**Nguyên tắc áp dụng:** Chọn API theo thao tác và semantics; thử một bản triển khai đúng; cache hợp lý; dùng benchmark tái lập trên runtime thực và kiểm tra ảnh hưởng end-to-end. Nếu chưa có số liệu đáng tin, **không khẳng định bất kỳ cơ chế nào luôn thắng**.
+**Rule of practice:** Pick the API by operation and semantics; start with a correct implementation; cache sensibly; use reproducible benchmarks on the real runtime; and check end-to-end impact. Without trustworthy data, **never claim any mechanism always wins**.
 
-## 10. Nguồn tham khảo chính thức
+## 10. Official References
 
-- [Java SE 17 — `MethodHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandle.html): `invokeExact`, `invoke`, adaptation và quy tắc kiểm tra kiểu.
-- [Java SE 17 — `VarHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/VarHandle.html): các access mode, memory ordering và kiểu lời gọi.
-- [Java SE 17 — `Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): `invoke` và hợp đồng Core Reflection.
-- [JEP 416 — Reimplement Core Reflection with Method Handles](https://openjdk.org/jeps/416): thay đổi từ JDK 18 cùng kết quả đo theo từng pattern.
-- [OpenJDK JMH](https://github.com/openjdk/jmh): harness cho JVM microbenchmark, cách dựng benchmark và công cụ chạy.
+- [Java SE 17 — `MethodHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandle.html): `invokeExact`, `invoke`, adaptation, and type-checking rules.
+- [Java SE 17 — `VarHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/VarHandle.html): access modes, memory ordering, and invocation types.
+- [Java SE 17 — `Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): `invoke` and the Core Reflection contract.
+- [JEP 416 — Reimplement Core Reflection with Method Handles](https://openjdk.org/jeps/416): changes since JDK 18 along with per-pattern benchmark results.
+- [OpenJDK JMH](https://github.com/openjdk/jmh): JVM microbenchmark harness, benchmark authoring, and runner tools.

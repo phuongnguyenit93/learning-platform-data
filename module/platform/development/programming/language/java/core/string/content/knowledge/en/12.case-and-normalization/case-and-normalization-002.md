@@ -1,22 +1,22 @@
-# `Locale.ROOT` cho định danh kỹ thuật khi phù hợp trong Java
+# `Locale.ROOT` for Technical Identifiers When Appropriate in Java
 
-## 1. Vì sao thao tác hoa/thường cần quan tâm đến locale?
+## 1. Why do case operations need to care about locale?
 
-Trong Java, `String.toLowerCase()` và `String.toUpperCase()` **không có tham số** sử dụng **locale mặc định của JVM** (`Locale.getDefault()`). Quy tắc đổi hoa/thường có thể phụ thuộc ngôn ngữ: cùng một chuỗi đầu vào có thể cho kết quả khác nhau trên máy đang dùng locale tiếng Anh, tiếng Thổ Nhĩ Kỳ hoặc môi trường khác.
+In Java, the **no-argument** `String.toLowerCase()` and `String.toUpperCase()` use the **JVM's default locale** (`Locale.getDefault()`). Case-conversion rules can depend on language: the same input string can yield different results on machines running an English locale, a Turkish locale, or another environment.
 
-Điều đó là hợp lý với **văn bản hướng đến người dùng**. Tuy nhiên, đối với nhiều **định danh kỹ thuật** — như tên tùy chọn do ứng dụng tự quy định, từ khóa nội bộ, nhãn cấu hình hoặc tên trạng thái cho phép so khớp không phân biệt hoa/thường — việc kết quả phụ thuộc ngôn ngữ mặc định có thể làm hỏng tra cứu và gây khác biệt giữa môi trường phát triển, kiểm thử và triển khai.
+That makes sense for **user-facing text**. However, for many **technical identifiers**—such as application-defined option names, internal keywords, configuration labels, or status names that allow case-insensitive matching—letting the result depend on the default language can break lookups and cause discrepancies across development, testing, and production environments.
 
-Khi quy ước của định danh yêu cầu **quy tắc hoa/thường ổn định, không gắn với một ngôn ngữ cụ thể**, hãy cân nhắc:
+When an identifier's convention requires **stable case rules not tied to a specific language**, consider:
 
 ```java
 String normalized = input.toLowerCase(java.util.Locale.ROOT);
 ```
 
-`Locale.ROOT` là locale **trung lập về ngôn ngữ và quốc gia**. Nó giúp loại bỏ sự phụ thuộc vào *locale mặc định* khi đổi hoa/thường. Nhưng nó **không có nghĩa** “định danh nào cũng phải chuyển sang chữ thường”, cũng **không tự làm Unicode trở thành ASCII**, không chuẩn hóa Unicode và không giải quyết mọi kiểu so sánh hoặc an toàn định danh.
+`Locale.ROOT` is the **language- and country-neutral** locale. It removes dependency on the *default locale* during case conversion. However, it **does not mean** "every identifier must be lowercased," nor does it **automatically turn Unicode into ASCII**, perform Unicode normalization, or solve every comparison or identifier-safety concern.
 
-## 2. Lỗi môi trường gây ra bởi định danh chứa chữ `I`
+## 2. Environment bugs caused by identifiers containing the letter `I`
 
-Cùng mã `"TITLE"`, phép `toLowerCase()` không tham số có thể tạo khóa `"title"` hoặc `"tıtle"` tùy `Locale.getDefault()`. Hai khóa **không bằng nhau theo `String.equals()`**. Với từ khóa kỹ thuật không phụ thuộc ngôn ngữ, chỉ định chính sách cố định:
+For the same code `"TITLE"`, calling no-argument `toLowerCase()` can produce `"title"` or `"tıtle"` depending on `Locale.getDefault()`. The two keys are **not equal according to `String.equals()`**. For language-independent technical keywords, specify a fixed policy:
 
 ```java
 String raw = "TITLE";
@@ -24,44 +24,44 @@ System.out.println(raw.toLowerCase(java.util.Locale.ROOT));                 // t
 System.out.println(raw.toLowerCase(java.util.Locale.forLanguageTag("tr"))); // tıtle
 ```
 
-Đây là snippet trong phương thức. Bài riêng về chữ I Thổ Nhĩ Kỳ phân tích đủ `I/i/İ/ı`; ở đây điều cần rút ra là **khóa ổn định phải được chuẩn hóa bằng cùng quy tắc ở nơi ghi và nơi đọc**.
+This snippet goes inside a method. The dedicated lesson on Turkish I analyzes `I/i/İ/ı` in full; the takeaway here is that **stable keys must be normalized with the same rule at both write time and read time**.
 
-## 3. Khi nào `Locale.ROOT` phù hợp?
+## 3. When is `Locale.ROOT` appropriate?
 
-Đây là lựa chọn thường hữu ích khi **đồng thời** thỏa hai điều kiện: (1) hợp đồng dữ liệu cho phép hoặc yêu cầu so khớp không phân biệt hoa/thường; (2) việc đổi hoa/thường phải độc lập với ngôn ngữ của người sử dụng.
+It is typically useful when **both** conditions hold: (1) the data contract allows or requires case-insensitive matching; (2) case conversion must be independent of the user's language.
 
-| Dữ liệu hoặc tình huống | Cách cân nhắc | Lý do |
+| Data or scenario | Consideration | Reason |
 | --- | --- | --- |
-| Khóa cấu hình nội bộ do ứng dụng tự đặt và quy định không phân biệt hoa/thường | `trim/strip` nếu được phép, sau đó `toLowerCase(Locale.ROOT)` | Không bị thay đổi bởi locale mặc định |
-| Tên lựa chọn hoặc từ khóa command trong DSL tự thiết kế | `Locale.ROOT` nếu quy tắc DSL cho phép Unicode case mapping, hoặc tự xử lý ASCII theo đặc tả | Phải tuân theo grammar/contract thực tế |
-| Nhãn phân loại kỹ thuật như `"PENDING"`, `"RUNNING"` | Chuẩn hóa bằng `Locale.ROOT` nếu API chấp nhận các biến thể chữ hoa/thường | Tạo khóa tra cứu nhất quán trong ứng dụng |
-| Dữ liệu giao thức như HTTP field name | Tuân theo chính xác quy tắc giao thức; thường chỉ có ASCII và so khớp không phân biệt hoa/thường | Có thể dùng ASCII-only comparator hoặc xử lý theo thư viện giao thức; không mặc định mọi Unicode đều hợp lệ |
-| Văn bản giao diện để hiển thị bằng ngôn ngữ của người dùng | `toLowerCase(userLocale)` / `toUpperCase(userLocale)` khi thực sự cần | Quy tắc ngôn ngữ địa phương có ý nghĩa |
-| Tên người, tên địa danh, nội dung do người dùng nhập | Không tự ý đổi, hoặc áp dụng chính sách ngôn ngữ/so khớp phù hợp | Chuyển case có thể làm mất thông tin hoặc sai ngôn ngữ |
-| Đường dẫn, URL, tên file, khóa database, username, email | Xem đặc tả và hệ thống đích trước khi thay đổi | Các phần tử có thể phân biệt hoa/thường hoặc có quy tắc riêng |
+| Internal configuration keys defined by the app and specified as case-insensitive | `trim/strip` if allowed, then `toLowerCase(Locale.ROOT)` | Unaffected by the default locale |
+| Option names or command keywords in a custom-designed DSL | `Locale.ROOT` if DSL rules allow Unicode case mapping, or custom ASCII handling per spec | Must obey the actual grammar/contract |
+| Technical category labels like `"PENDING"`, `"RUNNING"` | Normalize with `Locale.ROOT` if the API accepts case variants | Produces consistent lookup keys within the application |
+| Protocol data such as HTTP field names | Follow exact protocol rules; usually ASCII-only and matched case-insensitively | Can use an ASCII-only comparator or protocol library; do not assume all Unicode is valid |
+| UI text displayed in the user's language | `toLowerCase(userLocale)` / `toUpperCase(userLocale)` when truly needed | Local language rules are meaningful |
+| Personal names, place names, user-entered content | Do not alter arbitrarily, or apply an appropriate language/matching policy | Case conversion can lose information or violate language rules |
+| Paths, URLs, filenames, database keys, usernames, emails | Check the specification and target system before modifying | Components may be case-sensitive or have distinct rules |
 
-**Quy tắc quyết định:** `Locale.ROOT` phù hợp với việc áp dụng **Unicode case mapping trung lập** cho dữ liệu mà *chính hợp đồng* cho phép chuẩn hóa theo cách đó. Nó không tạo ra quyền tự đổi bất kỳ định danh nào sang lowercase.
+**Decision rule:** `Locale.ROOT` is appropriate for applying **neutral Unicode case mapping** to data whose *contract itself* permits normalization in that manner. It does not grant permission to lowercase arbitrary identifiers.
 
-## 4. Phân biệt các API liên quan
+## 4. Distinguishing related APIs
 
-| API | Cơ chế | Khi dùng |
+| API | Mechanism | When to use |
 | --- | --- | --- |
-| `s.toLowerCase()` | Dùng locale mặc định của JVM | Khi thực sự muốn theo locale mặc định, dù điều này thường chưa đủ rõ cho nghiệp vụ |
-| `s.toLowerCase(Locale.ROOT)` | Dùng quy tắc Unicode không theo một ngôn ngữ cụ thể | Chuẩn hóa kỹ thuật có hợp đồng cho phép |
-| `s.toUpperCase(Locale.ROOT)` | Tương tự nhưng đổi sang chữ hoa | Khi hợp đồng dùng dạng hoa làm chuẩn |
-| `s.toLowerCase(userLocale)` | Áp dụng quy tắc cho locale người dùng | Văn bản ngôn ngữ tự nhiên |
-| `s.equals(other)` | So sánh nội dung chính xác | Khi phân biệt hoa/thường hoặc hai giá trị đã được chuẩn hóa đồng nhất |
-| `s.equalsIgnoreCase(other)` | So sánh không phân biệt hoa/thường theo quy tắc của Java, không dựa vào `Locale.ROOT` | Trường hợp so sánh đơn giản phù hợp với hợp đồng |
-| `Normalizer.normalize(s, Form.NFC)` | Chuẩn hóa dạng biểu diễn Unicode, **không đổi hoa/thường** | Khi cần gộp các dạng Unicode tương đương theo chuẩn NFC |
-| `Collator` | So sánh/sắp xếp văn bản theo các quy tắc locale | Ngôn ngữ tự nhiên, không phải mặc định cho mã định danh kỹ thuật |
+| `s.toLowerCase()` | Uses JVM's default locale | When you genuinely want to follow the default locale, though this is often underspecified for business logic |
+| `s.toLowerCase(Locale.ROOT)` | Uses Unicode rules not tied to a specific language | Technical normalization allowed by the contract |
+| `s.toUpperCase(Locale.ROOT)` | Same, but converts to uppercase | When the contract uses uppercase as canonical |
+| `s.toLowerCase(userLocale)` | Applies rules for the user's locale | Natural-language text |
+| `s.equals(other)` | Exact content comparison | When case-sensitive or when both values have been uniformly normalized |
+| `s.equalsIgnoreCase(other)` | Case-insensitive comparison using Java's rules, not based on `Locale.ROOT` | Simple comparisons that fit the contract |
+| `Normalizer.normalize(s, Form.NFC)` | Normalizes Unicode representation form, **does not change case** | When canonically equivalent Unicode forms must be unified per NFC |
+| `Collator` | Compares/sorts text using locale rules | Natural language, not the default for technical identifiers |
 
-Các thao tác trên **không thay đổi chính đối tượng `String`**, vì `String` bất biến. Những phương thức chuyển đổi trả về giá trị `String`; muốn sử dụng kết quả phải gán hoặc chuyển tiếp giá trị ấy.
+These operations **do not mutate the `String` object itself**, because `String` is immutable. Transformation methods return a `String` value; to use the result, you must assign or pass that value along.
 
-### `equalsIgnoreCase` không đồng nghĩa với lowercase `Locale.ROOT`
+### `equalsIgnoreCase` is not equivalent to `Locale.ROOT` lowercasing
 
-`equalsIgnoreCase` so sánh theo quy tắc riêng của `String`, không phải thao tác “đưa hai vế về lowercase bằng `Locale.ROOT` rồi dùng `equals`”. Nó cũng không thực hiện Unicode normalization hay locale-aware collation đầy đủ.
+`equalsIgnoreCase` compares according to `String`'s own rules, not by "lowercasing both sides with `Locale.ROOT` and calling `equals`." It also does not perform Unicode normalization or full locale-aware collation.
 
-Vì vậy, **không thay thế tùy ý**:
+Therefore, **do not substitute them arbitrarily**:
 
 ```java
 boolean same1 = left.equalsIgnoreCase(right);
@@ -69,11 +69,11 @@ boolean same2 = left.toLowerCase(Locale.ROOT)
         .equals(right.toLowerCase(Locale.ROOT));
 ```
 
-Đây là hai chiến lược có thể khác nhau với một số ký tự Unicode. Trong ứng dụng có quy định chặt chẽ về so khớp định danh, hãy chọn một quy tắc có tài liệu và sử dụng thống nhất ở cả bên tạo khóa và bên tra cứu; kiểm thử với dữ liệu đa ngôn ngữ.
+These are two strategies that can behave differently on certain Unicode characters. In applications with strict identifier-matching rules, choose one documented rule and apply it consistently on both key creation and lookup; test with multilingual data.
 
-## 5. Kiểm thử quy tắc định danh ở đúng điểm sử dụng
+## 5. Testing identifier rules at the exact point of use
 
-Với từ khóa kỹ thuật, một ví dụ chạy được trên máy phát triển chưa chứng minh chính sách đúng. Kiểm thử đầu vào hợp lệ, ký tự ngoài grammar, khoảng trắng và hành vi khi thay locale mặc định. Những phép kiểm tra sau minh họa sự khác nhau giữa một mã **không có `I`** và một mã **có `I`**:
+For technical keywords, an example that passes on a developer's machine does not prove the policy is correct. Test valid inputs, out-of-grammar characters, whitespace, and behavior when the default locale changes. The following checks illustrate the difference between a code **without `I`** and a code **with `I`**:
 
 ```java
 java.util.Locale tr = java.util.Locale.forLanguageTag("tr");
@@ -83,13 +83,13 @@ System.out.println("TITLE".toLowerCase(tr)
         .equals("TITLE".toLowerCase(java.util.Locale.ROOT))); // false
 ```
 
-Nếu chỉ kiểm thử các mã như `READ`, ta **bỏ sót Turkish-I**. Hãy thêm dữ liệu thử nhắm vào ranh giới grammar. Với định danh ASCII-only, kiểm tra grammar trước khi tạo khóa và kiểm tra va chạm giữa các giá trị đầu vào được chấp nhận.
+If you only test codes like `READ`, you **miss the Turkish-I case**. Add test data targeting grammar boundaries. For ASCII-only identifiers, validate grammar before creating keys and check for collisions among accepted input values.
 
-## 6. Thiết kế hàm chuẩn hóa khóa kỹ thuật
+## 6. Designing a technical key normalization function
 
-Giả sử ứng dụng của bạn có một tập **tên lựa chọn do chính bạn định nghĩa**, không phân biệt hoa/thường, cho phép khoảng trắng thừa đầu/cuối và có ký tự Unicode hợp lệ. Khi đó có thể định nghĩa một hàm chuẩn hóa thống nhất.
+Suppose your application has a set of **self-defined option names** that are case-insensitive, allow leading/trailing whitespace, and contain valid Unicode characters. In that case, you can define a unified normalization function.
 
-Đây là lớp đầy đủ có thể lưu trong `TechnicalKey.java`:
+Here is a complete class you can save in `TechnicalKey.java`:
 
 ```java
 import java.util.Locale;
@@ -100,10 +100,10 @@ public final class TechnicalKey {
     }
 
     /**
-     * Hợp đồng của ứng dụng:
-     * - Đầu vào không null;
-     * - Bỏ whitespace ở hai đầu theo String.strip();
-     * - Chuyển chữ thường không phụ thuộc locale mặc định.
+     * Application contract:
+     * - Non-null input;
+     * - Strip whitespace at both ends using String.strip();
+     * - Convert to lowercase independently of the default locale.
      */
     public static String normalize(String raw) {
         Objects.requireNonNull(raw, "raw");
@@ -120,14 +120,14 @@ public final class TechnicalKey {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac TechnicalKey.java
 java TechnicalKey
 ```
 
-Kết quả:
+Output:
 
 ```text
 admin
@@ -137,13 +137,13 @@ user_name
 true
 ```
 
-Trong ứng dụng thật, nên **dùng cùng hàm `normalize`** khi lưu khóa và khi tra cứu. Nếu chỉ chuẩn hóa khi đọc mà không chuẩn hóa lúc tạo, hai bên có thể không khớp.
+In a real application, you should **use the same `normalize` function** when storing keys and when looking them up. Normalizing only on read and not on write can cause mismatches between the two sides.
 
-**Nhưng:** đây là chính sách do ví dụ đặt ra, không phải chuẩn chung cho mọi khóa. Có hệ thống cần phân biệt `" Admin"` với `"Admin"`, cần giữ chữ hoa/thường hoặc chỉ chấp nhận ASCII. Khi đó hàm trên **không phù hợp**; hãy định nghĩa hợp đồng khác thay vì tự ý cắt khoảng trắng và lowercase.
+**However:** this is a policy set by the example, not a universal standard for all keys. Some systems need to distinguish `" Admin"` from `"Admin"`, preserve case, or accept only ASCII. In those cases, the function above is **not suitable**; define a different contract instead of arbitrarily stripping whitespace and lowercasing.
 
-### Nếu định danh chỉ cho phép ASCII
+### If identifiers only allow ASCII
 
-Nhiều định danh trong giao thức hoặc DSL được quy định bằng các ký tự ASCII như `A–Z`, `a–z`, `0–9`, `_` và `-`. Với kiểu dữ liệu này, nên **kiểm tra tập ký tự hợp lệ theo grammar trước** và xử lý case theo đúng đặc tả.
+Many identifiers in protocols or DSLs are specified using ASCII characters such as `A–Z`, `a–z`, `0–9`, `_`, and `-`. For this kind of data, **validate the allowed character set against the grammar first** and handle case strictly per the specification.
 
 ```java
 static String normalizeAsciiKey(String input) {
@@ -155,13 +155,13 @@ static String normalizeAsciiKey(String input) {
 }
 ```
 
-Đây là **phương thức minh họa để đặt trong một lớp**, không phải chương trình độc lập. Sau khi đã kiểm tra toàn bộ chuỗi là ASCII, `Locale.ROOT` cho cách lowercase dự kiến cho `A–Z` mà không bị ảnh hưởng bởi locale của máy chạy. Với quy tắc ASCII phức tạp hơn, một bộ xử lý ASCII riêng hoặc thư viện giao thức cũng có thể phù hợp.
+This is an **illustrative method to place inside a class**, not a standalone program. Once the entire string has been verified as ASCII, `Locale.ROOT` provides the expected lowercasing for `A–Z` without being affected by the host locale. For more complex ASCII rules, a dedicated ASCII handler or protocol library may also be appropriate.
 
-`matches` kiểm tra theo biểu thức chính quy và được gọi mỗi lần ở ví dụ cho dễ đọc; nếu xử lý dữ liệu lớn ở đường nóng, có thể biên dịch sẵn `Pattern` hoặc dùng parser tối ưu phù hợp sau khi đo.
+`matches` checks against a regular expression and is called every time in the example for readability; when processing large data on a hot path, you can precompile a `Pattern` or use an appropriate optimized parser after measuring.
 
-## 7. Giới hạn của lowercase `Locale.ROOT`
+## 7. Limitations of `Locale.ROOT` lowercasing
 
-`Locale.ROOT` chọn quy tắc chuyển chữ trung tính; **nó không phải** Unicode normalization, full Unicode case folding hay cơ chế chống giả mạo định danh. Chẳng hạn `"\u00E9"` và `"e\u0301"` vẫn có thể khác nhau sau lowercase; `"\u0130"` có thể tạo dãy `"i\u0307"`. Nếu hợp đồng khóa yêu cầu NFC, hãy xác định vị trí chuẩn hóa và kiểm tra lại sau biến đổi case khi cần.
+`Locale.ROOT` selects neutral case-conversion rules; **it is not** Unicode normalization, full Unicode case folding, or an anti-spoofing mechanism for identifiers. For example, `"\u00E9"` and `"e\u0301"` can still differ after lowercasing; `"\u0130"` can produce the sequence `"i\u0307"`. If the key contract requires NFC, decide where normalization happens and re-check after case conversion when needed.
 
 ```java
 String key = java.text.Normalizer.normalize(
@@ -169,13 +169,13 @@ String key = java.text.Normalizer.normalize(
         java.text.Normalizer.Form.NFC);
 ```
 
-Đây là **hợp đồng minh họa**, không phải chuẩn chung cho username hay domain. Với Unicode case folding đầy đủ, IDN hoặc danh tính, hãy dùng đặc tả và công cụ chuyên dụng; chuẩn hóa compatibility có thể gộp ký tự mà ứng dụng cần phân biệt.
+This is an **illustrative contract**, not a universal standard for usernames or domains. For full Unicode case folding, IDN, or identities, use dedicated specifications and tools; compatibility normalization can merge characters that an application needs to keep distinct.
 
-## 8. Các vấn đề khi dùng khóa chuẩn hóa trong `Map`, database và API
+## 8. Issues when using normalized keys in `Map`, databases, and APIs
 
-### 8.1. Nhất quán khi tạo và khi tra cứu
+### 8.1. Consistency on creation and lookup
 
-`HashMap<String, ...>` dùng `String.hashCode` và `String.equals`. Hai chuỗi chỉ khác chữ hoa/thường là **hai khóa khác nhau** nếu chưa được chuẩn hóa:
+`HashMap<String, ...>` uses `String.hashCode` and `String.equals`. Two strings differing only by case are **two distinct keys** if not normalized:
 
 ```java
 java.util.Map<String, Integer> permissions = new java.util.HashMap<>();
@@ -186,48 +186,48 @@ System.out.println(permissions.get(
         "ADMIN".toLowerCase(java.util.Locale.ROOT))); // 1
 ```
 
-Nếu nghiệp vụ quy định khóa không phân biệt hoa/thường, phải áp dụng cùng chính sách khi thêm, tìm, so sánh và kiểm tra trùng lặp. Nếu hợp đồng phân biệt hoa/thường, giữ nguyên khóa và so sánh chính xác.
+If business rules define keys as case-insensitive, apply the same policy when inserting, looking up, comparing, and checking duplicates. If the contract is case-sensitive, preserve keys as-is and compare exactly.
 
-### 8.2. Chuẩn hóa ở các hệ thống khác nhau
+### 8.2. Normalization across different systems
 
-Trong database, `LOWER(...)`, collation và Unicode normalization có thể dùng những quy tắc khác Java. Java service và cơ sở dữ liệu có thể **không đồng ý** về việc hai chuỗi có tương đương hay không. Nếu danh tính, tính duy nhất hoặc kiểm tra quyền phụ thuộc vào khóa đã chuẩn hóa, hãy quy định nơi chịu trách nhiệm xác thực/chuẩn hóa, dữ liệu nào được lưu và cách kiểm chứng trên mọi tầng.
+In a database, `LOWER(...)`, collation, and Unicode normalization may use rules that differ from Java's. A Java service and a database can **disagree** on whether two strings are equivalent. If identity, uniqueness, or permission checks rely on normalized keys, define which layer is responsible for validation/normalization, what data is stored, and how it is verified across all layers.
 
-Kết quả đổi case cũng có thể phụ thuộc vào phiên bản Unicode/JDK. Với hệ thống lưu khóa bền vững qua nâng cấp runtime, cần lưu ý tính ổn định của hợp đồng chuẩn hóa và có kế hoạch kiểm thử/migration nếu áp dụng chính sách Unicode rộng.
+Case-conversion results can also depend on the Unicode/JDK version. For systems that persist keys across runtime upgrades, keep the stability of the normalization contract in mind and plan testing/migration if applying a broad Unicode policy.
 
-### 8.3. Không tự ý lowercase giá trị từ chuẩn bên ngoài
+### 8.3. Do not arbitrarily lowercase values from external standards
 
-URL có nhiều thành phần với quy tắc phân biệt hoa/thường khác nhau; hostname, path và query không được phép xử lý đồng loạt bằng một lệnh lowercase. Tên tệp có thể phân biệt hoa/thường tùy hệ điều hành/filesystem. Địa chỉ email cũng có nhiều quy tắc riêng giữa domain và local part. Đối với header hoặc token của giao thức, nên dùng đúng parser/comparator theo chuẩn hoặc thư viện giao thức.
+URLs have multiple components with different case-sensitivity rules; hostnames, paths, and queries must not be processed uniformly with a single lowercase call. Filenames may be case-sensitive depending on the OS/filesystem. Email addresses also have distinct rules between the domain and local part. For protocol headers or tokens, use the standard parser/comparator or protocol library.
 
-`Locale.ROOT` chỉ lựa chọn **locale cho một phép biến đổi String**, không tự định nghĩa “các byte nào là hợp lệ” hoặc “mọi thành phần có được đổi case không”. **Đặc tả của dữ liệu luôn quyết định trước.**
+`Locale.ROOT` only selects the **locale for a `String` transformation**; it does not define "which bytes are valid" or "whether every component may have its case changed." **The data specification always decides first.**
 
-## 9. Lỗi phổ biến
+## 9. Common mistakes
 
-1. **Dùng `toLowerCase()` không tham số để chuẩn hóa từ khóa máy hiểu.** Kết quả phụ thuộc locale mặc định. Nếu muốn quy tắc trung lập, chỉ định `Locale.ROOT` và kiểm tra hợp đồng khóa.
-2. **Dùng `Locale.ENGLISH` cho mọi định danh kỹ thuật.** Locale tiếng Anh là một ngôn ngữ cụ thể; `Locale.ROOT` biểu thị ý định trung lập tốt hơn khi quy tắc kỹ thuật cần ngôn ngữ trung lập.
-3. **Tự động lowercase username, đường dẫn, URL hay tên file.** Có thể phá vỡ ngữ nghĩa phân biệt hoa/thường. Cần đọc đặc tả/hợp đồng trước khi đổi.
-4. **Giả định đổi hoa/thường không đổi `length()`.** Ví dụ `U+0130` có thể trở thành hai code point sau `toLowerCase(Locale.ROOT)`; viết hoa `ß` có thể mở rộng thành `SS`.
-5. **Nhầm `Locale.ROOT` với chuẩn hóa Unicode.** Nó không làm `"\u00E9"` và `"e\u0301"` tự bằng nhau. Cần `Normalizer` nếu hợp đồng cho phép coi chúng tương đương.
-6. **Nhầm lowercase với full Unicode case folding.** Hai thao tác không có cùng đặc tả. Đối chiếu nhu cầu của hệ thống trước khi chọn.
-7. **Chuẩn hóa ở một phía.** Lưu bằng giá trị gốc nhưng tìm bằng giá trị đã lowercase có thể không khớp. Cần áp dụng quy tắc nhất quán tại các điểm tạo và tra cứu khóa.
-8. **Gọi `toLowerCase(Locale.ROOT)` trên `null`.** Điều này ném `NullPointerException`. Hãy quyết định rõ null là lỗi, vắng giá trị hay một trạng thái hợp lệ.
-9. **Cho rằng lowercase đủ chống mọi giả mạo Unicode.** Nhiều chữ khác bảng chữ cái trông giống nhau (confusables); chuẩn hóa chữ hoa/thường không phải cơ chế kiểm tra chống giả mạo định danh.
-10. **Dùng một kết quả chuẩn hóa làm định danh bảo mật mà không kiểm tra va chạm.** Có thể có nhiều giá trị đầu vào trở thành cùng một khóa sau biến đổi; nếu dùng cho đăng nhập/ủy quyền, phải kiểm soát tính duy nhất và kiểm thử tính tương thích với nơi lưu trữ.
+1. **Using no-argument `toLowerCase()` to normalize machine-readable keywords.** The result depends on the default locale. If neutral rules are desired, specify `Locale.ROOT` and verify the key contract.
+2. **Using `Locale.ENGLISH` for all technical identifiers.** English is a specific language locale; `Locale.ROOT` expresses neutral intent better when technical rules must be language-neutral.
+3. **Automatically lowercasing usernames, paths, URLs, or filenames.** This can break case-sensitive semantics. Read the specification/contract before modifying.
+4. **Assuming case conversion never changes `length()`.** For example, `U+0130` can become two code points after `toLowerCase(Locale.ROOT)`; uppercasing `ß` can expand to `SS`.
+5. **Confusing `Locale.ROOT` with Unicode normalization.** It does not make `"\u00E9"` and `"e\u0301"` equal automatically. `Normalizer` is needed if the contract allows treating them as equivalent.
+6. **Confusing lowercasing with full Unicode case folding.** The two operations do not share the same specification. Check system requirements before choosing.
+7. **Normalizing on only one side.** Storing the original value while looking up with a lowercased value can fail to match. Apply rules consistently at key creation and lookup points.
+8. **Calling `toLowerCase(Locale.ROOT)` on `null`.** This throws `NullPointerException`. Explicitly decide whether `null` is an error, an absent value, or a valid state.
+9. **Assuming lowercasing stops all Unicode spoofing.** Many characters across alphabets look alike (confusables); case normalization is not an identifier anti-spoofing check.
+10. **Using a normalized result as a security identifier without checking collisions.** Multiple input values may become the same key after transformation; if used for login/authorization, enforce uniqueness and test compatibility with storage.
 
-## 10. Cách chọn nhanh theo mục đích
+## 10. Quick selection by purpose
 
-| Mục đích | Hướng xử lý |
+| Purpose | Approach |
 | --- | --- |
-| Hiển thị văn bản cho người dùng theo ngôn ngữ địa phương | Chọn locale người dùng rõ ràng nếu cần case conversion |
-| Tạo khóa nội bộ mà hợp đồng quy định không phân biệt hoa/thường, không phụ thuộc ngôn ngữ | `toLowerCase(Locale.ROOT)` hoặc `toUpperCase(Locale.ROOT)`, chọn một chuẩn và dùng nhất quán |
-| Định danh thuộc chuẩn ASCII-only | Xác thực grammar ASCII, rồi dùng quy tắc case đúng theo chuẩn; có thể dùng `Locale.ROOT` sau bước xác thực |
-| So sánh chính xác nội dung `String` | `equals` hoặc `Objects.equals` nếu có thể `null` |
-| Cần so sánh Unicode không phân biệt hoa/thường theo chuẩn riêng | Chọn chiến lược case folding/collation có định nghĩa rõ, không tự suy từ `Locale.ROOT` |
-| Cần gộp các biểu diễn Unicode tương đương | Xác định NFC/NFKC... theo yêu cầu trước khi chuẩn hóa |
-| Identifier có ý nghĩa phân biệt chữ hoa/thường | Giữ nguyên và so sánh chính xác |
+| Display text to users in a local language | Explicitly choose the user's locale if case conversion is needed |
+| Create internal keys whose contract specifies case-insensitive, language-independent matching | `toLowerCase(Locale.ROOT)` or `toUpperCase(Locale.ROOT)`, pick one standard and use consistently |
+| Identifiers following an ASCII-only standard | Validate ASCII grammar, then apply case rules per standard; `Locale.ROOT` may be used after validation |
+| Exact `String` content comparison | `equals`, or `Objects.equals` if nullable |
+| Need case-insensitive Unicode comparison per a specific standard | Choose a clearly defined case folding/collation strategy; do not infer it from `Locale.ROOT` |
+| Need to unify equivalent Unicode representations | Determine NFC/NFKC/etc. per requirements before normalizing |
+| Identifiers where case is significant | Keep intact and compare exactly |
 
-## 11. Tự kiểm tra
+## 11. Self-check
 
-Hãy dự đoán kết quả:
+Predict the output:
 
 ```java
 java.util.Locale tr = java.util.Locale.forLanguageTag("tr");
@@ -240,7 +240,7 @@ System.out.println("  ADMIN  ".strip()
         .toLowerCase(java.util.Locale.ROOT));
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -248,6 +248,6 @@ false
 admin
 ```
 
-Hai dòng đầu khác nhau do chữ `I` có cách xử lý hoa/thường đặc thù trong tiếng Thổ Nhĩ Kỳ; dòng cuối sử dụng một hợp đồng tự định nghĩa vừa bỏ whitespace đầu/cuối vừa chuẩn hóa chữ thường.
+The first two lines differ because the letter `I` has special case handling in Turkish; the last line uses a custom contract that both strips leading/trailing whitespace and normalizes to lowercase.
 
-**Ghi nhớ:** Với **định danh kỹ thuật có quy ước so khớp không phân biệt hoa/thường và không theo một ngôn ngữ**, `Locale.ROOT` là cách nêu rõ ý định trong Java. Với văn bản hiển thị hoặc định danh theo chuẩn riêng, **hãy tuân thủ locale, grammar, Unicode policy và quy tắc so sánh của chính bài toán**.
+**Key takeaway:** For **technical identifiers with a case-insensitive, language-independent matching convention**, `Locale.ROOT` is the way to state that intent clearly in Java. For display text or identifiers governed by external standards, **follow the locale, grammar, Unicode policy, and comparison rules of the problem itself**.

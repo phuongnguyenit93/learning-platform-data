@@ -1,16 +1,16 @@
-# javac --module-path và --add-modules
+# javac --module-path and --add-modules
 
-## 1. Vì sao javac cần module path?
+## 1. Why Does javac Need a Module Path?
 
-Khi biên dịch một ứng dụng Java dùng Java Platform Module System (JPMS), trình biên dịch **javac** phải tìm được các module mà mã nguồn phụ thuộc. Tùy chọn **--module-path** chỉ định nơi chứa các module đó.
+When compiling a Java application that uses the Java Platform Module System (JPMS), the **javac** compiler must locate the modules that the source code depends on. The **--module-path** option specifies where those modules are located.
 
-Module path có thể chứa:
+The module path can contain:
 
-- Modular JAR có file **module-info.class**.
-- Thư mục module đã biên dịch dạng exploded module.
-- Automatic module, tức JAR chưa có module descriptor nhưng được nhận diện như module tự động khi đặt trên module path.
+- A modular JAR containing a **module-info.class** file.
+- A compiled module directory in exploded module form.
+- An automatic module, meaning a JAR without a module descriptor that is recognized as an automatic module when placed on the module path.
 
-Ví dụ, một thư mục **lib** chứa JAR **com.example.codec.jar**. Module ứng dụng khai báo:
+For example, a **lib** directory contains the JAR **com.example.codec.jar**. The application module declares:
 
 ~~~java
 module com.example.app {
@@ -18,7 +18,7 @@ module com.example.app {
 }
 ~~~
 
-Có thể biên dịch module ứng dụng bằng:
+You can compile the application module with:
 
 ~~~bash
 javac --module-path lib \
@@ -27,50 +27,50 @@ javac --module-path lib \
       -m com.example.app
 ~~~
 
-Trong lệnh này:
+In this command:
 
-- **--module-path lib** (viết tắt **-p lib**) giúp javac tìm module phụ thuộc trong thư mục lib.
-- **--module-source-path src** chỉ định cấu trúc thư mục chứa mã nguồn của các module.
-- **-d out** chỉ định nơi ghi file class và module descriptor đã biên dịch.
-- **-m com.example.app** chọn module cần biên dịch.
+- **--module-path lib** (short form **-p lib**) helps javac find dependency modules in the lib directory.
+- **--module-source-path src** specifies the directory structure containing the modules' source code.
+- **-d out** specifies where to write compiled class files and module descriptors.
+- **-m com.example.app** selects the module to compile.
 
-Nếu module phụ thuộc nằm ở nơi khác, hãy đưa các vị trí đó vào module path. Trình biên dịch cần phân giải được các module được khai báo trong **requires** của module đang biên dịch.
+If dependency modules reside elsewhere, include those locations in the module path. The compiler must be able to resolve the modules declared in **requires** of the module being compiled.
 
-## 2. Phân biệt module path và classpath
+## 2. Distinguishing Module Path and Classpath
 
-**Classpath** chứa các class và JAR được nạp vào unnamed module. **Module path** chứa các module có thể được hệ thống JPMS nhận diện và phân giải theo tên module.
+The **classpath** contains classes and JARs loaded into the unnamed module. The **module path** contains modules that can be recognized and resolved by module name by the JPMS.
 
-| Tùy chọn | Mục đích | Cách tổ chức |
+| Option | Purpose | Organization |
 |---|---|---|
-| **--class-path** hoặc **-cp** | Tìm class và JAR trên classpath | Các class thuộc unnamed module |
-| **--module-path** hoặc **-p** | Tìm named module và automatic module | Module descriptor, tên module và module graph |
-| **--module-source-path** | Tìm mã nguồn của nhiều module | Thư mục mã nguồn được tổ chức theo tên module |
+| **--class-path** or **-cp** | Find classes and JARs on the classpath | Classes belong to the unnamed module |
+| **--module-path** or **-p** | Find named modules and automatic modules | Module descriptors, module names, and module graph |
+| **--module-source-path** | Find source code of multiple modules | Source directories organized by module name |
 
-Ví dụ biên dịch một chương trình classpath thông thường:
+Example of compiling a regular classpath program:
 
 ~~~bash
 javac -cp "lib/*" -d out src/com/example/Main.java
 ~~~
 
-Ví dụ biên dịch named module có phụ thuộc nằm trong module path:
+Example of compiling a named module whose dependencies are on the module path:
 
 ~~~bash
 javac -p lib -d out --module-source-path src -m com.example.app
 ~~~
 
-Không nên đặt một thư viện lên classpath chỉ để tránh khai báo module. Nếu ứng dụng đã dùng named module và thư viện có thể được dùng như module, hãy đưa thư viện vào module path rồi khai báo **requires** phù hợp.
+Do not place a library on the classpath just to avoid module declarations. If the application already uses named modules and the library can be used as a module, place the library on the module path and declare the appropriate **requires**.
 
-Một thư viện JAR có thể là modular JAR hoặc automatic module. Có thể kiểm tra cách JDK nhận diện module bằng:
+A library JAR can be a modular JAR or an automatic module. You can inspect how the JDK recognizes the module using:
 
 ~~~bash
 jar --describe-module --file lib/com.example.codec.jar
 ~~~
 
-Nếu JAR có module descriptor, tên module được lấy từ descriptor. Nếu không có descriptor, tên automatic module được suy ra từ metadata hoặc tên file JAR, trừ khi manifest khai báo **Automatic-Module-Name**. Nên dùng tên module ổn định được thư viện công bố thay vì tự suy đoán từ tên file.
+If the JAR has a module descriptor, the module name is taken from the descriptor. If there is no descriptor, the automatic module name is derived from metadata or the JAR filename, unless the manifest declares **Automatic-Module-Name**. You should use the stable module name published by the library instead of guessing from the filename.
 
-## 3. Cấu trúc mã nguồn nhiều module
+## 3. Multi-Module Source Code Structure
 
-Khi biên dịch nhiều module từ source tree, mỗi module thường nằm trong thư mục riêng cùng tên module:
+When compiling multiple modules from a source tree, each module usually resides in its own directory with the same name as the module:
 
 ~~~text
 project/
@@ -86,7 +86,7 @@ project/
   out/
 ~~~
 
-Module model:
+Model module:
 
 ~~~java
 module com.example.model {
@@ -94,7 +94,7 @@ module com.example.model {
 }
 ~~~
 
-Class trong module model:
+Class in the model module:
 
 ~~~java
 package com.example.model;
@@ -102,7 +102,7 @@ package com.example.model;
 public record Customer(String name) {}
 ~~~
 
-Module ứng dụng:
+Application module:
 
 ~~~java
 module com.example.app {
@@ -111,7 +111,7 @@ module com.example.app {
 }
 ~~~
 
-Class khởi chạy:
+Entry-point class:
 
 ~~~java
 package com.example.app;
@@ -126,9 +126,9 @@ public class Main {
 }
 ~~~
 
-Nếu **com.example.codec** là một thư viện ngoài đã đóng gói thành JAR, thư mục **lib** phải có JAR đó và module descriptor của nó phải khai báo package cần dùng bằng **exports**.
+If **com.example.codec** is an external library packaged as a JAR, the **lib** directory must contain that JAR and its module descriptor must declare the needed package with **exports**.
 
-Có thể biên dịch đồng thời các module nguồn bằng:
+You can compile the source modules simultaneously with:
 
 ~~~bash
 javac \
@@ -138,11 +138,11 @@ javac \
   -m com.example.model,com.example.app
 ~~~
 
-Lệnh này chọn hai module nguồn để biên dịch. javac đọc module descriptor, kiểm tra các quan hệ **requires**, tìm các module phụ thuộc trong module source path và module path, rồi ghi kết quả vào **out**.
+This command selects two source modules to compile. javac reads the module descriptors, checks the **requires** relationships, locates dependency modules on the module source path and module path, and writes the output to **out**.
 
-Nếu các module nguồn phụ thuộc lẫn nhau theo quan hệ hợp lệ, hãy đưa chúng vào cùng lượt biên dịch hoặc biên dịch theo thứ tự phụ thuộc. Không thể giải quyết một vòng phụ thuộc module không hợp lệ chỉ bằng cách thêm tên module vào dòng lệnh.
+If source modules depend on one another in a valid relationship, include them in the same compilation pass or compile them in dependency order. An invalid module dependency cycle cannot be resolved simply by adding module names to the command line.
 
-Sau khi biên dịch, thư mục output có cấu trúc tương tự:
+After compilation, the output directory has a structure similar to:
 
 ~~~text
 out/
@@ -154,24 +154,24 @@ out/
     com/example/app/Main.class
 ~~~
 
-Đây là các exploded module. Có thể dùng trực tiếp thư mục **out** làm module path khi chạy ứng dụng:
+These are exploded modules. You can use the **out** directory directly as a module path when running the application:
 
 ~~~bash
 java --module-path out:lib \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Trên Windows, dấu phân cách giữa các phần tử module path là dấu chấm phẩy:
+On Windows, the separator between module path entries is a semicolon:
 
 ~~~powershell
 java --module-path "out;lib" -m com.example.app/com.example.app.Main
 ~~~
 
-## 4. Dùng --module-path trong các tình huống phổ biến
+## 4. Using --module-path in Common Scenarios
 
-### Biên dịch một module phụ thuộc vào JAR bên ngoài
+### Compiling a Module That Depends on an External JAR
 
-Giả sử source tree chỉ chứa **com.example.app**, còn thư viện **com.example.codec** đã được đóng gói trong **lib**:
+Suppose the source tree only contains **com.example.app**, while the library **com.example.codec** is already packaged in **lib**:
 
 ~~~bash
 javac \
@@ -181,7 +181,7 @@ javac \
   -m com.example.app
 ~~~
 
-Trong **module-info.java** của ứng dụng:
+In the application's **module-info.java**:
 
 ~~~java
 module com.example.app {
@@ -189,11 +189,11 @@ module com.example.app {
 }
 ~~~
 
-javac tìm module **com.example.codec** trên module path, kiểm tra package được xuất và cho phép mã nguồn sử dụng các kiểu public mà module đó công khai.
+javac finds the **com.example.codec** module on the module path, checks exported packages, and allows the source code to use the public types exposed by that module.
 
-### Biên dịch một module nguồn không có source tree nhiều module
+### Compiling a Single Source Module Without a Multi-Module Source Tree
 
-Nếu chỉ có một module và muốn chỉ định trực tiếp các file nguồn, có thể truyền file **module-info.java** cùng các file Java:
+If you only have one module and want to specify source files directly, you can pass the **module-info.java** file along with the Java files:
 
 ~~~bash
 javac --module-path lib \
@@ -202,11 +202,11 @@ javac --module-path lib \
       src/com/example/app/Main.java
 ~~~
 
-Cách này phù hợp với source tree đơn giản. Với dự án nhiều module, **--module-source-path** và **-m** giúp chọn module rõ ràng và dễ mở rộng hơn.
+This approach fits a simple source tree. For multi-module projects, **--module-source-path** and **-m** make module selection clearer and more scalable.
 
-### Dùng module path cùng classpath
+### Using Module Path Together with Classpath
 
-Trong một dự án chuyển đổi dần sang JPMS, một số thư viện có thể vẫn ở classpath trong khi các named module đã được biên dịch trên module path. Khi đó, có thể dùng đồng thời **--class-path** và **--module-path**:
+In a project migrating gradually to JPMS, some libraries may still remain on the classpath while named modules are already compiled on the module path. In that case, you can use **--class-path** and **--module-path** together:
 
 ~~~bash
 javac \
@@ -217,11 +217,11 @@ javac \
   -m com.example.app
 ~~~
 
-Cần kiểm tra chính xác thư viện nào là named module và thư viện nào được sử dụng như classpath. Không đưa cùng một thư viện vào cả hai vị trí vì có thể tạo ra tình trạng trùng class hoặc xung đột khi phân giải.
+You must verify accurately which libraries are named modules and which are used on the classpath. Do not place the same library in both locations, as it can cause duplicate classes or resolution conflicts.
 
-## 5. --add-modules có ý nghĩa gì?
+## 5. What Does --add-modules Mean?
 
-Tùy chọn **--add-modules** yêu cầu javac đưa thêm một hoặc nhiều module vào tập module gốc cần phân giải:
+The **--add-modules** option instructs javac to add one or more modules to the set of root modules to resolve:
 
 ~~~bash
 javac --module-path lib \
@@ -231,9 +231,9 @@ javac --module-path lib \
       src/com/example/Main.java
 ~~~
 
-Tùy chọn này hữu ích khi biên dịch mã thuộc unnamed module nhưng cần nhìn thấy một named module trên module path, hoặc khi cần đưa module bổ sung vào module graph để phân giải trong quá trình biên dịch.
+This option is useful when compiling code belonging to the unnamed module that needs to see a named module on the module path, or when extra modules need to be brought into the module graph for resolution during compilation.
 
-Có thể chỉ định nhiều module, phân tách bằng dấu phẩy:
+You can specify multiple modules separated by commas:
 
 ~~~bash
 javac --module-path lib \
@@ -243,12 +243,12 @@ javac --module-path lib \
       src/com/example/Main.java
 ~~~
 
-Ngoài tên module cụ thể, có thể dùng các giá trị đặc biệt:
+In addition to specific module names, special values can be used:
 
-- **ALL-MODULE-PATH**: thêm tất cả module quan sát được trên module path vào tập module cần phân giải.
-- **ALL-SYSTEM**: thêm tất cả module hệ thống vào tập module cần phân giải.
+- **ALL-MODULE-PATH**: adds all observable modules on the module path to the set of modules to resolve.
+- **ALL-SYSTEM**: adds all system modules to the set of modules to resolve.
 
-Ví dụ:
+Example:
 
 ~~~bash
 javac --module-path lib \
@@ -258,13 +258,13 @@ javac --module-path lib \
       src/com/example/Main.java
 ~~~
 
-Dùng **ALL-MODULE-PATH** có thể thuận tiện khi đang khảo sát hoặc tích hợp nhiều module, nhưng nó làm phạm vi phân giải rộng hơn. Với build ổn định, ưu tiên liệt kê module cụ thể để kết quả dễ kiểm soát.
+Using **ALL-MODULE-PATH** can be convenient when exploring or integrating many modules, but it widens the resolution scope. For stable builds, prefer listing specific modules so the result is easier to control.
 
-## 6. --add-modules không thay thế requires
+## 6. --add-modules Does Not Replace requires
 
-Đây là điểm cần nhớ khi biên dịch named module.
+This is an important point to remember when compiling a named module.
 
-Giả sử module ứng dụng có mã:
+Suppose the application module has the following code:
 
 ~~~java
 package com.example.app;
@@ -279,7 +279,7 @@ public class Main {
 }
 ~~~
 
-Nếu mã này thuộc named module **com.example.app**, module descriptor vẫn phải khai báo:
+If this code belongs to the named module **com.example.app**, the module descriptor must still declare:
 
 ~~~java
 module com.example.app {
@@ -287,27 +287,27 @@ module com.example.app {
 }
 ~~~
 
-Đặt **--add-modules com.example.codec** trên dòng lệnh không tự sửa **module-info.java**, không tạo quan hệ readability thay cho **requires**, và không tự xuất package từ module phụ thuộc.
+Passing **--add-modules com.example.codec** on the command line does not automatically edit **module-info.java**, does not establish a readability relationship in place of **requires**, and does not automatically export packages from the dependency module.
 
-Vai trò của hai phần khác nhau:
+The two parts have different roles:
 
-- **requires** là hợp đồng phụ thuộc được ghi trong module descriptor và đi cùng module khi phân phối.
-- **--add-modules** điều chỉnh tập module gốc được đưa vào quá trình phân giải của lệnh javac.
+- **requires** is the dependency contract recorded in the module descriptor and distributed with the module.
+- **--add-modules** adjusts the set of root modules included in the resolution process of the javac command.
 
-Vì vậy, khi mã nguồn của named module trực tiếp import kiểu từ module khác, hãy khai báo **requires**. Chỉ dùng **--add-modules** cho nhu cầu mở rộng tập module được phân giải ngoài các module gốc mặc định.
+Therefore, when a named module's source code directly imports types from another module, declare **requires**. Only use **--add-modules** when you need to expand the set of resolved modules beyond the default root modules.
 
-Với mã thuộc unnamed module trên classpath, quy tắc khác: unnamed module có thể đọc các named module đã được phân giải. Khi đó, **--module-path** cung cấp module và **--add-modules** có thể làm cho module được đưa vào graph để mã classpath sử dụng API public đã export.
+For code in the unnamed module on the classpath, the rule is different: the unnamed module can read all resolved named modules. In that case, **--module-path** provides the modules and **--add-modules** can bring them into the graph so classpath code can use their exported public APIs.
 
-## 7. Phân biệt -m và --add-modules
+## 7. Distinguishing -m and --add-modules
 
-Hai tùy chọn có tên gần nhau nhưng nhiệm vụ khác nhau:
+The two options have similar names, but different responsibilities:
 
-| Tùy chọn | Ý nghĩa |
+| Option | Meaning |
 |---|---|
-| **-m** hoặc **--module** | Chỉ định module nguồn cần biên dịch |
-| **--add-modules** | Thêm module vào tập module gốc cần phân giải |
+| **-m** or **--module** | Specifies the source modules to compile |
+| **--add-modules** | Adds modules to the set of root modules to resolve |
 
-Ví dụ:
+Example:
 
 ~~~bash
 javac --module-path lib \
@@ -316,9 +316,9 @@ javac --module-path lib \
       -m com.example.app
 ~~~
 
-Lệnh trên chọn **com.example.app** để biên dịch.
+The command above selects **com.example.app** for compilation.
 
-Trong khi đó:
+Meanwhile:
 
 ~~~bash
 javac --module-path lib \
@@ -328,46 +328,46 @@ javac --module-path lib \
       -m com.example.app
 ~~~
 
-Lệnh thứ hai vẫn biên dịch **com.example.app**, đồng thời yêu cầu phân giải thêm **com.example.tools**. Nếu mã trong named module cần đọc và sử dụng API của tools, descriptor vẫn phải có khai báo phù hợp, thường là **requires com.example.tools**.
+The second command still compiles **com.example.app**, while also requesting that **com.example.tools** be resolved. If code in the named module needs to read and use the tools API, the descriptor must still have an appropriate declaration, typically **requires com.example.tools**.
 
-Không nhầm **-m** của javac với **-m** của java trong mọi ngữ cảnh. Khi dùng javac, **-m** chọn module cần biên dịch; khi dùng java, **-m** chọn module cần khởi chạy.
+Do not confuse `javac`'s **-m** with `java`'s **-m** across contexts. With javac, **-m** selects the modules to compile; with java, **-m** selects the module to launch.
 
-## 8. Khi nào cần --add-modules?
+## 8. When Is --add-modules Needed?
 
-Một số tình huống có thể cần thêm module vào tập phân giải:
+Some situations may require adding modules to the resolution set:
 
-1. **Ứng dụng classpath dùng API từ named module:** chỉ định module trên module path và thêm module đó bằng **--add-modules** để compiler nhận diện module.
-2. **Phụ thuộc được chọn động:** tên module được lấy từ cấu hình hoặc cơ chế plugin nên không xuất hiện trong quan hệ requires tĩnh.
-3. **Khảo sát module graph:** dùng **ALL-MODULE-PATH** để xem xét các module có trên module path.
-4. **Build cần module hệ thống bổ sung:** chỉ định module JDK cụ thể khi yêu cầu công cụ biên dịch phân giải module đó.
+1. **A classpath application uses an API from a named module:** specify the module on the module path and add it with **--add-modules** so the compiler recognizes the module.
+2. **Dynamically selected dependencies:** the module name comes from configuration or a plugin mechanism, so it does not appear in static `requires` relationships.
+3. **Inspecting the module graph:** use **ALL-MODULE-PATH** to inspect the modules present on the module path.
+4. **Build requires additional system modules:** specify particular JDK modules when instructing the build tool to resolve those modules.
 
-Nếu một named module trực tiếp sử dụng API của module khác, khai báo **requires** vẫn là cách mô tả đúng phụ thuộc. Nếu module cần được đọc động mà không thể khai báo trong descriptor, còn có tùy chọn **--add-reads** trong các công cụ hỗ trợ JPMS; đây là một cơ chế riêng và cần cân nhắc kỹ vì nó thay đổi quan hệ readability bên ngoài descriptor.
+If a named module directly uses another module's API, declaring **requires** remains the right way to describe the dependency. If a module needs to be read dynamically without being declared in the descriptor, tools supporting JPMS also provide the **--add-reads** option; this is a separate mechanism and should be used carefully because it alters readability relationships outside the descriptor.
 
-**--add-modules** cũng không thay thế **--add-exports** hoặc **--add-opens**. Các tùy chọn đó giải quyết quyền truy cập package hoặc reflection, còn **--add-modules** chỉ đưa module vào tập phân giải.
+**--add-modules** also does not replace **--add-exports** or **--add-opens**. Those options address package access or reflection permissions, whereas **--add-modules** only adds modules to the resolution set.
 
-## 9. Kiểm tra module và kết quả biên dịch
+## 9. Verifying Modules and Compilation Output
 
-Sau khi biên dịch, có thể kiểm tra module trong output:
+After compiling, you can inspect the modules in the output:
 
 ~~~bash
 java --module-path out:lib --list-modules
 ~~~
 
-Kiểm tra descriptor của module đã biên dịch:
+Inspect the descriptor of a compiled module:
 
 ~~~bash
 java --module-path out --describe-module com.example.app
 ~~~
 
-Nếu module phụ thuộc là một JAR, có thể xem descriptor của nó:
+If a dependency module is a JAR, you can view its descriptor:
 
 ~~~bash
 jar --describe-module --file lib/com.example.codec.jar
 ~~~
 
-Những lệnh này giúp xác nhận tên module mà JDK nhận diện. Nếu tên module khác với tên đang ghi trong **requires**, hãy kiểm tra descriptor hoặc automatic module name của JAR.
+These commands help confirm the module names recognized by the JDK. If a module name differs from what is written in **requires**, check the descriptor or automatic module name of the JAR.
 
-Khi build cho một phiên bản Java cụ thể, có thể dùng **--release**:
+When building for a specific Java version, you can use **--release**:
 
 ~~~bash
 javac --release 17 \
@@ -377,50 +377,50 @@ javac --release 17 \
       -m com.example.app
 ~~~
 
-**--release** kiểm soát phiên bản ngôn ngữ, bytecode và API nền tảng mà mã nguồn được phép sử dụng. Hãy chọn release phù hợp với runtime mục tiêu; không nên chỉ dựa vào phiên bản JDK đang cài trên máy biên dịch.
+**--release** controls the language version, bytecode version, and platform APIs that the source code is allowed to use. Choose a release matching the target runtime rather than relying solely on the JDK version installed on the build machine.
 
-## 10. Các lỗi thường gặp và cách xử lý
+## 10. Common Errors and How to Handle Them
 
 **module not found**
 
-Module được khai báo trong **requires** hoặc **--add-modules** không được tìm thấy. Kiểm tra module path, tên module, tên JAR và module descriptor. Nếu dùng thư mục exploded module, bảo đảm thư mục chứa **module-info.class** ở đúng cấp.
+A module declared in **requires** or **--add-modules** cannot be found. Check the module path, module name, JAR filename, and module descriptor. If using an exploded module directory, ensure the directory containing **module-info.class** is at the proper level.
 
 **package is not visible**
 
-Module phụ thuộc đã được tìm thấy nhưng package cần dùng chưa được module đó xuất. Kiểm tra **exports** trong descriptor của module cung cấp. Thêm **--add-modules** không thể thay thế khai báo exports.
+The dependency module was found, but the required package has not been exported by that module. Check **exports** in the providing module's descriptor. Adding **--add-modules** cannot replace an `exports` declaration.
 
 **module does not read ...**
 
-Module hiện tại chưa có quan hệ readability đến module chứa API. Với named module, kiểm tra **requires** trong module descriptor. Với tình huống đặc biệt có thể cần **--add-reads**, nhưng chỉ nên dùng khi hiểu rõ quan hệ module mong muốn.
+The current module does not yet have a readability relationship to the module containing the API. For a named module, check **requires** in the module descriptor. Special situations may require **--add-reads**, though it should only be used when you clearly understand the intended module relationships.
 
 **package does not exist**
 
-Có thể JAR đang đặt nhầm trên classpath hoặc module path, package không được export, hoặc dependency chưa có trong build. Kiểm tra cách thư viện được phân loại và tên module thực tế bằng **jar --describe-module**.
+The JAR may be placed incorrectly on the classpath or module path, the package may not be exported, or the dependency may be missing from the build. Check how the library is classified and its actual module name using **jar --describe-module**.
 
 **Module name does not match**
 
-Tên trong **requires** phải khớp tên module mà JDK nhận diện. Với automatic module, kiểm tra **Automatic-Module-Name** hoặc tên suy ra từ tên JAR. Không nên tự đổi tên file mà không xác nhận module name.
+The name in **requires** must match the module name recognized by the JDK. For an automatic module, check **Automatic-Module-Name** or the name derived from the JAR filename. Do not rename the file blindly without confirming the module name.
 
-**Biên dịch được nhưng runtime báo thiếu module**
+**Compiles successfully but runtime reports missing module**
 
-Classpath và module path khi chạy phải cung cấp đúng các thành phần tương ứng. Module cần được phân giải trong runtime graph; nếu phụ thuộc được chọn động, hãy bổ sung module vào cấu hình khởi chạy hoặc runtime image phù hợp.
+The classpath and module path at runtime must provide the corresponding components accurately. Modules must be resolved in the runtime graph; if dependencies are selected dynamically, add the modules to the launch configuration or appropriate runtime image.
 
-## 11. Quy trình build modular đề xuất
+## 11. Recommended Modular Build Workflow
 
-Khi xây dựng ứng dụng JPMS, có thể thực hiện theo trình tự:
+When building a JPMS application, you can follow this sequence:
 
-1. Tổ chức source tree theo tên module và đặt **module-info.java** trong từng module.
-2. Xác định JAR thư viện nào là modular module, automatic module hoặc thư viện classpath.
-3. Đặt module phụ thuộc vào **--module-path**.
-4. Khai báo các phụ thuộc trực tiếp bằng **requires** trong module descriptor.
-5. Dùng **--module-source-path** và **-m** để chọn module nguồn cần biên dịch.
-6. Chỉ dùng **--add-modules** khi cần thêm module vào tập phân giải; không dùng nó để che thiếu khai báo requires.
-7. Ghi output vào thư mục riêng bằng **-d**.
-8. Kiểm tra tên module và descriptor sau khi biên dịch.
-9. Chạy ứng dụng với module path tương ứng và kiểm thử các chức năng.
-10. Ghi lại phiên bản JDK, release mục tiêu, module path và lệnh build để tái lập trong CI.
+1. Organize the source tree by module name and place **module-info.java** inside each module.
+2. Identify which library JARs are modular JARs, automatic modules, or classpath libraries.
+3. Place dependency modules on **--module-path**.
+4. Declare direct dependencies using **requires** in the module descriptor.
+5. Use **--module-source-path** and **-m** to select the source modules to compile.
+6. Only use **--add-modules** when you need to add modules to the resolution set; do not use it to mask a missing `requires` declaration.
+7. Write output to a dedicated directory using **-d**.
+8. Verify module names and descriptors after compilation.
+9. Run the application with the corresponding module path and test its functionality.
+10. Record the JDK version, target release, module path, and build commands for reproducibility in CI.
 
-Ví dụ lệnh biên dịch tổng hợp:
+Example combined compilation command:
 
 ~~~bash
 javac \
@@ -431,16 +431,16 @@ javac \
   -m com.example.model,com.example.app
 ~~~
 
-Nếu dự án có module bổ sung cần được phân giải ngoài các module gốc, thêm **--add-modules** với tên cụ thể và kiểm tra lại module graph.
+If the project has additional modules that must be resolved beyond the root modules, add **--add-modules** with specific names and recheck the module graph.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-- **--module-path** hoặc **-p** cho javac biết nơi tìm named module và automatic module.
-- **--module-source-path** tổ chức mã nguồn của nhiều module.
-- **-m** hoặc **--module** chọn module cần biên dịch.
-- **--add-modules** thêm module vào tập module gốc cần phân giải.
-- **requires** trong **module-info.java** mới là khai báo phụ thuộc trực tiếp của named module.
-- **exports**, **opens**, **--add-reads** và **--add-exports** giải quyết các khía cạnh truy cập khác nhau; chúng không đồng nghĩa với việc thêm module vào module graph.
-- Dùng **--release** khi cần build cho phiên bản Java mục tiêu và xác minh module name của JAR trước khi kết luận module path đã đúng.
+- **--module-path** or **-p** tells javac where to find named modules and automatic modules.
+- **--module-source-path** organizes the source code of multiple modules.
+- **-m** or **--module** selects the modules to compile.
+- **--add-modules** adds modules to the set of root modules to resolve.
+- **requires** in **module-info.java** is the actual declaration of a named module's direct dependencies.
+- **exports**, **opens**, **--add-reads**, and **--add-exports** address different access aspects; they are not equivalent to adding a module to the module graph.
+- Use **--release** when building for a target Java version and verify JAR module names before concluding that the module path is configured correctly.
 
-Khi hiểu rõ vai trò của module path, requires và add-modules, quá trình biên dịch ứng dụng modular trở nên có thể dự đoán và tái lập. Descriptor mô tả phụ thuộc thực sự của module; tùy chọn dòng lệnh điều khiển phạm vi biên dịch và phân giải cho từng lần build.
+When you clearly understand the roles of module path, `requires`, and `--add-modules`, compiling modular applications becomes predictable and reproducible. The descriptor describes the module's true dependencies; command-line options control the compilation and resolution scope for each build.

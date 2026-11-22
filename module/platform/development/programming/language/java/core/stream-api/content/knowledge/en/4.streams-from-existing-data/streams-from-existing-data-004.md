@@ -1,15 +1,15 @@
-# Dựng nguồn dữ liệu bằng `Stream.Builder`
+# Building a Data Source with `Stream.Builder`
 
-> **Chương:** Tạo Stream từ dữ liệu có sẵn  
-> **Module:** `JAVA_STREAM_API` — học xử lý dữ liệu theo lối khai báo bằng Java Stream API, từ pipeline lazy và `filter`, `map`, `reduce`, `collect` đến grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers.
+> **Chapter:** Streams from Existing Data  
+> **Module:** `JAVA_STREAM_API` — learn declarative data processing with the Java Stream API, from lazy pipelines and `filter`, `map`, `reduce`, `collect` to grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers.
 
-Khi các phần tử đã nằm trong một `List` hoặc mảng, ta có thể gọi `list.stream()` hoặc `Arrays.stream(array)`. Nhưng đôi khi **nguồn dữ liệu cần được lắp ghép từng phần tử**, chẳng hạn thông điệp phản hồi được tạo từ các nhánh điều kiện, chuỗi sự kiện nghiệp vụ hoặc một nhóm giá trị phát sinh trong quá trình xử lý.
+When elements are already in a `List` or array, you can call `list.stream()` or `Arrays.stream(array)`. Sometimes, however, **the data source must be assembled element by element**, such as response messages built from conditional branches, a sequence of business events, or a set of values produced during processing.
 
-`Stream.Builder<T>` cho phép xây dựng một Stream hữu hạn theo cách này: **thêm các phần tử trước, gọi `build()` một lần, rồi xử lý Stream nhận được bằng pipeline quen thuộc**.
+`Stream.Builder<T>` lets you construct a finite Stream in this way: **add elements first, call `build()` once, and then process the resulting Stream with a familiar pipeline**.
 
-## 1. `Stream.Builder<T>` là gì?
+## 1. What Is `Stream.Builder<T>`?
 
-`Stream.Builder<T>` là một giao diện lồng trong `java.util.stream.Stream`, được cung cấp từ Java 8. Nó mô tả bộ dựng có thể nhận từng phần tử kiểu `T` để tạo một `Stream<T>`. Ta lấy bộ dựng qua phương thức tĩnh `Stream.builder()`.
+`Stream.Builder<T>` is a nested interface in `java.util.stream.Stream`, provided since Java 8. It describes a builder that can accept elements of type `T` one by one to create a `Stream<T>`. You obtain a builder via the static method `Stream.builder()`.
 
 ```java
 import java.util.List;
@@ -33,40 +33,40 @@ public class BuilderQuickStart {
 }
 ```
 
-Ví dụ thể hiện ba thao tác quan trọng:
+The example demonstrates three important operations:
 
-- `add(T value)`: đưa một phần tử vào Builder và **trả về chính Builder**, phù hợp với cách gọi nối chuỗi.
-- `accept(T value)`: đưa một phần tử vào Builder nhưng **trả về `void`**. Builder triển khai `Consumer<T>` nên có phương thức này.
-- `build()`: hoàn tất việc xây dựng và **trả về một `Stream<T>` có thứ tự gặp phần tử đúng theo thứ tự đã thêm**.
+- `add(T value)`: puts an element into the Builder and **returns the Builder itself**, suitable for chained calls.
+- `accept(T value)`: puts an element into the Builder but **returns `void`**. Builder implements `Consumer<T>`, so it provides this method.
+- `build()`: finishes building and **returns a `Stream<T>` whose encounter order matches the order in which elements were added**.
 
-`Builder` là đối tượng để **tạo nguồn**; `Stream` được trả về mới là đối tượng để gọi `filter`, `map`, `limit`, `collect`, v.v.
+`Builder` is the object for **creating the source**; the returned `Stream` is the object for calling `filter`, `map`, `limit`, `collect`, and so on.
 
-## 2. Vòng đời: từ thêm phần tử đến tiêu thụ Stream
+## 2. Lifecycle: From Adding Elements to Consuming the Stream
 
 ```text
 Stream.builder()
       │
       ▼
-  Đang xây dựng ── add / accept ── add / accept ── ...
+  Building ── add / accept ── add / accept ── ...
       │
       └────────────────── build() ────────────────┐
                                                  ▼
-                                          Stream<T> đã tạo
+                                          Created Stream<T>
                                                  │
-                                          filter / map / ...
+                                           filter / map / ...
                                                  │
-                                           terminal operation
+                                            terminal operation
                                                  │
                                                  ▼
-                                         Kết quả / side effect
+                                         Result / side effect
 ```
 
-Có **hai vòng đời một lần** cần nhớ:
+There are **two single-use lifecycles** to remember:
 
-1. **Builder chỉ được `build()` một lần.** Sau lần gọi này, Builder chuyển sang trạng thái đã hoàn tất. Gọi tiếp `add()`, `accept()` hoặc `build()` trên cùng Builder sẽ ném `IllegalStateException`.
-2. **Stream đã tạo cũng chỉ được tiêu thụ một lần.** Sau một terminal operation như `toList()`, `count()` hoặc `forEach()`, không thể mở lại pipeline trên cùng Stream; cần xây dựng một Stream mới nếu muốn xử lý lại.
+1. **A Builder can only call `build()` once.** After this call, the Builder transitions to the built state. Calling `add()`, `accept()`, or `build()` again on the same Builder throws `IllegalStateException`.
+2. **The created Stream can also only be consumed once.** After a terminal operation such as `toList()`, `count()`, or `forEach()`, the pipeline cannot be reopened on the same Stream; you must build a new Stream if you want to process again.
 
-Ví dụ minh họa thao tác **không hợp lệ**:
+Example illustrating **invalid** operations:
 
 ```java
 Stream.Builder<String> builder = Stream.builder();
@@ -74,21 +74,21 @@ builder.add("first");
 
 Stream<String> stream = builder.build();
 
-// Sai: Builder đã ở trạng thái built.
+// Wrong: Builder is already in the built state.
 // builder.add("second"); // IllegalStateException
 // builder.build();       // IllegalStateException
 
 System.out.println(stream.count()); // 1
 
-// Sai: Stream đã bị tiêu thụ.
+// Wrong: Stream has already been consumed.
 // stream.toList(); // IllegalStateException
 ```
 
-Không cần tự tạo danh sách trung gian chỉ để chuyển sang Stream: Builder lưu các phần tử đã thêm và `build()` đưa chúng vào một Stream. Tuy vậy, Builder **vẫn phải giữ dữ liệu đã nhận**; không nên hiểu rằng nó cung cấp một nguồn vô hạn hay cơ chế phát từng phần tử khi cần.
+You do not need to manually create an intermediate list just to convert to a Stream: the Builder stores the added elements and `build()` places them into a Stream. However, the Builder **still has to hold the received data**; it should not be understood as providing an infinite source or an on-demand generator.
 
-## 3. Viết gọn với `add()` và khai báo kiểu `T`
+## 3. Concise Chaining with `add()` and Declaring Type `T`
 
-Vì `add()` trả về `Builder<T>`, ta có thể ghép nhiều bước:
+Because `add()` returns `Builder<T>`, you can chain multiple steps:
 
 ```java
 Stream<String> languages = Stream.<String>builder()
@@ -101,20 +101,20 @@ System.out.println(languages.toList());
 // [Java, Kotlin, Scala]
 ```
 
-Ở đây, `Stream.<String>builder()` chỉ rõ kiểu phần tử. Cách viết này hữu ích trong chuỗi lệnh dài vì trình biên dịch có thể suy ra kiểu quá rộng nếu chỉ dựa vào các lời gọi `add()`:
+Here, `Stream.<String>builder()` explicitly specifies the element type. This syntax is useful in long chains because the compiler might infer too broad a type if relying solely on the `add()` calls:
 
 ```java
-// Cách rõ nghĩa khi dùng khai báo biến:
+// Clear form when using a variable declaration:
 Stream.Builder<Integer> builder = Stream.builder();
 builder.add(10).add(20);
 Stream<Integer> numbers = builder.build();
 ```
 
-Nếu cần chèn giá trị theo từng nhánh `if`, Builder đặt trong một biến thường dễ đọc hơn cách gọi nối chuỗi.
+If you need to insert values across `if` branches, placing the Builder in a variable is usually more readable than chained calls.
 
-## 4. Ví dụ thực tế: ghép luồng sự kiện theo điều kiện
+## 4. Practical Example: Assembling an Event Stream Conditionally
 
-Giả sử cần tạo nhật ký trạng thái của một đơn hàng. Một số sự kiện luôn có; những sự kiện khác chỉ có khi điều kiện nghiệp vụ tương ứng đúng:
+Suppose you need to construct a status log for an order. Some events are always present; others are only included when the corresponding business condition is true:
 
 ```java
 import java.util.List;
@@ -151,30 +151,30 @@ public class OrderEvents {
 }
 ```
 
-Điểm cần chú ý:
+Key points to note:
 
-- Các lệnh `add()` phản ánh rõ **điều kiện thêm phần tử** và **thứ tự phát sinh**.
-- `createEvents` trả về `Stream<String>`, nên nơi gọi có thể tiếp tục áp dụng các phép toán trung gian và kết thúc.
-- Mỗi lần gọi `createEvents(...)` tạo **Builder và Stream mới**, tránh tái sử dụng Builder đã hoàn tất.
-- `build()` không tự tạo kết quả `List`: `toList()` ở phía gọi mới là terminal operation gom dữ liệu.
+- The `add()` statements clearly reflect the **conditions for adding elements** and the **order of occurrence**.
+- `createEvents` returns `Stream<String>`, so the caller can continue applying intermediate and terminal operations.
+- Each call to `createEvents(...)` creates a **new Builder and Stream**, avoiding reuse of a completed Builder.
+- `build()` does not create a `List` result by itself: `toList()` on the caller side is the terminal operation that collects the data.
 
-Khi điều kiện nghiệp vụ cần truy cập cơ sở dữ liệu hoặc tài nguyên khác, hãy xác định rõ thời điểm cần đọc dữ liệu và quản lý tài nguyên. Builder phù hợp để lắp ghép **các giá trị đã được xác định**, không thay thế cơ chế truy xuất tài nguyên theo yêu cầu.
+When business conditions require accessing a database or other resource, clearly determine when data must be read and manage resources properly. Builder is suited for assembling **already-determined values**, not replacing on-demand resource access.
 
-## 5. Builder không làm mất tính lazy của pipeline
+## 5. Builder Does Not Eliminate Pipeline Laziness
 
-Một nhầm lẫn phổ biến là nghĩ `Stream.Builder` sẽ trì hoãn cả việc tính giá trị truyền vào `add()`. Thực tế:
+A common misconception is thinking `Stream.Builder` also defers evaluating the values passed to `add()`. In reality:
 
-- Biểu thức dùng để tính đối số của `add(...)` hoặc `accept(...)` được đánh giá **ngay lúc gọi**.
-- `build()` kết thúc việc lắp ghép nguồn và tạo Stream; **nó không phải terminal operation** của Stream.
-- Các bước trung gian như `map()` và `filter()` vẫn tuân theo cơ chế **lazy** của Stream: thường chỉ thực thi khi terminal operation được gọi, nếu không bị tối ưu loại bỏ.
+- Expressions used to compute arguments to `add(...)` or `accept(...)` are evaluated **at the moment of the call**.
+- `build()` finishes assembling the source and returns the Stream; **it is not a terminal operation** of the Stream.
+- Intermediate steps such as `map()` and `filter()` still obey the Stream's **lazy** mechanism: they usually execute only when a terminal operation is called, unless optimized away.
 
 ```java
 import java.util.stream.Stream;
 
 Stream.Builder<Integer> builder = Stream.builder();
 
-System.out.println("A: chuẩn bị nguồn");
-builder.add(2 + 3);             // phép cộng được tính tại đây
+System.out.println("A: preparing source");
+builder.add(2 + 3);             // the addition is evaluated here
 builder.add(7);
 
 Stream<Integer> pipeline = builder.build()
@@ -183,25 +183,25 @@ Stream<Integer> pipeline = builder.build()
             return n * 10;
         });
 
-System.out.println("B: chưa chạy pipeline");
+System.out.println("B: pipeline not run yet");
 System.out.println(pipeline.toList());
 ```
 
-Đầu ra:
+Output:
 
 ```text
-A: chuẩn bị nguồn
-B: chưa chạy pipeline
+A: preparing source
+B: pipeline not run yet
 map: 5
 map: 7
 [50, 70]
 ```
 
-Không nên dùng Builder để mô phỏng nguồn vô hạn hoặc nguồn tạo từng giá trị theo nhu cầu. Khi muốn phát phần tử khi được duyệt, hãy cân nhắc `Stream.generate(...)`, `Stream.iterate(...)` hoặc `Spliterator` được thiết kế phù hợp.
+Do not use Builder to simulate an infinite source or a source that generates values one by one on demand. When you want to emit elements as they are traversed, consider `Stream.generate(...)`, `Stream.iterate(...)`, or an appropriately designed `Spliterator`.
 
-## 6. Thứ tự phần tử và xử lý song song
+## 6. Element Ordering and Parallel Processing
 
-Stream tạo bởi Builder là một **ordered Stream**: nó có *encounter order* đúng theo thứ tự `add`/`accept`. Ví dụ:
+A Stream created by a Builder is an **ordered Stream**: it has an *encounter order* matching the `add`/`accept` order. For example:
 
 ```java
 List<Integer> result = Stream.<Integer>builder()
@@ -215,13 +215,13 @@ List<Integer> result = Stream.<Integer>builder()
 // result = [10, 20, 30]
 ```
 
-Trước `sorted()`, encounter order là `[30, 10, 20]`; sau đó thứ tự được quyết định bởi phép sắp xếp. Builder **không tự sắp xếp** hoặc tự loại phần tử trùng.
+Before `sorted()`, the encounter order is `[30, 10, 20]`; afterward, the order is determined by sorting. Builder **does not automatically sort** or deduplicate elements.
 
-`build()` tạo Stream tuần tự. Có thể gọi `parallel()` trên Stream nếu bài toán phù hợp, nhưng cần phân biệt:
+`build()` produces a sequential Stream. You can call `parallel()` on the Stream if suitable for the problem, but distinguish between:
 
-- **Giai đoạn thêm phần tử vào Builder:** thực hiện tuần tự theo chương trình của bạn; không được giả định Builder hỗ trợ nhiều luồng đồng thời gọi `add()`.
-- **Giai đoạn xử lý Stream:** `parallel()` yêu cầu xử lý song song, nhưng không bảo đảm hiệu năng tốt hơn; các thao tác cần giữ thứ tự có thể phát sinh chi phí phối hợp.
-- `forEach` trên Stream song song không bảo đảm thứ tự in ra. Nếu thứ tự quan trọng, dùng terminal operation giữ encounter order như `forEachOrdered` hoặc thu thập vào `toList()` khi nguồn còn ordered.
+- **Phase of adding elements to the Builder:** performed sequentially by your program; do not assume Builder supports multiple threads calling `add()` concurrently.
+- **Phase of processing the Stream:** `parallel()` requests parallel execution, but does not guarantee better performance; operations that must preserve order can incur coordination overhead.
+- `forEach` on a parallel Stream does not guarantee print order. If order matters, use a terminal operation that preserves encounter order such as `forEachOrdered` or collect into `toList()` while the source remains ordered.
 
 ```java
 Stream.<String>builder()
@@ -237,24 +237,24 @@ Stream.<String>builder()
 // C
 ```
 
-Việc gọi `parallel()` diễn ra **sau** `build()`; không biến bản thân Builder thành công cụ nhập dữ liệu song song.
+Calling `parallel()` happens **after** `build()`; it does not turn the Builder itself into a parallel data input tool.
 
-## 7. Builder rỗng, giá trị `null` và kiểu nguyên thủy
+## 7. Empty Builder, `null` Values, and Primitive Types
 
-### Không thêm phần tử nào
+### Adding No Elements
 
-Có thể tạo Stream rỗng:
+You can create an empty Stream:
 
 ```java
 Stream<String> empty = Stream.<String>builder().build();
 System.out.println(empty.count()); // 0
 ```
 
-Nếu biết ngay từ đầu không có phần tử, `Stream.empty()` thường ngắn gọn và thể hiện ý định rõ hơn.
+If you know from the start that there are no elements, `Stream.empty()` is usually shorter and states the intent more clearly.
 
-### Giá trị `null`
+### `null` Values
 
-`Stream.Builder` có thể nhận `null` như một phần tử của reference Stream. Điều này **khác** với việc bỏ qua phần tử:
+`Stream.Builder` can accept `null` as an element of a reference Stream. This is **different** from skipping the element:
 
 ```java
 List<String> values = Stream.<String>builder()
@@ -267,11 +267,11 @@ List<String> values = Stream.<String>builder()
 // values = [ok, null, done]
 ```
 
-Một số phép toán phía sau có thể lỗi nếu không xử lý `null`; chẳng hạn `map(String::length)` sẽ ném `NullPointerException` khi gặp `null`. Nếu muốn bỏ `null`, có thể dùng `filter(java.util.Objects::nonNull)`. Với **một** giá trị có thể `null`, `Stream.ofNullable(value)` (Java 9+) tạo Stream rỗng khi giá trị đó là `null`.
+Some downstream operations can fail if `null` is not handled; for example, `map(String::length)` will throw `NullPointerException` when encountering `null`. If you want to drop `null`, you can use `filter(java.util.Objects::nonNull)`. For **a single** nullable value, `Stream.ofNullable(value)` (Java 9+) creates an empty Stream when that value is `null`.
 
-### Builder cho primitive Stream
+### Builders for Primitive Streams
 
-Ngoài `Stream.Builder<T>`, Java còn có `IntStream.Builder`, `LongStream.Builder` và `DoubleStream.Builder`. Các loại này phù hợp khi lưu số nguyên hoặc số thực nguyên thủy, giúp tránh boxing thành `Integer`, `Long` hoặc `Double` không cần thiết:
+Besides `Stream.Builder<T>`, Java also provides `IntStream.Builder`, `LongStream.Builder`, and `DoubleStream.Builder`. These are suitable when storing primitive integers or floating-point numbers, avoiding unnecessary boxing into `Integer`, `Long`, or `Double`:
 
 ```java
 import java.util.stream.IntStream;
@@ -283,22 +283,22 @@ int sum = builder.build().sum();
 System.out.println(sum); // 60
 ```
 
-Chúng cũng tuân theo vòng đời: thêm phần tử trước, `build()` một lần, sau đó tiêu thụ Stream kết quả.
+They follow the same lifecycle: add elements first, call `build()` once, then consume the resulting Stream.
 
-## 8. Khi nào dùng Builder, khi nào chọn cách tạo Stream khác?
+## 8. When to Use Builder vs. Other Ways of Creating a Stream?
 
-| Tình huống | Cách phù hợp | Lý do |
+| Scenario | Suitable approach | Reason |
 | --- | --- | --- |
-| Có sẵn một `List`, `Set` hoặc collection | `collection.stream()` | Dùng trực tiếp nguồn có sẵn. |
-| Có sẵn một mảng | `Arrays.stream(array)` | Không cần chép phần tử sang Builder. |
-| Biết trước một vài giá trị cố định | `Stream.of(a, b, c)` | Gọn và dễ đọc. |
-| Có đúng một giá trị có thể `null` | `Stream.ofNullable(value)` | Trả về 0 hoặc 1 phần tử. |
-| Ghép các phần tử phát sinh ở nhiều nhánh điều kiện | `Stream.Builder<T>` | Thêm phần tử linh hoạt, duy trì thứ tự. |
-| Cần nối hai Stream có sẵn | `Stream.concat(first, second)` | Ghép hai nguồn Stream đã tồn tại. |
-| Cần sinh phần tử theo yêu cầu, có thể vô hạn | `Stream.generate(...)` / `Stream.iterate(...)` | Tạo giá trị lúc duyệt thay vì lưu trước toàn bộ. |
-| Cần nguồn tùy chỉnh cho file, iterator hoặc chia tách song song | `Spliterator` và `StreamSupport.stream(...)` | Kiểm soát cơ chế duyệt và đặc tính nguồn. |
+| Already have a `List`, `Set`, or collection | `collection.stream()` | Uses the existing source directly. |
+| Already have an array | `Arrays.stream(array)` | No need to copy elements into a Builder. |
+| Know a few fixed values upfront | `Stream.of(a, b, c)` | Concise and readable. |
+| Have exactly one possibly `null` value | `Stream.ofNullable(value)` | Returns 0 or 1 element. |
+| Assemble elements produced across multiple conditional branches | `Stream.Builder<T>` | Adds elements flexibly while maintaining order. |
+| Need to join two existing Streams | `Stream.concat(first, second)` | Joins two already existing Stream sources. |
+| Need to generate elements on demand, possibly infinite | `Stream.generate(...)` / `Stream.iterate(...)` | Produces values during traversal instead of storing everything upfront. |
+| Need a custom source for files, iterators, or parallel splitting | `Spliterator` and `StreamSupport.stream(...)` | Controls traversal mechanism and source characteristics. |
 
-Ví dụ, khi dữ liệu **đã có trong List**:
+For example, when data is **already in a List**:
 
 ```java
 List<String> input = List.of("Java", "Stream", "API");
@@ -307,34 +307,34 @@ List<String> upper = input.stream()
         .toList();
 ```
 
-Không cần tạo một Builder mới rồi duyệt `input` để `add` từng phần tử: cách đó phải chuẩn bị thêm một bộ chứa mà không đem lại lợi ích trong tình huống đơn giản này.
+There is no need to create a new Builder and iterate over `input` to `add` each element: that approach allocates an extra container without benefit in this simple case.
 
-Ngược lại, Builder là lựa chọn rõ ràng khi phần tử đến từ **các biểu thức hoặc điều kiện khác nhau**:
+Conversely, Builder is a clear choice when elements come from **different expressions or conditions**:
 
 ```java
 Stream.Builder<String> messages = Stream.builder();
-messages.add("Bắt đầu xử lý");
+messages.add("Start processing");
 if (hasWarnings) {
-    messages.add("Có cảnh báo cần kiểm tra");
+    messages.add("Warnings need checking");
 }
 if (isComplete) {
-    messages.add("Hoàn tất");
+    messages.add("Completed");
 }
 
 List<String> response = messages.build().toList();
 ```
 
-Nếu cần giữ một bộ dữ liệu có thể sửa đổi, truy cập nhiều lần hoặc chia sẻ lâu dài, hãy dùng collection phù hợp thay vì Builder vì Builder **không hỗ trợ thêm phần tử sau `build()`**.
+If you need to keep a mutable, repeatedly accessible, or long-lived dataset, use an appropriate collection instead of Builder because Builder **does not support adding elements after `build()`**.
 
-## 9. Giới hạn tài nguyên và lỗi thường gặp
+## 9. Resource Limits and Common Pitfalls
 
-### 9.1. Dùng Builder cho khối lượng dữ liệu rất lớn
+### 9.1. Using Builder for Very Large Data Volumes
 
-Mỗi giá trị được đưa vào Builder trước khi Stream được tạo. Như vậy, Builder không đem lại khả năng streaming theo nghĩa **đọc bao nhiêu xử lý bấy nhiêu từ một nguồn lớn**. Nếu hàng triệu bản ghi nằm sẵn trong collection, gọi `collection.stream()` thường tự nhiên hơn; nếu dữ liệu được đọc từng phần từ một nguồn ngoại vi, cần cơ chế duyệt lazy và quản lý tài nguyên thích hợp.
+Every value is placed into the Builder before the Stream is created. Thus, Builder does not provide streaming in the sense of **reading and processing incrementally from a large source**. If millions of records already reside in a collection, calling `collection.stream()` is usually more natural; if data is read chunk by chunk from an external source, a lazy traversal mechanism and proper resource management are needed.
 
-### 9.2. Tưởng `build()` là `collect()`
+### 9.2. Mistaking `build()` for `collect()`
 
-`build()` chỉ hoàn tất nguồn và trả về Stream. Để có `List`, `Set`, bản đồ theo nhóm hoặc giá trị tổng hợp, vẫn cần terminal operation:
+`build()` only finalizes the source and returns a Stream. To get a `List`, `Set`, grouped map, or aggregated value, a terminal operation is still required:
 
 ```java
 List<String> result = Stream.<String>builder()
@@ -347,30 +347,30 @@ List<String> result = Stream.<String>builder()
 // [green]
 ```
 
-### 9.3. Tái sử dụng Builder hoặc Stream sau khi đã dùng
+### 9.3. Reusing a Builder or Stream After Use
 
-Đây là lỗi vòng đời, không phải lỗi đồng bộ hay lỗi biên dịch. Hãy tạo Builder mới cho một lượt lắp ghép mới, và gọi `build()` đúng một lần.
+This is a lifecycle error, not a concurrency or compile-time error. Create a new Builder for a new assembly pass, and call `build()` exactly once.
 
-### 9.4. Dùng Builder làm nơi tích lũy kết quả trong `parallelStream()`
+### 9.4. Using Builder as an Accumulator in `parallelStream()`
 
-Không nên đưa một Builder dùng chung vào `forEach` của pipeline song song:
+Do not pass a shared Builder into `forEach` of a parallel pipeline:
 
 ```java
 Stream.Builder<String> shared = Stream.builder();
 
-// Không nên: nhiều luồng có thể cùng gọi add trên Builder.
+// Do not do this: multiple threads may call add on the Builder concurrently.
 // names.parallelStream().forEach(shared::add);
 ```
 
-Builder không được thiết kế làm bộ tích lũy dùng chung giữa nhiều luồng. Nếu mục tiêu là thu thập kết quả, hãy dùng terminal operation `collect` với Collector phù hợp, ví dụ `Collectors.toList()` hoặc `groupingBy(...)`. Nếu mục tiêu là tạo một nguồn Stream từ thuật toán tùy chỉnh, hãy thiết kế nguồn hoặc `Spliterator` phù hợp.
+Builder is not designed as a shared accumulator across multiple threads. If the goal is to collect results, use the `collect` terminal operation with an appropriate Collector, such as `Collectors.toList()` or `groupingBy(...)`. If the goal is to create a Stream source from a custom algorithm, design an appropriate source or `Spliterator`.
 
-### 9.5. Giữ tài nguyên mở sau khi tạo nguồn
+### 9.5. Leaving Resources Open After Creating the Source
 
-Builder bản thân không đọc hoặc đóng file, socket, kết nối cơ sở dữ liệu. Nếu lấy các phần tử từ nguồn có tài nguyên cần đóng **trong lúc lắp ghép**, hãy quản lý chúng ở nơi đọc dữ liệu (ví dụ `try-with-resources`). Đừng mặc định rằng `build()` hoặc terminal operation sẽ tự giải phóng các tài nguyên bên ngoài.
+Builder itself does not read or close files, sockets, or database connections. If you obtain elements from a source that has closable resources **during assembly**, manage them where the data is read (e.g. `try-with-resources`). Do not assume `build()` or a terminal operation will automatically release external resources.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-**Bài 1 — Dự đoán kết quả.** Đoạn code sau in gì?
+**Exercise 1 — Predict the output.** What does the following code produce?
 
 ```java
 List<Integer> result = Stream.<Integer>builder()
@@ -384,24 +384,24 @@ List<Integer> result = Stream.<Integer>builder()
         .toList();
 ```
 
-**Đáp án:** `[1, 2, 3]`. Builder giữ các phần tử `[3, 1, 3, 2]` đúng thứ tự thêm; `distinct` bỏ trùng, `sorted` sắp xếp tăng dần.
+**Answer:** `[1, 2, 3]`. The Builder keeps elements `[3, 1, 3, 2]` in insertion order; `distinct` removes duplicates, and `sorted` sorts ascending.
 
-**Bài 2 — Vòng đời.** Sau `Stream<String> s = builder.build();`, có được gọi `builder.add("x")` để bổ sung vào `s` không?
+**Exercise 2 — Lifecycle.** After `Stream<String> s = builder.build();`, can you call `builder.add("x")` to add to `s`?
 
-**Đáp án:** Không. Builder đã vào trạng thái built; thao tác sẽ ném `IllegalStateException`. Cần thêm toàn bộ phần tử trước khi `build()`.
+**Answer:** No. The Builder has entered the built state; the operation will throw `IllegalStateException`. All elements must be added before calling `build()`.
 
-**Bài 3 — Lazy.** Cho `builder.add(expensiveCalculation())`, phép tính có trì hoãn đến khi gọi `toList()` không?
+**Exercise 3 — Laziness.** Given `builder.add(expensiveCalculation())`, is the calculation deferred until `toList()` is called?
 
-**Đáp án:** Không. Biểu thức đối số được tính khi gọi `add()`. Các phép toán trung gian được tạo trên Stream sau `build()` mới thường thực hiện lazy.
+**Answer:** No. The argument expression is evaluated when `add()` is called. Only the intermediate operations created on the Stream after `build()` typically execute lazily.
 
-**Bài 4 — Chọn công cụ.** Muốn chuyển toàn bộ phần tử từ một `List<String>` thành chữ hoa, có cần dùng Builder không?
+**Exercise 4 — Choosing the right tool.** If you want to convert all elements of a `List<String>` to uppercase, do you need Builder?
 
-**Đáp án:** Không. Chỉ cần `list.stream().map(String::toUpperCase).toList()`. Builder hữu ích hơn khi phải thêm linh hoạt nhiều phần tử độc lập trước khi có nguồn Stream.
+**Answer:** No. Just use `list.stream().map(String::toUpperCase).toList()`. Builder is more useful when you have to flexibly add multiple independent elements before having a Stream source.
 
-## Ghi nhớ
+## Key Takeaways
 
-- `Stream.Builder<T>` dùng để **lắp ghép một nguồn Stream hữu hạn**, theo thứ tự thêm phần tử, với `add` hoặc `accept`.
-- `add` trả về Builder để gọi nối chuỗi; `accept` trả về `void`; `build` trả về một **ordered Stream tuần tự**.
-- **Builder chỉ `build()` một lần; Stream cũng chỉ tiêu thụ một lần**. Gọi thêm thao tác trên Builder đã hoàn tất sẽ gặp `IllegalStateException`.
-- Giá trị truyền vào `add` được tạo **ngay khi thêm**; pipeline trên Stream kết quả vẫn có thể thực thi **lazy**.
-- Với nguồn có sẵn, ưu tiên `collection.stream()` hoặc `Arrays.stream(...)`; với nguồn sinh lười hoặc quy mô lớn, chọn `generate`, `iterate` hoặc `Spliterator` tùy trường hợp. Không dùng Builder chung để gom kết quả của nhiều luồng song song.
+- `Stream.Builder<T>` is used to **assemble a finite Stream source**, in element insertion order, using `add` or `accept`.
+- `add` returns the Builder for chaining; `accept` returns `void`; `build` returns a **sequential ordered Stream**.
+- **A Builder can only `build()` once; a Stream can also only be consumed once**. Calling further operations on a completed Builder throws `IllegalStateException`.
+- Values passed to `add` are evaluated **at the time of adding**; the pipeline on the resulting Stream can still execute **lazily**.
+- For existing sources, prefer `collection.stream()` or `Arrays.stream(...)`; for lazily generated or large-scale sources, choose `generate`, `iterate`, or `Spliterator` as appropriate. Do not use a shared Builder to collect results from multiple parallel threads.

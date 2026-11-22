@@ -1,26 +1,26 @@
-# Checked exception và UndeclaredThrowableException trong Java Dynamic Proxy
+# Checked Exceptions and UndeclaredThrowableException in Java Dynamic Proxies
 
-## 1. Bối cảnh và mục tiêu
+## 1. Context and goal
 
-Trong JDK Dynamic Proxy, lời gọi một phương thức của interface được chuyển tới **InvocationHandler.invoke(proxy, method, args)**. Handler có thể gọi một đối tượng đích, trả kết quả hoặc ném ngoại lệ. Vấn đề là **InvocationHandler.invoke** khai báo **throws Throwable**, nhưng phương thức trên interface được proxy triển khai vẫn có hợp đồng checked exception riêng.
+In JDK Dynamic Proxies, a call to an interface method is routed to **InvocationHandler.invoke(proxy, method, args)**. The handler can call a target object, return a result, or throw an exception. The issue is that **InvocationHandler.invoke** declares **throws Throwable**, whereas the method on the interface implemented by the proxy still has its own checked exception contract.
 
-Ví dụ, nếu interface khai báo **String read() throws IOException**, caller được chuẩn bị để xử lý **IOException**. Khi handler ném một **SQLException** không nằm trong hợp đồng, lớp proxy do JDK tạo ra không chuyển ngoại lệ checked này nguyên trạng: nó bọc bằng **UndeclaredThrowableException** (UTE), một unchecked exception.
+For example, if the interface declares **String read() throws IOException**, the caller is prepared to handle **IOException**. When the handler throws an **SQLException** not covered by the contract, the JDK-generated proxy class does not pass this checked exception through as-is: it wraps it in **UndeclaredThrowableException** (UTE), an unchecked exception.
 
-Mục tiêu bài học là:
-- Hiểu ranh giới giữa **throws** của phương thức interface và **throws Throwable** của invocation handler.
-- Dự đoán khi nào ngoại lệ đi qua trực tiếp, khi nào được bọc bởi **UndeclaredThrowableException**.
-- Phân biệt wrapper proxy với **InvocationTargetException** do **Method.invoke** tạo khi target ném lỗi.
-- Viết handler ủy quyền có thể chuyển tiếp hoặc chuyển đổi ngoại lệ đúng hợp đồng, đồng thời giữ nguyên nguyên nhân gốc.
+The lesson goals are:
+- Understand the boundary between the interface method's **throws** clause and the invocation handler's **throws Throwable**.
+- Predict when an exception passes through directly and when it gets wrapped by **UndeclaredThrowableException**.
+- Distinguish the proxy wrapper from **InvocationTargetException** created by **Method.invoke** when a target throws an error.
+- Write a delegating handler that forwards or translates exceptions according to the contract while preserving the root cause.
 
-**Kiến thức cần trước:** checked/unchecked exception, **throw**, **throws**, interface, **Proxy.newProxyInstance**, **InvocationHandler**, **Method.invoke**.
+**Prerequisites:** checked/unchecked exceptions, **throw**, **throws**, interfaces, **Proxy.newProxyInstance**, **InvocationHandler**, **Method.invoke**.
 
-## 2. Ba nhóm ngoại lệ cần phân biệt
+## 2. Three exception groups to distinguish
 
-**Checked exception** gồm các lớp con của **Exception** ngoại trừ **RuntimeException** và những lớp con của nó. Ví dụ **IOException**, **SQLException**, **ClassNotFoundException**. Với lời gọi được kiểm tra tĩnh, Java yêu cầu caller bắt hoặc khai báo chúng.
+**Checked exceptions** consist of subclasses of **Exception** excluding **RuntimeException** and its subclasses. Examples include **IOException**, **SQLException**, and **ClassNotFoundException**. For statically checked calls, Java requires callers to catch or declare them.
 
-**Unchecked exception** là **RuntimeException** và các lớp con, hoặc **Error** và các lớp con. Ví dụ **IllegalArgumentException**, **IllegalStateException**, **AssertionError**. Những ngoại lệ này không cần xuất hiện trong mệnh đề **throws**.
+**Unchecked exceptions** are **RuntimeException** and its subclasses, or **Error** and its subclasses. Examples include **IllegalArgumentException**, **IllegalStateException**, and **AssertionError**. These exceptions do not need to appear in a **throws** clause.
 
-**Ngoại lệ được phép bởi hợp đồng interface** là checked exception có kiểu tương thích với ít nhất một kiểu được phương thức khai báo trong **throws**. Ví dụ:
+**Exceptions permitted by the interface contract** are checked exceptions whose type is compatible with at least one type declared by the method in **throws**. For example:
 
 ~~~java
 interface Reader {
@@ -28,42 +28,42 @@ interface Reader {
 }
 ~~~
 
-Một **FileNotFoundException** là lớp con của **IOException**, nên được phép đi qua lời gọi **Reader.read()**. **SQLException** không tương thích với **IOException** và không được phép đi qua như một checked exception nguyên trạng.
+A **FileNotFoundException** is a subclass of **IOException**, so it is allowed through a **Reader.read()** call. **SQLException** is not compatible with **IOException** and is not allowed through as an unwrapped checked exception.
 
-Điều cần nhớ: **InvocationHandler.invoke** nhận trách nhiệm xử lý động ở runtime, còn **Reader.read()** là hợp đồng Java mà caller nhìn thấy. Trình biên dịch không thể biết handler nào sẽ được gắn vào proxy trong lúc chạy, nên JDK tạo lớp proxy bảo đảm quy tắc truyền ngoại lệ của interface.
+Key point to remember: **InvocationHandler.invoke** takes responsibility for dynamic handling at runtime, while **Reader.read()** is the Java contract seen by the caller. The compiler cannot know which handler will be attached to the proxy at runtime, so the JDK generates a proxy class that enforces the interface's exception propagation rules.
 
-## 3. Chính xác khi nào JDK Proxy ném UndeclaredThrowableException?
+## 3. Exactly when does JDK Proxy throw UndeclaredThrowableException?
 
-Khi **InvocationHandler.invoke** kết thúc bằng cách ném ngoại lệ, phương thức trên proxy xử lý về mặt ý nghĩa như sau:
+When **InvocationHandler.invoke** finishes by throwing an exception, the method on the proxy handles it semantically as follows:
 
-| Throwable rời handler | Hợp đồng **read() throws IOException** | Kết quả |
+| Throwable leaving the handler | Contract **read() throws IOException** | Result |
 | --- | --- | --- |
-| **IOException("disk")** | Tương thích **IOException** | Caller nhận **IOException** trực tiếp |
-| **FileNotFoundException("missing")** | Là lớp con của **IOException** | Caller nhận **FileNotFoundException** trực tiếp |
-| **SQLException("db")** | Không tương thích **IOException** | Proxy ném **UndeclaredThrowableException** chứa **SQLException** |
-| **IllegalStateException("bad")** | Unchecked | Caller nhận **IllegalStateException** trực tiếp |
-| **AssertionError("bad")** | **Error**, unchecked | Caller nhận **AssertionError** trực tiếp |
-| **InvocationTargetException** chứa **IOException** | Kiểu của wrapper không tương thích **IOException** | Proxy ném **UndeclaredThrowableException** chứa **InvocationTargetException** |
+| **IOException("disk")** | Compatible with **IOException** | Caller receives **IOException** directly |
+| **FileNotFoundException("missing")** | Subclass of **IOException** | Caller receives **FileNotFoundException** directly |
+| **SQLException("db")** | Not compatible with **IOException** | Proxy throws **UndeclaredThrowableException** containing **SQLException** |
+| **IllegalStateException("bad")** | Unchecked | Caller receives **IllegalStateException** directly |
+| **AssertionError("bad")** | **Error**, unchecked | Caller receives **AssertionError** directly |
+| **InvocationTargetException** containing **IOException** | Wrapper type not compatible with **IOException** | Proxy throws **UndeclaredThrowableException** containing **InvocationTargetException** |
 
-Luồng gọi:
+Call flow:
 
 ~~~text
 Caller -> proxy.read() -> InvocationHandler.invoke(...)
                           |
-                          +-- trả giá trị ----------------> Caller
-                          +-- RuntimeException / Error ---> Ném trực tiếp
-                          +-- checked được khai báo ------> Ném trực tiếp
-                          +-- checked ngoài hợp đồng -----> UndeclaredThrowableException
-                                                            -> Caller
+                          +-- returns value -------------> Caller
+                          +-- RuntimeException / Error --> Thrown directly
+                          +-- declared checked ----------> Thrown directly
+                          +-- undeclared checked --------> UndeclaredThrowableException
+                                                           -> Caller
 ~~~
 
-**UndeclaredThrowableException** thuộc gói **java.lang.reflect**, kế thừa **RuntimeException**, vì vậy caller không bị compiler buộc phải bắt nó. API **getUndeclaredThrowable()** trả về đúng Throwable mà proxy đã bọc; **getCause()** cung cấp nguyên nhân tương ứng.
+**UndeclaredThrowableException** belongs to **java.lang.reflect** and extends **RuntimeException**, so callers are not forced by the compiler to catch it. The **getUndeclaredThrowable()** API returns the exact Throwable wrapped by the proxy; **getCause()** provides the corresponding cause.
 
-Khi phương thức interface **không có throws**, mọi checked exception rời handler đều bị bọc theo quy tắc này. Ngược lại, interface khai báo **throws Exception** có thể cho nhiều checked exception đi qua, nhưng không có nghĩa nên khai báo như vậy: cần thiết kế hợp đồng có ý nghĩa cho caller.
+When an interface method **has no throws clause**, every checked exception leaving the handler is wrapped according to this rule. Conversely, an interface declaring **throws Exception** lets many checked exceptions pass through, though that does not mean you should declare it that way: you should design a meaningful contract for callers.
 
-## 4. Ví dụ đầy đủ Java 17+: bốn tình huống khác nhau
+## 4. Complete Java 17+ example: four different scenarios
 
-Lưu chương trình sau trong tệp **ProxyExceptionDemo.java**. Interface **Reader.read()** khai báo **IOException**. Target thật luôn ném **IOException("disk")**. Handler có bốn nhánh để thấy chính xác ngoại lệ nào rời khỏi proxy.
+Save the following program in **ProxyExceptionDemo.java**. The **Reader.read()** interface declares **IOException**. The real target always throws **IOException("disk")**. The handler has four branches to show exactly which exception leaves the proxy.
 
 ~~~java
 import java.io.IOException;
@@ -100,13 +100,13 @@ public class ProxyExceptionDemo {
                         throw new SQLException("db");
                     }
                     if (mode == Mode.BAD_DELEGATION) {
-                        // Method.invoke bọc lỗi target trong
-                        // InvocationTargetException: đây là
-                        // một checked exception chưa được tháo.
+                        // Method.invoke wraps the target error in
+                        // InvocationTargetException: this is an
+                        // unwrapped checked exception.
                         return method.invoke(new FailingReader(), args);
                     }
 
-                    // GOOD_DELEGATION: truyền lại lỗi thật của target.
+                    // GOOD_DELEGATION: rethrow the target's real error.
                     try {
                         return method.invoke(new FailingReader(), args);
                     } catch (InvocationTargetException e) {
@@ -138,14 +138,14 @@ public class ProxyExceptionDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa tệp bằng JDK 17 trở lên:
+Compile and run in the directory containing the file with JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 ProxyExceptionDemo.java
 java ProxyExceptionDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 DIRECT_CHECKED: IOException(disk)
@@ -154,26 +154,26 @@ BAD_DELEGATION: UTE(IOException:disk)
 GOOD_DELEGATION: IOException(disk)
 ~~~
 
-**Giải thích chi tiết:**
+**Detailed explanation:**
 
-1. **DIRECT_CHECKED:** handler trực tiếp ném **IOException**. Vì **Reader.read()** có **throws IOException**, proxy chuyển ngoại lệ đúng kiểu ra ngoài; **catch (IOException)** nhận được.
-2. **UNDECLARED:** handler ném **SQLException**, không tương thích với hợp đồng **throws IOException**. Proxy tạo **UndeclaredThrowableException**, đối tượng **SQLException** nằm trong **getUndeclaredThrowable()**.
-3. **BAD_DELEGATION:** target ném **IOException**, nhưng **Method.invoke** bắt ngoại lệ target và ném **InvocationTargetException**. Handler không tháo wrapper, nên Throwable rời handler chính là **InvocationTargetException**, vốn không thuộc **throws IOException**. Proxy bọc thêm một tầng UTE.
-4. **GOOD_DELEGATION:** handler bắt **InvocationTargetException** và ném **getCause()**. Throwable rời handler là **IOException** của target; proxy chuyển nguyên trạng để caller bắt bằng **catch (IOException)**.
+1. **DIRECT_CHECKED:** the handler throws **IOException** directly. Since **Reader.read()** has **throws IOException**, the proxy passes the correctly typed exception outward; **catch (IOException)** catches it.
+2. **UNDECLARED:** the handler throws **SQLException**, which is incompatible with the **throws IOException** contract. The proxy creates **UndeclaredThrowableException**, with the **SQLException** object inside **getUndeclaredThrowable()**.
+3. **BAD_DELEGATION:** the target throws **IOException**, but **Method.invoke** catches the target exception and throws **InvocationTargetException**. Because the handler does not unwrap it, the Throwable leaving the handler is **InvocationTargetException**, which is not covered by **throws IOException**. The proxy wraps it in another layer of UTE.
+4. **GOOD_DELEGATION:** the handler catches **InvocationTargetException** and throws **getCause()**. The Throwable leaving the handler is the target's **IOException**; the proxy passes it through as-is so the caller catches it with **catch (IOException)**.
 
-Kết quả trên đã được đối chiếu qua chạy thử Java; thứ tự hiển thị chính là thứ tự các giá trị trong enum **Mode**. Ví dụ dùng import tường minh cho **java.lang.reflect.Proxy** và chương trình có thể biên dịch độc lập bằng JDK 17+.
+The output above was verified by running Java; the display order matches the order of values in the **Mode** enum. The example uses explicit imports for **java.lang.reflect.Proxy** and can be compiled standalone on JDK 17+.
 
-## 5. InvocationTargetException khác gì UndeclaredThrowableException?
+## 5. How does InvocationTargetException differ from UndeclaredThrowableException?
 
-| Câu hỏi | **InvocationTargetException** | **UndeclaredThrowableException** |
+| Question | **InvocationTargetException** | **UndeclaredThrowableException** |
 | --- | --- | --- |
-| Ai tạo wrapper? | **Method.invoke** khi code của method được gọi ném Throwable | Mã phương thức proxy do JDK tạo khi handler ném checked exception ngoài hợp đồng |
-| Là checked hay unchecked? | Checked, kế thừa **ReflectiveOperationException** | Unchecked, kế thừa **RuntimeException** |
-| Wrapper chứa gì? | Ngoại lệ thật do target ném | Throwable mà invocation handler đã ném ra nhưng interface không khai báo hợp lệ |
-| Lấy nguyên nhân | **getCause()** hoặc **getTargetException()** | **getUndeclaredThrowable()** hoặc **getCause()** |
-| Sửa ở đâu? | Bắt và tháo wrapper ngay tại handler khi ủy quyền bằng Reflection | Sửa hợp đồng hoặc cách handler phát sinh/chuyển đổi checked exception |
+| Who creates the wrapper? | **Method.invoke** when code in the invoked method throws a Throwable | JDK-generated proxy method code when the handler throws a checked exception outside the contract |
+| Checked or unchecked? | Checked, extends **ReflectiveOperationException** | Unchecked, extends **RuntimeException** |
+| What does the wrapper hold? | The actual exception thrown by the target | The Throwable thrown by the invocation handler that is not validly declared by the interface |
+| Getting the cause | **getCause()** or **getTargetException()** | **getUndeclaredThrowable()** or **getCause()** |
+| Where to fix? | Catch and unwrap right inside the handler when delegating via Reflection | Fix the contract or how the handler raises/translates checked exceptions |
 
-Một chuỗi điển hình của nhánh **BAD_DELEGATION**:
+A typical chain for the **BAD_DELEGATION** branch:
 
 ~~~text
 UndeclaredThrowableException
@@ -181,13 +181,13 @@ UndeclaredThrowableException
        -> IOException("disk")
 ~~~
 
-Không nên chỉ đọc dòng exception ngoài cùng rồi kết luận đối tượng đích ném sai kiểu. Target có thể ném **IOException** hoàn toàn phù hợp; lỗi nằm ở việc handler để **InvocationTargetException** vượt qua ranh giới proxy.
+Do not read only the outermost exception line and conclude the target object threw the wrong type. The target may have thrown a completely valid **IOException**; the mistake lies in the handler letting **InvocationTargetException** cross the proxy boundary.
 
-Nếu target ném **IllegalArgumentException** qua **Method.invoke**, Reflection vẫn bọc lỗi trong **InvocationTargetException**. Handler không tháo wrapper có thể khiến caller nhận UTE dù bản thân **IllegalArgumentException** là unchecked và đáng lẽ có thể được ném trực tiếp.
+If the target throws **IllegalArgumentException** through **Method.invoke**, Reflection still wraps the error in **InvocationTargetException**. A handler that fails to unwrap it can cause the caller to receive UTE even though **IllegalArgumentException** itself is unchecked and could have been thrown directly.
 
-## 6. Mẫu handler chuyển tiếp ngoại lệ đúng cách
+## 6. Handler pattern for properly forwarding exceptions
 
-Khi handler chỉ ủy quyền từ proxy sang đối tượng thật bằng **Method.invoke**, mẫu cơ bản là:
+When a handler simply delegates from a proxy to a real object using **Method.invoke**, the basic pattern is:
 
 ~~~java
 try {
@@ -197,85 +197,85 @@ try {
 }
 ~~~
 
-Đây là **đoạn trích dùng bên trong InvocationHandler.invoke**, giả sử biến **target** tồn tại và **method/args** là tham số callback. Nó không phải một chương trình độc lập. **InvocationHandler.invoke** khai báo **throws Throwable** nên có thể ném **e.getCause()**.
+This is a **snippet used inside InvocationHandler.invoke**, assuming **target** exists and **method/args** are callback parameters. It is not a standalone program. **InvocationHandler.invoke** declares **throws Throwable**, so it can throw **e.getCause()**.
 
-Tuy nhiên, **tháo InvocationTargetException chưa bảo đảm mọi checked exception đều hợp lệ**. Nếu target ném một **SQLException** trong khi interface chỉ khai báo **IOException**, proxy vẫn bọc SQLException bằng UTE. Cần xác định chính sách lỗi:
+However, **unwrapping InvocationTargetException does not guarantee every checked exception is valid**. If the target throws an **SQLException** while the interface only declares **IOException**, the proxy still wraps SQLException in UTE. An error policy is needed:
 
-- **Chuyển tiếp nguyên nhân thật** nếu nó tương thích với hợp đồng **throws** của interface. Không cần đổi kiểu.
-- **Chuyển đổi có ý nghĩa** nếu ngoại lệ của thư viện/hạ tầng không thuộc hợp đồng API. Ví dụ, một lỗi đọc tài liệu từ cơ sở dữ liệu có thể chuyển thành **IOException** nhưng cần kèm cause.
-- **Giữ nguyên nguyên nhân** trong exception mới. Không nuốt exception hay ném wrapper không có cause làm mất dữ kiện chẩn đoán.
-- **Sửa thiết kế hợp đồng** nếu caller thật sự phải xử lý một checked exception bổ sung; không mở rộng bừa bãi thành **throws Throwable** để né quy tắc.
+- **Forward the real cause** if it is compatible with the interface's **throws** contract. No type change is needed.
+- **Translate meaningfully** if a library/infrastructure exception is outside the API contract. For example, a database document-reading error can be translated into **IOException** while attaching the cause.
+- **Preserve the cause** in the new exception. Do not swallow exceptions or throw a wrapper without a cause that loses diagnostic facts.
+- **Adjust the contract design** if callers genuinely need to handle an additional checked exception; do not carelessly widen it to **throws Throwable** to bypass the rules.
 
-Ví dụ minh họa chuyển một lỗi từ tầng dữ liệu thành lỗi đọc tài liệu:
+Illustrative example translating a data-layer error into a document-reading error:
 
 ~~~java
 try {
     return loadDocumentFromDatabase();
 } catch (java.sql.SQLException e) {
-    throw new java.io.IOException("Không thể đọc tài liệu", e);
+    throw new java.io.IOException("Unable to read document", e);
 }
 ~~~
 
-Đoạn này giả định có phương thức **loadDocumentFromDatabase()** có thể ném **SQLException** và code nằm trong handler cho phương thức interface **throws IOException**. Trình biên dịch sẽ cần triển khai đầy đủ phương thức đó nếu đưa ví dụ vào dự án. Không dùng chuyển đổi này tùy tiện khi không có quan hệ ý nghĩa giữa lỗi dữ liệu và lỗi đọc.
+This snippet assumes a **loadDocumentFromDatabase()** method that can throw **SQLException** and resides inside a handler for an interface method with **throws IOException**. The compiler will require a complete implementation of that method if this example is placed in a project. Do not apply this translation arbitrarily when there is no semantic link between data errors and read errors.
 
-## 7. Các trường hợp biên
+## 7. Edge cases
 
-### 7.1. Không khai báo checked exception
+### 7.1. No checked exception declared
 
-Với interface có phương thức **void execute()** và không khai báo **throws**, handler ném **IOException** sẽ dẫn đến UTE. **throws Throwable** trên handler không thay đổi chữ ký của **execute()**.
+For an interface method **void execute()** with no **throws** declaration, a handler throwing **IOException** will result in UTE. **throws Throwable** on the handler does not change the signature of **execute()**.
 
-### 7.2. Một proxy triển khai nhiều interface trùng chữ ký
+### 7.2. One proxy implementing multiple interfaces with matching signatures
 
-Nếu các interface cùng khai báo một phương thức có cùng tên và cùng danh sách tham số nhưng **throws** khác nhau, checked exception đi ra từ handler phải tương thích với hợp đồng của **tất cả** những interface mà lời gọi tương ứng có thể thực hiện. Không đủ để exception chỉ tương thích với một interface.
+If multiple interfaces declare a method with the same name and same parameter list but different **throws** clauses, a checked exception leaving the handler must be compatible with the contracts of **all** interfaces to which the corresponding call could belong. Being compatible with only one interface is not enough.
 
-Ví dụ **A.process() throws IOException** và **B.process() throws SQLException**: khi proxy triển khai cả **A** lẫn **B**, handler ném **IOException** sẽ bị proxy bọc trong UTE vì kiểu đó không tương thích với **throws SQLException** của **B.process()**. Đây là đặc điểm của các phương thức trùng chữ ký, không phụ thuộc cách caller ép kiểu proxy sang **A** hay **B**.
+For example, **A.process() throws IOException** and **B.process() throws SQLException**: when a proxy implements both **A** and **B**, a handler throwing **IOException** will be wrapped by the proxy in UTE because that type is incompatible with **B.process()**'s **throws SQLException**. This is a property of matching-signature methods, independent of whether the caller cast the proxy to **A** or **B**.
 
-### 7.3. Các phương thức equals, hashCode và toString
+### 7.3. The equals, hashCode, and toString methods
 
-Lời gọi **equals**, **hashCode**, **toString** trên proxy cũng được chuyển qua handler. Chúng không khai báo checked exception, nên handler ném checked exception cho các lời gọi này cũng tạo UTE. Cần quyết định rõ cách xử lý ba method đó trong handler nếu ứng dụng dùng chúng.
+Calls to **equals**, **hashCode**, and **toString** on a proxy are also routed through the handler. They declare no checked exceptions, so a handler throwing a checked exception for these calls also produces UTE. Make explicit decisions on how to handle these three methods in the handler if the application uses them.
 
-### 7.4. IllegalAccessException khi gọi Reflection
+### 7.4. IllegalAccessException when calling Reflection
 
-Nếu **Method.invoke** ném **IllegalAccessException** do quyền truy cập, đây là checked exception ở tầng Reflection, không phải lỗi được target ném và được bọc trong **InvocationTargetException**. Nếu handler chuyển nguyên nó ra ngoài nhưng interface không khai báo loại tương thích, proxy bọc UTE. Cách khắc phục cần xem quyền truy cập và module Java thực tế; tháo wrapper hoặc gọi **setAccessible(true)** tùy tiện không tự giải quyết mọi trường hợp.
+If **Method.invoke** throws **IllegalAccessException** due to access permissions, this is a Reflection-layer checked exception, not an error thrown by the target wrapped in **InvocationTargetException**. If the handler lets it pass out directly and the interface does not declare a compatible type, the proxy wraps it in UTE. Fixing this requires examining actual access rights and Java modules; unwrapping or calling **setAccessible(true)** arbitrarily does not solve every case.
 
-## 8. Hướng chẩn đoán khi gặp UTE
+## 8. Diagnostic guide when encountering UTE
 
-1. **Kiểm tra mệnh đề throws trên interface.** Ghi lại phương thức được caller gọi và các interface có phương thức trùng chữ ký.
-2. **Lấy throwable nằm trong UTE.** Gọi **getUndeclaredThrowable()** (hoặc **getCause()**). Đừng chỉ dựa vào tên UTE.
-3. **Kiểm tra có InvocationTargetException không.** Nếu có, đọc tiếp **getCause()** để biết lỗi thật của target.
-4. **Tìm đúng đoạn code trong handler.** Đoạn nào ném Throwable ra khỏi **InvocationHandler.invoke**? Đây là loại checked hợp lệ, loại ngoài hợp đồng, hay wrapper Reflection bị quên?
-5. **Sửa đúng ranh giới.** Nếu target ném lỗi đã được khai báo nhưng handler để lọt wrapper, tháo wrapper. Nếu target thực sự ném checked exception ngoài hợp đồng, thiết kế lại cách chuyển đổi hoặc chữ ký interface.
-6. **Kiểm thử cả hai đường gọi.** Gọi target trực tiếp để ghi nhận nguyên nhân, rồi gọi qua proxy để xác nhận kiểu exception caller thấy.
+1. **Check the throws clause on the interface.** Note the method called by the caller and any interfaces with matching method signatures.
+2. **Extract the throwable inside UTE.** Call **getUndeclaredThrowable()** (or **getCause()**). Do not rely on the UTE name alone.
+3. **Check whether InvocationTargetException is present.** If so, inspect its **getCause()** to see the target's real error.
+4. **Locate the exact code in the handler.** Which line throws a Throwable out of **InvocationHandler.invoke**? Is it a valid checked type, an out-of-contract type, or a forgotten Reflection wrapper?
+5. **Fix at the right boundary.** If the target threw a declared error but the handler leaked the wrapper, unwrap it. If the target genuinely threw a checked exception outside the contract, redesign the translation or interface signature.
+6. **Test both call paths.** Call the target directly to record the root cause, then call through the proxy to confirm the exception type the caller sees.
 
-Có thể ghi lại chuỗi cause đầy đủ tại điểm giám sát, nhưng không nên luôn bắt UTE ở tất cả caller như biện pháp thay cho việc sửa handler.
+You can log the full cause chain at monitoring boundaries, but you should not routinely catch UTE across all callers as a substitute for fixing the handler.
 
-## 9. Lỗi phổ biến
+## 9. Common mistakes
 
-| Sai lầm | Hệ quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Cho rằng **throws Throwable** của handler cho phép mọi checked exception tới caller | UTE xuất hiện ở runtime | Đối chiếu ngoại lệ với **throws** của interface |
-| Ủy quyền bằng **return method.invoke(target, args)** mà không bắt **InvocationTargetException** | UTE có thể chứa **InvocationTargetException** dù lỗi gốc hợp lệ | Bắt wrapper và **throw e.getCause()** |
-| Chuyển mọi exception sang **new RuntimeException()** không truyền cause | Mất thông tin gốc, khó xác định lỗi | Giữ cause và chọn exception đúng ngữ nghĩa |
-| Ép kiểu mọi cause thành **IOException** | Có thể gây lỗi ép kiểu và che bug | Kiểm tra loại và chuyển đổi có chủ đích |
-| Caller chỉ bắt checked exception đã khai báo và cho rằng đã xử lý mọi lỗi | UTE unchecked vẫn thoát ra | Sửa handler và theo dõi UTE ở ranh giới thích hợp |
-| Chỉ nhìn thông báo UTE thay vì chuỗi cause | Chẩn đoán nhầm nguồn lỗi | Dùng **getUndeclaredThrowable()** và **getCause()** |
+| Assuming the handler's **throws Throwable** lets any checked exception reach the caller | UTE appears at runtime | Match exceptions against the interface's **throws** clause |
+| Delegating with **return method.invoke(target, args)** without catching **InvocationTargetException** | UTE may wrap **InvocationTargetException** even when the root error is valid | Catch the wrapper and **throw e.getCause()** |
+| Converting every exception to **new RuntimeException()** without passing the cause | Loses original info, makes debugging hard | Preserve the cause and choose a semantically right exception |
+| Forcing every cause into **IOException** | Can cause casting errors and hide bugs | Check types and translate intentionally |
+| Caller catches only declared checked exceptions and assumes all errors are handled | Unchecked UTE still escapes | Fix the handler and monitor UTE at appropriate boundaries |
+| Reading only the UTE message instead of the cause chain | Misdiagnoses the error source | Use **getUndeclaredThrowable()** and **getCause()** |
 
-## 10. Thực hành và tự kiểm tra
+## 10. Practice and self-check
 
-**Bài tập 1:** Đổi interface thành phương thức **read()** không khai báo **IOException** nhưng giữ handler ném **IOException**. Sau khi chỉnh implementation để chương trình biên dịch, dự đoán kết quả: caller nhận **UndeclaredThrowableException**, bên trong là **IOException**.
+**Exercise 1:** Change the interface method to **read()** without declaring **IOException** while keeping the handler throwing **IOException**. After updating the implementation so the program compiles, predict the result: the caller receives **UndeclaredThrowableException**, containing **IOException** inside.
 
-**Bài tập 2:** Cho target ném **IllegalArgumentException**. So sánh handler chỉ gọi **Method.invoke** với handler bắt **InvocationTargetException** rồi ném **getCause()**. Trường hợp đầu tạo UTE chứa wrapper; trường hợp sau cho **IllegalArgumentException** thoát ra trực tiếp.
+**Exercise 2:** Have the target throw **IllegalArgumentException**. Compare a handler that only calls **Method.invoke** with one that catches **InvocationTargetException** and throws **getCause()**. The first case produces a UTE containing the wrapper; the second lets **IllegalArgumentException** escape directly.
 
-**Bài tập 3:** Cho handler ném **SQLException** khi interface chỉ khai báo **IOException**. Viết cách chuyển đổi sang **IOException** có cause, sau đó xác minh caller bắt **IOException** và đọc được **SQLException** từ **getCause()**.
+**Exercise 3:** Have the handler throw **SQLException** when the interface only declares **IOException**. Write a translation to **IOException** with a cause, then verify the caller catches **IOException** and reads **SQLException** from **getCause()**.
 
-**Bài tập 4:** Tạo hai interface cùng khai báo **process()** nhưng một bên **throws IOException**, bên kia **throws SQLException**. Tạo proxy triển khai cả hai và giải thích vì sao việc ném **IOException** trực tiếp từ handler dẫn đến UTE.
+**Exercise 4:** Create two interfaces both declaring **process()**, where one **throws IOException** and the other **throws SQLException**. Create a proxy implementing both and explain why throwing **IOException** directly from the handler results in UTE.
 
-**Câu hỏi tự kiểm tra:**
-- Vì sao **InvocationHandler.invoke throws Throwable** không xóa bỏ giới hạn checked exception của interface?
-- Khi UTE chứa **InvocationTargetException** chứa **IOException**, ngoại lệ nào thực sự rời khỏi handler?
-- Khi target ném **RuntimeException** qua **Method.invoke**, có cần tháo **InvocationTargetException** không?
-- Vì sao sửa lỗi UTE bằng cách luôn thêm **throws Exception** vào interface có thể làm giảm chất lượng hợp đồng API?
+**Self-check questions:**
+- Why does **InvocationHandler.invoke throws Throwable** not remove the interface's checked exception constraint?
+- When UTE wraps **InvocationTargetException** wrapping **IOException**, which exception actually left the handler?
+- When a target throws **RuntimeException** through **Method.invoke**, is unwrapping **InvocationTargetException** necessary?
+- Why can fixing UTE by always adding **throws Exception** to the interface degrade API contract quality?
 
-**Đáp án cốt lõi:** Proxy bảo toàn hợp đồng của interface; **InvocationTargetException** là wrapper checked do Reflection tạo; nên tháo wrapper để truyền nguyên nhân thật; việc mở rộng **throws** phải phục vụ cách caller xử lý lỗi, không được dùng như mẹo che lỗi thiết kế.
+**Core answers:** The proxy preserves the interface's contract; **InvocationTargetException** is a checked wrapper created by Reflection; unwrap it to propagate the real cause; widening **throws** must serve how callers handle errors, never be used as a trick to mask design flaws.
 
-Khi đã trả lời được các câu hỏi trên và dự đoán đúng cả bốn dòng output, bạn đã hiểu được mối liên hệ giữa checked exception, cơ chế ủy quyền Reflection và **UndeclaredThrowableException** của JDK Dynamic Proxy.
+Once you can answer the questions above and accurately predict all four output lines, you understand the relationship between checked exceptions, Reflection delegation, and JDK Dynamic Proxy's **UndeclaredThrowableException**.

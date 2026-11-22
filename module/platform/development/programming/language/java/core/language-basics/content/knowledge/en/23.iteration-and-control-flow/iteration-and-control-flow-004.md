@@ -1,28 +1,28 @@
-# Thay đổi đối tượng được tham chiếu qua biến vòng lặp trong Java
+# Mutating a Referenced Object Through a Loop Variable in Java
 
-> **Java core — language-basics / Duyệt và chuyển luồng**  
-> **Môi trường:** JDK 17+, một file Java, chỉ dùng thư viện chuẩn.  
-> **Mục tiêu:** Phân biệt **thay đổi trạng thái đối tượng** qua biến enhanced `for` và **gán lại biến vòng lặp**; biết cách thay phần tử thực sự của mảng/`List`, hiểu alias, kiểu bất biến và những rủi ro khi sửa collection lúc đang duyệt.
+> **Java core — language-basics / Iteration and Control Flow**  
+> **Environment:** JDK 17+, single Java file, standard library only.  
+> **Goal:** Distinguish **mutating an object's state** through an enhanced `for` variable from **reassigning the loop variable**; know how to actually replace elements of an array/`List`, understand aliasing, immutable types, and the risks of modifying a collection while iterating.
 
-## 1. Enhanced `for` nhận giá trị phần tử vào biến cục bộ
+## 1. Enhanced `for` Receives the Element Value Into a Local Variable
 
 ~~~java
 for (ElementType element : source) {
-    // Sử dụng element.
+    // Use element.
 }
 ~~~
 
-Với mảng hoặc `Iterable`, mỗi lượt lấy một phần tử rồi gán giá trị đó cho biến cục bộ `element`. Cần phân biệt:
+With an array or `Iterable`, each iteration retrieves one element and assigns that value to the local variable `element`. Note the distinction:
 
-- **Kiểu nguyên thủy** như `int`: biến chứa **bản sao giá trị**. Sửa biến không sửa phần tử nguồn.
-- **Kiểu tham chiếu** như `StringBuilder`, `Box`: biến chứa **bản sao giá trị tham chiếu** tới cùng đối tượng. Gọi phương thức sửa đối tượng có thể quan sát được qua mảng/list.
-- **Gán lại biến** bằng `element = otherObject` chỉ thay **biến cục bộ** của lượt đó; không tự thay tham chiếu lưu ở mảng/list.
+- **Primitive types** such as `int`: the variable holds a **copy of the value**. Modifying the variable does not modify the source element.
+- **Reference types** such as `StringBuilder`, `Box`: the variable holds a **copy of the reference value** to the same object. Calling methods that mutate the object is observable through the array/list.
+- **Reassigning the variable** with `element = otherObject` only changes the **local variable** for that iteration; it does not automatically replace the reference stored in the array/list.
 
-Đây là ngữ nghĩa gán và tham chiếu của Java, không phải cơ chế “truyền tham chiếu” cho biến. Enhanced `for` **không cung cấp một vị trí có thể ghi ngược vào collection**.
+This reflects Java's assignment and reference semantics, not a "pass-by-reference" mechanism for variables. Enhanced `for` **does not provide a slot that can write back into the collection**.
 
-## 2. Sửa trạng thái đối tượng: phần tử gốc vẫn trỏ cùng đối tượng
+## 2. Mutating Object State: The Original Element Still Points to the Same Object
 
-Ví dụ với lớp `Box` có trạng thái mutable:
+Example with a `Box` class that has mutable state:
 
 ~~~java
 static final class Box {
@@ -39,50 +39,50 @@ static final class Box {
 }
 ~~~
 
-Một mảng chứa các tham chiếu `Box`:
+An array holding `Box` references:
 
 ~~~java
 Box[] boxes = {new Box(1), new Box(2)};
 
 for (Box box : boxes) {
-    box.add(10); // Thay đổi đối tượng mà phần tử trỏ tới.
+    box.add(10); // Modifies the object that the element points to.
 }
-// boxes chứa Box(11), Box(12).
+// boxes contains Box(11), Box(12).
 ~~~
 
-Trong mỗi lượt, `box` và `boxes[index]` **cùng trỏ đến một đối tượng**. Do đó thay đổi thuộc tính qua `box.add(10)` được nhìn thấy khi truy cập mảng về sau. Cơ chế tương tự áp dụng cho `ArrayList<Box>` và các nguồn `Iterable<Box>` có cùng tham chiếu đối tượng.
+On each iteration, `box` and `boxes[index]` **both point to the same object**. Hence, changing a property via `box.add(10)` is seen when accessing the array afterward. The same mechanism applies to `ArrayList<Box>` and other `Iterable<Box>` sources holding the same object references.
 
-Đối tượng được thay đổi, nhưng **vị trí phần tử trong mảng/list không bị thay thế**: không có thao tác `boxes[index] = ...` hoặc `list.set(index, ...)` trong ví dụ.
+The object is mutated, yet **the element slot in the array/list has not been replaced**: there is no `boxes[index] = ...` or `list.set(index, ...)` operation in the example.
 
-## 3. Gán lại biến vòng lặp không thay phần tử nguồn
+## 3. Reassigning the Loop Variable Does Not Replace the Source Element
 
 ~~~java
 Box[] boxes = {new Box(1), new Box(2)};
 
 for (Box box : boxes) {
-    box = new Box(99); // Chỉ gán cho biến local box.
+    box = new Box(99); // Only assigns to the local variable box.
 }
-// Mảng vẫn chứa Box(1), Box(2).
+// The array still contains Box(1), Box(2).
 ~~~
 
-Việc gán lại có thể làm `box` trỏ tới đối tượng khác **trong phần còn lại của lượt**, nhưng tham chiếu lưu ở mảng không thay đổi. Sang lượt tiếp theo, biến vòng lặp lại nhận phần tử tiếp theo từ mảng.
+Reassigning may make `box` point to another object **for the rest of that iteration**, but the reference stored in the array does not change. On the next iteration, the loop variable receives the next element from the array.
 
-Thậm chí nếu kết hợp hai thao tác:
+Even if you combine both operations:
 
 ~~~java
 for (Box box : boxes) {
-    box.add(1);        // Sửa Box ban đầu trong mảng.
-    box = new Box(99); // Đổi biến local, mảng không nhận Box(99).
+    box.add(1);        // Mutates the original Box in the array.
+    box = new Box(99); // Changes local variable; array does not receive Box(99).
 }
 ~~~
 
-Sau vòng này, phần tử mảng là `Box(2)` và `Box(3)`, **không phải** `Box(99)`.
+After this loop, the array elements are `Box(2)` and `Box(3)`, **not** `Box(99)`.
 
-Nếu khai báo `for (final Box box : boxes)`, Java cấm gán lại `box`, nhưng vẫn cho gọi `box.add(1)` nếu đối tượng cho phép sửa trạng thái: `final` bảo vệ **giá trị tham chiếu của biến**, không làm đối tượng tự động bất biến.
+If you declare `for (final Box box : boxes)`, Java forbids reassigning `box`, yet still allows calling `box.add(1)` if the object permits state mutation: `final` protects **the variable's reference value**, without automatically making the object immutable.
 
-## 4. Muốn thay phần tử thật, dùng chỉ số hoặc `ListIterator.set`
+## 4. To Replace the Actual Element, Use an Index or `ListIterator.set`
 
-Với **mảng**, thay tham chiếu bằng phép gán theo chỉ số:
+With an **array**, replace the reference using indexed assignment:
 
 ~~~java
 Box[] boxes = {new Box(1), new Box(2)};
@@ -93,7 +93,7 @@ for (int i = 0; i < boxes.length; i++) {
 // boxes: Box(2), Box(4).
 ~~~
 
-Với `List` hỗ trợ cập nhật, dùng `list.set(index, value)` khi có chỉ số. Khi muốn duyệt và thay phần tử tại vị trí hiện hành mà không tự quản lý chỉ số, `ListIterator.set(value)` là cách phù hợp:
+With a `List` that supports updates, use `list.set(index, value)` when you have an index. When you want to iterate and replace the element at the current position without managing an index manually, `ListIterator.set(value)` is the right approach:
 
 ~~~java
 java.util.List<Box> list = new java.util.ArrayList<>();
@@ -108,19 +108,19 @@ while (it.hasNext()) {
 // list: [Box(6), Box(8)].
 ~~~
 
-| Thao tác | Thay đối tượng đang được tham chiếu? | Thay phần tử ở mảng/list? |
+| Operation | Mutates the Referenced Object? | Replaces the Element in the Array/List? |
 | --- | --- | --- |
-| `box.add(5)` | Có, nếu `Box` mutable | Không thay tham chiếu phần tử |
-| `box = new Box(5)` | Không sửa đối tượng cũ | Không |
-| `array[i] = new Box(5)` | Không sửa đối tượng cũ | Có |
-| `list.set(i, new Box(5))` | Không sửa đối tượng cũ | Có nếu list cho phép |
-| `listIterator.set(new Box(5))` | Không sửa đối tượng cũ | Có nếu iterator cho phép |
+| `box.add(5)` | Yes, if `Box` is mutable | Does not replace the element reference |
+| `box = new Box(5)` | Does not modify old object | No |
+| `array[i] = new Box(5)` | Does not modify old object | Yes |
+| `list.set(i, new Box(5))` | Does not modify old object | Yes, if the list permits it |
+| `listIterator.set(new Box(5))` | Does not modify old object | Yes, if the iterator permits it |
 
-`List.of(...)` không hỗ trợ thay phần tử bằng `set`; cần dùng `ArrayList` hoặc một cấu trúc cho phép sửa. Tuy vậy, một list không sửa được cấu trúc vẫn có thể **chứa đối tượng mutable**: hạn chế thay phần tử và hạn chế sửa trạng thái đối tượng là hai vấn đề khác nhau.
+`List.of(...)` does not support replacing elements via `set`; you need to use `ArrayList` or a mutable structure. However, an unmodifiable list can still **contain mutable objects**: restricting element replacement and restricting object state mutation are two separate issues.
 
-## 5. Alias: nhiều biến cùng tham chiếu, nhưng thay phần tử không đổi alias cũ
+## 5. Aliasing: Multiple Variables Referencing the Same Object, Yet Replacing an Element Does Not Change Old Aliases
 
-Giả sử hai biến cùng giữ một đối tượng:
+Suppose two variables hold the same object:
 
 ~~~java
 Box original = new Box(5);
@@ -129,9 +129,9 @@ alias.add(2);
 // original.value() == 7; alias.value() == 7.
 ~~~
 
-Đây là **aliasing**: thay đổi trạng thái qua một tham chiếu được quan sát qua tham chiếu còn lại.
+This is **aliasing**: mutating state through one reference is observed through the other reference.
 
-Nhưng nếu list chứa `original` và ta **thay phần tử** bằng một đối tượng mới, `alias` vẫn trỏ tới `original`:
+However, if a list contains `original` and we **replace the element** with a new object, `alias` still points to `original`:
 
 ~~~java
 java.util.List<Box> list =
@@ -139,14 +139,14 @@ java.util.List<Box> list =
 
 list.set(0, new Box(100));
 // alias.value() == 7, list.get(0).value() == 100.
-// alias == list.get(0) là false.
+// alias == list.get(0) is false.
 ~~~
 
-Do đó, cần quyết định nghiệp vụ đang muốn **điều chỉnh đối tượng chung** hay **thay một phần tử bằng đối tượng khác**. Sửa đối tượng được nhiều nơi tham chiếu có thể ảnh hưởng không chủ ý tới tất cả nơi đang giữ alias.
+Therefore, you must decide whether the business logic intends to **modify a shared object** or **replace an element with a different object**. Mutating an object referenced in many places can unintentionally affect everywhere holding an alias.
 
-## 6. Đối tượng bất biến: ví dụ `String`
+## 6. Immutable Objects: Example `String`
 
-`String` là kiểu **bất biến** (*immutable*): không có phương thức thay nội dung của chính đối tượng. Phương thức `toUpperCase()` tạo/trả về một giá trị chuỗi thích hợp mà không sửa chuỗi nguồn.
+`String` is an **immutable** type: it has no methods that change the content of the object itself. Methods like `toUpperCase()` create/return an appropriate string value without modifying the source string.
 
 ~~~java
 java.util.List<String> names = new java.util.ArrayList<>(
@@ -155,19 +155,19 @@ java.util.List<String> names = new java.util.ArrayList<>(
 for (String name : names) {
     name = name.toUpperCase(java.util.Locale.ROOT);
 }
-// names vẫn là [an, binh].
+// names is still [an, binh].
 ~~~
 
-Ở đây gán lại biến `name` không thay phần tử list. Để chuyển đổi chính các phần tử nguồn:
+Here, reassigning the variable `name` does not replace the list elements. To transform the source elements themselves:
 
 ~~~java
 for (int i = 0; i < names.size(); i++) {
     names.set(i, names.get(i).toUpperCase(java.util.Locale.ROOT));
 }
-// names là [AN, BINH].
+// names is [AN, BINH].
 ~~~
 
-Ngược lại, `StringBuilder` mutable, nên `builder.append("!")` trong enhanced `for` thay đổi nội dung đối tượng:
+Conversely, `StringBuilder` is mutable, so `builder.append("!")` inside an enhanced `for` mutates the object's content:
 
 ~~~java
 java.util.List<StringBuilder> builders = new java.util.ArrayList<>();
@@ -176,20 +176,20 @@ builders.add(new StringBuilder("A"));
 for (StringBuilder builder : builders) {
     builder.append("!");
 }
-// builders chứa StringBuilder có nội dung "A!".
+// builders contains a StringBuilder with content "A!".
 ~~~
 
-**Quy tắc:** “Kiểu tham chiếu” không đồng nghĩa “đối tượng có thể sửa”. Cần xem API của kiểu và tính bất biến của đối tượng.
+**Rule:** "Reference type" does not mean "mutable object". You must check the type's API and the object's immutability.
 
-## 7. Null và sửa cấu trúc collection trong lúc duyệt
+## 7. Null and Modifying Collection Structure While Iterating
 
-- Nếu phần tử là `null`, biến enhanced `for` cũng nhận null. Gọi `box.add(1)` khi `box == null` sẽ ném `NullPointerException`; phải kiểm tra trước.
-- Nếu **mảng hoặc Iterable nguồn** là null, vòng enhanced `for` không thể bắt đầu duyệt và thường ném `NullPointerException`.
-- Khi duyệt `ArrayList` bằng enhanced `for`, tránh `list.add(...)` / `list.remove(...)` trực tiếp trong thân vì đó là **thay đổi cấu trúc** ngoài iterator, có thể gây `ConcurrentModificationException`. Đừng dựa vào fail-fast như một cơ chế đồng bộ chắc chắn.
-- Nếu cần xóa lúc duyệt, dùng `Iterator.remove()` nếu iterator hỗ trợ; nếu cần thay phần tử hiện hành, dùng `ListIterator.set()` nếu list/iterator hỗ trợ.
-- Thay **trạng thái bên trong Box** khi đang duyệt `List<Box>` không phải tự động là sửa cấu trúc `List`. Tuy nhiên, các cấu trúc dựa trên thuộc tính để sắp xếp/hash có thể mất tính nhất quán nếu đổi thuộc tính ảnh hưởng khóa sau khi chèn.
+- If an element is `null`, the enhanced `for` variable also receives null. Calling `box.add(1)` when `box == null` will throw `NullPointerException`; you must check beforehand.
+- If the **source array or Iterable** is null, the enhanced `for` loop cannot start iterating and will typically throw `NullPointerException`.
+- When iterating over an `ArrayList` with enhanced `for`, avoid `list.add(...)` / `list.remove(...)` directly inside the body because that is a **structural modification** outside the iterator, which can cause `ConcurrentModificationException`. Do not rely on fail-fast as a deterministic synchronization mechanism.
+- If removal during iteration is needed, use `Iterator.remove()` if the iterator supports it; if replacing the current element is needed, use `ListIterator.set()` if the list/iterator supports it.
+- Mutating **internal state of a Box** while iterating over `List<Box>` does not automatically count as modifying the `List`'s structure. However, structures that rely on properties for sorting/hashing may lose consistency if changing properties affects keys after insertion.
 
-Ví dụ xử lý phần tử nullable:
+Example handling nullable elements:
 
 ~~~java
 Box[] values = {null, new Box(5)};
@@ -199,12 +199,12 @@ for (Box box : values) {
         box.add(1);
     }
 }
-// values chứa null và Box(6).
+// values contains null and Box(6).
 ~~~
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone Java 17+ Program
 
-Tạo file **LoopReferenceMutationDemo.java**:
+Create the file **LoopReferenceMutationDemo.java**:
 
 ~~~java
 import java.util.ArrayList;
@@ -309,14 +309,14 @@ public final class LoopReferenceMutationDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell, Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 LoopReferenceMutationDemo.java
 java LoopReferenceMutationDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 arrayMutation=[Box(11), Box(12)]
@@ -335,30 +335,30 @@ builderMutation=[A!]
 nullable=[null, Box(6)]
 ~~~
 
-So sánh `arrayMutation`/`arrayRebind` và `listMutation`/`listRebind` để thấy **sửa trạng thái đối tượng ≠ gán lại biến**. `listAfterSet` khác `aliasOld` chứng minh thay phần tử không làm mọi tham chiếu cũ tự động đổi sang đối tượng mới.
+Compare `arrayMutation`/`arrayRebind` and `listMutation`/`listRebind` to see that **mutating object state ≠ reassigning a variable**. `listAfterSet` differing from `aliasOld` proves that replacing an element does not automatically switch all existing references to the new object.
 
-## 9. Lỗi thường gặp và bài tập
+## 9. Common Mistakes and Exercises
 
-| Lỗi | Cách sửa |
+| Mistake | Fix |
 | --- | --- |
-| Cho rằng `box = new Box(...)` trong for-each thay mảng/list | Dùng `array[i] = ...` hoặc `list.set(i, ...)` |
-| Cho rằng `box.add(1)` chỉ sửa bản sao đối tượng | Phân biệt bản sao **tham chiếu** với đối tượng gốc dùng chung |
-| Dùng `String.toUpperCase()` rồi bỏ kết quả | Gán kết quả vào phần tử theo chỉ số nếu muốn thay nội dung list |
-| Nghĩ `final Box box` làm `Box` bất biến | `final` chỉ ngăn gán lại biến tham chiếu |
-| Gọi phương thức trên phần tử null | Guard `if (box != null)` |
-| Xóa/thêm trực tiếp vào `ArrayList` trong enhanced for | Dùng iterator hỗ trợ xóa, hoặc chuyển cách xử lý |
-| Sửa phần tử của `List.of(...)` bằng `set` | Dùng một list cho phép sửa như `ArrayList` |
+| Assuming `box = new Box(...)` in for-each replaces the array/list element | Use `array[i] = ...` or `list.set(i, ...)` |
+| Assuming `box.add(1)` only modifies a copy of the object | Distinguish a **reference** copy from the shared original object |
+| Calling `String.toUpperCase()` and discarding the result | Assign the result to the element by index if you want to update list contents |
+| Thinking `final Box box` makes `Box` immutable | `final` only prevents reassigning the reference variable |
+| Calling methods on a null element | Guard with `if (box != null)` |
+| Removing/adding directly to an `ArrayList` inside enhanced for | Use an iterator that supports removal, or change the processing approach |
+| Modifying elements of `List.of(...)` with `set` | Use a mutable list such as `ArrayList` |
 
-**Bài 1.** Cho `Box[] array = {new Box(2), new Box(4)}`. Dự đoán kết quả nếu mỗi lượt lần lượt chạy `box.add(3)` và `box = new Box(0)`. Giải thích riêng hai phép.
+**Exercise 1.** Given `Box[] array = {new Box(2), new Box(4)}`. Predict the result if each iteration sequentially executes `box.add(3)` and `box = new Box(0)`. Explain each operation separately.
 
-**Bài 2.** Dùng vòng `for` có chỉ số để thay tất cả phần tử mảng bằng `new Box(old.value() * 2)`. So sánh với sửa đối tượng đang tồn tại bằng `add`.
+**Exercise 2.** Use an indexed `for` loop to replace every element of the array with `new Box(old.value() * 2)`. Compare this with mutating the existing objects via `add`.
 
-**Bài 3.** Viết `ArrayList<String>` có hai chuỗi thường, chuyển thành chữ hoa bằng `set` và kiểm tra vì sao gán lại biến trong for-each không đủ.
+**Exercise 3.** Write an `ArrayList<String>` containing two lowercase strings, convert them to uppercase using `set`, and verify why reassigning the variable in for-each is not enough.
 
-**Bài 4.** Giữ một alias tới phần tử đầu của `List<Box>`, sau đó thay phần tử bằng `set(0, new Box(...))`. Alias cũ và phần tử mới còn là cùng đối tượng không?
+**Exercise 4.** Keep an alias to the first element of a `List<Box>`, then replace the element with `set(0, new Box(...))`. Do the old alias and the new element still refer to the same object?
 
-**Bài 5.** Viết đoạn xử lý `List<Box>` có phần tử null; thêm một guard để tránh `NullPointerException` khi thay đổi thuộc tính.
+**Exercise 5.** Write code to process a `List<Box>` containing a null element; add a guard to avoid `NullPointerException` when mutating properties.
 
-### Ghi nhớ
+### Key Takeaways
 
-**Enhanced for chỉ đưa giá trị phần tử vào biến cục bộ.** Với kiểu tham chiếu, giá trị ấy trỏ tới cùng đối tượng: **gọi phương thức mutable** có thể sửa trạng thái đối tượng chung, còn **gán lại biến vòng lặp** không thay phần tử gốc. Muốn thay phần tử, dùng chỉ số, `List.set` hoặc `ListIterator.set`; nhớ phân biệt mutable/immutable và lưu ý alias, null, cũng như các giới hạn khi sửa collection trong lúc duyệt.
+**Enhanced for only places the element value into a local variable.** For reference types, that value points to the same object: **calling mutable methods** can change the shared object's state, whereas **reassigning the loop variable** does not replace the original element. To replace elements, use an index, `List.set`, or `ListIterator.set`; remember to distinguish mutable/immutable types and keep in mind aliasing, null, as well as the limits of modifying a collection while iterating.

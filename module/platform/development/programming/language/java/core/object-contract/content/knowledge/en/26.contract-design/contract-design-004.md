@@ -1,61 +1,61 @@
-# Quy định tường minh cách xử lý `null`, chuẩn hóa và dữ liệu suy ra trong hợp đồng đối tượng Java
+# Explicitly Specifying Null Handling, Normalization, and Derived Data in Java Object Contracts
 
-## 1. Vì sao đây là một phần của hợp đồng đối tượng?
+## 1. Why Is This Part of the Object Contract?
 
-Hợp đồng đối tượng (*object contract*) xác định trạng thái hợp lệ, ý nghĩa của các thuộc tính và hành vi có thể dự đoán của đối tượng: cách khởi tạo, đọc dữ liệu, so sánh bằng nhau (`equals()`), lấy mã băm (`hashCode()`), biểu diễn (`toString()`), cũng như những gì được phép thay đổi sau khi tạo. Nếu không nói rõ ba quy tắc **xử lý `null`**, **chuẩn hóa đầu vào** và **quản lý dữ liệu suy ra**, cùng một thông tin nghiệp vụ có thể sinh ra nhiều trạng thái mâu thuẫn.
+An *object contract* defines valid states, the meaning of attributes, and predictable object behavior: how to initialize, read data, compare equality (`equals()`), compute hash codes (`hashCode()`), represent as text (`toString()`), as well as what is allowed to change after creation. Without explicitly stating the three rules for **handling `null`**, **normalizing inputs**, and **managing derived data**, the same business information can produce multiple conflicting states.
 
-Ví dụ, mã hàng `" ab-17 "` và `"AB-17"` có nên là cùng mã? Ghi chú `null` có khác chuỗi trống `""` không? Tổng tiền có nên được lưu như một trường độc lập bên cạnh đơn giá và số lượng? Không có câu trả lời đúng cho mọi hệ thống; điều quan trọng là **chốt một chính sách cho từng thuộc tính, thực thi tại ranh giới tạo đối tượng và duy trì nhất quán trong toàn bộ vòng đời đối tượng**.
+For example, should product codes `" ab-17 "` and `"AB-17"` be the same code? Does a `null` note differ from an empty string `""`? Should total amount be stored as an independent field alongside unit price and quantity? There is no universal answer for every system; what matters is **locking in one policy per attribute, enforcing it at the object-creation boundary, and maintaining it consistently throughout the object's lifecycle**.
 
-Đối với *value object*, chính sách ấy quyết định cả `equals()` và `hashCode()`. Đối với *entity*, phải xác định thêm danh tính nghiệp vụ nào được dùng để so sánh; không nên mặc nhiên đưa mọi trường vào phép so sánh.
+For a *value object*, that policy governs both `equals()` and `hashCode()`. For an *entity*, you must additionally specify which business identity is used for comparison; you should not implicitly put every field into the comparison.
 
-## 2. Ba quyết định cần ghi vào hợp đồng
+## 2. Three Decisions to Record in the Contract
 
-| Nhóm | Câu hỏi phải trả lời | Ví dụ về quyết định minh bạch |
+| Category | Questions to Answer | Example of a Transparent Decision |
 | --- | --- | --- |
-| `null` | Trường bắt buộc hay tùy chọn? `null` có ý nghĩa độc lập với rỗng/không tồn tại không? | `sku` và `unitPrice` không nhận `null`; `note == null` được hiểu là ghi chú rỗng. |
-| Chuẩn hóa | Giá trị được chuẩn hóa ở đâu, theo thuật toán nào, có mất thông tin không? | Xóa khoảng trắng bao ngoài SKU, kiểm tra ký tự ASCII, chuyển chữ thường sang hoa bằng `Locale.ROOT`; không tự sửa mã sai. |
-| Dữ liệu suy ra | Trường nào là nguồn chân lý, trường nào tính từ nguồn, có được sửa độc lập không? | `total = unitPrice × quantity` được tính khi gọi phương thức; không nhận giá trị `total` từ caller. |
+| `null` | Is the field required or optional? Does `null` have a distinct meaning from empty/absent? | `sku` and `unitPrice` reject `null`; `note == null` is interpreted as an empty note. |
+| Normalization | Where is the value normalized, by what algorithm, and is any information lost? | Strip outer whitespace from SKU, validate ASCII characters, convert lowercase to uppercase with `Locale.ROOT`; do not auto-fix invalid codes. |
+| Derived data | Which field is the source of truth, which is computed from the source, and can it be modified independently? | `total = unitPrice × quantity` is computed on method call; no `total` value is accepted from callers. |
 
-### 2.1. `null`: từ chối, chuẩn hóa hay giữ nguyên?
+### 2.1. `null`: Reject, Normalize, or Preserve?
 
-Các lựa chọn đều hợp lệ **nếu phù hợp ngữ nghĩa miền dữ liệu**:
+All options are valid **if they match the data domain semantics**:
 
-1. **Bắt buộc có giá trị:** dùng `Objects.requireNonNull(value, "field")`, sau đó kiểm tra điều kiện miền (không rỗng, không âm, đúng định dạng). `requireNonNull` phát sinh `NullPointerException` với tên trường được cung cấp khi đối số là `null`. Nếu API quy định mọi dữ liệu đầu vào sai đều phải thành `IllegalArgumentException`, hãy chuyển đổi ngoại lệ một cách tường minh và nhất quán.
-2. **Tùy chọn nhưng vắng mặt và rỗng có cùng nghĩa:** quy về một biểu diễn chuẩn, ví dụ `note = note == null ? "" : note.strip()`. Khi đó caller quan sát `note()` luôn trả về chuỗi, không có `null`.
-3. **Tùy chọn và vắng mặt khác chuỗi rỗng:** giữ `null` hoặc mô hình trạng thái vắng mặt riêng; giải thích rõ `null`, `""`, `"   "` khác nhau ra sao. `Objects.equals(a, b)` giúp so sánh giá trị nullable mà không gây NPE.
-4. **Tùy chọn trong API trả về:** cân nhắc `Optional<T>` làm kiểu trả về khi làm rõ ý nghĩa vắng mặt; không tự động thay mọi trường nullable bằng `Optional` vì việc đó làm phức tạp mô hình dữ liệu, ánh xạ ORM và tuần tự hóa.
+1. **Required value:** use `Objects.requireNonNull(value, "field")`, then validate domain conditions (non-empty, non-negative, valid format). `requireNonNull` throws `NullPointerException` with the provided field name when the argument is `null`. If the API specifies that all invalid inputs must become `IllegalArgumentException`, convert the exception explicitly and consistently.
+2. **Optional, where absent and empty have the same meaning:** normalize to a single canonical representation, such as `note = note == null ? "" : note.strip()`. Callers observing `note()` then always receive a string, never `null`.
+3. **Optional, where absent differs from an empty string:** preserve `null` or model absence separately; clearly document how `null`, `""`, and `"   "` differ. `Objects.equals(a, b)` helps compare nullable values without throwing an NPE.
+4. **Optional in return APIs:** consider `Optional<T>` as a return type when clarifying the meaning of absence; do not automatically replace every nullable field with `Optional`, as that complicates the data model, ORM mapping, and serialization.
 
-Không dùng `"N/A"`, `0`, `false` hay thời điểm giả làm giá trị mặc định nếu các giá trị ấy có thể là dữ liệu nghiệp vụ thật. Không tự đồng nhất `null`, chuỗi trống và chuỗi toàn khoảng trắng trừ khi hợp đồng nêu rõ chúng là tương đương.
+Do not use `"N/A"`, `0`, `false`, or fake timestamps as default values if those values could be real business data. Do not implicitly equate `null`, empty strings, and whitespace-only strings unless the contract explicitly states they are equivalent.
 
-### 2.2. Chuẩn hóa: xác định biểu diễn chuẩn (*canonical form*)
+### 2.2. Normalization: Defining a *Canonical Form*
 
-Một hàm chuẩn hóa tốt cần **xác định được**, **ổn định**, **lặp lại không đổi** (`normalize(normalize(x)) == normalize(x)` đối với đầu vào hợp lệ), và phù hợp với khái niệm bằng nhau của miền nghiệp vụ. Các bước có thể bao gồm `strip()`, chuyển kiểu chữ, chuẩn hóa Unicode, quy đổi đơn vị, làm rõ múi giờ hoặc chuẩn hóa dạng thập phân. Nhưng mỗi bước đều có thể đổi nghĩa dữ liệu.
+A good normalization function must be **deterministic**, **stable**, **idempotent** (`normalize(normalize(x)) == normalize(x)` for valid inputs), and aligned with the business domain's notion of equality. Steps may include `strip()`, case conversion, Unicode normalization, unit conversion, time zone disambiguation, or decimal normalization. However, every step can alter the meaning of data.
 
-- **Mã định danh có quy tắc ASCII:** có thể cắt khoảng trắng hai đầu, chỉ cho phép `[A-Za-z0-9_-]`, sau đó chuyển thành chữ hoa với `Locale.ROOT`. Chỉ nên làm vậy nếu mã **không phân biệt hoa/thường theo đặc tả**. Kiểm tra ký tự trước khi biến đổi giúp ngăn việc vô tình hợp thức hóa ký tự ngoài tập được phép.
-- **Tên người và nội dung hiển thị:** không tự động xóa mọi khoảng trắng bên trong, bỏ dấu hoặc chuyển sang chữ thường chỉ để so sánh. Những phép đổi ấy có thể làm mất thông tin.
-- **Unicode:** nếu miền dữ liệu coi ký tự có dấu ở dạng dựng sẵn và dạng tổ hợp là cùng một ký tự, cân nhắc `Normalizer.normalize(text, Normalizer.Form.NFC)`. NFC không tự giải quyết tất cả quy tắc so sánh theo ngôn ngữ, chữ hoa/thường hay các vấn đề đồng dạng Unicode.
-- **Số thập phân:** `new BigDecimal("10.0").equals(new BigDecimal("10.00"))` là `false` do khác `scale`, dù `compareTo(...) == 0`. Với value object sử dụng `BigDecimal`, cần quyết định có chuẩn hóa `scale`, dùng quy tắc so sánh riêng hay giữ nguyên chính xác biểu diễn ban đầu.
-- **Ngày giờ và đơn vị:** làm rõ dùng `Instant` hay giờ địa phương, UTC hay vùng giờ miền nghiệp vụ, mét hay centimet. Chỉ chuẩn hóa nếu có đủ thông tin để không đánh mất nghĩa.
+- **Identifiers with ASCII rules:** you can trim leading/trailing whitespace, allow only `[A-Za-z0-9_-]`, and then convert to uppercase with `Locale.ROOT`. Only do this if the code is **case-insensitive per specification**. Checking characters before transforming prevents accidentally validating characters outside the allowed set.
+- **Person names and display text:** do not automatically strip all internal whitespace, remove diacritics, or lowercase just for comparison. Such transformations can lose information.
+- **Unicode:** if the data domain treats precomposed and decomposed accented characters as the same character, consider `Normalizer.normalize(text, Normalizer.Form.NFC)`. NFC alone does not solve all language-specific collation rules, letter casing, or Unicode homoglyph issues.
+- **Decimal numbers:** `new BigDecimal("10.0").equals(new BigDecimal("10.00"))` is `false` due to differing `scale`, even though `compareTo(...) == 0`. For value objects using `BigDecimal`, decide whether to normalize `scale`, use a separate comparison rule, or preserve the exact original representation.
+- **Dates/times and units:** clarify whether to use `Instant` or local time, UTC or a business time zone, meters or centimeters. Only normalize when enough information exists so meaning is not lost.
 
-**Không nên coi chuẩn hóa là “sửa dữ liệu bằng mọi giá”.** Với mã hàng không hợp lệ, từ chối thường tốt hơn cắt bỏ ký tự lạ khiến hai mã khác nhau bất ngờ nhập làm một. Nếu phép chuẩn hóa làm hai đầu vào khác nhau trở thành một giá trị, đó là một quyết định nghiệp vụ cần tài liệu và kiểm thử.
+**Do not treat normalization as "fixing data at all costs".** For an invalid product code, rejecting is usually better than stripping strange characters and unexpectedly merging two different codes into one. If normalization turns two different inputs into the same value, that is a business decision requiring documentation and testing.
 
-### 2.3. Dữ liệu suy ra: một nguồn chân lý
+### 2.3. Derived Data: A Single Source of Truth
 
-Giả sử `total = unitPrice.multiply(quantity)`. Nếu đối tượng đồng thời giữ `quantity`, `unitPrice` **và** `total` có thể gán tùy ý, hợp đồng phải giải thích sẽ làm gì khi ba giá trị không khớp. Cách an toàn với phép tính rẻ là **chỉ lưu hai đầu vào và tính `total()` theo nhu cầu**. Khi đó không tồn tại trạng thái `total` bị cũ.
+Suppose `total = unitPrice.multiply(quantity)`. If the object simultaneously holds `quantity`, `unitPrice`, **and** an independently assignable `total`, the contract must explain what happens when the three values disagree. The safe approach for inexpensive calculations is **storing only the two inputs and computing `total()` on demand**. That way no stale `total` state can exist.
 
-Nếu tính toán đắt và cần cache, hãy ghi rõ: cache có ảnh hưởng đến `equals()`/`hashCode()` không (thường là **không**), khi nào cache mất hiệu lực, xử lý luồng đồng thời ra sao, và cache có được tái dựng sau deserialization không. Với đối tượng bất biến, lazy cache có thể dùng trong các trường hợp cụ thể nhưng phải xem xét thread safety và chi phí; không tự tạo cache khi phép tính đơn giản.
+If the calculation is expensive and needs caching, specify clearly: whether the cache affects `equals()`/`hashCode()` (typically **no**), when the cache is invalidated, how concurrency is handled, and whether the cache is rebuilt after deserialization. For immutable objects, lazy caching can be used in specific cases, but you must evaluate thread safety and overhead; do not invent a cache when the computation is simple.
 
-## 3. Ví dụ đầy đủ: `OrderLine` bất biến trên Java 17+
+## 3. Complete Example: Immutable `OrderLine` on Java 17+
 
-Chính sách minh họa:
+Illustrative policy:
 
-- `sku`: bắt buộc, chỉ nhận chữ cái ASCII, số, `_`, `-`; bỏ khoảng trắng hai đầu; chữ hoa/thường tương đương.
-- `note`: tùy chọn; `null`, chuỗi trống và chuỗi chỉ chứa khoảng trắng được xem là cùng một ghi chú rỗng; giữ nguyên phân biệt hoa/thường của nội dung còn lại.
-- `quantity`: số nguyên dương; không có giá trị mặc định ngầm.
-- `unitPrice`: không `null`, không âm; tối đa hai chữ số thập phân. Chuẩn hóa về `scale = 2` và **từ chối** nếu cần làm tròn.
-- `total`: bằng `unitPrice × quantity`, luôn tính từ trạng thái hiện tại; không nằm trong thành phần lưu trữ.
+- `sku`: required, accepts only ASCII letters, digits, `_`, `-`; trims leading/trailing whitespace; case-insensitive equivalence.
+- `note`: optional; `null`, empty string, and whitespace-only strings are treated as the same empty note; preserves case sensitivity for remaining content.
+- `quantity`: positive integer; no implicit default value.
+- `unitPrice`: non-`null`, non-negative; at most two decimal places. Normalized to `scale = 2` and **rejected** if rounding is needed.
+- `total`: equals `unitPrice × quantity`, always computed from current state; not stored as a component.
 
-`record` tự sinh `equals()`, `hashCode()` và `toString()` từ các thành phần của record. Constructor dạng *compact* bên dưới chuyển mọi đầu vào hợp lệ sang biểu diễn chuẩn **trước khi Java tự gán các tham số vào trường cuối cùng**. Vì thế so sánh giá trị hoạt động nhất quán trên các trường được chuẩn hóa.
+`record` auto-generates `equals()`, `hashCode()`, and `toString()` from the record components. The *compact* constructor below converts every valid input to its canonical form **before Java automatically assigns the parameters to the final fields**. Thus value comparison operates consistently on normalized fields.
 
 ```java
 import java.math.BigDecimal;
@@ -136,14 +136,14 @@ public class ObjectContractDemo {
 }
 ```
 
-Đặt tên tệp là `ObjectContractDemo.java`. Biên dịch và chạy trên JDK 17 trở lên:
+Name the file `ObjectContractDemo.java`. Compile and run on JDK 17 or higher:
 
 ```bash
 javac -encoding UTF-8 ObjectContractDemo.java
 java ObjectContractDemo
 ```
 
-Kết quả xác định (không phụ thuộc vào số identity hash code ngẫu nhiên của JVM):
+Deterministic output (independent of random JVM identity hash codes):
 
 ```text
 same value: true
@@ -159,90 +159,90 @@ blank sku rejected
 too precise price rejected
 ```
 
-**Đọc kết quả:** `first` và `second` là hai instance khác nhau (`== false`) nhưng sau chuẩn hóa chúng có bốn thành phần tương ứng bằng nhau, vì vậy `equals()` trả về `true`, hash bằng nhau và `HashSet` chỉ lưu một phần tử. `note` là một thành phần của **value equality**, nên bản ghi có ghi chú `gift` khác về giá trị; `total()` được tính từ hai thành phần gốc và có `scale = 2`. Nếu nghiệp vụ muốn bỏ qua `note` trong phép so sánh, cần thiết kế hợp đồng `equals()`/`hashCode()` khác một cách nhất quán; không thể vừa dùng equality mặc định của record vừa mong nó bỏ qua một thành phần.
+**Reading the output:** `first` and `second` are two distinct instances (`== false`), yet after normalization their four corresponding components are equal, so `equals()` returns `true`, their hashes match, and `HashSet` stores only one element. `note` is a component of **value equality**, so the record with note `gift` differs in value; `total()` is computed from the two source components and has `scale = 2`. If the business wants to ignore `note` in comparisons, you must design a different `equals()`/`hashCode()` contract consistently; you cannot use a record's default equality and expect it to skip a component.
 
-Ví dụ đặt quy tắc **từ chối** nhiều hơn là tự sửa: `sku` sai định dạng, số lượng không dương, giá âm, hoặc giá buộc phải làm tròn đều thất bại lúc khởi tạo. Điều này giúp đối tượng đã tạo luôn tuân thủ bất biến (*invariant*).
+The example sets **rejection** rules rather than silent correction: malformed `sku`, non-positive quantity, negative price, or price requiring rounding all fail at initialization. This ensures constructed objects always uphold their *invariants*.
 
-## 4. `equals()`, `hashCode()` và dữ liệu chuẩn hóa liên hệ thế nào?
+## 4. How Do `equals()`, `hashCode()`, and Normalized Data Relate?
 
-Đối với value object, hãy lựa chọn **các thành phần tham gia equality** theo ý nghĩa thực của giá trị. Nếu `equals()` dựa trên biểu diễn chuẩn của trường, `hashCode()` phải dùng cùng các thành phần với cùng quy tắc. Cụ thể:
+For value objects, select the **components participating in equality** according to the true meaning of the value. If `equals()` relies on the canonical representation of fields, `hashCode()` must use the same components with the same rules. Specifically:
 
-- **Phản xạ:** `x.equals(x)` phải `true`.
-- **Đối xứng:** `x.equals(y)` và `y.equals(x)` phải trả kết quả giống nhau.
-- **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` thì `x.equals(z)`.
-- **Nhất quán:** nếu trạng thái liên quan đến equality không đổi, kết quả phải ổn định.
-- **Đối với `null`:** `x.equals(null)` phải `false`.
-- **Hợp đồng hash:** nếu `x.equals(y)` thì `x.hashCode() == y.hashCode()`; chiều ngược lại **không** được bảo đảm do collision.
+- **Reflexive:** `x.equals(x)` must be `true`.
+- **Symmetric:** `x.equals(y)` and `y.equals(x)` must return the same result.
+- **Transitive:** if `x.equals(y)` and `y.equals(z)` then `x.equals(z)`.
+- **Consistent:** if state relevant to equality does not change, results must remain stable.
+- **Against `null`:** `x.equals(null)` must be `false`.
+- **Hash contract:** if `x.equals(y)` then `x.hashCode() == y.hashCode()`; the converse is **not** guaranteed due to collisions.
 
-`record` phát sinh các phương thức này từ những thành phần lưu trữ. Trong ví dụ, chuẩn hóa giá về cùng `scale` đặc biệt hữu ích vì `BigDecimal.equals()` phân biệt `10.0` và `10.00`; `record` sẽ kế thừa chính cách so sánh đó cho trường `unitPrice`. Khi thiết kế một class thường và tự override `equals()`/`hashCode()`, áp dụng cùng chính sách cho cả hai, và không đưa giá trị suy ra có thể thay đổi vào hash nếu giá trị ấy không thuộc identity/equality.
+`record` derives these methods from the stored components. In the example, normalizing price to the same `scale` is especially helpful because `BigDecimal.equals()` distinguishes `10.0` from `10.00`; `record` inherits that exact comparison for the `unitPrice` field. When designing a regular class and overriding `equals()`/`hashCode()` manually, apply the same policy to both, and do not include a mutable derived value in the hash if that value is not part of identity/equality.
 
-**Phân biệt entity và value object:** Nếu hai entity có cùng `sku` nhưng khác các trường nghiệp vụ vẫn được xem là cùng thực thể, cần một khóa định danh ổn định cùng chính sách equality riêng. Record minh họa ở trên là **value object**: mọi thành phần (`sku`, `note`, `quantity`, `unitPrice`) đều có ý nghĩa trong phép so sánh.
+**Distinguishing entity and value object:** If two entities with the same `sku` but different business fields are still considered the same entity, you need a stable identity key and a separate equality policy. The record illustrated above is a **value object**: every component (`sku`, `note`, `quantity`, `unitPrice`) is meaningful in comparisons.
 
-## 5. Ổn định dữ liệu và nguy cơ khi để trạng thái thay đổi
+## 5. Data Stability and the Risks of Allowing Mutable State
 
-Với một đối tượng đã được thêm vào `HashSet` hoặc dùng làm khóa `HashMap`, thay đổi trường dùng trong `equals()`/`hashCode()` có thể khiến tra cứu thất bại hoặc hành vi tập hợp trở nên khó dự đoán. Vì vậy, value object dùng làm khóa nên bất biến; thay đổi dữ liệu nên tạo instance mới. `record` ở ví dụ có thành phần `String`, `int`, `BigDecimal` bất biến và không trả tham chiếu tới cấu trúc có thể sửa đổi.
+For an object already added to a `HashSet` or used as a `HashMap` key, modifying a field used in `equals()`/`hashCode()` can cause lookups to fail or collection behavior to become unpredictable. Therefore, value objects used as keys should be immutable; changing data should create a new instance. The `record` in the example has immutable `String`, `int`, and `BigDecimal` components and returns no references to modifiable structures.
 
-Với class có `List`, `Date`, mảng hoặc đối tượng mutable, chỉ khai báo `final` trên tham chiếu **chưa đủ** tạo bất biến sâu; cần sao chép phòng thủ và quyết định cách expose giá trị. Tránh trả trực tiếp mảng nội bộ hoặc giữ tham chiếu đến collection bên ngoài có thể bị sửa sau khi khởi tạo.
+For classes containing `List`, `Date`, arrays, or mutable objects, declaring `final` on the reference is **not enough** for deep immutability; defensive copying and an exposure policy are required. Avoid returning internal arrays directly or retaining references to external collections that can be mutated after initialization.
 
-### 5.1. Phân biệt dữ liệu nguồn và dữ liệu cache
+### 5.1. Distinguishing Source Data from Cached Data
 
 ```java
-// Minh họa đoạn trích: KHÔNG phải chương trình độc lập.
-// Không nên giữ total độc lập nếu quantity/unitPrice còn đổi tự do:
+// Illustrative snippet: NOT a standalone program.
+// Do not store total independently if quantity/unitPrice can still change freely:
 BigDecimal total = unitPrice.multiply(BigDecimal.valueOf(quantity));
-// Khi quantity thay đổi, total cũ sẽ sai nếu không được cập nhật.
+// When quantity changes, the old total becomes stale if not updated.
 ```
 
-Trong tình huống cần đối tượng mutable, mọi thao tác ghi phải giữ các invariant, cập nhật hoặc vô hiệu hóa cache phụ thuộc, đồng thời bảo vệ truy cập đồng thời nếu được chia sẻ giữa các thread. Cách đơn giản hơn thường là bất biến hóa trạng thái và tính lại trường suy ra trong phương thức truy cập.
+In situations requiring mutable objects, every write operation must preserve invariants, update or invalidate dependent caches, and guard concurrent access if shared across threads. A simpler approach is usually making state immutable and recomputing derived fields in the accessor method.
 
-### 5.2. `toString()`, log và tuần tự hóa
+### 5.2. `toString()`, Logging, and Serialization
 
-`toString()` là một phần giao diện quan sát được: cần quy định cách biểu diễn `null`, giá trị chuẩn hóa và trường suy ra, cũng như những gì **không** được in vì nhạy cảm (mật khẩu, token, dữ liệu cá nhân). `record.toString()` mặc định hiển thị thành phần của record, nên không dùng mặc định vô điều kiện với dữ liệu nhạy cảm. Nếu JSON hoặc cơ sở dữ liệu lưu giá trị trước chuẩn hóa, đường nạp lại phải duy trì invariant hoặc báo dữ liệu không hợp lệ; không nên để constructor, mapper, factory và deserializer áp các quy tắc khác nhau.
+`toString()` is part of the observable interface: specify how `null`, normalized values, and derived fields are represented, as well as what must **not** be printed due to sensitivity (passwords, tokens, personal data). Default `record.toString()` displays record components, so do not use the default unconditionally with sensitive data. If JSON or a database stores pre-normalized values, the reload path must enforce invariants or report invalid data; do not let constructors, mappers, factories, and deserializers apply different rules.
 
-## 6. Những chính sách phải kiểm thử
+## 6. Policies That Must Be Tested
 
-| Tình huống đầu vào | Kỳ vọng trong ví dụ | Lý do |
+| Input Case | Expected in Example | Reason |
 | --- | --- | --- |
-| `sku = null` | Từ chối bằng `NullPointerException` | Trường bắt buộc, kiểm tra bằng `requireNonNull`. |
-| `sku = "  "` | Từ chối bằng `IllegalArgumentException` | Sau `strip()` không còn mã hợp lệ. |
-| `sku = " ab-17 "` và `"AB-17"` | Cùng giá trị chuẩn `AB-17` | Mã không phân biệt hoa/thường theo chính sách đã công bố. |
-| `sku` có dấu hoặc ký tự lạ | Từ chối | Bộ ký tự được giới hạn rõ ràng. |
-| `note = null`, `""`, `"  "` | Cùng giá trị chuẩn `""` | Chính sách gộp vắng mặt và rỗng. |
-| `note = "Gift"` và `"gift"` | Khác nhau | Ghi chú chỉ được `strip()`, không đổi kiểu chữ. |
-| `quantity = 0` hoặc số âm | Từ chối | Điều kiện `quantity > 0`. |
-| `unitPrice = null` hoặc âm | Từ chối | Trường bắt buộc, giá không âm. |
-| `unitPrice = 10.0` và `10.00` | Cùng biểu diễn `10.00` | Chuẩn hóa `BigDecimal` về `scale = 2`. |
-| `unitPrice = 1.234` | Từ chối; không làm tròn âm thầm | `RoundingMode.UNNECESSARY` buộc chính xác tuyệt đối. |
-| Hai bản ghi chuẩn hóa bằng nhau | `equals()` và hash bằng nhau | Hợp đồng value object. |
-| Cùng giá trị nguồn, tính `total()` nhiều lần | Cùng kết quả | Trường suy ra không có cache sai lệch. |
+| `sku = null` | Rejected with `NullPointerException` | Required field, checked with `requireNonNull`. |
+| `sku = "  "` | Rejected with `IllegalArgumentException` | After `strip()`, no valid code remains. |
+| `sku = " ab-17 "` and `"AB-17"` | Same canonical value `AB-17` | Code is case-insensitive per published policy. |
+| `sku` with accents or invalid characters | Rejected | Character set is explicitly restricted. |
+| `note = null`, `""`, `"  "` | Same canonical value `""` | Policy merges absent and empty. |
+| `note = "Gift"` and `"gift"` | Different | Note is only stripped, case is not changed. |
+| `quantity = 0` or negative | Rejected | Condition `quantity > 0`. |
+| `unitPrice = null` or negative | Rejected | Required field, non-negative price. |
+| `unitPrice = 10.0` and `10.00` | Same representation `10.00` | `BigDecimal` normalized to `scale = 2`. |
+| `unitPrice = 1.234` | Rejected; no silent rounding | `RoundingMode.UNNECESSARY` enforces exact precision. |
+| Two records equal after normalization | Equal `equals()` and hashes | Value object contract. |
+| Same source values, calling `total()` multiple times | Same result | Derived field has no stale cache. |
 
-Điều kiện về `null`, `equals()`/`hashCode()`, trường hợp biên sau chuẩn hóa, vòng đời object và dữ liệu nạp lại nên được kiểm tra cả với đơn vị kiểm thử tự động. Nếu quy tắc chuẩn hóa đổi trong phiên bản mới, xem xét tác động tới khóa map, dữ liệu database, tìm kiếm, API client, và các bản ghi đã tồn tại: thay đổi chính sách bình đẳng có thể tạo hoặc giải quyết collision nghiệp vụ.
+Rules for `null`, `equals()`/`hashCode()`, post-normalization edge cases, object lifecycle, and reloaded data should all be verified with automated unit tests. If normalization rules change in a new version, assess the impact on map keys, database data, search, API clients, and existing records: changing equality policies can create or resolve business collisions.
 
-## 7. Các lỗi thiết kế thường gặp
+## 7. Common Design Mistakes
 
-1. **Bỏ `null` qua nhiều lớp mà không định nghĩa nghĩa:** null gây NPE ở nơi xa nguồn gốc. Hãy xác thực tại ranh giới tạo đối tượng và công khai chính sách.
-2. **Chuẩn hóa chỉ ở một đường tạo:** factory chuẩn hóa nhưng ORM/JSON mapper nạp trường nguyên gốc. Kết quả là cùng đối tượng nghiệp vụ có hai biểu diễn, khiến equality và tra cứu không nhất quán.
-3. **Ép chuỗi rỗng thành `null` hoặc ngược lại tùy tiện:** làm mất khác biệt nghiệp vụ giữa “chưa nhập” và “cố ý để trống”.
-4. **Dùng locale mặc định cho khóa kỹ thuật:** kiểu chữ có thể biến đổi theo máy/chính sách vùng. Với mã ASCII không phân biệt hoa/thường, dùng `Locale.ROOT` và quy định tập ký tự.
-5. **Dùng `BigDecimal.compareTo()` ở một nơi, `equals()` ở nơi khác nhưng không nêu quy tắc scale:** đối tượng có thể “bằng nhau” trong tính toán nhưng khác trong `HashSet`.
-6. **Lưu và cho sửa riêng giá trị suy ra:** dễ tạo trạng thái mâu thuẫn khi dữ liệu nguồn đổi.
-7. **Đưa cache, timestamp quan sát hoặc trường có thể thay đổi vào `hashCode()`:** làm hỏng tính ổn định của key trong collection băm.
-8. **Dùng record như entity mà không xem equality mặc định:** record so sánh theo toàn bộ thành phần, không tự suy luận định danh nghiệp vụ.
+1. **Letting `null` pass through multiple layers without defining its meaning:** null causes NPEs far from the origin. Validate at the object-creation boundary and publish the policy.
+2. **Normalizing on only one creation path:** a factory normalizes, while an ORM/JSON mapper loads raw fields. As a result, the same business object has two representations, making equality and lookup inconsistent.
+3. **Arbitrarily coercing empty strings to `null` or vice versa:** erases the business distinction between "not entered" and "intentionally left blank".
+4. **Using the default locale for technical keys:** letter casing can vary by host machine/regional settings. For case-insensitive ASCII codes, use `Locale.ROOT` and specify the character set.
+5. **Using `BigDecimal.compareTo()` in one place and `equals()` in another without stating a scale rule:** objects can be "equal" in calculations yet distinct in a `HashSet`.
+6. **Storing and allowing separate edits to derived values:** easily creates inconsistent state when source data changes.
+7. **Putting caches, observation timestamps, or mutable fields into `hashCode()`:** breaks key stability in hash collections.
+8. **Using a record as an entity without examining default equality:** records compare all components and do not infer business identity automatically.
 
-## 8. Checklist chốt hợp đồng
+## 8. Contract Finalization Checklist
 
-- Với **mỗi trường**, mô tả bắt buộc/tùy chọn, ý nghĩa `null`/rỗng, giá trị hợp lệ và loại ngoại lệ khi vi phạm.
-- Mô tả cụ thể **thuật toán chuẩn hóa**, thứ tự thực hiện, trường hợp bị từ chối và dữ liệu có thể bị gộp.
-- Xác định **nguồn chân lý**; phân biệt trạng thái lưu trữ, giá trị suy ra và cache.
-- Chốt **equality/identity/hash**, tránh phụ thuộc trường mutable; kiểm tra tương thích với collection và serialization.
-- Đảm bảo mọi đường tạo/nạp đối tượng dùng cùng chính sách, đồng thời kiểm thử các trường hợp biên và phiên bản dữ liệu cũ.
+- For **each field**, document required/optional status, meaning of `null`/empty, valid values, and exception types on violation.
+- Specify the **normalization algorithm**, execution order, rejected cases, and data that may be merged.
+- Identify the **source of truth**; distinguish stored state, derived values, and caches.
+- Lock down **equality/identity/hash**, avoiding dependence on mutable fields; check compatibility with collections and serialization.
+- Ensure all object creation/loading paths use the same policy, and test edge cases and legacy data versions.
 
-**Nguyên tắc cốt lõi:** Một đối tượng hợp lệ phải có cách biểu diễn được định nghĩa rõ; cùng đầu vào theo ngữ nghĩa phải dẫn đến cùng trạng thái chuẩn, dữ liệu suy ra phải khớp với nguồn, và toàn bộ hành vi `equals()`/`hashCode()` phải phản ánh chính sách đó.
+**Core principle:** A valid object must have a well-defined representation; semantically identical inputs must lead to the same canonical state, derived data must match the source, and all `equals()`/`hashCode()` behavior must reflect that policy.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — `Object.equals()` và `Object.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html)
+- [Java SE 17 — `Object.equals()` and `Object.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html)
 - [Java SE 17 — `Objects.requireNonNull()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html)
-- [Java SE 17 — `BigDecimal` và `RoundingMode`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html)
+- [Java SE 17 — `BigDecimal` and `RoundingMode`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html)
 - [Java SE 17 — `String.strip()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#strip())
-- [Java Language Specification 17 — Record Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10)
+- [Java Language Specification 17 — Record Classes](https://docs.oracle.com/en/java/javase/specs/jls/se17/html/jls-8.html#jls-8.10)

@@ -1,26 +1,26 @@
-# Unboxing và widening primitive khi gọi `Method.invoke` hoặc `Constructor.newInstance`
+# Unboxing and Primitive Widening When Calling `Method.invoke` or `Constructor.newInstance`
 
-Khi gọi một phương thức hay constructor qua Java Reflection, tham số mà ứng dụng cung cấp đi qua một API nhận **`Object` hoặc `Object...`**, trong khi chữ ký gốc có thể đòi `int`, `long`, `double` hoặc các kiểu primitive khác. Java Reflection có quy tắc chuyển đổi tương ứng để đưa các đối số runtime vào đúng formal parameter của phương thức/constructor đích:
+When calling a method or constructor via Java Reflection, the arguments supplied by the application pass through an API that accepts **`Object` or `Object...`**, whereas the original signature may require `int`, `long`, `double`, or other primitive types. Java Reflection has corresponding conversion rules to pass runtime arguments into the target method/constructor's formal parameters:
 
-1. Nếu formal parameter là primitive, đối số phù hợp thường là một **wrapper object** như `Integer`, `Byte`, `Character`. Reflection có thể **unbox** wrapper thành primitive.
-2. Sau khi unbox, Reflection có thể thực hiện **widening primitive conversion** — ví dụ `byte → long` hoặc `int → double`.
-3. Reflection **không thực hiện narrowing primitive conversion** như `long → int` hoặc `double → long`, ngay cả khi giá trị thực tế trông có vẻ vừa phạm vi đích.
-4. Khi số lượng đối số, receiver, quyền truy cập hoặc kiểu dữ liệu không phù hợp, Reflection phát sinh exception thích hợp; đặc biệt chuyển đổi đối số không hợp lệ thường gây `IllegalArgumentException` **trước khi body của method/constructor được thực thi**.
+1. If a formal parameter is primitive, a compatible argument is typically a **wrapper object** such as `Integer`, `Byte`, or `Character`. Reflection can **unbox** the wrapper into a primitive.
+2. After unboxing, Reflection can perform **widening primitive conversion** — for example `byte → long` or `int → double`.
+3. Reflection **does not perform narrowing primitive conversion** such as `long → int` or `double → long`, even when the actual value appears to fit in the target range.
+4. When the argument count, receiver, access permission, or data type is incompatible, Reflection throws the appropriate exception; in particular, invalid argument conversion typically causes `IllegalArgumentException` **before the target method/constructor body is executed**.
 
-Hai API trọng tâm:
+Two central APIs:
 
 ~~~java
 Object result = method.invoke(receiver, arg1, arg2);
 Object created = constructor.newInstance(arg1, arg2);
 ~~~
 
-Đây là các biểu thức minh họa: `method` phải là `java.lang.reflect.Method`, `constructor` phải là `java.lang.reflect.Constructor<?>`; các reflection checked exceptions cần được xử lý. Bài học phân biệt rõ **kiểu formal khai báo**, **kiểu runtime của đối số**, **unboxing**, **widening**, và các lỗi dễ gặp khi dùng API varargs.
+These are illustrative expressions: `method` must be `java.lang.reflect.Method`, `constructor` must be `java.lang.reflect.Constructor<?>`; reflection checked exceptions must be handled. This lesson clearly distinguishes **declared formal types**, **argument runtime types**, **unboxing**, **widening**, and common pitfalls when using varargs APIs.
 
-## 1. Bối cảnh: primitive, wrapper và API nhận `Object...`
+## 1. Context: primitives, wrappers, and APIs accepting `Object...`
 
-Primitive không phải object, nhưng Java có wrapper tương ứng:
+Primitives are not objects, but Java has corresponding wrappers:
 
-| Primitive | Wrapper | Ví dụ object |
+| Primitive | Wrapper | Object example |
 | --- | --- | --- |
 | `boolean` | `Boolean` | `Boolean.TRUE` |
 | `byte` | `Byte` | `Byte.valueOf((byte) 5)` |
@@ -31,31 +31,31 @@ Primitive không phải object, nhưng Java có wrapper tương ứng:
 | `float` | `Float` | `Float.valueOf(2.5f)` |
 | `double` | `Double` | `Double.valueOf(2.5)` |
 
-Ví dụ lời gọi source:
+Source call example:
 
 ~~~java
 someMethod.invoke(receiver, 5, 2.5);
 ~~~
 
-Tại **lời gọi tới `invoke(Object, Object...)`**, biểu thức `5` và `2.5` được Java compiler **boxing** thành các object có kiểu tương ứng `Integer` và `Double` để đưa vào mảng `Object[]`. Sau đó, khi Reflection gọi **phương thức đích**, các wrapper có thể được **unbox** và **widen** theo chữ ký formal thực tế.
+At the **call to `invoke(Object, Object...)`**, the expressions `5` and `2.5` are **boxed** by the Java compiler into objects of type `Integer` and `Double` respectively to be placed into the `Object[]` array. Afterwards, when Reflection invokes the **target method**, the wrappers can be **unboxed** and **widened** according to the actual formal signature.
 
-Cần phân biệt ba lớp:
+Three layers must be distinguished:
 
-- **Compile time của mã gọi Reflection:** compiler nhìn thấy `invoke(Object, Object...)` hay `newInstance(Object...)`, chứ không tự chọn overload của method đích dựa trên từng argument.
-- **Runtime argument matching:** Reflection kiểm tra số lượng formal parameters, kiểu tham số và giá trị object thật, rồi áp dụng chuyển đổi được phép.
-- **Invocation của body đích:** chỉ xảy ra nếu các kiểm tra và phép chuyển đổi cần thiết thành công; exception bên trong body được xử lý theo cơ chế `InvocationTargetException`.
+- **Compile time of the Reflection-calling code:** the compiler sees `invoke(Object, Object...)` or `newInstance(Object...)`, rather than automatically selecting an overload of the target method based on each argument.
+- **Runtime argument matching:** Reflection checks the number of formal parameters, parameter types, and actual object values, then applies permitted conversions.
+- **Invocation of the target body:** only occurs if the required checks and conversions succeed; exceptions inside the body are handled via the `InvocationTargetException` mechanism.
 
-`Constructor.newInstance` không phải `Class.newInstance()`. Trong Java hiện đại, nên dùng `getDeclaredConstructor(...).newInstance(...)` hoặc `getConstructor(...).newInstance(...)`; `Class.newInstance()` đã deprecated.
+`Constructor.newInstance` is not `Class.newInstance()`. In modern Java, use `getDeclaredConstructor(...).newInstance(...)` or `getConstructor(...).newInstance(...)`; `Class.newInstance()` has been deprecated.
 
-## 2. Unboxing trong Reflection thực sự là gì?
+## 2. What is unboxing in Reflection actually?
 
-Giả sử phương thức đích:
+Suppose the target method is:
 
 ~~~java
 public static void record(int code) { /* ... */ }
 ~~~
 
-Đây là phương thức minh họa, cần đặt trong class Java. Nếu ta tra được `Method` cho `record(int)`, các đối số sau tương thích:
+This is an illustrative method that must be placed inside a Java class. If we look up the `Method` for `record(int)`, the following arguments are compatible:
 
 ~~~java
 method.invoke(null, Integer.valueOf(7)); // Integer unbox -> int
@@ -63,34 +63,34 @@ method.invoke(null, Byte.valueOf((byte) 7)); // Byte unbox -> byte, widen -> int
 method.invoke(null, Character.valueOf('A')); // Character unbox -> char, widen -> int
 ~~~
 
-`null` receiver ở đây hợp lệ vì `record` là **static method**. Với instance method, receiver phải là object phù hợp kiểu khai báo method; truyền `null` receiver gây `NullPointerException`.
+A `null` receiver is valid here because `record` is a **static method**. For an instance method, the receiver must be an object compatible with the method's declaring type; passing a `null` receiver causes `NullPointerException`.
 
-Điểm quan trọng: Reflection **không phải** một converter tổng quát. Nó không parse `"7"` thành `int`, không gọi `Number.intValue()` cho mọi subtype của `Number` và không chọn “kiểu số gần nhất” theo giá trị.
-
-~~~java
-method.invoke(null, "7");      // Sai kiểu -> IllegalArgumentException
-method.invoke(null, null);     // Cú pháp mơ hồ do varargs; nên ép kiểu rõ nghĩa.
-method.invoke(null, (Object) null); // Một đối số null cho int -> IllegalArgumentException
-~~~
-
-Trong lời gọi trực tiếp `method.invoke(null, null)`, Java có thể hiểu `null` là **cả mảng `Object[]` của varargs** và compiler cảnh báo; do đó dùng `(Object) null` hoặc `new Object[] { null }` khi chủ ý truyền **một null argument**. Với một method đích có một primitive parameter, null không thể unbox và Reflection báo `IllegalArgumentException`.
-
-### Wrapper phải khớp kiểu nguyên thủy nguồn
-
-Với formal type `int`, `Integer`, `Byte`, `Short` và `Character` đều có lộ trình unbox rồi widen hợp lệ. Nhưng `Long` và `Double` không có lộ trình widening về `int`:
+Key point: Reflection is **not** a general-purpose converter. It does not parse `"7"` into `int`, does not call `Number.intValue()` for arbitrary `Number` subtypes, and does not pick the "closest numeric type" by value.
 
 ~~~java
-method.invoke(null, Long.valueOf(7L));   // Không có long -> int widening
-method.invoke(null, Double.valueOf(7.0)); // Không có double -> int widening
+method.invoke(null, "7");      // Wrong type -> IllegalArgumentException
+method.invoke(null, null);     // Ambiguous syntax due to varargs; cast explicitly for clarity.
+method.invoke(null, (Object) null); // One null argument for int -> IllegalArgumentException
 ~~~
 
-Cả hai đều không hợp lệ dù giá trị số học là 7. Muốn “ép hẹp” có chủ đích, ứng dụng phải quyết định rõ chính sách tràn số/độ chính xác và **chuyển đổi trước khi gọi Reflection**.
+In a direct call `method.invoke(null, null)`, Java may interpret `null` as **the entire `Object[]` array of varargs** and the compiler issues a warning; therefore use `(Object) null` or `new Object[] { null }` when intentionally passing **a single null argument**. For a target method with a primitive parameter, null cannot be unboxed and Reflection reports `IllegalArgumentException`.
 
-## 3. Bảng widening primitive được phép
+### Wrapper must match the source primitive type
 
-Java cho phép **identity** (giữ nguyên primitive type) và các hướng *widening primitive conversion* sau:
+For formal type `int`, `Integer`, `Byte`, `Short`, and `Character` all have valid unbox-then-widen paths. However, `Long` and `Double` have no widening path to `int`:
 
-| Primitive nguồn sau unbox | Primitive đích cho phép ngoài chính nó |
+~~~java
+method.invoke(null, Long.valueOf(7L));   // No long -> int widening
+method.invoke(null, Double.valueOf(7.0)); // No double -> int widening
+~~~
+
+Both are invalid even though the numeric value is 7. To perform intentional "narrowing", the application must explicitly decide on an overflow/precision policy and **convert before calling Reflection**.
+
+## 3. Table of permitted primitive widenings
+
+Java allows **identity** (keeping the same primitive type) and the following *widening primitive conversion* directions:
+
+| Source primitive after unboxing | Permitted target primitives besides itself |
 | --- | --- |
 | `byte` | `short`, `int`, `long`, `float`, `double` |
 | `short` | `int`, `long`, `float`, `double` |
@@ -98,34 +98,34 @@ Java cho phép **identity** (giữ nguyên primitive type) và các hướng *wi
 | `int` | `long`, `float`, `double` |
 | `long` | `float`, `double` |
 | `float` | `double` |
-| `double` | Không có kiểu primitive rộng hơn |
-| `boolean` | Không chuyển đổi số; chỉ tương thích `boolean` |
+| `double` | No wider primitive type |
+| `boolean` | No numeric conversion; only compatible with `boolean` |
 
-Ví dụ nếu formal parameter là `double`, có thể đưa `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float` hoặc `Double` sau các chuyển đổi tương ứng. Nếu formal parameter là `char` thì `Character` mới khớp trong số các wrapper primitive này; `Byte`/`Short` không widen thành `char`.
+For example, if the formal parameter is `double`, you can pass `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float`, or `Double` via the corresponding conversions. If the formal parameter is `char`, then only `Character` among these primitive wrappers matches; `Byte`/`Short` do not widen to `char`.
 
-**Widening không đồng nghĩa luôn bảo toàn chính xác giá trị số học.** Chẳng hạn `long → float` có thể mất một phần độ chính xác biểu diễn; tuy vậy phép widening vẫn được Java cho phép. Reflection tuân thủ quy tắc kiểu, không chặn một phép widening chỉ vì có nguy cơ mất precision.
+**Widening does not always mean preserving exact numeric precision.** For instance, `long → float` can lose some representation precision; nevertheless, the widening conversion is permitted by Java. Reflection follows type rules and does not block a widening conversion merely because precision might be lost.
 
-### Chỉ unbox rồi widen, không “widen wrapper”
+### Only unbox then widen, no "wrapper widening"
 
-`Integer` **không** là subtype của `Long` và Reflection không tự áp chuỗi `Integer → int → long → Long` để điền formal parameter **`Long`**:
+`Integer` is **not** a subtype of `Long` and Reflection does not automatically apply `Integer → int → long → Long` to fill a **`Long`** formal parameter:
 
 ~~~java
 public static void boxed(Long value) { /* ... */ }
 ~~~
 
-Nếu truyền `Integer.valueOf(5)` cho formal parameter `Long`, lời gọi Reflection không phù hợp. Formal parameter là reference type `Long`, nên phép hợp lệ cơ bản là tương thích tham chiếu; **không có conversion giữa hai wrapper class khác nhau chỉ vì primitive tương ứng có widening**.
+If you pass `Integer.valueOf(5)` to the `Long` formal parameter, the Reflection call is incompatible. The formal parameter is the reference type `Long`, so the fundamental validity rule is reference compatibility; **there is no conversion between two different wrapper classes merely because their corresponding primitives have widening**.
 
-Ngược lại, nếu formal parameter là reference `Number` hoặc `Object` thì `Integer` có thể được truyền bằng **widening reference**:
+Conversely, if the formal parameter is the reference `Number` or `Object`, then `Integer` can be passed via **widening reference**:
 
 ~~~java
 public static void accept(Number value) { /* ... */ }
 ~~~
 
-`Integer` là subclass của `Number`; không cần unbox để gọi `accept(Number)`. Đây là lý do phải luôn đọc **formal parameter type** trước khi kết luận một conversion có áp dụng hay không.
+`Integer` is a subclass of `Number`; no unboxing is needed to call `accept(Number)`. This is why you must always check the **formal parameter type** before concluding whether a conversion applies.
 
-## 4. `Method.invoke`: xác định formal parameter và chuyển đổi đối số
+## 4. `Method.invoke`: identifying formal parameters and converting arguments
 
-Ví dụ method đích:
+Example target method:
 
 ~~~java
 public String describe(int code, double score, boolean enabled) {
@@ -133,39 +133,39 @@ public String describe(int code, double score, boolean enabled) {
 }
 ~~~
 
-Nếu nằm trong class `Target`, ta tra `Method` bằng **đúng** formal parameter types:
+If it resides in class `Target`, we look up `Method` using the **exact** formal parameter types:
 
 ~~~java
 Method describe = Target.class.getMethod(
         "describe", int.class, double.class, boolean.class);
 ~~~
 
-`getMethod`/`getDeclaredMethod` **không tự tìm method theo wrapper type hoặc chọn overload bằng widening**. Ví dụ, `getMethod("describe", Integer.class, Double.class, Boolean.class)` không phải cách tìm method có descriptor `(int, double, boolean)`. Phải truyền các `Class` đúng với chữ ký method.
+`getMethod`/`getDeclaredMethod` **does not automatically look up methods by wrapper types or select overloads by widening**. For example, `getMethod("describe", Integer.class, Double.class, Boolean.class)` is not the way to find a method with descriptor `(int, double, boolean)`. You must pass the `Class` objects matching the method signature.
 
-Sau khi đã lấy `Method`, đối số runtime mới được unbox/widen:
+Once the `Method` is retrieved, the runtime arguments are unboxed/widened:
 
 ~~~java
 Object value = describe.invoke(
         target,
-        Character.valueOf('A'), // char -> int (giá trị mã ký tự 65)
+        Character.valueOf('A'), // char -> int (character code value 65)
         Integer.valueOf(7),     // int -> double (7.0)
         Boolean.TRUE            // boolean -> boolean
 );
 ~~~
 
-`target` phải là instance của class khai báo `describe` (hoặc subtype tương thích). `Method.invoke` trả `Object`: nếu method trả primitive, Reflection sẽ **box** kết quả thành wrapper; nếu trả `void`, kết quả là `null`; nếu trả reference, nhận chính object kết quả theo ngữ nghĩa method.
+`target` must be an instance of the class declaring `describe` (or a compatible subtype). `Method.invoke` returns `Object`: if the method returns a primitive, Reflection **boxes** the result into a wrapper; if it returns `void`, the result is `null`; if it returns a reference, you receive the resulting object according to the method's semantics.
 
-### Những gì `Method.invoke` không tự làm
+### What `Method.invoke` does not do automatically
 
-- Không đổi `String` sang primitive bằng parsing.
-- Không tự làm narrowing `double → int` hay `long → short`.
-- Không tự gọi một overload khác khi argument hiện tại không phù hợp.
-- Không tự biến `Integer[]` thành `int[]` hoặc chuyển từng phần tử array. Một tham số mảng `int[]` phải nhận chính một object mảng kiểu tương thích.
-- Không tự “sửa” kiểu generic bị erasure; nếu method nhận `List<Integer>` thì runtime parameter class vẫn thường là `List.class` và việc đúng loại phần tử cần được kiểm tra riêng.
+- Does not convert `String` to primitive via parsing.
+- Does not perform narrowing such as `double → int` or `long → short`.
+- Does not invoke another overload when the current argument is incompatible.
+- Does not turn `Integer[]` into `int[]` or convert individual array elements. An `int[]` array parameter must receive an actual array object of a compatible type.
+- Does not "fix" erased generic types; if a method accepts `List<Integer>`, the runtime parameter class is still usually `List.class` and verifying element types must be done separately.
 
-## 5. `Constructor.newInstance` dùng quy tắc chuyển đổi tương tự
+## 5. `Constructor.newInstance` uses the same conversion rules
 
-Giả sử constructor:
+Suppose the constructor is:
 
 ~~~java
 public Target(long count, double amount) {
@@ -174,14 +174,14 @@ public Target(long count, double amount) {
 }
 ~~~
 
-Với một class `Target` thích hợp, lấy constructor theo chữ ký formal:
+With an appropriate `Target` class, look up the constructor by its formal signature:
 
 ~~~java
 Constructor<Target> ctor =
         Target.class.getConstructor(long.class, double.class);
 ~~~
 
-Khi tạo object:
+When creating the object:
 
 ~~~java
 Target target = ctor.newInstance(
@@ -190,28 +190,28 @@ Target target = ctor.newInstance(
 );
 ~~~
 
-Hợp lệ vì `Byte` unbox thành `byte` rồi widen đến `long`; `Float` unbox thành `float` rồi widen đến `double`. Nếu chuyển đối số đầu thành `Double.valueOf(5.0)`, formal type vẫn là `long` nên **không thể dùng narrowing `double → long`**; `newInstance` ném `IllegalArgumentException` mà không chạy body constructor tương ứng.
+Valid because `Byte` unboxes to `byte` and widens to `long`; `Float` unboxes to `float` and widens to `double`. If the first argument is changed to `Double.valueOf(5.0)`, the formal type is still `long`, so **narrowing `double → long` cannot be used**; `newInstance` throws `IllegalArgumentException` without executing the corresponding constructor body.
 
-Cách tra constructor:
+How to look up constructors:
 
-- `getConstructor(Class<?>...)` tìm **public constructor** phù hợp.
-- `getDeclaredConstructor(Class<?>...)` tìm constructor khai báo trên class (kể cả private); việc tìm thấy metadata không tự cấp quyền gọi. Nếu constructor không accessible, có thể gặp `IllegalAccessException`; với named modules, khả năng `setAccessible` còn phụ thuộc export/open.
-- Tham số constructor cần có số lượng chính xác; `Constructor.newInstance` không tự chọn overload dựa trên argument value.
-- Constructor của non-static inner class có thể có tham số ẩn biểu diễn instance enclosing class; cần hiểu descriptor thật khi dùng Reflection.
+- `getConstructor(Class<?>...)` finds a matching **public constructor**.
+- `getDeclaredConstructor(Class<?>...)` finds a constructor declared on the class (including private ones); finding metadata does not automatically grant invocation permission. If the constructor is not accessible, `IllegalAccessException` may occur; with named modules, `setAccessible` capability also depends on exports/opens.
+- Constructor arguments must match in exact count; `Constructor.newInstance` does not select an overload based on argument values.
+- A non-static inner class constructor may have a hidden parameter representing the enclosing class instance; you must understand the real descriptor when using Reflection.
 
-`Constructor.newInstance` trả object mới thuộc class khai báo constructor. Nó **không** trả giá trị primitive, nên không có bước boxing của *return value* như ở `Method.invoke`.
+`Constructor.newInstance` returns a new object of the class declaring the constructor. It **does not** return a primitive value, so there is no *return value* boxing step as in `Method.invoke`.
 
-## 6. Ví dụ chạy hoàn chỉnh (Java 17+)
+## 6. Complete runnable example (Java 17+)
 
-Tạo file duy nhất tên **`ReflectiveConversionDemo.java`**. Chương trình quan sát đồng thời:
+Create a single file named **`ReflectiveConversionDemo.java`**. The program observes simultaneously:
 
-- Wrapper `Byte` được unbox/widen tới constructor formal `long`.
-- Wrapper `Float` được unbox/widen tới constructor formal `double`.
-- Wrapper `Character` được unbox/widen tới method formal `int`.
-- Wrapper `Integer` được unbox/widen tới method formal `double`.
-- `Long → int`, `Double → long` và `null → int` bị từ chối.
-- Tham số `int[]` được đưa vào như một `Object` duy nhất.
-- Method trả `int` được Reflection box thành `Integer`; exception do target tự ném được bọc bằng `InvocationTargetException`.
+- Wrapper `Byte` unboxed/widened to constructor formal `long`.
+- Wrapper `Float` unboxed/widened to constructor formal `double`.
+- Wrapper `Character` unboxed/widened to method formal `int`.
+- Wrapper `Integer` unboxed/widened to method formal `double`.
+- `Long → int`, `Double → long`, and `null → int` rejected.
+- An `int[]` parameter passed as a single `Object`.
+- A method returning `int` boxed by Reflection into `Integer`; an exception thrown by the target wrapped in `InvocationTargetException`.
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -284,14 +284,14 @@ public class ReflectiveConversionDemo {
 }
 ~~~
 
-Lệnh biên dịch/chạy (JDK 17 trở lên):
+Compile/run commands (JDK 17 or later):
 
 ~~~bash
 javac --release 17 -Xlint:all ReflectiveConversionDemo.java
 java ReflectiveConversionDemo
 ~~~
 
-**Stdout chính xác** (đã biên dịch với `--release 17 -Xlint:all` và chạy thành công):
+**Exact stdout** (compiled with `--release 17 -Xlint:all` and executed successfully):
 
 ~~~text
 invoke: 5,1.25,65,7.0,true
@@ -302,37 +302,37 @@ Double to long: IllegalArgumentException
 target threw: IllegalStateException
 ~~~
 
-Giải thích theo thứ tự:
+Explanation in order:
 
-1. `Byte(5)` đi vào constructor `long` và `Float(1.25)` vào `double`: hai chuỗi unbox + widen hợp lệ, object `Target` được khởi tạo.
-2. `Character('A')` được unbox thành `char` và widen tới `int` cho giá trị mã ký tự `65`; `Integer(7)` thành `double 7.0`; `Boolean.TRUE` hợp kiểu `boolean`.
-3. Phương thức `sum` nhận **một `int[]`**; kết quả kiểu primitive `int` có giá trị `6` được Reflection trả về qua `Object` dưới dạng `Integer`.
-4. `Long → int`, `null → int` và `Double → long` không thỏa conversion nên bị từ chối bằng `IllegalArgumentException`.
-5. `fail` nhận đối số `Integer(9)` hợp lệ, chạy body và ném `IllegalStateException`. Chính **`Method.invoke` bọc exception target** trong `InvocationTargetException`; chương trình in tên kiểu của `getCause()`.
+1. `Byte(5)` goes into constructor `long` and `Float(1.25)` into `double`: both unbox + widen sequences are valid, and the `Target` object is instantiated.
+2. `Character('A')` is unboxed to `char` and widened to `int` giving character code value `65`; `Integer(7)` becomes `double 7.0`; `Boolean.TRUE` matches `boolean`.
+3. The `sum` method takes **one `int[]`**; the primitive `int` result of value `6` is returned by Reflection via `Object` as an `Integer`.
+4. `Long → int`, `null → int`, and `Double → long` do not satisfy valid conversions and are rejected with `IllegalArgumentException`.
+5. `fail` receives valid argument `Integer(9)`, executes its body, and throws `IllegalStateException`. **`Method.invoke` itself wraps the target exception** in `InvocationTargetException`; the program prints the type name of `getCause()`.
 
-Đừng suy từ các dòng `IllegalArgumentException` rằng method body đích đã chạy: chúng là lỗi **argument matching/conversion**. Trong khi đó, dòng `target threw` chứng minh body đã chạy và phát sinh ngoại lệ.
+Do not infer from the `IllegalArgumentException` lines that the target method body ran: those are **argument matching/conversion** errors. By contrast, the `target threw` line proves the body ran and threw an exception.
 
-## 7. Thiết kế lớp chuyển đổi dữ liệu trước khi gọi Reflection
+## 7. Designing a data conversion layer before calling Reflection
 
-Trong các framework hoặc chương trình nạp phương thức theo cấu hình, dữ liệu nhập thường ở dạng `String`, JSON value hay kiểu số tổng quát. Nếu cần chuyển `"42"` sang `int`, hoặc `Long(42)` sang `int`, hãy thực hiện ở **lớp adaptation/validation riêng**, rồi mới gọi Reflection:
+In frameworks or programs that load methods from configuration, input data is often a `String`, JSON value, or general numeric type. If you need to convert `"42"` to `int`, or `Long(42)` to `int`, do it in a **separate adaptation/validation layer**, and only then call Reflection:
 
-1. Lấy formal types qua `method.getParameterTypes()` hoặc `constructor.getParameterTypes()`.
-2. Kiểm tra số lượng argument và xử lý varargs theo descriptor thật; chuyển dữ liệu có chính sách rõ ràng.
-3. Với narrowing, kiểm tra phạm vi, phép làm tròn và mất precision trước khi tạo wrapper đích; ví dụ `Math.toIntExact(long)` có thể từ chối giá trị vượt miền `int`.
-4. Đưa object/wrapper hay array tương thích vào `invoke` / `newInstance`; xử lý `IllegalArgumentException` cho mismatch, `InvocationTargetException` cho lỗi phát sinh từ target.
-5. Đảm bảo truy cập đúng constructor/method và tuân thủ module access, không tự mở private internals ngoài nhu cầu.
+1. Retrieve formal types via `method.getParameterTypes()` or `constructor.getParameterTypes()`.
+2. Check argument count and handle varargs according to the real descriptor; convert data with explicit policies.
+3. For narrowing, check range, rounding, and precision loss before creating the target wrapper; for example `Math.toIntExact(long)` can reject values outside the `int` range.
+4. Pass compatible objects/wrappers or arrays into `invoke` / `newInstance`; handle `IllegalArgumentException` for mismatches and `InvocationTargetException` for errors thrown by the target.
+5. Ensure access to the right constructor/method and respect module access, without opening private internals unnecessarily.
 
-Ví dụ **đoạn chuyển đổi ứng dụng**, không thuộc tự động Reflection:
+Example **application conversion snippet**, not part of automatic Reflection:
 
 ~~~java
 long input = 42L;
-int checked = Math.toIntExact(input); // Rõ ràng chấp nhận giá trị vừa miền int.
-method.invoke(receiver, Integer.valueOf(checked)); // Dành cho method nhận int.
+int checked = Math.toIntExact(input); // Explicitly accepts values within the int range.
+method.invoke(receiver, Integer.valueOf(checked)); // For a method accepting int.
 ~~~
 
-Với numeric domain cần độ chính xác cao hoặc dữ liệu tài chính, quy tắc kiểu `double` và float widening chưa đủ để đảm bảo số học mong muốn; cần chọn mô hình dữ liệu/validation phù hợp (chẳng hạn `BigDecimal` khi có yêu cầu chính xác thập phân).
+For numeric domains requiring high precision or financial data, `double` and float widening type rules are insufficient to guarantee desired arithmetic; choose an appropriate data/validation model (such as `BigDecimal` when exact decimal representation is required).
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 21 — `java.lang.reflect.Method.invoke`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...)).
 - [Java SE 21 — `java.lang.reflect.Constructor.newInstance`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)).

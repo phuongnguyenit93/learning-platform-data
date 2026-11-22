@@ -1,15 +1,15 @@
-# Kiểm thử lỗi của mã đích được giữ qua `InvocationTargetException`
+# Testing Target Code Errors Preserved via `InvocationTargetException`
 
-## 1. Mục tiêu của bài kiểm thử
+## 1. Goal of This Test Lesson
 
-Khi gọi một phương thức bằng Java Reflection, `Method.invoke(receiver, args...)` có thể thất bại ở **hai tầng khác nhau**:
+When invoking a method via Java Reflection, `Method.invoke(receiver, args...)` can fail at **two distinct layers**:
 
-1. **Tầng reflection**: không tìm được phương thức, không đủ quyền, sai receiver hoặc đối số. Đây là lỗi trong quá trình chuẩn bị/điều phối lời gọi.
-2. **Tầng mã đích**: phương thức đã thực sự được gọi và chính phần thân của nó ném exception hay error.
+1. **Reflection layer**: unable to find the method, insufficient permissions, wrong receiver or arguments. These are errors during call preparation/dispatch.
+2. **Target code layer**: the method was actually invoked and its own body threw an exception or error.
 
-Ở tầng thứ hai, `Method.invoke` gói `Throwable` do **phương thức đích** ném vào một `java.lang.reflect.InvocationTargetException`. Đối tượng gốc có thể lấy lại bằng `getCause()` hoặc `getTargetException()`. Một bài kiểm thử tốt phải chứng minh cả **đúng loại wrapper**, **đúng đối tượng nguyên nhân gốc** và **đúng nội dung/cause chain**; nếu chỉ so chuỗi message của wrapper thì rất dễ bỏ sót lỗi.
+At the second layer, `Method.invoke` wraps the `Throwable` thrown by the **target method** in a `java.lang.reflect.InvocationTargetException`. The original object can be retrieved via `getCause()` or `getTargetException()`. A good test must prove **the right wrapper type**, **the exact original cause object**, and **the right content/cause chain**; comparing only the wrapper's message string easily misses bugs.
 
-Ví dụ kỳ vọng cốt lõi:
+Core expected example:
 
 ```java
 Method method = Target.class.getDeclaredMethod("fail");
@@ -18,70 +18,70 @@ try {
     throw new AssertionError("Expected InvocationTargetException");
 } catch (InvocationTargetException e) {
     Throwable original = e.getCause();
-    // Kiểm tra type, message và/hoặc identity của original.
+    // Check type, message, and/or identity of original.
 }
 ```
 
-Đoạn trên là **mẫu minh họa**, cần đặt trong ngữ cảnh có import, lớp `Target` và xử lý các checked exceptions còn lại. Ví dụ có thể chạy độc lập ở mục 5.
+The snippet above is an **illustrative sample** and must be placed in a context with imports, a `Target` class, and handling for remaining checked exceptions. A standalone runnable example is in section 5.
 
-## 2. Hợp đồng của `Method.invoke` và wrapper
+## 2. Contract of `Method.invoke` and the Wrapper
 
-Chữ ký rút gọn:
+Abbreviated signature:
 
 ```java
 public Object invoke(Object obj, Object... args)
         throws IllegalAccessException, InvocationTargetException;
 ```
 
-Các hành vi cần phân biệt:
+Behaviors to distinguish:
 
-| Điều kiện | Lỗi quan sát khi gọi reflection | `InvocationTargetException`? |
+| Condition | Error observed on reflection call | `InvocationTargetException`? |
 | --- | --- | --- |
-| Mã đích ném `IllegalStateException` | `InvocationTargetException` chứa `IllegalStateException` | Có |
-| Mã đích ném checked `IOException` | `InvocationTargetException` chứa `IOException` | Có |
-| Mã đích ném `AssertionError` | `InvocationTargetException` chứa `AssertionError` | Có |
-| Mã đích ném `IllegalArgumentException` | `InvocationTargetException` chứa `IllegalArgumentException` | Có |
-| Caller truyền sai kiểu/số lượng đối số cho `Method.invoke` | Thường là `IllegalArgumentException` trực tiếp | Không |
-| Không có quyền truy cập tới phương thức | `IllegalAccessException`, hoặc lỗi khi cố mở quyền | Không |
-| Tra phương thức không tồn tại qua `getDeclaredMethod` | `NoSuchMethodException` tại **bước tra cứu**, chưa có invoke | Không |
-| Mã đích chạy thành công | Kết quả được trả về (hoặc `null` cho phương thức `void`) | Không |
+| Target code throws `IllegalStateException` | `InvocationTargetException` containing `IllegalStateException` | Yes |
+| Target code throws checked `IOException` | `InvocationTargetException` containing `IOException` | Yes |
+| Target code throws `AssertionError` | `InvocationTargetException` containing `AssertionError` | Yes |
+| Target code throws `IllegalArgumentException` | `InvocationTargetException` containing `IllegalArgumentException` | Yes |
+| Caller passes wrong argument types/count to `Method.invoke` | Typically direct `IllegalArgumentException` | No |
+| No access permission to the method | `IllegalAccessException`, or error when attempting to open access | No |
+| Looking up a non-existent method via `getDeclaredMethod` | `NoSuchMethodException` at the **lookup step**, before invoke | No |
+| Target code succeeds | Result returned (or `null` for `void` methods) | No |
 
-Với `Method.invoke`, **exception do target ném** được bao trong `InvocationTargetException` kể cả khi nó là unchecked exception hoặc `Error`. Việc `Method.invoke` trả về `Object` không làm thay đổi danh tính exception gốc.
+With `Method.invoke`, **an exception thrown by the target** is wrapped in `InvocationTargetException` even when it is an unchecked exception or `Error`. The fact that `Method.invoke` returns `Object` does not alter the original exception's identity.
 
-`InvocationTargetException` kế thừa `ReflectiveOperationException`. `getTargetException()` là API lịch sử; trong mã mới, `getCause()` biểu đạt quan hệ nguyên nhân nhất quán với `Throwable`. Với wrapper do `Method.invoke` tạo ra sau khi target ném lỗi, hai hàm trả về cùng đối tượng target throwable.
+`InvocationTargetException` extends `ReflectiveOperationException`. `getTargetException()` is a historical API; in modern code, `getCause()` expresses the causal relationship consistently with `Throwable`. For the wrapper created by `Method.invoke` after the target throws, both methods return the same target throwable object.
 
-Các trường hợp biên: nếu JVM hoặc môi trường thất bại **trước khi** chuyển điều khiển vào mã đích (ví dụ lỗi liên kết hoặc tải lớp), không nên mặc định mọi `Throwable` nhìn thấy đều là lỗi target đã được gói. Hãy xác nhận thao tác và loại ngoại lệ thực tế.
+Edge cases: if the JVM or environment fails **before** transferring control into the target code (such as linking or class-loading errors), do not automatically assume every observed `Throwable` is a wrapped target error. Verify the actual operation and exception type.
 
-## 3. Những điều phải assert để bảo đảm "được giữ nguyên"
+## 3. What Must Be Asserted to Guarantee "Preserved Intact"
 
-Với một lời gọi mà bạn **chủ động tạo ra** exception ở target, nên kiểm tra theo mức tăng dần:
+For a call where you **intentionally trigger** an exception in the target, verify at increasing levels of precision:
 
-- **Wrapper đúng loại:** `assertThrows(InvocationTargetException.class, () -> method.invoke(...))`.
-- **Có nguyên nhân gốc:** `assertNotNull(wrapper.getCause())`.
-- **Đúng loại nguyên nhân:** ví dụ `assertInstanceOf(IllegalStateException.class, wrapper.getCause())` hoặc kiểm tra exact class khi hợp đồng yêu cầu.
-- **Danh tính của Throwable:** nếu test giữ sẵn tham chiếu đến object đã ném, `assertSame(original, wrapper.getCause())`. Đây là bằng chứng mạnh hơn so sánh message: wrapper giữ **chính Throwable ban đầu**, không tự tạo đối tượng khác thay cho nó.
-- **Cùng đối tượng qua API:** `assertSame(wrapper.getCause(), wrapper.getTargetException())`.
-- **Message/cause chain:** khi thuộc hợp đồng được kiểm thử, xác nhận `original.getMessage()` và `original.getCause()`; không chỉ assert các chuỗi hình thành từ wrapper.
-- **Nguồn phát sinh:** nếu thực sự cần, kiểm tra phương thức trên stack trace của nguyên nhân hoặc dùng dấu hiệu do target đặt ra để chứng minh thân đã chạy. Tránh phụ thuộc đường dẫn file, số dòng và thứ tự toàn bộ stack frames vốn có thể thay đổi.
+- **Correct wrapper type:** `assertThrows(InvocationTargetException.class, () -> method.invoke(...))`.
+- **Original cause present:** `assertNotNull(wrapper.getCause())`.
+- **Correct cause type:** e.g., `assertInstanceOf(IllegalStateException.class, wrapper.getCause())` or exact class check when required by contract.
+- **Throwable identity:** if the test holds a reference to the thrown object, `assertSame(original, wrapper.getCause())`. This is stronger evidence than comparing messages: the wrapper preserves the **exact original Throwable**, without creating another object in its place.
+- **Same object across APIs:** `assertSame(wrapper.getCause(), wrapper.getTargetException())`.
+- **Message/cause chain:** when part of the tested contract, verify `original.getMessage()` and `original.getCause()`; do not only assert strings formed from the wrapper.
+- **Originating source:** when truly necessary, inspect the cause's stack trace for the target method or use a marker set by the target to prove the body ran. Avoid depending on file paths, line numbers, or the full order of stack frames, which can vary.
 
-**Lưu ý về `assertSame`:** trong test minh họa, target gán tham chiếu đến exception vừa tạo cho trường test fixture trước khi ném. Đây là cách kiểm tra identity. Trong production, không nên giữ Throwable trong biến static toàn cục chỉ để log; kiểm thử có thể dùng fixture có phạm vi nhỏ, và các test này chạy tuần tự để tránh ghi đè tham chiếu.
+**Note on `assertSame`:** in the illustrative test, the target assigns a reference to the newly created exception to a test-fixture field before throwing. This is how to test identity. In production, do not store Throwables in global static variables just for logging; tests can use small-scoped fixtures and run sequentially to avoid overwriting references.
 
-## 4. Cách kiểm thử một phương thức thật qua reflection
+## 4. How to Test a Real Method via Reflection
 
-Các bước kiểm thử hợp lý:
+Reasonable testing steps:
 
-1. Tạo target có hành vi ném lỗi **xác định**. Tách tình huống checked, unchecked và `Error` nếu hợp đồng bao quát cả ba.
-2. Lấy đúng `Method` bằng `getDeclaredMethod(name, parameterTypes...)` hoặc `getMethod(...)`. Nếu phương thức `static`, truyền receiver `null`; với instance method, tạo receiver đúng lớp.
-3. Gọi qua `Method.invoke` bên trong một hàm kiểm thử cho phép ném `Throwable`.
-4. Bắt/khẳng định `InvocationTargetException` rồi đọc `getCause()`. So sánh **reference** nếu fixture lưu original; kiểm tra type và message.
-5. Kiểm tra các tình huống reflection lỗi **trước lời gọi** bằng một test khác để không vô tình gộp hai tầng lỗi.
-6. Nếu ứng dụng có wrapper helper để unwrap và ném lại nguyên nhân, kiểm thử riêng helper đó: bên gọi phải thấy nguyên nhân gốc chứ không còn `InvocationTargetException`.
+1. Create a target with **deterministic** throwing behavior. Separate checked, unchecked, and `Error` cases if the contract covers all three.
+2. Retrieve the exact `Method` using `getDeclaredMethod(name, parameterTypes...)` or `getMethod(...)`. If the method is `static`, pass receiver `null`; for an instance method, create a receiver of the proper class.
+3. Invoke via `Method.invoke` inside a test helper that allows throwing `Throwable`.
+4. Catch/assert `InvocationTargetException` and read `getCause()`. Compare **reference** if the fixture stores original; verify type and message.
+5. Test reflection errors happening **before invocation** in a separate test so the two error layers are not accidentally merged.
+6. If the application has a wrapper helper to unwrap and rethrow the cause, test that helper separately: the caller must see the original cause, no longer `InvocationTargetException`.
 
-Không nên tạo lại `new IllegalStateException(message)` trong mã test rồi gọi `assertSame` với exception của target: đó là **hai object khác nhau** dù trùng loại và message. Cũng không nên so `wrapper.getMessage()` với message nghiệp vụ; wrapper và nguyên nhân là hai tầng khác nhau.
+Do not construct a new `new IllegalStateException(message)` in test code and call `assertSame` against the target's exception: those are **two distinct objects** even with identical type and message. Nor should you compare `wrapper.getMessage()` against the business message; the wrapper and cause are two different layers.
 
-## 5. Ví dụ Java 17+ độc lập: test runtime, checked, Error, cause chain và unwrap
+## 5. Standalone Java 17+ Example: Testing Runtime, Checked, Error, Cause Chain, and Unwrap
 
-Lưu file `InvocationTargetExceptionDemo.java`:
+Save file `InvocationTargetExceptionDemo.java`:
 
 ```java
 import java.io.IOException;
@@ -232,14 +232,14 @@ public class InvocationTargetExceptionDemo {
 }
 ```
 
-Chạy trong thư mục chứa file:
+Run in the directory containing the file:
 
 ```bash
 javac --release 17 -encoding UTF-8 InvocationTargetExceptionDemo.java
 java InvocationTargetExceptionDemo
 ```
 
-Stdout mong đợi:
+Expected stdout:
 
 ```text
 runtime=wrapped,preserved
@@ -251,20 +251,20 @@ badArguments=directIllegalArgumentException
 unwrap=originalCause
 ```
 
-Mỗi dòng chỉ được in **sau khi mọi assertion tương ứng thành công**. Nếu một giả định sai, chương trình ném `AssertionError` và sẽ không in dòng báo kết quả của bước đó. Hàm `expectThrows` cố tình dùng một harness tối giản không phụ thuộc thư viện ngoài; trong dự án có JUnit 5, dùng `org.junit.jupiter.api.Assertions.assertThrows` sẽ chuẩn hơn.
+Each line is printed **only after all corresponding assertions succeed**. If an assumption fails, the program throws `AssertionError` and will not print that step's result line. `expectThrows` intentionally uses a minimal harness without external library dependencies; in a project using JUnit 5, using `org.junit.jupiter.api.Assertions.assertThrows` is more standard.
 
-### Vì sao ví dụ này có giá trị kiểm chứng?
+### Why Is This Example Valuable for Verification?
 
-- `verifyTargetFailure` kiểm tra cùng lúc wrapper, type, **identity** và sự thống nhất `getCause()`/`getTargetException()` cho unchecked, checked, `Error` và lỗi `IllegalArgumentException` từ **bên trong target**.
-- `failWithCause` xác nhận **chuỗi nguyên nhân gốc** bên trong target không biến mất khi được thêm wrapper reflection.
-- `acceptInt` làm rõ một `IllegalArgumentException` xuất hiện do **gọi reflection sai tham số** thì là ngoại lệ trực tiếp, target không chạy và không có `InvocationTargetException`.
-- `invokeUnwrapped` mô phỏng code adapter đã quyết định trả lại nguyên nhân nghiệp vụ. Kiểm thử khẳng định bên gọi nhận được **chính exception gốc**, không có wrapper thứ hai và không bị thay bằng đối tượng cùng loại nhưng khác identity.
+- `verifyTargetFailure` checks wrapper, type, **identity**, and consistency between `getCause()`/`getTargetException()` simultaneously for unchecked, checked, `Error`, and `IllegalArgumentException` thrown **from inside the target**.
+- `failWithCause` confirms the **original cause chain** inside the target does not vanish when the reflection wrapper is added.
+- `acceptInt` clarifies that an `IllegalArgumentException` caused by **calling reflection with wrong arguments** is a direct exception; the target does not execute and there is no `InvocationTargetException`.
+- `invokeUnwrapped` simulates adapter code that chooses to return the business cause. The test confirms the caller receives the **exact original exception**, with no second wrapper and without being replaced by another object of the same type with a different identity.
 
-Trong ví dụ, fixture lưu `Target.lastThrown` dạng `static`. Vì main chạy tuần tự và reset fixture trước các trường hợp, điều này an toàn cho mô hình học tập; test thực tế chạy song song nên dùng fixture độc lập hoặc cơ chế phối hợp tránh tranh chấp trạng thái.
+In the example, the fixture stores `Target.lastThrown` as `static`. Since `main` runs sequentially and resets the fixture before cases, this is safe for a learning model; real tests running in parallel should use independent fixtures or synchronization mechanisms to avoid state contention.
 
-## 6. Cách viết tương đương bằng JUnit 5
+## 6. Equivalent Implementation in JUnit 5
 
-Nếu dự án đã cấu hình **JUnit Jupiter**, một test đơn có thể viết như sau. Đoạn dưới đây **thuộc một test class cùng package**, tham chiếu đến lớp `InvocationTargetExceptionDemo.Target` của ví dụ phía trên; cần đưa dependency JUnit Jupiter vào build trước khi biên dịch test.
+If the project already has **JUnit Jupiter** configured, a single test can be written as follows. The snippet below **belongs in a test class in the same package**, referencing `InvocationTargetExceptionDemo.Target` from the example above; the JUnit Jupiter dependency must be added to the build before compiling tests.
 
 ```java
 import java.lang.reflect.InvocationTargetException;
@@ -306,23 +306,23 @@ class ReflectionExceptionTest {
 }
 ```
 
-Bài test này không phải chương trình có `main` độc lập; thực thi bằng runner của JUnit 5, ví dụ Gradle với `test { useJUnitPlatform() }` khi môi trường dự án đã khai báo dependency phù hợp.
+This test is not a standalone program with `main`; execute it using JUnit 5's runner, e.g., Gradle with `test { useJUnitPlatform() }` when the project environment declares the proper dependencies.
 
-**Không** nên viết `assertThrows(IllegalStateException.class, () -> method.invoke(null))` cho test đầu tiên: lời gọi reflection làm xuất hiện `InvocationTargetException` ở phía caller; `IllegalStateException` nằm trong `getCause()`.
+**Do not** write `assertThrows(IllegalStateException.class, () -> method.invoke(null))` for the first test: the reflection call produces `InvocationTargetException` on the caller side; `IllegalStateException` is inside `getCause()`.
 
-Nếu test tác vụ bất đồng bộ, áp dụng đúng ranh giới: xác định có future/async wrapper khác (`ExecutionException`, `CompletionException`) trước hay không. Đừng mặc nhiên kết luận rằng mọi Throwable từ thread khác đều đi qua `InvocationTargetException`.
+When testing asynchronous tasks, apply the proper boundary: determine whether there is another future/async wrapper (`ExecutionException`, `CompletionException`) first. Do not assume every Throwable from another thread passes through `InvocationTargetException`.
 
-## 7. Kiểm thử stack trace và cause chain không quá mong manh
+## 7. Testing Stack Traces and Cause Chains Without Being Too Brittle
 
-`InvocationTargetException` và exception gốc có thể có **hai stack trace khác nhau**:
+`InvocationTargetException` and the original exception can have **two different stack traces**:
 
-- Wrapper gắn với tầng reflection tại thời điểm gọi.
-- Cause giữ stack trace khi Throwable gốc được tạo/ném trong target.
+- The wrapper belongs to the reflection layer at the time of invocation.
+- The cause keeps the stack trace from when the original Throwable was created/thrown in the target.
 
-Để kiểm tra điều có ý nghĩa, ưu tiên assert các thông tin ổn định: exception class, message nghiệp vụ, reference identity khi có fixture, và `getCause()`. Khi phải kiểm tra stack, chỉ xác nhận nó chứa frame của phương thức đích:
+To test meaningful properties, prefer asserting stable information: exception class, business message, reference identity when a fixture exists, and `getCause()`. When you must inspect the stack, only confirm it contains a frame for the target method:
 
 ```java
-// Đoạn minh họa nằm trong test đã có Throwable original:
+// Illustrative snippet inside a test that already has Throwable original:
 boolean containsTarget = java.util.Arrays.stream(
         original.getStackTrace())
         .anyMatch(frame -> frame.getMethodName()
@@ -332,37 +332,37 @@ if (!containsTarget) {
 }
 ```
 
-Không nên so toàn bộ `StackTraceElement[]`, số dòng source hoặc tên implementation nội bộ của reflection, bởi JVM/JDK hoặc trình tối ưu có thể làm thay đổi các chi tiết này. Nếu target chỉnh stack bằng `setStackTrace`, tắt stack trace hoặc tái sử dụng exception có stack cũ, đó là đặc điểm riêng của target cần được test theo hợp đồng, không phải lý do để mọi test phải ép cùng kết quả.
+Avoid comparing the entire `StackTraceElement[]`, source line numbers, or internal reflection implementation names, as the JVM/JDK or optimizer may alter those details. If the target modifies its stack with `setStackTrace`, disables stack traces, or reuses an exception with an old stack, that is a specific contract of the target to test accordingly, not a reason for all tests to expect identical stacks.
 
-`Throwable.getCause()` có thể lại chứa một exception khác do target tạo; phải phân biệt:
+`Throwable.getCause()` may itself hold another exception created by the target; distinguish them:
 
 ```text
-InvocationTargetException    ← wrapper do reflection tạo
-  └─ IllegalStateException   ← chính exception mã đích ném
-       └─ IOException        ← nguyên nhân sâu hơn do mã đích gắn vào
+InvocationTargetException    ← wrapper created by reflection
+  └─ IllegalStateException   ← actual exception thrown by target code
+       └─ IOException        ← deeper cause attached by target code
 ```
 
-Lúc truy nguyên nhân, **không bỏ qua** tầng wrapper mà không ghi ngữ cảnh `Method` nào được gọi, nhưng cũng không để wrapper che mất loại lỗi nghiệp vụ bên trong.
+When tracing root causes, **do not skip** the wrapper layer without recording which `Method` was invoked, yet do not let the wrapper obscure the inner business error type.
 
-## 8. Lỗi phổ biến khi viết test và adapter
+## 8. Common Mistakes When Writing Tests and Adapters
 
-| Sai sót | Hậu quả | Cách kiểm tra/sửa |
+| Mistake | Consequence | How to check/fix |
 | --- | --- | --- |
-| `assertThrows(TargetException.class, () -> method.invoke(...))` | Test bắt sai tầng ngoại lệ | Assert `InvocationTargetException`, rồi kiểm tra `getCause()` |
-| Chỉ so message wrapper | Không chứng minh được Throwable gốc | Assert type, message của cause, và identity nếu có fixture |
-| Gọi sai overload/tham số mà tưởng target ném lỗi | `IllegalArgumentException` trực tiếp | Kiểm tra dấu hiệu thân target đã chạy |
-| Tra method sai rồi trộn `NoSuchMethodException` vào test invoke | Không test được đường thực thi target | Tách test lookup và test invoke |
-| Dùng `getCause().getCause()` không kiểm tra | Có thể `NullPointerException` nếu cause chain ngắn | Assert từng tầng theo contract |
-| Nuốt `InvocationTargetException` hoặc chỉ log wrapper | Mất bối cảnh lỗi nghiệp vụ | Ghi cause, giữ stack và bối cảnh method; quyết định unwrap rõ ràng |
-| Unwrap bằng `new RuntimeException(original.getMessage())` | Mất danh tính, kiểu và stack gốc | Ném lại `original` khi API cho phép, hoặc dùng `new RuntimeException("context", original)` để giữ cause |
-| Test với một trường `static lastThrown` trong bộ test chạy song song | Race làm assert identity không ổn định | Fixture riêng, tuần tự hoặc đồng bộ phù hợp |
-| Gọi private method mà chưa cấp quyền | Test thất bại ở tầng access | Dùng public target để test wrapper; kiểm tra private access trong bài test riêng |
-| Assert nguyên cả stack trace | Test giòn, lệ thuộc JDK | Kiểm tra frame/đặc tính cần thiết |
-| Cho rằng mọi cách gọi động đều bọc lỗi bằng wrapper này | Phân tích sai với `MethodHandle.invokeExact` hoặc lời gọi Java trực tiếp | Phân biệt API; kiểm thử riêng quy tắc exception của từng API |
+| `assertThrows(TargetException.class, () -> method.invoke(...))` | Test asserts the wrong exception layer | Assert `InvocationTargetException`, then inspect `getCause()` |
+| Comparing only the wrapper message | Does not prove the original Throwable | Assert cause type, message, and identity if a fixture exists |
+| Calling wrong overload/arguments and thinking the target threw | Direct `IllegalArgumentException` | Check a marker confirming the target body ran |
+| Looking up wrong method and mixing `NoSuchMethodException` into invoke test | Target execution path is never tested | Separate lookup tests and invoke tests |
+| Calling `getCause().getCause()` without checks | Potential `NullPointerException` if cause chain is short | Assert each layer per contract |
+| Swallowing `InvocationTargetException` or logging only the wrapper | Loses business error context | Log cause, preserve stack and method context; decide unwrap policy explicitly |
+| Unwrapping via `new RuntimeException(original.getMessage())` | Loses original identity, type, and stack | Rethrow `original` when API allows, or use `new RuntimeException("context", original)` to preserve cause |
+| Testing with a `static lastThrown` field in parallel test suites | Race makes identity assertions flaky | Isolated fixtures, sequential runs, or proper synchronization |
+| Invoking a private method without granting access | Test fails at the access layer | Use a public target to test the wrapper; test private access in a dedicated test |
+| Asserting the entire stack trace | Brittle, JDK-dependent test | Check essential frames/properties only |
+| Assuming all dynamic invocation mechanisms wrap errors with this wrapper | Incorrect analysis for `MethodHandle.invokeExact` or direct Java calls | Distinguish APIs; test each API's exception rules separately |
 
-### Khi xây helper unwrap, giữ nguyên Throwable
+### When Building an Unwrap Helper, Preserve the Throwable
 
-`Method.invoke` trả về ngoại lệ wrapper để phân biệt code reflection với exception bên trong target. Một adapter có thể muốn **chủ động** đưa exception đích trở lại ranh giới nghiệp vụ:
+`Method.invoke` returns a wrapper exception to distinguish reflection code from exceptions inside the target. An adapter may want to **explicitly** surface the target exception back to the business boundary:
 
 ```java
 static Object invokeAndRethrow(
@@ -376,54 +376,54 @@ static Object invokeAndRethrow(
 }
 ```
 
-Đây là đoạn minh họa cần import `Method`/`InvocationTargetException`, không phải chương trình đầy đủ. Việc khai báo `throws Throwable` làm rõ rằng cause có thể là checked exception, unchecked exception **hoặc `Error`**. Trong code ứng dụng thực tế, caller cần chính sách chuyển tiếp, khai báo checked exceptions và log phù hợp. Không bao giờ bắt mọi `Throwable` rồi tiếp tục im lặng sau một lỗi nghiêm trọng.
+This is an illustrative snippet requiring imports for `Method`/`InvocationTargetException`, not a complete program. Declaring `throws Throwable` makes clear that the cause may be a checked exception, unchecked exception, **or `Error`**. In real application code, callers need a forwarding policy, checked exception declarations, and appropriate logging. Never catch every `Throwable` and continue silently after a serious error.
 
-Nếu interface adapter chỉ khai báo một loại checked exception hẹp, có thể cần ánh xạ ngoại lệ theo hợp đồng đó. Khi phải bọc lại, luôn đặt original làm **cause** thay vì chỉ sao chép message.
+If the adapter interface only declares a narrow checked exception type, you may need to map exceptions per that contract. Whenever you must re-wrap, always set the original as the **cause** rather than merely copying its message.
 
-## 9. Trường hợp API khác: đừng áp dụng máy móc
+## 9. Other API Cases: Do Not Apply Mechanically
 
-- `Constructor.newInstance(...)` cũng có thể ném `InvocationTargetException` khi constructor đích ném exception, nhưng các lỗi trước khi chạy constructor cần tách riêng.
-- `MethodHandle.invoke` và `invokeExact` không tuân theo quy tắc wrapper `InvocationTargetException` của `Method.invoke`; chúng có hợp đồng riêng và thường đưa Throwable trực tiếp tới caller.
-- Reflection call có thể đi qua proxy/adapters khác: tầng bên ngoài (ví dụ dynamic proxy, future) có thể thêm wrapper riêng. Test phải xác định **lớp nào tạo wrapper** và kiểm tra đúng tầng.
-- `InvocationTargetException` tự nó cũng là một class có constructor công khai; nếu chính target chủ động ném một object loại này qua `Method.invoke`, sẽ có **wrapper bên ngoài** và target exception ở tầng bên trong. Đừng phân loại nguyên nhân chỉ bằng tên class nếu không biết chuỗi gọi.
+- `Constructor.newInstance(...)` can also throw `InvocationTargetException` when the target constructor throws an exception, while errors before running the constructor must be separated.
+- `MethodHandle.invoke` and `invokeExact` do not follow `Method.invoke`'s `InvocationTargetException` wrapping rule; they have their own contract and typically pass Throwables directly to the caller.
+- Reflection calls may go through other proxies/adapters: an outer layer (e.g., dynamic proxy, future) can add its own wrapper. Tests must identify **which layer creates each wrapper** and verify the appropriate layer.
+- `InvocationTargetException` itself is a class with public constructors; if the target explicitly throws an object of this type via `Method.invoke`, there will be an **outer wrapper** and a target exception on the inner layer. Do not classify causes solely by class name without knowing the call chain.
 
-## 10. Checklist cho kiểm thử regression
+## 10. Regression Testing Checklist
 
-Trước khi chốt test:
+Before finalizing tests:
 
-1. Đã chứng minh phương thức đích thực sự được gọi và ném lỗi dự kiến?
-2. Đã assert wrapper `InvocationTargetException` ở bên ngoài?
-3. `getCause()` khác `null`, đúng type, message và **cùng Throwable** khi có reference?
-4. `getTargetException()` có cùng identity với `getCause()`?
-5. Cause chain sâu hơn được giữ khi target thiết lập nguyên nhân?
-6. Đã có test riêng về receiver/argument sai để tránh nhầm lỗi reflection với lỗi target?
-7. Với helper unwrap, đã xác nhận exception gốc được đưa ra và không bị tạo lại?
-8. Test chạy ổn trên Java 17+, không phụ thuộc chi tiết stack trace dễ thay đổi?
-9. Nếu dùng JUnit 5, runner và dependency đã được khai báo; nếu dùng harness độc lập, stdout khớp đúng?
-10. Có tránh chia sẻ trạng thái test khiến kết quả sai khi chạy song song?
+1. Have you proved the target method actually ran and threw the expected error?
+2. Have you asserted the outer `InvocationTargetException` wrapper?
+3. Is `getCause()` non-`null`, with the right type, message, and **same Throwable** when a reference exists?
+4. Does `getTargetException()` have the same identity as `getCause()`?
+5. Is a deeper cause chain preserved when the target sets a cause?
+6. Is there a separate test for wrong receiver/arguments to avoid confusing reflection errors with target errors?
+7. For an unwrap helper, have you verified the original exception is surfaced without being recreated?
+8. Does the test run reliably on Java 17+, without depending on volatile stack trace details?
+9. If using JUnit 5, are runner and dependencies declared; if using a standalone harness, does stdout match accurately?
+10. Have you avoided shared test state that causes wrong results under parallel execution?
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** Mã trong target gọi `throw new IllegalArgumentException("bad")`. Caller dùng `Method.invoke` bắt lỗi gì?
+**Question 1.** Target code calls `throw new IllegalArgumentException("bad")`. What does a caller using `Method.invoke` catch?
 
-**Đáp án:** `InvocationTargetException` ở ngoài, còn `IllegalArgumentException` chính là `getCause()`.
+**Answer:** `InvocationTargetException` on the outside, with `IllegalArgumentException` as `getCause()`.
 
-**Câu 2.** Caller truyền `String` vào tham số `int` của `Method.invoke` và target chưa chạy. Có `InvocationTargetException` không?
+**Question 2.** The caller passes `String` into an `int` parameter of `Method.invoke` and the target has not run. Is there an `InvocationTargetException`?
 
-**Đáp án:** Không; đây là lỗi argument của reflection, thường là `IllegalArgumentException` trực tiếp.
+**Answer:** No; this is a reflection argument error, typically a direct `IllegalArgumentException`.
 
-**Câu 3.** `getCause()` và `getTargetException()` của wrapper do `Method.invoke` tạo có trả hai bản sao exception không?
+**Question 3.** Do `getCause()` and `getTargetException()` on a wrapper created by `Method.invoke` return two copies of the exception?
 
-**Đáp án:** Không. Chúng trả cùng đối tượng exception đích; có thể kiểm bằng `==` hoặc JUnit `assertSame`.
+**Answer:** No. They return the exact same target exception object; you can verify with `==` or JUnit `assertSame`.
 
-**Câu 4.** Target ném một `IOException` có cause là `IllegalStateException`. Wrapper có mất cause chain không?
+**Question 4.** Target throws an `IOException` whose cause is `IllegalStateException`. Does the wrapper lose the cause chain?
 
-**Đáp án:** Không. Wrapper mới trỏ tới `IOException`; bản thân `IOException` vẫn giữ quan hệ cause đã thiết lập.
+**Answer:** No. The new wrapper points to `IOException`; `IOException` itself retains the established cause relationship.
 
-**Câu 5.** Nếu adapter cần ném lại lỗi gốc, nên làm gì?
+**Question 5.** If an adapter needs to rethrow the original error, what should it do?
 
-**Đáp án:** Bắt `InvocationTargetException` rồi `throw e.getCause()` khi chữ ký API cho phép; nếu buộc phải bọc lại, luôn gắn cause gốc.
+**Answer:** Catch `InvocationTargetException` and `throw e.getCause()` when the API signature permits; if forced to re-wrap, always attach the original cause.
 
-**Ghi nhớ:** Với `Method.invoke`, hãy **kiểm thử hai tầng**: wrapper `InvocationTargetException` mô tả cơ chế reflection, còn `getCause()` là exception/error do mã đích thật sự ném. Test chất lượng xác nhận **type, identity, message, cause chain và ranh giới trước/sau khi target chạy**.
+**Takeaway:** With `Method.invoke`, **test two layers**: the `InvocationTargetException` wrapper describes the reflection mechanism, while `getCause()` is the exception/error actually thrown by target code. Quality tests verify **type, identity, message, cause chain, and the pre/post-target-execution boundary**.
 
-Tham khảo: [Java 17 `Method.invoke`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...)), [`InvocationTargetException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html), [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/).
+References: [Java 17 `Method.invoke`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...)), [`InvocationTargetException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html), [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/).

@@ -1,86 +1,86 @@
-# Phân biệt không gian Unicode với bộ mã bên ngoài trong Java
+# Distinguishing Unicode Code Space from External Encodings in Java
 
-## 1. Vì sao hai khái niệm này cần được tách rõ?
+## 1. Why Must These Two Concepts Be Clearly Separated?
 
-Khi một ứng dụng Java đọc tên người, bản dịch tiếng Việt, biểu tượng cảm xúc hoặc dữ liệu JSON từ hệ thống khác, chúng ta phải giải quyết **hai câu hỏi độc lập**:
+When a Java application reads personal names, Vietnamese translations, emojis, or JSON data from another system, we must answer **two independent questions**:
 
-1. **Ký tự nào đang được nói đến?** Unicode định danh các ký tự và các phần tử văn bản bằng **code point**, chẳng hạn `U+0041` cho chữ `A`, `U+00E9` cho `é`, `U+1F600` cho biểu tượng `😀`.
-2. **Làm sao các ký tự đó trở thành byte để lưu hoặc truyền?** Một **character encoding/charset** (như UTF-8, UTF-16BE, ISO-8859-1 hoặc Windows-1252) xác định quy tắc biểu diễn hay chuyển giữa dữ liệu ký tự và chuỗi byte.
+1. **Which character is being referred to?** Unicode identifies characters and text elements by **code point**, such as `U+0041` for `A`, `U+00E9` for `é`, and `U+1F600` for `😀`.
+2. **How do those characters become bytes for storage or transmission?** A **character encoding/charset** (such as UTF-8, UTF-16BE, ISO-8859-1, or Windows-1252) defines the rules for representing or converting between character data and byte sequences.
 
-**Unicode code point không phải là một byte; UTF-8 không phải “một ngôn ngữ khác”; Java `String` không phải một tệp UTF-8.**
+**A Unicode code point is not a byte; UTF-8 is not "another language"; a Java `String` is not a UTF-8 file.**
 
-Ví dụ chuỗi có nội dung `Aé😀` là cùng một dãy Unicode code point dù được chuyển thành:
+For example, a string with content `Aé😀` is the exact same sequence of Unicode code points whether converted into:
 
-- Dãy byte UTF-8: `41 C3 A9 F0 9F 98 80` (7 byte).
-- Dãy byte UTF-16BE: `00 41 00 E9 D8 3D DE 00` (8 byte, **không tính BOM**).
-- Với ISO-8859-1: **không thể mã hóa đầy đủ**, vì bảng mã đó không có biểu diễn cho `😀`.
+- UTF-8 byte sequence: `41 C3 A9 F0 9F 98 80` (7 bytes).
+- UTF-16BE byte sequence: `00 41 00 E9 D8 3D DE 00` (8 bytes, **excluding BOM**).
+- With ISO-8859-1: **cannot be fully encoded**, because that charset has no representation for `😀`.
 
-Việc chọn encoding khác không làm thay đổi ký tự mà chúng ta **muốn** biểu diễn; nó làm thay đổi dãy byte và khả năng biểu diễn chính xác các ký tự đó. Nếu một đầu trong hệ thống ghi UTF-8 nhưng đầu kia giải mã thành Windows-1252, văn bản có thể biến thành các ký tự sai (*mojibake*), dù byte lúc truyền không bị mất.
+Choosing a different encoding does not change the characters we **intend** to represent; it changes the byte sequence and whether those characters can be represented accurately. If one end of a system writes UTF-8 while the other end decodes as Windows-1252, the text can turn into garbled characters (*mojibake*), even though no bytes were lost in transit.
 
-### Mục tiêu bài học
+### Lesson Objectives
 
-Sau khi học xong, bạn có thể phân biệt:
+After completing this lesson, you will be able to distinguish:
 
-- **Unicode code point space**, Unicode scalar value và code point viết bằng `U+...`.
-- **Java UTF-16 code unit** (`char`, `String.length()`) với số code point, số byte và ký tự nhìn thấy.
-- **Encoding** (UTF-8/UTF-16/legacy charset) với **decoding** và vị trí xảy ra chuyển đổi tại ranh giới I/O.
-- Lỗi **mã hóa không biểu diễn được**, **giải mã sai charset**, **byte sequence hỏng**, **replacement character** và **normalization**.
-- Cách ghi/đọc byte an toàn bằng `StandardCharsets`, xử lý lỗi nghiêm ngặt và xây kiểm thử round-trip.
+- **Unicode code point space**, Unicode scalar values, and code points written as `U+...`.
+- **Java UTF-16 code units** (`char`, `String.length()`) from code point count, byte count, and visible characters.
+- **Encoding** (UTF-8/UTF-16/legacy charsets) from **decoding**, and where conversions occur at I/O boundaries.
+- **Unmappable character errors**, **wrong-charset decoding**, **malformed byte sequences**, **replacement characters**, and **normalization**.
+- How to write/read bytes safely with `StandardCharsets`, enforce strict error handling, and build round-trip tests.
 
-## 2. “Không gian Unicode” là gì?
+## 2. What Is the "Unicode Space"?
 
-Unicode cung cấp hệ định danh chung cho văn bản. Mỗi **code point** có giá trị số viết dưới dạng `U+XXXX` hoặc nhiều chữ số hơn (ví dụ `U+1F600`). Không gian giá trị code point có phạm vi:
+Unicode provides a universal identification system for text. Each **code point** has a numeric value written as `U+XXXX` or more digits (e.g., `U+1F600`). The code point value space spans:
 
 ```text
 U+0000 ................................. U+10FFFF
 ```
 
-Trong khoảng ấy:
+Within that range:
 
-- `U+0000` đến `U+10FFFF` là phạm vi giá trị code point hợp lệ theo định nghĩa không gian Unicode.
-- Khoảng `U+D800`–`U+DFFF` dành cho **UTF-16 surrogate code points**. Chúng **không phải Unicode scalar values**, không được dùng như ký tự Unicode độc lập hợp lệ để mã hóa thành UTF-8 chuẩn.
-- Một **Unicode scalar value** là code point nằm ngoài vùng surrogate.
-- Một code point có thể được gán cho ký tự, được giữ để dùng sau, có chức năng đặc biệt hoặc nằm trong nhóm không phải ký tự thông thường; **không phải mọi số trong không gian đều là một chữ cái được nhìn thấy**.
-- Một số biểu diễn văn bản gồm nhiều code point, chẳng hạn một chữ cái đi kèm dấu tổ hợp (*combining mark*) hoặc emoji ghép bằng zero-width joiner.
+- `U+0000` through `U+10FFFF` is the valid code point value range as defined by the Unicode code space.
+- The range `U+D800`–`U+DFFF` is reserved for **UTF-16 surrogate code points**. They are **not Unicode scalar values** and must not be used as valid standalone Unicode characters for standard UTF-8 encoding.
+- A **Unicode scalar value** is any code point outside the surrogate range.
+- A code point can be assigned to a character, reserved for future use, serve a special function, or fall into a non-ordinary character group; **not every number in the space is a visible letter**.
+- Some text representations consist of multiple code points, such as a letter followed by a combining mark (*combining mark*) or an emoji joined by a zero-width joiner.
 
-Một số ví dụ:
+Some examples:
 
-| Biểu diễn | Code point | Ghi chú |
+| Representation | Code point | Notes |
 | --- | --- | --- |
-| `A` | `U+0041` | Chữ Latin A. |
-| `é` | `U+00E9` | Chữ e có dấu sắc ở dạng dựng sẵn (*precomposed*). |
-| `e◌́` | `U+0065` + `U+0301` | Chữ e và dấu sắc tổ hợp: hai code point, có thể trông như `é`. |
-| `😀` | `U+1F600` | Code point ngoài Basic Multilingual Plane (BMP). |
-| Dấu cách thường | `U+0020` | Khác NBSP và nhiều loại khoảng trắng Unicode. |
-| `U+FEFF` | `U+FEFF` | Có thể xuất hiện ở đầu text do BOM hoặc dữ liệu chứa ký tự này; cần xử lý theo giao thức. |
+| `A` | `U+0041` | Latin letter A. |
+| `é` | `U+00E9` | Letter e with acute accent in *precomposed* form. |
+| `e◌́` | `U+0065` + `U+0301` | Letter e and combining acute accent: two code points, may look like `é`. |
+| `😀` | `U+1F600` | Code point outside the Basic Multilingual Plane (BMP). |
+| Ordinary space | `U+0020` | Differs from NBSP and many other Unicode whitespace characters. |
+| `U+FEFF` | `U+FEFF` | Can appear at the start of text as a BOM or data containing this character; handle per protocol. |
 
-**Một “ký tự” trong lời nói hằng ngày không luôn tương ứng một code point.** Unicode có khái niệm grapheme cluster (*cụm ký tự được người dùng nhận là một đơn vị*). Một grapheme cluster có thể chứa nhiều code point, và một code point ngoài BMP chiếm hai `char` UTF-16 trong Java.
+**A "character" in everyday speech does not always correspond to one code point.** Unicode has the concept of a grapheme cluster (*a cluster of characters perceived by users as one unit*). A grapheme cluster can contain multiple code points, and a code point outside the BMP occupies two UTF-16 `char`s in Java.
 
-### BMP và supplementary code points
+### BMP and Supplementary Code Points
 
-**Basic Multilingual Plane (BMP)** là phạm vi `U+0000`–`U+FFFF`. Những Unicode scalar values nằm ngoài BMP gọi là **supplementary code points** (`U+10000`–`U+10FFFF`). Để biểu diễn một supplementary code point trong UTF-16, cần **hai code unit**, gọi là **surrogate pair**.
+The **Basic Multilingual Plane (BMP)** is the range `U+0000`–`U+FFFF`. Unicode scalar values outside the BMP are called **supplementary code points** (`U+10000`–`U+10FFFF`). Representing one supplementary code point in UTF-16 requires **two code units**, called a **surrogate pair**.
 
-`😀` (U+1F600) có surrogate pair:
+`😀` (U+1F600) has the surrogate pair:
 
 ```text
 High surrogate: U+D83D
 Low surrogate:  U+DE00
 ```
 
-Đừng coi `U+D83D` là một ký tự `😀` hoàn chỉnh. Nếu xử lý một nửa surrogate pair như ký tự độc lập, bạn có thể cắt hỏng text, ghi ra byte không hợp lệ hoặc làm mất thông tin trong quá trình encoding.
+Do not treat `U+D83D` as a complete `😀` character. If you process half of a surrogate pair as a standalone character, you can corrupt text when slicing, write invalid bytes, or lose data during encoding.
 
-## 3. Java String, char và code point không giống byte
+## 3. Java `String`, `char`, and Code Points Are Not Bytes
 
-Java `char` là **một UTF-16 code unit 16-bit**, không phải một Unicode character bất kỳ và cũng không phải một byte. Java `String` cung cấp cách truy cập theo vị trí code unit UTF-16. Vì vậy:
+A Java `char` is **one 16-bit UTF-16 code unit**, not an arbitrary Unicode character and not a byte. Java `String` provides access by UTF-16 code unit position. Therefore:
 
-- `String.length()` đếm **UTF-16 code units**, không phải số Unicode code point hay số byte UTF-8.
-- `String.charAt(index)` trả **một code unit**, có thể là high/low surrogate của một code point bổ sung.
-- `String.codePointAt(index)` có thể trả code point đầy đủ khi index trỏ tới high surrogate đi kèm low surrogate hợp lệ.
-- `String.codePointCount(beginIndex, endIndex)` đếm code point trên đoạn UTF-16, còn `String.codePoints()` cung cấp `IntStream` các code point.
-- `Character.charCount(codePoint)` trả số code unit UTF-16 cần dùng cho code point (thông thường 1 hoặc 2 tùy phạm vi).
-- `String.offsetByCodePoints(...)` có thể dùng khi muốn di chuyển theo code point thay vì cộng bừa chỉ số `char`.
+- `String.length()` counts **UTF-16 code units**, not the number of Unicode code points or UTF-8 bytes.
+- `String.charAt(index)` returns **one code unit**, which may be the high/low surrogate of a supplementary code point.
+- `String.codePointAt(index)` can return the full code point when the index points to a high surrogate paired with a valid low surrogate.
+- `String.codePointCount(beginIndex, endIndex)` counts code points in a UTF-16 range, while `String.codePoints()` provides an `IntStream` of code points.
+- `Character.charCount(codePoint)` returns the number of UTF-16 code units needed for the code point (typically 1 or 2 depending on the range).
+- `String.offsetByCodePoints(...)` can be used when advancing by code points instead of arbitrarily adding to `char` indices.
 
-Ví dụ:
+Example:
 
 ```java
 String text = "A\u00E9\uD83D\uDE00"; // Aé😀
@@ -90,74 +90,74 @@ System.out.println(text.codePointCount(0, 4));      // 3
 System.out.println(text.codePointAt(2) == 0x1F600); // true
 ```
 
-Trong chuỗi:
+In the string:
 
 ```text
 UTF-16 index   0        1        2           3
 code unit     0041     00E9     D83D        DE00
-ký tự         A        é        [hai code unit tạo 😀]
+character     A        é        [two code units form 😀]
 ```
 
-Vì vậy, khi viết UI:
+Therefore, when writing UIs:
 
-- Không cắt “100 ký tự” bằng `substring(0, 100)` mà mặc định đây là 100 ký tự mà người dùng thấy; nó có thể cắt giữa surrogate pair hoặc grapheme cluster.
-- Giới hạn độ dài dữ liệu phải nói rõ đó là **byte**, **UTF-16 code unit**, **Unicode code point** hay **grapheme cluster**.
-- Các form nhập tên, emoji hay lời nhắn thường cần tính theo cụm ký tự được người dùng thấy. Java core có `BreakIterator` cho việc phân đoạn văn bản, nhưng hỗ trợ chi tiết các chuỗi emoji/grapheme có thể phụ thuộc phiên bản và thuật toán; nếu cần đúng Unicode extended grapheme cluster ở mọi trường hợp, phải chọn và kiểm thử một triển khai phù hợp.
+- Do not truncate "100 characters" with `substring(0, 100)` assuming it means 100 user-perceived characters; it can slice between a surrogate pair or grapheme cluster.
+- Data length limits must specify whether they refer to **bytes**, **UTF-16 code units**, **Unicode code points**, or **grapheme clusters**.
+- Input forms for names, emojis, or messages often need counting by user-perceived character clusters. Java core includes `BreakIterator` for text segmentation, though detailed support for emoji/grapheme sequences can depend on version and algorithm; if full Unicode extended grapheme clusters are required in all cases, choose and test an appropriate implementation.
 
-**Điểm thực thi:** Java không cam kết byte layout bên trong đối tượng `String` giống hệt file UTF-16BE. Các JDK hiện đại có thể tối ưu vùng nhớ lưu chuỗi; điều mà các API `charAt`/`length` cam kết là **ngữ nghĩa UTF-16 code unit**, không phải một định dạng byte công khai.
+**Implementation detail:** Java does not guarantee that the internal byte layout inside a `String` object matches a UTF-16BE file. Modern JDKs can optimize string storage memory; what `charAt`/`length` APIs guarantee is **UTF-16 code unit semantics**, not a public byte format.
 
-## 4. Encoding là ánh xạ giữa dữ liệu ký tự và byte
+## 4. Encoding Is a Mapping Between Character Data and Bytes
 
-Một **charset/character encoding** xác định cách mã hóa ký tự thành byte và giải mã byte thành ký tự. Trong Java, API chính là `java.nio.charset.Charset`, các lớp `CharsetEncoder`/`CharsetDecoder`, và các hằng `StandardCharsets`.
+A **charset/character encoding** defines how to encode characters into bytes and decode bytes into characters. In Java, the primary APIs are `java.nio.charset.Charset`, the classes `CharsetEncoder`/`CharsetDecoder`, and the constants in `StandardCharsets`.
 
-Quy trình ở biên I/O:
+The flow at the I/O boundary:
 
 ```text
                              ENCODE
-Java String / dãy ký tự ------------------> byte[]
-        ^                                   |
-        |                                   | file / socket / HTTP /
-        |                                   | database driver / stream
-        |                                   v
-        +-------------------------------  byte[]
+Java String / char sequence ---------------> byte[]
+        ^                                      |
+        |                                      | file / socket / HTTP /
+        |                                      | database driver / stream
+        |                                      v
+        +----------------------------------- byte[]
                              DECODE
 ```
 
-Cần biết charset tại **hai bên ranh giới**. Nếu sender dùng UTF-8 và receiver lại dùng ISO-8859-1, hai phía bất đồng về cách diễn giải byte.
+The charset must be known on **both sides of the boundary**. If the sender uses UTF-8 while the receiver uses ISO-8859-1, the two sides disagree on how to interpret the bytes.
 
-### Những encoding thường gặp
+### Common Encodings
 
-| Charset | Nguyên tắc | Đặc điểm cần nhớ |
+| Charset | Principle | Key characteristics to remember |
 | --- | --- | --- |
-| `UTF-8` | Mã hóa Unicode scalar values bằng 1–4 byte mỗi code point. | ASCII dùng 1 byte; phổ biến trên web, JSON, file văn bản hiện đại. |
-| `UTF-16BE` | UTF-16 code units được ghi big-endian. | 2 byte/code unit; supplementary code point dùng surrogate pair = 4 byte. |
-| `UTF-16LE` | UTF-16 code units được ghi little-endian. | Byte order ngược BE; không nên lẫn nếu không có BOM/thỏa thuận. |
-| `UTF-16` (charset Java) | UTF-16 với quy tắc BOM/endianness của charset. | Có thể sinh/nhận BOM theo quy tắc UTF-16; không đồng nhất với UTF-16BE. |
-| `US-ASCII` | Bảng ký tự 7-bit. | Không biểu diễn được chữ Việt có dấu và nhiều ký tự ngoài ASCII. |
-| `ISO-8859-1` | Bộ mã legacy một byte, chủ yếu Latin Tây Âu. | Biểu diễn được `é` nhưng không biểu diễn được emoji hay phần lớn tiếng Việt. |
-| `windows-1252` | Legacy single-byte charset của Windows Tây Âu. | Không đồng nhất ISO-8859-1 ở vùng byte `0x80`–`0x9F`. |
+| `UTF-8` | Encodes Unicode scalar values using 1–4 bytes per code point. | ASCII uses 1 byte; standard across the web, JSON, and modern text files. |
+| `UTF-16BE` | UTF-16 code units written big-endian. | 2 bytes/code unit; supplementary code points use surrogate pairs = 4 bytes. |
+| `UTF-16LE` | UTF-16 code units written little-endian. | Opposite byte order to BE; do not mix without a BOM/agreement. |
+| `UTF-16` (Java charset) | UTF-16 with charset BOM/endianness rules. | Can emit/expect a BOM per UTF-16 rules; not identical to UTF-16BE. |
+| `US-ASCII` | 7-bit character table. | Cannot represent accented Vietnamese or many non-ASCII characters. |
+| `ISO-8859-1` | Single-byte legacy charset, mainly Western European Latin. | Represents `é` yet cannot represent emojis or most Vietnamese characters. |
+| `windows-1252` | Legacy single-byte Western European Windows charset. | Differs from ISO-8859-1 in the `0x80`–`0x9F` byte range. |
 
-**Unicode và UTF-8 không phải hai đối thủ:** Unicode là không gian định danh và các quy tắc văn bản; UTF-8 là **một encoding form/encoding scheme để biểu diễn Unicode trong byte**. UTF-16 và UTF-32 cũng là các cách biểu diễn Unicode. Trong khi đó, các bảng mã legacy thường chỉ biểu diễn được một tập ký tự hạn chế.
+**Unicode and UTF-8 are not competitors:** Unicode is the code space and text rules; UTF-8 is **an encoding form/encoding scheme for representing Unicode in bytes**. UTF-16 and UTF-32 are likewise ways of representing Unicode. Meanwhile, legacy charsets can only represent a limited character repertoire.
 
-### Cùng nội dung, byte khác nhau
+### Same Content, Different Bytes
 
-Xét chuỗi `Aé😀`:
+Consider the string `Aé😀`:
 
-| Đơn vị | Kết quả | Lý do |
+| Unit | Result | Reason |
 | --- | --- | --- |
-| Unicode code points | `U+0041 U+00E9 U+1F600` | Ba giá trị Unicode. |
-| Java UTF-16 code units | `0041 00E9 D83D DE00` | Emoji cần hai code unit. |
-| UTF-8 bytes | `41 C3 A9 F0 9F 98 80` | Tổng 7 byte. |
-| UTF-16BE bytes, không BOM | `00 41 00 E9 D8 3D DE 00` | Tổng 8 byte. |
-| ISO-8859-1 | Không thể round-trip đầy đủ | `😀` không nằm trong repertoire của charset. |
+| Unicode code points | `U+0041 U+00E9 U+1F600` | Three Unicode values. |
+| Java UTF-16 code units | `0041 00E9 D83D DE00` | The emoji needs two code units. |
+| UTF-8 bytes | `41 C3 A9 F0 9F 98 80` | Total 7 bytes. |
+| UTF-16BE bytes, no BOM | `00 41 00 E9 D8 3D DE 00` | Total 8 bytes. |
+| ISO-8859-1 | Cannot round-trip completely | `😀` is outside the charset's repertoire. |
 
-Đừng lấy `String.length()` để suy ra dung lượng file UTF-8, kích thước JSON body hoặc giới hạn số byte của database. Muốn số byte sau mã hóa, dùng `text.getBytes(charset).length` với charset thực sự dùng; cũng lưu ý cấu trúc protocol và escaping có thể thêm byte ngoài bản thân chuỗi text.
+Do not use `String.length()` to deduce UTF-8 file size, JSON body size, or database byte limits. To get the encoded byte count, use `text.getBytes(charset).length` with the charset actually used; also note that protocol structures and escaping can add bytes beyond the text string itself.
 
-## 5. Encoding và decoding là hai chiều phải khớp nhau
+## 5. Encoding and Decoding Are Two Sides That Must Match
 
-### Mã hóa đúng
+### Proper Encoding
 
-`String.getBytes(StandardCharsets.UTF_8)` chuyển text thành UTF-8 bytes; `new String(bytes, StandardCharsets.UTF_8)` giải mã chúng trở lại. Ví dụ:
+`String.getBytes(StandardCharsets.UTF_8)` converts text to UTF-8 bytes; `new String(bytes, StandardCharsets.UTF_8)` decodes them back. Example:
 
 ```java
 String message = "Xin chào!";
@@ -166,11 +166,11 @@ String copy = new String(bytes, StandardCharsets.UTF_8);
 System.out.println(message.equals(copy)); // true
 ```
 
-Hai API trên dùng charset tường minh. Một round-trip đúng chứng minh dữ liệu có thể được tái tạo qua đường đi tương ứng cho chuỗi đã chọn. Nó không chứng minh một hệ thống khác thực tế đang dùng UTF-8, cũng không đảm bảo không có thay đổi khi text đi qua các tầng khác.
+Both APIs above use an explicit charset. A successful round-trip proves data can be reconstructed along that path for the chosen string. It does not prove another system is actually using UTF-8, nor does it guarantee no transformations occur as text passes through other layers.
 
-### Giải mã sai charset gây mojibake
+### Decoding with the Wrong Charset Causes Mojibake
 
-Ví dụ ký tự `é` (U+00E9) được encode UTF-8 thành hai byte `C3 A9`. Nếu lại giải mã hai byte đó như ISO-8859-1, chúng được hiểu là hai code point khác (`U+00C3` và `U+00A9`), tạo ra chuỗi nhìn như `Ã©`.
+For example, the character `é` (U+00E9) is UTF-8 encoded as two bytes `C3 A9`. If those two bytes are decoded as ISO-8859-1, they are interpreted as two different code points (`U+00C3` and `U+00A9`), producing a string looking like `Ã©`.
 
 ```text
 Unicode U+00E9 "é"
@@ -179,24 +179,24 @@ Unicode U+00E9 "é"
         v
 bytes C3 A9
         |
-      ISO-8859-1 decode (SAI!)
+      ISO-8859-1 decode (WRONG!)
         v
 Unicode U+00C3 U+00A9 "Ã©"
 ```
 
-Bản chất lỗi là **bất đồng về encoding** ở ranh giới byte/text, không phải Unicode “thiếu chữ”. Nếu chuỗi sai này được encode lại và lưu vào database như dữ liệu thật, vấn đề có thể lan rộng.
+The root cause is an **encoding mismatch** at the byte/text boundary, not Unicode "missing letters". If this corrupted string is re-encoded and stored in a database as real data, the problem can spread.
 
-Để khắc phục, xác định **byte gốc, charset đã dùng khi encode, charset đã dùng khi decode và tầng nào bị sai**. Không dùng một chuỗi thay thế `"Ã" -> ...` trên toàn bộ dữ liệu, vì có thể làm hỏng text vốn đã đúng hoặc text chứa ký tự ấy thật sự.
+To fix it, identify the **original bytes, the charset used when encoding, the charset used when decoding, and which layer was wrong**. Do not run a global string replacement `"Ã" -> ...` over all data, as that can corrupt valid text or text legitimately containing that character.
 
-### Charset mặc định không phải hợp đồng trao đổi dữ liệu
+### Default Charset Is Not a Data Exchange Contract
 
-Trong Java, `String.getBytes()` không tham số sử dụng charset mặc định của môi trường Java. Ở Java 17, kết quả có thể phụ thuộc hệ điều hành/JVM và cấu hình chạy; từ Java 18, UTF-8 là default theo chính sách chuẩn hóa mới nhưng vẫn có một số chế độ/ngoại lệ cấu hình. **Dữ liệu trao đổi qua file, API hoặc message queue nên dùng charset tường minh** thay vì dựa vào mặc định.
+In Java, parameterless `String.getBytes()` uses the default charset of the Java environment. In Java 17, the result can depend on the OS/JVM and runtime configuration; from Java 18 onward, UTF-8 is the default under the new standardization policy, though some modes/configuration exceptions remain. **Data exchanged via files, APIs, or message queues should use an explicit charset** instead of relying on defaults.
 
-`javac -encoding UTF-8` chỉ định encoding của **tệp nguồn Java**, không tự quyết định encoding cho file đọc bằng ứng dụng lúc chạy hoặc mọi byte từ HTTP.
+`javac -encoding UTF-8` specifies the encoding of **Java source files**, and does not determine the encoding for files read by the application at runtime or bytes from HTTP.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: Unicode, byte và lỗi charset
+## 6. Complete Java 17+ Example: Unicode, Bytes, and Charset Errors
 
-Tạo tệp **`UnicodeBoundaryDemo.java`** dưới đây. Chương trình chỉ xử lý dữ liệu trong bộ nhớ, không ghi file và không phụ thuộc charset console để in biểu tượng cảm xúc. Các byte được in bằng `HexFormat`, vốn có từ Java 17.
+Create the file **`UnicodeBoundaryDemo.java`** below. The program processes data purely in memory, writes no files, and does not depend on the console charset to print emojis. Bytes are printed using `HexFormat`, available since Java 17.
 
 ```java
 import java.nio.ByteBuffer;
@@ -282,14 +282,14 @@ public class UnicodeBoundaryDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp bằng JDK 17 trở lên:
+Compile and run in the file's directory using JDK 17 or higher:
 
 ```bash
 javac -encoding UTF-8 UnicodeBoundaryDemo.java
 java UnicodeBoundaryDemo
 ```
 
-**Stdout chính xác của ví dụ:**
+**Exact stdout of the example:**
 
 ```text
 utf16Units=4
@@ -306,32 +306,32 @@ directEqual=false
 nfcEqual=true
 ```
 
-### Giải thích từng phép thử
+### Explanation of Each Check
 
-1. `utf16Units=4` vì `A` và `é` mỗi ký tự chiếm một UTF-16 code unit, còn `😀` chiếm hai. `codePoints=3` là số code point.
-2. `emoji=U+1F600` nhờ `codePointAt(2)` đọc đúng surrogate pair bắt đầu ở UTF-16 index 2.
-3. `utf8` và `utf16be` in byte thực, minh họa các encoding khác nhau của **cùng một dãy ký tự**.
-4. `roundTrip=true` vì encode/decode đều dùng UTF-8. `wrongDecodeMatches=false` vì byte UTF-8 bị đọc như ISO-8859-1.
-5. `latin1=UNMAPPABLE` thể hiện legacy charset không có biểu diễn cho emoji. Encoder dùng `CodingErrorAction.REPORT` để **báo lỗi thay vì âm thầm thay ký tự**.
-6. `malformedUtf8=REJECTED` vì cặp byte `C3 28` không tạo thành một chuỗi UTF-8 hợp lệ. Decoder nghiêm ngặt phát hiện byte hỏng.
-7. `lenientHasReplacement=true` minh họa một đường decode dùng ký tự thay thế `U+FFFD` khi input hỏng. Văn bản đã chứa replacement character thường không thể suy ra lại byte gốc.
-8. `directEqual=false` giữa hai cách biểu diễn `é`. `nfcEqual=true` vì chuẩn hóa về NFC cho kết quả tương đương trong ví dụ.
+1. `utf16Units=4` because `A` and `é` each occupy one UTF-16 code unit, while `😀` occupies two. `codePoints=3` is the code point count.
+2. `emoji=U+1F600` thanks to `codePointAt(2)` reading the surrogate pair starting at UTF-16 index 2.
+3. `utf8` and `utf16be` print actual bytes, illustrating different encodings of the **same character sequence**.
+4. `roundTrip=true` because both encode and decode use UTF-8. `wrongDecodeMatches=false` because UTF-8 bytes were read as ISO-8859-1.
+5. `latin1=UNMAPPABLE` shows that the legacy charset has no representation for the emoji. The encoder uses `CodingErrorAction.REPORT` to **report an error instead of silently substituting characters**.
+6. `malformedUtf8=REJECTED` because the byte pair `C3 28` does not form a valid UTF-8 sequence. The strict decoder detects corrupted bytes.
+7. `lenientHasReplacement=true` illustrates a decode path inserting replacement character `U+FFFD` on malformed input. Text already containing replacement characters usually cannot recover the original bytes.
+8. `directEqual=false` between the two representations of `é`. `nfcEqual=true` because normalizing to NFC produces equivalent results in the example.
 
-**Quan trọng:** đây là ví dụ cho **ranh giới biểu diễn**, không phải cách phân loại “có tiếng Việt hay không”. Một charset không phù hợp có thể mã hóa được một số chữ Việt nhưng vẫn làm mất các code point khác; kiểm thử phải dùng đúng tập ký tự mà sản phẩm thực sự hỗ trợ.
+**Important:** this is an example of **representation boundaries**, not a way to classify "whether text is Vietnamese". An unsuitable charset may encode some Vietnamese letters while silently dropping other code points; testing must use the exact character set the product actually supports.
 
-## 7. Khi byte hoặc ký tự không hợp lệ: thay thế hay báo lỗi?
+## 7. When Bytes or Characters Are Invalid: Replace or Report Errors?
 
-### 7.1. Encoder có thể gặp unmappable character
+### 7.1. An Encoder Can Encounter an Unmappable Character
 
-Giả sử gửi text `Aé😀` đến một hệ thống chỉ nhận ISO-8859-1. Ký tự `😀` không biểu diễn được. Các chính sách có thể là:
+Suppose you send `Aé😀` to a system accepting only ISO-8859-1. The character `😀` cannot be represented. Possible policies are:
 
-- **REPORT:** dừng và báo `UnmappableCharacterException` (qua API `CharsetEncoder`).
-- **REPLACE:** thay ký tự bằng một chuỗi byte thay thế do encoder cấu hình; thông thường là dấu hỏi hoặc ký hiệu thay thế tương ứng.
-- **IGNORE:** bỏ ký tự không biểu diễn được; rất dễ làm mất dữ liệu.
+- **REPORT:** stop and throw `UnmappableCharacterException` (via `CharsetEncoder` API).
+- **REPLACE:** replace the character with a replacement byte sequence configured on the encoder; typically a question mark or equivalent replacement symbol.
+- **IGNORE:** drop unrepresentable characters; very prone to silent data loss.
 
-`String.getBytes(Charset)` sử dụng hành vi thay thế khi có đầu vào không thể biểu diễn trọn vẹn; nếu dữ liệu quan trọng, đừng xem một lời gọi `getBytes` thành công là chứng minh không mất thông tin. Muốn kiểm soát nghiêm ngặt, dùng `CharsetEncoder` với `CodingErrorAction.REPORT` cho `onMalformedInput(...)` và `onUnmappableCharacter(...)` theo chính sách.
+`String.getBytes(Charset)` uses replacement behavior when encountering input it cannot fully represent; for critical data, do not treat a successful `getBytes` call as proof that no information was lost. For strict control, use `CharsetEncoder` with `CodingErrorAction.REPORT` for `onMalformedInput(...)` and `onUnmappableCharacter(...)` per policy.
 
-Ví dụ minh họa (đặt trong phương thức Java với import phù hợp):
+Illustrative example (placed in a Java method with appropriate imports):
 
 ```java
 CharsetEncoder encoder = StandardCharsets.ISO_8859_1
@@ -341,14 +341,14 @@ CharsetEncoder encoder = StandardCharsets.ISO_8859_1
 
 ByteBuffer result = encoder.encode(
         CharBuffer.wrap("A\u00E9\uD83D\uDE00"));
-// Ném CharacterCodingException do emoji không thể mã hóa.
+// Throws CharacterCodingException because the emoji cannot be encoded.
 ```
 
-Đoạn này chủ ý gây exception khi chạy với text đó. Không phải mọi exception khi encode đều là “byte UTF-8 sai”; đây là lỗi **không thể biểu diễn Unicode character trong charset đích**.
+This snippet intentionally triggers an exception when run with that text. Not every exception during encoding means "bad UTF-8 bytes"; here it is an error of **not being able to represent a Unicode character in the target charset**.
 
-### 7.2. Decoder có thể gặp malformed byte sequence
+### 7.2. A Decoder Can Encounter a Malformed Byte Sequence
 
-Một decoder cần biết byte nào là một chuỗi hợp lệ của charset. Với UTF-8, byte `C3` phải theo sau bởi một continuation byte hợp lệ. Byte `28` là `(` và **không phải** continuation byte, nên `C3 28` bị coi là malformed.
+A decoder must know which bytes constitute a valid sequence in its charset. In UTF-8, byte `C3` must be followed by a valid continuation byte. Byte `28` is `(` and is **not** a continuation byte, so `C3 28` is considered malformed.
 
 ```java
 CharsetDecoder decoder = StandardCharsets.UTF_8
@@ -359,33 +359,33 @@ CharsetDecoder decoder = StandardCharsets.UTF_8
 String text = decoder.decode(
         ByteBuffer.wrap(new byte[] {(byte) 0xC3, 0x28}))
         .toString();
-// Ném CharacterCodingException.
+// Throws CharacterCodingException.
 ```
 
-Đây là đoạn minh họa với import tương ứng; không phải chương trình độc lập. Tùy bài toán:
+This is an illustrative snippet with corresponding imports; not a standalone program. Depending on the task:
 
-- **Dữ liệu giao dịch, văn bản cần toàn vẹn:** cân nhắc REPORT để không âm thầm thay ký tự.
-- **Giao diện đọc log hỏng hoặc tài liệu legacy:** có thể hiển thị replacement character nhưng phải biết dữ liệu đã hỏng/mất khả năng khôi phục.
-- **Dữ liệu từ nguồn không tin cậy:** xác minh charset và giới hạn kích thước; không cố “đoán” encoding rồi nuốt lỗi.
+- **Transactional data, text requiring integrity:** consider REPORT to avoid silently substituting characters.
+- **UI reading corrupted logs or legacy documents:** may display replacement characters, while recognizing that data is corrupted/unrecoverable.
+- **Data from untrusted sources:** verify charset and enforce size limits; do not try to "guess" the encoding and swallow errors.
 
-Một lỗi decode được phát hiện không có nghĩa hệ thống chắc chắn biết charset đúng. Nó chỉ chứng minh byte không hợp lệ **theo charset đang thử**. Có nhiều byte sequence hợp lệ ở charset sai nhưng lại diễn giải thành ký tự không đúng (mojibake), nên chỉ kiểm tra khả năng decode không đủ xác nhận dữ liệu đúng.
+Detecting a decoding error does not mean the system knows the right charset for sure. It only proves the bytes are invalid **under the charset being attempted**. Many byte sequences are valid under the wrong charset yet decode into wrong characters (mojibake), so simply succeeding at decoding is insufficient to prove data is right.
 
-### 7.3. Surrogate không ghép cặp là trường hợp riêng
+### 7.3. Unpaired Surrogates Are a Special Case
 
-Một Java `String` có thể chứa một UTF-16 code unit surrogate đơn lẻ do bị cắt chuỗi sai hoặc nhận dữ liệu hỏng. Đó không phải Unicode scalar value. Khi encode UTF-8, encoder phải xử lý như **malformed input** theo chính sách, không phải tự phát minh code point độc lập.
+A Java `String` can contain a lone surrogate UTF-16 code unit due to bad string slicing or receiving corrupted data. That is not a Unicode scalar value. When encoding to UTF-8, the encoder must treat it as **malformed input** per policy rather than inventing an independent code point.
 
-Có thể kiểm tra chuỗi về surrogate bằng cách duyệt code unit/code point hoặc xác nhận nghiêm ngặt trước khi trao đổi dữ liệu quan trọng. Không cắt `String` theo chỉ số code unit một cách bừa bãi rồi kỳ vọng UTF-8 encoder giữ nguyên “nửa emoji”.
+You can check a string for surrogates by iterating code units/code points or validating strictly before exchanging critical data. Do not slice a `String` arbitrarily by code unit indices and expect a UTF-8 encoder to preserve "half an emoji".
 
-## 8. Normalization không phải encoding
+## 8. Normalization Is Not Encoding
 
-Unicode có thể có nhiều dãy code point biểu diễn văn bản tương đương về ngữ nghĩa, ví dụ:
+Unicode can have multiple code point sequences representing semantically equivalent text, for example:
 
 ```text
-é dựng sẵn:           U+00E9
-e + dấu sắc tổ hợp:   U+0065 U+0301
+Precomposed é:           U+00E9
+e + combining acute:     U+0065 U+0301
 ```
 
-Cả hai có thể trông giống nhau khi hiển thị, nhưng dãy code point khác, nên:
+Both can look identical when rendered, yet their code point sequences differ, so:
 
 ```java
 String a = "\u00E9";
@@ -396,38 +396,38 @@ System.out.println(a.equals(
         Normalizer.normalize(b, Normalizer.Form.NFC))); // true
 ```
 
-Đây là đoạn code minh họa trong một phương thức Java, cần import `java.text.Normalizer`.
+This is an illustrative code snippet inside a Java method, requiring `import java.text.Normalizer;`.
 
-**Normalization:** `Normalizer.Form.NFC`, `NFD`, `NFKC`, `NFKD` là các phép biến đổi giữa những dạng biểu diễn Unicode theo quy tắc chuẩn hóa. Chúng không biến byte UTF-8 thành byte UTF-16, không phát hiện đúng/sai charset gốc và không tự phục hồi mojibake.
+**Normalization:** `Normalizer.Form.NFC`, `NFD`, `NFKC`, and `NFKD` are transformations between Unicode representation forms according to normalization rules. They do not convert UTF-8 bytes to UTF-16 bytes, do not detect right/wrong original charsets, and cannot recover mojibake.
 
-- **NFC:** chuẩn hóa dạng có kết hợp chuẩn tắc; thường phù hợp khi muốn lưu/so sánh văn bản đã được chuẩn hóa theo hợp đồng ứng dụng.
-- **NFD:** phân rã theo quy tắc tương đương chuẩn tắc; thường tạo dạng gồm base character + combining marks khi thích hợp.
-- **NFKC/NFKD:** dùng *compatibility equivalence* có thể thay đổi phân biệt biểu diễn có ý nghĩa trong một số ngữ cảnh; không áp dụng vô điều kiện với mã định danh, mật khẩu hoặc nội dung cần giữ nguyên.
+- **NFC:** normalizes to canonically composed form; usually appropriate when storing/comparing text normalized per application contract.
+- **NFD:** decomposes according to canonical equivalence rules; typically produces base character + combining marks where applicable.
+- **NFKC/NFKD:** uses *compatibility equivalence* which can alter meaningful representation distinctions in some contexts; do not apply unconditionally to identifiers, passwords, or content that must remain unaltered.
 
-Normalization **không giải quyết mọi trường hợp “nhìn giống nhau”**: chữ Latin và Cyrillic trông tương tự vẫn có thể là code point khác; đây là vấn đề confusable/security và chính sách định danh. Cũng không phải mọi tổ hợp emoji hay kí tự đặc biệt đều trở thành một code point sau NFC.
+Normalization **does not resolve every "looks alike" case**: visually similar Latin and Cyrillic letters can still be different code points; that is a confusable/security issue and identifier policy matter. Nor does every emoji combination or special character collapse into a single code point after NFC.
 
-### Hai sai lầm phổ biến
+### Two Common Mistakes
 
-1. “Hai chuỗi nhìn như nhau thì `String.equals` phải trả `true`”: sai nếu dãy code point khác hoặc có ký tự ẩn/combining marks.
-2. “Để sửa chữ bị `Ã©`, chỉ cần `Normalizer.normalize`”: sai vì mojibake liên quan **byte được decode bằng charset không đúng**, không phải chỉ khác dạng chuẩn hóa Unicode.
+1. "Two strings that look alike must return `true` for `String.equals`": false if their code point sequences differ or contain hidden characters/combining marks.
+2. "To fix text showing `Ã©`, just run `Normalizer.normalize`": false because mojibake involves **bytes decoded with the wrong charset**, not merely differing Unicode normalization forms.
 
-## 9. BOM, byte order và các ranh giới ngoài Java
+## 9. BOM, Byte Order, and Boundaries Outside Java
 
-### 9.1. UTF-16 byte order
+### 9.1. UTF-16 Byte Order
 
-Một UTF-16 code unit có 16 bit, nên cần quy định thứ tự byte:
+A UTF-16 code unit is 16 bits, so byte order must be specified:
 
-- `UTF-16BE`: byte cao trước, ví dụ `A` → `00 41`.
-- `UTF-16LE`: byte thấp trước, ví dụ `A` → `41 00`.
-- Charset `UTF-16` có quy tắc BOM/endianness riêng khi đọc/ghi.
+- `UTF-16BE`: high byte first, e.g., `A` → `00 41`.
+- `UTF-16LE`: low byte first, e.g., `A` → `41 00`.
+- The `UTF-16` charset has its own BOM/endianness rules when reading/writing.
 
-**BOM (Byte Order Mark)** là một chuỗi byte/ký hiệu đầu luồng có thể dùng để chỉ thứ tự byte trong các dạng UTF-16. Với UTF-8, BOM `EF BB BF` không cần để xác định byte order; một số file có BOM vì lý do tương thích, nhưng các ứng dụng/giao thức có chính sách xử lý khác nhau. Không tự động thêm hoặc bỏ BOM nếu chưa biết định dạng đầu vào.
+**BOM (Byte Order Mark)** is a byte sequence/marker at the start of a stream that can indicate byte order in UTF-16 variants. For UTF-8, the BOM `EF BB BF` is not needed to determine byte order; some files include a BOM for compatibility, yet applications/protocols have differing handling policies. Do not automatically add or strip a BOM without knowing the input format.
 
-Nếu đọc một file UTF-8 có BOM bằng API không loại bỏ BOM, ký tự `U+FEFF` có thể nằm đầu chuỗi. Điều này có thể ảnh hưởng key lookup, header CSV hay so sánh chuỗi. Hãy test BOM theo định dạng file thực tế, không trông chờ mọi reader “tự xử lý”.
+If you read a UTF-8 file with a BOM using an API that does not strip the BOM, the character `U+FEFF` can remain at the start of the string. That can affect key lookups, CSV headers, or string comparisons. Test BOM handling against real file formats instead of expecting every reader to "handle it automatically".
 
-### 9.2. Ghi và đọc file bằng charset tường minh
+### 9.2. Writing and Reading Files with an Explicit Charset
 
-Ví dụ code minh họa trong phương thức Java:
+Illustrative snippet inside a Java method:
 
 ```java
 Path path = Path.of("message.txt");
@@ -439,112 +439,112 @@ String loaded = Files.readString(path, StandardCharsets.UTF_8);
 System.out.println(message.equals(loaded)); // true
 ```
 
-Cần import `java.nio.file.Path`, `java.nio.file.Files`, `java.nio.charset.StandardCharsets`; phương thức gọi phải xử lý hoặc khai báo `IOException`. Đoạn này **thực sự ghi tệp** nếu chạy; nó là minh họa cho chương trình có quyền ghi, không nằm trong demo độc lập ở mục 6.
+Requires importing `java.nio.file.Path`, `java.nio.file.Files`, and `java.nio.charset.StandardCharsets`; the calling method must handle or declare `IOException`. This snippet **actually writes a file** if executed; it is an illustration for a program with write permissions, not part of the standalone in-memory demo in Section 6.
 
-Một ứng dụng legacy có thể dùng `InputStreamReader`, `OutputStreamWriter`, `BufferedReader` hoặc `Writer`; hãy đưa `Charset` rõ ràng ở nơi chuyển stream byte sang text, không dùng constructor dựa vào default charset khi giao thức đã có encoding quy định.
+A legacy application may use `InputStreamReader`, `OutputStreamWriter`, `BufferedReader`, or `Writer`; pass an explicit `Charset` wherever converting a byte stream to text, rather than using constructors relying on the default charset when the protocol specifies an encoding.
 
-### 9.3. HTTP, JSON, CSV và database
+### 9.3. HTTP, JSON, CSV, and Databases
 
-| Ranh giới | Cần xác định | Lỗi thường gặp |
+| Boundary | What to define | Common error |
 | --- | --- | --- |
-| HTTP request/response | Quy ước charset của media type và framework; tham số charset nếu giao thức hỗ trợ. | Encode UTF-8 nhưng server/client giải mã theo một charset khác. |
-| JSON | JSON trao đổi giữa các hệ thống hiện đại thường dùng UTF-8 theo chuẩn áp dụng; có quy tắc escaping riêng. | Nhầm `\\uXXXX` trong JSON với byte gốc hoặc dùng charset không phù hợp. |
-| CSV | Quy ước encoding, BOM, delimiter, quote của file và hệ thống nhập. | Bảng tính mở file UTF-8 như legacy encoding; tiêu đề/tiếng Việt bị lỗi. |
-| Database | Charset/collation của database, connection/driver và trường text. | Driver hoặc schema không lưu được code point ngoài BMP; dữ liệu bị thay mất. |
-| Logs/console | Charset console, logging appender, font hiển thị. | Bytes đúng nhưng terminal/render không hiển thị glyph đúng; ngược lại. |
-| File tên/đường dẫn | Cách OS và API xử lý text của path, normalization khác nhau. | So sánh tên file dựa vào dạng Unicode, ký tự không hiển thị hoặc khác chuẩn hóa. |
+| HTTP request/response | Media type and framework charset conventions; charset parameter if supported by the protocol. | Encoding UTF-8 while server/client decodes with a different charset. |
+| JSON | Modern inter-system JSON typically uses UTF-8 per standard; has its own escaping rules. | Confusing `\\uXXXX` in JSON with raw bytes or using an incompatible charset. |
+| CSV | Encoding, BOM, delimiter, and quoting conventions of the file and importing system. | Spreadsheets opening a UTF-8 file as a legacy encoding; headers/Vietnamese get corrupted. |
+| Database | Database, connection/driver, and text column charset/collation. | Driver or schema unable to store non-BMP code points; data gets replaced or lost. |
+| Logs/console | Console charset, logging appender, display font. | Bytes are right yet terminal/renderer lacks glyphs; or vice versa. |
+| Filenames/paths | How the OS and APIs handle path text and varying normalization. | Comparing filenames affected by Unicode form, invisible characters, or differing normalization. |
 
-Đừng khẳng định “tất cả lỗi font là lỗi encoding”. Một chuỗi Unicode có thể hoàn toàn đúng, byte đã decode đúng, nhưng **font không có glyph** để render. Đây là một tầng khác với character encoding. Nên kiểm tra lần lượt byte → decode → dãy code point → font/layout.
+Do not claim "all font errors are encoding errors". A Unicode string can be completely valid and its bytes decoded accurately, yet the **font lacks the glyph** to render it. That is a different layer from character encoding. Inspect step by step: bytes → decode → code point sequence → font/layout.
 
-### 9.4. JSON escape không phải UTF-8 encoding
+### 9.4. JSON Escapes Are Not UTF-8 Encoding
 
-Một ký tự có thể xuất hiện trong JSON dưới dạng trực tiếp hoặc escape:
+A character can appear in JSON directly or escaped:
 
 ```json
 {"message":"é"}
 ```
 
-hoặc:
+or:
 
 ```json
 {"message":"\u00E9"}
 ```
 
-Sau khi JSON parser xử lý đúng, hai trường có thể tạo cùng giá trị Unicode trong `String`. Tuy nhiên, cách viết escape trong JSON là **cú pháp serialization**, không phải cách xác định charset của luồng byte mang JSON. Dữ liệu JSON cuối cùng vẫn phải được mã hóa thành byte theo giao thức.
+Once a JSON parser processes it properly, both fields can produce the same Unicode value in `String`. However, JSON escape notation is **serialization syntax**, not how the charset of the byte stream carrying the JSON is determined. The resulting JSON data still must be encoded into bytes per the protocol.
 
-Với supplementary code point như `U+1F600`, JSON escape có thể dùng cặp `\uD83D\uDE00`; parser cần hiểu hai surrogate escape như một code point khi sử dụng chúng cùng nhau. Không tự cắt chuỗi escape rồi coi từng nửa surrogate là một ký tự đầy đủ.
+For supplementary code points like `U+1F600`, JSON escapes can use the pair `\uD83D\uDE00`; the parser must interpret the two surrogate escapes as one code point when used together. Do not slice escaped strings and treat each surrogate half as a complete character.
 
-## 10. Kiểm thử Unicode và charset đúng ở boundary
+## 10. Testing Unicode and Charsets Properly at Boundaries
 
-Một test tốt cần kiểm tra cả dữ liệu và điều kiện chuyển đổi, không chỉ “màn hình trông đúng”. Ma trận sau giúp tách lỗi:
+A good test checks both the data and conversion conditions, not just "looks right on screen". The following matrix helps isolate issues:
 
-| Trường hợp | Kiểm tra | Kỳ vọng |
+| Case | Check | Expectation |
 | --- | --- | --- |
-| ASCII `A` | UTF-8, UTF-16BE | Byte khác, code point vẫn `U+0041`. |
-| `é` | UTF-8 round-trip | `U+00E9` được tái tạo. |
-| `😀` | `String.length` và `codePointCount` | 2 UTF-16 code units, 1 code point. |
-| `Aé😀` | UTF-8 vs UTF-16BE bytes | 7 byte vs 8 byte, không BOM. |
-| `Aé😀` tới ISO-8859-1 | Strict encoder | Từ chối unrepresentable character. |
-| `C3 28` giải mã UTF-8 | Strict decoder | Báo malformed input. |
-| `C3 28` qua lenient decoder | Replacement behavior | Có thể chứa `U+FFFD`; cần biết đã mất dữ liệu. |
-| UTF-8 bytes đọc như ISO-8859-1 | So sánh code points | Chuỗi khác, dù byte đầu vào không thay đổi. |
-| `é` và `e` + combining accent | `String.equals` trước/sau NFC | Khác trước, bằng sau chuẩn hóa phù hợp. |
-| Chuỗi có unpaired surrogate | Encode strict UTF-8 | Không âm thầm coi là Unicode scalar hợp lệ. |
-| File UTF-8 có BOM | Reader ứng dụng | Chính sách giữ/bỏ BOM được test rõ ràng. |
-| JSON có emoji escape | Parser JSON | Code point và round-trip đúng khi escape hợp lệ. |
-| Độ dài/giới hạn field | Byte/code point/grapheme | Phù hợp đúng đơn vị giới hạn đã ghi trong hợp đồng. |
+| ASCII `A` | UTF-8, UTF-16BE | Different bytes, code point stays `U+0041`. |
+| `é` | UTF-8 round-trip | `U+00E9` is reconstructed. |
+| `😀` | `String.length` and `codePointCount` | 2 UTF-16 code units, 1 code point. |
+| `Aé😀` | UTF-8 vs UTF-16BE bytes | 7 bytes vs 8 bytes, no BOM. |
+| `Aé😀` to ISO-8859-1 | Strict encoder | Rejects unrepresentable character. |
+| `C3 28` decoded as UTF-8 | Strict decoder | Reports malformed input. |
+| `C3 28` via lenient decoder | Replacement behavior | May contain `U+FFFD`; recognize data loss occurred. |
+| UTF-8 bytes read as ISO-8859-1 | Code point comparison | Different string, even though input bytes did not change. |
+| `é` and `e` + combining accent | `String.equals` before/after NFC | Different before, equal after appropriate normalization. |
+| String with unpaired surrogate | Strict UTF-8 encode | Not silently treated as a valid Unicode scalar. |
+| UTF-8 file with BOM | Application reader | Policy to keep/strip BOM is explicitly tested. |
+| JSON with emoji escapes | JSON parser | Code point and round-trip accurate when escapes are valid. |
+| Field length/limit | Bytes/code points/graphemes | Matches the exact limit unit stated in the contract. |
 
-### Lưu ý an toàn đầu vào
+### Input Safety Notes
 
-- Hạn chế kích thước byte và độ dài text theo ngữ cảnh để tránh tốn tài nguyên khi decode, normalize hoặc xử lý grapheme.
-- Khi xác thực chữ ký hoặc hash, phải quy định rõ **byte sequence** được ký; hai biểu diễn Unicode tương đương về ngữ nghĩa nhưng byte khác nhau có thể tạo hash khác nhau.
-- Khi tạo mã định danh, đường dẫn hay username, cân nhắc chuẩn hóa, chữ hoa/chữ thường, Unicode confusable và các ký tự vô hình theo chính sách; không tự suy rằng normalization giải quyết mọi vấn đề an ninh.
-- Với dữ liệu pháp lý hoặc văn bản cần giữ nguyên từng byte, cần phân biệt “nội dung Unicode” với “byte gốc” và có thể phải lưu cả hai theo yêu cầu.
+- Bound byte sizes and text lengths in context to avoid excessive resource consumption during decoding, normalization, or grapheme processing.
+- When verifying signatures or hashes, specify the exact **byte sequence** being signed; two semantically equivalent Unicode representations with different bytes will produce different hashes.
+- When creating identifiers, paths, or usernames, account for normalization, casing, Unicode confusables, and invisible characters per policy; do not assume normalization solves all security issues.
+- For legal data or text requiring byte-for-byte preservation, distinguish "Unicode content" from "original bytes" and store both if required.
 
-## 11. Sai lầm thường gặp và hướng khắc phục
+## 11. Common Mistakes and Fixes
 
-| Nhầm lẫn | Hậu quả | Cách đúng |
+| Misconception | Consequence | Correct approach |
 | --- | --- | --- |
-| “Unicode chính là UTF-8.” | Nhầm danh tính ký tự với biểu diễn byte. | Unicode là không gian code point, UTF-8 là encoding. |
-| “Một ký tự Java = một code point.” | Cắt hỏng emoji/surrogate pair. | Phân biệt `char` UTF-16 code unit và code point. |
-| “`String.length()` là số byte UTF-8.” | Sai giới hạn dung lượng và validation. | Đếm bytes sau khi encode đúng charset. |
-| “UTF-16BE byte là nội dung bộ nhớ `String`.” | Phụ thuộc layout nội bộ JDK. | Chỉ dựa vào contract của API và `getBytes(UTF_16BE)`. |
-| “Mọi code point đều là scalar value.” | Có surrogate values không phải scalar. | Loại `U+D800`–`U+DFFF` trong dữ liệu Unicode scalar. |
-| “Legacy charset ghi được mọi chữ Việt và emoji.” | Ký tự có thể bị thay/bỏ. | Dùng UTF-8 khi giao thức cho phép, strict error handling. |
-| “Gọi `getBytes()` không tham số luôn giống nhau.” | Hành vi có thể phụ thuộc runtime/default charset. | Truyền `StandardCharsets.UTF_8` hoặc charset đã thỏa thuận. |
-| “Giải mã không ném lỗi nghĩa là charset đúng.” | Có thể xảy ra mojibake hợp lệ về byte. | Kiểm tra charset contract và dữ liệu nguồn. |
-| “Normalizer sửa được mojibake.” | Không thể khôi phục dãy byte đã hiểu sai chỉ bằng normalization. | Chẩn đoán đúng đường encode/decode. |
-| “Mọi ký tự nhìn giống nhau đều `equals`.” | Khác code point hoặc combining marks. | Dùng normalization và chính sách so sánh phù hợp. |
-| “BOM UTF-8 luôn tự biến mất.” | Có thể còn `U+FEFF` trong text. | Xử lý theo định dạng và test API đọc thực tế. |
-| “Font lỗi tức UTF-8 sai.” | Text có thể đúng nhưng thiếu glyph. | Kiểm tra từng tầng decode, code points, font. |
-| “Unicode `\uXXXX` là bốn byte.” | Đây có thể là ký pháp escape trong Java/JSON, không phải byte UTF-8. | Phân biệt syntax escape, code point và encoding. |
+| "Unicode is UTF-8." | Confuses character identity with byte representation. | Unicode is the code point space; UTF-8 is an encoding. |
+| "One Java char = one code point." | Corrupts emojis/surrogate pairs when slicing. | Distinguish UTF-16 code unit `char` and code point. |
+| "`String.length()` is the UTF-8 byte count." | Wrong capacity limits and validation. | Count bytes after encoding in the right charset. |
+| "UTF-16BE bytes are the in-memory `String` content." | Depends on internal JDK layout. | Rely only on API contracts and `getBytes(UTF_16BE)`. |
+| "Every code point is a scalar value." | Surrogate values are not scalars. | Exclude `U+D800`–`U+DFFF` in Unicode scalar data. |
+| "Legacy charsets can write all Vietnamese letters and emojis." | Characters can be replaced/dropped. | Use UTF-8 when the protocol permits, with strict error handling. |
+| "Calling `getBytes()` without arguments always behaves identically." | Behavior can depend on runtime/default charset. | Pass `StandardCharsets.UTF_8` or the agreed charset. |
+| "Decoding without throwing means the charset is right." | Byte-valid mojibake can occur. | Verify the charset contract and source data. |
+| "`Normalizer` fixes mojibake." | Cannot recover a misinterpreted byte sequence through normalization alone. | Diagnose the actual encode/decode path. |
+| "All visually identical characters are `equals`." | Differing code points or combining marks. | Use normalization and an appropriate comparison policy. |
+| "UTF-8 BOM always disappears automatically." | `U+FEFF` may remain in the text. | Handle per format and test the actual reading API. |
+| "Font glitches mean UTF-8 is wrong." | Text may be valid while lacking glyphs. | Inspect each layer: decode, code points, font. |
+| "Unicode `\uXXXX` is four bytes." | That can be Java/JSON escape syntax, not UTF-8 bytes. | Distinguish escape syntax, code points, and encodings. |
 
-## 12. Bài tập thực hành
+## 12. Practice Exercises
 
-**Bài 1 — Đếm đúng đơn vị:** cho các chuỗi `"ABC"`, `"é"`, `"e\u0301"`, `"😀"` và `"Aé😀"`. In `String.length()`, `codePointCount(...)`, `getBytes(UTF_8).length`. Ghi lại vì sao cả ba con số có thể khác nhau.
+**Exercise 1 — Count the right units:** given `"ABC"`, `"é"`, `"e\u0301"`, `"😀"`, and `"Aé😀"`. Print `String.length()`, `codePointCount(...)`, and `getBytes(UTF_8).length`. Record why all three numbers can differ.
 
-**Bài 2 — Vẽ đường chuyển đổi:** từ `Aé😀`, liệt kê code points, các UTF-16 code units và UTF-8 bytes. Thử giải mã byte UTF-8 bằng ISO-8859-1, in chuỗi sai và giải thích cụ thể khâu nào đã dùng charset không khớp.
+**Exercise 2 — Trace the conversion path:** starting from `Aé😀`, list the code points, UTF-16 code units, and UTF-8 bytes. Try decoding the UTF-8 bytes as ISO-8859-1, print the corrupted string, and explain precisely which step used a mismatched charset.
 
-**Bài 3 — Mã hóa legacy:** thử `US_ASCII` và `ISO_8859_1` với các từ `"Hello"`, `"café"` và `"Tiếng Việt"`. Dùng `CharsetEncoder` + `CodingErrorAction.REPORT`; phân biệt input *malformed* với ký tự *unmappable*.
+**Exercise 3 — Legacy encoding:** test `US_ASCII` and `ISO_8859_1` on `"Hello"`, `"café"`, and `"Tiếng Việt"`. Use `CharsetEncoder` + `CodingErrorAction.REPORT`; distinguish *malformed* input from *unmappable* characters.
 
-**Bài 4 — Dữ liệu UTF-8 hỏng:** tạo các byte không hợp lệ `C3 28`; so sánh `CharsetDecoder` REPORT với đường decode thay thế. Vì sao việc thay bằng `U+FFFD` có thể làm mất dữ liệu không thể khôi phục?
+**Exercise 4 — Corrupted UTF-8 data:** construct the invalid bytes `C3 28`; compare `CharsetDecoder` REPORT against replacement decoding. Why can replacing with `U+FFFD` cause unrecoverable data loss?
 
-**Bài 5 — Normalization:** so sánh `"\u00E9"` và `"e\u0301"` trước/sau `Normalizer.Form.NFC`. Sau đó thử một chuỗi có hai ký tự nhìn giống nhưng thuộc bảng chữ khác và chỉ ra vì sao NFC không giải quyết sự nhầm lẫn ấy.
+**Exercise 5 — Normalization:** compare `"\u00E9"` and `"e\u0301"` before/after `Normalizer.Form.NFC`. Then test a string with two lookalike characters from different scripts and show why NFC does not resolve that confusion.
 
-**Bài 6 — File UTF-8:** ghi một file text chứa tiếng Việt và emoji bằng `Files.writeString(..., UTF_8)`, đọc lại bằng `Files.readString(..., UTF_8)`. Kiểm tra content equality và byte round-trip. Sau đó thử đọc bằng charset sai trên bản sao thử nghiệm, không ghi đè file gốc.
+**Exercise 6 — UTF-8 files:** write a text file containing Vietnamese and emojis using `Files.writeString(..., UTF_8)`, and read it back with `Files.readString(..., UTF_8)`. Verify content equality and byte round-trip. Then try reading with the wrong charset on a test copy without overwriting the original file.
 
-**Bài 7 — Thiết kế hợp đồng API:** quy định một field nhập liệu được giới hạn 100 UTF-8 bytes thay vì 100 ký tự người dùng thấy. Viết validator đúng đơn vị, test emoji, chữ tiếng Việt tổ hợp, chuỗi có ký tự ghép và surrogate pair; nêu khi nào giới hạn theo grapheme cluster phù hợp hơn.
+**Exercise 7 — API contract design:** specify an input field limited to 100 UTF-8 bytes instead of 100 user-perceived characters. Write a validator for the right unit, testing emojis, decomposed Vietnamese letters, composite characters, and surrogate pairs; state when a grapheme cluster limit is more suitable.
 
-### Checklist hoàn thành
+### Completion Checklist
 
-- [ ] Phân biệt Unicode code point space và character encoding/charset ngoài.
-- [ ] Biết `U+0000`–`U+10FFFF` và vùng surrogate `U+D800`–`U+DFFF` không phải scalar values.
-- [ ] Hiểu `char`, `String.length`, code point, byte, grapheme cluster là các đơn vị khác nhau.
-- [ ] Có thể giải thích cùng chuỗi `Aé😀` tạo byte UTF-8/UTF-16BE khác nhau.
-- [ ] Dùng `StandardCharsets` tường minh khi encode/decode qua boundary.
-- [ ] Biết phân biệt lỗi malformed bytes, unmappable characters, mojibake và replacement character.
-- [ ] Hiểu normalization là biến đổi chuỗi Unicode, không phải chuyển đổi encoding.
-- [ ] Kiểm soát file/HTTP/database/console, BOM và charset contract theo từng giao thức.
-- [ ] Viết được test round-trip và xác thực đúng đơn vị độ dài theo nghiệp vụ.
+- [ ] Distinguish Unicode code point space from external character encodings/charsets.
+- [ ] Know `U+0000`–`U+10FFFF` and that surrogate range `U+D800`–`U+DFFF` are not scalar values.
+- [ ] Understand `char`, `String.length`, code points, bytes, and grapheme clusters are distinct units.
+- [ ] Explain why the same string `Aé😀` produces different UTF-8/UTF-16BE bytes.
+- [ ] Use `StandardCharsets` explicitly when encoding/decoding across boundaries.
+- [ ] Distinguish malformed bytes, unmappable characters, mojibake, and replacement characters.
+- [ ] Understand normalization is a Unicode string transformation, not an encoding conversion.
+- [ ] Control file/HTTP/database/console, BOM, and charset contracts per protocol.
+- [ ] Write round-trip tests and validate the exact length unit per business requirements.
 
-**Kết luận:** Unicode trả lời câu hỏi **“ký tự nào?”** bằng code point, còn charset/encoding trả lời **“biểu diễn thành byte thế nào?”** tại ranh giới lưu trữ và truyền tin. Trong Java, `String` hoạt động theo UTF-16 code units; muốn trao đổi dữ liệu an toàn, phải xác định charset rõ ràng, kiểm soát lỗi decode/encode và phân biệt normalization với encoding.
+**Conclusion:** Unicode answers **"which character?"** using code points, while charset/encoding answers **"how is it represented as bytes?"** at storage and transmission boundaries. In Java, `String` operates in UTF-16 code units; to exchange data safely, specify charsets explicitly, handle decode/encode errors, and keep normalization separate from encoding.

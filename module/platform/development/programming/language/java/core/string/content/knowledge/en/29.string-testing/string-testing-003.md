@@ -1,36 +1,36 @@
-# Kiểm thử surrogate pair, surrogate đơn và dấu kết hợp trong Java String
+# Testing Surrogate Pairs, Unpaired Surrogates, and Combining Marks in Java String
 
-Một chuỗi có thể hiển thị bình thường nhưng chứa các cấu trúc Unicode khiến phép đếm độ dài, cắt chuỗi, mã hóa UTF-8, so sánh và kiểm thử hoạt động ngoài dự đoán. Ba nhóm đầu vào cần kiểm tra riêng là **surrogate pair hợp lệ**, **surrogate đứng đơn** và **dấu kết hợp** (combining mark). Chúng không đồng nghĩa:
+A string can look normal on screen yet contain Unicode structures that cause length counting, slicing, UTF-8 encoding, comparisons, and tests to behave unexpectedly. Three input categories that must be tested separately are **valid surrogate pairs**, **unpaired surrogates**, and **combining marks**. They are not the same:
 
-- Surrogate pair hợp lệ là cách UTF-16 biểu diễn **một Unicode code point ngoài BMP** bằng **hai đơn vị mã**.
-- Surrogate đứng đơn (unpaired surrogate) là một đơn vị mã surrogate thiếu phần ghép tương ứng, tạo thành **chuỗi UTF-16 không hợp lệ** dù Java `String` vẫn có thể chứa nó.
-- Dấu kết hợp là Unicode code point hợp lệ có thể kết hợp với ký tự đứng trước để tạo một chữ nhìn thấy; nhiều code point có thể thuộc **cùng một cụm chữ** (*grapheme cluster*).
+- A valid surrogate pair is how UTF-16 represents **one Unicode code point outside the BMP** using **two code units**.
+- An unpaired surrogate is a lone surrogate code unit missing its matching partner, forming an **ill-formed UTF-16 sequence** even though Java `String` can still hold it.
+- A combining mark is a valid Unicode code point that can combine with a preceding character to form a single visible glyph; multiple code points can belong to the **same grapheme cluster**.
 
-Mục tiêu của bài là lập được bộ ca kiểm thử phân biệt ba trường hợp, xác nhận hành vi của `String`/`Character`, xử lý đầu vào mã hóa không hợp lệ một cách chủ động và tránh phá vỡ văn bản khi cắt hoặc chuẩn hóa.
+The goal of this lesson is to build a test suite distinguishing these three cases, verify `String`/`Character` behavior, handle malformed encoded input proactively, and avoid corrupting text when slicing or normalizing.
 
-## 1. Bốn đơn vị phải phân biệt trước khi viết test
+## 1. Four Units to Distinguish Before Writing Tests
 
-| Đơn vị | API điển hình | Ví dụ với `"A😀B"` |
+| Unit | Typical API | Example with `"A😀B"` |
 | --- | --- | ---: |
-| **UTF-16 code unit** (đơn vị mã) | `s.length()`, `s.charAt(i)`, chỉ số `substring` | 4 |
+| **UTF-16 code unit** | `s.length()`, `s.charAt(i)`, `substring` indices | 4 |
 | **Unicode code point** | `s.codePointCount(0, s.length())`, `s.codePoints()` | 3 |
-| **Grapheme cluster** (cụm chữ hiển thị) | Bộ phân đoạn Unicode phù hợp, ví dụ `BreakIterator` trong phạm vi nó hỗ trợ | 3 trong ví dụ đơn giản này |
-| **Byte sau mã hóa** | `s.getBytes(StandardCharsets.UTF_8).length` | 6 byte UTF-8 |
+| **Grapheme cluster** (visible character cluster) | An appropriate Unicode segmenter, e.g. `BreakIterator` within its supported scope | 3 in this simple example |
+| **Encoded bytes** | `s.getBytes(StandardCharsets.UTF_8).length` | 6 UTF-8 bytes |
 
-`String.length()` đếm đơn vị mã UTF-16 theo hợp đồng Java, **không đếm code point, cụm chữ hay byte UTF-8**. Java có thể tối ưu cách lưu trữ `String` bên trong JVM, nhưng ý nghĩa của `length()` không đổi.
+`String.length()` counts UTF-16 code units by Java's contract, **not code points, grapheme clusters, or UTF-8 bytes**. The JVM may optimize internal `String` storage, but the meaning of `length()` never changes.
 
-Một bộ test đáng tin nên quyết định ngay từ đầu yêu cầu đang đặt giới hạn lên đơn vị nào. Ví dụ: “tối đa 20 byte UTF-8” cần đo byte đã mã hóa, “không cắt giữa emoji” đòi hỏi giữ ranh giới cụm chữ, còn “vị trí `charAt`” là chỉ số đơn vị mã UTF-16.
+A reliable test suite should decide up front which unit a requirement constrains. For instance, “at most 20 UTF-8 bytes” requires measuring encoded bytes, “do not cut inside an emoji” requires preserving grapheme cluster boundaries, and “`charAt` position” is a UTF-16 code unit index.
 
-## 2. Surrogate pair hợp lệ
+## 2. Valid Surrogate Pairs
 
-Các giá trị surrogate được chia thành:
+Surrogate values are divided into:
 
 - **High surrogate:** `U+D800`–`U+DBFF`.
 - **Low surrogate:** `U+DC00`–`U+DFFF`.
 
-Một high surrogate theo ngay sau bởi một low surrogate đúng thứ tự biểu diễn một Unicode code point từ `U+10000` đến `U+10FFFF`. Ví dụ `😀` (`U+1F600`) được viết trong một literal Java là `"\uD83D\uDE00"`. Hai `char` liên tiếp này tạo thành **một** code point.
+A high surrogate immediately followed by a low surrogate in proper order represents a Unicode code point from `U+10000` to `U+10FFFF`. For example, `😀` (`U+1F600`) is written in a Java literal as `"\uD83D\uDE00"`. These two consecutive `char` values form **one** code point.
 
-Đoạn mã minh họa (đặt trong phương thức Java):
+Illustrative snippet (placed inside a Java method):
 
 ~~~java
 String s = "A\uD83D\uDE00B";
@@ -44,67 +44,67 @@ System.out.println(Character.isSurrogatePair(
 System.out.printf("U+%X%n", s.codePointAt(1));         // U+1F600
 ~~~
 
-Ở đây chỉ số `1` trỏ đến high surrogate và `2` trỏ đến low surrogate. `codePointAt(1)` ghép hai đơn vị mã thành `U+1F600`, còn `charAt(1)` chỉ trả về **một** `char` (high surrogate).
+Here index `1` points to the high surrogate and `2` points to the low surrogate. `codePointAt(1)` combines the two code units into `U+1F600`, whereas `charAt(1)` returns only **one** `char` (the high surrogate).
 
-**Lỗi cần bắt khi cắt chuỗi:**
+**Slicing bug to catch:**
 
 ~~~java
-String broken = s.substring(1, 2); // chỉ chứa high surrogate
-String intact = s.substring(1, 3); // chứa đủ cặp surrogate
+String broken = s.substring(1, 2); // contains only the high surrogate
+String intact = s.substring(1, 3); // contains the complete surrogate pair
 ~~~
 
-`substring(begin, end)` dùng chỉ số đơn vị mã UTF-16. Vì vậy cả hai câu lệnh đều hợp lệ về mặt chỉ số, nhưng `broken` có UTF-16 không hợp lệ. Nếu cắt tại ranh giới code point, hãy cân nhắc `offsetByCodePoints`:
+`substring(begin, end)` uses UTF-16 code unit indices. Thus both statements are valid with respect to indices, yet `broken` contains ill-formed UTF-16. To slice at code point boundaries, consider `offsetByCodePoints`:
 
 ~~~java
 int end = s.offsetByCodePoints(0, 2); // end == 3
 String firstTwoCodePoints = s.substring(0, end); // "A😀"
 ~~~
 
-Đây vẫn là thao tác theo **code point**. Với emoji gồm nhiều code point nối bằng ZWJ, code point boundary chưa chắc trùng ranh giới grapheme cluster.
+This still operates by **code point**. For emojis composed of multiple code points joined by ZWJ, code point boundaries do not necessarily match grapheme cluster boundaries.
 
-## 3. Surrogate đứng đơn: `String` vẫn có thể chứa đầu vào sai
+## 3. Unpaired Surrogates: `String` Can Still Hold Malformed Input
 
-Hai chuỗi sau được Java cho phép tạo, dù chúng không đại diện cho chuỗi Unicode scalar value hợp lệ:
+Java allows creating the following two strings, even though they do not represent valid sequences of Unicode scalar values:
 
 ~~~java
 String highOnly = "\uD83D";
 String lowOnly = "\uDE00";
 ~~~
 
-Cả hai có `length() == 1`. Bất ngờ hơn, `codePointCount(0, 1)` vẫn trả về `1`, và `codePointAt(0)` có thể trả về giá trị surrogate chưa ghép, ví dụ `0xD83D`. **Không được dùng `codePointCount` như bộ xác thực UTF-16.** `Character.isHighSurrogate` và `Character.isLowSurrogate` giúp kiểm tra loại đơn vị mã; cần xác nhận chúng xuất hiện thành cặp đúng thứ tự.
+Both have `length() == 1`. More surprisingly, `codePointCount(0, 1)` still returns `1`, and `codePointAt(0)` can return an unpaired surrogate value such as `0xD83D`. **Never use `codePointCount` as a UTF-16 validator.** `Character.isHighSurrogate` and `Character.isLowSurrogate` help inspect code unit kinds; you must verify they appear in properly ordered pairs.
 
-| Đầu vào | UTF-16 hợp lệ? | `length()` | `codePointCount(...)` | Điều đáng kiểm thử |
+| Input | Valid UTF-16? | `length()` | `codePointCount(...)` | Worth Testing |
 | --- | --- | ---: | ---: | --- |
-| `"\uD83D\uDE00"` | Có | 2 | 1 | Cặp high/low đúng thứ tự |
-| `"\uD83D"` | Không | 1 | 1 | High không có low theo sau |
-| `"\uDE00"` | Không | 1 | 1 | Low đứng đơn |
-| `"\uD83D\uD83D"` | Không | 2 | 2 | High theo sau bởi high |
-| `"\uDE00\uD83D"` | Không | 2 | 2 | Low trước high |
-| `"X\uD83D\uDE00Y"` | Có | 4 | 3 | Surrogate pair nằm giữa chuỗi |
+| `"\uD83D\uDE00"` | Yes | 2 | 1 | High/low pair in right order |
+| `"\uD83D"` | No | 1 | 1 | High without trailing low |
+| `"\uDE00"` | No | 1 | 1 | Lone low surrogate |
+| `"\uD83D\uD83D"` | No | 2 | 2 | High followed by high |
+| `"\uDE00\uD83D"` | No | 2 | 2 | Low before high |
+| `"X\uD83D\uDE00Y"` | Yes | 4 | 3 | Surrogate pair inside a string |
 
-Một bộ kiểm tra đơn giản duyệt từng `char`: khi thấy high surrogate phải có low surrogate ngay sau, rồi bỏ qua cả cặp; nếu gặp low surrogate khi không đang ghép, đầu vào sai. Chương trình đầy đủ ở phần 6 triển khai chính xác quy tắc này.
+A simple validator iterates over each `char`: when it sees a high surrogate, a low surrogate must follow immediately, and the pair is skipped; if a low surrogate appears unpaired, the input is invalid. The full program in section 6 implements this exact rule.
 
-### Điều gì xảy ra khi mã hóa UTF-8?
+### What Happens During UTF-8 Encoding?
 
-`String.getBytes(StandardCharsets.UTF_8)` có thể **thay thế dữ liệu mã hóa không hợp lệ** bằng chuỗi byte thay thế; đó không phải giải pháp kiểm tra đầu vào nghiêm ngặt và có thể làm mất thông tin. Nếu yêu cầu từ chối surrogate đứng đơn, dùng `CharsetEncoder` với `CodingErrorAction.REPORT` để nhận `CharacterCodingException`.
+`String.getBytes(StandardCharsets.UTF_8)` can **replace malformed encoded data** with replacement bytes; that is not strict input validation and can silently lose information. If unpaired surrogates must be rejected, use `CharsetEncoder` with `CodingErrorAction.REPORT` to get `CharacterCodingException`.
 
 ~~~java
 StandardCharsets.UTF_8.newEncoder()
         .onMalformedInput(CodingErrorAction.REPORT)
         .onUnmappableCharacter(CodingErrorAction.REPORT)
-        .encode(CharBuffer.wrap(highOnly)); // báo CharacterCodingException
+        .encode(CharBuffer.wrap(highOnly)); // throws CharacterCodingException
 ~~~
 
-Đoạn mã này thuộc ví dụ trong phương thức có import phù hợp ở phần 6. Tránh khẳng định mảng byte thu được từ mã hóa thay thế “vẫn chứa ký tự cũ”: surrogate chưa ghép **không có biểu diễn UTF-8 hợp lệ**. Cần xác định chính sách ứng dụng: từ chối, làm sạch bằng quy tắc đã thống nhất, hoặc thay thế có thông báo.
+This snippet belongs to the method example with proper imports in section 6. Avoid asserting that the byte array from replacement encoding “still holds the original character”: an unpaired surrogate **has no valid UTF-8 representation**. Define an application policy: reject, sanitize using an agreed rule, or replace with notification.
 
-## 4. Dấu kết hợp và Unicode normalization
+## 4. Combining Marks and Unicode Normalization
 
-Ví dụ chữ `é` có ít nhất hai biểu diễn Unicode phổ biến:
+For instance, the letter `é` has at least two common Unicode representations:
 
-- **Composed/precomposed:** `"\u00E9"` gồm một code point `U+00E9`.
-- **Decomposed:** `"e\u0301"` gồm `U+0065` (e) và `U+0301` (dấu sắc kết hợp).
+- **Composed/precomposed:** `"\u00E9"` consisting of one code point `U+00E9`.
+- **Decomposed:** `"e\u0301"` consisting of `U+0065` (e) and `U+0301` (combining acute accent).
 
-Hai chuỗi thường **hiển thị giống nhau**, nhưng `String.equals` so sánh biểu diễn các đơn vị mã và trả về `false`:
+The two strings usually **look identical**, yet `String.equals` compares code unit sequences and returns `false`:
 
 ~~~java
 String decomposed = "e\u0301";
@@ -118,36 +118,36 @@ System.out.println(Normalizer.normalize(
 ).equals(composed)); // true
 ~~~
 
-Đây là đoạn mã minh họa dùng `java.text.Normalizer`. Khi được mã hóa UTF-8, `decomposed` chiếm 3 byte còn `composed` chiếm 2 byte. Việc chuẩn hóa theo NFC có thể làm thay đổi cả số đơn vị mã và số byte trong khi hình thức hiển thị gần như giữ nguyên.
+This illustrative snippet uses `java.text.Normalizer`. When UTF-8 encoded, `decomposed` takes 3 bytes while `composed` takes 2 bytes. Normalizing to NFC can change both code unit count and byte count while visual appearance remains virtually unchanged.
 
-**Surrogate pair và dấu kết hợp cần các kiểm thử khác nhau.** `"e\u0301"` là UTF-16 hoàn toàn hợp lệ, gồm hai code point nhưng thường tạo thành **một cụm chữ**. Cắt theo `substring(0, 1)` giữ lại `"e"` không tạo UTF-16 sai, nhưng làm **mất dấu sắc**. Ngược lại, cắt giữa high/low surrogate tạo UTF-16 không hợp lệ.
+**Surrogate pairs and combining marks require different tests.** `"e\u0301"` is completely valid UTF-16, containing two code points that typically form **one grapheme cluster**. Slicing with `substring(0, 1)` keeps `"e"` without producing invalid UTF-16, yet **drops the acute accent**. Conversely, slicing between high and low surrogates produces ill-formed UTF-16.
 
-`Normalizer.Form.NFC` thực hiện canonical composition; nếu hệ thống cần canonical decomposition, dùng `NFD`. `NFKC`/`NFKD` còn bao gồm biến đổi tương thích có thể làm đổi ý nghĩa biểu diễn với nhiều ký tự; không dùng tùy tiện. Chuẩn hóa **không phải bước sửa tất cả malformed surrogate**; cần kiểm tra UTF-16 hợp lệ riêng.
+`Normalizer.Form.NFC` performs canonical composition; if a system needs canonical decomposition, use `NFD`. `NFKC`/`NFKD` also apply compatibility transformations that can alter representation semantics for many characters; do not use them casually. Normalization **is not a step that fixes all malformed surrogates**; validate well-formed UTF-16 separately.
 
-Khi chuẩn hóa trước lưu trữ, so sánh, tìm kiếm, tạo checksum hoặc ký số, các bên phải thống nhất **chính xác dạng chuẩn hóa và thời điểm áp dụng**. Không âm thầm normalize sau khi tính hash hoặc chữ ký.
+When normalizing before storage, comparison, search, checksums, or digital signatures, all parties must agree on the **exact normalization form and when it is applied**. Never silently normalize after computing a hash or signature.
 
-## 5. Ma trận kiểm thử nên có
+## 5. Essential Test Matrix
 
-| Trường hợp | Chuỗi kiểm thử | Cần xác nhận |
+| Case | Test String | What to Verify |
 | --- | --- | --- |
-| ASCII | `"ABC"` | `length` = code point count = số byte UTF-8 |
-| Pair hợp lệ | `"A\uD83D\uDE00B"` | 4 units, 3 code points, 6 byte UTF-8; cả cặp hợp lệ |
-| Pair bị cắt | `"A\uD83D\uDE00B".substring(1, 2)` | Tạo high surrogate đứng đơn, bộ kiểm tra phải báo sai |
-| High đơn | `"\uD83D"` | Chuỗi UTF-16 sai; strict UTF-8 encoder phải từ chối |
-| Low đơn | `"\uDE00"` | Chuỗi UTF-16 sai; strict UTF-8 encoder phải từ chối |
-| Sai thứ tự | `"\uDE00\uD83D"` | Không ghép được; phát hiện low đứng đơn và high đứng đơn |
-| Hai high | `"\uD83D\uD83D"` | Không phải cặp hợp lệ |
-| Dấu kết hợp | `"e\u0301"` | 2 code points, một cụm chữ trong tình huống này; 3 byte UTF-8 |
-| Chữ dựng sẵn | `"\u00E9"` | 1 code point, 2 byte UTF-8; so với dạng decomposed |
-| Chuỗi rỗng | `""` | Không lỗi, các phép đếm bằng 0 |
-| Ranh giới đầu/cuối | `"\uD83D\uDE00A"` và `"A\uD83D\uDE00"` | Không sai chỉ số; tránh cắt nửa cặp |
-| Emoji nối / variation | Các chuỗi có ZWJ, variation selector hoặc regional indicator | Test phân đoạn **grapheme cluster** riêng, không giả định một code point là một emoji |
+| ASCII | `"ABC"` | `length` = code point count = UTF-8 byte count |
+| Valid pair | `"A\uD83D\uDE00B"` | 4 units, 3 code points, 6 UTF-8 bytes; pair is valid |
+| Split pair | `"A\uD83D\uDE00B".substring(1, 2)` | Produces lone high surrogate; validator must report invalid |
+| Lone high | `"\uD83D"` | Invalid UTF-16; strict UTF-8 encoder must reject |
+| Lone low | `"\uDE00"` | Invalid UTF-16; strict UTF-8 encoder must reject |
+| Reversed order | `"\uDE00\uD83D"` | Cannot pair; detects lone low and lone high |
+| Two highs | `"\uD83D\uD83D"` | Not a valid pair |
+| Combining mark | `"e\u0301"` | 2 code points, one grapheme cluster in this scenario; 3 UTF-8 bytes |
+| Precomposed letter | `"\u00E9"` | 1 code point, 2 UTF-8 bytes; compare with decomposed form |
+| Empty string | `""` | No error; all counts are 0 |
+| Start/end boundaries | `"\uD83D\uDE00A"` and `"A\uD83D\uDE00"` | No index errors; avoid cutting half a pair |
+| Joined / variation emoji | Strings with ZWJ, variation selectors, or regional indicators | Test **grapheme cluster** segmentation separately; do not assume one code point equals one emoji |
 
-Nhóm kiểm thử đầu tiên kiểm tra đúng hợp đồng Java UTF-16. Nhóm thứ hai kiểm tra chính sách xử lý dữ liệu hỏng. Nhóm thứ ba kiểm tra hành vi hiển thị/chuẩn hóa. Khi viết test tự động, nên có cả ví dụ cố định và ca đầu vào được tạo có kiểm soát.
+The first group tests Java's UTF-16 contract. The second group tests malformed-data handling policies. The third group tests display and normalization behavior. When writing automated tests, include both fixed examples and controlled generated inputs.
 
-## 6. Chương trình Java 17+ kiểm thử tự động
+## 6. Automated Java 17+ Test Program
 
-Tạo file `UnicodeEdgeCasesTest.java`. Đây là chương trình **độc lập, không cần JUnit**: mỗi phép `check` tăng biến đếm và ném `AssertionError` khi một điều kiện sai, nên test vẫn hoạt động ngay cả khi không bật JVM flag `-ea`. Ngoài các phép đếm, chương trình kiểm tra valid/invalid UTF-16, strict UTF-8 encoding, NFC, phân đoạn dấu kết hợp và khả năng round trip.
+Create `UnicodeEdgeCasesTest.java`. This is a **standalone program, requiring no JUnit**: each `check` increments a counter and throws `AssertionError` if a condition fails, so tests still run even without the `-ea` JVM flag. Beyond counts, the program checks valid/invalid UTF-16, strict UTF-8 encoding, NFC, combining-mark segmentation, and round-trip behavior.
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -273,53 +273,53 @@ public class UnicodeEdgeCasesTest {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac -encoding UTF-8 UnicodeEdgeCasesTest.java
 java UnicodeEdgeCasesTest
 ~~~
 
-Đầu ra chính xác khi tất cả điều kiện đều đạt:
+Exact output when all checks pass:
 
 ~~~text
 PASS: 32 checks
 ~~~
 
-**Giải thích cách test hoạt động:**
+**How the tests work:**
 
-1. `testSurrogatePair` xác nhận `charAt` trả từng phần high/low, `Character.isSurrogatePair` nhận diện cặp, `codePointAt` trả `U+1F600`, và `substring(1, 2)` gây surrogate đứng đơn. `offsetByCodePoints(0, 2)` trả chỉ số UTF-16 là `3`.
-2. `testUnpairedSurrogates` cố ý tạo high và low đơn. `codePointCount` vẫn đếm chúng nhưng `wellFormedUtf16` trả `false`, và encoder UTF-8 cấu hình `REPORT` từ chối.
-3. `testCombiningMarks` tách biệt “hợp lệ về mặt Unicode” với “cùng hình thức hiển thị”: `decomposed` và `composed` không `equals`; NFC đưa chúng về cùng dạng, kích thước UTF-8 ban đầu khác nhau.
-4. `testUtf8RoundTrip` xác nhận chuỗi có surrogate pair hợp lệ có thể đi qua UTF-8 và giải mã trở lại nguyên vẹn; với high surrogate đứng đơn, đường mã hóa có thay thế không giữ lại chuỗi gốc.
+1. `testSurrogatePair` verifies `charAt` returns the individual high/low parts, `Character.isSurrogatePair` recognizes the pair, `codePointAt` returns `U+1F600`, and `substring(1, 2)` causes an unpaired surrogate. `offsetByCodePoints(0, 2)` returns UTF-16 index `3`.
+2. `testUnpairedSurrogates` intentionally creates lone high and low surrogates. `codePointCount` still counts them, yet `wellFormedUtf16` returns `false`, and the UTF-8 encoder configured with `REPORT` rejects them.
+3. `testCombiningMarks` separates “valid Unicode” from “same visual appearance”: `decomposed` and `composed` are not `equals`; NFC brings them to the same form, while their initial UTF-8 byte sizes differ.
+4. `testUtf8RoundTrip` confirms a string with a valid surrogate pair survives UTF-8 encoding and decoding intact; for an unpaired high surrogate, the replacement encoding path does not preserve the original string.
 
-Hàm `wellFormedUtf16` duyệt từng đơn vị mã, **bỏ qua low surrogate khi đã xác thực một high surrogate**, và từ chối low đứng đơn. Phương thức `strictUtf8Size` mã hóa sang UTF-8 bằng `CharsetEncoder`: với dữ liệu hợp lệ, `ByteBuffer.remaining()` là số byte; với dữ liệu hỏng, `CharacterCodingException` cho phép test xác nhận lỗi thay vì bỏ qua.
+`wellFormedUtf16` walks each code unit, **skips the low surrogate once a high surrogate is validated**, and rejects any lone low surrogate. `strictUtf8Size` encodes to UTF-8 via `CharsetEncoder`: for valid input, `ByteBuffer.remaining()` gives the byte count; for malformed input, `CharacterCodingException` lets the test assert failure instead of ignoring it.
 
-Hàm `graphemes` minh họa `BreakIterator.getCharacterInstance(Locale.ROOT)` trên **trường hợp đơn giản** `e` + dấu sắc kết hợp. `BreakIterator` phụ thuộc dữ liệu/quy tắc phân đoạn của phiên bản JDK và không mặc nhiên là lời giải đầy đủ cho tất cả chuỗi emoji ZWJ hoặc những quy tắc grapheme Unicode mới nhất. Nếu sản phẩm yêu cầu cắt/đếm cụm chữ cho emoji phức tạp, hãy chọn công cụ phân đoạn đáp ứng phiên bản Unicode và các ca kiểm thử thực tế (ví dụ một thư viện như ICU4J khi phù hợp), rồi kiểm thử chéo với dữ liệu mẫu.
+`graphemes` demonstrates `BreakIterator.getCharacterInstance(Locale.ROOT)` on the **simple case** of `e` + combining acute accent. `BreakIterator` depends on the JDK version's segmentation data/rules and is not automatically a complete solution for every ZWJ emoji sequence or the newest Unicode grapheme rules. If your product requires slicing/counting grapheme clusters for complex emojis, pick a segmentation engine that satisfies the required Unicode version and real-world test cases (e.g. a library like ICU4J when appropriate), and cross-check against sample data.
 
-## 7. Kiểm thử chỉ số và ranh giới khi cắt chuỗi
+## 7. Testing Indices and Boundaries When Slicing Strings
 
-Với chuỗi `"A😀B"`, phép thử hữu ích nhất là tạo **cả kết quả đúng và kết quả hỏng**:
+For `"A😀B"`, the most useful test creates **both the intact result and the corrupted result**:
 
 ~~~java
 String input = "A\uD83D\uDE00B";
 
-String bad = input.substring(1, 2);  // chỉ high surrogate
-String good = input.substring(1, 3); // đủ surrogate pair
+String bad = input.substring(1, 2);  // high surrogate only
+String good = input.substring(1, 3); // complete surrogate pair
 ~~~
 
-Cả hai lời gọi `substring` đều hợp lệ về mặt API và **không tự ném exception**. Lỗi xuất hiện khi dữ liệu hỏng được chuyển mã hoặc xử lý sau này. Với chỉ số do người dùng/chương trình tính toán, cần kiểm tra:
+Both `substring` calls are API-valid and **do not throw exceptions on their own**. Errors appear later when the broken data is transcoded or processed. For computed indices, check:
 
-- Không vượt `0..length()` và không đảo thứ tự `begin/end`.
-- Không nằm giữa high và low surrogate khi yêu cầu bảo toàn code point.
-- Không tách dấu kết hợp khỏi ký tự cơ sở hoặc tách một chuỗi ZWJ khi yêu cầu bảo toàn **cụm chữ hiển thị**.
-- Phép round trip `UTF-16 String → UTF-8 bytes → String` giữ nguyên với đầu vào hợp lệ và charset đúng; xử lý có quy tắc với đầu vào không hợp lệ.
+- Within `0..length()` and not reversed (`begin/end`).
+- Does not land between high and low surrogates when preserving code points.
+- Does not split a combining mark from its base character or split a ZWJ sequence when preserving **visible character clusters**.
+- The round trip `UTF-16 String → UTF-8 bytes → String` preserves valid input with the right charset, and handles invalid input according to policy.
 
-Có thể tính ranh giới theo code point bằng `offsetByCodePoints` nhưng cần hiểu rằng **lời gọi này không xác thực surrogate đơn** và cũng không đảm bảo ranh giới grapheme. Chính sách hiển thị và chính sách mã hóa là hai tầng kiểm thử riêng.
+You can compute boundaries by code points using `offsetByCodePoints`, keeping in mind that **this call does not validate unpaired surrogates** and does not guarantee grapheme boundaries. Display policy and encoding policy are two separate testing layers.
 
-## 8. Kiểm thử mã hóa: `getBytes`, encoder nghiêm ngặt và decoder nghiêm ngặt
+## 8. Encoding Tests: `getBytes`, Strict Encoder, and Strict Decoder
 
-Đối với văn bản hợp lệ:
+For valid text:
 
 ~~~java
 String input = "A\uD83D\uDE00B";
@@ -329,11 +329,11 @@ String restored = new String(utf8, StandardCharsets.UTF_8);
 // utf8.length == 6; restored.equals(input) == true
 ~~~
 
-Mã ví dụ này nằm trong phương thức có import `StandardCharsets`. Nó kiểm tra kết quả theo **byte UTF-8**, không dựa vào `String.length()`.
+This snippet sits inside a method with `StandardCharsets` imported. It verifies the result by **UTF-8 bytes**, not `String.length()`.
 
-Khi mã hóa surrogate đứng đơn, `getBytes(StandardCharsets.UTF_8)` thông thường thực hiện thay thế, dẫn đến **không bảo toàn** giá trị ban đầu. Khi yêu cầu dữ liệu Unicode phải hợp lệ, dùng encoder `REPORT` như chương trình ở phần 6.
+When encoding an unpaired surrogate, ordinary `getBytes(StandardCharsets.UTF_8)` performs replacement, **failing to preserve** the original value. When valid Unicode data is required, use a `REPORT` encoder as in section 6.
 
-Tương tự, khi **nhận byte UTF-8 từ ngoài**, `new String(bytes, UTF_8)` có thể thay thế byte sai bằng ký tự thay thế. Để từ chối, sử dụng decoder nghiêm ngặt:
+Similarly, when **receiving external UTF-8 bytes**, `new String(bytes, UTF_8)` can replace invalid bytes with the replacement character. To reject them, use a strict decoder:
 
 ~~~java
 String strictDecoded = StandardCharsets.UTF_8.newDecoder()
@@ -343,11 +343,11 @@ String strictDecoded = StandardCharsets.UTF_8.newDecoder()
         .toString();
 ~~~
 
-Đây là đoạn mã trong phương thức đã có `bytes` và các import cần thiết; nếu byte đầu vào hỏng, nó có thể ném `CharacterCodingException`. Không nhầm hai trường hợp: **surrogate đứng đơn trong Java String là UTF-16 hỏng**, còn **byte sequence UTF-8 hỏng** là lỗi tại bước giải mã; cả hai đều cần ca kiểm thử thích hợp tại ranh giới nhận/xuất dữ liệu.
+This snippet belongs inside a method that already has `bytes` and the necessary imports; if the input bytes are malformed, it can throw `CharacterCodingException`. Do not confuse the two cases: **an unpaired surrogate in a Java String is malformed UTF-16**, whereas a **malformed UTF-8 byte sequence** is an error at decode time; both need appropriate test cases at data ingress/egress boundaries.
 
-## 9. Kiểm thử tương đương ngữ nghĩa và normalization
+## 9. Testing Semantic Equivalence and Normalization
 
-`String.equals` so sánh biểu diễn chuỗi, vì vậy:
+`String.equals` compares string representations, so:
 
 ~~~java
 String a = "e\u0301";
@@ -359,56 +359,56 @@ String nfcB = Normalizer.normalize(b, Normalizer.Form.NFC);
 boolean normalizedEqual = nfcA.equals(nfcB); // true
 ~~~
 
-Đây là đoạn mã minh họa dùng `Normalizer`. Test nên xác định rõ một trong các chính sách:
+This illustrative snippet uses `Normalizer`. Tests should pick one clear policy:
 
-- **So sánh byte/biểu diễn chính xác:** hai cách viết không tương đương nếu các đơn vị mã khác nhau; ví dụ dữ liệu đã ký hoặc định danh được đặc tả theo byte.
-- **So sánh sau chuẩn hóa Unicode:** thống nhất dạng (NFC/NFD/... theo hợp đồng), chuẩn hóa trước khi so sánh và trước các thao tác liên quan như tạo khóa hay checksum.
-- **So sánh gần đúng cho tìm kiếm người dùng:** có thể cần nhiều quy tắc thêm ngoài normalization, ví dụ case folding hoặc collator theo locale; không lấy `Normalizer` làm bộ so sánh ngôn ngữ hoàn chỉnh.
+- **Exact byte/representation comparison:** two encodings are not equivalent if their code units differ; e.g., signed payloads or byte-specified identifiers.
+- **Comparison after Unicode normalization:** standardize on a form (NFC/NFD/... per contract), normalizing before comparing and before related operations such as key generation or checksums.
+- **Fuzzy matching for user search:** may require additional rules beyond normalization, such as case folding or locale-sensitive collators; do not treat `Normalizer` as a full linguistic comparator.
 
-Đừng cho rằng hai chuỗi hiển thị giống nhau luôn có cùng `length()`, cùng byte UTF-8 hoặc cùng thứ tự code point. Test cần thể hiện đúng hợp đồng của hệ thống thay vì áp một quy tắc chung cho mọi dữ liệu.
+Do not assume two visually identical strings share the same `length()`, UTF-8 bytes, or code point sequence. Tests should reflect the system's exact contract rather than forcing one universal rule onto all data.
 
-## 10. Những lỗi thường gặp trong test Unicode
+## 10. Common Mistakes in Unicode Testing
 
-**Lỗi 1 — Chỉ chạy test với ASCII.** ASCII khiến `length()`, code point count và số byte UTF-8 thường bằng nhau, nên bỏ sót đa số vấn đề Unicode. Bổ sung emoji, ký tự ngoài Latin-1 và dấu kết hợp.
+**Mistake 1 — Running tests with ASCII only.** With ASCII, `length()`, code point count, and UTF-8 byte count are equal, hiding most Unicode bugs. Add emojis, characters beyond Latin-1, and combining marks.
 
-**Lỗi 2 — Test `codePointCount` để khẳng định “UTF-16 hợp lệ”.** Surrogate đơn vẫn được đếm như một code point theo hành vi của các API duyệt chuỗi Java. Cần bộ kiểm tra cặp surrogate hoặc encoder cấu hình `REPORT`.
+**Mistake 2 — Testing `codePointCount` to assert “valid UTF-16.”** Unpaired surrogates are still counted as one code point by Java's string-traversal APIs. Use a surrogate-pair validator or an encoder configured with `REPORT`.
 
-**Lỗi 3 — Thấy `substring` không lỗi thì coi văn bản vẫn nguyên vẹn.** Cắt giữa surrogate pair có thể tạo chuỗi hỏng dù lời gọi thành công. Cắt giữa base và dấu kết hợp có thể tạo chuỗi hợp lệ nhưng mất ý nghĩa hiển thị.
+**Mistake 3 — Assuming `substring` succeeding means text is intact.** Cutting inside a surrogate pair creates a broken string even though the call succeeds. Cutting between a base character and combining mark produces valid UTF-16 yet loses display meaning.
 
-**Lỗi 4 — Chuẩn hóa trong test nhưng không chuẩn hóa ở production.** Kết quả test không phản ánh hành vi thật. Xác định rõ normalization đặt ở bước nào và kiểm thử chính đường xử lý đó.
+**Mistake 4 — Normalizing in tests but not in production.** Test results fail to reflect real behavior. Identify exactly where normalization happens and test that actual code path.
 
-**Lỗi 5 — Coi một code point là một ký tự trên màn hình.** `e\u0301` gồm 2 code point nhưng thường hiện như một chữ. Emoji phức tạp cũng có thể nhiều code point; cần test phân đoạn grapheme cluster khi liên quan đến con trỏ, chiều dài hiển thị hay cắt văn bản.
+**Mistake 5 — Treating one code point as one screen character.** `e\u0301` has 2 code points yet usually renders as one letter. Complex emojis can also span multiple code points; test grapheme cluster segmentation when cursor position, display width, or text truncation is involved.
 
-**Lỗi 6 — Đếm ký tự bằng `String.length()` cho hạn mức byte UTF-8.** Với `"A😀B"`, `length()` là 4 nhưng UTF-8 cần 6 byte. Hãy đo mảng byte thực sự sau khi áp dụng cách mã hóa của giao thức.
+**Mistake 6 — Counting characters with `String.length()` for UTF-8 byte limits.** For `"A😀B"`, `length()` is 4, while UTF-8 requires 6 bytes. Measure the actual byte array after applying the protocol's encoding.
 
-**Lỗi 7 — Kiểm thử decoder thay thế mà nghĩ hệ thống đã từ chối byte sai.** Chế độ thay thế và chế độ `REPORT` là hai hợp đồng khác nhau; cần test cả kết quả thành công và trường hợp ném lỗi theo đúng yêu cầu.
+**Mistake 7 — Testing a replacement decoder while thinking the system rejects invalid bytes.** Replacement mode and `REPORT` mode are different contracts; test both success cases and error-throwing cases per requirements.
 
-**Lỗi 8 — Phụ thuộc font, terminal hoặc ảnh chụp màn hình để kết luận.** Hiển thị phụ thuộc font và renderer. Test các code point, độ dài, byte UTF-8 và normalization bằng giá trị có thể so sánh; chỉ dùng kiểm thử hiển thị bổ sung cho nhu cầu UI.
+**Mistake 8 — Relying on fonts, terminals, or screenshots to draw conclusions.** Rendering depends on fonts and renderers. Test code points, lengths, UTF-8 bytes, and normalization with comparable values; use visual checks only as a supplement for UI needs.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**1.** Với `"\uD83D\uDE00"`, `length()` và `codePointCount` trả bao nhiêu?
+**1.** For `"\uD83D\uDE00"`, what do `length()` and `codePointCount` return?
 
-**Đáp án:** Lần lượt **2** đơn vị mã UTF-16 và **1** code point (`U+1F600`).
+**Answer:** **2** UTF-16 code units and **1** code point (`U+1F600`), respectively.
 
-**2.** Với `"\uD83D"`, vì sao `codePointCount(0, 1) == 1` không chứng minh dữ liệu hợp lệ?
+**2.** For `"\uD83D"`, why does `codePointCount(0, 1) == 1` not prove the data is valid?
 
-**Đáp án:** API có thể tính surrogate đứng đơn như một phần tử khi duyệt; một high surrogate không có low ghép cặp là UTF-16 không hợp lệ. Cần kiểm tra cấu trúc surrogate.
+**Answer:** The API counts an unpaired surrogate as one element when traversing; a high surrogate without a paired low surrogate is ill-formed UTF-16. Surrogate structure must be checked explicitly.
 
-**3.** Vì sao `"e\u0301".substring(0, 1)` khác với việc cắt giữa surrogate pair?
+**3.** Why is `"e\u0301".substring(0, 1)` different from slicing mid-surrogate pair?
 
-**Đáp án:** `"e"` vẫn là chuỗi Unicode hợp lệ nhưng mất dấu kết hợp; nửa surrogate là **UTF-16 không hợp lệ**. Đúng về encoding và đúng về grapheme là hai tiêu chí riêng.
+**Answer:** `"e"` is still a valid Unicode string, though it lost its combining mark; half of a surrogate pair is **ill-formed UTF-16**. Encoding validity and grapheme integrity are two separate criteria.
 
-**4.** Có nên dùng `String.equals` để khẳng định `"e\u0301"` và `"\u00E9"` bằng nhau?
+**4.** Should `String.equals` be used to assert that `"e\u0301"` and `"\u00E9"` are equal?
 
-**Đáp án:** Không: `equals` trực tiếp trả `false`. Nếu hợp đồng cho phép canonical equivalence, chuẩn hóa cùng dạng, ví dụ NFC, rồi so sánh.
+**Answer:** No: `equals` directly returns `false`. If the contract allows canonical equivalence, normalize both to the same form, such as NFC, before comparing.
 
-**5.** Khi ứng dụng từ chối surrogate không ghép cặp trước khi xuất UTF-8, chọn `String.getBytes(UTF_8)` hay `CharsetEncoder` cấu hình `REPORT`?
+**5.** When an application rejects unpaired surrogates before emitting UTF-8, should you choose `String.getBytes(UTF_8)` or a `CharsetEncoder` configured with `REPORT`?
 
-**Đáp án:** Chọn encoder nghiêm ngặt với `REPORT` để phát hiện lỗi thay vì âm thầm thay thế.
+**Answer:** Choose the strict encoder with `REPORT` to detect errors rather than silently replacing them.
 
-## 12. Checklist áp dụng vào dự án
+## 12. Project Application Checklist
 
-Khi sửa lỗi ký tự hỏng, độ dài sai, search không tìm ra văn bản hoặc emoji bị cắt, hãy xác định lần lượt: nguồn dữ liệu ở dạng UTF-16 hay byte UTF-8; quy tắc từ chối/thay thế đầu vào sai; đơn vị đo mong muốn (code unit, code point, grapheme hay byte); thời điểm chuẩn hóa; ranh giới cắt; và các ca kiểm thử bằng giá trị Unicode cụ thể. Bộ kiểm thử ở phần 6 có thể chạy bằng JDK 17+, sau đó bổ sung trường hợp đặc trưng của dữ liệu ứng dụng.
+When fixing garbled characters, wrong lengths, search misses, or clipped emojis, identify in order: whether source data is UTF-16 or UTF-8 bytes; the policy for rejecting/replacing malformed input; the intended measurement unit (code units, code points, graphemes, or bytes); when normalization occurs; cut boundaries; and test cases with concrete Unicode values. The test suite in section 6 can run on JDK 17+, and you can then add cases specific to your application's data.
 
-Tài liệu tham khảo: [`String` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html), [`Character` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Character.html), [`CharsetEncoder`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/CharsetEncoder.html), [`Normalizer`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/Normalizer.html), [`BreakIterator`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/BreakIterator.html).
+References: [`String` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html), [`Character` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Character.html), [`CharsetEncoder`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/CharsetEncoder.html), [`Normalizer`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/Normalizer.html), [`BreakIterator`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/BreakIterator.html).

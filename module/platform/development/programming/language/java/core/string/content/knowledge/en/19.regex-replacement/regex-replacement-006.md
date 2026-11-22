@@ -1,30 +1,30 @@
-# Matcher.replaceAll với hàm tính chuỗi thay thế trong Java
+# Matcher.replaceAll with a Function Computing the Replacement String in Java
 
-Khi dùng regex, nhiều trường hợp ta muốn mỗi đoạn khớp nhận **một chuỗi thay thế khác nhau**, được tính dựa trên chính đoạn đó. Ví dụ: nhân đôi từng số trong câu, chuẩn hóa từng mã định danh, che bớt dữ liệu theo độ dài, hoặc tra cứu giá trị để điền placeholder. Từ **Java 9**, lớp **java.util.regex.Matcher** có phương thức **replaceAll(Function<MatchResult, String>)** để giải quyết những bài toán này.
+When using regex, in many cases we want each matched segment to receive **a different replacement string**, computed based on that segment itself. For example: doubling every number in a sentence, normalizing each identifier, masking data according to length, or looking up values to fill placeholders. Since **Java 9**, the **java.util.regex.Matcher** class has provided **replaceAll(Function<MatchResult, String>)** to solve these problems.
 
-Điểm cốt lõi: với **mỗi đoạn khớp**, Matcher gọi hàm do ta cung cấp, đưa vào thông tin match hiện tại và lấy **chuỗi thay thế do hàm trả về**. Những đoạn không khớp vẫn được giữ nguyên. Bài này hướng dẫn API, cơ chế, ví dụ Java 17 chạy độc lập và các lỗi cần tránh.
+The core idea: for **each matched segment**, Matcher calls the function we supply, passes in the current match information, and takes **the replacement string returned by the function**. Unmatched segments are kept unchanged. This lesson covers the API, mechanism, standalone runnable Java 17 examples, and mistakes to avoid.
 
-## 1. Khác nhau giữa thay thế cố định và thay thế bằng hàm
+## 1. Difference Between Fixed Replacement and Function-Based Replacement
 
-| Cách dùng | Ý nghĩa | Khi phù hợp |
+| Usage | Meaning | When suitable |
 | --- | --- | --- |
-| matcher.replaceAll(String replacement) | Áp dụng một khuôn chuỗi thay thế cho tất cả các lần khớp; có thể tham chiếu nhóm bắt. | Mọi match dùng cùng khuôn, ví dụ nối lại group 2 trước group 1. |
-| matcher.replaceAll(Function<MatchResult, String> replacer) | Tính riêng chuỗi thay thế cho mỗi match bằng hàm/lambda. | Có chuyển đổi số, tra cứu, điều kiện hay biến đổi chuỗi phức tạp. |
-| input.replaceAll(regex, replacement) | Phương thức của String nhận regex và **chuỗi thay thế**. | Cách viết nhanh khi không cần lambda. |
+| matcher.replaceAll(String replacement) | Applies one replacement template to all matches; can reference capturing groups. | All matches use the same template, e.g., placing group 2 before group 1. |
+| matcher.replaceAll(Function<MatchResult, String> replacer) | Computes a separate replacement string for each match via a function/lambda. | Numeric conversions, lookups, conditions, or complex string transformations. |
+| input.replaceAll(regex, replacement) | String method taking a regex and a **replacement string**. | Quick syntax when a lambda is not needed. |
 
-Chữ ký API, viết gọn:
+API signature, written concisely:
 
 ~~~java
 String replaceAll(Function<MatchResult, String> replacer)
 ~~~
 
-Function là giao diện hàm trong java.util.function; MatchResult thuộc java.util.regex. Lambda thường nhận một tham số như match và trả về String. **String.replaceAll không có overload nhận lambda**: nếu muốn callback, phải tạo Pattern/Matcher rồi gọi overload của Matcher.
+Function is a functional interface in java.util.function; MatchResult belongs to java.util.regex. The lambda typically takes one parameter such as match and returns a String. **String.replaceAll does not have an overload taking a lambda**: if you want a callback, you must create a Pattern/Matcher and call Matcher's overload.
 
-Với cùng một biểu thức dùng nhiều lần, nên biên dịch Pattern một lần, sau đó tạo Matcher cho đầu vào đang xử lý. Pattern bất biến và an toàn để chia sẻ; Matcher chứa trạng thái thay đổi, không nên dùng chung giữa các luồng.
+When the same expression is used multiple times, you should compile the Pattern once and then create a Matcher for the input being processed. Pattern is immutable and safe to share; Matcher holds mutable state and should not be shared across threads.
 
-## 2. Ví dụ hoàn chỉnh: nhân đôi các số vừa khớp
+## 2. Complete Example: Doubling Matched Numbers
 
-Tạo tệp **NumberReplacementDemo.java**:
+Create the file **NumberReplacementDemo.java**:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -34,7 +34,7 @@ public class NumberReplacementDemo {
     private static final Pattern NUMBER = Pattern.compile("\\d+");
 
     public static void main(String[] args) {
-        String input = "Điểm A=7, B=12, C=3.";
+        String input = "Score A=7, B=12, C=3.";
         Matcher matcher = NUMBER.matcher(input);
 
         String output = matcher.replaceAll(match -> {
@@ -48,36 +48,36 @@ public class NumberReplacementDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 NumberReplacementDemo.java
 java NumberReplacementDemo
 ~~~
 
-Kết quả tiêu chuẩn:
+Expected output:
 
 ~~~text
-Điểm A=7, B=12, C=3.
-Điểm A=14, B=24, C=6.
+Score A=7, B=12, C=3.
+Score A=14, B=24, C=6.
 ~~~
 
-**Diễn giải từng bước:** biểu thức \d+ tìm ra ba đoạn lần lượt là 7, 12, 3. Matcher gọi lambda ba lần; mỗi lần match.group() là dãy chữ số đang được xử lý. Lambda chuyển chuỗi thành số nguyên, nhân đôi và trả về chuỗi mới. Java lắp những chuỗi thay thế vào vị trí tương ứng, giữ nguyên toàn bộ dấu cách, chữ cái và dấu câu ngoài các match. Biến input không đổi vì String trong Java bất biến.
+**Step-by-step explanation:** the expression \d+ finds three segments: 7, 12, and 3. Matcher invokes the lambda three times; each time match.group() is the digit sequence currently being processed. The lambda parses the string to an integer, doubles it, and returns a new string. Java inserts those replacement strings at their corresponding positions, keeping all spaces, letters, and punctuation outside the matches intact. The input variable does not change because String in Java is immutable.
 
-Trong ví dụ, Integer.parseInt phù hợp vì đầu vào nhỏ và có kiểm soát. Với dữ liệu tùy ý, số quá lớn có thể gây NumberFormatException, phép nhân int có thể tràn; cần chọn BigInteger/long hoặc áp dụng giới hạn nghiệp vụ. Mẫu \d+ cũng không có nghĩa là bộ phân tích đầy đủ số âm, số thập phân và Unicode theo mọi quy ước địa phương.
+In the example, Integer.parseInt is appropriate because the input is small and controlled. With arbitrary data, overly large numbers can cause NumberFormatException, and int multiplication can overflow; you should choose BigInteger/long or apply business limits. Nor does the pattern \d+ represent a full parser for negative numbers, decimals, and Unicode digits across all locale conventions.
 
-## 3. Đọc group để tính replacement theo cấu trúc
+## 3. Reading Groups to Compute Structured Replacements
 
-Regex có thể chia kết quả khớp thành nhiều **nhóm bắt**. Đối tượng MatchResult cung cấp:
+A regex can split a match into multiple **capturing groups**. The MatchResult object provides:
 
-- group() hoặc group(0): toàn bộ đoạn khớp.
-- group(1), group(2), ...: nội dung các nhóm bắt theo chỉ số.
-- start() và end(): biên của toàn bộ match; end() là vị trí ngay sau ký tự cuối.
-- start(n), end(n): biên nhóm bắt n. Một nhóm tùy chọn không tham gia có thể có group(n) bằng null, start/end bằng -1.
+- group() or group(0): the entire matched segment.
+- group(1), group(2), ...: content of capturing groups by index.
+- start() and end(): bounds of the entire match; end() is the position right after the last character.
+- start(n), end(n): bounds of capturing group n. An optional group that did not participate may have group(n) equal to null and start/end equal to -1.
 
-Ví dụ: chuẩn hóa mã dạng hai chữ cái, dấu gạch ngang, một đến ba chữ số. Chữ cái chuyển thành in hoa; số được thêm 0 bên trái để có ba chữ số.
+Example: normalize codes consisting of two letters, a hyphen, and one to three digits. Letters are converted to uppercase; numbers are left-padded with zeros to three digits.
 
-Tạo tệp **CodeNormalizeDemo.java**:
+Create the file **CodeNormalizeDemo.java**:
 
 ~~~java
 import java.util.Locale;
@@ -86,7 +86,7 @@ import java.util.regex.Pattern;
 public class CodeNormalizeDemo {
     public static void main(String[] args) {
         Pattern code = Pattern.compile("(?i)\\b([a-z]{2})-(\\d{1,3})\\b");
-        String input = "Đơn ab-7 và Cd-42; ghi chú giữ nguyên.";
+        String input = "Order ab-7 and Cd-42; notes unchanged.";
 
         String output = code.matcher(input).replaceAll(match -> {
             String prefix = match.group(1).toUpperCase(Locale.ROOT);
@@ -105,44 +105,44 @@ java CodeNormalizeDemo
 ~~~
 
 ~~~text
-Đơn AB-007 và CD-042; ghi chú giữ nguyên.
+Order AB-007 and CD-042; notes unchanged.
 ~~~
 
-Ở đây (?i) bật phân biệt hoa/thường không nghiêm ngặt cho các chữ ASCII trong mẫu; group(1) là tiền tố, group(2) là chữ số. Regex chỉ nhận các đoạn đúng cấu trúc để lambda có thể biến đổi hai phần riêng biệt.
+Here (?i) enables case-insensitive matching for the ASCII letters in the pattern; group(1) is the prefix, group(2) is the digits. The regex accepts only segments matching the structure so the lambda can transform the two parts separately.
 
-**Điểm cần chú ý với Java 17:** tham số lambda được suy luận là giao diện **MatchResult**, không phải Matcher. Trong Java 17, nên truy cập nhóm theo **chỉ số** bằng group(1), group(2); lời gọi group("tenNhom") không có trong giao diện MatchResult của Java 17. Không ép tham số này thành Matcher để đổi trạng thái.
+**Important note for Java 17:** the lambda parameter is inferred as the **MatchResult** interface, not Matcher. In Java 17, you should access groups by **index** using group(1), group(2); calling group("groupName") does not exist on the MatchResult interface in Java 17. Do not cast this parameter to Matcher to mutate state.
 
-## 4. Replacement do lambda trả về vẫn có cú pháp đặc biệt
+## 4. The Replacement Returned by the Lambda Still Has Special Syntax
 
-Đây là điểm thường gây lỗi nhất. Mặc dù replacement được tính bằng hàm, chuỗi trả về **vẫn được Matcher diễn giải theo cú pháp chuỗi thay thế**, thay vì luôn được chèn như văn bản thuần.
+This is the most common source of bugs. Even though the replacement is computed by a function, the returned string **is still interpreted by Matcher according to replacement string syntax**, rather than always being inserted as plain text.
 
-Trong cú pháp replacement:
-- $1, $2, ... có thể tham chiếu các nhóm bắt bằng số.
-- Cú pháp dấu đô la kèm tên nhóm trong ngoặc nhọn có thể tham chiếu nhóm được đặt tên.
-- Dấu gạch chéo ngược \ có thể dùng để thoát ký tự kế tiếp.
+In replacement syntax:
+- $1, $2, ... can reference capturing groups by number.
+- Dollar-sign syntax with a group name in curly braces can reference named groups.
+- Backslash \ can be used to escape the following character.
 
-Vì thế nếu một hàm trả về nguyên văn **Giá $5** hoặc đường dẫn **C:\data\test**, ký tự $ và \ có thể bị hiểu thành cú pháp replacement. Đầu ra có thể sai hoặc gây ngoại lệ. Khi muốn trả về **văn bản nguyên trạng**, hãy dùng:
+Therefore, if a function returns the literal **Price $5** or the path **C:\data\test**, the $ and \ characters can be interpreted as replacement syntax. Output may be wrong or throw an exception. When you want to return **verbatim text**, use:
 
 ~~~java
-String literal = "Giá $5";
+String literal = "Price $5";
 String safe = Matcher.quoteReplacement(literal);
 ~~~
 
-Hàm **Matcher.quoteReplacement(String)** tạo chuỗi có thể dùng làm replacement mà vẫn giữ nguyên nội dung literal sau khi thay. Nếu lambda đã ghép chuỗi đích xong, cách an toàn là:
+**Matcher.quoteReplacement(String)** creates a string that can be used as a replacement while preserving the literal content after replacement. If the lambda has already assembled the target string, the safe way is:
 
 ~~~java
 return Matcher.quoteReplacement(computedValue);
 ~~~
 
-Phân biệt với **Pattern.quote(String)**: Pattern.quote dùng để biến dữ liệu người dùng thành một **mẫu tìm kiếm** theo nghĩa literal; Matcher.quoteReplacement dùng để biến dữ liệu thành **chuỗi thay thế** theo nghĩa literal. Chúng phục vụ hai phía khác nhau của phép tìm và thay thế.
+Distinguish from **Pattern.quote(String)**: Pattern.quote turns user data into a literal **search pattern**; Matcher.quoteReplacement turns data into a literal **replacement string**. They serve opposite sides of search and replace.
 
-Khi **muốn** replacement thực thi tham chiếu nhóm như $1, $2, có thể chủ động trả về cú pháp ấy mà **không quote**. Nếu đã dùng match.group(1) để tạo kết quả hoàn chỉnh trong lambda, thông thường nên quote chuỗi kết quả để tránh $ hoặc \ phát sinh từ dữ liệu.
+When you **want** the replacement to execute group references such as $1, $2, you can intentionally return that syntax **without quoting**. If you have already used match.group(1) to construct the complete result inside the lambda, you should usually quote the result string to avoid $ or \ originating from data.
 
-## 5. Ví dụ hoàn chỉnh: thay placeholder bằng Map, giữ nguyên ký tự đặc biệt
+## 5. Complete Example: Replacing Placeholders from a Map, Preserving Special Characters
 
-Yêu cầu: chuỗi mẫu chứa các placeholder dạng {{key}}. Tìm giá trị tương ứng từ Map, giữ nguyên placeholder nếu chưa có dữ liệu. Đặc biệt, giá trị có thể chứa $ và \ mà kết quả vẫn phải giữ đúng các ký tự đó.
+Requirement: a template string contains placeholders in the form {{key}}. Look up the corresponding value from a Map, keeping the placeholder unchanged if no data is present. Specifically, values may contain $ and \, and the output must preserve those exact characters.
 
-Tạo tệp **TemplateReplacementDemo.java**:
+Create the file **TemplateReplacementDemo.java**:
 
 ~~~java
 import java.util.Map;
@@ -154,7 +154,7 @@ public class TemplateReplacementDemo {
             Pattern.compile("\\{\\{([A-Za-z][A-Za-z0-9_]*)\\}\\}");
 
     public static void main(String[] args) {
-        String input = "Người: {{person}}; thư mục: {{path}}; thiếu: {{unknown}}";
+        String input = "Person: {{person}}; folder: {{path}}; missing: {{unknown}}";
         Map<String, String> values = Map.of(
                 "person", "Lan$1",
                 "path", "C:\\data\\test"
@@ -177,31 +177,31 @@ java TemplateReplacementDemo
 ~~~
 
 ~~~text
-Người: Lan$1; thư mục: C:\data\test; thiếu: {{unknown}}
+Person: Lan$1; folder: C:\data\test; missing: {{unknown}}
 ~~~
 
-**Giải thích:** regex chỉ nhận các placeholder theo cấu trúc {{tên}}. Nhóm 1 là tên khóa như person, path, unknown. Lambda lấy giá trị từ Map; nếu không có, dùng match.group() để giữ nguyên placeholder. Sau đó quoteReplacement bảo đảm dấu $ trong Lan$1 và các dấu \ trong đường dẫn được giữ nguyên. Nếu bỏ quoteReplacement, giá trị Lan$1 có thể bị hiểu thành tham chiếu nhóm $1, còn dấu \ có thể bị tiêu thụ khi xử lý replacement.
+**Explanation:** the regex accepts only placeholders matching the {{name}} structure. Group 1 is the key name such as person, path, unknown. The lambda retrieves the value from the Map; if absent, it uses match.group() to keep the placeholder. Then quoteReplacement ensures the $ in Lan$1 and the \ characters in the path are preserved. Without quoteReplacement, Lan$1 could be interpreted as a $1 group reference, and \ characters could be consumed during replacement processing.
 
-Đây là ví dụ thay thế văn bản, **không phải hệ thống template hoàn chỉnh**: nó không giải quyết escaping HTML, URL, SQL, JavaScript hay ngữ cảnh đầu ra khác. Khi đưa dữ liệu bên ngoài vào những ngữ cảnh đó, vẫn cần escaping phù hợp hoặc truy vấn tham số hóa.
+This is a text replacement example, **not a complete templating system**: it does not handle HTML, URL, SQL, JavaScript, or other output-context escaping. When placing external data into those contexts, proper escaping or parameterized queries are still required.
 
-## 6. Trình tự xử lý và trạng thái Matcher
+## 6. Processing Order and Matcher State
 
-Về mặt hành vi, replaceAll(Function) bắt đầu lại quá trình tìm kiếm, lần lượt tìm các đoạn khớp, gọi replacer cho mỗi đoạn và ghép kết quả thành một chuỗi đầu ra:
+Behaviorally, replaceAll(Function) restarts the search, finds matching segments in order, invokes the replacer for each segment, and assembles the result into an output string:
 
-1. **Không có match:** hàm không được gọi, chuỗi đầu vào được giữ nguyên về nội dung.
-2. **Có nhiều match:** hàm được gọi theo các kết quả tìm được, thông thường từ trái sang phải; các match do find() tìm là những đoạn không chồng lấn.
-3. **Phần văn bản không khớp:** luôn được đưa vào kết quả nguyên vẹn.
-4. **Replacement không được tìm tiếp trong cùng lượt:** nếu đoạn thay thế mới cũng khớp regex, nó không được xử lý thêm một lần nữa trong lời gọi hiện tại.
-5. **Matcher chứa trạng thái duyệt:** replaceAll bắt đầu lượt thay thế từ đầu vùng đầu vào của Matcher; không trông chờ vị trí tìm kiếm trước đó được giữ nguyên. Nếu cần duyệt lại, tạo Matcher mới hoặc reset() đúng cách.
-6. **Không sửa Matcher bên trong replacer:** gọi find(), reset(), region() hoặc phương thức thay đổi trạng thái trên chính Matcher đang thực hiện replaceAll có thể gây ConcurrentModificationException. Callback nên đọc tham số MatchResult và tạo chuỗi trả về.
+1. **No match:** the function is not called, and the input string's content is preserved.
+2. **Multiple matches:** the function is called for the found matches, normally from left to right; matches found by find() are non-overlapping segments.
+3. **Unmatched text:** always placed into the result intact.
+4. **Replacement is not re-searched in the same pass:** if the newly inserted replacement also matches the regex, it is not processed again in the current call.
+5. **Matcher holds traversal state:** replaceAll begins the replacement pass from the start of the Matcher's input region; do not expect a previous search position to be preserved. If you need to traverse again, create a new Matcher or call reset() properly.
+6. **Do not modify the Matcher inside the replacer:** calling find(), reset(), region(), or state-mutating methods on the very Matcher performing replaceAll can throw ConcurrentModificationException. The callback should read the MatchResult argument and produce the return string.
 
-Không lưu đối tượng MatchResult được callback cấp cho để dùng sau khi Matcher tiếp tục làm việc; nếu cần ghi nhận dữ liệu, sao chép group/start/end ngay trong callback. Pattern bất biến có thể dùng lại từ nhiều luồng, nhưng mỗi luồng/yêu cầu nên sử dụng Matcher của riêng mình.
+Do not retain the MatchResult object given to the callback for use after the Matcher continues working; if you need to record data, copy group/start/end immediately inside the callback. An immutable Pattern can be reused from multiple threads, but each thread/request should use its own Matcher.
 
-## 7. So với find() + appendReplacement() + appendTail()
+## 7. Comparison with find() + appendReplacement() + appendTail()
 
-Trước Java 9, người lập trình thường dùng vòng lặp find() để tính replacement riêng từng match. Hai phương thức appendReplacement() và appendTail() hỗ trợ ghép kết quả: appendReplacement thêm phần chưa xử lý cùng replacement hiện tại; appendTail thêm phần còn lại của chuỗi gốc.
+Before Java 9, programmers typically used a find() loop to compute per-match replacements. Two methods, appendReplacement() and appendTail(), help assemble the result: appendReplacement appends unprocessed text along with the current replacement; appendTail appends the remainder of the original string.
 
-Đoạn minh họa sau giả định **pattern**, **input** và một phương thức tự viết **transform(String)** đã tồn tại (không phải chương trình biên dịch độc lập):
+The following snippet assumes **pattern**, **input**, and a custom **transform(String)** method already exist (not a standalone compilable program):
 
 ~~~java
 Matcher matcher = pattern.matcher(input);
@@ -218,7 +218,7 @@ matcher.appendTail(output);
 String result = output.toString();
 ~~~
 
-Với Java 9+, khi thao tác chỉ là tạo replacement từ từng match, có thể viết ngắn hơn:
+With Java 9+, when the operation is simply generating a replacement from each match, you can write it more concisely:
 
 ~~~java
 String result = pattern.matcher(input).replaceAll(
@@ -226,13 +226,13 @@ String result = pattern.matcher(input).replaceAll(
 );
 ~~~
 
-Hai cách đều cần quan tâm đến cú pháp replacement, và hai cách đều nên được thử với dữ liệu chứa $ và \. Vòng lặp thủ công vẫn hữu ích khi phải quản lý thêm trạng thái hoặc ghép đầu ra theo quy tắc riêng; callback tiện hơn cho phép biến đổi độc lập của từng match.
+Both approaches must pay attention to replacement syntax, and both should be tested with data containing $ and \. The manual loop remains useful when you must manage additional state or assemble output using custom rules; the callback is more convenient for independent per-match transformations.
 
-## 8. Điều kiện trong lambda: chỉ đổi một số match
+## 8. Conditions in the Lambda: Changing Only Some Matches
 
-Có những trường hợp regex nhận đúng tất cả đoạn cần xét, nhưng không phải đoạn nào cũng cần thay. Callback có thể quyết định giữ nguyên bằng cách trả lại chính group().
+There are cases where the regex matches every segment to be inspected, but not every segment needs changing. The callback can decide to leave it unchanged by returning group() itself.
 
-Đoạn mã sau giả định **input** đã được khai báo; mục đích là đưa ngoặc vuông quanh các số một chữ số và giữ nguyên các số khác:
+The following snippet assumes **input** has already been declared; the goal is to wrap single-digit numbers in square brackets while leaving other numbers unchanged:
 
 ~~~java
 Pattern numbers = Pattern.compile("\\b\\d+\\b");
@@ -245,29 +245,29 @@ String result = numbers.matcher(input).replaceAll(match -> {
 });
 ~~~
 
-Ngay cả ở nhánh giữ nguyên, lambda vẫn được gọi cho match đó. Nếu muốn tối ưu, thiết kế regex sao cho chỉ tìm đúng những đoạn thực sự cần thay khi khả thi. Cần xử lý trường hợp số quá lớn hoặc có định dạng khác trước khi parseInt.
+Even on the keep-unchanged branch, the lambda is still invoked for that match. If you want to optimize, design the regex to find only the segments that truly need replacing when feasible. You should handle numbers that are too large or formatted differently before calling parseInt.
 
-Callback nên tập trung vào **tính toán chuỗi**. Tránh ghi database, gọi HTTP, thay đổi biến dùng chung hoặc tương tác bên ngoài trong một phép replaceAll; những side effect này dễ gây kết quả khó đoán nếu xử lý lỗi hoặc chạy lại. Nếu tính toán tốn kém cho mỗi match, hiệu suất thực tế phụ thuộc cả số match, độ phức tạp regex và công việc của hàm.
+Callbacks should focus on **string computation**. Avoid writing to databases, making HTTP calls, mutating shared variables, or performing external interactions during a replaceAll call; such side effects easily lead to unpredictable results upon errors or retries. If computation per match is expensive, actual performance depends on match count, regex complexity, and the work done by the function.
 
-## 9. Lỗi thường gặp và cách phòng tránh
+## 9. Common Mistakes and How to Avoid Them
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách sửa |
+| Symptom | Common Cause | Fix |
 | --- | --- | --- |
-| Không biên dịch lambda cho replaceAll | Dùng Java 8 hoặc gọi String.replaceAll thay vì Matcher.replaceAll. | Sử dụng Java 9+, gọi Pattern.compile(...).matcher(input).replaceAll(lambda). |
-| Bị lỗi khi giá trị chứa dấu $ | Dữ liệu bị hiểu là tham chiếu nhóm trong replacement. | Dùng Matcher.quoteReplacement cho chuỗi literal. |
-| Dấu \ mất hoặc làm thay đổi ký tự phía sau | Replacement diễn giải \ như ký tự thoát. | Quote replacement literal; kiểm tra lại cách escape trong chuỗi Java. |
-| match.group("name") không biên dịch trên Java 17 | MatchResult trong Java 17 dùng chỉ số nhóm. | Dùng group(1), group(2) theo vị trí. |
-| NullPointerException khi xử lý group | Nhóm tùy chọn không tham gia, hoặc giá trị tra cứu là null. | Kiểm tra null, trả về chuỗi mặc định khác null. |
-| NumberFormatException | Dữ liệu số quá dài hoặc không hợp lệ cho kiểu đang parse. | Giới hạn định dạng/giá trị; dùng long/BigInteger nếu cần. |
-| ConcurrentModificationException | Lambda làm thay đổi trạng thái chính Matcher đang thay thế. | Chỉ dùng đối số MatchResult, không gọi find/reset trên Matcher đó. |
-| Hàm không chạy | Không có match, hoặc regex không nhận dạng đoạn mong đợi. | Kiểm tra biểu thức, cờ biên dịch và đầu vào. |
-| Thay quá nhiều phần nội dung | Regex quá rộng, ví dụ .* không có ràng buộc. | Thu hẹp mẫu, thêm các ranh giới phù hợp và test trường hợp phản ví dụ. |
-| Quá chậm với dữ liệu dài | Regex gây backtracking hoặc hàm chạy nặng cho từng match. | Đo đạc, viết regex rõ ràng và tối ưu công việc của callback. |
+| Lambda for replaceAll fails to compile | Using Java 8 or calling String.replaceAll instead of Matcher.replaceAll. | Use Java 9+, call Pattern.compile(...).matcher(input).replaceAll(lambda). |
+| Fails when value contains `$` | Data is interpreted as a group reference in the replacement. | Use Matcher.quoteReplacement for literal strings. |
+| `\` disappears or alters the following character | Replacement interprets `\` as an escape character. | Quote literal replacement; double-check escaping in Java strings. |
+| match.group("name") fails to compile on Java 17 | MatchResult in Java 17 uses group indices. | Use positional group(1), group(2). |
+| NullPointerException when processing groups | Optional group did not participate, or lookup value is null. | Check for null and return a non-null default string. |
+| NumberFormatException | Numeric data too long or invalid for the target parse type. | Restrict format/range; use long/BigInteger if needed. |
+| ConcurrentModificationException | Lambda mutates the state of the Matcher currently performing replacement. | Use only the MatchResult argument; do not call find/reset on that Matcher. |
+| Function does not run | No matches, or regex does not recognize expected segments. | Check the expression, compile flags, and input. |
+| Replaces too much content | Regex is too broad, e.g., unconstrained `.*`. | Narrow the pattern, add proper boundaries, and test counterexamples. |
+| Too slow on long inputs | Regex causes backtracking or function runs heavy work per match. | Benchmark, write clear regexes, and optimize callback work. |
 
-## 10. Chọn giải pháp trong thực tế
+## 10. Choosing a Solution in Practice
 
-Chọn **replaceAll(Function)** khi chuỗi thay thế cần được tính riêng theo nội dung match: chuyển đổi số, chuẩn hóa nhóm bắt, tra Map hay áp dụng điều kiện. Chọn **replaceAll(String)** khi chỉ cần khuôn cố định hoặc tham chiếu nhóm trong replacement. Chọn vòng lặp **find + appendReplacement + appendTail** khi cần kiểm soát việc ghép kết quả hoặc duy trì tương thích với Java cũ.
+Choose **replaceAll(Function)** when the replacement string must be computed individually from the match content: numeric conversion, capturing-group normalization, Map lookup, or conditional logic. Choose **replaceAll(String)** when you only need a fixed template or group references in the replacement. Choose the **find + appendReplacement + appendTail** loop when you need control over output assembly or must maintain compatibility with older Java versions.
 
-Khi kiểm thử, hãy bao phủ ít nhất: input không có match; nhiều match liền nhau; nhóm bắt tùy chọn; replacement chứa $ hoặc \; số vượt giới hạn; regex có thể khớp chuỗi rỗng; và callback báo lỗi. Một lỗi trong callback có thể làm toàn bộ lời gọi replaceAll thất bại, vì vậy hãy kiểm tra dữ liệu và quyết định chiến lược xử lý lỗi trước khi sử dụng trong ứng dụng.
+When testing, cover at least: input with no matches; multiple adjacent matches; optional capturing groups; replacements containing $ or \; out-of-range numbers; regexes that can match empty strings; and callback errors. An error in the callback can cause the entire replaceAll call to fail, so validate data and decide on an error-handling strategy before using it in an application.
 
-Ghi nhớ: **Pattern xác định đoạn nào được chọn; Function quyết định từng chuỗi thay thế; Matcher diễn giải replacement và ghép kết quả.** Hiểu rõ ba bước này giúp sử dụng replaceAll với hàm chính xác, dễ kiểm thử và an toàn hơn.
+Remember: **Pattern determines which segments are selected; Function decides each replacement string; Matcher interprets the replacement and assembles the result.** Understanding these three steps clearly makes using replaceAll with a function accurate, easier to test, and safer.

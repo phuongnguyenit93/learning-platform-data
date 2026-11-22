@@ -1,40 +1,40 @@
-# negate, abs, plus, min, max và signum trong BigDecimal
+# `negate`, `abs`, `plus`, `min`, `max`, and `signum` in `BigDecimal`
 
-## 1. Mục tiêu và bối cảnh
+## 1. Goals and Context
 
-Trong Java, BigDecimal biểu diễn số thập phân với độ chính xác tùy ý, phù hợp khi cần kiểm soát chữ số và cách làm tròn (ví dụ tiền tệ). Nhóm phương thức này phục vụ hai việc khác nhau:
+In Java, BigDecimal represents decimal numbers with arbitrary precision, suitable when you need control over digits and rounding behavior (such as currency). This group of methods serves two different purposes:
 
-- **Tác động lên dấu hoặc trị tuyệt đối:** negate(), abs(), plus().
-- **Xác định dấu hoặc chọn số theo thứ tự:** signum(), min(BigDecimal), max(BigDecimal).
+- **Affecting sign or absolute value:** negate(), abs(), plus().
+- **Determining sign or selecting a number by order:** signum(), min(BigDecimal), max(BigDecimal).
 
-Đây là các phương thức của java.math.BigDecimal. Chúng **không thay đổi đối tượng gốc** vì BigDecimal là kiểu bất biến (immutable). Kết quả là một giá trị BigDecimal hoặc, riêng signum(), một số nguyên int.
+These are methods of java.math.BigDecimal. They **do not mutate the original object** because BigDecimal is an immutable type. The result is a BigDecimal value or, specifically for signum(), an int integer.
 
-BigDecimal lưu giá trị theo dạng unscaledValue × 10^(-scale). Ví dụ, -12.340 có scale = 3. Hai số 2.0 và 2.00 có giá trị số học bằng nhau nhưng scale khác nhau; điều này ảnh hưởng đến kết quả biểu diễn khi dùng min/max.
+BigDecimal stores its value in the form unscaledValue × 10^(-scale). For example, -12.340 has scale = 3. The two numbers 2.0 and 2.00 have equal arithmetic values but different scales; this affects the representational result when using min/max.
 
-## 2. Bảng tra cứu nhanh
+## 2. Quick Reference Table
 
-| Phương thức | Ý nghĩa | Kết quả | Đặc điểm quan trọng |
+| Method | Meaning | Result | Key characteristic |
 | --- | --- | --- | --- |
-| negate() | Đổi dấu x thành -x | BigDecimal | Giữ scale của x |
-| abs() | Trị tuyệt đối | BigDecimal | Số âm thành dương; số không và số dương giữ nguyên giá trị |
-| plus() | Dấu cộng đơn ngôi +x | BigDecimal | Không cộng thêm 1; không đổi giá trị hay scale |
-| min(y) | Chọn giá trị nhỏ hơn giữa x và y | BigDecimal | Dựa trên compareTo(); khi hai giá trị bằng nhau, trả x (đối tượng gọi) |
-| max(y) | Chọn giá trị lớn hơn giữa x và y | BigDecimal | Dựa trên compareTo(); khi hai giá trị bằng nhau, trả x (đối tượng gọi) |
-| signum() | Xác định dấu của x | int | -1 nếu âm, 0 nếu bằng không, 1 nếu dương |
+| negate() | Negates x to -x | BigDecimal | Preserves scale of x |
+| abs() | Absolute value | BigDecimal | Negative becomes positive; zero and positive keep their value |
+| plus() | Unary plus +x | BigDecimal | Does not add 1; does not change value or scale |
+| min(y) | Selects the smaller value between x and y | BigDecimal | Based on compareTo(); when equal, returns x (the receiver object) |
+| max(y) | Selects the larger value between x and y | BigDecimal | Based on compareTo(); when equal, returns x (the receiver object) |
+| signum() | Determines the sign of x | int | -1 if negative, 0 if zero, 1 if positive |
 
-Ở bảng trên, x là BigDecimal nhận lời gọi phương thức; y là tham số BigDecimal khác. min() và max() không có phiên bản nhận MathContext.
+In the table above, x is the BigDecimal receiving the method call; y is the other BigDecimal argument. min() and max() do not have overloads accepting MathContext.
 
-## 3. negate(), abs(), plus(): ba phép toán đơn ngôi
+## 3. `negate()`, `abs()`, `plus()`: Three Unary Operations
 
-- **x.negate()** cho giá trị đối của x. Số dương thành âm, số âm thành dương; với 0, dấu số học vẫn là 0.
-- **x.abs()** cho độ lớn không âm của x. Có thể hình dung là x khi x không âm, hoặc x.negate() khi x âm.
-- **x.plus()** là phép cộng đơn ngôi, giống ý nghĩa toán học của +x. Nó hữu ích nhất khi dùng cùng MathContext để áp dụng độ chính xác/làm tròn.
+- **x.negate()** returns the opposite value of x. Positive becomes negative, negative becomes positive; for 0, the arithmetic sign remains 0.
+- **x.abs()** returns the non-negative magnitude of x. You can think of it as x when x is non-negative, or x.negate() when x is negative.
+- **x.plus()** is unary plus, like the mathematical meaning of +x. It is most useful when used with MathContext to apply precision/rounding.
 
-Ba phương thức không tham số bảo toàn scale, kể cả các số 0 có phần thập phân. Ví dụ, -12.340.negate() cho 12.340 chứ không tự rút gọn thành 12.34.
+The three zero-argument methods preserve scale, including zeros with fractional places. For example, -12.340.negate() yields 12.340 rather than automatically simplifying to 12.34.
 
-### Ví dụ Java 17: đổi dấu và giữ nguyên dữ liệu gốc
+### Java 17 Example: Flipping Sign and Preserving Original Data
 
-Lưu thành BigDecimalUnaryDemo.java:
+Save as BigDecimalUnaryDemo.java:
 
 ~~~java
 import java.math.BigDecimal;
@@ -54,14 +54,14 @@ public class BigDecimalUnaryDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac BigDecimalUnaryDemo.java
 java BigDecimalUnaryDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 x       = -12.340
@@ -73,9 +73,9 @@ scale   = 3
 x after = -12.340
 ~~~
 
-Lệnh cuối cho thấy lời gọi không sửa x. Không dùng toán tử trừ đơn ngôi hoặc Math.abs(x) với BigDecimal; hãy gọi trực tiếp negate() và abs().
+The last statement shows the calls did not modify x. Do not use the unary minus operator or Math.abs(x) with BigDecimal; call negate() and abs() directly.
 
-### Số 0 và biểu diễn
+### Zero and Representation
 
 ~~~java
 import java.math.BigDecimal;
@@ -93,19 +93,19 @@ public class BigDecimalZeroDemo {
 }
 ~~~
 
-BigDecimal không duy trì một dấu âm có ý nghĩa số học riêng cho zero. Chuỗi đầu vào "-0.00" trở thành giá trị 0.00 với scale 2; signum() vẫn trả 0. Nếu chỉ cần nhận biết có bằng 0 hay không, dùng signum() == 0 hoặc compareTo(BigDecimal.ZERO) == 0; đừng so sánh chuỗi hiển thị.
+BigDecimal does not maintain a separate arithmetically meaningful negative sign for zero. The input string "-0.00" becomes the value 0.00 with scale 2; signum() still returns 0. If you only need to detect whether a number equals 0, use signum() == 0 or compareTo(BigDecimal.ZERO) == 0; do not compare display strings.
 
-## 4. signum(): quyết định theo dấu mà không làm mất độ chính xác
+## 4. `signum()`: Branching by Sign Without Losing Precision
 
-signum() trả về đúng ba trạng thái:
+signum() returns exactly three states:
 
-| Giá trị | Kết quả signum() | Ý nghĩa |
+| Value | signum() result | Meaning |
 | --- | ---: | --- |
-| -0.001 | -1 | Âm |
-| 0, 0.00, -0.00 | 0 | Bằng không |
-| 0.001 | 1 | Dương |
+| -0.001 | -1 | Negative |
+| 0, 0.00, -0.00 | 0 | Zero |
+| 0.001 | 1 | Positive |
 
-Dùng khi nghiệp vụ rẽ nhánh theo âm/dương/không, chẳng hạn phân loại biến động số dư:
+Use it when business logic branches on negative/zero/positive, such as classifying balance changes:
 
 ~~~java
 import java.math.BigDecimal;
@@ -128,7 +128,7 @@ public class BigDecimalSignDemo {
 }
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 decrease
@@ -136,21 +136,21 @@ unchanged
 increase
 ~~~
 
-signum() không phải phép làm tròn và không phụ thuộc scale. Không suy ra số chữ số, độ lớn hay dấu gốc của chuỗi văn bản từ kết quả -1/0/1.
+signum() is not a rounding operation and does not depend on scale. Do not infer digit count, magnitude, or original text sign from the -1/0/1 result.
 
-## 5. min() và max(): so sánh giá trị số học
+## 5. `min()` and `max()`: Comparing Arithmetic Values
 
-Với x.min(y), phương thức trả về giá trị nhỏ hơn; với x.max(y), trả về giá trị lớn hơn. Cả hai dùng thứ tự tự nhiên của BigDecimal, tức kết quả compareTo().
+With x.min(y), the method returns the smaller value; with x.max(y), it returns the larger value. Both use BigDecimal's natural ordering, i.e., the result of compareTo().
 
-Quy tắc chọn cụ thể:
+Specific selection rules:
 
-- Nếu x.compareTo(y) < 0, x.min(y) trả x và x.max(y) trả y.
-- Nếu x.compareTo(y) > 0, x.min(y) trả y và x.max(y) trả x.
-- Nếu x.compareTo(y) == 0, **cả x.min(y) và x.max(y) đều trả x**, kể cả khi scale của x và y khác nhau.
+- If x.compareTo(y) < 0, x.min(y) returns x and x.max(y) returns y.
+- If x.compareTo(y) > 0, x.min(y) returns y and x.max(y) returns x.
+- If x.compareTo(y) == 0, **both x.min(y) and x.max(y) return x**, even when the scales of x and y differ.
 
-### Ví dụ Java 17: thứ tự và scale
+### Java 17 Example: Ordering and Scale
 
-Lưu thành BigDecimalMinMaxDemo.java:
+Save as BigDecimalMinMaxDemo.java:
 
 ~~~java
 import java.math.BigDecimal;
@@ -172,14 +172,14 @@ public class BigDecimalMinMaxDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac BigDecimalMinMaxDemo.java
 java BigDecimalMinMaxDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 min(a,c) = 2.0
@@ -191,13 +191,13 @@ min(b,a) = 2.00
 max(a,b) = 2.0
 ~~~
 
-**Điểm dễ nhầm:** compareTo() xem 2.0 và 2.00 là bằng nhau về mặt số học; equals() còn xét scale nên trả false. min/max chọn theo compareTo(), không theo equals(). Trường hợp bằng nhau, toán hạng đứng bên trái quyết định cách biểu diễn/scale của kết quả. Vì vậy kết quả của min(a,b) có thể hiển thị khác min(b,a) dù cùng giá trị.
+**Common point of confusion:** compareTo() treats 2.0 and 2.00 as arithmetically equal; equals() also considers scale and thus returns false. min/max select according to compareTo(), not equals(). When equal, the operand on the left determines the representation/scale of the result. Therefore, the result of min(a,b) may display differently from min(b,a) despite having the same value.
 
-min/max không tự làm tròn, không đổi scale của BigDecimal được chọn và không cộng/trừ hai số. Để giới hạn một giá trị vào đoạn [lower, upper] khi lower <= upper, có thể dùng x.max(lower).min(upper); cần định nghĩa trước chính sách scale nếu kết quả sẽ được lưu hoặc hiển thị theo chuẩn cố định.
+min/max do not automatically round, do not change the scale of the selected BigDecimal, and do not add/subtract the two numbers. To clamp a value to the interval [lower, upper] when lower <= upper, you can use x.max(lower).min(upper); define the scale policy upfront if the result will be stored or displayed in a fixed format.
 
-## 6. Các phiên bản nhận MathContext
+## 6. Overloads Accepting `MathContext`
 
-negate(MathContext), abs(MathContext) và plus(MathContext) có overload cho phép **áp dụng độ chính xác (precision) và quy tắc làm tròn**. Chúng trả về kết quả tương ứng được làm tròn theo MathContext. MathContext kiểm soát **số chữ số có nghĩa**, không đồng nghĩa với số chữ số sau dấu thập phân; muốn cố định số lẻ thường dùng setScale() với RoundingMode phù hợp.
+negate(MathContext), abs(MathContext), and plus(MathContext) have overloads that allow **applying precision and rounding rules**. They return the corresponding result rounded according to MathContext. MathContext controls **significant digits**, which is not synonymous with digits after the decimal point; to fix fractional digits, usually use setScale() with an appropriate RoundingMode.
 
 ~~~java
 import java.math.BigDecimal;
@@ -218,7 +218,7 @@ public class BigDecimalContextDemo {
 }
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 original    = -123.4567
@@ -228,18 +228,18 @@ abs(mc)     = 123.5
 exact abs   = 123.4567
 ~~~
 
-Ở đây 4 là **precision = 4 chữ số có nghĩa**; chữ số tiếp theo là 5 nên HALF_UP làm tròn. Không có MathContext, ba phép toán đơn ngôi giữ độ chính xác ban đầu. Với MathContext.UNLIMITED (precision = 0), không yêu cầu làm tròn. RoundingMode.UNNECESSARY cùng một precision không đủ lớn có thể phát sinh ArithmeticException nếu kết quả bắt buộc làm tròn.
+Here 4 is **precision = 4 significant digits**; the next digit is 5 so HALF_UP rounds. Without MathContext, the three unary operations preserve the original precision. With MathContext.UNLIMITED (precision = 0), no rounding is requested. RoundingMode.UNNECESSARY with a precision that is not large enough can raise ArithmeticException if the result requires rounding.
 
-Đặc biệt, plus(mc) không đồng nghĩa cộng thêm số dương nào: nó áp dụng phép cộng đơn ngôi rồi làm tròn theo mc. Việc dùng MathContext cho nghiệp vụ tính tiền phải tuân thủ quy tắc làm tròn thực tế của nghiệp vụ.
+Specifically, plus(mc) does not mean adding any positive number: it applies unary plus and then rounds according to mc. Using MathContext for monetary calculations must adhere to actual business rounding rules.
 
-## 7. Tình huống ứng dụng: xử lý số dư và giới hạn
+## 7. Application Scenario: Handling Balances and Limits
 
-Giả sử một khoản điều chỉnh có dấu âm biểu thị tiền rời tài khoản. Ta có thể:
+Suppose an adjustment has a negative sign indicating money leaving an account. We can:
 
-1. Dùng signum() để phân loại chiều biến động.
-2. Dùng abs() để hiển thị độ lớn của khoản điều chỉnh.
-3. Dùng negate() để tạo giá trị đảo chiều cho bút toán hoàn tác (khi quy tắc nghiệp vụ cho phép).
-4. Dùng min()/max() để áp dụng các ngưỡng số học.
+1. Use signum() to classify the direction of change.
+2. Use abs() to display the magnitude of the adjustment.
+3. Use negate() to create the opposite-sign value for a reversal entry (when business rules allow).
+4. Use min()/max() to enforce arithmetic thresholds.
 
 ~~~java
 import java.math.BigDecimal;
@@ -261,7 +261,7 @@ public class BigDecimalBusinessDemo {
 }
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 sign    = -1
@@ -271,43 +271,43 @@ limited = -100.00
 source  = -125.50
 ~~~
 
-Đoạn này minh họa biến đổi giá trị, **không tự thực hiện giao dịch tài chính**. Ví dụ cũng cho thấy kẹp giá trị (clamp) chỉ giới hạn số; việc chọn ngưỡng và tạo bút toán đảo chiều phải thuộc về quy tắc nghiệp vụ. Khi dữ liệu cần 2 chữ số thập phân, thống nhất scale/rounding tại ranh giới nhập, lưu và xuất thay vì giả định min/max luôn trả scale 2.
+This snippet illustrates value transformations, **not executing a financial transaction itself**. The example also shows that clamping only bounds the number; choosing thresholds and creating reversal entries must belong to business rules. When data needs 2 decimal digits, standardize scale/rounding at input, storage, and output boundaries rather than assuming min/max always return scale 2.
 
-## 8. Lỗi thường gặp và cách tránh
+## 8. Common Mistakes and How to Avoid Them
 
-1. **Nhầm plus() với add().** x.plus() giữ giá trị x; để cộng hai BigDecimal dùng x.add(y). Tương tự, negate() chỉ đảo dấu, còn x.subtract(y) mới là phép trừ hai số.
-2. **Dùng toán tử của kiểu nguyên thủy.** BigDecimal không dùng trực tiếp +, -, <, > hoặc Math.abs(BigDecimal). Dùng add/subtract/compareTo/abs/negate theo API.
-3. **Nhầm so sánh bằng với equals().** x.equals(y) có thể false khi scale khác; x.compareTo(y) == 0 kiểm tra bằng nhau theo giá trị số học. min/max dùng compareTo().
-4. **Giả định min/max chuẩn hóa dữ liệu.** Trong trường hợp hai giá trị bằng nhau, chúng chọn toán hạng gọi phương thức; không tự ép scale. Nếu cần chuẩn hóa, áp dụng setScale(...) theo quy tắc riêng.
-5. **Cấp BigDecimal bằng new BigDecimal(0.1).** Constructor nhận double giữ đúng giá trị nhị phân đã được biểu diễn gần đúng, có thể gây số thập phân dài bất ngờ. Với hằng số thập phân dùng new BigDecimal("0.1") hoặc BigDecimal.valueOf(0.1).
-6. **Để null làm đối số.** x.min(null) hoặc x.max(null) gây NullPointerException. Bảo đảm x và đối số là BigDecimal hợp lệ trước khi gọi.
-7. **Nhầm MathContext precision với scale.** new MathContext(4) thường giới hạn 4 chữ số có nghĩa, không phải 4 chữ số lẻ. Đừng làm tròn tùy tiện nếu độ chính xác nguyên gốc còn cần thiết.
-8. **Tưởng đổi dấu làm thay đổi biến nguồn.** BigDecimal immutable; cần lưu kết quả, ví dụ x = x.negate(), khi thật sự muốn biến x trỏ tới đối tượng mang giá trị mới.
-9. **Kiểm tra số âm bằng chuỗi.** signum() xử lý chính xác cả 0.00; kiểm tra chuỗi bắt đầu bằng dấu '-' không phải phép kiểm tra dấu số học tin cậy.
+1. **Confusing plus() with add().** x.plus() keeps the value of x; to add two BigDecimals use x.add(y). Similarly, negate() only flips the sign, whereas x.subtract(y) subtracts two numbers.
+2. **Using primitive operators.** BigDecimal does not directly support +, -, <, >, or Math.abs(BigDecimal). Use add/subtract/compareTo/abs/negate per the API.
+3. **Confusing equality comparison with equals().** x.equals(y) can be false when scales differ; x.compareTo(y) == 0 checks equality by arithmetic value. min/max use compareTo().
+4. **Assuming min/max normalize data.** When two values are equal, they pick the receiver operand; they do not coerce scale. If normalization is needed, apply setScale(...) per its own rule.
+5. **Creating BigDecimal via new BigDecimal(0.1).** The double constructor preserves the exact binary value of the approximation, which can produce unexpectedly long decimals. For decimal constants, use new BigDecimal("0.1") or BigDecimal.valueOf(0.1).
+6. **Passing null as an argument.** x.min(null) or x.max(null) causes NullPointerException. Ensure x and the argument are valid BigDecimals before calling.
+7. **Confusing MathContext precision with scale.** new MathContext(4) generally limits 4 significant digits, not 4 fractional digits. Do not round arbitrarily if original precision is still needed.
+8. **Assuming flipping sign mutates the source variable.** BigDecimal is immutable; you must save the result, e.g., x = x.negate(), when you actually want variable x to point to the object with the new value.
+9. **Checking for negative numbers via strings.** signum() handles even 0.00 properly; checking if a string starts with '-' is not a reliable arithmetic sign check.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-**Câu 1.** Với x = new BigDecimal("-0.000"), x.signum() bằng bao nhiêu? x.abs().scale() bằng bao nhiêu?
+**Question 1.** With x = new BigDecimal("-0.000"), what is x.signum()? What is x.abs().scale()?
 
-**Đáp án:** 0 và 3. BigDecimal nhận giá trị zero, giữ scale là 3 khi gọi abs() không tham số.
+**Answer:** 0 and 3. BigDecimal takes the value zero, preserving scale 3 when calling the zero-argument abs().
 
-**Câu 2.** Cho a = new BigDecimal("1.0"), b = new BigDecimal("1.00"). a.min(b) và b.min(a) có hiển thị như nhau không?
+**Question 2.** Given a = new BigDecimal("1.0"), b = new BigDecimal("1.00"). Do a.min(b) and b.min(a) display the same?
 
-**Đáp án:** a.min(b) là 1.0, b.min(a) là 1.00. compareTo() bằng 0 nên nhận lại toán hạng gọi phương thức.
+**Answer:** a.min(b) is 1.0, b.min(a) is 1.00. compareTo() equals 0 so the receiver operand is returned.
 
-**Câu 3.** Muốn đổi -9.25 thành 9.25 thì dùng phương thức gì? Nếu x đã dương, abs() có làm x âm không?
+**Question 3.** To change -9.25 to 9.25, which method should you use? If x is already positive, does abs() make x negative?
 
-**Đáp án:** x.negate() hoặc x.abs() đều cho 9.25 khi x = -9.25, nhưng ý nghĩa khác nhau; abs() không bao giờ làm một số dương trở thành âm.
+**Answer:** Both x.negate() and x.abs() give 9.25 when x = -9.25, though their meanings differ; abs() never makes a positive number negative.
 
-**Câu 4.** Điều gì khác nhau giữa new BigDecimal("12.3456").plus() và .plus(new MathContext(4, RoundingMode.HALF_UP))?
+**Question 4.** What is the difference between new BigDecimal("12.3456").plus() and .plus(new MathContext(4, RoundingMode.HALF_UP))?
 
-**Đáp án:** plus() giữ 12.3456; phiên bản nhận MathContext làm tròn còn 12.35 (4 chữ số có nghĩa).
+**Answer:** plus() keeps 12.3456; the overload taking MathContext rounds it to 12.35 (4 significant digits).
 
-## 10. Ghi nhớ
+## 10. Takeaways
 
-- **negate()** đảo dấu; **abs()** lấy độ lớn không âm; **plus()** giữ giá trị (hoặc áp dụng làm tròn khi truyền MathContext).
-- **signum()** trả -1/0/1 để kiểm tra dấu chính xác.
-- **min()/max()** chọn theo compareTo(); khi bằng nhau, trả toán hạng gọi phương thức và giữ biểu diễn của nó.
-- BigDecimal bất biến, scale có ý nghĩa, và việc làm tròn phải được chỉ định rõ khi cần.
+- **negate()** flips the sign; **abs()** takes the non-negative magnitude; **plus()** keeps the value (or applies rounding when passing MathContext).
+- **signum()** returns -1/0/1 for exact sign checks.
+- **min()/max()** choose according to compareTo(); when equal, return the receiver operand and preserve its representation.
+- BigDecimal is immutable, scale is meaningful, and rounding must be specified explicitly when needed.
 
-Tham khảo API chuẩn trong tài liệu Java SE 17: java.math.BigDecimal, java.math.MathContext và java.math.RoundingMode.
+Refer to the standard API in the Java SE 17 documentation: java.math.BigDecimal, java.math.MathContext, and java.math.RoundingMode.

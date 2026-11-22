@@ -1,173 +1,173 @@
-# decode và các tiền tố cơ số trong Java
+# `decode` and Radix Prefixes in Java
 
-## 1. Khi chuỗi số có tiền tố, Java đọc theo cơ số nào?
+## 1. When a numeric string has a prefix, which radix does Java use?
 
-Java cho phép viết số nguyên theo hệ thập phân, nhị phân, bát phân và thập lục phân. Nhưng có sự khác biệt quan trọng giữa **literal viết trong mã Java** và **chuỗi ký tự được phân tích khi chương trình đang chạy**.
+Java lets you write integers in decimal, binary, octal, and hexadecimal. However, there is an important difference between **literals written in Java code** and **character strings parsed at runtime**.
 
-Ví dụ, trong mã nguồn:
+For example, in source code:
 
 ```java
 int decimal = 42;
 int binary = 0b101010;
 int octal = 052;
 int hex = 0x2A;
-// Cả bốn biến đều có giá trị int 42.
+// All four variables have the int value 42.
 ```
 
-Để đọc một chuỗi như `"0x2A"` hoặc `"052"` tại runtime, Java có phương thức `Integer.decode(String)`. Nó nhận diện **một số tiền tố cơ số** và chuyển thành số nguyên có dấu.
+To read a string like `"0x2A"` or `"052"` at runtime, Java provides `Integer.decode(String)`. It recognizes **certain radix prefixes** and converts them into a signed integer.
 
 ```java
-int a = Integer.decode("42");   // 42, thập phân
-int b = Integer.decode("052");  // 42, bát phân: 5*8+2
-int c = Integer.decode("0x2A"); // 42, thập lục phân
-int d = Integer.decode("#2A");  // 42, cú pháp hex khác
+int a = Integer.decode("42");   // 42, decimal
+int b = Integer.decode("052");  // 42, octal: 5*8+2
+int c = Integer.decode("0x2A"); // 42, hexadecimal
+int d = Integer.decode("#2A");  // 42, alternative hex syntax
 ```
 
-**Cảnh báo đầu tiên:** `Integer.decode("010")` cho **8**, không phải 10, vì chuỗi bắt đầu bằng `0` nên được hiểu là bát phân. Trong khi đó, `Integer.parseInt("010")` cho **10** vì `parseInt(String)` mặc định là thập phân.
+**First warning:** `Integer.decode("010")` yields **8**, not 10, because a string starting with `0` is interpreted as octal. Meanwhile, `Integer.parseInt("010")` yields **10** because `parseInt(String)` defaults to decimal.
 
-**Cảnh báo thứ hai:** mặc dù literal `0b101010` hợp lệ trong mã Java, `Integer.decode("0b101010")` **không hỗ trợ** tiền tố nhị phân `0b`. Muốn đọc chuỗi nhị phân, cần dùng `Integer.parseInt("101010", 2)` hoặc một hàm riêng có xử lý tiền tố.
+**Second warning:** even though the literal `0b101010` is valid in Java code, `Integer.decode("0b101010")` **does not support** the binary prefix `0b`. To read a binary string, you must use `Integer.parseInt("101010", 2)` or a custom function that handles the prefix.
 
-Bài học tập trung vào **cơ chế `decode`, tiền tố hợp lệ, sự khác biệt với `parseInt`, giới hạn kiểu số và cách xử lý đầu vào an toàn**.
+This lesson focuses on the **mechanics of `decode`, valid prefixes, differences from `parseInt`, numeric type bounds, and safe input handling**.
 
-## 2. Những phương thức `decode` sẵn có
+## 2. Available `decode` methods
 
-Các wrapper số nguyên có phương thức tĩnh `decode(String)`:
+The integer wrapper classes provide a static `decode(String)` method:
 
-| Phương thức | Trả về | Miền giá trị có dấu |
+| Method | Returns | Signed value range |
 |---|---|---|
-| `Byte.decode(text)` | `Byte` | -128 đến 127 |
-| `Short.decode(text)` | `Short` | -32_768 đến 32_767 |
-| `Integer.decode(text)` | `Integer` | -2_147_483_648 đến 2_147_483_647 |
-| `Long.decode(text)` | `Long` | -9_223_372_036_854_775_808 đến 9_223_372_036_854_775_807 |
+| `Byte.decode(text)` | `Byte` | -128 to 127 |
+| `Short.decode(text)` | `Short` | -32_768 to 32_767 |
+| `Integer.decode(text)` | `Integer` | -2_147_483_648 to 2_147_483_647 |
+| `Long.decode(text)` | `Long` | -9_223_372_036_854_775_808 to 9_223_372_036_854_775_807 |
 
-Đây là **các phương thức `static`**: gọi bằng tên lớp như `Integer.decode("0xFF")`, không cần tạo một đối tượng `Integer` trước.
+These are **`static` methods**: call them via the class name such as `Integer.decode("0xFF")`, without needing to instantiate an `Integer` object first.
 
-Giá trị trả về là **wrapper**, không phải primitive; tuy nhiên Java có thể tự **unbox** khi bạn gán kết quả vào biến primitive:
+The return value is a **wrapper**, not a primitive; however, Java can automatically **unbox** it when you assign the result to a primitive variable:
 
 ```java
-Integer wrapper = Integer.decode("0x2A"); // Integer, giá trị 42
+Integer wrapper = Integer.decode("0x2A"); // Integer, value 42
 int primitive = Integer.decode("0x2A");   // unboxing -> int 42
 long large = Long.decode("0x100000000"); // 4294967296L
 ```
 
-`decode` **không hỗ trợ `Float` hoặc `Double`** theo cùng ý nghĩa phân tích chuỗi nguyên với tiền tố cơ số. Nếu cần đọc số thực, dùng API số thực phù hợp như `Double.parseDouble`; nếu cần phân tích một chuỗi giá trị số nguyên có tiền tố rồi chuyển thành `double`, hai bước ấy có ngữ nghĩa khác nhau và phải được quyết định rõ.
+`decode` **does not support `Float` or `Double`** in the same sense of parsing integer strings with radix prefixes. If you need to read floating-point numbers, use the appropriate floating-point API such as `Double.parseDouble`; if you need to parse an integer string with a prefix and then convert it to `double`, those two steps have different semantics and must be decided explicitly.
 
-## 3. Bảng tiền tố được `decode` hỗ trợ
+## 3. Table of prefixes supported by `decode`
 
-`Integer.decode` và `Long.decode` tuân theo các hình thức thông dụng:
+`Integer.decode` and `Long.decode` follow these standard forms:
 
-| Dạng chuỗi | Cơ số | Ví dụ | Kết quả thập phân |
+| String form | Radix | Example | Decimal result |
 |---|---:|---|---:|
-| Không có tiền tố (và không bắt đầu bằng số 0 theo quy tắc bát phân) | 10 | `"42"` | 42 |
+| No prefix (and does not start with 0 under octal rules) | 10 | `"42"` | 42 |
 | `0x` | 16 | `"0x2A"` | 42 |
 | `0X` | 16 | `"0X2a"` | 42 |
 | `#` | 16 | `"#2A"` | 42 |
-| Bắt đầu bằng `0`, sau đó là chữ số | 8 | `"052"` | 42 |
-| Tiền tố nhị phân `0b`, `0B` | Không được hỗ trợ | `"0b101010"` | `NumberFormatException` |
+| Starts with `0`, followed by digits | 8 | `"052"` | 42 |
+| Binary prefix `0b`, `0B` | Not supported | `"0b101010"` | `NumberFormatException` |
 
-Tại sao `"052"` là 42?
+Why is `"052"` equal to 42?
 
 \[
 5\times 8^1 + 2\times 8^0 = 40+2=42
 \]
 
-Tại sao `"0x2A"` là 42?
+Why is `"0x2A"` equal to 42?
 
 \[
 2\times 16^1 + 10\times 16^0 = 32+10=42
 \]
 
-Chữ cái `A` đến `F` (hoặc chữ thường `a` đến `f`) biểu thị các chữ số hex 10 đến 15. Ký tự `#` trong `"#2A"` cũng là **tiền tố hex**, không phải một toán tử số học mới.
+Letters `A` through `F` (or lowercase `a` through `f`) represent hex digits 10 through 15. The `#` character in `"#2A"` is also a **hex prefix**, not a new arithmetic operator.
 
-**Số 0 đứng đầu có ý nghĩa cú pháp.** Ví dụ:
+**A leading `0` carries syntactic meaning.** For example:
 
 - `Integer.decode("0")` → 0.
 - `Integer.decode("00")` → 0.
 - `Integer.decode("010")` → 8.
 - `Integer.decode("077")` → 63.
-- `Integer.decode("08")` → lỗi, vì chữ số 8 không hợp lệ trong hệ bát phân.
-- `Integer.decode("09")` → lỗi tương tự.
+- `Integer.decode("08")` → error, because digit 8 is invalid in octal.
+- `Integer.decode("09")` → similar error.
 
-Vì thế, nếu một đầu vào thực sự là **số thập phân** và có thể có số 0 đứng đầu (ví dụ `"008"`), đừng dùng `decode` một cách mặc định.
+Therefore, if an input is genuinely a **decimal number** and may have leading zeros (such as `"008"`), do not use `decode` by default.
 
-## 4. Dấu cộng, dấu trừ và vị trí hợp lệ của chúng
+## 4. Plus sign, minus sign, and their valid placement
 
-`decode` hỗ trợ **dấu `+` hoặc `-` đứng trước tiền tố**, nếu có:
+`decode` supports a **`+` or `-` sign placed before the prefix**, if present:
 
 ```java
 int a = Integer.decode("-42");      // -42
 int b = Integer.decode("+42");      // 42
-int c = Integer.decode("-052");     // -42 (bát phân)
+int c = Integer.decode("-052");     // -42 (octal)
 int d = Integer.decode("-0x2A");    // -42
 int e = Integer.decode("+#2A");     // 42
 int f = Integer.decode("-0X2a");    // -42
 ```
 
-Quy tắc cốt lõi: **dấu đứng đầu toàn bộ chuỗi**, rồi mới tới phần `0x`, `0X`, `#` hoặc `0`.
+Core rule: **the sign leads the entire string**, followed by `0x`, `0X`, `#`, or `0`.
 
-Các chuỗi sau không hợp lệ:
+The following strings are invalid:
 
 ```java
-// Integer.decode("0x-2A"); // sai: dấu ở sau tiền tố
-// Integer.decode("#-2A");  // sai
-// Integer.decode("--42");  // sai
-// Integer.decode("++42");  // sai
+// Integer.decode("0x-2A"); // invalid: sign is after prefix
+// Integer.decode("#-2A");  // invalid
+// Integer.decode("--42");  // invalid
+// Integer.decode("++42");  // invalid
 ```
 
-Dấu chỉ được xuất hiện một lần và phải đứng ở vị trí đầu. Việc tách dấu và tiền tố theo đúng thứ tự giúp các chuỗi âm dạng hex/bát phân có nghĩa nhất quán với các giá trị âm ở hệ thập phân.
+The sign may appear only once and must be at the very beginning. Separating sign and prefix in the proper order keeps negative hex/octal strings consistent in meaning with negative decimal values.
 
-### Giá trị âm thấp nhất của `int` vẫn đọc được
+### The lowest negative value of `int` can still be read
 
-`Integer.MIN_VALUE` bằng -2_147_483_648. Trong hex, độ lớn tương ứng là `0x80000000`. Chuỗi có dấu âm:
+`Integer.MIN_VALUE` equals -2_147_483_648. In hex, the corresponding magnitude is `0x80000000`. The negatively signed string:
 
 ```java
 int min = Integer.decode("-0x80000000");
 // -2147483648
 ```
 
-là hợp lệ. Nhưng:
+is valid. However:
 
 ```java
 // Integer.decode("0x80000000"); // NumberFormatException
 ```
 
-không hợp lệ vì nó biểu thị **giá trị dương** 2_147_483_648, vượt `Integer.MAX_VALUE`. `decode` đọc **số nguyên có dấu**, không tự coi mọi mẫu 32 bit là một giá trị unsigned.
+is invalid because it represents the **positive value** 2_147_483_648, exceeding `Integer.MAX_VALUE`. `decode` reads **signed integers**, and does not automatically treat every 32-bit pattern as an unsigned value.
 
-## 5. So sánh `decode`, `parseInt` và `parseUnsignedInt`
+## 5. Comparing `decode`, `parseInt`, and `parseUnsignedInt`
 
-Đây là phần quan trọng nhất khi chọn API.
+This is the most important part when choosing an API.
 
-| Mục đích | API phù hợp | Cách hiểu đầu vào |
+| Purpose | Suitable API | How input is interpreted |
 |---|---|---|
-| Đọc chuỗi có tiền tố `0x`, `0X`, `#` hoặc `0` bát phân | `Integer.decode(text)` | Tự quyết định 10/8/16 từ tiền tố |
-| Đọc số thập phân, kể cả số 0 đầu | `Integer.parseInt(text)` | Cố định cơ số 10 |
-| Đọc một chuỗi chữ số theo cơ số chỉ định | `Integer.parseInt(digits, radix)` | Cơ số do tham số `radix` quyết định |
-| Đọc mẫu bit `int` như số không dấu | `Integer.parseUnsignedInt(digits, radix)` | Cơ số chỉ định và miền 0..2³²−1 |
-| Đọc số nguyên signed 64 bit theo tiền tố | `Long.decode(text)` | 10/8/16 có dấu |
-| Đọc số nguyên không dấu 64 bit | `Long.parseUnsignedLong(digits, radix)` | Miền 0..2⁶⁴−1, lưu trong mẫu bit `long` |
+| Read strings with `0x`, `0X`, `#`, or octal `0` prefix | `Integer.decode(text)` | Automatically picks 10/8/16 from prefix |
+| Read decimal numbers, including leading zeros | `Integer.parseInt(text)` | Fixed base 10 |
+| Read a digit string in a specified radix | `Integer.parseInt(digits, radix)` | Radix determined by the `radix` parameter |
+| Read an `int` bit pattern as an unsigned number | `Integer.parseUnsignedInt(digits, radix)` | Specified radix and range 0..2³²−1 |
+| Read a 64-bit signed integer with prefixes | `Long.decode(text)` | Signed 10/8/16 |
+| Read a 64-bit unsigned integer | `Long.parseUnsignedLong(digits, radix)` | Range 0..2⁶⁴−1, stored in `long` bit pattern |
 
-Ví dụ cùng một chuỗi:
+Examples with the same string:
 
 ```java
-int a = Integer.decode("010"); // 8, bát phân
-int b = Integer.parseInt("010"); // 10, thập phân
-int c = Integer.parseInt("010", 8); // 8, cơ số chỉ định
-int d = Integer.parseInt("1010", 2); // 10, nhị phân
+int a = Integer.decode("010"); // 8, octal
+int b = Integer.parseInt("010"); // 10, decimal
+int c = Integer.parseInt("010", 8); // 8, specified radix
+int d = Integer.parseInt("1010", 2); // 10, binary
 ```
 
-Ví dụ chuỗi hex:
+Hex string examples:
 
 ```java
 int a = Integer.decode("0xFF"); // 255
 int b = Integer.parseInt("FF", 16); // 255
-// Integer.parseInt("0xFF", 16); // lỗi: parseInt không tự bỏ "0x"
+// Integer.parseInt("0xFF", 16); // error: parseInt does not automatically strip "0x"
 ```
 
-**Nguyên tắc chọn API:** Nếu giao thức quy định input là **decimal**, dùng `parseInt` hoặc `parseLong`. Nếu giao thức quy định input **có tiền tố đa cơ số theo quy tắc `decode`**, dùng `decode`. Nếu cơ số được quy định bên ngoài, dùng overload `parseInt(text, radix)` thay vì suy luận từ số 0 đứng đầu.
+**API selection rule:** If the protocol specifies that input is **decimal**, use `parseInt` or `parseLong`. If the protocol specifies that input **has multi-radix prefixes following `decode` rules**, use `decode`. If the base is specified externally, use the `parseInt(text, radix)` overload instead of inferring from leading zeros.
 
-## 6. Ví dụ Java 17+ đầu tiên: giải mã tất cả dạng cơ số
+## 6. First Java 17+ example: decoding all radix forms
 
-Tạo tệp `DecodePrefixesDemo.java`:
+Create file `DecodePrefixesDemo.java`:
 
 ```java
 public class DecodePrefixesDemo {
@@ -196,14 +196,14 @@ public class DecodePrefixesDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac DecodePrefixesDemo.java
 java DecodePrefixesDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 42 -> 42
@@ -222,37 +222,37 @@ short hex -> 32767
 byte octal -> 127
 ```
 
-Ở ba dòng cuối, kết quả vẫn phải nằm trong miền kiểu trả về. Ví dụ `Byte.decode("0177")` đọc bát phân 177 và nhận 127 trong miền `byte` có dấu; `Byte.decode("0200")` sẽ không thành -128 bằng wraparound mà báo lỗi vì giá trị dương 128 **ngoài miền `byte`**.
+In the last three lines, the result still has to fit within the return type's range. For example, `Byte.decode("0177")` reads octal 177 and gets 127 within the signed `byte` range; `Byte.decode("0200")` does not wrap around to -128, but instead throws an error because the positive value 128 is **outside the `byte` range**.
 
-## 7. `decode` không hiểu mọi cú pháp literal Java
+## 7. `decode` does not understand every Java literal syntax
 
-Các literal trong **mã nguồn Java** do compiler xử lý. Chuỗi dữ liệu đưa vào `decode` được kiểm tra bằng ngữ pháp riêng của phương thức; nó không phải trình biên dịch Java thu nhỏ.
+Literals in **Java source code** are processed by the compiler. Data strings passed to `decode` are checked by the method's own grammar; it is not a miniature Java compiler.
 
-Bảng đối chiếu:
+Comparison table:
 
-| Trong mã nguồn Java | Có hợp lệ? | Chuỗi tương ứng đưa cho `Integer.decode` |
+| In Java source code | Valid? | Corresponding string passed to `Integer.decode` |
 |---|---|---|
-| `0b1010` | Có: nhị phân | `"0b1010"` → lỗi |
-| `0xFF` | Có: hex | `"0xFF"` → 255 |
-| `077` | Có: bát phân | `"077"` → 63 |
-| `1_000` | Có: dấu gạch dưới phân nhóm chữ số | `"1_000"` → lỗi |
-| `123L` | Có: literal `long` | `"123L"` → lỗi |
-| `0xFFL` | Có: literal `long` hex | `"0xFFL"` → lỗi |
-| `10` | Có: thập phân | `"10"` → 10 |
+| `0b1010` | Yes: binary | `"0b1010"` → error |
+| `0xFF` | Yes: hex | `"0xFF"` → 255 |
+| `077` | Yes: octal | `"077"` → 63 |
+| `1_000` | Yes: underscore digit grouping | `"1_000"` → error |
+| `123L` | Yes: `long` literal | `"123L"` → error |
+| `0xFFL` | Yes: hex `long` literal | `"0xFFL"` → error |
+| `10` | Yes: decimal | `"10"` → 10 |
 
-Dấu gạch dưới `_` **được compiler cho phép trong literal theo quy tắc nhất định**, nhưng không được chấp nhận trong chuỗi phân tích bằng `Integer.decode`, `Integer.parseInt` hoặc `Long.parseLong`.
+The underscore `_` **is allowed by the compiler in literals under specific rules**, yet is not accepted in strings parsed by `Integer.decode`, `Integer.parseInt`, or `Long.parseLong`.
 
-Tương tự, hậu tố `L`/`l` là cú pháp literal Java, **không phải chữ số hợp lệ** trong chuỗi cho `Long.decode`. Nên viết `Long.decode("123")` thay vì `Long.decode("123L")`.
+Similarly, the `L`/`l` suffix is Java literal syntax, **not a valid digit** in a string for `Long.decode`. Write `Long.decode("123")` instead of `Long.decode("123L")`.
 
-### Cú pháp nhị phân phải xử lý riêng
+### Binary syntax must be handled separately
 
-Nếu đầu vào được quy định là một dãy chữ số nhị phân:
+If the input is specified as a sequence of binary digits:
 
 ```java
 int value = Integer.parseInt("101010", 2); // 42
 ```
 
-Nếu đầu vào được quy định là `"0b101010"`, bạn cần kiểm tra và bỏ tiền tố trước khi parse:
+If the input is specified as `"0b101010"`, you need to check and strip the prefix before parsing:
 
 ```java
 String text = "0b101010";
@@ -261,68 +261,68 @@ if (text.startsWith("0b") || text.startsWith("0B")) {
 }
 ```
 
-Đây là **đoạn mã minh họa**, không phải chương trình đầy đủ. Nó chỉ chấp nhận tiền tố nhị phân ở đầu chuỗi dương; với dữ liệu có dấu như `"-0b1010"`, phải xác định quy ước dấu và thiết kế bộ phân tích tương ứng.
+This is an **illustrative code snippet**, not a complete program. It only accepts a binary prefix at the start of a positive string; for signed data like `"-0b1010"`, you must define the sign convention and design the corresponding parser.
 
-Đừng coi `decode` tự hỗ trợ nhị phân chỉ vì các literal Java có `0b`.
+Do not assume `decode` automatically supports binary just because Java literals have `0b`.
 
-## 8. Giới hạn miền: `decode` kiểm tra số signed, không wraparound
+## 8. Range limits: `decode` checks signed numbers, without wraparound
 
-Các phương thức `Byte.decode`, `Short.decode`, `Integer.decode` và `Long.decode` trả wrapper số nguyên **có dấu**. Giá trị ngoài miền gây `NumberFormatException`.
+`Byte.decode`, `Short.decode`, `Integer.decode`, and `Long.decode` return **signed** integer wrappers. Out-of-range values cause `NumberFormatException`.
 
 ```java
 int max = Integer.decode("2147483647");
 int min = Integer.decode("-2147483648");
 
-// Integer.decode("2147483648");  // quá lớn
-// Integer.decode("-2147483649"); // quá nhỏ
-// Integer.decode("0xFFFFFFFF"); // dương 4294967295, ngoài miền int
+// Integer.decode("2147483648");  // too large
+// Integer.decode("-2147483649"); // too small
+// Integer.decode("0xFFFFFFFF"); // positive 4294967295, outside int range
 ```
 
-Với `Long`:
+For `Long`:
 
 ```java
 long max = Long.decode("9223372036854775807");
 long min = Long.decode("-9223372036854775808");
 
-// Long.decode("9223372036854775808");  // ngoài miền long
+// Long.decode("9223372036854775808");  // outside long range
 ```
 
-Với `Byte` và `Short`:
+For `Byte` and `Short`:
 
 ```java
 byte maxByte = Byte.decode("127");
 byte minByte = Byte.decode("-0x80");
 short maxShort = Short.decode("0x7FFF");
 
-// Byte.decode("128");       // ngoài miền byte
-// Short.decode("0x8000");   // dương 32768, ngoài miền short
+// Byte.decode("128");       // outside byte range
+// Short.decode("0x8000");   // positive 32768, outside short range
 ```
 
-Nếu mục tiêu là chuyển một **bit pattern** 32 bit thành `int` có thể âm, đừng dùng `Integer.decode("0xFFFFFFFF")`. Nó không nhận 4_294_967_295 như số signed hợp lệ. Thay vào đó, dùng parse không dấu theo đúng cơ số (và bỏ tiền tố `0x` trước khi parse), rồi làm việc với các bit ở kết quả.
+If the goal is to convert a 32-bit **bit pattern** into a potentially negative `int`, do not use `Integer.decode("0xFFFFFFFF")`. It does not accept 4_294_967_295 as a valid signed number. Instead, use unsigned parsing with the appropriate radix (and strip the `0x` prefix before parsing), then work with the bits of the result.
 
-## 9. Đọc số nguyên không dấu và giữ mẫu bit
+## 9. Reading unsigned integers and preserving bit patterns
 
-Java `int` và `long` là các kiểu primitive có dấu, nhưng thư viện có API **đọc và hiển thị giá trị không dấu** bằng chính các mẫu bit 32/64 bit:
+Java's `int` and `long` are signed primitive types, yet the standard library provides APIs to **read and display unsigned values** using the exact 32/64-bit patterns:
 
 ```java
 int bits = Integer.parseUnsignedInt("FFFFFFFF", 16);
-System.out.println(bits); // -1 khi in kiểu int có dấu
+System.out.println(bits); // -1 when printed as signed int
 System.out.println(Integer.toUnsignedString(bits)); // 4294967295
 ```
 
-Bit pattern `0xFFFFFFFF` có thể được biểu diễn bằng `int` -1, nhưng khi diễn giải như số không dấu, nó bằng 4_294_967_295. **Giá trị trả về vẫn có kiểu `int`**, không tạo kiểu `unsigned int`.
+The bit pattern `0xFFFFFFFF` can be represented by `int` -1, yet when interpreted as an unsigned number, it equals 4_294_967_295. **The return value still has type `int`**; no `unsigned int` type is created.
 
-Tương tự:
+Similarly:
 
 ```java
 long bits = Long.parseUnsignedLong("FFFFFFFFFFFFFFFF", 16);
-System.out.println(bits); // -1 khi in kiểu long có dấu
+System.out.println(bits); // -1 when printed as signed long
 System.out.println(Long.toUnsignedString(bits)); // 18446744073709551615
 ```
 
-### Chương trình hoàn chỉnh: đọc mẫu hex không dấu
+### Complete program: reading unsigned hex patterns
 
-Tạo tệp `UnsignedDecodeDemo.java`:
+Create file `UnsignedDecodeDemo.java`:
 
 ```java
 public class UnsignedDecodeDemo {
@@ -353,14 +353,14 @@ public class UnsignedDecodeDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac UnsignedDecodeDemo.java
 java UnsignedDecodeDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 signed min: -2147483648
@@ -373,32 +373,32 @@ long signed: -1
 long unsigned: 18446744073709551615
 ```
 
-**Bẫy quan trọng:** `Integer.parseUnsignedInt("0xFFFFFFFF", 16)` vẫn không hợp lệ, vì `parseUnsignedInt` nhận các **chữ số theo cơ số** đã được chỉ định chứ không tự bóc tiền tố. Hãy xác minh định dạng input, bỏ `0x` khi cần, rồi parse.
+**Important trap:** `Integer.parseUnsignedInt("0xFFFFFFFF", 16)` is still invalid, because `parseUnsignedInt` accepts **digits in the specified radix** rather than stripping prefixes automatically. Verify the input format, remove `0x` when needed, and then parse.
 
-## 10. `NumberFormatException` và dữ liệu không hợp lệ
+## 10. `NumberFormatException` and invalid data
 
-`decode` có thể ném `NumberFormatException` khi gặp đầu vào sai cú pháp hoặc ngoài miền. Những ví dụ dưới đây không hợp lệ với `Integer.decode`:
+`decode` can throw `NumberFormatException` when encountering malformed syntax or out-of-range input. The examples below are invalid for `Integer.decode`:
 
-| Chuỗi | Lý do |
+| String | Reason |
 |---|---|
-| `"08"` | Bắt đầu bằng 0 nên đọc bát phân; chữ số 8 không hợp lệ |
-| `"09"` | Lỗi bát phân tương tự |
-| `"0b1010"` | Không hỗ trợ tiền tố `0b` |
-| `"0x"` | Thiếu chữ số hex |
-| `"#"` | Thiếu chữ số hex |
-| `"0x-10"` | Dấu âm sai vị trí |
-| `"1_000"` | Dấu `_` không hợp lệ trong chuỗi parse |
-| `"42L"` | Hậu tố literal `L` không được hỗ trợ |
-| `" 42"` | Có khoảng trắng ở đầu; `decode` không tự trim |
-| `"42 "` | Có khoảng trắng ở cuối |
-| `""` | Không có chữ số |
-| `"2147483648"` | Ngoài miền `int` có dấu |
+| `"08"` | Starts with 0 so read as octal; digit 8 is invalid |
+| `"09"` | Similar octal error |
+| `"0b1010"` | `0b` prefix is not supported |
+| `"0x"` | Missing hex digits |
+| `"#"` | Missing hex digits |
+| `"0x-10"` | Minus sign in wrong position |
+| `"1_000"` | `_` is invalid in parsed strings |
+| `"42L"` | Literal suffix `L` is not supported |
+| `" 42"` | Leading space; `decode` does not automatically trim |
+| `"42 "` | Trailing space |
+| `""` | No digits |
+| `"2147483648"` | Outside signed `int` range |
 
-Khi nhận input không đáng tin, nên **bắt ngoại lệ tại ranh giới nhập liệu**, thay vì để lỗi propagate không kiểm soát hoặc tự ép một giá trị giả định.
+When accepting untrusted input, **catch the exception at the input boundary**, rather than letting errors propagate unchecked or forcing an arbitrary fallback value.
 
-### Ví dụ Java 17+: phân loại các chuỗi hợp lệ và không hợp lệ
+### Java 17+ example: classifying valid and invalid strings
 
-Tạo tệp `DecodeValidationDemo.java`:
+Create file `DecodeValidationDemo.java`:
 
 ```java
 public class DecodeValidationDemo {
@@ -426,14 +426,14 @@ public class DecodeValidationDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac DecodeValidationDemo.java
 java DecodeValidationDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 0x10 -> 16
@@ -448,21 +448,21 @@ Kết quả:
 0x80000000 -> invalid
 ```
 
-Lưu ý dòng `" 42"` chứa một **dấu cách ngay đầu chuỗi**. Vì phương thức `check` in nguyên chuỗi đó trước dấu `->`, trong output có **một dấu cách đầu dòng**. Đây là hành vi in chuỗi thực tế; nó không được tự cắt bỏ khi kiểm tra output.
+Note that the line `" 42"` contains a **space right at the start of the string**. Because `check` prints that string verbatim before `->`, the output has **a leading space on that line**. This is actual string printing behavior; it is not stripped when verifying output.
 
-## 11. Dùng `decode` an toàn theo hợp đồng đầu vào
+## 11. Using `decode` safely according to the input contract
 
-Để tránh nhầm lẫn và hành vi khó đoán, trước khi chọn `decode` hãy xác định:
+To avoid confusion and unpredictable behavior, before choosing `decode`, determine:
 
-1. **Có được phép tiền tố cơ số hay không?** Nếu có, những tiền tố nào là hợp lệ?
-2. **Số 0 đứng đầu là mã định danh hay giá trị số?** Ví dụ `"008"` có thể là một mã có ý nghĩa văn bản; parse thành số sẽ mất các số 0 đầu.
-3. **Giá trị có dấu hay không dấu?** `decode` chỉ dành cho kiểu số signed; nếu đọc bit pattern nguyên vẹn, cần API unsigned phù hợp.
-4. **Kiểu đích có đủ miền?** `Byte/Short/Integer/Long.decode` kiểm tra miền khác nhau.
-5. **Có cần chấp nhận khoảng trắng hoặc format từ người dùng?** `decode` không tự trim; nếu chính sách cho phép, hãy chuẩn hóa có kiểm tra trước.
-6. **Có cho phép tiền tố nhị phân?** `decode` không chấp nhận `0b`; nếu cần, viết parser riêng.
-7. **Cần báo lỗi ra sao?** Bắt `NumberFormatException` tại lớp nhập liệu và trả thông báo rõ, không coi dữ liệu sai là 0 theo mặc định.
+1. **Are radix prefixes permitted?** If so, which prefixes are valid?
+2. **Is a leading zero an identifier or a numeric value?** For instance, `"008"` may be a code with textual significance; parsing it as a number loses the leading zeros.
+3. **Is the value signed or unsigned?** `decode` is only for signed integer types; if reading raw bit patterns intact, an appropriate unsigned API is required.
+4. **Does the target type have enough range?** `Byte/Short/Integer/Long.decode` enforce different bounds.
+5. **Do you need to accept whitespace or user-entered formats?** `decode` does not automatically trim; if policy permits, normalize in a controlled way beforehand.
+6. **Are binary prefixes permitted?** `decode` does not accept `0b`; if needed, write a dedicated parser.
+7. **How should errors be reported?** Catch `NumberFormatException` at the input layer and return a clear message, without treating invalid data as 0 by default.
 
-Ví dụ với đầu vào **có chủ đích cho phép khoảng trắng đầu/cuối**:
+Example for input **intentionally allowing leading/trailing whitespace**:
 
 ```java
 static int decodeTrimmed(String input) {
@@ -477,9 +477,9 @@ static int decodeTrimmed(String input) {
 }
 ```
 
-Đây là **một phương thức minh họa**, cần đặt trong class Java. Việc dùng `trim()` là **quyết định chính sách nhập liệu**, không phải hành vi có sẵn của `decode`. Với giao thức máy đọc các chuỗi có định dạng chặt chẽ, có thể muốn từ chối khoảng trắng thay vì tự sửa.
+This is **an illustrative method**, which must be placed inside a Java class. Using `trim()` is an **input policy decision**, not built-in behavior of `decode`. For machine protocols reading strictly formatted strings, you may want to reject whitespace instead of fixing it automatically.
 
-Nếu dữ liệu là số decimal do người dùng nhập vào, một API cụ thể hơn có thể là:
+If the data is a decimal number entered by a user, a more specific API could be:
 
 ```java
 static int parseDecimal(String input) {
@@ -490,30 +490,30 @@ static int parseDecimal(String input) {
 }
 ```
 
-Dùng `parseInt` ở đây vì đầu vào **được định nghĩa là decimal**, không phải chuỗi tiền tố tùy ý.
+`parseInt` is used here because the input **is defined as decimal**, not an arbitrary prefixed string.
 
-## 12. Phân biệt giá trị số với mã định danh
+## 12. Distinguishing numeric values from identifiers
 
-Không phải mọi chuỗi toàn chữ số đều nên parse thành số. Các mã sau có thể **phải được giữ dưới dạng `String`**:
+Not every all-digit string should be parsed into a number. The following codes may **need to be kept as `String`**:
 
-- Mã khách hàng: `"000123"`.
-- Mã sản phẩm: `"008"`.
-- Mã bưu chính hoặc mã vùng tùy quốc gia: có thể bắt đầu bằng 0.
-- Mã cấu hình có độ dài cố định, ví dụ `"0016"`.
-- Một chuỗi nhị phân được yêu cầu đủ 16 bit với những số 0 đứng đầu.
+- Customer ID: `"000123"`.
+- Product code: `"008"`.
+- Postal codes or area codes depending on country: may start with 0.
+- Fixed-length configuration codes, e.g., `"0016"`.
+- A binary string required to be 16 bits wide with leading zeros.
 
-Nếu bạn gọi `Integer.decode("000123")`, Java **diễn giải chuỗi là số bát phân**, hoàn toàn không giữ lại mã gốc. Thậm chí `"008"` gây lỗi. Nếu trường dữ liệu là định danh, **giữ `String`** và kiểm tra độ dài/ký tự hợp lệ, không dùng `decode`.
+If you call `Integer.decode("000123")`, Java **interprets the string as an octal number**, completely losing the original code. `"008"` even causes an error. If a data field is an identifier, **keep it as `String`** and validate length/allowed characters instead of using `decode`.
 
-Đây là nguyên tắc mô hình hóa dữ liệu: **dữ liệu trông giống số chưa chắc có ngữ nghĩa số học**.
+This is a data modeling principle: **data that looks like a number does not necessarily have arithmetic semantics**.
 
-## 13. `Integer.getInteger` khác `Integer.decode`
+## 13. `Integer.getInteger` differs from `Integer.decode`
 
-Một cặp API tên giống nhau dễ gây nhầm:
+A similarly named API pair that easily causes confusion:
 
-- `Integer.decode("0x10")`: **phân tích chính chuỗi đã đưa vào**, nhận 16.
-- `Integer.getInteger("name")`: đọc **Java system property** có tên `name`, rồi phân tích giá trị property đó theo quy tắc cơ số thích hợp. Nó **không** có nghĩa đọc một chuỗi số nguyên trực tiếp.
+- `Integer.decode("0x10")`: **parses the passed string itself**, yielding 16.
+- `Integer.getInteger("name")`: reads the **Java system property** named `name`, then parses that property's value using the appropriate radix rules. It does **not** mean reading an integer string directly.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 System.setProperty("app.port", "0x1F90");
@@ -521,15 +521,15 @@ Integer port = Integer.getInteger("app.port"); // 8080
 Integer fromText = Integer.decode("0x1F90");   // 8080
 ```
 
-Đoạn code này đặt trong phương thức. `Integer.getInteger` có thể trả `null` khi property không tồn tại hoặc không phân tích hợp lệ; `decode` không phải lời gọi đọc system property.
+This code snippet belongs inside a method. `Integer.getInteger` can return `null` when the property does not exist or cannot be parsed validly; `decode` is not a call that reads a system property.
 
-Tương tự `Long.getLong` dành cho system property, không phải một biến thể thay thế `Long.decode` để parse các chuỗi số bất kỳ.
+Similarly, `Long.getLong` is for system properties, not an alternative variant of `Long.decode` for parsing arbitrary numeric strings.
 
-**An toàn khi dùng property:** system property có thể do môi trường thực thi cấu hình; luôn xác định giá trị mặc định và chính sách xử lý lỗi. Không nhầm giữa **tên thuộc tính** và **chuỗi số** khi gọi API.
+**Safety when using properties:** system properties can be configured by the execution environment; always define a default value and error-handling policy. Do not confuse a **property name** with a **numeric string** when calling the API.
 
-## 14. `BigInteger` và dữ liệu vượt giới hạn `long`
+## 14. `BigInteger` and data exceeding `long` limits
 
-Nếu giá trị thực sự có thể lớn hơn miền `long`, `Long.decode` không phù hợp. Java có `java.math.BigInteger` để xử lý số nguyên độ lớn tùy ý.
+If a value can truly exceed the `long` range, `Long.decode` is unsuitable. Java provides `java.math.BigInteger` to handle integers of arbitrary magnitude.
 
 ```java
 import java.math.BigInteger;
@@ -538,33 +538,33 @@ BigInteger decimal = new BigInteger("18446744073709551615");
 BigInteger hex = new BigInteger("FFFFFFFFFFFFFFFF", 16);
 ```
 
-Đây là **đoạn mã minh họa**, cần đặt trong class/phương thức và khai báo import thích hợp. Cả hai đối tượng có cùng giá trị toán học là 18_446_744_073_709_551_615.
+This is an **illustrative code snippet**, which must be placed in a class/method with the proper import. Both objects have the same mathematical value of 18_446_744_073_709_551_615.
 
-Khác với `decode`, constructor `BigInteger(String, radix)` nhận **dãy chữ số ứng với cơ số đã cho** chứ không tự chấp nhận `0x`:
+Unlike `decode`, the `BigInteger(String, radix)` constructor takes a **sequence of digits for the given radix** rather than automatically accepting `0x`:
 
 ```java
 BigInteger value = new BigInteger("FF", 16); // 255
 // new BigInteger("0xFF", 16); // NumberFormatException
 ```
 
-Nếu protocol quy định các chuỗi có `0x` hay `0b` và số lượng chữ số không cố định, bạn có thể xây dựng một parser **chỉ chấp nhận đúng các tiền tố đã được liệt kê** rồi gọi constructor với `radix` phù hợp. Không nên tùy tiện chấp nhận mọi ký tự giống literal Java vì nó làm tăng độ phức tạp xác thực.
+If a protocol specifies strings with `0x` or `0b` and unbounded digit counts, you can build a parser that **accepts strictly the listed prefixes** and then invokes the constructor with the appropriate `radix`. You should not arbitrarily accept every Java-literal-like symbol because it increases validation complexity.
 
-Lưu ý: `BigInteger` không có các phép cộng toán tử `+` giữa hai đối tượng; sử dụng `add`, `subtract` và `multiply`.
+Note: `BigInteger` does not support the `+` operator between two objects; use `add`, `subtract`, and `multiply`.
 
-## 15. Xây dựng parser tùy biến khi cần cả `0b`
+## 15. Building a custom parser when `0b` is also required
 
-Giả sử yêu cầu dữ liệu là:
+Suppose the data requirements are:
 
-- Chuỗi thập phân không tiền tố.
-- Hex với `0x` hoặc `0X`.
-- Nhị phân với `0b` hoặc `0B`.
-- Không hỗ trợ bát phân bằng 0 đứng đầu.
-- Cho phép dấu `+` hoặc `-` đứng trước.
-- Số ngoài miền `int` là lỗi.
+- Unprefixed decimal strings.
+- Hex with `0x` or `0X`.
+- Binary with `0b` or `0B`.
+- No support for octal via leading 0.
+- Allow a leading `+` or `-` sign.
+- Numbers outside the `int` range are errors.
 
-Đây là **một hợp đồng khác `Integer.decode`**, nên hãy xây dựng parser riêng.
+This is **a different contract from `Integer.decode`**, so build a custom parser.
 
-Tạo file `ExplicitRadixParserDemo.java`:
+Create file `ExplicitRadixParserDemo.java`:
 
 ```java
 public class ExplicitRadixParserDemo {
@@ -599,7 +599,7 @@ public class ExplicitRadixParserDemo {
             throw new NumberFormatException("missing digits");
         }
 
-        // Để parseInt kiểm tra chữ số và giới hạn signed int.
+        // Let parseInt validate digits and signed int bounds.
         String digits = input.substring(position);
         return Integer.parseInt((negative ? "-" : "") + digits, radix);
     }
@@ -615,14 +615,14 @@ public class ExplicitRadixParserDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac ExplicitRadixParserDemo.java
 java ExplicitRadixParserDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 42
@@ -633,93 +633,93 @@ Kết quả:
 -2147483648
 ```
 
-Parser trên có hành vi **cố ý khác `decode`**: `"010"` được đọc theo decimal thành 10, thay vì bát phân thành 8. Nó không tự trim, không chấp nhận dấu gạch dưới hoặc hậu tố `L`, và luôn kiểm tra miền `int` bằng `Integer.parseInt`.
+The parser above **intentionally differs from `decode`**: `"010"` is read in decimal as 10, rather than in octal as 8. It does not auto-trim, does not accept underscores or `L` suffixes, and always enforces `int` bounds via `Integer.parseInt`.
 
-### Những điểm cần mở rộng nếu dùng trong production
+### Points to extend if used in production
 
-- Hạn chế chiều dài input để tránh tài nguyên bị tiêu tốn quá mức.
-- Ràng buộc loại prefix phù hợp giao thức; nếu cần `#`, bổ sung nhánh rõ ràng.
-- Quy định có cho phép dấu `+` hay số `0` đứng đầu hay không.
-- Chọn kiểu `long`/`BigInteger` nếu phạm vi cần lớn hơn.
-- Báo lỗi phân biệt “ký tự sai”, “thiếu chữ số” và “ngoài miền” khi API yêu cầu.
-- Kiểm thử chuỗi rỗng, `null`, tiền tố không có chữ số, giá trị MIN/MAX và số dài.
+- Limit input length to avoid excessive resource consumption.
+- Constrain prefix types to match the protocol; if `#` is needed, add an explicit branch.
+- Specify whether leading `+` signs or leading `0`s are allowed.
+- Choose `long`/`BigInteger` if a larger range is needed.
+- Report errors distinguishing "invalid character", "missing digits", and "out of range" when required by the API.
+- Test empty strings, `null`, prefixes without digits, MIN/MAX values, and long inputs.
 
-Không cần viết parser tùy biến nếu `parseInt` hoặc `decode` sẵn có đã **phù hợp chính xác hợp đồng đầu vào**.
+There is no need to write a custom parser if built-in `parseInt` or `decode` already **matches the input contract exactly**.
 
-## 16. Những lỗi thường gặp và cách sửa
+## 16. Common mistakes and how to fix them
 
-| Lỗi hoặc nhầm lẫn | Nguyên nhân | Cách sửa |
+| Error or misconception | Cause | Fix |
 |---|---|---|
-| `decode("010")` ra 8 thay vì 10 | Số 0 đầu kích hoạt bát phân | Dùng `parseInt("010")` khi input là decimal |
-| `decode("08")` ném lỗi | 8 không hợp lệ trong hệ bát phân | Dùng `parseInt("08")` nếu muốn decimal |
-| `decode("0b1010")` không hoạt động | `decode` không hỗ trợ tiền tố nhị phân | `parseInt("1010", 2)` hoặc parser riêng |
-| `parseInt("0xFF",16)` lỗi | `parseInt` nhận chữ số, không bóc tiền tố | Dùng `parseInt("FF",16)` hoặc `decode("0xFF")` |
-| `decode("1_000")` lỗi | `_` là cú pháp literal, không phải cú pháp chuỗi parse | Dùng chuỗi chữ số hợp lệ |
-| `decode("42L")` lỗi | Hậu tố `L` chỉ dùng ở literal Java | `Long.decode("42")` |
-| `decode(" 42")` lỗi | Không tự bỏ khoảng trắng | Trim sau khi kiểm tra chính sách |
-| `decode("0x-1")` lỗi | Dấu phải trước prefix | Viết `"-0x1"` |
-| `decode("0xFFFFFFFF")` lỗi | Vượt miền `int` có dấu | Dùng unsigned parser sau khi bỏ `0x` |
-| `Byte.decode("0200")` lỗi | Bát phân 200 bằng 128, ngoài miền `byte` | Chọn kiểu rộng hoặc xác định signed/unsigned |
-| `getInteger("123")` không trả 123 như mong đợi | Tìm system property tên `123` | Dùng `parseInt`/`decode` |
-| Parse mã `"000123"` và mất số 0 đầu | Đối xử mã định danh như số học | Giữ `String` |
-| Chấp nhận mọi dạng prefix theo suy luận | Giao thức chưa định nghĩa radix | Thiết kế hợp đồng parser rõ ràng |
+| `decode("010")` gives 8 instead of 10 | Leading zero triggers octal | Use `parseInt("010")` when input is decimal |
+| `decode("08")` throws an error | 8 is invalid in octal | Use `parseInt("08")` if decimal is desired |
+| `decode("0b1010")` fails | `decode` does not support binary prefix | `parseInt("1010", 2)` or a custom parser |
+| `parseInt("0xFF",16)` fails | `parseInt` takes digits, does not strip prefixes | Use `parseInt("FF",16)` or `decode("0xFF")` |
+| `decode("1_000")` fails | `_` is literal syntax, not parsed string syntax | Use a valid digit string |
+| `decode("42L")` fails | `L` suffix is only for Java literals | `Long.decode("42")` |
+| `decode(" 42")` fails | Does not automatically strip whitespace | Trim after checking policy |
+| `decode("0x-1")` fails | Sign must precede the prefix | Write `"-0x1"` |
+| `decode("0xFFFFFFFF")` fails | Exceeds signed `int` range | Use an unsigned parser after stripping `0x` |
+| `Byte.decode("0200")` fails | Octal 200 equals 128, outside `byte` range | Choose a wider type or clarify signed/unsigned |
+| `getInteger("123")` does not return 123 as expected | Looks up system property named `123` | Use `parseInt`/`decode` |
+| Parsing code `"000123"` loses leading zeros | Treating an identifier as arithmetic | Keep as `String` |
+| Accepting every prefix form by guesswork | Protocol has not defined the radix | Design a clear parser contract |
 
-## 17. Bài tập tự kiểm tra
+## 17. Self-check exercises
 
-**Câu 1.** `Integer.decode("010")` và `Integer.parseInt("010")` lần lượt bằng bao nhiêu?  
-**Đáp án:** 8 và 10; `decode` thấy bát phân còn `parseInt(String)` dùng decimal.
+**Q1.** What are `Integer.decode("010")` and `Integer.parseInt("010")` respectively?  
+**Answer:** 8 and 10; `decode` sees octal while `parseInt(String)` uses decimal.
 
-**Câu 2.** `Integer.decode("0x2A")` và `Integer.decode("#2A")` có giống nhau không?  
-**Đáp án:** Có, đều bằng 42 vì đều dùng cơ số 16.
+**Q2.** Are `Integer.decode("0x2A")` and `Integer.decode("#2A")` the same?  
+**Answer:** Yes, both equal 42 because both use base 16.
 
-**Câu 3.** `Integer.decode("0b101010")` có cho 42 không?  
-**Đáp án:** Không, nó ném `NumberFormatException`. Dùng `Integer.parseInt("101010", 2)`.
+**Q3.** Does `Integer.decode("0b101010")` yield 42?  
+**Answer:** No, it throws `NumberFormatException`. Use `Integer.parseInt("101010", 2)`.
 
-**Câu 4.** Vì sao `Integer.decode("08")` lỗi trong khi `Integer.parseInt("08")` trả 8?  
-**Đáp án:** Dấu 0 đầu khiến `decode` hiểu là bát phân, nơi chữ số 8 không hợp lệ; `parseInt` mặc định decimal.
+**Q4.** Why does `Integer.decode("08")` fail while `Integer.parseInt("08")` returns 8?  
+**Answer:** The leading 0 causes `decode` to treat it as octal, where digit 8 is invalid; `parseInt` defaults to decimal.
 
-**Câu 5.** Dấu âm trong chuỗi hex nên viết ở đâu?  
-**Đáp án:** Trước tiền tố: `"-0x2A"`, không phải `"0x-2A"`.
+**Q5.** Where should the minus sign be placed in a hex string?  
+**Answer:** Before the prefix: `"-0x2A"`, not `"0x-2A"`.
 
-**Câu 6.** Có thể đọc `Integer.MIN_VALUE` bằng dạng hex không?  
-**Đáp án:** Có: `Integer.decode("-0x80000000")` trả -2_147_483_648.
+**Q6.** Can `Integer.MIN_VALUE` be read in hex form?  
+**Answer:** Yes: `Integer.decode("-0x80000000")` returns -2_147_483_648.
 
-**Câu 7.** `Integer.decode("0xFFFFFFFF")` có trả -1 không?  
-**Đáp án:** Không, chuỗi biểu thị số dương hex ngoài miền `int` có dấu. Dùng `Integer.parseUnsignedInt("FFFFFFFF",16)` để lấy mẫu bit, rồi đọc không dấu bằng `toUnsignedString`.
+**Q7.** Does `Integer.decode("0xFFFFFFFF")` return -1?  
+**Answer:** No, the string represents a positive hex number outside the signed `int` range. Use `Integer.parseUnsignedInt("FFFFFFFF",16)` to get the bit pattern, then read it unsigned via `toUnsignedString`.
 
-**Câu 8.** Vì sao `Integer.parseInt("FF",16)` được còn `Integer.parseInt("0xFF",16)` không được?  
-**Đáp án:** Overload `parseInt(text, radix)` nhận **các chữ số** theo cơ số, không tự xử lý tiền tố.
+**Q8.** Why does `Integer.parseInt("FF",16)` work while `Integer.parseInt("0xFF",16)` does not?  
+**Answer:** The `parseInt(text, radix)` overload accepts **digits** in the base, and does not automatically handle prefixes.
 
-**Câu 9.** Nếu cột dữ liệu chứa mã `"008"`, có nên dùng `decode` để lưu vào hệ thống không?  
-**Đáp án:** Thường không. Đây có thể là mã định danh cần giữ nguyên số 0 đầu; dùng `String`.
+**Q9.** If a data column contains the code `"008"`, should `decode` be used to store it in the system?  
+**Answer:** Usually no. This may be an identifier that needs to preserve leading zeros; use `String`.
 
-**Câu 10.** `Long.decode("0x100000000")` bằng bao nhiêu?  
-**Đáp án:** 4_294_967_296, nằm trong miền `long` có dấu.
+**Q10.** What does `Long.decode("0x100000000")` equal?  
+**Answer:** 4_294_967_296, within the signed `long` range.
 
-**Câu 11.** Muốn đọc số nguyên quá lớn cho `long` từ chuỗi hex `"FFFFFFFFFFFFFFFF"` như **giá trị toán học dương**, dùng gì?  
-**Đáp án:** `new BigInteger("FFFFFFFFFFFFFFFF", 16)`. Nếu chỉ cần mẫu bit không dấu 64 bit, dùng `Long.parseUnsignedLong("FFFFFFFFFFFFFFFF",16)` kèm API hiển thị/so sánh không dấu thích hợp.
+**Q11.** To read an integer too large for `long` from the hex string `"FFFFFFFFFFFFFFFF"` as a **positive mathematical value**, what should you use?  
+**Answer:** `new BigInteger("FFFFFFFFFFFFFFFF", 16)`. If you only need the 64-bit unsigned bit pattern, use `Long.parseUnsignedLong("FFFFFFFFFFFFFFFF",16)` along with appropriate unsigned display/comparison APIs.
 
-**Câu 12.** `Integer.getInteger("app.port")` khác `Integer.decode("0x1F90")` ở đâu?  
-**Đáp án:** Phương thức đầu đọc **giá trị system property** có tên `app.port` rồi parse; phương thức sau parse trực tiếp **chuỗi đối số**.
+**Q12.** How does `Integer.getInteger("app.port")` differ from `Integer.decode("0x1F90")`?  
+**Answer:** The first reads the **value of the system property** named `app.port` and parses it; the second parses the **argument string** directly.
 
-## 18. Checklist lựa chọn API và nguồn tham khảo
+## 18. API selection checklist and references
 
-Trước khi triển khai parser cho chuỗi số nguyên:
+Before implementing a parser for integer strings:
 
-1. Xác định trường dữ liệu là **số** hay **mã định danh**.
-2. Định nghĩa **cơ số** và tiền tố hợp lệ ở API/giao thức.
-3. Xác định cách xử lý **dấu**, số 0 đầu và khoảng trắng.
-4. Chọn kiểu đích `byte`, `short`, `int`, `long`, `BigInteger` và giới hạn miền.
-5. Quyết định đầu vào là **signed value** hay **unsigned bit pattern**.
-6. Sử dụng `decode` chỉ khi quy tắc `0x`/`0X`/`#`/`0` bát phân thực sự được chấp nhận.
-7. Dùng `parseInt(text)` hoặc `parseLong(text)` cho decimal; dùng `parseInt(text, radix)` khi cơ số được chỉ định.
-8. Bắt `NumberFormatException` và chuyển thành lỗi phù hợp ở ranh giới dữ liệu.
-9. Kiểm thử số MIN/MAX, các prefix hợp lệ/sai, input dài, dấu sai vị trí và khoảng trắng.
-10. Không dùng khả năng parse được một chuỗi để suy ra dữ liệu phù hợp nghiệp vụ nếu còn ràng buộc khác.
+1. Determine whether the data field is a **number** or an **identifier**.
+2. Define valid **radices** and prefixes in the API/protocol.
+3. Decide how to handle **signs**, leading zeros, and whitespace.
+4. Choose the target type `byte`, `short`, `int`, `long`, `BigInteger` and range limits.
+5. Decide whether the input is a **signed value** or an **unsigned bit pattern**.
+6. Use `decode` only when the `0x`/`0X`/`#`/octal-`0` rules are genuinely desired.
+7. Use `parseInt(text)` or `parseLong(text)` for decimal; use `parseInt(text, radix)` when the base is specified.
+8. Catch `NumberFormatException` and translate it into an appropriate error at the data boundary.
+9. Test MIN/MAX numbers, valid/invalid prefixes, long inputs, misplaced signs, and whitespace.
+10. Do not infer from the ability to parse a string that the data satisfies business rules if other constraints remain.
 
-**Ghi nhớ:** `Integer.decode` và `Long.decode` hỗ trợ **decimal**, **octal khi chuỗi bắt đầu bằng 0**, và **hex với `0x`, `0X`, `#`**; dấu `+/-` đứng **trước tiền tố**. Chúng **không** hiểu tiền tố `0b`, dấu `_` hay hậu tố `L` trong chuỗi runtime. Nếu yêu cầu là decimal, ưu tiên `parseInt`; nếu là bit pattern unsigned hoặc phạm vi số rất lớn, dùng API phù hợp hơn.
+**Key takeaway:** `Integer.decode` and `Long.decode` support **decimal**, **octal when the string starts with 0**, and **hex with `0x`, `0X`, `#`**; a `+/-` sign precedes **the prefix**. They **do not** understand `0b` prefixes, `_` underscores, or `L` suffixes in runtime strings. If the requirement is decimal, prefer `parseInt`; if it is an unsigned bit pattern or a very large numeric range, use a more appropriate API.
 
-Tài liệu chuẩn:
+Standard documentation:
 - [Java SE 17 — Integer.decode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html#decode(java.lang.String))
 - [Java SE 17 — Long.decode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html#decode(java.lang.String))
 - [Java SE 17 — Integer.parseInt](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html#parseInt(java.lang.String,int))

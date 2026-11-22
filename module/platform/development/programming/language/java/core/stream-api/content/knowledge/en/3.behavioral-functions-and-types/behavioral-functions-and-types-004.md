@@ -1,10 +1,10 @@
-# Suy luận kiểu, generic và xử lý lỗi biên dịch trong pipeline
+# Type Inference, Generics, and Handling Compile Errors in a Pipeline
 
-## 1. Vì sao cần hiểu kiểu dữ liệu khi dùng Stream API?
+## 1. Why Understand Types When Using the Stream API?
 
-Java Stream API giúp xử lý dữ liệu theo cách khai báo: lấy dữ liệu từ nguồn, đưa qua các phép toán trung gian như `filter`, `map` rồi kết thúc bằng `collect` hoặc `reduce`. Pipeline có thể **lazy** (trì hoãn xử lý), nhưng **trình biên dịch vẫn kiểm tra kiểu** của mọi phép toán ngay lúc biên dịch.
+The Java Stream API lets you process data declaratively: pull data from a source, pass it through intermediate operations like `filter` and `map`, and end with `collect` or `reduce`. Pipelines can be **lazy** (deferring execution), yet **the compiler still type-checks** every operation at compile time.
 
-Khi mới học Stream API, một biểu thức ngắn có thể gây khó hiểu:
+When first learning the Stream API, a short expression can seem puzzling:
 
 ```java
 List<Integer> doDai = tenKhoaHoc.stream()
@@ -13,21 +13,21 @@ List<Integer> doDai = tenKhoaHoc.stream()
     .collect(Collectors.toList());
 ```
 
-Tại sao `filter` cần trả về `boolean`, `map` có thể đổi từ `String` sang `Integer`, và `collect` phải khớp với `List<Integer>`? Đó là công việc của **generic**, **functional interface** và **type inference** (suy luận kiểu).
+Why must `filter` return `boolean`, how can `map` change from `String` to `Integer`, and why must `collect` match `List<Integer>`? That is the work of **generics**, **functional interfaces**, and **type inference**.
 
-Bài thuộc chương **Hàm hành vi và kiểu dữ liệu** của module `JAVA_STREAM_API`, tập trung vào cách đọc kiểu trong pipeline, chẩn đoán lỗi biên dịch và sửa lỗi đúng nguyên nhân. Kỹ năng này cũng là nền tảng trước khi làm việc với `groupingBy`, collector tùy chỉnh, xử lý song song, `Spliterator` và Stream Gatherers.
+This lesson belongs to the **Behavioral Functions and Types** chapter of the `JAVA_STREAM_API` module, focusing on reading types through a pipeline, diagnosing compile errors, and fixing the root cause. This skill is also foundational before working with `groupingBy`, custom collectors, parallel processing, `Spliterator`, and Stream Gatherers.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Theo dõi kiểu `T` và `R` qua từng bước trong pipeline.
-- Hiểu trình biên dịch suy luận kiểu tham số lambda và kết quả `map` như thế nào.
-- Nhận ra vai trò của `Predicate`, `Function`, `Comparator` và các wildcard `? super`, `? extends`.
-- Sửa các lỗi thường gặp khi kết hợp `filter`, `map`, `flatMap`, `mapToInt` và `collect`.
-- Phân biệt lỗi **biên dịch** với lỗi **xảy ra lúc chạy**.
+- Track the types `T` and `R` across every step in a pipeline.
+- Understand how the compiler infers lambda parameter types and `map` results.
+- Recognize the roles of `Predicate`, `Function`, `Comparator`, and the `? super` and `? extends` wildcards.
+- Fix common errors when combining `filter`, `map`, `flatMap`, `mapToInt`, and `collect`.
+- Distinguish **compile-time** errors from **runtime** errors.
 
-## 2. Ví dụ chạy được: theo dõi kiểu từ đầu đến cuối
+## 2. Runnable Example: Tracking Types End-to-End
 
-Mã sau tương thích **Java 8 trở lên**:
+The following code is compatible with **Java 8 and later**:
 
 ```java
 import java.util.Arrays;
@@ -51,7 +51,7 @@ public class KieuTrongPipeline {
 }
 ```
 
-Đọc pipeline như một chuỗi chuyển đổi kiểu:
+Read the pipeline as a chain of type transitions:
 
 ```text
 List<String> tenKhoaHoc
@@ -72,23 +72,23 @@ Stream<Integer>
 List<Integer>
 ```
 
-| Biểu thức | Kiểu kết quả | Lý do |
+| Expression | Result type | Reason |
 | --- | --- | --- |
-| `tenKhoaHoc` | `List<String>` | Mỗi phần tử là một tên dạng `String`. |
-| `tenKhoaHoc.stream()` | `Stream<String>` | `stream()` giữ kiểu phần tử của nguồn. |
-| `.map(String::trim)` | `Stream<String>` | `trim()` nhận chuỗi và trả về chuỗi. |
-| `.filter(ten -> ten.length() >= 4)` | `Stream<String>` | `filter` chỉ chọn hoặc loại phần tử, không thay đổi kiểu. |
-| `.map(String::length)` | `Stream<Integer>` | `length()` trả về `int`, được boxing thành `Integer` trong `Stream<Integer>`. |
-| `.collect(Collectors.toList())` | `List<Integer>` | Thu phần tử của `Stream<Integer>` thành danh sách. |
+| `tenKhoaHoc` | `List<String>` | Each element is a `String` name. |
+| `tenKhoaHoc.stream()` | `Stream<String>` | `stream()` preserves the source's element type. |
+| `.map(String::trim)` | `Stream<String>` | `trim()` takes a string and returns a string. |
+| `.filter(ten -> ten.length() >= 4)` | `Stream<String>` | `filter` only selects or drops elements; it does not change the type. |
+| `.map(String::length)` | `Stream<Integer>` | `length()` returns `int`, boxed into `Integer` in `Stream<Integer>`. |
+| `.collect(Collectors.toList())` | `List<Integer>` | Collects elements of `Stream<Integer>` into a list. |
 
-Lưu ý: `map` và `filter` là các phép toán trung gian lazy. Suy luận kiểu diễn ra khi biên dịch; việc duyệt dữ liệu thực sự diễn ra khi gọi phép toán kết thúc `collect`. Hai vấn đề này độc lập với nhau.
+Note: `map` and `filter` are lazy intermediate operations. Type inference happens at compile time; actual data traversal occurs when the terminal operation `collect` is called. These two aspects are independent.
 
-## 3. Đọc chữ ký generic của các phép toán
+## 3. Reading Generic Signatures of Operations
 
-Ta có thể hình dung một `Stream<T>` là luồng các phần tử kiểu `T`. Một số chữ ký quan trọng (rút gọn từ API Java) là:
+You can think of a `Stream<T>` as a flow of elements of type `T`. Some key signatures (abbreviated from the Java API) are:
 
 ```java
-// T là kiểu phần tử hiện tại của Stream<T>.
+// T is the current element type of Stream<T>.
 Stream<T> filter(Predicate<? super T> predicate);
 
 <R> Stream<R> map(Function<? super T, ? extends R> mapper);
@@ -96,13 +96,13 @@ Stream<T> filter(Predicate<? super T> predicate);
 <R, A> R collect(Collector<? super T, A, R> collector);
 ```
 
-Ý nghĩa:
+Meaning:
 
-- `filter` nhận điều kiện kiểm tra một phần tử `T` và trả lại luồng **cùng kiểu `T`**.
-- `map` nhận hàm biến đổi từ `T` sang `R`; đầu ra là **`Stream<R>`**. `R` có thể bằng hoặc khác `T`.
-- `collect` nhận collector có thể xử lý phần tử của luồng và tạo ra giá trị tổng hợp kiểu `R`. Chữ `A` trong `Collector<T, A, R>` là kiểu tích lũy nội bộ, thường không cần viết tường minh khi dùng collector có sẵn.
+- `filter` accepts a condition testing a `T` element and returns a stream of **the same type `T`**.
+- `map` accepts a transformation function from `T` to `R`; the output is **`Stream<R>`**. `R` may be the same as or different from `T`.
+- `collect` accepts a collector capable of processing the stream's elements and producing an aggregated value of type `R`. The letter `A` in `Collector<T, A, R>` is the internal accumulation type, which usually does not need to be written explicitly when using built-in collectors.
 
-Chẳng hạn:
+For example:
 
 ```java
 List<String> ten = Arrays.asList("Java", "Go", "Kotlin");
@@ -112,21 +112,21 @@ List<Integer> doDai = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Từ `String::length`, trình biên dịch xác định `R = Integer` (sau boxing). Vì vậy, trong lệnh gán cuối, `List<Integer>` là kiểu phù hợp.
+From `String::length`, the compiler determines `R = Integer` (after boxing). Therefore, in the final assignment, `List<Integer>` is the matching type.
 
-### 3.1. Functional interface quyết định kiểu của lambda
+### 3.1. Functional Interfaces Determine the Lambda's Type
 
-Một **functional interface** có đúng một phương thức trừu tượng (Single Abstract Method, SAM). Khi lambda hoặc method reference nằm trong lời gọi Stream, Java dùng kiểu tham số được mong đợi (**target type**) để kiểm tra chúng.
+A **functional interface** has exactly one abstract method (Single Abstract Method, SAM). When a lambda or method reference appears inside a Stream call, Java uses the expected parameter type (**target type**) to check it.
 
-| Functional interface | Phương thức khái niệm | Thường dùng với |
+| Functional interface | Conceptual method | Commonly used with |
 | --- | --- | --- |
 | `Predicate<T>` | `boolean test(T value)` | `filter` |
 | `Function<T, R>` | `R apply(T value)` | `map` |
 | `Consumer<T>` | `void accept(T value)` | `forEach` |
 | `Comparator<T>` | `int compare(T a, T b)` | `sorted` |
-| `BinaryOperator<T>` | `T apply(T a, T b)` | `reduce` với hai giá trị cùng kiểu |
+| `BinaryOperator<T>` | `T apply(T a, T b)` | `reduce` with two values of the same type |
 
-Cùng một lambda có thể được viết rõ kiểu hơn:
+The same lambdas can be written with more explicit types:
 
 ```java
 import java.util.function.Function;
@@ -141,11 +141,11 @@ List<Integer> ketQua = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Trong lời gọi `.filter(ten -> ten.length() >= 4)`, `ten` được suy luận là `String` vì stream đầu vào là `Stream<String>`. Không cần khai báo lại kiểu `String` cho từng tham số lambda.
+In `.filter(ten -> ten.length() >= 4)`, `ten` is inferred as `String` because the input stream is `Stream<String>`. There is no need to redeclare `String` for each lambda parameter.
 
-### 3.2. Method reference cũng cần target type
+### 3.2. Method References Also Need a Target Type
 
-`String::length` là cách viết gọn tương đương `s -> s.length()` khi target type là `Function<String, Integer>`.
+`String::length` is a shorthand equivalent to `s -> s.length()` when the target type is `Function<String, Integer>`.
 
 ```java
 Function<String, Integer> layDoDai = String::length;
@@ -154,37 +154,37 @@ List<Integer> doDai = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Không thể suy luận một method reference **đứng riêng** nếu thiếu target type:
+A **standalone** method reference cannot be inferred without a target type:
 
 ```java
-// KHÔNG BIÊN DỊCH (Java 10+): method reference thiếu target type.
+// DOES NOT COMPILE (Java 10+): method reference lacks a target type.
 var layDoDai = String::length;
 ```
 
-Cách sửa là cung cấp functional interface:
+The fix is to supply a functional interface:
 
 ```java
 Function<String, Integer> layDoDai = String::length;
 ```
 
-Từ khóa `var` suy luận kiểu từ biểu thức khởi tạo; bản thân method reference chưa có kiểu cụ thể để `var` suy luận. Trong `stream.map(String::length)`, ngược lại, tham số của `map` đã cung cấp target type.
+The `var` keyword infers its type from the initializer expression; the method reference itself has no concrete type for `var` to infer. In `stream.map(String::length)`, by contrast, `map`'s parameter provides the target type.
 
-## 4. Generics trong pipeline: `T`, `R` và wildcard
+## 4. Generics in Pipelines: `T`, `R`, and Wildcards
 
-### 4.1. `Stream<String>` khác `Stream<Integer>`
+### 4.1. `Stream<String>` Differs from `Stream<Integer>`
 
-Java kiểm tra kiểu phần tử qua từng lời gọi. Ví dụ này **không biên dịch**:
+Java checks element types across every call. This example **does not compile**:
 
 ```java
 List<String> ten = Arrays.asList("Java", "Go");
 
-// SAI: String::length tạo ra Integer, không tạo ra String.
+// WRONG: String::length produces Integer, not String.
 List<String> doDai = ten.stream()
     .map(String::length)
     .collect(Collectors.toList());
 ```
 
-Sửa kiểu biến nhận kết quả:
+Fix the type of the receiving variable:
 
 ```java
 List<Integer> doDai = ten.stream()
@@ -192,44 +192,44 @@ List<Integer> doDai = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Không nên ép kiểu để che lỗi. Hãy đặt câu hỏi: “**Sau bước cuối cùng của pipeline, mỗi phần tử thực sự có kiểu gì?**”
+Do not cast to hide the error. Ask: "**After the last step of the pipeline, what type is each element actually?**"
 
-### 4.2. Generic là bất biến (invariant)
+### 4.2. Generics Are Invariant
 
-Dù `Integer` là kiểu con của `Number`, `Stream<Integer>` **không** phải là kiểu con của `Stream<Number>`.
+Even though `Integer` is a subtype of `Number`, `Stream<Integer>` is **not** a subtype of `Stream<Number>`.
 
 ```java
 List<Integer> so = Arrays.asList(1, 2, 3);
 
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 Stream<Number> luongSo = so.stream();
 ```
 
-Hai cách hợp lệ, tùy mục đích:
+Two valid approaches, depending on your goal:
 
 ```java
-// Chỉ cần đọc các giá trị dưới dạng Number:
+// Only need to read values as Number:
 Stream<? extends Number> luongSo1 = so.stream();
 
-// Cần chính xác Stream<Number>, chủ động chuyển kiểu từng phần tử:
+// Need an exact Stream<Number>; explicitly convert each element:
 Stream<Number> luongSo2 = so.stream()
     .map(n -> (Number) n);
 ```
 
-Với cách thứ nhất, `? extends Number` diễn đạt “một kiểu nào đó là `Number` hoặc kiểu con của nó”. Không tự suy đoán rằng mọi generic chứa kiểu con đều thay thế được generic chứa kiểu cha.
+With the first approach, `? extends Number` expresses "some type that is `Number` or a subtype of it". Do not assume that any generic parameterized with a subtype can substitute for the generic parameterized with its supertype.
 
-### 4.3. Vì sao có `? super T` và `? extends R`?
+### 4.3. Why Are There `? super T` and `? extends R`?
 
-Chữ ký `map` là:
+The signature of `map` is:
 
 ```java
 <R> Stream<R> map(Function<? super T, ? extends R> mapper);
 ```
 
-- `? super T` ở **đầu vào**: hàm có thể nhận `T` hoặc một kiểu cha của `T`.
-- `? extends R` ở **đầu ra**: hàm có thể trả `R` hoặc một kiểu con của `R`.
+- `? super T` on the **input**: the function can accept `T` or a supertype of `T`.
+- `? extends R` on the **output**: the function can return `R` or a subtype of `R`.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.function.Function;
@@ -245,13 +245,13 @@ List<String> ketQua = ten.stream()
 System.out.println(ketQua); // [Java, Go]
 ```
 
-Hàm `chuanHoa` nhận `CharSequence`, là kiểu cha (interface được `String` triển khai), nên vẫn dùng được để xử lý `Stream<String>`.
+`chuanHoa` accepts `CharSequence`, which is a supertype (an interface implemented by `String`), so it still works to process `Stream<String>`.
 
-Mẹo nhớ **PECS**: *Producer Extends, Consumer Super*. Đầu vào nhận/tiêu thụ `T` thường linh hoạt với `super`; kết quả sinh/xuất ra thường linh hoạt với `extends`. Đây là cách đọc wildcard trong chữ ký API, không phải yêu cầu phải tự viết wildcard ở mọi pipeline.
+Mnemonic **PECS**: *Producer Extends, Consumer Super*. Inputs that receive/consume `T` are typically flexible with `super`; outputs that produce/emit values are typically flexible with `extends`. This is how to read wildcards in API signatures, not a requirement to write wildcards manually in every pipeline.
 
-### 4.4. Viết hàm generic tái sử dụng
+### 4.4. Writing Reusable Generic Methods
 
-Khi truyền bộ lọc và phép biến đổi như tham số, nên giữ mối liên hệ giữa kiểu nguồn `T` và kiểu đích `R`:
+When passing filters and transformations as parameters, preserve the relationship between source type `T` and target type `R`:
 
 ```java
 import java.util.List;
@@ -271,7 +271,7 @@ public static <T, R> List<R> chonVaBienDoi(
 }
 ```
 
-Lời gọi:
+Invocation:
 
 ```java
 List<String> ten = Arrays.asList("Java", "Go", "Kotlin");
@@ -285,22 +285,22 @@ List<Integer> doDai = chonVaBienDoi(
 System.out.println(doDai); // [4, 6]
 ```
 
-Trình biên dịch suy luận `T = String`, `R = Integer` từ `List<String>` và `String::length`. Không cần dùng raw type (`List` hoặc `Stream` không có tham số kiểu).
+The compiler infers `T = String` and `R = Integer` from `List<String>` and `String::length`. There is no need to use raw types (`List` or `Stream` without type arguments).
 
-## 5. Những lỗi biên dịch thường gặp và cách sửa
+## 5. Common Compile Errors and How to Fix Them
 
-> Các đoạn được ghi “KHÔNG BIÊN DỊCH” là ví dụ cố ý sai để phân tích lỗi; không chép nguyên chúng vào một chương trình cần chạy. Thông báo lỗi cụ thể có thể khác nhau theo phiên bản `javac` hoặc IDE.
+> Snippets marked "DOES NOT COMPILE" are intentionally broken examples for analyzing errors; do not copy them verbatim into a runnable program. Exact error messages may vary depending on your `javac` version or IDE.
 
-### Lỗi 1: `filter` trả về giá trị khác `boolean`
+### Error 1: `filter` Returns a Non-`boolean` Value
 
 ```java
-// KHÔNG BIÊN DỊCH: length() trả về int, không phải boolean.
+// DOES NOT COMPILE: length() returns int, not boolean.
 ten.stream()
     .filter(s -> s.length())
     .collect(Collectors.toList());
 ```
 
-`filter` cần một `Predicate<String>`. Sửa bằng một điều kiện so sánh:
+`filter` expects a `Predicate<String>`. Fix it with a comparison condition:
 
 ```java
 List<String> ketQua = ten.stream()
@@ -308,32 +308,32 @@ List<String> ketQua = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Nếu muốn **lấy độ dài** thay vì **lọc theo độ dài**, hãy dùng `map(String::length)`.
+If you want to **get the lengths** instead of **filtering by length**, use `map(String::length)`.
 
-### Lỗi 2: Kiểu biến nhận không khớp với `map`
+### Error 2: Receiving Variable Type Does Not Match `map`
 
 ```java
-// KHÔNG BIÊN DỊCH: collect tạo List<Integer>.
+// DOES NOT COMPILE: collect produces List<Integer>.
 List<String> ketQua = ten.stream()
     .map(String::length)
     .collect(Collectors.toList());
 ```
 
-Sửa `List<String>` thành `List<Integer>`, hoặc thay phép `map` để đầu ra thật sự là chuỗi. Tránh dùng ép kiểu `(List<String>)` vì không giải quyết được sự khác biệt kiểu phần tử.
+Change `List<String>` to `List<Integer>`, or change the `map` step so the output is actually strings. Avoid casting to `(List<String>)` because that does not resolve the element type mismatch.
 
-### Lỗi 3: Kiểu của phần tử đã rộng thành `Object`
+### Error 3: Element Type Widened to `Object`
 
 ```java
 import java.util.stream.Stream;
 
 Stream<Object> duLieu = Stream.of("Java", 42);
 
-// KHÔNG BIÊN DỊCH: method reference yêu cầu String,
-// nhưng mỗi phần tử hiện được nhìn nhận là Object.
+// DOES NOT COMPILE: the method reference requires String,
+// but each element is currently seen as Object.
 duLieu.map(String::length);
 ```
 
-Một cách xử lý dữ liệu hỗn hợp là lọc và kiểm tra kiểu trước khi chuyển kiểu:
+One way to handle mixed data is to filter and check the type before casting:
 
 ```java
 List<Integer> doDai = Stream.<Object>of("Java", 42)
@@ -345,11 +345,11 @@ List<Integer> doDai = Stream.<Object>of("Java", 42)
 System.out.println(doDai); // [4]
 ```
 
-Sau `.map(String.class::cast)`, kiểu đã là `Stream<String>`, nên `String::length` hợp lệ. Với dữ liệu đồng nhất, giải pháp tốt hơn là khai báo nguồn đúng `List<String>` ngay từ đầu.
+After `.map(String.class::cast)`, the type is `Stream<String>`, so `String::length` is valid. For homogeneous data, the better solution is to declare the source properly as `List<String>` from the start.
 
-### Lỗi 4: Nhầm `map` với `flatMap`
+### Error 4: Confusing `map` with `flatMap`
 
-Cho danh sách chứa nhiều danh sách con:
+Given a list containing multiple sub-lists:
 
 ```java
 List<List<String>> nhom = Arrays.asList(
@@ -358,16 +358,16 @@ List<List<String>> nhom = Arrays.asList(
 );
 ```
 
-`map(List::stream)` tạo **stream của các stream**, nên gán vào `List<String>` sẽ không biên dịch:
+`map(List::stream)` creates a **stream of streams**, so assigning to `List<String>` will not compile:
 
 ```java
-// KHÔNG BIÊN DỊCH: kết quả là List<Stream<String>>.
+// DOES NOT COMPILE: the result is List<Stream<String>>.
 List<String> tatCa = nhom.stream()
     .map(List::stream)
     .collect(Collectors.toList());
 ```
 
-`flatMap` làm phẳng các stream con thành một `Stream<String>`:
+`flatMap` flattens the sub-streams into a single `Stream<String>`:
 
 ```java
 List<String> tatCa = nhom.stream()
@@ -377,11 +377,11 @@ List<String> tatCa = nhom.stream()
 System.out.println(tatCa); // [Java, Kotlin, Go]
 ```
 
-Hãy xem kiểu đầu ra của biểu thức trong `map`: nếu nó đã là `Stream<X>` nhưng bạn muốn từng `X`, hãy cân nhắc `flatMap`.
+Inspect the output type of the expression inside `map`: if it is already `Stream<X>` yet you want individual `X` elements, consider `flatMap`.
 
-### Lỗi 5: Trộn `Stream<Integer>` và `IntStream`
+### Error 5: Mixing Up `Stream<Integer>` and `IntStream`
 
-`map(String::length)` tạo `Stream<Integer>`, còn `mapToInt(String::length)` tạo **`IntStream`**, một luồng chuyên biệt cho kiểu nguyên thủy `int`.
+`map(String::length)` produces `Stream<Integer>`, whereas `mapToInt(String::length)` produces **`IntStream`**, a stream specialized for primitive `int`.
 
 ```java
 import java.util.stream.IntStream;
@@ -390,16 +390,16 @@ IntStream doDai = ten.stream().mapToInt(String::length);
 int tongDoDai = ten.stream().mapToInt(String::length).sum();
 ```
 
-`IntStream` **không** có overload `collect(Collector)` như `Stream<T>`:
+`IntStream` does **not** have a `collect(Collector)` overload like `Stream<T>`:
 
 ```java
-// KHÔNG BIÊN DỊCH: IntStream không nhận Collector ở đây.
+// DOES NOT COMPILE: IntStream does not accept a Collector here.
 List<Integer> doDai = ten.stream()
     .mapToInt(String::length)
     .collect(Collectors.toList());
 ```
 
-Sửa bằng `boxed()` để quay lại `Stream<Integer>`:
+Fix with `boxed()` to return to `Stream<Integer>`:
 
 ```java
 List<Integer> doDai = ten.stream()
@@ -408,11 +408,11 @@ List<Integer> doDai = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Nếu chỉ cần tổng, trung bình hoặc giá trị lớn nhất, ưu tiên dùng `sum()`, `average()`, `max()` của `IntStream` mà không boxing không cần thiết.
+If you only need the sum, average, or maximum, prefer `sum()`, `average()`, and `max()` on `IntStream` without unnecessary boxing.
 
-### Lỗi 6: Lambda gọi phương thức có checked exception
+### Error 6: Lambda Calling a Method That Throws a Checked Exception
 
-Các functional interface thông dụng như `Function.apply` **không khai báo checked exception**. Ví dụ `Files.readAllLines` có thể ném `IOException`:
+Standard functional interfaces like `Function.apply` **do not declare checked exceptions**. For example, `Files.readAllLines` can throw `IOException`:
 
 ```java
 import java.nio.file.Files;
@@ -423,11 +423,11 @@ import java.util.List;
 
 List<Path> tep = Arrays.asList(Paths.get("du-lieu.txt"));
 
-// KHÔNG BIÊN DỊCH: IOException chưa được xử lý.
+// DOES NOT COMPILE: IOException is unhandled.
 tep.stream().map(Files::readAllLines);
 ```
 
-Xử lý lỗi bên trong lambda, ví dụ chuyển thành `UncheckedIOException` để vẫn giữ nguyên nguyên nhân:
+Handle the error inside the lambda—for instance, wrapping it into `UncheckedIOException` to preserve the original cause:
 
 ```java
 import java.io.IOException;
@@ -453,14 +453,14 @@ List<String> cacDong = tep.stream()
     .collect(Collectors.toList());
 ```
 
-Đây là một chiến lược xử lý lỗi, không phải cách duy nhất. Để chạy ví dụ, cần có file `du-lieu.txt` ở đúng thư mục làm việc hoặc thay bằng đường dẫn file thực. Với tài nguyên lớn, cần cân nhắc mở/đóng tài nguyên đúng cách; ví dụ `Files.lines` trả về stream gắn với tài nguyên I/O và cần được đóng.
+This is one error-handling strategy, not the only one. To run the example, `du-lieu.txt` must exist in the working directory or be replaced with an actual file path. For large resources, consider proper resource opening/closing; for instance, `Files.lines` returns an I/O-backed stream that must be closed.
 
-### Lỗi 7: Biến bị lambda bắt giữ không còn “effectively final”
+### Error 7: Variable Captured by a Lambda Is Not "Effectively Final"
 
 ```java
 int doDaiToiThieu = 4;
 
-// KHÔNG BIÊN DỊCH khi biến được gán lại bên dưới.
+// DOES NOT COMPILE when the variable is reassigned below.
 List<String> ketQua = ten.stream()
     .filter(s -> s.length() >= doDaiToiThieu)
     .collect(Collectors.toList());
@@ -468,7 +468,7 @@ List<String> ketQua = ten.stream()
 doDaiToiThieu = 6;
 ```
 
-Biến cục bộ được lambda sử dụng phải là `final` hoặc **effectively final** (không bị gán lại sau lần khởi tạo).
+A local variable used by a lambda must be `final` or **effectively final** (never reassigned after initialization).
 
 ```java
 final int doDaiToiThieu = 4;
@@ -478,16 +478,16 @@ List<String> ketQua = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Lưu ý: quy tắc này nói về việc **gán lại tham chiếu/biến cục bộ**, không có nghĩa là mọi đối tượng được tham chiếu đều bất biến. Tuy nhiên, thay đổi trạng thái bên ngoài lambda có thể làm pipeline khó hiểu và đặc biệt nguy hiểm khi chuyển sang xử lý song song.
+Note: this rule concerns **reassigning the local variable/reference**, not making every referenced object immutable. Even so, mutating external state from a lambda makes pipelines harder to reason about and is especially dangerous when switching to parallel processing.
 
-### Lỗi 8: Dùng raw type làm mất thông tin generic
+### Error 8: Using Raw Types Loses Generic Information
 
 ```java
-// Không nên: List không có <String>.
+// Avoid: List without <String>.
 List tenKhongKieu = Arrays.asList("Java", "Go");
 ```
 
-Raw type làm mất kiểm tra kiểu tĩnh, thường phát sinh cảnh báo unchecked và khiến các tham số của lambda bị nhìn nhận quá rộng. Chỉ cần khai báo kiểu đầy đủ:
+Raw types strip static type checking, typically trigger unchecked warnings, and cause lambda parameters to be seen too broadly. Simply declare the full type:
 
 ```java
 List<String> ten = Arrays.asList("Java", "Go");
@@ -497,22 +497,22 @@ List<Integer> doDai = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Không dùng `@SuppressWarnings("unchecked")` để giấu lỗi mà chưa khôi phục ràng buộc kiểu dữ liệu thực sự.
+Do not use `@SuppressWarnings("unchecked")` to hide errors without actually restoring proper type constraints.
 
-## 6. Cách chẩn đoán khi IDE báo “cannot infer type” hoặc “incompatible types”
+## 6. How to Diagnose When the IDE Reports "cannot infer type" or "incompatible types"
 
-Các thông báo như `cannot infer type-variable(s)`, `bad return type in lambda expression`, `invalid method reference` hoặc `incompatible types` thường chỉ ra một **điểm xung đột kiểu**. Thông báo chính xác phụ thuộc công cụ biên dịch; hãy xem dòng lỗi cùng các kiểu “required” và “found” nếu có.
+Messages such as `cannot infer type-variable(s)`, `bad return type in lambda expression`, `invalid method reference`, or `incompatible types` usually point to a **type conflict site**. The exact wording depends on the compiler tool; inspect the failing line along with the "required" and "found" types if shown.
 
-Làm theo thứ tự:
+Follow this order:
 
-1. **Xác nhận kiểu nguồn**: `List<String>`, `List<MyType>`, `Stream<?>` hay raw `List`? Kiểu đầu vào quyết định lambda nhận gì.
-2. **Tách pipeline theo từng bước**: sau `filter` kiểu không đổi; sau `map`, `flatMap`, `mapToInt` kiểu có thể đổi.
-3. **Xác định kiểu trả về của lambda/method reference**: `boolean` cho `filter`; kiểu `R` cho `map`; `Stream<R>` cho `flatMap`.
-4. **Kiểm tra kiểu đích**: kết quả `collect` có thực sự tương thích với `List<R>`, `Set<R>` hoặc `Map<K, V>` mà bạn đang khai báo không?
-5. **Kiểm tra đặc thù Java**: method reference cần target type, lambda không tự khai báo checked exception, biến được bắt giữ phải effectively final.
-6. **Bổ sung kiểu tường minh để khoanh vùng**: thử một biến trung gian `Stream<String>`, `Stream<Integer>` hoặc `Function<String, Integer>`. Sau khi sửa xong, có thể gộp lại nếu vẫn dễ đọc.
+1. **Verify the source type**: `List<String>`, `List<MyType>`, `Stream<?>`, or raw `List`? The input type determines what the lambda receives.
+2. **Break the pipeline step by step**: after `filter`, the type stays the same; after `map`, `flatMap`, or `mapToInt`, the type may change.
+3. **Check the lambda/method reference return type**: `boolean` for `filter`; type `R` for `map`; `Stream<R>` for `flatMap`.
+4. **Check the target type**: is the `collect` result truly compatible with the `List<R>`, `Set<R>`, or `Map<K, V>` you declared?
+5. **Check Java-specific rules**: method references need a target type, lambdas cannot declare checked exceptions, and captured variables must be effectively final.
+6. **Add explicit types to isolate the mismatch**: try intermediate variables like `Stream<String>`, `Stream<Integer>`, or `Function<String, Integer>`. Once fixed, you can inline them back if readability stays clear.
 
-Ví dụ tách pipeline để tìm lỗi:
+Example of splitting a pipeline to pinpoint an error:
 
 ```java
 List<String> ten = Arrays.asList("Java", "Go", "Kotlin");
@@ -523,7 +523,7 @@ Stream<Integer> s3 = s2.map(String::length);
 List<Integer> ketQua = s3.collect(Collectors.toList());
 ```
 
-Đoạn này chỉ tiêu thụ stream **một lần** ở cuối. Nếu bạn khai báo nhầm `Stream<String> s3`, trình biên dịch sẽ chỉ đúng bước `map` bị lệch kiểu. Khi cần suy luận phức tạp hơn, có thể khai báo tham số lambda tường minh:
+This snippet consumes the stream only **once** at the end. If you mistakenly declare `Stream<String> s3`, the compiler will point directly at the mismatched `map` step. When more complex inference is needed, you can write the lambda parameter type explicitly:
 
 ```java
 List<Integer> ketQua = ten.stream()
@@ -531,47 +531,47 @@ List<Integer> ketQua = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Kiểu tường minh giúp đọc lỗi dễ hơn, nhưng **không sửa được** một phép biến đổi vốn không tương thích với đầu vào.
+Explicit types make errors easier to read, though they **cannot fix** a transformation that is fundamentally incompatible with its input.
 
-### Ranh giới giữa lỗi biên dịch và lỗi lúc chạy
+### Boundary Between Compile-Time Errors and Runtime Errors
 
-| Tình huống | Phân loại | Ghi chú |
+| Situation | Classification | Notes |
 | --- | --- | --- |
-| `filter(s -> s.length())` | Lỗi biên dịch | `Predicate` cần `boolean`. |
-| Gán `List<Integer>` vào `List<String>` | Lỗi biên dịch | Generic không tương thích. |
-| `map(String::length)` trên `Stream<Object>` | Lỗi biên dịch | Phần tử không được bảo đảm là `String`. |
-| Gọi phương thức trên phần tử `null` | Lỗi lúc chạy | Có thể xảy ra `NullPointerException`. |
-| Dùng lại stream đã chạy `collect` | Lỗi lúc chạy | Có thể xảy ra `IllegalStateException`. |
-| `Collectors.toMap` với khóa trùng và không có hàm gộp | Lỗi lúc chạy | Có thể xảy ra `IllegalStateException` do khóa trùng. |
-| Chia sẻ/biến đổi trạng thái ngoài từ lambda | Nguy cơ logic hoặc đồng thời | Có thể vẫn biên dịch nhưng cho kết quả khó đoán. |
+| `filter(s -> s.length())` | Compile error | `Predicate` requires `boolean`. |
+| Assigning `List<Integer>` to `List<String>` | Compile error | Incompatible generics. |
+| `map(String::length)` on `Stream<Object>` | Compile error | Elements are not guaranteed to be `String`. |
+| Calling a method on a `null` element | Runtime error | May throw `NullPointerException`. |
+| Reusing a stream after calling `collect` | Runtime error | May throw `IllegalStateException`. |
+| `Collectors.toMap` with duplicate keys and no merge function | Runtime error | May throw `IllegalStateException` due to duplicate key. |
+| Sharing/mutating external state from a lambda | Logic or concurrency hazard | May still compile yet produce unpredictable results. |
 
-Ví dụ dùng lại stream:
+Example of reusing a stream:
 
 ```java
 Stream<String> luong = ten.stream();
 long soLuong = luong.count();
 
-// BIÊN DỊCH ĐƯỢC, nhưng không thể dùng lại luồng đã tiêu thụ.
+// COMPILES, but you cannot reuse a consumed stream.
 List<String> danhSach = luong.collect(Collectors.toList());
 ```
 
-Cách đúng: tạo **stream mới** từ nguồn nếu cần một phép toán kết thúc khác.
+Correct approach: create a **new stream** from the source whenever another terminal operation is needed.
 
-## 7. Khi generic xuất hiện trong `reduce` và `collect`
+## 7. When Generics Appear in `reduce` and `collect`
 
-Cơ chế suy luận kiểu không chỉ có ở `map`. Ví dụ, sau khi biến tên thành độ dài, các kiểu tiếp tục quyết định phép kết thúc:
+Type inference is not limited to `map`. For instance, after turning names into lengths, types continue to govern the terminal operation:
 
 ```java
 List<String> ten = Arrays.asList("Java", "Go", "Kotlin");
 
 int tong = ten.stream()
     .map(String::length)       // Stream<Integer>
-    .reduce(0, Integer::sum);  // Integer, tự unboxing thành int
+    .reduce(0, Integer::sum);  // Integer, auto-unboxed to int
 
 System.out.println(tong); // 12
 ```
 
-Với collector nhóm phần tử:
+With a grouping collector:
 
 ```java
 import java.util.Map;
@@ -582,13 +582,13 @@ Map<Integer, List<String>> nhomTheoDoDai = ten.stream()
 System.out.println(nhomTheoDoDai.get(4)); // [Java]
 ```
 
-`String::length` đóng vai trò `Function<String, Integer>`, nên khóa của map có kiểu `Integer`. `groupingBy` trả về cấu trúc kết quả phù hợp `Map<Integer, List<String>>`. Trình biên dịch kiểm tra kiểu ngay cả khi pipeline mới chỉ được mô tả.
+`String::length` acts as `Function<String, Integer>`, so the map's key type is `Integer`. `groupingBy` returns the matching result structure `Map<Integer, List<String>>`. The compiler checks types even while the pipeline is merely being constructed.
 
-Khi học collector tùy chỉnh, `Spliterator`, stream song song hoặc Gatherers, hãy tiếp tục áp dụng cùng một thói quen: **xác định kiểu phần tử đi vào, kiểu phần tử đi ra và kiểu kết quả cuối cùng**. Các cơ chế đó có hợp đồng kiểu và vòng đời riêng, không nên suy diễn rằng mọi phép toán đều hoạt động như `map`.
+When learning custom collectors, `Spliterator`, parallel streams, or Gatherers, keep applying the same habit: **identify the incoming element type, outgoing element type, and final result type**. Those mechanisms have their own type contracts and lifecycles; do not assume every operation behaves just like `map`.
 
-## 8. Bài tập thực hành
+## 8. Practice Exercises
 
-### Bài 1: Dự đoán kiểu và kết quả
+### Exercise 1: Predict Types and Results
 
 ```java
 List<String> ma = Arrays.asList(" A1 ", "B22", " C333 ", "D");
@@ -600,9 +600,9 @@ List<Integer> ketQua = ma.stream()
     .collect(Collectors.toList());
 ```
 
-Hãy ghi kiểu dữ liệu sau mỗi thao tác và dự đoán nội dung `ketQua`.
+Write down the data type after each operation and predict the contents of `ketQua`.
 
-### Bài 2: Tìm hai lỗi biên dịch
+### Exercise 2: Find Two Compile Errors
 
 ```java
 List<String> ten = Arrays.asList("Java", "Go");
@@ -613,9 +613,9 @@ List<String> ketQua = ten.stream()
     .collect(Collectors.toList());
 ```
 
-Sửa code để thu được `List<Integer>` chứa độ dài của **những tên có ít nhất 3 ký tự**.
+Fix the code to obtain a `List<Integer>` containing the lengths of **names with at least 3 characters**.
 
-### Bài 3: Chọn `map` hay `flatMap`?
+### Exercise 3: Choose `map` or `flatMap`?
 
 ```java
 List<List<Integer>> nhomSo = Arrays.asList(
@@ -624,14 +624,14 @@ List<List<Integer>> nhomSo = Arrays.asList(
 );
 ```
 
-Viết pipeline tạo `List<Integer>` với kết quả `[2, 4, 6, 8]`: làm phẳng các danh sách con rồi nhân đôi từng số.
+Write a pipeline producing `List<Integer>` with result `[2, 4, 6, 8]`: flatten the sub-lists and double each number.
 
 <details>
-<summary>Đáp án và giải thích</summary>
+<summary>Answers and explanations</summary>
 
-**Bài 1:** sau `stream()` là `Stream<String>`; sau `map(String::trim)` vẫn là `Stream<String>`; sau `filter` vẫn là `Stream<String>`; sau `map(String::length)` thành `Stream<Integer>`; sau `collect` là `List<Integer>`. Kết quả là `[3, 4]`, tương ứng `"B22"` và `"C333"`; `"A1"` và `"D"` bị loại do ngắn hơn 3 ký tự.
+**Exercise 1:** after `stream()` is `Stream<String>`; after `map(String::trim)` is still `Stream<String>`; after `filter` is still `Stream<String>`; after `map(String::length)` is `Stream<Integer>`; after `collect` is `List<Integer>`. The result is `[3, 4]`, corresponding to `"B22"` and `"C333"`; `"A1"` and `"D"` are dropped because they are shorter than 3 characters.
 
-**Bài 2:** `filter` phải trả về boolean; sau `map(String::length)`, danh sách chứa `Integer`.
+**Exercise 2:** `filter` must return a boolean; after `map(String::length)`, the list contains `Integer`.
 
 ```java
 List<Integer> ketQua = ten.stream()
@@ -642,7 +642,7 @@ List<Integer> ketQua = ten.stream()
 // [4]
 ```
 
-**Bài 3:** `flatMap` biến `Stream<List<Integer>>` thành `Stream<Integer>`, sau đó `map` nhân đôi:
+**Exercise 3:** `flatMap` turns `Stream<List<Integer>>` into `Stream<Integer>`, then `map` doubles each element:
 
 ```java
 List<Integer> ketQua = nhomSo.stream()
@@ -655,15 +655,15 @@ List<Integer> ketQua = nhomSo.stream()
 
 </details>
 
-## 9. Ghi nhớ
+## 9. Takeaways
 
-Một pipeline được kiểm tra kiểu từ trái sang phải:
+A pipeline is type-checked from left to right:
 
-- `Stream<T>` chỉ ra **kiểu phần tử hiện tại**.
-- `filter(Predicate<? super T>)` giữ nguyên `T` và yêu cầu biểu thức trả `boolean`.
-- `map(Function<? super T, ? extends R>)` thay đổi kiểu phần tử thành `R`.
-- `flatMap` được dùng khi mỗi phần tử cần mở rộng thành một stream con rồi làm phẳng.
-- `collect` phải tạo kết quả tương thích với **kiểu biến nhận**.
-- Method reference cần target type; raw type, wildcard dùng sai và checked exception đều có thể gây lỗi biên dịch.
+- `Stream<T>` indicates **the current element type**.
+- `filter(Predicate<? super T>)` preserves `T` and requires an expression returning `boolean`.
+- `map(Function<? super T, ? extends R>)` changes the element type to `R`.
+- `flatMap` is used when each element needs to expand into a sub-stream and then be flattened.
+- `collect` must produce a result compatible with **the receiving variable's type**.
+- Method references require a target type; raw types, misused wildcards, and checked exceptions can all cause compile errors.
 
-Khi gặp lỗi khó hiểu, hãy viết kiểu cụ thể tại các điểm chuyển tiếp rồi kiểm tra từng lambda. Cách này vừa giúp sửa lỗi nhanh vừa làm pipeline dễ đọc, dễ bảo trì trước khi học các phép xử lý Stream API nâng cao.
+When facing a confusing error, write explicit types at transition points and inspect each lambda one by one. Doing so both fixes errors quickly and keeps pipelines readable and maintainable before moving on to advanced Stream API operations.

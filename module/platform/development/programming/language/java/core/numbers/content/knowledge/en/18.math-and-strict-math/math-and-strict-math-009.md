@@ -1,10 +1,10 @@
-# `copySign`, `scalb` và `getExponent` trong Java: dấu, lũy thừa của 2 và số mũ IEEE 754
+# `copySign`, `scalb`, and `getExponent` in Java: Sign, Powers of 2, and IEEE 754 Exponents
 
-`java.lang.Math` và `java.lang.StrictMath` có ba nhóm phương thức thường xuất hiện khi cần làm việc **gần với cách biểu diễn nhị phân của `float`/`double`**:
+`java.lang.Math` and `java.lang.StrictMath` contain three groups of methods that frequently appear when working **close to the binary representation of `float`/`double`**:
 
-- **`copySign(magnitude, sign)`**: lấy độ lớn của đối số thứ nhất nhưng gắn **dấu của đối số thứ hai**, bao gồm dấu của zero âm.
-- **`scalb(value, scaleFactor)`**: nhân giá trị với **\(2^{scaleFactor}\)** theo quy tắc làm tròn dấu phẩy động, rất hữu ích khi điều chỉnh thang đo nhị phân.
-- **`getExponent(value)`**: trả về **số mũ không có bias của trường exponent** trong biểu diễn dấu phẩy động, đồng thời quy định các giá trị sentinel riêng cho zero, subnormal, NaN và infinity.
+- **`copySign(magnitude, sign)`**: takes the magnitude of the first argument while attaching the **sign of the second argument**, including the sign of negative zero.
+- **`scalb(value, scaleFactor)`**: multiplies the value by **\(2^{scaleFactor}\)** according to floating-point rounding rules, very useful when adjusting binary scale.
+- **`getExponent(value)`**: returns the **unbiased exponent of the exponent field** in floating-point representation, while defining specific sentinel values for zero, subnormal, NaN, and infinity.
 
 ```java
 double signed = Math.copySign(3.5, -0.0); // -3.5
@@ -12,45 +12,45 @@ double scaled = Math.scalb(1.5, 3);       // 12.0 = 1.5 × 2^3
 int exponent = Math.getExponent(8.0);     // 3
 ```
 
-Ba hàm này **không thay thế lẫn nhau**: `copySign` thay đổi bit dấu mà giữ độ lớn; `scalb` thay đổi thang độ lớn và có thể overflow/underflow; `getExponent` quan sát thông tin số mũ **chứ không tính một logarit tổng quát**. Bài này tập trung vào semantics của Java 17+, những giá trị IEEE 754 đặc biệt, ví dụ chạy được và cách dùng an toàn.
+These three functions are **not interchangeable**: `copySign` modifies the sign bit while keeping magnitude; `scalb` changes magnitude scale and can overflow/underflow; `getExponent` inspects exponent information **rather than computing a general logarithm**. This lesson focuses on Java 17+ semantics, special IEEE 754 values, runnable examples, and safe usage.
 
-## 1. Nhắc lại mô hình biểu diễn `float` và `double`
+## 1. Recap of the `float` and `double` Representation Model
 
-Hai kiểu dấu phẩy động cơ bản của Java dùng định dạng nhị phân IEEE 754. Một số **normal** hữu hạn khác zero được biểu diễn bằng bit dấu, số mũ có bias và fraction; về ý tưởng có dạng:
+Java's two core floating-point types use the IEEE 754 binary format. A non-zero finite **normal** number is represented by a sign bit, a biased exponent, and a fraction; conceptually taking the form:
 
 \[
 (-1)^{sign}\times (1.fraction)_2 \times 2^{exponent}
 \]
 
-| Thành phần | `float` / binary32 | `double` / binary64 |
+| Component | `float` / binary32 | `double` / binary64 |
 | --- | ---: | ---: |
-| Tổng bit | 32 | 64 |
-| Bit dấu | 1 | 1 |
-| Bit exponent | 8 | 11 |
-| Bit fraction | 23 | 52 |
-| Exponent của **normal** nhỏ nhất | `Float.MIN_EXPONENT = -126` | `Double.MIN_EXPONENT = -1022` |
-| Exponent của **normal** lớn nhất | `Float.MAX_EXPONENT = 127` | `Double.MAX_EXPONENT = 1023` |
-| Số hữu hạn **normal** dương nhỏ nhất | `Float.MIN_NORMAL` | `Double.MIN_NORMAL` |
-| Số dương nhỏ nhất, kể cả **subnormal** | `Float.MIN_VALUE` | `Double.MIN_VALUE` |
+| Total bits | 32 | 64 |
+| Sign bit | 1 | 1 |
+| Exponent bits | 8 | 11 |
+| Fraction bits | 23 | 52 |
+| Minimum **normal** exponent | `Float.MIN_EXPONENT = -126` | `Double.MIN_EXPONENT = -1022` |
+| Maximum **normal** exponent | `Float.MAX_EXPONENT = 127` | `Double.MAX_EXPONENT = 1023` |
+| Smallest positive finite **normal** | `Float.MIN_NORMAL` | `Double.MIN_NORMAL` |
+| Smallest positive number, including **subnormal** | `Float.MIN_VALUE` | `Double.MIN_VALUE` |
 
-Số **subnormal** có trường exponent bằng 0 và không dùng bit 1 ẩn ở đầu phần trị như số normal. Nhờ subnormal, Java biểu diễn được những số dương nhỏ hơn `MIN_NORMAL`, với độ chính xác giảm dần.
+**Subnormal** numbers have an exponent field of 0 and do not use an implicit leading 1 bit in the significand like normal numbers. Thanks to subnormals, Java can represent positive numbers smaller than `MIN_NORMAL`, with gradually decreasing precision.
 
-Ngoài số hữu hạn còn có `+0.0`, `-0.0`, `+Infinity`, `-Infinity` và **NaN**. Những giá trị này khiến các hàm thao tác dấu, scale hoặc exponent cần quy tắc đặc biệt.
+In addition to finite numbers, there are `+0.0`, `-0.0`, `+Infinity`, `-Infinity`, and **NaN**. These values require special rules for functions manipulating sign, scale, or exponent.
 
-**Nhầm lẫn cần tránh:** `Double.MIN_VALUE` là **số dương subnormal nhỏ nhất**, **không phải số `double` âm nhất**. Tương tự, `Math.getExponent(Double.MIN_VALUE)` không cho exponent toán học `-1074` của riêng giá trị subnormal đó; nó trả sentinel theo quy tắc API.
+**Misconception to avoid:** `Double.MIN_VALUE` is the **smallest positive subnormal number**, **not the most negative `double`**. Similarly, `Math.getExponent(Double.MIN_VALUE)` does not return the mathematical exponent `-1074` of that specific subnormal value; it returns a sentinel per the API rules.
 
-## 2. `Math.copySign`: lấy độ lớn từ một số và dấu từ số khác
+## 2. `Math.copySign`: Taking Magnitude from One Number and Sign from Another
 
-Chữ ký overload:
+Overload signatures:
 
 ```java
 static double Math.copySign(double magnitude, double sign)
 static float Math.copySign(float magnitude, float sign)
 ```
 
-Có phương thức tương ứng trong `StrictMath`. Hai đối số phải phù hợp overload kiểu `double` hoặc `float`; hàm không tạo kiểu wrapper mới và không đọc chuỗi văn bản.
+Corresponding methods exist in `StrictMath`. Both arguments must match the `double` or `float` overload; the method creates no wrapper objects and parses no text strings.
 
-Ví dụ:
+Example:
 
 ```java
 Math.copySign(3.5, -2.0);        // -3.5
@@ -61,18 +61,18 @@ Math.copySign(Double.POSITIVE_INFINITY, -1.0);
 // -Infinity
 ```
 
-Đối số đầu cung cấp **magnitude**. Nếu nó đã âm, `copySign` có thể chuyển thành dương khi đối số thứ hai mang dấu dương. Đây không phải phép cộng hai giá trị, cũng không phải lấy tích hay kiểm tra `sign > 0`.
+The first argument supplies the **magnitude**. If it is already negative, `copySign` can make it positive when the second argument carries a positive sign. This is neither adding two values, taking a product, nor checking `sign > 0`.
 
-### Dấu của `-0.0`: vì sao `sign < 0` không đủ?
+### Sign of `-0.0`: Why Is `sign < 0` Not Enough?
 
-Trong so sánh dấu phẩy động primitive:
+In primitive floating-point comparisons:
 
 ```java
 -0.0 == +0.0      // true
 -0.0 < 0.0        // false
 ```
 
-Nhưng chúng có **bit dấu khác nhau**. `Math.copySign(3.5, -0.0)` trả **`-3.5`**, vì đọc **dấu của zero âm**, không kiểm tra `-0.0 < 0`. Tương tự:
+Yet they have **different sign bits**. `Math.copySign(3.5, -0.0)` returns **`-3.5`**, because it reads the **sign of negative zero**, rather than testing `-0.0 < 0`. Similarly:
 
 ```java
 double negativeZero = Math.copySign(0.0, -1.0);
@@ -81,11 +81,11 @@ long rawBits = Double.doubleToRawLongBits(negativeZero);
 // 0x8000000000000000L
 ```
 
-Nếu nghiệp vụ cần phát hiện zero âm, có thể kiểm tra bit dấu bằng `Double.doubleToRawLongBits` hoặc quan sát `1.0 / negativeZero` là `-Infinity`. Không dùng phép so sánh `value < 0` làm cách nhận diện tổng quát bit dấu.
+If business logic needs to detect negative zero, inspect the sign bit using `Double.doubleToRawLongBits` or observe whether `1.0 / negativeZero` is `-Infinity`. Do not use `value < 0` as a general way to detect the sign bit.
 
-### Dấu của vô cực
+### Sign of Infinity
 
-`copySign` giữ độ lớn vô cực và thay dấu:
+`copySign` preserves infinite magnitude and changes the sign:
 
 ```java
 double result = Math.copySign(
@@ -94,28 +94,28 @@ double result = Math.copySign(
 // -Infinity
 ```
 
-Nếu `magnitude` bằng `0.0`, hàm vẫn trả zero có dấu tương ứng; nếu `magnitude` là vô cực, hàm trả vô cực cùng dấu với `sign`.
+If `magnitude` is `0.0`, the function still returns zero with the corresponding sign; if `magnitude` is infinite, it returns infinity with the same sign as `sign`.
 
-### Trường hợp `NaN` và khác biệt với `StrictMath`
+### `NaN` Cases and Differences with `StrictMath`
 
-**Quan trọng về đặc tả Java 17:** Với đối số **`sign` là NaN**, `StrictMath.copySign` **luôn coi NaN đó có dấu dương**. Trong khi đó, `Math.copySign` **không bắt buộc** xử lý mọi NaN sign như dương; các triển khai được phép dùng bit dấu của một số mẫu NaN để tối ưu.
+**Important regarding Java 17 specification:** When the **`sign` argument is NaN**, `StrictMath.copySign` **always treats that NaN as having a positive sign**. Meanwhile, `Math.copySign` is **not required** to treat every NaN sign as positive; implementations are permitted to use the sign bit of certain NaN patterns for optimization.
 
-Vì vậy không nên viết logic nghiệp vụ dựa trên dấu của `NaN` rồi mong `Math.copySign` và `StrictMath.copySign` cho kết quả giống nhau trên mọi JVM.
+Therefore, do not write business logic relying on the sign of `NaN` expecting `Math.copySign` and `StrictMath.copySign` to return identical results on every JVM.
 
-Nếu `magnitude` là NaN, kết quả tiếp tục là NaN; **không dùng phép toán này như giao thức bảo toàn mọi bit payload NaN**. Nếu thực sự cần giữ nguyên mọi mẫu bit vào/ra (kể cả signaling NaN), làm việc với `int`/`long` chứa mẫu bit hay byte thô, vì quá trình đưa signaling NaN qua giá trị dấu phẩy động có thể quiet hóa.
+If `magnitude` is NaN, the result remains NaN; **do not use this operation as a protocol for preserving every NaN payload bit**. If you truly need to preserve every input/output bit pattern (including signaling NaNs), work with `int`/`long` bit patterns or raw bytes, because passing a signaling NaN through floating-point values can quiet it.
 
-**Khi nào dùng `copySign`?** Ví dụ dựng đáp số theo độ lớn đã biết nhưng cần duy trì dấu của phần tử gốc, giữ signed zero trong xử lý dấu phẩy động, hoặc thực hiện biến đổi biểu diễn có chủ đích. Nó không dùng để “chuẩn hóa giá trị” mà bỏ qua NaN.
+**When to use `copySign`?** For example, constructing a result from a known magnitude while preserving the sign of the original element, retaining signed zero in floating-point processing, or performing intentional representation transforms. It is not for "normalizing values" while ignoring NaN.
 
-## 3. `Math.scalb`: nhân chính xác theo một lũy thừa 2 khi có thể biểu diễn
+## 3. `Math.scalb`: Exact Multiplication by a Power of 2 When Representable
 
-Chữ ký:
+Signatures:
 
 ```java
 static double Math.scalb(double value, int scaleFactor)
 static float Math.scalb(float value, int scaleFactor)
 ```
 
-Hàm tính ý nghĩa toán học **\(value\times 2^{scaleFactor}\)** và trả kết quả dấu phẩy động với quy tắc làm tròn được định nghĩa. Ví dụ:
+The method computes the mathematical meaning **\(value\times 2^{scaleFactor}\)** and returns a floating-point result under defined rounding rules. Example:
 
 ```java
 Math.scalb(1.5, 3);   // 12.0
@@ -124,115 +124,115 @@ Math.scalb(1.0, 10);  // 1024.0
 Math.scalb(0.5f, 2);  // 2.0f
 ```
 
-Khác với phép nhân một số `double` bất kỳ, nhân với lũy thừa 2 về cơ bản **dịch thang của exponent trong hệ nhị phân**. Với đầu vào normal phù hợp và kết quả vẫn ở miền normal có thể biểu diễn, phép scale có thể chính xác. Đây là lý do `scalb` hữu ích trong thuật toán số hoặc chuyển scale nhị phân.
+Unlike multiplying by an arbitrary `double`, multiplying by a power of 2 essentially **shifts the exponent scale in binary**. For suitable normal inputs where the result remains in the representable normal range, scaling can be exact. This is why `scalb` is useful in numerical algorithms or binary rescaling.
 
-Tuy nhiên, **không được tuyên bố mọi `scalb` đều không làm tròn**:
+However, **do not claim every `scalb` never rounds**:
 
-- Khi kết quả **subnormal**, có thể mất các bit chính xác ở phần trị.
-- Khi kết quả quá lớn, có thể **overflow thành `±Infinity`**.
-- Khi kết quả quá nhỏ, có thể **underflow thành `±0.0`**, vẫn giữ dấu.
-- NaN vẫn là NaN; ±Infinity vẫn là vô cực cùng dấu; zero vẫn là zero cùng dấu.
+- When the result is **subnormal**, precision bits in the significand can be lost.
+- When the result is too large, it can **overflow to `±Infinity`**.
+- When the result is too small, it can **underflow to `±0.0`**, still preserving the sign.
+- NaN remains NaN; ±Infinity remains infinity with the same sign; zero remains zero with the same sign.
 
-`scalb` thực hiện scale theo hàm số học dấu phẩy động; **không đổi bit bằng cách tự ý cộng thẳng vào exponent raw**, vốn dễ sai với subnormal, NaN, Infinity và tràn số.
+`scalb` performs scaling as a floating-point arithmetic function; **do not alter bits by manually adding directly to the raw exponent**, which easily breaks on subnormals, NaN, Infinity, and overflow.
 
-### Vì sao không luôn viết `x * Math.pow(2, n)`?
+### Why Not Always Write `x * Math.pow(2, n)`?
 
-Công thức toán học giống nhau, nhưng:
+The mathematical formula is identical, yet:
 
 ```java
 double a = Math.scalb(x, n);
 // double b = x * Math.pow(2.0, n);
 ```
 
-Dòng thứ hai tạo **kết quả trung gian `Math.pow(2.0, n)`** có thể overflow hoặc underflow trước khi nhân với `x`, và có thể làm tròn ở những điểm khác. `Math.scalb` nhằm thực hiện thao tác scale theo lũy thừa 2 với đặc tả kết quả riêng, tránh việc xây dựng hệ số trung gian không cần thiết.
+The second line creates an **intermediate result `Math.pow(2.0, n)`** that can overflow or underflow before multiplying by `x`, and may round at different points. `Math.scalb` aims to perform power-of-2 scaling with its own result specification, avoiding building an unnecessary intermediate factor.
 
-Ví dụ, nếu `x` là một số rất nhỏ nhưng `2^n` lớn vượt miền `double`, `Math.pow(2, n)` có thể thành Infinity, còn tích lý tưởng vẫn hữu hạn. `Math.scalb(x, n)` là công cụ phù hợp hơn khi đây thực sự là phép scale cơ số 2.
+For instance, if `x` is very small while `2^n` is large beyond the `double` range, `Math.pow(2, n)` can become Infinity even though the ideal product is still finite. `Math.scalb(x, n)` is the better tool when this is genuinely a base-2 scaling operation.
 
-Không nhầm `scalb` với `Math.pow(value, exponent)`: `scalb(value, n)` nhân `value` với `2^n`, **không** tính `value^n`.
+Do not confuse `scalb` with `Math.pow(value, exponent)`: `scalb(value, n)` multiplies `value` by `2^n`, **not** `value^n`.
 
-## 4. Độ lớn cực trị: overflow, underflow và subnormal
+## 4. Extreme Magnitudes: Overflow, Underflow, and Subnormals
 
-Trong Java, một `double` có exponent normal tối đa 1023. Tăng scale quá mức có thể tạo vô cực:
+In Java, a `double` has a maximum normal exponent of 1023. Scaling up too much can produce infinity:
 
 ```java
 Math.scalb(Double.MAX_VALUE, 1);
 // Infinity
 ```
 
-Ở đầu nhỏ, `Double.MIN_VALUE` là subnormal dương nhỏ nhất:
+At the small end, `Double.MIN_VALUE` is the smallest positive subnormal:
 
 ```java
 Math.scalb(Double.MIN_VALUE, -1); // 0.0 (underflow)
 ```
 
-Khi đặt dấu âm cho giá trị nhỏ rồi scale xuống tiếp, dấu có thể vẫn tồn tại trong zero âm:
+When a small value is given a negative sign and scaled down further, the sign can persist in negative zero:
 
 ```java
 double x = Math.scalb(-Double.MIN_VALUE, -1);
 // -0.0; raw bits 0x8000000000000000
 ```
 
-**Subnormal không phải lúc nào cũng bằng zero.** Ví dụ:
+**Subnormals are not always equal to zero.** Example:
 
 ```java
 double half = Math.scalb(Double.MIN_NORMAL, -1);
-// Số subnormal dương, mẫu bit 0x0008000000000000L
+// Positive subnormal number, bit pattern 0x0008000000000000L
 ```
 
-Nó nhỏ hơn `Double.MIN_NORMAL` nhưng khác 0. Điều này giúp giải thích tại sao API `getExponent` ở phần sau trả **cùng một sentinel** cho nhiều giá trị subnormal rất khác nhau, chứ không phải exponent toán học riêng của từng giá trị.
+It is smaller than `Double.MIN_NORMAL` yet non-zero. This helps explain why `getExponent` in the next section returns **the same sentinel** for many vastly different subnormal values, rather than each value's individual mathematical exponent.
 
-**Không dùng `scalb` để bỏ qua kiểm tra miền:** Nếu đầu vào có thể là NaN/Infinity hoặc scale quá lớn, hãy đặt chính sách xác thực. Nếu tính toán yêu cầu kết quả hữu hạn, kiểm tra `Double.isFinite(result)` (hoặc `Float.isFinite`) sau phép scale và đánh giá khả năng underflow về zero khi đó là lỗi nghiệp vụ.
+**Do not use `scalb` to skip domain checks:** If inputs can be NaN/Infinity or scale factors are huge, establish a validation policy. If computations require finite results, check `Double.isFinite(result)` (or `Float.isFinite`) after scaling and assess whether underflow to zero constitutes a business error.
 
-### Dấu của zero khi scale
+### Sign of Zero When Scaling
 
-`Math.scalb(-0.0, 1000)` vẫn cho **`-0.0`**. Không có gì để tăng lên thành số khác zero: scale chỉ nhân giá trị zero với một hệ số lũy thừa 2 dương về ý nghĩa, không đổi dấu bit zero.
+`Math.scalb(-0.0, 1000)` still yields **`-0.0`**. There is nothing to scale up into a non-zero number: scaling conceptually multiplies zero by a positive power-of-2 factor, leaving the zero sign bit unchanged.
 
-Hàm không sửa đối số gốc, không có side effect trên biến `double` và không cần cấp phát wrapper để trả primitive.
+The method does not mutate the original argument, has no side effects on `double` variables, and allocates no wrapper objects to return primitives.
 
-## 5. `Math.getExponent`: xem trường exponent không bias
+## 5. `Math.getExponent`: Inspecting the Unbiased Exponent Field
 
-Chữ ký:
+Signatures:
 
 ```java
 static int Math.getExponent(double value)
 static int Math.getExponent(float value)
 ```
 
-Giá trị trả về là **`int`**, biểu diễn exponent không bias liên quan đến trường exponent IEEE 754. Đối với số **normal hữu hạn khác zero**, kết quả có thể hiểu như số mũ `e` sao cho độ lớn nằm trong khoảng:
+The return type is **`int`**, representing the unbiased exponent related to the IEEE 754 exponent field. For a **non-zero finite normal** number, the result can be understood as the exponent `e` such that the magnitude lies in:
 
 \[
 2^e \le |value| < 2^{e+1}
 \]
 
-Ví dụ:
+Example:
 
 ```java
-Math.getExponent(8.0);   // 3, vì 8 = 1 × 2^3
-Math.getExponent(0.75);  // -1, vì 0.75 = 1.5 × 2^-1
-Math.getExponent(-16.0); // 4; dấu không làm đổi exponent
+Math.getExponent(8.0);   // 3, since 8 = 1 × 2^3
+Math.getExponent(0.75);  // -1, since 0.75 = 1.5 × 2^-1
+Math.getExponent(-16.0); // 4; sign does not change exponent
 ```
 
-**Nhưng với zero, subnormal, NaN hoặc vô cực, `getExponent` trả sentinel được API định nghĩa chứ không thực hiện `floor(log2(abs(value)))` theo nghĩa toán học.**
+**However, for zero, subnormals, NaN, or infinity, `getExponent` returns an API-defined sentinel rather than computing `floor(log2(abs(value)))` mathematically.**
 
-### Bảng kết quả `double`
+### `double` Results Table
 
-| Đối số | `Math.getExponent(double)` | Giải thích |
+| Argument | `Math.getExponent(double)` | Explanation |
 | --- | ---: | --- |
 | `8.0` | `3` | Normal, exponent 3 |
 | `0.75` | `-1` | Normal, 0.75 = 1.5 × 2^-1 |
-| `Double.MIN_NORMAL` | `-1022` | Normal nhỏ nhất |
-| `Double.MAX_VALUE` | `1023` | Normal lớn nhất |
-| `+0.0` hoặc `-0.0` | `-1023` | `Double.MIN_EXPONENT - 1` |
-| `Double.MIN_VALUE` (subnormal) | `-1023` | Cùng sentinel với mọi subnormal |
+| `Double.MIN_NORMAL` | `-1022` | Smallest normal |
+| `Double.MAX_VALUE` | `1023` | Largest normal |
+| `+0.0` or `-0.0` | `-1023` | `Double.MIN_EXPONENT - 1` |
+| `Double.MIN_VALUE` (subnormal) | `-1023` | Same sentinel for all subnormals |
 | `Double.NaN` | `1024` | `Double.MAX_EXPONENT + 1` |
-| `±Infinity` | `1024` | Cùng sentinel với NaN |
+| `±Infinity` | `1024` | Same sentinel as NaN |
 
-Với `float`, hai giá trị sentinel tương ứng là:
+For `float`, the two corresponding sentinel values are:
 
-- Zero và subnormal: **`Float.MIN_EXPONENT - 1 = -127`**.
-- NaN và ±Infinity: **`Float.MAX_EXPONENT + 1 = 128`**.
+- Zero and subnormal: **`Float.MIN_EXPONENT - 1 = -127`**.
+- NaN and ±Infinity: **`Float.MAX_EXPONENT + 1 = 128`**.
 
-Ví dụ:
+Example:
 
 ```java
 Math.getExponent(0.0f);                      // -127
@@ -241,48 +241,48 @@ Math.getExponent(Float.MIN_NORMAL);          // -126
 Math.getExponent(Float.POSITIVE_INFINITY);   // 128
 ```
 
-`Float.MIN_VALUE` có giá trị toán học `2^-149`, nhưng `Math.getExponent(Float.MIN_VALUE)` vẫn trả `-127`. `Double.MIN_VALUE` có giá trị toán học `2^-1074`, nhưng `Math.getExponent(Double.MIN_VALUE)` vẫn trả `-1023`. **Không đọc kết quả sentinel như log2 của subnormal.**
+`Float.MIN_VALUE` has a mathematical value of `2^-149`, yet `Math.getExponent(Float.MIN_VALUE)` still returns `-127`. `Double.MIN_VALUE` has a mathematical value of `2^-1074`, yet `Math.getExponent(Double.MIN_VALUE)` still returns `-1023`. **Do not read sentinel results as the log2 of a subnormal.**
 
-## 6. Vì sao `getExponent` không thay được `log2`?
+## 6. Why Cannot `getExponent` Replace `log2`?
 
-Trong miền normal, ta có thể dùng kết quả exponent để biết **bậc độ lớn theo cơ số 2**. Nhưng:
+Within the normal domain, the exponent result tells you the **base-2 order of magnitude**. However:
 
-- `getExponent(8.0)` là 3, không trả fraction/mantissa.
-- `getExponent(12.0)` cũng là 3 vì `12 = 1.5 × 2^3`.
-- `getExponent(0.0)` là `-1023`; không phải logarit của zero.
-- `getExponent(Double.MIN_VALUE)` là `-1023`; trong khi exponent lũy thừa 2 của nó theo giá trị toán học là `-1074`.
-- `getExponent(Double.NaN)` và `getExponent(Double.POSITIVE_INFINITY)` đều 1024; số sentinel không cho biết đối số là NaN hay vô cực.
+- `getExponent(8.0)` is 3, without returning the fraction/mantissa.
+- `getExponent(12.0)` is also 3 because `12 = 1.5 × 2^3`.
+- `getExponent(0.0)` is `-1023`; not the logarithm of zero.
+- `getExponent(Double.MIN_VALUE)` is `-1023`; whereas its mathematical power-of-2 exponent is `-1074`.
+- `getExponent(Double.NaN)` and `getExponent(Double.POSITIVE_INFINITY)` are both 1024; the sentinel number does not tell whether the argument is NaN or infinity.
 
-Nếu cần logarithm thực của một giá trị dương hữu hạn, có thể cân nhắc `Math.log(value) / Math.log(2.0)` (có sai số dấu phẩy động), nhưng **không lấy nó làm phép bit-exact thay thế `getExponent`**. Với giải mã exponent raw và logic xử lý subnormal chuyên sâu, cần hiểu format và xây thuật toán riêng.
+If you need the real logarithm of a positive finite value, consider `Math.log(value) / Math.log(2.0)` (subject to floating-point error), but **do not treat it as a bit-exact replacement for `getExponent`**. For raw exponent decoding and deep subnormal handling, understand the format and build a dedicated algorithm.
 
-### Làm sao phân biệt trường hợp đặc biệt?
+### How to Distinguish Special Cases?
 
 ```java
 double x = Double.MIN_VALUE;
 int e = Math.getExponent(x);
 
 if (Double.isNaN(x)) {
-    // NaN: không dùng e như exponent của số hữu hạn
+    // NaN: do not use e as the exponent of a finite number
 } else if (Double.isInfinite(x)) {
     // Infinity
 } else if (x == 0.0) {
-    // +0.0 hoặc -0.0
+    // +0.0 or -0.0
 } else if (e == Double.MIN_EXPONENT - 1) {
-    // x là subnormal khác zero
+    // x is a non-zero subnormal
 } else {
-    // x là số normal hữu hạn khác zero
+    // x is a non-zero finite normal number
 }
 ```
 
-Đây là **đoạn mã minh họa**, cần đặt trong một phương thức/class khi sử dụng. Thứ tự kiểm tra có chủ đích: `e == Double.MIN_EXPONENT - 1` tự nó **không phân biệt** zero và subnormal; `e == Double.MAX_EXPONENT + 1` tự nó **không phân biệt** NaN và vô cực.
+This is an **illustrative code snippet** and must be placed inside a method/class when used. The check order is intentional: `e == Double.MIN_EXPONENT - 1` by itself **does not distinguish** zero from subnormals; `e == Double.MAX_EXPONENT + 1` by itself **does not distinguish** NaN from infinity.
 
-Cách kiểm tra trên phù hợp khi thuật toán cần tách trường hợp normal/subnormal. Nhiều ứng dụng thông thường chỉ cần `Double.isFinite`, kiểm tra zero và xử lý ngoại lệ input; không cần thao tác exponent bit-level.
+The checks above suit algorithms that need to separate normal/subnormal cases. Many ordinary applications only need `Double.isFinite`, zero checks, and input validation, without bit-level exponent manipulation.
 
-## 7. Phối hợp ba hàm mà không làm sai ý nghĩa
+## 7. Combining the Three Functions Without Distorting Semantics
 
-Ba API rất hữu ích khi có thuật toán xử lý **dấu tách biệt**, **scale riêng** và **exponent riêng**.
+The three APIs are very useful for algorithms handling **separate sign**, **separate scale**, and **separate exponent**.
 
-Ví dụ một pipeline ý tưởng:
+Example of a conceptual pipeline:
 
 ```java
 double input = -12.0;
@@ -291,36 +291,36 @@ double base = Math.scalb(input, -e); // -1.5
 double positiveBase = Math.copySign(base, +1.0); // 1.5
 ```
 
-Đối với số normal hữu hạn khác zero, `base` thường có độ lớn từ `1` đến dưới `2`, vì ta chia giá trị cho `2^e`. `copySign` sau đó chuyển sang độ lớn dương mà vẫn dùng semantics của dấu bit.
+For non-zero finite normal numbers, `base` generally has a magnitude from `1` up to under `2`, because we divide the value by `2^e`. `copySign` then converts it to a positive magnitude using sign-bit semantics.
 
-**Caveat:** Đừng áp dụng pipeline “chuẩn hóa” trên vào mọi giá trị:
+**Caveat:** Do not apply the "normalization" pipeline above to every value:
 
-- `input == 0.0`: `getExponent` trả sentinel, không phải exponent hữu ích để chuẩn hóa số 0.
-- `input` subnormal: sentinel của `getExponent` không phải exponent thực tương ứng từng giá trị; `scalb(input, -e)` chưa chắc có phần trị chuẩn hóa như mong muốn.
-- `input` NaN/Infinity: phải xử lý riêng, nếu không kết quả chuẩn hóa không đại diện số hữu hạn.
-- Scale có thể overflow/underflow hoặc giảm độ chính xác với giá trị cực trị.
+- `input == 0.0`: `getExponent` returns a sentinel, not a useful exponent to normalize zero.
+- `input` subnormal: `getExponent`'s sentinel is not each value's true exponent; `scalb(input, -e)` is not guaranteed to produce a normalized mantissa as desired.
+- `input` NaN/Infinity: must be handled separately, otherwise the normalized result does not represent a finite number.
+- Scaling can overflow/underflow or lose precision at extreme values.
 
-Nếu thuật toán yêu cầu chuẩn hóa số thực chính xác hơn, hãy xây dựng quy tắc miền và bộ kiểm thử riêng thay vì chỉ ghép ba hàm theo cảm giác.
+If an algorithm requires more exact floating-point normalization, establish domain rules and dedicated test suites rather than intuitively chaining the three functions.
 
-## 8. `Math` và `StrictMath`: khác biệt thực tế
+## 8. `Math` vs. `StrictMath`: Practical Differences
 
-Cả hai class đều có overload `copySign`, `scalb` và `getExponent` cho `float`/`double` tương ứng. Chúng là **static methods**, không tạo đối tượng `Math` hoặc `StrictMath`.
+Both classes provide `copySign`, `scalb`, and `getExponent` overloads for `float`/`double` respectively. They are **static methods**; do not instantiate `Math` or `StrictMath`.
 
-| Vấn đề | `Math` | `StrictMath` |
+| Aspect | `Math` | `StrictMath` |
 | --- | --- | --- |
-| `copySign` với dấu hữu hạn (kể cả zero) | Lấy dấu bit từ đối số `sign` | Cùng ngữ nghĩa |
-| `copySign` khi **`sign` là NaN** | Được phép không luôn coi NaN là dấu dương | **Bắt buộc coi NaN sign là dương** |
-| `scalb` | Nhân với lũy thừa 2 theo đặc tả scale/rounding | Cùng đặc tả số học cho hàm tương ứng |
-| `getExponent` | Trả exponent không bias và sentinel | Cùng bảng sentinel |
-| Kiểu giá trị trả | `copySign/scalb`: `float` hoặc `double`; `getExponent`: `int` | Tương ứng |
+| `copySign` with finite sign (including zero) | Takes sign bit from `sign` argument | Same semantics |
+| `copySign` when **`sign` is NaN** | Allowed not to always treat NaN as positive | **Required to treat NaN sign as positive** |
+| `scalb` | Multiplies by power of 2 per scale/rounding spec | Same arithmetic spec for corresponding function |
+| `getExponent` | Returns unbiased exponent and sentinels | Same sentinel table |
+| Return types | `copySign/scalb`: `float` or `double`; `getExponent`: `int` | Corresponding |
 
-Không suy luận từ tên `StrictMath` rằng mọi hàm trong class này luôn cho giá trị khác `Math`. Trong các trường hợp hữu hạn thông thường, kết quả thường giống nhau. Điểm khác cụ thể, quan trọng của nhóm API bài này là **xử lý đối số dấu NaN của `copySign`** theo cam kết trong tài liệu Java.
+Do not infer from the name `StrictMath` that every method in this class always produces a different value from `Math`. In ordinary finite cases, results are usually identical. The specific, important difference in this lesson's API group is **handling a NaN `sign` argument in `copySign`** as specified in the Java documentation.
 
-Khi cần kết quả dự đoán được ở trường hợp NaN sign theo API, dùng `StrictMath.copySign` và xác định quy tắc xử lý NaN ngay từ thiết kế. Khi các tham số đều hữu hạn phù hợp, `Math` thường là API trực tiếp thuận tiện.
+When predictable behavior for NaN sign per the API is needed, use `StrictMath.copySign` and define NaN-handling rules upfront in the design. When parameters are appropriate finite values, `Math` is usually the convenient direct API.
 
-## 9. Chương trình hoàn chỉnh Java 17+ để tự kiểm tra
+## 9. Complete Java 17+ Program for Self-Verification
 
-Tạo tệp `FloatingScaleDemo.java`:
+Create file `FloatingScaleDemo.java`:
 
 ```java
 public class FloatingScaleDemo {
@@ -383,14 +383,14 @@ public class FloatingScaleDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FloatingScaleDemo.java
 java FloatingScaleDemo
 ```
 
-Stdout từ chương trình (đã đối chiếu với JDK):
+Stdout from the program (verified against JDK):
 
 ```text
 copySign(3.5, -0.0): -3.5
@@ -421,68 +421,68 @@ float exp(infinity): 128
 strict getExponent: 3
 ```
 
-**Hướng dẫn đọc output:**
+**Guide to reading the output:**
 
-- Sáu dòng `copySign` cho thấy dấu của zero âm có ý nghĩa, kể cả khi giá trị so sánh bằng zero dương. `StrictMath` với đối số bình thường trả cùng kết quả.
-- Tám dòng `scalb` chứng minh tăng/giảm lũy thừa của 2, dấu zero, overflow thành infinity và underflow thành zero/subnormal.
-- Các dòng `getExponent` phân biệt normal với các sentinel: `double` zero/subnormal là `-1023`, NaN/infinity là `1024`; `float` tương ứng `-127` và `128`.
-- Hàm `hex` dùng **mẫu bit raw** để phân biệt zero âm/dương; số hiển thị dạng hexa đã pad đủ 16 ký tự cho `double`.
+- The six `copySign` lines show that the sign of negative zero matters, even when its value compares equal to positive zero. `StrictMath` returns the same result on ordinary arguments.
+- The eight `scalb` lines demonstrate scaling powers of 2 up/down, zero sign, overflow to infinity, and underflow to zero/subnormal.
+- The `getExponent` lines distinguish normals from sentinels: `double` zero/subnormal is `-1023`, NaN/infinity is `1024`; `float` is `-127` and `128` respectively.
+- The `hex` helper uses **raw bit patterns** to distinguish negative/positive zero; hex output is padded to 16 characters for `double`.
 
-## 10. Khi nào nên dùng ba API này?
+## 10. When Should You Use These Three APIs?
 
-| Nhu cầu | API nên chọn | Lưu ý |
+| Need | API to Choose | Notes |
 | --- | --- | --- |
-| Gắn dấu từ một giá trị tham chiếu | `Math.copySign` | Nhận cả dấu của `-0.0` |
-| Yêu cầu NaN sign luôn được coi dương | `StrictMath.copySign` | Khác cam kết `Math.copySign` với NaN sign |
-| Nhân/chia theo lũy thừa 2 | `Math.scalb` | Theo dõi overflow/underflow |
-| Điều chỉnh scale cho số `float` | `Math.scalb(float, int)` | Kết quả vẫn là `float` |
-| Quan sát bậc exponent của số normal | `Math.getExponent` | Không phải logarit tổng quát |
-| Phân loại zero/subnormal/special | `getExponent` kết hợp `isNaN`/`isInfinite`/kiểm tra zero | Sentinel một mình chưa đủ |
-| Xem mẫu bit thật | `Double.doubleToRawLongBits`/`Float.floatToRawIntBits` | Không nhầm API quan sát bit với numeric scaling |
-| Kiểm tra giá trị hữu hạn | `Double.isFinite`/`Float.isFinite` | Phải dùng rõ ràng nếu hợp đồng yêu cầu |
+| Attach sign from a reference value | `Math.copySign` | Also reads the sign of `-0.0` |
+| Require NaN sign to always be treated as positive | `StrictMath.copySign` | Differs from `Math.copySign` contract on NaN sign |
+| Multiply/divide by a power of 2 | `Math.scalb` | Watch for overflow/underflow |
+| Adjust scale for a `float` number | `Math.scalb(float, int)` | Result remains `float` |
+| Inspect exponent order of a normal number | `Math.getExponent` | Not a general logarithm |
+| Classify zero/subnormal/special | `getExponent` combined with `isNaN`/`isInfinite`/zero check | Sentinel alone is insufficient |
+| Inspect true bit pattern | `Double.doubleToRawLongBits`/`Float.floatToRawIntBits` | Do not confuse bit-inspection APIs with numeric scaling |
+| Check for finite value | `Double.isFinite`/`Float.isFinite` | Must be used explicitly if contract requires |
 
-Ví dụ xử lý dữ liệu khoa học, biểu diễn số trong thuật toán chuẩn hóa, giải mã tín hiệu hoặc thống kê có miền độ lớn trải rộng thường cần các hàm trên. Nhưng đừng dùng chúng chỉ vì tưởng rằng hàm cấp thấp luôn “chính xác hơn”: **lựa chọn bắt nguồn từ thao tác mong muốn và giới hạn biểu diễn**.
+Scientific data processing, number representation in normalization algorithms, signal decoding, or statistics spanning wide magnitude ranges often need these functions. However, do not use them thinking low-level functions are always "more accurate": **the choice stems from the desired operation and representation limits**.
 
-## 11. Các nhầm lẫn thường gặp
+## 11. Common Misconceptions
 
-1. **“`copySign(x, y)` tính `x * y`.”** Sai: nó lấy độ lớn của `x` và dấu của `y`.
-2. **“`copySign` với `-0.0` giống với dấu dương vì `-0.0 == 0.0`.”** Sai: bit dấu được giữ và được áp dụng.
-3. **“`Math.copySign` và `StrictMath.copySign` có cam kết hoàn toàn giống nhau với NaN sign.”** Sai: `StrictMath` coi NaN sign là dương; `Math` được phép khác.
-4. **“`scalb(x, n)` là `Math.pow(x, n)`.”** Sai: `scalb` tính `x × 2^n`.
-5. **“`scalb` luôn chính xác đến mọi bit, kể cả subnormal.”** Sai: underflow/rounding có thể mất độ chính xác hoặc tạo zero.
-6. **“Tính `x * Math.pow(2,n)` luôn an toàn tương đương `scalb`.”** Sai: biểu thức có kết quả trung gian có thể overflow/underflow trước khi nhân.
-7. **“`getExponent(x)` luôn trả `floor(log2(abs(x)))`.”** Sai với zero, subnormal, NaN và Infinity.
-8. **“`Math.getExponent(Double.MIN_VALUE) == -1074`.”** Sai: API trả `-1023` cho mọi subnormal `double`.
-9. **“`Math.getExponent(0.0)` và `Math.getExponent(Double.MIN_VALUE)` khác nhau.”** Sai: đều `-1023`.
-10. **“`getExponent` trả `Double.MIN_EXPONENT` khi zero.”** Sai: trả `Double.MIN_EXPONENT - 1`.
-11. **“`getExponent` trả NaN nếu đầu vào là NaN.”** Sai: return type là `int` và trả sentinel `MAX_EXPONENT + 1`.
-12. **“`getExponent` phân biệt NaN với vô cực chỉ từ kết quả.”** Sai: chúng có cùng sentinel.
-13. **“`Double.MIN_VALUE` là giá trị âm nhỏ nhất của `double`.”** Sai: đó là số dương subnormal nhỏ nhất.
-14. **“`scalb(-0.0, k)` trở thành `+0.0` vì nhân với lũy thừa 2 dương.”** Sai: dấu zero được giữ.
-15. **“`copySign` có thể thay mọi thao tác chuyển dấu của NaN mà vẫn bảo toàn payload.”** Sai: không coi đây là giao thức bit-perfect cho mọi dạng NaN.
+1. **"`copySign(x, y)` computes `x * y`."** False: it takes the magnitude of `x` and the sign of `y`.
+2. **"`copySign` with `-0.0` is the same as positive sign because `-0.0 == 0.0`."** False: the sign bit is preserved and applied.
+3. **"`Math.copySign` and `StrictMath.copySign` have identical contracts for NaN sign."** False: `StrictMath` treats NaN sign as positive; `Math` is allowed to differ.
+4. **"`scalb(x, n)` is `Math.pow(x, n)`."** False: `scalb` computes `x × 2^n`.
+5. **"`scalb` is always exact to every bit, even for subnormals."** False: underflow/rounding can lose precision or produce zero.
+6. **"Computing `x * Math.pow(2,n)` is always equivalently safe to `scalb`."** False: the expression's intermediate result can overflow/underflow before multiplying.
+7. **"`getExponent(x)` always returns `floor(log2(abs(x)))`."** False for zero, subnormals, NaN, and Infinity.
+8. **"`Math.getExponent(Double.MIN_VALUE) == -1074`."** False: the API returns `-1023` for all `double` subnormals.
+9. **"`Math.getExponent(0.0)` and `Math.getExponent(Double.MIN_VALUE)` differ."** False: both are `-1023`.
+10. **"`getExponent` returns `Double.MIN_EXPONENT` for zero."** False: it returns `Double.MIN_EXPONENT - 1`.
+11. **"`getExponent` returns NaN if input is NaN."** False: the return type is `int` and it returns the sentinel `MAX_EXPONENT + 1`.
+12. **"`getExponent` distinguishes NaN from infinity from its return value alone."** False: they share the same sentinel.
+13. **"`Double.MIN_VALUE` is the smallest negative value of `double`."** False: it is the smallest positive subnormal number.
+14. **"`scalb(-0.0, k)` becomes `+0.0` because it multiplies by a positive power of 2."** False: the sign of zero is preserved.
+15. **"`copySign` can replace every sign-flip operation on NaN while preserving payload."** False: do not treat it as a bit-perfect protocol for all NaN forms.
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-**1. `Math.copySign(5.0, -0.0)` trả gì?** → `-5.0`, vì `-0.0` mang dấu âm.
+**1. What does `Math.copySign(5.0, -0.0)` return?** → `-5.0`, because `-0.0` carries a negative sign.
 
-**2. `Math.copySign(-5.0, +0.0)` trả gì?** → `5.0`, vì độ lớn 5 mang dấu dương mới.
+**2. What does `Math.copySign(-5.0, +0.0)` return?** → `5.0`, because magnitude 5 takes the new positive sign.
 
-**3. `Math.scalb(1.25, 3)` trả gì?** → `10.0`, do `1.25 × 2^3`.
+**3. What does `Math.scalb(1.25, 3)` return?** → `10.0`, from `1.25 × 2^3`.
 
-**4. `Math.scalb(3.0, -1)` trả gì?** → `1.5`.
+**4. What does `Math.scalb(3.0, -1)` return?** → `1.5`.
 
-**5. `Math.scalb(Double.MAX_VALUE, 1)` trả gì?** → `Infinity` vì overflow.
+**5. What does `Math.scalb(Double.MAX_VALUE, 1)` return?** → `Infinity` due to overflow.
 
-**6. `Math.scalb(-Double.MIN_VALUE, -1)` có dấu gì?** → `-0.0`; bit dấu âm được bảo toàn.
+**6. What sign does `Math.scalb(-Double.MIN_VALUE, -1)` have?** → `-0.0`; the negative sign bit is preserved.
 
-**7. `Math.getExponent(0.75)` là bao nhiêu?** → `-1`.
+**7. What is `Math.getExponent(0.75)`?** → `-1`.
 
-**8. `Math.getExponent(Double.MIN_NORMAL)` và `Math.getExponent(Double.MIN_VALUE)` có bằng nhau không?** → Không: lần lượt `-1022` và `-1023`.
+**8. Are `Math.getExponent(Double.MIN_NORMAL)` and `Math.getExponent(Double.MIN_VALUE)` equal?** → No: `-1022` and `-1023` respectively.
 
-**9. `Math.getExponent(Double.NaN)` so với `Math.getExponent(Double.POSITIVE_INFINITY)`?** → Đều `1024`, nên phải dùng API phân loại riêng nếu cần phân biệt.
+**9. How does `Math.getExponent(Double.NaN)` compare to `Math.getExponent(Double.POSITIVE_INFINITY)`?** → Both are `1024`, so a separate classification API must be used to distinguish them.
 
-**10. `Math.getExponent(Float.MIN_VALUE)` có bằng `-149` không?** → Không: trả `-127` sentinel cho subnormal.
+**10. Is `Math.getExponent(Float.MIN_VALUE)` equal to `-149`?** → No: it returns the `-127` sentinel for subnormals.
 
-**11. `Math.copySign` và `StrictMath.copySign` có gì khác nếu sign là NaN?** → `StrictMath` luôn coi NaN sign như dấu dương; `Math` được phép xử lý dấu một số NaN khác nhau theo triển khai.
+**11. What differs between `Math.copySign` and `StrictMath.copySign` if `sign` is NaN?** → `StrictMath` always treats NaN sign as positive; `Math` is permitted to handle the sign of some NaNs differently by implementation.
 
-**Ghi nhớ:** `copySign` làm việc với **dấu bit**; `scalb` thay đổi **thang lũy thừa 2** với quy tắc làm tròn/overflow/underflow; `getExponent` đọc **số mũ không bias** của biểu diễn và trả sentinel cho **zero, subnormal, NaN, infinity**. Khi dùng trong thuật toán, hãy phân loại giá trị đặc biệt, giữ đúng kiểu `float`/`double` và không nhầm kết quả bit-level với logarit hoặc số học chính xác vô hạn.
+**Key takeaway:** `copySign` works on **sign bits**; `scalb` changes **power-of-2 scale** with rounding/overflow/underflow rules; `getExponent` reads the **unbiased exponent** of the representation and returns sentinels for **zero, subnormal, NaN, and infinity**. When used in algorithms, classify special values, preserve proper `float`/`double` types, and do not confuse bit-level results with logarithms or infinite-precision arithmetic.

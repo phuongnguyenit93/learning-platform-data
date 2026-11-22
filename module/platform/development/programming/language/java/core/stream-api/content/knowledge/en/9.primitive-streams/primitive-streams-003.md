@@ -1,20 +1,20 @@
-# Ánh xạ bằng `mapToInt`, `mapToLong` và `mapToDouble`
+# Mapping with `mapToInt`, `mapToLong`, and `mapToDouble`
 
-Trong **Java Stream API**, `Stream<T>` xử lý các phần tử là đối tượng, còn `IntStream`, `LongStream` và `DoubleStream` được chuyên biệt hóa để xử lý ba kiểu nguyên thủy `int`, `long`, `double`. Khi dữ liệu ban đầu là đối tượng nhưng kết quả cần tính là số, `mapToInt`, `mapToLong` và `mapToDouble` là cầu nối giữa hai thế giới.
+In the **Java Stream API**, `Stream<T>` processes elements as objects, whereas `IntStream`, `LongStream`, and `DoubleStream` are specialized to handle the three primitive types `int`, `long`, and `double`. When the initial data consists of objects yet the desired calculations are numeric, `mapToInt`, `mapToLong`, and `mapToDouble` bridge the two worlds.
 
-Đây là một phần của kỹ thuật xây dựng **pipeline lazy**: dùng các phép toán trung gian để mô tả cách trích xuất giá trị số, sau đó dùng phép toán kết thúc như `sum`, `average`, `min`, `max` hoặc `summaryStatistics` để tính toán. Chọn đúng kiểu stream giúp biểu đạt ý định, giảm nhu cầu boxing/unboxing và quản lý rõ ràng phạm vi giá trị cũng như sai số.
+This is part of building **lazy pipelines**: using intermediate operations to describe how to extract numeric values, and then using terminal operations such as `sum`, `average`, `min`, `max`, or `summaryStatistics` to compute results. Choosing the right stream type clarifies intent, reduces boxing/unboxing demand, and explicitly manages value ranges and precision error.
 
-## 1. Ba phương thức chuyển từ `Stream<T>` sang stream nguyên thủy
+## 1. Three methods to convert from `Stream<T>` to a primitive stream
 
-| Phương thức gọi trên `Stream<T>` | Hàm đầu vào | Kiểu stream trả về | Tình huống thường gặp |
+| Method called on `Stream<T>` | Input function | Returned stream type | Common scenarios |
 | --- | --- | --- | --- |
-| `mapToInt(ToIntFunction<? super T>)` | `T → int` | `IntStream` | Độ dài chuỗi, tuổi, số lượng nhỏ. |
-| `mapToLong(ToLongFunction<? super T>)` | `T → long` | `LongStream` | Số lượng lớn, thời gian dạng epoch, tổng vượt phạm vi `int`. |
-| `mapToDouble(ToDoubleFunction<? super T>)` | `T → double` | `DoubleStream` | Phép đo, tỷ lệ, kết quả tính toán số thực. |
+| `mapToInt(ToIntFunction<? super T>)` | `T → int` | `IntStream` | String lengths, ages, small counts. |
+| `mapToLong(ToLongFunction<? super T>)` | `T → long` | `LongStream` | Large quantities, epoch timestamps, sums exceeding `int` range. |
+| `mapToDouble(ToDoubleFunction<? super T>)` | `T → double` | `DoubleStream` | Measurements, ratios, floating-point calculation results. |
 
-Ba functional interface `ToIntFunction`, `ToLongFunction` và `ToDoubleFunction` nằm trong `java.util.function`. Mỗi interface nhận một đối tượng `T` và trả về đúng kiểu nguyên thủy tương ứng, không phải `Integer`, `Long` hoặc `Double`.
+The three functional interfaces `ToIntFunction`, `ToLongFunction`, and `ToDoubleFunction` live in `java.util.function`. Each takes an object `T` and returns the corresponding primitive type directly, not `Integer`, `Long`, or `Double`.
 
-Ví dụ ngắn nhất:
+Shortest example:
 
 ```java
 import java.util.Arrays;
@@ -29,9 +29,9 @@ int totalCharacters = words.stream()
 System.out.println(totalCharacters); // 13 = 4 + 6 + 3
 ```
 
-`String::length` đáp ứng `ToIntFunction<String>` vì nhận một `String` và trả `int`. Sau bước `mapToInt`, kiểu pipeline là **`IntStream`**, nên gọi trực tiếp `sum()` hoặc `average()` được.
+`String::length` satisfies `ToIntFunction<String>` because it takes a `String` and returns `int`. After the `mapToInt` step, the pipeline type is **`IntStream`**, so `sum()` or `average()` can be called directly.
 
-### Khác gì `map` thông thường?
+### How does it differ from regular `map`?
 
 ```java
 import java.util.Arrays;
@@ -51,15 +51,15 @@ int total = primitiveLengths.sum(); // 13
 int boxedTotal = boxedLengths.mapToInt(Integer::intValue).sum(); // 13
 ```
 
-`map(String::length)` tạo `Stream<Integer>`: giá trị `int` từ `length()` được **boxing** thành đối tượng `Integer`. Trong khi đó, `mapToInt(String::length)` cho `IntStream` và tránh lớp đối tượng trung gian ấy. Kết quả cuối cùng trong ví dụ giống nhau, nhưng API được phép dùng ở các bước sau khác nhau.
+`map(String::length)` creates a `Stream<Integer>`: the `int` value from `length()` is **boxed** into an `Integer` object. In contrast, `mapToInt(String::length)` yields an `IntStream` and avoids that intermediate object layer. The final result in the example is the same, yet the APIs available in subsequent steps differ.
 
-Không thể gọi `sum()` trực tiếp trên `Stream<Integer>`, vì `Stream<T>` không có phương thức terminal `sum`. Có thể dùng `reduce(0, Integer::sum)` trên `Stream<Integer>`, nhưng thường nên dùng primitive stream nếu mục tiêu đơn thuần là tổng hợp số.
+You cannot call `sum()` directly on `Stream<Integer>`, because `Stream<T>` has no terminal `sum` method. You could use `reduce(0, Integer::sum)` on `Stream<Integer>`, though a primitive stream is usually preferred when the goal is purely numeric aggregation.
 
-## 2. `mapToInt`: đếm, đo độ dài và thống kê số nguyên
+## 2. `mapToInt`: counting, measuring length, and integer statistics
 
-`mapToInt` phù hợp khi giá trị tính ra nằm trong phạm vi của `int` (từ `-2_147_483_648` đến `2_147_483_647`) và các phép tính tiếp theo chấp nhận kiểu số nguyên 32 bit.
+`mapToInt` fits when computed values lie within the `int` range (from `-2_147_483_648` to `2_147_483_647`) and subsequent operations accept 32-bit integers.
 
-Ví dụ lấy độ dài chuỗi, chỉ giữ từ dài ít nhất bốn ký tự rồi tính trung bình:
+Example taking string lengths, keeping only words at least four characters long, and computing the average:
 
 ```java
 import java.util.Arrays;
@@ -87,11 +87,11 @@ System.out.println(stats.getMax());     // 6
 System.out.println(stats.getAverage()); // 4.25
 ```
 
-`average()` trả `OptionalDouble` vì stream có thể rỗng; `min()` và `max()` trên `IntStream` trả `OptionalInt`. Với `summaryStatistics()`, các trường `count`, `sum`, `min`, `max`, `average` có trong một đối tượng. Trên stream rỗng, `getCount()` bằng 0; các giá trị của thống kê khác cần được diễn giải theo hợp đồng của lớp và yêu cầu nghiệp vụ, không nên coi min/max của tập rỗng là một quan sát thực tế.
+`average()` returns `OptionalDouble` because the stream may be empty; `min()` and `max()` on `IntStream` return `OptionalInt`. With `summaryStatistics()`, the fields `count`, `sum`, `min`, `max`, and `average` are provided in a single object. On an empty stream, `getCount()` is 0; the other statistical values should be interpreted according to the class contract and business rules, rather than treating an empty set's min/max as an actual observation.
 
-### Đọc dữ liệu từ chuỗi
+### Reading numbers from strings
 
-Trong dữ liệu nhập vào, số thường được lưu dạng văn bản. `mapToInt` có thể kết hợp trực tiếp với `Integer::parseInt`:
+In input data, numbers are often stored as text. `mapToInt` can be combined directly with `Integer::parseInt`:
 
 ```java
 import java.util.Arrays;
@@ -103,11 +103,11 @@ int[] numbers = Arrays.asList("10", "20", "30").stream()
 System.out.println(Arrays.toString(numbers)); // [10, 20, 30]
 ```
 
-Ở đây, `parseInt` có thể ném `NumberFormatException` nếu văn bản không hợp lệ hoặc vượt phạm vi `int`. `mapToInt` **không** tự kiểm tra dữ liệu và cũng không tự bỏ qua chuỗi lỗi.
+Here, `parseInt` can throw `NumberFormatException` if the text is invalid or out of `int` range. `mapToInt` **does not** validate data automatically nor skip malformed strings on its own.
 
-## 3. `mapToLong`: giảm rủi ro tràn `int` khi tổng hợp
+## 3. `mapToLong`: reducing `int` overflow risk during aggregation
 
-Giá trị từng phần tử có thể vừa `int`, nhưng **tổng** của chúng vượt quá `int`. Khi đó, nên chuyển sang `LongStream` *trước khi thực hiện phép cộng*:
+Individual element values may fit in `int`, yet their **sum** can exceed `int`. In that case, convert to `LongStream` *before performing addition*:
 
 ```java
 import java.util.Arrays;
@@ -122,9 +122,9 @@ long totalViews = views.stream()
 System.out.println(totalViews); // 3000000000
 ```
 
-Nếu thay bằng `mapToInt(Integer::intValue).sum()`, tổng sử dụng `int` và bị tràn. `mapToLong` tránh tràn 32 bit, **nhưng `long` vẫn có giới hạn**: `LongStream.sum()` cũng có thể tràn khi tổng vượt phạm vi 64 bit.
+If replaced with `mapToInt(Integer::intValue).sum()`, the sum uses `int` and overflows. `mapToLong` avoids 32-bit overflow, **yet `long` still has a limit**: `LongStream.sum()` can also overflow when the total exceeds the 64-bit range.
 
-Điều quan trọng không chỉ là kiểu của stream, mà còn là **thời điểm chuyển kiểu**:
+What matters is not only the stream type, but also **when the type conversion happens**:
 
 ```java
 import java.util.stream.IntStream;
@@ -134,16 +134,16 @@ long correct = IntStream.of(50_000, 60_000)
     .sum();
 
 long wrong = IntStream.of(50_000, 60_000)
-    .mapToLong(n -> n * n) // Nhân bằng int trước, có thể đã tràn!
+    .mapToLong(n -> n * n) // Multiplies using int first, may already overflow!
     .sum();
 
 System.out.println(correct); // 6100000000
-System.out.println(wrong);   // Không phải 6100000000
+System.out.println(wrong);   // Not 6100000000
 ```
 
-Trong biểu thức `(long) n * n`, phép nhân dùng `long`. Trong `n * n`, phép nhân thực hiện bằng `int` rồi mới mở rộng kết quả đã tràn sang `long`.
+In `(long) n * n`, multiplication uses `long`. In `n * n`, multiplication happens in `int` and only afterward widens the already-overflowed result to `long`.
 
-Một tình huống thực tế là tính tổng doanh thu theo **đơn vị nhỏ nhất** của tiền (chẳng hạn số đồng hoặc số xu) để tránh việc dùng số thực trong phép tính tiền tệ:
+A practical scenario is summing revenue in the **smallest currency unit** (such as cents or VND) to avoid using floating-point numbers in monetary calculations:
 
 ```java
 import java.util.Arrays;
@@ -173,11 +173,11 @@ long totalMinorUnits = lines.stream()
 System.out.println(totalMinorUnits); // 90000
 ```
 
-`Math.multiplyExact` ném `ArithmeticException` nếu **một phép nhân** tràn `long`. Nó không bảo vệ tổng từ `LongStream.sum()`; nếu tổng cũng có thể vượt `long`, cần cơ chế cộng có kiểm tra như `Math.addExact` (kèm hợp đồng reduction phù hợp) hoặc dùng `BigInteger` / `BigDecimal` theo bài toán. Khi cần phép tính thập phân tiền tệ, lựa chọn kiểu dữ liệu cần xuất phát từ đơn vị tiền, quy tắc làm tròn và giới hạn số.
+`Math.multiplyExact` throws `ArithmeticException` if **an individual multiplication** overflows `long`. It does not guard the total from `LongStream.sum()`; if the total can also exceed `long`, a checked addition mechanism like `Math.addExact` (with a valid reduction contract) or `BigInteger` / `BigDecimal` is needed depending on the problem. When decimal monetary calculations are required, data type choices should stem from currency units, rounding rules, and numeric bounds.
 
-## 4. `mapToDouble`: xử lý số thực và giá trị đo
+## 4. `mapToDouble`: handling floating-point numbers and measurements
 
-`mapToDouble` trả về `DoubleStream` để tính trên `double`. Nó phù hợp với giá trị đo, điểm số có phần thập phân, xác suất hoặc phép tính xấp xỉ:
+`mapToDouble` returns a `DoubleStream` to compute over `double`. It suits measurements, fractional scores, probabilities, or approximate calculations:
 
 ```java
 import java.util.Arrays;
@@ -199,43 +199,43 @@ System.out.println(summary.getCount());   // 3
 System.out.println(summary.getAverage()); // 2.5
 ```
 
-Giống `mapToInt`, phép chuyển `Double::parseDouble` có thể ném ngoại lệ nếu dữ liệu không hợp lệ. `Double.parseDouble` cũng có thể chấp nhận các giá trị đặc biệt như `NaN` và `Infinity`; mô phỏng hoặc thống kê thường cần chính sách kiểm soát chúng.
+Like `mapToInt`, `Double::parseDouble` can throw an exception if input data is invalid. `Double.parseDouble` can also accept special values such as `NaN` and `Infinity`; simulations or statistics typically need a policy to control them.
 
-### Lưu ý độ chính xác của `double`
+### Precision note for `double`
 
-`double` là số dấu phẩy động nhị phân, có giới hạn độ chính xác. Kết quả `0.1 + 0.2` không nhất thiết biểu diễn chính xác giá trị thập phân `0.3`. `DoubleStream.sum()` không làm cho số thực trở thành số thập phân chính xác.
+`double` is a binary floating-point number with finite precision. The result of `0.1 + 0.2` does not necessarily represent the exact decimal value `0.3`. `DoubleStream.sum()` does not turn floating-point numbers into exact decimals.
 
 ```java
 import java.util.stream.DoubleStream;
 
 double result = DoubleStream.of(0.1, 0.2).sum();
-System.out.println(result == 0.3); // Không nên dùng == để kiểm tra thuật toán số thực
+System.out.println(result == 0.3); // Do not use == to test floating-point algorithms
 System.out.println(Math.abs(result - 0.3) < 1e-12); // true
 ```
 
-Ví dụ này minh họa cách so sánh bằng **ngưỡng sai số**. Ngưỡng phù hợp phải được chọn theo quy mô dữ liệu, tính chất phép toán và yêu cầu ứng dụng. Không mặc định `1e-12` phù hợp mọi bài toán.
+This example illustrates comparing using an **error tolerance**. An appropriate tolerance must be chosen based on data scale, operation characteristics, and application requirements. Do not assume `1e-12` fits every problem.
 
-Cần chú ý khi chuyển từ `long` sang `double`: mọi giá trị `int` đều biểu diễn chính xác bằng `double`, nhưng các `long` có độ lớn vượt quá giới hạn 53 bit của phần định trị có thể **mất thông tin nguyên**.
+Be careful when converting from `long` to `double`: every `int` value can be represented exactly as a `double`, yet `long` values whose magnitude exceeds the 53-bit significand limit can **lose integer precision**.
 
 ```java
 import java.util.stream.LongStream;
 
 long original = 9_007_199_254_740_993L; // 2^53 + 1
-double converted = LongStream.of(original)
+double asDouble = LongStream.of(original)
     .mapToDouble(value -> value)
     .findFirst()
     .orElseThrow(IllegalStateException::new);
 
-System.out.println((long) converted == original); // false
+System.out.println((long) asDouble == original); // false
 ```
 
-Vì thế, đừng chuyển `long` chứa mã định danh, số đếm lớn hoặc số tiền chính xác sang `double` chỉ để dùng `average` mà không cân nhắc sai số. Nếu cần độ chính xác thập phân tuyệt đối, có thể dùng `BigDecimal` cùng `Stream<BigDecimal>`, chấp nhận chi phí đối tượng và quy tắc làm tròn phù hợp.
+Therefore, do not convert `long` values holding identifiers, large counts, or exact monetary amounts into `double` merely to use `average` without considering precision loss. If absolute decimal precision is needed, `BigDecimal` with `Stream<BigDecimal>` can be used, accepting object overhead and explicit rounding rules.
 
-## 5. Chuyển đổi tiếp giữa ba primitive stream
+## 5. Further conversions between the three primitive streams
 
-Sau bước ánh xạ đầu tiên, ta đang làm việc với **primitive stream**, và các phương thức chuyển tiếp không hoàn toàn giống `Stream<T>`:
+After the first mapping step, you are working with a **primitive stream**, and the subsequent conversion methods are not identical to those on `Stream<T>`:
 
-| Nguồn hiện tại | Phương thức chuyển | Kết quả |
+| Current source | Conversion method | Result |
 | --- | --- | --- |
 | `IntStream` | `mapToLong(IntToLongFunction)` | `LongStream` |
 | `IntStream` | `mapToDouble(IntToDoubleFunction)` | `DoubleStream` |
@@ -246,7 +246,7 @@ Sau bước ánh xạ đầu tiên, ta đang làm việc với **primitive strea
 | `IntStream`, `LongStream`, `DoubleStream` | `mapToObj(...)` | `Stream<R>` |
 | `IntStream`, `LongStream`, `DoubleStream` | `boxed()` | `Stream<Integer>`, `Stream<Long>`, `Stream<Double>` |
 
-Với chuyển đổi mở rộng **không cần biến đổi logic**, `IntStream.asLongStream()`, `IntStream.asDoubleStream()` và `LongStream.asDoubleStream()` diễn đạt rõ hơn `mapToLong(n -> n)` hoặc `mapToDouble(n -> n)`.
+For widening conversions **with no transformation logic**, `IntStream.asLongStream()`, `IntStream.asDoubleStream()`, and `LongStream.asDoubleStream()` express intent more clearly than `mapToLong(n -> n)` or `mapToDouble(n -> n)`.
 
 ```java
 import java.util.stream.IntStream;
@@ -264,11 +264,11 @@ System.out.println(sumAsLong); // 5000050000
 System.out.println(mean);      // 3.0
 ```
 
-Lưu ý `asLongStream` chỉ mở rộng **từng phần tử** sang `long`; nó không thay đổi kết quả phép toán số nguyên nếu bạn đã tính toán và tràn trước bước chuyển.
+Note that `asLongStream` only widens **each individual element** to `long`; it does not fix integer arithmetic results if you already computed and overflowed prior to the conversion step.
 
-### Thu hẹp `long` hoặc `double` sang `int` cần có chủ đích
+### Narrowing `long` or `double` to `int` requires intent
 
-Các phương thức `mapToInt` cũng cho phép viết biểu thức ép kiểu. Tuy nhiên, từ `long` sang `int` có thể mất các bit cao; từ `double` sang `int` làm mất phần thập phân, `NaN` được chuyển thành 0 và giá trị ngoài phạm vi có thể bị chặn về giới hạn đầu mút theo quy tắc của Java.
+`mapToInt` methods also allow writing cast expressions. However, casting `long` to `int` can drop high bits; casting `double` to `int` truncates the fractional part, turns `NaN` into 0, and clamps out-of-range values to endpoint limits per Java rules.
 
 ```java
 import java.util.Arrays;
@@ -281,9 +281,9 @@ int[] truncated = DoubleStream.of(2.9, -2.9, 5.0)
 System.out.println(Arrays.toString(truncated)); // [2, -2, 5]
 ```
 
-Ép kiểu `(int) x` **cắt phần thập phân về phía 0**, không làm tròn đến số nguyên gần nhất. Nếu nghiệp vụ yêu cầu làm tròn, cần chọn rõ quy tắc như `Math.round` (trả về `long` đối với `double`), đồng thời xử lý biên và tràn kiểu khi cần chuyển tiếp.
+Casting `(int) x` **truncates the fractional part toward zero**, rather than rounding to the nearest integer. If business logic requires rounding, choose an explicit rule such as `Math.round` (which returns `long` for `double`), and handle boundary conditions and type overflow when converting further.
 
-### Chuyển trở lại object stream
+### Converting back to an object stream
 
 ```java
 import java.util.Arrays;
@@ -302,11 +302,11 @@ System.out.println(labels); // [item-1, item-2, item-3]
 System.out.println(boxed);  // [4, 5, 6]
 ```
 
-`mapToObj` tạo đối tượng mới theo quy tắc, còn `boxed` chỉ bọc các số nguyên thủy vào wrapper tương ứng. Dùng `boxed` khi API tiếp theo cần `Stream<Integer>` hoặc một `Collector` nhận đối tượng; tránh boxing nếu phần sau chỉ tính số.
+`mapToObj` creates a new object according to a rule, while `boxed` simply wraps primitive numbers into their corresponding wrappers. Use `boxed` when the next API requires `Stream<Integer>` or a `Collector` accepting objects; avoid boxing if subsequent steps only compute over numbers.
 
-## 6. Một phần tử thành một số: `mapTo*` khác `flatMapTo*`
+## 6. One element to one number: `mapTo*` vs. `flatMapTo*`
 
-`mapToInt`, `mapToLong` và `mapToDouble` luôn ánh xạ **một phần tử đầu vào sang một giá trị số**. Nếu một phần tử đầu vào có thể tạo **nhiều** số (hoặc không có số nào), dùng `flatMapToInt`, `flatMapToLong` hoặc `flatMapToDouble`.
+`mapToInt`, `mapToLong`, and `mapToDouble` always map **one input element to one numeric value**. If one input element can produce **multiple** numbers (or none), use `flatMapToInt`, `flatMapToLong`, or `flatMapToDouble`.
 
 ```java
 import java.util.Arrays;
@@ -330,11 +330,11 @@ System.out.println(Arrays.toString(batchSizes)); // [2, 1, 3]
 System.out.println(Arrays.toString(allValues));  // [2, 4, 7, 1, 3, 5]
 ```
 
-`mapToInt(batch -> batch.length)` lấy **một kích thước cho mỗi mảng**. `flatMapToInt(Arrays::stream)` trải các mảng thành **một dãy số duy nhất**. Chọn phương thức theo hình dạng dữ liệu đầu ra, không chỉ theo kiểu primitive mong muốn.
+`mapToInt(batch -> batch.length)` extracts **one size per array**. `flatMapToInt(Arrays::stream)` flattens the arrays into **a single sequence of numbers**. Choose the method by the output data shape, not solely by the desired primitive type.
 
-## 7. Tính lazy, lọc dữ liệu và xử lý lỗi
+## 7. Laziness, data filtering, and error handling
 
-`mapTo*` là **phép toán trung gian**: chỉ định cách tạo số, chưa thực thi ngay toàn bộ việc chuyển đổi. Pipeline bắt đầu duyệt khi có terminal operation.
+`mapTo*` is an **intermediate operation**: it specifies how to produce numbers without immediately executing the entire conversion. The pipeline begins traversing when a terminal operation is invoked.
 
 ```java
 import java.util.Arrays;
@@ -351,9 +351,9 @@ long total = raw.stream()
 System.out.println(total); // 30
 ```
 
-Điều kiện `filter` loại chuỗi rỗng trước `mapToLong`, nhưng chưa xử lý chuỗi như `"N/A"` hoặc số vượt `long`. Một luồng nhập liệu nghiêm túc nên xác định trước chính sách cho dữ liệu sai: báo lỗi, lưu danh sách bản ghi lỗi, hoặc loại bỏ có ghi nhận. Không nên bắt mọi `NumberFormatException` rồi thay bằng 0 nếu **0 là giá trị có ý nghĩa nghiệp vụ**, vì điều đó làm kết quả thống kê bị sai khó phát hiện.
+The `filter` condition removes empty strings before `mapToLong`, yet it does not handle strings like `"N/A"` or numbers exceeding `long`. A serious input pipeline should define a policy for malformed data upfront: throw an error, record failed entries, or drop them with logging. Do not catch every `NumberFormatException` and substitute 0 if **0 is a meaningful business value**, as that silently skews statistical results.
 
-### Giá trị `null` và unboxing
+### `null` values and unboxing
 
 ```java
 import java.util.Arrays;
@@ -367,13 +367,13 @@ long total = Arrays.asList(10, null, 20).stream()
 System.out.println(total); // 30
 ```
 
-Nếu dùng `Integer::intValue` hoặc `Integer::longValue` trên `null`, lambda sẽ ném `NullPointerException`. Primitive stream không có phần tử `null`; phải quyết định có bỏ, thay thế, hay từ chối giá trị thiếu **trước khi** chuyển kiểu.
+If `Integer::intValue` or `Integer::longValue` is invoked on `null`, the lambda will throw `NullPointerException`. Primitive streams do not hold `null` elements; you must decide whether to drop, substitute, or reject missing values **before** converting types.
 
-Các terminal operation có khả năng ngắn mạch như `findFirst`, `findAny`, `anyMatch` hoặc việc giới hạn bằng `limit` có thể khiến chỉ một phần nguồn được xử lý. Vì thế không dùng lambda của `mapTo*` để thực hiện hiệu ứng phụ phải chạy với mọi phần tử, như cập nhật sổ giao dịch.
+Short-circuiting terminal operations such as `findFirst`, `findAny`, `anyMatch`, or limiting with `limit` can cause only part of the source to be processed. Therefore, do not use a `mapTo*` lambda to perform side effects that must run for every element, such as updating a transaction ledger.
 
-## 8. Song song và hiệu năng: lợi ích có điều kiện
+## 8. Parallelism and performance: conditional benefits
 
-Primitive stream thường tránh được boxing/unboxing và giảm lượng đối tượng tạm khi dữ liệu là số. Điều đó **không tự bảo đảm** rằng mọi pipeline primitive đều nhanh hơn: hiệu năng còn phụ thuộc nguồn, chi phí ánh xạ, độ lớn dữ liệu, số lần phân bổ, tối ưu của JVM và bộ lập lịch song song.
+Primitive streams generally avoid boxing/unboxing and reduce temporary objects when data is numeric. That **does not guarantee** every primitive pipeline is faster: performance also depends on the source, mapping cost, data volume, allocation count, JVM optimizations, and parallel scheduler.
 
 ```java
 import java.util.stream.IntStream;
@@ -386,37 +386,37 @@ long sumOfSquares = IntStream.rangeClosed(1, 100_000)
 System.out.println(sumOfSquares); // 333338333350000
 ```
 
-Trong ví dụ này, hàm ánh xạ chỉ phụ thuộc vào tham số `n`; từng phần tử có thể tính độc lập. Phép cộng `long` kết hợp các phần tử cho kết quả xác định **khi tổng không tràn**. Tuy nhiên, `parallel()` có chi phí chia việc và gộp kết quả; với nguồn nhỏ, tuần tự có thể nhanh hơn.
+In this example, the mapping function depends only on its parameter `n`; each element can be computed independently. `long` addition combines elements deterministically **when the sum does not overflow**. However, `parallel()` has work-splitting and result-merging overhead; for small sources, sequential execution can be faster.
 
-Để kết quả đúng và dễ dự đoán:
+For correct and predictable results:
 
-1. Giữ hàm ánh xạ **không can thiệp vào nguồn** (*non-interfering*) và **không dùng trạng thái chia sẻ có thể thay đổi** (*stateless*) khi có thể.
-2. Không thay đổi collection nguồn trong lúc pipeline đang duyệt.
-3. Không dùng `peek`, `mapToInt` hay `mapToDouble` để tăng một biến đếm dùng chung rồi xem nó là kết quả chính.
-4. Khi dùng `reduce` tự viết, chọn phép kết hợp và phần tử đơn vị đúng hợp đồng; phép trừ không phải ví dụ phù hợp cho reduction song song.
-5. Với `DoubleStream`, chấp nhận rằng kết quả số thực có thể khác rất nhỏ theo thứ tự và cách gộp phần tử. Khi tính tài chính cần độ chính xác, cân nhắc mô hình số khác.
+1. Keep mapping functions **non-interfering** and **stateless** whenever possible.
+2. Do not mutate the source collection while the pipeline is traversing it.
+3. Do not use `peek`, `mapToInt`, or `mapToDouble` to increment a shared counter and treat that as the primary result.
+4. When using a custom `reduce`, choose an associative operation and an identity that satisfy the contract; subtraction is not a suitable example for parallel reduction.
+5. With `DoubleStream`, accept that floating-point results can differ slightly depending on element ordering and combination strategy. When financial calculations require exact precision, consider another numeric model.
 
-## 9. Chọn phương thức theo ý định
+## 9. Choosing a method by intent
 
-| Nhu cầu | Pipeline đề xuất | Điểm cần kiểm tra |
+| Need | Suggested pipeline | Points to check |
 | --- | --- | --- |
-| Tổng độ dài các chuỗi | `stream.mapToInt(String::length).sum()` | Tổng có vượt `int` không? |
-| Tổng lượng truy cập rất lớn | `stream.mapToLong(Integer::longValue).sum()` | Có phải chuyển sang `long` **trước** phép cộng không? |
-| Trung bình giá trị đo | `stream.mapToDouble(...).average()` | `OptionalDouble` rỗng, `NaN`, sai số. |
-| Thống kê min/max/count/sum/average | `mapToInt(...).summaryStatistics()` hoặc kiểu tương ứng | Dữ liệu rỗng và phạm vi kiểu số. |
-| Chuyển `IntStream` thành `LongStream` đơn thuần | `intStream.asLongStream()` | Có bước tính toán nào đã tràn trước đó không? |
-| Tạo chuỗi nhãn từ số | `intStream.mapToObj(...)` | Cần stream đối tượng, không phải primitive. |
-| Gộp nhiều mảng `int[]` | `stream.flatMapToInt(Arrays::stream)` | Một nguồn có thể sinh nhiều phần tử. |
-| Tập hợp các giá trị nguyên thành `List<Integer>` | `intStream.boxed().collect(...)` | Chấp nhận chi phí boxing khi cần collection đối tượng. |
+| Total length of strings | `stream.mapToInt(String::length).sum()` | Could the sum exceed `int`? |
+| Total of very large view counts | `stream.mapToLong(Integer::longValue).sum()` | Was conversion to `long` done **before** addition? |
+| Average of measured values | `stream.mapToDouble(...).average()` | Empty `OptionalDouble`, `NaN`, rounding error. |
+| Min/max/count/sum/average stats | `mapToInt(...).summaryStatistics()` or matching type | Empty data and numeric type bounds. |
+| Plain widening from `IntStream` to `LongStream` | `intStream.asLongStream()` | Did any prior calculation already overflow? |
+| Generating label strings from numbers | `intStream.mapToObj(...)` | Need an object stream, not primitive. |
+| Flattening multiple `int[]` arrays | `stream.flatMapToInt(Arrays::stream)` | One source element can yield multiple elements. |
+| Collecting integers into `List<Integer>` | `intStream.boxed().collect(...)` | Accept boxing cost when an object collection is required. |
 
-### Bài tập thực hành
+### Practice exercises
 
-**Bài 1.** Cho `List<String> texts = Arrays.asList("A", "Java", "Stream")`. Dùng `mapToInt` lấy độ dài, sau đó tính tổng và trung bình. Dự đoán kết quả **11** và **11 / 3.0**. Giải thích vì sao `average` trả `OptionalDouble`.
+**Exercise 1.** Given `List<String> texts = Arrays.asList("A", "Java", "Stream")`, use `mapToInt` to get lengths, then compute sum and average. Predict the results **11** and **11 / 3.0**. Explain why `average` returns `OptionalDouble`.
 
-**Bài 2.** Cho `List<Integer> quantities = Arrays.asList(2_000_000_000, 2_000_000_000)`. Tính tổng bằng `mapToLong`, so sánh với `mapToInt`. Vì sao chuyển sang `long` *sau khi* đã gọi `IntStream.sum()` không sửa được kết quả tràn?
+**Exercise 2.** Given `List<Integer> quantities = Arrays.asList(2_000_000_000, 2_000_000_000)`, compute the sum using `mapToLong`, and compare with `mapToInt`. Why does converting to `long` *after* calling `IntStream.sum()` fail to fix the overflowed result?
 
-**Bài 3.** Cho các số thực `2.2`, `-2.2`, `5.9`. Dùng `DoubleStream.mapToInt(x -> (int) x)` rồi in mảng. So sánh với việc dùng `Math.round` và lý giải vì sao hai thao tác có ngữ nghĩa khác nhau.
+**Exercise 3.** Given floating-point numbers `2.2`, `-2.2`, `5.9`, use `DoubleStream.mapToInt(x -> (int) x)` and print the array. Compare with using `Math.round` and explain why the two operations have different semantics.
 
-**Bài 4.** Cho `List<int[]>` gồm `[1, 2]`, `[]`, `[3, 4, 5]`. Dùng `mapToInt` để lấy kích thước mỗi mảng, sau đó dùng `flatMapToInt` để gom toàn bộ số thành một `IntStream`. Dự đoán kết quả của mỗi pipeline.
+**Exercise 4.** Given a `List<int[]>` containing `[1, 2]`, `[]`, `[3, 4, 5]`, use `mapToInt` to get the size of each array, then use `flatMapToInt` to collect all numbers into a single `IntStream`. Predict the result of each pipeline.
 
-**Ghi nhớ:** `mapToInt`, `mapToLong`, `mapToDouble` chuyển các đối tượng đầu vào thành phần tử số nguyên thủy để tiếp tục xử lý bằng `IntStream`, `LongStream`, `DoubleStream`. Chọn kiểu theo **phạm vi giá trị và phép tính tiếp theo**, xử lý dữ liệu thiếu hoặc lỗi trước khi chuyển, chú ý tràn số nguyên và sai số số thực, rồi mới cân nhắc tối ưu hiệu năng hoặc chạy song song.
+**Takeaway:** `mapToInt`, `mapToLong`, and `mapToDouble` convert input objects into primitive numeric elements for further processing with `IntStream`, `LongStream`, and `DoubleStream`. Choose the type according to **value range and subsequent operations**, handle missing or invalid data before converting, watch out for integer overflow and floating-point precision error, and only then consider performance optimization or parallel execution.

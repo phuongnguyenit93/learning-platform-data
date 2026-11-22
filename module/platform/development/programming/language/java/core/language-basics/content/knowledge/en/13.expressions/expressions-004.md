@@ -1,8 +1,8 @@
-# Dùng dấu ngoặc để làm rõ ý định — Java 17+
+# Using Parentheses to Make Intent Clear — Java 17+
 
-## 1. Vì sao cần dấu ngoặc trong biểu thức?
+## 1. Why Use Parentheses in Expressions?
 
-Trong Java, **dấu ngoặc tròn `(...)` dùng để phân nhóm một biểu thức con**, làm rõ thao tác nào được thực hiện chung trước khi kết hợp với các phần còn lại. Dấu ngoặc giúp người đọc nhận ra ý định của tác giả và đôi khi **thay đổi kết quả phép tính**.
+In Java, **parentheses `(...)` are used to group a sub-expression**, making clear which operations are performed together before combining with the remaining parts. Parentheses help readers recognize the author's intent and sometimes **change the result of a calculation**.
 
 ~~~java
 int a = 10;
@@ -14,34 +14,34 @@ System.out.println(a + (b * c));   // 16
 System.out.println((a + b) * c);   // 26
 ~~~
 
-- `a + b * c`: phép nhân có mức ưu tiên cao hơn phép cộng.
-- `a + (b * c)`: dấu ngoặc **làm rõ** đúng cách nhóm vốn có, không đổi kết quả.
-- `(a + b) * c`: dấu ngoặc **thay đổi nhóm phép toán**, khiến cộng trước, nhân sau.
+- `a + b * c`: multiplication has higher precedence than addition.
+- `a + (b * c)`: parentheses **clarify** the existing grouping without changing the result.
+- `(a + b) * c`: parentheses **change the grouping of operations**, causing addition first, multiplication second.
 
-**Nguyên tắc:** hiểu thứ tự ưu tiên mặc định, rồi dùng dấu ngoặc để biểu đạt rõ ý định. Đừng thêm ngoặc ngẫu nhiên để chữa một kết quả sai mà chưa xác định nguyên nhân.
+**Rule of thumb:** understand default precedence, then use parentheses to express intent clearly. Do not add parentheses randomly to fix a wrong result without identifying the cause.
 
-## 2. Dấu ngoặc nhóm biểu thức không phải “ép kiểu”
+## 2. Grouping Parentheses Are Not "Type Casting"
 
-Hai cú pháp này khác nhau:
+These two syntaxes are different:
 
 ~~~java
 double x = 7.9;
-double grouped = (x);   // Nhóm biểu thức x: vẫn double
-int converted = (int) x; // Cast: yêu cầu chuyển double sang int
+double grouped = (x);   // Groups expression x: still double
+int converted = (int) x; // Cast: requests converting double to int
 
 System.out.println(grouped);   // 7.9
 System.out.println(converted); // 7
 ~~~
 
-- `(x)` là **biểu thức được đặt trong ngoặc**: kiểu và giá trị của `x` được giữ theo ngữ cảnh thông thường.
-- `(int) x` là **cast expression**: `int` là tên kiểu, có tác dụng chuyển đổi và có thể làm mất phần thập phân.
-- `method(a, b)`, `if (condition)`, `while (condition)` cũng dùng ngoặc theo **cú pháp lời gọi/điều khiển**, không nhất thiết là thao tác thay đổi ưu tiên.
+- `(x)` is a **parenthesized expression**: the type and value of `x` are preserved according to the usual context.
+- `(int) x` is a **cast expression**: `int` is a type name, performing a conversion that may discard the fractional part.
+- `method(a, b)`, `if (condition)`, and `while (condition)` also use parentheses as **invocation/control-flow syntax**, not necessarily as precedence-altering grouping.
 
-Vì vậy cần nhìn vào **vị trí ngoặc và phần nằm trong ngoặc** trước khi giải thích.
+Therefore, inspect the **position of parentheses and what sits inside them** before interpreting an expression.
 
-## 3. Dùng kiến thức precedence vừa đủ để đặt ngoặc
+## 3. Use Just Enough Precedence Knowledge to Place Parentheses
 
-Java ưu tiên truy cập/hậu tố và toán tử một ngôi trước nhân/chia, rồi cộng/trừ, so sánh, logic `&&`, `||`, điều kiện `?:` và phép gán. Các toán tử cùng mức còn có quy tắc kết hợp; chẳng hạn `*` và `/` nhóm từ trái sang phải:
+Java gives member access/postfix and unary operators higher precedence than multiplication/division, followed by addition/subtraction, comparisons, logical `&&`, `||`, conditional `?:`, and assignment. Operators at the same level also have associativity rules; for instance, `*` and `/` group left to right:
 
 ~~~java
 int x = 20, y = 5, z = 2;
@@ -49,11 +49,11 @@ System.out.println(x / y * z);   // 8: (20 / 5) * 2
 System.out.println(x / (y * z)); // 2: 20 / 10
 ~~~
 
-Khi công thức có nhiều nhóm điều kiện hay phép tính, đặt ngoặc theo **ý nghĩa** cần biểu đạt. Người đọc sẽ thấy rõ ý định mà không phải nhớ mọi mức ưu tiên. Dấu ngoặc thay đổi nhóm khi cần, nhưng không tự đảo thứ tự đánh giá toán hạng có tác dụng phụ.
+When a formula has multiple groups of conditions or calculations, place parentheses according to the **meaning** you want to convey. Readers will see the intent clearly without memorizing every precedence level. Parentheses alter grouping when needed, but they do not reverse the evaluation order of operands with side effects.
 
-## 4. Dùng ngoặc để tách công thức thành các ý nghĩa
+## 4. Use Parentheses to Separate Meaningful Parts of a Formula
 
-Giả sử giá trị cần tính là **tổng giá và phí**, sau đó nhân số lượng:
+Suppose the value to compute is **the sum of price and fee**, then multiplied by quantity:
 
 ~~~java
 int unitPrice = 40;
@@ -64,27 +64,27 @@ int total = (unitPrice + fee) * quantity;
 System.out.println(total); // 135
 ~~~
 
-Nếu bỏ ngoặc:
+If you omit parentheses:
 
 ~~~java
 int incorrect = unitPrice + fee * quantity;
 System.out.println(incorrect); // 55
 ~~~
 
-Công thức ban đầu `(40 + 5) * 3` khác `40 + (5 * 3)`. Ở đây ngoặc **thay đổi hành vi** chứ không chỉ trang trí.
+The original formula `(40 + 5) * 3` differs from `40 + (5 * 3)`. Here parentheses **change behavior**, not just decoration.
 
-Với biểu thức dài, bạn cũng có thể đặt tên cho kết quả trung gian:
+For long expressions, you can also name intermediate results:
 
 ~~~java
 int priceWithFee = unitPrice + fee;
 int explicitTotal = priceWithFee * quantity;
 ~~~
 
-Cách tách biến thường phù hợp khi mỗi phép tính mang một ý nghĩa nghiệp vụ riêng; dấu ngoặc hữu ích khi biểu thức vẫn đủ ngắn.
+Extracting variables works well when each calculation carries a distinct business meaning; parentheses are useful when the expression remains short enough.
 
-## 5. Ngoặc không biến phép chia nguyên thành phép chia thực
+## 5. Parentheses Do Not Turn Integer Division into Floating-Point Division
 
-Một bẫy thường gặp là phép chia nguyên:
+A common trap is integer division:
 
 ~~~java
 int a = 7;
@@ -97,25 +97,25 @@ System.out.println(wrong); // 3.0
 System.out.println(right); // 3.5
 ~~~
 
-Ngoặc `(a / b)` **không thay đổi kiểu toán hạng**. Vì `a` và `b` đều là `int`, biểu thức chia có kiểu `int`, nhận giá trị 3; khi gán sang `double` mới thành 3.0.
+The parentheses `(a / b)` **do not change operand types**. Because both `a` and `b` are `int`, the division expression has type `int` and evaluates to 3; only when assigned to `double` does it become 3.0.
 
-Ở `((double) a) / b`, `a` được cast thành double **trước khi chia**, nên phép chia sử dụng kiểu `double` và cho 3.5.
+In `((double) a) / b`, `a` is cast to `double` **before dividing**, so division uses type `double` and produces 3.5.
 
-Bảng so sánh:
+Comparison table:
 
-| Biểu thức | Kiểu của phép chia | Giá trị cuối |
+| Expression | Division type | Final value |
 |---|---|---|
 | `7 / 2` | `int` | `3` |
 | `(7 / 2)` | `int` | `3` |
-| `(double) (7 / 2)` | `int`, sau đó cast `double` | `3.0` |
+| `(double) (7 / 2)` | `int`, then cast to `double` | `3.0` |
 | `((double) 7) / 2` | `double` | `3.5` |
 | `7 / 2.0` | `double` | `3.5` |
 
-**Bài học:** dùng ngoặc cho **thứ tự nhóm**, dùng cast/literal đúng kiểu cho **chọn phép toán số học**.
+**Lesson:** use parentheses for **grouping order**, and use casts/literals of the right type to **select the arithmetic operation**.
 
-## 6. Nối chuỗi: dấu ngoặc phân biệt cộng số và ghép văn bản
+## 6. String Concatenation: Parentheses Distinguish Number Addition from Text Joining
 
-Trong Java, `+` còn nối chuỗi khi có `String`. Phép `+` kết hợp trái:
+In Java, `+` also concatenates strings when a `String` is present. The `+` operator is left-associative:
 
 ~~~java
 int a = 10;
@@ -126,21 +126,21 @@ System.out.println("sum=" + (a + b));  // sum=13
 System.out.println((a + b) + " items"); // 13 items
 ~~~
 
-Ở dòng đầu, Java nhóm như `("sum=" + a) + b`: sau khi nối String với 10, phần tiếp theo lại tiếp tục nối với 3.
+On the first line, Java groups as `("sum=" + a) + b`: after concatenating `String` with 10, the next step concatenates with 3.
 
-Ở dòng hai, `(a + b)` thực hiện phép cộng số trước. Trong log, thông báo lỗi hoặc báo cáo, dấu ngoặc này giúp tránh các giá trị **trông hợp lệ nhưng thực tế bị ghép sai**.
+On the second line, `(a + b)` performs numeric addition first. In logs, error messages, or reports, these parentheses prevent values that **look valid but are actually concatenated wrong**.
 
-**Một quy ước dễ đọc:**
+**A readable convention:**
 
 ~~~java
 String summary = "total=" + (a + b);
 ~~~
 
-Nếu chuỗi đầu ra chứa nhiều phép tính, nên đặt các phép tính trong ngoặc hoặc tính chúng vào biến có tên trước khi ghép.
+If an output string contains multiple calculations, put the calculations in parentheses or compute them into named variables before concatenating.
 
-## 7. Điều kiện phức hợp: ngoặc biểu thị quy tắc truy cập
+## 7. Compound Conditions: Parentheses Express Access Rules
 
-Giả sử một thao tác được phép khi **tài khoản đang hoạt động** và người dùng **là quản trị viên hoặc có token hợp lệ**:
+Suppose an action is permitted when **the account is active** and the user **is an administrator or has a valid token**:
 
 ~~~java
 boolean isAdmin = true;
@@ -151,16 +151,16 @@ boolean correct = (isAdmin || hasToken) && active;
 System.out.println(correct); // false
 ~~~
 
-Nếu viết:
+If written as:
 
 ~~~java
 boolean misleading = isAdmin || hasToken && active;
 System.out.println(misleading); // true
 ~~~
 
-Do `&&` ưu tiên cao hơn `||`, cách viết không có ngoặc được nhóm thành `isAdmin || (hasToken && active)`: quản trị viên sẽ vượt qua điều kiện `active`.
+Because `&&` has higher precedence than `||`, the unparenthesized version groups as `isAdmin || (hasToken && active)`: an administrator bypasses the `active` check.
 
-Dấu ngoặc ở `(isAdmin || hasToken) && active` **định nghĩa chính xác ý định**: điều kiện hoạt động bắt buộc đối với cả hai cách được cấp quyền.
+Parentheses in `(isAdmin || hasToken) && active` **precisely define the intent**: the active condition is mandatory for both authorization paths.
 
 | isAdmin | hasToken | active | `isAdmin || (hasToken && active)` | `(isAdmin || hasToken) && active` |
 |---|---|---|---|---|
@@ -169,30 +169,30 @@ Dấu ngoặc ở `(isAdmin || hasToken) && active` **định nghĩa chính xác
 | false | true | false | false | false |
 | true | false | true | true | true |
 
-**Quy tắc review:** với biểu thức pha trộn `&&` và `||`, thêm ngoặc xung quanh từng nhóm điều kiện theo ý nghĩa nghiệp vụ, kể cả khi bạn nhớ chính xác mức ưu tiên.
+**Review rule:** for expressions mixing `&&` and `||`, wrap each business-meaningful condition group in parentheses, even when you know the exact precedence.
 
-## 8. Dùng ngoặc để chỉ rõ điều kiện bảo vệ
+## 8. Use Parentheses to Highlight Guard Conditions
 
 ~~~java
 int divisor = 0;
-boolean safe = (divisor != 0) && (10 / divisor > 1); // false, không chia 0
+boolean safe = (divisor != 0) && (10 / divisor > 1); // false, no division by 0
 String name = null;
-boolean hasName = (name != null) && (!name.isBlank()); // false, không NPE
+boolean hasName = (name != null) && (!name.isBlank()); // false, no NPE
 ~~~
 
-Ngoặc cho biết vế phải phụ thuộc điều kiện guard ở vế trái; **toán tử `&&`** mới là cơ chế bỏ qua vế phải khi vế trái false. Nếu thay bằng boolean `&`, cả hai phía vẫn được đánh giá khi bình thường, dù thêm bao nhiêu ngoặc. Với `||`, vế phải bị bỏ qua khi vế trái true.
+Parentheses indicate that the right side depends on the guard condition on the left; **the `&&` operator** is what actually skips the right side when the left side is false. If replaced with boolean `&`, both sides are still evaluated under normal execution regardless of how many parentheses you add. With `||`, the right side is skipped when the left side is true.
 
-## 9. Khoảng giá trị: đừng viết so sánh dây chuyền kiểu toán học
+## 9. Value Ranges: Do Not Write Chained Mathematical Comparisons
 
-Toán học thường viết \(1 \le x \le 10\), nhưng Java không cho diễn đạt tương đương bằng:
+Mathematics often writes \(1 \le x \le 10\), but Java does not allow expressing the equivalent as:
 
 ~~~java
-// 1 <= x <= 10   // Lỗi biên dịch
+// 1 <= x <= 10   // Compile error
 ~~~
 
-Vì `1 <= x` tạo kết quả `boolean`, không thể tiếp tục so `boolean <= 10`.
+Because `1 <= x` produces a `boolean` result, you cannot continue comparing `boolean <= 10`.
 
-Cách diễn đạt rõ ràng là:
+The clear way to express it is:
 
 ~~~java
 int x = 5;
@@ -201,11 +201,11 @@ boolean inRange = (x >= 1) && (x <= 10);
 System.out.println(inRange); // true
 ~~~
 
-Ở đây ngoặc tách **hai điều kiện có kiểu boolean** và `&&` kết hợp chúng. Đây là một kiểu phân nhóm làm code gần với ngôn ngữ tự nhiên hơn: “x từ 1 trở lên” **và** “x không vượt 10”.
+Here parentheses separate **two boolean conditions** and `&&` combines them. This style of grouping brings code closer to natural language: "x is at least 1" **and** "x does not exceed 10."
 
-## 10. Biểu thức `?:`: phân nhóm nhánh có chủ đích
+## 10. Conditional `?:` Expressions: Intentional Branch Grouping
 
-Toán tử điều kiện ba ngôi `condition ? first : second` chọn **một trong hai nhánh** theo điều kiện boolean.
+The ternary conditional operator `condition ? first : second` chooses **one of two branches** based on a boolean condition.
 
 ~~~java
 int score = 82;
@@ -215,9 +215,9 @@ String grade = (score >= 90) ? "A"
 System.out.println(grade); // B
 ~~~
 
-Dấu ngoặc làm rõ cấu trúc “nếu đạt 90 thì A, nếu không nhưng đạt 70 thì B, nếu không thì C”.
+Parentheses clarify the structure: "if at least 90 then A; otherwise if at least 70 then B; otherwise C."
 
-Với nhiều cấp phân nhánh, một khối `if / else if / else` có thể dễ bảo trì hơn:
+With multiple branching levels, an `if / else if / else` block can be easier to maintain:
 
 ~~~java
 String grade;
@@ -230,24 +230,24 @@ if (score >= 90) {
 }
 ~~~
 
-**Không cần ép mọi ý định vào một biểu thức `?:` lớn.** Chọn ngoặc, biến trung gian hoặc câu lệnh điều khiển tùy mức độ rõ ràng.
+**There is no need to force every intent into one large `?:` expression.** Choose parentheses, intermediate variables, or control-flow statements depending on clarity.
 
-## 11. Ngoặc không loại bỏ tác dụng phụ
+## 11. Parentheses Do Not Eliminate Side Effects
 
 ~~~java
 int n = 1;
 int value = (n++) + 2;
-System.out.println(value); // 3: dùng giá trị cũ
-System.out.println(n);     // 2: biến đã tăng
+System.out.println(value); // 3: uses old value
+System.out.println(n);     // 2: variable has incremented
 ~~~
 
-Dấu ngoặc cho thấy `n++` là biểu thức con nhưng không khiến nó trả giá trị sau tăng. Tương tự, `(x = 4)` vẫn thực hiện gán. Khi một công thức có nhiều cập nhật trạng thái hoặc lời gọi method có side effect, hãy tách thành bước rõ ràng để dễ debug và tránh đổi hành vi trong lúc refactor.
+Parentheses show that `n++` is a sub-expression, but they do not make it return the post-incremented value. Similarly, `(x = 4)` still performs the assignment. When a formula has multiple state updates or method calls with side effects, split them into clear steps for easier debugging and to avoid behavior changes during refactoring.
 
-## 12. Lưu ý về thứ tự đánh giá trong Java
+## 12. Note on Evaluation Order in Java
 
-Java xác định thứ tự đánh giá toán hạng cho nhiều cấu trúc, ví dụ các toán hạng của toán tử nhị phân được đánh giá theo thứ tự **từ trái sang phải**. Nhưng dấu ngoặc phân nhóm quyết định **phép toán nào kết hợp với phép toán nào**, và có thể ảnh hưởng tới giá trị cuối hoặc cấu trúc đánh giá.
+Java specifies operand evaluation order for many constructs—for example, operands of binary operators are evaluated **from left to right**. Grouping parentheses determine **which operation combines with which**, and can affect the final value or evaluation structure.
 
-Ví dụ không có tác dụng phụ:
+Example without side effects:
 
 ~~~java
 int a = 2, b = 3, c = 4;
@@ -255,22 +255,22 @@ System.out.println(a + b * c);   // 14
 System.out.println((a + b) * c); // 20
 ~~~
 
-Đừng xem “thứ tự ưu tiên” như lời cho phép compiler **tự ý đổi thứ tự mọi lời gọi có tác dụng phụ** theo cách làm chương trình đổi nghĩa. Và cũng đừng dùng dấu ngoặc để che các đoạn như `x++ + ++x`; nên tách thành nhiều câu lệnh.
+Do not treat "precedence" as permission for the compiler to **arbitrarily reorder calls with side effects** in ways that change program meaning. And do not use parentheses to disguise snippets like `x++ + ++x`; split them into separate statements instead.
 
-**Khuyến nghị:** một biểu thức nên ưu tiên **một ý định rõ ràng**, nhất là khi có gán, tăng/giảm, thay đổi trạng thái hay method tạo side effect.
+**Recommendation:** an expression should prioritize **one clear intent**, especially when involving assignment, increment/decrement, state mutation, or methods with side effects.
 
-## 13. Ngoặc không tự khắc phục tràn số nguyên
+## 13. Parentheses Do Not Fix Integer Overflow on Their Own
 
 ~~~java
 long wrong = (2_000_000_000 + 2_000_000_000); // -294967296
 long right = ((long) 2_000_000_000) + 2_000_000_000; // 4000000000
 ~~~
 
-Dòng đầu cộng hai `int` nên tràn trước khi gán vào `long`. Dòng sau chuyển một toán hạng sang `long` **trước phép cộng**. Ngoặc chỉ nhóm, cast thay đổi kiểu; cần `Math.addExact` hoặc kiểm tra giới hạn nếu nghiệp vụ phải phát hiện overflow.
+The first line adds two `int`s, so it overflows before assigning to `long`. The second line converts one operand to `long` **before addition**. Parentheses only group; casts change types; use `Math.addExact` or bounds checks if business logic must detect overflow.
 
-## 14. Ngoặc có thể thay đổi kết quả dấu phẩy động
+## 14. Parentheses Can Change Floating-Point Results
 
-Trong số học số thực nhị phân, một số phép toán không có tính kết hợp toán học tuyệt đối do **làm tròn sau từng bước**:
+In binary floating-point arithmetic, some operations are not strictly mathematically associative due to **step-by-step rounding**:
 
 ~~~java
 double left = (1.0e16 + -1.0e16) + 1.0;
@@ -280,30 +280,30 @@ System.out.println(left);  // 1.0
 System.out.println(right); // 0.0
 ~~~
 
-Dòng đầu: `1.0e16 + -1.0e16` được 0.0, sau đó cộng 1.0. Dòng sau: `-1.0e16 + 1.0` được làm tròn thành `-1.0e16` vì 1 quá nhỏ so với độ lớn ấy; cộng với `1.0e16` được 0.0.
+First line: `1.0e16 + -1.0e16` gives 0.0, then adding 1.0 gives 1.0. Second line: `-1.0e16 + 1.0` rounds to `-1.0e16` because 1 is too small relative to that magnitude; adding `1.0e16` gives 0.0.
 
-**Vì vậy không nên bỏ/di chuyển ngoặc tùy tiện trong biểu thức `float`/`double` với lý do “cộng có tính kết hợp”.** Việc đổi nhóm có thể đổi kết quả làm tròn ngay cả khi không có exception.
+**Therefore, do not casually remove or move parentheses in `float`/`double` expressions under the assumption that "addition is associative."** Regrouping can change rounding outcomes even without an exception.
 
-Nếu cần decimal chính xác, cần xem xét mô hình dữ liệu/thuật toán phù hợp như `BigDecimal`; thêm ngoặc **không tự biến `double` thành số thập phân chính xác**.
+If exact decimal arithmetic is needed, consider an appropriate data model/algorithm such as `BigDecimal`; adding parentheses **does not turn `double` into an exact decimal type**.
 
-## 15. Các loại dấu ngoặc tròn cần phân biệt
+## 15. Kinds of Parentheses to Distinguish
 
-| Cú pháp | Vai trò |
+| Syntax | Role |
 |---|---|
-| `(a + b) * c` | Phân nhóm biểu thức, thay đổi thứ tự kết hợp |
-| `a + (b * c)` | Phân nhóm để thể hiện thứ tự ưu tiên vốn có |
-| `(double) a / b` | **Cast**, ảnh hưởng kiểu phép chia |
-| `if (ready)` | Cú pháp điều kiện của câu lệnh `if` |
-| `while (ready)` | Cú pháp điều kiện của câu lệnh `while` |
-| `Math.max(a, b)` | Ngoặc bao danh sách đối số gọi method |
-| `new Box(7)` | Ngoặc truyền đối số cho constructor |
-| `(condition) ? x : y` | Phân nhóm điều kiện, tăng dễ đọc |
+| `(a + b) * c` | Groups sub-expression, changing associativity/combination order |
+| `a + (b * c)` | Groups to show existing precedence |
+| `(double) a / b` | **Cast**, affects the type of division |
+| `if (ready)` | Condition syntax of the `if` statement |
+| `while (ready)` | Condition syntax of the `while` statement |
+| `Math.max(a, b)` | Parentheses enclosing a method call's argument list |
+| `new Box(7)` | Parentheses passing constructor arguments |
+| `(condition) ? x : y` | Groups the condition for readability |
 
-Các dấu ngoặc này có hình dạng tương tự nhưng **không có cùng ngữ nghĩa**. Khi đọc code, hãy xác định cấu trúc Java đang được sử dụng trước khi suy luận kết quả.
+These parentheses look similar in shape yet **do not share the same semantics**. When reading code, identify which Java construct is being used before deducing the result.
 
-## 16. Chương trình Java 17 hoàn chỉnh
+## 16. Complete Java 17 Program
 
-Tạo đúng tệp **`ParenthesesIntentDemo.java`**:
+Create the exact file **`ParenthesesIntentDemo.java`**:
 
 ~~~java
 public final class ParenthesesIntentDemo {
@@ -377,7 +377,7 @@ public final class ParenthesesIntentDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 hoặc mới hơn. Mở terminal ở thư mục chứa `ParenthesesIntentDemo.java`; không cần Maven, Gradle hoặc thư viện bên ngoài JDK.
+**Requirements:** JDK 17 or newer. Open a terminal in the folder containing `ParenthesesIntentDemo.java`; no Maven, Gradle, or external libraries outside the JDK are needed.
 
 **Bash (Linux/macOS):**
 
@@ -422,62 +422,62 @@ floating left=1.0
 floating right=0.0
 ~~~
 
-**Giải thích các dòng quan trọng:**
+**Explanation of key lines:**
 
-- `default arithmetic` và `explicit precedence` đều 16 vì phép nhân vốn ưu tiên cao hơn cộng.
-- `grouped arithmetic` ra 26 vì nhóm phép cộng trước; `grouped division` ra 6 vì `(10+3)/2` là chia nguyên.
-- `late cast` vẫn 3.0 vì phép chia int đã xảy ra; `early cast` ra 3.5 khi chuyển toán hạng trước.
-- `concat plain` ra `x=103`, nhưng `concat grouped` ra `x=13` vì phép cộng số được nhóm.
-- `boolean default=true` có thể là logic sai nếu mọi truy cập đều cần `active`; `boolean grouped=false` thể hiện đúng điều kiện bắt buộc đó.
-- `safe division` và `safe text` không ném exception nhờ short-circuit.
-- `postfix result` là 3 vì `n++` đóng góp giá trị cũ 1; `assignment target` và `assignment result` minh họa phép gán có giá trị.
-- `overflow before long` chứng minh ngoặc không chữa overflow; `long arithmetic` dùng cast trước phép cộng.
-- Hai dòng `floating` cho thấy đổi cách nhóm trong floating-point có thể đổi kết quả làm tròn.
+- `default arithmetic` and `explicit precedence` are both 16 because multiplication naturally takes precedence over addition.
+- `grouped arithmetic` yields 26 because addition is grouped first; `grouped division` yields 6 because `(10+3)/2` is integer division.
+- `late cast` remains 3.0 because integer division already happened; `early cast` yields 3.5 by converting an operand beforehand.
+- `concat plain` yields `x=103`, whereas `concat grouped` yields `x=13` because numeric addition is grouped.
+- `boolean default=true` can be a logic bug if every access requires `active`; `boolean grouped=false` expresses that mandatory condition accurately.
+- `safe division` and `safe text` throw no exception thanks to short-circuiting.
+- `postfix result` is 3 because `n++` contributes the old value 1; `assignment target` and `assignment result` illustrate that assignment has a value.
+- `overflow before long` proves parentheses do not fix overflow; `long arithmetic` uses a cast before addition.
+- The two `floating` lines show that changing grouping in floating-point arithmetic can change rounding results.
 
-## 17. Khi nào nên thêm ngoặc?
+## 17. When Should You Add Parentheses?
 
-Nên thêm ngoặc khi:
+Add parentheses when:
 
-- Pha trộn **`&&` và `||`** để minh họa quy tắc nghiệp vụ.
-- Ghép **String với một phép tính** cần cộng/trừ/nhân/chia trước.
-- Một công thức có **nhiều nhóm có ý nghĩa riêng**, ví dụ `(unitPrice + fee) * quantity`.
-- Sử dụng **`?:` lồng nhau** và vẫn muốn giữ biểu thức ngắn, dễ kiểm tra.
-- Muốn giữ rõ cách nhóm của các phép toán floating-point nhạy với làm tròn.
-- Code review cho thấy người đọc dễ nhầm mức ưu tiên hoặc tính kết hợp.
+- Mixing **`&&` and `||`** to illustrate business rules.
+- Concatenating a **`String` with a calculation** that needs addition/subtraction/multiplication/division first.
+- A formula has **multiple separately meaningful groups**, such as `(unitPrice + fee) * quantity`.
+- Using **nested `?:`** while still keeping the expression short and easy to inspect.
+- Wanting to keep grouping explicit for rounding-sensitive floating-point operations.
+- Code review shows readers could easily misread precedence or associativity.
 
-Không nên thêm ngoặc tới mức che mất cấu trúc logic. Nếu biểu thức vẫn quá dài, **tách biến trung gian có tên tốt** hoặc dùng `if/else` để trình bày rõ ràng.
+Do not add so many parentheses that the logical structure is obscured. If an expression is still too long, **extract well-named intermediate variables** or use `if/else` for clarity.
 
-### Checklist review nhanh
+### Quick Review Checklist
 
-1. Đọc từng biểu thức con và xác định kiểu dữ liệu.
-2. Xác định ưu tiên và tính kết hợp mặc định.
-3. Đặt ngoặc quanh các nhóm mang **ý nghĩa nghiệp vụ**.
-4. Kiểm tra ngoặc có **thay đổi hành vi** hay chỉ giúp dễ đọc.
-5. Kiểm tra `int` division/overflow, String concatenation, `&&`/`||`, tác dụng phụ và nullable.
-6. Chạy chương trình với giá trị ranh giới và so expected output.
+1. Read each sub-expression and identify data types.
+2. Identify default precedence and associativity.
+3. Place parentheses around groups with **business meaning**.
+4. Check whether parentheses **change behavior** or only improve readability.
+5. Check `int` division/overflow, `String` concatenation, `&&`/`||`, side effects, and nullability.
+6. Run the program with boundary values and compare against expected output.
 
-## 18. Các lỗi và ngộ nhận phổ biến
+## 18. Common Mistakes and Misconceptions
 
-| Cách viết hoặc giả định | Vấn đề | Hướng xử lý |
+| Code or assumption | Problem | Fix |
 |---|---|---|
-| `a + b * c` khi muốn cộng trước | Nhân có ưu tiên cao hơn | `(a + b) * c` |
-| `double x = (7 / 2);` khi muốn 3.5 | Ngoặc không đổi kiểu int của phép chia | `((double) 7) / 2` |
-| `"sum=" + a + b` khi muốn cộng số | String concatenation kết hợp trái | `"sum=" + (a + b)` |
-| `admin || token && active` khi muốn active bắt buộc | `&&` được nhóm trước `||` | `(admin || token) && active` |
-| `(x >= 1) & (x <= 10)` để short-circuit | `&` trên boolean đánh giá cả hai bên | Dùng `&&` khi cần short-circuit |
-| `1 <= x <= 10` | So sánh đầu tạo boolean, không so được với int | `(x >= 1) && (x <= 10)` |
-| `(int)(7.9)` được nghĩ là chỉ nhóm | `(int)` là cast | Phân biệt cast và grouping |
-| `long x = (intA + intB)` để tránh tràn | Cộng int có thể tràn trước | Chuyển một toán hạng sang long trước |
-| Đổi nhóm `double` vì nghĩ cộng luôn kết hợp | Làm tròn sau từng bước có thể khác | Giữ grouping có chủ đích, kiểm thử |
-| `(x++)` được nghĩ trả giá trị sau tăng | Postfix cho giá trị cũ | Dùng biến trung gian hoặc `++x` đúng ý |
-| Ngoặc giúp tránh `NullPointerException` | Chỉ ngoặc không làm phép truy cập an toàn | Dùng guard và short-circuit |
-| Lồng nhiều `?:` mà không làm rõ nhánh | Khó đọc, dễ hiểu nhầm | Ngoặc rõ hoặc chuyển sang `if/else` |
+| `a + b * c` when addition should happen first | Multiplication has higher precedence | `(a + b) * c` |
+| `double x = (7 / 2);` when expecting 3.5 | Parentheses do not change the division's `int` type | `((double) 7) / 2` |
+| `"sum=" + a + b` when expecting numeric addition | `String` concatenation associates left to right | `"sum=" + (a + b)` |
+| `admin \|\| token && active` when `active` is mandatory | `&&` groups before `\|\|` | `(admin \|\| token) && active` |
+| `(x >= 1) & (x <= 10)` for short-circuiting | `&` on `boolean` evaluates both sides | Use `&&` when short-circuiting is needed |
+| `1 <= x <= 10` | First comparison yields `boolean`, cannot compare with `int` | `(x >= 1) && (x <= 10)` |
+| Thinking `(int)(7.9)` only groups | `(int)` is a cast | Distinguish cast from grouping |
+| `long x = (intA + intB)` to avoid overflow | `int` addition can overflow first | Convert one operand to `long` first |
+| Regrouping `double` assuming addition always associates | Step-by-step rounding may differ | Keep intentional grouping, write tests |
+| Thinking `(x++)` returns the post-increment value | Postfix yields the old value | Use an intermediate variable or `++x` as intended |
+| Parentheses prevent `NullPointerException` | Parentheses alone do not make access safe | Use guards and short-circuiting |
+| Nesting multiple `?:` without clarifying branches | Hard to read, easy to misinterpret | Parenthesize clearly or switch to `if/else` |
 
-**Đừng nhầm compile success với đúng nghiệp vụ.** Một biểu thức có thể đúng cú pháp và đúng kiểu nhưng tính sai do cách nhóm.
+**Do not confuse compile success with business correctness.** An expression can be syntactically and type-wise valid yet compute the wrong result due to grouping.
 
-## 19. Bài tập có đáp án
+## 19. Exercises with Answers
 
-### Bài A — thay đổi kết quả phép toán
+### Exercise A — changing calculation results
 
 ~~~java
 int a = 8;
@@ -487,16 +487,16 @@ System.out.println(a - b / c);
 System.out.println((a - b) / c);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 6
 2
 ~~~
 
-Dòng đầu `8 - (4 / 2)` ra 6; dòng hai `(8 - 4) / 2` ra 2.
+The first line evaluates `8 - (4 / 2)` to 6; the second evaluates `(8 - 4) / 2` to 2.
 
-### Bài B — phép chia và kiểu số
+### Exercise B — division and numeric types
 
 ~~~java
 int a = 5;
@@ -505,66 +505,66 @@ System.out.println((double) (a / b));
 System.out.println(((double) a) / b);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 2.0
 2.5
 ~~~
 
-Phép cast sau chia nguyên không khôi phục phần lẻ đã mất.
+Casting after integer division does not recover the discarded fractional part.
 
-### Bài C — nối String
+### Exercise C — String concatenation
 
 ~~~java
 System.out.println("n=" + 2 + 3);
 System.out.println("n=" + (2 + 3));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 n=23
 n=5
 ~~~
 
-### Bài D — điều kiện nghiệp vụ
+### Exercise D — business condition
 
-Giả sử mọi người dùng phải `active` và đồng thời (`admin` hoặc có `token`). Hãy viết biểu thức đúng.
+Suppose every user must be `active` and also (`admin` or have a `token`). Write the correct expression.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 boolean allowed = (admin || token) && active;
 ~~~
 
-Nếu dùng `admin || token && active`, quản trị viên có thể vượt qua điều kiện `active`.
+If you write `admin || token && active`, an admin could bypass the `active` condition.
 
-### Bài E — giới hạn giá trị
+### Exercise E — value bounds
 
-Viết điều kiện `age` nằm trong khoảng 18 đến 65 (bao gồm hai biên).
+Write the condition that `age` is between 18 and 65 (inclusive).
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 boolean validAge = (age >= 18) && (age <= 65);
 ~~~
 
-### Bài F — dấu ngoặc có chống overflow không?
+### Exercise F — do parentheses prevent overflow?
 
 ~~~java
 long n = (2_000_000_000 + 2_000_000_000);
 System.out.println(n);
 ~~~
 
-**Đáp án:** `-294967296` vì cộng int đã tràn. Muốn tính đúng 4 tỷ:
+**Answer:** `-294967296` because `int` addition overflowed. To compute 4 billion properly:
 
 ~~~java
 long n = ((long) 2_000_000_000) + 2_000_000_000;
 System.out.println(n); // 4000000000
 ~~~
 
-### Bài G — khi nào thêm ngoặc không đổi kết quả?
+### Exercise G — when does adding parentheses not change the result?
 
 ~~~java
 int a = 2, b = 3, c = 4;
@@ -572,22 +572,22 @@ System.out.println(a + b * c);
 System.out.println(a + (b * c));
 ~~~
 
-**Đáp án:** cả hai in `14`. Ngoặc ở dòng hai chỉ trình bày rõ nhóm phép nhân theo ưu tiên vốn có.
+**Answer:** both print `14`. Parentheses on the second line only make explicit the multiplication group under default precedence.
 
-## 20. Tổng kết
+## 20. Summary
 
-- [ ] Hiểu dấu ngoặc dùng để nhóm biểu thức và diễn đạt ý định.
-- [ ] Phân biệt ngoặc **làm rõ thứ tự vốn có** với ngoặc **thay đổi cách nhóm**.
-- [ ] Biết thứ tự ưu tiên và tính kết hợp của các toán tử cơ bản.
-- [ ] Không nhầm ngoặc nhóm với cast hoặc cú pháp method/`if`.
-- [ ] Dùng ngoặc hợp lý trong công thức, phép chia và nối String.
-- [ ] Phân nhóm `&&`/`||` dựa trên quy tắc nghiệp vụ, không chỉ dựa vào nhớ precedence.
-- [ ] Hiểu short-circuit là thuộc tính toán tử, không do ngoặc tự tạo.
-- [ ] Biết viết `(x >= min) && (x <= max)` để kiểm tra khoảng.
-- [ ] Biết khi nào tách `?:` phức tạp thành `if/else`.
-- [ ] Không tin rằng ngoặc tự sửa overflow, null hoặc sai kiểu dữ liệu.
-- [ ] Nhận ra đổi nhóm phép toán floating-point có thể đổi kết quả.
-- [ ] Hạn chế các tác dụng phụ ẩn trong biểu thức dài.
-- [ ] Chạy được `ParenthesesIntentDemo.java` bằng Java 17+ và kiểm tra exact expected output.
+- [ ] Understand that parentheses group expressions and express intent.
+- [ ] Distinguish parentheses that **clarify existing order** from parentheses that **change grouping**.
+- [ ] Know precedence and associativity of basic operators.
+- [ ] Avoid confusing grouping parentheses with casts or method/`if` syntax.
+- [ ] Use parentheses appropriately in formulas, divisions, and `String` concatenation.
+- [ ] Group `&&`/`||` based on business rules rather than relying solely on memorizing precedence.
+- [ ] Understand that short-circuiting is an operator property, not created by parentheses.
+- [ ] Know how to write `(x >= min) && (x <= max)` for range checks.
+- [ ] Know when to split complex `?:` into `if/else`.
+- [ ] Do not assume parentheses automatically fix overflow, `null`, or wrong data types.
+- [ ] Recognize that regrouping floating-point operations can alter results.
+- [ ] Minimize hidden side effects inside long expressions.
+- [ ] Run `ParenthesesIntentDemo.java` with Java 17+ and verify exact expected output.
 
-**Kết luận:** Dấu ngoặc giúp lập trình viên nói rõ **phần nào của biểu thức thuộc cùng một ý nghĩa**. Dùng ngoặc vừa đủ để người đọc không phải đoán precedence, đặc biệt trong điều kiện logic và phép nối String; đồng thời luôn kiểm tra kiểu toán hạng, short-circuit, overflow và tác dụng phụ vì dấu ngoặc **không tự giải quyết** những vấn đề đó.
+**Conclusion:** Parentheses let programmers state clearly **which parts of an expression belong to the same meaning**. Use just enough parentheses so readers do not have to guess precedence, especially in logical conditions and `String` concatenation; at the same time, always verify operand types, short-circuiting, overflow, and side effects because parentheses **do not automatically solve** those issues.

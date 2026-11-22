@@ -1,53 +1,53 @@
-# Phân biệt tính năng chính thức với cú pháp preview theo phiên bản — Java 17+
+# Distinguishing Final Features from Preview Syntax by Version — Java 17+
 
-## 1. Mục tiêu và quy tắc quan trọng nhất
+## 1. Goal and the Most Important Rule
 
-Trong Java, **tính năng chính thức/ổn định** (*final, permanent language feature*) là cú pháp đã được đưa vào đặc tả ngôn ngữ của phiên bản phát hành. Nó dùng được khi biên dịch đúng phiên bản mà **không cần** `--enable-preview`.
+In Java, a **final/stable feature** (*final, permanent language feature*) is syntax that has been incorporated into the language specification of a release. It can be used when compiling for that version **without** `--enable-preview`.
 
-**Tính năng preview** là chức năng ngôn ngữ đã có trong một bản JDK để lập trình viên thử nghiệm, nhưng **chưa trở thành cú pháp ổn định** ở phiên bản ấy. Khi biên dịch và chạy code preview, phải bật tùy chọn phù hợp với **JDK đang dùng**; cú pháp/semantics của preview còn có thể thay đổi trước khi được ổn định.
+A **preview feature** is a language capability included in a JDK release for developers to try out, but **not yet stabilized syntax** in that version. When compiling and running preview code, you must enable the options matching the **JDK in use**; preview syntax and semantics may still change before becoming final.
 
-Ví dụ liên quan đến **mẫu kiểm tra kiểu** (*type patterns*):
+Examples related to **type patterns**:
 
 ~~~java
-// Ổn định trong Java 17: pattern matching cho instanceof.
+// Stable in Java 17: pattern matching for instanceof.
 if (input instanceof String text) {
     System.out.println(text.length());
 }
 ~~~
 
-Nhưng:
+However:
 
 ~~~java
-// Java 21 trở lên: pattern matching cho switch đã ổn định.
+// Java 21 or later: pattern matching for switch is stable.
 switch (input) {
     case String text when text.length() >= 5 -> System.out.println("LONG");
     default -> System.out.println("OTHER");
 }
 ~~~
 
-**Đoạn thứ hai KHÔNG biên dịch trong Java 17 ổn định**. Java 17 từng có pattern matching cho switch ở dạng **preview**, nhưng guard của preview Java 17 dùng cú pháp khác: `case String s && condition`, **không phải `when`**.
+**The second snippet DOES NOT compile in stable Java 17**. Java 17 had pattern matching for switch in **preview**, but the Java 17 preview guard used different syntax: `case String s && condition`, **not `when`**.
 
-**Nguyên tắc:** Khi gặp cú pháp mới trên mạng, xác nhận đồng thời **(1) phiên bản JDK**, **(2) trạng thái final/preview tại phiên bản đó**, **(3) cờ biên dịch/chạy**, và **(4) cú pháp đúng của phiên bản**.
+**Rule:** Whenever you encounter new syntax online, verify simultaneously **(1) the JDK version**, **(2) its final/preview status in that version**, **(3) compile/run flags**, and **(4) the exact syntax for that version**.
 
-## 2. Bảng mốc phiên bản cần biết
+## 2. Version Milestone Table to Know
 
-| Tính năng | Trạng thái theo mốc liên quan | Ghi nhớ khi học Java 17+ |
+| Feature | Status by Relevant Milestone | Remember When Learning Java 17+ |
 |---|---|---|
-| **Switch expression** với `case ->` và `yield` | Ổn định từ **Java 14** | Có thể dùng ngay trên JDK 17, không cần preview |
-| **Pattern matching cho `instanceof`** | Ổn định từ **Java 16** | `o instanceof String s` hợp lệ trên JDK 17 |
-| **Record class** | Ổn định từ **Java 16** | `record Point(int x, int y) {}` khác với record *pattern* |
-| **Sealed classes** | Ổn định từ **Java 17** | Có thể dùng `sealed`/`permits` trên JDK 17 |
-| **Pattern matching cho `switch`** | Preview qua các bản **Java 17–20**; ổn định từ **Java 21** | Không dùng switch type patterns như tính năng final của Java 17 |
-| **Guard `when` trong pattern switch** | Xuất hiện ở phiên bản preview sau Java 17 (Java 19/20); ổn định cùng pattern switch ở **Java 21** | Java 17 preview dùng `&&` trong nhãn guarded pattern, không dùng `when` |
-| **Record patterns** | Preview trước Java 21; ổn định từ **Java 21** | Đừng nhầm `record` đã ổn định trong Java 17 với destructuring pattern của record |
+| **Switch expressions** with `case ->` and `yield` | Final since **Java 14** | Ready to use on JDK 17, no preview needed |
+| **Pattern matching for `instanceof`** | Final since **Java 16** | `o instanceof String s` is valid on JDK 17 |
+| **Record classes** | Final since **Java 16** | `record Point(int x, int y) {}` differs from record *patterns* |
+| **Sealed classes** | Final since **Java 17** | `sealed`/`permits` can be used on JDK 17 |
+| **Pattern matching for `switch`** | Preview across **Java 17–20**; final since **Java 21** | Do not use switch type patterns as a final feature of Java 17 |
+| **`when` guard in pattern switch** | Appeared in preview releases after Java 17 (Java 19/20); final with pattern switch in **Java 21** | Java 17 preview uses `&&` in guarded pattern labels, not `when` |
+| **Record patterns** | Preview before Java 21; final since **Java 21** | Do not confuse `record` (final in Java 17) with record destructuring patterns |
 
-**Cảnh báo quan trọng:** Một tính năng có thể là **preview ở phiên bản A** nhưng đã **final ở phiên bản B**. Không thể nói chung chung “pattern switch là preview” mà không gắn số phiên bản.
+**Important warning:** A feature can be **preview in version A** and already **final in version B**. You cannot vaguely say "pattern switch is preview" without attaching a version number.
 
-Các ví dụ trong bài dùng **Java 17** (ổn định và preview riêng biệt) và **Java 21** (cú pháp final) để so sánh. Nếu bạn đang dùng JDK khác, phải tra cứu trạng thái cú pháp ở JDK đó trước khi đổi lệnh.
+The examples in this lesson use **Java 17** (stable and preview separately) and **Java 21** (final syntax) for comparison. If you are using a different JDK, look up the feature status in that JDK before changing commands.
 
-## 3. Tính năng ổn định có thể biên dịch mà không bật preview
+## 3. Stable Features Can Compile Without Enabling Preview
 
-Mẫu `instanceof` ở Java 17:
+The `instanceof` pattern in Java 17:
 
 ~~~java
 static String explain(Object value) {
@@ -58,9 +58,9 @@ static String explain(Object value) {
 }
 ~~~
 
-Với `value = "Java"`, biểu thức `instanceof String text` kiểm tra kiểu và gán biến mẫu `text` trong luồng đã xác nhận khớp. Với null hoặc object không phải String, biểu thức trả false; Java không ném NPE chỉ vì kiểm tra `instanceof` trên null.
+With `value = "Java"`, the expression `instanceof String text` checks the type and assigns the pattern variable `text` in the flow confirmed as matched. With null or a non-String object, the expression returns false; Java does not throw NPE merely from checking `instanceof` on null.
 
-Tương tự, **switch expression** đã final trước Java 17:
+Similarly, **switch expressions** were already final before Java 17:
 
 ~~~java
 static String status(int code) {
@@ -72,49 +72,49 @@ static String status(int code) {
 }
 ~~~
 
-Không có mẫu kiểu ở ví dụ này: các nhãn `case 1`/`case 2` là **hằng số thông thường**. Việc thấy từ khóa `switch`, `->` hoặc `yield` **không đồng nghĩa** đoạn code đang sử dụng tính năng preview.
+There are no type patterns in this example: the `case 1`/`case 2` labels are **ordinary constants**. Seeing the keywords `switch`, `->`, or `yield` **does not mean** the code is using a preview feature.
 
-## 4. Biên dịch preview đúng phiên bản
+## 4. Compiling Preview for the Right Version
 
-Với chương trình chứa cú pháp preview của **Java 17**, trên **JDK 17**, dùng:
+For a program containing **Java 17** preview syntax, on **JDK 17**, use:
 
 ~~~bash
 javac --enable-preview --release 17 -encoding UTF-8 PreviewSwitch17.java
 java --enable-preview -cp . PreviewSwitch17
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-- `--enable-preview`: cho phép tính năng preview ở phiên bản đang biên dịch/chạy.
-- `--release 17`: biên dịch theo API/ngôn ngữ mục tiêu Java 17.
-- `java --enable-preview`: cần để chạy class sử dụng tính năng preview.
-- Đối với preview, bản `javac` thông thường **chỉ cho bật preview của chính phiên bản JDK biên dịch**. Không dùng JDK 21 để cố bật preview của Java 17 bằng `--release 17`.
-- Class được biên dịch với preview có đánh dấu class-file tương ứng; **không coi** nó là một class Java 17 ổn định có thể tùy ý chạy trên các JDK khác.
+- `--enable-preview`: enables preview features for the version being compiled/run.
+- `--release 17`: compiles targeting the Java 17 API/language level.
+- `java --enable-preview`: required to run a class that uses preview features.
+- For preview, standard `javac` **only allows enabling preview for the compiler's own JDK version**. Do not use JDK 21 to try enabling Java 17 preview with `--release 17`.
+- A class compiled with preview carries a corresponding class-file marker; **do not treat** it as a stable Java 17 class that can run arbitrarily on other JDKs.
 
-Với **code Java 17 ổn định**:
+For **stable Java 17 code**:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 StablePatterns17.java
 java -cp . StablePatterns17
 ~~~
 
-Không cần bật preview. Với **code Java 21 sử dụng pattern switch đã final**:
+No preview needed. For **Java 21 code using finalized pattern switch**:
 
 ~~~bash
 javac --release 21 -encoding UTF-8 FinalSwitch21.java
 java -cp . FinalSwitch21
 ~~~
 
-Không cần `--enable-preview` khi dùng các tính năng pattern switch chuẩn Java 21.
+`--enable-preview` is not needed when using standard Java 21 pattern switch features.
 
-**Tránh ngộ nhận:** Cờ preview **không biến** cú pháp Java 21 `when` thành cú pháp hợp lệ trên Java 17. Cờ chỉ mở các tính năng preview **thực sự có trong phiên bản đó**.
+**Avoid this misconception:** The preview flag **does not turn** Java 21 `when` syntax into valid syntax on Java 17. The flag only unlocks preview features **actually present in that version**.
 
-## 5. Java 17 preview: guarded pattern dùng `&&`
+## 5. Java 17 Preview: Guarded Patterns Use `&&`
 
-Cú pháp guarded pattern trong JEP 406 (preview Java 17) có thể viết:
+Guarded pattern syntax in JEP 406 (Java 17 preview) can be written as:
 
 ~~~java
-// Chỉ hợp lệ khi dùng JDK 17 với --enable-preview:
+// Valid only when using JDK 17 with --enable-preview:
 return switch (value) {
     case String text && text.length() >= 5 -> "LONG";
     case String text -> "SHORT";
@@ -122,17 +122,17 @@ return switch (value) {
 };
 ~~~
 
-- Selector cần có kiểu phù hợp, ở đây là `Object`.
-- Phần `String text` là **mẫu kiểu**.
-- Guard `&& text.length() >= 5` là cú pháp của **preview Java 17**, được xét sau khi mẫu `String` khớp.
-- Nếu guard false, switch thử nhãn tiếp theo.
-- Mẫu String không guard được đặt **sau** nhãn guarded để không che nhãn cụ thể.
+- The selector must have an appropriate type, here `Object`.
+- The `String text` part is the **type pattern**.
+- The guard `&& text.length() >= 5` is **Java 17 preview** syntax, evaluated after the `String` pattern matches.
+- If the guard is false, the switch tries the next label.
+- The unguarded String pattern is placed **after** the guarded label so it does not shadow the specific label.
 
-Không viết `case String text when ...` trong file Java 17 rồi chỉ thêm `--enable-preview`: **`when` chưa phải cú pháp preview của Java 17**.
+Do not write `case String text when ...` in a Java 17 file and simply add `--enable-preview`: **`when` is not Java 17 preview syntax**.
 
-## 6. Java 21 final: guarded pattern dùng `when`
+## 6. Java 21 Final: Guarded Patterns Use `when`
 
-Trên JDK 21, biểu đạt logic tương ứng bằng:
+On JDK 21, express the corresponding logic with:
 
 ~~~java
 return switch (value) {
@@ -143,69 +143,69 @@ return switch (value) {
 };
 ~~~
 
-Với cùng một giá trị String, các nhánh kiểu và guard quyết định kết quả như ví dụ Java 17 preview. Nhưng Java 21 dùng `when` để phân tách mẫu kiểu khỏi điều kiện bảo vệ.
+For the same String value, the type branches and guards determine the result just like the Java 17 preview example. However, Java 21 uses `when` to separate the type pattern from the guard condition.
 
-| Ý định | Java 17 preview | Java 21 final |
+| Intent | Java 17 Preview | Java 21 Final |
 |---|---|---|
-| Chọn một String có độ dài ít nhất 5 | `case String s && s.length() >= 5 ->` | `case String s when s.length() >= 5 ->` |
-| Chọn một String còn lại | `case String s ->` | `case String s ->` |
-| Xử lý null | Nên guard null ở ngoài theo hợp đồng Java 17 | Có thể dùng `case null ->` |
+| Select a String of length at least 5 | `case String s && s.length() >= 5 ->` | `case String s when s.length() >= 5 ->` |
+| Select any remaining String | `case String s ->` | `case String s ->` |
+| Handle null | Better guarded outside per Java 17 contract | Can use `case null ->` |
 
-**Chú ý:** Đoạn mã Java 21 có thể còn yêu cầu các nhánh đủ để switch expression tạo kết quả. Với selector Object, `default` là một cách xử lý trường hợp không khớp các mẫu liệt kê.
+**Note:** Java 21 code may also require sufficient branches for a switch expression to produce a result. With an Object selector, `default` is one way to handle values that do not match the listed patterns.
 
-## 7. Điều gì không thay đổi giữa các phiên bản?
+## 7. What Does Not Change Across Versions?
 
-Dù Java 17 preview viết guarded label bằng `&&` còn Java 21 final dùng `when`, guard chỉ được đánh giá **sau khi** type pattern khớp. Nếu guard false, switch thử nhãn tiếp theo; nếu nhiều nhãn cùng khớp, nhãn đứng trước được chọn. Biến mẫu chỉ hợp lệ ở nhánh và guard đã xác nhận kiểu.
+Even though Java 17 preview writes guarded labels with `&&` and Java 21 final uses `when`, a guard is evaluated only **after** the type pattern matches. If the guard is false, the switch tries the next label; if multiple labels match, the earlier label is selected. Pattern variables are only valid in the branch and guard where the type has been confirmed.
 
-Thứ tự còn liên quan **dominance**: đặt `case CharSequence cs` trước `case String s` làm nhãn String không thể tới; tương tự, nhãn `String` không guard có thể che nhãn String có guard phía sau. Đổi phiên bản cú pháp không giải quyết thứ tự sai. Trong Java 17 ổn định, chuỗi `if (value instanceof String s && ...)` diễn đạt guard mà không có phép kiểm tra dominance giữa các nhánh `if`.
+Order also relates to **dominance**: placing `case CharSequence cs` before `case String s` makes the String label unreachable; similarly, an unguarded `String` label can shadow a guarded String label placed after it. Changing syntax versions does not fix wrong ordering. In stable Java 17, an `if (value instanceof String s && ...)` chain expresses guards without dominance checking between `if` branches.
 
-## 8. Khi nào cần dùng preview?
+## 8. When Should You Use Preview?
 
-**Ưu tiên code ổn định** nếu:
+**Prefer stable code** if:
 
-- Dự án phải biên dịch trên Java 17 bằng lệnh `javac --release 17` thông thường.
-- Đang viết thư viện hoặc bài học cho nhiều môi trường JDK khác nhau.
-- Muốn tránh phụ thuộc vào cú pháp có thể thay đổi.
-- Hệ thống build, CI, IDE và runtime chưa bảo đảm cùng phiên bản và cờ preview.
+- The project must compile on Java 17 using a standard `javac --release 17` command.
+- You are writing libraries or lessons for multiple different JDK environments.
+- You want to avoid depending on syntax that might change.
+- Your build system, CI, IDE, and runtime do not yet guarantee the exact same version and preview flags.
 
-**Chỉ nên cân nhắc preview** khi thực sự nghiên cứu tính năng mới ở đúng phiên bản, chấp nhận điều kiện triển khai và đã kiểm soát toàn bộ toolchain. Với bài học về pattern switch có guard:
+**Only consider preview** when genuinely exploring a new feature on the exact right version, accepting deployment constraints, and controlling the entire toolchain. For lessons on guarded pattern switches:
 
-- **JDK 17:** dùng `instanceof` pattern ổn định + `if`/`&&` là lựa chọn an toàn.
-- **JDK 17 preview:** có thể thử guard dùng `&&`, nhưng phải bật preview cả lúc compile và run.
-- **JDK 21 trở lên:** có thể dùng `when` final theo ngữ nghĩa JDK 21.
+- **JDK 17:** using stable `instanceof` patterns + `if`/`&&` is the safe choice.
+- **JDK 17 preview:** you can try guards with `&&`, but preview must be enabled for both compile and run.
+- **JDK 21 or later:** you can use final `when` under JDK 21 semantics.
 
-Không đổi ngôn ngữ đích hoặc nâng JDK chỉ vì một ví dụ trên mạng có vẻ ngắn hơn; cân nhắc chính sách tương thích của dự án.
+Do not change target language levels or upgrade the JDK merely because an example online looks shorter; consider the project's compatibility policy.
 
-## 9. Cách kiểm tra môi trường và lỗi thường gặp
+## 9. Checking Your Environment and Common Errors
 
-Trước hết mở terminal:
+First open a terminal:
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Hai lệnh cho biết **runtime** và **compiler** đang được gọi từ PATH. Trong một máy có nhiều JDK, chúng có thể vô tình trỏ tới phiên bản khác nhau; cần chọn đúng JDK qua `JAVA_HOME`, PATH hoặc cấu hình IDE/build tool.
+These two commands show the **runtime** and **compiler** being invoked from PATH. On a machine with multiple JDKs, they can accidentally point to different versions; select the right JDK via `JAVA_HOME`, PATH, or IDE/build tool settings.
 
-| Biểu hiện | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common Cause | Resolution |
 |---|---|---|
-| `case String s when ...` lỗi cú pháp trên Java 17 | `when` không phải cú pháp ở bản này | Dùng `instanceof` Java 17 hoặc JDK 21 |
-| Pattern switch Java 17 báo preview disabled | Chưa bật `--enable-preview` | Bật preview compile/run đúng trên JDK 17 |
-| Java báo cần `--enable-preview` khi chạy class preview | Runtime chưa cho phép preview | Chạy `java --enable-preview ...` đúng JDK |
-| Dùng JDK 21 kèm `--enable-preview --release 17` | Preview chỉ dành cho release của chính compiler | Dùng JDK 17 để thử preview 17; hoặc chuyển sang syntax final 21 |
-| Compile Java 21 source bằng `--release 17` | Target Java 17 không biết tính năng Java 21 | Viết code tương thích 17 hoặc đổi target một cách chủ đích |
-| Coi `record` và record pattern là cùng một tính năng | `record` ổn định trước record pattern | Tách mốc tính năng theo JEP/phiên bản |
-| `instanceof String s` bị nhầm là preview Java 17 | Pattern instanceof đã final từ 16 | Bỏ cờ preview không cần thiết |
-| `switch (int)` với `case ->` bị nhầm là preview | Switch expression/rules đã ổn định trước Java 17 | Phân biệt case hằng với type pattern |
-| Dùng `case null` tùy tiện trên switch Java 17 ổn định | Khác khả năng và ngữ nghĩa của JDK 21 | Guard null bằng `if` trước |
-| Mẫu String bao quát đứng trước mẫu guarded | Nhãn sau bị dominated | Nhãn cụ thể/guard trước nhãn chung |
-| IDE báo lỗi nhưng CLI đúng, hoặc ngược lại | Chênh lệch language level/JDK/cờ preview | Đồng bộ project SDK, compiler, runtime và flags |
+| `case String s when ...` syntax error on Java 17 | `when` is not valid syntax in this version | Use Java 17 `instanceof` or JDK 21 |
+| Java 17 pattern switch reports preview disabled | `--enable-preview` was not enabled | Enable preview for both compile and run on JDK 17 |
+| Java says `--enable-preview` is needed when running a preview class | Runtime does not allow preview | Run `java --enable-preview ...` on the matching JDK |
+| Using JDK 21 with `--enable-preview --release 17` | Preview applies only to the compiler's own release | Use JDK 17 to test preview 17; or switch to final 21 syntax |
+| Compiling Java 21 source with `--release 17` | Target Java 17 does not know Java 21 features | Write 17-compatible code or intentionally update the target |
+| Treating `record` and record patterns as the same feature | `record` became final before record patterns | Separate feature milestones by JEP/version |
+| Mistaking `instanceof String s` for Java 17 preview | Pattern instanceof has been final since 16 | Remove unnecessary preview flags |
+| Mistaking `switch (int)` with `case ->` for preview | Switch expressions/rules became final before Java 17 | Distinguish constant cases from type patterns |
+| Using `case null` casually on stable Java 17 switch | Differs from JDK 21 capabilities and semantics | Guard null with `if` beforehand |
+| Broad String pattern placed before guarded pattern | Later label is dominated | Specific/guarded labels before general labels |
+| IDE reports an error while CLI succeeds, or vice versa | Mismatched language level/JDK/preview flags | Align project SDK, compiler, runtime, and flags |
 
-**Ghi chú về tương thích:** `--release 17` dùng để yêu cầu biên dịch nhắm tới Java 17 và API chuẩn tương ứng, **không** phải lời hứa rằng mọi cú pháp preview mới hơn đều được “dịch ngược” về Java 17.
+**Compatibility note:** `--release 17` asks the compiler to target Java 17 and its standard APIs; it is **not** a promise that newer preview syntax will be "backported" to Java 17.
 
-## 10. Chương trình 1 — Java 17 ổn định, không preview
+## 10. Program 1 — Stable Java 17, No Preview
 
-Tạo file **`StablePatterns17.java`**:
+Create a file **`StablePatterns17.java`**:
 
 ~~~java
 import java.util.Locale;
@@ -273,11 +273,11 @@ stable17 other=OTHER
 stable17 switch=RUNNING
 ~~~
 
-Ở đây `instanceof` pattern và switch expression đều **ổn định trong Java 17**, nên không bật preview.
+Here both `instanceof` patterns and switch expressions are **stable in Java 17**, so preview is not enabled.
 
-## 11. Chương trình 2 — switch pattern preview trên đúng JDK 17
+## 11. Program 2 — Preview Switch Patterns on Exact JDK 17
 
-Tạo file **`PreviewSwitch17.java`**, dùng preview JEP 406, không chứa `when`:
+Create a file **`PreviewSwitch17.java`**, using JEP 406 preview without `when`:
 
 ~~~java
 public final class PreviewSwitch17 {
@@ -303,21 +303,21 @@ public final class PreviewSwitch17 {
 }
 ~~~
 
-**Bash (Linux/macOS), bắt buộc JDK 17:**
+**Bash (Linux/macOS), JDK 17 required:**
 
 ~~~bash
 javac --enable-preview --release 17 -encoding UTF-8 PreviewSwitch17.java
 java --enable-preview -cp . PreviewSwitch17
 ~~~
 
-**PowerShell (Windows), bắt buộc JDK 17:**
+**PowerShell (Windows), JDK 17 required:**
 
 ~~~powershell
 javac --enable-preview --release 17 -encoding UTF-8 .\PreviewSwitch17.java
 java --enable-preview -cp . PreviewSwitch17
 ~~~
 
-**Exact expected stdout của chương trình:**
+**Exact expected stdout of the program:**
 
 ~~~text
 preview17 blank=BLANK
@@ -327,13 +327,13 @@ preview17 int=INTEGER:7
 preview17 other=OTHER
 ~~~
 
-**Lưu ý về thông báo của compiler:** JDK 17 có thể in thêm **thông báo preview** trên stderr khi biên dịch; phần expected stdout trên chỉ là **đầu ra chương trình**. Không cần chỉnh lệnh để che thông báo đó.
+**Note on compiler output:** JDK 17 may print additional **preview notices** to stderr during compilation; the expected stdout above is **only the program's output**. Do not alter the commands to suppress those notices.
 
-Vì `classify(null)` không được gọi, không có nhánh xử lý null trong chương trình demo. Nếu cần nhận null, hãy kiểm tra **trước switch** theo hợp đồng API, thay vì giả định `default` bắt mọi giá trị.
+Because `classify(null)` is not called, there is no null-handling branch in this demo program. If null needs to be accepted, check it **before the switch** per the API contract, rather than assuming `default` catches every value.
 
-## 12. Chương trình 3 — cú pháp final `when` trên JDK 21+
+## 12. Program 3 — Final `when` Syntax on JDK 21+
 
-Tạo file **`FinalSwitch21.java`**:
+Create a file **`FinalSwitch21.java`**:
 
 ~~~java
 public final class FinalSwitch21 {
@@ -386,38 +386,38 @@ final21 int=INTEGER:7
 final21 other=OTHER
 ~~~
 
-Đây là tính năng **chính thức từ Java 21**, vì thế **không dùng** `--enable-preview` cho riêng pattern matching for switch của chương trình này.
+This is a **final feature since Java 21**, so **do not use** `--enable-preview` for pattern matching for switch in this program.
 
-## 13. Cách đọc sự khác nhau giữa ba ví dụ
+## 13. How to Read the Differences Among the Three Examples
 
-| Tiêu chí | `StablePatterns17.java` | `PreviewSwitch17.java` | `FinalSwitch21.java` |
+| Criterion | `StablePatterns17.java` | `PreviewSwitch17.java` | `FinalSwitch21.java` |
 |---|---|---|---|
-| JDK để biên dịch | 17+ với target 17 | **Đúng JDK 17** | 21+ với target 21 |
-| `--enable-preview` | Không | **Có: compile và run** | Không |
-| Pattern matching cho `instanceof` | Có | Không cần dùng riêng | Không cần dùng riêng |
-| Pattern matching cho `switch` | Không | **Preview** | **Final** |
-| Cú pháp guard | `instanceof T t && ...` trong `if` | `case T t && ...` | `case T t when ...` |
-| Xử lý `null` | `if (value == null)` | Guard trước switch nếu cần | `case null` có thể dùng |
-| Mục tiêu | Code Java 17 tương thích | Thử nghiệm cú pháp preview năm 2021 | Code switch pattern hiện đại ổn định |
+| JDK to compile | 17+ with target 17 | **Exact JDK 17** | 21+ with target 21 |
+| `--enable-preview` | No | **Yes: compile and run** | No |
+| Pattern matching for `instanceof` | Yes | Not needed separately | Not needed separately |
+| Pattern matching for `switch` | No | **Preview** | **Final** |
+| Guard syntax | `instanceof T t && ...` in `if` | `case T t && ...` | `case T t when ...` |
+| `null` handling | `if (value == null)` | Guard before switch if needed | `case null` can be used |
+| Purpose | Compatible Java 17 code | Experimenting with 2021 preview syntax | Stable modern switch pattern code |
 
-Cùng một nhu cầu phân loại theo kiểu có thể có nhiều cách viết; **không có cách viết nào được phép “copy” giữa các bản JDK mà bỏ qua phiên bản**.
+The same type-classification requirement can be written in multiple ways; **no form may be "copied" across JDK versions while ignoring the version**.
 
-## 14. Các bẫy cần nhớ
+## 14. Traps to Remember
 
-1. **Final không đồng nghĩa tính năng đã tồn tại ở mọi JDK cũ:** cú pháp final của Java 21 vẫn không hợp lệ nếu target Java 17.
-2. **Preview không phải cú pháp bất biến:** guard `&&` của switch preview Java 17 khác `when` của Java 21.
-3. **Một file dùng preview có thể tạo class không chạy theo cách bình thường:** cần cờ runtime và JDK phù hợp.
-4. **`case ->` không tự động là preview:** switch rules và switch expressions đã ổn định trước Java 17.
-5. **Một Java 17 `record` hợp lệ không suy ra record patterns cũng final trong Java 17.**
-6. **Đừng nhầm warning với lỗi chương trình:** compiler có thể cảnh báo preview, trong khi chương trình vẫn chạy với cờ đúng.
-7. **Đừng tin `default` luôn bắt null** trong switch pattern: xử lý null riêng theo phiên bản và cú pháp.
-8. **Thứ tự nhãn là ngữ nghĩa:** guard false thử case khác, nhưng pattern rộng không guard trước pattern hẹp có thể bị compiler báo dominated.
-9. **Không ép dùng preview cho code production** chỉ để viết ít dòng hơn khi phiên bản ổn định đã có giải pháp rõ ràng.
-10. **Đồng bộ IDE, build và CLI:** các tùy chọn language level khác nhau có thể khiến cùng file compile ở nơi này nhưng lỗi nơi khác.
+1. **Final does not mean the feature already existed in older JDKs:** Java 21 final syntax is still invalid when targeting Java 17.
+2. **Preview is not immutable syntax:** Java 17 preview's `&&` guard differs from Java 21's `when`.
+3. **A file using preview can produce a class that does not run normally:** it requires the runtime flag and matching JDK.
+4. **`case ->` is not automatically preview:** switch rules and switch expressions became final before Java 17.
+5. **A valid Java 17 `record` does not imply record patterns are also final in Java 17.**
+6. **Do not confuse warnings with program errors:** the compiler may warn about preview while the program still runs with the right flags.
+7. **Do not assume `default` always catches null** in pattern switch: handle null explicitly according to version and syntax.
+8. **Label order is semantics:** a false guard tries other cases, whereas an unguarded broad pattern before a narrower pattern can trigger a compiler dominance error.
+9. **Do not force preview in production code** just to save a few lines when the stable release already offers a clear solution.
+10. **Align IDE, build, and CLI:** differing language level options can cause the same file to compile in one place and fail in another.
 
-## 15. Bài tập có đáp án
+## 15. Exercises with Answers
 
-### Bài A — cú pháp nào chạy ổn định trên Java 17?
+### Exercise A — Which syntax runs stably on Java 17?
 
 ~~~java
 Object obj = "Java";
@@ -426,18 +426,18 @@ if (obj instanceof String s) {
 }
 ~~~
 
-**Đáp án:** Chạy ổn định trên JDK 17, in `4`. `instanceof` pattern đã final từ Java 16; không cần preview.
+**Answer:** Runs stably on JDK 17 and prints `4`. `instanceof` patterns have been final since Java 16; no preview needed.
 
-### Bài B — sửa nhầm phiên bản
+### Exercise B — Fixing a version mismatch
 
 ~~~java
-// Người học dùng JDK 17:
+// Learner using JDK 17:
 // case String s when s.isBlank() -> "BLANK"
 ~~~
 
-**Đáp án:** Java 17 **không hỗ trợ `when`**. Có thể dùng `if (obj instanceof String s && s.isBlank())` mà không cần preview. Nếu cố tình nghiên cứu preview Java 17, dùng `case String s && s.isBlank() -> ...` và bật `--enable-preview` đúng trên JDK 17. Nếu muốn `when` final, cần JDK 21+ và target 21 trở lên.
+**Answer:** Java 17 **does not support `when`**. You can use `if (obj instanceof String s && s.isBlank())` without preview. If intentionally studying Java 17 preview, use `case String s && s.isBlank() -> ...` and enable `--enable-preview` on JDK 17. If you want final `when`, JDK 21+ and target 21 or higher are required.
 
-### Bài C — lệnh nào cho phép preview Java 17?
+### Exercise C — Which command enables Java 17 preview?
 
 ~~~text
 A. javac --release 17 PreviewSwitch17.java
@@ -445,12 +445,12 @@ B. javac --enable-preview --release 17 PreviewSwitch17.java
 C. javac --enable-preview --release 21 PreviewSwitch17.java
 ~~~
 
-**Đáp án:** **B**, khi sử dụng **JDK 17**. Sau biên dịch, chạy `java --enable-preview -cp . PreviewSwitch17` trên JDK 17. Lựa chọn C không phải cách yêu cầu “preview Java 17”.
+**Answer:** **B**, when using **JDK 17**. After compiling, run `java --enable-preview -cp . PreviewSwitch17` on JDK 17. Option C is not how you request "Java 17 preview".
 
-### Bài D — dominance và thứ tự nhãn
+### Exercise D — Dominance and label order
 
 ~~~java
-// JDK 21, đoạn SAI về thứ tự:
+// JDK 21, WRONG order snippet:
 switch (obj) {
     case CharSequence sequence -> System.out.println("SEQUENCE");
     case String text -> System.out.println("STRING");
@@ -458,27 +458,27 @@ switch (obj) {
 }
 ~~~
 
-**Đáp án:** `String` là một `CharSequence`, nên nhãn String phía sau bị che hoàn toàn; sửa bằng cách **đặt `case String text` trước `case CharSequence sequence`**.
+**Answer:** `String` is a `CharSequence`, so the later String label is completely shadowed; fix by **placing `case String text` before `case CharSequence sequence`**.
 
-### Bài E — tính năng đã final có cần preview không?
+### Exercise E — Does a finalized feature need preview?
 
-Một file JDK 21 chỉ dùng `case String s when s.length() > 3 -> ...` trong pattern switch đã final. Có cần `--enable-preview`?
+A JDK 21 file uses only `case String s when s.length() > 3 -> ...` in finalized pattern switch. Is `--enable-preview` needed?
 
-**Đáp án:** **Không**. Dùng `javac --release 21 ...` và `java ...` trên JDK 21. Preview chỉ cần khi đang dùng một **tính năng khác** chưa ổn định của JDK cụ thể.
+**Answer:** **No**. Use `javac --release 21 ...` and `java ...` on JDK 21. Preview is needed only when using a **different feature** that is not yet stable in that specific JDK.
 
-## 16. Checklist và kết luận
+## 16. Checklist and Conclusion
 
-- [ ] Luôn gắn nhận định final/preview với **số phiên bản Java**.
-- [ ] Biết `instanceof` pattern đã final từ Java 16, ổn định trên Java 17.
-- [ ] Biết switch expression `->`/`yield` final từ Java 14.
-- [ ] Biết pattern matching cho switch preview trên Java 17–20, final từ Java 21.
-- [ ] Biết Java 17 switch preview dùng guard `&&`; Java 21 final dùng `when`.
-- [ ] Biết `--enable-preview` cần bật ở **compile và run** nếu class dùng preview Java 17.
-- [ ] Không cố yêu cầu JDK mới bật preview của release cũ.
-- [ ] Biết kiểm tra `java -version`, `javac -version` và cờ `--release`.
-- [ ] Phân biệt record class đã final với record patterns được final muộn hơn.
-- [ ] Hiểu guard chỉ chạy khi type pattern khớp và thứ tự case có thể đổi kết quả.
-- [ ] Hiểu dominance và null handling trong switch pattern theo phiên bản.
-- [ ] Chạy `StablePatterns17.java`, `PreviewSwitch17.java` và `FinalSwitch21.java` trên các JDK tương ứng, đối chiếu expected stdout.
+- [ ] Always tie final/preview statements to a **Java version number**.
+- [ ] Know that `instanceof` patterns became final in Java 16 and are stable in Java 17.
+- [ ] Know that switch expressions `->`/`yield` became final in Java 14.
+- [ ] Know that pattern matching for switch was preview in Java 17–20 and final since Java 21.
+- [ ] Know that Java 17 switch preview uses the `&&` guard; Java 21 final uses `when`.
+- [ ] Know that `--enable-preview` must be enabled at **compile and run** if a class uses Java 17 preview.
+- [ ] Do not try asking a newer JDK to enable an older release's preview.
+- [ ] Know how to check `java -version`, `javac -version`, and the `--release` flag.
+- [ ] Distinguish already-final record classes from record patterns finalized later.
+- [ ] Understand that a guard runs only when the type pattern matches and case order can change results.
+- [ ] Understand dominance and null handling in switch patterns by version.
+- [ ] Run `StablePatterns17.java`, `PreviewSwitch17.java`, and `FinalSwitch21.java` on the corresponding JDKs and verify expected stdout.
 
-**Kết luận:** Một cú pháp trong Java có thể **preview ở bản trước và ổn định ở bản sau**, đồng thời **đổi cú pháp** khi hoàn thiện. Đối với mẫu kiểm tra kiểu, Java 17 dùng `instanceof` pattern ổn định; pattern switch của Java 17 là preview với guard `&&`, còn Java 21 đã final pattern switch cùng guard `when`. Muốn học hoặc triển khai đúng, hãy luôn kiểm tra **phiên bản, cú pháp, trạng thái và cờ compile/run** trước khi sử dụng.
+**Conclusion:** A syntax feature in Java can be **preview in an earlier release and stable in a later one**, while **changing syntax** as it matures. For type patterns, Java 17 uses stable `instanceof` patterns; Java 17's pattern switch is preview with `&&` guards, whereas Java 21 finalized pattern switch with `when` guards. To learn or deploy properly, always check **version, syntax, status, and compile/run flags** before use.

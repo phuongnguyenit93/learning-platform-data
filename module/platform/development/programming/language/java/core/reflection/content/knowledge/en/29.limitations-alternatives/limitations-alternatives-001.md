@@ -1,47 +1,47 @@
-# Reflection không khôi phục đầy đủ mã nguồn hoặc thân phương thức
+# Reflection Does Not Fully Recover Source Code or Method Bodies
 
-**Java Reflection cho phép quan sát metadata của kiểu và thành viên tại runtime, đồng thời thực hiện những thao tác như đọc field hoặc gọi method khi có quyền. Nó không có API chuẩn để trả về toàn văn Java source code hoặc thân Java source của một phương thức.** Một `java.lang.reflect.Method` mô tả *phương thức nào* (tên, tham số, kiểu trả về, modifiers, annotations...), chứ không cung cấp *các câu lệnh Java nào* đã viết để triển khai phương thức ấy.
+**Java Reflection lets you inspect type and member metadata at runtime and perform operations such as reading fields or invoking methods when permitted. It has no standard API to return full Java source code or the Java source body of a method.** A `java.lang.reflect.Method` describes *which method* (name, parameters, return type, modifiers, annotations, etc.), rather than providing *which Java statements* were written to implement that method.
 
-Điều này quan trọng khi thiết kế công cụ quét class, trình tạo tài liệu, mapper, serializer, debugger và framework: có những dữ kiện lấy được từ Reflection, những dữ kiện chỉ có thể suy ra từ bytecode khi còn bytecode, và những dữ kiện đã mất sau quá trình biên dịch nên **không thể phục hồi chính xác chỉ từ `.class`**.
+This matters when designing class scanners, documentation generators, mappers, serializers, debuggers, and frameworks: there are facts obtainable from Reflection, facts that can only be inferred from bytecode when bytecode is available, and facts lost after compilation that **cannot be accurately recovered from `.class` alone**.
 
-## 1. Phân biệt ba lớp thông tin
+## 1. Distinguishing Three Layers of Information
 
-| Lớp thông tin | Ví dụ | Công cụ/phạm vi |
+| Information layer | Examples | Tools / Scope |
 | --- | --- | --- |
-| **Mã nguồn (`.java`)** | Câu lệnh, cách đặt dấu ngoặc, chú thích, cách đặt tên biến cục bộ, imports, biểu thức viết ban đầu | Trình phân tích source/AST khi có tệp nguồn; Reflection không trả những đoạn này |
-| **Class file / bytecode (`.class`)** | Constant pool, descriptors, metadata, attributes và thường có mã lệnh JVM trong `Code` attribute của method thông thường | `javap`, thư viện phân tích class file/bytecode, decompiler; đây là dữ liệu sau biên dịch, không phải nguyên văn source |
-| **Runtime Reflection** | `Class<?>`, `Method`, `Field`, `Constructor`, tham số, các annotation được giữ ở runtime; đọc/gọi thành viên nếu truy cập hợp lệ | `java.lang.Class`, `java.lang.reflect`; các API công khai để kiểm tra kiểu/thành viên và invocation |
+| **Source code (`.java`)** | Statements, brace placement, comments, local variable naming, imports, originally written expressions | Source/AST parsers when source files exist; Reflection does not return these pieces |
+| **Class file / bytecode (`.class`)** | Constant pool, descriptors, metadata, attributes, and usually JVM instructions in the `Code` attribute of normal methods | `javap`, class file/bytecode analysis libraries, decompilers; this is post-compilation data, not verbatim source |
+| **Runtime Reflection** | `Class<?>`, `Method`, `Field`, `Constructor`, parameters, runtime-retained annotations; read/invoke members if access is valid | `java.lang.Class`, `java.lang.reflect`; public APIs for inspecting types/members and invocation |
 
-Một đoạn Java source có thể được biên dịch thành nhiều class, synthetic members, lambda-related constructs hoặc các lệnh bytecode không tương ứng một-một với dòng nguồn. Khi chỉ còn `.class`, thông tin đã bị bỏ đi (ví dụ comment/format/imports) không tồn tại để Reflection “trả lại”.
+A piece of Java source code may compile into multiple classes, synthetic members, lambda-related constructs, or bytecode instructions that do not correspond one-to-one with source lines. When only `.class` remains, discarded information (for example comments/formatting/imports) does not exist for Reflection to "return".
 
-### Reflection cho biết gì?
+### What Does Reflection Tell You?
 
-Ví dụ với `Method m`, các API có ích:
+For example, with `Method m`, useful APIs include:
 
-- `m.getName()`, `m.getDeclaringClass()`, `m.getModifiers()`: tên method, lớp khai báo, modifier.
-- `m.getParameterTypes()`, `m.getReturnType()`, `m.getExceptionTypes()`: kiểu tham số runtime, kiểu trả về, danh sách ngoại lệ **được khai báo** trong chữ ký.
-- `m.getGenericParameterTypes()`, `m.getGenericReturnType()`: thông tin generic được khai báo và còn được lưu ở metadata phù hợp.
-- `m.getParameters()`: đối tượng `Parameter`; tên thực sự của tham số chỉ đáng tin nếu `isNamePresent()` báo có.
-- `m.getDeclaredAnnotations()`: các annotation khai báo tại method mà JVM cho phép quan sát bằng Reflection, chủ yếu annotation có retention `RUNTIME`.
-- `m.isBridge()`, `m.isSynthetic()`: xác định một số phương thức hỗ trợ do compiler/sinh bytecode tạo.
+- `m.getName()`, `m.getDeclaringClass()`, `m.getModifiers()`: method name, declaring class, modifiers.
+- `m.getParameterTypes()`, `m.getReturnType()`, `m.getExceptionTypes()`: runtime parameter types, return type, list of exceptions **declared** in the signature.
+- `m.getGenericParameterTypes()`, `m.getGenericReturnType()`: generic information declared and still stored in appropriate metadata.
+- `m.getParameters()`: `Parameter` objects; actual parameter names are reliable only if `isNamePresent()` reports true.
+- `m.getDeclaredAnnotations()`: annotations declared on the method that the JVM allows observing via Reflection, primarily annotations with `RUNTIME` retention.
+- `m.isBridge()`, `m.isSynthetic()`: identify certain helper methods generated by the compiler/bytecode generator.
 
-Reflection cũng có thể đọc/ghi giá trị field khi được phép và gọi một phương thức qua `m.invoke(receiver, args...)`. Tuy nhiên, **giá trị hiện tại hoặc kết quả khi gọi không cho biết câu lệnh nguồn đã tạo ra chúng**.
+Reflection can also read/write field values when permitted and invoke a method via `m.invoke(receiver, args...)`. However, **current values or invocation results do not tell you which source statements produced them**.
 
-### Reflection không trả về gì?
+### What Does Reflection Not Return?
 
-Không có phương thức chuẩn như `Method.getBody()` hay `Method.getSourceCode()` trong `java.lang.reflect`. Những điều sau không được Reflection chuẩn khôi phục đầy đủ:
+There are no standard methods such as `Method.getBody()` or `Method.getSourceCode()` in `java.lang.reflect`. The following are not fully recovered by standard Reflection:
 
-- Toàn văn câu lệnh trong method: vòng lặp, nhánh `if`, biểu thức, lambda ở dạng source và các comment.
-- Khoảng trắng, thứ tự import, cách viết literal, phong cách dấu ngoặc, các comment/Javadoc ban đầu.
-- Tên và scope của mọi biến cục bộ, tên biến tạm compiler sinh; một số tên có thể hiện diện trong debug attributes, nhưng Reflection không cung cấp API đọc một AST hoàn chỉnh từ đó.
-- Đồ thị điều khiển (CFG), danh sách lệnh JVM, stack frames, biểu thức gốc hoặc ánh xạ chính xác từ instruction ngược về từng đoạn source.
-- Lý do tác giả chọn một thuật toán hoặc ý định nghiệp vụ đằng sau một method.
+- Full statements inside a method: loops, `if` branches, expressions, lambdas in source form, and comments.
+- Whitespace, import order, literal notation, brace style, original comments/Javadoc.
+- Names and scopes of all local variables, compiler-generated temporary variable names; some names may appear in debug attributes, but Reflection provides no API to read a complete AST from them.
+- Control-flow graph (CFG), list of JVM instructions, stack frames, original expressions, or exact mapping from instructions back to each source snippet.
+- Why the author chose an algorithm or the business intent behind a method.
 
-Ví dụ hai cách cài đặt `square(int x)`, một dùng `x * x`, một dùng `Math.multiplyExact(x, x)`, có thể có **metadata Reflection gần như giống nhau** mặc dù hành vi khác nhau ở trường hợp overflow. Chỉ nhìn chữ ký `int square(int)` không thể suy ra logic bên trong.
+For example, two implementations of `square(int x)`, one using `x * x` and one using `Math.multiplyExact(x, x)`, can have **nearly identical Reflection metadata** even though their behavior differs on overflow. Looking only at the signature `int square(int)` cannot deduce the internal logic.
 
-## 2. Tại sao `Method.toString()` và `Method.invoke()` không phải mã nguồn?
+## 2. Why Are `Method.toString()` and `Method.invoke()` Not Source Code?
 
-Giả sử:
+Suppose:
 
 ~~~java
 public String greet(String name) {
@@ -50,62 +50,62 @@ public String greet(String name) {
 }
 ~~~
 
-Gọi `getDeclaredMethod("greet", String.class)` tìm đối tượng `Method` ứng với tên và kiểu tham số. `m.toString()` hoặc `m.toGenericString()` tạo **chuỗi mô tả chữ ký** (modifier, kiểu, tên, danh sách tham số/throws...), không in ra các câu lệnh `String message = ...` hay `return ...`.
+Calling `getDeclaredMethod("greet", String.class)` finds the `Method` object matching the name and parameter type. `m.toString()` or `m.toGenericString()` produces a **signature description string** (modifiers, types, name, parameter/throws list, etc.), not the statements `String message = ...` or `return ...`.
 
-`m.invoke(object, "Lan")` thực thi method thực tế và có thể trả `"Hello, Lan"`, nhưng Reflection không ghi nhận một “bản source” của method để trả lại. Việc thử vài input/output để đoán thuật toán cũng không thể chứng minh phương thức được viết bằng các câu lệnh nào.
+`m.invoke(object, "Lan")` executes the actual method and may return `"Hello, Lan"`, but Reflection does not record a "source copy" of the method to return. Trying a few inputs/outputs to guess the algorithm also cannot prove which statements the method was written with.
 
-- `getDeclaredMethods()` liệt kê các method khai báo trực tiếp (có thể gồm bridge/synthetic), không giải mã thân method.
-- `getMethods()` tìm các public methods có tính đến kế thừa theo API, vẫn không trả source.
-- `Method.getDefaultValue()` nếu có là **default của phần tử annotation type**, không phải câu lệnh `return` của một method thông thường.
-- `MethodHandle` hoặc `MethodHandles.Lookup` cho phép liên kết/gọi hành vi theo capability/quyền, nhưng cũng không phải API truy xuất source code.
+- `getDeclaredMethods()` lists directly declared methods (which may include bridge/synthetic ones), without decoding method bodies.
+- `getMethods()` finds public methods taking inheritance into account per the API, still without returning source.
+- `Method.getDefaultValue()`, if present, is the **default of an annotation type element**, not the `return` statement of an ordinary method.
+- `MethodHandle` or `MethodHandles.Lookup` lets you link/invoke behavior based on capabilities/access rights, but is also not a source-code retrieval API.
 
-Một method `abstract` không có implementation trực tiếp; `native` triển khai bằng mã ngoài bytecode Java; method trong bytecode được tạo động có thể không có tệp `.java` tương ứng. Vì vậy việc mong chờ Reflection trả “thân Java source” cho mọi method là sai từ mô hình ban đầu.
+An `abstract` method has no direct implementation; a `native` method is implemented in code outside Java bytecode; a dynamically generated bytecode method may have no corresponding `.java` file. Therefore, expecting Reflection to return a "Java source body" for every method is flawed from the underlying model.
 
-## 3. Dữ liệu nào có thể mất tùy cách biên dịch?
+## 3. Which Data Can Be Lost Depending on How Code Is Compiled?
 
-### 3.1. Tên tham số: `-parameters`
+### 3.1. Parameter Names: `-parameters`
 
-Trong tệp Java:
+In a Java file:
 
 ~~~java
 public void send(String recipient) { }
 ~~~
 
-`Method.getParameters()[0].getName()` **không phải lúc nào cũng trả `"recipient"`**. Nếu method không có metadata tên tham số phù hợp trong class file, Reflection có thể đặt tên tổng hợp như `"arg0"`; hãy kiểm tra `Parameter.isNamePresent()` trước khi dùng tên vào mapping hoặc tài liệu.
+`Method.getParameters()[0].getName()` **does not always return `"recipient"`**. If a method lacks appropriate parameter-name metadata in the class file, Reflection may synthesize names like `"arg0"`; check `Parameter.isNamePresent()` before using names in mappings or documentation.
 
-Với các method Java thông thường do `javac` biên dịch:
+For ordinary Java methods compiled by `javac`:
 
 ~~~bash
 javac -parameters ReflectionLimitsDemo.java
 ~~~
 
-Tùy chọn `-parameters` lưu tên tham số của methods/constructors vào `MethodParameters` attribute, nên `isNamePresent()` có thể là `true`. Đây là **tên tham số ở chữ ký**, không phải danh sách mọi biến cục bộ hoặc thân method. Trình biên dịch khác, class do công cụ sinh, record constructor và metadata bị biến đổi có thể có những đặc điểm riêng; hãy dùng chính `isNamePresent()` làm nguồn kiểm chứng.
+The `-parameters` option stores parameter names of methods/constructors in the `MethodParameters` attribute, so `isNamePresent()` can be `true`. These are **parameter names in the signature**, not a list of all local variables or the method body. Other compilers, tool-generated classes, record constructors, and transformed metadata may have their own specifics; use `isNamePresent()` itself as the source of verification.
 
-### 3.2. Generic: erasure và `Signature` attribute
+### 3.2. Generics: Erasure and the `Signature` Attribute
 
-Xét `class Box<T> { T echo(T value) { return value; } }`. Trong mô hình runtime erasure, kiểu thực dùng trong descriptor của `echo` là `Object`. `getReturnType()` trả `Object.class`, trong khi `getGenericReturnType()` có thể trả type variable `T` nhờ thông tin generic signature còn trong class file.
+Consider `class Box<T> { T echo(T value) { return value; } }`. In the runtime erasure model, the actual type used in the descriptor of `echo` is `Object`. `getReturnType()` returns `Object.class`, whereas `getGenericReturnType()` can return the type variable `T` thanks to generic signature information still in the class file.
 
-Vì vậy cần phân biệt **runtime type đã erasure** với **mô tả generic ở metadata**. Reflection có thể đọc một phần thông tin generic khai báo (nếu còn), nhưng không suy ngược toàn bộ kiểu của biến cục bộ, cách lập trình viên đặt type argument ở các biểu thức, hay mọi ràng buộc đã biến mất sau erasure.
+Therefore, distinguish **erased runtime types** from **generic descriptions in metadata**. Reflection can read part of the declared generic information (if still present), but cannot infer backward all local variable types, how the programmer wrote type arguments in expressions, or every constraint lost after erasure.
 
-### 3.3. Annotation: `SOURCE`, `CLASS` và `RUNTIME`
+### 3.3. Annotations: `SOURCE`, `CLASS`, and `RUNTIME`
 
-| `RetentionPolicy` | Khi biên dịch và chạy | Reflection runtime |
+| `RetentionPolicy` | At compile time and runtime | Runtime Reflection |
 | --- | --- | --- |
-| `SOURCE` | Compiler bỏ annotation khỏi class file | Không đọc được bằng Reflection |
-| `CLASS` | Annotation được ghi vào class file nhưng không bắt buộc giữ lại ở runtime | Core Reflection thông thường không trả annotation này |
-| `RUNTIME` | Annotation được giữ để đọc phản xạ tại runtime | Có thể đọc bằng `getAnnotation`/`getDeclaredAnnotations` |
+| `SOURCE` | Compiler discards the annotation from the class file | Cannot be read via Reflection |
+| `CLASS` | Annotation is written to the class file but not required to be retained at runtime | Ordinary Core Reflection does not return this annotation |
+| `RUNTIME` | Annotation is retained to be read reflectively at runtime | Can be read via `getAnnotation`/`getDeclaredAnnotations` |
 
-Việc class file có lưu một annotation `CLASS` không có nghĩa `Method.getDeclaredAnnotations()` sẽ liệt kê nó. Nếu mục tiêu là đọc annotation dành cho compiler hoặc classfile tools, chọn đúng tầng dữ liệu thay vì mở rộng Reflection vô ích.
+Just because a class file stores a `CLASS` annotation does not mean `Method.getDeclaredAnnotations()` will list it. If the goal is to read annotations meant for compilers or classfile tools, choose the right data layer instead of trying to stretch Reflection fruitlessly.
 
-### 3.4. Debug information có giới hạn riêng
+### 3.4. Debug Information Has Its Own Limitations
 
-Class file có thể chứa `SourceFile`, `LineNumberTable` và (tùy cách build) `LocalVariableTable`/`LocalVariableTypeTable`. Những attribute này hỗ trợ debugger, ánh xạ số dòng hoặc công cụ bytecode, nhưng **không dựng lại comment, biểu thức Java, scope và AST một cách chính xác**.
+A class file may contain `SourceFile`, `LineNumberTable`, and (depending on how it is built) `LocalVariableTable`/`LocalVariableTypeTable`. These attributes assist debuggers, line-number mapping, or bytecode tools, but **do not accurately reconstruct comments, Java expressions, scopes, and ASTs**.
 
-`javac -g` yêu cầu sinh thông tin debug phong phú hơn; `javac -g:none` loại nhiều thông tin debug. `javac -parameters` phục vụ metadata tên tham số cho Reflection và **không đồng nghĩa** với `-g`. Stack trace có thể chứa tên file và số dòng khi metadata tương ứng còn đó, nhưng số dòng không phải thân method.
+`javac -g` requests generating richer debug information; `javac -g:none` strips most debug information. `javac -parameters` serves parameter-name metadata for Reflection and is **not synonymous** with `-g`. Stack traces can contain file names and line numbers when the corresponding metadata is present, but line numbers are not method bodies.
 
-## 4. Ví dụ Java 17+: kiểm tra chính xác giới hạn Reflection
+## 4. Java 17+ Example: Checking Reflection's Exact Limits
 
-Lưu toàn bộ ví dụ vào tệp **`ReflectionLimitsDemo.java`**:
+Save the entire example to the file **`ReflectionLimitsDemo.java`**:
 
 ~~~java
 import java.lang.annotation.Retention;
@@ -162,14 +162,14 @@ public class ReflectionLimitsDemo {
 }
 ~~~
 
-Biên dịch lần đầu **không dùng `-parameters`** để quan sát sự thiếu vắng metadata tên tham số:
+Compile the first time **without `-parameters`** to observe the absence of parameter-name metadata:
 
 ~~~bash
 javac --release 17 ReflectionLimitsDemo.java
 java ReflectionLimitsDemo
 ~~~
 
-Output đã kiểm chứng với Java 17 source/API:
+Verified output with Java 17 source/API:
 
 ~~~text
 method: greet
@@ -185,32 +185,32 @@ erased return: Object
 generic return: T
 ~~~
 
-Đọc kết quả:
+Reading the output:
 
-1. Có thể xác định tên, return type, parameter type bằng `Method`; **không có câu lệnh nào** trong thân `greet` xuất hiện trong output Reflection.
-2. Tham số có tên khai báo là `name` nhưng Reflection chỉ cho `arg0` và `isNamePresent() == false` do lựa chọn biên dịch.
-3. Chỉ annotation có `RetentionPolicy.RUNTIME` được trả qua `isAnnotationPresent`.
-4. `invoke` trả giá trị thực tế, còn `getReturnType`/`getGenericReturnType` cho biết những góc nhìn khác nhau về kiểu generic.
+1. You can determine the name, return type, and parameter type via `Method`; **no statements** from the body of `greet` appear in Reflection's output.
+2. The parameter's declared name is `name`, but Reflection only gives `arg0` and `isNamePresent() == false` due to compilation choices.
+3. Only the annotation with `RetentionPolicy.RUNTIME` is returned via `isAnnotationPresent`.
+4. `invoke` returns the actual value, while `getReturnType`/`getGenericReturnType` provide different views of the generic type.
 
-Nếu biên dịch lại bằng:
+If recompiled with:
 
 ~~~bash
 javac --release 17 -parameters ReflectionLimitsDemo.java
 java ReflectionLimitsDemo
 ~~~
 
-Hai dòng thay đổi là:
+The two lines that change are:
 
 ~~~text
 name present: true
 parameter name: name
 ~~~
 
-Các dòng khác vẫn như ví dụ trước. Việc này **không** bổ sung cách truy xuất thân `greet` hay biến cục bộ `message` qua `Method`.
+The other lines remain as in the previous example. This **does not** add any way to retrieve the body of `greet` or the local variable `message` via `Method`.
 
-## 5. Khi nào dùng `javap`, bytecode reader hay decompiler?
+## 5. When to Use `javap`, Bytecode Readers, or Decompilers?
 
-Nếu có class file mà bạn có quyền phân tích và cần xem cách JVM thực thi một method, hãy dùng **công cụ phân tích bytecode**, không kỳ vọng Reflection làm thay.
+If you have a class file that you are authorized to analyze and need to see how the JVM executes a method, use **bytecode analysis tools** rather than expecting Reflection to do it.
 
 ~~~bash
 javap -c -p ReflectionLimitsDemo
@@ -218,59 +218,59 @@ javap -v -p ReflectionLimitsDemo
 javap -l -p ReflectionLimitsDemo
 ~~~
 
-- `javap -c -p`: in lệnh JVM bytecode của method, gồm private members; đó là disassembly, không phải text Java source.
-- `javap -v -p`: mô tả chi tiết class file, attributes, constant pool và metadata; hữu ích để phân biệt descriptor, `Signature` và attributes khác.
-- `javap -l -p`: in thông tin số dòng và local variable tables **nếu có**; không thể tạo lại những thông tin compiler đã không lưu.
+- `javap -c -p`: prints JVM bytecode instructions of methods, including private members; that is disassembly, not Java source text.
+- `javap -v -p`: describes class file details, attributes, constant pool, and metadata; useful for distinguishing descriptors, `Signature`, and other attributes.
+- `javap -l -p`: prints line-number information and local variable tables **if present**; cannot recreate information the compiler did not save.
 
-Trong ví dụ, `javap -c` có thể cho thấy các lệnh phục vụ nối chuỗi, gọi `trim()` và trả kết quả. Nó không cho biết lập trình viên đã xuống dòng, viết comment hay đặt dấu ngoặc theo phong cách nào. JDK/compiler còn có thể chọn các cách biểu diễn bytecode khác nhau cho mã nguồn tương đương.
+In the example, `javap -c` can show instructions used for string concatenation, calling `trim()`, and returning the result. It does not tell you how the programmer broke lines, wrote comments, or styled braces. The JDK/compiler may also choose different bytecode representations for equivalent source code.
 
-Một **Java decompiler** (ví dụ CFR, Vineflower hoặc công cụ tương đương) phân tích bytecode rồi **suy dựng mã nguồn gần đúng** để đọc hiểu. Chương trình decompile có thể khác mã nguồn ban đầu về tên biến, cấu trúc điều khiển, anonymous/lambda, generic, annotation, cú pháp và khả năng biên dịch lại. Không thể xem output của decompiler là bản gốc hoặc dùng nó như bằng chứng duy nhất về source đã được viết.
+A **Java decompiler** (for example CFR, Vineflower, or an equivalent tool) analyzes bytecode and **reconstructs an approximate source code** for reading comprehension. Decompiled code can differ from the original source in variable names, control structures, anonymous classes/lambdas, generics, annotations, syntax, and recompilability. You cannot treat decompiler output as the original or use it as sole proof of the source that was written.
 
-Nếu cần kiểm tra chính xác source, hãy ưu tiên **tệp `.java` và thông tin build/commit gốc**. Nếu cần vị trí và cấu trúc cú pháp khi source hiện diện, dùng công cụ phân tích AST như API `com.sun.source.tree` trong javac hoặc parser chuyên dụng. AST là đại diện của source đang được phân tích, khác với đối tượng `Method` ở runtime.
+If you need to inspect exact source code, prefer **the `.java` files and original build/commit info**. If you need syntactic positions and structure when source is present, use AST analysis tools such as the `com.sun.source.tree` API in javac or a dedicated parser. An AST represents the source being parsed, which differs from a runtime `Method` object.
 
-### Lựa chọn công cụ theo câu hỏi
+### Choosing Tools by Question
 
-| Nhu cầu thực tế | Hướng phù hợp |
+| Practical need | Appropriate approach |
 | --- | --- |
-| Liệt kê tên, chữ ký, kiểu, modifier, runtime annotation | Core Reflection |
-| Gọi method, đọc/ghi field tại runtime (được cấp quyền) | Core Reflection hoặc `MethodHandle`/`VarHandle` |
-| Biết implementation gồm các câu lệnh JVM nào | `javap -c`, ASM hoặc thư viện đọc class file |
-| Hiểu logic của class chỉ còn bytecode | Decompiler kết hợp kiểm tra disassembly và test; ghi rõ tính suy dựng |
-| Lấy nguyên văn source, comment, formatting, import | Kho lưu `.java` / artifact source tương ứng |
-| Phân tích cú pháp tại thời điểm build | Java compiler AST / parser chạy trên source |
-| Biết method chạy qua những nhánh nào trong thực tế | Debugger, tracer, profiling hoặc instrumentation thích hợp |
-| Xem số dòng/biến cục bộ để debug | Debug attributes, debugger, `javap -l` khi metadata tồn tại |
+| List names, signatures, types, modifiers, runtime annotations | Core Reflection |
+| Invoke methods, read/write fields at runtime (when permitted) | Core Reflection or `MethodHandle`/`VarHandle` |
+| Know which JVM instructions make up an implementation | `javap -c`, ASM, or a class file reading library |
+| Understand logic of a class with only bytecode left | Decompiler combined with checking disassembly and tests; clearly note its reconstructed nature |
+| Obtain verbatim source, comments, formatting, imports | Source `.java` repository / corresponding source artifact |
+| Analyze syntax at build time | Java compiler AST / parser running on source |
+| Know which branches a method actually runs in practice | Debugger, tracer, profiling, or appropriate instrumentation |
+| View line numbers/local variables for debugging | Debug attributes, debugger, `javap -l` when metadata exists |
 
-## 6. Các ranh giới cần nhớ khi làm công cụ Reflection
+## 6. Boundaries to Remember When Building Reflection Tools
 
-**Đừng xem mọi metadata là có sẵn.** Một class được compiler bình thường tạo khác một class do bytecode generator/proxy tạo; class có thể bị obfuscate hoặc biến đổi, generic signatures/debug attributes bị bỏ, annotation có retention khác nhau. `getDeclaredMethods()` có thể chứa bridge/synthetic methods không có một method source riêng. Thứ tự mảng trả về cũng không được bảo đảm: nếu phải xuất schema ổn định, hãy sắp xếp và lọc theo chính sách rõ ràng.
+**Do not assume all metadata is available.** A class compiled by a normal compiler differs from one generated by a bytecode generator/proxy; a class may be obfuscated or transformed, generic signatures/debug attributes stripped, and annotations may have different retentions. `getDeclaredMethods()` may contain bridge/synthetic methods without a separate source method. Returned array order is also not guaranteed: if you must emit a stable schema, sort and filter according to an explicit policy.
 
-**Đừng coi thấy metadata là có quyền truy cập.** Có thể tìm thấy khai báo private qua `getDeclaredMethod` nhưng khi invoke vẫn cần quyền phù hợp. Java Platform Module System (JPMS) phân biệt `exports` và `opens`; `setAccessible(true)` không tự vượt mọi ranh giới module. Việc đọc metadata, đọc bytecode và gọi method là ba hoạt động có cơ chế và điều kiện riêng.
+**Do not treat seeing metadata as having access rights.** You may find a private declaration via `getDeclaredMethod`, yet invoking it still requires appropriate permissions. The Java Platform Module System (JPMS) distinguishes `exports` and `opens`; `setAccessible(true)` does not automatically bypass every module boundary. Reading metadata, reading bytecode, and invoking methods are three operations with separate mechanisms and conditions.
 
-**Đừng suy luận source từ behavior.** Output có thể phụ thuộc trạng thái, I/O, thời gian, concurrency hoặc thư viện bên ngoài; hai implementation khác nhau có thể cho cùng output ở nhiều input. Reflection invocation không cung cấp bằng chứng về các nhánh chưa chạy, phép biến đổi bytecode hoặc cấu trúc source ban đầu.
+**Do not infer source from behavior.** Output can depend on state, I/O, time, concurrency, or external libraries; two different implementations can produce the same output across many inputs. Reflection invocation provides no evidence about unexecuted branches, bytecode transformations, or original source structure.
 
-**Đừng lấy tên `arg0` làm dữ liệu nghiệp vụ.** Nếu đang thiết kế router, serializer hay mapper phụ thuộc tên tham số, yêu cầu build lưu `-parameters`, hỗ trợ annotation tên logic, hoặc định nghĩa cơ chế ánh xạ cấu hình rõ ràng. Nếu `!isNamePresent()`, nên trả thông báo cụ thể hoặc fallback có kiểm soát thay vì giả định `arg0` là tên tác giả đặt.
+**Do not treat `arg0` as business data.** If designing a router, serializer, or mapper that relies on parameter names, require the build to save `-parameters`, support logical-name annotations, or define an explicit configuration mapping mechanism. If `!isNamePresent()`, return a specific message or controlled fallback rather than assuming `arg0` is the author's chosen name.
 
-## 7. Nhầm lẫn thường gặp và tự kiểm tra
+## 7. Common Misconceptions and Self-Check
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Accurate understanding |
 | --- | --- |
-| “`getDeclaredMethod` lấy luôn thân method.” | Chỉ lấy đối tượng `Method` mô tả thành viên; không có `getBody` chuẩn. |
-| “`Method.toGenericString` là mã Java đầy đủ.” | Nó biểu diễn chữ ký có thông tin generic, không phải implementation. |
-| “Dùng `invoke` có thể lấy lại câu lệnh đã chạy.” | `invoke` thực thi hành vi; không trả về source/AST. |
-| “Class file chính là source code được đóng gói.” | Class file là kết quả biên dịch, có descriptors/bytecode và một số metadata được giữ lại. |
-| “`javap -c` tạo lại nguyên bản `.java`.” | Nó in bytecode; decompiler cũng chỉ suy dựng source gần đúng. |
-| “Tên tham số luôn tồn tại trong `Parameter.getName()`.” | Kiểm tra `isNamePresent()`; `-parameters` có thể cần thiết. |
-| “Mọi annotation trong source đều đọc được lúc chạy.” | Core Reflection chủ yếu đọc annotation có `RUNTIME` retention. |
-| “Generic source luôn được giữ nguyên sau biên dịch.” | Runtime erasure mất nhiều chi tiết; một phần generic declarations có thể được giữ trong signature metadata. |
-| “Số dòng stack trace là nguyên văn nội dung source.” | Nó chỉ là metadata vị trí có điều kiện, không phải câu lệnh. |
+| "`getDeclaredMethod` retrieves the method body too." | It only retrieves a `Method` object describing the member; there is no standard `getBody`. |
+| "`Method.toGenericString` is full Java code." | It represents the signature with generic information, not the implementation. |
+| "Using `invoke` can recover the statements that ran." | `invoke` executes behavior; it does not return source/AST. |
+| "A class file is just packaged source code." | A class file is a compilation result, containing descriptors/bytecode and some retained metadata. |
+| "`javap -c` recreates the verbatim `.java`." | It prints bytecode; even a decompiler only reconstructs approximate source. |
+| "Parameter names always exist in `Parameter.getName()`." | Check `isNamePresent()`; `-parameters` may be required. |
+| "Every annotation in source can be read at runtime." | Core Reflection primarily reads annotations with `RUNTIME` retention. |
+| "Source generics are always preserved verbatim after compilation." | Runtime erasure loses many details; part of generic declarations can be kept in signature metadata. |
+| "Stack trace line numbers are verbatim source content." | They are only conditional location metadata, not statements. |
 
-Tự trả lời ba câu hỏi:
+Answer three questions yourself:
 
-1. Nếu Reflection cho biết một method trả `String` và nhận `String`, liệu bạn có thể biết nó đang dùng `StringBuilder`, phép nối chuỗi hay thư viện bên ngoài? **Không**; chữ ký không tiết lộ thuật toán.
-2. Nếu `Parameter.isNamePresent()` bằng `false`, tên `arg0` có được dùng để khẳng định tác giả đặt tên `arg0` không? **Không**; đó có thể là tên tổng hợp.
-3. Khi chỉ còn `.class`, làm thế nào xem instruction và vì sao decompile chưa phải source gốc? Xem `javap -c` hoặc bytecode reader; decompiler **suy dựng** biểu diễn Java từ dữ liệu đã biên dịch, còn thông tin đã bị bỏ thì không thể phục hồi nguyên vẹn.
+1. If Reflection tells you a method returns `String` and takes `String`, can you tell whether it uses `StringBuilder`, string concatenation, or an external library? **No**; the signature does not reveal the algorithm.
+2. If `Parameter.isNamePresent()` equals `false`, can the name `arg0` be used to assert the author named it `arg0`? **No**; it may be a synthesized name.
+3. When only `.class` remains, how do you inspect instructions and why is decompilation not original source? Check `javap -c` or a bytecode reader; a decompiler **reconstructs** a Java representation from compiled data, whereas discarded information cannot be recovered intact.
 
-**Ghi nhớ:** Reflection là công cụ cho **metadata và invocation tại runtime**. `javap`/bytecode analysis trả lời câu hỏi về **class file và lệnh JVM**, còn source parser trả lời câu hỏi về **mã Java đang có**. Phân biệt đúng ba lớp này giúp thiết kế công cụ chính xác, không hứa hẹn phục hồi những dữ liệu Java đã không lưu.
+**Key takeaway:** Reflection is a tool for **runtime metadata and invocation**. `javap`/bytecode analysis answers questions about **class files and JVM instructions**, while a source parser answers questions about **available Java code**. Properly distinguishing these three layers helps you design tools accurately without promising to recover data Java did not store.
 
-**Tài liệu chính thức:** [`Class` (Java SE 21)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html), [`Method` (Java SE 21)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html), [`Parameter` (Java SE 21)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Parameter.html), [`RetentionPolicy` (Java SE 21)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/RetentionPolicy.html), [`javap` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javap.html).
+**Official documentation:** [`Class` (Java SE 21)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html), [`Method` (Java SE 21)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html), [`Parameter` (Java SE 21)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Parameter.html), [`RetentionPolicy` (Java SE 21)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/RetentionPolicy.html), [`javap` command](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javap.html).

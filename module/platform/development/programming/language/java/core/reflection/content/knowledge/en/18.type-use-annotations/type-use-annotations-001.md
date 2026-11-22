@@ -1,60 +1,60 @@
-# Phân biệt declaration annotation với type-use annotation trong Java Reflection
+# Distinguishing Declaration Annotations from Type-Use Annotations in Java Reflection
 
-## 1. Vì sao cần phân biệt hai nơi gắn annotation?
+## 1. Why distinguish between the two annotation placement locations?
 
-Trong Java, annotation có thể mô tả **một khai báo** (*declaration*) hoặc **một vị trí sử dụng kiểu** (*type use*). Nhìn qua source, hai annotation đều bắt đầu bằng ký hiệu `@`, nhưng ý nghĩa và đường truy cập qua Reflection khác nhau.
+In Java, an annotation can describe **a declaration** or **a type use**. At a glance in source code, both annotations start with the `@` symbol, but their meaning and their access paths through Reflection are different.
 
-Ví dụ:
+Example:
 
 ```java
 @Decl("field")
 private @Use("type") List<@Use("element") String> names;
 ```
 
-Đây là đoạn mã minh họa **nằm trong một class**, giả định `Decl` được phép đặt trên khai báo field, `Use` được phép đặt trên type use, và các annotation có retention phù hợp.
+This is an illustrative snippet **inside a class**, assuming `Decl` is allowed on field declarations, `Use` is allowed on type uses, and the annotations have appropriate retention.
 
-- `@Decl("field")` mô tả **khai báo field `names`**.
-- `@Use("type")` mô tả **kiểu `List<...>` mà field sử dụng**.
-- `@Use("element")` mô tả **kiểu đối số generic `String`** bên trong `List`.
+- `@Decl("field")` describes **the declaration of field `names`**.
+- `@Use("type")` describes **the `List<...>` type used by the field**.
+- `@Use("element")` describes **the generic type argument `String`** inside `List`.
 
-Nếu chỉ gọi `field.getDeclaredAnnotations()`, chương trình có thể thấy declaration annotation mà **không** thấy annotation trên type-use. Muốn tìm type-use annotation, phải lấy cấu trúc `AnnotatedType` qua `field.getAnnotatedType()` và, khi cần, đi sâu vào type argument.
+If you only call `field.getDeclaredAnnotations()`, the program may see the declaration annotation but **not** see the type-use annotations. To find type-use annotations, you must obtain the `AnnotatedType` structure via `field.getAnnotatedType()` and, when needed, drill down into type arguments.
 
-Bài học hướng tới ba năng lực:
+This lesson targets three capabilities:
 
-1. Phân biệt vị trí và ngữ nghĩa của *declaration annotation* với *type-use annotation*.
-2. Chọn đúng `@Target`, `@Retention` và API Reflection để đọc annotation ở Java 17+.
-3. Không hiểu nhầm metadata runtime thành cơ chế kiểm tra kiểu tự động hoặc coi các loại annotation là hoàn toàn loại trừ nhau.
+1. Distinguish the placement and semantics of a *declaration annotation* from a *type-use annotation*.
+2. Choose the right `@Target`, `@Retention`, and Reflection API to read annotations in Java 17+.
+3. Avoid mistaking runtime metadata for an automatic type-checking mechanism or treating the annotation kinds as completely mutually exclusive.
 
-## 2. Declaration annotation là gì?
+## 2. What is a declaration annotation?
 
-*Declaration annotation* gắn với **một khai báo chương trình**: class, interface, method, constructor, field, formal parameter, type parameter, v.v. Nó thường cung cấp metadata cho compiler, công cụ build hoặc framework.
+A *declaration annotation* is attached to **a program declaration**: class, interface, method, constructor, field, formal parameter, type parameter, etc. It typically provides metadata for the compiler, build tools, or frameworks.
 
-Một số ví dụ quen thuộc:
+Some familiar examples:
 
-- `@Override` trên khai báo method: compiler kiểm tra method có override/satisfy đúng hợp đồng hay không.
-- `@Deprecated` trên khai báo class/member: mô tả API không còn khuyến nghị sử dụng.
-- `@Entity` (trong thư viện ORM) trên class: một ví dụ về annotation mô tả declaration.
-- Một annotation `@Route` tùy chỉnh trên method: metadata về điểm cuối.
-- `@Qualifier` hoặc annotation tùy chỉnh trên parameter declaration: mô tả cách injection.
+- `@Override` on a method declaration: the compiler checks whether the method properly overrides/satisfies the contract.
+- `@Deprecated` on a class/member declaration: describes an API that is no longer recommended for use.
+- `@Entity` (in ORM libraries) on a class: an example of an annotation describing a declaration.
+- A custom `@Route` annotation on a method: metadata about an endpoint.
+- `@Qualifier` or a custom annotation on a parameter declaration: describes how injection is performed.
 
-Annotation được phép đặt ở vị trí nào do meta-annotation `@Target` quy định.
+Where an annotation is allowed to be placed is governed by the `@Target` meta-annotation.
 
-| `ElementType` | Phạm vi khai báo điển hình |
+| `ElementType` | Typical declaration scope |
 | --- | --- |
-| `TYPE` | Khai báo class, interface, enum, record và những kiểu tương ứng |
-| `FIELD` | Khai báo field |
-| `METHOD` | Khai báo method |
-| `CONSTRUCTOR` | Khai báo constructor |
-| `PARAMETER` | Khai báo formal parameter |
-| `TYPE_PARAMETER` | Khai báo tham số kiểu generic như `T` |
-| `LOCAL_VARIABLE` | Khai báo biến cục bộ |
-| `ANNOTATION_TYPE` | Khai báo một annotation type |
-| `PACKAGE` | Khai báo package |
-| `MODULE` | Khai báo module |
+| `TYPE` | Class, interface, enum, record declarations and corresponding types |
+| `FIELD` | Field declaration |
+| `METHOD` | Method declaration |
+| `CONSTRUCTOR` | Constructor declaration |
+| `PARAMETER` | Formal parameter declaration |
+| `TYPE_PARAMETER` | Generic type parameter declaration such as `T` |
+| `LOCAL_VARIABLE` | Local variable declaration |
+| `ANNOTATION_TYPE` | Annotation type declaration |
+| `PACKAGE` | Package declaration |
+| `MODULE` | Module declaration |
 
-Các mục trong bảng là một số `ElementType` liên quan đến đề bài; Java còn có `TYPE_USE` dành cho những vị trí sử dụng kiểu. Đừng hiểu `TYPE` và `TYPE_USE` là hai cách viết đồng nghĩa.
+The entries in the table are some of the `ElementType` values relevant to this topic; Java also has `TYPE_USE` for type-use locations. Do not treat `TYPE` and `TYPE_USE` as synonymous ways of writing the same thing.
 
-Định nghĩa annotation dành riêng cho khai báo field:
+Defining an annotation dedicated to field declarations:
 
 ```java
 import java.lang.annotation.*;
@@ -66,7 +66,7 @@ import java.lang.annotation.*;
 }
 ```
 
-Dùng trên field:
+Using it on a field:
 
 ```java
 class Book {
@@ -75,7 +75,7 @@ class Book {
 }
 ```
 
-Sau khi compile, Reflection có thể tìm:
+After compiling, Reflection can find it:
 
 ```java
 java.lang.reflect.Field f = Book.class.getDeclaredField("title");
@@ -83,13 +83,13 @@ ColumnInfo info = f.getDeclaredAnnotation(ColumnInfo.class);
 System.out.println(info.value()); // book_title
 ```
 
-Đoạn truy vấn Reflection là **mã minh họa trong một phương thức** đã xử lý/khai báo `NoSuchFieldException`. Vì `ColumnInfo` có retention `RUNTIME` và gắn trên *field declaration*, đọc annotation trực tiếp từ `Field` là hợp lý.
+The Reflection query snippet is **illustrative code inside a method** that handles/declares `NoSuchFieldException`. Because `ColumnInfo` has `RUNTIME` retention and is attached to a *field declaration*, reading the annotation directly from `Field` is appropriate.
 
-## 3. Type-use annotation là gì?
+## 3. What is a type-use annotation?
 
-*Type-use annotation* gắn với **một lần dùng kiểu** (*use of a type*): kiểu của field, kiểu trả về, kiểu parameter, kiểu đối số generic, thành phần mảng, kiểu superclass/interface, wildcard bound, cast, `new` expression và những ngữ cảnh type use khác theo luật Java.
+A *type-use annotation* is attached to **a use of a type**: the type of a field, a return type, a parameter type, a generic type argument, an array component, a superclass/interface type, a wildcard bound, a cast, a `new` expression, and other type-use contexts according to Java rules.
 
-Định nghĩa:
+Definition:
 
 ```java
 import java.lang.annotation.*;
@@ -101,7 +101,7 @@ import java.lang.annotation.*;
 }
 ```
 
-Các vị trí minh họa:
+Illustrative positions:
 
 ```java
 class Basket {
@@ -116,43 +116,43 @@ class Basket {
 }
 ```
 
-Trong ví dụ, các dấu `@MarkType` áp dụng vào **vị trí kiểu** chứ không đơn giản là annotation của `Field` hoặc `Method`. Nếu muốn đọc `@MarkType("element")` trên `String` trong `List<String>`, phải đi vào cấu trúc `AnnotatedParameterizedType`.
+In the example, the `@MarkType` markers apply to **type positions** rather than simply being annotations of `Field` or `Method`. If you want to read `@MarkType("element")` on `String` inside `List<String>`, you must traverse into the `AnnotatedParameterizedType` structure.
 
-Điểm quan trọng:
+Key points:
 
-- `@Target(TYPE_USE)` cho phép annotation xuất hiện ở các **ngữ cảnh type use**; nó không biến annotation thành modifier `public`, `private` hay một kiểu mới tại runtime.
-- `String` và `@MarkType String` vẫn dùng cùng kiểu Java `String` về mặt runtime class identity. Annotation chỉ thêm metadata.
-- Compiler hoặc công cụ phân tích static có thể dùng type-use annotations để kiểm tra nullness, ownership, thread-safety, v.v., **nếu** có bộ kiểm tra hỗ trợ. Java/JVM không tự biết `@NonNull` tùy chỉnh phải chặn null ra sao.
-- Một annotation có `@Retention(RUNTIME)` có thể được Reflection đọc tại **những vị trí type use mà API Reflection biểu diễn được**. Không phải mọi annotation trong mọi biểu thức source đều có API Reflection mức cao để truy vấn.
+- `@Target(TYPE_USE)` allows an annotation to appear in **type-use contexts**; it does not turn the annotation into a modifier like `public` or `private`, nor into a new runtime type.
+- `String` and `@MarkType String` still share the same Java type `String` in terms of runtime class identity. The annotation only adds metadata.
+- Compilers or static analysis tools can use type-use annotations to check nullness, ownership, thread-safety, etc., **if** a supporting checker is present. Java/the JVM does not automatically know how a custom `@NonNull` should reject null.
+- An annotation with `@Retention(RUNTIME)` can be read by Reflection at **the type-use locations that the Reflection API can represent**. Not every annotation in every source expression has a high-level Reflection API for querying it.
 
-## 4. Một bảng đối chiếu vị trí và API
+## 4. A comparison table of positions and APIs
 
-| Điều muốn quan sát | Đối tượng Reflection | API chính |
+| What you want to observe | Reflection object | Primary API |
 | --- | --- | --- |
-| Annotation trên khai báo class | `Class<?>` | `getDeclaredAnnotations()`, `getDeclaredAnnotation(T.class)` |
-| Annotation trên khai báo field | `Field` | `getDeclaredAnnotations()`, `getDeclaredAnnotation(T.class)` |
-| Annotation trên **kiểu của field** | `Field` → `AnnotatedType` | `field.getAnnotatedType().getAnnotations()` |
-| Annotation trên khai báo method | `Method` | `method.getDeclaredAnnotations()` |
-| Annotation trên **kiểu trả về method** | `Method` → `AnnotatedType` | `method.getAnnotatedReturnType().getAnnotations()` |
-| Annotation trên khai báo parameter | `Parameter` | `parameter.getAnnotations()` hoặc `getDeclaredAnnotations()` |
-| Annotation trên **kiểu của parameter** | `Parameter` → `AnnotatedType` | `parameter.getAnnotatedType().getAnnotations()` |
-| Annotation trên kiểu exception trong `throws` | `Executable`/`Method` | `getAnnotatedExceptionTypes()` |
-| Annotation trên kiểu superclass | `Class<?>` | `getAnnotatedSuperclass()` |
-| Annotation trên kiểu implemented interfaces | `Class<?>` | `getAnnotatedInterfaces()` |
-| Annotation trên đối số generic như `List<@T String>` | `AnnotatedParameterizedType` | `getAnnotatedActualTypeArguments()` |
-| Annotation trên thành phần kiểu mảng | `AnnotatedArrayType` | `getAnnotatedGenericComponentType()` |
-| Annotation trên bound của wildcard | `AnnotatedWildcardType` | `getAnnotatedUpperBounds()`/`getAnnotatedLowerBounds()` |
-| Annotation trên bound của type variable | `TypeVariable<?>` | `getAnnotatedBounds()` |
-| Annotation trên khai báo type parameter `T` | `TypeVariable<?>` | `getAnnotations()`/`getDeclaredAnnotations()` |
+| Annotation on class declaration | `Class<?>` | `getDeclaredAnnotations()`, `getDeclaredAnnotation(T.class)` |
+| Annotation on field declaration | `Field` | `getDeclaredAnnotations()`, `getDeclaredAnnotation(T.class)` |
+| Annotation on **field's type** | `Field` → `AnnotatedType` | `field.getAnnotatedType().getAnnotations()` |
+| Annotation on method declaration | `Method` | `method.getDeclaredAnnotations()` |
+| Annotation on **method's return type** | `Method` → `AnnotatedType` | `method.getAnnotatedReturnType().getAnnotations()` |
+| Annotation on parameter declaration | `Parameter` | `parameter.getAnnotations()` or `getDeclaredAnnotations()` |
+| Annotation on **parameter's type** | `Parameter` → `AnnotatedType` | `parameter.getAnnotatedType().getAnnotations()` |
+| Annotation on exception types in `throws` | `Executable`/`Method` | `getAnnotatedExceptionTypes()` |
+| Annotation on superclass type | `Class<?>` | `getAnnotatedSuperclass()` |
+| Annotation on implemented interface types | `Class<?>` | `getAnnotatedInterfaces()` |
+| Annotation on generic argument like `List<@T String>` | `AnnotatedParameterizedType` | `getAnnotatedActualTypeArguments()` |
+| Annotation on array component/dimension type | `AnnotatedArrayType` | `getAnnotatedGenericComponentType()` |
+| Annotation on wildcard bound | `AnnotatedWildcardType` | `getAnnotatedUpperBounds()`/`getAnnotatedLowerBounds()` |
+| Annotation on type variable bound | `TypeVariable<?>` | `getAnnotatedBounds()` |
+| Annotation on type parameter `T` declaration | `TypeVariable<?>` | `getAnnotations()`/`getDeclaredAnnotations()` |
 
-**Không nhầm:** `Field.getGenericType()` trả về `Type` có thông tin về generic signature nhưng **không đủ** để lấy toàn bộ annotation nằm trên từng phần của kiểu. Khi cần annotation, dùng họ `getAnnotated...` và các subtype của `AnnotatedType`.
+**Do not confuse:** `Field.getGenericType()` returns a `Type` containing generic signature information, but it is **not sufficient** to retrieve all annotations located on each part of the type. When you need annotations, use the `getAnnotated...` family and subtypes of `AnnotatedType`.
 
-## 5. Ví dụ hoàn chỉnh Java 17+: một annotation gắn declaration, một annotation gắn type use
+## 5. Complete Java 17+ example: one declaration annotation, one type-use annotation
 
-Lưu nguyên nội dung sau vào tệp **`AnnotationLocationDemo.java`**. Chương trình dùng hai annotation độc lập:
+Save the following contents verbatim into **`AnnotationLocationDemo.java`**. The program uses two independent annotations:
 
-- `@Decl`: chỉ áp dụng trên các **declaration** như class, field, method và parameter.
-- `@Use`: chỉ khai báo `@Target(TYPE_USE)` để đánh dấu những **vị trí sử dụng kiểu**.
+- `@Decl`: applies only to **declarations** such as class, field, method, and parameter.
+- `@Use`: declares only `@Target(TYPE_USE)` to mark **type-use locations**.
 
 ```java
 import java.lang.annotation.*;
@@ -239,14 +239,14 @@ public class AnnotationLocationDemo {
 }
 ```
 
-Biên dịch theo chuẩn Java 17 và chạy:
+Compile targeting Java 17 and run:
 
 ```bash
 javac --release 17 AnnotationLocationDemo.java
 java AnnotationLocationDemo
 ```
 
-Output từ chương trình:
+Output from the program:
 
 ```text
 class declaration: class
@@ -264,42 +264,42 @@ field use on declaration: false
 field decl on type: false
 ```
 
-Ví dụ cố tình không tạo instance `Example`; chỉ dùng metadata ở runtime. Tất cả class/annotation phụ được đặt trong cùng một file Java để `javac` biên dịch được mà không cần thêm thư viện.
+The example intentionally does not instantiate `Example`; it only uses runtime metadata. All auxiliary classes/annotations are placed in the same Java file so that `javac` can compile it without extra libraries.
 
-## 6. Giải thích cách đọc kết quả
+## 6. Explaining how to interpret the results
 
 ### 6.1. Class declaration
 
-`@Decl("class")` được gắn trên khai báo `class Example` vì `Decl` cho phép `ElementType.TYPE`.
+`@Decl("class")` is attached to the `class Example` declaration because `Decl` permits `ElementType.TYPE`.
 
 ```java
 Decl d = Example.class.getDeclaredAnnotation(Decl.class);
 ```
 
-Đây là truy vấn trực tiếp annotation của **Class**. Nó khác annotation ở `extends @Use Base` hoặc `implements @Use Runnable`: hai chỗ đó là **type use** của superclass/interface và phải tìm qua `getAnnotatedSuperclass()`, `getAnnotatedInterfaces()`.
+This directly queries the annotation of the **Class**. It differs from annotations in `extends @Use Base` or `implements @Use Runnable`: those two places are **type uses** of the superclass/interface and must be looked up via `getAnnotatedSuperclass()` and `getAnnotatedInterfaces()`.
 
-### 6.2. Field declaration và field type
+### 6.2. Field declaration and field type
 
-Ví dụ:
+Example:
 
 ```java
 @Decl("field")
 private @Use("field-type") List<@Use("element") String> names;
 ```
 
-Ba mục metadata khác nhau:
+Three different metadata items:
 
-1. `field.getDeclaredAnnotation(Decl.class)` trả `@Decl("field")`.
-2. `field.getAnnotatedType().getAnnotation(Use.class)` trả `@Use("field-type")`.
-3. `((AnnotatedParameterizedType) field.getAnnotatedType()).getAnnotatedActualTypeArguments()[0].getAnnotation(Use.class)` trả `@Use("element")` trên đối số generic `String`.
+1. `field.getDeclaredAnnotation(Decl.class)` returns `@Decl("field")`.
+2. `field.getAnnotatedType().getAnnotation(Use.class)` returns `@Use("field-type")`.
+3. `((AnnotatedParameterizedType) field.getAnnotatedType()).getAnnotatedActualTypeArguments()[0].getAnnotation(Use.class)` returns `@Use("element")` on the generic argument `String`.
 
-**Vì sao không thể chỉ gọi `field.getDeclaredAnnotations()`?** Vì API đó hỏi annotation gắn trực tiếp vào **khai báo field**. Annotation dùng để mô tả **kiểu field** và **kiểu phần tử generic** nằm trong một nhánh metadata khác, được biểu diễn qua `AnnotatedType`.
+**Why can't you just call `field.getDeclaredAnnotations()`?** Because that API queries annotations attached directly to the **field declaration**. Annotations used to describe the **field type** and **generic element type** live in a separate metadata branch, represented through `AnnotatedType`.
 
-### 6.3. Method declaration và return type
+### 6.3. Method declaration and return type
 
-`@Decl("method")` đánh dấu method declaration `process`. `@Use("return")` đánh dấu **kiểu trả về `List<...>`**; `@Use("return-element")` đánh dấu **generic type argument String** của return type.
+`@Decl("method")` marks the method declaration `process`. `@Use("return")` marks the **return type `List<...>`**; `@Use("return-element")` marks the **generic type argument `String`** of the return type.
 
-Do đó:
+Therefore:
 
 ```java
 method.getDeclaredAnnotation(Decl.class); // @Decl("method")
@@ -307,48 +307,48 @@ method.getAnnotatedReturnType()
       .getAnnotation(Use.class);           // @Use("return")
 ```
 
-Muốn thấy `return-element`, lấy `AnnotatedParameterizedType` và duyệt `getAnnotatedActualTypeArguments()`. API `method.getReturnType()` chỉ trả `List.class` và không chứa vị trí annotation trên `String`.
+To see `return-element`, obtain `AnnotatedParameterizedType` and traverse `getAnnotatedActualTypeArguments()`. The `method.getReturnType()` API only returns `List.class` and does not contain the annotation position on `String`.
 
-### 6.4. Parameter declaration và parameter type
+### 6.4. Parameter declaration and parameter type
 
-Trong khai báo:
+In the declaration:
 
 ```java
 @Decl("parameter") @Use("param-type") String input
 ```
 
-Hai annotation ở hai ngữ nghĩa khác nhau:
+The two annotations carry two different semantics:
 
-- `parameter.getDeclaredAnnotation(Decl.class)`: annotation của **parameter declaration**.
-- `parameter.getAnnotatedType().getAnnotation(Use.class)`: annotation của **kiểu String** được parameter sử dụng.
+- `parameter.getDeclaredAnnotation(Decl.class)`: annotation of the **parameter declaration**.
+- `parameter.getAnnotatedType().getAnnotation(Use.class)`: annotation of the **`String` type** used by the parameter.
 
-Không nên suy luận rằng `method.getParameterAnnotations()` đủ để đọc mọi type-use annotation. API đó cung cấp annotation trên các parameter declaration; để lấy annotation của kiểu tham số, dùng `getAnnotatedParameterTypes()` hoặc `Parameter.getAnnotatedType()`.
+You should not infer that `method.getParameterAnnotations()` is enough to read all type-use annotations. That API provides annotations on parameter declarations; to retrieve annotations of the parameter's type, use `getAnnotatedParameterTypes()` or `Parameter.getAnnotatedType()`.
 
-### 6.5. Annotated superclass và interfaces
+### 6.5. Annotated superclass and interfaces
 
-`Example extends @Use("base") Base implements @Use("interface") Runnable` chứa hai type-use annotation ở **vị trí dùng kiểu**. Lấy:
+`Example extends @Use("base") Base implements @Use("interface") Runnable` contains two type-use annotations at **type-use positions**. Retrieve them with:
 
 ```java
 AnnotatedType parent = Example.class.getAnnotatedSuperclass();
 AnnotatedType[] interfaces = Example.class.getAnnotatedInterfaces();
 ```
 
-Sau đó kiểm tra `getAnnotation(Use.class)` trên từng `AnnotatedType`.
+Then check `getAnnotation(Use.class)` on each `AnnotatedType`.
 
-Điểm khác biệt: `Example.class.getDeclaredAnnotations()` mô tả annotation của **declaration class Example**, không thay thế các API annotated superclass/interface.
+The distinction: `Example.class.getDeclaredAnnotations()` describes annotations of the **declaration of class Example**, and does not replace the annotated superclass/interface APIs.
 
-### 6.6. Hai dòng false là bằng chứng gì?
+### 6.6. What are the two `false` lines evidence of?
 
-- `field.getDeclaredAnnotation(Use.class) == null`: trong ví dụ này, `@Use("field-type")` không xuất hiện như annotation của **field declaration**.
-- `field.getAnnotatedType().getAnnotation(Decl.class) == null`: `@Decl("field")` không mô tả **kiểu field**.
+- `field.getDeclaredAnnotation(Use.class) == null`: in this example, `@Use("field-type")` does not appear as an annotation on the **field declaration**.
+- `field.getAnnotatedType().getAnnotation(Decl.class) == null`: `@Decl("field")` does not describe the **field type**.
 
-Hai dòng cuối in `false`. Chúng minh họa sự phân tách metadata rõ ràng vì ví dụ sử dụng hai annotation có `@Target` riêng biệt.
+The last two lines print `false`. They illustrate a clean separation of metadata because the example uses two annotations with distinct `@Target` definitions.
 
-**Không tổng quát hóa thành “một annotation không thể vừa là declaration annotation vừa là type-use annotation”.** Trong các ngữ cảnh và `@Target` khác, cùng loại annotation có thể được phép đặt ở cả declaration và type use. Phần tiếp theo giải thích giới hạn này.
+**Do not generalize this into "an annotation cannot be both a declaration annotation and a type-use annotation."** In other contexts and with other `@Target` values, the same annotation type may be allowed on both declarations and type uses. The next section explains this boundary.
 
-## 7. @Target quyết định vị trí hợp lệ, không chỉ là tên annotation
+## 7. @Target determines valid locations, not just the annotation name
 
-Một annotation có thể được khai báo:
+An annotation can be declared as:
 
 ```java
 @Target(ElementType.FIELD)
@@ -361,36 +361,36 @@ Một annotation có thể được khai báo:
 @interface EitherLocation {}
 ```
 
-Đây là đoạn minh họa về `@Target` (giả định đã `import java.lang.annotation.*;`). Khi thiếu `@Retention(RUNTIME)`, chúng không phải ví dụ phù hợp để truy vấn runtime bằng Reflection; chỉ dùng để so sánh target.
+This is an illustrative snippet on `@Target` (assuming `import java.lang.annotation.*;` is present). Without `@Retention(RUNTIME)`, these are not suitable examples for runtime querying via Reflection; they are used only to compare targets.
 
-| Target | Ý định |
+| Target | Intent |
 | --- | --- |
-| `FIELD` | Gắn annotation trên field declaration |
-| `TYPE_USE` | Gắn annotation ở nơi kiểu được dùng, ví dụ kiểu field/generic argument |
-| `FIELD, TYPE_USE` | Annotation có thể được sử dụng ở cả hai dạng vị trí theo quy tắc Java |
-| `PARAMETER` | Mô tả parameter declaration |
-| `TYPE_PARAMETER` | Mô tả khai báo type parameter generic |
-| `TYPE` | Mô tả khai báo class/interface/những kiểu phù hợp |
+| `FIELD` | Attach annotation to a field declaration |
+| `TYPE_USE` | Attach annotation where a type is used, e.g., field type/generic argument |
+| `FIELD, TYPE_USE` | Annotation may be used in both kinds of positions per Java rules |
+| `PARAMETER` | Describe a parameter declaration |
+| `TYPE_PARAMETER` | Describe a generic type parameter declaration |
+| `TYPE` | Describe a class/interface/corresponding type declaration |
 
-### Một nuance quan trọng: TYPE_USE không hoàn toàn tách rời declaration
+### An important nuance: TYPE_USE is not completely separate from declarations
 
-Theo luật Java, `TYPE_USE` còn áp dụng được tại **một số vị trí khai báo kiểu**, bao gồm khai báo class/interface và type parameter. Do đó, từ dòng source có vẻ “đặt annotation trước tên class” không thể khẳng định annotation đó chỉ là một declaration annotation và không thể là type-use annotation.
+Under Java rules, `TYPE_USE` can also apply at **certain type declaration positions**, including class/interface declarations and type parameter declarations. Therefore, from a source line that looks like "an annotation placed before a class name", you cannot conclude that the annotation is strictly a declaration annotation and cannot be a type-use annotation.
 
-Hơn nữa, một annotation khai báo target gồm **cả `FIELD` và `TYPE_USE`** có thể khiến annotation ở vị trí phù hợp được compiler ghi nhận cho cả declaration và type use. Khi soạn công cụ phân tích, hãy xác định rõ **metadata bạn muốn đọc** (declaration hay type position), dùng API tương ứng, và kiểm tra output của compiler nếu ngữ cảnh có nhiều `@Target`.
+Furthermore, an annotation declaring targets that include **both `FIELD` and `TYPE_USE`** can cause the compiler to record the annotation at an eligible position for both declaration and type use. When writing analysis tools, clearly identify **which metadata you want to read** (declaration or type position), use the corresponding API, and inspect compiler output if the context has multiple `@Target` entries.
 
-Hai loại metadata là hai **chiều mô tả**, không phải hai nhóm Java type loại trừ nhau bằng nhãn tuyệt đối.
+The two metadata kinds are two **descriptive dimensions**, not two Java type groups that are mutually exclusive by an absolute label.
 
-## 8. @Retention ảnh hưởng trực tiếp đến Reflection
+## 8. @Retention directly affects Reflection
 
-`@Target` xác định **nơi đặt annotation hợp lệ**; `@Retention` xác định **thông tin được giữ đến giai đoạn nào**.
+`@Target` determines **where an annotation may be validly placed**; `@Retention` determines **up to which stage the information is retained**.
 
-| Retention policy | Annotation được giữ đến đâu? | Runtime Reflection |
+| Retention policy | How long is the annotation retained? | Runtime Reflection |
 | --- | --- | --- |
-| `SOURCE` | Dành cho source/processor, thường không lưu trong class file | Không đọc được tại runtime |
-| `CLASS` | Có thể lưu trong class file nhưng không phải runtime-visible | Không được API Reflection chuẩn trả lại |
-| `RUNTIME` | Lưu trong class file dưới metadata runtime-visible phù hợp | Có thể đọc được qua Reflection **nếu API hỗ trợ vị trí đó** |
+| `SOURCE` | For source/processors, usually not stored in the class file | Not readable at runtime |
+| `CLASS` | Can be stored in the class file, but not runtime-visible | Not returned by standard Reflection APIs |
+| `RUNTIME` | Stored in the class file under appropriate runtime-visible metadata | Readable via Reflection **if an API supports that position** |
 
-Ví dụ runnable dùng:
+The runnable example uses:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -398,31 +398,31 @@ Ví dụ runnable dùng:
 @interface Use { String value(); }
 ```
 
-Nếu bỏ `RetentionPolicy.RUNTIME`, annotation mặc định retention `CLASS` và các lời gọi `getAnnotation(Use.class)` trong chương trình thường không thấy type-use metadata. Vì vậy, khi nhận kết quả `null`, cần kiểm tra **retention**, **target**, **đúng phần tử/type position**, và **metadata sau biên dịch** trước khi nghĩ Reflection gặp lỗi.
+If you omit `RetentionPolicy.RUNTIME`, the annotation defaults to `CLASS` retention and calls to `getAnnotation(Use.class)` in the program typically will not see the type-use metadata. Therefore, when getting `null`, check **retention**, **target**, **the exact element/type position**, and **post-compilation metadata** before assuming Reflection has a bug.
 
-Không nên mặc định “có trong source” = “có trong runtime Reflection”.
+Never assume "present in source" = "present in runtime Reflection".
 
-## 9. Định tuyến theo hình dạng `AnnotatedType`
+## 9. Routing by the shape of `AnnotatedType`
 
-Khi một kiểu phức hợp chứa nhiều vị trí annotation, trước hết lấy `AnnotatedType` từ nơi khai báo (`Field.getAnnotatedType()`, `Method.getAnnotatedReturnType()`, v.v.). `getType()` trả **kiểu nền** dạng `Type`; `getAnnotations()` chỉ trả annotation của **vị trí hiện tại**, không tự gom các nhánh con.
+When a compound type contains multiple annotation positions, first obtain `AnnotatedType` from the declaration site (`Field.getAnnotatedType()`, `Method.getAnnotatedReturnType()`, etc.). `getType()` returns the **underlying type** as a `Type`; `getAnnotations()` only returns annotations of the **current position**, and does not automatically collect child branches.
 
-| Nếu nút là | Cách truy cập annotation nằm sâu hơn |
+| If the node is | How to access deeper annotations |
 | --- | --- |
-| `AnnotatedParameterizedType` | `getAnnotatedActualTypeArguments()` cho từng đối số generic; `getAnnotatedOwnerType()` khi có owner |
-| `AnnotatedArrayType` | `getAnnotatedGenericComponentType()` để xuống từng chiều rồi tới phần tử |
-| `AnnotatedWildcardType` | `getAnnotatedUpperBounds()` / `getAnnotatedLowerBounds()` cho `? extends` / `? super` |
-| `AnnotatedTypeVariable` | `getAnnotatedBounds()` cho ràng buộc của biến kiểu |
-| `AnnotatedType` đơn giản | Đọc annotation của nút; có thể không có nhánh con |
+| `AnnotatedParameterizedType` | `getAnnotatedActualTypeArguments()` for each generic argument; `getAnnotatedOwnerType()` when an owner exists |
+| `AnnotatedArrayType` | `getAnnotatedGenericComponentType()` to step down each dimension to the element |
+| `AnnotatedWildcardType` | `getAnnotatedUpperBounds()` / `getAnnotatedLowerBounds()` for `? extends` / `? super` |
+| `AnnotatedTypeVariable` | `getAnnotatedBounds()` for bounds of the type variable |
+| Plain `AnnotatedType` | Read the node's annotations; there may be no child branches |
 
-Ví dụ, `List<@Use("item") String>` có annotation ở **đối số String**, nên phải đi qua `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0]`, không hỏi `List.class` hay `Field.getDeclaredAnnotations()`. Tương tự, `? extends @Use("bound") Number` có marker ở upper bound, còn `String @Use("dimension") []` đánh dấu chiều mảng.
+For example, `List<@Use("item") String>` has its annotation on the **`String` argument**, so you must go through `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0]`, rather than querying `List.class` or `Field.getDeclaredAnnotations()`. Similarly, `? extends @Use("bound") Number` has its marker on the upper bound, while `String @Use("dimension") []` marks the array dimension.
 
-Một type parameter như `<@ParameterMark T extends @Use("bound") Number>` có **annotation khai báo trên T** (đọc qua `TypeVariable.getAnnotations()`) và **annotation type-use trên bound** (đọc qua `TypeVariable.getAnnotatedBounds()`): đây là hai nơi riêng biệt. Các bài sau xây ví dụ sâu cho từng dạng nút, receiver/exception/return type và hierarchy.
+A type parameter like `<@ParameterMark T extends @Use("bound") Number>` has **the declaration annotation on `T`** (read via `TypeVariable.getAnnotations()`) and **the type-use annotation on the bound** (read via `TypeVariable.getAnnotatedBounds()`): these are two separate places. Subsequent lessons build in-depth examples for each node kind, receiver/exception/return types, and hierarchies.
 
-Khi viết trình duyệt đệ quy tổng quát, cần giữ **đường dẫn của từng vị trí**, khám phá owner khi có, và chống vòng lặp bound kiểu `T extends Comparable<T>`. Chương “Xây dựng trình duyệt cây kiểu mà vẫn giữ vị trí annotation” cung cấp visitor có bảo vệ chu trình; không dùng đệ quy bounds vô điều kiện trong production.
+When writing a general recursive traverser, you must preserve **the path of each position**, explore the owner when present, and guard against bound cycles like `T extends Comparable<T>`. The chapter "Building a type tree traverser while preserving annotation positions" provides a visitor with cycle protection; do not use unconditional bound recursion in production.
 
-## 10. Declaration và type-use ở parameter khác nhau như thế nào?
+## 10. How do declaration and type-use differ on a parameter?
 
-Giả sử một framework injection dùng annotation `@FromHeader` trên parameter declaration và một static checker dùng `@NonNull` dạng type use.
+Suppose an injection framework uses `@FromHeader` on a parameter declaration and a static checker uses `@NonNull` as a type use.
 
 ```java
 void send(
@@ -430,9 +430,9 @@ void send(
 }
 ```
 
-Đoạn là **minh họa**: hai loại annotation chưa được định nghĩa trong bài, vì vậy không phải chương trình độc lập. `@FromHeader` mô tả **nguồn dữ liệu của parameter**; `@NonNull` mô tả **hợp đồng của kiểu String tại vị trí sử dụng**.
+This snippet is **illustrative**: the two annotation types are not defined in this lesson, so it is not a standalone program. `@FromHeader` describes **the data source of the parameter**; `@NonNull` describes **the contract of the `String` type at the point of use**.
 
-Một framework có thể đọc:
+A framework can read:
 
 ```java
 Parameter parameter = method.getParameters()[0];
@@ -440,11 +440,11 @@ Annotation[] declaration = parameter.getDeclaredAnnotations();
 Annotation[] typeUse = parameter.getAnnotatedType().getAnnotations();
 ```
 
-Nếu mỗi annotation được định nghĩa đúng `@Target`/`@Retention`, hai mảng có thể phản ánh metadata khác nhau. Không dùng `getParameterAnnotations()` làm đường duy nhất để thu thập contract type-use, và không dùng `getAnnotatedParameterTypes()` để thay thế thông tin injection gắn với parameter declaration.
+If each annotation is defined with the appropriate `@Target`/`@Retention`, the two arrays can reflect different metadata. Do not use `getParameterAnnotations()` as the sole path to collect type-use contracts, and do not use `getAnnotatedParameterTypes()` to replace injection information attached to the parameter declaration.
 
-## 11. Declaration annotation khác type-use annotation ở method
+## 11. Declaration annotations vs. type-use annotations on a method
 
-Xem ý nghĩa của hai annotation:
+Consider the meaning of these two annotations:
 
 ```java
 @Transaction
@@ -453,10 +453,10 @@ public @NonNull String findUser() {
 }
 ```
 
-Đây là đoạn minh họa, chưa định nghĩa `Transaction`/`NonNull`.
+This is an illustrative snippet; `Transaction`/`NonNull` are not yet defined.
 
-- `@Transaction` mô tả **method declaration**: yêu cầu giao dịch (nếu framework hỗ trợ).
-- `@NonNull` mô tả **kiểu trả về String**: thông tin giúp công cụ static-checker hoặc framework kiểm tra kết quả (nếu framework áp dụng).
+- `@Transaction` describes the **method declaration**: requires a transaction (if supported by the framework).
+- `@NonNull` describes the **return type `String`**: information that helps a static checker or framework validate the result (if enforced by the framework).
 
 API:
 
@@ -465,13 +465,13 @@ method.getDeclaredAnnotation(Transaction.class);
 method.getAnnotatedReturnType().getAnnotation(NonNull.class);
 ```
 
-Lựa chọn API xuất phát từ câu hỏi: “Thông tin này mô tả **lời khai báo một method** hay **kiểu của giá trị trả về**?”
+The choice of API stems from the question: "Does this information describe **the declaration of a method** or **the type of the returned value**?"
 
-Với generic return `List<@NonNull String>`, `@NonNull` còn có thể gắn vào **type argument**, phải duyệt `AnnotatedParameterizedType`.
+With a generic return `List<@NonNull String>`, `@NonNull` can also be attached to the **type argument**, requiring traversal of `AnnotatedParameterizedType`.
 
-## 12. Type-use annotation không mặc nhiên thay đổi hành vi Java
+## 12. Type-use annotations do not implicitly change Java behavior
 
-Giả sử một annotation có tên `@NonNull`:
+Suppose an annotation is named `@NonNull`:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -479,57 +479,57 @@ Giả sử một annotation có tên `@NonNull`:
 @interface NonNull {}
 ```
 
-Nếu không có checker/framework chuyên biệt, Java/JVM **không tự ném lỗi** chỉ vì một biến `@NonNull String` nhận giá trị null. Annotation là metadata, không phải cơ chế tự động thêm câu lệnh `if (value == null) throw ...`.
+Without a dedicated checker/framework, Java/the JVM **does not automatically throw an error** just because a `@NonNull String` variable receives a `null` value. An annotation is metadata, not a mechanism that automatically inserts `if (value == null) throw ...` statements.
 
-Với các annotation kiểu @Nullable/@NonNull, hiệu lực còn tùy **bộ công cụ**: static analysis, annotation processor, compiler plugin, library runtime validation, v.v. Đừng đánh đồng việc Reflection **đọc thấy metadata** với việc JVM tự thi hành hợp đồng đó.
+With annotations like `@Nullable`/`@NonNull`, enforcement still depends on the **tooling**: static analysis, annotation processor, compiler plugin, runtime validation library, etc. Do not equate Reflection **reading metadata** with the JVM automatically enforcing that contract.
 
-Tương tự, type-use annotation không tạo ra một `Class<?>` mới: `String.class` vẫn là `String.class` dù những chỗ dùng kiểu `String` được gắn các annotation khác nhau.
+Similarly, a type-use annotation does not create a new `Class<?>`: `String.class` remains `String.class` even when uses of the `String` type carry different annotations.
 
-## 13. Ranh giới của Reflection: không đọc được mọi type use trong body
+## 13. Boundary of Reflection: it cannot read every type use inside a body
 
-Các vị trí type use xuất hiện ở:
+Type-use positions appear in:
 
-- Kiểu của field, kiểu trả về và tham số method.
-- Generic arguments và các bound.
-- Superclass/interface được khai báo.
-- Kiểu trong `throws`.
-- Kiểu tại `new`, cast, `instanceof`, local variable, lambda và nhiều expression khác.
+- Field types, return types, and method parameters.
+- Generic arguments and bounds.
+- Declared superclasses/interfaces.
+- Types in `throws`.
+- Types in `new`, casts, `instanceof`, local variables, lambdas, and many other expressions.
 
-Java Reflection cung cấp API khá phong phú cho **declaration signatures** và các annotated types liên quan, nhưng **không phải trình phân tích toàn bộ method body**. Annotation trên local variable, cast hay expression trong bytecode thường cần công cụ đọc class file/bytecode như ASM nếu muốn phân tích đúng type annotation attributes và vị trí target.
+Java Reflection provides a fairly rich API for **declaration signatures** and their associated annotated types, but it is **not an analyzer for the entire method body**. Annotations on local variables, casts, or expressions in bytecode usually require a class file/bytecode reader such as ASM to accurately analyze type annotation attributes and target locations.
 
-Do đó một scanner chỉ chạy `Class.getDeclaredFields()` rồi `Field.getAnnotatedType()` **không thể chứng minh** rằng trong thân mọi method không có type-use annotation khác. Phạm vi công cụ là metadata API thực sự cung cấp.
+Therefore, a scanner that only runs `Class.getDeclaredFields()` followed by `Field.getAnnotatedType()` **cannot prove** that no other type-use annotations exist inside any method body. A tool's scope is the metadata that the API actually provides.
 
-Với runtime annotation trong class file, sự phân tách thường tương ứng với các attribute liên quan đến declaration annotations và **runtime-visible type annotations**; chúng không được xem là cùng một danh sách phẳng.
+For runtime annotations in class files, the separation usually corresponds to attributes for declaration annotations and **runtime-visible type annotations**; they should not be treated as a single flat list.
 
-## 14. Những lỗi phổ biến khi dùng Reflection với annotation
+## 14. Common mistakes when using Reflection with annotations
 
-| Sai lầm | Vì sao sai | Cách sửa |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| Dùng `Field.getAnnotations()` để tìm type annotation của `List<@X String>` | Field declaration khác type argument | Dùng `getAnnotatedType()` rồi duyệt `AnnotatedParameterizedType` |
-| Dùng `Method.getAnnotations()` để tìm `@X` trên return type | Method declaration khác return type | Dùng `getAnnotatedReturnType()` |
-| Dùng `Parameter.getAnnotations()` để tìm mọi type-use annotation | Parameter declaration không bao quát annotation trên kiểu | Dùng `Parameter.getAnnotatedType()` |
-| Quên `Retention(RUNTIME)` | Metadata không runtime-visible | Định nghĩa retention đúng khi cần runtime Reflection |
-| Chỉ xem `getReturnType()` hoặc `getGenericReturnType()` | Không lấy annotation từng vị trí type use | Sử dụng `getAnnotatedReturnType()` và subtype liên quan |
-| Coi `TYPE` tương đương `TYPE_USE` | Hai ngữ nghĩa và target không đồng nhất | Phân biệt khai báo class với các vị trí sử dụng kiểu |
-| Coi annotation type-use là JVM validation | Metadata không tự bắt lỗi | Tích hợp checker hoặc runtime validation nếu cần |
-| Nghĩ `TYPE_USE` không bao giờ xuất hiện ở declaration | Một số type declaration/type parameter declaration cũng hợp lệ | Hiểu quy tắc `@Target` và kiểm tra metadata đúng API |
-| Chỉ quan sát outermost generic type | Bỏ sót annotation trên nested type arguments | Duyệt đệ quy `AnnotatedParameterizedType`, array/wildcard/bounds |
-| Giả định Reflection hiểu annotation trong method body | API mức cao không biểu diễn mọi vị trí expression/local | Dùng bytecode scanner khi yêu cầu bao phủ body |
-| Dựa vào vị trí hiển thị của dấu `@` để đoán storage | Có context áp dụng kép hoặc annotation nhiều target | Xác định ý nghĩa annotation và kiểm tra class file nếu cần |
+| Using `Field.getAnnotations()` to find type annotations of `List<@X String>` | Field declaration differs from type argument | Use `getAnnotatedType()` then traverse `AnnotatedParameterizedType` |
+| Using `Method.getAnnotations()` to find `@X` on the return type | Method declaration differs from return type | Use `getAnnotatedReturnType()` |
+| Using `Parameter.getAnnotations()` to find all type-use annotations | Parameter declaration does not cover annotations on the type | Use `Parameter.getAnnotatedType()` |
+| Forgetting `Retention(RUNTIME)` | Metadata is not runtime-visible | Define the right retention when runtime Reflection is needed |
+| Checking only `getReturnType()` or `getGenericReturnType()` | Does not retrieve annotations at each type-use position | Use `getAnnotatedReturnType()` and related subtypes |
+| Treating `TYPE` as equivalent to `TYPE_USE` | The two semantics and targets are not identical | Distinguish class declarations from type-use positions |
+| Treating a type-use annotation as JVM validation | Metadata does not automatically catch errors | Integrate a checker or runtime validation if needed |
+| Thinking `TYPE_USE` never appears on declarations | Certain type declarations/type parameter declarations are also valid | Understand `@Target` rules and inspect metadata with the right API |
+| Observing only the outermost generic type | Misses annotations on nested type arguments | Recursively traverse `AnnotatedParameterizedType`, array/wildcard/bounds |
+| Assuming Reflection understands annotations in method bodies | High-level APIs do not represent every expression/local position | Use a bytecode scanner when body coverage is required |
+| Guessing storage from where `@` visually appears | Dual-applicable contexts or multi-target annotations exist | Identify the annotation's meaning and inspect the class file if needed |
 
-## 15. Mẫu xử lý thông tin theo đúng vai trò
+## 15. Patterns for handling information by role
 
-### 15.1. Xây dựng field scanner
+### 15.1. Building a field scanner
 
-Khi quét field, tách hai luồng:
+When scanning a field, separate the two streams:
 
 ```java
 static void inspectField(java.lang.reflect.Field field) {
-    // Metadata thuộc chính khai báo field:
+    // Metadata belonging to the field declaration itself:
     java.lang.annotation.Annotation[] fieldAnnotations =
             field.getDeclaredAnnotations();
 
-    // Metadata trên type use của field:
+    // Metadata on the field's type use:
     java.lang.reflect.AnnotatedType type = field.getAnnotatedType();
     java.lang.annotation.Annotation[] typeAnnotations =
             type.getAnnotations();
@@ -539,11 +539,11 @@ static void inspectField(java.lang.reflect.Field field) {
 }
 ```
 
-Đây là method Java hoàn chỉnh khi đặt trong một class, không bao gồm việc duyệt các generic arguments: nếu `field.getAnnotatedType()` là `AnnotatedParameterizedType`, cần đọc các type argument riêng theo mục 9.
+This is a complete Java method when placed inside a class, excluding traversal of generic arguments: if `field.getAnnotatedType()` is an `AnnotatedParameterizedType`, you must read the type arguments separately per section 9.
 
-### 15.2. Đọc type-use annotation trong generic
+### 15.2. Reading type-use annotations in generics
 
-Nếu scanner cần biết annotation trên từng đối số trực tiếp của `List` hoặc `Map`, hãy đọc theo từng nút:
+If a scanner needs to know annotations on each direct argument of `List` or `Map`, read node by node:
 
 ```java
 static void inspectArguments(java.lang.reflect.Field field) {
@@ -558,54 +558,54 @@ static void inspectArguments(java.lang.reflect.Field field) {
 }
 ```
 
-Đoạn này xử lý **một cấp đối số generic** và không tự gom annotation sâu hơn. Nếu cần duyệt mảng, wildcard, nested generic, owner và type-variable bounds, sử dụng visitor có đường dẫn/cycle guard ở bài cuối chương. Cách giới hạn phạm vi giữ ví dụ an toàn trước recursive bounds và không làm mất trọng tâm declaration vs type use.
+This snippet handles **one level of generic arguments** and does not automatically collect deeper annotations. If you need to traverse arrays, wildcards, nested generics, owners, and type-variable bounds, use the visitor with path/cycle guards in the final lesson of the chapter. Limiting the scope this way keeps the example safe against recursive bounds and keeps the focus on declaration vs. type use.
 
-### 15.3. Khi chỉ cần declaration metadata
+### 15.3. When only declaration metadata is needed
 
-Nếu annotation thiết kế rõ `@Target(FIELD)`, hãy đọc trực tiếp từ `Field`:
+If an annotation is explicitly designed with `@Target(FIELD)`, read it directly from `Field`:
 
 ```java
 ColumnInfo column = field.getDeclaredAnnotation(ColumnInfo.class);
 ```
 
-Không cần duyệt `AnnotatedType` chỉ để tìm declaration annotation. Hai hệ API nên được sử dụng bổ trợ đúng mục tiêu.
+There is no need to traverse `AnnotatedType` just to look up a declaration annotation. The two API families should be used complementarily according to the goal.
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-check questions
 
-**Câu 1.** Khác biệt giữa `@Decl` trên field declaration và `@Use` trên kiểu của field là gì?
+**Question 1.** What is the difference between `@Decl` on a field declaration and `@Use` on the field's type?
 
-**Đáp án:** `@Decl` mô tả member được khai báo, còn `@Use` mô tả một vị trí sử dụng kiểu. Với runtime Reflection, `Field.getDeclaredAnnotation` và `Field.getAnnotatedType().getAnnotation` đọc hai vị trí tương ứng.
+**Answer:** `@Decl` describes the declared member, while `@Use` describes a type-use position. With runtime Reflection, `Field.getDeclaredAnnotation` and `Field.getAnnotatedType().getAnnotation` read the two respective positions.
 
-**Câu 2.** Muốn đọc `@X` từ `List<@X String>`, có đủ chỉ gọi `field.getDeclaredAnnotations()` không?
+**Question 2.** To read `@X` from `List<@X String>`, is calling `field.getDeclaredAnnotations()` alone enough?
 
-**Đáp án:** Không. Cần lấy `field.getAnnotatedType()`, cast đúng loại `AnnotatedParameterizedType`, duyệt `getAnnotatedActualTypeArguments()` rồi đọc annotation trên type argument `String`.
+**Answer:** No. You need to get `field.getAnnotatedType()`, cast appropriately to `AnnotatedParameterizedType`, iterate `getAnnotatedActualTypeArguments()`, and then read the annotation on the `String` type argument.
 
-**Câu 3.** Method có `@Audit` trên declaration và `@NonNull` trên return type. Nên dùng API nào?
+**Question 3.** A method has `@Audit` on its declaration and `@NonNull` on its return type. Which APIs should be used?
 
-**Đáp án:** `method.getDeclaredAnnotation(Audit.class)` cho declaration; `method.getAnnotatedReturnType().getAnnotation(NonNull.class)` cho return type.
+**Answer:** `method.getDeclaredAnnotation(Audit.class)` for the declaration; `method.getAnnotatedReturnType().getAnnotation(NonNull.class)` for the return type.
 
-**Câu 4.** `@Target(TYPE_USE)` có tự bảo đảm JVM cấm gán null cho biến được annotate `@NonNull` không?
+**Question 4.** Does `@Target(TYPE_USE)` automatically guarantee the JVM forbids assigning `null` to a variable annotated with `@NonNull`?
 
-**Đáp án:** Không. Annotation là metadata; phải có checker/framework thực thi quy tắc.
+**Answer:** No. Annotations are metadata; a checker/framework must enforce the rule.
 
-**Câu 5.** `@Target(TYPE)` và `@Target(TYPE_USE)` có đồng nghĩa không?
+**Question 5.** Are `@Target(TYPE)` and `@Target(TYPE_USE)` synonymous?
 
-**Đáp án:** Không. `TYPE` chủ yếu dành cho type declarations, còn `TYPE_USE` dành cho vị trí sử dụng kiểu và cũng được phép ở một số khai báo kiểu/type parameter theo luật Java.
+**Answer:** No. `TYPE` is primarily for type declarations, whereas `TYPE_USE` is for type-use positions and is also permitted on certain type/type-parameter declarations under Java rules.
 
-**Câu 6.** Vì sao `@Retention(RUNTIME)` quan trọng?
+**Question 6.** Why is `@Retention(RUNTIME)` important?
 
-**Đáp án:** Nếu annotation không được giữ đến runtime, Reflection chuẩn không thể đọc nó ở thời điểm chương trình chạy, dù annotation xuất hiện trong source.
+**Answer:** If an annotation is not retained until runtime, standard Reflection cannot read it while the program runs, even though the annotation appears in source code.
 
-**Câu 7.** Có thể dùng `getAnnotatedSuperclass()` để đọc annotation trên `extends @X Base` không?
+**Question 7.** Can `getAnnotatedSuperclass()` be used to read an annotation on `extends @X Base`?
 
-**Đáp án:** Có. Đây là metadata tại vị trí **type use** của superclass, khác annotation trên declaration của subclass.
+**Answer:** Yes. This is metadata at the **type-use** position of the superclass, distinct from annotations on the subclass declaration.
 
-**Câu 8.** Java Reflection có thể liệt kê mọi type-use annotation trên cast và local variable trong body method không?
+**Question 8.** Can Java Reflection list every type-use annotation on casts and local variables inside a method body?
 
-**Đáp án:** Không qua các API mức cao về signature thông thường. Muốn đọc metadata loại này đầy đủ cần công cụ phân tích bytecode/class file phù hợp.
+**Answer:** Not through the usual high-level signature APIs. Reading that kind of metadata completely requires an appropriate bytecode/class-file analysis tool.
 
-**Câu 9.** Một annotation có `@Target({FIELD, TYPE_USE})` có thể xuất hiện liên quan đến cả declaration và type-use metadata không?
+**Question 9.** Can an annotation with `@Target({FIELD, TYPE_USE})` appear in connection with both declaration and type-use metadata?
 
-**Đáp án:** Có những ngữ cảnh mà annotation áp dụng được cho cả hai dạng. Vì vậy cần xem `@Target`, ngữ cảnh cú pháp và metadata thực của class file; không khẳng định hai miền hoàn toàn loại trừ nhau.
+**Answer:** There are contexts where an annotation applies to both forms. Therefore, you must check `@Target`, the syntactic context, and the actual class-file metadata; do not claim the two domains are completely mutually exclusive.
 
-**Ghi nhớ:** *Declaration annotation* trả lời “thành phần chương trình nào được khai báo và mô tả ra sao?”, còn *type-use annotation* trả lời “kiểu đang được sử dụng tại vị trí nào và mang metadata gì?”. Trong Reflection, API trên `Class`/`Field`/`Method`/`Parameter` đọc declaration metadata; họ API `getAnnotated...` và `AnnotatedType` đọc metadata của những **type positions**. Chọn API theo vị trí, bảo đảm `@Target`/`@Retention` phù hợp và đừng đồng nhất metadata với cơ chế validation tự động.
+**Remember:** A *declaration annotation* answers "which program element is declared and how is it described?", whereas a *type-use annotation* answers "where is a type being used and what metadata does it carry?". In Reflection, APIs on `Class`/`Field`/`Method`/`Parameter` read declaration metadata; the `getAnnotated...` API family and `AnnotatedType` read metadata of **type positions**. Choose the API by position, ensure matching `@Target`/`@Retention`, and never equate metadata with automatic validation.

@@ -1,12 +1,12 @@
-# Phân biệt phép tính theo bit với điều kiện boolean trong Java
+# Distinguishing Bitwise Operations from Boolean Conditions in Java
 
-> **Java core — language-basics / Toán tử bit**  
-> **Phiên bản:** Java 17+; ví dụ độc lập, không cần thư viện ngoài.  
-> **Mục tiêu:** Phân biệt phép toán trên **từng bit của số nguyên** với phép toán trên **giá trị đúng/sai**; dùng đúng `&`, `|`, `^`, `~`, `!`, `&&`, `||`; hiểu short-circuit và viết điều kiện kiểm tra bit mask hợp lệ.
+> **Java core — language-basics / Bitwise operators**  
+> **Version:** Java 17+; standalone example, no external libraries needed.  
+> **Goal:** Distinguish operations on **individual bits of integers** from operations on **true/false values**; use `&`, `|`, `^`, `~`, `!`, `&&`, and `||` correctly; understand short-circuiting and write valid bit-mask check conditions.
 
-## 1. Hai miền dữ liệu khác nhau
+## 1. Two Different Data Domains
 
-Trong Java, số nguyên được biểu diễn bằng các bit 0/1; còn kiểu `boolean` chỉ có giá trị `true` hoặc `false`. Một số ký hiệu toán tử được dùng ở **cả hai miền**, nhưng ý nghĩa được xác định bởi **kiểu toán hạng**.
+In Java, integers are represented as 0/1 bits, whereas `boolean` has only the values `true` or `false`. Several operator symbols are used in **both domains**, but their meaning is determined by the **operand types**.
 
 ~~~java
 int bitsA = 0b1100; // 12
@@ -18,19 +18,19 @@ boolean allowed = false;
 boolean logicResult = ready & allowed; // false
 ~~~
 
-`&` trong dòng đầu tạo **số nguyên** từ từng cặp bit; `&` trong dòng sau tạo **boolean** từ hai điều kiện. Java **không** tự xem `int 0` là false, hoặc số khác 0 là true.
+`&` on the first line produces an **integer** from each pair of bits; `&` on the later line produces a **boolean** from two conditions. Java **does not** automatically treat `int 0` as false, or a non-zero number as true.
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // if (1) { }
 // boolean b = 1;
 // int n = true;
 // int mixed = 7 & true;
 ~~~
 
-## 2. Phép bit trên số nguyên trả về số nguyên
+## 2. Bitwise Operations on Integers Return Integers
 
-Với `byte`, `short`, `char`, `int`, `long` (và wrapper có thể unbox), `&`, `|`, `^` xử lý từng vị trí bit; `~` đảo tất cả bit sau nâng kiểu. Ví dụ với `int a = 0b1100` và `b = 0b1010`:
+For `byte`, `short`, `char`, `int`, and `long` (and unboxable wrappers), `&`, `|`, and `^` process each bit position; `~` inverts all bits after numeric promotion. Example with `int a = 0b1100` and `b = 0b1010`:
 
 ~~~java
 int a = 0b1100;
@@ -38,24 +38,24 @@ int b = 0b1010;
 int and = a & b;       // 0b1000 = 8.
 int or = a | b;        // 0b1110 = 14.
 int xor = a ^ b;       // 0b0110 = 6.
-int not = ~a;          // -13: đảo đủ 32 bit.
-int fourBits = ~a & 0b1111; // 3: chỉ giữ 4 bit thấp.
+int not = ~a;          // -13: inverts all 32 bits.
+int fourBits = ~a & 0b1111; // 3: keeps only the low 4 bits.
 ~~~
 
-Các biểu thức này trả **`int`**, không thể dùng trực tiếp làm điều kiện `if`. `byte`/`short`/`char` thường được nâng lên `int`, và có toán hạng `long` thì phép bit hai ngôi dùng `long`. Bài về AND/OR/XOR/NOT trình bày bảng chân trị chi tiết; phần sau tập trung vào sự khác biệt khi **cùng ký hiệu** nhận toán hạng `boolean`.
+These expressions return **`int`** and cannot be used directly as an `if` condition. `byte`/`short`/`char` are typically promoted to `int`, and if either operand is `long`, the binary bitwise operation uses `long`. The lesson on AND/OR/XOR/NOT covers the full truth tables; the sections below focus on what changes when **the same symbols** receive `boolean` operands.
 
-## 3. Toán tử logic trên boolean
+## 3. Logical Operators on Booleans
 
-| Toán tử | Ý nghĩa trên `boolean` | Vế phải có được đánh giá? |
+| Operator | Meaning on `boolean` | Is the right-hand side evaluated? |
 | --- | --- | --- |
-| `!a` | NOT: đảo true/false | Một toán hạng |
-| `a && b` | AND ngắn mạch | **Chỉ khi `a` true** |
-| OR ngắn mạch: `a \|\| b` | OR ngắn mạch | **Chỉ khi `a` false** |
-| `a & b` | AND không ngắn mạch | **Luôn** |
-| OR không ngắn mạch: `a \| b` | OR không ngắn mạch | **Luôn** |
-| `a ^ b` | XOR | **Luôn** |
+| `!a` | NOT: flips true/false | Single operand |
+| `a && b` | Short-circuit AND | **Only when `a` is true** |
+| Short-circuit OR: `a \|\| b` | Short-circuit OR | **Only when `a` is false** |
+| `a & b` | Non-short-circuit AND | **Always** |
+| Non-short-circuit OR: `a \| b` | Non-short-circuit OR | **Always** |
+| `a ^ b` | XOR | **Always** |
 
-Ví dụ:
+Example:
 
 ~~~java
 boolean ready = true;
@@ -67,23 +67,23 @@ System.out.println(ready ^ allowed);  // true
 System.out.println(!ready);           // false
 ~~~
 
-Với `boolean`, `&` và `&&` có cùng **bảng chân trị**; `|` và `||` cũng vậy. **Khác biệt là thứ tự có đánh giá vế phải hay không.** `^` trả true khi đúng một trong hai giá trị là true; `~` không hợp lệ với boolean, phải dùng `!` để phủ định.
+For `boolean`, `&` and `&&` have the exact same **truth table**, and so do `|` and `||`. **The difference is whether the right-hand side is guaranteed to be evaluated.** `^` returns true when exactly one of the two values is true; `~` is invalid on booleans—you must use `!` for logical negation.
 
-## 4. Short-circuit quyết định tác dụng phụ và ngoại lệ
+## 4. Short-Circuiting Determines Side Effects and Exceptions
 
-Java đánh giá vế trái trước. Nếu vế trái đủ quyết định kết quả, `&&`/`||` bỏ qua vế phải; `&`/`|` trên boolean thì không.
+Java evaluates the left-hand side first. If the left-hand side already determines the outcome, `&&`/`||` skip the right-hand side; `&`/`|` on booleans do not.
 
 ~~~java
 int divisor = 0;
 
 boolean safe = divisor != 0 && 10 / divisor > 1;
-// safe=false, không thực hiện phép chia cho 0.
+// safe=false, division by 0 is not executed.
 
 // boolean unsafe = divisor != 0 & 10 / divisor > 1;
-// Nếu chạy dòng này: ArithmeticException.
+// If this line runs: ArithmeticException.
 ~~~
 
-Điều tương tự xảy ra khi kiểm tra null:
+The same applies to null checks:
 
 ~~~java
 String name = null;
@@ -91,11 +91,11 @@ boolean hasText = name != null && !name.isBlank(); // false
 boolean missing = name == null || name.isBlank();  // true
 ~~~
 
-**Không** chuyển `&&` thành `&` hoặc `||` thành `|` chỉ vì kết quả logic thường giống nhau. Khi vế phải có lời gọi hàm, phép tăng biến, truy cập mảng hoặc unboxing `Boolean` nullable, sự khác biệt có thể làm thay đổi kết quả chương trình.
+**Do not** swap `&&` for `&` or `||` for `|` merely because their logical outcomes usually match. Whenever the right-hand side contains a method call, variable increment, array access, or unboxing of a nullable `Boolean`, that difference can alter program behavior.
 
-## 5. Bit mask: biến số nguyên không tự thành điều kiện
+## 5. Bit Masks: Integer Variables Do Not Become Conditions on Their Own
 
-Một bit mask thường dùng để lưu các cờ bật/tắt trong **một số nguyên**:
+A bit mask is commonly used to store on/off flags inside **a single integer**:
 
 ~~~java
 final int READ  = 0b0001;
@@ -105,7 +105,7 @@ final int EXEC  = 0b0100;
 int permissions = READ | EXEC; // 0b0101
 ~~~
 
-Muốn hỏi người dùng có quyền đọc không, phép `permissions & READ` trả về **int** (1 hoặc 0), chứ không trả boolean:
+To ask whether the user has read permission, `permissions & READ` returns an **int** (1 or 0), not a boolean:
 
 ~~~java
 boolean canRead = (permissions & READ) != 0;   // true
@@ -114,42 +114,42 @@ boolean hasBoth = (permissions & (READ | EXEC))
         == (READ | EXEC);                      // true
 ~~~
 
-| Mục đích | Biểu thức đúng | Kiểu kết quả |
+| Purpose | Correct expression | Result type |
 | --- | --- | --- |
-| Lọc các bit chung | `permissions & mask` | `int` |
-| Có **ít nhất một** bit được chọn | `(permissions & mask) != 0` | `boolean` |
-| Có **tất cả** bit được chọn | `(permissions & mask) == mask` | `boolean` |
-| Bật bit | `permissions \| mask` | `int` |
-| Tắt bit | `permissions & ~mask` | `int` |
-| Đảo bit | `permissions ^ mask` | `int` |
-| Kết hợp hai điều kiện boolean | `canRead && canWrite` | `boolean` |
+| Filter common bits | `permissions & mask` | `int` |
+| Has **at least one** selected bit | `(permissions & mask) != 0` | `boolean` |
+| Has **all** selected bits | `(permissions & mask) == mask` | `boolean` |
+| Set bits | `permissions \| mask` | `int` |
+| Clear bits | `permissions & ~mask` | `int` |
+| Toggle bits | `permissions ^ mask` | `int` |
+| Combine two boolean conditions | `canRead && canWrite` | `boolean` |
 
-Không viết `if (permissions & READ)`: `if` yêu cầu boolean nên Java báo lỗi biên dịch. Hãy chuyển **kết quả số nguyên** thành một phép so sánh boolean như `(permissions & READ) != 0`.
+Do not write `if (permissions & READ)`: `if` requires a boolean, so Java reports a compile error. Convert the **integer result** into a boolean comparison such as `(permissions & READ) != 0`.
 
-**Chú ý dấu ngoặc:** Java ưu tiên `==` và `!=` **cao hơn** `&` bitwise. Luôn viết `(permissions & mask) != 0`, không viết `permissions & mask != 0`.
+**Watch the parentheses:** Java gives `==` and `!=` **higher** precedence than bitwise `&`. Always write `(permissions & mask) != 0`, never `permissions & mask != 0`.
 
-## 6. Đừng trộn lẫn toán tử và ngữ nghĩa
+## 6. Do Not Mix Up Operators and Semantics
 
-| Biểu thức | Hợp lệ? | Vì sao? |
+| Expression | Valid? | Why? |
 | --- | --- | --- |
-| `5 & 3` | Có | Kết quả `int` là 1 |
-| `true & false` | Có | Kết quả `boolean` false, hai vế đều chạy |
-| `true && false` | Có | Kết quả boolean false, có short-circuit |
-| `true ^ false` | Có | XOR logic là true |
-| `~5` | Có | Bù bit `int`: -6 |
-| `!true` | Có | Phủ định boolean: false |
-| `5 && 3` | **Không** | `&&` chỉ nhận boolean |
-| `~true` | **Không** | `~` chỉ nhận số nguyên |
-| `!5` | **Không** | `!` chỉ nhận boolean |
-| `5 & true` | **Không** | Không có phép `&` giữa int và boolean |
+| `5 & 3` | Yes | `int` result is 1 |
+| `true & false` | Yes | `boolean` result false, both sides execute |
+| `true && false` | Yes | `boolean` result false, short-circuits |
+| `true ^ false` | Yes | Logical XOR is true |
+| `~5` | Yes | `int` bitwise complement: -6 |
+| `!true` | Yes | Boolean negation: false |
+| `5 && 3` | **No** | `&&` accepts only booleans |
+| `~true` | **No** | `~` accepts only integers |
+| `!5` | **No** | `!` accepts only booleans |
+| `5 & true` | **No** | No `&` operator between `int` and `boolean` |
 
-Khi hai vế của `&`/`|`/`^` đều là boolean thì Java áp dụng logic boolean; khi cả hai là số nguyên thì áp dụng phép toán bit. Không có kiểu kết quả “vừa int vừa boolean”, và không chuyển ngầm hai miền này.
+When both sides of `&`/`|`/`^` are booleans, Java applies boolean logic; when both are integers, it applies bitwise operations. There is no "hybrid int-and-boolean" result type, nor any implicit conversion between these two domains.
 
-Với `Boolean` wrapper, cần nhớ phép logic có thể **unbox**, gây `NullPointerException` khi tham chiếu là null. Dùng điều kiện bảo vệ như `value != null && value` nếu cần.
+With the `Boolean` wrapper, remember that logical operators can **unbox**, throwing `NullPointerException` when the reference is null. Use a guard condition like `value != null && value` if needed.
 
-## 7. Chương trình Java 17+ runnable
+## 7. Runnable Java 17+ Program
 
-Tạo file **BitwiseVsBooleanDemo.java**:
+Create the file **BitwiseVsBooleanDemo.java**:
 
 ~~~java
 public final class BitwiseVsBooleanDemo {
@@ -216,14 +216,14 @@ public final class BitwiseVsBooleanDemo {
 }
 ~~~
 
-Chạy từ thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Run from the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 BitwiseVsBooleanDemo.java
 java BitwiseVsBooleanDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 bitAnd=8
@@ -248,20 +248,20 @@ divideGuard=false
 eagerDivide=ArithmeticException
 ~~~
 
-Để hiểu `trace=FTABCDEG`: `&&` bỏ qua X, `||` bỏ qua Y; còn `&`, `|`, `^` luôn chạy đủ hai vế. `divideGuard=false` không thực hiện phép chia, nhưng `eagerDivide` ném ngoại lệ vì `&` vẫn đánh giá vế phải.
+To understand `trace=FTABCDEG`: `&&` skips X, `||` skips Y; whereas `&`, `|`, and `^` always run both sides. `divideGuard=false` does not execute the division, while `eagerDivide` throws an exception because `&` still evaluates its right-hand side.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-**Bài 1.** Với `int a = 0b0110, b = 0b1010;`, tính `a & b`, `a | b`, `a ^ b` dưới dạng nhị phân 4 bit.
+**Exercise 1.** Given `int a = 0b0110, b = 0b1010;`, compute `a & b`, `a | b`, and `a ^ b` in 4-bit binary.
 
-**Bài 2.** Cho `boolean a = true, b = false;`, dự đoán `a & b`, `a | b`, `a ^ b`, `!a`; phân biệt với các toán tử bit trên số.
+**Exercise 2.** Given `boolean a = true, b = false;`, predict `a & b`, `a | b`, `a ^ b`, and `!a`; distinguish them from bitwise operators on numbers.
 
-**Bài 3.** Vì sao `if (flags & 0b0100)` không biên dịch? Viết lại để kiểm tra bit thứ hai (đếm từ bit 0).
+**Exercise 3.** Why does `if (flags & 0b0100)` fail to compile? Rewrite it to test the second bit (counting from bit 0).
 
-**Bài 4.** Giải thích sự khác nhau giữa `false && check()` và `false & check()` nếu `check()` thay đổi biến hoặc ném ngoại lệ.
+**Exercise 4.** Explain the difference between `false && check()` and `false & check()` if `check()` mutates a variable or can throw an exception.
 
-**Bài 5.** Viết điều kiện kiểm tra quyền READ **và** WRITE khi quyền lưu trong `int flags`. Phân biệt cách này với kiểm tra **ít nhất một** trong hai quyền.
+**Exercise 5.** Write a condition to check for both READ **and** WRITE permissions when permissions are stored in `int flags`. Distinguish this from checking **at least one** of the two permissions.
 
-### Ghi nhớ
+### Key Takeaways
 
-**`&`, `|`, `^` có hai cách dùng tùy kiểu:** bitwise với số nguyên, logic không ngắn mạch với boolean. `~` chỉ đảo **bit số nguyên**, còn `!` chỉ phủ định **boolean**. `&&` và `||` chỉ dùng cho boolean và có short-circuit. Muốn biến kết quả bit mask thành điều kiện `if`, so sánh với 0 hoặc với mask, chẳng hạn `(flags & mask) != 0`.
+**`&`, `|`, and `^` have two uses depending on type:** bitwise on integers, non-short-circuiting logic on booleans. `~` inverts **integer bits only**, while `!` negates **booleans only**. `&&` and `||` work only on booleans and short-circuit. To turn a bit mask result into an `if` condition, compare it against 0 or against the mask, such as `(flags & mask) != 0`.

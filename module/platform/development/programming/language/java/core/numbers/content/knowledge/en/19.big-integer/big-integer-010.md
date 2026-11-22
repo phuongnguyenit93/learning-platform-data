@@ -1,23 +1,23 @@
-# BigInteger: bitLength, bitCount, testBit, setBit và shift trong Java
+# BigInteger: `bitLength`, `bitCount`, `testBit`, `setBit`, and `shift` in Java
 
-`java.math.BigInteger` biểu diễn **số nguyên có dấu với độ chính xác tùy ý**, thay vì bị giới hạn ở 32 bit (`int`) hoặc 64 bit (`long`). Không chỉ cộng, trừ và nhân số lớn, lớp này còn hỗ trợ **quan sát và chỉnh sửa bit**.
+`java.math.BigInteger` represents **arbitrary-precision signed integers**, instead of being confined to 32 bits (`int`) or 64 bits (`long`). Beyond adding, subtracting, and multiplying large numbers, this class supports **inspecting and modifying bits**.
 
-Những phương thức cần nắm:
+Methods to master:
 
-| Phương thức | Mục đích |
+| Method | Purpose |
 | --- | --- |
-| `bitLength()` | Số bit trong biểu diễn bù hai tối thiểu, **không tính bit dấu** |
-| `bitCount()` | Số bit **khác bit dấu** trong biểu diễn bù hai |
-| `testBit(n)` | Kiểm tra bit ở chỉ số n có bằng 1 không |
-| `setBit(n)` | Trả giá trị mới có bit n được đặt thành 1 |
-| `clearBit(n)` | Trả giá trị mới có bit n bằng 0 |
-| `flipBit(n)` | Trả giá trị mới với bit n bị đảo |
-| `shiftLeft(n)` | Dịch trái; với n dương tương đương nhân \(2^n\) |
-| `shiftRight(n)` | Dịch phải số học, **mở rộng bit dấu**; với n dương tương đương làm tròn xuống khi chia \(2^n\) |
+| `bitLength()` | Number of bits in the minimal two's complement representation, **excluding the sign bit** |
+| `bitCount()` | Number of bits **differing from the sign bit** in two's complement representation |
+| `testBit(n)` | Checks whether the bit at index `n` equals 1 |
+| `setBit(n)` | Returns a new value with bit `n` set to 1 |
+| `clearBit(n)` | Returns a new value with bit `n` set to 0 |
+| `flipBit(n)` | Returns a new value with bit `n` toggled |
+| `shiftLeft(n)` | Left shift; for positive `n`, equivalent to multiplying by \(2^n\) |
+| `shiftRight(n)` | Arithmetic right shift, **sign-extending**; for positive `n`, equivalent to floor division by \(2^n\) |
 
-**Điểm cốt lõi:** các phép toán bit của `BigInteger` sử dụng mô hình **bù hai có mở rộng dấu vô hạn** (*infinite sign extension*). Số âm có các bit cao được xem là 1, không phải 0. Vì thế `BigInteger.bitCount(-1)` bằng **0** chứ không bằng 32 hay 64; và `shiftRight` trên số âm có thể cho kết quả khác `divide`.
+**Core point:** `BigInteger`'s bitwise operations use an **infinite sign-extension two's complement** model. Negative numbers have high bits treated as 1, not 0. Therefore `BigInteger.bitCount(-1)` equals **0** rather than 32 or 64; and `shiftRight` on negative numbers can yield a different result from `divide`.
 
-## 1. Khởi tạo BigInteger và tính bất biến
+## 1. Initializing `BigInteger` and Immutability
 
 ```java
 import java.math.BigInteger;
@@ -29,33 +29,33 @@ BigInteger zero = BigInteger.ZERO;
 BigInteger one = BigInteger.ONE;
 ```
 
-`BigInteger` là **immutable**: các phép toán không sửa đối tượng đang có; chúng trả về đối tượng/giá trị kết quả.
+`BigInteger` is **immutable**: operations do not mutate the existing object; they return the result object/value.
 
 ```java
 BigInteger x = BigInteger.valueOf(5); // 101₂
-x.setBit(1); // kết quả 7 bị bỏ qua; x vẫn là 5
+x.setBit(1); // result 7 is discarded; x is still 5
 System.out.println(x); // 5
 
 x = x.setBit(1);
 System.out.println(x); // 7
 ```
 
-Một cách viết như `x.shiftLeft(10);` rồi bỏ qua kết quả thường là bug. Với giá trị cần cập nhật, hãy dùng `x = x.shiftLeft(10);`.
+Writing `x.shiftLeft(10);` and ignoring the return value is usually a bug. When a variable needs updating, use `x = x.shiftLeft(10);`.
 
-“Độ chính xác tùy ý” không có nghĩa tài nguyên vô hạn: số rất lớn có thể không đủ bộ nhớ hoặc vượt giới hạn kích thước của implementation. Các vị trí bit vẫn dùng tham số `int`.
+"Arbitrary precision" does not mean infinite resources: huge numbers can run out of memory or exceed implementation size limits. Bit positions still use `int` parameters.
 
-## 2. Chỉ số bit: đếm từ phải sang trái, bắt đầu ở 0
+## 2. Bit Indices: Counted Right to Left, Starting at 0
 
-`45` có biểu diễn nhị phân dương `101101₂`:
+`45` has positive binary representation `101101₂`:
 
 ```text
-Vị trí:  5 4 3 2 1 0
-Bit:     1 0 1 1 0 1
-         ^       ^ ^
-       bit 5   bit 2/0
+Position: 5 4 3 2 1 0
+Bit:      1 0 1 1 0 1
+          ^       ^ ^
+        bit 5   bit 2/0
 ```
 
-Bit 0 là bit thấp nhất, có trọng số \(2^0=1\). Bit 5 có trọng số \(2^5=32\). Các vị trí bật trong 45 là `0, 2, 3, 5`.
+Bit 0 is the lowest bit, with weight \(2^0=1\). Bit 5 has weight \(2^5=32\). The set positions in 45 are `0, 2, 3, 5`.
 
 ```java
 BigInteger x = BigInteger.valueOf(45);
@@ -65,15 +65,15 @@ System.out.println(x.testBit(5)); // true
 System.out.println(x.testBit(6)); // false
 ```
 
-`toString(2)` in ký tự theo thứ tự **bit cao trước**, còn `testBit(0)` đọc **bit thấp nhất**; không lấy vị trí ký tự trong chuỗi làm chỉ số bit trực tiếp.
+`toString(2)` prints characters with the **most significant bit first**, whereas `testBit(0)` reads the **least significant bit**; do not directly use character positions in the string as bit indices.
 
-Với số dương, các bit cao ngoài độ dài có nghĩa là 0. Với số âm, các bit cao là **1** theo quy tắc bù hai có mở rộng dấu.
+For positive numbers, higher bits beyond the significant length are 0. For negative numbers, higher bits are **1** under sign-extended two's complement rules.
 
-## 3. bitLength(): độ rộng không tính bit dấu
+## 3. `bitLength()`: Width Excluding the Sign Bit
 
-Theo Javadoc Java 17, `bitLength()` trả **số bit của biểu diễn bù hai tối thiểu trừ một bit dấu**. Với số không âm, đó chính là số chữ số nhị phân cần để biểu diễn độ lớn, ngoại trừ zero trả 0.
+Per Java 17 Javadoc, `bitLength()` returns **the number of bits in the minimal two's complement representation, excluding one sign bit**. For non-negative numbers, that is simply the number of binary digits needed to represent the magnitude, except zero returns 0.
 
-| Giá trị | Nhị phân | `bitLength()` |
+| Value | Binary | `bitLength()` |
 | ---: | --- | ---: |
 | 0 | 0 | 0 |
 | 1 | 1 | 1 |
@@ -82,7 +82,7 @@ Theo Javadoc Java 17, `bitLength()` trả **số bit của biểu diễn bù hai
 | 45 | 101101 | 6 |
 | 127 | 1111111 | 7 |
 | 128 | 10000000 | 8 |
-| \(2^{100}\) | 1 theo sau 100 zero | 101 |
+| \(2^{100}\) | 1 followed by 100 zeros | 101 |
 
 ```java
 System.out.println(BigInteger.ZERO.bitLength()); // 0
@@ -90,22 +90,22 @@ System.out.println(BigInteger.valueOf(45).bitLength()); // 6
 System.out.println(BigInteger.ONE.shiftLeft(100).bitLength()); // 101
 ```
 
-Với `x > 0`, có thể hình dung kết quả bằng \(\lfloor\log_2(x)\rfloor+1\). **Không** đổi số cực lớn thành `double` rồi lấy logarit để tính số bit, bởi phép chuyển kiểu có thể mất precision hoặc thành Infinity.
+For `x > 0`, you can picture the result as \(\lfloor\log_2(x)\rfloor+1\). **Do not** convert huge numbers to `double` and take a logarithm to compute bit count, because that conversion can lose precision or become Infinity.
 
-### Số âm khác gì?
+### How Are Negative Numbers Different?
 
-Số âm được hiểu theo bù hai, với vô hạn bit 1 ở phía cao. Với `x < 0`, `bitLength(x)` bằng độ dài nhị phân của `-x-1`:
+Negative numbers follow two's complement, with infinitely many 1 bits at higher positions. For `x < 0`, `bitLength(x)` equals the binary length of `-x-1`:
 
-| Giá trị | `bitLength()` | Gợi ý |
+| Value | `bitLength()` | Hint |
 | ---: | ---: | --- |
 | -1 | 0 | `-(-1)-1 = 0` |
-| -2 | 1 | Giá trị bù là 1 |
-| -3 | 2 | Giá trị bù là 2 |
-| -4 | 2 | Giá trị bù là 3 |
-| -8 | 3 | Giá trị bù là 7 |
-| -45 | 6 | Giá trị bù là 44 |
-| -128 | 7 | Vừa biểu diễn signed 8-bit |
-| -129 | 8 | Không vừa biểu diễn signed 8-bit |
+| -2 | 1 | Complement value is 1 |
+| -3 | 2 | Complement value is 2 |
+| -4 | 2 | Complement value is 3 |
+| -8 | 3 | Complement value is 7 |
+| -45 | 6 | Complement value is 44 |
+| -128 | 7 | Fits 8-bit signed representation |
+| -129 | 8 | Does not fit 8-bit signed representation |
 
 ```java
 System.out.println(BigInteger.valueOf(-1).bitLength()); // 0
@@ -113,35 +113,35 @@ System.out.println(BigInteger.valueOf(-8).bitLength()); // 3
 System.out.println(BigInteger.valueOf(-45).bitLength()); // 6
 ```
 
-**Không dùng `bitLength() == 0` để kiểm tra giá trị bằng 0:** `-1` cũng có bitLength bằng 0! Nếu cần kiểm tra zero, dùng `x.signum() == 0` hoặc `x.equals(BigInteger.ZERO)`.
+**Do not use `bitLength() == 0` to check if a value equals 0:** `-1` also has `bitLength` equal to 0! To check for zero, use `x.signum() == 0` or `x.equals(BigInteger.ZERO)`.
 
-### bitLength không tự cho số byte serializing signed
+### `bitLength` Does Not Directly Give Signed Serialization Byte Count
 
-`BigInteger.valueOf(128).bitLength()` bằng 8, nhưng biểu diễn signed bù hai theo byte phải có **bit dấu 0** tách biệt với bit 7 là 1, nên `toByteArray()` có thể xuất thêm byte 0 ở đầu. Nếu truyền dữ liệu nhị phân, cần xác định signed/unsigned, số byte cố định hay biến đổi, byte order và padding. Không lấy `bitLength()/8` làm độ dài mảng byte signed một cách máy móc.
+`BigInteger.valueOf(128).bitLength()` equals 8, yet a two's complement signed byte encoding must have a **0 sign bit** separate from bit 7 being 1, so `toByteArray()` can output an extra leading 0 byte. When transmitting binary data, specify signed/unsigned, fixed vs. variable byte count, byte order, and padding. Do not mechanically use `bitLength()/8` as the signed byte-array length.
 
-## 4. bitCount(): đếm bit khác bit dấu
+## 4. `bitCount()`: Counting Bits Differing from the Sign Bit
 
-Đối với số **không âm**, bit dấu là 0, nên `bitCount()` bằng số bit 1 của biểu diễn nhị phân:
+For **non-negative** numbers, the sign bit is 0, so `bitCount()` equals the count of 1 bits in the binary representation:
 
 ```java
 BigInteger x = BigInteger.valueOf(45); // 101101₂
 System.out.println(x.bitCount()); // 4
 ```
 
-Đối với **số âm**, các bit cao bằng 1 vô hạn. Javadoc không yêu cầu đếm vô hạn bit 1, mà yêu cầu đếm **bit khác với bit dấu** — tức số bit 0 hữu hạn trong biểu diễn bù hai của số âm.
+For **negative** numbers, high bits are infinitely 1. The Javadoc does not ask to count infinite 1 bits, but rather to count **bits differing from the sign bit**—that is, the finite number of 0 bits in the negative number's two's complement representation.
 
-| Giá trị | `bitLength()` | `bitCount()` | Diễn giải |
+| Value | `bitLength()` | `bitCount()` | Explanation |
 | ---: | ---: | ---: | --- |
-| 0 | 0 | 0 | Không có bit 1 |
-| 45 | 6 | 4 | Bốn bit 1 |
-| -1 | 0 | 0 | Tất cả bit đều 1 |
-| -2 | 1 | 1 | Một bit 0 khác dấu |
-| -3 | 2 | 1 | Một bit 0 khác dấu |
-| -4 | 2 | 2 | Hai bit 0 khác dấu |
-| -8 | 3 | 3 | Ba bit 0 khác dấu |
-| -45 | 6 | 3 | `~(-45) = 44 = 101100₂` có ba bit 1 |
+| 0 | 0 | 0 | No 1 bits |
+| 45 | 6 | 4 | Four 1 bits |
+| -1 | 0 | 0 | All bits are 1 |
+| -2 | 1 | 1 | One 0 bit differs from sign |
+| -3 | 2 | 1 | One 0 bit differs from sign |
+| -4 | 2 | 2 | Two 0 bits differ from sign |
+| -8 | 3 | 3 | Three 0 bits differ from sign |
+| -45 | 6 | 3 | `~(-45) = 44 = 101100₂` has three 1 bits |
 
-Với `x < 0`, có thể hình dung `x.not()` là số không âm `-x-1`. Khi đó `x.bitCount()` bằng số bit 1 của số bổ sung dương này.
+For `x < 0`, you can think of `x.not()` as the non-negative number `-x-1`. Then `x.bitCount()` equals the number of 1 bits in this positive complement.
 
 ```java
 BigInteger neg = BigInteger.valueOf(-45);
@@ -149,20 +149,20 @@ System.out.println(neg.bitCount()); // 3
 System.out.println(neg.not().bitCount()); // 3
 ```
 
-### Đừng nhầm Integer.bitCount với BigInteger.bitCount
+### Do Not Confuse `Integer.bitCount` with `BigInteger.bitCount`
 
 ```java
 System.out.println(Integer.bitCount(-1)); // 32
 System.out.println(BigInteger.valueOf(-1).bitCount()); // 0
 ```
 
-`Integer.bitCount(int)` đếm các bit 1 trong **một từ máy 32-bit**. `BigInteger.bitCount()` đếm bit **khác sign bit** trong mô hình số nguyên tùy ý. Đây là hai hợp đồng hoàn toàn khác nhau, không phải lỗi Java.
+`Integer.bitCount(int)` counts 1 bits in a **32-bit machine word**. `BigInteger.bitCount()` counts bits **differing from the sign bit** in the arbitrary-precision integer model. These are two completely different contracts, not a Java bug.
 
-Nếu bài toán của bạn thực sự là đếm 1 bit trong **64 bit thấp**, hãy quy định độ rộng, mask đúng 64 bit rồi dùng thuật toán đếm popcount phù hợp.
+If your problem genuinely requires counting 1 bits in the **low 64 bits**, specify the width, mask exact 64 bits, and use an appropriate popcount algorithm.
 
-## 5. testBit(n): đọc một bit với mở rộng dấu
+## 5. `testBit(n)`: Reading a Bit with Sign Extension
 
-`testBit(n)` trả `true` nếu bit thứ n bằng 1, `false` nếu bằng 0.
+`testBit(n)` returns `true` if bit `n` is 1, `false` if it is 0.
 
 ```java
 BigInteger x = new BigInteger("101101", 2);
@@ -172,7 +172,7 @@ System.out.println(x.testBit(5));   // true
 System.out.println(x.testBit(100)); // false
 ```
 
-Với số âm:
+With negative numbers:
 
 ```java
 BigInteger minusOne = BigInteger.ONE.negate();
@@ -180,19 +180,19 @@ System.out.println(minusOne.testBit(0));   // true
 System.out.println(minusOne.testBit(100)); // true
 ```
 
-**Bit cao của số âm không tự về 0.** Vì thế nếu số âm đang đại diện cho một tập các cờ bit hữu hạn, bạn rất dễ nhận nhầm cờ ở vị trí lớn là bật.
+**High bits of a negative number do not automatically become 0.** Thus if a negative number represents a finite set of bit flags, you can easily misread flags at large positions as being set.
 
-`testBit(-1)` sẽ ném `ArithmeticException` vì **địa chỉ bit âm không hợp lệ**. Quy tắc này cũng áp dụng cho `setBit(-1)`, `clearBit(-1)` và `flipBit(-1)`.
+`testBit(-1)` throws `ArithmeticException` because **a negative bit address is invalid**. This rule also applies to `setBit(-1)`, `clearBit(-1)`, and `flipBit(-1)`.
 
-## 6. setBit, clearBit, flipBit: chỉnh sửa giá trị mới
+## 6. `setBit`, `clearBit`, `flipBit`: Producing Modified Values
 
-| Phương thức | Quy tắc | Tương đương về bit |
+| Method | Rule | Bitwise equivalent |
 | --- | --- | --- |
-| `setBit(n)` | Đặt bit n thành 1 | OR với \(2^n\) |
-| `clearBit(n)` | Xóa bit n về 0 | AND với NOT \(2^n\) |
-| `flipBit(n)` | Đảo bit n | XOR với \(2^n\) |
+| `setBit(n)` | Sets bit `n` to 1 | OR with \(2^n\) |
+| `clearBit(n)` | Clears bit `n` to 0 | AND with NOT \(2^n\) |
+| `flipBit(n)` | Flips bit `n` | XOR with \(2^n\) |
 
-Ví dụ `x = 45 = 101101₂`:
+Example `x = 45 = 101101₂`:
 
 ```java
 BigInteger x = BigInteger.valueOf(45);
@@ -201,24 +201,24 @@ BigInteger set = x.setBit(1);     // 47 = 101111₂
 BigInteger clear = x.clearBit(2); // 41 = 101001₂
 BigInteger flip = x.flipBit(3);   // 37 = 100101₂
 
-System.out.println(x);     // 45 (không thay đổi)
+System.out.println(x);     // 45 (unchanged)
 System.out.println(set);   // 47
 System.out.println(clear); // 41
 System.out.println(flip);  // 37
 ```
 
-`setBit(n)` với bit đã là 1, hoặc `clearBit(n)` với bit đã là 0, **không đổi giá trị**. `flipBit(n)` đảo trạng thái; flip hai lần ở cùng vị trí khôi phục giá trị cũ.
+`setBit(n)` on an already-1 bit, or `clearBit(n)` on an already-0 bit, **does not change the value**. `flipBit(n)` toggles the state; flipping twice at the same position restores the original value.
 
-### Dựng bit cao
+### Constructing High Bits
 
 ```java
 BigInteger twoTo100 = BigInteger.ZERO.setBit(100);
 System.out.println(twoTo100.bitLength()); // 101
 ```
 
-Kết quả là \(2^{100}\), khác hẳn mã primitive `1 << 100`: do toán tử shift của `int` dùng 5 bit thấp của số lượng dịch, `1 << 100` tương đương `1 << 4`, kết quả **16**. Với BigInteger dùng `setBit(100)` hoặc `BigInteger.ONE.shiftLeft(100)`.
+The result is \(2^{100}\), totally different from primitive `1 << 100`: because `int` shift operators use only the low 5 bits of the shift count, `1 << 100` equals `1 << 4`, giving **16**. With `BigInteger`, use `setBit(100)` or `BigInteger.ONE.shiftLeft(100)`.
 
-### Với số âm, set/clear có thể có kết quả không trực giác
+### On Negative Numbers, `set`/`clear` Can Have Counterintuitive Results
 
 ```java
 BigInteger negOne = BigInteger.ONE.negate();
@@ -226,11 +226,11 @@ System.out.println(negOne.setBit(100)); // -1
 System.out.println(negOne.clearBit(3)); // -9
 ```
 
-Ở giá trị -1, mọi bit đều là 1; set thêm bit 100 không đổi gì. Xóa bit 3 loại trọng số 8 khỏi -1 theo hai bù, nên thành -9. Khi dùng BigInteger làm **bitset**, ưu tiên số không âm hoặc mask một độ rộng đã quy định, nếu không việc mở rộng dấu gây nhầm lẫn.
+In `-1`, every bit is 1; setting bit 100 changes nothing. Clearing bit 3 subtracts weight 8 from `-1` in two's complement, yielding `-9`. When using `BigInteger` as a **bitset**, prefer non-negative numbers or mask to a defined width; otherwise sign extension causes confusion.
 
-## 7. shiftLeft(n): dịch trái chính xác
+## 7. `shiftLeft(n)`: Exact Left Shift
 
-Với số lượng dịch `n >= 0`, `shiftLeft(n)` tương ứng nhân với \(2^n\):
+For shift distance `n >= 0`, `shiftLeft(n)` corresponds to multiplying by \(2^n\):
 
 ```java
 BigInteger x = BigInteger.valueOf(45);
@@ -243,23 +243,23 @@ System.out.println(BigInteger.valueOf(-13).shiftLeft(2)); // -52
 45 << 3 = 101101000₂ = 360
 ```
 
-Không có wrap-around tại 32/64 bit như primitive `int` và `long`. Tuy nhiên kết quả dịch cực lớn có thể tiêu thụ bộ nhớ lớn hoặc vượt giới hạn implementation. `shiftLeft(0)` giữ nguyên giá trị. Đây vẫn là phép trên BigInteger immutable: không sửa object gốc.
+There is no 32/64-bit wrap-around like with `int` and `long` primitives. However, huge shift results can consume large amounts of memory or exceed implementation limits. `shiftLeft(0)` keeps the value unchanged. This remains an operation on an immutable `BigInteger`: the original object is not mutated.
 
-## 8. shiftRight(n): dịch phải số học và làm tròn xuống
+## 8. `shiftRight(n)`: Arithmetic Right Shift and Floor Rounding
 
-Với `n >= 0`, `shiftRight(n)` có ngữ nghĩa **arithmetic right shift** với mở rộng bit dấu. Về giá trị, nó bằng:
+For `n >= 0`, `shiftRight(n)` has **arithmetic right shift** semantics with sign-bit extension. By value, it equals:
 
 \[
 \operatorname{floor}\left(\frac{x}{2^n}\right).
 \]
 
-Với số không âm:
+For non-negative numbers:
 
 ```java
 System.out.println(BigInteger.valueOf(45).shiftRight(2)); // 11
 ```
 
-Nhưng với **số âm**, cần phân biệt phép chia BigInteger:
+However, for **negative numbers**, distinguish this from `BigInteger` division:
 
 ```java
 BigInteger neg = BigInteger.valueOf(-13);
@@ -268,9 +268,9 @@ System.out.println(neg.shiftRight(2)); // -4
 System.out.println(neg.divide(BigInteger.valueOf(4))); // -3
 ```
 
-Bởi \(-13/4=-3.25\), `shiftRight(2)` làm tròn **về âm vô cực** ra -4, trong khi `divide(4)` làm tròn thương **về zero** ra -3.
+Because \(-13/4=-3.25\), `shiftRight(2)` rounds **toward negative infinity** to -4, whereas `divide(4)` truncates the quotient **toward zero** to -3.
 
-| Số gốc | Phép toán | Kết quả |
+| Original number | Operation | Result |
 | --- | --- | ---: |
 | 13 | `shiftRight(2)` | 3 |
 | -13 | `shiftRight(2)` | -4 |
@@ -284,43 +284,43 @@ System.out.println(BigInteger.valueOf(45).shiftRight(100)); // 0
 System.out.println(BigInteger.valueOf(-13).shiftRight(100)); // -1
 ```
 
-Dịch phải số âm rất xa trở thành -1 do bit dấu tiếp tục là 1. Nếu bạn cần tính **chia lấy phần nguyên về zero** đối với số âm, không thay `divide` bằng `shiftRight` trừ khi bạn đã chứng minh không có phần dư hoặc đáp ứng quy tắc floor.
+Right-shifting a negative number very far yields -1 because the sign bit remains 1. If you need **integer division truncated toward zero** on negative numbers, do not substitute `shiftRight` for `divide` unless you have proved there is no remainder or that floor rules are desired.
 
-## 9. Số lượng dịch âm và trường hợp lỗi
+## 9. Negative Shift Distances and Error Cases
 
-Javadoc của `shiftLeft(int)` và `shiftRight(int)` chấp nhận **khoảng dịch âm**, khi đó hướng dịch bị đảo:
+The Javadoc for `shiftLeft(int)` and `shiftRight(int)` accepts **negative shift distances**, reversing the shift direction:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `x.shiftLeft(3)` | Dịch trái 3 |
-| `x.shiftRight(3)` | Dịch phải 3 |
-| `x.shiftLeft(-3)` | Dịch phải 3 |
-| `x.shiftRight(-3)` | Dịch trái 3 |
+| `x.shiftLeft(3)` | Shift left 3 |
+| `x.shiftRight(3)` | Shift right 3 |
+| `x.shiftLeft(-3)` | Shift right 3 |
+| `x.shiftRight(-3)` | Shift left 3 |
 
 ```java
 BigInteger x = BigInteger.valueOf(45);
-System.out.println(x.shiftLeft(-2)); // 11, cùng giá trị x.shiftRight(2)
+System.out.println(x.shiftLeft(-2)); // 11, same value as x.shiftRight(2)
 ```
 
-**Số lượng dịch âm khác địa chỉ bit âm**:
+**Negative shift distance differs from negative bit index**:
 
-- `x.shiftLeft(-1)` hợp lệ, đổi thành dịch phải.
-- `x.testBit(-1)`, `x.setBit(-1)`, `x.clearBit(-1)` và `x.flipBit(-1)` ném `ArithmeticException`.
+- `x.shiftLeft(-1)` is valid, turning into a right shift.
+- `x.testBit(-1)`, `x.setBit(-1)`, `x.clearBit(-1)`, and `x.flipBit(-1)` throw `ArithmeticException`.
 
-Đừng dựa vào `1 << 100` hoặc quy tắc mask shift count của primitive để suy ra `BigInteger.shiftLeft(100)`. Những API này khác nhau về độ rộng và ý nghĩa.
+Do not rely on `1 << 100` or primitive shift-count masking rules to reason about `BigInteger.shiftLeft(100)`. Those APIs differ in width and semantics.
 
-Với các chỉ số cực lớn, dù kiểu tham số là `int`, chương trình vẫn phải hạn chế theo ngân sách bộ nhớ/thời gian; không cấp phát số bit hàng tỷ chỉ vì người dùng cung cấp số n hợp lệ về mặt cú pháp.
+For huge indices, even though the parameter type is `int`, the program must stay bounded by memory/time budgets; do not allocate billions of bits just because a user supplied a syntactically valid `n`.
 
-## 10. getLowestSetBit và mask độ rộng cố định
+## 10. `getLowestSetBit` and Fixed-Width Masks
 
-Phương thức bổ trợ `getLowestSetBit()` tìm vị trí bit 1 thấp nhất, hoặc -1 khi giá trị bằng zero:
+The helper method `getLowestSetBit()` finds the position of the lowest 1 bit, or -1 when the value is zero:
 
 ```java
 System.out.println(BigInteger.valueOf(40).getLowestSetBit()); // 3 (40 = 101000₂)
 System.out.println(BigInteger.ZERO.getLowestSetBit());       // -1
 ```
 
-Với các thao tác trên **n bit thấp**, có thể tạo mask giá trị \(2^n-1\):
+For operations on the **low `n` bits**, you can construct a mask with value \(2^n-1\):
 
 ```java
 int n = 4;
@@ -328,16 +328,16 @@ BigInteger mask = BigInteger.ONE.shiftLeft(n).subtract(BigInteger.ONE);
 // mask = 15 = 1111₂
 
 BigInteger lastFour = BigInteger.valueOf(-1).and(mask);
-// 15: chỉ lấy bốn bit thấp của -1
+// 15: takes only the low four bits of -1
 ```
 
-Với `n == 0`, mask là zero. Ứng dụng phải bảo đảm `n >= 0` và không quá lớn. Sau khi mask, giá trị được hiểu như một **vector bit không âm**, giúp tránh nhầm lẫn từ bit dấu vô hạn của số nguyên âm.
+When `n == 0`, the mask is zero. The application must ensure `n >= 0` and not excessively large. After masking, the value is interpreted as a **non-negative bitvector**, avoiding confusion from the infinite sign bits of negative integers.
 
-Cần biết sự khác nhau giữa kiểu mô hình: `BigInteger` dùng khi cần **giá trị số nguyên** có dấu hoặc lũy thừa hai lớn; `java.util.BitSet` có thể phù hợp hơn khi mô hình là tập vị trí bit không âm thay đổi thường xuyên.
+Know the difference in modeling types: `BigInteger` is used when needing signed **integer values** or huge powers of two; `java.util.BitSet` may be more appropriate when modeling a frequently changing set of non-negative bit positions.
 
-## 11. Chương trình Java 17+ độc lập
+## 11. Standalone Runnable Java 17+ Program
 
-Tạo file **`BigIntegerBitDemo.java`**:
+Create file **`BigIntegerBitDemo.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -411,7 +411,7 @@ public class BigIntegerBitDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac BigIntegerBitDemo.java
@@ -457,42 +457,42 @@ maskedNegative=15
 primitiveShift100=16
 ```
 
-Các dòng quan trọng:
+Key lines:
 
-- `negativeBitCount=3` và `minusOneBitCount=0`: `bitCount` ở số âm đếm bit **khác dấu**, không đếm bit 1 trong 32/64 bit.
-- `highNegativeBit=true`: bit 100 của -1 bằng 1 vì **mở rộng dấu**.
-- `negativeShiftRight=-4` so với `negativeDivide=-3`: dịch phải dùng **floor**, phép chia nguyên dùng **truncate toward zero**.
-- `primitiveShift100=16` khác việc đặt bit 100 trong `BigInteger`.
-- `negativeBitIndex=ArithmeticException`: chỉ số bit âm bị từ chối, dù **khoảng dịch âm** được cho phép.
+- `negativeBitCount=3` and `minusOneBitCount=0`: `bitCount` on negative numbers counts bits **differing from the sign**, not 1 bits in 32/64 bits.
+- `highNegativeBit=true`: bit 100 of -1 equals 1 because of **sign extension**.
+- `negativeShiftRight=-4` vs. `negativeDivide=-3`: right shift uses **floor**, integer division uses **truncate toward zero**.
+- `primitiveShift100=16` differs from setting bit 100 in `BigInteger`.
+- `negativeBitIndex=ArithmeticException`: negative bit index is rejected, even though **negative shift distances** are allowed.
 
-## 12. Lỗi thường gặp và checklist
+## 12. Common Mistakes and Checklist
 
-| Nhận định | Cách hiểu đúng |
+| Claim | Correct understanding |
 | --- | --- |
-| “`bitCount(-1)` có vô hạn bit 1 nên trả vô hạn.” | Javadoc đếm số bit **khác sign bit**; kết quả là 0. |
-| “`BigInteger.bitCount(-1)` giống `Integer.bitCount(-1)`.” | Sai: kết quả tương ứng là 0 và 32. |
-| “`bitLength() == 0` chỉ xảy ra với zero.” | Sai: -1 cũng trả 0. |
-| “`toString(2)` của số âm in toàn bộ bù hai.” | Sai: in dấu trừ và độ lớn, không in sign extension vô hạn. |
-| “Bit 100 của -1 phải là 0 vì số -1 nhỏ.” | Sai: số âm có bit cao là 1. |
-| “`setBit(n)` thay đổi object hiện tại.” | Sai: BigInteger immutable; lưu kết quả trả về. |
-| “`1 << 100` tạo bit 100.” | Sai: `int` che bớt số lượng dịch; kết quả 16. |
-| “`shiftRight(2)` và `divide(4)` luôn bằng nhau.” | Sai khi số âm và có phần dư. |
-| “`shiftLeft(-2)` sẽ ném exception.” | Sai: khoảng dịch âm đảo hướng; **bit index âm** mới bị từ chối. |
-| “Dịch phải số âm đủ xa cho 0.” | Sai: có thể cho -1 do sign extension. |
-| “BigInteger không bao giờ hết khả năng lưu.” | Vẫn giới hạn bộ nhớ và kích thước đối tượng. |
-| “`bitLength()/8` cho số byte signed cần thiết.” | Cần xét sign, padding và encoding. |
+| "`bitCount(-1)` has infinitely many 1 bits so it returns infinity." | Javadoc counts bits **differing from the sign bit**; result is 0. |
+| "`BigInteger.bitCount(-1)` matches `Integer.bitCount(-1)`." | False: results are 0 and 32 respectively. |
+| "`bitLength() == 0` only happens for zero." | False: -1 also returns 0. |
+| "`toString(2)` of a negative number prints full two's complement." | False: it prints a minus sign and magnitude, not infinite sign extension. |
+| "Bit 100 of -1 must be 0 because -1 is small." | False: negative numbers have high bits equal to 1. |
+| "`setBit(n)` mutates the current object." | False: `BigInteger` is immutable; store the returned result. |
+| "`1 << 100` creates bit 100." | False: `int` masks the shift count; result is 16. |
+| "`shiftRight(2)` and `divide(4)` are always equal." | False when negative and there is a remainder. |
+| "`shiftLeft(-2)` will throw an exception." | False: negative shift distances reverse direction; **negative bit indices** are rejected. |
+| "Shifting a negative number right far enough gives 0." | False: it gives -1 due to sign extension. |
+| "`BigInteger` can never run out of storage capacity." | Still bounded by memory and object size. |
+| "`bitLength()/8` gives the required signed byte count." | Must account for sign, padding, and encoding. |
 
 Checklist:
 
-1. **Xác định đầu vào có âm hay không:** nếu dùng làm cờ bit, cân nhắc mask độ rộng hoặc quy ước không âm.
-2. **Đếm bit đúng nghĩa:** `bitLength` đo độ dài không tính sign; `bitCount` đếm bit khác sign.
-3. **Kiểm tra chỉ số:** `testBit`/`setBit`/`clearBit`/`flipBit` cần n không âm.
-4. **Nhớ bất biến:** dùng `x = x.setBit(n)` thay vì bỏ kết quả.
-5. **Dùng BigInteger để dựng bit lớn:** `BigInteger.ONE.shiftLeft(n)`, không phải `1 << n`.
-6. **Với số âm, phân biệt floor và truncate:** `shiftRight` không thay được `divide` trong mọi trường hợp.
-7. **Giới hạn tài nguyên:** n lớn có thể tiêu tốn bộ nhớ dù cú pháp hợp lệ.
-8. **Serialize theo contract:** chọn signed/unsigned, endian, độ rộng và leading padding minh bạch.
+1. **Know whether inputs can be negative:** if using as bit flags, consider width masking or a non-negative convention.
+2. **Count bits accurately:** `bitLength` measures length excluding sign; `bitCount` counts bits differing from sign.
+3. **Validate indices:** `testBit`/`setBit`/`clearBit`/`flipBit` require non-negative `n`.
+4. **Remember immutability:** use `x = x.setBit(n)` instead of discarding the result.
+5. **Use `BigInteger` for high bits:** `BigInteger.ONE.shiftLeft(n)`, not `1 << n`.
+6. **For negative numbers, distinguish floor and truncate:** `shiftRight` cannot replace `divide` in all cases.
+7. **Bound resources:** large `n` can exhaust memory even when syntactically valid.
+8. **Serialize per contract:** choose signed/unsigned, endianness, width, and leading padding explicitly.
 
-**Ghi nhớ:** Những phương thức bit của `BigInteger` đều dựa trên **số nguyên có dấu bù hai, mở rộng bit dấu vô hạn**. Phần lớn hiểu lầm xuất phát từ việc áp dụng trực giác về một từ máy `int`/`long` có kích thước cố định sang số nguyên tùy ý.
+**Key takeaway:** All bitwise methods of `BigInteger` rely on **signed two's complement integers with infinite sign-bit extension**. Most misunderstandings come from applying intuition for a fixed-size `int`/`long` machine word to arbitrary-precision integers.
 
-Tài liệu chuẩn: [Oracle Java 17 BigInteger Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html).
+Official reference: [Oracle Java 17 BigInteger Javadoc](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html).

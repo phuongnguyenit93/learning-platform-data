@@ -1,87 +1,87 @@
-# Calendar, TimeZone và các giá trị mặc định
+# Calendar, TimeZone, and Default Values
 
-## 1. Vì sao cần hiểu API ngày giờ cũ?
+## 1. Why do we need to understand the legacy date-time API?
 
-Trong Java Core, hai lớp lâu đời `java.util.Calendar` và `java.util.TimeZone` xuất hiện trong nhiều hệ thống, thư viện, ứng dụng enterprise và API cần tương thích ngược. Chúng có thể hoạt động đúng, nhưng **đặc biệt dễ phát sinh lỗi do phụ thuộc các giá trị mặc định dùng chung của JVM**.
+In Java Core, the two long-standing classes `java.util.Calendar` and `java.util.TimeZone` appear in many systems, libraries, enterprise applications, and APIs that require backward compatibility. They can work correctly, but **they are especially prone to bugs caused by relying on shared JVM default values**.
 
-Ví dụ, hai câu lệnh:
+For example, the two statements:
 
 ```java
 Calendar calendar = Calendar.getInstance();
 TimeZone zone = TimeZone.getDefault();
 ```
 
-không có nghĩa là "lấy lịch và múi giờ của người dùng đang đăng nhập". Chúng lấy cấu hình mặc định của **tiến trình JVM** tại thời điểm tương ứng. Nếu cùng server phục vụ người dùng ở Việt Nam, Hoa Kỳ và Nhật Bản, việc dùng những mặc định đó một cách không kiểm soát có thể khiến **cùng một thời điểm** được đọc thành giờ/ngày khác mong muốn.
+do not mean "get the calendar and time zone of the currently logged-in user." They obtain the default configuration of the **JVM process** at that moment. If the same server serves users in Vietnam, the United States, and Japan, uncontrolled use of those defaults can cause **the same instant** to be interpreted as an unintended date or time.
 
-Sau bài học, bạn sẽ biết:
+After this lesson, you will know:
 
-- `Calendar`, `GregorianCalendar` và `TimeZone` đại diện cho điều gì, cũng như mối quan hệ với `Date`.
-- `Calendar.getInstance()` lấy **múi giờ mặc định** và **locale mặc định dạng FORMAT** như thế nào.
-- Sự khác biệt giữa `Locale`, `TimeZone`, **offset UTC** và **điểm thời gian (instant)**.
-- Rủi ro khi gọi `Locale.setDefault(...)` hoặc `TimeZone.setDefault(...)` theo từng request/thread.
-- Những bẫy `MONTH` bắt đầu từ 0, lenient dates, `add`/`roll`, week rules và daylight saving time (DST).
-- Cách dùng API legacy có truyền locale/time zone rõ ràng và hướng chuyển sang `java.time` trên Java 17+.
+- What `Calendar`, `GregorianCalendar`, and `TimeZone` represent, as well as their relationship with `Date`.
+- How `Calendar.getInstance()` retrieves the **default time zone** and **default FORMAT locale**.
+- The difference between `Locale`, `TimeZone`, **UTC offset**, and **point in time (instant)**.
+- The risks of calling `Locale.setDefault(...)` or `TimeZone.setDefault(...)` per request/thread.
+- Common traps: 0-based `MONTH`, lenient dates, `add`/`roll`, week rules, and daylight saving time (DST).
+- How to use the legacy API with explicit locale/time zone and how to migrate to `java.time` on Java 17+.
 
-## 2. Ba đối tượng mang những ý nghĩa khác nhau
+## 2. Three objects with different meanings
 
-| Thành phần | Trả lời câu hỏi | Điểm cần nhớ |
+| Component | Answers the question | Key point to remember |
 | --- | --- | --- |
-| `java.util.Date` | Một điểm thời gian với độ phân giải mili-giây | Không tự mang locale và múi giờ của người dùng |
-| `java.util.TimeZone` | Quy tắc chuyển UTC sang giờ địa phương cho một vùng hoặc offset | Có thể gồm thay đổi DST trong lịch sử; khác với locale |
-| `java.util.Calendar` | Các trường lịch như năm, tháng, ngày, giờ trong một hệ lịch, dựa trên time zone | Mutable; các trường phụ thuộc time zone và cấu hình lịch |
-| `java.util.Locale` | Quy ước ngôn ngữ và vùng văn hóa cho hiển thị/định dạng | Không xác định duy nhất múi giờ |
-| `java.time.Instant` | Điểm thời gian tuyệt đối, chính xác tới nano-giây trong mô hình Java Time | Thường thích hợp để lưu timestamp |
-| `java.time.ZoneId` / `ZonedDateTime` | ID vùng và thời gian địa phương gắn quy tắc vùng | Thay thế hiện đại cho nhiều trường hợp của `TimeZone`/`Calendar` |
+| `java.util.Date` | A point in time with millisecond resolution | Does not carry the user's locale or time zone |
+| `java.util.TimeZone` | Rules to convert UTC to local time for a region or offset | May include historical DST changes; distinct from locale |
+| `java.util.Calendar` | Calendar fields like year, month, day, hour in a calendar system, based on a time zone | Mutable; fields depend on time zone and calendar configuration |
+| `java.util.Locale` | Language and cultural region conventions for display/formatting | Does not uniquely determine a time zone |
+| `java.time.Instant` | Absolute point in time, accurate to nanoseconds in the Java Time model | Usually appropriate for storing timestamps |
+| `java.time.ZoneId` / `ZonedDateTime` | Region ID and local time bound to region rules | Modern replacement for many `TimeZone`/`Calendar` use cases |
 
-Một `Date` có thể được hiển thị ở các vùng khác nhau mà **mili-giây epoch không đổi**. `Calendar` kết hợp điểm thời gian với vùng giờ để suy các trường năm/tháng/ngày/giờ. Locale tác động đến cách đặt tên thứ, tháng, các quy tắc tuần và trong một số trường hợp loại lịch, nhưng **không** ngầm chỉ định vị trí địa lý hoặc time zone của người dùng.
+A `Date` can be displayed across different regions while **its epoch milliseconds remain unchanged**. `Calendar` combines a point in time with a time zone to derive year/month/day/hour fields. Locale affects how weekdays and months are named, week rules, and in some cases the calendar type, but **does not** implicitly specify the user's geographic location or time zone.
 
-Ví dụ: hai người có `Locale.forLanguageTag("en-US")` có thể sinh sống ở New York và Tokyo. Ngược lại, một người sống tại TP.HCM vẫn có thể dùng giao diện tiếng Anh. Vì vậy, **giữ `Locale` và `TimeZone`/`ZoneId` thành hai lựa chọn độc lập**.
+For example, two users with `Locale.forLanguageTag("en-US")` may live in New York and Tokyo. Conversely, someone living in Ho Chi Minh City may still use an English UI. Therefore, **keep `Locale` and `TimeZone`/`ZoneId` as two independent choices**.
 
-## 3. Mặc định cấp JVM: nguồn gốc và phạm vi
+## 3. JVM-level defaults: origin and scope
 
 ### 3.1. `TimeZone.getDefault()`
 
-`TimeZone.getDefault()` trả time zone mặc định của JVM. Mặc định ban đầu thường được xác định theo môi trường hệ điều hành và thiết lập khởi động, trong đó có thuộc tính hệ thống `user.timezone`. Chương trình có thể thay đổi vùng mặc định:
+`TimeZone.getDefault()` returns the JVM's default time zone. The initial default is usually determined by the OS environment and startup settings, including the `user.timezone` system property. A program can change the default zone:
 
 ```java
 TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 ```
 
-Đây là **thay đổi phạm vi JVM**, không phải "múi giờ của request hiện tại". Các luồng khác dùng API lấy default về sau có thể nhận `UTC`. Việc gọi `setDefault(null)` có thể khiến runtime xác định lại giá trị mặc định; trong test thường nên lưu giá trị cũ và khôi phục chính nó, không suy đoán giá trị mới.
+This is a **JVM-wide change**, not "the current request's time zone." Other threads calling APIs that read the default afterward may receive `UTC`. Calling `setDefault(null)` may cause the runtime to re-determine the default value; in tests you should usually save the old value and restore that exact value, rather than guessing a new one.
 
-API `TimeZone.getDefault()` trả về một đối tượng mặc định được sao chép để tránh sửa trực tiếp default thông qua đối tượng trả về. Nhưng `TimeZone.setDefault(...)` là thao tác thay **cấu hình mặc định chung**; nhận đối tượng sao chép không làm biến default trở thành local theo thread.
+The `TimeZone.getDefault()` API returns a cloned default object to prevent directly mutating the default through the returned object. However, `TimeZone.setDefault(...)` mutates the **shared global default configuration**; receiving a clone does not make the default thread-local.
 
-### 3.2. `Locale.getDefault()` và `Locale.Category.FORMAT`
+### 3.2. `Locale.getDefault()` and `Locale.Category.FORMAT`
 
-Java có mặc định locale ở cấp JVM, trong đó có hai category:
+Java has JVM-level locale defaults, including two categories:
 
-- `Locale.Category.FORMAT` dành cho các thao tác định dạng/lịch theo locale.
-- `Locale.Category.DISPLAY` dành cho việc hiển thị tên ngôn ngữ/vùng và nội dung tương tự.
+- `Locale.Category.FORMAT` is for locale-sensitive formatting/calendar operations.
+- `Locale.Category.DISPLAY` is for displaying language/region names and similar content.
 
-`Calendar.getInstance()` không lấy preference cá nhân từ một HTTP request. Khi dựng calendar theo mặc định, việc lựa chọn locale thường dùng **`Locale.getDefault(Locale.Category.FORMAT)`**.
+`Calendar.getInstance()` does not read personal preferences from an HTTP request. When constructing a calendar with defaults, locale selection typically uses **`Locale.getDefault(Locale.Category.FORMAT)`**.
 
-`Locale.setDefault(Locale)` thay base default và thiết lập category mặc định; `Locale.setDefault(Locale.Category.FORMAT, locale)` chỉ thay category tương ứng nhưng **vẫn ở phạm vi JVM**. Không áp dụng cách đổi các giá trị này ở đầu mỗi request để cố hỗ trợ đa ngôn ngữ/đa vùng giờ.
+`Locale.setDefault(Locale)` changes the base default and sets the category defaults; `Locale.setDefault(Locale.Category.FORMAT, locale)` only changes that category, yet **still at the JVM scope**. Do not mutate these values at the start of each request to try to support multiple languages or time zones.
 
-### 3.3. Các overload của `Calendar.getInstance`
+### 3.3. `Calendar.getInstance` overloads
 
-| Cách tạo | Time zone | Locale |
+| Creation method | Time zone | Locale |
 | --- | --- | --- |
-| `Calendar.getInstance()` | Default của JVM | FORMAT default của JVM |
-| `Calendar.getInstance(TimeZone zone)` | Time zone được truyền | FORMAT default |
-| `Calendar.getInstance(Locale locale)` | Default time zone | Locale được truyền |
-| `Calendar.getInstance(TimeZone zone, Locale locale)` | **Time zone tường minh** | **Locale tường minh** |
+| `Calendar.getInstance()` | JVM default | JVM FORMAT default |
+| `Calendar.getInstance(TimeZone zone)` | Passed time zone | FORMAT default |
+| `Calendar.getInstance(Locale locale)` | Default time zone | Passed locale |
+| `Calendar.getInstance(TimeZone zone, Locale locale)` | **Explicit time zone** | **Explicit locale** |
 
-Khi xử lý dữ liệu người dùng hoặc giao tiếp với hệ thống bên ngoài, **ưu tiên overload nhận cả time zone lẫn locale** nếu vẫn phải dùng `Calendar`.
+When processing user data or communicating with external systems, **prefer the overload accepting both time zone and locale** if you still must use `Calendar`.
 
-### 3.4. Có phải đổi default sẽ cập nhật các đối tượng `Calendar` đã tạo?
+### 3.4. Does changing the default update already-created `Calendar` objects?
 
-Không mặc định. Một đối tượng calendar đã được xây dựng có time zone và các thuộc tính của nó. Thay default của JVM chủ yếu ảnh hưởng **lần xây dựng mới** của code đang dựa vào default, chứ không tự đồng bộ mọi calendar đã tạo trước đó.
+Not by default. An already-constructed calendar object has its own time zone and properties. Changing the JVM default mainly affects **newly constructed instances** from code relying on defaults, rather than automatically syncing all previously created calendars.
 
-Điều này khiến việc đổi default giữa chừng còn khó kiểm soát hơn: hai thành phần của ứng dụng có thể giữ những đối tượng đã khởi tạo ở thời điểm khác nhau, với các time zone/locale khác nhau.
+This makes changing defaults mid-flight even harder to reason about: two components of an application may hold instances initialized at different times with different time zones/locales.
 
-## 4. Ví dụ Java 17+: xem tác động của default và category
+## 4. Java 17+ example: observing the effect of defaults and categories
 
-Tạo file `LegacyDefaultsDemo.java`:
+Create the file `LegacyDefaultsDemo.java`:
 
 ```java
 import java.util.Calendar;
@@ -129,7 +129,7 @@ public class LegacyDefaultsDemo {
             System.out.println("new calendar zone: "
                     + Calendar.getInstance().getTimeZone().getID());
         } finally {
-            // Chỉ an toàn trong thí nghiệm/test JVM không chạy đồng thời.
+            // Only safe in experiments/tests on a non-concurrent JVM.
             Locale.setDefault(beforeBase);
             Locale.setDefault(
                     Locale.Category.FORMAT, beforeFormat);
@@ -141,14 +141,14 @@ public class LegacyDefaultsDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 LegacyDefaultsDemo.java
 java LegacyDefaultsDemo
 ```
 
-Kết quả với dữ liệu locale chuẩn của JDK đã kiểm chứng:
+Verified output with standard JDK locale data:
 
 ```text
 base locale: en-US
@@ -162,29 +162,29 @@ existing calendar zone: UTC
 new calendar zone: Asia/Tokyo
 ```
 
-Trong `Calendar`, `Calendar.SUNDAY == 1` và `Calendar.MONDAY == 2`. `Locale.FRANCE` thông thường có tuần bắt đầu vào thứ Hai và yêu cầu tối thiểu 4 ngày trong tuần đầu của năm; `Locale.US` thường bắt đầu vào Chủ nhật với 1 ngày tối thiểu. Đây là lý do **locale có thể ảnh hưởng số thứ tự tuần** dù time zone của hai lịch đều là `UTC`.
+In `Calendar`, `Calendar.SUNDAY == 1` and `Calendar.MONDAY == 2`. `Locale.FRANCE` typically starts the week on Monday and requires a minimum of 4 days in the first week of the year; `Locale.US` typically starts on Sunday with 1 minimum day. This is why **locale can affect week numbers** even when both calendars use `UTC`.
 
-Ví dụ cố ý đổi các default để chứng minh hành vi, sau đó khôi phục trong `finally`. **Không đưa kiểu thay default này vào request handler của server đa luồng.** `finally` không biến một chuỗi thay default/thực hiện/khôi phục thành phép toán được cách ly cho từng request.
+The example intentionally changes defaults to demonstrate behavior, then restores them in `finally`. **Do not put this kind of default mutation into a multithreaded server request handler.** `finally` does not turn a mutate-default/execute/restore sequence into a per-request isolated operation.
 
-## 5. Cùng một instant, ngày và giờ địa phương có thể khác
+## 5. Same instant, different local date and time
 
-Giả sử một điểm thời gian tuyệt đối là:
+Suppose an absolute point in time is:
 
 ```text
 2026-01-01T00:30:00Z
 ```
 
-Chữ `Z` ở đây có nghĩa offset UTC +00:00. Tại điểm thời gian này:
+Here `Z` means UTC offset +00:00. At this point in time:
 
-- `UTC`: ngày 1/1/2026, 00:30.
-- `America/Los_Angeles`: ngày 31/12/2025, 16:30 theo offset hiệu lực mùa đông.
-- `Asia/Tokyo`: ngày 1/1/2026, 09:30.
+- `UTC`: Jan 1, 2026, 00:30.
+- `America/Los_Angeles`: Dec 31, 2025, 16:30 under the active winter offset.
+- `Asia/Tokyo`: Jan 1, 2026, 09:30.
 
-Nếu dùng `Calendar.getInstance()` mà không truyền time zone, kết quả phụ thuộc JVM default; cùng dữ liệu timestamp có thể nhảy sang **ngày hoặc năm khác**.
+If you call `Calendar.getInstance()` without passing a time zone, the result depends on the JVM default; the same timestamp data can jump to a **different day or year**.
 
-### Ví dụ chạy được: một epoch, ba múi giờ
+### Runnable example: one epoch, three time zones
 
-Tạo `CalendarInstantDemo.java`:
+Create `CalendarInstantDemo.java`:
 
 ```java
 import java.time.Instant;
@@ -223,7 +223,7 @@ javac CalendarInstantDemo.java
 java CalendarInstantDemo
 ```
 
-Kết quả (với quy tắc tzdb cho mốc thời gian đã nêu):
+Output (under tzdb rules for the stated timestamp):
 
 ```text
 UTC => 2026-01-01 00:30
@@ -231,15 +231,15 @@ America/Los_Angeles => 2025-12-31 16:30
 Asia/Tokyo => 2026-01-01 09:30
 ```
 
-`setTimeInMillis(...)` đặt cùng một epoch cho cả ba lịch; chỉ có **cách suy ra các trường Calendar** khác nhau. Ngược lại, nếu đặt `2026-01-01 00:30` bằng `set(...)` trên ba time zone khác nhau, mỗi vùng có thể biểu thị một instant khác nhau.
+`setTimeInMillis(...)` sets the same epoch for all three calendars; only **how the Calendar fields are derived** differs. Conversely, if you set `2026-01-01 00:30` via `set(...)` on three different time zones, each zone will represent a different instant.
 
-**Ghi nhớ:** `Calendar.getTime()` trả về `Date` đại diện cho instant, không phải "Date mang timezone"; khi format `Date`, formatter và zone bạn chọn mới quyết định cách hiển thị.
+**Remember:** `Calendar.getTime()` returns a `Date` representing an instant, not a "Date carrying a timezone"; when formatting a `Date`, the formatter and zone you choose determine how it is displayed.
 
-## 6. Những bẫy quen thuộc của `Calendar`
+## 6. Familiar `Calendar` traps
 
-### 6.1. `MONTH` bắt đầu từ số 0
+### 6.1. `MONTH` starts at 0
 
-Trong `Calendar`:
+In `Calendar`:
 
 ```text
 Calendar.JANUARY  == 0
@@ -248,7 +248,7 @@ Calendar.MARCH    == 2
 Calendar.DECEMBER == 11
 ```
 
-Do đó:
+Therefore:
 
 ```java
 Calendar c = Calendar.getInstance(
@@ -258,33 +258,33 @@ c.set(2026, Calendar.MARCH, 8);
 System.out.println(c.get(Calendar.MONTH) + 1); // 3
 ```
 
-Đây là đoạn code **minh họa trong phương thức**, không phải một chương trình Java độc lập. `clear()` xóa các trường còn tồn dư để tránh ảnh hưởng khi dựng thời điểm; đừng dùng tháng `3` nếu đang muốn nói tháng Ba trong `set(year, month, day)`.
+This is an **illustrative snippet inside a method**, not a standalone Java program. `clear()` clears leftover fields to avoid side effects when building a point in time; do not pass month `3` if you mean March in `set(year, month, day)`.
 
-Các trường khác cũng có khác biệt:
+Other fields also have differences:
 
-- `Calendar.DAY_OF_WEEK`: Chủ nhật = `1`, thứ Hai = `2`.
-- `Calendar.HOUR`: giờ theo chu kỳ 12 giờ, cần kết hợp `AM_PM`.
-- `Calendar.HOUR_OF_DAY`: giờ 0–23, thường thích hợp hơn cho timestamp.
-- `Calendar.WEEK_OF_YEAR` và `Calendar.getWeekYear()` có thể khác `YEAR` quanh giao điểm năm, tùy quy tắc tuần của locale.
-- `Calendar.getActualMaximum(Calendar.DAY_OF_MONTH)` tính số ngày tối đa của tháng trong trạng thái lịch hiện tại; khác với việc mặc định tháng luôn có 31 ngày.
+- `Calendar.DAY_OF_WEEK`: Sunday = `1`, Monday = `2`.
+- `Calendar.HOUR`: hour on a 12-hour cycle, must be paired with `AM_PM`.
+- `Calendar.HOUR_OF_DAY`: hour 0–23, usually better suited for timestamps.
+- `Calendar.WEEK_OF_YEAR` and `Calendar.getWeekYear()` can differ from `YEAR` around year boundaries, depending on locale week rules.
+- `Calendar.getActualMaximum(Calendar.DAY_OF_MONTH)` computes the maximum number of days in the month for the current calendar state, unlike assuming every month has 31 days.
 
-### 6.2. Chế độ `lenient` mặc định
+### 6.2. Default `lenient` mode
 
-`Calendar` thường **lenient** theo mặc định: nó có thể chấp nhận trường lịch vượt miền và chuẩn hóa thành một ngày hợp lệ. Nếu đặt **30/2/2026**, kết quả có thể chuyển thành **2/3/2026** theo lịch Gregory.
+`Calendar` is usually **lenient** by default: it can accept out-of-range calendar fields and normalize them into a valid date. If you set **Feb 30, 2026**, the result can roll over to **Mar 2, 2026** in the Gregorian calendar.
 
 ```java
 Calendar calendar = new java.util.GregorianCalendar(
         TimeZone.getTimeZone("UTC"), Locale.US);
 calendar.clear();
 calendar.set(2026, Calendar.FEBRUARY, 30);
-// Vì mặc định lenient=true, truy cập thời gian sẽ chuẩn hóa.
+// Because lenient=true by default, accessing the time will normalize.
 ```
 
-Khi input cần chặt chẽ, dùng `calendar.setLenient(false)` rồi buộc tính toán qua `getTimeInMillis()` hoặc `getTime()` để phát hiện giá trị không hợp lệ. `setLenient(false)` thường không ném lỗi ngay ở lệnh `set(...)`; kiểm tra có thể xảy ra khi truy cập thời gian/các trường đã tính.
+When input must be strict, use `calendar.setLenient(false)` and force computation via `getTimeInMillis()` or `getTime()` to detect invalid values. `setLenient(false)` does not usually throw immediately on `set(...)`; validation can occur when accessing the time/computed fields.
 
-### Ví dụ Java 17+: lenient và strict
+### Java 17+ example: lenient and strict
 
-Tạo `CalendarLeniencyDemo.java`:
+Create `CalendarLeniencyDemo.java`:
 
 ```java
 import java.util.Calendar;
@@ -328,21 +328,21 @@ lenient: 2026-03-02
 strict invalid date rejected
 ```
 
-### 6.3. `add`, `roll` và cộng mili-giây khác nhau
+### 6.3. `add`, `roll`, and adding milliseconds differ
 
-- `calendar.add(Calendar.DAY_OF_MONTH, 1)` có ý nghĩa **cộng một ngày theo trường lịch**; qua DST, độ dài thời gian thực có thể khác 24 giờ.
-- `calendar.roll(field, amount)` thay đổi trường trong phạm vi của nó **mà không làm thay đổi các trường lớn hơn** theo quy tắc của `roll`. Không dùng như phép cộng ngày/tháng thông thường.
-- `calendar.setTimeInMillis(calendar.getTimeInMillis() + 86_400_000L)` cộng **chính xác 24 giờ** theo epoch, không nhất thiết giữ cùng giờ đồng hồ địa phương vào hôm sau.
+- `calendar.add(Calendar.DAY_OF_MONTH, 1)` means **adding one day to the calendar field**; across DST, the actual elapsed time may differ from 24 hours.
+- `calendar.roll(field, amount)` changes a field within its range **without altering larger fields** according to `roll` rules. Do not use it as ordinary date/month addition.
+- `calendar.setTimeInMillis(calendar.getTimeInMillis() + 86_400_000L)` adds **exactly 24 hours** on the epoch timeline, which does not necessarily keep the same local wall-clock time on the next day.
 
-Nếu yêu cầu là "ngày mai lúc 12:00 tại một khu vực", hãy cộng **ngày** theo múi giờ; nếu là "sau 24 giờ", hãy cộng **Duration** hoặc mili-giây. Hai yêu cầu này khác nhau.
+If the requirement is "tomorrow at 12:00 in a region", add **days** in that time zone; if it is "24 hours later", add a **Duration** or milliseconds. These two requirements are different.
 
-## 7. DST: cộng một ngày không phải lúc nào cũng bằng 24 giờ
+## 7. DST: adding one day does not always equal 24 hours
 
-Múi giờ chứa **quy tắc dịch chuyển giờ mùa hè (daylight saving time)** có thể khiến một ngày lịch dài 23 hoặc 25 giờ thực. Ví dụ tại `America/New_York`, chuyển sang giờ mùa hè năm 2026 xảy ra trong tháng Ba.
+Time zones with **daylight saving time (DST) transition rules** can cause a calendar day to be 23 or 25 real hours long. For example, in `America/New_York`, the spring transition in 2026 occurs in March.
 
-Bắt đầu từ **12:00 ngày 7/3/2026** rồi cộng một ngày lịch, cùng 12:00 ngày 8/3/2026 chỉ cách nhau **23 giờ thực**, vì offset UTC thay đổi từ `-05:00` sang `-04:00`.
+Starting from **12:00 on March 7, 2026** and adding one calendar day, 12:00 on March 8, 2026 is only **23 real hours** away, because the UTC offset changes from `-05:00` to `-04:00`.
 
-Tạo `CalendarDstDemo.java`:
+Create `CalendarDstDemo.java`:
 
 ```java
 import java.time.Duration;
@@ -387,28 +387,28 @@ end: 2026-03-08T12:00-04:00[America/New_York]
 elapsed hours: 23
 ```
 
-Đây là kết quả theo dữ liệu múi giờ tzdb cho năm 2026. Quy tắc DST có thể thay đổi theo pháp luật và phiên bản tzdb, vì vậy khi hệ thống xử lý lịch hẹn tương lai cần quản lý phiên bản timezone data phù hợp và kiểm thử theo vùng đích.
+This is the result according to tzdb time zone data for 2026. DST rules can change by legislation and tzdb version, so when a system handles future schedules, you must manage the appropriate timezone data version and test against target regions.
 
-### Offset UTC không phải ID vùng giờ
+### A UTC offset is not a time zone ID
 
-- `-05:00` và `-04:00` chỉ là **offset** tại từng thời điểm.
-- `America/New_York` là **ZoneId** có quy tắc về offset theo thời gian.
-- `TimeZone.getRawOffset()` thể hiện phần offset cơ bản, **không đủ** để suy offset hiệu lực ở một instant khi có DST; có thể lấy `getOffset(long epochMillis)` hoặc dùng `ZoneId.getRules().getOffset(instant)`.
-- Đừng xây timestamp bằng cách cộng thủ công một offset "cố định cả năm" nếu vùng có DST.
+- `-05:00` and `-04:00` are merely **offsets** at specific points in time.
+- `America/New_York` is a **ZoneId** containing rules for offsets over time.
+- `TimeZone.getRawOffset()` reflects the base offset and is **insufficient** to determine the effective offset at an instant when DST applies; you can call `getOffset(long epochMillis)` or use `ZoneId.getRules().getOffset(instant)`.
+- Do not build timestamps by manually adding a "year-round fixed" offset if the region observes DST.
 
-`java.time` có các thao tác khác nhau: `zoned.plusDays(1)` theo ngày lịch địa phương và `instant.plus(Duration.ofHours(24))` theo khoảng thời gian tuyệt đối. Chọn đúng ngữ nghĩa nghiệp vụ.
+`java.time` provides distinct operations: `zoned.plusDays(1)` for local calendar days and `instant.plus(Duration.ofHours(24))` for absolute elapsed time. Choose the right business semantics.
 
-## 8. Rủi ro đổi `TimeZone` mặc định theo từng request
+## 8. Risk of changing the default `TimeZone` per request
 
-Một hệ thống đa người dùng có thể xử lý hai yêu cầu song song:
+A multi-user system may handle two requests concurrently:
 
-1. A chọn `UTC`, code gọi `TimeZone.setDefault(UTC)`.
-2. A chưa kịp dựng `Calendar` hoặc formatter, luồng B đặt `TimeZone.setDefault(Asia/Tokyo)`.
-3. A tiếp tục đọc `TimeZone.getDefault()` hoặc `Calendar.getInstance()` và nhận `Asia/Tokyo`, trái với lựa chọn của A.
+1. A chooses `UTC`, code calls `TimeZone.setDefault(UTC)`.
+2. Before A constructs its `Calendar` or formatter, thread B sets `TimeZone.setDefault(Asia/Tokyo)`.
+3. A proceeds to read `TimeZone.getDefault()` or `Calendar.getInstance()` and gets `Asia/Tokyo`, violating A's choice.
 
-Đây là race condition trên **trạng thái toàn cục**, không chỉ là lỗi thứ tự dòng code. Không thể giải quyết bằng cách gọi `setDefault` rồi khôi phục trong `finally` của từng request: hai request vẫn có thể xen giữa chúng.
+This is a race condition on **global state**, not merely a statement-ordering bug. It cannot be solved by calling `setDefault` and restoring it in each request's `finally`: two requests can still interleave between them.
 
-### Ví dụ Java 17+ có thứ tự rõ ràng
+### Java 17+ example with explicit ordering
 
 File `DefaultZoneRaceDemo.java`:
 
@@ -473,11 +473,11 @@ java DefaultZoneRaceDemo
 A expected UTC but read Asia/Tokyo
 ```
 
-`CountDownLatch` buộc luồng B thay default sau A nhưng trước khi A đọc. Đây là **thí nghiệm tái hiện rủi ro**, không phải phương pháp sử dụng trong server. Khôi phục trong `finally` chỉ nhằm không để test thử nghiệm làm thay đổi cấu hình mặc định của tiến trình sau khi hai thread đã kết thúc. Không chạy thí nghiệm này cùng các tác vụ khác phụ thuộc JVM default.
+`CountDownLatch` forces thread B to change the default after A sets it and before A reads it. This is an **experiment reproducing the risk**, not a pattern to use in a server. Restoring in `finally` is only to avoid leaving the process's default configuration altered after the two threads finish. Do not run this experiment concurrently with other tasks relying on the JVM default.
 
-## 9. Phương pháp đúng với API cũ: truyền `TimeZone` và `Locale`
+## 9. The right approach with the legacy API: pass `TimeZone` and `Locale`
 
-Nếu dự án buộc phải sử dụng `Calendar`, hãy truyền cấu hình rõ ràng:
+If a project must use `Calendar`, pass the configuration explicitly:
 
 ```java
 TimeZone userZone = TimeZone.getTimeZone("Asia/Ho_Chi_Minh");
@@ -488,19 +488,19 @@ Calendar calendar = Calendar.getInstance(
 calendar.setTimeInMillis(epochMillis);
 ```
 
-Đây là **đoạn minh họa trong phương thức**, cần `import java.util.*;` và biến `epochMillis` có giá trị từ nguồn dữ liệu. Lưu ý:
+This is an **illustrative snippet inside a method**, requiring `import java.util.*;` and an `epochMillis` variable populated from a data source. Notes:
 
-- `userZone` nên lấy từ preference được xác thực hoặc dữ liệu nghiệp vụ, không suy từ `userLocale`.
-- `epochMillis` đại diện instant; date/time fields lấy theo `userZone`.
-- Không tự đổi `TimeZone.setDefault(...)` hoặc `Locale.setDefault(...)` khi tiếp nhận yêu cầu.
-- `Calendar` là mutable và **không thread-safe**; không dùng chung một đối tượng `Calendar` giữa các request đồng thời.
-- `DateFormat`/`SimpleDateFormat` cũng mutable, không thread-safe. Với code legacy, tạo formatter riêng và gọi `setTimeZone(userZone)` nếu API/kiểu format yêu cầu, thay vì dùng default.
+- `userZone` should come from a validated preference or business data, not inferred from `userLocale`.
+- `epochMillis` represents the instant; date/time fields are computed in `userZone`.
+- Do not change `TimeZone.setDefault(...)` or `Locale.setDefault(...)` when handling requests.
+- `Calendar` is mutable and **not thread-safe**; do not share a single `Calendar` object across concurrent requests.
+- `DateFormat`/`SimpleDateFormat` are also mutable and not thread-safe. In legacy code, create a dedicated formatter and call `setTimeZone(userZone)` if the API/format requires it, instead of relying on defaults.
 
-### `TimeZone.getTimeZone(String)` có thể âm thầm fallback
+### `TimeZone.getTimeZone(String)` can silently fall back
 
-`TimeZone.getTimeZone("Not/A_Zone")` có thể trả **`GMT`** thay vì ném ngoại lệ. Nếu vùng được gửi từ client không hợp lệ, việc tiếp tục dùng `GMT` sẽ làm thời gian hiển thị sai mà không thấy lỗi.
+`TimeZone.getTimeZone("Not/A_Zone")` can return **`GMT`** instead of throwing an exception. If the zone sent from a client is invalid, continuing with `GMT` will display the wrong time without surfacing an error.
 
-Tạo `ZoneValidationDemo.java`:
+Create `ZoneValidationDemo.java`:
 
 ```java
 import java.time.DateTimeException;
@@ -537,13 +537,13 @@ invalid ZoneId rejected
 validated: Asia/Ho_Chi_Minh
 ```
 
-**Khuyến nghị:** với vùng nhận từ bên ngoài, kiểm tra bằng `ZoneId.of(...)` (có thể kết hợp danh sách vùng được phép), sau đó chuyển sang `TimeZone.getTimeZone(zoneId)` khi cần gọi API cũ. Đừng xác minh vùng chỉ bằng cách so `getTimeZone(id).getID()` với input vì alias/ID chuẩn hóa cũng có thể ảnh hưởng hành vi.
+**Recommendation:** for externally supplied zones, validate with `ZoneId.of(...)` (optionally combined with an allowlist of supported zones), then convert with `TimeZone.getTimeZone(zoneId)` when calling legacy APIs. Do not validate a zone merely by comparing `getTimeZone(id).getID()` against the input, because aliases/normalized IDs can also affect behavior.
 
-## 10. Các mặc định còn ảnh hưởng đến formatter
+## 10. Other defaults that affect formatters
 
-Trong API ngày giờ cũ, `java.text.DateFormat` và `java.text.SimpleDateFormat` có thể phụ thuộc **locale, timezone và pattern**.
+In the legacy date-time API, `java.text.DateFormat` and `java.text.SimpleDateFormat` can depend on **locale, timezone, and pattern**.
 
-Ví dụ:
+Example:
 
 ```java
 DateFormat df = DateFormat.getDateTimeInstance(
@@ -552,46 +552,46 @@ df.setTimeZone(userZone);
 String text = df.format(date);
 ```
 
-Đây là **đoạn mã trong phương thức** với các import phù hợp, biến `date` là `java.util.Date` và `userLocale/userZone` đã được khai báo. `DateFormat` được tạo theo locale được truyền, rồi đặt time zone rõ ràng trước khi format. Nếu bạn chỉ gọi `DateFormat.getDateTimeInstance()` không tham số, code phụ thuộc default locale và default time zone tại lúc formatter được dựng.
+This is a **code snippet inside a method** with appropriate imports, where `date` is a `java.util.Date` and `userLocale`/`userZone` are already declared. `DateFormat` is created with the passed locale, then explicitly given a time zone before formatting. If you simply call `DateFormat.getDateTimeInstance()` with no arguments, the code depends on the default locale and default time zone at the moment the formatter is constructed.
 
-Điều cần tránh:
+What to avoid:
 
 ```java
-// Không phù hợp cho ứng dụng phục vụ nhiều múi giờ:
+// Not suitable for multi-timezone applications:
 TimeZone.setDefault(userZone);
 Locale.setDefault(userLocale);
 String text = DateFormat.getDateTimeInstance().format(date);
 ```
 
-Mặc dù đôi khi in đúng trong chương trình một người dùng, cách này thay trạng thái JVM và có thể làm request khác sai.
+Although it may occasionally print the right result in a single-user program, this mutates JVM state and can break other requests.
 
-Một bẫy khác của `SimpleDateFormat` là pattern và `Calendar` nội bộ có thể bị thay đổi khi parse/format; class không thread-safe. Không tạo một instance `static` để đồng thời phục vụ mọi request. Với code mới, ưu tiên `java.time.format.DateTimeFormatter` vì immutable và thread-safe sau khi tạo.
+Another trap of `SimpleDateFormat` is that its pattern and internal `Calendar` can be mutated during parsing/formatting; the class is not thread-safe. Do not create a `static` instance to serve all requests concurrently. For new code, prefer `java.time.format.DateTimeFormatter` because it is immutable and thread-safe once created.
 
-## 11. `GregorianCalendar` và khái niệm lịch mặc định
+## 11. `GregorianCalendar` and the concept of a default calendar
 
-Không phải mọi `Calendar.getInstance(...)` luôn tạo đúng một kiểu `GregorianCalendar` cho mọi locale. Dựa trên provider, locale và Unicode extension liên quan đến calendar (`u-ca-*`), runtime có thể chọn hệ lịch khác, ví dụ Buddhist/Japanese calendar. Vì vậy:
+Not every `Calendar.getInstance(...)` call always creates the exact same `GregorianCalendar` type for every locale. Depending on the provider, locale, and calendar-related Unicode extensions (`u-ca-*`), the runtime may choose another calendar system, such as the Buddhist or Japanese calendar. Therefore:
 
-- Nếu dữ liệu nghiệp vụ giả định **lịch Gregorian/ISO**, hãy khai báo rõ hệ lịch hoặc chuyển sang `java.time.LocalDate`/`LocalDateTime`.
-- Đừng mặc định `Calendar.YEAR` luôn có cùng ý nghĩa biên niên trong mọi lịch.
-- `GregorianCalendar` legacy có cơ chế cutover lịch Julian/Gregorian; điều này có thể ảnh hưởng dữ liệu lịch sử, khác với ISO proleptic Gregorian của `java.time.LocalDate`.
-- Week-of-year cũng chịu cấu hình locale (`getFirstDayOfWeek`, `getMinimalDaysInFirstWeek`), nên đừng dùng `Calendar.WEEK_OF_YEAR` như một "week index chuẩn toàn cầu" mà không định nghĩa chuẩn.
+- If business data assumes the **Gregorian/ISO calendar**, declare the calendar system explicitly or move to `java.time.LocalDate`/`LocalDateTime`.
+- Do not assume `Calendar.YEAR` always has the same chronological meaning across all calendars.
+- Legacy `GregorianCalendar` has a Julian/Gregorian cutover mechanism; this can affect historical dates, unlike the ISO proleptic Gregorian system of `java.time.LocalDate`.
+- Week-of-year is also governed by locale configuration (`getFirstDayOfWeek`, `getMinimalDaysInFirstWeek`), so do not treat `Calendar.WEEK_OF_YEAR` as a "global standard week index" without defining the standard.
 
-Với báo cáo theo tuần ISO 8601, Java Time có `java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR` và `WEEK_BASED_YEAR`; với tuần theo locale, có `WeekFields.of(locale)`. Cách tính tuần và hiển thị lịch cần thống nhất trước khi triển khai.
+For ISO 8601 week reporting, Java Time provides `java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR` and `WEEK_BASED_YEAR`; for locale-based weeks, there is `WeekFields.of(locale)`. Week calculation and calendar display rules must be agreed upon before implementation.
 
-## 12. Chuyển từ API cũ sang `java.time`
+## 12. Migrating from the legacy API to `java.time`
 
-Java 8+ cung cấp nhóm `java.time` với đối tượng bất biến và phân biệt mục đích rõ hơn:
+Java 8+ provides the `java.time` package with immutable objects and clearer separation of roles:
 
-| API legacy | Lựa chọn Java Time | Lưu ý chuyển đổi |
+| Legacy API | Java Time choice | Migration notes |
 | --- | --- | --- |
-| `Date` | `Instant` | `date.toInstant()`, nhưng độ chính xác của `Date` là mili-giây |
-| `TimeZone` | `ZoneId` | `timeZone.toZoneId()` và `TimeZone.getTimeZone(zoneId)` |
-| `Calendar` tại một thời điểm | `Instant` + `ZoneId` hoặc `ZonedDateTime` | Phân biệt instant và các trường địa phương |
-| `GregorianCalendar` | `ZonedDateTime`, `LocalDateTime`, `LocalDate` tùy ngữ nghĩa | Không phải chuyển trường 1:1 cho mọi loại lịch |
-| `SimpleDateFormat` | `DateTimeFormatter` | Pattern gần giống nhưng không hoàn toàn tương thích; kiểm tra từng token |
-| `Calendar.getInstance()` | `ZonedDateTime.now(zoneId)` hoặc `Instant.now()` | Truyền zone tường minh khi cần local date/time |
+| `Date` | `Instant` | `date.toInstant()`, though `Date` precision is milliseconds |
+| `TimeZone` | `ZoneId` | `timeZone.toZoneId()` and `TimeZone.getTimeZone(zoneId)` |
+| `Calendar` at an instant | `Instant` + `ZoneId` or `ZonedDateTime` | Distinguish the instant from local fields |
+| `GregorianCalendar` | `ZonedDateTime`, `LocalDateTime`, `LocalDate` depending on semantics | Not a 1:1 field transfer for all calendar types |
+| `SimpleDateFormat` | `DateTimeFormatter` | Patterns look similar but are not fully compatible; check every token |
+| `Calendar.getInstance()` | `ZonedDateTime.now(zoneId)` or `Instant.now()` | Pass zone explicitly when local date/time is needed |
 
-Một ví dụ Java Time thuần:
+A pure Java Time example:
 
 ```java
 import java.time.Instant;
@@ -620,93 +620,93 @@ instant: 2026-01-01T00:30:00Z
 local: 2026-01-01T09:30+09:00[Asia/Tokyo]
 ```
 
-Lưu ý chuyển đổi:
+Migration notes:
 
-- Để lưu timestamp sự kiện, `Instant` thường rõ ràng hơn. Nếu người dùng cần lưu một **lịch hẹn tương lai lúc 09:00 theo vùng**, mô hình có thể cần `LocalDateTime + ZoneId` và chính sách xử lý DST.
-- `LocalDateTime` không mang time zone nên không tự xác định một instant.
-- Khi dữ liệu cũ chứa `Calendar` của hệ lịch không phải Gregorian, không tự giả định chuyển `YEAR/MONTH/DAY_OF_MONTH` trực tiếp thành `LocalDate` mà không biết chronology.
-- `DateTimeFormatter` immutable và thread-safe; vẫn cần truyền `Locale` trong `withLocale(locale)` và `ZoneId` phù hợp trong `withZone(zoneId)` khi format `Instant` hay dữ liệu yêu cầu zone.
+- For storing event timestamps, `Instant` is usually clearer. If users need to store a **future appointment at 09:00 in a region**, the model may require `LocalDateTime + ZoneId` and a DST handling policy.
+- `LocalDateTime` carries no time zone, so it does not identify an instant on its own.
+- When legacy data holds a `Calendar` from a non-Gregorian calendar system, do not assume you can map `YEAR/MONTH/DAY_OF_MONTH` directly to `LocalDate` without knowing the chronology.
+- `DateTimeFormatter` is immutable and thread-safe; you still need to pass `Locale` in `withLocale(locale)` and the appropriate `ZoneId` in `withZone(zoneId)` when formatting an `Instant` or data requiring a zone.
 
-## 13. Thiết kế đa người dùng: tách state theo request
+## 13. Multi-user design: isolate state per request
 
-Luồng triển khai phù hợp:
+Recommended flow:
 
 ```text
 Request / user profile
        |
-       +--> locale hiển thị (vi-VN / en-US / ...)
+       +--> display locale (vi-VN / en-US / ...)
        |
        +--> zone ID (Asia/Ho_Chi_Minh / America/New_York / ...)
        |
        v
-Kiểm tra danh sách hỗ trợ, xác định chính sách thời gian
+Check supported list, determine temporal policy
        |
-       +--> Instant hoặc dữ liệu domain time
+       +--> Instant or domain time data
        |
-       +--> Locale / ZoneId truyền tường minh
-       |
-       v
-Formatter, Calendar legacy adapter hoặc java.time
+       +--> Locale / ZoneId passed explicitly
        |
        v
-Response cho đúng người dùng
+Formatter, legacy Calendar adapter, or java.time
+       |
+       v
+Response for the right user
 ```
 
-**Không đồng nhất các nguồn thông tin:**
+**Do not conflate information sources:**
 
-- `Accept-Language` không xác định múi giờ.
-- `TimeZone.getDefault()` không xác định nơi người dùng đang sống.
-- `Locale.getDefault()` không xác định preference của request.
-- Ngày giờ gửi từ client không có offset/zone cần được xử lý theo hợp đồng cụ thể, không tự gán vùng của server.
+- `Accept-Language` does not determine the time zone.
+- `TimeZone.getDefault()` does not indicate where the user lives.
+- `Locale.getDefault()` does not represent the request's preference.
+- Date/time values sent from a client without an offset/zone must be handled according to a defined contract, rather than silently assuming the server's zone.
 
-Nếu phải giữ adapter legacy, có thể tạo `Calendar`/`DateFormat` ngắn hạn cho từng thao tác từ `Locale` và `TimeZone` đã được chọn. Đừng truyền một `Calendar` mutable giữa các thread; đừng thay default JVM như cơ chế truyền context.
+If a legacy adapter must be kept, create short-lived `Calendar`/`DateFormat` instances per operation from the selected `Locale` and `TimeZone`. Do not pass a mutable `Calendar` across threads; do not mutate JVM defaults as a context-propagation mechanism.
 
-**Kiểm thử đa vùng:** chọn một instant gần nửa đêm UTC, ngày chuyển DST, ngày cuối năm và trường hợp cùng giờ địa phương không duy nhất. Kiểm tra output dựa trên `Instant` và `ZoneId` cụ thể, thay vì phụ thuộc môi trường máy chạy CI.
+**Multi-zone testing:** pick an instant near UTC midnight, DST transition days, year-end days, and cases where a local wall time is ambiguous. Assert output based on specific `Instant` and `ZoneId` values rather than relying on the CI runner's environment.
 
-## 14. Lỗi thường gặp
+## 14. Common mistakes
 
-| Sai lầm | Hậu quả | Cách đúng |
+| Mistake | Consequence | Correct approach |
 | --- | --- | --- |
-| `Calendar.getInstance()` rồi coi là calendar của user | Lấy default JVM | Truyền zone/locale riêng |
-| `TimeZone.setDefault(userZone)` cho mỗi request | Race condition giữa các user | Dùng `Calendar.getInstance(zone, locale)` hoặc `java.time` |
-| `Locale.setDefault(userLocale)` cho mỗi request | Thay cấu hình chung, ảnh hưởng week/formatter | Truyền `Locale` tường minh |
-| Suy múi giờ từ `Locale("vi","VN")` | Locale không xác định zone của người dùng | Dùng preference/ZoneId |
-| Dùng `Calendar.set(2026, 3, 1)` để biểu diễn ngày 1/3 | `MONTH=3` là tháng Tư | Dùng `Calendar.MARCH` hoặc `LocalDate.of(2026,3,1)` |
-| Đọc `Calendar.HOUR` rồi nghĩ là 0–23 | Đây là giờ 12h | Dùng `HOUR_OF_DAY` |
-| Đặt 30/2 với lenient mặc định | Bị chuẩn hóa sang tháng khác | `setLenient(false)` và validation |
-| Dùng `roll` để cộng ngày qua tháng | Trường lớn hơn không đổi như mong muốn | Dùng `add` hoặc Java Time |
-| Cộng `24*60*60*1000` để "sang ngày mai" | Sai ở ngày DST 23/25 giờ | Cộng ngày theo vùng giờ |
-| Lấy `getRawOffset()` thay offset tại instant | Bỏ qua DST | `getOffset(millis)`/ZoneRules |
-| Dùng `TimeZone.getTimeZone(invalidId)` mà không kiểm tra | Âm thầm trả `GMT` | Validate `ZoneId.of(...)` |
-| Dùng chung `SimpleDateFormat`/`Calendar` mutable | Không thread-safe | Instance riêng hoặc `java.time` |
-| Chuyển `Date` thành chuỗi để lưu instant | Phụ thuộc formatter/locale/zone | Lưu epoch/ISO timestamp theo schema |
-| Trộn các quy tắc tuần theo US và ISO | Week number sai gần giao năm | Xác định WeekFields/IsoFields |
-| Thay default trong test chạy song song | Gây test ngẫu nhiên thất bại | Cô lập test/JVM hoặc không thay default |
+| Calling `Calendar.getInstance()` and treating it as the user's calendar | Uses JVM defaults | Pass zone/locale explicitly |
+| Calling `TimeZone.setDefault(userZone)` per request | Race conditions across users | Use `Calendar.getInstance(zone, locale)` or `java.time` |
+| Calling `Locale.setDefault(userLocale)` per request | Mutates global config, affects weeks/formatters | Pass `Locale` explicitly |
+| Inferring time zone from `Locale("vi","VN")` | Locale does not determine the user's zone | Use preference/ZoneId |
+| Using `Calendar.set(2026, 3, 1)` to represent March 1 | `MONTH=3` is April | Use `Calendar.MARCH` or `LocalDate.of(2026,3,1)` |
+| Reading `Calendar.HOUR` thinking it is 0–23 | It is a 12-hour value | Use `HOUR_OF_DAY` |
+| Setting Feb 30 with default leniency | Normalized into another month | `setLenient(false)` and validation |
+| Using `roll` to add days across months | Larger fields do not change as expected | Use `add` or Java Time |
+| Adding `24*60*60*1000` to mean "tomorrow" | Wrong on 23/25-hour DST days | Add days in the time zone |
+| Using `getRawOffset()` instead of offset at instant | Ignores DST | `getOffset(millis)`/ZoneRules |
+| Calling `TimeZone.getTimeZone(invalidId)` without validation | Silently returns `GMT` | Validate with `ZoneId.of(...)` |
+| Sharing mutable `SimpleDateFormat`/`Calendar` | Not thread-safe | Separate instances or `java.time` |
+| Converting `Date` to string to store an instant | Depends on formatter/locale/zone | Store epoch/ISO timestamp per schema |
+| Mixing US and ISO week rules | Wrong week numbers near year-end | Specify WeekFields/IsoFields |
+| Changing defaults in parallel tests | Causes flaky test failures | Isolate tests/JVM or avoid mutating defaults |
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-check questions
 
-1. **`Calendar.getInstance()` lấy time zone và locale từ đâu?** Từ mặc định JVM: `TimeZone.getDefault()` và locale FORMAT mặc định, không tự lấy từ HTTP request.
-2. **`TimeZone.setDefault(...)` có áp dụng riêng cho một thread không?** Không, nó thay mặc định dùng chung của JVM.
-3. **Nếu một calendar đã được tạo với UTC, sau đó đổi JVM default sang Tokyo thì calendar cũ có tự chuyển sang Tokyo không?** Không mặc định; time zone của instance đã được lưu.
-4. **Tại sao `Calendar.MONTH` bằng 2 lại biểu diễn tháng Ba?** Vì chỉ số tháng trong `Calendar` bắt đầu từ 0.
-5. **`Locale.US` và `Locale.FRANCE` có thể cho `getFirstDayOfWeek` khác nhau không?** Có: thông thường Chủ nhật = 1 và thứ Hai = 2.
-6. **Vì sao 30/2/2026 có thể thành 2/3/2026?** Do `Calendar` lenient chuẩn hóa trường vượt miền.
-7. **`add(DAY_OF_MONTH, 1)` có bằng cộng 86.400.000 mili-giây không?** Không nhất thiết, vì ngày DST có thể dài 23/25 giờ.
-8. **`TimeZone.getRawOffset()` có luôn là offset hiệu lực của một vùng tại mọi thời điểm không?** Không, phải xét DST và lịch sử.
-9. **`TimeZone.getTimeZone("Not/A_Zone")` có bắt buộc ném lỗi không?** Không; thường trả `GMT`, nên phải validate nguồn.
-10. **`Locale.forLanguageTag("en-US")` có đủ để xác định vùng `America/New_York` không?** Không, locale và time zone là hai lựa chọn độc lập.
-11. **Lưu `LocalDateTime` có đủ biểu diễn một instant tuyệt đối không?** Không, thiếu offset/zone.
-12. **API mới nào nên ưu tiên cho code Java 17+?** `java.time.Instant`, `ZoneId`, `ZonedDateTime`, `LocalDate/LocalDateTime` và `DateTimeFormatter` theo ngữ nghĩa.
-13. **Khi nào dùng `Calendar`?** Khi tích hợp hệ thống legacy hoặc API buộc dùng nó; truyền time zone/locale tường minh và cô lập đối tượng mutable.
-14. **Cách kiểm thử không phụ thuộc timezone máy CI?** Dùng instant cố định và zone/locale tường minh, không dựa vào default của môi trường.
+1. **Where does `Calendar.getInstance()` get its time zone and locale?** From the JVM defaults: `TimeZone.getDefault()` and the default FORMAT locale, not automatically from an HTTP request.
+2. **Does `TimeZone.setDefault(...)` apply only to a single thread?** No, it changes the shared JVM-wide default.
+3. **If a calendar was created with UTC and the JVM default is later changed to Tokyo, does the existing calendar automatically switch to Tokyo?** Not by default; the instance's time zone was already stored.
+4. **Why does `Calendar.MONTH` equal to 2 represent March?** Because month indices in `Calendar` start at 0.
+5. **Can `Locale.US` and `Locale.FRANCE` give different `getFirstDayOfWeek` values?** Yes: typically Sunday = 1 and Monday = 2.
+6. **Why can Feb 30, 2026 turn into Mar 2, 2026?** Because a lenient `Calendar` normalizes out-of-range fields.
+7. **Is `add(DAY_OF_MONTH, 1)` equal to adding 86,400,000 milliseconds?** Not necessarily, because a DST day can be 23 or 25 hours long.
+8. **Is `TimeZone.getRawOffset()` always the effective offset of a zone at every point in time?** No, DST and historical changes must be considered.
+9. **Is `TimeZone.getTimeZone("Not/A_Zone")` guaranteed to throw an error?** No; it typically returns `GMT`, so the source must be validated.
+10. **Is `Locale.forLanguageTag("en-US")` enough to determine `America/New_York`?** No, locale and time zone are two independent choices.
+11. **Is storing `LocalDateTime` sufficient to represent an absolute instant?** No, it lacks an offset/zone.
+12. **Which modern APIs should be preferred for Java 17+ code?** `java.time.Instant`, `ZoneId`, `ZonedDateTime`, `LocalDate`/`LocalDateTime`, and `DateTimeFormatter` according to semantics.
+13. **When should `Calendar` be used?** When integrating with legacy systems or APIs that require it; pass time zone/locale explicitly and isolate mutable objects.
+14. **How do you write tests independent of the CI machine's time zone?** Use fixed instants and explicit zones/locales, rather than relying on environment defaults.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — Calendar](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Calendar.html): `getInstance`, lenient, add/roll, week fields và phạm vi các trường.
-- [Java SE 21 — TimeZone](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/TimeZone.html): `getDefault`, `setDefault`, `getOffset` và cách tìm ID.
-- [Java SE 21 — GregorianCalendar](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/GregorianCalendar.html): lịch Gregory legacy, cutover và chuyển đổi.
-- [Java SE 21 — Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html): `Category.FORMAT`/`DISPLAY` và locale mặc định.
-- [Java SE 21 — DateFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DateFormat.html): phụ thuộc locale/time zone của formatter cũ.
-- [Java SE 21 — ZoneId](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/ZoneId.html): validate vùng IANA, quy tắc time zone.
-- [Java SE 21 — ZonedDateTime](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/ZonedDateTime.html): zone, offset, DST, phép cộng ngày và giờ.
-- [Java SE 21 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html): format/parse immutable với locale/zone tường minh.
+- [Java SE 21 — Calendar](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Calendar.html): `getInstance`, lenient, add/roll, week fields, and field ranges.
+- [Java SE 21 — TimeZone](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/TimeZone.html): `getDefault`, `setDefault`, `getOffset`, and ID lookup.
+- [Java SE 21 — GregorianCalendar](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/GregorianCalendar.html): legacy Gregorian calendar, cutover, and conversions.
+- [Java SE 21 — Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html): `Category.FORMAT`/`DISPLAY` and default locale.
+- [Java SE 21 — DateFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DateFormat.html): locale/time zone dependencies of the legacy formatter.
+- [Java SE 21 — ZoneId](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/ZoneId.html): IANA region validation, time zone rules.
+- [Java SE 21 — ZonedDateTime](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/ZonedDateTime.html): zone, offset, DST, date and time arithmetic.
+- [Java SE 21 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html): immutable formatting/parsing with explicit locale/zone.

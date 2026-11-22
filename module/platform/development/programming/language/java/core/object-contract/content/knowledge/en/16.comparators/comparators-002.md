@@ -1,90 +1,90 @@
-# Hợp đồng dấu, bắc cầu và các nhóm có kết quả so sánh bằng 0
+# Sign Contract, Transitivity, and Groups with Comparison Result 0
 
-## 1. Comparator định nghĩa một quan hệ thứ tự, không chỉ một công thức sắp xếp
+## 1. A Comparator Defines an Ordering Relation, Not Just a Sorting Formula
 
-`java.util.Comparator<T>` biểu diễn quy tắc so sánh hai giá trị cùng kiểu `T`. Phương thức trung tâm là:
+`java.util.Comparator<T>` represents a rule for comparing two values of the same type `T`. Its central method is:
 
 ```java
 int compare(T a, T b);
 ```
 
-Đó là **chữ ký minh họa từ interface**, không phải một chương trình chạy độc lập. Khi gọi `compare(a, b)`, ý nghĩa của **dấu** kết quả là:
+This is an **illustrative signature from the interface**, not a standalone runnable program. When calling `compare(a, b)`, the meaning of the result's **sign** is:
 
-| Giá trị trả về | Ý nghĩa |
+| Return value | Meaning |
 | --- | --- |
-| Nhỏ hơn `0` | `a` đứng trước `b`. |
-| Bằng `0` | `a` và `b` thuộc **cùng nhóm tương đương theo comparator**. |
-| Lớn hơn `0` | `a` đứng sau `b`. |
+| Less than `0` | `a` comes before `b`. |
+| Equal to `0` | `a` and `b` belong to **the same equivalence group according to the comparator**. |
+| Greater than `0` | `a` comes after `b`. |
 
-Số cụ thể không quan trọng: `-7` và `-1` đều biểu diễn “nhỏ hơn”; `42` và `1` đều biểu diễn “lớn hơn”. Vì vậy hãy kiểm tra `compare(a,b) < 0`, `== 0`, `> 0` hoặc dùng `Integer.signum(...)` khi cần so dấu. Đừng gắn ý nghĩa thứ hạng, khoảng cách hay mức chênh lệch nghiệp vụ trực tiếp vào trị tuyệt đối của kết quả.
+The exact number does not matter: `-7` and `-1` both represent "less than"; `42` and `1` both represent "greater than". Therefore, check `compare(a,b) < 0`, `== 0`, `> 0`, or use `Integer.signum(...)` when comparing signs. Do not attach rank, distance, or business magnitude directly to the absolute value of the result.
 
-Một `Comparator` **hợp lệ** phải cho quan hệ có tính nhất quán trên toàn bộ miền đối tượng được phép so. Nếu chỉ cho kết quả có vẻ đúng trong vài cặp nhưng vi phạm hợp đồng dấu hoặc tính bắc cầu, `List.sort`, `Collections.sort`, `Arrays.sort`, `TreeSet` và `TreeMap` có thể hoạt động không đúng điều ta mong đợi. Một số thuật toán sắp xếp có thể phát hiện vi phạm và ném `IllegalArgumentException: Comparison method violates its general contract!`; không được dựa vào việc lỗi chắc chắn bị phát hiện hay luôn xuất hiện.
+A **valid** `Comparator` must produce a consistent relation over the entire domain of objects allowed for comparison. If it only appears right on a few pairs while violating the sign contract or transitivity, `List.sort`, `Collections.sort`, `Arrays.sort`, `TreeSet`, and `TreeMap` may behave contrary to what you expect. Some sorting algorithms may detect violations and throw `IllegalArgumentException: Comparison method violates its general contract!`; you must not rely on the error always being detected or always occurring.
 
-## 2. Hợp đồng dấu: đảo thứ tự đối số phải đảo dấu
+## 2. Sign Contract: Reversing Argument Order Must Flip the Sign
 
-Với các đối tượng hợp lệ `x` và `y`, Comparator yêu cầu:
+For valid objects `x` and `y`, Comparator requires:
 
 ```text
 sgn(compare(x, y)) == -sgn(compare(y, x))
 ```
 
-Trong đó `sgn(n)` là dấu của `n`: `-1`, `0` hoặc `1`. Nói cách khác:
+Where `sgn(n)` is the sign of `n`: `-1`, `0`, or `1`. In other words:
 
-- Nếu `compare(x, y) < 0` thì `compare(y, x) > 0`.
-- Nếu `compare(x, y) > 0` thì `compare(y, x) < 0`.
-- Nếu `compare(x, y) == 0` thì `compare(y, x) == 0`.
+- If `compare(x, y) < 0`, then `compare(y, x) > 0`.
+- If `compare(x, y) > 0`, then `compare(y, x) < 0`.
+- If `compare(x, y) == 0`, then `compare(y, x) == 0`.
 
-Đây là quy tắc **đối xứng về dấu**; không phải yêu cầu hai kết quả nguyên phải đối nhau về trị số. Ví dụ `compare(x,y) == -10` và `compare(y,x) == 5` vẫn thỏa điều kiện dấu, dù thường dễ hiểu hơn nếu comparator trả `-1`, `0`, `1`. Điều kiện này cũng có hệ quả: nếu lời gọi một chiều ném exception cho một cặp, chiều đảo không được tùy tiện trả một dấu có nghĩa như thể cặp hợp lệ.
+This is a rule of **sign symmetry**; it does not require the two integer results to have opposite magnitudes. For example, `compare(x,y) == -10` and `compare(y,x) == 5` still satisfy the sign condition, although it is usually easier to understand if a comparator returns `-1`, `0`, `1`. This condition also has a corollary: if a call in one direction throws an exception for a pair, the reverse direction must not arbitrarily return a meaningful sign as if the pair were valid.
 
-Cách triển khai chuẩn khi so trường nguyên:
+Standard implementation when comparing an integer field:
 
 ```java
 Comparator<Task> byPriority =
         Comparator.comparingInt(Task::priority);
 ```
 
-*Đoạn này giả định kiểu `Task` có accessor `priority()` trả về `int` và được đặt trong nơi có thể khai báo biến; chương trình hoàn chỉnh ở mục 6.*
+*This snippet assumes the `Task` type has a `priority()` accessor returning `int` and is placed where a variable can be declared; the complete program is in section 6.*
 
-`Comparator.comparingInt` dùng phép so số nguyên đúng quy tắc; khi hai giá trị bằng nhau, kết quả bằng `0`, còn khi chênh lệch thì kết quả mang dấu tương ứng.
+`Comparator.comparingInt` uses standard integer comparison rules; when two values are equal, the result is `0`, and when they differ, the result carries the corresponding sign.
 
-### Vì sao không viết phép trừ một cách máy móc?
+### Why not write subtraction mechanically?
 
 ```java
 Comparator<Integer> bad = (a, b) -> a - b;
 ```
 
-Đây là cách viết **không an toàn** trên toàn miền `int` vì phép trừ có thể tràn số nguyên. Ví dụ:
+This way of writing is **unsafe** across the entire `int` range because subtraction can cause integer overflow. For example:
 
 ```java
 int a = Integer.MIN_VALUE;
 int b = 1;
 
-System.out.println(a - b);             // 2147483647: tràn số
-System.out.println(Integer.compare(a, b)); // -1: đúng thứ tự
+System.out.println(a - b);             // 2147483647: integer overflow
+System.out.println(Integer.compare(a, b)); // -1: correct order
 ```
 
-Dùng `Integer.compare(a,b)`, `Long.compare(...)` hay các factory như `comparingInt`, `comparingLong`, `comparingDouble`. Tương tự, đừng đảo comparator bằng cách tùy tiện `-compare(a,b)`: nếu kết quả là `Integer.MIN_VALUE` thì dấu của phép phủ định vẫn có thể sai do overflow. `comparator.reversed()` hoặc đổi thứ tự đối số một cách phù hợp sẽ diễn đạt rõ ý hơn.
+Use `Integer.compare(a,b)`, `Long.compare(...)`, or factories such as `comparingInt`, `comparingLong`, `comparingDouble`. Similarly, do not invert a comparator by arbitrarily doing `-compare(a,b)`: if the result is `Integer.MIN_VALUE`, the sign of the negation can still be wrong due to overflow. `comparator.reversed()` or swapping the argument order appropriately expresses the intent more clearly.
 
-## 3. Tính bắc cầu: không được có vòng thứ tự
+## 3. Transitivity: No Ordering Cycles Allowed
 
-Hợp đồng Comparator yêu cầu:
+The Comparator contract requires:
 
 ```text
-compare(x, y) > 0 và compare(y, z) > 0
+compare(x, y) > 0 and compare(y, z) > 0
     => compare(x, z) > 0
 ```
 
-Nhờ tính đối xứng dấu, phát biểu tương đương cho chiều “nhỏ hơn” là:
+Thanks to sign symmetry, the equivalent statement for the "less than" direction is:
 
 ```text
-x < y và y < z  =>  x < z
+x < y and y < z  =>  x < z
 ```
 
-Ví dụ các ưu tiên `1 < 2 < 3` thì phải có `1 < 3`. Nếu comparator kết luận `A < B`, `B < C` nhưng lại `C < A`, ta có một chu trình không thể sắp thành thứ tự nhất quán. Một comparator kiểu “kéo–búa–bao” định nghĩa A thắng B, B thắng C, C thắng A có thể hữu ích cho trò chơi nhưng **không thích hợp làm quy tắc sort**.
+For example, priorities `1 < 2 < 3` must yield `1 < 3`. If a comparator concludes `A < B`, `B < C`, yet `C < A`, we have a cycle that cannot be arranged into a consistent order. A "rock–paper–scissors" comparator defining A beats B, B beats C, C beats A might be useful for a game, but it is **unsuitable as a sorting rule**.
 
-Tính bắc cầu phải đúng với **mọi bộ ba** giá trị hợp lệ, không chỉ ba trường hợp thường gặp. Với comparator nhiều tiêu chí, nên so lần lượt từng trường theo một thứ tự ưu tiên xác định, rồi chỉ dùng tiêu chí tiếp theo khi tiêu chí trước bằng nhau. `thenComparing(...)` giúp thể hiện quy tắc này.
+Transitivity must hold for **every triple** of valid values, not just three common cases. For multi-criteria comparators, compare fields sequentially in a fixed priority order, and only fall back to the next criterion when the previous criterion ties. `thenComparing(...)` helps express this rule.
 
-Ví dụ một comparator được xây dựng từ các thành phần đã có thứ tự hợp lệ:
+Example of a comparator built from components that already have valid orderings:
 
 ```java
 Comparator<Task> ordering = Comparator
@@ -93,22 +93,22 @@ Comparator<Task> ordering = Comparator
         .thenComparing(Task::code);
 ```
 
-*Đây là đoạn minh họa trong một lớp/phương thức có kiểu `Task`. `team()` và `code()` trả `String` không `null`.*
+*This is an illustrative snippet inside a class/method that has the `Task` type. `team()` and `code()` return non-`null` `String`.*
 
-Thứ tự là: ưu tiên nhỏ đứng trước; nếu cùng ưu tiên thì so tên nhóm; nếu cùng cả hai thì so mã nhiệm vụ. Với `String` dùng thứ tự tự nhiên, một bộ tiêu chí như vậy thường dễ phân tích và kiểm tra tính bắc cầu hơn một chuỗi `if` trả các dấu tùy ý.
+The order is: lower priority comes first; if priorities are equal, compare team name; if both are equal, compare task code. With `String` using natural order, such a set of criteria is usually much easier to analyze and verify for transitivity than a chain of `if` statements returning arbitrary signs.
 
-## 4. Kết quả compare == 0 tạo nhóm tương đương theo thứ tự
+## 4. `compare == 0` Forms Order-Equivalence Groups
 
-Một điểm thường bị bỏ qua: `compare(x,y) == 0` **không bắt buộc có nghĩa `x.equals(y)`**.
+An often-overlooked point: `compare(x,y) == 0` **does not necessarily mean `x.equals(y)`**.
 
-Ví dụ, comparator chỉ xét `priority`:
+For example, a comparator considering only `priority`:
 
 ```java
 Comparator<Task> byPriority =
         Comparator.comparingInt(Task::priority);
 ```
 
-Các tác vụ sau có thể đều có ưu tiên `2`:
+The following tasks can all have priority `2`:
 
 ```text
 Task(team="alpha", priority=2, code="A")
@@ -116,46 +116,46 @@ Task(team="alpha", priority=2, code="B")
 Task(team="beta",  priority=2, code="C")
 ```
 
-Chúng khác nhau về `team` hoặc `code` nên có thể không bằng nhau theo `equals()`, nhưng comparator trả `0` cho mọi cặp trong nhóm ưu tiên `2`. Đây là quyết định **cố ý bỏ qua các tiêu chí không thuộc thứ tự**, khiến comparator nhìn cả nhóm như một mức hạng chung.
+They differ in `team` or `code`, so they may not be equal according to `equals()`, yet the comparator returns `0` for every pair in the priority-`2` group. This is a decision to **intentionally ignore criteria outside the ordering**, causing the comparator to view the whole group as a single shared rank.
 
-Định nghĩa quan hệ `x ~ y` khi `compare(x,y) == 0`. Với một comparator hợp lệ, quan hệ này phải là một **quan hệ tương đương**:
+Define the relation `x ~ y` when `compare(x,y) == 0`. For a valid comparator, this relation must be an **equivalence relation**:
 
-1. **Phản xạ:** `compare(x,x) == 0`.
-2. **Đối xứng:** `compare(x,y) == 0` thì `compare(y,x) == 0`.
-3. **Bắc cầu:** nếu `compare(x,y) == 0` và `compare(y,z) == 0` thì `compare(x,z) == 0`.
+1. **Reflexive:** `compare(x,x) == 0`.
+2. **Symmetric:** if `compare(x,y) == 0`, then `compare(y,x) == 0`.
+3. **Transitive:** if `compare(x,y) == 0` and `compare(y,z) == 0`, then `compare(x,z) == 0`.
 
-Hơn nữa, hai phần tử đã nằm **cùng nhóm 0** phải có cùng quan hệ thứ tự với **mọi phần tử thứ ba**:
+Furthermore, two elements that lie in the **same 0-group** must have the same ordering relation with **every third element**:
 
 ```text
 compare(x, y) == 0
     => sgn(compare(x, z)) == sgn(compare(y, z))
-       với mọi z hợp lệ
+       for every valid z
 ```
 
-Ví dụ, nếu `x` và `y` cùng nhóm ưu tiên 2, còn `z` có ưu tiên 5, thì cả hai phải đứng trước `z`. Không được cho `x < z` nhưng `y > z` vì như vậy một nhóm tương đương lại tự mâu thuẫn.
+For example, if `x` and `y` are in the same priority-2 group and `z` has priority 5, then both must come before `z`. You must not have `x < z` while `y > z`, because an equivalence group would then contradict itself.
 
-Điều kiện này đôi khi gọi là **nhất quán của nhóm có compare bằng 0**; nó mạnh hơn câu “chỉ cần comparator có đối xứng dấu”. Một phép so tùy biến có thể trả `0` cho cặp đặc biệt nhưng vẫn vi phạm quy tắc khi gặp phần tử thứ ba.
+This condition is sometimes called **consistency of groups with compare equal to 0**; it is stronger than merely saying "the comparator just needs sign symmetry." A custom comparison can return `0` for a special pair and still violate the rule when encountering a third element.
 
-### Ví dụ một nhóm 0 sai về logic
+### Example of a logically broken 0-group
 
-Giả sử trên số nguyên, ta đặc cách `1` và `3` “bằng nhau” (compare bằng 0), nhưng mọi cặp còn lại dùng thứ tự số tự nhiên. Khi so với `2`:
+Suppose on integers we specially declare `1` and `3` "equal" (compare returns 0), while all remaining pairs use natural numeric order. When compared against `2`:
 
 - `compare(1,3) == 0`.
-- `compare(1,2) < 0` vì `1 < 2`.
-- `compare(3,2) > 0` vì `3 > 2`.
+- `compare(1,2) < 0` because `1 < 2`.
+- `compare(3,2) > 0` because `3 > 2`.
 
-`1` và `3` đã được tuyên bố cùng nhóm nhưng lại đứng hai phía khác nhau của `2`. Đó là comparator sai hợp đồng; không thể sửa bằng cách chỉ đổi cách sort. Muốn nhóm theo quy tắc khác, phải **định nghĩa thứ tự trên các nhóm** sao cho mọi thành viên của cùng nhóm có cùng kết quả dấu với mọi nhóm khác.
+`1` and `3` were declared to be in the same group, yet they sit on opposite sides of `2`. That is a contract-breaking comparator; it cannot be fixed by merely changing the sorting algorithm. To group by a different rule, you must **define an order over the groups** so that all members of the same group have the same sign result against every other group.
 
-## 5. Quan hệ của Comparator với equals()
+## 5. Relationship of `Comparator` with `equals()`
 
-Java phân biệt hai quan hệ:
+Java distinguishes two relations:
 
-- `x.equals(y)`: bình đẳng logic do kiểu `x` định nghĩa.
-- `comparator.compare(x,y) == 0`: tương đương theo thứ tự mà comparator cụ thể cung cấp.
+- `x.equals(y)`: logical equality defined by type `x`.
+- `comparator.compare(x,y) == 0`: order equivalence provided by a specific comparator.
 
-Một comparator được xem là **consistent with equals** khi với mọi cặp thuộc miền so sánh, `compare(x,y) == 0` khi và chỉ khi `x.equals(y)`. Đây là đặc tính **được khuyến nghị mạnh** nếu comparator dùng trong sorted set/sorted map với ngữ nghĩa khóa của `Set`/`Map`; không phải mọi comparator đều bắt buộc phân biệt đối tượng theo `equals()`.
+A comparator is considered **consistent with equals** when, for every pair in the comparison domain, `compare(x,y) == 0` if and only if `x.equals(y)`. This property is **strongly recommended** if the comparator is used in a sorted set/sorted map with `Set`/`Map` key semantics; not every comparator is required to distinguish objects according to `equals()`.
 
-Ví dụ khác nhau có chủ đích:
+Intentional divergence examples:
 
 ```java
 String a = "Java";
@@ -166,9 +166,9 @@ System.out.println(
         String.CASE_INSENSITIVE_ORDER.compare(a, b)); // 0
 ```
 
-Với `String.CASE_INSENSITIVE_ORDER`, hai chuỗi thuộc cùng nhóm sắp xếp không phân biệt chữ hoa/thường, nhưng `String.equals()` vẫn phân biệt chữ hoa/thường. Quan hệ này **không consistent with equals**.
+With `String.CASE_INSENSITIVE_ORDER`, the two strings belong to the same case-insensitive sort group, but `String.equals()` still distinguishes uppercase/lowercase. This relation is **not consistent with equals**.
 
-Đặc biệt với `BigDecimal`:
+Notably with `BigDecimal`:
 
 ```java
 BigDecimal one = new BigDecimal("1.0");
@@ -178,13 +178,13 @@ System.out.println(one.compareTo(another)); // 0
 System.out.println(one.equals(another));    // false
 ```
 
-*Đoạn minh họa cần `import java.math.BigDecimal;`.* `BigDecimal.compareTo` xem hai số cùng giá trị số là tương đương theo thứ tự, còn `equals` xét cả `scale`. Comparator theo thứ tự tự nhiên của `BigDecimal` vì thế không consistent with equals.
+*This illustrative snippet needs `import java.math.BigDecimal;`.* `BigDecimal.compareTo` treats two numbers with the same numeric value as order-equivalent, whereas `equals` also checks `scale`. The natural-order comparator of `BigDecimal` is therefore not consistent with equals.
 
-Khi đối tượng là khóa của `TreeMap` hoặc phần tử `TreeSet`, cần biết chính xác mục đích: **muốn gộp theo một tiêu chí**, hay **muốn phân biệt tất cả các giá trị khác nhau theo equals**? Cả hai nhu cầu đều hợp lý, nhưng tạo ra hành vi khác nhau.
+When objects serve as keys of a `TreeMap` or elements of a `TreeSet`, you need to know the exact intent: **do you want to merge by a single criterion**, or **do you want to distinguish all values that differ by equals**? Both goals are valid, but they produce different behaviors.
 
-## 6. Ví dụ Java 17+ chạy được: dấu, bắc cầu, nhóm 0, TreeSet và TreeMap
+## 6. Runnable Java 17+ Example: Signs, Transitivity, 0-Groups, `TreeSet`, and `TreeMap`
 
-Lưu chương trình sau vào tệp `ComparatorContractDemo.java`:
+Save the following program to `ComparatorContractDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -208,20 +208,20 @@ public class ComparatorContractDemo {
         Comparator<Task> byPriority =
                 Comparator.comparingInt(Task::priority);
 
-        // Quy tắc dấu và đối xứng dấu.
+        // Sign rules and sign symmetry.
         System.out.println(byPriority.compare(a, b));
         System.out.println(a.equals(b));
         System.out.println(Integer.signum(byPriority.compare(a, c)));
         System.out.println(Integer.signum(byPriority.compare(c, a)));
 
-        // Tính bắc cầu: 2 < 4 < 6 nên 2 < 6.
+        // Transitivity: 2 < 4 < 6, so 2 < 6.
         boolean transitive =
                 byPriority.compare(a, c) < 0
                 && byPriority.compare(c, e) < 0
                 && byPriority.compare(a, e) < 0;
         System.out.println(transitive);
 
-        // TreeSet coi các Task cùng priority là tương đương.
+        // TreeSet treats Tasks with the same priority as equivalent.
         Set<Task> grouped = new TreeSet<>(byPriority);
         grouped.add(a);
         grouped.add(b);
@@ -232,14 +232,14 @@ public class ComparatorContractDemo {
         System.out.println(grouped.contains(
                 new Task("unknown", 2, "Z")));
 
-        // TreeMap cũng xác định khóa tương đương theo comparator.
+        // TreeMap also determines key equivalence using the comparator.
         Map<Task, String> map = new TreeMap<>(byPriority);
-        map.put(a, "đầu tiên");
-        map.put(b, "cập nhật");
+        map.put(a, "first");
+        map.put(b, "updated");
         System.out.println(map.size());
         System.out.println(map.get(a));
 
-        // Thêm tie-breaker để phân biệt cả ba thành phần của record.
+        // Add tie-breakers to distinguish all three record components.
         Comparator<Task> byAllFields = byPriority
                 .thenComparing(Task::team)
                 .thenComparing(Task::code);
@@ -252,7 +252,7 @@ public class ComparatorContractDemo {
         System.out.println(distinct.size());
         System.out.println(Integer.signum(byAllFields.compare(a, b)));
 
-        // Hai ví dụ compare == 0 nhưng equals() là false.
+        // Two examples where compare == 0 but equals() is false.
         String s1 = "Java";
         String s2 = "JAVA";
         System.out.println(s1.equals(s2));
@@ -267,14 +267,14 @@ public class ComparatorContractDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp bằng JDK 17 trở lên:
+Compile and run from the directory containing the file using JDK 17 or later:
 
 ```bash
 javac ComparatorContractDemo.java
 java ComparatorContractDemo
 ```
 
-Đầu ra chính xác:
+Exact output:
 
 ```text
 0
@@ -285,7 +285,7 @@ true
 3
 true
 1
-cập nhật
+updated
 5
 -1
 false
@@ -294,31 +294,31 @@ false
 false
 ```
 
-Diễn giải từng phần:
+Line-by-line explanation:
 
-1. `byPriority.compare(a,b)` in `0` vì cùng ưu tiên `2`, nhưng `a.equals(b)` in `false` vì `Task` là record với ba component, trong đó `code` khác nhau.
-2. `Integer.signum(compare(a,c))` in `-1`; đảo chiều thành `compare(c,a)` cho `1`. Đây là quan hệ dấu đối xứng.
-3. Ba phép so 2, 4 và 6 cho `true` ở kiểm tra bắc cầu.
-4. `TreeSet` với `byPriority` có ba nhóm tương đương theo các mức ưu tiên `2`, `4`, `6`, nên `size()` là `3`. `contains(new Task("unknown",2,"Z"))` là `true` dù record mới không equals với `a`, `b` hay `d`, vì comparator xem cùng ưu tiên là cùng khóa sắp xếp.
-5. `TreeMap` dùng comparator để xác định khóa: thêm `a` rồi `b` (cùng ưu tiên) chỉ tạo **một mapping**; lệnh thứ hai thay giá trị thành `cập nhật`, nên `size()` là `1`.
-6. `byAllFields` bổ sung `team` và `code` để tách các nhóm cùng `priority`. Năm record trong ví dụ đều khác nhau theo ba thành phần nên `TreeSet` có `5` phần tử; trong nhóm cùng ưu tiên và cùng team, `"A"` đứng trước `"B"`, trả dấu âm.
-7. Hai cặp `String` và `BigDecimal` minh họa `compare == 0` nhưng `equals() == false` theo hai lý do khác nhau: bỏ qua phân biệt chữ hoa/thường và bỏ qua khác biệt scale.
+1. `byPriority.compare(a,b)` prints `0` because both have priority `2`, while `a.equals(b)` prints `false` because `Task` is a record with three components, in which `code` differs.
+2. `Integer.signum(compare(a,c))` prints `-1`; reversing the order to `compare(c,a)` gives `1`. This is the symmetric sign relation.
+3. The three comparisons on 2, 4, and 6 yield `true` for the transitivity check.
+4. `TreeSet` with `byPriority` has three equivalence groups for priority levels `2`, `4`, `6`, so `size()` is `3`. `contains(new Task("unknown",2,"Z"))` is `true` even though the new record is not equal to `a`, `b`, or `d`, because the comparator treats equal priority as the same sort key.
+5. `TreeMap` uses the comparator to identify keys: inserting `a` then `b` (same priority) creates only **one mapping**; the second call replaces the value with `updated`, so `size()` is `1`.
+6. `byAllFields` adds `team` and `code` to split groups with the same `priority`. The five records in the example all differ across their three components, so the `TreeSet` has `5` elements; within the same priority and team, `"A"` comes before `"B"`, returning a negative sign.
+7. The `String` and `BigDecimal` pairs illustrate `compare == 0` yet `equals() == false` for two different reasons: ignoring case sensitivity and ignoring scale differences.
 
-## 7. Vì sao TreeSet và TreeMap coi compare == 0 là cùng phần tử/khóa?
+## 7. Why Do `TreeSet` and `TreeMap` Treat `compare == 0` as the Same Element/Key?
 
-`TreeSet` sử dụng thứ tự tự nhiên (`Comparable`) hoặc một `Comparator` được cung cấp để xác định vị trí phần tử và xem hai phần tử có tương đương trong cây hay không. `TreeMap` áp dụng nguyên tắc tương tự cho khóa. Do đó, đối với các cấu trúc này:
+`TreeSet` uses natural order (`Comparable`) or a supplied `Comparator` to determine an element's position and whether two elements are equivalent in the tree. `TreeMap` applies the same principle to keys. Consequently, for these structures:
 
 ```text
 compare(a, b) == 0
-    ⇒ TreeSet xem a và b tương đương để lưu/tìm phần tử.
-    ⇒ TreeMap xem a và b là cùng khóa để lưu/tìm mapping.
+    => TreeSet treats a and b as equivalent for storing/finding elements.
+    => TreeMap treats a and b as the same key for storing/finding mappings.
 ```
 
-**Hệ quả thực tế:** `TreeSet` với comparator chỉ xét `priority` không giữ được nhiều `Task` khác nhau trong cùng một priority. Nó là tập hợp **mức ưu tiên** theo nghĩa comparator, không phải tập hợp tất cả tác vụ phân biệt theo record equality.
+**Practical consequence:** A `TreeSet` with a comparator examining only `priority` cannot retain multiple distinct `Task` instances of the same priority. It is a set of **priority levels** in the comparator's sense, not a set of all tasks distinguished by record equality.
 
-Nếu đó là chủ ý — ví dụ chỉ cần một đại diện cho mỗi nhóm ưu tiên — comparator theo một trường là hợp lý. Nếu muốn giữ **mọi tác vụ khác nhau**, hãy bổ sung tie-breaker đủ để phân biệt chúng.
+If that is intentional—for example, needing only one representative per priority group—a single-field comparator makes sense. If you want to keep **every distinct task**, add tie-breakers sufficient to distinguish them.
 
-Ví dụ:
+For example:
 
 ```java
 Comparator<Task> byPriorityThenTeamThenCode =
@@ -327,29 +327,29 @@ Comparator<Task> byPriorityThenTeamThenCode =
                 .thenComparing(Task::code);
 ```
 
-*Đoạn minh họa dành cho cùng record `Task` ở mục 6.*
+*Illustrative snippet intended for the same `Task` record in section 6.*
 
-Với record ba thành phần của ví dụ, compare bằng 0 khi cả ba thành phần giống nhau, nên phù hợp với record `equals()`. Nhưng nếu đổi `Task` thành entity có equality **chỉ theo ID**, comparator ba trường trạng thái có thể không còn phù hợp. Cần so tiêu chí thứ tự với định nghĩa identity thật sự của lớp; chỉ thêm tie-breaker “cho chắc” mà không hiểu equality có thể gây một kiểu sai khác.
+With the three-component record in the example, `compare` returns 0 when all three components match, so it aligns with record `equals()`. But if `Task` were changed into an entity whose equality is **by ID only**, a comparator over three state fields might no longer align. You must compare ordering criteria against the class's true identity definition; blindly adding tie-breakers "just to be safe" without understanding equality can introduce a different kind of bug.
 
-Tài liệu Java khuyến nghị lưu ý rõ khi comparator có ordering **inconsistent with equals**, bởi `SortedSet` và `SortedMap` được thiết kế để tuân theo các hợp đồng tổng quát `Set`/`Map` vốn mô tả equality theo `equals()`. Một `TreeSet` dùng comparator inconsistent vẫn vận hành theo quy tắc comparator; nhưng kết quả có thể không thỏa trực giác và hợp đồng bình đẳng của `Set` nói chung.
+The Java documentation advises explicitly noting when a comparator's ordering is **inconsistent with equals**, because `SortedSet` and `SortedMap` are designed to obey the general `Set`/`Map` contracts that specify equality via `equals()`. A `TreeSet` using an inconsistent comparator still operates by the comparator's rules; however, its results may diverge from intuition and the general `Set` equality contract.
 
-Phân biệt thêm: `HashSet`/`HashMap` thông thường dùng `equals()/hashCode()`, **không sử dụng Comparator** để gộp khóa. Vì vậy cùng một cặp phần tử có thể được `HashSet` giữ thành hai mục trong khi `TreeSet` có comparator xem chúng là một.
+A further distinction: regular `HashSet`/`HashMap` use `equals()/hashCode()` and **do not use a Comparator** to merge keys. Thus, the same pair of elements can be stored as two entries by `HashSet` while a `TreeSet` with a comparator treats them as one.
 
-## 8. Những cách tạo Comparator hợp lệ và dễ bảo trì
+## 8. Ways to Create Valid and Maintainable Comparators
 
-Java hỗ trợ API composition để tránh tự viết dấu so sánh tùy hứng:
+Java provides a composition API to avoid writing ad-hoc comparison sign logic manually:
 
-| API | Vai trò |
+| API | Role |
 | --- | --- |
-| `Comparator.comparing(keyExtractor)` | So theo khóa có thứ tự tự nhiên. |
-| `Comparator.comparingInt/Long/Double(...)` | So khóa nguyên thủy theo thứ tự chuẩn và tránh phép trừ nguy hiểm. |
-| `thenComparing(...)` | Dùng tiêu chí phụ khi tiêu chí trước cho kết quả `0`. |
-| `reversed()` | Đảo toàn bộ thứ tự của comparator. |
-| `Comparator.naturalOrder()` | Dùng thứ tự tự nhiên của kiểu có `Comparable`. |
-| `Comparator.reverseOrder()` | Dùng thứ tự tự nhiên đảo chiều. |
-| `Comparator.nullsFirst(...)` và `nullsLast(...)` | Quy định vị trí `null` nếu miền dữ liệu có thể chứa null. |
+| `Comparator.comparing(keyExtractor)` | Compare by a key that has a natural order. |
+| `Comparator.comparingInt/Long/Double(...)` | Compare primitive keys using standard order and avoid dangerous subtraction. |
+| `thenComparing(...)` | Apply a secondary criterion when the previous criterion returns `0`. |
+| `reversed()` | Reverse the entire order of the comparator. |
+| `Comparator.naturalOrder()` | Use the natural order of a type implementing `Comparable`. |
+| `Comparator.reverseOrder()` | Use the reversed natural order. |
+| `Comparator.nullsFirst(...)` and `nullsLast(...)` | Specify the placement of `null` if the data domain can contain nulls. |
 
-Ví dụ cần ưu tiên **cao trước**, sau đó mã theo thứ tự tăng:
+For example, wanting **higher priority first**, followed by ascending code:
 
 ```java
 Comparator<Task> order = Comparator
@@ -358,24 +358,24 @@ Comparator<Task> order = Comparator
         .thenComparing(Task::code);
 ```
 
-*Đoạn minh họa áp dụng vào record `Task` ở mục 6.* Lưu ý vị trí `reversed()`: gọi **trước** `thenComparing` nghĩa là chỉ tiêu chí ưu tiên được đảo, còn `code` vẫn tăng dần. Nếu viết `Comparator.comparingInt(...).thenComparing(...).reversed()`, **toàn bộ thứ tự kết hợp** sẽ được đảo, kể cả tiêu chí phụ.
+*Illustrative snippet applied to the `Task` record in section 6.* Note the placement of `reversed()`: calling it **before** `thenComparing` means only the priority criterion is reversed, while `code` remains ascending. If you write `Comparator.comparingInt(...).thenComparing(...).reversed()`, the **entire combined order** is reversed, including the secondary criterion.
 
-Khi trường có thể `null`, cần quyết định rõ:
+When a field can be `null`, decide explicitly:
 
 ```java
 Comparator<String> nullableNames =
         Comparator.nullsFirst(Comparator.naturalOrder());
 ```
 
-Nó cho `null` đứng trước các chuỗi khác và dùng thứ tự tự nhiên cho các chuỗi không null. `Comparator.naturalOrder()` tự thân không chấp nhận so một giá trị `null`. Không tạo quy tắc null tùy tiện dẫn đến tình trạng `compare(null,x)` trả cùng dấu với `compare(x,null)`.
+This puts `null` before other strings and uses natural order for non-null strings. `Comparator.naturalOrder()` by itself does not accept comparing a `null` value. Do not invent arbitrary null rules that cause `compare(null,x)` to return the same sign as `compare(x,null)`.
 
-Một số factory tạo comparator theo khóa của object yêu cầu key phù hợp để so. Nếu key extractor trả nullable mà chưa xử lý, `NullPointerException` có thể xuất hiện khi sort; hãy dùng comparator khóa có chính sách null rõ ràng, hoặc thiết kế dữ liệu không chứa null.
+Some factories creating object-key comparators require the key to be suitable for comparison. If a key extractor returns a nullable value without handling it, `NullPointerException` can occur during sorting; use a key comparator with an explicit null policy, or design the data not to contain nulls.
 
-## 9. Tính ổn định của thứ tự khác với tính hợp lệ của Comparator
+## 9. Ordering Stability Differs from Comparator Validity
 
-“Stable sort” có nghĩa các phần tử được comparator xem là bằng nhau (`compare == 0`) giữ **thứ tự tương đối ban đầu** sau khi sort. Điều này **không biến hai phần tử thành cùng object**, cũng không làm chúng `equals()` nhau.
+"Stable sort" means that elements considered equal by the comparator (`compare == 0`) keep their **original relative order** after sorting. This **does not turn two elements into the same object**, nor does it make them `equals()` to each other.
 
-Ví dụ danh sách chứa:
+For example, a list containing:
 
 ```text
 Task A: priority=2
@@ -383,104 +383,104 @@ Task B: priority=1
 Task C: priority=2
 ```
 
-Nếu sort ổn định theo `priority` tăng dần, kết quả là `B, A, C`: A và C vẫn nằm cạnh nhau trong nhóm priority 2 theo thứ tự ban đầu. `List.sort` trong Java có cam kết sort ổn định. Tuy nhiên, **TreeSet** với cùng comparator sẽ giữ một phần tử đại diện cho nhóm priority 2, bởi đây là cấu trúc set theo thứ tự so sánh, không phải sắp xếp list.
+If stably sorted by `priority` ascending, the result is `B, A, C`: A and C remain next to each other in the priority-2 group in their initial order. `List.sort` in Java guarantees a stable sort. However, a **TreeSet** with the same comparator will keep only one representative element for the priority-2 group, because it is a comparison-ordered set structure rather than a list sort.
 
-Tính ổn định của một thuật toán sort **không sửa được** comparator sai hợp đồng. Một comparator thay kết quả theo đồng hồ, số ngẫu nhiên hoặc trạng thái mutable trong lúc sắp xếp có thể khiến kết quả không nhất quán dù thuật toán được cam kết stable.
+Stability of a sorting algorithm **cannot fix** a contract-violating comparator. A comparator whose results change based on the clock, random numbers, or mutable state during sorting can make results inconsistent even though the algorithm is guaranteed to be stable.
 
-Khi áp dụng comparator vào sorted collection dài hạn, dữ liệu tham gia so sánh cũng nên ổn định trong thời gian đối tượng là phần tử/khóa; nếu thay đổi trường sắp xếp sau khi insert vào `TreeSet`/`TreeMap`, cấu trúc cây không tự sắp lại theo vị trí mới, dẫn đến lỗi tra cứu khó hiểu.
+When applying a comparator to a long-lived sorted collection, data participating in comparisons should also remain stable while the object is an element/key; if a sort field changes after insertion into a `TreeSet`/`TreeMap`, the tree structure does not automatically re-sort to the new position, leading to confusing lookup bugs.
 
-## 10. Các lỗi Comparator phổ biến
+## 10. Common Comparator Mistakes
 
-### 10.1. Trả 1 cho mọi cặp không bằng nhau
+### 10.1. Returning 1 for every unequal pair
 
 ```java
-// SAI: nếu a < b và b > a đều trả 1, vi phạm đối xứng dấu.
+// WRONG: if both a < b and b > a return 1, sign symmetry is violated.
 Comparator<Integer> bad = (a, b) ->
         a.equals(b) ? 0 : 1;
 ```
 
-Nếu hai giá trị khác nhau, so theo cả hai chiều đều cho dấu dương. Không có thứ tự nhất quán.
+If two values differ, comparing in both directions yields a positive sign. There is no consistent order.
 
-### 10.2. Tạo chu kỳ
+### 10.2. Creating cycles
 
-Một luật “0 trước 1, 1 trước 2, nhưng 2 lại trước 0” vi phạm tính bắc cầu. Comparator dành cho sort phải áp dụng quan hệ thứ tự xuyên suốt trên tất cả cặp và bộ ba.
+A rule like "0 before 1, 1 before 2, but 2 before 0" violates transitivity. A comparator meant for sorting must enforce a consistent ordering relation across all pairs and triples.
 
-### 10.3. Cho hai giá trị bằng 0 nhưng bất đồng khi so với giá trị thứ ba
+### 10.3. Making two values compare to 0 yet disagree against a third value
 
-Nhóm `x ~ y` không thể đứng hai phía khác nhau của `z`. Nếu comparator dùng luật ngoại lệ cho một cặp mà không thiết kế cả lớp tương đương, dễ vi phạm điều kiện dấu cho nhóm 0.
+Group `x ~ y` cannot sit on opposite sides of `z`. If a comparator uses an exception rule for one pair without designing the entire equivalence class, it easily violates the sign condition for 0-groups.
 
-### 10.4. Dùng phép trừ số nguyên
+### 10.4. Using integer subtraction
 
-`(a,b) -> a.age() - b.age()` có thể sai trên miền `int` vì overflow. Sử dụng `Integer.compare` hoặc `Comparator.comparingInt`. Với `long`, phép ép hiệu thành `int` còn nguy hiểm hơn.
+`(a,b) -> a.age() - b.age()` can fail across the `int` range due to overflow. Use `Integer.compare` or `Comparator.comparingInt`. For `long`, casting a difference to `int` is even more dangerous.
 
-### 10.5. Nhầm compare bằng 0 với equals bằng true
+### 10.5. Confusing compare equal to 0 with equals returning true
 
-`String.CASE_INSENSITIVE_ORDER` và `BigDecimal.compareTo` là những ví dụ compare bằng 0 không đồng nghĩa equals. Trong `TreeSet` hoặc `TreeMap`, điều này thay đổi cách gộp dữ liệu.
+`String.CASE_INSENSITIVE_ORDER` and `BigDecimal.compareTo` are examples where compare equal to 0 does not imply equals. In `TreeSet` or `TreeMap`, this changes how entries are merged.
 
-### 10.6. Dùng tie-breaker thiếu hoặc thừa
+### 10.6. Using insufficient or excessive tie-breakers
 
-Comparator chỉ xét `lastName` sẽ gộp nhiều người trùng họ trong `TreeSet`. Nhưng comparator xét trạng thái mutable hoặc timestamp ngoài identity có thể làm cùng entity bị coi là khác nhau sau cập nhật. Phải xác định rõ điều kiện một “nhóm 0” có ý nghĩa gì với nghiệp vụ và collection đích.
+A comparator inspecting only `lastName` will merge multiple people sharing a surname in a `TreeSet`. Conversely, a comparator inspecting mutable state or timestamps outside identity can cause the same entity to be treated as different after an update. You must clearly define what a "0-group" means for the business domain and target collection.
 
-### 10.7. Phá hợp đồng khi giá trị có null hoặc đặc biệt
+### 10.7. Breaking the contract on null or special values
 
-So `double` bằng phép `a < b ? -1 : a > b ? 1 : 0` sẽ coi nhiều trường hợp `NaN` là tương đương với giá trị khác, dẫn đến logic kỳ lạ. `Double.compare` có quy tắc rõ cho `NaN` và số âm không (`-0.0`); dùng `Comparator.comparingDouble` thường an toàn hơn cách so bằng các toán tử quan hệ tùy biến. Nếu domain muốn coi các giá trị đặc biệt tương đương theo cách riêng, hãy xác định quy tắc chuẩn hóa trước và kiểm tra toàn bộ hợp đồng.
+Comparing `double` with `a < b ? -1 : a > b ? 1 : 0` treats multiple `NaN` cases as equivalent to other values, leading to bizarre logic. `Double.compare` has well-defined rules for `NaN` and negative zero (`-0.0`); using `Comparator.comparingDouble` is generally safer than custom comparison via relational operators. If the domain wants special values treated as equivalent in a custom way, define a normalization rule first and verify the entire contract.
 
-## 11. Kiểm tra hợp đồng Comparator bằng các tập dữ liệu đại diện
+## 11. Checking the Comparator Contract with Representative Datasets
 
-Với comparator `cmp` và tập các giá trị có ý nghĩa, có thể kiểm tra các quan hệ bằng assertions hoặc unit test:
+Given comparator `cmp` and a meaningful set of values, you can check the relations using assertions or unit tests:
 
 ```java
-// Minh họa mã kiểm tra đặt trong phương thức test, với cmp và
-// List<Task> samples đã được thiết lập.
+// Illustrative check placed inside a test method, with cmp and
+// List<Task> samples already set up.
 for (Task x : samples) {
     for (Task y : samples) {
         int xy = Integer.signum(cmp.compare(x, y));
         int yx = Integer.signum(cmp.compare(y, x));
         if (xy != -yx) {
-            throw new AssertionError("Vi phạm đối xứng dấu");
+            throw new AssertionError("Sign symmetry violation");
         }
         for (Task z : samples) {
             int yz = Integer.signum(cmp.compare(y, z));
             int xz = Integer.signum(cmp.compare(x, z));
             if (xy > 0 && yz > 0 && xz <= 0) {
-                throw new AssertionError("Vi phạm bắc cầu");
+                throw new AssertionError("Transitivity violation");
             }
             if (xy == 0 && xz != yz) {
-                throw new AssertionError("Nhóm compare==0 không nhất quán");
+                throw new AssertionError("Inconsistent compare==0 group");
             }
         }
     }
 }
 ```
 
-*Đây là đoạn minh họa **không độc lập**; cần có `Task`, `samples` và `cmp` để chạy. Vòng lặp ba tầng có chi phí `O(n³)`, chỉ phù hợp với tập mẫu nhỏ trong kiểm thử.* Nó kiểm tra đối xứng dấu, bắc cầu theo chiều lớn hơn, và nhất quán với phần tử thứ ba cho những mẫu đã cung cấp.
+*This is a **non-standalone** snippet; `Task`, `samples`, and `cmp` are required to run it. The triple nested loop has `O(n³)` cost, suitable only for small sample sets in tests.* It verifies sign symmetry, transitivity in the greater-than direction, and consistency against a third element for the supplied samples.
 
-Một bộ ca hữu ích nên bao gồm: các giá trị bằng nhau theo comparator nhưng không `equals()`, các phần tử ở gần ranh giới giữa nhóm, thứ tự đảo chiều, giá trị `Integer.MIN_VALUE/MAX_VALUE` nếu so số, dữ liệu có `null` nếu được cho phép, chuỗi khác chữ hoa/thường, và các khóa của `TreeSet`/`TreeMap` sau khi thêm. Kiểm tra trên mẫu không phải chứng minh toán học cho toàn bộ miền đầu vào, nên thiết kế comparator bằng các thành phần thứ tự chuẩn vẫn rất quan trọng.
+A useful test suite should include: values equal by comparator yet not `equals()`, elements near group boundaries, reversed orders, `Integer.MIN_VALUE/MAX_VALUE` if comparing numbers, data containing `null` if permitted, strings differing in letter case, and `TreeSet`/`TreeMap` keys after insertion. Testing on samples is not a mathematical proof over the entire input domain, so constructing comparators from standard ordering components remains essential.
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-**Câu 1.** Comparator trả `-20` cho `compare(a,b)` và `5` cho `compare(b,a)` có vi phạm quy tắc dấu không?  
-**Đáp án:** Không; dấu lần lượt âm và dương. Không yêu cầu trị tuyệt đối trùng nhau.
+**Question 1.** Does a comparator returning `-20` for `compare(a,b)` and `5` for `compare(b,a)` violate the sign rule?  
+**Answer:** No; the signs are negative and positive respectively. Matching magnitudes are not required.
 
-**Câu 2.** Nếu `compare(a,b)==0`, `compare(a,c)<0` nhưng `compare(b,c)>0`, comparator hợp lệ không?  
-**Đáp án:** Không. Hai phần tử cùng nhóm 0 phải có cùng quan hệ dấu với mọi `c`.
+**Question 2.** If `compare(a,b)==0`, `compare(a,c)<0`, yet `compare(b,c)>0`, is the comparator valid?  
+**Answer:** No. Two elements in the same 0-group must have the same sign relation with every `c`.
 
-**Câu 3.** Có thể dùng Comparator chỉ so `priority` với `List.sort` khi muốn giữ các tác vụ cùng ưu tiên theo thứ tự đầu vào không?  
-**Đáp án:** Có, với `List.sort` ổn định. Chúng vẫn là các phần tử riêng trong list; đây không phải là phép gộp.
+**Question 3.** Can you use a Comparator that only compares `priority` with `List.sort` when you want to keep tasks of the same priority in their input order?  
+**Answer:** Yes, with `List.sort` being stable. They remain separate elements in the list; this is not a merge operation.
 
-**Câu 4.** Với `TreeSet<Task>` dùng comparator chỉ xét priority, thêm hai task khác mã nhưng cùng priority thì `size()` tăng hai lần không?  
-**Đáp án:** Không. Comparator trả 0 nên `TreeSet` xem chúng tương đương.
+**Question 4.** For a `TreeSet<Task>` using a priority-only comparator, if you add two tasks with different codes but the same priority, does `size()` increase twice?  
+**Answer:** No. The comparator returns 0, so `TreeSet` treats them as equivalent.
 
-**Câu 5.** `Comparator` có bắt buộc `compare(x,y)==0` khi và chỉ khi `x.equals(y)` không?  
-**Đáp án:** Không bắt buộc trong mọi mục đích, nhưng đây là tính nhất quán với equals rất đáng quan tâm khi dùng trong sorted set/map.
+**Question 5.** Is `Comparator` required to satisfy `compare(x,y)==0` if and only if `x.equals(y)`?  
+**Answer:** Not required for every purpose, but consistency with equals is very important to consider when used in a sorted set/map.
 
-**Câu 6.** `a - b` là cách triển khai comparator cho `int` có luôn đúng không?  
-**Đáp án:** Không, vì overflow. Dùng `Integer.compare(a,b)` hoặc comparator factory.
+**Question 6.** Is `a - b` always a correct comparator implementation for `int`?  
+**Answer:** No, because of overflow. Use `Integer.compare(a,b)` or a comparator factory.
 
-**Câu 7.** Vì sao comparator có chu trình `A < B < C < A` không thể dùng an toàn để sort?  
-**Đáp án:** Nó vi phạm tính bắc cầu nên không có thứ tự tổng quát nhất quán để thuật toán sắp xếp duy trì.
+**Question 7.** Why can a comparator with a cycle `A < B < C < A` not be used safely for sorting?  
+**Answer:** It violates transitivity, so there is no consistent total order for the sorting algorithm to maintain.
 
-**Câu 8.** Khi bổ sung `thenComparing` sau tiêu chí đầu, nhóm `compare == 0` thay đổi ra sao?  
-**Đáp án:** Một nhóm theo tiêu chí đầu có thể được chia thành các nhóm nhỏ theo tiêu chí tiếp. Những cặp vẫn bằng nhau theo mọi tiêu chí mới tiếp tục có `compare == 0`.
+**Question 8.** When adding `thenComparing` after the first criterion, how do the `compare == 0` groups change?  
+**Answer:** A group under the first criterion can be split into smaller subgroups according to the next criterion. Pairs that remain equal across all new criteria continue to have `compare == 0`.
 
-**Điểm cần nhớ:** Comparator hợp lệ tuân thủ **đối xứng về dấu, tính bắc cầu và nhất quán của các nhóm có `compare == 0`**. Kết quả bằng 0 mô tả **tương đương theo quy tắc sắp xếp**, không mặc nhiên là `equals()`; hệ quả này đặc biệt quan trọng khi dùng comparator làm chính sách khóa của `TreeSet` và `TreeMap`.
+**Key takeaway:** A valid comparator obeys **sign symmetry, transitivity, and consistency of groups with `compare == 0`**. A result of 0 describes **equivalence under the sorting rule**, not automatically `equals()`; this consequence is especially important when using a comparator as the key policy of `TreeSet` and `TreeMap`.

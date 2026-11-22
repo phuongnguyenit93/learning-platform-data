@@ -1,17 +1,17 @@
-# Phân biệt requires với import trong mã Java
+# Distinguishing requires from import in Java Code
 
-Trong Java, `requires` và `import` đều thường xuất hiện khi một phần mã cần sử dụng thành phần được định nghĩa ở nơi khác. Vì vậy, hai từ khóa này dễ bị nhầm là hai cách khai báo cùng một loại dependency. Thực tế, chúng hoạt động ở hai cấp độ khác nhau:
+In Java, both `requires` and `import` frequently appear when a piece of code needs to use a component defined elsewhere. Consequently, these two keywords are easily mistaken for two ways of declaring the same kind of dependency. In reality, they operate at two different levels:
 
-- `requires` là chỉ thị trong `module-info.java`, khai báo quan hệ đọc giữa các module trong Java Platform Module System (JPMS).
-- `import` là khai báo trong một compilation unit Java, giúp mã nguồn tham chiếu kiểu hoặc thành viên bằng tên ngắn hơn.
+- `requires` is a directive in `module-info.java`, declaring a readability relationship between modules in the Java Platform Module System (JPMS).
+- `import` is a declaration in a Java compilation unit, allowing source code to reference types or members by shorter names.
 
-Một module có thể cần cả hai: `requires` để được phép đọc module chứa API, và `import` để sử dụng tên lớp trong mã nguồn mà không phải viết tên đầy đủ ở mọi nơi.
+A module may need both: `requires` to be permitted to read the module containing the API, and `import` to use class names in source code without writing fully qualified names everywhere.
 
-## 1. requires là gì?
+## 1. What is requires?
 
-`requires` là một directive trong module declaration. Nó xuất hiện bên trong `module-info.java` và khai báo module hiện tại phụ thuộc vào một module khác.
+`requires` is a directive in a module declaration. It appears inside `module-info.java` and declares that the current module depends on another module.
 
-Ví dụ, module đơn hàng cần sử dụng API của module danh mục:
+For example, the orders module needs to use the API of the catalog module:
 
 ```java
 module com.example.orders {
@@ -19,11 +19,11 @@ module com.example.orders {
 }
 ```
 
-Khai báo này nói với hệ thống module rằng `com.example.orders` cần đọc `com.example.catalog`. Quan hệ đó được dùng khi biên dịch và khi Java phân giải module graph lúc khởi chạy ứng dụng modular.
+This declaration tells the module system that `com.example.orders` needs to read `com.example.catalog`. That relationship is used during compilation and when Java resolves the module graph at modular application launch.
 
-`requires` không chỉ ra một lớp cụ thể. Nó khai báo dependency ở cấp module. Module được yêu cầu vẫn phải công khai package phù hợp bằng `exports` nếu module khác cần truy cập API trong package đó.
+`requires` does not point to a specific class. It declares a dependency at the module level. The required module must still expose the appropriate packages using `exports` if other modules need to access APIs in those packages.
 
-Một số biến thể thường gặp:
+Some common variants:
 
 ```java
 module com.example.orders {
@@ -33,17 +33,17 @@ module com.example.orders {
 }
 ```
 
-- `requires`: khai báo dependency thông thường.
-- `requires transitive`: công bố khả năng đọc dependency cho các module đọc module hiện tại; hữu ích khi API của module hiện tại để lộ kiểu thuộc dependency đó.
-- `requires static`: dependency cần ở thời điểm biên dịch nhưng không bắt buộc có ở runtime chỉ vì directive này được khai báo.
+- `requires`: declares a regular dependency.
+- `requires transitive`: exposes readability to the dependency for modules that read the current module; useful when the current module's API exposes types belonging to that dependency.
+- `requires static`: a dependency needed at compile time but not mandatory at runtime solely because this directive is declared.
 
-Mọi named module đều đọc `java.base` một cách ngầm định, nên thông thường không cần viết `requires java.base;`.
+Every named module reads `java.base` implicitly, so there is normally no need to write `requires java.base;`.
 
-## 2. import là gì?
+## 2. What is import?
 
-`import` là khai báo ở đầu một tệp mã nguồn Java. Nó cho phép dùng tên đơn giản của kiểu hoặc thành viên thay vì phải viết tên đầy đủ ở mỗi vị trí.
+`import` is a declaration at the top of a Java source file. It allows using the simple name of a type or member instead of having to write the fully qualified name at every location.
 
-Ví dụ, không có import:
+Example without import:
 
 ```java
 public class OrderService {
@@ -53,7 +53,7 @@ public class OrderService {
 }
 ```
 
-Có import:
+With import:
 
 ```java
 import com.example.catalog.api.Product;
@@ -65,24 +65,24 @@ public class OrderService {
 }
 ```
 
-Cả hai cách đều tham chiếu cùng một kiểu `com.example.catalog.api.Product`. Khai báo `import` giúp mã ngắn và dễ đọc hơn; nó không tạo ra một module dependency mới.
+Both approaches reference the same `com.example.catalog.api.Product` type. The `import` declaration makes the code shorter and easier to read; it does not create a new module dependency.
 
-Java có các dạng import phổ biến:
+Java has common forms of import:
 
-**Import một kiểu cụ thể**
+**Importing a specific type**
 
 ```java
 import java.util.List;
 import java.util.Map;
 ```
 
-**Import các kiểu trong một package bằng wildcard**
+**Importing types in a package with a wildcard**
 
 ```java
 import java.util.*;
 ```
 
-Wildcard import không đệ quy vào các package con. Ví dụ, `import java.util.*;` không import các kiểu thuộc `java.util.concurrent`.
+Wildcard imports do not recurse into subpackages. For example, `import java.util.*;` does not import types belonging to `java.util.concurrent`.
 
 **Static import**
 
@@ -91,35 +91,35 @@ import static java.lang.Math.PI;
 import static java.lang.Math.sqrt;
 ```
 
-Sau đó có thể dùng `PI` và `sqrt(25)` trực tiếp trong mã nguồn. Static import cũng chỉ ảnh hưởng cách viết tên trong compilation unit, không khai báo module dependency.
+Afterward, `PI` and `sqrt(25)` can be used directly in source code. Static imports also only affect how names are written in the compilation unit, not declaring a module dependency.
 
-## 3. Khác nhau ở vị trí và phạm vi tác động
+## 3. Differences in location and scope of impact
 
-| Tiêu chí | `requires` | `import` |
+| Criterion | `requires` | `import` |
 |---|---|---|
-| Vị trí | Trong `module-info.java` | Trong tệp mã nguồn Java thông thường |
-| Cấp độ | Module | Compilation unit |
-| Mục đích | Khai báo module hiện tại cần đọc module khác | Cho phép tham chiếu kiểu hoặc thành viên bằng tên ngắn |
-| Đối tượng | Module có tên | Kiểu, kiểu lồng nhau hoặc thành viên static |
-| Ảnh hưởng module graph | Có | Không |
-| Tạo quyền truy cập package | Thiết lập quan hệ đọc; package vẫn cần được export phù hợp | Không cấp quyền truy cập package |
-| Có thể thay thế nhau? | Không | Không |
+| Location | In `module-info.java` | In a regular Java source file |
+| Level | Module | Compilation unit |
+| Purpose | Declares that the current module needs to read another module | Allows referencing types or members by short names |
+| Target | A named module | A type, nested type, or static member |
+| Affects module graph | Yes | No |
+| Grants package access | Establishes readability; the package still needs to be exported appropriately | Does not grant package access |
+| Interchangeable? | No | No |
 
-Một cách nhớ ngắn gọn:
+A concise way to remember:
 
-- `requires` trả lời: **Module của tôi cần đọc module nào?**
-- `import` trả lời: **Trong tệp mã nguồn này, tôi muốn viết tên kiểu hoặc thành viên nào ngắn gọn hơn?**
+- `requires` answers: **Which modules does my module need to read?**
+- `import` answers: **In this source file, which type or member names do I want to write more concisely?**
 
-Hai câu hỏi có liên quan, nhưng không phải cùng một câu hỏi.
+The two questions are related, but they are not the same question.
 
-## 4. Ví dụ kết hợp requires và import
+## 4. Example combining requires and import
 
-Giả sử có hai module:
+Suppose there are two modules:
 
-- `com.example.catalog` cung cấp kiểu `Product`.
-- `com.example.orders` sử dụng `Product` để tạo đơn hàng.
+- `com.example.catalog` provides the `Product` type.
+- `com.example.orders` uses `Product` to create orders.
 
-Cấu trúc đơn giản:
+Simple structure:
 
 ```text
 catalog/
@@ -135,9 +135,9 @@ orders/
         └── com/example/orders/OrderService.java
 ```
 
-### Bước 1: Module catalog công khai API
+### Step 1: The catalog module exposes its API
 
-Tệp `catalog/module-info.java`:
+File `catalog/module-info.java`:
 
 ```java
 module com.example.catalog {
@@ -145,7 +145,7 @@ module com.example.catalog {
 }
 ```
 
-Tệp `Product.java`:
+File `Product.java`:
 
 ```java
 package com.example.catalog.api;
@@ -154,11 +154,11 @@ public record Product(String id, String name) {
 }
 ```
 
-Chỉ thị `exports` cho phép module khác truy cập các kiểu public trong package `com.example.catalog.api`.
+The `exports` directive allows other modules to access public types in the `com.example.catalog.api` package.
 
-### Bước 2: Module orders khai báo dependency
+### Step 2: The orders module declares the dependency
 
-Tệp `orders/module-info.java`:
+File `orders/module-info.java`:
 
 ```java
 module com.example.orders {
@@ -166,11 +166,11 @@ module com.example.orders {
 }
 ```
 
-Chỉ thị `requires` tạo quan hệ đọc từ orders tới catalog. Module orders có thể sử dụng các package được catalog công khai, tùy theo các quy tắc truy cập Java thông thường.
+The `requires` directive creates a readability relationship from orders to catalog. The orders module can use the packages exposed by catalog, subject to normal Java access rules.
 
-### Bước 3: Mã nguồn orders import kiểu Product
+### Step 3: Orders source code imports the Product type
 
-Tệp `OrderService.java`:
+File `OrderService.java`:
 
 ```java
 package com.example.orders;
@@ -184,12 +184,12 @@ public class OrderService {
 }
 ```
 
-Ở đây hai khai báo có vai trò riêng:
+Here the two declarations have separate roles:
 
-- `requires com.example.catalog;` nằm trong descriptor của module orders, khai báo quan hệ module.
-- `import com.example.catalog.api.Product;` nằm trong tệp `OrderService.java`, giúp mã nguồn sử dụng tên ngắn `Product`.
+- `requires com.example.catalog;` resides in the orders module descriptor, declaring the module relationship.
+- `import com.example.catalog.api.Product;` resides in `OrderService.java`, enabling the source code to use the short name `Product`.
 
-Nếu mã nguồn dùng tên đầy đủ, có thể bỏ import:
+If the source code uses the fully qualified name, the import can be omitted:
 
 ```java
 package com.example.orders;
@@ -201,18 +201,18 @@ public class OrderService {
 }
 ```
 
-Nhưng module orders vẫn cần `requires com.example.catalog;` vì mã nguồn của một named module vẫn phải có khả năng đọc module chứa kiểu được sử dụng.
+However, the orders module still needs `requires com.example.catalog;` because source code of a named module must still have readability to the module containing the type being used.
 
-## 5. Vì sao import không thay thế được requires?
+## 5. Why does import not replace requires?
 
-Hãy thử bỏ directive `requires` khỏi `module-info.java` của orders nhưng giữ import:
+Try removing the `requires` directive from orders' `module-info.java` while keeping the import:
 
 ```java
 module com.example.orders {
 }
 ```
 
-Trong mã nguồn:
+In the source code:
 
 ```java
 import com.example.catalog.api.Product;
@@ -224,9 +224,9 @@ public class OrderService {
 }
 ```
 
-Nếu `com.example.catalog` nằm trên module path và là named module, module orders chưa khai báo quan hệ đọc tới nó. Import không thể tự tạo quan hệ đó. Trình biên dịch có thể báo lỗi rằng package thuộc module khác không hiển thị vì module hiện tại không đọc module đó.
+If `com.example.catalog` is on the module path and is a named module, the orders module has not declared a readability relationship to it. An import cannot create that relationship by itself. The compiler may report an error stating that the package belonging to another module is not visible because the current module does not read that module.
 
-Ngược lại, nếu có `requires com.example.catalog;` nhưng không viết import, module orders vẫn có quan hệ đọc tới catalog. Ta chỉ cần dùng tên đầy đủ:
+Conversely, if `requires com.example.catalog;` is present without writing an import, the orders module still has readability to catalog. We just need to use the fully qualified name:
 
 ```java
 package com.example.orders;
@@ -238,17 +238,17 @@ public class OrderService {
 }
 ```
 
-Điều này cho thấy:
+This shows:
 
-- Có import không đồng nghĩa với có module readability.
-- Có requires không đồng nghĩa với đã import một kiểu cụ thể.
-- Hai khai báo có thể cùng cần thiết trong một chương trình modular.
+- Having an import does not equate to having module readability.
+- Having requires does not equate to having imported a specific type.
+- Both declarations may be needed together in a modular program.
 
-## 6. Vì sao requires không thay thế được import?
+## 6. Why does requires not replace import?
 
-`requires` chỉ khai báo module mà mã nguồn hiện tại có thể đọc. Nó không đưa tên các lớp trong module đó vào namespace của mọi tệp Java.
+`requires` only declares the module that the current source code can read. It does not bring the class names in that module into the namespace of every Java file.
 
-Ví dụ:
+Example:
 
 ```java
 module com.example.orders {
@@ -256,9 +256,9 @@ module com.example.orders {
 }
 ```
 
-Trong `OrderService.java`, ta vẫn cần một trong hai cách sau để dùng kiểu `Product`.
+In `OrderService.java`, we still need one of the following two ways to use the `Product` type.
 
-Cách 1: dùng import:
+Approach 1: use import:
 
 ```java
 import com.example.catalog.api.Product;
@@ -270,7 +270,7 @@ public class OrderService {
 }
 ```
 
-Cách 2: dùng tên đầy đủ:
+Approach 2: use the fully qualified name:
 
 ```java
 public class OrderService {
@@ -280,7 +280,7 @@ public class OrderService {
 }
 ```
 
-Nếu chỉ viết:
+If you only write:
 
 ```java
 public class OrderService {
@@ -290,13 +290,13 @@ public class OrderService {
 }
 ```
 
-mà không import `Product` và không có kiểu `Product` phù hợp trong package hiện tại hoặc các nguồn tên được xét, trình biên dịch không thể tự suy ra rằng tên này thuộc `com.example.catalog.api.Product`.
+without importing `Product` and without a matching `Product` type in the current package or other considered name sources, the compiler cannot automatically infer that this name belongs to `com.example.catalog.api.Product`.
 
-`requires` không phải wildcard import của một module. Nó không đưa tất cả kiểu trong module vào phạm vi tên của tệp mã nguồn.
+`requires` is not a wildcard import for a module. It does not bring all types in the module into the name scope of the source file.
 
-## 7. Import cũng không vượt qua exports
+## 7. Import also does not bypass exports
 
-Ngay cả khi module orders đã khai báo:
+Even when the orders module has declared:
 
 ```java
 module com.example.orders {
@@ -304,9 +304,9 @@ module com.example.orders {
 }
 ```
 
-orders chỉ có thể sử dụng các package mà catalog cho phép truy cập theo quy tắc JPMS.
+orders can only use the packages that catalog allows access to under JPMS rules.
 
-Ví dụ catalog chỉ export API:
+For example, catalog only exports its API:
 
 ```java
 module com.example.catalog {
@@ -314,7 +314,7 @@ module com.example.catalog {
 }
 ```
 
-Một lớp nằm trong package nội bộ:
+A class located in an internal package:
 
 ```java
 package com.example.catalog.internal;
@@ -323,33 +323,33 @@ public class ProductRepositoryImpl {
 }
 ```
 
-Module orders không thể biến package nội bộ thành API công khai chỉ bằng cách viết:
+The orders module cannot turn an internal package into a public API simply by writing:
 
 ```java
 import com.example.catalog.internal.ProductRepositoryImpl;
 ```
 
-Import không cấp thêm quyền truy cập. Để mã bên ngoài truy cập package theo cách thông thường, module sở hữu package phải export package đó và module tiêu thụ phải đọc module sở hữu. Sau đó, các access modifier Java vẫn tiếp tục được áp dụng.
+Import does not grant additional access permissions. For external code to access a package in the normal way, the owning module must export that package and the consuming module must read the owning module. Afterward, standard Java access modifiers continue to apply.
 
-Đây là lý do `requires`, `exports` và `import` cần được hiểu cùng nhau:
+This is why `requires`, `exports`, and `import` must be understood together:
 
-- `requires` thiết lập quan hệ đọc giữa module.
-- `exports` công khai package từ module sở hữu.
-- `import` giúp mã nguồn tham chiếu kiểu trong package đã có thể truy cập.
+- `requires` establishes readability between modules.
+- `exports` exposes a package from the owning module.
+- `import` helps source code reference types in an already accessible package.
 
-## 8. Import có tạo dependency cho Maven hoặc Gradle không?
+## 8. Does import create a dependency for Maven or Gradle?
 
-Không. Import không tự động thêm thư viện vào cấu hình build và cũng không tải JAR từ repository.
+No. Import does not automatically add a library to the build configuration and does not download JARs from a repository.
 
-Ví dụ:
+Example:
 
 ```java
 import org.example.json.JsonParser;
 ```
 
-Dòng import này chỉ hợp lệ nếu kiểu `JsonParser` đã có sẵn trên classpath hoặc module path phù hợp. Nếu thư viện chưa được cung cấp, trình biên dịch không thể tìm thấy kiểu đó.
+This import line is only valid if the `JsonParser` type is already available on the appropriate classpath or module path. If the library has not been provided, the compiler cannot find that type.
 
-Trong Gradle, dependency artifact có thể được khai báo:
+In Gradle, an artifact dependency can be declared:
 
 ```groovy
 dependencies {
@@ -357,7 +357,7 @@ dependencies {
 }
 ```
 
-Nếu thư viện là named module và module hiện tại chạy theo JPMS, descriptor còn cần khai báo module tương ứng:
+If the library is a named module and the current module runs under JPMS, the descriptor also needs to declare the corresponding module:
 
 ```java
 module com.example.application {
@@ -365,60 +365,60 @@ module com.example.application {
 }
 ```
 
-Tên module `com.example.json` phải khớp với tên module mà JAR thực tế công bố; tên artifact và tên module không nhất thiết giống nhau.
+The module name `com.example.json` must match the module name that the JAR actually declares; the artifact name and the module name do not necessarily have to be identical.
 
-Như vậy có ba việc riêng:
+Thus there are three separate concerns:
 
-1. Công cụ build cung cấp artifact và phiên bản dependency.
-2. `requires` khai báo module hiện tại cần đọc module nào.
-3. `import` giúp mã nguồn sử dụng tên kiểu hoặc thành viên.
+1. The build tool supplies the artifact and dependency version.
+2. `requires` declares which modules the current module needs to read.
+3. `import` helps source code use type or member names.
 
-## 9. Trường hợp ứng dụng chạy trên classpath
+## 9. When an application runs on the classpath
 
-Khi chạy trên classpath, các lớp thuộc unnamed module của classloader tương ứng. Trong mô hình này, ứng dụng không khai báo dependency bằng `requires` cho từng JAR trên classpath.
+When running on the classpath, classes belong to the unnamed module of the corresponding classloader. In this model, the application does not declare dependencies with `requires` for each JAR on the classpath.
 
-Mã nguồn Java vẫn có thể dùng `import` như bình thường:
+Java source code can still use `import` as usual:
 
 ```java
 import java.util.List;
 import com.example.catalog.api.Product;
 ```
 
-Khi chuyển sang named module trên module path, mã nguồn vẫn có thể giữ các import đó, nhưng module descriptor cần khai báo các quan hệ đọc tương ứng. Package được sử dụng cũng phải được module sở hữu export theo quy tắc JPMS.
+When migrating to a named module on the module path, source code can still keep those imports, but the module descriptor needs to declare the corresponding readability relationships. Used packages must also be exported by the owning module under JPMS rules.
 
-Một named module không thể khai báo `requires` trực tiếp tới unnamed module. Vì vậy, khi chuyển một ứng dụng cũ sang JPMS, cần xem xét cách cung cấp các thư viện cũ và ranh giới giữa classpath với module path.
+A named module cannot declare `requires` directly to the unnamed module. Therefore, when migrating a legacy application to JPMS, it is necessary to review how legacy libraries are provided and the boundary between the classpath and module path.
 
-## 10. Các lỗi thường gặp và cách hiểu
+## 10. Common Errors and How to Understand Them
 
-| Tình huống | Nguyên nhân | Hướng xử lý |
+| Situation | Cause | Resolution |
 |---|---|---|
-| Import một kiểu từ named module nhưng báo package không hiển thị | Module hiện tại chưa đọc module sở hữu | Thêm `requires` đúng tên module |
-| Đã requires nhưng không tìm thấy tên lớp đơn giản | Tệp mã nguồn chưa import kiểu hoặc chưa dùng tên đầy đủ | Thêm `import` hoặc viết tên đầy đủ |
-| Import package internal bị từ chối | Module sở hữu chưa export package | Dùng API đã export hoặc thiết kế lại ranh giới module |
-| Có import nhưng build báo không tìm thấy package | Artifact chưa có trên classpath/module path | Khai báo dependency trong Maven/Gradle hoặc cấu hình đường dẫn phù hợp |
-| Thêm import nhưng module graph không thay đổi | Import không tham gia module resolution | Khai báo dependency trong `module-info.java` |
-| Thêm requires nhưng mã vẫn báo không tìm thấy tên kiểu ngắn | Requires không import tên kiểu vào compilation unit | Thêm import tương ứng |
+| Importing a type from a named module reports package not visible | The current module does not yet read the owning module | Add `requires` with the exact module name |
+| Already required, but simple class name is not found | The source file has not imported the type or used the fully qualified name | Add `import` or write the fully qualified name |
+| Importing an internal package is rejected | The owning module has not exported the package | Use an exported API or redesign module boundaries |
+| Import is present, but the build reports package not found | The artifact is not on the classpath/module path yet | Declare the dependency in Maven/Gradle or configure the appropriate path |
+| Adding import does not change the module graph | Import does not participate in module resolution | Declare the dependency in `module-info.java` |
+| Adding requires, yet code still reports short type name not found | Requires does not import type names into the compilation unit | Add the corresponding import |
 
-Khi đọc lỗi biên dịch, hãy xác định lỗi thuộc cấp nào. Lỗi module readability thường liên quan `requires`; lỗi package visibility liên quan `exports`; lỗi tên kiểu trong mã nguồn thường liên quan `import`, tên đầy đủ hoặc việc cung cấp artifact.
+When reading compilation errors, determine which level the error belongs to. Module readability errors usually relate to `requires`; package visibility errors relate to `exports`; type name errors in source code usually relate to `import`, fully qualified names, or artifact provisioning.
 
-## 11. Quy trình kiểm tra khi sử dụng một kiểu từ module khác
+## 11. Checklist when using a type from another module
 
-Khi cần sử dụng một kiểu từ module khác, có thể kiểm tra theo thứ tự:
+When you need to use a type from another module, you can check in order:
 
-1. **Xác định artifact chứa kiểu:** tìm đúng JAR hoặc module sở hữu package.
-2. **Kiểm tra đường dẫn:** đảm bảo artifact được cung cấp trên module path cho ứng dụng modular.
-3. **Xác định tên module:** dùng tên thực tế mà descriptor hoặc automatic module công bố.
-4. **Kiểm tra package export:** module sở hữu phải export package cần sử dụng.
-5. **Khai báo requires:** module hiện tại phải đọc module sở hữu.
-6. **Import kiểu:** thêm import trong tệp Java nếu muốn dùng tên đơn giản.
-7. **Biên dịch và chạy:** kiểm tra cả module graph lẫn dependency runtime.
+1. **Identify the artifact containing the type:** locate the exact JAR or module owning the package.
+2. **Check the path:** ensure the artifact is provided on the module path for modular applications.
+3. **Determine the module name:** use the actual name published by the descriptor or automatic module.
+4. **Check package export:** the owning module must export the package to be used.
+5. **Declare requires:** the current module must read the owning module.
+6. **Import the type:** add an import in the Java file if you want to use the simple name.
+7. **Compile and run:** verify both the module graph and runtime dependencies.
 
-Ví dụ, để dùng `Product` từ `com.example.catalog.api`, cần module catalog công khai package đó, module orders khai báo `requires com.example.catalog;`, artifact catalog có mặt trên module path và tệp Java có thể viết `import com.example.catalog.api.Product;`.
+For example, to use `Product` from `com.example.catalog.api`, the catalog module must expose that package, the orders module must declare `requires com.example.catalog;`, the catalog artifact must be present on the module path, and the Java file can write `import com.example.catalog.api.Product;`.
 
-## Kết luận
+## Conclusion
 
-`requires` và `import` giải quyết hai vấn đề khác nhau trong Java. `requires` là directive của JPMS, khai báo module hiện tại cần đọc module nào và tham gia xây dựng module graph. `import` là khai báo của một compilation unit, giúp mã nguồn tham chiếu kiểu hoặc thành viên bằng tên ngắn.
+`requires` and `import` solve two different problems in Java. `requires` is a JPMS directive that declares which modules the current module needs to read and participates in building the module graph. `import` is a compilation unit declaration that helps source code reference types or members by short names.
 
-Import không tạo module dependency, không thêm JAR vào build và không vượt qua ranh giới `exports`. Requires cũng không tự đưa tên lớp vào phạm vi của mọi tệp Java. Khi một named module sử dụng kiểu từ module khác, cần đảm bảo artifact có mặt, module được đọc, package được export và mã nguồn tham chiếu kiểu bằng import hoặc tên đầy đủ.
+Import does not create a module dependency, does not add JARs to the build, and does not bypass `exports` boundaries. Requires also does not automatically bring class names into the scope of every Java file. When a named module uses a type from another module, you must ensure the artifact is present, the module is read, the package is exported, and the source code references the type via import or a fully qualified name.
 
-Hãy nhớ ba lớp trách nhiệm: build tool cung cấp thư viện, `requires` thiết lập quan hệ module, còn `import` làm cho mã nguồn dễ viết và dễ đọc hơn.
+Remember the three layers of responsibility: the build tool provides the libraries, `requires` establishes module relationships, and `import` makes source code easier to write and read.

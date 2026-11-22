@@ -1,13 +1,13 @@
-# `throw` để báo lỗi và `throws` để khai báo khả năng phát sinh (Java 17+)
+# `throw` to Signal Errors and `throws` to Declare Possible Exceptions (Java 17+)
 
-## 1. Phân biệt ngay từ đầu
+## 1. Distinguish Them Right from the Start
 
-Java dùng hai từ khóa dễ nhầm:
+Java uses two easily confused keywords:
 
-- **`throw`** là một **câu lệnh** thực sự ném một đối tượng ngoại lệ tại vị trí đang thực thi, thường khi phát hiện dữ liệu hoặc trạng thái không hợp lệ.
-- **`throws`** nằm trong **khai báo phương thức hoặc constructor**, liệt kê các loại ngoại lệ có thể được truyền ra cho người gọi. Nó không tự ném, bắt hoặc xử lý ngoại lệ.
+- **`throw`** is a **statement** that actually throws an exception object at the current point of execution, usually when invalid data or state is detected.
+- **`throws`** appears in a **method or constructor declaration**, listing the exception types that may be propagated out to the caller. It does not throw, catch, or handle exceptions on its own.
 
-Ví dụ cú pháp:
+Syntax example:
 
 ```java
 static int requirePositive(int value) throws IllegalArgumentException {
@@ -18,29 +18,29 @@ static int requirePositive(int value) throws IllegalArgumentException {
 }
 ```
 
-Ở đây `throw new IllegalArgumentException(...)` tạo và ném ngoại lệ khi điều kiện đúng. Phần `throws IllegalArgumentException` chỉ khai báo khả năng xảy ra; vì đây là **unchecked exception**, khai báo `throws` là **tùy chọn**. Trong dự án, thường bỏ `throws` cho unchecked exception trừ khi nó giúp diễn đạt hợp đồng API. Ví dụ trên là một phương thức minh họa, chưa phải chương trình độc lập có `main`.
+Here, `throw new IllegalArgumentException(...)` creates and throws the exception when the condition is true. The `throws IllegalArgumentException` clause only declares the possibility; because this is an **unchecked exception**, declaring `throws` is **optional**. In projects, `throws` is usually omitted for unchecked exceptions unless it helps express the API contract. The example above is an illustrative method, not a standalone program with `main`.
 
-| Tiêu chí | `throw` | `throws` |
+| Criterion | `throw` | `throws` |
 | --- | --- | --- |
-| Vị trí | Trong thân phương thức, constructor hoặc khối có thể chứa câu lệnh | Sau danh sách tham số của phương thức/constructor, trước phần thân hoặc `;` |
-| Vai trò | Ném một đối tượng thuộc `Throwable` | Khai báo một hay nhiều **loại** ngoại lệ có thể phát sinh |
-| Dạng thường gặp | `throw new IOException("...");` | `void read() throws IOException` |
-| Ảnh hưởng luồng chạy | Dừng luồng thực thi thông thường ở điểm ném, tìm handler phù hợp | Không tạo ngoại lệ và không tự đổi luồng chạy |
-| Liên quan checked exception | Ném checked exception phải được bắt hoặc khai báo hợp lệ ở ngữ cảnh bao quanh | Giúp phương thức truyền checked exception cho caller |
+| Placement | Inside a method body, constructor, or block that can contain statements | After the parameter list of a method/constructor, before the body or `;` |
+| Role | Throws an object of a `Throwable` type | Declares one or more exception **types** that may arise |
+| Common form | `throw new IOException("...");` | `void read() throws IOException` |
+| Effect on control flow | Stops normal execution at the throw point and searches for a matching handler | Does not create an exception and does not alter control flow by itself |
+| Relation to checked exceptions | Throwing a checked exception must be caught or validly declared in the enclosing context | Allows a method to propagate checked exceptions to its caller |
 
-Không viết `throws new IOException(...)` hoặc `throw IOException` để ném một instance mới: phải dùng `throw new IOException(...)`. Không dùng `throws` thay thế `catch` nếu yêu cầu nghiệp vụ là xử lý lỗi ngay tại phương thức.
+Do not write `throws new IOException(...)` or `throw IOException` to throw a new instance: you must use `throw new IOException(...)`. Do not use `throws` in place of `catch` when the business requirement is to handle the error directly inside the method.
 
-## 2. Ngoại lệ được ném như thế nào?
+## 2. How Is an Exception Thrown?
 
-Khi thực thi gặp `throw exceptionObject;`:
+When execution reaches `throw exceptionObject;`:
 
-1. Biểu thức được đánh giá; đối tượng được ném phải thuộc lớp con của `java.lang.Throwable`.
-2. Luồng thực thi thông thường của đoạn mã hiện tại bị ngắt; các câu lệnh phía sau trên nhánh đó không chạy.
-3. Java tìm khối `catch` tương thích trong các `try` đang bao quanh. Nếu không có, ngoại lệ truyền ngược lên phương thức gọi theo call stack.
-4. Các khối `finally` thích hợp và cơ chế đóng tài nguyên `try-with-resources` vẫn được thực hiện theo quy tắc ngôn ngữ khi rời phạm vi.
-5. Nếu ngoại lệ không được xử lý đến đầu luồng thực thi, trình xử lý ngoại lệ không bắt được của luồng có thể in stack trace; chương trình hoặc luồng liên quan kết thúc bất thường.
+1. The expression is evaluated; the thrown object must belong to a subtype of `java.lang.Throwable`.
+2. Normal control flow of the current code block stops; subsequent statements on that branch do not run.
+3. Java searches for a compatible `catch` block in enclosing `try` statements. If none exists, the exception propagates up the call stack to the calling method.
+4. Appropriate `finally` blocks and `try-with-resources` resource closing still execute according to language rules when exiting scopes.
+5. If the exception goes unhandled all the way to the top of the thread, the thread's uncaught exception handler may print the stack trace; the program or corresponding thread terminates abnormally.
 
-Ví dụ:
+Example:
 
 ```java
 if (balance < amount) {
@@ -48,28 +48,28 @@ if (balance < amount) {
 }
 ```
 
-Dòng này **thực thi được** nếu nhánh `if` đúng. Nó không đơn thuần ghi chú rằng lỗi có thể xảy ra. `IllegalStateException` là unchecked exception; luật Java không bắt buộc đặt `throws IllegalStateException` trên chữ ký phương thức.
+This line **actually executes** if the `if` branch is true. It is not merely a note saying an error could happen. `IllegalStateException` is an unchecked exception; Java rules do not require putting `throws IllegalStateException` on the method signature.
 
-Câu lệnh `throw null;` có thể biên dịch trong ngữ cảnh phù hợp nhưng khi thực thi sẽ phát sinh `NullPointerException`; không nên dùng. Không ném các giá trị không thuộc `Throwable` như chuỗi `"error"` hoặc số `123`.
+The statement `throw null;` can compile in a valid context, but at runtime it causes a `NullPointerException`; it should not be used. Do not throw values that do not inherit from `Throwable`, such as a string `"error"` or number `123`.
 
-## 3. Vì sao `throws` bắt buộc với checked exception?
+## 3. Why Is `throws` Required for Checked Exceptions?
 
-`throws` có vai trò quan trọng nhất khi phương thức có thể cho **checked exception** thoát ra: ví dụ `IOException` hoặc ngoại lệ tự tạo `extends Exception`. Nếu không xử lý bằng `catch`, phương thức phải khai báo `throws` phù hợp. Với `RuntimeException` và `Error` cùng các lớp con (**unchecked**), trình biên dịch không bắt buộc `throws`.
+`throws` matters most when a method can let a **checked exception** escape: for example `IOException` or a custom exception that `extends Exception`. If it is not handled with `catch`, the method must declare an appropriate `throws`. For `RuntimeException`, `Error`, and their subclasses (**unchecked**), the compiler does not require `throws`.
 
-| Ví dụ | Nhóm | Nghĩa vụ khi ngoại lệ có thể thoát ra |
+| Example | Group | Obligation When the Exception Can Escape |
 | --- | --- | --- |
-| `IOException`, `InvalidScoreException extends Exception` | Checked | Catch hoặc khai báo throws |
-| `IllegalArgumentException`, `NumberFormatException` | Unchecked | Có thể throw mà không khai báo |
-| `StackOverflowError` | Unchecked Error | Không cần khai báo; không dùng như lỗi nghiệp vụ |
+| `IOException`, `InvalidScoreException extends Exception` | Checked | Catch or declare `throws` |
+| `IllegalArgumentException`, `NumberFormatException` | Unchecked | Can be thrown without declaring |
+| `StackOverflowError` | Unchecked Error | No need to declare; do not use as a business error |
 
-Điều này không có nghĩa checked luôn xảy ra hoặc unchecked luôn là lỗi lập trình. Bài sau phân tích cây `Throwable`, các lớp cụ thể và cách chọn hợp đồng. Trong bài này, hãy phân biệt rõ **`throw` ném một object tại runtime** với **`throws` liệt kê kiểu ngoại lệ ở chữ ký**.
+This does not mean checked exceptions always occur or unchecked exceptions are always programmer bugs. The next lesson analyzes the `Throwable` hierarchy, concrete classes, and how to choose contracts. In this lesson, clearly distinguish **`throw` (throwing an object at runtime)** from **`throws` (listing exception types in a signature)**.
 
 
-## 4. Ví dụ đầy đủ: tự ném checked exception và khai báo `throws`
+## 4. Complete Example: Throwing a Checked Exception Yourself and Declaring `throws`
 
-Ví dụ nhận điểm từ chuỗi. Nếu không phải số nguyên hoặc ngoài khoảng 0 đến 100, phương thức sẽ **`throw`** ngoại lệ tự định nghĩa. Vì `InvalidScoreException extends Exception`, phương thức phải **`throws InvalidScoreException`**, và `main` sẽ `catch` để xử lý từng đầu vào.
+This example parses a score from a string. If it is not an integer or is outside the range 0 to 100, the method will **`throw`** a custom-defined exception. Because `InvalidScoreException extends Exception`, the method must declare **`throws InvalidScoreException`**, and `main` uses `catch` to handle each input.
 
-Tạo một tệp tên **`ThrowThrowsDemo.java`**:
+Create a file named **`ThrowThrowsDemo.java`**:
 
 ```java
 public class ThrowThrowsDemo {
@@ -111,7 +111,7 @@ class InvalidScoreException extends Exception {
 }
 ```
 
-Chạy tại thư mục chứa tệp (JDK 17+, PowerShell, CMD, bash). Tạo thư mục `out` nếu chưa có:
+Run from the directory containing the file (JDK 17+, PowerShell, CMD, bash). Create the `out` directory if it does not exist yet:
 
 ```sh
 mkdir out
@@ -119,7 +119,7 @@ javac -encoding UTF-8 --release 17 -d out ThrowThrowsDemo.java
 java -cp out ThrowThrowsDemo
 ```
 
-**Stdout chính xác của chương trình:**
+**Exact stdout of the program:**
 
 ```text
 95 => 95
@@ -127,19 +127,19 @@ java -cp out ThrowThrowsDemo
 abc => invalid integer: abc
 ```
 
-Giải thích theo luồng:
+Flow explanation:
 
-- Với `95`, `parseScore` trả về `95`, không ném ngoại lệ.
-- Với `150`, điều kiện kiểm tra khoảng điểm đúng; `throw new InvalidScoreException(...)` chuyển điều khiển đến `catch` trong `main`. `return score;` không được thực hiện cho lần gọi đó.
-- Với `abc`, `Integer.parseInt` ném `NumberFormatException` (unchecked); `catch` chuyển nó thành `InvalidScoreException` (checked) và truyền **nguyên nhân gốc** qua `super(message, cause)`.
-- `throws InvalidScoreException` trong chữ ký giúp caller biết nghĩa vụ bắt hoặc khai báo ngoại lệ checked. Chính các câu lệnh `throw` mới làm ngoại lệ xuất hiện.
-- Vòng `for` tiếp tục sau từng `catch`, nên cả ba dòng được in.
+- For `95`, `parseScore` returns `95` without throwing an exception.
+- For `150`, the range check condition is true; `throw new InvalidScoreException(...)` transfers control to the `catch` in `main`. `return score;` does not execute for that call.
+- For `abc`, `Integer.parseInt` throws `NumberFormatException` (unchecked); `catch` converts it into `InvalidScoreException` (checked) and passes the **original cause** via `super(message, cause)`.
+- `throws InvalidScoreException` in the signature informs callers of their obligation to catch or declare the checked exception. The `throw` statements themselves are what make the exceptions happen.
+- The `for` loop continues after each `catch`, so all three lines are printed.
 
-Kiểu `InvalidScoreException` là lớp top-level không `public` cùng tệp, hợp lệ vì tệp chỉ có một kiểu top-level `public` là `ThrowThrowsDemo`. Nếu chuyển ngoại lệ thành `public class InvalidScoreException`, cần đặt riêng trong `InvalidScoreException.java`.
+`InvalidScoreException` is a non-`public` top-level class in the same file, which is valid because the file has only one `public` top-level type (`ThrowThrowsDemo`). If you make the exception `public class InvalidScoreException`, it must be placed in its own file `InvalidScoreException.java`.
 
-## 5. Unchecked exception: có `throw`, không cần `throws`
+## 5. Unchecked Exceptions: Using `throw` Without Needing `throws`
 
-Với tiền điều kiện của API, `IllegalArgumentException` thường phù hợp. Tạo **`UncheckedDemo.java`**:
+For API preconditions, `IllegalArgumentException` is often appropriate. Create **`UncheckedDemo.java`**:
 
 ```java
 public class UncheckedDemo {
@@ -165,7 +165,7 @@ public class UncheckedDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out UncheckedDemo.java
@@ -179,13 +179,13 @@ percent=75
 error=total must be positive
 ```
 
-Không có `throws IllegalArgumentException` trong `percentage` nhưng chương trình vẫn hợp lệ. Caller có thể bắt ngoại lệ này khi có phương án xử lý hữu ích; việc bắt không phải điều kiện biên dịch. Trong code sản xuất, hãy cân nhắc phép tính phần trăm khi dùng số nguyên lớn vì `part * 100` có thể tràn `int`; ví dụ ở đây dùng số nhỏ để minh họa cơ chế ngoại lệ.
+There is no `throws IllegalArgumentException` on `percentage`, yet the program is completely valid. The caller can catch this exception when a useful recovery strategy exists; catching it is not a compilation requirement. In production code, be mindful of percentage calculations with large integers because `part * 100` can overflow `int`; the example here uses small numbers to illustrate the exception mechanism.
 
-## 6. Caller bắt hoặc khai báo để truyền tiếp checked exception
+## 6. Caller Catches or Declares to Propagate a Checked Exception
 
-Giả sử một phương thức thực thi `throw new java.io.IOException(...)`. Đối với checked exception, có hai cách hợp lệ ở caller:
+Suppose a method executes `throw new java.io.IOException(...)`. For a checked exception, there are two valid options in the caller:
 
-**Cách A — bắt để xử lý tại chỗ:**
+**Option A — catch to handle locally:**
 
 ```java
 try {
@@ -195,7 +195,7 @@ try {
 }
 ```
 
-**Cách B — khai báo `throws` để trách nhiệm xử lý được chuyển lên caller tiếp theo:**
+**Option B — declare `throws` to pass handling responsibility up to the next caller:**
 
 ```java
 static void relay() throws java.io.IOException {
@@ -203,9 +203,9 @@ static void relay() throws java.io.IOException {
 }
 ```
 
-Hai đoạn trên chỉ minh họa phần thân phương thức; để chạy độc lập cần định nghĩa `readData()` và ngữ cảnh bao quanh. `throws` không tự bọc ngoại lệ bằng `try/catch`, nên nếu quá trình gọi không có handler, ngoại lệ vẫn có thể truyền lên.
+The two snippets above only illustrate method bodies; to run standalone, `readData()` and an enclosing context must be defined. `throws` does not wrap the exception in a `try/catch`, so if no handler exists along the call chain, the exception continues propagating upward.
 
-Một ví dụ **đầy đủ, chạy được** chứng minh lan truyền: tạo `PropagationDemo.java`:
+A **complete, runnable** example demonstrating propagation: create `PropagationDemo.java`:
 
 ```java
 import java.io.IOException;
@@ -229,7 +229,7 @@ public class PropagationDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out PropagationDemo.java
@@ -242,13 +242,13 @@ Output:
 caught=sample read failure
 ```
 
-Chuỗi gọi là `main → relay → readData`. `readData` ném `IOException`; `relay` khai báo để truyền tiếp; `main` bắt và in thông báo. Đây là ngoại lệ được tạo có chủ đích để minh họa, không có thao tác đọc tệp thực tế.
+The call chain is `main → relay → readData`. `readData` throws `IOException`; `relay` declares it to propagate it further; `main` catches it and prints the message. This is an intentionally created exception for demonstration, with no actual file I/O.
 
-## 7. Lỗi biên dịch phổ biến khi dùng `throw`/`throws`
+## 7. Common Compile-Time Errors When Using `throw`/`throws`
 
-### 7.1. Ném checked exception mà không bắt/khai báo
+### 7.1. Throwing a Checked Exception Without Catching or Declaring It
 
-Đoạn dưới **cố ý không biên dịch được**:
+The snippet below **deliberately fails to compile**:
 
 ```java
 import java.io.IOException;
@@ -260,7 +260,7 @@ class InvalidChecked {
 }
 ```
 
-`javac` thường báo ngoại lệ `IOException` cần được bắt hoặc khai báo. Có thể sửa chữ ký thành:
+`javac` typically reports that `IOException` must be caught or declared to be thrown. You can fix the signature to:
 
 ```java
 static void load() throws java.io.IOException {
@@ -268,37 +268,37 @@ static void load() throws java.io.IOException {
 }
 ```
 
-Đây là phương thức minh họa; caller sau đó vẫn phải bắt hoặc khai báo checked exception thích hợp.
+This is an illustrative method; callers afterward still have to catch or declare the appropriate checked exception.
 
-### 7.2. Caller không xử lý ngoại lệ được khai báo
+### 7.2. Caller Fails to Handle a Declared Exception
 
-Đoạn dưới cũng **cố ý sai**:
+The snippet below is also **deliberately invalid**:
 
 ```java
 static void caller() {
-    relay(); // relay() khai báo throws IOException
+    relay(); // relay() declares throws IOException
 }
 ```
 
-Nếu phương thức `relay()` được định nghĩa như trong `PropagationDemo`, cần đổi thành `static void caller() throws IOException { relay(); }` (khi đã import `IOException`) hoặc đặt lời gọi trong `try/catch(IOException ex)`.
+If `relay()` is defined as in `PropagationDemo`, change it to `static void caller() throws IOException { relay(); }` (with `IOException` imported) or place the call inside `try/catch(IOException ex)`.
 
-### 7.3. Khai báo rộng hơn mức cần thiết
+### 7.3. Declaring More Broadly Than Necessary
 
-`throws Exception` có thể hợp lệ nhưng làm giảm thông tin: caller không biết nhóm lỗi được dự kiến. Ưu tiên ngoại lệ cụ thể như `throws IOException` hoặc `throws InvalidScoreException`. Nếu cần nhiều checked exception độc lập, có thể liệt kê bằng dấu phẩy:
+`throws Exception` can be valid, but it reduces clarity: callers do not know which error group to expect. Prefer specific exceptions such as `throws IOException` or `throws InvalidScoreException`. If multiple independent checked exceptions are needed, separate them with commas:
 
 ```java
 void work() throws java.io.IOException, java.text.ParseException
 ```
 
-Dòng này chỉ minh họa **chữ ký**; một khai báo phương thức đầy đủ cần có thân `{ ... }` hoặc dạng khai báo hợp lệ trong interface/abstract type.
+This line only illustrates a **signature**; a complete method declaration needs a body `{ ... }` or a valid declaration inside an interface/abstract type.
 
-### 7.4. Hiểu sai ý nghĩa của `throws`
+### 7.4. Misunderstanding What `throws` Means
 
-Khai báo `throws IOException` **không bảo đảm** phương thức sẽ ném `IOException` mỗi lần gọi. Nó chỉ thể hiện ngoại lệ đó được phép truyền qua chữ ký. Ngược lại, chỉ đọc chữ ký mà không thấy `throws RuntimeException` không có nghĩa mã sẽ không gặp unchecked exception.
+Declaring `throws IOException` **does not guarantee** that the method will throw `IOException` on every call. It only indicates that this exception is allowed to propagate through the signature. Conversely, reading a signature without seeing `throws RuntimeException` does not mean the code cannot encounter unchecked exceptions.
 
-## 8. Giữ nguyên nguyên nhân và ngữ cảnh lỗi
+## 8. Preserving the Error Cause and Context
 
-Nếu chuyển một ngoại lệ thấp tầng thành ngoại lệ mang ý nghĩa nghiệp vụ, hãy bảo tồn nguyên nhân ban đầu:
+If you translate a low-level exception into an exception with business meaning, preserve the original cause:
 
 ```java
 try {
@@ -308,19 +308,19 @@ try {
 }
 ```
 
-Đây là đoạn lấy từ ví dụ `ThrowThrowsDemo`; nó phụ thuộc vào lớp `InvalidScoreException` đã định nghĩa. Chuyển nguyên nhân vào constructor làm `ex.getCause()` còn giữ được `NumberFormatException`, phục vụ log/debug. Chỉ `throw new InvalidScoreException("...")` mà bỏ `cause` sẽ làm mất liên kết nguyên nhân. `throw cause;` trong khối `catch` lại là ném chính đối tượng đã bắt (rethrow), không phải chuyển sang một loại checked exception mới.
+This snippet is taken from the `ThrowThrowsDemo` example; it depends on the defined `InvalidScoreException` class. Passing the cause to the constructor preserves `NumberFormatException` in `ex.getCause()`, aiding logging and debugging. Doing only `throw new InvalidScoreException("...")` without `cause` breaks the causal link. Writing `throw cause;` inside the `catch` block rethrows the exact caught object rather than converting it to a new checked exception type.
 
-Đừng che giấu lỗi bằng `catch (Exception ex) { }` rỗng hoặc trả về giá trị mặc định không có căn cứ. Nếu handler không thể xử lý đúng, truyền tiếp ngoại lệ có thông điệp/nguồn gốc phù hợp thường tốt hơn.
+Do not hide errors with an empty `catch (Exception ex) { }` or return baseless default values. If a handler cannot properly handle the error, propagating an exception with an appropriate message and cause is usually better.
 
-Khi ném ngoại lệ sau khi đã mở tài nguyên, dùng `try-with-resources` với loại tài nguyên thực thi `AutoCloseable` để đóng tài nguyên kể cả khi có ngoại lệ. Hạn chế `return`/`throw` từ `finally` vì có thể làm khó nhận biết ngoại lệ trước đó; trong trường hợp đặc biệt, một ngoại lệ từ `finally` có thể thay thế ngoại lệ đang được truyền ra.
+When throwing an exception after opening resources, use `try-with-resources` with types implementing `AutoCloseable` so resources are closed even when exceptions occur. Avoid `return`/`throw` from `finally` because it can obscure an earlier exception; in special cases, an exception thrown from `finally` can replace the exception that was propagating out.
 
-## 9. Lưu ý về phương thức ghi đè và constructor
+## 9. Notes on Overridden Methods and Constructors
 
-- Phương thức **override** không được bổ sung hoặc mở rộng checked exception vượt những gì chữ ký phương thức được ghi đè cho phép. Ví dụ, nếu method cha không khai báo checked exception thì method override không được tự thêm `throws IOException`. Ngoại lệ unchecked không chịu giới hạn cùng kiểu này.
-- Constructor có thể dùng `throws` để công bố checked exception khi khởi tạo. Caller tạo đối tượng phải bắt hoặc khai báo.
-- `main(String[] args)` cũng có thể khai báo `throws Exception`; cách đó thuận tiện trong thử nghiệm nhỏ nhưng khi ngoại lệ không được bắt chương trình có thể kết thúc với stack trace. Ứng dụng thường cần xử lý lỗi tại ranh giới thích hợp.
+- An **overriding** method cannot add or broaden checked exceptions beyond what the overridden method's signature allows. For example, if a parent method declares no checked exceptions, the overriding method cannot add `throws IOException`. Unchecked exceptions are not restricted in the same way.
+- Constructors can use `throws` to announce checked exceptions during initialization. Callers instantiating the object must catch or declare them.
+- `main(String[] args)` can also declare `throws Exception`; this is convenient in small experiments, though an uncaught exception will terminate the program with a stack trace. Real applications generally need error handling at appropriate boundaries.
 
-Ví dụ minh họa một constructor có khai báo checked exception (chưa phải chương trình độc lập):
+Example illustrating a constructor declaring a checked exception (not a standalone program):
 
 ```java
 class ConnectionConfig {
@@ -332,22 +332,22 @@ class ConnectionConfig {
 }
 ```
 
-Khi gọi `new ConnectionConfig("")`, ngoại lệ phát sinh từ `throw`; `throws` ở constructor buộc caller xử lý hoặc truyền tiếp.
+When calling `new ConnectionConfig("")`, the exception originates from `throw`; `throws` on the constructor forces the caller to handle or propagate it.
 
-## 10. Quy tắc chọn cách viết trong thực tế
+## 10. Guidelines for Writing Clean Exception Code in Practice
 
-1. **Phát hiện trạng thái sai tại đúng chỗ:** dùng `throw new ...` với loại ngoại lệ, message và cause thích hợp.
-2. **Ngoại lệ checked có thể truyền ra:** dùng `throws LoaiNgoaiLe` trong chữ ký nếu không xử lý tại chỗ; để caller quyết định chính sách phục hồi.
-3. **Xử lý được ngay tại nơi gọi:** dùng `try/catch` có hành động hữu ích; kiểm thử cả nhánh thành công và thất bại.
-4. **Không dùng exception làm nhánh điều khiển bình thường** cho dữ liệu dự kiến có thể kiểm tra đơn giản; kiểm tra đầu vào và dùng API báo kết quả thích hợp khi hợp đồng yêu cầu.
-5. **Kiểm tra đầy đủ:** lỗi biên dịch (`unreported exception`), đường truyền ngoại lệ, thông điệp, cause và cách tài nguyên được đóng.
+1. **Detect invalid state in the right place:** use `throw new ...` with the appropriate exception type, message, and cause.
+2. **Checked exceptions that may escape:** use `throws LoaiNgoaiLe` in the signature when not handling locally; let the caller decide the recovery policy.
+3. **When handleable right at the call site:** use `try/catch` with meaningful action; test both success and failure branches.
+4. **Do not use exceptions as normal control flow** for expected conditions that can be checked simply; validate inputs and use result-reporting APIs when the contract calls for them.
+5. **Check thoroughly:** compile-time errors (`unreported exception`), exception propagation paths, messages, causes, and how resources are closed.
 
-### Tự kiểm tra
+### Self-Check
 
-- `throw` và `throws` khác nhau ở đâu? **`throw` ném đối tượng trong lúc chạy; `throws` khai báo loại ngoại lệ trong chữ ký.**
-- Ném `IOException` khỏi một phương thức không có `try/catch` thì cần gì? **Khai báo `throws IOException` (hoặc loại supertype thích hợp) để compile hợp lệ.**
-- Ném `IllegalArgumentException` có bắt buộc viết `throws` không? **Không**, vì unchecked.
-- Chỉ thêm `throws IOException` có làm ngoại lệ biến mất không? **Không**. Nếu nó thực sự phát sinh, ngoại lệ sẽ truyền cho caller cho đến khi được xử lý hoặc không được bắt.
-- Vì sao lưu `cause` khi ném ngoại lệ khác loại? **Để giữ bằng chứng của lỗi gốc** và giúp truy vết.
+- How do `throw` and `throws` differ? **`throw` throws an object at runtime; `throws` declares exception types in the signature.**
+- What is required to throw `IOException` out of a method that has no `try/catch`? **Declare `throws IOException` (or an appropriate supertype) for valid compilation.**
+- Is `throws` required when throwing `IllegalArgumentException`? **No**, because it is unchecked.
+- Does merely adding `throws IOException` make the exception disappear? **No**. If it actually occurs, the exception propagates to callers until handled or left uncaught.
+- Why preserve `cause` when throwing a different exception type? **To keep evidence of the original error** and help trace it.
 
-**Ghi nhớ:** `throw` là hành động báo lỗi; `throws` là cam kết về các checked exception có thể truyền ra theo hợp đồng phương thức. Viết đúng cả hai giúp xử lý lỗi có chủ đích và giữ thông tin chẩn đoán.
+**Remember:** `throw` is the act of signaling an error; `throws` is a contract stating which checked exceptions may exit according to the method contract. Using both accurately enables intentional error handling and preserves diagnostic information.

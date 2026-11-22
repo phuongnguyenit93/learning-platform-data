@@ -1,12 +1,12 @@
-# Đặt formatter riêng cho đối số trong MessageFormat và giới hạn với các kiểu java.time
+# Assigning Custom Formatters per Argument in MessageFormat and Limitations with java.time Types
 
-`java.text.MessageFormat` kết hợp một mẫu câu với các đối số động như tên người dùng, số lượng, đơn giá hoặc ngày hẹn. Trong thực tế, **một mẫu câu có thể cần nhiều quy tắc định dạng riêng**, và **ngày giờ hiện đại trong `java.time` không hoàn toàn tương thích trực tiếp với các định dạng ngày kiểu cũ của `MessageFormat` trên Java 17/21**.
+`java.text.MessageFormat` combines a sentence pattern with dynamic arguments such as user names, quantities, unit prices, or appointment dates. In practice, **a single sentence pattern may need multiple custom formatting rules**, and **modern date/time types in `java.time` are not directly compatible with `MessageFormat`'s legacy date/time formats on Java 17/21**.
 
-Bài này hướng dẫn gán `java.text.Format` cho **từng chỉ số đối số**, phân biệt chỉ số đối số với thứ tự xuất hiện của placeholder, lựa chọn locale, và ba cách xử lý `LocalDate`/`LocalDateTime`/`Instant`: **định dạng trước thành chuỗi**, **dùng `DateTimeFormatter.toFormat()`**, hoặc **chuyển sang `java.util.Date` khi thực sự cần tương tác với API cũ**. Các chương trình chạy được trên Java 17 trở lên; những cú pháp `MessageFormat` được nói đến là cú pháp có trên **Java 17 và Java 21**, tránh dựa vào phần mở rộng của JDK mới hơn.
+This lesson shows how to assign `java.text.Format` **per argument index**, distinguish argument indices from placeholder appearance order, select locales, and handle `LocalDate`/`LocalDateTime`/`Instant` in three ways: **pre-formatting into a string**, **using `DateTimeFormatter.toFormat()`**, or **converting to `java.util.Date` when interoperability with legacy APIs is truly required**. The programs run on Java 17 and later; the `MessageFormat` syntax covered is what is available on **Java 17 and Java 21**, avoiding reliance on extensions from newer JDKs.
 
-## 1. Nhắc lại vị trí của MessageFormat
+## 1. Recap: Where MessageFormat Fits
 
-Một `MessageFormat` nhận **pattern** chứa các mục như `{0}`, `{1,number}`, `{2,date,short}` và một mảng đối số. Số trong dấu ngoặc nhọn là **argument index**, bắt đầu từ 0; nó trỏ vào mảng truyền cho `format(...)`.
+A `MessageFormat` takes a **pattern** containing items like `{0}`, `{1,number}`, `{2,date,short}` and an array of arguments. The number inside curly braces is the **argument index**, starting from 0; it points into the array passed to `format(...)`.
 
 ```java
 import java.text.MessageFormat;
@@ -18,58 +18,58 @@ MessageFormat message = new MessageFormat(
 String text = message.format(new Object[] {"Lan", 5});
 ```
 
-Đây là **fragment trong một phương thức**, không phải file chạy độc lập. Giá trị `text` là:
+This is a **fragment inside a method**, not a standalone runnable file. The value of `text` is:
 
 ```text
 Hello Lan, you have 5 items.
 ```
 
-Thông thường, `MessageFormat` tự tạo các subformatter cho `number`, `date`, `time` và `choice` theo pattern và locale. Nhưng có lúc lập trình viên cần một `DecimalFormat` riêng, một bộ định dạng mã hóa đơn hàng, hoặc `DateTimeFormatter` cho `LocalDate`. Khi ấy, thay subformatter của **chỉ số đối số** bằng `setFormatByArgumentIndex(...)` là lựa chọn quan trọng.
+Normally, `MessageFormat` automatically creates subformatters for `number`, `date`, `time`, and `choice` according to the pattern and locale. Sometimes, however, developers need a custom `DecimalFormat`, an order-code formatter, or a `DateTimeFormatter` for `LocalDate`. In such cases, replacing the subformatter for a specific **argument index** via `setFormatByArgumentIndex(...)` is essential.
 
-### Hai loại chỉ số rất dễ nhầm
+### Two Easily Confused Index Types
 
-Pattern sau có ba **format element** nhưng chỉ hai **argument index**:
+The following pattern has three **format elements** but only two **argument indices**:
 
 ```text
-Mẫu:        "A={1}; B={0}; C={1}"
-Vị trí 0:   {1}   -> argument index 1
-Vị trí 1:   {0}   -> argument index 0
-Vị trí 2:   {1}   -> argument index 1 (lặp)
+Pattern:      "A={1}; B={0}; C={1}"
+Position 0:   {1}   -> argument index 1
+Position 1:   {0}   -> argument index 0
+Position 2:   {1}   -> argument index 1 (repeated)
 ```
 
-- **Argument index**: số bên trong `{...}`, ví dụ `1` trong `{1}`. Giữ nghĩa của đối số dù bản dịch thay đổi thứ tự các placeholder.
-- **Format-element index**: vị trí xuất hiện 0, 1, 2... của một biểu thức `{...}` khi quét pattern từ trái qua phải. Có thể đổi khi biên dịch viên sắp xếp lại câu.
+- **Argument index**: the number inside `{...}`, such as `1` in `{1}`. Preserves argument meaning even when translations change placeholder order.
+- **Format-element index**: the 0, 1, 2... appearance position of a `{...}` expression when scanning the pattern from left to right. This can change when translators rearrange the sentence.
 
-Đó là lý do không thể tùy tiện thay `setFormatByArgumentIndex(1, ...)` bằng `setFormat(1, ...)`.
+That is why you cannot arbitrarily swap `setFormatByArgumentIndex(1, ...)` for `setFormat(1, ...)`.
 
-## 2. Bốn API gán formatter và ý nghĩa của chúng
+## 2. Four Formatter-Assignment APIs and Their Meanings
 
-| API | Chỉ số tương ứng | Hiệu lực khi chỉ số lặp |
+| API | Corresponding index | Effect when an index repeats |
 | --- | --- | --- |
-| `setFormatByArgumentIndex(int argIndex, Format format)` | **Argument index**, ví dụ số trong `{1}` | Thay formatter của **mọi** format element dùng cùng argument index |
-| `setFormatsByArgumentIndex(Format[] formats)` | Chỉ số của mảng = argument index | Tương tự cho nhiều argument index |
-| `setFormat(int elementIndex, Format format)` | Thứ tự **format element** trong pattern | Chỉ thay một lần xuất hiện cụ thể |
-| `setFormats(Format[] formats)` | Thứ tự các format element trong pattern | Mỗi phần tử tác động đến một vị trí xuất hiện |
+| `setFormatByArgumentIndex(int argIndex, Format format)` | **Argument index**, e.g., the number in `{1}` | Replaces the formatter for **every** format element using that argument index |
+| `setFormatsByArgumentIndex(Format[] formats)` | Array index = argument index | Same, across multiple argument indices |
+| `setFormat(int elementIndex, Format format)` | Position of the **format element** in the pattern | Replaces only one specific occurrence |
+| `setFormats(Format[] formats)` | Positions of format elements in the pattern | Each array element affects one appearance position |
 
-Hãy ưu tiên `setFormatByArgumentIndex` hoặc `setFormatsByArgumentIndex` khi **một đối số có một quy tắc định dạng thống nhất**, đặc biệt nếu các câu được dịch có thứ tự placeholder khác nhau.
+Prefer `setFormatByArgumentIndex` or `setFormatsByArgumentIndex` whenever **an argument has one uniform formatting rule**, especially if translated sentences have different placeholder orders.
 
-Vẫn có trường hợp hợp lý để dùng `setFormat(elementIndex, ...)`: cùng một đối số phải xuất hiện ở hai chỗ theo **hai cách diễn đạt khác nhau**, ví dụ ngày ở tiêu đề dạng ngắn và trong phần nội dung dạng dài. Khi ấy bạn cần cố tình định dạng **từng lần xuất hiện**, nhưng phải hiểu rằng việc biên dịch viên đổi cấu trúc câu có thể thay đổi thứ tự element.
+There is still a valid reason to use `setFormat(elementIndex, ...)`: when the same argument must appear in two places with **two different representations**, such as a short date in a heading and a long date in the body. In that case you intentionally format **each occurrence**, while recognizing that translator edits to sentence structure can change element order.
 
-### `Format` là kiểu gì?
+### What Type Is `Format`?
 
-Các phương thức này nhận `java.text.Format` hoặc subclass; ví dụ:
+These methods accept `java.text.Format` or a subclass; for example:
 
-- `NumberFormat`: số, tỷ lệ, tiền tệ; có thể chọn locale và currency tường minh.
-- `DecimalFormat`: mẫu số như `"0000"`, `"#,##0.00"`.
-- `DateFormat`/`SimpleDateFormat`: định dạng kiểu `java.util.Date` và API tương thích.
-- `ChoiceFormat`: nhánh theo giá trị số trong mẫu câu đơn giản.
-- Một adapter dạng `Format` tạo từ `DateTimeFormatter.toFormat()`: giúp nhận đối tượng `java.time.temporal.TemporalAccessor` trong Java 17/21.
+- `NumberFormat`: numbers, percentages, currencies; supports explicit locale and currency selection.
+- `DecimalFormat`: numeric patterns such as `"0000"`, `"#,##0.00"`.
+- `DateFormat`/`SimpleDateFormat`: formats `java.util.Date` and compatible legacy types.
+- `ChoiceFormat`: branches by numeric value in simple sentence patterns.
+- A `Format` adapter created via `DateTimeFormatter.toFormat()`: accepts `java.time.temporal.TemporalAccessor` objects in Java 17/21.
 
-**Chú ý:** `DateTimeFormatter` không phải subclass của `java.text.Format`. Không thể truyền trực tiếp `DateTimeFormatter.ISO_LOCAL_DATE` vào `setFormatByArgumentIndex`; phải dùng `toFormat()` hoặc một chiến lược chuyển đổi khác.
+**Note:** `DateTimeFormatter` is not a subclass of `java.text.Format`. You cannot pass `DateTimeFormatter.ISO_LOCAL_DATE` directly to `setFormatByArgumentIndex`; you must use `toFormat()` or another conversion strategy.
 
-## 3. Ví dụ chạy được: đặt formatter theo argument index
+## 3. Runnable Example: Assigning Formatters by Argument Index
 
-Tạo file **`ArgumentFormatDemo.java`**:
+Create the file **`ArgumentFormatDemo.java`**:
 
 ```java
 import java.text.DecimalFormat;
@@ -103,7 +103,7 @@ public class ArgumentFormatDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 ArgumentFormatDemo.java
@@ -117,32 +117,32 @@ Order=AB, qty=0007, repeat=0007
 One=007; plain=7; again=7
 ```
 
-**Giải thích dòng 1:** hai placeholder `{0}` dùng cùng đối số `7`, nên `setFormatByArgumentIndex(0, quantity)` biến **cả hai** thành `0007`. Vị trí của `{0}` trong câu không quan trọng.
+**Line 1 explanation:** both `{0}` placeholders use the same argument `7`, so `setFormatByArgumentIndex(0, quantity)` formats **both** as `0007`. Where `{0}` appears in the sentence does not matter.
 
-**Giải thích dòng 2:** `setFormat(0, padded)` chỉ thay **format element đầu tiên** của mẫu, chính là `{1}` đứng trong `One=...`. Lần xuất hiện thứ hai của `{1}` trong `again=...` vẫn theo định dạng mặc định, cho giá trị `7`. Việc đưa `1` vào `setFormat(0, ...)` không có nghĩa là “gán cho argument index 0”.
+**Line 2 explanation:** `setFormat(0, padded)` only replaces the **first format element** of the pattern, which is `{1}` inside `One=...`. The second occurrence of `{1}` in `again=...` keeps its default formatting, yielding `7`. Passing `0` to `setFormat(0, ...)` does not mean "assign to argument index 0".
 
-### Nếu bản dịch đảo trật tự placeholder thì sao?
+### What If a Translation Reorders Placeholders?
 
-Giả sử tiếng Anh dùng `"Qty={0}; code={1}"` còn tiếng Việt dùng `"Mã {1}; số lượng {0}"`. Với `setFormatByArgumentIndex(0, quantity)`, số lượng được định dạng như nhau dù vị trí xuất hiện trong câu khác nhau. Với `setFormat(0, quantity)`, format element đầu tiên của bản dịch tiếng Việt lại là `{1}` (mã hàng), có thể dẫn tới lỗi kiểu hoặc hiển thị sai.
+Suppose English uses `"Qty={0}; code={1}"` while Vietnamese uses `"Mã {1}; số lượng {0}"`. With `setFormatByArgumentIndex(0, quantity)`, the quantity is formatted identically regardless of its sentence position. With `setFormat(0, quantity)`, the first format element of the Vietnamese translation is `{1}` (the item code), which can cause a type error or incorrect display.
 
-Đó là lý do các API dựa trên **argument index** là lựa chọn mặc định phù hợp khi dữ liệu thông điệp đến từ nhiều `ResourceBundle`.
+That is why APIs based on **argument index** are the right default choice when message patterns come from multiple `ResourceBundle` files.
 
-## 4. Gán nhiều formatter bằng mảng
+## 4. Assigning Multiple Formatters with an Array
 
-`setFormatsByArgumentIndex(new Format[] {...})` cho phép gán quy tắc cho nhiều chỉ số:
+`setFormatsByArgumentIndex(new Format[] {...})` lets you assign rules for multiple indices:
 
 ```java
 Format[] formats = {
-    null,        // argument 0: không gán subformat tường minh
+    null,        // argument 0: no explicit subformat assigned
     null,        // argument 1
     priceFormat  // argument 2
 };
 message.setFormatsByArgumentIndex(formats);
 ```
 
-Đây chỉ là **fragment**: `message` và `priceFormat` cần được khai báo ở ngữ cảnh chứa nó. Các vị trí trong mảng lần lượt là argument 0, 1, 2. Với một argument không xuất hiện trong pattern, phần tử tương ứng bị bỏ qua; với số phần tử ít hơn số argument được dùng, các chỉ số còn lại giữ nguyên format hiện có. Giá trị `null` là không dùng subformat chỉ định cho vị trí đó (lúc định dạng, `MessageFormat` dùng hành vi mặc định theo kiểu đối số).
+This is just a **fragment**: `message` and `priceFormat` must be declared in the enclosing context. Array positions correspond to arguments 0, 1, and 2, respectively. For an argument that does not appear in the pattern, its entry is ignored; if the array has fewer elements than arguments used, remaining indices keep their current formats. A `null` entry means no explicit subformat is assigned for that slot (when formatting, `MessageFormat` uses default behavior based on the argument type).
 
-**Chương trình chạy được — `MultipleFormatsDemo.java`:**
+**Runnable program — `MultipleFormatsDemo.java`:**
 
 ```java
 import java.text.DecimalFormat;
@@ -179,17 +179,17 @@ Stdout:
 Price=12.50; item=Notebook; again=12.50
 ```
 
-`setFormats(...)` dùng **thứ tự xuất hiện** của `{2}`, `{0}`, `{2}`. Vì hai `{2}` lặp lại, việc dùng mảng theo argument index giúp tránh đặt nhầm formatter hoặc bỏ sót một lần xuất hiện.
+`setFormats(...)` uses the **appearance order** of `{2}`, `{0}`, `{2}`. Because `{2}` repeats, passing an array indexed by argument index avoids misplacing formatters or missing an occurrence.
 
-### Đọc lại cấu hình formatter
+### Reading Back Formatter Configuration
 
-- `getFormatsByArgumentIndex()` trả mảng đánh chỉ số theo **argument index**. Nếu cùng một argument xuất hiện nhiều lần với formatter khác nhau, phần tử trả về tương ứng **lần xuất hiện cuối** của argument đó, vì một ô mảng không thể mô tả mọi sự khác biệt.
-- `getFormats()` trả mảng theo **format-element index**, đủ để phân biệt các lần xuất hiện riêng.
-- Hai API này phục vụ kiểm tra cấu hình, nhưng khi lập trình hãy lưu cả **pattern gốc** và ý định formatter, vì việc gọi `applyPattern(...)` có thể thay thế các subformatter đã gán.
+- `getFormatsByArgumentIndex()` returns an array indexed by **argument index**. If the same argument appears multiple times with different formatters, the returned slot reflects the **last occurrence** of that argument, because one array slot cannot represent all variations.
+- `getFormats()` returns an array indexed by **format-element index**, which distinguishes individual occurrences.
+- Both APIs are useful for inspecting configuration, though in application code you should keep track of both the **source pattern** and intended formatters, because calling `applyPattern(...)` can replace previously assigned subformatters.
 
-## 5. Locale của MessageFormat và locale của formatter con
+## 5. MessageFormat Locale vs. Component Formatter Locale
 
-`new MessageFormat(pattern, locale)` chọn locale cho các subformat được tạo từ pattern như `{0,number}` và `{1,date,short}`. Nếu bạn gán một `DecimalFormat` hoặc `DateFormat` **do chính mình tạo**, nó giữ locale/cấu hình của **đối tượng formatter ấy**, không tự chuyển sang locale của `MessageFormat`.
+`new MessageFormat(pattern, locale)` selects the locale for subformats created from patterns like `{0,number}` and `{1,date,short}`. If you attach a `DecimalFormat` or `DateFormat` **created by yourself**, it keeps the locale/configuration of **that formatter object**, rather than automatically switching to `MessageFormat`'s locale.
 
 ```java
 Locale uiLocale = Locale.forLanguageTag("vi-VN");
@@ -203,23 +203,23 @@ DecimalFormat numeric =
 message.setFormatByArgumentIndex(0, numeric);
 ```
 
-Đoạn trên là **fragment Java**, với `import` phù hợp. Nó có ý nghĩa: mẫu thông điệp được chuẩn bị cho ngôn ngữ giao diện `vi-VN`, nhưng đối số số dùng quy ước số do `numericLocale` kiểm soát. Nếu muốn số cũng theo `vi-VN`, tạo `DecimalFormatSymbols.getInstance(uiLocale)`.
+The snippet above is a **Java fragment** with appropriate imports. Its meaning: the message pattern is prepared for the `vi-VN` UI language, while the numeric argument uses number conventions controlled by `numericLocale`. If you want numbers to follow `vi-VN` as well, create `DecimalFormatSymbols.getInstance(uiLocale)`.
 
-**`setLocale(Locale)` không cập nhật lại các subformatter đã được tạo trước đó**. Nó tác động đến subformatter được tạo trong các lần `applyPattern(...)` về sau và một số trường hợp định dạng chưa có subformat. Cần tạo lại `MessageFormat` hoặc gán lại formatter con khi thay đổi locale của request.
+**`setLocale(Locale)` does not update previously created subformatters.** It affects subformatters created by subsequent `applyPattern(...)` calls and certain formatting cases without a fixed subformat. Recreate `MessageFormat` or re-attach subformatters when the request locale changes.
 
-**`applyPattern(...)` phân tích mẫu và xây dựng lại tập format element**, vì thế một formatter tùy chỉnh đã được gán bằng `setFormatByArgumentIndex(...)` có thể mất sau khi áp dụng mẫu khác. Trình tự nên dùng là:
+**`applyPattern(...)` parses the pattern and rebuilds the format elements**, so a custom formatter previously attached via `setFormatByArgumentIndex(...)` can be lost after applying another pattern. The recommended order is:
 
-1. Lấy **pattern đúng locale** từ tài nguyên dịch.
-2. Tạo `MessageFormat(pattern, locale)`.
-3. Tạo subformatter với locale/tiền tệ/múi giờ phù hợp.
-4. Gán formatter theo **argument index**.
-5. Gọi `format(new Object[] {...})` với các giá trị đúng kiểu.
+1. Load the **locale-appropriate pattern** from translation resources.
+2. Construct `MessageFormat(pattern, locale)`.
+3. Create subformatters with the appropriate locale/currency/time zone.
+4. Assign formatters by **argument index**.
+5. Call `format(new Object[] {...})` with values of the expected types.
 
-Không thiết kế một formatter toàn cục rồi liên tục thay `setLocale` hoặc `applyPattern` khi các request chạy song song.
+Never design a global formatter and repeatedly call `setLocale` or `applyPattern` while requests run concurrently.
 
-## 6. Vấn đề lớn với java.time trên Java 17 và Java 21
+## 6. The Big Issue with `java.time` on Java 17 and Java 21
 
-Cú pháp cổ điển của `MessageFormat` cho ngày và giờ là:
+The classic `MessageFormat` syntax for dates and times is:
 
 ```text
 {0,date}
@@ -228,19 +228,19 @@ Cú pháp cổ điển của `MessageFormat` cho ngày và giờ là:
 {2,date,yyyy-MM-dd}
 ```
 
-Trên **Java 17 và Java 21**, các mục kiểu `date`/`time` trên tạo `java.text.DateFormat` hoặc `SimpleDateFormat`. Chúng hiểu những kiểu đầu vào của API ngày giờ cũ, đặc biệt `java.util.Date`, nhưng **không chấp nhận `LocalDate`/`LocalDateTime`/`Instant` như một `java.util.Date`**.
+On **Java 17 and Java 21**, these `date`/`time` elements create `java.text.DateFormat` or `SimpleDateFormat`. They understand legacy date/time input types, particularly `java.util.Date`, but **do not accept `LocalDate`/`LocalDateTime`/`Instant` as a `java.util.Date`**.
 
-| Giá trị đầu vào | `{0}` không gán subformat | `{0,date,short}` trên Java 17/21 |
+| Input value | `{0}` without a subformat | `{0,date,short}` on Java 17/21 |
 | --- | --- | --- |
-| `java.util.Date` | `MessageFormat` dùng định dạng ngày/giờ mặc định cho đối số Date | Định dạng qua `DateFormat` |
-| `LocalDate` | Thường thành chuỗi qua `toString()`; ví dụ `2026-10-28` | Thường ném `IllegalArgumentException` vì không phải kiểu `Date` |
-| `LocalDateTime` | Chuỗi `toString()`, không có địa chỉ múi giờ | Không được `DateFormat` hỗ trợ trực tiếp |
-| `Instant` | Chuỗi `toString()` như `2026-10-28T...Z` | Không được `DateFormat` hỗ trợ trực tiếp |
-| `ZonedDateTime` | Chuỗi `toString()` có thông tin vùng/offset | Không được `DateFormat` hỗ trợ trực tiếp |
+| `java.util.Date` | `MessageFormat` uses default date/time formatting for Date arguments | Formatted via `DateFormat` |
+| `LocalDate` | Usually becomes a string via `toString()`; e.g., `2026-10-28` | Typically throws `IllegalArgumentException` because it is not a `Date` |
+| `LocalDateTime` | `toString()` string, without time zone info | Not directly supported by `DateFormat` |
+| `Instant` | `toString()` string like `2026-10-28T...Z` | Not directly supported by `DateFormat` |
+| `ZonedDateTime` | `toString()` string with zone/offset info | Not directly supported by `DateFormat` |
 
-**Không nhầm `toString()` với localize:** khi pattern chỉ có `{0}`, việc thấy `LocalDate` được in thành `2026-10-28` không có nghĩa là `MessageFormat` đã áp dụng quy tắc ngày của người dùng. Đó chỉ là cách biểu diễn mặc định của đối tượng. Nếu cần tên tháng hoặc thứ tự ngày/tháng theo locale, phải dùng `DateTimeFormatter` phù hợp.
+**Do not confuse `toString()` with localization:** when a pattern only has `{0}`, seeing `LocalDate` printed as `2026-10-28` does not mean `MessageFormat` applied the user's date conventions. That is merely the object's default string representation. If you need localized month names or day/month order, you must use an appropriate `DateTimeFormatter`.
 
-### Ví dụ chứng minh khác biệt — `JavaTimeLimitationDemo.java`
+### Example Demonstrating the Difference — `JavaTimeLimitationDemo.java`
 
 ```java
 import java.text.MessageFormat;
@@ -274,20 +274,20 @@ javac -encoding UTF-8 JavaTimeLimitationDemo.java
 java JavaTimeLimitationDemo
 ```
 
-Stdout trên Java 17/21:
+Stdout on Java 17/21:
 
 ```text
 Raw=2026-10-28
 Date type rejected: IllegalArgumentException
 ```
 
-Dòng đầu là `LocalDate.toString()`, dòng thứ hai là lỗi khi `DateFormat` được chọn cho placeholder. Không nên “sửa” bằng cách ép kiểu `(java.util.Date) localDate`: đây là các hệ kiểu khác nhau, ép kiểu trực tiếp không hợp lệ.
+The first line is `LocalDate.toString()`, and the second is the error when `DateFormat` is selected for the placeholder. Do not try to "fix" this by casting `(java.util.Date) localDate`: these are unrelated type hierarchies, and a direct cast is invalid.
 
-**Lưu ý phiên bản:** các JDK mới hơn có thể bổ sung cú pháp MessageFormat tương tác trực tiếp với `DateTimeFormatter`. Không suy diễn cú pháp mới đó đã có trong **Java 17/21**. Bài này tập trung các giải pháp thực sự dùng được ở baseline Java 17+ phổ biến.
+**Version note:** newer JDKs may introduce `MessageFormat` syntax that interacts directly with `DateTimeFormatter`. Do not assume that new syntax exists in **Java 17/21**. This lesson focuses on solutions that actually work on the common Java 17+ baseline.
 
-## 7. Cách 1 — Định dạng java.time trước rồi truyền String
+## 7. Approach 1 — Pre-format `java.time` and Pass a String
 
-Cách đơn giản, dễ kiểm soát nhất khi mẫu câu chỉ cần **một cách hiển thị** của ngày: dùng `DateTimeFormatter` để chuyển đối tượng thời gian thành chuỗi, sau đó để `MessageFormat` chèn chuỗi vào `{0}`.
+The simplest, most controllable approach when a sentence pattern only needs **one date representation**: use `DateTimeFormatter` to convert the temporal object into a string, then let `MessageFormat` insert that string into `{0}`.
 
 **File `PreformatJavaTimeDemo.java`:**
 
@@ -326,27 +326,27 @@ Stdout:
 Meeting date: 2026-10-28
 ```
 
-Nếu muốn bản địa hóa, thay `ISO_LOCAL_DATE` bằng:
+To localize, replace `ISO_LOCAL_DATE` with:
 
 ```java
-// Fragment trong một phương thức đã import các lớp liên quan.
+// Fragment inside a method with the relevant classes imported.
 DateTimeFormatter local = DateTimeFormatter
         .ofLocalizedDate(java.time.format.FormatStyle.LONG)
         .withLocale(Locale.forLanguageTag("vi-VN"));
 String prepared = date.format(local);
 ```
 
-Văn bản `prepared` khi đó phụ thuộc dữ liệu locale của JDK, nên không nên dùng một chuỗi ngày cụ thể làm stdout bất biến trên mọi môi trường.
+The `prepared` text then depends on JDK locale data, so avoid asserting a hardcoded localized date string as invariant stdout across all environments.
 
-**Ưu điểm:** thao tác rõ ràng, tận dụng API `java.time` immutable, dễ xử lý `LocalDate`, `LocalTime`, `LocalDateTime`. **Giới hạn:** khi một bản dịch cần cùng đối số ngày xuất hiện **hai lần với hai định dạng khác nhau**, bạn phải tạo hai chuỗi hoặc dùng adapter; dịch giả nên biết tham số đã được định dạng.
+**Pros:** explicit steps, leverages immutable `java.time` APIs, easily handles `LocalDate`, `LocalTime`, and `LocalDateTime`. **Limitation:** when a translation needs the same date argument to appear **twice in two different formats**, you must prepare two strings or use an adapter; translators should know the parameter is already formatted.
 
-**Quan trọng:** không dùng một pattern như `"{0,date}"` cho đối số đã là `String`: subformat `DateFormat` vẫn mong giá trị ngày kiểu cũ và có thể báo lỗi. Với chuỗi chuẩn bị sẵn, pattern phải dùng `{0}`.
+**Important:** never use a pattern like `"{0,date}"` for an argument that is already a `String`: the `DateFormat` subformat still expects a legacy date value and may throw an error. With a pre-formatted string, the pattern must use `{0}`.
 
-## 8. Cách 2 — DateTimeFormatter.toFormat() để gán formatter con
+## 8. Approach 2 — `DateTimeFormatter.toFormat()` to Attach a Subformatter
 
-`DateTimeFormatter` không kế thừa `java.text.Format`, nhưng có phương thức **`toFormat()`** và **`toFormat(TemporalQuery<?>)`** trả về adapter `Format`. Adapter này nhận các đối tượng triển khai `TemporalAccessor` khi định dạng, bao gồm `LocalDate`; đây là cầu nối trực tiếp để dùng `setFormatByArgumentIndex` trong Java 17/21.
+`DateTimeFormatter` does not extend `java.text.Format`, but it provides **`toFormat()`** and **`toFormat(TemporalQuery<?>)`**, which return a `Format` adapter. This adapter accepts objects implementing `TemporalAccessor` when formatting, including `LocalDate`; this is the direct bridge for using `setFormatByArgumentIndex` in Java 17/21.
 
-**Ví dụ chạy độc lập — `JavaTimeFormatBridgeDemo.java`:**
+**Standalone runnable example — `JavaTimeFormatBridgeDemo.java`:**
 
 ```java
 import java.text.Format;
@@ -385,24 +385,24 @@ Stdout:
 Planned=2026-10-28; repeated=2026-10-28
 ```
 
-**Cách hoạt động:**
+**How it works:**
 
-1. `DateTimeFormatter.ISO_LOCAL_DATE` biết định dạng `LocalDate` thành một ngày ISO.
-2. `toFormat(LocalDate::from)` trả một `java.text.Format` tương thích với setter của `MessageFormat`. Khi **parse** ngược, query giúp nhận một `LocalDate` thay vì một `TemporalAccessor` tổng quát.
-3. `setFormatByArgumentIndex(0, adapter)` gán adapter cho **cả hai** placeholder `{0}`.
-4. Đối số vẫn là **`LocalDate`**, không cần chuyển sang `java.util.Date` hoặc sang chuỗi trước.
+1. `DateTimeFormatter.ISO_LOCAL_DATE` knows how to format a `LocalDate` into an ISO date.
+2. `toFormat(LocalDate::from)` returns a `java.text.Format` compatible with `MessageFormat` setters. When **parsing** back, the query produces a `LocalDate` instead of a generic `TemporalAccessor`.
+3. `setFormatByArgumentIndex(0, adapter)` attaches the adapter to **both** `{0}` placeholders.
+4. The argument stays a **`LocalDate`**, without needing conversion to `java.util.Date` or a string beforehand.
 
-Có thể dùng `DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(uiLocale).toFormat()` để định dạng ngày theo locale người dùng. Khi dùng formatter chứa trường giờ, phải cung cấp kiểu temporal đủ trường. Ví dụ một `LocalDate` **không có giờ** nên sẽ thất bại nếu formatter yêu cầu giờ; `LocalDateTime` **không có offset/zone** nên không thể tự biểu diễn instant toàn cầu nếu thiếu `ZoneId`.
+You can use `DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(uiLocale).toFormat()` to format dates according to the user's locale. When using a formatter containing time fields, you must supply a temporal type with all required fields. For instance, a `LocalDate` **has no time-of-day** and will fail if the formatter requires hours; a `LocalDateTime` **has no offset/zone** and cannot represent a global instant without a `ZoneId`.
 
-### Khi parse ngược thì sao?
+### What About Reverse Parsing?
 
-`toFormat()` không tham số thường parse ra `TemporalAccessor` đã resolve; `toFormat(LocalDate::from)` yêu cầu lấy `LocalDate`. Trong ứng dụng thông điệp, `MessageFormat` chủ yếu dùng để **format**; việc parse trở lại từ câu văn được dịch dễ mơ hồ và không phù hợp làm API nhập dữ liệu quan trọng. Nếu cần parse ngày, dùng `LocalDate.parse(input, dateFormatter)` trực tiếp, với formatter và locale đã biết.
+No-argument `toFormat()` typically parses into a resolved `TemporalAccessor`; `toFormat(LocalDate::from)` requests a `LocalDate`. In messaging applications, `MessageFormat` is primarily used for **formatting**; parsing back from translated prose sentences is ambiguous and unsuitable as a critical data-input API. If you need to parse dates, call `LocalDate.parse(input, dateFormatter)` directly with a known formatter and locale.
 
-## 9. Cách 3 — Chuyển sang java.util.Date khi phải dùng DateFormat cũ
+## 9. Approach 3 — Converting to `java.util.Date` When Legacy `DateFormat` Is Required
 
-Với một hệ thống legacy vốn có `DateFormat` hoặc `SimpleDateFormat` đã được cấu hình, bạn có thể chuyển đối tượng `java.time` sang `java.util.Date` **sau khi xác định rõ instant và múi giờ**.
+In a legacy system that already has a configured `DateFormat` or `SimpleDateFormat`, you can convert `java.time` objects to `java.util.Date` **after explicitly determining the instant and time zone**.
 
-**Không có chuyển đổi trực tiếp từ `LocalDate` sang `Date` mà không có lựa chọn vùng**, vì `LocalDate` chỉ là ngày trên lịch, không có giờ và timezone. Một ngày `2026-10-28` ở đầu ngày tại `Asia/Ho_Chi_Minh` ứng với instant khác đầu ngày tại `UTC`.
+**There is no direct conversion from `LocalDate` to `Date` without choosing a zone**, because `LocalDate` is strictly a calendar date without time-of-day or time zone. The date `2026-10-28` at start-of-day in `Asia/Ho_Chi_Minh` corresponds to a different instant than start-of-day in `UTC`.
 
 **File `LegacyDateBridgeDemo.java`:**
 
@@ -448,17 +448,17 @@ Stdout:
 Legacy=2026-10-28
 ```
 
-Kết quả ổn định vì cả **bước chuyển `LocalDate` sang instant** và **`SimpleDateFormat`** đều dùng UTC. Nếu bỏ `setTimeZone(...)`, formatter có thể diễn giải `Date` theo timezone mặc định của JVM và làm ngày hiển thị lệch trong một số môi trường.
+The output is stable because both **the `LocalDate`-to-instant step** and **`SimpleDateFormat`** use UTC. If you omit `setTimeZone(...)`, the formatter may interpret the `Date` in the JVM's default time zone and shift the displayed date in some environments.
 
-Khi đã có `Instant`, có thể dùng `Date.from(instant)` vì cả hai đại diện cho một thời điểm. Khi đã có `LocalDateTime`, hãy chọn `ZoneId` theo ý nghĩa nghiệp vụ rồi tạo `ZonedDateTime`/`Instant` trước khi chuyển. **Đừng dùng múi giờ server như một quyết định ngầm** nếu ngày giờ gắn với vị trí hoặc người dùng cụ thể.
+When you already have an `Instant`, you can use `Date.from(instant)` since both represent an instant in time. When you have a `LocalDateTime`, choose the business-appropriate `ZoneId` to construct a `ZonedDateTime`/`Instant` before converting. **Never treat the server's time zone as an implicit default** when date/time belongs to a specific location or user.
 
-**Đánh đổi:** cách này thích hợp để tương tác hệ thống cũ; với code mới, `DateTimeFormatter.toFormat()` hoặc định dạng trước thường ít bước và ít rủi ro nhầm timezone hơn. `SimpleDateFormat` có trạng thái mutable và không an toàn khi nhiều thread gọi đồng thời mà không bảo vệ.
+**Trade-off:** this approach fits interoperating with legacy code; for new code, `DateTimeFormatter.toFormat()` or pre-formatting usually takes fewer steps and carries less risk of time-zone bugs. `SimpleDateFormat` holds mutable state and is unsafe when called concurrently by multiple threads without protection.
 
-## 10. Lỗi kỹ thuật khi đặt formatter
+## 10. Technical Pitfalls When Assigning Formatters
 
-### A. Truyền sai kiểu đối số
+### A. Passing the Wrong Argument Type
 
-Subformat được chỉ định là `NumberFormat` thì đối số phải là số phù hợp; `DateFormat` đòi giá trị ngày hỗ trợ; adapter `DateTimeFormatter` nhận `TemporalAccessor` có đủ trường cần thiết. Ví dụ:
+If the specified subformat is a `NumberFormat`, the argument must be a compatible number; `DateFormat` requires a supported date value; a `DateTimeFormatter` adapter accepts a `TemporalAccessor` with the required fields. For example:
 
 ```java
 MessageFormat form = new MessageFormat(
@@ -468,59 +468,59 @@ form.format(new Object[] {
 });
 ```
 
-Đây là đoạn mã **minh họa lỗi trên Java 17/21**, không phải ví dụ để chạy thành công: `DateFormat` từ mẫu `date` nhận `LocalDate` sai kiểu, thường phát sinh `IllegalArgumentException`. Cách sửa là dùng một trong ba giải pháp ở trên.
+This snippet **illustrates an error on Java 17/21**, not a working example: the `DateFormat` created by the `date` pattern receives an incompatible `LocalDate`, typically throwing `IllegalArgumentException`. The fix is to use one of the three approaches above.
 
-### B. Dùng chỉ số element trong nội dung dịch
+### B. Using Element Indices on Translated Content
 
-`setFormat(0, ...)` gán cho placeholder **đầu tiên trong câu**, không hẳn argument `0`. Câu của hai ngôn ngữ có thể đảo thứ tự. Hãy ưu tiên `setFormatByArgumentIndex(0, ...)` khi cùng đối số cần một formatter.
+`setFormat(0, ...)` assigns to the **first placeholder in the sentence**, not necessarily argument `0`. Sentences in two languages can swap their order. Prefer `setFormatByArgumentIndex(0, ...)` whenever the same argument needs one formatter.
 
-### C. Một argument được định dạng nhiều cách
+### C. Formatting One Argument in Multiple Ways
 
-Nếu pattern chứa `"{0,date,short} ... {0,date,long}"`, gọi `setFormatByArgumentIndex(0, custom)` sẽ thay **cả hai subformatter**, làm mất sự khác biệt ngắn/dài. Khi cần chủ đích hai định dạng, có thể truyền **hai đối số** đã chuẩn bị sẵn (ví dụ `{0}` cho ngày ngắn và `{1}` cho ngày dài), hoặc gán theo từng **element index** với kiểm thử bản dịch.
+If a pattern contains `"{0,date,short} ... {0,date,long}"`, calling `setFormatByArgumentIndex(0, custom)` replaces **both subformatters**, erasing the short/long distinction. When two formats are intentionally needed, you can pass **two pre-prepared arguments** (e.g., `{0}` for the short date and `{1}` for the long date), or assign by **element index** with translation tests.
 
-### D. `applyPattern` làm thay đổi custom formatter
+### D. `applyPattern` Resets Custom Formatters
 
-`applyPattern(...)` phân tích lại pattern và tạo tập format element tương ứng. Nếu code gán custom formatter trước rồi mới áp dụng bản dịch, formatter có thể mất tác dụng. Hãy **chọn pattern trước, gán format sau**; đổi locale thì tạo `MessageFormat` mới hoặc gán lại format đúng ngữ cảnh.
+`applyPattern(...)` re-parses the pattern and creates a fresh set of format elements. If code assigns custom formatters first and applies the translation pattern afterward, those formatters can be lost. Always **select the pattern first, attach formats afterward**; when changing locale, create a new `MessageFormat` or re-attach formats for the new context.
 
-### E. Dùng `setLocale` như một lệnh cập nhật tất cả formatter
+### E. Treating `setLocale` as a Command to Update All Formatters
 
-`message.setLocale(newLocale)` không tự cập nhật subformatter đã được tạo. `DecimalFormat`, `DateFormat` và adapter `DateTimeFormatter` mà bạn gán vào giữ cấu hình riêng của chúng. Nếu cần thay locale, hãy dựng lại cấu hình từ đầu.
+`message.setLocale(newLocale)` does not automatically update previously created subformatters. `DecimalFormat`, `DateFormat`, and `DateTimeFormatter` adapters that you attached retain their own settings. If you need to change locale, rebuild the configuration from scratch.
 
-### F. Chia sẻ MessageFormat giữa các thread
+### F. Sharing MessageFormat Across Threads
 
-`MessageFormat` không đồng bộ; nhiều subformatter như `NumberFormat` và `SimpleDateFormat` có trạng thái thay đổi được. Trong web server, nên tạo instance theo mỗi lần render/request hoặc bảo vệ việc dùng instance chia sẻ theo thiết kế. Tránh ghi `setFormatByArgumentIndex` trên một đối tượng đang được các request khác dùng.
+`MessageFormat` is unsynchronized; many subformatters such as `NumberFormat` and `SimpleDateFormat` have mutable state. In a web server, create instances per render/request or guard shared usage by design. Avoid calling `setFormatByArgumentIndex` on an object actively used by other requests.
 
-### G. Quên dấu nháy đơn và ngoặc nhọn trong pattern
+### G. Forgetting Single Quotes and Braces in Patterns
 
-Trong pattern `MessageFormat`, dấu nháy đơn `'` có tác dụng quote cú pháp; muốn hiển thị dấu nháy đơn thật, thường phải viết `''`. Các dấu `{`/`}` trong văn bản không phải placeholder cần được quote đúng cách. Khi lấy pattern từ `ResourceBundle`, biên dịch viên phải biết đây là chuỗi được `MessageFormat` diễn giải; ký tự quote sai có thể khiến placeholder không được thay.
+In `MessageFormat` patterns, the single quote `'` acts as syntactic quoting; to display a real single quote, you usually must write `''`. Literal `{`/`}` characters in prose that are not placeholders must be properly quoted. When loading patterns from `ResourceBundle`, translators must know these strings are parsed by `MessageFormat`; incorrect quoting can prevent placeholders from being substituted.
 
-### H. Dùng `MessageFormat.parse` để tái tạo dữ liệu nghiệp vụ
+### H. Using `MessageFormat.parse` to Reconstruct Business Data
 
-`format` không luôn đảo ngược được. Nếu cùng argument xuất hiện nhiều lần, `parse` có thể lấy kết quả **lần khớp cuối**. Đơn vị tiền, múi giờ, locale và định dạng hiển thị còn có thể làm mất thông tin. Đầu vào cần dữ liệu có cấu trúc nên dùng parser chuyên biệt (`LocalDate.parse`, `NumberFormat.parse` với kiểm tra toàn bộ đầu vào, v.v.), không dựa vào parsing từ câu giao diện.
+`format` is not always invertible. If the same argument appears multiple times, `parse` may return only the **last match**. Currency units, time zones, locales, and display formatting can also lose precision. Inputs requiring structured data should use dedicated parsers (`LocalDate.parse`, `NumberFormat.parse` with full-input validation, etc.) rather than parsing UI sentences.
 
-## 11. Ví dụ ghép thông điệp từ ResourceBundle với formatter cho từng đối số
+## 11. Example: Assembling a ResourceBundle Message with Per-Argument Formatters
 
-Trong sản phẩm bản địa hóa, **câu chữ thuộc bundle**, dữ liệu thuộc code và formatter thuộc ngữ cảnh định dạng. Có thể dùng một key chứa placeholder trong `messages.properties`:
+In a localized product, **wording belongs to the bundle**, data belongs to the code, and formatters belong to the formatting context. You can define a parameterized key in `messages.properties`:
 
 ```properties
 order.summary=Order {0} has {1} units, ship date {2}.
 ```
 
-Ví dụ `messages_vi.properties`:
+Example `messages_vi.properties`:
 
 ```properties
 order.summary=Đơn {0} có {1} sản phẩm, giao ngày {2}.
 ```
 
-Nếu nguồn thông điệp là bundle, luồng làm việc điển hình gồm:
+When messages come from a bundle, a typical workflow is:
 
-1. Xác định `Locale uiLocale` của người dùng, load bundle qua `ResourceBundle.getBundle(baseName, uiLocale)`.
-2. Lấy pattern bằng `bundle.getString("order.summary")`.
-3. Tạo `MessageFormat(pattern, uiLocale)`.
-4. Gán formatter số cho argument `1` và adapter `DateTimeFormatter` cho argument `2`.
-5. Truyền đối số gồm mã đơn hàng, số lượng và `LocalDate`; nhận về một câu hoàn chỉnh.
+1. Determine the user's `Locale uiLocale`, load the bundle via `ResourceBundle.getBundle(baseName, uiLocale)`.
+2. Retrieve the pattern with `bundle.getString("order.summary")`.
+3. Construct `MessageFormat(pattern, uiLocale)`.
+4. Attach a numeric formatter for argument `1` and a `DateTimeFormatter` adapter for argument `2`.
+5. Pass the arguments—order ID, quantity, and `LocalDate`—and receive a complete sentence.
 
-**Chương trình Java 17+ độc lập** — file `MessageBundleBridgeDemo.java` (mẫu câu được khai báo sẵn để không cần thêm file .properties trong bài thử này):
+**Standalone Java 17+ program** — file `MessageBundleBridgeDemo.java` (the pattern is inline here so no extra `.properties` file is needed for this test):
 
 ```java
 import java.text.DecimalFormat;
@@ -568,66 +568,66 @@ Stdout:
 Order AX-9: 007 units, date 2026-10-28, repeat 2026-10-28
 ```
 
-Đây là ví dụ *nhúng mẫu câu trực tiếp* để chạy riêng. Khi chuyển sang dùng `ResourceBundle` thật, thay biến `pattern` bằng `bundle.getString(key)` và giữ phần gán format theo **argument index**, để bản dịch có thể đổi thứ tự đối số mà không làm sai kiểu dữ liệu. Cách định dạng ngày có thể đổi từ `ISO_LOCAL_DATE` sang `ofLocalizedDate(FormatStyle.MEDIUM).withLocale(uiLocale)` khi UI cần quy ước địa phương; chuỗi ngày khi đó phụ thuộc dữ liệu locale runtime.
+This example embeds the pattern directly for standalone execution. When switching to a real `ResourceBundle`, replace `pattern` with `bundle.getString(key)` and keep assigning formats by **argument index**, so translations can reorder arguments without breaking data types. Date formatting can switch from `ISO_LOCAL_DATE` to `ofLocalizedDate(FormatStyle.MEDIUM).withLocale(uiLocale)` when the UI needs local conventions; the resulting date string then depends on runtime locale data.
 
-## 12. Khả năng định dạng và giới hạn theo từng kiểu java.time
+## 12. Formatting Capabilities and Limits by `java.time` Type
 
-| Kiểu thời gian | Có thể định dạng trước bằng DateTimeFormatter? | Có thể dùng `toFormat()` làm subformatter? | Điểm cần lưu ý |
+| Temporal type | Can pre-format with `DateTimeFormatter`? | Can use `toFormat()` as subformatter? | Key caveats |
 | --- | --- | --- | --- |
-| `LocalDate` | Có, với formatter ngày | Có, nếu formatter chỉ đòi trường ngày | Không có giờ/múi giờ |
-| `LocalTime` | Có, với formatter giờ | Có, nếu chỉ đòi trường giờ | Không có ngày/timezone |
-| `LocalDateTime` | Có, nếu formatter đòi ngày và/hoặc giờ | Có | Không gắn với một instant nếu chưa biết vùng |
-| `OffsetDateTime` | Có, dùng pattern có offset khi cần | Có | Chứa offset nhưng không nhất thiết có region zone |
-| `ZonedDateTime` | Có, gồm vùng/offset nếu formatter yêu cầu | Có | Quy tắc vùng có thể ảnh hưởng kết quả |
-| `Instant` | Có với `DateTimeFormatter.ISO_INSTANT`, hoặc formatter đã được cung cấp zone phù hợp | Có với formatter tương thích | Không tự chứa calendar fields theo vùng nếu formatter chưa có zone |
-| `YearMonth` | Có với pattern `uuuu-MM` | Có với formatter chỉ yêu cầu năm/tháng | Không có ngày trong tháng |
-| `Duration` / `Period` | Không phải đối tượng ngày lịch thông thường cho mọi localized date/time formatter | Không dùng chung `ofLocalizedDate` một cách trực tiếp | Dùng `toString()` hoặc định dạng nghiệp vụ riêng |
+| `LocalDate` | Yes, with a date formatter | Yes, if formatter only requires date fields | Has no time-of-day or time zone |
+| `LocalTime` | Yes, with a time formatter | Yes, if it only requires time fields | Has no date or time zone |
+| `LocalDateTime` | Yes, if formatter requires date and/or time | Yes | Does not specify an instant without a zone |
+| `OffsetDateTime` | Yes, using a pattern with offset when needed | Yes | Has an offset, not necessarily a region zone |
+| `ZonedDateTime` | Yes, including zone/offset if formatter requires | Yes | Zone rules can affect output |
+| `Instant` | Yes with `DateTimeFormatter.ISO_INSTANT`, or a formatter given an appropriate zone | Yes with a compatible formatter | Does not inherently contain regional calendar fields unless the formatter has a zone |
+| `YearMonth` | Yes with pattern `uuuu-MM` | Yes with a formatter requiring only year/month | Has no day of month |
+| `Duration` / `Period` | Not a standard calendar-date object for localized date/time formatters | Cannot directly use `ofLocalizedDate` | Use `toString()` or custom business formatting |
 
-**Quy tắc chọn formatter:** muốn định dạng kiểu nào, phải có các trường mà kiểu đó cung cấp. Ví dụ `LocalDate` không có `HOUR_OF_DAY` nên `DateTimeFormatter.ofLocalizedTime(...)` không thể tự tạo giờ. `Instant` cần chuyển sang một zone để tạo được các thành phần ngày/giờ địa phương; chỉ dùng locale không đủ.
+**Rule for choosing a formatter:** to format a type, the type must supply the fields the formatter requests. For example, `LocalDate` lacks `HOUR_OF_DAY`, so `DateTimeFormatter.ofLocalizedTime(...)` cannot fabricate an hour. `Instant` must be mapped to a zone to produce local date/time components; a locale alone is not enough.
 
-**Không đánh đồng Locale và ZoneId:** locale xác định quy tắc ngôn ngữ/định dạng, còn `ZoneId` xác định cách một instant được biểu diễn theo giờ địa phương. Hai người cùng `en-US` có thể ở hai múi giờ, và một người có thể chọn ngôn ngữ khác vùng mình đang ở.
+**Do not equate `Locale` and `ZoneId`:** locale determines language/formatting conventions, while `ZoneId` determines how an instant maps to local wall-clock time. Two users sharing `en-US` can live in different time zones, and a user can select a language different from their physical region.
 
-### Biến thể nâng cao: bộ định dạng bất biến và có kiểm soát
+### Advanced Note: Immutable Formatters Under Controlled Lifecycle
 
-`DateTimeFormatter` là immutable, thread-safe ở bản thân nó. Tuy nhiên, đối tượng `MessageFormat` bao quanh vẫn mutable và không bảo đảm an toàn khi chia sẻ không đồng bộ. Đừng suy ra việc dùng một `DateTimeFormatter` tốt sẽ khiến toàn bộ đối tượng `MessageFormat` thread-safe.
+`DateTimeFormatter` is immutable and thread-safe by itself. However, the enclosing `MessageFormat` object remains mutable and is not guaranteed safe when shared without synchronization. Do not assume that using a solid `DateTimeFormatter` makes the entire `MessageFormat` thread-safe.
 
-## 13. Kiểm thử cần thiết
+## 13. Essential Tests
 
-Một bộ kiểm thử hữu ích cho chức năng format thông điệp gồm:
+A practical test suite for message formatting should cover:
 
-- **Argument lặp:** `{0}` xuất hiện nhiều lần và `setFormatByArgumentIndex(0, ...)` phải áp dụng cho tất cả lần xuất hiện.
-- **Đảo trật tự dịch:** đổi thứ tự `{0}`/`{1}` giữa hai pattern; formatter vẫn gắn với đúng **argument index**.
-- **Phân biệt element và argument:** kiểm tra `setFormat(0, ...)` chỉ đổi vị trí đầu tiên, không đổi mọi placeholder có cùng số đối số.
-- **Kiểu sai:** `LocalDate` với `{0,date,short}` trên Java 17/21 ném lỗi; với `DateTimeFormatter.toFormat()` thì hoạt động.
-- **Chuỗi chuẩn bị trước:** `date.format(dtf)` truyền vào `{0}` không cần DateFormat cũ.
-- **Timezone:** khi chuyển `LocalDate` sang `Date`, chỉ ra và kiểm thử vùng dùng để tạo instant cũng như timezone formatter.
-- **Locale thay đổi:** format số/ngày theo locale request; không dùng `setLocale` như cách cập nhật subformatter đã có.
-- **applyPattern:** khi áp dụng mẫu mới, cấu hình lại formatter trước khi render.
-- **Đa luồng:** các request không cùng sửa một instance `MessageFormat` hoặc `SimpleDateFormat`.
-- **Parse:** nếu cần đọc dữ liệu từ input, dùng parser chuyên biệt và kiểm tra cả chuỗi, không tự tin khôi phục từ câu đã render.
+- **Repeated arguments:** `{0}` appears multiple times and `setFormatByArgumentIndex(0, ...)` applies to all occurrences.
+- **Translation reordering:** swap `{0}`/`{1}` between two patterns; formatters stay attached to the right **argument index**.
+- **Element vs. argument distinction:** verify `setFormat(0, ...)` only alters the first position, not every placeholder with the same argument number.
+- **Wrong type:** `LocalDate` with `{0,date,short}` on Java 17/21 throws an error; with `DateTimeFormatter.toFormat()`, it succeeds.
+- **Pre-formatted string:** `date.format(dtf)` passed into `{0}` without needing legacy `DateFormat`.
+- **Time zone:** when converting `LocalDate` to `Date`, specify and test both the zone used to build the instant and the formatter's time zone.
+- **Changing locales:** format numbers/dates per request locale; do not rely on `setLocale` to update existing subformatters.
+- **`applyPattern`:** when applying a new pattern, reconfigure formatters before rendering.
+- **Multithreading:** concurrent requests do not mutate a shared `MessageFormat` or `SimpleDateFormat`.
+- **Parsing:** if reading structured user input, use dedicated parsers and validate the whole string rather than relying on recovering data from rendered sentences.
 
-### Bài tập 1 — Hai vị trí cho cùng một đối số
+### Exercise 1 — Two Positions for the Same Argument
 
-Cho pattern `"ID={1}; amount={0}; amountAgain={0}"` và đối số `{12.5, "A-1"}`. Dùng `setFormatByArgumentIndex(0, new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.US)))` để hai vị trí số cùng in `12.50`. Sau đó thử `setFormat(0, ...)` và giải thích vì sao nó tác động lên placeholder `{1}` ở đầu câu.
+Given the pattern `"ID={1}; amount={0}; amountAgain={0}"` and arguments `{12.5, "A-1"}`, use `setFormatByArgumentIndex(0, new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.US)))` so both numeric slots print `12.50`. Then try `setFormat(0, ...)` and explain why it affects the `{1}` placeholder at the start of the sentence.
 
-### Bài tập 2 — Ngày kiểu mới
+### Exercise 2 — Modern Dates
 
-Với `LocalDate.of(2026, 10, 28)`, tạo hai mẫu `"Date={0}"` và `"Date={0,date,short}"`. Quan sát kết quả trên Java 17/21. Dùng `ISO_LOCAL_DATE.toFormat()` cho mẫu `{0}`, sau đó thử formatter địa phương hóa với `withLocale(Locale.forLanguageTag("vi-VN"))`.
+With `LocalDate.of(2026, 10, 28)`, create two patterns `"Date={0}"` and `"Date={0,date,short}"`. Observe the behavior on Java 17/21. Use `ISO_LOCAL_DATE.toFormat()` for the `{0}` pattern, then try a localized formatter with `withLocale(Locale.forLanguageTag("vi-VN"))`.
 
-### Bài tập 3 — Từ bundle ra màn hình
+### Exercise 3 — From Bundle to Screen
 
-Tạo hai file thông điệp chứa cùng một cặp argument index cho mã đơn và số lượng, nhưng thứ tự khác nhau. Đọc từng pattern và gán formatter số theo argument index. Chứng minh bản dịch vẫn nhận đúng dữ liệu, không phụ thuộc vị trí placeholder trong câu.
+Create two message files containing the same pair of argument indices for order ID and quantity, but in different orders. Read each pattern and assign a numeric formatter by argument index. Prove that both translations receive the right data regardless of placeholder position in the sentence.
 
-## 14. Tài liệu chính thức và phiên bản
+## 14. Official Documentation and Versions
 
-- [JDK 21 — java.text.MessageFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/MessageFormat.html): pattern, `setFormatByArgumentIndex`, `setFormatsByArgumentIndex`, `setFormat`, `applyPattern`, mặc định date/time ở API cổ điển.
-- [JDK 21 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html): `toFormat()`, `toFormat(TemporalQuery)`, `withLocale`, `withZone` và cách định dạng `java.time`.
-- [JDK 21 — SimpleDateFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/SimpleDateFormat.html): mô hình ngày/giờ cũ, time zone và lưu ý về mutable format.
+- [JDK 21 — java.text.MessageFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/MessageFormat.html): patterns, `setFormatByArgumentIndex`, `setFormatsByArgumentIndex`, `setFormat`, `applyPattern`, and legacy date/time defaults.
+- [JDK 21 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html): `toFormat()`, `toFormat(TemporalQuery)`, `withLocale`, `withZone`, and `java.time` formatting.
+- [JDK 21 — SimpleDateFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/SimpleDateFormat.html): legacy date/time model, time zones, and mutable-format caveats.
 
-JDK mới có thể mở rộng khả năng `MessageFormat`; khi chương trình yêu cầu chạy trên Java 17/21, luôn kiểm tra tài liệu **đúng phiên bản đang dùng** và không chép cú pháp từ tài liệu JDK mới mà chưa xác minh tính tương thích.
+Newer JDKs may expand `MessageFormat` capabilities; when a program targets Java 17/21, always consult the documentation for **the exact version in use** and do not copy syntax from newer JDK docs without verifying compatibility.
 
-## 15. Ghi nhớ
+## 15. Key Takeaways
 
-**`setFormatByArgumentIndex(index, format)` gán formatter theo chỉ số đối số và áp dụng cho mọi placeholder dùng đối số đó; `setFormat(elementIndex, format)` chỉ gán theo vị trí xuất hiện của placeholder trong câu.** Với thông điệp được dịch, cách gán theo argument index thường bền vững hơn khi trật tự câu thay đổi.
+**`setFormatByArgumentIndex(index, format)` assigns a formatter by argument index and applies to every placeholder referencing that argument; `setFormat(elementIndex, format)` assigns only by the placeholder's appearance position in the sentence.** For translated messages, assignment by argument index is much more resilient when sentence order changes.
 
-Trên **Java 17/21**, `{0,date}`/`{0,time}` của `MessageFormat` dựa vào API `java.text` và không dùng trực tiếp được với nhiều kiểu `java.time` như `LocalDate`. Để xử lý đúng, hãy **định dạng trước thành chuỗi**, **gán adapter `DateTimeFormatter.toFormat()`**, hoặc **chuyển sang `java.util.Date` cùng `ZoneId` rõ ràng khi phải tương tác code cũ**. Luôn kiểm soát locale, kiểu đối số, múi giờ và vòng đời của `MessageFormat` để tránh lỗi đầu ra hoặc đụng độ giữa các luồng.
+On **Java 17/21**, `MessageFormat`'s `{0,date}`/`{0,time}` elements rely on `java.text` APIs and cannot be used directly with many `java.time` types like `LocalDate`. To handle this properly, **pre-format to a string**, **attach a `DateTimeFormatter.toFormat()` adapter**, or **convert to `java.util.Date` with an explicit `ZoneId` when interoperating with legacy code**. Always control locale, argument types, time zones, and `MessageFormat` lifecycle to prevent formatting bugs or thread contention.

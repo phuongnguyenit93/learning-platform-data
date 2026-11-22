@@ -1,69 +1,69 @@
-# Khai báo khác với câu lệnh thực thi trong Java
+# Declarations vs. Executable Statements in Java
 
-Trong một tệp Java, có những dòng **giới thiệu cấu trúc hoặc tên** cho trình biên dịch, và có những dòng **tạo ra hành động khi chương trình chạy**. Phân biệt hai vai trò này giúp bạn giải thích vì sao một phương thức đã viết nhưng chưa in gì, hoặc vì sao khai báo biến có dấu `=` lại tạo hiệu ứng khi chương trình thực thi.
+In a Java file, some lines **introduce structure or names** to the compiler, and some lines **perform actions when the program runs**. Distinguishing these two roles helps explain why a method you wrote prints nothing yet, or why a variable declaration with `=` causes an effect when the program executes.
 
-Ví dụ:
+Example:
 
 ~~~java
-int score;                  // Khai báo biến cục bộ.
-score = 8;                  // Gán giá trị khi câu lệnh được thực thi.
-System.out.println(score); // Thực thi lệnh gọi phương thức: in 8.
+int score;                  // Local variable declaration.
+score = 8;                  // Assign a value when the statement is executed.
+System.out.println(score); // Execute a method call: prints 8.
 ~~~
 
-Ba dòng trên phải đặt **bên trong phương thức, constructor hoặc khối phù hợp**. Khai báo `score` xác định một tên và kiểu; phép gán đặt giá trị; `println` in dữ liệu.
+The three lines above must be placed **inside a method, constructor, or appropriate block**. Declaring `score` defines a name and type; the assignment sets the value; `println` outputs the data.
 
-Điểm cần nhớ từ đầu: **“khai báo” và “câu lệnh” không phải lúc nào cũng là hai loại cú pháp loại trừ nhau**. `int score = 8;` vừa là một *local variable declaration statement* theo ngữ pháp Java, vừa chứa biểu thức khởi tạo `8`, được đánh giá khi luồng thực thi tới dòng này.
+A key point from the start: **"declaration" and "statement" are not always mutually exclusive syntactic categories**. `int score = 8;` is both a *local variable declaration statement* in Java grammar and contains the initializer expression `8`, which is evaluated when execution reaches this line.
 
-## 1. Nhìn một tệp Java: phần nào khai báo, phần nào chạy?
+## 1. Looking at a Java File: Which Parts Declare, Which Parts Run?
 
-Xem chương trình rút gọn:
+Look at this condensed program:
 
 ~~~java
 public class Example {
-    static int limit = 10;           // Khai báo field kèm khởi tạo.
+    static int limit = 10;           // Field declaration with initializer.
 
-    static void greet() {            // Khai báo phương thức.
-        System.out.println("Hello"); // Lệnh trong phần thân.
+    static void greet() {            // Method declaration.
+        System.out.println("Hello"); // Statement inside the body.
     }
 
     public static void main(String[] args) {
-        int count = 2;               // Khai báo biến cục bộ có khởi tạo.
-        if (count > 0) {             // Câu lệnh rẽ nhánh.
-            greet();                 // Lệnh gọi phương thức.
+        int count = 2;               // Local variable declaration with initializer.
+        if (count > 0) {             // Branching statement.
+            greet();                 // Method invocation statement.
         }
     }
 }
 ~~~
 
-Khi chạy `Example`, trình biên dịch đã biết có lớp `Example` và phương thức `greet`. Nhưng thân `greet` chỉ chạy vì `main` **gọi** `greet()`.
+When running `Example`, the compiler already knows about class `Example` and method `greet`. However, the body of `greet` runs only because `main` **calls** `greet()`.
 
-| Cấu trúc | Vai trò chính | Có tự in/chạy phần thân ngay chỉ vì được khai báo? |
+| Construct | Primary role | Automatically prints/runs its body just from being declared? |
 | --- | --- | --- |
-| `class Example { ... }` | Khai báo kiểu/lớp | Không; mã khởi tạo lớp là chuyện riêng |
-| `static void greet() { ... }` | Khai báo phương thức và thân có thể được gọi | Không; phải có lời gọi hoặc cơ chế phù hợp kích hoạt |
-| `int count;` trong phương thức | Khai báo biến cục bộ | Không có biểu thức khởi tạo để tính tại dòng đó |
-| `int count = calculate();` | Khai báo biến cục bộ **kèm khởi tạo** | Có; `calculate()` được gọi khi tới dòng |
-| `count = 5;` | Câu lệnh biểu thức gán | Có; gán giá trị khi tới dòng |
-| `System.out.println(count);` | Câu lệnh gọi phương thức | Có; gọi phương thức khi tới dòng |
-| `if`, `for`, `while` | Câu lệnh điều khiển | Có; đánh giá điều kiện và quyết định phần mã nào chạy |
-| `import java.util.List;` | Khai báo nhập tên kiểu cho mã nguồn | Không tự tải dữ liệu hay gọi `List` |
+| `class Example { ... }` | Type/class declaration | No; class initialization code is a separate matter |
+| `static void greet() { ... }` | Declares a method and a callable body | No; requires a call or appropriate mechanism to trigger it |
+| `int count;` inside a method | Local variable declaration | No initializer expression to evaluate at that line |
+| `int count = calculate();` | Local variable declaration **with initializer** | Yes; `calculate()` is called when execution reaches the line |
+| `count = 5;` | Assignment expression statement | Yes; assigns the value when reached |
+| `System.out.println(count);` | Method invocation statement | Yes; calls the method when reached |
+| `if`, `for`, `while` | Control-flow statements | Yes; evaluates the condition and decides which code runs |
+| `import java.util.List;` | Imports a type name into the source file | Does not load data or call `List` on its own |
 
-Trong Java 17, nội dung ở cấp thân lớp không được tùy ý đặt câu lệnh như `System.out.println(...)` đứng một mình. Câu lệnh thông thường thuộc thân phương thức, constructor hoặc **khối khởi tạo** hợp lệ.
+In Java 17, you cannot arbitrarily place standalone statements such as `System.out.println(...)` directly at class-body level. Ordinary statements belong inside a method body, constructor, or valid **initializer block**.
 
-## 2. Chương trình đầy đủ: xem thứ tự thực thi
+## 2. Complete Program: Observing Execution Order
 
-Tạo tệp **`DeclarationDemo.java`** đúng tên sau:
+Create the file **`DeclarationDemo.java`** with this exact name:
 
 ~~~java
 public class DeclarationDemo {
-    // Khai báo static field, có biểu thức khởi tạo.
+    // Static field declaration, with initializer expression.
     static int classValue = trace("1. static field", 10);
 
     static {
         System.out.println("2. static initializer");
     }
 
-    // Khai báo instance field, khởi tạo khi tạo đối tượng.
+    // Instance field declaration, initialized when creating an object.
     int objectValue = trace("5. instance field", 20);
 
     {
@@ -74,7 +74,7 @@ public class DeclarationDemo {
         System.out.println("7. constructor");
     }
 
-    // Chỉ khai báo phương thức không làm nó tự chạy.
+    // Simply declaring a method does not make it run automatically.
     static int trace(String label, int value) {
         System.out.println(label);
         return value;
@@ -91,8 +91,8 @@ public class DeclarationDemo {
     public static void main(String[] args) {
         System.out.println("3. main begins");
 
-        int count; // Biến cục bộ được khai báo nhưng chưa có giá trị.
-        count = 2; // Lệnh gán thực thi tại đây.
+        int count; // Local variable declared without a value yet.
+        count = 2; // Assignment executes here.
         System.out.println("4. count=" + count);
 
         DeclarationDemo demo = new DeclarationDemo();
@@ -101,14 +101,14 @@ public class DeclarationDemo {
 }
 ~~~
 
-**Lệnh chạy trên Windows PowerShell hoặc Linux/Bash** (terminal đặt trong thư mục chứa tệp):
+**Run commands on Windows PowerShell or Linux/Bash** (terminal in the directory containing the file):
 
 ~~~bash
 javac -encoding UTF-8 DeclarationDemo.java
 java DeclarationDemo
 ~~~
 
-Kết quả mong đợi:
+Expected output:
 
 ~~~text
 1. static field
@@ -121,66 +121,66 @@ Kết quả mong đợi:
 8. greet method
 ~~~
 
-Không có dòng `KHONG DUOC IN` vì phương thức `neverCalled` **được khai báo nhưng không được gọi**.
+There is no `KHONG DUOC IN` line because the `neverCalled` method **is declared but never called**.
 
-### Phân tích thứ tự in
+### Analyzing the print order
 
-1. Trước khi gọi `main`, JVM khởi tạo lớp `DeclarationDemo`. Bộ khởi tạo static field `classValue` gọi `trace` và in dòng 1.
-2. Khối `static { ... }` chạy sau đó, in dòng 2. Các phần khởi tạo static được xử lý theo **thứ tự văn bản** trong lớp.
-3. Launcher gọi `main`; dòng 3 được in.
-4. Khai báo `int count;` **chưa gán giá trị**. Dòng `count = 2;` gán 2, sau đó in dòng 4.
-5. Biểu thức `new DeclarationDemo()` tạo đối tượng mới. Field khởi tạo cho từng instance gọi `trace` và in dòng 5.
-6. Khối khởi tạo instance in dòng 6, rồi phần thân constructor in dòng 7.
-7. Lời gọi `demo.greet()` thực thi phương thức `greet` và in dòng 8.
+1. Before calling `main`, the JVM initializes class `DeclarationDemo`. The static field initializer for `classValue` calls `trace` and prints line 1.
+2. The `static { ... }` block runs next, printing line 2. Static initializers are processed in **textual order** within the class.
+3. The launcher calls `main`; line 3 is printed.
+4. The declaration `int count;` **does not assign a value yet**. The line `count = 2;` assigns 2, and then line 4 is printed.
+5. The expression `new DeclarationDemo()` creates a new object. The instance field initializer calls `trace` and prints line 5.
+6. The instance initializer block prints line 6, and then the constructor body prints line 7.
+7. The call `demo.greet()` executes the `greet` method and prints line 8.
 
-**Giới hạn của ví dụ:** thứ tự trên áp dụng cho một lớp trực tiếp kế thừa `Object` như `DeclarationDemo`. Với lớp con, còn có bước khởi tạo của superclass; không nên suy rộng thứ tự trên thành mô tả đầy đủ mọi hệ phân cấp lớp.
+**Scope limitation of the example:** the order above applies to a class directly extending `Object` like `DeclarationDemo`. With subclasses, superclass initialization steps also occur; do not overgeneralize the order above as a complete description of every class hierarchy.
 
-Có thể chạy trực tiếp nguồn bằng JDK 17+:
+You can run the source directly with JDK 17+:
 
 ~~~bash
 java DeclarationDemo.java
 ~~~
 
-Kết quả tương tự. Với chế độ chạy nguồn trực tiếp, launcher thực hiện biên dịch trong bộ nhớ; nếu dùng `javac` trước, tệp `DeclarationDemo.class` được tạo trên đĩa. Hai cách chạy này đều phù hợp để kiểm tra bài.
+The output is the same. In source-file execution mode, the launcher compiles in memory; if you run `javac` first, `DeclarationDemo.class` is written to disk. Both ways of running are suitable for testing this lesson.
 
-## 3. Khai báo biến có hoặc không có biểu thức khởi tạo
+## 3. Variable Declarations With or Without an Initializer Expression
 
-So sánh:
+Compare:
 
 ~~~java
-int a;              // Khai báo biến cục bộ, chưa có giá trị để đọc.
-a = 5;              // Gán giá trị.
-int b = a * 2;      // Khai báo + đánh giá biểu thức khởi tạo.
-System.out.println(b); // In 10.
+int a;              // Local variable declaration, no value to read yet.
+a = 5;              // Assign a value.
+int b = a * 2;      // Declaration + evaluation of initializer expression.
+System.out.println(b); // Prints 10.
 ~~~
 
-Một cách đọc hữu ích:
+A helpful way to read this:
 
-- `int a;`: “Từ đây tồn tại tên `a` có kiểu `int` trong phạm vi phù hợp.”
-- `a = 5;`: “Đặt giá trị của `a` thành 5.”
-- `int b = a * 2;`: “Tạo tên `b` có kiểu `int`, **tính `a * 2` ở thời điểm thực thi dòng này** rồi gán kết quả.”
-- `println`: “Gọi một phương thức thực hiện xuất dữ liệu.”
+- `int a;`: "From here on, the name `a` of type `int` exists within the appropriate scope."
+- `a = 5;`: "Set the value of `a` to 5."
+- `int b = a * 2;`: "Create the name `b` of type `int`, **compute `a * 2` when execution reaches this line**, and assign the result."
+- `println`: "Call a method that outputs data."
 
-Lệnh `int b = a * 2;` không được trình biên dịch “chạy trước” để làm sẵn kết quả trong mọi hoàn cảnh. Nếu `a` thay đổi trước khi tới dòng này, kết quả khởi tạo `b` cũng thay đổi tương ứng.
+The statement `int b = a * 2;` is not "pre-run" by the compiler to compute a fixed result in all situations. If `a` changes before reaching this line, the initialization result of `b` changes accordingly.
 
-### Khai báo không đồng nghĩa biến đã sẵn sàng được đọc
+### Declaring a variable does not mean it is ready to be read
 
-Đoạn sau **không biên dịch**:
+The snippet below **does not compile**:
 
 ~~~java
 public class UnassignedLocal {
     public static void main(String[] args) {
         int amount;
-        // System.out.println(amount); // Nếu bỏ // sẽ lỗi.
+        // System.out.println(amount); // Uncommenting this causes an error.
         amount = 10;
         System.out.println(amount);
     }
 }
 ~~~
 
-Java áp dụng quy tắc **definite assignment**: biến cục bộ phải được gán chắc chắn trước khi đọc. Việc có một khai báo tên biến **không tự gán mặc định 0** cho biến cục bộ. Trái lại, field `int` không được khởi tạo tường minh sẽ nhận giá trị mặc định 0 khi đối tượng/lớp được khởi tạo theo quy tắc Java.
+Java enforces **definite assignment**: a local variable must be definitely assigned before it is read. Having a variable declaration **does not automatically assign 0 by default** to a local variable. By contrast, an explicitly uninitialized `int` field receives the default value 0 when the object/class is initialized according to Java rules.
 
-### Biểu thức trong khai báo có thể gây tác dụng phụ
+### Expressions in declarations can have side effects
 
 ~~~java
 static int nextValue() {
@@ -188,16 +188,16 @@ static int nextValue() {
     return 7;
 }
 
-// Đặt các câu lệnh sau bên trong một phương thức:
-int first = nextValue();  // In "Tinh gia tri" khi chạy đến đây.
-int second = 9;           // Gán giá trị, không tự in gì.
+// Place the following statements inside a method:
+int first = nextValue();  // Prints "Tinh gia tri" when execution reaches here.
+int second = 9;           // Assigns a value, prints nothing on its own.
 ~~~
 
-Lời gọi `nextValue()` là một **biểu thức** nằm trong khai báo biến; khi tới dòng khởi tạo, biểu thức được đánh giá, kể cả tác dụng phụ của nó. Vì vậy, đừng kết luận “dòng có `int` chỉ là khai báo nên không thực thi gì”.
+The call `nextValue()` is an **expression** inside the variable declaration; when execution reaches the initialization line, the expression is evaluated, including its side effects. Therefore, do not conclude that "a line starting with `int` is just a declaration so it executes nothing."
 
-## 4. Phương thức được khai báo không có nghĩa được gọi
+## 4. A Declared Method Is Not Automatically Called
 
-Ví dụ:
+Example:
 
 ~~~java
 public class MethodDeclaration {
@@ -213,53 +213,53 @@ public class MethodDeclaration {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac MethodDeclaration.java
 java MethodDeclaration
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Bat dau
 Ket thuc
 ~~~
 
-Nếu bỏ dấu chú thích ở `sayHello();`, dòng `Xin chao` xuất hiện **giữa** hai dòng trên. Trong Java, **tên phương thức + chữ ký + phần thân** định nghĩa nó sẽ làm gì *khi được gọi*, không khiến nó tự gọi trong quá trình biên dịch.
+If you uncomment `sayHello();`, the `Xin chao` line appears **between** the two lines above. In Java, a **method name + signature + body** defines what it will do *when called*, not to call itself during compilation.
 
-Đây cũng là lý do có thể viết nhiều helper method trong một lớp nhưng chỉ một số helper được sử dụng ở một lần chạy cụ thể.
+This is also why you can write many helper methods in a class even when only some helpers are used in a specific run.
 
-## 5. Vị trí được phép khai báo và vị trí thực thi
+## 5. Where Declarations Are Allowed vs. Where Execution Happens
 
-| Vị trí trong tệp/lớp Java | Có thể chứa gì? | Chú ý |
+| Location in a Java file/class | What can it contain? | Note |
 | --- | --- | --- |
-| Cấp tệp nguồn | `package`, `import` và khai báo kiểu top-level | Không đặt `System.out.println(...)` tùy ý trực tiếp ở đây |
-| Thân lớp | Field, constructor, phương thức, nested type, khối khởi tạo | Không đặt một assignment statement hay method call đứng lẻ ngoài khối |
-| Thân phương thức | Local variable declaration statements, biểu thức statement, `if`, `for`, `return`... | Thực thi theo luồng điều khiển |
-| Constructor | Câu lệnh và các khai báo cục bộ hợp lệ | Chạy khi tạo đối tượng, trong trình tự khởi tạo |
-| Khối `static { ... }` | Các câu lệnh khởi tạo lớp | Chạy khi lớp được khởi tạo, không phải mỗi lần tạo đối tượng |
-| Khối `{ ... }` trong thân lớp | Các câu lệnh khởi tạo instance | Chạy khi tạo mỗi instance trong trình tự thích hợp |
+| Source-file level | `package`, `import`, and top-level type declarations | Do not place arbitrary `System.out.println(...)` directly here |
+| Class body | Fields, constructors, methods, nested types, initializer blocks | Do not place standalone assignment statements or method calls outside blocks |
+| Method body | Local variable declaration statements, expression statements, `if`, `for`, `return`, etc. | Executes according to control flow |
+| Constructor | Statements and valid local declarations | Runs when creating an object, during initialization sequence |
+| `static { ... }` block | Class initialization statements | Runs when the class is initialized, not per object creation |
+| `{ ... }` block in class body | Instance initialization statements | Runs when creating each instance in the appropriate sequence |
 
-**Lỗi sai vị trí điển hình:**
+**Typical placement error:**
 
 ~~~java
 public class WrongPlacement {
-    // System.out.println("Hello"); // Sai nếu bỏ //:
-    // câu lệnh gọi phương thức không được đứng lẻ trong thân lớp.
+    // System.out.println("Hello"); // Invalid if // is removed:
+    // a method call statement cannot stand alone directly in a class body.
 
     public static void main(String[] args) {
-        System.out.println("Hello"); // Đúng: nằm trong phương thức.
+        System.out.println("Hello"); // Valid: inside a method.
     }
 }
 ~~~
 
-Đừng nhầm dấu ngoặc `{}` trong khai báo lớp với khối phương thức. Không phải mọi câu lệnh hợp lệ bên trong `main` đều được phép chuyển ra trực tiếp cấp lớp.
+Do not confuse the `{}` of a class declaration with a method block. Not every statement valid inside `main` is allowed to be moved directly to class level.
 
-## 6. Một biểu thức chưa chắc là câu lệnh hợp lệ
+## 6. An Expression Is Not Necessarily a Valid Statement
 
-Ở Java, các dạng như phép gán, tăng/giảm, lời gọi phương thức và tạo đối tượng có thể xuất hiện như **expression statement**:
+In Java, forms such as assignments, increments/decrements, method calls, and object creation can appear as an **expression statement**:
 
 ~~~java
 int n = 2;
@@ -269,31 +269,31 @@ System.out.println(n); // 4
 new StringBuilder("text");
 ~~~
 
-Dòng `new StringBuilder("text");` tạo một đối tượng rồi bỏ tham chiếu; hợp lệ về cú pháp dù ít giá trị sử dụng. Ngược lại, không phải mọi biểu thức tính ra giá trị đều được viết một mình thành câu lệnh:
+The line `new StringBuilder("text");` creates an object and discards the reference; it is syntactically valid even though it has little practical use. Conversely, not every expression that computes a value can stand alone as a statement:
 
 ~~~java
-// n + 1; // Sai: không phải statement expression hợp lệ.
+// n + 1; // Invalid: not a valid statement expression.
 ~~~
 
-Khi mới học, một câu hỏi hữu ích là: “Dòng này **khai báo gì**, **tính/gán gì**, **gọi gì**, hoặc **điều khiển luồng** thế nào?” Điều đó chính xác hơn việc chỉ nhìn dấu `;` và kết luận mọi dòng giống nhau.
+As a beginner, a helpful question to ask is: "What does this line **declare**, what does it **compute/assign**, what does it **call**, or how does it **control flow**?" That is far more accurate than just looking for `;` and concluding all lines behave the same.
 
-## 7. Những lỗi thường gặp và cách phân biệt
+## 7. Common Mistakes and How to Distinguish Them
 
-| Mã/tình huống | Kết quả | Giải thích |
+| Code/situation | Result | Explanation |
 | --- | --- | --- |
-| `int n; System.out.println(n);` trong phương thức | Lỗi biên dịch | Biến cục bộ chưa được gán chắc chắn |
-| Khai báo `void work()` nhưng không gọi | Không in gì từ thân method | Method chỉ được định nghĩa, chưa thực thi |
-| `int n = read();` | Gọi `read()` khi tới dòng | Initializer là biểu thức chạy |
-| Đặt `System.out.println("Hi");` trực tiếp trong thân lớp | Lỗi biên dịch | Không phải khai báo thành viên/khối khởi tạo phù hợp |
-| `static int x = trace(...);` | Có thể gây xuất dữ liệu trong khởi tạo lớp | Field initializer được đánh giá theo trình tự khởi tạo |
-| `int n = 2;` ở trong `if` không được chọn | Không thực thi initializer đó | Luồng chạy không đi vào nhánh |
-| `n + 1;` đứng một mình | Lỗi biên dịch | Không phải expression statement hợp lệ |
+| `int n; System.out.println(n);` inside a method | Compile error | Local variable has not been definitely assigned |
+| Declaring `void work()` without calling it | Nothing printed from the method body | Method is only defined, not executed |
+| `int n = read();` | Calls `read()` when reaching the line | The initializer is an executed expression |
+| Placing `System.out.println("Hi");` directly in the class body | Compile error | Not a valid member declaration or initializer block |
+| `static int x = trace(...);` | Can produce output during class initialization | Field initializer is evaluated in the initialization sequence |
+| `int n = 2;` inside an unchosen `if` branch | That initializer does not run | Execution flow did not enter the branch |
+| `n + 1;` standing alone | Compile error | Not a valid expression statement |
 
-**Câu hỏi “khi nào chạy?” phụ thuộc vào vị trí và luồng điều khiển**. Một khối phương thức không tự chạy do tồn tại trong mã nguồn; một field initializer có thể chạy trong khởi tạo đối tượng/lớp; một local initializer chỉ chạy khi luồng tới nó.
+**The question "when does it run?" depends on location and control flow.** A method body does not run just by existing in source code; a field initializer can run during object/class initialization; a local initializer only runs when execution reaches it.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-**Bài 1 — Dự đoán kết quả.** Đoạn sau in gì?
+**Exercise 1 — Predict the output.** What does the following print?
 
 ~~~java
 public class OrderDemo {
@@ -309,9 +309,9 @@ public class OrderDemo {
 }
 ~~~
 
-*Đáp án:* `A`, `B`, `C` trên ba dòng. Thân `later` chạy tại lời gọi giữa hai câu in.
+*Answer:* `A`, `B`, `C` on three lines. The body of `later` runs at the call site between the two print statements.
 
-**Bài 2 — Tìm chỗ sai.** Cho:
+**Exercise 2 — Spot the error.** Given:
 
 ~~~java
 public class ScopeDemo {
@@ -322,25 +322,25 @@ public class ScopeDemo {
 }
 ~~~
 
-Tại sao bỏ `//` trước `println` sẽ làm `javac` báo lỗi? Hãy sửa bằng cách gán `score = 10;` trước lời gọi. Sau khi sửa, dự đoán giá trị in ra.
+Why does removing `//` before `println` cause `javac` to report an error? Fix it by assigning `score = 10;` before the call. After fixing, predict the printed value.
 
-*Đáp án:* Biến cục bộ chưa được gán chắc chắn; sau khi gán, in `10`.
+*Answer:* The local variable is not definitely assigned; after assigning, it prints `10`.
 
-**Bài 3 — Một dòng vừa khai báo vừa thực thi.**
+**Exercise 3 — One line that both declares and executes.**
 
 ~~~java
 int value = Integer.parseInt("21");
 ~~~
 
-Đâu là phần khai báo? Phần nào được thực thi khi dòng này được chạy? Nếu đổi chuỗi thành `"hai muoi mot"` thì điều gì xảy ra?
+Which part is the declaration? Which part executes when this line runs? What happens if you change the string to `"hai muoi mot"`?
 
-*Đáp án:* `int value` khai báo tên/kiểu. `Integer.parseInt(...)` được gọi lúc chạy; chuỗi không hợp lệ gây `NumberFormatException`.
+*Answer:* `int value` declares the name/type. `Integer.parseInt(...)` is called at runtime; an invalid string throws `NumberFormatException`.
 
-**Bài 4 — Khối nào chạy?** Trong chương trình `DeclarationDemo`, thử bỏ lời gọi `demo.greet();`. Dòng in số 8 còn xuất hiện không? Các dòng khởi tạo instance 5–7 còn xuất hiện không?
+**Exercise 4 — Which blocks run?** In `DeclarationDemo`, try removing the `demo.greet();` call. Does print line 8 still appear? Do instance initialization lines 5–7 still appear?
 
-*Đáp án:* Không còn số 8; các dòng 5–7 vẫn in vì `new DeclarationDemo()` còn được thực thi.
+*Answer:* Line 8 no longer appears; lines 5–7 still print because `new DeclarationDemo()` is still executed.
 
-**Bài 5 — Luyện nhận diện.** Hãy phân loại trong ví dụ sau: khai báo kiểu, khai báo phương thức, khai báo biến có khởi tạo, phép gán và câu lệnh điều kiện.
+**Exercise 5 — Practice classification.** In the following example, identify: type declaration, method declaration, variable declaration with initializer, assignment, and conditional statement.
 
 ~~~java
 class Sample {
@@ -355,17 +355,17 @@ class Sample {
 }
 ~~~
 
-*Gợi ý:* `class Sample` khai báo kiểu; `enough` khai báo phương thức; `int limit = 5;` vừa khai báo local vừa khởi tạo; `n = n + 1;` là phép gán; `if` chọn nhánh.
+*Hint:* `class Sample` is a type declaration; `enough` is a method declaration; `int limit = 5;` both declares a local variable and initializes it; `n = n + 1;` is an assignment; `if` selects a branch.
 
-## Checklist ghi nhớ
+## Checklist
 
-- [ ] Phân biệt khai báo lớp, field và phương thức với hành động khi thực thi.
-- [ ] Hiểu rằng local variable declaration **là một dạng statement** trong Java, và initializer của nó được tính khi luồng tới dòng.
-- [ ] Không đọc biến cục bộ trước khi chắc chắn đã gán.
-- [ ] Dự đoán thứ tự static initialization, instance initialization, constructor, `main` và lời gọi helper qua ví dụ cụ thể.
-- [ ] Biết phương thức đã khai báo nhưng không gọi sẽ không tự in output.
-- [ ] Không đặt method invocation đứng lẻ ở thân lớp.
-- [ ] Biết không phải mọi expression đều có thể đứng một mình thành statement.
-- [ ] Chạy được `javac DeclarationDemo.java` và `java DeclarationDemo`, đối chiếu đủ tám dòng kết quả.
+- [ ] Distinguish class, field, and method declarations from runtime actions.
+- [ ] Understand that a local variable declaration **is a form of statement** in Java, and its initializer is evaluated when flow reaches the line.
+- [ ] Never read a local variable before it is definitely assigned.
+- [ ] Predict the order of static initialization, instance initialization, constructor, `main`, and helper calls through a concrete example.
+- [ ] Know that a declared but uncalled method will not print output on its own.
+- [ ] Do not place standalone method invocations directly in a class body.
+- [ ] Know that not every expression can stand alone as a statement.
+- [ ] Run `javac DeclarationDemo.java` and `java DeclarationDemo`, matching all eight output lines.
 
-**Ghi nhớ:** Trong Java, **khai báo** giúp chương trình định nghĩa tên, kiểu và cấu trúc; **thực thi** đánh giá biểu thức và câu lệnh theo luồng chạy. Một khai báo có thể chứa initializer có hiệu ứng khi chạy, nên hai khái niệm liên quan nhưng **không hoàn toàn đối lập**. Hãy hỏi: “Dòng này khai báo điều gì, và phần nào thực sự được đánh giá khi chương trình tới đó?”
+**Key takeaway:** In Java, **declarations** help the program define names, types, and structure; **execution** evaluates expressions and statements along the runtime flow. A declaration can contain an initializer with runtime effects, so the two concepts are related rather than **completely opposite**. Ask: "What does this line declare, and which part is actually evaluated when the program reaches it?"

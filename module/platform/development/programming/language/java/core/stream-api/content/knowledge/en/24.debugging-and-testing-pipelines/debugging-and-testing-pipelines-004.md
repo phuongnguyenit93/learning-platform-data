@@ -1,31 +1,31 @@
-# Kiểm thử nguồn rỗng, một phần tử, trùng lặp và null
+# Testing Empty, Single-Element, Duplicate, and Null Sources
 
-Trong **Java Stream API**, một pipeline `filter`, `map`, `flatMap`, `distinct`, `reduce` hoặc `collect` có thể chạy đúng với dữ liệu mẫu gồm hàng trăm bản ghi, nhưng lại sai khi chỉ còn **0 phần tử, 1 phần tử, nhiều phần tử trùng nhau hoặc giá trị `null`**. Đây là những trường hợp biên thường làm lộ ra giả định chưa được ghi rõ: “luôn có phần tử đầu tiên”, “mọi trường đều khác null”, “khóa luôn duy nhất” hoặc “trung bình luôn tồn tại”.
+In the **Java Stream API**, a pipeline using `filter`, `map`, `flatMap`, `distinct`, `reduce`, or `collect` can work cleanly on sample datasets of hundreds of records, yet fail when given **0 elements, 1 element, duplicate elements, or `null` values**. These boundary cases expose hidden assumptions: "there is always a first element," "every field is non-null," "keys are always unique," or "an average always exists."
 
-Bài học thuộc chương **Gỡ lỗi và kiểm thử pipeline** của mô-đun `JAVA_STREAM_API`. Mục tiêu là thiết kế một bộ kiểm thử có thể tái lập, phân biệt hành vi **được API bảo đảm** với hành vi chỉ tình cờ quan sát được, và kiểm tra kết quả của pipeline thay vì phụ thuộc số lần lambda được gọi.
+This lesson belongs to the **Debugging and Testing Pipelines** chapter of the `JAVA_STREAM_API` module. Its goal is to design a reproducible test suite, distinguish behavior **guaranteed by the API** from behavior observed only by chance, and assert on pipeline outputs instead of relying on how many times a lambda was called.
 
-Đặc biệt, cần học cách xác định **chính sách nghiệp vụ** cho dữ liệu trùng hoặc thiếu. Việc `filter(Objects::nonNull)` chạy không lỗi chưa đủ chứng minh rằng im lặng loại bản ghi là quyết định đúng cho hệ thống thực tế.
+In particular, you will learn how to define the **business policy** for duplicate or missing data. The fact that `filter(Objects::nonNull)` runs without throwing does not prove that silently dropping records is the right choice for a real system.
 
-## 1. Tạo ma trận kiểm thử trước khi viết assertion
+## 1. Build a Test Matrix Before Writing Assertions
 
-Giả sử cần xử lý danh sách mã sản phẩm thành dạng chuẩn, lọc mã hợp lệ và thống kê theo mã. Hãy kiểm thử ít nhất các tình huống:
+Suppose we need to normalize product codes, filter valid codes, and compute per-code statistics. Test at least these scenarios:
 
-| Nhóm đầu vào | Ví dụ | Điều cần xác nhận |
+| Input category | Example | What to verify |
 | --- | --- | --- |
-| **Nguồn rỗng** | `[]` | Không truy cập phần tử không tồn tại; identity và `Optional` đúng. |
-| **Một phần tử hợp lệ** | `[" SKU-01 "]` | Phần tử được chuẩn hóa và giữ đúng một lần. |
-| **Một phần tử bị loại** | `["   "]` | Pipeline trả rỗng; không gọi `get(0)` tùy tiện. |
-| **Giá trị trùng hoàn toàn** | `["A", "A"]` | Chọn giữ nguyên, `distinct`, đếm hoặc báo lỗi theo yêu cầu. |
-| **Trùng sau chuẩn hóa** | `[" a ", "A"]` | Phân biệt hai chuỗi gốc với một khóa chuẩn `"A"`. |
-| **Phần tử `null`** | `["A", null]` | Loại, thay thế, từ chối hay giữ `null` có chủ đích. |
-| **Trường `null` trong đối tượng** | `Item(null, 2)` | Xử lý riêng trường thiếu, không chỉ `filter` object khác null. |
-| **Tất cả phần tử đều bị loại** | `[null, " ", ""]` | Kết quả sau lọc rỗng, dù nguồn gốc không rỗng. |
+| **Empty source** | `[]` | No access to non-existent elements; identity and `Optional` behavior are right. |
+| **Single valid element** | `[" SKU-01 "]` | Element is normalized and retained exactly once. |
+| **Single filtered-out element** | `["   "]` | Pipeline returns empty; no blind `get(0)` calls. |
+| **Exact duplicates** | `["A", "A"]` | Either keep all, `distinct`, count, or fail per requirements. |
+| **Duplicates after normalization** | `[" a ", "A"]` | Distinguish two raw strings from one normalized `"A"` key. |
+| **`null` element** | `["A", null]` | Drop, replace, reject, or deliberately retain `null`. |
+| **`null` field inside object** | `Item(null, 2)` | Handle missing fields explicitly, not just `filter` non-null objects. |
+| **All elements filtered out** | `[null, " ", ""]` | Post-filter output is empty even though the source was not. |
 
-Một pipeline có thể nhận đầu vào không rỗng nhưng **trở thành rỗng sau `filter`**. Vì thế, kiểm thử nguồn rỗng và kiểm thử **kết quả trung gian rỗng** đều cần thiết.
+A pipeline can receive a non-empty input and **become empty after `filter`**. Therefore, testing both an empty source and **an empty intermediate result** is necessary.
 
-Nguyên tắc chung: xác định rõ **giá trị mong đợi, ngoại lệ mong đợi hoặc dấu hiệu lỗi nghiệp vụ** cho từng trường hợp. Không chỉ kiểm tra “không ném ngoại lệ” nếu nghiệp vụ cần trả đúng dữ liệu.
+General rule: specify **the expected value, expected exception, or business error indicator** for each case. Never test merely "no exception thrown" when the business requires exact data.
 
-## 2. Tạo nguồn kiểm thử đúng cách
+## 2. Constructing Test Sources Properly
 
 ```java
 import java.util.Arrays;
@@ -37,15 +37,15 @@ Stream<String> empty = Stream.empty();
 Stream<String> singleton = Stream.of("A");
 Stream<String> duplicates = Stream.of("A", "A", "B");
 
-// Arrays.asList có thể chứa phần tử null.
+// Arrays.asList can contain null elements.
 List<String> withNull = Arrays.asList("A", null, "B");
 Stream<String> nullableElements = withNull.stream();
 
-// Collections.emptyList cũng tạo nguồn rỗng.
+// Collections.emptyList also creates an empty source.
 List<String> emptyList = Collections.emptyList();
 ```
 
-**Không dùng `List.of("A", null)` để tạo nguồn chứa null**: `List.of` (Java 9+) từ chối `null` ngay khi xây danh sách. Nếu mục tiêu là kiểm tra một pipeline nhận phần tử null, hãy chọn nguồn thực sự **cho phép chứa null** như `Arrays.asList` hoặc `Stream.of((String) null)`.
+**Never use `List.of("A", null)` to create a source containing null**: `List.of` (Java 9+) rejects `null` at list construction time. If your goal is testing a pipeline that receives null elements, pick a source that actually **permits nulls** such as `Arrays.asList` or `Stream.of((String) null)`.
 
 ```java
 import java.util.stream.Stream;
@@ -54,11 +54,11 @@ Stream<String> oneNull = Stream.of((String) null);
 System.out.println(oneNull.count()); // 1
 ```
 
-Ép kiểu `(String) null` giúp thể hiện rõ đây là **một phần tử null**. Tránh viết `Stream.of(null)` trần vì có overload varargs, dễ gây cảnh báo hoặc nhầm ý nghĩa.
+Casting `(String) null` makes clear this is **a single null element**. Avoid bare `Stream.of(null)` because of varargs overloads, which cause warnings or misinterpretation.
 
-### Phân biệt `Stream.empty()` và `Stream.ofNullable`
+### Distinguishing `Stream.empty()` and `Stream.ofNullable`
 
-`Stream.ofNullable(value)` (Java 9+) trả **0 phần tử nếu value là null**, còn `Stream.of((String) null)` tạo **1 phần tử null**:
+`Stream.ofNullable(value)` (Java 9+) returns **0 elements if value is null**, whereas `Stream.of((String) null)` creates **1 null element**:
 
 ```java
 import java.util.stream.Stream;
@@ -70,26 +70,26 @@ System.out.println(Stream.of((String) absent).count());  // 1
 System.out.println(Stream.ofNullable("A").count());      // 1
 ```
 
-Đây là hai hợp đồng khác nhau; không dùng thay thế cho nhau mà không xét yêu cầu. Khi nghiệp vụ phân biệt “có một hàng rỗng” với “không có hàng”, khác biệt `0` và `1` rất quan trọng.
+These are two different contracts; do not swap them without checking requirements. When business logic distinguishes "one empty row" from "zero rows," the difference between `0` and `1` matters greatly.
 
-## 3. Nguồn rỗng: `Optional`, identity và phép toán ngắn mạch
+## 3. Empty Sources: `Optional`, Identities, and Short-Circuiting Operations
 
-Các terminal operation có hành vi khác nhau khi không có phần tử:
+Terminal operations behave differently when no elements are present:
 
-| Terminal operation | Với nguồn rỗng | Lưu ý |
+| Terminal operation | On an empty source | Notes |
 | --- | --- | --- |
-| `count()` | `0L` | Không cần phần tử để đếm. |
-| `IntStream.sum()` | `0` | Tổng rỗng bằng identity của phép cộng. |
-| `IntStream.average()` | `OptionalDouble.empty()` | Không có trung bình quan sát được. |
-| `IntStream.min()` / `max()` | `OptionalInt.empty()` | Không có min/max. |
-| `Stream.findFirst()` / `findAny()` | `Optional.empty()` | Không được gọi `get()` khi chưa có giá trị. |
-| `reduce(identity, op)` | Trả `identity` | Identity phải đúng với phép kết hợp. |
-| `reduce(op)` | `Optional.empty()` | Không có identity được cung cấp. |
-| `anyMatch(p)` | `false` | Không tồn tại phần tử nào thỏa `p`. |
-| `allMatch(p)` | `true` | Đúng một cách *vacuous* (không có phản ví dụ). |
-| `noneMatch(p)` | `true` | Không có phần tử nào thỏa `p`. |
+| `count()` | `0L` | Needs no elements to count. |
+| `IntStream.sum()` | `0` | Empty sum equals the additive identity. |
+| `IntStream.average()` | `OptionalDouble.empty()` | No observable average exists. |
+| `IntStream.min()` / `max()` | `OptionalInt.empty()` | No min/max exists. |
+| `Stream.findFirst()` / `findAny()` | `Optional.empty()` | Never call `get()` when absent. |
+| `reduce(identity, op)` | Returns `identity` | Identity must match the associative operation. |
+| `reduce(op)` | `Optional.empty()` | No identity was provided. |
+| `anyMatch(p)` | `false` | No element matches `p`. |
+| `allMatch(p)` | `true` | *Vacuously* true (no counterexample exists). |
+| `noneMatch(p)` | `true` | No element matches `p`. |
 
-Ví dụ Java 8+:
+Java 8+ examples:
 
 ```java
 import java.util.OptionalInt;
@@ -110,7 +110,7 @@ System.out.println(Stream.<Integer>empty()
     .noneMatch(n -> n > 0));                       // true
 ```
 
-Kết quả `allMatch == true` trên nguồn rỗng không có nghĩa hệ thống đã xác minh được **ít nhất một** bản ghi hợp lệ. Nếu nghiệp vụ yêu cầu *có dữ liệu và tất cả đều đạt*, cần kiểm tra **cả điều kiện không rỗng**:
+`allMatch == true` on an empty source does not mean the system verified **at least one** valid record. If business logic requires *data exists and all records pass*, check **non-emptiness as well**:
 
 ```java
 import java.util.List;
@@ -123,15 +123,15 @@ boolean atLeastOneAndAllPassed =
 System.out.println(atLeastOneAndAllPassed); // false
 ```
 
-Với nguồn chỉ được tiêu thụ một lần (ví dụ từ I/O), không thể gọi hai terminal operation trên **cùng một stream** để vừa kiểm tra `count()` vừa gọi `allMatch()`. Có thể thiết kế một collector phù hợp hoặc kiểm tra dữ liệu khi nó được thu vào một cấu trúc có thể duyệt lại.
+For single-use sources (such as I/O), you cannot call two terminal operations on **the same stream** to check `count()` and `allMatch()`. Design an appropriate collector instead, or inspect data once collected into a re-traversable structure.
 
-### Không suy ra giá trị đo từ identity
+### Do not confuse an identity with a measured value
 
-`sum() == 0` của nguồn rỗng là một quy tắc đại số; nó **không** có nghĩa đã quan sát một giá trị bằng 0. Tương tự, `LongSummaryStatistics.getAverage()` trên bộ thống kê rỗng trả `0.0` theo hợp đồng, nhưng báo cáo dữ liệu nên kiểm tra `getCount() == 0` trước khi coi trung bình là một số đo thực tế.
+`sum() == 0` on an empty source is an algebraic rule; it does **not** mean a value of 0 was observed. Likewise, `LongSummaryStatistics.getAverage()` on an empty summary returns `0.0` by contract, so reporting code should check `getCount() == 0` before treating the average as an actual measurement.
 
-## 4. Nguồn rỗng khi thu thập: `groupingBy` khác `partitioningBy`
+## 4. Empty Sources When Collecting: `groupingBy` vs. `partitioningBy`
 
-`groupingBy` chỉ tạo nhóm khi có phần tử được phân loại, còn `partitioningBy` **luôn** có hai khóa Boolean ngay cả khi nguồn rỗng:
+`groupingBy` creates groups only for elements actually classified, whereas `partitioningBy` **always** has both Boolean keys even when the source is empty:
 
 ```java
 import java.util.List;
@@ -151,11 +151,11 @@ System.out.println(partitions.get(true).isEmpty());  // true
 System.out.println(partitions.get(false).isEmpty()); // true
 ```
 
-Test này giúp phát hiện lỗi khi code gọi `groups.get("SKU-01").size()`: nhóm chưa tồn tại thì `get` có thể trả `null`. Với `partitioningBy`, hai giá trị của khóa Boolean luôn tồn tại, nhưng **giá trị downstream ở mỗi nhánh** còn phụ thuộc collector được truyền vào.
+This test catches bugs where code calls `groups.get("SKU-01").size()`: when a group doesn't exist, `get` returns `null`. With `partitioningBy`, both Boolean keys always exist, though **the downstream value in each branch** still depends on the supplied downstream collector.
 
-## 5. Một phần tử: kiểm tra điểm đầu, điểm cuối và giới hạn
+## 5. Single Element: Testing Start, End, and Boundary Thresholds
 
-Nguồn chỉ có một phần tử là cách đơn giản nhất để kiểm tra những giả định về “cặp phần tử”, “ít nhất hai bản ghi” và điều kiện biên.
+A single-element source is the simplest way to catch assumptions like "a pair of elements," "at least two records," and boundary conditions.
 
 ```java
 import java.util.List;
@@ -172,9 +172,9 @@ System.out.println(normalized.size());   // 1
 System.out.println(normalized.get(0));   // SKU-01
 ```
 
-Trong ví dụ Java 16+, `Stream.toList()` tạo danh sách **không sửa đổi được**. Nếu cần một danh sách mutable, chọn một collector/supplier thích hợp; đừng mặc định `toList()` giống `new ArrayList<>()`.
+In this Java 16+ example, `Stream.toList()` returns an **unmodifiable** list. If a mutable list is required, use an appropriate collector/supplier; never assume `toList()` behaves like `new ArrayList<>()`.
 
-Hãy thử ngưỡng đúng bằng giá trị:
+Also test exact boundary thresholds:
 
 ```java
 import java.util.stream.Stream;
@@ -183,9 +183,9 @@ System.out.println(Stream.of(60).filter(n -> n >= 60).count()); // 1
 System.out.println(Stream.of(60).filter(n -> n > 60).count());  // 0
 ```
 
-Đây là lỗi **off-by-one** phổ biến. Với pipeline tạo cửa sổ, nhóm theo cặp hoặc tính sai phân giữa hai phần tử liên tiếp, một phần tử có thể tạo **không kết quả** hoặc một kết quả đặc biệt; phải đọc đúng hợp đồng phép toán thay vì tự suy đoán.
+This catches common **off-by-one** bugs. For pipelines using windowing, pairwise grouping, or differences between adjacent elements, a single element may yield **zero results** or a special result; read the operation's contract carefully rather than guessing.
 
-### Tránh truy cập phần tử đầu tiên không an toàn
+### Avoid unsafe access to the first element
 
 ```java
 import java.util.Optional;
@@ -196,23 +196,23 @@ Optional<String> first = Stream.<String>empty().findFirst();
 System.out.println(first.orElse("KHÔNG CÓ DỮ LIỆU"));
 // KHÔNG CÓ DỮ LIỆU
 
-// Tránh gọi first.get() khi Optional có thể rỗng.
+// Avoid calling first.get() when the Optional may be empty.
 ```
 
-`Optional` là cách biểu diễn **có hoặc không có phần tử**. Nếu bản thân phần tử đầu tiên có thể là `null`, `findFirst()` còn có trường hợp ném `NullPointerException`, được phân tích ở mục về null.
+`Optional` expresses **presence or absence of an element**. If the first element itself can be `null`, `findFirst()` can throw `NullPointerException`, as analyzed in the null section.
 
-## 6. Dữ liệu trùng: phải chọn một trong nhiều chính sách
+## 6. Duplicate Data: Choose One Explicit Policy
 
-Có ít nhất bốn bài toán khác nhau với các phần tử trùng:
+There are at least four distinct problems involving duplicate elements:
 
-| Yêu cầu | API phù hợp | Kết quả ví dụ `["A","A","B"]` |
+| Requirement | Appropriate API | Result for `["A","A","B"]` |
 | --- | --- | --- |
-| Giữ nguyên từng bản ghi | Không loại trùng | `[A, A, B]` |
-| Lấy giá trị duy nhất | `distinct()` | `[A, B]` |
-| Đếm tần suất | `groupingBy(identity(), counting())` | `A -> 2, B -> 1` |
-| Phát hiện lỗi khóa trùng khi tạo map | `toMap(key, value)` không có merger | Ném `IllegalStateException` nếu cùng khóa. |
+| Keep every record | No deduplication | `[A, A, B]` |
+| Unique values | `distinct()` | `[A, B]` |
+| Frequency counts | `groupingBy(identity(), counting())` | `A -> 2, B -> 1` |
+| Fail on duplicate keys when building a map | `toMap(key, value)` without merger | Throws `IllegalStateException` on duplicate keys. |
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.List;
@@ -236,9 +236,9 @@ System.out.println(frequencies.get("A")); // 3
 System.out.println(frequencies.get("B")); // 1
 ```
 
-`distinct()` xác định sự trùng lặp theo `Object.equals`. Với một stream có encounter order, phép `distinct` ổn định: nó giữ **phần tử đầu tiên** trong các phần tử bằng nhau. Không được suy ra thứ tự tương tự cho nguồn vốn không có encounter order; xử lý song song có thể phải giữ thêm trạng thái và chi phí để bảo đảm tính ổn định.
+`distinct()` determines equality via `Object.equals`. For a stream with an encounter order, `distinct` is stable: it keeps **the first occurrence** among equal elements. Do not assume the same ordering for unordered sources; parallel execution may require extra state and cost to maintain stability.
 
-### Trùng sau chuẩn hóa thường nguy hiểm hơn trùng nguyên văn
+### Duplicates after normalization are often trickier than raw duplicates
 
 ```java
 import java.util.List;
@@ -254,13 +254,13 @@ List<String> uniqueCodes = Stream.of(" sku-01 ", "SKU-01", "sku-02")
 System.out.println(uniqueCodes); // [SKU-01, SKU-02]
 ```
 
-Nếu đặt `distinct()` **trước** bước chuẩn hóa, hai chuỗi `" sku-01 "` và `"SKU-01"` vẫn khác nhau và đều đi tiếp. Vì thế thứ tự `normalize` và `distinct` là một phần của hợp đồng nghiệp vụ.
+If `distinct()` is placed **before** normalization, `" sku-01 "` and `"SKU-01"` remain different and both pass through. Thus the order of `normalize` and `distinct` is part of the business contract.
 
-Nếu một đơn hàng có ID trùng, việc âm thầm dùng `distinct` có thể **làm mất giao dịch cần đối soát**. Nhiều hệ thống phải báo lỗi, giữ cả hai bản ghi và vị trí nguồn, hoặc có quy tắc gộp rõ ràng. Test cần phản ánh chính sách đó, không chỉ “mong số lượng giảm”.
+If an order has a duplicate ID, silently calling `distinct` can **drop a transaction needed for reconciliation**. Many systems must raise an error, preserve both records and their source positions, or apply an explicit merge rule. Tests must verify that exact policy, not merely "expect the count to shrink."
 
-## 7. `equals` và `hashCode` quyết định ý nghĩa của `distinct`
+## 7. `equals` and `hashCode` Define What `distinct` Means
 
-Hai đối tượng khác tham chiếu chưa chắc khác nhau về mặt giá trị:
+Two objects with different references are not necessarily different by value:
 
 ```java
 import java.util.List;
@@ -279,15 +279,15 @@ List<Product> unique = Stream.of(
 System.out.println(unique.size()); // 2
 ```
 
-`record` có `equals`/`hashCode` dựa trên **các thành phần giá trị**; hai `Product("A", 1)` bằng nhau, còn `Product("A", 2)` khác nhau. Nếu nghiệp vụ coi **chỉ `sku`** là khóa duy nhất, `distinct()` trên cả `Product` **không đúng yêu cầu**.
+A `record` derives `equals`/`hashCode` from **all its value components**; two `Product("A", 1)` instances are equal, while `Product("A", 2)` is distinct. If business logic treats **only `sku`** as the unique key, `distinct()` over the whole `Product` **does not meet the requirement**.
 
-Khi muốn duy nhất theo một khóa riêng, có thể nhóm theo khóa, dùng `toMap` với merger đã quy định, hoặc tạo một cấu trúc riêng để phát hiện trùng. Đừng viết predicate `filter(x -> seen.add(x.sku()))` với một `HashSet` dùng chung rồi chạy `parallel()`: cách đó có hiệu ứng phụ, rủi ro race và phụ thuộc thứ tự xử lý.
+When uniqueness by a specific key is required, group by that key, use `toMap` with a defined merge function, or build a dedicated duplicate-detection structure. Never write `filter(x -> seen.add(x.sku()))` with a shared `HashSet` and run `parallel()`: that introduces side effects, race hazards, and schedule-dependent output.
 
-Nếu tự định nghĩa lớp mutable và thay đổi các trường tham gia `equals`/`hashCode` trong lúc pipeline đang chạy, kết quả `distinct` hoặc các cấu trúc dựa trên hash có thể sai. Hãy dùng khóa ổn định và tránh can thiệp nguồn.
+If you define mutable classes and mutate fields used in `equals`/`hashCode` while a pipeline runs, `distinct` or hash-based collectors can produce wrong results. Keep keys immutable and avoid source interference.
 
-## 8. `Collectors.toMap`: không được lặng lẽ bỏ qua khóa trùng
+## 8. `Collectors.toMap`: Do Not Silently Discard Duplicate Keys
 
-`toMap(keyMapper, valueMapper)` **ném `IllegalStateException`** nếu nhiều phần tử tạo cùng khóa. Đây là hành vi đáng kiểm thử khi khóa phải duy nhất:
+`toMap(keyMapper, valueMapper)` **throws `IllegalStateException`** if multiple elements produce the same key. This behavior is worth testing when keys must be unique:
 
 ```java
 import java.util.List;
@@ -297,12 +297,12 @@ import java.util.stream.Collectors;
 
 List<String> codes = List.of("A", "B", "A");
 
-// Lỗi: khóa "A" xuất hiện hai lần.
+// Error: key "A" appears twice.
 // Map<String, String> result = codes.stream()
 //     .collect(Collectors.toMap(Function.identity(), Function.identity()));
 ```
 
-Khi trùng khóa được phép, chọn merger rõ ràng:
+When duplicate keys are permitted, provide an explicit merge function:
 
 ```java
 import java.util.LinkedHashMap;
@@ -325,17 +325,17 @@ System.out.println(counts.get("A")); // 2
 System.out.println(counts.get("B")); // 1
 ```
 
-Merger `Long::sum` có ý nghĩa khi cần **đếm bản ghi theo khóa**. Nếu cần giữ bản ghi mới nhất, phải có một quy tắc như timestamp hay version; không nên chọn `(oldValue, newValue) -> newValue` chỉ để che ngoại lệ mà không xác định “mới nhất” theo nghĩa nào.
+A `Long::sum` merger makes sense when **counting records per key**. To keep the latest record, base the rule on a timestamp or version; do not write `(oldValue, newValue) -> newValue` merely to silence the exception without defining what "latest" means.
 
-Trong stream song song, phép gộp cũng phải phù hợp với cách các kết quả bộ phận được kết hợp. Dựa vào một counter mutable bên ngoài hoặc một merger không có tính kết hợp có thể khiến kết quả phụ thuộc lịch thực thi.
+In parallel streams, the merge function must also match how partial results combine. Relying on an external mutable counter or a non-associative merger can make outputs depend on execution scheduling.
 
-## 9. `null`: phần tử null, trường null và nguồn null là ba vấn đề
+## 9. `null`: Null Elements, Null Fields, and Null Sources Are Three Separate Problems
 
-Hãy phân biệt:
+Distinguish all three:
 
-1. **Danh sách nguồn chính nó là null:** gọi `source.stream()` gây `NullPointerException`.
-2. **Danh sách khác null nhưng có phần tử null:** `stream()` vẫn tạo được, nhưng mapper có thể dereference null.
-3. **Đối tượng khác null nhưng trường bên trong null:** `filter(Objects::nonNull)` không kiểm tra được trường thiếu.
+1. **The source collection itself is null:** calling `source.stream()` throws `NullPointerException`.
+2. **A non-null list containing a null element:** `stream()` succeeds, yet a mapper may dereference null.
+3. **A non-null object with a null field inside:** `filter(Objects::nonNull)` does not catch missing inner fields.
 
 ```java
 import java.util.Arrays;
@@ -352,11 +352,11 @@ List<String> cleaned = raw.stream()
 System.out.println(cleaned); // [A, B]
 ```
 
-**Thứ tự phép toán quan trọng**: đặt `map(String::strip)` trước `filter(Objects::nonNull)` sẽ gọi phương thức trên null và có thể ném `NullPointerException`.
+**Operation order matters**: placing `map(String::strip)` before `filter(Objects::nonNull)` invokes a method on null and throws `NullPointerException`.
 
-### Khi phải giữ vị trí tương ứng với đầu vào
+### When input positions must be preserved
 
-Không phải lúc nào `filter(Objects::nonNull)` cũng là đúng. Nếu dòng thứ hai của bảng dữ liệu bị thiếu nhưng vẫn cần giữ đúng số cột/dòng:
+`filter(Objects::nonNull)` is not always right. If the second row of a data table is missing yet you must preserve row/column alignment:
 
 ```java
 import java.util.Arrays;
@@ -372,11 +372,11 @@ System.out.println(withPlaceholders);
 // [A, (MISSING), B]
 ```
 
-Khi ứng dụng cần báo lỗi có số dòng, giải pháp tốt hơn là **giữ chỉ số nguồn** và tạo một kiểu kết quả thành công/thất bại. Việc `filter` bỏ một dòng sẽ khiến chỉ số của các phần tử còn lại khác số dòng ban đầu.
+When the application needs to report errors with line numbers, a better design is **preserving source indices** and returning a success/failure result type. Dropping rows with `filter` shifts the indices of remaining elements away from original line numbers.
 
-### Dùng `Objects.requireNonNull` để kiểm tra lỗi hợp đồng
+### Use `Objects.requireNonNull` to catch contract violations
 
-Nếu ứng dụng quy định **nguồn không bao giờ được null**, một ngoại lệ rõ nghĩa có thể tốt hơn việc tự biến null thành nguồn rỗng:
+If the application specifies **the source must never be null**, a clear exception is better than silently treating null as an empty source:
 
 ```java
 import java.util.List;
@@ -390,36 +390,36 @@ static long countPresent(List<String> source) {
 }
 ```
 
-Trong thiết kế này, null **collection** là lỗi lập trình được phát hiện sớm; null **element** là dữ liệu bị bỏ qua theo một chính sách đã chọn. Hai điều kiện không nên bị đánh đồng.
+In this design, a null **collection** is a programming bug caught immediately; a null **element** is data skipped according to a chosen policy. Do not conflate the two conditions.
 
-## 10. `null` tác động đến `findFirst`, `sorted`, `groupingBy` và collector
+## 10. How `null` Affects `findFirst`, `sorted`, `groupingBy`, and Collectors
 
-Một số thao tác gặp null theo những cách dễ bất ngờ:
+Several operations behave unexpectedly when encountering `null`:
 
-| Thao tác | Với null | Điều cần kiểm thử |
+| Operation | With null | What to test |
 | --- | --- | --- |
-| `map(String::strip)` | Ném `NullPointerException` khi mapper được gọi với null. | Lọc hoặc xử lý null trước. |
-| `findFirst()` / `findAny()` | Ném `NullPointerException` nếu phần tử được chọn là null. | Không giả định Optional chứa được null. |
-| `sorted()` theo natural order | Null không so sánh được bằng cách tự nhiên. | Lọc null hoặc chọn comparator hỗ trợ null. |
-| `groupingBy(classifier)` | Không cho classifier tạo khóa null. | Chuẩn hóa/đặt khóa đại diện hoặc từ chối bản ghi. |
-| `toMap(keyMapper, valueMapper)` | Không chấp nhận giá trị mapped null theo hợp đồng collector. | Xác thực giá trị trước khi thu map. |
-| `List.of` / `List.copyOf` | Từ chối phần tử null. | Không dùng để xây dữ liệu thử chứa null. |
-| `Collectors.toUnmodifiableList()` | Từ chối phần tử null. | Lọc, thay thế hoặc từ chối có lý do. |
-| `mapToInt` với mapper unbox `Integer` | Unbox null ném `NullPointerException`. | Xác định chính sách cho số thiếu. |
+| `map(String::strip)` | Throws `NullPointerException` when mapper receives null. | Filter or handle null beforehand. |
+| `findFirst()` / `findAny()` | Throws `NullPointerException` if selected element is null. | Never assume `Optional` can wrap null. |
+| `sorted()` with natural order | Null cannot be compared via natural ordering. | Filter null or pass a null-safe comparator. |
+| `groupingBy(classifier)` | Classifier cannot return a null key. | Normalize/assign a sentinel key or reject the record. |
+| `toMap(keyMapper, valueMapper)` | Rejects null mapped values per collector contract. | Validate values before collecting into the map. |
+| `List.of` / `List.copyOf` | Rejects null elements. | Never use them to construct test data containing nulls. |
+| `Collectors.toUnmodifiableList()` | Rejects null elements. | Filter, replace, or reject with reason. |
+| `mapToInt` unboxing `Integer` | Unboxing null throws `NullPointerException`. | Define policy for missing numbers. |
 
-Ví dụ bắt lỗi khi `findFirst` nhìn thấy một phần tử null:
+Example catching the error when `findFirst` encounters a null element:
 
 ```java
 import java.util.stream.Stream;
 
-// Ném NullPointerException vì phần tử được chọn là null:
+// Throws NullPointerException because the selected element is null:
 // Stream.of((String) null).findFirst();
 
 System.out.println(Stream.ofNullable((String) null)
-    .findFirst().isEmpty()); // true; isEmpty() có từ Java 11
+    .findFirst().isEmpty()); // true; isEmpty() since Java 11
 ```
 
-Ví dụ sắp xếp có null:
+Example sorting with nulls:
 
 ```java
 import java.util.Comparator;
@@ -433,7 +433,7 @@ List<String> ordered = Stream.of("B", null, "A")
 System.out.println(ordered); // [A, B, null]
 ```
 
-Đừng xem `null` là một “nhóm mặc định” trong `groupingBy`. Nếu nghiệp vụ muốn nhóm dữ liệu thiếu theo một khóa riêng, hãy diễn đạt tường minh:
+Do not treat `null` as a "default group" in `groupingBy`. If business logic wants missing data grouped under its own key, state it explicitly:
 
 ```java
 import java.util.Arrays;
@@ -450,19 +450,19 @@ Map<String, Long> counts = Arrays.asList("API", null, "UI", null)
 System.out.println(counts.get("(UNKNOWN)")); // 2
 ```
 
-Chọn `"(UNKNOWN)"` chỉ khi giá trị ấy **không xung đột với một khóa dữ liệu hợp lệ**. Trong hệ thống cần phân biệt chính xác, enum hoặc kiểu đại diện trạng thái thiếu sẽ an toàn hơn chuỗi phép thuật.
+Choose `"(UNKNOWN)"` only when that string **cannot collide with a valid data key**. In systems requiring strict distinction, an enum or dedicated missing-state type is safer than a magic string.
 
-## 11. Một pipeline thực tế để kiểm thử bốn loại đầu vào
+## 11. A Realistic Pipeline for Testing All Four Input Categories
 
-Ta xây một pipeline nhỏ nhận danh sách dòng hàng thô. Mỗi dòng có mã SKU và số lượng; mục tiêu là:
+Let's build a small pipeline taking raw item rows. Each row has a SKU code and quantity; goals:
 
-- Bỏ các dòng null hoặc có trường bắt buộc null.
-- Chuẩn hóa SKU bằng `strip()` và `toUpperCase(Locale.ROOT)`.
-- Bỏ SKU rỗng hoặc số lượng không dương.
-- **Giữ nguyên các dòng có SKU trùng**, vì danh sách sạch vẫn biểu diễn từng giao dịch.
-- Nếu muốn xem trùng bao nhiêu lần, gọi một hàm thống kê riêng.
+- Drop null rows or rows with null required fields.
+- Normalize SKU using `strip()` and `toUpperCase(Locale.ROOT)`.
+- Drop blank SKUs or non-positive quantities.
+- **Retain rows with duplicate SKUs**, since the cleaned list still represents individual transactions.
+- To count duplicate occurrences, call a separate aggregation method.
 
-Ví dụ hoàn chỉnh (Java 17+ để sử dụng `record` và `Stream.toList()`):
+Complete example (Java 17+ for `record` and `Stream.toList()`):
 
 ```java
 import java.util.List;
@@ -505,13 +505,13 @@ public final class ItemPipeline {
 }
 ```
 
-Hợp đồng của ví dụ này cố ý **đơn giản** để kiểm thử boundary case, không phải chuẩn nhập liệu production. Nó chỉ loại dòng lỗi, chưa giữ `Reject(rowNumber, reason)`; ứng dụng tài chính hoặc yêu cầu đối soát phải giữ dữ liệu bị từ chối với lý do, không chỉ âm thầm bỏ qua.
+This example's contract is intentionally **simple** to focus on boundary-case testing, not a full production ingestion standard. It merely drops invalid rows without keeping `Reject(rowNumber, reason)`; financial or reconciliation applications must record rejected rows with reasons rather than dropping them silently.
 
-Hàm `clean` là phép biến đổi thuần trên đầu vào không bị sửa trong lúc chạy. Hàm `countBySku` thống kê khóa sau chuẩn hóa. Dùng `Map<String, Long>` để so sánh **giá trị map**, không phụ thuộc thứ tự duyệt của `HashMap`.
+`clean` is a pure transformation over an input not mutated during execution. `countBySku` aggregates normalized keys. Using `Map<String, Long>` lets tests compare **map contents**, independent of `HashMap` iteration order.
 
-## 12. Kiểm thử JUnit 5: rỗng, một phần tử, trùng và null
+## 12. JUnit 5 Tests: Empty, Single-Element, Duplicate, and Null Cases
 
-Ví dụ dưới đây sử dụng **JUnit Jupiter 5**; phần parameterized test cần module `junit-jupiter-params` tương ứng. Hãy đặt file kiểm thử trong dự án đã cấu hình JUnit, cùng package với `ItemPipeline` (hoặc bổ sung package/import phù hợp). Chưa cần thêm lệnh build vào bài học để giải thích ngữ nghĩa.
+The example below uses **JUnit Jupiter 5**; the parameterized test requires the `junit-jupiter-params` module. Place the test file in a JUnit-configured project in the same package as `ItemPipeline` (or add the appropriate package/imports). Build commands aren't needed in the lesson to explain the semantics.
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -621,23 +621,23 @@ class ItemPipelineTest {
 }
 ```
 
-Đối chiếu kết quả các test:
+Reviewing what each test proves:
 
-| Tên test | Điều được chứng minh |
+| Test name | What it proves |
 | --- | --- |
-| `emptyInputProducesEmptyResults` | Nguồn rỗng không gây truy cập phần tử sai; map thống kê rỗng. |
-| `singletonValidItemIsNormalizedOnce` | Một dòng hợp lệ thành một `Item` có SKU chuẩn và count = 1. |
-| `blankOrNullSkuIsRejected` | Null/rỗng/trắng đều bị loại theo chính sách ví dụ. |
-| `duplicateSkusRemainTwoTransactions` | Hai giao dịch cùng SKU **không bị xóa trùng**; thống kê có count = 2. |
-| `collectingDuplicateSkusIntoUniqueMapFails` | Nếu yêu cầu map khóa duy nhất, việc trùng gây lỗi rõ ràng. |
-| `nullRowsAndFieldsFollowTheDeclaredPolicy` | Phân biệt null row, null field và quantity không dương. |
-| `nullSourceIsAProgrammingError` | Hợp đồng hàm không lặng lẽ coi null collection là danh sách rỗng. |
+| `emptyInputProducesEmptyResults` | Empty source causes no invalid element access; summary map is empty. |
+| `singletonValidItemIsNormalizedOnce` | One valid row becomes one `Item` with normalized SKU and count = 1. |
+| `blankOrNullSkuIsRejected` | Null/empty/whitespace SKUs are dropped per the example's policy. |
+| `duplicateSkusRemainTwoTransactions` | Two transactions with the same SKU **are not deduplicated**; summary count = 2. |
+| `collectingDuplicateSkusIntoUniqueMapFails` | When a unique-key map is required, duplicates fail explicitly. |
+| `nullRowsAndFieldsFollowTheDeclaredPolicy` | Distinguishes null rows, null fields, and non-positive quantities. |
+| `nullSourceIsAProgrammingError` | Contract does not silently treat a null collection as an empty list. |
 
-Trong bài kiểm thử thật, nên thêm cả đầu vào có chữ Unicode, mã vượt giới hạn chiều dài, số lượng rất lớn, bản ghi bị từ chối với nguyên nhân, và chính sách xử lý trùng có nhiều trường. Các trường hợp đó phụ thuộc vào **quy định nghiệp vụ**, không thể tự giả định là lỗi.
+In real test suites, also add Unicode inputs, over-length codes, very large quantities, rejected records with reasons, and multi-field duplicate policies. Those cases depend on **business rules**, not arbitrary error assumptions.
 
-## 13. Kiểm thử ngoại lệ: phải kiểm tra sai đúng chỗ
+## 13. Testing Exceptions: Verify Failure at the Right Spot
 
-Một lỗi hay gặp là bắt `Exception` quá rộng rồi cho test qua bất kể lỗi nào xảy ra. Hãy kiểm tra **đúng loại ngoại lệ**, và khi phù hợp, thông báo hoặc mã lỗi do ứng dụng tự quy định:
+A common mistake is catching overly broad `Exception` and passing the test regardless of what failed. Assert **the exact exception type**, and where appropriate, application-defined error messages or error codes:
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -654,15 +654,15 @@ class NullOperationTest {
 }
 ```
 
-Đối với `Collectors.toMap`, test có thể kiểm tra `IllegalStateException` khi khóa trùng, nhưng **đừng phụ thuộc toàn bộ nội dung thông báo của JDK** nếu API không cam kết thông báo ổn định giữa các bản.
+For `Collectors.toMap`, tests can assert `IllegalStateException` on duplicate keys, while **avoiding brittle checks against exact JDK message text** if the API does not guarantee message stability across releases.
 
-Với `List.of(null)`, ngoại lệ xuất hiện **khi tạo nguồn**, không phải trong `filter` hoặc `collect`. Hãy xác định đúng bước gây lỗi để không chẩn đoán nhầm pipeline.
+With `List.of(null)`, the exception occurs **when creating the source**, not inside `filter` or `collect`. Pinpoint the exact failing step so you don't misdiagnose the pipeline.
 
-Nếu nghiệp vụ yêu cầu **bản ghi lỗi được giữ lại**, dùng kết quả dạng `Valid/Invalid` (hoặc một record chứa lỗi) thay vì `assertThrows` cho mọi lỗi đầu vào. Ngoại lệ hợp với các vi phạm hợp đồng/điều kiện bất thường; dữ liệu nhập sai có thể là một kết quả dự kiến.
+If business logic requires **preserving invalid records**, use a `Valid/Invalid` result (or an error-carrying record) rather than `assertThrows` for every bad input. Exceptions fit contract violations and unexpected failures; malformed input data may be an expected outcome.
 
-## 14. Đừng dùng `peek` hoặc side effect làm assertion chính
+## 14. Do Not Use `peek` or Side Effects as Primary Assertions
 
-Pipeline Stream là **lazy**: nhiều callback chỉ chạy khi terminal operation yêu cầu kết quả. Một số tối ưu còn có thể **loại bỏ việc thực thi callback** nếu không ảnh hưởng kết quả terminal operation.
+Stream pipelines are **lazy**: callbacks run only when a terminal operation demands results. Optimizations can even **omit callback execution** when it does not affect the terminal result.
 
 ```java
 import java.util.List;
@@ -673,18 +673,18 @@ long count = List.of("A", "B", "C")
     .count();
 
 System.out.println(count); // 3
-// Không bảo đảm peek sẽ in cả A, B, C.
+// No guarantee peek will print A, B, or C.
 ```
 
-Vì `List` có kích thước biết trước, một triển khai Stream có thể tính `count()` mà **không duyệt từng phần tử**. Test không nên xác nhận “`peek` đã gọi đúng ba lần” hay “`map` luôn chạy một lần cho mỗi phần tử” nếu hành vi ấy không thuộc hợp đồng.
+Because `List` has a known size, a Stream implementation can compute `count()` **without traversing elements**. Tests must never assert "`peek` ran exactly three times" or "`map` always runs once per element" when that behavior is not part of the contract.
 
-Với các phép ngắn mạch `findFirst`, `anyMatch`, `limit`, pipeline có thể dừng sớm. Trên stream song song, framework còn có thể xử lý những phần tử khác trước khi có kết quả cuối. **Hãy assert kết quả và ràng buộc được bảo đảm**, không assert số callback hoặc thứ tự log ngẫu nhiên.
+With short-circuiting operations like `findFirst`, `anyMatch`, and `limit`, the pipeline may stop early. On parallel streams, the framework may also process additional elements before producing the final result. **Assert guaranteed results and constraints**, not callback counts or incidental log order.
 
-Khi gỡ lỗi, có thể dùng `peek` tạm thời để quan sát, nhưng việc kiểm thử chính nên dựa vào những hàm biến đổi thuần và đầu ra xác định.
+During debugging, `peek` can help temporarily for observation, while primary tests should rely on pure transformations and deterministic outputs.
 
-## 15. Tạo lại stream cho mỗi phép thử, không tái sử dụng stream đã đóng
+## 15. Recreate the Stream for Each Check; Never Reuse a Closed Stream
 
-Một đối tượng `Stream` chỉ được vận hành **một lần** sau terminal operation. Ví dụ sai:
+A `Stream` instance can be operated upon **only once** after a terminal operation. Wrong example:
 
 ```java
 import java.util.stream.Stream;
@@ -692,11 +692,11 @@ import java.util.stream.Stream;
 Stream<Integer> source = Stream.of(1, 2, 3);
 long count = source.count();
 
-// Không thể tái dùng cùng Stream sau terminal operation:
+// Cannot reuse the same Stream after a terminal operation:
 // int sum = source.mapToInt(Integer::intValue).sum();
 ```
 
-Khi cần kiểm thử cùng dữ liệu bằng nhiều phép toán, hãy tạo stream mới từ nguồn có thể duyệt lại:
+When testing the same data with multiple operations, create a fresh stream from a re-traversable source:
 
 ```java
 import java.util.List;
@@ -709,7 +709,7 @@ System.out.println(count); // 3
 System.out.println(sum);   // 6
 ```
 
-Hoặc dùng `Supplier<Stream<T>>` trong test:
+Or use `Supplier<Stream<T>>` in tests:
 
 ```java
 import java.util.function.Supplier;
@@ -722,20 +722,20 @@ System.out.println(createStream.get().count());       // 3
 System.out.println(createStream.get().findFirst());   // Optional[A]
 ```
 
-Supplier phải tạo **stream mới**, không được trả lại cùng một stream đã tiêu thụ. Nếu nguồn là `Files.lines`, việc tạo stream mới có thể mở tệp lại; phải có `try-with-resources` cho mỗi lần đọc và chú ý dữ liệu tệp có thể đã thay đổi.
+The `Supplier` must return **a new stream**, never the same consumed stream. If the source is `Files.lines`, creating a new stream re-opens the file; wrap each read in `try-with-resources` and keep in mind the file contents could change between reads.
 
-## 16. Kiểm thử nguồn song song: đúng kết quả, không lệ thuộc lịch chạy
+## 16. Testing Parallel Sources: Right Output, No Schedule Dependence
 
-Trong pipeline song song, các lambda có thể chạy trên nhiều worker và không theo thứ tự xuất hiện. Do đó:
+In a parallel pipeline, lambdas can run across multiple workers out of encounter order. Therefore:
 
-- Không kiểm tra `forEach` phải gọi các action theo một thứ tự cố định.
-- Không dùng `ArrayList` chia sẻ bên ngoài `parallel().forEach(list::add)` để thu kết quả.
-- Không dùng predicate phụ thuộc bộ đếm ngoài để xác định bản ghi thuộc nhóm nào.
-- Với `distinct` trên nguồn ordered, kiểm tra **hợp đồng về giá trị và thứ tự** nếu cần; với nguồn unordered, chỉ kiểm tra những bảo đảm thực sự tồn tại.
-- Với `groupingByConcurrent`, không mặc định các danh sách giá trị giữ encounter order.
-- Với số thực, kết quả reduction song song có thể khác vài bit do thứ tự cộng; dùng chính sách sai số thích hợp thay vì kiểm tra bit-for-bit không cần thiết.
+- Never assert that `forEach` runs actions in a fixed order.
+- Never use an external shared `ArrayList` inside `parallel().forEach(list::add)` to gather results.
+- Never use a predicate depending on an external counter to assign records to groups.
+- For `distinct` on ordered sources, test **value and order contracts** if needed; on unordered sources, assert only what is genuinely guaranteed.
+- For `groupingByConcurrent`, do not assume value lists preserve encounter order.
+- For floating-point numbers, parallel reduction sums can differ slightly due to addition order; apply an appropriate tolerance rather than brittle bit-for-bit equality when unnecessary.
 
-Ví dụ kiểm thử tính đúng của phân nhóm:
+Example testing grouping correctness:
 
 ```java
 import java.util.Map;
@@ -751,28 +751,28 @@ Map<Integer, Long> counts = IntStream.range(0, 10_000)
     ));
 
 System.out.println(counts);
-// Mỗi khóa 0,1,2,3 có đúng 2500 phần tử.
+// Each key 0,1,2,3 has exactly 2500 elements.
 ```
 
-Đừng kiểm tra chuỗi `Map.toString()` như một kết quả có thứ tự cố định. Dùng so sánh `Map.equals`, `counts.get(key)` hoặc kiểm tra số lượng từng nhóm.
+Never compare `Map.toString()` as if it had a fixed order. Compare using `Map.equals`, `counts.get(key)`, or per-group counts.
 
-Đối với mục tiêu bài này, đầu tiên cần bảo đảm **các boundary case đúng ở chế độ tuần tự**. Sau đó chạy song song nếu thuật toán và nguồn phù hợp, so sánh kết quả tương đương theo ngữ nghĩa thay vì giả định mọi chi tiết lịch thực thi là xác định.
+For this lesson's goals, first verify **all boundary cases pass sequentially**. Then run in parallel when the algorithm and source fit, checking semantic equivalence rather than assuming deterministic execution scheduling.
 
-## 17. Kiểm thử tính chất thay vì chỉ vài ví dụ cụ thể
+## 17. Property-Based Checks Instead of Just a Few Hand-Picked Examples
 
-Các **bất biến** (*invariants*) thường phát hiện lỗi tốt hơn chỉ một danh sách đầu vào “đẹp”. Chẳng hạn:
+**Invariants** often catch bugs better than a single "happy" input list. For example:
 
-| Bất biến | Điều kiện áp dụng | Cách kiểm tra |
+| Invariant | Applicability | How to check |
 | --- | --- | --- |
-| `filter` không tăng số phần tử | Pipeline chỉ lọc và không thêm phần tử | `result.size() <= input.size()`. |
-| `distinct` không tăng số phần tử | Các phần tử so sánh theo `equals` ổn định | `unique.size() <= input.size()`. |
-| `distinct` idempotent | Không sửa phần tử giữa hai lần | `distinct(distinct(xs)).equals(distinct(xs))` nếu thứ tự được xác định. |
-| Chuẩn hóa idempotent | Hàm chuẩn hóa được thiết kế như vậy | `normalize(normalize(x)).equals(normalize(x))`. |
-| Tổng nhóm bằng tổng nguồn | Mọi phần tử thuộc đúng một nhóm | Tổng `counting()` của các nhóm bằng số phần tử ban đầu. |
-| `partitioningBy` bảo toàn số lượng | Mỗi phần tử được phân đúng một phía | `trueCount + falseCount == input.size()`. |
-| Chuẩn hóa độc lập với lịch chạy | Hàm thuần và nguồn không bị can thiệp | Kết quả tuần tự/song song tương đương theo hợp đồng. |
+| `filter` never increases count | Pipeline only filters and adds nothing | `result.size() <= input.size()`. |
+| `distinct` never increases count | Elements have stable `equals` | `unique.size() <= input.size()`. |
+| `distinct` is idempotent | No element mutation between calls | `distinct(distinct(xs)).equals(distinct(xs))` when ordered. |
+| Normalization is idempotent | Normalization function is designed so | `normalize(normalize(x)).equals(normalize(x))`. |
+| Group sizes sum to source size | Every element belongs to one group | Sum of group `counting()` equals initial element count. |
+| `partitioningBy` preserves count | Every element goes to one side | `trueCount + falseCount == input.size()`. |
+| Scheduling independence | Pure functions and non-interfering source | Sequential and parallel match per contract. |
 
-Ví dụ một vòng kiểm tra nhỏ cho `distinct`:
+Example of a small invariant check for `distinct`:
 
 ```java
 import java.util.Arrays;
@@ -793,62 +793,62 @@ if (first.size() > input.size()) {
 System.out.println(first); // [A, B, null]
 ```
 
-`distinct` có thể giữ một phần tử null trong stream tham chiếu; nhưng một terminal operation khác như `findFirst` nếu chọn null lại không chấp nhận giá trị đó. Đó là lý do không thể kiểm thử `null` bằng một assertion chung cho mọi thao tác Stream.
+`distinct` can retain a `null` element in a reference stream; yet another terminal operation like `findFirst` rejects selecting `null`. That is why `null` cannot be tested with a single blanket assertion across all Stream operations.
 
-Đối với nghiệp vụ, cũng cần thử input có `equals`/key không ổn định, nhiều phần tử trùng liên tiếp, trùng không liên tiếp, trùng sau chuẩn hóa, toàn bộ input null và null chỉ xuất hiện ở đầu/cuối.
+For business domains, also test inputs with unstable `equals`/keys, consecutive duplicates, non-consecutive duplicates, post-normalization duplicates, all-null inputs, and nulls only at the start/end.
 
-## 18. Quy trình gỡ lỗi khi test thất bại
+## 18. Workflow for Debugging a Failing Test
 
-Khi một test boundary case bị lỗi, đi theo trình tự:
+When a boundary-case test fails, follow this sequence:
 
-1. **Tái hiện với đầu vào nhỏ nhất**: thường `[]`, `[x]`, `[x,x]` hoặc `[null]` đã đủ.
-2. **Xác định bước xảy ra lỗi**: tạo nguồn, `map`, `filter`, terminal operation hay finisher của collector.
-3. **Kiểm tra kiểu phần tử sau mỗi bước**: sau `map` có thể sinh null; sau `flatMap` số phần tử có thể tăng/giảm.
-4. **Đọc hợp đồng terminal operation**: một số trả `Optional`, một số dùng identity, một số ném ngoại lệ với null.
-5. **Rà soát khóa và equality**: `distinct` nhìn toàn bộ phần tử; `groupingBy`/ `toMap` nhìn khóa được tạo bởi mapper.
-6. **Xác định dữ liệu bị loại có cần báo lỗi không**: nếu có, thay `filter` im lặng bằng mô hình kết quả chứa lý do.
-7. **Chỉ tối ưu sau khi đúng**: parallel, concurrent collector hoặc cache có thể làm lỗi khó tái hiện hơn.
+1. **Reproduce with the minimal input**: usually `[]`, `[x]`, `[x,x]`, or `[null]` is enough.
+2. **Locate the failing stage**: source creation, `map`, `filter`, terminal operation, or collector finisher.
+3. **Check element types after each stage**: `map` might introduce null; `flatMap` might expand or shrink count.
+4. **Read the terminal operation's contract**: some return `Optional`, some return an identity, some throw on null.
+5. **Audit keys and equality**: `distinct` inspects whole elements; `groupingBy`/`toMap` inspect mapper-produced keys.
+6. **Decide whether dropped rows must be reported**: if so, replace silent `filter` with a reason-carrying result model.
+7. **Optimize only after correctness**: `parallel`, concurrent collectors, or caches can make bugs harder to reproduce.
 
-Không nên “sửa nhanh” bằng `filter(Objects::nonNull)` ở mọi chỗ. Nếu `null` là dấu hiệu quan trọng (ví dụ thiếu mã giao dịch), việc bỏ nó có thể làm báo cáo tổng số dòng sai mà không có cảnh báo.
+Never "quick-fix" every crash by sprinkling `filter(Objects::nonNull)` everywhere. If `null` signals an important issue (such as a missing transaction ID), dropping it silently can corrupt aggregate totals without warning.
 
-## 19. Bài tập thực hành
+## 19. Practice Exercises
 
-**Bài 1 — Empty truth.** Dự đoán kết quả `anyMatch`, `allMatch`, `noneMatch` trên `Stream.empty()`. Giải thích vì sao `allMatch` trả `true` không chứng minh đã kiểm tra được một bản ghi nào. Viết một điều kiện yêu cầu **ít nhất một phần tử** và tất cả đều đạt.
+**Exercise 1 — Empty truth.** Predict the results of `anyMatch`, `allMatch`, and `noneMatch` on `Stream.empty()`. Explain why `allMatch` returning `true` does not prove any record was checked. Write a condition requiring **at least one element** and all matching.
 
-**Bài 2 — Một phần tử và ngưỡng.** Với `Stream.of(60)`, so sánh `filter(n -> n >= 60)` và `filter(n -> n > 60)`. Thêm test cho `59`, `60`, `61`.
+**Exercise 2 — Single element and threshold.** With `Stream.of(60)`, compare `filter(n -> n >= 60)` and `filter(n -> n > 60)`. Add tests for `59`, `60`, and `61`.
 
-**Bài 3 — Trùng trước/sau chuẩn hóa.** Với `[" SKU-01 ", "sku-01", "SKU-02"]`, kiểm tra kết quả khi `distinct` đứng trước và sau phép `strip().toUpperCase(Locale.ROOT)`. Phương án nào phù hợp nếu SKU không phân biệt hoa/thường?
+**Exercise 3 — Duplicates before/after normalization.** With `[" SKU-01 ", "sku-01", "SKU-02"]`, inspect the result when `distinct` sits before vs. after `strip().toUpperCase(Locale.ROOT)`. Which fits if SKUs are case-insensitive?
 
-**Bài 4 — Khóa trùng `toMap`.** Tạo hai `Item` cùng SKU nhưng số lượng khác nhau. Kiểm tra overload hai mapper ném `IllegalStateException`, sau đó xây map tổng số lượng bằng merger `Integer::sum`. Lý giải vì sao cần chính sách gộp.
+**Exercise 4 — Duplicate keys in `toMap`.** Create two `Item`s with the same SKU and different quantities. Verify the two-mapper overload throws `IllegalStateException`, then build a summed quantity map using `Integer::sum`. Explain why a merge policy is required.
 
-**Bài 5 — Null theo ba tầng.** Phân biệt `source == null`, `source = Arrays.asList("A", null)`, và `RawItem(null, 2)`. Chọn cho mỗi tình huống một chính sách rõ ràng: lỗi hợp đồng, bỏ phần tử hoặc tạo bản ghi từ chối.
+**Exercise 5 — Nulls across three layers.** Distinguish `source == null`, `source = Arrays.asList("A", null)`, and `RawItem(null, 2)`. Pick an explicit policy for each: contract error, skip element, or record rejection.
 
-**Bài 6 — `findFirst` với null.** Thử `Stream.of((String) null).findFirst()` và `Stream.ofNullable((String) null).findFirst()`. Cách nào tạo một phần tử null, cách nào tạo stream rỗng? Vì sao kết quả khác nhau?
+**Exercise 6 — `findFirst` with null.** Try `Stream.of((String) null).findFirst()` and `Stream.ofNullable((String) null).findFirst()`. Which creates a single null element, and which creates an empty stream? Why do the results differ?
 
-**Bài 7 — JUnit tham số hóa.** Bổ sung `@ParameterizedTest` cho các SKU `null`, `""`, `" "`, `"a"`, `" A "`. Ghi rõ các trường hợp nào tạo một `Item`, trường hợp nào bị loại.
+**Exercise 7 — Parameterized JUnit test.** Add a `@ParameterizedTest` for SKUs `null`, `""`, `" "`, `"a"`, and `" A "`. Note which cases produce an `Item` and which are dropped.
 
-**Bài 8 — Test song song.** Chạy `IntStream.range(0, 10_000).parallel().boxed().collect(groupingBy(n -> n % 4, counting()))` và xác nhận bốn nhóm mỗi nhóm 2.500 phần tử. Không so sánh chuỗi in của map hoặc lịch gọi lambda.
+**Exercise 8 — Parallel test.** Run `IntStream.range(0, 10_000).parallel().boxed().collect(groupingBy(n -> n % 4, counting()))` and verify four groups of 2,500 elements each. Do not compare printed map strings or lambda call schedules.
 
-**Bài 9 — Bảo toàn bản ghi lỗi.** Mở rộng `ItemPipeline.clean` để trả `ImportResult(accepted, rejected)` và giữ `rowNumber`/ `reason` cho mỗi dòng bị loại. Kiểm thử bất biến `accepted.size() + rejected.size() == source.size()`.
+**Exercise 9 — Preserving invalid rows.** Extend `ItemPipeline.clean` to return `ImportResult(accepted, rejected)` preserving `rowNumber`/`reason` for each rejected row. Test the invariant `accepted.size() + rejected.size() == source.size()`.
 
-## 20. Checklist kiểm thử pipeline trước khi đưa vào sử dụng
+## 20. Pre-Production Pipeline Testing Checklist
 
-- [ ] Đã kiểm tra nguồn rỗng **và** kết quả rỗng sau khi lọc.
-- [ ] Đã kiểm tra nguồn một phần tử, một phần tử bị loại, và giá trị sát ngưỡng.
-- [ ] Đã kiểm tra trùng nguyên văn, trùng không liền nhau, trùng sau chuẩn hóa.
-- [ ] Đã xác định `equals/hashCode` hoặc khóa nghiệp vụ nào dùng để nhận diện trùng.
-- [ ] `toMap` có chính sách rõ ràng khi khóa trùng; không nuốt ngoại lệ tùy tiện.
-- [ ] Đã phân biệt null collection, null element và null field.
-- [ ] Đã chọn rõ giữa loại null, thay thế null và giữ lỗi có lý do.
-- [ ] Không giả định `findFirst` hoặc `min` luôn có giá trị; biết kiểm tra `Optional`.
-- [ ] Đã kiểm tra `allMatch` trên nguồn rỗng và yêu cầu “ít nhất một” nếu cần.
-- [ ] Không dùng `List.of` để tạo test data có phần tử null.
-- [ ] Không phụ thuộc số callback `peek`, `map` hoặc thứ tự log trong pipeline lazy.
-- [ ] Không dùng lại cùng một `Stream` sau terminal operation.
-- [ ] Không dùng shared mutable state trong lambda song song.
-- [ ] Assertion tập trung vào giá trị/ngoại lệ/hợp đồng, không phụ thuộc thứ tự map không được bảo đảm.
-- [ ] Đã cân nhắc dữ liệu thật bị từ chối cần truy vết và thống kê chất lượng dữ liệu.
+- [ ] Tested empty sources **and** empty results after filtering.
+- [ ] Tested single-element sources, single filtered-out elements, and boundary values.
+- [ ] Tested literal duplicates, non-adjacent duplicates, and post-normalization duplicates.
+- [ ] Verified which `equals/hashCode` or business key defines duplication.
+- [ ] `toMap` has an explicit duplicate-key policy; exceptions are never swallowed arbitrarily.
+- [ ] Distinguished null collections, null elements, and null fields.
+- [ ] Explicitly chose between dropping nulls, replacing nulls, and recording errors with reasons.
+- [ ] Never assumed `findFirst` or `min` always has a value; properly checks `Optional`.
+- [ ] Tested `allMatch` on empty sources and checked "at least one" when needed.
+- [ ] Never used `List.of` to construct test data containing nulls.
+- [ ] Did not rely on `peek`/`map` callback counts or log order in lazy pipelines.
+- [ ] Never reused the same `Stream` after a terminal operation.
+- [ ] Never used shared mutable state inside parallel lambdas.
+- [ ] Assertions target values/exceptions/contracts, not unguaranteed map iteration order.
+- [ ] Considered real rejected rows requiring audit trails and data-quality metrics.
 
-**Ghi nhớ:** Kiểm thử Stream API tốt không chỉ là cho một danh sách đẹp chạy qua `collect` mà còn phải kiểm tra **nguồn rỗng, một phần tử, trùng lặp và null**. Phân biệt kết quả rỗng với lỗi, identity với giá trị đo, trùng theo `equals` với trùng theo khóa nghiệp vụ, và null ở từng tầng dữ liệu. Hãy viết assertion theo hợp đồng đã xác định, giữ nguyên nhân loại dữ liệu khi cần đối soát và chỉ đánh giá hiệu năng hoặc song song hóa khi kết quả tuần tự đã đúng.
+**Remember:** Good Stream API testing goes beyond running one clean list through `collect`—it must exercise **empty sources, single elements, duplicates, and nulls**. Distinguish empty results from errors, algebraic identities from measured values, `equals`-based duplicates from key-based duplicates, and nulls at each data layer. Write assertions against well-defined contracts, preserve rejection reasons when reconciliation requires them, and evaluate performance or parallelization only after sequential correctness is proven.
 
-**Tài liệu tham khảo:** [Stream — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Stream.html), [Collectors — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Collectors.html), [Objects — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/Objects.html), [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/).
+**References:** [Stream — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Stream.html), [Collectors — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Collectors.html), [Objects — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/Objects.html), [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/).

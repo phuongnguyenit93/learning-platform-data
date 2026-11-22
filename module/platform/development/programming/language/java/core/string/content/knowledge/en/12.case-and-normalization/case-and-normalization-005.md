@@ -1,97 +1,97 @@
-# Normalizer và các dạng NFC, NFD, NFKC, NFKD trong Java
+# Normalizer and NFC, NFD, NFKC, NFKD Forms in Java
 
-Hai chuỗi trông giống nhau trên màn hình chưa chắc chứa cùng dãy ký tự Unicode. Chẳng hạn, chữ **é** có thể được biểu diễn bằng một code point `U+00E9` hoặc bằng chữ **e** `U+0065` theo sau dấu sắc kết hợp `U+0301`. Với Java, `String.equals()` so sánh dãy code unit UTF-16, nên hai chuỗi ấy **không bằng nhau theo `equals()`** dù có thể hiển thị giống hệt.
+Two strings that look identical on screen do not necessarily contain the same sequence of Unicode characters. For instance, the letter **é** can be represented by a single code point `U+00E9` or by the letter **e** `U+0065` followed by the combining acute accent `U+0301`. To Java, `String.equals()` compares UTF-16 code unit sequences, so those two strings are **not equal under `equals()`** even though they may render identically.
 
-Unicode định nghĩa các **dạng chuẩn hóa** (*normalization forms*) để đưa văn bản về cách biểu diễn nhất quán theo các quy tắc tương đương. Java cung cấp `java.text.Normalizer` với bốn dạng **NFC, NFD, NFKC, NFKD**. Hiểu đúng bốn dạng giúp so sánh, tìm kiếm, lưu khóa và trao đổi dữ liệu đa ngôn ngữ một cách có chủ đích, đồng thời tránh làm thay đổi ý nghĩa văn bản ngoài mong muốn.
+Unicode defines **normalization forms** to bring text into consistent representations according to equivalence rules. Java provides `java.text.Normalizer` with four forms: **NFC, NFD, NFKC, NFKD**. Understanding these four forms helps you compare, search, store keys, and exchange multilingual data intentionally while avoiding unintended changes to text meaning.
 
-## 1. Normalization là gì và không phải là gì?
+## 1. What is normalization, and what is it not?
 
-*Unicode normalization* biến đổi **dãy code point** theo quy tắc Unicode: phân rã một số ký tự, sắp xếp lại dấu kết hợp theo thứ tự chuẩn tắc, và có thể ghép một số dãy đã phân rã thành ký tự dựng sẵn. Hai dạng dữ liệu khác nhau nhưng được Unicode coi là tương đương theo loại tương đương đã chọn sẽ có cùng biểu diễn chuẩn hóa trong phạm vi quy tắc ấy.
+*Unicode normalization* transforms a **sequence of code points** according to Unicode rules: decomposing certain characters, reordering combining marks into canonical order, and optionally composing eligible decomposed sequences into precomposed characters. Two distinct data forms that Unicode considers equivalent under the chosen equivalence type will share the same normalized representation within the scope of those rules.
 
-Ví dụ cùng biểu diễn chữ é:
+Example of representing the letter é:
 
 ```text
-Dạng dựng sẵn:   U+00E9               é
-Dạng tổ hợp:     U+0065 U+0301         e + ◌́
+Precomposed form:     U+00E9               é
+Decomposed form:      U+0065 U+0301         e + ◌́
 
-Trước khi chuẩn hóa:  hai dãy code point khác nhau
-Sau khi về NFC:       cả hai thành U+00E9
-Sau khi về NFD:       cả hai thành U+0065 U+0301
+Before normalization: two different code point sequences
+After NFC:            both become U+00E9
+After NFD:            both become U+0065 U+0301
 ```
 
-Trong bảng trên, ký hiệu `◌́` chỉ giúp nhìn thấy dấu sắc kết hợp, không phải code point bổ sung cần nhập vào dữ liệu thật.
+In the diagram above, the symbol `◌́` only helps visualize the combining acute accent and is not an extra code point to enter into real data.
 
-**Normalization không đồng nghĩa với:**
+**Normalization is not synonymous with:**
 
-- Chuyển chữ hoa thành chữ thường; `"Java"` và `"java"` vẫn là hai chuỗi khác nhau sau NFC/NFD/NFKC/NFKD.
-- Bỏ dấu tiếng Việt hoặc phiên âm. `"á"` không biến thành `"a"` chỉ vì gọi `Normalizer.normalize(...)`.
-- Dịch, sửa chính tả, thay dấu cách tùy ý hoặc xóa ký tự vô hình.
-- So sánh theo quy tắc của một ngôn ngữ (*collation*); ví dụ cách sắp xếp từ điển là vấn đề khác.
-- Bảo đảm hai chuỗi trông giống nhau sẽ bằng nhau. Các ký tự khác bảng chữ viết có thể trông giống nhau mà vẫn không tương đương Unicode; chuẩn hóa không giải quyết mọi ký tự dễ nhầm (*confusables*).
+- Converting uppercase to lowercase; `"Java"` and `"java"` remain two distinct strings after NFC/NFD/NFKC/NFKD.
+- Stripping Vietnamese diacritics or transliterating. `"á"` does not turn into `"a"` simply by calling `Normalizer.normalize(...)`.
+- Translating, spell-checking, normalizing arbitrary spaces, or removing invisible characters.
+- Comparing by language-specific rules (*collation*); for example, dictionary sorting is a separate concern.
+- Guaranteeing that any two visually similar strings will be equal. Characters from different scripts can look alike without being Unicode-equivalent; normalization does not solve all *confusables*.
 
-Quan trọng: chuẩn hóa làm thay đổi **chuỗi biểu diễn**, không thay thế việc chọn chính sách so sánh phù hợp cho từng bài toán.
+Importantly, normalization changes the **representation sequence**; it does not replace choosing an appropriate comparison policy for each problem.
 
-## 2. Hai kiểu tương đương của Unicode
+## 2. Two types of Unicode equivalence
 
-### 2.1. Tương đương chuẩn tắc — canonical equivalence
+### 2.1. Canonical equivalence
 
-Hai dãy code point *canonically equivalent* nếu Unicode coi chúng là những biểu diễn chuẩn tắc khác nhau của cùng văn bản trừu tượng. Một ví dụ phổ biến là:
+Two code point sequences are *canonically equivalent* if Unicode treats them as different canonical representations of the same abstract text. A common example is:
 
-- `U+00E9`: chữ é dựng sẵn.
-- `U+0065 U+0301`: chữ e kết hợp dấu sắc.
+- `U+00E9`: precomposed é.
+- `U+0065 U+0301`: letter e combined with acute accent.
 
-Hai dãy trên khác nhau về độ dài và mã, nhưng được coi là tương đương chuẩn tắc. Các dạng **NFC** và **NFD** bảo toàn loại tương đương này. Đổi giữa chúng có thể thay đổi số code point, số code unit, byte khi mã hóa, hoặc chỉ số trong chuỗi.
+The two sequences differ in length and code values, yet are considered canonically equivalent. **NFC** and **NFD** preserve this type of equivalence. Converting between them can change the number of code points, code units, encoded bytes, or string indices.
 
-### 2.2. Tương đương tương thích — compatibility equivalence
+### 2.2. Compatibility equivalence
 
-Một số ký tự Unicode biểu diễn hình thức trình bày hoặc ký hiệu có ý nghĩa lịch sử/chức năng riêng nhưng có **compatibility decomposition** sang dãy ký tự thông thường. Ví dụ:
+Some Unicode characters represent presentation forms or symbols with historical or functional distinctions, yet have a **compatibility decomposition** to ordinary character sequences. For example:
 
-- `①` (`U+2460`, chữ số 1 trong vòng tròn) có dạng tương thích là `1` (`U+0031`).
-- `ﬃ` (`U+FB03`, ligature) có dạng tương thích là ba chữ `f`, `f`, `i`.
-- `Ａ` (`U+FF21`, chữ A fullwidth) có dạng tương thích là `A` (`U+0041`).
+- `①` (`U+2460`, circled digit one) has the compatibility form `1` (`U+0031`).
+- `ﬃ` (`U+FB03`, ligature) has the compatibility form of three letters `f`, `f`, `i`.
+- `Ａ` (`U+FF21`, fullwidth letter A) has the compatibility form `A` (`U+0041`).
 
-Các cặp này **không nhất thiết tương đương chuẩn tắc**. Chuyển bằng **NFKC/NFKD** có thể xóa đi sự khác biệt về kiểu trình bày hoặc tính năng của ký hiệu. Điều đó có ích khi dữ liệu cần so sánh theo dạng ký tự thông thường, nhưng cũng có thể **mất thông tin phân biệt** mà bài toán thật sự cần giữ.
+These pairs are **not necessarily canonically equivalent**. Converting with **NFKC/NFKD** can erase differences in presentation style or symbol role. That is useful when data needs to be compared in ordinary character form, but it can also **lose distinguishing information** that the problem actually needs to preserve.
 
-Không suy diễn rằng hai ký hiệu có hình dáng gần nhau đều tương đương tương thích. Chỉ những ánh xạ theo dữ liệu và quy tắc Unicode tương ứng mới được áp dụng.
+Do not infer that any two visually similar symbols are compatibility equivalent. Only mappings defined by the corresponding Unicode data and rules are applied.
 
-## 3. Bốn dạng NFC, NFD, NFKC, NFKD
+## 3. The four forms: NFC, NFD, NFKC, NFKD
 
-Tên dạng có thể nhớ theo hai trục:
+You can remember the form names along two axes:
 
-- **C** = *Composition*: thực hiện phân rã phù hợp, sắp xếp dấu kết hợp theo chuẩn, rồi **ghép lại** những dãy được phép.
-- **D** = *Decomposition*: **phân rã** theo quy tắc, không ghép lại sau cùng.
-- **K** = *Compatibility*: ngoài phân rã chuẩn tắc, còn áp dụng **phân rã tương thích**. Chữ K là một phần của tên Unicode chính thức.
+- **C** = *Composition*: performs canonical decomposition, orders combining marks canonically, and then **recomposes** eligible sequences.
+- **D** = *Decomposition*: **decomposes** per the rules without recomposing afterward.
+- **K** = *Compatibility*: in addition to canonical decomposition, also applies **compatibility decomposition**. The letter K is part of the official Unicode names.
 
-| Dạng | Tên đầy đủ | Cách thực hiện ở mức khái niệm | Đặc điểm cần nhớ |
+| Form | Full name | Conceptual execution | Key characteristics |
 |---|---|---|---|
-| **NFD** | Normalization Form D | Phân rã chuẩn tắc + sắp xếp chuẩn tắc | Giữ các khác biệt không tương đương chuẩn tắc |
-| **NFC** | Normalization Form C | Phân rã chuẩn tắc + sắp xếp + ghép chuẩn tắc | Thường thuận tiện làm dạng nhất quán cho văn bản thông thường |
-| **NFKD** | Normalization Form KD | Phân rã chuẩn tắc **và tương thích** + sắp xếp | Có thể đưa ký hiệu trình bày về ký tự cơ sở |
-| **NFKC** | Normalization Form KC | Phân rã chuẩn tắc **và tương thích** + sắp xếp + ghép chuẩn tắc | Kết hợp dạng ghép và các phép gộp tương thích |
+| **NFD** | Normalization Form D | Canonical decomposition + canonical ordering | Preserves non-canonical differences |
+| **NFC** | Normalization Form C | Canonical decomposition + ordering + canonical composition | Often convenient as a consistent form for general text |
+| **NFKD** | Normalization Form KD | Canonical **and compatibility** decomposition + ordering | Can reduce presentation symbols to base characters |
+| **NFKC** | Normalization Form KC | Canonical **and compatibility** decomposition + ordering + canonical composition | Combines composed form with compatibility merging |
 
-Ví dụ diễn giải:
+Illustrative examples:
 
-| Đầu vào | NFC | NFD | NFKC | NFKD |
+| Input | NFC | NFD | NFKC | NFKD |
 |---|---|---|---|---|
-| `é` (U+00E9) | `é` | `e` + dấu sắc | `é` | `e` + dấu sắc |
-| `e` + dấu sắc (U+0065 U+0301) | `é` | `e` + dấu sắc | `é` | `e` + dấu sắc |
+| `é` (U+00E9) | `é` | `e` + acute accent | `é` | `e` + acute accent |
+| `e` + acute accent (U+0065 U+0301) | `é` | `e` + acute accent | `é` | `e` + acute accent |
 | `①` (U+2460) | `①` | `①` | `1` | `1` |
 | `ﬃ` (U+FB03) | `ﬃ` | `ﬃ` | `ffi` | `ffi` |
 | `Ａ` (U+FF21) | `Ａ` | `Ａ` | `A` | `A` |
 
-**Không có quy luật “NFC luôn có ít ký tự hơn NFD”.** Có những dãy phân rã mà Unicode không cho phép ghép thành một ký tự dựng sẵn. Thứ tự và quy tắc ghép còn chịu các giới hạn như *composition exclusions*. Bởi vậy chữ C là “cố gắng ghép theo quy tắc”, không phải “bảo đảm một code point cho mỗi chữ mà người dùng nhìn thấy”.
+**There is no rule that "NFC always has fewer characters than NFD."** There are decomposed sequences that Unicode does not allow composing into a single precomposed character. Composition order and rules are also subject to constraints such as *composition exclusions*. Thus C means "attempt to compose according to the rules," not "guarantee one code point per visible character."
 
-Các dạng chuẩn hóa đều có tính **idempotent**: áp dụng **cùng một dạng** lần nữa sẽ cho cùng nội dung:
+All normalization forms are **idempotent**: applying the **same form** again yields the same content:
 
 ```text
 normalize(normalize(s, NFC), NFC) == normalize(s, NFC)
 ```
 
-Dòng trên biểu thị **đẳng thức về nội dung**, không phải bảo đảm hai tham chiếu Java bằng nhau bằng `==`.
+The line above expresses **content equality**, not a guarantee that two Java references are equal with `==`.
 
-## 4. API `java.text.Normalizer` trong Java 17+
+## 4. The `java.text.Normalizer` API in Java 17+
 
-Lớp `java.text.Normalizer` nằm trong thư viện chuẩn Java; không cần dependency ngoài. Hai phương thức tĩnh cần biết:
+The `java.text.Normalizer` class is in the standard Java library; no external dependency is needed. Two static methods to know:
 
 ```java
 String normalized = Normalizer.normalize(input, Normalizer.Form.NFC);
@@ -99,7 +99,7 @@ boolean alreadyNormalized =
         Normalizer.isNormalized(input, Normalizer.Form.NFC);
 ```
 
-Đây là **đoạn minh họa**, giả sử `input` đã được khai báo là một `String` không null. Bốn hằng enum tương ứng là:
+This is an **illustrative snippet**, assuming `input` is declared as a non-null `String`. The four corresponding enum constants are:
 
 ```java
 Normalizer.Form.NFC
@@ -108,15 +108,15 @@ Normalizer.Form.NFKC
 Normalizer.Form.NFKD
 ```
 
-- `normalize(String source, Normalizer.Form form)` trả một `String` có nội dung ở dạng yêu cầu.
-- `isNormalized(String source, Normalizer.Form form)` cho biết nội dung **đã** thỏa dạng đó chưa. Phương thức này đặc biệt hữu ích khi muốn kiểm tra dữ liệu hoặc tránh thực hiện bước chuẩn hóa không cần thiết theo luồng ứng dụng.
-- `String` là immutable: không có thao tác nào ở đây sửa nội dung chuỗi nguồn. Muốn giữ kết quả, dùng biến mới hoặc gán `input = Normalizer.normalize(input, form);`.
-- Một chuỗi có thể đồng thời thỏa **nhiều dạng**. Ví dụ `"abc"` đã ở cả NFC, NFD, NFKC và NFKD.
-- `Normalizer` xử lý dữ liệu Unicode theo phiên bản được hỗ trợ bởi bản triển khai JDK; với các ký tự Unicode mới hơn, cần xem khả năng hỗ trợ của môi trường Java mục tiêu.
+- `normalize(String source, Normalizer.Form form)` returns a `String` whose content is in the requested form.
+- `isNormalized(String source, Normalizer.Form form)` reports whether the content is **already** in that form. This method is especially useful when validating data or avoiding unnecessary normalization steps in an application pipeline.
+- `String` is immutable: none of these operations modify the source string. To keep the result, use a new variable or assign `input = Normalizer.normalize(input, form);`.
+- A string can satisfy **multiple forms** simultaneously. For example, `"abc"` is already in NFC, NFD, NFKC, and NFKD.
+- `Normalizer` processes Unicode data according to the Unicode version supported by the JDK implementation; for newer Unicode characters, check the support level of your target Java runtime.
 
-### Ví dụ 1: chữ é theo NFC và NFD
+### Example 1: the letter é under NFC and NFD
 
-Lưu thành **`CanonicalNormalizationDemo.java`**:
+Save as **`CanonicalNormalizationDemo.java`**:
 
 ```java
 import java.text.Normalizer;
@@ -156,7 +156,7 @@ public class CanonicalNormalizationDemo {
 }
 ```
 
-Chạy tại thư mục chứa tệp, dùng JDK 17+:
+Run in the directory containing the file using JDK 17+:
 
 ```bash
 javac CanonicalNormalizationDemo.java
@@ -176,13 +176,13 @@ decomposed already NFD: true
 NFC idempotent: true
 ```
 
-`composed.equals(decomposed)` ban đầu là `false` vì khác chuỗi code unit UTF-16. Sau NFC, cả hai cùng có `U+00E9`; sau NFD, cả hai cùng có `U+0065 U+0301`. `isNormalized` kiểm tra **dạng chuẩn hóa hiện có**, không kiểm tra chuỗi có phải tiếng Việt/tiếng Anh hợp lệ, và cũng không loại bỏ dấu. `NFC idempotent` minh họa áp dụng lại một dạng đã đạt chuẩn không làm thay đổi nội dung.
+`composed.equals(decomposed)` is initially `false` because the UTF-16 code unit sequences differ. After NFC, both contain `U+00E9`; after NFD, both contain `U+0065 U+0301`. `isNormalized` checks the **current normalization form**; it does not check whether a string is valid Vietnamese/English, nor does it strip accents. `NFC idempotent` demonstrates that re-applying an already satisfied form does not change the content.
 
-## 5. Ví dụ 2: NFKC/NFKD khác NFC/NFD ở đâu?
+## 5. Example 2: where do NFKC/NFKD differ from NFC/NFD?
 
-Điểm đặc trưng của hai dạng có **K** là chúng xử lý cả ánh xạ tương thích. Để tránh sự phụ thuộc vào font hiển thị ký tự đặc biệt, ví dụ dưới đây in **mã code point Unicode** thay vì in trực tiếp glyph kết quả.
+The defining feature of the two forms with **K** is that they also process compatibility mappings. To avoid depending on console fonts for special characters, the example below prints **Unicode code points** instead of printing the resulting glyphs directly.
 
-Lưu thành **`CompatibilityNormalizationDemo.java`**:
+Save as **`CompatibilityNormalizationDemo.java`**:
 
 ```java
 import java.text.Normalizer;
@@ -236,53 +236,53 @@ fullwidth-A NFKC: U+0041
 fullwidth-A NFKD: U+0041
 ```
 
-Các kết quả cho thấy:
+The results show:
 
-1. NFC/NFD không tự biến `①` thành `1`, `ﬃ` thành `ffi` hoặc `Ａ` thành `A` vì các cặp này chỉ liên hệ qua **tương đương tương thích**.
-2. NFKC/NFKD có thể làm mất thông tin về kiểu ký hiệu, hình thức trình bày hoặc chiều rộng ký tự. Nếu phân biệt `①` và `1` là quan trọng trong dữ liệu, **không được mặc định chọn NFKC**.
-3. Với các chuỗi ví dụ không có dãy cần ghép sau phân rã tương thích, đầu ra NFKC và NFKD trùng nhau. Điều đó **không** có nghĩa hai dạng luôn như nhau: chúng khác biệt khi có thành phần cần ghép chuẩn tắc sau bước phân rã.
+1. NFC/NFD do not convert `①` to `1`, `ﬃ` to `ffi`, or `Ａ` to `A` because those pairs are related only via **compatibility equivalence**.
+2. NFKC/NFKD can lose information about symbol type, presentation style, or character width. If distinguishing `①` from `1` matters in your data, **do not default to NFKC**.
+3. For example strings that have no sequences needing composition after compatibility decomposition, NFKC and NFKD outputs coincide. That does **not** mean the two forms are always identical: they differ whenever components require canonical composition after decomposition.
 
-## 6. Ký tự tổ hợp, thứ tự dấu và những điều dễ hiểu sai
+## 6. Combining characters, mark ordering, and common misconceptions
 
-Một dãy Unicode có thể gồm ký tự cơ sở và nhiều dấu kết hợp. Chuẩn hóa không chỉ thay một ký tự dựng sẵn bằng hai ký tự hoặc ngược lại; nó còn áp dụng **thứ tự chuẩn tắc** dựa trên *Canonical Combining Class* khi quy tắc cho phép.
+A Unicode sequence can consist of a base character and multiple combining marks. Normalization does not merely replace one precomposed character with two characters or vice versa; it also applies **canonical ordering** based on *Canonical Combining Class* where rules allow.
 
-Vì vậy:
+Therefore:
 
-- Những dãy cùng nghĩa chuẩn tắc nhưng có thứ tự dấu khác nhau đôi khi được đưa về cùng thứ tự chuẩn. Không nên tùy ý hoán đổi mọi dấu; Unicode có các quy tắc và ngoại lệ cụ thể.
-- Một dấu kết hợp không nhất thiết có ký tự dựng sẵn tương ứng với mọi chữ cơ sở. Sau NFC vẫn có thể còn nhiều code point.
-- “Một code point” không đồng nghĩa “một ký tự người dùng thấy”. Một **grapheme cluster** có thể có nhiều code point, ngay cả sau khi đã chuẩn hóa.
-- `String.length()` đếm code unit UTF-16, `codePointCount(0, length())` đếm code point, còn số cụm ký tự hiển thị là phép đo khác. Chuẩn hóa có thể thay đổi hai phép đếm đầu mà vẫn cho biểu diễn nhìn tương tự.
+- Sequences that have the same canonical meaning but different combining-mark orders are sometimes brought into the same canonical order. Do not arbitrarily swap diacritics; Unicode has specific rules and exceptions.
+- A combining mark does not necessarily have a precomposed character for every base letter. Multiple code points can remain even after NFC.
+- "One code point" does not mean "one character perceived by the user." A **grapheme cluster** can contain multiple code points, even after normalization.
+- `String.length()` counts UTF-16 code units, `codePointCount(0, length())` counts code points, while the number of displayed character clusters is a different measurement. Normalization can change the first two counts while producing a visually similar representation.
 
-Ví dụ:
+Example:
 
 ```text
-Trước: "e" + U+0301
+Before: "e" + U+0301
   UTF-16 code units = 2
   Unicode code points = 2
 
-Sau NFC: U+00E9
+After NFC: U+00E9
   UTF-16 code units = 1
   Unicode code points = 1
 
-Một chữ é người dùng thường nhận biết: 1 grapheme cluster
+One é character as typically perceived by a user: 1 grapheme cluster
 ```
 
-Nếu đang lưu offset con trỏ, ranh giới `substring`, vùng tô sáng, chỉ số tìm kiếm hay tọa độ ghi chú trên nội dung gốc, **không dùng lại chỉ số cũ sau khi chuẩn hóa**. Hãy chuẩn hóa trước khi tính offset hoặc xây cơ chế ánh xạ vị trí nguồn–đích khi cần giữ các tọa độ trên văn bản gốc.
+If you store cursor offsets, `substring` boundaries, highlight ranges, search indices, or annotation coordinates on the original content, **do not reuse old indices after normalization**. Normalize before computing offsets, or build a source–target position mapping mechanism when original text coordinates must be preserved.
 
-## 7. Chuẩn hóa trước khi so sánh và tìm kiếm
+## 7. Normalizing before comparing and searching
 
-`String.equals()`, `indexOf()`, `contains()` và khóa `String` trong `HashMap` không tự áp dụng Unicode normalization. Vì thế dữ liệu về cùng một từ nhưng có cách mã hóa dấu khác nhau có thể so sánh `false` hoặc không khớp khi tìm.
+`String.equals()`, `indexOf()`, `contains()`, and `String` keys in `HashMap` do not apply Unicode normalization automatically. Therefore, data representing the same word with differently encoded diacritics can compare `false` or fail to match in searches.
 
-Quy trình phổ biến cho **tương đương chuẩn tắc**:
+A common workflow for **canonical equivalence**:
 
-1. Xác định quy tắc so sánh: ở đây chấp nhận hai chuỗi *canonically equivalent* là cùng văn bản.
-2. Chọn **một dạng duy nhất**, thường là NFC.
-3. Chuẩn hóa **cả hai phía** trước khi so sánh hoặc khi ghi/tra cứu khóa.
-4. Dùng `equals()`/`Objects.equals()` hoặc thao tác tìm kiếm trên chuỗi đã chuẩn hóa.
+1. Define the comparison rule: here, treat two *canonically equivalent* strings as the same text.
+2. Choose **a single form**, usually NFC.
+3. Normalize **both sides** before comparing or when writing/querying keys.
+4. Use `equals()`/`Objects.equals()` or search operations on the normalized strings.
 
-### Ví dụ 3: khóa `HashMap` phải có dạng nhất quán
+### Example 3: `HashMap` keys must use a consistent form
 
-Lưu thành **`NormalizedLookupDemo.java`**:
+Save as **`NormalizedLookupDemo.java`**:
 
 ```java
 import java.text.Normalizer;
@@ -326,19 +326,19 @@ lookup NFC: found
 canonical lookup: normalized
 ```
 
-Dòng `lookup NFC` thành công vì `stored` trong ví dụ đã ở NFC; **không thể tổng quát hóa** rằng chỉ chuẩn hóa phía truy vấn là đủ. Để tránh phụ thuộc vào việc phía lưu trữ tình cờ đã được chuẩn hóa, hãy dùng cùng một hàm `nfc(...)` khi **ghi khóa** và **tạo khóa tra cứu**, như `canonical` ở cuối ví dụ.
+The `lookup NFC` line succeeds because `stored` in the example happened to already be in NFC; **you cannot generalize** that normalizing only the query side is enough. To avoid depending on the storage side happening to be normalized, use the same `nfc(...)` function when **writing keys** and **creating lookup keys**, as shown with `canonical` at the end of the example.
 
-Một hệ thống đã có dữ liệu lưu theo nhiều dạng khác nhau cần kế hoạch **chuyển đổi dữ liệu** hoặc chiến lược tra cứu phù hợp. Chỉ thay đổi mã đọc có thể khiến các khóa cũ không thể tìm thấy nếu dạng chuẩn hóa của khóa lưu không đồng nhất.
+A system with existing data stored in mixed forms needs a **data migration** plan or a suitable lookup strategy. Changing only read-side code can leave older keys unfindable if stored key normalization forms are inconsistent.
 
-### Tìm chuỗi con có dấu
+### Searching for substrings with diacritics
 
-Nếu muốn `contains()` hoặc `indexOf()` chấp nhận sự tương đương chuẩn tắc, có thể chuẩn hóa cả chuỗi nguồn và từ khóa về NFC trước khi tìm. Nhưng offset mà `indexOf()` trả về là offset UTF-16 **trên chuỗi đã chuẩn hóa**. Nếu cần dùng offset đó để đánh dấu **chuỗi nguồn chưa chuẩn hóa**, phải ánh xạ lại vị trí; không được đưa offset mới trực tiếp vào nguồn cũ.
+If you want `contains()` or `indexOf()` to honor canonical equivalence, you can normalize both the source string and the search term to NFC before searching. However, the offset returned by `indexOf()` is a UTF-16 offset **on the normalized string**. If you need that offset to highlight the **unnormalized source string**, you must map the position back; do not feed the new offset directly into the old source string.
 
-Nếu ứng dụng cần tìm kiếm theo ngôn ngữ, bỏ phân biệt hoa/thường, xử lý biến thể dấu hoặc sắp xếp từ điển, chỉ NFC có thể không đủ; cần xác định thuật toán so khớp theo locale hoặc bộ máy tìm kiếm phù hợp.
+If the application needs language-aware search, case insensitivity, accent-variant handling, or dictionary sorting, NFC alone may not suffice; define a locale-aware matching algorithm or an appropriate search engine.
 
-## 8. Normalization và chuyển chữ hoa/thường là hai bước độc lập
+## 8. Normalization and case conversion are two independent steps
 
-NFC, NFD, NFKC, NFKD **không phải** các chế độ “lowercase” hay “case-insensitive”. Chẳng hạn:
+NFC, NFD, NFKC, and NFKD are **not** "lowercase" or "case-insensitive" modes. For instance:
 
 ```java
 String a = "Java";
@@ -348,64 +348,64 @@ System.out.println(java.text.Normalizer.normalize(
         a, java.text.Normalizer.Form.NFC).equals(b)); // false
 ```
 
-Đây là **đoạn minh họa**, có thể chạy khi đặt trong một phương thức Java; kết quả in ra là `false`.
+This is an **illustrative snippet** that can run inside a Java method; the printed result is `false`.
 
-Nếu chính sách nghiệp vụ yêu cầu so sánh **không phân biệt chữ hoa/thường**, Java còn có `String.toLowerCase(Locale)`, `equalsIgnoreCase(...)` hoặc các API liên quan. Hãy chọn theo ngôn ngữ/ngữ cảnh:
+If business policy requires **case-insensitive** comparison, Java also provides `String.toLowerCase(Locale)`, `equalsIgnoreCase(...)`, and related APIs. Choose based on language and context:
 
-- `toLowerCase(Locale.ROOT)` thuận tiện cho một số mã định danh có quy tắc **không phụ thuộc locale**, nhưng không phải lúc nào cũng tương đương thuật toán *full Unicode case folding*.
-- `Locale` cụ thể có thể làm thay đổi cách chuyển hoa/thường đối với một số chữ, chẳng hạn tiếng Thổ Nhĩ Kỳ.
-- Việc đổi hoa/thường có thể thay đổi dãy code point; nếu thiết kế yêu cầu dạng chuẩn hóa cố định sau biến đổi, hãy cân nhắc **chuẩn hóa lại sau bước đổi hoa/thường**.
-- NFKC **không tự** thực hiện full case folding; khái niệm `NFKC_Casefold` trong một số tiêu chuẩn Unicode không đơn giản là lời gọi `Normalizer.normalize(s, NFKC)`.
+- `toLowerCase(Locale.ROOT)` is convenient for certain identifiers with **locale-independent** rules, though it is not always equivalent to *full Unicode case folding*.
+- A specific `Locale` can alter case conversion for certain letters, such as in Turkish.
+- Case conversion can alter the code point sequence; if the design requires a fixed normalization form after transformation, consider **re-normalizing after the case-conversion step**.
+- NFKC **does not automatically** perform full case folding; the `NFKC_Casefold` concept in certain Unicode standards is not simply calling `Normalizer.normalize(s, NFKC)`.
 
-Bởi vậy, không gọi NFKC rồi mặc định kết luận hai tên người, tên tài khoản hoặc chuỗi tiếng tự nhiên “bằng nhau bất kể hoa/thường”. Quy tắc so sánh cần được mô tả rõ và kiểm thử với các ngôn ngữ mà ứng dụng hỗ trợ.
+Therefore, do not call NFKC and assume two personal names, account names, or natural-language strings are "equal regardless of case." Comparison rules must be clearly specified and tested across the languages the application supports.
 
-## 9. Chọn dạng nào cho tình huống thực tế?
+## 9. Which form to choose for real-world scenarios?
 
-| Tình huống | Lựa chọn cân nhắc | Lý do và giới hạn |
+| Scenario | Candidate choice | Rationale and limitations |
 |---|---|---|
-| Muốn lưu/so sánh văn bản thông thường theo tương đương chuẩn tắc | **NFC** | Duy trì phân biệt tương thích trong khi thống nhất dạng dựng sẵn/tổ hợp |
-| Thuật toán cần phân tích riêng ký tự cơ sở và dấu kết hợp | **NFD** | Phân rã chuẩn tắc để thao tác code point; tránh ngộ nhận rằng mọi dấu đều có thể loại bỏ tùy ý |
-| Chuẩn hóa mã định danh với các ký tự tương thích theo đặc tả rõ ràng | **NFKC** | Có thể gộp chữ fullwidth, ligature, ký hiệu trình bày; cần chính sách chấp nhận các phép gộp |
-| Xử lý từng phần tử sau phân rã tương thích | **NFKD** | Giữ phân rã tương thích để phân tích; có thể làm mất phân biệt biểu diễn |
-| Văn bản pháp lý, bản chép chính xác, chữ ký số hoặc dữ liệu cần giữ byte gốc | **Không tự ý chuyển** | Chuẩn hóa có thể đổi code point và byte; chỉ làm khi giao thức/đặc tả quy định |
-| Mật khẩu hoặc giá trị bí mật đưa vào KDF/hàm băm | **Theo đúng đặc tả xác thực** | Chuẩn hóa ngoài hợp đồng làm thay đổi giá trị xác thực và có thể gây không tương thích |
-| Tìm kiếm nhạy theo ngôn ngữ, bỏ hoa/thường hoặc bỏ dấu | **Quy tắc tìm kiếm riêng** | Một dạng Normalizer đơn lẻ không đáp ứng trọn quy tắc ngôn ngữ |
-| Cần hiển thị đồng nhất về mặt glyph/độ rộng | **Xử lý font và UI** | Normalization không kiểm soát cách renderer tạo hình glyph |
+| Store/compare ordinary text under canonical equivalence | **NFC** | Preserves compatibility distinctions while unifying precomposed/decomposed forms |
+| Algorithm needs to analyze base characters and combining marks separately | **NFD** | Canonical decomposition for code point manipulation; avoid assuming marks can be stripped arbitrarily |
+| Normalize identifiers with compatibility characters per an explicit spec | **NFKC** | Can fold fullwidth letters, ligatures, presentation symbols; requires a policy accepting those merges |
+| Process individual elements after compatibility decomposition | **NFKD** | Keeps compatibility decomposition for analysis; can lose presentation distinctions |
+| Legal documents, exact transcripts, digital signatures, or data requiring original bytes | **Do not convert arbitrarily** | Normalization can change code points and bytes; only do so when protocol/spec mandates |
+| Passwords or secrets fed into a KDF/hash function | **Follow exact auth specification** | Out-of-contract normalization changes authentication values and can cause incompatibility |
+| Language-sensitive, case-insensitive, or accent-insensitive search | **Dedicated search rules** | A single Normalizer form does not cover full language rules |
+| Need visually uniform glyph/width rendering | **Font and UI handling** | Normalization does not control how a renderer shapes glyphs |
 
-**NFC thường là lựa chọn nhất quán tương đối an toàn khi yêu cầu chỉ là canonical equivalence**, nhưng ngay cả NFC cũng có thể đổi dãy byte và offset. Không có một dạng chuẩn hóa “đúng nhất” cho mọi ứng dụng. NFKC/NFKD mạnh hơn theo nghĩa gộp thêm những khác biệt tương thích; “mạnh hơn” không đồng nghĩa “tốt hơn” cho mọi dữ liệu.
+**NFC is usually a relatively safe consistent choice when only canonical equivalence is required**, yet even NFC can alter byte sequences and offsets. There is no single "best" normalization form for every application. NFKC/NFKD are stronger in the sense of merging compatibility differences too; "stronger" does not mean "better" for all data.
 
-### Tránh tự động xóa dấu sau NFD
+### Avoid automatically stripping diacritics after NFD
 
-Một mẹo thường thấy là phân rã bằng NFD rồi xóa mọi ký tự có category *Mark* (ví dụ regex `\p{M}`). Cách này có thể khiến `"café"` trở thành `"cafe"`, nhưng đó là **thuật toán loại dấu riêng**, vượt ra ngoài normalization thuần túy. Với tiếng Việt và nhiều hệ chữ khác, dấu có thể mang ý nghĩa từ vựng và ngữ pháp; xóa dấu có thể tạo nhập nhằng hoặc sai nghĩa. Nếu cần tìm kiếm không dấu, nên thiết kế một chỉ mục/phép tìm kiếm riêng và vẫn giữ văn bản gốc.
+A common trick is decomposing with NFD and deleting every character in the *Mark* category (e.g., regex `\p{M}`). This can turn `"café"` into `"cafe"`, but that is a **custom diacritic-stripping algorithm**, going beyond pure normalization. In Vietnamese and many other scripts, diacritics carry lexical and grammatical meaning; stripping them can create ambiguity or alter meaning. If accent-insensitive search is needed, design a dedicated search index/matcher while keeping the original text intact.
 
-## 10. Hiệu năng, phiên bản Unicode và tính ổn định
+## 10. Performance, Unicode versions, and stability
 
-- Chuẩn hóa có chi phí duyệt/biến đổi nội dung. Với dữ liệu lớn hoặc đường đi xử lý nóng, tránh chuẩn hóa cùng một chuỗi không đổi nhiều lần nếu có thể tổ chức quy trình chuẩn hóa một lần ở ranh giới tiếp nhận/lưu dữ liệu.
-- `isNormalized(...)` hỗ trợ phát hiện chuỗi đã đúng dạng, nhưng việc kiểm tra cũng phải đọc dữ liệu; không mặc định một lời gọi kiểm tra cộng một lời gọi chuẩn hóa luôn nhanh hơn việc chuẩn hóa trực tiếp. Khi hiệu năng là yêu cầu, đo bằng benchmark trên workload đại diện.
-- Các API Java chuẩn trả kết quả tuân theo dữ liệu Unicode do JDK triển khai. Bộ dữ liệu và hỗ trợ ký tự có thể được cập nhật khi nâng JDK; nếu hệ thống trao đổi dữ liệu giữa nhiều runtime, hãy kiểm tra các ký tự quan trọng và chính sách cập nhật.
-- Unicode normalization có các bảo đảm về **tính ổn định chuẩn hóa** theo quy tắc chuẩn, nhưng điều đó không có nghĩa mọi phiên bản JDK nhận biết mọi ký tự Unicode mới như nhau, hoặc mọi hành vi tìm kiếm/hiển thị đều đồng nhất.
-- Luôn ghi rõ dạng chuẩn hóa ở các ranh giới dữ liệu quan trọng: ví dụ “khóa được lưu và truy vấn ở NFC” dễ kiểm chứng hơn quy tắc ngầm hiểu.
-- Không dùng `==` để so nội dung sau chuẩn hóa: hai kết quả có cùng dãy ký tự không bắt buộc là cùng đối tượng `String`. Dùng `equals()` hoặc `Objects.equals()`.
+- Normalization has the cost of scanning and transforming content. For large datasets or hot paths, avoid normalizing the same unchanged string repeatedly if you can organize a single normalization step at ingestion/storage boundaries.
+- `isNormalized(...)` helps detect strings already in the right form, but checking still scans the data; do not assume a check call plus a normalize call is always faster than normalizing directly. When performance is a requirement, measure with benchmarks on representative workloads.
+- Standard Java APIs return results following the Unicode data implemented by the JDK. Character data and support can be updated across JDK upgrades; if a system exchanges data across multiple runtimes, verify critical characters and upgrade policies.
+- Unicode normalization provides **normalization stability** guarantees under standard rules, but that does not mean every JDK version recognizes all newly added Unicode characters identically, or that all search/display behaviors are uniform.
+- Always document the normalization form at important data boundaries: for example, "keys are stored and queried in NFC" is easier to verify than an implicit convention.
+- Do not use `==` to compare content after normalization: two results with the same character sequence are not guaranteed to be the same `String` object. Use `equals()` or `Objects.equals()`.
 
-## 11. Các lỗi phổ biến
+## 11. Common mistakes
 
-| Hiểu nhầm hoặc lỗi | Vì sao sai? | Cách xử lý |
+| Misconception or mistake | Why it is wrong | How to handle |
 |---|---|---|
-| `"é".equals("e\u0301")` phải `true` vì trông giống | `equals()` so chuỗi code unit, không tự chuẩn hóa | Chọn NFC/NFD và chuẩn hóa hai bên khi cần canonical equivalence |
-| NFC là “xóa dấu” | NFC có thể ghép dấu vào ký tự dựng sẵn | Dùng NFC cho dạng ghép chuẩn tắc, không coi là lọc dấu |
-| NFD luôn tạo một code point cho mỗi chữ | NFD là phân rã, có thể tạo nhiều code point | Phân biệt code unit, code point và grapheme cluster |
-| NFC/NFD và NFKC/NFKD luôn tương đương | Các dạng có K còn thực hiện phân rã tương thích | Chọn dạng dựa trên quy tắc nghiệp vụ |
-| NFKC không ảnh hưởng nội dung quan trọng | `①` thành `1`, `ﬃ` thành `ffi` có thể mất sự phân biệt cần thiết | Không mặc định NFKC cho dữ liệu cần bảo toàn khác biệt |
-| Chỉ chuẩn hóa đầu vào truy vấn | Khóa lưu có thể ở dạng khác | Chuẩn hóa nhất quán tại lúc lưu và lúc tìm |
-| Chuẩn hóa làm `indexOf` trên nguồn cũ đúng offset | Độ dài/code point có thể thay đổi | Tính offset trên đúng chuỗi đích hoặc ánh xạ vị trí |
-| Chuẩn hóa tự giải quyết hoa/thường | Normalizer không thực hiện case folding chung | Thiết kế bước xử lý hoa/thường riêng |
-| Dùng `==` để so hai chuỗi đã chuẩn hóa | `==` là so tham chiếu | Dùng `equals()` cho nội dung |
-| Chuẩn hóa tự loại ký tự gây nhầm lẫn hoặc làm sạch input nguy hiểm | Unicode confusables, kiểm tra dữ liệu và an toàn đầu vào là các vấn đề khác | Dùng quy tắc xác thực riêng, không coi Normalizer là bộ lọc an toàn |
-| Chuẩn hóa mà bỏ kết quả trả về | `String` là immutable | Gán lại biến hoặc dùng giá trị trả về |
+| `"é".equals("e\u0301")` must be `true` because they look alike | `equals()` compares code unit sequences, without normalizing | Pick NFC/NFD and normalize both sides when canonical equivalence is needed |
+| NFC means "strip accents" | NFC can compose accents into precomposed characters | Use NFC for canonical composition, not as an accent filter |
+| NFD always produces one code point per character | NFD decomposes, which can yield multiple code points | Distinguish code unit, code point, and grapheme cluster |
+| NFC/NFD and NFKC/NFKD are always equivalent | K forms also perform compatibility decomposition | Choose the form based on business rules |
+| NFKC does not affect important content | `①` becoming `1` or `ﬃ` becoming `ffi` can lose needed distinctions | Do not default to NFKC for data where distinctions must be preserved |
+| Normalizing only query input | Stored keys may be in a different form | Normalize consistently at both storage and lookup time |
+| Normalization keeps `indexOf` offsets valid on the old source | Length/code points can change | Compute offsets on the target string itself or map positions |
+| Normalization automatically handles case | Normalizer does not perform general case folding | Design a separate case-handling step |
+| Using `==` to compare two normalized strings | `==` compares references | Use `equals()` for content |
+| Normalization removes confusable characters or sanitizes dangerous input | Unicode confusables, validation, and input security are distinct problems | Use dedicated validation rules; do not treat Normalizer as a security filter |
+| Calling normalize and discarding the return value | `String` is immutable | Reassign the variable or use the returned value |
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-Trước khi chạy, dự đoán các giá trị bên dưới:
+Before running, predict the values below:
 
 **`NormalizationSelfCheck.java`**
 
@@ -451,12 +451,12 @@ true
 false
 ```
 
-Giải thích:
+Explanation:
 
-1. `a` và `b` chưa chuẩn hóa bằng nhau về hiển thị, nhưng `String.equals()` trực tiếp vẫn là `false`.
-2. Cùng đưa về NFC, cả hai trở thành dãy code point tương đương chuẩn tắc, nên kết quả `equals()` là `true`.
-3. NFC không áp dụng ánh xạ tương thích `①` → `1`, nên `false`.
-4. NFKC có ánh xạ tương thích ấy, vì vậy `true`.
-5. NFKC không đổi `J` hoa thành `j` thường, nên chuỗi `"Java"` vẫn khác `"java"`.
+1. Unnormalized `a` and `b` look equivalent visually, yet direct `String.equals()` is still `false`.
+2. When both are normalized to NFC, they become canonically equivalent code point sequences, so `equals()` returns `true`.
+3. NFC does not apply the compatibility mapping `①` → `1`, hence `false`.
+4. NFKC does apply that compatibility mapping, hence `true`.
+5. NFKC does not turn uppercase `J` into lowercase `j`, so `"Java"` still differs from `"java"`.
 
-**Câu hỏi để tự chọn dạng:** ứng dụng của bạn cần bảo toàn mọi ký hiệu tương thích và chỉ thống nhất các biểu diễn chuẩn tắc (NFC/NFD), hay chấp nhận gộp một số ký tự trình bày về chữ/số thông thường (NFKC/NFKD)? Bước tiếp theo là chọn dạng có cơ sở, chuẩn hóa nhất quán ở các ranh giới dữ liệu, rồi so sánh bằng `equals()` và kiểm thử dữ liệu Unicode đại diện.
+**Question to choose your form:** does your application need to preserve all compatibility symbols and unify only canonical representations (NFC/NFD), or does it accept folding certain presentation characters to ordinary letters/digits (NFKC/NFKD)? Next, pick a well-founded form, normalize consistently at data boundaries, then compare with `equals()` and test with representative Unicode data.

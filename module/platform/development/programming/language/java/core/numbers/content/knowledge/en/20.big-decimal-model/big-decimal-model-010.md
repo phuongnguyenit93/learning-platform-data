@@ -1,30 +1,30 @@
-# Khi nào dùng `BigDecimal` thay `float` hoặc `double` trong Java?
+# When to Use `BigDecimal` Instead of `float` or `double` in Java?
 
-Chọn kiểu số là một quyết định về **ngữ nghĩa dữ liệu và sai số được phép**, không chỉ về dung lượng bộ nhớ. `float` và `double` lưu số dấu phẩy động **nhị phân, độ chính xác hữu hạn**; `BigDecimal` lưu số thập phân theo mô hình một số nguyên không chia tỷ lệ (*unscaled value*) và một `scale`. Những con số trông giống nhau khi in ra có thể có cách biểu diễn và kết quả tính toán khác nhau.
+Choosing a numeric type is a decision about **data semantics and allowable error**, not merely memory size. `float` and `double` store **binary, finite-precision** floating-point numbers; `BigDecimal` stores decimal numbers using an unscaled integer (*unscaled value*) and a `scale`. Numbers that look identical when printed can have different representations and calculation results.
 
-Quy tắc thực hành quan trọng nhất:
+The most important practical rule:
 
-- **Dùng `BigDecimal`** khi cần giữ chính xác các giá trị thập phân được nhập vào (giá, tiền, thuế, số lượng tính theo đơn vị thập phân, tỷ lệ hợp đồng), hoặc phải thực hiện chính sách làm tròn thập phân tường minh và kiểm tra được.
-- **Dùng `double`** khi đang giải quyết bài toán số học xấp xỉ như khoa học, mô phỏng, đồ họa, thống kê hoặc học máy, nơi sai số dấu phẩy động đã được chấp nhận và hiệu năng/API số học là ưu tiên. `float` phù hợp khi ưu tiên bộ nhớ, băng thông, GPU hoặc API yêu cầu 32 bit và độ chính xác thấp hơn là đủ.
-- **Không có kiểu nào tự làm phép tính của bạn đúng theo nghiệp vụ.** `BigDecimal` có phép chia phải làm tròn khi kết quả không thể biểu diễn hữu hạn ở hệ thập phân; `double` cần phân tích sai số và điều kiện biên.
+- **Use `BigDecimal`** when you need to preserve entered decimal values accurately (prices, money, taxes, quantities in decimal units, contractual rates), or must enforce an explicit, auditable decimal rounding policy.
+- **Use `double`** when solving approximate numerical problems such as science, simulation, graphics, statistics, or machine learning, where floating-point error is already accepted and performance/numeric APIs take priority. `float` fits when memory, bandwidth, GPU, or 32-bit APIs take priority and lower precision suffices.
+- **No type automatically makes your calculations business-correct.** `BigDecimal` has divisions that must be rounded when the result cannot be represented finitely in base 10; `double` requires error analysis and boundary conditions.
 
-## 1. Khác nhau ở cách biểu diễn
+## 1. Differences in Representation
 
-| Đặc tính | `float` | `double` | `BigDecimal` |
+| Property | `float` | `double` | `BigDecimal` |
 |---|---|---|---|
-| Mô hình | IEEE 754 nhị phân 32 bit | IEEE 754 nhị phân 64 bit | `unscaledValue × 10^-scale` |
-| Độ chính xác | 24 bit có nghĩa (khoảng 6–9 chữ số thập phân hữu ích) | 53 bit có nghĩa (khoảng 15–17 chữ số thập phân hữu ích) | Do biểu diễn nguyên/scale và tài nguyên cho phép |
-| `0.1` thập phân | Không biểu diễn nhị phân chính xác | Không biểu diễn nhị phân chính xác | `new BigDecimal("0.1")` biểu diễn chính xác |
-| Giá trị đặc biệt | `NaN`, `±Infinity`, số 0 có dấu | `NaN`, `±Infinity`, số 0 có dấu | Không có giá trị `NaN` hoặc vô cực |
-| Phép toán | Toán tử `+ - * /` | Toán tử `+ - * /` | `add`, `subtract`, `multiply`, `divide`... |
-| Chi phí thường gặp | Thấp, dùng phần cứng | Thấp, dùng phần cứng | Cao hơn, nhiều đối tượng/bộ nhớ |
-| Ngữ cảnh điển hình | Đồ họa, dữ liệu số lượng lớn | Tính toán khoa học, số liệu gần đúng | Thập phân chính xác và làm tròn theo hợp đồng |
+| Model | IEEE 754 32-bit binary | IEEE 754 64-bit binary | `unscaledValue × 10^-scale` |
+| Precision | 24 significant bits (roughly 6–9 useful decimal digits) | 53 significant bits (roughly 15–17 useful decimal digits) | Determined by integer/scale representation and available resources |
+| Decimal `0.1` | Not represented exactly in binary | Not represented exactly in binary | `new BigDecimal("0.1")` represents it exactly |
+| Special values | `NaN`, `±Infinity`, signed zero | `NaN`, `±Infinity`, signed zero | No `NaN` or infinity values |
+| Operations | Operators `+ - * /` | Operators `+ - * /` | `add`, `subtract`, `multiply`, `divide`... |
+| Typical cost | Low, hardware-backed | Low, hardware-backed | Higher, more objects/memory |
+| Typical context | Graphics, large-volume data | Scientific computing, approximate figures | Exact decimals and contractual rounding |
 
-`BigDecimal` không có một giới hạn cố định về số chữ số như `double`, nhưng **không phải số thực vô hạn độ chính xác**: biểu diễn thập phân là hữu hạn, kích thước và scale bị giới hạn bởi tài nguyên và API; phép chia như `1/3` vẫn cần chọn quy tắc làm tròn để biểu diễn kết quả hữu hạn.
+`BigDecimal` has no fixed digit limit like `double`, yet **it is not an infinite-precision real number**: its decimal representation is finite, size and scale are bounded by resources and APIs; divisions like `1/3` still require choosing a rounding rule to represent a finite result.
 
-### Vì sao `0.1` không chính xác trong `double`?
+### Why Is `0.1` Inexact in `double`?
 
-Một số phân số thập phân hữu hạn lại là phân số nhị phân vô hạn. Ví dụ `0.5 = 1/2` biểu diễn chính xác bằng nhị phân, còn `0.1 = 1/10` có khai triển nhị phân lặp vô hạn. `double` chỉ giữ một số bit hữu hạn nên lưu giá trị **gần** 0.1 nhất trong lưới số nhị phân.
+Some finite decimal fractions are infinite binary fractions. For example, `0.5 = 1/2` is represented exactly in binary, whereas `0.1 = 1/10` has an infinitely repeating binary expansion. `double` holds only a finite number of bits, so it stores the value **closest** to 0.1 on the binary number grid.
 
 ```java
 double approximate = 0.1 + 0.2;
@@ -34,13 +34,13 @@ BigDecimal exact = new BigDecimal("0.1").add(new BigDecimal("0.2"));
 System.out.println(exact);       // 0.3
 ```
 
-Đây là **đoạn minh họa trong phương thức**, không phải toàn bộ lớp Java độc lập. Đừng suy ra mọi phép cộng `double` đều sai, hoặc cứ thấy chuỗi dài là một lỗi JVM: kết quả tuân theo độ chính xác hữu hạn và quy tắc làm tròn của dấu phẩy động nhị phân.
+This is an **illustrative snippet inside a method**, not a complete standalone Java class. Do not infer that every `double` addition is wrong, or that seeing a long string is a JVM bug: the result follows finite precision and binary floating-point rounding rules.
 
-## 2. Những tình huống nên chọn `BigDecimal`
+## 2. Situations Where `BigDecimal` Should Be Chosen
 
-### 2.1. Giá, thuế, lãi suất, chiết khấu và số tiền theo quy tắc thập phân
+### 2.1. Prices, Taxes, Interest Rates, Discounts, and Money Under Decimal Rules
 
-Khi đầu vào là các chữ số thập phân có ý nghĩa hợp đồng (ví dụ giá đơn vị `"19.99"`), việc biểu diễn chính xác giúp tránh đưa sai số nhị phân vào phép tính. Ví dụ:
+When inputs are decimal digits with contractual meaning (e.g., unit price `"19.99"`), exact representation avoids introducing binary error into calculations. Example:
 
 ```java
 BigDecimal price = new BigDecimal("19.99");
@@ -48,7 +48,7 @@ BigDecimal quantity = new BigDecimal("3");
 BigDecimal subtotal = price.multiply(quantity); // 59.97
 ```
 
-Nếu cần tính phần thuế, làm tròn theo một chính sách **được định nghĩa rõ**:
+If tax must be calculated, round according to a **clearly defined** policy:
 
 ```java
 import java.math.RoundingMode;
@@ -59,34 +59,34 @@ BigDecimal tax = subtotal.multiply(taxRate)
 // tax = 4.50
 ```
 
-Đoạn mã minh họa giả định đã có các biến và import. `HALF_UP` ở đây chỉ là **ví dụ chính sách**, không phải quy định bắt buộc cho mọi quốc gia hoặc giao dịch. Độ chính xác phần nhỏ nhất của tiền tệ, điểm làm tròn (từng dòng hay tổng hóa đơn), cách xử lý số âm, khấu trừ và quy định làm tròn có thể khác nhau. Kiểu `BigDecimal` chỉ cho công cụ để thực hiện một quy tắc đã chọn.
+This illustrative snippet assumes variables and imports are present. `HALF_UP` here is only an **example policy**, not a mandatory rule for all countries or transactions. Currency minor-unit precision, rounding point (per line item vs. invoice total), negative number handling, deductions, and rounding regulations can differ. `BigDecimal` merely provides the tools to execute a chosen rule.
 
-Nếu dữ liệu toàn là số đơn vị nhỏ nhất (ví dụ số xu nguyên) và **không cần phép chia thập phân**, lưu `long` hoặc `BigInteger` dưới dạng số đơn vị nhỏ nhất cũng là thiết kế đáng cân nhắc. Chọn kiểu theo miền dữ liệu và thao tác, không mặc định rằng tất cả giá trị tiền phải luôn là `BigDecimal`.
+If data consists solely of whole minor units (e.g., whole cents) and **does not require decimal division**, storing `long` or `BigInteger` as minor-unit counts is also a design worth considering. Choose the type by data domain and operations, rather than assuming all monetary values must always be `BigDecimal`.
 
-### 2.2. Dữ liệu thập phân đi vào/đi ra có hợp đồng rõ ràng
+### 2.2. Inbound/Outbound Decimal Data with an Explicit Contract
 
-Nếu API nhận chuỗi `"0.000001"` hoặc cơ sở dữ liệu có cột decimal chính xác, hãy giữ ý nghĩa số thập phân đó đến tận logic tính toán. `BigDecimal` có thể giúp:
+If an API receives the string `"0.000001"` or a database has an exact decimal column, preserve that decimal meaning all the way to calculation logic. `BigDecimal` can help:
 
-- tránh mất chữ số có nghĩa khi chuyển qua `double`;
-- xác thực scale hoặc số chữ số theo hợp đồng;
-- làm tròn tường minh cho trường hợp quy định tối đa số chữ số;
-- so sánh các giá trị thập phân mà không phụ thuộc sai số biểu diễn nhị phân.
+- avoid losing significant digits when converting through `double`;
+- validate scale or digit count per contract;
+- round explicitly where a maximum digit count is specified;
+- compare decimal values without depending on binary representation errors.
 
-Ví dụ kiểm tra dữ liệu phải có **tối đa hai chữ số thập phân mà không thay đổi giá trị**:
+Example checking that data has **at most two decimal places without changing the value**:
 
 ```java
 BigDecimal input = new BigDecimal("12.340");
-BigDecimal canonical = input.setScale(2); // 12.34, chính xác
+BigDecimal canonical = input.setScale(2); // 12.34, exact
 
 // new BigDecimal("12.345").setScale(2)
-// sẽ ném ArithmeticException nếu phải bỏ phần khác 0.
+// will throw ArithmeticException if a non-zero part would be dropped.
 ```
 
-`setScale(2)` một tham số yêu cầu không được làm thay đổi giá trị toán học. Nếu cần **kiểm tra cả định dạng nguyên bản** (ví dụ cấm nhập quá hai ký tự sau dấu thập phân kể cả số 0), việc chuẩn hóa như trên chưa đủ: phải kiểm tra chuỗi nguồn hoặc metadata bổ sung trước khi chuẩn hóa.
+One-parameter `setScale(2)` requires that the mathematical value not change. If **validating the original format as well** (e.g., forbidding more than two characters after the decimal point including zeros), normalization as above is not enough: you must check the source string or additional metadata before normalizing.
 
-### 2.3. Giá trị nguyên lớn chuyển sang phép toán thập phân
+### 2.3. Large Integer Values Moving into Decimal Operations
 
-Một số `long` lớn có thể bị mất đơn vị khi ép sang `double`; độ chính xác nguyên tuyệt đối của `double` chỉ được đảm bảo cho tất cả số nguyên trong miền đến `2^53`. Khi cần tính tiếp với giá trị lớn và các hệ số thập phân chính xác, `BigDecimal.valueOf(long)` giữ nguyên số nguyên đầu vào.
+A large `long` can lose units when cast to `double`; exact integer precision of `double` is only guaranteed for all integers up to `2^53`. When further calculations with large values and exact decimal factors are needed, `BigDecimal.valueOf(long)` preserves the input integer.
 
 ```java
 long idLikeNumber = 9_007_199_254_740_993L;
@@ -94,25 +94,25 @@ BigDecimal exact = BigDecimal.valueOf(idLikeNumber);
 // exact = 9007199254740993
 ```
 
-Tuy nhiên, với ID, khóa hoặc mã định danh **không thực hiện số học**, dùng kiểu nguyên hoặc chuỗi có ý nghĩa hơn. Chỉ chuyển sang `BigDecimal` nếu bài toán thật sự cần phép tính thập phân.
+However, for IDs, keys, or identifiers that **do not perform arithmetic**, an integer type or string makes more sense. Convert to `BigDecimal` only if the problem genuinely needs decimal calculations.
 
-## 3. Khi nào `double` và `float` là lựa chọn đúng?
+## 3. When Are `double` and `float` the Right Choice?
 
-`double` thường phù hợp khi dữ liệu mang bản chất **đo lường/xấp xỉ**: vị trí, vận tốc, góc, tín hiệu, xác suất, thống kê, mô phỏng hoặc phép toán sử dụng các hàm toán học như `Math.sin`, `Math.sqrt`, `Math.log`. Trong các miền này:
+`double` generally fits when data is inherently **measured/approximate**: position, velocity, angles, signals, probabilities, statistics, simulation, or operations using mathematical functions like `Math.sin`, `Math.sqrt`, `Math.log`. In these domains:
 
-1. Nguồn dữ liệu vốn có sai số đo đạc nên biểu diễn thập phân chính xác không làm nó trở thành số đo chính xác tuyệt đối.
-2. Các thuật toán đã thiết kế với sai số dấu phẩy động, khoảng sai số tương đối/tuyệt đối và độ ổn định số.
-3. Phần cứng, thư viện và vector hóa thường hỗ trợ `float`/`double` tốt hơn.
-4. `double` có miền số mũ rất rộng và giá trị đặc biệt (`NaN`, `±Infinity`) đôi khi là một phần của mô hình tính toán.
-5. Thư viện chuẩn `Math`/`StrictMath` tập trung vào kiểu nguyên thủy dấu phẩy động, không có API `BigDecimal` tương đương cho toàn bộ lượng giác, hàm mũ hay logarit.
+1. The data source inherently has measurement error, so exact decimal representation does not make it an absolutely exact measurement.
+2. Algorithms are already designed around floating-point error, relative/absolute error bounds, and numerical stability.
+3. Hardware, libraries, and vectorization generally support `float`/`double` better.
+4. `double` has a very wide exponent range and special values (`NaN`, `±Infinity`) are sometimes part of the computational model.
+5. The standard `Math`/`StrictMath` library focuses on floating-point primitives and lacks equivalent `BigDecimal` APIs for all trigonometry, exponentials, or logarithms.
 
-`float` phù hợp với đồ họa, dữ liệu tensor, dữ liệu lưu trữ lớn hoặc API cần số 32 bit, **nếu sai số cho phép**. Với tính toán tổng quát trên CPU, `double` thường là mặc định hợp lý trước khi cân nhắc giảm độ chính xác xuống `float`.
+`float` fits graphics, tensor data, large storage datasets, or APIs needing 32-bit numbers, **if the error is acceptable**. For general CPU computation, `double` is usually a sensible default before considering reducing precision to `float`.
 
-Ví dụ đo một đại lượng thực nghiệm có sai số ±0.01, việc ép nó vào `BigDecimal("1.2345")` không làm số đo thực sự chính xác đến bốn chữ số sau dấu thập phân. Cần phản ánh độ bất định của phép đo trong mô hình.
+For example, when measuring a physical quantity with ±0.01 error, forcing it into `BigDecimal("1.2345")` does not make the measurement truly accurate to four decimal places. Measurement uncertainty should be reflected in the model.
 
-### So sánh kết quả số gần đúng
+### Comparing Approximate Numeric Results
 
-Không mặc định so sánh hai kết quả tính toán `double` qua `==` nếu thuật toán chấp nhận sai số:
+Do not compare two `double` calculation results with `==` by default if the algorithm tolerates error:
 
 ```java
 double actual = 0.1 + 0.2;
@@ -120,41 +120,41 @@ double expected = 0.3;
 double tolerance = 1e-12;
 
 boolean close = Math.abs(actual - expected) <= tolerance;
-// true trong tình huống này
+// true in this scenario
 ```
 
-Đây chỉ là ví dụ kiểm tra với miền giá trị nhỏ, hữu hạn. Ngưỡng sai số phải căn cứ miền dữ liệu và đặc tả thuật toán; phép kiểm tra đơn giản này không xử lý đầy đủ `NaN`, vô cực hay các giá trị có độ lớn rất khác nhau. Với dữ liệu có nhiều bậc độ lớn, có thể cần xét kết hợp sai số tuyệt đối/tương đối hoặc khoảng cách ULP.
+This is only an example check for a small, finite value range. The error threshold must be based on the data domain and algorithm specification; this simple check does not fully handle `NaN`, infinity, or values of vastly different magnitudes. For data spanning many orders of magnitude, a combination of absolute/relative error or ULP distance may be needed.
 
-## 4. Tạo `BigDecimal` đúng cách: nguồn thập phân rất quan trọng
+## 4. Creating `BigDecimal` Properly: The Decimal Source Matters Greatly
 
-Đây là lỗi ảnh hưởng trực tiếp đến lý do chọn `BigDecimal`.
+This mistake directly undermines the reason for choosing `BigDecimal`.
 
-| Cách tạo | Giá trị được lưu | Khi nào nên dùng |
+| Creation | Stored value | When to use |
 |---|---|---|
-| `new BigDecimal("0.1")` | Chính xác thập phân 0.1 | Khi nguồn là một chuỗi thập phân |
-| `BigDecimal.valueOf(0.1)` | Dựa trên dạng chuỗi chuẩn của `double` (ở đây là 0.1) | Khi đầu vào hiện có kiểu `double` và muốn chuyển theo dạng thập phân mà Java thường in ra |
-| `new BigDecimal(0.1)` | Chính xác giá trị **nhị phân của `double`**, hơi lớn hơn 0.1 | Chỉ khi thật sự cần giữ chính xác giá trị số nhị phân ban đầu |
-| `BigDecimal.valueOf(100L)` | Chính xác số nguyên 100 | Khi nguồn là `long` |
+| `new BigDecimal("0.1")` | Exact decimal 0.1 | When the source is a decimal string |
+| `BigDecimal.valueOf(0.1)` | Based on the canonical string form of `double` (here 0.1) | When input currently has type `double` and conversion via Java's standard printed decimal form is desired |
+| `new BigDecimal(0.1)` | Exact **binary value of `double`**, slightly larger than 0.1 | Only when genuinely needing to preserve the exact original binary numeric value |
+| `BigDecimal.valueOf(100L)` | Exact integer 100 | When the source is `long` |
 
-`new BigDecimal(0.1)` không tạo chính xác số thập phân `0.1` theo ý định thông thường. Nó tạo biểu diễn thập phân chính xác của giá trị nhị phân đã được làm tròn:
+`new BigDecimal(0.1)` does not create the exact decimal `0.1` as normally intended. It creates the exact decimal representation of the already-rounded binary value:
 
 ```text
 0.1000000000000000055511151231257827021181583404541015625
 ```
 
-`BigDecimal.valueOf(0.1)` thường là lựa chọn chuyển đổi tốt hơn `new BigDecimal(0.1)` khi nguồn chỉ còn `double`, **nhưng nó không thể phục hồi những chữ số đã bị mất bởi các phép toán trước đó**.
+`BigDecimal.valueOf(0.1)` is generally a better conversion choice than `new BigDecimal(0.1)` when only `double` remains, **yet it cannot recover digits already lost by earlier operations**.
 
 ```java
 double alreadyRounded = 0.1 + 0.2;
 BigDecimal converted = BigDecimal.valueOf(alreadyRounded);
-// converted = 0.30000000000000004, không phải 0.3
+// converted = 0.30000000000000004, not 0.3
 ```
 
-Nếu đầu vào thực tế là `"0.1"` và `"0.2"`, hãy phân tích hai chuỗi thành `BigDecimal` **trước khi cộng**. Đó mới là cách tránh cho sai số nhị phân đi vào luồng xử lý thập phân.
+If the real inputs are `"0.1"` and `"0.2"`, parse both strings into `BigDecimal` **before adding**. That is what prevents binary error from entering the decimal processing pipeline.
 
-## 5. `BigDecimal` vẫn cần chính sách độ chính xác và làm tròn
+## 5. `BigDecimal` Still Needs Precision and Rounding Policies
 
-Biểu diễn thập phân hữu hạn không thể chứa chính xác mọi phân số. `1/8 = 0.125` có biểu diễn thập phân hữu hạn, còn `1/3 = 0.333...` thì không. Vì vậy:
+Finite decimal representation cannot hold every fraction exactly. `1/8 = 0.125` has a finite decimal representation, whereas `1/3 = 0.333...` does not. Therefore:
 
 ```java
 BigDecimal one = BigDecimal.ONE;
@@ -163,7 +163,7 @@ one.divide(new BigDecimal("8")); // 0.125
 // one.divide(new BigDecimal("3")); // ArithmeticException
 ```
 
-Phép `divide` không kèm quy tắc làm tròn yêu cầu kết quả chính xác và có biểu diễn thập phân hữu hạn. Với kết quả thập phân vô hạn, phải quy định số chữ số hoặc độ chính xác và cách làm tròn:
+`divide` without a rounding rule requires an exact result that has a finite decimal representation. For infinite decimal results, you must specify the number of digits or precision and rounding method:
 
 ```java
 BigDecimal ratio = BigDecimal.ONE.divide(
@@ -171,7 +171,7 @@ BigDecimal ratio = BigDecimal.ONE.divide(
 // ratio = 0.33
 ```
 
-Ngoài `setScale`, có thể dùng `MathContext` khi muốn giới hạn tổng số **chữ số có nghĩa** cho một phép tính hay nhóm phép tính, thay vì cố định chữ số sau dấu thập phân:
+Besides `setScale`, you can use `MathContext` when wanting to limit the total number of **significant digits** for an operation or group of operations, instead of fixing digits after the decimal point:
 
 ```java
 import java.math.MathContext;
@@ -181,33 +181,33 @@ BigDecimal result = BigDecimal.ONE.divide(new BigDecimal("3"), context);
 // result = 0.33333
 ```
 
-**Phân biệt:**
+**Distinction:**
 
-- `setScale(2, ...)`: yêu cầu hai chữ số sau dấu thập phân (scale 2).
-- `MathContext(5, ...)`: yêu cầu năm chữ số có nghĩa cho phép toán được áp dụng.
-- Không có tham số làm tròn khi kết quả bắt buộc cắt chữ số khác 0: có thể ném `ArithmeticException`.
+- `setScale(2, ...)`: requests two digits after the decimal point (scale 2).
+- `MathContext(5, ...)`: requests five significant digits for the applied operation.
+- No rounding parameter when the result requires truncating non-zero digits: may throw `ArithmeticException`.
 
-Không làm tròn tùy tiện ở mọi bước trung gian rồi cho rằng tổng cuối chắc chắn đúng. Ví dụ tính thuế từng dòng hóa đơn và cộng lại có thể khác việc cộng trước rồi tính thuế trên tổng. Chọn **điểm làm tròn** theo hợp đồng nghiệp vụ rồi kiểm thử kết quả.
+Do not round arbitrarily at every intermediate step and assume the final total will definitely be right. For instance, computing tax per invoice line and summing may differ from summing first and computing tax on the total. Choose the **rounding points** per business contract and test the results.
 
-## 6. So sánh giá trị `BigDecimal`: `equals` khác `compareTo`
+## 6. Comparing `BigDecimal` Values: `equals` Differs from `compareTo`
 
-Scale là một phần của biểu diễn `BigDecimal`, nên:
+Scale is part of the `BigDecimal` representation, so:
 
 ```java
 BigDecimal a = new BigDecimal("1.0");
 BigDecimal b = new BigDecimal("1.00");
 
-a.equals(b);         // false (scale khác nhau)
-a.compareTo(b) == 0; // true  (giá trị số bằng nhau)
+a.equals(b);         // false (different scales)
+a.compareTo(b) == 0; // true  (equal numeric values)
 ```
 
-`equals` xét cả giá trị lẫn scale; `compareTo` xét thứ tự theo giá trị số. Khi kiểm tra mức tiền bằng nhau về toán học, thường dùng `compareTo(...) == 0`; khi scale là một phần của hợp đồng dữ liệu, có thể chủ động dùng `equals`.
+`equals` considers both value and scale; `compareTo` orders by numeric value. When checking mathematically equal monetary amounts, `compareTo(...) == 0` is normally used; when scale is part of the data contract, `equals` can be used intentionally.
 
-Hợp đồng `hashCode` đi theo `equals`. Hai giá trị thập phân bằng nhau về số nhưng khác scale có thể hoạt động như các **khóa khác nhau** trong `HashMap`/`HashSet`. Nếu dùng làm khóa, cần quy tắc chuẩn hóa rõ ràng, ví dụ scale cố định hoặc một định dạng chuẩn được thống nhất.
+The `hashCode` contract follows `equals`. Two numerically equal decimal values with different scales can behave as **distinct keys** in `HashMap`/`HashSet`. If used as keys, clear normalization rules are needed, such as a fixed scale or an agreed canonical format.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Runnable Java 17+ Example
 
-Lưu mã dưới tên **`BigDecimalChoiceDemo.java`**:
+Save code as **`BigDecimalChoiceDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -255,14 +255,14 @@ public class BigDecimalChoiceDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 BigDecimalChoiceDemo.java
 java BigDecimalChoiceDemo
 ```
 
-Kết quả stdout đã được xác minh bằng JDK:
+Stdout verified on the JDK:
 
 ```text
 double sum: 0.30000000000000004
@@ -282,71 +282,71 @@ double infinity: Infinity
 BigDecimal infinity: NumberFormatException
 ```
 
-Ý nghĩa các kết quả:
+Meaning of the results:
 
-1. `double sum` và `decimal sum` cho thấy sai số biểu diễn nhị phân khác với phép cộng số thập phân chính xác.
-2. `new BigDecimal(0.1)` cho biết chính xác giá trị nhị phân `double` thực sự lưu; `valueOf(0.1)` dùng chuỗi thập phân chuẩn của `double`.
-3. `valueOf(double sum)` chứng minh phép chuyển kiểu **sau khi tính toán** không xóa sai số đã có.
-4. Một số nguyên chỉ lớn hơn `2^53` một đơn vị không còn được giữ nguyên qua `double`, nhưng `BigDecimal.valueOf(long)` vẫn giữ đúng số nguyên.
-5. `1/8` có kết quả chính xác; `1/3` không biểu diễn hữu hạn nên phải chọn phương pháp làm tròn.
-6. `1.005` làm tròn tới hai chữ số với `HALF_UP` thành `1.01`, là ví dụ chính sách làm tròn thập phân tường minh.
-7. `equals` khác `compareTo`; vô cực thuộc miền `double` nhưng không phải giá trị hợp lệ của `BigDecimal`.
+1. `double sum` and `decimal sum` show binary representation error versus exact decimal addition.
+2. `new BigDecimal(0.1)` reveals the exact binary value `double` actually stores; `valueOf(0.1)` uses `double`'s standard decimal string.
+3. `valueOf(double sum)` proves that type conversion **after calculation** does not erase existing error.
+4. An integer just one unit above `2^53` is no longer preserved through `double`, whereas `BigDecimal.valueOf(long)` retains the exact integer.
+5. `1/8` has an exact result; `1/3` is not finitely representable, so a rounding method must be chosen.
+6. `1.005` rounded to two digits with `HALF_UP` becomes `1.01`, an example of an explicit decimal rounding policy.
+7. `equals` differs from `compareTo`; infinity belongs to `double`'s domain but is not a valid `BigDecimal` value.
 
-## 8. Các đánh đổi về hiệu năng và khả năng tương tác
+## 8. Performance and Interoperability Trade-offs
 
-`BigDecimal` hữu ích khi bài toán **cần** độ chính xác thập phân, song không nên dùng cho mọi giá trị số theo thói quen.
+`BigDecimal` is useful when a problem **needs** decimal precision, yet it should not be used for every numeric value out of habit.
 
-**Hiệu năng:** `double` và `float` thường được xử lý bằng phần cứng, ít cấp phát hơn trong tính toán số quy mô lớn. `BigDecimal` là đối tượng bất biến và thực hiện số học dựa trên biểu diễn nguyên/scale nên có chi phí cấp phát, bộ nhớ và CPU đáng kể trong các vòng lặp lớn. Với yêu cầu hiệu năng, hãy đo trên workload thực thay vì đoán một tỷ lệ nhanh/chậm cố định.
+**Performance:** `double` and `float` are typically hardware-processed with fewer allocations in large-scale numerical computing. `BigDecimal` is an immutable object performing arithmetic over integer/scale representations, so it carries notable allocation, memory, and CPU costs in large loops. For performance requirements, benchmark on real workloads rather than guessing a fixed speed ratio.
 
-**Tương tác API:** nhiều thư viện khoa học, đồ họa, xử lý tín hiệu và học máy nhận/trả `double` hoặc `float`. Đưa `BigDecimal` vào rồi liên tục chuyển ngược sang `double` có thể không tăng độ chính xác thực tế, vì khi chuyển ngược vẫn làm tròn về định dạng nhị phân.
+**API interoperability:** many scientific, graphics, signal processing, and machine learning libraries accept/return `double` or `float`. Introducing `BigDecimal` and repeatedly converting back to `double` may not increase actual precision, since converting back still rounds to binary format.
 
-**Miền giá trị:** `float`/`double` có `NaN`, vô cực, signed zero, số subnormal; `BigDecimal` chỉ biểu diễn số thập phân hữu hạn. `BigDecimal.valueOf(Double.NaN)` và `BigDecimal.valueOf(Double.POSITIVE_INFINITY)` không tạo được số hợp lệ, thường ném `NumberFormatException`.
+**Value domain:** `float`/`double` have `NaN`, infinity, signed zero, and subnormal numbers; `BigDecimal` only represents finite decimal numbers. `BigDecimal.valueOf(Double.NaN)` and `BigDecimal.valueOf(Double.POSITIVE_INFINITY)` cannot create valid numbers and normally throw `NumberFormatException`.
 
-**Lỗi tính toán:** `BigDecimal` không chữa được sai thuật toán, sai đơn vị đo, sai thời điểm làm tròn hoặc dữ liệu đo đạc vốn không chính xác. Nếu người dùng nhập “10,00” nhưng ứng dụng chọn nhầm đơn vị tiền tệ, `BigDecimal` vẫn tính đúng trên **giả định sai**.
+**Calculation bugs:** `BigDecimal` cannot fix wrong algorithms, wrong measurement units, wrong rounding timing, or inherently inaccurate measurement data. If a user enters "10.00" yet the application selects the wrong currency unit, `BigDecimal` still computes accurately on a **wrong assumption**.
 
-**Độ lớn:** `BigDecimal` không bị khóa ở 64 bit, nhưng scale dùng kiểu `int` và khối lượng chữ số bị giới hạn thực tế. Kết quả hoặc phép dịch scale quá lớn có thể không khả thi hoặc ném ngoại lệ; không dùng nó như một kiểu đại diện vô hạn cho tất cả số thực.
+**Magnitude:** `BigDecimal` is not locked to 64 bits, yet scale uses `int` and digit counts have practical limits. Overly large results or scale shifts can be infeasible or throw exceptions; do not use it as an unbounded representation for all real numbers.
 
-## 9. Tiêu chí chọn kiểu dữ liệu trong dự án
+## 9. Type Selection Criteria in Projects
 
-| Câu hỏi thiết kế | Gợi ý chọn |
+| Design question | Suggested choice |
 |---|---|
-| Đầu vào là giá trị tiền tệ/số thập phân hợp đồng cần giữ đúng chữ số? | Ưu tiên `BigDecimal` từ chuỗi/decimal |
-| Phép toán phải tuân theo scale và rounding cụ thể? | `BigDecimal` + `RoundingMode` |
-| Giá trị thực sự là số đơn vị nhỏ nhất nguyên và đủ miền? | Cân nhắc `long`; dùng `BigInteger` nếu cần miền nguyên lớn |
-| Bài toán là mô phỏng, hình học, thống kê, lượng giác, phép đo? | Thường chọn `double` với kiểm soát sai số |
-| Dữ liệu lớn, GPU, băng thông hoặc API yêu cầu 32 bit? | Cân nhắc `float` nếu độ chính xác đáp ứng |
-| Nguồn ban đầu đã tính bằng `double` và giờ đổi sang `BigDecimal`? | Xem lại nguồn và chuỗi phép tính; chuyển cuối không sửa sai số cũ |
-| Cần biểu diễn `NaN` hay vô cực? | `float`/`double` hoặc thiết kế kiểu bao trạng thái riêng; `BigDecimal` không có các giá trị đó |
+| Input is a monetary/contractual decimal value needing exact digits? | Prefer `BigDecimal` from string/decimal |
+| Operations must follow a specific scale and rounding? | `BigDecimal` + `RoundingMode` |
+| Value is truly a whole count of smallest units and fits the range? | Consider `long`; use `BigInteger` if a large integer range is needed |
+| Problem is simulation, geometry, statistics, trigonometry, measurements? | Usually choose `double` with error control |
+| Large datasets, GPU, bandwidth, or 32-bit API requirements? | Consider `float` if precision meets requirements |
+| Original source already computed in `double` and now converting to `BigDecimal`? | Review the source and operation chain; converting at the end does not fix old errors |
+| Need to represent `NaN` or infinity? | `float`/`double` or design a separate status wrapper type; `BigDecimal` lacks those values |
 
-Một quy trình chọn kiểu thực tế gồm: xác định **đơn vị và miền giá trị**, độ chính xác/sai số yêu cầu, cách xử lý phép chia, khi nào phải làm tròn, kiểu dữ liệu ở ranh giới API/database, rồi mới tối ưu hiệu năng. Cần kiểm tra toàn bộ luồng dữ liệu, vì một bước ép sang `double` giữa chuỗi có thể làm mất ý nghĩa thập phân chính xác.
+A practical type-selection workflow includes: identifying **units and value range**, required precision/error tolerance, division handling, when rounding must occur, data types at API/database boundaries, and only then optimizing performance. Inspect the entire data flow, as a single cast to `double` mid-chain can forfeit exact decimal semantics.
 
-## 10. Lỗi phổ biến khi quyết định hoặc chuyển đổi
+## 10. Common Mistakes When Deciding or Converting
 
-1. **Dùng `double` cho tiền rồi hy vọng `String.format("%.2f", ...)` sẽ sửa mọi phép tính.** Định dạng chỉ ảnh hưởng chuỗi cuối; sai số trong phép tính trước đó vẫn tồn tại.
-2. **Viết `new BigDecimal(0.1)` vì tưởng nó biểu diễn đúng 0.1 thập phân.** Sử dụng `new BigDecimal("0.1")` khi nguồn là chuỗi số thập phân, hoặc `valueOf` khi chuyển một `double` sẵn có.
-3. **Dùng `BigDecimal.valueOf(0.1 + 0.2)` rồi nghĩ là đã phục hồi 0.3.** Phép cộng thực hiện bằng `double` trước nên giá trị chuyển đổi vẫn mang dấu vết làm tròn.
-4. **Gọi `divide` mà không thiết kế phép làm tròn.** Kết quả như 1/3 không có dạng thập phân hữu hạn; cần scale/`MathContext` và `RoundingMode` khi phù hợp.
-5. **Cho rằng `BigDecimal` luôn chính xác tuyệt đối cho mọi phép số học.** Chia không kết thúc và các phép được giới hạn bởi `MathContext` đều có thể làm tròn; chính sách đó phải được công khai.
-6. **Cho rằng mọi giá trị tiền tệ phải làm tròn tới hai chữ số.** Đơn vị tiền, quy định và trường hợp làm tròn có thể khác; không hard-code khi chưa có đặc tả.
-7. **So sánh hai giá trị `BigDecimal` bằng `equals` khi chỉ cần bằng nhau về toán học.** Khác scale có thể khiến `equals` false; dùng `compareTo(...) == 0` nếu scale không có ý nghĩa nghiệp vụ.
-8. **Dùng `BigDecimal` ở mọi thuật toán số mà không xét hiệu năng/thư viện.** Hãy đánh giá sai số cho phép, đặc trưng thư viện và khối lượng công việc.
-9. **Chuyển `BigDecimal` sang `doubleValue()` rồi mặc định không mất dữ liệu.** Chuyển đổi có thể làm tròn, mất chữ số hoặc tràn sang vô cực khi ngoài miền `double`.
-10. **Dùng so sánh `double` với một epsilon cố định cho mọi thang đo.** Ngưỡng đúng phải liên quan quy mô dữ liệu, số phép toán và đặc tả số học; cần xử lý riêng `NaN`/vô cực.
+1. **Using `double` for money and hoping `String.format("%.2f", ...)` fixes every calculation.** Formatting only affects the final string; errors in earlier calculations still remain.
+2. **Writing `new BigDecimal(0.1)` thinking it represents exact decimal 0.1.** Use `new BigDecimal("0.1")` when the source is a decimal string, or `valueOf` when converting an existing `double`.
+3. **Using `BigDecimal.valueOf(0.1 + 0.2)` thinking 0.3 was recovered.** Addition ran in `double` first, so the converted value still carries rounding artifacts.
+4. **Calling `divide` without designing rounding.** Results like 1/3 have no finite decimal form; scale/`MathContext` and `RoundingMode` are needed when appropriate.
+5. **Assuming `BigDecimal` is always absolutely exact for every arithmetic operation.** Non-terminating division and operations bounded by `MathContext` can both round; that policy must be explicit.
+6. **Assuming all monetary values must round to two digits.** Currency units, regulations, and rounding cases vary; do not hard-code without a specification.
+7. **Comparing two `BigDecimal` values with `equals` when only mathematical equality is needed.** Different scales can make `equals` false; use `compareTo(...) == 0` if scale has no business meaning.
+8. **Using `BigDecimal` in every numerical algorithm without considering performance/libraries.** Evaluate allowable error, library characteristics, and workload volume.
+9. **Converting `BigDecimal` to `doubleValue()` and assuming no data loss.** Conversion can round, lose digits, or overflow to infinity when outside `double`'s range.
+10. **Using `double` comparison with a fixed epsilon for all scales.** The right threshold must relate to data scale, operation count, and arithmetic specification; `NaN`/infinity must be handled separately.
 
-## 11. Bài tập và câu hỏi tự kiểm tra
+## 11. Exercises and Self-Check Questions
 
-1. Một API gửi `"23.45"` làm **đơn giá**, sau đó tính chiết khấu 12,5% và phải làm tròn từng dòng theo chính sách được cung cấp. Nên chọn kiểu gì? **Đáp án:** `BigDecimal` từ chuỗi, phép nhân thập phân và `setScale`/`RoundingMode` theo quy định.
-2. Một cảm biến xuất nhiệt độ với sai số đo ±0,2°C và chương trình tính trung bình trên hàng triệu bản ghi. Có bắt buộc dùng `BigDecimal`? **Đáp án:** Không. `double` thường phù hợp nếu phân tích sai số/độ chính xác yêu cầu cho phép.
-3. `BigDecimal.valueOf(0.1 + 0.2)` có cho `"0.3"` không? **Đáp án:** Không; kết quả là `0.30000000000000004` vì phép cộng đã thực hiện ở miền `double`.
-4. `BigDecimal.ONE.divide(new BigDecimal("3"))` trả gì? **Đáp án:** Ném `ArithmeticException` do thập phân vô hạn mà không có quy tắc làm tròn.
-5. Vì sao `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` false nhưng `compareTo == 0`? **Đáp án:** `equals` xét cả scale; `compareTo` chỉ xét giá trị số.
-6. Một bài toán đồ họa cần hàng triệu tọa độ 32 bit cho GPU. Có nên chuyển toàn bộ sang `BigDecimal`? **Đáp án:** Thường không; `float` là kiểu phù hợp khi API và độ chính xác 32 bit đáp ứng yêu cầu.
-7. Một số nguyên `9007199254740993` chuyển qua `double` rồi về `long` có bảo toàn không? **Đáp án:** Không; chương trình đã kiểm chứng nó thành `9007199254740992`. Giữ bằng `long` hoặc kiểu nguyên/decimal chính xác khi cần.
+1. An API sends `"23.45"` as a **unit price**, then calculates a 12.5% discount and must round each line per a provided policy. Which type should be chosen? **Answer:** `BigDecimal` from string, decimal multiplication, and `setScale`/`RoundingMode` per rules.
+2. A sensor outputs temperatures with ±0.2°C measurement error and the program computes averages over millions of records. Is `BigDecimal` mandatory? **Answer:** No. `double` is usually suitable if error/precision analysis permits it.
+3. Does `BigDecimal.valueOf(0.1 + 0.2)` yield `"0.3"`? **Answer:** No; the result is `0.30000000000000004` because addition executed in the `double` domain.
+4. What does `BigDecimal.ONE.divide(new BigDecimal("3"))` return? **Answer:** Throws `ArithmeticException` due to infinite decimal without a rounding rule.
+5. Why is `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` false while `compareTo == 0`? **Answer:** `equals` considers scale too; `compareTo` considers only numeric value.
+6. A graphics problem needs millions of 32-bit coordinates for the GPU. Should everything be converted to `BigDecimal`? **Answer:** Usually no; `float` is the suitable type when APIs and 32-bit precision meet requirements.
+7. Is an integer `9007199254740993` preserved when converted through `double` and back to `long`? **Answer:** No; the program verified it becomes `9007199254740992`. Keep it in `long` or an exact integer/decimal type when needed.
 
-## Ghi nhớ
+## Takeaways
 
-- `BigDecimal` giải quyết **nhu cầu biểu diễn và tính toán thập phân có kiểm soát**, đặc biệt khi chữ số thập phân và chính sách làm tròn mang ý nghĩa nghiệp vụ.
-- `float`/`double` là lựa chọn hiệu quả cho **tính toán gần đúng có phân tích sai số**; không cần thay chúng bằng `BigDecimal` theo phản xạ.
-- Chọn `BigDecimal` từ **nguồn số thập phân chính xác**. `new BigDecimal(double)` phản ánh giá trị nhị phân; `valueOf(double)` không sửa được sai số đã phát sinh trước khi chuyển.
-- `BigDecimal` vẫn cần quy định phép chia, `MathContext`, scale và `RoundingMode`; đồng thời phải xử lý `equals`/`compareTo` đúng.
-- Chất lượng kết quả đến từ **toàn bộ luồng dữ liệu và chính sách số học**, không chỉ từ tên kiểu dữ liệu.
+- `BigDecimal` addresses the **need for controlled decimal representation and arithmetic**, especially when decimal digits and rounding policies carry business meaning.
+- `float`/`double` are efficient choices for **approximate computation with error analysis**; there is no need to replace them with `BigDecimal` reflexively.
+- Construct `BigDecimal` from **exact decimal sources**. `new BigDecimal(double)` reflects the binary value; `valueOf(double)` cannot fix errors that occurred prior to conversion.
+- `BigDecimal` still requires rules for division, `MathContext`, scale, and `RoundingMode`; and `equals`/`compareTo` must be handled properly.
+- Result quality comes from the **entire data pipeline and arithmetic policy**, not merely from the data type name.

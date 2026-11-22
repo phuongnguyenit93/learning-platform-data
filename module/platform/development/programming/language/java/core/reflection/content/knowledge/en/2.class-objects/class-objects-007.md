@@ -1,29 +1,29 @@
-# Class đại diện cho primitive, void, mảng, interface, enum và record
+# Class Representing Primitives, void, Arrays, Interfaces, Enums, and Records
 
-## 1. Vì sao các kiểu này đều có đối tượng Class?
+## 1. Why do all of these types have a Class object?
 
-Trong Java Reflection, `java.lang.Class<?>` là đối tượng mô tả **một kiểu tại runtime**. Không chỉ lớp thông thường như `String`, Java còn có đối tượng `Class` cho tám kiểu nguyên thủy, `void`, mọi kiểu mảng, interface, enum và record. Ta dùng nó để hỏi một kiểu thuộc nhóm nào, có thành phần gì và có quan hệ kế thừa/triển khai ra sao.
+In Java Reflection, `java.lang.Class<?>` is the object describing **a type at runtime**. Not only ordinary classes like `String`, Java also has `Class` objects for the eight primitive types, `void`, every array type, interfaces, enums, and records. You use it to query which category a type belongs to, what components it has, and what inheritance/implementation relationships it participates in.
 
-Đối tượng `Class` **không phải** instance của kiểu đang được mô tả. Ví dụ `int.class` mô tả kiểu `int`, nhưng bản thân nó là một đối tượng thuộc `Class`; `void.class` tồn tại dù không thể tạo giá trị `void`. Kiểu khai báo của biến chứa metadata thường là `Class<?>` để chấp nhận nhiều loại kiểu khác nhau.
+A `Class` object is **not** an instance of the type being described. For example, `int.class` describes the `int` type, yet it is itself an object of type `Class`; `void.class` exists even though no `void` value can be created. The declared type of a variable holding metadata is typically `Class<?>` so it can accept many different kinds of types.
 
-| Loại được mô tả | Ví dụ lấy `Class` | Phép kiểm tra tiêu biểu | Ý nghĩa |
+| Described kind | Example of getting `Class` | Typical check | Meaning |
 | --- | --- | --- | --- |
-| Primitive | `int.class`, `boolean.class` | `isPrimitive()` | Một trong tám kiểu nguyên thủy |
-| `void` | `void.class` | `isPrimitive()` trả `true`; so riêng với `void.class` | Biểu diễn việc không có giá trị trả về |
-| Mảng | `String[].class`, `int[][].class` | `isArray()` | Kiểu mảng, độc lập với kiểu thành phần |
-| Interface | `Runnable.class` | `isInterface()` | Kiểu giao diện; annotation cũng là một interface |
-| Enum | `Level.class` với `enum Level` | `isEnum()` | Lớp enum khai báo trong mã nguồn |
-| Record | `Person.class` với `record Person(...)` | `isRecord()` | Lớp record và danh sách thành phần record |
+| Primitive | `int.class`, `boolean.class` | `isPrimitive()` | One of the eight primitive types |
+| `void` | `void.class` | `isPrimitive()` returns `true`; compare separately with `void.class` | Represents the absence of a return value |
+| Array | `String[].class`, `int[][].class` | `isArray()` | Array type, independent of its component type |
+| Interface | `Runnable.class` | `isInterface()` | Interface type; annotations are also interfaces |
+| Enum | `Level.class` with `enum Level` | `isEnum()` | Enum class declared in source code |
+| Record | `Person.class` with `record Person(...)` | `isRecord()` | Record class and its list of record components |
 
-Một lớp thông thường như `String.class` có thể trả `false` cho **tất cả** các phép kiểm tra trong bảng; điều đó không có nghĩa `Class` không nhận diện được nó. Những phép kiểm tra này phân loại đặc điểm của kiểu, không phải phép thử “có phải đối tượng `Class` hay không”.
+An ordinary class such as `String.class` can return `false` for **all** of the checks in the table; that does not mean `Class` fails to recognize it. These checks classify characteristics of the type, not a test of "is this a `Class` object or not".
 
-## 2. Cách lấy đối tượng Class
+## 2. Ways to get a Class object
 
-- **Class literal**: `int.class`, `void.class`, `int[].class`, `Runnable.class`, `Level.class`, `Person.class`. Đây là cách rõ ràng nhất khi biết kiểu ở thời điểm biên dịch.
-- **Từ một object**: `value.getClass()` cho biết lớp runtime của đối tượng. `getClass()` không gọi được trên giá trị primitive hay `void`; khi primitive bị boxing, kết quả là lớp wrapper (`Integer`, `Boolean`...), không phải kiểu nguyên thủy.
-- **Từ tên kiểu khi chạy**: `Class.forName("java.lang.String")` tìm theo tên nhị phân. Với mảng, tên nhận vào phải theo cú pháp JVM, chẳng hạn `"[I"` cho `int[]` và `"[[Ljava.lang.String;"` cho `String[][]`. `Class.forName("int")` và `Class.forName("java.lang.String[]")` đều không phải cách tìm tương ứng và gây `ClassNotFoundException`.
+- **Class literal**: `int.class`, `void.class`, `int[].class`, `Runnable.class`, `Level.class`, `Person.class`. This is the clearest way when the type is known at compile time.
+- **From an object**: `value.getClass()` tells the runtime class of the object. `getClass()` cannot be called on primitive values or `void`; when a primitive is boxed, the result is the wrapper class (`Integer`, `Boolean`, etc.), not the primitive type.
+- **From a type name at runtime**: `Class.forName("java.lang.String")` searches by binary name. For arrays, the input name must follow JVM syntax, such as `"[I"` for `int[]` and `"[[Ljava.lang.String;"` for `String[][]`. Neither `Class.forName("int")` nor `Class.forName("java.lang.String[]")` works for lookup and both throw `ClassNotFoundException`.
 
-Ví dụ:
+Example:
 
 ~~~java
 Class<?> primitive = int.class;
@@ -37,11 +37,11 @@ System.out.println(wrapper == Integer.class);      // true
 System.out.println(wrapper == int.class);          // false
 ~~~
 
-Đoạn trên là **fragment đặt bên trong một phương thức Java**, không phải chương trình độc lập. `Integer.TYPE` và `Void.TYPE` lần lượt tham chiếu đối tượng `Class` của `int` và `void`. `Class.forName(String)` có thể kích hoạt khởi tạo lớp; nếu chỉ cần tải metadata mà không khởi tạo lớp, có overload `Class.forName(name, false, loader)` (vẫn cần tên hợp lệ và class loader thích hợp).
+The snippet above is a **fragment placed inside a Java method**, not a standalone program. `Integer.TYPE` and `Void.TYPE` reference the `Class` objects of `int` and `void`, respectively. `Class.forName(String)` can trigger class initialization; if you only need to load metadata without initializing the class, there is the overload `Class.forName(name, false, loader)` (which still requires a valid name and an appropriate class loader).
 
-## 3. Primitive và void: cùng isPrimitive(), khác ngữ nghĩa
+## 3. Primitives and void: same isPrimitive(), different semantics
 
-Java có tám primitive: `boolean`, `byte`, `short`, `char`, `int`, `long`, `float` và `double`. Từng kiểu có `Class` riêng do JVM cung cấp. **`void.class.isPrimitive()` cũng trả `true`** theo hợp đồng API `Class`, dù `void` không phải kiểu cho biến hoặc object có giá trị; đó là trường hợp đặc biệt cần xử lý trước khi phân loại “primitive có giá trị”.
+Java has eight primitives: `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, and `double`. Each type has its own `Class` provided by the JVM. **`void.class.isPrimitive()` also returns `true`** according to the `Class` API contract, even though `void` is not a type for variables or objects with values; that is a special case to handle before classifying "primitives with values".
 
 ~~~java
 System.out.println(int.class.isPrimitive());     // true
@@ -51,16 +51,16 @@ System.out.println(int[].class.isPrimitive());   // false
 System.out.println(void.class.getName());        // void
 ~~~
 
-Chú ý:
+Notes:
 
-- `int.class != Integer.class`: primitive và wrapper là hai kiểu khác nhau; autoboxing không làm chúng thành cùng đối tượng `Class`.
-- `Class#isInstance(Object)` không thay được việc kiểm tra giá trị primitive: giá trị truyền cho tham số `Object` phải là reference, và `int.class.isInstance(Integer.valueOf(1))` trả `false`.
-- Không có `void[]` hợp lệ, không thể tạo đối tượng bằng `void.class`. Khi phản chiếu phương thức, `Method#getReturnType() == void.class` cho biết phương thức trả về `void`.
-- `getSuperclass()` của primitive và `void` trả `null`; `isInterface()` và `isArray()` đều trả `false`.
+- `int.class != Integer.class`: primitive and wrapper are two different types; autoboxing does not make them the same `Class` object.
+- `Class#isInstance(Object)` cannot replace checking primitive values: the value passed to the `Object` parameter must be a reference, and `int.class.isInstance(Integer.valueOf(1))` returns `false`.
+- There is no valid `void[]`, and no object can be created with `void.class`. When reflecting on methods, `Method#getReturnType() == void.class` indicates the method returns `void`.
+- `getSuperclass()` for primitives and `void` returns `null`; `isInterface()` and `isArray()` both return `false`.
 
-## 4. Mảng: Class của mảng khác Class của thành phần
+## 4. Arrays: an array's Class differs from its component's Class
 
-Mỗi kiểu mảng có `Class` của chính nó: `int[].class` khác `int.class`, còn `int[][].class` khác `int[].class`. Mảng luôn là **reference type** dù chứa các phần tử primitive. Java cung cấp `isArray()` và `getComponentType()` để bóc tách từng chiều:
+Every array type has its own `Class`: `int[].class` differs from `int.class`, and `int[][].class` differs from `int[].class`. Arrays are always **reference types** even when holding primitive elements. Java provides `isArray()` and `getComponentType()` to peel off one dimension at a time:
 
 ~~~java
 Class<?> matrix = int[][].class;
@@ -71,9 +71,9 @@ System.out.println(matrix.getComponentType()
 System.out.println(String.class.getComponentType() == null);    // true
 ~~~
 
-`getComponentType()` chỉ bỏ **một** chiều mảng mỗi lần. `Class#getTypeName()` thuận tiện để hiển thị tên dễ đọc, còn `getName()` của mảng trả cú pháp descriptor JVM:
+`getComponentType()` removes only **one** array dimension each time. `Class#getTypeName()` is convenient for displaying human-readable names, whereas an array's `getName()` returns JVM descriptor syntax:
 
-| Biểu thức | Giá trị |
+| Expression | Value |
 | --- | --- |
 | `int[].class.getName()` | `[I` |
 | `int[][].class.getName()` | `[[I` |
@@ -81,11 +81,11 @@ System.out.println(String.class.getComponentType() == null);    // true
 | `String[][].class.getName()` | `[[Ljava.lang.String;` |
 | `String[][].class.getTypeName()` | `java.lang.String[][]` |
 
-Dấu `[` biểu thị một chiều; `I` là descriptor của `int`, còn `L...;` bao tên nhị phân của lớp tham chiếu. Với một đối tượng mảng, `Array.getLength(array)` đọc số phần tử và `Array.newInstance(componentType, length)` tạo mảng bằng reflection. `int[].class.getSuperclass() == Object.class` là `true`; mọi kiểu mảng cũng triển khai `Cloneable` và `java.io.Serializable`. Chúng **không** được phân loại là primitive vì phần tử là primitive.
+The `[` character denotes one dimension; `I` is the descriptor for `int`, while `L...;` wraps the binary name of a reference class. Given an array object, `Array.getLength(array)` reads the element count and `Array.newInstance(componentType, length)` creates an array via reflection. `int[].class.getSuperclass() == Object.class` is `true`; every array type also implements `Cloneable` and `java.io.Serializable`. They are **not** classified as primitives just because their elements are primitives.
 
-## 5. Interface: phát hiện và xác định khả năng gán kiểu
+## 5. Interfaces: detection and determining type assignability
 
-`SomeInterface.class.isInterface()` trả `true` cho interface; `getSuperclass()` của interface trả `null`. Muốn biết một lớp có thể gán vào biến của interface hay không, dùng `isAssignableFrom` với đúng chiều:
+`SomeInterface.class.isInterface()` returns `true` for interfaces; `getSuperclass()` of an interface returns `null`. To know whether a class can be assigned to an interface variable, use `isAssignableFrom` in the right direction:
 
 ~~~java
 interface Reader { void read(); }
@@ -100,13 +100,13 @@ System.out.println(FileReaderImpl.class.isAssignableFrom(
         Reader.class));                                             // false
 ~~~
 
-Đây là fragment mô tả các kiểu và câu lệnh trong ngữ cảnh hợp lệ; chương trình độc lập hoàn chỉnh có ở phần 8. Đọc `A.class.isAssignableFrom(B.class)` là: “Một đối tượng kiểu `B` có thể gán cho biến kiểu `A` không?”. `Reader.class.isInstance(new FileReaderImpl())` cũng trả `true`; nó kiểm tra **một object**, trong khi `isAssignableFrom` so sánh **hai kiểu**.
+This is a fragment describing types and statements in a valid context; a complete standalone program is in section 8. Read `A.class.isAssignableFrom(B.class)` as: "Can an object of type `B` be assigned to a variable of type `A`?". `Reader.class.isInstance(new FileReaderImpl())` also returns `true`; it checks **an object**, whereas `isAssignableFrom` compares **two types**.
 
-Một annotation khai báo bằng `@interface` cũng là một loại interface. Vì vậy, với annotation type, cả `isInterface()` lẫn `isAnnotation()` đều có thể là `true`. Nếu chương trình phải phân biệt annotation với interface thường, kiểm tra `isAnnotation()` trước.
+An annotation declared with `@interface` is also a kind of interface. Thus, for an annotation type, both `isInterface()` and `isAnnotation()` can be `true`. If a program must distinguish annotations from regular interfaces, check `isAnnotation()` first.
 
-## 6. Enum: nhận diện lớp enum và lấy các hằng
+## 6. Enums: recognizing enum classes and retrieving constants
 
-Với `enum Level { LOW, HIGH }`, `Level.class.isEnum()` trả `true`. `Level.class.getEnumConstants()` trả mảng `Level[]` chứa các hằng theo thứ tự khai báo; với kiểu không phải enum, `getEnumConstants()` trả `null`. Mảng kết quả của một enum không chứa phần tử là điều hợp lệ nếu enum khai báo không có hằng nào.
+For `enum Level { LOW, HIGH }`, `Level.class.isEnum()` returns `true`. `Level.class.getEnumConstants()` returns a `Level[]` array containing the constants in declaration order; for non-enum types, `getEnumConstants()` returns `null`. An empty result array for an enum is valid if the enum declares no constants.
 
 ~~~java
 enum Level { LOW, HIGH }
@@ -118,17 +118,17 @@ System.out.println(String.class.getEnumConstants() == null); // true
 System.out.println(Enum.class.isEnum());                     // false
 ~~~
 
-`Enum` là **lớp cơ sở** của các enum, bản thân nó không được khai báo bằng `enum` nên `Enum.class.isEnum()` là `false`. Một enum constant có class body riêng có thể có `constant.getClass()` là lớp con ẩn danh, khiến `constant.getClass().isEnum()` trả `false`; muốn xác định **enum khai báo hằng**, dùng `constant.getDeclaringClass()`. Không giả định mọi đối tượng enum đều trả cùng một `getClass()` trong trường hợp này.
+`Enum` is the **base class** of enums; it itself is not declared with `enum`, so `Enum.class.isEnum()` is `false`. An enum constant with its own class body may have `constant.getClass()` as an anonymous subclass, causing `constant.getClass().isEnum()` to return `false`; to determine the **enum declaring the constant**, use `constant.getDeclaringClass()`. Do not assume every enum object returns the same `getClass()` in that case.
 
-## 7. Record: metadata theo record components
+## 7. Records: metadata via record components
 
-Record (được chuẩn hóa từ Java 16, dùng ổn định trên Java 17+) khai báo tập thành phần dữ liệu ngay trong header:
+Records (standardized in Java 16, stable on Java 17+) declare their set of data components directly in the header:
 
 ~~~java
 record Person(String name, int age) {}
 ~~~
 
-`Person.class.isRecord()` trả `true`. `Person.class.getRecordComponents()` trả `RecordComponent[]` theo **thứ tự khai báo trong header**. Mỗi `RecordComponent` cho biết tên (`getName()`), kiểu (`getType()`), kiểu tổng quát (`getGenericType()`) và phương thức truy cập (`getAccessor()`).
+`Person.class.isRecord()` returns `true`. `Person.class.getRecordComponents()` returns `RecordComponent[]` in **header declaration order**. Each `RecordComponent` provides the name (`getName()`), type (`getType()`), generic type (`getGenericType()`), and accessor method (`getAccessor()`).
 
 ~~~java
 for (java.lang.reflect.RecordComponent component
@@ -140,13 +140,13 @@ for (java.lang.reflect.RecordComponent component
 // age: int
 ~~~
 
-`getRecordComponents()` trả `null` nếu kiểu **không phải record**, nhưng trả mảng không-null, có thể rỗng, nếu kiểu **là record**. Do đó, nên kiểm tra `isRecord()` hoặc `null` trước khi duyệt. `Record.class.isRecord()` là `false` vì `java.lang.Record` chỉ là lớp cơ sở; lớp record cụ thể có superclass trực tiếp là `Record` và là `final`.
+`getRecordComponents()` returns `null` if the type is **not a record**, but returns a non-null, possibly empty array if the type **is a record**. Therefore, check `isRecord()` or `null` before iterating. `Record.class.isRecord()` is `false` because `java.lang.Record` is only the base class; a concrete record class has `Record` as its direct superclass and is `final`.
 
-**Record component khác với Java field.** `getDeclaredFields()` trả metadata field do JVM mô tả, còn `getRecordComponents()` phản ánh hợp đồng thành phần khai báo trong header và giữ thứ tự của header. Record có các field thành phần là `private final`, accessor công khai và các phương thức cơ bản do trình biên dịch hỗ trợ, nhưng tính bất biến là **nông**: nếu một component giữ reference đến đối tượng mutable, dữ liệu bên trong vẫn có thể thay đổi.
+**A record component differs from a Java field.** `getDeclaredFields()` returns field metadata described by the JVM, whereas `getRecordComponents()` reflects the component contract declared in the header and preserves header order. A record has `private final` component fields, public accessors, and basic compiler-generated methods, but immutability is **shallow**: if a component holds a reference to a mutable object, its internal data can still change.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh, có thể biên dịch và chạy
+## 8. Complete compilable and runnable Java 17+ example
 
-Tạo tệp `ReflectionClassKindsDemo.java` với nội dung sau. Ví dụ gom sáu nhóm kiểu vào một chương trình và in những đặc điểm đáng kiểm chứng:
+Create the file `ReflectionClassKindsDemo.java` with the following contents. The example combines all six type categories into one program and prints verifiable properties:
 
 ~~~java
 import java.lang.reflect.RecordComponent;
@@ -188,14 +188,14 @@ public class ReflectionClassKindsDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac ReflectionClassKindsDemo.java
 java ReflectionClassKindsDemo
 ~~~
 
-Stdout chính xác (đã đối chiếu bằng Java 21, mã tương thích Java 17):
+Exact stdout (verified with Java 21, Java 17-compatible code):
 
 ~~~text
 int/void: true/true
@@ -215,11 +215,11 @@ Enum base: false
 Record base: false
 ~~~
 
-Vì `Person` là record lồng bên trong lớp demo, tên nhị phân đầy đủ của nó có ký tự `$` (`ReflectionClassKindsDemo$Person`), nhưng `Person.class.getSimpleName()` vẫn là `Person`. Ví dụ cố ý dùng `getSimpleName()` cho component để output ổn định, tránh phụ thuộc package.
+Because `Person` is a record nested inside the demo class, its full binary name contains `$` (`ReflectionClassKindsDemo$Person`), yet `Person.class.getSimpleName()` is still `Person`. The example deliberately uses `getSimpleName()` for components so the output stays stable and avoids package dependencies.
 
-## 9. Áp dụng: phân loại kiểu trong công cụ reflection
+## 9. Application: classifying types in a reflection tool
 
-Một công cụ khám phá schema, serializer hoặc trình hiển thị metadata có thể nhận `Class<?>` bất kỳ và quyết định cách xử lý. Thứ tự kiểm tra giúp tránh nhầm `void` với primitive có giá trị và annotation với interface thường:
+A schema inspector, serializer, or metadata viewer can accept any `Class<?>` and decide how to handle it. The order of checks helps avoid confusing `void` with value-holding primitives and annotations with ordinary interfaces:
 
 ~~~java
 static String classify(Class<?> type) {
@@ -234,25 +234,25 @@ static String classify(Class<?> type) {
 }
 ~~~
 
-Đặt phương thức này trong một class; đây là **fragment minh họa**, còn phần 8 là chương trình chạy độc lập. Nếu nhận `int[][]`, có thể duyệt `getComponentType()` nhiều lần để lấy cả số chiều lẫn kiểu phần tử. Nếu nhận enum, `getEnumConstants()` giúp lấy danh sách giá trị hợp lệ. Nếu nhận record, `getRecordComponents()` giúp lấy đúng danh sách thành phần theo thứ tự định nghĩa. Với interface, dùng `isAssignableFrom()` để kiểm tra các implementation phù hợp.
+Place this method inside a class; this is an **illustrative fragment**, while section 8 is the standalone runnable program. If given `int[][]`, you can traverse `getComponentType()` multiple times to obtain both the dimension count and the element type. If given an enum, `getEnumConstants()` retrieves the list of valid values. If given a record, `getRecordComponents()` retrieves the exact component list in definition order. For interfaces, use `isAssignableFrom()` to check compatible implementations.
 
-Không tự suy ra một kiểu là record chỉ vì nó có phương thức `name()` hoặc nhiều field `final`: phải dùng `isRecord()`. Tương tự, đừng xem mọi subclass của `Enum` là một enum declaration, và đừng nhận diện interface chỉ bằng modifier `abstract`.
+Do not infer a type is a record just because it has a `name()` method or multiple `final` fields: you must use `isRecord()`. Similarly, do not treat every subclass of `Enum` as an enum declaration, and do not identify an interface solely by the `abstract` modifier.
 
-## 10. Các nhầm lẫn thường gặp và tự kiểm tra
+## 10. Common misconceptions and self-check
 
-1. **Primitive khác wrapper:** `int.class` và `Integer.class` khác nhau. `new Integer(...)` cũng không cần thiết; boxing thành `Integer` không biến metadata thành `int.class`.
-2. **`void` đặc biệt:** `void.class.isPrimitive()` là `true`, nhưng `void` không có instance hay mảng hợp lệ; so `type == void.class` khi cần phân biệt riêng.
-3. **Mảng là một kiểu riêng:** `int[].class.isArray()` là `true`, `int[].class.isPrimitive()` là `false` và `getComponentType() == int.class` là `true`.
-4. **Tên kiểu để load:** `Class.forName("int")` thất bại; `Class.forName("[I")` tìm được `int[]`. `getTypeName()` dành cho hiển thị dễ đọc; `getName()` của mảng mang dạng descriptor JVM.
-5. **Hướng của quan hệ gán:** `Interface.class.isAssignableFrom(Implementation.class)` kiểm tra implementation có gán được cho interface; đảo chiều thường là `false`.
-6. **Enum/record là kiểu khai báo cụ thể:** `Enum.class.isEnum()` và `Record.class.isRecord()` đều là `false`; muốn có constants hay components thì kiểm tra đúng class khai báo.
-7. **Giá trị trả về của API:** `getEnumConstants()` và `getRecordComponents()` có thể trả `null` khi không đúng loại. Không duyệt trực tiếp trước khi kiểm tra.
+1. **Primitive vs. wrapper:** `int.class` and `Integer.class` differ. `new Integer(...)` is also unnecessary; boxing to `Integer` does not turn metadata into `int.class`.
+2. **`void` is special:** `void.class.isPrimitive()` is `true`, but `void` has no valid instances or arrays; compare `type == void.class` when needing to distinguish it specifically.
+3. **Arrays are distinct types:** `int[].class.isArray()` is `true`, `int[].class.isPrimitive()` is `false`, and `getComponentType() == int.class` is `true`.
+4. **Type names for loading:** `Class.forName("int")` fails; `Class.forName("[I")` finds `int[]`. `getTypeName()` is for readable display; an array's `getName()` carries the JVM descriptor format.
+5. **Direction of assignability:** `Interface.class.isAssignableFrom(Implementation.class)` checks whether an implementation can be assigned to the interface; the reverse is usually `false`.
+6. **Enums/records are concrete declared types:** `Enum.class.isEnum()` and `Record.class.isRecord()` are both `false`; to get constants or components, inspect the actual declared class.
+7. **API return values:** `getEnumConstants()` and `getRecordComponents()` can return `null` when the type is not of that kind. Do not iterate directly before checking.
 
-Tự trả lời:
+Answer for yourself:
 
-- `int[][].class.getComponentType() == int[].class` là đúng hay sai? **Đúng** vì mỗi lần lấy component chỉ bỏ một chiều.
-- `void.class.isPrimitive()` có thể dùng để quyết định kiểu có thể chứa một giá trị primitive không? **Không**; `void` là ngoại lệ dù API trả `true`.
-- Một class có các field `final` và accessor trông giống record thì `isRecord()` có chắc là `true`? **Không**; chỉ class thực sự khai báo bằng `record` mới thỏa điều kiện.
-- Nếu nhận `Class<?>` từ plugin bên ngoài, cần phân biệt annotation interface với interface thường bằng gì? **`isAnnotation()` trước `isInterface()`**.
+- Is `int[][].class.getComponentType() == int[].class` true or false? **True**, because each component lookup strips only one dimension.
+- Can `void.class.isPrimitive()` be used to decide whether a type can hold a primitive value? **No**; `void` is an exception even though the API returns `true`.
+- If a class has `final` fields and accessors looking like a record, is `isRecord()` guaranteed to be `true`? **No**; only a class actually declared with `record` satisfies the condition.
+- If receiving `Class<?>` from an external plugin, how do you distinguish an annotation interface from a regular interface? **`isAnnotation()` before `isInterface()`**.
 
-Tài liệu chuẩn để tra cứu thêm: [Javadoc `Class` (Java 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [Javadoc `RecordComponent` (Java 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/RecordComponent.html) và [JLS 17 — Record Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10).
+Authoritative references for further lookup: [Javadoc `Class` (Java 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [Javadoc `RecordComponent` (Java 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/RecordComponent.html), and [JLS 17 — Record Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10).

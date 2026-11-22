@@ -1,36 +1,36 @@
-# Phân biệt ranh giới từ với các đoạn dấu câu hoặc khoảng trắng trong Java
+# Distinguishing Word Boundaries from Punctuation or Whitespace Segments in Java
 
-## 1. Một ranh giới từ không có nghĩa đoạn tiếp theo luôn là một từ
+## 1. A Word Boundary Does Not Mean the Next Segment Is Always a Word
 
-Giả sử ứng dụng hiển thị câu:
+Suppose an application displays the sentence:
 
 ```text
 Hello, world! 42 days.
 ```
 
-Người đọc có thể nhận ra các từ `Hello`, `world`, `days` và số `42`. Nhưng ở mức xử lý văn bản, các phần khác như dấu phẩy, dấu chấm than, dấu chấm và khoảng trắng **cũng chiếm vị trí trong chuỗi**.
+A reader recognizes the words `Hello`, `world`, `days`, and the number `42`. Yet at the text-processing level, the other parts such as the comma, exclamation mark, period, and spaces **also occupy positions in the string**.
 
-Java cung cấp `java.text.BreakIterator.getWordInstance(locale)` để tìm **vị trí ranh giới theo quy tắc từ** của ngôn ngữ. Điều thường khiến người mới nhầm lẫn là: **mỗi đoạn nằm giữa hai ranh giới liên tiếp không bắt buộc là một từ**. Nó có thể là:
+Java provides `java.text.BreakIterator.getWordInstance(locale)` to find **boundary positions according to word rules** of a language. What often confuses beginners is that **each segment between two consecutive boundaries does not have to be a word**. It can be:
 
-- từ hoặc đoạn chứa chữ cái;
-- đoạn số, chẳng hạn `42` hoặc `3.14` tùy quy tắc;
-- dấu câu, chẳng hạn `,`, `!`, `.`;
-- khoảng trắng, tab hay các đoạn phân cách khác;
-- ký hiệu hoặc nội dung không được xem là một từ theo chính sách ứng dụng.
+- a word or segment containing letters;
+- a numeric segment, such as `42` or `3.14` depending on the rules;
+- punctuation, such as `,`, `!`, `.`;
+- whitespace, tabs, or other separator segments;
+- symbols or content not considered a word under the application's policy.
 
-Nói cách khác, `BreakIterator` phát hiện **ranh giới**, chứ `getWordInstance` không phải một hàm trả sẵn `List<String>` chỉ gồm các từ có nghĩa.
+In other words, `BreakIterator` detects **boundaries**, whereas `getWordInstance` is not a function that pre-returns a `List<String>` containing only meaningful words.
 
-Đây là khác biệt quan trọng khi xây bộ đếm từ, tìm kiếm, chọn từ bằng double-click, tô sáng, tách văn bản theo locale và xử lý tiếng Việt hoặc ngôn ngữ không phân cách từ bằng dấu cách theo cách đơn giản.
+This is an important distinction when building word counters, search, double-click word selection, highlighting, locale-based text splitting, and handling Vietnamese or languages that do not separate words simply by spaces.
 
-## 2. Ba khái niệm phải phân biệt
+## 2. Three Concepts to Distinguish
 
-| Khái niệm | Ý nghĩa | Ví dụ trong `Hello, world!` |
+| Concept | Meaning | Example in `Hello, world!` |
 | --- | --- | --- |
-| **Ranh giới từ (word boundary)** | Vị trí có thể bắt đầu hoặc kết thúc một đơn vị theo quy tắc phân đoạn từ | Trước/sau `Hello`, trước/sau dấu phẩy, trước/sau `world` |
-| **Đoạn giữa hai ranh giới (segment)** | Chuỗi con từ index bắt đầu tới index kết thúc | `Hello`, `,`, ` `, `world`, `!` |
-| **Từ/token ứng dụng muốn giữ** | Đoạn được chọn **sau khi áp dụng chính sách lọc** | `Hello`, `world`; tùy bài toán có nhận số hoặc ký hiệu |
+| **Word boundary** | Position where a unit may start or end according to word segmentation rules | Before/after `Hello`, before/after the comma, before/after `world` |
+| **Segment between two boundaries** | Substring from the start index to the end index | `Hello`, `,`, ` `, `world`, `!` |
+| **Word/token the application wants to keep** | Segment chosen **after applying a filtering policy** | `Hello`, `world`; depending on the task, whether numbers or symbols are accepted |
 
-Ví dụ, khi `BreakIterator` trả ranh giới tại index 5, index 6 và index 7 cho phần `Hello, `, các đoạn tương ứng là:
+For example, when `BreakIterator` returns boundaries at index 5, index 6, and index 7 for the `Hello, ` portion, the corresponding segments are:
 
 ```text
 [0, 5)  "Hello"
@@ -38,13 +38,13 @@ Ví dụ, khi `BreakIterator` trả ranh giới tại index 5, index 6 và index
 [6, 7)  " "
 ```
 
-Các index ở đây là **offset UTF-16**, theo đúng cách đánh chỉ số của `String.substring(begin, end)`. Khoảng `[start, end)` lấy ký tự từ `start` đến trước `end`. Mỗi ranh giới chỉ đánh dấu vị trí; **không gắn nhãn đoạn là từ, dấu câu hay khoảng trắng**.
+The indexes here are **UTF-16 offsets**, matching the indexing of `String.substring(begin, end)`. The interval `[start, end)` takes characters from `start` up to before `end`. Each boundary merely marks a position; it **does not label the segment as a word, punctuation, or whitespace**.
 
-Điều quan trọng hơn là phân đoạn “từ” khác với khái niệm **từ vựng/ngữ nghĩa**. Ví dụ tiếng Việt `học sinh` có khoảng trắng giữa hai âm tiết nhưng có thể là một đơn vị từ vựng trong ngữ cảnh. Một thuật toán word boundary không tự thực hiện đầy đủ phân tích ngữ nghĩa, từ ghép, tên riêng hay phân tích ngôn ngữ tự nhiên.
+More importantly, "word" segmentation differs from the **lexical/semantic** concept of a word. For example, in Vietnamese `học sinh` has a space between two syllables yet may be a single lexical unit in context. A word-boundary algorithm does not automatically perform full semantic analysis, compound-word detection, proper-noun recognition, or natural language processing.
 
-## 3. BreakIterator: công cụ xác định vị trí ngắt văn bản
+## 3. BreakIterator: A Tool for Determining Text Break Positions
 
-`BreakIterator` là lớp trừu tượng trong `java.text`:
+`BreakIterator` is an abstract class in `java.text`:
 
 ```java
 import java.text.BreakIterator;
@@ -55,38 +55,38 @@ BreakIterator iterator =
 iterator.setText("Hello, world! 42 days.");
 ```
 
-Đây là snippet. Java có nhiều factory cùng kiểu iterator nhưng phục vụ các đơn vị khác nhau:
+This is a snippet. Java has multiple factories for the same iterator type serving different units:
 
-| Factory | Loại ranh giới cần tìm | Ví dụ ứng dụng |
+| Factory | Type of boundary to find | Example application |
 | --- | --- | --- |
-| `getWordInstance(locale)` | Ranh giới **theo từ**, bao gồm các đoạn nằm giữa từ | Chọn từ, tìm từ, tô sáng |
-| `getSentenceInstance(locale)` | Ranh giới **câu** | Chia đoạn để đọc/tổng hợp câu |
-| `getLineInstance(locale)` | Vị trí có thể **ngắt dòng** | Bố cục văn bản khi có giới hạn chiều rộng |
-| `getCharacterInstance(locale)` | Ranh giới **ký tự theo phân đoạn văn bản** | Di chuyển con trỏ, chọn cụm ký tự |
+| `getWordInstance(locale)` | **Word-level** boundaries, including segments between words | Word selection, word search, highlighting |
+| `getSentenceInstance(locale)` | **Sentence** boundaries | Splitting chunks for reading/sentence summarization |
+| `getLineInstance(locale)` | Possible **line-break** positions | Text layout under width constraints |
+| `getCharacterInstance(locale)` | **Character** boundaries per text segmentation | Moving the cursor, selecting character clusters |
 
-**Không thay `getWordInstance` bằng `getCharacterInstance`** chỉ vì các từ được tạo từ ký tự: một từ có thể gồm nhiều ký tự; một ký tự hiển thị lại có thể gồm nhiều code point. Tương tự, `getLineInstance` cho biết các vị trí thích hợp để xuống dòng, không có nghĩa mỗi đoạn giữa hai ranh giới là một từ.
+**Do not replace `getWordInstance` with `getCharacterInstance`** merely because words are made of characters: a word can have many characters, and a visible character can consist of multiple code points. Similarly, `getLineInstance` reports suitable line-wrapping positions, which does not mean each segment between two boundaries is a word.
 
-Tài liệu Java nhấn mạnh `BreakIterator` được thiết kế chủ yếu cho **ngôn ngữ tự nhiên**, không phải tokenizer để phân tích mã nguồn của một ngôn ngữ lập trình. Đối với Java source code, JSON, URL, email, SQL hay tên biến, cần parser/lexer có ngữ pháp tương ứng.
+Java documentation emphasizes that `BreakIterator` is designed primarily for **natural language**, not as a tokenizer for parsing source code of a programming language. For Java source code, JSON, URLs, email addresses, SQL, or variable names, you need a grammar-based parser/lexer.
 
-## 4. Các API xác định ranh giới: first, next, previous, following
+## 4. Boundary APIs: first, next, previous, following
 
-Một iterator giữ **trạng thái vị trí hiện tại**. Những API phổ biến:
+An iterator maintains **current position state**. Common APIs:
 
-| Phương thức/hằng | Công dụng |
+| Method/Constant | Purpose |
 | --- | --- |
-| `setText(text)` | Đặt văn bản cần xử lý và đặt vị trí đầu |
-| `first()` | Chuyển về ranh giới đầu tiên, trả vị trí đó |
-| `last()` | Chuyển tới ranh giới cuối cùng |
-| `next()` | Tới ranh giới kế tiếp; `DONE` nếu hết |
-| `previous()` | Tới ranh giới trước; `DONE` nếu hết |
-| `current()` | Lấy vị trí ranh giới hiện tại |
-| `following(offset)` | Tìm ranh giới **nằm sau** offset |
-| `preceding(offset)` | Tìm ranh giới **nằm trước** offset |
-| `isBoundary(offset)` | Xác định offset có phải ranh giới không |
-| `BreakIterator.DONE` | Giá trị sentinel khi không còn ranh giới hợp lệ |
-| `getText()` | Lấy `CharacterIterator` văn bản đã đặt |
+| `setText(text)` | Sets the text to process and resets to the start position |
+| `first()` | Moves to the first boundary and returns its position |
+| `last()` | Moves to the last boundary |
+| `next()` | Moves to the next boundary; `DONE` if exhausted |
+| `previous()` | Moves to the previous boundary; `DONE` if exhausted |
+| `current()` | Gets the current boundary position |
+| `following(offset)` | Finds the boundary **after** `offset` |
+| `preceding(offset)` | Finds the boundary **before** `offset` |
+| `isBoundary(offset)` | Determines whether `offset` is a boundary |
+| `BreakIterator.DONE` | Sentinel value when no valid boundary remains |
+| `getText()` | Gets the `CharacterIterator` of the set text |
 
-Vòng lặp đúng để lấy **mọi đoạn liên tiếp**:
+The right loop to retrieve **every consecutive segment**:
 
 ```java
 int start = iterator.first();
@@ -96,17 +96,17 @@ for (int end = iterator.next();
      start = end, end = iterator.next()) {
 
     String segment = text.substring(start, end);
-    // Ở đây segment CÓ THỂ là từ, số, dấu câu hoặc khoảng trắng.
+    // Here segment MAY be a word, number, punctuation, or whitespace.
 }
 ```
 
-Đoạn này là snippet và giả sử đã có `iterator` cùng `text`. Không gọi `iterator.next()` để lấy “từ tiếp theo” rồi mặc nhiên coi đoạn đó là một từ. Phải đánh giá nội dung đoạn nếu mục tiêu là trích các từ.
+This is a snippet assuming `iterator` and `text` already exist. Do not call `iterator.next()` to get "the next word" and assume that segment is a word. You must inspect the segment's content if the goal is extracting words.
 
-Lưu ý `following`/`preceding` tìm **boundary**, không tìm “chữ cái gần nhất”; kết quả có thể là biên của dấu câu hoặc khoảng trắng. Chúng cũng thay đổi vị trí hiện tại của iterator. Khi cần tìm từ bắt đầu sau một offset, phải duyệt qua các đoạn và **bỏ qua đoạn không thỏa điều kiện từ**.
+Note that `following`/`preceding` find **boundaries**, not "the nearest letter"; the result can be the boundary of punctuation or whitespace. They also mutate the iterator's current position. To find a word starting after an offset, traverse segments and **skip segments that do not meet your word criteria**.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: giữ cả ranh giới rồi lọc từ
+## 5. Complete Java 17+ Example: Preserving Boundaries and Filtering Words
 
-Tạo file **`WordSegmentsDemo.java`**:
+Create **`WordSegmentsDemo.java`**:
 
 ```java
 import java.text.BreakIterator;
@@ -149,14 +149,14 @@ public class WordSegmentsDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run on JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 WordSegmentsDemo.java
 java WordSegmentsDemo
 ```
 
-**Stdout trong môi trường JDK 24 với Locale.US:**
+**Stdout in a JDK 24 environment with Locale.US:**
 
 ```text
 Segments: [[Hello], [,], [ ], [world], [!], [ ], [42], [ ], [days], [.]]
@@ -165,68 +165,68 @@ Word count: 4
 Whitespace split: [Hello,, world!, 42, days.]
 ```
 
-**Diễn giải từng bước:**
+**Step-by-step interpretation:**
 
-1. `getWordInstance(Locale.US)` thiết lập quy tắc ngắt theo locale cụ thể, không phụ thuộc default locale của JVM.
-2. Vòng lặp lấy **toàn bộ** đoạn giữa các ranh giới. Các đoạn `[,]`, `[ ]`, `[!]` và `[.]` chứng minh đầu ra của iterator **không chỉ có từ**.
-3. `Character.isLetterOrDigit` trên `codePoints()` là **quy tắc lọc của ứng dụng**: giữ đoạn chứa ít nhất một chữ cái hoặc chữ số. Do đó `42` được giữ.
-4. `wordLike.size()` bằng 4 trong ví dụ này, không bằng số `segments`. Đừng gọi `segments.size()` là “số từ”.
-5. `String.split("\\s+")` chỉ cắt tại **khoảng trắng phù hợp regex**, nên `Hello,`, `world!` và `days.` vẫn dính dấu câu. Nó **không tương đương** phân đoạn theo word boundaries.
+1. `getWordInstance(Locale.US)` sets break rules for a specific locale rather than relying on the JVM default locale.
+2. The loop collects **all** segments between boundaries. The `[,]`, `[ ]`, `[!]`, and `[.]` segments prove the iterator's output **is not only words**.
+3. `Character.isLetterOrDigit` on `codePoints()` is the **application's filtering rule**: keep segments containing at least one letter or digit. Thus `42` is kept.
+4. `wordLike.size()` is 4 in this example, not the count of `segments`. Do not call `segments.size()` the "word count".
+5. `String.split("\\s+")` splits only at **whitespace matching the regex**, so `Hello,`, `world!`, and `days.` keep punctuation attached. It is **not equivalent** to word-boundary segmentation.
 
-Code dùng `codePoints()` thay vì duyệt `charAt` để tránh chỉ xét nửa surrogate khi có chữ cái hoặc chữ số ngoài BMP. Tuy nhiên, “đoạn có ít nhất một chữ/số” chỉ là một **heuristic**; cách ứng dụng định nghĩa token có thể khác và cần được nêu rõ.
+The code uses `codePoints()` instead of iterating `charAt` to avoid examining half a surrogate when letters or digits lie outside the BMP. However, "a segment with at least one letter/digit" is just a **heuristic**; how an application defines a token may differ and must be stated explicitly.
 
-**Lưu ý khi so sánh stdout:** cách chia từ của `BreakIterator` phụ thuộc locale provider và dữ liệu Unicode/JDK. Đây là output của bộ dữ liệu ví dụ trong môi trường thử nghiệm, không phải đặc tả bất biến cho mọi provider hoặc phiên bản JDK.
+**Note when comparing stdout:** how `BreakIterator` splits words depends on the locale provider and Unicode/JDK data. This is the output for the example data in the test environment, not an immutable specification across all providers or JDK versions.
 
-## 6. Tại sao không chỉ String.split("\\s+")?
+## 6. Why Not Just `String.split("\\s+")`?
 
-`String.split("\\s+")` chia chuỗi ở vị trí **khớp biểu thức whitespace**. Trong Java regex mặc định, `\\s` nhận một lớp whitespace có định nghĩa cụ thể; khi dùng `Pattern.UNICODE_CHARACTER_CLASS`/cờ `(?U)`, phạm vi ký tự phù hợp có thể mở rộng. Tuy nhiên dù cấu hình thế nào, **chỉ chia tại whitespace không thể xử lý đầy đủ dấu câu hoặc cấu trúc từ**.
+`String.split("\\s+")` splits the string at positions **matching the whitespace expression**. In default Java regex, `\\s` recognizes a specific defined whitespace class; with `Pattern.UNICODE_CHARACTER_CLASS`/flag `(?U)`, the matching character range expands. However, regardless of configuration, **splitting only at whitespace cannot properly handle punctuation or word structure**.
 
-Ví dụ:
+Example:
 
 ```text
 can't, e-mail: 3.14!
 ```
 
-Chia theo dấu cách có thể cho:
+Splitting on spaces can yield:
 
 ```text
 ["can't,", "e-mail:", "3.14!"]
 ```
 
-Các dấu `,`, `:`, `!` vẫn dính vào token. Nếu sau đó bạn tự xóa **tất cả dấu câu**, `can't` có thể thành `cant` hoặc bị tách tùy cách xử lý; `e-mail` mất dấu nối, `3.14` mất dấu thập phân. Dấu câu **không phải lúc nào cũng chỉ là rác**.
+The `,`, `:`, `!` marks remain stuck to the tokens. If you then blindly strip **all punctuation**, `can't` could become `cant` or get split depending on handling; `e-mail` loses its hyphen, and `3.14` loses its decimal point. Punctuation is **not always just noise**.
 
-Một bước xử lý thực tế có thể là:
+A practical processing pipeline might be:
 
-1. Dùng `BreakIterator` để lấy boundary theo ngôn ngữ.
-2. Phân loại mỗi đoạn theo mục tiêu: chữ/số, khoảng trắng, dấu câu, ký hiệu.
-3. Quyết định giữ/bỏ dấu câu tùy ngữ cảnh (tìm kiếm, NLP, parser dữ liệu…).
-4. Lưu lại offset nếu cần đánh dấu phần gốc hoặc phục hồi vị trí tìm kiếm.
+1. Use `BreakIterator` to get language-aware boundaries.
+2. Classify each segment by goal: letters/digits, whitespace, punctuation, symbols.
+3. Decide whether to keep or strip punctuation depending on context (search, NLP, data parsing...).
+4. Keep offsets if you need to highlight the original text or recover search positions.
 
-Đừng viết `replaceAll("\\p{Punct}", "")` vô điều kiện cho dữ liệu tiếng Việt, mã sản phẩm hoặc số thập phân chỉ vì muốn “đếm từ”. Một regex đơn giản có thể không đủ nhận biết dấu câu Unicode, ký tự kết hợp, ngữ pháp từ ghép và dấu phân cách phụ thuộc locale.
+Do not write `replaceAll("\\p{Punct}", "")` unconditionally on Vietnamese text, product codes, or decimal numbers just because you want to "count words". A simple regex may fail to recognize Unicode punctuation, combining characters, compound-word grammar, and locale-dependent separators.
 
-## 7. So sánh BreakIterator với regex word boundary và whitespace
+## 7. Comparing BreakIterator with Regex Word Boundaries and Whitespace
 
-Ba phương án hay bị coi là tương đương thực tế có mục đích khác nhau:
+Three approaches often treated as equivalent actually serve different purposes:
 
-| Công cụ | Đầu ra | Đặc điểm |
+| Tool | Output | Characteristics |
 | --- | --- | --- |
-| `BreakIterator.getWordInstance(locale)` | Các **vị trí ngắt** trong chuỗi | Có quy tắc dựa trên locale; đoạn giữa biên có thể là từ hoặc ký hiệu |
-| `String.split("\\s+")` | Mảng chuỗi sau khi tách ở whitespace | Đơn giản nhưng giữ dấu câu dính với token |
-| `Pattern.compile("\\b\\w+\\b")` | Các match có ký tự “word” giữa word boundaries của regex | Không cùng bộ quy tắc với BreakIterator, có thể tách contractions, số thập phân, dấu nối |
-| `Pattern.compile("\\X")` | Các **extended grapheme clusters** | Đếm/duyệt cụm ký tự hiển thị, **không** tìm từ |
-| `BreakIterator.getSentenceInstance(locale)` | Ranh giới câu | Không phải ranh giới từ |
+| `BreakIterator.getWordInstance(locale)` | **Break positions** in the string | Locale-based rules; segments between boundaries can be words or symbols |
+| `String.split("\\s+")` | Array of strings split on whitespace | Simple, but leaves punctuation attached to tokens |
+| `Pattern.compile("\\b\\w+\\b")` | Matches of "word" characters between regex word boundaries | Different rule set from `BreakIterator`; can split contractions, decimals, hyphens |
+| `Pattern.compile("\\X")` | **Extended grapheme clusters** | Counts/iterates visible character clusters; does **not** find words |
+| `BreakIterator.getSentenceInstance(locale)` | Sentence boundaries | Not word boundaries |
 
-Cần phân biệt ký hiệu `\b` trong **Java regex** với backspace trong Java string literal. Viết:
+Distinguish `\b` in **Java regex** from backspace in a Java string literal. Write:
 
 ```java
 Pattern.compile("\\b\\w+\\b"); // regex word-boundary + word chars
 ```
 
-Không viết `"\b"` khi ý muốn là regex word boundary: Java sẽ tạo ký tự backspace. Ngoài ra, `\\w` trong Java regex mặc định không có cùng quy tắc với `Character.isLetterOrDigit` cho toàn Unicode; cờ `UNICODE_CHARACTER_CLASS` thay đổi phạm vi một số lớp ký tự nhưng **không biến regex thành BreakIterator theo locale**.
+Do not write `"\b"` when you mean a regex word boundary: Java will produce a backspace character. Also, `\\w` in default Java regex does not follow the same rules as `Character.isLetterOrDigit` across all of Unicode; the `UNICODE_CHARACTER_CLASS` flag changes the range of certain character classes, yet **does not turn regex into a locale-aware `BreakIterator`**.
 
-### Ví dụ chạy được thứ hai: dấu câu *ở trong* một đơn vị
+### Second Runnable Example: Punctuation *Inside* a Unit
 
-Tạo file **`BoundaryComparisonDemo.java`**:
+Create **`BoundaryComparisonDemo.java`**:
 
 ```java
 import java.text.BreakIterator;
@@ -276,14 +276,14 @@ public class BoundaryComparisonDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 BoundaryComparisonDemo.java
 java BoundaryComparisonDemo
 ```
 
-**Ví dụ stdout trên JDK 24 / Locale.US:**
+**Example stdout on JDK 24 / Locale.US:**
 
 ```text
 Boundary segments: [[can't], [,], [ ], [e-mail], [:], [ ], [3.14], [!]]
@@ -292,23 +292,23 @@ Whitespace split: [can't,, e-mail:, 3.14!]
 Regex matches: [can, t, e, mail, 3, 14]
 ```
 
-Kết quả minh họa việc word boundary của `BreakIterator` có thể **giữ** apostrophe trong contraction, dấu nối trong từ ghép và dấu chấm trong số thập phân theo quy tắc locale. Trong khi đó regex `\\b\\w+\\b` chỉ khớp từng dãy `\\w` và `split("\\s+")` giữ luôn dấu câu ở cuối. Không có phương pháp nào “đúng cho mọi mục đích” nếu bạn chưa định nghĩa rõ thế nào là một token.
+The output illustrates how `BreakIterator`'s word boundaries can **keep** the apostrophe in a contraction, the hyphen in a compound word, and the decimal point in a decimal number according to locale rules. Meanwhile, the regex `\\b\\w+\\b` matches only runs of `\\w` and `split("\\s+")` keeps trailing punctuation attached. No method is "right for every purpose" until you clearly define what a token is.
 
-**Quan trọng:** Các chuỗi `can't`, `e-mail`, `3.14` trong ví dụ là tình huống minh họa phụ thuộc quy tắc word-break của JDK/provider. Sản phẩm có thể yêu cầu chính sách khác, ví dụ coi `e-mail` là hai từ hoặc số `3.14` là một literal. Khi cần parser số, URL, email hoặc mã nguồn, không để `BreakIterator` tự quyết định tính hợp lệ của cú pháp.
+**Important:** The strings `can't`, `e-mail`, and `3.14` in the example are illustrative scenarios dependent on the JDK/provider's word-break rules. A product may require a different policy, such as treating `e-mail` as two words or `3.14` as a literal. When you need a parser for numbers, URLs, emails, or source code, do not let `BreakIterator` decide syntactic validity.
 
-## 8. Làm sao phân loại một đoạn là từ, dấu câu, khoảng trắng?
+## 8. How to Classify a Segment as Word, Punctuation, or Whitespace?
 
-Lọc `Character.isLetterOrDigit` chỉ nhằm có một ví dụ **đơn giản** để loại đoạn toàn dấu câu/khoảng trắng. Với sản phẩm thực tế, các lớp đoạn có thể được xác định rõ hơn:
+Filtering with `Character.isLetterOrDigit` only aims to provide a **simple** example to drop segments that are purely punctuation/whitespace. For real products, segment classes can be defined more precisely:
 
-| Nhóm đoạn | Heuristic có thể dùng | Hạn chế |
+| Segment Group | Possible Heuristic | Limitation |
 | --- | --- | --- |
-| Có chữ/số | `segment.codePoints().anyMatch(Character::isLetterOrDigit)` | Giữ cả chữ và số; không tự xác thực từ vựng |
-| Chỉ khoảng trắng | `segment.codePoints().allMatch(Character::isWhitespace)` | `isWhitespace` không bao trùm mọi ký tự hiển thị như dấu cách theo mọi định nghĩa Unicode |
-| Chỉ dấu câu | Kiểm tra `Character.getType(cp)` với các category punctuation | Unicode punctuation có nhiều category; ký hiệu toán/tiền khác punctuation |
-| Chứa emoji/ký hiệu | Kiểm tra code point/category hoặc bộ quy tắc biểu tượng | Emoji có thể gồm nhiều code point, variation selector và ZWJ |
-| Word token cần giữ | Kết hợp word boundaries với policy riêng | Tùy ngôn ngữ, dữ liệu và mục tiêu |
+| Contains letters/digits | `segment.codePoints().anyMatch(Character::isLetterOrDigit)` | Keeps both letters and digits; does not validate lexical words |
+| Whitespace only | `segment.codePoints().allMatch(Character::isWhitespace)` | `isWhitespace` does not cover every space-like display character under all Unicode definitions |
+| Punctuation only | Check `Character.getType(cp)` against punctuation categories | Unicode punctuation has multiple categories; math/currency symbols differ from punctuation |
+| Contains emojis/symbols | Check code point/category or symbol ruleset | Emojis can consist of multiple code points, variation selectors, and ZWJ |
+| Word tokens to keep | Combine word boundaries with custom policy | Depends on language, data, and goal |
 
-Ví dụ một hàm lấy **đoạn chứa chữ/số** không mang theo trạng thái toàn cục:
+Example of a stateless function extracting **segments containing letters/digits**:
 
 ```java
 static boolean hasLetterOrDigit(String segment) {
@@ -317,21 +317,21 @@ static boolean hasLetterOrDigit(String segment) {
 }
 ```
 
-Đây là **snippet phương thức** đặt trong lớp Java. Nếu chỉ muốn các từ chứa chữ cái mà không nhận số, dùng `Character::isLetter`. Nếu muốn nhận số thập phân, phần trăm, email hoặc hashtags là token, phải có chính sách phân loại riêng.
+This is a **method snippet** placed inside a Java class. If you only want words containing letters without accepting numbers, use `Character::isLetter`. If you want to accept decimal numbers, percentages, emails, or hashtags as tokens, you must have a dedicated classification policy.
 
-Không suy ra “segment không có chữ/số ⇒ nó chắc chắn là whitespace”. Nó có thể là emoji, dấu câu, ký hiệu tiền tệ hoặc đoạn chứa chỉ dấu Unicode kết hợp. Cũng không suy ra “segment có chữ ⇒ chắc chắn là một từ độc lập”; một đoạn có thể được xem là thành phần của một tên riêng hoặc từ ghép nhiều âm tiết.
+Do not conclude "a segment with no letters/digits ⇒ it is definitely whitespace". It could be an emoji, punctuation, a currency symbol, or a segment containing only combining Unicode marks. Likewise, do not conclude "a segment with letters ⇒ it is definitely an independent word"; a segment could be a component of a proper name or a multi-syllable compound word.
 
-### Giữ các đoạn thay vì vứt ngay
+### Keeping Segments Instead of Discarding Them Immediately
 
-Khi tính năng cần **tô sáng kết quả tìm kiếm**, **chọn văn bản** hoặc **khôi phục chuỗi gốc**, hãy lưu cả vị trí `start` và `end` của mỗi segment. Nếu chỉ giữ `wordLike`, toàn bộ dấu câu/khoảng trắng sẽ biến mất và khó tái tạo chính xác câu gốc.
+When a feature needs **search-result highlighting**, **text selection**, or **restoring the original string**, store both the `start` and `end` positions of every segment. If you keep only `wordLike`, all punctuation and whitespace disappear, making it hard to reconstruct the exact original sentence.
 
-Một DTO có thể gồm `startInclusive`, `endExclusive`, `text`, `kind`. Sau khi xác định segment có phải word token hay không, có thể xử lý tùy mục tiêu mà không đánh mất vị trí ban đầu.
+A DTO might contain `startInclusive`, `endExclusive`, `text`, and `kind`. After determining whether a segment is a word token, you can process it according to your goal without losing its original position.
 
-## 9. Độ lệch chỉ số: BreakIterator trả UTF-16 offsets
+## 9. Index Offsets: BreakIterator Returns UTF-16 Offsets
 
-Giá trị trả về bởi `first()`, `next()`, `following()` và `preceding()` dùng index trong đối tượng văn bản. Với `String` trong Java, các index tương ứng đơn vị **UTF-16 code unit**, không phải số Unicode code point hoặc grapheme cluster.
+Values returned by `first()`, `next()`, `following()`, and `preceding()` are indexes into the text object. For Java `String`, indexes correspond to **UTF-16 code units**, not Unicode code point counts or grapheme clusters.
 
-Ví dụ:
+Example:
 
 ```java
 String text = "A" + new String(Character.toChars(0x1F600)) + "B";
@@ -339,76 +339,76 @@ System.out.println(text.length()); // 4 code units
 System.out.println(text.codePointCount(0, text.length())); // 3 code points
 ```
 
-Đây là snippet. Emoji ở giữa chiếm hai `char`, nên chỉ số bắt đầu của `B` là `3`, không phải `2`. Vì vậy khi cắt segment dùng **trực tiếp**:
+This is a snippet. The emoji in the middle occupies two `char`s, so the starting index of `B` is `3`, not `2`. Therefore, when slicing a segment, use **directly**:
 
 ```java
 String part = text.substring(start, end);
 ```
 
-Không chuyển `start`/`end` thành “code point count” rồi đem giá trị đó dùng lại làm offset của `substring`. Nếu muốn biểu diễn vị trí dưới dạng code point index, cần có bước quy đổi có chủ đích, ví dụ `codePointCount(0, start)`; ngược lại `offsetByCodePoints` đổi vị trí theo code points về UTF-16 index.
+Do not convert `start`/`end` into a "code point count" and then reuse that value as an offset for `substring`. If you want to represent a position as a code point index, perform an explicit conversion such as `codePointCount(0, start)`; conversely, `offsetByCodePoints` converts a code-point-based position back to a UTF-16 index.
 
-Tương tự, một dấu tiếng Việt có thể tồn tại dạng ký tự precomposed hoặc dạng base character + combining mark. `BreakIterator` làm việc trên một dãy code units với quy tắc Unicode/locale; việc tự cắt bằng số byte hoặc số `char` tùy tiện có thể khiến dấu kết hợp bị tách ra khỏi chữ.
+Similarly, a Vietnamese accented letter can exist as a precomposed character or as a base character + combining mark. `BreakIterator` operates on a sequence of code units with Unicode/locale rules; arbitrarily slicing by byte count or `char` count can detach combining marks from letters.
 
-## 10. Phân tích tiếng Việt, ngôn ngữ không cách từ và Unicode
+## 10. Analyzing Vietnamese, Spaceless Languages, and Unicode
 
-### 10.1. Tiếng Việt: khoảng trắng không luôn tương ứng một từ vựng
+### 10.1. Vietnamese: Whitespace Does Not Always Correspond to a Lexical Word
 
-Trong tiếng Việt, khoảng trắng thường phân tách **âm tiết**, trong khi nhiều từ vựng gồm hai hay nhiều âm tiết, ví dụ `học sinh`, `công nghệ`, `bàn ghế` trong ngữ cảnh thích hợp. Vì vậy:
+In Vietnamese, spaces usually separate **syllables**, whereas many lexical words consist of two or more syllables, such as `học sinh`, `công nghệ`, or `bàn ghế` in the appropriate context. Therefore:
 
-- `split("\\s+")` thường tách theo các đoạn có khoảng trắng, **không bảo đảm** tách đúng từ vựng.
-- `getWordInstance(Locale.forLanguageTag("vi-VN"))` cung cấp ranh giới văn bản theo locale/provider, **không đồng nghĩa với một mô hình phân tích từ ghép tiếng Việt chuyên dụng**.
-- Nếu sản phẩm cần word tokenization cho tìm kiếm/NLP với cụm từ nhiều âm tiết, cân nhắc một **bộ tách từ tiếng Việt** được đánh giá trên dữ liệu thực tế.
+- `split("\\s+")` typically splits on space-delimited chunks and **does not guarantee** accurate lexical word splitting.
+- `getWordInstance(Locale.forLanguageTag("vi-VN"))` provides text boundaries per the locale/provider, which is **not equivalent to a dedicated Vietnamese compound-word analyzer**.
+- If a product needs word tokenization for search/NLP involving multi-syllable compounds, consider a **Vietnamese word segmenter** evaluated on real data.
 
-### 10.2. Tiếng Thái, Trung Quốc, Nhật Bản
+### 10.2. Thai, Chinese, Japanese
 
-Một số ngôn ngữ không sử dụng khoảng trắng như phương tiện phân cách từ phổ biến. `split("\\s+")` có thể trả **cả câu dài** thay vì các đơn vị nhỏ. `BreakIterator` áp dụng cơ chế word-boundary theo locale và provider, nhưng chất lượng phân đoạn phụ thuộc dữ liệu từ điển/quy tắc được JDK hỗ trợ. Nếu ứng dụng đòi độ chính xác NLP cao, cần thử dữ liệu thực tế và có thể dùng thư viện/tokenizer chuyên biệt.
+Some languages do not commonly use spaces as a word delimiter. `split("\\s+")` can return **entire long sentences** instead of smaller units. `BreakIterator` applies locale- and provider-based word-boundary mechanisms, yet segmentation quality depends on the dictionary/rule data supported by the JDK. If an application requires high NLP accuracy, test on real data and consider a specialized library/tokenizer.
 
-Không đưa ra một output bất biến cho việc tách từ tiếng Thái/Trung/Nhật khi không cố định phiên bản JDK, Unicode data và provider. Điều bền vững là phải **chọn locale rõ ràng** và **định nghĩa mục tiêu tokenization**.
+Do not treat a single immutable output for Thai/Chinese/Japanese word splitting as guaranteed without pinning the JDK version, Unicode data, and provider. What remains durable is **choosing the locale explicitly** and **defining the tokenization goal**.
 
-### 10.3. Dấu kết hợp và Unicode normalization
+### 10.3. Combining Marks and Unicode Normalization
 
-Hai chuỗi `"\u00E9"` và `"e\u0301"` có thể hiện giống nhau nhưng khác số code point/UTF-16 units. `BreakIterator` phân tích ranh giới của văn bản đầu vào, không có nghĩa nó tự ghi đè text thành `NFC` hoặc `NFD`. Nếu sản phẩm dùng một chính sách normalization, hãy áp dụng theo **hợp đồng dữ liệu**, và cẩn thận vì normalization có thể làm đổi offset.
+The two strings `"\u00E9"` and `"e\u0301"` can look identical while having different code point / UTF-16 unit counts. `BreakIterator` analyzes boundaries of the input text; it does not silently rewrite the text to `NFC` or `NFD`. If your product enforces a normalization policy, apply it per the **data contract**, and be careful because normalization can change offsets.
 
-**Cảnh báo về ánh xạ vị trí:** nếu normalize hoặc lowercase một chuỗi rồi tìm word boundaries trên **chuỗi mới**, các offset có thể **không tương ứng** với chuỗi gốc do độ dài thay đổi. Đừng lấy offset của chuỗi đã biến đổi để `substring` trên chuỗi gốc mà không ánh xạ lại.
+**Position-mapping warning:** if you normalize or lowercase a string and then find word boundaries on **the new string**, the offsets may **no longer correspond** to the original string due to length changes. Do not take offsets from a transformed string and call `substring` on the original string without remapping.
 
-## 11. Bẫy khi đếm từ
+## 11. Word-Counting Pitfalls
 
-Câu hỏi “chuỗi có bao nhiêu từ?” có thể có nhiều đáp án nếu chính sách khác nhau:
+The question "how many words does this string have?" can have multiple answers under different policies:
 
-| Chính sách | Ví dụ `Hello, world! 42 days.` | Kết quả |
+| Policy | Example `Hello, world! 42 days.` | Result |
 | --- | --- | --- |
-| Đếm mọi segment của word-boundary iterator | 10 đoạn trong môi trường demo | **10**; không phải số từ |
-| Giữ segment có chữ hoặc số | `Hello`, `world`, `42`, `days` | **4** |
-| Chỉ giữ segment có chữ | `Hello`, `world`, `days` | **3** |
-| Tách bằng `\\s+` | `Hello,`, `world!`, `42`, `days.` | **4**, nhưng chứa dấu câu |
-| Đếm token theo từ vựng NLP | Tùy quy tắc ngôn ngữ | Cần mô hình/tiêu chí riêng |
+| Count all segments of word-boundary iterator | 10 segments in demo environment | **10**; not the word count |
+| Keep segments with letters or digits | `Hello`, `world`, `42`, `days` | **4** |
+| Keep only segments with letters | `Hello`, `world`, `days` | **3** |
+| Split with `\\s+` | `Hello,`, `world!`, `42`, `days.` | **4**, yet contains punctuation |
+| Count tokens by NLP vocabulary | Depends on language rules | Requires dedicated model/criteria |
 
-Ví dụ `"   "` có thể sinh một đoạn khoảng trắng khi phân tích boundaries, nhưng phải có **0 từ** theo chính sách chỉ nhận chữ/số. Chuỗi trống có thể không có đoạn giữa các ranh giới, nhưng vẫn có ranh giới bắt đầu/kết thúc theo API. Đừng lấy `iterator.next()` gọi được bao nhiêu lần rồi suy ra số từ mà không kiểm tra nội dung.
+For example, `"   "` can yield one whitespace segment when analyzing boundaries, yet must have **0 words** under a letters/digits policy. An empty string may have no segments between boundaries, yet still has start/end boundaries per the API. Do not count how many times `iterator.next()` is called and infer the word count without checking segment content.
 
-Nếu cần báo cáo số từ đáng tin trong một sản phẩm, định nghĩa hợp đồng: có tính số thuần túy không, số thập phân có được giữ nguyên không, dấu nối/apostrophe xử lý ra sao, emoji có tính là token không, từ ghép tiếng Việt tính thế nào. Sau đó mới chọn thuật toán và bộ kiểm thử.
+If you need reliable word counts in a product, define the contract: are pure numbers counted, are decimals kept whole, how are hyphens/apostrophes handled, are emojis counted as tokens, and how are Vietnamese compound words counted? Only then choose the algorithm and test suite.
 
-## 12. Các lỗi phổ biến và cách sửa
+## 12. Common Bugs and How to Fix Them
 
-| Lỗi | Nguyên nhân | Cách xử lý |
+| Bug | Cause | Fix |
 | --- | --- | --- |
-| Xem mọi `substring(start,end)` là từ | Iterator chỉ trả ranh giới | Lọc/phân loại từng đoạn theo policy |
-| Đếm số ranh giới là số từ | Có cả punctuation/whitespace | Đếm đúng các đoạn được chấp nhận |
-| Chỉ `split("\\s+")` rồi nghĩ đã bỏ dấu câu | split không loại dấu không phải whitespace | Phân tích token/dấu câu riêng |
-| Cắt ở mọi dấu câu | Có thể phá `can't`, `3.14`, `e-mail` | Chọn rule theo ngữ cảnh và locale |
-| Xem regex `\\b` là BreakIterator word boundary | Regex và BreakIterator có luật khác | Dùng API phù hợp, kiểm thử cùng dữ liệu |
-| Dùng `getCharacterInstance` để lấy từ | Grapheme/character khác word | Chọn `getWordInstance` |
-| Truyền `Locale.getDefault()` ngầm | Kết quả khác giữa máy hoặc người dùng | Truyền locale tường minh |
-| Cắt string theo code point index thay cho UTF-16 index | `substring` đếm code units | Dùng offset BreakIterator trực tiếp hoặc chuyển đổi đúng |
-| Gộp từ tiếng Việt bằng khoảng trắng | Từ vựng có thể nhiều âm tiết | Dùng tokenizer chuyên biệt khi cần NLP |
-| Nghĩ mọi số/dấu câu đều là từ hoặc đều không phải từ | Định nghĩa token chưa rõ | Quy định phân loại và viết test |
-| Normalize rồi áp offset lên chuỗi gốc | Normalization có thể đổi chiều dài | Lưu ánh xạ index hoặc phân đoạn đúng chuỗi cần tô sáng |
-| Dùng BreakIterator để tokenize mã Java/JSON | Không phải lexical grammar parser | Dùng lexer/parser theo ngữ pháp |
-| Dùng cùng iterator mutable trên nhiều luồng | Iterator giữ trạng thái hiện tại và text | Tạo instance riêng/copy cho mỗi tác vụ |
-| Hardcode exact output phân đoạn cho mọi JDK | Unicode/locale rules có thể cập nhật | Test/gắn phiên bản provider và dữ liệu thực tế |
+| Treating every `substring(start,end)` as a word | Iterator only returns boundaries | Filter/classify each segment by policy |
+| Counting boundaries as word count | Includes punctuation/whitespace | Count only accepted segments |
+| Running only `split("\\s+")` thinking punctuation is gone | `split` does not strip non-whitespace marks | Analyze tokens/punctuation separately |
+| Splitting at every punctuation mark | Can break `can't`, `3.14`, `e-mail` | Choose context- and locale-aware rules |
+| Treating regex `\\b` as a `BreakIterator` word boundary | Regex and `BreakIterator` follow different rules | Use the appropriate API and test with the same data |
+| Using `getCharacterInstance` to extract words | Grapheme/character differs from word | Choose `getWordInstance` |
+| Implicitly passing `Locale.getDefault()` | Results differ across machines or users | Pass locale explicitly |
+| Slicing string by code point index instead of UTF-16 index | `substring` counts code units | Use `BreakIterator` offsets directly or convert properly |
+| Merging/splitting Vietnamese words purely by spaces | Lexical words can span multiple syllables | Use a specialized tokenizer when NLP is needed |
+| Assuming all numbers/punctuation are words or all are not | Token definition is unclear | Specify classification rules and write tests |
+| Normalizing then applying offsets to original string | Normalization can change length | Store index mapping or segment the exact string to highlight |
+| Using `BreakIterator` to tokenize Java/JSON code | Not a lexical grammar parser | Use a grammar-based lexer/parser |
+| Using the same mutable iterator across multiple threads | Iterator holds current state and text | Create a separate instance/copy per task |
+| Hardcoding exact segmentation output for all JDKs | Unicode/locale rules can be updated | Test/pin provider version and real data |
 
-## 13. Thiết kế hàm lấy từ có offset
+## 13. Designing a Function That Extracts Words with Offsets
 
-Khi xây chức năng tô sáng, nên giữ cả chỉ số lẫn nội dung. Ví dụ dưới đây là **một snippet phương thức** Java 17+ (không phải một class chạy độc lập); cần import `BreakIterator`, `Locale`, `List`, `ArrayList`:
+When building a highlighting feature, keep both indexes and content. The example below is a Java 17+ **method snippet** (not a standalone runnable class); it requires importing `BreakIterator`, `Locale`, `List`, and `ArrayList`:
 
 ```java
 record WordSpan(int start, int end, String text) {}
@@ -435,86 +435,86 @@ static List<WordSpan> findWordLikeSpans(
 }
 ```
 
-Trong chương trình thực tế, `record WordSpan` đặt trong lớp hoặc ở top-level thích hợp, không khai báo local record trước một method bên trong một method Java. Các trường `start/end` là UTF-16 offsets trên **source chưa biến đổi**. Khi tô sáng, dùng chính `source.substring(start,end)` để đối chiếu, không dùng một chuỗi đã normalize/lowercase khác.
+In a real program, `record WordSpan` is placed inside a class or at an appropriate top level, not declared as a local record right before a method inside another Java method. The `start/end` fields are UTF-16 offsets on **the untransformed `source`**. When highlighting, use `source.substring(start,end)` itself for matching, not another normalized/lowercased string.
 
-Hàm trên **không** nhận diện mọi từ vựng phức tạp; đây là một lớp lọc cơ bản để loại đoạn không có chữ/số và giữ span. Ưu điểm là dễ kiểm thử, không mất dấu câu trong nguồn và có thể thay bộ phân loại khi mục tiêu thay đổi.
+The function above does **not** recognize every complex lexical word; it is a basic filtering layer to exclude segments without letters/digits and preserve spans. Its advantages are easy testing, preserving punctuation in the source, and allowing you to swap out the classifier when goals change.
 
-## 14. Kiểm thử ranh giới từ đúng cách
+## 14. Testing Word Boundaries Properly
 
-Một bộ kiểm thử nên kiểm tra cả **tính đầy đủ của các đoạn** và **chính sách phân loại**, chứ không chỉ một con số word count.
+A test suite should verify both **completeness of segments** and **classification policy**, not just a single word count number.
 
-| Nhóm dữ liệu | Ví dụ | Điều cần xác minh |
+| Data Group | Example | What to Verify |
 | --- | --- | --- |
-| ASCII cơ bản | `Hello, world!` | Dấu phẩy, khoảng trắng, chấm than có đoạn riêng khi rule tách như vậy |
-| Không có khoảng trắng | `one,two` | Có thể tách tại dấu câu; whitespace split không đủ |
-| Dấu trong từ | `can't`, `e-mail` | Token có thể giữ apostrophe/hyphen theo rule |
-| Dấu trong số | `3.14`, `1,000` | Xác định policy về số và phân cách thập phân/nghìn |
-| Nhiều khoảng trắng | `a   b` và tab/newline | Không đếm whitespace thành từ |
-| Chuỗi chỉ dấu câu | `...?!` | Theo policy chữ/số, word count bằng 0 |
-| Chuỗi trống | `""` | Không có token; không out-of-bounds |
-| Tiếng Việt | `học sinh, công nghệ` | Phân biệt âm tiết với từ vựng và chữ có dấu |
-| Emoji/ZWJ | `hi 😀!` | Emoji có thể là symbol riêng, không tự coi là word |
-| Chinese/Thai | Câu không có spaces | Không dựa vào split whitespace |
-| Unicode normalization | `é` vs `e + U+0301` | Ranh giới và offsets theo nguồn, không lẫn chuỗi biến đổi |
-| Nhiều locale | `en-US`, `vi-VN` và locale sản phẩm | Hành vi tương ứng dữ liệu/rule thực tế |
-| Nhiều JDK/providers | Bộ test cố định với runtime mục tiêu | Ghi nhận thay đổi do Unicode/locale data |
+| Basic ASCII | `Hello, world!` | Comma, space, exclamation mark have separate segments when rules split them that way |
+| No spaces | `one,two` | Can split at punctuation; whitespace split is insufficient |
+| Punctuation inside words | `can't`, `e-mail` | Tokens can preserve apostrophe/hyphen per rules |
+| Punctuation in numbers | `3.14`, `1,000` | Define policy for numbers and decimal/thousands separators |
+| Multiple spaces | `a   b` and tabs/newlines | Do not count whitespace as words |
+| Punctuation-only string | `...?!` | Under letters/digits policy, word count is 0 |
+| Empty string | `""` | No tokens; no out-of-bounds |
+| Vietnamese | `học sinh, công nghệ` | Distinguish syllables from lexical words and accented letters |
+| Emoji/ZWJ | `hi 😀!` | Emoji can be a separate symbol, not automatically treated as a word |
+| Chinese/Thai | Sentences without spaces | Do not rely on whitespace split |
+| Unicode normalization | `é` vs `e + U+0301` | Boundaries and offsets match the source, without mixing transformed strings |
+| Multiple locales | `en-US`, `vi-VN`, and product locales | Behavior matches actual data/rules |
+| Multiple JDKs/providers | Fixed test suite on target runtime | Record changes caused by Unicode/locale data |
 
-### Bất biến hữu ích
+### Useful Invariants
 
-Với vòng lặp lấy **tất cả** đoạn liên tiếp như trong `WordSegmentsDemo`:
+For a loop collecting **all** consecutive segments as in `WordSegmentsDemo`:
 
-1. Mọi đoạn có `0 <= start < end <= text.length()` với nguồn không trống (đối với các boundary khác nhau).
-2. `start` của đoạn hiện tại là `end` của đoạn trước.
-3. Nối tất cả `text.substring(start,end)` **không thêm ký tự** phải cho đúng nguồn ban đầu.
-4. Nếu lọc đoạn có chữ/số, các `WordSpan` phải nằm trong phạm vi của nguồn, có thứ tự tăng và không chồng lấn.
-5. Số đoạn được lọc **không được** suy ra chỉ bằng `text.split(...)` hoặc bằng số lần iterator chạy.
+1. Every segment satisfies `0 <= start < end <= text.length()` for non-empty source text (for distinct boundaries).
+2. `start` of the current segment equals `end` of the previous segment.
+3. Concatenating all `text.substring(start,end)` **without adding characters** yields the exact original source.
+4. If filtering segments with letters/digits, `WordSpan` entries must lie within the source bounds, be in ascending order, and not overlap.
+5. The filtered segment count **must not** be assumed from `text.split(...)` or the number of iterator steps alone.
 
-Những kiểm tra này bảo vệ tính toàn vẹn offset ngay cả khi quy tắc ngắt cụ thể thay đổi theo provider.
+These checks protect offset integrity even when specific break rules change across providers.
 
-## 15. Câu hỏi ôn tập
+## 15. Review Questions
 
-**Câu 1.** Vì sao `getWordInstance(locale)` có thể trả đoạn chứa dấu chấm than hoặc khoảng trắng?
+**Q1.** Why can `getWordInstance(locale)` return segments containing an exclamation mark or a space?
 
-**Đáp án:** Nó trả **các ranh giới theo từ**, chứ không lọc sẵn từ. Đoạn giữa hai ranh giới có thể là dấu câu hoặc khoảng trắng cần giữ lại khi duyệt toàn văn bản.
+**Answer:** It returns **word-level boundaries**, rather than pre-filtering words. A segment between two boundaries can be punctuation or whitespace that must be preserved when traversing the entire text.
 
-**Câu 2.** Với `"Hello, world!"`, dùng `split("\\s+")` có tự bỏ `,` và `!` không?
+**Q2.** For `"Hello, world!"`, does `split("\\s+")` automatically remove `,` and `!`?
 
-**Đáp án:** Không. Nó chỉ tách ở whitespace; các token có thể là `"Hello,"` và `"world!"`.
+**Answer:** No. It splits only on whitespace; the tokens can be `"Hello,"` and `"world!"`.
 
-**Câu 3.** Có nên đếm mọi segment giữa ranh giới làm số từ không?
+**Q3.** Should every segment between boundaries be counted as a word?
 
-**Đáp án:** Không. Cần chính sách lọc, ví dụ chỉ đoạn chứa chữ hoặc số; nếu chỉ muốn chữ, dùng `Character::isLetter`. Đây chỉ là heuristic, không thay phân tích từ vựng chuyên sâu.
+**Answer:** No. You need a filtering policy, such as only segments containing letters or digits; if you want only letters, use `Character::isLetter`. This is only a heuristic and does not replace deeper lexical analysis.
 
-**Câu 4.** Đâu là khác biệt giữa `BreakIterator.getWordInstance` và regex `\\b\\w+\\b`?
+**Q4.** What is the difference between `BreakIterator.getWordInstance` and the regex `\\b\\w+\\b`?
 
-**Đáp án:** BreakIterator dùng quy tắc word boundaries theo locale/provider; regex `\\b` dựa trên khái niệm word/non-word character của engine, không cùng quy tắc ngôn ngữ và có thể tách `can't` hoặc `3.14` thành nhiều match.
+**Answer:** `BreakIterator` uses locale/provider word-boundary rules; regex `\\b` is based on the engine's concept of word/non-word characters, does not follow the same linguistic rules, and can split `can't` or `3.14` into multiple matches.
 
-**Câu 5.** Tại sao với tiếng Việt `học sinh` không đơn giản đồng nghĩa “hai từ” dù có một khoảng trắng?
+**Q5.** Why doesn't Vietnamese `học sinh` simply mean "two words" even though there is a space?
 
-**Đáp án:** Khoảng trắng tiếng Việt thường ngăn cách âm tiết; đơn vị từ vựng có thể gồm nhiều âm tiết. Word boundary ở cấp văn bản không tự giải quyết phân tích từ ghép theo nghĩa ngôn ngữ học.
+**Answer:** Vietnamese spaces typically separate syllables; a lexical unit can consist of multiple syllables. Text-level word boundaries do not automatically solve linguistic compound-word analysis.
 
-**Câu 6.** Chỉ số trả về từ BreakIterator có thể dùng trực tiếp cho `String.substring` không?
+**Q6.** Can indexes returned from `BreakIterator` be passed directly to `String.substring`?
 
-**Đáp án:** Có, khi iterator được đặt trên **chính String nguồn** tương ứng; đó là UTF-16 offsets. Không được coi các offset ấy là code point index hay áp chúng lên một chuỗi đã chuẩn hóa có độ dài khác.
+**Answer:** Yes, when the iterator is set on **that exact source `String`**; they are UTF-16 offsets. Do not treat those offsets as code point indexes or apply them to a normalized string with a different length.
 
-**Câu 7.** Nếu cần tô sáng, chỉ giữ List các word-like string đã lọc có đủ không?
+**Q7.** If highlighting is needed, is keeping only a `List` of filtered word-like strings sufficient?
 
-**Đáp án:** Không. Nên giữ cả `start/end` trên chuỗi nguồn và có thể giữ các đoạn bị lọc dưới dạng thông tin riêng, để ánh xạ chính xác vị trí và không làm mất dấu câu/khoảng trắng.
+**Answer:** No. Keep `start/end` on the source string as well, and optionally retain the filtered-out segments separately, so positions map accurately without losing punctuation/whitespace.
 
-**Câu 8.** Có thể dùng word BreakIterator để xác định cú pháp hợp lệ của một địa chỉ email/URL không?
+**Q8.** Can a word `BreakIterator` be used to validate the syntax of an email address or URL?
 
-**Đáp án:** Không. BreakIterator phục vụ phân đoạn văn bản ngôn ngữ tự nhiên; xác thực email/URL cần parser/đặc tả cú pháp riêng.
+**Answer:** No. `BreakIterator` is for natural language text segmentation; validating emails/URLs requires a dedicated syntax parser/specification.
 
-## 16. Ghi nhớ
+## 16. Key Takeaways
 
-- **Word boundary ≠ word token.** `getWordInstance` trả vị trí ranh giới, và các đoạn giữa biên có thể là **từ, số, dấu câu hoặc khoảng trắng**.
-- Duyệt đúng bằng `first()` và `next()`, cắt `substring(start,end)` rồi **lọc/phân loại theo chính sách ứng dụng**.
-- `split("\\s+")` chỉ tách theo khoảng trắng và thường giữ dấu câu dính với token; regex `\\b\\w+\\b` không phải quy tắc word segmentation theo locale.
-- Định nghĩa rõ có tính **số, dấu nối, apostrophe, emoji, từ ghép tiếng Việt** là word token hay không.
-- Các offset `BreakIterator` cho `String` là **UTF-16 index**, không phải byte hoặc code point index; giữ offset cùng nguồn để tô sáng.
-- Với ứng dụng đa ngôn ngữ, chọn `Locale` tường minh, kiểm thử trên Unicode/JDK/provider mục tiêu và dùng NLP tokenizer chuyên biệt khi cần phân đoạn từ vựng.
+- **Word boundary ≠ word token.** `getWordInstance` returns boundary positions, and segments between boundaries can be **words, numbers, punctuation, or whitespace**.
+- Iterate properly with `first()` and `next()`, slice `substring(start,end)`, and **filter/classify per application policy**.
+- `split("\\s+")` splits only on whitespace and typically leaves punctuation attached to tokens; regex `\\b\\w+\\b` is not locale-aware word segmentation.
+- Explicitly define whether **numbers, hyphens, apostrophes, emojis, and Vietnamese compound words** count as word tokens.
+- `BreakIterator` offsets for `String` are **UTF-16 indexes**, not byte or code point indexes; keep offsets paired with the same source string for highlighting.
+- For multilingual applications, choose `Locale` explicitly, test on the target Unicode/JDK/provider, and use a dedicated NLP tokenizer when lexical segmentation is required.
 
-**Tài liệu chính thức:**
+**Official references:**
 
 - [Java SE 21 — BreakIterator](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/BreakIterator.html)
 - [Java SE 21 — Pattern](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html)

@@ -1,50 +1,50 @@
-# ceil, floor, rint và round trong Java: bốn cách làm tròn dễ nhầm
+# ceil, floor, rint, and round in Java: Four Confusable Rounding Methods
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Java cung cấp nhiều phương thức liên quan đến làm tròn trong hai lớp `java.lang.Math` và `java.lang.StrictMath`. Bốn tên thường gặp nhất là `ceil`, `floor`, `rint` và `round`. Chúng **không tương đương**, dù đôi khi cùng trả một kết quả.
+Java provides several rounding-related methods in `java.lang.Math` and `java.lang.StrictMath`. The four most common names are `ceil`, `floor`, `rint`, and `round`. They are **not equivalent**, even though they sometimes return the same value.
 
-Sau bài học, bạn sẽ có thể:
+After this lesson, you will be able to:
 
-- Giải thích hướng làm tròn của từng phương thức bằng định nghĩa toán học.
-- Phân biệt quy tắc xử lý số nằm **đúng giữa hai số nguyên**: `rint` dùng *ties to even*, còn `round` ưu tiên số nguyên **về phía dương** khi có hai lựa chọn cách đều.
-- Dự đoán kết quả với số âm, `-0.0`, giá trị rất lớn, `NaN` và `Infinity`.
-- Chọn phương thức đúng theo **kiểu trả về**: `ceil`/`floor`/`rint` trả `double`; `round(float)` trả `int` và `round(double)` trả `long`.
-- Biết khi nào cần `BigDecimal` và `RoundingMode` thay vì áp dụng `Math.round` cho các giá trị tài chính.
-- Tránh mất thông tin khi ép kiểu, chuyển đổi số và làm tròn nhiều bước.
+- Explain each method's rounding direction using its mathematical definition.
+- Distinguish the rule for numbers **halfway between two integers**: `rint` uses *ties to even*, whereas `round` prefers the integer **toward positive infinity** when two options are equidistant.
+- Predict results for negative numbers, `-0.0`, very large values, `NaN`, and `Infinity`.
+- Choose the right method by **return type**: `ceil`/`floor`/`rint` return `double`; `round(float)` returns `int` and `round(double)` returns `long`.
+- Know when `BigDecimal` and `RoundingMode` are needed instead of applying `Math.round` to financial values.
+- Avoid data loss during casting, numeric conversions, and multi-step rounding.
 
-Các ví dụ chính chạy trên **Java 17+**, không dùng preview. Phần lớn quy tắc cũng áp dụng cho `StrictMath` tương ứng.
+The main examples run on **Java 17+** without preview features. Most rules also apply to the corresponding `StrictMath` methods.
 
-## 2. Trước tiên: làm tròn tới số nguyên là gì?
+## 2. First: What Is Rounding to an Integer?
 
-Giả sử có một số thực `x` và ta muốn nhận một giá trị nguyên gần hoặc liên quan tới `x`. Có nhiều quy tắc hợp lý nhưng **phải xác định quy tắc trước khi tính**.
+Suppose we have a real number `x` and want an integer value close or related to `x`. Several reasonable rules exist, so **you must determine the rule before calculating**.
 
-Ví dụ số `2.7`:
+For example, `2.7`:
 
-- Số nguyên lớn hơn hoặc bằng nhỏ nhất là 3.
-- Số nguyên nhỏ hơn hoặc bằng lớn nhất là 2.
-- Số nguyên gần nhất là 3.
+- The smallest integer greater than or equal to it is 3.
+- The largest integer less than or equal to it is 2.
+- The nearest integer is 3.
 
-Ví dụ số `-2.7`:
+For example, `-2.7`:
 
-- Số nguyên lớn hơn hoặc bằng nhỏ nhất là **−2**.
-- Số nguyên nhỏ hơn hoặc bằng lớn nhất là **−3**.
-- Số nguyên gần nhất là **−3**.
+- The smallest integer greater than or equal to it is **−2**.
+- The largest integer less than or equal to it is **−3**.
+- The nearest integer is **−3**.
 
-Đây là lý do các cách nói chung như “làm tròn lên” hoặc “làm tròn xuống” rất dễ gây hiểu nhầm với **số âm**. Trong Java, hãy dùng các định nghĩa hình thức:
+This is why casual phrases like "round up" or "round down" easily cause confusion with **negative numbers**. In Java, use formal definitions:
 
-| Phương thức | Quy tắc chính | Kết quả toán học với 2.7 | Với −2.7 |
+| Method | Primary Rule | Mathematical Result for 2.7 | For −2.7 |
 | --- | --- | --- | --- |
-| `Math.ceil(x)` | Số nguyên nhỏ nhất **≥ x** | 3 | −2 |
-| `Math.floor(x)` | Số nguyên lớn nhất **≤ x** | 2 | −3 |
-| `Math.rint(x)` | Số nguyên gần nhất; hòa thì chọn **chẵn** | 3 | −3 |
-| `Math.round(x)` | Số nguyên gần nhất; hòa thì chọn phía **+∞** | 3 | −3 |
+| `Math.ceil(x)` | Smallest integer **≥ x** | 3 | −2 |
+| `Math.floor(x)` | Largest integer **≤ x** | 2 | −3 |
+| `Math.rint(x)` | Nearest integer; ties pick **even** | 3 | −3 |
+| `Math.round(x)` | Nearest integer; ties pick toward **+∞** | 3 | −3 |
 
-Bảng trên nói về **giá trị toán học**. Về kiểu Java, ba phương thức đầu trả giá trị nguyên **ở dạng `double`**, ví dụ `3.0`; `Math.round(double)` trả số nguyên primitive `long`, ví dụ `3L`.
+The table above describes **mathematical values**. In terms of Java types, the first three methods return integer values **as `double`**, such as `3.0`; `Math.round(double)` returns primitive integer `long`, such as `3L`.
 
-## 3. Math.ceil(double): hướng về dương vô cực
+## 3. Math.ceil(double): Toward Positive Infinity
 
-`Math.ceil(double a)` trả về giá trị `double` bằng số nguyên toán học **nhỏ nhất không bé hơn** đối số.
+`Math.ceil(double a)` returns the `double` value equal to the **smallest mathematical integer not less than** the argument.
 
 \[
 \operatorname{ceil}(x)=\min\{n\in\mathbb Z:n\ge x\}
@@ -58,26 +58,26 @@ System.out.println(Math.ceil(-2.9)); // -2.0
 System.out.println(Math.ceil(3.0));  // 3.0
 ~~~
 
-Các đoạn ngắn như trên được đặt bên trong một phương thức; chương trình độc lập có trong phần 10.
+Short snippets like these go inside a method; a standalone program is in section 10.
 
-**Điểm cần nhớ:** đối với số âm, `ceil` có thể làm **giảm độ lớn tuyệt đối**, vì hướng làm tròn là hướng tới `+∞`, không phải “ra xa số 0”.
+**Key point:** for negative numbers, `ceil` can **decrease the absolute magnitude**, because the rounding direction is toward `+∞`, not "away from 0".
 
-Ví dụ `-2.9` nằm giữa `-3` và `-2`; số nguyên nhỏ nhất không bé hơn `-2.9` là `-2`.
+For example, `-2.9` lies between `-3` and `-2`; the smallest integer not less than `-2.9` is `-2`.
 
-### Zero có dấu
+### Signed Zero
 
-Java `double` phân biệt `+0.0` và `-0.0`. Theo hợp đồng `Math.ceil`, đối số âm lớn hơn `-1.0` nhưng nhỏ hơn `0.0` cho kết quả **`-0.0`**:
+Java `double` distinguishes `+0.0` and `-0.0`. Under the `Math.ceil` contract, a negative argument greater than `-1.0` and less than `0.0` yields **`-0.0`**:
 
 ~~~java
 System.out.println(Math.ceil(-0.3)); // -0.0
 System.out.println(Math.ceil(+0.3)); // 1.0
 ~~~
 
-Dù `-0.0 == 0.0` là true, dấu của zero có thể quan sát khi in hoặc lấy nghịch đảo (`1.0 / -0.0` là `-Infinity`). Nếu ứng dụng không quan tâm tới dấu zero, có thể chuẩn hóa sau khi làm tròn một cách có chủ đích.
+Although `-0.0 == 0.0` is true, the sign of zero can be observed when printing or taking reciprocals (`1.0 / -0.0` is `-Infinity`). If the application does not care about zero's sign, you can intentionally normalize it after rounding.
 
-## 4. Math.floor(double): hướng về âm vô cực
+## 4. Math.floor(double): Toward Negative Infinity
 
-`Math.floor(double a)` trả về số nguyên toán học **lớn nhất không vượt quá** đối số, nhưng kiểu kết quả vẫn là `double`.
+`Math.floor(double a)` returns the **largest mathematical integer not exceeding** the argument, though the return type remains `double`.
 
 \[
 \operatorname{floor}(x)=\max\{n\in\mathbb Z:n\le x\}
@@ -91,11 +91,11 @@ System.out.println(Math.floor(-2.9)); // -3.0
 System.out.println(Math.floor(-0.0)); // -0.0
 ~~~
 
-Với số âm, `floor` thường làm **tăng độ lớn tuyệt đối**, vì nó đi về `-∞`. Ví dụ `floor(-2.1) == -3.0`, không phải `-2.0`.
+With negative numbers, `floor` usually **increases the absolute magnitude**, because it moves toward `-∞`. For instance, `floor(-2.1) == -3.0`, not `-2.0`.
 
-### floor khác ép kiểu nguyên
+### floor Differs from Integer Casting
 
-Ép `double` sang `int` hoặc `long` (trong miền thông thường) loại bỏ phần thập phân theo hướng **về 0**, không phải về âm vô cực:
+Casting `double` to `int` or `long` (in normal ranges) discards the fractional part **toward 0**, not toward negative infinity:
 
 ~~~java
 double x = -2.9;
@@ -103,13 +103,13 @@ System.out.println((int) x);       // -2
 System.out.println(Math.floor(x)); // -3.0
 ~~~
 
-Nếu bạn cần chia một trục tọa độ âm thành các ô dạng `floor(x / cellSize)`, sự khác biệt này đặc biệt quan trọng. Dùng ép kiểu nguyên khi thực sự cần bỏ phần thập phân theo hướng 0; dùng `floor` khi muốn lấy biên dưới toán học.
+If you need to partition a negative coordinate axis into cells via `floor(x / cellSize)`, this difference is especially important. Use integer casting when you truly want truncation toward 0; use `floor` when you want the mathematical lower bound.
 
-**Chú ý:** ép kiểu số thực thành `int`/`long` còn có các quy tắc riêng cho `NaN` và giá trị vượt miền. Không thay thế `floor` bằng phép cast nếu muốn giữ đúng quy tắc toán học và xử lý giá trị đặc biệt.
+**Note:** casting floating-point numbers to `int`/`long` also has specific rules for `NaN` and out-of-range values. Do not replace `floor` with a cast if you want to preserve mathematical rules and special-value handling.
 
-## 5. Math.rint(double): số nguyên gần nhất, hòa thì chọn chẵn
+## 5. Math.rint(double): Nearest Integer, Ties to Even
 
-`Math.rint(double a)` trả `double` là giá trị nguyên gần nhất với đối số. Nếu có **hai giá trị nguyên cách đều**, nó chọn giá trị **chẵn** (*round half to even*, còn gọi là *ties to even* hoặc *banker's rounding*).
+`Math.rint(double a)` returns the `double` closest in value to an integer. If **two integers are equidistant**, it picks the **even** value (*round half to even*, also called *ties to even* or *banker's rounding*).
 
 ~~~java
 System.out.println(Math.rint(2.3));  // 2.0
@@ -120,32 +120,32 @@ System.out.println(Math.rint(-2.5)); // -2.0
 System.out.println(Math.rint(-3.5)); // -4.0
 ~~~
 
-Vì 2 và 4 là số chẵn, các điểm giữa `2.5` và `3.5` được xử lý khác nhau. Với số âm, `-2` và `-4` vẫn là các số chẵn theo khái niệm số nguyên.
+Because 2 and 4 are even, the midpoints `2.5` and `3.5` are handled differently. For negative numbers, `-2` and `-4` are still even integers.
 
-### Tại sao chọn số chẵn khi hòa?
+### Why Pick Even on Ties?
 
-Chọn chẵn làm giảm xu hướng sai lệch một phía khi rất nhiều trường hợp **đúng giữa** hai số nguyên được làm tròn. Nhưng điều đó **không đảm bảo** tổng một tập dữ liệu bất kỳ sẽ không có sai số hoặc không có bias: độ phân bố dữ liệu và cách thực hiện phép tính vẫn quan trọng.
+Picking even reduces one-directional bias when many values **exactly halfway** between two integers are rounded. However, that **does not guarantee** the sum of an arbitrary dataset will be error-free or unbiased: data distribution and calculation order still matter.
 
-Ví dụ, với các giá trị đúng nửa nguyên liên tiếp:
+For example, with consecutive exact half-integers:
 
-| Đầu vào | Hai ứng viên gần nhất | Kết quả `rint` |
+| Input | Two Nearest Candidates | `rint` Result |
 | --- | --- | --- |
-| 1.5 | 1 hoặc 2 | 2.0 |
-| 2.5 | 2 hoặc 3 | 2.0 |
-| 3.5 | 3 hoặc 4 | 4.0 |
-| 4.5 | 4 hoặc 5 | 4.0 |
-| −1.5 | −2 hoặc −1 | −2.0 |
-| −2.5 | −3 hoặc −2 | −2.0 |
-| −3.5 | −4 hoặc −3 | −4.0 |
+| 1.5 | 1 or 2 | 2.0 |
+| 2.5 | 2 or 3 | 2.0 |
+| 3.5 | 3 or 4 | 4.0 |
+| 4.5 | 4 or 5 | 4.0 |
+| −1.5 | −2 or −1 | −2.0 |
+| −2.5 | −3 or −2 | −2.0 |
+| −3.5 | −4 or −3 | −4.0 |
 
-### rint trả double, không phải int hoặc long
+### rint Returns double, Not int or long
 
 ~~~java
 double nearest = Math.rint(2.5); // 2.0
-// int n = Math.rint(2.5);       // lỗi biên dịch: double không tự thành int
+// int n = Math.rint(2.5);       // compile error: double does not convert to int automatically
 ~~~
 
-Nếu cần `int`, hãy kiểm tra tính hữu hạn và miền trước khi chuyển:
+If you need an `int`, check finiteness and range before converting:
 
 ~~~java
 double nearest = Math.rint(input);
@@ -157,33 +157,33 @@ if (!Double.isFinite(nearest)
 int count = (int) nearest;
 ~~~
 
-Đây là đoạn minh họa bên trong một phương thức có biến `input`. Kiểm tra trên đảm bảo kết quả hữu hạn và trong miền `int`; yêu cầu miền nghiệp vụ (ví dụ `count >= 0`) vẫn phải kiểm tra riêng.
+This is an illustrative snippet inside a method with variable `input`. The check above ensures the result is finite and within `int` range; business domain requirements (e.g., `count >= 0`) must still be checked separately.
 
-### Điểm đặc biệt của −0.5
+### Special Case of −0.5
 
-`Math.rint(-0.5)` trả **`-0.0`** theo quy tắc hòa chọn số nguyên chẵn (0) và giữ dấu zero. Không nên chuyển ngay kết quả sang `int` rồi cho rằng chưa có khác biệt về dấu:
+`Math.rint(-0.5)` returns **`-0.0`** under the tie-breaking rule selecting the even integer (0) while preserving the sign of zero. Do not immediately cast to `int` assuming there was no sign difference:
 
 ~~~java
 System.out.println(Math.rint(-0.5)); // -0.0
 ~~~
 
-## 6. Math.round(float) và Math.round(double): gần nhất, hòa hướng dương
+## 6. Math.round(float) and Math.round(double): Nearest, Ties Toward Positive
 
-Khác ba phương thức trước, `Math.round` có **hai overload**:
+Unlike the previous three methods, `Math.round` has **two overloads**:
 
 ~~~java
 int roundedFloat = Math.round(2.5f);
 long roundedDouble = Math.round(2.5);
 ~~~
 
-Chữ ký:
+Signatures:
 
-| Overload | Tham số | Kiểu trả về |
+| Overload | Parameter | Return Type |
 | --- | --- | --- |
 | `Math.round(float a)` | `float` | `int` |
 | `Math.round(double a)` | `double` | `long` |
 
-Quy tắc là chọn số nguyên gần nhất; **nếu hai số nguyên cách đều**, chọn số nguyên hướng về **dương vô cực**.
+The rule is to pick the nearest integer; **if two integers are equidistant**, pick the integer toward **positive infinity**.
 
 ~~~java
 System.out.println(Math.round(2.5));   // 3 (long)
@@ -193,11 +193,11 @@ System.out.println(Math.round(-3.5));  // -3 (long)
 System.out.println(Math.round(-0.5));  // 0 (long)
 ~~~
 
-Đối với `-2.5`, hai số nguyên cách đều là `-3` và `-2`. Số ở **hướng dương hơn** là `-2`, do đó `Math.round(-2.5) == -2L`.
+For `-2.5`, the two equidistant integers are `-3` and `-2`. The one in the **more positive direction** is `-2`, so `Math.round(-2.5) == -2L`.
 
-**Đừng mô tả `Math.round` đơn giản là “làm tròn half away from zero”.** Với số âm đúng nửa, `Math.round` chọn hướng `+∞` nên `-2.5` thành `-2` chứ không phải `-3`.
+**Do not describe `Math.round` simply as "round half away from zero".** For negative exact halves, `Math.round` chooses the `+∞` direction, so `-2.5` becomes `-2` rather than `-3`.
 
-### round khác rint tại tie
+### round Differs from rint at Ties
 
 ~~~java
 System.out.println(Math.rint(2.5));  // 2.0 (double)
@@ -207,11 +207,11 @@ System.out.println(Math.rint(-0.5));  // -0.0 (double)
 System.out.println(Math.round(-0.5)); // 0 (long)
 ~~~
 
-Khi chọn phương thức, luôn xem cả **quy tắc hòa** lẫn **kiểu dữ liệu đầu ra**.
+When choosing a method, always check both the **tie-breaking rule** and the **output data type**.
 
-## 7. Bảng so sánh các trường hợp dễ nhầm
+## 7. Comparison Table of Confusable Cases
 
-Các ô trong ba cột `ceil`/`floor`/`rint` dùng biểu diễn `double`; cột `round` dùng `long`.
+Entries in the three columns `ceil`/`floor`/`rint` use `double` representation; the `round` column uses `long`.
 
 | `x` | `ceil(x)` | `floor(x)` | `rint(x)` | `round(x)` |
 | ---: | ---: | ---: | ---: | ---: |
@@ -225,24 +225,24 @@ Các ô trong ba cột `ceil`/`floor`/`rint` dùng biểu diễn `double`; cột
 | 0.0 | 0.0 | 0.0 | 0.0 | 0 |
 | −0.0 | −0.0 | −0.0 | −0.0 | 0 |
 
-Kết luận từ bảng:
+Conclusions from the table:
 
-1. `ceil`/`floor` luôn theo **hướng trên/dưới toán học**, không phải hướng xa/gần zero.
-2. `rint` và `round` thường cùng kết quả nếu không đúng điểm giữa.
-3. Khi đúng điểm giữa, `rint` chọn số chẵn; `round` chọn phía dương.
-4. `round` luôn trả một giá trị primitive **nguyên** nên không bảo toàn được `-0.0`.
-5. Nếu đầu vào không phải một số hữu hạn hoặc đã quá lớn, phải xét thêm các quy tắc ở phần 8.
+1. `ceil`/`floor` always follow **mathematical upper/lower direction**, not away from/toward zero.
+2. `rint` and `round` usually give the same value when not at an exact midpoint.
+3. At exact midpoints, `rint` chooses even; `round` chooses the positive side.
+4. `round` always returns a primitive **integer** type, so it cannot preserve `-0.0`.
+5. If the input is not a finite number or is too large, additional rules in section 8 apply.
 
-## 8. NaN, Infinity, signed zero và giá trị vượt miền
+## 8. NaN, Infinity, Signed Zero, and Out-of-Range Values
 
-### 8.1. ceil, floor và rint giữ các giá trị đặc biệt
+### 8.1. ceil, floor, and rint Preserve Special Values
 
-Đối với `Math.ceil`, `Math.floor` và `Math.rint`:
+For `Math.ceil`, `Math.floor`, and `Math.rint`:
 
-- Nếu tham số là `NaN`, kết quả là `NaN`.
-- Nếu tham số là `+Infinity` hoặc `-Infinity`, kết quả là chính infinity đó.
-- Nếu tham số là `+0.0` hoặc `-0.0`, kết quả giữ zero với dấu tương ứng.
-- Nếu đã là số nguyên toán học dưới dạng `double`, không có phần thập phân để làm tròn; giá trị giữ nguyên.
+- If the argument is `NaN`, the result is `NaN`.
+- If the argument is `+Infinity` or `-Infinity`, the result is that same infinity.
+- If the argument is `+0.0` or `-0.0`, the result preserves zero with its corresponding sign.
+- If already a mathematical integer in `double` form, there is no fractional part to round; the value remains unchanged.
 
 ~~~java
 System.out.println(Math.ceil(Double.NaN));              // NaN
@@ -251,16 +251,16 @@ System.out.println(Math.rint(Double.NEGATIVE_INFINITY));  // -Infinity
 System.out.println(Math.floor(-0.0));                   // -0.0
 ~~~
 
-Những phương thức này có thể trả `double` với giá trị rất lớn lớn hơn giới hạn `long` mà không cần ép về số nguyên, do bản thân kiểu trả về vẫn là `double`.
+These methods can return a `double` with very large values beyond `long` limits without needing to cast to an integer, since the return type itself remains `double`.
 
-### 8.2. round chuyển sang kiểu số nguyên có miền hữu hạn
+### 8.2. round Converts to a Finite-Range Integer Type
 
-`Math.round(double)` trả `long`; `Math.round(float)` trả `int`. Chúng có các quy tắc được định nghĩa rõ khi đầu vào không thể làm tròn vào miền số nguyên đích:
+`Math.round(double)` returns `long`; `Math.round(float)` returns `int`. They have well-defined rules when the input cannot round into the target integer range:
 
-- `NaN` → `0` (kiểu `int` hoặc `long` tùy overload).
-- `+Infinity` hoặc giá trị quá lớn về phía dương → `Integer.MAX_VALUE` / `Long.MAX_VALUE`.
-- `-Infinity` hoặc giá trị quá lớn về phía âm → `Integer.MIN_VALUE` / `Long.MIN_VALUE`.
-- `-0.0` → `0` (không giữ được dấu zero).
+- `NaN` → `0` (`int` or `long` depending on overload).
+- `+Infinity` or values too large positively → `Integer.MAX_VALUE` / `Long.MAX_VALUE`.
+- `-Infinity` or values too large negatively → `Integer.MIN_VALUE` / `Long.MIN_VALUE`.
+- `-0.0` → `0` (cannot preserve zero sign).
 
 ~~~java
 System.out.println(Math.round(Double.NaN));             // 0
@@ -270,13 +270,13 @@ System.out.println(Math.round(Float.POSITIVE_INFINITY)); // 2147483647
 System.out.println(Math.round(Float.NEGATIVE_INFINITY)); // -2147483648
 ~~~
 
-**Rủi ro:** `Math.round` **không báo lỗi** nếu gặp `NaN` hoặc số vượt miền; nó có thể trả về 0 hoặc cực trị của kiểu nguyên. Nếu 0, `Integer.MAX_VALUE` hoặc `Long.MAX_VALUE` là các giá trị hợp lệ trong nghiệp vụ, bạn có thể vô tình chấp nhận số sai mà không phát hiện.
+**Risk:** `Math.round` **does not report an error** on `NaN` or out-of-range numbers; it can return 0 or an extreme value of the integer type. If 0, `Integer.MAX_VALUE`, or `Long.MAX_VALUE` are valid business values, you could silently accept corrupt numbers undetected.
 
-Với dữ liệu người dùng/cấu hình, nên kiểm tra `Double.isFinite` hoặc `Float.isFinite`, giới hạn miền và kiểm tra quy tắc làm tròn trước khi lưu kết quả.
+For user/configuration data, check `Double.isFinite` or `Float.isFinite`, range bounds, and rounding rules before storing results.
 
-### 8.3. Mất độ chính xác trước khi làm tròn
+### 8.3. Precision Loss Before Rounding
 
-`double` có khoảng 53 bit precision có nghĩa. Những số nguyên lớn hơn `2^53` không phải lúc nào cũng được biểu diễn chính xác, nên `Math.round` **không thể khôi phục** chữ số đã mất khi chuỗi decimal hoặc phép toán bị làm tròn sang binary64 trước đó.
+`double` has about 53 significant bits of precision. Integers larger than `2^53` are not always represented exactly, so `Math.round` **cannot recover** digits lost when a decimal string or calculation was previously rounded to binary64.
 
 ~~~java
 double input = Double.parseDouble("9007199254740993");
@@ -284,11 +284,11 @@ System.out.println(input);          // 9.007199254740992E15
 System.out.println(Math.round(input)); // 9007199254740992
 ~~~
 
-Nếu dữ liệu cần là một số nguyên chính xác, ưu tiên `Long.parseLong` hoặc `BigInteger` từ **chuỗi gốc**, không parse sang `double` rồi round.
+If data must be an exact integer, prefer `Long.parseLong` or `BigInteger` from the **original string**, rather than parsing to `double` and rounding.
 
-## 9. ceil/floor/rint và ép kiểu: mục đích hoàn toàn khác
+## 9. ceil/floor/rint vs. Casting: Completely Different Goals
 
-Ép kiểu Java từ `double` sang `int`/`long` thực hiện chuyển đổi về miền số nguyên; với các giá trị hữu hạn có phần thập phân trong miền thông thường, phần thập phân bị cắt **về 0**.
+Java casting from `double` to `int`/`long` converts to the integer range; for finite values with fractional parts in normal range, the fractional part is truncated **toward 0**.
 
 ~~~java
 double positive = 2.8;
@@ -300,11 +300,11 @@ System.out.println(Math.floor(negative)); // -3.0
 System.out.println(Math.ceil(negative));  // -2.0
 ~~~
 
-Không nên dùng `(int) Math.ceil(x)` khi không biết miền x; kết quả `ceil` vẫn là `double` và bước cast có thể xử lý cực trị/NaN bằng quy tắc conversion riêng, làm mất thông tin. Nếu muốn kết quả `int` từ một phép round, hãy validate tính hữu hạn, miền và ngữ nghĩa trước.
+Do not use `(int) Math.ceil(x)` when x's range is unknown; the result of `ceil` is still `double` and the cast step handles extremes/NaN via conversion rules, losing information. If you want an `int` result from rounding, validate finiteness, range, and semantics first.
 
-### Chọn floor cho chỉ số ô trên trục âm
+### Choosing floor for Cell Indices on a Negative Axis
 
-Giả sử bạn chia mặt phẳng thành các ô chiều rộng 10, và ô chứa `x` được đánh số bằng `floor(x / 10)`:
+Suppose you divide a plane into cells of width 10, and the cell containing `x` is indexed by `floor(x / 10)`:
 
 ~~~java
 double coordinate = -1.0;
@@ -312,11 +312,11 @@ int cell = (int) Math.floor(coordinate / 10.0);
 System.out.println(cell); // -1
 ~~~
 
-Nếu thay bằng `(int) (coordinate / 10.0)`, bạn nhận 0, sai ý nghĩa vùng ở phía âm. Ví dụ này có miền nhỏ được kiểm soát; với tọa độ ngoài miền int, cần kiểm tra trước khi cast.
+If replaced with `(int) (coordinate / 10.0)`, you get 0, breaking the region semantics on the negative side. This example uses a small controlled range; for coordinates outside `int` range, validate before casting.
 
-## 10. Chương trình Java 17+ đầy đủ, có kết quả chính xác
+## 10. Complete Java 17+ Program with Exact Output
 
-Tạo tệp `RoundingMethodsDemo.java`:
+Create file `RoundingMethodsDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -361,7 +361,7 @@ public class RoundingMethodsDemo {
 }
 ~~~
 
-Biên dịch trên Java 17:
+Compile on Java 17:
 
 ~~~bash
 javac --release 17 RoundingMethodsDemo.java
@@ -388,20 +388,20 @@ HALF_UP=-3
 HALF_EVEN=-2
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Với `2.5`, `rint` trả 2.0 do chọn chẵn; `round` trả 3 vì hướng dương ở điểm hòa.
-2. Với `-3.5`, `rint` trả −4.0 (chẵn), trong khi `round` trả −3 (phía dương).
-3. Với `-0.5`, `ceil` và `rint` giữ dấu zero âm; `round` trả số nguyên 0.
-4. `Math.round(double)` có kiểu `long` và không biểu diễn `NaN`/`Infinity`; kết quả được quy định là 0 hoặc giới hạn tương ứng.
-5. `StrictMath.rint(2.5)` có cùng quy tắc ties-to-even.
-6. `RoundingMode.HALF_UP` làm tròn điểm giữa **ra xa 0**, nên −2.5 thành −3; `RoundingMode.HALF_EVEN` chọn chẵn nên −2.5 thành −2.
+1. For `2.5`, `rint` returns 2.0 by choosing even; `round` returns 3 due to positive direction on ties.
+2. For `-3.5`, `rint` returns −4.0 (even), whereas `round` returns −3 (positive side).
+3. For `-0.5`, `ceil` and `rint` preserve negative zero sign; `round` returns integer 0.
+4. `Math.round(double)` has type `long` and cannot represent `NaN`/`Infinity`; results are specified as 0 or the corresponding limits.
+5. `StrictMath.rint(2.5)` follows the same ties-to-even rule.
+6. `RoundingMode.HALF_UP` rounds midpoints **away from 0**, so −2.5 becomes −3; `RoundingMode.HALF_EVEN` picks even, so −2.5 becomes −2.
 
-Đây là chương trình độc lập dùng `Math`, `StrictMath` và `BigDecimal` trên Java 17. Nó không dựa trên locale hoặc cấu hình hệ điều hành cho cách in số trong các biểu thức trên.
+This is a standalone program using `Math`, `StrictMath`, and `BigDecimal` on Java 17. It does not depend on locale or OS settings for how numbers print in the expressions above.
 
-## 11. StrictMath so với Math đối với bốn phương thức này
+## 11. StrictMath vs. Math for These Four Methods
 
-Hai lớp đều nằm trong `java.lang` nên không cần thêm import:
+Both classes reside in `java.lang`, so no extra import is needed:
 
 ~~~java
 double a = Math.ceil(-1.2);
@@ -414,36 +414,36 @@ long e = Math.round(-2.5);
 long f = StrictMath.round(-2.5);
 ~~~
 
-`StrictMath` được thiết kế với yêu cầu kết quả tính toán có thể tái lập chặt chẽ trên nhiều nền tảng, đặc biệt quan trọng với nhiều hàm toán học phức tạp. Tuy nhiên, đối với **ceil, floor, rint và round**, các quy tắc kết quả đã được API xác định rõ; không có “chính sách làm tròn bí mật” khác nhau giữa `Math` và `StrictMath` trong các ví dụ này.
+`StrictMath` was designed with strict cross-platform result reproducibility requirements, which is especially important for many complex mathematical functions. However, for **ceil, floor, rint, and round**, result rules are clearly defined by the API; there is no "secret rounding policy" differing between `Math` and `StrictMath` in these examples.
 
-| Tên | Math | StrictMath | Khác biệt cần chú ý |
+| Name | Math | StrictMath | Notable Differences |
 | --- | --- | --- | --- |
-| `ceil(double)` | Có | Có | Cùng định nghĩa về +∞ |
-| `floor(double)` | Có | Có | Cùng định nghĩa về −∞ |
-| `rint(double)` | Có | Có | Cùng ties-to-even |
-| `round(float)` | Có | Có | Cùng kiểu `int` và ties-to-positive-infinity |
-| `round(double)` | Có | Có | Cùng kiểu `long` và ties-to-positive-infinity |
+| `ceil(double)` | Yes | Yes | Same definition toward +∞ |
+| `floor(double)` | Yes | Yes | Same definition toward −∞ |
+| `rint(double)` | Yes | Yes | Same ties-to-even |
+| `round(float)` | Yes | Yes | Same `int` type and ties-to-positive-infinity |
+| `round(double)` | Yes | Yes | Same `long` type and ties-to-positive-infinity |
 
-Không nên đoán rằng `StrictMath` “luôn chậm hơn” hoặc “luôn chính xác hơn” trong mọi môi trường. Hiệu năng phụ thuộc JDK/JVM/phần cứng, và các hàm làm tròn này đã có ngữ nghĩa được định nghĩa cụ thể. Chọn API theo yêu cầu hệ thống và đo bằng benchmark đại diện nếu tốc độ là vấn đề.
+Do not guess that `StrictMath` is "always slower" or "always more accurate" in every environment. Performance depends on JDK/JVM/hardware, and these rounding functions have specifically defined semantics. Choose APIs based on system requirements and measure with representative benchmarks if speed is a concern.
 
-## 12. Làm tròn số thập phân: tránh lạm dụng Math.round
+## 12. Rounding Decimals: Avoid Misusing Math.round
 
-Một cách viết thường thấy để làm tròn hai chữ số thập phân:
+A commonly seen pattern for rounding to two decimal places:
 
 ~~~java
 double x = 1.005;
 double result = Math.round(x * 100.0) / 100.0;
 ~~~
 
-Cách làm này **không đảm bảo** kết quả decimal như người dùng kỳ vọng:
+This approach **does not guarantee** the decimal result users expect:
 
-- Nhiều số thập phân không được biểu diễn chính xác bằng `double`.
-- Phép nhân `x * 100.0` cũng có thể làm tròn, nên một giá trị tưởng như ở điểm hòa không thực sự bằng đúng điểm hòa trong binary64.
-- Với độ lớn rất lớn, nhân hệ số có thể overflow.
-- Với số âm đúng điểm hòa, quy tắc `Math.round` là ties to +∞, không phải làm tròn nửa ra xa 0 như nhiều chính sách tài chính.
-- Kết quả cuối vẫn là `double`, nên định dạng hiển thị hai chữ số không có nghĩa dữ liệu được lưu với precision decimal cố định.
+- Many decimal numbers are not represented accurately by `double`.
+- Multiplying `x * 100.0` can also round, so a value that appears to be at a tie may not actually equal the exact tie in binary64.
+- At very large magnitudes, multiplying by a scale factor can overflow.
+- For negative exact ties, `Math.round`'s rule is ties to +∞, not round half away from 0 as in many financial policies.
+- The final result is still a `double`, so formatting to two digits for display does not mean the data is stored with fixed decimal precision.
 
-Nếu yêu cầu **decimal chính xác**, hãy parse trực tiếp từ chuỗi decimal thành `BigDecimal` rồi chọn `RoundingMode`.
+If **exact decimal** rounding is required, parse directly from the decimal string into `BigDecimal` and choose a `RoundingMode`.
 
 ~~~java
 BigDecimal price = new BigDecimal("1.005");
@@ -454,60 +454,60 @@ System.out.println(halfUp);   // 1.01
 System.out.println(halfEven); // 1.00
 ~~~
 
-Lưu ý `new BigDecimal("1.005")` giữ đúng giá trị decimal `1.005`. Ngược lại, `new BigDecimal(1.005)` tạo `BigDecimal` từ giá trị binary64 xấp xỉ đã có, có thể gây kết quả làm tròn khác. Nếu dữ liệu nguồn là chuỗi người dùng nhập, hãy dùng chuỗi gốc.
+Note that `new BigDecimal("1.005")` preserves the exact decimal value `1.005`. Conversely, `new BigDecimal(1.005)` constructs a `BigDecimal` from the already approximated binary64 value, which can cause different rounding results. If the source data is a user-entered string, use the original string.
 
-## 13. Các chế độ BigDecimal so với Math
+## 13. BigDecimal Modes vs. Math
 
-Các chế độ `RoundingMode` liên quan:
+Related `RoundingMode` modes:
 
-| Chế độ | Hành vi ở giá trị không nguyên | Ví dụ 2.5 | Ví dụ −2.5 |
+| Mode | Behavior on Non-Integers | Example 2.5 | Example −2.5 |
 | --- | --- | --- | --- |
-| `CEILING` | Hướng `+∞` | 3 | −2 |
-| `FLOOR` | Hướng `-∞` | 2 | −3 |
-| `DOWN` | Hướng **về 0** | 2 | −2 |
-| `UP` | Hướng **xa 0** | 3 | −3 |
-| `HALF_UP` | Gần nhất; hòa thì **xa 0** | 3 | −3 |
-| `HALF_DOWN` | Gần nhất; hòa thì **về 0** | 2 | −2 |
-| `HALF_EVEN` | Gần nhất; hòa thì chọn giá trị **chẵn** | 2 | −2 |
-| `UNNECESSARY` | Từ chối nếu cần làm tròn | Lỗi | Lỗi |
+| `CEILING` | Toward `+∞` | 3 | −2 |
+| `FLOOR` | Toward `-∞` | 2 | −3 |
+| `DOWN` | **Toward 0** | 2 | −2 |
+| `UP` | **Away from 0** | 3 | −3 |
+| `HALF_UP` | Nearest; ties **away from 0** | 3 | −3 |
+| `HALF_DOWN` | Nearest; ties **toward 0** | 2 | −2 |
+| `HALF_EVEN` | Nearest; ties pick **even** value | 2 | −2 |
+| `UNNECESSARY` | Reject if rounding needed | Error | Error |
 
-Đây là bảng khi làm tròn tới **scale 0** bằng `BigDecimal.setScale(0, mode)`.
+This table shows rounding to **scale 0** using `BigDecimal.setScale(0, mode)`.
 
-### Điều tương ứng và khác biệt
+### Similarities and Differences
 
-- `Math.ceil(x)` có hướng tương đương `RoundingMode.CEILING` (nhưng kiểu dữ liệu và biểu diễn khác).
-- `Math.floor(x)` có hướng tương đương `RoundingMode.FLOOR`.
-- `Math.rint(x)` gần với quy tắc `HALF_EVEN` ở mức giá trị nguyên.
-- `Math.round(x)` **không có một tên `RoundingMode` độc lập tương đương cho cả số dương lẫn số âm**: khi hòa, nó luôn ưu tiên **+∞**, trong khi `HALF_UP` ưu tiên **xa 0**.
+- `Math.ceil(x)` has a direction equivalent to `RoundingMode.CEILING` (though data type and representation differ).
+- `Math.floor(x)` has a direction equivalent to `RoundingMode.FLOOR`.
+- `Math.rint(x)` aligns closely with `HALF_EVEN` at integer values.
+- `Math.round(x)` **has no single standalone `RoundingMode` name equivalent for both positive and negative numbers**: on ties, it always prefers **+∞**, whereas `HALF_UP` prefers **away from 0**.
 
-Hãy chọn chính sách làm tròn theo yêu cầu nghiệp vụ như quy định thuế, hóa đơn, thống kê hay xử lý tín hiệu, không chọn chỉ vì tên phương thức dễ nhớ.
+Choose the rounding policy according to business requirements such as tax regulations, invoicing, statistics, or signal processing, not merely because a method name is easy to remember.
 
-## 14. Không phải mọi đầu vào double đều có “phần thập phân” có ý nghĩa
+## 14. Not Every double Input Has a Meaningful "Fractional Part"
 
-Ở các độ lớn rất lớn, khoảng cách giữa các giá trị `double` biểu diễn được có thể là **2, 4, 8 hoặc nhiều hơn**, nên mọi giá trị gần đó đã là số nguyên toán học theo biểu diễn binary64. `Math.ceil`, `Math.floor` hay `Math.rint` sẽ không tự thêm độ chính xác.
+At very large magnitudes, the spacing between representable `double` values can be **2, 4, 8, or more**, so every value around there is already a mathematical integer in binary64 representation. `Math.ceil`, `Math.floor`, or `Math.rint` will not add precision on their own.
 
-Ví dụ:
+Example:
 
 ~~~java
 double large = 1e20;
 System.out.println(Math.rint(large) == large); // true
 ~~~
 
-Tuy `large` đã là giá trị nguyên toán học trong binary64, nó **vượt miền `long`**. Do vậy:
+Even though `large` is already a mathematical integer in binary64, it **exceeds the `long` range**. Therefore:
 
 ~~~java
 System.out.println(Math.round(1e20)); // 9223372036854775807
 ~~~
 
-Kết quả trên là **`Long.MAX_VALUE`**, không phải `100000000000000000000`, vì `Math.round(double)` chỉ trả `long`.
+The result above is **`Long.MAX_VALUE`**, not `100000000000000000000`, because `Math.round(double)` only returns `long`.
 
-Điểm mấu chốt: “đã làm tròn thành số nguyên” và “có thể lưu trong kiểu số nguyên đích” là **hai câu hỏi khác nhau**.
+Bottom line: "already rounded to an integer" and "can fit in the target integer type" are **two different questions**.
 
-## 15. Rounding trong tính toán và rounding khi hiển thị
+## 15. Rounding in Calculations vs. Rounding for Display
 
-Nếu mục tiêu chỉ là **hiển thị** 2 chữ số thập phân, định dạng bằng `NumberFormat`/`DecimalFormat` hoặc `String.format` theo locale và rounding mode đã chọn có thể phù hợp hơn thay đổi giá trị tính toán.
+If the goal is solely to **display** 2 decimal places, formatting with `NumberFormat`/`DecimalFormat` or `String.format` using the chosen locale and rounding mode can be more appropriate than altering the computed value.
 
-Ví dụ với `BigDecimal`:
+Example with `BigDecimal`:
 
 ~~~java
 BigDecimal amount = new BigDecimal("12.345");
@@ -515,74 +515,74 @@ String display = amount.setScale(2, RoundingMode.HALF_EVEN).toPlainString();
 System.out.println(display); // 12.34
 ~~~
 
-Nếu xử lý tiền, dùng `BigDecimal` hoặc lưu số nguyên đơn vị nhỏ nhất là một lựa chọn thiết kế phổ biến. **Không làm tròn ở mỗi bước tính trung gian** trừ khi yêu cầu nghiệp vụ bắt buộc; làm tròn lặp nhiều lần có thể tích lũy sai số.
+When handling money, using `BigDecimal` or storing integers in the smallest unit is a common design choice. **Do not round at every intermediate calculation step** unless business rules mandate it; repeated rounding can accumulate error.
 
-Nếu chỉ hiển thị, giữ giá trị tính toán nội bộ với độ chính xác phù hợp và định dạng ở điểm xuất dữ liệu. Nếu API quy định “số thập phân hai chữ số” thực sự là thuộc tính dữ liệu, phải kiểm soát `scale`/kiểu biểu diễn ở ranh giới nhập và lưu.
+If only displaying, keep internal calculation values at appropriate precision and format at the output boundary. If an API specifies "two-decimal-place number" as an actual data invariant, enforce `scale`/representation at input and storage boundaries.
 
-## 16. Những lỗi thường gặp
+## 16. Common Mistakes
 
-| Nhầm lẫn | Vấn đề | Cách xử lý |
+| Misconception | Issue | Fix |
 | --- | --- | --- |
-| “ceil luôn tăng trị tuyệt đối” | Với số âm, ceil hướng tới +∞, có thể làm gần 0 hơn | Hiểu định nghĩa `ceil(x) >= x` |
-| “floor là cắt phần thập phân” | Với số âm, `floor(-2.8)=-3` nhưng cast cho −2 | Chọn `floor` hoặc cast đúng mục đích |
-| “rint và round giống nhau” | Khác tie rule và kiểu trả về | `rint` ties-even; `round` ties +∞ |
-| “round là half-away-from-zero” | `round(-2.5)=-2` | Dùng `BigDecimal.HALF_UP` khi cần xa 0 |
-| “round trả double” | `round(float)` trả int, `round(double)` trả long | Kiểm tra đúng overload |
-| “rint trả int” | `rint` trả double | Chuyển có kiểm tra miền |
-| “round(NaN) ném lỗi” | Trả 0, có thể che dữ liệu sai | Kiểm tra `isFinite` trước |
-| “round(Infinity) ném lỗi” | Trả cực trị của int/long | Kiểm tra miền trước |
-| “ceil/floor/rint(NaN) thành 0” | Trả NaN | Kiểm tra giá trị đặc biệt |
-| “−0.0 giống hệt +0.0” | `==` true nhưng bit dấu khác | Chọn có bảo toàn dấu zero không |
-| “Math.round giúp parse số nguyên lớn” | `double` có thể mất chữ số trước | Parse `long`/`BigInteger` từ chuỗi |
-| “nhân 100 rồi round luôn chính xác decimal” | Sai số binary64/overflow | Dùng `BigDecimal(String)` và `setScale` |
-| “HALF_UP giống Math.round cho số âm” | HALF_UP đi xa 0, Math.round ưu tiên +∞ | Kiểm tra chính sách ở điểm hòa |
-| “Math và StrictMath có quy tắc tie khác nhau” | Hai API cùng ngữ nghĩa làm tròn đã công bố | Đọc hợp đồng của từng phương thức |
+| "ceil always increases absolute value" | For negative numbers, ceil moves toward +∞, bringing them closer to 0 | Understand the definition `ceil(x) >= x` |
+| "floor truncates the fractional part" | For negative numbers, `floor(-2.8)=-3` while cast gives −2 | Pick `floor` or cast for the right goal |
+| "rint and round are the same" | Differ in tie rule and return type | `rint` ties-even; `round` ties +∞ |
+| "round is half-away-from-zero" | `round(-2.5)=-2` | Use `BigDecimal.HALF_UP` when away from 0 is needed |
+| "round returns double" | `round(float)` returns int, `round(double)` returns long | Check the exact overload |
+| "rint returns int" | `rint` returns double | Convert with range checks |
+| "round(NaN) throws an error" | Returns 0, which can hide bad data | Check `isFinite` beforehand |
+| "round(Infinity) throws an error" | Returns int/long extreme bounds | Check range beforehand |
+| "ceil/floor/rint(NaN) becomes 0" | Returns NaN | Check special values |
+| "−0.0 is identical to +0.0" | `==` is true but sign bits differ | Decide whether to preserve zero sign |
+| "Math.round helps parse large integers" | `double` can lose digits first | Parse `long`/`BigInteger` from string |
+| "multiplying by 100 then round is always decimal-exact" | Binary64 error/overflow | Use `BigDecimal(String)` and `setScale` |
+| "HALF_UP equals Math.round for negative numbers" | HALF_UP goes away from 0, Math.round prefers +∞ | Check policy at ties |
+| "Math and StrictMath have different tie rules" | Both APIs share published rounding semantics | Read each method's contract |
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-Check Questions
 
-**Câu 1.** Kết quả của `Math.ceil(-4.2)` và `Math.floor(-4.2)`?
+**Question 1.** What are the results of `Math.ceil(-4.2)` and `Math.floor(-4.2)`?
 
-**Đáp án:** `-4.0` và `-5.0`. Ceil đi tới +∞; floor đi tới −∞.
+**Answer:** `-4.0` and `-5.0`. Ceil goes toward +∞; floor goes toward −∞.
 
-**Câu 2.** Vì sao `Math.rint(2.5)` là `2.0`, trong khi `Math.round(2.5)` là `3`?
+**Question 2.** Why is `Math.rint(2.5)` equal to `2.0`, while `Math.round(2.5)` is `3`?
 
-**Đáp án:** `rint` chọn số **chẵn** ở điểm hòa; `round` chọn số nguyên về phía **+∞** ở điểm hòa. Ngoài ra `rint` trả double, `round(double)` trả long.
+**Answer:** `rint` chooses the **even** integer on ties; `round` chooses the integer toward **+∞** on ties. Also `rint` returns double, while `round(double)` returns long.
 
-**Câu 3.** `Math.round(-2.5)` có bằng `-3` như `HALF_UP` không?
+**Question 3.** Does `Math.round(-2.5)` equal `-3` like `HALF_UP`?
 
-**Đáp án:** Không. `Math.round(-2.5)` bằng `-2`, còn `new BigDecimal("-2.5").setScale(0, HALF_UP)` bằng `-3`.
+**Answer:** No. `Math.round(-2.5)` equals `-2`, whereas `new BigDecimal("-2.5").setScale(0, HALF_UP)` equals `-3`.
 
-**Câu 4.** Vì sao `Math.round(Double.NaN)` nguy hiểm nếu dùng để xử lý dữ liệu đầu vào?
+**Question 4.** Why is `Math.round(Double.NaN)` dangerous if used to process input data?
 
-**Đáp án:** Nó trả `0L` thay vì báo lỗi, có thể che giấu một giá trị không hợp lệ. Kiểm tra `Double.isFinite` trước khi làm tròn.
+**Answer:** It returns `0L` instead of failing, which can mask an invalid value. Check `Double.isFinite` before rounding.
 
-**Câu 5.** Vì sao `Math.round(1e20)` không trả nguyên giá trị toán học \(10^{20}\)?
+**Question 5.** Why does `Math.round(1e20)` not return the mathematical integer value \(10^{20}\)?
 
-**Đáp án:** `Math.round(double)` trả `long`, nhưng \(10^{20}\) vượt `Long.MAX_VALUE`, nên kết quả bị giới hạn về `Long.MAX_VALUE`.
+**Answer:** `Math.round(double)` returns `long`, and \(10^{20}\) exceeds `Long.MAX_VALUE`, so the result clamps to `Long.MAX_VALUE`.
 
-**Câu 6.** Dữ liệu decimal `"1.005"` cần làm tròn hai chữ số thập phân với `HALF_UP`. Nên dùng gì?
+**Question 6.** Decimal data `"1.005"` needs rounding to two decimal places with `HALF_UP`. What should be used?
 
-**Đáp án:** `new BigDecimal("1.005").setScale(2, RoundingMode.HALF_UP)` cho `1.01`; không dựa vào `Math.round(x*100)/100` nếu cần precision decimal.
+**Answer:** `new BigDecimal("1.005").setScale(2, RoundingMode.HALF_UP)` yields `1.01`; do not rely on `Math.round(x*100)/100` when decimal precision is required.
 
-**Câu 7.** Kết quả `Math.rint(-0.5)` và `Math.round(-0.5)`?
+**Question 7.** What are the results of `Math.rint(-0.5)` and `Math.round(-0.5)`?
 
-**Đáp án:** `-0.0` (double) và `0` (long). `rint` có thể giữ dấu zero; `round` trả kiểu nguyên không có zero âm.
+**Answer:** `-0.0` (double) and `0` (long). `rint` can preserve zero sign; `round` returns an integer type without negative zero.
 
-## 18. Tóm tắt và tài liệu tham khảo
+## 18. Summary and References
 
-Hãy nhớ bốn câu ngắn:
+Remember four short lines:
 
-1. **`ceil`:** tới số nguyên **bên trên** theo trục số (`+∞`).
-2. **`floor`:** tới số nguyên **bên dưới** theo trục số (`-∞`).
-3. **`rint`:** số nguyên gần nhất, **hòa chọn chẵn**, trả `double`.
-4. **`round`:** số nguyên gần nhất, **hòa chọn phía dương**, trả `int` hoặc `long`.
+1. **`ceil`:** to the integer **above** on the number line (`+∞`).
+2. **`floor`:** to the integer **below** on the number line (`-∞`).
+3. **`rint`:** nearest integer, **ties to even**, returns `double`.
+4. **`round`:** nearest integer, **ties toward positive**, returns `int` or `long`.
 
-Đối với dữ liệu nghiêm ngặt, kiểm tra `NaN`/`Infinity`, miền của kiểu đích và yêu cầu chính xác **trước** khi làm tròn. Với số decimal cần quy tắc làm tròn rõ và chính xác, ưu tiên `BigDecimal` cùng `RoundingMode`. Không nhầm làm tròn **giá trị tính toán** với định dạng **chuỗi hiển thị**.
+For strict data, check `NaN`/`Infinity`, target type bounds, and accuracy requirements **before** rounding. For decimal numbers needing clear and exact rounding rules, prefer `BigDecimal` with `RoundingMode`. Do not confuse rounding **computed values** with formatting **display strings**.
 
-Nguồn chính thức:
+Official sources:
 
-- [Java SE 17 — Math](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): định nghĩa `ceil`, `floor`, `rint`, `round` và xử lý số đặc biệt.
-- [Java SE 17 — StrictMath](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StrictMath.html): các phương thức tương ứng và tính tái lập.
-- [Java SE 17 — RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): `HALF_UP`, `HALF_EVEN`, `CEILING`, `FLOOR` và các chế độ khác.
-- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `setScale` và độ chính xác decimal.
-- [JLS Java SE 17 — Floating-Point Types](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): độ chính xác, NaN, infinity và signed zero.
+- [Java SE 17 — Math](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): definitions of `ceil`, `floor`, `rint`, `round`, and special-value handling.
+- [Java SE 17 — StrictMath](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StrictMath.html): corresponding methods and reproducibility.
+- [Java SE 17 — RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): `HALF_UP`, `HALF_EVEN`, `CEILING`, `FLOOR`, and other modes.
+- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `setScale` and decimal precision.
+- [JLS Java SE 17 — Floating-Point Types](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3): precision, NaN, infinity, and signed zero.

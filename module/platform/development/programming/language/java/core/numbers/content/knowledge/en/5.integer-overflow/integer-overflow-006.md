@@ -1,46 +1,46 @@
-# `incrementExact`, `decrementExact`, `negateExact` và `toIntExact` trong Java
+# `incrementExact`, `decrementExact`, `negateExact`, and `toIntExact` in Java
 
-## 1. Vấn đề: số nguyên có giới hạn nhưng phép toán thường không báo tràn
+## 1. The Problem: Integers Are Bounded, Yet Ordinary Operations Do Not Report Overflow
 
-Java có hai kiểu số nguyên nguyên thủy thường dùng cho phép đếm và các giá trị lớn: `int` (32 bit có dấu) và `long` (64 bit có dấu). Mỗi kiểu chỉ biểu diễn được một miền hữu hạn:
+Java has two primitive integer types commonly used for counting and large values: `int` (32-bit signed) and `long` (64-bit signed). Each type can represent only a finite range:
 
-| Kiểu | Giá trị nhỏ nhất | Giá trị lớn nhất |
+| Type | Minimum Value | Maximum Value |
 |---|---:|---:|
 | `int` | `-2_147_483_648` | `2_147_483_647` |
 | `long` | `-9_223_372_036_854_775_808L` | `9_223_372_036_854_775_807L` |
 
-Giả sử bộ đếm kiểu `int` đã đạt `Integer.MAX_VALUE`. Lệnh `counter++` **không tự ném lỗi** mà đưa giá trị về `Integer.MIN_VALUE`. Tương tự, `Integer.MIN_VALUE - 1` trở thành `Integer.MAX_VALUE` và `-Integer.MIN_VALUE` lại cho `Integer.MIN_VALUE`. Đây là hệ quả của số học số nguyên cố định theo biểu diễn bù hai (*two's complement*).
+Suppose an `int` counter has reached `Integer.MAX_VALUE`. The statement `counter++` **does not automatically throw an error**; instead, it wraps the value to `Integer.MIN_VALUE`. Similarly, `Integer.MIN_VALUE - 1` becomes `Integer.MAX_VALUE`, and `-Integer.MIN_VALUE` yields `Integer.MIN_VALUE` again. This is a consequence of fixed-width integer arithmetic under two's complement representation.
 
-Trong những bài toán cần **phát hiện tràn hoặc thu hẹp kiểu có mất dữ liệu**, Java cung cấp các phương thức trong `java.lang.Math`:
+For problems that need to **detect overflow or lossy type narrowing**, Java provides methods in `java.lang.Math`:
 
-- `Math.incrementExact`: tăng một đơn vị, báo lỗi nếu tràn.
-- `Math.decrementExact`: giảm một đơn vị, báo lỗi nếu tràn.
-- `Math.negateExact`: lấy số đối, báo lỗi nếu số đối không biểu diễn được.
-- `Math.toIntExact`: chuyển `long` sang `int`, báo lỗi nếu giá trị nằm ngoài miền `int`.
+- `Math.incrementExact`: increments by one, throwing an error on overflow.
+- `Math.decrementExact`: decrements by one, throwing an error on overflow.
+- `Math.negateExact`: returns the negation, throwing an error if the negated value cannot be represented.
+- `Math.toIntExact`: converts `long` to `int`, throwing an error if the value lies outside the `int` range.
 
-Cả bốn phương thức đều ném **`ArithmeticException`** khi không thể tạo kết quả chính xác trong kiểu trả về. Chúng không âm thầm cuốn vòng hay cắt bỏ các bit như các thao tác nguyên thông thường.
+All four methods throw **`ArithmeticException`** when they cannot produce an exact result in the return type. They do not silently wrap around or truncate bits like ordinary integer operations.
 
-## 2. Bảng API và điều kiện thất bại
+## 2. API Table and Failure Conditions
 
-| Phương thức | Kiểu tham số và kết quả | Ý nghĩa | Trường hợp ném `ArithmeticException` |
+| Method | Parameter and Return Type | Meaning | Case That Throws `ArithmeticException` |
 |---|---|---|---|
-| `Math.incrementExact(int)` | `int → int` | Tính `value + 1` | `value == Integer.MAX_VALUE` |
-| `Math.incrementExact(long)` | `long → long` | Tính `value + 1` | `value == Long.MAX_VALUE` |
-| `Math.decrementExact(int)` | `int → int` | Tính `value - 1` | `value == Integer.MIN_VALUE` |
-| `Math.decrementExact(long)` | `long → long` | Tính `value - 1` | `value == Long.MIN_VALUE` |
-| `Math.negateExact(int)` | `int → int` | Tính `-value` | `value == Integer.MIN_VALUE` |
-| `Math.negateExact(long)` | `long → long` | Tính `-value` | `value == Long.MIN_VALUE` |
-| `Math.toIntExact(long)` | `long → int` | Chuyển sang `int` mà không mất giá trị | `value < Integer.MIN_VALUE` hoặc `value > Integer.MAX_VALUE` |
+| `Math.incrementExact(int)` | `int → int` | Computes `value + 1` | `value == Integer.MAX_VALUE` |
+| `Math.incrementExact(long)` | `long → long` | Computes `value + 1` | `value == Long.MAX_VALUE` |
+| `Math.decrementExact(int)` | `int → int` | Computes `value - 1` | `value == Integer.MIN_VALUE` |
+| `Math.decrementExact(long)` | `long → long` | Computes `value - 1` | `value == Long.MIN_VALUE` |
+| `Math.negateExact(int)` | `int → int` | Computes `-value` | `value == Integer.MIN_VALUE` |
+| `Math.negateExact(long)` | `long → long` | Computes `-value` | `value == Long.MIN_VALUE` |
+| `Math.toIntExact(long)` | `long → int` | Converts to `int` without losing value | `value < Integer.MIN_VALUE` or `value > Integer.MAX_VALUE` |
 
-**Điểm cần nhớ về overload:** ba phương thức đầu có cả phiên bản `int` lẫn `long`; `toIntExact` chỉ nhận `long` và trả `int`. Java chọn overload dựa trên **kiểu biểu thức**. Ví dụ, `Math.incrementExact(5)` trả `int` còn `Math.incrementExact(5L)` trả `long`.
+**Key point about overloads:** the first three methods have both `int` and `long` versions; `toIntExact` only accepts `long` and returns `int`. Java selects the overload based on the **expression type**. For example, `Math.incrementExact(5)` returns `int`, whereas `Math.incrementExact(5L)` returns `long`.
 
-Các phương thức này là `static` trong `Math`. Có thể gọi trực tiếp như `Math.incrementExact(n)` mà không tạo đối tượng. Chúng trả một **giá trị mới** và không tự thay đổi biến đã truyền.
+These methods are `static` in `Math`. You can call them directly like `Math.incrementExact(n)` without creating an object. They return a **new value** and do not mutate the passed-in variable.
 
-## 3. `incrementExact` — tăng một đơn vị có kiểm tra
+## 3. `incrementExact` — Incrementing by One with Checking
 
-### Khi nào cần?
+### When is it needed?
 
-Một bộ đếm lượt giao dịch, mã phiên nội bộ, chỉ số logic hoặc tổng số lần xử lý có thể phải bảo đảm **không bao giờ âm vì tràn số**. Với toán tử `++`:
+A transaction counter, internal session ID, logical index, or total processing count may need to guarantee that it **never turns negative due to overflow**. With the `++` operator:
 
 ~~~java
 int count = Integer.MAX_VALUE;
@@ -48,79 +48,79 @@ count++;
 // count == Integer.MIN_VALUE
 ~~~
 
-Đây là đoạn mã minh họa; kết quả theo số học `int` có độ rộng cố định. Toán tử `++` không báo overflow.
+This is an illustrative snippet; the result follows fixed-width `int` arithmetic. The `++` operator does not report overflow.
 
-Đổi sang:
+Switch to:
 
 ~~~java
 int count = Integer.MAX_VALUE;
 count = Math.incrementExact(count);
-// Ném ArithmeticException, phép gán chưa hoàn thành.
+// Throws ArithmeticException; assignment does not complete.
 ~~~
 
-Đoạn này cũng là minh họa và **cố ý ném lỗi khi chạy**. Khi toán hạng đã là `Integer.MAX_VALUE`, `Math.incrementExact(count)` ném `ArithmeticException` trước khi trả về; vì thế phép gán `count = ...` không hoàn thành và `count` vẫn giữ giá trị cũ.
+This snippet is also illustrative and **intentionally throws at runtime**. When the operand is already `Integer.MAX_VALUE`, `Math.incrementExact(count)` throws `ArithmeticException` before returning; therefore, the assignment `count = ...` does not complete and `count` retains its old value.
 
-Đối với `long` cũng vậy: `Math.incrementExact(Long.MAX_VALUE)` ném lỗi, trong khi `Long.MAX_VALUE + 1L` cho `Long.MIN_VALUE`.
+The same applies to `long`: `Math.incrementExact(Long.MAX_VALUE)` throws an error, whereas `Long.MAX_VALUE + 1L` produces `Long.MIN_VALUE`.
 
-Các giá trị **không phải cực đại** tăng bình thường, gồm `Math.incrementExact(-1) == 0`, `Math.incrementExact(0) == 1` và `Math.incrementExact(Integer.MAX_VALUE - 1) == Integer.MAX_VALUE`.
+Values **that are not at the maximum** increment normally, including `Math.incrementExact(-1) == 0`, `Math.incrementExact(0) == 1`, and `Math.incrementExact(Integer.MAX_VALUE - 1) == Integer.MAX_VALUE`.
 
-### Lưu ý với hậu tố toán tử
+### Note on postfix operators
 
-`count++` là biểu thức tăng biến và có sự khác nhau giữa tiền tố/hậu tố khi được dùng trong biểu thức lớn. `Math.incrementExact(count)` **không tương đương toàn bộ về mặt cú pháp/side effect**: nó chỉ trả giá trị tăng, không tự sửa `count`. Khi muốn cập nhật biến, phải gán `count = Math.incrementExact(count)`.
+`count++` is a variable-increment expression and has prefix/postfix differences when used inside a larger expression. `Math.incrementExact(count)` **is not entirely equivalent in syntax or side effects**: it only returns the incremented value without modifying `count` itself. When you want to update the variable, you must assign `count = Math.incrementExact(count)`.
 
-## 4. `decrementExact` — giảm một đơn vị có kiểm tra
+## 4. `decrementExact` — Decrementing by One with Checking
 
-`Math.decrementExact(value)` tính giá trị `value - 1` và kiểm tra miền của kiểu trả về. Nó phù hợp cho bộ đếm còn lại, số lượng chỗ, quota hoặc số dư đơn vị nguyên khi cần phát hiện **tràn số nguyên**.
+`Math.decrementExact(value)` computes `value - 1` and checks the return type's range. It is suitable for remaining counters, seat counts, quotas, or integer unit balances when **integer overflow** must be detected.
 
 ~~~java
 int remaining = Integer.MIN_VALUE;
 remaining--;
-// remaining == Integer.MAX_VALUE: đã tràn.
+// remaining == Integer.MAX_VALUE: overflowed.
 
 int safeRemaining = Math.decrementExact(Integer.MIN_VALUE);
-// Ném ArithmeticException.
+// Throws ArithmeticException.
 ~~~
 
-Đoạn code trên minh họa hai cách; dòng sau **cố ý ném lỗi**, không phải chương trình mẫu đầy đủ.
+The code above illustrates both approaches; the latter line **intentionally throws**, and is not a complete sample program.
 
-Ngược lại, `Math.decrementExact(0)` cho `-1` hoàn toàn hợp lệ. **`decrementExact` không kiểm tra điều kiện nghiệp vụ** “số lượng không được âm”; nó chỉ kiểm tra **miền kỹ thuật của kiểu số**. Nếu quy tắc ứng dụng là `remaining >= 0`, bạn vẫn phải kiểm tra điều kiện đó riêng.
+Conversely, `Math.decrementExact(0)` returning `-1` is completely valid. **`decrementExact` does not check the business condition** "quantity must not be negative"; it only checks the **technical range of the numeric type**. If your application rule is `remaining >= 0`, you must still check that condition separately.
 
-Tương tự, `Math.decrementExact(Long.MIN_VALUE)` ném `ArithmeticException`, trong khi `Long.MIN_VALUE - 1L` trả `Long.MAX_VALUE`.
+Similarly, `Math.decrementExact(Long.MIN_VALUE)` throws `ArithmeticException`, whereas `Long.MIN_VALUE - 1L` returns `Long.MAX_VALUE`.
 
-## 5. `negateExact` — lấy số đối có kiểm tra
+## 5. `negateExact` — Negating with Checking
 
-Trong toán học, số đối của `x` là `-x`. Nhưng miền `int` và `long` **không đối xứng quanh 0**:
+Mathematically, the negation of `x` is `-x`. However, the `int` and `long` ranges are **not symmetric around 0**:
 
-- `Integer.MIN_VALUE = -2_147_483_648`; số dương `2_147_483_648` không thể lưu bằng `int`.
-- `Long.MIN_VALUE = -9_223_372_036_854_775_808L`; số dương `9_223_372_036_854_775_808` không thể lưu bằng `long`.
+- `Integer.MIN_VALUE = -2_147_483_648`; the positive number `2_147_483_648` cannot be stored in `int`.
+- `Long.MIN_VALUE = -9_223_372_036_854_775_808L`; the positive number `9_223_372_036_854_775_808` cannot be stored in `long`.
 
-Vì vậy:
+Therefore:
 
 ~~~java
 int wrapped = -Integer.MIN_VALUE;
-// wrapped == Integer.MIN_VALUE, không ném lỗi.
+// wrapped == Integer.MIN_VALUE, does not throw.
 
 int checked = Math.negateExact(Integer.MIN_VALUE);
-// Ném ArithmeticException.
+// Throws ArithmeticException.
 ~~~
 
-Đây là minh họa, dòng `checked` **cố ý ném lỗi**.
+This is illustrative; the `checked` line **intentionally throws**.
 
-Với mọi số `int` khác `Integer.MIN_VALUE`, `Math.negateExact` tạo số đối chính xác; ví dụ `Math.negateExact(-7) == 7`, `Math.negateExact(7) == -7` và `Math.negateExact(0) == 0`. `Math.negateExact(Long.MIN_VALUE)` cũng ném lỗi.
+For every `int` other than `Integer.MIN_VALUE`, `Math.negateExact` produces the exact negation; for example, `Math.negateExact(-7) == 7`, `Math.negateExact(7) == -7`, and `Math.negateExact(0) == 0`. `Math.negateExact(Long.MIN_VALUE)` also throws an error.
 
-Nếu cần số đối của `Integer.MIN_VALUE` dưới dạng `long`, hãy **mở rộng trước khi đổi dấu**:
+If you need the negation of `Integer.MIN_VALUE` as a `long`, **widen before negating**:
 
 ~~~java
 long exactPositive = -(long) Integer.MIN_VALUE;  // 2147483648
 ~~~
 
-Trong khi đó, `(long) (-Integer.MIN_VALUE)` chỉ chuyển thành `long` **sau** khi phép đổi dấu kiểu `int` đã tràn. Với `Long.MIN_VALUE`, không có kiểu nguyên thủy rộng hơn `long`; có thể dùng `BigInteger.valueOf(Long.MIN_VALUE).negate()` để có kết quả chính xác.
+Meanwhile, `(long) (-Integer.MIN_VALUE)` converts to `long` **after** the `int` negation has already overflowed. For `Long.MIN_VALUE`, there is no wider primitive type than `long`; you can use `BigInteger.valueOf(Long.MIN_VALUE).negate()` to get the exact result.
 
-`Math.negateExact` cũng không phải hàm lấy trị tuyệt đối. Nó **đổi dấu** cả số dương lẫn số âm; nếu cần trị tuyệt đối với kiểm tra overflow, cần thiết kế phép toán riêng phù hợp API/JDK sử dụng. Chỉ dùng `Math.abs(Integer.MIN_VALUE)` sẽ không giải quyết được trường hợp biên.
+`Math.negateExact` is also not an absolute-value function. It **flips the sign** of both positive and negative numbers; if you need an absolute value with overflow checking, choose an appropriate operation for your API/JDK. Calling `Math.abs(Integer.MIN_VALUE)` alone will not solve the boundary case.
 
-## 6. `toIntExact` — thu hẹp `long` sang `int` mà không mất dữ liệu
+## 6. `toIntExact` — Narrowing `long` to `int` Without Losing Data
 
-Ép kiểu thường từ `long` sang `int` chỉ giữ 32 bit thấp; giá trị quá lớn hoặc quá nhỏ có thể biến thành một số hoàn toàn khác mà **không có exception**:
+An ordinary cast from `long` to `int` keeps only the lower 32 bits; a value that is too large or too small can turn into a completely different number **without any exception**:
 
 ~~~java
 long value = 2_147_483_648L;
@@ -128,19 +128,19 @@ int truncated = (int) value;
 // truncated == -2147483648
 ~~~
 
-Nếu ứng dụng cần bảo đảm giá trị khi chuyển kiểu vẫn **bằng chính số nguyên gốc**, dùng:
+If the application must guarantee that the converted value still **equals the original integer**, use:
 
 ~~~java
 long value = 2_147_483_648L;
 int checked = Math.toIntExact(value);
-// Ném ArithmeticException.
+// Throws ArithmeticException.
 ~~~
 
-`Math.toIntExact(2_147_483_647L)` thành công với giá trị `2_147_483_647`; `Math.toIntExact(-2_147_483_648L)` cũng thành công với giá trị `-2_147_483_648`. Hai biên là **bao gồm**. Chỉ giá trị nằm **ngoài** khoảng `[Integer.MIN_VALUE, Integer.MAX_VALUE]` mới gây exception.
+`Math.toIntExact(2_147_483_647L)` succeeds with `2_147_483_647`; `Math.toIntExact(-2_147_483_648L)` also succeeds with `-2_147_483_648`. Both bounds are **inclusive**. Only values **outside** `[Integer.MIN_VALUE, Integer.MAX_VALUE]` cause an exception.
 
-### So sánh `(int)` và `toIntExact`
+### Comparing `(int)` and `toIntExact`
 
-| Giá trị `long` | Kết quả `(int) value` | Kết quả `Math.toIntExact(value)` |
+| `long` Value | `(int) value` Result | `Math.toIntExact(value)` Result |
 |---:|---:|---|
 | `42L` | `42` | `42` |
 | `Integer.MAX_VALUE` | `2147483647` | `2147483647` |
@@ -148,13 +148,13 @@ int checked = Math.toIntExact(value);
 | `Integer.MIN_VALUE` | `-2147483648` | `-2147483648` |
 | `-2147483649L` | `2147483647` | **`ArithmeticException`** |
 
-Bảng cho thấy **thu hẹp kiểu** khác **phép toán số học**: `toIntExact` không tính cộng/trừ; nó bảo đảm chuyển đổi không làm mất giá trị nguyên.
+The table shows that **type narrowing** differs from **arithmetic operations**: `toIntExact` does not add or subtract; it ensures the conversion does not lose the integer value.
 
-**Không có `Math.toIntExact(double)`**. Nếu bắt đầu từ `double`, bạn phải xử lý riêng điều kiện số hữu hạn, phần thập phân, miền giá trị và mất độ chính xác floating-point. `toIntExact` chỉ là hợp đồng giữa hai kiểu **số nguyên** `long` và `int`.
+**There is no `Math.toIntExact(double)`**. If you start from a `double`, you must separately handle finiteness, fractional parts, value range, and floating-point precision loss. `toIntExact` is strictly a contract between the two **integer** types `long` and `int`.
 
-## 7. Ví dụ Java 17+ chạy độc lập: kết quả hợp lệ
+## 7. Standalone Runnable Java 17+ Example: Valid Results
 
-Tạo tệp `MathExactBasics.java`:
+Create the file `MathExactBasics.java`:
 
 ~~~java
 public class MathExactBasics {
@@ -177,14 +177,14 @@ public class MathExactBasics {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac MathExactBasics.java
 java MathExactBasics
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 incrementInt=42
@@ -196,11 +196,11 @@ maxAsInt=2147483647
 minAsInt=-2147483648
 ~~~
 
-Hai dòng `incrementLong` và `negateLong` chứng minh rằng **kiểu toán hạng quyết định miền kết quả**: với toán hạng `long`, số dương `2147483648` vẫn hợp lệ. Hai dòng chuyển về `int` nằm đúng biên và không gây lỗi.
+The `incrementLong` and `negateLong` lines prove that **the operand type determines the result range**: with a `long` operand, the positive number `2147483648` is valid. The two conversions to `int` sit right at the boundaries and do not fail.
 
-## 8. Ví dụ Java 17+ chạy độc lập: kiểm tra các biên lỗi
+## 8. Standalone Runnable Java 17+ Example: Testing Failure Boundaries
 
-Tạo tệp `MathExactFailures.java`:
+Create the file `MathExactFailures.java`:
 
 ~~~java
 public class MathExactFailures {
@@ -243,7 +243,7 @@ javac MathExactFailures.java
 java MathExactFailures
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 incIntMax=OVERFLOW
@@ -257,15 +257,15 @@ toIntTooSmall=OVERFLOW
 toIntAtMin=OK
 ~~~
 
-Hàm `check` nhận một `Runnable` để thực thi lần lượt các phép toán; khi `ArithmeticException` xuất hiện, chương trình in `OVERFLOW` thay vì dựa vào **chuỗi thông điệp ngoại lệ** (vốn không nên được giả định là hợp đồng API cố định). Với Java, một lambda `() -> Math.incrementExact(value)` phù hợp `Runnable` vì lời gọi phương thức là một *statement expression* và giá trị trả về có thể bỏ qua.
+The `check` method accepts a `Runnable` to execute the operations sequentially; when `ArithmeticException` occurs, the program prints `OVERFLOW` rather than relying on the **exception message string** (which should not be assumed to be a fixed API contract). In Java, a lambda `() -> Math.incrementExact(value)` matches `Runnable` because a method call is a *statement expression* and its return value can be discarded.
 
-Dòng cuối cũng xác nhận `toIntExact` chấp nhận **đúng biên âm**. Không phải cứ số âm là lỗi, cũng không phải mọi giá trị `long` đều nằm ngoài miền `int`.
+The last line also confirms that `toIntExact` accepts **the exact negative boundary**. Not every negative number is an error, and not every `long` value lies outside the `int` range.
 
-## 9. Dùng trong mã ứng dụng: cập nhật và chuyển kiểu có kiểm soát
+## 9. Using in Application Code: Controlled Updates and Conversions
 
-### 9.1. Cập nhật bộ đếm an toàn về miền số
+### 9.1. Range-safe counter updates
 
-Tạo tệp `CheckedCounterDemo.java`:
+Create the file `CheckedCounterDemo.java`:
 
 ~~~java
 public class CheckedCounterDemo {
@@ -299,7 +299,7 @@ javac CheckedCounterDemo.java
 java CheckedCounterDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 counter overflow
@@ -308,63 +308,63 @@ total=2147483648
 cannot narrow to int
 ~~~
 
-Phép gán cho `counter` chỉ thực hiện sau khi `incrementExact` trả về thành công; vì phương thức ném lỗi, biến `counter` vẫn bằng `Integer.MAX_VALUE`. Ngược lại, phép tăng trên `long` thành công, nhưng kết quả vượt miền `int` nên `toIntExact` từ chối chuyển về `int`.
+The assignment to `counter` executes only after `incrementExact` returns successfully; because the method throws an error, `counter` remains `Integer.MAX_VALUE`. Conversely, incrementing on `long` succeeds, yet the result exceeds the `int` range so `toIntExact` refuses to narrow it back to `int`.
 
-Mã trên minh họa **kiểm tra tràn số**, không tự bảo đảm các thuộc tính như giao dịch cơ sở dữ liệu hay cập nhật **nguyên tử giữa nhiều luồng**. Ví dụ, `counter = Math.incrementExact(counter)` là thao tác đọc–tính–ghi gồm nhiều bước; khi nhiều luồng cùng sửa một biến, cần cơ chế đồng bộ hoặc một API atomic phù hợp. Phép kiểm tra overflow và tính an toàn đồng thời là **hai yêu cầu khác nhau**.
+The code above illustrates **overflow checking**; it does not automatically guarantee properties such as database transactions or **atomic updates across multiple threads**. For example, `counter = Math.incrementExact(counter)` is a multi-step read-compute-write sequence; when multiple threads modify one variable concurrently, synchronization or an appropriate atomic API is required. Overflow checking and concurrency safety are **two separate requirements**.
 
-### 9.2. Xử lý exception theo hợp đồng nghiệp vụ
+### 9.2. Handling exceptions per business contract
 
-Không nên luôn nuốt `ArithmeticException` và tiếp tục với giá trị mặc định không được xác định. Khi bộ đếm, lượng tồn kho hoặc dữ liệu giao tiếp có nguy cơ vượt miền, hãy quyết định rõ:
+You should not always swallow `ArithmeticException` and continue with an undefined default value. When counters, inventory quantities, or interface data risk exceeding range, decide explicitly:
 
-- **Từ chối thao tác:** thông báo giá trị không thể biểu diễn, giữ trạng thái cũ.
-- **Chọn miền rộng hơn:** dùng `long` khi `int` không đủ và không có yêu cầu bắt buộc thu hẹp.
-- **Dùng kiểu số nguyên độ lớn tùy ý:** `BigInteger` khi ngay cả `long` có thể không đủ.
-- **Giữ hợp đồng kiểu `int` của API:** dùng `Math.toIntExact` ở biên chuyển đổi và xử lý lỗi có ngữ cảnh.
+- **Reject the operation:** report that the value cannot be represented, keeping the previous state.
+- **Choose a wider range:** use `long` when `int` is insufficient and there is no mandatory narrowing requirement.
+- **Use arbitrary-magnitude integers:** use `BigInteger` when even `long` may not be enough.
+- **Preserve an API's `int` contract:** use `Math.toIntExact` at the conversion boundary and handle errors with context.
 
-Cần tránh tự động “bão hòa” giá trị tại `MAX_VALUE` hoặc đặt lại thành 0 nếu nghiệp vụ không yêu cầu. Các phương thức `Exact` đưa ra tín hiệu lỗi để ứng dụng tự quyết định chính sách phù hợp.
+Avoid automatically "saturating" values at `MAX_VALUE` or resetting to 0 unless business requirements call for it. The `Exact` methods provide an error signal so the application can decide the appropriate policy itself.
 
-### 9.3. Phép toán khác: khi nào cần `addExact` hoặc `multiplyExact`?
+### 9.3. Other operations: when to use `addExact` or `multiplyExact`?
 
-`incrementExact(x)` tương đương về ý nghĩa kiểm tra với `addExact(x, 1)`. `decrementExact(x)` tương đương với `subtractExact(x, 1)`. `negateExact(x)` tương đương về mục tiêu với việc lấy số đối có kiểm tra miền.
+`incrementExact(x)` is equivalent in checking semantics to `addExact(x, 1)`. `decrementExact(x)` is equivalent to `subtractExact(x, 1)`. `negateExact(x)` is equivalent in purpose to negating with range checking.
 
-Nếu thao tác không phải ±1, hãy dùng phương thức phù hợp như `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact` thay vì cố ghép nhiều phép `incrementExact`/`decrementExact`. Ví dụ, thêm 100 đơn vị: `Math.addExact(total, 100)` rõ ràng và chỉ kiểm tra một phép cộng.
+If the operation is not ±1, use the appropriate method such as `Math.addExact`, `Math.subtractExact`, or `Math.multiplyExact` instead of chaining multiple `incrementExact`/`decrementExact` calls. For example, adding 100 units: `Math.addExact(total, 100)` is clear and checks a single addition.
 
-Các phương thức trên kiểm tra **overflow kỹ thuật**, không thay thế validation nghiệp vụ: `Math.incrementExact(-3)` trả `-2` hợp lệ về kiểu nhưng có thể không hợp lệ nếu đối tượng phải chứa số lượng không âm.
+These methods check **technical overflow**, not business validation: `Math.incrementExact(-3)` returns `-2`, which is type-valid yet may be invalid if an object must hold non-negative quantities.
 
-## 10. Những hiểu lầm và lỗi phổ biến
+## 10. Common Misconceptions and Mistakes
 
-| Nhầm lẫn | Sự thật và cách sửa |
+| Misconception | Reality and Fix |
 |---|---|
-| “`counter++` sẽ báo lỗi ở `MAX_VALUE`.” | `++` cuốn vòng âm thầm; dùng `Math.incrementExact(counter)` nếu cần phát hiện. |
-| “`decrementExact(0)` phải báo lỗi.” | Nó trả `-1`; kiểm tra điều kiện không âm là chuyện của nghiệp vụ. |
-| “`-Integer.MIN_VALUE` tạo số dương lớn nhất.” | Kết quả `int` vẫn là `Integer.MIN_VALUE`; `Math.negateExact` báo overflow. |
-| “`toIntExact` làm tròn số.” | Nó chỉ chuyển `long` → `int` mà không mất giá trị; không nhận `double`. |
-| “Ép `(int) longValue` sẽ ném lỗi nếu vượt miền.” | Cast nguyên thủy có thể cắt bit; dùng `Math.toIntExact`. |
-| “`incrementExact` tự thay đổi biến đầu vào.” | Phương thức trả giá trị mới; phải gán hoặc dùng giá trị trả về. |
-| “Các phương thức `Exact` tự giải quyết race condition.” | Chúng kiểm tra số học, không tự đồng bộ truy cập trạng thái giữa các luồng. |
-| “Số vừa `long` thì chắc chắn vừa `int`.” | `long` có miền rộng hơn; dùng `toIntExact` khi cần bảo đảm thu hẹp. |
-| “Chỉ cần bắt exception rồi tiếp tục bằng số 0.” | Chính sách xử lý overflow phải do yêu cầu nghiệp vụ quyết định. |
+| "`counter++` will throw an error at `MAX_VALUE`." | `++` wraps around silently; use `Math.incrementExact(counter)` when detection is needed. |
+| "`decrementExact(0)` must throw an error." | It returns `-1`; checking non-negativity is a business rule. |
+| "`-Integer.MIN_VALUE` produces the largest positive number." | The `int` result is still `Integer.MIN_VALUE`; `Math.negateExact` reports overflow. |
+| "`toIntExact` rounds numbers." | It only converts `long` → `int` without losing value; it does not accept `double`. |
+| "Casting `(int) longValue` throws an error if out of range." | A primitive cast can truncate bits; use `Math.toIntExact`. |
+| "`incrementExact` mutates the input variable itself." | The method returns a new value; you must assign or use the return value. |
+| "`Exact` methods automatically solve race conditions." | They check arithmetic, not concurrent state access across threads. |
+| "A number that fits in `long` surely fits in `int`." | `long` has a wider range; use `toIntExact` when safe narrowing must be guaranteed. |
+| "Just catch the exception and continue with 0." | Overflow handling policy must be dictated by business requirements. |
 
-## 11. Checklist áp dụng vào dự án
+## 11. Project Application Checklist
 
-1. **Chọn kiểu gốc:** `int` hay `long` có đủ miền giá trị kỳ vọng và các giá trị trung gian không?
-2. **Tìm phép toán ở biên:** bộ đếm tăng/giảm, số đối, chuyển `long` → `int`; chọn đúng `incrementExact`, `decrementExact`, `negateExact`, `toIntExact`.
-3. **Xác định khi có lỗi:** ném tiếp exception, chuyển thành lỗi có ngữ cảnh, từ chối thao tác hay đổi kiểu dữ liệu?
-4. **Giữ trạng thái nhất quán:** gán kết quả sau khi phép kiểm tra hoàn tất; nếu có nhiều bước cập nhật, xem xét transaction/synchronization.
-5. **Thử biên:** `MIN_VALUE`, `MIN_VALUE + 1`, `-1`, `0`, `1`, `MAX_VALUE - 1`, `MAX_VALUE` và hai giá trị `long` nằm ngay ngoài miền `int`.
-6. **Kiểm tra điều kiện nghiệp vụ riêng:** số lượng không âm, hạn mức, định dạng dữ liệu và quyền cập nhật không được bảo đảm chỉ bằng phương thức `Exact`.
+1. **Choose the base type:** do `int` or `long` have enough range for expected values and intermediate values?
+2. **Find boundary operations:** incrementing/decrementing counters, negating, converting `long` → `int`; pick the right `incrementExact`, `decrementExact`, `negateExact`, or `toIntExact`.
+3. **Decide what happens on error:** propagate the exception, translate it into a contextual error, reject the operation, or change the data type?
+4. **Keep state consistent:** assign the result after the check finishes; if updating multiple steps, consider transactions/synchronization.
+5. **Test boundaries:** `MIN_VALUE`, `MIN_VALUE + 1`, `-1`, `0`, `1`, `MAX_VALUE - 1`, `MAX_VALUE`, and the two `long` values immediately outside the `int` range.
+6. **Check separate business conditions:** non-negative quantities, limits, data formats, and update permissions are not guaranteed by `Exact` methods alone.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-1. Vì sao `Math.incrementExact(Integer.MAX_VALUE)` ném lỗi, còn `Integer.MAX_VALUE + 1` trả một số âm?
-2. `Math.decrementExact(0)` trả bao nhiêu? Điều này có bảo đảm “tồn kho không âm” không?
-3. Tại sao `Math.negateExact(Integer.MIN_VALUE)` ném lỗi, trong khi `Math.negateExact(Integer.MIN_VALUE + 1)` thành công?
-4. Hai giá trị `2_147_483_647L` và `2_147_483_648L` có kết quả `Math.toIntExact` khác nhau thế nào?
-5. Sự khác nhau giữa `(int) value` và `Math.toIntExact(value)` khi `value` là `long` vượt miền `int`?
-6. Trong `counter = Math.incrementExact(counter)`, nếu phương thức ném ngoại lệ, giá trị của `counter` có bị gán mới không?
-7. Vì sao mã trên vẫn cần đồng bộ nếu nhiều luồng cùng tăng `counter`?
-8. Nếu tổng số giao dịch có thể vượt miền `long`, nên suy nghĩ đến kiểu nào thay vì cố tăng `long` mãi?
+1. Why does `Math.incrementExact(Integer.MAX_VALUE)` throw an error, while `Integer.MAX_VALUE + 1` returns a negative number?
+2. What does `Math.decrementExact(0)` return? Does this guarantee "non-negative inventory"?
+3. Why does `Math.negateExact(Integer.MIN_VALUE)` throw an error, while `Math.negateExact(Integer.MIN_VALUE + 1)` succeeds?
+4. How do `2_147_483_647L` and `2_147_483_648L` differ in their `Math.toIntExact` results?
+5. What is the difference between `(int) value` and `Math.toIntExact(value)` when `value` is a `long` exceeding the `int` range?
+6. In `counter = Math.incrementExact(counter)`, if the method throws an exception, is `counter` assigned a new value?
+7. Why does the code above still need synchronization if multiple threads increment `counter` concurrently?
+8. If total transaction counts can exceed the `long` range, what type should you consider instead of trying to stretch `long`?
 
-**Đáp án gợi ý:** (1) `incrementExact` kiểm tra overflow còn phép `+` thông thường không; (2) trả `-1`, phải kiểm tra quy tắc tồn kho riêng; (3) chỉ số nguyên nhỏ nhất không có số đối dương cùng miền, còn `MIN_VALUE + 1` có; (4) giá trị thứ nhất hợp lệ, thứ hai ném `ArithmeticException`; (5) cast có thể làm mất giá trị, `toIntExact` phát hiện; (6) không, gán chưa hoàn tất; (7) kiểm tra số học không bảo đảm tính nguyên tử của đọc–ghi; (8) cân nhắc `BigInteger`.
+**Suggested answers:** (1) `incrementExact` checks for overflow whereas ordinary `+` does not; (2) returns `-1`, inventory rules must be checked separately; (3) only the minimum integer lacks a positive counterpart in the same range, whereas `MIN_VALUE + 1` has one; (4) the first value is valid, the second throws `ArithmeticException`; (5) a cast can lose value, while `toIntExact` detects it; (6) no, the assignment never completes; (7) arithmetic checking does not guarantee read-write atomicity; (8) consider `BigInteger`.
 
-**Ghi nhớ:** `incrementExact`, `decrementExact` và `negateExact` giữ nguyên kiểu số nguyên nhưng **báo lỗi thay vì im lặng tràn**. `toIntExact` bảo đảm chuyển `long` sang `int` **không mất giá trị**. Dùng chúng tại các phép toán và biên chuyển đổi mà tính chính xác là yêu cầu của chương trình.
+**Remember:** `incrementExact`, `decrementExact`, and `negateExact` keep the same integer type while **reporting errors instead of silently overflowing**. `toIntExact` ensures converting `long` to `int` **without data loss**. Use them at operations and conversion boundaries where exactness is a program requirement.

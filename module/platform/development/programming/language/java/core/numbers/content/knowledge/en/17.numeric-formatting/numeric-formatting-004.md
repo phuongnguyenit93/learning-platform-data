@@ -1,6 +1,6 @@
-# toHexString cho dấu phẩy động trong Java
+# `toHexString` for Floating-Point Numbers in Java
 
-Trong Java, **`Double.toHexString(double)`** và **`Float.toHexString(float)`** biểu diễn **giá trị dấu phẩy động** ở dạng **số thực hệ thập lục phân có số mũ cơ số 2**. Đây là cách hữu ích để quan sát chính xác những bit có nghĩa của một giá trị `float`/`double`, đặc biệt khi cần phân tích làm tròn, ULP, số subnormal và sự khác nhau giữa `0.1f` với `0.1d`.
+In Java, **`Double.toHexString(double)`** and **`Float.toHexString(float)`** represent a **floating-point value** as a **hexadecimal floating-point number with a base-2 exponent**. This is a useful way to inspect the exact significant bits of a `float`/`double` value, especially when analyzing rounding, ULP, subnormals, and the difference between `0.1f` and `0.1d`.
 
 ```java
 System.out.println(Double.toHexString(3.0));   // 0x1.8p1
@@ -8,44 +8,44 @@ System.out.println(Float.toHexString(1.0f));   // 0x1.0p0
 System.out.println(Double.toHexString(0.1));   // 0x1.999999999999ap-4
 ```
 
-Các lệnh trên là mảnh minh họa có thể đặt trong một phương thức Java. **Đừng nhầm `Double.toHexString` với `Integer.toHexString`**: hàm thứ nhất xuất ra **ký pháp số thực với dấu chấm và `p`**, còn hàm thứ hai xuất ra **chữ số hex của mẫu số nguyên**. `Double.toHexString` cũng **không phải** một phép lấy trực tiếp raw IEEE 754 bits hoặc chuỗi byte theo thứ tự endian.
+The statements above are illustrative snippets that can be placed inside a Java method. **Do not confuse `Double.toHexString` with `Integer.toHexString`**: the first outputs **floating-point notation with a decimal point and `p`**, while the second outputs **hex digits of an integer pattern**. `Double.toHexString` is also **not** a direct dump of raw IEEE 754 bits or an endian-ordered byte sequence.
 
-## 1. Hai API và mục đích
+## 1. The two APIs and their purpose
 
-| API | Đối số | Trả về | Ví dụ |
+| API | Argument | Return | Example |
 | --- | --- | --- | --- |
-| `Double.toHexString(double d)` | Giá trị `double` 64 bit | `String` dạng hex floating-point | `Double.toHexString(1.0)` → `"0x1.0p0"` |
-| `Float.toHexString(float f)` | Giá trị `float` 32 bit | `String` dạng hex floating-point | `Float.toHexString(1.0f)` → `"0x1.0p0"` |
+| `Double.toHexString(double d)` | 64-bit `double` value | Hex floating-point `String` | `Double.toHexString(1.0)` → `"0x1.0p0"` |
+| `Float.toHexString(float f)` | 32-bit `float` value | Hex floating-point `String` | `Float.toHexString(1.0f)` → `"0x1.0p0"` |
 
-Cả hai phương thức là **static**, dùng qua tên lớp `Double` hoặc `Float`. Không phải gọi trên đối tượng wrapper mới dùng được:
+Both methods are **static**, called through the `Double` or `Float` class name. You do not need to call them on wrapper objects:
 
 ```java
 double x = 3.0;
 String formatted = Double.toHexString(x);  // "0x1.8p1"
 ```
 
-Kết quả là **chuỗi để quan sát/ghi log/trao đổi dữ liệu dạng văn bản**, không làm thay đổi giá trị gốc. Phương thức không làm tròn thành một số chữ số thập phân theo locale; nó biểu diễn giá trị nhị phân đã lưu bằng ký pháp hex phù hợp.
+The result is a **string for inspection/logging/text-based data exchange**, without altering the original value. The method does not round to a certain number of decimal places by locale; it represents the stored binary value in the appropriate hex notation.
 
-Hình thức chuỗi dễ nhầm ở điểm: chữ số phần trị là **hex**, nhưng số mũ đứng sau `p` biểu thị **lũy thừa của 2**, không phải của 16 hay của 10. Dấu `p` là thành phần bắt buộc trong cú pháp hex floating-point được Java hỗ trợ.
+The string format can be misleading at first: the significand digits are **hex**, but the exponent following `p` denotes a **power of 2**, not of 16 or 10. The `p` marker is a mandatory part of the hex floating-point syntax supported by Java.
 
-## 2. Đọc chuỗi `0x1.8p1`
+## 2. Reading the string `0x1.8p1`
 
-Một số hex floating-point hữu hạn normal có dạng đại ý:
+A finite normal hex floating-point number generally has the form:
 
 ```text
 [-]0xH.FpE
     └─┬─┘ └┬┘
-      │    └── E là số mũ viết bằng chữ số thập phân,
-      │        nhưng chỉ lũy thừa của 2
-      └─────── H.F là phần trị viết theo hệ 16
+      │    └── E is the exponent written in decimal digits,
+      │        but denotes a power of 2
+      └─────── H.F is the significand written in base 16
 ```
 
-Đối với chuỗi `0x1.8p1`:
+For the string `0x1.8p1`:
 
-- `0x`: báo phần trị ở **cơ số 16**.
-- `1.8`: phần trị = `1 + 8/16 = 1.5`.
-- `p1`: nhân phần trị với `2^1 = 2`.
-- Giá trị = `1.5 × 2 = 3.0`.
+- `0x`: indicates the significand is in **base 16**.
+- `1.8`: significand = `1 + 8/16 = 1.5`.
+- `p1`: multiply the significand by `2^1 = 2`.
+- Value = `1.5 × 2 = 3.0`.
 
 ```text
 0x1.8p1 = (1 + 8/16) × 2^1 = 3.0
@@ -55,25 +55,25 @@ Một số hex floating-point hữu hạn normal có dạng đại ý:
 0x1.fp3 = (1 + 15/16) × 2^3 = 15.5
 ```
 
-Sau dấu chấm, **mỗi chữ số hex tương đương bốn bit nhị phân**, nên ký pháp rất thích hợp để xem một giá trị đã được biểu diễn sát các ngưỡng làm tròn hay chưa. Ví dụ `0x1.8` có phần `.8` tương đương `.1000` ở hệ nhị phân.
+After the dot, **each hex digit corresponds to four binary bits**, making this notation well suited for checking how close a value is to rounding thresholds. For example, `0x1.8` has `.8` corresponding to `.1000` in binary.
 
-**Không đọc `p1` như `×10^1` hoặc `×16^1`**. Với các dấu phẩy động hex trong Java, `p` dùng số mũ cơ số 2; ký hiệu số mũ thập phân là `e` trong chuỗi thập phân như `1.5e2`.
+**Do not read `p1` as `×10^1` or `×16^1`**. For Java hex floating-point numbers, `p` uses a base-2 exponent; the decimal exponent symbol is `e` in decimal strings like `1.5e2`.
 
-## 3. Normal `double` và `float` được in khác nhau về số chữ số phần trị
+## 3. Normal `double` and `float` print with different numbers of significand digits
 
-Hai kiểu này đều theo biểu diễn nhị phân IEEE 754 nhưng có độ chính xác khác nhau:
+Both types follow IEEE 754 binary representation but have different precisions:
 
-| Thuộc tính | `float` | `double` |
+| Property | `float` | `double` |
 | --- | ---: | ---: |
-| Tổng số bit | 32 | 64 |
-| Bit fraction được lưu | 23 | 52 |
-| Bit significand hiệu dụng ở số normal | 24 | 53 |
-| Số mũ không thiên lệch ở miền normal | -126 đến +127 | -1022 đến +1023 |
-| ULP quanh `1.0` | `2^-23` | `2^-52` |
+| Total bits | 32 | 64 |
+| Stored fraction bits | 23 | 52 |
+| Effective significand bits in normal numbers | 24 | 53 |
+| Unbiased exponent in normal range | -126 to +127 | -1022 to +1023 |
+| ULP around `1.0` | `2^-23` | `2^-52` |
 
-Vì một chữ số hex tương ứng bốn bit, phần fraction của `double` normal có thể cần tới **13 chữ số hex** để mô tả 52 bit. `float` normal cần nhiều nhất **6 chữ số hex** để mã hóa 23 bit fraction (bit thấp của chữ số cuối chứa phần đệm trong cách viết).
+Since one hex digit corresponds to four bits, the fraction part of a normal `double` can take up to **13 hex digits** to describe 52 bits. A normal `float` takes at most **6 hex digits** to encode 23 fraction bits (the low bit of the last digit contains padding in the written form).
 
-Ví dụ:
+Example:
 
 ```java
 System.out.println(Double.toHexString(0.1d));
@@ -83,13 +83,13 @@ System.out.println(Float.toHexString(0.1f));
 // 0x1.99999ap-4
 ```
 
-Giá trị `0.1` trong thập phân không có biểu diễn nhị phân hữu hạn, nên hai kiểu làm tròn đến hai lưới biểu diễn khác nhau. Các chuỗi trên cho ta thấy rõ **các giá trị nhị phân lưu thực tế**; không phải hai cách “trang trí” khác nhau cho một giá trị chính xác `1/10`.
+The decimal value `0.1` has no finite binary representation, so the two types round to two different representation grids. The strings above clearly reveal the **actual stored binary values**; they are not two different "decorations" for an exact `1/10` value.
 
-Các chữ số hex không phải một độ chính xác thập phân tùy chọn được ép theo số chữ số sau dấu chấm. `toHexString` tạo chuỗi xác định theo giá trị `float` hoặc `double` đã có, không tự tăng độ chính xác của biến.
+The hex digits are not an optional decimal precision forced by digits after the dot. `toHexString` produces a deterministic string from the existing `float` or `double` value, without increasing the variable's precision.
 
-## 4. Tại sao `0x1.0p0` không ghi đủ mọi chữ số 0 của fraction?
+## 4. Why doesn't `0x1.0p0` write out all the zero digits of the fraction?
 
-Java xuất **dạng ngắn gọn, có quy tắc**, thay vì luôn đệm đủ 6 hoặc 13 chữ số phần fraction.
+Java outputs a **compact, canonical form**, rather than always padding all 6 or 13 fraction digits.
 
 ```java
 Double.toHexString(1.0);  // "0x1.0p0"
@@ -97,17 +97,17 @@ Double.toHexString(2.0);  // "0x1.0p1"
 Double.toHexString(3.0);  // "0x1.8p1"
 ```
 
-Ở `1.0`, fraction toàn zero, nên không cần ghi `0x1.0000000000000p0`. Java vẫn để **ít nhất một chữ số sau dấu chấm**, vì đây là định dạng của một số thực hex chứ không phải integer hex.
+In `1.0`, the fraction is all zeros, so there is no need to write `0x1.0000000000000p0`. Java still keeps **at least one digit after the dot**, because this is a hex floating-point format rather than an integer hex format.
 
-Trong miền số normal, chữ số đầu thường là `1` vì **significand chuẩn hóa** của số nhị phân có dạng `1.fraction`. Điều đó khác miền **subnormal**, nơi phần đầu được in `0.` và số mũ được giữ ở cận normal nhỏ nhất.
+In the normal range, the leading digit is typically `1` because a **normalized significand** of a binary number has the form `1.fraction`. This differs from the **subnormal** range, where the leading part is printed as `0.` and the exponent is kept at the smallest normal bound.
 
-Lưu ý một giá trị có thể có **nhiều chuỗi toán học tương đương** trước khi chuẩn hóa, ví dụ `0x1.0p0` và `0x2.0p-1` cùng bằng 1. Hàm `toHexString` chọn định dạng được chuẩn hóa theo đặc tả API; không phải mọi chuỗi mà parser chấp nhận đều sẽ được in lại y nguyên.
+Note that a value can have **multiple mathematically equivalent strings** before normalization, such as `0x1.0p0` and `0x2.0p-1`, both equal to 1. `toHexString` chooses the normalized format per the API specification; not every string accepted by the parser will be printed back verbatim.
 
-## 5. Số normal: ví dụ biểu diễn các ngưỡng
+## 5. Normal numbers: examples of threshold representations
 
-Đối với `double`:
+For `double`:
 
-| Giá trị | `Double.toHexString` |
+| Value | `Double.toHexString` |
 | --- | --- |
 | `0.5` | `0x1.0p-1` |
 | `1.0` | `0x1.0p0` |
@@ -117,17 +117,17 @@ Lưu ý một giá trị có thể có **nhiều chuỗi toán học tương đ�
 | `Double.MIN_NORMAL` | `0x1.0p-1022` |
 | `Double.MAX_VALUE` | `0x1.fffffffffffffp1023` |
 
-Với `float`:
+For `float`:
 
-| Giá trị | `Float.toHexString` |
+| Value | `Float.toHexString` |
 | --- | --- |
 | `1.0f` | `0x1.0p0` |
 | `Math.nextUp(1.0f)` | `0x1.000002p0` |
 | `Float.MIN_NORMAL` | `0x1.0p-126` |
 
-Đặc biệt, `Double.MAX_VALUE` có phần trị ngay dưới 2 nhân với `2^1023`. Đó là số `double` **hữu hạn lớn nhất**, không phải Infinity; chuỗi hex `0x1.fffffffffffffp1023` giúp nhìn chính xác giới hạn fraction và mũ.
+In particular, `Double.MAX_VALUE` has a significand just below 2 multiplied by `2^1023`. It is the **largest finite** `double`, not Infinity; the hex string `0x1.fffffffffffffp1023` makes the exact fraction and exponent limits easy to see.
 
-Khi `Math.nextUp(1.0)` thêm bước ULP nhỏ nhất phía trên, bit fraction cuối thay đổi:
+When `Math.nextUp(1.0)` adds the smallest ULP step above, the last fraction bit changes:
 
 ```text
 1.0                  0x1.0p0
@@ -135,13 +135,13 @@ nextUp(1.0)          0x1.0000000000001p0
 Math.ulp(1.0)        0x1.0p-52
 ```
 
-Hex floating-point là công cụ kiểm thử đặc biệt tốt ở các ranh giới **làm tròn**, **số mũ**, và các hàm số có sai số chỉ vài ULP mà cách in decimal mặc định đôi khi khó theo dõi.
+Hex floating-point is an especially good testing tool at **rounding** boundaries, **exponent** boundaries, and in numerical functions with errors of only a few ULPs that default decimal printing can obscure.
 
-## 6. Subnormal: vì sao xuất hiện `0x0....p-1022`?
+## 6. Subnormals: why does `0x0....p-1022` appear?
 
-Các số dương nhỏ nhất của `double` thuộc miền **subnormal**, tức dưới `Double.MIN_NORMAL`. Trong miền này không có bit `1` đầu ẩn của significand normal. Vì thế chuỗi `toHexString` có dạng **`0x0.fractionp-1022`**.
+The smallest positive `double` numbers lie in the **subnormal** range, i.e., below `Double.MIN_NORMAL`. In this range there is no implicit leading `1` bit of a normal significand. Therefore, `toHexString` has the form **`0x0.fractionp-1022`**.
 
-Ví dụ Java 17:
+Java 17 example:
 
 ```java
 System.out.println(Double.toHexString(Double.MIN_NORMAL));
@@ -151,13 +151,13 @@ System.out.println(Double.toHexString(Double.MIN_VALUE));
 // 0x0.0000000000001p-1022
 ```
 
-Ở đây:
+Here:
 
-- `Double.MIN_NORMAL = 2^-1022`: số dương **normal** nhỏ nhất.
-- `Double.MIN_VALUE = 2^-1074`: số `double` **dương nhỏ nhất khác 0**, là subnormal.
-- Trong chuỗi `0x0.0000000000001p-1022`, fraction cuối có giá trị `16^-13 = 2^-52`; nhân `2^-1022` cho `2^-1074`.
+- `Double.MIN_NORMAL = 2^-1022`: smallest positive **normal** number.
+- `Double.MIN_VALUE = 2^-1074`: smallest **non-zero positive** `double`, which is subnormal.
+- In `0x0.0000000000001p-1022`, the trailing fraction has value `16^-13 = 2^-52`; multiplying by `2^-1022` gives `2^-1074`.
 
-Với `float`, sự khác biệt tương tự nhưng số mũ và độ rộng khác:
+For `float`, the distinction is analogous, though the exponent and bit width differ:
 
 ```java
 System.out.println(Float.toHexString(Float.MIN_NORMAL));
@@ -167,13 +167,13 @@ System.out.println(Float.toHexString(Float.MIN_VALUE));
 // 0x0.000002p-126
 ```
 
-`Float.MIN_VALUE = 2^-149` và phần `0x0.000002` tương ứng `2^-23`; nhân thêm `2^-126` ra `2^-149`.
+`Float.MIN_VALUE = 2^-149` and `0x0.000002` corresponds to `2^-23`; multiplying by `2^-126` yields `2^-149`.
 
-**Đừng nhầm `Double.MIN_VALUE` là số âm nhỏ nhất**. Đây là giá trị dương gần 0 nhất; số hữu hạn âm có độ lớn lớn nhất là `-Double.MAX_VALUE`.
+**Do not mistake `Double.MIN_VALUE` for the smallest negative number**. It is the positive value closest to 0; the finite negative number with the largest magnitude is `-Double.MAX_VALUE`.
 
-## 7. `+0.0`, `-0.0` và dấu trong chuỗi hex
+## 7. `+0.0`, `-0.0`, and signs in hex strings
 
-Java dùng IEEE 754 với **hai mẫu bit zero**:
+Java uses IEEE 754 with **two zero bit patterns**:
 
 ```java
 System.out.println(Double.toHexString(+0.0)); // 0x0.0p0
@@ -181,11 +181,11 @@ System.out.println(Double.toHexString(-0.0)); // -0x0.0p0
 System.out.println(-0.0 == +0.0);             // true
 ```
 
-Hai zero so sánh bằng nhau bằng toán tử `==`, nhưng khác **bit dấu**. `toHexString` giữ khác biệt bằng dấu `-` đầu chuỗi.
+The two zeros compare equal with the `==` operator, but differ in their **sign bit**. `toHexString` preserves the distinction with a leading `-` sign.
 
-Điều này quan trọng nếu bạn cần phân biệt kết quả tại các biên hoặc xác minh **round-trip bit-level**. Parse lại `"-0x0.0p0"` bằng `Double.parseDouble` cho mẫu bit negative zero; không nên dựa vào so sánh `==` để kiểm tra hai mẫu zero.
+This matters if you need to distinguish results at boundaries or verify a **bit-level round-trip**. Parsing `"-0x0.0p0"` back with `Double.parseDouble` yields the negative zero bit pattern; you should not rely on `==` to test the two zero patterns.
 
-Một cách kiểm tra rõ ràng:
+An explicit way to check:
 
 ```java
 double original = -0.0;
@@ -194,19 +194,19 @@ boolean sameBits = Double.doubleToRawLongBits(original)
         == Double.doubleToRawLongBits(parsed); // true
 ```
 
-`Math.signum`, phép chia cho zero và các phép toán khác cũng có thể biểu hiện khác nhau với hai dấu zero. Không tự bỏ dấu âm khỏi kết quả hex nếu bạn muốn giữ nguyên ý nghĩa của giá trị dấu phẩy động.
+`Math.signum`, division by zero, and other operations can also behave differently on the two zero signs. Do not strip the minus sign from hex output if you want to preserve the full floating-point semantics.
 
-## 8. `NaN` và Infinity không được in như số hex hữu hạn
+## 8. `NaN` and `Infinity` are not printed as finite hex numbers
 
-Hai phương thức `toHexString` trả **tên giá trị đặc biệt** thay vì dựng một số `0x...`:
+Both `toHexString` methods return **special value names** instead of building a `0x...` number:
 
-| Đầu vào | Chuỗi kết quả |
+| Input | Resulting string |
 | --- | --- |
 | `Double.NaN`, `Float.NaN` | `"NaN"` |
 | `Double.POSITIVE_INFINITY`, `Float.POSITIVE_INFINITY` | `"Infinity"` |
 | `Double.NEGATIVE_INFINITY`, `Float.NEGATIVE_INFINITY` | `"-Infinity"` |
 
-Ví dụ:
+Example:
 
 ```java
 Double.toHexString(Double.NaN);               // "NaN"
@@ -214,13 +214,13 @@ Double.toHexString(Double.POSITIVE_INFINITY); // "Infinity"
 Double.toHexString(Double.NEGATIVE_INFINITY); // "-Infinity"
 ```
 
-`NaN` (Not a Number) có thể có **nhiều mẫu bit payload**, nhưng `toHexString` trả một chuỗi chung `"NaN"`. Vì vậy **không thể dùng kết quả `toHexString` để giữ nguyên payload NaN**. Khi cần chính xác từng bit của giá trị `NaN`, phải sử dụng API raw bits phù hợp và một định dạng truyền tải lưu toàn bộ bit.
+`NaN` (Not a Number) can have **many payload bit patterns**, but `toHexString` returns a single common string `"NaN"`. Therefore, **you cannot use `toHexString` output to preserve a NaN payload**. When exact bits of a `NaN` value are needed, use the appropriate raw-bits API and a transport format that stores all bits.
 
-`Double.parseDouble("NaN")` có thể tạo một mẫu NaN hợp lệ nhưng không biết payload của giá trị ban đầu. Tương tự, `Float.parseFloat("NaN")` không phục hồi payload `float` ban đầu. Phân biệt **round-trip về giá trị đặc biệt** với **round-trip bit-for-bit**.
+`Double.parseDouble("NaN")` can produce a valid NaN pattern without knowing the original value's payload. Similarly, `Float.parseFloat("NaN")` does not recover the original `float` payload. Distinguish **round-trip of special value kind** from **bit-for-bit round-trip**.
 
-## 9. Parse ngược: `Double.parseDouble` và `Float.parseFloat`
+## 9. Parsing back: `Double.parseDouble` and `Float.parseFloat`
 
-`Double.parseDouble` và `Float.parseFloat` chấp nhận cả ký pháp số thực thập phân và **hex floating-point**, miễn chuỗi đúng quy tắc parser:
+`Double.parseDouble` and `Float.parseFloat` accept both decimal floating-point notation and **hex floating-point**, provided the string follows parser rules:
 
 ```java
 double d = Double.parseDouble("0x1.8p1");  // 3.0
@@ -231,11 +231,11 @@ String hex = Double.toHexString(x);
 double restored = Double.parseDouble(hex);
 ```
 
-Đối với số **hữu hạn**, dạng chuỗi từ `Double.toHexString` chứa đủ thông tin để parse lại thành **cùng mẫu bit `double`** trong cùng quy tắc Java. Tương tự với `Float.toHexString` và `Float.parseFloat` cho `float`.
+For **finite** numbers, the string format from `Double.toHexString` contains enough information to parse back into the **exact same `double` bit pattern** under Java's rules. The same holds for `Float.toHexString` and `Float.parseFloat` for `float`.
 
-Chuỗi hex `"0x1.8p1"` khác chuỗi hex nguyên `"1A"`; không truyền nó vào `Integer.parseInt(...,16)` để mong lấy giá trị số thực. Đối với hex floating-point, **`p` và số mũ nhị phân** là thành phần cú pháp chính.
+The hex string `"0x1.8p1"` is different from an integer hex string `"1A"`; do not pass it to `Integer.parseInt(...,16)` expecting a floating-point value. For hex floating-point, **`p` and the binary exponent** are key syntactic components.
 
-Ví dụ kiểm tra round-trip:
+Round-trip verification example:
 
 ```java
 double original = Math.PI;
@@ -247,26 +247,26 @@ boolean sameRawBits =
         == Double.doubleToRawLongBits(reconstructed);
 ```
 
-Trong trường hợp `Math.PI` hữu hạn, `sameRawBits` là `true`. Với `NaN`, payload là ngoại lệ cần xử lý riêng; với Infinity, chuỗi vẫn nhận diện đúng vô cực nhưng không chứa bất kỳ fraction số thực nào.
+In the finite `Math.PI` case, `sameRawBits` is `true`. For `NaN`, payloads are an exception requiring special handling; for Infinity, the string still properly identifies infinity without containing any floating-point fraction.
 
-## 10. `toHexString` khác với `toString` và định dạng thập phân
+## 10. `toHexString` differs from `toString` and decimal formatting
 
-| Cách hiển thị | Ví dụ với `double 0.1` | Mục đích |
+| Display style | Example with `double 0.1` | Purpose |
 | --- | --- | --- |
-| `Double.toString(x)` | `0.1` | Biểu diễn thập phân ngắn, dễ đọc, hỗ trợ round-trip theo quy tắc Java |
-| `Double.toHexString(x)` | `0x1.999999999999ap-4` | Lộ rõ giá trị nhị phân được lưu dưới dạng significand hex và mũ 2 |
-| `String.format("%.2f", x)` | `0.10` | Trình bày số thập phân theo precision/locale, có thể làm tròn chuỗi đầu ra |
-| `Double.doubleToRawLongBits(x)` | `long` 64 bit | Lấy mẫu bit dấu, exponent, fraction; không phải định dạng số thực text |
+| `Double.toString(x)` | `0.1` | Short, readable decimal representation supporting round-trip per Java rules |
+| `Double.toHexString(x)` | `0x1.999999999999ap-4` | Reveals the stored binary value as a hex significand and power of 2 |
+| `String.format("%.2f", x)` | `0.10` | Presents decimal number by precision/locale; may round the output string |
+| `Double.doubleToRawLongBits(x)` | 64-bit `long` | Extracts sign bit, exponent, and fraction pattern; not a floating-point text format |
 
-Đây là những nhiệm vụ khác nhau. `Double.toString(0.1)` in `0.1` vì đó là biểu diễn thập phân ngắn phù hợp cho giá trị `double`, **không chứng minh giá trị đã lưu bằng đúng phân số thập phân 1/10**.
+These are distinct tasks. `Double.toString(0.1)` prints `0.1` because it is a suitable short decimal representation for the `double` value, **not proof that the stored value equals the exact decimal fraction 1/10**.
 
-Nếu mục tiêu chỉ là báo cáo giá/đơn vị cho người đọc, chuỗi hex có thể khó hiểu và không phù hợp. Nếu mục tiêu là **kiểm tra sai số số học, hiệu ứng làm tròn, khoảng cách ULP, normal/subnormal** thì chuỗi hex giúp tránh mơ hồ về phần trị nhị phân.
+If the goal is simply reporting prices/units to readers, hex strings can be confusing and inappropriate. If the goal is **inspecting arithmetic error, rounding effects, ULP spacing, or normal/subnormal boundaries**, hex strings eliminate ambiguity about the binary significand.
 
-`String.format("%a", x)` cũng là một cách trình bày hex floating-point trong hệ thống formatter của Java, nhưng khác về API, cấu hình locale và precision. Khi cần một cách in ngắn gọn, nhất quán, không phụ thuộc vào format string, `Double.toHexString`/`Float.toHexString` là lựa chọn trực tiếp.
+`String.format("%a", x)` is also a way to present hex floating-point in Java's formatter system, though it differs in API, locale configuration, and precision. When you want a concise, consistent print format independent of format strings, `Double.toHexString`/`Float.toHexString` are direct choices.
 
-## 11. Phân biệt `Double.toHexString` và raw IEEE 754 bits
+## 11. Distinguishing `Double.toHexString` from raw IEEE 754 bits
 
-Đây là **hai cách biểu diễn khác nhau** cho cùng giá trị `1.0`:
+These are **two different representations** of the same value `1.0`:
 
 ```java
 System.out.println(Double.toHexString(1.0));
@@ -276,9 +276,9 @@ System.out.println(Long.toHexString(Double.doubleToRawLongBits(1.0)));
 // 3ff0000000000000
 ```
 
-Chuỗi đầu là **giá trị toán học biểu diễn bằng phần trị hex nhân lũy thừa 2**. Chuỗi sau là **64 bit dữ liệu IEEE 754 dưới dạng một số nguyên `long` biểu diễn hex**, gồm cả bit dấu, exponent đã bias và fraction trong các vị trí bit cố định.
+The first string is the **mathematical value expressed as a hex significand times a power of 2**. The second string is the **64 IEEE 754 data bits as a hex-formatted `long` integer**, containing the sign bit, biased exponent, and fraction in fixed bit positions.
 
-Tương tự với `float`:
+Similarly for `float`:
 
 ```java
 System.out.println(Float.toHexString(1.0f));
@@ -288,18 +288,18 @@ System.out.println(Integer.toHexString(Float.floatToRawIntBits(1.0f)));
 // 3f800000
 ```
 
-Một số người mới học thấy `toHexString` rồi tưởng nó in raw bit pattern. Dấu hiệu nhận biết:
+Some beginners see `toHexString` and assume it prints the raw bit pattern. How to tell them apart:
 
-- **Dạng giá trị dấu phẩy động:** thường `0x1.xxxxxpE`, `0x0.xxxpE`, `-0x0.0p0`, `NaN` hoặc `Infinity`.
-- **Dạng raw bit pattern:** dùng `Long.toHexString`/`Integer.toHexString` trên giá trị trả về của `doubleToRawLongBits`/`floatToRawIntBits`, là chuỗi hex **không có `p`**.
+- **Floating-point value form:** typically `0x1.xxxxxpE`, `0x0.xxxpE`, `-0x0.0p0`, `NaN`, or `Infinity`.
+- **Raw bit-pattern form:** uses `Long.toHexString`/`Integer.toHexString` on the return value of `doubleToRawLongBits`/`floatToRawIntBits`, which is a hex string **without `p`**.
 
-`Double.doubleToLongBits` (không có `Raw`) **chuẩn hóa NaN** thành mẫu canonical; nếu bài toán cần quan sát payload, dùng `Double.doubleToRawLongBits`. Tương tự với `Float.floatToIntBits` so với `Float.floatToRawIntBits`.
+`Double.doubleToLongBits` (without `Raw`) **normalizes NaN** to a canonical pattern; if your task requires inspecting payloads, use `Double.doubleToRawLongBits`. The same applies to `Float.floatToIntBits` versus `Float.floatToRawIntBits`.
 
-Và không được nhầm **raw bits** với **thứ tự byte (endianness)** trên mạng hoặc trong tệp. Muốn serialization byte-for-byte, bạn còn phải chọn byte order và bố cục trường dữ liệu; chỉ tạo chuỗi `0x1.0p0` không quyết định bộ bốn/tám byte được truyền ra ngoài.
+And do not confuse **raw bits** with **byte order (endianness)** on the network or in files. For byte-for-byte serialization, you also have to choose byte order and field layout; merely generating the string `0x1.0p0` does not determine the four or eight bytes transmitted.
 
-## 12. Ví dụ Java 17+ độc lập và stdout đã kiểm chứng
+## 12. Standalone Java 17+ example and verified stdout
 
-Lưu thành tệp **`FloatingHexDemo.java`**:
+Save as **`FloatingHexDemo.java`**:
 
 ```java
 public class FloatingHexDemo {
@@ -371,14 +371,14 @@ public class FloatingHexDemo {
 }
 ```
 
-Biên dịch/chạy tại thư mục chứa tệp:
+Compile/run in the directory containing the file:
 
 ```bash
 javac --release 17 -encoding UTF-8 FloatingHexDemo.java
 java FloatingHexDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 dZero=0x0.0p0
@@ -412,23 +412,23 @@ nanText=NaN
 nanPayloadLost=true
 ```
 
-Phân tích kết quả:
+Result analysis:
 
-1. **Nhóm `dZero` đến `dThree`:** minh họa dấu, phần trị hex và số mũ nhị phân; số 3 được biểu diễn `0x1.8p1`.
-2. **`dPointOne` và `fPointOne`:** cùng ý tưởng `0.1` nhưng hai kiểu lưu các bit fraction khác nhau; `float` ít chính xác hơn `double`.
-3. **`dMinNormal`, `dMinSubnormal`, `fMinNormal`, `fMinSubnormal`:** ranh giới normal/subnormal và dạng `0x0....pE`.
-4. **`dNextUpOne`, `fNextUpOne`:** quan sát một bước lưới floating-point của mỗi kiểu.
-5. **`dPositiveInfinity`, `dNegativeInfinity`, `dNaN`:** các trường hợp đặc biệt không xuất dạng hex significand.
-6. **`parseHexDouble`, `parseHexFloat`:** `parseDouble` và `parseFloat` nhận chuỗi có ký hiệu `p` và trả giá trị 3.
-7. **`negativeZeroRoundTripBits`, `doubleRoundTripBits`, `floatRoundTripBits`:** xác minh parse ngược giữ mẫu bit của các giá trị hữu hạn được thử, gồm dấu âm của zero.
-8. **`floatOneRawBits`, `doubleOneRawBits`:** minh họa raw IEEE bits **khác** `toHexString`.
-9. **`nanPayloadLost=true`:** chuỗi `"NaN"` không mã hóa payload của mẫu NaN được tạo ra từ raw bits.
+1. **Group `dZero` to `dThree`:** illustrates sign, hex significand, and binary exponent; the number 3 is represented as `0x1.8p1`.
+2. **`dPointOne` and `fPointOne`:** same idea of `0.1`, but the two types store different fraction bits; `float` is less precise than `double`.
+3. **`dMinNormal`, `dMinSubnormal`, `fMinNormal`, `fMinSubnormal`:** normal/subnormal boundaries and the `0x0....pE` form.
+4. **`dNextUpOne`, `fNextUpOne`:** observes one floating-point grid step of each type.
+5. **`dPositiveInfinity`, `dNegativeInfinity`, `dNaN`:** special cases that do not output hex significand notation.
+6. **`parseHexDouble`, `parseHexFloat`:** `parseDouble` and `parseFloat` accept strings with `p` notation and return the value 3.
+7. **`negativeZeroRoundTripBits`, `doubleRoundTripBits`, `floatRoundTripBits`:** verifies that parsing back preserves the bit pattern of the tested finite values, including the negative sign of zero.
+8. **`floatOneRawBits`, `doubleOneRawBits`:** illustrates raw IEEE bits **differing from** `toHexString`.
+9. **`nanPayloadLost=true`:** the `"NaN"` string does not encode the payload of a NaN pattern created from raw bits.
 
-Chương trình dùng hàm `showDouble`/`showFloat` để tránh lặp lời gọi `println`. Chỉ có một `public class FloatingHexDemo`, tên trùng file, không cần thư viện ngoài Java 17.
+The program uses `showDouble`/`showFloat` helpers to avoid repeated `println` calls. There is only one `public class FloatingHexDemo`, matching the filename, with no libraries outside Java 17.
 
-## 13. Ứng dụng khi debug ULP, số kề và lỗi làm tròn
+## 13. Application in debugging ULP, adjacent numbers, and rounding errors
 
-Giả sử một thuật toán dự kiến cho kết quả `1.0`, nhưng thực tế trả giá trị `double` ngay kế trên:
+Suppose an algorithm is expected to return `1.0`, yet actually returns the `double` value immediately above it:
 
 ```java
 double exact = 1.0;
@@ -439,11 +439,11 @@ System.out.println(Double.toHexString(actual)); // 0x1.0000000000001p0
 System.out.println(Double.toHexString(Math.ulp(exact))); // 0x1.0p-52
 ```
 
-Chỉ một chữ số phần trị hex cuối được thay đổi. Điều đó cho phép nhận diện cụ thể một bước gần `1.0`, thay vì ghi chung “sai số nhỏ”. Nhưng cần cẩn thận: tại **ranh giới lũy thừa 2**, khoảng cách phía trên và phía dưới có thể khác nhau. `Math.ulp(1.0)` bằng `2^-52`, trong khi `1.0-Math.nextDown(1.0)` bằng `2^-53`. Đừng coi mọi số `double` ở gần nhau là nằm trên lưới có bước cố định toàn cục.
+Only the last hex significand digit changed. That lets you concretely identify a single step near `1.0`, rather than vaguely noting "a small error". But be careful: at **power-of-2 boundaries**, the step above and the step below can differ. `Math.ulp(1.0)` equals `2^-52`, whereas `1.0-Math.nextDown(1.0)` equals `2^-53`. Do not treat all nearby `double` numbers as lying on a globally fixed-step grid.
 
-Khi so sánh output của hai thuật toán, `toHexString` giúp thấy sự khác biệt **mẫu phần trị được biểu diễn**. Dù vậy, **khác vài chữ số hex không tự xác định thuật toán nào đúng hơn**: cần một đáp án tham chiếu, thang sai số (tuyệt đối/tương đối/ULP) và điều kiện bài toán.
+When comparing the outputs of two algorithms, `toHexString` helps reveal differences in the **represented significand pattern**. Still, **differing by a few hex digits does not by itself determine which algorithm is more accurate**: you need a reference answer, an error metric (absolute/relative/ULP), and problem constraints.
 
-Trong kiểm thử biên, có thể lưu cả output decimal lẫn hex để vừa dễ đọc vừa dễ phân tích:
+In boundary testing, both decimal and hex outputs can be logged for both readability and analysis:
 
 ```java
 double result = Math.nextUp(1.0);
@@ -451,57 +451,57 @@ System.out.println("decimal=" + result);
 System.out.println("hex=" + Double.toHexString(result));
 ```
 
-## 14. Ứng dụng khi trao đổi dữ liệu
+## 14. Application in data exchange
 
-Nếu API trao đổi **chuỗi văn bản** được quy định rõ là cú pháp Java hex floating-point, có thể dùng:
+If an API exchanges **text strings** explicitly specified as Java hex floating-point syntax, you can use:
 
 ```java
 String payload = Double.toHexString(0.1);
 double received = Double.parseDouble(payload);
 ```
 
-Đối với **giá trị hữu hạn**, phép parse lại có thể giữ chính xác mẫu bit `double` của giá trị ban đầu. Hãy ghi rõ trong tài liệu API rằng đây là **chuỗi số thực hex với `p`**, không phải unsigned integer hex hoặc dữ liệu 8 byte nhị phân.
+For **finite values**, parsing back can preserve the exact `double` bit pattern of the original value. Explicitly state in API documentation that this is a **hex floating-point string with `p`**, not an unsigned integer hex or 8-byte binary data.
 
-Tuy nhiên, cần cân nhắc:
+However, keep in mind:
 
-- **Ngôn ngữ/bên nhận:** nhiều ngôn ngữ hỗ trợ dạng hex floating-point tương đương, nhưng không phải mọi thư viện JSON, CSV hoặc parser số đều chấp nhận `0x1.8p1`.
-- **Các giá trị đặc biệt:** `NaN`, `Infinity`, `-Infinity` cần quy ước riêng, nhất là trong chuẩn trao đổi JSON vốn không coi chúng là number hợp lệ.
-- **Giá trị NaN với payload:** không round-trip bit-exact qua `"NaN"`.
-- **Tính chuẩn hóa đầu vào:** parser có thể chấp nhận những chuỗi tương đương; nếu cần canonical representation để băm/ký dữ liệu, hãy định nghĩa rõ format và kiểm tra chuỗi canonical chứ không chỉ parse thành công.
-- **An toàn:** kiểm tra giới hạn độ dài, kiểu hợp lệ và miền nghiệp vụ trước khi tin input. Parser Java báo `NumberFormatException` đối với chuỗi sai cú pháp nhưng không biết giới hạn logic ứng dụng.
+- **Recipient language/system:** many languages support an equivalent hex floating-point form, but not all JSON, CSV, or numeric parsers accept `0x1.8p1`.
+- **Special values:** `NaN`, `Infinity`, and `-Infinity` need separate conventions, especially in JSON exchange standards that do not treat them as valid numbers.
+- **NaN values with payloads:** do not round-trip bit-exactly via `"NaN"`.
+- **Input canonicalization:** parsers may accept equivalent strings; if a canonical representation is needed for hashing/signing data, define the format clearly and check the canonical string rather than merely checking whether parsing succeeds.
+- **Safety:** check length limits, valid types, and business ranges before trusting input. Java parsers throw `NumberFormatException` for malformed syntax but know nothing about application logic bounds.
 
-Nếu hợp đồng yêu cầu gửi **đúng 32/64 bit raw** của một giá trị IEEE 754, hãy dùng `floatToRawIntBits`/`doubleToRawLongBits`, định nghĩa rõ byte order, rồi mã hóa thành byte hoặc hex bit pattern 8/16 chữ số. Đó là **một định dạng khác** với `toHexString`.
+If the contract requires sending the **exact 32/64 raw bits** of an IEEE 754 value, use `floatToRawIntBits`/`doubleToRawLongBits`, clearly define byte order, and encode as bytes or an 8/16-digit hex bit pattern. That is **a different format** from `toHexString`.
 
-## 15. Lỗi phổ biến và cách khắc phục
+## 15. Common mistakes and fixes
 
-| Nhầm lẫn | Thực tế | Cách làm đúng |
+| Confusion | Reality | Correct approach |
 | --- | --- | --- |
-| `Double.toHexString(3.0)` trả `"3"` hoặc `"0x3"` | Trả `"0x1.8p1"` | Nhớ phần trị hex và mũ cơ số 2 |
-| Ký tự `p` là lũy thừa 10 | `pE` nghĩa nhân `2^E` | Diễn giải theo cơ số 2 |
-| `Float.toHexString` có độ chính xác như `Double.toHexString` | Float có 24 bit significand, double có 53 | Giữ đúng kiểu cần kiểm tra |
-| Hàm xuất ra raw IEEE bit pattern | Hàm biểu diễn **giá trị số thực**, không phải bit fields | Dùng `floatToRawIntBits`/`doubleToRawLongBits` |
-| `Double.MIN_VALUE` là số âm nhỏ nhất | Đây là positive subnormal nhỏ nhất | Phân biệt `MIN_NORMAL`, `MIN_VALUE`, `MAX_VALUE` |
-| Mọi giá trị có dạng `0x1.xxxpE` | Subnormal có dạng `0x0.xxxpE` | Kiểm tra ranh giới subnormal |
-| `-0.0` và `+0.0` phải có cùng chuỗi | `toHexString` giữ dấu `-0.0` | Test cả hai mẫu zero |
-| `NaN` trong hex chứa toàn bộ payload | Chuỗi trả `"NaN"` chung | Dùng raw bits nếu cần bit-exact |
-| `Integer.parseInt("0x1.8p1",16)` đọc được float hex | Không phải cú pháp số nguyên | Dùng `Double.parseDouble`/`Float.parseFloat` |
-| `0.1` in dưới dạng decimal thì lưu chính xác 1/10 | `double` làm tròn nhị phân | Dùng hex output để quan sát, hoặc `BigDecimal` cho decimal exact |
-| Hex floating-point tự nói lên endian trong bộ nhớ | Endian áp dụng cho thứ tự byte của serialization | Định nghĩa byte order riêng |
-| Thấy hai chuỗi hex khác thì biết ngay sai số thuật toán | Hex chỉ cho thấy khác biệt biểu diễn | So với đáp án tham chiếu và ngưỡng lỗi |
+| `Double.toHexString(3.0)` returns `"3"` or `"0x3"` | Returns `"0x1.8p1"` | Remember hex significand and base-2 exponent |
+| The character `p` is a power of 10 | `pE` means multiply by `2^E` | Interpret in base 2 |
+| `Float.toHexString` has the same precision as `Double.toHexString` | Float has 24 significand bits; double has 53 | Keep the type you intend to inspect |
+| The method outputs a raw IEEE bit pattern | It represents the **floating-point value**, not bit fields | Use `floatToRawIntBits`/`doubleToRawLongBits` |
+| `Double.MIN_VALUE` is the smallest negative number | It is the smallest positive subnormal | Distinguish `MIN_NORMAL`, `MIN_VALUE`, `MAX_VALUE` |
+| Every value has the form `0x1.xxxpE` | Subnormals have the form `0x0.xxxpE` | Check subnormal boundaries |
+| `-0.0` and `+0.0` must produce the same string | `toHexString` preserves the `-0.0` sign | Test both zero patterns |
+| `NaN` in hex contains the full payload | Returns generic `"NaN"` | Use raw bits if bit-exactness is required |
+| `Integer.parseInt("0x1.8p1",16)` reads hex floats | Not an integer syntax | Use `Double.parseDouble`/`Float.parseFloat` |
+| `0.1` printed in decimal stores exact 1/10 | `double` rounds in binary | Use hex output to inspect, or `BigDecimal` for exact decimal |
+| Hex floating-point implies endianness in memory | Endianness applies to byte order in serialization | Define byte order separately |
+| Seeing two different hex strings immediately shows which algorithm has error | Hex only shows a representation difference | Compare against a reference answer and error threshold |
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-check questions
 
-1. **`Double.toHexString(3.0)` trả gì?** `"0x1.8p1"` vì `(1+8/16)×2=3`.
-2. **`0x1.0p-1` bằng mấy?** `0.5`.
-3. **Số mũ `p5` nghĩa nhân với `2^5` hay `16^5`?** Nhân `2^5`.
-4. **Vì sao `Double.toHexString(0.1)` nhiều chữ số hex còn `Double.toString(0.1)` chỉ in `0.1`?** Chuỗi hex thể hiện chính xác significand/mũ nhị phân được lưu; chuỗi decimal ngắn tối ưu cách hiển thị, không ngụ ý lưu chính xác 1/10.
-5. **`Double.MIN_VALUE` xuất thành dạng normal `0x1...pE` không?** Không: `0x0.0000000000001p-1022`, vì đó là subnormal dương nhỏ nhất.
-6. **`Float.MIN_VALUE` xuất gì?** `0x0.000002p-126`.
-7. **`Double.toHexString(-0.0)` khác `Double.toHexString(+0.0)` ở đâu?** Dấu âm, `-0x0.0p0` so với `0x0.0p0`.
-8. **`Double.toHexString(Double.NaN)` có lưu được payload NaN không?** Không, chỉ `"NaN"`; phải dùng raw bits nếu cần payload.
-9. **Parse ngược `0x1.8p1` dùng gì?** `Double.parseDouble("0x1.8p1")` hoặc `Float.parseFloat(...)`, không phải `Integer.parseInt`.
-10. **Muốn in cả 64 bit của `double 1.0` phải gọi API nào?** `Long.toHexString(Double.doubleToRawLongBits(1.0))`; kết quả là `"3ff0000000000000"`, không phải `"0x1.0p0"`.
-11. **Tại `1.0`, `Math.nextUp(1.0)` xuất chuỗi gì?** `0x1.0000000000001p0`: một bước biểu diễn phía trên.
-12. **Dùng `toHexString` để gửi binary wire format có đủ không?** Không. Đây là chuỗi văn bản; wire format nhị phân phải định nghĩa byte order, độ rộng và cách xử lý giá trị đặc biệt riêng.
+1. **What does `Double.toHexString(3.0)` return?** `"0x1.8p1"` because `(1+8/16)×2=3`.
+2. **What is `0x1.0p-1` equal to?** `0.5`.
+3. **Does the exponent `p5` mean multiplying by `2^5` or `16^5`?** Multiplying by `2^5`.
+4. **Why does `Double.toHexString(0.1)` have many hex digits while `Double.toString(0.1)` prints only `0.1`?** The hex string displays the exact stored binary significand/exponent; the short decimal string optimizes display and does not imply storing exact 1/10.
+5. **Does `Double.MIN_VALUE` output in normal form `0x1...pE`?** No: `0x0.0000000000001p-1022`, because it is the smallest positive subnormal.
+6. **What does `Float.MIN_VALUE` output?** `0x0.000002p-126`.
+7. **How does `Double.toHexString(-0.0)` differ from `Double.toHexString(+0.0)`?** The minus sign, `-0x0.0p0` versus `0x0.0p0`.
+8. **Can `Double.toHexString(Double.NaN)` preserve a NaN payload?** No, only `"NaN"`; raw bits must be used if the payload is needed.
+9. **What is used to parse `0x1.8p1` back?** `Double.parseDouble("0x1.8p1")` or `Float.parseFloat(...)`, not `Integer.parseInt`.
+10. **Which API must be called to print all 64 bits of `double 1.0`?** `Long.toHexString(Double.doubleToRawLongBits(1.0))`; the result is `"3ff0000000000000"`, not `"0x1.0p0"`.
+11. **At `1.0`, what string does `Math.nextUp(1.0)` output?** `0x1.0000000000001p0`: one representation step above.
+12. **Is using `toHexString` sufficient to send a binary wire format?** No. This is a text string; a binary wire format must separately define byte order, width, and special-value handling.
 
-**Ghi nhớ:** `Double.toHexString` và `Float.toHexString` biểu diễn **giá trị dấu phẩy động nhị phân** dưới dạng `0xH.FpE`, trong đó **fraction viết bằng hex, số mũ là lũy thừa của 2**. Dạng này đặc biệt hữu ích để debug precision, ULP, normal/subnormal và signed zero. Muốn parse ngược thì dùng `Double.parseDouble`/`Float.parseFloat`; muốn giữ đúng raw IEEE bit pattern hoặc payload NaN thì dùng các API **RawBits**, không nhầm chúng với `toHexString`.
+**Takeaway:** `Double.toHexString` and `Float.toHexString` represent a **binary floating-point value** in the form `0xH.FpE`, where **the fraction is written in hex and the exponent is a power of 2**. This form is especially useful for debugging precision, ULP, normal/subnormal values, and signed zero. To parse back, use `Double.parseDouble`/`Float.parseFloat`; to preserve exact raw IEEE bit patterns or NaN payloads, use **RawBits** APIs, and do not confuse them with `toHexString`.

@@ -1,12 +1,12 @@
-# Xử lý hai lớp trùng tên và giới hạn của `import` trong Java
+# Handling Two Classes with the Same Name and Limits of `import` in Java
 
-## 1. Vì sao hai lớp có thể trùng tên?
+## 1. Why can two classes share the same name?
 
-Trong Java, **tên đơn giản** (*simple name*) là phần cuối của tên lớp, chẳng hạn `Result`. **Tên đầy đủ** (*fully qualified name*) gắn tên package với tên kiểu, chẳng hạn `com.example.payment.Result` và `com.example.network.Result`.
+In Java, the **simple name** is the last part of a class name, such as `Result`. The **fully qualified name** combines the package name with the type name, such as `com.example.payment.Result` and `com.example.network.Result`.
 
-Hai lớp cùng tên đơn giản có thể tồn tại trong hai package khác nhau. Vấn đề chỉ xuất hiện khi mã nguồn cần phân giải tên ngắn `Result` nhưng có nhiều ứng viên. `import` giúp sử dụng tên ngắn của kiểu có thể truy cập; nó **không đổi tên lớp, không tạo alias, không sao chép mã**, cũng không bắt JVM nạp lớp ngay tại thời điểm viết import.
+Two classes with the same simple name can exist in two different packages. A problem only arises when source code needs to resolve the short name `Result` and there are multiple candidates. `import` lets you use the short name of an accessible type; it **does not rename the class, create an alias, or copy code**, nor does it force the JVM to load the class at the moment the import is written.
 
-Ví dụ các kiểu hợp lệ và khác nhau:
+Examples of valid and distinct types:
 
 ```text
 com.example.payment.Result
@@ -15,24 +15,24 @@ java.util.Date
 java.sql.Date
 ```
 
-Khi gặp trùng tên, cách chắc chắn nhất là dùng **tên đầy đủ** tại nơi sử dụng.
+When facing a name collision, the surest approach is to use the **fully qualified name** at the point of use.
 
-## 2. Phân biệt xung đột từ import cụ thể và import theo yêu cầu
+## 2. Distinguishing conflicts from single-type imports vs. on-demand imports
 
 ~~~java
 package com.example.app;
-import java.util.List;            // Import một kiểu
-import java.util.*;               // Import nhiều kiểu theo yêu cầu
-import static java.lang.Math.PI;  // Import thành viên static
+import java.util.List;            // Single-type import
+import java.util.*;               // Type-import-on-demand
+import static java.lang.Math.PI;  // Static member import
 ~~~
 
-Các khai báo import chỉ giúp **phân giải tên trong source**, không tạo alias, không vượt qua quyền truy cập và không làm Java nạp lớp lúc chạy. Dấu `*` không tự bao gồm package con.
+Import declarations only help **resolve names in source code**; they do not create aliases, bypass access controls, or cause Java to load classes at runtime. The `*` does not automatically include subpackages.
 
-Bài này tập trung vào khác biệt giữa **hai single-type imports** cho hai kiểu khác nhau cùng simple name (lỗi tại dòng import) và **hai wildcard imports** cung cấp hai ứng viên cùng tên (mơ hồ khi dùng tên đó). Để dùng cả hai kiểu, hãy import cụ thể tối đa một kiểu rồi viết qualified name cho kiểu còn lại, hoặc viết qualified name cho cả hai.
+This lesson focuses on the difference between **two single-type imports** for two different types with the same simple name (an error at the import lines) and **two wildcard imports** providing two candidates with the same name (ambiguous when that name is used). To use both types, explicitly import at most one type and write the qualified name for the other, or write qualified names for both.
 
-## 3. Ví dụ chạy được: hai lớp Result khác package
+## 3. Runnable example: two Result classes in different packages
 
-Tạo cấu trúc thư mục:
+Create the directory structure:
 
 ```text
 src/
@@ -46,7 +46,7 @@ src/
             └── Main.java
 ```
 
-**Tệp `src/com/example/payment/Result.java`:**
+**File `src/com/example/payment/Result.java`:**
 
 ```java
 package com.example.payment;
@@ -58,7 +58,7 @@ public class Result {
 }
 ```
 
-**Tệp `src/com/example/network/Result.java`:**
+**File `src/com/example/network/Result.java`:**
 
 ```java
 package com.example.network;
@@ -70,7 +70,7 @@ public class Result {
 }
 ```
 
-**Tệp `src/com/example/app/Main.java`:**
+**File `src/com/example/app/Main.java`:**
 
 ```java
 package com.example.app;
@@ -89,53 +89,53 @@ public class Main {
 }
 ```
 
-Ở đây, `import com.example.payment.Result;` đưa **một kiểu cụ thể** vào phạm vi tên ngắn. `import com.example.network.*;` chỉ nhập theo nhu cầu, nên `Result` không trở thành mơ hồ: khai báo import một kiểu cụ thể được ưu tiên hơn import theo nhu cầu. Lớp `network.Result` vẫn được dùng bình thường khi ghi tên đầy đủ. Nếu chỉ dùng tên đầy đủ cho kiểu network, có thể bỏ hẳn `import com.example.network.*;`.
+Here, `import com.example.payment.Result;` brings **one specific type** into short-name scope. `import com.example.network.*;` only imports on demand, so `Result` does not become ambiguous: a single-type import declaration takes precedence over an import-on-demand declaration. The `network.Result` class is still used normally when written with its fully qualified name. If you only use the fully qualified name for the network type, you can omit `import com.example.network.*;` altogether.
 
-**Biên dịch và chạy với JDK 17+** tại thư mục có `src` (các đường dẫn dùng `/` được Java chấp nhận trên Windows, Linux và macOS). Tạo thư mục `out` một lần bằng `mkdir out`, sau đó:
+**Compile and run with JDK 17+** from the directory containing `src` (paths with `/` are accepted by Java on Windows, Linux, and macOS). Create the `out` directory once with `mkdir out`, then:
 
 ```sh
 javac -encoding UTF-8 -d out src/com/example/payment/Result.java src/com/example/network/Result.java src/com/example/app/Main.java
 java -cp out com.example.app.Main
 ```
 
-Kết quả của lệnh `java`, chính xác:
+Exact output of the `java` command:
 
 ```text
 simple=payment
 qualified=network
 ```
 
-Tên dùng trong `java -cp out com.example.app.Main` là **tên đầy đủ của lớp chứa `main`**. `-d out` đặt các file `.class` vào thư mục tương ứng với package. Việc import không thay thế biên dịch lớp phụ thuộc hoặc cấu hình classpath.
+The name used in `java -cp out com.example.app.Main` is the **fully qualified name of the class containing `main`**. `-d out` places the `.class` files into directories matching their packages. Importing does not replace compiling dependent classes or configuring the classpath.
 
-## 4. Những trường hợp trùng tên và cách Java xử lý
+## 4. Name-collision cases and how Java handles them
 
-| Tình huống | Dùng tên ngắn `Result` | Cách xử lý |
+| Scenario | Using short name `Result` | How to handle |
 | --- | --- | --- |
-| `import com.example.payment.Result;` cùng `import com.example.network.*;` | Chọn kiểu `payment.Result` vì import tường minh | Ghi `com.example.network.Result` khi cần kiểu còn lại |
-| `import com.example.payment.*;` và `import com.example.network.*;` | **Mơ hồ** nếu tham chiếu `Result` khi cả hai kiểu cùng truy cập được | Chọn một import tường minh hoặc dùng tên đầy đủ |
-| Hai `import` tường minh cho **hai kiểu khác nhau** cùng tên đơn giản | **Lỗi biên dịch ngay tại các khai báo import** | Giữ tối đa một import tường minh cho tên đó |
-| Kiểu cùng package và kiểu từ wildcard ở package khác cùng tên | Kiểu cùng package được chọn trước kiểu chỉ đến từ import theo nhu cầu | Ghi tên đầy đủ cho kiểu thuộc package khác |
-| Kiểu thành viên/lớp lồng nhau hay tên kiểu được khai báo tại phạm vi gần | Có thể che khuất tên được import tùy vị trí và loại khai báo | Kiểm tra phạm vi hoặc dùng tên kiểu đủ rõ ràng |
+| `import com.example.payment.Result;` alongside `import com.example.network.*;` | Selects `payment.Result` due to the explicit import | Write `com.example.network.Result` when needing the other type |
+| `import com.example.payment.*;` and `import com.example.network.*;` | **Ambiguous** if referencing `Result` when both types are accessible | Choose one explicit import or use fully qualified names |
+| Two explicit `import`s for **two different types** with the same simple name | **Compile error right at the import declarations** | Keep at most one explicit import for that name |
+| Same-package type and a wildcard-imported type from another package with the same name | The same-package type is selected over a type coming only from an on-demand import | Write the fully qualified name for the type from the other package |
+| Member type/nested class or type name declared in a nearer scope | May shadow imported names depending on position and declaration kind | Check scope or use a clearly qualified type name |
 
-### 4.1. Hai import tường minh: lỗi dù chưa tạo đối tượng
+### 4.1. Two explicit imports: error even without creating an object
 
-Ví dụ sau **cố ý không biên dịch được**, với giả định hai `Result` trong ví dụ trên đều tồn tại:
+The following example **intentionally fails to compile**, assuming both `Result` classes from the example above exist:
 
 ```java
 package com.example.app;
 
 import com.example.payment.Result;
-import com.example.network.Result; // lỗi: hai single-type-import khác kiểu, cùng tên đơn giản
+import com.example.network.Result; // error: two single-type imports for different types with the same simple name
 
 public class InvalidImports {
 }
 ```
 
-Đây là xung đột tại *khai báo import*, không phải đợi đến khi gọi `new Result()`. Cần xóa một import và dùng tên đầy đủ tại chỗ cần kiểu thứ hai.
+This is a conflict at the *import declarations*, not waiting until `new Result()` is called. You must remove one import and use the fully qualified name where the second type is needed.
 
-### 4.2. Hai wildcard: lỗi chỉ khi tên ngắn bị mơ hồ
+### 4.2. Two wildcards: error only when the short name is ambiguous
 
-Đoạn sau cũng **cố ý không biên dịch được**:
+The following snippet also **intentionally fails to compile**:
 
 ```java
 package com.example.app;
@@ -144,15 +144,15 @@ import com.example.payment.*;
 import com.example.network.*;
 
 public class AmbiguousUse {
-    Result value = new Result(); // cả hai package đều có Result
+    Result value = new Result(); // both packages have Result
 }
 ```
 
-Hai khai báo wildcard tự chúng được phép tồn tại. Lỗi phát sinh ở tham chiếu `Result` vì cả hai kiểu cùng phù hợp. Nếu đổi thành `com.example.payment.Result value = new com.example.payment.Result();` thì không còn mơ hồ.
+The two wildcard declarations are allowed to coexist on their own. The error occurs at the reference `Result` because both types match equally. If changed to `com.example.payment.Result value = new com.example.payment.Result();`, it is no longer ambiguous.
 
-### 4.3. Ví dụ thực tế: java.util.Date và java.sql.Date
+### 4.3. Real-world example: java.util.Date and java.sql.Date
 
-`java.util.Date` và `java.sql.Date` là hai kiểu khác nhau, dù cùng tên đơn giản. Có thể viết:
+`java.util.Date` and `java.sql.Date` are two different types despite having the same simple name. You can write:
 
 ```java
 import java.util.Date;
@@ -163,47 +163,47 @@ class Example {
 }
 ```
 
-Đây là đoạn minh họa khai báo kiểu, không phải chương trình có `main`. Không thể import cả `java.util.Date` và `java.sql.Date` bằng hai dòng single-type-import rồi kỳ vọng trình biên dịch tự phân biệt theo ý nghĩa nghiệp vụ. Trong code mới, khi biểu diễn ngày không kèm thời gian, thường nên cân nhắc `java.time.LocalDate`; `java.sql.Date` vẫn có vai trò trong API JDBC.
+This is a type-declaration snippet, not a program with `main`. You cannot import both `java.util.Date` and `java.sql.Date` with two single-type import lines and expect the compiler to tell them apart by business context. In new code, when representing a date without a time component, you should usually consider `java.time.LocalDate`; `java.sql.Date` still has a role in JDBC APIs.
 
-## 5. Phạm vi ưu tiên tên: cần lưu ý điều gì?
+## 5. Name precedence scope: what should you watch out for?
 
-Có thể dùng quy tắc thực hành sau để đọc mã:
+You can use the following practical guide to read code:
 
-1. **Tìm tên đã được khai báo trong phạm vi gần** (ví dụ kiểu thành viên, tham số kiểu), vì có thể che khuất các tên đến từ import.
-2. **Kiểm tra import một kiểu cụ thể**, như `import pkg1.Result;`, trước các import theo nhu cầu.
-3. **Các kiểu trong package hiện tại** không cần import và được ưu tiên so với kiểu chỉ có từ wildcard ở package khác.
-4. **Các import theo nhu cầu** và `java.lang` cung cấp ứng viên khi chưa có khai báo gần hơn; nếu nhiều kiểu cùng tên vẫn phù hợp thì tham chiếu tên ngắn có thể mơ hồ.
-5. Khi không chắc, dùng **tên đầy đủ**. Cần lưu ý đây là hướng dẫn thực hành; quy tắc chính xác của ngôn ngữ còn phụ thuộc loại tên, vị trí khai báo và shadowing.
+1. **Look for names declared in a nearer scope** (for example member types, type parameters), as they can shadow names coming from imports.
+2. **Check single-type imports**, such as `import pkg1.Result;`, before on-demand imports.
+3. **Types in the current package** require no import and take precedence over types coming only from wildcards in other packages.
+4. **On-demand imports** and `java.lang` supply candidates when no nearer declaration exists; if multiple types with the same name remain eligible, a short-name reference can be ambiguous.
+5. When in doubt, use the **fully qualified name**. Note that this is a practical guide; the exact language rules also depend on the kind of name, declaration site, and shadowing.
 
-Đặc biệt, một **single-type-import** có thể che khuất kiểu cùng tên được khai báo ở **tệp khác của cùng package**, trong khi khai báo một kiểu top-level cùng tên **ngay trong cùng tệp biên dịch** với single-type-import đó là tình huống xung đột. Vì vậy đừng dựa vào nhận định tuyệt đối rằng “cùng package luôn thắng mọi import”.
+In particular, a **single-type import** can shadow a type with the same name declared in **another file of the same package**, whereas declaring a top-level type with the same name **in the exact same compilation unit** as that single-type import is a conflict. Therefore, do not rely on an absolute rule that "same package always beats every import".
 
-## 6. Những giới hạn khác của import
+## 6. Other limits of import
 
-**(a) Import không mở quyền truy cập.** Một kiểu top-level `public` ở package khác có thể được import khi package đó khả dụng. Kiểu top-level không có `public` chỉ được truy cập từ package của nó; thêm `import` không biến nó thành `public`. Thành viên `private`, `protected`, package-private vẫn tuân theo quy tắc truy cập riêng. Có thể import được tên lớp nhưng vẫn không được gọi constructor hoặc method không phù hợp quyền truy cập.
+**(a) Import does not grant access.** A `public` top-level type in another package can be imported when that package is available. A top-level type without `public` is only accessible from its own package; adding an `import` does not make it `public`. `private`, `protected`, and package-private members still follow their own access rules. You might be able to import a class name yet still be unable to call constructors or methods without sufficient access.
 
-**(b) Package con là package riêng.** `com.example` và `com.example.internal` không có quan hệ “kế thừa” quyền truy cập mặc định. `import com.example.*;` không nhập `com.example.internal.Helper`.
+**(b) Subpackages are separate packages.** `com.example` and `com.example.internal` have no "inheritance" of default access rights. `import com.example.*;` does not import `com.example.internal.Helper`.
 
-**(c) Import không thay thế classpath hay module path.** Nếu thư viện không nằm trên đường biên dịch, lỗi không thể giải quyết chỉ bằng thêm import. Trong dự án dùng Java Platform Module System, module phải cho phép đọc module chứa kiểu và package liên quan phải được export theo luật module; import không tự thêm `requires` hay `exports`.
+**(c) Import does not replace classpath or module path.** If a library is not on the compilation path, the error cannot be solved merely by adding an import. In a project using the Java Platform Module System, the module must be allowed to read the module containing the type and the relevant package must be exported by module rules; imports do not automatically add `requires` or `exports`.
 
-**(d) Không import kiểu từ unnamed package vào named package.** Nếu một tệp có `package com.example.app;`, nó không thể dùng import để truy cập lớp nằm trong unnamed/default package. Nên tổ chức các lớp thành named package rõ ràng.
+**(d) Cannot import types from the unnamed package into a named package.** If a file has `package com.example.app;`, it cannot use `import` to access a class in the unnamed/default package. Organize classes into clear named packages.
 
-**(e) Import không kế thừa qua các tệp.** Import khai báo trong `Main.java` chỉ có hiệu lực trong đơn vị biên dịch đó; `Another.java` phải tự khai báo import cần thiết. Một import không làm chương trình chạy nhanh hơn hay chậm hơn theo cách có ý nghĩa chỉ do đổi tên ngắn thành tên đầy đủ.
+**(e) Imports are not inherited across files.** An import declared in `Main.java` applies only within that compilation unit; `Another.java` must declare its own required imports. An import does not make a program run meaningfully faster or slower merely by turning a short name into a fully qualified name.
 
-**(f) Import kiểu khác static import.** `import java.lang.Math;` cho phép dùng tên kiểu `Math` nhưng vẫn phải viết `Math.PI`. `import static java.lang.Math.PI;` cho phép tham chiếu `PI` trực tiếp. Static import cũng có quy tắc xung đột tên và khả năng truy cập riêng; nó không giải quyết việc hai lớp top-level khác package có cùng tên.
+**(f) Type import differs from static import.** `import java.lang.Math;` lets you use the type name `Math`, yet you must still write `Math.PI`. `import static java.lang.Math.PI;` lets you reference `PI` directly. Static imports also have their own name-collision and accessibility rules; they do not solve two top-level classes in different packages having the same name.
 
-## 7. Cách xử lý khi gặp lỗi trong dự án
+## 7. How to troubleshoot errors in a project
 
-Nếu `javac` báo tên kiểu *ambiguous*, xem những import `*` nào đưa các kiểu cùng tên vào; thay bằng một import cụ thể hoặc dùng tên đầy đủ. Nếu báo xung đột tại dòng `import`, kiểm tra hai import cụ thể cùng tên đơn giản; xóa một dòng. Nếu báo `cannot find symbol` hoặc `package ... does not exist`, kiểm tra chính tả package/class, vị trí source, JAR, classpath hoặc module path trước khi sửa import. Nếu báo kiểu không truy cập được, cần kiểm tra `public`/phạm vi package/module chứ không thêm wildcard.
+If `javac` reports a type name as *ambiguous*, check which `*` imports bring in types with the same name; replace one with a single-type import or use fully qualified names. If it reports a conflict at an `import` line, check for two explicit imports with the same simple name; remove one line. If it reports `cannot find symbol` or `package ... does not exist`, check package/class spelling, source locations, JARs, classpath, or module path before editing imports. If it reports an inaccessible type, check `public`/package scope/module rules rather than adding wildcards.
 
-Trong IDE, chức năng **Organize Imports** có thể bỏ import thừa và chọn kiểu phù hợp, nhưng vẫn nên đọc lại vì IDE không thể tự quyết định lớp nào đúng về mặt nghiệp vụ. Đối với tên phổ biến như `Date`, `List`, `Logger`, `Result`, `Exception`, dùng tên đầy đủ ở vài dòng thường rõ hơn đặt hai bộ import wildcard.
+In an IDE, **Organize Imports** can remove unused imports and choose matching types, though you should still review them because the IDE cannot automatically decide which class is right for your business logic. For common names like `Date`, `List`, `Logger`, `Result`, and `Exception`, writing the fully qualified name on a couple of lines is often clearer than adding two sets of wildcard imports.
 
-## 8. Ghi nhớ và tự kiểm tra
+## 8. Key takeaways and self-check
 
-- Hai lớp `a.Result` và `b.Result` có được tồn tại đồng thời không? **Có**, vì tên đầy đủ khác nhau.
-- Hai single-type-import `a.Result` và `b.Result` có cùng nằm trong một tệp Java được không? **Không**, nếu đó là hai kiểu khác nhau.
-- Hai wildcard `a.*` và `b.*` có được khai báo cùng nhau không? **Có**; nhưng `Result` bằng tên ngắn sẽ mơ hồ khi cả hai lớp tương ứng đều có thể truy cập.
-- `import a.*;` có nhập `a.sub.Helper` không? **Không**.
-- `import a.Secret;` có làm lớp package-private `Secret` trở thành công khai không? **Không**.
-- Muốn dùng hai kiểu cùng tên trong một tệp, nên viết thế nào? **Import tường minh tối đa một kiểu cùng tên và dùng fully qualified name cho kiểu còn lại**, hoặc viết fully qualified name cho cả hai.
+- Can two classes `a.Result` and `b.Result` exist simultaneously? **Yes**, because their fully qualified names differ.
+- Can two single-type imports `a.Result` and `b.Result` coexist in the same Java file? **No**, if they are two different types.
+- Can two wildcards `a.*` and `b.*` be declared together? **Yes**; however, referring to `Result` by its short name will be ambiguous when both corresponding classes are accessible.
+- Does `import a.*;` import `a.sub.Helper`? **No**.
+- Does `import a.Secret;` make a package-private class `Secret` public? **No**.
+- If you want to use two types with the same name in one file, how should you write it? **Explicitly import at most one type with that name and use the fully qualified name for the other**, or write fully qualified names for both.
 
-**Quy tắc hữu ích nhất:** import chỉ giảm số lần phải gõ tên package; **tên đầy đủ, khả năng truy cập và cấu hình biên dịch** mới quyết định kiểu nào thực sự được tham chiếu.
+**Most useful rule:** imports only reduce typing package names; **fully qualified names, accessibility, and build configuration** determine which type is actually referenced.

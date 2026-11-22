@@ -1,18 +1,18 @@
-# ModuleReference và ModuleReader trong Java Platform Module System (JPMS)
+# ModuleReference and ModuleReader in the Java Platform Module System (JPMS)
 
-## 1. Mục tiêu và vị trí trong module resolution
+## 1. Objectives and Position in Module Resolution
 
-Trong JPMS (Java 9 trở lên), một module không chỉ có tên và các chỉ thị trong `module-info.java`. Hệ thống còn cần **tìm bản triển khai của module**, **đọc mô tả**, **giải quyết quan hệ phụ thuộc** và đôi khi **truy cập trực tiếp nội dung** bên trong module. Hai API ở gói `java.lang.module` phục vụ phần việc này:
+In JPMS (Java 9 and later), a module is more than just a name and directives in `module-info.java`. The system also needs to **locate the module implementation**, **read its descriptor**, **resolve dependency relationships**, and sometimes **directly access contents** inside the module. Two APIs in the `java.lang.module` package serve this purpose:
 
-- `ModuleReference`: đại diện cho một module **có thể quan sát/tìm thấy** từ một `ModuleFinder`, cùng với mô tả của module và thông tin vị trí (nếu có).
-- `ModuleReader`: giao diện đọc tài nguyên của module được `ModuleReference` đại diện; ví dụ liệt kê tên tài nguyên, mở `InputStream` hoặc lấy `ByteBuffer` chứa nội dung.
+- `ModuleReference`: represents an **observable/discoverable** module from a `ModuleFinder`, along with the module's descriptor and location information (if available).
+- `ModuleReader`: an interface for reading the resources of the module represented by a `ModuleReference`; for example, listing resource names, opening an `InputStream`, or obtaining a `ByteBuffer` containing the contents.
 
-Hai kiểu này rất hữu ích khi viết công cụ phân tích module, công cụ đóng gói, bộ kiểm tra nội dung, trình nạp module tùy chỉnh hoặc mã khám phá module. Chúng không thay thế bước resolution, không tự tạo `ModuleLayer` và không tự tải lớp vào JVM.
+These two types are very useful when writing module analysis tools, packaging tools, content validators, custom module loaders, or module discovery code. They do not replace the resolution step, do not create a `ModuleLayer` by themselves, and do not load classes into the JVM.
 
-## 2. Vị trí của các API trong luồng xử lý
+## 2. Position of the APIs in the Processing Flow
 
 ```text
-Đường dẫn module / tập module hệ thống
+Module path / system module set
              │
              ▼
        ModuleFinder
@@ -20,9 +20,9 @@ Hai kiểu này rất hữu ích khi viết công cụ phân tích module, công
              │
              ▼
       ModuleReference ── descriptor() ──► ModuleDescriptor
-             │                              tên, requires, exports, ...
+             │                              name, requires, exports, ...
              │
-             ├── open() ──► ModuleReader ──► tài nguyên (.class, cấu hình, ...)
+             ├── open() ──► ModuleReader ──► resources (.class, configs, ...)
              │
              ▼
 Configuration.resolve(...) ──► Configuration ──► ResolvedModule
@@ -30,33 +30,33 @@ Configuration.resolve(...) ──► Configuration ──► ResolvedModule
                                                   └── reference()
              │
              ▼
-        ModuleLayer + ClassLoader (ở bước xây dựng layer)
+        ModuleLayer + ClassLoader (at the layer creation step)
 ```
 
-Điểm cần phân biệt:
+Points to distinguish:
 
-| Kiểu | Vai trò chính | Không đồng nghĩa với |
+| Type | Primary Role | Not Equivalent To |
 |---|---|---|
-| `ModuleFinder` | Tìm các module quan sát được bằng tên | Danh sách các module đã được resolve |
-| `ModuleReference` | Tham chiếu tới một bản module và descriptor của nó | `java.lang.Module` đang thuộc một layer |
-| `ModuleDescriptor` | Mô tả khai báo: tên, `requires`, `exports`, `opens`, `uses`, `provides`, phiên bản... | Nội dung file của module |
-| `Configuration` / `ResolvedModule` | Kết quả phân giải các module và quan hệ đọc | ClassLoader hoặc bytecode đã được load |
-| `ModuleReader` | Truy cập các tài nguyên bên trong module | `ClassLoader`, `Class.forName` hay quyền truy cập theo `exports` |
-| `java.lang.Module` | Đối tượng module ở runtime, thuộc một `ModuleLayer` | `ModuleReference` từ một finder |
+| `ModuleFinder` | Finds observable modules by name | The list of resolved modules |
+| `ModuleReference` | References a module artifact and its descriptor | `java.lang.Module` belonging to a layer |
+| `ModuleDescriptor` | Describes declarations: name, `requires`, `exports`, `opens`, `uses`, `provides`, version... | The file contents of the module |
+| `Configuration` / `ResolvedModule` | Result of resolving modules and readability relationships | ClassLoader or already-loaded bytecode |
+| `ModuleReader` | Accesses resources inside a module | `ClassLoader`, `Class.forName`, or access permissions via `exports` |
+| `java.lang.Module` | Runtime module object belonging to a `ModuleLayer` | `ModuleReference` from a finder |
 
-Một module được `ModuleFinder` tìm thấy **chưa chắc đã được chọn** vào `Configuration` hiện tại. Ngược lại, từ `ResolvedModule` trong một configuration có thể lấy lại `ModuleReference` bằng `reference()`.
+A module found by `ModuleFinder` **is not necessarily selected** into the current `Configuration`. Conversely, from a `ResolvedModule` in a configuration, you can retrieve its `ModuleReference` via `reference()`.
 
-## 3. Hiểu và sử dụng ModuleReference
+## 3. Understanding and Using ModuleReference
 
-`ModuleReference` là lớp trừu tượng trong `java.lang.module`. Các thao tác công khai thường gặp:
+`ModuleReference` is an abstract class in `java.lang.module`. Common public operations:
 
-| Phương thức | Kết quả và cách hiểu |
+| Method | Result and Interpretation |
 |---|---|
-| `descriptor()` | Trả về `ModuleDescriptor`, cho biết tên và các đặc tính khai báo của module |
-| `location()` | Trả về `Optional<URI>` chỉ vị trí module nếu provider công bố |
-| `open()` | Mở `ModuleReader` để truy cập nội dung; có thể phát sinh `IOException` |
+| `descriptor()` | Returns `ModuleDescriptor`, providing the module's name and declared characteristics |
+| `location()` | Returns `Optional<URI>` indicating the module's location if published by the provider |
+| `open()` | Opens a `ModuleReader` to access contents; may throw `IOException` |
 
-### 3.1. Lấy tham chiếu bằng ModuleFinder
+### 3.1. Obtaining a Reference via ModuleFinder
 
 ```java
 import java.lang.module.ModuleFinder;
@@ -68,18 +68,18 @@ public class FindSystemModule {
 
         ModuleReference ref = finder.find("java.base")
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Không tìm thấy module java.base"));
+                        "Module java.base not found"));
 
-        System.out.println("Tên: " + ref.descriptor().name());
-        System.out.println("Các requires: " + ref.descriptor().requires());
+        System.out.println("Name: " + ref.descriptor().name());
+        System.out.println("Requires: " + ref.descriptor().requires());
         System.out.println("URI: " + ref.location()
                 .map(Object::toString)
-                .orElse("(không có URI)"));
+                .orElse("(no URI)"));
     }
 }
 ```
 
-`ModuleFinder.ofSystem()` truy cập tập module hệ thống trong runtime image. Để tìm module từ một hoặc nhiều đường dẫn trên module path, dùng:
+`ModuleFinder.ofSystem()` accesses the system module set in the runtime image. To locate modules from one or more paths on the module path, use:
 
 ```java
 import java.lang.module.ModuleFinder;
@@ -89,46 +89,46 @@ import java.nio.file.Path;
 ModuleFinder finder = ModuleFinder.of(Path.of("mods"));
 ModuleReference ref = finder.find("com.example.report")
         .orElseThrow(() -> new IllegalArgumentException(
-                "Chưa thấy com.example.report trên module path"));
+                "com.example.report not found on module path"));
 
 System.out.println(ref.descriptor());
 ```
 
-Ví dụ thứ hai giả định thư mục `mods` chứa module tương ứng và được biên dịch/đóng gói đúng định dạng. Việc tìm thấy tham chiếu không có nghĩa module đã được resolve hoặc sẵn sàng cho `Class.forName`.
+The second example assumes the `mods` directory contains the corresponding module and that it is compiled/packaged in the proper format. Finding a reference does not mean the module has been resolved or is ready for `Class.forName`.
 
-### 3.2. Vị trí module không nhất thiết là đường dẫn file
+### 3.2. A Module's Location Is Not Necessarily a File Path
 
-`location()` trả về `Optional<URI>`, không phải `Path`. URI có thể dùng sơ đồ `jrt:` cho module trong runtime image, `file:` cho một vị trí trên hệ thống file, hoặc không có giá trị. Vì vậy:
+`location()` returns `Optional<URI>`, not `Path`. The URI may use the `jrt:` scheme for a module in the runtime image, `file:` for a location on the filesystem, or have no value. Therefore:
 
-- Luôn xử lý trường hợp `Optional.empty()`.
-- Không áp đặt rằng mọi URI đều có thể chuyển bằng `Path.of(uri)` hoặc đọc bằng `Files.readAllBytes(...)`.
-- Khi cần truy cập nội dung theo cách độc lập với cách lưu trữ, ưu tiên `reference.open()` rồi dùng `ModuleReader`.
+- Always handle the `Optional.empty()` case.
+- Do not assume every URI can be converted with `Path.of(uri)` or read with `Files.readAllBytes(...)`.
+- When you need to access contents in a storage-independent way, prefer `reference.open()` and then use `ModuleReader`.
 
-## 4. Hiểu và sử dụng ModuleReader
+## 4. Understanding and Using ModuleReader
 
-`ModuleReader` là interface kế thừa `Closeable`. Một reader đọc tài nguyên của **một** module cụ thể mà tham chiếu của nó đã mở.
+`ModuleReader` is an interface extending `Closeable`. A reader reads resources of **one** specific module whose reference opened it.
 
-| Phương thức | Mục đích |
+| Method | Purpose |
 |---|---|
-| `find(String name)` | Trả về `Optional<URI>` cho tài nguyên mang tên tương đối trong module, nếu tìm được |
-| `open(String name)` | Trả về `Optional<InputStream>` để đọc nội dung tài nguyên |
-| `read(String name)` | Trả về `Optional<ByteBuffer>` chứa dữ liệu tài nguyên |
-| `release(ByteBuffer bb)` | Giải phóng buffer đã được reader cấp qua `read` khi không cần dùng nữa |
-| `list()` | Trả về `Stream<String>` gồm các tên tài nguyên trong module |
-| `close()` | Đóng reader và tài nguyên liên quan |
+| `find(String name)` | Returns `Optional<URI>` for the resource with the given relative name in the module, if found |
+| `open(String name)` | Returns `Optional<InputStream>` to read the resource content |
+| `read(String name)` | Returns `Optional<ByteBuffer>` containing the resource data |
+| `release(ByteBuffer bb)` | Releases a buffer allocated by the reader via `read` when no longer needed |
+| `list()` | Returns a `Stream<String>` containing resource names in the module |
+| `close()` | Closes the reader and associated resources |
 
-Tên tài nguyên dùng dấu `/` làm dấu phân cách và được hiểu **tương đối với gốc module**, chẳng hạn:
+Resource names use `/` as the separator and are interpreted **relative to the module root**, for example:
 
 - `java/lang/String.class`
 - `com/example/report/ReportService.class`
 - `config/app.properties`
 - `META-INF/services/com.example.spi.Service`
 
-Tên tài nguyên không phải là tên module, không phải tên nhị phân của lớp và không phải đường dẫn file tuyệt đối. Chẳng hạn `java.lang.String` là tên lớp, còn `java/lang/String.class` mới là tên tài nguyên tương ứng.
+A resource name is not a module name, not a binary class name, and not an absolute file path. For example, `java.lang.String` is a class name, whereas `java/lang/String.class` is the corresponding resource name.
 
-### 4.1. Ví dụ hoàn chỉnh: đọc module java.base
+### 4.1. Complete Example: Reading the java.base Module
 
-Chương trình sau chạy trực tiếp trên JDK 11+ mà không cần module riêng. Nó lấy tham chiếu từ configuration của boot layer, liệt kê một số tài nguyên và thử hai cách đọc file class.
+The following program runs directly on JDK 11+ without needing a custom module. It obtains a reference from the boot layer's configuration, lists some resources, and tries two ways of reading a class file.
 
 ```java
 import java.io.IOException;
@@ -153,19 +153,19 @@ public class ModuleContentDemo {
         System.out.println("Module: " + ref.descriptor().name());
         System.out.println("Location: " + ref.location()
                 .map(URI::toString)
-                .orElse("(không công bố URI)"));
+                .orElse("(no URI published)"));
 
         String resource = "java/lang/String.class";
 
         try (ModuleReader reader = ref.open()) {
-            // Liệt kê một số tài nguyên trong package java.lang
+            // List some resources in the java.lang package
             try (Stream<String> names = reader.list()) {
                 names.filter(name -> name.startsWith("java/lang/"))
                         .limit(5)
                         .forEach(System.out::println);
             }
 
-            // Cách 1: đọc qua InputStream, sau đó đóng stream
+            // Option 1: read via InputStream, then close the stream
             try (InputStream input = reader.open(resource).orElseThrow()) {
                 byte[] prefix = input.readNBytes(4);
                 for (byte value : prefix) {
@@ -174,49 +174,49 @@ public class ModuleContentDemo {
                 System.out.println();
             }
 
-            // Cách 2: đọc qua ByteBuffer, sau đó release đúng buffer
+            // Option 2: read via ByteBuffer, then properly release the buffer
             Optional<ByteBuffer> maybeBuffer = reader.read(resource);
             if (maybeBuffer.isPresent()) {
                 ByteBuffer buffer = maybeBuffer.get();
                 try {
-                    System.out.println("Byte còn lại: "
+                    System.out.println("Remaining bytes: "
                             + buffer.remaining());
                 } finally {
                     reader.release(buffer);
                 }
             }
 
-            // Lấy URI tài nguyên, nếu implementation hỗ trợ
+            // Get the resource URI, if supported by the implementation
             System.out.println("Resource URI: "
                     + reader.find(resource)
                             .map(URI::toString)
-                            .orElse("(không tìm thấy)"));
+                            .orElse("(not found)"));
         }
     }
 }
 ```
 
-Lưu thành `ModuleContentDemo.java` rồi chạy:
+Save as `ModuleContentDemo.java` and run:
 
 ```bash
 javac ModuleContentDemo.java
 java ModuleContentDemo
 ```
 
-Bốn byte đầu của một file class hợp lệ là `CA FE BA BE`. Thứ tự và số lượng tên tài nguyên được in ra phụ thuộc implementation và nội dung runtime; không dựa vào thứ tự của `list()` để xây dựng logic.
+The first four bytes of a valid class file are `CA FE BA BE`. The order and number of printed resource names depend on the implementation and runtime contents; do not build logic that relies on the order of `list()`.
 
-### 4.2. open() và read(): chọn cách nào?
+### 4.2. open() and read(): Which One to Choose?
 
-- Dùng `open(name)` khi muốn xử lý dữ liệu theo luồng hoặc chuyển vào API nhận `InputStream`. Luôn đóng stream nhận được.
-- Dùng `read(name)` khi cần thao tác trên `ByteBuffer`, ví dụ đọc header hoặc phân tích bytecode. Luôn gọi `release(buffer)` trong `finally` cho buffer được reader trả về.
-- Dùng `find(name)` khi chỉ cần biết URI của một tài nguyên. URI có thể là URI đặc thù provider; không suy ra rằng tài nguyên là file thông thường.
-- Dùng `list()` để khám phá tài nguyên. Với stream có tài nguyên đi kèm, nên đóng stream trong `try-with-resources`; đóng reader sau khi hoàn tất việc tiêu thụ stream.
+- Use `open(name)` when you want to process data as a stream or pass it to an API that accepts `InputStream`. Always close the returned stream.
+- Use `read(name)` when you need to operate on a `ByteBuffer`, such as reading headers or analyzing bytecode. Always call `release(buffer)` in a `finally` block for the buffer returned by the reader.
+- Use `find(name)` when you only need the URI of a resource. The URI may be a provider-specific URI; do not assume the resource is an ordinary file.
+- Use `list()` to discover resources. Because the stream may have associated resources, close the stream in a `try-with-resources` block; close the reader after finishing consuming the stream.
 
-Việc `release` không tương đương `close`: nó dành cho buffer do `read` cấp, còn `close` đóng toàn bộ reader. Không dùng buffer sau khi đã release.
+Calling `release` is not equivalent to `close`: it is for a buffer allocated by `read`, whereas `close` closes the entire reader. Do not use a buffer after it has been released.
 
-## 5. Liên hệ trực tiếp với quá trình module resolution
+## 5. Direct Connection to the Module Resolution Process
 
-Giả sử một module ứng dụng `com.example.report` đã nằm trên module path. Ta có thể đi từ quá trình resolution đến tham chiếu của module đó:
+Suppose an application module `com.example.report` is already on the module path. We can go from the resolution process to a reference to that module:
 
 ```java
 import java.lang.module.Configuration;
@@ -237,28 +237,28 @@ ModuleReference ref = config
         .orElseThrow()
         .reference();
 
-System.out.println("Module đã resolve: " + ref.descriptor().name());
+System.out.println("Resolved module: " + ref.descriptor().name());
 ```
 
-Trong ví dụ:
+In this example:
 
-1. `before` cung cấp những module có thể quan sát từ `mods`; `after` là finder bổ sung rỗng.
-2. `resolve(...)` chọn các module cần thiết để thỏa mãn quan hệ phụ thuộc từ root `com.example.report` và tạo một `Configuration` mới.
-3. `findModule(...)` ở `Configuration` trả về `ResolvedModule`; `reference()` dẫn về `ModuleReference` đã được chọn.
-4. Nếu muốn truy cập file bên trong module đó, gọi `ref.open()` để lấy reader.
-5. Nếu muốn **thực thi lớp** thuộc module đó, vẫn cần xây dựng `ModuleLayer` với cơ chế định nghĩa module/class loader phù hợp. Chỉ có `Configuration` hay `ModuleReader` là chưa đủ.
+1. `before` provides observable modules from `mods`; `after` is an empty supplementary finder.
+2. `resolve(...)` selects the modules needed to satisfy dependency relationships from the root `com.example.report` and creates a new `Configuration`.
+3. `findModule(...)` on `Configuration` returns a `ResolvedModule`; `reference()` leads to the selected `ModuleReference`.
+4. If you want to access files inside that module, call `ref.open()` to get a reader.
+5. If you want to **execute classes** belonging to that module, you still need to build a `ModuleLayer` with an appropriate module definition/class loader mechanism. Having only `Configuration` or `ModuleReader` is not enough.
 
-Phân biệt hai cách tìm là quan trọng: `finder.find(name)` trả về module quan sát được trên một nguồn; `configuration.findModule(name)` trả về module **đã được chọn trong kết quả resolution**.
+Distinguishing these two ways of looking up a module is important: `finder.find(name)` returns an observable module from a source; `configuration.findModule(name)` returns a module **selected in the resolution result**.
 
-## 6. Các tình huống sử dụng thực tế
+## 6. Practical Use Cases
 
-### 6.1. Công cụ kiểm kê module
+### 6.1. Module Inventory Tools
 
-Dùng `ModuleFinder.ofSystem().findAll()` hoặc `ModuleFinder.of(path).findAll()` để liệt kê tham chiếu và lấy `descriptor()`. Có thể tổng hợp tên module, các `requires`, `exports`, `opens` và các service được công bố mà chưa cần load lớp.
+Use `ModuleFinder.ofSystem().findAll()` or `ModuleFinder.of(path).findAll()` to list references and inspect `descriptor()`. You can aggregate module names, `requires`, `exports`, `opens`, and declared services without loading classes.
 
-### 6.2. Công cụ kiểm tra thành phần đóng gói
+### 6.2. Packaging Verification Tools
 
-Mở `ModuleReader` để tìm tài nguyên cấu hình hoặc class mong đợi:
+Open a `ModuleReader` to check for expected configuration resources or classes:
 
 ```java
 import java.io.IOException;
@@ -273,60 +273,60 @@ static boolean hasResource(ModuleReference ref, String name)
 }
 ```
 
-Giá trị trả về chỉ phản ánh tài nguyên được reader tìm thấy. Nó không khẳng định lớp có thể khởi tạo, module có được yêu cầu từ module khác hay service provider có thể chạy thành công.
+The return value only reflects whether the resource was found by the reader. It does not confirm that the class can be initialized, that the module is required by another module, or that a service provider can run successfully.
 
-### 6.3. Phân tích bytecode
+### 6.3. Bytecode Analysis
 
-Một công cụ có thể đọc `*.class` bằng `open` hoặc `read` rồi chuyển byte vào thư viện phân tích class file. `ModuleReader` cung cấp byte thô; việc diễn giải constant pool, methods và annotations thuộc trách nhiệm thư viện phân tích.
+A tool can read `*.class` via `open` or `read` and pass the bytes to a class-file analysis library. `ModuleReader` supplies raw bytes; interpreting the constant pool, methods, and annotations is the responsibility of the analysis library.
 
-### 6.4. Khám phá tài nguyên của module chưa được resolve
+### 6.4. Exploring Resources of an Unresolved Module
 
-Có thể lấy `ModuleReference` trực tiếp từ một finder và mở reader của nó, ngay cả trước khi thêm module vào configuration. Điều này phù hợp cho công cụ khảo sát cấu trúc module. Tuy nhiên, đọc được tài nguyên không bảo đảm mọi dependency của module đó hợp lệ.
+You can obtain a `ModuleReference` directly from a finder and open its reader even before adding the module to a configuration. This is suitable for module structure inspection tools. However, being able to read resources does not guarantee that all dependencies of that module are valid.
 
-## 7. Quản lý tài nguyên, lỗi và giới hạn
+## 7. Resource Management, Errors, and Limitations
 
-| Tình huống | Cách xử lý |
+| Situation | How to Handle |
 |---|---|
-| `finder.find(name)` trả về rỗng | Kiểm tra tên module và module path; không dùng `get()` khi chưa kiểm tra |
-| `configuration.findModule(name)` trả về rỗng | Module chưa nằm trong configuration đang xét; phân biệt với kết quả của finder |
-| `reader.open/read/find(name)` trả về rỗng | Tài nguyên không tồn tại với tên đã cung cấp hoặc provider không tìm được |
-| `ModuleReference.open()` hay thao tác reader ném `IOException` | Xử lý ngoại lệ I/O theo ngữ cảnh; đóng reader bằng `try-with-resources` |
-| `reader.list()` trả về stream | Tiêu thụ khi reader còn mở; đóng stream trước reader |
-| `reader.read(name)` thành công | Gọi `reader.release(buffer)` trong `finally` khi dùng xong |
-| `location()` rỗng hoặc có URI không phải `file:` | Không suy luận đường dẫn thật; dùng reader để truy cập nội dung |
-| Lỗi phân giải phụ thuộc như module không tìm thấy hoặc graph không hợp lệ | Xử lý trong bước resolution; `ModuleReader` không giải quyết dependency |
-| Module có package không `exports` | Đọc byte bằng reader không cấp quyền truy cập Java code vào package đó |
+| `finder.find(name)` returns empty | Check the module name and module path; do not call `get()` without checking |
+| `configuration.findModule(name)` returns empty | The module is not in the configuration under inspection; distinguish this from finder results |
+| `reader.open/read/find(name)` returns empty | The resource does not exist under the given name or the provider cannot locate it |
+| `ModuleReference.open()` or reader operations throw `IOException` | Handle the I/O exception according to context; close the reader with `try-with-resources` |
+| `reader.list()` returns a stream | Consume it while the reader is still open; close the stream before closing the reader |
+| `reader.read(name)` succeeds | Call `reader.release(buffer)` in a `finally` block when done |
+| `location()` is empty or has a non-`file:` URI | Do not infer a real filesystem path; use the reader to access contents |
+| Dependency resolution errors such as module not found or invalid graph | Handle during the resolution step; `ModuleReader` does not resolve dependencies |
+| Module has unexported packages | Reading bytes with a reader does not grant Java code access to those packages |
 
-Ngoài ra:
+In addition:
 
-- Reader không được chia sẻ hoặc dùng đồng thời một cách tùy tiện; tuân thủ hợp đồng và giới hạn của provider cụ thể.
-- Không giữ `InputStream` hoặc `ByteBuffer` của reader lâu hơn vòng đời cần thiết.
-- Không giả định thứ tự của `list()`, tên đường dẫn phụ thuộc hệ điều hành hay khả năng biến URI thành `Path`.
-- Khi làm việc với module path do bên ngoài cung cấp, cần xử lý dữ liệu bytecode/tài nguyên như dữ liệu đầu vào không đáng tin cậy.
-- Dùng `ModuleReader` để kiểm tra nội dung không có nghĩa bỏ qua các quy tắc `requires`, `exports` và `opens` khi Java thực sự liên kết lớp hoặc sử dụng reflection.
+- A reader must not be shared or used concurrently arbitrarily; respect the contract and limitations of the specific provider.
+- Do not hold onto an `InputStream` or `ByteBuffer` from a reader longer than its required lifetime.
+- Do not assume the order of `list()`, OS-dependent path naming, or the ability to turn a URI into a `Path`.
+- When working with externally supplied module paths, treat bytecode/resource data as untrusted input.
+- Using `ModuleReader` to inspect contents does not bypass `requires`, `exports`, and `opens` rules when Java actually links classes or uses reflection.
 
-## 8. Câu hỏi thường gặp
+## 8. Frequently Asked Questions
 
-**ModuleReference khác java.lang.Module ở điểm nào?**
+**How does ModuleReference differ from java.lang.Module?**
 
-`ModuleReference` đại diện cho một module được finder xác định và cung cấp cách đọc nội dung. `java.lang.Module` đại diện cho module ở runtime, gắn với một module layer. Không thể gọi `reference.open()` rồi coi đó là tạo xong module runtime.
+`ModuleReference` represents a module located by a finder and provides a way to read its contents. `java.lang.Module` represents a module at runtime, attached to a module layer. You cannot call `reference.open()` and treat that as having created a runtime module.
 
-**Có thể lấy ModuleReference từ một module đã resolve không?**
+**Can you get a ModuleReference from a resolved module?**
 
-Có. Lấy `ResolvedModule` từ `Configuration.findModule(name)`, rồi gọi `reference()`. Ví dụ với boot layer: `ModuleLayer.boot().configuration().findModule("java.base").orElseThrow().reference()`.
+Yes. Obtain the `ResolvedModule` from `Configuration.findModule(name)`, then call `reference()`. For example, with the boot layer: `ModuleLayer.boot().configuration().findModule("java.base").orElseThrow().reference()`.
 
-**ModuleReader có tải class giống ClassLoader không?**
+**Does ModuleReader load classes like a ClassLoader?**
 
-Không. `open` và `read` cung cấp dữ liệu của tài nguyên, có thể là bytecode `.class`, nhưng không thực hiện định nghĩa lớp, liên kết, khởi tạo hay quản lý quyền truy cập giữa các module.
+No. `open` and `read` provide resource data, which may be `.class` bytecode, but they do not perform class definition, linking, initialization, or cross-module access control.
 
-**Tại sao không dùng Files hoặc JarFile để đọc module?**
+**Why not use Files or JarFile to read a module?**
 
-Cách đó có thể thích hợp cho một loại đóng gói cụ thể. `ModuleReader` cung cấp giao diện chung cho module trong runtime image và những module do provider khác cung cấp, giúp công cụ ít phụ thuộc định dạng lưu trữ hơn.
+That approach can work for a specific packaging format. `ModuleReader` provides a uniform interface for modules in the runtime image and modules supplied by other providers, making tools less coupled to storage formats.
 
-**Khi nào nên đọc ModuleDescriptor mà không mở ModuleReader?**
+**When should you read ModuleDescriptor without opening a ModuleReader?**
 
-Khi chỉ cần metadata như tên, yêu cầu phụ thuộc, các package được exports/opens và dịch vụ sử dụng/cung cấp. Chỉ mở reader khi thực sự cần danh sách hoặc nội dung tài nguyên.
+When you only need metadata such as the name, required dependencies, exported/opened packages, and used/provided services. Only open a reader when you actually need the resource list or resource contents.
 
-## 9. Ghi nhớ
+## 9. Key Takeaways
 
-`ModuleFinder` **tìm** module; `ModuleReference` **đại diện** cho bản module được tìm thấy và cho truy cập `ModuleDescriptor`; resolution tạo `Configuration` chứa `ResolvedModule`; `ModuleReader` **đọc tài nguyên** được tham chiếu; còn `ModuleLayer` và class loader là các thành phần đưa module vào môi trường runtime. Phân biệt các vai trò này giúp dùng JPMS đúng tầng trách nhiệm và tránh nhầm giữa việc tìm thấy module, giải quyết phụ thuộc, đọc bytecode và thực thi lớp.
+`ModuleFinder` **locates** modules; `ModuleReference` **represents** a found module instance and gives access to `ModuleDescriptor`; resolution produces a `Configuration` containing `ResolvedModule` entries; `ModuleReader` **reads the referenced resources**; and `ModuleLayer` and class loaders are the components that bring modules into the runtime environment. Distinguishing these roles helps you use JPMS at the right layer of responsibility and avoid confusing finding a module, resolving dependencies, reading bytecode, and executing classes.

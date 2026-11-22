@@ -1,66 +1,66 @@
-# Toán tử += trong Java String: tạo kết quả rồi gán lại tham chiếu
+# The += Operator on Java Strings: Creating a Result and Reassigning the Reference
 
-## 1. Hiểu đúng mục tiêu
+## 1. Understanding the goal
 
-Khi viết:
+When writing:
 
 ~~~java
 String name = "Java";
 name += " Core";
 ~~~
 
-giá trị của biến `name` trở thành `"Java Core"`. Nhưng **đối tượng chuỗi `"Java"` không bị sửa**. Java tính phép nối chuỗi, cho ra kết quả, rồi **gán kết quả trở lại biến tham chiếu `name`**.
+the value of the variable `name` becomes `"Java Core"`. However, **the `"Java"` string object is not modified**. Java computes the string concatenation, produces a result, and then **assigns that result back to the reference variable `name`**.
 
-Đây là điểm khác biệt quan trọng giữa việc *thay đổi giá trị của biến* và việc *thay đổi nội dung đối tượng*. `String` là **immutable**: nội dung của một đối tượng `String` không thay đổi sau khi tạo. Cú pháp `+=` chỉ làm phép nối và phép gán ngắn gọn hơn; nó **không phá vỡ tính bất biến**.
+This is an important distinction between *changing a variable's value* and *changing an object's contents*. `String` is **immutable**: the contents of a `String` object cannot change after creation. The `+=` syntax simply makes concatenation and assignment more concise; it **does not break immutability**.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Giải thích ý nghĩa của `s += part` trong trường hợp `s` là `String`.
-2. Phân biệt `s += x`, `s = s + x`, `s.concat(x)` và `StringBuilder.append(x)`.
-3. Dự đoán giá trị của các biến khác đang giữ **tham chiếu cũ** sau khi `s += ...`.
-4. Hiểu cách `+=` chuyển các toán hạng thành văn bản, kể cả số, đối tượng và `null`.
-5. Phân biệt thứ tự tính toán, dấu ngoặc và kết quả khi nối số.
-6. Nhận biết lỗi dùng `+=` với biến `final` và cân nhắc `StringBuilder` khi nối nhiều lần.
-7. Đọc và kiểm chứng kết quả bằng các chương trình Java 17+ chạy độc lập.
+1. Explain the meaning of `s += part` when `s` is a `String`.
+2. Distinguish `s += x`, `s = s + x`, `s.concat(x)`, and `StringBuilder.append(x)`.
+3. Predict the values of other variables holding the **old reference** after `s += ...`.
+4. Understand how `+=` converts operands to text, including numbers, objects, and `null`.
+5. Distinguish evaluation order, parentheses, and results when concatenating numbers.
+6. Recognize compile errors when using `+=` with `final` variables and consider `StringBuilder` for repeated concatenations.
+7. Read and verify results using standalone Java 17+ programs.
 
-Kiến thức nền cần có: biến, tham chiếu đối tượng, dấu `=`, `+`, `String`, kiểu nguyên thủy và `final`.
+Prerequisites: variables, object references, `=`, `+`, `String`, primitive types, and `final`.
 
-## 2. += vừa nối chuỗi vừa gán kết quả
+## 2. += both concatenates strings and assigns the result
 
-`+=` là **toán tử gán kết hợp** (*compound assignment operator*). Với biến `String` đơn giản, có thể hiểu:
+`+=` is the **compound assignment operator**. For a simple `String` variable, you can think of it as:
 
 ~~~java
 String s = "Hello";
 
-s += " World";    // Viết gọn
-// Tương đương về kết quả với:
+s += " World";    // Shorthand
+// Equivalent in result to:
 // s = s + " World";
 ~~~
 
-Kết quả cuối của `s` là `"Hello World"`. Thao tác có thể hình dung theo ba bước:
+The final value of `s` is `"Hello World"`. The operation can be pictured in three steps:
 
-1. Đọc giá trị hiện tại mà biến `s` tham chiếu, ở đây là `"Hello"`.
-2. Tính phép `s + " World"`, tạo giá trị nội dung `"Hello World"`.
-3. Gán kết quả phép nối trở lại biến `s`.
+1. Read the current value referenced by the variable `s`, here `"Hello"`.
+2. Compute `s + " World"`, producing a value with content `"Hello World"`.
+3. Assign the concatenated result back to the variable `s`.
 
-Chú ý câu **“tương đương về kết quả”**: đối với biểu thức ở vế trái phức tạp có tác dụng phụ như `array[index++]`, Java đánh giá vế trái của phép gán kết hợp **một lần**. Vì vậy không thể máy móc thay mọi `left += value` bằng văn bản `left = left + value` nếu việc tính `left` có tác dụng phụ.
+Notice the phrase **“equivalent in result”**: for a complex left-hand expression with side effects such as `array[index++]`, Java evaluates the left-hand side of a compound assignment **once**. Therefore, you cannot mechanically rewrite every `left += value` as `left = left + value` if evaluating `left` has side effects.
 
-Sơ đồ tham chiếu đơn giản:
+Simple reference diagram:
 
 ~~~text
-Ban đầu:
+Initially:
 s ─────────► String "Hello"
 
-Sau s += " World":
+After s += " World":
 s ─────────► String "Hello World"
 
-Đối tượng mang nội dung "Hello" không bị sửa.
-Nếu còn biến khác trỏ đến đối tượng cũ, biến ấy vẫn đọc "Hello".
+The object containing "Hello" is not modified.
+If another variable still points to the old object, that variable still reads "Hello".
 ~~~
 
-Trong Java, `String` bất biến, dù trình biên dịch và JVM có thể tối ưu việc hình thành giá trị kết quả theo nhiều cách. Không nên suy đoán **mỗi phép nối luôn cấp phát chính xác bao nhiêu đối tượng trung gian**.
+In Java, `String` is immutable, although the compiler and JVM can optimize how the resulting value is constructed in various ways. You should not guess **exactly how many intermediate objects every concatenation allocates**.
 
-## 3. Ví dụ then chốt: biến khác không bị thay đổi
+## 3. Key example: another variable remains unchanged
 
 ~~~java
 String first = "Java";
@@ -72,20 +72,20 @@ System.out.println(first);  // Java Core
 System.out.println(second); // Java
 ~~~
 
-Trước `+=`, cả `first` và `second` tham chiếu tới cùng giá trị `"Java"`. Sau phép gán, **chỉ `first` được gán lại**; `second` vẫn giữ tham chiếu ban đầu, nên in `"Java"`.
+Before `+=`, both `first` and `second` reference the same value `"Java"`. After the assignment, **only `first` is reassigned**; `second` still keeps its original reference, so it prints `"Java"`.
 
 ~~~text
-Trước:
+Before:
 first  ───┐
           ├──► "Java"
 second ───┘
 
-Sau:
+After:
 first  ──────► "Java Core"
 second ──────► "Java"
 ~~~
 
-Một cách kiểm tra ý nghĩa (ưu tiên kiểm tra bằng `equals()`):
+A way to verify the meaning (prefer checking with `equals()`):
 
 ~~~java
 String original = "A";
@@ -96,9 +96,9 @@ System.out.println("A".equals(copyOfReference)); // true
 System.out.println("AB".equals(original));       // true
 ~~~
 
-Đây chính là ý nghĩa **“tạo kết quả rồi gán lại tham chiếu”**. Phép gán không truyền ngược thay đổi sang các biến tham chiếu khác.
+This is precisely what **“creating a result and reassigning the reference”** means. The assignment does not propagate changes back to other reference variables.
 
-### Phân biệt với StringBuilder
+### Contrast with StringBuilder
 
 ~~~java
 StringBuilder builder = new StringBuilder("A");
@@ -110,11 +110,11 @@ System.out.println(builder); // AB
 System.out.println(alias);   // AB
 ~~~
 
-Hai biến `builder` và `alias` tham chiếu **cùng một đối tượng `StringBuilder` mutable**, nên thay đổi do `append()` đều quan sát được qua cả hai biến. `StringBuilder.append()` thay đổi builder; `String += ...` thay giá trị mà biến `String` giữ.
+Both `builder` and `alias` reference **the same mutable `StringBuilder` object**, so changes made by `append()` are visible through both variables. `StringBuilder.append()` mutates the builder; `String += ...` replaces the value held by the `String` variable.
 
-## 4. Cơ chế của String + và chuyển đổi sang văn bản
+## 4. Mechanism of String + and conversion to text
 
-`s += value` dùng quy tắc nối `String`: số, `boolean`, `char` và đối tượng được chuyển thành văn bản. Giá trị `null` có thể trở thành chữ `"null"`:
+`s += value` uses `String` concatenation rules: numbers, `boolean`, `char`, and objects are converted to text. A `null` value can become the text `"null"`:
 
 ```java
 String label = "count=";
@@ -126,11 +126,11 @@ missing += "!";
 System.out.println(missing); // null!
 ```
 
-`+=` không định dạng số theo locale hoặc tự giải quyết dữ liệu thiếu. Đây là **chuyển đổi trong phép nối**; xem bài về `+` và `String.valueOf` để học bảng chuyển kiểu đầy đủ.
+`+=` does not format numbers according to locale or automatically resolve missing data. This is **conversion during concatenation**; see the lessons on `+` and `String.valueOf` for the full conversion table.
 
-## 5. Số học, thứ tự toán tử và dấu ngoặc
+## 5. Arithmetic, operator order, and parentheses
 
-`+` vừa có nghĩa **cộng số** vừa có nghĩa **nối chuỗi**, nên thứ tự tính toán có thể cho kết quả khác nhau.
+`+` means both **numeric addition** and **string concatenation**, so evaluation order can yield different results.
 
 ~~~java
 String first = "N";
@@ -143,9 +143,9 @@ second += 2;
 System.out.println(second); // N12
 ~~~
 
-Ở ví dụ đầu, biểu thức ở bên phải `1 + 2` thực hiện cộng số trước, ra `3`, rồi mới được nối với `"N"`. Ví dụ thứ hai nối lần lượt từng số.
+In the first example, the right-hand expression `1 + 2` performs numeric addition first, yielding `3`, before being concatenated to `"N"`. The second example concatenates each number sequentially.
 
-Tương tự:
+Similarly:
 
 ~~~java
 String a = "Result=";
@@ -157,35 +157,35 @@ b = b + 10 + 5;
 System.out.println(b); // Result=105
 ~~~
 
-Biểu thức `b + 10 + 5` liên kết từ trái sang phải: bắt đầu bằng `String`, nên phép `+` tiếp theo thực hiện nối văn bản.
+The expression `b + 10 + 5` associates from left to right: starting with a `String`, subsequent `+` operations perform text concatenation.
 
-**Cách đọc an toàn:** Khi muốn cộng trước rồi chuyển sang văn bản, đặt phép số học trong dấu ngoặc. Khi muốn nối từng giá trị, thể hiện rõ dấu phân cách hoặc sử dụng formatter.
+**Safe reading practice:** When you want to add first and then convert to text, wrap the arithmetic operation in parentheses. When you want to concatenate individual values, make delimiters explicit or use a formatter.
 
-### += không nhất thiết giống gọi concat()
+### += is not necessarily the same as calling concat()
 
 ~~~java
 String a = "ID";
-a += 17;                // Hợp lệ: ID17
+a += 17;                // Valid: ID17
 
 String b = "ID";
-// b = b.concat(17);     // Không biên dịch: concat nhận String
-b = b.concat("17");      // Hợp lệ: ID17
+// b = b.concat(17);     // Does not compile: concat accepts String
+b = b.concat("17");      // Valid: ID17
 ~~~
 
-`concat(String)` yêu cầu đối số kiểu `String`; toán tử `+` với `String` có quy tắc chuyển đổi toán hạng linh hoạt hơn.
+`concat(String)` requires a `String` argument; the `+` operator with `String` has more flexible operand conversion rules.
 
-## 6. Sự khác biệt giữa += và các toán tử gán thường gặp
+## 6. Differences between += and common assignment operations
 
-| Biểu thức | Cơ chế | Đối tượng String nguồn bị sửa? |
+| Expression | Mechanism | Is the source String object modified? |
 | --- | --- | --- |
-| `s = "Hello"` | Gán tham chiếu tới chuỗi | Không |
-| `s = s + "!"` | Tạo giá trị nối, gán kết quả | Không |
-| `s += "!"` | Gán kết hợp: nối rồi gán lại | Không |
-| `s.concat("!")` | Trả kết quả nối, **bỏ kết quả** | Không; `s` giữ nguyên |
-| `s = s.concat("!")` | Nhận kết quả từ `concat()` | Không |
-| `builder.append("!")` | Thay đổi nội dung `StringBuilder` | Không áp dụng cho `String`; builder mutable |
+| `s = "Hello"` | Assigns reference to string | No |
+| `s = s + "!"` | Creates concatenated value, assigns result | No |
+| `s += "!"` | Compound assignment: concatenates then reassigns | No |
+| `s.concat("!")` | Returns concatenated result, **discards result** | No; `s` stays unchanged |
+| `s = s.concat("!")` | Captures result from `concat()` | No |
+| `builder.append("!")` | Modifies `StringBuilder` contents | Not applicable to `String`; builder is mutable |
 
-Ví dụ lỗi thường gặp:
+Common mistake example:
 
 ~~~java
 String s = "Hello";
@@ -197,29 +197,29 @@ s += "!";
 System.out.println(s); // Hello!
 ~~~
 
-Điểm khác nằm ở việc **có gán kết quả hay không**. Khi gọi `concat()` mà bỏ kết quả, biến không đổi. `+=` bao gồm phép gán trong cú pháp của chính nó.
+The difference lies in **whether the result is assigned**. Calling `concat()` and discarding the result leaves the variable unchanged. `+=` includes assignment in its syntax.
 
-### Biến final không dùng được +=
+### final variables cannot use +=
 
 ~~~java
 final String title = "Java";
-// title += " Core"; // Lỗi biên dịch: không thể gán lại biến final
+// title += " Core"; // Compile error: cannot reassign a final variable
 ~~~
 
-`final` ngăn việc gán lại biến. Dù bản thân `String` là immutable, `+=` vẫn là một phép **gán lại**, nên bị cấm trên biến `final`.
+`final` prevents reassigning the variable. Even though `String` itself is immutable, `+=` is still a **reassignment**, so it is forbidden on a `final` variable.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 final StringBuilder builder = new StringBuilder("Java");
-builder.append(" Core"); // Hợp lệ: không gán lại biến builder
+builder.append(" Core"); // Valid: does not reassign the builder variable
 ~~~
 
-`final` không biến một đối tượng mutable thành immutable; nó chỉ cố định **tham chiếu** của biến.
+`final` does not turn a mutable object into an immutable one; it only fixes the variable's **reference**.
 
-## 7. String Pool và vấn đề dùng ==
+## 7. String Pool and issues with ==
 
-`String` literal và biểu thức hằng có thể chia sẻ giá trị đã intern, nhưng `+=` thường tạo kết quả lúc chạy. `==` so tham chiếu; `equals()` so nội dung:
+`String` literals and constant expressions can share interned values, whereas `+=` typically produces results at runtime. `==` compares references; `equals()` compares content:
 
 ```java
 String name = "Ja";
@@ -227,11 +227,11 @@ name += "va";
 System.out.println(name.equals("Java")); // true
 ```
 
-Danh tính kết quả không phải cơ sở để kiểm tra nội dung. Cơ chế intern/constant expression được giải thích riêng ở các bài về String pool và compiler.
+Result identity is not the right basis for checking content. Interning and constant-expression mechanisms are explained separately in lessons on the String pool and the compiler.
 
-## 8. Vế trái phức tạp: chỉ được đánh giá một lần
+## 8. Complex left-hand side: evaluated only once
 
-Đối với biến đơn giản, có thể đọc `s += x` như `s = s + x`. Tuy nhiên **quy tắc ngôn ngữ** của phép gán kết hợp là vế trái được đánh giá một lần.
+For simple variables, you can read `s += x` like `s = s + x`. However, **the language rule** for compound assignment is that the left-hand side is evaluated once.
 
 ~~~java
 String[] values = {"A", "B"};
@@ -244,18 +244,18 @@ System.out.println(values[0]); // A!
 System.out.println(values[1]); // B
 ~~~
 
-`index++` chỉ thực hiện một lần, rồi Java nối vào phần tử `values[0]` và gán kết quả về đúng phần tử đó.
+`index++` executes only once; Java then concatenates onto element `values[0]` and assigns the result back to that exact element.
 
-Không máy móc thay câu lệnh này thành:
+Do not mechanically rewrite this statement as:
 
 ~~~java
-// KHÔNG tương đương, vì index++ có thể chạy hai lần:
+// NOT equivalent, because index++ would run twice:
 // values[index++] = values[index++] + "!";
 ~~~
 
-Ở dạng thay thế sai, biểu thức chỉ số có thể bị đánh giá hai lần và các phần tử khác nhau có thể bị đọc/ghi. Với field access, array access hoặc phương thức có tác dụng phụ trong vế trái, cần tuân theo quy tắc đánh giá cụ thể của Java.
+In the incorrect replacement, the index expression would be evaluated twice and different elements could be read/written. With field access, array access, or methods with side effects on the left-hand side, you must follow Java's specific evaluation rules.
 
-### += với phần tử mảng String
+### += with String array elements
 
 ~~~java
 String[] labels = {"A", "B"};
@@ -267,22 +267,22 @@ System.out.println(labels[0]); // A1
 System.out.println(old);       // A
 ~~~
 
-Phần tử mảng được **gán lại tham chiếu mới**. Đối tượng chuỗi cũ `"A"` vẫn bất biến; biến `old` tiếp tục giữ giá trị cũ.
+The array element is **reassigned a new reference**. The old string object `"A"` remains immutable; the variable `old` continues to hold the old value.
 
-## 9. Chi phí của nối lặp nhiều lần
+## 9. Cost of repeated concatenation
 
-Nối `result += part` lặp nhiều lần phải xây giá trị kết quả mới qua mỗi lượt; với dữ liệu tăng, `StringBuilder.append(part)` thường phù hợp hơn. Điều này không có nghĩa mọi `+=` ngắn đều đáng thay đổi:
+Repeating `result += part` many times must build a new result value on each iteration; as data grows, `StringBuilder.append(part)` is usually more appropriate. That does not mean every short `+=` is worth changing:
 
 ```java
 String greeting = "Hello";
-greeting += ", Java"; // Rõ ý, hợp lệ
+greeting += ", Java"; // Clear, valid
 ```
 
-Bài **Nối trong một biểu thức so với tích lũy qua vòng lặp** phân tích mô hình chi phí và cách benchmark; ở bài này trọng tâm vẫn là **phép gán lại tham chiếu**.
+The lesson **Concatenation in a single expression vs. accumulation across loops** analyzes the cost model and how to benchmark; here, the focus remains **reference reassignment**.
 
-## 10. Một chương trình hoàn chỉnh kiểm chứng Java 17+
+## 10. A complete verification program for Java 17+
 
-Tạo file **`StringPlusEqualsDemo.java`**:
+Create the file **`StringPlusEqualsDemo.java`**:
 
 ~~~java
 public class StringPlusEqualsDemo {
@@ -326,14 +326,14 @@ public class StringPlusEqualsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 StringPlusEqualsDemo.java
 java StringPlusEqualsDemo
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 first=Java Core
@@ -349,36 +349,36 @@ builderAlias=AB
 equals=true
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-1. `first` được gán kết quả nối, còn `alias` giữ chuỗi `"Java"`.
-2. `missing` ban đầu `null` được chuyển thành đoạn văn bản `"null"`, nên có kết quả `"null!"`.
-3. `number += 1 + 2` cộng số trước rồi nối `3`; `pieces` nối hai số riêng nên có `"N12"`.
-4. `values[index++] += "!"` chỉ tăng `index` một lần và gán kết quả tại phần tử đầu tiên.
-5. `StringBuilder.append()` sửa builder mutable nên `builderAlias` cũng đọc `"AB"`.
-6. `equals()` xác nhận nội dung sau `+=` đúng, không phụ thuộc so sánh danh tính đối tượng.
+1. `first` is assigned the concatenated result, while `alias` keeps the string `"Java"`.
+2. `missing`, initially `null`, is converted to the text segment `"null"`, producing `"null!"`.
+3. `number += 1 + 2` adds the numbers first and concatenates `3`; `pieces` concatenates two separate numbers, yielding `"N12"`.
+4. `values[index++] += "!"` increments `index` only once and assigns the result at the first element.
+5. `StringBuilder.append()` mutates the mutable builder, so `builderAlias` also reads `"AB"`.
+6. `equals()` confirms the content after `+=` is right, without relying on object identity comparison.
 
-Chương trình độc lập có một lớp public trùng tên file, chạy với Java 17 trở lên, không cần thư viện ngoài JDK.
+This standalone program has one public class matching the filename, runs on Java 17 or later, and requires no libraries outside the JDK.
 
-## 11. Những ngộ nhận cần sửa
+## 11. Misconceptions to correct
 
-| Ngộ nhận | Sự thật |
+| Misconception | Reality |
 | --- | --- |
-| `s += x` sửa nội dung đối tượng `String` nguồn | Nó tạo giá trị kết quả rồi **gán lại biến** |
-| Mọi biến cùng tham chiếu `String` đều thấy giá trị mới sau `+=` | Chỉ vế trái được gán lại; tham chiếu khác giữ giá trị cũ |
-| `+=` luôn an toàn khi `s == null` | Có thể tạo văn bản `"null..."` ngoài ý muốn |
-| `s += 1 + 2` luôn ra `"...12"` | `1 + 2` thực hiện cộng số trước, ra `3` |
-| `s += value` luôn giống thay chữ bằng `s = s + value` | Với vế trái có tác dụng phụ, quy tắc đánh giá một lần rất quan trọng |
-| Biến `final String` dùng `+=` được vì String bất biến | `+=` là gán lại, nên **bị lỗi biên dịch** |
-| Gọi `s.concat(x)` rồi bỏ kết quả vẫn đổi `s` | Không: String bất biến, phải nhận kết quả |
-| `==` đủ để so nội dung sau phép nối | Dùng `String.equals()` |
-| Dùng `+=` trong vòng lặp lớn luôn tối ưu | Cân nhắc `StringBuilder`, đo hiệu năng khi cần |
-| `StringBuilder.append()` giống `String +=` | `append()` sửa builder; `+=` trên String gán lại tham chiếu |
-| `String` mới nào cũng chứa cùng tham chiếu như literal bằng nội dung | Không dựa vào pooling để suy luận danh tính kết quả runtime |
+| `s += x` modifies the source `String` object's content | It creates a result value and **reassigns the variable** |
+| Every variable referencing the same `String` sees the new value after `+=` | Only the left-hand side is reassigned; other references keep the old value |
+| `+=` is always safe when `s == null` | It can produce unintended `"null..."` text |
+| `s += 1 + 2` always yields `"...12"` | `1 + 2` performs numeric addition first, yielding `3` |
+| `s += value` is always the same as textually substituting `s = s + value` | When the left-hand side has side effects, the single-evaluation rule matters |
+| A `final String` variable can use `+=` because String is immutable | `+=` is reassignment, so it is a **compile error** |
+| Calling `s.concat(x)` and ignoring the return value still changes `s` | No: String is immutable, you must capture the result |
+| `==` is sufficient to compare content after concatenation | Use `String.equals()` |
+| Using `+=` in a large loop is always optimal | Consider `StringBuilder`, and measure performance when needed |
+| `StringBuilder.append()` is the same as `String +=` | `append()` mutates the builder; `+=` on String reassigns the reference |
+| Every new `String` holds the same reference as a literal with equal content | Do not rely on pooling to infer identity of runtime results |
 
-## 12. Bài tập tự luyện
+## 12. Practice exercises
 
-### Bài 1 — Dự đoán hai biến
+### Exercise 1 — Predict two variables
 
 ~~~java
 String a = "Hello";
@@ -388,67 +388,67 @@ System.out.println(a);
 System.out.println(b);
 ~~~
 
-Dự đoán và giải thích vì sao một biến cho `"Hello!"`, biến còn lại cho `"Hello"`.
+Predict and explain why one variable prints `"Hello!"` and the other prints `"Hello"`.
 
-### Bài 2 — null khác lỗi phương thức
+### Exercise 2 — null vs. method error
 
-Chạy `String s = null; s += "X";`. So với `s.concat("X")` khi `s` còn `null`. Giải thích chuỗi văn bản `"nullX"` khác trạng thái thiếu dữ liệu và vì sao không nên chấp nhận nó tự động.
+Run `String s = null; s += "X";`. Compare with `s.concat("X")` while `s` is still `null`. Explain how the text string `"nullX"` differs from an absent-data state and why you should not accept it automatically.
 
-### Bài 3 — Dấu ngoặc số học
+### Exercise 3 — Arithmetic parentheses
 
-Viết ba biểu thức nối từ `"N"` với `1` và `2`: một biểu thức trả `"N3"`, một trả `"N12"`, một trả `"N1,2"`. Dùng dấu ngoặc hoặc dấu phân cách để thể hiện ý định.
+Write three concatenation expressions starting from `"N"` with `1` and `2`: one returning `"N3"`, one returning `"N12"`, and one returning `"N1,2"`. Use parentheses or separators to express intent.
 
-### Bài 4 — final
+### Exercise 4 — final
 
-Thử biên dịch:
+Try compiling:
 
 ~~~java
 final String code = "A";
 // code += "B";
 ~~~
 
-Bỏ dấu chú thích của dòng thứ hai để quan sát lỗi compiler. Sau đó thử `final StringBuilder builder = new StringBuilder("A"); builder.append("B");` và giải thích sự khác biệt.
+Uncomment the second line to observe the compiler error. Then try `final StringBuilder builder = new StringBuilder("A"); builder.append("B");` and explain the difference.
 
-### Bài 5 — Mảng và tác dụng phụ
+### Exercise 5 — Arrays and side effects
 
-Cho `String[] a = {"X", "Y"}; int i = 0;`, thực hiện `a[i++] += "?";`. Dự đoán `i` và từng phần tử, sau đó giải thích vì sao một phép khai triển dùng hai lần `i++` sẽ làm sai ngữ nghĩa.
+Given `String[] a = {"X", "Y"}; int i = 0;`, execute `a[i++] += "?";`. Predict `i` and each element, then explain why an expansion using `i++` twice would change the semantics.
 
-### Bài 6 — Nối số trong vòng lặp
+### Exercise 6 — Concatenating numbers in a loop
 
-Tạo chuỗi số từ `0` đến `9999` theo hai cách: nối `+=` trong vòng lặp và `StringBuilder.append()`. Xác minh **nội dung kết quả giống nhau** và so sánh thiết kế/độ phức tạp. Nếu benchmark, làm nóng JVM, lặp nhiều lần, tránh dùng một phép đo thời gian duy nhất làm kết luận.
+Build a string of numbers from `0` to `9999` in two ways: concatenating with `+=` in a loop and using `StringBuilder.append()`. Verify that **the resulting content is identical** and compare the design/complexity. If benchmarking, warm up the JVM, repeat many times, and avoid basing conclusions on a single timing measurement.
 
-### Bài 7 — Không bỏ kết quả
+### Exercise 7 — Do not discard the result
 
-Cho:
+Given:
 
 ~~~java
 String title = "Java";
 title.concat(" Core");
 ~~~
 
-Sửa đoạn code để `title` có nội dung `"Java Core"` bằng hai cách: `title = title.concat(" Core");` và `title += " Core";`. Giải thích điểm chung của hai cách.
+Fix the snippet so `title` has content `"Java Core"` in two ways: `title = title.concat(" Core");` and `title += " Core";`. Explain what the two ways have in common.
 
-### Bài 8 — Giữ bản gốc
+### Exercise 8 — Keep the original
 
-Tạo `String raw = "  Java  "; String display = raw;`. Cho `display += " Core";`. Kiểm tra `raw` giữ nguyên. Nếu muốn loại khoảng trắng ở `display`, cần áp dụng `strip()` cho kết quả rồi nhận lại giá trị trả về.
+Create `String raw = "  Java  "; String display = raw;`. Execute `display += " Core";`. Verify that `raw` stays unchanged. If you want to remove whitespace from `display`, apply `strip()` to the result and capture the return value.
 
-## 13. Checklist hoàn thành bài học
+## 13. Lesson completion checklist
 
-Trước khi dùng `+=` với `String`, tự hỏi:
+Before using `+=` with `String`, ask yourself:
 
-- Biến vế trái có phải `String` và có thể **gán lại** không?
-- Mình đang nối văn bản hay muốn làm phép số học trước? Có cần dấu ngoặc?
-- Dữ liệu vế trái/đối số có thể là `null`? Có muốn xuất hiện chữ `"null"` không?
-- Có biến nào khác đang giữ tham chiếu đến chuỗi gốc không?
-- Có đang lặp nối rất nhiều lần? `StringBuilder` có rõ ràng/hiệu quả hơn không?
-- Mình đang so kết quả bằng `equals()` thay vì dựa vào `==`?
-- Nếu vế trái là một phần tử mảng hoặc field, việc đánh giá biểu thức có tác dụng phụ không?
+- Is the left-hand variable a `String` and can it be **reassigned**?
+- Am I concatenating text or intending to perform arithmetic first? Are parentheses needed?
+- Could the left-hand value or argument be `null`? Do I want `"null"` to appear?
+- Are other variables holding references to the original string?
+- Am I concatenating in a loop many times? Would `StringBuilder` be clearer/more efficient?
+- Am I comparing results with `equals()` rather than relying on `==`?
+- If the left-hand side is an array element or field, does evaluating that expression have side effects?
 
-**Điểm nhớ lâu:** với `String`, `s += part` nghĩa là **tính kết quả ghép văn bản rồi gán kết quả cho `s`**. Nội dung của đối tượng `String` cũ không đổi; các tham chiếu khác tới nó cũng không đổi. Đây là cơ chế bình thường của Java, không có thao tác sửa `String` tại chỗ.
+**Long-term takeaway:** for `String`, `s += part` means **compute the concatenated text result and assign that result to `s`**. The old `String` object's content does not change; other references to it do not change either. This is normal Java behavior—there is no in-place modification of `String`.
 
-## 14. Tài liệu chuẩn
+## 14. Official references
 
-- [Java Language Specification 17 — Compound Assignment Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.26.2): quy tắc `+=`, đánh giá vế trái một lần và phép gán.
-- [Java Language Specification 17 — String Concatenation Operator](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18.1): phép `+` trên `String`, string conversion và biểu thức hằng.
-- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): tính bất biến, `concat()`, `equals()` và API chuỗi.
-- [Java SE 17 — StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): `append()`, mutable builder và `toString()`.
+- [Java Language Specification 17 — Compound Assignment Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.26.2): `+=` rules, single evaluation of the left-hand side, and assignment.
+- [Java Language Specification 17 — String Concatenation Operator](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18.1): `+` on `String`, string conversion, and constant expressions.
+- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): immutability, `concat()`, `equals()`, and the string API.
+- [Java SE 17 — StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): `append()`, mutable builder, and `toString()`.

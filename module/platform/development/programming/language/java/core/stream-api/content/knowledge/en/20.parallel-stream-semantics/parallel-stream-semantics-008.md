@@ -1,22 +1,22 @@
-# ForkJoinPool chung, tác vụ chặn và giới hạn kiểm soát bộ thực thi
+# Common ForkJoinPool, Blocking Tasks, and Executor Control Limits
 
-> **Chương:** Ngữ nghĩa xử lý song song  
-> **Module:** `JAVA_STREAM_API` — học xử lý dữ liệu khai báo bằng Java Stream API thông qua pipeline lazy, `filter`, `map`, `reduce`, `collect`; thực hành grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers, đồng thời nhận diện giới hạn về trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Parallel Processing Semantics  
+> **Module:** `JAVA_STREAM_API` — learning declarative data processing with the Java Stream API via lazy pipelines, `filter`, `map`, `reduce`, and `collect`; practicing grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers, while recognizing limits on state, resources, and performance.
 
-Khi thêm `.parallel()` hoặc gọi `parallelStream()`, chương trình có thể sử dụng nhiều luồng để xử lý một nguồn dữ liệu. Nhưng **“chạy song song” không đồng nghĩa “có một bộ luồng riêng cho công việc này”**, cũng không bảo đảm nhanh hơn. Đặc biệt, nếu từng phần tử gọi HTTP, truy vấn cơ sở dữ liệu, chờ khóa hoặc thực hiện I/O chặn, việc sử dụng pool chia sẻ có thể làm chậm các tác vụ khác trong ứng dụng.
+When adding `.parallel()` or calling `parallelStream()`, a program can use multiple threads to process a data source. However, **"running in parallel" does not mean "having a dedicated thread pool for this job,"** nor does it guarantee faster execution. In particular, if each element makes HTTP calls, database queries, waits on locks, or performs blocking I/O, using a shared pool can slow down other tasks in the application.
 
-Bài này giúp bạn hiểu vai trò của `ForkJoinPool.commonPool()`, cách tác vụ chặn tác động đến tiến độ, giới hạn kiểm soát executor qua Stream API, và cách chọn một mô hình thực thi khác khi cần giới hạn đồng thời, timeout hoặc cách ly tài nguyên.
+This lesson helps you understand the role of `ForkJoinPool.commonPool()`, how blocking tasks affect progress, the limits of controlling executors through the Stream API, and how to choose a different execution model when concurrency limits, timeouts, or resource isolation are needed.
 
-Sau khi học, bạn có thể:
+After studying this lesson, you will be able to:
 
-1. Phân biệt **hợp đồng Java Stream API** với **chi tiết triển khai thường gặp** của parallel stream.
-2. Nhận diện vì sao `ForkJoinPool` phù hợp với tính toán CPU-bound có thể chia nhỏ, nhưng không phải lựa chọn mặc định tốt cho I/O chặn.
-3. Hiểu `ManagedBlocker` giải quyết phần nào vấn đề chờ, song không thay thế kiểm soát tải.
-4. Sử dụng `CompletableFuture` cùng `ExecutorService` được truyền **tường minh** khi phải điều khiển số tác vụ I/O đang chạy; phân biệt với `ForkJoinTask` dùng pool chuyên biệt cho tác vụ CPU.
+1. Distinguish the **Java Stream API contract** from **common implementation details** of parallel streams.
+2. Recognize why `ForkJoinPool` fits splittable CPU-bound computation, yet is not a good default for blocking I/O.
+3. Understand what `ManagedBlocker` solves for waiting, while not replacing load control.
+4. Use `CompletableFuture` with an **explicitly** passed `ExecutorService` when controlling the number of concurrent I/O tasks; distinguish this from `ForkJoinTask` using a dedicated pool for CPU tasks.
 
-## 1. `parallelStream()` làm gì và không làm gì?
+## 1. What does `parallelStream()` do and not do?
 
-Trong Java, hai cách sau đều yêu cầu một pipeline ở **chế độ song song**:
+In Java, both of the following request a pipeline in **parallel mode**:
 
 ```java
 import java.util.List;
@@ -31,39 +31,39 @@ System.out.println(a.isParallel()); // true
 System.out.println(b.isParallel()); // true
 ```
 
-`parallel()` là **intermediate operation** cấu hình chế độ thực thi của pipeline, không lập tức chạy công việc. Việc duyệt xảy ra khi gọi một **terminal operation** như `sum`, `reduce`, `collect` hoặc `forEach`. Một số phần của pipeline có thể được chia nhỏ cho nhiều tác vụ; cách chia thực tế phụ thuộc nguồn, `Spliterator`, phép toán và môi trường.
+`parallel()` is an **intermediate operation** configuring the pipeline's execution mode, without immediately running work. Traversal happens when calling a **terminal operation** such as `sum`, `reduce`, `collect`, or `forEach`. Parts of the pipeline may be split across multiple tasks; actual splitting depends on the source, `Spliterator`, operations, and environment.
 
-Song song không có nghĩa:
+Parallel does not mean:
 
-- Mỗi phần tử được giao cho một thread riêng.
-- Số thread luôn bằng số lõi CPU, hoặc có thể chỉ định trực tiếp bằng `.parallel(4)` — **không có overload như vậy**.
-- Mọi phần tử được xử lý theo thứ tự xuất hiện trong nguồn.
-- Một nguồn ít phần tử sẽ được chia đều.
-- Các thao tác chặn được tự động giới hạn hay có timeout.
-- Pipeline có bộ thực thi (executor) biệt lập với các tác vụ khác.
+- Each element is assigned to a dedicated thread.
+- Thread count always equals CPU core count, or can be specified directly via `.parallel(4)` — **there is no such overload**.
+- Every element is processed in source appearance order.
+- A source with few elements will be split evenly.
+- Blocking operations automatically have concurrency limits or timeouts.
+- The pipeline has an executor isolated from other tasks.
 
-**Quan trọng:** Java Stream API chỉ quy định ngữ nghĩa tính toán và những ràng buộc như tính không can thiệp (*non-interference*) và tính không phụ thuộc trạng thái (*statelessness*) của nhiều lambda. Nó **không có phương thức chuẩn để truyền một `Executor` hoặc `ForkJoinPool` cho từng pipeline song song**.
+**Important:** The Java Stream API only specifies computation semantics and constraints such as *non-interference* and *statelessness* for many lambdas. It **has no standard method to pass an `Executor` or `ForkJoinPool` per parallel pipeline**.
 
-## 2. `ForkJoinPool.commonPool()` và cơ chế work-stealing
+## 2. `ForkJoinPool.commonPool()` and work-stealing
 
-`ForkJoinPool` là một `ExecutorService` được thiết kế cho những nhiệm vụ có thể **chia thành các công việc nhỏ**, sau đó **gộp kết quả**. Những worker có thể lấy công việc từ hàng đợi của nhau (*work-stealing*) nhằm cân bằng tải.
+`ForkJoinPool` is an `ExecutorService` designed for tasks that can **split into smaller subtasks** and then **combine results**. Workers can pull tasks from each other's queues (*work-stealing*) to balance load.
 
 ```text
-               Bài toán cần tính toán
+               Problem to compute
                        │
-                   chia nguồn
+                  split source
              ┌─────────┼─────────┐
              ▼         ▼         ▼
           Task A     Task B     Task C
              │         │         │
-             └─────── gộp ───────┘
+             └────── combine ────┘
                        │
-                   kết quả
+                    result
 ```
 
-Trong **triển khai OpenJDK thông dụng**, một parallel stream được gọi từ ngữ cảnh bình thường thường tận dụng `ForkJoinPool.commonPool()` — pool dùng chung trong JVM. Luồng gọi terminal operation cũng có thể tham gia xử lý. Các điều này là **mô tả hành vi triển khai**, không phải hợp đồng cho phép chương trình gắn một executor riêng vào Stream API.
+In **common OpenJDK implementations**, a parallel stream invoked from a normal context typically uses `ForkJoinPool.commonPool()` — a JVM-wide shared pool. The thread calling the terminal operation may also participate in processing. These are **descriptions of implementation behavior**, not a contract allowing a program to attach a custom executor to the Stream API.
 
-Có thể quan sát cấu hình và tên các luồng trong một lần chạy:
+You can observe the configuration and thread names in a run:
 
 ```java
 import java.util.List;
@@ -83,27 +83,27 @@ List<String> seenThreads = IntStream.range(0, 20)
 System.out.println(seenThreads);
 ```
 
-Đầu ra về tên thread **không cố định**: có thể thấy `main`, các thread có tên tương tự `ForkJoinPool.commonPool-worker-...`, hoặc ít thread hơn mức song song cấu hình. Một lần chạy không cho biết giới hạn vĩnh viễn về số thread hoặc hiệu suất. `getCommonPoolParallelism()` phản ánh mức song song mục tiêu được cấu hình cho common pool, **không phải** một cam kết về số thread thực sự đang chạy trong riêng pipeline.
+Output regarding thread names is **not fixed**: you may see `main`, threads named like `ForkJoinPool.commonPool-worker-...`, or fewer threads than the configured parallelism. One run does not reveal permanent bounds on thread count or throughput. `getCommonPoolParallelism()` reflects the configured target parallelism for the common pool, **not** a promise of how many threads actually run in a given pipeline.
 
-### Vì sao gọi là “chung”?
+### Why is it called "common"?
 
-Một common pool có thể được sử dụng bởi **nhiều thành phần trong cùng JVM**, ví dụ các parallel stream khác, các tác vụ Fork/Join do ứng dụng hoặc thư viện gửi tới common pool, và những phép `CompletableFuture.supplyAsync(...)` không chỉ định executor trong các cấu hình thường gặp.
+A single common pool can be used by **many components in the same JVM**, such as other parallel streams, Fork/Join tasks submitted by the application or libraries to the common pool, and `CompletableFuture.supplyAsync(...)` calls without an explicit executor in typical configurations.
 
 ```text
     Module A: parallelStream() ───┐
-                                  ├──► commonPool() ──► workers dùng chung
+                                  ├──► commonPool() ──► shared workers
     Module B: parallelStream() ───┤
                                   │
-    Async work mặc định ──────────┘
+    Default async work ───────────┘
 ```
 
-`CompletableFuture` có quy tắc triển khai riêng: các async method không truyền executor thường dùng common pool nếu nó hỗ trợ mức song song lớn hơn một; ở môi trường có mức song song thấp, nó có thể dùng cách thực thi thay thế. Không nên suy rằng **mọi** async operation hoặc **mọi** parallel stream nhất thiết dùng đúng những thread này trong tất cả JDK và cấu hình.
+`CompletableFuture` has its own implementation rules: async methods without an executor usually use the common pool if it supports parallelism greater than one; in environments with low parallelism, it may use an alternative execution strategy. Do not assume **every** async operation or **every** parallel stream necessarily uses these exact threads across all JDKs and configurations.
 
-Hậu quả thực tế là tranh chấp tài nguyên: một module đưa nhiều công việc chậm vào pool chia sẻ có thể làm giảm năng lực của các module khác. Đây là một dạng **ảnh hưởng chéo (noisy neighbor)** trong cùng quá trình.
+The practical consequence is resource contention: one module feeding slow work into the shared pool can degrade capacity for other modules. This is a form of **noisy neighbor** interference within the same process.
 
-## 3. `ForkJoinPool` phù hợp với loại công việc nào?
+## 3. What kind of work fits `ForkJoinPool`?
 
-Nó thường phù hợp với công việc **CPU-bound**, ít chặn, có chi phí đủ lớn để bù chi phí chia và hợp nhất:
+It usually fits **CPU-bound**, non-blocking work whose cost is large enough to offset splitting and merging overhead:
 
 ```java
 import java.util.stream.LongStream;
@@ -115,63 +115,63 @@ long sum = LongStream.rangeClosed(1, 1_000_000)
 System.out.println(sum); // 500000500000
 ```
 
-Ví dụ này cho thấy tính đúng đắn của phép cộng trên nguồn hữu hạn trong miền `long`; nó **không** chứng minh bản song song nhanh hơn bản tuần tự. Với phép cộng đơn giản, overhead song song thậm chí có thể chiếm phần lớn thời gian.
+This example demonstrates correctness of summing over a finite source within `long` range; it **does not** prove the parallel version is faster than the sequential version. For simple addition, parallel overhead can even dominate runtime.
 
-Một nguồn dễ chia như dải số, mảng hoặc cấu trúc có `Spliterator` tốt có nhiều cơ hội phân phối công việc hiệu quả hơn một nguồn I/O tuần tự khó chia. `SIZED`, `SUBSIZED` và `trySplit()` của `Spliterator` hỗ trợ triển khai lên kế hoạch xử lý, nhưng không bảo đảm tăng tốc.
+An easily splittable source such as numeric ranges, arrays, or structures with a good `Spliterator` has a much better chance of distributing work effectively than a hard-to-split sequential I/O source. `SIZED`, `SUBSIZED`, and `Spliterator`'s `trySplit()` help the implementation plan execution, yet do not guarantee speedup.
 
-| Tác vụ | Đặc điểm | Khuyến nghị ban đầu |
+| Task | Characteristics | Initial recommendation |
 | --- | --- | --- |
-| Tính toán số học trên mảng lớn | CPU-bound, không chặn, dễ chia | Có thể thử parallel stream và đo hiệu năng. |
-| Biến đổi các phần tử độc lập với chi phí CPU đáng kể | Stateless, ít I/O | Có thể cân nhắc song song. |
-| Gọi HTTP/JDBC cho từng phần tử | Chờ mạng hoặc CSDL, độ trễ thay đổi | Dùng executor có giới hạn rõ và cơ chế timeout/backpressure. |
-| Ghi log/ghi file/khóa đồng bộ cho từng phần tử | Side effect, có thể chặn hoặc tranh chấp | Xem lại thiết kế; không mặc định parallel. |
-| Nguồn rất nhỏ | Chi phí chia/gộp có thể lớn hơn tính toán | Thường ưu tiên `stream()` tuần tự. |
+| Arithmetic over large arrays | CPU-bound, non-blocking, easy to split | Can try parallel stream and measure performance. |
+| Independent per-element transforms with substantial CPU cost | Stateless, little I/O | Worth considering parallelism. |
+| HTTP/JDBC calls per element | Network or DB waits, variable latency | Use an explicitly bounded executor with timeout/backpressure. |
+| Logging/file writes/synchronized locks per element | Side effects, potential blocking or contention | Rethink design; do not default to parallel. |
+| Very small source | Split/merge cost may exceed computation | Usually prefer sequential `stream()`. |
 
-## 4. Vì sao blocking I/O là vấn đề với common pool?
+## 4. Why is blocking I/O a problem for the common pool?
 
-Xem một pipeline như:
+Consider a pipeline like:
 
 ```java
-// Ví dụ minh họa, KHÔNG nên mặc định triển khai theo cách này:
+// Illustrative example; DO NOT implement this way by default:
 List<String> results = ids.parallelStream()
         .map(id -> blockingHttpLookup(id))
         .toList();
 ```
 
-`ids` là tập định danh đầu vào, còn `blockingHttpLookup` đại diện cho hàm gọi mạng **đồng bộ** do ứng dụng cung cấp. Với mỗi `id`, worker có thể phải chờ kết nối, máy chủ, cơ sở dữ liệu hoặc timeout. Trong khi chờ, worker không thể thực hiện phần CPU hữu ích của tác vụ đang giữ.
+`ids` is the input set of identifiers, and `blockingHttpLookup` represents an application-supplied **synchronous** network call. For each `id`, a worker may block waiting on connection, server, database, or timeout. While waiting, the worker cannot perform useful CPU work for the task it holds.
 
-Điều này gây ra những rủi ro:
+This introduces several risks:
 
-1. **Giữ worker quá lâu:** nhiều phần tử chặn đồng thời có thể chiếm phần lớn năng lực của pool.
-2. **Ảnh hưởng tác vụ không liên quan:** common pool là tài nguyên chia sẻ; công việc của module khác có thể phải chờ.
-3. **Không chủ động giới hạn lưu lượng dịch vụ đích:** kích thước pool không phải chính sách rate limit hoặc số kết nối tối đa được thỏa thuận với API/CSDL.
-4. **Độ trễ khó dự đoán:** các bước đang chờ không tuân theo một deadline do parallel stream tự đặt.
-5. **Nguy cơ vòng chờ:** nếu tác vụ chặn chờ một tác vụ khác cần chính pool đang bị chiếm, thiết kế có thể bị kẹt hoặc tăng mạnh thời gian chờ.
+1. **Tying up workers for too long:** many concurrently blocking elements can occupy most of the pool's capacity.
+2. **Impacting unrelated tasks:** the common pool is a shared resource; work from other modules may be forced to wait.
+3. **No active rate limiting against target services:** pool size is not a rate limit policy or maximum connection budget agreed with the API/DB.
+4. **Unpredictable latency:** waiting steps do not obey any deadline set automatically by parallel stream.
+5. **Wait-cycle risk:** if a blocking task waits on another task that needs the very pool currently occupied, the design can stall or suffer severe wait inflation.
 
-`ForkJoinPool` có cơ chế hỗ trợ một số kiểu chờ phối hợp của Fork/Join và có `ManagedBlocker` để thông báo về những thao tác chặn. Tuy nhiên, **không thể suy ra nó tự động bù đủ worker cho mọi lời gọi JDBC, HTTP hoặc `Thread.sleep` tùy ý**. Chính sách thực thi, giới hạn tài nguyên và cách sử dụng các API chặn quyết định hành vi thực tế.
+`ForkJoinPool` has mechanisms supporting certain Fork/Join coordinated waits and provides `ManagedBlocker` to signal blocking operations. However, **you cannot assume it automatically compensates enough workers for arbitrary JDBC, HTTP, or `Thread.sleep` calls**. Execution policy, resource limits, and how blocking APIs are used govern actual behavior.
 
-### `parallelStream()` không thay thế timeout
+### `parallelStream()` does not replace timeouts
 
 ```java
-// limit(10) chỉ giới hạn số phần tử, KHÔNG phải giới hạn thời gian.
+// limit(10) only limits element count, NOT elapsed time.
 List<String> firstTen = ids.parallelStream()
         .limit(10)
         .map(id -> blockingHttpLookup(id))
         .toList();
 ```
 
-`limit(10)` không bảo đảm hoàn thành trước một số mili giây. Nếu dịch vụ đích treo, pipeline vẫn có thể chờ lâu. Timeout phải được đặt ở **lời gọi I/O**, ở tác vụ hoặc tại cấp điều phối với hành vi hủy được thiết kế rõ ràng.
+`limit(10)` does not guarantee completion within a given number of milliseconds. If the target service hangs, the pipeline can still wait indefinitely. Timeouts must be configured on the **I/O call**, on the task, or at the orchestration layer with explicit cancellation behavior.
 
-## 5. `ForkJoinPool.ManagedBlocker`: công cụ chuyên biệt, không phải thuốc chữa chung
+## 5. `ForkJoinPool.ManagedBlocker`: a specialized tool, not a universal cure
 
-`ForkJoinPool.managedBlock(ManagedBlocker)` cho phép một tác vụ thông báo với `ForkJoinPool` rằng nó **có thể chặn**, giúp pool có cơ hội điều chỉnh nguồn worker theo chính sách và giới hạn triển khai.
+`ForkJoinPool.managedBlock(ManagedBlocker)` lets a task inform `ForkJoinPool` that it **may block**, giving the pool an opportunity to adjust worker threads according to its policy and implementation limits.
 
-Hai phương thức của `ManagedBlocker`:
+The two methods of `ManagedBlocker`:
 
-- `isReleasable()`: kiểm tra liệu đã có thể tiếp tục mà không chặn hay chưa.
-- `block()`: thực hiện thao tác có thể chặn và trả trạng thái đã hoàn tất.
+- `isReleasable()`: checks whether execution can proceed without blocking.
+- `block()`: performs the potentially blocking operation and returns completion status.
 
-Ví dụ **minh họa cú pháp**, không phải giải pháp được khuyến nghị cho HTTP:
+**Syntax-illustration** example, not a recommended solution for HTTP:
 
 ```java
 import java.util.concurrent.ForkJoinPool;
@@ -187,24 +187,24 @@ final class WaitOnce implements ForkJoinPool.ManagedBlocker {
     @Override
     public boolean block() throws InterruptedException {
         if (!done) {
-            Thread.sleep(50); // Chỉ giả lập chờ
+            Thread.sleep(50); // Simulating a wait only
             done = true;
         }
         return true;
     }
 }
 
-// Trong một phương thức có khai báo throws InterruptedException:
+// Inside a method declaring throws InterruptedException:
 ForkJoinPool.managedBlock(new WaitOnce());
 ```
 
-Đây là ví dụ giảng giải giao diện, không nên sao chép thành một đoạn benchmark. **`ManagedBlocker` không tự đặt giới hạn truy cập API, không cung cấp timeout cho toàn pipeline, không bảo đảm không cạn tài nguyên và không biến common pool thành một pool độc lập.** Nó chỉ phù hợp khi người phát triển kiểm soát cơ chế chờ và hiểu hợp đồng Fork/Join.
+This illustrates the interface and should not be copied into a benchmark snippet. **`ManagedBlocker` does not set API rate limits, does not provide a pipeline-wide timeout, does not guarantee zero resource exhaustion, and does not turn the common pool into an isolated pool.** It only fits when the developer controls the waiting mechanism and understands the Fork/Join contract.
 
-Trong phần lớn ứng dụng gọi nhiều dịch vụ bên ngoài, cách rõ ràng hơn là tách tác vụ I/O sang **executor chuyên dụng**, giới hạn tải và đặt timeout tại lời gọi.
+In most applications calling external services, a clearer approach is offloading I/O tasks to a **dedicated executor**, capping load, and setting timeouts at the call site.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: I/O chặn với `ExecutorService` tường minh
+## 6. Complete Java 17+ example: blocking I/O with an explicit `ExecutorService`
 
-Thay vì sử dụng common pool ngầm, ta có thể tạo executor riêng cho tác vụ I/O chặn. Ví dụ dưới đây dùng `Thread.sleep` **chỉ để giả lập độ trễ**, nên chạy được mà không cần máy chủ hoặc kết nối mạng. Lưu thành `ControlledIoTasksDemo.java`:
+Instead of relying implicitly on the common pool, we can create a dedicated executor for blocking I/O tasks. The example below uses `Thread.sleep` **solely to simulate latency**, so it runs without needing a server or network connection. Save as `ControlledIoTasksDemo.java`:
 
 ```java
 import java.util.List;
@@ -215,7 +215,7 @@ import java.util.concurrent.Executors;
 public class ControlledIoTasksDemo {
     static String simulateRemoteLookup(int id) {
         try {
-            Thread.sleep(80); // Giả lập thời gian chờ I/O
+            Thread.sleep(80); // Simulate I/O wait time
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Tra cứu bị ngắt", e);
@@ -226,8 +226,8 @@ public class ControlledIoTasksDemo {
     public static void main(String[] args) {
         List<Integer> ids = List.of(1, 2, 3, 4, 5, 6);
 
-        // Giới hạn tối đa 3 worker thực thi lookup đồng thời
-        // trong riêng ExecutorService này.
+        // Limit to at most 3 workers executing lookups concurrently
+        // within this dedicated ExecutorService.
         ExecutorService ioPool = Executors.newFixedThreadPool(3);
 
         try {
@@ -238,7 +238,7 @@ public class ControlledIoTasksDemo {
                     ))
                     .toList();
 
-            // Đọc kết quả theo đúng thứ tự danh sách futures.
+            // Read results in exact list order of futures.
             List<String> results = futures.stream()
                     .map(CompletableFuture::join)
                     .toList();
@@ -251,25 +251,25 @@ public class ControlledIoTasksDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 [item-1, item-2, item-3, item-4, item-5, item-6]
 ```
 
-Điểm quan trọng trong thiết kế:
+Key design points:
 
-- `ids.stream()` ở đây là **Stream tuần tự** để **gửi tác vụ**. Tính đồng thời đến từ `CompletableFuture.supplyAsync(..., ioPool)`, không đến từ `.parallel()`.
-- `ioPool` được truyền tường minh nên không dựa vào common pool cho phần tra cứu này.
-- `newFixedThreadPool(3)` giới hạn tối đa ba worker xử lý tác vụ trong pool, dù danh sách có sáu công việc. Việc các tác vụ chạy xong theo thứ tự nào vẫn không được bảo đảm.
-- `futures.stream().map(CompletableFuture::join)` lấy kết quả **theo thứ tự các future trong danh sách**, không phải theo thời điểm tác vụ hoàn thành. `join()` có thể chờ.
-- `shutdown()` bắt đầu đóng executor; với ví dụ này, các `join` đã hoàn tất bình thường trước khi gọi `shutdown`. Ứng dụng sản xuất vẫn cần thiết kế nhánh lỗi, hủy và dọn dẹp theo yêu cầu.
+- `ids.stream()` here is a **sequential Stream** used to **submit tasks**. Concurrency comes from `CompletableFuture.supplyAsync(..., ioPool)`, not from `.parallel()`.
+- `ioPool` is passed explicitly, avoiding the common pool for these lookups.
+- `newFixedThreadPool(3)` caps active worker execution in the pool at three, even though the list has six jobs. The order in which tasks finish is still unspecified.
+- `futures.stream().map(CompletableFuture::join)` collects results **in the order of futures in the list**, not by task completion time. `join()` may block waiting.
+- `shutdown()` initiates executor shutdown; in this example, all `join` calls completed normally before `shutdown`. Production applications still need explicit error, cancellation, and cleanup paths.
 
-**Lưu ý thiết yếu:** `Executors.newFixedThreadPool(3)` dùng hàng đợi tác vụ không giới hạn số phần tử theo cấu hình thường gặp. Nó giới hạn **số tác vụ chạy đồng thời**, **không** tự giới hạn số tác vụ đang chờ. Nếu đẩy hàng triệu yêu cầu, bộ nhớ hàng đợi vẫn có thể tăng mạnh.
+**Essential caveat:** `Executors.newFixedThreadPool(3)` uses an unbounded task queue in typical configurations. It limits the **number of concurrently running tasks**, **not** the number of queued waiting tasks. Submitting millions of requests can still grow queue memory sharply.
 
-## 7. Giới hạn hàng đợi, backpressure và timeout
+## 7. Queue bounds, backpressure, and timeouts
 
-Nếu ứng dụng cần giới hạn cả lượng tác vụ chờ, có thể dùng `ThreadPoolExecutor` với hàng đợi có dung lượng cố định:
+If an application needs to bound queued tasks as well, you can use `ThreadPoolExecutor` with a fixed-capacity queue:
 
 ```java
 import java.util.concurrent.ArrayBlockingQueue;
@@ -284,17 +284,17 @@ ThreadPoolExecutor ioPool = new ThreadPoolExecutor(
 );
 ```
 
-Đoạn này chỉ minh họa **cấu hình**. Sau khi sử dụng, phải quản lý vòng đời và gọi `shutdown()` hoặc chính sách dừng phù hợp.
+This snippet illustrates **configuration** only. After use, manage its lifecycle and call `shutdown()` or an appropriate termination policy.
 
-Khi bốn worker bận và 16 công việc đã xếp hàng, `CallerRunsPolicy` có thể chạy tác vụ mới **trên thread gọi `execute`**, tạo áp lực ngược (*backpressure*) bằng cách khiến phía gửi công việc cũng phải xử lý. Nhưng:
+When all four workers are busy and 16 jobs are queued, `CallerRunsPolicy` may execute a new task **on the thread calling `execute`**, creating *backpressure* by making the submitter participate in work. However:
 
-- Cơ chế này có thể **chặn thread gửi việc**; không nên tự ý áp dụng trên event loop hoặc đường xử lý yêu cầu độ trễ thấp.
-- `CallerRunsPolicy` có hành vi riêng nếu executor đã shutdown; nó không thay thế quy tắc chấp nhận và hủy yêu cầu.
-- Không có cấu hình queue nào tự giải quyết giới hạn kết nối CSDL, rate limit của dịch vụ hoặc retry quá mức. Các giới hạn đó cần được đặt riêng.
+- This mechanism can **block the submitting thread**; do not apply it carelessly on an event loop or low-latency request path.
+- `CallerRunsPolicy` behaves differently if the executor has already been shut down; it does not replace admission control and cancellation policies.
+- No queue configuration automatically enforces DB connection limits, service rate limits, or excessive retry bounds. Those limits must be configured separately.
 
-### Timeout của `CompletableFuture`
+### `CompletableFuture` timeouts
 
-Trên Java 9+, có `orTimeout` để hoàn tất future theo dạng lỗi nếu quá thời hạn:
+On Java 9+, `orTimeout` completes a future exceptionally if a deadline expires:
 
 ```java
 CompletableFuture<String> task =
@@ -303,22 +303,22 @@ CompletableFuture<String> task =
         ).orTimeout(2, TimeUnit.SECONDS);
 ```
 
-`orTimeout` giới hạn **thời gian đợi kết quả từ future** theo ngữ nghĩa hoàn tất của `CompletableFuture`. Nó **không tự bảo đảm ngắt được** lời gọi mạng/JDBC đang chặn phía dưới. `CompletableFuture.cancel(true)` cũng không nên bị hiểu là một cơ chế chắc chắn ngắt tác vụ đang chạy. Trong hệ thống thật, hãy cấu hình **connect timeout, read/request timeout** ở HTTP/JDBC client và quy định xử lý các tác vụ quá hạn.
+`orTimeout` limits **how long callers wait for the future's result** under `CompletableFuture` completion semantics. It **does not automatically interrupt** an underlying blocking network/JDBC call. Nor should `CompletableFuture.cancel(true)` be assumed to reliably interrupt a running task. In real systems, configure **connect timeouts and read/request timeouts** on the HTTP/JDBC client and define cleanup for timed-out work.
 
-Đừng chỉ thêm timeout ở future rồi mặc định rằng worker, socket hoặc tài nguyên đã được giải phóng. **Timeout của kết quả** và **hủy thực thi ở nguồn** là hai mối quan tâm khác nhau.
+Do not add a future timeout and assume the worker, socket, or resource has been released. **Result timeout** and **underlying execution cancellation** are two separate concerns.
 
-## 8. Muốn kiểm soát pool cho CPU-bound: dùng API có executor tường minh
+## 8. Want pool control for CPU-bound work: use an API with an explicit executor
 
-Một cách hay được truyền miệng là bọc parallel stream trong `ForkJoinPool` riêng:
+A commonly passed-around trick is wrapping a parallel stream inside a custom `ForkJoinPool`:
 
 ```java
-// KHÔNG phải API chuẩn để gắn pool cho mỗi parallel Stream:
+// NOT a standard API to bind a pool per parallel Stream:
 // customPool.submit(() -> data.parallelStream().map(...).toList()).join();
 ```
 
-Trong một số triển khai, parallel stream được khởi chạy từ worker của một `ForkJoinPool` tùy biến có thể tận dụng pool đó. Nhưng đây **không phải hợp đồng chuẩn** để chọn executor cho mỗi pipeline; cũng không giải quyết các yêu cầu về timeout, kiểm soát I/O chặn hoặc tính biệt lập trong mọi môi trường. Không nên đưa cách này thành điều kiện đúng đắn của ứng dụng.
+In some implementations, a parallel stream launched from a worker of a custom `ForkJoinPool` may execute on that pool. Yet this is **not a standard contract** for selecting an executor per pipeline; nor does it solve timeouts, blocking I/O control, or isolation in all environments. Do not make this trick a correctness requirement of your application.
 
-Nếu cần **chủ động chọn `ForkJoinPool`** cho một tính toán chia để trị, hãy dùng trực tiếp `ForkJoinTask`/`RecursiveTask`. Ví dụ Java 17+ sau tính tổng trên khoảng `[1, 1_000_001)` bằng pool có mức song song mục tiêu bằng hai. Lưu thành `DedicatedForkJoinDemo.java`:
+If you need to **explicitly choose a `ForkJoinPool`** for divide-and-conquer computation, use `ForkJoinTask`/`RecursiveTask` directly. The following Java 17+ example sums the range `[1, 1_000_001)` using a pool with target parallelism two. Save as `DedicatedForkJoinDemo.java`:
 
 ```java
 import java.util.concurrent.ForkJoinPool;
@@ -373,32 +373,32 @@ public class DedicatedForkJoinDemo {
 }
 ```
 
-Ở đây:
+Here:
 
-1. `dedicatedPool.invoke(task)` gửi **tác vụ Fork/Join** đến pool đã chọn **tường minh**.
-2. `compute()` chia nguồn khi số phần tử lớn hơn ngưỡng; nhánh trái `fork()`, nhánh phải được tính trong luồng hiện tại, rồi `join()` kết quả trái.
-3. Hai nhánh đại diện cho các khoảng **không giao nhau**, không bỏ sót, và phép cộng trong dữ liệu này không tràn `long`.
-4. `new ForkJoinPool(2)` giúp kiểm soát một mức song song mục tiêu cho **pool chuyên biệt**, nhưng không nên coi đây là cam kết cứng rằng hệ điều hành chỉ tạo đúng hai thread cho mọi cơ chế hỗ trợ hoặc bù chặn.
+1. `dedicatedPool.invoke(task)` submits the **Fork/Join task** to an **explicitly** chosen pool.
+2. `compute()` splits the range when element count exceeds the threshold; the left branch calls `fork()`, the right branch computes on the current thread, and then `join()` waits for the left result.
+3. The two branches cover **disjoint**, exhaustive ranges, and addition on this input does not overflow `long`.
+4. `new ForkJoinPool(2)` controls a target parallelism level for a **dedicated pool**, though it should not be viewed as a hard guarantee that the OS creates strictly two threads across any helper or blocker-compensation mechanisms.
 
-Đây là một ví dụ **có kiểm soát executor rõ ràng**, nhưng nó dùng `RecursiveTask`, **không phải** `Stream.parallel()`. Nếu chỉ cần cộng số trên dải nhỏ, `LongStream.rangeClosed(...).sum()` vẫn gọn hơn; tự viết Fork/Join đáng cân nhắc khi thiết kế chia để trị hoặc isolation là yêu cầu thực tế.
+This is an example with **explicit executor control**, using `RecursiveTask`, **not** `Stream.parallel()`. For merely summing a small range, `LongStream.rangeClosed(...).sum()` is still more concise; writing custom Fork/Join tasks is worth considering when divide-and-conquer or pool isolation is a real requirement.
 
-## 9. So sánh các cách điều phối tác vụ
+## 9. Comparing task orchestration approaches
 
-| Cách làm | Chọn executor cho công việc? | Tình huống phù hợp | Giới hạn phải nhớ |
+| Approach | Choose executor for work? | Suitable scenario | Limits to remember |
 | --- | --- | --- | --- |
-| `stream().parallel()` | **Không** có API chuẩn truyền executor riêng | Tính toán CPU stateless, dễ chia, đủ lớn | Thường dùng pool chia sẻ theo triển khai; không có timeout/backpressure tích hợp. |
-| `CompletableFuture.supplyAsync(task)` | Không chỉ định | Tác vụ bất đồng bộ đơn giản khi chấp nhận chính sách executor mặc định | Có thể dùng common pool hoặc cơ chế mặc định khác; dễ gây tranh chấp. |
-| `CompletableFuture.supplyAsync(task, executor)` | **Có** | I/O hoặc công việc bất đồng bộ cần pool chuyên biệt | Phải giới hạn thread, hàng đợi, deadline và dọn dẹp. |
-| `ForkJoinPool.invoke(RecursiveTask)` | **Có** | CPU divide-and-conquer cần kiểm soát pool | Tự thiết kế chia, ngưỡng, gộp kết quả và tránh blocking. |
-| `ExecutorService.submit(Callable)` | **Có** | Muốn quản lý `Future`, hủy và cơ chế chờ tường minh | Hành vi hủy/ngắt phụ thuộc loại công việc và executor. |
+| `stream().parallel()` | **No** standard API to pass a custom executor | Stateless, splittable, sufficiently large CPU computation | Commonly uses shared pool per implementation; no built-in timeout/backpressure. |
+| `CompletableFuture.supplyAsync(task)` | Unspecified | Simple async work when default executor policy is acceptable | May use common pool or another default mechanism; prone to contention. |
+| `CompletableFuture.supplyAsync(task, executor)` | **Yes** | I/O or async work needing a dedicated pool | Must bound threads, queues, deadlines, and cleanup. |
+| `ForkJoinPool.invoke(RecursiveTask)` | **Yes** | CPU divide-and-conquer needing pool control | Must design splitting, thresholds, merging, and avoid blocking. |
+| `ExecutorService.submit(Callable)` | **Yes** | Explicit `Future` management, cancellation, and waiting | Cancel/interrupt behavior depends on task and executor. |
 
-Từ Java 21, **virtual threads** cung cấp một lựa chọn cho nhiều tác vụ I/O chặn có thể mở rộng khả năng xử lý đồng thời: `Executors.newVirtualThreadPerTaskExecutor()`. Nhưng đó là cơ chế điều phối riêng, **không có nghĩa `parallelStream()` tự chuyển sang virtual threads**, và virtual threads vẫn cần giới hạn kết nối, truy vấn và tốc độ gửi yêu cầu. Ví dụ chính của bài sử dụng Java 17 nên không gọi API Java 21.
+Since Java 21, **virtual threads** offer an option for many blocking I/O tasks that can scale concurrency: `Executors.newVirtualThreadPerTaskExecutor()`. However, that is a separate scheduling mechanism—**it does not mean `parallelStream()` automatically switches to virtual threads**, and virtual threads still require limits on connections, queries, and request rates. The main examples in this lesson target Java 17 and therefore do not invoke Java 21 APIs.
 
-## 10. Thứ tự, side effects, cancellation và các giới hạn khác
+## 10. Ordering, side effects, cancellation, and other limits
 
-### Giữ tính đúng đắn trước khi tối ưu
+### Keep correctness before optimizing
 
-Các lambda trong Stream thường nên **không can thiệp nguồn, không giữ trạng thái dùng chung và không phụ thuộc thứ tự thực thi giữa các phần tử**:
+Stream lambdas should generally be **non-interfering with the source, free of shared mutable state, and independent of execution order across elements**:
 
 ```java
 import java.util.List;
@@ -410,109 +410,109 @@ List<Integer> doubled = List.of(1, 2, 3, 4).parallelStream()
 System.out.println(doubled); // [2, 4, 6, 8]
 ```
 
-`map` là phép biến đổi độc lập, dễ song song hóa. Với nguồn `List` có encounter order và `toList()`, thứ tự kết quả được duy trì theo ngữ nghĩa pipeline; **thứ tự thực tế các lời gọi lambda và thread xử lý có thể khác nhau**.
+`map` is an independent transformation, easy to parallelize. With an ordered `List` source and `toList()`, output order is maintained per pipeline semantics; **actual lambda invocation order and processing threads may vary**.
 
-Ngược lại, đoạn sau không an toàn:
+Conversely, the following is unsafe:
 
 ```java
-// Không nên: ArrayList dùng chung không an toàn khi nhiều thread thêm.
+// Do not do this: a shared ArrayList is unsafe when multiple threads add.
 // List<Integer> shared = new ArrayList<>();
 // numbers.parallelStream().forEach(shared::add);
 ```
 
-Nếu cần kết quả là danh sách, dùng `collect(Collectors.toList())` hoặc `toList()` thay vì thay đổi một `ArrayList` bên ngoài. Việc dùng collector chuẩn cho phép framework quản lý vùng tích lũy và gộp kết quả phù hợp.
+If a list result is needed, use `collect(Collectors.toList())` or `toList()` instead of mutating an external `ArrayList`. Using standard collectors lets the framework manage accumulation containers and merge results properly.
 
-### `forEach` và `forEachOrdered`
+### `forEach` and `forEachOrdered`
 
-`forEach` trên parallel stream **không bảo đảm thứ tự xử lý**; `forEachOrdered` duy trì encounter order khi nguồn có thứ tự, nhưng có thể giảm hiệu quả song song:
+`forEach` on a parallel stream **does not guarantee processing order**; `forEachOrdered` preserves encounter order when the source is ordered, though it may reduce parallel efficiency:
 
 ```java
 List.of("A", "B", "C").parallelStream()
         .forEachOrdered(System.out::print); // ABC
 ```
 
-Đừng đồng nhất thứ tự **kết quả được trả về** với thứ tự **callback được chạy**. Nếu chương trình cần side effect ngoài như gửi email, ghi CSDL, gọi API theo thứ tự, hãy thiết kế điều phối riêng thay vì suy từ `parallelStream()`.
+Do not equate **returned result order** with **callback execution order**. If a program requires ordered external side effects such as sending emails, writing to a DB, or calling APIs in sequence, design explicit orchestration rather than relying on `parallelStream()`.
 
-### Khi nào dừng và hủy?
+### When to stop and cancel?
 
-Stream API có các terminal operation ngắn mạch như `findAny`, `anyMatch` hoặc `limit` ở pipeline tương ứng, nhưng đó **không phải API điều khiển hủy tất cả tác vụ** hay đặt deadline. Một số công việc có thể đã bắt đầu trước khi kết quả ngắn mạch được xác định.
+The Stream API provides short-circuiting terminal operations like `findAny`, `anyMatch`, or `limit` in relevant pipelines, yet those are **not general task-cancellation APIs** or deadline mechanisms. Some work may already have started before the short-circuit result is decided.
 
-Không có `stream.cancel()` chung để dừng chắc chắn mọi tác vụ đang chặn. Nếu cần deadline, hủy hoặc trả kết quả từng phần, hãy chọn mô hình task có công cụ điều phối và định nghĩa rõ việc ngắt, kiểm tra trạng thái hủy và đóng tài nguyên.
+There is no general `stream.cancel()` to reliably halt all blocking tasks. When deadlines, cancellation, or partial results are needed, pick a task model with orchestration tools and explicitly define interruption, cancellation checks, and resource closure.
 
-### Tránh song song lồng nhau theo thói quen
+### Avoid habitual nested parallelism
 
-Một parallel stream bên trong lambda của parallel stream khác có thể tăng độ phức tạp lập lịch, tạo nhiều tác vụ nhỏ và gây khó đo hiệu năng. Không mặc định song song ở cả hai cấp; thường nên chọn **một cấp phù hợp** để song song và giữ các bước còn lại tuần tự, hoặc thiết kế Fork/Join có ngưỡng chia rõ ràng.
+A parallel stream inside the lambda of another parallel stream can complicate scheduling, spawn excessive tiny tasks, and obscure performance measurements. Do not enable parallelism at both levels by default; usually pick **one appropriate level** to parallelize and keep the rest sequential, or design Fork/Join tasks with explicit split thresholds.
 
-## 11. Cấu hình và quan sát common pool: biết giới hạn can thiệp
+## 11. Configuring and observing the common pool: knowing intervention limits
 
-JDK có một số system property ảnh hưởng đến common pool, chẳng hạn `java.util.concurrent.ForkJoinPool.common.parallelism`. Việc cấu hình này có phạm vi **toàn JVM**, không phải chỉ một `parallelStream()`. Nó cũng chịu ảnh hưởng thời điểm common pool được khởi tạo và cấu hình runtime.
+The JDK provides system properties affecting the common pool, such as `java.util.concurrent.ForkJoinPool.common.parallelism`. Such configuration is **JVM-wide**, not scoped to a single `parallelStream()`. It is also affected by when the common pool is initialized and runtime configuration.
 
-Vì vậy:
+Therefore:
 
-- Không dùng system property toàn JVM như một phương thức chọn executor riêng cho từng pipeline.
-- Không tùy ý chỉnh parallelism của common pool chỉ để một module chạy nhanh hơn; có thể làm ảnh hưởng module khác.
-- Không lấy `Runtime.getRuntime().availableProcessors()` làm số luồng chính xác trong mọi môi trường, nhất là khi cấu hình CPU/cgroup/container thay đổi.
-- Quan sát `ForkJoinPool.getCommonPoolParallelism()`, CPU, độ trễ, hàng đợi, trạng thái blocking và các chỉ số hệ thống, nhưng không suy từ một con số rằng throughput đã được kiểm soát.
+- Do not use JVM-wide system properties as a way to select a custom executor per pipeline.
+- Do not arbitrarily tune common pool parallelism just to speed up one module; it can impact other modules.
+- Do not treat `Runtime.getRuntime().availableProcessors()` as an exact thread count in all environments, especially when CPU/cgroup/container limits change.
+- Monitor `ForkJoinPool.getCommonPoolParallelism()`, CPU, latency, queues, blocking states, and system metrics, without assuming from a single number that throughput is under control.
 
-Với nhu cầu kiểm soát chặt, hãy chọn cơ chế có **executor truyền tường minh**, đặt giới hạn tải và timeout ở tầng gọi dịch vụ.
+When tight control is needed, choose a mechanism with an **explicitly passed executor**, enforcing load limits and timeouts at the service-call layer.
 
-### Đo hiệu năng thay vì suy luận từ `.parallel()`
+### Measure performance instead of inferring from `.parallel()`
 
-Để đánh giá cần hay không cần parallel stream, đo trên dữ liệu và môi trường đại diện:
+To evaluate whether a parallel stream is worthwhile, measure on representative data and environments:
 
-1. Xác định công việc là CPU-bound hay I/O-bound; đo tỉ lệ thời gian thật sự dùng CPU so với thời gian chờ.
-2. Đo cả **throughput và latency**, không chỉ thời gian của một phép chạy ấm bộ nhớ.
-3. So sánh bản tuần tự, parallel stream, và executor chuyên biệt nếu có nhiều I/O.
-4. Kiểm tra tải cùng lúc từ các module khác khi dùng common pool.
-5. Với phép đo vi mô Java, cân nhắc **JMH** thay vì lấy thời gian một lần `System.nanoTime()` rồi kết luận.
+1. Identify whether the work is CPU-bound or I/O-bound; measure the ratio of actual CPU time to wait time.
+2. Measure both **throughput and latency**, not just one warm-memory run.
+3. Compare sequential execution, parallel stream, and a dedicated executor if heavy I/O is involved.
+4. Test under concurrent load from other modules when sharing the common pool.
+5. For Java microbenchmarks, consider **JMH** instead of timing a single `System.nanoTime()` call and jumping to conclusions.
 
-Không nên tăng số luồng quá mức chỉ vì tác vụ đang chậm; có thể làm tăng tranh chấp CPU, kết nối, bộ nhớ hoặc giới hạn phía dịch vụ đích.
+Do not over-provision threads simply because tasks are slow; that can increase contention on CPU, connections, memory, or downstream service limits.
 
-## 12. Những lỗi thường gặp
+## 12. Common pitfalls
 
-| Lỗi | Tác động có thể xảy ra | Cách khắc phục |
+| Mistake | Possible impact | How to fix |
 | --- | --- | --- |
-| Tin rằng `parallelStream()` luôn dùng một pool riêng | Các công việc không liên quan có thể tranh chấp common pool | Hiểu giới hạn API; dùng executor tường minh khi cần isolation. |
-| Đặt I/O đồng bộ chặn trong `map` của parallel stream | Worker bị chiếm khi chờ; độ trễ module khác tăng | Dùng executor riêng, timeout và giới hạn tải I/O. |
-| Tăng `common.parallelism` để “sửa” mọi vấn đề blocking | Ảnh hưởng phạm vi JVM, tăng tranh chấp tài nguyên | Điều chỉnh kiến trúc, timeout, backpressure; chỉ cấu hình global có chủ đích. |
-| Coi `ManagedBlocker` bảo đảm bù đủ worker | Vẫn có thể thiếu tài nguyên hoặc bị nghẽn | Dùng nó trong trường hợp chuyên biệt, không thay thế cách ly pool. |
-| Dùng `newFixedThreadPool(n)` rồi cho rằng hàng đợi cũng bị giới hạn | Tác vụ chờ có thể tích lũy rất lớn | Dùng queue có dung lượng, chính sách từ chối/backpressure hoặc semaphore. |
-| Chỉ dùng `orTimeout` rồi tưởng đã ngắt I/O | Future lỗi nhưng công việc gốc vẫn có thể chạy/chặn | Đặt timeout tại HTTP/JDBC client và thiết kế hủy tài nguyên. |
-| Tin việc bọc parallel stream trong custom FJP là API portable chọn pool | Phụ thuộc implementation, khó kiểm soát | Dùng ForkJoinTask hoặc executor API có hợp đồng tường minh. |
-| Dùng `forEach` với trạng thái mutable dùng chung | Race và kết quả sai | Dùng `collect`, reduce có phép gộp đúng hoặc đồng bộ hóa theo thiết kế. |
-| Cho rằng số thread luôn bằng số CPU | Dự đoán sai mức đồng thời và hiệu năng | Quan sát runtime và đo tải thực tế. |
-| Song song các tác vụ quá nhỏ hoặc lồng nhau | Overhead vượt lợi ích, khó lập lịch | Chọn cấp song song và ngưỡng chia phù hợp. |
+| Believing `parallelStream()` always uses a dedicated pool | Unrelated jobs can contend on the common pool | Understand API limits; use an explicit executor when isolation is needed. |
+| Putting blocking synchronous I/O in a parallel stream `map` | Workers stay tied up waiting; latency rises in other modules | Use a dedicated executor, timeouts, and I/O load limits. |
+| Raising `common.parallelism` to "fix" all blocking issues | JVM-wide side effects, higher resource contention | Fix architecture, timeouts, backpressure; configure globally only with intent. |
+| Treating `ManagedBlocker` as guaranteed worker compensation | Can still exhaust resources or stall | Use only in specialized cases, not as a substitute for pool isolation. |
+| Using `newFixedThreadPool(n)` assuming its queue is also bounded | Queued waiting tasks can grow unbounded | Use a bounded queue, rejection/backpressure policy, or semaphore. |
+| Using `orTimeout` alone thinking I/O was interrupted | Future fails yet underlying work may keep running/blocking | Set timeouts on HTTP/JDBC clients and design resource cancellation. |
+| Treating custom-FJP wrapping of parallel stream as a portable pool-selection API | Implementation-dependent, hard to control | Use `ForkJoinTask` or executor APIs with explicit contracts. |
+| Using `forEach` with shared mutable state | Races and wrong results | Use `collect`, proper associative reduction, or explicit synchronization. |
+| Assuming thread count always equals CPU count | Wrong concurrency and performance predictions | Observe runtime and measure real load. |
+| Parallelizing tiny or nested tasks | Overhead outweighs gains, poor scheduling | Choose appropriate parallelism level and split thresholds. |
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-check questions
 
-**Câu 1.** Có thể gọi `numbers.parallelStream().executor(myExecutor)` trong Java Stream API chuẩn không?
+**Question 1.** Can you call `numbers.parallelStream().executor(myExecutor)` in the standard Java Stream API?
 
-**Đáp án:** Không. Stream API không cung cấp phương thức chuẩn để gắn executor cho từng pipeline. Khi cần chọn executor tường minh, dùng API như `CompletableFuture.supplyAsync(task, executor)` hoặc `ForkJoinPool.invoke(task)`.
+**Answer:** No. The Stream API provides no standard method to attach an executor per pipeline. When explicit executor selection is needed, use APIs like `CompletableFuture.supplyAsync(task, executor)` or `ForkJoinPool.invoke(task)`.
 
-**Câu 2.** Vì sao `ForkJoinPool.commonPool()` có thể gây ảnh hưởng chéo giữa nhiều module?
+**Question 2.** Why can `ForkJoinPool.commonPool()` cause cross-module interference?
 
-**Đáp án:** Trong triển khai thông dụng, nó là pool dùng chung trong JVM. Khi một module giữ nhiều worker bằng tác vụ chặn, module khác dùng cùng pool có thể thiếu năng lực xử lý.
+**Answer:** In common implementations, it is a JVM-wide shared pool. When one module ties up many workers with blocking tasks, other modules sharing that pool can be starved of processing capacity.
 
-**Câu 3.** `newFixedThreadPool(4)` có tự giới hạn số yêu cầu đang chờ ở bốn không?
+**Question 3.** Does `newFixedThreadPool(4)` automatically limit the number of queued waiting requests to four?
 
-**Đáp án:** Không. Nó giới hạn số worker xử lý đồng thời; hàng đợi mặc định không có một giới hạn dung lượng nhỏ được đặt sẵn. Cần thêm bounded queue, chính sách từ chối hoặc kiểm soát số yêu cầu đầu vào.
+**Answer:** No. It limits concurrently executing workers; the default queue has no small built-in capacity cap. Add a bounded queue, rejection policy, or admission control.
 
-**Câu 4.** `CompletableFuture.orTimeout(...)` có bảo đảm socket HTTP đã đóng và lời gọi I/O bị ngắt không?
+**Question 4.** Does `CompletableFuture.orTimeout(...)` guarantee the HTTP socket is closed and the I/O call is interrupted?
 
-**Đáp án:** Không. Nó ảnh hưởng trạng thái hoàn tất future; hành vi hủy tác vụ gốc phụ thuộc lời gọi và cơ chế thực thi. Cần đặt timeout, hủy và đóng tài nguyên ở client thực tế.
+**Answer:** No. It governs completion of the future; cancelling the underlying work depends on the call and execution mechanism. Configure timeouts, cancellation, and resource closure on the actual client.
 
-**Câu 5.** Tại sao `parallelStream().map(cpuHeavyPureFunction).collect(...)` có thể phù hợp hơn `parallelStream().map(blockingDatabaseQuery).collect(...)`?
+**Question 5.** Why can `parallelStream().map(cpuHeavyPureFunction).collect(...)` fit better than `parallelStream().map(blockingDatabaseQuery).collect(...)`?
 
-**Đáp án:** Tính toán CPU độc lập có thể chia/gộp hiệu quả; truy vấn chặn giữ worker khi chờ I/O, tạo tranh chấp trên pool và kết nối. Truy vấn cần cơ chế điều phối có giới hạn và timeout.
+**Answer:** Independent CPU work splits and merges efficiently; blocking queries occupy workers during I/O waits, causing contention on the pool and connections. Queries need bounded concurrency and timeouts.
 
-**Câu 6.** Cần chọn một `ForkJoinPool(2)` dành riêng cho thuật toán chia để trị. Có cách nào có hợp đồng rõ ràng?
+**Question 6.** You need a dedicated `ForkJoinPool(2)` for a divide-and-conquer algorithm. What approach has a clear contract?
 
-**Đáp án:** Gửi trực tiếp `RecursiveTask`/ `ForkJoinTask` qua `dedicatedPool.invoke(task)` hoặc `submit`. Cách này điều khiển pool của tác vụ đã gửi; đừng coi việc bọc một parallel stream bên trong pool là phương thức cấu hình chuẩn của Stream.
+**Answer:** Submit `RecursiveTask`/`ForkJoinTask` directly via `dedicatedPool.invoke(task)` or `submit`. This explicitly controls the pool of the submitted tasks; do not rely on wrapping a parallel stream inside a pool as a standard Stream configuration API.
 
-## Ghi nhớ
+## Takeaway
 
-- `parallelStream()` chỉ yêu cầu pipeline xử lý song song; **không có API chuẩn truyền executor riêng cho từng Stream**.
-- Trong triển khai OpenJDK thông dụng, parallel stream thường tận dụng **`ForkJoinPool.commonPool()` dùng chung**, nên công việc chặn có thể ảnh hưởng những tác vụ khác.
-- `ForkJoinPool` hiệu quả hơn cho công việc CPU có thể chia và gộp; **I/O chặn cần giới hạn đồng thời, timeout và backpressure** ở mô hình thực thi thích hợp.
-- `ManagedBlocker` hỗ trợ thông báo một số thao tác chặn nhưng không tự mang lại isolation hoặc bảo đảm số worker; `orTimeout` không tự ngắt công việc nền.
-- Khi cần kiểm soát rõ ràng, dùng `CompletableFuture.supplyAsync(..., executor)` / `ExecutorService` hoặc gửi `ForkJoinTask` đến pool chuyên biệt; giữ lambda an toàn, quản lý tài nguyên và **đo hiệu năng trước khi tối ưu**.
+- `parallelStream()` only requests parallel pipeline execution; **there is no standard API to pass a custom executor per Stream**.
+- In common OpenJDK implementations, parallel streams typically use the **shared `ForkJoinPool.commonPool()`**, so blocking work can impact other tasks.
+- `ForkJoinPool` works better for splittable, mergeable CPU work; **blocking I/O needs concurrency limits, timeouts, and backpressure** in an appropriate execution model.
+- `ManagedBlocker` helps signal certain blocking operations without providing isolation or worker guarantees; `orTimeout` does not automatically interrupt background work.
+- When explicit control is required, use `CompletableFuture.supplyAsync(..., executor)` / `ExecutorService`, or submit `ForkJoinTask` to a dedicated pool; keep lambdas safe, manage resources, and **measure performance before optimizing**.

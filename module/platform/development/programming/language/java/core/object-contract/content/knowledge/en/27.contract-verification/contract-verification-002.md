@@ -1,39 +1,39 @@
-# Kiểm thử tính phản xạ, đối xứng và bắc cầu của `equals()` trong Java
+# Testing Reflexivity, Symmetry, and Transitivity of `equals()` in Java
 
-`equals(Object)` là phương thức của `java.lang.Object`, được các lớp ghi đè (*override*) khi cần diễn đạt khái niệm **hai đối tượng bằng nhau về mặt giá trị**. Nếu không ghi đè, hành vi `Object.equals()` mặc định tương đương so sánh cùng tham chiếu (`==`). Khi ghi đè, lớp phải tuân theo hợp đồng của `equals()` để kết quả so sánh ổn định và tương thích với các cấu trúc như `HashSet`, `HashMap`.
+`equals(Object)` is a method on `java.lang.Object`, overridden by classes when they need to express the concept of **two objects being equal in value**. If not overridden, the default `Object.equals()` behavior is equivalent to comparing reference identity (`==`). When overriding, a class must follow the `equals()` contract so comparison results remain stable and compatible with structures like `HashSet` and `HashMap`.
 
-Ba tính chất cần kiểm thử ở bài này là **phản xạ** (*reflexive*), **đối xứng** (*symmetric*) và **bắc cầu** (*transitive*). Việc thử bằng cả đối tượng giống và khác giá trị, cùng những trường hợp ở ranh giới kiểu kế thừa, quan trọng hơn việc chỉ kiểm tra một cặp đối tượng.
+The three properties to test in this lesson are **reflexivity**, **symmetry**, and **transitivity**. Testing with both equal-value and different-value objects, along with cases at inheritance type boundaries, is more important than only checking a single pair of objects.
 
-## 1. Phát biểu chính xác ba tính chất
+## 1. Exact Statement of the Three Properties
 
-Với các tham chiếu đối tượng khác `null` là `x`, `y`, `z`:
+For non-`null` object references `x`, `y`, `z`:
 
-| Tính chất | Quy tắc bắt buộc | Câu hỏi kiểm thử |
+| Property | Mandatory rule | Verification question |
 | --- | --- | --- |
-| **Phản xạ** | `x.equals(x) == true` | Một đối tượng có bằng chính nó không? |
-| **Đối xứng** | `x.equals(y) == y.equals(x)` | Đổi chiều so sánh có làm thay đổi kết quả không? |
-| **Bắc cầu** | Nếu `x.equals(y)` và `y.equals(z)` đều `true` thì `x.equals(z)` phải `true` | Một chuỗi các đối tượng bằng nhau có nhất quán không? |
+| **Reflexive** | `x.equals(x) == true` | Does an object equal itself? |
+| **Symmetric** | `x.equals(y) == y.equals(x)` | Does reversing the comparison order change the result? |
+| **Transitive** | If `x.equals(y)` and `y.equals(z)` are both `true`, then `x.equals(z)` must be `true` | Is a chain of equal objects consistent? |
 
-Đối xứng có nghĩa **hai chiều cho cùng giá trị Boolean**, kể cả khi cả hai là `false`. Bắc cầu là phép kéo theo: nó chỉ yêu cầu `x.equals(z)` là `true` khi **cả hai điều kiện tiền đề** đều `true`. Không được diễn dịch sai thành “nếu `x` không bằng `y` và `y` không bằng `z` thì `x` phải không bằng `z`”.
+Symmetry means **both directions yield the same Boolean value**, even when both are `false`. Transitivity is an implication: it only requires `x.equals(z)` to be `true` when **both premise conditions** are `true`. Do not misinterpret it as "if `x` does not equal `y` and `y` does not equal `z`, then `x` must not equal `z`".
 
-Hai đối tượng có giá trị bằng nhau không bắt buộc là cùng tham chiếu: `new Key("A", 1)` và một đối tượng `new Key("A", 1)` khác có thể thỏa `equals() == true` trong khi `==` là `false`.
+Two equal-value objects do not have to share the same reference: `new Key("A", 1)` and another `new Key("A", 1)` object can satisfy `equals() == true` while `==` is `false`.
 
-Hợp đồng `equals()` còn quy định **tính nhất quán** khi thông tin dùng để so sánh chưa thay đổi và `x.equals(null) == false` với mọi `x` khác `null`. Khi `equals()` trả về `true`, `hashCode()` của hai đối tượng cũng phải bằng nhau; chiều ngược lại không bắt buộc đúng. Vì vậy, bài kiểm thử tốt thường kiểm tra cả những điều kiện liên quan này.
+The `equals()` contract also specifies **consistency** when the information used for comparison has not changed and `x.equals(null) == false` for any non-`null` `x`. When `equals()` returns `true`, the `hashCode()` of both objects must also be equal; the converse is not required to hold. Therefore, good tests typically check these related conditions as well.
 
-## 2. Thiết kế bộ dữ liệu kiểm thử
+## 2. Designing the Test Dataset
 
-Không nên chỉ tạo một đối tượng rồi kiểm tra `a.equals(a)`; phép thử đó chưa chạm tới hành vi so sánh **hai instance độc lập**. Với lớp khóa giá trị `Key(code, version)`, nên có ít nhất:
+You should not just create one object and check `a.equals(a)`; that check does not touch comparison behavior between **two independent instances**. For a value key class `Key(code, version)`, there should be at least:
 
-- Ba instance **khác tham chiếu nhưng bằng giá trị**: `a = Key("A", 1)`, `b = Key("A", 1)`, `c = Key("A", 1)`. Nhóm này tạo ra chuỗi `a = b`, `b = c` để kiểm tra bắc cầu thực sự.
-- Một instance khác thuộc tính thứ nhất hoặc thứ hai, ví dụ `Key("A", 2)` và `Key("B", 1)`, nhằm bảo đảm việc so sánh cũng trả `false` đúng lúc.
-- Trường hợp `null`, giá trị biên (chuỗi rỗng, số 0, số âm) nếu chúng được miền dữ liệu cho phép; với lớp **không final**, bổ sung các kiểu con liên quan.
-- Nếu có nhiều trường tạo nên danh tính đối tượng, thay đổi **từng trường** giữa hai mẫu để phát hiện trường bị quên trong `equals()`.
+- Three instances with **distinct references but equal values**: `a = Key("A", 1)`, `b = Key("A", 1)`, `c = Key("A", 1)`. This group forms the chain `a = b`, `b = c` to genuinely test transitivity.
+- One instance differing in the first or second property, such as `Key("A", 2)` and `Key("B", 1)`, to ensure comparison also returns `false` when appropriate.
+- `null` cases and boundary values (empty string, 0, negative numbers) if permitted by the data domain; for **non-final** classes, include relevant subtypes.
+- If multiple fields make up object identity, vary **one field at a time** between two samples to catch fields forgotten in `equals()`.
 
-Các phép thử không thể chứng minh một phương thức đúng với mọi đầu vào vô hạn, nhưng chúng xác nhận các quy tắc trên một tập mẫu có chủ đích. Với tập nhỏ, duyệt toàn bộ **cặp** và **bộ ba** làm tăng đáng kể khả năng phát hiện vi phạm so với vài assertion rời rạc.
+Tests cannot prove a method is correct for all infinite inputs, but they validate the rules on an intentional sample set. With a small set, iterating over all **pairs** and **triples** significantly increases the chance of detecting violations compared to a few isolated assertions.
 
-## 3. Ví dụ Java 17+ độc lập, chạy được
+## 3. Standalone, Runnable Java 17+ Example
 
-Tạo file **`EqualsContractDemo.java`** với nội dung sau. Lớp `Key` là kiểu giá trị bất biến, khai báo `final` để không phát sinh trường hợp lớp con thay đổi định nghĩa bình đẳng. Phần `NearNumber` cố tình sai hợp đồng để minh họa lỗi bắc cầu.
+Create the file **`EqualsContractDemo.java`** with the following content. The `Key` class is an immutable value type, declared `final` so subclasses cannot arise to alter the definition of equality. The `NearNumber` part intentionally violates the contract to illustrate a transitivity bug.
 
 ```java
 import java.util.List;
@@ -66,7 +66,7 @@ public class EqualsContractDemo {
         }
     }
 
-    // Cố tình vi phạm tính bắc cầu: gần nhau tối đa 1 đơn vị thì "bằng nhau".
+    // Intentionally violates transitivity: within 1 unit is "equal".
     static final class NearNumber {
         private final int number;
 
@@ -82,7 +82,7 @@ public class EqualsContractDemo {
 
         @Override
         public int hashCode() {
-            return 0; // Cùng hash là hợp lệ, nhưng hiệu năng tra cứu có thể kém.
+            return 0; // Same hash is valid, but lookup performance may be poor.
         }
     }
 
@@ -165,14 +165,14 @@ public class EqualsContractDemo {
 }
 ```
 
-Biên dịch với JDK 17 trở lên:
+Compile with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 --release 17 EqualsContractDemo.java
 java EqualsContractDemo
 ```
 
-Kết quả stdout mong đợi:
+Expected stdout output:
 
 ```text
 PASS fixtures
@@ -183,28 +183,28 @@ PASS null/hashCode
 Broken transitivity: true, true, false
 ```
 
-### Giải thích từng nhóm kiểm thử
+### Explaining Each Verification Group
 
-**`PASS fixtures`:** ba đối tượng `a`, `b`, `c` có cùng `code/version` nhưng mỗi đối tượng được tạo bằng một lệnh `new` riêng. Việc xác nhận tiền đề này đặc biệt hữu ích: nếu không có ba đối tượng bằng nhau, vòng lặp bắc cầu có thể “đỗ” mà chưa thực sự khảo sát chuỗi các đối tượng khác tham chiếu.
+**`PASS fixtures`:** the three objects `a`, `b`, `c` have the same `code/version` but each object is created with a separate `new` statement. Verifying this premise is especially useful: without three equal objects, the transitivity loop could "pass" without ever inspecting a chain of distinct-reference objects.
 
-**`PASS reflexive`:** vòng lặp gọi `x.equals(x)` cho cả 5 mẫu, nên một override trả sai khi đối tượng gặp chính nó sẽ bị phát hiện.
+**`PASS reflexive`:** the loop calls `x.equals(x)` for all 5 samples, so an override returning false when an object meets itself will be caught.
 
-**`PASS symmetric (25 pairs)`:** 5 × 5 cặp **có thứ tự** được kiểm tra bằng `x.equals(y) == y.equals(x)`. Đối với một cặp vừa đổi chiều, một phía trả `true` và phía kia trả `false` sẽ gây `AssertionError`. Bao gồm các cặp khác giá trị giúp phát hiện kiểu so sánh bất đối xứng do lớp kế thừa hoặc so sánh sai thuộc tính.
+**`PASS symmetric (25 pairs)`:** 5 × 5 **ordered** pairs are checked with `x.equals(y) == y.equals(x)`. For any pair where reversing the order causes one side to return `true` and the other to return `false`, an `AssertionError` is thrown. Including different-value pairs helps catch asymmetric comparisons caused by subclasses or wrong property comparisons.
 
-**`PASS transitive (125 triples)`:** 5 × 5 × 5 bộ ba **có thứ tự** được xét. Mỗi khi `x.equals(y) && y.equals(z)` là đúng, kiểm thử yêu cầu `x.equals(z)` đúng. Điều kiện `if` là **định nghĩa logic của hợp đồng**, không phải việc “bỏ qua” kiểm thử; `fixtures` đã bảo đảm có chuỗi dương khác tham chiếu để kiểm tra.
+**`PASS transitive (125 triples)`:** 5 × 5 × 5 **ordered** triples are examined. Whenever `x.equals(y) && y.equals(z)` is true, the test requires `x.equals(z)` to be true. The `if` condition is the **logical definition of the contract**, not "skipping" the check; `fixtures` has already ensured there is a positive distinct-reference chain to test.
 
-**`PASS null/hashCode`:** thử `x.equals(null)` cho tất cả mẫu và kiểm tra mỗi cặp bằng nhau đều có cùng `hashCode()`. Đây là hai điều kiện hỗ trợ, không thay thế ba quy tắc cốt lõi.
+**`PASS null/hashCode`:** tests `x.equals(null)` for all samples and checks that every equal pair shares the same `hashCode()`. These are two supporting conditions, not replacements for the three core rules.
 
-**`Broken transitivity: true, true, false`:** `NearNumber(1)` được xem là bằng `NearNumber(2)`, `NearNumber(2)` bằng `NearNumber(3)`, nhưng `NearNumber(1)` không bằng `NearNumber(3)`. “Gần nhau trong sai số 1” là một **quan hệ không bắc cầu**, vì vậy không thích hợp làm định nghĩa `equals()`. Hàm `hashCode()` trả hằng 0 trong ví dụ này nhằm không tạo thêm một vi phạm `hashCode`; nó vẫn không thể chữa lỗi bắc cầu.
+**`Broken transitivity: true, true, false`:** `NearNumber(1)` is considered equal to `NearNumber(2)`, `NearNumber(2)` equals `NearNumber(3)`, yet `NearNumber(1)` does not equal `NearNumber(3)`. "Within a tolerance of 1" is a **non-transitive relation**, and therefore unsuitable as a definition of `equals()`. Returning a constant `0` in `hashCode()` here avoids adding a `hashCode` violation; it still cannot fix the transitivity bug.
 
-## 4. Những trường hợp dễ khiến `equals()` vi phạm hợp đồng
+## 4. Situations Where `equals()` Easily Violates the Contract
 
-### 4.1. Bất đối xứng giữa lớp cha và lớp con
+### 4.1. Asymmetry Between Parent and Subclass
 
-Một lỗi quen thuộc: lớp cha cho phép so sánh với mọi lớp con bằng `instanceof Parent`, nhưng lớp con lại chỉ chấp nhận chính kiểu lớp con (ví dụ vì thêm một trường `color`).
+A familiar bug: the parent class allows comparison with any subclass via `instanceof Parent`, whereas the subclass only accepts the subclass type itself (for instance, because it adds a `color` field).
 
 ```java
-// Minh họa hai đoạn điều kiện trong equals(); không phải chương trình độc lập.
+// Illustrates two condition snippets in equals(); not a standalone program.
 // Parent.equals:
 return other instanceof Parent p && this.id == p.id;
 
@@ -214,30 +214,30 @@ return other instanceof Child c
         && this.color.equals(c.color);
 ```
 
-Nếu `p` là `Parent(id=7)` và `c` là `Child(id=7, color="red")`, thì `p.equals(c)` có thể `true` nhưng `c.equals(p)` là `false`. Đây là **vi phạm đối xứng**. Cách tránh đơn giản nếu lớp được thiết kế là kiểu giá trị không cần kế thừa: khai báo lớp `final`. Nếu có kế thừa, phải thiết kế chính sách so sánh kiểu cẩn thận (ví dụ dùng `getClass()` nhất quán theo thiết kế) và thử mọi chiều giữa các kiểu thực tế.
+If `p` is `Parent(id=7)` and `c` is `Child(id=7, color="red")`, then `p.equals(c)` can be `true` while `c.equals(p)` is `false`. This is a **symmetry violation**. A simple way to avoid this when a class is designed as a value type that does not need inheritance: declare the class `final`. If inheritance exists, the type comparison policy must be designed carefully (for example, consistently using `getClass()` as designed) and tested in every direction across concrete types.
 
-### 4.2. Dùng “gần bằng” làm `equals()`
+### 4.2. Using "Approximate Equality" as `equals()`
 
-Làm tròn, so sánh với epsilon, hoặc ngưỡng khoảng cách dễ phá tính bắc cầu. Khi cần so sánh số thực gần đúng, hãy đặt phép so sánh vào **phương thức riêng** như `approximatelyEqual`, nói rõ sai số; đừng mặc nhiên dùng làm `Object.equals()`. Trường hợp `double` còn cần xác định rõ ý nghĩa của `NaN`, `+0.0` và `-0.0`; dùng chiến lược so sánh nhất quán với hàm băm.
+Rounding, comparing with an epsilon, or distance thresholds easily break transitivity. When approximate floating-point comparison is needed, place the comparison in a **separate method** such as `approximatelyEqual`, stating the tolerance explicitly; do not default to using it as `Object.equals()`. For `double`, you also need to clearly define the meaning of `NaN`, `+0.0`, and `-0.0`, and use a comparison strategy consistent with the hash function.
 
-### 4.3. Quên trường hoặc phụ thuộc dữ liệu có thể thay đổi
+### 4.3. Missing a Field or Depending on Mutable Data
 
-Nếu `equals()` dựa trên `id` và `version` nhưng chỉ so sánh `id`, hai đối tượng lẽ ra khác nhau lại bị coi là bằng. Nếu `equals()` dựa vào các trường có thể thay đổi, kết quả so sánh giữa cùng hai đối tượng có thể thay đổi khi trạng thái đổi. Hợp đồng nhất quán chỉ yêu cầu kết quả ổn định **khi dữ liệu liên quan chưa thay đổi**; tuy nhiên sử dụng đối tượng làm khóa `HashMap` hoặc phần tử `HashSet` rồi thay đổi trường tham gia `equals/hashCode` có thể làm việc tìm kiếm thất bại.
+If `equals()` depends on `id` and `version` but only compares `id`, two objects that should differ are treated as equal. If `equals()` relies on mutable fields, the comparison result between the same two objects can change when state changes. The consistency contract only requires results to remain stable **when the relevant data has not changed**; however, using an object as a `HashMap` key or `HashSet` element and then mutating fields involved in `equals/hashCode` can cause lookups to fail.
 
-### 4.4. Kiểm thử nhầm chiều hoặc nhầm điều kiện
+### 4.4. Testing the Wrong Direction or Wrong Condition
 
-- Chỉ kiểm tra `assertTrue(a.equals(b))` chưa kiểm tra `b.equals(a)`. Cần đo **cả hai chiều**, nhất là khi các object có kiểu runtime khác nhau.
-- Chỉ lặp `x=y=z` cùng một tham chiếu không chứng minh kiểm thử đã phủ bắc cầu qua ba instance riêng.
-- Không được đòi `x.equals(z)` khi `x.equals(y)` hoặc `y.equals(z)` là `false`; tiền đề bắc cầu không xảy ra.
-- `Objects.equals(a,b)` giúp so sánh an toàn khi có `null`, nhưng bản thân tiện ích này **không sửa** được `equals()` bất đối xứng hoặc không bắc cầu của các đối tượng.
-- Không dùng mỗi `assertEquals(a,b)` để kết luận đối xứng: framework sẽ đi qua một lệnh so sánh mà không tự động kiểm tra cả hai chiều theo hợp đồng.
+- Checking only `assertTrue(a.equals(b))` does not check `b.equals(a)`. You must check **both directions**, especially when objects have different runtime types.
+- Repeating `x=y=z` with the same reference does not prove the test covered transitivity across three separate instances.
+- Do not require `x.equals(z)` when `x.equals(y)` or `y.equals(z)` is `false`; the transitivity premise does not hold.
+- `Objects.equals(a,b)` helps compare safely when `null` is possible, but this utility itself **cannot fix** an asymmetric or non-transitive `equals()` on the objects.
+- Do not use `assertEquals(a,b)` alone to conclude symmetry: the framework executes one comparison call without automatically checking both directions as required by the contract.
 
-## 5. Đưa vào bộ kiểm thử dự án
+## 5. Integrating into a Project Test Suite
 
-Trong JUnit 5, ba tính chất có thể diễn đạt bằng các test riêng sử dụng cùng fixture (ví dụ `List<Key> samples`), cùng tư duy như vòng lặp thuần Java ở trên:
+In JUnit 5, the three properties can be expressed as separate tests using the same fixture (for example, `List<Key> samples`), following the same approach as the pure Java loops above:
 
 ```java
-// Đoạn minh họa bên trong một lớp test JUnit 5 đã có samples.
+// Illustrative snippet inside a JUnit 5 test class that already has samples.
 @Test
 void reflexive() {
     for (Key x : samples) {
@@ -268,16 +268,16 @@ void transitive() {
 }
 ```
 
-Đây là **đoạn minh họa**, cần import `org.junit.jupiter.api.Test` và các assertion từ `org.junit.jupiter.api.Assertions`, khai báo `Key`/`samples` trong lớp test và cấu hình JUnit 5 trong dự án. Chương trình ở mục 3 là ví dụ **đầy đủ, không cần thư viện ngoài** để biên dịch và chạy ngay.
+This is an **illustrative snippet**; it requires importing `org.junit.jupiter.api.Test` and assertions from `org.junit.jupiter.api.Assertions`, declaring `Key`/`samples` in the test class, and configuring JUnit 5 in the project. The program in Section 3 is a **complete example needing no external libraries** so it can be compiled and run immediately.
 
-Với lớp thực tế có nhiều dạng đầu vào, tăng độ phủ bằng kiểm thử tham số hóa hoặc sinh dữ liệu (*property-based testing*): kiểm tra các đối tượng được tạo độc lập, mọi biến thể trường tạo danh tính, giá trị biên, kiểu con (nếu có) và các lần gọi lặp lại khi trạng thái không đổi. Luôn thêm ít nhất một fixture bảo đảm hai instance độc lập **được kỳ vọng bằng nhau**, và một bộ ba độc lập **có tiền đề bắc cầu đúng**; nếu không, nhiều assertion có thể đúng một cách rỗng.
+For real-world classes with many input shapes, increase coverage using parameterized tests or data generation (*property-based testing*): check independently constructed objects, all variations of identity-defining fields, boundary values, subtypes (if any), and repeated calls when state does not change. Always include at least one fixture ensuring two independent instances **are expected to be equal**, and one independent triple **whose transitivity premise holds**; otherwise, many assertions can pass vacuously.
 
-## 6. Checklist khi review `equals()`
+## 6. Checklist When Reviewing `equals()`
 
-1. `x.equals(x)` luôn trả `true` với `x != null`?
-2. `x.equals(y)` và `y.equals(x)` luôn cùng kết quả, kể cả khi hai đối tượng thuộc các kiểu có quan hệ kế thừa?
-3. Khi `x.equals(y)` và `y.equals(z)` là `true`, `x.equals(z)` có `true`? Đã thử **ba đối tượng khác tham chiếu** chưa?
-4. `x.equals(null)` trả `false`, kết quả có ổn định khi dữ liệu không đổi, và các cặp bằng nhau có cùng `hashCode()`?
-5. Bộ fixture đã phủ cả trường hợp **bằng** và **khác**, sự thay đổi từng thuộc tính quan trọng và các trường hợp biên của bài toán?
+1. Does `x.equals(x)` always return `true` for `x != null`?
+2. Do `x.equals(y)` and `y.equals(x)` always return the same result, even when the two objects belong to types in an inheritance relationship?
+3. When `x.equals(y)` and `y.equals(z)` are `true`, is `x.equals(z)` `true`? Have **three distinct-reference objects** been tested?
+4. Does `x.equals(null)` return `false`, is the result stable when data does not change, and do equal pairs have the same `hashCode()`?
+5. Does the fixture set cover both **equal** and **unequal** cases, single-property variations of each key attribute, and domain boundary cases?
 
-Một kiểm thử `equals()` đáng tin cậy phải bắt được cả lỗi “hai đối tượng bằng nhau bị xem là khác” lẫn lỗi vi phạm logic của quan hệ bằng nhau; đồng thời không nhầm tính bắc cầu với phép so sánh gần đúng.
+A reliable `equals()` test must catch both "two equal objects treated as unequal" bugs and logical violations of the equality relation; at the same time, it must not confuse transitivity with approximate comparison.

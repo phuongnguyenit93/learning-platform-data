@@ -1,52 +1,52 @@
-# Chuyển kiểu bằng `asLongStream` và `asDoubleStream`
+# Type Conversion with `asLongStream` and `asDoubleStream`
 
-## 1. Mục tiêu bài học
+## 1. Lesson objectives
 
-Trong module **`JAVA_STREAM_API`**, ta xử lý dữ liệu theo pipeline khai báo: lấy nguồn, ghép các thao tác trung gian lazy như `filter` và `map`, rồi kết thúc bằng `reduce` hoặc `collect`. Khi xử lý số, Java Stream API có ba kiểu stream chuyên biệt cho giá trị nguyên thủy:
+In the **`JAVA_STREAM_API`** module, we process data through declarative pipelines: acquire a source, chain lazy intermediate operations like `filter` and `map`, and finish with `reduce` or `collect`. When handling numbers, the Java Stream API offers three specialized stream types for primitive values:
 
-- `IntStream` chứa các phần tử `int`.
-- `LongStream` chứa các phần tử `long`.
-- `DoubleStream` chứa các phần tử `double`.
+- `IntStream` holds `int` elements.
+- `LongStream` holds `long` elements.
+- `DoubleStream` holds `double` elements.
 
-Đôi khi một pipeline đang dùng `IntStream` nhưng phép tính sau đó cần miền giá trị `long`, hoặc một pipeline dùng `LongStream` cần tạo kết quả số thực `double`. Hai phương thức **`asLongStream()`** và **`asDoubleStream()`** hỗ trợ *mở rộng kiểu số nguyên thủy* (primitive widening) ngay trên stream.
+Sometimes a pipeline currently using `IntStream` needs the `long` value range for subsequent calculations, or a `LongStream` pipeline needs to produce `double` floating-point results. The two methods **`asLongStream()`** and **`asDoubleStream()`** support *primitive numeric widening* directly on the stream.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Xác định phương thức chuyển đổi nào có trên `IntStream` và `LongStream`.
-2. Đọc kiểu của pipeline trước và sau `asLongStream()` hoặc `asDoubleStream()`.
-3. Giải thích vì sao các phép chuyển này là thao tác trung gian lazy và không cần boxing thành wrapper.
-4. Đặt phép chuyển kiểu đúng vị trí để tránh tràn số `int` trước khi tính toán.
-5. Nhận diện rủi ro mất độ chính xác khi chuyển `long` sang `double`.
-6. Chọn giữa `asLongStream`, `asDoubleStream`, `mapToLong`, `mapToDouble` và `boxed` theo mục tiêu xử lý.
+1. Identify which conversion methods exist on `IntStream` and `LongStream`.
+2. Read the pipeline type before and after `asLongStream()` or `asDoubleStream()`.
+3. Explain why these conversions are lazy intermediate operations and do not require boxing into wrappers.
+4. Place type conversions at the right position to avoid `int` overflow before computation.
+5. Recognize the risk of precision loss when converting `long` to `double`.
+6. Choose among `asLongStream`, `asDoubleStream`, `mapToLong`, `mapToDouble`, and `boxed` based on processing goals.
 
-Bài thuộc chương **Stream kiểu nguyên thủy**. Các nguyên tắc về kiểu, trạng thái, tài nguyên và hiệu năng ở đây cũng là nền tảng để xử lý stream lớn hoặc song song; chúng không thay thế cho phép đo hiệu năng trên chương trình thực tế.
+This lesson belongs to the **Primitive Streams** chapter. The principles regarding types, state, resources, and performance here also serve as the foundation for handling large or parallel streams; they do not replace measuring performance on actual programs.
 
-## 2. Ba phương thức mở rộng kiểu cần nhớ
+## 2. Three widening methods to remember
 
-Các phương thức sau có từ **Java 8**:
+The following methods have existed since **Java 8**:
 
 ```java
-// Phương thức trên IntStream
+// Methods on IntStream
 LongStream asLongStream();
 DoubleStream asDoubleStream();
 
-// Phương thức trên LongStream
+// Method on LongStream
 DoubleStream asDoubleStream();
 ```
 
-Bảng chuyển đổi:
+Conversion table:
 
-| Nguồn | Phương thức | Đích | Chuyển đổi từng phần tử |
+| Source | Method | Target | Per-element conversion |
 | --- | --- | --- | --- |
 | `IntStream` | `asLongStream()` | `LongStream` | `int` → `long` |
 | `IntStream` | `asDoubleStream()` | `DoubleStream` | `int` → `double` |
 | `LongStream` | `asDoubleStream()` | `DoubleStream` | `long` → `double` |
 
-Không có `LongStream.asLongStream()` vì đã là `long`. `DoubleStream` cũng không có `asLongStream()` hoặc `asIntStream()`: chuyển `double` về số nguyên là phép **thu hẹp kiểu** (narrowing), có thể làm mất phần thập phân hoặc vượt miền giá trị. Nếu thật sự cần chuyển ngược, hãy thiết kế phép biến đổi và quy tắc làm tròn/kiểm tra riêng.
+There is no `LongStream.asLongStream()` because it is already `long`. `DoubleStream` also has neither `asLongStream()` nor `asIntStream()`: converting `double` back to an integer is a **narrowing conversion**, which can drop the fractional part or overflow the value range. If converting back is genuinely needed, design an explicit transformation and rounding/validation rule.
 
-Mỗi phép trên giữ nguyên **số phần tử** và **thứ tự gặp phần tử** của nguồn có thứ tự; chỉ thay kiểu biểu diễn số. Chúng là **intermediate operations**: tạo một stream mới, chưa tự tiêu thụ nguồn.
+Each operation above preserves the **element count** and **encounter order** of an ordered source; it only changes the numeric representation type. They are **intermediate operations**: they create a new stream without consuming the source themselves.
 
-Mô hình:
+Model:
 
 ```text
 IntStream
@@ -59,9 +59,9 @@ IntStream
    └───────────────────────────────────────► DoubleStream
 ```
 
-## 3. Ví dụ đầu tiên: từ `int` sang `long`
+## 3. First example: from `int` to `long`
 
-Hãy tính tổng số lượng giao dịch của ba chi nhánh. Mỗi chi nhánh lưu số lượng bằng `int`, nhưng tổng có thể vượt phạm vi `int`:
+Let us sum the transaction counts across three branches. Each branch stores its count as an `int`, yet the total can exceed the `int` range:
 
 ```java
 import java.util.stream.IntStream;
@@ -81,7 +81,7 @@ public class TongGiaoDich {
 }
 ```
 
-Đọc theo kiểu dữ liệu:
+Reading by data type:
 
 ```text
 IntStream.of(...)    → IntStream
@@ -89,9 +89,9 @@ IntStream.of(...)    → IntStream
 .sum()               → long
 ```
 
-Phép chuyển `asLongStream()` nâng từng phần tử `int` thành `long` **trước khi** `LongStream.sum()` thực hiện cộng. Nhờ vậy tổng `3_000_000_100` nằm trong miền `long`.
+The `asLongStream()` conversion promotes each `int` element to `long` **before** `LongStream.sum()` performs addition. Consequently, the total `3_000_000_100` fits within `long`.
 
-Nếu bỏ `asLongStream()`:
+If `asLongStream()` is omitted:
 
 ```java
 int tongSai = IntStream.of(
@@ -99,25 +99,25 @@ int tongSai = IntStream.of(
     )
     .sum();
 
-System.out.println(tongSai); // -1294967196 (tràn int)
+System.out.println(tongSai); // -1294967196 (int overflow)
 ```
 
-`IntStream.sum()` trả về `int`, nên có nguy cơ tràn số. **`LongStream.sum()` cũng có thể tràn `long`** nếu tổng thực vượt miền `long`; chuyển kiểu chỉ mở rộng giới hạn, không loại bỏ mọi rủi ro. Với tổng cực lớn hoặc yêu cầu độ chính xác tuyệt đối vượt `long`, cân nhắc `BigInteger` và một thuật toán/collector phù hợp.
+`IntStream.sum()` returns `int`, so it risks overflow. **`LongStream.sum()` can also overflow `long`** if the true total exceeds the `long` range; widening only expands the limit and does not eliminate all risk. For gigantic sums or exact precision beyond `long`, consider `BigInteger` with a suitable algorithm/collector.
 
-### Vì sao không dùng `boxed()`?
+### Why not use `boxed()`?
 
-Một cách khác là chuyển `IntStream` thành `Stream<Integer>`:
+Another approach converts `IntStream` into `Stream<Integer>`:
 
 ```java
 IntStream.of(1, 2, 3)
     .boxed(); // Stream<Integer>
 ```
 
-Nhưng `boxed()` biến mỗi phần tử nguyên thủy thành đối tượng wrapper `Integer`; nó **không** tạo `LongStream`. Khi chỉ cần phép tính số nguyên thủy trên `long`, `asLongStream()` diễn đạt mục tiêu rõ ràng hơn và tránh boxing không cần thiết.
+However, `boxed()` turns each primitive element into an `Integer` wrapper object; it **does not** produce a `LongStream`. When only primitive `long` arithmetic is needed, `asLongStream()` states the intent clearly and avoids unnecessary boxing.
 
-## 4. Từ `int` sang `double` với `asDoubleStream()`
+## 4. From `int` to `double` with `asDoubleStream()`
 
-Dùng `asDoubleStream()` khi muốn làm việc với các giá trị `int` theo API của `DoubleStream`:
+Use `asDoubleStream()` when you want to process `int` values via the `DoubleStream` API:
 
 ```java
 import java.util.stream.IntStream;
@@ -135,18 +135,18 @@ public class PhanTram {
 }
 ```
 
-Kiểu thay đổi qua từng bước:
+Type changes at each step:
 
-| Bước | Kiểu stream | Kết quả |
+| Step | Stream type | Result |
 | --- | --- | --- |
 | `IntStream.of(15, 20, 35)` | `IntStream` | `15`, `20`, `35` |
 | `.asDoubleStream()` | `DoubleStream` | `15.0`, `20.0`, `35.0` |
 | `.map(n -> n / 100.0)` | `DoubleStream` | `0.15`, `0.2`, `0.35` |
 | `.toArray()` | — | `double[]` |
 
-Về mặt số học, **mọi giá trị `int` đều có thể biểu diễn chính xác bằng `double`** vì `double` có đủ chữ số có nghĩa cho toàn bộ miền 32-bit của `int`. Tuy nhiên, phép chia, nhân hoặc các phép tính `double` tiếp theo có thể sinh sai số dấu phẩy động; ví dụ `0.1` không có biểu diễn nhị phân hữu hạn chính xác.
+Numerically, **every `int` value can be represented exactly as a `double`** because `double` has enough significant digits for the entire 32-bit `int` domain. However, subsequent division, multiplication, or other `double` operations can introduce floating-point error; for instance, `0.1` has no exact finite binary representation.
 
-### Ví dụ: trung bình
+### Example: average
 
 ```java
 import java.util.OptionalDouble;
@@ -159,7 +159,7 @@ OptionalDouble trungBinh = IntStream.of(6, 7, 9)
 System.out.println(trungBinh.getAsDouble());
 ```
 
-Giá trị được in gần `7.333333333333333`. `average()` trả về `OptionalDouble` vì stream có thể rỗng. Trong thực tế có thể viết an toàn:
+The printed value is close to `7.333333333333333`. `average()` returns `OptionalDouble` because the stream may be empty. In practice, you can write it safely as:
 
 ```java
 double trungBinh = IntStream.of(6, 7, 9)
@@ -168,11 +168,11 @@ double trungBinh = IntStream.of(6, 7, 9)
     .orElse(0.0);
 ```
 
-**Không bắt buộc dùng `asDoubleStream()` chỉ để tính trung bình**: bản thân `IntStream.average()` đã trả `OptionalDouble`. Phép chuyển phát huy giá trị khi cần tiếp tục dùng các thao tác nhận hoặc trả `double`.
+**You do not have to call `asDoubleStream()` just to compute an average**: `IntStream.average()` itself already returns `OptionalDouble`. The conversion proves valuable when you need to continue with operations accepting or returning `double`.
 
-## 5. Từ `long` sang `double`: chú ý mất độ chính xác
+## 5. From `long` to `double`: beware of precision loss
 
-`LongStream.asDoubleStream()` mở rộng kiểu nguyên thủy `long` thành `double`:
+`LongStream.asDoubleStream()` widens primitive `long` to `double`:
 
 ```java
 import java.util.Arrays;
@@ -190,11 +190,11 @@ public class LongSangDouble {
 }
 ```
 
-Với các giá trị nhỏ, kết quả dễ quan sát. Nhưng **không phải mọi `long` đều biểu diễn chính xác được bằng `double`**.
+For small values, the output is easy to inspect. Yet **not every `long` can be represented exactly by `double`**.
 
-`long` là số nguyên có dấu 64-bit. `double` là số thực nhị phân 64-bit với **53 bit độ chính xác có nghĩa** (bao gồm bit ẩn). Vì vậy, mọi số nguyên từ `-(2^53)` đến `2^53` đều có thể biểu diễn chính xác; ngoài khoảng này, một số số nguyên vẫn biểu diễn được nhưng không phải tất cả.
+`long` is a 64-bit signed integer. `double` is a 64-bit binary floating-point number with **53 bits of significand precision** (including the implicit bit). Thus, every integer from `-(2^53)` to `2^53` can be represented exactly; outside this range, some integers are representable, but not all.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.Arrays;
@@ -217,17 +217,17 @@ public class MatDoChinhXac {
 }
 ```
 
-Hai giá trị `long` **khác nhau** nhưng trở thành cùng một giá trị `double` do làm tròn khi chuyển kiểu. Nếu dùng kết quả để so sánh mã định danh, đếm chính xác, phân biệt giao dịch hoặc tính tiền, lỗi logic có thể xảy ra mà trình biên dịch không báo.
+Two **distinct** `long` values become the same `double` value due to rounding during conversion. If the result is used to compare identifiers, count accurately, distinguish transactions, or calculate money, logic bugs can occur without compiler warnings.
 
-**Quy tắc lựa chọn:** giữ `LongStream` và phép tính `long` khi cần chính xác số nguyên trong miền `long`. Với nghiệp vụ tiền tệ hoặc số nguyên cực lớn cần độ chính xác, cân nhắc `BigDecimal`/`BigInteger` phù hợp. Dùng `DoubleStream` khi mô hình toán học chấp nhận sai số số thực, chẳng hạn phép đo cảm biến, thống kê xấp xỉ hoặc tính tỷ lệ.
+**Selection rule:** keep `LongStream` and `long` arithmetic when exact integer precision in the `long` domain is required. For monetary rules or huge integers needing exact precision, consider `BigDecimal`/`BigInteger` as appropriate. Use `DoubleStream` when the mathematical model tolerates floating-point error, such as sensor measurements, approximate statistics, or ratio calculations.
 
-### Có gây tràn thành vô cực không?
+### Can it overflow to infinity?
 
-Khi chuyển một giá trị `long` hữu hạn thành `double`, giá trị tuyệt đối lớn nhất của `long` vẫn nhỏ hơn nhiều so với giới hạn độ lớn của `double`. Do đó bản thân phép chuyển `long` → `double` **không tạo `Infinity` chỉ vì số quá lớn**; rủi ro trực tiếp là **mất độ chính xác nguyên**. Các phép toán `double` sau đó vẫn có thể tràn, sinh `Infinity` hoặc `NaN` tùy dữ liệu.
+When converting a finite `long` value to `double`, the maximum absolute value of `long` is still far smaller than the magnitude limit of `double`. Hence the `long` → `double` conversion itself **does not produce `Infinity` simply because a number is too large**; the immediate risk is **loss of integer precision**. Subsequent `double` operations can still overflow and produce `Infinity` or `NaN` depending on the data.
 
-## 6. `asLongStream` và `asDoubleStream` đều lazy
+## 6. Both `asLongStream` and `asDoubleStream` are lazy
 
-Hai phép chuyển là **thao tác trung gian**. Việc viết chúng chưa duyệt nguồn; pipeline chỉ được thực thi khi terminal operation cần kết quả.
+Both conversion methods are **intermediate operations**. Writing them does not traverse the source; the pipeline executes only when a terminal operation requests the result.
 
 ```java
 import java.util.List;
@@ -236,7 +236,7 @@ import java.util.stream.IntStream;
 
 IntStream nguon = IntStream.rangeClosed(1, 5);
 
-LongStream chuyenKieu = nguon.asLongStream(); // Chưa thu dữ liệu.
+LongStream chuyenKieu = nguon.asLongStream(); // Has not pulled data yet.
 
 List<Long> ketQua = chuyenKieu
     .map(n -> n * n)
@@ -246,19 +246,19 @@ List<Long> ketQua = chuyenKieu
 System.out.println(ketQua); // [1, 4, 9, 16, 25]
 ```
 
-> Đoạn mã trên cần `import java.util.stream.LongStream;` nếu được đặt trong một lớp Java độc lập có khai báo biến `LongStream`.
+> The code above needs `import java.util.stream.LongStream;` if placed inside a standalone Java class declaring a `LongStream` variable.
 
-Giải thích:
+Explanation:
 
-- `IntStream.rangeClosed(1, 5)` sinh các số nguyên từ 1 đến 5.
-- `asLongStream()` chuyển từng số sang `long` khi cần xử lý.
-- `map(n -> n * n)` thực hiện phép nhân trên `long`.
-- `boxed()` chuyển `LongStream` thành `Stream<Long>`, cần thiết ở đây để thu `List<Long>` bằng `Collectors.toList()`.
-- `collect` là thao tác kết thúc, yêu cầu tạo kết quả.
+- `IntStream.rangeClosed(1, 5)` generates integers from 1 to 5.
+- `asLongStream()` converts each number to `long` when processing is needed.
+- `map(n -> n * n)` performs multiplication in `long`.
+- `boxed()` converts `LongStream` to `Stream<Long>`, needed here to collect a `List<Long>` using `Collectors.toList()`.
+- `collect` is the terminal operation requesting the result.
 
-Các thao tác chuyển kiểu không làm thay đổi số phần tử nên vẫn kết hợp được với `filter`, `limit`, `skip`, `sum`, `average` và `reduce`. Cần nhớ: **stream chỉ được tiêu thụ một lần**, không lấy lại `nguon` để chạy một terminal operation khác sau khi `chuyenKieu` đã được tiêu thụ.
+Type-conversion operations do not alter the element count, so they still combine cleanly with `filter`, `limit`, `skip`, `sum`, `average`, and `reduce`. Remember: **a stream is consumed only once**; do not take `nguon` back to run another terminal operation after `chuyenKieu` has been consumed.
 
-### Nguồn vô hạn vẫn cần điểm dừng
+### Unbounded sources still need a stopping point
 
 ```java
 long tong = IntStream.iterate(1, n -> n + 1)
@@ -269,18 +269,18 @@ long tong = IntStream.iterate(1, n -> n + 1)
 System.out.println(tong); // 15
 ```
 
-`asLongStream()` không tự tạo điểm dừng. Nếu dùng nguồn vô hạn rồi gọi `sum()` hoặc `toArray()` mà không giới hạn hợp lý, phép toán kết thúc có thể không bao giờ hoàn thành.
+`asLongStream()` does not create a stopping point itself. If an unbounded source is used and `sum()` or `toArray()` is called without an appropriate limit, the terminal operation may never finish.
 
-## 7. Vị trí chuyển kiểu quyết định có bị tràn số hay không
+## 7. Placement of conversion determines whether overflow occurs
 
-Một lỗi rất phổ biến là **chuyển kiểu sau khi phép toán `int` đã bị tràn**. Khi đó, chuyển sang `long` không thể khôi phục kết quả đúng ban đầu.
+A very common bug is **converting types after an `int` operation has already overflowed**. Once that happens, converting to `long` cannot recover the true original result.
 
-Ví dụ tính bình phương của 50.000:
+Example computing the square of 50,000:
 
 ```java
 import java.util.stream.IntStream;
 
-// SAI về kết quả: n * n tính bằng int, đã tràn trước khi mở rộng.
+// WRONG result: n * n computes in int and overflows before widening.
 long sai = IntStream.of(50_000)
     .map(n -> n * n)
     .asLongStream()
@@ -289,7 +289,7 @@ long sai = IntStream.of(50_000)
 System.out.println(sai); // -1794967296
 ```
 
-`50_000 × 50_000 = 2_500_000_000`, vượt `Integer.MAX_VALUE = 2_147_483_647`. Cần chuyển sang `long` **trước khi nhân**:
+`50_000 × 50_000 = 2_500_000_000`, which exceeds `Integer.MAX_VALUE = 2_147_483_647`. Convert to `long` **before multiplying**:
 
 ```java
 long dung = IntStream.of(50_000)
@@ -300,14 +300,14 @@ long dung = IntStream.of(50_000)
 System.out.println(dung); // 2500000000
 ```
 
-Hai pipeline có vẻ chỉ khác vị trí `asLongStream()`, nhưng **ngữ nghĩa phép nhân đã khác**:
+The two pipelines appear to differ only in the position of `asLongStream()`, yet **the multiplication semantics changed**:
 
 ```text
-SAI:  int * int (có thể tràn) → kết quả int → chuyển sang long
-ĐÚNG: int → long → long * long → kết quả long
+WRONG: int * int (may overflow) → int result → convert to long
+RIGHT: int → long → long * long → long result
 ```
 
-Nếu chỉ có một phép tính cụ thể, có thể mở rộng toán hạng ngay trong lambda:
+If there is only a single specific computation, you can widen the operand directly inside the lambda:
 
 ```java
 long cungDung = IntStream.of(50_000)
@@ -317,18 +317,18 @@ long cungDung = IntStream.of(50_000)
 System.out.println(cungDung); // 2500000000
 ```
 
-Ở đây phép ép kiểu `(long) n` xảy ra **trước phép nhân**, nên phép nhân được thực hiện với `long`.
+Here the `(long) n` cast happens **before the multiplication**, so multiplication executes in `long`.
 
-Một lưu ý nữa: `asLongStream()` không sửa mọi lỗi toán học. Nếu một phép tính vẫn có thể vượt `Long.MAX_VALUE`, cần thiết kế miền giá trị, dùng `Math.multiplyExact` để phát hiện tràn, hoặc sử dụng `BigInteger` nếu yêu cầu.
+One more note: `asLongStream()` does not fix every arithmetic error. If a calculation can still exceed `Long.MAX_VALUE`, design value bounds, use `Math.multiplyExact` to detect overflow, or use `BigInteger` if required.
 
-## 8. Phân biệt `asLongStream` / `asDoubleStream` và `mapToLong` / `mapToDouble`
+## 8. Distinguishing `asLongStream` / `asDoubleStream` from `mapToLong` / `mapToDouble`
 
-Tất cả đều giúp tạo primitive stream với kiểu đích mong muốn, nhưng mục đích khác nhau:
+All of them produce a primitive stream of the desired target type, yet their purposes differ:
 
-- **`asLongStream()`, `asDoubleStream()`**: chuyển kiểu từng phần tử **mà không thực hiện công thức biến đổi giá trị ngoài quy tắc chuyển kiểu nguyên thủy của Java**.
-- **`mapToLong(mapper)`, `mapToDouble(mapper)`**: thực hiện **một hàm biến đổi** để tạo giá trị kiểu `long` hoặc `double`.
+- **`asLongStream()`, `asDoubleStream()`**: convert each element's type **without performing any value transformation formula beyond Java's primitive widening rules**.
+- **`mapToLong(mapper)`, `mapToDouble(mapper)`**: execute **a transformation function** to produce `long` or `double` values.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.Arrays;
@@ -356,9 +356,9 @@ System.out.println(Arrays.toString(c));
 System.out.println(Arrays.toString(d));
 ```
 
-Lưu ý trong ví dụ `b`, `n * 100L` thực hiện phép nhân bằng `long` vì toán hạng `100L` là `long`; viết `n * 100` có thể tràn `int` trước khi được trả về dưới dạng `long`.
+Note that in example `b`, `n * 100L` performs multiplication in `long` because operand `100L` is `long`; writing `n * 100` could overflow `int` before being returned as `long`.
 
-Cùng một yêu cầu có thể có hai cách viết:
+The same requirement can have two valid styles:
 
 ```java
 long tong1 = IntStream.of(50_000, 60_000)
@@ -374,11 +374,11 @@ System.out.println(tong1); // 6100000000
 System.out.println(tong2); // 6100000000
 ```
 
-Cả hai hợp lệ vì phép nhân được đánh giá bằng `long`. Chọn cách truyền tải ý định dễ đọc hơn: chuyển cả pipeline sang `long` thì dùng `asLongStream`; tính ngay một giá trị `long` từ mỗi `int` thì `mapToLong` cũng phù hợp.
+Both are valid because multiplication is evaluated in `long`. Choose whichever conveys intent more clearly: if shifting the whole pipeline to `long`, use `asLongStream`; if immediately computing one `long` value from each `int`, `mapToLong` fits well too.
 
-### Khi nguồn là `Stream<T>`
+### When the source is `Stream<T>`
 
-`asLongStream` và `asDoubleStream` **không tồn tại trên `Stream<T>`**. Nếu nguồn là danh sách đối tượng:
+`asLongStream` and `asDoubleStream` **do not exist on `Stream<T>`**. If the source is a list of objects:
 
 ```java
 import java.util.Arrays;
@@ -394,7 +394,7 @@ long tong = so.stream()         // Stream<Integer>
 System.out.println(tong); // 12
 ```
 
-Có thể ngắn gọn hơn bằng `mapToLong` trực tiếp:
+This can be written more concisely with `mapToLong` directly:
 
 ```java
 long tong = so.stream()
@@ -402,33 +402,33 @@ long tong = so.stream()
     .sum();
 ```
 
-Nếu không cần thay đổi kiểu đầu ra, `mapToInt(Integer::intValue)` cũng là lựa chọn tốt cho các phép tính vừa miền `int`; việc mở rộng sang `long` chỉ nên xuất phát từ yêu cầu dữ liệu hoặc tính toán.
+If no output type change is needed, `mapToInt(Integer::intValue)` is also a good choice for calculations fitting in `int`; widening to `long` should stem from data or calculation requirements.
 
-### API có sẵn sau khi chuyển
+### APIs available after conversion
 
-| Sau bước chuyển | Một số terminal operations thường dùng |
+| After conversion step | Commonly used terminal operations |
 | --- | --- |
 | `LongStream` | `sum()` → `long`, `average()` → `OptionalDouble`, `toArray()` → `long[]`, `max()` → `OptionalLong` |
 | `DoubleStream` | `sum()` → `double`, `average()` → `OptionalDouble`, `toArray()` → `double[]`, `max()` → `OptionalDouble` |
 
-`OptionalLong`, `OptionalDouble` biểu diễn kết quả có thể thiếu (ví dụ stream rỗng). Tránh gọi `getAsLong()` hoặc `getAsDouble()` nếu chưa bảo đảm có giá trị; có thể dùng `orElse` hoặc `orElseThrow` tùy bài toán.
+`OptionalLong` and `OptionalDouble` represent potentially absent results (e.g., an empty stream). Avoid calling `getAsLong()` or `getAsDouble()` unless a value is guaranteed present; use `orElse` or `orElseThrow` depending on the problem.
 
-## 9. So sánh chi phí chuyển kiểu và boxing
+## 9. Comparing conversion overhead and boxing
 
-Các thao tác `asLongStream` và `asDoubleStream` chuyển primitive sang primitive. Về mặt API, chúng **không cần tạo một đối tượng wrapper cho mỗi phần tử** như khi gọi `boxed()`. Điều này có thể giảm overhead khi xử lý số lượng dữ liệu lớn.
+`asLongStream` and `asDoubleStream` convert primitive to primitive. At the API level, they **do not need to allocate a wrapper object per element** as `boxed()` does. This can reduce overhead when processing large amounts of data.
 
-Tuy nhiên, không nên suy ra rằng một pipeline dùng `asDoubleStream()` luôn nhanh hơn mọi cách khác: tốc độ còn phụ thuộc nguồn, JIT, số lần cấp phát, truy cập bộ nhớ, phép toán trung gian và cách sử dụng stream. Chỉ nên kết luận về hiệu năng sau khi đo với dữ liệu và môi trường phù hợp.
+However, do not conclude that a pipeline using `asDoubleStream()` is always faster than every alternative: speed also depends on the source, JIT, allocation counts, memory access, intermediate operations, and how the stream is used. Only draw performance conclusions after measuring with representative data and environment.
 
-| Phép chuyển | Kiểu đầu ra | Boxing từng phần tử? | Dùng khi |
+| Conversion | Output type | Per-element boxing? | Use when |
 | --- | --- | --- | --- |
-| `IntStream.asLongStream()` | `LongStream` | Không | Muốn miền `long` mà vẫn xử lý primitive |
-| `IntStream.asDoubleStream()` | `DoubleStream` | Không | Muốn xử lý `double` từ số nguyên |
-| `LongStream.asDoubleStream()` | `DoubleStream` | Không | Muốn phép tính số thực từ `long`, chấp nhận rủi ro làm tròn |
-| `IntStream.boxed()` | `Stream<Integer>` | Có | Cần stream đối tượng hoặc collector generic |
-| `LongStream.boxed()` | `Stream<Long>` | Có | Cần `Long` hoặc API thao tác đối tượng |
-| `DoubleStream.boxed()` | `Stream<Double>` | Có | Cần `Double` hoặc API thao tác đối tượng |
+| `IntStream.asLongStream()` | `LongStream` | No | Want `long` range while staying primitive |
+| `IntStream.asDoubleStream()` | `DoubleStream` | No | Want `double` processing from integers |
+| `LongStream.asDoubleStream()` | `DoubleStream` | No | Want floating-point math from `long`, accepting rounding risk |
+| `IntStream.boxed()` | `Stream<Integer>` | Yes | Need an object stream or generic collectors |
+| `LongStream.boxed()` | `Stream<Long>` | Yes | Need `Long` or object-based APIs |
+| `DoubleStream.boxed()` | `Stream<Double>` | Yes | Need `Double` or object-based APIs |
 
-Nếu chỉ cần một giá trị tổng hợp, thường không cần `boxed()`:
+If only a single aggregated value is needed, `boxed()` is usually unnecessary:
 
 ```java
 long tong = IntStream.rangeClosed(1, 100)
@@ -438,7 +438,7 @@ long tong = IntStream.rangeClosed(1, 100)
 System.out.println(tong); // 5050
 ```
 
-Nếu cần `List<Long>` để lưu kết quả, boxing ở ranh giới cuối pipeline là hợp lý:
+If a `List<Long>` is needed to store results, boxing at the end boundary of the pipeline is reasonable:
 
 ```java
 import java.util.List;
@@ -449,27 +449,27 @@ List<Long> ds = IntStream.rangeClosed(1, 3)
     .boxed()
     .collect(Collectors.toList());
 
-// [1L, 2L, 3L] — các phần tử có kiểu Long
+// [1L, 2L, 3L] — elements have type Long
 ```
 
-Từ Java 16, `Stream.toList()` có thể thay `collect(Collectors.toList())` trong các tình huống phù hợp, nhưng `Stream.toList()` trả về danh sách không cho phép sửa. Việc chọn collector vẫn phụ thuộc cách sử dụng kết quả.
+Since Java 16, `Stream.toList()` can replace `collect(Collectors.toList())` in suitable situations, though `Stream.toList()` returns an unmodifiable list. Collector selection still depends on how the result will be used.
 
-## 10. Lỗi thường gặp và cách khắc phục
+## 10. Common mistakes and fixes
 
-| Lỗi / hiểu nhầm | Nguyên nhân | Cách sửa |
+| Mistake / misconception | Cause | Fix |
 | --- | --- | --- |
-| Gọi `asLongStream()` trên `LongStream` | `LongStream` đã là luồng `long`, không có phương thức đó | Giữ nguyên stream, hoặc dùng `map` nếu cần biến đổi |
-| Gọi `asDoubleStream()` trên `Stream<Integer>` | Phương thức chỉ có ở primitive stream thích hợp | Dùng `mapToDouble(Integer::doubleValue)` hoặc `mapToInt(...).asDoubleStream()` |
-| Gọi `asLongStream()` trên `DoubleStream` | Không có API thu hẹp kiểu như vậy | Dùng `mapToLong` với quy tắc chuyển đổi/kiểm tra rõ ràng |
-| `IntStream.map(n -> n*n).asLongStream()` vẫn cho số sai | Phép nhân `int` tràn trước khi chuyển | Chuyển trước với `asLongStream().map(...)` hoặc `mapToLong(n -> (long)n*n)` |
-| Chuyển mọi `long` sang `double` rồi so sánh bằng nhau | `double` không biểu diễn chính xác mọi số nguyên 64-bit | Giữ `long` nếu cần phân biệt chính xác |
-| Cho rằng `asDoubleStream()` tự chia hoặc chuẩn hóa giá trị | Phép chuyển chỉ đổi kiểu | Thêm `map(n -> ...)` nếu cần công thức nghiệp vụ |
-| Dùng `boxed()` để đổi `int` sang `long` | `boxed()` tạo `Integer`, không tạo `LongStream` | Dùng `asLongStream()` |
-| Cố dùng lại stream nguồn sau khi tiêu thụ stream đích | Pipeline đã tiêu thụ nguồn | Tạo stream mới |
-| `sum()` trên nguồn vô hạn không trả kết quả | Không có điểm dừng | Thêm `limit` hoặc giới hạn nguồn |
-| Dùng số thực để cộng/trừ tiền chính xác | `double` có sai số nhị phân | Chọn biểu diễn số nguyên hoặc `BigDecimal` theo yêu cầu |
+| Calling `asLongStream()` on `LongStream` | `LongStream` is already a `long` stream and has no such method | Keep the stream as is, or use `map` if transformation is needed |
+| Calling `asDoubleStream()` on `Stream<Integer>` | Method exists only on appropriate primitive streams | Use `mapToDouble(Integer::doubleValue)` or `mapToInt(...).asDoubleStream()` |
+| Calling `asLongStream()` on `DoubleStream` | No such narrowing API exists | Use `mapToLong` with explicit conversion/validation rules |
+| `IntStream.map(n -> n*n).asLongStream()` still gives wrong number | `int` multiplication overflowed prior to conversion | Convert first with `asLongStream().map(...)` or `mapToLong(n -> (long)n*n)` |
+| Converting all `long` values to `double` then comparing equality | `double` does not represent all 64-bit integers exactly | Keep `long` when exact distinction is required |
+| Assuming `asDoubleStream()` divides or normalizes values | Conversion only changes type | Add `map(n -> ...)` if a business formula is needed |
+| Using `boxed()` to convert `int` to `long` | `boxed()` creates `Integer`, not `LongStream` | Use `asLongStream()` |
+| Trying to reuse source stream after consuming target stream | Pipeline already consumed the source | Create a new stream |
+| `sum()` on an unbounded source never returns | No stopping point | Add `limit` or bound the source |
+| Using floating-point to add/subtract exact money | `double` has binary rounding error | Choose integer representation or `BigDecimal` as required |
 
-Ví dụ lỗi biên dịch do sai loại stream:
+Example compile error due to wrong stream type:
 
 ```java
 import java.util.Arrays;
@@ -477,30 +477,30 @@ import java.util.List;
 
 List<Integer> so = Arrays.asList(1, 2, 3);
 
-// KHÔNG BIÊN DỊCH: Stream<Integer> không có asLongStream().
+// DOES NOT COMPILE: Stream<Integer> has no asLongStream().
 // long tongSai = so.stream().asLongStream().sum();
 
-// ĐÚNG:
+// RIGHT:
 long tongDung = so.stream()
     .mapToLong(Integer::longValue)
     .sum();
 ```
 
-Đừng bỏ qua phần kiểu ở giữa pipeline: `Stream<Integer>` và `IntStream` có nhiều phương thức khác nhau dù cùng diễn đạt dãy các số nguyên.
+Do not overlook the types in the middle of a pipeline: `Stream<Integer>` and `IntStream` have many different methods even though both represent a sequence of integers.
 
-## 11. Bài tập thực hành
+## 11. Practice exercises
 
-### Bài 1 — Chọn đúng phép chuyển
+### Exercise 1 — Choose the right conversion
 
-Cho dữ liệu:
+Given the data:
 
 ```java
 int[] soLuong = {1_000_000_000, 1_000_000_000, 1_000_000_000};
 ```
 
-Hãy tính tổng chính xác bằng `long` với `IntStream` và `asLongStream()`. Giải thích vì sao `IntStream.sum()` không phù hợp.
+Compute the exact sum as `long` using `IntStream` and `asLongStream()`. Explain why `IntStream.sum()` is unsuitable.
 
-### Bài 2 — Dự đoán kiểu và kết quả
+### Exercise 2 — Predict types and results
 
 ```java
 double[] kq = IntStream.of(10, 20, 30)
@@ -509,9 +509,9 @@ double[] kq = IntStream.of(10, 20, 30)
     .toArray();
 ```
 
-Mỗi bước có kiểu gì? Mảng `kq` chứa giá trị nào?
+What type does each step have? What values does array `kq` contain?
 
-### Bài 3 — Phát hiện tràn trước khi chuyển kiểu
+### Exercise 3 — Spot overflow before conversion
 
 ```java
 long x = IntStream.of(50_000)
@@ -520,9 +520,9 @@ long x = IntStream.of(50_000)
     .sum();
 ```
 
-Đoạn mã có kết quả `2_500_000_000L` không? Sửa ít nhất hai cách.
+Does this snippet produce `2_500_000_000L`? Fix it in at least two ways.
 
-### Bài 4 — Mất độ chính xác khi dùng `double`
+### Exercise 4 — Precision loss when using `double`
 
 ```java
 long a = 9_007_199_254_740_992L;
@@ -533,16 +533,16 @@ double[] values = LongStream.of(a, b)
     .toArray();
 ```
 
-Dự đoán `values[0] == values[1]` và giải thích. Có nên dùng `DoubleStream` để xác định hai mã định danh `long` có bằng nhau không?
+Predict `values[0] == values[1]` and explain why. Should `DoubleStream` be used to determine whether two `long` identifiers are equal?
 
-### Bài 5 — Chọn API theo mục tiêu
+### Exercise 5 — Choose API by goal
 
-Nguồn là `List<Integer>` chứa số lượt xem của nhiều bài viết. Bạn muốn tính tổng bằng `long`, rồi xuất một danh sách `List<Long>` gồm từng số lượt xem đã chuyển kiểu. Viết hai pipeline **độc lập** từ cùng một danh sách nguồn; giải thích vì sao không được dùng lại một stream đã gọi `sum()`.
+The source is a `List<Integer>` holding view counts of multiple articles. You want to compute the sum as `long`, and also output a `List<Long>` containing each converted view count. Write two **independent** pipelines from the same source list; explain why you must not reuse a stream that already called `sum()`.
 
 <details>
-<summary>Đáp án tham khảo</summary>
+<summary>Reference solutions</summary>
 
-**Bài 1**
+**Exercise 1**
 
 ```java
 long tong = java.util.Arrays.stream(soLuong)
@@ -552,15 +552,15 @@ long tong = java.util.Arrays.stream(soLuong)
 System.out.println(tong); // 3000000000
 ```
 
-`IntStream.sum()` trả `int`, nhỏ hơn tổng thực; `asLongStream()` đưa từng phần tử thành `long` trước khi cộng.
+`IntStream.sum()` returns `int`, which is smaller than the true sum; `asLongStream()` widens each element to `long` before summing.
 
-**Bài 2**
+**Exercise 2**
 
-`IntStream` → `DoubleStream` → `DoubleStream` → `double[]`. Kết quả là `[5.0, 10.0, 15.0]`. Biến `n` trong `map` có kiểu `double` vì đã gọi `asDoubleStream()`.
+`IntStream` → `DoubleStream` → `DoubleStream` → `double[]`. The result is `[5.0, 10.0, 15.0]`. Variable `n` inside `map` has type `double` because `asDoubleStream()` was already called.
 
-**Bài 3**
+**Exercise 3**
 
-Không. Phép nhân bằng `int` đã tràn. Hai cách sửa:
+No. The `int` multiplication already overflowed. Two fixes:
 
 ```java
 long cach1 = IntStream.of(50_000)
@@ -572,14 +572,14 @@ long cach2 = IntStream.of(50_000)
     .mapToLong(n -> (long) n * n)
     .sum();
 
-// Cả hai đều bằng 2500000000
+// Both equal 2500000000
 ```
 
-**Bài 4**
+**Exercise 4**
 
-Biểu thức so sánh trả về `true` vì `2^53 + 1` không biểu diễn chính xác được bằng `double` và được làm tròn về cùng giá trị với `2^53`. Không dùng chuyển đổi sang `double` để kiểm tra tính bằng nhau của mã định danh `long`.
+The comparison expression returns `true` because `2^53 + 1` cannot be represented exactly in `double` and rounds to the same value as `2^53`. Never convert to `double` to check equality of `long` identifiers.
 
-**Bài 5**
+**Exercise 5**
 
 ```java
 import java.util.Arrays;
@@ -602,13 +602,13 @@ System.out.println(tong);         // 60
 System.out.println(duLieuLong);   // [10, 20, 30]
 ```
 
-Mỗi lời gọi `luotXem.stream()` tạo một stream mới. Một stream đã bị tiêu thụ bởi terminal operation `sum()` không được sử dụng tiếp để tạo danh sách.
+Each call to `luotXem.stream()` creates a new stream. A stream already consumed by the terminal operation `sum()` cannot be used again to build a list.
 
 </details>
 
-## 12. Ghi nhớ
+## 12. Takeaways
 
-Ba phép mở rộng kiểu số nguyên thủy cốt lõi là:
+The three core primitive numeric widening conversions are:
 
 ```java
 IntStream  --asLongStream()-->   LongStream
@@ -616,10 +616,10 @@ IntStream  --asDoubleStream()--> DoubleStream
 LongStream --asDoubleStream()--> DoubleStream
 ```
 
-- Các phép chuyển là **intermediate operations lazy**, giữ nguyên số lượng phần tử và không cần boxing.
-- Chuyển `int` → `long` và `int` → `double` bảo toàn giá trị số nguyên chính xác; chuyển `long` → `double` có thể làm tròn.
-- Nếu phép tính trung gian có thể tràn `int`, hãy **mở rộng kiểu trước khi tính**.
-- Dùng `mapToLong` / `mapToDouble` khi cần *công thức biến đổi*, dùng `asLongStream` / `asDoubleStream` khi chỉ cần *chuyển kiểu*.
-- Chọn kiểu dữ liệu theo miền giá trị và yêu cầu độ chính xác; không dùng `double` cho dữ liệu số nguyên hoặc tiền tệ cần chính xác tuyệt đối.
+- These conversions are **lazy intermediate operations**, preserve element count, and require no boxing.
+- Converting `int` → `long` and `int` → `double` preserves exact integer values; converting `long` → `double` can round.
+- If an intermediate computation can overflow `int`, **widen the type before computing**.
+- Use `mapToLong` / `mapToDouble` when a *transformation formula* is needed, and `asLongStream` / `asDoubleStream` when only *type widening* is needed.
+- Choose data types according to value domains and precision requirements; do not use `double` for integer data or money requiring absolute precision.
 
-Nắm được vị trí và giới hạn của các phép chuyển giúp viết pipeline `filter`, `map`, `reduce` và các phép tổng hợp dữ liệu rõ ràng, đáng tin cậy hơn khi xử lý Stream API.
+Understanding the placement and limits of these conversions helps write clearer, more reliable `filter`, `map`, `reduce`, and aggregation pipelines when working with the Stream API.

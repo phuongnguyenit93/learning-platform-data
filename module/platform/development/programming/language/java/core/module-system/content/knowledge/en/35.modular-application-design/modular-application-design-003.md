@@ -1,18 +1,18 @@
-# Module nhỏ có thật sự giảm phụ thuộc không?
+# Do Small Modules Actually Reduce Dependencies?
 
-## 1. Module nhỏ không tự động có ít phụ thuộc
+## 1. Small modules do not automatically have fewer dependencies
 
-Chia một ứng dụng thành nhiều module nhỏ có thể làm ranh giới rõ ràng hơn, nhưng số lượng module tăng không đồng nghĩa mức độ phụ thuộc giảm. Một module nhỏ vẫn có thể phụ thuộc vào rất nhiều module khác; ngược lại, một module có phạm vi lớn nhưng cohesion tốt và API ổn định có thể tạo ra ít quan hệ phụ thuộc hơn.
+Splitting an application into many small modules can make boundaries clearer, but increasing the number of modules does not automatically reduce the level of dependencies. A small module can still depend on many other modules; conversely, a larger-scoped module with strong cohesion and a stable API can create fewer dependency relationships.
 
-Cần phân biệt ba yếu tố:
+Three factors should be distinguished:
 
-- **Kích thước module:** module chứa bao nhiêu package, lớp hoặc chức năng.
-- **Cohesion:** các thành phần bên trong module có phục vụ cùng một trách nhiệm và thay đổi cùng nhau hay không.
-- **Coupling:** module cần biết, gọi hoặc phụ thuộc vào bao nhiêu module khác để thực hiện trách nhiệm của mình.
+- **Module size:** how many packages, classes, or features a module contains.
+- **Cohesion:** whether the components inside the module serve the same responsibility and change together.
+- **Coupling:** how many other modules a module must know about, call, or depend on to fulfill its responsibility.
 
-Mục tiêu thiết kế không phải tạo module nhỏ nhất có thể. Mục tiêu là tạo các module có trách nhiệm rõ ràng, phụ thuộc có chủ đích và bề mặt API đủ nhỏ để thay đổi độc lập.
+The design goal is not to create the smallest possible modules. The goal is to create modules with clear responsibilities, intentional dependencies, and an API surface small enough to change independently.
 
-Ví dụ, tách một module billing thành các module rất nhỏ:
+For example, splitting a billing module into tiny modules:
 
     com.example.billing.invoice
     com.example.billing.tax
@@ -21,22 +21,22 @@ Ví dụ, tách một module billing thành các module rất nhỏ:
     com.example.billing.persistence
     com.example.billing.validation
 
-Nếu mỗi module phải gọi trực tiếp nhiều module còn lại, đồ thị phụ thuộc có thể trở nên dày đặc. Thay đổi một quy tắc nghiệp vụ có thể yêu cầu sửa nhiều module và cập nhật nhiều module-info.java.
+If each module must directly call several of the remaining modules, the dependency graph can become dense. Changing a business rule may require editing multiple modules and updating multiple `module-info.java` files.
 
-Một thiết kế ít module hơn nhưng chia theo năng lực nghiệp vụ có thể dễ hiểu hơn:
+A design with fewer modules organized by business capability can be easier to understand:
 
     com.example.billing
     com.example.customer
     com.example.catalog
     com.example.infrastructure
 
-Điều này không có nghĩa luôn phải gộp module. Cần xem trách nhiệm, hướng phụ thuộc và khả năng thay đổi độc lập của từng phần.
+This does not mean modules must always be merged. You need to evaluate the responsibility, dependency direction, and independent changeability of each part.
 
-## 2. Đánh giá phụ thuộc bằng đồ thị module
+## 2. Evaluating dependencies using the module graph
 
-Có thể mô hình hóa module như các đỉnh trong đồ thị có hướng. Một directive **requires** tạo quan hệ đọc từ module khai báo sang module được yêu cầu.
+Modules can be modeled as vertices in a directed graph. A `requires` directive creates a readability edge from the declaring module to the required module.
 
-Ví dụ:
+For example:
 
     module com.example.application {
         requires com.example.billing;
@@ -52,40 +52,40 @@ Ví dụ:
         requires java.sql;
     }
 
-Đồ thị này cho thấy application phụ thuộc vào billing và customer; billing lại phụ thuộc vào customer và persistence. Một thay đổi trong persistence có thể ảnh hưởng tới billing và gián tiếp tới application nếu API hoặc hành vi mà chúng sử dụng thay đổi.
+This graph shows that `application` depends on `billing` and `customer`; `billing` in turn depends on `customer` and `persistence`. A change in `persistence` can affect `billing` and indirectly `application` if the API or behavior they rely on changes.
 
-Khi phân tích coupling, nên xem:
+When analyzing coupling, examine:
 
-- **Fan-out:** một module phụ thuộc vào bao nhiêu module khác.
-- **Fan-in:** có bao nhiêu module phụ thuộc vào module này.
-- **Dependency depth:** cần đi qua bao nhiêu tầng dependency để đến một thành phần.
-- **Cycles:** các module có tạo quan hệ phụ thuộc vòng hay không.
-- **API surface:** module công khai bao nhiêu package và kiểu cho module khác.
+- **Fan-out:** how many other modules a module depends on.
+- **Fan-in:** how many modules depend on this module.
+- **Dependency depth:** how many dependency layers must be traversed to reach a component.
+- **Cycles:** whether modules form cyclic dependencies.
+- **API surface:** how many packages and types a module exposes to other modules.
 
-JPMS yêu cầu đồ thị module hợp lệ, không cho phép chu trình trong quan hệ requires. Vì vậy, một chuỗi phụ thuộc vòng sẽ gây lỗi khi xây dựng hoặc resolve module graph. Tuy nhiên, không có chu trình không có nghĩa kiến trúc đã ít coupling; một module vẫn có thể phụ thuộc trực tiếp vào rất nhiều module.
+JPMS requires a valid module graph and forbids cycles in `requires` relationships. Therefore, a cyclic dependency chain causes an error when building or resolving the module graph. However, having no cycles does not mean the architecture is loosely coupled; a module can still directly depend on a large number of modules.
 
-Một module nhỏ nhưng có fan-out cao có thể là điểm điều phối quá tải. Một module API được nhiều module sử dụng có fan-in cao nhưng điều đó có thể hợp lý nếu API ổn định và có trách nhiệm rõ ràng.
+A small module with high fan-out can be an overloaded orchestration point. An API module used by many modules has high fan-in, which can be reasonable if the API is stable and has a clear responsibility.
 
-## 3. Cohesion quan trọng hơn số lượng lớp
+## 3. Cohesion matters more than class count
 
-Một module nên nhóm những thành phần thay đổi cùng nhau vì cùng phục vụ một trách nhiệm. Đây là ý nghĩa thực tế của cohesion trong thiết kế module.
+A module should group components that change together because they serve the same responsibility. This is the practical meaning of cohesion in module design.
 
-Ví dụ, các lớp sau thường có lý do để ở cùng một module billing:
+For example, the following classes usually belong together in a single billing module:
 
     com.example.billing.api.InvoiceService
     com.example.billing.internal.InvoiceValidator
     com.example.billing.internal.InvoiceCalculator
     com.example.billing.internal.InvoiceRepository
 
-Chúng cùng thực hiện một năng lực nghiệp vụ và có thể cần thay đổi cùng nhau khi quy tắc hóa đơn thay đổi. Việc tách mỗi lớp thành một module sẽ làm tăng cấu hình và quan hệ phụ thuộc mà không tạo ra ranh giới kiến trúc có ý nghĩa.
+They work together to deliver one business capability and will likely need to change together when invoicing rules change. Splitting each class into its own module increases configuration and dependency relationships without creating a meaningful architectural boundary.
 
-Ngược lại, nếu module billing chứa cả chức năng gửi email, quản lý người dùng, truy cập catalog và kết nối thanh toán bên ngoài, module có thể đang gộp nhiều trách nhiệm không liên quan. Khi đó, tách theo năng lực nghiệp vụ có thể giảm coupling và cho phép từng phần thay đổi độc lập.
+Conversely, if the billing module also contains email sending, user management, catalog access, and external payment integration, the module may be combining unrelated responsibilities. In that case, splitting by business capability can reduce coupling and allow each part to change independently.
 
-Một câu hỏi hữu ích khi quyết định tách là: **Nếu trách nhiệm này thay đổi, những phần nào thực sự cần thay đổi cùng nó?** Nếu hai nhóm luôn phải thay đổi cùng nhau và không có nhu cầu triển khai hoặc quản trị độc lập, tách thành hai module có thể chỉ tạo thêm đường biên nhân tạo.
+A useful question when deciding whether to split is: **If this responsibility changes, which parts genuinely need to change with it?** If two groups always have to change together and have no need for independent deployment or governance, splitting them into two modules may merely create an artificial boundary.
 
-## 4. JPMS giúp kiểm soát phụ thuộc như thế nào?
+## 4. How does JPMS help control dependencies?
 
-Module descriptor làm rõ quan hệ dependency:
+A module descriptor makes dependency relationships explicit:
 
     module com.example.billing {
         requires com.example.customer;
@@ -94,61 +94,61 @@ Module descriptor làm rõ quan hệ dependency:
         exports com.example.billing.api;
     }
 
-Directive **requires** khai báo module mà module hiện tại cần đọc. **exports** xác định package nào được module khác truy cập theo quy tắc JPMS.
+The `requires` directive declares which modules the current module needs to read. `exports` specifies which packages other modules can access under JPMS rules.
 
-Điều này giúp phân biệt hai câu hỏi:
+This separates two questions:
 
-- Module cần phụ thuộc vào module nào?
-- Module muốn công khai package nào cho consumer?
+- Which modules does this module need to depend on?
+- Which packages does this module want to expose to consumers?
 
-Một module có thể cần một module khác nhưng không cần export toàn bộ package của chính nó. Ngược lại, export package không tự tạo ra dependency requires; module consumer vẫn cần có readability phù hợp.
+A module can require another module without needing to export all of its own packages. Conversely, exporting a package does not automatically create a `requires` dependency; consumer modules still need appropriate readability.
 
-JPMS giúp biểu diễn ranh giới tĩnh, nhưng không tự quyết định ranh giới nghiệp vụ đúng. Nếu module A gọi trực tiếp nhiều lớp nội bộ của B, C và D, việc thêm module-info.java chỉ làm các quan hệ đó hiển thị rõ hơn. Nó không làm coupling biến mất.
+JPMS expresses static boundaries, but it does not automatically choose the right business boundaries. If module A directly calls many internal classes across B, C, and D, adding `module-info.java` merely makes those relationships visible. It does not eliminate the coupling.
 
-Một thiết kế tốt thường có các module API nhỏ, ổn định và module implementation được giữ kín. Consumer phụ thuộc vào contract thay vì các lớp triển khai cụ thể.
+A good design typically has small, stable API modules and encapsulated implementation modules. Consumers depend on contracts rather than concrete implementation classes.
 
-## 5. requires, requires transitive và requires static
+## 5. `requires`, `requires transitive`, and `requires static`
 
-Ba dạng requires ảnh hưởng khác nhau đến dependency graph.
+The three forms of `requires` affect the dependency graph differently.
 
-### requires
+### `requires`
 
     module com.example.billing {
         requires com.example.customer;
     }
 
-Module billing cần đọc module customer. Đây là quan hệ dependency thông thường và được thể hiện trực tiếp trong module descriptor.
+The `billing` module needs to read the `customer` module. This is a standard dependency relationship and is expressed directly in the module descriptor.
 
-### requires transitive
+### `requires transitive`
 
     module com.example.billing.api {
         requires transitive com.example.money;
         exports com.example.billing.api;
     }
 
-Nếu module khác requires com.example.billing.api, quan hệ readability tới com.example.money được truyền tiếp theo quy tắc requires transitive. Điều này hữu ích khi kiểu public của API billing sử dụng kiểu từ money và consumer cũng cần đọc module money để làm việc với API đó.
+If another module `requires com.example.billing.api`, readability to `com.example.money` is propagated according to the `requires transitive` rule. This is useful when public types in the billing API use types from `money` and consumers also need to read the `money` module to work with that API.
 
-Tuy nhiên, lạm dụng requires transitive có thể làm dependency lan rộng. Một module tiêu thụ API có thể phải đọc thêm nhiều module mà nó không chủ động chọn. Vì vậy, chỉ dùng transitive khi dependency thực sự là một phần của contract public.
+However, overusing `requires transitive` can cause dependencies to spread widely. A module consuming the API may end up reading extra modules it did not actively choose. Therefore, use `transitive` only when the dependency is genuinely part of the public contract.
 
-### requires static
+### `requires static`
 
     module com.example.billing {
         requires static com.example.metrics;
     }
 
-requires static biểu thị dependency cần có khi biên dịch nhưng có thể vắng mặt trong runtime configuration. Nó thường dùng cho annotation, công cụ hoặc tích hợp tùy chọn mà module không cần trong mọi môi trường chạy.
+`requires static` indicates a dependency required at compile time that may be absent in the runtime configuration. It is commonly used for annotations, tooling, or optional integrations that a module does not need in every runtime environment.
 
-Nếu mã thực tế cần lớp từ module đó khi chạy mà module không có trong runtime configuration, ứng dụng vẫn có thể gặp lỗi liên kết hoặc nạp lớp. requires static không phải cách để bỏ qua một dependency runtime bắt buộc.
+If actual code requires classes from that module at runtime and the module is absent from the runtime configuration, the application can still encounter linkage or class-loading errors. `requires static` is not a way to skip a mandatory runtime dependency.
 
-### Giữ dependency rõ ràng
+### Keeping dependencies explicit
 
-Một module nhỏ không nên khai báo requires transitive cho mọi dependency chỉ để consumer dễ biên dịch. Hãy xác định dependency nào thật sự xuất hiện trong API public, dependency nào chỉ phục vụ implementation và dependency nào là tùy chọn.
+A small module should not declare `requires transitive` for every dependency just to make compilation convenient for consumers. Identify which dependencies actually appear in the public API, which serve only the implementation, and which are optional.
 
-## 6. Tách module theo hướng phụ thuộc ổn định
+## 6. Splitting modules toward stable dependencies
 
-Một nguyên tắc hữu ích là để phần thay đổi thường xuyên phụ thuộc vào contract ổn định, thay vì để API lõi phụ thuộc trực tiếp vào implementation thay đổi thường xuyên.
+A useful principle is to make frequently changing parts depend on stable contracts, rather than having core APIs depend directly on frequently changing implementations.
 
-Ví dụ, nếu billing cần gửi thông báo, có thể khai báo một interface:
+For example, if billing needs to send notifications, an interface can be declared:
 
     package com.example.notification.api;
 
@@ -156,21 +156,21 @@ Ví dụ, nếu billing cần gửi thông báo, có thể khai báo một inter
         void send(String recipient, String message);
     }
 
-Module billing phụ thuộc vào contract:
+The billing module depends on the contract:
 
     module com.example.billing {
         requires com.example.notification.api;
     }
 
-Module triển khai email hoặc SMS có thể phụ thuộc vào API đó:
+An email or SMS implementation module can depend on that API:
 
     module com.example.notification.email {
         requires com.example.notification.api;
     }
 
-Billing không cần biết chi tiết của SMTP client, HTTP client hay nhà cung cấp gửi tin. Khi thay đổi implementation, module billing không nhất thiết phải thay đổi.
+Billing does not need to know the details of the SMTP client, HTTP client, or messaging provider. When the implementation changes, the billing module does not necessarily have to change.
 
-Có thể đi xa hơn bằng ServiceLoader:
+You can go further with `ServiceLoader`:
 
     module com.example.notification.api {
         exports com.example.notification.api;
@@ -188,95 +188,95 @@ Có thể đi xa hơn bằng ServiceLoader:
             with com.example.notification.email.EmailNotificationService;
     }
 
-Consumer biết service type và provider module đăng ký implementation. Cách này giảm dependency trực tiếp giữa module sử dụng và module triển khai, nhưng vẫn cần quản lý provider, module resolution và cấu hình runtime.
+The consumer knows the service type and the provider module registers the implementation. This reduces direct dependencies between the consuming module and the implementing module, though providers, module resolution, and runtime configuration still need to be managed.
 
-Không nên tạo service abstraction cho mọi method. Interface và service layer chỉ hữu ích khi có một ranh giới thay đổi, khả năng thay thế implementation hoặc nhu cầu mở rộng thực sự.
+Do not create a service abstraction for every method. Interfaces and service layers are only useful when there is a real boundary of change, replaceable implementations, or extensibility needs.
 
-## 7. Khi nào nên tách một module?
+## 7. When should you split a module?
 
-Tách module thường có ích khi một nhóm chức năng có một hoặc nhiều đặc điểm sau:
+Splitting a module is usually beneficial when a group of features has one or more of the following characteristics:
 
-- Có trách nhiệm nghiệp vụ riêng và API có thể mô tả độc lập.
-- Có thể thay đổi hoặc phát hành độc lập với phần còn lại.
-- Có dependency khác biệt rõ ràng, chẳng hạn chỉ module persistence cần java.sql.
-- Cần giữ package implementation kín với consumer.
-- Có nhiều consumer cần dùng chung một contract ổn định.
-- Có thể kiểm thử, triển khai hoặc quản trị vòng đời riêng.
-- Cần cô lập một dependency tùy chọn hoặc một tích hợp bên ngoài.
-- Có thể thiết lập hướng phụ thuộc một chiều rõ ràng.
+- It has a distinct business responsibility and an independently describable API.
+- It can be changed or released independently from the rest of the system.
+- It has clearly distinct dependencies—for example, only the persistence module needs `java.sql`.
+- Implementation packages need to be hidden from consumers.
+- Multiple consumers need to share a stable contract.
+- It can be tested, deployed, or lifecycle-managed separately.
+- An optional dependency or external integration needs to be isolated.
+- A clear one-way dependency direction can be established.
 
-Ví dụ, một ứng dụng có thể tách:
+For example, an application might split:
 
     com.example.order.api
     com.example.order.core
     com.example.order.persistence
     com.example.order.integration
 
-Nhưng nếu order.core phải gọi trực tiếp hàng chục kiểu public từ persistence và integration, ranh giới có thể chưa đúng. Có thể cần đưa interface repository hoặc gateway vào core và để implementation phụ thuộc ngược vào contract đó.
+However, if `order.core` must directly call dozens of public types from `persistence` and `integration`, the boundary may be wrong. You may need to put repository or gateway interfaces in `core` and have implementations depend back on those contracts.
 
-## 8. Khi nào không nên tách quá nhỏ?
+## 8. When should you avoid over-splitting?
 
-Tách quá nhỏ có thể tạo ra chi phí lớn hơn lợi ích:
+Splitting too finely can create more cost than benefit:
 
-- Nhiều module-info.java phải duy trì.
-- Nhiều requires và exports làm graph khó đọc.
-- API giữa các module dễ trở thành giao tiếp nội bộ quá chi tiết.
-- Một thay đổi đơn giản có thể buộc build và version nhiều artifact.
-- Khó điều phối thứ tự khởi động, service discovery và module layer.
-- Nhiều package nhỏ bị export chỉ để các module khác truy cập.
-- Các module bị khóa vào cùng một chu kỳ release, dù được tách trên danh nghĩa.
+- Many `module-info.java` files to maintain.
+- Numerous `requires` and `exports` directives making the graph hard to read.
+- Inter-module APIs easily becoming overly granular internal communication.
+- A simple change forcing builds and versioning across multiple artifacts.
+- Difficulty coordinating startup order, service discovery, and module layers.
+- Many small packages being exported just so other modules can access them.
+- Modules locked into the same release cycle despite being nominally separate.
 
-Nếu hai module luôn được build, test, version và triển khai cùng nhau, đồng thời liên tục gọi API chi tiết của nhau, có thể chúng chưa phải hai đơn vị độc lập tốt.
+If two modules are always built, tested, versioned, and deployed together while constantly calling each other's detailed APIs, they may not yet be good independent units.
 
-Mặt khác, không nên giữ mọi thứ trong một module lớn chỉ vì muốn giảm số lượng. Nếu một module có nhiều trách nhiệm không liên quan, API phình to và thay đổi ở một phần liên tục ảnh hưởng phần khác, việc tách có thể đem lại giá trị thực.
+On the other hand, do not keep everything in one huge module simply to minimize module count. If a module holds multiple unrelated responsibilities, its API bloats, and changes in one area constantly impact others, splitting can deliver real value.
 
-## 9. Module JPMS không đồng nghĩa với Maven/Gradle subproject
+## 9. A JPMS module is not synonymous with a Maven/Gradle subproject
 
-Cần phân biệt module của JPMS với module/subproject của build tool.
+A JPMS module should be distinguished from a build tool module/subproject.
 
-- **JPMS module** là đơn vị module system được mô tả bằng module-info.java hoặc được suy ra như automatic module.
-- **Maven module** thường là một project con trong multi-module build.
-- **Gradle subproject** là một project trong cấu trúc build.
+- A **JPMS module** is a module system unit described by `module-info.java` or inferred as an automatic module.
+- A **Maven module** is typically a subproject in a multi-module build.
+- A **Gradle subproject** is a project within a build structure.
 
-Một Maven module hoặc Gradle subproject có thể tạo ra một JAR không phải JPMS module tường minh. Ngược lại, một project có thể chứa nhiều source set hoặc artifact theo cách build riêng.
+A Maven module or Gradle subproject can produce a JAR that is not an explicit JPMS module. Conversely, a single project can contain multiple source sets or artifacts depending on its build setup.
 
-Việc chia repository thành nhiều subproject không tự động tạo ra kiến trúc JPMS tốt. Cần xác định rõ mỗi artifact sẽ trở thành module nào, package nào được export và dependency graph thực tế ra sao.
+Dividing a repository into many subprojects does not automatically produce a good JPMS architecture. You need to specify clearly which module each artifact becomes, which packages are exported, and what the actual dependency graph looks like.
 
-## 10. Đo và kiểm tra dependency graph
+## 10. Measuring and inspecting the dependency graph
 
-Có thể bắt đầu bằng cách đọc module descriptor:
+You can start by reading module descriptors:
 
     jar --describe-module --file billing.jar
 
-Xem dependency của các lớp và package bằng jdeps:
+Inspect class and package dependencies with `jdeps`:
 
     jdeps --module-path mods --check com.example.billing
 
-Phân tích package dependency:
+Analyze package dependencies:
 
     jdeps --module-path mods --summary mods/com.example.billing.jar
 
-Tùy mục tiêu, có thể sử dụng thêm:
+Depending on the goal, you can also use:
 
     jdeps --module-path mods --list-deps mods/com.example.application.jar
 
-Đầu ra của jdeps giúp nhận diện dependency trực tiếp và các module cần thiết theo phân tích bytecode. Nó không đo được toàn bộ coupling về nghiệp vụ, thay đổi source, dữ liệu hoặc hành vi runtime.
+The output of `jdeps` helps identify direct dependencies and required modules through bytecode analysis. It does not measure all coupling related to business logic, source changes, data, or runtime behavior.
 
-Khi đánh giá một module, nên xem:
+When evaluating a module, examine:
 
-1. Số module mà nó requires.
-2. Các requires có phải dependency trực tiếp thực sự không.
-3. Có requires transitive không cần thiết không.
-4. Bao nhiêu package được export.
-5. Bao nhiêu module khác phụ thuộc vào API của nó.
-6. Có chu trình hoặc dependency vòng ở cấp source/build dù module graph không cho phép hay không.
-7. Một thay đổi trong module này thường kéo theo bao nhiêu module khác phải sửa hoặc release.
+1. How many modules it `requires`.
+2. Whether those `requires` are genuinely direct dependencies.
+3. Whether there are unnecessary `requires transitive` directives.
+4. How many packages are exported.
+5. How many other modules depend on its API.
+6. Whether there are cycles or circular dependencies at the source/build level even though the module graph forbids them.
+7. How many other modules typically must be modified or released when this module changes.
 
-Đừng dùng số lượng module hoặc số dòng requires làm thước đo duy nhất. Các con số chỉ giúp đặt câu hỏi; cần kết hợp hiểu biết về trách nhiệm và luồng thay đổi.
+Do not use module count or lines of `requires` as the sole metric. Numbers only prompt questions; combine them with an understanding of responsibilities and change flows.
 
-## 11. Ví dụ so sánh hai cách chia module
+## 11. Comparing two ways of splitting modules
 
-### Chia theo lớp kỹ thuật quá chi tiết
+### Over-granular splitting by technical layer
 
     module com.example.invoice.entity { }
     module com.example.invoice.validation { }
@@ -284,9 +284,9 @@ Khi đánh giá một module, nên xem:
     module com.example.invoice.repository { }
     module com.example.invoice.service { }
 
-Nếu mỗi module phải requires nhiều module còn lại, hệ thống có thể tạo nhiều cạnh dependency. Các phần nghiệp vụ liên quan chặt chẽ bị phân tán và thay đổi nhỏ cũng cần phối hợp nhiều module.
+If each module must `requires` several of the others, the system can produce many dependency edges. Closely related business logic is scattered, and even a small change requires coordinating multiple modules.
 
-### Chia theo trách nhiệm và contract
+### Splitting by responsibility and contract
 
     module com.example.invoice.api {
         exports com.example.invoice.api;
@@ -304,26 +304,26 @@ Nếu mỗi module phải requires nhiều module còn lại, hệ thống có t
         requires com.example.invoice.api;
     }
 
-Trong thiết kế này, core và persistence có thể cùng triển khai contract theo một kiến trúc dependency được lựa chọn. Ví dụ đơn giản trên chưa thể hiện toàn bộ cách inject repository hoặc wiring runtime, nhưng cho thấy API được tách thành một contract dùng chung.
+In this design, `core` and `persistence` can implement contracts according to a chosen dependency architecture. This simple example does not show all repository injection or runtime wiring details, but it shows the API separated into a shared contract.
 
-Một lựa chọn khác là gộp core và persistence nếu chúng luôn thay đổi và triển khai cùng nhau. Quyết định cuối phụ thuộc vào việc persistence có cần thay thế độc lập, có consumer khác hay có yêu cầu cô lập dependency hay không.
+Another option is merging `core` and `persistence` if they always change and deploy together. The final decision depends on whether `persistence` needs independent replacement, has other consumers, or requires dependency isolation.
 
-## 12. Ghi nhớ
+## 12. Key takeaways
 
-- Module nhỏ không tự động giảm coupling; số module ít cũng không tự động tạo kiến trúc tốt.
-- Cohesion và hướng phụ thuộc quan trọng hơn kích thước hoặc số lớp.
-- Đánh giá fan-in, fan-out, dependency depth, API surface và các chu trình ở cấp kiến trúc.
-- requires tạo dependency trực tiếp; requires transitive lan truyền readability và cần được dùng có chủ đích.
-- requires static phù hợp với dependency compile-time tùy chọn ở runtime, không thay thế dependency runtime bắt buộc.
-- Module API ổn định có thể giúp implementation thay đổi độc lập.
-- ServiceLoader có thể giảm dependency trực tiếp giữa consumer và provider khi có nhu cầu thay thế implementation.
-- Chỉ tách module khi ranh giới trách nhiệm, thay đổi, phát hành hoặc quản trị thực sự độc lập.
-- Không nhầm JPMS module với Maven module hoặc Gradle subproject.
-- Dùng jar --describe-module và jdeps để quan sát dependency, nhưng kết hợp với phân tích thay đổi và trách nhiệm nghiệp vụ.
+- Small modules do not automatically reduce coupling; fewer modules do not automatically create a good architecture either.
+- Cohesion and dependency direction matter more than size or class count.
+- Evaluate fan-in, fan-out, dependency depth, API surface, and architectural cycles.
+- `requires` creates a direct dependency; `requires transitive` propagates readability and must be used intentionally.
+- `requires static` fits compile-time dependencies that are optional at runtime, not mandatory runtime dependencies.
+- Stable API modules allow implementations to change independently.
+- `ServiceLoader` can reduce direct dependencies between consumers and providers when implementations need to be replaceable.
+- Split modules only when boundaries of responsibility, change, release, or governance are genuinely independent.
+- Do not confuse a JPMS module with a Maven module or Gradle subproject.
+- Use `jar --describe-module` and `jdeps` to observe dependencies, combined with change and business-responsibility analysis.
 
-**Module nhỏ chỉ giảm phụ thuộc khi ranh giới của nó phản ánh một trách nhiệm độc lập và các module giao tiếp qua contract ổn định.** Nếu việc chia nhỏ chỉ làm tăng số requires, exports và điểm phối hợp, kiến trúc có thể trở nên phức tạp hơn dù mỗi module ít lớp hơn.
+**Small modules only reduce dependencies when their boundaries reflect an independent responsibility and modules communicate through stable contracts.** If splitting merely increases the number of `requires`, `exports`, and coordination points, the architecture can become more complex even though each module has fewer classes.
 
-## Tài liệu tham khảo
+## References
 
 - Java Platform Module System — JEP 261: https://openjdk.org/jeps/261
 - Java SE 21 API — Module: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Module.html

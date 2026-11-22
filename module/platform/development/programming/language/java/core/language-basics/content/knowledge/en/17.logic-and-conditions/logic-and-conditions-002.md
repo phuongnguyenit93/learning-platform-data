@@ -1,147 +1,147 @@
-# Đánh giá ngắn mạch và những biểu thức không được chạy trong Java
+# Short-Circuit Evaluation and Unexecuted Expressions in Java
 
-> **Java core — language-basics / Logic và điều kiện**  
-> **Yêu cầu:** JDK 17+, một file Java độc lập, chỉ dùng thư viện chuẩn.  
-> **Mục tiêu:** Dự đoán khi nào Java **không đánh giá vế phải** của `&&`, `||` và **nhánh không được chọn** của `?:`; phân biệt chúng với `&`, `|`, `^` trên boolean; viết guard tránh lỗi và kiểm soát side effect.
+> **Java core — language-basics / Logic and conditions**  
+> **Requirements:** JDK 17+, a standalone Java file, standard library only.  
+> **Goal:** Predict when Java **does not evaluate the right side** of `&&`, `||`, and the **unselected branch** of `?:`; distinguish them from `&`, `|`, `^` on booleans; write guards to prevent errors and control side effects.
 
-## 1. Đánh giá ngắn mạch là gì?
+## 1. What Is Short-Circuit Evaluation?
 
-**Short-circuit evaluation** (đánh giá ngắn mạch) nghĩa là Java **không cần chạy một biểu thức con** khi vế đã tính đủ để biết kết quả của toàn bộ phép logic.
+**Short-circuit evaluation** means Java **does not need to execute a subexpression** when the already evaluated side is enough to determine the result of the entire logical operation.
 
-- `left && right`: nếu `left` là **false**, kết quả chắc chắn false, nên **không đánh giá `right`**.
-- `left || right`: nếu `left` là **true**, kết quả chắc chắn true, nên **không đánh giá `right`**.
-- Nếu cần biết vế phải để quyết định kết quả, Java **có đánh giá** vế phải.
+- `left && right`: if `left` is **false**, the result is guaranteed to be false, so **`right` is not evaluated**.
+- `left || right`: if `left` is **true**, the result is guaranteed to be true, so **`right` is not evaluated**.
+- If the right side is needed to decide the result, Java **does evaluate** the right side.
 
-Ví dụ:
+Example:
 
 ~~~java
-boolean andResult = false && expensiveCheck(); // false, không gọi hàm.
-boolean orResult = true || expensiveCheck();   // true, không gọi hàm.
+boolean andResult = false && expensiveCheck(); // false, method is not called.
+boolean orResult = true || expensiveCheck();   // true, method is not called.
 ~~~
 
-`expensiveCheck()` ở đây chỉ là tên minh họa; hãy xem chương trình runnable bên dưới để có các phương thức thực tế.
+`expensiveCheck()` here is just an illustrative name; see the runnable program below for concrete methods.
 
-**Phân biệt:** “Vế phải không được chạy” là hành vi **lúc thực thi**. Java vẫn phải phân tích cú pháp và kiểm tra kiểu của toàn bộ biểu thức khi **biên dịch**, kể cả một nhánh sẽ bị bỏ qua ở lần chạy cụ thể.
+**Distinction:** "The right side is not executed" is a **runtime** behavior. Java still must parse and type-check the entire expression at **compile time**, even if a branch will be skipped during a specific run.
 
-## 2. Bảng quyết định: vế phải có được đánh giá không?
+## 2. Decision Table: Is the Right Side Evaluated?
 
-| Toán tử | Vế trái | Có chạy vế phải? | Kết quả |
+| Operator | Left side | Runs right side? | Result |
 | --- | --- | --- | --- |
-| `&&` | false | **Không** | false |
-| `&&` | true | **Có** | Theo giá trị vế phải |
-| OR ngắn mạch (`\|\|`) | true | **Không** | true |
-| OR ngắn mạch (`\|\|`) | false | **Có** | Theo giá trị vế phải |
+| `&&` | false | **No** | false |
+| `&&` | true | **Yes** | Per right-side value |
+| Short-circuit OR (`\|\|`) | true | **No** | true |
+| Short-circuit OR (`\|\|`) | false | **Yes** | Per right-side value |
 
-Java đánh giá **vế trái trước vế phải**. Nếu vế trái tự ném ngoại lệ thì biểu thức kết thúc bất thường và vế phải cũng không được đánh giá, nhưng đó **không phải** trường hợp short-circuit trả về giá trị boolean bình thường.
+Java evaluates the **left side before the right side**. If the left side itself throws an exception, the expression terminates abnormally and the right side is not evaluated either, but that is **not** a normal short-circuit returning a boolean value.
 
-Chẳng hạn:
+For instance:
 
 ~~~java
-boolean first = true && check();  // Phải đánh giá check().
-boolean second = false || check(); // Phải đánh giá check().
+boolean first = true && check();  // Must evaluate check().
+boolean second = false || check(); // Must evaluate check().
 ~~~
 
-Vì vậy không thể khẳng định “`&&` không chạy vế phải” hoặc “`||` không chạy vế phải” trong mọi trường hợp. Điều kiện chính xác là **vế trái đủ quyết định kết quả**.
+Therefore, you cannot claim "`&&` never runs the right side" or "`||` never runs the right side" in all cases. The exact condition is **whether the left side suffices to determine the result**.
 
-## 3. Những biểu thức bị bỏ qua không gây side effect hay exception
+## 3. Skipped Expressions Cause No Side Effects or Exceptions
 
-Khi nhánh bị bỏ qua, các thao tác **bên trong nhánh đó không xảy ra**: không gọi hàm, không tăng biến, không truy cập mảng, không unbox đối tượng và không ném ngoại lệ bắt nguồn từ biểu thức bị bỏ qua.
+When a branch is skipped, operations **inside that branch do not happen**: no method calls, no variable increments, no array accesses, no object unboxing, and no exceptions thrown from the skipped expression.
 
 ~~~java
 int counter = 0;
 boolean a = false && (++counter > 0); // a=false, counter=0.
-boolean b = true || (++counter > 0);  // b=true, counter vẫn=0.
+boolean b = true || (++counter > 0);  // b=true, counter remains 0.
 ~~~
 
-Ví dụ với mẫu số bằng 0:
+Example with a zero divisor:
 
 ~~~java
 int divisor = 0;
 boolean valid = divisor != 0 && (10 / divisor > 2);
-// valid=false, phép chia không được chạy, không có ArithmeticException.
+// valid=false, division is not executed, no ArithmeticException.
 ~~~
 
-**Không đảo guard:** `10 / divisor > 2 && divisor != 0` sẽ thực hiện phép chia trước và ném ngoại lệ nếu `divisor == 0`.
+**Do not reverse the guard:** `10 / divisor > 2 && divisor != 0` performs the division first and throws an exception when `divisor == 0`.
 
-Các điều kiện trong biểu thức ngắn mạch là các biểu thức `boolean`; Java **không** chuyển ngầm số nguyên 0/1 thành false/true.
+Conditions inside short-circuit expressions are `boolean` expressions; Java does **not** implicitly convert integers 0/1 to false/true.
 
-## 4. Guard an toàn cho null, mảng và điều kiện phụ thuộc
+## 4. Safe Guards for Nulls, Arrays, and Dependent Conditions
 
-Short-circuit đặc biệt hữu ích khi một biểu thức chỉ hợp lệ **sau khi đã kiểm tra điều kiện trước đó**.
+Short-circuiting is especially useful when an expression is only valid **after a preceding condition has been checked**.
 
 ~~~java
 String text = null;
-boolean hasText = text != null && !text.isBlank(); // false, không NPE.
+boolean hasText = text != null && !text.isBlank(); // false, no NPE.
 
 int[] numbers = {5, 10, 15};
 int index = -1;
 boolean validIndex = index >= 0
         && index < numbers.length
-        && numbers[index] > 0; // false, không truy cập numbers[-1].
+        && numbers[index] > 0; // false, does not access numbers[-1].
 ~~~
 
-Với nhiều `&&` liên tiếp, Java đánh giá từ trái sang phải và **dừng tại điều kiện false đầu tiên**; mọi điều kiện còn lại đều không chạy.
+With multiple chained `&&` operators, Java evaluates from left to right and **stops at the first false condition**; all remaining conditions do not run.
 
-Với `||`, điều kiện có thể được viết theo dạng có giá trị mặc định:
+With `||`, conditions can be written in a default-value / missing-value style:
 
 ~~~java
 String name = null;
 boolean missingOrBlank = name == null || name.isBlank();
-// true, không gọi name.isBlank().
+// true, does not call name.isBlank().
 ~~~
 
-Điều kiện bảo vệ phải nằm ở **bên trái** phép logic tương ứng. Nếu `name` là null mà viết `name.isBlank() || name == null`, ngoại lệ xảy ra trước khi tới phép kiểm tra null.
+The guard condition must sit on the **left** of the corresponding logical operator. If `name` is null and you write `name.isBlank() || name == null`, the exception occurs before reaching the null check.
 
-## 5. `&`, `|` và `^` trên boolean không ngắn mạch
+## 5. `&`, `|`, and `^` on Booleans Are Not Short-Circuiting
 
-`&`, `|` và `^` có thể dùng cho boolean, nhưng khác với `&&`/`||` ở việc **vẫn đánh giá cả hai vế**:
+`&`, `|`, and `^` can be used on booleans, but unlike `&&`/`||`, they **still evaluate both sides**:
 
-| Toán tử boolean | Ý nghĩa | Đánh giá vế phải |
+| Boolean operator | Meaning | Evaluates right side |
 | --- | --- | --- |
-| `&&` | AND ngắn mạch | Chỉ khi vế trái true |
-| `\|\|` | OR ngắn mạch | Chỉ khi vế trái false |
-| `&` | AND không ngắn mạch | **Luôn** |
-| `\|` | OR không ngắn mạch | **Luôn** |
-| `^` | XOR | **Luôn** |
+| `&&` | Short-circuit AND | Only when left side is true |
+| `\|\|` | Short-circuit OR | Only when left side is false |
+| `&` | Non-short-circuit AND | **Always** |
+| `\|` | Non-short-circuit OR | **Always** |
+| `^` | XOR | **Always** |
 
 ~~~java
 int counter = 0;
 boolean result = false & (++counter > 0);
-// result=false, nhưng counter=1 vì vế phải vẫn chạy.
+// result=false, but counter=1 because the right side still runs.
 ~~~
 
-Nếu vế phải ném ngoại lệ, `false & right` **vẫn ném**, còn `false && right` bỏ qua vế phải.
+If the right side throws an exception, `false & right` **still throws**, whereas `false && right` skips the right side.
 
-**Ghi nhớ về kiểu dữ liệu:** `&`, `|` và `^` cũng có cách dùng *bitwise* với số nguyên; `&&` và `||` không phải toán tử bitwise và chỉ dùng với boolean. Không tùy tiện thay cặp toán tử ngắn mạch bằng loại một ký tự khi vế phải chứa thao tác tốn kém hoặc có thể lỗi.
+**Data type reminder:** `&`, `|`, and `^` also have *bitwise* usage with integers; `&&` and `||` are not bitwise operators and work only with booleans. Do not casually replace two-character short-circuit operators with single-character ones when the right side contains expensive or potentially failing operations.
 
-## 6. Toán tử điều kiện `?:` cũng bỏ qua nhánh không chọn
+## 6. The Conditional Operator `?:` Also Skips the Unselected Branch
 
-Biểu thức `condition ? whenTrue : whenFalse` đánh giá `condition` trước và **chỉ đánh giá một trong hai nhánh**:
+The expression `condition ? whenTrue : whenFalse` evaluates `condition` first and **evaluates only one of the two branches**:
 
 ~~~java
 int x = 5;
 int result = x > 0 ? computePositive() : computeNonPositive();
-// Nếu x > 0: chỉ gọi computePositive().
-// Nếu x <= 0: chỉ gọi computeNonPositive().
+// If x > 0: calls only computePositive().
+// If x <= 0: calls only computeNonPositive().
 ~~~
 
-Đây là **đánh giá có điều kiện**, tương tự cơ chế chỉ chạy nhánh được chọn trong `if/else`. Không nên đánh đồng `?:` với việc chạy cả hai phép tính rồi chọn một kết quả.
+This is **conditional evaluation**, similar to executing only the chosen branch in `if/else`. Do not equate `?:` with running both computations and then picking one result.
 
-Ví dụ với log:
+Logging example:
 
 ~~~java
 StringBuilder log = new StringBuilder();
 int result = false
         ? markInt(log, "X", 10)
         : markInt(log, "R", 20);
-// result=20, log="R"; markInt(...,"X",...) không được gọi.
+// result=20, log="R"; markInt(...,"X",...) is not called.
 ~~~
 
-Khi hai nhánh có tác dụng phụ đáng kể, `if/else` thường diễn đạt ý đồ dễ đọc và debug hơn toán tử ba ngôi lồng nhau.
+When both branches have significant side effects, `if/else` usually expresses intent more readably and is easier to debug than nested ternary operators.
 
-## 7. Code Java 17+ runnable: quan sát nhánh bị bỏ qua
+## 7. Runnable Java 17+ Code: Observing Skipped Branches
 
-Tạo file **ShortCircuitDemo.java**:
+Create the file **`ShortCircuitDemo.java`**:
 
 ~~~java
 public final class ShortCircuitDemo {
@@ -240,14 +240,14 @@ public final class ShortCircuitDemo {
 }
 ~~~
 
-Biên dịch/chạy ở thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile/run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ShortCircuitDemo.java
 java ShortCircuitDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 and=false
@@ -271,29 +271,29 @@ boxedGuard=false
 boxedNull=NullPointerException
 ~~~
 
-Dấu vết `FTABCDEG`: `&&` bỏ qua X, `||` bỏ qua Y, còn `&`, `|`, `^` đều chạy cả hai vế. `branchTrace=RL` chỉ có nhánh được chọn; `shortCount=0` xác nhận hai thao tác `++` bị bỏ qua, còn `eagerCount=1` thể hiện tác dụng phụ của `&`.
+The trace `FTABCDEG`: `&&` skips X, `||` skips Y, while `&`, `|`, and `^` all run both sides. `branchTrace=RL` contains only the selected branches; `shortCount=0` confirms the two `++` operations were skipped, whereas `eagerCount=1` demonstrates the side effect of `&`.
 
-## 8. Sai lầm thường gặp và bài tập
+## 8. Common Mistakes and Exercises
 
-| Sai lầm | Vì sao nguy hiểm? | Cách sửa |
+| Mistake | Why is it dangerous? | How to fix |
 | --- | --- | --- |
-| `obj.method() && obj != null` | Có thể gọi method trên null trước khi guard | `obj != null && obj.method()` |
-| `array[i] > 0 && i >= 0` | Có thể truy cập chỉ số không hợp lệ | `i >= 0 && i < array.length && array[i] > 0` |
-| `divisor != 0 & 10 / divisor > 1` | `&` vẫn tính phép chia khi divisor=0 | Dùng `&&` |
-| `true \|\| validate()` mà muốn validate luôn chạy | `validate()` không được gọi | Gọi riêng `validate()` nếu bắt buộc có side effect |
-| `flag = cond && updateState()` và luôn muốn updateState | Hàm bị bỏ qua khi cond=false | Tách việc cập nhật thành câu lệnh riêng |
-| Dùng `?:` với hai nhánh side effect dài | Khó đọc khi nhánh nào chạy không rõ | Dùng `if/else` |
+| `obj.method() && obj != null` | May call method on null before the guard | `obj != null && obj.method()` |
+| `array[i] > 0 && i >= 0` | May access an invalid index | `i >= 0 && i < array.length && array[i] > 0` |
+| `divisor != 0 & 10 / divisor > 1` | `&` still evaluates the division when divisor=0 | Use `&&` |
+| `true \|\| validate()` expecting validate to always run | `validate()` is not called | Call `validate()` separately if its side effect is mandatory |
+| `flag = cond && updateState()` always wanting updateState | Function is skipped when cond=false | Separate the update into its own statement |
+| Using `?:` with two long side-effect branches | Hard to read which branch runs | Use `if/else` |
 
-**Bài 1.** Dự đoán bao nhiêu lần `check()` được gọi trong `false && check()`, `true && check()`, `true || check()`, `false || check()`.
+**Exercise 1.** Predict how many times `check()` is called in `false && check()`, `true && check()`, `true || check()`, `false || check()`.
 
-**Bài 2.** Cho `int x = 0;`. So sánh `false && (++x > 0)` với `false & (++x > 0)`. Giá trị `x` cuối mỗi trường hợp là gì?
+**Exercise 2.** Given `int x = 0;`, compare `false && (++x > 0)` with `false & (++x > 0)`. What is the final value of `x` in each case?
 
-**Bài 3.** Với `String s = null;`, điều gì xảy ra trong `s != null && s.length() > 0` và `s.length() > 0 && s != null`?
+**Exercise 3.** With `String s = null;`, what happens in `s != null && s.length() > 0` and `s.length() > 0 && s != null`?
 
-**Bài 4.** Tạo biểu thức ba ngôi với hai hàm ghi dấu vết. Xác định nhánh nào được chạy ở mỗi giá trị điều kiện.
+**Exercise 4.** Create a ternary expression with two tracing methods. Determine which branch runs for each condition value.
 
-**Bài 5.** Phân biệt `false && fail()` với `false & fail()` nếu `fail()` ném exception.
+**Exercise 5.** Distinguish `false && fail()` from `false & fail()` if `fail()` throws an exception.
 
-### Ghi nhớ
+### Key Takeaways
 
-**`&&` bỏ vế phải khi vế trái false; `||` bỏ vế phải khi vế trái true.** `?:` chỉ chạy nhánh được chọn. Biểu thức bị bỏ qua **không thực hiện tác dụng phụ, lời gọi hay exception của chính nó**, nhưng vẫn phải hợp lệ khi biên dịch. `&`, `|`, `^` trên boolean đánh giá cả hai vế. Đặt guard đúng phía và không dựa vào short-circuit nếu một thao tác **bắt buộc phải chạy**.
+**`&&` skips the right side when the left side is false; `||` skips the right side when the left side is true.** `?:` runs only the selected branch. A skipped expression **does not execute its own side effects, calls, or exceptions**, though it still must be valid at compile time. `&`, `|`, and `^` on booleans evaluate both sides. Place guards on the proper side and do not rely on short-circuiting if an operation **must run**.

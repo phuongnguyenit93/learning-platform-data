@@ -1,24 +1,24 @@
-# Giới hạn ResourceBundle.Control trong named module
+# Limitations of ResourceBundle.Control in Named Modules
 
-`ResourceBundle` là cơ chế Java tiêu chuẩn để tìm thông điệp và tài nguyên theo `Locale`. Trước Java Platform Module System (JPMS), một ứng dụng thường chạy trên **classpath** và có thể tùy biến quá trình tìm bundle bằng `ResourceBundle.Control`: thứ tự locale dự phòng, định dạng file, thời gian cache, reload hay logic tìm bundle.
+`ResourceBundle` is the standard Java mechanism for locating messages and resources by `Locale`. Before the Java Platform Module System (JPMS), an application typically ran on the **classpath** and could customize bundle lookup using `ResourceBundle.Control`: fallback locale order, file formats, cache duration, reloading, or bundle resolution logic.
 
-Kể từ Java 9, một ứng dụng có thể được triển khai trong **named module** bằng `module-info.java`. Đây là điểm thay đổi quan trọng:
+Since Java 9, an application can be deployed inside a **named module** with `module-info.java`. Here is the crucial change:
 
-> **Trong named module, các overload `ResourceBundle.getBundle(...)` có tham số `ResourceBundle.Control` không được hỗ trợ và sẽ ném `UnsupportedOperationException`.**
+> **In a named module, `ResourceBundle.getBundle(...)` overloads accepting a `ResourceBundle.Control` parameter are not supported and will throw `UnsupportedOperationException`.**
 
-Quy tắc này còn áp dụng khi tham số `Control` chỉ là một đối tượng mặc định lấy từ `ResourceBundle.Control.getControl(...)`; không cần subclass đặc biệt mới phát sinh lỗi. Vì thế việc lấy mã nguồn đang chạy trên classpath rồi chỉ thêm `module-info.java` có thể làm đoạn tùy biến resource bundle bị hỏng, dù file `.properties` vẫn tồn tại.
+This rule still applies even when the `Control` argument is just a default object obtained from `ResourceBundle.Control.getControl(...)`; no custom subclass is required to trigger the error. Consequently, taking source code that runs on the classpath and merely adding `module-info.java` can break resource bundle customization, even though the `.properties` files still exist.
 
-Hướng đi đúng tùy bài toán:
-- Nếu bundle nằm **trong cùng named module** và dùng định dạng chuẩn, gọi overload **không nhận `Control`**, như `ResourceBundle.getBundle(baseName, locale)`.
-- Nếu cần bundle được cung cấp **qua nhiều named modules**, xem cơ chế **`ResourceBundleProvider`**, `ServiceLoader` và các chỉ thị `uses`/`provides` trong `module-info.java`.
-- Nếu cần đọc bundle thuộc **một module chỉ định**, tìm hiểu `ResourceBundle.getBundle(baseName, locale, Module)` và quy tắc đóng gói/mở package.
-- Nếu cần tùy biến định dạng không chuẩn, provider có thể **tự tải nội dung** hoặc sử dụng `AbstractResourceBundleProvider` cho các định dạng `java.class` / `java.properties` được hỗ trợ; đừng giả định `Control` sẽ hoạt động trở lại.
+The right approach depends on the problem:
+- If the bundle resides **in the same named module** and uses standard formats, call an overload **without `Control`**, such as `ResourceBundle.getBundle(baseName, locale)`.
+- If bundles must be provided **across multiple named modules**, look at the **`ResourceBundleProvider`** mechanism, `ServiceLoader`, and `uses`/`provides` directives in `module-info.java`.
+- If you need to read a bundle belonging to **a specific module**, learn `ResourceBundle.getBundle(baseName, locale, Module)` and package encapsulation/opening rules.
+- If non-standard formats must be customized, a provider can **load contents itself** or extend `AbstractResourceBundleProvider` for the supported `java.class` / `java.properties` formats; do not assume `Control` will start working again.
 
-Bài học này tập trung vào **giới hạn của `ResourceBundle.Control` trong named module**, giải thích nguyên nhân kiến trúc, cách phát hiện, API thay thế, ví dụ Java 17+ và checklist migration để tránh mất localization trong dự án modular.
+This lesson focuses on the **limitations of `ResourceBundle.Control` in named modules**, explaining the architectural rationale, how to detect it, alternative APIs, Java 17+ examples, and a migration checklist to avoid losing localization in modular projects.
 
-## 1. Bối cảnh: `ResourceBundle` và `Control` giải quyết những vấn đề gì?
+## 1. Context: What Problems Do `ResourceBundle` and `Control` Solve?
 
-Một bundle thông thường gồm những file:
+A typical bundle consists of files such as:
 
 ~~~text
 Messages.properties
@@ -27,14 +27,14 @@ Messages_vi.properties
 Messages_fr.properties
 ~~~
 
-Mỗi file lưu key/value tương ứng ngôn ngữ:
+Each file stores key/value pairs for a language:
 
 ~~~properties
 greeting=Hello
 goodbye=Goodbye
 ~~~
 
-Chương trình yêu cầu bundle theo locale:
+The program requests a bundle by locale:
 
 ~~~java
 ResourceBundle bundle =
@@ -43,31 +43,31 @@ ResourceBundle bundle =
 System.out.println(bundle.getString("greeting"));
 ~~~
 
-Đây là **snippet trong phương thức**, cần import `java.util.ResourceBundle` và `java.util.Locale`. `getBundle` tìm bundle theo base name, locale, môi trường module/class loader và chính sách fallback; nó không dịch văn bản tự động.
+This is a **snippet inside a method**, requiring imports of `java.util.ResourceBundle` and `java.util.Locale`. `getBundle` looks up a bundle by base name, locale, module/class loader environment, and fallback policy; it does not translate text automatically.
 
-Trong ứng dụng không modular hoặc trên classpath, `ResourceBundle.Control` từng được dùng để can thiệp:
-- `getFormats`: danh sách định dạng sẽ thử, ví dụ `java.class` hoặc `java.properties`.
-- `getCandidateLocales`: các locale candidate cần xét và thứ tự.
-- `getFallbackLocale`: locale dự phòng khi chưa tìm được bundle phù hợp.
-- `getTimeToLive` và `needsReload`: chính sách cache và reload.
-- `newBundle`: cơ chế tạo bundle, có thể từ định dạng không chuẩn như XML.
+In non-modular applications or on the classpath, `ResourceBundle.Control` was used to customize:
+- `getFormats`: the list of formats to try, such as `java.class` or `java.properties`.
+- `getCandidateLocales`: candidate locales to check and their order.
+- `getFallbackLocale`: fallback locale when no matching bundle is found.
+- `getTimeToLive` and `needsReload`: cache and reload policies.
+- `newBundle`: bundle creation mechanism, potentially from non-standard formats like XML.
 
-Đó là công cụ **tùy biến cơ chế tìm/tạo bundle**, không phải lớp chứa văn bản dịch. Chuyển ứng dụng sang JPMS cần xem lại cách tùy biến này.
+It is a tool for **customizing bundle lookup/creation**, not a class that holds translated text. Migrating an application to JPMS requires revisiting this customization.
 
-## 2. Named module, unnamed module và classpath
+## 2. Named Module, Unnamed Module, and Classpath
 
-| Loại triển khai | Đặc trưng | Liên quan `Control` |
+| Deployment type | Characteristics | Relation to `Control` |
 | --- | --- | --- |
-| **Unnamed module** | Lớp ứng dụng trên classpath, không thuộc named module | Các overload `getBundle(..., Control)` được thiết kế để hoạt động tại đây |
-| **Named module** | Module có tên trong module graph, thường khai báo bằng `module-info.java` | Các overload có `Control` bị từ chối bằng `UnsupportedOperationException` |
-| **Automatic module** | JAR không có module descriptor nhưng được đặt trên module path và Java suy tên module | Là named module; không được tùy tiện xem như classpath |
-| **java.base** | Module hệ thống có tên chứa `ResourceBundle` và `Control` | API `Control` vẫn tồn tại, nhưng bối cảnh module gọi `getBundle` quyết định giới hạn |
+| **Unnamed module** | Application classes on the classpath, not belonging to a named module | `getBundle(..., Control)` overloads are designed to work here |
+| **Named module** | A module with a name in the module graph, typically declared via `module-info.java` | Overloads taking `Control` are rejected with `UnsupportedOperationException` |
+| **Automatic module** | A JAR without a module descriptor placed on the module path for which Java derives a module name | It is a named module; do not casually treat it like the classpath |
+| **java.base** | System module containing `ResourceBundle` and `Control` | The `Control` API still exists, but the module context calling `getBundle` enforces the restriction |
 
-Một class trong unnamed module có thể dùng một đối tượng `Control`. Khi cùng class được đóng gói vào named module, lời gọi có tham số `Control` trở thành trường hợp không được hỗ trợ.
+A class in an unnamed module can use a `Control` object. When that same class is packaged into a named module, the call taking a `Control` argument becomes unsupported.
 
-**Điểm tinh tế:** “Classloader có tồn tại” không đồng nghĩa “đang chạy ở unnamed module”. Named module vẫn có class loader. Kiểm tra `getClass().getClassLoader() != null` không xác định chế độ sử dụng `ResourceBundle.Control`.
+**Subtle point:** "A class loader exists" does not mean "running in an unnamed module." Named modules still have class loaders. Checking `getClass().getClassLoader() != null` does not determine whether `ResourceBundle.Control` can be used.
 
-Có thể kiểm tra module thực của class đang gọi:
+You can check the actual module of the calling class:
 
 ~~~java
 Module module = MyApp.class.getModule();
@@ -75,11 +75,11 @@ System.out.println(module.isNamed());
 System.out.println(module.getName());
 ~~~
 
-Đây là snippet, `MyApp` là class ứng dụng. Với named module `demo.app`, `isNamed()` trả `true` và `getName()` là `demo.app`; với class thông thường trên classpath, module thường là unnamed, có `isNamed() == false`.
+This is a snippet where `MyApp` is an application class. For a named module `demo.app`, `isNamed()` returns `true` and `getName()` is `demo.app`; for an ordinary class on the classpath, the module is typically unnamed, with `isNamed() == false`.
 
-## 3. API nào bị giới hạn?
+## 3. Which APIs Are Restricted?
 
-Hai overload quan trọng:
+Two key overloads:
 
 ~~~java
 ResourceBundle.getBundle(
@@ -94,11 +94,11 @@ ResourceBundle.getBundle(
         ResourceBundle.Control control);
 ~~~
 
-Đây là chữ ký phương thức minh họa từ Java API, không phải các lời gọi Java hợp lệ nguyên văn; khi dùng, phải truyền **giá trị biến**, không phải tên kiểu.
+These are illustrative method signatures from the Java API, not literal valid Java calls; when calling them, pass **variable values**, not type names.
 
-Trong Java 17, nếu được **gọi từ named module**, các overload nhận `ResourceBundle.Control` sẽ ném `UnsupportedOperationException`. Đừng chỉ kiểm tra một overload có ba tham số rồi thử overload bốn tham số để “lách” hạn chế: cả hai đều nhận `Control`.
+In Java 17, when **called from a named module**, overloads accepting `ResourceBundle.Control` throw `UnsupportedOperationException`. Do not test only the three-argument overload and try the four-argument overload to "bypass" the restriction: both take `Control`.
 
-Những overload sau **không có `Control` và vẫn được hỗ trợ theo hợp đồng riêng**:
+The following overloads **do not take `Control` and remain supported under their own contracts**:
 
 ~~~java
 ResourceBundle.getBundle(baseName);
@@ -108,20 +108,20 @@ ResourceBundle.getBundle(baseName, module);
 ResourceBundle.getBundle(baseName, locale, module);
 ~~~
 
-Tuy nhiên “được hỗ trợ” không đồng nghĩa mọi overload tìm ra đúng bundle. **Base name, caller module, loader/module được chỉ định, exports/opens và cách triển khai provider** vẫn ảnh hưởng việc tìm tài nguyên.
+However, "supported" does not mean every overload will find the right bundle. **Base name, caller module, specified loader/module, exports/opens, and provider implementation** still govern resource lookup.
 
-## 4. Đừng nhầm `UnsupportedOperationException` với `MissingResourceException`
+## 4. Do Not Confuse `UnsupportedOperationException` with `MissingResourceException`
 
-Hai lỗi phản ánh hai vấn đề khác nhau:
+The two exceptions reflect two distinct issues:
 
-| Ngoại lệ | Ý nghĩa thường gặp | Hướng xử lý |
+| Exception | Typical meaning | Resolution |
 | --- | --- | --- |
-| `UnsupportedOperationException` | Gọi overload `getBundle` nhận `Control` từ named module | Đổi chiến lược tải bundle/API; không chỉ sửa tên file |
-| `MissingResourceException` | Không tìm thấy bundle hoặc key phù hợp theo quy tắc tra cứu | Kiểm tra base name, locale, đường dẫn, module encapsulation, provider |
-| `IllegalArgumentException` | Tùy trường hợp, `Control`/candidate locales không hợp lệ khi được phép dùng | Xem triển khai `Control` |
-| `NullPointerException` | Truyền tham số bắt buộc là `null` | Kiểm tra đầu vào theo Javadoc |
+| `UnsupportedOperationException` | Calling a `getBundle` overload taking `Control` from a named module | Change the bundle-loading strategy/API; do not just rename files |
+| `MissingResourceException` | No matching bundle or key found per lookup rules | Check base name, locale, path, module encapsulation, provider |
+| `IllegalArgumentException` | Depending on the case, invalid `Control`/candidate locales when allowed | Review the `Control` implementation |
+| `NullPointerException` | Passing `null` for a required parameter | Validate inputs against the Javadoc |
 
-Giả sử module có `Messages_fr.properties` hoàn toàn hợp lệ, nhưng code gọi:
+Suppose a module has a completely valid `Messages_fr.properties`, yet code calls:
 
 ~~~java
 ResourceBundle.Control control =
@@ -133,13 +133,13 @@ ResourceBundle bundle =
                 Locale.FRENCH, control);
 ~~~
 
-Ở **named module**, lỗi xảy ra **trước khi cần suy luận tài nguyên tồn tại hay không**: chính overload có `Control` là trường hợp không được hỗ trợ.
+In a **named module**, the failure happens **before it even checks whether the resource exists**: the overload taking `Control` itself is unsupported.
 
-**Không “sửa” bằng cách tạo thêm `Messages.properties` hoặc thay đường dẫn** nếu stack trace ghi `UnsupportedOperationException` từ overload có Control; cần sửa API trước.
+**Do not try to "fix" this by adding another `Messages.properties` or changing paths** if the stack trace shows `UnsupportedOperationException` from an overload taking `Control`; fix the API call first.
 
-## 5. Ví dụ đầy đủ: một named module có bundle trong cùng module
+## 5. Complete Example: A Named Module with Bundles in the Same Module
 
-Giả sử cấu trúc dự án:
+Assume the project layout:
 
 ~~~text
 src/
@@ -203,7 +203,7 @@ greeting=Hello
 greeting=Bonjour
 ~~~
 
-Trên môi trường shell có `javac`, `java` và `cp` (Linux/macOS), từ thư mục chứa `src`:
+In a shell environment with `javac`, `java`, and `cp` (Linux/macOS), from the directory containing `src`:
 
 ~~~bash
 javac --module-source-path src -d out -m demo.app
@@ -211,9 +211,9 @@ cp src/demo.app/demo/app/Messages*.properties out/demo.app/demo/app/
 java --module-path out -m demo.app/demo.app.Main
 ~~~
 
-**Lưu ý:** `javac` biên dịch source `.java` nhưng không tự copy file `.properties` vào output trong quy trình này. Vì vậy lệnh `cp` là phần thiết yếu; khi dùng Maven/Gradle, cấu hình resource packaging tương ứng. Trên Windows/PowerShell có thể dùng `Copy-Item` thay `cp`.
+**Note:** `javac` compiles `.java` sources but does not automatically copy `.properties` files into the output in this workflow. Therefore, the `cp` command is essential; when using Maven/Gradle, configure resource packaging accordingly. On Windows/PowerShell, you can use `Copy-Item` instead of `cp`.
 
-Kết quả dự kiến với JDK 17+:
+Expected output on JDK 17+:
 
 ~~~text
 demo.app
@@ -221,15 +221,15 @@ Bonjour
 UnsupportedOperationException
 ~~~
 
-Hai lời gọi thực hiện trên cùng bundle name và locale, nhưng kết quả khác nhau do **overload có Control**. `ResourceBundle.getBundle(baseName, locale)` đọc bundle chuẩn nằm trong cùng module, còn `getBundle(baseName, locale, control)` bị chặn do ngữ cảnh named module.
+Both calls operate on the same bundle name and locale, yet yield different outcomes because of the **overload taking `Control`**. `ResourceBundle.getBundle(baseName, locale)` loads the standard bundle inside the same module, whereas `getBundle(baseName, locale, control)` is blocked by the named-module context.
 
-Trong ví dụ, chỉ có một module, không cần `opens` hay `exports` cho một consumer bên ngoài vì chính code **bên trong module** truy xuất resource của mình. Quy tắc truy cập thay đổi khi tài nguyên nằm trong module khác.
+In this example, there is only one module, so no `opens` or `exports` for an external consumer is needed because code **inside the module** accesses its own resources. Access rules change when resources reside in another module.
 
-## 6. Classpath có thể chạy cùng cú pháp `Control`
+## 6. The Classpath Can Still Run the Same `Control` Syntax
 
-Nếu dùng `ResourceBundle.Control` từ unnamed module (classpath), API vẫn có giá trị, đặc biệt để hỗ trợ format, fallback hoặc TTL không mặc định.
+When using `ResourceBundle.Control` from an unnamed module (classpath), the API remains valid, especially for supporting non-default formats, fallback, or TTL.
 
-Một chương trình chạy độc lập trên classpath:
+A standalone program running on the classpath:
 
 **`ClasspathControlDemo.java`**
 
@@ -254,14 +254,14 @@ public class ClasspathControlDemo {
 }
 ~~~
 
-Biên dịch và chạy trên classpath (không tạo `module-info.java`):
+Compile and run on the classpath (without creating `module-info.java`):
 
 ~~~bash
 javac ClasspathControlDemo.java
 java -cp . ClasspathControlDemo
 ~~~
 
-Kết quả với JDK 17:
+Output on JDK 17:
 
 ~~~text
 false
@@ -269,27 +269,27 @@ false
 [fr_CA, fr, ]
 ~~~
 
-`Control` tồn tại và các phương thức `getFormats`/`getCandidateLocales` vẫn có thể được gọi. **Điều bị giới hạn là cách đưa `Control` vào một `ResourceBundle.getBundle` được gọi từ named module**, không phải việc class `ResourceBundle.Control` đã bị xóa khỏi JDK.
+`Control` exists and methods like `getFormats`/`getCandidateLocales` can still be called. **What is restricted is passing `Control` into `ResourceBundle.getBundle` called from a named module**, not that the `ResourceBundle.Control` class was removed from the JDK.
 
-Ở classpath, nếu gọi `getBundle(..., control)` mà không có bundle tương ứng, vẫn có thể nhận `MissingResourceException` theo quy tắc thông thường. Đừng diễn giải rằng Control sẽ luôn tìm ra resource.
+On the classpath, calling `getBundle(..., control)` without matching bundles still throws `MissingResourceException` under normal rules. Do not assume `Control` will always locate a resource.
 
-## 7. Vì sao JPMS thay đổi chiến lược tìm bundle?
+## 7. Why Did JPMS Change the Bundle Lookup Strategy?
 
-JPMS đưa ra **module graph**, **encapsulation** và **service binding**:
-- Mỗi named module định nghĩa những package mà code bên ngoài được phép truy cập.
-- Resource trong package của named module có thể bị **đóng gói** theo quy tắc `Module.getResourceAsStream` và cơ chế tìm resource của `ResourceBundle`.
-- Classpath search toàn cục không còn là mô hình duy nhất cho tài nguyên.
-- Với những bundle được đóng gói ở module riêng, `ResourceBundleProvider` + `ServiceLoader` là hướng mở rộng tích hợp với module system.
+JPMS introduced the **module graph**, **encapsulation**, and **service binding**:
+- Each named module defines which packages external code is permitted to access.
+- Resources inside a named module's packages can be **encapsulated** per `Module.getResourceAsStream` rules and `ResourceBundle`'s lookup mechanism.
+- Global classpath scanning is no longer the sole model for resources.
+- For bundles packaged in separate modules, `ResourceBundleProvider` + `ServiceLoader` is the extension mechanism integrated with the module system.
 
-Một subclass của `ResourceBundle.Control` thường can thiệp trực tiếp cách xây tên resource, chọn loader hoặc đọc nguồn tài nguyên. Điều này không thay thế một cách tương đương các quy tắc **module visibility** và **service provider discovery**.
+A `ResourceBundle.Control` subclass often intervenes directly in constructing resource names, selecting loaders, or reading resource sources. That does not cleanly substitute for **module visibility** and **service provider discovery** rules.
 
-**Đừng cố giải quyết bằng một custom ClassLoader để lách module encapsulation.** Ngoài tính mong manh, việc truy xuất resource cần tuân theo hợp đồng và quyền truy cập của JPMS.
+**Do not try to work around this with a custom `ClassLoader` to bypass module encapsulation.** Beyond being brittle, resource access must obey JPMS contracts and permissions.
 
-Khi migration, hãy xác định trước **bundle thuộc cùng module** hay **được cung cấp bởi module khác**; cách giải quyết khác nhau.
+During migration, first determine whether the **bundle belongs to the same module** or **is provided by another module**; the solutions differ.
 
-## 8. Trường hợp đơn giản: bỏ `Control`, giữ bundle chuẩn cùng module
+## 8. The Simple Case: Drop `Control`, Keep Standard Bundles in the Same Module
 
-Trước khi module hóa, code có thể dùng:
+Before modularization, code might have used:
 
 ~~~java
 ResourceBundle.Control control =
@@ -300,31 +300,31 @@ ResourceBundle bundle = ResourceBundle.getBundle(
         "demo.app.Messages", locale, control);
 ~~~
 
-Đây là snippet, `locale` đã tồn tại. `FORMAT_PROPERTIES` chỉ định tìm định dạng `java.properties` trong đường tra cứu có Control. Khi mã trên chuyển sang named module, overload có Control không hợp lệ.
+This is a snippet where `locale` already exists. `FORMAT_PROPERTIES` specifies searching only for the `java.properties` format in the `Control`-based lookup path. When that code moves into a named module, the overload taking `Control` becomes invalid.
 
-Nếu chương trình chỉ có file `.properties` chuẩn và **không cần behavior tùy chỉnh**, cách viết mới thường là:
+If the program only has standard `.properties` files and **needs no custom behavior**, the updated code is typically:
 
 ~~~java
 ResourceBundle bundle = ResourceBundle.getBundle(
         "demo.app.Messages", locale);
 ~~~
 
-Phải đảm bảo resource được đóng gói đúng trong **module chứa caller** hoặc được tìm theo quy tắc có hiệu lực; nếu trong module khác, cần xử lý module/package hoặc provider.
+Ensure the resources are packaged properly inside the **module containing the caller** or resolved under active rules; if they reside in another module, handle module/package access or providers.
 
-**Không tuyên bố bỏ Control luôn giữ nguyên mọi hành vi**. Nếu trước đó cố tình chỉ tìm `java.properties`, tùy biến locale candidates, fallback hoặc TTL, cần phân tích khác biệt của thuật toán mặc định. Việc xóa tham số chỉ là giải pháp đúng cho trường hợp không thực sự phụ thuộc custom Control.
+**Do not claim that dropping `Control` always preserves identical behavior.** If you previously intentionally restricted lookup to `java.properties`, customized candidate locales, fallback, or TTL, analyze the differences of the default algorithm. Removing the parameter is only the right solution when you do not genuinely depend on a custom `Control`.
 
-## 9. Các overload với `Module` trong Java 9+
+## 9. Overloads Taking `Module` in Java 9+
 
-Một overload có thể chỉ rõ module dùng để tìm bundle:
+An overload can explicitly specify the module used to look up the bundle:
 
 ~~~java
 ResourceBundle bundle = ResourceBundle.getBundle(
         "demo.app.Messages", Locale.FRENCH, targetModule);
 ~~~
 
-Đây là snippet; `targetModule` là đối tượng `Module` đã xác định (ví dụ `SomeClass.class.getModule()`). Nó **không nhận Control**.
+This is a snippet; `targetModule` is a resolved `Module` object (e.g., `SomeClass.class.getModule()`). It **does not accept `Control`**.
 
-Một cách sử dụng trong class thuộc module mong muốn:
+One usage inside a class belonging to the target module:
 
 ~~~java
 Module mine = MyApp.class.getModule();
@@ -333,28 +333,28 @@ ResourceBundle bundle = ResourceBundle.getBundle(
         "demo.app.Messages", Locale.FRENCH, mine);
 ~~~
 
-Đây là snippet; `MyApp` là class thuộc module tương ứng.
+This is a snippet; `MyApp` is a class in the corresponding module.
 
-**Giới hạn cần nhớ:** `Module` không tự mở mọi package. Với bundle ở module khác, cần bảo đảm resource có thể truy cập qua hợp đồng module encapsulation, hoặc dùng provider service theo thiết kế. Chọn overload nhận `Module` **không cho phép** đưa `Control` trở lại.
+**Restriction to remember:** `Module` does not automatically open every package. For bundles in another module, ensure resources are accessible under module encapsulation contracts, or use a provider service by design. Choosing an overload taking `Module` **does not allow** bringing `Control` back.
 
-Đặc biệt, overload `getBundle(baseName, locale, ClassLoader)` có những quy tắc riêng khi caller named module và class loader trùng loader của caller; không nên giả định nó luôn mô phỏng hoạt động của classpath. Khi biết chính xác module cần truy cập, overload nhận `Module` giúp thể hiện ý định rõ ràng hơn.
+In particular, the `getBundle(baseName, locale, ClassLoader)` overload has its own rules when the caller is a named module and the class loader matches the caller's loader; do not assume it always emulates classpath behavior. When you know the exact module to access, the overload taking `Module` expresses intent more clearly.
 
-## 10. `exports` khác `opens` trong module-info
+## 10. `exports` Differs from `opens` in module-info
 
-Hai directive thường bị nhầm:
+Two directives that are often confused:
 
-- **`exports p;`:** xuất package để module khác truy cập **kiểu public** khi quan hệ module hợp lệ.
-- **`opens p;`:** mở package cho cơ chế **deep reflection/resource encapsulation** theo các quy tắc có liên quan, bao gồm những tình huống truy xuất resource trong package từ module khác.
+- **`exports p;`:** exports a package so other modules can access its **public types** when module relationships permit.
+- **`opens p;`:** opens a package for **deep reflection/resource encapsulation** under applicable rules, including scenarios where resources in the package are accessed from other modules.
 
-Một file `.properties` thường nằm trong đường dẫn phản ánh package:
+A `.properties` file typically sits at a path mirroring a package:
 
 ~~~text
 demo/app/Messages_fr.properties
 ~~~
 
-Nếu code của **module khác** cần tải tài nguyên đóng gói trong package của named module, việc chỉ `exports` không đảm bảo mọi cách đọc resource sẽ hoạt động. `opens` có thể cần thiết theo quy tắc `Module.getResourceAsStream` và ResourceBundle.
+If code in **another module** needs to load resources packaged inside a named module's package, merely using `exports` does not guarantee every resource-reading mechanism will succeed. `opens` may be required per `Module.getResourceAsStream` and `ResourceBundle` rules.
 
-Ví dụ mô tả ý tưởng trong `module-info.java`:
+Conceptual example in `module-info.java`:
 
 ~~~java
 module demo.resources {
@@ -362,80 +362,80 @@ module demo.resources {
 }
 ~~~
 
-Đây là **ví dụ directive**; package `demo.resources.i18n` phải thuộc module và đường dẫn file được đóng gói đúng. Không nên mở toàn bộ module bằng `open module` chỉ để sửa một bundle, nếu chỉ cần mở một package được kiểm soát.
+This is an **illustrative directive**; package `demo.resources.i18n` must belong to the module and file paths must be packaged properly. Do not open an entire module with `open module` just to fix one bundle when opening a single controlled package suffices.
 
-**Quan trọng:** `opens` không làm overload `ResourceBundle.getBundle(..., Control)` trở thành hợp lệ. Nó giải quyết **khả năng nhìn thấy tài nguyên**, trong khi UOE xảy ra vì **API Control không được hỗ trợ trong named module**.
+**Important:** `opens` does not make `ResourceBundle.getBundle(..., Control)` valid. It addresses **resource visibility**, whereas `UnsupportedOperationException` occurs because the **`Control` API is unsupported in named modules**.
 
-## 11. `ResourceBundleControlProvider` cũng bị bỏ qua trong named module
+## 11. `ResourceBundleControlProvider` Is Also Ignored in Named Modules
 
-Java còn có SPI:
+Java also has the SPI:
 
 ~~~java
 java.util.spi.ResourceBundleControlProvider
 ~~~
 
-Nó cho phép cung cấp `ResourceBundle.Control` để thay đổi hành vi mặc định khi client gọi overload `getBundle` không truyền Control trong những ngữ cảnh hỗ trợ.
+It allows supplying a `ResourceBundle.Control` to alter default behavior when clients invoke `getBundle` overloads without passing `Control` in supported contexts.
 
-Nhưng tài liệu `ResourceBundle` Java 17 xác nhận:
+However, the Java 17 `ResourceBundle` documentation confirms:
 
-**Các implementation của `ResourceBundleControlProvider` bị bỏ qua đối với named modules.**
+**Implementations of `ResourceBundleControlProvider` are ignored for named modules.**
 
-Vì vậy cách khắc phục sau **không đáng tin và không được hỗ trợ**:
+Therefore, the following "workaround" **is unreliable and unsupported**:
 
 ~~~text
-Bỏ tham số Control trực tiếp khỏi getBundle(...)
+Remove the Control parameter directly from getBundle(...)
     ↓
-Đăng ký ResourceBundleControlProvider
+Register ResourceBundleControlProvider
     ↓
-Mong provider này áp custom Control cho named module
+Expect this provider to apply the custom Control to a named module
 ~~~
 
-Không có “đường vòng” như vậy. `ResourceBundleControlProvider` và `ResourceBundleProvider` là **hai SPI khác nhau**:
+There is no such "backdoor." `ResourceBundleControlProvider` and `ResourceBundleProvider` are **two different SPIs**:
 
-| SPI | Mục tiêu | Named modules |
+| SPI | Purpose | Named modules |
 | --- | --- | --- |
-| `ResourceBundleControlProvider` | Cấp custom `ResourceBundle.Control` cho lookup | Bị bỏ qua trong named modules |
-| `ResourceBundleProvider` | Cung cấp `ResourceBundle` thông qua service discovery | Là hướng hỗ trợ named modules |
+| `ResourceBundleControlProvider` | Supplies a custom `ResourceBundle.Control` for lookup | Ignored in named modules |
+| `ResourceBundleProvider` | Provides `ResourceBundle` via service discovery | The supported direction for named modules |
 
-Đừng nhầm hậu tố tên `ControlProvider` và `Provider` rồi cấu hình `provides` nhầm interface.
+Do not confuse the `ControlProvider` and `Provider` suffixes and accidentally configure `provides` with the wrong interface.
 
-## 12. `ResourceBundleProvider` là cơ chế thay thế phù hợp
+## 12. `ResourceBundleProvider` Is the Appropriate Replacement
 
-Interface chuẩn:
+Standard interface:
 
 ~~~java
 java.util.spi.ResourceBundleProvider
 ~~~
 
-Nó định nghĩa:
+It defines:
 
 ~~~java
 ResourceBundle getBundle(String baseName, Locale locale);
 ~~~
 
-Một provider có thể:
-- trả một `ResourceBundle` phù hợp hoặc `null` nếu không hỗ trợ baseName/locale;
-- được công bố bằng `provides ... with ...` trong module chứa implementation;
-- được module tiêu thụ khai báo bằng `uses ...`;
-- triển khai logic tải bundle theo định dạng chuẩn hoặc định dạng riêng.
+A provider can:
+- return a matching `ResourceBundle` or `null` if it does not support the `baseName`/`locale`;
+- be declared with `provides ... with ...` in the module containing the implementation;
+- be declared by the consuming module with `uses ...`;
+- implement bundle-loading logic for standard or custom formats.
 
-`ResourceBundle.getBundle` sẽ dùng cơ chế tìm provider qua `ServiceLoader` theo quy tắc JPMS.
+`ResourceBundle.getBundle` uses provider discovery via `ServiceLoader` according to JPMS rules.
 
-**Điểm dễ sai:** `ResourceBundleProvider` không có nghĩa chỉ cần `implements ResourceBundleProvider` bất kỳ và xong. Java quy định **tên service type theo base name**:
+**Easy mistake:** `ResourceBundleProvider` does not mean simply writing `implements ResourceBundleProvider` on any class and calling it done. Java mandates a **service type name derived from the base name**:
 - Base name `com.example.app.Messages`;
-- Service interface phải có tên `com.example.app.spi.MessagesProvider`.
+- Service interface must be named `com.example.app.spi.MessagesProvider`.
 
-Công thức:
+Formula:
 
 ~~~text
-<package của baseName>.spi.<simple name của baseName>Provider
+<package of baseName>.spi.<simple name of baseName>Provider
 ~~~
 
-Tức `Messages` trong `com.example.app` tương ứng `com.example.app.spi.MessagesProvider`. Đây là một **service type cụ thể**, không phải chỉ dùng chung mỗi interface `java.util.spi.ResourceBundleProvider` trong `module-info.java`.
+Thus `Messages` in `com.example.app` corresponds to `com.example.app.spi.MessagesProvider`. This is a **specific service type**, not merely referencing the generic `java.util.spi.ResourceBundleProvider` interface in `module-info.java`.
 
-## 13. Ví dụ khai báo interface service đúng quy tắc
+## 13. Example of Declaring the Service Interface Correctly
 
-Giả sử base name:
+Suppose the base name is:
 
 ~~~text
 com.example.app.Messages
@@ -452,7 +452,7 @@ public interface MessagesProvider extends ResourceBundleProvider {
 }
 ~~~
 
-Với module tiêu thụ, **`module-info.java`** cần khai báo:
+In the consuming module, **`module-info.java`** must declare:
 
 ~~~java
 module com.example.app {
@@ -461,9 +461,9 @@ module com.example.app {
 }
 ~~~
 
-`exports` được dùng để module triển khai provider có thể tham chiếu interface service public. `uses` tuyên bố module tiêu thụ dùng service đó; đây là thành phần quan trọng để `ResourceBundle.getBundle` tìm provider trong module graph.
+`exports` allows the provider-implementing module to reference the public service interface. `uses` declares that the consuming module consumes that service; this is essential for `ResourceBundle.getBundle` to locate providers in the module graph.
 
-Ở phía implementation, một module khác cần:
+On the implementation side, another module needs:
 
 ~~~java
 module com.example.translation {
@@ -474,27 +474,27 @@ module com.example.translation {
 }
 ~~~
 
-**Lưu ý:** Đây là những đoạn của cấu trúc dự án đa module, không phải toàn bộ chương trình độc lập. Class `MessagesProviderImpl` phải tồn tại, implement đúng interface và được đóng gói trong module provider. Nội dung implementation sẽ được minh họa ở phần tiếp.
+**Note:** These are excerpts of a multi-module project structure, not a complete standalone program. Class `MessagesProviderImpl` must exist, implement the interface properly, and be packaged inside the provider module. Implementation details are illustrated in the next section.
 
-Không tự khai báo `provides java.util.spi.ResourceBundleProvider with ...` khi service type thực tế mà `ResourceBundle.getBundle` đang tra là `com.example.app.spi.MessagesProvider`.
+Do not declare `provides java.util.spi.ResourceBundleProvider with ...` when the actual service type `ResourceBundle.getBundle` looks for is `com.example.app.spi.MessagesProvider`.
 
-## 14. `AbstractResourceBundleProvider` giúp triển khai provider chuẩn
+## 14. `AbstractResourceBundleProvider` Helps Implement Standard Providers
 
-Java có class:
+Java provides the class:
 
 ~~~java
 java.util.spi.AbstractResourceBundleProvider
 ~~~
 
-Class này triển khai cơ chế cơ bản cho `ResourceBundleProvider` với các định dạng **`java.class`** và **`java.properties`**. Các constructor hỗ trợ danh sách định dạng được cho phép; chẳng hạn:
+This class implements the base mechanics for `ResourceBundleProvider` supporting the **`java.class`** and **`java.properties`** formats. Constructors accept allowed format names; for example:
 
 ~~~java
 super("java.properties");
 ~~~
 
-Trong implementation class, điều đó yêu cầu provider chỉ tìm bundle định dạng properties.
+Inside an implementation class, this instructs the provider to look only for properties-formatted bundles.
 
-Ví dụ theo cấu trúc nhiều module:
+Example in a multi-module structure:
 
 **`com/example/translation/MessagesProviderImpl.java`**:
 
@@ -537,31 +537,31 @@ public final class MessagesProviderImpl
 }
 ~~~
 
-Bundle `Messages_fr.properties` có thể được đóng gói trong module provider dưới đường dẫn tương ứng:
+The bundle `Messages_fr.properties` can be packaged inside the provider module under the corresponding path:
 
 ~~~text
 com/example/translation/Messages_fr.properties
 ~~~
 
-Nội dung minh họa:
+Illustrative contents:
 
 ~~~properties
 greeting=Bonjour
 ~~~
 
-**Những điều phải đúng khi tích hợp:**
-1. Service interface tuân đúng quy tắc tên theo baseName.
-2. Consumer module có `uses` và provider module có `provides`.
-3. Provider module được **resolved** vào module graph khi chạy.
-4. Resource được **đóng gói** tại đường dẫn mà `toBundleName` trả về.
-5. Provider trả `null` cho locale/baseName không hỗ trợ, không bịa bundle cho mọi locale.
-6. Chạy kiểm thử trên module path thực tế, không chỉ classpath.
+**What must be right during integration:**
+1. The service interface follows the exact naming convention from `baseName`.
+2. The consumer module has `uses` and the provider module has `provides`.
+3. The provider module is **resolved** into the module graph at runtime.
+4. The resource is **packaged** at the path returned by `toBundleName`.
+5. The provider returns `null` for unsupported locales/baseNames rather than fabricating bundles for every locale.
+6. Tests run on the actual module path, not just the classpath.
 
-`AbstractResourceBundleProvider` chỉ hỗ trợ định dạng đã nêu trong API. Nếu cần XML/JSON hoặc nguồn từ database, implementation có thể tự tạo `ResourceBundle` thích hợp; class trừu tượng **không tự biết** cách đọc mọi định dạng đặc biệt.
+`AbstractResourceBundleProvider` only supports the formats noted in the API. If XML/JSON or a database source is needed, the implementation can construct an appropriate `ResourceBundle` itself; the abstract class **does not automatically know** how to read arbitrary custom formats.
 
-## 15. Đường đi của một lời gọi dùng SPI
+## 15. Flow of an SPI-Based Call
 
-Một chuỗi lookup mẫu:
+A sample lookup chain:
 
 ~~~text
 Consumer named module: com.example.app
@@ -569,57 +569,57 @@ Consumer named module: com.example.app
     | ResourceBundle.getBundle(
     |    "com.example.app.Messages", Locale.FRENCH)
     v
-ResourceBundle suy ra service type:
+ResourceBundle derives the service type:
     com.example.app.spi.MessagesProvider
     |
     | module com.example.app: uses ...
     v
-ServiceLoader tìm provider module đã resolved
+ServiceLoader finds the resolved provider module
     |
     | module com.example.translation: provides ...
     v
 MessagesProviderImpl.getBundle(baseName, locale)
     |
-    +-- có bundle -> ResourceBundle
+    +-- bundle available -> ResourceBundle
     |
-    +-- không hỗ trợ -> null
+    +-- unsupported -> null
 ~~~
 
-Đây là **sơ đồ luồng**, không phải một lệnh Java.
+This is a **flow diagram**, not a Java statement.
 
-Việc provider được triển khai trong module khác không có nghĩa mọi resource được “export” thành class public. `ResourceBundleProvider` là **giao diện truy xuất có kiểm soát**; provider có thể tự lấy tài nguyên trong module của nó rồi cung cấp thông điệp cho caller.
+Having the provider implemented in another module does not mean all resources are "exported" as public classes. `ResourceBundleProvider` is a **controlled retrieval interface**; the provider can fetch resources inside its own module and supply messages to the caller.
 
-Đối với những hệ thống có nhiều module cung cấp locale khác nhau, cần thiết kế package resource tránh **split packages** giữa các named modules. Có thể nhóm resource theo ngôn ngữ/vùng hoặc dùng `toBundleName` để ánh xạ sang package riêng của module provider.
+For systems where multiple modules provide different locales, design resource packages to avoid **split packages** across named modules. You can group resources by language/region or use `toBundleName` to map to the provider module's own package.
 
-## 16. Tại sao phải tránh split packages?
+## 16. Why Must Split Packages Be Avoided?
 
-JPMS không hỗ trợ tùy tiện việc **nhiều named modules trong cùng layer chứa cùng một package**. Đây là điểm khác với nhiều tổ chức JAR trước Java 9.
+JPMS does not permit arbitrarily having **multiple named modules in the same layer contain the same package**. This differs from many pre-Java 9 JAR layouts.
 
-Giả sử hai module đều cố đặt class/resource dưới package:
+Suppose two modules both attempt to place classes/resources under package:
 
 ~~~text
 com/example/app/i18n/
 ~~~
 
-Nếu chúng còn đưa các class của cùng package vào những module khác nhau, cấu trúc có thể gây xung đột/split package. Dù chỉ dùng resource, quy tắc package và lookup vẫn cần xem xét cẩn thận.
+If they also place classes of the same package into different modules, the layout causes split-package conflicts. Even with resources alone, package rules and lookup behavior must be examined carefully.
 
-Cách tổ chức thường dễ kiểm soát hơn:
+An organization that is usually easier to manage:
 
 ~~~text
-Provider tiếng Pháp:
+French provider:
     com/example/translation/fr/Messages_fr.properties
 
-Provider tiếng Nhật:
+Japanese provider:
     com/example/translation/ja/Messages_ja.properties
 ~~~
 
-Mỗi provider có thể tùy chỉnh `toBundleName` để ánh xạ baseName logic sang vị trí thực tế **không bị trùng package giữa named modules**. Không tự chia module theo locale mà không kiểm tra cấu trúc package và cơ chế service discovery.
+Each provider can customize `toBundleName` to map the logical `baseName` to an actual location **without overlapping packages across named modules**. Do not split modules by locale without checking package layout and service discovery mechanics.
 
-Nếu chỉ một module ứng dụng chứa tất cả bundle `Messages_en.properties`, `Messages_fr.properties`, `Messages_vi.properties`, không nhất thiết phải dùng SPI để phân tán tài nguyên. Giữ thiết kế đơn giản khi nhu cầu chưa đòi provider.
+If a single application module holds all `Messages_en.properties`, `Messages_fr.properties`, and `Messages_vi.properties` bundles, there is no need to use the SPI to scatter resources. Keep the design simple when provider distribution is not required.
 
-## 17. Không có thay thế 1:1 cho mọi callback của `Control`
+## 17. There Is No 1:1 Replacement for Every `Control` Callback
 
-Một người dùng `Control` cũ thường viết:
+A former `Control` user often wrote:
 
 ~~~java
 class MyControl extends ResourceBundle.Control {
@@ -630,119 +630,119 @@ class MyControl extends ResourceBundle.Control {
 }
 ~~~
 
-Đây là **đoạn class minh họa**, cần import `ResourceBundle` và `Locale` hoặc dùng tên đầy đủ. `getTimeToLive` cho biết TTL theo mili giây trong hệ thống lookup Control, không phải lời hứa mọi bundle tự refresh sau đúng 5 giây.
+This is an **illustrative class snippet**, requiring imports of `ResourceBundle` and `Locale` or fully qualified names. `getTimeToLive` specifies a TTL in milliseconds in the `Control` lookup system, not a guarantee that every bundle automatically refreshes after exactly 5 seconds.
 
-Khi chuyển sang named modules, `ResourceBundleProvider` không có một phương thức cùng chữ ký `getTimeToLive`. Nó là **mô hình cung cấp bundle**, chứ không phải bản sao từng callback của Control.
+When migrating to named modules, `ResourceBundleProvider` has no method with a `getTimeToLive` signature. It is a **bundle-providing model**, not a per-callback clone of `Control`.
 
-Bảng đối chiếu:
+Comparison table:
 
-| Tùy biến `Control` cũ | Hướng thiết kế lại trong named module |
+| Legacy `Control` customization | Redesign direction in named modules |
 | --- | --- |
-| `getFormats` | Bundle chuẩn trong module hoặc provider chọn cách load |
-| `newBundle` | `ResourceBundleProvider` tự tạo/trả bundle |
-| `toBundleName` | Override `AbstractResourceBundleProvider.toBundleName` nếu dùng class này |
-| `getCandidateLocales` | Thiết kế hỗ trợ locale/fallback theo hợp đồng provider/module; không giả định được copy nguyên callback |
-| `getFallbackLocale` | Quy định locale fallback và test behavior thực tế; có thể xử lý ở tầng ứng dụng/provider |
-| `getTimeToLive` | Quản lý cache/phiên bản/reload theo thiết kế module/ứng dụng, không trông chờ TTL Control |
-| `needsReload` | Cơ chế invalidation/reload có chủ đích ở ứng dụng hoặc provider |
+| `getFormats` | Standard bundles in module or provider chooses how to load |
+| `newBundle` | `ResourceBundleProvider` creates/returns the bundle |
+| `toBundleName` | Override `AbstractResourceBundleProvider.toBundleName` if extending that class |
+| `getCandidateLocales` | Design locale/fallback support per provider/module contract; do not assume copying the callback verbatim |
+| `getFallbackLocale` | Define fallback locale policy and test actual behavior; can be handled at app/provider layer |
+| `getTimeToLive` | Manage cache/versioning/reloading at module/application design level instead of relying on Control TTL |
+| `needsReload` | Intentional invalidation/reload mechanism in the application or provider |
 
-**Không hứa `AbstractResourceBundleProvider` hỗ trợ XML chỉ vì `Control.newBundle` đã từng đọc XML**. `AbstractResourceBundleProvider` mặc định chỉ làm việc với những format chuẩn mà constructor cho phép; muốn format khác phải có implementation riêng.
+**Do not promise that `AbstractResourceBundleProvider` supports XML just because `Control.newBundle` previously read XML.** `AbstractResourceBundleProvider` by default only works with the standard formats permitted by its constructor; custom formats require custom implementation logic.
 
-## 18. Cache: `clearCache` không biến named module thành Control
+## 18. Caching: `clearCache` Does Not Turn a Named Module into Control
 
-`ResourceBundle` có cache mặc định. Có các API như:
+`ResourceBundle` caches by default. APIs include:
 
 ~~~java
 ResourceBundle.clearCache();
 ResourceBundle.clearCache(loader);
 ~~~
 
-Đây là snippet với biến `loader` có kiểu `ClassLoader`. Nhưng xóa cache **không thay thế** cơ chế `Control.getTimeToLive`, không sửa lỗi `UnsupportedOperationException` và không bảo đảm mọi nguồn tài nguyên ngoài (database, file config, remote store) được reload ngay theo ý muốn.
+This is a snippet with a `loader` variable of type `ClassLoader`. However, clearing the cache **does not replace** `Control.getTimeToLive`, does not fix `UnsupportedOperationException`, and does not guarantee external sources (databases, config files, remote stores) reload immediately as desired.
 
-Một hệ thống dịch động nên xác định:
-- Ai sở hữu source of truth của thông điệp?
-- Bản dịch được **version** như thế nào?
-- Cache nằm trong `ResourceBundle`, provider hay service bên ngoài?
-- Khi bản dịch đổi, ứng dụng lấy cấu hình mới theo sự kiện, TTL hay deploy mới?
-- Có cần tránh nhiều request nhìn thấy bản dịch khác nhau trong cùng transaction?
+A dynamic translation system should define:
+- Who owns the source of truth for messages?
+- How are translations **versioned**?
+- Does caching live in `ResourceBundle`, the provider, or an external service?
+- When translations change, does the app fetch new configuration via events, TTL, or a new deployment?
+- Must multiple requests avoid seeing mixed translation versions within the same transaction?
 
-`ResourceBundle.clearCache()` theo Javadoc còn có **phạm vi cache gắn với caller module**. Vì vậy không tự suy luận một lệnh clearCache từ module bất kỳ có thể xóa mọi tài nguyên của mọi provider/module.
+According to the Javadoc, `ResourceBundle.clearCache()` also has a **cache scope tied to the caller module**. Therefore, do not assume a `clearCache` call from an arbitrary module clears all resources across every provider/module.
 
-## 19. Exception không nói file `.properties` hỏng
+## 19. The Exception Does Not Mean the `.properties` File Is Corrupt
 
-Một tình huống migration phổ biến:
+A common migration scenario:
 
 ~~~text
-Trước:
-    app.jar trên classpath
+Before:
+    app.jar on classpath
     ResourceBundle.getBundle(baseName, locale, control)
-    -> tải thành công
+    -> loads successfully
 
-Sau:
-    thêm module-info.java
-    đưa lên module path
-    dùng nguyên getBundle(..., control)
+After:
+    add module-info.java
+    move to module path
+    keep the same getBundle(..., control)
     -> UnsupportedOperationException
 ~~~
 
-Không nên lập tức:
-- thay charset của file `.properties`;
-- đổi tên `Messages_fr.properties`;
-- xóa cache;
-- thêm `opens` vô điều kiện;
-- chuyển tất cả dữ liệu dịch về một file khác;
-- tải thư viện Unicode mới.
+Do not immediately:
+- change the charset of `.properties` files;
+- rename `Messages_fr.properties`;
+- clear the cache;
+- add unconditional `opens`;
+- merge all translation data into another file;
+- download a new Unicode library.
 
-Các bước trên không xử lý nguyên nhân đầu tiên là **overload nhận Control bị cấm** trong named module. Chỉ sau khi bỏ hoặc thay cơ chế Control, nếu xuất hiện `MissingResourceException`, mới kiểm tra visibility/resource packaging.
+Those steps do not address the primary cause: **overloads taking `Control` are forbidden** in named modules. Only after removing or replacing `Control`, if `MissingResourceException` appears, should you inspect visibility/resource packaging.
 
-Ngoài ra, lỗi trong việc dùng `ClassLoader` để tìm tài nguyên có thể là vấn đề **module encapsulation** khác. Hãy xem stack trace và chữ ký overload bị gọi, đừng gộp mọi lỗi thành “ResourceBundle không hỗ trợ module”.
+In addition, errors when using `ClassLoader` to locate resources may stem from a separate **module encapsulation** issue. Read the stack trace and the invoked overload signature rather than lumping every error into "ResourceBundle doesn't support modules."
 
-## 20. Diagnostic checklist cho lỗi tải bundle
+## 20. Diagnostic Checklist for Bundle Loading Errors
 
-Khi có lỗi, xác minh theo thứ tự:
+When an error occurs, verify in order:
 
-1. **Caller nằm trong module nào?** Kiểm tra `Caller.class.getModule().isNamed()` và `getName()`.
-2. **Có dùng overload `getBundle` nhận `Control` không?** Nếu có từ named module, dự kiến `UnsupportedOperationException`.
-3. **Có dùng `ResourceBundleControlProvider` cũ không?** Named modules bỏ qua provider loại này.
-4. **Bundle ở cùng module hay module khác?** Nếu cùng module, thử API không Control và xác minh resource đã được đóng gói.
-5. **Base name có đúng package/path không?** `com.example.app.Messages` tương ứng file `com/example/app/Messages_fr.properties` trong định dạng chuẩn.
-6. **Có sai locale hoặc key không?** Phân biệt thiếu bundle và thiếu key.
-7. **Nếu ở module khác, package có được truy xuất theo JPMS không?** Xem `opens`/resource encapsulation.
-8. **Nếu qua SPI, tên service interface có đúng quy tắc không?** `package.spi.SimpleNameProvider`.
-9. **Consumer đã khai báo `uses` chưa?** Provider đã khai báo `provides` chưa?
-10. **Provider module đã resolved trong module graph chưa?** Không chỉ đặt JAR trên đĩa rồi suy luận chắc chắn service sẽ chạy.
-11. **Provider có trả `null` cho locale đang yêu cầu không?** Kiểm tra locale candidates/fallback.
-12. **Có split package giữa provider modules không?** Kiểm tra package và `toBundleName`.
-13. **Tài nguyên đã được copy khi build chưa?** `javac` không tự copy `.properties` vào thư mục output.
-14. **Có giả định TTL/auto reload từ Control cũ không?** Thiết kế lại quản lý phiên bản/cache.
+1. **Which module is the caller in?** Check `Caller.class.getModule().isNamed()` and `getName()`.
+2. **Is a `getBundle` overload taking `Control` being called?** If so from a named module, expect `UnsupportedOperationException`.
+3. **Is a legacy `ResourceBundleControlProvider` being used?** Named modules ignore such providers.
+4. **Is the bundle in the same module or another module?** If in the same module, try the non-Control API and verify the resource is packaged.
+5. **Does the base name match the package/path?** `com.example.app.Messages` corresponds to `com/example/app/Messages_fr.properties` in standard format.
+6. **Is the locale or key wrong?** Distinguish missing bundle from missing key.
+7. **If in another module, is the package accessible under JPMS?** Check `opens`/resource encapsulation.
+8. **If using the SPI, does the service interface follow the naming rule?** `package.spi.SimpleNameProvider`.
+9. **Did the consumer declare `uses`?** Did the provider declare `provides`?
+10. **Is the provider module resolved in the module graph?** Merely placing a JAR on disk does not guarantee the service runs.
+11. **Is the provider returning `null` for the requested locale?** Check candidate locales/fallback.
+12. **Is there a split package across provider modules?** Check packages and `toBundleName`.
+13. **Were resources copied during build?** `javac` does not automatically copy `.properties` to the output directory.
+14. **Are there lingering assumptions about legacy `Control` TTL/auto-reload?** Redesign version/cache management.
 
-Đây là quy trình chẩn đoán **theo từng tầng** thay vì đoán một lỗi duy nhất.
+This is a **layered** diagnostic process rather than guessing a single failure.
 
-## 21. `UnsupportedOperationException` khác `MissingResourceException` trong kiểm thử
+## 21. `UnsupportedOperationException` vs. `MissingResourceException` in Testing
 
-Khi unit test chạy trên classpath nhưng production chạy module path, test có thể **không tái hiện lỗi** do caller ở unnamed module trong test.
+When unit tests run on the classpath while production runs on the module path, tests may **fail to reproduce the error** because the caller is in an unnamed module during tests.
 
-Ví dụ kịch bản:
+Example scenarios:
 
-| Môi trường | Caller module | Lời gọi `getBundle(..., Control)` |
+| Environment | Caller module | Calling `getBundle(..., Control)` |
 | --- | --- | --- |
-| Test dùng classpath | Unnamed | Có thể chạy được nếu resource và Control hợp lệ |
-| Java modular runtime | Named | Ném `UnsupportedOperationException` |
-| Test module path | Named | Tái hiện đúng giới hạn |
-| Automatic module trên module path | Named | Không tự giả định như classpath |
+| Test on classpath | Unnamed | May succeed if resources and `Control` are valid |
+| Modular Java runtime | Named | Throws `UnsupportedOperationException` |
+| Module-path test | Named | Accurately reproduces the restriction |
+| Automatic module on module path | Named | Do not assume classpath behavior |
 
-Vì vậy trong CI:
-- Có ít nhất một bài **integration test chạy trên module path**.
-- Dùng `java --module-path ... -m module/name.Main` cho bài test gần môi trường production.
-- Đừng chỉ chạy `java -cp ...` rồi kết luận integration ResourceBundle trong named module đã đúng.
-- Kiểm tra cả trường hợp **bundle ở cùng module**, **bundle từ provider module**, **locale không hỗ trợ** và **resource bị encapsulate**.
-- Với bài test cho đường lookup có Control, kỳ vọng lỗi ở named module và đường hợp lệ ở classpath nếu muốn minh họa khác biệt.
+Therefore in CI:
+- Have at least one **integration test running on the module path**.
+- Use `java --module-path ... -m module/name.Main` for tests close to production.
+- Do not run only `java -cp ...` and conclude `ResourceBundle` integration in named modules is sound.
+- Test **same-module bundles**, **provider-module bundles**, **unsupported locales**, and **encapsulated resources**.
+- If testing the `Control` lookup path, expect failure in named modules and success on the classpath when demonstrating the difference.
 
-Chính **ngữ cảnh caller** là một phần hợp đồng API; đơn thuần kiểm tra resource file có tồn tại chưa đủ.
+The **caller context** itself is part of the API contract; merely checking that resource files exist is not enough.
 
-## 22. Một chương trình chẩn đoán ngữ cảnh module
+## 22. A Diagnostic Program for Module Context
 
-Một đoạn class đơn giản, dùng được cả classpath và named module:
+A simple class usable on both the classpath and in a named module:
 
 **`ModuleContextDemo.java`**
 
@@ -758,27 +758,27 @@ public class ModuleContextDemo {
 }
 ~~~
 
-Biên dịch/chạy trên classpath:
+Compile and run on the classpath:
 
 ~~~bash
 javac ModuleContextDemo.java
 java ModuleContextDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 false
 null
 ~~~
 
-Trong một **named module**, kết quả sẽ đổi thành `true` và tên module đã khai báo (sau khi tổ chức class/package và build theo JPMS). Ví dụ trên giúp phân biệt runtime mode mà không phụ thuộc biến môi trường.
+Inside a **named module**, the output changes to `true` and the declared module name (after organizing classes/packages and building for JPMS). This example helps distinguish runtime modes without relying on environment variables.
 
-Tuy nhiên, đừng dùng `isNamed()` như cách “bật tắt” custom Control một cách vô thức rồi trả bundle sai. Tốt hơn là thiết kế **hai đường tương thích có kiểm thử**, hoặc migrate hoàn toàn sang API không Control/SPI nếu product xác định chạy named modules.
+However, do not use `isNamed()` to mindlessly toggle custom `Control` and return inconsistent bundles. It is better to design **two tested compatible paths**, or migrate completely to non-Control/SPI APIs if the product targets named modules.
 
-## 23. Thiết kế locale fallback khi không có Control
+## 23. Designing Locale Fallback Without Control
 
-Trong ứng dụng classpath, người viết có thể từng override:
+In classpath applications, developers might have overridden:
 
 ~~~java
 @Override
@@ -787,150 +787,150 @@ public Locale getFallbackLocale(String baseName, Locale locale) {
 }
 ~~~
 
-Đây là **snippet của subclass `ResourceBundle.Control`**, không phải method của `ResourceBundleProvider`.
+This is a **snippet from a `ResourceBundle.Control` subclass**, not a method on `ResourceBundleProvider`.
 
-Sau migration, cần xác định:
-- Bundle nào là root/default `Messages.properties`?
-- Có cung cấp các biến thể `Messages_en`, `Messages_en_US`, `Messages_fr_CA` không?
-- Khi locale yêu cầu chưa được hỗ trợ, muốn fallback về **root**, về **English**, hay báo lỗi?
-- Fallback nên do quy tắc `ResourceBundle` mặc định, provider, hay tầng gọi quyết định?
-- Nếu nhiều provider module hỗ trợ các locale khác nhau, cần tránh fallback không mong muốn làm nhận bundle của module khác.
+After migration, determine:
+- Which bundle is the root/default `Messages.properties`?
+- Are `Messages_en`, `Messages_en_US`, and `Messages_fr_CA` variants provided?
+- When the requested locale is unsupported, should it fall back to **root**, to **English**, or report an error?
+- Should fallback be handled by default `ResourceBundle` rules, the provider, or the calling layer?
+- If multiple provider modules support different locales, avoid unintended fallbacks that pull bundles from the wrong module.
 
-Không tự giả định `ResourceBundleProvider` có callback `getFallbackLocale`. Cách cung cấp bundle từ provider khác Control; phải kiểm thử fallback locale và missing key trên chính module graph triển khai.
+Do not assume `ResourceBundleProvider` has a `getFallbackLocale` callback. Providing bundles via providers differs from `Control`; test locale fallback and missing keys on the actual deployed module graph.
 
-## 24. Class-based bundle, properties và giới hạn truy xuất
+## 24. Class-Based Bundles, Properties, and Access Restrictions
 
-Với bundle trong named module, hai định dạng chuẩn thường là:
-- **`java.properties`:** file `Messages_fr.properties` chứa các cặp key/value.
-- **`java.class`:** class kế thừa `ListResourceBundle` hoặc `ResourceBundle` theo quy tắc tên bundle.
+For bundles inside named modules, the two standard formats are:
+- **`java.properties`:** `Messages_fr.properties` files containing key/value pairs.
+- **`java.class`:** classes extending `ListResourceBundle` or `ResourceBundle` per bundle naming rules.
 
-Cả hai đều có **quy tắc truy xuất trong JPMS**, và việc ứng dụng tìm được class/resource của một module khác không phải lúc nào giống classpath.
+Both are subject to **JPMS access rules**, and an application locating classes/resources in another module does not always behave like the classpath.
 
-Một lưu ý:
-- Tài nguyên class-based còn liên quan việc truy cập kiểu/class của bundle.
-- Với file properties, đường dẫn package/resource cần được đóng gói và kiểm tra accessibility.
-- Bundle nội bộ trong cùng module thường đơn giản hơn bundle phân phối qua nhiều module.
-- Khi dùng provider, tài nguyên có thể nằm trong module provider và được provider tải theo cách thích hợp.
+Points to note:
+- Class-based resources also involve type/class visibility of the bundle class.
+- For properties files, package/resource paths must be packaged and checked for accessibility.
+- Internal bundles in the same module are usually simpler than bundles distributed across modules.
+- When using a provider, resources can remain inside the provider module and be loaded appropriately by the provider.
 
-**Đừng dùng `opens` toàn bộ module như một “fix chung”** nếu có thể giữ bundle nội bộ hoặc dùng service provider. Càng mở rộng surface càng cần xem lại các yêu cầu bảo mật và encapsulation của dự án.
+**Do not use module-wide `opens` as a "blanket fix"** if bundles can stay internal or use a service provider. Broadening the access surface requires reviewing project security and encapsulation requirements.
 
-## 25. Service discovery và named modules
+## 25. Service Discovery and Named Modules
 
-`ServiceLoader` là nền tảng của mô hình provider. Với named modules, service discovery phụ thuộc module graph và directive:
-- Consumer có `uses service.Type;`.
-- Provider có `provides service.Type with implementation.Type;`.
-- Provider module được đưa vào cấu hình chạy/resolution.
-- Implementation thực sự có thể được khởi tạo và trả bundle.
+`ServiceLoader` is the foundation of the provider model. With named modules, service discovery depends on the module graph and directives:
+- Consumer has `uses service.Type;`.
+- Provider has `provides service.Type with implementation.Type;`.
+- The provider module is included in the runtime/resolution configuration.
+- The implementation can actually be instantiated and return a bundle.
 
-Ví dụ phần launch tích hợp (mang tính sơ đồ):
+Illustrative integrated launch example (schematic):
 
 ~~~bash
 java --module-path out --add-modules com.example.translation \
   -m com.example.app/com.example.app.Main
 ~~~
 
-Lệnh trên dành cho shell hỗ trợ `\` nối dòng, với giả định có các module đã build đúng trong `out`. `--add-modules` giúp bảo đảm provider module được resolved trong ví dụ này. Trong ứng dụng thực, dịch vụ có thể được resolved thông qua service binding/runtime image hoặc cấu hình module khác.
+The command above targets shells supporting `\` line continuation, assuming properly built modules in `out`. `--add-modules` ensures the provider module is resolved in this example. In real applications, services may be resolved via service binding, a custom runtime image, or another module configuration.
 
-Nếu `provides` đúng nhưng provider không nằm trong layer/module graph được lookup, `getBundle` vẫn có thể không thấy nó. Đặt tên file `module-info.java` đúng là **điều kiện cần nhưng chưa đủ** cho service discovery.
+If `provides` is right yet the provider is absent from the resolved layer/module graph, `getBundle` still cannot find it. Naming `module-info.java` properly is **necessary but not sufficient** for service discovery.
 
-## 26. Các lỗi phổ biến khi migrate
+## 26. Common Mistakes During Migration
 
-| Sai lầm | Vì sao sai | Cách khắc phục |
+| Mistake | Why it fails | Fix |
 | --- | --- | --- |
-| Giữ nguyên `getBundle(..., Control)` | Named module không hỗ trợ overload có Control | Bỏ Control nếu không cần tùy biến; hoặc thiết kế provider |
-| Thử overload `ClassLoader + Control` để lách | Vẫn có tham số Control | Không dùng overload đó trong named module |
-| Đăng ký `ResourceBundleControlProvider` mới | SPI này bị bỏ qua trong named modules | Dùng `ResourceBundleProvider` khi cần |
-| Nghĩ `Control` bị xóa khỏi JDK | Class vẫn có mặt | Phân biệt class API và cách dùng trong named module |
-| Cứ thêm `opens` để chữa UOE | `opens` không sửa overload không hỗ trợ | Sửa API trước, encapsulation sau |
-| Tự dùng `exports` để mở file properties | Exports public types, không đủ cho mọi resource lookup | Hiểu `opens`/module access đúng tình huống |
-| Dùng service interface sai tên | Lookup SPI dựa vào tên quy ước từ baseName | `package.spi.SimpleNameProvider` |
-| Quên `uses` hoặc `provides` | ServiceLoader không tìm đúng provider | Khai báo trong module descriptor |
-| Chỉ đặt JAR provider trên đĩa | Chưa chắc resolved | Kiểm tra module graph/launch options |
-| Quên copy `.properties` | Biên dịch Java không tự copy resource | Đưa resource vào output/JAR |
-| Đóng gói nhiều provider trong cùng package | Split package xung đột | Tách package hoặc custom `toBundleName` |
-| Mong `getTimeToLive` tiếp tục chạy | Control callback không được áp dụng | Thiết kế TTL/cache ngoài Control |
-| Test trên classpath rồi deploy module path | Bối cảnh caller khác | Integration test modular |
-| Quên fallback khi locale thiếu | Kết quả resource/fallback khác mong muốn | Kiểm thử từng locale/provider |
+| Keeping `getBundle(..., Control)` | Named modules do not support `Control` overloads | Drop `Control` if no customization is needed; or design a provider |
+| Trying `ClassLoader + Control` overload as a workaround | Still takes a `Control` parameter | Do not use that overload in named modules |
+| Registering a new `ResourceBundleControlProvider` | This SPI is ignored in named modules | Use `ResourceBundleProvider` when needed |
+| Thinking `Control` was removed from the JDK | The class is still present | Distinguish the class API from usage inside named modules |
+| Adding `opens` to fix UOE | `opens` does not fix an unsupported overload | Fix the API call first, encapsulation second |
+| Using `exports` to expose `.properties` files | Exports public types, insufficient for all resource lookups | Understand `opens`/module access for the scenario |
+| Naming the service interface wrong | SPI lookup relies on a convention derived from `baseName` | `package.spi.SimpleNameProvider` |
+| Forgetting `uses` or `provides` | `ServiceLoader` cannot locate the provider | Declare in module descriptors |
+| Only placing provider JAR on disk | Not guaranteed to be resolved | Check module graph/launch options |
+| Forgetting to copy `.properties` | Java compilation does not copy resources automatically | Include resources in output/JAR |
+| Packaging multiple providers in the same package | Split-package conflict | Separate packages or customize `toBundleName` |
+| Expecting `getTimeToLive` to keep running | `Control` callbacks are not invoked | Design TTL/cache outside `Control` |
+| Testing on classpath then deploying on module path | Caller context differs | Modular integration tests |
+| Forgetting fallback for missing locales | Unexpected resource/fallback outcome | Test each locale/provider |
 
-## 27. Checklist QA dành cho ứng dụng đa ngôn ngữ modular
+## 27. QA Checklist for Modular Multilingual Applications
 
-Một bộ kiểm thử tối thiểu:
+A minimal test suite:
 
-1. **Trong cùng named module:** `getBundle(baseName, locale)` tải được `.properties` hợp lệ.
-2. **Giới hạn Control:** `getBundle(baseName, locale, control)` ném `UnsupportedOperationException`.
-3. **Classpath reference test:** overload Control vẫn tồn tại và có thể sử dụng trong unnamed module.
-4. **Localization keys:** cùng key có giá trị khác nhau ở hai locale, ví dụ French/English.
-5. **Missing resource:** khi không có bundle, nhận `MissingResourceException` và phân biệt với UOE.
-6. **Package encapsulation:** consumer module khác không tự vượt quyền truy cập resource.
-7. **Service interface naming:** service interface tuân `package.spi.BaseNameProvider`.
-8. **Service binding:** có `uses`, `provides`, và provider module resolved.
-9. **Provider scope:** provider hỗ trợ đúng locale, trả `null` khi không hỗ trợ.
-10. **Packaging:** file resources có mặt trong output/JAR thực tế, không chỉ trong `src`.
-11. **Fallback:** locale không tìm thấy có kết quả theo yêu cầu sản phẩm.
-12. **Caching:** thay thông điệp được nhận diện theo chính sách cache/reload được thiết kế mới.
-13. **Không dùng workaround classloader:** module boundaries vẫn được tuân thủ.
-14. **Regression:** chạy ở cùng JDK/modular deployment mà production dùng, không chỉ classpath.
+1. **Same named module:** `getBundle(baseName, locale)` loads valid `.properties`.
+2. **`Control` restriction:** `getBundle(baseName, locale, control)` throws `UnsupportedOperationException`.
+3. **Classpath reference test:** the `Control` overload still exists and works in an unnamed module.
+4. **Localization keys:** the same key yields distinct values across two locales, e.g., French/English.
+5. **Missing resource:** when a bundle is absent, `MissingResourceException` is thrown and distinguished from UOE.
+6. **Package encapsulation:** another consumer module cannot bypass resource access controls.
+7. **Service interface naming:** the service interface follows `package.spi.BaseNameProvider`.
+8. **Service binding:** `uses`, `provides`, and resolved provider module are verified.
+9. **Provider scope:** provider handles supported locales and returns `null` when unsupported.
+10. **Packaging:** resource files exist in actual output/JARs, not just in `src`.
+11. **Fallback:** missing locales produce the product-specified outcome.
+12. **Caching:** updated messages are picked up per the newly designed cache/reload policy.
+13. **No class loader workarounds:** module boundaries remain respected.
+14. **Regression:** run on the exact JDK/modular deployment used in production, not only the classpath.
 
-Khi debug, ghi thêm tên caller module và base name/locale **không nhạy cảm**. Đừng log toàn bộ nội dung bản dịch có thể chứa dữ liệu cá nhân của người dùng.
+When debugging, log the **non-sensitive** caller module name, base name, and locale. Do not log full translated message contents that could contain user personal data.
 
-## 28. Bài tập tự kiểm tra
+## 28. Self-Check Exercises
 
-**Câu 1.** Vì sao code chạy được trên classpath nhưng ném `UnsupportedOperationException` khi chuyển sang named module?
+**Question 1.** Why does code that runs on the classpath throw `UnsupportedOperationException` when moved into a named module?
 
-**Đáp án:** Các overload `ResourceBundle.getBundle` nhận `ResourceBundle.Control` được thiết kế cho unnamed module và **không được hỗ trợ khi gọi từ named module**.
+**Answer:** `ResourceBundle.getBundle` overloads accepting `ResourceBundle.Control` are designed for unnamed modules and are **not supported when called from a named module**.
 
-**Câu 2.** Nếu chỉ có `Messages_fr.properties` trong cùng named module, có nhất thiết phải tạo `ResourceBundleProvider` không?
+**Question 2.** If `Messages_fr.properties` is only inside the same named module, is creating a `ResourceBundleProvider` mandatory?
 
-**Đáp án:** Không. Có thể dùng `ResourceBundle.getBundle(baseName, Locale.FRENCH)` và đóng gói file resource chuẩn đúng vị trí.
+**Answer:** No. You can use `ResourceBundle.getBundle(baseName, Locale.FRENCH)` and package the standard resource file in the right location.
 
-**Câu 3.** Nếu đã `opens` package chứa bundle, `getBundle(..., Control)` có hết UOE không?
+**Question 3.** If the package containing the bundle is already `opens`-ed, will `getBundle(..., Control)` stop throwing UOE?
 
-**Đáp án:** Không. `opens` liên quan module resource access; không thay đổi hạn chế của overload Control.
+**Answer:** No. `opens` governs module resource access; it does not lift the restriction on `Control` overloads.
 
-**Câu 4.** `ResourceBundleControlProvider` có tác dụng thay `ResourceBundleProvider` trong named module không?
+**Question 4.** Can `ResourceBundleControlProvider` replace `ResourceBundleProvider` in named modules?
 
-**Đáp án:** Không. Các custom `ResourceBundleControlProvider` bị bỏ qua trong named modules.
+**Answer:** No. Custom `ResourceBundleControlProvider` implementations are ignored in named modules.
 
-**Câu 5.** Với baseName `com.example.app.Messages`, service type nên đặt tên gì?
+**Question 5.** For `baseName` `com.example.app.Messages`, what should the service type be named?
 
-**Đáp án:** `com.example.app.spi.MessagesProvider`.
+**Answer:** `com.example.app.spi.MessagesProvider`.
 
-**Câu 6.** Consumer module khai báo gì để dùng bundle provider service?
+**Question 6.** What does the consumer module declare to use a bundle provider service?
 
-**Đáp án:** `uses com.example.app.spi.MessagesProvider;` và provider khai báo `provides ... with ...;`.
+**Answer:** `uses com.example.app.spi.MessagesProvider;`, while the provider declares `provides ... with ...;`.
 
-**Câu 7.** `AbstractResourceBundleProvider` mặc định có hiểu XML tùy ý không?
+**Question 7.** Does `AbstractResourceBundleProvider` understand arbitrary XML by default?
 
-**Đáp án:** Không. Nó hỗ trợ `java.class`/`java.properties` như các format được API cho phép; custom format cần implementation khác.
+**Answer:** No. It supports `java.class`/`java.properties` as API-permitted formats; custom formats require custom implementation.
 
-**Câu 8.** Nếu trước đó override `getTimeToLive` trong `Control`, chuyển sang SPI có một callback y hệt không?
+**Question 8.** If you previously overrode `getTimeToLive` in `Control`, is there an identical callback when moving to the SPI?
 
-**Đáp án:** Không. Provider không phải bản sao 1:1 của các callback Control; phải thiết kế cache/version/reload theo yêu cầu.
+**Answer:** No. A provider is not a 1:1 mirror of `Control` callbacks; caching, versioning, and reloading must be designed per requirements.
 
-**Câu 9.** `MissingResourceException` khác UOE trong bài này thế nào?
+**Question 9.** How does `MissingResourceException` differ from UOE in this lesson?
 
-**Đáp án:** MissingResourceException nghĩa là không tìm thấy bundle hoặc key; UOE là overload Control không được hỗ trợ trong named module.
+**Answer:** `MissingResourceException` means the bundle or key was not found; UOE means the `Control` overload is unsupported in a named module.
 
-**Câu 10.** Có thể dựa vào integration test chạy `java -cp` để xác nhận named-module behavior không?
+**Question 10.** Can you rely on integration tests run with `java -cp` to verify named-module behavior?
 
-**Đáp án:** Không. Cần test chạy trên **module path**, vì unnamed và named module có khác biệt hành vi.
+**Answer:** No. Tests must run on the **module path**, because unnamed and named modules differ in behavior.
 
-## 29. Quy trình migration đề xuất
+## 29. Recommended Migration Workflow
 
-1. **Kiểm kê toàn bộ lời gọi `ResourceBundle.getBundle`** và tìm những nơi có `Control`, kể cả overload dùng `ClassLoader`.
-2. **Xác định module graph** sau migration; phân biệt caller named/unnamed và bundle local/provider.
-3. **Với bundle chuẩn trong cùng module**, thử API không Control và kiểm chứng resource packaging, locale, fallback.
-4. **Với tùy biến định dạng hoặc bundle phân phối giữa modules**, thiết kế `ResourceBundleProvider`, service type đúng tên, `uses`/`provides` và cách lấy tài nguyên trong module provider.
-5. **Tách callback Control thành yêu cầu nghiệp vụ**: định dạng, địa điểm resource, fallback, TTL/reload; không tìm cách copy nguyên subclass.
-6. **Rà soát encapsulation**: chỉ mở package cần thiết; không mở toàn module vô điều kiện và không dùng custom loader để phá quyền truy cập.
-7. **Kiểm tra build** để bảo đảm các file `.properties` nằm trong artifact cuối; Java compiler không luôn copy chúng.
-8. **Viết integration tests trên module path** với nhiều locale, thiếu bundle, UOE, SPI binding, fallback và cache.
-9. **Giám sát khi triển khai**: phân biệt UOE, MissingResourceException và lỗi provider resource loading.
-10. **Nếu phải giữ cả classpath và module path**, định nghĩa rõ hai đường hoạt động, version kiểm thử và kế hoạch loại bỏ cơ chế không phù hợp với JPMS.
+1. **Inventory all `ResourceBundle.getBundle` calls** and locate any using `Control`, including overloads taking `ClassLoader`.
+2. **Map the target module graph** after migration; distinguish named/unnamed callers and local/provider bundles.
+3. **For standard bundles in the same module**, switch to non-Control APIs and verify resource packaging, locales, and fallback.
+4. **For format customization or cross-module bundles**, design `ResourceBundleProvider`, properly named service types, `uses`/`provides`, and resource loading inside the provider module.
+5. **Decompose `Control` callbacks into business requirements**: format, resource location, fallback, TTL/reload; do not attempt to copy the subclass verbatim.
+6. **Review encapsulation**: open only necessary packages; do not unconditionally open entire modules or use custom loaders to bypass access checks.
+7. **Verify the build** to ensure `.properties` files land in the final artifact; the Java compiler does not always copy them.
+8. **Write integration tests on the module path** covering multiple locales, missing bundles, UOE, SPI binding, fallback, and caching.
+9. **Monitor in deployment**: distinguish UOE, `MissingResourceException`, and provider resource-loading failures.
+10. **If both classpath and module path must be supported**, clearly define both execution paths, versioned tests, and a plan to retire JPMS-incompatible mechanisms.
 
-**Ghi nhớ:** `ResourceBundle.Control` **không bị xóa khỏi Java**, nhưng **các overload `ResourceBundle.getBundle` nhận Control không được hỗ trợ trong named modules**. Với bundle chuẩn nằm trong module, ưu tiên API `getBundle` không Control; với mô hình mở rộng giữa module hoặc định dạng riêng, dùng **`ResourceBundleProvider`/`ServiceLoader`** và hiểu `uses`/`provides`, resource encapsulation, fallback và cache. Giới hạn này thuộc **kiến trúc JPMS**, không phải lỗi font, charset hay file bản dịch.
+**Key takeaway:** `ResourceBundle.Control` **was not removed from Java**, but **`ResourceBundle.getBundle` overloads taking `Control` are not supported in named modules**. For standard bundles inside a module, prefer non-Control `getBundle` APIs; for cross-module extensibility or custom formats, use **`ResourceBundleProvider`/`ServiceLoader`** and understand `uses`/`provides`, resource encapsulation, fallback, and caching. This restriction belongs to **JPMS architecture**, not font, charset, or translation file bugs.
 
-**Tài liệu Java SE 17 chính thức:**
+**Official Java SE 17 Documentation:**
 - [ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html)
 - [ResourceBundle.Control](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html)
 - [ResourceBundleProvider](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/ResourceBundleProvider.html)

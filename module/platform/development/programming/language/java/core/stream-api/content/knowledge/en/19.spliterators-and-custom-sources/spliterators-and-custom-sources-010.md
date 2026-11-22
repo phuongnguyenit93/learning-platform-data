@@ -1,8 +1,8 @@
-# Kiểm chứng dữ liệu, thứ tự và tính đúng của các lần chia nguồn
+# Verifying Data, Ordering, and Correctness of Source Splits
 
-## 1. Tại sao `Spliterator` sai có thể làm sai cả pipeline?
+## 1. Why Can a Broken `Spliterator` Break the Entire Pipeline?
 
-Trong module **JAVA_STREAM_API**, chúng ta thường nhìn thấy pipeline ở dạng:
+In the **JAVA_STREAM_API** module, we often see pipelines like:
 
 ```java
 long count = source.stream()
@@ -11,53 +11,53 @@ long count = source.stream()
     .reduce(0L, Long::sum);
 ```
 
-Các thao tác `filter`, `map` và `reduce` chỉ đúng khi **nguồn cung cấp đúng các phần tử cần xử lý**. Với collection chuẩn, Java đã cung cấp cơ chế duyệt phù hợp. Nhưng khi tự xây nguồn thông qua `Spliterator<T>` và `StreamSupport.stream(...)`, lập trình viên phải chịu trách nhiệm về **tính đúng của dữ liệu, thứ tự duyệt và việc chia nguồn**.
+Operations like `filter`, `map`, and `reduce` are only correct when **the source supplies the exact elements to process**. For standard collections, Java provides appropriate traversal mechanisms. Yet when building custom sources via `Spliterator<T>` and `StreamSupport.stream(...)`, the developer takes responsibility for **data correctness, traversal order, and source splitting**.
 
-Hãy tưởng tượng một nguồn có các ID:
+Imagine a source containing IDs:
 
 ```text
-Nguồn gốc:           [0, 1, 2, 3, 4, 5, 6, 7]
-Mong muốn chia:      [0, 1, 2, 3] | [4, 5, 6, 7]
+Original source:     [0, 1, 2, 3, 4, 5, 6, 7]
+Desired split:       [0, 1, 2, 3] | [4, 5, 6, 7]
 
-Lỗi chồng lấn:       [0, 1, 2, 3, 4] | [4, 5, 6, 7]
+Overlap bug:         [0, 1, 2, 3, 4] | [4, 5, 6, 7]
                                              ^
-                                     ID 4 bị xử lý hai lần
+                                     ID 4 processed twice
 
-Lỗi để hở khoảng:    [0, 1, 2] | [4, 5, 6, 7]
+Gap bug:             [0, 1, 2] | [4, 5, 6, 7]
                                      ^
-                               ID 3 bị mất
+                               ID 3 lost
 ```
 
-Trong pipeline tuần tự, một lỗi ở `trySplit()` có thể không lộ ra vì Java không nhất thiết gọi phương thức chia nguồn. Đến khi thêm `parallel()`, framework mới chia thành nhiều công việc và **tổng tiền, số bản ghi hoặc dữ liệu đầu ra có thể sai**.
+In a sequential pipeline, a bug in `trySplit()` may stay hidden because Java does not necessarily call the split method. Once `parallel()` is added, the framework splits work into multiple tasks and **totals, record counts, or output data can become wrong**.
 
-Mục tiêu bài học thuộc chương **Spliterator và nguồn tự định nghĩa**:
+Objectives of this lesson in the **Spliterators and Custom Sources** chapter:
 
-1. Hiểu hợp đồng của `tryAdvance`, `forEachRemaining`, `trySplit`, `estimateSize` và `characteristics`.
-2. Chứng minh mỗi phần tử gốc xuất hiện **đúng một lần** sau các lần chia, không bị mất hoặc xử lý trùng.
-3. Phân biệt **encounter order** với thứ tự thực thi của các worker song song.
-4. Khai báo chính xác `ORDERED`, `SIZED`, `SUBSIZED`, `NONNULL`, `IMMUTABLE` và các characteristic khác.
-5. Viết một `Spliterator` tùy chỉnh có thể chia theo khoảng chỉ số và kiểm chứng cả tuần tự lẫn song song.
-6. Đánh giá rủi ro với nguồn có thể thay đổi, I/O, kích thước không biết trước, hiệu năng và tài nguyên.
+1. Understand the contracts of `tryAdvance`, `forEachRemaining`, `trySplit`, `estimateSize`, and `characteristics`.
+2. Prove each original element appears **exactly once** across splits, with none lost or processed twice.
+3. Distinguish **encounter order** from parallel worker execution order.
+4. Accurately declare `ORDERED`, `SIZED`, `SUBSIZED`, `NONNULL`, `IMMUTABLE`, and other characteristics.
+5. Write a custom `Spliterator` that splits by index range and verify it both sequentially and in parallel.
+6. Assess risks around mutable sources, I/O, unknown sizes, performance, and resources.
 
-Điểm cốt lõi là **đúng trước, nhanh sau**: đặc tính chia được và khả năng chạy song song không có giá trị nếu làm mất dữ liệu.
+The core principle is **correct first, fast second**: splittability and parallel execution are worthless if data is lost.
 
-## 2. `Spliterator<T>` là gì?
+## 2. What Is `Spliterator<T>`?
 
-`java.util.Spliterator<T>` là giao diện dùng để **duyệt và có thể phân chia** một tập phần tử. Tên gọi kết hợp ý tưởng *split* và *iterator*, nhưng nó không chỉ là `Iterator` có thêm một phương thức: nó mang thông tin về kích thước, thứ tự và khả năng duyệt, để Java Stream API lập kế hoạch xử lý.
+`java.util.Spliterator<T>` is an interface for **traversing and optionally partitioning** a collection of elements. Its name combines *split* and *iterator*, yet it is not merely an `Iterator` with an extra method: it carries metadata on size, ordering, and traversability so the Java Stream API can plan execution.
 
-Các phương thức quan trọng:
+Key methods:
 
-| Phương thức | Hợp đồng cần hiểu |
+| Method | Contract to Understand |
 | --- | --- |
-| `boolean tryAdvance(Consumer<? super T> action)` | Giao cho action **một phần tử kế tiếp**, trả `true`; nếu đã hết, trả `false` |
-| `void forEachRemaining(Consumer<? super T> action)` | Duyệt các phần tử còn lại; mặc định có thể lặp `tryAdvance` |
-| `Spliterator<T> trySplit()` | Trả spliterator mới quản lý **một phần** phần tử còn lại, hoặc `null` nếu không chia |
-| `long estimateSize()` | Ước lượng số phần tử còn lại; với `SIZED`, là số lượng chính xác theo hợp đồng |
-| `int characteristics()` | Mô tả những tính chất nguồn mà implementation **cam kết** |
-| `long getExactSizeIfKnown()` | Trả kích thước chính xác nếu có `SIZED`, ngược lại thường là `-1` |
-| `Comparator<? super T> getComparator()` | Chỉ có ý nghĩa khi khai báo `SORTED` |
+| `boolean tryAdvance(Consumer<? super T> action)` | Passes **one next element** to action and returns `true`; returns `false` if exhausted |
+| `void forEachRemaining(Consumer<? super T> action)` | Traverses remaining elements; default implementation loops `tryAdvance` |
+| `Spliterator<T> trySplit()` | Returns a new spliterator managing **part** of the remaining elements, or `null` if not split |
+| `long estimateSize()` | Estimates remaining element count; with `SIZED`, exact count per contract |
+| `int characteristics()` | Describes source properties that the implementation **guarantees** |
+| `long getExactSizeIfKnown()` | Returns exact size if `SIZED` is present, otherwise typically `-1` |
+| `Comparator<? super T> getComparator()` | Meaningful only when `SORTED` is declared |
 
-Đây là cơ chế đứng sau rất nhiều nguồn Stream. Ví dụ:
+This is the mechanism backing many Stream sources. Example:
 
 ```java
 import java.util.List;
@@ -74,17 +74,17 @@ List<String> copied = StreamSupport
 System.out.println(copied); // [An, Bình, Chi]
 ```
 
-`StreamSupport.stream(spliterator, false)` tạo stream tuần tự; truyền `true` thì tạo stream có chế độ song song. **Spliterator là nguồn tiêu thụ một lượt**, không phải collection có thể dùng lại: muốn duyệt lại hãy tạo spliterator mới từ nguồn thích hợp.
+`StreamSupport.stream(spliterator, false)` creates a sequential stream; passing `true` creates a stream in parallel mode. **A Spliterator is a single-use source**, not a reusable collection: to traverse again, obtain a new spliterator from an appropriate source.
 
-Tham khảo Javadoc:
+Javadoc references:
 
 - [`Spliterator`, Java 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Spliterator.html)
 - [`StreamSupport`, Java 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/StreamSupport.html)
-- [Package `java.util.stream`: parallelism và non-interference](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html)
+- [Package `java.util.stream`: parallelism and non-interference](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html)
 
-## 3. Hợp đồng `tryAdvance`: không được tự ý mất hoặc nhân bản phần tử
+## 3. `tryAdvance` Contract: Never Drop or Duplicate Elements
 
-`tryAdvance(action)` có nhiệm vụ chuyển giao **tối đa một phần tử** còn lại và tiến trạng thái duyệt:
+`tryAdvance(action)` is responsible for delivering **at most one** remaining element and advancing traversal state:
 
 ```text
 cursor = 0, fence = 3
@@ -96,128 +96,128 @@ tryAdvance(action) -> action(C), true;  cursor = 3
 tryAdvance(action) ->           false; cursor = 3
 ```
 
-Các kiểm chứng cơ bản:
+Basic verifications:
 
-- Với nguồn có `n` phần tử, duyệt đến hết phải gọi action `n` lần nếu không có lỗi.
-- Khi trả `false` vì hết nguồn, không được phát thêm một phần tử.
-- Một lần trả `true` phải tương ứng với **một phần tử** được chuyển cho action.
-- Sau khi đến cuối, các lần gọi tiếp trên trạng thái không đổi tiếp tục cho biết nguồn đã hết.
-- `action` phải khác `null`; implementation có thể kiểm tra bằng `Objects.requireNonNull(action)`.
+- For an `n`-element source, traversing to completion must invoke action `n` times when no errors occur.
+- When returning `false` upon exhaustion, no extra element may be emitted.
+- Every `true` return must correspond to **one element** passed to action.
+- After reaching the end, subsequent calls on unchanged state continue reporting exhaustion.
+- `action` must be non-`null`; implementations may check with `Objects.requireNonNull(action)`.
 
-Không được bỏ qua một phần tử chỉ vì phần tử đó là `null` hoặc không hợp lệ theo nghiệp vụ, trừ khi **nguồn đã được định nghĩa là nguồn có lọc**. Nếu yêu cầu loại bản ghi không hợp lệ, thông thường đặt một bước `filter` hoặc bước kiểm tra dữ liệu tường minh bên trên Spliterator.
+Do not skip an element simply because it is `null` or business-invalid, unless **the source is explicitly defined as a filtered source**. If invalid records must be excluded, typically place a `filter` or explicit validation layer above the Spliterator.
 
-**Lưu ý ngoại lệ:** khi action ném ngoại lệ, không nên suy luận rằng một thao tác duyệt thất bại có thể được chạy lại mà không có rủi ro. Hãy thiết kế chính sách lỗi ở mức pipeline và nguồn.
+**Exception note:** when action throws an exception, do not assume a failed traversal step can be retried safely. Design error policies at the pipeline and source layers.
 
-## 4. Hợp đồng `trySplit`: chia hai miền không chồng lấn
+## 4. `trySplit` Contract: Splitting Two Disjoint Regions
 
-`trySplit()` không đơn giản là “trả về một bản sao”. Với spliterator có các phần tử còn lại `S`, sau khi chia:
+`trySplit()` does not simply "return a copy." Given a spliterator with remaining elements `S`, after splitting:
 
 ```text
-Trước:
+Before:
     current -> S
 
-Sau:
+After:
     prefix = current.trySplit()
     prefix  -> S_left
     current -> S_right
 
-Yêu cầu:
-    S_left ∩ S_right = ∅     (theo VỊ TRÍ phần tử nguồn)
+Requirements:
+    S_left ∩ S_right = ∅     (by source element POSITION)
     S_left ∪ S_right = S
 ```
 
-Với nguồn **`ORDERED`**, `trySplit` phải trả spliterator duyệt một **tiền tố** của các phần tử còn lại và giữ một **hậu tố** trong spliterator ban đầu. Do đó:
+For an **`ORDERED`** source, `trySplit` must return a spliterator traversing a **prefix** of the remaining elements and keep a **suffix** in the original spliterator. Thus:
 
 ```text
-Nguồn:             [A, B, C, D, E, F, G]
-trySplit trả:      [A, B, C]
-current còn lại:           [D, E, F, G]
-Ghép theo thứ tự:  [A, B, C, D, E, F, G]
+Source:            [A, B, C, D, E, F, G]
+trySplit returns:  [A, B, C]
+current remaining:           [D, E, F, G]
+Joined in order:   [A, B, C, D, E, F, G]
 ```
 
-Một phần tử có cùng **giá trị** với phần tử khác vẫn là một **vị trí nguồn khác**. Bởi vậy, không thể chỉ kiểm tra `Set` của đầu ra để tìm lỗi trùng hoặc mất:
+An element with the same **value** as another still occupies a **distinct source position**. Therefore, you cannot simply inspect a `Set` of the output to detect duplicate or missing bugs:
 
 ```text
-Nguồn hợp lệ: [7, 2, 7]
-Sai:         [7, 2]       // mất một vị trí có giá trị 7
-Set cả hai:  {2, 7}      // cùng Set, không chứng minh đúng
+Valid source: [7, 2, 7]
+Wrong:        [7, 2]       // lost one position containing value 7
+Set of both:  {2, 7}       // identical Set, does not prove correctness
 ```
 
-**Hai phép kiểm tra phải có:**
+**Two mandatory checks:**
 
-1. **Độ bao phủ đúng một lần:** số phần tử và số lần xuất hiện của từng giá trị phải khớp nguồn.
-2. **Thứ tự đúng:** nếu báo `ORDERED`, thứ tự kết hợp các phần chia theo tiền tố → hậu tố phải khớp encounter order.
+1. **Exact once-per-position coverage:** element count and occurrence multiplicity of every value must match the source.
+2. **Correct ordering:** if `ORDERED` is declared, concatenating splits in prefix → suffix order must match encounter order.
 
-`trySplit()` được phép trả `null` nếu không thể hoặc không muốn chia thêm; không có yêu cầu mọi nguồn đều phải chia đôi hoàn hảo. Nhưng nếu trả một spliterator khác `null`, phần chia phải có **tiến triển** và không được giữ lại cùng tập phần tử ở cả hai đối tượng.
+`trySplit()` is allowed to return `null` when unable or unwilling to split further; there is no requirement that every source split perfectly in half. However, if a non-`null` spliterator is returned, the split must make **progress** and never retain the same element set in both objects.
 
-## 5. Kích thước: `estimateSize`, `SIZED` và `SUBSIZED`
+## 5. Size: `estimateSize`, `SIZED`, and `SUBSIZED`
 
-Khi nguồn có kích thước chính xác, bộ xử lý song song có thể phân phối công việc tốt hơn. Tuy nhiên, khai báo kích thước sai sẽ phá vỡ giả định của các thao tác như `toArray` hoặc `count`.
+When a source has an exact size, parallel execution can distribute work better. However, misdeclaring size breaks assumptions of operations like `toArray` or `count`.
 
-### 5.1. `SIZED` là lời cam kết, không phải “ước lượng khá đúng”
+### 5.1. `SIZED` is a contract, not "a pretty good estimate"
 
-Nếu spliterator có characteristic `SIZED`, `estimateSize()` phải phản ánh **số phần tử còn lại chính xác** trước khi xử lý, trừ những ngoại lệ liên quan nguồn thay đổi đồng thời theo hợp đồng JDK.
+If a spliterator carries the `SIZED` characteristic, `estimateSize()` must reflect **the exact remaining element count** before processing, barring concurrent source modifications allowed under JDK contracts.
 
-Ví dụ nguồn gồm `8` phần tử:
+Example of an `8`-element source:
 
 ```text
-Trước khi duyệt:  estimateSize() = 8
-Sau 1 tryAdvance: estimateSize() = 7
-Sau 3 tryAdvance: estimateSize() = 5
-Sau khi duyệt hết: estimateSize() = 0
+Before traversal:  estimateSize() = 8
+After 1 tryAdvance: estimateSize() = 7
+After 3 tryAdvance: estimateSize() = 5
+After exhaustion:   estimateSize() = 0
 ```
 
-`getExactSizeIfKnown()` trả kích thước khi `SIZED` có mặt; nếu không có, nó trả `-1` theo mặc định.
+`getExactSizeIfKnown()` returns the size when `SIZED` is present; otherwise, it returns `-1` by default.
 
-### 5.2. `SUBSIZED` mở rộng cam kết sang mọi phần con
+### 5.2. `SUBSIZED` extends the promise to every child part
 
-`SUBSIZED` cho biết spliterator hiện tại và **mọi spliterator được sinh bởi các lần chia tiếp theo** đều `SIZED` và `SUBSIZED`. Đây là lời hứa mạnh hơn `SIZED`.
+`SUBSIZED` indicates that the current spliterator and **every spliterator generated by subsequent splits** are also `SIZED` and `SUBSIZED`. This is a stronger commitment than `SIZED`.
 
-Ví dụ hợp lệ:
+Valid example:
 
 ```text
-parent [0..10): 10 phần tử
+parent [0..10): 10 elements
    │ trySplit()
-   ├─ prefix [0..5):  5 phần tử
-   └─ current [5..10): 5 phần tử
+   ├─ prefix [0..5):   5 elements
+   └─ current [5..10): 5 elements
 
 prefix.trySplit():
-   ├─ prefix [0..2): 2 phần tử
-   └─ current [2..5): 3 phần tử
+   ├─ prefix [0..2): 2 elements
+   └─ current [2..5): 3 elements
 ```
 
-Mỗi phần con biết chính xác độ dài của chính nó. Các lần chia duy trì:
+Each child knows its own exact length. Splits preserve:
 
 \[
-\operatorname{size}(\text{trước chia})
+\operatorname{size}(\text{before split})
 =\operatorname{size}(\text{prefix})
-+\operatorname{size}(\text{current còn lại})
++\operatorname{size}(\text{remaining current})
 \]
 
-Đừng gắn `SUBSIZED` cho một nguồn mà spliterator con cần dò đến EOF mới biết kích thước.
+Never attach `SUBSIZED` to a source whose child spliterators would need to scan to EOF to know their size.
 
-### 5.3. Nguồn có kích thước không xác định
+### 5.3. Sources with undetermined size
 
-Một tệp văn bản đọc dòng, luồng socket hoặc iterator sinh dữ liệu theo điều kiện động thường **không biết trước chính xác số phần tử**. Nếu chưa chứng minh được, bỏ `SIZED` và `SUBSIZED`; `estimateSize` có thể trả một ước lượng hợp lệ hoặc `Long.MAX_VALUE` nếu không xác định.
+A line-oriented text file, socket stream, or dynamically generated iterator usually **does not know the exact element count in advance**. Unless proven, omit `SIZED` and `SUBSIZED`; `estimateSize` can return a valid approximation or `Long.MAX_VALUE` if unknown.
 
-Với `Spliterators.spliteratorUnknownSize(iterator, characteristics)`, không nên truyền `SIZED`/`SUBSIZED` như thể nguồn đã biết kích thước. Một phần con đã materialize dữ liệu vẫn có thể biết kích thước riêng; điều đó không có nghĩa nguồn tổng thể ban đầu có kích thước chính xác.
+With `Spliterators.spliteratorUnknownSize(iterator, characteristics)`, do not pass `SIZED`/`SUBSIZED` pretending the source has a known size. A child chunk that has already materialized data might know its own size, yet that does not mean the overall initial source had an exact size.
 
-## 6. Khai báo `characteristics` phải dựa trên bằng chứng
+## 6. Declaring `characteristics` Must Be Evidence-Based
 
-`Spliterator` định nghĩa các bit đặc tính quan trọng:
+`Spliterator` defines important characteristic bits:
 
-| Characteristic | Ý nghĩa cần bảo đảm | Lỗi thường gặp |
+| Characteristic | Meaning to Guarantee | Common Mistake |
 | --- | --- | --- |
-| `ORDERED` | Có encounter order xác định, và `trySplit` trả tiền tố | Trả hậu tố mà vẫn báo ORDERED |
-| `SIZED` | Biết số phần tử còn lại chính xác theo hợp đồng | Trả kích thước ban đầu sau khi đã duyệt |
-| `SUBSIZED` | Mọi phần con được chia đều SIZED và SUBSIZED | Dựa vào nguồn có độ dài thay đổi |
-| `NONNULL` | Không phát ra phần tử `null` | Nguồn cho phép null nhưng vẫn khai báo |
-| `DISTINCT` | Không có hai phần tử bằng nhau theo `equals` | Lẫn lộn vị trí độc lập với giá trị trùng |
-| `SORTED` | Dữ liệu theo thứ tự comparator hoặc thứ tự tự nhiên | Có ORDERED nhưng không thật sự sắp |
-| `IMMUTABLE` | Nguồn không thể bị sửa cấu trúc khi duyệt | Dùng collection có thể sửa không bảo vệ |
-| `CONCURRENT` | Nguồn cho phép thay đổi đồng thời theo hợp đồng | Tự cho là thread-safe vì dùng parallel stream |
+| `ORDERED` | Defined encounter order, and `trySplit` returns a prefix | Returning suffix while still claiming ORDERED |
+| `SIZED` | Exact remaining element count known per contract | Returning initial size after partial traversal |
+| `SUBSIZED` | All split child parts are also SIZED and SUBSIZED | Relying on variable-length sources |
+| `NONNULL` | Emits no `null` elements | Declaring even though source permits null |
+| `DISTINCT` | No two elements are equal per `equals` | Confusing distinct positions with duplicate values |
+| `SORTED` | Data follows comparator or natural ordering | Having ORDERED without actually being sorted |
+| `IMMUTABLE` | Source structure cannot be modified during traversal | Using unprotected mutable collections |
+| `CONCURRENT` | Source permits concurrent changes per contract | Assuming thread-safety simply from using parallel stream |
 
-Ví dụ kiểm tra bit:
+Example checking bits:
 
 ```java
 int properties = spliterator.characteristics();
@@ -227,41 +227,41 @@ boolean sized = spliterator.hasCharacteristics(Spliterator.SIZED);
 boolean subSized = spliterator.hasCharacteristics(Spliterator.SUBSIZED);
 ```
 
-**Đặc tính là cam kết về nguồn**, không phải nút bật “tăng tốc”. Khai báo nhiều bit hơn thực tế có thể khiến Stream framework dùng những tối ưu hóa không hợp lệ.
+**Characteristics are commitments about the source**, not "speedup" toggles. Declaring more bits than reality can cause the Stream framework to apply invalid optimizations.
 
-### 6.1. `SORTED` không phải `ORDERED`
+### 6.1. `SORTED` is not `ORDERED`
 
-`ORDERED` chỉ nói có một thứ tự gặp phần tử, không nói giá trị được sắp tăng. Nếu khai `SORTED`, spliterator còn phải tuân hợp đồng thứ tự và `getComparator()`:
+`ORDERED` only states there is an element encounter order, not that values are sorted ascending. If declaring `SORTED`, the spliterator must also obey the ordering contract and `getComparator()`:
 
-- Có `SORTED` với thứ tự tự nhiên: `getComparator()` trả `null`.
-- Có `SORTED` theo comparator riêng: trả comparator phù hợp.
-- Không có `SORTED`: `getComparator()` thông thường ném `IllegalStateException`.
+- `SORTED` with natural ordering: `getComparator()` returns `null`.
+- `SORTED` with custom comparator: returns the corresponding comparator.
+- Without `SORTED`: `getComparator()` normally throws `IllegalStateException`.
 
-Không đánh dấu `SORTED` chỉ vì danh sách trong một lần thử tình cờ đã được sắp.
+Never mark `SORTED` simply because a list happened to be sorted in one test run.
 
-### 6.2. `IMMUTABLE` khác bất biến sâu của đối tượng
+### 6.2. `IMMUTABLE` differs from deep object immutability
 
-Một danh sách snapshot không cho thêm/xóa phần tử có thể hỗ trợ đặc tính `IMMUTABLE` về **cấu trúc nguồn**. Nhưng nếu mỗi phần tử là object mutable, các field bên trong vẫn có thể đổi và ảnh hưởng `filter` hoặc `map`. Với nguồn snapshot, cần phân biệt:
+A snapshot list disallowing additions/removals can support `IMMUTABLE` for **source structure**. Yet if each element is a mutable object, internal fields can still mutate and affect `filter` or `map`. For snapshot sources, distinguish:
 
-- **Không đổi tập phần tử và thứ tự**: bảo vệ quyền duyệt.
-- **Không đổi nội dung đối tượng**: là cam kết bổ sung của mô hình dữ liệu, không tự có chỉ vì nguồn là list không thể sửa.
+- **Unchanging element set and order:** protects traversal integrity.
+- **Unchanging object contents:** an additional data-model guarantee, not automatically granted just because the source is an unmodifiable list.
 
-### 6.3. `CONCURRENT` không đồng nghĩa “spliterator này thread-safe”
+### 6.3. `CONCURRENT` does not mean "this spliterator is thread-safe"
 
-`CONCURRENT` là đặc tính của nguồn có hỗ trợ thay đổi đồng thời khi được duyệt; nó không cấp phép gọi đồng thời `tryAdvance` trên **cùng một đối tượng spliterator tùy chỉnh không đồng bộ**. Mô hình chia nguồn thông thường là mỗi nhánh sở hữu một spliterator và duyệt vùng độc lập.
+`CONCURRENT` is a property of a source supporting concurrent modifications while being traversed; it does not authorize concurrent `tryAdvance` calls on **the same unsynchronized custom spliterator object**. The standard partitioning model assigns one spliterator per branch traversing an independent region.
 
-## 7. Ví dụ hoàn chỉnh: spliterator chia theo khoảng chỉ số
+## 7. Complete Example: Index-Range Splitting Spliterator
 
-Để kiểm chứng rõ ràng, ta thiết kế nguồn **snapshot từ `List`**:
+For clear verification, let's design a **snapshot source from a `List`**:
 
-1. Dữ liệu gốc được chuyển thành danh sách không thể sửa đổi bằng `List.copyOf`.
-2. Mỗi spliterator nắm một đoạn **nửa mở** `[cursor, fence)`.
-3. `tryAdvance` đọc đúng vị trí `cursor` rồi tăng chỉ số.
-4. `trySplit` trả **nửa đầu của đoạn còn lại** và cập nhật spliterator hiện tại để giữ nửa sau.
-5. `estimateSize` luôn bằng `fence - cursor`.
-6. Nguồn không chứa `null` do `List.copyOf` từ chối null; có thể khai `NONNULL`.
+1. Input data is copied into an unmodifiable list via `List.copyOf`.
+2. Each spliterator holds a **half-open** range `[cursor, fence)`.
+3. `tryAdvance` reads index `cursor` and increments it.
+4. `trySplit` returns **the first half of the remaining slice** and updates the current spliterator to keep the second half.
+5. `estimateSize` always equals `fence - cursor`.
+6. The source contains no `null` because `List.copyOf` rejects null; `NONNULL` can be declared.
 
-Toàn bộ chương trình sau dùng **JDK 17+**:
+The full program below uses **JDK 17+**:
 
 ```java
 import java.util.ArrayList;
@@ -285,7 +285,7 @@ public final class IndexedSpliteratorDemo {
         IndexRangeSpliterator(List<T> values, int start, int end) {
             this.values = Objects.requireNonNull(values, "values");
             if (start < 0 || end < start || end > values.size()) {
-                throw new IllegalArgumentException("Khoảng chỉ số không hợp lệ");
+                throw new IllegalArgumentException("Invalid index range");
             }
             this.cursor = start;
             this.fence = end;
@@ -313,9 +313,9 @@ public final class IndexedSpliteratorDemo {
             }
 
             int mid = lo + remaining / 2;
-            cursor = mid; // Spliterator hiện tại giữ [mid, fence).
+            cursor = mid; // Current spliterator keeps [mid, fence).
             return new IndexRangeSpliterator<>(values, lo, mid);
-            // Spliterator trả về giữ tiền tố [lo, mid).
+            // Returned spliterator holds prefix [lo, mid).
         }
 
         @Override
@@ -330,7 +330,7 @@ public final class IndexedSpliteratorDemo {
     }
 
     static <T> Spliterator<T> from(List<T> source) {
-        // Snapshot cấu trúc, đồng thời từ chối phần tử null.
+        // Structural snapshot while rejecting null elements.
         List<T> snapshot = List.copyOf(
             Objects.requireNonNull(source, "source")
         );
@@ -367,41 +367,41 @@ public final class IndexedSpliteratorDemo {
 }
 ```
 
-### 7.1. Vì sao các khoảng không chồng lấn?
+### 7.1. Why are the intervals disjoint?
 
-Giả sử trạng thái trước chia là `[lo, fence)` với độ dài `n = fence - lo`. Khi `n >= 2`:
+Suppose pre-split state is `[lo, fence)` with length `n = fence - lo`. When `n >= 2`:
 
 ```text
 mid = lo + n / 2
 
-Con được trả: [lo, mid)
-Cha còn lại:  [mid, fence)
+Returned child: [lo, mid)
+Remaining parent: [mid, fence)
 ```
 
-Hai khoảng **không giao nhau** do một bên loại `mid`, bên còn lại bắt đầu ở `mid`; hợp của chúng đúng bằng `[lo, fence)`. Mỗi khoảng nhỏ hơn khoảng trước, nên các lần chia tiếp theo có tiến triển. Khi chỉ còn 0 hoặc 1 phần tử, `trySplit` trả `null`.
+The two intervals are **disjoint** because one excludes `mid` while the other starts at `mid`; their union equals `[lo, fence)`. Each interval is strictly smaller than before, so subsequent splits make progress. When 0 or 1 elements remain, `trySplit` returns `null`.
 
-### 7.2. Vì sao đặc tính trong ví dụ là hợp lệ?
+### 7.2. Why are the characteristics in the example valid?
 
-| Đặc tính | Bằng chứng |
+| Characteristic | Evidence |
 | --- | --- |
-| `ORDERED` | Từng khoảng duyệt theo chỉ số tăng; `trySplit` trả tiền tố |
-| `SIZED` | `estimateSize() == fence - cursor` luôn chính xác |
-| `SUBSIZED` | Mọi phần con đều có đoạn chỉ số xác định và báo đúng độ dài |
-| `IMMUTABLE` | Mỗi nhánh dùng snapshot cấu trúc do `List.copyOf` tạo |
-| `NONNULL` | `List.copyOf` từ chối phần tử `null` |
-| Không `DISTINCT` | Danh sách có thể chứa nhiều giá trị bằng nhau |
-| Không `SORTED` | Thứ tự nguồn là thứ tự chỉ số, không phải thứ tự so sánh |
-| Không `CONCURRENT` | Không có hợp đồng cho thay đổi cấu trúc nguồn đồng thời |
+| `ORDERED` | Each slice traverses in ascending index order; `trySplit` returns a prefix |
+| `SIZED` | `estimateSize() == fence - cursor` is always exact |
+| `SUBSIZED` | Every child part has a fixed index slice and reports exact length |
+| `IMMUTABLE` | Every branch uses the structural snapshot created by `List.copyOf` |
+| `NONNULL` | `List.copyOf` rejects `null` elements |
+| Not `DISTINCT` | The list may contain equal values |
+| Not `SORTED` | Source order is index order, not comparator sort order |
+| Not `CONCURRENT` | No contract for concurrent structural source modification |
 
-`List.copyOf` không sao chép sâu từng đối tượng. Nếu `T` là object có field mutable, việc thay đổi field từ bên ngoài vẫn có thể ảnh hưởng hành vi mapper. Dùng record hoặc mô hình bất biến khi cần snapshot nội dung, không chỉ snapshot cấu trúc.
+`List.copyOf` does not deep-copy individual objects. If `T` is an object with mutable fields, mutating fields externally can still affect mapper behavior. Use records or immutable models when you need content snapshots, not just structural snapshots.
 
-### 7.3. Quyền sở hữu spliterator sau khi chia
+### 7.3. Spliterator ownership after splitting
 
-Một spliterator không phải thứ nên bị nhiều worker gọi `tryAdvance` đồng thời. Sau khi `trySplit` trả tiền tố, mỗi nhánh có **một đối tượng spliterator** điều khiển đoạn không chồng lấn. Hai đối tượng dùng chung list snapshot để đọc, nhưng không chia sẻ `cursor`; đây là điều kiện quan trọng để chạy song song đúng.
+A spliterator is not meant to have `tryAdvance` called concurrently by multiple workers. After `trySplit` returns a prefix, each branch has **its own spliterator object** governing a disjoint range. Both objects share the read-only snapshot list without sharing `cursor`; this is a crucial condition for sound parallel execution.
 
-## 8. Kiểm thử thủ công mọi nhánh chia trước khi chạy song song
+## 8. Manually Testing Every Split Branch Before Running in Parallel
 
-Một phép thử chỉ gọi `StreamSupport.stream(spliterator, false)` chưa đủ, vì có thể **không hề chạy `trySplit`**. Hãy viết hàm cố tình chia đệ quy đến khi không chia tiếp được, duyệt **nhánh tiền tố trước** rồi **nhánh hậu tố sau**.
+A test calling only `StreamSupport.stream(spliterator, false)` is insufficient because it may **never invoke `trySplit`**. Write a helper that recursively splits until no further split is possible, traversing **the prefix branch first** and **the suffix branch second**.
 
 ```java
 import java.util.ArrayList;
@@ -422,9 +422,9 @@ static <T> List<T> collectEverySplit(Spliterator<T> current) {
 }
 ```
 
-Đây là đoạn mã phương thức trợ giúp đặt trong một lớp Java bất kỳ. Nó đặc biệt phù hợp với spliterator **`ORDERED` có thể chia thành các khoảng tiến triển**. Nếu custom spliterator trả một phần chia không tiến triển (ví dụ trả chính nó), thuật toán đệ quy có thể lặp vô hạn — đó là một lỗi cần phát hiện và sửa trong `trySplit`, không phải một kết quả hợp lệ.
+This helper method can live in any Java class. It is especially suited to **`ORDERED` spliterators that split into shrinking intervals**. If a custom spliterator returns a non-shrinking split (e.g., returning itself), the recursion will loop forever—a bug in `trySplit` to catch and fix, not a valid outcome.
 
-Ví dụ kỳ vọng:
+Expected example:
 
 ```java
 List<Integer> source = List.of(7, 2, 7, 9, 2);
@@ -435,23 +435,23 @@ List<Integer> result = collectEverySplit(
 System.out.println(result); // [7, 2, 7, 9, 2]
 ```
 
-Phép so sánh **danh sách đầy đủ** bắt được cả việc trùng giá trị hợp lệ lẫn việc mất/trùng **vị trí dữ liệu** do chia sai. Đối với nguồn được đánh dấu `UNORDERED`, có thể so sánh **bảng tần suất của các phần tử** và số lượng thay vì áp đặt thứ tự.
+Comparing **full lists** catches both legitimate value duplicates and **data-position losses/duplications** caused by broken splits. For sources marked unordered, compare **element frequency maps** and total counts instead of enforcing order.
 
-### 8.1. Kiểm chứng bằng phương pháp độc lập
+### 8.1. Verification via independent methods
 
-Một bộ kiểm thử đáng tin nên có ít nhất ba cách quan sát:
+A reliable test suite should have at least three ways to observe output:
 
-1. **Nguồn chuẩn**: dữ liệu từ một `List` biết trước.
-2. **Duyệt không chia**: `forEachRemaining` trên một spliterator mới.
-3. **Duyệt đã chia nhiều lần**: `collectEverySplit`.
+1. **Ground-truth source:** data from a known `List`.
+2. **Unsplit traversal:** `forEachRemaining` on a fresh spliterator.
+3. **Multi-level split traversal:** `collectEverySplit`.
 
-Sau đó thêm **pipeline tuần tự** và **pipeline song song** dùng các spliterator mới, rồi đối chiếu với nguồn chuẩn.
+Then add **sequential** and **parallel pipelines** using fresh spliterators and compare against the ground-truth source.
 
-Đừng tái sử dụng spliterator đã bị tiêu thụ trong nhiều phép thử; chính nó đã thay đổi `cursor` và không có thao tác “rewind” chuẩn.
+Never reuse a consumed spliterator across multiple tests; it has already mutated `cursor` and has no standard "rewind" operation.
 
-## 9. JUnit 5: kiểm tra bao phủ, thứ tự, kích thước và dữ liệu biên
+## 9. JUnit 5: Testing Coverage, Ordering, Size, and Boundary Data
 
-Những test sau dùng lớp `IndexedSpliteratorDemo` ở mục 7 và phương thức `collectEverySplit` ở mục 8 (đặt hàm trợ giúp vào lớp test). Ví dụ JUnit Jupiter:
+These tests use `IndexedSpliteratorDemo` from section 7 and `collectEverySplit` from section 8 (helper placed in the test class). JUnit Jupiter example:
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -596,15 +596,15 @@ class IndexedSpliteratorDemoTest {
 }
 ```
 
-**Vì sao dùng `4_097` phần tử trong test?** Độ dài lẻ khiến những lần chia không thể lúc nào cũng chia đôi bằng nhau, giúp phát hiện lỗi off-by-one ở `mid`. Hãy tiếp tục thử các độ dài `0`, `1`, `2`, `3`, `7`, `8`, `9` và các mốc lớn.
+**Why use `4_097` elements in the test?** An odd length prevents splits from always dividing into equal halves, helping expose off-by-one bugs in `mid`. Continue testing lengths `0`, `1`, `2`, `3`, `7`, `8`, `9`, and large sizes.
 
-Ngoài việc so sánh kết quả, kiểm thử **trạng thái sau mỗi thao tác**: `tryAdvance` làm kích thước giảm đúng một; `trySplit` bảo toàn tổng kích thước; mọi nhánh mới đều báo `SUBSIZED` đúng nếu nguồn công bố đặc tính đó.
+Beyond comparing outputs, test **state after each operation**: `tryAdvance` decrements size by exactly one; `trySplit` conserves total size; every new branch properly reports `SUBSIZED` if the source declares that characteristic.
 
-## 10. Kiểm chứng chính xác bằng chỉ số khi giá trị có thể trùng
+## 10. Exact Verification via Keys When Values Can Repeat
 
-`List.equals` bắt được sai lệch trên nguồn ordered, nhưng với nguồn unordered và nhiều giá trị bằng nhau, nên xây một phép thử **tần suất**.
+`List.equals` catches discrepancies on ordered sources, yet for unordered sources with many equal values, build a **frequency** check.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.List;
@@ -626,22 +626,22 @@ List<Integer> output = List.of(2, 1, 2, 1, 2);
 System.out.println(frequency(input).equals(frequency(output))); // true
 ```
 
-Trên nguồn unordered, test nên xác nhận **tần suất** và **số lượng tổng**, thay vì dùng `Set` vì `Set` loại thông tin về số lần xuất hiện. Với đối tượng không có `equals`/`hashCode` theo định danh nghiệp vụ, có thể gắn mỗi phần tử một **ID duy nhất** trong dữ liệu thử hoặc ánh xạ sang ID trước khi so sánh.
+On unordered sources, tests should assert **frequencies** and **total count**, rather than using a `Set`, since `Set` discards occurrence counts. For objects lacking business-identity `equals`/`hashCode`, attach a **unique ID** to each element in test data or map to IDs before comparing.
 
-Nếu custom spliterator tự tạo đối tượng mới trong `tryAdvance`, hãy xác định tính đúng dựa trên **bản ghi logic** (ID, vị trí, nội dung) thay vì bắt buộc so sánh tham chiếu object.
+If a custom spliterator constructs new objects inside `tryAdvance`, verify correctness based on **logical records** (ID, position, content) rather than insisting on object reference equality.
 
-### 10.1. Vì sao tổng `count` riêng lẻ chưa đủ?
+### 10.1. Why is total `count` alone insufficient?
 
-Nguồn `[1,2,3,4]` và đầu ra sai `[1,2,2,4]` đều có `count == 4`. Tổng số phần tử đúng nhưng ID `3` đã mất và ID `2` bị lặp. Cần kết hợp:
+Source `[1,2,3,4]` and buggy output `[1,2,2,4]` both have `count == 4`. Total element count matches, yet ID `3` was lost and ID `2` was duplicated. Combine:
 
-- Đếm phần tử.
-- Đếm tần suất từng ID.
-- Kiểm tra thứ tự khi có `ORDERED`.
-- Kiểm tra tính nhất quán khi chia nhiều cấp.
+- Element count.
+- Frequency count per ID.
+- Ordering check when `ORDERED`.
+- Consistency checks across multi-level splits.
 
-## 11. Thứ tự dữ liệu khác thứ tự chạy song song
+## 11. Data Order Differs from Parallel Execution Order
 
-Đặc tính `ORDERED` khẳng định **encounter order** của các phần tử, không phải thứ tự thực thi lambda ở các thread.
+The `ORDERED` characteristic asserts element **encounter order**, not the execution order of lambdas across threads.
 
 ```java
 List<Integer> input = java.util.stream.IntStream.range(0, 100)
@@ -656,89 +656,89 @@ System.out.println(orderedResult.get(0)); // 0
 System.out.println(orderedResult.get(1)); // 2
 ```
 
-Với stream ordered, `toList()` bảo toàn encounter order trong kết quả, kể cả khi các phần được thực thi đồng thời. Nhưng:
+For an ordered stream, `toList()` preserves encounter order in the result even when chunks execute concurrently. However:
 
 ```java
 IndexedSpliteratorDemo.stream(input, true)
     .forEach(System.out::println);
-// Thứ tự in ra không được bảo đảm là 0, 1, 2, ..., 99.
+// Output printing order is not guaranteed to be 0, 1, 2, ..., 99.
 ```
 
-`forEach` trên parallel stream không bảo đảm encounter order; `forEachOrdered` yêu cầu quan sát phần tử theo encounter order nhưng có thể phải đánh đổi chi phí phối hợp.
+`forEach` on a parallel stream does not guarantee encounter order; `forEachOrdered` enforces observing elements in encounter order at the potential cost of coordination overhead.
 
-**Không** dùng log thời điểm chạy `map` hoặc `peek` làm bằng chứng rằng custom spliterator giữ đúng thứ tự. Hãy kiểm tra **kết quả đầu ra theo hợp đồng**, ví dụ `toList()` hoặc một lần duyệt tiền tố → hậu tố bằng tay.
+**Never** use `map` or `peek` timestamp logs as proof that a custom spliterator preserves order. Verify **contracted output results**, such as `toList()` or a manual prefix → suffix traversal.
 
-### 11.1. `findFirst` và `findAny`
+### 11.1. `findFirst` and `findAny`
 
-Với stream ordered:
+For an ordered stream:
 
-- `findFirst` tìm phần tử đầu tiên theo encounter order.
-- `findAny` có thể trả phần tử bất kỳ, đặc biệt khi chạy song song.
+- `findFirst` returns the first element according to encounter order.
+- `findAny` may return any element, especially when running in parallel.
 
-Nếu `trySplit` trả **hậu tố** nhưng spliterator vẫn khai `ORDERED`, những phép phụ thuộc thứ tự như `findFirst`, `limit` hoặc `takeWhile` có thể cho kết quả sai.
+If `trySplit` returns the **suffix** while the spliterator still declares `ORDERED`, order-sensitive operations such as `findFirst`, `limit`, or `takeWhile` can return wrong results.
 
-### 11.2. `sorted` không sửa được mọi lỗi của nguồn
+### 11.2. `sorted` cannot fix every source bug
 
-`sorted` sắp xếp **các phần tử nó nhận được**. Nếu spliterator nguồn đã bỏ sót bản ghi hay phát trùng một ID, `sorted` chỉ sắp xếp tập dữ liệu **đã sai**; nó không thể tái tạo phần tử bị mất.
+`sorted` sorts **the elements it receives**. If the source spliterator dropped a record or duplicated an ID, `sorted` merely sorts the **already-corrupted** dataset; it cannot resurrect lost elements.
 
-## 12. Các lỗi phổ biến khi cài đặt `trySplit`
+## 12. Common Mistakes When Implementing `trySplit`
 
-### 12.1. Quên di chuyển biên của spliterator hiện tại
+### 12.1. Forgetting to advance the current spliterator's boundary
 
-Sai:
+Wrong:
 
 ```java
-// Ý tưởng lỗi: tạo tiền tố nhưng current vẫn giữ nguyên [cursor, fence).
+// Buggy idea: creates prefix while current still keeps [cursor, fence).
 // return new IndexRangeSpliterator<>(values, cursor, mid);
 ```
 
-Sau khi trả tiền tố `[cursor, mid)`, spliterator ban đầu vẫn duyệt lại từ `cursor`, gây **trùng phần tử**. Phải cập nhật `cursor = mid` khi tách, giống ví dụ đầy đủ.
+After returning prefix `[cursor, mid)`, the original spliterator still traverses from `cursor`, causing **duplicate elements**. You must update `cursor = mid` when splitting, as in the complete example.
 
-### 12.2. Bỏ sót phần tử tại biên
+### 12.2. Skipping an element at the boundary
 
-Sai:
+Wrong:
 
 ```java
-// Ý tưởng lỗi:
+// Buggy idea:
 // current.cursor = mid + 1;
 // return new IndexRangeSpliterator<>(values, lo, mid);
 ```
 
-Cả nhánh tiền tố `[lo, mid)` lẫn hậu tố `[mid+1, fence)` đều không chứa phần tử tại chỉ số `mid`. Độ dài đầu ra giảm một so với nguồn.
+Neither the prefix `[lo, mid)` nor the suffix `[mid+1, fence)` contains the element at index `mid`. Output length shrinks by one compared to the source.
 
-### 12.3. Trả hậu tố khi đã khai `ORDERED`
+### 12.3. Returning the suffix when `ORDERED` is declared
 
-Với ordered spliterator, nhánh trả từ `trySplit` phải là **tiền tố** của các phần tử còn lại. Nếu trả hậu tố rồi giữ tiền tố ở đối tượng hiện tại, tổng phần tử có thể vẫn đủ, nhưng phép xử lý cần encounter order sẽ gặp kết quả không đúng hợp đồng.
+For an ordered spliterator, the branch returned from `trySplit` must be a **prefix** of the remaining elements. Returning the suffix and keeping the prefix in the current instance might preserve total element count, yet operations requiring encounter order will see contract-violating results.
 
-### 12.4. Trả chính `this` như một phần chia
+### 12.4. Returning `this` as a split part
 
-Trả cùng một object hoặc hai spliterator cùng quản lý một con trỏ làm mất **ownership độc lập**, gây trùng, mất hoặc race khi hai nhánh chạy song song. `trySplit` phải trả một spliterator con đại diện cho phần dữ liệu **không chồng lấn**.
+Returning the same object or two spliterators sharing one cursor destroys **independent ownership**, causing duplicates, losses, or races when two branches run in parallel. `trySplit` must return a child spliterator representing a **disjoint** data slice.
 
-### 12.5. Trả `SIZED` nhưng không cập nhật `estimateSize`
+### 12.5. Declaring `SIZED` without updating `estimateSize`
 
-Nếu `tryAdvance` đã duyệt ba phần tử mà `estimateSize` vẫn trả kích thước ban đầu, đặc tính `SIZED` bị khai báo sai. Các phép tối ưu hóa dựa trên kích thước có thể bị ảnh hưởng.
+If `tryAdvance` has already traversed three elements while `estimateSize` still returns the initial size, `SIZED` is falsely declared. Size-based optimizations can break.
 
-### 12.6. Khai `DISTINCT` dù dữ liệu nguồn có bản ghi trùng
+### 12.6. Declaring `DISTINCT` despite duplicate records in source data
 
-Nếu input có hai phần tử bằng nhau theo `equals`, khai `DISTINCT` là sai, dù hai phần tử đến từ hai vị trí hoặc hai nguồn khác nhau. Các phép như `distinct()` có thể dựa vào characteristic nguồn để tối ưu; kết quả không còn đúng khi tuyên bố sai.
+If the input has two elements equal per `equals`, declaring `DISTINCT` is wrong even if they come from two different positions or sources. Operations like `distinct()` may trust the source characteristic to optimize; outputs become wrong when falsely declared.
 
-### 12.7. Lạm dụng `IMMUTABLE` hoặc `CONCURRENT`
+### 12.7. Misusing `IMMUTABLE` or `CONCURRENT`
 
-Khi phần tử bị thêm/xóa trong lúc duyệt mà implementation không hỗ trợ, nguồn có thể thiếu, trùng hoặc ném lỗi. Không khai `IMMUTABLE` cho một `ArrayList` mutable chưa snapshot; không khai `CONCURRENT` chỉ vì ứng dụng muốn chạy `parallelStream()`.
+When elements are added or removed during traversal without implementation support, the source may miss items, duplicate items, or throw errors. Never declare `IMMUTABLE` for an unsnapshotted mutable `ArrayList`; never declare `CONCURRENT` just because an application wants to call `parallelStream()`.
 
-## 13. Mutation, late binding và quyền sở hữu nguồn
+## 13. Mutation, Late Binding, and Source Ownership
 
-Nguồn collection có thể thay đổi theo thời gian. Khi tùy chỉnh spliterator, bạn nên quyết định rõ một trong những mô hình:
+Collection sources can change over time. When customizing a spliterator, explicitly choose one of these models:
 
-1. **Snapshot bất biến:** sao chép cấu trúc trước khi duyệt; dễ chứng minh `SIZED` và `SUBSIZED`.
-2. **Late-binding:** chỉ ràng buộc vào tập phần tử khi bắt đầu duyệt hoặc chia, nhưng phải mô tả rõ khả năng quan sát thay đổi trước đó và chính sách với thay đổi sau khi đã bắt đầu.
-3. **Nguồn thay đổi đồng thời:** yêu cầu cấu trúc và thuật toán thực sự hỗ trợ traversal trong điều kiện concurrent modification.
+1. **Immutable snapshot:** copy the structure before traversal; makes `SIZED` and `SUBSIZED` easy to prove.
+2. **Late-binding:** bind to the element set only when traversal or splitting starts, while clearly documenting visibility of prior edits and policy for edits after binding.
+3. **Concurrently modifiable source:** requires a data structure and algorithm that genuinely support traversal under concurrent modifications.
 
-Ví dụ `IndexedSpliteratorDemo.from` cố ý chọn **snapshot**, khiến việc thêm/xóa phần tử trong `List` ban đầu **không đổi kết quả duyệt**. Đây là cách đánh đổi thêm bộ nhớ để đơn giản hóa hợp đồng và tránh lỗi race ở cấu trúc nguồn.
+The `IndexedSpliteratorDemo.from` example intentionally picks **snapshot**, ensuring additions or removals in the original `List` **do not alter traversal output**. This trades extra memory to simplify the contract and eliminate structural races.
 
-### 13.1. Supplier overload của `StreamSupport`
+### 13.1. `StreamSupport`'s Supplier overload
 
-`StreamSupport` còn có overload nhận supplier spliterator:
+`StreamSupport` also has an overload taking a spliterator supplier:
 
 ```java
 static <T> Stream<T> stream(
@@ -748,9 +748,9 @@ static <T> Stream<T> stream(
 )
 ```
 
-Supplier được dùng để tạo spliterator khi terminal operation bắt đầu, giúp giảm khoảng thời gian giữa việc gắn nguồn và lúc duyệt. **Những characteristic truyền vào `stream` phải khớp với spliterator mà supplier trả về**; không được khai một tập bit khác để mong tối ưu.
+The supplier is invoked to create the spliterator when the terminal operation starts, narrowing the gap between wiring the source and starting traversal. **The characteristics passed to `stream` must match the spliterator returned by the supplier**; you must not supply a different bitmask hoping to optimize.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 import java.util.List;
@@ -774,18 +774,18 @@ Stream<Integer> stream = StreamSupport.stream(
 System.out.println(stream.toList()); // [4, 5, 6]
 ```
 
-**Cẩn trọng:** supplier overload không tự làm nguồn mutable trở nên thread-safe. Nếu `original` bị sửa đồng thời ngay khi supplier copy, vẫn cần đồng bộ hoặc chính sách snapshot phù hợp. Với dữ liệu nguồn lớn, chi phí snapshot cũng phải được cân nhắc.
+**Caution:** the supplier overload does not automatically make a mutable source thread-safe. If `original` is modified concurrently right while the supplier copies it, you still need synchronization or an appropriate snapshot policy. For large datasets, snapshot memory cost must also be weighed.
 
-## 14. Nguồn I/O và kích thước không biết trước
+## 14. I/O Sources and Unknown Sizes
 
-Một file văn bản có bao nhiêu dòng thường **không biết trước** khi mở. Không nên giả định có thể chia theo khoảng byte như chia một `List` theo chỉ số, bởi:
+How many lines a text file contains is typically **unknown upfront** when opened. Do not assume you can split by byte ranges like index-splitting a `List`, because:
 
-- Mã hóa văn bản có thể dùng số byte khác nhau cho một ký tự.
-- Ranh giới dòng có thể nằm giữa các đoạn dữ liệu.
-- Phân chia byte không khéo có thể cắt một dòng thành hai hoặc bỏ mất dòng.
-- Nguồn có thể thay đổi hoặc gặp lỗi đọc khi đang duyệt.
+- Text encodings may use variable numbers of bytes per character.
+- Line boundaries can fall across chunk boundaries.
+- Naive byte splitting can cut a single line in half or drop lines.
+- The source can change or hit read errors mid-traversal.
 
-Với nguồn tuần tự dùng `Iterator`, có thể sử dụng tiện ích chuẩn:
+For sequential sources using an `Iterator`, standard utilities can be used:
 
 ```java
 import java.io.BufferedReader;
@@ -816,96 +816,96 @@ static long countLines(Path path) throws IOException {
 }
 ```
 
-Ví dụ này giữ `BufferedReader` mở cho đến sau terminal operation rồi đóng bằng `try-with-resources`. `Spliterators.spliteratorUnknownSize` không được quảng cáo nguồn tổng thể là `SIZED`; nếu cần đọc nhiều tệp, phải định nghĩa thêm quyền sở hữu từng reader/stream con.
+This example keeps `BufferedReader` open until after the terminal operation and closes it via `try-with-resources`. `Spliterators.spliteratorUnknownSize` must not advertise the overall source as `SIZED`; if reading multiple files, ownership of each sub-reader/stream must also be defined.
 
-**Điều không nên làm:** dùng `Files.size(path)` (số **byte**) làm số phần tử của một spliterator phát **dòng** rồi khai `SIZED`. Số byte không phải số dòng. Một số nguồn có thể cung cấp metadata đủ tin cậy để biết chính xác số bản ghi, nhưng cần kiểm chứng metadata đó thật sự tương ứng với phép duyệt.
+**What never to do:** pass `Files.size(path)` (**byte** count) as the element count of a **line**-emitting spliterator and declare `SIZED`. Byte count is not line count. Some sources may supply reliable metadata giving exact record counts, yet you must verify that metadata truly matches traversal output.
 
-### 14.1. `StreamSupport.stream` không tự quản lý close của nguồn I/O
+### 14.1. `StreamSupport.stream` does not auto-manage I/O source closing
 
-`StreamSupport.stream(spliterator, ...)` tạo một stream dựa trên spliterator nhưng không tự biết phải đóng `BufferedReader` hoặc file descriptor nào do ứng dụng sở hữu. Terminal operation như `count` không phải là lệnh đóng tài nguyên. Hãy dùng `try-with-resources` với owner thích hợp; nếu tạo stream có vòng đời riêng, có thể dùng `onClose`, nhưng caller vẫn phải đóng stream.
+`StreamSupport.stream(spliterator, ...)` creates a stream backed by a spliterator without knowing which `BufferedReader` or file descriptor the application owns. Terminal operations like `count` are not resource-closing commands. Use `try-with-resources` with the right owner; if creating a stream with its own lifecycle, use `onClose`, though callers must still close the stream.
 
-## 15. Tính đúng khi song song: ba loại kiểm chứng riêng
+## 15. Parallel Correctness: Three Distinct Verification Categories
 
-Một custom spliterator có thể cho kết quả đúng tuần tự mà vẫn sai khi song song. Khi đánh giá, chia vấn đề thành ba loại:
+A custom spliterator can produce right sequential results yet fail in parallel. When evaluating, split verification into three categories:
 
-### 15.1. Kiểm chứng chức năng
+### 15.1. Functional verification
 
-So sánh danh sách/tần suất/ID với một **oracle** đáng tin như `List` nguồn, kể cả:
+Compare lists/frequencies/IDs against a reliable **oracle** such as the source `List`, including:
 
-- Nguồn rỗng và singleton.
-- Số phần tử chẵn và lẻ.
-- Giá trị trùng nhau.
-- Nhiều lần chia sâu.
-- Các trường hợp ở biên `start`, `mid`, `fence`.
-- Nguồn thay đổi trước/sau khi tạo spliterator (theo mô hình đã chọn).
+- Empty and singleton sources.
+- Even and odd element counts.
+- Duplicate values.
+- Deep multi-level splits.
+- Boundary cases at `start`, `mid`, and `fence`.
+- Source modifications before/after spliterator creation (per chosen model).
 
-### 15.2. Kiểm chứng hợp đồng thứ tự
+### 15.2. Ordering contract verification
 
-Nếu báo `ORDERED`:
+If `ORDERED` is declared:
 
-- `trySplit` phải trả tiền tố.
-- Duyệt các phần chia theo thứ tự tiền tố → hậu tố phải đúng dãy gốc.
-- `StreamSupport.stream(spliterator, true).toList()` phải tương ứng dãy gốc.
-- Không dùng thứ tự in log của `forEach` làm bằng chứng.
+- `trySplit` must return a prefix.
+- Traversing split parts in prefix → suffix order must match the original sequence.
+- `StreamSupport.stream(spliterator, true).toList()` must match the original sequence.
+- Never use `forEach` log printing order as evidence.
 
-Với nguồn unordered, chỉ kiểm chứng **tần suất và nội dung**, không áp thứ tự không được cam kết.
+For unordered sources, verify only **frequencies and contents**, without enforcing unpromised ordering.
 
-### 15.3. Kiểm chứng về hiệu năng và tài nguyên
+### 15.3. Performance and resource verification
 
-Sau khi chứng minh đúng, mới đo:
+Only after proving correctness should you measure:
 
-| Chỉ số | Vì sao cần xem? |
+| Metric | Why Inspect It? |
 | --- | --- |
-| Thời gian pipeline tuần tự/song song | Xác định song song có thực sự có lợi không |
-| Kích thước các phần chia | Phát hiện phân hoạch cực lệch, tạo mất cân bằng |
-| Số phần chia | Tránh tạo quá nhiều tác vụ nhỏ |
-| CPU và bộ nhớ | Nhận diện allocation và chi phí quản lý snapshot |
-| Độ trễ nguồn I/O | Nguồn chậm có thể làm chia thêm không có lợi |
-| Số file/tài nguyên đang mở | Không được rò rỉ do nguồn tùy chỉnh |
+| Sequential/parallel pipeline duration | Determine whether parallelism actually pays off |
+| Split chunk sizes | Detect heavily skewed splits causing load imbalance |
+| Number of splits | Avoid spawning too many tiny tasks |
+| CPU and memory | Identify allocation and snapshot management overhead |
+| I/O source latency | Slow sources can make extra splitting counterproductive |
+| Open file/resource count | Ensure zero leaks from custom sources |
 
-Đừng giả định `trySplit` cân bằng hoàn hảo hoặc số lời gọi tương ứng với số luồng CPU. Framework có quyền chọn cách phân công. Một benchmark đáng tin phải có warm-up, đầu vào đại diện và cách đo phù hợp (ví dụ JMH ở quy trình tối ưu chuyên biệt).
+Never assume `trySplit` balances perfectly or call counts match CPU thread counts. The framework decides how to schedule work. Reliable benchmarks require warm-up, representative inputs, and proper tooling (e.g., JMH in dedicated optimization workflows).
 
-## 16. Một bản đồ tư duy khi thiết kế nguồn tùy chỉnh
+## 16. Mental Checklist When Designing Custom Sources
 
-| Câu hỏi | Quyết định và kiểm chứng |
+| Question | Decision and Verification |
 | --- | --- |
-| Mỗi vị trí nguồn sẽ được phát mấy lần? | Đúng **một lần**, không mất/trùng |
-| Nếu chia nguồn, các phần con quản lý phần nào? | Hợp không thiếu; giao không chồng lấn theo vị trí |
-| Nguồn có encounter order không? | Nếu có, trả **tiền tố** từ `trySplit` |
-| Kích thước có chính xác không? | Chỉ khai `SIZED` khi thật sự biết |
-| Các phần con đều có kích thước chính xác không? | Chỉ khai `SUBSIZED` khi chứng minh được |
-| Nguồn có phần tử `null` không? | Chỉ khai `NONNULL` nếu bảo đảm không phát null |
-| Dữ liệu đã sắp chưa? | Chỉ khai `SORTED` và trả comparator đúng hợp đồng |
-| Có giá trị trùng nhau không? | Đừng khai `DISTINCT` nếu có |
-| Cấu trúc nguồn có đổi khi duyệt không? | Chọn snapshot, late-binding hoặc concurrent semantics rõ ràng |
-| Có tài nguyên ngoài cần đóng không? | Xác định owner, `try-with-resources` và close handler |
-| Có thể dùng chung một spliterator giữa thread không? | Không mặc định; chia thành các object sở hữu miền độc lập |
-| Test tuần tự đã đủ chưa? | Chưa; ép chia thủ công nhiều cấp và so sánh chạy song song |
-| Chỉ `count` khớp đã chứng minh đúng chưa? | Chưa; kiểm tần suất, thứ tự, kích thước và các biên |
-| Có nên thêm `parallel()` không? | Chỉ sau khi đúng và có benchmark |
+| How many times will each source position be emitted? | Exactly **once**, no losses or duplicates |
+| When splitting, which parts do child branches manage? | Union covers everything; intersection by position is empty |
+| Does the source have an encounter order? | If yes, return a **prefix** from `trySplit` |
+| Is the size exact? | Declare `SIZED` only when genuinely known |
+| Do all child parts also have exact sizes? | Declare `SUBSIZED` only when proven |
+| Can the source contain `null` elements? | Declare `NONNULL` only if guaranteed never to emit null |
+| Is data sorted? | Declare `SORTED` only with a compliant comparator |
+| Can duplicate values appear? | Omit `DISTINCT` if so |
+| Can source structure change during traversal? | Choose clear snapshot, late-binding, or concurrent semantics |
+| Are there external resources to close? | Define owner, `try-with-resources`, and close handlers |
+| Can one spliterator be shared across threads? | Not by default; split into objects owning disjoint regions |
+| Is sequential testing enough? | No; force multi-level manual splits and compare parallel runs |
+| Does matching `count` prove correctness? | No; verify frequencies, ordering, sizes, and boundaries |
+| Should `parallel()` be enabled? | Only after proving correctness and benchmarking |
 
-## 17. Bài tập thực hành
+## 17. Practice Exercises
 
-**Bài 1 — Tìm lỗi chồng lấn.** Một spliterator xử lý `[start,end)`, khi chia trả `[start,mid)` nhưng quên cập nhật `start` của đối tượng hiện tại. Dùng dãy ID `0..7` để chỉ ra phần tử nào bị lặp, sửa lại `trySplit` và viết test đếm tần suất từng ID.
+**Exercise 1 — Finding an overlap bug.** A spliterator handles `[start,end)`, returns `[start,mid)` on split, yet forgets to update `start` on the current object. Using IDs `0..7`, show which elements repeat, fix `trySplit`, and write a test counting each ID's frequency.
 
-**Bài 2 — Lỗi mất phần tử ở biên.** Sau khi chia tại `mid`, một lập trình viên đặt `start = mid + 1` cho đối tượng gốc. Viết test cho các độ dài `1,2,3,7,8,9` để phát hiện phần tử bị bỏ. Giải thích lý do các khoảng **nửa mở** là mô hình hữu ích.
+**Exercise 2 — Boundary omission bug.** After splitting at `mid`, a developer sets `start = mid + 1` on the original object. Write tests for lengths `1,2,3,7,8,9` to detect the dropped element. Explain why **half-open** intervals are a useful model.
 
-**Bài 3 — Khai báo đặc tính.** Với danh sách snapshot `[3,1,3]` được duyệt theo chỉ số, chọn các bit phù hợp trong `ORDERED`, `SIZED`, `SUBSIZED`, `DISTINCT`, `SORTED`, `NONNULL` và `IMMUTABLE`. Giải thích vì sao `ORDERED` không kéo theo `SORTED`.
+**Exercise 3 — Declaring characteristics.** For a snapshot list `[3,1,3]` traversed by index, pick the valid bits among `ORDERED`, `SIZED`, `SUBSIZED`, `DISTINCT`, `SORTED`, `NONNULL`, and `IMMUTABLE`. Explain why `ORDERED` does not imply `SORTED`.
 
-**Bài 4 — Kiểm chứng song song.** Dùng `IndexedSpliteratorDemo.stream(source,true)` trên `20_000` ID duy nhất, so với `source` bằng `toList`. Sau đó kiểm thử nguồn có các ID lặp; chỉ so sánh `Set` có phát hiện mọi lỗi không? Viết cách dùng tần suất.
+**Exercise 4 — Parallel verification.** Run `IndexedSpliteratorDemo.stream(source,true)` on `20_000` unique IDs and compare with `source` via `toList`. Then test a source with duplicate IDs; does comparing `Set` alone catch every bug? Write a frequency-based check.
 
-**Bài 5 — `estimateSize`.** Tạo spliterator có `9` phần tử, chia một lần rồi tính tổng `estimateSize` của hai nhánh. Duyệt hai phần tử ở nhánh tiền tố, kiểm tra kích thước còn lại. Giải thích khi nào được khai `SIZED` và `SUBSIZED`.
+**Exercise 5 — `estimateSize`.** Create a spliterator with `9` elements, split once, and sum `estimateSize` of both branches. Traverse two elements from the prefix branch and check the remaining size. Explain when `SIZED` and `SUBSIZED` may be declared.
 
-**Bài 6 — Comparator và `SORTED`.** Tạo một spliterator duyệt danh sách các số theo thứ tự `[1,2,3,4]` và công bố `SORTED`. Nêu yêu cầu của `getComparator`. Sau đó đổi dữ liệu thành `[1,3,2,4]` và phân tích vì sao không thể tiếp tục báo `SORTED`.
+**Exercise 6 — Comparator and `SORTED`.** Create a spliterator traversing `[1,2,3,4]` in order and declaring `SORTED`. State the requirement on `getComparator`. Then change data to `[1,3,2,4]` and explain why `SORTED` can no longer be declared.
 
-**Bài 7 — Nguồn I/O không biết độ dài.** Dùng `BufferedReader.lines()` và `Spliterators.spliteratorUnknownSize` để đếm dòng. Xác định tài nguyên nào phải được đóng, vì sao số byte của file không phải số phần tử, và khác biệt giữa nguồn rỗng với lỗi đọc file.
+**Exercise 7 — Unknown-length I/O source.** Use `BufferedReader.lines()` and `Spliterators.spliteratorUnknownSize` to count lines. Identify which resource must be closed, why file byte size is not element count, and the difference between an empty source and a file-read error.
 
-**Bài 8 — Kiểm thử tính bất biến nguồn.** Tạo `ArrayList<Integer>`, sinh spliterator snapshot, sau đó thêm và xóa phần tử từ `ArrayList` gốc. Kiểm chứng kết quả snapshot giữ đúng dữ liệu đã sao chép. Giải thích vì sao nội dung object mutable vẫn có thể thay đổi dù cấu trúc đã snapshot.
+**Exercise 8 — Testing source immutability.** Create an `ArrayList<Integer>`, obtain a snapshot spliterator, then add and remove elements from the original `ArrayList`. Verify the snapshot preserves the copied data. Explain why mutable object contents can still change even when structure is snapshotted.
 
-**Bài 9 — Chi phí phân chia.** Với nguồn có `1_000_000` phần tử và mỗi mapper chỉ thực hiện một phép cộng đơn giản, so sánh tuần tự và song song. Theo dõi thời gian, allocation và số phần chia; giải thích vì sao việc tạo quá nhiều tác vụ có thể làm xử lý chậm đi.
+**Exercise 9 — Splitting overhead.** With a `1_000_000`-element source where each mapper only performs simple addition, compare sequential and parallel execution. Observe timing, allocations, and split counts; explain why spawning too many tasks can slow processing down.
 
-## 18. Kết luận và nguyên tắc áp dụng
+## 18. Conclusion and Guiding Principles
 
-`Spliterator` là nơi Java Stream API nhận **các phần tử và những lời cam kết về nguồn**. Khi tự cài đặt, điều quan trọng không phải chỉ là viết `trySplit` có trả một đối tượng mới, mà là chứng minh rằng **mọi phần chia tạo ra một phân hoạch chính xác, không chồng lấn, không bỏ sót và bảo toàn encounter order nếu nguồn đã khai `ORDERED`**.
+`Spliterator` is where the Java Stream API receives **elements and guarantees about the source**. When implementing one yourself, what matters is not merely writing a `trySplit` that returns a new object, but proving that **every split produces an exact partition, without overlap or omissions, while preserving encounter order if `ORDERED` is declared**.
 
-Hãy bắt đầu từ một nguồn nhỏ có dữ liệu chuẩn, kiểm thử `tryAdvance` và `estimateSize`, sau đó cố tình gọi `trySplit` nhiều cấp và đối chiếu đầu ra với nguồn gốc. Chỉ khi các đặc tính `SIZED`, `SUBSIZED`, `NONNULL`, `IMMUTABLE` hoặc `SORTED` được chứng minh đúng mới công bố chúng. Cuối cùng mới đánh giá xử lý song song, quản lý tài nguyên và hiệu năng. Quy trình đó giúp các pipeline khai báo với `filter`, `map`, `reduce`, `collect` và các collector nhiều tầng nhận đúng dữ liệu ngay từ bước nguồn.
+Start from a small source with known data, test `tryAdvance` and `estimateSize`, then deliberately invoke multi-level `trySplit` and verify output against the ground-truth source. Only publish `SIZED`, `SUBSIZED`, `NONNULL`, `IMMUTABLE`, or `SORTED` once proven true. Only then evaluate parallel execution, resource management, and performance. That workflow ensures declarative pipelines with `filter`, `map`, `reduce`, `collect`, and multi-level collectors receive sound data right from the source stage.

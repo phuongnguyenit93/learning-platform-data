@@ -1,39 +1,39 @@
-# CollationKey khi cần so sánh lặp lại trong Java
+# CollationKey When Repeated Comparisons Are Needed in Java
 
-## 1. Bài toán: sắp xếp tên theo ngôn ngữ mà vẫn hiệu quả
+## 1. The Problem: Sorting Names Linguistically While Staying Efficient
 
-Trong ứng dụng đa ngôn ngữ, so sánh và sắp xếp chuỗi **không đơn giản là so sánh mã Unicode**. Thứ tự chữ cái, dấu, phân biệt hoa–thường và những tổ hợp ký tự có thể khác nhau giữa các ngôn ngữ. Vì thế, Java có `java.text.Collator` để so sánh văn bản theo `Locale`.
+In multilingual applications, comparing and sorting strings **is not simply comparing Unicode code values**. Alphabetical order, accents, case distinction, and character combinations can vary across languages. Therefore, Java provides `java.text.Collator` to compare text by `Locale`.
 
-Giả sử một danh sách tên sản phẩm, tên khách hàng hoặc địa danh có hàng nghìn mục. Khi hiển thị, ứng dụng có thể phải:
+Suppose a list of product names, customer names, or place names has thousands of items. For display, the application may have to:
 
-1. Sắp xếp danh sách lần đầu.
-2. Sắp xếp lại khi dữ liệu được lọc.
-3. Tái sắp xếp theo nhóm, phân trang, hoặc hiển thị trong nhiều bảng.
-4. So sánh nhiều cặp chuỗi trong các phép tìm kiếm hoặc gom nhóm.
+1. Sort the list initially.
+2. Re-sort when the data is filtered.
+3. Reorder by group, paginate, or display across multiple tables.
+4. Compare many string pairs during search or grouping operations.
 
-Nếu dùng `collator.compare(a, b)` cho mọi lần so sánh, mỗi lần có thể phải phân tích lại chữ cái, dấu và các quy tắc collation của hai chuỗi. Nếu các **chuỗi giống nhau được so sánh nhiều lần**, Java cung cấp `CollationKey`: tính trước một dạng khóa sắp xếp cho từng chuỗi rồi so sánh các khóa đã chuẩn bị.
+If `collator.compare(a, b)` is used for every comparison, each call may have to re-analyze the letters, accents, and collation rules of both strings. When **the same strings are compared many times**, Java provides `CollationKey`: precompute a sort key representation for each string and compare the prepared keys.
 
-Điểm cần hiểu:
+Key points to understand:
 
-- **`Collator.compare`**: áp dụng quy tắc so sánh trực tiếp lên hai chuỗi ở thời điểm so sánh.
-- **`Collator.getCollationKey`**: tính trước một biểu diễn so sánh của từng chuỗi dưới **một Collator cụ thể**.
-- **`CollationKey.compareTo`**: so sánh hai khóa đã có, thường tiết kiệm công việc khi cùng dữ liệu phải được so sánh lặp đi lặp lại.
+- **`Collator.compare`**: applies comparison rules directly to two strings at comparison time.
+- **`Collator.getCollationKey`**: precomputes a comparison representation of each string under **a specific Collator**.
+- **`CollationKey.compareTo`**: compares two existing keys, often saving work when the same data must be compared repeatedly.
 
-**CollationKey không thay đổi quy tắc sắp xếp**, không phải bản dịch, không phải cách chuẩn hóa chuỗi chung cho mọi locale. Nó là phương án **đổi chi phí tạo key một lần lấy chi phí so sánh lặp lại thấp hơn**, kèm chi phí bộ nhớ.
+**CollationKey does not change sorting rules**, is not a translation, and is not a universal string normalization across locales. It is a trade-off **exchanging one-time key creation cost for lower repeated comparison cost**, at the expense of memory.
 
-## 2. CollationKey và Collator là gì?
+## 2. What Are CollationKey and Collator?
 
-`Collator` là đối tượng có quy tắc so sánh văn bản theo `Locale`, thường bao gồm:
+`Collator` is an object encapsulating text comparison rules for a `Locale`, typically covering:
 
-- Thứ tự cơ bản của chữ cái;
-- Mức phân biệt dấu/diacritic;
-- Mức phân biệt chữ hoa và chữ thường;
-- Quy tắc về biến thể ký tự, dấu kết hợp và decomposition;
-- Những quy tắc đặc thù ngôn ngữ, như thứ tự chữ cái tiếng Thổ, tiếng Thụy Điển hoặc tiếng Pháp.
+- Base letter order;
+- Accent/diacritic distinction level;
+- Case distinction level;
+- Rules for character variants, combining marks, and decomposition;
+- Language-specific rules, such as Turkish, Swedish, or French letter ordering.
 
-`CollationKey` là đối tượng biểu diễn một chuỗi **theo đúng các quy tắc của Collator đã tạo key**.
+`CollationKey` is an object representing a string **under the exact rules of the Collator that created the key**.
 
-Ví dụ:
+Example:
 
 ```java
 Locale locale = Locale.forLanguageTag("vi-VN");
@@ -45,79 +45,79 @@ CollationKey second = collator.getCollationKey("Bình");
 int order = first.compareTo(second);
 ```
 
-Đây là **đoạn minh họa bên trong method** có import `java.text.Collator`, `java.text.CollationKey` và `java.util.Locale`. `order` mang dấu âm, bằng 0 hoặc dấu dương để thể hiện thứ tự dưới quy tắc collation của formatter này; không nên dựa vào độ lớn tuyệt đối của kết quả `compareTo`.
+This is an **illustrative snippet inside a method** importing `java.text.Collator`, `java.text.CollationKey`, and `java.util.Locale`. `order` is negative, 0, or positive to indicate order under this collator's rules; do not rely on the absolute magnitude of `compareTo`'s return value.
 
-### Bảng API
+### API Table
 
-| API | Đầu vào | Đầu ra / ý nghĩa |
+| API | Input | Output / Meaning |
 | --- | --- | --- |
-| `Collator.getInstance(locale)` | `Locale` | Collator áp dụng các quy tắc của locale |
-| `collator.setStrength(level)` | `PRIMARY`, `SECONDARY`, `TERTIARY`, `IDENTICAL` | Mức khác biệt cần xét |
-| `collator.setDecomposition(mode)` | Ví dụ `CANONICAL_DECOMPOSITION` | Quy tắc xử lý biểu diễn Unicode tổ hợp |
-| `collator.compare(a, b)` | Hai `String` | Giá trị âm/0/dương thể hiện thứ tự |
-| `collator.getCollationKey(s)` | Một `String` | `CollationKey` được tạo từ Collator đó |
-| `keyA.compareTo(keyB)` | Hai khóa **cùng Collator** | Giá trị âm/0/dương |
-| `key.getSourceString()` | Không có tham số | Chuỗi nguồn mà key đại diện |
-| `key.toByteArray()` | Không có tham số | Biểu diễn byte của key; không phải chuỗi dùng để dịch |
-| `CollationKey.equals/hashCode` | Một key khác / không có tham số | Equality và hash của key theo hợp đồng đối tượng |
+| `Collator.getInstance(locale)` | `Locale` | Collator applying rules for the locale |
+| `collator.setStrength(level)` | `PRIMARY`, `SECONDARY`, `TERTIARY`, `IDENTICAL` | Distinction level to consider |
+| `collator.setDecomposition(mode)` | e.g., `CANONICAL_DECOMPOSITION` | Rules for handling composed/decomposed Unicode representations |
+| `collator.compare(a, b)` | Two `String`s | Negative/0/positive value indicating order |
+| `collator.getCollationKey(s)` | One `String` | `CollationKey` created by that Collator |
+| `keyA.compareTo(keyB)` | Two keys **from the same Collator** | Negative/0/positive value |
+| `key.getSourceString()` | No parameters | Source string represented by the key |
+| `key.toByteArray()` | No parameters | Byte representation of the key; not a string for translation |
+| `CollationKey.equals/hashCode` | Another key / no parameters | Equality and hash of the key per object contract |
 
-`CollationKey` là **abstract class** triển khai `Comparable<CollationKey>`. Ứng dụng không tạo nó bằng `new CollationKey(...)`; hãy gọi `Collator.getCollationKey(String)`.
+`CollationKey` is an **abstract class** implementing `Comparable<CollationKey>`. Applications do not instantiate it with `new CollationKey(...)`; call `Collator.getCollationKey(String)`.
 
-**Ràng buộc quan trọng nhất theo Java API:** chỉ so sánh hai `CollationKey` được tạo từ **cùng một `Collator`**. Không trộn key từ `Collator.getInstance(Locale.US)` với key từ một Collator cho `vi-VN` hoặc key được tạo sau khi đã đổi cấu hình Collator. Dù hai Collator có vẻ có cùng locale và cùng thuộc tính, tài liệu Java vẫn không hứa rằng mọi key do hai instance khác nhau tạo ra đều có thể so sánh hợp lệ.
+**Most critical constraint in the Java API:** only compare two `CollationKey`s generated by **the same `Collator`**. Never mix a key from `Collator.getInstance(Locale.US)` with a key from a `vi-VN` Collator, or a key generated after changing the Collator's configuration. Even if two Collators appear to share the same locale and attributes, Java's documentation does not guarantee that keys produced by two different instances are validly comparable.
 
-## 3. Trực tiếp so sánh với Collator hay tính key trước?
+## 3. Direct Collator Comparison or Precomputing Keys?
 
-Giả sử có N tên cần sort. Thuật toán sort thường thực hiện nhiều hơn N phép so sánh (thông thường cỡ N log N với comparison sort). So sánh trực tiếp:
+Suppose there are N names to sort. A sorting algorithm typically performs more than N comparisons (commonly on the order of N log N for comparison sorts). Direct comparison:
 
 ```java
 Collator collator = Collator.getInstance(locale);
 names.sort(collator::compare);
 ```
 
-Với mỗi lần comparator được gọi, `collator.compare(a, b)` xử lý các chuỗi liên quan để tìm thứ tự.
+Each time the comparator is invoked, `collator.compare(a, b)` processes the strings to determine order.
 
-Nếu ta tính key trước:
+If we precompute keys:
 
 ```text
-DANH SÁCH TÊN                    CHUẨN BỊ
+NAME LIST                        PREPARATION
 "An"                           -> keyAn
 "Bình"                         -> keyBinh
 "Chi"                          -> keyChi
 
-SO SÁNH LẶP LẠI
+REPEATED COMPARISONS
 keyAn.compareTo(keyBinh)
 keyAn.compareTo(keyChi)
 keyBinh.compareTo(keyChi)
 ...
 
-Chuỗi chỉ cần được đưa qua getCollationKey một lần
-cho mỗi phần tử trong snapshot dữ liệu đó.
+Each string only goes through getCollationKey once
+for each element in that data snapshot.
 ```
 
-Chi phí được chia thành:
+Costs are split into:
 
-- **Chuẩn bị:** tạo `CollationKey` cho mỗi chuỗi, phải phân tích toàn bộ chuỗi.
-- **So sánh:** `compareTo` trên key thường có lợi khi thực hiện nhiều phép so sánh.
-- **Bộ nhớ:** key có kích thước riêng, không miễn phí.
-- **Bảo trì:** khi chuỗi, locale hoặc quy tắc Collator thay đổi, key cần được tạo lại.
+- **Preparation:** creating a `CollationKey` for each string requires analyzing the whole string.
+- **Comparison:** `compareTo` on keys is often advantageous when performing many comparisons.
+- **Memory:** keys have their own footprint and are not free.
+- **Maintenance:** when strings, locale, or Collator rules change, keys must be regenerated.
 
-### Khi nào thực sự lợi?
+### When Is It Actually Beneficial?
 
-| Tình huống | Cách tiếp cận thường hợp lý |
+| Scenario | Usually sensible approach |
 | --- | --- |
-| So sánh hai chuỗi đúng một lần | `collator.compare(a, b)` thường đơn giản và nhanh hơn |
-| Sort một danh sách lớn | Thử tạo keys trước; có thể tiết kiệm thời gian so sánh |
-| Sort lại cùng tập chuỗi nhiều lần | Tái sử dụng keys phù hợp nếu config không đổi |
-| Dữ liệu thay đổi liên tục, mỗi chuỗi ít được so sánh | Chi phí tạo/cập nhật key có thể không đáng |
-| Có nhiều locale cho cùng dữ liệu | Mỗi locale cần **bộ keys riêng**, không dùng key locale này cho locale khác |
-| Dữ liệu lớn nhưng có sẵn thứ tự/sort index từ DB | Xem xét database collation/index thay vì tính toàn bộ keys trên JVM |
-| Chỉ cần so sánh byte protocol hoặc ID kỹ thuật | Không dùng collation ngôn ngữ nếu không có nhu cầu |
+| Comparing two strings exactly once | `collator.compare(a, b)` is usually simpler and faster |
+| Sorting a large list | Test precomputing keys; may save comparison time |
+| Re-sorting the same string set multiple times | Reuse keys appropriately if config has not changed |
+| Data mutates constantly, each string rarely compared | Key creation/update cost may not pay off |
+| Multiple locales for the same data | Each locale needs **its own key set**; never use one locale's keys for another |
+| Large dataset with existing DB sort/index order | Consider database collation/index instead of computing all keys in the JVM |
+| Only comparing protocol bytes or technical IDs | Do not use linguistic collation if unnecessary |
 
-**Không có ngưỡng “từ 100 chuỗi trở lên là nên dùng key” đúng với mọi hệ thống.** Hiệu quả phụ thuộc độ dài tên, bảng chữ, tỷ lệ dấu, thời gian sống của cache, tần suất sort, bộ nhớ và cấu hình JDK/locale provider. Hãy benchmark bằng workload thực tế.
+**There is no universal threshold like "use keys for 100+ strings" that holds for every system.** Effectiveness depends on name lengths, alphabet, accent density, cache lifetime, sort frequency, memory, and JDK/locale provider configuration. Benchmark with realistic workloads.
 
-## 4. Ví dụ Java 17: sắp xếp bằng CollationKey
+## 4. Java 17 Example: Sorting with CollationKey
 
-Tạo tệp `CollationKeySortDemo.java`:
+Create file `CollationKeySortDemo.java`:
 
 ```java
 import java.text.CollationKey;
@@ -153,14 +153,14 @@ public class CollationKeySortDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 CollationKeySortDemo.java
 java CollationKeySortDemo
 ```
 
-Stdout với quy tắc `Locale.US` thông dụng:
+Stdout under standard `Locale.US` rules:
 
 ```text
 Alpha
@@ -169,23 +169,23 @@ Charlie
 Zulu
 ```
 
-Điều quan trọng hơn bảng chữ ví dụ là **thiết kế**:
+More important than the sample words is the **design**:
 
-1. Tạo **một** `Collator`, cấu hình `strength` **trước** khi tạo key.
-2. Mỗi `Entry` giữ cả chuỗi gốc và `CollationKey` tương ứng.
-3. Comparator dùng `Entry::key`; `CollationKey` tự triển khai `Comparable` nên có thể dùng `Comparator.comparing(...)`.
-4. Mỗi lần sort gọi so sánh **key**, không bắt buộc sinh lại key trong comparator.
-5. Người dùng vẫn thấy `entry.text()`, **không phải các byte của key**.
+1. Create **one** `Collator`, configure `strength` **before** generating keys.
+2. Each `Entry` holds both the original string and its corresponding `CollationKey`.
+3. The comparator uses `Entry::key`; `CollationKey` itself implements `Comparable`, so `Comparator.comparing(...)` works directly.
+4. Each sort compares **keys**, never regenerating keys inside the comparator.
+5. Users still see `entry.text()`, **not the key bytes**.
 
-Cách này đặc biệt phù hợp khi cùng tập `Entry` được sắp xếp nhiều lần, hoặc cần so sánh từng tên trong nhiều thao tác.
+This approach is especially suitable when the same set of `Entry` items is sorted multiple times, or each name must be compared across multiple operations.
 
-**Cần phân biệt:** ví dụ sort này dùng những từ ASCII đơn giản để giải thích, không chứng minh thứ tự cho mọi bảng chữ. Với tiếng Việt, tiếng Thổ, tiếng Thụy Điển hoặc nhiều dấu/ligature, kết quả phụ thuộc locale và provider. Không hard-code thứ tự các tên nhiều dấu theo suy luận bảng mã.
+**Important distinction:** this sort example uses simple ASCII words for clarity and does not demonstrate ordering for every alphabet. For Vietnamese, Turkish, Swedish, or heavy accents/ligatures, output depends on locale and provider. Never hardcode expected order for accented names by guessing character codes.
 
-## 5. Chương trình kiểm tra tính nhất quán với Collator.compare
+## 5. Program Checking Consistency with Collator.compare
 
-Theo API Java, hai khóa được tạo bởi một `Collator` có cùng quy tắc phải cho quan hệ thứ tự như khi `Collator.compare` trực tiếp các chuỗi.
+Per the Java API, two keys created by a `Collator` with the same rules must yield the same ordering relation as calling `Collator.compare` directly on the strings.
 
-Tệp `KeyVsCompareDemo.java`:
+File `KeyVsCompareDemo.java`:
 
 ```java
 import java.text.CollationKey;
@@ -245,24 +245,24 @@ sameSource=true
 selfCompare=0
 ```
 
-**Vì sao `sign` quan trọng?** Hợp đồng compare chỉ cam kết kết quả **âm / 0 / dương**, không cam kết trị tuyệt đối như `-1` hoặc `+1`. So sánh `Integer.compare(x, 0)` sẽ kiểm tra đúng tính tương đương về thứ tự.
+**Why does `sign` matter?** The compare contract only guarantees a **negative / 0 / positive** sign, not absolute magnitudes like `-1` or `+1`. Comparing `Integer.compare(x, 0)` properly tests ordering equivalence.
 
-Vòng lặp trên là một **test nhỏ để đối chiếu hành vi**, không phải benchmark hiệu năng. Nó còn cho thấy `getSourceString()` giữ nguyên chuỗi nguồn để ứng dụng có thể lấy lại nội dung hiển thị. Với một `Collator` chuẩn được giữ nguyên cấu hình, `Collator.compare` và `CollationKey.compareTo` phải nhất quán về thứ tự.
+The loop above is a **small behavior-verification test**, not a performance benchmark. It also shows `getSourceString()` preserves the source string so the application can retrieve display text. For a standard `Collator` with unchanged configuration, `Collator.compare` and `CollationKey.compareTo` must agree on order.
 
-## 6. Strength quyết định thế nào là “khác nhau”
+## 6. Strength Determines What Counts as "Different"
 
-`Collator` cho phép chọn độ nhạy so sánh bằng `setStrength`:
+`Collator` lets you select comparison sensitivity via `setStrength`:
 
-| Strength | Ý nghĩa tổng quát | Ghi chú |
+| Strength | General meaning | Notes |
 | --- | --- | --- |
-| `PRIMARY` | Chỉ khác biệt chính thường mang tính chữ cơ sở được xét | Một số dấu/case có thể bị bỏ qua |
-| `SECONDARY` | Thêm khác biệt cấp hai | Thường xét thêm một số dấu |
-| `TERTIARY` | Thêm khác biệt cấp ba | Thường phân biệt case/biến thể |
-| `IDENTICAL` | Xét cả khác biệt tinh hơn | Tùy decomposition và Unicode data |
+| `PRIMARY` | Only primary differences, typically base letters, are considered | Some accents/case may be ignored |
+| `SECONDARY` | Adds secondary differences | Usually additionally considers certain accents |
+| `TERTIARY` | Adds tertiary differences | Usually distinguishes case/variants |
+| `IDENTICAL` | Considers even finer differences | Depends on decomposition and Unicode data |
 
-Cách gán độ quan trọng cho chữ cái, dấu và case **phụ thuộc locale**. Ví dụ trong một ngôn ngữ, một ký tự có dấu được xem là biến thể secondary; ở ngôn ngữ khác, nó là chữ cái riêng thuộc primary. Vì vậy đừng khẳng định cứ `PRIMARY` là “bỏ mọi dấu trong tất cả ngôn ngữ”.
+How importance is assigned to letters, accents, and case **depends on locale**. For instance, in one language an accented character is a secondary variant; in another, it is an independent letter at the primary level. Therefore, never claim `PRIMARY` "ignores all accents in all languages."
 
-Ví dụ:
+Example:
 
 ```java
 Collator collator = Collator.getInstance(
@@ -273,11 +273,11 @@ CollationKey keyA = collator.getCollationKey("cafe");
 CollationKey keyB = collator.getCollationKey("café");
 ```
 
-Đây là **đoạn minh họa trong method**. Với nhiều provider tiếng Pháp, hai chuỗi có thể được xem là tương đương ở cấp PRIMARY; nhưng không dùng ví dụ đó để suy mọi chữ có dấu của mọi ngôn ngữ đều được gom chung.
+This is an **illustrative snippet inside a method**. On many French providers, the two strings may be treated as equivalent at PRIMARY; however, do not generalize from this example that all accented letters in all languages collapse together.
 
-### Quy tắc khi cache key theo strength
+### Rules When Caching Keys by Strength
 
-**Sai:**
+**Wrong:**
 
 ```java
 Collator collator = Collator.getInstance(locale);
@@ -288,31 +288,31 @@ CollationKey first = collator.getCollationKey("A");
 collator.setStrength(Collator.TERTIARY);
 CollationKey second = collator.getCollationKey("a");
 
-// KHÔNG so sánh first với second rồi tin là cùng chính sách.
+// DO NOT compare first with second and assume the same policy.
 ```
 
-Khi đổi strength sau khi đã tạo key, hai khóa được tạo từ **hai trạng thái quy tắc khác nhau**. Dù về mặt đối tượng vẫn dùng cùng Collator instance, không có cơ sở nghiệp vụ để so sánh chúng như một tập thống nhất. Hãy thiết lập cấu hình hoàn chỉnh **trước** khi tạo keys, giữ bất biến trong vòng đời bộ key và **tạo lại toàn bộ** nếu đổi strength.
+Changing strength after generating a key means the two keys were created under **two different rule states**. Even though they came from the same Collator instance, there is no valid domain basis for comparing them as one consistent set. Finish configuring **before** generating keys, keep configuration immutable across the key set's lifetime, and **regenerate all keys** if strength changes.
 
-**Decomposition cũng vậy:** nếu đổi `setDecomposition(...)`, phải invalidate keys cũ và sinh lại theo thiết lập mới.
+**The same applies to decomposition:** if `setDecomposition(...)` changes, invalidate old keys and regenerate under the new setting.
 
-## 7. Unicode decomposition và dạng dựng sẵn/tổ hợp
+## 7. Unicode Decomposition and Precomposed/Combining Forms
 
-Unicode cho phép một số chữ có nhiều cách biểu diễn:
+Unicode allows certain letters to have multiple representations:
 
 ```text
 "é"      U+00E9              (precomposed)
 "é"      U+0065 U+0301       (e + combining accent)
 ```
 
-Hai chuỗi có thể hiển thị giống nhau nhưng `String.equals` trả `false`. `Collator` có lựa chọn decomposition:
+Two strings can render identically yet `String.equals` returns `false`. `Collator` has decomposition options:
 
-- `Collator.NO_DECOMPOSITION`: không thực hiện decomposition khi so sánh.
-- `Collator.CANONICAL_DECOMPOSITION`: xử lý canonical decomposition khi cần, hỗ trợ so sánh các dạng Unicode canonically equivalent.
-- `Collator.FULL_DECOMPOSITION`: xét thêm compatibility decomposition; có thể khiến một số ký tự tương thích được đối xử gần nhau hơn.
+- `Collator.NO_DECOMPOSITION`: does not perform decomposition when comparing.
+- `Collator.CANONICAL_DECOMPOSITION`: handles canonical decomposition when needed, supporting comparison of canonically equivalent Unicode forms.
+- `Collator.FULL_DECOMPOSITION`: additionally considers compatibility decomposition; may cause certain compatibility characters to be treated more closely.
 
-Cần chọn decomposition theo mục tiêu ngôn ngữ và dữ liệu. Nó ảnh hưởng **cả `compare` lẫn key đã tạo**. `java.text.Normalizer` là công cụ riêng để chuẩn hóa văn bản; không đồng nhất normalization của dữ liệu gốc với tùy chọn decomposition của Collator.
+Choose decomposition based on linguistic and data goals. It affects **both `compare` and generated keys**. `java.text.Normalizer` is a separate tool for normalizing text; do not equate normalizing source data with Collator's decomposition option.
 
-Ví dụ:
+Example:
 
 ```java
 Collator collator = Collator.getInstance(Locale.FRANCE);
@@ -326,15 +326,15 @@ CollationKey decomposed =
         collator.getCollationKey("e\u0301");
 ```
 
-Đây là code minh họa trong method. Trong so sánh canonical, các biểu diễn tương đương nên có quan hệ bằng nhau theo collation rules được áp dụng. Khi đổi decomposition, không tiếp tục dùng key từ cấu hình cũ trong cùng index/cache.
+This is illustrative code inside a method. Under canonical comparison, equivalent representations should compare equal per the applied collation rules. When changing decomposition, do not continue using keys from the old configuration in the same index/cache.
 
-**Đừng dùng byte representation của key làm dạng normalization.** CollationKey là một khóa so sánh gắn với Collator, không phải văn bản canonical sẽ được tìm kiếm/hiển thị hay lưu như nguồn dữ liệu chính.
+**Do not use a key's byte representation as a normalized form.** A CollationKey is a comparison key tied to a Collator, not canonical text to be searched/displayed or stored as primary data.
 
-## 8. Không được trộn CollationKey từ nhiều Collator
+## 8. Never Mix CollationKeys from Different Collators
 
-Đây là ràng buộc kỹ thuật quan trọng nhất của loại key này.
+This is the most important technical constraint of this key type.
 
-Giả sử:
+Suppose:
 
 ```java
 Collator vi = Collator.getInstance(
@@ -345,26 +345,26 @@ CollationKey viKey = vi.getCollationKey("Đà Nẵng");
 CollationKey enKey = en.getCollationKey("Đà Nẵng");
 ```
 
-**Không được** dùng `viKey.compareTo(enKey)` để suy ra thứ tự: API ghi rõ CollationKeys không so sánh hợp lệ nếu đến từ Collators khác nhau. Tương tự, không gộp keys từ một Collator PRIMARY vào keys tạo theo TERTIARY.
+**Never** call `viKey.compareTo(enKey)` to derive order: the API explicitly states CollationKeys are not validly comparable if they come from different Collators. Likewise, never mix keys from a PRIMARY Collator with keys created at TERTIARY.
 
-### Vì sao ràng buộc ấy tồn tại?
+### Why Does That Constraint Exist?
 
-Thứ tự ngôn ngữ giống “thước đo có quy tắc”. Nếu mỗi key được tạo bằng một thước đo khác nhau, phép so sánh byte không còn biểu diễn một quan hệ thứ tự thống nhất. Có locale coi chữ có dấu là biến thể của chữ cơ sở; locale khác có thể xếp nó như chữ độc lập. Strength/decomposition còn làm những khác biệt được xét hoặc bị bỏ qua.
+Linguistic ordering is like a "ruler with specific rules." If each key is built with a different ruler, byte comparisons no longer represent a consistent ordering relation. One locale treats an accented letter as a variant of a base letter; another sorts it as a standalone letter. Strength/decomposition further alter which differences are inspected or ignored.
 
-### Thiết kế phù hợp
+### Proper Design
 
-- Một danh sách sort theo **vi-VN/TERTIARY/CANONICAL_DECOMPOSITION** → sinh bộ key bằng một Collator cấu hình tương ứng.
-- Chuyển giao diện sang **en-US** → **không** dùng lại bộ key tiếng Việt; tạo Collator/bộ key mới.
-- Đổi bộ lọc so sánh không phân biệt dấu/case bằng `PRIMARY` → tạo bộ key riêng, không dùng key `TERTIARY`.
-- Nếu cache theo profile, mỗi entry phải có thông tin **locale, strength, decomposition, provider/version nếu cần**, và một chính sách thống nhất về nguồn keys.
+- A list sorted by **vi-VN/TERTIARY/CANONICAL_DECOMPOSITION** → generate the key set using one matching Collator.
+- Switching UI to **en-US** → **do not** reuse the Vietnamese key set; create a new Collator/key set.
+- Switching filter to accent/case-insensitive matching via `PRIMARY` → generate a separate key set, never reusing `TERTIARY` keys.
+- If caching by profile, each cache entry must track **locale, strength, decomposition, provider/version if needed**, plus a consistent key-source policy.
 
-Tài liệu Java nói **“cùng một Collator”**, nên thực hành đơn giản nhất là quản lý **một Collator cố định cho một đợt tạo keys** và không trộn key giữa các lần build khác cấu hình. Khi muốn dùng cache qua nhiều phiên của JVM, cần hiểu thêm khả năng thay đổi dữ liệu collation sau nâng cấp.
+The Java docs specify **"the same Collator"**, so the simplest practice is to manage **one fixed Collator per key-generation batch** and never mix keys across builds with differing configurations. When caching across JVM restarts, also account for collation data changes after upgrades.
 
-## 9. Phương án “decorate–sort–undecorate”
+## 9. The "Decorate–Sort–Undecorate" Pattern
 
-Thay vì viết comparator luôn gọi `collator.getCollationKey(...)`, ta chuẩn bị khóa một lần cho mỗi bản ghi rồi sort. Đây là một dạng *decorate–sort–undecorate*.
+Instead of writing a comparator that calls `collator.getCollationKey(...)` every time, prepare a key once per record and then sort. This is a form of *decorate–sort–undecorate*.
 
-**Không nên tạo key bên trong comparator như sau:**
+**Do not create keys inside the comparator like this:**
 
 ```java
 names.sort((a, b) -> {
@@ -374,28 +374,28 @@ names.sort((a, b) -> {
 });
 ```
 
-Đây là đoạn minh họa trong method. Nó vẫn phải tạo **hai khóa mỗi lần comparator được gọi**, làm mất lợi ích của việc chuẩn bị trước; số lần tạo có thể rất lớn.
+This is an illustrative snippet inside a method. It still creates **two keys on every comparator invocation**, negating the benefit of precomputing; the total allocations can be huge.
 
-**Nên:**
+**Instead:**
 
 ```text
 raw records
     |
     v
-records + CollationKey (mỗi record một lần)
+records + CollationKey (once per record)
     |
     v
-sort bằng CollationKey.compareTo
+sort using CollationKey.compareTo
     |
     v
-xuất records/text gốc theo thứ tự
+output original records/text in order
 ```
 
-Dưới đây là ví dụ đầy đủ, giữ cả ID và text để không làm mất dữ liệu gốc.
+Below is a complete example retaining both ID and text so original data is never lost.
 
-### Java 17 runnable: sort bản ghi và dùng lại keys
+### Runnable Java 17: Sort Records and Reuse Keys
 
-Tệp `CachedNameSortDemo.java`:
+File `CachedNameSortDemo.java`:
 
 ```java
 import java.text.CollationKey;
@@ -425,7 +425,7 @@ public class CachedNameSortDemo {
                     collator.getCollationKey(item.displayName())));
         }
 
-        // Một lần sort, không tạo key trong comparator:
+        // First sort, no key creation in comparator:
         Comparator<IndexedItem> byKey =
                 Comparator.comparing(IndexedItem::key);
 
@@ -436,7 +436,7 @@ public class CachedNameSortDemo {
                     + value.item().displayName());
         }
 
-        // Sort lại theo cùng quy tắc, tái sử dụng keys:
+        // Re-sort with the same rules, reusing keys:
         indexed.sort(byKey.reversed());
         System.out.println("reverseSort:");
         for (IndexedItem value : indexed) {
@@ -452,7 +452,7 @@ javac -encoding UTF-8 CachedNameSortDemo.java
 java CachedNameSortDemo
 ```
 
-Stdout trên bộ quy tắc thông dụng của `Locale.US`:
+Stdout under standard `Locale.US` rules:
 
 ```text
 firstSort:
@@ -465,33 +465,33 @@ reverseSort:
 1=Alpha
 ```
 
-Bài học chính không phải sort đảo chiều mà là **cùng ba keys được dùng lại**. Đợt sort thứ hai không cần phân tích lại các chuỗi nguồn thành collation keys.
+The main takeaway is not reverse sorting, but that **the exact same three keys are reused**. The second sort does not need to re-parse the source strings into collation keys.
 
-Nếu danh sách thay đổi tên hiển thị, `IndexedItem` của bản ghi đó phải được thay bằng key mới theo cùng cấu hình. `CollationKey` không tự quan sát hoặc cập nhật khi field `displayName` của object khác thay đổi.
+If the list's display name changes, that record's `IndexedItem` must be replaced with a new key under the same configuration. `CollationKey` does not automatically observe or update when another object's `displayName` field changes.
 
-## 10. So sánh lặp lại và cache: không tự động lợi nếu dữ liệu biến động
+## 10. Repeated Comparisons and Caching: Not Automatically Beneficial if Data Mutates
 
-Ví dụ một UI thường xuyên sort tên khách hàng theo locale hiện tại. Ta có thể cache bộ key theo snapshot dữ liệu; mỗi lần sort/filter dùng lại key.
+Suppose a UI frequently sorts customer names by the active locale. We can cache the key set for a data snapshot; each sort/filter reuses the keys.
 
-Tuy nhiên, key cache cần chính sách:
+However, a key cache needs a policy:
 
-### 10.1. Khi nào invalidation?
+### 10.1. When to Invalidate?
 
-| Sự kiện | Có cần tạo lại key không? | Vì sao |
+| Event | Must regenerate keys? | Why |
 | --- | --- | --- |
-| Chuỗi nguồn đổi | **Có** | Key đại diện cho chuỗi cũ |
-| Locale đổi | **Có** | Quy tắc thứ tự thay đổi |
-| Strength đổi | **Có** | Mức khác biệt đáng kể thay đổi |
-| Decomposition đổi | **Có** | Cách xử lý Unicode thay đổi |
-| Collation provider/rules đổi | **Có** | Key byte/order có thể khác |
-| Chỉ thay thứ tự sort ASC/DESC | Không, nếu cùng tập keys và config | Đảo comparator hoặc kết quả |
-| Đổi màu hoặc kích thước chữ UI | Không | Không thay dữ liệu so sánh |
-| Chỉ thay giá trị field khác không tham gia sort | Không | Khóa so sánh vẫn từ chuỗi cũ |
-| Thêm record mới | Tạo key cho record mới | Đưa vào cùng tập cấu hình |
+| Source string changes | **Yes** | The key represents the old string |
+| Locale changes | **Yes** | Ordering rules change |
+| Strength changes | **Yes** | Significant difference level changes |
+| Decomposition changes | **Yes** | Unicode handling changes |
+| Collation provider/rules change | **Yes** | Key bytes/order may differ |
+| Only ASC/DESC direction changes | No, if same key set and config | Reverse comparator or result |
+| UI color or font size changes | No | Comparison data unchanged |
+| Only non-sort fields change | No | Sort key still comes from unchanged string |
+| New record added | Generate key for new record | Include in the same configuration set |
 
-### 10.2. Định danh cache
+### 10.2. Cache Identification
 
-Một cache đơn giản có thể gắn với **một sort context**:
+A simple cache can be keyed by **a sort context**:
 
 ```text
 SortContext:
@@ -502,32 +502,32 @@ SortContext:
   datasetRevision: 42
 ```
 
-Đây là ví dụ **metadata thiết kế**, không phải class của Java API. Trong một lần sort, giữ `Collator` cố định, tạo toàn bộ keys rồi không thay cấu hình. Nếu build lại sort context thì regenerate cả bộ keys; không trộn byte/key cũ với mới.
+This is an example of **design metadata**, not a Java API class. During one sort, keep `Collator` fixed, generate all keys, and do not alter configuration. When rebuilding a sort context, regenerate the entire key set; never mix old and new bytes/keys.
 
-### 10.3. Cache vô hạn là một lỗi khác
+### 10.3. Unbounded Caching Is Another Bug
 
-Mỗi `CollationKey` chứa dữ liệu so sánh đã tính và thông tin liên quan đến chuỗi nguồn. Với hàng triệu bản ghi hoặc hàng chục locale, số lượng key và chi phí heap/GC có thể lớn. Một “cache toàn cục mọi chuỗi của mọi ngôn ngữ” có thể chậm hơn so với tạo keys theo snapshot rồi giải phóng.
+Each `CollationKey` holds computed comparison data and source string information. With millions of records or dozens of locales, key counts and heap/GC overhead can grow huge. A "global cache of every string in every language" can be slower than building keys per snapshot and releasing them.
 
-Thiết kế theo vòng đời rõ ràng: cache per request, per screen, per dataset revision, hoặc LRU có giới hạn; đo heap, tốc độ làm mới và hit rate. Nếu hệ thống đã dùng collation index của database, cân nhắc so sánh/sort ngay tại nơi dữ liệu được lưu.
+Design with clear lifecycles: per-request, per-screen, per-dataset-revision, or bounded LRU caching; measure heap, refresh rate, and hit rate. If the system already relies on a database collation index, consider comparing/sorting right where the data lives.
 
-## 11. Equality, hash và khóa cho Set/Map: không nhầm với chuỗi gốc
+## 11. Equality, Hashing, and Set/Map Keys: Do Not Confuse with Raw Strings
 
-Có nhiều khái niệm “bằng nhau”:
+There are several notions of "equal":
 
-1. `String.equals`: cùng chuỗi UTF-16 code units.
-2. `Collator.compare(a, b) == 0`: tương đương theo **quy tắc collation hiện tại**, phụ thuộc locale/strength.
-3. `CollationKey.compareTo(other) == 0`: hai key cùng Collator tương đương về sort.
-4. `String.equalsIgnoreCase`: so sánh không phân biệt case theo quy tắc riêng của Java, **không nhận locale**.
+1. `String.equals`: identical UTF-16 code unit sequence.
+2. `Collator.compare(a, b) == 0`: equivalent under **current collation rules**, depending on locale/strength.
+3. `CollationKey.compareTo(other) == 0`: two keys from the same Collator are sort-equivalent.
+4. `String.equalsIgnoreCase`: case-insensitive comparison using Java's own rules, **not locale-aware**.
 
-Nếu cấu hình strength = `PRIMARY`, hai chuỗi khác code units có thể được xem bằng nhau theo collation. Khi đưa `CollationKey` vào `TreeMap` hoặc `TreeSet`, comparator/ordering bằng 0 có thể khiến hai chuỗi được coi là **cùng một key sắp xếp**. Điều đó có thể mong muốn khi gom nhóm nhưng **không** tự phù hợp cho dữ liệu định danh duy nhất.
+With strength = `PRIMARY`, two strings with different code units can be deemed collation-equal. When placing `CollationKey` into a `TreeMap` or `TreeSet`, a comparator/ordering returning 0 can cause two strings to be treated as **the same sort key**. That may be desired for grouping, yet **inappropriate** for unique identity data.
 
-Đừng dùng collation PRIMARY để xác thực password, chữ ký, token hoặc các định danh đòi hỏi equality byte/code-point chính xác. Một kết quả `compareTo == 0` không có nghĩa hai giá trị nguồn giống nhau hoặc có thể hoán đổi về nghiệp vụ.
+Never use PRIMARY collation to verify passwords, signatures, tokens, or identifiers demanding exact byte/code-point equality. A `compareTo == 0` result does not mean the two source values are identical or interchangeable in business logic.
 
-### 11.1. Vấn đề tie: hai tên có cùng collation weight
+### 11.1. The Tie Problem: Two Names with the Same Collation Weight
 
-Giả sử hai chuỗi được coi bằng nhau ở PRIMARY (ví dụ khác hoa/thường theo locale). Comparator chỉ dùng key sẽ trả 0. Một sort stable có thể giữ thứ tự đầu vào cho hai phần tử này; nhưng nếu đầu vào đến từ query không có thứ tự ổn định, UI có thể thay đổi vị trí giữa các lần load.
+Suppose two strings compare equal at PRIMARY (e.g., differing by case per locale). A key-only comparator returns 0. A stable sort preserves input order for these two elements; however, if input comes from a query without stable ordering, UI positions can shift across reloads.
 
-Khi muốn thứ tự đầu ra **xác định tuyệt đối**, có thể thêm tie-breaker:
+When output order must be **completely deterministic**, add a tie-breaker:
 
 ```java
 Comparator<IndexedItem> deterministic =
@@ -541,86 +541,86 @@ Comparator<IndexedItem> deterministic =
         };
 ```
 
-Đây là đoạn minh họa trong lớp có record `IndexedItem`/`Item` từ ví dụ trên. Dùng ID làm tie-breaker giúp các bản ghi cùng collation weight được xếp theo ID.
+This is an illustrative snippet in a class containing `IndexedItem`/`Item` records from the earlier example. Using ID as a tie-breaker orders records with equal collation weight by ID.
 
-**Cẩn thận về semantics:** thêm ID tạo một thứ tự tổng quát cho UI, nhưng **thay đổi tiêu chí hai phần tử “bằng nhau” đối với comparator**. Nếu muốn gom nhóm các chuỗi coi tương đương theo locale, đừng dùng comparator có tie-breaker để xác định nhóm; hãy dùng **kết quả key compareTo 0** riêng cho grouping.
+**Be careful with semantics:** adding ID establishes a total order for the UI, yet **changes when the comparator considers two elements "equal."** If you want to group strings deemed locale-equivalent, do not use the tie-broken comparator to define groups; use **key compareTo == 0** separately for grouping.
 
-### 11.2. Hash code và key
+### 11.2. Hash Code and Keys
 
-`CollationKey` có `equals`/`hashCode` để hỗ trợ các cấu trúc Java. Tuy nhiên, không trộn key sinh từ các Collator khác nhau rồi mong `HashMap<CollationKey,...>` phản ánh đúng equality ngôn ngữ. Một cơ chế cache/index cần bảo đảm **mọi key được xây dựng trong cùng sort context**. Khi giá trị chuỗi khác nhau nhưng có collation weight bằng nhau, cần quyết định rõ sản phẩm muốn giữ hai bản ghi hay gộp chúng.
+`CollationKey` implements `equals`/`hashCode` to support Java collections. Still, never mix keys generated from different Collators and expect `HashMap<CollationKey,...>` to reflect linguistic equality properly. A cache/index must guarantee **all keys were built within the same sort context**. When string values differ yet share equal collation weight, explicitly decide whether the product keeps both records or merges them.
 
-## 12. toByteArray: không phải định dạng byte ổn định cho API và database
+## 12. toByteArray: Not a Stable Byte Format for APIs and Databases
 
-`CollationKey.toByteArray()` trả một dãy byte biểu diễn key. API cho biết các byte có thể được sử dụng để xác định thứ tự khi **hai CollationKey vốn hợp lệ để so sánh**; byte theo thứ tự từ trọng số đáng kể nhất.
+`CollationKey.toByteArray()` returns a byte sequence representing the key. The API notes that bytes can be used to determine order when **two CollationKeys are already valid to compare**; bytes are ordered from most significant weight.
 
-Tuy nhiên:
+However:
 
-- Dữ liệu byte là **sort representation**, không phải UTF-8 của `getSourceString()`.
-- Đây không phải ID duy nhất của chuỗi.
-- Không được lấy bytes từ Collator tiếng Việt rồi so sánh với bytes từ Collator tiếng Anh.
-- Không giả định bytes sẽ giữ nguyên sau khi JDK, CLDR, locale provider hoặc rule set được cập nhật.
-- Không biến chuỗi byte thành giao thức trao đổi giữa nhiều hệ thống không có version/rules chung.
-- Không dùng array `byte[]` để làm key HashMap trực tiếp nếu muốn equality theo nội dung: Java array dùng object identity cho `equals`, trừ khi được bọc bằng kiểu có `Arrays.equals/hashCode`.
+- The byte data is a **sort representation**, not the UTF-8 encoding of `getSourceString()`.
+- It is not a unique ID of the string.
+- Never take bytes from a Vietnamese Collator and compare them with bytes from an English Collator.
+- Never assume bytes remain unchanged after updating the JDK, CLDR, locale provider, or rule set.
+- Never turn the byte sequence into an interchange protocol between systems that lack shared rules/versions.
+- Never use a raw `byte[]` array directly as a HashMap key if content equality is desired: Java arrays use object identity for `equals`, unless wrapped in a type with `Arrays.equals/hashCode`.
 
-Đặc biệt, `toByteArray()` **không** thay thế `String.getBytes(StandardCharsets.UTF_8)`. Hai thao tác phục vụ **hai mục tiêu hoàn toàn khác nhau**: một cho collation, một cho encoding văn bản.
+In particular, `toByteArray()` **does not** replace `String.getBytes(StandardCharsets.UTF_8)`. The two operations serve **two completely different goals**: one for collation, one for text encoding.
 
-### Vì sao không nên persist collation key dài hạn?
+### Why Not Persist Collation Keys Long-Term?
 
-Giả sử xây index sort tại JDK 17 theo một bộ dữ liệu CLDR, sau đó deploy lên runtime mới có quy tắc khác. Byte cũ và byte mới có thể không còn tương thích; trộn chúng có thể tạo thứ tự sai. Với persistence/index lớn, cần **version hóa collation rules**, chiến lược rebuild index và test migration, hoặc dùng tính năng index collation của hệ quản trị dữ liệu với hợp đồng nâng cấp được tài liệu hóa.
+Suppose a sort index is built on JDK 17 with one CLDR dataset, and later deployed onto a newer runtime with updated rules. Old bytes and new bytes may no longer be compatible; mixing them can produce wrong ordering. For large persistence/indexes, you need **versioned collation rules**, an index rebuild strategy, and migration tests—or database collation indexing with a documented upgrade contract.
 
-**Không cần lưu `CollationKey` như một field canonical** khi có thể tái tạo từ tên gốc, locale và rule set đúng phiên bản.
+**There is no need to store `CollationKey` as a canonical field** when it can be reconstructed from the original name, locale, and properly versioned rule set.
 
-## 13. Locale và ngữ cảnh nghiệp vụ
+## 13. Locale and Business Context
 
-Một số ví dụ về sự khác biệt thứ tự ngôn ngữ:
+Some examples of linguistic ordering differences:
 
-- Tiếng Thổ phân biệt chữ I không chấm với chữ i có chấm; lowercase kiểu `Locale.ROOT` không thay thế trật tự collation tiếng Thổ.
-- Một số ngôn ngữ xếp chữ có dấu như biến thể của chữ cơ sở; ngôn ngữ khác xem chúng là chữ cái độc lập.
-- Ngôn ngữ có quy tắc ghép nhiều chữ (contraction) hoặc chữ được phân rã thành nhiều trọng số (expansion).
-- Tên người và tên sản phẩm có thể trộn Latin, chữ viết khác, số và dấu câu, cần policy phù hợp.
+- Turkish distinguishes dotless I from dotted i; `Locale.ROOT` lowercasing does not replace Turkish collation order.
+- Some languages treat accented letters as variants of base letters; others treat them as independent letters.
+- Languages have rules combining multiple letters (contractions) or expanding a letter into multiple weights (expansions).
+- Personal and product names may mix Latin, other scripts, digits, and punctuation, requiring an explicit policy.
 
-`Collator.getInstance(locale)` lấy bộ quy tắc theo locale mà runtime có thể cung cấp. Không phải mọi locale có bộ quy tắc chuyên biệt hoàn toàn; provider có thể fallback theo dữ liệu hỗ trợ. Hệ thống nên xác định danh sách locale hỗ trợ thực tế và kiểm thử thứ tự với tập dữ liệu bản địa.
+`Collator.getInstance(locale)` retrieves rules the runtime can provide for the locale. Not every locale has a completely dedicated rule set; providers may fall back according to supported data. Systems should define their actually supported locale list and test ordering with native datasets.
 
-### Không dùng một Collator cho mọi locale
+### Never Use One Collator for Every Locale
 
-`CollationKey` của `vi-VN` được xây dựng để xử lý tiếng Việt theo provider. Nếu chuyển màn hình sang `sv-SE` hoặc `tr-TR`, cần xây key theo ngôn ngữ mới. Ngay cả khi cùng văn bản, ý nghĩa “xếp đúng chữ cái” vẫn phụ thuộc người dùng và loại danh sách.
+A `vi-VN` `CollationKey` is built to process Vietnamese according to the provider. Switching a screen to `sv-SE` or `tr-TR` requires building keys for the new language. Even for the same text, what "alphabetical order" means depends on the user and list type.
 
-### Default JVM locale
+### Default JVM Locale
 
-`Collator.getInstance()` sử dụng default locale của JVM. Nếu backend phục vụ đồng thời nhiều người dùng, không dựa vào nó cho mọi request. Nên dùng:
+`Collator.getInstance()` uses the JVM default locale. If a backend serves multiple users concurrently, do not rely on it across requests. Prefer:
 
 ```java
 Collator collator = Collator.getInstance(userLocale);
 ```
 
-Đây là đoạn minh họa trong method có `userLocale` được xác định. Không gọi `Locale.setDefault(...)` theo từng HTTP request: default locale là trạng thái toàn JVM và có thể gây tác động chéo giữa request.
+This is an illustrative snippet inside a method where `userLocale` is resolved. Never call `Locale.setDefault(...)` per HTTP request: default locale is JVM-wide state and causes cross-talk between requests.
 
-## 14. Thread safety: tránh chia sẻ Collator mutable sai cách
+## 14. Thread Safety: Avoid Misusing a Shared Mutable Collator
 
-`Collator` có những phương thức như `setStrength` và `setDecomposition`, tức là **mutable**. Không dùng một instance chung rồi thay cấu hình theo locale/strength cho nhiều request đồng thời.
+`Collator` has methods such as `setStrength` and `setDecomposition`, making it **mutable**. Never share one instance and alter locale/strength across concurrent requests.
 
-Ngay cả khi cấu hình không đổi, một số triển khai `RuleBasedCollator` của JDK có thể xảy ra **contention** khi dùng chung giữa nhiều luồng. Tùy provider và workload, nên cân nhắc instance theo luồng/request hoặc cơ chế clone có kiểm soát. Nếu cache các `CollationKey` immutable cho một snapshot, nên tạo chúng từ một cấu hình ổn định trước khi chia sẻ cho các thao tác chỉ đọc.
+Even when configuration does not change, some JDK `RuleBasedCollator` implementations can suffer **contention** when shared across threads. Depending on provider and workload, consider per-thread/per-request instances or controlled cloning. If caching immutable `CollationKey`s for a snapshot, generate them from a stable configuration before sharing for read-only operations.
 
-Ví dụ cấu trúc an toàn về mặt ngữ nghĩa:
+Example semantically safe structure:
 
 ```text
 Request/sort job:
-  1. Lấy locale đã được phép.
-  2. Tạo một Collator cho locale ấy.
-  3. Set strength/decomposition một lần.
-  4. Tạo keys cho toàn bộ dữ liệu.
-  5. Không mutate Collator đã dùng cho key.
-  6. Sort/compare keys trong cùng batch.
-  7. Giải phóng hoặc cache batch với metadata và TTL rõ.
+  1. Obtain an approved locale.
+  2. Create a Collator for that locale.
+  3. Set strength/decomposition once.
+  4. Generate keys for all data.
+  5. Do not mutate the Collator used for the keys.
+  6. Sort/compare keys within the same batch.
+  7. Release or cache the batch with explicit metadata and TTL.
 ```
 
-Không bắt buộc tạo instance trên mỗi lần comparator chạy; chỉ yêu cầu quản lý vòng đời rõ ràng và cùng quy tắc. Nếu benchmark chỉ đo `compareTo` mà quên chi phí tạo keys/heap/GC, có thể kết luận sai về tổng hiệu năng.
+You do not have to instantiate inside every comparator call; just enforce clear lifecycle management and matching rules. If a benchmark only measures `compareTo` while ignoring key-creation/heap/GC costs, it can draw false conclusions about overall performance.
 
-## 15. Chiến lược benchmark đúng
+## 15. Proper Benchmarking Strategy
 
-Không nên kết luận “`CollationKey` luôn nhanh hơn” chỉ vì một lần thử sắp xếp.
+Do not conclude "`CollationKey` is always faster" from a single sort experiment.
 
-Cần so sánh ít nhất hai hướng trên **cùng tập dữ liệu**:
+Compare at least two approaches on **the same dataset**:
 
 **A. Direct comparison**
 
@@ -631,56 +631,56 @@ names.sort(collator::compare);
 **B. Precomputed key**
 
 ```text
-Tạo các CollationKey cho N phần tử
-→ sort theo key.compareTo
-→ trả lại danh sách các bản ghi gốc
+Create CollationKeys for N items
+→ sort by key.compareTo
+→ return list of original records
 ```
 
-Các đại lượng cần đo:
+Metrics to measure:
 
-| Chỉ số | Vì sao cần |
+| Metric | Why it matters |
 | --- | --- |
-| Thời gian tạo toàn bộ keys | Chi phí ban đầu; có thể lớn |
-| Thời gian sort bằng keys | Lợi ích so sánh đã chuẩn bị |
-| Tổng thời gian A so với tổng thời gian B | Quyết định cho sort một lần |
-| Thời gian sort thứ 2/3/4 | Đo lợi ích khi tái sử dụng |
-| Kích thước heap và allocations | Keys chiếm bộ nhớ/GC |
-| Tỷ lệ dữ liệu được thay đổi | Ảnh hưởng chi phí regenerate |
-| Độ dài và alphabet thực tế | Chuỗi ngắn đơn giản khác chuỗi dài nhiều dấu |
-| Số lượng locale | Nhiều context có thể nhân chi phí cache |
-| JDK/vendor/provider | Collation algorithm/data có thể khác |
+| Time to generate all keys | Upfront cost; can be significant |
+| Time to sort using keys | Benefit of prepared comparisons |
+| Total time A vs. total time B | Decides single-sort trade-off |
+| Time for 2nd/3rd/4th sort | Measures reuse benefit |
+| Heap size and allocations | Keys consume memory/GC |
+| Data mutation rate | Affects regeneration cost |
+| Actual string length and alphabet | Short simple strings differ from long heavily accented strings |
+| Number of locales | Multiple contexts multiply cache cost |
+| JDK/vendor/provider | Collation algorithms/data can vary |
 
-### Lưu ý khi benchmark Java
+### Java Benchmarking Notes
 
-- JVM có JIT và warm-up; không suy từ một lượt chạy đầu tiên.
-- Dữ liệu có sẵn thứ tự, trùng lặp nhiều, hoặc gần ngẫu nhiên có thể thay đổi số phép so sánh.
-- Tránh đo cả `System.out.println` trong vùng benchmark.
-- Nếu cần benchmark nghiêm túc, dùng **JMH (Java Microbenchmark Harness)** hoặc công cụ đo phù hợp, có warm-up, fork, nhiều vòng và kiểm soát GC.
-- Kiểm tra hai phương án trả **thứ tự tương đương theo cùng Collator**, thay vì chỉ đo tốc độ.
-- Ghi lại chính sách tie-breaker, vì comparator khác nhau có thể cho thứ tự khi key bằng nhau khác.
+- The JVM has JIT and warm-up; do not extrapolate from a first run.
+- Already-sorted, heavily duplicated, or nearly random inputs alter comparison counts.
+- Avoid `System.out.println` inside the measured region.
+- For serious benchmarks, use **JMH (Java Microbenchmark Harness)** or an appropriate harness with warm-up, forks, multiple iterations, and GC control.
+- Verify both approaches yield **equivalent ordering under the same Collator**, rather than measuring speed alone.
+- Document tie-breaker policy, since different comparators can produce different orderings when keys tie.
 
-**Không có con số tốc độ cố định** như “CollationKey nhanh gấp 10 lần”. Hãy đo với dữ liệu ứng dụng thật; chỉ dùng keys nếu lợi ích lớn hơn chi phí chuẩn bị và quản lý.
+**There is no fixed speedup number** like "CollationKey is 10x faster." Measure with real application data; use keys only when benefits outweigh preparation and management overhead.
 
-## 16. Kiểm thử chức năng trước hiệu năng
+## 16. Test Functionality Before Performance
 
-Một bộ test tốt nên kiểm tra:
+A solid test suite should verify:
 
-1. **Tính tương đương:** với mọi cặp chuỗi trong tập test, `sign(collator.compare(a,b)) == sign(keyA.compareTo(keyB))`.
-2. **Locale:** mỗi locale `vi-VN`, `tr-TR`, `en-US`, `sv-SE` dùng bộ keys riêng; kiểm tra trật tự dự kiến với dữ liệu bản địa.
-3. **Strength:** PRIMARY/SECONDARY/TERTIARY/IDENTICAL có thể thay kết quả so sánh các biến thể case/dấu.
-4. **Decomposition:** thử composed và decomposed Unicode như `"\u00E9"` và `"e\u0301"`.
-5. **Không trộn keys:** bổ sung quy tắc code review hoặc type wrapper để key từ context khác không đi vào cùng batch.
-6. **Dữ liệu cập nhật:** sửa displayName phải invalidate key liên quan.
-7. **Thứ tự trùng:** hai key tương đương theo collation có cách tie-break hoặc stable sort được định nghĩa.
-8. **Null:** có policy riêng cho giá trị thiếu; không giả định mọi API so sánh chấp nhận null như chuỗi bình thường.
-9. **Không phụ thuộc default locale:** truyền locale tường minh.
-10. **Đồng thời:** không có request làm thay strength/decomposition của Collator khác.
-11. **Upgrade:** sau nâng JDK/provider, có test nghiệm thu thứ tự và kế hoạch rebuild keys.
-12. **Byte keys:** không sử dụng `toByteArray` như hash text/canonical identifier.
+1. **Equivalence:** for all pairs in the test set, `sign(collator.compare(a,b)) == sign(keyA.compareTo(keyB))`.
+2. **Locale:** each locale (`vi-VN`, `tr-TR`, `en-US`, `sv-SE`) uses its own key set; verify expected ordering on native data.
+3. **Strength:** PRIMARY/SECONDARY/TERTIARY/IDENTICAL can change comparison results on case/accent variants.
+4. **Decomposition:** test composed and decomposed Unicode like `"\u00E9"` and `"e\u0301"`.
+5. **No key mixing:** add code review rules or type wrappers so keys from different contexts cannot enter the same batch.
+6. **Updated data:** editing displayName must invalidate the associated key.
+7. **Tied order:** collation-equivalent keys have a defined tie-breaker or stable sort behavior.
+8. **Nulls:** have an explicit policy for missing values; do not assume every comparison API treats null as a normal string.
+9. **No default locale dependency:** pass locale explicitly.
+10. **Concurrency:** no request alters strength/decomposition on another Collator.
+11. **Upgrades:** after JDK/provider upgrades, run ordering acceptance tests and execute the key rebuild plan.
+12. **Byte keys:** do not use `toByteArray` as a text hash/canonical identifier.
 
-### JUnit 5: ví dụ hướng kiểm thử
+### JUnit 5: Test Direction Example
 
-Đoạn sau nằm **trong test class** có import JUnit tương ứng, không phải một chương trình `main` độc lập:
+The following belongs **inside a test class** with appropriate JUnit imports, not a standalone `main` program:
 
 ```java
 Collator c = Collator.getInstance(Locale.US);
@@ -698,46 +698,46 @@ org.junit.jupiter.api.Assertions.assertEquals(
         direct, precomputed);
 ```
 
-Test này kiểm tra đúng hợp đồng sign. Trong ứng dụng có nhiều bản dịch, có thể viết parameterized tests theo locale/strength và danh sách cặp thực tế.
+This test checks the sign contract. In applications with many translations, write parameterized tests across locales/strengths and realistic pairs.
 
-## 17. Bài tập thực hành
+## 17. Practice Exercises
 
-### Bài 1 — Khi nào cần keys?
+### Exercise 1 — When Are Keys Needed?
 
-Có hai yêu cầu:
+Two requirements:
 
-- A: kiểm tra `"An"` đứng trước `"Bình"` một lần.
-- B: một danh sách 50.000 tên được sort lại 20 lần trong cùng phiên với locale không đổi.
+- A: check once whether `"An"` comes before `"Bình"`.
+- B: a list of 50,000 names is re-sorted 20 times in the same session with an unchanged locale.
 
-**Gợi ý/đáp án:** A phù hợp `Collator.compare` vì không cần tạo keys. B là ứng viên tốt cho `CollationKey` vì tạo key một lần, sau đó so sánh lặp; vẫn cần benchmark chi phí heap và cập nhật dữ liệu.
+**Hint/Answer:** A suits `Collator.compare` because no key creation is needed. B is a good candidate for `CollationKey` since keys are built once and compared repeatedly; still benchmark heap and data-update costs.
 
-### Bài 2 — Đổi locale
+### Exercise 2 — Switching Locale
 
-Một màn hình tạo keys bằng `Locale.US`, sau đó chuyển sang `vi-VN`. Có thể dùng key cũ để sort tên tiếng Việt không?
+A screen generates keys with `Locale.US`, then switches to `vi-VN`. Can the old keys be used to sort Vietnamese names?
 
-**Đáp án:** Không. Phải chọn Collator theo locale mới rồi tạo lại keys cho toàn bộ batch. Quy tắc so sánh có thể khác; API không cho phép so sánh keys từ Collators khác.
+**Answer:** No. Select a Collator for the new locale and regenerate keys for the whole batch. Comparison rules can differ; the API forbids comparing keys from different Collators.
 
-### Bài 3 — Đổi strength
+### Exercise 3 — Changing Strength
 
-Collator đã sinh keys ở `PRIMARY`, sau đó gọi `setStrength(TERTIARY)`. Có thể trộn keys mới và cũ?
+A Collator generated keys at `PRIMARY`, then `setStrength(TERTIARY)` is called. Can old and new keys be mixed?
 
-**Đáp án:** Không. Strength là một phần của quy tắc so sánh; hãy tạo toàn bộ keys cùng cấu hình mới.
+**Answer:** No. Strength is part of the comparison rules; regenerate all keys under the new configuration.
 
-### Bài 4 — So sánh bằng nhau
+### Exercise 4 — Equality Comparison
 
-Ở một locale và strength đang dùng, hai chuỗi khác nhau có `keyA.compareTo(keyB) == 0`. Có nên kết luận `a.equals(b)` là true?
+Under the active locale and strength, two distinct strings have `keyA.compareTo(keyB) == 0`. Should you conclude `a.equals(b)` is true?
 
-**Đáp án:** Không. Equality theo collation phụ thuộc locale/strength, còn `String.equals` so sánh chính các UTF-16 code units. Cần định nghĩa rõ dùng equality nào trong nghiệp vụ.
+**Answer:** No. Collation equality depends on locale/strength, whereas `String.equals` compares exact UTF-16 code units. Define clearly which equality the business logic uses.
 
-### Bài 5 — Comparator ổn định
+### Exercise 5 — Deterministic Comparator
 
-Hai khách hàng có tên được coi như nhau ở PRIMARY. Muốn UI luôn có thứ tự ổn định qua mỗi lần tải, làm sao?
+Two customers have names considered equal at PRIMARY. How do you guarantee the UI has a stable order across loads?
 
-**Đáp án:** Thêm tie-breaker bằng một ID cố định (hoặc chiến lược khác). Nếu mục tiêu là grouping theo collation, vẫn dùng kết quả key compareTo 0, không dùng comparator đã thêm ID.
+**Answer:** Add a tie-breaker using a fixed ID (or another strategy). If the goal is grouping by collation, still use key compareTo == 0 directly, not the ID-augmented comparator.
 
-### Bài 6 — Tạo key trong comparator
+### Exercise 6 — Creating Keys Inside Comparator
 
-Vì sao sau đây không khai thác tốt ưu điểm CollationKey?
+Why does the following fail to leverage CollationKey's advantage?
 
 ```java
 list.sort((a, b) ->
@@ -745,43 +745,43 @@ list.sort((a, b) ->
                 .compareTo(collator.getCollationKey(b)));
 ```
 
-**Đáp án:** Mỗi phép so sánh lại tạo keys mới. Cần chuẩn bị mỗi key trước khi sort rồi dùng lại.
+**Answer:** Every comparison allocates new keys. Precompute each key before sorting and reuse it.
 
-### Bài 7 — Persist toByteArray
+### Exercise 7 — Persisting toByteArray
 
-Có thể dùng `CollationKey.toByteArray()` làm thứ tự cố định dài hạn giữa mọi vendor/JDK không?
+Can `CollationKey.toByteArray()` be used as a permanent fixed ordering across all vendors/JDKs?
 
-**Đáp án:** Không nên. Byte representation phụ thuộc quy tắc và triển khai collation; phải version hóa/rebuild nếu có thay đổi môi trường. Nó cũng không phải UTF-8 hoặc identifier canonical.
+**Answer:** Not recommended. Byte representations depend on collation rules and implementation; versioning/rebuilding is required if the environment changes. Nor is it UTF-8 or a canonical identifier.
 
-### Bài 8 — Tối ưu có đáng không?
+### Exercise 8 — Is Optimization Worth It?
 
-Một tập chuỗi nhỏ được so sánh duy nhất một lượt, nhưng mỗi key lại khá dài. Đâu là chi phí bỏ qua trong benchmark chỉ đo `compareTo`?
+A small string set is compared in a single pass, yet each key is fairly long. What cost is overlooked in a benchmark measuring only `compareTo`?
 
-**Đáp án:** Thời gian tạo keys và bộ nhớ/GC. Phải đo tổng workload, không chỉ một phương thức.
+**Answer:** Key creation time and memory/GC overhead. Measure the full workload, not just one method.
 
-## 18. Checklist khi đưa vào production
+## 18. Production Checklist
 
-- [ ] Chọn locale rõ ràng từ ngữ cảnh người dùng hoặc yêu cầu nghiệp vụ.
-- [ ] Chọn strength/decomposition được đặc tả và kiểm thử.
-- [ ] Sinh keys từ một Collator đã cấu hình cố định cho một sort batch.
-- [ ] Không gọi `getCollationKey` trong comparator cho mỗi lần so sánh.
-- [ ] Giữ chuỗi gốc để hiển thị, chỉnh sửa và lưu trữ.
-- [ ] Không trộn keys từ các Collator khác nhau hoặc từ cấu hình khác.
-- [ ] Khi đổi text, locale, rules hoặc JDK/provider, invalidate/rebuild keys.
-- [ ] Tính cả memory/GC và chi phí tạo keys trong benchmark.
-- [ ] Có tie-breaker khi cần thứ tự ổn định cho các chuỗi được coi tương đương.
-- [ ] Không dùng collation equality thay thế equality bảo mật hoặc ID duy nhất.
-- [ ] Không dùng `toByteArray` như một chuẩn serialization vĩnh viễn.
-- [ ] Không đổi default JVM locale theo từng request.
-- [ ] Có test đặc trưng ngôn ngữ cho các locale sản phẩm thực sự hỗ trợ.
+- [ ] Choose locale explicitly from user context or business requirements.
+- [ ] Choose specified and tested strength/decomposition.
+- [ ] Generate keys from a fixedly configured Collator for a sort batch.
+- [ ] Do not call `getCollationKey` inside a comparator on every comparison.
+- [ ] Retain original strings for display, editing, and storage.
+- [ ] Do not mix keys from different Collators or different configurations.
+- [ ] Invalidate/rebuild keys when text, locale, rules, or JDK/provider change.
+- [ ] Account for memory/GC and key generation cost in benchmarks.
+- [ ] Provide a tie-breaker when deterministic order is needed for equivalent strings.
+- [ ] Do not use collation equality in place of security equality or unique IDs.
+- [ ] Do not use `toByteArray` as a permanent serialization format.
+- [ ] Do not change the default JVM locale per request.
+- [ ] Include language-specific tests for locales the product actually supports.
 
-## 19. Tổng kết
+## 19. Summary
 
-**`CollationKey` là tối ưu hóa cho so sánh ngôn ngữ lặp lại.** Nếu chỉ có hai chuỗi cần so sánh một lần, `Collator.compare` là phương án gọn và thường hiệu quả. Khi cùng nhiều chuỗi tham gia nhiều phép so sánh — nhất là sắp xếp hoặc sắp xếp lại — việc tính `CollationKey` trước một lần rồi so sánh các keys thường có lợi.
+**`CollationKey` is an optimization for repeated linguistic comparisons.** If two strings are compared only once, `Collator.compare` is concise and usually efficient. When the same many strings participate in many comparisons—especially sorting or re-sorting—computing `CollationKey` once upfront and comparing keys is often beneficial.
 
-Nhưng lợi ích chỉ đúng nếu bảo toàn **cùng Collator và cùng quy tắc locale/strength/decomposition**, quản lý vòng đời key, invalidate khi dữ liệu thay đổi, và đo cả chi phí sinh key/bộ nhớ. Kết quả `compareTo == 0` phản ánh **tương đương theo collation**, không nhất thiết là hai chuỗi `String` giống hệt. Hãy lưu text gốc làm nguồn dữ liệu; xem `CollationKey` như **dữ liệu dẫn xuất để sắp xếp**, không phải định danh lâu dài hay bản dịch.
+However, the benefit only holds when preserving **the same Collator and the same locale/strength/decomposition rules**, managing key lifecycles, invalidating on data changes, and measuring key-creation/memory costs too. A `compareTo == 0` result reflects **collation equivalence**, not necessarily two identical `String`s. Keep the original text as the source of truth; treat `CollationKey` as **derived sorting data**, not a durable identifier or translation.
 
-### Tài liệu tham khảo Java 17
+### Java 17 References
 
 - [CollationKey — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/CollationKey.html)
 - [Collator — Oracle Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html)

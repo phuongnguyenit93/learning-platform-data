@@ -1,65 +1,65 @@
-# Integer.getInteger và Long.getLong: đọc system property, không phải parse thông thường
+# Integer.getInteger and Long.getLong: Reading System Properties, Not Ordinary Parsing
 
-## 1. Điểm dễ nhầm nhất
+## 1. The easiest thing to confuse
 
-Tên `Integer.getInteger(String)` và `Long.getLong(String)` khiến nhiều người nghĩ chúng là cách chuyển một chuỗi số thành `Integer` hay `Long`. **Đó là cách hiểu sai.**
+The names `Integer.getInteger(String)` and `Long.getLong(String)` lead many people to think they are ways to convert a numeric string into an `Integer` or `Long`. **That is a misunderstanding.**
 
-Hai phương thức này nhận **tên của một Java system property**; chúng tìm **giá trị chuỗi được gán cho tên property đó**, sau đó giải mã giá trị tìm được thành số nguyên. Ngược lại, `Integer.parseInt(String)` và `Long.parseLong(String)` xử lý **chính nội dung chuỗi được truyền vào**.
+These two methods take **the name of a Java system property**; they look up **the string value assigned to that property name**, and then decode the retrieved value into an integer. By contrast, `Integer.parseInt(String)` and `Long.parseLong(String)` process **the contents of the passed string itself**.
 
 ~~~java
-// Mã minh họa đặt trong một phương thức:
+// Illustrative code placed inside a method:
 System.setProperty("app.retries", "5");
 
 Integer retries = Integer.getInteger("app.retries");  // 5
 int direct = Integer.parseInt("5");                    // 5
 
-// Integer.getInteger("5") KHÔNG có nghĩa là parse số 5:
-// Nó tìm system property có TÊN là "5".
+// Integer.getInteger("5") does NOT mean parse the number 5:
+// It looks up the system property NAMED "5".
 ~~~
 
-Phân biệt hai vai trò của chuỗi:
+Distinguish the two roles of strings:
 
-- **Property key/name**: `"app.retries"` — tên khóa dùng để tìm cấu hình.
-- **Property value**: `"5"` — văn bản chứa số, đọc được bằng `System.getProperty("app.retries")`.
+- **Property key/name**: `"app.retries"` — the key name used to look up configuration.
+- **Property value**: `"5"` — the text containing the number, readable via `System.getProperty("app.retries")`.
 
-Đối với `getInteger`/`getLong`, bước tra cứu **luôn xuất hiện trước bước giải mã số**. Không có property phù hợp thì mặc định kết quả `null` hoặc giá trị fallback do lập trình viên chỉ định.
+For `getInteger`/`getLong`, the lookup step **always precedes the numeric decoding step**. If no matching property exists, the result defaults to `null` or a fallback value specified by the developer.
 
-## 2. Bảng phân biệt các API dễ lẫn
+## 2. Table distinguishing easily confused APIs
 
-| API | Chuỗi tham số được hiểu là | Kiểu trả về | Phản ứng khi không có/sai dữ liệu |
+| API | Parameter string interpreted as | Return type | Behavior when missing/invalid data |
 | --- | --- | --- | --- |
-| `Integer.parseInt("42")` | Chính văn bản số `"42"` | `int` | Ném `NumberFormatException` khi chuỗi không phải số nguyên hợp lệ |
-| `Long.parseLong("42")` | Chính văn bản số `"42"` | `long` | Ném `NumberFormatException` nếu không parse được |
-| `Integer.valueOf("42")` | Chính văn bản số `"42"` | `Integer` | Ném `NumberFormatException` khi không hợp lệ |
-| `Long.valueOf("42")` | Chính văn bản số `"42"` | `Long` | Ném `NumberFormatException` khi không hợp lệ |
-| `Integer.decode("0x2A")` | Chuỗi biểu diễn số có thể mang tiền tố radix | `Integer` | Ném `NumberFormatException` nếu không hợp lệ |
-| `Long.decode("0x2A")` | Chuỗi biểu diễn số có thể mang tiền tố radix | `Long` | Ném `NumberFormatException` nếu không hợp lệ |
-| `System.getProperty("app.port")` | **Tên** system property | `String` hoặc `null` | Trả về chuỗi property; không tự parse |
-| `Integer.getInteger("app.port")` | **Tên** system property | `Integer` hoặc `null` | Không có/không giải mã được → `null` |
-| `Long.getLong("app.limit")` | **Tên** system property | `Long` hoặc `null` | Không có/không giải mã được → `null` |
+| `Integer.parseInt("42")` | The numeric text `"42"` itself | `int` | Throws `NumberFormatException` if not a valid integer |
+| `Long.parseLong("42")` | The numeric text `"42"` itself | `long` | Throws `NumberFormatException` if unparseable |
+| `Integer.valueOf("42")` | The numeric text `"42"` itself | `Integer` | Throws `NumberFormatException` if invalid |
+| `Long.valueOf("42")` | The numeric text `"42"` itself | `Long` | Throws `NumberFormatException` if invalid |
+| `Integer.decode("0x2A")` | Numeric string possibly carrying a radix prefix | `Integer` | Throws `NumberFormatException` if invalid |
+| `Long.decode("0x2A")` | Numeric string possibly carrying a radix prefix | `Long` | Throws `NumberFormatException` if invalid |
+| `System.getProperty("app.port")` | System property **name** | `String` or `null` | Returns the property string; does not parse |
+| `Integer.getInteger("app.port")` | System property **name** | `Integer` or `null` | Missing/undecodable → `null` |
+| `Long.getLong("app.limit")` | System property **name** | `Long` or `null` | Missing/undecodable → `null` |
 
-Các phương thức đọc property còn có overload nhận **giá trị mặc định**:
+Property-reading methods also have overloads accepting a **default value**:
 
 ~~~java
 Integer count = Integer.getInteger("app.count", 10);
 Long limit = Long.getLong("app.limit", 1_000L);
 ~~~
 
-Nếu property **không tồn tại hoặc không được giải mã thành số hợp lệ**, các overload này trả về wrapper chứa giá trị mặc định. Chúng không ghi mặc định đó vào danh sách system properties.
+If the property **does not exist or cannot be decoded into a valid number**, these overloads return a wrapper containing the default value. They do not write that default value into the system properties table.
 
-**Ghi chú quan trọng:** trong môi trường có cơ chế bảo vệ quyền truy cập property, thao tác đọc có thể phát sinh `SecurityException`. Giá trị mặc định không phải một cơ chế vượt qua hoặc vô hiệu hóa giới hạn truy cập.
+**Important note:** in environments with property-access security controls, reading can raise `SecurityException`. Default values are not a mechanism to bypass or disable access restrictions.
 
-## 3. System property là gì và lấy từ đâu?
+## 3. What is a system property and where does it come from?
 
-Java system properties là tập hợp các cặp **khóa/giá trị chuỗi** thuộc tiến trình JVM. Ví dụ khóa `"java.version"` hoặc những khóa ứng dụng tự đặt như `"app.worker.count"`.
+Java system properties are a collection of **string key/value** pairs belonging to the JVM process. Examples include `"java.version"` or application-defined keys such as `"app.worker.count"`.
 
-Có thể cung cấp giá trị khi khởi động JVM với tùy chọn `-Dkey=value`:
+Values can be supplied at JVM startup via the `-Dkey=value` option:
 
 ~~~bash
 java -Dapp.retries=5 -Dapp.limit=0x100 MyApplication
 ~~~
 
-Tại thời điểm chạy, ứng dụng có thể đọc:
+At runtime, the application can read:
 
 ~~~java
 String text = System.getProperty("app.retries");
@@ -67,41 +67,41 @@ Integer retries = Integer.getInteger("app.retries");
 Long limit = Long.getLong("app.limit");
 ~~~
 
-Trong ví dụ lệnh trên:
+In the command example above:
 
-- `text` là chuỗi `"5"`.
-- `retries` là wrapper `Integer` mang giá trị `5`.
-- `limit` là wrapper `Long` mang giá trị `256L` vì văn bản `0x100` được giải mã theo hệ 16.
+- `text` is the string `"5"`.
+- `retries` is an `Integer` wrapper holding `5`.
+- `limit` is a `Long` wrapper holding `256L` because the text `0x100` is decoded in base 16.
 
-Trong mã, ứng dụng còn có thể thay đổi property bằng `System.setProperty(key, value)` hoặc xóa bằng `System.clearProperty(key)`. System properties thường được chia sẻ trong **một tiến trình JVM**, không phải kho lưu trữ cấu hình trên hệ điều hành.
+In code, an application can also modify a property via `System.setProperty(key, value)` or remove it via `System.clearProperty(key)`. System properties are typically shared within **a single JVM process**, not an OS-level configuration store.
 
-### System property khác environment variable
+### System property differs from environment variable
 
-`System.getProperty("APP_PORT")` và `System.getenv("APP_PORT")` là **hai nguồn dữ liệu khác nhau**:
+`System.getProperty("APP_PORT")` and `System.getenv("APP_PORT")` are **two different data sources**:
 
-- `System.getProperty` đọc bảng Java system properties, thường từ `-D` hoặc do mã Java thiết lập.
-- `System.getenv` đọc các biến môi trường tiến trình do hệ điều hành cấp.
-- `Integer.getInteger` và `Long.getLong` **không tự đọc environment variable**.
+- `System.getProperty` reads the Java system properties table, typically set via `-D` or Java code.
+- `System.getenv` reads OS-provided process environment variables.
+- `Integer.getInteger` and `Long.getLong` **do not automatically read environment variables**.
 
 ~~~java
-// Minh họa: hai lệnh đọc hai không gian khóa khác nhau.
+// Illustration: the two calls read two different key namespaces.
 String property = System.getProperty("APP_PORT");
 String environment = System.getenv("APP_PORT");
 ~~~
 
-Có thể thiết kế ứng dụng cho phép cả hai nguồn, nhưng phải triển khai chính sách ưu tiên/kiểm tra minh bạch; Java không tự động đổi khóa environment thành system property cho hai phương thức `getInteger`/`getLong`.
+You can design an application to accept both sources, yet you must implement explicit precedence/validation logic; Java does not automatically expose environment variables as system properties for `getInteger`/`getLong`.
 
-## 4. Cơ chế của Integer.getInteger
+## 4. How Integer.getInteger works
 
-Về cách sử dụng, có thể hình dung `Integer.getInteger(name)` tương đương luồng xử lý sau:
+In usage terms, you can picture `Integer.getInteger(name)` as equivalent to this flow:
 
-1. Nhận chuỗi `name` là **tên khóa**.
-2. Đọc `System.getProperty(name)`.
-3. Nếu không nhận được giá trị chuỗi hợp lệ, trả `null`.
-4. Nếu có chuỗi, giải mã số bằng quy tắc giống `Integer.decode(String)`.
-5. Nếu giải mã được số trong miền `int`, trả `Integer` tương ứng; nếu sai định dạng hoặc ngoài miền, trả `null`.
+1. Accept string `name` as the **key name**.
+2. Read `System.getProperty(name)`.
+3. If no valid string value is obtained, return `null`.
+4. If a string is present, decode the number using rules like `Integer.decode(String)`.
+5. If a number in `int` range is decoded, return the corresponding `Integer`; if malformed or out of range, return `null`.
 
-Đây là **mô hình giải thích hành vi công khai**, không phải cam kết về từng câu lệnh trong triển khai nội bộ JDK.
+This is a **conceptual model explaining public behavior**, not a statement-by-statement guarantee of JDK internals.
 
 ~~~java
 System.setProperty("demo.threads", "8");
@@ -110,7 +110,7 @@ Integer threads = Integer.getInteger("demo.threads");
 System.out.println(threads); // 8
 ~~~
 
-Nếu không có property mang tên `"demo.threads"`:
+If no property named `"demo.threads"` exists:
 
 ~~~java
 System.clearProperty("demo.threads");
@@ -118,11 +118,11 @@ Integer threads = Integer.getInteger("demo.threads");
 System.out.println(threads); // null
 ~~~
 
-`null` nói rằng lời gọi không cung cấp một giá trị số `Integer`; nó **không phải số 0**. Trên thực tế, `null` có thể do property không tồn tại, tên không hợp lệ hoặc giá trị chuỗi không giải mã được. Chỉ nhìn kết quả `null` không đủ để xác định nguyên nhân nếu chưa kiểm tra property gốc và trạng thái truy cập.
+`null` indicates the call did not supply a numeric `Integer` value; it is **not zero**. In practice, `null` can result from a missing property, an invalid name, or an undecodable string value. Looking only at the `null` result is not enough to identify the cause without inspecting the raw property and access state.
 
-## 5. Cơ chế của Long.getLong
+## 5. How Long.getLong works
 
-`Long.getLong(name)` cũng đọc **property có tên `name`**, nhưng phân tích thành số nguyên `long` 64 bit có dấu thay vì `int` 32 bit:
+`Long.getLong(name)` also reads the **property named `name`**, yet parses it into a 64-bit signed `long` integer instead of a 32-bit `int`:
 
 ~~~java
 System.setProperty("demo.max.id", "9223372036854775807");
@@ -131,34 +131,34 @@ Long id = Long.getLong("demo.max.id");
 System.out.println(id); // 9223372036854775807
 ~~~
 
-Con số trên đúng bằng `Long.MAX_VALUE`; `Integer.getInteger("demo.max.id")` sẽ không biểu diễn được giá trị đó và trả `null`.
+That number equals `Long.MAX_VALUE`; `Integer.getInteger("demo.max.id")` cannot represent that value and returns `null`.
 
-| Đặc điểm | `Integer.getInteger` | `Long.getLong` |
+| Feature | `Integer.getInteger` | `Long.getLong` |
 | --- | --- | --- |
-| Kiểu trả về | `Integer` | `Long` |
-| Miền số | −2³¹ đến 2³¹−1 | −2⁶³ đến 2⁶³−1 |
-| Phương thức giải mã cùng quy tắc | `Integer.decode` | `Long.decode` |
-| Không có/sai property | `null` hoặc default | `null` hoặc default |
-| Có đọc môi trường trực tiếp? | Không | Không |
+| Return type | `Integer` | `Long` |
+| Numeric range | −2³¹ to 2³¹−1 | −2⁶³ to 2⁶³−1 |
+| Decoding method with same rules | `Integer.decode` | `Long.decode` |
+| Missing/invalid property | `null` or default | `null` or default |
+| Reads environment directly? | No | No |
 
-Tên `Long.getLong` không có nghĩa “đọc một Long từ biến tên bất kỳ” hay “đổi giá trị của biến `String` truyền vào thành long”. Nó dùng chính **giá trị của tham số `name` như một khóa tra cứu**.
+The name `Long.getLong` does not mean "read a Long from an arbitrary named variable" or "turn the passed `String` value into a long." It uses the **value of the `name` parameter as a lookup key**.
 
-## 6. Quy tắc giải mã: thập phân, hexadecimal, octal
+## 6. Decoding rules: decimal, hexadecimal, octal
 
-`getInteger` và `getLong` giải mã **giá trị property** theo quy tắc `Integer.decode`/`Long.decode`. Những chuỗi phổ biến:
+`getInteger` and `getLong` decode the **property value** using `Integer.decode`/`Long.decode` rules. Common strings:
 
-| Property value | Cách hiểu của `decode` | Giá trị thập phân |
+| Property value | How `decode` interprets it | Decimal value |
 | --- | --- | --- |
-| `"42"` | Thập phân | 42 |
-| `"+42"` | Thập phân, dấu cộng | 42 |
-| `"-42"` | Thập phân, dấu trừ | −42 |
-| `"0x2A"` hoặc `"0X2A"` | Hexadecimal | 42 |
+| `"42"` | Decimal | 42 |
+| `"+42"` | Decimal, plus sign | 42 |
+| `"-42"` | Decimal, minus sign | −42 |
+| `"0x2A"` or `"0X2A"` | Hexadecimal | 42 |
 | `"#2A"` | Hexadecimal | 42 |
-| `"052"` | Octal vì có số 0 dẫn đầu | 42 |
-| `"-0x2A"` | Hexadecimal âm | −42 |
-| `"0"` | Số không | 0 |
+| `"052"` | Octal due to leading zero | 42 |
+| `"-0x2A"` | Negative hexadecimal | −42 |
+| `"0"` | Zero | 0 |
 
-Nhớ rằng **số 0 ở đầu có ý nghĩa**:
+Remember that **leading zeros are significant**:
 
 ~~~java
 System.setProperty("demo.mode", "010");
@@ -166,41 +166,41 @@ System.out.println(Integer.getInteger("demo.mode")); // 8
 System.out.println(Integer.parseInt("010"));         // 10
 ~~~
 
-`Integer.getInteger` đọc giá trị property `"010"` rồi decode thành **octal 8**. `Integer.parseInt("010")` mặc định dùng **radix 10** nên nhận **10**.
+`Integer.getInteger` reads property value `"010"` and decodes it as **octal 8**. `Integer.parseInt("010")` defaults to **radix 10** and yields **10**.
 
-Đây là khác biệt dễ tạo lỗi cấu hình: người viết cấu hình có thể tưởng `010` là mười, nhưng người đọc bằng `getInteger` nhận tám. Khi tài liệu cấu hình quy định giá trị decimal, cách đọc `System.getProperty` rồi `parseInt` có thể phù hợp hơn.
+This difference easily causes configuration bugs: a configuration author might think `010` means ten, while code reading via `getInteger` receives eight. When config docs specify decimal values, reading `System.getProperty` followed by `parseInt` can be more appropriate.
 
-### Tiền tố nào không được decode hỗ trợ?
+### Which prefixes are unsupported by decode?
 
-`Integer.decode`/`Long.decode` không nhận tiền tố `0b`/`0B` của **literal nhị phân trong mã nguồn Java**. Những chuỗi như `"0b1010"` thường làm `getInteger`/`getLong` trả `null` hoặc fallback.
+`Integer.decode`/`Long.decode` do not accept the `0b`/`0B` prefix of **binary literals in Java source code**. Strings like `"0b1010"` typically make `getInteger`/`getLong` return `null` or the fallback.
 
-Ngoài ra, dấu gạch dưới `_` trong **literal Java source** như `1_000` là cú pháp của trình biên dịch, không mặc nhiên hợp lệ khi đưa vào chuỗi cấu hình `"1_000"`. Không dựa vào hỗ trợ của Java literal để suy ra khả năng parse của các API trên.
+Furthermore, underscores `_` in **Java source literals** like `1_000` are compiler syntax, not automatically valid in configuration strings `"1_000"`. Do not infer parsing capabilities of these APIs from Java literal support.
 
-Ví dụ sai:
+Wrong example:
 
 ~~~java
 System.setProperty("demo.binary", "0b1010");
 Integer value = Integer.getInteger("demo.binary", -1);
-System.out.println(value); // -1: 0b không được decode hỗ trợ
+System.out.println(value); // -1: 0b is unsupported by decode
 ~~~
 
-Nếu cấu hình thực sự quy định hệ 2, dùng `Integer.parseInt(text, 2)` với văn bản chữ số `"1010"`, hoặc thiết kế bước xử lý rõ ràng cho tiền tố `0b` trước khi parse.
+If configuration genuinely specifies base 2, use `Integer.parseInt(text, 2)` on the digit text `"1010"`, or design an explicit handling step for the `0b` prefix before parsing.
 
-### Dấu, khoảng trắng và định dạng
+### Signs, whitespace, and formatting
 
-Các phương thức `decode` cho phép dấu `+` hoặc `-` ở **đầu chuỗi**, trước tiền tố radix khi có. Không thêm dấu sau tiền tố, chẳng hạn `"0x-2A"`.
+The `decode` methods allow a `+` or `-` sign at the **start of the string**, before any radix prefix. Never place the sign after the prefix, such as `"0x-2A"`.
 
-Chúng không tự tiện cắt mọi khoảng trắng. Giá trị như `" 42 "` không phải chuỗi hợp lệ đối với `decode`; `getInteger` trả `null` hoặc fallback. Nếu hợp đồng cấu hình cho phép whitespace, hãy đọc chuỗi và xử lý tường minh, ví dụ `text.trim()`, sau đó parse.
+They do not automatically strip whitespace. Values like `" 42 "` are invalid for `decode`; `getInteger` returns `null` or the fallback. If the configuration contract allows whitespace, read the string and normalize explicitly, e.g., `text.trim()`, then parse.
 
-## 7. Khi thiếu property và khi nội dung không hợp lệ
+## 7. Missing property vs. invalid content
 
-Ba trạng thái có thể rất khác nhau trong cấu hình:
+Three states can mean very different things in configuration:
 
-1. Property **không tồn tại**.
-2. Property **tồn tại nhưng chuỗi rỗng hoặc sai định dạng**.
-3. Property **tồn tại nhưng số vượt miền kiểu đích**.
+1. Property **does not exist**.
+2. Property **exists but is empty or malformed**.
+3. Property **exists but the number exceeds the target type's range**.
 
-Với `Integer.getInteger(name)`, kết quả của cả ba trường hợp có thể là `null`. Với overload có giá trị mặc định, cả ba trả về cùng fallback, trừ khi xảy ra lỗi bảo mật khi đọc property.
+With `Integer.getInteger(name)`, all three cases can result in `null`. With a default-value overload, all three return the same fallback, unless a security error occurs when reading the property.
 
 ~~~java
 System.clearProperty("demo.missing");
@@ -215,17 +215,17 @@ System.out.println(Integer.getInteger("demo.invalid", 7));    // 7
 System.out.println(Integer.getInteger("demo.too.big", 7));    // 7
 ~~~
 
-`2147483648` lớn hơn `Integer.MAX_VALUE` đúng một đơn vị, nhưng vẫn nằm trong miền `long`:
+`2147483648` is one greater than `Integer.MAX_VALUE`, yet still within the `long` range:
 
 ~~~java
 System.out.println(Long.getLong("demo.too.big")); // 2147483648
 ~~~
 
-**Điều cần lưu ý:** `getInteger`/`getLong` có thể khiến dữ liệu cấu hình **không hợp lệ bị che giấu** bởi fallback. Với cấu hình bắt buộc và quan trọng (ví dụ giới hạn tài nguyên), việc tùy tiện chọn default có thể che khuất lỗi vận hành.
+**Important note:** `getInteger`/`getLong` can let **invalid configuration data be masked** by a fallback. For mandatory and critical settings (e.g., resource limits), picking a default arbitrarily can hide operational errors.
 
-## 8. Overload và giá trị mặc định
+## 8. Overloads and default values
 
-`Integer` có các dạng:
+`Integer` provides:
 
 ~~~java
 Integer getInteger(String name)
@@ -233,7 +233,7 @@ Integer getInteger(String name, int defaultValue)
 Integer getInteger(String name, Integer defaultValue)
 ~~~
 
-`Long` có các dạng tương ứng:
+`Long` provides the corresponding forms:
 
 ~~~java
 Long getLong(String name)
@@ -241,9 +241,9 @@ Long getLong(String name, long defaultValue)
 Long getLong(String name, Long defaultValue)
 ~~~
 
-Chữ ký trên để tham khảo API (không phải khai báo method để copy vào lớp ứng dụng).
+The signatures above are for API reference (not method declarations to copy into an application class).
 
-Các ví dụ:
+Examples:
 
 ~~~java
 System.clearProperty("app.timeout");
@@ -255,16 +255,16 @@ Integer timeout = Integer.getInteger("app.timeout", fallback);
 System.out.println(timeout); // 15
 ~~~
 
-Dạng nhận wrapper cho phép truyền một giá trị mặc định kiểu wrapper; về mặt kết quả, có thể cho `null` nếu tham số default wrapper là `null`:
+The wrapper overload allows passing a wrapper default value; as a result, it can return `null` if the wrapper default parameter is `null`:
 
 ~~~java
 Integer noDefault = Integer.getInteger("app.timeout", (Integer) null);
 System.out.println(noDefault); // null
 ~~~
 
-Trong trường hợp này, khi property không có hoặc không giải mã được, một fallback null vẫn cho ra null. Cần chủ động chọn kiểu overload, đặc biệt khi truyền literal `null` — dùng ép kiểu để thể hiện ý định hoặc chọn phương thức không có tham số default.
+In this case, when the property is missing or undecodable, a null fallback still produces null. Deliberately pick the overload type, especially when passing a `null` literal — use a cast to express intent or choose the method without a default parameter.
 
-### Nếu muốn phát hiện lỗi cấu hình thay vì âm thầm lấy default
+### If you want to detect configuration errors instead of silently taking defaults
 
 ~~~java
 static int requiredDecimalProperty(String name) {
@@ -281,13 +281,13 @@ static int requiredDecimalProperty(String name) {
 }
 ~~~
 
-Đây là **phương thức minh họa bên trong một lớp**, biên dịch được trên Java 17. Nó quy định chỉ nhận **số thập phân**; khác với `Integer.getInteger`, chuỗi `"010"` sẽ được hiểu là 10 và `"0x10"` bị từ chối. Đừng thêm `trim()` một cách ngầm định nếu hệ thống muốn phát hiện whitespace không hợp lệ.
+This is an **illustrative method inside a class**, compilable on Java 17. It specifies accepting strictly **decimal numbers**; unlike `Integer.getInteger`, `"010"` is interpreted as 10 and `"0x10"` is rejected. Do not add `trim()` implicitly if the system needs to detect invalid whitespace.
 
-Hàm này **không** tự kiểm tra giới hạn nghiệp vụ như “số luồng phải lớn hơn 0”; việc đó cần thêm validation sau khi parse.
+This function does **not** automatically enforce business limits such as "thread count must be greater than 0"; that requires additional validation after parsing.
 
-## 9. Chương trình Java 17+ chạy độc lập
+## 9. Standalone runnable Java 17+ program
 
-Tạo tệp `SystemPropertyNumberDemo.java`:
+Create file `SystemPropertyNumberDemo.java`:
 
 ~~~java
 public class SystemPropertyNumberDemo {
@@ -338,14 +338,14 @@ public class SystemPropertyNumberDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 SystemPropertyNumberDemo.java
 java SystemPropertyNumberDemo
 ~~~
 
-Kết quả stdout:
+Stdout output:
 
 ~~~text
 getInteger decimal=42
@@ -364,69 +364,69 @@ raw property=42
 parse invalid: NumberFormatException
 ~~~
 
-Giải thích:
+Explanation:
 
-- Các property được đặt bằng `System.setProperty` trong chính chương trình nên kết quả độc lập với cấu hình `-D` bên ngoài cho những khóa đó.
-- Số `"010"` được `getInteger` giải mã theo octal thành 8; `parseInt` theo decimal thành 10.
-- `"0b1010"` không thuộc tiền tố `decode` nên trở về fallback −1.
-- `"2147483648"` vượt miền `int` nhưng vẫn hợp lệ với `long`.
-- `Integer.parseInt("abc")` phát sinh `NumberFormatException`; `getInteger` với property có value `"abc"` lại trả default.
-- `System.getProperty` trả chuỗi gốc; không ép kiểu và không thực hiện bước giải mã.
+- Properties are set via `System.setProperty` within the program itself, so output is independent of external `-D` settings for those keys.
+- `"010"` is decoded by `getInteger` in octal as 8; `parseInt` parses it in decimal as 10.
+- `"0b1010"` is not a `decode` prefix, so it falls back to −1.
+- `"2147483648"` exceeds `int` range yet remains valid for `long`.
+- `Integer.parseInt("abc")` throws `NumberFormatException`; `getInteger` on a property with value `"abc"` returns the default.
+- `System.getProperty` returns the raw string; it does not cast or perform decoding.
 
-## 10. Dùng -D khi triển khai chương trình thực
+## 10. Using -D when deploying real programs
 
-Với chương trình ứng dụng có class `ServerApp` đã được biên dịch, có thể cấu hình từ command line:
+For an application program with a compiled `ServerApp` class, you can configure from the command line:
 
 ~~~bash
 java -Dserver.port=8080 -Dserver.workers=4 ServerApp
 ~~~
 
-Đoạn mã ứng dụng:
+Application code snippet:
 
 ~~~java
 int port = Integer.getInteger("server.port", 8080);
 int workers = Integer.getInteger("server.workers", 4);
 ~~~
 
-Ở đây Java **autounbox** kết quả wrapper từ `getInteger` vào `int`. Với overload có primitive default, trường hợp property không tồn tại/sai sẽ cho wrapper chứa default trước khi unbox, vì vậy không xuất hiện null trong đường đi thông thường. Tuy nhiên, nếu hạn chế quyền truy cập property thì vẫn có thể có ngoại lệ.
+Here Java **autounboxes** the wrapper result from `getInteger` into `int`. With the primitive-default overload, missing/invalid property cases yield a wrapper holding the default before unboxing, so null does not occur on the normal path. However, if property access is restricted, an exception can still be thrown.
 
-Không nhầm vị trí của tham số JVM:
+Do not misplace the JVM argument:
 
 ~~~bash
 java -Dserver.port=8080 ServerApp
 ~~~
 
-`-Dserver.port=8080` là tùy chọn của **JVM trước tên class**. Viết `java ServerApp -Dserver.port=8080` sẽ truyền chuỗi đó vào `main(String[] args)` như một tham số chương trình, không tự thiết lập system property tương ứng.
+`-Dserver.port=8080` is a **JVM option before the class name**. Writing `java ServerApp -Dserver.port=8080` passes that string into `main(String[] args)` as a program argument rather than setting the system property.
 
-### Mối quan hệ với môi trường triển khai
+### Relationship with the deployment environment
 
-Trên hệ thống container/service, có thể có biến môi trường tên `SERVER_PORT`, file cấu hình, tham số dòng lệnh ứng dụng, hoặc system property `server.port`. Đây là các nguồn cấu hình độc lập. Nếu yêu cầu triển khai phân cấp ưu tiên, chẳng hạn “`-D` ưu tiên hơn environment”, phải viết logic xử lý rõ ràng.
+In container/service systems, there may be an environment variable `SERVER_PORT`, config files, application CLI flags, or system property `server.port`. These are independent configuration sources. If deployment requires a precedence hierarchy such as "`-D` overrides environment", you must write explicit resolution logic.
 
-Không nên đưa mật khẩu, token hoặc thông tin nhạy cảm vào system property một cách tùy tiện chỉ vì tiện sử dụng. Thuộc tính JVM có thể lộ qua công cụ chẩn đoán, logging hoặc danh sách tham số tiến trình tùy môi trường; cần tuân thủ cơ chế lưu trữ bí mật phù hợp.
+Do not casually put passwords, tokens, or sensitive secrets into system properties just for convenience. JVM properties may be exposed via diagnostic tools, logging, or process argument listings depending on the environment; follow proper secret storage mechanisms.
 
-## 11. Chuỗi chứa số: parseInt, parseLong, decode hay getInteger?
+## 11. Strings containing numbers: parseInt, parseLong, decode, or getInteger?
 
-Một tiêu chí thực tế:
+A practical criterion:
 
-| Nhu cầu | API đề xuất |
+| Need | Recommended API |
 | --- | --- |
-| Người dùng nhập chuỗi decimal `"123"` | `Integer.parseInt(text)` hoặc `Long.parseLong(text)` |
-| Chuỗi decimal nhưng cần wrapper | `Integer.valueOf(text)` hoặc `Long.valueOf(text)` |
-| Chuỗi số theo radix có tiền tố `0x`, `#`, số 0 đầu chuỗi | `Integer.decode(text)` hoặc `Long.decode(text)` |
-| Chuỗi chữ số với radix chỉ định rõ | `Integer.parseInt(text, radix)` hoặc `Long.parseLong(text, radix)` |
-| Đọc property JVM và chấp nhận quy tắc `decode`, fallback | `Integer.getInteger(name, default)` hoặc `Long.getLong(name, default)` |
-| Đọc property JVM nhưng bắt buộc decimal, cần báo lỗi chính xác | `System.getProperty(name)`, kiểm tra rồi `parseInt`/`parseLong` |
-| Đọc biến môi trường | `System.getenv(name)`, sau đó kiểm tra/parse nếu cần |
+| User-entered decimal string `"123"` | `Integer.parseInt(text)` or `Long.parseLong(text)` |
+| Decimal string needing a wrapper | `Integer.valueOf(text)` or `Long.valueOf(text)` |
+| Radix-prefixed numeric string with `0x`, `#`, leading `0` | `Integer.decode(text)` or `Long.decode(text)` |
+| Digit string with explicitly specified radix | `Integer.parseInt(text, radix)` or `Long.parseLong(text, radix)` |
+| Read JVM property accepting `decode` rules and fallback | `Integer.getInteger(name, default)` or `Long.getLong(name, default)` |
+| Read JVM property requiring strict decimal and exact error reporting | `System.getProperty(name)`, check then `parseInt`/`parseLong` |
+| Read environment variable | `System.getenv(name)`, then validate/parse if needed |
 
-Một cách nghĩ an toàn:
+A safe mental model:
 
-- Có **giá trị text** cần chuyển sang số → chọn một phương thức **parse/decode**.
-- Có **tên property JVM** muốn đọc cấu hình dạng số → chọn `getInteger`/`getLong` khi phù hợp hợp đồng decode/fallback.
-- Có **tên environment variable** → đọc qua `System.getenv` trước, không dùng `getInteger` để tra.
+- Have **text value** to convert to a number → pick a **parse/decode** method.
+- Have **JVM property name** to read numeric configuration → pick `getInteger`/`getLong` when decode/fallback rules fit.
+- Have **environment variable name** → read via `System.getenv` first; never use `getInteger` to look it up.
 
-## 12. Cẩn trọng với parsing số và giới hạn miền
+## 12. Caution with number parsing and range limits
 
-### Số vượt miền kiểu đích
+### Numbers exceeding target type range
 
 ~~~java
 System.setProperty("app.large", "9223372036854775807");
@@ -434,9 +434,9 @@ System.out.println(Long.getLong("app.large"));     // 9223372036854775807
 System.out.println(Integer.getInteger("app.large")); // null
 ~~~
 
-Nếu value vượt cả miền `long`, `Long.getLong` cũng không thể giải mã; khi không có default nó trả `null`. Phần tử cấu hình cần giá trị lớn hơn `long` có thể dùng `BigInteger` sau khi đọc text, với validation riêng.
+If the value even exceeds `long`, `Long.getLong` cannot decode it either; without a default it returns `null`. Config elements needing values larger than `long` can use `BigInteger` after reading text, with dedicated validation.
 
-### Null không phải số 0
+### Null is not zero
 
 ~~~java
 System.clearProperty("app.items");
@@ -445,34 +445,34 @@ Integer items = Integer.getInteger("app.items");
 System.out.println(items == null); // true
 ~~~
 
-Nếu dùng `int count = Integer.getInteger("app.items");`, unboxing giá trị `null` sẽ ném `NullPointerException`. Đây là lỗi thường gặp khi dùng overload không có default với biến primitive.
+If you write `int count = Integer.getInteger("app.items");`, unboxing `null` throws `NullPointerException`. This is a common mistake when using the no-default overload with primitive variables.
 
-Nếu “property vắng” khác “giá trị zero”, hãy giữ `Integer` nullable và xử lý hai trường hợp tường minh, hoặc ném ngoại lệ cấu hình có thông báo.
+If "missing property" differs from "zero value", keep nullable `Integer` and handle both cases explicitly, or throw an informative configuration exception.
 
-### Không tự động bỏ qua whitespace
+### Does not automatically ignore whitespace
 
 ~~~java
 System.setProperty("app.spaces", " 7 ");
 System.out.println(Integer.getInteger("app.spaces", -1)); // -1
 ~~~
 
-Nếu người dùng có thể nhập khoảng trắng, đọc text và áp dụng chính sách chuẩn hóa **có chủ đích**. Lỗi sai định dạng cũng nên được log có kiểm soát để người vận hành biết nguyên nhân thay vì mất dấu trong một default “có vẻ hợp lệ”.
+If users might enter whitespace, read the text and apply a **deliberate** normalization policy. Malformed errors should also be logged carefully so operators know the cause instead of losing track behind a "plausible-looking" default.
 
-## 13. Chính sách cấu hình: optional, required và valid range
+## 13. Configuration policy: optional, required, and valid range
 
-Đối với một system property định nghĩa kích thước pool worker, ta thường cần ít nhất ba bước:
+For a system property defining worker pool size, we typically need at least three steps:
 
-1. **Đọc** giá trị từ nguồn dự kiến.
-2. **Parse** với quy tắc định dạng được công bố.
-3. **Validate** miền nghiệp vụ, ví dụ worker count từ 1 đến 128.
+1. **Read** the value from the intended source.
+2. **Parse** using the published format rules.
+3. **Validate** the business range, e.g., worker count from 1 to 128.
 
-Một hàm Java 17 minh họa:
+An illustrative Java 17 function:
 
 ~~~java
 static int workerCount() {
     String raw = System.getProperty("app.workers");
     if (raw == null) {
-        return 4; // Mặc định khi khóa không có
+        return 4; // Default when key is absent
     }
 
     final int count;
@@ -491,35 +491,35 @@ static int workerCount() {
 }
 ~~~
 
-Điểm khác biệt với `Integer.getInteger("app.workers", 4)`:
+Differences from `Integer.getInteger("app.workers", 4)`:
 
-- **Property vắng** → dùng 4.
-- **Property sai định dạng** → báo lỗi thay vì im lặng dùng 4.
-- **Property có giá trị 0, âm hoặc quá lớn theo nghiệp vụ** → báo lỗi.
-- `"010"` được parse thành decimal 10, không phải octal 8.
+- **Missing property** → uses 4.
+- **Malformed property** → reports error instead of silently using 4.
+- **Property with 0, negative, or overly large business value** → reports error.
+- `"010"` is parsed as decimal 10, not octal 8.
 
-Việc chọn fallback hay fail-fast tùy mức độ bắt buộc của cấu hình. Với thông số ảnh hưởng tài nguyên, tính an toàn hoặc dữ liệu quan trọng, **fail-fast** thường giúp phát hiện lỗi triển khai sớm.
+Choosing fallback versus fail-fast depends on how critical the configuration is. For parameters affecting resources, safety, or critical data, **fail-fast** usually catches deployment mistakes early.
 
-## 14. Những lỗi thường gặp
+## 14. Common mistakes
 
-| Nhầm lẫn | Hậu quả | Sửa đúng |
+| Mistake | Consequence | Proper fix |
 | --- | --- | --- |
-| `Integer.getInteger("123")` để parse số 123 | Tra property tên `"123"`, thường nhận `null` | `Integer.parseInt("123")` |
-| `Long.getLong("9223372036854775807")` để parse số | Tra property có tên nguyên chuỗi số | `Long.parseLong(text)` |
-| Nghĩ `getInteger` tự đọc environment variable | Bỏ qua `System.getenv` | Đọc môi trường trước nếu đó là nguồn dữ liệu |
-| Nghĩ `getInteger` luôn dùng decimal | Property `"010"` thành octal 8 | `System.getProperty` + `parseInt` khi cần decimal |
-| Property `"0b1010"` được decode như binary literal | Nhận null/default | Parse radix 2 sau khi xử lý định dạng |
-| Property `"1_000"` được decode như Java literal | Nhận null/default | Định nghĩa và thực hiện chuẩn hóa/parse riêng |
-| Property sai định dạng nhưng fallback âm thầm | Che giấu cấu hình sai | Đọc chuỗi rồi fail-fast |
-| Gán kết quả `getInteger(name)` vào `int` mà không kiểm tra | `NullPointerException` nếu không có/sai property | Dùng overload default hoặc null guard |
-| `Integer.getInteger` đọc số vượt miền int | Null/default dù văn bản là số hợp lệ kiểu long | Dùng `Long.getLong` hoặc parse kiểu phù hợp |
-| Nghĩ fallback sẽ ghi property mới | Nhầm trạng thái cấu hình | Fallback chỉ là giá trị kết quả |
-| Đặt `-D` sau class trong lệnh `java` | Không đặt JVM property | Đặt `-Dkey=value` trước tên class/JAR |
-| Dùng getInteger cho mọi kiểu cấu hình không validation | Chấp nhận số âm/zero ngoài hợp đồng | Validate miền nghiệp vụ sau khi parse |
+| `Integer.getInteger("123")` to parse 123 | Looks up property named `"123"`, usually gets `null` | `Integer.parseInt("123")` |
+| `Long.getLong("9223372036854775807")` to parse number | Looks up property named as the entire digit string | `Long.parseLong(text)` |
+| Thinking `getInteger` reads environment variables | Misses `System.getenv` | Read environment first if that is the data source |
+| Thinking `getInteger` always uses decimal | Property `"010"` becomes octal 8 | `System.getProperty` + `parseInt` when decimal is needed |
+| Property `"0b1010"` decoded as binary literal | Returns null/default | Parse radix 2 after handling format |
+| Property `"1_000"` decoded as Java literal | Returns null/default | Define and perform separate normalization/parsing |
+| Malformed property silently falls back | Hides misconfiguration | Read string then fail-fast |
+| Assigning `getInteger(name)` directly to `int` without check | `NullPointerException` if missing/invalid property | Use default overload or null guard |
+| `Integer.getInteger` reading number beyond int range | Null/default even though text is valid long | Use `Long.getLong` or parse with matching type |
+| Thinking fallback writes a new property | Misunderstands config state | Fallback is only the return value |
+| Placing `-D` after class name in `java` command | Does not set JVM property | Place `-Dkey=value` before class/JAR name |
+| Using getInteger for all configs without validation | Accepts negative/zero outside contract | Validate business range after parsing |
 
-## 15. Bài tập tự kiểm tra
+## 15. Self-check exercises
 
-**1.** Cho:
+**1.** Given:
 
 ~~~java
 System.setProperty("demo.number", "25");
@@ -527,41 +527,41 @@ System.out.println(Integer.getInteger("demo.number"));
 System.out.println(Integer.getInteger("25"));
 ~~~
 
-Dòng đầu in bao nhiêu? Dòng thứ hai có chắc in 25 không?
+What does the first line print? Is the second line guaranteed to print 25?
 
-**Đáp án:** dòng đầu in `25`. Dòng thứ hai tra property **tên** `"25"`; kết quả có thể là `null` nếu property đó không tồn tại, không được phép suy ra sẽ in 25.
+**Answer:** the first line prints `25`. The second line looks up a property **named** `"25"`; the result may be `null` if that property does not exist, and you cannot assume it will print 25.
 
-**2.** Property `demo.limit=0x20` được đọc bằng `Long.getLong("demo.limit")` thành bao nhiêu?
+**2.** Property `demo.limit=0x20` read via `Long.getLong("demo.limit")` yields what?
 
-**Đáp án:** `32L`, vì `0x20` là hexadecimal.
+**Answer:** `32L`, because `0x20` is hexadecimal.
 
-**3.** Tại sao `Integer.getInteger("mode", -1)` có thể trả −1 dù property `mode` tồn tại?
+**3.** Why might `Integer.getInteger("mode", -1)` return −1 even though property `mode` exists?
 
-**Đáp án:** Property value có thể sai định dạng hoặc vượt miền `int`, khiến decode thất bại và overload dùng fallback.
+**Answer:** The property value may be malformed or outside `int` range, causing decode to fail and the overload to return the fallback.
 
-**4.** Vì sao `Integer.getInteger` đọc `"010"` khác `Integer.parseInt("010")`?
+**4.** Why does `Integer.getInteger` read `"010"` differently from `Integer.parseInt("010")`?
 
-**Đáp án:** getInteger dùng quy tắc `Integer.decode` của **property value**, nên nhận octal 8; parseInt mặc định decimal nên nhận 10.
+**Answer:** getInteger uses `Integer.decode` rules on the **property value**, so it reads octal 8; parseInt defaults to decimal so it reads 10.
 
-**5.** Muốn ứng dụng báo lỗi nếu `app.workers` có value `"abc"` nhưng dùng default khi property không tồn tại: nên dùng gì?
+**5.** If you want the application to report an error when `app.workers` has value `"abc"` yet use a default when the property does not exist: what should you use?
 
-**Đáp án:** `System.getProperty("app.workers")`; nếu trả null thì dùng default, còn nếu có chuỗi thì `Integer.parseInt` trong `try/catch` và validation nghiệp vụ.
+**Answer:** `System.getProperty("app.workers")`; if it returns null use the default, whereas if a string is present use `Integer.parseInt` inside `try/catch` plus business validation.
 
-**6.** `Long.getLong` có đọc được biến môi trường `MAX_COUNT` không?
+**6.** Can `Long.getLong` read the environment variable `MAX_COUNT`?
 
-**Đáp án:** Không tự động. `Long.getLong("MAX_COUNT")` tìm **system property** tên đó. Muốn đọc environment variable, dùng `System.getenv("MAX_COUNT")` rồi parse.
+**Answer:** Not automatically. `Long.getLong("MAX_COUNT")` searches for a **system property** of that name. To read an environment variable, use `System.getenv("MAX_COUNT")` and parse.
 
-## 16. Ghi nhớ
+## 16. Key takeaways
 
-- **`Integer.getInteger(name)` và `Long.getLong(name)` nhận *tên system property*, không nhận trực tiếp một chuỗi số để parse.**
-- Chúng đọc property value rồi decode theo quy tắc decimal/hex/octal, khác parse decimal mặc định.
-- Không có property hoặc value không hợp lệ → trả `null` hoặc default do overload; cần kiểm tra null khi unboxing.
-- `System.getProperty`, `System.getenv` và `Integer.parseInt`/`Long.parseLong` giải quyết **những bài toán khác nhau**.
-- Khi cấu hình quan trọng, tách rõ đọc nguồn → parse → validate → xử lý lỗi, thay vì vô tình che lỗi bằng fallback.
+- **`Integer.getInteger(name)` and `Long.getLong(name)` take a *system property name*, not a numeric string to parse directly.**
+- They read the property value and decode it using decimal/hex/octal rules, unlike default decimal parsing.
+- Missing property or invalid value → returns `null` or the overload's default; check for null before unboxing.
+- `System.getProperty`, `System.getenv`, and `Integer.parseInt`/`Long.parseLong` solve **different problems**.
+- For critical configuration, separate read source → parse → validate → error handling, rather than accidentally hiding errors with fallbacks.
 
-Tài liệu chính thức (Java 17):
+Official documentation (Java 17):
 
-- [Integer.getInteger / Integer.decode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): quy tắc đọc system property và giải mã giá trị.
-- [Long.getLong / Long.decode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html): tương tự cho `long`.
-- [System.getProperty](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#getProperty(java.lang.String)) và [System.getenv](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#getenv(java.lang.String)): phân biệt nguồn cấu hình.
-- [Java launcher](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): tùy chọn `-Dproperty=value`.
+- [Integer.getInteger / Integer.decode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): rules for reading system properties and decoding values.
+- [Long.getLong / Long.decode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html): corresponding methods for `long`.
+- [System.getProperty](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#getProperty(java.lang.String)) and [System.getenv](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#getenv(java.lang.String)): distinguishing configuration sources.
+- [Java launcher](https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html): `-Dproperty=value` option.

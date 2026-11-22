@@ -1,15 +1,15 @@
-# `equals()` và `hashCode()` của mảng mặc định dựa trên danh tính
+# `equals()` and `hashCode()` of Arrays Default to Identity
 
-## 1. Mục tiêu: mảng có dữ liệu giống nhau chưa chắc “bằng nhau”
+## 1. Goal: Arrays with identical data are not necessarily “equal”
 
-Trong Java, **mảng (array) là đối tượng**, kể cả mảng của kiểu nguyên thủy như `int[]`, `double[]`. Nhưng mảng **không ghi đè** `Object.equals(Object)` hoặc `Object.hashCode()` để so sánh các phần tử. Theo mặc định, mảng dùng quy tắc **danh tính đối tượng** (object identity):
+In Java, **arrays are objects**, including arrays of primitive types such as `int[]`, `double[]`. However, arrays **do not override** `Object.equals(Object)` or `Object.hashCode()` to compare their elements. By default, arrays use **object identity** rules:
 
-- `arrayA.equals(arrayB)` là `true` khi `arrayA` và `arrayB` trỏ đến **chính cùng một mảng**, không phải chỉ vì hai mảng có các phần tử giống nhau.
-- `arrayA == arrayB` cũng kiểm tra cùng tham chiếu đối với hai biến kiểu mảng.
-- `arrayA.hashCode()` là mã băm theo danh tính mặc định của đối tượng, **không dựa trên nội dung các phần tử**. Không được suy ra nó là địa chỉ bộ nhớ, hay mỗi mảng chắc chắn có hash khác mọi mảng khác.
-- Muốn so sánh hoặc băm **theo nội dung**, cần chọn API của `java.util.Arrays` phù hợp với mảng một chiều hay mảng lồng nhau; hoặc thiết kế lớp bao (value object) với `equals`/`hashCode` rõ ràng.
+- `arrayA.equals(arrayB)` is `true` when `arrayA` and `arrayB` point to **the exact same array**, not merely because two arrays have the same elements.
+- `arrayA == arrayB` also checks for the same reference for two array variables.
+- `arrayA.hashCode()` is the object's default identity-based hash code, **not based on element contents**. You must not infer that it is a memory address, or that every array is guaranteed to have a different hash from every other array.
+- To compare or hash **by content**, choose the `java.util.Arrays` API appropriate for one-dimensional arrays or nested arrays; or design a wrapper class (value object) with explicit `equals`/`hashCode`.
 
-Ví dụ độc lập về ngữ nghĩa:
+Semantic standalone example:
 
 ```java
 int[] first = {1, 2, 3};
@@ -22,75 +22,75 @@ System.out.println(first == alias);         // true
 System.out.println(first.equals(alias));    // true
 ```
 
-Đây là đoạn mã minh họa (đặt trong một phương thức khi chạy), chưa phải chương trình độc lập. `first` và `second` là **hai đối tượng mảng** riêng biệt; `alias` chỉ tham chiếu lại mảng `first`.
+This is an illustrative snippet (placed inside a method when run), not a standalone program. `first` and `second` are **two separate array objects**; `alias` merely references the `first` array again.
 
-Ngược lại, `Arrays.equals(first, second)` là `true` vì hai mảng `int[]` có các phần tử tương ứng bằng nhau. Hai quan hệ này trả lời **hai câu hỏi khác nhau**: có phải cùng đối tượng không, và nội dung có tương đương không.
+Conversely, `Arrays.equals(first, second)` is `true` because the two `int[]` arrays have equal corresponding elements. These two relations answer **two different questions**: whether they are the same object, and whether their contents are equivalent.
 
-## 2. Vì sao `Object.equals` và `Object.hashCode` hoạt động theo danh tính với mảng?
+## 2. Why do `Object.equals` and `Object.hashCode` work by identity for arrays?
 
-Java quy định mọi kiểu mảng đều là kiểu tham chiếu, kế thừa hành vi thích hợp từ `Object`. Bản thân mảng cung cấp độ dài `length` và các phần tử truy cập bằng chỉ số, nhưng không có một `equals` hay `hashCode` tự sinh theo nội dung như nhiều lớp giá trị.
+Java specifies that every array type is a reference type, inheriting appropriate behavior from `Object`. An array itself provides its `length` and elements accessed by index, but does not have an auto-generated content-based `equals` or `hashCode` like many value classes.
 
-Nếu một lớp thông thường không ghi đè `equals`, `Object.equals` mặc định so sánh danh tính: `this == other`. Đối với mảng cũng vậy. `Object.hashCode` cho mã băm mặc định tương ứng với danh tính đối tượng. Hai lần gọi trên **cùng một mảng**, khi không có yếu tố bất thường ngoài hợp đồng, trả về cùng mã băm trong một lần chạy.
+If a regular class does not override `equals`, `Object.equals` compares identity by default: `this == other`. The same applies to arrays. `Object.hashCode` provides a default hash code corresponding to object identity. Two calls on **the same array**, when no extraordinary out-of-contract factors are present, return the same hash code within a single run.
 
-Điều cần nhớ:
+Points to remember:
 
-1. **Cùng tham chiếu ⇒ `equals` đúng và hash giống nhau.** Một mảng vẫn là chính nó ngay cả khi các phần tử thay đổi.
-2. **Khác tham chiếu ⇒ `array1.equals(array2)` sai**, kể cả khi chúng có các phần tử và độ dài bằng nhau.
-3. **Mã băm trùng nhau không chứng minh cùng đối tượng.** `hashCode` trả về `int` nên các đối tượng khác nhau có thể va chạm.
-4. **Thay đổi phần tử không chuyển `array.hashCode()` sang “băm nội dung”.** Nó vẫn theo danh tính; trong khi `Arrays.hashCode(array)` lại được tính từ các phần tử hiện tại.
-5. `System.identityHashCode(array)` trả mã băm danh tính mặc định của đối tượng, ngay cả khi đối tượng thuộc lớp khác đã ghi đè `hashCode`. Vì mảng không ghi đè phương thức đó, `array.hashCode() == System.identityHashCode(array)`.
+1. **Same reference ⇒ `equals` is true and hashes are the same.** An array remains itself even when its elements change.
+2. **Different references ⇒ `array1.equals(array2)` is false**, even when they have equal elements and lengths.
+3. **Matching hash codes do not prove the same object.** `hashCode` returns an `int`, so different objects can collide.
+4. **Mutating elements does not switch `array.hashCode()` to “content hashing”.** It remains identity-based; whereas `Arrays.hashCode(array)` is computed from the current elements.
+5. `System.identityHashCode(array)` returns the object's default identity hash code, even if the object belongs to another class that overrode `hashCode`. Because arrays do not override that method, `array.hashCode() == System.identityHashCode(array)`.
 
-Đừng nhầm “identity hash” với ID duy nhất hay địa chỉ trong heap. Hợp đồng Java **không cam kết** mã băm duy nhất trên mọi đối tượng và không cam kết giá trị của mã băm mặc định có thể dùng để nhận dạng đối tượng qua các lần chạy ứng dụng.
+Do not confuse an “identity hash” with a unique ID or a heap address. The Java contract **does not guarantee** unique hash codes across all objects and does not guarantee that default hash code values can be used to identify objects across application runs.
 
-## 3. So nội dung một chiều: chuyển từ identity sang `Arrays.equals`
+## 3. One-dimensional content comparison: switching from identity to `Arrays.equals`
 
-Khi mục tiêu là **dữ liệu** chứ không phải chính đối tượng mảng, dùng `java.util.Arrays` thay cho `array.equals(...)`. Thứ tự, độ dài và quy tắc bằng nhau của từng phần tử vẫn được tôn trọng:
+When the goal is **the data** rather than the array object itself, use `java.util.Arrays` instead of `array.equals(...)`. Order, length, and the equality rules of each element are still respected:
 
-| Dữ liệu và mục đích | So sánh | Băm tương ứng |
+| Data and purpose | Comparison | Corresponding hash |
 | --- | --- | --- |
-| Cùng đối tượng mảng | `a == b` hoặc `a.equals(b)` nếu a không null | `a.hashCode()` (identity) |
-| Hai `int[]`, `byte[]`, `double[]` theo nội dung | `Arrays.equals(a, b)` đúng overload | `Arrays.hashCode(a)` |
-| Hai `String[]` hoặc `Object[]` so từng phần tử | `Arrays.equals(a, b)` | `Arrays.hashCode(a)` |
-| Hai `int[][]` hoặc `Object[]` có mảng con, muốn so cả tầng trong | `Arrays.deepEquals(a, b)` | `Arrays.deepHashCode(a)` |
+| Same array object | `a == b` or `a.equals(b)` if `a` is non-null | `a.hashCode()` (identity) |
+| Two `int[]`, `byte[]`, `double[]` by content | `Arrays.equals(a, b)` appropriate overload | `Arrays.hashCode(a)` |
+| Two `String[]` or `Object[]` comparing element-by-element | `Arrays.equals(a, b)` | `Arrays.hashCode(a)` |
+| Two `int[][]` or `Object[]` with sub-arrays, comparing inner levels too | `Arrays.deepEquals(a, b)` | `Arrays.deepHashCode(a)` |
 
 ```java
 import java.util.Arrays;
-// Bên trong main hoặc một phương thức:
+// Inside main or a method:
 int[] first = {1, 2};
 int[] second = {1, 2};
-System.out.println(first.equals(second));         // false: khác identity
-System.out.println(Arrays.equals(first, second)); // true: cùng nội dung
+System.out.println(first.equals(second));         // false: different identity
+System.out.println(Arrays.equals(first, second)); // true: same content
 System.out.println(Arrays.hashCode(first)
         == Arrays.hashCode(second));               // true
 ```
 
-`Arrays.equals` và `Arrays.hashCode` cho mảng phẳng là **cặp nhất quán**: nếu hai mảng bằng nhau theo phép so nội dung thì hai mã băm nội dung phải bằng nhau; chiều ngược lại không đúng do hash collision. Các overload xử lý mảng `null` có kiểu rõ ràng: hai mảng `null` bằng nhau, còn `null` khác mảng rỗng. Đối với `float[]`/`double[]`, phương thức phân biệt `+0.0` với `-0.0`, và coi các giá trị NaN là bằng nhau theo quy tắc của `Float`/`Double`, khác toán tử `==` của primitive. Bài *Arrays.equals() và Arrays.hashCode() cho mảng một chiều* là nơi giải thích chi tiết overload, công thức hash, ví dụ chạy và các biên này.
+`Arrays.equals` and `Arrays.hashCode` for flat arrays form a **consistent pair**: if two arrays are equal under content comparison, then their two content hash codes must be equal; the reverse is not true due to hash collisions. The overloads handle `null` arrays with explicit types: two `null` arrays are equal, while `null` differs from an empty array. For `float[]`/`double[]`, the methods distinguish `+0.0` from `-0.0`, and treat NaN values as equal according to `Float`/`Double` rules, differing from the primitive `==` operator. The article *Arrays.equals() and Arrays.hashCode() for One-Dimensional Arrays* is where overloads, the hash formula, runnable examples, and these edge cases are explained in detail.
 
-## 4. Vì sao mảng lồng cần so và băm sâu?
+## 4. Why do nested arrays need deep comparison and hashing?
 
-`int[][]` là mảng có phần tử trực tiếp là các `int[]`. Khi dùng `Arrays.equals(int[][], int[][])`, các mảng con riêng biệt được so theo `Object.equals` của **từng mảng con**, không theo số bên trong. Cặp `Arrays.deepEquals`/`Arrays.deepHashCode` đi qua các mảng con để so/băm nội dung đúng mức:
+`int[][]` is an array whose direct elements are `int[]` arrays. When using `Arrays.equals(int[][], int[][])`, separate sub-arrays are compared by `Object.equals` of **each sub-array**, not by the numbers inside. The `Arrays.deepEquals`/`Arrays.deepHashCode` pair traverses into sub-arrays to compare/hash contents at the proper level:
 
 ```java
-// Trong một phương thức có import java.util.Arrays:
+// In a method with import java.util.Arrays:
 int[][] a = {{1, 2}, {3}};
 int[][] b = {{1, 2}, {3}};
-System.out.println(Arrays.equals(a, b));     // false: mảng con khác identity
-System.out.println(Arrays.deepEquals(a, b)); // true: cùng giá trị ở các tầng
+System.out.println(Arrays.equals(a, b));     // false: sub-arrays have different identity
+System.out.println(Arrays.deepEquals(a, b)); // true: same values across levels
 ```
 
-Hai phương thức `deep*` nhận mảng ngoài có kiểu `Object[]` (ví dụ `int[][]`), nên **không gọi trực tiếp** `Arrays.deepEquals(int[], int[])`. Chúng xử lý mảng nguyên thủy ở tầng con bằng overload phù hợp, giữ thứ tự, phân biệt loại mảng, null và độ sâu; không tự đi vào các trường của mọi object tùy ý. Mảng `Object[]` tự chứa chính nó, trực tiếp hoặc gián tiếp, nằm ngoài phạm vi hành vi được xác định của `deepEquals/deepHashCode`: cần thuật toán chu trình riêng. Bài *Arrays.deepEquals() và Arrays.deepHashCode() cho mảng lồng* phân tích sâu các trường hợp, còn bài *Giới hạn khi cấu trúc có tham chiếu vòng* xử lý giới hạn này.
+The two `deep*` methods accept an outer array of type `Object[]` (for example `int[][]`), so **do not call** `Arrays.deepEquals(int[], int[])` directly. They handle primitive arrays at nested levels using the appropriate overload, preserving order, distinguishing array types, nulls, and depth; they do not automatically traverse into fields of arbitrary objects. An `Object[]` array containing itself, directly or indirectly, falls outside the defined behavior of `deepEquals/deepHashCode`: a custom cycle-aware algorithm is required. The article *Arrays.deepEquals() and Arrays.deepHashCode() for Nested Arrays* analyzes the cases in depth, while *Limits When Structures Have Circular References* addresses this limitation.
 
-## 5. Đừng nhầm phép so nội dung với hành vi của hash collection
+## 5. Do not confuse content comparison with hash collection behavior
 
-`HashMap` và `HashSet` luôn dùng `equals/hashCode` của **đối tượng khóa/phần tử** được lưu. Với `int[]` trần, chúng dùng identity, không tự gọi `Arrays.equals/hashCode`. Nếu muốn hai mảng mới tạo có cùng phần tử biểu diễn cùng khóa, cần **value object** với `equals` dựa trên `Arrays.equals`, `hashCode` dựa trên `Arrays.hashCode`, cùng bản sao phòng vệ của mảng mutable.
+`HashMap` and `HashSet` always use `equals/hashCode` of the stored **key/element object**. With a bare `int[]`, they use identity, not automatically calling `Arrays.equals/hashCode`. If you want two newly created arrays with the same elements to represent the same key, you need a **value object** with `equals` based on `Arrays.equals`, `hashCode` based on `Arrays.hashCode`, along with a defensive copy of the mutable array.
 
-Nếu chính sách là so nội dung mảng lồng, dùng cả cặp `Arrays.deepEquals`/`Arrays.deepHashCode` và sao chép đủ các hàng/phần tử có thể sửa. `final` chỉ giữ tham chiếu không bị gán lại, **không đóng băng mảng**. Bài *Trường mảng trong lớp tự viết và yêu cầu đồng bộ equals() với hashCode()* đi sâu vào trường hợp nhiều trường và cách kết hợp hash.
+If the policy is to compare nested array contents, use the `Arrays.deepEquals`/`Arrays.deepHashCode` pair and copy all mutable rows/elements sufficiently. `final` only prevents the reference from being reassigned; it **does not freeze the array**. The article *Array Fields in Custom Classes and the Requirement to Synchronize equals() with hashCode()* dives into multi-field cases and how to combine hashes.
 
-## 6. Chương trình Java 17+ chạy độc lập
+## 6. Standalone runnable Java 17+ program
 
-Ví dụ dưới đây so sánh danh tính mảng, nội dung mảng một chiều, cấu trúc lồng nhau và tác động khi đưa mảng trực tiếp vào `HashSet`/`HashMap`. Cuối cùng là một **value object bất biến** dùng bản sao của mảng để có `equals`/`hashCode` dựa theo nội dung.
+The example below compares array identity, one-dimensional array content, nested structures, and the impact of placing arrays directly into `HashSet`/`HashMap`. Finally, it shows an **immutable value object** using a copy of the array to achieve content-based `equals`/`hashCode`.
 
-Lưu thành tệp `ArrayIdentityDemo.java`:
+Save as file `ArrayIdentityDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -181,14 +181,14 @@ public class ArrayIdentityDemo {
 }
 ```
 
-Biên dịch và chạy trên JDK 17 trở lên:
+Compile and run on JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 ArrayIdentityDemo.java
 java ArrayIdentityDemo
 ```
 
-Đầu ra kỳ vọng:
+Expected output:
 
 ```text
 a == b: false
@@ -210,107 +210,107 @@ source a now equals b by content: false
 snapshot key still found: true
 ```
 
-### Phân tích kết quả
+### Result Analysis
 
-**Mảng gốc khác nhau:** `a` và `b` là hai mảng, mặc dù có cùng chuỗi phần tử `1, 2, 3`. Vì mảng không ghi đè `equals`, `a.equals(b)` trả về `false`. `alias` trỏ đến `a` nên hai biểu thức `a == alias` và `a.equals(alias)` đều đúng.
+**Different original arrays:** `a` and `b` are two arrays, even though they have the same sequence of elements `1, 2, 3`. Because arrays do not override `equals`, `a.equals(b)` returns `false`. `alias` points to `a`, so both `a == alias` and `a.equals(alias)` are true.
 
-**Hai loại hash:** `a.hashCode()` là mã băm mặc định theo danh tính, bằng `System.identityHashCode(a)`. `Arrays.hashCode(a)` là mã băm nội dung; với `a` và `b` có cùng nội dung, kết quả nội dung hash bằng nhau. Đừng thử suy từ việc hai hash danh tính khác/giống nhau để quyết định dữ liệu có bằng nhau.
+**Two kinds of hashes:** `a.hashCode()` is the default identity-based hash code, equal to `System.identityHashCode(a)`. `Arrays.hashCode(a)` is the content hash code; for `a` and `b` with identical contents, the content hash results are equal. Do not try to infer whether data is equal from whether two identity hashes differ or match.
 
-**Collection băm:** `HashSet<int[]>` sử dụng `hashCode`/`equals` của chính đối tượng mảng, nên `a` và `b` được lưu như **hai khóa/phần tử khác nhau**. Thêm `alias` không tăng kích thước vì nó trỏ lại `a`. Một mảng mới có cùng các số cũng không được tìm thấy. Tương tự, `HashMap.get(alias)` tìm được giá trị `value-a`, còn `get(b)` trả về `null` dù `b` chứa cùng số.
+**Hash collections:** `HashSet<int[]>` uses `hashCode`/`equals` of the array object itself, so `a` and `b` are stored as **two distinct keys/elements**. Adding `alias` does not increase the size because it points back to `a`. A new array with the same numbers is also not found. Similarly, `HashMap.get(alias)` finds the value `value-a`, while `get(b)` returns `null` even though `b` contains the same numbers.
 
-**Cấu trúc lồng:** `Arrays.equals(nestedA, nestedB)` trả về `false` vì hai mảng `int[]` bên trong khác tham chiếu. `Arrays.deepEquals` đi vào mảng con và xác nhận dữ liệu tương ứng bằng nhau; `deepHashCode` của hai cấu trúc cũng khớp.
+**Nested structures:** `Arrays.equals(nestedA, nestedB)` returns `false` because the two inner `int[]` arrays have different references. `Arrays.deepEquals` enters the sub-arrays and confirms the corresponding data is equal; `deepHashCode` of the two structures also matches.
 
-**Value object:** `IntArrayKey` sao chép mảng đầu vào ngay trong constructor, giữ bản sao ở trường `private final` và không để lộ mảng nội bộ ra bên ngoài. `equals`/`hashCode` đều dùng nội dung `values`, nên `k1` và `k2` bằng nhau và tìm thấy trong `HashSet`. Sau khi sửa `a[0]` từ `1` thành `99`, khóa `k1` đã tạo vẫn chứa bản sao gốc; tra cứu bằng `k2` tiếp tục thành công.
+**Value object:** `IntArrayKey` copies the input array right in the constructor, keeps the copy in a `private final` field, and does not expose the internal array externally. Both `equals`/`hashCode` use the contents of `values`, so `k1` and `k2` are equal and found in `HashSet`. After modifying `a[0]` from `1` to `99`, the already-created key `k1` still holds the original copy; looking up with `k2` continues to succeed.
 
-Mã này dùng `hashCode` mặc định của mảng **và** `Arrays.hashCode` để minh họa hai ý nghĩa; không in một giá trị số cố định cho mã băm danh tính, vì giá trị ấy có thể thay đổi theo lần chạy.
+This code uses the array's default `hashCode` **and** `Arrays.hashCode` to illustrate both meanings; it does not print a fixed numeric value for the identity hash code, as that value can change across runs.
 
-## 7. Dùng mảng làm khóa `HashMap` hoặc phần tử `HashSet`
+## 7. Using an array as a `HashMap` key or `HashSet` element
 
-Cần chọn xem khóa đại diện cho **danh tính của một vùng dữ liệu mảng** hay **giá trị các phần tử**.
+You need to choose whether the key represents the **identity of an array data region** or the **values of its elements**.
 
-### Khi cần danh tính mảng
+### When array identity is needed
 
-Nếu nghiệp vụ muốn hai mảng khác nhau luôn là hai khóa riêng, kể cả khi chứa cùng phần tử, `HashMap<int[], V>` hoặc `HashSet<int[]>` có thể phản ánh yêu cầu ấy. Điều này thường xuất hiện khi theo dõi chính **đối tượng mảng cụ thể** trong bộ nhớ.
+If the business requirement wants two different arrays to always be two separate keys, even when they contain the same elements, `HashMap<int[], V>` or `HashSet<int[]>` can reflect that requirement. This often appears when tracking **a specific array object** in memory.
 
-Tuy nhiên phải công bố rõ kỳ vọng: tra cứu bằng một mảng **mới được tạo từ cùng phần tử** sẽ không khớp với mảng cũ. Việc này không phải lỗi của collection.
+However, expectations must be stated clearly: looking up with a **newly created array having the same elements** will not match the old array. This is not a collection bug.
 
-Nếu cần cấu trúc chuyên dùng để kiểm tra danh tính khóa khi các lớp khóa khác có `equals` theo giá trị, Java còn có `IdentityHashMap`; nhưng với mảng, bản thân `equals` đã theo danh tính. `IdentityHashMap` có semantics riêng và chỉ nên chọn khi chủ ý dùng tham chiếu để nhận dạng khóa.
+If a specialized structure is needed to check key identity when other key classes have value-based `equals`, Java also has `IdentityHashMap`; however, for arrays, `equals` itself is already identity-based. `IdentityHashMap` has its own semantics and should only be chosen when intentionally using references to identify keys.
 
-### Khi cần giá trị nội dung mảng
+### When array content value is needed
 
-Nếu hai mảng `{1, 2, 3}` phải được coi là cùng khóa logic, **không dùng trần `int[]` làm khóa với kỳ vọng `HashMap` sẽ gọi `Arrays.equals`**. Cần một lớp bao như `IntArrayKey` trong ví dụ: cài đặt `equals` bằng `Arrays.equals`, cài đặt `hashCode` bằng `Arrays.hashCode`, và bảo vệ tính bất biến.
+If two arrays `{1, 2, 3}` must be treated as the same logical key, **do not use a bare `int[]` as a key expecting `HashMap` to call `Arrays.equals`**. You need a wrapper class like `IntArrayKey` in the example: implement `equals` with `Arrays.equals`, implement `hashCode` with `Arrays.hashCode`, and protect immutability.
 
-Có thể dùng cấu trúc bất biến khác với hợp đồng bằng nhau theo phần tử, chẳng hạn một danh sách bất biến chứa các giá trị đã được sao chép. Nhưng cần hiểu đúng kiểu phần tử; một `List<int[]>` vẫn mang các phần tử là mảng và phép so sánh phần tử có thể tiếp tục dựa trên danh tính mảng con.
+You can use another immutable structure with an element-wise equality contract, such as an immutable list containing copied values. However, you must understand the element type properly; a `List<int[]>` still holds array elements, and element comparison can continue to rely on sub-array identity.
 
-### Nếu mảng đã thay đổi sau khi đưa vào map thì sao?
+### What if the array mutates after being inserted into the map?
 
-Có hai trường hợp cần phân biệt:
+Two cases must be distinguished:
 
-- **Khóa là `int[]` trần:** sửa phần tử không thay đổi `equals`/`hashCode` danh tính mặc định của mảng. Với cùng tham chiếu khóa, tra cứu bằng nó vẫn giữ quan hệ danh tính thông thường. Tuy vậy nếu nghiệp vụ kỳ vọng so nội dung thì thiết kế đã không phù hợp từ đầu.
-- **Khóa là wrapper so nội dung nhưng giữ tham chiếu mảng mutable:** sửa phần tử có thể khiến `hashCode` thay đổi trong khi khóa vẫn nằm ở nhóm băm xác định bởi hash cũ. `get`/`contains` có thể không tìm thấy khóa. Đây là lỗi thiết kế phổ biến.
+- **Key is a bare `int[]`:** modifying elements does not change the array's default identity `equals`/`hashCode`. With the same key reference, lookup using it retains normal identity semantics. However, if the business requirement expected content comparison, the design was unsuitable from the start.
+- **Key is a content-comparing wrapper that holds a mutable array reference:** modifying elements can cause `hashCode` to change while the key remains in the hash bucket determined by the old hash. `get`/`contains` may fail to find the key. This is a common design bug.
 
-Vì vậy wrapper dùng cho khóa băm nên **sao chép dữ liệu đầu vào** và nếu có phương thức lấy dữ liệu ra cũng trả về **bản sao phòng vệ** (defensive copy), thay vì để bên ngoài thay đổi dữ liệu mà `equals`/`hashCode` sử dụng. `private final int[] values` tự nó **chỉ cố định tham chiếu tới mảng**, không làm cho phần tử mảng bất biến.
+Therefore, a wrapper used as a hash key should **copy the input data** and, if it provides an accessor method, also return a **defensive copy**, rather than letting external code modify the data used by `equals`/`hashCode`. `private final int[] values` by itself **only fixes the reference to the array**; it does not make the array elements immutable.
 
-## 8. Phân biệt các API theo nhu cầu
+## 8. Distinguishing APIs by use case
 
-| Nhu cầu cụ thể | API / thiết kế phù hợp | Điều cần tránh |
+| Specific need | Appropriate API / design | What to avoid |
 | --- | --- | --- |
-| Hỏi hai biến có trỏ cùng một mảng không | `a == b`, hoặc `a.equals(b)` khi `a` chắc chắn khác `null` | Dùng `Arrays.equals` nếu yêu cầu là danh tính. |
-| So hai mảng `int[]` theo phần tử | `Arrays.equals(a, b)` | Dùng `a.equals(b)` rồi suy ra nội dung khác nhau. |
-| Tạo hash tương ứng cho `int[]` theo nội dung | `Arrays.hashCode(a)` | Dùng `a.hashCode()` làm fingerprint nội dung. |
-| So hai `String[]` theo các chuỗi phần tử | `Arrays.equals(a, b)` | Quên rằng mỗi phần tử tham chiếu dùng `equals` riêng của lớp đó. |
-| So hai mảng đa chiều/lồng theo nội dung | `Arrays.deepEquals(a, b)` khi gốc là `Object[]` | Gọi `Arrays.equals` ở cấp ngoài rồi tưởng đi sâu mọi tầng. |
-| Tạo hash cho mảng lồng tương ứng | `Arrays.deepHashCode(a)` | Kết hợp `deepEquals` với `Arrays.hashCode` nông nếu dùng làm hợp đồng value object. |
-| Dùng nội dung mảng làm khóa băm | Value object sao chép mảng, cặp `Arrays.equals`/`Arrays.hashCode` hoặc deep tương ứng | Dùng `int[]` trần rồi kỳ vọng collection nhận cùng giá trị. |
-| Kiểm tra hai mảng có giống nhau khi một/both có thể `null` | `Arrays.equals`, hoặc `Arrays.deepEquals` với mảng lồng phù hợp | Gọi `a.equals(b)` trên `a == null`. |
+| Ask whether two variables point to the same array | `a == b`, or `a.equals(b)` when `a` is guaranteed non-`null` | Using `Arrays.equals` if identity is required. |
+| Compare two `int[]` arrays element-by-element | `Arrays.equals(a, b)` | Using `a.equals(b)` and concluding the contents differ. |
+| Generate a corresponding content hash for `int[]` | `Arrays.hashCode(a)` | Using `a.hashCode()` as a content fingerprint. |
+| Compare two `String[]` arrays by their element strings | `Arrays.equals(a, b)` | Forgetting that each reference element uses that class's own `equals`. |
+| Compare two multidimensional/nested arrays by content | `Arrays.deepEquals(a, b)` when the root is `Object[]` | Calling `Arrays.equals` at the outer level and thinking it goes deep through all levels. |
+| Generate a corresponding hash for a nested array | `Arrays.deepHashCode(a)` | Mixing `deepEquals` with shallow `Arrays.hashCode` when used as a value object contract. |
+| Use array content as a hash key | Value object copying the array, `Arrays.equals`/`Arrays.hashCode` pair or corresponding deep pair | Using bare `int[]` and expecting collections to recognize equal values. |
+| Check if two arrays are equal when one or both may be `null` | `Arrays.equals`, or `Arrays.deepEquals` for appropriate nested arrays | Calling `a.equals(b)` on `a == null`. |
 
-Ngoài `equals`, lớp tiện ích `Arrays` còn có `mismatch` để tìm vị trí khác đầu tiên của hai mảng và `compare` để so thứ tự từ điển theo overload tương ứng. Đây là các câu hỏi khác với hợp đồng bằng nhau của đối tượng mảng; chỉ dùng khi việc xác định vị trí khác hoặc thứ tự so sánh có giá trị cho bài toán.
+Besides `equals`, the `Arrays` utility class also has `mismatch` to find the first differing index of two arrays and `compare` for lexicographical comparison via corresponding overloads. These are different questions from an array object's equality contract; only use them when identifying the mismatch position or comparison order is valuable for the problem.
 
-## 9. Các lỗi dễ mắc khi làm việc với mảng và cấu trúc lồng
+## 9. Common pitfalls when working with arrays and nested structures
 
-### Lỗi 1: So mảng bằng `equals` và kết luận dữ liệu khác
+### Pitfall 1: Comparing arrays with `equals` and concluding the data differs
 
-`new int[]{1,2}.equals(new int[]{1,2})` là `false`, vì hai đối tượng mảng khác nhau. Nếu muốn biết nội dung `int[]` có bằng nhau, phải dùng `Arrays.equals`.
+`new int[]{1,2}.equals(new int[]{1,2})` is `false`, because they are two different array objects. If you want to know whether `int[]` contents are equal, you must use `Arrays.equals`.
 
-### Lỗi 2: Thấy hash của hai mảng giống nhau rồi xem chúng bằng nhau
+### Pitfall 2: Seeing equal hashes of two arrays and assuming they are equal
 
-Không có hàm hash nào dạng `int` đảm bảo duy nhất cho mọi mảng khả dĩ. Cùng hash có thể là **va chạm**, cả với hash danh tính lẫn hash nội dung. So sánh chính xác bằng API bằng nhau phù hợp, thay vì thay `equals` bằng `hashCode()==hashCode()`.
+No `int`-returning hash function guarantees uniqueness for all possible arrays. Equal hashes can be a **collision**, for both identity hashes and content hashes. Compare accurately using the appropriate equality API instead of replacing `equals` with `hashCode()==hashCode()`.
 
-### Lỗi 3: Dùng `Arrays.equals` cho `int[][]`
+### Pitfall 3: Using `Arrays.equals` for `int[][]`
 
-`int[][]` là mảng chứa các mảng `int[]`. `Arrays.equals` cấp ngoài chỉ so từng mảng con theo `equals` của chúng, dẫn tới trả `false` cho hai cấu trúc mới nhưng có cùng ma trận số. Muốn đi sâu, dùng `Arrays.deepEquals`; khi băm nội dung cho wrapper tương ứng, dùng `Arrays.deepHashCode`.
+`int[][]` is an array containing `int[]` arrays. Outer-level `Arrays.equals` only compares each sub-array using their `equals`, returning `false` for two new structures with the same numeric matrix. To go deep, use `Arrays.deepEquals`; when hashing content for a corresponding wrapper, use `Arrays.deepHashCode`.
 
-### Lỗi 4: Dùng `Arrays.deepEquals` mà không xem xét vòng tham chiếu
+### Pitfall 4: Using `Arrays.deepEquals` without considering reference cycles
 
-Nếu `Object[]` chứa chính nó hoặc các mảng tạo thành chu trình, thuật toán deep không phải giải pháp so sánh đồ thị có chu trình. Tránh thiết kế dữ liệu có vòng trong phạm vi dùng `deepEquals`/`deepHashCode`, hoặc cài thuật toán so sánh với theo dõi nút đã duyệt và hợp đồng riêng.
+If an `Object[]` contains itself or arrays form a cycle, the deep algorithm is not a solution for comparing cyclic graphs. Avoid designing cyclic data within the scope of `deepEquals`/`deepHashCode`, or implement a comparison algorithm with visited-node tracking and an explicit contract.
 
-### Lỗi 5: Chỉ ghi đè `equals` của wrapper
+### Pitfall 5: Overriding only `equals` of a wrapper
 
-Nếu wrapper định nghĩa bằng nhau theo `Arrays.equals(values, other.values)` nhưng không ghi đè `hashCode` tương ứng, hai wrapper có nội dung bằng nhau có thể nhận hash mặc định khác nhau và không thể dùng làm khóa băm một cách đáng tin cậy. Cần cả `Arrays.hashCode(values)` cho mảng một chiều, hoặc cặp deep tương ứng khi chính sách là so nội dung mảng lồng.
+If a wrapper defines equality via `Arrays.equals(values, other.values)` without overriding the corresponding `hashCode`, two wrappers with equal content may receive different default hashes and cannot be reliably used as hash keys. Both `Arrays.hashCode(values)` for one-dimensional arrays, or the corresponding deep pair when the policy is nested array content comparison, are required.
 
-### Lỗi 6: Sao chép bề mặt rồi tưởng đã bất biến sâu
+### Pitfall 6: Shallow copying and thinking it is deeply immutable
 
-`array.clone()` sao chép **mảng ngoài**, nhưng với `Object[]` chứa các mảng con hay đối tượng mutable, các phần tử được sao chép dưới dạng tham chiếu. Bên ngoài vẫn có thể sửa những mảng con. Nếu wrapper muốn làm khóa băm **theo toàn cấu trúc lồng**, phải cân nhắc sao chép sâu phù hợp với miền dữ liệu, đảm bảo từng thành phần tham gia bằng nhau/hash không thể bị thay đổi từ ngoài.
+`array.clone()` copies the **outer array**, but for an `Object[]` containing sub-arrays or mutable objects, elements are copied as references. External code can still mutate those sub-arrays. If a wrapper is meant to act as a hash key **across the entire nested structure**, deep copying appropriate to the data domain must be considered to ensure every component participating in equality/hash cannot be modified externally.
 
-### Lỗi 7: Dùng `Arrays.toString` làm chuỗi khóa rồi băm
+### Pitfall 7: Using `Arrays.toString` as a key string and then hashing
 
-`Arrays.toString(int[])` hữu ích khi hiển thị, nhưng với `Object[]` lồng mảng, kết quả có thể chứa chuỗi mô tả danh tính phần tử mảng con. Dùng `Arrays.deepToString` để hiển thị mảng lồng thông thường khi cần, song **chuỗi hiển thị không phải định dạng serialization hay canonical identity chuẩn** cho mọi kiểu phần tử. Không biến đầu ra debug thành quy tắc danh tính mà chưa đặc tả.
+`Arrays.toString(int[])` is useful for display, but for a nested `Object[]`, the result can contain strings describing the identity of sub-array elements. Use `Arrays.deepToString` to display ordinary nested arrays when needed, yet **the display string is not a serialization format or canonical identity standard** for all element types. Do not turn debug output into an identity rule without specification.
 
-## 10. Checklist kiểm thử
+## 10. Testing checklist
 
-Khi làm việc với các lớp bao mảng hoặc các cấu trúc lưu trữ mảng, nên kiểm tra:
+When working with array wrapper classes or structures storing arrays, you should check:
 
-1. Hai mảng **khác tham chiếu, cùng phần tử**: `a.equals(b)` sai, `Arrays.equals(a,b)` đúng.
-2. Hai biến trỏ **cùng mảng**: so danh tính đúng, kể cả khi sửa phần tử.
-3. Hai mảng **khác độ dài** hoặc khác ít nhất một phần tử: `Arrays.equals` sai.
-4. `null`: `Arrays.equals(null, null)` với overload xác định trả đúng; gọi phương thức trên tham chiếu `null` gây lỗi.
-5. Mảng tham chiếu có phần tử `null`: `Arrays.equals(Object[], Object[])` cần cho kết quả đúng theo từng vị trí.
-6. Hai mảng lồng với **các mảng con riêng** nhưng cùng nội dung: `Arrays.equals` cấp ngoài sai, `Arrays.deepEquals` đúng.
-7. Nếu dùng so nội dung, mọi cặp bằng nhau phải cho cùng `Arrays.hashCode`/`Arrays.deepHashCode` tương ứng; hash bằng nhau **không suy ra** bằng nhau.
-8. Với `HashMap`/`HashSet`: xác định rõ muốn dùng danh tính mảng hay giá trị phần tử; test cả trường hợp truy vấn bằng mảng mới có cùng phần tử.
-9. Với wrapper bất biến: sửa mảng gốc sau khi tạo khóa, và sửa bản sao nếu có API xuất dữ liệu, phải **không làm đổi** kết quả `equals`/`hashCode` của khóa đã lưu.
-10. Với cấu trúc lồng: xác định rõ có chứa chu trình, các đối tượng mutable, và cần so sánh nông hay sâu.
+1. Two arrays with **different references, same elements**: `a.equals(b)` is false, `Arrays.equals(a,b)` is true.
+2. Two variables pointing to **the same array**: identity comparison is true, even when elements are modified.
+3. Two arrays with **different lengths** or differing in at least one element: `Arrays.equals` is false.
+4. `null`: `Arrays.equals(null, null)` with a specified overload returns true; calling a method on a `null` reference throws an error.
+5. Reference arrays with `null` elements: `Arrays.equals(Object[], Object[])` must produce the right result at each position.
+6. Two nested arrays with **separate sub-arrays** but the same content: outer `Arrays.equals` is false, `Arrays.deepEquals` is true.
+7. If using content comparison, every equal pair must yield the same corresponding `Arrays.hashCode`/`Arrays.deepHashCode`; equal hashes **do not imply** equality.
+8. With `HashMap`/`HashSet`: clearly determine whether you want array identity or element values; also test querying with a new array having the same elements.
+9. With an immutable wrapper: modifying the original array after key creation, and modifying the copy if there is a data-export API, must **not change** the `equals`/`hashCode` results of the stored key.
+10. With nested structures: clearly determine whether they contain cycles, mutable objects, and whether shallow or deep comparison is needed.
 
-## 11. Tổng kết
+## 11. Summary
 
-Mảng Java dùng `equals()` và `hashCode()` mặc định dựa trên **danh tính đối tượng**, nên hai mảng được tạo riêng có cùng phần tử vẫn không bằng nhau theo `array1.equals(array2)`. Khi bài toán cần **ngữ nghĩa nội dung**, `Arrays.equals`/`Arrays.hashCode` là cặp tương ứng cho mảng một chiều; `Arrays.deepEquals`/`Arrays.deepHashCode` xử lý mảng tham chiếu lồng nhau không có chu trình theo cách thích hợp. Nếu mảng dùng làm khóa trong collection băm mà cần so nội dung, hãy đưa nó vào một **value object bảo vệ tính bất biến**, thiết kế `equals` và `hashCode` cùng tiêu chí. Sự phân biệt giữa danh tính, nội dung, so sánh nông và so sánh sâu quyết định tính đúng đắn của mọi thao tác tra cứu.
+Java arrays use default `equals()` and `hashCode()` based on **object identity**, so two separately created arrays with identical elements are still not equal according to `array1.equals(array2)`. When the problem requires **content semantics**, `Arrays.equals`/`Arrays.hashCode` is the corresponding pair for one-dimensional arrays; `Arrays.deepEquals`/`Arrays.deepHashCode` handles acyclic nested reference arrays appropriately. If an array is used as a key in a hash collection and requires content comparison, place it inside an **immutability-protecting value object**, designing `equals` and `hashCode` with the same criteria. Distinguishing between identity, content, shallow comparison, and deep comparison determines the correctness of all lookup operations.

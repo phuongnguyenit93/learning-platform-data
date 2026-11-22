@@ -1,81 +1,81 @@
-# Đánh giá ứng dụng classpath trước khi modular hóa
+# Assessing a Classpath Application Before Modularization
 
-## 1. Tại sao cần đánh giá trước khi chuyển sang JPMS?
+## 1. Why Assess Before Migrating to JPMS?
 
-Java Platform Module System (JPMS) bổ sung ranh giới module rõ ràng cho ứng dụng Java: mỗi named module có descriptor, khai báo dependency qua requires, công bố package qua exports và quản lý quyền reflection sâu qua opens. Trong khi đó, một ứng dụng classpath truyền thống thường chỉ cần tập JAR cùng các class được đưa vào đường dẫn nạp lớp.
+The Java Platform Module System (JPMS) adds explicit module boundaries to Java applications: each named module has a descriptor, declares dependencies via `requires`, publishes packages via `exports`, and governs deep reflection access via `opens`. By contrast, a traditional classpath application typically only needs a collection of JARs and classes placed on the class loading path.
 
-Chuyển từ classpath sang module path không phải thao tác đổi một tham số JVM. Nhiều điều mà classpath cho phép có thể không hợp lệ trong module graph, ví dụ:
+Migrating from the classpath to the module path is not simply switching a JVM flag. Many things that the classpath permits may be invalid in the module graph, for example:
 
-- Các JAR khác nhau cùng chứa class thuộc một package.
-- Mã của thư viện A truy cập class public nhưng thuộc package nội bộ của thư viện B.
-- Hai thư viện tham chiếu qua lại mà chưa có ranh giới module rõ ràng.
-- Framework dùng setAccessible(true) với constructor hoặc field private.
-- Provider được tìm từ META-INF/services, cấu hình hoặc class name dạng chuỗi.
-- Một số dependency chỉ xuất hiện ở runtime thông qua plugin, reflection hoặc class loader tùy chỉnh.
-- Ứng dụng dùng các package nội bộ của JDK đã bị strong encapsulation.
-- Build dùng fat JAR làm mất thông tin về từng thư viện và service descriptor.
+- Different JARs containing classes that belong to the same package.
+- Code in library A accessing a public class that belongs to an internal package of library B.
+- Two libraries referencing each other mutually without clear module boundaries.
+- Frameworks using setAccessible(true) on private constructors or fields.
+- Providers discovered from META-INF/services, configuration, or string-based class names.
+- Some dependencies appearing only at runtime through plugins, reflection, or custom class loaders.
+- The application using JDK internal packages that have become strongly encapsulated.
+- Builds using fat JARs that strip away information about individual libraries and service descriptors.
 
-Vì vậy, mục tiêu của giai đoạn đánh giá là tạo ra **bản đồ dependency và các rủi ro tương thích**, sau đó xác định thứ tự chuyển đổi phù hợp. Chỉ nên viết module-info.java khi đã hiểu ứng dụng đang phụ thuộc vào những thành phần nào và cách chúng được nạp.
+Therefore, the goal of the assessment phase is to build a **dependency and compatibility risk map**, and then determine an appropriate migration order. You should only write module-info.java once you understand what components the application depends on and how they are loaded.
 
-## 2. Xác định trạng thái hiện tại của ứng dụng
+## 2. Identifying the Current State of the Application
 
-Trước khi dùng công cụ JPMS, ghi nhận cách hệ thống chạy ở hiện tại:
+Before using JPMS tools, document how the system currently runs:
 
-| Nội dung cần kiểm kê | Ví dụ câu hỏi |
+| Inventory item | Example questions |
 |---|---|
-| Phiên bản Java | Build bằng JDK nào, production chạy trên JRE/JDK nào? |
-| Artifact chính | Chạy bằng -cp, -jar, executable JAR, WAR hay container? |
-| Dependency | Có bao nhiêu JAR trực tiếp, transitively, optional và test-only? |
-| Framework | Có Spring, Hibernate, Jackson, CDI, logging hay bytecode agent không? |
-| Nạp lớp động | Có Class.forName, ServiceLoader, URLClassLoader hay plugin manager không? |
-| Native integration | Có JNI, JNA, native image, native library hoặc agent không? |
-| Đóng gói | Dùng Maven Shade, Gradle Shadow, distribution ZIP hay Docker image? |
-| Yêu cầu triển khai | Có cần custom runtime image, giảm kích thước hoặc tách plugin layer không? |
-| Hợp đồng tương thích | Có API nhị phân, serialization, cấu hình và dữ liệu cũ cần giữ không? |
+| Java version | Which JDK is used to build, and which JRE/JDK runs in production? |
+| Main artifact | Is it run with -cp, -jar, an executable JAR, a WAR, or a container? |
+| Dependencies | How many direct, transitive, optional, and test-only JARs are there? |
+| Frameworks | Are there Spring, Hibernate, Jackson, CDI, logging, or bytecode agents? |
+| Dynamic class loading | Are there Class.forName, ServiceLoader, URLClassLoader, or a plugin manager? |
+| Native integration | Are there JNI, JNA, native images, native libraries, or agents? |
+| Packaging | Does it use Maven Shade, Gradle Shadow, a distribution ZIP, or a Docker image? |
+| Deployment requirements | Are a custom runtime image, size reduction, or separate plugin layers needed? |
+| Compatibility contracts | Are there legacy binary APIs, serialization, configurations, and data to preserve? |
 
-Đầu ra nên là bảng inventory gồm tên artifact, phiên bản, nguồn, chức năng, tình trạng modular, package quan trọng và người chịu trách nhiệm nâng cấp.
+The output should be an inventory table containing artifact name, version, source, function, modular status, key packages, and the owner responsible for upgrading.
 
-Đừng chỉ kiểm kê dependency khai báo trong pom.xml hoặc build.gradle. Một thư viện có thể được copy thủ công vào thư mục lib, được tải theo tên class từ file cấu hình, hoặc do plugin tự tải ở runtime. Những dependency đó cũng phải xuất hiện trong danh mục.
+Do not only inventory dependencies declared in pom.xml or build.gradle. A library might be copied manually into a lib directory, loaded by class name from a configuration file, or loaded by plugins themselves at runtime. Those dependencies must also appear in the catalog.
 
-## 3. Chốt một baseline có thể tái hiện
+## 3. Locking Down a Reproducible Baseline
 
-Trước khi modular hóa, chạy ứng dụng classpath nguyên trạng và ghi lại các bằng chứng:
+Before modularizing, run the classpath application as-is and record the evidence:
 
-1. JDK version và vendor.
-2. Lệnh build và lệnh chạy thực tế.
-3. Danh sách JAR cùng checksum hoặc phiên bản.
-4. Test suite và các use case quan trọng.
-5. Dữ liệu đầu vào/đầu ra đại diện.
-6. Log khởi động, plugin discovery, service discovery và cảnh báo truy cập.
-7. Thời gian khởi động, bộ nhớ và throughput ở mức cần theo dõi.
+1. JDK version and vendor.
+2. Actual build and run commands.
+3. List of JARs along with checksums or versions.
+4. Test suite and critical use cases.
+5. Representative input/output data.
+6. Startup logs, plugin discovery, service discovery, and access warnings.
+7. Startup time, memory, and throughput at levels that need monitoring.
 
-Ví dụ chạy ứng dụng classpath:
+Example of running a classpath application:
 
 ~~~bash
 java -cp "app.jar:lib/*" com.acme.legacy.Main
 ~~~
 
-Trên Windows, classpath separator là dấu chấm phẩy:
+On Windows, the classpath separator is a semicolon:
 
 ~~~powershell
 java -cp "app.jar;lib/*" com.acme.legacy.Main
 ~~~
 
-Nếu dùng executable JAR với java -jar, đừng mặc định các tham số classpath bên ngoài có hiệu lực giống khi chạy -cp. Cần xác định manifest Main-Class, Class-Path, cấu trúc fat JAR và launcher thực tế của sản phẩm.
+If using an executable JAR with java -jar, do not assume external classpath arguments behave the same as when running with -cp. You need to inspect the manifest Main-Class, Class-Path, fat JAR structure, and the product's actual launcher.
 
-Baseline là thước đo để biết liệu lỗi phát sinh từ thay đổi module hay đã tồn tại trước đó. Không nên vừa nâng Java version, thay framework lớn và modular hóa toàn bộ trong cùng một thay đổi nếu không có đủ kiểm thử để tách nguyên nhân.
+A baseline is the yardstick for knowing whether an error comes from module changes or already existed beforehand. Do not upgrade the Java version, replace major frameworks, and modularize everything in a single change unless you have sufficient testing to isolate causes.
 
-## 4. Vẽ sơ đồ dependency tĩnh bằng jdeps
+## 4. Mapping Static Dependencies with jdeps
 
-jdeps là công cụ phân tích dependency ở mức class/package/module từ bytecode Java.
+jdeps is a tool that analyzes dependencies at the class/package/module level from Java bytecode.
 
-Phân tích một JAR:
+Analyzing a JAR:
 
 ~~~bash
 jdeps --summary app.jar
 ~~~
 
-Phân tích sâu với các dependency có trong thư mục lib:
+Performing a deep analysis with dependencies located in the lib directory:
 
 ~~~bash
 jdeps --recursive \
@@ -83,7 +83,7 @@ jdeps --recursive \
       app.jar
 ~~~
 
-Xem dependency chi tiết đến class:
+Viewing detailed dependencies down to the class level:
 
 ~~~bash
 jdeps --verbose:class \
@@ -91,7 +91,7 @@ jdeps --verbose:class \
       app.jar
 ~~~
 
-Lấy danh sách dependency module được công cụ suy ra:
+Getting the list of module dependencies inferred by the tool:
 
 ~~~bash
 jdeps --print-module-deps \
@@ -99,21 +99,21 @@ jdeps --print-module-deps \
       app.jar
 ~~~
 
-Trong giai đoạn này, cần chú ý:
+During this phase, pay attention to:
 
-- Dependency nào là Java SE/JDK module.
-- Dependency nào đến từ thư viện ngoài.
-- Package nào được dùng trong public signature.
-- Class nào tham chiếu tới implementation type của thư viện khác.
-- Dependency nào có vẻ chỉ xuất hiện gián tiếp.
+- Which dependencies are Java SE/JDK modules.
+- Which dependencies come from external libraries.
+- Which packages are used in public signatures.
+- Which classes reference implementation types of another library.
+- Which dependencies appear only indirectly.
 
-jdeps không tự trở thành nguồn sự thật tuyệt đối: nó phân tích tham chiếu có thể quan sát từ bytecode, nhưng không suy ra đầy đủ tên class tạo từ string, dependency được tải bằng reflection, service file, JNI hoặc runtime plugin. Hãy kết hợp kết quả với inventory và kiểm thử.
+jdeps is not an absolute source of truth on its own: it analyzes references observable from bytecode, but cannot fully infer class names constructed from strings, dependencies loaded via reflection, service files, JNI, or runtime plugins. Combine its results with your inventory and testing.
 
-## 5. Kiểm tra internal JDK API trước khi di chuyển
+## 5. Checking Internal JDK APIs Before Migrating
 
-Một trong những rào cản khi nâng JDK hoặc dùng named module là dependency tới internal JDK API.
+One of the barriers when upgrading the JDK or using named modules is depending on internal JDK APIs.
 
-Chạy:
+Run:
 
 ~~~bash
 jdeps --jdk-internals --recursive \
@@ -121,46 +121,46 @@ jdeps --jdk-internals --recursive \
       app.jar
 ~~~
 
-Nếu công cụ chỉ ra class thuộc sun.*, jdk.internal.* hoặc package implementation không được hỗ trợ, ghi lại call site và module/JAR sở hữu code đó.
+If the tool points out classes belonging to sun.*, jdk.internal.*, or unsupported implementation packages, record the call site and the module/JAR owning that code.
 
-Hướng xử lý:
+Remediation approach:
 
-- Ưu tiên public Java API tương ứng.
-- Nâng cấp thư viện đã bỏ dependency tới JDK internal API.
-- Cô lập phần tích hợp nếu chưa thể thay ngay.
-- Chỉ dùng --add-exports hoặc --add-opens có phạm vi nhỏ như bước chuyển tiếp.
+- Prefer the corresponding public Java API.
+- Upgrade libraries to versions that have removed dependencies on JDK internal APIs.
+- Isolate the integration part if it cannot be replaced immediately.
+- Only use narrowly scoped --add-exports or --add-opens as a transitional step.
 
-Ví dụ thay API Base64 cũ bằng java.util.Base64, thao tác atomic bằng java.util.concurrent.atomic hoặc VarHandle, file/buffer bằng java.nio, và các tác vụ mật mã bằng java.security hoặc javax.crypto.
+For example, replace legacy Base64 APIs with java.util.Base64, atomic operations with java.util.concurrent.atomic or VarHandle, file/buffer operations with java.nio, and cryptographic operations with java.security or javax.crypto.
 
-Không phải mọi API nội bộ đều có thay thế một-một. Khi đổi từ internal API sang public API, cần đối chiếu cả hiệu năng, memory ordering, resource lifetime và hành vi tương thích, không chỉ sửa tên class cho biên dịch được.
+Not every internal API has a one-to-one replacement. When switching from an internal API to a public API, compare performance, memory ordering, resource lifetime, and compatibility behavior—do not merely rename classes so the code compiles.
 
-## 6. Phân loại từng JAR theo khả năng modular hóa
+## 6. Classifying Each JAR by Modularization Readiness
 
-Mỗi dependency nên được gắn một trong các trạng thái sau:
+Each dependency should be tagged with one of the following statuses:
 
-**Explicit named module:** JAR có module-info.class với descriptor rõ ràng. Module name, requires, exports, opens, uses và provides được khai báo trong descriptor.
+**Explicit named module:** A JAR that has module-info.class with an explicit descriptor. The module name, requires, exports, opens, uses, and provides are declared in the descriptor.
 
-**Automatic module:** JAR không có explicit descriptor nhưng được đặt trên module path và được Java nhận diện là automatic module. Tên module có thể lấy từ Automatic-Module-Name trong manifest hoặc được suy ra từ tên JAR. Automatic module export các package của nó và có quy tắc readability mang tính chuyển tiếp rộng hơn explicit module.
+**Automatic module:** A JAR without an explicit descriptor that is placed on the module path and recognized by Java as an automatic module. The module name can come from Automatic-Module-Name in the manifest or be derived from the JAR filename. An automatic module exports all of its packages and has broader transitive readability rules than an explicit module.
 
-**Classpath library / unnamed module:** JAR vẫn được dùng trên classpath. Những class trên classpath thuộc unnamed module của class loader tương ứng, không thể được tham chiếu bằng một tên module trong requires.
+**Classpath library / unnamed module:** A JAR still used on the classpath. Classes on the classpath belong to the unnamed module of the corresponding class loader and cannot be referenced by a module name in requires.
 
-Kiểm tra artifact:
+Inspecting an artifact:
 
 ~~~bash
 jar --describe-module --file lib/example.jar
 ~~~
 
-Nếu JAR không chứa descriptor, lệnh có thể cho biết tên automatic module được suy ra. Một JAR có Automatic-Module-Name chưa phải explicit module: manifest entry cung cấp tên module ổn định khi dùng trên module path, nhưng không thay thế module-info.class.
+If the JAR does not contain a descriptor, the command can show the derived automatic module name. A JAR with Automatic-Module-Name is not yet an explicit module: the manifest entry provides a stable module name when used on the module path, but does not replace module-info.class.
 
-Khi chuyển đổi, đừng giả định mọi thư viện có thể đặt trên module path mà không thay đổi. Đặc biệt lưu ý split packages, default package, dependency chưa tương thích và mã dựa trên classpath discovery.
+When migrating, do not assume every library can be placed on the module path without changes. Watch especially for split packages, the default package, incompatible dependencies, and code relying on classpath discovery.
 
-## 7. Kiểm tra tính ổn định của module name
+## 7. Checking Module Name Stability
 
-Automatic module có thể có tên được suy ra từ tên file JAR. Ví dụ tên artifact thay đổi theo version hoặc quy tắc chuẩn hóa có thể dẫn đến tên module khác mong đợi.
+An automatic module may have a name derived from the JAR filename. For instance, artifact names changing by version or normalization rules can result in a different module name than expected.
 
-Với thư viện chưa explicit modular nhưng cần dùng trong module path, ưu tiên version có Automatic-Module-Name cố định và được nhà cung cấp duy trì.
+For libraries that are not yet explicitly modularized but need to be used on the module path, prefer versions that have a fixed Automatic-Module-Name maintained by the vendor.
 
-Một named module consumer cần requires với tên module chính xác:
+A consumer named module needs to requires the exact module name:
 
 ~~~java
 module com.acme.app {
@@ -168,17 +168,17 @@ module com.acme.app {
 }
 ~~~
 
-Nếu artifact thư viện thực tế được nhận diện là tên khác, resolution sẽ thất bại.
+If the actual library artifact is recognized under a different name, resolution will fail.
 
-Đối với dependency bên ngoài, tránh cam kết module descriptor vào source trước khi xác nhận module name ổn định ở phiên bản dự kiến phát hành.
+For external dependencies, avoid committing a module descriptor to source before confirming a stable module name in the target release version.
 
-Khi có thể, nâng cấp lên bản thư viện explicit module do chính maintainers phát hành thay vì tự sửa tên JAR bằng các quy tắc không được kiểm soát.
+Whenever possible, upgrade to an explicit module version of the library published by the maintainers themselves rather than renaming JARs manually with uncontrolled rules.
 
-## 8. Phát hiện split package
+## 8. Detecting Split Packages
 
-Classpath cho phép nhiều JAR chứa các class cùng package. Named module graph thường không cho phép việc một module đọc các package có cùng tên từ nhiều module khác nhau theo cách gây xung đột.
+The classpath allows multiple JARs to contain classes in the same package. A named module graph generally does not allow a module to read packages with the same name from multiple different modules in a conflicting manner.
 
-Ví dụ:
+Example:
 
 ~~~text
 lib/
@@ -188,29 +188,29 @@ lib/
     com/acme/order/DefaultOrderService.class
 ~~~
 
-Hai artifact dùng chung package com.acme.order. Nếu cố chuyển chúng thành hai named module riêng, có thể gặp lỗi split package hoặc module resolution/layer instantiation thất bại.
+Two artifacts share the package com.acme.order. If you try to turn them into two separate named modules, you may encounter a split package error or module resolution/layer instantiation failure.
 
-Hướng xử lý:
+Remediation approach:
 
-1. Xác định tất cả JAR chứa cùng package.
-2. Kiểm tra chúng có chủ ý là một thư viện được tách build artifact hay không.
-3. Nếu thực chất là cùng một module logic, cân nhắc gộp code/artifact thành một named module.
-4. Nếu là những thành phần độc lập, đổi cấu trúc package ở một phía và cập nhật import.
-5. Với thư viện bên thứ ba, ưu tiên bản mới đã khắc phục vấn đề.
-6. Kiểm tra đặc biệt các package sinh ra bởi code generation, annotation processor và shading.
+1. Identify all JARs containing the same package.
+2. Check whether they are intentionally a single library split across build artifacts.
+3. If they are effectively the same logical module, consider merging the code/artifacts into one named module.
+4. If they are independent components, restructure the package on one side and update imports.
+5. For third-party libraries, prefer newer versions that have resolved the issue.
+6. Check especially packages generated by code generation, annotation processors, and shading.
 
-Đừng sửa split package bằng cách thêm --add-exports. Export không thay đổi quyền sở hữu package giữa các module.
+Do not fix a split package by adding --add-exports. Exporting does not change package ownership between modules.
 
-## 9. Phát hiện dependency cycle
+## 9. Detecting Dependency Cycles
 
-Một hệ thống classpath có thể tồn tại quan hệ tham chiếu hai chiều:
+A classpath system may contain bidirectional reference relationships:
 
 ~~~text
 billing -> customer
 customer -> billing
 ~~~
 
-Khi chuyển thành hai explicit named module riêng:
+When turned into two separate explicit named modules:
 
 ~~~java
 module com.acme.billing {
@@ -224,22 +224,22 @@ module com.acme.customer {
 }
 ~~~
 
-chu trình requires không tạo được một cấu hình module hợp lệ.
+a requires cycle cannot form a valid module configuration.
 
-Hãy phân tích cycle ở cấp package/class trước khi chọn module boundary. Một số cách phá cycle:
+Analyze cycles at the package/class level before choosing module boundaries. Some ways to break a cycle:
 
-- Tách interface hoặc kiểu dữ liệu chung thành module API nhỏ.
-- Đảo hướng dependency qua interface và dependency injection.
-- Dùng event, callback hoặc service contract để tránh import implementation hai chiều.
-- Gộp hai nhóm class thành một module nếu chúng thực sự có vòng đời và khả năng phát hành giống nhau.
+- Extract shared interfaces or data types into a small API module.
+- Invert the dependency direction via interfaces and dependency injection.
+- Use events, callbacks, or service contracts to avoid bidirectional implementation imports.
+- Merge two groups of classes into one module if they truly share the same lifecycle and release cadence.
 
-Không nên tạo module theo mỗi JAR hiện tại một cách máy móc. Ranh giới module nên phản ánh dependency direction và hợp đồng API có chủ đích.
+Do not mechanically create one module per existing JAR. Module boundaries should reflect intentional dependency directions and API contracts.
 
-## 10. Đánh giá public API và package visibility
+## 10. Assessing Public APIs and Package Visibility
 
-Trên classpath, code có thể import một public class từ bất kỳ package nào nếu class đó có thể tìm thấy và các access modifier cho phép. Với JPMS, named module chỉ công bố package cho consumer nếu có exports phù hợp.
+On the classpath, code can import a public class from any package if that class can be found and access modifiers permit it. With JPMS, a named module only exposes a package to consumers if there is a matching exports directive.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.customer {
@@ -247,29 +247,29 @@ module com.acme.customer {
 }
 ~~~
 
-Nếu ứng dụng import com.acme.customer.internal.DefaultCustomerRepository thì sau khi modular hóa, việc import có thể bị chặn vì package internal chưa được export.
+If the application imports com.acme.customer.internal.DefaultCustomerRepository, then after modularization, that import may be blocked because the internal package is not exported.
 
-Trước khi viết descriptor, phân loại package:
+Before writing descriptors, classify packages:
 
-- **Public API:** kiểu được consumer khác sử dụng chính thức.
-- **SPI:** service type hoặc extension point.
-- **Internal implementation:** không dự kiến cho consumer phụ thuộc trực tiếp.
-- **Generated/integration package:** cần xem thực tế framework và build.
+- **Public API:** types officially used by other consumers.
+- **SPI:** service types or extension points.
+- **Internal implementation:** not intended for consumers to depend on directly.
+- **Generated/integration package:** needs inspection of actual frameworks and build setup.
 
-Đầu ra nên gồm danh sách package được export và danh sách consumer phải sửa để ngừng phụ thuộc implementation detail.
+The output should include the list of packages to export and the list of consumers that must be updated to stop depending on implementation details.
 
-Mỗi module không nhất thiết export tất cả package. Chỉ định exports dựa trên API muốn hỗ trợ lâu dài; qualified export có thể phù hợp nếu package chỉ dành cho một nhóm named module được biết trước.
+Every module does not need to export all packages. Specify exports based on the API you want to support long-term; qualified exports can be suitable if a package is meant only for a known set of named modules.
 
-## 11. Reflection và framework là rủi ro riêng
+## 11. Reflection and Frameworks as a Dedicated Risk
 
-Framework serializer, ORM, dependency injection hoặc test runner có thể tạo object và đọc field/constructor bằng reflection. JPMS phân biệt:
+Serializer, ORM, dependency injection, or test runner frameworks may instantiate objects and read fields/constructors using reflection. JPMS distinguishes:
 
-- exports: cho phép truy cập thông thường tới public types trong package.
-- opens: cho phép deep reflection theo phạm vi được khai báo.
-- open module: mở các package của module cho deep reflection.
-- --add-opens: mở một package ở runtime cho module đích được chỉ định.
+- exports: allows normal access to public types in a package.
+- opens: allows deep reflection according to the declared scope.
+- open module: opens all packages of the module for deep reflection.
+- --add-opens: opens a package at runtime to the specified target module.
 
-Ví dụ model được framework serialization xử lý:
+Example of models processed by a serialization framework:
 
 ~~~java
 module com.acme.customer {
@@ -278,33 +278,33 @@ module com.acme.customer {
 }
 ~~~
 
-Ví dụ trên chỉ hợp lệ khi tên module thực tế của framework là com.fasterxml.jackson.databind trong cấu hình mà ứng dụng dùng; phải xác nhận module name của JAR.
+The example above is only valid if the framework's actual module name is com.fasterxml.jackson.databind in the configuration the application uses; you must verify the JAR's module name.
 
-Các câu hỏi cần kiểm tra:
+Questions to check:
 
-- Framework có tìm constructor/field private bằng setAccessible không?
-- Nó dùng proxy, subclass generation, method handle hoặc bytecode enhancer không?
-- Test framework có cần mở package test khi chạy trên module path không?
-- Có thư viện tự chọn ClassLoader hoặc context class loader không?
-- Có package nào bị mở toàn bộ chỉ vì thiếu một access cụ thể không?
+- Does the framework look up private constructors/fields with setAccessible?
+- Does it use proxies, subclass generation, method handles, or bytecode enhancers?
+- Does the test framework need test packages opened when running on the module path?
+- Does any library choose its own ClassLoader or context class loader?
+- Is any package being opened completely just because one specific access is missing?
 
-Không chuyển mọi package thành opens hoặc mở toàn module để tránh sửa framework. Hãy nâng cấp framework hỗ trợ JPMS và mở đúng package cho đúng consumer khi cần thiết.
+Do not turn every package into opens or make the entire module open just to avoid updating frameworks. Upgrade to frameworks that support JPMS and open the right packages to the right consumers when needed.
 
-## 12. ServiceLoader và cấu hình provider
+## 12. ServiceLoader and Provider Configuration
 
-Classpath thường đăng ký service provider bằng file:
+The classpath typically registers service providers via a file:
 
 ~~~text
 META-INF/services/com.acme.payment.api.PaymentProcessor
 ~~~
 
-Nội dung chứa tên class provider:
+Its content holds the provider class name:
 
 ~~~text
 com.acme.payment.card.CardPaymentProcessor
 ~~~
 
-Khi chuyển sang explicit module, provider được đăng ký qua module-info.java:
+When migrating to an explicit module, providers are registered via module-info.java:
 
 ~~~java
 module com.acme.payment.card {
@@ -315,7 +315,7 @@ module com.acme.payment.card {
 }
 ~~~
 
-Consumer named module cần uses:
+The consumer named module needs uses:
 
 ~~~java
 module com.acme.checkout {
@@ -324,25 +324,25 @@ module com.acme.checkout {
 }
 ~~~
 
-Cần kiểm kê mọi META-INF/services, ServiceLoader.load, factory/plugin registry và file cấu hình chọn implementation. Một provider có thể biến mất sau khi modular hóa nếu:
+Inventory all META-INF/services, ServiceLoader.load calls, factory/plugin registries, and configuration files that select implementations. A provider can disappear after modularization if:
 
-- Không chuyển service registration đúng cách.
-- Provider module không nằm trong resolved module graph.
-- Consumer thiếu uses.
-- Service API được nạp thành những class khác nhau trong các layer/class loader khác nhau.
-- Fat JAR hoặc shading đã làm mất/ghi đè service resource.
+- Service registration is not migrated properly.
+- The provider module is not in the resolved module graph.
+- The consumer is missing uses.
+- The service API is loaded as different classes in different layers/class loaders.
+- A fat JAR or shading dropped or overwrote service resources.
 
-Đối với plugin dùng custom ModuleLayer, xem xét Configuration.resolveAndBind để đưa provider phù hợp vào graph, và dùng ServiceLoader.load(layer, ServiceType.class) để tìm trong layer thích hợp.
+For plugins using a custom ModuleLayer, consider Configuration.resolveAndBind to include the appropriate providers in the graph, and use ServiceLoader.load(layer, ServiceType.class) to discover them in the proper layer.
 
-## 13. Resource, manifest và class loader assumptions
+## 13. Resources, Manifests, and Class Loader Assumptions
 
-Migration không chỉ liên quan đến file .class. Ứng dụng có thể tìm resource bằng:
+Migration does not only involve .class files. An application may locate resources using:
 
 ~~~java
 SomeClass.class.getResource("/config/defaults.properties");
 ~~~
 
-hoặc:
+or:
 
 ~~~java
 Thread.currentThread()
@@ -350,51 +350,51 @@ Thread.currentThread()
     .getResource("config/defaults.properties");
 ~~~
 
-Cách tìm resource trong named module phụ thuộc vào module ownership, quy tắc đóng gói resource và một số ràng buộc về encapsulation khi truy cập resource từ bên ngoài module. Đường dẫn hoạt động trên classpath chưa chắc cho kết quả tương tự sau khi chuyển resource vào một named module.
+Resource lookup in a named module depends on module ownership, resource encapsulation rules, and certain constraints when accessing resources from outside the module. A path that works on the classpath is not guaranteed to yield the same result after moving the resource into a named module.
 
-Cần kiểm kê:
+You should inventory:
 
-- File cấu hình trong JAR và thư mục ngoài.
-- Resource path dùng đường dẫn tuyệt đối hay tương đối.
-- Cách dùng Class.getResource, ClassLoader.getResource và context class loader.
-- Service descriptors trong META-INF/services.
-- Manifest Main-Class, Class-Path, Automatic-Module-Name và các mục liên quan.
-- Plugin JAR được scan từ filesystem và trình tự discovery.
-- Các class/resource được tạo động bởi annotation processing hoặc code generation.
+- Configuration files inside JARs and external directories.
+- Whether resource paths use absolute or relative paths.
+- Usage of Class.getResource, ClassLoader.getResource, and context class loaders.
+- Service descriptors in META-INF/services.
+- Manifest Main-Class, Class-Path, Automatic-Module-Name, and related entries.
+- Plugin JARs scanned from the filesystem and their discovery order.
+- Classes/resources dynamically generated by annotation processing or code generation.
 
-Đặc biệt, không nên dựa trên việc liệt kê mọi JAR từ một class loader của module layer: JPMS có thể dùng nhiều class loader và cơ chế nạp riêng cho module. Hãy thiết kế resource lookup theo contract của module hoặc framework, rồi kiểm thử trên artifact đóng gói cuối cùng.
+In particular, do not rely on enumerating all JARs from a module layer's class loader: JPMS may use multiple class loaders and dedicated module loading mechanisms. Design resource lookups according to module or framework contracts, then test on the final packaged artifact.
 
-## 14. JNI, agent và các tích hợp ngoài JVM
+## 14. JNI, Agents, and Off-JVM Integrations
 
-Một dự án classpath có thể có JNI, Java agent, native code, instrumentation hoặc thư viện tạo bytecode runtime. Các thành phần này cần được đánh giá độc lập với dependency Java thuần túy.
+A classpath project may contain JNI, Java agents, native code, instrumentation, or runtime bytecode-generation libraries. These components need to be assessed independently from pure Java dependencies.
 
-Ví dụ:
+Examples:
 
-- Native library được nạp qua System.loadLibrary.
-- Agent chạy với -javaagent hoặc dùng Instrumentation.
-- Framework tự tạo subclass/proxy hoặc redefine class.
-- Tool runtime cần truy cập module/package không được export/open.
-- Ứng dụng dùng custom class loader tạo namespace độc lập.
+- Native libraries loaded via System.loadLibrary.
+- Agents running with -javaagent or using Instrumentation.
+- Frameworks generating subclasses/proxies or redefining classes.
+- Runtime tools needing access to unexported/unopened modules or packages.
+- Applications using custom class loaders to create isolated namespaces.
 
-Khi modular hóa, cần xác nhận module của class được instrument, class loader của agent và quyền truy cập package cần thiết. Nếu phải mở quyền tạm thời, ghi rõ --add-opens hoặc --add-exports trong test/runtime configuration và có kế hoạch bỏ khi thư viện đã hỗ trợ API phù hợp.
+When modularizing, verify the module of the instrumented classes, the agent's class loader, and the required package access permissions. If temporary access must be opened, explicitly document --add-opens or --add-exports in the test/runtime configuration and plan to remove them once libraries adopt appropriate APIs.
 
-Không mặc định rằng đổi JVM flag là đủ để xử lý toàn bộ vấn đề JNI. Native dependency còn có yêu cầu về OS, kiến trúc, ABI, loading path và vòng đời tài nguyên.
+Do not assume that changing a JVM flag is enough to handle every JNI issue. Native dependencies also have requirements regarding OS, architecture, ABI, loading paths, and resource lifecycles.
 
-## 15. Xem lại cấu hình build và test
+## 15. Reviewing Build and Test Configurations
 
-Maven/Gradle có thể tự phân biệt module path và classpath tùy plugin, version và cấu trúc dự án. Cần kiểm tra lệnh javac/test JVM thực tế, không chỉ đoạn cấu hình source trông có vẻ modular.
+Maven/Gradle may automatically distinguish between the module path and classpath depending on plugins, versions, and project structure. Check the actual javac/test JVM commands, not just source configurations that look modular.
 
-Các điểm quan trọng:
+Key points:
 
-- JDK toolchain có phù hợp mục tiêu hay không?
-- module-info.java có được compile và đưa vào JAR cuối cùng không?
-- Dependency được đặt trên module path hay classpath trong từng phase?
-- Test dùng module path, patch-module, opens hay classpath?
-- Annotation processor được đặt ở processor path/module path phù hợp không?
-- Shaded JAR có phá module-info.class hoặc META-INF/services không?
-- Runtime launcher có sử dụng đúng module name/main class không?
+- Does the JDK toolchain match the target?
+- Is module-info.java compiled and included in the final JAR?
+- Are dependencies placed on the module path or classpath in each phase?
+- Do tests use the module path, patch-module, opens, or the classpath?
+- Are annotation processors placed on the appropriate processor path/module path?
+- Does a shaded JAR break module-info.class or META-INF/services?
+- Does the runtime launcher use the correct module name/main class?
 
-Ví dụ cấu trúc đề xuất cho một modular component:
+Example recommended layout for a modular component:
 
 ~~~text
 customer-api/
@@ -405,75 +405,75 @@ customer-api/
     com/acme/customer/api/CustomerTest.java
 ~~~
 
-Trước khi áp dụng cấu trúc này cho tất cả project, hãy thử nghiệm trên một module ít dependency để xác nhận build, test, packaging và IDE hoạt động đồng bộ.
+Before applying this structure across all projects, experiment on a module with few dependencies to confirm that the build, tests, packaging, and IDE work consistently together.
 
-## 16. Chiến lược chuyển đổi theo giai đoạn
+## 16. Phased Migration Strategy
 
-Không bắt buộc modular hóa toàn bộ ứng dụng trong một lần phát hành. Một lộ trình điển hình:
+It is not mandatory to modularize the entire application in a single release. A typical roadmap:
 
-### Giai đoạn 1: vẫn chạy classpath, loại bỏ rủi ro
+### Phase 1: Stay on the classpath, eliminate risks
 
-- Nâng JDK lên version mục tiêu trong một môi trường kiểm thử.
-- Dùng jdeps để tìm dependency và internal JDK API.
-- Nâng thư viện đã hỗ trợ JDK mục tiêu.
-- Loại hoặc khoanh vùng split package và dependency cycle.
-- Giảm reflection sâu không cần thiết.
-- Tạo regression tests cho service/resource/class loading.
+- Upgrade the JDK to the target version in a test environment.
+- Use jdeps to find dependencies and internal JDK APIs.
+- Upgrade libraries that already support the target JDK.
+- Eliminate or isolate split packages and dependency cycles.
+- Reduce unnecessary deep reflection.
+- Create regression tests for service/resource/class loading.
 
-Chưa cần thay đổi module-info.java của toàn ứng dụng.
+No need to add module-info.java across the entire application yet.
 
-### Giai đoạn 2: chuẩn hóa API boundary
+### Phase 2: Standardize API boundaries
 
-- Xác định package API thật sự.
-- Tách implementation và API interface nếu cần.
-- Loại direct dependency vào internal class của component khác.
-- Thống nhất module name ổn định của thư viện.
-- Chuyển plugin registry có thể sang SPI công khai.
+- Identify true API packages.
+- Separate implementation and API interfaces if necessary.
+- Remove direct dependencies on internal classes of other components.
+- Agree on stable library module names.
+- Convert eligible plugin registries to public SPIs.
 
-### Giai đoạn 3: thử một module nhỏ
+### Phase 3: Pilot a small module
 
-- Chọn thư viện có dependency ít, không chứa split package.
-- Bổ sung module-info.java với requires/exports đúng.
-- Build modular JAR và thử từ một consumer đại diện.
-- Kiểm tra resource, reflection, service discovery và unit tests.
-- Duy trì compatibility cho consumer classpath nếu sản phẩm yêu cầu.
+- Pick a library with few dependencies and no split packages.
+- Add module-info.java with accurate requires/exports.
+- Build a modular JAR and test it from a representative consumer.
+- Verify resources, reflection, service discovery, and unit tests.
+- Maintain compatibility for classpath consumers if required by the product.
 
-### Giai đoạn 4: mở rộng graph
+### Phase 4: Expand the graph
 
-- Chuyển dần component theo dependency direction.
-- Dùng automatic module có kiểm soát làm cầu nối cho thư viện chưa explicit modular.
-- Kiểm tra từng tầng dependency, tránh cycle.
-- Chuyển ứng dụng chính thành named module khi dependency đã sẵn sàng.
+- Gradually migrate components following the dependency direction.
+- Use controlled automatic modules as a bridge for libraries not yet explicitly modularized.
+- Verify each dependency layer, avoiding cycles.
+- Convert the main application into a named module once its dependencies are ready.
 
-### Giai đoạn 5: xác nhận runtime và đóng gói
+### Phase 5: Validate runtime and packaging
 
-- Chạy ứng dụng từ module path.
-- Quan sát graph bằng --show-module-resolution.
-- Thử đúng sản phẩm đóng gói, Docker/runtime image và plugin.
-- Nếu dùng jlink, bảo đảm module được link là explicit module và service provider được đưa vào image theo yêu cầu.
-- Xóa các --add-exports/--add-opens chỉ còn dùng để che lỗi chưa xử lý.
+- Run the application from the module path.
+- Inspect the graph using --show-module-resolution.
+- Test the actual packaged artifact, Docker/runtime image, and plugins.
+- If using jlink, ensure linked modules are explicit modules and service providers are included in the image as required.
+- Remove --add-exports/--add-opens flags that were only masking unresolved issues.
 
-Chiến lược này giúp mỗi lần thay đổi có phạm vi nhỏ, dễ rollback và dễ xác định nguyên nhân khi gặp lỗi.
+This strategy keeps each change small in scope, easy to roll back, and easy to diagnose when errors occur.
 
-## 17. Automatic module là cầu nối, không phải đích cuối cùng
+## 17. Automatic Modules Are a Bridge, Not the Destination
 
-Khi một thư viện chưa có module-info.class nhưng có thể đặt trên module path, JPMS có thể nhận nó là automatic module.
+When a library lacks module-info.class yet can be placed on the module path, JPMS can treat it as an automatic module.
 
-Điểm thuận lợi:
+Advantages:
 
-- Named module khác có thể requires theo automatic module name.
-- Thư viện không cần được viết lại ngay.
-- Các package của automatic module được export, giảm một số rào cản migration ban đầu.
+- Other named modules can requires it by its automatic module name.
+- The library does not need to be rewritten immediately.
+- Packages of an automatic module are exported, lowering some initial migration barriers.
 
-Tuy nhiên, automatic module chưa có descriptor dependency chính xác, trạng thái export rộng và có thể dựa vào các giả định classpath cũ. Nó còn có giới hạn khi xây dựng runtime image bằng jlink.
+However, an automatic module lacks exact dependency descriptors, has broad export visibility, and may rely on legacy classpath assumptions. It also has limitations when building a runtime image with jlink.
 
-Không nên xem automatic module như giải pháp vĩnh viễn nếu ứng dụng có kế hoạch mạnh về encapsulation và custom runtime image. Khi thư viện có explicit module chính thức, hãy thay thế cầu nối bằng artifact được hỗ trợ.
+Do not treat automatic modules as a permanent solution if your application has strong plans around encapsulation and custom runtime images. Once an official explicit module version of a library becomes available, replace the bridge with the supported artifact.
 
-Với ứng dụng chính vẫn nằm trên classpath, có thể chuyển một số thư viện độc lập sang module path trước rồi dùng --add-modules khi cần. Nhưng đừng mặc định mọi thư viện trên module path đều tự trở thành resolved module, cũng đừng vội chuyển ứng dụng chính sang named module khi còn phụ thuộc vào những class chỉ có trong unnamed module.
+With the main application still on the classpath, you can move some independent libraries to the module path first and use --add-modules when needed. Still, do not assume every library on the module path automatically becomes a resolved module, and do not rush to convert the main application into a named module while it still depends on classes that exist only in the unnamed module.
 
-## 18. Ranh giới giữa named module và unnamed module
+## 18. The Boundary Between Named Modules and the Unnamed Module
 
-Mã trên classpath thuộc unnamed module. Một named module có descriptor không thể viết:
+Code on the classpath belongs to the unnamed module. A named module with a descriptor cannot write:
 
 ~~~java
 module com.acme.app {
@@ -481,20 +481,20 @@ module com.acme.app {
 }
 ~~~
 
-Không có module name chuẩn nào đại diện cho toàn bộ classpath để sử dụng trong requires.
+There is no standard module name representing the entire classpath for use in requires.
 
-Khi chuyển consumer thành named module, cần giải quyết cách nó phụ thuộc các thư viện classpath còn lại. Tùy chiến lược, có thể:
+When converting a consumer into a named module, you must resolve how it depends on remaining classpath libraries. Depending on your strategy, you can:
 
-- Đưa thư viện thích hợp lên module path dưới dạng automatic module.
-- Nâng thư viện lên bản explicit module.
-- Tách các thành phần chưa sẵn sàng sang một launcher/adapter vẫn chạy classpath.
-- Thiết kế public SPI hoặc một ranh giới process/service để giảm phụ thuộc trực tiếp.
+- Move suitable libraries onto the module path as automatic modules.
+- Upgrade libraries to explicit module releases.
+- Separate components that are not ready into a launcher/adapter that continues running on the classpath.
+- Design a public SPI or a process/service boundary to reduce direct dependencies.
 
-Các runtime flags như --add-reads có thể hỗ trợ chẩn đoán vài tình huống nhưng không thay thế kiến trúc dependency rõ ràng và không tự biến JAR trên classpath thành named module.
+Runtime flags like --add-reads can help diagnose certain scenarios, but they do not replace clean dependency architecture and do not automatically turn classpath JARs into named modules.
 
-## 19. Dùng thử module path trước khi sửa toàn bộ source
+## 19. Prototyping the Module Path Before Editing All Source
 
-Một cách thực hành là tạo một proof of concept với vài JAR đại diện:
+A practical approach is to build a proof of concept with a few representative JARs:
 
 ~~~text
 prototype/
@@ -505,14 +505,14 @@ prototype/
     logging.jar
 ~~~
 
-Xác định module name:
+Determine module names:
 
 ~~~bash
 jar --describe-module --file lib/customer-api.jar
 jar --describe-module --file lib/customer-impl.jar
 ~~~
 
-Nếu dependency có thể dùng trên module path, kiểm tra graph trong một launcher thử nghiệm:
+If dependencies can be used on the module path, verify the graph in a prototype launcher:
 
 ~~~bash
 java --module-path "lib:app.jar" \
@@ -520,53 +520,53 @@ java --module-path "lib:app.jar" \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Lệnh chỉ áp dụng khi com.acme.app thực sự được nhận diện là named hoặc automatic module có main class phù hợp; nếu ứng dụng còn là classpath artifact, hãy giữ cách chạy classpath và thử module hóa các thư viện từng phần trước.
+This command only applies when com.acme.app is actually recognized as a named or automatic module with an appropriate main class; if the application is still a classpath artifact, keep running it on the classpath and test modularizing libraries incrementally first.
 
-Đối chiếu với baseline classpath: chương trình khởi động, service discovery, reflection, resource loading và các đường plugin quan trọng phải hoạt động.
+Compare against the classpath baseline: program startup, service discovery, reflection, resource loading, and critical plugin paths must work.
 
-Nếu lỗi xảy ra ngay ở bước resolution, tập trung vào tên module/dependency/split package. Nếu resolution qua nhưng ứng dụng lỗi khi chạy, kiểm tra quyền truy cập, dynamic class loading và cấu hình framework.
+If an error occurs right at the resolution step, focus on module names/dependencies/split packages. If resolution succeeds but the application fails at runtime, inspect access permissions, dynamic class loading, and framework configuration.
 
-## 20. Tiêu chí sẵn sàng modular hóa
+## 20. Modularization Readiness Criteria
 
-Có thể dùng các tiêu chí sau để quyết định liệu một component đã sẵn sàng được chuyển thành explicit named module hay chưa:
+You can use the following criteria to decide whether a component is ready to be converted into an explicit named module:
 
-| Tiêu chí | Dấu hiệu đạt |
+| Criterion | Signs of readiness |
 |---|---|
-| Module boundary | Có tên và phạm vi trách nhiệm rõ ràng |
-| Dependency direction | Không có cycle khó xử lý; dependency đủ rõ |
-| Package ownership | Không còn split package gây xung đột |
-| API contract | Có tập package export được xác định rõ |
-| Third-party libraries | Module name và khả năng dùng trên module path đã được kiểm chứng |
-| Reflection | Opens cần thiết đã được giới hạn và giải thích |
-| Service registration | Uses/provides và provider discovery hoạt động |
-| Resource/class loader | Đã thử trên cấu trúc modular JAR và launcher thật |
-| Build/test | Compiler, test runner, IDE và CI có cùng cấu hình |
-| Runtime compatibility | Chạy đúng trên JDK mục tiêu với các use case đại diện |
-| Observability | Có log module resolution và cơ chế phân tích lỗi |
-| Rollback | Có đường quay lại cấu hình hoạt động nếu migration gặp lỗi |
+| Module boundary | Has a clear name and scope of responsibility |
+| Dependency direction | No intractable cycles; dependencies are sufficiently clear |
+| Package ownership | No conflicting split packages remain |
+| API contract | Has a well-defined set of exported packages |
+| Third-party libraries | Module names and module-path usability have been verified |
+| Reflection | Necessary opens have been scoped and justified |
+| Service registration | Uses/provides and provider discovery work |
+| Resource/class loader | Tested on real modular JAR layout and launcher |
+| Build/test | Compiler, test runner, IDE, and CI share the same configuration |
+| Runtime compatibility | Runs properly on the target JDK with representative use cases |
+| Observability | Has module resolution logging and error analysis mechanisms |
+| Rollback | Has a path back to a working configuration if migration hits an error |
 
-Không nên cố đạt trạng thái “mọi JAR đều là module” bằng cách đặt tất cả lên module path. Mục tiêu là có module graph được thiết kế và kiểm chứng, không chỉ thay đổi cách tìm JAR.
+Do not try to reach a state where "every JAR is a module" just by placing everything on the module path. The goal is a designed and verified module graph, not merely changing how JARs are located.
 
-## 21. Danh sách kiểm tra trước khi bắt đầu
+## 21. Pre-Start Checklist
 
-- [ ] Đã khóa phiên bản JDK, ứng dụng và dependency làm baseline.
-- [ ] Có inventory cho direct, transitive, optional và runtime-only dependency.
-- [ ] Đã chạy jdeps, gồm phân tích JDK internal API.
-- [ ] Đã kiểm tra automatic module name và trạng thái descriptor của các JAR.
-- [ ] Đã tìm split package và dependency cycle.
-- [ ] Đã tách API công khai khỏi implementation package.
-- [ ] Đã xác định các điểm reflection sâu, bytecode generation và agent.
-- [ ] Đã kiểm kê META-INF/services, ServiceLoader và provider được tải động.
-- [ ] Đã rà soát resource, manifest và context class loader.
-- [ ] Đã kiểm tra native dependency nếu có.
-- [ ] Có integration tests trên JDK mục tiêu và artifact phát hành thật.
-- [ ] Có kế hoạch chuyển đổi theo tầng và phương án rollback.
-- [ ] Cờ --add-exports/--add-opens được theo dõi như khoản nợ migration, không mặc định là API lâu dài.
+- [ ] Locked JDK, application, and dependency versions as a baseline.
+- [ ] Built an inventory of direct, transitive, optional, and runtime-only dependencies.
+- [ ] Ran jdeps, including JDK internal API analysis.
+- [ ] Checked automatic module names and descriptor status of all JARs.
+- [ ] Searched for split packages and dependency cycles.
+- [ ] Separated public APIs from implementation packages.
+- [ ] Identified deep reflection points, bytecode generation, and agents.
+- [ ] Inventoried META-INF/services, ServiceLoader, and dynamically loaded providers.
+- [ ] Reviewed resources, manifests, and context class loaders.
+- [ ] Checked native dependencies if any.
+- [ ] Have integration tests on the target JDK and real release artifacts.
+- [ ] Have a layered migration plan and rollback strategy.
+- [ ] Track --add-exports/--add-opens flags as migration debt, not as permanent long-term APIs.
 
-## Kết luận
+## Conclusion
 
-Đánh giá ứng dụng classpath trước khi modular hóa là bước xác định **dependency graph thực tế**, những giả định ngầm của classpath và rủi ro khi JPMS áp dụng readability, exports, opens và module resolution.
+Assessing a classpath application before modularization is the step of identifying the **actual dependency graph**, implicit classpath assumptions, and risks when JPMS enforces readability, exports, opens, and module resolution.
 
-Hãy bắt đầu từ baseline có thể tái hiện, dùng jdeps để phân tích bytecode, kiểm kê dependency động, xác định split package/cycle, phân loại automatic và explicit module, rồi thử chuyển một component có ranh giới rõ. Chỉ mở rộng sang ứng dụng chính khi build, runtime, ServiceLoader, reflection và resource loading đã được kiểm chứng.
+Start from a reproducible baseline, use jdeps to analyze bytecode, inventory dynamic dependencies, identify split packages/cycles, classify automatic and explicit modules, and then pilot converting a component with clear boundaries. Only expand to the main application once the build, runtime, ServiceLoader, reflection, and resource loading have been verified.
 
-Một migration thành công không nhất thiết chuyển tất cả code trong một lần. Nó tạo ra module graph có chủ đích, giữ tương thích cần thiết và giảm dần các phụ thuộc nội bộ không được hỗ trợ.
+A successful migration does not have to convert all code at once. It produces an intentional module graph, preserves necessary compatibility, and gradually reduces unsupported internal dependencies.

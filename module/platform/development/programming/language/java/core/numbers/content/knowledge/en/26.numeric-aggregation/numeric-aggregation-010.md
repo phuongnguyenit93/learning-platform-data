@@ -1,36 +1,36 @@
-# Không trộn đơn vị, precision hoặc scale không được thống nhất
+# Do Not Mix Inconsistent Units, Precision, or Scale
 
-## 1. Vấn đề: phép tính đúng cú pháp có thể sai ý nghĩa
+## 1. Problem: Syntactically Valid Math Can Be Semantically Wrong
 
-Trong Java, kiểu số như `BigDecimal` biết cộng, trừ, nhân, chia nhưng **không tự biết** các số đang biểu thị mét, centimet, USD, giây hay phần trăm. Nó cũng không tự biết hợp đồng nghiệp vụ đòi hỏi bao nhiêu chữ số có nghĩa, bao nhiêu chữ số sau dấu phẩy và làm tròn vào thời điểm nào.
+In Java, numeric types like `BigDecimal` know how to add, subtract, multiply, and divide, yet **do not automatically know** whether numbers represent meters, centimeters, USD, seconds, or percentages. Nor do they know how many significant digits or decimal places the business contract requires, or when rounding should occur.
 
-Ba nguồn sai lệch thường gặp:
+Three common sources of discrepancy:
 
-1. **Đơn vị không đồng nhất:** cộng `1.20 m + 30 cm` như `1.20 + 30 = 31.20`. Giá trị đúng phải quy đổi `30 cm = 0.30 m`, sau đó được `1.50 m`.
-2. **Precision không đồng nhất:** một phép tính giữ kết quả đầy đủ, phép tiếp theo dùng `MathContext.DECIMAL32` chỉ giữ tối đa bảy chữ số có nghĩa. Sai số của bước làm tròn có thể lan đến kết quả cuối.
-3. **Scale không đồng nhất:** `1.2`, `1.20` và `1.200` bằng nhau về giá trị toán học nhưng có scale khác nhau; `BigDecimal.equals`, lưu trữ hoặc hiển thị có thể xử lý chúng khác nhau.
+1. **Inconsistent units:** adding `1.20 m + 30 cm` as `1.20 + 30 = 31.20`. The right calculation must convert `30 cm = 0.30 m`, giving `1.50 m`.
+2. **Inconsistent precision:** one calculation retains full result precision, while the next uses `MathContext.DECIMAL32` keeping at most seven significant digits. Rounding error from one step can propagate to the final result.
+3. **Inconsistent scale:** `1.2`, `1.20`, and `1.200` are equal in mathematical value yet have different scales; `BigDecimal.equals`, storage, or display may treat them differently.
 
-Nguyên tắc xuyên suốt: **kiểm tra đại lượng và đơn vị, thống nhất chính sách tính toán, rồi chuẩn hóa kết quả tại ranh giới thích hợp**. Đừng dùng phép làm tròn hoặc ép kiểu chỉ để che đi dữ liệu nguồn sai đơn vị.
+Guiding principle: **verify quantities and units, unify the computation policy, then normalize the result at the appropriate boundary**. Never use rounding or casting merely to hide source data with mismatched units.
 
-## 2. Không trộn đơn vị trước khi tổng hợp
+## 2. Do Not Mix Units Before Aggregating
 
-Một số `42` không diễn đạt đầy đủ “42 mét”, “42 giây”, “42 USD” hay “42%”. Nếu phép cộng/trừ có ý nghĩa, các toán hạng phải cùng **loại đại lượng** và được đưa về **đơn vị tương thích** trước khi tính.
+A bare number `42` does not specify "42 meters", "42 seconds", "42 USD", or "42%". For addition or subtraction to make sense, operands must share the same **quantity kind** and be converted to **compatible units** beforehand.
 
-| Đầu vào | Phép tính sai | Cách quy đổi đúng |
+| Input | Wrong calculation | Correct conversion |
 | --- | --- | --- |
-| `1.20 m` và `30 cm` | `1.20 + 30 = 31.20` | `1.20 m + 0.30 m = 1.50 m` |
-| `2 kg` và `500 g` | `2 + 500 = 502` | `2 kg + 0.5 kg = 2.5 kg` |
-| `2 phút` và `30 giây` | `2 + 30 = 32` | `120 s + 30 s = 150 s` |
-| `15%` và tỷ lệ `0.10` | `15 + 0.10 = 15.10` | Nếu cùng cơ sở: `0.15 + 0.10 = 0.25 = 25%` |
-| `10 USD` và `10 EUR` | `20` kèm một đơn vị tiền tệ tùy ý | Muốn cộng cần quy đổi theo tỷ giá được chọn, thời điểm và quy tắc làm tròn |
+| `1.20 m` and `30 cm` | `1.20 + 30 = 31.20` | `1.20 m + 0.30 m = 1.50 m` |
+| `2 kg` and `500 g` | `2 + 500 = 502` | `2 kg + 0.5 kg = 2.5 kg` |
+| `2 minutes` and `30 seconds` | `2 + 30 = 32` | `120 s + 30 s = 150 s` |
+| `15%` and ratio `0.10` | `15 + 0.10 = 15.10` | If sharing the same base: `0.15 + 0.10 = 0.25 = 25%` |
+| `10 USD` and `10 EUR` | `20` with an arbitrary currency unit | Adding requires converting at a chosen exchange rate, timestamp, and rounding rule |
 
-Ví dụ về phần trăm chỉ hợp lệ khi cùng mẫu số và việc cộng các tỷ lệ thật sự có ý nghĩa. Tỷ lệ 15% trên nhóm A và 10% trên nhóm B thường không thể cộng thẳng để ra 25% của toàn bộ tập khách hàng; phải xem quy mô, quan hệ của hai nhóm và mẫu số.
+The percentage example is valid only when sharing the same denominator and when summing ratios is genuinely meaningful. A 15% rate on group A and 10% on group B usually cannot be added directly to get 25% of all customers; you must examine group sizes, their relationship, and the denominator.
 
-Không phải chuyển đổi đơn vị nào cũng là nhân một hằng số. Nhiệt độ tuyệt đối từ Celsius sang Kelvin có offset `+273.15`; độ chênh nhiệt độ lại có quy tắc ngữ nghĩa khác. Giá theo kilogram nhân với khối lượng tạo thành tiền và thay đổi **thứ nguyên**. Không nên viết một hàm `convert(value)` chung cho mọi loại dữ liệu mà bỏ qua ngữ nghĩa này.
+Not every unit conversion is multiplying by a constant. Absolute temperature from Celsius to Kelvin has a `+273.15` offset; temperature differences follow different semantics. Price per kilogram multiplied by mass produces money and changes **dimension**. Do not write a single generic `convert(value)` function for all data types while ignoring these semantics.
 
-### 2.1. Quy đổi chính xác bằng BigDecimal
+### 2.1. Exact Conversion with BigDecimal
 
-Với đơn vị hệ thập phân, có thể dùng `BigDecimal` để không đi qua `double`:
+For decimal-based units, you can use `BigDecimal` without going through `double`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -40,46 +40,46 @@ BigDecimal centimeters = new BigDecimal("30");
 
 BigDecimal centimetersAsMeters = centimeters.movePointLeft(2);
 BigDecimal totalMeters = meters.add(centimetersAsMeters);
-// Giá trị chính xác: 1.50 mét
+// Exact value: 1.50 meters
 ~~~
 
-`movePointLeft(2)` dịch dấu thập phân sang trái hai vị trí, nghĩa là chia giá trị cho 100. Nó phù hợp cho centimet → mét, không phải công thức tổng quát cho các đơn vị khác. Nếu hệ số đổi đơn vị hoặc phép chia tạo số thập phân vô hạn, chính sách precision/scale và rounding mode phải được quy định.
+`movePointLeft(2)` shifts the decimal point two places left, meaning division by 100. It fits centimeters → meters, not every unit pair in general. When a conversion factor or division creates a non-terminating decimal, precision/scale and rounding-mode policies must be defined.
 
-### 2.2. Đưa đơn vị vào kiểu dữ liệu
+### 2.2. Encode Units in the Data Type
 
-Nếu API nhận `BigDecimal left, BigDecimal right`, người gọi có thể truyền hai đại lượng bất kỳ. Một cách phòng tránh là bao gói giá trị cùng đơn vị: `record Length(BigDecimal amount, LengthUnit unit)`.
+If an API accepts `BigDecimal left, BigDecimal right`, callers can pass any two quantities. One safeguard is wrapping values with their unit: `record Length(BigDecimal amount, LengthUnit unit)`.
 
-Khi đó, API cộng độ dài có thể chuyển mỗi đầu vào thành mét trước khi cộng. Với tiền, bản ghi `Money(amount, currency)` có thể từ chối phép cộng giữa USD và EUR. Điều này biến một lỗi âm thầm thành lỗi có thể phát hiện.
+Then a length-adding API can convert every input to meters before adding. For money, `Money(amount, currency)` can reject adding USD and EUR. This turns a silent bug into a detectable error.
 
-Ở ranh giới JSON, database hoặc file, cần truyền hoặc quy định đơn vị chính thức. Ví dụ một cột `value` chứa lúc thì mét, lúc thì centimet nhưng không có thông tin unit sẽ khiến bài toán tổng hợp khó có thể làm đúng.
+At JSON, database, or file boundaries, units must be transmitted or formally specified. For instance, a `value` column sometimes holding meters and sometimes centimeters without a unit field makes accurate aggregation nearly impossible.
 
-## 3. Phân biệt precision và scale
+## 3. Distinguishing Precision and Scale
 
-Với `BigDecimal`, giá trị được biểu diễn theo công thức:
+For `BigDecimal`, a value is represented as:
 
-`giá trị = unscaledValue × 10^(-scale)`.
+`value = unscaledValue × 10^(-scale)`.
 
-- **`precision()`:** số chữ số trong biểu diễn nguyên không chia tỷ lệ của `BigDecimal`, thường gọi là số chữ số có nghĩa **của biểu diễn**.
-- **`scale()`:** số mũ điều chỉnh bằng lũy thừa 10; trong dạng thập phân thông thường là số chữ số sau dấu phẩy.
-- **Precision của `MathContext`:** giới hạn **tổng số chữ số có nghĩa của kết quả** khi một phép toán áp context.
-- **Rounding mode:** quy tắc xử lý chữ số phải loại bỏ khi cần làm tròn.
+- **`precision()`:** number of digits in the unscaled integer representation of `BigDecimal`, often called the significant digits **of the representation**.
+- **`scale()`:** exponent scaling by powers of 10; in ordinary decimal notation, the number of digits after the decimal point.
+- **`MathContext` precision:** limit on the **total number of significant digits in the result** when an operation applies the context.
+- **Rounding mode:** rule for handling dropped digits when rounding is required.
 
-| Chuỗi đầu vào | `precision()` | `scale()` | Ghi chú |
+| Input string | `precision()` | `scale()` | Notes |
 | --- | ---: | ---: | --- |
-| `"1.2"` | 2 | 1 | Hai chữ số |
-| `"1.20"` | 3 | 2 | Bằng `1.2` về số học, khác biểu diễn |
-| `"1.200"` | 4 | 3 | Có thêm số 0 cuối |
-| `"123.4500"` | 7 | 4 | Hai số 0 cuối có trong biểu diễn |
-| `"0.00120"` | 3 | 5 | Số 0 dẫn đầu không tăng precision |
-| `"1E+3"` | 1 | -3 | Scale có thể âm, giá trị là 1000 |
+| `"1.2"` | 2 | 1 | Two digits |
+| `"1.20"` | 3 | 2 | Numerically equal to `1.2`, different representation |
+| `"1.200"` | 4 | 3 | Extra trailing zero |
+| `"123.4500"` | 7 | 4 | Two trailing zeros in representation |
+| `"0.00120"` | 3 | 5 | Leading zeros do not increase precision |
+| `"1E+3"` | 1 | -3 | Scale can be negative; value is 1000 |
 
-`new MathContext(2, RoundingMode.HALF_EVEN)` giới hạn hai chữ số có nghĩa. `setScale(2, RoundingMode.HALF_EVEN)` đặt hai chữ số sau dấu phẩy. Hai thao tác **không tương đương**.
+`new MathContext(2, RoundingMode.HALF_EVEN)` limits to two significant digits. `setScale(2, RoundingMode.HALF_EVEN)` sets two digits after the decimal point. The two operations **are not equivalent**.
 
-Đừng nhầm độ chính xác của phép đo với `BigDecimal.precision()`. Một máy đo báo `1.200 m` có thể hàm ý độ phân giải millimet, nhưng bản thân `BigDecimal` không biết sai số, độ tin cậy hay thiết bị đo. Nếu bài toán cần uncertainty/số chữ số có nghĩa theo quy ước đo lường, hãy lưu metadata tương ứng.
+Do not confuse measurement precision with `BigDecimal.precision()`. A meter reporting `1.200 m` may imply millimeter resolution, yet `BigDecimal` itself has no knowledge of uncertainty, confidence intervals, or measuring instruments. If the problem needs measurement uncertainty or significant-figure conventions, store metadata explicitly.
 
-## 4. Scale khác nhau có thể gây sai lệch dù giá trị số bằng nhau
+## 4. Different Scales Can Cause Discrepancies Despite Equal Numeric Values
 
-### 4.1. `equals` không giống `compareTo`
+### 4.1. `equals` Is Not the Same as `compareTo`
 
 ~~~java
 BigDecimal x = new BigDecimal("1.20");
@@ -89,9 +89,9 @@ boolean sameNumericValue = x.compareTo(y) == 0; // true
 boolean sameRepresentation = x.equals(y);       // false
 ~~~
 
-`compareTo` so giá trị toán học, `equals` xem cả giá trị và scale. Điều này tác động đến việc dùng `BigDecimal` làm khóa trong `HashMap` hoặc phần tử trong `HashSet`: `1.2` và `1.20` có thể được lưu thành hai khóa khác nhau. Không chuyển qua `double` để “sửa” việc so sánh, vì nó có thể mất precision.
+`compareTo` compares mathematical value, whereas `equals` checks both value and scale. This affects using `BigDecimal` as a `HashMap` key or `HashSet` element: `1.2` and `1.20` can be stored as two distinct keys. Do not convert to `double` to "fix" comparisons, as that can lose precision.
 
-### 4.2. Cộng chính xác không tự chuẩn hóa scale
+### 4.2. Exact Addition Does Not Normalize Scale Automatically
 
 ~~~java
 BigDecimal first = new BigDecimal("1.20");   // scale 2
@@ -103,39 +103,39 @@ BigDecimal sum = first.add(second);
 // sum.scale(): 3
 ~~~
 
-Với cộng/trừ không truyền `MathContext`, scale ưu tiên là scale lớn hơn của hai toán hạng. Về số học, `1.500` và `1.50` bằng nhau; trong hợp đồng JSON hoặc quy định hiển thị chính xác hai chữ số sau dấu phẩy, chúng là hai biểu diễn khác nhau.
+For addition/subtraction without `MathContext`, the preferred scale is the larger scale of the two operands. Mathematically, `1.500` and `1.50` are equal; in a JSON contract or fixed two-decimal display rule, they are distinct representations.
 
-Với nhân không truyền context, scale ưu tiên thường là **tổng scale** của hai toán hạng; với phép chia exact, kết quả có thể không tồn tại ở dạng thập phân hữu hạn, chẳng hạn `1/3`. Không thể dùng một quy tắc scale giống hệt nhau cho mọi phép toán.
+For multiplication without context, the preferred scale is typically the **sum of scales** of the two operands; for exact division, a finite decimal representation may not even exist, such as `1/3`. You cannot apply an identical scale rule across all arithmetic operations.
 
-### 4.3. Chuẩn hóa bằng `setScale` có kiểm soát
+### 4.3. Controlled Normalization with `setScale`
 
 ~~~java
 BigDecimal total = new BigDecimal("1.500");
 BigDecimal normalized = total.setScale(2, RoundingMode.UNNECESSARY);
-// 1.50: không mất giá trị toán học
+// 1.50: no loss of mathematical value
 ~~~
 
-`UNNECESSARY` yêu cầu không được làm tròn mất chữ số khác 0. Bỏ một chữ số `0` thừa khỏi `1.500` là chính xác nên thành công. Ngược lại:
+`UNNECESSARY` requires that rounding drops no non-zero digits. Removing an extra trailing `0` from `1.500` is exact, so it succeeds. Conversely:
 
 ~~~java
 new BigDecimal("1.234").setScale(2, RoundingMode.UNNECESSARY);
-// ArithmeticException: không thể giảm scale mà vẫn giữ nguyên giá trị
+// ArithmeticException: cannot reduce scale without losing value
 ~~~
 
-Khi nghiệp vụ **cho phép làm tròn**, chọn mode:
+When business rules **permit rounding**, choose a mode:
 
 ~~~java
 new BigDecimal("1.005").setScale(2, RoundingMode.HALF_UP);   // 1.01
 new BigDecimal("1.005").setScale(2, RoundingMode.HALF_EVEN); // 1.00
 ~~~
 
-`HALF_UP` chọn xa số 0 khi đúng nửa. `HALF_EVEN` chọn chữ số cuối chẵn khi đúng nửa. Chúng không tự phù hợp với mọi quy định tính tiền hoặc thống kê. Nếu tăng scale, `setScale` thường thêm số 0 mà không đổi giá trị số.
+`HALF_UP` rounds away from zero at midpoints. `HALF_EVEN` rounds to the even last digit at midpoints. Neither automatically fits every billing or statistical regulation. When increasing scale, `setScale` normally pads trailing zeros without changing numeric value.
 
-`stripTrailingZeros()` có thể bỏ các số 0 cuối nhưng **thay đổi scale** và có thể tạo biểu diễn khoa học hoặc scale âm, ví dụ số 1000 có thể thành `1E+3`. Không nên gọi máy móc khi schema yêu cầu scale cố định.
+`stripTrailingZeros()` can remove trailing zeros, yet it **changes scale** and can produce scientific notation or negative scale—for example, 1000 can become `1E+3`. Do not call it mechanically when a schema requires a fixed scale.
 
-## 5. Precision phải nhất quán với chính sách tính toán
+## 5. Precision Must Be Consistent with Computation Policy
 
-### 5.1. MathContext chỉ ảnh hưởng tới phép toán có dùng nó
+### 5.1. MathContext Only Affects Operations That Use It
 
 ~~~java
 import java.math.BigDecimal;
@@ -150,22 +150,22 @@ BigDecimal exact = a.add(b);
 BigDecimal bounded = a.add(b, mc);
 ~~~
 
-`exact` giữ tổng chính xác, còn `bounded` làm tròn theo **7 chữ số có nghĩa**. Việc khai báo biến `mc` không tự đổi mọi phép toán về sau; bạn phải truyền context tới từng phép toán cần giới hạn.
+`exact` preserves the exact sum, while `bounded` rounds to **7 significant digits**. Declaring `mc` does not automatically affect subsequent operations; you must pass the context to each operation that should be bounded.
 
-| Context | Precision tối đa | Rounding mode |
+| Context | Max precision | Rounding mode |
 | --- | ---: | --- |
 | `MathContext.DECIMAL32` | 7 | `HALF_EVEN` |
 | `MathContext.DECIMAL64` | 16 | `HALF_EVEN` |
 | `MathContext.DECIMAL128` | 34 | `HALF_EVEN` |
-| `MathContext.UNLIMITED` | Không giới hạn (giá trị precision là 0) | Lưu `HALF_UP`; không áp làm tròn do giới hạn precision |
+| `MathContext.UNLIMITED` | Unlimited (precision value is 0) | Stores `HALF_UP`; applies no precision-limit rounding |
 
-`UNLIMITED` không làm cho thương `1/3` có biểu diễn hữu hạn: chia chính xác không có scale/mode thích hợp vẫn có thể ném `ArithmeticException`.
+`UNLIMITED` does not give `1/3` a finite representation: exact division without an appropriate scale/mode can still throw `ArithmeticException`.
 
-Nếu tầng xử lý A dùng `DECIMAL32` và tầng B dùng `DECIMAL128` hoặc không truyền context, kết quả có thể không nhất quán. Tạo một **chính sách số học cho từng đại lượng**, thay vì lựa chọn context khác nhau theo sở thích mỗi hàm.
+If layer A uses `DECIMAL32` and layer B uses `DECIMAL128` or no context, results can become inconsistent. Establish a **single arithmetic policy per quantity**, rather than picking different contexts ad hoc in each method.
 
-### 5.2. Thời điểm làm tròn thay đổi kết quả
+### 5.2. Timing of Rounding Changes the Result
 
-Xét:
+Consider:
 
 ~~~java
 BigDecimal a = new BigDecimal("0.005");
@@ -178,26 +178,26 @@ BigDecimal roundSum = a.add(b)
         .setScale(2, RoundingMode.HALF_UP);       // 0.01
 ~~~
 
-Nếu làm tròn từng phần, `0.005` thành `0.01` và tổng bằng `0.02`. Nếu cộng chính xác `0.010` rồi làm tròn kết quả, được `0.01`. Cả hai đều dùng cùng mode và cùng scale mục tiêu nhưng cho kết quả khác.
+When rounding each part, `0.005` becomes `0.01` and the sum equals `0.02`. When summing exactly to `0.010` and then rounding, the result is `0.01`. Both use the same rounding mode and target scale yet yield different answers.
 
-Đối với hóa đơn, phí, thuế hay báo cáo, quy định có thể yêu cầu làm tròn từng dòng hoặc tổng cộng cuối cùng. Vì vậy chính sách phải nói rõ **làm tròn giá trị nào và vào thời điểm nào**. Không có quy tắc “luôn làm tròn ở cuối” đúng cho mọi nghiệp vụ.
+For invoices, fees, taxes, or reports, regulations may require rounding per line item or on the final total. Therefore, the policy must state clearly **which values are rounded and when**. No "always round at the end" rule holds across every business domain.
 
-### 5.3. Tránh precision mất mát do đầu vào kiểu double
+### 5.3. Avoid Precision Loss from double Inputs
 
 ~~~java
 BigDecimal exactDecimal = new BigDecimal("0.1");
 BigDecimal fromBinaryDouble = new BigDecimal(0.1);
 ~~~
 
-`new BigDecimal(0.1)` nhận giá trị nhị phân `double` đã được xấp xỉ trước đó, nên có thể có chuỗi thập phân dài ngoài dự kiến. `new BigDecimal("0.1")` nhận đúng giá trị thập phân đã định. `BigDecimal.valueOf(0.1)` thường dễ dùng hơn constructor nhận `double` nhưng không phục hồi chính xác những thông tin đã mất trong các phép tính dấu phẩy động trước đó.
+`new BigDecimal(0.1)` receives a pre-approximated binary `double` value, leading to unexpectedly long decimal digits. `new BigDecimal("0.1")` captures the exact specified decimal value. `BigDecimal.valueOf(0.1)` is generally safer to use than the `double` constructor, though it cannot accurately restore information already lost in earlier floating-point calculations.
 
-Nếu đơn vị hoặc tỷ giá được mô tả bằng decimal chính xác, dùng chuỗi decimal hoặc dữ liệu decimal được xác thực. Khi phép đo vốn là float/double từ cảm biến, cần đánh giá mức sai số thật sự thay vì giả định chuyển sang `BigDecimal` tự sửa được sai số cảm biến.
+If units or exchange rates are defined as exact decimals, use decimal strings or validated decimal data. When measurements natively arrive as `float`/`double` from sensors, evaluate actual sensor error rather than assuming converting to `BigDecimal` fixes measurement error.
 
-## 6. Chương trình Java 17+ đầy đủ
+## 6. Complete Java 17+ Program
 
-Chương trình dưới đây biểu diễn cả một phép cộng **cố ý sai** vì thiếu chuyển đơn vị và cách xử lý đúng. Nó cũng kiểm tra precision/scale, rounding mode và điều kiện không cho cộng hai loại tiền khác nhau.
+The program below demonstrates both an **intentionally wrong** addition lacking unit conversion and the proper handling. It also checks precision/scale, rounding modes, and rejecting addition of two different currencies.
 
-Tạo file `UnitPrecisionScaleDemo.java`:
+Create `UnitPrecisionScaleDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -300,14 +300,14 @@ public class UnitPrecisionScaleDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac UnitPrecisionScaleDemo.java
 java UnitPrecisionScaleDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 raw lengths (WRONG): 31.20
@@ -323,15 +323,15 @@ same currency: 3.50 USD
 mixed currency: IllegalArgumentException
 ~~~
 
-Đoạn `raw lengths` minh họa **hành vi sai cần tránh**; mã chỉ chạy được vì cả hai số được lấy ra từ record rồi cộng thủ công. `Length.inMeters()` mới là đường đi đúng để cộng các độ dài khác đơn vị. `Money.add` là phép cộng trong cùng đồng tiền, từ chối cặp tiền tệ khác nhau. Nếu thực sự muốn đổi ngoại tệ, cần phương thức chuyển đổi riêng có tỷ giá, thời điểm và quy tắc làm tròn đã xác định.
+`raw lengths` illustrates **wrong behavior to avoid**; the code only runs because raw numbers were extracted from the records and added manually. `Length.inMeters()` is the right path to add lengths with different units. `Money.add` adds within the same currency and rejects mismatched currencies. If currency conversion is genuinely desired, build a separate conversion method with an explicit exchange rate, timestamp, and rounding rule.
 
-`setScale(2, UNNECESSARY)` trong ví dụ xác nhận kết quả mét có thể đưa về hai chữ số sau dấu phẩy **mà không mất giá trị**. Nếu có số đo đến millimet như `1.234 m`, phép chuẩn hóa ấy ném ngoại lệ; quyết định từ chối hay làm tròn phải dựa vào chính sách của dữ liệu đo.
+`setScale(2, UNNECESSARY)` in the example confirms the meter result can be normalized to two decimal places **without losing value**. If a millimeter-level measurement like `1.234 m` appears, that normalization throws an exception; deciding whether to reject or round depends on measurement data policy.
 
-## 7. Thống nhất chính sách tại ranh giới dữ liệu
+## 7. Unifying Policies at Data Boundaries
 
-### 7.1. Trên API và thông điệp
+### 7.1. On APIs and Messages
 
-Một JSON rõ nghĩa có thể mang cả giá trị decimal và đơn vị:
+A well-defined JSON payload can carry both the decimal value and its unit:
 
 ~~~json
 {
@@ -340,86 +340,86 @@ Một JSON rõ nghĩa có thể mang cả giá trị decimal và đơn vị:
 }
 ~~~
 
-Trường `value` dạng chuỗi giúp client và server không phải suy đoán cách biểu diễn nhị phân nếu contract yêu cầu decimal chính xác. Bên nhận kiểm tra tên đơn vị, phạm vi giá trị, độ phân giải cho phép và cách quy đổi sang đơn vị chuẩn.
+A string `value` field prevents client and server from guessing binary representations when the contract requires exact decimals. The receiver validates unit name, value range, allowed resolution, and conversion to the canonical unit.
 
-Đừng tin tưởng rằng chữ số `0` cuối là metadata đủ để mô tả độ chính xác đo lường. Nếu bài toán cần độ sai số, sai số tuyệt đối/tương đối hoặc độ phân giải, cần quy định những thuộc tính ấy riêng.
+Do not rely on trailing `0` digits as sufficient metadata for measurement precision. If the problem requires uncertainty, absolute/relative error, or resolution, specify those attributes separately.
 
-### 7.2. Trong database
+### 7.2. In the Database
 
-SQL `DECIMAL(p,s)` có giới hạn precision/scale lưu trữ theo schema, trong đó `p` và `s` thường biểu thị tổng chữ số và chữ số sau dấu thập phân. Các quy tắc cụ thể về phạm vi, xử lý tràn và làm tròn có thể khác theo hệ quản trị. Một cột `DECIMAL(12,2)` **không tương đương** với việc áp `new MathContext(12, ...)` trong Java, bởi `MathContext` giới hạn chữ số có nghĩa của phép toán và không đặt scale về 2.
+SQL `DECIMAL(p,s)` defines schema storage precision/scale limits, where `p` and `s` typically represent total digits and digits after the decimal point. Specific rules for range, overflow handling, and rounding vary across database engines. A `DECIMAL(12,2)` column **is not equivalent** to applying `new MathContext(12, ...)` in Java, because `MathContext` limits significant digits per operation and does not fix scale at 2.
 
-Schema cần đồng thời nêu hoặc lưu đơn vị chuẩn và, nếu là tiền, mã tiền tệ. `1000` có thể nghĩa là 1000 gram hoặc 1000 kilogram; đặt scale 2 trong SQL không giải quyết sự nhập nhằng đó.
+The schema must also document or store the canonical unit and, for money, currency code. `1000` could mean 1000 grams or 1000 kilograms; setting scale 2 in SQL does not resolve that ambiguity.
 
-### 7.3. Khi hiển thị
+### 7.3. When Displaying
 
-Phân biệt dữ liệu tính toán và biểu diễn giao diện. Có thể dùng `toPlainString()` khi cần tránh biểu diễn khoa học của `BigDecimal.toString()`. Nếu hợp đồng hiển thị hai chữ số, chuẩn hóa **kết quả phục vụ hiển thị** thay vì làm mất độ phân giải dữ liệu gốc.
+Separate computation data from UI presentation. You can use `toPlainString()` when you need to avoid scientific notation from `BigDecimal.toString()`. If the display contract specifies two digits, normalize **the presentation result** rather than stripping resolution from the underlying source data.
 
-Một số hệ thống có chính sách làm tròn ở mức dòng hóa đơn, một số ở tổng cuối, hoặc cả hai ở các điểm khác nhau. Ghi rõ chính sách thành tài liệu và test. Khi thay đổi nó, cần đánh giá hiệu ứng lên dữ liệu cũ thay vì chỉ thay formatter.
+Some systems round at the invoice line-item level, others at the final total, or both at distinct stages. Document and test the policy thoroughly. When changing it, assess the impact on historical data instead of only changing a formatter.
 
-## 8. Bảng kiểm khi thiết kế phép tổng hợp
+## 8. Design Checklist for Aggregations
 
-| Câu hỏi | Quyết định cần có | Ví dụ |
+| Question | Decision needed | Example |
 | --- | --- | --- |
-| Hai toán hạng có cùng đại lượng không? | Cấm trộn thứ nguyên | Không cộng mét với kilogram |
-| Đơn vị chuẩn là gì? | Quy đổi trước khi tính | Centimet → mét, gram → kilogram |
-| Đồng tiền nào? | Giữ mã tiền; tỷ giá phải tường minh | Không cộng USD với EUR trực tiếp |
-| Precision trung gian bao nhiêu? | Chọn exact hay `MathContext` | Dùng `DECIMAL64` nếu được chấp nhận |
-| Scale kết quả bao nhiêu? | Xác định theo loại dữ liệu | Mức tiền lưu 2 chữ số theo quy tắc riêng |
-| Khi nào được làm tròn? | Xác định thời điểm | Mỗi dòng hay tổng cuối |
-| Rounding mode nào? | Thỏa thuận rõ | `HALF_EVEN`, `HALF_UP`, `UNNECESSARY` |
-| Mất dữ liệu có được phép không? | Làm tròn rõ ràng hoặc báo lỗi | `setScale(2, UNNECESSARY)` nếu cấm mất phần lẻ |
-| Có cần độ tin cậy đo lường không? | Lưu metadata sai số riêng | `1.200 m ± 0.005 m` |
+| Do both operands have the same quantity kind? | Forbid mixing dimensions | Do not add meters and kilograms |
+| What is the canonical unit? | Convert before computing | Centimeters → meters, grams → kilograms |
+| Which currency? | Keep currency code; exchange rates must be explicit | Do not add USD and EUR directly |
+| What intermediate precision? | Choose exact or `MathContext` | Use `DECIMAL64` if acceptable |
+| What result scale? | Define per data kind | Money stored with 2 digits per its own rule |
+| When is rounding allowed? | Define the timing | Per line item or final total |
+| Which rounding mode? | Agree explicitly | `HALF_EVEN`, `HALF_UP`, `UNNECESSARY` |
+| Is data loss permitted? | Round explicitly or throw error | `setScale(2, UNNECESSARY)` if fractional loss is forbidden |
+| Is measurement confidence needed? | Store error metadata separately | `1.200 m ± 0.005 m` |
 
-Khi cần lượng tiền theo đơn vị nhỏ nhất (cent), có thể biểu diễn bằng số nguyên sau khi **quy định rõ phép chuyển đổi và rounding policy**. Ví dụ 1 USD = 100 cent, nhưng không suy rộng giả định “mọi loại tiền đều có hai chữ số thập phân”.
+When monetary amounts are needed in the smallest unit (cents), integer representation can work after **clearly defining conversion and rounding policies**. For instance, 1 USD = 100 cents, yet do not generalize that "every currency has two decimal places".
 
-Trong bài toán tỉ lệ và đơn vị đo, cần xem xét cả phạm vi số rất lớn/nhỏ, overflow của phép tính nền, phần dư khi chia, và cách áp precision để không làm tròn trung gian ngoài ý muốn.
+In ratio and unit calculations, also check extreme value ranges, overflow in underlying arithmetic, division remainders, and how precision is applied to avoid unintended intermediate rounding.
 
-## 9. Lỗi phổ biến
+## 9. Common Mistakes
 
-1. **Cộng giá trị mà bỏ nhãn đơn vị:** kết quả tính toán hợp lệ nhưng sai đại lượng.
-2. **Cộng USD với EUR như cùng tiền tệ:** muốn quy đổi phải có tỷ giá, ngày hiệu lực và chính sách làm tròn.
-3. **Dùng phần trăm như tỷ lệ thập phân:** 15% là 0.15; ngay cả khi đổi xong, chỉ cộng tỷ lệ khi mẫu số/cơ sở phù hợp.
-4. **Nhầm precision và scale:** `MathContext(2)` không phải giữ hai chữ số sau dấu phẩy.
-5. **Dùng `equals` khi cần so giá trị số:** `1.20` và `1.2` bằng nhau theo `compareTo` nhưng không bằng nhau theo `equals`.
-6. **Làm tròn từng bước mà không có chính sách:** kết quả khác phép cộng chính xác rồi làm tròn sau cùng.
-7. **Ép scale quá sớm:** có thể mất thông tin đo lường như millimet trong số mét.
-8. **Dùng `new BigDecimal(double)` cho input decimal:** có thể đưa sai số nhị phân vào luồng tính toán.
-9. **Gọi `stripTrailingZeros()` để chữa mọi chênh lệch scale:** có thể thay đổi scale/chuỗi hiển thị ngoài mong đợi.
-10. **Giữ một scale áp cho mọi đại lượng:** tiền, khối lượng, thời gian, tỷ lệ có yêu cầu khác nhau.
-11. **Tin precision nhiều tức là phép đo đáng tin:** precision của biểu diễn không nói lên sai số đo.
-12. **Không kiểm tra unit/scale ở ranh giới API:** dữ liệu sai lan vào tổng hợp và khó truy nguyên.
+1. **Adding values while dropping unit labels:** arithmetic succeeds but produces the wrong quantity.
+2. **Adding USD and EUR as the same currency:** conversion requires an exchange rate, effective date, and rounding policy.
+3. **Treating percentages like decimal ratios:** 15% is 0.15; even after converting, add rates only when denominators/bases match.
+4. **Confusing precision and scale:** `MathContext(2)` does not keep two digits after the decimal point.
+5. **Using `equals` when numeric comparison is needed:** `1.20` and `1.2` match under `compareTo` but not under `equals`.
+6. **Rounding step by step without a policy:** results differ from exact addition followed by final rounding.
+7. **Forcing scale too early:** can lose measurement details such as millimeters inside meters.
+8. **Using `new BigDecimal(double)` for decimal inputs:** can inject binary floating-point error into the pipeline.
+9. **Calling `stripTrailingZeros()` to fix every scale mismatch:** can alter scale/string format unexpectedly.
+10. **Applying one scale to all quantities:** money, mass, time, and ratios have distinct requirements.
+11. **Believing high precision means reliable measurement:** representational precision says nothing about measurement error.
+12. **Skipping unit/scale checks at API boundaries:** invalid data leaks into aggregations and is hard to trace.
 
-## 10. Bài tập kiểm tra
+## 10. Practice Exercises
 
-**Câu 1.** Có `2.50 kg` và `750 g`. Tổng bằng bao nhiêu kilogram?
+**Question 1.** Given `2.50 kg` and `750 g`, what is the total in kilograms?
 
-**Đáp án:** `750 g = 0.750 kg`, nên tổng exact là `3.250 kg`. Nếu hợp đồng yêu cầu scale 2 và không mất giá trị, có thể chuẩn hóa thành `3.25 kg` bằng `setScale(2, UNNECESSARY)`.
+**Answer:** `750 g = 0.750 kg`, so the exact sum is `3.250 kg`. If the contract requires scale 2 without value loss, it can be normalized to `3.25 kg` via `setScale(2, UNNECESSARY)`.
 
-**Câu 2.** `new BigDecimal("12.0").equals(new BigDecimal("12.00"))` đúng hay sai? Muốn so giá trị số thì làm gì?
+**Question 2.** Is `new BigDecimal("12.0").equals(new BigDecimal("12.00"))` true or false? How do you compare numeric value?
 
-**Đáp án:** Sai vì scale khác nhau. Dùng `compareTo(...) == 0` để kiểm tra bằng nhau về giá trị số.
+**Answer:** False, because their scales differ. Use `compareTo(...) == 0` to check numeric equality.
 
-**Câu 3.** Cộng `0.005 + 0.005` rồi làm tròn tổng theo `HALF_UP` đến hai chữ số được bao nhiêu? Làm tròn mỗi phần trước thì sao?
+**Question 3.** What do you get when adding `0.005 + 0.005` and rounding the sum using `HALF_UP` to two decimal places? What if you round each part first?
 
-**Đáp án:** Làm tròn tổng sau khi cộng exact được `0.01`. Làm tròn mỗi `0.005` thành `0.01` rồi cộng thành `0.02`.
+**Answer:** Rounding after exact addition yields `0.01`. Rounding each `0.005` to `0.01` first and then adding yields `0.02`.
 
-**Câu 4.** API chấp nhận độ dài tối đa hai chữ số sau dấu thập phân của mét và nhận `1.234 m`. `setScale(2, UNNECESSARY)` có âm thầm đổi thành `1.23` không?
+**Question 4.** An API accepts lengths up to two decimal places in meters and receives `1.234 m`. Does `setScale(2, UNNECESSARY)` silently turn it into `1.23`?
 
-**Đáp án:** Không, nó ném `ArithmeticException` vì việc hạ scale sẽ mất chữ số khác 0. Muốn đổi sang centimet chính xác hay làm tròn đến centimet phải có yêu cầu rõ ràng.
+**Answer:** No, it throws `ArithmeticException` because reducing scale would lose a non-zero digit. Whether to convert exactly to centimeters or round to centimeters must be explicitly specified.
 
-**Câu 5.** Một giá trị `15` biểu thị 15%, còn giá trị `0.05` biểu thị tỷ lệ 5%. Kết quả cộng 20% được tính thế nào?
+**Question 5.** One value `15` represents 15%, while `0.05` represents a 5% ratio. How is the 20% total computed?
 
-**Đáp án:** Đổi 15% về `0.15`; khi cùng cơ sở và được phép cộng tỷ lệ, tổng là `0.20` = 20%.
+**Answer:** Convert 15% to `0.15`; when sharing the same base and rate addition is valid, the sum is `0.20` = 20%.
 
-**Câu 6.** Vì sao `DECIMAL128` không thay thế chính sách hai chữ số sau dấu phẩy?
+**Question 6.** Why does `DECIMAL128` not replace a two-decimal-place policy?
 
-**Đáp án:** `DECIMAL128` giới hạn 34 chữ số có nghĩa và mặc định `HALF_EVEN`, không đặt scale bằng 2. Cần dùng `setScale(2, mode)` hoặc quy tắc trình bày phù hợp tại điểm được chỉ định.
+**Answer:** `DECIMAL128` limits significant digits to 34 with default `HALF_EVEN`; it does not set scale to 2. You need `setScale(2, mode)` or an appropriate formatting rule at the designated boundary.
 
-## 11. Tài liệu Java chính thức
+## 11. Official Java Documentation
 
 - [BigDecimal — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `precision()`, `scale()`, `setScale()`, `compareTo()`, `equals()`, `movePointLeft()`.
-- [MathContext — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html): giới hạn chữ số có nghĩa và rounding mode.
-- [RoundingMode — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): quy tắc làm tròn.
-- [Record declarations — JLS Java SE 17](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10): mô hình dữ liệu record.
+- [MathContext — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html): significant-digit limits and rounding modes.
+- [RoundingMode — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): rounding rules.
+- [Record declarations — JLS Java SE 17](https://docs.oracle.com/en/java/javase/specs/jls/se17/html/jls-8.html#jls-8.10): record data modeling.
 
-**Ghi nhớ:** Tổng hợp số đúng bắt đầu từ **cùng đại lượng, cùng đơn vị**, tiếp đến **chính sách precision của phép toán**, rồi **scale và rounding mode tại ranh giới đã quy định**. `BigDecimal` giúp tính toán decimal chính xác nhưng không tự hiểu đơn vị, đồng tiền, độ tin cậy phép đo hay quy tắc làm tròn của hệ thống.
+**Remember:** Correct numeric aggregation starts with **same quantity kind and same unit**, followed by **operation precision policy**, and then **scale and rounding mode at defined boundaries**. `BigDecimal` enables exact decimal arithmetic, but it cannot automatically know your system's units, currencies, measurement uncertainty, or rounding rules.

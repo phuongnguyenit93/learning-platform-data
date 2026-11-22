@@ -1,43 +1,43 @@
-# Tổ chức dịch vụ lấy thông điệp và định dạng trong ứng dụng Java
+# Organizing Message Lookup and Formatting Services in Java Applications
 
-Một ứng dụng Java đa ngôn ngữ cần giải quyết hai bài toán liên quan nhưng khác nhau: **lấy câu thông điệp theo ngôn ngữ** và **định dạng giá trị theo quy ước địa phương**. Ví dụ một màn hình đơn hàng cần hiển thị câu tiếng Việt hoặc tiếng Anh, nhưng giá tiền phải giữ đúng Currency của giao dịch, ngày hẹn phải được hiển thị theo vùng giờ người nhận, và dấu thập phân phải tuân thủ lựa chọn định dạng của người xem.
+A multilingual Java application must solve two related yet distinct problems: **retrieving localized messages by language** and **formatting values by regional convention**. For example, an order screen needs to display sentences in Vietnamese or English, while monetary amounts must preserve the transaction's `Currency`, scheduled dates must be rendered in the recipient's time zone, and decimal separators must honor the viewer's formatting preference.
 
-Nếu controller nào cũng tự tìm **ResourceBundle**, nối câu bằng dấu cộng, rồi trực tiếp dùng **NumberFormat**, **SimpleDateFormat** hoặc **DateTimeFormatter**, ứng dụng dễ lặp mã, thiếu key, trộn ngôn ngữ, sai ngày giờ và không an toàn khi chia sẻ formatter mutable giữa các request. Cách thiết kế bền vững là tách **LocaleResolver**, **MessageService**, **FormattingService** và một **Presenter/Composer** để phối hợp kết quả.
+If every controller looks up **ResourceBundle** on its own, concatenates sentences with `+`, and calls **NumberFormat**, **SimpleDateFormat**, or **DateTimeFormatter** directly, the application easily ends up with duplicated code, missing keys, mixed languages, wrong dates/times, and thread-safety bugs from sharing mutable formatters across requests. A resilient design separates **LocaleResolver**, **MessageService**, **FormattingService**, and a **Presenter/Composer** to coordinate the output.
 
-Bài học này trình bày các trách nhiệm, API Java 17+, cấu trúc file bản dịch, hợp đồng interface, ví dụ chạy được, fallback, cache, thread safety, kiểm thử và lỗi thường gặp khi xây dựng kiến trúc localization.
+This lesson covers the responsibilities, Java 17+ APIs, translation file structure, interface contracts, runnable examples, fallbacks, caching, thread safety, testing, and common pitfalls when building a localization architecture.
 
-## 1. Dịch thông điệp và định dạng khác nhau thế nào?
+## 1. How Do Message Translation and Formatting Differ?
 
-Giả sử một đơn hàng có:
+Suppose an order has:
 
-- **Tên khách:** Lan.
-- **Mã đơn hàng:** DH-2026-07.
+- **Customer name:** Lan.
+- **Order ID:** DH-2026-07.
 - **Amount:** BigDecimal("1234.50").
 - **Currency:** EUR.
-- **Thời điểm đặt hàng:** Instant.parse("2026-10-28T02:30:00Z").
-- **Ngôn ngữ UI:** vi-VN.
-- **Locale định dạng:** vi-VN.
+- **Order timestamp:** Instant.parse("2026-10-28T02:30:00Z").
+- **UI language:** vi-VN.
+- **Formatting locale:** vi-VN.
 - **ZoneId:** Asia/Ho_Chi_Minh.
 
-Ứng dụng có thể cần tạo một câu gần với: “Chào Lan, đơn DH-2026-07 có tổng ... vào ngày ...”.
+The application may need to build a sentence along the lines of: "Chào Lan, đơn DH-2026-07 có tổng ... vào ngày ...".
 
-| Thành phần | Quyết định | API liên quan |
+| Component | Decision | Related APIs |
 | --- | --- | --- |
-| **Ngôn ngữ câu** | Chào, Hello, vị trí từ và dấu câu | ResourceBundle, MessageFormat |
-| **Số tiền** | Dấu nhóm, dấu thập phân, ký hiệu và vị trí tiền | NumberFormat, Currency |
-| **Ngày** | Ngày/tháng/năm theo ngôn ngữ và vùng | DateTimeFormatter, Locale |
-| **Múi giờ** | Ngày địa phương mà một Instant rơi vào | Instant, ZoneId |
-| **Chính sách của sản phẩm** | Locale UI hỗ trợ, fallback, số chữ số tiền | LocaleResolver, cấu hình và domain |
+| **Sentence language** | Greetings, word order, and punctuation | ResourceBundle, MessageFormat |
+| **Monetary amount** | Grouping separator, decimal separator, currency symbol and placement | NumberFormat, Currency |
+| **Date** | Day/month/year by language and region | DateTimeFormatter, Locale |
+| **Time zone** | Which local date an Instant falls on | Instant, ZoneId |
+| **Product policy** | Supported UI locales, fallbacks, currency decimal digits | LocaleResolver, configuration, and domain |
 
-**Nguyên tắc:** lưu dữ liệu nghiệp vụ ở dạng có kiểu; chỉ format tại ranh giới đưa dữ liệu tới người xem. Chuỗi “1.234,50 €” là biểu diễn, không thay thế BigDecimal và Currency.
+**Principle:** store business data in typed form; format only at the boundary where data reaches the viewer. The string `"1.234,50 €"` is a presentation, not a substitute for `BigDecimal` and `Currency`.
 
-### 1.1. Tách uiLocale và formatLocale
+### 1.1. Separating `uiLocale` and `formatLocale`
 
-Ngôn ngữ giao diện và vùng định dạng có thể khác nhau. Một người thích giao diện tiếng Anh nhưng muốn xem ngày/số theo quy ước Việt Nam. Vì vậy nên đặt tên rõ **uiLocale** và **formatLocale** thay vì nhét mọi sở thích vào một biến locale duy nhất.
+The UI language and the formatting region can differ. A user may prefer an English UI while viewing dates and numbers in Vietnamese conventions. Therefore, name **uiLocale** and **formatLocale** explicitly instead of cramming every preference into a single locale variable.
 
-Tương tự, **ZoneId** không được suy từ Locale. Người dùng chọn tiếng Việt có thể đang sống ở Berlin; số tiền được thanh toán bằng EUR không tự chuyển sang VND khi hiển thị vi-VN.
+Likewise, **ZoneId** must not be inferred from `Locale`. A user who selects Vietnamese may live in Berlin; an amount paid in EUR does not automatically convert to VND when displayed under `vi-VN`.
 
-## 2. Kiến trúc tổng quan
+## 2. Architecture Overview
 
 ~~~text
 Controller / API / Notification use case
@@ -63,20 +63,20 @@ Controller / API / Notification use case
        UI / Email / PDF
 ~~~
 
-Các trách nhiệm nên được tách như sau:
+Responsibilities should be separated as follows:
 
-1. **LocaleResolver:** chọn ngôn ngữ UI được ứng dụng công bố hỗ trợ và quy tắc fallback.
-2. **MessageService:** lấy mẫu văn bản theo key/locale và điền các tham số.
-3. **FormattingService:** định dạng số, tiền, phần trăm, ngày và thời gian theo dữ liệu có kiểu.
-4. **Presenter/Composer:** phối hợp chuỗi giá trị đã định dạng với mẫu câu đã dịch, không thực hiện nghiệp vụ.
-5. **Domain:** giữ BigDecimal, Currency, LocalDate, Instant, mã đơn hàng, trạng thái và các phép tính.
-6. **Observability và test:** phát hiện thiếu key, fallback bất thường, sai mẫu, khác biệt do JDK/CLDR.
+1. **LocaleResolver:** selects a UI language officially supported by the application and applies fallback rules.
+2. **MessageService:** retrieves text templates by key/locale and fills in arguments.
+3. **FormattingService:** formats numbers, currency, percentages, dates, and times from typed data.
+4. **Presenter/Composer:** combines formatted value strings with translated message templates without performing business logic.
+5. **Domain:** holds `BigDecimal`, `Currency`, `LocalDate`, `Instant`, order IDs, statuses, and calculations.
+6. **Observability and tests:** detects missing keys, unexpected fallbacks, malformed patterns, and JDK/CLDR differences.
 
-Không nhất thiết phải có một framework lớn. Một ứng dụng nhỏ có thể dùng vài class, nhưng **ranh giới trách nhiệm phải rõ** để tránh mỗi màn hình tự phát minh cách quốc tế hóa.
+A large framework is not required. A small application may use just a few classes, provided **responsibility boundaries are clear** so each screen does not reinvent internationalization.
 
-## 3. Thiết kế MessageService
+## 3. Designing `MessageService`
 
-Hợp đồng cơ bản:
+Basic contract:
 
 ~~~java
 interface MessageService {
@@ -85,9 +85,9 @@ interface MessageService {
 }
 ~~~
 
-Đây là chữ ký minh họa cần import java.util.Locale khi đặt vào file Java. **Locale** luôn được truyền tường minh, **key** là tên kỹ thuật ổn định, còn **values** là các giá trị cần chèn vào mẫu câu.
+This is an illustrative signature requiring `import java.util.Locale` when placed in a Java file. **Locale** is always passed explicitly, **key** is a stable technical identifier, and **values** are the arguments inserted into the message pattern.
 
-Các key tốt:
+Good keys:
 
 ~~~text
 order.title
@@ -97,26 +97,26 @@ validation.date.invalid
 payment.refund.confirmed
 ~~~
 
-Chúng mô tả **ý nghĩa nội dung** thay vì dùng nguyên câu tiếng Anh làm khóa. Nhờ vậy người dịch có thể thay chữ mà Java không cần thay key.
+They describe **content semantics** rather than using a full English sentence as the key. That lets translators adjust wording without changing keys in Java code.
 
-Không cho người dùng nhập key tùy ý để đọc tài nguyên nội bộ. Key thường do code ứng dụng chọn từ use case; nếu phải chấp nhận key từ API, cần một danh sách cho phép và phân quyền tương ứng.
+Do not allow users to supply arbitrary keys to read internal resources. Keys are normally chosen by application code per use case; if an API must accept a key, enforce an allowlist and appropriate authorization.
 
-### 3.1. Để người dịch đổi trật tự câu
+### 3.1. Letting Translators Reorder Clauses
 
-Một câu tiếng Anh và một câu tiếng Việt không cần cùng thứ tự từ. Tham số có đánh số cho phép:
+An English sentence and a Vietnamese sentence do not have to share the same word order. Numbered placeholders allow:
 
 ~~~text
 English: Hello {0}, order {1} totals {2} on {3}.
 Vietnamese: Chào {0}, đơn {1} có tổng {2} vào ngày {3}.
 ~~~
 
-Người dịch có thể đặt lại thứ tự **{0}, {1}, {2}, {3}** nếu ngôn ngữ đòi hỏi. Ngược lại, nối cố định **prefix + name + amount + suffix** dễ tạo câu vụng, sai giới từ hoặc sai dấu câu.
+Translators can reorder **{0}, {1}, {2}, {3}** when grammar requires it. Conversely, fixed concatenation like **prefix + name + amount + suffix** easily produces awkward sentences, wrong prepositions, or broken punctuation.
 
-**Mẫu thông điệp không nên chứa dữ liệu người dùng hay số tiền cố định.** Dữ liệu phải đi qua arguments, không được ghi cứng vào tệp dịch.
+**Message patterns must not hardcode user data or fixed amounts.** Data must flow through arguments, never be baked into translation files.
 
-## 4. ResourceBundle và cấu trúc bản dịch
+## 4. `ResourceBundle` and Translation Structure
 
-ResourceBundle tìm tài nguyên dựa trên **base name** và Locale. Dự án có thể bố trí:
+`ResourceBundle` looks up resources based on a **base name** and `Locale`. A project can be laid out as:
 
 ~~~text
 src/main/java/LocalizedServicesDemo.java
@@ -124,9 +124,9 @@ src/main/resources/messages_en.properties
 src/main/resources/messages_vi.properties
 ~~~
 
-Với ví dụ chạy trực tiếp bằng javac/java, đặt các tệp properties bên cạnh file Java/class để classpath mặc định tìm thấy chúng.
+For examples run directly with `javac`/`java`, place the `.properties` files next to the Java/class files so the default classpath finds them.
 
-**File messages_en.properties**
+**File `messages_en.properties`**
 
 ~~~properties
 order.title=Order details
@@ -134,7 +134,7 @@ order.summary=Hello {0}, order {1} totals {2} on {3}.
 order.status.pending=Payment pending
 ~~~
 
-**File messages_vi.properties**
+**File `messages_vi.properties`**
 
 ~~~properties
 order.title=Chi tiết đơn hàng
@@ -142,9 +142,9 @@ order.summary=Chào {0}, đơn {1} có tổng {2} vào ngày {3}.
 order.status.pending=Đang chờ thanh toán
 ~~~
 
-Các tệp này do **ứng dụng sở hữu**, không được JDK tự tạo. Java 17 hỗ trợ UTF-8 cho ResourceBundle properties với quy tắc tương thích encoding đã được định nghĩa; hãy lưu và kiểm tra bản dịch bằng UTF-8 để giữ dấu tiếng Việt.
+These files are **owned by the application**, not generated by the JDK. Java 17 supports UTF-8 for `ResourceBundle` properties with defined encoding compatibility rules; save and validate translations in UTF-8 to preserve Vietnamese diacritics.
 
-Ví dụ gọi:
+Usage example:
 
 ~~~java
 ResourceBundle bundle =
@@ -152,25 +152,25 @@ ResourceBundle bundle =
 String heading = bundle.getString("order.title");
 ~~~
 
-Đoạn minh họa cần import ResourceBundle, Locale và biến locale. Không viết **messages_vi.properties** làm base name; Java tự tìm các ứng viên từ base **messages** theo locale.
+This snippet requires importing `ResourceBundle` and `Locale` and having a `locale` variable. Do not pass **messages_vi.properties** as the base name; Java resolves candidates automatically from the base name **messages** according to the locale.
 
-### 4.1. Fallback có thể khiến bản dịch bị pha trộn
+### 4.1. Fallbacks Can Cause Mixed-Language Translations
 
-Nếu request fr-CA nhưng dự án không có bản tiếng Pháp, cơ chế tìm bundle có thể dùng tài nguyên base hoặc default Locale tùy cấu hình. Đó không chứng minh app thực sự hỗ trợ fr-CA.
+If a request asks for `fr-CA` but the project has no French translation, bundle lookup may fall back to the base resource or default `Locale` depending on configuration. That does not mean the app genuinely supports `fr-CA`.
 
-Nếu bản tiếng Việt thiếu một key và có bản base chứa key đó, ứng dụng có thể hiện một câu bằng ngôn ngữ khác. Vì vậy phải phân biệt:
+If the Vietnamese translation is missing a key that exists in the base bundle, the application may display a sentence in another language. Therefore distinguish:
 
-- **Missing bundle:** không tìm được nguồn tài nguyên phù hợp.
-- **Missing key:** có bundle nhưng không có key ở chuỗi kế thừa.
-- **Partial translation:** một số key vẫn đang được fallback.
-- **Invalid pattern:** key tồn tại nhưng cú pháp MessageFormat sai.
-- **Unsupported UI locale:** sản phẩm chưa cam kết dịch ngôn ngữ yêu cầu.
+- **Missing bundle:** no matching resource source can be found.
+- **Missing key:** the bundle exists, but the key is absent across the inheritance chain.
+- **Partial translation:** some keys are still falling back.
+- **Invalid pattern:** the key exists, but its `MessageFormat` syntax is broken.
+- **Unsupported UI locale:** the product has not committed to translating the requested language.
 
-Khi phát triển và chạy CI, nên phát hiện các trường hợp này trước khi phát hành. Khi production cần fallback để giữ giao diện dùng được, phải có chính sách được công bố và ghi metric.
+During development and CI, catch these issues before release. In production, when falling back to keep the UI usable, follow a documented policy and emit metrics.
 
-## 5. MessageFormat và placeholders
+## 5. `MessageFormat` and Placeholders
 
-**java.text.MessageFormat** xử lý các placeholders đánh số:
+**java.text.MessageFormat** handles numbered placeholders:
 
 ~~~java
 String template =
@@ -184,13 +184,13 @@ String sentence = format.format(new Object[] {
 });
 ~~~
 
-Đây là đoạn code trong phương thức, cần import MessageFormat và Locale. Tham số tiền/ngày ở đây đã được định dạng thành String. Cách này giúp thay đổi UI locale và format locale độc lập.
+This snippet lives inside a method and requires importing `MessageFormat` and `Locale`. The money/date arguments here have already been formatted into `String`s. This lets `uiLocale` and `formatLocale` vary independently.
 
-### 5.1. Cú pháp dấu nháy đơn
+### 5.1. Single-Quote Syntax
 
-MessageFormat có cơ chế quote đặc biệt. Muốn in một dấu nháy đơn trong pattern, thường cần viết **hai dấu nháy đơn liên tiếp**. Nếu người dịch vô ý thay đổi chúng, placeholders có thể không được xử lý như mong đợi.
+`MessageFormat` has special quoting rules. To print a literal single quote in a pattern, you usually need **two consecutive single quotes**. If a translator inadvertently alters them, placeholders may not be processed as expected.
 
-**File MessageFormatQuoteDemo.java**
+**File `MessageFormatQuoteDemo.java`**
 
 ~~~java
 import java.text.MessageFormat;
@@ -208,7 +208,7 @@ public class MessageFormatQuoteDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 MessageFormatQuoteDemo.java
@@ -221,23 +221,23 @@ Stdout:
 User Lan: it's ready; value 42
 ~~~
 
-Dấu ngoặc nhọn cũng có cú pháp đặc biệt. Nếu phải in một dấu **{** hoặc **}** thực sự, hãy quote theo quy tắc MessageFormat và kiểm thử. Đừng dùng một regex đơn giản để đánh giá hoàn chỉnh mọi pattern, vì mẫu có thể chứa dấu quote và định dạng lồng nhau.
+Curly braces also have special syntax. If you must print a literal **{** or **}**, quote it according to `MessageFormat` rules and test it. Do not rely on a simple regex to validate every pattern completely, because patterns can contain quotes and nested subformats.
 
-### 5.2. Built-in number/date và Java Time
+### 5.2. Built-in Number/Date Subformats and `java.time`
 
-MessageFormat hỗ trợ các format tích hợp như **{0,number}** hoặc **{0,date}** dựa trên các API java.text. Tuy nhiên, các đối tượng **LocalDate**, **LocalTime**, **Instant** thuộc java.time không tự được hiểu như java.util.Date trong mọi trường hợp.
+`MessageFormat` supports built-in subformats such as **{0,number}** or **{0,date}** backed by `java.text` APIs. However, **LocalDate**, **LocalTime**, and **Instant** from `java.time` are not automatically handled like `java.util.Date` in all cases.
 
-Khi dùng Java 17+, một thiết kế dễ hiểu là:
+In Java 17+, a clean design is:
 
-1. FormattingService định dạng LocalDate bằng DateTimeFormatter.
-2. FormattingService định dạng BigDecimal/Currency bằng NumberFormat.
-3. MessageService nhận các chuỗi đã định dạng và chèn theo cú pháp thông điệp.
+1. `FormattingService` formats `LocalDate` using `DateTimeFormatter`.
+2. `FormattingService` formats `BigDecimal`/`Currency` using `NumberFormat`.
+3. `MessageService` accepts the already-formatted strings and inserts them per message syntax.
 
-Nếu hệ thống cần các tham số có kiểu và định dạng lồng trực tiếp trong message, phải có một adapter rõ hoặc thư viện i18n tương ứng. **Không coi MessageFormat Java Core là bộ pluralization/gender của CLDR đầy đủ**.
+If the system needs typed arguments with formatting embedded directly inside messages, provide an explicit adapter or a dedicated i18n library. **Do not treat core Java `MessageFormat` as a full CLDR pluralization/gender engine.**
 
-## 6. FormattingService: số, tiền và ngày giờ
+## 6. `FormattingService`: Numbers, Money, and Dates/Times
 
-Hợp đồng:
+Contract:
 
 ~~~java
 interface FormattingService {
@@ -248,29 +248,29 @@ interface FormattingService {
 }
 ~~~
 
-Đây là chữ ký minh họa, cần import BigDecimal, Currency, Locale, LocalDate.
+This is an illustrative signature requiring imports for `BigDecimal`, `Currency`, `Locale`, and `LocalDate`.
 
-**money** phải nhận **Currency** từ giao dịch, không suy USD từ Locale.US hay VND từ vi-VN. **date** nên nhận LocalDate cho ngày thuần. Một phương thức riêng cho Instant cần thêm ZoneId vì cùng thời điểm có thể là ngày khác nhau ở hai vùng giờ.
+**money** must accept **Currency** from the transaction, never inferring `USD` from `Locale.US` or `VND` from `vi-VN`. **date** should take `LocalDate` for a pure calendar date. A separate method for `Instant` needs an additional `ZoneId` because the same instant can fall on different calendar dates in two time zones.
 
-Số tiền là dữ liệu có kiểu, không phải chuỗi dịch:
+Money is typed data, not a translation string:
 
 ~~~java
 record Money(BigDecimal amount, Currency currency) {}
 ~~~
 
-Đây là một record Java 17 hợp lệ khi đặt trong file có imports. Currency chỉ nêu đơn vị tiền; NumberFormat không đổi tỷ giá. Quy tắc rounding/thuế cũng không nên bị giấu trong MessageService.
+This is a valid Java 17 record when placed in a file with imports. `Currency` only states the currency unit; `NumberFormat` does not perform exchange-rate conversion. Rounding/tax rules should also never be hidden inside `MessageService`.
 
-### 6.1. NumberFormat mutable
+### 6.1. `NumberFormat` Is Mutable
 
-**NumberFormat.getCurrencyInstance(locale)** tạo formatter theo locale. Sau đó có thể gọi **setCurrency(currency)** để chọn đơn vị tiền thực tế. Nhưng **NumberFormat là mutable**, nên không chia sẻ một singleton rồi đổi Currency hoặc fraction digits theo từng request thiếu cách ly.
+**NumberFormat.getCurrencyInstance(locale)** creates a formatter for a locale. You can then call **setCurrency(currency)** to choose the actual currency unit. However, **NumberFormat is mutable**, so never share a singleton and mutate `Currency` or fraction digits across requests without isolation.
 
-Ngược lại, **DateTimeFormatter** là immutable và thread-safe sau khi cấu hình, nên có thể dùng lại hoặc cache theo locale/format style.
+By contrast, **DateTimeFormatter** is immutable and thread-safe once configured, so it can be reused or cached by locale/format style.
 
-## 7. Ví dụ Java 17+ tích hợp hoàn chỉnh
+## 7. Complete Integrated Java 17+ Example
 
-Ví dụ gồm ba file: **LocalizedServicesDemo.java**, **messages_en.properties**, **messages_vi.properties** đã được khai báo trong mục 4. Đây là chương trình Java Core, không cần framework.
+The example consists of three files: **LocalizedServicesDemo.java**, **messages_en.properties**, and **messages_vi.properties** as defined in Section 4. This is pure core Java with no framework required.
 
-**File LocalizedServicesDemo.java**
+**File `LocalizedServicesDemo.java`**
 
 ~~~java
 import java.math.BigDecimal;
@@ -418,43 +418,43 @@ public class LocalizedServicesDemo {
 }
 ~~~
 
-Trong thư mục chứa các tệp, biên dịch/chạy:
+In the directory containing the files, compile and run:
 
 ~~~bash
 javac -encoding UTF-8 LocalizedServicesDemo.java
 java LocalizedServicesDemo
 ~~~
 
-Dòng đầu của stdout chính xác vì lấy trực tiếp từ messages_vi.properties:
+The first line of stdout is exact because it comes directly from `messages_vi.properties`:
 
 ~~~text
 Chi tiết đơn hàng
 ~~~
 
-Dòng thứ hai chứa thông điệp tiếng Việt có **Lan**, mã **DH-2026-07**, amount EUR và ngày địa phương 28/10/2026 được formatter hiển thị theo vi-VN. Không ấn định toàn bộ stdout dòng thứ hai cho mọi JDK 17+ vì dữ liệu CLDR/provider có thể khác ở cách viết ngày, dấu nhóm, ký hiệu tiền và dấu cách Unicode.
+The second line contains the Vietnamese message with **Lan**, order ID **DH-2026-07**, the EUR amount, and the local date 28/10/2026 formatted under `vi-VN`. Do not hard-pin the entire second line of stdout across all JDK 17+ versions, because CLDR/provider data may differ in date wording, grouping separators, currency symbols, and Unicode spaces.
 
-### 7.1. Điểm đúng của cấu trúc ví dụ
+### 7.1. What Is Right About This Structure
 
-- **SUPPORTED** là tập locale sản phẩm công bố, không lấy nguyên Locale.getAvailableLocales.
-- **RequestContext** là record immutable giữ uiLocale, formatLocale, ZoneId và Currency.
-- **BundleMessageService** xử lý tài nguyên và MessageFormat.
-- **JdkFormattingService** chỉ định dạng dữ liệu có kiểu.
-- **chooseUiLocale** minh họa fallback ứng dụng, không thay Locale.default JVM.
-- **NumberFormat** được tạo mới mỗi lần gọi, tránh rò rỉ cấu hình giữa các request.
-- **DateTimeFormatter** được tạo với locale tường minh.
-- **Instant** được chuyển theo ZoneId trước khi lấy LocalDate.
-- Chuỗi giá trị đã format được đưa vào message qua placeholders.
-- ResourceBundle.Control chỉ định phương thức không fallback qua locale mặc định JVM cho lần tra cứu.
+- **SUPPORTED** is the set of locales the product publishes, not raw `Locale.getAvailableLocales()`.
+- **RequestContext** is an immutable record holding `uiLocale`, `formatLocale`, `ZoneId`, and `Currency`.
+- **BundleMessageService** handles resource lookup and `MessageFormat`.
+- **JdkFormattingService** only formats typed data.
+- **chooseUiLocale** illustrates application-level fallback without mutating the JVM's default `Locale`.
+- **NumberFormat** is created fresh per call, preventing configuration leaks across requests.
+- **DateTimeFormatter** is constructed with an explicit locale.
+- **Instant** is converted using `ZoneId` before extracting `LocalDate`.
+- Formatted value strings are passed into messages via placeholders.
+- `ResourceBundle.Control` specifies not falling back to the JVM's default locale during lookup.
 
-### 7.2. Hiểu đúng getNoFallbackControl
+### 7.2. Understanding `getNoFallbackControl` Properly
 
-**ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES)** ngăn bước **fallback đến locale mặc định JVM** trong quá trình tìm tài nguyên. Nó **không cấm** mọi dạng ứng viên ngôn ngữ cha hoặc **root bundle**. Nếu request vi-VN mà chỉ có messages_vi.properties, tài nguyên ngôn ngữ vi vẫn được tìm thấy.
+**ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES)** prevents **falling back to the JVM's default locale** during resource resolution. It does **not** forbid parent language candidates or the **root bundle**. If a request asks for `vi-VN` and only `messages_vi.properties` exists, the `vi` language resource is still found.
 
-Để bắt buộc bản dịch đúng từng vùng hoặc phát hiện key chưa dịch, cần thêm kiểm tra coverage riêng; không nhầm “no fallback” với “không sử dụng candidate locale nào khác”. Ngoài ra, cơ chế ResourceBundle.Control tùy loại module/runtime; ví dụ này dành cho ứng dụng Java 17 chạy trên classpath.
+To enforce exact region translations or detect untranslated keys, add dedicated coverage checks; do not confuse "no fallback" with "never using any other candidate locale". Furthermore, `ResourceBundle.Control` support depends on module/runtime setup; this example targets a Java 17 application running on the classpath.
 
-## 8. Tầng Presenter/Composer nên phối hợp ra sao?
+## 8. How Should Presenter/Composer Coordinate?
 
-Một presenter dùng MessageService và FormattingService:
+A presenter uses `MessageService` and `FormattingService`:
 
 ~~~text
 Order domain:
@@ -464,44 +464,44 @@ LocaleResolver:
     uiLocale=vi-VN, formatLocale=vi-VN, zone=Asia/Ho_Chi_Minh
 
 FormattingService:
-    money(...) -> văn bản tiền theo vi-VN
-    date(...)  -> văn bản ngày theo vi-VN
+    money(...) -> money text in vi-VN
+    date(...)  -> date text in vi-VN
 
 MessageService:
-    order.summary + 4 arguments -> câu hoàn chỉnh
+    order.summary + 4 arguments -> complete sentence
 
 UI:
-    Render câu theo font, direction và escaping của kênh.
+    Render sentence with channel-appropriate font, direction, and escaping.
 ~~~
 
-Presenter không nên tự đổi Currency, tính thuế, quyết định tỷ giá hoặc ghi lại message đã dịch như nguồn dữ liệu chính. Nếu cần phát hành email, người nhận email có thể có Locale khác người đang thao tác hệ thống; composer nên nhận **context của người nhận**.
+The presenter must not change `Currency`, compute tax, pick exchange rates, or write translated messages back as the primary data source. If sending an email, the recipient may have a different `Locale` from the operator triggering the action; the composer should receive **the recipient's context**.
 
-Đối với API máy, thường tốt hơn trả JSON có amount, currency, Instant và message key/status riêng, thay vì chỉ trả một câu đã bản địa hóa mà client phải parse ngược.
+For machine-facing APIs, it is usually better to return JSON containing `amount`, `currency`, `Instant`, and a separate message key/status, rather than returning only a localized sentence that the client would have to parse back.
 
-## 9. Lựa chọn locale và supportedLocales
+## 9. Locale Selection and `supportedLocales`
 
-**Locale.getAvailableLocales()** là danh sách do JDK công bố, **không chứng minh ứng dụng có bản dịch**. Một ứng dụng có thể chỉ hỗ trợ vi-VN và en-US dù JVM có dữ liệu định dạng cho nhiều locale hơn.
+**Locale.getAvailableLocales()** is a list published by the JDK; it **does not prove the application has translations**. An application may only support `vi-VN` and `en-US` even though the JVM ships formatting data for many more locales.
 
-Nguồn quyết định uiLocale có thể là:
+Sources for determining `uiLocale` can include:
 
-- Cài đặt trong hồ sơ người dùng.
-- Cấu hình tổ chức.
-- Ưu tiên ngôn ngữ của client.
-- Fallback mặc định do sản phẩm định nghĩa.
+- User profile settings.
+- Organization configuration.
+- Client language preferences.
+- A product-defined default fallback.
 
-Không dùng Locale.setDefault theo request: đây là trạng thái toàn JVM, có thể ảnh hưởng luồng khác.
+Never call `Locale.setDefault` per request: that is JVM-wide state and can affect other threads.
 
-### 9.1. Locale.LanguageRange và Locale.lookup
+### 9.1. `Locale.LanguageRange` and `Locale.lookup`
 
-Nếu ứng dụng chấp nhận header kiểu:
+If the application accepts a header like:
 
 ~~~text
 vi-VN, en-US;q=0.8
 ~~~
 
-Java hỗ trợ thương lượng dựa trên danh sách ứng dụng:
+Java supports negotiation against the application's supported list:
 
-**File LocaleSelectionDemo.java**
+**File `LocaleSelectionDemo.java`**
 
 ~~~java
 import java.util.List;
@@ -529,88 +529,88 @@ public class LocaleSelectionDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 LocaleSelectionDemo.java
 java LocaleSelectionDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 vi-VN
 ~~~
 
-**Locale.lookup** có thể trả null, nên phải có fallback. Header không tin cậy cần giới hạn kích thước và bắt lỗi parse. Locale được chọn là thành viên danh sách **supported**; không mở rộng sang mọi locale JDK chỉ vì chúng xuất hiện trong mảng getAvailableLocales.
+**Locale.lookup** can return `null`, so a fallback is mandatory. Untrusted headers must be size-limited and parse errors caught. The chosen locale comes from the **supported** list; do not expand to every JDK locale merely because it appears in `getAvailableLocales()`.
 
-### 9.2. Các loại Locale khác nhau trong một request
+### 9.2. Different Locale-Related Fields in a Request
 
-| Thuộc tính | Mục đích |
+| Attribute | Purpose |
 | --- | --- |
-| requestedLocale | Người dùng/client yêu cầu |
-| uiLocale | Ngôn ngữ bản dịch mà sản phẩm có |
-| formatLocale | Quy tắc số/ngày dùng hiển thị |
-| zoneId | Múi giờ của thời điểm/người xem |
-| currency | Đơn vị tiền nghiệp vụ |
-| userId / tenantId | Xác định ngữ cảnh, quyền và cấu hình |
+| requestedLocale | Requested by user/client |
+| uiLocale | Translation language available in the product |
+| formatLocale | Number/date rules for display |
+| zoneId | Time zone of the instant/viewer |
+| currency | Business currency unit |
+| userId / tenantId | Identifies context, permissions, and configuration |
 
-Không nên cố định Locale.US nếu người dùng yêu cầu vi-VN và bản dịch đã có. Ngược lại, nếu formatLocale không được kiểm thử, sản phẩm phải quyết định fallback rõ ràng, không lặng lẽ trộn nhiều quy tắc ngoài dự đoán.
+Do not hardcode `Locale.US` when the user requests `vi-VN` and translations exist. Conversely, if a `formatLocale` has not been tested, the product must define an explicit fallback rather than silently mixing unpredictable conventions.
 
-## 10. Fallback và missing key là vấn đề vận hành
+## 10. Fallbacks and Missing Keys Are Operational Concerns
 
-Có thể xảy ra:
+Possible failure modes:
 
-1. **Locale chưa hỗ trợ:** dùng fallback được phê duyệt.
-2. **Bundle thiếu:** ResourceBundle ném MissingResourceException khi không tìm được candidate phù hợp.
-3. **Key thiếu:** getString có thể ném MissingResourceException.
-4. **Key chỉ tồn tại ở root bundle:** chuỗi của ngôn ngữ mặc định bị trộn vào màn hình ngôn ngữ khác.
-5. **Pattern lỗi:** MessageFormat có thể ném IllegalArgumentException.
-6. **Placeholder thiếu:** câu có thể còn literal hoặc được format không như người dịch mong đợi.
-7. **Bản dịch sai ngữ cảnh:** tồn tại key nhưng nội dung không hợp màn hình.
+1. **Unsupported locale:** apply the approved fallback.
+2. **Missing bundle:** `ResourceBundle` throws `MissingResourceException` when no matching candidate exists.
+3. **Missing key:** `getString` can throw `MissingResourceException`.
+4. **Key exists only in root bundle:** strings from the default language leak into another language's screen.
+5. **Broken pattern:** `MessageFormat` can throw `IllegalArgumentException`.
+6. **Missing placeholder:** sentences may show literal text or format differently than the translator intended.
+7. **Out-of-context translation:** the key exists, but the text does not fit the screen.
 
-**Trong CI**, kiểm tra key của mọi bundle và render các mẫu quan trọng. **Trong production**, nếu fallback để giữ UI hoạt động, nên log key/locale và tăng metric theo chính sách, tránh trả trực tiếp stack trace hoặc chuỗi bí mật.
+**In CI**, verify keys across all bundles and render critical templates. **In production**, if falling back to keep the UI working, log the key/locale and increment metrics per policy—never return stack traces or secret strings directly.
 
-Không catch Exception chung rồi trả key như một “thành công”; điều này có thể che lỗi code hoặc lỗi pattern. Chọn fallback message là một chính sách rõ ràng, không phải biến mọi lỗi thành nội dung người dùng.
+Do not catch a broad `Exception` and return the key as a "success"; that can mask code or pattern bugs. Choosing a fallback message should be an explicit policy, not turning every error into user content.
 
-## 11. Kiểm tra placeholders giữa các bản dịch
+## 11. Validating Placeholders Across Translations
 
-Khi một key có bốn tham số, người dịch có thể đổi thứ tự nhưng phải giữ đủ ý nghĩa. Ví dụ:
+When a key takes four parameters, translators may change their order while preserving full meaning. For example:
 
 ~~~text
 order.summary: {0}=name, {1}=orderId,
                {2}=formattedMoney, {3}=formattedDate
 ~~~
 
-QA nên phát hiện:
+QA should catch:
 
-- Key thiếu.
-- Mẫu rỗng.
-- Chỉ số không được cung cấp như **{9}**.
-- Dấu nháy đơn chưa escape.
-- Sai cú pháp dấu ngoặc nhọn.
-- Dùng loại formatter không tương thích giá trị.
-- Bản dịch gắn cứng currency hoặc ngày.
-- Nút và nhãn thiếu văn bản trợ năng.
+- Missing keys.
+- Empty patterns.
+- Unsupplied argument indices like **{9}**.
+- Unescaped single quotes.
+- Malformed curly braces.
+- Format types incompatible with the supplied value.
+- Translations hardcoding currency symbols or dates.
+- Buttons and labels missing accessibility text.
 
-Không dùng một regex cực đơn giản như **\{[0-9]+\}** để khẳng định mọi mẫu MessageFormat hợp lệ. MessageFormat có cú pháp quote và các định dạng phụ; cần parse/test thực sự cho tài nguyên quan trọng.
+Do not use a naive regex like **\\{[0-9]+\\}** to declare every `MessageFormat` pattern valid. `MessageFormat` has quoting rules and subformats; actually parse and test critical resources.
 
-### 11.1. Pluralization và biến cách
+### 11.1. Pluralization and Inflection
 
-Một số ngôn ngữ có quy tắc số ít/số nhiều hoặc hình thức từ dựa theo giới tính và ngữ cảnh phức tạp. MessageFormat Java Core có tùy chọn choice, nhưng **không phải giải pháp đầy đủ cho plural rules/gender rules của mọi locale CLDR**. Sản phẩm quốc tế lớn có thể cần thư viện i18n chuyên dụng cùng quy tắc biên dịch/kiểm tra tài nguyên.
+Some languages have complex singular/plural rules or word forms based on gender and context. Core Java `MessageFormat` has a `choice` option, **but it is not a complete solution for the plural/gender rules of all CLDR locales**. Major international products may need a dedicated i18n library along with resource compilation/linting rules.
 
-Không tự ghép chữ **s** cho tiếng Anh rồi dùng hàm đó làm cơ chế đa ngôn ngữ. Không xây câu “{0} items” cố định khi bản dịch cần thay đổi hình thái từ theo số lượng.
+Do not append **"s"** in code for English and treat that as a multilingual mechanism. Do not hardcode `"{0} items"` when translations must inflect words based on count.
 
-## 12. Caching và thread safety
+## 12. Caching and Thread Safety
 
-| Thành phần | Đặc tính | Khuyến nghị |
+| Component | Characteristic | Recommendation |
 | --- | --- | --- |
-| ResourceBundle | JDK có cơ chế cache bundle | Dùng cache mặc định, thiết kế reload nếu có hot update |
-| MessageFormat | Mutable | Tạo mới hoặc clone/cách ly rõ |
-| NumberFormat | Mutable | Tạo mới mỗi thao tác/request hoặc đồng bộ chính xác |
-| DateTimeFormatter | Immutable và thread-safe | Có thể cache theo locale/pattern |
-| Chuỗi message đã chèn arguments | Chứa dữ liệu người dùng | Không cache chung theo key đơn lẻ |
-| Localizer context | Phụ thuộc người nhận | Dùng object immutable hoặc request scope |
+| `ResourceBundle` | JDK caches bundles | Use default cache; design reload policy if hot-updating |
+| `MessageFormat` | Mutable | Create new or clone/isolate cleanly |
+| `NumberFormat` | Mutable | Create per operation/request or synchronize properly |
+| `DateTimeFormatter` | Immutable and thread-safe | Safe to cache by locale/pattern |
+| Formatted message with arguments | Contains user-specific data | Do not cache globally by key alone |
+| Localizer context | Recipient-dependent | Use immutable objects or request scope |
 
 **Anti-pattern:**
 
@@ -623,15 +623,15 @@ void changeCurrency(Currency currency) {
 }
 ~~~
 
-Đây là ví dụ minh họa lỗi, không phải chương trình độc lập. Nếu hai request có currency/locale khác nhau cùng dùng SHARED, formatter mutable có thể tạo output lẫn cấu hình. Tương tự không chia sẻ một MessageFormat rồi gọi setFormat/format đồng thời thiếu bảo vệ.
+This illustrates a bug, not a standalone program. If two requests with different currencies or locales share `SHARED`, the mutable formatter can produce mixed-configuration output. Likewise, never share one `MessageFormat` and call `setFormat`/`format` concurrently without synchronization.
 
-**Cache key phải đủ thông tin.** Nếu lưu chuỗi đã format chỉ theo amount mà bỏ Currency/formatLocale, kết quả có thể sai. Nếu cache thông điệp đã chèn tên khách chỉ theo message key, có thể vô tình trả dữ liệu của người dùng khác.
+**Cache keys must carry sufficient context.** Caching a formatted string by amount alone without `Currency` and `formatLocale` yields wrong results. Caching a personalized message containing a customer name by message key alone can leak another user's data.
 
-ResourceBundle có cache nhưng khi muốn cập nhật bản dịch nóng, cần chính sách reload/versioning phù hợp; không gọi ResourceBundle.clearCache toàn bộ JVM tùy tiện mà không đánh giá ảnh hưởng.
+`ResourceBundle` has built-in caching, so hot-reloading translations requires an explicit reload/versioning policy; never call `ResourceBundle.clearCache()` across the entire JVM arbitrarily without assessing impact.
 
-## 13. Ngày thuần, Instant và ZoneId
+## 13. Pure Dates, `Instant`, and `ZoneId`
 
-Một ngày **LocalDate** không có timezone. Một **Instant** là một thời điểm tuyệt đối. Để hiển thị ngày của Instant trong một vùng, phải chuyển:
+A **`LocalDate`** has no time zone. An **`Instant`** is an absolute point in time. To display an `Instant`'s date in a region, convert first:
 
 ~~~java
 Instant moment =
@@ -643,11 +643,11 @@ LocalDate inVietnam =
                 .toLocalDate();
 ~~~
 
-Đoạn minh họa cần imports Instant, LocalDate, ZoneId. Đây là bước riêng so với chọn ngôn ngữ của tên tháng.
+This snippet requires importing `Instant`, `LocalDate`, and `ZoneId`. This step is separate from choosing the language of month names.
 
-**Locale không phải ZoneId.** UI tiếng Việt có thể được xem từ Mỹ hoặc châu Âu. FormattingService cho một moment nên nhận cả Instant, ZoneId và Locale, hoặc nhận một ZonedDateTime đã được chuyển vùng.
+**`Locale` is not `ZoneId`.** A Vietnamese UI may be viewed from the US or Europe. A `FormattingService` method for an instant should accept `Instant`, `ZoneId`, and `Locale`, or a `ZonedDateTime` already converted to the target zone.
 
-### 13.1. Hướng thiết kế phương thức
+### 13.1. Method Design Direction
 
 ~~~java
 String formatDate(LocalDate date, Locale locale);
@@ -656,13 +656,13 @@ String formatMoment(
         Instant instant, ZoneId zone, Locale locale);
 ~~~
 
-Đây là các chữ ký minh họa, không phải chương trình đầy đủ. Khi định dạng theo locale, DateTimeFormatter.ofLocalizedDate/DateTime thường thuận tiện hơn hardcode **dd/MM/yyyy** cho tất cả vùng. Với dữ liệu API/máy, ISO formatter phù hợp hơn chuỗi địa phương hóa không có hợp đồng parse rõ.
+These are illustrative signatures, not a full program. When formatting by locale, `DateTimeFormatter.ofLocalizedDate/DateTime` is generally preferable to hardcoding **dd/MM/yyyy** for all regions. For API/machine data, ISO formatters are better suited than localized strings lacking a strict parse contract.
 
-## 14. Lưu trữ dữ liệu và phát thông báo qua nhiều kênh
+## 14. Storing Data and Delivering Multi-Channel Notifications
 
-Một sự kiện “đơn hàng đã tạo” có thể cần web UI, email, push và PDF. Mỗi nơi nhận có thể dùng locale, timezone và quy định trình bày khác nhau.
+An "order created" event may target web UI, email, push notifications, and PDFs. Each destination may use a different locale, time zone, and presentation policy.
 
-**Mẫu nên giữ lại:**
+**Model worth keeping:**
 
 ~~~text
 Event type: ORDER_CREATED
@@ -670,195 +670,195 @@ Order ID: DH-2026-07
 Amount: 1234.50
 Currency: EUR
 OccurredAt: 2026-10-28T02:30:00Z
-Recipient: một ID người dùng
+Recipient: a user ID
 ~~~
 
-Khi render, hệ thống lấy **ngữ cảnh của người nhận**, chọn ResourceBundle/formatter, rồi tạo nội dung cho kênh. Không lấy locale của người thao tác để gửi email cho người khác nếu họ có sở thích riêng.
+At render time, the system resolves **the recipient's context**, selects the `ResourceBundle`/formatter, and builds the channel-specific content. Do not use the operator's locale when emailing another user who has their own preferences.
 
-Đối với log kỹ thuật, thường nên ghi **event code và dữ liệu cấu trúc** hơn là câu đã dịch: câu dịch có thể thay đổi theo ngôn ngữ, khó tìm kiếm và khác giữa các bản phần mềm.
+For technical logs, prefer recording **event codes and structured data** rather than translated sentences: translated copy changes across languages, is harder to search, and varies across software versions.
 
-Nếu hệ thống phải lưu bản hóa đơn đã phát hành để đối chiếu pháp lý, có thể lưu thêm **snapshot tài liệu đã render**; đó là nhu cầu audit rõ ràng, không có nghĩa bỏ dữ liệu gốc có kiểu.
+If the system must store an issued invoice for legal reconciliation, store an additional **rendered document snapshot**; that is an explicit audit requirement, not a reason to discard typed source data.
 
-## 15. Bảo mật và escaping theo kênh đầu ra
+## 15. Security and Output-Channel Escaping
 
-MessageFormat chỉ xây câu, **không escape HTML, SQL, URL hoặc shell**. Nếu tham số chứa nội dung người dùng, phải escape hoặc dùng API an toàn của kênh:
+`MessageFormat` only builds strings; **it does not escape HTML, SQL, URLs, or shell commands**. If arguments contain user input, escape them or use channel-safe APIs:
 
-- **HTML:** dùng template autoescape hoặc cách chèn text an toàn.
-- **SQL:** dùng prepared statements, không nối câu dịch vào truy vấn.
-- **URL:** encode đúng thành phần URL.
-- **Email HTML:** escape nội dung và kiểm tra bố cục.
-- **PDF:** dùng font hỗ trợ ngôn ngữ và layout RTL/LTR nếu cần.
-- **Log:** tránh dữ liệu nhạy cảm, cân nhắc ký tự control/Bidi trong tên người.
+- **HTML:** use auto-escaping templates or safe text insertion.
+- **SQL:** use prepared statements, never concatenate translated strings into queries.
+- **URL:** properly encode URL components.
+- **HTML Email:** escape content and verify layout.
+- **PDF:** use fonts supporting the script and RTL/LTR layout if needed.
+- **Logs:** avoid sensitive data, and watch out for control/BiDi characters in names.
 
-Bản dịch được quản lý bởi đội dự án có thể là tài nguyên tin cậy, nhưng **arguments không tự trở thành dữ liệu tin cậy** chỉ vì chúng được chèn qua MessageFormat.
+Project-managed translations may be trusted resources, yet **arguments do not automatically become trusted data** simply by being inserted via `MessageFormat`.
 
-Không dùng translated label làm ID nghiệp vụ hoặc quyền hạn. Một nút được dịch từ “Thanh toán” sang “Pay” vẫn phải gọi cùng action ID bất biến, không được xác định hành động từ chữ hiển thị.
+Never use translated labels as business IDs or authorization checks. A button translated from "Thanh toán" to "Pay" must still invoke the exact same immutable action ID, never inferring behavior from displayed text.
 
-## 16. Kiểm thử theo từng thành phần
+## 16. Testing by Component
 
 **LocaleResolver:**
 
-- Trả locale đã hỗ trợ khi người dùng chọn.
-- Có fallback rõ cho tag không hỗ trợ.
-- Không thay Locale.setDefault theo request.
-- Xử lý Unicode extensions, region và các lựa chọn language range theo policy.
+- Returns a supported locale when requested by the user.
+- Has an explicit fallback for unsupported tags.
+- Never mutates `Locale.setDefault` per request.
+- Handles Unicode extensions, regions, and language ranges per policy.
 
 **MessageService:**
 
-- Tất cả key bắt buộc có trong các bundle.
-- Pattern hợp lệ và placeholders đúng ý nghĩa.
-- Dấu nháy và dấu ngoặc nhọn được xử lý đúng.
-- Fallback không lấy ngẫu nhiên default Locale.
-- Cùng key cho phép người dịch thay đổi trật tự câu.
+- All required keys exist in all bundles.
+- Patterns are valid and placeholders carry the right meanings.
+- Single quotes and curly braces are handled properly.
+- Fallbacks never accidentally pick up the JVM default `Locale`.
+- The same key allows translators to change clause order.
 
 **FormattingService:**
 
-- Currency thực tế của giao dịch không bị thay.
-- Định dạng số/ngày khác nhau theo formatLocale.
-- Fraction digits/rounding đúng nghiệp vụ.
-- LocalDate không bị biến thành ngày khác do timezone ngầm.
-- Instant được đổi ZoneId khi cần.
-- Không chia sẻ NumberFormat mutable qua nhiều luồng.
+- The transaction's actual `Currency` is never altered.
+- Number/date formatting varies according to `formatLocale`.
+- Fraction digits and rounding follow business rules.
+- `LocalDate` is never shifted to another day by an implicit time zone.
+- `Instant` is converted with `ZoneId` when required.
+- Mutable `NumberFormat` instances are never shared across threads.
 
 **Presenter/Composer:**
 
-- Chọn key đúng cho use case.
-- Truyền các tham số đúng thứ tự và có kiểu rõ.
-- Không hardcode từ nối tiếng Anh/Vietnamese trong mã.
-- Không đưa chuỗi đã dịch ngược vào tính toán nghiệp vụ.
+- Picks the right key for the use case.
+- Passes typed arguments in the expected order.
+- Does not hardcode English/Vietnamese glue words in code.
+- Does not feed translated strings back into business calculations.
 
-## 17. Bộ test tích hợp tối thiểu
+## 17. Minimum Integration Test Suite
 
-| Tình huống | Kiểm tra |
+| Scenario | Assertion |
 | --- | --- |
-| uiLocale=vi-VN và formatLocale=vi-VN | Câu Việt và số/ngày địa phương |
-| uiLocale=en-US và formatLocale=en-US | Câu Anh và số/ngày Hoa Kỳ |
-| uiLocale=en-US và formatLocale=vi-VN | Ngôn ngữ và định dạng độc lập |
-| Currency=EUR với locale Việt Nam | Không tự đổi EUR thành VND |
-| Instant ở Asia/Ho_Chi_Minh và một ZoneId khác | Ngày địa phương chính xác |
-| Bỏ key khỏi một bundle | Lỗi/fallback đúng policy |
-| Mẫu có dấu nháy đơn | MessageFormat quote đúng |
-| Mẫu có bốn placeholders | Không mất/đổi sai tham số |
-| 2 request concurrent khác Currency | Không lẫn cấu hình NumberFormat |
-| Phiên bản JDK/CLDR khác | Phát hiện output khác có ý nghĩa |
-| Giá tiền có NBSP/NNBSP | Không làm mất Unicode spacing khi render |
-| HTML/PDF/email có tiếng Việt/RTL | Font, escaping và direction đúng |
-| ResourceBundle chỉ có base bundle | Không quảng bá sai locale hỗ trợ |
+| `uiLocale=vi-VN` and `formatLocale=vi-VN` | Vietnamese sentence and regional number/date |
+| `uiLocale=en-US` and `formatLocale=en-US` | English sentence and US number/date |
+| `uiLocale=en-US` and `formatLocale=vi-VN` | Language and formatting are independent |
+| `Currency=EUR` with Vietnamese locale | Does not convert EUR to VND |
+| `Instant` in `Asia/Ho_Chi_Minh` and another `ZoneId` | Accurate local calendar dates |
+| Key removed from one bundle | Error or fallback follows policy |
+| Pattern containing single quotes | `MessageFormat` quotes properly |
+| Pattern with four placeholders | No dropped or swapped parameters |
+| 2 concurrent requests with different `Currency` | No `NumberFormat` configuration bleed |
+| Different JDK/CLDR version | Detect meaningful output differences |
+| Money containing NBSP/NNBSP | Preserves Unicode spacing when rendered |
+| HTML/PDF/email with Vietnamese/RTL | Font, escaping, and direction are correct |
+| `ResourceBundle` with only base bundle | Does not falsely advertise locale support |
 
-**Tách hai kiểu test:** test logic nội bộ với stub formatter để assert cấu trúc message, và test integration với formatter thật trên JDK mục tiêu. Không nên đóng đinh từng code point của output locale khi không kiểm soát dữ liệu CLDR/provider.
+**Separate two kinds of tests:** unit tests of internal logic using stub formatters to assert message structure, and integration tests using real formatters on the target JDK. Avoid pinning every single code point of localized output when you do not control CLDR/provider data.
 
-## 18. Cạm bẫy phổ biến
+## 18. Common Pitfalls
 
-### Cạm bẫy 1: Controller nào cũng tự gọi ResourceBundle và NumberFormat
+### Pitfall 1: Every controller calls `ResourceBundle` and `NumberFormat` directly
 
-Tạo logic fallback khác nhau, dẫn đến thông điệp pha nhiều ngôn ngữ và ngày giờ không thống nhất. Nên có lớp dịch vụ chung.
+Produces inconsistent fallback logic, mixed-language messages, and inconsistent dates/times. Use a shared service layer.
 
-### Cạm bẫy 2: Dùng một Locale cho ngôn ngữ, tiền và timezone
+### Pitfall 2: Using one `Locale` for language, currency, and time zone
 
-Locale không tự biết currency của đơn hàng hoặc zone người dùng. Những giá trị đó cần trường có kiểu riêng.
+`Locale` does not know an order's currency or a user's time zone. Those values need separate typed fields.
 
-### Cạm bẫy 3: Ghép câu bằng dấu cộng rồi chỉ dịch prefix/suffix
+### Pitfall 3: Concatenating sentences with `+` and translating only prefixes/suffixes
 
-Thứ tự từ không giống nhau giữa ngôn ngữ; dùng MessageFormat placeholders để người dịch sắp câu.
+Word order differs across languages; use `MessageFormat` placeholders so translators can arrange the sentence.
 
-### Cạm bẫy 4: Không hiểu nháy đơn của MessageFormat
+### Pitfall 4: Misunderstanding `MessageFormat` single quotes
 
-Apostrophe literal cần quote đúng. Đừng dùng string replacement để chữa mẫu dịch sau khi lỗi.
+Literal apostrophes must be properly quoted. Do not use string replacement to patch broken translation patterns after the fact.
 
-### Cạm bẫy 5: Dùng MessageFormat built-in date trực tiếp với LocalDate
+### Pitfall 5: Passing `LocalDate` directly to `MessageFormat` built-in date subformats
 
-MessageFormat Java Core không tự chuyển mọi kiểu java.time sang java.text.Date. Dùng DateTimeFormatter hoặc adapter có kiểm thử.
+Core Java `MessageFormat` does not automatically convert all `java.time` types to `java.util.Date`. Use `DateTimeFormatter` or a tested adapter.
 
-### Cạm bẫy 6: Cho rằng getBundle trả kết quả là locale đã được dịch
+### Pitfall 6: Assuming `getBundle` returning a bundle means the locale is translated
 
-ResourceBundle có fallback; cần danh sách supportedLocales riêng và kiểm tra coverage.
+`ResourceBundle` falls back; maintain an explicit `supportedLocales` list and run coverage checks.
 
-### Cạm bẫy 7: Dùng NumberFormat singleton rồi sửa setCurrency theo request
+### Pitfall 7: Sharing a `NumberFormat` singleton and calling `setCurrency` per request
 
-Formatter mutable có thể gây race và rò rỉ cấu hình. Tạo mới hoặc cô lập.
+Mutable formatters cause race conditions and configuration leaks. Create new instances or isolate them.
 
-### Cạm bẫy 8: Cache output message theo key mà không tính arguments
+### Pitfall 8: Caching rendered messages by key without accounting for arguments
 
-Có thể trả nội dung chứa tên/mã đơn của người khác. Không cache message đã cá nhân hóa theo key chung.
+Can return content containing another user's name or order ID. Never cache personalized messages under a generic key.
 
-### Cạm bẫy 9: Cập nhật Locale.setDefault khi user đổi ngôn ngữ
+### Pitfall 9: Calling `Locale.setDefault` when a user switches language
 
-Default JVM ảnh hưởng các request khác. Truyền Locale tường minh.
+The JVM default affects other requests. Pass `Locale` explicitly.
 
-### Cạm bẫy 10: Coi định dạng là nghiệp vụ tiền tệ
+### Pitfall 10: Treating formatting as currency business logic
 
-setCurrency không tính tỷ giá; NumberFormat không kiểm chứng phép tính thuế. Giữ domain xử lý tiền riêng.
+`setCurrency` does not convert exchange rates; `NumberFormat` does not validate tax calculations. Keep monetary logic in the domain.
 
-### Cạm bẫy 11: Hardcode ngày dd/MM/yyyy cho mọi locale
+### Pitfall 11: Hardcoding `dd/MM/yyyy` for every locale
 
-Một số vùng có thứ tự và tên tháng khác. Dùng DateTimeFormatter theo locale hoặc pattern đã được phê duyệt.
+Some regions use different field orders and month names. Use locale-aware `DateTimeFormatter` or an approved pattern.
 
-### Cạm bẫy 12: Không kiểm thử key và pattern dịch trong CI
+### Pitfall 12: Not checking translation keys and patterns in CI
 
-Lỗi chỉ xuất hiện khi người dùng chuyển ngôn ngữ hiếm. Kiểm tra bundle coverage và render mẫu trước phát hành.
+Bugs surface only when a user switches to a less common language. Check bundle coverage and pattern rendering before release.
 
-### Cạm bẫy 13: Dùng message dịch làm event code kỹ thuật
+### Pitfall 13: Using translated messages as technical event codes
 
-Ngôn ngữ và wording thay đổi; event ID nên ổn định, tách khỏi câu người dùng.
+Language and wording change; event IDs should remain stable and separate from user-facing sentences.
 
-### Cạm bẫy 14: Quên vấn đề HTML/RTL/fonts
+### Pitfall 14: Forgetting HTML/RTL/font concerns
 
-ResourceBundle cung cấp văn bản, không đảm bảo hiển thị đúng trên mọi kênh. Text layout và escaping vẫn phải được xử lý riêng.
+`ResourceBundle` supplies text, not guaranteed rendering across every channel. Text layout and escaping still require dedicated handling.
 
-## 19. Lộ trình triển khai
+## 19. Implementation Roadmap
 
-1. **Mô hình hóa domain:** giữ amount, Currency, Instant, LocalDate và ID dưới dạng có kiểu.
-2. **Xác định supportedLocales:** chỉ công bố những bản dịch đã được QA.
-3. **Xây LocaleResolver:** quy tắc chọn ngôn ngữ, vùng và fallback.
-4. **Tạo ResourceBundle:** các key có ngữ nghĩa, file UTF-8, phân chia theo module khi có ích.
-5. **Tạo MessageService:** nhận uiLocale/key/args, quản lý missing key và MessageFormat.
-6. **Tạo FormattingService:** nhận formatLocale cùng dữ liệu có kiểu; dùng API phù hợp.
-7. **Tạo Presenter/Composer:** phối hợp dịch vụ mà không tính lại nghiệp vụ.
-8. **Bảo đảm thread safety:** cache formatter immutable, tránh sửa NumberFormat/MessageFormat chia sẻ.
-9. **Kiểm thử:** unit, integration và snapshot có version cho những nội dung bắt buộc.
-10. **Vận hành:** log/metric fallback, missing key, lỗi mẫu, thay đổi do JDK/CLDR.
+1. **Model the domain:** keep `amount`, `Currency`, `Instant`, `LocalDate`, and IDs strongly typed.
+2. **Define `supportedLocales`:** publish only translations that have passed QA.
+3. **Build `LocaleResolver`:** define language, region, and fallback rules.
+4. **Create `ResourceBundle`s:** semantic keys, UTF-8 files, split by module where helpful.
+5. **Build `MessageService`:** accepts `uiLocale`/key/args, manages missing keys and `MessageFormat`.
+6. **Build `FormattingService`:** accepts `formatLocale` with typed data; uses the proper APIs.
+7. **Build `Presenter/Composer`:** coordinates services without recomputing business logic.
+8. **Ensure thread safety:** cache immutable formatters, avoid mutating shared `NumberFormat`/`MessageFormat`.
+9. **Test:** unit tests, integration tests, and versioned snapshots for legally required outputs.
+10. **Operate:** log/emit metrics for fallbacks, missing keys, malformed patterns, and JDK/CLDR updates.
 
-Không cần tạo quá nhiều abstraction khi dự án nhỏ. Mục tiêu là **có thể kiểm thử và thay thế từng phần** mà không sửa logic hiển thị ở hàng chục controller.
+Avoid over-engineering abstractions in a small project. The goal is **making parts independently testable and replaceable** without editing display logic across dozens of controllers.
 
-## 20. Câu hỏi tự ôn
+## 20. Self-Review Questions
 
-1. Vì sao không thể lấy Locale.getAvailableLocales làm menu ngôn ngữ đã được app hỗ trợ?
-2. MessageService nên nhận những tham số nào để không dựa vào default JVM?
-3. Vì sao FormatterService cần Currency ngay cả khi đã có Locale?
-4. DateTimeFormatter khác NumberFormat thế nào về tính mutable và thread safety?
-5. Với thông điệp “It's ready”, vì sao MessageFormat cần dấu nháy đơn nhân đôi?
-6. Tại sao một ResourceBundle trả kết quả không chứng minh bản dịch được hoàn thiện?
-7. Khi hai user có formatLocale khác nhau, dùng NumberFormat singleton có rủi ro gì?
-8. Một Instant cần thông tin gì để xác định LocalDate của người nhận?
-9. Vì sao không cache câu đã render chỉ theo message key?
-10. Nếu thông điệp xuất ở HTML, MessageFormat đã chống XSS chưa?
+1. Why can't `Locale.getAvailableLocales()` serve as the app's supported-language menu?
+2. Which parameters should `MessageService` accept to avoid relying on the JVM default?
+3. Why does `FormattingService` need `Currency` even when `Locale` is provided?
+4. How does `DateTimeFormatter` differ from `NumberFormat` in mutability and thread safety?
+5. For the message `"It's ready"`, why does `MessageFormat` require doubled single quotes?
+6. Why does `ResourceBundle` returning a value not prove a translation is complete?
+7. When two users have different `formatLocale`s, what is the risk of a `NumberFormat` singleton?
+8. What information does an `Instant` need to determine the recipient's `LocalDate`?
+9. Why shouldn't rendered sentences be cached by message key alone?
+10. If a message is output in HTML, does `MessageFormat` already prevent XSS?
 
-**Đáp án gợi ý:** (1) JDK có locale rộng hơn bản dịch app; (2) Locale, key, arguments; (3) Currency là dữ liệu nghiệp vụ; (4) DateTimeFormatter immutable, NumberFormat mutable; (5) quote của MessageFormat; (6) fallback; (7) race/lẫn cấu hình; (8) ZoneId; (9) arguments có dữ liệu riêng; (10) chưa, cần escape theo kênh.
+**Suggested answers:** (1) The JDK supports more locales than the app has translated; (2) `Locale`, key, arguments; (3) `Currency` is business data; (4) `DateTimeFormatter` is immutable, `NumberFormat` is mutable; (5) `MessageFormat` quoting rules; (6) fallback resolution; (7) race conditions/configuration leakage; (8) `ZoneId`; (9) arguments carry user-specific data; (10) no, channel-specific escaping is required.
 
-## 21. Checklist hoàn thiện
+## 21. Completion Checklist
 
-- [ ] Phân biệt thông điệp đã dịch và giá trị đã định dạng.
-- [ ] Có LocaleResolver, MessageService, FormattingService và composer với trách nhiệm rõ.
-- [ ] Lưu domain bằng BigDecimal/Currency/LocalDate/Instant thay vì chuỗi định dạng.
-- [ ] Dùng supportedLocales của sản phẩm, không công bố bừa mọi locale JDK.
-- [ ] Truyền Locale tường minh vào MessageFormat/NumberFormat/DateTimeFormatter.
-- [ ] Có uiLocale, formatLocale, ZoneId, Currency với ý nghĩa khác nhau.
-- [ ] ResourceBundle keys ổn định, bản dịch UTF-8, placeholders nhất quán.
-- [ ] Fallback và missing key được phát hiện và quản lý.
-- [ ] Dấu nháy đơn và ngoặc nhọn MessageFormat được QA.
-- [ ] Không tự nối câu cố định theo ngữ pháp một ngôn ngữ.
-- [ ] Không dùng MessageFormat làm toàn bộ pluralization engine.
-- [ ] Currency không bị đổi bằng việc đổi Locale.
-- [ ] Rounding/fraction digits theo chính sách nghiệp vụ.
-- [ ] Không chia sẻ formatter mutable rồi sửa đồng thời.
-- [ ] Không cache message chứa dữ liệu người dùng dưới key quá chung.
-- [ ] Không gọi Locale.setDefault trong mỗi request.
-- [ ] Có kiểm thử thiếu key, sai pattern, concurrency và JDK/CLDR thay đổi.
-- [ ] Escaping và hướng chữ được xử lý theo kênh render.
-- [ ] Có metric cho fallback không mong muốn và lỗi bản dịch.
+- [ ] Translated messages and formatted values are kept distinct.
+- [ ] `LocaleResolver`, `MessageService`, `FormattingService`, and composer have clear responsibilities.
+- [ ] Domain uses `BigDecimal`/`Currency`/`LocalDate`/`Instant` instead of formatted strings.
+- [ ] Product `supportedLocales` is enforced rather than advertising all JDK locales.
+- [ ] `Locale` is passed explicitly to `MessageFormat`/`NumberFormat`/`DateTimeFormatter`.
+- [ ] `uiLocale`, `formatLocale`, `ZoneId`, and `Currency` have distinct meanings.
+- [ ] `ResourceBundle` keys are stable, translations are UTF-8, and placeholders are consistent.
+- [ ] Fallbacks and missing keys are detected and managed.
+- [ ] `MessageFormat` single quotes and curly braces pass QA.
+- [ ] Sentences are never concatenated around a single language's grammar.
+- [ ] `MessageFormat` is not treated as a full pluralization engine.
+- [ ] `Currency` is never altered by changing `Locale`.
+- [ ] Rounding and fraction digits follow business policy.
+- [ ] Mutable formatters are never shared and mutated concurrently.
+- [ ] Messages containing user data are not cached under overly broad keys.
+- [ ] `Locale.setDefault` is never called per request.
+- [ ] Tests cover missing keys, invalid patterns, concurrency, and JDK/CLDR changes.
+- [ ] Escaping and text direction are handled per render channel.
+- [ ] Metrics track unexpected fallbacks and translation errors.
 
-## 22. Tổng kết
+## 22. Summary
 
-**Dịch vụ lấy thông điệp** chịu trách nhiệm nội dung câu theo ngôn ngữ; **dịch vụ định dạng** chịu trách nhiệm biểu diễn số, tiền và ngày giờ; **LocaleResolver** xác định ngữ cảnh của người xem, còn **Presenter/Composer** phối hợp chúng thành đầu ra. Java 17 cung cấp **ResourceBundle**, **MessageFormat**, **NumberFormat**, **DateTimeFormatter**, **Locale** và **ZoneId** để triển khai những trách nhiệm ấy một cách rõ ràng.
+**Message lookup services** own language-specific sentence templates; **formatting services** own the representation of numbers, money, and dates/times; **LocaleResolver** resolves the viewer's context; and **Presenter/Composer** combines them into output. Java 17 provides **ResourceBundle**, **MessageFormat**, **NumberFormat**, **DateTimeFormatter**, **Locale**, and **ZoneId** to implement these responsibilities cleanly.
 
-Một thiết kế tốt không chỉ tránh lặp code mà còn ngăn thay đổi Locale làm đổi dữ liệu tiền, ngăn dùng sai timezone, giảm race của formatter mutable, phát hiện bản dịch thiếu và giúp kiểm thử độc lập. Hãy giữ dữ liệu miền có kiểu, truyền ngữ cảnh tường minh, quản lý fallback theo chính sách ứng dụng và chỉ format tại ranh giới hiển thị.
+A sound design not only eliminates code duplication, it also prevents locale changes from altering monetary data, avoids wrong time zones, eliminates mutable-formatter races, catches missing translations, and enables independent testing. Keep domain data strongly typed, pass context explicitly, govern fallbacks by application policy, and format only at the presentation boundary.

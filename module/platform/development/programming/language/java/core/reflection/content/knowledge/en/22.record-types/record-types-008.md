@@ -1,63 +1,63 @@
-# `RecordComponent.getAnnotatedType()` và annotation trên kiểu thành phần
+# `RecordComponent.getAnnotatedType()` and annotations on component types
 
-Một thành phần record có thể mang annotation trên chính khai báo, trên kiểu ngoài cùng, hoặc sâu bên trong kiểu generic, mảng và giới hạn kiểu. Chỉ đọc `RecordComponent.getAnnotations()` không đủ để nhìn thấy tất cả những vị trí đó.
+A record component can carry annotations on the declaration itself, on the outermost type, or deep inside generic types, arrays, and type bounds. Reading only `RecordComponent.getAnnotations()` is not enough to see all those locations.
 
-`getAnnotatedType()` đưa bạn tới **cấu trúc kiểu có thể chứa annotation** của thành phần. Từ đó, chương trình có thể đi tới đúng vị trí được đánh dấu thay vì gộp mọi annotation thành một danh sách phẳng.
+`getAnnotatedType()` takes you to **the type structure that can hold annotations** for the component. From there, a program can navigate to the exact marked location instead of flattening every annotation into a single list.
 
-Điều này hữu ích khi viết công cụ kiểm tra dữ liệu hoặc phân tích cấu trúc kiểu: “danh sách không được rỗng”, “phần tử không được null” và “mảng có một đặc tính nào đó” có thể là các yêu cầu khác nhau ở những vị trí kiểu khác nhau.
+This is useful when writing data validators or type-structure analyzers: "the list must not be empty", "elements must not be null", and "the array has some property" can be different requirements at different type positions.
 
-## 1. Ba cách nhìn vào kiểu của một thành phần
+## 1. Three ways to view a component's type
 
-[API `RecordComponent`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/RecordComponent.html) cung cấp các mức thông tin khác nhau:
+[The `RecordComponent` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/RecordComponent.html) provides different levels of information:
 
-| API | Kết quả | Nhu cầu chính |
+| API | Result | Main use case |
 | --- | --- | --- |
-| `getType()` | `Class<?>` | Kiểu ở dạng lớp, dùng cho nhiều thao tác tra cứu Reflection |
-| `getGenericType()` | `Type` | Cấu trúc kiểu khai báo có generic, biến kiểu hoặc wildcard |
-| `getAnnotatedType()` | `AnnotatedType` | Cấu trúc kiểu khai báo kèm annotation trên từng vị trí sử dụng kiểu |
+| `getType()` | `Class<?>` | Type in class form, used for many Reflection lookup operations |
+| `getGenericType()` | `Type` | Declared type structure with generics, type variables, or wildcards |
+| `getAnnotatedType()` | `AnnotatedType` | Declared type structure together with annotations on each type use position |
 
-Ví dụ, với `List<@TypeNote("item") String> tags`, `getType()` cho `List.class`, còn `getGenericType()` mô tả `List<String>`. Muốn biết annotation gắn với vị trí `String` bên trong danh sách, cần đi vào cấu trúc `AnnotatedType`.
+For example, for `List<@TypeNote("item") String> tags`, `getType()` gives `List.class`, while `getGenericType()` describes `List<String>`. To find the annotation attached to the `String` position inside the list, you must enter the `AnnotatedType` structure.
 
-`getAnnotatedType()` mô tả **kiểu được khai báo**, không đọc giá trị của một đối tượng record và không tự đổi biến kiểu generic thành kiểu thực tế của dữ liệu đang chứa.
+`getAnnotatedType()` describes **the declared type**; it does not read the value of a record object and does not automatically turn a generic type variable into the runtime type of the contained data.
 
-## 2. Annotation khai báo và annotation sử dụng kiểu
+## 2. Declaration annotations and type-use annotations
 
-Hai kiểu annotation trong thí nghiệm có các đích riêng:
+The two annotation types in the experiment have separate targets:
 
-- `ComponentNote` có `@Target(RECORD_COMPONENT)`: đánh dấu chính thành phần record.
-- `TypeNote` có `@Target(TYPE_USE)`: đánh dấu một vị trí sử dụng kiểu.
+- `ComponentNote` has `@Target(RECORD_COMPONENT)`: marks the record component itself.
+- `TypeNote` has `@Target(TYPE_USE)`: marks a type use position.
 
-`TYPE_USE` cho phép đặt annotation tại những vị trí như kiểu thành phần, đối số kiểu generic hoặc kiểu phần tử mảng; đây là ngữ cảnh được phân loại trong [`ElementType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/ElementType.html#TYPE_USE).
+`TYPE_USE` allows placing annotations at positions such as the component type, generic type arguments, or array element types; this is the context categorized in [`ElementType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/ElementType.html#TYPE_USE).
 
-Với một thành phần vừa có `@ComponentNote` vừa có `@TypeNote`, hai lời gọi này không hỏi cùng một nơi:
+For a component that has both `@ComponentNote` and `@TypeNote`, these two calls do not query the same place:
 
 ```java
 component.getDeclaredAnnotation(ComponentNote.class);
 component.getAnnotatedType().getAnnotation(TypeNote.class);
 ```
 
-Đây là đoạn trích khi đã có biến `RecordComponent component` và các kiểu annotation tương ứng. Lời gọi đầu đọc metadata khai báo của thành phần; lời gọi sau đọc annotation tại gốc của kiểu thành phần.
+This is an excerpt when you already have a `RecordComponent component` variable and the corresponding annotation types. The first call reads the component's declaration metadata; the second reads the annotation at the root of the component's type.
 
-Cả hai annotation trong ví dụ đều có `@Retention(RUNTIME)` để đọc được khi chạy. Đích áp dụng và thời gian lưu giữ là hai điều kiện độc lập.
+Both annotations in the example have `@Retention(RUNTIME)` to be readable at runtime. Target applicability and retention lifetime are two independent conditions.
 
-## 3. Cần nhìn cấu trúc kiểu theo từng vị trí
+## 3. Viewing the type structure position by position
 
-[`AnnotatedType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedType.html) biểu diễn một cách sử dụng kiểu có thể mang annotation. Nó không nhất thiết có annotation ở chính nút ngoài cùng.
+[`AnnotatedType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedType.html) represents a type use that can carry annotations. It does not necessarily have annotations on the outermost node itself.
 
-| Dạng cấu trúc | Giao diện Reflection | Bước đi tiếp |
+| Structural form | Reflection interface | Next step |
 | --- | --- | --- |
-| Kiểu generic như `List<String>` | `AnnotatedParameterizedType` | `getAnnotatedActualTypeArguments()` |
-| Kiểu mảng | `AnnotatedArrayType` | `getAnnotatedGenericComponentType()` |
-| Wildcard như `? extends Number` | `AnnotatedWildcardType` | `getAnnotatedUpperBounds()` và `getAnnotatedLowerBounds()` |
-| Biến kiểu như `T` | `AnnotatedTypeVariable` | `getAnnotatedBounds()` |
+| Generic type such as `List<String>` | `AnnotatedParameterizedType` | `getAnnotatedActualTypeArguments()` |
+| Array type | `AnnotatedArrayType` | `getAnnotatedGenericComponentType()` |
+| Wildcard such as `? extends Number` | `AnnotatedWildcardType` | `getAnnotatedUpperBounds()` and `getAnnotatedLowerBounds()` |
+| Type variable such as `T` | `AnnotatedTypeVariable` | `getAnnotatedBounds()` |
 
-Không ép mọi `AnnotatedType` thành `AnnotatedParameterizedType`. Một thành phần `String`, `String[]` hay `T` có hình dạng khác. Dùng `instanceof` để chọn cách duyệt phù hợp.
+Do not cast every `AnnotatedType` to `AnnotatedParameterizedType`. A `String`, `String[]`, or `T` component has a different shape. Use `instanceof` to select the appropriate traversal.
 
-## 4. Thí nghiệm đầy đủ trên Java 17+
+## 4. Complete experiment on Java 17+
 
-Chương trình đánh dấu từng vị trí bằng chuỗi riêng để thấy rõ annotation nào thuộc nút nào. Nó không cần tạo đối tượng record, vì chỉ phân tích metadata kiểu.
+The program marks each position with a distinct string so it is clear which annotation belongs to which node. It does not need to create record objects, because it only analyzes type metadata.
 
-Lưu toàn bộ vào **`RecordAnnotatedTypeDemo.java`**:
+Save the entire code into **`RecordAnnotatedTypeDemo.java`**:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -181,14 +181,14 @@ public class RecordAnnotatedTypeDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 --release 17 -Xlint:all -Werror RecordAnnotatedTypeDemo.java
 java RecordAnnotatedTypeDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Record Sample
@@ -223,135 +223,135 @@ type.bound[0].arg[0].bounds: cycle stopped
 String class TypeNote = null
 ```
 
-Trong kết quả, `notes` là danh sách giá trị của riêng annotation `TypeNote` tại nút đang xét. `declaration` là giá trị của riêng `ComponentNote` trên khai báo thành phần, hoặc `none` khi không có annotation đó.
+In the output, `notes` is the list of values for only the `TypeNote` annotation at the node under inspection. `declaration` is the value of only `ComponentNote` on the component declaration, or `none` when that annotation is absent.
 
-Các nhãn đường đi `type`, `arg`, `element`, `upper`, `lower`, `bound` do chương trình đặt để giải thích vị trí; chúng không phải tên do API bắt buộc cung cấp.
+The path labels `type`, `arg`, `element`, `upper`, `lower`, `bound` are chosen by the program to explain positions; they are not names required by the API.
 
-## 5. Đọc annotation trên kiểu thông thường và kiểu generic
+## 5. Reading annotations on ordinary types and generic types
 
-### Thành phần `name`
+### Component `name`
 
-Kết quả có `declaration=declaration-only` từ `ComponentNote`, còn `type: java.lang.String notes=[text]` từ `TypeNote`.
+The output has `declaration=declaration-only` from `ComponentNote`, and `type: java.lang.String notes=[text]` from `TypeNote`.
 
-Hai annotation cùng được viết gần nhau trong header nhưng được đọc qua hai đối tượng metadata khác nhau. Không dùng kết quả của một truy vấn để kết luận rằng truy vấn còn lại cũng phải có cùng annotation.
+Both annotations are written close together in the header yet read through two different metadata objects. Do not use the result of one query to conclude that the other query must have the same annotation.
 
-Dòng cuối `String class TypeNote = null` cũng cho thấy annotation tại vị trí sử dụng `String` trong record không được gắn toàn cục lên `String.class`. Nó mô tả **lần sử dụng kiểu tại thành phần này**, không sửa khai báo lớp `String`.
+The last line `String class TypeNote = null` also shows that an annotation on a `String` type use in a record is not attached globally to `String.class`. It describes **the type use at this component**, without modifying the `String` class declaration.
 
-### Thành phần `tags`
+### Component `tags`
 
-Kiểu ngoài cùng `List<...>` có `notes=[list]`. Đối số kiểu thứ nhất `String` có `notes=[item]`, được đọc tại `type.arg[0]`.
+The outermost type `List<...>` has `notes=[list]`. The first type argument `String` has `notes=[item]`, read at `type.arg[0]`.
 
-Để tới vị trí đó, mã dùng [`AnnotatedParameterizedType.getAnnotatedActualTypeArguments()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedParameterizedType.html). Hai annotation nằm ở hai nút độc lập; đọc annotation gốc không tự gom annotation của phần tử.
+To reach that position, the code uses [`AnnotatedParameterizedType.getAnnotatedActualTypeArguments()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedParameterizedType.html). The two annotations reside on two independent nodes; reading root annotations does not collect element annotations.
 
-Nếu một công cụ muốn áp dụng quy tắc khác nhau cho danh sách và cho phần tử, cần giữ lại đường đi của từng annotation thay vì chỉ thu một tập tên annotation.
+If a tool wants to apply different rules for the list and for the elements, it must retain the path of each annotation instead of only collecting a set of annotation names.
 
-### Thành phần `plain`
+### Component `plain`
 
-`plain` vẫn có đối tượng `AnnotatedType` mô tả `String`, dù danh sách `TypeNote` tại đó rỗng. Từ “annotated” trong tên API không có nghĩa kiểu bắt buộc phải mang ít nhất một annotation.
+`plain` still has an `AnnotatedType` object describing `String`, even though the `TypeNote` list there is empty. The word "annotated" in the API name does not mean the type must carry at least one annotation.
 
-Cũng không nên dùng tên lớp cài đặt nội bộ của đối tượng Reflection để suy ra hình dạng kiểu. Các giao diện `AnnotatedType` và những giao diện con mới là bề mặt cần dựa vào.
+Nor should you use the internal implementation class name of a Reflection object to infer type shape. The `AnnotatedType` interface and its subinterfaces are the surface to rely on.
 
-## 6. Mảng: annotation trên mảng khác annotation trên phần tử
+## 6. Arrays: annotations on the array differ from annotations on the element
 
-Thành phần `codes` được khai báo:
+Component `codes` is declared:
 
 ```java
 @TypeNote("array-element") String @TypeNote("array") [] codes
 ```
 
-Đây là đoạn trích header trong chương trình, không phải khai báo trường độc lập cần chép nguyên vào một lớp.
+This is a header excerpt from the program, not a standalone field declaration to copy verbatim into a class.
 
-Vị trí trước `String` đánh dấu kiểu phần tử; vị trí trước `[]` đánh dấu kiểu mảng. Vì vậy:
+The position before `String` marks the element type; the position before `[]` marks the array type. Therefore:
 
-- Nút `type` có `notes=[array]`.
-- Nút `type.element` có `notes=[array-element]`.
+- The `type` node has `notes=[array]`.
+- The `type.element` node has `notes=[array-element]`.
 
-Bước đi từ mảng tới kiểu phần tử dùng [`AnnotatedArrayType.getAnnotatedGenericComponentType()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedArrayType.html). Với mảng nhiều chiều, cần tiếp tục đi qua từng tầng mảng, không coi mọi dấu ngoặc vuông là cùng một vị trí.
+Stepping from the array to the element type uses [`AnnotatedArrayType.getAnnotatedGenericComponentType()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedArrayType.html). For multidimensional arrays, continue stepping through each array level rather than treating all square brackets as the same position.
 
-Phân biệt này có ý nghĩa thực tế: một quy tắc về tham chiếu mảng và một quy tắc về từng giá trị phần tử không phải cùng một yêu cầu.
+This distinction has practical significance: a rule about the array reference and a rule about each element value are not the same requirement.
 
-## 7. Wildcard: annotation có thể nằm trên giới hạn
+## 7. Wildcards: annotations can live on bounds
 
-### Giới hạn trên
+### Upper bounds
 
-`numbers` có kiểu `List<? extends @TypeNote("upper") Number>`. Nút `List` và nút wildcard đều không có `TypeNote`; annotation được tìm thấy ở giới hạn trên `Number`, tại `type.arg[0].upper[0]`.
+`numbers` has type `List<? extends @TypeNote("upper") Number>`. Neither the `List` node nor the wildcard node has `TypeNote`; the annotation is found on the upper bound `Number`, at `type.arg[0].upper[0]`.
 
-Nếu chỉ hỏi gốc của `AnnotatedType`, bạn sẽ thấy mảng rỗng và bỏ sót metadata cần thiết bên trong.
+If you query only the root of `AnnotatedType`, you will see an empty array and miss the needed metadata inside.
 
-### Giới hạn dưới
+### Lower bounds
 
-`sinks` có kiểu `List<? super @TypeNote("lower") Integer>`. Kết quả có giới hạn trên `Object` không được đánh dấu, cùng giới hạn dưới `Integer` mang `notes=[lower]`.
+`sinks` has type `List<? super @TypeNote("lower") Integer>`. The output has an unmarked upper bound `Object`, together with a lower bound `Integer` carrying `notes=[lower]`.
 
-Đó là lý do bộ duyệt kiểm tra cả hai dãy giới hạn qua [`AnnotatedWildcardType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedWildcardType.html). Không giả định rằng cứ thấy wildcard là phải có một annotation ở gốc wildcard, hoặc rằng chỉ cần nhìn một phía giới hạn.
+That is why the walker checks both bound arrays via [`AnnotatedWildcardType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedWildcardType.html). Do not assume that seeing a wildcard means there must be an annotation on the wildcard root, or that only one bound side needs checking.
 
-## 8. Biến kiểu, giới hạn và đệ quy
+## 8. Type variables, bounds, and recursion
 
-### Phân biệt lần dùng `T` với giới hạn của `T`
+### Distinguishing a use of `T` from `T`'s bound
 
-`Sample` khai báo `T extends @TypeNote("bound") Number`. Thành phần `quantity` lại sử dụng `@TypeNote("use-T") T`.
+`Sample` declares `T extends @TypeNote("bound") Number`. Component `quantity` then uses `@TypeNote("use-T") T`.
 
-Kết quả tách rõ:
+The output cleanly separates:
 
-- Nút `type: T` mang `notes=[use-T]`.
-- Nút giới hạn `Number` mang `notes=[bound]`.
-- `getType()` của thành phần cho `Number`, còn kiểu generic khai báo là `T`.
+- The `type: T` node carries `notes=[use-T]`.
+- The `Number` bound node carries `notes=[bound]`.
+- `getType()` of the component gives `Number`, while the declared generic type is `T`.
 
-`getAnnotatedBounds()` trên [`AnnotatedTypeVariable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedTypeVariable.html) đưa bạn tới các giới hạn khai báo của biến kiểu. Annotation của lần dùng biến kiểu và annotation của giới hạn là các thông tin khác nhau.
+`getAnnotatedBounds()` on [`AnnotatedTypeVariable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedTypeVariable.html) takes you to the declared bounds of the type variable. Annotations on the type variable use and annotations on the bound are different pieces of information.
 
-Metadata này không tự thay `T` bằng `Integer` chỉ vì một đối tượng có thể được tạo với tham số kiểu `Sample<Integer>`. Nếu cần phân giải kiểu theo ngữ cảnh sử dụng cụ thể, công cụ phải nhận và xử lý thêm ngữ cảnh generic đó.
+This metadata does not automatically replace `T` with `Integer` just because an object can be created with the type argument `Sample<Integer>`. If resolving types for a specific usage context is needed, the tool must receive and process that generic context additionally.
 
-### Giới hạn tự tham chiếu
+### Self-referential bounds
 
-`Recursive<T extends Comparable<T>>` tạo quan hệ:
+`Recursive<T extends Comparable<T>>` forms the relationship:
 
 ```text
 T → Comparable<T> → T → Comparable<T> → ...
 ```
 
-Do đó, khi đi sâu vào giới hạn, cấu trúc cần xử lý có thể là một đồ thị có chu trình, dù cách trình bày ban đầu trông như cây.
+Therefore, when drilling down into bounds, the structure to process can be a graph with cycles, even though its initial presentation looks like a tree.
 
-Bộ duyệt dùng `Set<TypeVariable<?>>` để theo dõi các biến kiểu đang có trên đường đi hiện tại. Khi gặp lại cùng biến kiểu trong đường đó, nó vẫn in nút nhưng dừng mở rộng giới hạn và báo `cycle stopped`.
+The walker uses `Set<TypeVariable<?>>` to track type variables currently on the active path. When encountering the same type variable again along that path, it still prints the node but stops expanding bounds and reports `cycle stopped`.
 
-Biến kiểu được loại khỏi tập sau khi duyệt xong nhánh. Đây không phải một tập “đã gặp ở đâu đó trong toàn bộ kiểu” để tự động bỏ mọi lần xuất hiện về sau: các lần sử dụng khác nhau vẫn có thể mang annotation khác nhau và cần được quan sát.
+The type variable is removed from the set after finishing that branch. This is not a "seen somewhere across the whole type" set that automatically skips all future occurrences: separate uses can still carry different annotations and need to be observed.
 
-Không dùng riêng tên chuỗi `"T"` làm định danh tổng quát cho biến kiểu, vì các khai báo khác nhau có thể cùng đặt tên biến là `T`.
+Do not use the string name `"T"` alone as a universal identifier for a type variable, because different declarations can both name their variable `T`.
 
-## 9. Luồng áp dụng và giới hạn của ví dụ
+## 9. Application flow and limits of the example
 
-Khi phân tích thành phần record:
+When analyzing record components:
 
-1. Xác nhận đang có metadata của record và lấy đúng `RecordComponent`.
-2. Đọc annotation khai báo riêng nếu công cụ cần ngữ nghĩa của thành phần.
-3. Lấy gốc `component.getAnnotatedType()`.
-4. Tại mỗi nút, đọc annotation ở chính nút đó.
-5. Dựa vào giao diện kiểu để đi tới các nút con.
-6. Giữ đường đi và có cơ chế dừng khi mở rộng giới hạn tự tham chiếu.
+1. Confirm you have record metadata and obtain the right `RecordComponent`.
+2. Read declaration annotations separately if the tool needs component-level semantics.
+3. Obtain the root `component.getAnnotatedType()`.
+4. At each node, read annotations on that node itself.
+5. Branch on the type interface to traverse child nodes.
+6. Preserve the path and include a stopping mechanism when expanding self-referential bounds.
 
-Mã còn xét `getAnnotatedOwnerType()` khi kiểu có một kiểu bao tương ứng. Điều này hữu ích với cấu trúc lớp lồng có thông tin kiểu ở phần bao. Các ví dụ chính trong bài tập trung vào generic, mảng, wildcard và biến kiểu.
+The code also checks `getAnnotatedOwnerType()` when a type has a corresponding enclosing type. This is helpful for nested class structures with type information on the enclosing part. The main examples in this article focus on generics, arrays, wildcards, and type variables.
 
-Đây là bộ quan sát metadata, không phải bộ kiểm tra dữ liệu. Một annotation có tên `NonNull` hay một giá trị `TypeNote` không tự khiến JVM từ chối `null` hoặc kiểm tra từng phần tử danh sách. Muốn thực thi quy tắc, cần một bộ xử lý có hợp đồng rõ ràng.
+This is a metadata observer, not a data validator. An annotation named `NonNull` or a `TypeNote` value does not by itself cause the JVM to reject `null` or check each list element. To enforce rules, you need a processor with a clear contract.
 
-Tương tự, đọc được metadata kiểu không tự cấp quyền truy cập trường dữ liệu, gọi accessor hay thay đổi trạng thái. Bài này không cần thao tác với dữ liệu của một instance.
+Similarly, being able to read type metadata does not grant permission to access data fields, call accessors, or mutate state. This article does not need to interact with an instance's data.
 
-## 10. Lỗi thường gặp và tự kiểm tra
+## 10. Common pitfalls and self-check
 
-| Lỗi | Cách khắc phục |
+| Pitfall | Fix |
 | --- | --- |
-| Chỉ đọc `RecordComponent.getAnnotations()` | Phân biệt khai báo thành phần với kiểu sử dụng |
-| Chỉ đọc annotation ở gốc kiểu | Duyệt đúng vị trí generic, mảng hoặc giới hạn |
-| Ép mọi kiểu thành `AnnotatedParameterizedType` | Kiểm tra giao diện thực tế bằng `instanceof` |
-| Gộp annotation trên mảng và phần tử | Giữ từng tầng của `AnnotatedArrayType` |
-| Nhìn wildcard nhưng bỏ giới hạn | Kiểm tra dãy giới hạn trên và dưới |
-| Duyệt giới hạn generic mà không phát hiện chu trình | Theo dõi biến kiểu đang mở rộng trên đường đi |
-| Cho rằng metadata của `String` được sử dụng là annotation trên `String.class` | Phân biệt lần sử dụng kiểu với khai báo lớp |
-| Cho rằng metadata kiểu chứa giá trị thực tế của một record | Tách việc phân tích kiểu khỏi đọc dữ liệu |
+| Reading only `RecordComponent.getAnnotations()` | Distinguish component declarations from type uses |
+| Reading annotations only at the type root | Traverse to the exact generic, array, or bound position |
+| Casting every type to `AnnotatedParameterizedType` | Check the actual interface with `instanceof` |
+| Merging annotations on the array and element | Keep each level of `AnnotatedArrayType` separate |
+| Seeing a wildcard yet ignoring bounds | Check both upper and lower bound arrays |
+| Traversing generic bounds without cycle detection | Track type variables currently expanding on the active path |
+| Assuming metadata on a used `String` is an annotation on `String.class` | Distinguish a type use from a class declaration |
+| Assuming type metadata holds the runtime values of a record | Separate type analysis from data reading |
 
-Hãy thử các thay đổi nhỏ rồi dự đoán đầu ra:
+Try these small changes and predict the output:
 
-1. Bỏ `@TypeNote("list")` nhưng giữ `@TypeNote("item")`: vì sao gốc rỗng mà phần tử vẫn có annotation?
-2. Đổi vị trí annotation giữa `String` và `[]` của `codes`: nút nào thay đổi?
-3. Chuyển `numbers` sang một wildcard không ghi giới hạn: bộ duyệt nhìn thấy kiểu giới hạn nào?
-4. Bỏ cơ chế phát hiện chu trình rồi thử `Recursive`: vì sao việc chỉ đi theo các lời gọi API hợp lệ vẫn có thể không kết thúc?
-5. Thêm một thành phần `T` khác với một `TypeNote` khác: vì sao không nên bỏ qua nó chỉ vì đã gặp tên `T` trước đó?
+1. Remove `@TypeNote("list")` while keeping `@TypeNote("item")`: why is the root empty while the element still has an annotation?
+2. Swap the annotation positions between `String` and `[]` of `codes`: which nodes change?
+3. Change `numbers` to an unbounded wildcard: which bound type does the walker observe?
+4. Remove cycle detection and test `Recursive`: why might following only valid API calls still fail to terminate?
+5. Add another `T` component with a different `TypeNote`: why should it not be skipped just because the name `T` was seen earlier?
 
-Điểm cần nắm là **annotation thuộc một vị trí trong cấu trúc kiểu**. `getAnnotatedType()` là cửa vào cấu trúc đó; nhiệm vụ của công cụ là đi tới đúng nút, đọc đúng metadata và giữ nguyên ý nghĩa của vị trí.
+The key point to grasp is that **an annotation belongs to a specific position in the type structure**. `getAnnotatedType()` is the entry point into that structure; the tool's job is to navigate to the right node, read the right metadata, and preserve the meaning of that position.

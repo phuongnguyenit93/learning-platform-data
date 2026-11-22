@@ -1,12 +1,12 @@
-# Dấu gạch dưới trong literal số và vị trí không hợp lệ
+# Underscores in Numeric Literals and Invalid Positions
 
 > **Java core — language-basics / Literal**  
-> **Yêu cầu:** JDK 17+; một chương trình Java chạy độc lập, không dùng thư viện ngoài.  
-> **Mục tiêu:** Biết khi nào được viết dấu `_` trong numeric literal, nhận ra các vị trí bị cấm và phân biệt cú pháp literal tại thời điểm biên dịch với chuỗi được parse khi chương trình chạy.
+> **Requirements:** JDK 17+; a standalone Java program without external libraries.  
+> **Objective:** Know when `_` may be written in a numeric literal, recognize forbidden positions, and distinguish compile-time literal syntax from strings parsed at runtime.
 
-## 1. Dấu `_` dùng để làm gì?
+## 1. What is the `_` character used for?
 
-Java cho phép chèn dấu gạch dưới giữa các chữ số trong **literal số** để dễ đọc, chẳng hạn:
+Java allows inserting underscores between digits in **numeric literals** to improve readability, for example:
 
 ~~~java
 int population = 1_000_000;
@@ -14,53 +14,53 @@ long distance = 9_000_000_000L;
 double rate = 12.3_4;
 ~~~
 
-Dấu `_` ở đây **không thay đổi giá trị hoặc kiểu dữ liệu**. `1_000_000` và `1000000` là cùng một giá trị `int`; `9_000_000_000L` vẫn là literal `long` vì có hậu tố `L`.
+The `_` here **does not change the value or data type**. `1_000_000` and `1000000` are the exact same `int` value; `9_000_000_000L` is still a `long` literal because of the `L` suffix.
 
-| Cách viết | Giá trị | Vì sao hợp lệ? |
+| Notation | Value | Why is it valid? |
 | --- | ---: | --- |
-| `1_000_000` | 1000000 | Nhóm các chữ số thập phân |
-| `0b1111_0000` | 240 | Nhóm các bit sau tiền tố nhị phân `0b` |
-| `05_2` | 42 | Nhóm chữ số của literal bát phân (bắt đầu bằng `0`) |
-| `0xCA_FE` | 51966 | Nhóm chữ số hệ 16 |
-| `1__000` | 1000 | **Nhiều** dấu `_` liên tiếp giữa hai chữ số vẫn hợp lệ |
-| `12.3_4` | 12.34 | Nhóm chữ số ở phần thập phân của floating-point literal |
-| `1.2e1_0` | 1.2 × 10¹⁰ | Dấu `_` nằm giữa các chữ số phần số mũ |
+| `1_000_000` | 1000000 | Groups decimal digits |
+| `0b1111_0000` | 240 | Groups bits after the binary prefix `0b` |
+| `05_2` | 42 | Groups digits of an octal literal (starts with `0`) |
+| `0xCA_FE` | 51966 | Groups hexadecimal digits |
+| `1__000` | 1000 | **Multiple** consecutive `_` characters between two digits are still valid |
+| `12.3_4` | 12.34 | Groups digits in the fractional part of a floating-point literal |
+| `1.2e1_0` | 1.2 × 10¹⁰ | Underscore lies between digits of the exponent part |
 
-Quy tắc thực dụng: **chèn `_` ở giữa các chữ số của cùng một phần literal, không đặt nó tại ranh giới tiền tố, dấu chấm, ký hiệu số mũ hay hậu tố kiểu.**
+Practical rule: **insert `_` between digits of the same literal part; do not place it at the boundary of a prefix, decimal point, exponent symbol, or type suffix.**
 
-## 2. Các vị trí không hợp lệ
+## 2. Invalid positions
 
-| Viết sai | Nguyên nhân | Viết đúng nếu giữ ý định |
+| Invalid syntax | Reason | Valid syntax if preserving intent |
 | --- | --- | --- |
-| `123_` | Kết thúc literal bằng dấu `_` | `123` hoặc `1_23` |
-| `0b_1010` | Ngay sau tiền tố `0b` | `0b1010` hoặc `0b10_10` |
-| `0x_FF` | Ngay sau tiền tố `0x` | `0xFF` hoặc `0xF_F` |
-| `1_.25` | Ngay trước dấu chấm thập phân | `1.25` |
-| `1._25` | Ngay sau dấu chấm thập phân | `1.25` hoặc `1.2_5` |
-| `1e_10` | Ngay sau ký hiệu `e` của số mũ | `1e10` hoặc `1e1_0` |
-| `1e+_10` | Ngay sau dấu `+` thuộc số mũ | `1e+10` |
-| `123_L` | Ngay trước hậu tố kiểu `L` | `123L` hoặc `1_23L` |
-| `12_f` | Ngay trước hậu tố `f` | `12f` hoặc `1_2f` |
+| `123_` | Ends the literal with `_` | `123` or `1_23` |
+| `0b_1010` | Immediately after the `0b` prefix | `0b1010` or `0b10_10` |
+| `0x_FF` | Immediately after the `0x` prefix | `0xFF` or `0xF_F` |
+| `1_.25` | Immediately before the decimal point | `1.25` |
+| `1._25` | Immediately after the decimal point | `1.25` or `1.2_5` |
+| `1e_10` | Immediately after the exponent symbol `e` | `1e10` or `1e1_0` |
+| `1e+_10` | Immediately after the `+` sign of the exponent | `1e+10` |
+| `123_L` | Immediately before the `L` type suffix | `123L` or `1_23L` |
+| `12_f` | Immediately before the `f` suffix | `12f` or `1_2f` |
 
-Ngoài ra, `_123` là một **identifier có thể hợp lệ**, **không phải** literal số 123. Viết `int n = _123;` sẽ tìm **biến tên `_123`**, chứ không đưa số 123 vào `n`. Dấu `_` đứng **một mình** lại không được dùng làm identifier trong Java 17.
+In addition, `_123` is a **potentially valid identifier**, **not** the numeric literal 123. Writing `int n = _123;` looks up a **variable named `_123`**, rather than putting the number 123 into `n`. A **lone** `_` cannot be used as an identifier in Java 17.
 
-**Phân biệt quan trọng:** `1__000` **hợp lệ**, không nên suy diễn rằng cứ có hai dấu gạch dưới liền nhau là sai. Vị trí tương đối với **chữ số, dấu phân cách và hậu tố** mới là điều quyết định.
+**Important distinction:** `1__000` is **valid**; do not infer that two consecutive underscores are always wrong. Its position relative to **digits, separators, and suffixes** is what decides validity.
 
-## 3. Áp dụng cho những loại literal số nào?
+## 3. Which numeric literal types does this apply to?
 
-Cú pháp dấu `_` dùng được cho **integer literal** và **floating-point literal** ở những vị trí hợp lệ:
+Underscore `_` syntax works for **integer literals** and **floating-point literals** in valid positions:
 
-- Số nguyên: thập phân `4_200`, nhị phân `0b1010_0101`, bát phân `07_52`, thập lục phân `0xAB_CD`, `long` như `1_000L`.
-- Số thực: `3.14_15`, `1_2.5_0f`, hoặc số mũ `6.02e2_3`.
-- Số thực hex cũng có quy tắc riêng về chữ số và dấu mũ `p`, ví dụ `0x1.8p1_0` là literal `double` hợp lệ (giá trị 1536.0).
+- Integers: decimal `4_200`, binary `0b1010_0101`, octal `07_52`, hexadecimal `0xAB_CD`, `long` such as `1_000L`.
+- Floating-point: `3.14_15`, `1_2.5_0f`, or exponent `6.02e2_3`.
+- Hexadecimal floating-point literals also have their own rules for digits and the `p` exponent; for example, `0x1.8p1_0` is a valid `double` literal (value 1536.0).
 
-**Không được chèn `_` tùy tiện vào một tiền tố/cú pháp rồi nghĩ rằng compiler sẽ tự bỏ nó.** Ví dụ `0x_FF` và `1_.0` không là cách viết số hợp lệ.
+**Do not insert `_` arbitrarily into a prefix or syntax construct assuming the compiler will simply strip it out.** For instance, `0x_FF` and `1_.0` are not valid numeric literals.
 
-Chú ý rằng `-1_000` có **toán tử dấu trừ** đứng trước literal `1_000`; dấu `_` vẫn chỉ phục vụ nhóm chữ số. Dấu `L`, `f`, `d` xác định loại literal theo quy tắc tương ứng, không phải chữ số để kẹp thêm `_` sát vào.
+Note that `-1_000` has the **unary minus operator** in front of the literal `1_000`; `_` still only serves to group digits. `L`, `f`, and `d` specify the literal type under their respective rules, not digits that `_` can sit next to.
 
-## 4. Chương trình Java 17+ chạy được
+## 4. Runnable Java 17+ program
 
-Tạo file **NumericUnderscoreDemo.java** và chép toàn bộ mã:
+Create the file **NumericUnderscoreDemo.java** and copy the full code:
 
 ~~~java
 public class NumericUnderscoreDemo {
@@ -92,14 +92,14 @@ public class NumericUnderscoreDemo {
 }
 ~~~
 
-Trong terminal (Bash, PowerShell hoặc Command Prompt), từ thư mục chứa tệp:
+In a terminal (Bash, PowerShell, or Command Prompt), from the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 NumericUnderscoreDemo.java
 java NumericUnderscoreDemo
 ~~~
 
-**Đầu ra mong đợi:**
+**Expected output:**
 
 ~~~text
 decimal=42
@@ -113,50 +113,50 @@ same42=true
 parse=ERROR
 ~~~
 
-Ở đây `05_2` là số **bát phân**: \(5 \times 8 + 2 = 42\). `0xCA_FE` là số hex `CAFE` (51966 thập phân). Cả hai chỉ là **cách ghi giá trị trong mã nguồn**, không phải chuỗi đặc biệt được in nguyên dạng.
+Here `05_2` is an **octal** number: \(5 \times 8 + 2 = 42\). `0xCA_FE` is the hex number `CAFE` (51966 in decimal). Both are simply **ways of writing values in source code**, not special strings printed verbatim.
 
-## 5. Compiler và chuỗi đầu vào không dùng cùng quy tắc
+## 5. The compiler and input strings do not use the same rules
 
-Đây là điểm phân biệt thiết yếu:
-
-~~~java
-int fromSource = 1_000;             // Hợp lệ: compiler hiểu literal Java.
-int fromText = Integer.parseInt("1000"); // Hợp lệ: parse chuỗi toàn chữ số.
-~~~
-
-Nhưng:
+This is an essential distinction:
 
 ~~~java
-Integer.parseInt("1_000"); // Ném NumberFormatException khi chạy.
+int fromSource = 1_000;             // Valid: compiler understands Java literal.
+int fromText = Integer.parseInt("1000"); // Valid: parses digit-only string.
 ~~~
 
-`Integer.parseInt` không tự loại `_` như compiler Java xử lý ở numeric literal. Nếu ứng dụng muốn người dùng nhập `1_000`, bạn phải định nghĩa **quy tắc kiểm tra định dạng**, rồi xử lý đầu vào trước khi chuyển kiểu. Đừng chỉ xóa mọi dấu `_` mà không kiểm tra, vì như vậy các chuỗi sai như `_123` hoặc `123_` có thể bị biến thành số hợp lệ ngoài ý định.
+However:
 
-Tương tự, literal `1_000L` chứa hậu tố `L` của **source code**, nhưng `Long.parseLong("1_000L")` không chấp nhận chuỗi ấy.
+~~~java
+Integer.parseInt("1_000"); // Throws NumberFormatException at runtime.
+~~~
 
-## 6. Các bẫy cần kiểm tra
+`Integer.parseInt` does not automatically strip `_` the way the Java compiler processes numeric literals. If an application wants users to enter `1_000`, you must define **format validation rules**, then process the input before converting its type. Do not blindly remove every `_` without checking, because invalid strings such as `_123` or `123_` could unintentionally become valid numbers.
 
-| Nhầm lẫn | Điều đúng |
+Similarly, the literal `1_000L` contains the `L` suffix of **source code**, yet `Long.parseLong("1_000L")` does not accept that string.
+
+## 6. Traps to check
+
+| Misconception | What is true |
 | --- | --- |
-| “Có `_` thì kiểu số thành String.” | Sai. Numeric literal vẫn có kiểu số tương ứng. |
-| “`1__000` luôn sai.” | Sai. Dấu `_` liên tiếp giữa chữ số được cho phép. |
-| “`0x_FF` tương đương `0xFF`.” | Sai. Không được chèn `_` ngay sau tiền tố. |
-| “Xuống dòng hoặc khoảng trắng cạnh `_` cũng được.” | Sai khi làm vỡ một literal: `1_ 000` không còn là numeric literal hợp lệ. |
-| “`123_L` là `long` hợp lệ.” | Sai. Hậu tố `L` phải theo sau phần chữ số đúng cú pháp. |
-| “`parseInt("1_000")` hoạt động như compiler.” | Sai. `parseInt` không nhận dấu `_` làm nhóm chữ số. |
+| "Having `_` turns a number's type into String." | False. A numeric literal still has its corresponding numeric type. |
+| "`1__000` is always invalid." | False. Consecutive `_` characters between digits are permitted. |
+| "`0x_FF` is equivalent to `0xFF`." | False. You cannot insert `_` right after a prefix. |
+| "Line breaks or spaces next to `_` are also allowed." | False when it breaks a literal: `1_ 000` is no longer a valid numeric literal. |
+| "`123_L` is a valid `long`." | False. The `L` suffix must follow a syntactically valid digit sequence. |
+| "`parseInt("1_000")` works just like the compiler." | False. `parseInt` does not recognize `_` as a digit separator. |
 
-**Thử nghiệm có chủ đích:** chọn một ví dụ sai ở bảng mục 2, đặt vào một dòng riêng của `NumericUnderscoreDemo.java`, rồi chạy `javac` để quan sát lỗi. Sau đó sửa lại và biên dịch lần nữa. Không thêm toàn bộ các ví dụ sai vào chương trình chính, vì chương trình sẽ không thể biên dịch.
+**Deliberate experiment:** pick one invalid example from the table in Section 2, put it on its own line in `NumericUnderscoreDemo.java`, and run `javac` to observe the error. Then fix it and compile again. Do not put all invalid examples into the main program at once, because the program will fail to compile.
 
-## 7. Bài tập ngắn
+## 7. Short exercises
 
-**Bài 1 — Đúng hay sai?** Phân loại các literal `1_234`, `1__234`, `1_`, `0b10_01`, `0b_1001`, `0xA_B`, `0x_AB`, `3.1_4` và `3._14`. Nêu *vị trí* quyết định kết quả, không chỉ ghi “sai cú pháp”.
+**Exercise 1 — Valid or invalid?** Classify the literals `1_234`, `1__234`, `1_`, `0b10_01`, `0b_1001`, `0xA_B`, `0x_AB`, `3.1_4`, and `3._14`. State the *position* that determines the result, rather than just writing "syntax error".
 
-**Bài 2 — Giữ nguyên giá trị.** Viết lại `1000000000L`, `0b11110000` và `0xCAFEBABE` sao cho dễ đọc bằng `_` mà giá trị không đổi. Thử in từng giá trị để tự kiểm tra.
+**Exercise 2 — Preserve the value.** Rewrite `1000000000L`, `0b11110000`, and `0xCAFEBABE` using `_` for readability without changing their values. Try printing each value to verify for yourself.
 
-**Bài 3 — Source so với runtime.** Vì sao `Integer.parseInt("1000")` thành công còn `Integer.parseInt("1_000")` thất bại? Nếu làm công cụ đọc cấu hình chấp nhận `_`, bạn sẽ kiểm tra vị trí gạch dưới như thế nào?
+**Exercise 3 — Source vs. runtime.** Why does `Integer.parseInt("1000")` succeed while `Integer.parseInt("1_000")` fails? If you were building a configuration reader that accepts `_`, how would you validate underscore positions?
 
-**Bài 4 — Debug.** Sửa hai literal sai `1e_10` và `9_000_L`, giải thích vì sao ký hiệu exponent và suffix không phải vị trí được phép đặt dấu `_`.
+**Exercise 4 — Debug.** Fix the two invalid literals `1e_10` and `9_000_L`, and explain why the exponent symbol and suffix are not valid positions for `_`.
 
-### Ghi nhớ
+### Key takeaway
 
-**Dấu `_` là ký hiệu giúp con người đọc numeric literal rõ hơn, không mang giá trị và không tự mở rộng cú pháp parser cho chuỗi runtime.** Đặt nó **giữa chữ số hợp lệ**, có thể nhiều dấu liên tiếp; **không** đặt ở đầu/cuối literal hoặc sát tiền tố, dấu chấm, ký hiệu số mũ hay hậu tố kiểu.
+**The `_` character is a symbol to help humans read numeric literals more clearly; it carries no value and does not automatically extend runtime string parser syntax.** Place it **between valid digits**, optionally with multiple consecutive underscores; do **not** place it at the start/end of a literal or next to a prefix, decimal point, exponent symbol, or type suffix.

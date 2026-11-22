@@ -1,70 +1,70 @@
-# Đo hiệu năng tính toán số với miền dữ liệu thực tế và tình huống biên trong Java
+# Measuring Numeric Computation Performance with Realistic Data Domains and Edge Cases in Java
 
-## 1. Đo nhanh trên một vài số đẹp chưa phản ánh hiệu năng thực tế
+## 1. Quick Timing on a Few Clean Numbers Does Not Reflect Real Performance
 
-Giả sử có hai cách cộng, chia hoặc chuẩn hóa số trong Java. Một cách có vẻ nhanh hơn khi chạy với 100 số nguyên nhỏ hoặc vài giá trị thập phân ngắn. Kết luận đó có thể đảo ngược khi dữ liệu thực tế gồm nhiều chữ số, scale chênh lệch lớn, số âm, số 0 hoặc tỷ lệ ngoại lệ cao.
+Suppose there are two ways to add, divide, or normalize numbers in Java. One approach may look faster when tested on 100 small integers or a few short decimal values. That conclusion can reverse when real-world data includes many digits, widely differing scales, negative numbers, zeros, or a high exception rate.
 
-Vì vậy, đo hiệu năng có ý nghĩa đòi hỏi **cả hai**:
+Therefore, meaningful performance measurement requires **both**:
 
-1. **Miền dữ liệu đại diện:** kích thước đầu vào, phân bố giá trị, precision/scale, tần suất phép toán và tỷ lệ đầu vào thông thường phải gần với tải công việc cần tối ưu.
-2. **Tình huống biên:** dữ liệu ở các giới hạn có thể khiến thuật toán đổi nhánh, overflow, phải cấp phát nhiều hơn, ném ngoại lệ hoặc chạy với độ phức tạp khác hẳn.
+1. **A representative data domain:** input sizes, value distributions, precision/scale, operation frequencies, and typical input ratios must closely match the workload being optimized.
+2. **Edge cases:** boundary inputs can make algorithms switch branches, overflow, allocate far more memory, throw exceptions, or run with completely different complexity.
 
-Bài học tập trung vào cách thiết kế, kiểm chứng và đọc kết quả phép đo cho các kiểu số `int`, `long`, `double`, `BigInteger`, `BigDecimal` và các thao tác tổng hợp liên quan. Mục tiêu là chọn triển khai **đúng yêu cầu số học** và **đủ nhanh với tải thực**, thay vì chọn mã chỉ nhanh trong một bài thử nhỏ.
+This lesson focuses on how to design, verify, and interpret measurements for `int`, `long`, `double`, `BigInteger`, `BigDecimal`, and related aggregation operations. The goal is choosing an implementation that **meets arithmetic requirements** and **is fast enough under real load**, rather than picking code that is only fast in a tiny toy test.
 
-Ba câu hỏi phải được trả lời trước khi benchmark:
+Three questions must be answered before benchmarking:
 
-- **Đo thao tác nào?** Ví dụ parse chuỗi thành `BigDecimal`, cộng các `BigDecimal` đã được tạo sẵn, nhân `BigInteger`, tính tổng `IntStream`, hoặc format đầu ra.
-- **Đầu vào thật trông như thế nào?** Bao nhiêu phần tử một lần gọi? Bao nhiêu chữ số? Có dữ liệu âm, 0, số rất lớn, scale khác nhau, số bất thường?
-- **Định nghĩa đúng là gì?** Kết quả phải chính xác tuyệt đối, được làm tròn theo quy tắc nào, có được overflow không, và xử lý đầu vào không hợp lệ ra sao?
+- **Which operation is being measured?** For example, parsing strings into `BigDecimal`, adding pre-built `BigDecimal` instances, multiplying `BigInteger`, summing an `IntStream`, or formatting outputs.
+- **What do real inputs look like?** How many elements per call? How many digits? Are there negative numbers, zeros, very large numbers, mixed scales, or malformed inputs?
+- **What defines correctness?** Must results be absolutely exact, rounded under which rule, allowed to overflow, and how are invalid inputs handled?
 
-Không thể so sánh hai phép tính chỉ vì chúng trả về một con số nhìn có vẻ giống nhau. Ví dụ, thay `BigDecimal` bằng `double` có thể nhanh nhưng làm mất bảo đảm chính xác thập phân cần cho tiền tệ. Đó là **thay đổi ngữ nghĩa**, không phải chỉ tối ưu.
+You cannot compare two calculations solely because they return a number that looks similar. For instance, replacing `BigDecimal` with `double` may be faster yet breaks decimal exactness required for money. That is a **semantic change**, not merely an optimization.
 
-## 2. Xây dựng hồ sơ dữ liệu trước khi đo
+## 2. Building a Data Profile Before Measuring
 
-Một benchmark có thể đo đúng thời gian chạy của dữ liệu nó nhận, nhưng vẫn trả lời sai câu hỏi nếu dữ liệu đó không đại diện cho sản phẩm thật.
+A benchmark may accurately measure the runtime of the data it receives, yet still answer the wrong question if that data does not represent real production.
 
-Ví dụ một dịch vụ xử lý giao dịch nhận số tiền ở dạng chuỗi:
+For example, a transaction-processing service receiving monetary amounts as strings:
 
-- Phần lớn số tiền có hai chữ số thập phân và nằm trong giới hạn thường gặp.
-- Một tỷ lệ nhỏ là số tiền 0, số âm (hoàn tiền), số rất lớn hoặc có nhiều chữ số lẻ.
-- Một số dòng là dữ liệu đầu vào sai định dạng và phải bị từ chối.
-- Khối lượng giao dịch mỗi batch có thể là 1, 100, 10.000 hoặc nhiều hơn.
+- Most amounts have two decimal places and fall within ordinary bounds.
+- A small percentage are zero, negative (refunds), very large, or have many fractional digits.
+- Some lines are malformed input and must be rejected.
+- Transaction volume per batch may be 1, 100, 10,000, or more.
 
-Nếu chỉ đo `new BigDecimal("1.00").add(new BigDecimal("2.00"))` trong vòng lặp, ta đã bỏ qua parse, bộ nhớ, số lượng phần tử, scale, giá trị cực lớn và tính chất batch.
+If you only measure `new BigDecimal("1.00").add(new BigDecimal("2.00"))` in a loop, you have omitted parsing, memory, element counts, scale, extreme values, and batch characteristics.
 
-### 2.1. Ma trận dữ liệu đại diện
+### 2.1. Representative data matrix
 
-| Trục dữ liệu | Cần ghi nhận | Vì sao tác động hiệu năng |
+| Data axis | What to record | Why it affects performance |
 |---|---|---|
-| Kích thước tập | 0, 1, vài chục, hàng nghìn, hàng triệu; phân bố thực tế | Chi phí khởi tạo pipeline, vòng lặp, cache, phân bổ và GC |
-| Độ lớn số nguyên | Giá trị nhỏ, sát `Integer.MAX_VALUE`/`Long.MAX_VALUE`, số `BigInteger` rất dài | Overflow, số limb nội bộ, thuật toán nhân/chia |
-| `BigDecimal.precision()` | Ít chữ số, nhiều chữ số, độ dài cực lớn hợp lệ | Chi phí phép toán và định dạng thay đổi |
-| `BigDecimal.scale()` | Scale 0, 2, âm, lớn, chênh lệch scale | Phép cộng có thể cần căn chỉnh scale; `setScale`/`divide` cần thêm xử lý |
-| Dấu và giá trị | Số dương, âm, 0, gần 0, đổi dấu liên tục | Nhánh điều kiện, hủy số, quy tắc làm tròn |
-| Phép tính | Cộng, nhân, chia, làm tròn, parse, format | Mỗi phép có độ phức tạp và kiểu cấp phát riêng |
-| Dạng đầu vào | Chuỗi, primitive array, wrapper collection | Chi phí parse, boxing/unboxing, chuyển đổi |
-| Kiểu truy cập | Tuần tự, song song, nhiều request đồng thời | Cạnh tranh CPU, cache, allocator và GC |
+| Dataset size | 0, 1, tens, thousands, millions; realistic distribution | Pipeline startup cost, loops, caches, allocation, and GC |
+| Integer magnitude | Small values, near `Integer.MAX_VALUE`/`Long.MAX_VALUE`, very long `BigInteger` | Overflow, internal limb counts, multiplication/division algorithms |
+| `BigDecimal.precision()` | Few digits, many digits, valid extreme lengths | Operation and formatting costs change |
+| `BigDecimal.scale()` | Scale 0, 2, negative, large, scale differences | Addition may require scale alignment; `setScale`/`divide` need extra work |
+| Sign and value | Positive, negative, 0, near 0, alternating signs | Branching, cancellation, rounding rules |
+| Operation | Add, multiply, divide, round, parse, format | Each operation has its own complexity and allocation pattern |
+| Input form | Strings, primitive arrays, wrapper collections | Parsing, boxing/unboxing, and conversion costs |
+| Access pattern | Sequential, parallel, many concurrent requests | CPU, cache, allocator, and GC contention |
 
-**Tập phổ biến** và **tập biên** nên là hai nhóm kết quả riêng. Một trường hợp cực đoan hiếm gặp có thể được ghi nhận, nhưng không nên đánh đồng nó với thời gian trung bình của mọi request. Đồng thời, tình huống biên có thể là một yêu cầu chính thức, ví dụ ngưỡng latency tối đa hoặc giới hạn chống quá tải; khi đó nó cần có tiêu chí riêng.
+The **typical set** and **edge-case set** should be two separate result groups. A rare extreme case can be recorded, yet should not be conflated with the average latency of all requests. At the same time, an edge case may be a formal requirement, such as a maximum latency threshold or overload guard; in that case it needs its own criteria.
 
-### 2.2. Phân bố quan trọng hơn giá trị trung bình
+### 2.2. Distribution matters more than averages
 
-Giả sử một triệu request có 99% đầu vào là `BigDecimal` 6 chữ số và 1% là số dài hàng nghìn chữ số. Lấy độ dài trung bình rồi chỉ benchmark một giá trị có độ dài trung bình **không tương đương** với benchmark hỗn hợp thật: thời gian của phép nhân/chia và cấp phát bộ nhớ có thể tăng không tuyến tính theo số chữ số.
+Suppose one million requests have 99% 6-digit `BigDecimal` inputs and 1% thousand-digit numbers. Taking the average length and benchmarking only one value of average length **is not equivalent** to benchmarking the real mixture: multiplication/division time and memory allocation can grow nonlinearly with digit count.
 
-Thực hành tốt:
+Good practice:
 
-1. Tách **bucket** theo kích thước: ví dụ 1–9, 10–99, 100–999, từ 1000 chữ số trở lên (chỉ là ví dụ; ranh giới phải theo dữ liệu thực).
-2. Đo từng bucket để biết chi phí của từng lớp đầu vào.
-3. Đo một workload **hỗn hợp có trọng số theo tỷ lệ thật** để ước lượng tải phổ biến.
-4. Đo trường hợp xấu riêng nếu cần đáp ứng ngưỡng SLO hoặc giới hạn an toàn.
+1. Separate **buckets** by size: e.g., 1–9, 10–99, 100–999, and 1000+ digits (merely an example; boundaries must match real data).
+2. Measure each bucket to learn the cost of each input class.
+3. Measure a **weighted mixed workload matching real proportions** to estimate typical load.
+4. Measure worst cases separately if an SLO threshold or safety limit must be met.
 
-Khi nguồn production chứa dữ liệu nhạy cảm, tạo dữ liệu tổng hợp có **cùng đặc điểm thống kê**; không sao chép nguyên thông tin cá nhân hoặc giá trị nhạy cảm vào benchmark.
+When production sources contain sensitive data, generate synthetic data with the **same statistical characteristics**; do not copy raw personal information or sensitive values into benchmarks.
 
-## 3. Bộ tình huống biên theo từng kiểu số
+## 3. Edge-Case Suites by Numeric Type
 
-Các loại biên phải xuất phát từ miền số và thao tác thực sự được sử dụng.
+Boundary categories must derive from the numeric domains and operations actually used.
 
-### 3.1. int và long: kiểm tra giới hạn và overflow
+### 3.1. `int` and `long`: checking bounds and overflow
 
 ~~~java
 int maxInt = Integer.MAX_VALUE;            // 2147483647
@@ -73,11 +73,11 @@ long beyondInt = (long) maxInt + 1;        // 2147483648
 int overflow = maxInt + 1;                 // -2147483648 (wrap)
 ~~~
 
-Cần kiểm tra tối thiểu các giá trị `0`, `1`, `-1`, `MIN_VALUE`, `MAX_VALUE`, và các tổ hợp cộng/nhân gần ngưỡng. Khi dùng `Math.addExact` hoặc `Math.multiplyExact`, kiểm tra cả đường thành công lẫn đường ném `ArithmeticException`.
+At minimum, test `0`, `1`, `-1`, `MIN_VALUE`, `MAX_VALUE`, and addition/multiplication combinations near thresholds. When using `Math.addExact` or `Math.multiplyExact`, test both the success path and the `ArithmeticException`-throwing path.
 
-**Đo hai phương án chỉ khi ngữ nghĩa phù hợp**: so sánh phép cộng int có wrap với `Math.addExact` không phải cuộc đua tương đương nếu nghiệp vụ yêu cầu phát hiện tràn số. Trong hệ thống thực, đường ném exception có thể chiếm chi phí đáng kể nhưng không được tự ý bỏ kiểm tra chỉ vì chậm.
+**Compare two approaches only when semantics match**: racing wrapping `int` addition against `Math.addExact` is not an equivalent race if the business logic requires overflow detection. In real systems, the exception-throwing path can carry substantial cost, yet checks must never be dropped solely because they are slower.
 
-### 3.2. double: độ chính xác, NaN, Infinity và độ lớn
+### 3.2. `double`: precision, `NaN`, `Infinity`, and magnitude
 
 ~~~java
 double[] sample = {
@@ -91,11 +91,11 @@ double[] sample = {
 };
 ~~~
 
-Cần thử số gần 0, subnormal, số rất lớn, nhiều giá trị triệt tiêu nhau và trường hợp tính ra `Infinity`/`NaN`. `Double.MIN_VALUE` là số dương nhỏ nhất khác 0 dạng subnormal, **không phải** giá trị âm lớn nhất về độ lớn; hãy nhớ `-Double.MAX_VALUE` khi cần giá trị âm hữu hạn cực trị.
+Test numbers near 0, subnormals, very large numbers, canceling values, and cases producing `Infinity`/`NaN`. `Double.MIN_VALUE` is the smallest positive nonzero subnormal number, **not** the most negative value in magnitude; remember `-Double.MAX_VALUE` when you need the extreme finite negative value.
 
-Tổng `double` phụ thuộc thứ tự tính vì phép cộng số thực không kết hợp tuyệt đối. Chạy parallel hoặc dùng thuật toán cộng bù có thể cho kết quả hơi khác; nên xác định dung sai phù hợp thay vì kiểm tra mọi kết quả bằng `==`. Với `NaN`, so sánh thường cần `Double.isNaN(...)`.
+A `double` sum depends on calculation order because floating-point addition is not strictly associative. Running in parallel or using compensated summation can yield slightly different results; define an appropriate tolerance instead of checking every result with `==`. For `NaN`, comparisons typically require `Double.isNaN(...)`.
 
-### 3.3. BigInteger: số chữ số và phép toán cụ thể
+### 3.3. `BigInteger`: digit counts and specific operations
 
 ~~~java
 BigInteger small = BigInteger.valueOf(7);
@@ -104,11 +104,11 @@ BigInteger boundary = BigInteger.valueOf(Long.MAX_VALUE)
         .add(BigInteger.ONE);
 ~~~
 
-Thử độ dài operand khác nhau (ví dụ 1, 20, 100, 1000 chữ số), dấu âm/dương, zero và các tổ hợp có operand chênh lệch độ dài. Chi phí phép nhân và phép chia có thể thay đổi theo cỡ số, thậm chí theo thuật toán nội bộ được JVM chọn. Chỉ benchmark phép cộng các `BigInteger` nhỏ rồi ngoại suy tới phép nhân số có hàng nghìn chữ số là thiếu căn cứ.
+Test differing operand lengths (e.g., 1, 20, 100, 1000 digits), negative/positive signs, zero, and combinations where operands differ sharply in length. Multiplication and division costs can change with number size, and even with the internal algorithm chosen by the JVM. Benchmarking addition on small `BigInteger` instances and extrapolating to multiplication of thousand-digit numbers is unfounded.
 
-**Lưu ý:** `BigInteger.TEN.pow(1000)` tạo số giá trị `10^1000`, tức 1001 chữ số thập phân. Khi tạo dữ liệu theo số chữ số cần đo, phải phân biệt "lũy thừa 1000" với "có đúng 1000 chữ số".
+**Note:** `BigInteger.TEN.pow(1000)` produces `10^1000`, which has 1001 decimal digits. When generating data by digit count to measure, distinguish "power of 1000" from "having exactly 1000 digits".
 
-### 3.4. BigDecimal: precision, scale, rounding và định dạng
+### 3.4. `BigDecimal`: precision, scale, rounding, and formatting
 
 ~~~java
 BigDecimal[] values = {
@@ -122,57 +122,57 @@ BigDecimal[] values = {
 };
 ~~~
 
-Các đối tượng bằng nhau về giá trị có thể có **scale khác nhau**. Ví dụ `new BigDecimal("1.0")` và `new BigDecimal("1.00")` so sánh `compareTo() == 0`, nhưng `equals()` trả false. Benchmark chỉ một scale sẽ không đại diện cho workload có scale hỗn hợp.
+Objects equal in arithmetic value can have **different scales**. For example, `new BigDecimal("1.0")` and `new BigDecimal("1.00")` satisfy `compareTo() == 0`, yet `equals()` returns false. Benchmarking only a single scale does not represent a mixed-scale workload.
 
-Với phép chia, dữ liệu biên phải có cả kết quả thập phân hữu hạn và vô hạn:
+For division, boundary data must cover both terminating and non-terminating decimal results:
 
 ~~~java
 BigDecimal.ONE.divide(new BigDecimal("8")); // 0.125
 
 // BigDecimal.ONE.divide(new BigDecimal("3"));
-// ArithmeticException vì không biểu diễn chính xác hữu hạn.
+// ArithmeticException because there is no finite exact representation.
 BigDecimal rounded = BigDecimal.ONE.divide(
         new BigDecimal("3"),
         new java.math.MathContext(12, java.math.RoundingMode.HALF_EVEN));
 ~~~
 
-Không thể coi một bản cài đặt "nhanh hơn" nếu nó âm thầm thay đổi scale, làm tròn ở bước khác hoặc bỏ ngoại lệ bắt buộc. Benchmark có độ lớn `BigDecimal` cao cần giới hạn thực tế để tránh vô tình dùng tài nguyên quá mức; ghi rõ giới hạn đầu vào được hệ thống hỗ trợ.
+An implementation cannot be considered "faster" if it silently changes scale, rounds at a different step, or drops required exceptions. Benchmarks with large `BigDecimal` magnitudes need realistic bounds to avoid accidental resource exhaustion; document the input limits supported by the system.
 
-## 4. Tách chi phí tạo dữ liệu khỏi phép toán đang đo
+## 4. Separating Data Construction Cost from the Measured Operation
 
-Phép đo có thể vô tình tính cả công đoạn **parse từ chuỗi** hoặc **tạo đối tượng**:
+A measurement can accidentally include **parsing from strings** or **object construction**:
 
 ~~~java
-// Bao gồm cả parse và cộng: hợp lý nếu đây là toàn bộ đường xử lý thực.
+// Includes both parsing and addition: reasonable if this is the entire real path.
 BigDecimal result = new BigDecimal("123.45")
         .add(new BigDecimal("67.89"));
 ~~~
 
-Nhưng nếu câu hỏi là "`BigDecimal.add` nhanh đến đâu với hai operand đã chuẩn bị sẵn?", phải tạo operand trước vùng thời gian đo:
+However, if the question is "how fast is `BigDecimal.add` on two pre-prepared operands?", you must construct the operands before the timed region:
 
 ~~~java
 BigDecimal left = new BigDecimal("123.45");
 BigDecimal right = new BigDecimal("67.89");
 
-// Chỉ phép toán add là đối tượng của benchmark.
+// Only the add operation is the target of the benchmark.
 BigDecimal result = left.add(right);
 ~~~
 
-Cả hai phép đo đều có giá trị, **nếu được đặt tên chính xác**:
+Both measurements are valid **if named accurately**:
 
-- **Operation benchmark:** operand đã có sẵn; đo cộng/nhân/chia.
-- **End-to-end benchmark:** gồm parse, kiểm tra dữ liệu, tính toán, làm tròn và format, phản ánh đường request thực.
-- **Allocation benchmark:** theo dõi số byte/operation và GC khi tạo/biến đổi nhiều số.
+- **Operation benchmark:** operands already exist; measures add/multiply/divide.
+- **End-to-end benchmark:** includes parsing, validation, calculation, rounding, and formatting, reflecting the real request path.
+- **Allocation benchmark:** tracks bytes/operation and GC when creating/transforming many numbers.
 
-Với các số bất biến, thao tác có thể tạo đối tượng kết quả mới. Nếu bạn chỉ đo thời gian CPU mà bỏ qua cấp phát, phương án "nhanh hơn" có thể gây tần suất GC cao khi hệ thống tải lớn.
+With immutable numbers, operations can allocate new result objects. If you measure only CPU time while ignoring allocations, a "faster" approach may trigger high GC frequency under heavy system load.
 
-Không dùng cùng một đối tượng mutable bị thay đổi liên tục trong các lần đo nếu điều đó khiến đầu vào thay đổi hoặc làm xuất hiện tranh chấp ngoài chủ ý. Tách rõ dữ liệu chuẩn bị trước, dữ liệu cho từng invocation và trạng thái mà benchmark được phép thay đổi.
+Do not reuse the same mutable object modified continuously across runs if doing so alters inputs or introduces unintended contention. Clearly separate pre-prepared data, per-invocation data, and state the benchmark is allowed to mutate.
 
-## 5. Độ đúng là điều kiện trước khi so tốc độ
+## 5. Correctness Is a Prerequisite Before Comparing Speed
 
-Mỗi candidate phải vượt qua **đối chiếu kết quả** trên cùng tập dữ liệu trước khi báo cáo tốc độ. Có thể dùng một triển khai chuẩn dễ hiểu để làm đối chứng (*oracle*), nhưng oracle cũng cần được kiểm thử.
+Every candidate must pass **result verification** on the same dataset before reporting speed. You can use a simple reference implementation as an *oracle*, though the oracle itself must also be tested.
 
-Ví dụ đo hai cách tính tổng các `BigDecimal` đã tạo sẵn:
+Example measuring two ways to sum pre-created `BigDecimal` values:
 
 ~~~java
 import java.math.BigDecimal;
@@ -196,24 +196,24 @@ System.out.println(loop.toPlainString());   // 10.00
 System.out.println(stream.toPlainString()); // 10.00
 ~~~
 
-Phải kiểm tra kết quả trước. Nếu yêu cầu chỉ xét giá trị toán học, dùng `compareTo(...) == 0`. Nếu scale/format là một phần của hợp đồng, cần kiểm tra `scale()` hoặc biểu diễn chuỗi. Với một số phép toán như chia hay làm tròn ở bước trung gian, thay đổi thứ tự có thể dẫn đến kết quả khác ngay cả khi không có lỗi concurrency.
+You must verify results first. If requirements only check arithmetic value, use `compareTo(...) == 0`. If scale/formatting is part of the contract, verify `scale()` or string representations. For certain operations such as division or intermediate rounding, changing order can yield different results even without concurrency bugs.
 
-Các kiểm tra nên bao gồm:
+Checks should cover:
 
-- Tổng đúng cho tập 0 phần tử và 1 phần tử.
-- Dấu âm/0; các giá trị cùng dấu và trái dấu.
-- Overflow đối với primitive; xử lý exception nếu cần.
-- Precision/scale và `RoundingMode` đối với thập phân.
-- Đường đầu vào sai định dạng/không hợp lệ nếu có trong ứng dụng.
-- Đúng trong các tình huống có xử lý song song khi triển khai sử dụng parallel.
+- Correct sum for 0-element and 1-element sets.
+- Negative/0 signs; same-sign and opposite-sign values.
+- Overflow for primitives; exception handling if required.
+- Precision/scale and `RoundingMode` for decimals.
+- Malformed/invalid input paths if present in the application.
+- Correctness in parallel execution when the implementation uses parallelism.
 
-**Không được bỏ qua validation/exception theo nghiệp vụ để khiến benchmark nhìn nhanh hơn.** Nếu hai triển khai khác hợp đồng đầu ra, kết quả thời gian không đủ để thay thế lẫn nhau.
+**Never skip business-required validation/exceptions to make a benchmark look faster.** If two implementations differ in output contract, timing numbers do not justify substituting one for the other.
 
-## 6. Ví dụ Java 17+ chạy độc lập: tạo dữ liệu thường và biên, so sánh kết quả
+## 6. Standalone Runnable Java 17+ Example: Creating Typical and Edge Data, Comparing Results
 
-Chương trình bên dưới kiểm tra các tập mẫu cố định và đo **thời gian thô để quan sát sơ bộ**. Số nanosecond in ra phụ thuộc máy, JDK, tải CPU và trạng thái JVM; chương trình này **không phải microbenchmark đáng tin cậy**. Mục tiêu là minh họa cách giữ tập đầu vào, kiểm tra kết quả, và phát hiện nhầm lẫn giữa dữ liệu thường với dữ liệu biên.
+The program below checks fixed sample sets and measures **raw time for preliminary observation**. The printed nanoseconds depend on machine, JDK, CPU load, and JVM state; this program **is not a reliable microbenchmark**. Its goal is illustrating how to preserve input suites, verify results, and avoid confusing typical data with edge-case data.
 
-Tạo tệp `NumericWorkloadsDemo.java`:
+Create the file `NumericWorkloadsDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -249,12 +249,12 @@ public class NumericWorkloadsDemo {
 
     public static void main(String[] args) {
         for (Case testCase : CASES) {
-            // Chuẩn bị input bên ngoài phép đo:
+            // Prepare inputs outside the measurement:
             BigDecimal[] data = Arrays.stream(testCase.values())
                     .map(BigDecimal::new)
                     .toArray(BigDecimal[]::new);
 
-            // Kiểm tra đúng trước khi đo:
+            // Verify correctness before measuring:
             BigDecimal expected = sumLoop(data);
             BigDecimal actual = sumStream(data);
             if (expected.compareTo(actual) != 0
@@ -266,7 +266,7 @@ public class NumericWorkloadsDemo {
                     + " | inputs=" + data.length
                     + " | sum=" + actual.toPlainString());
 
-            // Chỉ mang tính chẩn đoán sơ bộ, không dùng để xếp hạng:
+            // Preliminary diagnostic only, not for ranking:
             long start = System.nanoTime();
             BigDecimal measured = sumLoop(data);
             long elapsed = System.nanoTime() - start;
@@ -279,14 +279,14 @@ public class NumericWorkloadsDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac NumericWorkloadsDemo.java
 java NumericWorkloadsDemo
 ~~~
 
-Các dòng kết quả **ổn định về mặt số học** (cứ sau mỗi dòng sẽ có thêm một dòng `timing-ns=...` với giá trị không cố định):
+The **arithmetically deterministic** output lines (followed after each line by a non-fixed `timing-ns=...` line):
 
 ~~~text
 typical | inputs=3 | sum=10.00
@@ -296,15 +296,15 @@ large | inputs=3 | sum=999999999999999999.00
 empty | inputs=0 | sum=0
 ~~~
 
-Kết quả thực tế sẽ có xen kẽ một dòng thời gian sau mỗi dòng số học, ví dụ `timing-ns=12345`; con số đó **không ổn định** và không được diễn giải là kết luận hiệu năng. Trên chương trình nhỏ, nhiễu từ JIT, GC, hệ điều hành, phân giải đồng hồ và overhead của phép đo có thể lớn hơn chính thao tác. Ngoài ra, chương trình chỉ tính một lần mỗi case. Để xếp hạng các phương án, dùng benchmark được thiết kế riêng, chẳng hạn JMH ở mục kế tiếp.
+Actual output interleaves a timing line after each arithmetic line, e.g. `timing-ns=12345`; that number is **unstable** and must not be interpreted as a performance conclusion. On a tiny program, noise from JIT, GC, OS, clock resolution, and measurement overhead can exceed the operation itself. Moreover, the program computes each case only once. To rank options, use a dedicated benchmark such as JMH in the next section.
 
-Đáng chú ý ở đầu vào `different-scale`: dù các số `0.00000001` và `-0.00000001` triệt tiêu nhau, tổng vẫn giữ scale 8 do quy tắc `BigDecimal.add`. Đây là lý do test cả giá trị và scale.
+Notably on the `different-scale` input: even though `0.00000001` and `-0.00000001` cancel out, the sum keeps scale 8 due to `BigDecimal.add` rules. This is why testing both value and scale matters.
 
-## 7. Dùng JMH khi cần đo vi mô đáng tin cậy
+## 7. Using JMH When Reliable Micro-Measurements Are Needed
 
-**JMH (Java Microbenchmark Harness)** là công cụ benchmark chuẩn thường dùng cho mã JVM. Nó hỗ trợ warmup, measurement iterations, forks, các kiểu kết quả (`AverageTime`, `Throughput`...), tham số đầu vào và cơ chế tiêu thụ kết quả giúp giảm rủi ro benchmark bị JVM tối ưu theo cách không đại diện.
+**JMH (Java Microbenchmark Harness)** is the standard benchmarking tool commonly used for JVM code. It supports warmup, measurement iterations, forks, result modes (`AverageTime`, `Throughput`...), input parameters, and result-consumption mechanisms that reduce the risk of the JVM optimizing the benchmark away in unrepresentative ways.
 
-Một benchmark tối thiểu dành cho phép cộng các `BigDecimal` đã parse trước có thể viết như sau (đây là **fragment JMH**, không chạy trực tiếp chỉ bằng `javac` của JDK; project phải thêm dependency JMH và annotation processor tương ứng):
+A minimal benchmark for adding pre-parsed `BigDecimal` values can be written as follows (this is a **JMH fragment**, not directly runnable with only the JDK's `javac`; the project must add the JMH dependency and annotation processor):
 
 ~~~java
 import java.math.BigDecimal;
@@ -348,165 +348,165 @@ public class DecimalAddBenchmark {
 }
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `@Param` đo nhiều kích thước tập, thay vì một danh sách ngắn duy nhất.
-- `@Setup(Level.Trial)` chuẩn bị dữ liệu **ngoài đoạn được đo**; vì thế benchmark so sánh phần cộng đã có operand.
-- `Blackhole.consume(...)` ngăn việc vô tình bỏ đi kết quả được tính, giúp benchmark diễn đạt rằng kết quả có giá trị.
-- `@BenchmarkMode(Mode.AverageTime)` yêu cầu thời gian trung bình của invocation trong các measurement; không phải thời gian latency p99 của hệ thống thật.
-- `@State(Scope.Thread)` cho mỗi worker một state riêng. Khi cần mô phỏng tranh chấp trên một state chia sẻ, phải chọn state/luồng thích hợp theo tình huống muốn đo, nhưng benchmark đó là câu hỏi khác.
+- `@Param` measures multiple collection sizes rather than a single short list.
+- `@Setup(Level.Trial)` prepares data **outside the measured section**; thus the benchmark compares addition with pre-existing operands.
+- `Blackhole.consume(...)` prevents accidentally discarding computed results, expressing that the result is used.
+- `@BenchmarkMode(Mode.AverageTime)` requests average invocation time across measurements; not the p99 latency of a real system.
+- `@State(Scope.Thread)` gives each worker its own state. When you need to simulate contention on shared state, choose an appropriate state/thread setup for that scenario, though that benchmark answers a different question.
 
-Ví dụ này **chưa đại diện cho mọi dữ liệu thực tế**, vì mỗi phần tử chỉ là một trong hai chuỗi ngắn. Để đo workload thực, thay `prepare()` bằng bộ dữ liệu có phân bố precision, scale, dấu và độ dài lấy từ phân tích dữ liệu nguồn; các nhóm biên nên tách thành các tham số case khác nhau. Với đầu vào random, tạo theo **seed cố định** trước giai đoạn đo để các candidate làm việc trên cùng dữ liệu; tránh tạo random trong chính benchmark nếu không chủ đích đo bộ sinh số ngẫu nhiên.
+This example **does not yet represent all real data**, because each element is merely one of two short strings. To measure real workloads, replace `prepare()` with a dataset matching the precision, scale, sign, and length distribution derived from source data analysis; edge groups should be separated into distinct case parameters. For random inputs, generate them using a **fixed seed** before measurement so all candidates operate on identical data; avoid generating random numbers inside the benchmark itself unless intentionally measuring the RNG.
 
-### 7.1. Quy trình đo có thể tái lập
+### 7.1. Reproducible measurement process
 
-1. **Định nghĩa phép toán và output:** nêu tên trường hợp, input, đơn vị đo, đúng/sai, và điều kiện hoàn thành.
-2. **Chuẩn bị corpus:** dữ liệu thường có tỷ lệ thực tế, case kích thước khác nhau, case biên và case lỗi rõ ràng.
-3. **Xác thực correctness:** chạy oracle/test cho mọi triển khai, bao gồm giá trị và scale khi cần.
-4. **Warmup:** cho JVM biên dịch và tối ưu các đường mã được gọi thường xuyên trước khi thu kết quả.
-5. **Measurement:** chạy nhiều iteration và nhiều fork JVM độc lập, ghi nhận độ phân tán và sai số do harness báo.
-6. **Ghi môi trường:** JDK/vendor/version, CPU, RAM, JVM flags, hệ điều hành, GC, số thread, kích thước heap và nguồn dữ liệu.
-7. **Đo allocation/GC:** dùng profiler hoặc tính năng profiling của JMH nếu việc tạo `BigDecimal`/`BigInteger` là chi phí đáng kể.
-8. **Lặp lại trên tải mục tiêu:** kiểm tra workload đầu-cuối và tải đồng thời phù hợp, vì kết quả microbenchmark chỉ mô tả đoạn mã được đo.
+1. **Define operation and output:** name the case, inputs, measurement unit, pass/fail, and completion criteria.
+2. **Prepare corpus:** typical data in realistic ratios, varying-size cases, edge cases, and explicit error cases.
+3. **Verify correctness:** run oracle/tests for every implementation, including value and scale where required.
+4. **Warmup:** let the JVM compile and optimize hot code paths before collecting results.
+5. **Measurement:** run multiple iterations and multiple independent JVM forks, recording variance and harness-reported error.
+6. **Document environment:** JDK/vendor/version, CPU, RAM, JVM flags, OS, GC, thread count, heap size, and data source.
+7. **Measure allocation/GC:** use a profiler or JMH profiling features if `BigDecimal`/`BigInteger` creation is a major cost.
+8. **Repeat on target load:** verify end-to-end workloads and appropriate concurrency, since microbenchmark results describe only the measured snippet.
 
-Không chọn một kết quả duy nhất sau một vòng chạy làm kết luận. Nếu chênh lệch nhỏ so với độ biến động của phép đo, phải coi chưa đủ bằng chứng.
+Do not pick a single result after one run as your conclusion. If the gap is small relative to measurement variance, treat it as insufficient evidence.
 
-### 7.2. Cạm bẫy của microbenchmark
+### 7.2. Microbenchmark pitfalls
 
-| Cạm bẫy | Vì sao nguy hiểm | Cách phòng tránh |
+| Pitfall | Why it is dangerous | How to avoid |
 |---|---|---|
-| Benchmark code chỉ dùng hằng số | JVM có thể constant-fold hoặc tối ưu phần tính | Dữ liệu biến thiên từ `@State`/`@Param`, tiêu thụ kết quả |
-| Không sử dụng output | JVM có thể loại phép tính không quan sát được | Trả kết quả từ benchmark hoặc dùng `Blackhole` |
-| Không warmup | Đo cả interpreter/class loading/JIT | Cấu hình warmup + measurement riêng |
-| Một lần `nanoTime` với vài phép toán | Chi phí đồng hồ và nhiễu áp đảo | JMH với iterations/forks |
-| Tạo đối tượng bên trong phép đo dù chỉ muốn tính toán | Kết quả đo chủ yếu parse/cấp phát | Chuẩn bị trong `@Setup` khi hợp đồng cần |
-| Chuẩn bị sẵn input dù mục tiêu là end-to-end | Bỏ qua parse/format/validation | Benchmark riêng đường request thực |
-| Dùng random mỗi lần trong benchmark | Đo cả random, dữ liệu candidate khác nhau | Tạo corpus seed cố định ngoài đoạn đo |
-| Chạy hai candidate trên tải hệ thống khác nhau | Nhiễu khiến kết quả khó so sánh | Môi trường ổn định, nhiều lần thử/forks |
-| Đồng nhất average với p99 | Không đo được tail latency thực của hệ thống | Đo latency distribution ở cấp request |
-| So code có quy tắc overflow/rounding khác | "Nhanh hơn" nhờ đổi semantics | Correctness gate trước performance |
-| Chọn một dataset cực trị làm đại diện duy nhất | Không phản ánh tần suất sản xuất | Cả mixed workload và case biên riêng |
+| Benchmark code uses only constants | JVM can constant-fold or optimize away work | Varying data from `@State`/`@Param`, consume results |
+| Output goes unused | JVM can eliminate unobservable computation | Return result from benchmark or use `Blackhole` |
+| No warmup | Measures interpreter/class loading/JIT too | Configure separate warmup + measurement |
+| Single `nanoTime` over a few ops | Clock overhead and noise dominate | JMH with iterations/forks |
+| Creating objects inside measurement when only wanting arithmetic | Result mostly measures parsing/allocation | Prepare in `@Setup` when contract fits |
+| Pre-building inputs when goal is end-to-end | Skips parsing/formatting/validation | Benchmark real request path separately |
+| Generating random numbers per call inside benchmark | Measures RNG too, different data per candidate | Pre-generate fixed-seed corpus outside measurement |
+| Running candidates under different system loads | Noise makes comparison unreliable | Stable environment, multiple trials/forks |
+| Equating average with p99 | Misses real system tail latency | Measure latency distribution at request level |
+| Comparing code with different overflow/rounding rules | "Faster" due to changed semantics | Correctness gate before performance |
+| Choosing one extreme dataset as sole representative | Fails to reflect production frequency | Both mixed workloads and separate edge cases |
 
-## 8. Chọn thước đo gắn với mục tiêu
+## 8. Choosing Metrics Tied to Goals
 
-Không có một chỉ số tốc độ phù hợp mọi hệ thống. Khi báo cáo, xác định **đơn vị và phạm vi**:
+No single speed metric fits every system. When reporting, specify **unit and scope**:
 
-| Chỉ số | Trả lời câu hỏi | Khi hữu ích |
+| Metric | Question answered | When useful |
 |---|---|---|
-| `ns/op` hoặc `µs/op` | Một lần tính toán trong benchmark vi mô tốn bao lâu? | So hai thuật toán cho cùng thao tác |
-| `ops/s` | Một worker/hệ thống xử lý được bao nhiêu phép trong một giây? | Throughput tổng hợp |
-| `bytes/op` | Mỗi thao tác cấp phát bao nhiêu bộ nhớ? | `BigDecimal`/`BigInteger` tạo nhiều đối tượng |
-| `GC pauses`, allocation rate | Dữ liệu lớn hoặc nhiều lần cấp phát gây áp lực GC ra sao? | Dịch vụ chạy lâu, tải cao |
-| `p50/p95/p99 latency` | Nửa, 95%, 99% request hoàn thành trong bao lâu? | Đảm bảo thời gian phản hồi |
-| `CPU utilization`, request concurrency | Tải đồng thời ảnh hưởng hiệu năng thế nào? | Phục vụ thực tế trên server |
+| `ns/op` or `µs/op` | How long does one calculation take in a microbenchmark? | Comparing two algorithms for the same operation |
+| `ops/s` | How many operations can a worker/system process per second? | Aggregate throughput |
+| `bytes/op` | How much memory does each operation allocate? | `BigDecimal`/`BigInteger` creating many objects |
+| `GC pauses`, allocation rate | How much GC pressure do large data or frequent allocations cause? | Long-running, high-load services |
+| `p50/p95/p99 latency` | Within what time do 50%, 95%, 99% of requests finish? | Ensuring response-time targets |
+| `CPU utilization`, request concurrency | How does concurrent load affect performance? | Real server production behavior |
 
-Ví dụ một phép nhân `BigInteger` hiếm gặp mất nhiều thời gian có thể ít ảnh hưởng đến throughput trung bình nhưng làm đuôi latency tăng. Ngược lại, thêm một allocation nhỏ ở mỗi phép tính lặp hàng triệu lần có thể gây GC đáng kể dù mỗi invocation rất nhanh.
+For example, a rare `BigInteger` multiplication taking a long time may barely affect average throughput yet spike tail latency. Conversely, adding a small allocation on every calculation repeated millions of times can cause substantial GC even when each invocation is fast.
 
-**Không diễn giải trung bình số học của một microbenchmark thành p99 của request.** Request có thể chứa parse, I/O, queueing, phân phối nhiều phép tính và pause GC. Nếu hệ thống có SLO p99, đo bằng công cụ tạo tải ở tầng yêu cầu thực với tỷ lệ request và mức concurrency đúng.
+**Do not interpret the arithmetic mean of a microbenchmark as request p99.** Requests can involve parsing, I/O, queueing, dispatching multiple calculations, and GC pauses. If the system has a p99 SLO, measure with a load generator at the real request tier with accurate request ratios and concurrency.
 
-## 9. Tập biên phải thử cả lỗi, không chỉ số lớn
+## 9. Edge Suites Must Test Errors Too, Not Just Large Numbers
 
-Dữ liệu biên gồm cả **đường lỗi có ý nghĩa nghiệp vụ**:
+Edge data includes **business-meaningful error paths**:
 
-- `new BigDecimal("invalid")` ném `NumberFormatException`.
-- `BigDecimal.ONE.divide(new BigDecimal("3"))` ném `ArithmeticException` nếu yêu cầu chia chính xác hữu hạn.
-- `Math.addExact(Integer.MAX_VALUE, 1)` ném `ArithmeticException`.
-- `BigDecimal` với precision/scale rất lớn có thể gây áp lực bộ nhớ hoặc gặp giới hạn thực thi/biểu diễn.
-- `DoubleStream` chứa `NaN` có thể làm phép tổng hợp trả `NaN`, cần xử lý theo quy tắc ứng dụng.
+- `new BigDecimal("invalid")` throws `NumberFormatException`.
+- `BigDecimal.ONE.divide(new BigDecimal("3"))` throws `ArithmeticException` if finite exact division is required.
+- `Math.addExact(Integer.MAX_VALUE, 1)` throws `ArithmeticException`.
+- `BigDecimal` with huge precision/scale can cause memory pressure or hit execution/representation limits.
+- `DoubleStream` containing `NaN` can make aggregations return `NaN`, requiring handling per application rules.
 
-Phải xác định tỷ lệ lỗi trong sản phẩm: nhiều trường hợp hiếm nhưng hợp lệ cần có benchmark riêng, còn yêu cầu sai định dạng có thể cần được đo ở đường kiểm tra đầu vào. Tuy nhiên, không cố tạo vô hạn dữ liệu nguy hiểm chỉ để chứng minh một điểm; thiết kế giới hạn đầu vào hợp lệ và thử ở ngay các mốc đó.
+Determine the error rate in production: rare yet valid cases need dedicated benchmarks, while malformed requests may need measurement on the input-validation path. Still, do not generate unbounded dangerous data just to prove a point; define valid input limits and test right at those marks.
 
-Nếu tài nguyên khan hiếm, dùng một bộ kiểm thử chức năng đầy đủ cho input cực đoan và một bộ benchmark giới hạn có thể tái lập; ghi rõ giới hạn đã đo để tránh ngoại suy quá xa.
+If resources are scarce, use a comprehensive functional test suite for extreme inputs and a bounded, reproducible benchmark suite; document measured limits to avoid over-extrapolating.
 
-## 10. Thiết kế thí nghiệm so sánh hai cách hiện thực
+## 10. Designing an Experiment Comparing Two Implementations
 
-Giả sử mục tiêu là chọn giữa vòng lặp `for` và `Stream.reduce` để cộng một mảng `BigDecimal`.
+Suppose the goal is choosing between a `for` loop and `Stream.reduce` to sum a `BigDecimal` array.
 
-### Bước 1 — định nghĩa hợp đồng
+### Step 1 — define the contract
 
-Đầu vào là `BigDecimal[]` đã được parse; phần tử không `null`. Cả hai giải pháp dùng cộng chính xác (`add` không có `MathContext`) và kết quả phải cùng giá trị **và scale**. Không thay đổi dữ liệu đầu vào.
+The input is a pre-parsed `BigDecimal[]`; elements are non-`null`. Both solutions use exact addition (`add` without `MathContext`) and outputs must match in both value **and scale**. Do not mutate the input data.
 
-### Bước 2 — thiết kế tập đo
+### Step 2 — design the measurement suite
 
-- **Typical:** mảng có độ dài xuất hiện thường xuyên, chủ yếu precision thấp và scale 2.
-- **Large batch:** số phần tử lớn đại diện batch đỉnh.
-- **Mixed scale:** bao gồm scale âm, scale 0, scale 2, scale cao.
-- **Long precision:** `BigDecimal` có hàng trăm/hàng nghìn chữ số ở những ngưỡng được phép.
-- **Empty/single:** 0 hoặc 1 phần tử; kiểm tra overhead của pipeline.
-- **Mixed sign:** số dương/âm/0, gồm trường hợp gần triệt tiêu nhau.
+- **Typical:** array length occurring most often, mostly low precision and scale 2.
+- **Large batch:** large element count representing peak batches.
+- **Mixed scale:** includes negative scale, scale 0, scale 2, and high scale.
+- **Long precision:** `BigDecimal` with hundreds/thousands of digits at allowed thresholds.
+- **Empty/single:** 0 or 1 element; checks pipeline overhead.
+- **Mixed sign:** positive/negative/0 values, including near-canceling pairs.
 
-Mỗi case được đo riêng. Sau đó có thể xây dựng workload hỗn hợp theo tỷ lệ production để ước tính hiệu ứng tổng quát.
+Each case is measured separately. Afterward, a mixed workload can be built in production proportions to estimate overall impact.
 
-### Bước 3 — kiểm tra correctness trước
+### Step 3 — verify correctness first
 
-So `compareTo` và `scale` hoặc so chuỗi chuẩn nếu hợp đồng yêu cầu. Tránh chuẩn hóa bằng `stripTrailingZeros()` trong bài test nếu việc bảo toàn scale là bắt buộc: thao tác này thay đổi biểu diễn.
+Check `compareTo` and `scale`, or compare canonical strings if the contract requires. Avoid normalizing with `stripTrailingZeros()` inside tests if preserving scale is mandatory: that operation alters representation.
 
-### Bước 4 — benchmark và đo phụ
+### Step 4 — benchmark and collect secondary metrics
 
-Dùng JMH để đo thời gian mỗi lần cộng mảng cùng dữ liệu. Bật thêm profiling allocation khi cần. Với microbenchmark trên một vài operand, chênh lệch có thể rất nhỏ; với batch lớn, chi phí stream setup, vòng lặp và số lượng đối tượng kết quả đều góp vào kết quả.
+Use JMH to measure time per array summation on identical data. Enable allocation profiling when needed. In microbenchmarks with a few operands, differences may be tiny; with large batches, stream setup, looping, and result object counts all contribute to the outcome.
 
-### Bước 5 — diễn giải trong phạm vi chứng cứ
+### Step 5 — interpret within evidence bounds
 
-Một báo cáo tốt không chỉ viết "A nhanh hơn B 30%". Nó nêu **dataset**, **JDK/CPU**, **mode**, **số lần thử**, **độ biến động**, **allocation**, **correctness**, và trường hợp nào thắng/thua. Kết luận có thể là "Với batch 100 phần tử, A nhanh hơn có ý nghĩa; với batch 10.000 phần tử kết quả tương đương trong sai số", thay vì một lựa chọn tuyệt đối.
+A good report does not merely say "A is 30% faster than B". It states **dataset**, **JDK/CPU**, **mode**, **trial counts**, **variance**, **allocation**, **correctness**, and which cases win/lose. A conclusion might be "For 100-element batches, A is meaningfully faster; for 10,000-element batches, results are equivalent within error margins", rather than an absolute proclamation.
 
-Bảng ghi nhận kết quả (điền bằng số đo thực, **không tự bịa giá trị**):
+Result recording table (fill with real measurements, **never fabricate values**):
 
-| Case | Size | Precision/scale | Cách A ns/op | Cách B ns/op | bytes/op | Correctness | Ghi chú |
+| Case | Size | Precision/scale | Approach A ns/op | Approach B ns/op | bytes/op | Correctness | Notes |
 |---|---:|---|---:|---:|---:|---|---|
-| Typical | Theo dữ liệu thực | Ngắn, scale 2 | *Điền số đo* | *Điền số đo* | *Điền số đo* | PASS/FAIL | Warmup/fork |
-| Mixed scale | Theo dữ liệu thực | Scale hỗn hợp | *Điền số đo* | *Điền số đo* | *Điền số đo* | PASS/FAIL | Kiểm tra scale |
-| Large precision | Theo dữ liệu thực | Hàng trăm chữ số | *Điền số đo* | *Điền số đo* | *Điền số đo* | PASS/FAIL | Bộ nhớ/GC |
-| Empty/single | 0 hoặc 1 | Biên cardinality | *Điền số đo* | *Điền số đo* | *Điền số đo* | PASS/FAIL | Overhead |
+| Typical | Per real data | Short, scale 2 | *Fill measured* | *Fill measured* | *Fill measured* | PASS/FAIL | Warmup/forks |
+| Mixed scale | Per real data | Mixed scales | *Fill measured* | *Fill measured* | *Fill measured* | PASS/FAIL | Verify scale |
+| Large precision | Per real data | Hundreds of digits | *Fill measured* | *Fill measured* | *Fill measured* | PASS/FAIL | Memory/GC |
+| Empty/single | 0 or 1 | Cardinality edge | *Fill measured* | *Fill measured* | *Fill measured* | PASS/FAIL | Overhead |
 
-Đây là khung **ghi chép đo kiểm**, không phải kết quả benchmark. Không được thay các ô bằng số ước đoán rồi khẳng định đã đo trên môi trường sản xuất.
+This is a **measurement recording template**, not benchmark results. Never replace the cells with estimated numbers and claim they were measured in production.
 
-## 11. Các lỗi phổ biến và cách khắc phục
+## 11. Common Mistakes and Fixes
 
-| Lỗi | Tác động | Cách khắc phục |
+| Mistake | Impact | Fix |
 |---|---|---|
-| Dùng duy nhất một giá trị số nhỏ | Bỏ qua các nhánh/độ phức tạp ở dữ liệu khác | Dùng phân bố thực + nhiều bucket |
-| Đo tập biên rồi lấy làm "hiệu năng trung bình" | Sai tỷ lệ xảy ra | Tách kết quả biên với workload theo trọng số |
-| Chỉ đo average time | Bỏ qua request chậm và GC pause | Thu p95/p99 ở tầng hệ thống khi có SLO |
-| Dùng `new BigDecimal("1.00")` bên trong vòng loop không chủ đích | Lẫn chi phí parse với phép toán | Chọn rõ operation vs end-to-end |
-| Benchmark nhận hằng, output bỏ đi | JIT có thể tối ưu mất thao tác | Dùng JMH `@State`, `@Param` và consume kết quả |
-| Không kiểm tra output trước benchmark | Chọn phương án sai số học | Correctness gate và oracle |
-| Bỏ qua overflow/trường hợp vô hạn | Sản phẩm sai dù benchmark nhanh | Test ở ranh giới và tình huống lỗi |
-| So `double` với `BigDecimal` như cùng semantics | Đánh đổi precision không được công bố | Làm rõ hợp đồng số học |
-| Mặc định parallel nhanh | Có overhead, tranh chấp và kết quả số thực thay đổi | Đo theo workload + core count |
-| Thay data giữa các candidate | Không còn so cùng công việc | Dùng seed/dataset cố định |
-| Không ghi JDK/flags/CPU | Khó tái lập kết luận | Lưu đầy đủ cấu hình |
-| Báo "ns/op" như latency thật | Microbenchmark không mô phỏng request | Đo cả end-to-end dưới tải thật |
+| Using only one small numeric value | Misses branches/complexity on other data | Use real distribution + multiple buckets |
+| Measuring edge cases and calling it "average performance" | Distorts occurrence rates | Separate edge results from weighted workload |
+| Measuring only average time | Misses slow requests and GC pauses | Collect p95/p99 at system level when SLO exists |
+| Using `new BigDecimal("1.00")` inside loop unintentionally | Mixes parsing cost with arithmetic | Clearly choose operation vs. end-to-end |
+| Benchmark takes constants, discards output | JIT may optimize away operation | Use JMH `@State`, `@Param`, and consume results |
+| Skipping output checks before benchmarking | Selects arithmetically wrong option | Correctness gate and oracle |
+| Ignoring overflow/non-terminating cases | Production bugs despite fast benchmark | Test at boundaries and error scenarios |
+| Comparing `double` and `BigDecimal` as same semantics | Undisclosed precision trade-off | Clarify arithmetic contract |
+| Assuming parallel is always faster | Adds overhead, contention, and alters float results | Measure by workload + core count |
+| Changing data between candidates | No longer comparing same work | Use fixed seed/dataset |
+| Omitting JDK/flags/CPU | Hard to reproduce conclusions | Record full configuration |
+| Reporting `ns/op` as real latency | Microbenchmark does not simulate requests | Also measure end-to-end under real load |
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Quiz
 
-**Câu 1.** Vì sao một phép cộng `BigInteger` nhanh với các số có một chữ số không chứng minh nó nhanh với operand có hàng nghìn chữ số?
+**Question 1.** Why does a `BigInteger` addition being fast for single-digit numbers not prove it is fast for thousand-digit operands?
 
-**Đáp án:** Chi phí số học phụ thuộc vào độ dài biểu diễn và thuật toán được dùng. Benchmark phải có các bucket độ dài đại diện cho miền được hỗ trợ.
+**Answer:** Arithmetic cost depends on representation length and the algorithm used. Benchmarks must include length buckets representative of the supported domain.
 
-**Câu 2.** Một hệ thống trả tiền bằng `BigDecimal` có scale bắt buộc 2. Nếu bản tối ưu trả cùng giá trị nhưng scale 1, có được coi là đúng không?
+**Question 2.** A system returns money as `BigDecimal` with mandatory scale 2. If an optimized version returns the same value with scale 1, is it considered correct?
 
-**Đáp án:** Nếu scale là một phần hợp đồng, không. Cần xác nhận giá trị và scale trước khi đo hiệu năng.
+**Answer:** If scale is part of the contract, no. Both value and scale must be verified before measuring performance.
 
-**Câu 3.** Benchmark chỉ gọi `sumLoop(input)` với operand parse sẵn. Nó đo được chi phí parse từ request không?
+**Question 3.** A benchmark only calls `sumLoop(input)` with pre-parsed operands. Does it measure request parsing cost?
 
-**Đáp án:** Không. Benchmark đó đo bước cộng trên dữ liệu đã chuẩn bị. Muốn đo end-to-end, phải đưa parse và các bước thực tế vào vùng được đo trong một benchmark riêng.
+**Answer:** No. That benchmark measures the summation step on prepared data. To measure end-to-end, include parsing and realistic steps inside the measured region of a separate benchmark.
 
-**Câu 4.** `IntStream.of(Integer.MAX_VALUE, 1).sum()` trả gì và có ý nghĩa gì đối với benchmark?
+**Question 4.** What does `IntStream.of(Integer.MAX_VALUE, 1).sum()` return, and what does it mean for benchmarking?
 
-**Đáp án:** Trả `-2147483648` do overflow `int`. Một bản cài đặt có hiệu năng tốt nhưng kết quả này sai với nghiệp vụ cần tổng số nguyên lớn, nên phải sửa contract/kiểu dữ liệu trước khi xếp hạng hiệu năng.
+**Answer:** It returns `-2147483648` due to `int` overflow. An implementation with great speed yet this result violates a requirement needing large integer sums, so fix the contract/data type before ranking performance.
 
-**Câu 5.** Nếu 1% request có dữ liệu lớn và chậm, chỉ đo 99% dữ liệu phổ biến có đủ để báo latency p99 không?
+**Question 5.** If 1% of requests carry large, slow data, is measuring only the 99% typical data enough to report p99 latency?
 
-**Đáp án:** Không. Phải quan sát phân bố latency trên toàn bộ request theo tỷ lệ thực và kiểm tra tail latency; đo riêng trường hợp lớn cũng hữu ích để hiểu nguyên nhân.
+**Answer:** No. You must observe the latency distribution across all requests at real proportions and check tail latency; measuring the large case separately is also useful to understand root causes.
 
-**Câu 6.** Tại sao cần warmup/forks khi benchmark mã Java ngắn?
+**Question 6.** Why are warmup/forks needed when benchmarking short Java code?
 
-**Đáp án:** JVM có thể khởi chạy ở interpreter, sau đó JIT tối ưu; trạng thái heap và cache có thể khác giữa lần chạy. Warmup và forks giúp giảm thiên lệch, nhưng vẫn cần báo độ biến động.
+**Answer:** The JVM may start in the interpreter and later JIT-optimize; heap and cache states can differ across runs. Warmup and forks help reduce bias, though variance should still be reported.
 
-**Câu 7.** Một phương án dùng ít CPU hơn nhưng cấp phát gấp nhiều lần. Có thể tuyên bố nó chắc chắn tốt hơn không?
+**Question 7.** Option A uses less CPU yet allocates many times more memory. Can it be declared strictly better?
 
-**Đáp án:** Chưa. Cấp phát thêm có thể làm tăng GC và p99 latency khi tải lớn. Cần đối chiếu nhiều chỉ số và giới hạn sản phẩm.
+**Answer:** Not yet. Extra allocations can increase GC and p99 latency under high load. You must compare multiple metrics and production limits.
 
 ---
 
-**Ghi nhớ:** Benchmark số học trong Java phải dùng **miền dữ liệu đại diện** và **tình huống biên được lựa chọn có lý do**, kiểm tra đúng giá trị/precision/scale/exception **trước khi so tốc độ**, rồi đo có warmup, nhiều lần thử và ghi rõ môi trường. Để ra quyết định thực tế, kết hợp microbenchmark với dữ liệu end-to-end, throughput, tail latency, allocation và GC; không suy rộng từ một phép cộng hoặc một `System.nanoTime()` đơn lẻ.
+**Takeaway:** Numeric benchmarking in Java must use **a representative data domain** and **reasoned edge cases**, verify value/precision/scale/exception correctness **before comparing speeds**, and measure with warmup, multiple trials, and documented environments. To make practical decisions, combine microbenchmarks with end-to-end data, throughput, tail latency, allocation, and GC; never generalize from a single addition or a lone `System.nanoTime()`.

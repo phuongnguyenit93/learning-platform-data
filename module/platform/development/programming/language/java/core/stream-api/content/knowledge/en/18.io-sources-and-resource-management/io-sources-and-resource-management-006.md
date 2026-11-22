@@ -1,22 +1,22 @@
-# Thứ tự chạy `onClose` và ngoại lệ bị `suppressed`
+# Execution Order of `onClose` and `suppressed` Exceptions
 
-Trong Java Stream API, một pipeline có thể xử lý dữ liệu đến từ file, thư mục hoặc một nguồn cần giải phóng tài nguyên. Khi đóng stream, các hàm dọn dẹp đã đăng ký qua `onClose(...)` được gọi theo một thứ tự xác định. Nếu nhiều hàm dọn dẹp cùng ném ngoại lệ, Java giữ lại các lỗi đó bằng cơ chế **suppressed exceptions** để không đánh mất thông tin về quá trình đóng tài nguyên.
+In the Java Stream API, a pipeline can process data coming from a file, a directory, or a source that requires resource cleanup. When a stream is closed, the cleanup handlers registered via `onClose(...)` are invoked in a deterministic order. If multiple cleanup handlers throw exceptions, Java preserves those errors using **suppressed exceptions** so no information about resource closing is lost.
 
-Bài học này thuộc chương **Nguồn vào ra và quản lý tài nguyên** của `JAVA_STREAM_API`. Mục tiêu là hiểu khi nào `onClose` chạy, thứ tự chạy các handler, ngoại lệ nào được ném ra ngoài, và vì sao `try-with-resources` có thể tạo thành nhiều tầng ngoại lệ bị `suppressed`.
+This lesson belongs to the **I/O Sources and Resource Management** chapter of `JAVA_STREAM_API`. The goal is to understand when `onClose` runs, the execution order of handlers, which exception gets thrown outward, and why `try-with-resources` can produce multiple layers of `suppressed` exceptions.
 
-## 1. `onClose` gắn với việc đóng stream, không gắn với terminal operation
+## 1. `onClose` Is Tied to Closing the Stream, Not Terminal Operations
 
-`BaseStream.onClose(Runnable closeHandler)` đăng ký một hành động được thực hiện khi stream được **đóng**. Mỗi lần gọi `onClose` trả về một stream tương đương có thêm close handler, vì vậy cách viết thông dụng là nối các lệnh `onClose` vào lúc tạo stream.
+`BaseStream.onClose(Runnable closeHandler)` registers an action to be executed when the stream is **closed**. Each call to `onClose` returns an equivalent stream with an additional close handler, so a common style is to chain `onClose` calls when creating the stream.
 
-Phân biệt hai sự kiện:
+Distinguish these events:
 
-| Sự kiện | Điều gì xảy ra? |
+| Event | What happens? |
 | --- | --- |
-| `count()`, `collect()`, `forEach()`, `findFirst()`... | Terminal operation kích hoạt hoặc kết thúc quá trình xử lý pipeline; **không tự động gọi `close()`**. |
-| `stream.close()` | Đóng stream và kích hoạt những close handler đã đăng ký. |
-| Kết thúc khối `try-with-resources` | Java tự gọi `close()` trên tài nguyên được khai báo, kể cả khi xử lý bị lỗi. |
+| `count()`, `collect()`, `forEach()`, `findFirst()`... | The terminal operation triggers or completes pipeline processing; **it does not automatically call `close()`**. |
+| `stream.close()` | Closes the stream and triggers all registered close handlers. |
+| Exiting a `try-with-resources` block | Java automatically calls `close()` on declared resources, even if processing fails. |
 
-Ví dụ ngắn:
+Short example:
 
 ```java
 import java.util.stream.Stream;
@@ -24,41 +24,41 @@ import java.util.stream.Stream;
 public class CloseLifecycleDemo {
     public static void main(String[] args) {
         Stream<String> stream = Stream.of("A", "B")
-                .onClose(() -> System.out.println("stream da dong"));
+                .onClose(() -> System.out.println("stream closed"));
 
         System.out.println(stream.count()); // 2
-        System.out.println("da thuc hien count");
+        System.out.println("count executed");
         stream.close();
     }
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 2
-da thuc hien count
-stream da dong
+count executed
+stream closed
 ```
 
-Điều đáng chú ý là dòng `stream da dong` chỉ xuất hiện sau `close()`. Khi làm việc với `Files.lines(...)`, `Files.walk(...)` hoặc nguồn I/O tương tự, không nên chỉ gọi terminal operation rồi bỏ quên stream: những nguồn này cần được đóng để giải phóng tài nguyên tương ứng. Với stream thuần bộ nhớ như `Stream.of(...)`, ví dụ trên chỉ nhằm quan sát vòng đời, không có file nào cần giải phóng.
+Notice that the line `stream closed` appears only after `close()`. When working with `Files.lines(...)`, `Files.walk(...)`, or similar I/O sources, do not simply invoke a terminal operation and abandon the stream: those sources must be closed to release their corresponding resources. With a purely in-memory stream such as `Stream.of(...)`, the example above only demonstrates lifecycle behavior; there is no file to release.
 
-## 2. Thứ tự thực thi các close handler
+## 2. Execution Order of Close Handlers
 
-Theo hợp đồng của `BaseStream.onClose`, **các close handler chạy theo thứ tự chúng được đăng ký**. Nếu handler đầu tiên ném ngoại lệ, Java vẫn cố chạy tất cả handler còn lại.
+By the contract of `BaseStream.onClose`, **close handlers run in the order they were registered**. If the first handler throws an exception, Java still attempts to run all remaining handlers.
 
-Ví dụ, khi lần lượt đăng ký `H1`, `H2`, `H3`, `H4`:
+For example, when registering `H1`, `H2`, `H3`, `H4` in sequence:
 
 ```text
-Dang ky:  H1 -> H2 -> H3 -> H4
+Register: H1 -> H2 -> H3 -> H4
 close():  H1 -> H2 -> H3 -> H4
                   |     |
-                loi A  loi B
+              error A  error B
 ```
 
-Nếu `H2` ném lỗi A và `H3` ném lỗi B thì `H4` **vẫn chạy**. Lỗi A là ngoại lệ chính của lần `close()`; lỗi B được lưu trong danh sách ngoại lệ bị `suppressed` của A.
+If `H2` throws error A and `H3` throws error B, `H4` **still runs**. Error A becomes the primary exception of the `close()` call; error B is stored in A's list of `suppressed` exceptions.
 
-Hãy chạy chương trình đầy đủ sau:
+Run the following complete program:
 
 ```java
 import java.util.stream.Stream;
@@ -88,7 +88,7 @@ public class OnCloseOrderDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 2
@@ -100,40 +100,40 @@ primary=error-2
 suppressed=error-3
 ```
 
-Từ kết quả có thể rút ra ba quy tắc:
+Three rules follow from this output:
 
-1. `close-1` đến `close-4` chạy đúng thứ tự đăng ký.
-2. Lỗi của `close-2` không ngăn `close-3` và `close-4` chạy.
-3. Ngoại lệ đầu tiên do handler ném ra là ngoại lệ được `close()` chuyển ra ngoài; các ngoại lệ đến sau nằm trong `getSuppressed()` của ngoại lệ đầu tiên.
+1. `close-1` through `close-4` execute in registration order.
+2. Failure in `close-2` does not prevent `close-3` and `close-4` from running.
+3. The first exception thrown by a handler is the exception thrown outward by `close()`; later exceptions appear in `getSuppressed()` of that first exception.
 
-Khi chỉ một handler thất bại, `getSuppressed()` có thể là mảng rỗng; khi nhiều handler thất bại, mảng này chứa các lỗi bổ sung. Trường hợp đặc biệt: nếu một handler sau đó ném lại **cùng chính đối tượng** `Throwable` đã là ngoại lệ chính, Java không gắn đối tượng đó làm suppressed của chính nó.
+When only one handler fails, `getSuppressed()` may be an empty array; when multiple handlers fail, this array contains the additional errors. Special case: if a later handler rethrows **the exact same `Throwable` instance** that is already the primary exception, Java does not attach that object as suppressed to itself.
 
-## 3. `suppressed` khác gì `cause`?
+## 3. How Does `suppressed` Differ from `cause`?
 
-`Throwable` có hai cơ chế diễn tả những quan hệ khác nhau:
+`Throwable` has two mechanisms expressing different relationships:
 
-| API | Ý nghĩa | Tình huống thường gặp |
+| API | Meaning | Common situations |
 | --- | --- | --- |
-| `getCause()` | Ngoại lệ gây ra hoặc được bọc bởi ngoại lệ hiện tại. | `new UncheckedIOException(ioException)` hoặc `new IllegalStateException("...", cause)`. |
-| `getSuppressed()` | Các ngoại lệ phụ được ghi nhận trong khi vẫn ưu tiên một ngoại lệ chính. | Một số close handler cùng thất bại; `close()` thất bại khi thân khối `try` cũng đã thất bại. |
+| `getCause()` | The exception that caused or was wrapped by the current exception. | `new UncheckedIOException(ioException)` or `new IllegalStateException("...", cause)`. |
+| `getSuppressed()` | Secondary exceptions recorded while keeping one primary exception in front. | Multiple close handlers failing together; `close()` failing when the `try` body also failed. |
 
-Đối với lỗi dọn dẹp, `suppressed` rất hữu ích: chương trình có thể giữ ngoại lệ chính làm tín hiệu lỗi cần xử lý, đồng thời vẫn cung cấp thông tin về các tài nguyên khác không đóng được. Không nên suy luận rằng suppressed là nguyên nhân (`cause`) của ngoại lệ chính; đó là hai quan hệ độc lập.
+For cleanup errors, `suppressed` is very useful: the program can preserve the primary exception as the error signal to handle, while still providing information about other resources that failed to close. You should not infer that a suppressed exception is the `cause` of the primary exception; they are two independent relationships.
 
-Khi phân tích sự cố, hãy kiểm tra cả exception chính lẫn `getSuppressed()`. Một số logger hoặc bản in stack trace chuẩn có thể hiển thị các nhánh `Suppressed: ...`, nhưng cách lập trình trực tiếp và rõ ràng nhất là duyệt `Throwable#getSuppressed()` như trong ví dụ trên.
+When analyzing incidents, inspect both the main exception and `getSuppressed()`. Some loggers or standard stack trace printouts display `Suppressed: ...` branches, but the most direct and explicit programmatic way is iterating over `Throwable#getSuppressed()` as in the example above.
 
-## 4. Hai tầng `suppressed` trong `try-with-resources`
+## 4. Two Levels of `suppressed` in `try-with-resources`
 
-`try-with-resources` có quy tắc ưu tiên riêng. Nếu **phần thân `try` đã ném ngoại lệ**, sau đó `close()` cũng thất bại, ngoại lệ từ thân `try` tiếp tục là ngoại lệ chính; ngoại lệ do `close()` ném ra được gắn vào nó dưới dạng `suppressed`.
+`try-with-resources` has its own precedence rule. If **the `try` body already threw an exception**, and then `close()` also fails, the exception from the `try` body remains the primary exception; the exception thrown by `close()` is attached to it as `suppressed`.
 
-Điều này kết hợp với quy tắc `onClose` để tạo thành một cấu trúc lồng nhau:
+This combines with the `onClose` rule to form a nested structure:
 
 ```text
-Loi tu than try: body-error                <-- ngoai le chinh ra khoi try
-  Suppressed: close-error-1                <-- close() nem ra
-    Suppressed: close-error-2              <-- handler onClose tiep theo
+Error from try body: body-error            <-- primary exception thrown out of try
+  Suppressed: close-error-1                <-- thrown by close()
+    Suppressed: close-error-2              <-- next onClose handler
 ```
 
-Ví dụ có thể biên dịch và chạy độc lập:
+Compilable, standalone example:
 
 ```java
 import java.util.stream.Stream;
@@ -164,7 +164,7 @@ public class NestedSuppressedDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 primary=body-error
@@ -172,21 +172,21 @@ primary=body-error
     nested=close-error-2
 ```
 
-Ở đây diễn ra hai bước độc lập:
+Two independent steps occur here:
 
-1. Trong quá trình `close()`, handler đầu ném `close-error-1`; handler thứ hai vẫn chạy và ném `close-error-2`. `close-error-2` được gắn vào `close-error-1`.
-2. Vì phần thân `try` đã ném `body-error`, `try-with-resources` giữ `body-error` làm lỗi chính, rồi gắn **toàn bộ** ngoại lệ `close-error-1` (kèm ngoại lệ con của nó) vào `body-error`.
+1. During `close()`, the first handler throws `close-error-1`; the second handler still runs and throws `close-error-2`. `close-error-2` is attached to `close-error-1`.
+2. Because the `try` body threw `body-error`, `try-with-resources` keeps `body-error` as the primary error, and attaches the **entire** `close-error-1` exception (along with its nested exception) to `body-error`.
 
-Do đó `error.getSuppressed()` ở mức ngoài **không nhất thiết chứa mọi lỗi close ở cùng một cấp**. Muốn xem đầy đủ, cần kiểm tra cả suppressed của từng ngoại lệ con. Nếu phần thân `try` không lỗi, `close-error-1` sẽ trở thành ngoại lệ chính được ném ra khỏi khối.
+Consequently, outer `error.getSuppressed()` **does not necessarily contain every close error at the same flat level**. To see everything, inspect the suppressed exceptions of each child exception as well. If the `try` body had not failed, `close-error-1` would become the primary exception thrown out of the block.
 
-## 5. Phân biệt thứ tự đóng *nhiều tài nguyên* với thứ tự `onClose`
+## 5. Distinguishing Closing Order of *Multiple Resources* vs. `onClose` Order
 
-Có hai quy tắc không nên trộn lẫn:
+Do not mix up two rules:
 
-- Bên trong **một stream**, close handler chạy theo **thứ tự đăng ký**.
-- Với **nhiều tài nguyên khai báo trong một `try-with-resources`**, Java đóng tài nguyên theo **thứ tự ngược với thứ tự khai báo**.
+- Within **a single stream**, close handlers run in **registration order**.
+- With **multiple resources declared in a single `try-with-resources`**, Java closes resources in **reverse declaration order**.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.stream.Stream;
@@ -199,13 +199,13 @@ public class MultipleResourcesDemo {
              Stream<String> second = Stream.<String>empty()
                     .onClose(() -> System.out.println("second/H1"))
                     .onClose(() -> System.out.println("second/H2"))) {
-            // Không cần terminal operation để minh họa thứ tự đóng.
+            // No terminal operation needed to demonstrate close order.
         }
     }
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 second/H1
@@ -214,11 +214,11 @@ first/H1
 first/H2
 ```
 
-`second` được đóng trước `first`; trong từng stream, `H1` chạy trước `H2`. Khi các tài nguyên cùng ném ngoại lệ, `try-with-resources` vẫn bảo toàn thông tin về những lần đóng thất bại bằng cơ chế suppressed; đối tượng ngoại lệ chính phụ thuộc vào việc phần thân `try` có lỗi hay không và thứ tự đóng tài nguyên.
+`second` is closed before `first`; within each stream, `H1` runs before `H2`. When multiple resources throw exceptions, `try-with-resources` still preserves information about failed closes via suppressed exceptions; which exception becomes primary depends on whether the `try` body failed and the resource closing order.
 
-## 6. Ứng dụng với stream đọc file
+## 6. Application with a File-Reading Stream
 
-Một ví dụ thực tế là đọc file theo từng dòng. `Files.lines(...)` tạo một stream có nguồn dữ liệu cần được đóng. Ta có thể đăng ký thêm handler để ghi nhận việc kết thúc sử dụng nguồn:
+A practical example is reading a file line by line. `Files.lines(...)` creates a stream whose underlying source must be closed. You can register an extra handler to record when usage of the source finishes:
 
 ```java
 import java.io.IOException;
@@ -230,28 +230,28 @@ import java.util.stream.Stream;
 public class ReadLinesDemo {
     public static long countNonEmptyLines(Path path) throws IOException {
         try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)
-                .onClose(() -> System.out.println("Da ket thuc su dung stream"))) {
+                .onClose(() -> System.out.println("Finished using stream"))) {
             return lines.filter(line -> !line.isBlank()).count();
         }
     }
 }
 ```
 
-Ví dụ này dùng `String.isBlank()` (Java 11 trở lên). `try-with-resources` đảm bảo gọi `close()` khi xử lý thành công và khi pipeline phát sinh lỗi. Lưu ý rằng `onClose` không phải nơi thay thế cơ chế đóng nguồn I/O của `Files.lines`; việc cần làm là đóng chính stream đã mở, còn handler bổ sung dùng để gắn những thao tác dọn dẹp hoặc quan sát hợp lý.
+This example uses `String.isBlank()` (Java 11 and later). `try-with-resources` ensures `close()` is called both when processing succeeds and when the pipeline raises an error. Note that `onClose` does not replace the I/O resource-closing mechanism of `Files.lines`; what is required is closing the opened stream itself, while additional handlers are used to attach appropriate cleanup or observation actions.
 
-Nếu việc đóng file và một thao tác `onClose` bổ sung cùng thất bại, hãy xem toàn bộ chuỗi ngoại lệ và `suppressed` thay vì chỉ đọc thông điệp lỗi ngoài cùng.
+If closing the file and an additional `onClose` operation both fail, examine the entire exception chain and `suppressed` entries instead of reading only the outermost error message.
 
-## 7. Những lỗi thường gặp và cách tránh
+## 7. Common Mistakes and How to Avoid Them
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Cho rằng `collect()` hoặc `forEach()` tự đóng stream. | Handler không chạy; nguồn I/O có thể còn mở. | Dùng `try-with-resources` cho stream sở hữu tài nguyên cần đóng. |
-| Nghĩ handler ném lỗi sẽ làm dừng các handler sau. | Dự đoán sai luồng dọn dẹp và log. | Ghi nhớ tất cả handler đều được thử chạy; kiểm tra lỗi chính và các suppressed. |
-| Chỉ in `error.getMessage()`. | Mất dấu lỗi của các handler đóng tài nguyên khác. | Ghi log stack trace và kiểm tra `getSuppressed()` khi điều tra. |
-| Chỉ nhìn `error.getSuppressed()` ở cấp ngoài. | Bỏ sót lỗi `onClose` nằm dưới một ngoại lệ close đã bị suppressed bởi lỗi phần thân. | Duyệt thêm suppressed của các ngoại lệ con khi cần. |
-| Nhầm `getCause()` với `getSuppressed()`. | Hiểu sai lỗi gốc và lỗi phát sinh khi dọn dẹp. | Xem chúng là hai quan hệ ngoại lệ riêng biệt. |
-| Đăng ký handler có tác dụng phụ phức tạp và dễ lỗi. | Tăng rủi ro phát sinh lỗi thứ cấp trong lúc đóng. | Để handler tập trung vào dọn dẹp ngắn gọn, có phạm vi sở hữu tài nguyên rõ ràng. |
+| Assuming `collect()` or `forEach()` automatically closes the stream. | Handlers do not run; the I/O source may stay open. | Use `try-with-resources` for streams owning closeable resources. |
+| Thinking a throwing handler stops subsequent handlers. | Wrong predictions about cleanup flow and logs. | Remember all handlers are attempted; inspect primary and suppressed errors. |
+| Printing only `error.getMessage()`. | Loses track of errors from other close handlers. | Log stack traces and check `getSuppressed()` during investigation. |
+| Checking only top-level `error.getSuppressed()`. | Misses `onClose` errors nested under a close exception suppressed by a body error. | Traverse suppressed exceptions of child exceptions when needed. |
+| Confusing `getCause()` with `getSuppressed()`. | Misinterprets root cause vs. cleanup failures. | Treat them as two distinct exception relationships. |
+| Registering handlers with complex, error-prone side effects. | Increases risk of secondary failures during closing. | Keep handlers focused on concise cleanup with clear resource ownership. |
 
-Để tự kiểm tra kiến thức, xét stream có ba handler: `A` chạy thành công, `B` ném `IllegalStateException`, `C` ném `IllegalArgumentException`. Khi gọi `close()`, cả ba vẫn được gọi; ngoại lệ từ `B` được ném ra, còn ngoại lệ từ `C` nằm trong `B.getSuppressed()`. Nếu trước đó thân `try-with-resources` đã ném một ngoại lệ khác, ngoại lệ từ thân `try` mới là lỗi ngoài cùng và lỗi từ `B` nằm trong danh sách suppressed của nó.
+To test your understanding, consider a stream with three handlers: `A` succeeds, `B` throws `IllegalStateException`, and `C` throws `IllegalArgumentException`. When `close()` is called, all three are still invoked; the exception from `B` is thrown, while the exception from `C` is in `B.getSuppressed()`. If the `try-with-resources` body had previously thrown another exception, the body exception becomes the outermost error and the error from `B` sits in its suppressed list.
 
-**Ghi nhớ:** terminal operation kết thúc xử lý, còn `close()` kích hoạt dọn dẹp; `onClose` chạy theo thứ tự đăng ký và không bỏ qua các handler phía sau khi một handler thất bại; `try-with-resources` bảo toàn lỗi phần thân và lỗi đóng tài nguyên qua các tầng suppressed exceptions.
+**Key takeaway:** terminal operations end processing, while `close()` triggers cleanup; `onClose` handlers run in registration order and do not skip subsequent handlers when one fails; `try-with-resources` preserves body errors and resource-closing errors across layers of suppressed exceptions.

@@ -1,35 +1,35 @@
-# Thiết kế migration boundary cho hệ thống legacy
+# Designing Migration Boundaries for Legacy Systems
 
-## 1. Migration boundary là gì?
+## 1. What is a migration boundary?
 
-Khi chuyển một hệ thống Java legacy từ classpath sang Java Platform Module System (JPMS), không nhất thiết phải modular hóa toàn bộ ứng dụng trong một lần. Có thể xác định các **migration boundary**: ranh giới giữa phần đã được tổ chức thành module và phần vẫn chạy theo mô hình classpath cũ.
+When migrating a legacy Java system from the classpath to the Java Platform Module System (JPMS), it is not necessary to modularize the entire application at once. You can define **migration boundaries**: the boundaries between parts already organized into modules and parts still running under the legacy classpath model.
 
-Một migration boundary tốt xác định rõ:
+A good migration boundary clearly defines:
 
-- Phần nào của hệ thống đã có module descriptor và được quản lý bằng module graph.
-- Phần nào vẫn thuộc unnamed module trên classpath.
-- API nào được phép đi qua ranh giới giữa hai phần.
-- Thư viện nào là phụ thuộc dùng chung, thư viện nào thuộc riêng một module.
-- Cách xử lý reflection, service discovery, resource và class loading khi hai mô hình cùng tồn tại.
-- Điều kiện để một phần legacy được chuyển tiếp thành named module hoặc được loại bỏ.
+- Which parts of the system already have module descriptors and are managed by the module graph.
+- Which parts still belong to the unnamed module on the classpath.
+- Which APIs are permitted to cross the boundary between the two sides.
+- Which libraries are shared dependencies and which belong to a specific module.
+- How reflection, service discovery, resources, and class loading are handled while both models coexist.
+- The conditions under which a legacy part is promoted into a named module or retired.
 
-Mục tiêu là giảm rủi ro khi chuyển đổi mà vẫn giữ được khả năng build, triển khai và vận hành. Ranh giới phải có thể kiểm tra được bằng cấu trúc source, module descriptor, cấu hình build và kiểm thử.
+The goal is to reduce migration risk while preserving the ability to build, deploy, and operate. Boundaries must be verifiable through source structure, module descriptors, build configuration, and tests.
 
-Không nên xem migration boundary chỉ là việc đặt một số JAR lên module path. Ranh giới còn là hợp đồng kiến trúc: module nào sở hữu dữ liệu, API nào được công khai, ai được phép gọi implementation và cách thay đổi được triển khai an toàn.
+Do not treat a migration boundary as merely placing a few JARs on the module path. A boundary is also an architectural contract: which module owns data, which APIs are exposed, who is allowed to call implementations, and how changes are rolled out safely.
 
-## 2. Bắt đầu bằng bản đồ phụ thuộc của hệ thống
+## 2. Start with a system dependency map
 
-Trước khi chia boundary, hãy lập danh sách các thành phần:
+Before drawing boundaries, inventory the components:
 
-- Các ứng dụng hoặc service có thể build và deploy độc lập.
-- Các thư viện dùng chung và các phiên bản đang được sử dụng.
-- Package được nhiều module truy cập trực tiếp.
-- Các luồng gọi xuyên tầng, đặc biệt là truy cập database hoặc dùng class implementation của module khác.
-- Cơ chế plugin, reflection, ServiceLoader, resource lookup và dynamic class loading.
-- Các phụ thuộc vào API nội bộ của JDK hoặc thư viện cũ.
-- Các module có thể tạo thành vòng phụ thuộc nếu tách riêng.
+- Applications or services that can be built and deployed independently.
+- Shared libraries and the versions currently in use.
+- Packages accessed directly by multiple modules.
+- Cross-layer call flows, especially database access or direct use of another module's implementation classes.
+- Plugin mechanisms, reflection, `ServiceLoader`, resource lookups, and dynamic class loading.
+- Dependencies on internal JDK APIs or legacy libraries.
+- Modules that would form cyclic dependencies if separated.
 
-Có thể bắt đầu từ dependency tree của build tool, sau đó dùng jdeps để phân tích phụ thuộc bytecode:
+You can start from the build tool's dependency tree, then use `jdeps` to analyze bytecode dependencies:
 
 ~~~bash
 jdeps --summary build/libs/legacy-app.jar
@@ -37,13 +37,13 @@ jdeps --verbose:package build/libs/legacy-app.jar
 jdeps --jdk-internals build/libs/legacy-app.jar
 ~~~
 
-Nếu artifact cần thêm thư viện ngoài, cung cấp classpath hoặc module path phù hợp để kết quả phân tích đầy đủ hơn. jdeps giúp phát hiện tham chiếu tĩnh; reflection theo tên class, tên resource lấy từ cấu hình và plugin được nạp động vẫn cần được kiểm kê riêng.
+If the artifact needs external libraries, provide an appropriate classpath or module path for more complete analysis results. `jdeps` detects static references; reflection by class name, resource names read from configuration, and dynamically loaded plugins must still be inventoried separately.
 
-Bản đồ phụ thuộc nên thể hiện cả phụ thuộc kỹ thuật và phụ thuộc nghiệp vụ. Hai package có thể nằm trong cùng một JAR nhưng thuộc hai trách nhiệm khác nhau; ngược lại, hai module có thể được build riêng nhưng vẫn phụ thuộc chặt vào cùng một schema hoặc database transaction.
+The dependency map should capture both technical and business dependencies. Two packages can sit in the same JAR while belonging to two different responsibilities; conversely, two modules can be built separately while still tightly coupled to the same schema or database transaction.
 
-## 3. Chọn boundary theo trách nhiệm và API
+## 3. Choose boundaries by responsibility and API
 
-Một boundary hữu ích thường đi theo capability hoặc trách nhiệm nghiệp vụ, ví dụ:
+A useful boundary usually aligns with a capability or business responsibility, for example:
 
 ~~~text
 legacy-system/
@@ -55,9 +55,9 @@ legacy-system/
   shared/
 ~~~
 
-Trong giai đoạn đầu, các thư mục này có thể vẫn là package hoặc project trong một build. Khi đã hiểu quan hệ phụ thuộc, có thể chuyển từng capability thành named module.
+Initially, these directories may still be packages or projects within one build. Once dependency relationships are understood, each capability can be converted into a named module one at a time.
 
-Một cấu trúc modular minh họa:
+An illustrative modular structure:
 
 ~~~text
 modules/
@@ -69,9 +69,9 @@ modules/
   com.example.application/
 ~~~
 
-Mỗi boundary nên có một API nhỏ, ổn định. Ví dụ module billing cần thông tin khách hàng thì nên gọi API customer được công khai, thay vì import trực tiếp các class implementation, entity nội bộ hoặc repository của customer.
+Each boundary should have a small, stable API. For example, if `billing` needs customer information, it should call the exposed customer API rather than directly importing customer's implementation classes, internal entities, or repositories.
 
-Module API có thể chứa interface và kiểu dữ liệu dùng chung:
+The API module can contain shared interfaces and data types:
 
 ~~~java
 module com.example.customer.api {
@@ -79,7 +79,7 @@ module com.example.customer.api {
 }
 ~~~
 
-Module implementation phụ thuộc vào API:
+The implementation module depends on the API:
 
 ~~~java
 module com.example.customer.core {
@@ -87,7 +87,7 @@ module com.example.customer.core {
 }
 ~~~
 
-Module tiêu thụ chỉ cần đọc API:
+Consuming modules only need to read the API:
 
 ~~~java
 module com.example.billing.core {
@@ -95,35 +95,35 @@ module com.example.billing.core {
 }
 ~~~
 
-Cách tổ chức này giảm phụ thuộc ngược vào implementation. Nó cũng tạo vị trí rõ ràng để thay đổi cách triển khai customer mà không buộc billing phải biết chi tiết bên trong.
+This organization reduces reverse dependencies on implementations. It also provides a clear place to change customer's implementation without forcing `billing` to know internal details.
 
-Không nên tạo module API cho mọi class. Chỉ tách API khi có hợp đồng thực sự cần được nhiều thành phần sử dụng hoặc cần ổn định qua nhiều lần triển khai. Việc tách quá nhỏ làm tăng số module và chi phí quản lý graph mà không cải thiện boundary.
+Do not create an API module for every class. Split an API only when there is a real contract that needs to be used by multiple components or remain stable across multiple deployments. Splitting too finely increases module count and graph management cost without improving boundaries.
 
-## 4. Dùng classpath làm vùng tương thích trong giai đoạn chuyển tiếp
+## 4. Using the classpath as a compatibility zone during transition
 
-Một hệ thống có thể chạy named module cùng thư viện legacy trên classpath. Các class trên classpath thuộc **unnamed module** của classloader tương ứng.
+A system can run named modules alongside legacy libraries on the classpath. Classes on the classpath belong to the **unnamed module** of the corresponding class loader.
 
-Đây là vùng tương thích hữu ích khi thư viện chưa có module descriptor hoặc chưa thể chuyển đổi ngay. Named module có thể đọc unnamed module, nhưng named module không thể khai báo tên một unnamed module trong requires. Vì vậy, nếu một named module cần API của thư viện legacy, cần xác định cách tổ chức phụ thuộc phù hợp thay vì cố viết requires cho một module không có tên.
+This is a useful compatibility zone when libraries do not yet have module descriptors or cannot be converted immediately. Named modules can read the unnamed module, though a named module cannot name an unnamed module in a `requires` directive. Therefore, if a named module needs a legacy library's API, determine an appropriate dependency organization rather than trying to write `requires` for an unnamed module.
 
-Ví dụ, thư viện legacy có thể tiếp tục được nạp qua classpath trong lúc phần ứng dụng đã modular hóa. Cần giữ cấu hình runtime nhất quán giữa môi trường phát triển, kiểm thử và production.
+For example, a legacy library can continue to be loaded via the classpath while modularized parts of the application run as named modules. Keep runtime configurations consistent across development, test, and production environments.
 
-Một số thư viện JAR không có module descriptor có thể được nhận diện như **automatic module** khi đặt trên module path. Automatic module có tên suy ra từ metadata hoặc tên JAR, trừ khi manifest cung cấp Automatic-Module-Name. Nó có thể giúp tạo bước chuyển tiếp, nhưng không phải lúc nào cũng là boundary cuối cùng tốt.
+Some library JARs without module descriptors can be recognized as **automatic modules** when placed on the module path. An automatic module derives its name from metadata or the JAR filename, unless its manifest supplies `Automatic-Module-Name`. It can serve as a stepping stone, though it is not always a good final boundary.
 
-Khi dùng automatic module:
+When using automatic modules:
 
-- Kiểm tra tên module thực tế bằng jar --describe-module.
-- Ưu tiên tên module ổn định do thư viện công bố.
-- Theo dõi các package được export và các phụ thuộc mà module tự động đọc.
-- Tránh dựa vào hành vi rộng của automatic module như thể đó là API được thiết kế có chủ đích.
-- Lập kế hoạch chuyển sang named module có descriptor rõ ràng nếu thư viện thuộc quyền kiểm soát của dự án.
+- Check the actual module name using `jar --describe-module`.
+- Prefer stable module names published by the library.
+- Monitor exported packages and dependencies read automatically by the module.
+- Avoid relying on an automatic module's broad default behavior as if it were an intentionally designed API.
+- Plan to migrate to a named module with an explicit descriptor if the library is under your project's control.
 
-Classpath, automatic module và named module có thể cùng xuất hiện trong quá trình migration. Điều quan trọng là ghi rõ trạng thái của từng thư viện và không để cùng một JAR xuất hiện đồng thời trên nhiều đường nạp.
+The classpath, automatic modules, and named modules can coexist during migration. What matters is documenting the status of each library and never placing the same JAR on multiple loading paths simultaneously.
 
-## 5. Thiết kế adapter cho legacy API
+## 5. Designing adapters for legacy APIs
 
-Một cách tạo boundary an toàn là đặt một adapter ở giữa hệ thống mới và thư viện cũ. Adapter chuyển đổi mô hình dữ liệu, xử lý khác biệt API và cô lập các quy tắc legacy.
+A safe way to establish a boundary is placing an adapter between the new system and the legacy library. The adapter translates data models, handles API differences, and isolates legacy rules.
 
-Ví dụ hệ thống cũ cung cấp API:
+For example, the legacy system provides an API:
 
 ~~~java
 public class LegacyCustomerService {
@@ -134,7 +134,7 @@ public class LegacyCustomerService {
 }
 ~~~
 
-Module mới định nghĩa hợp đồng:
+The new module defines a contract:
 
 ~~~java
 package com.example.customer.api;
@@ -144,7 +144,7 @@ public interface CustomerLookup {
 }
 ~~~
 
-Adapter triển khai API mới bằng cách gọi hệ thống cũ:
+The adapter implements the new API by calling the legacy system:
 
 ~~~java
 package com.example.legacy.adapter;
@@ -168,9 +168,9 @@ public class LegacyCustomerAdapter implements CustomerLookup {
 }
 ~~~
 
-Trong thực tế, cần bổ sung xử lý lỗi, nullability, transaction, mapping và logging phù hợp. Ví dụ minh họa tập trung vào việc chuyển đổi kiểu dữ liệu và giữ legacy class ở phía adapter.
+In practice, add appropriate error handling, nullability, transactions, mapping, and logging. This illustrative example focuses on data type conversion and keeping legacy classes on the adapter side.
 
-Module chứa adapter có thể phụ thuộc API mới và thư viện legacy theo cách build đang hỗ trợ:
+The module containing the adapter can depend on the new API and the legacy library as supported by the build:
 
 ~~~java
 module com.example.legacy.adapter {
@@ -178,38 +178,38 @@ module com.example.legacy.adapter {
 }
 ~~~
 
-Nếu legacy library ở classpath, cấu hình build và runtime phải cung cấp class đó cho adapter. Nếu thư viện đã được chuyển thành module, adapter có thể khai báo requires tên module tương ứng.
+If the legacy library is on the classpath, the build and runtime configurations must provide those classes to the adapter. If the library has been modularized, the adapter can declare `requires` on the corresponding module name.
 
-Adapter nên là nơi duy nhất biết các chi tiết legacy cần thay đổi. Không để class legacy lan rộng vào API public của module mới, vì điều đó khiến boundary phụ thuộc ngược vào implementation cũ.
+The adapter should be the only place aware of legacy details that need to change. Do not let legacy classes leak into the new module's public API, as that causes the boundary to depend back on the legacy implementation.
 
-## 6. Tránh split package khi chuyển sang named module
+## 6. Avoiding split packages when moving to named modules
 
-Một package được phân tán qua nhiều JAR trên classpath có thể đã tồn tại nhiều năm mà không gây lỗi rõ ràng. Khi đưa các JAR đó thành named module, **split package** thường gây vấn đề vì cùng một package không thể được phân chia tùy ý giữa nhiều named module trong cùng module layer.
+A package scattered across multiple JARs on the classpath may have existed for years without causing obvious errors. When converting those JARs into named modules, **split packages** frequently cause problems because the same package cannot be arbitrarily split across multiple named modules in the same module layer.
 
-Ví dụ hai thư viện đều chứa:
+For example, two libraries both contain:
 
 ~~~text
 com/example/shared/Util.class
 ~~~
 
-Nếu cả hai trở thành named module riêng, module system có thể từ chối phân giải graph do package bị chia sẻ. Ngay cả khi một số tình huống classpath cũ vẫn chạy, không nên coi split package là cấu trúc modular hợp lệ.
+If both become separate named modules, the module system can reject graph resolution due to the shared package. Even if certain legacy classpath setups still run, do not treat split packages as a valid modular structure.
 
-Cách xử lý thường gồm:
+Remediation steps usually include:
 
-1. Xác định JAR nào sở hữu package và class thực sự.
-2. Chọn một module làm chủ package đó.
-3. Chuyển class dùng chung vào một module API hoặc module nền tảng có trách nhiệm rõ ràng.
-4. Cập nhật import và dependency để các module còn lại dùng API được export.
-5. Loại bỏ bản class trùng khỏi artifact khác.
-6. Kiểm tra lại package list và module graph sau khi đóng gói.
+1. Identify which JAR truly owns the package and classes.
+2. Designate one module as the owner of that package.
+3. Move shared classes into an API module or foundational module with a clear responsibility.
+4. Update imports and dependencies so the remaining modules use the exported API.
+5. Remove duplicate class copies from other artifacts.
+6. Re-verify package lists and the module graph after packaging.
 
-Không nên tạo một module shared chứa mọi class chỉ để xóa cảnh báo split package. Module dùng chung cần có phạm vi trách nhiệm rõ, nếu không nó sẽ trở thành điểm phụ thuộc tập trung và làm các boundary mới tiếp tục dính chặt với nhau.
+Do not create a `shared` module containing every class just to silence split-package warnings. A shared module must have a clear scope of responsibility; otherwise it becomes a central dependency hub and keeps the new boundaries tightly coupled.
 
-## 7. Kiểm soát vòng phụ thuộc
+## 7. Controlling cyclic dependencies
 
-Một boundary không tốt thường xuất hiện khi module A cần implementation của B, còn B lại cần implementation của A. Nếu hai module phải khai báo requires lẫn nhau, module graph không thể phân giải vòng phụ thuộc đó như một quan hệ module hợp lệ.
+A poor boundary often shows up when module A needs B's implementation while B needs A's implementation. If two modules must `requires` each other, the module graph cannot resolve that cyclic dependency as a valid module relationship.
 
-Có thể phá vòng bằng một API hoặc SPI:
+Cycles can be broken with an API or SPI:
 
 ~~~text
 com.example.order.api
@@ -218,9 +218,9 @@ com.example.order.api
 order.core    inventory.core
 ~~~
 
-Module API chứa interface và kiểu dữ liệu ổn định. Hai module implementation phụ thuộc vào API theo chiều phù hợp, thay vì import trực tiếp class của nhau.
+The API module holds stable interfaces and data types. Both implementation modules depend on the API in the right direction rather than importing each other's classes directly.
 
-Ví dụ module order khai báo service interface:
+For example, the order module declares a service interface:
 
 ~~~java
 package com.example.order.api;
@@ -230,7 +230,7 @@ public interface StockReservation {
 }
 ~~~
 
-Module order sử dụng SPI:
+The order module uses the SPI:
 
 ~~~java
 module com.example.order.core {
@@ -239,7 +239,7 @@ module com.example.order.core {
 }
 ~~~
 
-Module inventory cung cấp implementation:
+The inventory module provides the implementation:
 
 ~~~java
 module com.example.inventory.core {
@@ -250,13 +250,13 @@ module com.example.inventory.core {
 }
 ~~~
 
-Cần đặt service API ở module có trách nhiệm rõ ràng và tránh để API đó phụ thuộc ngược vào implementation. Nếu quan hệ nghiệp vụ thực sự có vòng, hãy xem lại cách chia capability hoặc xác định một orchestration module điều phối hai phía.
+Place the service API in a module with clear responsibility and avoid letting that API depend back on implementations. If the business relationship is genuinely cyclic, revisit how capabilities are split or identify an orchestration module coordinating both sides.
 
-## 8. Quản lý reflection và deep access qua boundary
+## 8. Managing reflection and deep access across boundaries
 
-Framework legacy có thể dùng reflection để truy cập field private, constructor hoặc package nội bộ. Khi chuyển class sang named module, các thao tác này chịu quy tắc exports và opens.
+Legacy frameworks may use reflection to access private fields, constructors, or internal packages. When moving classes into named modules, these operations are governed by `exports` and `opens` rules.
 
-Nếu module chỉ công khai API public, dùng exports:
+If a module only exposes public APIs, use `exports`:
 
 ~~~java
 module com.example.customer.core {
@@ -264,7 +264,7 @@ module com.example.customer.core {
 }
 ~~~
 
-Nếu framework cần deep reflection vào package entity, mở đúng package cho module framework:
+If a framework needs deep reflection into an entity package, open the exact package to the framework module:
 
 ~~~java
 module com.example.customer.core {
@@ -275,7 +275,7 @@ module com.example.customer.core {
 }
 ~~~
 
-Nếu framework chạy trên classpath, caller thuộc unnamed module. Có thể dùng --add-opens ở runtime trong giai đoạn chuyển tiếp:
+If the framework runs on the classpath, callers belong to the unnamed module. `--add-opens` can be used at runtime during the transition:
 
 ~~~bash
 java \
@@ -283,15 +283,15 @@ java \
   -m com.example.application/com.example.application.Main
 ~~~
 
-Đây nên là cấu hình có chủ đích và được ghi nhận trong deployment. Tránh mở toàn bộ module hoặc nhiều package JDK chỉ để làm một framework cũ tiếp tục chạy.
+This should be an intentional configuration documented in deployment. Avoid opening entire modules or multiple JDK packages just to keep a legacy framework running.
 
-Một boundary bền vững nên cung cấp API hoặc factory thay vì buộc module tiêu thụ truy cập private field của implementation. Nếu cần ORM hoặc serializer, hãy xác định package nào phải mở và cho module nào ngay từ thiết kế.
+A sustainable boundary should provide APIs or factories instead of forcing consuming modules to access private fields of an implementation. If an ORM or serializer is needed, specify which packages must be opened and to which modules right from the design phase.
 
-## 9. ServiceLoader và plugin qua boundary
+## 9. `ServiceLoader` and plugins across boundaries
 
-Nếu hệ thống legacy tìm plugin bằng cách quét classpath, có thể chuyển dần sang ServiceLoader khi đã có SPI rõ ràng.
+If a legacy system discovers plugins by scanning the classpath, it can migrate gradually to `ServiceLoader` once a clear SPI is in place.
 
-Consumer module khai báo uses:
+The consumer module declares `uses`:
 
 ~~~java
 module com.example.application {
@@ -301,7 +301,7 @@ module com.example.application {
 }
 ~~~
 
-Provider module khai báo provides:
+The provider module declares `provides`:
 
 ~~~java
 module com.example.plugin.csv {
@@ -312,29 +312,29 @@ module com.example.plugin.csv {
 }
 ~~~
 
-ServiceLoader tìm provider theo metadata service. Với provider trên classpath, dùng file META-INF/services tương ứng. Với named module, khai báo trong module-info.java.
+`ServiceLoader` discovers providers from service metadata. For providers on the classpath, use the corresponding `META-INF/services` file. For named modules, declare it in `module-info.java`.
 
-Nếu plugin được nạp trong ModuleLayer riêng, hãy tìm provider trong đúng layer:
+If plugins are loaded in a separate `ModuleLayer`, look up providers in the proper layer:
 
 ~~~java
 ServiceLoader<Plugin> plugins =
     ServiceLoader.load(pluginLayer, Plugin.class);
 ~~~
 
-Khi tạo runtime image bằng jlink, --bind-services có thể liên kết provider module được khai báo cho service và các phụ thuộc cần thiết. Provider được chọn bằng cấu hình hoặc reflection động có thể không được jlink suy ra; cần đưa module phù hợp vào graph bằng cấu hình link.
+When creating a runtime image with `jlink`, `--bind-services` can link provider modules declared for services and their required dependencies. Providers selected by configuration or dynamic reflection may not be inferred by `jlink`; include the appropriate modules in the graph via link configuration.
 
-ServiceLoader phù hợp cho SPI có hợp đồng ổn định. Nếu framework vẫn cần annotation scanning cho component khác, hãy kiểm tra framework có hỗ trợ module path và module layer hay không. Không giả định scanner classpath sẽ tự nhìn thấy mọi named module.
+`ServiceLoader` works well for SPIs with stable contracts. If a framework still relies on annotation scanning for other components, verify whether the framework supports the module path and module layers. Do not assume a classpath scanner will automatically see every named module.
 
-## 10. Resource lookup và cấu hình qua boundary
+## 10. Resource lookup and configuration across boundaries
 
-Resource nội bộ nên được đọc theo module sở hữu nó. Nếu resource nằm cạnh class:
+Internal resources should be read from the module that owns them. If the resource sits alongside a class:
 
 ~~~java
 InputStream input =
     ConfigReader.class.getResourceAsStream("defaults.properties");
 ~~~
 
-Hoặc dùng đường dẫn từ gốc package/module:
+Or using a path from the package/module root:
 
 ~~~java
 InputStream input =
@@ -343,22 +343,22 @@ InputStream input =
     );
 ~~~
 
-API Module.getResourceAsStream cũng cho phép chỉ rõ module chứa resource. Resource trong package của named module có thể chịu quy tắc đóng gói; nếu module khác cần truy cập resource nội bộ, cân nhắc mở đúng package hoặc cung cấp API đọc resource.
+The `Module.getResourceAsStream` API also lets you specify the module containing the resource. Resources inside packages of a named module can be subject to encapsulation rules; if another module needs to access internal resources, consider opening the appropriate package or providing a resource-reading API.
 
-Phân biệt resource mặc định với cấu hình môi trường:
+Distinguish default resources from environment configuration:
 
-- Template, schema hoặc dữ liệu mặc định có thể được đóng gói trong module.
-- Cấu hình theo môi trường nên được cung cấp từ filesystem, biến môi trường hoặc hệ thống cấu hình triển khai.
-- Bí mật và thông tin xác thực không nên nhúng vào JAR.
-- Không để module tiêu thụ tự đọc trực tiếp file nội bộ của module khác nếu có thể cung cấp API cấu hình rõ ràng.
+- Default templates, schemas, or reference data can be packaged inside the module.
+- Environment-specific configuration should be supplied from the filesystem, environment variables, or deployment configuration systems.
+- Secrets and credentials should not be embedded in JARs.
+- Do not let consuming modules directly read another module's internal files if an explicit configuration API can be provided.
 
-Khi chuyển resource từ classpath sang module, hãy kiểm tra đường dẫn tương đối, tên resource, package sở hữu và classloader. Một file có thể còn trong JAR nhưng không còn được tìm thấy bằng cách quét URL như trước.
+When migrating resources from the classpath to modules, verify relative paths, resource names, owning packages, and class loaders. A file may still exist in the JAR yet no longer be found by URL scanning as before.
 
-## 11. Tổ chức build và deployment trong giai đoạn hỗn hợp
+## 11. Organizing build and deployment during the mixed phase
 
-Trong giai đoạn migration, build cần mô tả rõ phần nào là module source, phần nào là modular JAR, automatic module hoặc classpath library.
+During migration, the build must clearly specify which parts are module sources, modular JARs, automatic modules, or classpath libraries.
 
-Ví dụ biên dịch named module với thư viện trên module path:
+Example compiling a named module with libraries on the module path:
 
 ~~~bash
 javac \
@@ -368,7 +368,7 @@ javac \
   -m com.example.application
 ~~~
 
-Chạy module:
+Running the module:
 
 ~~~bash
 java \
@@ -376,65 +376,65 @@ java \
   -m com.example.application/com.example.application.Main
 ~~~
 
-Trên Windows, dấu phân cách module path là dấu chấm phẩy thay vì dấu hai chấm.
+On Windows, the module path separator is a semicolon instead of a colon.
 
-Nếu vẫn còn legacy JAR trên classpath, cấu hình runtime cần thể hiện rõ cả hai đường nạp. Tránh đặt cùng một thư viện trên classpath và module path. Trùng lặp class hoặc tên module có thể gây lỗi khó chẩn đoán.
+If legacy JARs remain on the classpath, the runtime configuration must state both loading paths clearly. Avoid placing the same library on both the classpath and the module path. Duplicate classes or module names can cause hard-to-diagnose errors.
 
-Trong CI, nên có các bước riêng:
+In CI, include separate steps:
 
-1. Build và test phần legacy theo cách hiện tại.
-2. Build named module và kiểm tra module descriptor.
-3. Chạy integration test qua boundary thật.
-4. Đóng gói đúng JAR/module sẽ triển khai.
-5. Chạy kiểm thử trên module path hoặc runtime image.
-6. Kiểm tra cấu hình JVM như add-opens, service provider và resource.
-7. Lưu module graph, dependency tree và phiên bản toolchain.
+1. Build and test legacy parts using the existing mechanism.
+2. Build named modules and verify module descriptors.
+3. Run integration tests across real boundaries.
+4. Package the exact JARs/modules to be deployed.
+5. Run tests on the module path or runtime image.
+6. Verify JVM flags such as `add-opens`, service providers, and resources.
+7. Record the module graph, dependency tree, and toolchain versions.
 
-Đừng chỉ kiểm thử trong IDE nếu IDE đang tự thêm classpath, module path hoặc VM options khác production.
+Do not test only inside an IDE if the IDE injects a classpath, module path, or VM options that differ from production.
 
-## 12. Định nghĩa tiêu chí hoàn tất cho từng boundary
+## 12. Defining completion criteria for each boundary
 
-Một phần legacy chỉ nên được coi là đã chuyển đổi khi có thể chứng minh các điều kiện cần thiết:
+A legacy portion should be considered migrated only when the required conditions are demonstrated:
 
-- Module hoặc project có owner và trách nhiệm rõ.
-- API công khai đã được xác định; implementation nội bộ không bị import tùy tiện.
-- Module descriptor khai báo đúng requires, exports, opens, uses và provides.
-- Không còn split package hoặc phụ thuộc vòng không hợp lệ.
-- Reflection và resource lookup hoạt động trên cấu hình module thực tế.
-- Service provider được tìm thấy trong đúng module layer.
-- Integration test xác nhận dữ liệu và hành vi qua boundary.
-- Build và deployment tái lập được từ artifact đã đóng gói.
-- Các tùy chọn runtime tạm thời như add-opens có owner và kế hoạch loại bỏ.
-- Dependency cũ không còn được sử dụng đã được loại khỏi build.
+- The module or project has a clear owner and responsibility.
+- The public API is defined; internal implementations are not imported arbitrarily.
+- The module descriptor properly declares `requires`, `exports`, `opens`, `uses`, and `provides`.
+- No split packages or invalid cyclic dependencies remain.
+- Reflection and resource lookups work under the real module configuration.
+- Service providers are discovered in the correct module layer.
+- Integration tests validate data and behavior across the boundary.
+- Build and deployment are reproducible from packaged artifacts.
+- Temporary runtime flags such as `add-opens` have an owner and a removal plan.
+- Obsolete dependencies no longer in use have been removed from the build.
 
-Tiêu chí hoàn tất nên gắn với capability hoặc module cụ thể. Không cần chờ toàn hệ thống chuyển đổi mới ghi nhận một boundary đã ổn định.
+Completion criteria should be tied to a specific capability or module. There is no need to wait for the entire system to convert before recognizing that a boundary is stable.
 
-## 13. Lộ trình migration theo từng bước
+## 13. Step-by-step migration roadmap
 
-Một lộ trình thực tế có thể gồm:
+A practical roadmap may consist of:
 
-1. **Inventory:** thu thập dependency tree, package, reflection, service, resource và classloader.
-2. **Choose boundary:** chọn một capability ít phụ thuộc chéo, có API tương đối rõ.
-3. **Define contract:** tạo API hoặc SPI, tách DTO cần dùng khỏi implementation legacy.
-4. **Add adapter:** cô lập legacy API, mapping và lỗi chuyển đổi.
-5. **Modularize:** thêm module descriptor, khai báo requires và exports.
-6. **Resolve runtime access:** cấu hình opens có mục tiêu, ServiceLoader và resource lookup.
-7. **Build and test:** chạy compile, integration test và packaged runtime test.
-8. **Deploy gradually:** phát hành theo service hoặc capability, theo dõi log và lỗi tương thích.
-9. **Remove transitional paths:** khi không còn consumer cũ, loại bỏ adapter, automatic module hoặc add-opens tạm thời.
-10. **Repeat:** chọn boundary tiếp theo dựa trên dependency graph đã cập nhật.
+1. **Inventory:** collect dependency trees, packages, reflection, services, resources, and class loaders.
+2. **Choose boundary:** pick a capability with few cross-dependencies and a relatively clear API.
+3. **Define contract:** create an API or SPI, separating required DTOs from legacy implementations.
+4. **Add adapter:** isolate legacy APIs, mappings, and translation errors.
+5. **Modularize:** add a module descriptor, declaring `requires` and `exports`.
+6. **Resolve runtime access:** configure targeted `opens`, `ServiceLoader`, and resource lookups.
+7. **Build and test:** run compilation, integration tests, and packaged runtime tests.
+8. **Deploy gradually:** release per service or capability, monitoring logs and compatibility errors.
+9. **Remove transitional paths:** once old consumers are gone, remove temporary adapters, automatic modules, or `add-opens`.
+10. **Repeat:** choose the next boundary based on the updated dependency graph.
 
-Bắt đầu với boundary có ít rủi ro và ít phụ thuộc ngược để xác nhận quy trình. Sau khi build, test và deployment hoạt động ổn định, có thể áp dụng cùng cách làm cho các capability phức tạp hơn.
+Start with a low-risk boundary with few incoming dependencies to validate the workflow. Once builds, tests, and deployments operate stably, apply the same approach to more complex capabilities.
 
-## 14. Ghi nhớ
+## 14. Key takeaways
 
-- Migration boundary xác định ranh giới giữa phần modular và phần legacy, cùng API được phép đi qua ranh giới.
-- Classpath có thể tiếp tục tồn tại trong giai đoạn chuyển đổi; unnamed module không được khai báo bằng requires.
-- Automatic module là bước tương thích hữu ích nhưng cần có kế hoạch chuyển sang descriptor rõ ràng.
-- Adapter giúp cô lập legacy API và chuyển đổi mô hình dữ liệu.
-- Split package và vòng phụ thuộc cần được xử lý ở cấp kiến trúc, không chỉ bằng tùy chọn dòng lệnh.
-- Reflection cần exports hoặc opens đúng mục đích; ServiceLoader cần uses/provides; resource cần được đọc từ đúng module.
-- Kiểm thử phải chạy trên artifact và cấu hình gần production.
-- Mỗi boundary nên có tiêu chí hoàn tất và kế hoạch loại bỏ cấu hình chuyển tiếp.
+- A migration boundary defines the border between modular and legacy parts, along with the APIs allowed to cross it.
+- The classpath can continue to coexist during transition; unnamed modules cannot be named in `requires`.
+- Automatic modules are a useful compatibility step, but require a plan to move to explicit descriptors.
+- Adapters isolate legacy APIs and translate data models.
+- Split packages and cyclic dependencies must be resolved at the architectural level, not solely with command-line flags.
+- Reflection requires purposeful `exports` or `opens`; `ServiceLoader` requires `uses`/`provides`; resources must be read from the proper module.
+- Tests must run against packaged artifacts and production-like configurations.
+- Every boundary should have completion criteria and a plan to retire transitional configurations.
 
-Một migration boundary tốt giúp hệ thống chuyển đổi từng phần mà vẫn giữ được hợp đồng giữa các thành phần. Hãy ưu tiên API ổn định, adapter rõ trách nhiệm, module graph có thể phân giải và kiểm thử qua ranh giới thật. Khi một capability đã độc lập và được triển khai ổn định, có thể tiếp tục chuyển boundary kế tiếp mà không cần viết lại toàn bộ hệ thống cùng lúc.
+A good migration boundary enables incremental conversion while preserving contracts between components. Prioritize stable APIs, clear adapter responsibilities, resolvable module graphs, and testing across real boundaries. Once a capability is independent and stably deployed, you can move on to the next boundary without rewriting the entire system at once.

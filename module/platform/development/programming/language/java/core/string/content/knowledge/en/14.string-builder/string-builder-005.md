@@ -1,46 +1,46 @@
-# `StringBuilder`: `insert`, `delete`, `deleteCharAt` và `replace` trong Java
+# `StringBuilder`: `insert`, `delete`, `deleteCharAt`, and `replace` in Java
 
-`StringBuilder` là một **chuỗi ký tự có thể thay đổi** (*mutable sequence of characters*). Không giống `String` (bất biến), `StringBuilder` cho phép **chèn, xóa và thay thế trực tiếp trên đối tượng đang có**. Bốn phương thức quan trọng để chỉnh sửa nội dung theo vị trí là:
+`StringBuilder` is a **mutable sequence of characters**. Unlike `String` (immutable), `StringBuilder` lets you **insert, delete, and replace directly on the existing object**. Four important methods for editing content by position are:
 
-- **`insert(index, value)`:** chèn dữ liệu **trước vị trí** `index`.
-- **`delete(start, end)`:** xóa các đơn vị ký tự trong đoạn **`[start, end)`**.
-- **`deleteCharAt(index)`:** xóa đúng **một đơn vị `char`** tại `index`.
-- **`replace(start, end, str)`:** thay đoạn **`[start, end)`** bằng chuỗi `str`.
+- **`insert(index, value)`:** inserts data **before position** `index`.
+- **`delete(start, end)`:** deletes character units in the range **`[start, end)`**.
+- **`deleteCharAt(index)`:** deletes exactly **one `char` unit** at `index`.
+- **`replace(start, end, str)`:** replaces the range **`[start, end)`** with the string `str`.
 
-Các thao tác này làm **thay đổi chính `StringBuilder` đang gọi** và trả về tham chiếu đến builder đó để có thể gọi nối tiếp. Chỉ số dùng trong API của `StringBuilder` là **offset UTF-16 code unit**, không nhất thiết là số ký tự người dùng nhìn thấy.
+These operations **mutate the `StringBuilder` being called** and return a reference to that builder so calls can be chained. Indices used in `StringBuilder` APIs are **UTF-16 code unit offsets**, not necessarily the number of user-perceived characters.
 
-## 1. Khác nhau giữa `String` và `StringBuilder`
+## 1. Difference Between `String` and `StringBuilder`
 
 ```java
 String text = "Java";
 text.replace("Java", "Kotlin");
-// text vẫn là "Java": String bất biến.
+// text is still "Java": String is immutable.
 
 StringBuilder builder = new StringBuilder("Java");
 builder.replace(0, 4, "Kotlin");
-// builder hiện có nội dung "Kotlin".
+// builder now has content "Kotlin".
 ```
 
-Trong ví dụ, `String.replace(CharSequence, CharSequence)` tìm và thay **nội dung nguyên văn**, trả về một `String`; còn **`StringBuilder.replace(int, int, String)` thay đoạn theo chỉ số** và sửa builder tại chỗ. Hai phương thức cùng tên nhưng **không có cùng chữ ký hoặc cách chọn đoạn cần thay**.
+In this example, `String.replace(CharSequence, CharSequence)` searches and replaces **literal content**, returning a `String`; whereas **`StringBuilder.replace(int, int, String)` replaces a range by index** and mutates the builder in place. The two methods share the same name but **do not share the same signature or how the target segment is selected**.
 
-| Phương thức | Đầu vào vị trí | Tác dụng | Trả về |
+| Method | Position Input | Effect | Returns |
 | --- | --- | --- | --- |
-| `insert(offset, value)` | Một vị trí chèn, tính từ 0 | Chèn trước code unit tại offset | Chính `StringBuilder` |
-| `delete(start, end)` | Đoạn nửa mở `[start, end)` | Xóa đoạn | Chính `StringBuilder` |
-| `deleteCharAt(index)` | Vị trí một code unit | Xóa một code unit | Chính `StringBuilder` |
-| `replace(start, end, str)` | Đoạn nửa mở `[start, end)` | Bỏ đoạn, đưa `str` vào chỗ đó | Chính `StringBuilder` |
-| `toString()` | Không có | Tạo giá trị `String` có nội dung hiện tại | Một `String` |
+| `insert(offset, value)` | One insertion position, 0-based | Inserts before the code unit at offset | The `StringBuilder` itself |
+| `delete(start, end)` | Half-open range `[start, end)` | Deletes the range | The `StringBuilder` itself |
+| `deleteCharAt(index)` | Position of one code unit | Deletes one code unit | The `StringBuilder` itself |
+| `replace(start, end, str)` | Half-open range `[start, end)` | Removes the range, puts `str` in its place | The `StringBuilder` itself |
+| `toString()` | None | Creates a `String` value with current content | A `String` |
 
-`StringBuilder.length()` trả số **UTF-16 code unit hiện có**, thay đổi khi chèn/xóa/thay. `capacity()` là dung lượng bộ đệm dự trữ: nó **không** phải chiều dài văn bản và **không** phải chỉ số hợp lệ cho các thao tác này.
+`StringBuilder.length()` returns the number of **current UTF-16 code units**, which changes on insert/delete/replace. `capacity()` is the reserved buffer capacity: it is **not** the text length and **not** a valid index bound for these operations.
 
-## 2. Quy tắc chỉ số: vị trí và khoảng `[start, end)`
+## 2. Index Rules: Positions and the `[start, end)` Range
 
-Giả sử builder chứa `"ABCDE"`:
+Suppose the builder contains `"ABCDE"`:
 
 ```text
-Nội dung:    A   B   C   D   E
+Content:     A   B   C   D   E
 Code unit:   0   1   2   3   4
-Vị trí:      0   1   2   3   4   5
+Position:    0   1   2   3   4   5
              |---|---|---|---|---|
 
 insert(2, "X")     -> ABXCDE
@@ -49,134 +49,134 @@ deleteCharAt(2)    -> ABDE
 replace(1, 4, "X") -> AXE
 ```
 
-Các dòng trên là **bốn thao tác độc lập**, đều bắt đầu từ `"ABCDE"`, **không** nối tiếp nhau.
+The lines above are **four independent operations**, each starting from `"ABCDE"`, **not** sequential steps.
 
-- `insert(2, "X")` chèn trước `C` (code unit tại chỉ số 2), đẩy phần từ `C` trở đi sang phải.
-- `delete(1, 4)` xóa `B`, `C`, `D` (chỉ số 1, 2, 3), giữ `A`, `E`.
-- `deleteCharAt(2)` chỉ xóa `C` tại chỉ số 2.
-- `replace(1, 4, "X")` thay toàn bộ `BCD` bằng `X`.
+- `insert(2, "X")` inserts before `C` (the code unit at index 2), shifting everything from `C` onward to the right.
+- `delete(1, 4)` deletes `B`, `C`, `D` (indices 1, 2, 3), keeping `A` and `E`.
+- `deleteCharAt(2)` deletes only `C` at index 2.
+- `replace(1, 4, "X")` replaces all of `BCD` with `X`.
 
-**Biên đầu được lấy, biên cuối không được lấy** đối với `delete` và `replace`. Vì vậy, khi `end - start == 3`, thao tác tác động lên ba code unit của đoạn gốc (nếu `end` không vượt chiều dài).
+**The start bound is inclusive and the end bound is exclusive** for `delete` and `replace`. Therefore, when `end - start == 3`, the operation affects three code units of the original sequence (assuming `end` does not exceed the length).
 
-### Chỉ số hợp lệ
+### Valid Indices
 
-Với `n = builder.length()`:
+With `n = builder.length()`:
 
-- `insert(offset, value)` cho phép `0 <= offset <= n`. `offset == 0` là chèn đầu; `offset == n` là chèn cuối (tương tự append về vị trí).
-- `delete(start, end)` yêu cầu `0 <= start <= n`, `start <= end`. Nếu `end > n`, Java **giới hạn biên cuối ở `n`**; không phải lỗi chỉ vì `end` vượt `n`.
-- `replace(start, end, str)` tương tự với phạm vi: `0 <= start <= n`, `start <= end`; `end > n` được **giới hạn ở `n`**.
-- `deleteCharAt(index)` yêu cầu `0 <= index < n`; `index == n` **không hợp lệ**, vì đó là vị trí sau ký tự cuối.
-- Chỉ số âm, `start > n` hoặc `start > end` là lỗi phạm vi đối với `delete` và `replace`.
+- `insert(offset, value)` allows `0 <= offset <= n`. `offset == 0` inserts at the start; `offset == n` inserts at the end (positionally like append).
+- `delete(start, end)` requires `0 <= start <= n`, `start <= end`. If `end > n`, Java **clamps the end bound to `n`**; it is not an error merely because `end` exceeds `n`.
+- `replace(start, end, str)` has the same range rule: `0 <= start <= n`, `start <= end`; `end > n` is **clamped to `n`**.
+- `deleteCharAt(index)` requires `0 <= index < n`; `index == n` is **invalid**, because that is the position after the last character.
+- Negative indices, `start > n`, or `start > end` are range errors for `delete` and `replace`.
 
-Với đầu vào không hợp lệ, các API ném ngoại lệ thuộc nhóm `IndexOutOfBoundsException` (cụ thể có thể là `StringIndexOutOfBoundsException` tùy phương thức/triển khai). `replace` còn ném `NullPointerException` nếu chuỗi thay `str` là `null`.
+For invalid inputs, these APIs throw exceptions in the `IndexOutOfBoundsException` hierarchy (specifically `StringIndexOutOfBoundsException` depending on the method/implementation). `replace` also throws `NullPointerException` if the replacement string `str` is `null`.
 
-## 3. `insert()`: chèn ở đầu, giữa hoặc cuối
+## 3. `insert()`: Inserting at the Start, Middle, or End
 
-`insert` có nhiều overload để nhận các loại dữ liệu khác nhau, ví dụ:
+`insert` has many overloads for accepting different types of data, for example:
 
 ```java
-builder.insert(0, "Hi ");    // chèn String vào đầu
-builder.insert(2, 'X');      // chèn char
-builder.insert(3, 42);       // chèn số, dạng văn bản "42"
-builder.insert(builder.length(), "!"); // chèn cuối
+builder.insert(0, "Hi ");    // insert String at the beginning
+builder.insert(2, 'X');      // insert char
+builder.insert(3, 42);       // insert integer, in text form "42"
+builder.insert(builder.length(), "!"); // insert at the end
 ```
 
-Đoạn này **minh họa những lời gọi đặt trong thân phương thức** với một builder đã tạo; nếu chạy lần lượt, chỉ số của mỗi lời gọi được hiểu theo **nội dung tại thời điểm gọi**, không theo nội dung ban đầu.
+This snippet **illustrates calls placed in a method body** on an already-created builder; if run sequentially, the index of each call is interpreted relative to the **content at the moment of that call**, not the initial content.
 
-Một số overload thường dùng:
+Some commonly used overloads:
 
-| Overload | Ý nghĩa |
+| Overload | Meaning |
 | --- | --- |
-| `insert(int offset, String str)` | Chèn nội dung của `String` |
-| `insert(int offset, CharSequence s)` | Chèn một dãy ký tự (có thể là `String` hoặc `StringBuilder`) |
-| `insert(int offset, char c)` | Chèn một `char` |
-| `insert(int offset, int i)` | Chèn biểu diễn văn bản của số nguyên |
-| `insert(int offset, boolean b)` | Chèn `"true"` hoặc `"false"` |
-| `insert(int offset, char[] data)` | Chèn ký tự từ mảng |
-| `insert(int dstOffset, CharSequence s, int start, int end)` | Chèn đoạn `[start, end)` của dãy nguồn `s` vào vị trí đích |
+| `insert(int offset, String str)` | Inserts the content of `String` |
+| `insert(int offset, CharSequence s)` | Inserts a character sequence (such as `String` or `StringBuilder`) |
+| `insert(int offset, char c)` | Inserts a `char` |
+| `insert(int offset, int i)` | Inserts the text representation of an integer |
+| `insert(int offset, boolean b)` | Inserts `"true"` or `"false"` |
+| `insert(int offset, char[] data)` | Inserts characters from an array |
+| `insert(int dstOffset, CharSequence s, int start, int end)` | Inserts slice `[start, end)` of source `s` at destination offset |
 
-Với overload cuối, cần phân biệt **`dstOffset` trong builder đích** với **`start` và `end` trong `CharSequence` nguồn**. Chẳng hạn `new StringBuilder("XY").insert(1, "012345", 2, 5)` cho nội dung `"X234Y"`: lấy đoạn `234` từ nguồn rồi chèn giữa `X` và `Y`.
+With the last overload, distinguish **`dstOffset` in the target builder** from **`start` and `end` in the source `CharSequence`**. For instance, `new StringBuilder("XY").insert(1, "012345", 2, 5)` produces `"X234Y"`: it takes slice `234` from the source and inserts it between `X` and `Y`.
 
-**Trường hợp null:** Một số overload của `insert` được đặc tả để chèn chữ `"null"` khi đối số `String`/`CharSequence` là null. Ví dụ `new StringBuilder("abc").insert(1, (String) null)` thành `"anullbc"`. Cần xác định chính sách dữ liệu của chương trình; không nên dựa vào việc tự động chèn chữ `"null"` nếu null biểu thị dữ liệu thiếu.
+**The null case:** Several `insert` overloads are specified to insert the letters `"null"` when a `String`/`CharSequence` argument is null. For example, `new StringBuilder("abc").insert(1, (String) null)` becomes `"anullbc"`. Define your program's data policy; do not rely on automatically inserting `"null"` if null represents missing data.
 
-## 4. `delete()` và `deleteCharAt()`: xóa đúng đoạn
+## 4. `delete()` and `deleteCharAt()`: Deleting the Exact Range
 
-### 4.1. Xóa khoảng bằng `delete(start, end)`
+### 4.1. Deleting a Range with `delete(start, end)`
 
-`delete(start, end)` xóa từ **`start` bao gồm đến `end` không bao gồm**. Độ dài xóa thực tế là `min(end, length()) - start` nếu các biên đầu hợp lệ.
+`delete(start, end)` deletes from **`start` inclusive to `end` exclusive**. The actual deleted length is `min(end, length()) - start` when the start bounds are valid.
 
 ```java
 StringBuilder sb = new StringBuilder("abcdef");
-sb.delete(2, 5); // "abf" (xóa c, d, e)
+sb.delete(2, 5); // "abf" (deletes c, d, e)
 ```
 
-Ở ví dụ này, chuỗi `"abcdef"` có chỉ số `0..5`; sau khi xóa chỉ số `2..4`, kết quả **`"abf"`** vì giữ `a, b, f`.
+In this example, `"abcdef"` has indices `0..5`; after deleting indices `2..4`, the result is **`"abf"`** because `a, b, f` remain.
 
-Đặc biệt:
+Special cases:
 
-- `delete(2, 2)`: đoạn rỗng, nội dung không thay đổi.
-- `delete(0, length())`: xóa toàn bộ builder.
-- `delete(1, 99)` trên builder `"abc"`: xóa từ chỉ số 1 đến hết vì `end` được giới hạn còn 3; kết quả `"a"`.
-- `delete(length(), length())`: hợp lệ, không thay đổi.
-- `delete(length() + 1, length() + 1)`: không hợp lệ vì `start` vượt chiều dài.
+- `delete(2, 2)`: empty range; content does not change.
+- `delete(0, length())`: clears the entire builder.
+- `delete(1, 99)` on builder `"abc"`: deletes from index 1 to the end because `end` is clamped to 3; result is `"a"`.
+- `delete(length(), length())`: valid, no change.
+- `delete(length() + 1, length() + 1)`: invalid because `start` exceeds the length.
 
-Lưu ý: biên cuối vượt chiều dài **được giới hạn**, nhưng biên đầu vượt chiều dài **không** được tự động giới hạn.
+Note: an end bound exceeding length **is clamped**, whereas a start bound exceeding length **is not** automatically clamped.
 
-### 4.2. Xóa một code unit bằng `deleteCharAt(index)`
+### 4.2. Deleting One Code Unit with `deleteCharAt(index)`
 
-`deleteCharAt(index)` tương tự `delete(index, index + 1)` về việc xóa **một UTF-16 code unit**, khi `index` hợp lệ.
+`deleteCharAt(index)` is equivalent to `delete(index, index + 1)` in deleting **one UTF-16 code unit**, when `index` is valid.
 
 ```java
 StringBuilder sb = new StringBuilder("book");
 sb.deleteCharAt(1);
-// Kết quả: "bok"
+// Result: "bok"
 ```
 
-Chỉ số cuối hợp lệ với `deleteCharAt` là `length() - 1`. Nếu builder rỗng, không có chỉ số nào hợp lệ để xóa một `char`.
+The last valid index for `deleteCharAt` is `length() - 1`. If the builder is empty, no index is valid for deleting a `char`.
 
-**Cảnh báo Unicode:** `deleteCharAt` làm việc với từng code unit, có thể xóa một nửa **surrogate pair** của một emoji, khiến chuỗi còn lại chứa surrogate lẻ. Muốn xóa trọn một Unicode code point ngoài BMP, dùng `codePointAt` và `Character.charCount` như phần Unicode ở dưới. Muốn xóa cả một *grapheme cluster* (cụm ký tự người dùng xem là một) cần phân đoạn Unicode phù hợp; xóa một code point vẫn có thể tách dấu kết hợp hoặc emoji ZWJ.
+**Unicode warning:** `deleteCharAt` operates on individual code units and can delete one half of an emoji's **surrogate pair**, leaving the string with a lone surrogate. To delete a full non-BMP Unicode code point, use `codePointAt` and `Character.charCount` as shown in the Unicode section below. To delete a full *grapheme cluster* (what a user considers one character), proper Unicode segmentation is required; deleting a single code point can still split combining marks or ZWJ emojis.
 
-## 5. `replace(start, end, str)`: thay đoạn bằng chuỗi mới
+## 5. `replace(start, end, str)`: Replacing a Range with a New String
 
 `StringBuilder.replace(int start, int end, String str)`:
 
-1. Xác định đoạn `[start, end)` của builder hiện tại.
-2. Bỏ đoạn đó (biên `end` vượt `length()` thì chỉ lấy đến hết).
-3. Đưa nội dung `str` vào ngay vị trí `start`.
+1. Identifies the range `[start, end)` of the current builder.
+2. Removes that range (if `end` exceeds `length()`, it only goes up to the end).
+3. Inserts the content of `str` right at `start`.
 
-Ví dụ độc lập:
+Standalone example:
 
 ```java
 StringBuilder sb = new StringBuilder("Hello world");
 sb.replace(6, 11, "Java");
-// Kết quả: "Hello Java"
+// Result: "Hello Java"
 ```
 
-`replace` là **thay theo vị trí**, **không tự tìm mọi lần xuất hiện của từ `"world"`**. Nếu không biết vị trí, trước tiên có thể gọi `indexOf("world")`, rồi dùng `replace(index, index + "world".length(), "Java")` sau khi kiểm tra index khác `-1`.
+`replace` is **positional replacement**, and **does not automatically find all occurrences of `"world"`**. If you do not know the position, you can call `indexOf("world")` first, then use `replace(index, index + "world".length(), "Java")` after checking that index is not `-1`.
 
-Những trường hợp biên thường hữu ích:
+Useful edge cases:
 
-- `replace(k, k, "X")`: không xóa code unit nào, có tác dụng **chèn `"X"` vào k**.
-- `replace(start, end, "")`: thay bằng chuỗi rỗng, có tác dụng **xóa đoạn**.
-- `replace(length(), length(), "!")`: chèn `!` ở cuối.
-- `replace(1, 99, "XY")` trên builder `"abc"`: thay từ `b` đến hết bằng `XY`, kết quả `"aXY"`.
-- `replace(3, 99, "!")` trên builder `"abc"`: không xóa gì vì bắt đầu ở cuối, rồi chèn `!`, kết quả `"abc!"`.
+- `replace(k, k, "X")`: removes zero code units, effectively **inserting `"X"` at k**.
+- `replace(start, end, "")`: replaces with an empty string, effectively **deleting the range**.
+- `replace(length(), length(), "!")`: inserts `!` at the end.
+- `replace(1, 99, "XY")` on builder `"abc"`: replaces from `b` to the end with `XY`, resulting in `"aXY"`.
+- `replace(3, 99, "!")` on builder `"abc"`: removes nothing because it starts at the end, then inserts `!`, resulting in `"abc!"`.
 
-**`str` không được là null:** `replace(start, end, null)` sẽ ném `NullPointerException`. Khác với một số overload của `insert`, `replace` không tự biến null thành `"null"`.
+**`str` must not be null:** `replace(start, end, null)` throws `NullPointerException`. Unlike some `insert` overloads, `replace` does not turn null into `"null"`.
 
-### Khác với `String.replace` và `replaceAll`
+### Difference from `String.replace` and `replaceAll`
 
-| API | Chọn phần cần thay | Thay đổi đối tượng nhận? |
+| API | Selects Part to Replace | Mutates Receiver? |
 | --- | --- | --- |
-| `StringBuilder.replace(start, end, str)` | **Bằng chỉ số** của một đoạn | Có, sửa `StringBuilder` |
-| `String.replace(oldText, newText)` | **Mọi lần khớp chuỗi literal, không chồng lấn** | Không, trả về `String` |
-| `String.replaceAll(regex, replacement)` | **Mọi lần khớp regex** | Không, trả về `String` |
+| `StringBuilder.replace(start, end, str)` | **By indices** of one range | Yes, mutates `StringBuilder` |
+| `String.replace(oldText, newText)` | **All non-overlapping literal matches** | No, returns `String` |
+| `String.replaceAll(regex, replacement)` | **All regex matches** | No, returns `String` |
 
-Không đưa regex như `"\\d+"` cho `StringBuilder.replace` và mong nó thay chữ số; overload của `StringBuilder` không nhận target regex hay chuỗi cần tìm, mà nhận **vị trí bắt đầu và kết thúc**.
+Do not pass a regex like `"\\d+"` to `StringBuilder.replace` expecting it to replace digits; `StringBuilder`'s overload takes neither a regex target nor a search string, only **start and end positions**.
 
-## 6. Ví dụ tổng hợp có thể chạy trên Java 17+
+## 6. Combined Runnable Example on Java 17+
 
-Lưu tệp `BuilderOpsDemo.java`:
+Save the file `BuilderOpsDemo.java`:
 
 ```java
 public class BuilderOpsDemo {
@@ -209,14 +209,14 @@ public class BuilderOpsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 BuilderOpsDemo.java
 java BuilderOpsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Java Core
@@ -229,19 +229,19 @@ Kotlin
 6
 ```
 
-Giải thích các mốc chính:
+Explanation of key milestones:
 
-- Sau lần chèn thứ ba, nội dung `"Learn Java Core!"` dài 16 code unit.
-- `delete(0, 6)` bỏ tiền tố `"Learn "` (6 code unit), được `"Java Core!"`.
-- `delete(4, 9)` bỏ `" Core"`; biên 9 không lấy dấu `!`, nên còn `"Java!"`.
-- `deleteCharAt(4)` xóa `!`, còn `"Java"`.
-- `replace(0, 4, "Kotlin")` thay cả `Java` thành `Kotlin`, có chiều dài 6.
+- After the third insertion, `"Learn Java Core!"` is 16 code units long.
+- `delete(0, 6)` removes the prefix `"Learn "` (6 code units), yielding `"Java Core!"`.
+- `delete(4, 9)` removes `" Core"`; exclusive bound 9 leaves `!`, leaving `"Java!"`.
+- `deleteCharAt(4)` deletes `!`, leaving `"Java"`.
+- `replace(0, 4, "Kotlin")` replaces all of `Java` with `Kotlin`, length 6.
 
-**Quan trọng:** Chỉ số ở mỗi lần thao tác được tính từ **nội dung hiện tại**, không phải nội dung khởi tạo `"Java"`. Mọi lần chèn hoặc xóa trước một vị trí đều có thể làm lệch các chỉ số về sau.
+**Important:** Indices at each operation are calculated from the **current content**, not the initial content `"Java"`. Any insertion or deletion before a position can shift subsequent indices.
 
-## 7. Bài chạy kiểm tra các trường hợp biên
+## 7. Runnable Example Testing Boundary Cases
 
-Lưu tệp `BuilderBoundsDemo.java`:
+Save the file `BuilderBoundsDemo.java`:
 
 ```java
 public class BuilderBoundsDemo {
@@ -267,14 +267,14 @@ public class BuilderBoundsDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 BuilderBoundsDemo.java
 java BuilderBoundsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 a
@@ -285,13 +285,13 @@ anullbc
 abc
 ```
 
-Điểm đáng nhớ: `end > length()` với `delete` hoặc `replace` không tự động gây lỗi; `start == end` tạo đoạn rỗng (xóa là không đổi, thay bằng chuỗi không rỗng sẽ chèn). Còn `insert(..., (String) null)` chèn chữ `null` theo quy tắc overload này, không đồng nghĩa `replace(..., null)` hợp lệ.
+Points to remember: `end > length()` with `delete` or `replace` does not automatically throw an error; `start == end` creates an empty range (deleting is a no-op; replacing with a non-empty string inserts). Also, `insert(..., (String) null)` inserts `"null"` per that overload's rule, which does not mean `replace(..., null)` is valid.
 
-## 8. Làm việc an toàn với Unicode / UTF-16
+## 8. Working Safely with Unicode / UTF-16
 
-`StringBuilder` cũng lưu và đánh chỉ số theo UTF-16 code unit. Emoji `😀` là một Unicode code point nhưng được biểu diễn bằng **hai `char`**. Chèn hoặc xóa ở giữa cặp surrogate có thể làm chuỗi thiếu tính hợp lệ Unicode.
+`StringBuilder` also stores and indexes by UTF-16 code units. The emoji `😀` is one Unicode code point yet is represented by **two `char`s**. Inserting or deleting in the middle of a surrogate pair can make the string lose Unicode validity.
 
-Lưu `BuilderUnicodeDemo.java`:
+Save `BuilderUnicodeDemo.java`:
 
 ```java
 public class BuilderUnicodeDemo {
@@ -316,14 +316,14 @@ public class BuilderUnicodeDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 BuilderUnicodeDemo.java
 java BuilderUnicodeDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 4
@@ -333,12 +333,12 @@ true
 3
 ```
 
-- `length() == 4` vì `A` và `B` mỗi ký tự chiếm 1 code unit, còn emoji cần 2 code unit.
-- Có 3 Unicode code point: `A`, `😀`, `B`.
-- `delete(1, 3)` xóa trọn cặp surrogate đại diện emoji, còn `AB`.
-- `deleteCharAt(1)` chỉ xóa high surrogate tại index 1, để lại low surrogate lẻ. Vì vậy `Character.isLowSurrogate(broken.charAt(1))` trả `true`. Không nên coi chuỗi còn lại là Unicode hợp lệ.
+- `length() == 4` because `A` and `B` each take 1 code unit, while the emoji needs 2 code units.
+- There are 3 Unicode code points: `A`, `😀`, `B`.
+- `delete(1, 3)` deletes the entire surrogate pair representing the emoji, leaving `AB`.
+- `deleteCharAt(1)` deletes only the high surrogate at index 1, leaving a lone low surrogate. Thus `Character.isLowSurrogate(broken.charAt(1))` returns `true`. The remaining string should not be treated as valid Unicode.
 
-Khi đang đứng ở **offset bắt đầu của một code point**, có thể xóa trọn code point đó bằng:
+When standing at the **starting offset of a code point**, you can delete that whole code point with:
 
 ```java
 int index = 1;
@@ -346,11 +346,11 @@ int point = text.codePointAt(index);
 text.delete(index, index + Character.charCount(point));
 ```
 
-Đây là đoạn minh họa bên trong phương thức sau khi `text` chứa `"A😀B"`; kết quả sẽ là `"AB"`. `Character.charCount(point)` trả `2` đối với `😀`. Nếu offset bắt đầu nằm **giữa** surrogate pair, thuật toán phải tìm lại ranh giới chính xác trước khi xử lý. Và nếu nghiệp vụ cần thao tác theo **ký tự hiển thị** (grapheme cluster), chỉ dựa vào code point vẫn chưa đủ với các tổ hợp dấu, modifier hoặc emoji có zero-width joiner.
+This is an illustrative snippet inside a method after `text` holds `"A😀B"`; the result will be `"AB"`. `Character.charCount(point)` returns `2` for `😀`. If the starting offset falls **in the middle** of a surrogate pair, the algorithm must locate the exact boundary first before processing. And if the domain needs operations by **visible character** (grapheme cluster), relying on code points alone is still insufficient for combining marks, modifiers, or zero-width joiner emojis.
 
-## 9. Tìm theo nội dung trước khi chỉnh sửa vị trí
+## 9. Searching by Content Before Positional Editing
 
-`StringBuilder.replace` yêu cầu **chỉ số**, không nhận target cần tìm. Nếu muốn thay một lần xuất hiện nguyên văn của một từ:
+`StringBuilder.replace` requires **indices**, not a search target. If you want to replace a single literal occurrence of a word:
 
 ```java
 StringBuilder sb = new StringBuilder("Hello world");
@@ -364,9 +364,9 @@ if (index >= 0) {
 System.out.println(sb); // Hello Java
 ```
 
-Đoạn này là mã minh họa đặt trong một phương thức. `indexOf` trả `-1` khi không tìm thấy; phải kiểm tra trước khi đưa vào `replace`.
+This snippet is illustrative code placed inside a method. `indexOf` returns `-1` when not found; always check before passing to `replace`.
 
-Nếu cần thay **tất cả** lần xuất hiện literal bằng cách chỉnh builder trực tiếp, có thể duyệt vị trí tìm thấy. Ví dụ độc lập ở `BuilderReplaceAllDemo.java`:
+If you need to replace **all** literal occurrences by editing the builder directly, you can loop over found positions. Standalone example in `BuilderReplaceAllDemo.java`:
 
 ```java
 public class BuilderReplaceAllDemo {
@@ -390,26 +390,26 @@ public class BuilderReplaceAllDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 BuilderReplaceAllDemo.java
 java BuilderReplaceAllDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 green blue green
 ```
 
-Sau mỗi lần thay, `from` được chuyển qua **đoạn replacement vừa đưa vào**, tránh tìm lại các ký tự mới chèn ở lần thay hiện tại. Việc kiểm tra `target.isEmpty()` ngăn các trường hợp tìm đoạn rỗng vốn cần chính sách riêng.
+After each replacement, `from` advances past **the newly inserted replacement segment**, avoiding re-matching the newly inserted characters in the current replacement. Checking `target.isEmpty()` prevents empty-target search cases that require a separate policy.
 
-Với bài toán đơn giản chỉ cần thay đoạn văn bản ở mọi vị trí, **`String.replace(target, replacement)` thường dễ đọc hơn**: `String result = sb.toString().replace("red", "green");`. Chỉ dùng vòng lặp chỉnh builder khi có lý do xử lý tại chỗ hoặc cần tích hợp nhiều phép biến đổi có trạng thái.
+For simple problems that only need to replace a text snippet everywhere, **`String.replace(target, replacement)` is usually easier to read**: `String result = sb.toString().replace("red", "green");`. Use an in-place builder loop only when there is a reason to edit in place or integrate multiple stateful transformations.
 
-## 10. Khả năng nối phương thức, độ dài và hiệu năng
+## 10. Method Chaining, Length, and Performance
 
-Cả bốn phương thức sửa nội dung đều trả lại builder, nên có thể **chain**:
+All four content-editing methods return the builder, so they can be **chained**:
 
 ```java
 StringBuilder sb = new StringBuilder("abc");
@@ -422,37 +422,37 @@ sb.delete(1, 2).replace(1, 2, "B");
 System.out.println(sb);         // aBc
 ```
 
-`==` ở đây được dùng **có chủ đích để kiểm tra danh tính đối tượng `StringBuilder`**, không phải so sánh nội dung của hai `String`. Builder vẫn là một đối tượng; các lời gọi liên tiếp lần lượt sửa nội dung của nó.
+`==` is used here **intentionally to check `StringBuilder` object identity**, not to compare the content of two `String`s. The builder remains a single object; chained calls modify its content sequentially.
 
-Về chi phí:
+Regarding cost:
 
-- `insert` ở giữa chuỗi thường phải dịch chuyển phần đuôi sang phải; `delete` thường phải dịch chuyển dữ liệu còn lại sang trái.
-- `replace` có thể khiến độ dài tăng hoặc giảm, tùy độ dài đoạn bị bỏ và `str` được chèn.
-- `append` thường phù hợp hơn `insert` ở giữa nếu mục tiêu chỉ là xây dựng chuỗi từ trái sang phải.
-- `StringBuilder` có bộ đệm có thể tăng dung lượng; `capacity()` và `ensureCapacity(...)` liên quan hiệu năng/dung lượng, **không thay đổi quy tắc vị trí**.
-- `StringBuilder` **không đồng bộ hóa các phương thức** để dùng chung và sửa từ nhiều luồng; với truy cập đồng thời cần quản lý đồng bộ bên ngoài hoặc thiết kế không chia sẻ mutable builder.
+- `insert` in the middle of a string typically shifts the tail to the right; `delete` typically shifts the remaining data to the left.
+- `replace` can cause length to grow or shrink, depending on the length of the removed range and the inserted `str`.
+- `append` is generally a better fit than middle `insert` if the goal is simply building a string left to right.
+- `StringBuilder` has an expandable buffer; `capacity()` and `ensureCapacity(...)` relate to performance/capacity and **do not change positional rules**.
+- `StringBuilder` **does not synchronize its methods** for shared mutation from multiple threads; for concurrent access, manage synchronization externally or design without sharing a mutable builder.
 
-Không nên khẳng định chắc số cấp phát hoặc độ phức tạp của toàn chương trình chỉ từ một phép nối; hiệu năng cần được đánh giá theo dữ liệu và JVM thực tế.
+You should not make absolute claims about allocation counts or whole-program complexity from a single concatenation; performance should be evaluated with real data and the actual JVM.
 
-## 11. Lỗi thường gặp và cách tránh
+## 11. Common Mistakes and How to Avoid Them
 
-1. **Nhầm biên cuối là bao gồm:** `delete(1, 4)` xóa chỉ số 1, 2, 3, không xóa chỉ số 4.
-2. **Dùng chỉ số cũ sau khi chèn/xóa:** các code unit phía sau có thể bị dịch chuyển; tính lại vị trí trên builder hiện tại.
-3. **Tưởng `end > length()` luôn ném lỗi:** với `delete` và `replace`, `end` lớn hơn chiều dài được **giới hạn về chiều dài**; nhưng `start > length()` vẫn là lỗi.
-4. **Dùng `deleteCharAt(length())`:** không hợp lệ; ký tự cuối có chỉ số `length() - 1`, nếu builder không rỗng.
-5. **Nhầm `replace(start, end, str)` với `String.replace(old, new)`:** phương thức của builder thay **một khoảng chỉ số**, không tự tìm và thay mọi lần xuất hiện.
-6. **Dùng `replace(start, end, null)`:** tham số `str` null gây `NullPointerException`; nếu muốn xóa đoạn, dùng `delete` hoặc `replace(start, end, "")`.
-7. **Giả định mọi thao tác theo “ký tự nhìn thấy”:** API dùng UTF-16 code unit; xóa một `char` có thể phá cặp surrogate.
-8. **Cho rằng phương thức builder không thay đổi đối tượng nhận:** các phương thức này *mutate* chính builder; giữ tham chiếu `StringBuilder` ở nơi khác sẽ quan sát được nội dung thay đổi.
-9. **So sánh nội dung hai builder bằng `==`:** `==` kiểm tra cùng tham chiếu. Dùng `toString().equals(...)` hoặc thuật toán so nội dung phù hợp nếu cần.
-10. **Không kiểm tra kết quả `indexOf` trước khi `replace`:** nếu không tìm thấy, chỉ số `-1` không hợp lệ.
-11. **Dùng chung một `StringBuilder` cho nhiều luồng sửa mà không đồng bộ:** có thể làm trạng thái và kết quả không nhất quán.
+1. **Mistaking the end bound as inclusive:** `delete(1, 4)` deletes indices 1, 2, 3, not index 4.
+2. **Using stale indices after insert/delete:** subsequent code units may have shifted; recompute positions on the current builder.
+3. **Thinking `end > length()` always throws:** for `delete` and `replace`, an `end` greater than length is **clamped to length**; however, `start > length()` is still an error.
+4. **Calling `deleteCharAt(length())`:** invalid; the last character is at index `length() - 1`, if the builder is non-empty.
+5. **Confusing `replace(start, end, str)` with `String.replace(old, new)`:** the builder method replaces **one index range**, not all occurrences automatically.
+6. **Calling `replace(start, end, null)`:** a null `str` causes `NullPointerException`; if you want to delete the range, use `delete` or `replace(start, end, "")`.
+7. **Assuming every operation works on "visible characters":** the API uses UTF-16 code units; deleting a single `char` can break a surrogate pair.
+8. **Assuming builder methods do not mutate the receiver:** these methods *mutate* the builder itself; references held elsewhere to that `StringBuilder` will observe the changed content.
+9. **Comparing two builders' contents with `==`:** `==` checks reference identity. Use `toString().equals(...)` or an appropriate content comparison when needed.
+10. **Not checking the result of `indexOf` before `replace`:** if not found, index `-1` is invalid.
+11. **Sharing one `StringBuilder` across multiple mutating threads without synchronization:** can cause inconsistent state and results.
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-Cho mỗi tình huống dưới đây, **bắt đầu với một builder mới**, không sử dụng kết quả của dòng trước:
+For each scenario below, **start with a fresh builder**, without carrying over the result of the previous row:
 
-| Builder ban đầu | Thao tác | Kết quả |
+| Initial Builder | Operation | Result |
 | --- | --- | --- |
 | `"ABCDE"` | `insert(0, ">")` | `">ABCDE"` |
 | `"ABCDE"` | `insert(5, "!")` | `"ABCDE!"` |
@@ -464,11 +464,11 @@ Cho mỗi tình huống dưới đây, **bắt đầu với một builder mới*
 | `"ABCDE"` | `replace(0, 5, "")` | `""` |
 | `"ABCDE"` | `delete(2, 99)` | `"AB"` |
 
-Câu hỏi kiểm tra:
+Check questions:
 
-- Với `"abc"`, `delete(1, 99)` cho gì? **`"a"`** vì `end` vượt chiều dài được giới hạn.
-- Với `"abc"`, `replace(3, 99, "!")` cho gì? **`"abc!"`** vì `start` ở cuối và phần bị thay là rỗng.
-- Tại sao `deleteCharAt(1)` có thể gây lỗi nội dung Unicode với `"A😀B"`? Vì xóa một `char`, có thể chỉ xóa **nửa cặp surrogate**.
-- Nếu muốn thay mọi chữ `red` thành `green` thì `StringBuilder.replace` tự làm hết không? **Không**; phải xác định các khoảng cần thay, hoặc dùng `String.replace`.
+- On `"abc"`, what does `delete(1, 99)` produce? **`"a"`** because `end` beyond length is clamped.
+- On `"abc"`, what does `replace(3, 99, "!")` produce? **`"abc!"`** because `start` is at the end and the replaced slice is empty.
+- Why can `deleteCharAt(1)` corrupt Unicode content on `"A😀B"`? Because it deletes a single `char`, which can delete only **half of the surrogate pair**.
+- If you want to replace every `red` with `green`, does `StringBuilder.replace` do all of them automatically? **No**; you must locate each range to replace, or use `String.replace`.
 
-**Ghi nhớ:** `insert` chèn tại một vị trí; `delete` xóa đoạn `[start, end)`; `deleteCharAt` xóa một code unit; `replace` thay đoạn `[start, end)`. Cả bốn **sửa chính `StringBuilder`**, trả về builder để có thể nối lời gọi, và dùng **offset UTF-16** — vì vậy kiểm tra biên cùng ranh giới Unicode trước khi thao tác.
+**Key takeaway:** `insert` inserts at a position; `delete` deletes `[start, end)`; `deleteCharAt` deletes one code unit; `replace` replaces `[start, end)`. All four **mutate the `StringBuilder` itself**, return the builder for chaining, and use **UTF-16 offsets** — so verify bounds and Unicode boundaries before editing.

@@ -1,67 +1,67 @@
-# Khóa cache cần xét `Class` và định danh ClassLoader trong Java Reflection
+# Cache Keys Must Consider `Class` and ClassLoader Identity in Java Reflection
 
-## 1. Vấn đề: “cùng tên lớp” chưa chắc là cùng kiểu
+## 1. The Problem: “Same Class Name” Does Not Guarantee Same Type
 
-Trong ứng dụng dùng **Reflection**, framework, plugin, ứng dụng chạy nhiều class loader hay cơ chế hot reload, chúng ta thường cache kết quả tốn chi phí tìm kiếm như `Class<?>`, `Method`, `Constructor<?>`, `Field`, annotation metadata hoặc bộ chuyển đổi dữ liệu. Lỗi khó phát hiện xuất hiện khi khóa cache chỉ là tên chuỗi:
+In applications using **Reflection**, frameworks, plugins, multi-classloader setups, or hot-reload mechanisms, we often cache expensive lookup results such as `Class<?>`, `Method`, `Constructor<?>`, `Field`, annotation metadata, or data converters. A subtle bug occurs when the cache key is only a string name:
 
 ~~~java
-// Cách dễ sai khi có nhiều class loader
+// Easy-to-break approach with multiple classloaders
 Map<String, Method> methodCache = new HashMap<>();
 methodCache.put("com.example.Plugin#execute", aMethod);
 ~~~
 
-Tên `com.example.Plugin` chỉ là **binary name**. Nó không đủ nhận diện một lớp Java tại runtime: **hai class loader khác nhau có thể định nghĩa hai class khác nhau mang cùng binary name**. Nếu lấy `Method` từ lớp thứ nhất đem gọi trên đối tượng của lớp thứ hai, Java Reflection có thể ném `IllegalArgumentException` vì receiver không phải instance của declaring class phù hợp.
+The name `com.example.Plugin` is only a **binary name**. It is insufficient to identify a Java class at runtime: **two different classloaders can define two different classes carrying the same binary name**. If you take a `Method` from the first class and invoke it on an instance of the second class, Java Reflection can throw `IllegalArgumentException` because the receiver is not an instance of the matching declaring class.
 
-Bài này giải thích cách chọn khóa đúng, minh họa lỗi bằng Java 17+ chạy được, đề xuất `ClassValue` để giữ metadata theo từng `Class<?>`, và phân tích cache gây giữ class loader trong bộ nhớ.
+This lesson explains how to choose the right key, demonstrates the bug with runnable Java 17+ code, recommends `ClassValue` for retaining metadata per `Class<?>`, and analyzes how caches keep classloaders in memory.
 
-**Kết quả cần đạt:** phân biệt tên lớp, class loader được yêu cầu nạp và class loader thực sự định nghĩa; xây cache có định danh chính xác; xử lý overload/thread safety; tránh giữ class/plugin cũ sau khi unload.
+**Expected outcome:** distinguish class name, initiating loader, and defining loader; build caches with accurate identity; handle overloads/thread safety; avoid retaining old classes/plugins after unloading.
 
-## 2. Định danh lớp tại JVM: binary name **cùng** defining loader
+## 2. Class Identity in the JVM: Binary Name **Plus** Defining Loader
 
-JVM xác định một class/interface runtime dựa trên **tên nhị phân và class loader định nghĩa nó**. Vì vậy, có thể có:
+The JVM identifies a runtime class/interface by **its binary name and the classloader that defined it**. Therefore, you can have:
 
 ~~~text
 Loader-A --define--> demo.Plugin   (Class object A)
 Loader-B --define--> demo.Plugin   (Class object B)
 ~~~
 
-Dù `Class.getName()` trả cùng `"demo.Plugin"`:
+Even though `Class.getName()` returns the same `"demo.Plugin"`:
 
-- `classA == classB` là `false`; chúng biểu diễn **hai kiểu runtime khác nhau**.
-- `classA.getClassLoader() != classB.getClassLoader()` nếu chúng được định nghĩa bởi hai loader khác nhau.
-- Đối tượng do `classA` tạo không tự động là instance của `classB`: `classB.isInstance(objectFromA)` trả `false`.
-- `Method`/`Constructor` hoặc `Field` tra cứu trên class A không thể tùy ý áp dụng cho class B, kể cả bytecode nhìn giống hệt.
-- Các static field và quá trình khởi tạo class cũng thuộc từng class runtime; việc một loader nạp cùng tên không làm hai class chia sẻ trạng thái static.
+- `classA == classB` is `false`; they represent **two different runtime types**.
+- `classA.getClassLoader() != classB.getClassLoader()` if they were defined by two different loaders.
+- An object created by `classA` is not automatically an instance of `classB`: `classB.isInstance(objectFromA)` returns `false`.
+- A `Method`/`Constructor` or `Field` looked up on class A cannot arbitrarily be applied to class B, even if the bytecode looks identical.
+- Static fields and class initialization also belong to each runtime class; loading the same name in another loader does not make the two classes share static state.
 
-**Phân biệt defining và initiating loader:** khi gọi `requestedLoader.loadClass("demo.Plugin")`, loader ấy có thể **ủy quyền cho parent**. Kết quả `Class<?>` lúc đó do **parent định nghĩa**, nên `type.getClassLoader()` có thể khác `requestedLoader`. Chọn khóa theo `Class<?>` sau khi đã phân giải là cách đơn giản và chính xác nhất khi cache metadata phụ thuộc vào *kiểu thực tế*.
+**Distinguish defining and initiating loaders:** when calling `requestedLoader.loadClass("demo.Plugin")`, that loader may **delegate to its parent**. The resulting `Class<?>` is then defined by the **parent**, so `type.getClassLoader()` may differ from `requestedLoader`. Keying by the resolved `Class<?>` is the simplest and most accurate approach when caching metadata that depends on the *actual type*.
 
-Trường hợp bootstrap loader như `String.class.getClassLoader()` có thể trả về `null`; `null` ở đây là trường hợp hợp lệ, không phải lỗi.
+For the bootstrap loader, calls like `String.class.getClassLoader()` may return `null`; `null` here is a valid case, not an error.
 
-## 3. Chọn khóa cache theo thứ đang được cache
+## 3. Choosing Cache Keys Based on What Is Cached
 
-Không có một kiểu khóa phù hợp mọi bài toán. Trước tiên hãy xác định bạn muốn cache **kết quả phân giải tên** hay **metadata của một class đã xác định**:
+There is no single key structure that fits every problem. First determine whether you want to cache **the result of resolving a name** or **metadata of an already-resolved class**:
 
-| Dữ liệu cache | Khóa gợi ý | Vì sao? |
+| Cached Data | Suggested Key | Why? |
 | --- | --- | --- |
-| Metadata/annotation của một class | `Class<?>` hoặc `ClassValue<T>` | Chính `Class` đã mang định danh runtime gồm loader |
-| Danh sách `Method` của một class | `Class<?>` rồi khóa phụ cho signature | Chặn nhầm method giữa hai lớp trùng tên |
-| Một `Method` cụ thể | `Class<?>` + tên + kiểu tham số + chính sách declared/public | Overload không có cùng metadata |
-| Một `Constructor` | `Class<?>` + kiểu tham số | Constructor overload theo tham số |
-| Một `Field` | `Class<?>` + tên field + phạm vi tra cứu | Field được gắn với declaring class cụ thể |
-| Phân giải tên `"demo.Plugin"` thành `Class<?>` | **Tên + initiating loader / ngữ cảnh phân giải** | Cùng tên có thể phân giải khác nhau theo loader |
-| Tra cứu theo JPMS layer/module | Khóa bổ sung `Module`/`ModuleLayer` khi cách phân giải phụ thuộc chúng | Loader đơn thuần không luôn mô tả đầy đủ chính sách tìm module |
+| Metadata/annotations of a class | `Class<?>` or `ClassValue<T>` | `Class` itself carries runtime identity including loader |
+| List of `Method`s of a class | `Class<?>` then secondary key for signature | Prevents mixing methods across two classes with the same name |
+| A specific `Method` | `Class<?>` + name + parameter types + declared/public policy | Overloads do not share the same metadata |
+| A `Constructor` | `Class<?>` + parameter types | Constructors overload by parameters |
+| A `Field` | `Class<?>` + field name + lookup scope | Fields are bound to a specific declaring class |
+| Resolving `"demo.Plugin"` to `Class<?>` | **Name + initiating loader / resolution context** | The same name can resolve differently by loader |
+| Lookups across JPMS layers/modules | Include `Module`/`ModuleLayer` when resolution depends on them | A loader alone does not always fully describe module lookup policy |
 
-Đối với **metadata đã có `Class<?>`**, khóa bằng `Class<?>` là **đủ để phân biệt loader**. Không bắt buộc thêm `type.getClassLoader()` vào khóa, vì hai `Class` khác nhau đã khác nhau rồi. Một khóa `(Class<?>, ClassLoader)` đôi khi dùng được, nhưng thường dư thừa và có thể vô tình giữ thêm tham chiếu mạnh.
+For **metadata where `Class<?>` is already obtained**, keying by `Class<?>` is **sufficient to distinguish loaders**. You do not need to add `type.getClassLoader()` to the key, because two distinct `Class` objects are already unequal. A `(Class<?>, ClassLoader)` key sometimes works, but it is usually redundant and can accidentally hold an extra strong reference.
 
-Nếu API nhận **tên lớp dạng chuỗi** và lựa chọn loader ở thời điểm tìm, hãy dùng một khóa có cả tên **và chính ngữ cảnh yêu cầu phân giải**. Nên dùng **đối tượng loader**, không chỉ `loader.getClass().getName()`, `toString()` hay `hashCode()`: hai instance loader cùng lớp vẫn có thể định nghĩa những class khác nhau. Nếu hệ thống có layer, phiên bản plugin, biến thể lookup hay rule tùy biến, cần phản ánh những yếu tố làm thay đổi kết quả trong khóa.
+If an API accepts a **string class name** and selects a loader at lookup time, use a key containing both the name **and the resolution request context itself**. Use the **loader object**, not just `loader.getClass().getName()`, `toString()`, or `hashCode()`: two loader instances of the same class can still define different classes. If the system has layers, plugin versions, lookup variants, or custom rules, reflect every factor that changes the outcome in the key.
 
-**Quan hệ tương đương phải đúng:** hai request chỉ chia sẻ kết quả cache nếu chương trình thực sự bảo đảm chúng phân giải tới cùng đối tượng runtime và cùng chính sách truy cập.
+**The equivalence relation must be sound:** two requests should share a cached result only if the program truly guarantees they resolve to the same runtime object and the same access policy.
 
-## 4. Ví dụ chạy được: cùng tên nhưng hai class loader khác nhau
+## 4. Runnable Example: Same Name, Two Different Classloaders
 
-Ví dụ dưới đây tự đọc bytecode của lớp nested `Widget` rồi tạo hai `ClassLoader` tùy chỉnh để **định nghĩa lại đúng một tên class**. Loader tùy chỉnh chỉ bỏ qua cơ chế ủy quyền parent đối với `Widget`; những lớp còn lại vẫn ủy quyền bình thường.
+The example below reads the bytecode of the nested class `Widget` and creates two custom `ClassLoader` instances to **redefine the exact same class name**. The custom loader bypasses parent delegation only for `Widget`; all other classes still delegate normally.
 
-Tạo file `ClassCacheKeyDemo.java`:
+Create the file `ClassCacheKeyDemo.java`:
 
 ~~~java
 import java.io.IOException;
@@ -146,14 +146,14 @@ public class ClassCacheKeyDemo {
 }
 ~~~
 
-Biên dịch/chạy tại thư mục chứa file bằng **Java 17+**:
+Compile and run in the file's directory using **Java 17+**:
 
 ~~~bash
 javac --release 17 ClassCacheKeyDemo.java
 java ClassCacheKeyDemo
 ~~~
 
-Kết quả thực tế đã kiểm tra trên JDK 21 với `--release 17`:
+Actual output verified on JDK 21 with `--release 17`:
 
 ~~~text
 Same name: true
@@ -164,41 +164,41 @@ Wrong cached Method: IllegalArgumentException
 Correct reflection call: pong
 ~~~
 
-**Phân tích:**
+**Analysis:**
 
-1. Cả hai loader tùy chỉnh định nghĩa bytecode của `ClassCacheKeyDemo$Widget`, tạo các `Class<?>` khác với lớp `Widget` do loader ứng dụng định nghĩa.
-2. Cache sai dùng `getName() + "#ping"` nên trả `Method` của lớp ứng dụng, dù đối tượng nhận lời gọi thuộc lớp do plugin loader định nghĩa.
-3. `Method.invoke(pluginObject)` ném `IllegalArgumentException` vì receiver không thuộc kiểu khai báo method tương ứng.
-4. Cache dùng `Map<Class<?>, Method>` phân biệt hai runtime class; gọi method của lớp plugin trên instance plugin trả kết quả chính xác.
+1. Both custom loaders define the bytecode of `ClassCacheKeyDemo$Widget`, producing `Class<?>` objects distinct from the `Widget` class defined by the application loader.
+2. The broken cache uses `getName() + "#ping"`, so it returns the application class's `Method`, even though the target instance belongs to the class defined by the plugin loader.
+3. `Method.invoke(pluginObject)` throws `IllegalArgumentException` because the receiver does not belong to the method's declaring type.
+4. The cache using `Map<Class<?>, Method>` distinguishes the two runtime classes; invoking the plugin class's method on the plugin instance returns the correct result.
 
-Đây là **demo cố ý** dùng child-first cho một class nhằm tái hiện sự khác biệt. Đừng biến toàn bộ loader thành child-first trong sản phẩm nếu không hiểu ranh giới dependency, package, resource và bảo mật.
+This is a **deliberate demo** using child-first loading for one class to reproduce the difference. Do not turn an entire loader into child-first in production without understanding dependency, package, resource, and security boundaries.
 
-## 5. Cache method phải xét cả signature và quy tắc Reflection
+## 5. Method Caches Must Also Include Signature and Reflection Rules
 
-Ngay cả khi khóa ngoài đã là `Class<?>`, một lớp có thể overload:
+Even when the outer key is `Class<?>`, a class can overload methods:
 
 ~~~java
 String substring(int beginIndex)
 String substring(int beginIndex, int endIndex)
 ~~~
 
-Vì vậy không nên cache bằng mỗi tên `"substring"`. Nếu sử dụng `Class.getMethod(name, parameterTypes)` (chỉ tìm method public, có cả kế thừa), khóa phụ nên mang tên và **danh sách `Class<?>` của tham số theo đúng thứ tự**. Với `getDeclaredMethod(...)`, phải rõ chính sách lấy method khai báo trực tiếp; đừng trộn cache của `getMethod` và `getDeclaredMethod`.
+Therefore, you should not cache solely by the name `"substring"`. When using `Class.getMethod(name, parameterTypes)` (which finds only public methods, including inherited ones), the secondary key should contain the name and the **list of parameter `Class<?>` types in exact order**. With `getDeclaredMethod(...)`, make the policy for directly declared methods explicit; do not mix caches of `getMethod` and `getDeclaredMethod`.
 
-Những điều dễ sót:
+Details that are easy to miss:
 
-- `int.class` khác `Integer.class`; `String[].class` khác `String.class`.
-- Overload `call(String)` khác `call(Object)`; số lượng và thứ tự tham số đều quan trọng.
-- Method có varargs vẫn có kiểu tham số mảng trong Reflection, ví dụ `String...` thành `String[].class`.
-- `Method.getDeclaringClass()` có thể là **lớp cha/interface khai báo** chứ không phải owner class dùng để tra cứu. Cache theo class yêu cầu và định danh method/declaring class cho phù hợp mục đích.
-- Generic sau **type erasure** không làm `List<String>` và `List<Integer>` trở thành hai kiểu tham số runtime khác nhau.
-- Trong bytecode có thể tồn tại bridge/synthetic method. Nếu đang làm việc với metadata thô hoặc descriptor JVM, kiểm tra cả `getReturnType()`, `isBridge()` và `isSynthetic()` khi thích hợp. API `getMethod` thông thường không cho chọn method bằng return type.
-- Quyền truy cập thành viên có thể phụ thuộc **caller lookup, module, `exports`/`opens`**. Lấy được `Method` hay cache nó không đồng nghĩa mọi caller đều có quyền gọi/private access.
+- `int.class` differs from `Integer.class`; `String[].class` differs from `String.class`.
+- Overloads `call(String)` and `call(Object)` differ; both parameter count and order matter.
+- Varargs methods still have an array parameter type in Reflection, e.g., `String...` becomes `String[].class`.
+- `Method.getDeclaringClass()` can be a **superclass or interface** rather than the owner class used for the lookup. Cache by the requested class and identify the method/declaring class according to your needs.
+- Generics after **type erasure** do not make `List<String>` and `List<Integer>` two different runtime parameter types.
+- Bytecode may contain bridge or synthetic methods. If working with raw metadata or JVM descriptors, also check `getReturnType()`, `isBridge()`, and `isSynthetic()` where appropriate. The standard `getMethod` API does not select methods by return type.
+- Member access rights can depend on **caller lookup, module, and `exports`/`opens`**. Obtaining or caching a `Method` does not mean every caller has permission to invoke it or access private members.
 
-Với ứng dụng chỉ có một `status()` không tham số và API public, khóa phụ có thể rất đơn giản. Với thư viện Reflection tổng quát, cần biểu diễn đầy đủ signature, loại thành viên, cách lookup và chính sách truy cập.
+For an application with only one parameterless public `status()` API, the secondary key can be very simple. For a general-purpose Reflection library, represent the full signature, member kind, lookup mode, and access policy.
 
-## 6. `ClassValue<T>`: cache giá trị gắn trực tiếp với từng `Class<?>`
+## 6. `ClassValue<T>`: Caching Values Attached Directly to Each `Class<?>`
 
-JDK cung cấp `java.lang.ClassValue<T>` (Java 7+) để **gắn dữ liệu tính toán theo từng class runtime**. Vì `Class<?>` đã phân biệt loader, `ClassValue` cũng phân biệt hai class trùng tên được định nghĩa bởi loader khác nhau.
+The JDK provides `java.lang.ClassValue<T>` (Java 7+) to **attach computed data per runtime class**. Because `Class<?>` already distinguishes loaders, `ClassValue` also distinguishes two same-named classes defined by different loaders.
 
 ~~~java
 private static final ClassValue<Metadata> CACHE = new ClassValue<>() {
@@ -209,18 +209,18 @@ private static final ClassValue<Metadata> CACHE = new ClassValue<>() {
 };
 ~~~
 
-Đây là **fragment minh họa**; `Metadata` và `inspect` là kiểu/hàm do ứng dụng tự định nghĩa. `CACHE.get(type)` tính giá trị khi chưa có rồi lưu theo `type`; `CACHE.remove(type)` bỏ giá trị của class đó để lần tiếp theo tạo lại.
+This is an **illustrative fragment**; `Metadata` and `inspect` are application-defined type/function names. `CACHE.get(type)` computes the value when absent and stores it under `type`; `CACHE.remove(type)` discards the value for that class so it can be recomputed next time.
 
-Lợi ích chính: tránh phải tự quản lý một `Map<Class<?>, ...>` toàn cục chỉ để ánh xạ class sang metadata; `ClassValue` được thiết kế riêng cho mối liên hệ này và hỗ trợ truy cập đồng thời. Tuy nhiên:
+Main benefit: avoids manually managing a global `Map<Class<?>, ...>` just to map classes to metadata; `ClassValue` is purpose-built for this association and supports concurrent access. However:
 
-- `computeValue` **có thể chạy nhiều lần khi thread cạnh tranh**, dù chỉ một kết quả được cài đặt để trả về. Không đặt thao tác side effect không an toàn hoặc giao dịch bắt buộc chạy đúng một lần trong `computeValue`.
-- `remove(type)` chỉ xóa association của **đúng đối tượng `Class<?>`** khỏi **đúng đối tượng `ClassValue`** đó. Nó không “xóa mọi cache” của ứng dụng.
-- `ClassValue` không tự ngăn mọi memory leak: nếu code khác vẫn giữ `Class<?>`, loader, instance hoặc handle của plugin cũ thì lớp vẫn có thể còn sống.
-- Chỉ thêm `ClassValue` khi metadata thực sự dùng nhiều lần; cache làm tăng độ phức tạp và tiêu thụ bộ nhớ nếu phép tra cứu rất rẻ/ít lặp.
+- `computeValue` **may run multiple times when threads contend**, though only one result is installed and returned. Do not place unsafe side effects or strictly once-only transactions inside `computeValue`.
+- `remove(type)` only removes the association for **that exact `Class<?>`** from **that exact `ClassValue` instance**. It does not “clear all caches” across the application.
+- `ClassValue` does not automatically prevent all memory leaks: if other code still holds a `Class<?>`, loader, instance, or handle from an old plugin, the class can still stay alive.
+- Only add `ClassValue` when metadata is truly reused many times; caching adds complexity and memory overhead if lookups are cheap or infrequent.
 
-### Ví dụ Java 17 hoàn chỉnh: `ClassValue` và overload
+### Complete Java 17 Example: `ClassValue` and Overloads
 
-Tạo file `ClassValueDemo.java`:
+Create the file `ClassValueDemo.java`:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -270,14 +270,14 @@ public class ClassValueDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac --release 17 ClassValueDemo.java
 java ClassValueDemo
 ~~~
 
-Output đã kiểm tra:
+Verified output:
 
 ~~~text
 Same cached method: true
@@ -286,15 +286,15 @@ First call: cd
 Second call: bc
 ~~~
 
-`Signature` là record nên có so sánh theo giá trị; `List.of(parameters)` tạo danh sách bất biến chứa tham số theo đúng thứ tự thay vì giữ trực tiếp mảng `Class<?>...` có thể bị caller sửa. `ConcurrentHashMap` cho phép các thread truy cập cùng metadata class an toàn theo thao tác map.
+Because `Signature` is a record, it compares by value; `List.of(parameters)` creates an immutable list containing parameters in exact order rather than directly holding a `Class<?>...` array that the caller might mutate. `ConcurrentHashMap` lets threads safely access the same class metadata at the map-operation level.
 
-Ví dụ cố ý chỉ cache **method public** qua `getMethod`. Nếu method vắng mặt, nó ném `NoSuchMethodException` và không lưu “không tồn tại”. Với hệ thống cần cache cả *negative lookup*, hãy dùng kiểu kết quả riêng (sentinel/`Optional` hoặc object chứa trạng thái) và xác định chính sách invalidation cẩn thận. `ConcurrentHashMap` không cho key hoặc value `null`.
+The example intentionally caches only **public methods** via `getMethod`. If a method is absent, it throws `NoSuchMethodException` and does not store “not found.” For systems needing to cache *negative lookups*, use a dedicated result type (sentinel/`Optional` or status object) and define an invalidation policy carefully. `ConcurrentHashMap` does not allow `null` keys or values.
 
-Về concurrency, ví dụ dùng `get` → tra cứu Reflection → `putIfAbsent`. Hai thread có thể cùng tra cứu method một lần trong tình huống cạnh tranh, nhưng map giữ một giá trị cuối; điều này phù hợp vì tra cứu method là thao tác không có side effect nghiệp vụ.
+Regarding concurrency, the example uses `get` → Reflection lookup → `putIfAbsent`. Under contention, two threads may look up the method concurrently once, but the map retains a single final entry; this is fine because method lookup has no business side effects.
 
-## 7. Khi phải cache bằng tên trước khi có `Class<?>`
+## 7. When You Must Cache by Name Before Obtaining `Class<?>`
 
-Một resolver nhận:
+A resolver taking:
 
 ~~~java
 Class<?> resolve(String binaryName, ClassLoader requestedLoader)
@@ -303,89 +303,89 @@ Class<?> resolve(String binaryName, ClassLoader requestedLoader)
 }
 ~~~
 
-là **fragment đầy đủ của hàm** để đặt trong class. `Class.forName(..., false, requestedLoader)` yêu cầu tra cứu mà **không chủ động khởi tạo lớp**. Đối số loader là loader dùng để yêu cầu phân giải, không bảo đảm đó là defining loader của kết quả.
+is a **complete method fragment** ready to place in a class. `Class.forName(..., false, requestedLoader)` requests lookup without **eagerly initializing the class**. The loader argument is the loader used to request resolution, not guaranteed to be the resulting class's defining loader.
 
-Nếu cache kết quả `resolve`, khóa phải bao gồm tối thiểu **`binaryName` và `requestedLoader` theo identity**, hoặc một namespace/version context có hợp đồng tương đương. Hãy phân biệt:
+If you cache the result of `resolve`, the key must include at least **`binaryName` and `requestedLoader` by identity**, or an equivalent namespace/version context. Distinguish carefully:
 
-- `Map<String, Class<?>>` **sai** nếu cùng tên có thể được giải bằng nhiều loader.
-- `Map<Key(String, ClassLoader), Class<?>>` có thể đúng về phân biệt request, với điều kiện `ClassLoader` được so sánh theo **định danh thực sự của instance** (identity). `record` dùng `equals` của loader; nếu có loader tùy biến ghi đè `equals`, hãy chọn wrapper identity hoặc cấu trúc phù hợp.
-- Nếu đã có `Class<?> resolved`, cache metadata theo **`resolved`**, không cần tính lại key tên + loader.
-- Không cache `ClassNotFoundException` vĩnh viễn theo một loader có thể tìm thêm class sau khi thêm JAR/plugin; negative lookup phải có chính sách làm mới tương ứng.
+- `Map<String, Class<?>>` is **wrong** if the same name can be resolved by multiple loaders.
+- `Map<Key(String, ClassLoader), Class<?>>` can distinguish requests properly, provided `ClassLoader` is compared by **actual instance identity**. A `record` uses the loader's `equals`; if custom loaders override `equals`, choose an identity wrapper or suitable structure.
+- Once `Class<?> resolved` is obtained, cache metadata by **`resolved`** rather than recomputing name + loader keys.
+- Do not permanently cache `ClassNotFoundException` for a loader that can discover new classes after adding JARs/plugins; negative lookups need a corresponding refresh policy.
 
-**Tránh dùng** `requestedLoader.getClass().getName()` làm loader id; nó chỉ nói **loại loader**, không phải instance nào. Cũng không dùng mỗi `System.identityHashCode(loader)` để làm định danh duy nhất trong cache lâu dài: mã hash có thể trùng và bản thân hash không giữ được tham chiếu chính xác tới loader.
+**Avoid using** `requestedLoader.getClass().getName()` as a loader ID; it only tells you the **loader type**, not which instance it is. Also avoid using only `System.identityHashCode(loader)` as a unique identifier in a long-lived cache: hash codes can collide and a hash alone does not hold an exact reference to the loader.
 
-Với nền tảng có nhiều `ModuleLayer`, resolver có thể phụ thuộc module/layer bên cạnh loader. Định nghĩa khóa theo **đúng các đầu vào của phép resolve đang dùng**, thay vì giả định mỗi `binaryName` có một class toàn cục.
+On platforms with multiple `ModuleLayer`s, a resolver may depend on module/layer in addition to loader. Define the key using **the exact inputs of the resolution operation**, rather than assuming every `binaryName` maps to one global class.
 
-## 8. Vòng đời cache và nguy cơ giữ class loader
+## 8. Cache Lifecycle and the Risk of Retaining Classloaders
 
-Một khóa metadata theo `Class<?>` có thể **đúng về identity** nhưng cache global như `static ConcurrentHashMap<Class<?>, Method>` lại sống lâu hơn plugin. Map giữ mạnh cả key `Class` lẫn `Method` trỏ về declaring class, khiến loader cũ có thể chưa được thu hồi sau khi gỡ plugin. Đổi sang `WeakHashMap<Class<?>, Method>` không tự giải quyết vòng giữ từ value về key.
+A metadata key using `Class<?>` may be **correct for identity**, yet a global cache like `static ConcurrentHashMap<Class<?>, Method>` still outlives the plugin. The map strongly holds both the `Class` key and the `Method` pointing back to its declaring class, preventing the old loader from being reclaimed after plugin removal. Switching to `WeakHashMap<Class<?>, Method>` does not automatically break the retention cycle from value back to key.
 
-Với metadata tính riêng cho mỗi class, `ClassValue` thường phù hợp; với plugin có lifecycle rõ, cache nằm trong plugin hoặc có thao tác `evict` khi unload cũng là lựa chọn hợp lý. Những nguồn giữ khác như callback, thread, `ThreadLocal` hay handle phải được dọn theo lifecycle; **GC và class unloading không có hạn chót được bảo đảm**. Bài “Cache giữ Class có thể giữ cả class loader” phân tích reference graph, weak keys, heap dump và kiểm tra GC roots cụ thể.
+For per-class computed metadata, `ClassValue` is usually appropriate; for plugins with an explicit lifecycle, a cache scoped inside the plugin or evicted on unload is also a sound choice. Other retention sources such as callbacks, threads, `ThreadLocal`s, or handles must also be cleaned up by lifecycle; **GC and class unloading have no guaranteed deadline**. The lesson “Caches Holding Class Can Retain the Entire ClassLoader” analyzes reference graphs, weak keys, heap dumps, and concrete GC-root checks.
 
-## 9. Reload, dynamic proxy, hidden class và thay đổi định nghĩa
+## 9. Reloading, Dynamic Proxies, Hidden Classes, and Redefinition
 
-**Reload plugin:** phiên bản mới cùng binary name thường xuất hiện dưới **loader mới**, tức `Class<?>` mới. Cache theo class tự phân biệt phiên bản cũ/mới; cache theo tên có thể trả metadata cũ.
+**Plugin reload:** a new version with the same binary name typically appears under a **new loader**, i.e., a new `Class<?>`. Class-keyed caches automatically separate old/new versions; name-keyed caches can return stale metadata.
 
-**Dynamic proxy:** proxy class sinh ra phụ thuộc loader, tập interface và ngữ cảnh module. Dùng tên hiển thị hoặc tên proxy class sinh ra làm định danh bền vững là rủi ro. Nếu cache phản chiếu trên proxy, dùng `proxy.getClass()` hoặc một khóa dựa trên cấu hình proxy đã chuẩn hóa theo đúng loader/interface identity.
+**Dynamic proxies:** generated proxy classes depend on loader, interface set, and module context. Using display names or generated proxy class names as durable identifiers is risky. When caching reflection over proxies, use `proxy.getClass()` or a key built from normalized proxy configuration matching the exact loader/interface identity.
 
-**Hidden class:** class có thể được tạo bằng `MethodHandles.Lookup.defineHiddenClass`; nó không nhất thiết được định danh/tra cứu lại bằng `Class.forName(name)` theo cách thông thường. Nếu cần cache metadata, khóa bằng chính `Class<?>` đã được cấp.
+**Hidden classes:** classes can be created via `MethodHandles.Lookup.defineHiddenClass`; they are not necessarily identifiable or lookable via `Class.forName(name)` in the usual way. If you need to cache metadata, key directly by the granted `Class<?>`.
 
-**Instrumentation/redefinition:** các API như `Instrumentation.redefineClasses` có thể thay bytecode của **cùng class runtime** trong giới hạn JVM cho phép. Khi đó **identity của `Class<?>` không đổi**, nhưng metadata/behavior có thể thay đổi theo thao tác công cụ. Cache theo `Class<?>` không tự biết phiên bản bytecode đã đổi: cơ chế instrumentation/framework phải có **invalidation hoặc generation/version** phù hợp nếu dữ liệu cache phụ thuộc nội dung có thể thay đổi.
+**Instrumentation/redefinition:** APIs such as `Instrumentation.redefineClasses` can replace the bytecode of the **same runtime class** within JVM limits. In that case, **the identity of `Class<?>` does not change**, yet metadata/behavior may change per tool action. A cache keyed by `Class<?>` will not automatically know the bytecode version changed: instrumentation/framework mechanisms must provide appropriate **invalidation or generation/versioning** if cached data depends on mutable contents.
 
-**Class loader delegation:** hai loader khác nhau có thể cùng ủy quyền nạp về parent và nhận **chính một `Class<?>`**. Trong trường hợp đó cache theo kết quả `Class<?>` cho metadata có thể chia sẻ an toàn theo identity. Không suy đoán hai kiểu khác nhau chỉ vì hai lời gọi `loadClass` bắt đầu từ hai loader khác nhau.
+**Classloader delegation:** two different loaders may both delegate loading to a parent and receive **the exact same `Class<?>`**. In that case, a metadata cache keyed by the resulting `Class<?>` can safely share entries by identity. Do not assume two types are distinct solely because two `loadClass` calls started from two different loaders.
 
-## 10. Quy tắc vận hành để cache Reflection an toàn
+## 10. Operational Rules for Safe Reflection Caching
 
-### 10.1. Tách metadata khỏi quyền truy cập
+### 10.1. Separate Metadata from Access Rights
 
-Một `Method` có thể tồn tại nhưng không truy cập được từ một module/caller cụ thể. `setAccessible(true)` vẫn chịu ràng buộc `opens`; `MethodHandles.Lookup` mang quyền của caller hoặc lookup được cấp. Nếu cache **handle có đặc quyền** hay dữ liệu phụ thuộc caller, khóa và cách chia sẻ phải phản ánh ranh giới quyền, không phát tán handle/lookup cho đối tượng không tin cậy.
+A `Method` may exist yet be inaccessible from a specific module/caller. `setAccessible(true)` remains bound by `opens`; `MethodHandles.Lookup` carries the permissions of the caller or granted lookup. If caching **privileged handles** or caller-dependent data, keys and sharing boundaries must reflect permission boundaries—never expose privileged handles/lookups to untrusted callers.
 
-### 10.2. Thread safety không đồng nghĩa key correctness
+### 10.2. Thread Safety Is Not Key Correctness
 
-`ConcurrentHashMap` giúp các thao tác map nhất quán giữa thread, **không biến `String className` thành định danh class an toàn**. Phải sửa thiết kế khóa trước khi bàn tối ưu lock hay compute-if-absent.
+`ConcurrentHashMap` keeps map operations consistent across threads, **it does not turn `String className` into a safe class identifier**. Fix key design before discussing lock tuning or `computeIfAbsent`.
 
-Với `computeIfAbsent`, hàm tính toán có thể ném checked exception khiến bạn phải quy đổi/wrap rồi xử lý rõ ràng; không cache một ngoại lệ ở dạng thành công. Cân nhắc thất bại tạm thời, thay đổi plugin, quyền module và cơ chế invalidation trước khi dùng negative cache.
+With `computeIfAbsent`, the mapping function can encounter checked exceptions that you must translate/wrap and handle explicitly; never cache an exception as a success. Consider transient failures, plugin changes, module permissions, and invalidation before introducing negative caching.
 
-### 10.3. Đừng tối ưu khi chưa đo
+### 10.3. Do Not Optimize Without Measuring
 
-Reflection lookup lặp lại có thể tốn chi phí nhưng tạo cache cũng có giá thành: lookup khóa, bộ nhớ, giữ loader, đồng bộ và invalidation. Dùng benchmark phù hợp (ví dụ JMH với warm-up) để quyết định cache gì. Nếu đường gọi nóng đã có `MethodHandle`/`VarHandle` ổn định và được cấp đúng quyền, đôi khi lưu handle trong phạm vi lifecycle rõ ràng tốt hơn cache `Method` toàn cục.
+Repeated Reflection lookups can be costly, but building a cache also has costs: key lookup, memory, loader retention, synchronization, and invalidation. Use a proper benchmark (such as JMH with warm-up) to decide what to cache. When a hot call path already has a stable, properly authorized `MethodHandle`/`VarHandle`, keeping that handle in a clearly scoped lifecycle is sometimes better than a global `Method` cache.
 
-### 10.4. Checklist review
+### 10.4. Review Checklist
 
-- Cache đang lưu **kết quả tra tên** hay metadata của **`Class<?>` cụ thể**?
-- Nếu key là `String`, lớp ấy có thể được định nghĩa từ bao nhiêu loader/plugin?
-- Nếu key là `Class<?>`, có đang vô tình giữ loader cũ qua global strong map?
-- Key của method có phân biệt overload, kiểu tham số theo thứ tự, static/instance và `getMethod` với `getDeclaredMethod`?
-- Nếu có quyền truy cập khác nhau theo caller/module, liệu cache có vô tình chia sẻ handle đặc quyền?
-- Khi reload/unload hoặc redefine, entry nào phải bị loại bỏ?
-- Có test hai loader **cùng nạp một binary name** hay mới chỉ test một loader mặc định?
+- Is the cache storing **name-resolution results** or metadata of a **specific `Class<?>`**?
+- If the key is a `String`, across how many loaders/plugins can that class be defined?
+- If the key is `Class<?>`, is a global strong map accidentally retaining old loaders?
+- Does a method key distinguish overloads, parameter types in order, static/instance, and `getMethod` vs. `getDeclaredMethod`?
+- If access permissions vary by caller/module, could the cache accidentally share privileged handles?
+- Upon reload/unload or redefinition, which entries must be evicted?
+- Have you tested two loaders **loading the same binary name**, or only one default loader?
 
-## 11. Những lỗi thường gặp
+## 11. Common Errors
 
-| Hiện tượng | Nguyên nhân điển hình | Cách xử lý |
+| Symptom | Typical Cause | Resolution |
 | --- | --- | --- |
-| `Method.invoke` báo `IllegalArgumentException` dù “đúng class name” | `Method` thuộc class do loader khác định nghĩa | So sánh `method.getDeclaringClass()` và `receiver.getClass()`, cả loader |
-| `ClassCastException` với hai lớp cùng tên | Hai defining loader tạo hai runtime type | Dùng chung API/interface do loader phù hợp chia sẻ, không ép theo tên |
-| `NoSuchMethodException` sau deploy phiên bản mới | Cache cũ, signature khác, overload sai | Tra đúng `Class<?>` mới và đúng kiểu tham số |
-| `LinkageError` hoặc loader constraint violation | Loading/linking không tương thích giữa các class loader | Rà soát delegation và dependency giữa loader |
-| Loader plugin không được unload | Cache tĩnh giữ `Class`, `Method`, handle hoặc instance | Dùng `ClassValue`/cache theo vòng đời và dọn các reference |
-| Cache name + loader class vẫn va chạm | Dùng **loại loader**, không phải instance loader | Dùng class đã resolve hoặc loader object identity |
-| Cùng loader nạp class qua parent nhưng cache bị nhân đôi | Khóa dùng initiating loader khi chỉ cache class metadata | Cache theo `Class<?>` kết quả để gộp được cùng identity |
-| Cache không đổi sau redefine cùng `Class` | Không có invalidation theo phiên bản | Gắn vòng đời cache với generation/redefine event |
-| Cache map thread-safe nhưng trả method sai | Đồng bộ đúng, định danh sai | Thiết kế lại key trước khi tối ưu đồng bộ |
+| `Method.invoke` throws `IllegalArgumentException` despite “matching class name” | `Method` belongs to a class defined by another loader | Compare `method.getDeclaringClass()` and `receiver.getClass()`, including loaders |
+| `ClassCastException` between two classes with the same name | Two defining loaders produced two runtime types | Share common API/interfaces from a shared parent loader; do not cast by name |
+| `NoSuchMethodException` after deploying a new version | Stale cache, changed signature, wrong overload | Look up against the new `Class<?>` and exact parameter types |
+| `LinkageError` or loader constraint violation | Incompatible loading/linking across classloaders | Review delegation and dependencies between loaders |
+| Plugin loader never unloads | Static cache holds `Class`, `Method`, handle, or instance | Use `ClassValue`/lifecycle-scoped caches and clear references |
+| Name + loader-class cache still collides | Used **loader class**, not loader instance | Use the resolved class or loader object identity |
+| Same class loaded via parent duplicates cache entries | Key used initiating loader when caching class metadata only | Key by the resulting `Class<?>` to merge shared identity |
+| Cache unchanged after redefining the same `Class` | Missing version-based invalidation | Tie cache lifetime to generation/redefinition events |
+| Thread-safe cache map returns the wrong method | Synchronization is right, identity is wrong | Redesign the key before tuning concurrency |
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-1. Hai `Class<?>` có `getName()` bằng nhau nhưng defining loader khác nhau. Có được dùng chung `Method` không? **Không**; đó là hai runtime type riêng.
-2. Cache `Map<Class<?>, Metadata>` đã phân biệt loader chưa? **Có**; `Class<?>` mang định danh runtime bao gồm defining loader.
-3. Nếu cache `Class.forName(name, false, requestedLoader)` trước khi biết kết quả, có thể chỉ dùng `name` không? **Không**, nếu nhiều loader/ngữ cảnh có thể phân giải khác nhau.
-4. `requestedLoader` và `resolvedClass.getClassLoader()` có luôn giống nhau không? **Không**, vì parent delegation.
-5. Vì sao `WeakHashMap<Class<?>, Method>` chưa chắc cho loader unload? **Method value có thể giữ declaring class**, tạo đường tham chiếu mạnh từ map value đến key.
-6. `ClassValue.computeValue` có chắc chỉ chạy đúng một lần trong cạnh tranh không? **Không**; nhiều thread có thể cùng tính, một giá trị được cài đặt.
-7. Sau khi redefine bytecode của một class mà giữ nguyên `Class<?>`, key theo `Class<?>` đã tự invalid cache chưa? **Chưa**; cần generation/invalidation nếu metadata ảnh hưởng.
-8. Với `getMethod("substring", int.class)` và `getMethod("substring", int.class, int.class)`, cache key nên khác nhau ở đâu? **Danh sách kiểu tham số**.
+1. Two `Class<?>` objects have equal `getName()` values but different defining loaders. Can they share a `Method`? **No**; they are two separate runtime types.
+2. Does a `Map<Class<?>, Metadata>` cache already distinguish loaders? **Yes**; `Class<?>` carries runtime identity including the defining loader.
+3. If caching `Class.forName(name, false, requestedLoader)` before knowing the result, can you key by `name` alone? **No**, if multiple loaders/contexts can resolve differently.
+4. Are `requestedLoader` and `resolvedClass.getClassLoader()` always the same? **No**, because of parent delegation.
+5. Why does `WeakHashMap<Class<?>, Method>` not guarantee loader unloading? **The `Method` value can hold the declaring class**, forming a strong reference path from the map value to the key.
+6. Is `ClassValue.computeValue` guaranteed to run only once under contention? **No**; multiple threads may compute concurrently, and one value is installed.
+7. After redefining a class's bytecode while keeping the same `Class<?>`, is a `Class<?>`-keyed cache automatically invalidated? **No**; generation/invalidation is needed if cached metadata is affected.
+8. For `getMethod("substring", int.class)` and `getMethod("substring", int.class, int.class)`, where must the cache keys differ? **The parameter type list**.
 
-## 13. Tài liệu chính thức
+## 13. Official References
 
 - [Java Virtual Machine Specification 17 — Creation and Loading, `5.3](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html#jvms-5.3)
 - [Java SE 17 — ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html)
@@ -393,4 +393,4 @@ Reflection lookup lặp lại có thể tốn chi phí nhưng tạo cache cũng 
 - [Java SE 17 — Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html)
 - [Java SE 17 — WeakHashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/WeakHashMap.html)
 
-**Ghi nhớ:** Đối với metadata Reflection, **khóa bằng chính `Class<?>`** (hoặc dùng `ClassValue`) để phân biệt cả defining loader. Chỉ khi cache **phân giải tên trước khi có class** mới cần giữ tên cùng initiating loader/ngữ cảnh; sau khi có class, đừng quay lại khóa bằng tên. Cân nhắc vòng đời plugin và strong references để một cache đúng về mặt ngữ nghĩa không trở thành nguyên nhân memory leak.
+**Takeaway:** For Reflection metadata, **key by `Class<?>` itself** (or use `ClassValue`) so that defining loaders are distinguished as well. Keep name + initiating loader/context only when caching **name resolution before a class is obtained**; once you have the class, do not revert to string-name keys. Consider plugin lifecycles and strong references so a semantically valid cache does not become a memory leak.

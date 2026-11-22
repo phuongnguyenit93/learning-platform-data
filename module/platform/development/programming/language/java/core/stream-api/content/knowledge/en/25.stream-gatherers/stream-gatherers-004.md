@@ -1,65 +1,65 @@
-# Tạo cửa sổ trượt bằng `Gatherers.windowSliding`
+# Creating Sliding Windows with `Gatherers.windowSliding`
 
-## 1. Mục tiêu và bối cảnh
+## 1. Objectives and context
 
-Trong module **`JAVA_STREAM_API`**, người học đã quen các pipeline xử lý dữ liệu khai báo với `filter`, `map`, `flatMap`, `reduce` và `collect`. Tuy nhiên, nhiều bài toán cần xử lý **mối liên hệ giữa các phần tử liên tiếp**: trung bình ba giá trị gần nhất, so sánh sự thay đổi giữa hai mẫu đo, nhận diện ba từ liền nhau hay phát hiện tín hiệu bất thường trong chuỗi thời gian.
+In the **`JAVA_STREAM_API`** module, learners are already familiar with declarative data-processing pipelines using `filter`, `map`, `flatMap`, `reduce`, and `collect`. However, many problems require processing **relationships between consecutive elements**: the average of the three most recent values, comparing changes between two measurement samples, recognizing three consecutive words, or detecting anomalous signals in a time series.
 
-Các phép `map` thông thường chỉ nhận một phần tử tại một thời điểm. Có thể viết vòng lặp thủ công hoặc một collector có trạng thái, nhưng **Stream Gatherers** cung cấp cách diễn đạt trực tiếp hơn cho các thao tác trung gian có trạng thái. Một gatherer dựng sẵn là **`Gatherers.windowSliding(windowSize)`**, dùng để tạo các **cửa sổ trượt có chồng lấn**.
+Regular `map` operations receive only one element at a time. You could write a manual loop or a stateful collector, but **Stream Gatherers** provide a more direct way to express stateful intermediate operations. One built-in gatherer is **`Gatherers.windowSliding(windowSize)`**, used to create **overlapping sliding windows**.
 
-Trong chương **Stream Gatherer**, bài học này tập trung vào cách đọc, viết và kiểm thử pipeline cửa sổ trượt, đồng thời phân biệt yêu cầu nghiệp vụ với khả năng song song hóa, chi phí bộ nhớ và vòng đời tài nguyên.
+In the **Stream Gatherer** chapter, this lesson focuses on how to read, write, and test sliding-window pipelines, while distinguishing business requirements from parallelizability, memory cost, and resource lifecycles.
 
-Kết thúc bài, bạn có thể:
+After finishing this lesson, you will be able to:
 
-1. Giải thích ý nghĩa cửa sổ trượt và sự khác nhau với chia lô cố định.
-2. Sử dụng `Stream.gather(Gatherers.windowSliding(k))` trong **Java 24+**.
-3. Dự đoán chính xác kết quả cho nguồn rỗng, nguồn ngắn hơn cửa sổ, `k = 1` và `k > 1`.
-4. Tính trung bình trượt, độ biến thiên, n-gram và phát hiện mẫu bằng `map`, `filter`, `anyMatch`.
-5. Nhận diện cửa sổ là list **không cho phép sửa**, nhưng không tự biến phần tử mutable thành bất biến.
-6. Kiểm tra kích thước, thứ tự, độ chồng lấn và tính đúng trên dữ liệu biên.
-7. Hiểu giới hạn về kích thước cửa sổ, phần tử nguồn, stream vô hạn, xử lý song song và nguồn I/O.
+1. Explain the meaning of sliding windows and how they differ from fixed batching.
+2. Use `Stream.gather(Gatherers.windowSliding(k))` in **Java 24+**.
+3. Accurately predict results for an empty source, a source shorter than the window, `k = 1`, and `k > 1`.
+4. Compute moving averages, deltas, n-grams, and pattern detection using `map`, `filter`, and `anyMatch`.
+5. Recognize that windows are **unmodifiable** lists, without automatically making mutable elements immutable.
+6. Verify window size, ordering, overlap, and correctness on boundary data.
+7. Understand limitations regarding window size, source elements, infinite streams, parallel processing, and I/O sources.
 
-## 2. Điều kiện phiên bản JDK
+## 2. JDK version requirements
 
-Stream Gatherers đã trải qua các giai đoạn:
+Stream Gatherers went through the following stages:
 
-| Phiên bản | Trạng thái | Lưu ý |
+| Version | Status | Notes |
 | --- | --- | --- |
-| Java 8–21 | Chưa có API Stream Gatherers chuẩn | Dùng vòng lặp, cấu trúc dữ liệu có trạng thái hoặc thuật toán khác. |
-| Java 22 | Preview lần đầu (JEP 461) | Cần bật preview khi biên dịch/chạy; không coi API là ổn định. |
-| Java 23 | Preview lần hai (JEP 473) | Vẫn cần bật preview; có thể thay đổi chi tiết so với preview trước. |
-| **Java 24 trở lên** | **Chính thức (JEP 485)** | Có `Stream.gather` và `java.util.stream.Gatherers` mà không cần `--enable-preview`. |
+| Java 8–21 | No standard Stream Gatherers API | Use loops, stateful data structures, or other algorithms. |
+| Java 22 | First preview (JEP 461) | Must enable preview when compiling/running; do not treat the API as stable. |
+| Java 23 | Second preview (JEP 473) | Still requires enabling preview; details may differ from the previous preview. |
+| **Java 24 and later** | **Official (JEP 485)** | `Stream.gather` and `java.util.stream.Gatherers` are available without `--enable-preview`. |
 
-Mọi đoạn mã có `Gatherers.windowSliding` trong bài, trừ khi ghi rõ khác, sử dụng **Java 24+**.
+All code snippets with `Gatherers.windowSliding` in this lesson, unless noted otherwise, use **Java 24+**.
 
-Đặt tên file `SlidingWindowDemo.java` rồi dùng JDK 24:
+Save the file as `SlidingWindowDemo.java` and use JDK 24:
 
 ```text
 javac SlidingWindowDemo.java
 java SlidingWindowDemo
 ```
 
-Nếu môi trường có nhiều JDK, kiểm tra `java -version` và `javac -version` để chắc chắn compiler/runtime đều hỗ trợ API. Một dự án đặt `--release 17` hoặc `--release 21` **không được** gọi API Java 24, ngay cả khi chạy compiler từ JDK mới.
+If multiple JDKs are installed, check `java -version` and `javac -version` to confirm both compiler and runtime support the API. A project configured with `--release 17` or `--release 21` **cannot** call the Java 24 API, even when running the compiler from a newer JDK.
 
-**Không nhầm Java 16 với Java 24:** `Stream.toList()` và `mapMulti` có từ Java 16, nhưng `Stream.gather` cùng các gatherer dựng sẵn được chuẩn hóa ở Java 24.
+**Do not confuse Java 16 with Java 24:** `Stream.toList()` and `mapMulti` have existed since Java 16, whereas `Stream.gather` and the built-in gatherers were standardized in Java 24.
 
-## 3. Khái niệm cửa sổ trượt
+## 3. The sliding window concept
 
-Giả sử có dữ liệu theo encounter order:
+Suppose we have data in encounter order:
 
 ```text
 [10, 20, 30, 40, 50]
 ```
 
-Với kích thước cửa sổ `k = 3`:
+With window size `k = 3`:
 
 ```text
-Nguồn:         10   20   30   40   50
-Cửa sổ 1:     [10   20   30]
-Cửa sổ 2:          [20   30   40]
-Cửa sổ 3:               [30   40   50]
+Source:        10   20   30   40   50
+Window 1:     [10   20   30]
+Window 2:          [20   30   40]
+Window 3:               [30   40   50]
 ```
 
-Kết quả:
+Output:
 
 ```text
 [
@@ -69,35 +69,35 @@ Kết quả:
 ]
 ```
 
-Mỗi cửa sổ sau:
+Each subsequent window:
 
-- Bỏ **phần tử xuất hiện sớm nhất** của cửa sổ trước.
-- Giữ `k - 1` phần tử còn lại.
-- Thêm **phần tử kế tiếp** từ nguồn.
+- Drops **the earliest element** of the previous window.
+- Keeps the remaining `k - 1` elements.
+- Adds **the next element** from the source.
 
-Vì vậy, **bước trượt của gatherer dựng sẵn là 1 phần tử**. Đừng nhầm `windowSize = 3` với việc nhảy ba phần tử mỗi lần.
+Therefore, **the step size of the built-in gatherer is 1 element**. Do not mistake `windowSize = 3` for jumping forward three elements each time.
 
-### 3.1. Độ chồng lấn
+### 3.1. Overlap
 
-Hai cửa sổ kề nhau có kích thước đủ `k` sẽ **chung `k - 1` phần tử**:
+Two adjacent full-sized windows of size `k` **share `k - 1` elements**:
 
 ```text
 [10, 20, 30]
      [20, 30, 40]
        └─────┘
-       Chung: 20, 30
+       Shared: 20, 30
 ```
 
-Trong ví dụ, một giá trị như `30` xuất hiện trong ba cửa sổ. Điều này **đúng với bài toán cửa sổ trượt**, không phải lỗi lặp dữ liệu của Stream.
+In the example, a value like `30` appears in three windows. This is **correct for the sliding-window problem**, not a duplicate-data bug in Stream.
 
-### 3.2. Kích thước và số cửa sổ
+### 3.2. Window size and window count
 
-Gọi:
+Let:
 
-- `n` là số phần tử nguồn hữu hạn.
-- `k` là `windowSize`, bắt buộc `k >= 1`.
+- `n` be the finite number of source elements.
+- `k` be `windowSize`, required `k >= 1`.
 
-Số cửa sổ được tạo:
+Number of windows produced:
 
 \[
 W(n,k)=
@@ -108,9 +108,9 @@ n-k+1, & n\ge k
 \end{cases}
 \]
 
-Các tình huống:
+Scenarios:
 
-| Nguồn | `k` | Kết quả cửa sổ | Số cửa sổ |
+| Source | `k` | Window result | Window count |
 | --- | ---: | --- | ---: |
 | `[]` | 3 | `[]` | 0 |
 | `[1]` | 3 | `[[1]]` | 1 |
@@ -119,13 +119,13 @@ Các tình huống:
 | `[1,2,3,4]` | 3 | `[[1,2,3],[2,3,4]]` | 2 |
 | `[1,2,3]` | 1 | `[[1],[2],[3]]` | 3 |
 
-**Điểm đặc biệt:** nếu `0 < n < k`, API phát **đúng một cửa sổ ngắn** gồm toàn bộ phần tử đã có, thay vì phát 0 cửa sổ. Nếu `n >= k`, nó chỉ phát các cửa sổ đầy đủ kích thước `k`, **không phát thêm các cửa sổ ngắn ở cuối**.
+**Special point:** if `0 < n < k`, the API emits **exactly one short window** containing all available elements, instead of emitting 0 windows. If `n >= k`, it emits only full windows of size `k`, **without emitting extra short trailing windows**.
 
-Đây là khác biệt quan trọng khi tính thống kê: một cửa sổ ngắn có thể không đạt yêu cầu tối thiểu về số mẫu. Khi nghiệp vụ chỉ chấp nhận cửa sổ đủ độ dài, hãy lọc theo `window.size() == k`.
+This is an important distinction when computing statistics: a short window may not meet the minimum sample count requirement. When the business logic only accepts full-length windows, filter by `window.size() == k`.
 
-## 4. Ví dụ đầu tiên: `gather` rồi `toList`
+## 4. First example: `gather` then `toList`
 
-Lời gọi trung tâm:
+Core call:
 
 ```java
 Stream<T> source = ...;
@@ -134,9 +134,9 @@ Stream<List<T>> windows =
     source.gather(Gatherers.windowSliding(k));
 ```
 
-`Gatherers.windowSliding(k)` là một `Gatherer<T, ?, List<T>>`. Khi áp dụng bằng `gather`, mỗi phần tử của **stream đầu ra** là một **`List<T>` chứa một cửa sổ**.
+`Gatherers.windowSliding(k)` is a `Gatherer<T, ?, List<T>>`. When applied with `gather`, each element of the **output stream** is a **`List<T>` containing one window**.
 
-Ví dụ Java 24+ đầy đủ:
+Complete Java 24+ example:
 
 ```java
 import java.util.List;
@@ -155,7 +155,7 @@ public class SlidingWindowDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 [10, 20, 30]
@@ -163,18 +163,18 @@ Kết quả:
 [30, 40, 50]
 ```
 
-Phân tích pipeline:
+Pipeline breakdown:
 
-1. `Stream.of(...)` cung cấp nguồn có thứ tự gặp.
-2. `Gatherers.windowSliding(3)` tạo gatherer có kích thước ba.
-3. `gather(...)` phát các cửa sổ theo thứ tự gặp.
-4. `toList()` tiêu thụ các cửa sổ, tạo `List<List<Integer>>`.
+1. `Stream.of(...)` provides a source with encounter order.
+2. `Gatherers.windowSliding(3)` creates a gatherer of size three.
+3. `gather(...)` emits windows in encounter order.
+4. `toList()` consumes the windows, producing `List<List<Integer>>`.
 
-Cả `gather` và các biến đổi trung gian tiếp theo đều có thể kết hợp với `filter`, `map`, `limit` và các terminal operation. `toList` không phải phần bắt buộc của `windowSliding`; đây chỉ là cách quan sát rõ các cửa sổ.
+Both `gather` and subsequent intermediate transformations can combine with `filter`, `map`, `limit`, and terminal operations. `toList` is not a mandatory part of `windowSliding`; it is simply a way to clearly observe the windows.
 
-### 4.1. Đặt `map` sau `gather`
+### 4.1. Placing `map` after `gather`
 
-`gather` làm thay đổi kiểu từ `Stream<Integer>` sang `Stream<List<Integer>>`. Vì vậy, `map` phía sau nhận **một danh sách của cửa sổ**, không còn nhận từng số nguồn:
+`gather` changes the type from `Stream<Integer>` to `Stream<List<Integer>>`. Therefore, a subsequent `map` receives **a window list**, no longer individual source numbers:
 
 ```java
 List<Integer> sums = Stream.of(1, 2, 3, 4, 5)
@@ -187,9 +187,9 @@ List<Integer> sums = Stream.of(1, 2, 3, 4, 5)
 System.out.println(sums); // [6, 9, 12]
 ```
 
-Các tổng lần lượt tương ứng `[1,2,3]`, `[2,3,4]` và `[3,4,5]`.
+The sums correspond respectively to `[1,2,3]`, `[2,3,4]`, and `[3,4,5]`.
 
-### 4.2. Đặt `map` trước `gather`
+### 4.2. Placing `map` before `gather`
 
 ```java
 List<List<Integer>> squares = Stream.of(1, 2, 3, 4)
@@ -201,22 +201,22 @@ System.out.println(squares);
 // [[1, 4], [4, 9], [9, 16]]
 ```
 
-Đây là **cửa sổ trên giá trị đã biến đổi**. Nếu biến đổi dữ liệu từng phần tử là bước độc lập, đặt trước gatherer có thể phù hợp hơn việc lặp lại phép biến đổi với cùng phần tử ở nhiều cửa sổ.
+These are **windows over transformed values**. If transforming each element is an independent step, placing it before the gatherer can be more suitable than repeating the transformation on the same element across multiple windows.
 
-## 5. Điều kiện đầu vào: `windowSize`
+## 5. Input precondition: `windowSize`
 
-API yêu cầu `windowSize >= 1`.
+The API requires `windowSize >= 1`.
 
 ```java
 import java.util.stream.Gatherers;
 
-var gatherer = Gatherers.windowSliding(3); // Hợp lệ.
+var gatherer = Gatherers.windowSliding(3); // Valid.
 
 // Gatherers.windowSliding(0);  // IllegalArgumentException.
 // Gatherers.windowSliding(-2); // IllegalArgumentException.
 ```
 
-`windowSize = 1` là hợp lệ: mỗi phần tử trở thành một cửa sổ một phần tử.
+`windowSize = 1` is valid: each element becomes a single-element window.
 
 ```java
 List<List<String>> windows = Stream.of("A", "B", "C")
@@ -226,21 +226,21 @@ List<List<String>> windows = Stream.of("A", "B", "C")
 System.out.println(windows); // [[A], [B], [C]]
 ```
 
-Nếu nhận kích thước cửa sổ từ người dùng, một API ứng dụng nên kiểm tra thêm **giới hạn trên hợp lý**, không chỉ điều kiện dương:
+If accepting window size from a user, an application API should also check a **reasonable upper bound**, not just positivity:
 
 ```java
 static int validateWindowSize(int size) {
     if (size < 1 || size > 10_000) {
         throw new IllegalArgumentException(
-            "windowSize phai nam trong [1, 10000]");
+            "windowSize must be in [1, 10000]");
     }
     return size;
 }
 ```
 
-Giới hạn 10.000 là **ví dụ chính sách của ứng dụng**, không phải giới hạn bắt buộc của JDK. Số hợp lý phụ thuộc bản ghi, bộ nhớ, tài nguyên và thời gian xử lý.
+The limit 10,000 is an **application policy example**, not a mandatory JDK limit. A reasonable bound depends on records, memory, resources, and processing time.
 
-### 5.1. Nguồn rỗng và nguồn thiếu mẫu
+### 5.1. Empty source and insufficient-sample source
 
 ```java
 System.out.println(
@@ -256,10 +256,10 @@ System.out.println(
 ); // [[5, 10]]
 ```
 
-Nếu ứng dụng xử lý trung bình động chỉ khi có ít nhất ba mẫu, không nên lấy trung bình `[5,10]` rồi trình bày như trung bình ba mẫu. Có hai cách:
+If the application computes a moving average only when at least three samples exist, do not take the average of `[5,10]` and present it as a three-sample average. There are two options:
 
-- Trả cửa sổ ngắn kèm thông tin số mẫu thực tế.
-- Lọc bỏ cửa sổ chưa đủ `k`.
+- Return the short window along with the actual sample count.
+- Filter out windows with fewer than `k` elements.
 
 ```java
 int k = 3;
@@ -272,11 +272,11 @@ List<List<Integer>> full = Stream.of(5, 10)
 System.out.println(full); // []
 ```
 
-Trên nguồn có `n >= k`, những cửa sổ phát ra đều đủ kích thước; phép lọc này chủ yếu diễn đạt **yêu cầu nghiệp vụ** khi nguồn quá ngắn.
+On a source with `n >= k`, all emitted windows already have full size; this filter mainly expresses **the business requirement** when the source is too short.
 
-## 6. Cửa sổ là `List` không cho phép sửa
+## 6. Windows are unmodifiable `List`s
 
-Theo hợp đồng của `Gatherers.windowSliding`, **mỗi cửa sổ là một list unmodifiable**. Không được thay đổi nội dung bằng `add`, `remove` hoặc `set`:
+Per the `Gatherers.windowSliding` contract, **each window is an unmodifiable list**. Its contents cannot be modified via `add`, `remove`, or `set`:
 
 ```java
 List<Integer> window = Stream.of(1, 2, 3)
@@ -289,13 +289,13 @@ System.out.println(window); // [1, 2]
 try {
     window.add(99);
 } catch (UnsupportedOperationException expected) {
-    System.out.println("Window khong cho phep sua");
+    System.out.println("Window is unmodifiable");
 }
 ```
 
-Không cam kết loại implementation hoặc serializability cụ thể của những list này. Đừng ép kiểu `ArrayList` hay phụ thuộc tên class được in bởi JVM.
+No specific implementation class or serializability is guaranteed for these lists. Do not cast to `ArrayList` or rely on the class name printed by the JVM.
 
-### 6.1. Nếu thật sự muốn bản sao có thể sửa
+### 6.1. If you genuinely need a modifiable copy
 
 ```java
 import java.util.ArrayList;
@@ -309,11 +309,11 @@ mutableWindows.get(0).add(99);
 System.out.println(mutableWindows.get(0)); // [1, 2, 99]
 ```
 
-Chú ý: **`toList()` bên ngoài cũng trả một list unmodifiable**. Ở ví dụ, bạn có thể sửa **các `ArrayList` bên trong**, nhưng không thể `mutableWindows.add(...)`. Nếu cần sửa cả list ngoài, thu bằng `collect(Collectors.toCollection(ArrayList::new))`.
+Note: **the outer `toList()` also returns an unmodifiable list**. In the example, you can mutate **the inner `ArrayList`s**, but you cannot call `mutableWindows.add(...)`. If you also need to mutate the outer list, collect with `collect(Collectors.toCollection(ArrayList::new))`.
 
-### 6.2. Unmodifiable không đồng nghĩa deep immutable
+### 6.2. Unmodifiable does not mean deep immutable
 
-Nếu cửa sổ chứa những object có thuộc tính mutable, việc thay đổi **object được tham chiếu** vẫn có thể được thấy từ cửa sổ:
+If windows contain objects with mutable fields, mutating **the referenced object** will still be visible through the window:
 
 ```java
 class Box {
@@ -333,22 +333,22 @@ a.value = 42;
 System.out.println(window.get(0).value); // 42
 ```
 
-Cửa sổ unmodifiable là **bất biến về cấu trúc list**, không tự sao chép sâu phần tử. Với dữ liệu kế toán, đo lường hoặc audit, hãy cân nhắc phần tử kiểu immutable hoặc snapshot sâu theo chính sách hệ thống.
+An unmodifiable window is **structurally immutable as a list**; it does not automatically deep-copy elements. For accounting, measurement, or audit data, consider immutable element types or deep snapshots per system policy.
 
-## 7. So sánh `windowSliding` với `windowFixed`
+## 7. Comparing `windowSliding` with `windowFixed`
 
-Java 24 có hai gatherer cửa sổ dựng sẵn:
+Java 24 has two built-in window gatherers:
 
-| Tiêu chí | `windowSliding(k)` | `windowFixed(k)` |
+| Criterion | `windowSliding(k)` | `windowFixed(k)` |
 | --- | --- | --- |
-| Cách chia | Cửa sổ chồng lấn, bước trượt 1 | Chia các nhóm liên tiếp, không chồng lấn |
-| Kích thước cửa sổ | `k` nếu đủ dữ liệu | `k`, cửa sổ cuối có thể ngắn |
-| Nguồn ngắn hơn `k`, không rỗng | **Một cửa sổ ngắn** | **Một cửa sổ ngắn** |
-| Nguồn rỗng | Không có cửa sổ | Không có cửa sổ |
-| Ví dụ `[1..7], k=3` | `[1,2,3]`, `[2,3,4]`, `[3,4,5]`, `[4,5,6]`, `[5,6,7]` | `[1,2,3]`, `[4,5,6]`, `[7]` |
-| Ý nghĩa | Quan sát sự biến thiên qua các điểm liền nhau | Xử lý dữ liệu theo batch độc lập |
+| Partitioning style | Overlapping windows, step size 1 | Consecutive non-overlapping groups |
+| Window size | `k` if enough data | `k`, final window may be shorter |
+| Source shorter than `k`, non-empty | **One short window** | **One short window** |
+| Empty source | No windows | No windows |
+| Example `[1..7], k=3` | `[1,2,3]`, `[2,3,4]`, `[3,4,5]`, `[4,5,6]`, `[5,6,7]` | `[1,2,3]`, `[4,5,6]`, `[7]` |
+| Purpose | Observing variation across adjacent points | Processing data in independent batches |
 
-Chương trình đối chiếu:
+Comparison program:
 
 ```java
 import java.util.List;
@@ -375,50 +375,50 @@ public class CompareWindows {
 }
 ```
 
-**Sai lầm thường gặp:** dùng `windowFixed` để tính trung bình trượt, khiến các cửa sổ không chồng lấn và bỏ qua nhiều tổ hợp phần tử liền kề.
+**Common mistake:** using `windowFixed` to compute a moving average, which causes non-overlapping segments and skips many adjacent combinations of elements.
 
-## 8. Công thức tổng quát cho số cửa sổ và độ phủ
+## 8. General formulas for window count and coverage
 
-Khi nguồn hữu hạn có `n >= k >= 1`, các cửa sổ đầy đủ bắt đầu lần lượt tại chỉ số:
+When a finite source has `n >= k >= 1`, full windows start successively at indices:
 
 ```text
 0, 1, 2, ..., n - k
 ```
 
-Cửa sổ thứ `i` theo cách đánh số 0-based là đoạn chỉ số:
+The `i`-th window in 0-based indexing covers the index range:
 
 ```text
 [i, i + 1, ..., i + k - 1]
 ```
 
-Số cửa sổ đầy đủ:
+Number of full windows:
 
 ```text
 n - k + 1
 ```
 
-Khi `n = 0`, không có cửa sổ; khi `0 < n < k`, có một cửa sổ ngắn. Công thức này rất hữu ích để viết **test trên nhiều giá trị k**, nhất là k = 1, k = n và k > n.
+When `n = 0`, there are no windows; when `0 < n < k`, there is one short window. This formula is very useful for writing **tests across many values of k**, especially k = 1, k = n, and k > n.
 
-Ví dụ `n = 5` và `k = 3`:
+Example `n = 5` and `k = 3`:
 
 ```text
-Cửa sổ thứ 0: phần tử 0, 1, 2
-Cửa sổ thứ 1: phần tử 1, 2, 3
-Cửa sổ thứ 2: phần tử 2, 3, 4
-Tổng: 5 - 3 + 1 = 3 cửa sổ.
+Window 0: elements 0, 1, 2
+Window 1: elements 1, 2, 3
+Window 2: elements 2, 3, 4
+Total: 5 - 3 + 1 = 3 windows.
 ```
 
-Nếu một pipeline phía sau chỉ lấy hai cửa sổ bằng `limit(2)`, kết quả vẫn là **hai cửa sổ đầu theo encounter order**, không phải hai phần tử đầu của nguồn.
+If a downstream pipeline takes only two windows via `limit(2)`, the result is still **the first two windows in encounter order**, not the first two elements of the source.
 
-## 9. Bài toán thực tế 1: tính trung bình trượt
+## 9. Practical problem 1: computing a moving average
 
-Cho dãy số đo:
+Given a sequence of measurements:
 
 ```text
 [10, 12, 14, 16, 18, 20]
 ```
 
-Với `k = 3`:
+With `k = 3`:
 
 ```text
 [10,12,14] -> 12.0
@@ -427,7 +427,7 @@ Với `k = 3`:
 [16,18,20] -> 18.0
 ```
 
-Ví dụ Java 24+:
+Java 24+ example:
 
 ```java
 import java.util.List;
@@ -454,17 +454,17 @@ public class MovingAverage {
 }
 ```
 
-Ở đây:
+Here:
 
-1. `gather` tạo các cửa sổ liền nhau.
-2. `filter` bảo đảm luôn đủ ba mẫu khi tính.
-3. `mapToDouble` tránh tạo thêm `Double` boxed trong phép tổng hợp.
-4. `average` là terminal operation **trên stream của từng cửa sổ**, trả `OptionalDouble`.
-5. `orElseThrow` hợp lệ vì mọi cửa sổ được giữ có ít nhất ba phần tử.
+1. `gather` creates adjacent windows.
+2. `filter` ensures there are always three samples when computing.
+3. `mapToDouble` avoids creating extra boxed `Double`s during aggregation.
+4. `average` is a terminal operation **on each window's stream**, returning `OptionalDouble`.
+5. `orElseThrow` is safe because every retained window has at least three elements.
 
-Phương pháp này đơn giản và dễ đọc, nhưng mỗi cửa sổ lại duyệt `k` phần tử để tính tổng. Với `n` lớn và `k` lớn, tổng công việc có thể xấp xỉ **O(n × k)** thay vì O(n). Khi cần tối ưu chặt chẽ, có thể dùng thuật toán **rolling sum** có trạng thái được kiểm soát; không mặc định sử dụng cửa sổ là cách nhanh nhất.
+This approach is simple and readable, though each window iterates over `k` elements to sum them. With large `n` and large `k`, total work can be roughly **O(n × k)** instead of O(n). When strict optimization is required, you can use a controlled stateful **rolling sum** algorithm; do not assume using windows is automatically the fastest approach.
 
-### 9.1. Cửa sổ ngắn có được tính trung bình không?
+### 9.1. Is a short window averaged?
 
 ```java
 List<Double> averages = Stream.of(10, 20)
@@ -478,26 +478,26 @@ List<Double> averages = Stream.of(10, 20)
 System.out.println(averages); // [15.0]
 ```
 
-Đây là trung bình **của hai mẫu có sẵn**, không phải trung bình trượt ba mẫu. Nếu hệ thống chỉ công bố kết quả khi đủ ba mẫu, thêm `filter(w -> w.size() == 3)` để trả list rỗng cho nguồn này.
+This is the average **of the two available samples**, not a three-sample moving average. If the system only publishes results when three samples exist, add `filter(w -> w.size() == 3)` to return an empty list for this source.
 
-### 9.2. Sai số số thực và miền giá trị
+### 9.2. Floating-point error and value ranges
 
-`DoubleStream.average()` trả giá trị số thực; khi dùng dữ liệu tiền tệ, độ chính xác số thực có thể không đáp ứng yêu cầu. Cân nhắc `BigDecimal` và quy tắc làm tròn rõ ràng. Nếu chuyển số nguyên sang `double`, có thể mất độ chính xác đối với số nguyên lớn hơn khoảng biểu diễn chính xác.
+`DoubleStream.average()` returns a floating-point value; when handling monetary data, floating-point precision may not meet requirements. Consider `BigDecimal` and explicit rounding rules. Converting large integers to `double` can lose precision for integers exceeding the exact representation range.
 
-Với chuỗi dữ liệu dài, việc tính trung bình độc lập cho từng cửa sổ có thể phù hợp để học và kiểm thử; còn yêu cầu hiệu năng cao cần đo trên workload thực và so sánh với một thuật toán cập nhật tổng theo từng bước.
+For long sequences, computing the average independently per window can be suitable for learning and testing; high-performance requirements should be measured on real workloads and compared against an incremental sum-updating algorithm.
 
 
-## 10. Bài toán thực tế 2: chênh lệch giữa hai mẫu liên tiếp
+## 10. Practical problem 2: difference between two consecutive samples
 
-Cửa sổ kích thước 2 là cách tự nhiên để so sánh phần tử hiện tại và phần tử ngay trước nó.
+A window of size 2 is a natural way to compare the current element with the element immediately preceding it.
 
-Nguồn:
+Source:
 
 ```text
 [100, 105, 103, 110]
 ```
 
-Các cặp và chênh lệch:
+Pairs and differences:
 
 ```text
 [100,105] -> +5
@@ -505,7 +505,7 @@ Các cặp và chênh lệch:
 [103,110] -> +7
 ```
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.List;
@@ -525,9 +525,9 @@ public class ConsecutiveDeltas {
 }
 ```
 
-Phép trừ `window.get(1) - window.get(0)` thể hiện thay đổi từ **phần tử trước tới phần tử sau**. Nếu chỉ có một mẫu, gatherer có thể tạo cửa sổ `[100]`; `filter(window -> window.size() == 2)` ngăn lỗi `IndexOutOfBoundsException`.
+The subtraction `window.get(1) - window.get(0)` represents the change from **the previous element to the next element**. If there is only one sample, the gatherer may produce a window `[100]`; `filter(window -> window.size() == 2)` prevents `IndexOutOfBoundsException`.
 
-### 10.1. Phát hiện tăng đột biến
+### 10.1. Detecting sudden spikes
 
 ```java
 boolean hasJump = Stream.of(100, 105, 103, 140)
@@ -539,11 +539,11 @@ boolean hasJump = Stream.of(100, 105, 103, 140)
 System.out.println(hasJump); // true
 ```
 
-`anyMatch` là terminal operation short-circuiting: nó có thể kết thúc khi phát hiện cặp phù hợp. Khi gắn I/O hoặc tác dụng phụ vào pipeline, không được giả định tất cả phần tử nguồn đã được duyệt hoặc callback đã được gọi đúng số lần.
+`anyMatch` is a short-circuiting terminal operation: it can finish as soon as a matching pair is detected. When attaching I/O or side effects to a pipeline, never assume all source elements have been traversed or callbacks were invoked an exact number of times.
 
-### 10.2. Nếu muốn trả cả vị trí và độ chênh lệch
+### 10.2. Returning both positions and deltas
 
-`gather` tạo cửa sổ nhưng **không tự gắn chỉ số đầu cửa sổ**. Có thể đánh chỉ số đầu vào trước:
+`gather` creates windows, **not automatic window-start indices**. You can index the input beforehand:
 
 ```java
 import java.util.List;
@@ -571,31 +571,31 @@ System.out.println(changes);
 //  Change[fromIndex=2, toIndex=3, delta=7]]
 ```
 
-Đây là đoạn mã minh họa đặt trong một lớp hoặc file nguồn phù hợp của **Java 24+**; `record` có từ Java 16. Để dễ tái sử dụng và tránh cấp phát mảng nhiều lần, chương trình thực tế nên khai báo nguồn một lần rồi lấy phần tử theo chỉ số.
+This illustrative snippet belongs inside an appropriate **Java 24+** class or source file; `record` has existed since Java 16. For reusability and to avoid allocating the array repeatedly, production code should declare the source once and index into it.
 
-Phiên bản đơn giản hơn nếu chỉ cần biết đoạn nào biến thiên là lưu các cửa sổ hoặc giá trị chênh lệch, không nhất thiết tạo record mới cho từng cặp.
+A simpler version when you only need to know which segments changed is storing the windows or delta values without necessarily creating a new record per pair.
 
-## 11. Bài toán thực tế 3: tạo n-gram trong xử lý văn bản
+## 11. Practical problem 3: generating n-grams in text processing
 
-Một **n-gram** là chuỗi gồm `n` token liền nhau. Với các từ:
-
-```text
-["hoc", "java", "stream", "api"]
-```
-
-Bigram (`n = 2`) là:
+An **n-gram** is a sequence of `n` adjacent tokens. Given the words:
 
 ```text
-["hoc java", "java stream", "stream api"]
+["learn", "java", "stream", "api"]
 ```
 
-Trigram (`n = 3`):
+Bigrams (`n = 2`) are:
 
 ```text
-["hoc java stream", "java stream api"]
+["learn java", "java stream", "stream api"]
 ```
 
-Sử dụng `windowSliding`:
+Trigrams (`n = 3`):
+
+```text
+["learn java stream", "java stream api"]
+```
+
+Using `windowSliding`:
 
 ```java
 import java.util.List;
@@ -605,7 +605,7 @@ import java.util.stream.Stream;
 public class NgramDemo {
     public static void main(String[] args) {
         List<String> tokens = List.of(
-            "hoc", "java", "stream", "api"
+            "learn", "java", "stream", "api"
         );
 
         List<String> bigrams = tokens.stream()
@@ -624,29 +624,29 @@ public class NgramDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
-[hoc java, java stream, stream api]
-[hoc java stream, java stream api]
+[learn java, java stream, stream api]
+[learn java stream, java stream api]
 ```
 
-### 11.1. Nếu ít token hơn kích thước n-gram
+### 11.1. Fewer tokens than the n-gram size
 
 ```java
-List<String> shortInput = List.of("hoc", "java");
+List<String> shortInput = List.of("learn", "java");
 
 System.out.println(
     shortInput.stream()
         .gather(Gatherers.windowSliding(3))
         .map(window -> String.join(" ", window))
         .toList()
-); // [hoc java]
+); // [learn java]
 ```
 
-Kết quả ở đây chứa **một chuỗi biểu diễn cửa sổ ngắn**, không phải một trigram hợp lệ ba token.
+The result here contains **one string representing the short window**, not a valid three-token trigram.
 
-Khi nghiệp vụ chỉ chấp nhận n-gram đầy đủ:
+When the business logic only accepts complete n-grams:
 
 ```java
 int n = 3;
@@ -660,7 +660,7 @@ List<String> valid = shortInput.stream()
 System.out.println(valid); // []
 ```
 
-### 11.2. Đếm tần suất n-gram
+### 11.2. Counting n-gram frequencies
 
 ```java
 import java.util.Map;
@@ -681,13 +681,13 @@ Map<String, Long> counts = tokens.stream()
 System.out.println(counts.get("java stream")); // 2
 ```
 
-`groupingBy` tổng hợp các n-gram đã được phát. `windowSliding` chỉ tạo các cửa sổ, **không phải collector**.
+`groupingBy` aggregates the emitted n-grams. `windowSliding` only produces windows; it **is not a collector**.
 
-Thứ tự duyệt các entry của `Map` kết quả không được bảo đảm theo thứ tự token trừ khi bạn chọn loại map phù hợp và tuân thủ hợp đồng collector. Nếu cần báo cáo có thứ tự theo số đếm hoặc theo từ khóa, sắp xếp rõ ràng ở bước tiếp theo.
+The iteration order of entries in the resulting `Map` is not guaranteed to follow token order unless you pick an appropriate map type and follow the collector contract. If a report sorted by count or keyword is needed, sort explicitly in the next step.
 
-## 12. Bài toán thực tế 4: phát hiện cửa sổ thỏa điều kiện
+## 12. Practical problem 4: detecting windows matching a condition
 
-Giả sử dữ liệu nhiệt độ (°C) theo thứ tự thời gian đã được chuẩn hóa, và yêu cầu cảnh báo khi **ba mẫu liên tiếp đều lớn hơn 38**.
+Suppose temperature readings (°C) in chronological order have been normalized, and an alert is required when **three consecutive samples are all greater than 38**.
 
 ```java
 import java.util.List;
@@ -711,27 +711,27 @@ public class TemperatureAlert {
 }
 ```
 
-Cửa sổ `[38.2,39.1,39.3]` đáp ứng điều kiện. Lọc đủ ba mẫu trước `anyMatch` giúp tránh xem một chuỗi thiếu dữ liệu là ba mẫu liên tiếp.
+The window `[38.2,39.1,39.3]` satisfies the condition. Filtering for a full three samples before `anyMatch` avoids treating an incomplete sequence as three consecutive samples.
 
-Khi các mẫu có thời gian thực không đều nhau, cửa sổ ba **phần tử** không có nghĩa ba phút hoặc ba giây. `windowSliding(3)` đếm **số phần tử**, không kiểm tra khoảng cách thời gian.
+When samples have uneven real-world timestamps, a window of three **elements** does not mean three minutes or three seconds. `windowSliding(3)` counts **element count**, not elapsed time intervals.
 
-### 12.1. Phân biệt cửa sổ theo số lượng và cửa sổ theo thời gian
+### 12.1. Distinguishing count-based windows from time-based windows
 
-| Loại | Ví dụ yêu cầu | `windowSliding` có đáp ứng trực tiếp? |
+| Type | Example requirement | Does `windowSliding` handle it directly? |
 | --- | --- | --- |
-| Theo số lượng | Ba giá trị gần nhất | Có, dùng `windowSliding(3)`. |
-| Theo cặp kề nhau | Chênh lệch mẫu trước/sau | Có, dùng `windowSliding(2)`. |
-| Theo thời gian | Mọi mẫu trong 5 phút gần nhất | **Không tự động**; cần xét timestamp và quy tắc biên. |
-| Theo bước nhảy | Cửa sổ dài 5, tiến mỗi lần 2 | **Không trực tiếp**; gatherer dựng sẵn trượt từng phần tử. |
-| Theo phiên hoạt động | Gom khi khoảng cách giữa sự kiện vượt ngưỡng | Cần state/logic nghiệp vụ riêng. |
+| Count-based | Three most recent values | Yes, use `windowSliding(3)`. |
+| Adjacent pairs | Difference between previous and next sample | Yes, use `windowSliding(2)`. |
+| Time-based | All samples within the last 5 minutes | **Not automatically**; requires checking timestamps and boundary rules. |
+| Strided steps | Window of length 5, advancing by 2 each time | **Not directly**; the built-in gatherer slides one element at a time. |
+| Session-based | Group until the gap between events exceeds a threshold | Requires custom state/business logic. |
 
-Nếu mẫu có timestamp, hãy sắp xếp theo khóa thời gian **và khóa phụ khi trùng thời điểm** trước khi dùng cửa sổ theo số lượng. Tuy nhiên, `sorted` có thể cần giữ dữ liệu đầu vào, gây chi phí lớn hoặc không phù hợp với stream vô hạn tổng quát.
+If samples carry timestamps, sort by timestamp **and a tie-breaker key when timestamps collide** before using count-based windows. However, `sorted` may buffer the input data, incurring high cost or proving unsuitable for general infinite streams.
 
-## 13. Thứ tự thao tác quyết định ý nghĩa cửa sổ
+## 13. Operation order determines window meaning
 
-Cửa sổ được tạo trên **dòng phần tử tại vị trí gatherer xuất hiện trong pipeline**. Đổi thứ tự các phép toán có thể làm dữ liệu nguồn liền kề trở thành **không còn liền kề** trong kết quả.
+Windows are formed on **the stream of elements at the exact position where the gatherer appears in the pipeline**. Reordering operations can make adjacent source data become **non-adjacent** in the output, or vice versa.
 
-### 13.1. Lọc trước khi tạo cửa sổ
+### 13.1. Filtering before windowing
 
 ```java
 List<List<Integer>> result = Stream.of(1, 2, 3, 4, 5)
@@ -743,9 +743,9 @@ System.out.println(result);
 // [[1, 3], [3, 5]]
 ```
 
-Do `filter` loại số chẵn trước, các phần tử `1` và `3` được xem là kề nhau **trong stream đã lọc**, dù chúng không kề nhau trong nguồn gốc.
+Because `filter` removes even numbers first, `1` and `3` are considered adjacent **in the filtered stream**, even though they were not adjacent in the original source.
 
-### 13.2. Tạo cửa sổ trước khi lọc
+### 13.2. Windowing before filtering
 
 ```java
 List<List<Integer>> result = Stream.of(1, 2, 3, 4, 5)
@@ -757,14 +757,14 @@ System.out.println(result);
 // [[1, 2], [3, 4]]
 ```
 
-Đây là các cặp liền kề của **dữ liệu gốc**, sau đó chỉ giữ những cặp có phần tử đầu lẻ. Hai pipeline **không tương đương**.
+These are adjacent pairs of the **original data**, then only pairs starting with an odd element are kept. The two pipelines are **not equivalent**.
 
-Quy tắc chọn:
+Selection rule:
 
-- Muốn cửa sổ trên **những phần tử đã được chọn**: `filter(...).gather(...)`.
-- Muốn giữ khái niệm kề nhau **trong dãy gốc** rồi đánh giá cửa sổ: `gather(...).filter(...)`.
+- If you want windows over **already selected elements**: `filter(...).gather(...)`.
+- If you want to preserve adjacency **in the original sequence** and then evaluate windows: `gather(...).filter(...)`.
 
-### 13.3. Sắp xếp trước `gather`
+### 13.3. Sorting before `gather`
 
 ```java
 List<List<Integer>> byValue = Stream.of(9, 1, 7, 2)
@@ -776,9 +776,9 @@ System.out.println(byValue);
 // [[1, 2], [2, 7], [7, 9]]
 ```
 
-Pipeline tạo cửa sổ theo **giá trị tăng dần**, không phải thứ tự xuất hiện ban đầu `9,1,7,2`. Với sự kiện theo thời gian, nếu nguồn đã đúng thứ tự thời gian, sắp xếp thêm theo giá trị đo có thể phá vỡ quan hệ thời gian.
+The pipeline forms windows in **ascending value order**, not the original occurrence order `9,1,7,2`. For time-series events, if the source is already chronologically ordered, sorting by measured value destroys the temporal relationship.
 
-### 13.4. `limit` trước và sau gatherer
+### 13.4. `limit` before and after gatherer
 
 ```java
 List<List<Integer>> firstFourSource = Stream.of(
@@ -791,7 +791,7 @@ System.out.println(firstFourSource);
 // [[1, 2, 3], [2, 3, 4]]
 ```
 
-`limit(4)` giới hạn nguồn còn bốn phần tử, rồi mới tạo các cửa sổ.
+`limit(4)` caps the source to four elements before forming windows.
 
 ```java
 List<List<Integer>> firstTwoWindows = Stream.of(
@@ -804,13 +804,13 @@ System.out.println(firstTwoWindows);
 // [[1, 2, 3], [2, 3, 4]]
 ```
 
-Hai ví dụ tình cờ có kết quả giống nhau với dữ liệu này, nhưng **ý nghĩa khác nhau**. Nếu thay `limit(4)` trước gather bằng `limit(3)`, chỉ còn một cửa sổ đầy đủ. Nếu thay `limit(2)` sau gather bằng `limit(3)`, có ba cửa sổ.
+The two examples happen to produce the same output on this dataset, yet **their meanings differ**. If `limit(4)` before gather is changed to `limit(3)`, only one full window remains. If `limit(2)` after gather is changed to `limit(3)`, three windows are returned.
 
-Không suy ra `limit(2)` sau gather luôn khiến nguồn chỉ được đọc bốn phần tử: runtime có thể có buffering hoặc trạng thái trung gian; hợp đồng quan trọng là **số cửa sổ kết quả**.
+Do not conclude that `limit(2)` after gather guarantees the source is only read for four elements: the runtime may perform buffering or maintain intermediate state; the important contract is **the number of resulting windows**.
 
-## 14. Cửa sổ trượt trên stream vô hạn
+## 14. Sliding windows on infinite streams
 
-Một ứng dụng có thể xử lý chuỗi giá trị sinh liên tục. `Stream.iterate` tạo nguồn có thể vô hạn:
+An application may process a continuously generated stream of values. `Stream.iterate` creates a potentially infinite source:
 
 ```java
 import java.util.List;
@@ -826,24 +826,24 @@ System.out.println(windows);
 // [[1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6]]
 ```
 
-`limit(4)` **sau gatherer** giúp terminal operation có kết quả hữu hạn. Nếu bỏ cả `limit` lẫn điều kiện dừng nguồn, `toList` cố thu vô hạn cửa sổ, không thể hoàn thành với bộ nhớ hữu hạn.
+`limit(4)` **after the gatherer** gives the terminal operation a finite result. Removing both `limit` and any source termination condition makes `toList` attempt to collect infinitely many windows, which cannot finish in finite memory.
 
-### 14.1. Cần đủ phần tử trước khi có cửa sổ đầu
+### 14.1. Enough elements are needed before the first window appears
 
-Với `windowSize = 3`, gatherer phải có ba phần tử trước khi phát cửa sổ đầy đủ đầu tiên. Trong trường hợp nguồn hữu hạn kết thúc trước đó, nó có thể phát một cửa sổ ngắn khi kết thúc nguồn.
+With `windowSize = 3`, the gatherer must receive three elements before emitting the first full window. If a finite source ends before then, it emits a single short window when the source completes.
 
-Vì thế:
+Therefore:
 
-- Với một nguồn không bao giờ phát đủ `k` phần tử **và không kết thúc**, bạn không thể giả định sẽ sớm nhận một cửa sổ.
-- Với một nguồn hữu hạn có ít hơn `k` phần tử, khi traversal kết thúc, có một cửa sổ ngắn.
-- `findFirst` trên pipeline gatherer có thể phải đọc đủ dữ liệu để hình thành cửa sổ đầu.
+- With a source that never emits `k` elements **and never terminates**, you cannot assume a window will arrive promptly.
+- With a finite source having fewer than `k` elements, when traversal ends, there is one short window.
+- `findFirst` on a gatherer pipeline may need to read enough data to form the first window.
 
-Đây là khác biệt giữa **độ trễ có được cửa sổ đầu** và **chi phí thu toàn bộ kết quả**.
+This is the difference between **latency to obtain the first window** and **cost of collecting all results**.
 
-### 14.2. Không tạo cửa sổ trượt vô hạn rồi sắp xếp tất cả
+### 14.2. Do not create infinite sliding windows and sort them all
 
 ```java
-// KHÔNG NÊN với nguồn vô hạn:
+// NOT RECOMMENDED for an infinite source:
 // Stream.iterate(1, n -> n + 1)
 //     .gather(Gatherers.windowSliding(3))
 //     .sorted(comparator)
@@ -851,20 +851,20 @@ Vì thế:
 //     .toList();
 ```
 
-`sorted` là thao tác stateful có thể cần biết toàn bộ dữ liệu trước khi phát giá trị. Đặt `limit` phía sau không biến bài toán vô hạn thành hữu hạn. Khi phải sắp xếp, xác định rõ giới hạn đầu vào và tài nguyên.
+`sorted` is a stateful operation that may need to see all data before emitting a value. Placing `limit` afterward does not turn an infinite problem into a finite one. Whenever sorting is required, explicitly bound input size and resources.
 
-## 15. Khi dữ liệu có nhóm, tránh cửa sổ vượt qua ranh giới nhóm
+## 15. When data has groups, avoid windows crossing group boundaries
 
-Giả sử hệ thống có hai thiết bị cảm biến, mỗi thiết bị có chuỗi thời gian riêng:
+Suppose a system has two sensor devices, each with its own time series:
 
 ```text
-Thiết bị A: [10, 11, 12]
-Thiết bị B: [50, 51, 52]
+Device A: [10, 11, 12]
+Device B: [50, 51, 52]
 ```
 
-Nếu nối thành `[10,11,12,50,51,52]` rồi tạo `windowSliding(3)`, sẽ có những cửa sổ `[11,12,50]` và `[12,50,51]` **trộn số liệu từ hai thiết bị**.
+If concatenated into `[10,11,12,50,51,52]` and passed to `windowSliding(3)`, windows `[11,12,50]` and `[12,50,51]` will **mix readings from two devices**.
 
-Một cách đúng là áp dụng gatherer **riêng trong từng nhóm**:
+A correct approach is to apply the gatherer **separately within each group**:
 
 ```java
 import java.util.LinkedHashMap;
@@ -885,27 +885,27 @@ readings.forEach((device, values) -> {
 });
 ```
 
-Kết quả:
+Output:
 
 ```text
 A: [[10, 11, 12]]
 B: [[50, 51, 52]]
 ```
 
-Ví dụ dùng `LinkedHashMap` để thứ tự in nhóm dễ đối chiếu. Với `HashMap`, thứ tự duyệt các thiết bị không được đảm bảo. Nếu dữ liệu có timestamp riêng, cần sắp xếp các phần tử **bên trong từng nhóm** theo thứ tự nghiệp vụ trước khi tạo cửa sổ.
+The example uses `LinkedHashMap` so the printing order of groups is easy to verify. With `HashMap`, device iteration order is not guaranteed. If data carries separate timestamps, sort elements **inside each group** according to business order before windowing.
 
-Trong pipeline lớn, bạn có thể dùng `Collectors.groupingBy` trước rồi xử lý các nhóm, nhưng phải nhận biết chi phí **giữ danh sách của từng nhóm trong bộ nhớ**. Gatherer chỉ nhận stream nguồn; nó không tự hiểu ranh giới thiết bị, người dùng hay phiên hoạt động.
+In a larger pipeline, you might use `Collectors.groupingBy` first and then process the groups, while remaining aware of the cost of **holding every group's list in memory**. A Gatherer only sees the source stream; it does not automatically infer device, user, or session boundaries.
 
-### 15.1. Khi bộ dữ liệu thay đổi trong lúc duyệt
+### 15.1. When the dataset changes during traversal
 
-Hàm xử lý trong Stream nên **non-interfering**: không sửa collection nguồn khi traversal đang diễn ra. Nếu những thread khác có thể cập nhật list cảm biến, dùng snapshot, cơ chế đồng bộ hoặc loại nguồn hỗ trợ concurrency theo hợp đồng.
+Functions in a Stream should be **non-interfering**: do not modify the source collection while traversal is underway. If other threads might update a sensor list, use a snapshot, synchronization, or a source supporting concurrency per contract.
 
-`windowSliding` cần duy trì quan hệ liền kề theo encounter order, nên việc thay đổi nguồn trong lúc duyệt có thể khiến các cửa sổ không còn mang ý nghĩa dữ liệu ổn định. Bản thân gatherer không tạo snapshot bất biến của toàn hệ thống.
+`windowSliding` needs to maintain adjacency in encounter order, so mutating the source during traversal can leave windows without stable data meaning. The gatherer itself does not create an immutable snapshot of the whole system.
 
 
-## 16. Song song hóa: đúng kết quả không đồng nghĩa chạy nhanh hơn
+## 16. Parallelization: correct results do not mean faster execution
 
-Có thể đặt `parallel()` trên một nguồn ordered:
+You can place `parallel()` on an ordered source:
 
 ```java
 import java.util.List;
@@ -922,18 +922,18 @@ System.out.println(windows);
 // [[1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6]]
 ```
 
-Mặc dù đầu vào có thể được xử lý theo chế độ song song, cửa sổ trượt phụ thuộc **ranh giới giữa những phần tử liền nhau**. Một cách chia nguồn thành các đoạn độc lập cần xử lý cả các phần tử chồng lấn ở ranh giới; không phải mọi gatherer đều có combiner cho phép ghép trạng thái một cách song song hiệu quả.
+Although the input can be processed in parallel mode, sliding windows depend on **boundaries between adjacent elements**. Splitting the source into independent segments must handle overlapping elements at boundaries; not every gatherer has a combiner that merges state in parallel efficiently.
 
-Điều được yêu cầu là **kết quả logic đúng theo encounter order** của nguồn ordered. Không có cam kết:
+What is required is **logically correct results in encounter order** of an ordered source. There is no guarantee that:
 
-- Mỗi cửa sổ được tạo bởi một thread riêng.
-- Mỗi đoạn nguồn có thể được xử lý hoàn toàn độc lập không cần phối hợp.
-- Càng nhiều lõi CPU thì `windowSliding` càng nhanh.
-- `parallel()` luôn được triển khai bằng cùng một chiến lược ở mọi JDK.
+- Each window is built by a separate thread.
+- Each source segment can be processed completely independently without coordination.
+- More CPU cores always make `windowSliding` faster.
+- `parallel()` is implemented with the exact same strategy on every JDK.
 
-Với gatherer cửa sổ có trạng thái, xử lý song song có thể gặp chi phí **điều phối và giữ thứ tự**, nên đôi khi pipeline tuần tự nhanh hơn. Đừng suy luận hiệu năng từ chữ `parallel()`.
+For a stateful window gatherer, parallel execution can incur **coordination and ordering overhead**, so a sequential pipeline is sometimes faster. Do not infer performance from the word `parallel()`.
 
-### 16.1. So sánh ngữ nghĩa tuần tự và song song
+### 16.1. Comparing sequential and parallel semantics
 
 ```java
 List<Integer> source = IntStream.range(0, 100)
@@ -951,9 +951,9 @@ List<List<Integer>> parallel = source.parallelStream()
 System.out.println(sequential.equals(parallel)); // true
 ```
 
-Kiểm tra bằng `List.equals` giúp so sánh **toàn bộ nội dung và thứ tự cửa sổ**. Không kiểm thử bằng thread id, thứ tự log hoặc thời gian hoàn thành từng callback.
+Checking with `List.equals` compares **all contents and window ordering**. Do not test using thread IDs, log order, or completion timing of individual callbacks.
 
-### 16.2. `unordered()` làm mất ngữ nghĩa kề nhau ổn định
+### 16.2. `unordered()` loses stable adjacency semantics
 
 ```java
 List<List<Integer>> windows = IntStream.rangeClosed(1, 6)
@@ -964,37 +964,37 @@ List<List<Integer>> windows = IntStream.rangeClosed(1, 6)
     .toList();
 ```
 
-Ở đây pipeline đã **bỏ yêu cầu encounter order**. Không nên mặc định các cửa sổ phản ánh đúng chuỗi `[1,2,3,4,5,6]` theo thứ tự nghiệp vụ. Việc một lần chạy tình cờ cho kết quả mong muốn không tạo thành bảo đảm API.
+Here the pipeline has **dropped the encounter-order requirement**. You should not assume windows reflect `[1,2,3,4,5,6]` in business order. One run happening to return the expected result does not constitute an API guarantee.
 
-Đối với dữ liệu theo thời gian, chuỗi giao dịch, log hoặc các bản ghi có vị trí xác định, hãy **giữ thứ tự nguồn** hoặc sắp xếp theo khóa rõ ràng trước khi tạo cửa sổ.
+For time-series data, transaction sequences, logs, or positionally meaningful records, **preserve source order** or sort by an explicit key before windowing.
 
-## 17. Bộ nhớ, độ phức tạp và tài nguyên
+## 17. Memory, complexity, and resources
 
-Cửa sổ trượt có sự chồng lấn lớn: với `n >= k`, có `n - k + 1` cửa sổ và mỗi cửa sổ có `k` tham chiếu phần tử về mặt logic.
+Sliding windows have high overlap: when `n >= k`, there are `n - k + 1` windows and each window logically holds `k` element references.
 
-Nếu thu **tất cả cửa sổ** vào một `List<List<T>>`, số lượng phần tử được biểu diễn bên trong các cửa sổ có quy mô:
+If **all windows** are collected into a `List<List<T>>`, the number of element slots represented across windows scales as:
 
 ```text
 k * (n - k + 1)
 ```
 
-Ví dụ `n = 100_000` và `k = 1_000`: số cửa sổ khoảng 99.001, tổng số vị trí phần tử xét trên các cửa sổ gần 99 triệu. **Không nên** xem mỗi cửa sổ là dữ liệu độc lập miễn phí.
+For example, `n = 100_000` and `k = 1_000`: there are about 99,001 windows, totaling nearly 99 million element positions across windows. You **should not** treat each window as free independent data.
 
-Triển khai JDK có thể dùng chiến lược lưu trữ hoặc chia sẻ vùng nhớ khác nhau, nên đừng suy từ công thức này rằng lượng cấp phát thực tế luôn chính xác bằng từng ấy object. Nhưng về mặt nghiệp vụ, việc **giữ tất cả cửa sổ** tạo áp lực bộ nhớ cao so với việc **tính một thống kê rồi bỏ cửa sổ**.
+JDK implementations may use different storage or memory-sharing strategies, so do not infer from this formula that actual allocations always equal that exact object count. Business-wise, however, **retaining all windows** creates high memory pressure compared to **computing a statistic and discarding the window**.
 
-### 17.1. Đừng thu cửa sổ nếu chỉ cần thống kê
+### 17.1. Do not collect windows if you only need statistics
 
-Thay vì:
+Instead of:
 
 ```java
 List<List<Integer>> windows = source.stream()
     .gather(Gatherers.windowSliding(100))
     .toList();
 
-// Sau đó mới tính thống kê ở một vòng lặp khác.
+// Then compute statistics in another loop.
 ```
 
-Có thể xử lý trực tiếp:
+You can process directly:
 
 ```java
 List<Double> averages = source.stream()
@@ -1007,17 +1007,17 @@ List<Double> averages = source.stream()
     .toList();
 ```
 
-Pipeline thứ hai chỉ giữ **các giá trị trung bình đầu ra**, không giữ toàn bộ danh sách cửa sổ trong kết quả. Tuy nhiên, việc tính lại trung bình của từng cửa sổ vẫn lặp qua tới 100 phần tử; khi cần tối ưu thật sự, có thể tính **rolling sum** với trạng thái được quản lý phù hợp.
+The second pipeline keeps only **the output averages**, not the entire list of windows in the result. However, recomputing the average of each window still loops through up to 100 elements; when genuine optimization is needed, you can compute a **rolling sum** with properly managed state.
 
-### 17.2. Kích thước cửa sổ rất lớn trên nguồn ngắn
+### 17.2. Very large window size on a short source
 
-Tài liệu API lưu ý rằng để tối ưu hiệu quả, các cửa sổ **có thể được cấp phát liên tiếp hoặc sớm hơn nhu cầu**. Do đó yêu cầu `windowSliding(1_000_000)` trên một stream chỉ có vài phần tử vẫn **có nguy cơ tiêu tốn bộ nhớ lớn** trong thời gian đánh giá.
+The API documentation notes that for efficiency, windows **may be allocated eagerly or ahead of demand**. Thus requesting `windowSliding(1_000_000)` on a stream with only a few elements still **risks large memory consumption** during evaluation.
 
-Hãy đặt giới hạn trên cho `windowSize` theo cấu hình hệ thống và kích thước bản ghi thực tế. Không coi `limit(1)` ở phía sau là bảo đảm tổng bộ nhớ sử dụng nhỏ.
+Set an upper limit for `windowSize` based on system configuration and actual record size. Do not treat a downstream `limit(1)` as a guarantee that total memory usage stays small.
 
-### 17.3. Nguồn gắn với I/O phải được đóng
+### 17.3. Sources backed by I/O must be closed
 
-Nếu dữ liệu đến từ `Files.lines`, `Files.walk` hoặc tài nguyên I/O khác, bản thân terminal operation `toList` **không thay thế thao tác đóng nguồn**. Ví dụ Java 24+:
+If data comes from `Files.lines`, `Files.walk`, or another I/O resource, the `toList` terminal operation itself **does not replace closing the source**. Java 24+ example:
 
 ```java
 import java.io.IOException;
@@ -1041,32 +1041,32 @@ static List<List<String>> adjacentLines(Path file)
 }
 ```
 
-`try-with-resources` đóng `lines` khi hoàn thành hoặc gặp lỗi. Kết quả là những list chứa chuỗi đã đọc, không phụ thuộc stream I/O còn mở.
+`try-with-resources` closes `lines` when done or when an error occurs. The result consists of lists holding the already-read strings, independent of keeping the I/O stream open.
 
-Đừng đọc cả tệp rất lớn rồi giữ toàn bộ các cặp dòng nếu chỉ cần kiểm tra điều kiện trên chúng. Hãy đặt terminal operation phù hợp hoặc chuyển thành kết quả nhỏ hơn trong lúc stream còn mở.
+Do not read an entire huge file and hold every pair of lines if you only need to check a condition on them. Choose a suitable terminal operation or reduce to a smaller result while the stream is open.
 
-### 17.4. Thay đổi nguồn khi đang duyệt
+### 17.4. Mutating the source during traversal
 
-Nếu một thread khác thay đổi cấu trúc nguồn như `ArrayList` trong lúc stream đang duyệt, kết quả không được bảo đảm. `windowSliding` không tạo ra snapshot của toàn bộ collection trước khi đọc.
+If another thread alters the structure of a source such as an `ArrayList` while the stream is traversing it, results are not guaranteed. `windowSliding` does not snapshot the entire collection before reading.
 
-Với yêu cầu tái hiện báo cáo, dùng nguồn ổn định hoặc snapshot theo phiên dữ liệu. Nếu phần tử là object mutable, cần xác định có sao chép sâu hay không; list cửa sổ unmodifiable không tự bảo vệ trạng thái của những object đó.
+For reproducible reporting, use a stable source or a dataset snapshot per session. If elements are mutable objects, decide whether deep copying is needed; an unmodifiable window list does not automatically protect the state of those objects.
 
-## 18. Chương trình kiểm chứng đầy đủ (Java 24+)
+## 18. Complete verification program (Java 24+)
 
-Để xác minh ngữ nghĩa, ta tạo một **thuật toán tham chiếu** dùng `List.subList` trên nguồn hữu hạn, rồi đối chiếu với `windowSliding` cho nhiều giá trị `n` và `k`.
+To verify semantics, we create a **reference algorithm** using `List.subList` on a finite source, then compare it against `windowSliding` across many values of `n` and `k`.
 
-Phương pháp này tránh kiểm tra theo một vài chuỗi ví dụ rồi kết luận vội. Nó kiểm tra:
+This method avoids checking just a couple of sample sequences and jumping to conclusions. It tests:
 
-- Nguồn rỗng.
-- Nguồn ít phần tử hơn kích thước cửa sổ.
+- Empty source.
+- Source with fewer elements than window size.
 - `k = 1`, `k = n`, `k > n`.
-- Số lượng cửa sổ và nội dung từng cửa sổ.
-- Tính tương đương giữa stream tuần tự và song song.
-- Khả năng từ chối kích thước cửa sổ không hợp lệ.
-- Các cửa sổ không cho phép sửa.
-- Dữ liệu lặp vẫn được giữ đúng số lần.
+- Window count and contents of each window.
+- Equivalence between sequential and parallel streams.
+- Rejection of invalid window sizes.
+- Unmodifiability of returned windows.
+- Duplicate data preserved the exact number of times.
 
-Tạo file `SlidingWindowCheck.java`:
+Create `SlidingWindowCheck.java`:
 
 ```java
 import java.util.ArrayList;
@@ -1086,7 +1086,7 @@ public class SlidingWindowCheck {
             List<T> source, int k) {
 
         if (k < 1) {
-            throw new IllegalArgumentException("k phai >= 1");
+            throw new IllegalArgumentException("k must be >= 1");
         }
 
         List<List<T>> result = new ArrayList<>();
@@ -1120,10 +1120,10 @@ public class SlidingWindowCheck {
             .toList();
 
         check(sequential.equals(reference),
-            "Khac tham chieu: source=" + source + ", k=" + k);
+            "Mismatch with reference: source=" + source + ", k=" + k);
 
         check(parallel.equals(reference),
-            "Khac khi song song: source=" + source + ", k=" + k);
+            "Mismatch in parallel: source=" + source + ", k=" + k);
 
         int n = source.size();
         int expectedCount = n == 0 ? 0
@@ -1131,11 +1131,11 @@ public class SlidingWindowCheck {
             : n - k + 1;
 
         check(sequential.size() == expectedCount,
-            "Sai so cua so");
+            "Incorrect window count");
 
         for (List<T> window : sequential) {
-            check(!window.isEmpty(), "Cua so rong bat thuong");
-            check(window.size() <= k, "Vuot kich thuoc k");
+            check(!window.isEmpty(), "Unexpected empty window");
+            check(window.size() <= k, "Exceeded size k");
         }
     }
 
@@ -1159,7 +1159,7 @@ public class SlidingWindowCheck {
         } catch (IllegalArgumentException expected) {
             rejectedZero = true;
         }
-        check(rejectedZero, "Phai tu choi windowSize=0");
+        check(rejectedZero, "Must reject windowSize=0");
 
         boolean rejectedNegative = false;
         try {
@@ -1168,7 +1168,7 @@ public class SlidingWindowCheck {
             rejectedNegative = true;
         }
         check(rejectedNegative,
-            "Phai tu choi windowSize am");
+            "Must reject negative windowSize");
 
         List<Integer> first = List.of(1, 2, 3).stream()
             .gather(Gatherers.windowSliding(2))
@@ -1182,104 +1182,104 @@ public class SlidingWindowCheck {
             rejectedModification = true;
         }
         check(rejectedModification,
-            "Cua so phai unmodifiable");
+            "Window must be unmodifiable");
 
         System.out.println("PASS: windowSliding");
     }
 }
 ```
 
-Kết quả dự kiến khi mọi kiểm tra qua:
+Expected output when all checks pass:
 
 ```text
 PASS: windowSliding
 ```
 
-Chương trình này là **mẫu kiểm thử ngữ nghĩa**, không phải benchmark hiệu năng hay chứng minh hệ thống chịu được mọi quy mô. Đặc biệt, kiểm thử trên nguồn có giá trị trùng ngăn lỗi chỉ so sánh `Set` và bỏ qua số lần xuất hiện.
+This program is a **semantic verification template**, not a performance benchmark or proof that the system handles every scale. In particular, testing on sources with duplicate values prevents bugs from comparing only as a `Set` and ignoring occurrence counts.
 
-### 18.1. Vì sao cần thuật toán tham chiếu độc lập?
+### 18.1. Why is an independent reference algorithm needed?
 
-Nếu cả code sản phẩm và code test đều gọi `windowSliding`, hai đoạn có thể cùng hiểu sai một ca biên mà không phát hiện. Hàm `expected` ở trên dùng:
+If both production code and test code call `windowSliding`, both could share the same misunderstanding of a boundary case without detecting it. The `expected` function above uses:
 
-- Vòng lặp chỉ số.
+- An index loop.
 - `subList(i, i + k)`.
-- Một điều kiện riêng cho nguồn rỗng và nguồn ngắn hơn cửa sổ.
+- Separate conditions for an empty source and a source shorter than the window.
 
-Nhờ cách viết khác, nó giúp kiểm tra đúng vị trí, độ dài và số cửa sổ theo quy tắc đã xác định. Với các ca đầu vào lớn hơn, có thể thêm kiểm thử thuộc tính (*property-based testing*) nhưng không nên tạo hàng triệu cửa sổ chỉ để kiểm tra với `toList`.
+Thanks to a different implementation, it helps verify exact positions, lengths, and window counts against the defined rules. For larger inputs, *property-based testing* can be added, though you should not generate millions of windows just to test with `toList`.
 
-## 19. Những lỗi và hiểu nhầm thường gặp
+## 19. Common errors and misconceptions
 
-| Hiểu nhầm / lỗi | Hệ quả | Cách sửa |
+| Misconception / error | Consequence | Fix |
 | --- | --- | --- |
-| Nghĩ `windowSliding(3)` lấy ba phần tử rồi nhảy ba phần tử | Tạo sai kiểu cửa sổ | Mỗi cửa sổ trượt **một phần tử** và chồng lấn `k - 1`. |
-| Dùng `windowFixed` để tính trung bình trượt | Các đoạn không chồng lấn | Dùng `windowSliding` nếu cần mọi đoạn liên tiếp. |
-| Cho rằng nguồn ngắn hơn `k` không có cửa sổ | Bỏ sót một cửa sổ ngắn | Kiểm tra `0 < n < k`. |
-| Cho rằng luôn phát các cửa sổ ngắn ở cuối | Đếm sai số cửa sổ | Khi `n >= k`, chỉ phát cửa sổ **đủ k**. |
-| Truy cập `window.get(k - 1)` với nguồn ngắn | `IndexOutOfBoundsException` | Lọc `window.size() == k` nếu cần đủ mẫu. |
-| Gọi `windowSliding(0)` | `IllegalArgumentException` | Yêu cầu `k >= 1` và giới hạn trên phù hợp. |
-| Gọi `window.add` hoặc `window.set` | `UnsupportedOperationException` | Dùng `new ArrayList<>(window)` nếu thật sự cần sửa. |
-| Nghĩ list unmodifiable làm mọi phần tử bất biến | Dữ liệu mutable vẫn thay đổi | Dùng phần tử immutable/snapshot sâu. |
-| Sắp xếp theo giá trị trước khi phân tích thời gian | Mất quan hệ liền kề theo thời gian | Sắp xếp theo timestamp/khóa phụ hoặc giữ nguồn đúng thứ tự. |
-| Gọi `filter` trước gather nhưng muốn cặp kề nhau của nguồn gốc | Phần tử không kề nhau bị ghép cặp | Đặt gather trước filter cửa sổ khi cần. |
-| Ghép dữ liệu hai thiết bị rồi gather một lượt | Cửa sổ trộn các nhóm | Gather riêng cho mỗi chuỗi/nhóm. |
-| Xem k phần tử là k phút | Sai với sampling không đều | Dùng thuật toán cửa sổ theo thời gian nếu cần. |
-| Thu tất cả cửa sổ của dữ liệu lớn vào RAM | Áp lực bộ nhớ cao | Tính thống kê trong pipeline, không giữ mọi list. |
-| `windowSize` quá lớn trên stream nhỏ | Có thể cấp phát quá nhiều | Áp giới hạn theo nguồn và tài nguyên. |
-| Mặc định `parallel()` tăng tốc | Chi phí phối hợp và trạng thái | Đo hiệu năng, không suy từ số thread. |
-| Dùng `unordered()` với dữ liệu theo thứ tự nghiệp vụ | Cặp/cửa sổ không còn ý nghĩa ổn định | Duy trì encounter order hoặc sắp xếp. |
-| Dùng `toList` trên nguồn vô hạn không giới hạn | Không hoàn thành, tốn vô hạn tài nguyên | `limit` kết quả hoặc ràng buộc đầu vào. |
-| Nguồn là `Files.lines` nhưng không đóng | Rò rỉ tài nguyên I/O | `try-with-resources`. |
-| Mã không biên dịch ở JDK 21 | Stream Gatherers chưa có trong JDK 21 | Dùng JDK 24+ hoặc giải pháp tương thích cũ. |
+| Thinking `windowSliding(3)` takes three elements then jumps three elements | Produces the wrong window type | Each window slides by **one element** and overlaps `k - 1`. |
+| Using `windowFixed` to compute a moving average | Non-overlapping segments | Use `windowSliding` when all consecutive segments are needed. |
+| Assuming a source shorter than `k` has no windows | Misses one short window | Check `0 < n < k`. |
+| Assuming short trailing windows are always emitted at the end | Miscounts windows | When `n >= k`, only windows of **full k** are emitted. |
+| Accessing `window.get(k - 1)` on a short source | `IndexOutOfBoundsException` | Filter `window.size() == k` when full samples are required. |
+| Calling `windowSliding(0)` | `IllegalArgumentException` | Require `k >= 1` and a suitable upper bound. |
+| Calling `window.add` or `window.set` | `UnsupportedOperationException` | Use `new ArrayList<>(window)` if mutation is truly needed. |
+| Thinking an unmodifiable list makes all elements immutable | Mutable data still changes | Use immutable elements or deep snapshots. |
+| Sorting by value before temporal analysis | Loses temporal adjacency | Sort by timestamp/tie-breaker or keep ordered source. |
+| Calling `filter` before gather while wanting adjacent pairs of the original source | Non-adjacent elements get paired | Place gather before window filter when needed. |
+| Merging two devices' data and gathering in one pass | Windows mix groups | Gather separately for each sequence/group. |
+| Treating k elements as k minutes | Wrong under uneven sampling | Use a time-window algorithm when needed. |
+| Collecting all windows of huge data into RAM | High memory pressure | Compute statistics in the pipeline without keeping every list. |
+| Huge `windowSize` on a tiny stream | May allocate excessively | Enforce bounds according to source and resources. |
+| Assuming `parallel()` speeds things up | Coordination and state overhead | Measure performance, do not infer from thread count. |
+| Using `unordered()` on business-ordered data | Pairs/windows lose stable meaning | Maintain encounter order or sort. |
+| Using `toList` on an unbounded infinite source | Does not finish, consumes unbounded resources | `limit` results or bound the input. |
+| Source is `Files.lines` left unclosed | I/O resource leak | Use `try-with-resources`. |
+| Code fails to compile on JDK 21 | Stream Gatherers are not in JDK 21 | Use JDK 24+ or an older-compatible solution. |
 
-## 20. Bài tập thực hành
+## 20. Practice exercises
 
-### Bài 1 — Tự tính cửa sổ
+### Exercise 1 — Computing windows manually
 
-Cho nguồn `[2,4,6,8,10]` và `k = 3`. Hãy liệt kê mọi cửa sổ và số cửa sổ. Đối chiếu với `windowFixed(3)`.
+Given source `[2,4,6,8,10]` and `k = 3`. List all windows and the window count. Compare against `windowFixed(3)`.
 
-### Bài 2 — Các ca biên
+### Exercise 2 — Boundary cases
 
-Dự đoán kết quả với `windowSliding(4)` trên `[]`, `[1]`, `[1,2,3]`, `[1,2,3,4]` và `[1,2,3,4,5]`.
+Predict the result of `windowSliding(4)` on `[]`, `[1]`, `[1,2,3]`, `[1,2,3,4]`, and `[1,2,3,4,5]`.
 
-### Bài 3 — Tổng từng cửa sổ
+### Exercise 3 — Sum of each window
 
-Dùng `windowSliding(2)` trên `[3,5,7,9]` rồi chuyển thành list tổng các cặp liên tiếp.
+Use `windowSliding(2)` on `[3,5,7,9]` and transform into a list of sums of consecutive pairs.
 
-### Bài 4 — Chênh lệch giữa mẫu liền kề
+### Exercise 4 — Difference between adjacent samples
 
-Dùng `windowSliding(2)` để lấy chênh lệch từ `[100,98,103,99]`, với quy ước giá trị sau trừ giá trị trước. Nếu nguồn chỉ có một phần tử, danh sách chênh lệch hợp lệ là gì?
+Use `windowSliding(2)` to compute differences from `[100,98,103,99]`, defined as the next value minus the previous value. If the source has only one element, what is the valid list of differences?
 
-### Bài 5 — N-gram văn bản
+### Exercise 5 — Text n-grams
 
-Từ `["java","stream","api","java","stream"]`, tạo bigram rồi đếm tần suất từng bigram bằng `groupingBy` và `counting`.
+From `["java","stream","api","java","stream"]`, generate bigrams and count the frequency of each bigram using `groupingBy` and `counting`.
 
-### Bài 6 — Thứ tự thao tác
+### Exercise 6 — Operation order
 
-Cho `[1,2,3,4,5]`. So sánh `filter(n -> n % 2 == 1).gather(windowSliding(2))` với `gather(windowSliding(2)).filter(window -> window.get(0) % 2 == 1)`.
+Given `[1,2,3,4,5]`. Compare `filter(n -> n % 2 == 1).gather(windowSliding(2))` with `gather(windowSliding(2)).filter(window -> window.get(0) % 2 == 1)`.
 
-### Bài 7 — Dữ liệu nguồn ngắn hơn k
+### Exercise 7 — Source shorter than k
 
-Một hệ thống cảnh báo chỉ được phép phát tín hiệu nếu có **ba mẫu liên tiếp** vượt 50. Nếu nguồn chỉ có `[60,70]`, liệu `windowSliding(3)` có tạo kết quả không? Làm sao ngăn cảnh báo sai?
+An alerting system may only fire a signal if **three consecutive samples** exceed 50. If the source only has `[60,70]`, will `windowSliding(3)` produce a result? How do you prevent a false alert?
 
-### Bài 8 — Giới hạn tài nguyên
+### Exercise 8 — Resource limits
 
-Một hệ thống có 100.000 mẫu, `k = 1.000`. Vì sao không nên mặc định thu tất cả cửa sổ thành `List<List<T>>` nếu chỉ cần giá trị trung bình? Nêu thêm lý do cần giới hạn trên cho `k`.
+A system has 100,000 samples and `k = 1,000`. Why should you not blindly collect all windows into `List<List<T>>` if only the average values are needed? Give an additional reason why an upper bound on `k` is needed.
 
-### Bài 9 — Chọn loại cửa sổ
+### Exercise 9 — Choosing window type
 
-Nghiệp vụ A cần mỗi 100 bản ghi tạo một batch không chồng lấn để xuất file; nghiệp vụ B cần phân tích 100 bản ghi gần nhất sau mỗi bản ghi mới. Chọn gatherer nào cho từng nhu cầu?
+Business requirement A needs every 100 records grouped into a non-overlapping batch for file export; business requirement B needs to analyze the 100 most recent records after each new record. Which gatherer fits each need?
 
-### Bài 10 — Bảo đảm thứ tự
+### Exercise 10 — Preserving order
 
-Tại sao `source.parallelStream().unordered().gather(Gatherers.windowSliding(3))` không phù hợp khi nguồn là các sự kiện theo thời gian? Cần bổ sung tiêu chí gì nếu hai sự kiện có cùng timestamp?
+Why is `source.parallelStream().unordered().gather(Gatherers.windowSliding(3))` unsuitable when the source consists of chronological events? What additional criterion is needed if two events share the same timestamp?
 
-## 21. Đáp án tham khảo
+## 21. Reference solutions
 
-**Bài 1.** Các cửa sổ trượt là `[2,4,6]`, `[4,6,8]`, `[6,8,10]`, tổng `5 - 3 + 1 = 3`. `windowFixed(3)` tạo `[2,4,6]` và `[8,10]`; batch cuối ngắn vì không đủ ba phần tử.
+**Exercise 1.** The sliding windows are `[2,4,6]`, `[4,6,8]`, `[6,8,10]`, totaling `5 - 3 + 1 = 3`. `windowFixed(3)` produces `[2,4,6]` and `[8,10]`; the last batch is short because fewer than three elements remain.
 
-**Bài 2.** Kết quả lần lượt: `[]`; `[[1]]`; `[[1,2,3]]`; `[[1,2,3,4]]`; `[[1,2,3,4],[2,3,4,5]]`. Nguồn rỗng không có cửa sổ; nguồn chưa đủ k chỉ có một cửa sổ ngắn.
+**Exercise 2.** Results respectively: `[]`; `[[1]]`; `[[1,2,3]]`; `[[1,2,3,4]]`; `[[1,2,3,4],[2,3,4,5]]`. An empty source has no windows; a source shorter than k has one short window.
 
-**Bài 3.**
+**Exercise 3.**
 
 ```java
 List<Integer> sums = Stream.of(3, 5, 7, 9)
@@ -1290,7 +1290,7 @@ List<Integer> sums = Stream.of(3, 5, 7, 9)
 System.out.println(sums); // [8, 12, 16]
 ```
 
-**Bài 4.** Chênh lệch là `[-2,5,-4]`. Nguồn một phần tử có một cửa sổ ngắn, nhưng không có **cặp đủ hai phần tử**. Lọc `window.size() == 2` để kết quả chênh lệch là list rỗng.
+**Exercise 4.** The differences are `[-2,5,-4]`. A single-element source produces one short window, yet has no **full two-element pair**. Filter `window.size() == 2` so the difference list is empty.
 
 ```java
 List<Integer> deltas = Stream.of(100, 98, 103, 99)
@@ -1300,7 +1300,7 @@ List<Integer> deltas = Stream.of(100, 98, 103, 99)
     .toList();
 ```
 
-**Bài 5.**
+**Exercise 5.**
 
 ```java
 List<String> words = List.of(
@@ -1316,41 +1316,41 @@ Map<String, Long> counts = words.stream()
 System.out.println(counts.get("java stream")); // 2
 ```
 
-Các bigram khác là `stream api` và `api java`, mỗi loại xuất hiện một lần.
+The other bigrams are `stream api` and `api java`, each appearing once.
 
-**Bài 6.** Lọc số lẻ trước tạo nguồn `[1,3,5]`, cho `[[1,3],[3,5]]`. Gather trước tạo cặp của dãy gốc, sau đó giữ cặp có phần tử đầu lẻ: `[[1,2],[3,4]]`. Chọn cách đặt theo định nghĩa "kề nhau" của nghiệp vụ.
+**Exercise 6.** Filtering odd numbers first creates source `[1,3,5]`, yielding `[[1,3],[3,5]]`. Gathering first creates pairs from the original sequence, then keeps pairs whose first element is odd: `[[1,2],[3,4]]`. Choose placement according to the business definition of "adjacent".
 
-**Bài 7.** `windowSliding(3)` tạo **một cửa sổ ngắn `[60,70]`**. Muốn yêu cầu đủ ba mẫu, thêm `filter(w -> w.size() == 3)` trước khi kiểm tra `allMatch(v -> v > 50)`.
+**Exercise 7.** `windowSliding(3)` produces **one short window `[60,70]`**. To require a full three samples, add `filter(w -> w.size() == 3)` before checking `allMatch(v -> v > 50)`.
 
-**Bài 8.** Với 100.000 mẫu và k = 1.000 có 99.001 cửa sổ đầy đủ; tổng số vị trí phần tử biểu diễn trên các cửa sổ khoảng 99 triệu. Thu mọi cửa sổ có thể tốn nhiều bộ nhớ, trong khi tính trung bình trực tiếp có thể chỉ giữ các số tổng hợp. API cho phép cửa sổ được cấp phát sớm, nên `k` rất lớn ngay trên nguồn nhỏ cũng có rủi ro bộ nhớ.
+**Exercise 8.** With 100,000 samples and k = 1,000, there are 99,001 full windows; total element positions represented across windows are roughly 99 million. Collecting all windows can consume a large amount of memory, whereas computing averages directly may retain only the aggregated numbers. The API allows windows to be allocated eagerly, so a very large `k` even on a small source carries memory risk.
 
-**Bài 9.** Nghiệp vụ A dùng `Gatherers.windowFixed(100)`, vì cần batch không chồng lấn. Nghiệp vụ B dùng `Gatherers.windowSliding(100)`, vì sau mỗi mẫu mới cần cửa sổ dịch một vị trí.
+**Exercise 9.** Requirement A uses `Gatherers.windowFixed(100)`, because non-overlapping batches are needed. Requirement B uses `Gatherers.windowSliding(100)`, because after each new sample a window shifted by one position is needed.
 
-**Bài 10.** Cửa sổ trượt dựa trên quan hệ liền kề theo encounter order; `unordered()` bỏ ràng buộc đó, dẫn tới không có ý nghĩa về mẫu "trước/sau" nhất quán. Với sự kiện trùng timestamp, thêm khóa phụ xác định như ID tăng hoặc thứ tự nhập hợp lệ để tạo tổng thứ tự ổn định trước khi gather.
+**Exercise 10.** Sliding windows rely on adjacency in encounter order; `unordered()` drops that constraint, leaving no consistent meaning of "before/after" samples. For events with identical timestamps, add a deterministic tie-breaker key such as a monotonically increasing ID or valid insertion order to establish a stable total order before gathering.
 
-## 22. Checklist sử dụng `windowSliding` trong hệ thống thực tế
+## 22. Checklist for using `windowSliding` in production systems
 
-- [ ] JDK và toolchain hỗ trợ **Java 24+** nếu không muốn dùng preview.
-- [ ] `windowSize >= 1` và có giới hạn trên theo bộ nhớ/tài nguyên.
-- [ ] Phân biệt rõ **windowSliding (trượt 1)** và **windowFixed (batch không chồng lấn)**.
-- [ ] Hiểu nguồn rỗng **không có cửa sổ**, nguồn `0 < n < k` có **một cửa sổ ngắn**.
-- [ ] Có quyết định rõ nếu nghiệp vụ chỉ chấp nhận cửa sổ đủ `k`.
-- [ ] Thứ tự gặp của dữ liệu phù hợp: timestamp, khóa phụ, thứ tự nguồn.
-- [ ] Không bỏ encounter order với `unordered()` khi cần quan hệ liền kề.
-- [ ] `filter` và `sorted` được đặt đúng vị trí so với `gather`.
-- [ ] Nếu có nhiều thiết bị/phiên/người dùng, không để cửa sổ vượt ranh giới nhóm.
-- [ ] Không sửa các list cửa sổ; các object mutable bên trong có chính sách riêng.
-- [ ] Không thu toàn bộ `List<List<T>>` nếu chỉ cần số liệu tổng hợp.
-- [ ] Đã đo chi phí tính lại thống kê O(n × k) khi `k` lớn.
-- [ ] Nếu nguồn vô hạn, có terminal operation dừng hoặc giới hạn đầu vào hợp lý.
-- [ ] Nếu nguồn từ tệp/I/O, có `try-with-resources` và xử lý lỗi.
-- [ ] Không kỳ vọng `parallel()` tự động làm cửa sổ có trạng thái nhanh hơn.
-- [ ] Đã kiểm thử k = 1, k = n, k > n, nguồn rỗng, dữ liệu trùng và thứ tự.
-- [ ] Đã xác minh kết quả tuần tự/song song và dùng thuật toán tham chiếu độc lập.
+- [ ] JDK and toolchain support **Java 24+** if not using preview flags.
+- [ ] `windowSize >= 1` and has an upper bound based on memory/resources.
+- [ ] Clearly distinguish **windowSliding (slide by 1)** and **windowFixed (non-overlapping batches)**.
+- [ ] Understand that an empty source produces **no windows**, and `0 < n < k` produces **one short window**.
+- [ ] Explicit decision made if business logic only accepts windows of full `k`.
+- [ ] Data encounter order is appropriate: timestamps, tie-breaker keys, source ordering.
+- [ ] Do not drop encounter order with `unordered()` when adjacency is required.
+- [ ] `filter` and `sorted` are placed in the right positions relative to `gather`.
+- [ ] With multiple devices/sessions/users, do not allow windows to cross group boundaries.
+- [ ] Do not mutate window lists; mutable objects inside have an explicit policy.
+- [ ] Do not collect all `List<List<T>>` if only summary metrics are needed.
+- [ ] Measured O(n × k) recomputation cost for statistics when `k` is large.
+- [ ] For infinite sources, a stopping terminal operation or reasonable input limit is present.
+- [ ] For file/I/O sources, `try-with-resources` and error handling are present.
+- [ ] Do not expect `parallel()` to automatically make stateful windows faster.
+- [ ] Tested k = 1, k = n, k > n, empty source, duplicate data, and ordering.
+- [ ] Verified sequential/parallel results and used an independent reference algorithm.
 
-## 23. Tổng kết và tài liệu tham khảo
+## 23. Summary and references
 
-`Gatherers.windowSliding(k)` giúp biểu đạt ngắn gọn yêu cầu "xét `k` phần tử liền nhau, dịch một phần tử để xét cửa sổ kế tiếp":
+`Gatherers.windowSliding(k)` concisely expresses the requirement "inspect `k` adjacent elements, shifting by one element for the next window":
 
 ```java
 List<List<Integer>> windows = Stream.of(1, 2, 3, 4, 5)
@@ -1360,20 +1360,20 @@ List<List<Integer>> windows = Stream.of(1, 2, 3, 4, 5)
 // [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
 ```
 
-Các nguyên tắc cốt lõi:
+Core principles:
 
-1. **Ngữ nghĩa:** cửa sổ có chồng lấn, mỗi lần trượt một phần tử. Với nguồn hữu hạn đủ dài, có `n-k+1` cửa sổ.
-2. **Ca biên:** nguồn rỗng không phát cửa sổ; nguồn ngắn hơn `k` nhưng không rỗng phát **một cửa sổ ngắn**.
-3. **Tính bất biến:** mỗi cửa sổ là list unmodifiable, không đồng nghĩa phần tử object bên trong cũng immutable.
-4. **Pipeline:** có thể dùng `map`, `filter`, `reduce`, `collect` sau gatherer; thứ tự đặt `filter`, `sorted`, `limit` so với gatherer quyết định ý nghĩa nghiệp vụ.
-5. **Hiệu năng:** kích thước cửa sổ, số lượng kết quả, độ chồng lấn và chi phí tính thống kê ảnh hưởng bộ nhớ/tốc độ; cần đo thực tế.
-6. **Tài nguyên và thứ tự:** giữ encounter order cho dữ liệu tuần tự, đóng nguồn I/O, không giả định song song hóa luôn hiệu quả.
-7. **Phiên bản:** Stream Gatherers chính thức từ Java 24 (JEP 485); Java 22/23 chỉ có bản preview.
+1. **Semantics:** windows overlap, sliding one element at a time. For a sufficiently long finite source, there are `n-k+1` windows.
+2. **Boundary cases:** an empty source emits no windows; a non-empty source shorter than `k` emits **one short window**.
+3. **Immutability:** each window is an unmodifiable list, which does not imply the element objects inside are also immutable.
+4. **Pipeline:** `map`, `filter`, `reduce`, and `collect` can follow the gatherer; the placement of `filter`, `sorted`, and `limit` relative to the gatherer determines business semantics.
+5. **Performance:** window size, output count, overlap, and statistic computation cost affect memory and speed; measure in practice.
+6. **Resources and ordering:** preserve encounter order for sequential data, close I/O sources, and never assume parallelization is always beneficial.
+7. **Versions:** Stream Gatherers are official starting in Java 24 (JEP 485); Java 22/23 only had preview releases.
 
-Nguồn tham khảo chính thức:
+Official reference sources:
 
-- [Javadoc Java 24: Gatherers](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html) — hợp đồng của `windowSliding`, `windowFixed`, yêu cầu kích thước và list kết quả.
-- [Oracle Java 24: Stream Gatherers](https://docs.oracle.com/en/java/javase/24/core/stream-gatherers.html) — các ví dụ sử dụng gatherer trong pipeline.
-- [OpenJDK JEP 485: Stream Gatherers](https://openjdk.org/jeps/485) — tiến trình chuẩn hóa tính năng.
+- [Javadoc Java 24: Gatherers](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html) — contract of `windowSliding`, `windowFixed`, size requirements, and result lists.
+- [Oracle Java 24: Stream Gatherers](https://docs.oracle.com/en/java/javase/24/core/stream-gatherers.html) — examples of using gatherers in pipelines.
+- [OpenJDK JEP 485: Stream Gatherers](https://openjdk.org/jeps/485) — standardization progress of the feature.
 
-Hiểu rõ `Gatherers.windowSliding` giúp bạn chuyển nhiều vòng lặp thủ công thành pipeline Java Stream API dễ đọc và kiểm thử, đồng thời kiểm soát đúng các trường hợp thiếu dữ liệu, thứ tự, bộ nhớ và tài nguyên khi đưa xử lý cửa sổ trượt vào ứng dụng thực tế.
+Mastering `Gatherers.windowSliding` helps you turn many manual loops into readable, testable Java Stream API pipelines while properly controlling missing data, ordering, memory, and resources when bringing sliding-window processing into real-world applications.

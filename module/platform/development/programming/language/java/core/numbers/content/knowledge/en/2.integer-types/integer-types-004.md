@@ -1,39 +1,39 @@
-# MIN_VALUE, MAX_VALUE, SIZE và BYTES của các kiểu số nguyên trong Java
+# MIN_VALUE, MAX_VALUE, SIZE, and BYTES of Integer Types in Java
 
-## 1. Bốn hằng số dùng để làm gì?
+## 1. What Are the Four Constants For?
 
-Khi làm việc với số nguyên, cần biết **miền giá trị** mà kiểu dữ liệu biểu diễn được và **độ rộng cố định** của kiểu đó. Java công bố bốn thông tin này qua các lớp bao (*wrapper class*) trong `java.lang`:
+When working with integers, you need to know the **value range** a data type can represent and its **fixed width**. Java exposes these four pieces of information through the wrapper classes in `java.lang`:
 
-- `MIN_VALUE`: giá trị nhỏ nhất biểu diễn được.
-- `MAX_VALUE`: giá trị lớn nhất biểu diễn được.
-- `SIZE`: số **bit** của kiểu nguyên thủy tương ứng.
-- `BYTES`: số **byte** của kiểu nguyên thủy tương ứng, với 1 byte = 8 bit.
+- `MIN_VALUE`: the smallest representable value.
+- `MAX_VALUE`: the largest representable value.
+- `SIZE`: the number of **bits** of the corresponding primitive type.
+- `BYTES`: the number of **bytes** of the corresponding primitive type, where 1 byte = 8 bits.
 
-Các tên hằng số thuộc lớp bao, chẳng hạn `Integer.MIN_VALUE`, **không thuộc từ khóa kiểu nguyên thủy** `int`. Đây là các trường `public static final` có thể truy cập mà không tạo đối tượng. Các kích thước dưới đây được ngôn ngữ Java quy định, độc lập hệ điều hành và kiến trúc CPU.
+These constant names belong to the wrapper classes, such as `Integer.MIN_VALUE`, **not to the primitive type keyword** `int`. They are `public static final` fields that can be accessed without creating an object. The sizes below are specified by the Java language, independent of operating system and CPU architecture.
 
-## 2. Bảng tra cứu đầy đủ
+## 2. Complete Reference Table
 
-| Kiểu nguyên thủy | Lớp bao | `MIN_VALUE` | `MAX_VALUE` | `SIZE` (bit) | `BYTES` (byte) |
+| Primitive type | Wrapper class | `MIN_VALUE` | `MAX_VALUE` | `SIZE` (bits) | `BYTES` (bytes) |
 |---|---|---:|---:|---:|---:|
 | `byte` | `Byte` | -128 | 127 | 8 | 1 |
 | `short` | `Short` | -32_768 | 32_767 | 16 | 2 |
 | `int` | `Integer` | -2_147_483_648 | 2_147_483_647 | 32 | 4 |
 | `long` | `Long` | -9_223_372_036_854_775_808 | 9_223_372_036_854_775_807 | 64 | 8 |
-| `char` | `Character` | U+0000 (giá trị số 0) | U+FFFF (giá trị số 65_535) | 16 | 2 |
+| `char` | `Character` | U+0000 (numeric value 0) | U+FFFF (numeric value 65_535) | 16 | 2 |
 
-Bốn kiểu `byte`, `short`, `int` và `long` là **số nguyên có dấu**. Với kiểu có độ rộng `n` bit:
+The four types `byte`, `short`, `int`, and `long` are **signed integers**. For a type of width `n` bits:
 
-- Nhỏ nhất: \(-2^{n-1}\).
-- Lớn nhất: \(2^{n-1}-1\).
-- Tổng số mẫu bit: \(2^n\); số lượng giá trị âm nhiều hơn số lượng giá trị dương đúng một đơn vị vì có số 0.
+- Minimum: \(-2^{n-1}\).
+- Maximum: \(2^{n-1}-1\).
+- Total bit patterns: \(2^n\); there is one more negative value than positive value because of 0.
 
-`char` cũng là một kiểu nguyên thủy tích phân trong Java nhưng **không có dấu**: nó lưu một *UTF-16 code unit* từ 0 đến 65_535, chủ yếu để xử lý ký tự. Một ký tự Unicode ngoài BMP có thể cần **hai `char`** (surrogate pair), vì vậy `Character.SIZE = 16` không có nghĩa một ký tự Unicode luôn dài 16 bit.
+`char` is also a primitive integral type in Java, but **unsigned**: it stores a *UTF-16 code unit* from 0 to 65_535, primarily for handling characters. A Unicode character outside the BMP may require **two `char`s** (a surrogate pair), so `Character.SIZE = 16` does not mean every Unicode character is always 16 bits long.
 
-`boolean` không có bộ hằng số `MIN_VALUE/MAX_VALUE/SIZE/BYTES` tương ứng; không suy ra kích thước bộ nhớ của `boolean` từ bảng này.
+`boolean` does not have a corresponding `MIN_VALUE/MAX_VALUE/SIZE/BYTES` set of constants; do not infer the memory size of `boolean` from this table.
 
-## 3. Đọc hằng số trực tiếp trong chương trình
+## 3. Reading the Constants Directly in a Program
 
-Lưu tệp `IntegerMetadataDemo.java`:
+Save the file `IntegerMetadataDemo.java`:
 
 ```java
 public class IntegerMetadataDemo {
@@ -53,14 +53,14 @@ public class IntegerMetadataDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac IntegerMetadataDemo.java
 java IntegerMetadataDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 byte: [-128, 127], SIZE=8, BYTES=1
@@ -70,24 +70,24 @@ long: [-9223372036854775808, 9223372036854775807], SIZE=64, BYTES=8
 char: [0, 65535], SIZE=16, BYTES=2
 ```
 
-Hai phép ép `(int)` ở dòng `char` giúp in **mã số code unit** thay vì ký tự không nhìn thấy. Với các kiểu có dấu, `MIN_VALUE/MAX_VALUE` là giá trị số; `SIZE/BYTES` mô tả độ rộng kiểu nguyên thủy, không phải kích thước đối tượng `Integer`, `Long`, v.v.
+The two `(int)` casts on the `char` line print the **numeric code unit value** instead of an invisible character. For signed types, `MIN_VALUE/MAX_VALUE` are numeric values; `SIZE/BYTES` describe the width of the primitive type, not the size of an `Integer`, `Long`, etc. object.
 
-## 4. Khi nào dùng từng hằng số?
+## 4. When to Use Each Constant?
 
-### 4.1. `MIN_VALUE` và `MAX_VALUE`: kiểm tra miền giá trị
+### 4.1. `MIN_VALUE` and `MAX_VALUE`: Range Checking
 
-Giả sử dữ liệu đầu vào là `long` nhưng API đích chỉ nhận `int`. Trước khi ép kiểu, kiểm tra:
+Suppose the input data is a `long` but the target API only accepts an `int`. Before casting, check:
 
 ```java
 boolean fitsInt = value >= Integer.MIN_VALUE
         && value <= Integer.MAX_VALUE;
 ```
 
-Nếu không nằm trong miền đó, phép ép `(int) value` sẽ **bỏ các bit cao** và có thể đổi thành một giá trị khác, không tự báo lỗi. Java còn cung cấp `Math.toIntExact(long)` để chuyển có kiểm tra, ném `ArithmeticException` khi ngoài miền `int`.
+If it is not within that range, the cast `(int) value` will **discard the high bits** and may turn it into another value without automatically reporting an error. Java also provides `Math.toIntExact(long)` for checked conversion, which throws `ArithmeticException` when outside the `int` range.
 
-Đối với phép cộng, trừ, nhân số nguyên có dấu, dùng `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact` khi muốn phát hiện tràn số thay vì nhận kết quả vòng lại (*wraparound*).
+For signed integer addition, subtraction, and multiplication, use `Math.addExact`, `Math.subtractExact`, and `Math.multiplyExact` when you want to detect overflow rather than receive a *wraparound* result.
 
-Lưu tệp `SafeIntegerDemo.java`:
+Save the file `SafeIntegerDemo.java`:
 
 ```java
 public class SafeIntegerDemo {
@@ -114,14 +114,14 @@ public class SafeIntegerDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac SafeIntegerDemo.java
 java SafeIntegerDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 fits int: false
@@ -130,90 +130,90 @@ toIntExact: overflow
 addExact: overflow
 ```
 
-**Lưu ý:** kiểm tra miền bằng `MIN_VALUE/MAX_VALUE` phù hợp khi giá trị đầu vào đang ở kiểu rộng hơn. Nếu đã tính toán tràn bên trong `int` rồi mới so với `Integer.MAX_VALUE` thì đã quá muộn: biến chỉ còn chứa kết quả sau tràn.
+**Note:** range checking with `MIN_VALUE/MAX_VALUE` works when the input value is in a wider type. If arithmetic has already overflowed inside `int` and you only compare with `Integer.MAX_VALUE` afterward, it is already too late: the variable only holds the post-overflow result.
 
-### 4.2. `SIZE`: làm việc với bit
+### 4.2. `SIZE`: Working with Bits
 
-`Integer.SIZE` luôn là 32, `Long.SIZE` luôn là 64. Các hằng số hữu ích cho thuật toán bit, mặt nạ, giao thức nhị phân và biểu diễn bit:
+`Integer.SIZE` is always 32, and `Long.SIZE` is always 64. These constants are useful for bit algorithms, masks, binary protocols, and bit representations:
 
 ```java
 int bitCount = Integer.SIZE;  // 32
-int highBitMask = 1 << (Integer.SIZE - 1); // bit dấu của int
+int highBitMask = 1 << (Integer.SIZE - 1); // sign bit of int
 long twoTo32 = 1L << Integer.SIZE; // 4294967296L
 ```
 
-Đừng viết `1 << 32` để lấy \(2^{32}\): toán hạng trái `int` khiến Java chỉ dùng 5 bit thấp của khoảng dịch; `1 << 32` tương đương `1 << 0` và bằng **1**. Dùng `1L` khi phép dịch phải tính trên `long`.
+Do not write `1 << 32` to compute \(2^{32}\): the `int` left-hand operand makes Java use only the low 5 bits of the shift distance; `1 << 32` is equivalent to `1 << 0` and equals **1**. Use `1L` when the shift must be computed as `long`.
 
-### 4.3. `BYTES`: xác định độ rộng dữ liệu nhị phân
+### 4.3. `BYTES`: Determining Binary Data Width
 
-`Integer.BYTES` bằng 4 và `Long.BYTES` bằng 8. Ví dụ: một bản ghi nhị phân gồm một `int` và một `long` có tổng độ rộng phần dữ liệu là:
+`Integer.BYTES` is 4 and `Long.BYTES` is 8. For example, a binary record consisting of one `int` and one `long` has a total payload data width of:
 
 ```java
 int recordBytes = Integer.BYTES + Long.BYTES; // 12
 ```
 
-Khi truyền dữ liệu, cần quy định thêm **thứ tự byte** (*endianness*). Chẳng hạn `ByteBuffer` mặc định dùng big-endian, có thể đổi qua `order(ByteOrder.LITTLE_ENDIAN)`. `BYTES` chỉ nói số byte, không nói thứ tự byte và **không bao gồm** header, padding, bộ nhớ đối tượng hoặc overhead của collection.
+When transmitting data, you also need to specify **byte order** (*endianness*). For instance, `ByteBuffer` uses big-endian by default and can be switched via `order(ByteOrder.LITTLE_ENDIAN)`. `BYTES` only states the byte count, not the byte order, and **does not include** headers, padding, object memory, or collection overhead.
 
-## 5. Những bẫy thường gặp
+## 5. Common Pitfalls
 
-### 5.1. Tràn số không tự phát sinh ngoại lệ
+### 5.1. Overflow Does Not Automatically Throw an Exception
 
 ```java
 int wrapped = Integer.MAX_VALUE + 1; // -2147483648
 long wrappedLong = Long.MAX_VALUE + 1; // Long.MIN_VALUE
 ```
 
-Phép cộng trên số nguyên có dấu của Java lấy kết quả theo độ rộng cố định; muốn báo lỗi dùng phương thức `Exact` hoặc chuyển sang `BigInteger` nếu cần số nguyên không bị giới hạn ở 64 bit.
+Signed integer addition in Java produces a result within the fixed bit width; to raise an error, use the `Exact` methods or switch to `BigInteger` if you need integers not limited to 64 bits.
 
-### 5.2. `MIN_VALUE` không đối xứng với `MAX_VALUE`
+### 5.2. `MIN_VALUE` Is Asymmetric with `MAX_VALUE`
 
-Vì số âm nhiều hơn số dương một giá trị:
+Because there is one more negative value than positive value:
 
 ```java
 System.out.println(-Integer.MIN_VALUE);
 System.out.println(Math.abs(Integer.MIN_VALUE));
 ```
 
-Cả hai dòng đều in `-2147483648` do kết quả dương không biểu diễn được trong `int`. Tương tự, `Integer.MIN_VALUE / -1` trả về `Integer.MIN_VALUE` (trường hợp tràn đặc biệt của phép chia nguyên). Dùng `Math.negateExact` nếu cần bắt lỗi khi đổi dấu; với giá trị tuyệt đối của số cực tiểu, dùng kiểu rộng hơn hoặc `BigInteger`.
+Both lines print `-2147483648` because the positive result cannot be represented in `int`. Similarly, `Integer.MIN_VALUE / -1` returns `Integer.MIN_VALUE` (a special overflow case of integer division). Use `Math.negateExact` if you need to catch an error when negating; for the absolute value of the minimum value, use a wider type or `BigInteger`.
 
-### 5.3. Hằng số thuộc lớp bao, không biểu thị dung lượng đối tượng
+### 5.3. Constants Belong to Wrapper Classes, Not Object Memory Size
 
-`Integer.BYTES == 4` mô tả **giá trị `int` 32 bit**. Nó không cam kết một đối tượng `new Integer(...)` chiếm đúng 4 byte; object header, căn chỉnh và cơ chế VM làm dung lượng khác đi. Trong Java hiện đại cũng nên dùng `Integer.valueOf(...)` hoặc autoboxing, tránh constructor wrapper đã bị deprecated.
+`Integer.BYTES == 4` describes a **32-bit `int` value**. It does not promise that a `new Integer(...)` object occupies exactly 4 bytes; object headers, alignment, and VM internals make its footprint different. In modern Java, you should also use `Integer.valueOf(...)` or autoboxing, avoiding deprecated wrapper constructors.
 
-### 5.4. Ép kiểu, thăng cấp số học và hằng `long`
+### 5.4. Casting, Numeric Promotion, and `long` Literals
 
-- Trong biểu thức số học, `byte`, `short` và `char` thường được thăng cấp thành `int`: `Byte.MAX_VALUE + 1` có kiểu `int` và bằng 128.
-- `(byte) 128` cho kết quả -128 vì giữ lại 8 bit thấp.
-- Hằng số `long` nên có hậu tố `L`: `3_000_000_000L`; dấu gạch dưới chỉ tăng khả năng đọc, không thay đổi giá trị.
-- Với số nguyên không dấu lưu trong các bit của `int/long`, xem các API như `Integer.compareUnsigned`, `Integer.toUnsignedLong`, `Long.compareUnsigned`. Đừng suy ra miền không dấu từ `Integer.MIN_VALUE/MAX_VALUE` vì hai hằng số này là miền **có dấu**.
+- In arithmetic expressions, `byte`, `short`, and `char` are usually promoted to `int`: `Byte.MAX_VALUE + 1` has type `int` and equals 128.
+- `(byte) 128` yields -128 because it keeps the low 8 bits.
+- `long` literals should have the `L` suffix: `3_000_000_000L`; underscores only improve readability and do not change the value.
+- For unsigned integers stored in `int/long` bits, look at APIs such as `Integer.compareUnsigned`, `Integer.toUnsignedLong`, and `Long.compareUnsigned`. Do not infer unsigned bounds from `Integer.MIN_VALUE/MAX_VALUE` because those two constants are **signed** bounds.
 
-### 5.5. Đừng nhầm `Integer.MIN_VALUE` với `Double.MIN_VALUE`
+### 5.5. Do Not Confuse `Integer.MIN_VALUE` with `Double.MIN_VALUE`
 
-`Integer.MIN_VALUE` là **số âm nhỏ nhất** của `int`. Ngược lại, `Float.MIN_VALUE` và `Double.MIN_VALUE` là **số dương khác 0 nhỏ nhất** có thể biểu diễn (giá trị dưới chuẩn), không phải số âm thấp nhất. Với số thực, phải xét thêm `MAX_VALUE`, dấu âm, vô cực, NaN và độ chính xác; không áp dụng máy móc bảng số nguyên.
+`Integer.MIN_VALUE` is the **most negative number** of `int`. In contrast, `Float.MIN_VALUE` and `Double.MIN_VALUE` are the **smallest positive non-zero values** representable (subnormal values), not the most negative numbers. For floating-point numbers, you must also consider `MAX_VALUE`, negative signs, infinity, NaN, and precision; do not mechanically apply the integer table.
 
-## 6. Cách chọn và sử dụng trong thực tế
+## 6. How to Choose and Use in Practice
 
-1. Chọn `int` cho số nguyên thông dụng nằm trong miền 32 bit; dùng `long` cho số lớn hơn hoặc thời gian/đếm có thể vượt giới hạn `int`.
-2. Khi nhận dữ liệu lớn rồi chuyển sang kiểu hẹp, xác nhận miền bằng `MIN_VALUE/MAX_VALUE` hoặc `Math.toIntExact`.
-3. Khi tính toán mà overflow gây lỗi nghiệp vụ, dùng các phép toán `Math.*Exact` và xử lý ngoại lệ thích hợp.
-4. Khi thao tác bit hoặc định dạng nhị phân, lấy `SIZE/BYTES` từ wrapper để bộc lộ rõ độ rộng; chỉ rõ endianness của định dạng dữ liệu.
-5. Với số lớn hơn giới hạn `long`, dùng `java.math.BigInteger`; `BigInteger` không có bộ `MIN_VALUE/MAX_VALUE/SIZE/BYTES` cố định tương ứng vì độ dài số có thể tăng.
+1. Choose `int` for everyday integers within the 32-bit range; use `long` for larger numbers or timestamps/counts that may exceed the `int` limit.
+2. When receiving large data and converting to a narrower type, validate the range with `MIN_VALUE/MAX_VALUE` or `Math.toIntExact`.
+3. When arithmetic overflow would cause a business logic error, use `Math.*Exact` operations and handle the exception appropriately.
+4. When manipulating bits or binary formats, read `SIZE/BYTES` from the wrapper to make the width explicit; specify the data format's endianness.
+5. For numbers larger than the `long` limit, use `java.math.BigInteger`; `BigInteger` has no corresponding fixed `MIN_VALUE/MAX_VALUE/SIZE/BYTES` constants because its magnitude can grow.
 
-## 7. Tự kiểm tra
+## 7. Self-Check
 
-**Câu 1.** `Short.SIZE` và `Short.BYTES` lần lượt bằng bao nhiêu?  
-**Đáp án:** 16 bit và 2 byte.
+**Question 1.** What are `Short.SIZE` and `Short.BYTES` respectively?  
+**Answer:** 16 bits and 2 bytes.
 
-**Câu 2.** Vì sao `Integer.MIN_VALUE` bằng -2_147_483_648 trong khi `Integer.MAX_VALUE` chỉ bằng 2_147_483_647?  
-**Đáp án:** một trong 32 bit dành cho dấu; miền signed 32-bit là \([-2^{31},2^{31}-1]\), gồm cả 0.
+**Question 2.** Why is `Integer.MIN_VALUE` equal to -2_147_483_648 while `Integer.MAX_VALUE` is only 2_147_483_647?  
+**Answer:** one of the 32 bits is reserved for the sign; the signed 32-bit range is \([-2^{31},2^{31}-1]\), including 0.
 
-**Câu 3.** Ép `2_147_483_648L` sang `int` có ném ngoại lệ không?  
-**Đáp án:** không; ép trực tiếp cho -2_147_483_648. `Math.toIntExact` sẽ ném `ArithmeticException`.
+**Question 3.** Does casting `2_147_483_648L` to `int` throw an exception?  
+**Answer:** no; direct casting yields -2_147_483_648. `Math.toIntExact` will throw `ArithmeticException`.
 
-**Câu 4.** `Character.SIZE = 16` có đảm bảo mọi ký tự Unicode nằm trong một `char` không?  
-**Đáp án:** không; một code point ngoài BMP cần hai UTF-16 code unit, tức hai `char`.
+**Question 4.** Does `Character.SIZE = 16` guarantee every Unicode character fits in one `char`?  
+**Answer:** no; a code point outside the BMP requires two UTF-16 code units, i.e., two `char`s.
 
-**Câu 5.** Có thể dùng `Integer.BYTES` để đo bộ nhớ của `Integer` object không?  
-**Đáp án:** không; nó là độ rộng giá trị nguyên thủy `int`, không phải kích thước object trong heap.
+**Question 5.** Can `Integer.BYTES` be used to measure the memory of an `Integer` object?  
+**Answer:** no; it is the width of the primitive `int` value, not the size of the object on the heap.
 
-**Ghi nhớ:** `MIN_VALUE/MAX_VALUE` trả lời **giá trị nào biểu diễn được?**; `SIZE/BYTES` trả lời **kiểu nguyên thủy rộng bao nhiêu bit/byte?**. Đây là hai nhóm hằng số khác mục đích, nhưng thường dùng cùng nhau để xử lý số nguyên an toàn và dữ liệu nhị phân đúng định dạng.
+**Remember:** `MIN_VALUE/MAX_VALUE` answer **what values can be represented?**; `SIZE/BYTES` answer **how many bits/bytes wide is the primitive type?**. These are two groups of constants with different purposes, though they are often used together for safe integer handling and properly formatted binary data.

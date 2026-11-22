@@ -1,54 +1,54 @@
-# Biến tham chiếu và đối tượng mà biến tham chiếu tới — Java 17+
+# Reference Variables and the Objects They Reference — Java 17+
 
-Trong Java, khi khai báo `Box item = new Box(10);`, ta cần phân biệt **biến tham chiếu `item`** với **đối tượng `Box` được tạo bởi `new`**.
+In Java, when declaring `Box item = new Box(10);`, we need to distinguish the **reference variable `item`** from the **`Box` object created by `new`**.
 
-- **Biến tham chiếu** có một kiểu khai báo (ví dụ `Box`), có thể chứa giá trị tham chiếu tới đối tượng tương thích hoặc `null`. Biến này có thể được gán lại nếu không bị ràng buộc bởi `final`.
-- **Đối tượng** mang trạng thái và hành vi riêng theo lớp của nó. Hai biến có thể cùng tham chiếu đến **một đối tượng**; khi đó thao tác thay đổi trạng thái đối tượng qua một biến có thể quan sát qua biến còn lại.
-- **Phép gán tham chiếu không nhân bản đối tượng.** Trong `Box other = item;`, giá trị tham chiếu được sao chép, chứ không tự có thêm một `Box`.
-- `null` có nghĩa là **không tham chiếu đến đối tượng nào**, không phải một đối tượng đặc biệt có trường hoặc phương thức.
+- A **reference variable** has a declared type (for example, `Box`) and can hold a reference value to a compatible object or `null`. This variable can be reassigned unless constrained by `final`.
+- An **object** carries its own state and behavior according to its class. Two variables can reference **the same object**; in that case, an operation that modifies the object's state through one variable can be observed through the other.
+- **Reference assignment does not clone the object.** In `Box other = item;`, the reference value is copied, rather than creating another `Box`.
+- `null` means **not referencing any object**, not a special object with fields or methods.
 
-Đây là **ngữ nghĩa** của Java, không cần giả định địa chỉ bộ nhớ, vị trí stack/heap hay cách JVM tối ưu đối tượng.
+This is the **semantics** of Java, without needing to assume memory addresses, stack/heap placement, or how the JVM optimizes objects.
 
-## 1. Bốn thao tác trông giống nhau nhưng khác bản chất
+## 1. Four Operations That Look Similar but Differ in Nature
 
 ~~~java
-Box first = new Box("Main", 10); // Tao mot doi tuong, first tham chieu toi no.
-Box alias = first;        // Copy tham chieu, KHONG tao Box moi.
-Box another = new Box("Other", 10); // Tao Box khac, du co cung gia tri.
-alias = null;             // Chi thay doi bien alias.
+Box first = new Box("Main", 10); // Creates an object; first references it.
+Box alias = first;        // Copies the reference, does NOT create a new Box.
+Box another = new Box("Other", 10); // Creates another Box, even with the same values.
+alias = null;             // Only changes the alias variable.
 ~~~
 
 
-| Thao tác | Biến thay đổi? | Đối tượng thay đổi? |
+| Operation | Does the variable change? | Does the object change? |
 | --- | --- | --- |
-| `Box first = new Box("Main", 10);` | `first` nhận tham chiếu | Có đối tượng mới được tạo |
-| `Box alias = first;` | `alias` nhận bản sao tham chiếu | Không tự tạo hoặc sửa đối tượng |
-| `alias.points = 20;` | Tham chiếu trong `alias` không đổi | Đối tượng chung được sửa nếu field cho phép |
-| `alias = new Box("Fresh", 5);` | `alias` trỏ sang đối tượng khác | Đối tượng cũ không bị thay bằng đối tượng mới |
-| `alias = null;` | `alias` không còn trỏ tới đối tượng | Bản thân đối tượng cũ không tự bị xóa ngay |
-| `Box independent = new Box("Independent", 20);` | `independent` giữ tham chiếu riêng | Có đối tượng mới, dù dữ liệu trùng nhau |
+| `Box first = new Box("Main", 10);` | `first` receives the reference | A new object is created |
+| `Box alias = first;` | `alias` receives a copy of the reference | Does not create or modify an object |
+| `alias.points = 20;` | The reference in `alias` does not change | The shared object is modified if the field allows it |
+| `alias = new Box("Fresh", 5);` | `alias` points to a different object | The old object is not replaced by the new object |
+| `alias = null;` | `alias` no longer points to an object | The old object itself is not immediately deleted |
+| `Box independent = new Box("Independent", 20);` | `independent` holds its own reference | A new object is created, even with matching data |
 
-Các đoạn ở mục này dùng cùng constructor `Box(String label, int points)` và field `points` trong chương trình ở mục 2; những đoạn ví dụ này chỉ cần đặt vào phạm vi thích hợp sau định nghĩa lớp `Box` để thử lại.
+The snippets in this section use the same constructor `Box(String label, int points)` and field `points` as the program in section 2; these example snippets only need to be placed in an appropriate scope after the `Box` class definition to be tried out.
 
-Hãy hình dung:
+Visualize it:
 
 ~~~text
 first ───┐
          ├──────> Box(points=10)
 alias ───┘
 
-another ────────> Box(points=10)   // Doi tuong khac
+another ────────> Box(points=10)   // Different object
 
 alias = null;
 first ──────────> Box(points=10)
 alias ──────────> null
 ~~~
 
-Sơ đồ chỉ mô tả **quan hệ tham chiếu**, không mô tả địa chỉ RAM hay cơ chế quản lý bộ nhớ vật lý.
+The diagram only describes **reference relationships**, not RAM addresses or physical memory management mechanisms.
 
-## 2. Ví dụ Java 17+ chạy độc lập
+## 2. Standalone Runnable Java 17+ Example
 
-Lưu tệp UTF-8 tên **`ReferenceObjectDemo.java`**:
+Save a UTF-8 file named **`ReferenceObjectDemo.java`**:
 
 ~~~java
 public class ReferenceObjectDemo {
@@ -63,7 +63,7 @@ public class ReferenceObjectDemo {
     }
 
     static void increase(Box parameter) {
-        parameter.points += 5; // Sua doi tuong dang duoc tham chieu.
+        parameter.points += 5; // Modifies the object currently being referenced.
     }
 
     static void replace(Box parameter) {
@@ -118,7 +118,7 @@ public class ReferenceObjectDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) ở thư mục chứa tệp, dùng JDK 17+:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file, using JDK 17+:
 
 ~~~bash
 java -version
@@ -127,7 +127,7 @@ javac -encoding UTF-8 ReferenceObjectDemo.java
 java ReferenceObjectDemo
 ~~~
 
-**Expected output của chương trình** (không tính các dòng phiên bản do `java -version` và `javac -version` in ra):
+**Expected output of the program** (excluding the version lines printed by `java -version` and `javac -version`):
 
 ~~~text
 aliasSameObject=true
@@ -148,64 +148,64 @@ defaultArrayElementNull=true
 arraySharesObject=true
 ~~~
 
-### Phân tích kết quả
+### Analyzing the Output
 
-1. `alias = first` làm hai biến trỏ cùng đối tượng, vì thế `first == alias` là `true`. `separate` được tạo bằng lần `new` khác; dữ liệu giống nhau không biến nó thành cùng một đối tượng.
-2. `alias.points = 20` làm `first.points` thành 20. Không phải “biến `first` bị sửa tham chiếu”; **trạng thái của đối tượng chung** đã thay đổi.
-3. Phương thức `increase` nhận bản sao tham chiếu. Nó vẫn truy cập cùng đối tượng và tăng `points` lên 25.
-4. `replace` chỉ gán lại **tham số cục bộ** sang `Box` mới. Biến `first` của bên gọi vẫn trỏ tới đối tượng có `points = 25`.
-5. Gán `alias = null` không làm đối tượng biến mất vì `first` vẫn giữ tham chiếu. Khi gán `first = new Box("Fresh", 7)`, `old` tiếp tục giữ tham chiếu đối tượng cũ.
-6. `final Box fixedReference = old` ngăn gán lại biến `fixedReference`; nó **không** đóng băng `points` bên trong đối tượng. Thay field qua `fixedReference` làm `old.points` thành 30.
-7. `absent.points` gây `NullPointerException` vì `absent` là `null`. Mảng `Box[]` cũng là đối tượng; mỗi phần tử tham chiếu ban đầu là `null`. Gán `slots[0] = old` tạo thêm một alias.
+1. `alias = first` makes both variables point to the same object, so `first == alias` is `true`. `separate` is created with another `new` call; having the same data does not make it the same object.
+2. `alias.points = 20` makes `first.points` become 20. It is not that "the `first` variable had its reference modified"; **the state of the shared object** changed.
+3. The `increase` method receives a copy of the reference. It still accesses the same object and increments `points` to 25.
+4. `replace` only reassigns the **local parameter** to a new `Box`. The caller's `first` variable still points to the object with `points = 25`.
+5. Assigning `alias = null` does not make the object disappear because `first` still holds a reference. When assigning `first = new Box("Fresh", 7)`, `old` continues to hold a reference to the old object.
+6. `final Box fixedReference = old` prevents reassigning the `fixedReference` variable; it does **not** freeze `points` inside the object. Modifying the field through `fixedReference` changes `old.points` to 30.
+7. `absent.points` throws `NullPointerException` because `absent` is `null`. A `Box[]` array is also an object; each reference element is initially `null`. Assigning `slots[0] = old` creates another alias.
 
-## 3. Java luôn truyền tham số **theo giá trị**
+## 3. Java Always Passes Parameters **by Value**
 
-Với tham số kiểu tham chiếu, Java **sao chép giá trị tham chiếu** vào biến tham số. Vì vậy cần tách hai việc:
+For reference-type parameters, Java **copies the reference value** into the parameter variable. Therefore, we need to separate two things:
 
 ~~~java
 static void mutate(Box b) {
-    b.points = 42; // Sua trang thai doi tuong chung.
+    b.points = 42; // Modifies the state of the shared object.
 }
 
 static void reassign(Box b) {
-    b = new Box("Other", 42); // Chi gan lai tham so b.
+    b = new Box("Other", 42); // Only reassigns the parameter b.
 }
 ~~~
 
-- Gọi `mutate(first)` có thể khiến `first.points` thay đổi, vì bên gọi và tham số đều dẫn tới cùng đối tượng.
-- Gọi `reassign(first)` **không** làm biến `first` trỏ tới một đối tượng mới.
-- Nếu muốn bên gọi dùng một đối tượng thay thế, phương thức có thể **trả về tham chiếu mới**, rồi bên gọi viết `first = createReplacement(...);`.
+- Calling `mutate(first)` can cause `first.points` to change, because the caller and the parameter both lead to the same object.
+- Calling `reassign(first)` does **not** make the `first` variable point to a new object.
+- If you want the caller to use a replacement object, the method can **return the new reference**, and then the caller writes `first = createReplacement(...);`.
 
-Không gọi cơ chế này là “Java truyền tham chiếu theo tham chiếu”: **Java không cho phương thức gán lại biến tham chiếu của bên gọi bằng cách gán lại tham số**.
-
-
-## 4. Nhận diện cùng đối tượng
-
-Hai lần `new Box("A", 10)` tạo hai đối tượng có thể cùng dữ liệu, nhưng `x == y` sẽ là `false` nếu `x` và `y` trỏ tới hai đối tượng ấy. Ngược lại, `Box z = x;` khiến `x == z` là `true` vì chỉ sao chép tham chiếu. `==` không tự so các field; với `String`, dùng `equals` khi muốn so nội dung. Kiểu tự định nghĩa chỉ so giá trị bằng `equals` khi có hợp đồng phù hợp.
+Do not call this mechanism "Java passes references by reference": **Java does not allow a method to reassign the caller's reference variable by reassigning a parameter**.
 
 
-## 5. Giá trị `null` và biến chưa gán
+## 4. Identifying the Same Object
 
-`Box absent = null;` là biến đã có giá trị nhưng chưa chỉ tới đối tượng nào; `absent.points` sẽ ném `NullPointerException`. Ngược lại, biến cục bộ chỉ mới khai báo `Box pending;` chưa được *definite assignment* nên không được đọc. Field và phần tử mảng kiểu tham chiếu có giá trị mặc định `null`.
+Two calls to `new Box("A", 10)` create two objects that may have the same data, but `x == y` will be `false` if `x` and `y` point to those two objects. Conversely, `Box z = x;` makes `x == z` evaluate to `true` because only the reference is copied. `==` does not automatically compare fields; for `String`, use `equals` when you want to compare contents. Custom types only compare values with `equals` when an appropriate contract is defined.
 
-`alias = null` chỉ thay giá trị một biến, không hủy đối tượng đang được các alias khác giữ; thời điểm garbage collector thu hồi không được bảo đảm. Đóng tài nguyên như file hoặc socket theo `close()`/`try-with-resources` là trách nhiệm riêng.
 
-## 6. Những nhận định dễ sai
+## 5. The `null` Value and Unassigned Variables
 
-| Nhận định | Đúng/sai | Giải thích |
+`Box absent = null;` is a variable that already has a value but does not point to any object yet; `absent.points` will throw `NullPointerException`. By contrast, a local variable that is only declared as `Box pending;` has not undergone *definite assignment*, so it cannot be read. Reference-type fields and array elements have a default value of `null`.
+
+`alias = null` only changes the value of one variable, without destroying the object held by other aliases; the exact timing of garbage collector reclamation is not guaranteed. Closing resources such as files or sockets via `close()`/`try-with-resources` is a separate responsibility.
+
+## 6. Common Misconceptions
+
+| Statement | True/False | Explanation |
 | --- | --- | --- |
-| “`Box b = a;` tạo Box mới.” | **Sai** | Chỉ sao chép giá trị tham chiếu |
-| “Hai biến trỏ cùng đối tượng, sửa field qua biến này sẽ thấy qua biến kia.” | **Đúng** với field có thể sửa | Cả hai truy cập cùng trạng thái |
-| “Gán `b = null` sẽ xóa đối tượng ngay.” | **Sai** | Chỉ đổi tham chiếu; có thể còn alias khác |
-| “`new Box(1)` và `new Box(1)` là cùng đối tượng.” | **Sai** | Hai lần tạo đối tượng riêng |
-| “Gán lại tham số kiểu `Box` sẽ đổi biến bên gọi.” | **Sai** | Tham số là bản sao của giá trị tham chiếu |
-| “`final Box b` làm mọi field bất biến.” | **Sai** | `final` ràng buộc gán lại biến, không tự ràng buộc trạng thái đối tượng |
-| “`null` là một đối tượng rỗng.” | **Sai** | Không có đối tượng nào được tham chiếu |
-| “Mảng `Box[]` chứa sẵn các `Box` được `new` riêng.” | **Sai** | Các phần tử kiểu tham chiếu ban đầu là `null` |
+| "`Box b = a;` creates a new Box." | **False** | Only copies the reference value |
+| "Two variables point to the same object; modifying a field through one is seen through the other." | **True** for mutable fields | Both access the same state |
+| "Assigning `b = null` deletes the object immediately." | **False** | Only changes the reference; other aliases may remain |
+| "`new Box(1)` and `new Box(1)` are the same object." | **False** | Two separate object creations |
+| "Reassigning a `Box` parameter changes the caller's variable." | **False** | The parameter is a copy of the reference value |
+| "`final Box b` makes all fields immutable." | **False** | `final` constrains reassigning the variable, not the object's state |
+| "`null` is an empty object." | **False** | No object is referenced |
+| "A `Box[]` array comes pre-filled with individually constructed `Box` instances." | **False** | Reference-type elements are initially `null` |
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-**Bài 1.** Dự đoán kết quả sau:
+**Exercise 1.** Predict the following output:
 
 ~~~java
 Box a = new Box("One", 1);
@@ -214,32 +214,32 @@ b.points = 4;
 System.out.println(a.points);
 ~~~
 
-*Đáp án:* `4`. Hai biến cùng tham chiếu một đối tượng.
+*Answer:* `4`. Both variables reference the same object.
 
-**Bài 2.** Nếu tiếp tục viết `b = new Box("Two", 9);`, `a.points` thành bao nhiêu?
+**Exercise 2.** If you continue by writing `b = new Box("Two", 9);`, what does `a.points` become?
 
-*Đáp án:* Vẫn là `4`. Chỉ `b` trỏ sang đối tượng mới.
+*Answer:* Still `4`. Only `b` points to the new object.
 
-**Bài 3.** Với `Box x = null;`, kiểm tra `x == null` có hợp lệ không? Còn `x.points`?
+**Exercise 3.** Given `Box x = null;`, is checking `x == null` valid? What about `x.points`?
 
-*Đáp án:* Phép so sánh hợp lệ và trả `true`. Truy cập field ném `NullPointerException`.
+*Answer:* The comparison is valid and returns `true`. Accessing the field throws `NullPointerException`.
 
-**Bài 4.** Tại sao một phương thức nhận `Box parameter` rồi viết `parameter = new Box("New", 3);` không sửa tham chiếu trong biến của bên gọi?
+**Exercise 4.** Why does a method taking `Box parameter` and writing `parameter = new Box("New", 3);` not modify the reference in the caller's variable?
 
-*Đáp án:* Java truyền **bản sao giá trị tham chiếu** vào tham số; phép gán chỉ cập nhật tham số cục bộ.
+*Answer:* Java passes a **copy of the reference value** into the parameter; the assignment only updates the local parameter.
 
-**Bài 5.** `final Box b = new Box("Fixed", 5);` có cho phép `b.points = 6;` không? Có cho phép `b = new Box("Other", 6);` không?
+**Exercise 5.** Does `final Box b = new Box("Fixed", 5);` allow `b.points = 6;`? Does it allow `b = new Box("Other", 6);`?
 
-*Đáp án:* Cho phép thay đổi `points`; không cho phép gán lại biến `final`.
+*Answer:* It allows modifying `points`; it does not allow reassigning the `final` variable.
 
 ## Checklist
 
-- [ ] Phân biệt **biến tham chiếu** với **đối tượng được tạo**.
-- [ ] Hiểu phép gán giữa biến tham chiếu là **sao chép giá trị tham chiếu**.
-- [ ] Phân biệt sửa field của đối tượng với gán lại biến trỏ sang đối tượng khác.
-- [ ] Biết `==` so sánh đồng nhất đối tượng, không mặc định so nội dung.
-- [ ] Biết Java truyền mọi tham số theo giá trị, kể cả tham số là tham chiếu.
-- [ ] Hiểu `null`, truy cập qua `null` và điều kiện thu gom bộ nhớ.
-- [ ] Không hiểu nhầm `final` là làm đối tượng bất biến.
+- [ ] Distinguish a **reference variable** from the **created object**.
+- [ ] Understand that assignment between reference variables **copies the reference value**.
+- [ ] Distinguish modifying an object's field from reassigning a variable to point to another object.
+- [ ] Know that `==` compares object identity, not content by default.
+- [ ] Know that Java passes all parameters by value, including reference parameters.
+- [ ] Understand `null`, dereferencing `null`, and conditions for memory reclamation.
+- [ ] Avoid misunderstanding `final` as making an object immutable.
 
-**Ghi nhớ:** Một biến tham chiếu là **nơi giữ đường dẫn logic tới đối tượng**, còn đối tượng là **thực thể chứa trạng thái**. Sao chép đường dẫn không sao chép thực thể; sửa thực thể không tự thay biến; thay biến không tự sửa hay xóa thực thể.
+**Remember:** A reference variable is **a place that holds a logical link to an object**, while an object is **the entity that holds state**. Copying the link does not copy the entity; modifying the entity does not automatically change the variable; changing the variable does not automatically modify or delete the entity.

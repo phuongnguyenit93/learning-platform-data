@@ -1,58 +1,58 @@
-# Kiểm tra nội dung byte chính xác và round-trip văn bản trong Java I/O
+# Verifying Exact Byte Content and Text Round-Trips in Java I/O
 
-Khi kiểm thử thao tác đọc/ghi file, copy stream, encode/decode text hoặc giao tiếp qua socket, thông báo “không có exception” **chưa đủ chứng minh dữ liệu đúng**. Một tác vụ I/O có thể hoàn thành nhưng làm thiếu byte cuối, thêm BOM, đổi `\n` thành `\r\n`, dùng sai charset, thay ký tự không biểu diễn được hoặc vô tình chuẩn hóa văn bản. Những lỗi ấy có thể không dễ nhìn thấy khi chỉ mở file trong editor.
+When testing file read/write operations, stream copying, text encoding/decoding, or socket communication, a "no exception" outcome **is not enough to prove the data is correct**. An I/O operation can complete while dropping the last byte, adding a BOM, converting `\n` to `\r\n`, using the wrong charset, replacing unmappable characters, or unintentionally normalizing text. Such bugs may not be obvious when merely opening the file in an editor.
 
-Bài học này phân biệt **kiểm tra byte-for-byte** và **kiểm tra round-trip văn bản**; hướng dẫn thiết kế assertions, golden fixtures, diagnostics bằng hexadecimal và offset sai lệch, sử dụng `Arrays.equals`, `Arrays.mismatch`, `Files.mismatch`, `HexFormat`, `StandardCharsets` và bộ `CharsetDecoder/CharsetEncoder` trong Java 17+. Mục tiêu không chỉ là kiểm tra “đọc lại được”, mà còn biết **đang chứng minh tính chất nào, có thể mất thông tin ở đâu và kiểm tra sai lệch ra sao**.
+This lesson distinguishes between **byte-for-byte verification** and **text round-trip verification**; it guides you in designing assertions, golden fixtures, diagnostics with hexadecimal dumps and mismatch offsets, and using `Arrays.equals`, `Arrays.mismatch`, `Files.mismatch`, `HexFormat`, `StandardCharsets`, and `CharsetDecoder`/`CharsetEncoder` in Java 17+. The goal is not just checking whether data can be "read back", but knowing **which property you are proving, where information can be lost, and how to inspect discrepancies**.
 
-## 1. Ba yêu cầu đúng đắn thường bị nhầm lẫn
+## 1. Three Correctness Requirements Often Confused
 
-Hãy phân biệt ba câu hỏi:
+Distinguish between these three questions:
 
-| Yêu cầu | Điều phải so sánh | Ví dụ |
+| Requirement | What Must Be Compared | Examples |
 | --- | --- | --- |
-| **Byte exactness** | Toàn bộ dãy byte nguồn và dãy byte đích phải giống nhau từng byte, cùng thứ tự, cùng độ dài. | Copy file nhị phân, chuyển bytes từ mạng vào file, lưu artifact bất biến. |
-| **Text round-trip** | Văn bản `String` ban đầu, sau khi encode → write → read → decode, phải giống văn bản ban đầu theo **tiêu chí so sánh đã chọn**. | Lưu rồi đọc lại văn bản UTF-8. |
-| **Logical equivalence** | Hai đối tượng/text có cùng ý nghĩa theo schema hoặc quy tắc canonicalization, dù raw bytes có thể khác. | JSON khác spacing, Unicode NFC/NFD, file có LF/CRLF theo policy. |
+| **Byte exactness** | The entire source byte sequence and target byte sequence must match byte-for-byte, in the same order, with the same length. | Copying binary files, transferring bytes from network to file, storing immutable artifacts. |
+| **Text round-trip** | The original `String` text, after encode → write → read → decode, must match the original text according to the **chosen comparison criteria**. | Saving and reading back UTF-8 text. |
+| **Logical equivalence** | Two objects/texts have the same meaning under a schema or canonicalization rule, even though raw bytes may differ. | JSON with different spacing, Unicode NFC/NFD, files with LF/CRLF per policy. |
 
-Ba tính chất không tự suy ra nhau. Một văn bản khi đọc có thể “nhìn đúng” nhưng byte khác; ngược lại, hai file giống byte hoàn toàn không chứng minh nội dung là UTF-8 hợp lệ hay đúng schema nghiệp vụ.
+These three properties do not imply one another. Text may "look right" when read back even though the bytes differ; conversely, two byte-identical files do not prove the content is valid UTF-8 or conforms to a business schema.
 
-Sơ đồ:
+Diagram:
 
 ```text
-String ban đầu
+Original String
       |
       | encode(StandardCharsets.UTF_8)
       v
-Bytes dự kiến ------ so sánh byte-for-byte ------> Bytes đọc từ file
+Expected Bytes ------ compare byte-for-byte ------> Bytes read from file
       |                                               |
       | write                                         | decode(UTF-8)
       v                                               v
-   File / stream                                String đọc lại
+  File / stream                                 Decoded String
                                                       |
                                              String.equals(original)
 ```
 
-**Quy tắc thiết kế test:** trước khi viết assertion, phải quyết định cần **byte exactness**, **text equality** hay **logical equivalence**. Không nên thay một tiêu chí bằng tiêu chí yếu hơn chỉ vì dễ kiểm thử.
+**Test design rule:** Before writing an assertion, decide whether you need **byte exactness**, **text equality**, or **logical equivalence**. Never substitute a weaker criterion simply because it is easier to test.
 
-## 2. Byte-for-byte nghĩa là gì?
+## 2. What Does Byte-for-Byte Mean?
 
-Cho hai dãy byte `A` và `B`, bằng nhau từng byte khi:
+Given two byte sequences `A` and `B`, they are equal byte-for-byte when:
 
-1. `A.length == B.length`; và
-2. Với mọi index `i` từ 0 đến length - 1, `A[i] == B[i]`.
+1. `A.length == B.length`; and
+2. For every index `i` from 0 to length - 1, `A[i] == B[i]`.
 
-Các khác biệt dù chỉ một byte đều phải làm test thất bại:
+Even a single-byte difference must cause the test to fail:
 
 ```text
 Expected:  41 42 43 0a          "ABC\n" UTF-8
 Actual:    41 42 43 0d 0a       "ABC\r\n" UTF-8
                      ^
-                Từ index 3 đã khác.
+                Differs starting at index 3.
 ```
 
-Đừng kiểm thử copy nhị phân bằng `String.equals` hoặc `Files.readString`: file PNG, ZIP, protobuf hoặc ciphertext không phải chuỗi ký tự. Việc decode bytes nhị phân rồi encode lại có thể làm thay đổi dữ liệu, thậm chí khi không ném exception.
+Do not test binary copying with `String.equals` or `Files.readString`: PNG files, ZIP archives, protobuf payloads, or ciphertext are not character strings. Decoding binary bytes and re-encoding them can alter the data, even without throwing an exception.
 
-Với dữ liệu nhỏ trong test:
+For small data in tests:
 
 ```java
 byte[] expected = {0x00, 0x01, (byte) 0xFF};
@@ -63,21 +63,21 @@ if (!Arrays.equals(expected, actual)) {
 }
 ```
 
-Đây là **snippet** với `path` được khai báo ngoài, cần import `java.nio.file.Files`, `java.util.Arrays`. Ép `(byte) 0xFF` vì Java `byte` là kiểu signed -128..127, nhưng biểu diễn trên file vẫn là byte unsigned `FF`.
+This is a **snippet** with `path` declared externally, requiring imports for `java.nio.file.Files` and `java.util.Arrays`. The cast `(byte) 0xFF` is needed because Java's `byte` is a signed type (-128..127), whereas on disk it is still stored as the unsigned byte `FF`.
 
-Một lỗi dễ mắc: `Arrays.toString(byte[])` hiển thị số signed, ví dụ byte `FF` thành `-1`. Khi cần phân tích ở cấp byte, in hexadecimal bằng `HexFormat` hoặc dùng `Byte.toUnsignedInt(byte)`.
+A common pitfall: `Arrays.toString(byte[])` prints signed numbers, e.g. byte `FF` becomes `-1`. When analyzing at the byte level, print hexadecimal using `HexFormat` or use `Byte.toUnsignedInt(byte)`.
 
-## 3. Arrays.equals, Arrays.mismatch và Files.mismatch
+## 3. `Arrays.equals`, `Arrays.mismatch`, and `Files.mismatch`
 
-Ba API giúp kiểm tra nhanh:
+Three APIs for quick verification:
 
-| API | Input | Output | Khi phù hợp |
+| API | Input | Output | When Appropriate |
 | --- | --- | --- | --- |
-| `Arrays.equals(byte[], byte[])` | Hai mảng trong RAM | `boolean` | Fixture nhỏ và dữ liệu đã được đọc đầy đủ. |
-| `Arrays.mismatch(byte[], byte[])` | Hai mảng trong RAM | Index khác đầu tiên, hoặc `-1` nếu giống nhau | Chẩn đoán vị trí sai; nếu một mảng là prefix của mảng khác, index là độ dài mảng ngắn hơn. |
-| `Files.mismatch(Path, Path)` | Hai file | Offset byte đầu tiên khác, hoặc `-1L` nếu giống nhau | So sánh file trực tiếp, tránh tự viết vòng readAllBytes cho file lớn. |
+| `Arrays.equals(byte[], byte[])` | Two arrays in RAM | `boolean` | Small fixtures where data is already fully loaded. |
+| `Arrays.mismatch(byte[], byte[])` | Two arrays in RAM | First differing index, or `-1` if equal | Diagnosing the mismatch position; if one array is a prefix of the other, the index is the length of the shorter array. |
+| `Files.mismatch(Path, Path)` | Two files | 0-based byte offset of the first mismatch, or `-1L` if equal | Comparing files directly, avoiding hand-written `readAllBytes` loops for large files. |
 
-Ví dụ:
+Example:
 
 ```java
 byte[] expected = {1, 2, 3, 4};
@@ -87,24 +87,24 @@ System.out.println(Arrays.equals(expected, actual));  // false
 System.out.println(Arrays.mismatch(expected, actual)); // 2
 ```
 
-Đây là snippet. `Arrays.mismatch` và `Files.mismatch` có từ các bản JDK trước Java 17 và sử dụng được trong Java 17+. `Files.mismatch` có thể ném `IOException`; nếu file đang bị process khác sửa trong lúc kiểm tra, kết quả có thể không phản ánh một snapshot ổn định.
+This is a snippet. `Arrays.mismatch` and `Files.mismatch` have been available since JDK releases prior to Java 17 and work in Java 17+. `Files.mismatch` can throw `IOException`; if a file is being modified by another process during the check, the result may not reflect a stable snapshot.
 
-**Chú ý riêng `Files.mismatch`:** trả `-1L` khi nội dung byte giống nhau; trả offset **0-based** khi khác. Với file chỉ khác phần đuôi, kết quả có thể bằng vị trí ngay sau byte cuối của file ngắn hơn.
+**Note on `Files.mismatch`:** Returns `-1L` when byte contents match; returns a **0-based** offset when they differ. If files only differ by trailing data, the result equals the position right after the last byte of the shorter file.
 
-Đừng chỉ so `Files.size(source) == Files.size(target)`: hai file khác nội dung vẫn có thể cùng số byte. Đừng chỉ so timestamp hoặc tên file. Để chứng minh toàn bộ byte giống nhau, dùng so sánh bytes thực, hoặc digest của nguồn và đích phù hợp threat model.
+Do not compare only `Files.size(source) == Files.size(target)`: two files with different contents can have the exact same byte count. Do not compare only timestamps or file names. To prove all bytes match, use an actual byte comparison or a source/target digest suited to your threat model.
 
-## 4. Diagnostics bằng hex, offset và context
+## 4. Diagnostics with Hex, Offset, and Context
 
-Nếu một bài kiểm thử chỉ báo `expected != actual`, việc debug sẽ khó khi file dài vài MB. Nên báo:
+If a test only reports `expected != actual`, debugging is difficult when a file is several MBs long. Report:
 
-- Đường dẫn hoặc ID file (đã được lọc để không lộ thông tin nhạy cảm).
-- Tổng độ dài expected/actual.
-- **Offset byte đầu tiên sai**, tính từ 0.
-- Một cửa sổ hex xung quanh offset, ví dụ 16 byte trước và sau.
-- Charset/encoding, newline và BOM policy liên quan.
-- Chú thích rằng dump là byte gốc, không phải ký tự “trông giống”.
+- The file path or ID (filtered so sensitive information is not exposed).
+- Total expected/actual lengths.
+- **The 0-based offset of the first differing byte**.
+- A hex window around the offset, e.g. 16 bytes before and after.
+- Relevant charset/encoding, newline, and BOM policies.
+- A note indicating that the dump shows raw bytes, not "similar-looking" characters.
 
-Java 17 có `HexFormat`:
+Java 17 provides `HexFormat`:
 
 ```java
 byte[] bytes = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
@@ -112,9 +112,9 @@ System.out.println(HexFormat.of().formatHex(bytes)); // efbbbf
 byte[] reconstructed = HexFormat.of().parseHex("efbbbf");
 ```
 
-Snippet cần import `java.util.HexFormat`. Với dữ liệu nhạy cảm (token, private key, thông tin cá nhân), **không** log nguyên văn hex dump chỉ để debug: hex vẫn tiết lộ dữ liệu. Log offset, chiều dài và digest không bí mật theo chính sách; chỉ dump bytes nếu được phép và có cơ chế redact.
+This snippet requires importing `java.util.HexFormat`. For sensitive data (tokens, private keys, personal information), **never** log raw hex dumps just for debugging: hex still reveals the data. Log offsets, lengths, and non-secret digests per policy; only dump bytes when permitted and with redaction in place.
 
-Ví dụ helper đưa ra lỗi có cấu trúc:
+Example helper producing a structured error:
 
 ```java
 static void assertExact(byte[] expected, byte[] actual) {
@@ -128,11 +128,11 @@ static void assertExact(byte[] expected, byte[] actual) {
 }
 ```
 
-Đây là snippet trong class có import `java.util.Arrays`. Trong các bài test, helper này có thể được thay bằng `assertArrayEquals` của JUnit 5 và bổ sung hex context khi một case thất bại.
+This is a snippet inside a class importing `java.util.Arrays`. In tests, this helper can be replaced by JUnit 5's `assertArrayEquals`, adding hex context when a case fails.
 
-## 5. Charset phải được chỉ định tường minh
+## 5. The Charset Must Be Explicitly Specified
 
-Khi chuyển giữa `String` và bytes, charset là một phần của hợp đồng dữ liệu:
+When converting between `String` and bytes, the charset is part of the data contract:
 
 ```java
 String original = "Tiếng Việt";
@@ -144,48 +144,48 @@ if (!original.equals(restored)) {
 }
 ```
 
-Đây là snippet; `StandardCharsets.UTF_8` cung cấp charset cụ thể. Tránh các overload như `str.getBytes()` hoặc `new String(bytes)` khi định dạng dữ liệu cần tồn tại lâu hoặc di chuyển giữa máy: charset mặc định phụ thuộc môi trường/JDK. Đặc biệt với Java 17 và những bản JDK trước thay đổi mặc định charset của Java 18, cùng code không chỉ định charset có thể xử lý bytes khác trên các máy.
+This is a snippet; `StandardCharsets.UTF_8` supplies an explicit charset. Avoid overloads like `str.getBytes()` or `new String(bytes)` when the data format must persist or move across machines: the default charset depends on the environment/JDK. Especially on Java 17 and earlier JDKs before Java 18's default charset change, the same code without an explicit charset can process bytes differently across machines.
 
-Một số charset phổ biến:
+Common charsets:
 
-| Charset | Hợp đồng | Rủi ro khi dùng sai |
+| Charset | Contract | Risk When Misused |
 | --- | --- | --- |
-| `StandardCharsets.UTF_8` | Unicode biến độ dài, là lựa chọn mặc định phù hợp với dữ liệu text mới. | Dùng charset khác để decode sẽ gây mojibake hoặc lỗi. |
-| `StandardCharsets.US_ASCII` | Chỉ mã hóa tập ASCII cơ bản. | Ký tự `đ`, `é`, emoji không biểu diễn được. |
-| `StandardCharsets.ISO_8859_1` | Một byte cho các giá trị 0–255 của bảng mã đó. | Không chứa đầy đủ tiếng Việt hoặc emoji. |
-| `UTF_16LE`/`UTF_16BE` | Mã hóa các UTF-16 code units theo thứ tự byte rõ ràng. | Dùng sai endian hoặc sai BOM protocol dẫn tới văn bản sai. |
+| `StandardCharsets.UTF_8` | Variable-length Unicode, the right default choice for new text data. | Decoding with another charset causes mojibake or errors. |
+| `StandardCharsets.US_ASCII` | Encodes only the basic ASCII set. | Characters like `đ`, `é`, and emoji cannot be represented. |
+| `StandardCharsets.ISO_8859_1` | Single byte for code values 0–255 in that code page. | Does not cover Vietnamese or emoji. |
+| `UTF_16LE`/`UTF_16BE` | Encodes UTF-16 code units with explicit byte order. | Wrong endianness or BOM protocol corrupts text. |
 
-**Không thể kết luận byte exactness chỉ từ** `String.equals`. Nếu code đã decode sai nhưng theo chính sách thay invalid bytes bằng ký tự thay thế, một phép so chuỗi vẫn không tìm lại được bytes gốc.
+**You cannot infer byte exactness solely from** `String.equals`. If code decoded bytes incorrectly under a policy that replaces invalid bytes with a replacement character, string comparison still cannot recover or verify the original bytes.
 
-## 6. “Round-trip văn bản” có hai chiều cần kiểm tra riêng
+## 6. "Text Round-Trip" Has Two Directions to Test Separately
 
-### Chiều A: String → encode → decode → String
+### Direction A: String → encode → decode → String
 
-Với một chuỗi Java hợp lệ, charset có thể biểu diễn đầy đủ dữ liệu và không có bước biến đổi, ta mong đợi:
+For a valid Java string whose characters are fully representable by the charset and without transformation steps, we expect:
 
 ```text
 originalText == decode(encode(originalText, charset), charset)
 ```
 
-Với UTF-8 và dữ liệu Unicode hợp lệ, thao tác này thường bảo toàn chính xác chuỗi. Tuy nhiên, chuỗi Java có thể chứa **surrogate lẻ** (unpaired surrogate), vốn không phải Unicode scalar value hợp lệ; nếu dùng encoder có replacement policy, round-trip **có thể mất thông tin**. Hãy chọn chế độ báo lỗi khi format đòi strict encoding.
+With UTF-8 and valid Unicode data, this normally preserves the string exactly. However, a Java string can contain an **unpaired surrogate**, which is not a valid Unicode scalar value; if an encoder uses a replacement policy, the round-trip **can lose information**. Choose error-reporting mode when the format requires strict encoding.
 
-### Chiều B: raw bytes → decode → encode → raw bytes
+### Direction B: raw bytes → decode → encode → raw bytes
 
-Chiều này mạnh hơn:
+This direction is stronger:
 
 ```text
 originalBytes == encode(decode(originalBytes, charset), charset)
 ```
 
-Nó chỉ đúng khi byte sequence hợp lệ và phép giải mã/tái mã hóa theo protocol cho một biểu diễn byte tương ứng. Với invalid UTF-8, encoding lỗi, charset có nhiều biểu diễn, chính sách replacement hay canonicalization, không có bảo đảm raw bytes được tái tạo.
+It holds only when the byte sequence is valid and decoding/re-encoding under the protocol produces a unique corresponding byte representation. With invalid UTF-8, corrupted encodings, charsets with multiple representations, replacement policies, or canonicalization, there is no guarantee raw bytes are reproduced.
 
-**Kiểm thử hai chiều khi thực sự cần cả hai**. Với file nhị phân, không có yêu cầu decode text thì chỉ so bytes. Với tài liệu chuẩn hóa theo policy, phải xác định tính tương đương logic thay vì đòi byte exactness.
+**Test both directions when both are actually required**. For binary files with no text-decoding requirement, compare bytes only. For documents normalized per policy, verify logical equivalence instead of demanding byte exactness.
 
-## 7. Ví dụ Java 17+ chạy độc lập: file bytes, UTF-8 round-trip và các bẫy
+## 7. Standalone Java 17+ Example: File Bytes, UTF-8 Round-Trip, and Pitfalls
 
-Chương trình tự tạo file tạm, ghi văn bản có tiếng Việt, emoji và dấu newline. Nó copy file, kiểm tra bytes bằng `Arrays.equals` và `Files.mismatch`, sau đó đọc text rồi encode lại. Ví dụ cũng xác minh byte UTF-8 của `é`, so Unicode normalization, line ending và cơ chế từ chối UTF-8 lỗi.
+This program creates temporary files, writes text containing Vietnamese, emoji, and newlines. It copies the file, verifies bytes using `Arrays.equals` and `Files.mismatch`, then reads the text and re-encodes it. The example also checks UTF-8 bytes of `é`, compares Unicode normalization, line endings, and rejection of malformed UTF-8.
 
-Lưu đúng tên **`ByteExactRoundTripDemo.java`**:
+Save with exact name **`ByteExactRoundTripDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -268,14 +268,14 @@ public class ByteExactRoundTripDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 ByteExactRoundTripDemo.java
 java ByteExactRoundTripDemo
 ```
 
-Stdout đã được kiểm chứng bằng cách biên dịch và thực thi:
+Stdout verified by compiling and running:
 
 ```text
 bytes-equal=true
@@ -289,40 +289,40 @@ lf-crlf-byte-equal=false
 malformed-rejected=true
 ```
 
-**Giải thích từng bước:**
+**Step-by-step explanation:**
 
-1. `text` chứa tiếng Việt và emoji ngoài BMP; `text.getBytes(UTF_8)` tạo chuỗi bytes theo mã hóa tường minh.
-2. `Files.write(source, expected)` ghi bytes gốc; `Files.copy` sao chép sang file tạm khác. `Arrays.equals` so mảng bytes; `Files.mismatch == -1` xác nhận cả hai file có byte content giống nhau.
-3. `Files.readString(copy, UTF_8)` đọc văn bản. `String.equals` kiểm tra sequence UTF-16 code units; phép encode lại kiểm tra được cùng bytes trong trường hợp UTF-8 hợp lệ này.
-4. `"é"` theo UTF-8 là `C3 A9`; `HexFormat` cho `c3a9`.
-5. `"café"` dùng ký tự `é` dựng sẵn, còn `"cafe\u0301"` dùng `e` + combining acute accent. Bytes khác, nhưng sau `Normalizer.normalize(..., NFC)` chúng so bằng nhau.
-6. `"A\nB"` và `"A\r\nB"` khác bytes: `0A` so với `0D 0A`. Editor có thể hiển thị hai tệp như nhau, nên text rendering không đủ chứng minh byte equality.
-7. Dãy byte `C3 28` không phải UTF-8 hợp lệ. `CharsetDecoder` với `CodingErrorAction.REPORT` báo lỗi để test phát hiện thay vì âm thầm thay bằng `U+FFFD`.
-8. `finally` dọn hai file tạm. Demo dùng dữ liệu nhỏ; với file rất lớn nên tránh `Files.readAllBytes` để giới hạn memory.
+1. `text` contains Vietnamese and a supplementary-plane emoji; `text.getBytes(UTF_8)` produces bytes with an explicit encoding.
+2. `Files.write(source, expected)` writes the original bytes; `Files.copy` copies them to another temporary file. `Arrays.equals` compares byte arrays; `Files.mismatch == -1` confirms both files have identical byte content.
+3. `Files.readString(copy, UTF_8)` reads the text. `String.equals` checks the sequence of UTF-16 code units; re-encoding verifies identical bytes in this valid UTF-8 case.
+4. `"é"` in UTF-8 is `C3 A9`; `HexFormat` yields `c3a9`.
+5. `"café"` uses precomposed `é`, whereas `"cafe\u0301"` uses `e` + combining acute accent. The bytes differ, but after `Normalizer.normalize(..., NFC)` they compare equal.
+6. `"A\nB"` and `"A\r\nB"` differ in bytes: `0A` vs `0D 0A`. Editors may render both files identically, so text rendering is insufficient to prove byte equality.
+7. The byte sequence `C3 28` is invalid UTF-8. `CharsetDecoder` with `CodingErrorAction.REPORT` throws an error so tests catch it instead of silently replacing it with `U+FFFD`.
+8. `finally` cleans up both temporary files. The demo uses small data; for very large files, avoid `Files.readAllBytes` to limit memory usage.
 
-**Bài học quan trọng:** ví dụ chứng minh **ba mệnh đề độc lập**: copy bytes nguyên vẹn, text round-trip đúng khi charset phù hợp và decoder strict từ chối input không hợp lệ. Không dùng kết quả một mệnh đề để thay assertion cho mệnh đề khác.
+**Key takeaway:** This example proves **three independent claims**: intact byte copying, accurate text round-trip when the charset matches, and strict decoder rejection of invalid input. Never use the result of one claim as a substitute assertion for another.
 
-## 8. Kiểm tra bytes sau FileChannel hoặc stream có partial I/O
+## 8. Checking Bytes After `FileChannel` or Stream Partial I/O
 
-Với `InputStream.read(buffer)`, giá trị trả về là số byte **thực sự được đọc** hoặc `-1` ở EOF. Không giả định một lần `read` sẽ đổ đầy mảng, đặc biệt khi đọc socket, pipe hoặc dữ liệu dài.
+With `InputStream.read(buffer)`, the return value is the number of bytes **actually read**, or `-1` at EOF. Never assume a single `read` fills the array, especially when reading from sockets, pipes, or large streams.
 
-Khi copy theo chunk, nguyên tắc:
+When copying in chunks, the rule is:
 
 ```java
-// Snippet: in và out là InputStream/OutputStream đã mở.
+// Snippet: in and out are open InputStream/OutputStream instances.
 byte[] buf = new byte[8192];
 for (int n; (n = in.read(buf)) != -1; ) {
     out.write(buf, 0, n);
 }
 ```
 
-Đoạn trên là snippet, cần xử lý `IOException` và `try-with-resources` ở caller. Với `InputStream` thông thường, `read(byte[])` có thể trả ít byte hơn `buf.length`; dùng `out.write(buf)` thay vì `out.write(buf,0,n)` sẽ ghi thêm các bytes cũ ở cuối mảng.
+This is a snippet; `IOException` handling and `try-with-resources` are needed at the caller. With a regular `InputStream`, `read(byte[])` may return fewer bytes than `buf.length`; calling `out.write(buf)` instead of `out.write(buf, 0, n)` would write stale bytes from the tail of the array.
 
-Với `FileChannel` và `ByteBuffer`:
+With `FileChannel` and `ByteBuffer`:
 
 ```java
-// Snippet: source và target là FileChannel,
-// buffer có dung lượng > 0.
+// Snippet: source and target are FileChannel instances,
+// buffer has capacity > 0.
 while (true) {
     int n = source.read(buffer);
     if (n == -1) {
@@ -341,20 +341,20 @@ while (true) {
 }
 ```
 
-Đây là mẫu fail-fast cho file channel blocking trong ngữ cảnh do ứng dụng kiểm soát; **không** bê nguyên chính sách `n==0` sang `SocketChannel` non-blocking, nơi cần chờ readiness thay vì ném lỗi. Kiểm thử sau copy bằng `Files.mismatch` hoặc digest đáng tin có ý nghĩa thực tế hơn chỉ kiểm tra số byte đã gọi `write`.
+This is a fail-fast pattern for blocking file channels in an application-controlled context; **do not** copy the `n == 0` policy verbatim to a non-blocking `SocketChannel`, where you must wait for readiness rather than throwing an error. Verifying after copying with `Files.mismatch` or a reliable digest is more meaningful in practice than only checking the byte count passed to `write`.
 
-Nếu code có dùng `ByteBuffer.array()`, chú ý mảng backing có thể lớn hơn vùng dữ liệu hợp lệ, buffer có thể là direct/read-only/sliced và không hỗ trợ `array()`. Dùng `position/limit/remaining` hoặc view đúng vùng, không giả định toàn bộ mảng luôn là payload.
+If code uses `ByteBuffer.array()`, note that the backing array may be larger than the valid data region, and direct/read-only/sliced buffers may not support `array()`. Use `position/limit/remaining` or properly bounded views; do not assume the entire array is always payload.
 
-## 9. Ký tự, code point, UTF-16 code units và số byte
+## 9. Characters, Code Points, UTF-16 Code Units, and Byte Counts
 
-Java `String` là chuỗi **UTF-16 code units**. Vì vậy:
+A Java `String` is a sequence of **UTF-16 code units**. Therefore:
 
-- `String.length()` trả số code units, không phải số Unicode code points và không phải số byte UTF-8.
-- Ký tự supplementary, ví dụ `😀`, chiếm **hai UTF-16 code units** và thường **bốn byte UTF-8**.
-- Ký tự `é` dựng sẵn thường dài một code unit và hai byte UTF-8.
-- Ký tự kết hợp có thể tạo một glyph từ nhiều code points/code units; số glyph hiển thị không bằng `String.length()`.
+- `String.length()` returns the number of code units, not Unicode code points and not UTF-8 bytes.
+- A supplementary character, such as `😀`, takes **two UTF-16 code units** and typically **four UTF-8 bytes**.
+- A precomposed `é` character is typically one code unit and two UTF-8 bytes.
+- Combining characters can form one visual glyph from multiple code points/code units; the number of displayed glyphs does not equal `String.length()`.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 String emoji = "😀";
@@ -363,20 +363,20 @@ System.out.println(emoji.codePointCount(0, emoji.length())); // 1
 System.out.println(emoji.getBytes(StandardCharsets.UTF_8).length); // 4
 ```
 
-Đây là snippet. Nếu protocol yêu cầu header ghi độ dài payload **theo byte**, dùng `data.length` của byte array đã encode, không dùng `str.length()`. Trong binary protocol, dùng byte count không đúng dẫn tới thiếu payload hoặc đọc quá phần dữ liệu tiếp theo.
+This is a snippet. If a protocol specifies a header containing payload length **in bytes**, use `data.length` of the encoded byte array, never `str.length()`. In binary protocols, using the wrong byte count leads to truncated payloads or reading past into subsequent data.
 
-Nếu muốn duyệt Unicode code points, cân nhắc `String.codePoints()`, nhưng ngay cả code point count cũng không bằng số grapheme clusters người dùng nhìn thấy. Với so sánh byte exactness, đơn vị phù hợp vẫn là **byte sequence**.
+If you need to iterate Unicode code points, consider `String.codePoints()`, though even the code point count does not always equal the number of user-perceived grapheme clusters. For byte-exact comparisons, the proper unit remains the **byte sequence**.
 
-## 10. Unicode normalization: “nhìn như nhau” chưa chắc String.equals
+## 10. Unicode Normalization: "Looks the Same" Does Not Mean `String.equals`
 
-Ví dụ biểu diễn chữ có dấu:
+Example representations of an accented character:
 
 ```text
 NFC / composed: "é"           U+00E9        UTF-8 C3 A9
 NFD / decomposed: "e◌́"        U+0065 U+0301 UTF-8 65 CC 81
 ```
 
-Hai chuỗi có thể hiện giống nhau trong UI nhưng bytes khác, và Java `String.equals` cũng thường trả false vì các UTF-16 code units khác nhau. Nếu nghiệp vụ yêu cầu coi chúng tương đương theo Unicode canonical equivalence, cần **quy tắc normalize** rõ:
+Two strings can look identical in a UI yet have different bytes, and Java's `String.equals` will also typically return false because their UTF-16 code units differ. If business logic requires treating them as equivalent under Unicode canonical equivalence, an explicit **normalization rule** is needed:
 
 ```java
 String left = Normalizer.normalize(sourceText, Normalizer.Form.NFC);
@@ -384,53 +384,53 @@ String right = Normalizer.normalize(restoredText, Normalizer.Form.NFC);
 boolean sameMeaningByPolicy = left.equals(right);
 ```
 
-Đây là snippet với imports `java.text.Normalizer`, các biến string do ứng dụng cung cấp. Nên dùng **NFC** khi sản phẩm cần canonical normalization, nhưng việc normalize không phải luôn vô hại: nếu đang kiểm tra file raw, chữ ký số, protocol bytes, đường dẫn hoặc dữ liệu đòi byte-exact thì normalization thay đổi byte và **không được tự thực hiện**.
+This is a snippet with `import java.text.Normalizer;` and application-provided string variables. Prefer **NFC** when a product requires canonical normalization, but normalization is not always harmless: when verifying raw files, digital signatures, protocol bytes, file paths, or data requiring byte-exactness, normalization alters bytes and **must not be performed implicitly**.
 
-Các form `NFC`, `NFD`, `NFKC`, `NFKD` có mục đích khác nhau; compatibility normalization như NFKC có thể biến một số ký tự tương thích thành chuỗi khác về biểu diễn/ý nghĩa thị giác. Chọn theo hợp đồng, không dùng mặc định để “sửa lỗi encoding”.
+The forms `NFC`, `NFD`, `NFKC`, and `NFKD` serve different purposes; compatibility normalization such as NFKC can alter the visual appearance or meaning of certain compatible characters. Choose according to the contract, not as a default way to "fix encoding bugs".
 
-## 11. Line endings và các API làm mất ranh giới dòng
+## 11. Line Endings and APIs That Erase Line Boundaries
 
-Ba dạng line ending thường gặp:
+Three common line ending forms:
 
-| Dạng | Hex | Ứng dụng |
+| Form | Hex | Usage |
 | --- | --- | --- |
-| LF | `0A` | Thường dùng trong môi trường Unix/Linux và nhiều giao thức. |
-| CRLF | `0D 0A` | Phổ biến trên Windows và một số protocol mạng. |
-| CR | `0D` | Tồn tại trong dữ liệu cũ hoặc một số định dạng riêng. |
+| LF | `0A` | Common in Unix/Linux environments and many protocols. |
+| CRLF | `0D 0A` | Common on Windows and several network protocols. |
+| CR | `0D` | Exists in legacy data or specific proprietary formats. |
 
-`BufferedReader.readLine()` trả nội dung dòng **không kèm ký tự kết thúc dòng**. Vì vậy việc đọc nhiều dòng bằng `readLine()` rồi ghi ra bằng `writer.newLine()` có thể thay đổi bytes của file gốc:
+`BufferedReader.readLine()` returns line contents **without line terminators**. Therefore, reading lines with `readLine()` and writing them back with `writer.newLine()` can alter the bytes of the original file:
 
-- File có `\n` nhưng máy đích tạo `\r\n`.
-- File có hoặc không có newline ở cuối: phân biệt này có thể bị mất.
-- Hai kiểu newline trộn lẫn trong cùng file không được bảo toàn.
-- Các ranh giới CR/LF riêng có thể bị xử lý theo chính sách của reader.
+- A file has `\n`, but the target machine produces `\r\n`.
+- Whether the file ended with a trailing newline or not may be lost.
+- Mixed newline styles within the same file are not preserved.
+- Standalone CR/LF boundaries may be handled according to the reader's policy.
 
-Tương tự, các API dòng cao cấp như `Files.readAllLines` và `Files.lines` thích hợp cho xử lý **nội dung từng dòng**, nhưng không phải công cụ kiểm tra bảo toàn dấu ngắt dòng byte-for-byte.
+Similarly, high-level line APIs like `Files.readAllLines` and `Files.lines` are suitable for processing **line-by-line content**, not for testing byte-for-byte preservation of line breaks.
 
-Khi muốn giữ nguyên file, xử lý qua bytes hoặc bảo toàn chính xác các line separators. Khi nghiệp vụ muốn chuẩn hóa line ending, phải viết test riêng chứng minh **kết quả đã chuẩn hóa** và ghi rõ đây là chuyển đổi có chủ ý, không gọi đó là raw byte round-trip.
+When preserving files verbatim, process at the byte level or preserve exact line separators. When business rules require normalizing line endings, write separate tests proving the **normalized result** and clearly label it an intentional transformation rather than a raw byte round-trip.
 
-## 12. BOM và các byte vô hình ở đầu file
+## 12. BOM and Invisible Bytes at the Start of a File
 
-Một số text file có **Byte Order Mark (BOM)**. Ví dụ UTF-8 BOM là ba byte:
+Some text files contain a **Byte Order Mark (BOM)**. For example, the UTF-8 BOM is three bytes:
 
 ```text
 EF BB BF
 ```
 
-UTF-8 không cần BOM để xác định thứ tự byte; tuy nhiên một số phần mềm vẫn tạo file UTF-8 có BOM. Hai file có cùng nội dung ký tự hiển thị nhưng một file có BOM còn file kia không có **sẽ khác SHA-256, kích thước và byte exactness**.
+UTF-8 does not need a BOM to determine byte order; however, some software still creates UTF-8 files with a BOM. Two files with the exact same visible characters where one has a BOM and the other does not **will differ in SHA-256, size, and byte exactness**.
 
-Các điểm phải xác định:
+Points that must be defined:
 
-1. Protocol có cho phép BOM không?
-2. Parser có tự nhận diện/bỏ BOM không, hay coi nó là một code point `U+FEFF`?
-3. Writer có luôn thêm BOM, luôn không thêm BOM, hay sao chép nguyên trạng?
-4. UTF-16 sử dụng endian nào; có BOM hay đang chỉ định `UTF_16LE`/`UTF_16BE` rõ?
+1. Does the protocol allow a BOM?
+2. Should the parser detect/strip the BOM, or treat it as a `U+FEFF` code point?
+3. Should the writer always add a BOM, never add a BOM, or copy verbatim?
+4. Which endianness does UTF-16 use; is there a BOM or are `UTF_16LE`/`UTF_16BE` explicitly specified?
 
-Nếu yêu cầu byte exactness, **BOM là dữ liệu cần kiểm tra như mọi byte khác**. Nếu yêu cầu semantic text round-trip, hai bên phải thống nhất quy tắc BOM trước khi so chuỗi. Không thêm hoặc bỏ BOM âm thầm chỉ vì editor của một hệ điều hành xử lý khác.
+If byte exactness is required, **the BOM is data to verify like any other byte**. If semantic text round-trip is required, both sides must agree on the BOM rule before comparing strings. Never add or strip a BOM silently just because one OS editor handles it differently.
 
-## 13. Strict decoding và lỗi dữ liệu không hợp lệ
+## 13. Strict Decoding and Invalid Data Errors
 
-Một số convenience API xử lý input malformed bằng **ký tự thay thế**, dẫn tới mất thông tin. Khi định dạng yêu cầu UTF-8 chính xác, nên dùng decoder có `CodingErrorAction.REPORT`:
+Some convenience APIs handle malformed input with a **replacement character**, resulting in silent data loss. When a format requires exact UTF-8, use a decoder with `CodingErrorAction.REPORT`:
 
 ```java
 CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
@@ -445,11 +445,11 @@ try {
 }
 ```
 
-Đây là snippet, cần imports `java.nio.ByteBuffer`, `java.nio.CharBuffer`, `java.nio.charset.CharsetDecoder`, `java.nio.charset.CodingErrorAction`, `java.nio.charset.CharacterCodingException` và các biến phù hợp.
+This is a snippet requiring imports for `java.nio.ByteBuffer`, `java.nio.CharBuffer`, `java.nio.charset.CharsetDecoder`, `java.nio.charset.CodingErrorAction`, `java.nio.charset.CharacterCodingException`, and appropriate variables.
 
-**Malformed** thường là chuỗi byte sai cấu trúc encoding; **unmappable** là dữ liệu không có biểu diễn ký tự hợp lệ theo charset. Với UTF-8, một ví dụ malformed là `C3 28`: byte `C3` yêu cầu byte continuation phù hợp nhưng byte kế là `28`.
+**Malformed** typically refers to a structurally invalid byte sequence for the encoding; **unmappable** refers to valid input that has no valid character representation in the target charset. In UTF-8, a malformed example is `C3 28`: byte `C3` expects a valid continuation byte, but the next byte is `28`.
 
-Tương tự khi encode text sang charset không đủ ký tự:
+Similarly, when encoding text into a charset that cannot represent all characters:
 
 ```java
 CharsetEncoder strictAscii = StandardCharsets.US_ASCII.newEncoder()
@@ -458,40 +458,40 @@ CharsetEncoder strictAscii = StandardCharsets.US_ASCII.newEncoder()
 try {
     ByteBuffer encoded = strictAscii.encode(CharBuffer.wrap("Tiếng Việt"));
 } catch (CharacterCodingException unsupported) {
-    // Dữ liệu có ký tự không biểu diễn được trong ASCII.
+    // Data contains characters not representable in ASCII.
 }
 ```
 
-Đây là snippet. `String.getBytes(Charset)` có thể thay ký tự không biểu diễn được/chuỗi sai bằng bytes replacement theo API, nên để **phát hiện dữ liệu lỗi** thay vì thay thế âm thầm hãy dùng `CharsetEncoder` strict như trên. Tránh vô tình “test passed” vì cả phía ghi lẫn đọc đã cùng dùng chính sách thay thế mất mát.
+This is a snippet. `String.getBytes(Charset)` can replace unmappable characters or malformed sequences with replacement bytes per the API, so to **detect invalid data** instead of silently replacing it, use a strict `CharsetEncoder` as shown above. Avoid accidental "passing tests" where both the writer and reader used the same lossy replacement policy.
 
-## 14. Golden fixtures và các trường hợp kiểm thử bắt buộc
+## 14. Golden Fixtures and Mandatory Test Cases
 
-Test tốt không chỉ round-trip cùng một hàm encode/decode; nếu cả hai đều mắc cùng một lỗi, chúng có thể tự xác nhận sai. Cần có **golden bytes độc lập** với code đang được kiểm thử.
+Good tests do not merely round-trip through the same encode/decode functions; if both share the same bug, they can validate each other falsely. You need **golden bytes independent** of the code under test.
 
-Bộ fixture khuyến nghị:
+Recommended fixture set:
 
-| Fixture | Byte đặc trưng hoặc nội dung | Điều cần bắt lỗi |
+| Fixture | Characteristic Bytes or Content | What Defect It Catches |
 | --- | --- | --- |
-| Empty file | Không byte nào. | Không thêm BOM/newline/header ngoài dự kiến. |
-| ASCII ngắn | `abc` = `61 62 63` | Dữ liệu đơn giản và content length. |
-| Byte null | `00` nằm giữa payload. | Không coi null là kết thúc chuỗi C-style. |
-| Byte cao | `80 FF` | Signed byte, không decode text nhầm. |
-| UTF-8 dấu tiếng Việt | `đ, ế, ộ` | Charset sai / replacement. |
-| Emoji supplementary | `😀` | Surrogate pairs và byte count. |
-| NFC so NFD | `C3 A9` so `65 CC 81` | Visual equality không đồng nghĩa byte equality. |
-| LF và CRLF | `0A` so `0D 0A` | Line ending rewrite. |
-| Có/không BOM | `EF BB BF` trước text | BOM policy. |
-| Malformed UTF-8 | `C3 28` hoặc truncated multibyte | Strict decoder phải từ chối. |
-| Unpaired UTF-16 surrogate | Ví dụ một high surrogate không có low surrogate | Strict encoder phải từ chối. |
-| Nhiều chunk | Dữ liệu dài hơn buffer, chunk cuối ngắn | Partial reads và stale bytes. |
-| File nhị phân thật | PNG/ZIP fixture nhỏ đã xác minh | Không dùng String làm trung gian. |
-| File lớn | Nhiều MiB/GB theo hạ tầng test | Streaming, memory, timeout, chính sách bảo vệ. |
+| Empty file | Zero bytes. | Unexpected BOM/newline/header added. |
+| Short ASCII | `abc` = `61 62 63` | Basic data and content length. |
+| Null byte | `00` inside payload. | Not treating null as a C-style string terminator. |
+| High bytes | `80 FF` | Signed byte issues, no accidental text decoding. |
+| UTF-8 Vietnamese diacritics | `đ, ế, ộ` | Wrong charset / replacement. |
+| Supplementary emoji | `😀` | Surrogate pairs and byte count. |
+| NFC vs NFD | `C3 A9` vs `65 CC 81` | Visual equality does not imply byte equality. |
+| LF and CRLF | `0A` vs `0D 0A` | Line ending rewrites. |
+| With/without BOM | `EF BB BF` before text | BOM policy. |
+| Malformed UTF-8 | `C3 28` or truncated multibyte | Strict decoder must reject. |
+| Unpaired UTF-16 surrogate | E.g. a high surrogate without a low surrogate | Strict encoder must reject. |
+| Multiple chunks | Data larger than buffer, short final chunk | Partial reads and stale bytes. |
+| Real binary file | Small verified PNG/ZIP fixture | Not using `String` as an intermediary. |
+| Large file | Multiple MiB/GB per test infrastructure | Streaming, memory, timeout, safeguard policies. |
 
-Đối với fixture tính bằng hex, tạo bytes kỳ vọng bằng `HexFormat.parseHex` từ một chuỗi đã được review hoặc chuẩn protocol. Tránh tạo expected bằng chính API encode bạn đang kiểm thử rồi tuyên bố đã kiểm tra encoding đúng.
+For hex-defined fixtures, construct expected bytes using `HexFormat.parseHex` from a reviewed string or protocol standard. Avoid generating expected bytes using the very encode API under test and then claiming the encoding is verified.
 
-## 15. Ví dụ JUnit 5: assertions chính xác (snippet phụ thuộc JUnit)
+## 15. JUnit 5 Example: Exact Assertions (JUnit-Dependent Snippet)
 
-Trong một dự án đã cài JUnit Jupiter, có thể sử dụng:
+In a project with JUnit Jupiter configured, you can use:
 
 ```java
 import static org.junit.jupiter.api.Assertions.*;
@@ -505,9 +505,9 @@ byte[] encoded = text.getBytes(StandardCharsets.UTF_8);
 assertEquals(text, new String(encoded, StandardCharsets.UTF_8));
 ```
 
-Đây là **snippet cần JUnit 5**, không phải chương trình standalone. Nó giả định imports `HexFormat` và `StandardCharsets`, chạy trong test method có dependency `org.junit.jupiter:junit-jupiter` phù hợp.
+This is a **JUnit 5 snippet**, not a standalone program. It assumes imports for `HexFormat` and `StandardCharsets`, running inside a test method with the appropriate `org.junit.jupiter:junit-jupiter` dependency.
 
-Để chẩn đoán sai lệch:
+To diagnose mismatches:
 
 ```java
 int offset = Arrays.mismatch(expected, actual);
@@ -517,16 +517,16 @@ assertEquals(-1, offset,
                 + "; actualHex=" + HexFormat.of().formatHex(actual));
 ```
 
-Đây là snippet test khác; không in payload nhạy cảm trong message. JUnit `assertArrayEquals` thường thuận tiện cho array equality, còn `mismatch` hữu ích nếu bạn cần báo đúng offset.
+This is another test snippet; do not print sensitive payloads in messages. JUnit's `assertArrayEquals` is usually convenient for array equality, while `mismatch` is useful when you want to report the exact offset.
 
-Với file lớn, tránh đưa cả file vào assertion message. Tách integration test so bằng `Files.mismatch`, lưu kích thước, offset đầu tiên sai và log context có giới hạn.
+For large files, avoid embedding entire files in assertion messages. Separate integration tests comparing with `Files.mismatch`, recording sizes, the first mismatch offset, and bounded context logs.
 
-## 16. Round-trip với Reader/Writer và CharsetDecoder
+## 16. Round-Tripping with `Reader`/`Writer` and `CharsetDecoder`
 
-Nếu ứng dụng thật sự đọc và ghi **văn bản**, các API `Reader/Writer` phù hợp vì chúng làm việc với ký tự thay vì bytes. Nhưng test phải hiểu rằng đọc text rồi ghi lại sẽ **encode dữ liệu một lần nữa**:
+If an application genuinely reads and writes **text**, `Reader`/`Writer` APIs are appropriate because they operate on characters rather than bytes. However, tests must recognize that reading text and writing it back **re-encodes the data**:
 
 ```java
-// Snippet: source, target là Paths đã kiểm soát.
+// Snippet: source and target are controlled Paths.
 try (BufferedReader reader = Files.newBufferedReader(
          source, StandardCharsets.UTF_8);
      BufferedWriter writer = Files.newBufferedWriter(
@@ -539,23 +539,23 @@ try (BufferedReader reader = Files.newBufferedReader(
 }
 ```
 
-Đây là snippet, cần imports `BufferedReader`, `BufferedWriter`, `Files`, `StandardCharsets` và xử lý IOException. Lưu ý khác biệt giữa copy **từng mảng char** và copy **từng dòng**: đọc/ghi char liên tục có thể giữ các ký tự newline như đã giải mã, trong khi `readLine/newLine` có thể thay đổi chúng.
+This is a snippet requiring imports for `BufferedReader`, `BufferedWriter`, `Files`, `StandardCharsets`, and `IOException` handling. Note the difference between copying **char arrays** and copying **line by line**: continuous char read/write can preserve decoded newline characters, whereas `readLine`/`newLine` can alter them.
 
-Nhưng việc dùng `Reader/Writer` vẫn **không** tự bảo đảm byte-exact: decoder/encoder có thể xử lý BOM, malformed input, replacement, charset hoặc canonicalization khác nhau. Nếu bytes gốc là dữ liệu chuẩn cần giữ y nguyên, copy ở tầng byte trước, rồi kiểm tra bằng file mismatch.
+Yet using `Reader`/`Writer` still does **not** automatically guarantee byte-exactness: decoders/encoders can handle BOMs, malformed input, replacements, charsets, or canonicalization differently. When the original bytes are canonical data that must stay untouched, copy at the byte layer first and verify with file mismatch.
 
-Với stream mã hóa dài, `CharsetDecoder.decode(ByteBuffer, CharBuffer, boolean)` ở cấp thấp có cơ chế incremental state để xử lý ký tự bị cắt giữa hai chunk; đừng tạo `new String(chunk, UTF_8)` độc lập cho mỗi phần bytes nhận từ socket vì một ký tự multibyte có thể bị tách giữa các chunk.
+For long encoded streams, low-level `CharsetDecoder.decode(ByteBuffer, CharBuffer, boolean)` maintains incremental state to handle characters split across two chunks; never call `new String(chunk, UTF_8)` independently on every byte slice received from a socket because a multibyte character may be split across chunks.
 
-## 17. Chẩn đoán Unicode bị cắt ngang các chunk
+## 17. Diagnosing Unicode Split Across Chunks
 
-UTF-8 mã hóa `é` là:
+UTF-8 encodes `é` as:
 
 ```text
 Chunk 1: C3
 Chunk 2: A9
-Toàn stream: C3 A9  -> U+00E9
+Full stream: C3 A9  -> U+00E9
 ```
 
-Nếu dùng:
+If you write:
 
 ```java
 String a = new String(new byte[] {(byte) 0xC3},
@@ -565,69 +565,69 @@ String b = new String(new byte[] {(byte) 0xA9},
 String result = a + b;
 ```
 
-đó **không** phải giải mã đúng toàn bộ sequence `C3 A9`. Từng chunk riêng không hợp lệ và decoder convenience có thể tạo replacement characters.
+that is **not** a valid decoding of the full `C3 A9` sequence. Each chunk is invalid on its own and convenience decoders may produce replacement characters.
 
-Cách đúng:
+The right approaches:
 
-- Với dữ liệu ít, **tích lũy bytes** cho đến khi có toàn bộ message rồi decode một lần.
-- Với stream lớn, dùng `InputStreamReader`/`BufferedReader` đọc từ stream liên tục để decoder duy trì trạng thái qua ranh giới buffer nội bộ.
-- Hoặc quản lý `CharsetDecoder` incremental với `CoderResult`, trạng thái `endOfInput`, `flush()` và buffer có `compact()` khi còn bytes UTF-8 dang dở.
+- For small data, **accumulate bytes** until the complete message arrives, then decode once.
+- For large streams, use `InputStreamReader`/`BufferedReader` reading continuously from the stream so the decoder preserves state across internal buffer boundaries.
+- Or drive an incremental `CharsetDecoder` with `CoderResult`, `endOfInput` state, `flush()`, and a buffer using `compact()` when incomplete UTF-8 bytes remain.
 
-Nếu parser protocol xác định frame theo **byte length**, trước hết xác định bytes của frame đã đủ rồi mới decode; không cộng `String.length()` làm số bytes trong header.
+If a protocol parser frames messages by **byte length**, first verify all frame bytes have arrived before decoding; never add `String.length()` as the byte count in a header.
 
-## 18. Xử lý file lớn mà không chiếm RAM vô hạn
+## 18. Handling Large Files Without Unbounded RAM Usage
 
-Các convenience APIs như `Files.readAllBytes` và `Files.readString` rất hữu ích cho **unit tests với fixture nhỏ**. Với file lớn, việc nạp tất cả bytes/text vào RAM có thể làm hết heap, kéo dài GC hoặc làm test không phản ánh code production streaming.
+Convenience APIs such as `Files.readAllBytes` and `Files.readString` are very useful for **unit tests with small fixtures**. For large files, loading all bytes/text into RAM can exhaust the heap, trigger long GC pauses, or cause tests not to reflect production streaming code.
 
-Một số chiến lược:
+Strategies:
 
-1. **File-to-file exact check:** dùng `Files.mismatch(pathA, pathB)` để có offset sai đầu tiên.
-2. **Streaming compare:** mở hai input streams; đọc theo chunk, so sánh nội dung hữu hiệu từng lần đọc, đồng thời xử lý khác kích thước và partial reads.
-3. **Hash theo luồng:** khi cần kiểm tra với một digest tham chiếu đã đáng tin, tính SHA-256 bằng `MessageDigest`/`DigestInputStream` mà không giữ tất cả bytes.
-4. **Golden fixture nhỏ:** với protocol serializer, chọn test vectors đại diện cho boundary cases hơn là toàn bộ file nhiều GB.
-5. **Boundary tests:** kích thước 0, 1, bufferSize-1, bufferSize, bufferSize+1, nhiều lần bufferSize+1; đặc biệt test chunk cuối ngắn.
-6. **Resource closure:** dùng `try-with-resources` cho streams/channels và xử lý lỗi khi đóng.
-7. **Concurrency:** nếu source đang bị process khác sửa, so sánh/hash có thể không tương ứng với snapshot nhất quán. Tách nguồn bất biến, dùng snapshot hoặc phối hợp writer trước khi kiểm tra.
+1. **File-to-file exact check:** Use `Files.mismatch(pathA, pathB)` to get the first mismatch offset.
+2. **Streaming compare:** Open two input streams; read in chunks, compare valid content per read, while handling size differences and partial reads.
+3. **Streaming hash:** When verifying against a trusted reference digest, compute SHA-256 via `MessageDigest`/`DigestInputStream` without retaining all bytes.
+4. **Small golden fixtures:** For protocol serializers, choose test vectors covering boundary cases rather than multi-GB files.
+5. **Boundary tests:** Sizes 0, 1, bufferSize-1, bufferSize, bufferSize+1, multiples of bufferSize+1; specifically test a short final chunk.
+6. **Resource closure:** Use `try-with-resources` for streams/channels and handle close errors.
+7. **Concurrency:** If the source is being modified by another process, comparison/hashing may not correspond to a consistent snapshot. Isolate immutable sources, use snapshots, or coordinate with the writer before checking.
 
-Không nên dùng `MessageDigest.isEqual` để “thay thế so sánh nội dung file” khi cả hai digest đều tự tính từ các file có thể bị sửa đồng thời và ứng dụng cần bảo đảm phiên bản cụ thể. Digest comparison phù hợp khi đối tượng được đọc ổn định và tiêu chí trust/reference được định nghĩa rõ.
+Do not use `MessageDigest.isEqual` to "replace file content comparison" when both digests are computed on the fly from files that could be modified concurrently and the application must guarantee a specific version. Digest comparison is appropriate when the input is read stably and trust/reference criteria are clearly defined.
 
-## 19. Lỗi thường gặp và nguyên nhân
+## 19. Common Bugs and Root Causes
 
-| Triệu chứng | Nguyên nhân | Cách xử lý |
+| Symptom | Root Cause | Resolution |
 | --- | --- | --- |
-| Test pass nhưng file có byte thừa ở cuối | So chuỗi sau trim, hoặc chỉ so prefix. | So byte length và toàn bộ byte bằng `Arrays.equals/Files.mismatch`. |
-| Text giống trên editor nhưng mismatch | Khác BOM, line endings, Unicode normalization hoặc whitespace vô hình. | In hex/offset, xác nhận raw bytes trước. |
-| Emoji làm sai byte length | Dùng `String.length()` như số byte UTF-8. | Encode và lấy `byte[].length`. |
-| Chỉ chunk cuối bị sai | Ghi cả buffer thay vì đúng `n` byte mới đọc. | Dùng `write(buffer,0,n)` hoặc `ByteBuffer.limit` đúng. |
-| Byte `FF` hiển thị `-1` | Java byte là signed. | Dùng `Byte.toUnsignedInt` và hex. |
-| Sai charset chỉ trên máy khác | Dùng default charset thay vì chỉ định rõ. | Dùng `StandardCharsets.UTF_8` xuyên suốt. |
-| Decode text lỗi nhưng test không fail | Decoder âm thầm replace invalid input. | Dùng `CharsetDecoder` với `CodingErrorAction.REPORT`. |
-| Encode ASCII vẫn “chạy được” với tiếng Việt | Encoder thay ký tự không biểu diễn được. | Dùng strict `CharsetEncoder` và assert lỗi. |
-| Text bị đổi `LF → CRLF` | `BufferedReader.readLine` rồi `newLine()`. | Copy bytes hoặc giữ line endings theo policy. |
-| Dữ liệu mất khi decode stream theo chunks | UTF-8 multibyte bị cắt giữa hai lần read. | Decoder streaming có state hoặc tích lũy đúng. |
-| Hash khớp nhưng file là sai version | Hash tham chiếu không gắn với identity/version. | Manifest đáng tin gồm algorithm, path, version, digest. |
-| Copy qua text API làm ZIP hỏng | Cố decode bytes nhị phân thành String. | Dùng `InputStream/OutputStream` hoặc `FileChannel`. |
-| Test không tái lập trên CI | Phụ thuộc locale, timezone, EOL, default charset hoặc path separator. | Fixture xác định và cấu hình explicit. |
-| File đang bị process khác ghi nên test flake | So sánh không có snapshot, file đổi trong lúc đọc. | Đảm bảo file bất biến hoặc copy/snapshot trước khi kiểm tra. |
-| In log toàn bộ hex để debug | Tiết lộ dữ liệu nhạy cảm hoặc làm log khổng lồ. | Chỉ log offset và vùng context có giới hạn khi được phép. |
+| Test passes even with trailing garbage bytes | Comparing strings after trim, or comparing only prefixes. | Check byte length and all bytes via `Arrays.equals`/`Files.mismatch`. |
+| Text looks identical in editor but mismatches | Different BOM, line endings, Unicode normalization, or invisible whitespace. | Print hex/offset, inspect raw bytes first. |
+| Emoji breaks byte length | Using `String.length()` as UTF-8 byte count. | Encode first and use `byte[].length`. |
+| Only the last chunk is corrupted | Writing the entire buffer instead of only the `n` newly read bytes. | Use `write(buffer, 0, n)` or set `ByteBuffer.limit` properly. |
+| Byte `FF` prints as `-1` | Java `byte` is signed. | Use `Byte.toUnsignedInt` and hex. |
+| Wrong charset only on another machine | Relying on default charset instead of specifying it explicitly. | Use `StandardCharsets.UTF_8` consistently. |
+| Corrupted text decoding doesn't fail tests | Decoder silently replaces invalid input. | Use `CharsetDecoder` with `CodingErrorAction.REPORT`. |
+| ASCII encoding still "works" on Vietnamese text | Encoder replaces unmappable characters. | Use strict `CharsetEncoder` and assert failure. |
+| Text converted `LF → CRLF` | `BufferedReader.readLine` followed by `newLine()`. | Copy bytes or preserve line endings per policy. |
+| Data lost when decoding stream in chunks | Multibyte UTF-8 split across two reads. | Stateful streaming decoder or proper accumulation. |
+| Hash matches but file is wrong version | Reference hash not bound to identity/version. | Trusted manifest containing algorithm, path, version, digest. |
+| Copying via text API corrupts ZIP | Attempting to decode binary bytes into a `String`. | Use `InputStream`/`OutputStream` or `FileChannel`. |
+| Tests non-reproducible on CI | Dependent on locale, timezone, EOL, default charset, or path separator. | Deterministic fixtures and explicit configuration. |
+| File being written concurrently makes test flaky | Comparing without snapshot while file changes during read. | Ensure file is immutable or copy/snapshot before verifying. |
+| Logging full hex dumps for debugging | Leaks sensitive data or bloats logs. | Log only offset and bounded context window when permitted. |
 
-## 20. Thiết kế bộ kiểm thử đáng tin
+## 20. Designing a Reliable Test Suite
 
-Một suite tốt nên có nhiều tầng:
+A solid suite should span multiple layers:
 
-**Unit tests cho encoder/decoder:** kiểm tra golden bytes độc lập; test UTF-8 hợp lệ và sai; assert được lỗi khi unpaired surrogate hoặc byte sequence malformed; test charset được chỉ định, không phụ thuộc default.
+**Encoder/decoder unit tests:** Verify independent golden bytes; test valid and invalid UTF-8; assert failures on unpaired surrogates or malformed byte sequences; verify explicit charsets rather than defaults.
 
-**Tests cho read/write helper:** dùng bytes có `00`, `FF`, dữ liệu ngẫu nhiên seeded deterministic, size qua nhiều ranh giới buffer; so bytes exact sau một vòng copy.
+**Read/write helper tests:** Use bytes containing `00`, `FF`, deterministically seeded random data, and sizes spanning multiple buffer boundaries; verify exact bytes after a copy round-trip.
 
-**Round-trip text tests:** kiểm tra tiếng Việt, emoji, combining marks, ký tự xuống dòng, dòng rỗng cuối, BOM policy; xác định test muốn exact `String.equals` hay normalization equivalence.
+**Text round-trip tests:** Test Vietnamese, emoji, combining marks, line breaks, trailing empty lines, and BOM policies; decide explicitly whether the test expects exact `String.equals` or normalization equivalence.
 
-**Integration tests:** ghi file, đóng resource, mở lại từ disk, so `Files.mismatch`, kiểm tra behavior trên Windows/Linux khi cần; ghi rõ các giả định có thể khác OS.
+**Integration tests:** Write files, close resources, reopen from disk, compare with `Files.mismatch`, check behavior on Windows/Linux where needed; document any OS-dependent assumptions.
 
-**Regression tests:** mỗi lỗi encoding/copy đã phát hiện nên có fixture thể hiện đúng byte đã lỗi. Đừng “sửa” expected output để test pass mà không xác nhận hợp đồng dữ liệu thực.
+**Regression tests:** Every encoding/copying bug discovered should get a fixture reproducing the exact broken bytes. Never "update" expected output to make a test pass without confirming the real data contract.
 
-**Negative tests:** dữ liệu truncate, invalid UTF-8, file không đọc được, disk full/permission khi môi trường test hỗ trợ, corrupt frame, duplicate bytes, source đổi trong quá trình đọc; kết quả phải thất bại rõ ràng, không trả thành công giả.
+**Negative tests:** Truncated data, invalid UTF-8, unreadable files, disk full/permission errors where the test environment supports them, corrupted frames, duplicate bytes, and source modified during read; results must fail explicitly rather than falsely succeeding.
 
-Đặc biệt, đối với serializer/protocol, tránh phép thử tự xác nhận duy nhất kiểu:
+Specifically, for serializers/protocols, avoid relying solely on self-validating round-trip tests like:
 
 ```text
 actualBytes = encode(input)
@@ -635,53 +635,53 @@ restored = decode(actualBytes)
 assertEquals(input, restored)
 ```
 
-Nếu encode và decode cùng mắc một lỗi đối xứng, phép thử có thể vẫn pass. Bổ sung một **golden vector bytes** chuẩn và bài test độc lập cho cả encode và decode.
+If encode and decode share a symmetric bug, this test can still pass. Add canonical **golden byte vectors** and independent tests for both encode and decode.
 
-## 21. Bài tập thực hành
+## 21. Practice Exercises
 
-**Bài 1 — Golden UTF-8.** Dùng `HexFormat.parseHex("61c3a90a")` làm expected cho văn bản `"aé\n"`. Viết JUnit test so chính xác bằng `assertArrayEquals` và giải thích vì sao phải dùng hex fixture độc lập thay vì tạo expected bằng chính logic cần test.
+**Exercise 1 — Golden UTF-8.** Use `HexFormat.parseHex("61c3a90a")` as the expected value for `"aé\n"`. Write a JUnit test comparing exact bytes with `assertArrayEquals` and explain why an independent hex fixture must be used instead of generating the expected value with the logic under test.
 
-**Bài 2 — Một byte hỏng.** Tạo `byte[]` chứa 1.024 byte, thay byte ở index 511 rồi dùng `Arrays.mismatch` xác nhận vị trí sai. Kiểm thử thêm trường hợp mảng dài khác nhau nhưng chung prefix.
+**Exercise 2 — Single-byte corruption.** Create a 1,024-byte `byte[]`, flip a byte at index 511, and use `Arrays.mismatch` to verify the differing position. Also test arrays of different lengths sharing a common prefix.
 
-**Bài 3 — BOM.** Tạo hai file UTF-8 chứa `abc`, một file có prefix `EF BB BF`. Dùng `Files.mismatch`, `Files.size` và hex để báo khác biệt. Quy định rõ test “raw exact” và test “semantic text” có chấp nhận BOM hay không.
+**Exercise 3 — BOM.** Create two UTF-8 files containing `abc`, one prefixed with `EF BB BF`. Use `Files.mismatch`, `Files.size`, and hex to report the differences. Define clearly whether a "raw exact" test and a "semantic text" test accept a BOM.
 
-**Bài 4 — Line endings.** Viết fixture với CRLF, LF và một file trộn cả hai. Copy với streams (không dùng readLine) rồi so nguyên byte; tiếp theo chủ động normalize newline và kiểm tra output theo policy mới.
+**Exercise 4 — Line endings.** Create fixtures with CRLF, LF, and mixed line endings. Copy via streams (without `readLine`) and verify byte exactness; then intentionally normalize newlines and verify the output under the new policy.
 
-**Bài 5 — NFC/NFD.** So hai chuỗi `"café"` và `"cafe\u0301"` bằng `equals`, byte arrays UTF-8 và `Normalizer.Form.NFC`. Giải thích vì sao kết luận khác nhau và khi nào normalization bị cấm.
+**Exercise 5 — NFC/NFD.** Compare `"café"` and `"cafe\u0301"` using `equals`, UTF-8 byte arrays, and `Normalizer.Form.NFC`. Explain why the results differ and when normalization is forbidden.
 
-**Bài 6 — Invalid UTF-8.** Dùng mảng `C3 28`. So hành vi decoder strict với API convenience có replacement. Đảm bảo một pipeline yêu cầu dữ liệu chính xác phải báo lỗi, không sửa byte âm thầm.
+**Exercise 6 — Invalid UTF-8.** Use byte array `C3 28`. Compare strict decoder behavior with a convenience API using replacement. Ensure a pipeline requiring exact data raises an error instead of silently altering bytes.
 
-**Bài 7 — Multibyte bị cắt.** Gửi bytes `C3 A9` qua hai read chunks `C3` và `A9`. So kết quả decode từng chunk với decode toàn stream. Sửa bằng `InputStreamReader` hoặc `CharsetDecoder` incremental.
+**Exercise 7 — Split multibyte character.** Send bytes `C3 A9` across two read chunks `C3` and `A9`. Compare decoding each chunk independently versus decoding the whole stream. Fix it with `InputStreamReader` or an incremental `CharsetDecoder`.
 
-**Bài 8 — File lớn.** Sinh file dữ liệu có seed và kích thước lớn hơn nhiều lần buffer, rồi copy qua `FileChannel`; so `Files.mismatch == -1`. Chèn lỗi cố ý ở byte giữa file để in offset sai. Không log toàn bộ nội dung.
+**Exercise 8 — Large file.** Generate a seeded data file much larger than the buffer size, then copy it via `FileChannel`; assert `Files.mismatch == -1`. Inject an intentional error in a middle byte to print the mismatch offset. Do not log the full file content.
 
-**Bài 9 — Text length và payload length.** Tạo protocol gửi `"Việt 😀"` dưới dạng UTF-8 với header 4 byte chiều dài; xác nhận dùng `encoded.length`, không dùng `String.length()`. Mô phỏng receiver đọc payload qua nhiều chunk.
+**Exercise 9 — Text length vs payload length.** Create a protocol sending `"Việt 😀"` in UTF-8 with a 4-byte length header; verify using `encoded.length`, not `String.length()`. Simulate a receiver reading the payload across multiple chunks.
 
-**Bài 10 — Regression fixture.** Chọn một lỗi thật như BOM bị thêm hoặc LF bị đổi thành CRLF. Lưu fixture trước và sau dưới dạng hex kèm expected mismatch offset; viết test để lỗi không quay lại.
+**Exercise 10 — Regression fixture.** Pick a real bug such as an injected BOM or LF converted to CRLF. Save before/after fixtures in hex alongside the expected mismatch offset; write a test so the regression never returns.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-1. `String.equals` chứng minh byte-for-byte equality được không?
-2. `Files.mismatch` trả về giá trị gì khi hai file hoàn toàn giống nhau?
-3. Khi source stream đọc 7 byte vào mảng 8.192 byte, nên ghi bao nhiêu byte?
-4. Vì sao `getBytes()` không truyền charset có thể làm test không ổn định trên môi trường khác?
-5. `String.length()` của một emoji supplementary là bao nhiêu và UTF-8 dùng mấy byte?
-6. Khi nào hai chuỗi cùng hiển thị nhưng `Arrays.equals(utf8A, utf8B) == false`?
-7. `readLine/newLine` tác động thế nào đến line ending raw bytes?
-8. Vì sao decoder strict cần thiết với dữ liệu văn bản phải toàn vẹn?
-9. Vì sao không nên decode một phần byte UTF-8 riêng lẻ cho mỗi chunk?
-10. Một bộ test encode→decode pass có đủ chứng minh encoder tuân thủ golden wire format không?
+1. Can `String.equals` prove byte-for-byte equality?
+2. What does `Files.mismatch` return when two files are completely identical?
+3. When a source stream reads 7 bytes into an 8,192-byte array, how many bytes should be written?
+4. Why can `getBytes()` without a charset make tests unstable across environments?
+5. What is `String.length()` for a supplementary emoji, and how many UTF-8 bytes does it use?
+6. When do two strings display identically yet `Arrays.equals(utf8A, utf8B) == false`?
+7. How does `readLine`/`newLine` affect raw line-ending bytes?
+8. Why is a strict decoder necessary for text data requiring full integrity?
+9. Why should you not decode partial UTF-8 bytes independently per chunk?
+10. Is a passing encode→decode test suite enough to prove an encoder follows the golden wire format?
 
-## 22. Tham khảo
+## 22. References
 
-- [Java SE 21 — Arrays](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Arrays.html): `equals`, `mismatch` với các mảng primitive.
+- [Java SE 21 — Arrays](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Arrays.html): `equals`, `mismatch` for primitive arrays.
 - [Java SE 21 — Files](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/Files.html): `readAllBytes`, `readString`, `write`, `copy`, `mismatch`.
-- [Java SE 21 — StandardCharsets](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/StandardCharsets.html): các charset chuẩn có sẵn.
-- [Java SE 21 — CharsetDecoder](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/CharsetDecoder.html): cách phát hiện malformed/unmappable input.
-- [Java SE 21 — CharsetEncoder](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/CharsetEncoder.html): kiểm soát lỗi khi encode String ra bytes.
-- [Java SE 21 — HexFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HexFormat.html): đọc/ghi byte dưới dạng hex.
+- [Java SE 21 — StandardCharsets](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/StandardCharsets.html): standard available charsets.
+- [Java SE 21 — CharsetDecoder](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/CharsetDecoder.html): detecting malformed/unmappable input.
+- [Java SE 21 — CharsetEncoder](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/CharsetEncoder.html): error control when encoding `String` to bytes.
+- [Java SE 21 — HexFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HexFormat.html): reading/writing bytes as hex.
 - [Java SE 21 — Normalizer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/Normalizer.html): Unicode normalization NFC/NFD/NFKC/NFKD.
-- [Java SE 21 — ByteBuffer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html): position/limit/remaining và thao tác NIO.
-- [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/): assertions và data-driven tests.
+- [Java SE 21 — ByteBuffer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html): position/limit/remaining and NIO operations.
+- [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/): assertions and data-driven tests.
 
-**Ghi nhớ:** Với yêu cầu **byte-exact**, hãy kiểm tra từng byte thực tế qua `Arrays.equals/Arrays.mismatch/Files.mismatch` và báo offset khi lỗi. Với **text round-trip**, chỉ định charset tường minh, kiểm thử cả encode/decode lẫn golden bytes, và kiểm soát BOM, newline, Unicode normalization cùng lỗi malformed. “Nhìn đúng trên màn hình” và “không có exception” không thay thế bằng chứng nội dung đã được bảo toàn.
+**Remember:** For **byte-exact** requirements, inspect the actual bytes via `Arrays.equals`/`Arrays.mismatch`/`Files.mismatch` and report offsets on failure. For **text round-trips**, specify the charset explicitly, test both encode/decode and golden bytes, and control BOM, newlines, Unicode normalization, and malformed-input errors. "Looks right on screen" and "no exception" are no substitute for proof that content was preserved.

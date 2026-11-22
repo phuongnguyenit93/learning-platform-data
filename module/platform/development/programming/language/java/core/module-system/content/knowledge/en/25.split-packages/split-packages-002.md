@@ -1,24 +1,24 @@
-# Vì sao một package không được chia giữa named module
+# Why a Package Cannot Be Split Between Named Modules
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Trong Java Platform Module System (JPMS), package là đơn vị tổ chức class và interface; module là đơn vị gom nhiều package thành một thành phần có ranh giới dependency và encapsulation. Một package có thể chứa nhiều compilation unit, nhưng khi đưa các module vào cùng một ứng dụng modular, package cần có nguồn hiển thị rõ ràng đối với từng module sử dụng.
+In the Java Platform Module System (JPMS), a package is the unit of organization for classes and interfaces; a module is the unit that groups multiple packages into a component with dependency and encapsulation boundaries. A package can contain multiple compilation units, but when placing modules into the same modular application, a package needs to have a clear visible source for each module that uses it.
 
-Tình huống thường gây lỗi là **split package**: cùng một tên package, ví dụ com.acme.shared, xuất hiện trong nhiều named module. Một module tiêu thụ đọc cả hai module và cả hai cùng export package đó. Khi ấy compiler và module resolver không thể coi package là một tập type duy nhất có nguồn sở hữu rõ ràng.
+A common error-causing situation is a **split package**: the same package name, for example com.acme.shared, appears in multiple named modules. A consuming module reads both modules and both export that package. In that case, the compiler and module resolver cannot treat the package as a single set of types with a clear owning source.
 
-Bài này giải thích:
+This article explains:
 
-- Vì sao package cần có một nguồn hiển thị duy nhất đối với từng consumer.
-- Quy tắc chính xác của JPMS và những trường hợp tạo xung đột.
-- Vì sao exports, requires và class loader có liên quan.
-- Cách phát hiện, sửa split package khi tách một thư viện lớn thành nhiều module.
-- Những ngoại lệ runtime cần phân biệt để không hiểu quy tắc quá tuyệt đối.
+- Why a package needs a single visible source for each consumer.
+- The exact JPMS rules and the cases that create conflicts.
+- Why exports, requires, and class loaders are involved.
+- How to detect and fix split packages when splitting a large library into multiple modules.
+- Runtime exceptions to distinguish so as not to interpret the rule too rigidly.
 
-**Lưu ý về phạm vi:** JPMS không đơn giản cấm mọi trường hợp hai module ở bất kỳ đâu có cùng tên package. Quy tắc quan trọng là package phải uniquely visible đối với module đang biên dịch. Tuy nhiên, trong kiến trúc ứng dụng thông thường, nên thiết kế để một package thuộc về một named module duy nhất; cách này tránh xung đột khi module graph thay đổi và tương thích với cách tạo layer dùng chung một class loader.
+**Scope note:** JPMS does not simply forbid every case where two modules anywhere have the same package name. The key rule is that a package must be uniquely visible to the module being compiled. However, in typical application architecture, you should design so that one package belongs to a single named module; this avoids conflicts when the module graph changes and is compatible with creating layers that share a single class loader.
 
-## 2. Phân biệt package và module
+## 2. Distinguishing Packages and Modules
 
-Package nhóm các type theo tên đầy đủ:
+Packages group types by their fully qualified names:
 
 ~~~java
 package com.acme.shared;
@@ -32,7 +32,7 @@ public final class Ids {
 }
 ~~~
 
-Một module có thể chứa nhiều package:
+A module can contain multiple packages:
 
 ~~~text
 com.acme.orders
@@ -41,7 +41,7 @@ com.acme.orders
   └── com.acme.orders.internal
 ~~~
 
-Module descriptor xác định dependency và package nào được công khai:
+A module descriptor defines dependencies and which packages are exposed:
 
 ~~~java
 module com.acme.orders {
@@ -51,17 +51,17 @@ module com.acme.orders {
 }
 ~~~
 
-Tên package và tên module là hai namespace khác nhau:
+Package names and module names are two separate namespaces:
 
-- **com.acme.orders** có thể là tên module.
-- **com.acme.orders.api** là tên package.
-- Module com.acme.orders có thể chứa nhiều package, trong đó một số được export và số khác được giữ internal.
+- **com.acme.orders** can be a module name.
+- **com.acme.orders.api** is a package name.
+- Module com.acme.orders can contain multiple packages, of which some are exported and others are kept internal.
 
-Tên package có dấu chấm thể hiện cấu trúc tên. Package con không tự động là một phần của package cha. Ví dụ com.acme.shared và com.acme.shared.internal là hai package khác nhau. Vì vậy, việc một module chứa com.acme.shared còn module khác chứa com.acme.shared.internal không tự nó tạo split package.
+Dotted package names express naming structure. A subpackage is not automatically part of its parent package. For example, com.acme.shared and com.acme.shared.internal are two different packages. Therefore, having one module contain com.acme.shared while another contains com.acme.shared.internal does not by itself create a split package.
 
-## 3. Split package là gì?
+## 3. What Is a Split Package?
 
-Giả sử một thư viện cũ chứa hai nhóm class trong cùng package:
+Suppose a legacy library contains two groups of classes in the same package:
 
 ~~~text
 legacy-library/
@@ -73,7 +73,7 @@ legacy-library/
     XmlSupport.java
 ~~~
 
-Khi tách thành hai module theo chức năng, người phát triển có thể chia file như sau:
+When splitting it into two modules by functionality, a developer might divide the files as follows:
 
 ~~~text
 module com.acme.shared.core
@@ -86,9 +86,9 @@ module com.acme.shared.formats
   com.acme.shared.XmlSupport
 ~~~
 
-Cả hai module đều chứa package com.acme.shared. Đây là split package.
+Both modules contain the package com.acme.shared. This is a split package.
 
-Nếu cả hai module export package này:
+If both modules export this package:
 
 ~~~java
 module com.acme.shared.core {
@@ -102,7 +102,7 @@ module com.acme.shared.formats {
 }
 ~~~
 
-và ứng dụng đọc cả hai:
+and the application reads both:
 
 ~~~java
 module com.acme.application {
@@ -111,75 +111,75 @@ module com.acme.application {
 }
 ~~~
 
-thì application nhìn thấy package com.acme.shared được export từ hai module. Package không còn uniquely visible đối với application. Module resolution thất bại thay vì chọn ngẫu nhiên một nguồn.
+then application sees the package com.acme.shared exported from two modules. The package is no longer uniquely visible to application. Module resolution fails rather than picking one source arbitrarily.
 
-Điểm cần hiểu là lỗi không đơn thuần do hai thư mục trên ổ đĩa có cùng tên. Nó xuất phát từ module graph và quan hệ exports/readability: module consumer nhìn thấy cùng một package từ nhiều module.
+The key point to understand is that the error is not simply because two directories on disk have the same name. It stems from the module graph and exports/readability relationships: the consumer module sees the same package from multiple modules.
 
-## 4. Quy tắc uniquely visible trong JLS
+## 4. The Uniquely Visible Rule in the JLS
 
-JLS Java SE 21, mục **7.4.3 — Package Observability and Visibility**, định nghĩa khi nào một package uniquely visible đối với module M.
+JLS Java SE 21, section **7.4.3 — Package Observability and Visibility**, defines when a package is uniquely visible to a module M.
 
-Có hai trường hợp:
+There are two cases:
 
-1. Một compilation unit thuộc module M khai báo package đó, và M không đọc module nào khác export package đó cho M.
-2. Không có compilation unit nào thuộc M khai báo package đó, và M đọc chính xác một module khác export package đó cho M.
+1. A compilation unit belonging to module M declares that package, and M does not read any other module that exports that package to M.
+2. No compilation unit belonging to M declares that package, and M reads exactly one other module that exports that package to M.
 
-Nếu không thỏa một trong hai trường hợp, package không uniquely visible đối với M.
+If neither of these two cases holds, the package is not uniquely visible to M.
 
-Có thể diễn giải bằng bảng:
+This can be illustrated in a table:
 
-| Tình huống đối với module consumer M | Kết quả |
+| Situation for consumer module M | Result |
 |---|---|
-| M tự chứa package p, không có module đọc được nào khác export p cho M | p uniquely visible từ M |
-| M không tự chứa p và chỉ một module được M đọc export p cho M | p uniquely visible từ module đó |
-| M không tự chứa p và hai module được M đọc cùng export p cho M | Xung đột, không uniquely visible |
-| M tự chứa p và một module khác mà M đọc cũng export p cho M | Xung đột, không uniquely visible |
+| M itself contains package p, and no other readable module exports p to M | p is uniquely visible from M |
+| M does not itself contain p, and only one module read by M exports p to M | p is uniquely visible from that module |
+| M does not itself contain p, and two modules read by M both export p to M | Conflict, not uniquely visible |
+| M itself contains p, and another module read by M also exports p to M | Conflict, not uniquely visible |
 
-Module resolution có consistency check tương ứng. Resolution thất bại nếu hai hay nhiều module trong configuration export cùng một package cho một module đọc được cả hai. Trường hợp module M tự chứa package p nhưng lại đọc một module khác export p cho M cũng thuộc nhóm xung đột.
+Module resolution has a corresponding consistency check. Resolution fails if two or more modules in a configuration export the same package to a module that reads both. The case where module M itself contains package p yet reads another module exporting p to M also falls into the conflict category.
 
-Điều này giải thích vì sao một module có thể biên dịch riêng nhưng khi ghép vào ứng dụng lớn lại lỗi: module mới được đặt trong một graph có thêm dependency, khiến một package trước đó uniquely visible nay có nhiều nguồn.
+This explains why a module can compile in isolation yet fail when integrated into a larger application: the new module is placed in a graph with additional dependencies, causing a previously uniquely visible package to have multiple sources.
 
-## 5. Vì sao JPMS cần quy tắc này?
+## 5. Why Does JPMS Need This Rule?
 
-### Tránh tên package có nhiều nguồn trong cùng compilation context
+### Avoiding package names with multiple sources in the same compilation context
 
-Khi source trong module M viết:
+When source code in module M writes:
 
 ~~~java
 import com.acme.shared.Ids;
 ~~~
 
-compiler cần xác định package com.acme.shared và type Ids đến từ đâu. Nếu M đọc hai module đều export package này, việc phân giải tên không có một nguồn package duy nhất theo quy tắc của JLS.
+the compiler needs to determine where the package com.acme.shared and the type Ids come from. If M reads two modules that both export this package, name resolution does not have a single package source under the JLS rules.
 
-Không nên dựa vào thứ tự module path, thứ tự JAR hoặc thứ tự dependency để quyết định type nào thắng. JPMS yêu cầu module graph rõ ràng thay vì cho phép một classpath search order ngầm quyết định API.
+You should not rely on module path order, JAR order, or dependency order to decide which type wins. JPMS requires an explicit module graph rather than allowing an implicit classpath search order to determine the API.
 
-### Giữ ranh giới module có ý nghĩa
+### Keeping module boundaries meaningful
 
-Module được thiết kế để nhóm các package liên quan thành một thành phần. Nếu cùng một package bị chia giữa nhiều module, người sử dụng khó biết module nào sở hữu API, module nào chịu trách nhiệm tương thích và module nào cần được nâng cấp cùng module còn lại.
+Modules are designed to group related packages into a component. If the same package is split across multiple modules, users have difficulty knowing which module owns the API, which module is responsible for compatibility, and which module needs to be upgraded together with the other.
 
-Một package duy nhất trong một module giúp descriptor xác định rõ:
+Having a single package in a single module helps the descriptor clearly define:
 
-- Module nào sở hữu các type của package.
-- Module nào có thể đọc package thông qua requires.
-- Module nào được truy cập public type thông qua exports.
-- Các implementation nội bộ nào vẫn được giữ kín trong module.
+- Which module owns the types of the package.
+- Which modules can read the package through requires.
+- Which modules can access public types through exports.
+- Which internal implementations remain hidden within the module.
 
-### Tránh phụ thuộc vào cách nạp class
+### Avoiding dependence on class loading behavior
 
-Một class loader cần tìm được module chịu trách nhiệm cho package khi nạp type. Nếu nhiều module cùng được định nghĩa cho một class loader nhưng chứa cùng package, việc ánh xạ package sang module trở nên mơ hồ.
+A class loader needs to find the module responsible for a package when loading a type. If multiple modules are defined for one class loader while containing the same package, mapping a package to a module becomes ambiguous.
 
-API **ModuleLayer.defineModulesWithOneLoader** từ chối tạo layer khi hai hoặc nhiều module trong configuration có package trùng nhau. Đây là một ràng buộc runtime cụ thể của mô hình dùng chung một class loader.
+The **ModuleLayer.defineModulesWithOneLoader** API refuses to create a layer when two or more modules in the configuration have overlapping packages. This is a concrete runtime constraint of the single-shared-class-loader model.
 
-Với nhiều class loader, runtime có thể cô lập các module có package trùng tên trong những trường hợp nâng cao. Điều đó không biến chúng thành một package chung và cũng không loại bỏ các consistency check về exports/readability trong module configuration.
+With multiple class loaders, the runtime can isolate modules with identically named packages in advanced scenarios. That does not turn them into a shared package and does not remove exports/readability consistency checks in the module configuration.
 
-## 6. requires và exports kết hợp tạo ra xung đột ra sao?
+## 6. How requires and exports Combine to Create Conflicts
 
-Hai directive có vai trò khác nhau:
+The two directives have different roles:
 
-- **requires** tạo dependency và readability từ module khai báo tới module được yêu cầu.
-- **exports** cho phép các module phù hợp truy cập public type trong package.
+- **requires** creates a dependency and readability from the declaring module to the required module.
+- **exports** allows eligible modules to access public types in the package.
 
-Ví dụ:
+For example:
 
 ~~~java
 module com.acme.lib.one {
@@ -200,13 +200,13 @@ module com.acme.application {
 }
 ~~~
 
-Application đọc cả lib.one và lib.two; cả hai export com.acme.shared cho application. Đây là xung đột.
+Application reads both lib.one and lib.two; both export com.acme.shared to application. This is a conflict.
 
-Nếu chỉ một module export package cho application, module đó có thể là nguồn duy nhất mà application nhìn thấy. Tuy nhiên, giữ một package vật lý trong nhiều module vẫn là thiết kế mong manh: thêm một requires, đổi qualified exports thành unqualified exports hoặc đổi cách tạo layer có thể làm graph chuyển sang trạng thái xung đột.
+If only one module exports the package to application, that module can be the single source that application sees. However, keeping one physical package across multiple modules is still a fragile design: adding a requires, changing qualified exports to unqualified exports, or changing how layers are created can push the graph into a conflicting state.
 
-### requires transitive có thể làm xung đột xuất hiện gián tiếp
+### requires transitive can cause conflicts to appear indirectly
 
-Giả sử application chỉ yêu cầu facade:
+Suppose application only requires facade:
 
 ~~~java
 module com.acme.application {
@@ -214,7 +214,7 @@ module com.acme.application {
 }
 ~~~
 
-Nhưng facade khai báo:
+But facade declares:
 
 ~~~java
 module com.acme.facade {
@@ -223,13 +223,13 @@ module com.acme.facade {
 }
 ~~~
 
-Application đọc cả lib.one và lib.two do các cạnh transitive. Nếu hai module export cùng package cho application, xung đột vẫn xảy ra dù application không khai báo requires trực tiếp từng module.
+Application reads both lib.one and lib.two because of the transitive edges. If both modules export the same package to application, the conflict still occurs even though application does not directly declare requires for each module.
 
-Khi điều tra split package, phải xem toàn bộ readability graph, bao gồm requires transitive, chứ không chỉ nhìn module-info.java của ứng dụng.
+When investigating split packages, you must examine the entire readability graph, including requires transitive, rather than looking only at the application's module-info.java.
 
-## 7. Qualified exports có giải quyết được không?
+## 7. Can Qualified Exports Solve It?
 
-Qualified export chỉ export package cho một nhóm module cụ thể:
+A qualified export only exports a package to a specific set of modules:
 
 ~~~java
 module com.acme.lib.one {
@@ -243,21 +243,21 @@ module com.acme.lib.two {
 }
 ~~~
 
-Nếu application chỉ đọc lib.one và không nhận export com.acme.shared từ lib.two, package có thể uniquely visible đối với application từ lib.one.
+If application only reads lib.one and does not receive the export of com.acme.shared from lib.two, the package can be uniquely visible to application from lib.one.
 
-Tuy nhiên, qualified exports chỉ giới hạn ai nhìn thấy package. Nó không hợp nhất hai phần package, không làm package-private member dùng chung giữa hai module và không tự giải quyết mọi cấu hình consumer khác.
+However, qualified exports only restrict who sees the package. They do not merge the two parts of the package, do not make package-private members shared between the two modules, and do not automatically resolve every other consumer configuration.
 
-Không nên dùng qualified exports để che một split package không có ranh giới thiết kế rõ ràng. Nó có thể phù hợp trong kiến trúc có chủ ý với nhiều module consumer được cô lập, nhưng cần kiểm soát graph của từng consumer.
+You should not use qualified exports to mask a split package that lacks clear design boundaries. They can be appropriate in an intentional architecture with multiple isolated consumer modules, but each consumer's graph must be controlled.
 
-### opens không thay thế exports
+### opens does not replace exports
 
-**opens** phục vụ deep reflection ở runtime. Nó không làm package trở thành package được export cho truy cập Java thông thường khi biên dịch. Vì vậy, thêm opens không phải cách sửa lỗi package không uniquely visible trong source compilation.
+**opens** serves deep reflection at runtime. It does not make a package exported for ordinary Java access at compile time. Therefore, adding opens is not a fix for a package-not-uniquely-visible error during source compilation.
 
-## 8. Tại sao không thể dựa vào package-private để chia package?
+## 8. Why Cannot You Rely on Package-Private to Split a Package?
 
-Trong một package Java thông thường, các type và member không có modifier truy cập thường có package access. Điều này thường khiến người phát triển muốn chia các class cùng package thành nhiều module để giữ quyền truy cập nội bộ.
+In a normal Java package, types and members without an access modifier typically have package access. This often makes developers want to split classes of the same package into multiple modules to preserve internal access.
 
-Ví dụ:
+For example:
 
 ~~~java
 package com.acme.shared;
@@ -279,17 +279,17 @@ public final class PublicFacade {
 }
 ~~~
 
-Trong mô hình một module, PublicFacade có thể sử dụng InternalCache vì cả hai thuộc cùng package của module.
+In a single-module model, PublicFacade can use InternalCache because both belong to the same package of the module.
 
-Khi tách hai class sang hai named module, cùng viết dòng package com.acme.shared không biến hai module thành một package nội bộ chung. Module boundaries và class loader/module identity vẫn có hiệu lực; package-private access không phải cơ chế chia sẻ API giữa hai module.
+When moving the two classes into two named modules, writing the same package com.acme.shared line does not turn the two modules into one shared internal package. Module boundaries and class loader/module identity still apply; package-private access is not a mechanism for sharing APIs between two modules.
 
-Nếu class ở module khác cần được gọi, hãy thiết kế public API rõ ràng trong package được export. Nếu một implementation phải dùng package-private internals của facade, hãy giữ các class đó trong cùng module.
+If a class in another module needs to be called, design a clear public API in an exported package. If an implementation must use package-private internals of the facade, keep those classes in the same module.
 
-## 9. Subpackage có thể nằm ở module khác không?
+## 9. Can Subpackages Reside in Different Modules?
 
-Có. Package cha và subpackage là hai package khác nhau.
+Yes. A parent package and a subpackage are two different packages.
 
-Ví dụ:
+For example:
 
 ~~~text
 module com.acme.shared.api
@@ -299,7 +299,7 @@ module com.acme.shared.internal
   com.acme.shared.internal
 ~~~
 
-Module API:
+API module:
 
 ~~~java
 module com.acme.shared.api {
@@ -307,7 +307,7 @@ module com.acme.shared.api {
 }
 ~~~
 
-Module internal:
+Internal module:
 
 ~~~java
 module com.acme.shared.internal {
@@ -315,18 +315,18 @@ module com.acme.shared.internal {
 }
 ~~~
 
-Đây không phải split package vì hai tên package khác nhau. Package com.acme.shared.api và com.acme.shared.internal có quan hệ tên phân cấp nhưng không có quan hệ package-private access đặc biệt.
+This is not a split package because the two package names are different. The packages com.acme.shared.api and com.acme.shared.internal have a hierarchical naming relationship but no special package-private access relationship.
 
-Việc chia subpackage theo module là một cách tổ chức hợp lệ, miễn là dependency và exports được khai báo rõ ràng. Không nên giả định rằng code trong com.acme.shared.internal tự động truy cập package-private members của com.acme.shared.api.
+Splitting subpackages across modules is a valid organization approach, provided dependencies and exports are declared clearly. Do not assume that code in com.acme.shared.internal automatically accesses package-private members of com.acme.shared.api.
 
-## 10. Trường hợp runtime layer và class loader
+## 10. Runtime Layer and Class Loader Cases
 
-Cần phân biệt hai câu hỏi:
+Two questions must be distinguished:
 
-1. **Module resolution:** package có uniquely visible đối với các module consumer theo readability và exports không?
-2. **Layer/class loader:** các module đã resolve có thể được ánh xạ vào class loader được chọn để nạp type không?
+1. **Module resolution:** is the package uniquely visible to consumer modules according to readability and exports?
+2. **Layer/class loader:** can the resolved modules be mapped to the chosen class loader(s) to load types?
 
-Khi dùng:
+When using:
 
 ~~~java
 ModuleLayer.defineModulesWithOneLoader(
@@ -335,9 +335,9 @@ ModuleLayer.defineModulesWithOneLoader(
         ClassLoader.getSystemClassLoader());
 ~~~
 
-mọi module trong configuration được định nghĩa cho cùng một class loader. API quy định thao tác có thể thất bại với **LayerInstantiationException** nếu hai hay nhiều module có package trùng nhau.
+every module in the configuration is defined to the same class loader. The API specifies that the operation can fail with **LayerInstantiationException** if two or more modules have overlapping packages.
 
-Với:
+With:
 
 ~~~java
 ModuleLayer.defineModulesWithManyLoaders(
@@ -345,86 +345,86 @@ ModuleLayer.defineModulesWithManyLoaders(
         ClassLoader.getSystemClassLoader());
 ~~~
 
-mỗi module được định nghĩa trong class loader riêng. Điều này có thể cô lập package trùng tên giữa các module trong các trường hợp runtime nâng cao. Tuy nhiên:
+each module is defined in its own class loader. This can isolate identically named packages across modules in advanced runtime scenarios. However:
 
-- Mỗi module vẫn là một module riêng.
-- Type có cùng tên đầy đủ nhưng được nạp từ module/class loader khác nhau không trở thành cùng một type.
-- Consumer vẫn phải thỏa các quy tắc readability và exports.
-- Một consumer không thể đọc hai module cùng export package đó cho nó mà vẫn có package uniquely visible.
+- Each module remains a separate module.
+- Types with the same fully qualified name loaded from different modules/class loaders do not become the same type.
+- Consumers still must satisfy readability and exports rules.
+- A consumer cannot read two modules that both export that package to it and still have the package uniquely visible.
 
-Do đó, nhiều class loader là cơ chế cô lập runtime, không phải cách thiết kế một package dùng chung giữa các module.
+Therefore, multiple class loaders are a runtime isolation mechanism, not a way to design a package shared across modules.
 
-## 11. Automatic modules và thư viện cũ
+## 11. Automatic Modules and Legacy Libraries
 
-Khi một JAR không có module-info.class được đặt trên module path, nó có thể trở thành automatic module. Automatic module có một số quy tắc rộng:
+When a JAR without module-info.class is placed on the module path, it can become an automatic module. Automatic modules have several broad rules:
 
-- Module name được suy ra từ tên JAR hoặc metadata tương ứng.
-- Automatic module đọc các module được enumerated trong configuration.
-- Các package trong automatic module được export theo quy tắc automatic module.
+- The module name is derived from the JAR name or corresponding metadata.
+- An automatic module reads the modules enumerated in the configuration.
+- Packages in an automatic module are exported according to automatic module rules.
 
-Điều này có thể làm split package cũ dễ lộ ra khi chuyển thư viện từ classpath sang module path. Hai thư viện cũ có thể cùng chứa package com.vendor.common; trên classpath, class loader search order có thể khiến ứng dụng vẫn chạy. Khi trở thành automatic modules và các module cùng được đọc, exports rộng có thể tạo xung đột.
+This can easily expose legacy split packages when migrating libraries from the classpath to the module path. Two legacy libraries may both contain the package com.vendor.common; on the classpath, class loader search order may allow the application to keep running. When they become automatic modules and the modules are read together, broad exports can create conflicts.
 
-Khi modularize thư viện cũ:
+When modularizing legacy libraries:
 
-1. Kiểm tra package thực tế trong từng JAR.
-2. Xác định package nào trùng giữa các dependency.
-3. Xác định module consumer có đọc cả các module đó không.
-4. Ưu tiên nâng cấp hoặc thay thế thư viện có package trùng.
-5. Nếu cần, relocate package của một thư viện bằng shading/bytecode relocation trước khi đưa vào module path.
-6. Chỉ dùng classpath hoặc automatic module như bước chuyển tiếp có chủ đích, không coi đó là giải pháp kiến trúc dài hạn.
+1. Check the actual packages in each JAR.
+2. Identify which packages overlap between dependencies.
+3. Determine whether a consumer module reads both of those modules.
+4. Prefer upgrading or replacing libraries with overlapping packages.
+5. If needed, relocate the packages of one library via shading/bytecode relocation before putting it on the module path.
+6. Only use the classpath or automatic modules as an intentional transitional step, not as a long-term architectural solution.
 
-## 12. Cách phát hiện split package
+## 12. How to Detect Split Packages
 
-### Kiểm kê package trong JAR
+### Inventory packages in JARs
 
-Liệt kê nội dung JAR:
+List the JAR contents:
 
 ~~~text
 jar --list --file library-one.jar
 jar --list --file library-two.jar
 ~~~
 
-Tìm các đường dẫn package trùng nhau, ví dụ:
+Look for duplicate package paths, for example:
 
 ~~~text
 com/acme/shared/Ids.class
 com/acme/shared/StringUtils.class
 ~~~
 
-Có thể dùng script hoặc công cụ build để tạo danh sách package từ các entry .class, bỏ qua META-INF và module-info.class khi thống kê type package.
+You can use a script or build tool to generate a package list from .class entries, skipping META-INF and module-info.class when cataloging type packages.
 
-### Xem module descriptor
+### Inspect module descriptors
 
 ~~~text
 jar --describe-module --file library-one.jar
 jar --describe-module --file library-two.jar
 ~~~
 
-Lệnh này cho biết tên module, requires, exports, opens, uses và provides. Với automatic module, output có thể hiển thị các package mà module chứa.
+This command shows the module name, requires, exports, opens, uses, and provides. For an automatic module, the output can show the packages that the module contains.
 
-### Kiểm tra module graph
+### Inspect the module graph
 
-Đọc tất cả module-info.java và xác định consumer đọc module nào. Tính cả requires transitive và các root module được launcher/build tool chọn.
+Read all module-info.java files and determine which modules consumers read. Include requires transitive and the root modules selected by the launcher/build tool.
 
-Tìm các trường hợp:
+Look for cases where:
 
-- Hai module export cùng package cho một consumer.
-- Consumer tự chứa package và đồng thời đọc module khác export package đó cho consumer.
-- Automatic module làm cho nhiều module được đọc và export package rộng hơn dự kiến.
+- Two modules export the same package to a consumer.
+- A consumer itself contains a package and simultaneously reads another module that exports that package to the consumer.
+- An automatic module causes more modules to be read and packages to be exported more broadly than expected.
 
-Có thể dùng:
+You can use:
 
 ~~~text
 java --validate-modules --module-path mods
 ~~~
 
-để yêu cầu launcher kiểm tra module path và các module có thể resolve theo cấu hình tương ứng. Với dự án thực tế, hãy chạy bằng đúng module path, root modules và JDK mà ứng dụng sẽ sử dụng; một lệnh kiểm tra trên tập module khác không chứng minh deployment graph hợp lệ.
+to ask the launcher to check the module path and whether the modules can resolve under the corresponding configuration. For a real project, run with the exact module path, root modules, and JDK that the application will use; a check command on a different set of modules does not prove the deployment graph is valid.
 
-## 13. Cách sửa split package
+## 13. How to Fix Split Packages
 
-### Cách 1 — Gộp các class cùng package về một module
+### Approach 1 — Merge classes of the same package into one module
 
-Nếu các class cần chia sẻ package-private API hoặc tạo thành một đơn vị logic, giữ toàn bộ package trong một module:
+If the classes need to share package-private APIs or form a single logical unit, keep the entire package in one module:
 
 ~~~text
 module com.acme.shared
@@ -434,11 +434,11 @@ module com.acme.shared
   com.acme.shared.XmlSupport
 ~~~
 
-Các module khác chỉ đọc module shared và dùng API public được export. Đây thường là lựa chọn ít rủi ro nhất khi package vốn được thiết kế như một đơn vị.
+Other modules simply read the shared module and use the exported public API. This is usually the lowest-risk choice when the package was originally designed as a single unit.
 
-### Cách 2 — Đổi package name theo trách nhiệm
+### Approach 2 — Rename packages by responsibility
 
-Nếu hai nhóm class thực sự là hai API độc lập, đổi package để thể hiện ranh giới:
+If the two groups of classes are genuinely two independent APIs, rename the packages to reflect the boundaries:
 
 ~~~text
 module com.acme.shared.core
@@ -450,7 +450,7 @@ module com.acme.shared.formats
   com.acme.shared.formats.xml.XmlSupport
 ~~~
 
-Module descriptor:
+Module descriptors:
 
 ~~~java
 module com.acme.shared.core {
@@ -467,7 +467,7 @@ module com.acme.shared.formats {
 }
 ~~~
 
-Consumer có thể đọc cả hai mà không có package collision:
+Consumers can read both without a package collision:
 
 ~~~java
 module com.acme.application {
@@ -476,11 +476,11 @@ module com.acme.application {
 }
 ~~~
 
-Việc đổi package là thay đổi API. Cần cập nhật import, reflection string, service metadata, serialization config, framework scanning, test và tài liệu.
+Renaming a package is an API change. You must update imports, reflection strings, service metadata, serialization configs, framework scanning, tests, and documentation.
 
-### Cách 3 — Tạo API module riêng
+### Approach 3 — Create a separate API module
 
-Nếu nhiều implementation cần chia sẻ contract, đưa interface và public type vào một API module:
+If multiple implementations need to share a contract, place the interfaces and public types into an API module:
 
 ~~~text
 com.acme.codec.api
@@ -513,31 +513,31 @@ module com.acme.codec.json {
 }
 ~~~
 
-Các implementation dùng package riêng. Consumer phụ thuộc API module và tìm implementation qua ServiceLoader hoặc cấu hình injection. Cách này tách contract khỏi implementation mà không chia package.
+Implementations use separate packages. Consumers depend on the API module and discover implementations via ServiceLoader or injection configuration. This separates the contract from implementations without splitting a package.
 
-### Cách 4 — Relocate package của dependency bên thứ ba
+### Approach 4 — Relocate packages of a third-party dependency
 
-Nếu hai thư viện bên thứ ba chứa cùng package nhưng không thể sửa source, có thể dùng shading/relocation để đổi package của một dependency khi đóng gói.
+If two third-party libraries contain the same package and their sources cannot be modified, you can use shading/relocation to change the package of one dependency during packaging.
 
-Ví dụ, relocate:
+For example, relocate:
 
 ~~~text
 com.vendor.common
 ~~~
 
-thành:
+to:
 
 ~~~text
 com.acme.internal.shaded.vendor.common
 ~~~
 
-Relocation phải cập nhật cả bytecode reference và metadata liên quan. Hãy kiểm tra reflection, service provider file, resource path, serialization, native integration và license obligations. Không chỉ đổi tên folder trong JAR vì bytecode vẫn tham chiếu tên cũ.
+Relocation must update both bytecode references and related metadata. Check reflection, service provider files, resource paths, serialization, native integration, and license obligations. Do not merely rename folders inside the JAR because bytecode still references the old names.
 
-### Cách 5 — Patch một module trong tình huống có chủ đích
+### Approach 5 — Patch a module in intentional situations
 
-Tùy chọn **--patch-module** cho phép bổ sung class/resource vào một named module đã tồn tại. Các class được patch trở thành nội dung của module đích theo cơ chế patch.
+The **--patch-module** option allows adding classes/resources into an existing named module. Patched classes become contents of the target module under the patch mechanism.
 
-Ví dụ:
+For example:
 
 ~~~text
 javac
@@ -546,146 +546,146 @@ javac
   ...
 ~~~
 
-Cơ chế này hữu ích cho test, instrumentation hoặc migration có kiểm soát. Nó không tạo ra hai owner module cho cùng package; mục đích là bổ sung nội dung vào một module đã chọn. Không dùng patch module như cách lắp ghép tùy tiện nhiều thư viện production có package collision.
+This mechanism is useful for testing, instrumentation, or controlled migration. It does not create two owner modules for the same package; the purpose is to supplement content into a selected module. Do not use patch module as a way to arbitrarily stitch together multiple production libraries with package collisions.
 
-## 14. Vì sao đổi module name không đủ?
+## 14. Why Is Renaming the Module Not Enough?
 
-Giả sử đổi:
+Suppose you change:
 
 ~~~text
 com.acme.shared.core
 com.acme.shared.extra
 ~~~
 
-thành hai module name khác nhưng cả hai vẫn chứa package:
+into two different module names, yet both still contain the package:
 
 ~~~text
 com.acme.shared
 ~~~
 
-thì package collision vẫn còn. Module name chỉ thay đổi định danh module; nó không đổi package name hoặc quy tắc uniquely visible.
+then the package collision remains. The module name only changes the module identifier; it does not change the package name or the uniquely visible rule.
 
-Tương tự, đổi tên artifact Maven/Gradle, đổi tên JAR hoặc đặt file trong thư mục khác không giải quyết split package nếu module graph vẫn export cùng package cho một consumer.
+Similarly, renaming a Maven/Gradle artifact, renaming a JAR, or placing files in different directories does not solve a split package if the module graph still exports the same package to a consumer.
 
-Muốn giải quyết, cần thay đổi ít nhất một yếu tố có ý nghĩa:
+To solve it, you must change at least one meaningful factor:
 
 - Package name.
-- Module ownership của các class.
-- Quan hệ readability/exports theo một thiết kế có chủ đích.
-- Cách cô lập runtime layer/class loader trong kiến trúc plugin đặc biệt.
+- Module ownership of the classes.
+- Readability/exports relationships according to an intentional design.
+- Runtime layer/class loader isolation in specialized plugin architectures.
 
-## 15. Quy trình thiết kế package khi tách module
+## 15. Package Design Process When Splitting Modules
 
-1. Liệt kê package và type của thư viện hiện tại.
-2. Gom các type theo trách nhiệm và mức độ gắn kết; xác định những type cần package-private access.
-3. Gán mỗi package vào một module sở hữu.
-4. Tạo module-info.java với requires và exports tối thiểu.
-5. Đổi package nếu hai nhóm class cần thuộc các module độc lập.
-6. Tách public API thành module API nếu nhiều implementation cùng dùng contract.
-7. Kiểm tra requires transitive và automatic modules để phát hiện readability gián tiếp.
-8. Kiểm tra các JAR đầu vào để tìm package trùng.
-9. Resolve module graph với đúng root modules của ứng dụng.
-10. Tạo runtime layer theo chiến lược class loader thực tế.
-11. Chạy test compile-time và runtime trên module path, không chỉ trên classpath.
-12. Kiểm tra các đường dẫn reflection, ServiceLoader, resource và serialization sau khi đổi package.
+1. List the packages and types of the current library.
+2. Group types by responsibility and cohesion; identify types that require package-private access.
+3. Assign each package to one owning module.
+4. Create module-info.java with minimal requires and exports.
+5. Rename packages if two groups of classes need to belong to independent modules.
+6. Extract public APIs into an API module if multiple implementations share a contract.
+7. Check requires transitive and automatic modules to detect indirect readability.
+8. Inspect input JARs to find duplicate packages.
+9. Resolve the module graph with the exact root modules of the application.
+10. Create runtime layers according to the actual class loader strategy.
+11. Run compile-time and runtime tests on the module path, not just on the classpath.
+12. Check reflection, ServiceLoader, resource, and serialization paths after changing packages.
 
-## 16. Các hiểu nhầm thường gặp
+## 16. Common Misconceptions
 
-### Nghĩ chỉ cần đổi tên module
+### Thinking you only need to rename the module
 
-Không đủ. Xung đột liên quan tới package được export và visibility đối với consumer. Hai module name khác nhau vẫn có thể export cùng một package.
+Not enough. The conflict concerns exported packages and visibility to the consumer. Two different module names can still export the same package.
 
-### Nghĩ package cha và subpackage là một package
+### Thinking a parent package and a subpackage are the same package
 
-Không đúng. com.acme và com.acme.internal là hai package riêng. Chúng có quan hệ phân cấp về tên, nhưng không chia sẻ package-private access.
+Incorrect. com.acme and com.acme.internal are two separate packages. They have a hierarchical naming relationship, but do not share package-private access.
 
-### Nghĩ mọi package trùng tên ở mọi module đều bị cấm tuyệt đối
+### Thinking all identically named packages across any modules are strictly forbidden
 
-Cần diễn đạt chính xác hơn. JLS đặt quy tắc uniquely visible đối với từng module consumer; module resolution kiểm tra xung đột exports/readability. Ngoài ra, cách tạo layer có thể đặt ràng buộc riêng. Ví dụ defineModulesWithOneLoader từ chối overlapping packages trong configuration, trong khi mô hình nhiều class loader có thể cô lập module theo cách khác. Với ứng dụng modular thông thường, vẫn nên tránh split package để graph dễ hiểu và ổn định.
+This needs to be stated more precisely. The JLS establishes the uniquely visible rule per consumer module; module resolution checks exports/readability conflicts. Additionally, how layers are created can impose its own constraints. For example, defineModulesWithOneLoader rejects overlapping packages in the configuration, whereas a multiple-class-loader model can isolate modules differently. For typical modular applications, you should still avoid split packages so the graph stays clear and stable.
 
-### Nghĩ opens có thể thay exports
+### Thinking opens can replace exports
 
-Không. opens phục vụ deep reflection ở runtime; exports mới là cơ chế công khai package cho truy cập Java thông thường giữa module.
+No. opens serves deep reflection at runtime; exports is the mechanism that exposes a package for normal Java access between modules.
 
-### Nghĩ requires transitive chỉ ảnh hưởng compile-time API
+### Thinking requires transitive only affects the compile-time API
 
-Nó còn ảnh hưởng readability graph của module tiêu thụ. Vì vậy, nó có thể làm consumer nhìn thấy thêm một module export package trùng.
+It also affects the readability graph of the consuming module. Therefore, it can cause the consumer to see an additional module exporting a duplicate package.
 
-### Nghĩ đặt một JAR lên classpath là đã sửa package collision
+### Thinking putting one JAR on the classpath has fixed the package collision
 
-Classpath có thể làm thay đổi cách module được quan sát, nhưng đưa thư viện ra unnamed module cũng thay đổi encapsulation và dependency model. Hãy dùng như giải pháp chuyển tiếp được kiểm soát, không phải cách làm package dùng chung giữa named modules.
+The classpath can change how modules are observed, but moving a library into the unnamed module also changes encapsulation and the dependency model. Use it as a controlled transitional solution, not as a way to share a package between named modules.
 
-## 17. Bài tập tự kiểm tra và đáp án
+## 17. Self-Check Exercises and Answers
 
-### Bài 1 — Hai module cùng export một package
+### Exercise 1 — Two modules exporting the same package
 
-Module A và B đều export com.acme.shared. Module C requires cả A và B. Điều gì xảy ra?
+Modules A and B both export com.acme.shared. Module C requires both A and B. What happens?
 
-**Đáp án:** Package com.acme.shared được export tới C từ hai module mà C đọc. Package không uniquely visible và module resolution thất bại.
+**Answer:** The package com.acme.shared is exported to C from two modules that C reads. The package is not uniquely visible and module resolution fails.
 
-### Bài 2 — Consumer chỉ đọc một module
+### Exercise 2 — Consumer reading only one module
 
-A và B cùng chứa com.acme.shared, nhưng chỉ A export package cho C; C chỉ đọc A. Có nhất thiết xảy ra xung đột exports đối với C không?
+A and B both contain com.acme.shared, but only A exports the package to C; C only reads A. Does an exports conflict necessarily occur for C?
 
-**Đáp án:** Không. Theo quy tắc uniquely visible, nếu C không tự chứa package và chỉ đúng một module C đọc export package đó cho C, package có thể uniquely visible từ A. Tuy nhiên, cần xem toàn bộ graph và cách tạo runtime layer.
+**Answer:** No. According to the uniquely visible rule, if C does not itself contain the package and only one module that C reads exports that package to C, the package can be uniquely visible from A. However, you need to check the entire graph and how runtime layers are created.
 
-### Bài 3 — Package con
+### Exercise 3 — Subpackages
 
-Module A chứa com.acme.shared.api; module B chứa com.acme.shared.internal. Đây có phải split package không?
+Module A contains com.acme.shared.api; module B contains com.acme.shared.internal. Is this a split package?
 
-**Đáp án:** Không. Hai tên đầy đủ là hai package khác nhau. Package hierarchy không tạo quan hệ package-private access.
+**Answer:** No. The two full names are two different packages. Package hierarchy does not create a package-private access relationship.
 
-### Bài 4 — requires transitive
+### Exercise 4 — requires transitive
 
-C chỉ requires A. A khai báo requires transitive B. Nếu A và B đều export cùng package p cho C, vì sao C vẫn có thể gặp lỗi?
+C only requires A. A declares requires transitive B. If A and B both export the same package p to C, why can C still fail?
 
-**Đáp án:** C đọc B gián tiếp qua cạnh transitive. Module resolution xét readability graph cuối cùng, không chỉ requires trực tiếp trong module-info.java của C.
+**Answer:** C reads B indirectly through the transitive edge. Module resolution evaluates the final readability graph, not just the direct requires in C's module-info.java.
 
-### Bài 5 — opens
+### Exercise 5 — opens
 
-Nếu B opens com.acme.shared cho C nhưng không exports package này, điều đó có tạo package visibility cho source C không?
+If B opens com.acme.shared to C without exporting this package, does that create package visibility for C's source code?
 
-**Đáp án:** Không. opens cho phép deep reflection ở runtime; nó không thay thế exports trong quy tắc truy cập source/module.
+**Answer:** No. opens allows deep reflection at runtime; it does not replace exports in source/module access rules.
 
-### Bài 6 — Một class loader
+### Exercise 6 — One class loader
 
-Hai module trong cùng configuration chứa package com.acme.shared. Có thể tạo layer bằng defineModulesWithOneLoader không?
+Two modules in the same configuration contain the package com.acme.shared. Can a layer be created using defineModulesWithOneLoader?
 
-**Đáp án:** Không. API ModuleLayer quy định layer dùng chung một class loader không thể được tạo nếu các module có overlapping packages; thao tác ném LayerInstantiationException.
+**Answer:** No. The ModuleLayer API specifies that a layer sharing a single class loader cannot be created if the modules have overlapping packages; the operation throws LayerInstantiationException.
 
-### Bài 7 — Nhiều class loader
+### Exercise 7 — Multiple class loaders
 
-Dùng defineModulesWithManyLoaders có biến hai package trùng tên thành một package dùng chung không?
+Does using defineModulesWithManyLoaders turn two identically named packages into one shared package?
 
-**Đáp án:** Không. Mỗi module có class loader riêng; đây là cơ chế cô lập. Quy tắc readability/exports của module configuration vẫn áp dụng.
+**Answer:** No. Each module has its own class loader; this is an isolation mechanism. The readability/exports rules of the module configuration still apply.
 
-### Bài 8 — Cách sửa phù hợp
+### Exercise 8 — Appropriate fix
 
-Hai nhóm class cần được phát hành và nâng cấp độc lập, không cần package-private access giữa chúng. Nên làm gì?
+Two groups of classes need to be released and upgraded independently, and do not need package-private access between them. What should be done?
 
-**Đáp án:** Tách thành các package có tên riêng theo trách nhiệm, sau đó export API cần thiết và khai báo requires. Nếu nhiều implementation cùng chia sẻ contract, tạo API module riêng.
+**Answer:** Separate them into packages with distinct names by responsibility, then export the required APIs and declare requires. If multiple implementations share a contract, create a separate API module.
 
-## 18. Checklist khi review split package
+## 18. Checklist When Reviewing Split Packages
 
-- Đã kiểm kê đầy đủ package trong từng named module/JAR chưa?
-- Hai module có cùng chứa một package đầy đủ không?
-- Consumer nào đọc các module đó, kể cả qua requires transitive?
-- Có hai module cùng export package cho một consumer không?
-- Consumer có tự chứa package và đồng thời đọc module khác export package đó không?
-- Có automatic module nào làm readability hoặc exports rộng hơn dự kiến không?
-- Có nhầm package cha với subpackage không?
-- Các type cần package-private access đã được giữ trong cùng module chưa?
-- Có thể đổi package, gộp module hoặc tạo API module riêng không?
-- Nếu dùng nhiều ModuleLayer/class loader, ranh giới và type identity đã được thiết kế rõ chưa?
-- Đã kiểm tra đúng module path và root modules của deployment chưa?
-- Có test compile-time và runtime sau khi chuyển từ classpath sang module path không?
+- Have you fully inventoried the packages in each named module/JAR?
+- Do two modules both contain the exact same full package?
+- Which consumers read those modules, including via requires transitive?
+- Do two modules both export a package to a consumer?
+- Does a consumer itself contain a package while also reading another module that exports that package?
+- Does any automatic module make readability or exports broader than expected?
+- Is a parent package being confused with a subpackage?
+- Are types needing package-private access kept within the same module?
+- Can you rename packages, merge modules, or create a separate API module?
+- If using multiple ModuleLayers/class loaders, are boundaries and type identity clearly designed?
+- Have you checked with the exact module path and root modules of the deployment?
+- Are there compile-time and runtime tests after migrating from the classpath to the module path?
 
-**Ghi nhớ:** Một package cần có nguồn hiển thị duy nhất đối với từng module consumer. Xung đột xảy ra khi consumer nhìn thấy cùng package được export từ nhiều module, hoặc package nội bộ của nó bị trùng với package được module khác export cho nó. Hãy gán package theo ranh giới module, dùng package name riêng cho các thành phần độc lập và chỉ dùng nhiều class loader khi thực sự cần cô lập module.
+**Key takeaway:** A package needs a single visible source for each consumer module. Conflicts occur when a consumer sees the same package exported from multiple modules, or its own internal package overlaps with a package exported to it by another module. Assign packages along module boundaries, use separate package names for independent components, and only use multiple class loaders when module isolation is truly needed.
 
-## Tài liệu tham khảo
+## References
 
 - Java Language Specification, Java SE 21 — 7.4.3 Package Observability and Visibility: https://docs.oracle.com/javase/specs/jls/se21/html/jls-7.html#jls-7.4.3
 - Oracle Java SE 21 API — java.lang.module package summary, Module Resolution: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/module/package-summary.html
-- Oracle Java SE 21 API — ModuleLayer, defineModulesWithOneLoader và defineModulesWithManyLoaders: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ModuleLayer.html
+- Oracle Java SE 21 API — ModuleLayer, defineModulesWithOneLoader and defineModulesWithManyLoaders: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ModuleLayer.html
 - Oracle Java SE 21 API — Configuration: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/module/Configuration.html
 - OpenJDK JEP 261 — Module System: https://openjdk.org/jeps/261

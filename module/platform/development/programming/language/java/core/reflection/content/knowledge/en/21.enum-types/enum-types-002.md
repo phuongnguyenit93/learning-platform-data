@@ -1,32 +1,32 @@
-# Thứ tự hằng enum và khi `getEnumConstants()` trả về `null`
+# Enum constant order and when `getEnumConstants()` returns `null`
 
-Khi một công cụ chỉ nhận được `Class<?>` lúc chạy, nó có thể cần biết kiểu đó có phải enum không và nếu có thì gồm những hằng nào. Ví dụ, công cụ tạo biểu mẫu cần liệt kê lựa chọn, còn bộ kiểm tra cấu hình cần biết các giá trị hợp lệ.
+When a tool only receives a `Class<?>` at runtime, it may need to know whether that type is an enum and, if so, which constants it contains. For example, a form builder needs to list options, while a configuration validator needs to know the valid values.
 
-`Class.getEnumConstants()` giải quyết việc liệt kê này mà không cần biết tên enum khi viết công cụ. Có hai quy tắc cần nắm: **các hằng được trả về theo thứ tự khai báo**; **`null` khác với một mảng enum rỗng**. Ngoài ra, lớp thực tế của một hằng enum có phần thân riêng có thể khác lớp khai báo enum.
+`Class.getEnumConstants()` solves this enumeration without needing to know the enum name when writing the tool. There are two rules to grasp: **constants are returned in declaration order**; **`null` differs from an empty enum array**. In addition, the runtime class of an enum constant with its own body may differ from the declaring enum class.
 
-## 1. Hiểu đúng giá trị trả về
+## 1. Understanding the return value properly
 
-Chữ ký API trên `Class<T>` là:
+The API signature on `Class<T>` is:
 
 ```java
 public T[] getEnumConstants()
 ```
 
-Đây là chữ ký để tra cứu API, không phải một phương thức cần tự cài đặt. Nếu biến có kiểu `Class<Stage>`, lời gọi trả kiểu `Stage[]`. Nếu chỉ có `Class<?>`, có thể nhận kết quả vào `Object[]` rồi kiểm tra trước khi sử dụng.
+This is a signature for API reference, not a method you need to implement yourself. If a variable has type `Class<Stage>`, the call returns type `Stage[]`. If you only have `Class<?>`, you can receive the result into `Object[]` and check it before using it.
 
-Theo [hợp đồng của `Class.getEnumConstants()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getEnumConstants()), kết quả là các hằng theo thứ tự khai báo, hoặc `null` khi đối tượng `Class` không đại diện cho một khai báo enum.
+According to [the contract of `Class.getEnumConstants()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getEnumConstants()), the result is the constants in declaration order, or `null` when the `Class` object does not represent an enum declaration.
 
-| Kiểu được truy vấn | Kết quả | Ý nghĩa |
+| Queried type | Result | Meaning |
 | --- | --- | --- |
-| Enum có hằng | Mảng chứa các hằng | Có tập lựa chọn để duyệt |
-| Enum không có hằng | Mảng độ dài `0` | Là enum, nhưng tập hằng rỗng |
-| Lớp thông thường, interface, kiểu nguyên thủy hoặc kiểu mảng | `null` | Kiểu đang xét không phải khai báo enum |
+| Enum with constants | Array containing the constants | Has a set of options to iterate |
+| Enum without constants | Array of length `0` | Is an enum, but the constant set is empty |
+| Regular class, interface, primitive type, or array type | `null` | The type under inspection is not an enum declaration |
 
-Không gọi `.length`, dùng vòng `for` hoặc tạo luồng từ kết quả trước khi phân biệt các trường hợp này. Nếu nhận `null`, bạn chưa có một mảng để duyệt.
+Do not access `.length`, use a `for` loop, or create a stream from the result before distinguishing these cases. If you receive `null`, you do not yet have an array to iterate over.
 
-## 2. Thứ tự khai báo không phải thứ tự tên
+## 2. Declaration order is not alphabetical name order
 
-Giả sử enum được khai báo như sau:
+Suppose the enum is declared as follows:
 
 ```java
 enum Stage {
@@ -34,17 +34,17 @@ enum Stage {
 }
 ```
 
-Kết quả duyệt là `REVIEW`, `DRAFT`, `PUBLISHED`, không phải thứ tự bảng chữ cái. `Stage.values()` cũng trả các hằng theo thứ tự khai báo; phương thức này được khai báo ngầm cho từng enum theo [JLS về thành viên enum](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.9.3).
+The iteration result is `REVIEW`, `DRAFT`, `PUBLISHED`, not alphabetical order. `Stage.values()` also returns the constants in declaration order; this method is implicitly declared for each enum according to [JLS on enum members](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.9.3).
 
-Mỗi hằng có `ordinal()` bắt đầu từ `0`, tương ứng vị trí khai báo. `name()` cho tên khai báo; `toString()` có thể được ghi đè để tạo nhãn hiển thị. Đó là những vai trò khác nhau trong [API `Enum`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html).
+Each constant has an `ordinal()` starting from `0`, corresponding to its declaration position. `name()` gives the declared name; `toString()` may be overridden to produce a display label. Those are distinct roles in the [`Enum` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html).
 
-Trong ví dụ trên, `REVIEW.ordinal()` là `0` dù từ `DRAFT` đứng trước nó khi sắp xếp tên. Vì vậy, cần xác định bạn muốn bảo toàn thứ tự khai báo hay muốn tạo một thứ tự hiển thị riêng.
+In the example above, `REVIEW.ordinal()` is `0` even though `DRAFT` comes before it when sorting by name. Therefore, you must decide whether you want to preserve declaration order or create a separate display order.
 
-## 3. Thí nghiệm Java 17+ chạy độc lập
+## 3. Standalone runnable Java 17+ experiment
 
-Chương trình sau kiểm tra thứ tự, enum rỗng, kiểu không phải enum, lớp riêng của hằng và cách từ chối đầu vào không phù hợp.
+The following program tests ordering, an empty enum, non-enum types, a constant's own class, and rejecting unsuitable inputs.
 
-Lưu toàn bộ vào **`EnumConstantsDemo.java`**:
+Save the entire code into **`EnumConstantsDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -141,14 +141,14 @@ public class EnumConstantsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 --release 17 EnumConstantsDemo.java
 java EnumConstantsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Stage constants = [REVIEW, DRAFT, PUBLISHED]
@@ -179,87 +179,87 @@ Required String = IllegalArgumentException
 Missing name = IllegalArgumentException
 ```
 
-`names()` dùng `name()` để in tên hằng, tránh nhầm với nhãn `toString()` đã được ghi đè. Phép ép về `Enum<?>` chỉ thực hiện sau khi `getEnumConstants()` đã cho mảng không `null`; các phần tử lúc đó là các hằng enum.
+`names()` uses `name()` to print constant names, avoiding confusion with an overridden `toString()` label. The cast to `Enum<?>` is performed only after `getEnumConstants()` has produced a non-`null` array; the elements at that point are enum constants.
 
-## 4. Đọc kết quả và áp dụng đúng
+## 4. Reading the results and applying them properly
 
-### Bảo toàn hoặc thay đổi thứ tự một cách có chủ đích
+### Preserving or changing order intentionally
 
-`Stage constants` và `Stage values` cùng in `[REVIEW, DRAFT, PUBLISHED]`. Chương trình sau đó lấy mảng vào biến `sorted` và sắp xếp theo `Stage::name`, tạo `[DRAFT, PUBLISHED, REVIEW]`.
+`Stage constants` and `Stage values` both print `[REVIEW, DRAFT, PUBLISHED]`. The program then fetches the array into `sorted` and sorts it by `Stage::name`, producing `[DRAFT, PUBLISHED, REVIEW]`.
 
-Lần đọc lại bằng `getEnumConstants()` vẫn cho thứ tự khai báo ban đầu. Việc sắp xếp mảng cục bộ không đổi khai báo enum, không thay hằng `REVIEW` thành một hằng khác và không đổi `ordinal()` của nó.
+A subsequent read via `getEnumConstants()` still yields the original declaration order. Sorting the local array does not alter the enum declaration, does not turn the `REVIEW` constant into another constant, and does not change its `ordinal()`.
 
-Nếu thứ tự khai báo đã là thứ tự mong muốn của biểu mẫu, hãy duyệt trực tiếp kết quả. Nếu giao diện cần một thứ tự khác, biểu diễn quy tắc đó rõ ràng bằng bộ so sánh hoặc thuộc tính thứ tự riêng.
+If declaration order is already the desired order for a form, iterate over the result directly. If the UI needs a different order, express that rule explicitly using a comparator or a separate ordering property.
 
-Không dùng thứ tự của `getDeclaredFields()` để thay cho hợp đồng thứ tự của enum. Mảng trường dữ liệu có mục đích mô tả thành viên, còn bài toán ở đây cần danh sách **giá trị hằng enum**.
+Do not use the order of `getDeclaredFields()` as a substitute for the enum's ordering contract. The fields array is meant for describing members, whereas this problem needs a list of **enum constant values**.
 
-### Enum rỗng là đầu vào hợp lệ
+### An empty enum is valid input
 
-`Empty.class.isEnum()` cho `true`, còn `Empty.class.getEnumConstants()` cho `[]` với độ dài `0`. Enum không bắt buộc phải có ít nhất một hằng; cú pháp thân enum cho phép không có danh sách hằng.
+`Empty.class.isEnum()` yields `true`, while `Empty.class.getEnumConstants()` yields `[]` with length `0`. An enum is not required to have at least one constant; the enum body syntax allows omitting a constant list.
 
-Với một công cụ chọn giá trị, kết quả này có thể có nghĩa là không có lựa chọn nào để hiển thị. Nó không có nghĩa kiểu đầu vào sai. Đây là lý do không nên gộp `null` với mảng rỗng ngay từ đầu.
+For a value-picking tool, this result can mean there are no options to display. It does not mean the input type is invalid. That is why you should not merge `null` with an empty array up front.
 
-### Tại sao `Enum.class`, kiểu mảng và kiểu nguyên thủy cho `null`?
+### Why do `Enum.class`, array types, and primitive types return `null`?
 
-Trong thí nghiệm, `String.class`, `Enum.class`, `Stage[].class` và `int.class` đều cho `null`.
+In the experiment, `String.class`, `Enum.class`, `Stage[].class`, and `int.class` all return `null`.
 
-- `String` là một lớp thông thường.
-- `Enum` là lớp cơ sở chung, không phải một khai báo `enum` chứa tập hằng riêng.
-- `Stage[]` là kiểu mảng, dù kiểu phần tử của nó là enum.
-- `int` là kiểu nguyên thủy.
+- `String` is a regular class.
+- `Enum` is the common base class, not an `enum` declaration containing its own set of constants.
+- `Stage[]` is an array type, even though its element type is an enum.
+- `int` is a primitive type.
 
-Nếu đang xử lý kiểu mảng và thực sự muốn tìm hằng của kiểu phần tử, cần xác định kiểu phần tử rồi kiểm tra nó. Không nên xem mọi kiểu chứa enum như chính enum.
+If you are handling an array type and actually want to find the constants of its element type, determine the component type and inspect it. Do not treat every type containing an enum as the enum itself.
 
-## 5. Lớp riêng của hằng không phải khai báo enum
+## 5. A constant's own class is not an enum declaration
 
-Trong thí nghiệm, `Flavor.CUSTOM` có thân lớp riêng ghi đè `toString()` nên `selected.getClass()` là một lớp con ẩn danh. Vì vậy, `selected.getClass().isEnum()` là `false`, và `getEnumConstants()` trên lớp con đó trả `null`. Trái lại, `selected.getDeclaringClass() == Flavor.class`, và gọi `getEnumConstants()` trên `Flavor.class` trả cả `BASIC` lẫn `CUSTOM`.
+In the experiment, `Flavor.CUSTOM` has a constant-specific class body overriding `toString()`, so `selected.getClass()` is an anonymous subclass. Consequently, `selected.getClass().isEnum()` is `false`, and `getEnumConstants()` on that subclass returns `null`. Conversely, `selected.getDeclaringClass() == Flavor.class`, and calling `getEnumConstants()` on `Flavor.class` returns both `BASIC` and `CUSTOM`.
 
-Khi cầm một hằng `Enum<?>`, dùng `getDeclaringClass()` để tìm tập hằng cùng kiểu. Trường hợp này củng cố việc **`null` phụ thuộc Class đang được hỏi**, không đồng nghĩa một hằng có thân riêng đã biến mất khỏi enum. Bài về `getClass` và `getDeclaringClass` phân tích chi tiết cơ chế lớp con ẩn danh và cách chuẩn hóa khóa kiểu.
+When holding an `Enum<?>` constant, use `getDeclaringClass()` to find the set of constants of the same type. This case reinforces that **`null` depends on the Class being queried**, and does not mean a constant with its own body has disappeared from the enum. The lesson on `getClass` and `getDeclaringClass` analyzes the anonymous subclass mechanism and type-key normalization in detail.
 
-## 6. Xử lý `null` theo hợp đồng của công cụ
+## 6. Handling `null` according to your tool's contract
 
-Hai cách xử lý sau phục vụ hai nhu cầu khác nhau.
+The following two approaches serve two different needs.
 
-**Công cụ khám phá nhiều loại kiểu:** `names()` chấp nhận `Class<?>` bất kỳ. Nó kiểm tra `constants == null` và báo rằng kiểu không phải khai báo enum; mảng rỗng vẫn được trình bày thành `[]`.
+**A tool inspecting many kinds of types:** `names()` accepts any `Class<?>`. It checks `constants == null` and reports that the type is not an enum declaration; an empty array is still rendered as `[]`.
 
-**Công cụ chỉ chấp nhận enum:** `requireEnumConstants()` trong ví dụ từ chối kiểu khác bằng `IllegalArgumentException`. Tên hàm và lỗi thể hiện rõ điều kiện sử dụng. `Empty.class` vẫn được chấp nhận và trả số hằng bằng `0`.
+**A tool accepting only enums:** `requireEnumConstants()` in the example rejects other types with `IllegalArgumentException`. The method name and exception clearly state the precondition. `Empty.class` is still accepted and returns a constant count of `0`.
 
-Không tự chuyển mọi kết quả `null` thành mảng rỗng nếu chương trình cần phân biệt đầu vào sai với enum hợp lệ không có hằng. Nếu cố ý chuẩn hóa chúng, hãy ghi rõ quyết định đó trong hợp đồng của chính công cụ.
+Do not automatically convert every `null` result into an empty array if the program needs to distinguish invalid input from a valid enum with no constants. If you intentionally normalize them, document that decision in the tool's own contract.
 
-Cũng cần phân biệt **phương thức trả `null`** với **biến nhận lời gọi là `null`**. Nếu biến `Class<?> type` là `null`, biểu thức `type.getEnumConstants()` ném `NullPointerException` ngay khi gọi; nó không trả một kết quả để bạn kiểm tra. Vì thế hàm mẫu dùng `Objects.requireNonNull(type, "type")` cho đầu vào.
+You must also distinguish **the method returning `null`** from **the receiver variable being `null`**. If the variable `Class<?> type` is `null`, the expression `type.getEnumConstants()` throws `NullPointerException` upon invocation; it does not return a result for you to inspect. That is why the sample method uses `Objects.requireNonNull(type, "type")` for the input.
 
-### Không nhầm với tra cứu một tên hằng
+### Do not confuse with looking up a single constant name
 
-`getEnumConstants()` liệt kê tập hằng; `Enum.valueOf(Stage.class, "MISSING")` tìm một tên cụ thể. Lời gọi thứ hai trong thí nghiệm ném `IllegalArgumentException` vì không có tên đó, không trả `null`.
+`getEnumConstants()` lists the set of constants; `Enum.valueOf(Stage.class, "MISSING")` looks up a specific name. The second call in the experiment throws `IllegalArgumentException` because no such name exists, rather than returning `null`.
 
-Tên được tra cứu phải khớp chính xác, kể cả hoa thường và không có khoảng trắng thừa. Đó là hợp đồng riêng của [API `Enum.valueOf`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html#valueOf(java.lang.Class,java.lang.String)), không được suy ra từ cách `getEnumConstants()` xử lý kiểu không phải enum.
+The name being looked up must match exactly, including case and with no extra whitespace. That is the separate contract of the [`Enum.valueOf` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html#valueOf(java.lang.Class,java.lang.String)), and should not be inferred from how `getEnumConstants()` handles non-enum types.
 
-## 7. Lưu ý về tên, số thứ tự và khả năng bảo trì
+## 7. Notes on names, ordinals, and maintainability
 
-`ordinal()` mô tả vị trí khai báo tại phiên bản hiện tại. Nếu thêm một hằng ở đầu hoặc đổi vị trí, số thứ tự của các hằng phía sau thay đổi. Vì vậy, dùng nó làm mã lưu trữ lâu dài có thể khiến cùng một số được hiểu thành giá trị khác sau khi cập nhật chương trình.
+`ordinal()` describes the declaration position in the current version. If a constant is added at the beginning or positions are swapped, the ordinals of subsequent constants change. Therefore, using it as a long-term stored code can cause the same number to be interpreted as a different value after a program update.
 
-Ví dụ, với `[REVIEW, DRAFT, PUBLISHED]`, số `0` trỏ đến `REVIEW`. Nếu sau này chuyển `DRAFT` lên đầu, số `0` lại trỏ đến `DRAFT`. Khi cần mã nghiệp vụ ổn định, hãy thiết kế mã riêng và quy tắc tra cứu tương ứng.
+For example, with `[REVIEW, DRAFT, PUBLISHED]`, `0` points to `REVIEW`. If `DRAFT` is later moved to the front, `0` points to `DRAFT` instead. When stable business codes are needed, design dedicated codes and corresponding lookup rules.
 
-`name()` giữ tên khai báo, còn `toString()` trong thí nghiệm biến `CUSTOM` thành `Custom label`. Sự thay đổi nhãn này không đổi tên hằng, vị trí khai báo hay lớp enum sở hữu nó. Công cụ nên chọn rõ đang cần tên kỹ thuật hay nội dung hiển thị.
+`name()` preserves the declared name, whereas `toString()` in the experiment turns `CUSTOM` into `Custom label`. This label change does not alter the constant's name, declaration position, or owning enum class. Tools should choose clearly whether they need the technical name or display content.
 
-## 8. Lỗi thường gặp và bài tự kiểm tra
+## 8. Common mistakes and self-check
 
-| Lỗi | Cách tránh |
+| Mistake | How to avoid |
 | --- | --- |
-| Dùng ngay `.length` mà chưa kiểm tra `null` | Phân loại kết quả trước khi duyệt |
-| Xem enum rỗng là kiểu không phải enum | Phân biệt `[]` với `null` |
-| Giả định thứ tự là bảng chữ cái | Dựa vào thứ tự khai báo hoặc sắp xếp tường minh |
-| Kiểm tra enum chỉ bằng việc đối tượng kế thừa `Enum` | Khi cần tập hằng, xác định đúng lớp khai báo enum |
-| Dùng `constant.getClass()` cho mọi hằng | Với một hằng enum, dùng `getDeclaringClass()` để tìm enum sở hữu |
-| Xem `toString()` như tên hằng luôn cố định | Dùng `name()` khi cần đúng tên khai báo |
-| Lưu `ordinal()` như một mã nghiệp vụ ổn định | Dùng mã riêng khi cần tính ổn định qua thay đổi |
-| Nghĩ tên không có trong `valueOf` sẽ trả `null` | Xử lý `IllegalArgumentException` theo hợp đồng tra cứu |
+| Using `.length` immediately without checking for `null` | Classify the result before iterating |
+| Treating an empty enum as a non-enum type | Distinguish `[]` from `null` |
+| Assuming the order is alphabetical | Rely on declaration order or sort explicitly |
+| Checking for an enum solely by whether the object inherits `Enum` | When the constant set is needed, identify the exact declaring enum class |
+| Using `constant.getClass()` for every constant | For an enum constant, use `getDeclaringClass()` to find its owning enum |
+| Treating `toString()` as an always-fixed constant name | Use `name()` when the exact declared name is needed |
+| Storing `ordinal()` as a stable business code | Use a dedicated code when stability across changes is required |
+| Thinking a name absent from `valueOf` returns `null` | Handle `IllegalArgumentException` per the lookup contract |
 
-Hãy thử các thay đổi sau và dự đoán trước khi chạy:
+Try the following changes and predict the output before running:
 
-1. Đưa `PUBLISHED` lên đầu `Stage`: kết quả liệt kê và `ordinal()` thay đổi thế nào?
-2. Thêm một hằng vào `Empty`: sự khác biệt giữa mảng rỗng và `null` còn được xác định bằng điều gì?
-3. Bỏ phần thân riêng của `CUSTOM`: vì sao kết quả từ `getClass()` có thể thay đổi?
-4. Đổi nhãn `Custom label`: `name()`, `getDeclaringClass()` và thứ tự hằng có đổi không?
+1. Move `PUBLISHED` to the beginning of `Stage`: how do the enumerated result and `ordinal()` change?
+2. Add a constant to `Empty`: by what else is the difference between an empty array and `null` determined?
+3. Remove the custom body from `CUSTOM`: why can the result from `getClass()` change?
+4. Change the `Custom label` string: do `name()`, `getDeclaringClass()`, and constant order change?
 
-Sau bài này, bạn cần tự xác định được: đang nhận một kiểu hay một giá trị enum, kiểu đó có phải chính khai báo enum không, và công cụ của mình muốn bảo toàn thứ tự khai báo hay tạo thứ tự khác.
+After this lesson, you should be able to determine for yourself: whether you are receiving a type or an enum value, whether that type is the enum declaration itself, and whether your tool wants to preserve declaration order or create a different order.

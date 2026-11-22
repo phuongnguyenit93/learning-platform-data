@@ -1,8 +1,8 @@
-# Hàm khởi tạo thiết lập giá trị ban đầu trong Java
+# Constructors Set Initial Values in Java
 
-## 1. Constructor là gì?
+## 1. What Is a Constructor?
 
-**Hàm khởi tạo** (*constructor*) là cơ chế khởi tạo đối tượng khi dùng biểu thức `new`. Constructor có **cùng tên với lớp**, **không khai báo kiểu trả về** (kể cả `void`) và được dùng để thiết lập trạng thái ban đầu hợp lệ cho mỗi instance.
+A **constructor** is the mechanism for initializing an object when using a `new` expression. A constructor has the **same name as the class**, **declares no return type** (not even `void`), and is used to establish a valid initial state for each instance.
 
 ```java
 class Student {
@@ -15,32 +15,32 @@ class Student {
     }
 }
 
-// Đặt trong phương thức:
+// Placed inside a method:
 // Student s = new Student("Lan", 18);
-// s.name == "Lan" và s.age == 18
+// s.name == "Lan" and s.age == 18
 ```
 
-Biểu thức `new Student("Lan", 18)` tạo một đối tượng `Student` rồi thực thi quá trình khởi tạo, trong đó có constructor được chọn theo danh sách đối số. `this.name` và `this.age` là các **trường của đối tượng hiện tại**; `name` và `age` không có `this` trong constructor là **tham số**. Nếu viết `name = name;`, đó chỉ là tự gán tham số, không lưu giá trị vào trường.
+The expression `new Student("Lan", 18)` creates a `Student` object and runs the initialization process, including the constructor selected by the argument list. `this.name` and `this.age` are the **fields of the current object**; `name` and `age` without `this` inside the constructor are **parameters**. Writing `name = name;` only assigns the parameter to itself, without storing the value into the field.
 
-Constructor chủ yếu để thiết lập **bất biến của đối tượng** (*invariant*): những điều kiện cần đúng ngay sau khi tạo, ví dụ tên không rỗng, tuổi không âm. Tùy yêu cầu, không phải trường nào cũng bắt buộc đặt qua constructor; trường có thể có giá trị mặc định hoặc giá trị khởi tạo tại khai báo.
+Constructors are primarily used to establish an **object's invariant**: conditions that must hold immediately after creation, such as a non-empty name or a non-negative age. Depending on requirements, not every field has to be set via a constructor; a field may have a default value or an initializer at declaration.
 
-## 2. Giá trị mặc định và khởi tạo trường
+## 2. Default Values and Field Initialization
 
-Ngay khi bộ nhớ đối tượng được cấp phát, các **trường instance** có giá trị mặc định của kiểu, trước khi các bộ khởi tạo trường và thân constructor thực hiện những phép gán có liên quan.
+As soon as object memory is allocated, **instance fields** receive their type's default values, before any field initializers and constructor body perform the relevant assignments.
 
-| Kiểu trường | Giá trị mặc định trước khi được gán rõ ràng |
+| Field type | Default value before explicit assignment |
 | --- | --- |
-| `byte`, `short`, `int`, `long` | `0` tương ứng với kiểu |
-| `float`, `double` | `0.0` tương ứng với kiểu |
+| `byte`, `short`, `int`, `long` | Type-appropriate `0` |
+| `float`, `double` | Type-appropriate `0.0` |
 | `char` | `'\u0000'` |
 | `boolean` | `false` |
-| Mọi kiểu tham chiếu, kể cả `String`, mảng và đối tượng | `null` |
+| Any reference type, including `String`, arrays, and objects | `null` |
 
 ```java
 class Settings {
-    int retries;               // Ban đầu 0
-    boolean enabled;           // Ban đầu false
-    String mode = "standard";   // Field initializer: đặt giá trị rõ ràng
+    int retries;               // Initially 0
+    boolean enabled;           // Initially false
+    String mode = "standard";   // Field initializer: sets an explicit value
 
     Settings(int retries) {
         this.retries = retries;
@@ -49,22 +49,22 @@ class Settings {
 }
 ```
 
-Sau khi `new Settings(3)` hoàn tất, đối tượng có `retries == 3`, `enabled == true`, `mode.equals("standard")`.
+After `new Settings(3)` finishes, the object has `retries == 3`, `enabled == true`, `mode.equals("standard")`.
 
-**Khác biệt với biến cục bộ:** Java không cho phép đọc một biến cục bộ nếu nó chưa được **definitely assigned** (chắc chắn đã được gán) trước điểm sử dụng; biến cục bộ không tự có giá trị mặc định để đọc như trường đối tượng.
+**Difference from local variables:** Java does not allow reading a local variable unless it is **definitely assigned** before the point of use; local variables do not automatically have a readable default value like object fields.
 
 ```java
 void example() {
     int count;
-    // System.out.println(count); // LỖI biên dịch: count chưa được gán
+    // System.out.println(count); // Compile ERROR: count is not assigned
     count = 2;
-    System.out.println(count); // Hợp lệ
+    System.out.println(count); // Valid
 }
 ```
 
-Đoạn `example()` là một phương thức minh họa cần được đặt trong lớp.
+The `example()` snippet is an illustrative method that needs to be placed inside a class.
 
-## 3. Cú pháp và điểm khác phương thức thông thường
+## 3. Syntax and How Constructors Differ from Regular Methods
 
 ```java
 class Rectangle {
@@ -82,23 +82,23 @@ class Rectangle {
 }
 ```
 
-- `Rectangle(...)` là **constructor**, không có kiểu trả về.
-- `area()` là **phương thức** có kiểu trả về `int`; phương thức có thể được gọi trên đối tượng nhiều lần.
-- Constructor chạy trong quá trình tạo instance. Gọi lại constructor như phương thức thông thường, ví dụ `object.Rectangle(2, 3)`, **không hợp lệ**.
-- Constructor có thể có các mức truy cập `public`, `protected`, package-private (không ghi modifier) hoặc `private`. Quyền truy cập quyết định mã bên ngoài có được phép dùng `new` với constructor đó hay không.
-- Constructor **không được kế thừa** và không bị override. Constructor không khai báo `static`, `abstract` hay `final`.
-- `return;` có thể dùng để kết thúc sớm constructor trong một số trường hợp, nhưng constructor **không được trả về giá trị** bằng `return expression;`. Trong thiết kế tốt, nên đảm bảo kiểm tra đầu vào và khởi tạo đầy đủ trước khi hoàn tất bình thường.
+- `Rectangle(...)` is a **constructor**, with no return type.
+- `area()` is a **method** with return type `int`; methods can be called on an object multiple times.
+- Constructors run during instance creation. Calling a constructor again like a normal method, such as `object.Rectangle(2, 3)`, is **invalid**.
+- Constructors can have access levels `public`, `protected`, package-private (no modifier), or `private`. Access level determines whether external code is allowed to use `new` with that constructor.
+- Constructors are **not inherited** and cannot be overridden. Constructors do not declare `static`, `abstract`, or `final`.
+- `return;` can be used to exit a constructor early in some cases, but a constructor **cannot return a value** with `return expression;`. In good design, ensure input validation and complete initialization before normal completion.
 
-Tên constructor phải đúng tên lớp, phân biệt hoa thường. Nếu viết `void Rectangle(...)`, đó là **phương thức tên `Rectangle`**, không phải constructor, và trình biên dịch không xem đó là constructor được khai báo.
+The constructor name must match the class name, case-sensitively. If you write `void Rectangle(...)`, that is a **method named `Rectangle`**, not a constructor, and the compiler does not treat it as a declared constructor.
 
-## 4. Constructor mặc định, không tham số và có tham số
+## 4. Default, No-Argument, and Parameterized Constructors
 
-Cần phân biệt **constructor mặc định do trình biên dịch tự sinh** với **constructor không tham số do lập trình viên viết**:
+Distinguish the **compiler-generated default constructor** from a **programmer-written no-argument constructor**:
 
 ```java
 class Empty {
-    // Không khai báo constructor nào.
-    // Trình biên dịch cung cấp default constructor không tham số.
+    // No constructor declared.
+    // The compiler provides a default no-argument constructor.
 }
 
 class Custom {
@@ -108,9 +108,9 @@ class Custom {
 }
 ```
 
-Khi một lớp **không khai báo constructor nào**, trình biên dịch cấp một constructor mặc định không tham số. Constructor này gọi constructor lớp cha theo quy tắc ngôn ngữ và không tự suy ra các giá trị đầu vào đặc biệt. Mức truy cập của constructor mặc định phụ thuộc mức truy cập của lớp theo quy tắc Java; không nên mặc định cho rằng constructor tự sinh lúc nào cũng là `public`.
+When a class **declares no constructors**, the compiler provides a default no-argument constructor. This constructor calls the superclass constructor according to language rules and does not infer special input values. The access level of the default constructor depends on the class's access level per Java rules; do not assume the auto-generated constructor is always `public`.
 
-Nếu đã khai báo **bất kỳ constructor nào**, trình biên dịch **không còn tự thêm constructor mặc định không tham số**:
+If **any constructor** is already declared, the compiler **no longer automatically adds a default no-argument constructor**:
 
 ```java
 class User {
@@ -121,15 +121,15 @@ class User {
     }
 }
 
-// new User("Mai"); // Hợp lệ
-// new User();      // LỖI biên dịch: không có constructor User()
+// new User("Mai"); // Valid
+// new User();      // Compile ERROR: no User() constructor
 ```
 
-Muốn cả hai cách tạo đối tượng, phải tự khai báo overload không tham số. Nếu không khai báo constructor trong lớp con, trình biên dịch sẽ sinh constructor mặc định cố gọi `super()`; nếu lớp cha không có constructor không tham số truy cập được, việc biên dịch thất bại. Khi đó lớp con cần tự khai báo constructor và gọi đúng `super(arguments)`.
+If you want both ways of creating the object, you must declare the no-argument overload yourself. If no constructor is declared in a subclass, the compiler generates a default constructor that tries to call `super()`; if the superclass lacks an accessible no-argument constructor, compilation fails. In that case, the subclass must declare its own constructor and call the appropriate `super(arguments)`.
 
-## 5. Nạp chồng constructor và `this(...)`
+## 5. Constructor Overloading and `this(...)`
 
-**Nạp chồng** (*overloading*) cho phép nhiều constructor có danh sách tham số khác nhau; sử dụng để cung cấp cách tạo đối tượng linh hoạt nhưng vẫn giữ chung quy tắc khởi tạo.
+**Overloading** allows multiple constructors with different parameter lists; use it to provide flexible ways to create objects while maintaining common initialization rules.
 
 ```java
 class Ticket {
@@ -137,7 +137,7 @@ class Ticket {
     private final int quantity;
 
     Ticket(String title) {
-        this(title, 1); // Ủy quyền cho constructor khác cùng lớp
+        this(title, 1); // Delegates to another constructor in the same class
     }
 
     Ticket(String title, int quantity) {
@@ -153,27 +153,27 @@ class Ticket {
 }
 ```
 
-Ở **Java 17**, lời gọi constructor khác `this(...)` hoặc lời gọi constructor lớp cha `super(...)`, nếu có, phải là **câu lệnh đầu tiên** của thân constructor. Vì vậy:
+In **Java 17**, a call to another constructor `this(...)` or to a superclass constructor `super(...)`, if present, must be the **first statement** of the constructor body. Therefore:
 
-- `this(title, 1);` chuyển sang constructor cùng lớp nhận hai đối số.
-- Constructor được ủy quyền thực hiện kiểm tra và gán trạng thái, tránh lặp logic ở nhiều nơi.
-- Không thể gọi cả `this(...)` và `super(...)` trong cùng thân constructor: mỗi đường khởi tạo cuối cùng phải dẫn tới việc khởi tạo lớp cha đúng một lần.
-- Không tạo vòng lặp `this()` lẫn nhau; trình biên dịch từ chối lời gọi constructor đệ quy.
-- `this(...)` gọi constructor; `this.field` truy cập trường instance: hai dạng `this` có tác dụng khác nhau.
-- Nếu bỏ cả `this(...)` và `super(...)`, trình biên dịch ngầm gọi `super()` khi hợp lệ.
+- `this(title, 1);` delegates to the two-argument constructor in the same class.
+- The target constructor performs validation and assigns state, avoiding duplicating logic in multiple places.
+- You cannot call both `this(...)` and `super(...)` in the same constructor body: every initialization path must eventually initialize the superclass exactly once.
+- Do not create mutual `this()` cycles; the compiler rejects recursive constructor calls.
+- `this(...)` calls a constructor; `this.field` accesses an instance field: the two forms of `this` serve different purposes.
+- If both `this(...)` and `super(...)` are omitted, the compiler implicitly calls `super()` when valid.
 
-Lưu ý ranh giới phiên bản: một số phiên bản Java mới hơn thay đổi chi tiết cho phép câu lệnh trước lời gọi constructor tường minh; ví dụ bài này giữ quy tắc **Java 17** và tương thích với `javac` 17.
+Version boundary note: some newer Java versions change details to allow statements before an explicit constructor invocation; examples in this lesson follow **Java 17** rules and are compatible with `javac` 17.
 
-## 6. Lớp cha được khởi tạo trước thân constructor lớp con
+## 6. The Superclass Is Initialized Before the Subclass Constructor Body
 
-Java thực hiện chuỗi khởi tạo đối tượng theo quy tắc. Với các lớp thông thường trong ví dụ:
+Java executes the object initialization sequence according to defined rules. For ordinary classes in these examples:
 
-1. Các trường được đặt giá trị mặc định khi đối tượng được cấp phát.
-2. Các constructor cha được gọi theo chuỗi kế thừa cho tới `Object`.
-3. Trên đường hoàn tất các lớp trong chuỗi, các **field initializer** và **instance initializer block** của mỗi lớp chạy theo thứ tự xuất hiện trong lớp ấy trước phần thân constructor tương ứng (với constructor ủy quyền qua `this(...)`, các bộ khởi tạo instance của lớp chỉ chạy một lần).
-4. Phần thân constructor của lớp cha hoàn tất trước phần thân constructor của lớp con.
+1. Fields are set to default values when the object is allocated.
+2. Parent constructors are invoked up the inheritance chain to `Object`.
+3. As the classes in the chain complete, each class's **field initializers** and **instance initializer blocks** run in their order of appearance in that class before its corresponding constructor body (with a constructor delegating via `this(...)`, the class's instance initializers run only once).
+4. The superclass constructor body finishes before the subclass constructor body.
 
-Ví dụ độc lập của ý tưởng này khi đặt vào lớp:
+Standalone illustration of this idea when placed inside classes:
 
 ```java
 class Parent {
@@ -186,17 +186,17 @@ class Child extends Parent {
     private int id = 7;
 
     Child() {
-        super(); // Ngầm định nếu bỏ, khi Parent() truy cập được
+        super(); // Implicit if omitted, when Parent() is accessible
         System.out.println("Child constructor: " + id);
     }
 }
 ```
 
-Tạo `new Child()` sẽ in `Parent constructor` trước `Child constructor: 7`. Không nên gọi phương thức instance có thể bị override từ constructor của lớp cha: khi override chạy trong lớp con, các trường của lớp con có thể chưa hoàn tất quá trình khởi tạo của nó.
+Creating `new Child()` prints `Parent constructor` before `Child constructor: 7`. Avoid calling overridable instance methods from a superclass constructor: when the override runs in the subclass, the subclass's fields may not have finished initializing yet.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Java 17+ Example
 
-Tạo tệp **`ConstructorDemo.java`**:
+Create the file **`ConstructorDemo.java`**:
 
 ```java
 public class ConstructorDemo {
@@ -274,14 +274,14 @@ public class ConstructorDemo {
 }
 ```
 
-Mở terminal tại thư mục chứa tệp, sử dụng **JDK 17 trở lên** trên Windows PowerShell/CMD hoặc Linux/macOS:
+Open a terminal in the directory containing the file, using **JDK 17 or later** on Windows PowerShell/CMD or Linux/macOS:
 
 ```bash
 javac -encoding UTF-8 ConstructorDemo.java
 java ConstructorDemo
 ```
 
-Kết quả **stdout chính xác** (lệnh biên dịch thành công không in gì):
+**Exact stdout** result (a successful compile command prints nothing):
 
 ```text
 Pen: 1
@@ -293,19 +293,19 @@ Parent()
 Child(): 42
 ```
 
-Giải thích kết quả:
+Result explanation:
 
-- `new Order("Pen")` gọi constructor một tham số và ủy quyền qua `this(item, 1)`; `quantity` được khởi tạo thành `1`.
-- `new Order("Book", 3)` dùng overload hai tham số và khởi tạo đủ hai trường `final`.
-- Constructor từ chối `quantity == 0` bằng `IllegalArgumentException`; không có đối tượng `Order` được trả về cho lời gọi `new` thất bại.
-- Trong `Defaults()`, hai trường chưa được gán tường minh có giá trị mặc định `0` và `null`; sau phép gán trong constructor, chúng thành `5` và `"ready"`.
-- Với `new Child()`, constructor lớp cha in trước, rồi constructor lớp con đọc field `id` đã được khởi tạo thành `42`.
+- `new Order("Pen")` invokes the one-parameter constructor and delegates via `this(item, 1)`; `quantity` is initialized to `1`.
+- `new Order("Book", 3)` uses the two-parameter overload and initializes both `final` fields.
+- The constructor rejects `quantity == 0` with `IllegalArgumentException`; no `Order` object is returned to the failed `new` call.
+- In `Defaults()`, the two fields not explicitly assigned have default values `0` and `null`; after assignments in the constructor, they become `5` and `"ready"`.
+- With `new Child()`, the parent constructor prints first, then the child constructor reads the `id` field already initialized to `42`.
 
-## 8. Khởi tạo `final`, validation và tham chiếu mutable
+## 8. `final` Initialization, Validation, and Mutable References
 
-### Trường `final` khởi tạo một lần
+### `final` Fields Initialized Once
 
-Một **trường instance `final` chưa được khởi tạo tại khai báo** (*blank final field*) phải được gán chính xác theo các quy tắc *definite assignment* trước khi constructor hoàn tất bình thường:
+A **`final` instance field not initialized at declaration** (*blank final field*) must be assigned strictly according to *definite assignment* rules before the constructor completes normally:
 
 ```java
 class Point {
@@ -319,9 +319,9 @@ class Point {
 }
 ```
 
-Nếu một nhánh constructor hoàn tất bình thường mà bỏ qua việc gán `x` hoặc `y`, mã không biên dịch được. Nếu field `final` đã được gán tại khai báo, không thể gán lại trường đó trong constructor.
+If any constructor branch completes normally without assigning `x` or `y`, the code will not compile. If a `final` field was already assigned at declaration, it cannot be reassigned in the constructor.
 
-Từ khóa `final` trên một **tham chiếu** ngăn gán lại tham chiếu sau khởi tạo, nhưng không tự biến trạng thái của đối tượng được tham chiếu thành bất biến:
+The `final` keyword on a **reference** prevents reassigning the reference after initialization, but does not automatically make the referenced object's state immutable:
 
 ```java
 class Holder {
@@ -333,25 +333,25 @@ class Holder {
 }
 ```
 
-`input.clone()` giúp không dùng chung mảng `int[]` ban đầu khi tạo đối tượng. Nếu getter trả thẳng `values`, mã bên ngoài vẫn có thể sửa phần tử; khi cần bất biến thực tế, phải kiểm soát cả cách công khai và cập nhật trạng thái.
+`input.clone()` avoids sharing the original `int[]` array when creating the object. If a getter returns `values` directly, external code can still modify its elements; when true immutability is needed, you must control both how state is exposed and how it is updated.
 
-### Kiểm tra dữ liệu ngay lúc tạo
+### Validating Data at Creation Time
 
-Constructor là nơi phù hợp để từ chối đối số không hợp lệ, ví dụ `name == null`, chuỗi trống hoặc số lượng âm. Cần chọn rõ điều kiện miền dữ liệu; `quantity <= 0` hợp lý cho đơn hàng yêu cầu ít nhất một đơn vị, nhưng không phù hợp với mọi bài toán (ví dụ một bộ đếm hợp lệ có thể bằng 0).
+A constructor is the right place to reject invalid arguments, such as `name == null`, blank strings, or negative quantities. Choose domain constraints deliberately; `quantity <= 0` makes sense for an order requiring at least one unit, but does not fit every problem (for example, a valid counter may start at 0).
 
-Đừng để lộ `this` trong lúc constructor chưa hoàn tất (ví dụ đăng ký đối tượng vào cấu trúc công khai hoặc khởi chạy luồng dùng `this` quá sớm): mã khác có thể quan sát trạng thái chưa được khởi tạo xong.
+Do not expose `this` while the constructor has not yet finished (for example, registering the object into a public structure or starting a thread that uses `this` too early): other code could observe partially initialized state.
 
-## 9. Lỗi phổ biến và cách kiểm tra
+## 9. Common Errors and How to Check
 
-| Lỗi | Hậu quả/cách sửa |
+| Error | Consequence / Fix |
 | --- | --- |
-| Viết `name = name;` khi tham số trùng tên trường | Tham số tự gán cho chính nó; dùng `this.name = name;` |
-| Thêm `void` trước tên constructor | Biến thành một phương thức thông thường, không còn là constructor |
-| Gọi `new User()` sau khi chỉ khai báo `User(String name)` | Không có constructor không tham số tự sinh; viết overload `User()` nếu cần |
-| Dùng `this(...)` sau câu lệnh khác ở Java 17 | Lỗi biên dịch: lời gọi constructor tường minh phải đứng đầu |
-| Một constructor chỉ gán vài trường `final` rồi kết thúc | Lỗi *definite assignment*; mọi đường kết thúc bình thường phải gán đủ |
-| Tưởng field và biến local đều có giá trị mặc định để đọc | Field có giá trị mặc định; local phải được gán chắc chắn trước khi đọc |
-| Gọi phương thức có thể bị override từ constructor cha | Có thể chạy logic của lớp con trước khi trạng thái lớp con khởi tạo xong |
-| Lưu trực tiếp mảng mutable được truyền vào rồi coi đối tượng là bất biến | Dữ liệu có thể bị sửa từ ngoài qua cùng tham chiếu; cân nhắc sao chép bảo vệ |
+| Writing `name = name;` when parameter matches field name | Parameter assigns to itself; use `this.name = name;` |
+| Adding `void` before the constructor name | Turns it into a regular method, no longer a constructor |
+| Calling `new User()` after declaring only `User(String name)` | No auto-generated no-arg constructor; write a `User()` overload if needed |
+| Using `this(...)` after another statement in Java 17 | Compile error: explicit constructor invocation must come first |
+| A constructor assigns only some `final` fields and returns | *Definite assignment* error; every normal completion path must assign all of them |
+| Assuming fields and local variables both have readable default values | Fields have default values; locals must be definitely assigned before reading |
+| Calling an overridable method from a parent constructor | May execute subclass logic before subclass state finishes initializing |
+| Storing a passed-in mutable array directly and treating the object as immutable | Data can be modified from outside via the same reference; consider defensive copying |
 
-**Ghi nhớ:** constructor định nghĩa cách tạo một instance ở trạng thái ban đầu hợp lệ. Dùng `this.field` để gán đúng field, dùng `this(...)` để chia sẻ logic giữa các constructor, dùng `super(...)` khi cần khởi tạo lớp cha, và kiểm tra đối số trước khi công khai đối tượng.
+**Takeaway:** constructors define how to create an instance in a valid initial state. Use `this.field` to assign the right field, use `this(...)` to share logic among constructors, use `super(...)` when superclass initialization is needed, and validate arguments before exposing the object.

@@ -1,45 +1,45 @@
-# Reflection: Thứ tự thành viên trả về không được bảo đảm là thứ tự khai báo
+# Reflection: Returned Member Order Is Not Guaranteed to Be Declaration Order
 
-Khi tra cứu thành viên của một lớp bằng Java Reflection, các API như `Class.getDeclaredMethods()`, `getDeclaredFields()` hay `getDeclaredConstructors()` trả về **mảng các đối tượng mô tả thành viên**, nhưng **không cam kết các phần tử xuất hiện theo thứ tự khai báo trong mã nguồn**. Tương tự, các API lấy thành viên `public` cũng không bảo đảm thứ tự. Nếu chương trình cần kết quả nhất quán, phải tự định nghĩa quy tắc sắp xếp hoặc tra cứu bằng danh tính cụ thể của thành viên.
+When looking up members of a class using Java Reflection, APIs such as `Class.getDeclaredMethods()`, `getDeclaredFields()`, or `getDeclaredConstructors()` return an **array of member descriptor objects**, but **do not promise that elements appear in source-code declaration order**. Similarly, APIs retrieving `public` members do not guarantee order either. If a program needs consistent results, it must define its own sorting rules or look up by the specific identity of the member.
 
-## 1. Điều gì được bảo đảm, điều gì không?
+## 1. What Is Guaranteed, and What Is Not?
 
-Giả sử lớp có các phương thức được viết theo thứ tự `zeta`, `alpha(int)`, `alpha()`. Không được mặc định rằng `getDeclaredMethods()[0]` là `zeta` hoặc hai phương thức `alpha` đứng liền nhau theo thứ tự trong tệp Java. Việc chạy thử thấy kết quả giống mã nguồn chỉ phản ánh một lần chạy trong một môi trường, **không tạo thành hợp đồng API**.
+Suppose a class has methods written in the order `zeta`, `alpha(int)`, `alpha()`. You must not assume that `getDeclaredMethods()[0]` is `zeta` or that the two `alpha` methods appear next to each other in the order from the Java file. Observing a result matching source code in a test run only reflects one run in one environment, **and does not form an API contract**.
 
-| API trên `Class<?>` | Phạm vi thành viên được tìm | Thứ tự mảng trả về |
+| API on `Class<?>` | Member Scope Found | Returned Array Order |
 | --- | --- | --- |
-| `getDeclaredMethods()` | Phương thức được khai báo trong chính lớp/interface, kể cả không `public`; không lấy phương thức kế thừa | Không xác định |
-| `getMethods()` | Phương thức `public` nhìn thấy từ kiểu, bao gồm các phương thức kế thừa theo quy tắc API | Không xác định |
-| `getDeclaredFields()` | Trường được khai báo tại chính kiểu, kể cả `private`; không gồm trường kế thừa | Không xác định |
-| `getFields()` | Các trường `public` nhìn thấy, có thể bao gồm trường kế thừa | Không xác định |
-| `getDeclaredConstructors()` | Các constructor khai báo tại lớp, kể cả không `public` | Không xác định |
-| `getConstructors()` | Các constructor `public` của lớp | Không xác định |
+| `getDeclaredMethods()` | Methods declared in this class/interface itself, including non-`public`; excludes inherited methods | Unspecified |
+| `getMethods()` | `public` methods visible from the type, including inherited methods per API rules | Unspecified |
+| `getDeclaredFields()` | Fields declared on the type itself, including `private`; excludes inherited fields | Unspecified |
+| `getFields()` | Visible `public` fields, which may include inherited fields | Unspecified |
+| `getDeclaredConstructors()` | Constructors declared on the class, including non-`public` | Unspecified |
+| `getConstructors()` | `public` constructors of the class | Unspecified |
 
-“Không xác định” ở đây có nghĩa là **không có bảo đảm về thứ tự của mảng**; không đồng nghĩa rằng mỗi lần gọi sẽ bị xáo ngẫu nhiên. Trên một JDK cụ thể, bạn có thể quan sát cùng thứ tự rất nhiều lần. Kết quả quan sát đó vẫn không đủ để viết logic phụ thuộc vào vị trí.
+"Unspecified" here means **there is no guarantee about the order of the array**; it does not mean every call will shuffle randomly. On a specific JDK, you may observe the same order many times. Those observations are still not sufficient to write position-dependent logic.
 
-Cần phân biệt **tập thành viên** mà mỗi API mô tả với **vị trí các phần tử** trong tập đó. Chọn đúng `getMethods()` hay `getDeclaredMethods()` là quyết định về phạm vi/khả năng truy cập; nó không giải quyết chuyện thứ tự. Việc `getDeclaredFields()` nhìn thấy metadata của trường `private` cũng không tự cấp quyền đọc giá trị trường đó.
+Distinguish the **set of members** each API describes from the **positions of elements** in that set. Choosing `getMethods()` vs `getDeclaredMethods()` is a decision about scope/accessibility; it does not solve ordering. Having `getDeclaredFields()` see metadata of a `private` field also does not automatically grant permission to read that field's value.
 
-## 2. Vì sao không nên suy luận thứ tự từ mã nguồn?
+## 2. Why Shouldn't Order Be Inferred from Source Code?
 
-Reflection truy vấn metadata của kiểu đã nạp và tuân theo hợp đồng API của JDK. API tra cứu thành viên không hứa sẽ bảo toàn thứ tự xuất hiện trong tệp `.java`. Cách trình biên dịch tạo bytecode, các thành viên tổng hợp/bridge, cách JVM và thư viện Reflection triển khai, hoặc thay đổi phiên bản công cụ có thể làm thứ tự quan sát được khác đi. Không cần chứng minh một lần chạy bị đảo thứ tự mới kết luận rằng chương trình không được dựa vào thứ tự ấy: **điều quyết định là tài liệu API không bảo đảm**.
+Reflection queries metadata of a loaded type and follows the JDK API contract. Member lookup APIs do not promise to preserve appearance order in the `.java` file. How the compiler generates bytecode, synthetic/bridge members, how the JVM and Reflection library are implemented, or tool version changes can alter the observed order. You do not need to prove a single run swaps order to conclude that a program must not rely on that order: **what decides it is that the API documentation makes no guarantee**.
 
-Ví dụ, hai cách sau đều dễ sai:
+For example, both approaches below are prone to error:
 
 ```java
 Method first = Example.class.getDeclaredMethods()[0];
-// SAI về giả định: first là phương thức xuất hiện đầu tiên trong file .java.
+// WRONG assumption: first is the first method appearing in the .java file.
 
 Field firstField = Example.class.getDeclaredFields()[0];
-// SAI về giả định: firstField là trường được khai báo đầu tiên.
+// WRONG assumption: firstField is the first declared field.
 ```
 
-Đây là các *đoạn minh họa giả định sai*, không phải chương trình độc lập. Phần tử `[0]` chỉ có nghĩa là phần tử đầu tiên **trong mảng trả về lần đó**, không mang ý nghĩa “khai báo đầu tiên”. Nếu mảng rỗng, truy cập `[0]` còn gây `ArrayIndexOutOfBoundsException`.
+These are *snippets illustrating wrong assumptions*, not standalone programs. Element `[0]` only means the first element **in the array returned that time**, without meaning "declared first". If the array is empty, accessing `[0]` even causes `ArrayIndexOutOfBoundsException`.
 
-## 3. Ví dụ Java 17+: sắp xếp trước khi sử dụng
+## 3. Java 17+ Example: Sorting Before Use
 
-Ví dụ sau khai báo phương thức theo một thứ tự, nhưng **không in mảng Reflection thô** để tránh gắn một output cố định cho thứ tự không được bảo đảm. Thay vào đó, chương trình định nghĩa một khóa hiển thị gồm tên phương thức và các kiểu tham số, rồi sắp xếp theo khóa đó. Lớp ví dụ không có phương thức overload với cùng tên và danh sách tham số nhưng khác kiểu trả về, nên khóa hiển thị đủ để xác định thứ tự trong ví dụ này.
+The following example declares methods in one order, yet **does not print the raw Reflection array** to avoid tying a fixed output to an unguaranteed order. Instead, the program defines a display key consisting of the method name and parameter types, then sorts by that key. The example class has no overloaded methods with the same name and parameter list but different return types, so the display key is sufficient to determine order in this example.
 
-Tạo tệp `MemberOrderDemo.java`:
+Create the file `MemberOrderDemo.java`:
 
 ```java
 import java.lang.reflect.Method;
@@ -75,14 +75,14 @@ public class MemberOrderDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac MemberOrderDemo.java
 java MemberOrderDemo
 ```
 
-Output sau khi đã sắp xếp:
+Output after sorting:
 
 ```text
 alpha()
@@ -90,80 +90,80 @@ alpha(int)
 zeta()
 ```
 
-Vì sao output này ổn định trong ví dụ?
+Why is this output deterministic in the example?
 
-1. `getDeclaredMethods()` tìm ba phương thức do `Example` khai báo, bất kể thứ tự ban đầu của chúng trong mảng.
-2. `signature()` tạo khóa rõ ràng: tên phương thức kết hợp danh sách kiểu tham số. Nhờ vậy hai overload `alpha()` và `alpha(int)` được phân biệt.
-3. `Arrays.sort(...)` sắp xếp theo khóa chuỗi trước khi vòng `for` in ra. Thứ tự ở output là **quy tắc do ứng dụng lựa chọn**, không phải thứ tự nguồn được Reflection tự cung cấp.
+1. `getDeclaredMethods()` finds the three methods declared by `Example`, regardless of their initial order in the array.
+2. `signature()` builds an explicit key: method name combined with parameter type list. Thus the two overloads `alpha()` and `alpha(int)` are distinguished.
+3. `Arrays.sort(...)` sorts by the string key before the `for` loop prints them. The order in the output is **a rule chosen by the application**, not a source order automatically provided by Reflection.
 
-Mã này chỉ phục vụ cho việc hiển thị/duyệt có thứ tự; việc sắp xếp mảng không thay đổi khai báo của lớp hay metadata của JVM. Nếu muốn thứ tự theo tên trường, có thể sử dụng `Arrays.sort(fields, Comparator.comparing(Field::getName))` sau khi lấy `Field[] fields = SomeClass.class.getDeclaredFields()`; nhớ import `java.lang.reflect.Field`.
+This code only serves ordered display/iteration; sorting the array does not alter class declarations or JVM metadata. If you want ordering by field name, you can use `Arrays.sort(fields, Comparator.comparing(Field::getName))` after obtaining `Field[] fields = SomeClass.class.getDeclaredFields()`; remember to import `java.lang.reflect.Field`.
 
-## 4. Khi muốn tìm đúng thành viên: tra cứu theo danh tính
+## 4. When You Want the Exact Member: Look Up by Identity
 
-Nếu đã biết tên và kiểu tham số, **tránh chọn phương thức bằng chỉ số mảng**. Dùng API tra cứu theo chữ ký:
+If you already know the name and parameter types, **avoid selecting a method by array index**. Use the signature-based lookup APIs:
 
 ```java
 Method noArgs = Example.class.getDeclaredMethod("alpha");
 Method withInt = Example.class.getDeclaredMethod("alpha", int.class);
 ```
 
-Hai câu lệnh này là **đoạn mã nằm trong ngữ cảnh ví dụ ở mục 3**, có thể đặt vào `main` (và cần xử lý hoặc khai báo `NoSuchMethodException`). Chúng không phụ thuộc `getDeclaredMethods()` sắp xếp ra sao.
+These two statements are **code snippets within the context of the example in section 3**, which can be placed in `main` (and require handling or declaring `NoSuchMethodException`). They do not depend on how `getDeclaredMethods()` is ordered.
 
-- Phương thức: `getDeclaredMethod(name, parameterTypes...)` hoặc `getMethod(name, parameterTypes...)`; cần xét cả tên lẫn danh sách kiểu tham số vì Java hỗ trợ overload.
-- Trường: `getDeclaredField(name)` hoặc `getField(name)`.
-- Constructor: `getDeclaredConstructor(parameterTypes...)` hoặc `getConstructor(parameterTypes...)`; constructor được phân biệt bằng kiểu tham số, không bằng tên tùy ý.
+- Methods: `getDeclaredMethod(name, parameterTypes...)` or `getMethod(name, parameterTypes...)`; both name and parameter type list must be specified because Java supports overloading.
+- Fields: `getDeclaredField(name)` or `getField(name)`.
+- Constructors: `getDeclaredConstructor(parameterTypes...)` or `getConstructor(parameterTypes...)`; constructors are distinguished by parameter types, not by arbitrary names.
 
-Các bản `getDeclared...` truy vấn khai báo của chính kiểu, còn bản không có `Declared` dùng quy tắc thành viên `public` của API tương ứng. Tra cứu sai tên/chữ ký có thể ném `NoSuchMethodException` hoặc `NoSuchFieldException`; đó là lỗi tra cứu, không liên quan đến thứ tự. Với các class có phương thức bridge/synthetic hay các trường hợp bytecode đặc biệt, nên kiểm tra thêm `isBridge()`, `isSynthetic()` và metadata liên quan thay vì giả định nguồn Java đơn giản luôn mô tả trọn bộ thành viên được phản chiếu.
+The `getDeclared...` versions query declarations of the type itself, while versions without `Declared` use the `public` member rules of the corresponding API. Looking up with a wrong name/signature can throw `NoSuchMethodException` or `NoSuchFieldException`; that is a lookup error, unrelated to ordering. For classes with bridge/synthetic methods or special bytecode cases, additionally inspect `isBridge()`, `isSynthetic()`, and related metadata rather than assuming simple Java source fully describes all reflected members.
 
-## 5. Chọn tiêu chí thứ tự phù hợp với mục đích
+## 5. Choosing an Ordering Criterion That Fits the Purpose
 
-Một quy tắc sắp xếp là hợp lệ khi **được công bố rõ và đủ để phân biệt các phần tử cần phân biệt**. Một số mục đích phổ biến:
+A sorting rule is valid when **it is explicitly specified and sufficient to distinguish the elements that must be distinguished**. Some common purposes:
 
-| Mục đích | Quy tắc nên chọn |
+| Purpose | Rule to Choose |
 | --- | --- |
-| Danh sách trường trong giao diện hoặc tài liệu | Sắp xếp `Field::getName` nếu chỉ cần thứ tự tên |
-| Danh sách phương thức có overload | Sắp xếp bằng tên + danh sách kiểu tham số; bổ sung kiểu trả về/kiểu khai báo khi cần phân biệt các phương thức đặc biệt |
-| So sánh kết quả Reflection trong test | Chuẩn hóa thành set/map theo khóa, hoặc sắp xếp theo khóa xác định trước khi so sánh |
-| Chạy các handler/plugin theo ưu tiên nghiệp vụ | Dùng metadata ưu tiên riêng (ví dụ annotation `@Order` do ứng dụng định nghĩa), kết hợp khóa phụ để xử lý trường hợp trùng ưu tiên |
-| Cần chính xác thứ tự xuất hiện trong mã nguồn | Thu thập từ AST/source hoặc metadata được ghi nhận lúc build; không suy ra chỉ từ vị trí trong mảng Reflection |
+| Field list in a UI or documentation | Sort by `Field::getName` if only name order is needed |
+| Method list with overloads | Sort by name + parameter type list; add return type/declaring type when distinguishing special methods |
+| Comparing Reflection results in tests | Normalize into a set/map by key, or sort by a deterministic key before comparing |
+| Running handlers/plugins by business priority | Use explicit priority metadata (e.g., an application-defined `@Order` annotation), combined with a secondary key to handle ties |
+| Requiring exact appearance order in source code | Collect from AST/source or metadata recorded at build time; do not infer solely from Reflection array position |
 
-Với ứng dụng thực tế, một `Comparator` chỉ so sánh tên phương thức có thể trả kết quả bằng nhau cho các overload. Khi đó các overload vẫn có thể giữ vị trí theo thứ tự đầu vào vốn không được bảo đảm. Muốn một **thứ tự tổng rõ ràng** cho danh sách phương thức, hãy thêm các khóa phụ theo yêu cầu, chẳng hạn danh sách tên kiểu tham số, kiểu trả về và tên kiểu khai báo. Nếu cần một danh tính ổn định qua quá trình build, hãy thống nhất định dạng tên kiểu/chữ ký trong hệ thống thay vì phụ thuộc vào `toString()` như một chuẩn lưu trữ tự chế.
+In real applications, a `Comparator` comparing only method names can return equal for overloads. In that case, the overloads may still keep positions from the unguaranteed input order. To get a **clear total order** for a method list, add secondary keys as required, such as the parameter type names list, return type, and declaring type name. If a stable identity across builds is needed, standardize the type-name/signature format in the system instead of relying on `toString()` as a makeshift storage format.
 
-**Chú ý:** tên phương thức không thể hiện thứ tự khai báo. Sắp xếp theo tên chỉ tạo thứ tự bảng chữ cái, **không phục hồi thứ tự mã nguồn**. Nếu nghiệp vụ yêu cầu `validate` chạy trước `save`, mã phải thể hiện quy tắc ấy bằng thứ tự thao tác rõ ràng hoặc metadata ưu tiên, không dựa vào việc phương thức nào xuất hiện trước trong `getDeclaredMethods()`.
+**Note:** method names do not express declaration order. Sorting by name only produces alphabetical order, **it does not recover source-code order**. If business logic requires `validate` to run before `save`, the code must express that rule via explicit execution order or priority metadata, not by relying on which method appears earlier in `getDeclaredMethods()`.
 
-## 6. Những bẫy thực tế
+## 6. Practical Pitfalls
 
-**Bẫy 1 — Test chạy xanh trên máy này nên thứ tự là đúng.** Test so sánh mảng theo vị trí có thể hoạt động trên JDK hiện tại nhưng thiếu cơ sở theo hợp đồng API. Hãy so sánh tập chữ ký khi chỉ quan tâm thành viên tồn tại, hoặc sắp xếp trước khi kiểm tra thứ tự đầu ra.
+**Pitfall 1 — Tests pass on this machine so the order is right.** Tests comparing arrays positionally may pass on the current JDK yet lack basis in the API contract. Compare signature sets when only existence matters, or sort before checking output order.
 
-**Bẫy 2 — `getDeclaredMethods()` nghĩa là theo thứ tự declared.** Chữ `Declared` chỉ nói **phạm vi tìm kiếm** là thành viên khai báo tại chính kiểu; không nói về **thứ tự khai báo**.
+**Pitfall 2 — `getDeclaredMethods()` means in declared order.** The word `Declared` only states the **search scope** is members declared on the type itself; it says nothing about **declaration order**.
 
-**Bẫy 3 — Sắp xếp chỉ theo `Method::getName`.** Khi overload cùng tên, comparator đó không phân biệt được `load()` và `load(String)`. Thêm tham số (và khóa phụ khác nếu cần) để tránh kết quả còn phụ thuộc thứ tự ban đầu.
+**Pitfall 3 — Sorting only by `Method::getName`.** For overloads with the same name, that comparator does not distinguish `load()` and `load(String)`. Add parameters (and other tie-breaker keys if needed) to avoid results still depending on initial order.
 
-**Bẫy 4 — Nhầm thành viên kế thừa với thành viên trực tiếp.** `getMethods()` có thể trả phương thức `public` được kế thừa, còn `getDeclaredMethods()` không dùng để liệt kê toàn bộ phương thức kế thừa. Việc đổi API sẽ thay đổi *thành phần* của danh sách, không làm thứ tự trở nên đáng tin hơn.
+**Pitfall 4 — Confusing inherited members with direct members.** `getMethods()` can return inherited `public` methods, whereas `getDeclaredMethods()` is not used to list all inherited methods. Switching the API changes the *contents* of the list, not the reliability of its order.
 
-**Bẫy 5 — Cố gắng lấy thứ tự nguồn từ `.class` bằng chỉ số.** Class file hoặc thư viện phân tích bytecode có thể có thứ tự riêng nhưng Reflection không cam kết phản ánh thứ tự đó. Thậm chí thứ tự metadata trong class file cũng không nhất thiết tương ứng thứ tự phát biểu trong mã nguồn gốc sau các bước sinh/chuyển đổi mã.
+**Pitfall 5 — Trying to obtain source order from `.class` by index.** Class files or bytecode analysis libraries may have their own ordering, yet Reflection does not commit to mirroring that order. Even metadata order in a class file does not necessarily match statement order in original source after code generation/transformation steps.
 
-**Bẫy 6 — Áp dụng kết luận cho mọi API Reflection.** Quy tắc ở đây nói về các mảng thành viên như `getDeclaredMethods()`, `getMethods()`, `getDeclaredFields()` và constructor. Một API khác có thể có hợp đồng thứ tự riêng: ví dụ `getRecordComponents()` của record trả các component theo thứ tự khai báo trong record header. Luôn đọc tài liệu của **đúng phương thức API** đang sử dụng.
+**Pitfall 6 — Applying the conclusion to every Reflection API.** The rule here concerns member arrays such as `getDeclaredMethods()`, `getMethods()`, `getDeclaredFields()`, and constructors. Another API may have its own ordering contract: for example, `getRecordComponents()` of a record returns components in the declaration order in the record header. Always read the documentation of the **exact API method** being used.
 
-## 7. Checklist áp dụng
+## 7. Application Checklist
 
-1. Xác định cần *tìm một thành viên* hay *duyệt nhiều thành viên*.
-2. Nếu tìm một thành viên, dùng API theo tên/chữ ký; không lấy phần tử theo index rồi đoán ý nghĩa.
-3. Nếu duyệt nhiều thành viên, chọn `getDeclared...` hay bản `public` theo đúng phạm vi nghiệp vụ.
-4. Quy định thứ tự ở tầng ứng dụng (tên, chữ ký, ưu tiên annotation, v.v.) rồi sort **trước** khi hiển thị, xử lý theo thứ tự hoặc xuất tài liệu.
-5. Kiểm tra overload, inherited members, bridge/synthetic members và tiêu chí xử lý khóa bằng nhau khi liên quan.
-6. Trong test, chỉ khẳng định thứ tự do **chính ứng dụng** thiết lập, không khẳng định thứ tự mảng thô của Reflection.
+1. Determine whether you need to *find one member* or *iterate multiple members*.
+2. If finding one member, use the name/signature lookup API; do not take an element by index and guess its meaning.
+3. If iterating multiple members, choose `getDeclared...` or the `public` version according to the exact business scope.
+4. Define the ordering at the application layer (name, signature, annotation priority, etc.) and sort **before** displaying, processing in sequence, or exporting documentation.
+5. Check overloads, inherited members, bridge/synthetic members, and tie-breaking criteria where relevant.
+6. In tests, assert only the order established by **the application itself**, never the raw Reflection array order.
 
-### Tự kiểm tra
+### Self-Check
 
-- Nếu `getDeclaredFields()` trả về `[b, a]` trong một lần chạy nhưng mã nguồn khai báo `a` rồi `b`, JDK có vi phạm hợp đồng không? **Không.** API không hứa thứ tự khai báo.
-- Có thể tin `getDeclaredMethods()[0]` là phương thức đầu tiên trong file Java khi đã chạy thử mười lần cùng kết quả không? **Không.** Số lần quan sát không thay thế hợp đồng.
-- Khi muốn danh sách phương thức luôn theo tên và chữ ký, nên làm gì? **Tạo khóa so sánh gồm tên + danh sách kiểu tham số (cùng khóa phụ khi cần), rồi sắp xếp rõ ràng.**
-- Có thể dùng `getDeclaredMethod("process", String.class)` để tìm phương thức overload tương ứng mà không cần biết vị trí mảng không? **Có**, miễn phương thức đó thực sự tồn tại với chữ ký tương ứng trong phạm vi API.
+- If `getDeclaredFields()` returns `[b, a]` in one run while source code declares `a` then `b`, did the JDK violate its contract? **No.** The API does not promise declaration order.
+- Can you trust `getDeclaredMethods()[0]` is the first method in the Java file after running ten test runs with the same result? **No.** Number of observations does not replace a contract.
+- When you want a method list always ordered by name and signature, what should you do? **Build a comparison key consisting of name + parameter type list (with secondary keys when needed), then sort explicitly.**
+- Can you use `getDeclaredMethod("process", String.class)` to find the corresponding overloaded method without knowing its array position? **Yes**, provided that method actually exists with that signature within the API scope.
 
-### Tài liệu tham khảo
+### References
 
-- Oracle Java SE 21, [`Class` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html): mô tả phạm vi của `getMethods()`, `getDeclaredMethods()`, `getFields()`, `getDeclaredFields()`, `getConstructors()`, `getDeclaredConstructors()` và điều khoản phần tử trong các mảng này không được sắp xếp theo bất kỳ thứ tự cụ thể nào.
-- Oracle Java SE 21, [`Method` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): chữ ký, tham số, phương thức bridge và synthetic.
+- Oracle Java SE 21, [`Class` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html): describes the scope of `getMethods()`, `getDeclaredMethods()`, `getFields()`, `getDeclaredFields()`, `getConstructors()`, `getDeclaredConstructors()`, and the clause that elements in these arrays are not sorted in any particular order.
+- Oracle Java SE 21, [`Method` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): signatures, parameters, bridge and synthetic methods.
 
-**Ghi nhớ:** Reflection cho biết *thành viên nào được tìm thấy* theo hợp đồng của từng API. Khi thứ tự có ý nghĩa, **ứng dụng phải tự xác lập thứ tự đó**.
+**Takeaway:** Reflection tells you *which members are found* according to each API's contract. Whenever order matters, **the application must establish that order itself**.

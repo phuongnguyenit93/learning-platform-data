@@ -1,17 +1,17 @@
-# Phân trang dữ liệu trong bộ nhớ và giới hạn của `skip`, `limit`
+# In-Memory Data Pagination and the Limits of `skip` and `limit`
 
-## 1. Mục tiêu bài học và tình huống thực tế
+## 1. Lesson Objectives and Real-World Scenario
 
-Trong **Java Stream API** (`JAVA_STREAM_API`), xử lý dữ liệu khai báo thường gồm một nguồn, các bước trung gian lazy như `filter` và `map`, rồi một terminal operation như `collect`. Khi dữ liệu được lưu sẵn trong RAM nhưng giao diện chỉ hiển thị từng phần, ta cần **phân trang** (*pagination*): lấy một lát cắt của tập kết quả theo số trang và kích thước trang.
+In the **Java Stream API** (`JAVA_STREAM_API`), declarative data processing typically consists of a source, lazy intermediate operations such as `filter` and `map`, and a terminal operation such as `collect`. When data already resides in RAM yet the UI displays only one slice at a time, we need **pagination**: extracting a slice of the result set by page number and page size.
 
-Ví dụ: ứng dụng có 23 sản phẩm, màn hình chỉ hiển thị tối đa 5 sản phẩm mỗi trang. Người dùng chọn trang thứ ba; chương trình phải lấy đúng các sản phẩm của trang đó, đồng thời biết tổng số trang và có còn trang tiếp theo hay không.
+For example, an application has 23 products, and the screen displays at most 5 products per page. The user selects the third page; the program must return the exact products for that page, along with total page count and whether a next page exists.
 
-Stream API cung cấp hai thao tác trung gian:
+The Stream API provides two intermediate operations:
 
-- `skip(n)`: bỏ qua **tối đa `n` phần tử đầu** của stream theo encounter order, nếu stream có thứ tự.
-- `limit(n)`: giữ **tối đa `n` phần tử đầu** của đoạn stream còn lại.
+- `skip(n)`: discards **at most the first `n` elements** of the stream in encounter order, if the stream is ordered.
+- `limit(n)`: retains **at most the first `n` elements** of the remaining stream.
 
-Một phép phân trang cơ bản:
+A basic pagination pipeline:
 
 ```java
 List<T> items = source.stream()
@@ -20,34 +20,34 @@ List<T> items = source.stream()
     .collect(Collectors.toList());
 ```
 
-Đây là một **mẫu xử lý dữ liệu thực tế**, nhưng bản thân `skip` và `limit` không tự giải quyết mọi vấn đề: cách đánh số trang, tràn `offset`, tổng số kết quả, dữ liệu rỗng, lọc và sắp xếp, thay đổi dữ liệu giữa các lần lấy trang, chi phí khi bỏ qua rất nhiều phần tử và ngữ nghĩa của parallel stream.
+This is a **practical data processing pattern**, yet `skip` and `limit` alone do not solve everything: page-numbering conventions, `offset` overflow, total result counts, empty data, filtering and sorting, data mutations between page fetches, deep-skip cost, and parallel stream semantics.
 
-Sau bài này, bạn sẽ có thể:
+After this lesson, you will be able to:
 
-1. Tính `offset` từ `pageIndex` và `pageSize`, xử lý trang rỗng cùng đầu vào không hợp lệ.
-2. Giải thích cách `skip`, `limit` tương tác với `filter`, `sorted`, `distinct` và `map`.
-3. Chọn giữa `List.subList` và pipeline Stream khi dữ liệu đã nằm trong bộ nhớ.
-4. Thiết kế một `Page<T>` chứa dữ liệu, tổng bản ghi, tổng trang và thông tin điều hướng.
-5. Phân biệt **thứ tự gặp**, thứ tự hiển thị và tính ổn định giữa các yêu cầu phân trang.
-6. Nhận diện giới hạn hiệu năng khi dữ liệu lớn, cần trang sâu hoặc chạy song song.
-7. Viết kiểm thử bảo đảm không mất/lặp phần tử khi ghép các trang trong một snapshot dữ liệu.
+1. Compute `offset` from `pageIndex` and `pageSize`, and handle empty pages and invalid inputs.
+2. Explain how `skip` and `limit` interact with `filter`, `sorted`, `distinct`, and `map`.
+3. Choose between `List.subList` and a Stream pipeline when data already lives in memory.
+4. Design a `Page<T>` carrying data, total records, total pages, and navigation metadata.
+5. Distinguish **encounter order**, display order, and stability across pagination requests.
+6. Recognize performance limits on large datasets, deep pages, or parallel execution.
+7. Write tests verifying no dropped or duplicated elements when stitching pages from a single data snapshot.
 
-Bài thuộc chương **Mẫu xử lý dữ liệu thực tế** và kết nối với grouping, collector, Spliterator, giới hạn trạng thái, tài nguyên cũng như hiệu năng của Java Stream API.
+This lesson belongs to the **Practical Data Processing Patterns** chapter and connects with grouping, collectors, `Spliterator`, and the state, resource, and performance limits of the Java Stream API.
 
-## 2. Quy ước trang và công thức cơ bản
+## 2. Page Conventions and Basic Formulas
 
-Trong bài, **`pageIndex` bắt đầu từ 0**:
+In this lesson, **`pageIndex` is 0-based**:
 
-| `pageIndex` | Trang hiển thị cho người dùng | `pageSize` | `offset` | Vị trí được lấy |
+| `pageIndex` | UI Page Displayed to User | `pageSize` | `offset` | Positions Retrieved |
 | ---: | ---: | ---: | ---: | --- |
 | 0 | 1 | 5 | 0 | 0–4 |
 | 1 | 2 | 5 | 5 | 5–9 |
 | 2 | 3 | 5 | 10 | 10–14 |
 | 3 | 4 | 5 | 15 | 15–19 |
-| 4 | 5 | 5 | 20 | 20–22 (nếu có 23 phần tử) |
-| 5 | 6 | 5 | 25 | Rỗng |
+| 4 | 5 | 5 | 20 | 20–22 (given 23 elements) |
+| 5 | 6 | 5 | 25 | Empty |
 
-Công thức:
+Formulas:
 
 ```text
 offset = pageIndex * pageSize
@@ -58,48 +58,48 @@ toExclusive   = min(totalElements, offset + pageSize)
 totalPages = ceil(totalElements / pageSize)
 ```
 
-**Cảnh báo:** tính `offset` bằng biểu thức `int pageIndex * int pageSize` có thể tràn `int` **trước khi kết quả được gán vào `long`**. Cần ép kiểu trước khi nhân hoặc dùng `Math.multiplyExact`.
+**Warning:** computing `offset` as `int pageIndex * int pageSize` can overflow `int` **before the result is widened to `long`**. Cast before multiplying or use `Math.multiplyExact`.
 
 ```java
 int pageIndex = 2;
 int pageSize = 5;
 
-// Tốt với hai giá trị int không âm: chuyển sang long trước phép nhân.
+// Good for two non-negative ints: promote to long before multiplying.
 long offset = (long) pageIndex * pageSize;
 
 System.out.println(offset); // 10
 ```
 
-Nếu API của bạn nhận `pageIndex` kiểu `long` hoặc có thể nhận số cực lớn, dùng `Math.multiplyExact(pageIndex, (long) pageSize)` để **phát hiện tràn `long`**. Đừng xử lý tràn bằng cách để offset trở thành số âm rồi gọi `skip`.
+If your API accepts `long pageIndex` or can receive very large values, use `Math.multiplyExact(pageIndex, (long) pageSize)` to **detect `long` overflow**. Never handle overflow by passing a negative offset into `skip`.
 
-### 2.1. Điều kiện đầu vào hợp lệ
+### 2.1. Valid Input Conditions
 
-Một quy ước rõ ràng:
+A clear contract:
 
 - `pageIndex >= 0`.
 - `pageSize > 0`.
-- `offset >= 0` và phép nhân không tràn.
-- Trang vượt quá cuối dữ liệu **trả danh sách rỗng**, không phải lỗi, nếu đó là hợp đồng API.
-- Dữ liệu rỗng có `totalElements = 0`, `totalPages = 0` theo quy ước của bài.
+- `offset >= 0` and multiplication does not overflow.
+- A page past the end of data **returns an empty list**, not an error, if that is the API contract.
+- Empty data has `totalElements = 0` and `totalPages = 0` under this lesson's convention.
 
-`skip(n)` và `limit(n)` sẽ ném `IllegalArgumentException` nếu `n < 0`. Đặc biệt, `limit(0)` là hợp lệ nhưng trả kết quả rỗng; **không nên đồng nhất** điều đó với một `pageSize = 0` được chấp nhận trong nghiệp vụ phân trang, vì nó không tạo trang có thể điều hướng.
+`skip(n)` and `limit(n)` throw `IllegalArgumentException` if `n < 0`. Notably, `limit(0)` is valid in Stream API and returns an empty result; **do not conflate** that with accepting `pageSize = 0` in pagination, which produces no navigable page.
 
-Nếu giao diện bắt đầu đếm từ 1, chuyển sang chỉ số nội bộ một cách tường minh:
+If the UI uses 1-based page numbers, convert explicitly to the internal index:
 
 ```java
-long pageNumber = 3L; // Người dùng chọn trang thứ 3.
+long pageNumber = 3L; // User selects page 3.
 if (pageNumber < 1) {
     throw new IllegalArgumentException(
-        "pageNumber phai bat dau tu 1");
+        "pageNumber must start from 1");
 }
 long pageIndex = pageNumber - 1L; // 2
 ```
 
-Không trộn `pageNumber` (1-based) với `pageIndex` (0-based) trong cùng một công thức. Đây là nguyên nhân phổ biến của lỗi lệch một trang (*off-by-one*).
+Never mix `pageNumber` (1-based) and `pageIndex` (0-based) in the same formula. That is a classic cause of off-by-one bugs.
 
-## 3. Ví dụ đầu tiên với `skip` và `limit`
+## 3. First Example with `skip` and `limit`
 
-Ví dụ Java 8+:
+Java 8+ example:
 
 ```java
 import java.util.Arrays;
@@ -115,7 +115,7 @@ public class SimplePaging {
         );
 
         int pageSize = 5;
-        int pageIndex = 1; // Trang thứ 2 theo giao diện.
+        int pageIndex = 1; // Page 2 in UI.
 
         long offset = (long) pageIndex * pageSize;
 
@@ -130,19 +130,19 @@ public class SimplePaging {
 }
 ```
 
-Diễn giải:
+Explanation:
 
 ```text
-Nguồn: [An, Binh, Chi, Dung, Giang, Ha, Hieu, Khanh, Lan, Minh, Nam, Oanh]
-                 skip(5) ──────────────┘
-Còn lại: [Ha, Hieu, Khanh, Lan, Minh, Nam, Oanh]
-                 limit(5) ───────────┘
-Kết quả: [Ha, Hieu, Khanh, Lan, Minh]
+Source:    [An, Binh, Chi, Dung, Giang, Ha, Hieu, Khanh, Lan, Minh, Nam, Oanh]
+                    skip(5) ─────────────┘
+Remaining: [Ha, Hieu, Khanh, Lan, Minh, Nam, Oanh]
+                    limit(5) ────────────┘
+Result:    [Ha, Hieu, Khanh, Lan, Minh]
 ```
 
-`skip` **không thay đổi `ten`**, còn `limit` không tạo một danh sách độc lập nếu chưa có terminal operation. `collect` mới tiêu thụ pipeline và tạo collection kết quả.
+`skip` **does not mutate `ten`**, and `limit` does not materialize an independent list until a terminal operation runs. `collect` consumes the pipeline and creates the result collection.
 
-### 3.1. Các trường hợp biên
+### 3.1. Boundary Cases
 
 ```java
 List<Integer> so = Arrays.asList(10, 20, 30);
@@ -173,17 +173,17 @@ System.out.println(
 ); // []
 ```
 
-Khi `skip` lớn hơn số phần tử, stream không còn gì để `limit` lấy. **Không có phần tử nào được tạo thêm** để lấp đầy một trang.
+When `skip` exceeds the element count, nothing remains for `limit` to take. **No extra elements are synthesized** to pad a page.
 
-Cũng cần nhớ stream **chỉ được dùng một lần**: trong ví dụ này, mỗi câu lệnh tạo một stream mới bằng `so.stream()`. Không lưu một `Stream` rồi gọi `collect` lần thứ hai trên chính stream đã tiêu thụ.
+Also remember a stream **can be consumed only once**: in this snippet, each statement opens a fresh stream via `so.stream()`. Never store a `Stream` and invoke `collect` a second time on the same consumed instance.
 
-## 4. Thứ tự thao tác quyết định nội dung mỗi trang
+## 4. Operation Order Determines Each Page's Content
 
-`skip` và `limit` thực hiện cắt trên **dòng phần tử ở vị trí mà chúng xuất hiện trong pipeline**. Thay đổi vị trí `filter`, `sorted` hoặc `distinct` có thể thay đổi hoàn toàn câu trả lời.
+`skip` and `limit` slice the **element stream at the exact point where they appear in the pipeline**. Moving `filter`, `sorted`, or `distinct` can completely alter the answer.
 
-### 4.1. Lọc trước, rồi mới phân trang
+### 4.1. Filter First, Then Paginate
 
-Giả sử nguồn là `[1, 2, 3, ..., 10]`. Giao diện chỉ hiển thị **số chẵn**, mỗi trang 3 số. Trang có `pageIndex = 0` phải hiển thị `[2, 4, 6]`, còn trang tiếp theo `[8, 10]`.
+Suppose the source is `[1, 2, 3, ..., 10]`. The UI displays only **even numbers**, 3 per page. `pageIndex = 0` must show `[2, 4, 6]`, and the next page `[8, 10]`.
 
 ```java
 import java.util.stream.IntStream;
@@ -198,7 +198,7 @@ List<Integer> dung = IntStream.rangeClosed(1, 10)
 System.out.println(dung); // [2, 4, 6]
 ```
 
-Nếu cắt trang **trước** khi lọc:
+If you paginate **before** filtering:
 
 ```java
 List<Integer> saiYeuCau = IntStream.rangeClosed(1, 10)
@@ -211,14 +211,14 @@ List<Integer> saiYeuCau = IntStream.rangeClosed(1, 10)
 System.out.println(saiYeuCau); // [2]
 ```
 
-Pipeline thứ hai không sai về mặt Java, nhưng trả một **trang chỉ có một phần tử** dù tập kết quả lọc còn đủ số chẵn. Hai cách phục vụ **hai nghiệp vụ khác nhau**:
+The second pipeline is valid Java, yet it returns a **page with only one element** even though plenty of even numbers exist. The two forms express **two different requirements**:
 
-- `filter(...).skip(...).limit(...)`: phân trang **tập kết quả đã lọc**.
-- `skip(...).limit(...).filter(...)`: chọn một lát cắt **dữ liệu gốc** rồi chỉ lọc trong lát cắt đó.
+- `filter(...).skip(...).limit(...)`: paginate the **filtered result set**.
+- `skip(...).limit(...).filter(...)`: take a slice of the **raw data** and filter only within that slice.
 
-Trong hệ thống tìm kiếm và danh sách có bộ lọc, **lọc trước phân trang** thường mới là yêu cầu đúng.
+In search UIs and filtered lists, **filtering before pagination** is almost always the intended behavior.
 
-### 4.2. Sắp xếp trước, rồi mới phân trang
+### 4.2. Sort First, Then Paginate
 
 ```java
 List<Integer> so = Arrays.asList(9, 1, 7, 2, 5);
@@ -239,9 +239,9 @@ System.out.println(dung); // [5, 7]
 System.out.println(khac); // [2, 7]
 ```
 
-`sorted().skip(2).limit(2)` chọn phần tử thứ 3 và thứ 4 của **toàn bộ tập đã sắp xếp**. `skip(2).limit(2).sorted()` chỉ sắp xếp hai phần tử của lát cắt gốc. Nếu giao diện muốn **toàn bộ kết quả** theo một tiêu chí, phải sắp xếp trước khi cắt trang.
+`sorted().skip(2).limit(2)` selects the 3rd and 4th elements of the **entire sorted dataset**. `skip(2).limit(2).sorted()` sorts only the two elements from the original slice. When the UI expects **globally sorted results**, sort before slicing.
 
-### 4.3. Loại trùng trước, rồi mới phân trang
+### 4.3. Deduplicate First, Then Paginate
 
 ```java
 List<String> ma = Arrays.asList("A", "B", "A", "C", "D");
@@ -262,11 +262,11 @@ System.out.println(uniquePage);        // [C, D]
 System.out.println(pageThenDistinct);  // [A, C]
 ```
 
-Nếu yêu cầu là phân trang **các mã duy nhất**, nên đặt `distinct` trước `skip`/`limit`. `distinct` sau khi cắt trang không ngăn một mã trùng xuất hiện ở **hai trang khác nhau**.
+If the requirement is paginating **unique codes**, put `distinct` before `skip`/`limit`. Calling `distinct` after slicing cannot prevent the same code from appearing across **two different pages**.
 
-### 4.4. `map` trước hay sau khi cắt?
+### 4.4. `map` Before or After Slicing?
 
-Nếu `map` là một phép biến đổi **thuần, một-một** (không làm mất hay thêm phần tử) và thứ tự không thay đổi, có thể biến đổi sau `skip`/`limit` để chỉ xử lý phần tử của trang cần trả:
+If `map` is a **pure, one-to-one** transformation (neither dropping nor adding elements) and ordering is unaffected, you can map after `skip`/`limit` to transform only the items on the requested page:
 
 ```java
 List<String> ten = Arrays.asList("java", "go", "kotlin", "rust");
@@ -280,11 +280,11 @@ List<String> page = ten.stream()
 System.out.println(page); // [KOTLIN, RUST]
 ```
 
-Nhưng nếu cần **sắp xếp hoặc lọc theo giá trị đã biến đổi**, phải làm `map` đủ sớm. Và nếu `map` có tác dụng phụ, chuyển vị trí có thể thay đổi số lần/điều kiện gọi; tác dụng phụ không nên là cơ sở logic của một pipeline phân trang.
+However, if you need to **sort or filter by the mapped value**, `map` must run early enough. And if `map` had side effects, moving it would change how often or under what conditions it runs; side effects should never form the logic of a pagination pipeline.
 
-## 5. Muốn trang ổn định, phải xác định encounter order
+## 5. Stable Pages Require a Defined Encounter Order
 
-Trên `ArrayList` hoặc mảng, stream có encounter order theo vị trí phần tử. Với nguồn **không có thứ tự được bảo đảm** như `HashSet`, hoặc pipeline gọi `unordered()`, ý nghĩa "bỏ qua 10 phần tử đầu" **không đại diện cho 10 phần tử nghiệp vụ cố định**.
+On an `ArrayList` or array, streams have positional encounter order. On an **unordered source** such as `HashSet`, or a pipeline calling `unordered()`, "skip the first 10 elements" **does not identify 10 fixed business items**.
 
 ```java
 import java.util.HashSet;
@@ -297,10 +297,10 @@ List<Integer> page = nguon.stream()
     .limit(2)
     .collect(Collectors.toList());
 
-// Không dựa vào nội dung cụ thể của page để định nghĩa trang.
+// Do not rely on the specific contents of page to define a page.
 ```
 
-Muốn phân trang có thứ tự theo giá trị, xác lập nó bằng `sorted`:
+To paginate deterministically by value, establish order via `sorted`:
 
 ```java
 List<Integer> page = nguon.stream()
@@ -312,30 +312,30 @@ List<Integer> page = nguon.stream()
 System.out.println(page); // [3, 4]
 ```
 
-`unordered()` **không bắt buộc xáo trộn** phần tử ngay trong một lần chạy, nhưng bỏ ràng buộc encounter order, nên không phù hợp khi người dùng đòi trang 1, 2, 3 có nội dung nhất quán theo một thứ tự đã xác định.
+`unordered()` **does not force shuffling** on a single run, yet it drops the encounter-order guarantee, making it unsuitable when users expect pages 1, 2, and 3 to remain consistent under a defined ordering.
 
-### 5.1. Thứ tự gặp ổn định chưa đủ nếu nguồn thay đổi
+### 5.1. Stable Encounter Order Alone Is Insufficient If the Source Mutates
 
-Ngay cả khi luôn dùng `List`, dữ liệu có thể thay đổi **giữa hai yêu cầu phân trang**:
+Even with a `List`, data can change **between two page requests**:
 
 ```text
-Ban đầu:  [A, B, C, D, E, F]
-Trang 1:  [A, B, C]
+Initially: [A, B, C, D, E, F]
+Page 1:    [A, B, C]
 
-Chèn X vào đầu trước khi tải trang 2:
-Sau chèn: [X, A, B, C, D, E]
-Trang 2 (skip 3): [C, D, E]
+Insert X at the front before loading page 2:
+After insert: [X, A, B, C, D, E]
+Page 2 (skip 3): [C, D, E]
 ```
 
-Phần tử `C` bị lặp ở cả hai trang. Nếu có xóa hoặc di chuyển mục, người dùng có thể **bỏ lỡ** một phần tử.
+Element `C` appears on both pages. Conversely, deletions or moves can cause users to **miss** an item.
 
-Điều này **không phải bug riêng của `skip`**: offset pagination phụ thuộc vào vị trí trong tập tại **thời điểm truy vấn**. Nếu cần giao diện phân trang nhất quán qua nhiều yêu cầu, hãy dùng một snapshot ổn định, version của dữ liệu hoặc chiến lược cursor/keyset tùy hệ thống.
+This is **not a bug specific to `skip`**: offset pagination depends on positions in the collection at **query time**. When users need consistent paging across multiple requests, use a stable snapshot, data versioning, or a cursor/keyset strategy depending on the system.
 
-### 5.2. Sắp xếp theo khóa duy nhất để tránh hòa thứ hạng
+### 5.2. Sort by a Unique Key to Avoid Ties
 
-Khi nhiều bản ghi có cùng điểm hoặc thời gian, chỉ `sorted` theo một trường không tạo ra thứ tự nghiệp vụ **duy nhất**. Đối với nguồn đã có thứ tự, Java có thể giữ thứ tự gặp của các bản ghi bằng nhau theo comparator; nhưng nếu nguồn không bảo đảm thứ tự hoặc dữ liệu được nạp lại theo thứ tự khác, trang có thể đổi nội dung.
+When multiple records share the same score or timestamp, `sorted` on that single field does not produce a **unique** business order. On an ordered source, Java preserves encounter order among tied items; however, if the source is unordered or reloaded in another order, pages can shift.
 
-Nên thêm **tie-breaker** như mã định danh duy nhất:
+Append a **tie-breaker** such as a unique identifier:
 
 ```java
 Comparator<SanPham> theoGiaRoiMa =
@@ -343,54 +343,54 @@ Comparator<SanPham> theoGiaRoiMa =
         .thenComparing(p -> p.ma);
 ```
 
-Giả định `SanPham` có các trường `gia` kiểu `long` và `ma` kiểu `String` không rỗng. Comparator có khóa phụ độc nhất giúp tổng thứ tự rõ ràng, nhưng không thể **chống dữ liệu bị chèn/xóa giữa các yêu cầu**; muốn điều đó phải cố định snapshot hoặc dùng cơ chế phân trang khác.
+Assume `SanPham` has a `long gia` field and a non-null `String ma` field. A unique secondary key yields a clean total order, though it still cannot **prevent insertions/deletions between requests**; that requires fixing a snapshot or switching pagination strategies.
 
-## 6. Tính `offset` an toàn, tránh tràn số
+## 6. Safe `offset` Calculation Without Overflow
 
-Đừng dùng công thức sau nếu số trang có thể lớn:
+Do not write the following if page numbers can be large:
 
 ```java
 int pageIndex = 1_500_000_000;
 int pageSize = 100;
 
-// SAI: phép nhân int có thể tràn trước khi gán vào long.
+// WRONG: int multiplication overflows before widening to long.
 long offsetSai = pageIndex * pageSize;
 ```
 
-Một hàm xác thực và tính offset cho API 0-based:
+A validation and offset calculation helper for a 0-based API:
 
 ```java
 static long checkedOffset(long pageIndex, int pageSize) {
     if (pageIndex < 0) {
-        throw new IllegalArgumentException("pageIndex phai >= 0");
+        throw new IllegalArgumentException("pageIndex must be >= 0");
     }
     if (pageSize <= 0) {
-        throw new IllegalArgumentException("pageSize phai > 0");
+        throw new IllegalArgumentException("pageSize must be > 0");
     }
 
     try {
         return Math.multiplyExact(pageIndex, (long) pageSize);
     } catch (ArithmeticException ex) {
-        throw new IllegalArgumentException("offset tran long", ex);
+        throw new IllegalArgumentException("offset overflowed long", ex);
     }
 }
 ```
 
-`Math.multiplyExact(long, long)` của Java 8 phát hiện tràn thay vì âm thầm tạo offset sai. Nếu offset hợp lệ nhưng vượt quá số phần tử, kết quả trang **rỗng**; đây là hai trạng thái khác nhau:
+Java 8's `Math.multiplyExact(long, long)` catches overflow instead of silently wrapping to a bad offset. If a valid offset exceeds element count, the resulting page is **empty**; these are two distinct states:
 
-- **Invalid request**: pageIndex âm, pageSize không dương hoặc phép nhân tràn.
-- **Valid empty page**: offset hợp lệ nhưng không còn phần tử.
+- **Invalid request**: negative `pageIndex`, non-positive `pageSize`, or overflowed multiplication.
+- **Valid empty page**: valid offset with no remaining elements.
 
-Không nên cố "sửa" yêu cầu bằng cách `Math.min(offset, total)` rồi gán lại pageIndex hoặc âm thầm quay về trang đầu. Người gọi cần biết trang họ yêu cầu không còn dữ liệu.
+Do not "fix" an out-of-range request by clamping `Math.min(offset, total)` or silently redirecting to page 0. Callers need to know the requested page has no data.
 
-### 6.1. Tổng số trang không dùng phép làm tròn sai
+### 6.1. Total Page Count Without Overflowing Rounding
 
-Với `totalElements` không âm và `pageSize > 0`:
+Given non-negative `totalElements` and `pageSize > 0`:
 
 ```java
 static long totalPages(long totalElements, int pageSize) {
     if (totalElements < 0 || pageSize <= 0) {
-        throw new IllegalArgumentException("metadata khong hop le");
+        throw new IllegalArgumentException("invalid metadata");
     }
 
     return totalElements == 0
@@ -399,9 +399,9 @@ static long totalPages(long totalElements, int pageSize) {
 }
 ```
 
-Không dùng `(totalElements + pageSize - 1) / pageSize` nếu `totalElements` có thể gần `Long.MAX_VALUE` vì phép cộng có thể tràn. Dạng `1 + (totalElements - 1) / pageSize` tránh cộng `pageSize` vào một tổng quá lớn.
+Avoid `(totalElements + pageSize - 1) / pageSize` when `totalElements` can approach `Long.MAX_VALUE`, because the addition can overflow. `1 + (totalElements - 1) / pageSize` avoids adding `pageSize` to a huge total.
 
-Ví dụ:
+Examples:
 
 ```text
 totalElements = 0, pageSize = 5  → totalPages = 0
@@ -410,11 +410,11 @@ totalElements = 6, pageSize = 5  → totalPages = 2
 totalElements = 23, pageSize = 5 → totalPages = 5
 ```
 
-Quy ước `totalPages = 0` khi không có bản ghi là lựa chọn rõ ràng. Một số giao diện vẫn hiển thị trang rỗng số 1; đó là **quy ước trình bày**, không có nghĩa trong dữ liệu thực tồn tại một trang có phần tử.
+Defining `totalPages = 0` when there are zero records is an explicit choice. Some UIs still display an empty "Page 1"; that is a **presentation convention**, not an indication that a page of real data exists.
 
-## 7. `List.subList`: một lựa chọn trực tiếp hơn khi nguồn đã nằm trong RAM
+## 7. `List.subList`: A More Direct Option When Data Is Already in RAM
 
-Khi đã có `List<T>` hoàn chỉnh, đặc biệt là `ArrayList`, bạn có thể cắt trang bằng chỉ số:
+Once you hold a complete `List<T>`, especially an `ArrayList`, you can slice pages by index:
 
 ```java
 import java.util.ArrayList;
@@ -430,11 +430,11 @@ List<Integer> page = new ArrayList<>(so.subList(from, to));
 System.out.println(page); // [40, 50, 60]
 ```
 
-Phương thức `subList(fromInclusive, toExclusive)` lấy đoạn trong khoảng `[from, to)`. Các chỉ số phải nằm trong phạm vi hợp lệ và `from <= to`; nếu không, list có thể ném ngoại lệ kiểm tra chỉ số.
+`subList(fromInclusive, toExclusive)` slices the half-open interval `[from, to)`. Indices must remain within bounds with `from <= to`; otherwise the list throws index-bounds exceptions.
 
-### 7.1. View so với bản sao
+### 7.1. View vs. Copy
 
-**`source.subList(from, to)` trả một *view* gắn với list gốc**, không phải một snapshot độc lập. Vì vậy:
+**`source.subList(from, to)` returns a *view* backed by the original list**, not an independent snapshot. Therefore:
 
 ```java
 List<String> source = new ArrayList<>(
@@ -447,42 +447,42 @@ view.set(0, "X");
 System.out.println(source); // [A, X, C, D]
 ```
 
-Thay đổi nội dung qua `view` được phản ánh ở nguồn. Nếu nguồn bị sửa cấu trúc bên ngoài view, hành vi của view có thể trở nên không xác định theo hợp đồng `List.subList`.
+Modifications through `view` reflect in the source list. If the source is structurally modified outside the view, the view's behavior becomes undefined per the `List.subList` contract.
 
-Khi trả dữ liệu cho một lớp khác hoặc cần snapshot phần tử trang, nên tạo bản sao:
+When returning page data to another layer or wanting a stable slice snapshot, copy it:
 
 ```java
 List<String> copy = new ArrayList<>(source.subList(1, 3));
 ```
 
-`copy` tách cấu trúc danh sách khỏi nguồn. Đây là **bản sao nông**: nếu phần tử là đối tượng mutable, sửa thuộc tính của đối tượng vẫn được quan sát qua mọi tham chiếu cùng đối tượng.
+`copy` decouples list structure from the source. This is a **shallow copy**: if elements are mutable objects, mutating an object's fields remains visible across all references to that object.
 
-### 7.2. Chọn `subList` hay `stream().skip().limit()`?
+### 7.2. Choosing `subList` vs. `stream().skip().limit()`
 
-| Tiêu chí | `List.subList(from, to)` | `stream().skip(offset).limit(size)` |
+| Criterion | `List.subList(from, to)` | `stream().skip(offset).limit(size)` |
 | --- | --- | --- |
-| Nguồn | Cần `List` | Bất kỳ nguồn `Stream` phù hợp |
-| Phân trang trực tiếp theo chỉ số | Rõ ràng | Biểu đạt bằng số phần tử bỏ qua/giữ lại |
-| Kết quả ban đầu | View của list gốc | Stream trung gian, chưa là list |
-| Muốn list độc lập | Bọc `new ArrayList<>(...)` | Dùng `collect(Collectors.toList())` |
-| Có pipeline `filter` / `map` | Cần xử lý trước hoặc kết hợp bước khác | Tự nhiên trong pipeline |
-| Trang sâu trên `ArrayList` | Lấy lát cắt bằng chỉ số, tránh đi tuần tự qua mọi phần tử bỏ qua | `skip` có thể phải thực hiện công việc để tiến qua đầu nguồn; runtime có thể tối ưu tùy nguồn |
-| Nguồn `LinkedList` | Truy cập theo chỉ số / duyệt lát cắt có thể tốn kém | Cũng cần đi qua phần tử; đo nếu dữ liệu lớn |
+| Source | Requires a `List` | Any suitable `Stream` source |
+| Direct index slicing | Explicit | Expressed by elements skipped/retained |
+| Initial result | View of original list | Intermediate Stream, not yet a list |
+| Independent list | Wrap in `new ArrayList<>(...)` | Collect with `collect(Collectors.toList())` |
+| Combined with `filter` / `map` | Needs prior step or separate loop | Natural inside the pipeline |
+| Deep pages on `ArrayList` | Indexed slice, avoids walking skipped items | `skip` may have to advance past prefixes; runtime may optimize depending on source |
+| `LinkedList` source | Index access / slicing can be costly | Also traverses elements; measure if large |
 
-**Không khẳng định `skip` luôn O(offset) trong mọi trường hợp.** Với nguồn `SIZED` / `SUBSIZED` có thể chia theo vị trí, runtime có thể tối ưu đoạn cần đọc. Nhưng API không cam kết truy cập ngẫu nhiên tức thời cho mọi `Stream`, đặc biệt với pipeline có `filter` hoặc nguồn dữ liệu tuần tự.
+**Never claim `skip` is always O(offset) in every case.** On `SIZED` / `SUBSIZED` sources splittable by position, the runtime may optimize skipping. Yet the API does not guarantee instant random access for arbitrary `Stream`s, especially with `filter` upstream or sequential sources.
 
-Khi nguồn đã là `ArrayList` lớn và yêu cầu chỉ chọn một đoạn, `subList` rồi sao chép đoạn đó thường là cách **đơn giản và dễ dự đoán chi phí hơn**.
+When your source is already a large `ArrayList` and you only want a slice, `subList` plus copying that slice is usually **simpler with more predictable cost**.
 
-## 8. Ví dụ đầy đủ: `Page<T>` với metadata và hai cách lấy trang
+## 8. Complete Example: `Page<T>` with Metadata and Both Slicing Approaches
 
-Bài toán thực tế thường cần nhiều hơn một list: **tổng số bản ghi**, **tổng số trang**, **chỉ số trang** và **có trang kế tiếp hay không**. Chương trình Java 8+ dưới đây triển khai:
+Real-world pagination needs more than a list: **total elements**, **total pages**, **page index**, and **hasNext**. The Java 8+ program below implements:
 
-- `checkedOffset` để xác thực đầu vào và chống tràn.
-- `pageByStream` dùng `skip/limit`.
-- `pageByList` dùng `subList`.
-- `Page<T>` chứa nội dung và metadata; nội dung được bọc thành danh sách không cho phép sửa cấu trúc.
+- `checkedOffset` for input validation and overflow detection.
+- `pageByStream` using `skip`/`limit`.
+- `pageByList` using `subList`.
+- `Page<T>` carrying content and metadata; content is wrapped in a structurally unmodifiable list.
 
-Toàn bộ chương trình là một file `InMemoryPaginationDemo.java`:
+Complete single-file `InMemoryPaginationDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -510,7 +510,7 @@ public class InMemoryPaginationDemo {
                 ? 0
                 : 1 + (totalElements - 1) / pageSize;
 
-            // Sao chép cấu trúc; không lộ list có thể sửa ra ngoài.
+            // Structural copy; never expose a mutable internal list.
             this.items = Collections.unmodifiableList(
                 new ArrayList<>(items));
         }
@@ -533,14 +533,14 @@ public class InMemoryPaginationDemo {
     static long checkedOffset(long pageIndex, int pageSize) {
         if (pageIndex < 0 || pageSize <= 0) {
             throw new IllegalArgumentException(
-                "pageIndex >= 0 va pageSize > 0");
+                "pageIndex >= 0 and pageSize > 0");
         }
 
         try {
             return Math.multiplyExact(pageIndex, (long) pageSize);
         } catch (ArithmeticException ex) {
             throw new IllegalArgumentException(
-                "offset vuot mien long", ex);
+                "offset exceeds long range", ex);
         }
     }
 
@@ -599,7 +599,7 @@ public class InMemoryPaginationDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 Page{index=0, size=5, total=12, pages=3, next=true, items=[1, 2, 3, 4, 5]}
@@ -608,27 +608,27 @@ Page{index=2, size=5, total=12, pages=3, next=false, items=[11, 12]}
 Page{index=3, size=5, total=12, pages=3, next=false, items=[]}
 ```
 
-Hàm `hasNext()` dựa trên metadata của **snapshot dữ liệu dùng tại lần phân trang đó**. Với trang vượt quá `totalPages`, nó trả `false`. Nếu nguồn bị một thread khác sửa trong lúc đang đọc, `source.size()` hoặc việc duyệt có thể không còn nhất quán; mã mẫu giả định **nguồn không thay đổi trong suốt lời gọi**.
+`hasNext()` relies on metadata from the **data snapshot used for that pagination call**. For pages beyond `totalPages`, it returns `false`. If another thread mutates the source mid-call, `source.size()` and traversal can become inconsistent; the sample assumes **an immutable source for the duration of the call**.
 
-Lớp `Page<T>` là một mẫu học tập chứ không phải định dạng API bắt buộc. Ứng dụng có thể thêm `hasPrevious`, đường dẫn điều hướng hoặc tiêu chí sắp xếp; cần giữ hợp đồng chỉ số và cách tính tổng nhất quán.
+`Page<T>` is a learning template, not a mandatory API format. Applications may add `hasPrevious`, navigation links, or sort criteria while keeping index and total contracts consistent.
 
-**Lưu ý về bất biến:** `Collections.unmodifiableList` chỉ ngăn sửa cấu trúc list thông qua kết quả; nó không làm các phần tử mutable trở thành bất biến.
+**Immutability note:** `Collections.unmodifiableList` prevents structural edits through the returned list; it does not make mutable elements inside immutable.
 
 
-## 9. Mẫu thực tế: lọc, sắp xếp ổn định, rồi phân trang
+## 9. Real-World Pattern: Filter, Stable Sort, Then Paginate
 
-Một hệ thống danh sách sản phẩm thường có nhiều yêu cầu cùng lúc:
+A product catalog endpoint often combines multiple rules:
 
-- Chỉ hiển thị sản phẩm **đang hoạt động**.
-- Sắp xếp theo **giá giảm dần**.
-- Với các sản phẩm đồng giá, sắp xếp theo **mã tăng dần** để có thứ tự xác định.
-- Trả trang `pageIndex` với `pageSize` cho giao diện.
-- Tính tổng số kết quả sau lọc, **không** tính bằng số dòng của trang hiện tại.
+- Show only **active** products.
+- Sort by **price descending**.
+- On equal price, sort by **ID ascending** for deterministic ordering.
+- Return `pageIndex` with `pageSize` to the UI.
+- Compute total result count **after filtering**, not from the current page's row count.
 
-Thứ tự pipeline phù hợp:
+Proper pipeline order:
 
 ```text
-Danh sách trong RAM
+In-memory List
     |
   filter(active)
     |
@@ -641,9 +641,9 @@ Danh sách trong RAM
   collect
 ```
 
-### 9.1. Chương trình Java 8+ hoàn chỉnh
+### 9.1. Complete Java 8+ Program
 
-Đoạn sau tự chứa và có thể đặt trong file `ProductPaginationExample.java`:
+This snippet is self-contained and can be saved to `ProductPaginationExample.java`:
 
 ```java
 import java.util.ArrayList;
@@ -675,13 +675,13 @@ public class ProductPaginationExample {
 
     public static void main(String[] args) {
         List<Product> source = Arrays.asList(
-            new Product("P04", "Chuot", 100, true),
-            new Product("P01", "Ban phim", 120, true),
-            new Product("P03", "Tai nghe", 120, false),
-            new Product("P02", "Loa", 120, true),
-            new Product("P06", "Cap", 70, true),
-            new Product("P05", "Pad", 100, true),
-            new Product("P07", "Gia do", 90, true)
+            new Product("P04", "Mouse", 100, true),
+            new Product("P01", "Keyboard", 120, true),
+            new Product("P03", "Headset", 120, false),
+            new Product("P02", "Speaker", 120, true),
+            new Product("P06", "Cable", 70, true),
+            new Product("P05", "Mousepad", 100, true),
+            new Product("P07", "Stand", 90, true)
         );
 
         Comparator<Product> byPriceThenId =
@@ -689,8 +689,8 @@ public class ProductPaginationExample {
                 .reversed()
                 .thenComparing(p -> p.id);
 
-        // Cố định tập kết quả sau lọc/sắp xếp,
-        // rồi lấy nhiều trang từ cùng một danh sách.
+        // Fix the filtered/sorted result set once,
+        // then serve multiple pages from that same list.
         List<Product> filteredSorted = source.stream()
             .filter(p -> p.active)
             .sorted(byPriceThenId)
@@ -710,42 +710,42 @@ public class ProductPaginationExample {
                 filteredSorted.subList(from, to));
 
             System.out.println(
-                "Trang " + (pageIndex + 1) + ": " + page);
+                "Page " + (pageIndex + 1) + ": " + page);
         }
 
-        System.out.println("Tong: " + total);
-        System.out.println("So trang: " + totalPages);
+        System.out.println("Total: " + total);
+        System.out.println("Total pages: " + totalPages);
     }
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
-Trang 1: [P01, P02, P04]
-Trang 2: [P05, P07, P06]
-Tong: 6
-So trang: 2
+Page 1: [P01, P02, P04]
+Page 2: [P05, P07, P06]
+Total: 6
+Total pages: 2
 ```
 
-**Phân tích:** sản phẩm `P03` không hoạt động nên bị loại trước khi đếm hoặc phân trang. `P01` và `P02` cùng giá 120 nhưng có thứ tự do khóa phụ `id` xác định. Không cần chạy lại `filter` và `sorted` cho mỗi trang vì ta đã tạo **một danh sách kết quả sau xử lý**.
+**Analysis:** `P03` is inactive and excluded before counting or paginating. `P01` and `P02` share price 120, so secondary key `id` fixes their order. We avoid re-running `filter` and `sorted` per page by creating **one processed result list**.
 
-**Điều kiện quan trọng:** danh sách `filteredSorted` không được thay đổi cấu trúc trong khi đang phục vụ các trang từ snapshot đó. Các phần tử `Product` trong mã có trường `final`, thuận lợi để giữ giá trị ổn định; nếu phần tử thực tế là đối tượng mutable, việc sao chép list chưa tạo bản sao sâu của các sản phẩm.
+**Important condition:** `filteredSorted` must not be structurally mutated while serving pages from that snapshot. `Product` has `final` fields here, keeping values stable; if real elements are mutable objects, copying the list does not deep-copy products.
 
-### 9.2. Khi nào tạo snapshot là hợp lý?
+### 9.2. When Is Materializing a Snapshot Reasonable?
 
-Tạo danh sách đã lọc/sắp xếp là lựa chọn tốt khi:
+Creating a filtered/sorted snapshot list is a good choice when:
 
-- Dữ liệu đã tồn tại trong RAM, đủ nhỏ để lưu thêm một danh sách.
-- Người dùng có thể duyệt **nhiều trang** của cùng một tập kết quả.
-- Lọc và sắp xếp tốn chi phí, không nên chạy lại mỗi lần chọn trang.
-- Cần một tập kết quả **nhất quán** trong khoảng thời gian giao diện điều hướng.
+- Data already fits in RAM and is small enough to hold one more list.
+- Users are likely to browse **multiple pages** of the same result set.
+- Filtering and sorting are expensive and shouldn't re-run on every page click.
+- A **consistent** result set is needed across UI navigation.
 
-Đổi lại, việc giữ snapshot tiêu tốn bộ nhớ theo số phần tử đã lọc. Với danh sách rất lớn hoặc cập nhật liên tục, cần chiến lược khác như cache có thời hạn, snapshot versioned, xử lý tại nguồn hoặc phân trang ở cơ sở dữ liệu.
+In return, holding a snapshot consumes memory proportional to the filtered element count. For huge or rapidly mutating lists, consider alternatives like time-bounded caches, versioned snapshots, source-side processing, or database pagination.
 
-## 10. Tổng số bản ghi phải được tính sau lọc, không phải sau cắt trang
+## 10. Total Record Count Must Be Computed After Filtering, Not After Slicing
 
-Giả sử có 10 số từ 1 đến 10, nhưng chỉ 5 số chẵn hợp lệ. Nếu `pageSize = 3`:
+Suppose there are 10 numbers from 1 to 10, of which 5 even numbers are valid. If `pageSize = 3`:
 
 ```java
 import java.util.List;
@@ -770,9 +770,9 @@ System.out.println(totalElements); // 5
 System.out.println(totalPages); // 2
 ```
 
-Đừng dùng `firstPage.size()` làm tổng số kết quả; nó chỉ là **số phần tử của trang**. Cũng đừng lấy `source.size()` khi nguồn vẫn còn các phần tử không thỏa bộ lọc.
+Never use `firstPage.size()` as total results; that is only **the current page's element count**. Also never use `source.size()` when the source still contains filtered-out elements.
 
-Nếu không lưu danh sách `even`, có thể đếm và lấy trang bằng **hai stream khác nhau**:
+If you do not store `even`, you can count and slice using **two separate streams**:
 
 ```java
 long total = source.stream()
@@ -786,22 +786,22 @@ List<Item> items = source.stream()
     .collect(Collectors.toList());
 ```
 
-Đây là **mã minh họa kiểu tổng quát**: cần khai báo `Item`, `source`, `predicate` và `offset` trong chương trình thực tế. Hai lượt duyệt phải sử dụng cùng bộ lọc và nguồn ổn định để metadata khớp với dữ liệu trang. Ngoài ra, cách làm này **đánh giá bộ lọc hai lần**, có thể đắt với dữ liệu lớn.
+This is a **generic illustrative snippet**: declare `Item`, `source`, `predicate`, and `offset` in a real program. Both passes must apply the same filter to a stable source so metadata matches page data. Moreover, this **evaluates the filter twice**, which can be costly on large data.
 
-Nếu nguồn là tập kết quả xử lý trong bộ nhớ, thu thành list một lần thường đơn giản hơn:
+When the source is an in-memory processed result, collecting into a list once is usually simpler:
 
 ```text
-filter/sort → List kết quả ổn định → total = size()
-                                 → subList cho từng trang
+filter/sort → stable result List → total = size()
+                                 → subList per page
 ```
 
-Trường hợp cần các thống kê phức tạp hơn, có thể sử dụng collector kết hợp hoặc cấu trúc dữ liệu phụ trợ, nhưng phải đảm bảo tính đúng và tài nguyên tương xứng.
+For more complex statistics, you can use combined collectors or auxiliary data structures while keeping correctness and resource usage balanced.
 
-## 11. Giới hạn thực sự của `skip` và `limit`
+## 11. Real Limits of `skip` and `limit`
 
-`skip` và `limit` là **stateful intermediate operations**: chúng cần theo dõi số phần tử đã bỏ qua hoặc đã giữ. Cả hai hoạt động trên **dòng phần tử của pipeline**, không cung cấp một API truy cập ngẫu nhiên cho mọi nguồn.
+`skip` and `limit` are **stateful intermediate operations**: they track how many elements have been discarded or retained. Both operate on **the stream of elements flowing through the pipeline**, not as a random-access API for every source.
 
-### 11.1. Trang sâu có thể phải duyệt nhiều phần tử
+### 11.1. Deep Pages May Traverse Many Elements
 
 ```java
 List<Integer> page = java.util.stream.IntStream
@@ -815,11 +815,11 @@ System.out.println(page.get(0)); // 900000
 System.out.println(page.size()); // 20
 ```
 
-Về mặt ngữ nghĩa, pipeline bỏ 900.000 phần tử trước khi lấy 20. **Không được khẳng định mọi triển khai sẽ thực hiện 900.000 lần `tryAdvance`**: nguồn có kích thước và khả năng chia theo đoạn có thể giúp runtime tối ưu. Tuy nhiên, ở nguồn tuần tự không hỗ trợ truy cập theo vị trí, bỏ rất nhiều phần tử có thể thực sự tốn thời gian tương ứng.
+Semantically, the pipeline skips 900,000 elements before taking 20. **Do not claim every implementation runs 900,000 `tryAdvance` calls**: sized, position-splittable sources let the runtime optimize. Yet on sequential sources lacking positional access, skipping many elements can indeed take proportional time.
 
-`skip` là lựa chọn tiện lợi cho pipeline; nó **không hứa** độ phức tạp O(1) đối với mọi nguồn hoặc mọi chuỗi intermediate operation.
+`skip` is convenient in pipelines; it **does not promise** O(1) complexity for every source or every chain of intermediate operations.
 
-### 11.2. `filter` trước `skip` có thể làm trang sâu đắt hơn
+### 11.2. `filter` Before `skip` Can Make Deep Pages Costlier
 
 ```java
 List<Integer> page = java.util.stream.IntStream
@@ -831,11 +831,11 @@ List<Integer> page = java.util.stream.IntStream
     .collect(Collectors.toList());
 ```
 
-Để bỏ qua **20.000 giá trị thỏa bộ lọc**, pipeline có thể phải kiểm tra nhiều hơn 20.000 giá trị nguồn. `skip(20_000)` đếm **các phần tử đi qua `filter`**, không đếm mọi phần tử ban đầu.
+To skip **20,000 matching values**, the pipeline must inspect far more than 20,000 source values. `skip(20_000)` counts **elements passing `filter`**, not raw source elements.
 
-Trên dữ liệu đã có trong RAM, nếu người dùng thường xuyên chuyển giữa các trang, đáng cân nhắc **lọc một lần và lưu snapshot** thay vì lặp lại một bộ lọc đắt cho từng yêu cầu.
+In memory, when users page back and forth frequently, consider **filtering once and storing a snapshot** rather than re-running an expensive filter on every request.
 
-### 11.3. `sorted` có thể cần toàn bộ dữ liệu đầu vào
+### 11.3. `sorted` May Buffer the Entire Input
 
 ```java
 List<Integer> page = numbers.stream()
@@ -845,11 +845,11 @@ List<Integer> page = numbers.stream()
     .collect(Collectors.toList());
 ```
 
-Với dữ liệu tổng quát chưa sắp xếp, `sorted` là thao tác có trạng thái và thường cần nắm các phần tử đầu vào để xác lập thứ tự toàn cục. Vì vậy, `limit(20)` phía sau **không bảo đảm** chỉ có 120 phần tử được quan sát hoặc chỉ cần một lượng bộ nhớ nhỏ.
+For general unsorted data, `sorted` is stateful and typically must examine all input elements to establish global order. Thus a downstream `limit(20)` **does not guarantee** only 120 elements are inspected or only tiny memory is used.
 
-Nếu dữ liệu đã được sắp xếp trước, tránh sắp xếp lại mỗi trang. Nếu chỉ cần top-k trên một nguồn rất lớn, một thuật toán chọn top-k dùng hàng đợi ưu tiên có thể phù hợp hơn việc sắp xếp toàn bộ; nhưng đó là bài toán khác với phân trang tùy ý theo chỉ số.
+If data is already sorted, avoid re-sorting on every page. If you only need top-k from a massive source, a priority-queue top-k algorithm fits better than full sorting—though that is a different problem from arbitrary index pagination.
 
-### 11.4. Nguồn vô hạn: cần xem vị trí các phép toán
+### 11.4. Infinite Sources: Watch Operation Placement
 
 ```java
 import java.util.stream.LongStream;
@@ -864,13 +864,13 @@ System.out.println(page);
 // [1000000, 1000001, 1000002, 1000003, 1000004]
 ```
 
-Nguồn ở đây có thể phát vô hạn phần tử. `limit(5)` bảo đảm pipeline này có thể dừng sau khi đã **bỏ qua** đủ số phần tử, nhưng phải thực hiện công việc để tới vị trí đó.
+This source can emit infinitely many elements. `limit(5)` guarantees the pipeline terminates after **skipping** the requested prefix, though it still must advance to that position.
 
-Ngược lại, một phép toán có trạng thái cần toàn bộ dữ liệu như `sorted()` trên nguồn vô hạn tổng quát có thể không bao giờ tạo ra phần tử kết quả. `limit` nằm **sau `sorted`** không tự biến nó thành thuật toán khả thi.
+Conversely, a whole-stream stateful operation like `sorted()` on an unbounded infinite source may never produce an element. Placing `limit` **after `sorted`** does not make it feasible.
 
-### 11.5. Trả `Stream<T>` ra ngoài không tự đóng tài nguyên
+### 11.5. Returning a `Stream<T>` Does Not Auto-Close Resources
 
-Với `List.stream()`, không có directory handle hoặc kết nối cơ sở dữ liệu do list cung cấp. Nhưng nếu đầu vào là nguồn I/O như `Files.lines(...)` hoặc `Files.walk(...)`, `skip`/`limit` **không tự giải phóng tài nguyên**. Dùng `try-with-resources`:
+With `List.stream()`, there is no OS handle or database connection owned by the list. However, when inputs come from I/O sources like `Files.lines(...)` or `Files.walk(...)`, `skip`/`limit` **do not close resources automatically**. Use `try-with-resources`:
 
 ```java
 import java.io.IOException;
@@ -886,7 +886,7 @@ static List<String> readLinesPage(
         throws IOException {
 
     if (offset < 0 || pageSize < 0) {
-        throw new IllegalArgumentException("offset/size am");
+        throw new IllegalArgumentException("negative offset/size");
     }
 
     try (Stream<String> lines =
@@ -898,11 +898,11 @@ static List<String> readLinesPage(
 }
 ```
 
-Đoạn này chỉ minh họa **vòng đời tài nguyên**, không phải mẫu API phân trang dữ liệu trong RAM: khi lấy trang sâu từ tệp, phải đọc/bỏ qua nhiều dòng, đồng thời trạng thái tệp có thể thay đổi giữa các lần yêu cầu.
+This illustrates **resource lifecycle**, not a recommended RAM pagination API: fetching deep pages from a file must read and discard preceding lines, and the file may change between requests.
 
-## 12. `parallelStream()` có giúp phân trang nhanh hơn không?
+## 12. Does `parallelStream()` Speed Up Pagination?
 
-Có thể, nhưng không nên mặc định:
+Possibly, but do not assume so:
 
 ```java
 List<Integer> page = java.util.stream.IntStream
@@ -914,11 +914,11 @@ List<Integer> page = java.util.stream.IntStream
     .collect(Collectors.toList());
 ```
 
-`IntStream.range` có encounter order và biết kích thước, nên kết quả logic phải là 900.000 đến 900.019. Tuy nhiên, trên **ordered parallel stream**, `skip` và `limit` có thể đòi hỏi phối hợp giữa các phần việc để giữ chính xác đoạn phần tử theo vị trí. Hiệu năng phụ thuộc spliterator nguồn, kích thước dữ liệu, số lõi, chi phí mỗi phần tử và các thao tác ở trước.
+`IntStream.range` is ordered and sized, so the logical result must be 900,000 through 900,019. However, on an **ordered parallel stream**, `skip` and `limit` can require cross-task coordination to preserve exact positional slicing. Performance depends on the source spliterator, data size, core count, per-element cost, and upstream operations.
 
-Nếu chỉ muốn lấy lát cắt của một `ArrayList`, tạo tác vụ song song có thể tốn overhead **nhiều hơn** việc dùng `subList`. Nên đo với workload thật trước khi thêm `parallel()`.
+If you just want a slice of an `ArrayList`, spawning parallel tasks often adds **more overhead** than calling `subList`. Measure on realistic workloads before adding `parallel()`.
 
-### 12.1. `unordered()` không phù hợp cho trang theo vị trí
+### 12.1. `unordered()` Is Unsuitable for Positional Pages
 
 ```java
 List<Integer> page = java.util.stream.IntStream.range(0, 100)
@@ -930,26 +930,26 @@ List<Integer> page = java.util.stream.IntStream.range(0, 100)
     .collect(Collectors.toList());
 ```
 
-`unordered()` có thể cho phép runtime bỏ một số ràng buộc thứ tự và cải thiện hiệu năng trong những bài toán không quan tâm phần tử nào được chọn. Nhưng **không còn bảo đảm** đây là trang chứa 20, 21, ..., 29. Nếu giao diện cần vị trí cố định, đừng bỏ encounter order chỉ để tối ưu.
+`unordered()` lets the runtime relax ordering constraints and can improve throughput when which elements are chosen does not matter. Yet there is **no longer any guarantee** this page holds 20, 21, ..., 29. If the UI expects fixed positions, never drop encounter order just to optimize.
 
-### 12.2. `forEach` không phải cách tạo trang có thứ tự
+### 12.2. `forEach` Is Not How You Build an Ordered Page
 
 ```java
 List<Integer> output = new ArrayList<>();
 
-// KHÔNG NÊN: ArrayList không an toàn để nhiều thread add,
-// còn forEach không cam kết encounter order.
+// AVOID: ArrayList is not thread-safe for concurrent adds,
+// and forEach does not guarantee encounter order.
 numbers.parallelStream()
     .skip(10)
     .limit(10)
     .forEach(output::add);
 ```
 
-Thay bằng `collect(Collectors.toList())`, hoặc khi nguồn đã là `List` và chỉ cắt trang, dùng `subList` kèm bản sao. `forEachOrdered` có thể áp dụng hành động theo encounter order nhưng không giải quyết nhu cầu thu list tốt bằng collector phù hợp.
+Use `collect(Collectors.toList())` instead—or when the source is already a `List` and you only need a slice, use `subList` with a copy. `forEachOrdered` enforces action order, yet still lags a proper collector for building lists.
 
-## 13. Lấy nhiều trang: nhất quán, bộ nhớ và thuật toán
+## 13. Multi-Page Access: Consistency, Memory, and Algorithms
 
-Khi một người dùng lần lượt tải trang 0, 1, 2, ..., 100 từ **cùng một snapshot dữ liệu đã nằm trong RAM**, liên tục chạy:
+When a user loads pages 0, 1, 2, ..., 100 sequentially from **the same in-memory snapshot**, repeatedly calling:
 
 ```java
 source.stream().skip((long) pageIndex * pageSize)
@@ -957,24 +957,24 @@ source.stream().skip((long) pageIndex * pageSize)
     .collect(Collectors.toList());
 ```
 
-có thể phải lặp lại công việc bỏ qua hoặc tính toán trong pipeline. Nếu dữ liệu đã có chỉ số và thứ tự, có thể chọn trực tiếp các đoạn bằng `subList`.
+can repeat prefix traversal or pipeline work. If data is already indexed and ordered, slice directly with `subList`.
 
-Để thiết kế ổn định:
+For a stable design:
 
-1. Chuẩn hóa một tập kết quả theo **filter + thứ tự đầy đủ**.
-2. Tạo snapshot theo phiên dữ liệu hoặc một thời điểm hợp lý.
-3. Tính `totalElements` và `totalPages` trên **chính tập kết quả đó**.
-4. Dùng offset hợp lệ để lấy trang từ snapshot.
-5. Trả page metadata kèm nội dung; nếu snapshot thay đổi, xác định rõ cách invalidate hoặc làm mới.
+1. Normalize one result set with **filter + total ordering**.
+2. Create a snapshot per data version or point in time.
+3. Compute `totalElements` and `totalPages` on **that exact result set**.
+4. Use validated offsets to slice pages from the snapshot.
+5. Return page metadata alongside content; when snapshots expire, define invalidation/refresh rules clearly.
 
-Với nguồn rất lớn, việc đưa toàn bộ dữ liệu vào bộ nhớ có thể là sai kiến trúc. `skip` không làm giảm chi phí **tải mọi bản ghi** về RAM rồi mới cắt trang.
+For very large sources, loading everything into RAM can be an architectural mistake. `skip` does not reduce the cost of **loading every record** into memory before slicing.
 
-### 13.1. Khác biệt với phân trang ở cơ sở dữ liệu
+### 13.1. Difference from Database Pagination
 
-Trong hệ thống có hàng triệu bản ghi, nên cân nhắc để nơi lưu trữ thực hiện việc lọc, sắp xếp và giới hạn thay vì tải hết:
+With millions of rows, let the storage engine filter, sort, and limit rather than loading everything:
 
 ```sql
--- Cú pháp ví dụ; LIMIT/OFFSET khác nhau giữa các hệ quản trị.
+-- Example syntax; LIMIT/OFFSET varies across DBMSs.
 SELECT id, name, price
 FROM products
 WHERE active = TRUE
@@ -982,23 +982,23 @@ ORDER BY created_at DESC, id ASC
 LIMIT :page_size OFFSET :offset;
 ```
 
-Điều đó **không có nghĩa LIMIT/OFFSET trong cơ sở dữ liệu là O(1)**: truy vấn trang sâu vẫn có thể phải bỏ qua nhiều hàng, và việc chèn/xóa giữa các yêu cầu có thể gây trùng/bỏ sót.
+That **does not mean database LIMIT/OFFSET is O(1)**: deep pages may still scan/discard many rows, and concurrent inserts/deletes can cause duplicates or skipped rows.
 
-Với luồng dữ liệu thay đổi nhanh và yêu cầu lấy trang tiếp theo, **keyset/cursor pagination** thường là một lựa chọn:
+For fast-changing feeds needing "next page" navigation, **keyset/cursor pagination** is often chosen:
 
 ```text
-Nhớ khóa của bản ghi cuối trong trang trước.
-Trang tiếp theo lọc các bản ghi nằm sau khóa đó
-theo cùng thứ tự xác định.
+Remember the key of the last record on the previous page.
+The next page filters records strictly after that key
+under the exact same deterministic ordering.
 ```
 
-Keyset có những đánh đổi riêng: không tự hỗ trợ nhảy đến trang bất kỳ theo số thứ tự và cần khóa sắp xếp phù hợp. Đây là định hướng để chọn kiến trúc, không phải lời khuyên luôn thay `skip` trong mọi ứng dụng RAM.
+Keyset pagination has its own trade-offs: it does not natively jump to arbitrary page numbers and requires a suitable sort key. Use this as architectural guidance, not a blanket rule to replace `skip` in every RAM-backed tool.
 
-## 14. Kiểm chứng phân trang bằng các ca biên (Java 8+)
+## 14. Verifying Pagination with Boundary Cases (Java 8+)
 
-Một cách kiểm tra tốt là **nối tất cả các trang hợp lệ** từ cùng một snapshot rồi so sánh với nguồn: không được bỏ sót hoặc lặp phần tử. Với dữ liệu có giá trị trùng, so sánh `List.equals` thay vì chỉ so sánh `Set`.
+A strong test **concatenates all valid pages** from the same snapshot and compares against the source: no items may be dropped or duplicated. When data can contain duplicate values, assert `List.equals` rather than only `Set` equality.
 
-Chương trình sau dùng lại lớp `InMemoryPaginationDemo` ở mục 8; đặt cạnh file đó và chạy trên Java 8+:
+The program below reuses `InMemoryPaginationDemo` from section 8; place it beside that file and run on Java 8+:
 
 ```java
 import java.util.ArrayList;
@@ -1031,28 +1031,28 @@ public class PaginationCheck {
                     source, page, 5);
 
             check(a.items.equals(b.items),
-                "Hai cach cho trang khac nhau: " + page);
-            check(a.totalElements == 23L, "Sai tong ban ghi");
-            check(a.totalPages == 5L, "Sai tong so trang");
+                "Two approaches gave different pages: " + page);
+            check(a.totalElements == 23L, "Wrong total elements");
+            check(a.totalPages == 5L, "Wrong total pages");
 
             joined.addAll(a.items);
         }
 
         check(joined.equals(source),
-            "Mat hoac lap phan tu qua cac trang");
+            "Lost or duplicated elements across pages");
 
         check(InMemoryPaginationDemo.pageByStream(
                 source, 4, 5).items
             .equals(Arrays.asList(21, 22, 23)),
-            "Sai trang cuoi");
+            "Wrong last page");
 
         check(InMemoryPaginationDemo.pageByStream(
                 source, 5, 5).items.isEmpty(),
-            "Trang vuot qua cuoi phai rong");
+            "Out-of-bounds page must be empty");
 
         check(InMemoryPaginationDemo.pageByList(
                 Collections.<Integer>emptyList(), 0, 5)
-            .totalPages == 0L, "Nguon rong");
+            .totalPages == 0L, "Empty source");
 
         boolean rejectedNegative = false;
         try {
@@ -1060,7 +1060,7 @@ public class PaginationCheck {
         } catch (IllegalArgumentException ex) {
             rejectedNegative = true;
         }
-        check(rejectedNegative, "Phai tu choi pageIndex am");
+        check(rejectedNegative, "Must reject negative pageIndex");
 
         boolean rejectedZeroSize = false;
         try {
@@ -1068,7 +1068,7 @@ public class PaginationCheck {
         } catch (IllegalArgumentException ex) {
             rejectedZeroSize = true;
         }
-        check(rejectedZeroSize, "Phai tu choi pageSize 0");
+        check(rejectedZeroSize, "Must reject pageSize 0");
 
         boolean rejectedOverflow = false;
         try {
@@ -1077,86 +1077,86 @@ public class PaginationCheck {
         } catch (IllegalArgumentException ex) {
             rejectedOverflow = true;
         }
-        check(rejectedOverflow, "Phai phat hien tran offset");
+        check(rejectedOverflow, "Must detect offset overflow");
 
-        System.out.println("PASS: phan trang trong bo nho");
+        System.out.println("PASS: in-memory pagination");
     }
 }
 ```
 
-Kết quả mong đợi:
+Expected output:
 
 ```text
-PASS: phan trang trong bo nho
+PASS: in-memory pagination
 ```
 
-Những ca này kiểm tra các hợp đồng cụ thể, chưa phải kiểm thử đồng thời khi một thread khác sửa nguồn. Nếu ứng dụng phục vụ nhiều yêu cầu cùng lúc, hãy quy định rõ cách tạo snapshot và phạm vi chia sẻ dữ liệu bất biến.
+These checks test specific contract cases, not concurrent mutations from another thread. If your app serves concurrent requests, specify snapshot creation and immutable sharing boundaries explicitly.
 
-## 15. Các lỗi và hiểu nhầm thường gặp
+## 15. Common Bugs and Misconceptions
 
-| Triệu chứng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Trang đầu không đúng | Nhầm `pageNumber` 1-based với `pageIndex` 0-based | Chuẩn hóa chỉ số ngay ở ranh giới API. |
-| `skip` ném `IllegalArgumentException` | Offset âm, thường do đầu vào âm hoặc nhân tràn | Xác thực và dùng `Math.multiplyExact` cho long. |
-| `limit(0)` làm giao diện luôn rỗng | `pageSize` được chấp nhận bằng 0 | Quy định `pageSize > 0`. |
-| Trang cuối có ít phần tử | Không đủ dữ liệu để lấp đầy | Đây là hành vi bình thường, không thêm bản ghi giả. |
-| `totalElements` bằng kích thước trang | Đếm sau `limit` | Đếm sau lọc nhưng **trước** cắt trang. |
-| Một trang chỉ còn 1 bản ghi dù còn nhiều bản ghi hợp lệ | `filter` đặt sau `limit` | Lọc trước phân trang nếu phân trang tập đã lọc. |
-| Trang bị trùng mã giữa các trang | `distinct` đặt sau `skip/limit` | Loại trùng trước phân trang nếu nghiệp vụ cần duy nhất. |
-| Trang theo giá không đúng | `sorted` đặt sau `skip/limit` | Sắp xếp toàn bộ kết quả trước khi cắt. |
-| Nội dung trang thay đổi giữa hai lần truy vấn | Nguồn thay đổi, không có snapshot | Dùng snapshot/version hoặc giải pháp cursor thích hợp. |
-| Thứ tự thay đổi ở bản ghi đồng giá | Comparator thiếu khóa phụ duy nhất | Thêm tie-breaker ổn định. |
-| `HashSet` cho các trang khó đoán | Nguồn không có encounter order | Thiết lập `sorted` với thứ tự rõ ràng. |
-| `parallel().unordered()` lấy trang khác vị trí | Đã bỏ ràng buộc thứ tự gặp | Không dùng `unordered` khi phân trang vị trí. |
-| `List.subList` bị ảnh hưởng khi nguồn đổi | `subList` là view, không phải bản sao | Sao chép `new ArrayList<>(subList)` và quản lý vòng đời nguồn. |
-| Lấy trang sâu chậm | `skip` có thể phải bỏ qua lượng lớn dữ liệu | Dùng snapshot list có chỉ số, hoặc phân trang tại nguồn dữ liệu. |
-| `sorted().limit(...)` dùng nhiều bộ nhớ | `sorted` có trạng thái và cần thông tin toàn nguồn | Cân nhắc sort sẵn, top-k hoặc giới hạn dữ liệu tại nguồn. |
-| Tạo nhiều stream trên cùng instance đã tiêu thụ | Stream chỉ dùng một lần | Tạo stream mới từ nguồn, không tái sử dụng object Stream. |
-| `forEach` song song làm mất thứ tự/dữ liệu | Sửa list ngoài pipeline không đồng bộ | Dùng `collect` hoặc `subList`. |
-| Chỉ tải 20 bản ghi nhưng đã đọc cả bảng | Lọc và phân trang sau khi nạp toàn bộ | Đẩy lọc/phân trang xuống nguồn dữ liệu khi phù hợp. |
+| First page is wrong | Confusing 1-based `pageNumber` with 0-based `pageIndex` | Normalize index at the API boundary. |
+| `skip` throws `IllegalArgumentException` | Negative offset from negative input or integer overflow | Validate inputs and use `Math.multiplyExact` on `long`. |
+| `limit(0)` makes UI always empty | `pageSize = 0` accepted | Require `pageSize > 0`. |
+| Last page has fewer items | Not enough data to fill a full page | Expected behavior; never pad dummy records. |
+| `totalElements` equals page size | Counting after `limit` | Count after filtering, **before** slicing. |
+| Page has 1 item despite many valid records | `filter` placed after `limit` | Filter before paginating filtered results. |
+| Duplicate codes appear across pages | `distinct` placed after `skip`/`limit` | Deduplicate before paginating if uniqueness is required. |
+| Price-sorted pages are out of order | `sorted` placed after `skip`/`limit` | Sort the full result set before slicing. |
+| Page contents shift between two queries | Source mutated without a snapshot | Use snapshots/versions or cursor pagination. |
+| Order flips among equal-priced items | Comparator lacks a unique secondary key | Add a deterministic tie-breaker. |
+| `HashSet` gives unpredictable pages | Source has no encounter order | Establish explicit order with `sorted`. |
+| `parallel().unordered()` returns wrong positions | Positional encounter order was dropped | Never use `unordered` for positional paging. |
+| `List.subList` breaks when source changes | `subList` is a view, not a copy | Copy with `new ArrayList<>(subList)` and manage source lifecycle. |
+| Deep pages are slow | `skip` may traverse large prefixes | Use an indexed snapshot list or push pagination to the source. |
+| `sorted().limit(...)` uses lots of memory | `sorted` is stateful over the full input | Consider pre-sorted data, top-k, or source-side limits. |
+| Creating second stream on consumed instance | Streams are single-use | Open a fresh stream from the source; never reuse a Stream object. |
+| Parallel `forEach` corrupts order/data | Unsynchronized mutation of external list | Use `collect` or `subList`. |
+| Fetching 20 rows reads whole table | Filtering/paging in RAM after loading all rows | Push filtering/pagination down to the data source when appropriate. |
 
-## 16. Bài tập thực hành
+## 16. Practice Exercises
 
-### Bài 1 — Công thức offset
+### Exercise 1 — Offset Formula
 
-Với `pageSize = 8`, tính `offset` cho các `pageIndex` 0, 1, 4. Danh sách có 35 phần tử, trang cuối theo chỉ số 0-based là trang nào và có mấy phần tử?
+With `pageSize = 8`, compute `offset` for `pageIndex` 0, 1, and 4. Given 35 elements, what is the 0-based index of the last page and how many elements does it contain?
 
-### Bài 2 — Phân trang số chẵn
+### Exercise 2 — Paginating Even Numbers
 
-Cho nguồn 1 đến 20, chỉ lấy số chẵn, mỗi trang 4 phần tử. Hãy viết pipeline cho `pageIndex = 1`. Dự đoán kết quả và giải thích vị trí của `filter` so với `skip`.
+Given numbers 1 through 20, keep only even numbers, 4 per page. Write a pipeline for `pageIndex = 1`. Predict the result and explain `filter` placement relative to `skip`.
 
-### Bài 3 — Cắt trang và sắp xếp
+### Exercise 3 — Slicing vs. Sorting
 
-Nguồn `[9, 1, 7, 2, 5]`. So sánh:
+Source `[9, 1, 7, 2, 5]`. Compare:
 
 ```java
 source.stream().sorted().skip(2).limit(2)
 source.stream().skip(2).limit(2).sorted()
 ```
 
-Kết quả có giống nhau không? Nếu giao diện muốn thứ tự tăng dần trên toàn bộ dữ liệu, cách nào đúng?
+Are the results identical? If the UI expects ascending order across the whole dataset, which is right?
 
-### Bài 4 — Trang vượt cuối và tham số sai
+### Exercise 4 — Out-of-Range Pages and Invalid Parameters
 
-Một list có 12 phần tử, `pageSize = 5`. Hãy viết logic trả trang cho `pageIndex = 2`, 3 và -1 theo hợp đồng đã chọn. Có nên tự động chuyển yêu cầu trang 3 về trang 2 không?
+A list has 12 elements, `pageSize = 5`. Write logic returning pages for `pageIndex = 2`, 3, and -1 under the chosen contract. Should a request for page 3 automatically fall back to page 2?
 
-### Bài 5 — Snapshot và view
+### Exercise 5 — Snapshots and Views
 
-Một `ArrayList` chứa `[A, B, C, D]`. Tạo `subList(1,3)` rồi gọi `view.set(0,"X")`. List gốc thế nào? Nếu muốn kết quả trang không thay đổi cấu trúc khi list gốc bị chỉnh sửa, cần làm gì?
+An `ArrayList` holds `[A, B, C, D]`. Create `subList(1, 3)` and call `view.set(0, "X")`. What happens to the original list? If page results must remain structurally isolated when the source list is edited, what must you do?
 
-### Bài 6 — Tổng số bản ghi và trang cuối
+### Exercise 6 — Total Records and Last Page
 
-Có 23 bản ghi sau lọc, `pageSize = 5`. Hãy tính `totalPages` và các phần tử nếu bản ghi được đánh số 1..23 ở `pageIndex = 4`. Tại sao `pageIndex = 5` có thể trả trang rỗng mà không phải lỗi?
+There are 23 records after filtering, `pageSize = 5`. Compute `totalPages` and list the elements (numbered 1..23) on `pageIndex = 4`. Why can `pageIndex = 5` return an empty page rather than an error?
 
-### Bài 7 — Quyết định kiến trúc
+### Exercise 7 — Architectural Decision
 
-Ứng dụng có 2 triệu bản ghi trong database nhưng người dùng chỉ xem 20 bản ghi mỗi lần. Nêu vì sao việc tải tất cả vào RAM rồi gọi `skip`/`limit` không phải mặc định tốt. So sánh ưu/nhược của offset pagination tại database, snapshot ổn định và keyset/cursor pagination.
+An app has 2 million database rows, yet users view only 20 rows at a time. Explain why loading all rows into RAM and calling `skip`/`limit` is a poor default. Compare pros and cons of database offset pagination, stable snapshots, and keyset/cursor pagination.
 
-## 17. Đáp án và gợi ý
+## 17. Answers and Hints
 
-**Bài 1.** Công thức `offset = pageIndex * pageSize` cho kết quả 0, 8 và 32. Với 35 phần tử, `totalPages = 1 + (35 - 1) / 8 = 5`; trang cuối có `pageIndex = 4` và gồm 3 phần tử.
+**Exercise 1.** `offset = pageIndex * pageSize` gives 0, 8, and 32. With 35 elements, `totalPages = 1 + (35 - 1) / 8 = 5`; the last page has `pageIndex = 4` and holds 3 elements.
 
-**Bài 2.** Các số chẵn là `[2,4,6,8,10,12,14,16,18,20]`. Trang thứ hai có `pageIndex = 1`, bỏ qua bốn số chẵn đầu rồi lấy bốn số tiếp theo:
+**Exercise 2.** Even numbers are `[2, 4, 6, 8, 10, 12, 14, 16, 18, 20]`. The second page (`pageIndex = 1`) skips the first four even numbers and takes the next four:
 
 ```java
 List<Integer> result = java.util.stream.IntStream
@@ -1170,40 +1170,40 @@ List<Integer> result = java.util.stream.IntStream
 System.out.println(result); // [10, 12, 14, 16]
 ```
 
-Lọc trước khi phân trang vì yêu cầu là trang của **các số chẵn**, không phải lọc bốn vị trí trong nguồn gốc.
+Filter before paginating because we are paging **even numbers**, not filtering four raw source positions.
 
-**Bài 3.** `sorted().skip(2).limit(2)` cho `[5,7]`; `skip(2).limit(2).sorted()` cho `[2,7]`. Muốn toàn bộ dữ liệu có thứ tự tăng dần trước khi chọn trang thì dùng cách thứ nhất.
+**Exercise 3.** `sorted().skip(2).limit(2)` yields `[5, 7]`; `skip(2).limit(2).sorted()` yields `[2, 7]`. When the whole dataset must be sorted ascending before selecting a page, use the first form.
 
-**Bài 4.** `pageIndex = 2` lấy phần tử thứ 11 và 12 (nếu 1-based trong phần hiển thị). `pageIndex = 3` có `offset=15` nên trả list rỗng theo hợp đồng. `pageIndex = -1` phải bị từ chối. Không tự chuyển trang 3 về trang 2 nếu API chưa định nghĩa hành vi đó.
+**Exercise 4.** `pageIndex = 2` returns the 11th and 12th elements (1-based display). `pageIndex = 3` has `offset = 15` and returns an empty list by contract. `pageIndex = -1` must be rejected. Never silently clamp page 3 down to page 2 unless the API explicitly specifies that behavior.
 
-**Bài 5.** `subList` là view; đổi phần tử đầu của view từ `B` thành `X` khiến nguồn thành `[A, X, C, D]`. Dùng `new ArrayList<>(source.subList(from, to))` để tách cấu trúc danh sách. Nếu phần tử là mutable object, cần thêm chính sách sao chép đối tượng khi yêu cầu snapshot sâu.
+**Exercise 5.** `subList` is a view; changing the view's first element from `B` to `X` changes the source to `[A, X, C, D]`. Use `new ArrayList<>(source.subList(from, to))` to decouple list structure. If elements are mutable objects, also copy elements if a deep snapshot is required.
 
-**Bài 6.** `totalPages=5`. Trang `pageIndex=4` lấy `[21,22,23]`. Trang `pageIndex=5` hợp lệ về tham số nhưng nằm ngoài dữ liệu, nên trả rỗng; phân biệt với chỉ số âm hoặc offset tràn.
+**Exercise 6.** `totalPages = 5`. `pageIndex = 4` returns `[21, 22, 23]`. `pageIndex = 5` has valid parameters beyond available data, so it returns empty—distinct from negative indices or offset overflow.
 
-**Bài 7.** Tải 2 triệu hàng tốn bộ nhớ, truyền dữ liệu và thời gian trước khi cắt 20 hàng. Offset pagination tại database giúp đẩy lọc/giới hạn xuống nguồn nhưng trang sâu vẫn có thể tốn chi phí, đồng thời dữ liệu thay đổi gây trùng/bỏ sót. Snapshot/version giúp các trang nhất quán trong một tập đã cố định nhưng tốn quản lý/bộ nhớ. Keyset/cursor thường thuận lợi cho "trang tiếp theo" trên thứ tự có khóa ổn định, nhưng khó nhảy đến một trang bất kỳ theo chỉ số và cần thiết kế khóa/điều kiện truy vấn phù hợp.
+**Exercise 7.** Loading 2 million rows wastes memory, network transfer, and CPU just to keep 20 rows. Database offset pagination pushes filtering/limiting to storage, though deep pages can still scan many rows and concurrent edits cause duplicates/gaps. Snapshots/versions keep pages consistent within a fixed set at higher management/memory cost. Keyset/cursor pagination excels at "next page" along a stable sort key, though jumping to arbitrary page numbers is harder and requires careful key/query design.
 
-## 18. Checklist áp dụng trong ứng dụng
+## 18. Application Implementation Checklist
 
-Trước khi phát hành một API phân trang trong bộ nhớ, kiểm tra:
+Before shipping an in-memory pagination API, verify:
 
-- [ ] Đã quy định rõ `pageIndex` bắt đầu từ 0 hay 1.
-- [ ] `pageSize > 0`, `pageIndex >= 0` và có giới hạn kích thước trang hợp lý cho ứng dụng.
-- [ ] `offset` được tính bằng `long` và có xử lý tràn khi nhận trang quá lớn.
-- [ ] `filter`, `distinct`, `sorted` được đặt trước `skip/limit` nếu phân trang trên **kết quả đã xử lý**.
-- [ ] Có thứ tự xác định và tie-breaker nếu các khóa sắp xếp có thể bằng nhau.
-- [ ] Tổng số bản ghi và tổng số trang phản ánh **tập dữ liệu sau lọc**, không phải kích thước trang.
-- [ ] Trang cuối thiếu phần tử hoặc trang vượt cuối trả kết quả theo hợp đồng đã công bố.
-- [ ] Nguồn có trạng thái ổn định trong lúc phân trang; biết có cần snapshot giữa nhiều yêu cầu không.
-- [ ] Nếu dùng `subList`, đã xác định dùng view hay bản sao và hệ quả khi nguồn thay đổi.
-- [ ] Không dựa vào `unordered` / `forEach` song song để bảo toàn vị trí trong trang.
-- [ ] Đã cân nhắc chi phí của `skip` trang sâu, `sorted` và việc tính lại pipeline trên mỗi yêu cầu.
-- [ ] Nếu dữ liệu gốc quá lớn, đã xem xét phân trang tại nguồn hoặc mô hình cursor.
-- [ ] Nếu nguồn gắn với I/O, đã quản lý vòng đời tài nguyên đúng cách.
-- [ ] Đã thử nguồn rỗng, một phần tử, đúng bội số `pageSize`, trang cuối không đầy, trang vượt cuối, tham số âm/0 và tràn số.
+- [ ] Whether `pageIndex` is 0-based or 1-based is explicitly documented.
+- [ ] `pageSize > 0`, `pageIndex >= 0`, and reasonable max page-size bounds are enforced.
+- [ ] `offset` is computed in `long` with overflow protection for large page numbers.
+- [ ] `filter`, `distinct`, and `sorted` precede `skip`/`limit` when paging **processed results**.
+- [ ] Deterministic ordering with a tie-breaker is defined when sort keys can tie.
+- [ ] Total record count and total pages reflect the **post-filter dataset**, not page size.
+- [ ] Partial last pages and out-of-range pages follow the published API contract.
+- [ ] Source state stays stable during paging; cross-request snapshot needs are decided.
+- [ ] If using `subList`, view vs. copy semantics and source-mutation consequences are handled.
+- [ ] Positional paging never relies on `unordered` or parallel `forEach`.
+- [ ] Costs of deep `skip`, `sorted`, and per-request pipeline re-evaluation are assessed.
+- [ ] For very large datasets, source-side pagination or cursor models have been considered.
+- [ ] For I/O-backed sources, stream/resource lifecycles are properly closed.
+- [ ] Tested with empty sources, 1 element, exact multiples of `pageSize`, partial last page, past-end page, 0/negative args, and overflow.
 
-## 19. Tổng kết
+## 19. Summary
 
-Công thức phân trang theo vị trí đơn giản:
+The basic positional pagination pattern:
 
 ```java
 long offset = Math.multiplyExact(pageIndex, (long) pageSize);
@@ -1214,15 +1214,15 @@ List<T> page = source.stream()
     .collect(Collectors.toList());
 ```
 
-Đây là mẫu minh họa: trước khi chạy, phải xác thực chỉ số và kích thước trang; `source` và `T` cần được khai báo trong chương trình thực tế.
+This is an illustrative template: before running, validate indices and page sizes, and declare `source` and `T` in your program.
 
-Các nguyên tắc quan trọng nhất:
+Core principles:
 
-- **Đúng nội dung:** xác lập thứ tự, lọc và sắp xếp **trước** khi cắt nếu đó là tập kết quả cần phân trang.
-- **Đúng chỉ số:** thống nhất 0-based/1-based, dùng `long` để tính offset và phát hiện tràn.
-- **Đúng metadata:** đếm trên tập sau lọc, tính tổng trang không tràn, không nhầm kích thước trang với tổng số bản ghi.
-- **Đúng vòng đời dữ liệu:** nếu dữ liệu thay đổi giữa hai lần tải, offset có thể lặp hoặc bỏ sót bản ghi; cần snapshot hoặc cursor tùy yêu cầu.
-- **Đúng lựa chọn công cụ:** với `ArrayList` đã ở RAM và chỉ cần một đoạn, `subList` kèm bản sao thường rõ nghĩa hơn; với pipeline xử lý, `skip`/`limit` thuận tiện nhưng không bảo đảm phân trang trang sâu nhanh trên mọi nguồn.
-- **Đúng tài nguyên:** phân trang sau khi đã tải toàn bộ dữ liệu lớn vào RAM không thay thế được phân trang tại nguồn.
+- **Right content:** establish ordering, filtering, and sorting **before** slicing when paging the processed result set.
+- **Right indices:** standardize 0-based vs. 1-based indexing, compute offsets in `long`, and detect overflow.
+- **Right metadata:** count after filtering, compute total pages without overflow, and never confuse page size with total records.
+- **Right data lifecycle:** if data mutates between page loads, offsets can duplicate or skip items; use snapshots or cursors as required.
+- **Right tool:** for an `ArrayList` already in RAM needing a single slice, `subList` with a copy is usually clearer; for processing pipelines, `skip`/`limit` are handy yet do not guarantee fast deep paging on all sources.
+- **Right resources:** loading huge datasets into RAM just to paginate them does not substitute for source-side pagination.
 
-Hiểu rõ giới hạn của `skip` và `limit` giúp bạn thiết kế những pipeline Java Stream API có kết quả chính xác, dễ kiểm thử và phù hợp hiệu năng thực tế thay vì chỉ tạo ra một danh sách ngắn hơn.
+Understanding the limits of `skip` and `limit` lets you design Java Stream API pipelines that are accurate, testable, and performant in practice rather than merely producing a shorter list.

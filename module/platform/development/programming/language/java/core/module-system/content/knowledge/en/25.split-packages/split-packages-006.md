@@ -1,22 +1,22 @@
-# Nhận diện bằng jdeps và module resolution
+# Identifying Split Packages with jdeps and Module Resolution
 
-> Phạm vi: Java Platform Module System (JPMS). Bài này hướng dẫn tìm và xác minh **split package** bằng cách kết hợp phân tích dependency ở mức package của **jdeps**, kiểm tra nội dung JAR và xác thực module graph bằng Java module resolver.
+> Scope: Java Platform Module System (JPMS). This article walks through finding and verifying **split packages** by combining package-level dependency analysis from **jdeps**, inspecting JAR contents, and validating the module graph with the Java module resolver.
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this article, you will be able to:
 
-- Nhận biết một package đang xuất hiện trong nhiều module.
-- Dùng **jdeps** để xem quan hệ phụ thuộc giữa module, class và package.
-- Phân biệt package được tham chiếu với package thực sự được chứa trong một JAR.
-- Kiểm kê package trong các JAR bằng **jar --list** và **jar --describe-module**.
-- Dùng **java --validate-modules** để phát hiện xung đột trong các module có thể quan sát.
-- Dùng **--show-module-resolution** để xem module resolver chọn những module nào khi chạy ứng dụng.
-- Chọn cách xử lý split package phù hợp với ranh giới module.
+- Recognize when a package appears in multiple modules.
+- Use **jdeps** to inspect dependency relationships between modules, classes, and packages.
+- Distinguish packages that are referenced from packages actually contained inside a JAR.
+- Inventory packages in JARs using **jar --list** and **jar --describe-module**.
+- Use **java --validate-modules** to detect conflicts among observable modules.
+- Use **--show-module-resolution** to see which modules the module resolver selects when running an application.
+- Choose a split package resolution aligned with module boundaries.
 
-## 1. Split package là gì?
+## 1. What Is a Split Package?
 
-**Split package** xảy ra khi cùng một tên package được chứa trong nhiều module khác nhau. Ví dụ, hai JAR đều có class trong package **com.acme.shared**:
+A **split package** occurs when the same package name is contained in multiple different modules. For example, two JARs both have classes in the package **com.acme.shared**:
 
 ~~~text
 acme-core.jar
@@ -26,45 +26,45 @@ acme-extra.jar
 └── com/acme/shared/DateFormatter.class
 ~~~
 
-Nếu hai JAR được xem là hai named module, package **com.acme.shared** đang bị chia giữa hai module. Đây là một vấn đề thiết kế trong JPMS vì package là một phần của ranh giới module: module chịu trách nhiệm chứa và kiểm soát package, còn module khác truy cập package thông qua quan hệ readability và exports.
+If the two JARs are treated as two named modules, the package **com.acme.shared** is divided between two modules. This is a design problem in JPMS because packages are part of module boundaries: a module is responsible for containing and controlling a package, while other modules access the package through readability and exports relationships.
 
-Trên class path truyền thống, nhiều JAR có thể cùng đóng góp class vào một package của unnamed module. Cách tổ chức này thường hoạt động trong ứng dụng cũ. Khi chuyển các JAR lên module path, mỗi JAR có thể trở thành một named module; các package trùng tên khi đó có thể tạo xung đột trong module configuration.
+On the traditional class path, multiple JARs can co-contribute classes to a package in the unnamed module. This organization often worked in legacy applications. When moving JARs onto the module path, each JAR can become a named module; identically named packages can then create conflicts in the module configuration.
 
-Mức độ xung đột phụ thuộc vào module graph và khả năng các module cùng được resolve, đọc hoặc export package đó. Module resolver có thể từ chối cấu hình khi phát hiện split package không hợp lệ. Vì vậy, không nên giả định rằng mọi package trùng tên trong mọi JAR luôn gây cùng một lỗi; hãy kiểm tra module graph thực tế.
+The severity of the conflict depends on the module graph and whether the modules are resolved together, read, or export that package. The module resolver can reject the configuration when it detects an invalid split package. Therefore, do not assume every identically named package in any JAR always produces the exact same error; inspect the actual module graph.
 
-Một ví dụ khác là hai module cùng chứa class có cùng fully qualified name:
+Another case is two modules both containing a class with the same fully qualified name:
 
 ~~~text
 com.acme.shared.DateParser
 ~~~
 
-Đây là trường hợp nghiêm trọng hơn vì cùng một tên lớp xuất hiện ở hai module. Dù tên class không trùng, chỉ cần package bị chia giữa các module cũng có thể làm module configuration không hợp lệ.
+This is a more severe case because the same class name appears in two modules. Even if class names do not collide, merely splitting a package across modules can make the module configuration invalid.
 
-## 2. Vì sao cần kết hợp jdeps và module resolution?
+## 2. Why Combine jdeps and Module Resolution?
 
-Hai công cụ giải quyết hai phần khác nhau của việc điều tra:
+The two tools address different parts of the investigation:
 
-| Công cụ/cơ chế | Câu hỏi trả lời |
+| Tool/Mechanism | Question Answered |
 |---|---|
-| **jdeps** | Module, class hoặc package nào tham chiếu tới package nào? Dependency tĩnh đang đi qua những module nào? |
-| **jar --list** | Một JAR thực sự chứa những class/resource nào? Package nào xuất hiện trong nội dung JAR? |
-| **jar --describe-module** | JAR được nhận diện là module nào và descriptor công bố package/directive gì? |
-| **java --validate-modules** | Các module có thể quan sát có tạo thành cấu hình hợp lệ không? Có xung đột module cần sửa không? |
-| **java --show-module-resolution** | Khi khởi chạy một ứng dụng, module resolver chọn module gốc và resolve dependency nào? |
+| **jdeps** | Which module, class, or package references which package? Which modules do static dependencies go through? |
+| **jar --list** | Which classes/resources does a JAR actually contain? Which packages appear in the JAR contents? |
+| **jar --describe-module** | Which module is the JAR recognized as and what packages/directives does its descriptor declare? |
+| **java --validate-modules** | Do observable modules form a valid configuration? Are there module conflicts to fix? |
+| **java --show-module-resolution** | When launching an application, which root modules and dependencies does the module resolver select? |
 
-**jdeps là phân tích tĩnh.** Nó giúp nhìn thấy các dependency được thể hiện trong bytecode và descriptor. Nó không tự thay thế việc kiểm kê toàn bộ package trong từng JAR, cũng không phát hiện chắc chắn mọi dependency phát sinh do reflection, tên lớp tạo động, plugin hoặc cấu hình runtime.
+**jdeps is static analysis.** It helps make visible the dependencies expressed in bytecode and descriptors. It does not by itself replace inventorying all packages in each JAR, nor does it reliably detect every dependency arising from reflection, dynamically generated class names, plugins, or runtime configuration.
 
-**Module resolution là kiểm tra cấu hình thực tế của JPMS.** Nó cho biết các module có thể được resolve thành một module graph hợp lệ hay không. Kết quả này cần được đọc cùng với package inventory và dependency report để xác định đúng JAR gây xung đột.
+**Module resolution checks the actual JPMS configuration.** It tells you whether modules can be resolved into a valid module graph. Its output should be read alongside the package inventory and dependency report to pinpoint the exact conflicting JARs.
 
-## 3. Chuẩn bị ví dụ có split package
+## 3. Preparing an Example with a Split Package
 
-Giả sử có ba module:
+Suppose there are three modules:
 
-- **com.acme.core**: chứa một phần package **com.acme.shared**.
-- **com.acme.extra**: chứa phần còn lại của package **com.acme.shared**.
-- **com.acme.app**: sử dụng các API từ hai module trên.
+- **com.acme.core**: contains one part of the package **com.acme.shared**.
+- **com.acme.extra**: contains the remaining part of the package **com.acme.shared**.
+- **com.acme.app**: uses APIs from both modules above.
 
-Cấu trúc JAR:
+JAR structure:
 
 ~~~text
 mods/
@@ -73,7 +73,7 @@ mods/
 └── com.acme.app.jar
 ~~~
 
-Nội dung hai thư viện:
+Contents of the two libraries:
 
 ~~~text
 com.acme.core.jar
@@ -83,7 +83,7 @@ com.acme.extra.jar
 └── com/acme/shared/DateFormatter.class
 ~~~
 
-Module descriptor của core:
+Module descriptor of core:
 
 ~~~java
 module com.acme.core {
@@ -91,7 +91,7 @@ module com.acme.core {
 }
 ~~~
 
-Module descriptor của extra:
+Module descriptor of extra:
 
 ~~~java
 module com.acme.extra {
@@ -99,7 +99,7 @@ module com.acme.extra {
 }
 ~~~
 
-Module descriptor của app:
+Module descriptor of app:
 
 ~~~java
 module com.acme.app {
@@ -108,27 +108,27 @@ module com.acme.app {
 }
 ~~~
 
-Trong ví dụ này, app đọc cả hai module và cả hai module đều export **com.acme.shared**. Đây là cấu hình cần điều tra: cùng package xuất hiện trong hai module mà một module tiêu thụ đọc đồng thời.
+In this example, app reads both modules and both modules export **com.acme.shared**. This is the configuration to investigate: the same package appears in two modules that a consuming module reads simultaneously.
 
-## 4. Dùng jar để kiểm kê package thực sự có trong JAR
+## 4. Using jar to Inventory Packages Actually Present in JARs
 
-Bước đầu tiên là kiểm tra nội dung từng JAR, không chỉ nhìn tên file hoặc tên module.
+The first step is inspecting each JAR's contents, not just looking at filenames or module names.
 
-Liệt kê nội dung:
+List contents:
 
 ~~~bash
 jar --list --file mods/com.acme.core.jar
 jar --list --file mods/com.acme.extra.jar
 ~~~
 
-Có thể dùng dạng rút gọn:
+You can use the short form:
 
 ~~~bash
 jar tf mods/com.acme.core.jar
 jar tf mods/com.acme.extra.jar
 ~~~
 
-Tìm các entry thuộc package đang nghi ngờ:
+Find entries belonging to the suspected package:
 
 Linux/macOS:
 
@@ -144,138 +144,138 @@ jar tf mods/com.acme.core.jar | Select-String '^com/acme/shared/'
 jar tf mods/com.acme.extra.jar | Select-String '^com/acme/shared/'
 ~~~
 
-Các entry có đường dẫn **com/acme/shared/** cho thấy JAR chứa class/resource trong package đó. Khi đối chiếu, chú ý:
+Entries with the path **com/acme/shared/** show that the JAR contains classes/resources in that package. When comparing, note:
 
-- File **.class** cho biết class thuộc package.
-- File resource cũng có thể nằm trong package path.
-- **module-info.class** nằm ở gốc modular JAR và không phải class trong package ứng dụng.
-- Tên package trong Java dùng dấu chấm; đường dẫn entry trong JAR dùng dấu gạch chéo.
+- **.class** files indicate classes belonging to the package.
+- Resource files can also reside in the package path.
+- **module-info.class** resides at the root of a modular JAR and is not a class in an application package.
+- Package names in Java use dots; entry paths inside a JAR use forward slashes.
 
-Có thể mô tả module của từng JAR:
+You can describe each JAR's module:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.core.jar
 jar --describe-module --file mods/com.acme.extra.jar
 ~~~
 
-Kết quả giúp xác nhận tên module và các package/directive mà công cụ suy ra hoặc đọc từ descriptor. Với explicit modular JAR, descriptor tường minh là nguồn khai báo module. Với automatic module, tên và danh sách package được suy ra theo quy tắc automatic module.
+The output helps confirm the module name and the packages/directives inferred by the tool or read from the descriptor. For an explicit modular JAR, the explicit descriptor is the module declaration source. For an automatic module, the name and package list are derived according to automatic module rules.
 
-**jar --describe-module** hữu ích để kiểm tra danh tính module, còn **jar --list** hữu ích để kiểm tra entry thực tế. Dùng cả hai khi cần truy vết package trùng tên.
+**jar --describe-module** is useful for checking module identity, while **jar --list** is useful for checking actual entries. Use both when tracing identically named packages.
 
-## 5. Dùng jdeps để xem dependency ở mức module
+## 5. Using jdeps to Inspect Module-Level Dependencies
 
-Trước hết, liệt kê dependency module của ứng dụng:
+First, list the application's module dependencies:
 
 ~~~bash
 jdeps --module-path mods --list-deps --module com.acme.app
 ~~~
 
-Lệnh này phân tích dependency mà module app tham chiếu và liệt kê các module liên quan. Kết quả có thể cho thấy **com.acme.core**, **com.acme.extra** và các module JDK như **java.base**.
+This command analyzes the dependencies referenced by the app module and lists the related modules. The output can show **com.acme.core**, **com.acme.extra**, and JDK modules such as **java.base**.
 
-Có thể xuất danh sách dependency dạng comma-separated:
+You can output a comma-separated list of dependencies:
 
 ~~~bash
 jdeps --module-path mods --print-module-deps --module com.acme.app
 ~~~
 
-Kết quả hữu ích khi chuẩn bị cấu hình module path hoặc tập module đầu vào cho công cụ như **jlink**.
+The output is useful when preparing a module path configuration or the set of input modules for a tool like **jlink**.
 
-Nếu muốn xem dependency bắc cầu, dùng tùy chọn recursive:
+If you want to see transitive dependencies, use the recursive option:
 
 ~~~bash
 jdeps --module-path mods --recursive --list-deps --module com.acme.app
 ~~~
 
-Khi có nhiều thư viện, hãy bảo đảm tất cả module cần phân tích đều nằm trong module path được truyền vào **jdeps**. Nếu thiếu một dependency, báo cáo có thể không đầy đủ hoặc xuất hiện cảnh báo không phân giải được.
+When there are many libraries, make sure all modules to be analyzed are on the module path passed to **jdeps**. If a dependency is missing, the report may be incomplete or unresolved warnings may appear.
 
-## 6. Dùng jdeps để xem dependency ở mức package
+## 6. Using jdeps to Inspect Package-Level Dependencies
 
-Để xem package nào phụ thuộc vào package nào, dùng mức verbose package:
+To see which package depends on which package, use the package verbose level:
 
 ~~~bash
 jdeps --module-path mods -verbose:package --module com.acme.app
 ~~~
 
-Tùy chọn **-verbose:package** hiển thị dependency ở mức package. Nó giúp lần theo quan hệ như:
+The **-verbose:package** option displays package-level dependencies. It helps trace relationships such as:
 
 ~~~text
 com.acme.app -> com.acme.shared
 com.acme.shared -> java.lang
 ~~~
 
-Tên và cách trình bày chính xác trong output phụ thuộc JAR/module được phân tích. Hãy chú ý module chứa package đích trong phần output để biết dependency đang được resolve từ module nào.
+The exact names and presentation in the output depend on the JAR/module being analyzed. Pay attention to the module containing the target package in the output to see which module the dependency is resolved from.
 
-Có thể phân tích trực tiếp một JAR:
+You can analyze a JAR directly:
 
 ~~~bash
 jdeps --module-path mods -verbose:package mods/com.acme.app.jar
 ~~~
 
-Hoặc xem ở mức class khi cần biết lớp nào tạo ra dependency:
+Or inspect at the class level when you need to know which class creates the dependency:
 
 ~~~bash
 jdeps --module-path mods -verbose:class mods/com.acme.app.jar
 ~~~
 
-Các mức verbose:
+Verbose levels:
 
-- **-verbose:module**: quan hệ ở mức module.
-- **-verbose:package**: quan hệ ở mức package.
-- **-verbose:class**: quan hệ ở mức class.
+- **-verbose:module**: module-level relationships.
+- **-verbose:package**: package-level relationships.
+- **-verbose:class**: class-level relationships.
 
-Đối với split package, **-verbose:package** giúp nhận diện các package được tham chiếu và module mà dependency đi qua. Tuy nhiên, nếu một JAR chứa package mà không có class nào trong module đang phân tích tham chiếu tới, báo cáo dependency của app có thể không hiển thị package đó. Vì thế, hãy dùng **jar --list** để kiểm kê nội dung JAR khi tìm package trùng tên.
+For split packages, **-verbose:package** helps identify referenced packages and the modules through which dependencies flow. However, if a JAR contains a package that no class in the analyzed module references, the app's dependency report might not show that package. Therefore, use **jar --list** to inventory JAR contents when searching for identically named packages.
 
-## 7. Dùng jdeps --check để xem module descriptor và dependency
+## 7. Using jdeps --check to Inspect Module Descriptors and Dependencies
 
-Tùy chọn **--check** giúp phân tích dependency module và kiểm tra descriptor của các module được chỉ định:
+The **--check** option helps analyze module dependencies and inspect the descriptors of specified modules:
 
 ~~~bash
 jdeps --module-path mods --check com.acme.app
 ~~~
 
-Có thể kiểm tra nhiều module:
+You can check multiple modules:
 
 ~~~bash
 jdeps --module-path mods --check com.acme.core,com.acme.extra,com.acme.app
 ~~~
 
-Output của **--check** giúp xem:
+The output of **--check** helps reveal:
 
-- Module đang khai báo những dependency nào.
-- Dependency nào được sử dụng trong bytecode.
-- Module descriptor có thể được tinh giản ra sao.
-- Những dependency được khai báo nhưng không được dùng hoặc quan hệ module cần xem xét lại.
+- Which dependencies the module declares.
+- Which dependencies are actually used in bytecode.
+- How the module descriptor might be streamlined.
+- Declared dependencies that are unused or module relationships needing review.
 
-Tùy phiên bản JDK và module được phân tích, nội dung output có thể khác nhau. Đọc phần module descriptor hiện tại và phần gợi ý descriptor nếu công cụ cung cấp.
+Depending on the JDK version and analyzed modules, the output content may vary. Read both the current module descriptor section and the suggested descriptor section if the tool provides one.
 
-**--check không phải một phép kiểm kê đầy đủ mọi class/package trong mọi JAR.** Nó hỗ trợ phân tích dependency và descriptor; muốn xác nhận hai JAR có cùng package, vẫn phải kiểm tra package inventory hoặc dùng công cụ/module resolver để xác minh cấu hình.
+**--check is not a complete inventory of every class/package in every JAR.** It assists with dependency and descriptor analysis; to confirm whether two JARs share the same package, you still must check the package inventory or use a tool/module resolver to verify the configuration.
 
-## 8. Xác minh module graph bằng java --validate-modules
+## 8. Verifying the Module Graph with java --validate-modules
 
-Sau khi kiểm tra nội dung JAR và dependency, dùng module resolver của Java để xác thực module path:
+After inspecting JAR contents and dependencies, use Java's module resolver to validate the module path:
 
 ~~~bash
 java --module-path mods --validate-modules
 ~~~
 
-Tùy chọn **--validate-modules** yêu cầu launcher xác thực các module có thể quan sát được trong cấu hình hiện tại rồi kết thúc. Nó hữu ích để phát hiện lỗi module descriptor, module trùng tên, package conflict và các vấn đề khác trong module path.
+The **--validate-modules** option asks the launcher to validate observable modules in the current configuration and then exit. It is useful for catching module descriptor errors, duplicate module names, package conflicts, and other issues on the module path.
 
-Nếu có split package không hợp lệ trong tập module được kiểm tra, launcher có thể báo lỗi dạng:
+If there is an invalid split package in the checked set of modules, the launcher may report an error such as:
 
 ~~~text
 Error occurred during initialization of boot layer
 java.lang.module.ResolutionException: ...
 ~~~
 
-Thông báo cụ thể có thể nêu tên hai module hoặc package gây xung đột. Dùng chính tên module/package trong lỗi để quay lại kiểm tra hai JAR bằng **jar --list** và **jar --describe-module**.
+The specific message may name the two conflicting modules or package. Use the exact module/package names in the error to go back and inspect the two JARs with **jar --list** and **jar --describe-module**.
 
-Đây là bước quan trọng vì jdeps chỉ phân tích dependency tĩnh; module resolver kiểm tra tính hợp lệ của cấu hình JPMS mà launcher đang dùng.
+This is an important step because jdeps only analyzes static dependencies; the module resolver checks the validity of the JPMS configuration used by the launcher.
 
-Khi chạy lệnh, dùng đúng JDK/runtime tương ứng với dự án và truyền module path chứa các JAR cần kiểm tra. Nếu module path có nhiều thư mục hoặc JAR, hãy bảo đảm chúng thực sự là tập đầu vào muốn xác thực.
+When running the command, use the exact JDK/runtime matching the project and pass the module path containing the JARs to validate. If the module path has multiple directories or JARs, make sure they are genuinely the input set you intend to validate.
 
-## 9. Quan sát module resolver khi khởi chạy ứng dụng
+## 9. Observing the Module Resolver When Launching the Application
 
-Để xem module nào được resolve khi chạy một ứng dụng modular, dùng:
+To see which modules are resolved when running a modular application, use:
 
 ~~~bash
 java --show-module-resolution \
@@ -283,86 +283,86 @@ java --show-module-resolution \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Tùy chọn **--show-module-resolution** in thông tin module resolver khi launcher tạo module configuration. Output thường cho biết module gốc và các dependency được resolve.
+The **--show-module-resolution** option prints module resolver information as the launcher builds the module configuration. The output typically shows the root modules and resolved dependencies.
 
-Lệnh này giúp trả lời:
+This command helps answer:
 
-- Module chính nào được khởi chạy?
-- Module nào được resolve do directive **requires**?
-- Module hệ thống nào được đưa vào module graph?
-- Provider module nào được liên kết khi có service binding?
+- Which main module is being launched?
+- Which modules are resolved due to **requires** directives?
+- Which system modules are pulled into the module graph?
+- Which provider modules are bound when service binding occurs?
 
-Nếu ứng dụng thất bại trước khi chạy main class do split package, module resolution error thường chỉ ra xung đột cần xử lý. Nếu ứng dụng khởi chạy được nhưng module path khác với mong đợi, output resolution giúp xác định module thực tế được chọn.
+If the application fails before running the main class due to a split package, the module resolution error usually points out the conflict to fix. If the application starts up yet the module path differs from expectations, the resolution output helps determine which modules were actually chosen.
 
-**--show-module-resolution** chỉ hiển thị cấu hình được resolve cho lần chạy đó. Nó không thay thế **--validate-modules** khi cần kiểm tra module path tổng thể và cũng không tự liệt kê mọi package có trong từng JAR.
+**--show-module-resolution** only shows the configuration resolved for that specific run. It does not replace **--validate-modules** when validating the overall module path, nor does it automatically list every package present in each JAR.
 
-## 10. Quy trình điều tra split package hoàn chỉnh
+## 10. Complete Split Package Investigation Workflow
 
-Giả sử ứng dụng báo lỗi liên quan đến package **com.acme.shared**. Có thể điều tra theo trình tự:
+Suppose the application reports an error related to the package **com.acme.shared**. You can investigate in sequence:
 
-1. Ghi lại tên package và các module được nêu trong thông báo lỗi.
-2. Dùng **jar --describe-module --file** để xác nhận tên module của từng JAR.
-3. Dùng **jar --list --file** để tìm các entry thuộc đường dẫn **com/acme/shared/** trong từng JAR.
-4. Dùng **jdeps --list-deps** để hiểu module dependency của ứng dụng.
-5. Dùng **jdeps -verbose:package** để xem package dependency của module/class đang gây ra vấn đề.
-6. Dùng **jdeps --check** để xem descriptor và các dependency được khai báo.
-7. Chạy **java --module-path mods --validate-modules** để xác nhận lỗi trong module configuration.
-8. Chạy ứng dụng với **--show-module-resolution** để biết tập module thực tế được resolve.
-9. Sửa cấu trúc thư viện/module, sau đó chạy lại các lệnh xác minh.
+1. Record the package name and the modules mentioned in the error message.
+2. Use **jar --describe-module --file** to confirm the module name of each JAR.
+3. Use **jar --list --file** to find entries under the path **com/acme/shared/** in each JAR.
+4. Use **jdeps --list-deps** to understand the application's module dependencies.
+5. Use **jdeps -verbose:package** to inspect package dependencies of the modules/classes causing the issue.
+6. Use **jdeps --check** to review descriptors and declared dependencies.
+7. Run **java --module-path mods --validate-modules** to confirm errors in the module configuration.
+8. Run the application with **--show-module-resolution** to see the actual set of resolved modules.
+9. Fix the library/module structure, then rerun the verification commands.
 
-Ví dụ, nếu cả **com.acme.core.jar** và **com.acme.extra.jar** đều chứa entry thuộc **com/acme/shared/**, hãy xác định package này nên thuộc module nào. Không nên chỉ thêm **requires** hoặc **exports** để che lỗi; những directive đó không hợp nhất package đang nằm trong hai module.
+For example, if both **com.acme.core.jar** and **com.acme.extra.jar** contain entries under **com/acme/shared/**, determine which module this package should belong to. Do not merely add **requires** or **exports** to mask the error; those directives do not merge a package residing in two modules.
 
-## 11. Cách xử lý khi phát hiện split package
+## 11. Ways to Handle a Detected Split Package
 
-Các hướng xử lý thường dùng:
+Common resolution approaches:
 
-### Hợp nhất package vào một module
+### Merge the package into one module
 
-Nếu hai JAR là các phần của cùng một thư viện, có thể hợp nhất package vào một module duy nhất. Điều này tạo ra một chủ sở hữu rõ ràng cho package và giúp module descriptor phản ánh đúng ranh giới API.
+If two JARs are parts of the same library, you can merge the package into a single module. This establishes one clear owner for the package and makes the module descriptor reflect true API boundaries.
 
-### Di chuyển package sang namespace riêng
+### Move the package to a separate namespace
 
-Nếu hai thư viện có thể được thay đổi, chuyển một phần package sang tên package riêng, chẳng hạn **com.acme.extra.shared**. Sau đó cập nhật import, API và cấu hình liên quan.
+If both libraries can be modified, move part of the package to a distinct package name, such as **com.acme.extra.shared**. Then update imports, APIs, and related configurations.
 
-### Relocate package khi đóng gói
+### Relocate packages during packaging
 
-Với thư viện bên thứ ba, có thể dùng shading/relocation trong build để đổi package của một dependency trước khi phát hành artifact. Cần kiểm tra reflection, serialization, service configuration, native integration và API công khai vì đổi package có thể ảnh hưởng tương thích.
+For third-party libraries, you can use shading/relocation in the build to rename the package of one dependency before releasing the artifact. You must verify reflection, serialization, service configurations, native integrations, and public APIs because changing package names can affect compatibility.
 
-### Giữ thư viện legacy trên class path khi phù hợp
+### Keep legacy libraries on the class path when appropriate
 
-Một số ứng dụng có thể giữ thư viện cũ trên class path để chúng thuộc unnamed module, thay vì chuyển tất cả thành named module ngay lập tức. Đây là lựa chọn chuyển tiếp; cần kiểm tra tương tác giữa named module và unnamed module, cũng như tính đóng gói và khả năng bảo trì.
+Some applications can keep legacy libraries on the class path so they belong to the unnamed module, rather than converting everything into named modules immediately. This is a transitional choice; you need to check interactions between named modules and the unnamed module, as well as encapsulation and maintainability.
 
-### Dùng --patch-module chỉ khi nội dung thuộc cùng một module
+### Use --patch-module only when content belongs to the same module
 
-**--patch-module** có thể bổ sung class/resource vào một module đích. Nó phù hợp khi chủ đích là patch một module, ví dụ test hoặc hotfix có kiểm soát. Nó không phải cách chung để ghép hai thư viện độc lập đang khai báo thành hai named module vào cùng một module graph.
+**--patch-module** can add classes/resources into a target module. It is suitable when the intent is to patch a single module, such as for tests or controlled hotfixes. It is not a general way to combine two independent libraries declared as two named modules into the same module graph.
 
-Không dùng **--add-exports**, **--add-reads** hoặc **--add-opens** như cách sửa split package. Những tùy chọn này thay đổi quyền truy cập/readability; chúng không chuyển package từ module này sang module khác.
+Do not use **--add-exports**, **--add-reads**, or **--add-opens** as ways to fix split packages. These options alter access permissions/readability; they do not move a package from one module to another.
 
-## 12. Những giới hạn cần nhớ khi dùng jdeps
+## 12. Limitations to Remember When Using jdeps
 
-- jdeps phân tích bytecode và module metadata có thể quan sát; dependency phát sinh từ reflection hoặc tên lớp tạo động có thể bị bỏ sót.
-- **-verbose:package** hiển thị package dependency, không phải danh sách đầy đủ package được chứa trong mỗi JAR.
-- **--list-deps** và **--print-module-deps** tập trung vào module dependency, không xác định duy nhất JAR nào chứa một package.
-- **--check** giúp xem descriptor/dependency và gợi ý điều chỉnh; không thay thế kiểm kê JAR.
-- Kết quả phân tích phụ thuộc module path và phiên bản JDK dùng để chạy jdeps.
-- Module resolution chỉ xác thực các module và root/configuration được launcher đưa vào phạm vi kiểm tra; hãy xác nhận lệnh đang dùng đúng module path và tập module mục tiêu.
+- jdeps analyzes observable bytecode and module metadata; dependencies arising from reflection or dynamically generated class names may be missed.
+- **-verbose:package** shows package dependencies, not a complete list of packages contained inside each JAR.
+- **--list-deps** and **--print-module-deps** focus on module dependencies and do not uniquely identify which JAR contains a package.
+- **--check** helps inspect descriptors/dependencies and suggest adjustments; it does not replace JAR inventorying.
+- Analysis results depend on the module path and the JDK version used to run jdeps.
+- Module resolution only validates the modules and roots/configuration included in the launcher's check scope; confirm the command uses the right module path and target modules.
 
-Vì vậy, quy trình đáng tin cậy là kết hợp **jdeps để hiểu dependency**, **jar để kiểm kê package**, và **java module resolver để xác thực module graph**.
+Therefore, a reliable workflow combines **jdeps to understand dependencies**, **jar to inventory packages**, and the **java module resolver to validate the module graph**.
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-- Split package là cùng một package xuất hiện trong nhiều module.
-- **jar --list** cho biết JAR thực sự chứa class/resource nào; dùng nó để so sánh package inventory.
-- **jar --describe-module** xác nhận module name và descriptor.
-- **jdeps --list-deps** xem dependency ở mức module.
-- **jdeps -verbose:package** xem dependency ở mức package; **-verbose:class** đi sâu tới class.
-- **jdeps --check** hỗ trợ phân tích module descriptor và dependency.
-- **java --validate-modules** kiểm tra tính hợp lệ của các module có thể quan sát.
-- **--show-module-resolution** hiển thị module được resolve khi khởi chạy ứng dụng.
-- jdeps không thay thế module resolver và cũng không tự liệt kê mọi package trong từng JAR.
-- Cách sửa bền vững là tạo một module sở hữu package rõ ràng, di chuyển hoặc relocate package khi cần.
+- A split package is the same package appearing in multiple modules.
+- **jar --list** shows which classes/resources a JAR actually contains; use it to compare package inventories.
+- **jar --describe-module** confirms module names and descriptors.
+- **jdeps --list-deps** inspects dependencies at the module level.
+- **jdeps -verbose:package** inspects dependencies at the package level; **-verbose:class** drills down to classes.
+- **jdeps --check** assists in analyzing module descriptors and dependencies.
+- **java --validate-modules** checks the validity of observable modules.
+- **--show-module-resolution** displays resolved modules when launching the application.
+- jdeps does not replace the module resolver and does not automatically list every package inside each JAR.
+- A sustainable fix establishes a single clear module owning the package, moving or relocating packages when necessary.
 
-## Tài liệu tham khảo
+## References
 
 - [The jdeps Command — Java SE 21 Tool Specification](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jdeps.html)
 - [The java Command — Java SE 21 Tool Specification](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)

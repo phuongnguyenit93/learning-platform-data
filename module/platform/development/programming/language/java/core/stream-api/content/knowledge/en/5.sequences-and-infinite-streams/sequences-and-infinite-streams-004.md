@@ -1,12 +1,12 @@
-# Tạo dãy có điều kiện dừng bằng Stream.iterate ba tham số
+# Creating Sequences with a Stopping Condition Using Three-Argument Stream.iterate
 
-Trong Java Stream API, `Stream.iterate(seed, hasNext, next)` tạo một dãy phần tử bằng cách **bắt đầu từ giá trị ban đầu**, **kiểm tra điều kiện được phép tiếp tục**, rồi **tính phần tử kế tiếp**. Đây là cách diễn đạt khai báo cho nhiều vòng lặp có điều kiện dừng mà không cần tự duy trì danh sách kết quả. Phương thức ba tham số được bổ sung từ **Java 9**.
+In the Java Stream API, `Stream.iterate(seed, hasNext, next)` generates a sequence of elements by **starting from an initial value**, **checking a condition allowing continuation**, and then **computing the next element**. This is a declarative way to express many loops with a termination condition without manually maintaining a result list. The three-argument method was added in **Java 9**.
 
-Bài nằm trong chương **Dãy số và Stream vô hạn** của module **JAVA_STREAM_API**. Mục tiêu là kết hợp kiểu nguồn sinh dãy này với các pipeline lazy như `filter`, `map`, `reduce` và `collect`; hiểu thời điểm thực thi, trạng thái, chi phí tài nguyên và lý do không nên mặc định biến dãy phụ thuộc tuần tự thành parallel stream. Những kiến thức nền cũng giúp đọc các chủ đề nâng cao như `Spliterator`, grouping, collector tùy chỉnh và Stream Gatherers.
+This lesson belongs to the **Sequences and Infinite Streams** chapter of the **JAVA_STREAM_API** module. The goal is to combine this sequence-generating source with lazy pipelines such as `filter`, `map`, `reduce`, and `collect`; understand execution timing, state, resource costs, and why you should not default to converting sequentially dependent sequences into parallel streams. These fundamentals also prepare you for advanced topics like `Spliterator`, grouping, custom collectors, and Stream Gatherers.
 
-## 1. Cú pháp và ý nghĩa của ba tham số
+## 1. Syntax and Meaning of the Three Arguments
 
-Khai báo đầy đủ trong `java.util.stream.Stream`:
+Full declaration in `java.util.stream.Stream`:
 
 ```java
 public static <T> Stream<T> iterate(
@@ -15,64 +15,64 @@ public static <T> Stream<T> iterate(
         UnaryOperator<T> next)
 ```
 
-| Tham số | Vai trò | Ví dụ |
+| Argument | Role | Example |
 |---|---|---|
-| `seed` | Phần tử đầu tiên **ứng viên** được phát | `0` |
-| `hasNext` | Hàm nhận một phần tử ứng viên, trả `true` nếu được đưa vào Stream | `i -> i < 5` |
-| `next` | Hàm tính phần tử ứng viên sau từ phần tử hiện tại | `i -> i + 1` |
+| `seed` | The first **candidate** element to be emitted | `0` |
+| `hasNext` | Function receiving a candidate element, returning `true` if it should enter the Stream | `i -> i < 5` |
+| `next` | Function computing the next candidate element from the current element | `i -> i + 1` |
 
-`Predicate<T>` và `UnaryOperator<T>` đều là functional interface trong `java.util.function`. `Predicate` đưa ra câu trả lời đúng/sai; `UnaryOperator` là một hàm nhận và trả về **cùng kiểu T**. Vì thế, `iterate` phù hợp cả với dãy số, ngày tháng và trạng thái bất biến của thuật toán.
+`Predicate<T>` and `UnaryOperator<T>` are both functional interfaces in `java.util.function`. `Predicate` yields a boolean true/false answer; `UnaryOperator` is a function taking and returning **the same type T**. Therefore, `iterate` works well for number sequences, dates, and immutable algorithm states alike.
 
-Ý nghĩa cơ bản giống vòng `for`:
+Its basic meaning resembles a `for` loop:
 
 ```java
-// Dạng vòng lặp:
+// Loop form:
 for (int i = 0; i < 5; i++) {
     System.out.println(i);
 }
 
-// Dạng Stream, từ Java 9:
+// Stream form, from Java 9:
 Stream.iterate(0, i -> i < 5, i -> i + 1)
         .forEach(System.out::println);
 ```
 
-Hai đoạn cùng in ra `0`, `1`, `2`, `3`, `4` (mỗi số một dòng), nếu chạy tuần tự như ví dụ.
+Both snippets print `0`, `1`, `2`, `3`, `4` (one number per line), when run sequentially as shown.
 
-### 1.1. Thứ tự đánh giá
+### 1.1. Evaluation Order
 
-Về mặt logic, các phần tử được quyết định như sau:
+Logically, elements are decided as follows:
 
 ```text
 seed = 0
   |
   v
-hasNext(0)? -- false --> KẾT THÚC
+hasNext(0)? -- false --> END
   | true
   v
-phát 0 --> next(0) = 1
+emit 0 --> next(0) = 1
                  |
                  v
-             hasNext(1)? -- false --> KẾT THÚC
+             hasNext(1)? -- false --> END
                  | true
                  v
-             phát 1 --> next(1) = 2 --> ...
+             emit 1 --> next(1) = 2 --> ...
 ```
 
-Với lời gọi `Stream.iterate(0, i -> i < 5, i -> i + 1)`, ta có dãy `0, 1, 2, 3, 4`. Giá trị `5` được dùng để **kiểm tra điều kiện dừng**, nhưng **không xuất hiện trong kết quả**.
+With the call `Stream.iterate(0, i -> i < 5, i -> i + 1)`, we get the sequence `0, 1, 2, 3, 4`. The value `5` is used to **check the stopping condition**, but **does not appear in the result**.
 
-Những tính chất cần nhớ:
+Key properties to remember:
 
-1. `hasNext` được kiểm tra **trước khi** phần tử ứng viên được phát. Nếu `hasNext.test(seed)` là `false` ngay lần đầu, Stream rỗng.
-2. `next` mô tả cách tính ứng viên tiếp theo; những phần tử phát ra theo chuỗi kết quả áp dụng `next` lặp lại.
-3. Khi gặp ứng viên đầu tiên không thỏa `hasNext`, dãy dừng; ứng viên đó không được phát.
-4. Stream tạo từ `iterate` là **có thứ tự gặp phần tử** (*encounter order*) và ban đầu là **tuần tự**. Không nên coi nó là tập phần tử độc lập có thể lấy theo vị trí tùy ý.
-5. Cả `hasNext` lẫn `next` nên không can thiệp vào nguồn/biến trạng thái dùng chung (*non-interfering*) và không dựa vào tác dụng phụ (*stateless* theo nghĩa của hành vi lambda trong Stream).
+1. `hasNext` is checked **before** a candidate element is emitted. If `hasNext.test(seed)` is `false` on the very first check, the Stream is empty.
+2. `next` describes how to compute the next candidate; emitted elements follow the result chain of repeatedly applying `next`.
+3. Upon encountering the first candidate that does not satisfy `hasNext`, the sequence stops; that candidate is not emitted.
+4. A Stream created from `iterate` has an **encounter order** and is initially **sequential**. It should not be treated as a collection of independent elements accessible at arbitrary positions.
+5. Both `hasNext` and `next` should not interfere with the source or shared state variables (*non-interfering*) and should not rely on side effects (*stateless* in the sense of Stream lambda behavior).
 
-Điều kiện dừng phụ thuộc vào **giá trị ứng viên**, chứ không phải “chạy đúng N vòng” như một bộ đếm ẩn. Muốn đúng N phần tử, hãy thiết kế seed, predicate và next sao cho giới hạn đó được biểu diễn rõ ràng.
+The stopping condition depends on the **candidate value**, not on "running exactly N iterations" like a hidden counter. To get exactly N elements, design `seed`, `predicate`, and `next` so that the bound is explicitly represented.
 
-## 2. Bắt đầu với dãy số nguyên hữu hạn
+## 2. Starting with Finite Integer Sequences
 
-### 2.1. Cận trên không bao gồm giá trị cuối
+### 2.1. Exclusive Upper Bound
 
 ```java
 import java.util.List;
@@ -83,8 +83,8 @@ public class IterateNumbers {
     public static void main(String[] args) {
         List<Integer> numbers = Stream.iterate(
                         0,          // seed
-                        i -> i < 6, // hasNext: kiểm tra trước khi phát
-                        i -> i + 2) // next: tăng 2
+                        i -> i < 6, // hasNext: checked before emitting
+                        i -> i + 2) // next: increment by 2
                 .collect(Collectors.toList());
 
         System.out.println(numbers); // [0, 2, 4]
@@ -92,21 +92,21 @@ public class IterateNumbers {
 }
 ```
 
-Ở đây `6` là ranh giới **loại trừ**: `0`, `2`, `4` được nhận, còn `6` bị kiểm tra và loại bỏ. Khi viết `i -> i < endExclusive`, tên `endExclusive` làm rõ quy ước cận.
+Here `6` is an **exclusive** bound: `0`, `2`, `4` are accepted, while `6` is checked and discarded. When writing `i -> i < endExclusive`, the name `endExclusive` clarifies the bound convention.
 
-### 2.2. Bao gồm cận trên
+### 2.2. Inclusive Upper Bound
 
 ```java
 List<Integer> numbers = Stream.iterate(
                 1,
-                i -> i <= 5, // bao gồm 5
+                i -> i <= 5, // includes 5
                 i -> i + 1)
         .collect(Collectors.toList());
 
 System.out.println(numbers); // [1, 2, 3, 4, 5]
 ```
 
-Nếu `seed` đã nằm ngoài miền được chấp nhận:
+If `seed` is already outside the accepted domain:
 
 ```java
 long count = Stream.iterate(
@@ -118,9 +118,9 @@ long count = Stream.iterate(
 System.out.println(count); // 0
 ```
 
-Khi đó `hasNext(10)` là `false`, không có phần tử nào được phát; không cần gọi hàm `next` để tạo phần tử thuộc dãy.
+In that case `hasNext(10)` is `false`, no elements are emitted, and `next` never needs to be called to produce sequence elements.
 
-### 2.3. Dãy giảm và bước nhảy tùy ý
+### 2.3. Decreasing Sequences and Arbitrary Step Sizes
 
 ```java
 List<Integer> countdown = Stream.iterate(
@@ -132,11 +132,11 @@ List<Integer> countdown = Stream.iterate(
 System.out.println(countdown); // [10, 7, 4, 1]
 ```
 
-`next` không bắt buộc cộng một. Nó có thể trừ một số, nhân một hằng số hoặc tính trạng thái mới. Tuy nhiên, **predicate phải phù hợp với chiều thay đổi**. Với dãy giảm, điều kiện kiểu `n -> n <= 10` sẽ không bảo đảm dừng vì mỗi giá trị nhỏ hơn vẫn thỏa nó.
+`next` does not have to add one. It can subtract a number, multiply by a constant, or compute a new state. However, **the predicate must match the direction of change**. For a decreasing sequence, a condition like `n -> n <= 10` will not guarantee termination because every smaller value still satisfies it.
 
-## 3. Kết hợp nguồn iterate với pipeline lazy
+## 3. Combining an iterate Source with a Lazy Pipeline
 
-`iterate` tạo **nguồn** của pipeline. Các thao tác trung gian như `filter`, `map` không cần tạo danh sách tạm; pipeline chỉ thực sự đi vào quá trình duyệt khi chạy thao tác kết thúc như `collect`, `sum`, `count` hoặc `findFirst`.
+`iterate` creates the **source** of a pipeline. Intermediate operations such as `filter` and `map` do not need to create temporary lists; the pipeline only begins traversing when a terminal operation like `collect`, `sum`, `count`, or `findFirst` runs.
 
 ```java
 import java.util.List;
@@ -155,18 +155,18 @@ System.out.println(cubesOfEvenNumbers);
 // [8, 64, 216, 512, 1000]
 ```
 
-Ở đây:
+Here:
 
-- `iterate` lần lượt tạo các ứng viên từ 1 đến 10;
-- `filter` chỉ giữ số chẵn;
-- `map` lập phương từng số giữ lại;
-- `collect` là thao tác kết thúc tạo `List`.
+- `iterate` sequentially produces candidates from 1 to 10;
+- `filter` keeps only even numbers;
+- `map` cubes each retained number;
+- `collect` is the terminal operation that creates the `List`.
 
-**Điều kiện dừng đặt ở đâu?** Predicate trong `iterate` kiểm tra từng phần tử **trước** các bước `filter` và `map`. Ví dụ, dù `filter` bỏ đi toàn bộ số lẻ, `hasNext` vẫn xét cả các số lẻ để biết khi nào dừng. Do đó, không thể thay đổi điều kiện sinh dãy bằng cách mong `filter` “ngăn nguồn sinh tiếp”.
+**Where is the stopping condition placed?** The predicate in `iterate` checks each element **before** the `filter` and `map` steps. For instance, even though `filter` discards all odd numbers, `hasNext` still evaluates the odd numbers to know when to stop. Therefore, you cannot alter the sequence generation condition by expecting `filter` to "stop the source from generating further".
 
-### 3.1. Thao tác kết thúc có thể dừng sớm
+### 3.1. Terminal Operations That Can Short-Circuit
 
-`findFirst`, `anyMatch` và `limit` có thể làm pipeline không cần duyệt hết nguồn:
+`findFirst`, `anyMatch`, and `limit` can let the pipeline avoid traversing the entire source:
 
 ```java
 Optional<Integer> firstMultipleOfSeven =
@@ -177,11 +177,11 @@ Optional<Integer> firstMultipleOfSeven =
 System.out.println(firstMultipleOfSeven.orElse(-1)); // 7
 ```
 
-Ví dụ cần `import java.util.Optional;`. Sau khi tìm thấy phần tử phù hợp đầu tiên, xử lý có thể kết thúc sớm; chương trình không cần gom tất cả 1.000 phần tử. Không gắn tác dụng phụ như ghi log bắt buộc trong `hasNext` hay `next` rồi giả định số lần thực thi chính xác: Stream API có quyền tối ưu và các toán tử ngắn mạch có thể thay đổi số phần tử thực sự được yêu cầu.
+This example requires `import java.util.Optional;`. Once the first matching element is found, processing can terminate early; the program does not need to collect all 1,000 elements. Do not attach side effects such as mandatory logging inside `hasNext` or `next` and assume an exact invocation count: the Stream API is permitted to optimize, and short-circuiting operators can change how many elements are actually requested.
 
-## 4. Ví dụ thực tế: tạo lịch ngày theo quy tắc dừng
+## 4. Practical Example: Generating a Date Schedule with a Stopping Rule
 
-Không phải dãy nào cũng là số nguyên. `LocalDate` là kiểu giá trị bất biến, có `plusDays` trả về đối tượng ngày mới, rất phù hợp với cách dùng `iterate`.
+Not all sequences are integers. `LocalDate` is an immutable value type whose `plusDays` method returns a new date object, making it a great fit for `iterate`.
 
 ```java
 import java.time.LocalDate;
@@ -207,23 +207,23 @@ public class DailySchedule {
 }
 ```
 
-Diễn giải: bắt đầu từ `start`, tiếp tục khi ngày ứng viên **không sau** `endInclusive`, và tăng một ngày sau mỗi bước. Nếu `start` sau `endInclusive`, kết quả là danh sách rỗng.
+Explanation: start from `start`, continue while the candidate date is **not after** `endInclusive`, and advance by one day at each step. If `start` is after `endInclusive`, the result is an empty list.
 
-Đổi bước nhảy thành `date.plusWeeks(1)` sẽ tạo lịch theo tuần. Có thể nối `filter(date -> date.getDayOfWeek().getValue() <= 5)` để chỉ giữ ngày làm việc từ thứ Hai đến thứ Sáu. Lưu ý `filter` loại ngày cuối tuần khỏi **kết quả**, nhưng việc duyệt ứng viên vẫn tăng từng ngày nếu `next` là `plusDays(1)`.
+Changing the step to `date.plusWeeks(1)` creates a weekly schedule. You can chain `filter(date -> date.getDayOfWeek().getValue() <= 5)` to keep only workdays from Monday to Friday. Note that `filter` removes weekend days from the **output**, while candidate traversal still advances day by day if `next` is `plusDays(1)`.
 
-## 5. So sánh ba cách tạo dãy
+## 5. Comparing Three Ways to Generate Sequences
 
-### 5.1. iterate hai tham số và ba tham số
+### 5.1. Two-Argument vs. Three-Argument iterate
 
-`Stream.iterate(seed, next)` có từ Java 8 và **tự nó tạo nguồn vô hạn**, trừ trường hợp pipeline dùng các toán tử dừng sớm hoặc gặp lỗi. `Stream.iterate(seed, hasNext, next)` từ Java 9 có thêm predicate để ràng buộc việc sinh phần tử.
+`Stream.iterate(seed, next)` has existed since Java 8 and **creates an infinite source by itself**, unless the pipeline uses short-circuiting operators or encounters an error. `Stream.iterate(seed, hasNext, next)` from Java 9 adds a predicate to constrain element generation.
 
 ```java
-// Java 8+: nguồn vô hạn, giới hạn đầu ra bằng limit.
+// Java 8+: infinite source, limiting output with limit.
 List<Integer> firstFiveA = Stream.iterate(0, i -> i + 1)
         .limit(5)
         .collect(Collectors.toList());
 
-// Java 9+: nguồn hữu hạn dựa trên giá trị ứng viên.
+// Java 9+: finite source based on candidate value.
 List<Integer> firstFiveB = Stream.iterate(
                 0,
                 i -> i < 5,
@@ -234,34 +234,34 @@ System.out.println(firstFiveA); // [0, 1, 2, 3, 4]
 System.out.println(firstFiveB); // [0, 1, 2, 3, 4]
 ```
 
-Hai kết quả trên giống nhau nhưng ý định khác nhau:
+The two results above are identical, but their intents differ:
 
-- `limit(5)` trả **tối đa 5 phần tử** bất kể giá trị của chúng; hữu ích khi cần một số lượng cố định từ một nguồn về bản chất có thể sinh mãi.
-- `hasNext` dừng ở **ứng viên đầu tiên không thỏa điều kiện**; phù hợp khi miền giá trị hay trạng thái nghiệp vụ quyết định điểm dừng.
+- `limit(5)` returns **at most 5 elements** regardless of their values; useful when you need a fixed count from an inherently endless source.
+- `hasNext` stops at the **first candidate that fails the condition**; suitable when the value domain or business state determines the stopping point.
 
-Chẳng hạn, với bước nhảy `i -> i + 2`, `iterate(0, i -> i < 5, i -> i + 2)` cho `[0, 2, 4]`, còn `iterate(0, i -> i + 2).limit(5)` cho `[0, 2, 4, 6, 8]`.
+For example, with step `i -> i + 2`, `iterate(0, i -> i < 5, i -> i + 2)` yields `[0, 2, 4]`, whereas `iterate(0, i -> i + 2).limit(5)` yields `[0, 2, 4, 6, 8]`.
 
-### 5.2. iterate ba tham số và takeWhile
+### 5.2. Three-Argument iterate vs. takeWhile
 
-Java 9 cũng bổ sung `takeWhile` để lấy tiền tố liên tục thỏa một predicate từ Stream có thứ tự:
+Java 9 also added `takeWhile` to take the contiguous prefix satisfying a predicate from an ordered Stream:
 
 ```java
-// Kiểm tra ngay tại nguồn.
+// Checked right at the source.
 Stream<Integer> a = Stream.iterate(
         0, i -> i < 5, i -> i + 1);
 
-// Lấy tiền tố từ nguồn được tạo bởi iterate hai tham số.
+// Take prefix from a source created by two-argument iterate.
 Stream<Integer> b = Stream.iterate(0, i -> i + 1)
         .takeWhile(i -> i < 5);
 ```
 
-Với ví dụ này, cả hai cho cùng `0, 1, 2, 3, 4`. Tuy nhiên, `takeWhile` là **thao tác trung gian**, dùng được với các nguồn Stream khác và hoạt động theo encounter order khi nguồn có thứ tự. `hasNext` thuộc **cách xây dựng nguồn** `iterate`.
+In this example, both yield `0, 1, 2, 3, 4`. However, `takeWhile` is an **intermediate operation**, works with other Stream sources, and operates according to encounter order when the source is ordered. `hasNext` belongs to the **source construction** of `iterate`.
 
-Đặc biệt, `takeWhile` trên Stream **không có encounter order** không bảo đảm trả về “tiền tố” có ý nghĩa như trên một danh sách có thứ tự. Đừng dựa vào kết quả ổn định trong trường hợp đó.
+In particular, `takeWhile` on an **unordered** Stream is not guaranteed to return a meaningful "prefix" like on an ordered list. Do not rely on deterministic results in that case.
 
-### 5.3. iterate và IntStream.range / rangeClosed
+### 5.3. iterate vs. IntStream.range / rangeClosed
 
-Khi chỉ cần các số nguyên liên tiếp, `IntStream.range` hoặc `rangeClosed` thường ngắn gọn và hiệu quả hơn:
+When you only need consecutive integers, `IntStream.range` or `rangeClosed` is usually more concise and efficient:
 
 ```java
 import java.util.stream.IntStream;
@@ -270,15 +270,15 @@ int sumExclusive = IntStream.range(1, 6).sum();       // 1+2+3+4+5 = 15
 int sumInclusive = IntStream.rangeClosed(1, 5).sum(); // 15
 ```
 
-| Bài toán | Cách diễn đạt ưu tiên |
+| Problem | Preferred expression |
 |---|---|
-| Số nguyên liên tiếp từ 0 đến 99 | `IntStream.range(0, 100)` |
-| Số nguyên liên tiếp từ 1 đến 100, gồm 100 | `IntStream.rangeClosed(1, 100)` |
-| Số tăng cách 3, dừng trước 50 | `IntStream.iterate(0, n -> n < 50, n -> n + 3)` |
-| Các ngày từ ngày A đến B | `Stream.iterate(start, day -> !day.isAfter(end), day -> day.plusDays(1))` |
-| Lấy 10 phần tử đầu của dãy có thể chạy mãi | `Stream.iterate(seed, next).limit(10)` |
+| Consecutive integers from 0 to 99 | `IntStream.range(0, 100)` |
+| Consecutive integers from 1 to 100, including 100 | `IntStream.rangeClosed(1, 100)` |
+| Numbers increasing by 3, stopping before 50 | `IntStream.iterate(0, n -> n < 50, n -> n + 3)` |
+| Dates from date A to date B | `Stream.iterate(start, day -> !day.isAfter(end), day -> day.plusDays(1))` |
+| Take the first 10 elements of an endless sequence | `Stream.iterate(seed, next).limit(10)` |
 
-`IntStream.iterate(seed, hasNext, next)`, `LongStream.iterate(...)` và `DoubleStream.iterate(...)` cũng có biến thể ba tham số từ Java 9. Chúng dùng kiểu nguyên thủy, tránh boxing của `Stream<Integer>`/`Stream<Long>`/`Stream<Double>` khi xử lý số lượng lớn.
+`IntStream.iterate(seed, hasNext, next)`, `LongStream.iterate(...)`, and `DoubleStream.iterate(...)` also have three-argument variants since Java 9. They use primitive types, avoiding boxing overhead of `Stream<Integer>`/`Stream<Long>`/`Stream<Double>` when processing large quantities.
 
 ```java
 import java.util.stream.IntStream;
@@ -290,9 +290,9 @@ int squaresSum = IntStream.iterate(1, i -> i <= 4, i -> i + 1)
 System.out.println(squaresSum); // 30 (1 + 4 + 9 + 16)
 ```
 
-## 6. Dãy trạng thái: một ví dụ không thể thay bằng range đơn giản
+## 6. State Sequences: An Example That Cannot Be Replaced by a Simple range
 
-Một trường hợp có ích của `iterate` là mỗi trạng thái chứa nhiều thông tin, và trạng thái tiếp theo phụ thuộc vào trạng thái trước. Chẳng hạn, ta tạo các số Fibonacci dưới 100 bằng **trạng thái bất biến** gồm hai số kề nhau:
+A useful case for `iterate` is when each state holds multiple pieces of information, and the next state depends on the previous state. For example, we generate Fibonacci numbers under 100 using an **immutable state** consisting of two adjacent numbers:
 
 ```java
 import java.util.List;
@@ -324,56 +324,56 @@ public class FibonacciSequence {
 }
 ```
 
-`Pair` là kiểu hỗ trợ được tạo riêng cho ví dụ: mỗi bước sinh **đối tượng mới**, không sửa cặp cũ. `hasNext` xét `current < 100` nên số Fibonacci 144 không được phát. Với giới hạn nhỏ này phép cộng `long` không tràn; với dãy Fibonacci dài, cần cân nhắc `BigInteger` hoặc giới hạn an toàn.
+`Pair` is a helper type created specifically for this example: each step produces a **new object** without mutating the old pair. `hasNext` checks `current < 100`, so the Fibonacci number 144 is not emitted. With this small limit, `long` addition does not overflow; for long Fibonacci sequences, consider `BigInteger` or a safe bound.
 
-Ví dụ cho thấy `iterate` không chỉ tương đương “vòng `for` có biến đếm”: nó còn diễn đạt **quy tắc chuyển trạng thái**. Tuy nhiên, nếu thuật toán đòi dừng dựa vào một biến toàn cục bị cập nhật ở nơi khác, hãy cân nhắc mô hình vòng lặp hoặc nguồn sự kiện thích hợp thay vì giấu trạng thái dùng chung trong lambda.
+This example shows that `iterate` is not merely equivalent to a "counter-based `for` loop": it also expresses a **state transition rule**. However, if the algorithm needs to stop based on a global variable updated elsewhere, consider a loop or an appropriate event source rather than hiding shared state inside a lambda.
 
-## 7. Điều kiện dừng sai: nguồn có thể chạy vô hạn
+## 7. Wrong Stopping Condition: The Source Can Run Infinitely
 
-Tham số `hasNext` **không tự bảo đảm** Stream hữu hạn. Nếu predicate luôn trả `true` trên những giá trị mà `next` tạo ra, Stream vẫn vô hạn.
+The `hasNext` parameter **does not automatically guarantee** a finite Stream. If the predicate always returns `true` on the values produced by `next`, the Stream remains infinite.
 
 ```java
-// NGUY HIỂM nếu dùng count()/collect(): điều kiện không bao giờ sai.
+// DANGEROUS if using count()/collect(): condition is never false.
 Stream<Integer> endless = Stream.iterate(
         0,
         i -> i >= 0,
         i -> i + 0);
 ```
 
-Stream trên cứ lặp lại `0`. Lệnh `count()` hoặc `collect(toList())` trên nguồn này có thể không kết thúc hoặc tiêu tốn tài nguyên. Với những dãy có rủi ro, hãy chứng minh điều kiện dừng bằng cách xác định:
+The Stream above keeps repeating `0`. Calling `count()` or `collect(toList())` on this source may never terminate or may exhaust resources. For risky sequences, prove termination by verifying:
 
-1. **Miền giá trị** của trạng thái;
-2. **Bước tiến** của `next` có thật sự tiến về biên hay không;
-3. **Predicate** có trở thành `false` sau hữu hạn bước hay không;
-4. **Overflow/underflow** hoặc dữ liệu bất thường có làm hỏng logic hay không.
+1. The **value domain** of the state;
+2. Whether the **step progression** of `next` actually moves toward the bound;
+3. Whether the **predicate** becomes `false` after finitely many steps;
+4. Whether **overflow/underflow** or abnormal data breaks the logic.
 
-### 7.1. Tràn số khiến điều kiện dừng không còn đúng
+### 7.1. Overflow Breaking the Stopping Condition
 
 ```java
-// SAI: mọi số int đều <= Integer.MAX_VALUE.
-// Sau khi tăng từ MAX_VALUE, int sẽ tràn về MIN_VALUE,
-// nên điều kiện này vẫn luôn true.
+// WRONG: every int is <= Integer.MAX_VALUE.
+// After incrementing past MAX_VALUE, int overflows to MIN_VALUE,
+// so this condition stays true forever.
 Stream<Integer> broken = Stream.iterate(
         Integer.MAX_VALUE - 1,
         n -> n <= Integer.MAX_VALUE,
         n -> n + 1);
 ```
 
-Để tạo dãy nhỏ hơn `Integer.MAX_VALUE`, dùng `n -> n < Integer.MAX_VALUE`; hoặc chuyển sang kiểu `long` khi có nguy cơ cộng vượt miền của `int`. Nếu cần cận trên bao gồm `Integer.MAX_VALUE`, phải xây dựng bước dừng không dựa vào phép cộng `int` có thể tràn, chẳng hạn dùng `LongStream` với cận `long` thích hợp.
+To generate a sequence smaller than `Integer.MAX_VALUE`, use `n -> n < Integer.MAX_VALUE`; or switch to `long` when addition risks exceeding the `int` domain. If you need an inclusive upper bound of `Integer.MAX_VALUE`, build a stopping step that does not rely on overflowing `int` addition, such as using `LongStream` with an appropriate `long` bound.
 
-### 7.2. Dữ liệu null và hàm lấy khóa
+### 7.2. Null Data and Key Extraction Functions
 
-Với Stream đối tượng, `hasNext` và `next` có thể phải xử lý một giá trị `null` nếu seed hoặc phép biến đổi trả null. Đừng viết `value -> value.length() > 0` rồi truyền seed có thể null. Có thể thiết kế hợp đồng “không tạo null” cho trạng thái hoặc có điều kiện rõ ràng như `value -> value != null`, tùy bài toán.
+With an object Stream, `hasNext` and `next` may have to handle a `null` value if the seed or transformation returns null. Do not write `value -> value.length() > 0` and pass a potentially null seed. You can design a "no-nulls" contract for the state or include an explicit condition like `value -> value != null`, depending on the problem.
 
-`Stream.iterate` không tự bắt và chuyển ngoại lệ thành cơ chế retry. Nếu `hasNext`/`next` ném ngoại lệ khi pipeline chạy, thao tác kết thúc có thể thất bại. Các lambda thuần, đầu vào hợp lệ và giới hạn được kiểm soát sẽ giúp pipeline dễ kiểm chứng.
+`Stream.iterate` does not catch exceptions and turn them into a retry mechanism. If `hasNext`/`next` throws an exception while the pipeline runs, the terminal operation may fail. Pure lambdas, valid inputs, and controlled bounds help keep the pipeline easy to verify.
 
-## 8. Hiệu năng, thứ tự và xử lý song song
+## 8. Performance, Ordering, and Parallel Processing
 
-### 8.1. Tính lazy và tài nguyên
+### 8.1. Laziness and Resources
 
-Việc tạo nguồn `Stream.iterate(...)` không đồng nghĩa tạo sẵn mọi phần tử trong bộ nhớ. Các ứng viên được tính khi terminal operation thực sự cần duyệt. Nhưng nếu dùng `collect(toList())` để lấy **toàn bộ** một dãy rất lớn, danh sách kết quả vẫn tiêu tốn bộ nhớ tương ứng; nếu nguồn vô hạn, thao tác này không phù hợp.
+Creating a `Stream.iterate(...)` source does not mean pre-allocating all elements in memory. Candidates are computed when the terminal operation actually needs to traverse them. However, if you use `collect(toList())` to collect **all** of a very large sequence, the resulting list still consumes corresponding memory; if the source is infinite, this operation is inappropriate.
 
-Một pipeline ngắn mạch có thể giới hạn xử lý:
+A short-circuiting pipeline can bound processing:
 
 ```java
 List<Integer> firstThree = Stream.iterate(
@@ -386,11 +386,11 @@ List<Integer> firstThree = Stream.iterate(
 System.out.println(firstThree); // [1, 2, 3]
 ```
 
-`limit(3)` giới hạn **số phần tử đầu ra** được yêu cầu. Nhưng nếu có `filter` trước `limit`, pipeline có thể phải xét nhiều ứng viên hơn để tìm đủ ba phần tử đạt điều kiện lọc.
+`limit(3)` caps the **number of output elements** requested. However, if there is a `filter` before `limit`, the pipeline may have to examine more candidates to find three elements passing the filter.
 
-### 8.2. Phân tách công việc để chạy song song
+### 8.2. Splitting Work for Parallel Execution
 
-Dãy `iterate` phụ thuộc phần tử trước để tính phần tử sau. Đây là đặc điểm khác các nguồn có thể chia ngẫu nhiên thành các đoạn độc lập, chẳng hạn `IntStream.range` hoặc mảng. Vì vậy, gọi `parallel()` trên một dãy `iterate` **không mặc nhiên tăng hiệu năng**: việc sinh giá trị có thể phải xử lý tuần tự một phần, trong khi chia/gom công việc vẫn có chi phí.
+An `iterate` sequence depends on the previous element to compute the next element. This differs from sources that can be arbitrarily split into independent segments, such as `IntStream.range` or arrays. Therefore, calling `parallel()` on an `iterate` sequence **does not automatically improve performance**: value generation may have to proceed partially sequentially while splitting/combining work still incurs overhead.
 
 ```java
 long total = java.util.stream.LongStream
@@ -399,27 +399,27 @@ long total = java.util.stream.LongStream
         .sum();
 ```
 
-Ví dụ trên hợp lệ về mặt sử dụng API, nhưng không chứng minh xử lý song song nhanh. Khi cần tính tổng một khoảng số nguyên, `LongStream.rangeClosed(1, 100_000)` rõ ý hơn và thường dễ chia cho các worker.
+The example above is valid API usage, but it does not prove parallel processing is fast. When summing a range of integers, `LongStream.rangeClosed(1, 100_000)` states the intent more clearly and is usually easier to split across workers.
 
-Ngoài ra, `forEach` trên parallel stream không bảo đảm thứ tự gọi hành động, dù nguồn `iterate` có encounter order. Nếu cần quan sát theo thứ tự, dùng `forEachOrdered` và chấp nhận khả năng chi phí tăng. Tránh ghi vào `ArrayList` chung hoặc thay đổi biến đếm dùng chung trong các lambda của pipeline song song.
+Additionally, `forEach` on a parallel stream does not guarantee the invocation order of the action, even though an `iterate` source has an encounter order. If you need to observe elements in order, use `forEachOrdered` and accept potential extra overhead. Avoid writing to a shared `ArrayList` or mutating shared counters inside lambdas of a parallel pipeline.
 
-## 9. Lỗi thường gặp và cách sửa
+## 9. Common Errors and How to Fix Them
 
-| Lỗi | Hậu quả | Cách sửa |
+| Error | Consequence | How to fix |
 |---|---|---|
-| Dùng `i <= end` khi muốn không gồm `end` | Thừa một phần tử | Viết `i < end` và đặt tên `endExclusive` |
-| Dùng `i < end` khi muốn gồm `end` | Thiếu phần tử biên | Dùng `i <= end` nếu phép cập nhật không gây tràn |
-| Seed không thỏa `hasNext` | Stream rỗng | Kiểm tra quy tắc xử lý khoảng rỗng; điều chỉnh seed nếu có yêu cầu |
-| `next` không tiến về biên dừng | Pipeline có thể vô hạn | Chứng minh điều kiện kết thúc; kiểm soát giá trị bước nhảy |
-| Tính toán trên `int` vượt miền giá trị | Tràn số, sai dãy hoặc không dừng | Dùng `long`/`BigInteger`, ràng buộc cận an toàn |
-| Gọi `collect` trên dãy không có điểm dừng | Có thể cạn bộ nhớ | Bổ sung điều kiện dừng hoặc giới hạn đầu ra |
-| Dùng `Stream<Integer>` cho tính toán số lượng rất lớn mà không cần object | Boxing/unboxing gây chi phí | Cân nhắc `IntStream`, `LongStream` |
-| Đặt side effect trong `hasNext`/`next` | Khó dự đoán khi lazy hoặc ngắn mạch | Viết hàm thuần, trạng thái bất biến |
-| Nghĩ `parallel()` luôn tăng tốc | Có thể chậm hơn | Đo với dữ liệu thật, ưu tiên nguồn chia được khi phù hợp |
+| Using `i <= end` when wanting to exclude `end` | One extra element | Write `i < end` and name it `endExclusive` |
+| Using `i < end` when wanting to include `end` | Missing boundary element | Use `i <= end` if the update does not overflow |
+| Seed does not satisfy `hasNext` | Empty Stream | Check empty-range handling rules; adjust seed if required |
+| `next` does not progress toward the stopping bound | Pipeline may be infinite | Prove termination condition; control step value |
+| Arithmetic on `int` exceeds value domain | Overflow, wrong sequence, or non-termination | Use `long`/`BigInteger`, enforce safe bounds |
+| Calling `collect` on a sequence with no stopping point | May exhaust memory | Add a stopping condition or limit the output |
+| Using `Stream<Integer>` for very large numeric computations without needing objects | Boxing/unboxing overhead | Consider `IntStream`, `LongStream` |
+| Putting side effects in `hasNext`/`next` | Unpredictable under laziness or short-circuiting | Write pure functions, immutable state |
+| Assuming `parallel()` always speeds things up | Can be slower | Benchmark with real data, prefer splittable sources when appropriate |
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-**Bài 1.** Viết `IntStream.iterate` ba tham số tạo các bội số của 4 trong khoảng từ 4 đến 20, **bao gồm 20**.
+**Exercise 1.** Write a three-argument `IntStream.iterate` producing multiples of 4 between 4 and 20, **including 20**.
 
 ```java
 int[] multiples = java.util.stream.IntStream
@@ -428,15 +428,15 @@ int[] multiples = java.util.stream.IntStream
 // [4, 8, 12, 16, 20]
 ```
 
-**Bài 2.** Với `Stream.iterate(8, n -> n > 0, n -> n / 2)` trên số nguyên, dãy phát ra là gì?
+**Exercise 2.** With `Stream.iterate(8, n -> n > 0, n -> n / 2)` on integers, what sequence is emitted?
 
-Đáp án: `[8, 4, 2, 1]`. Giá trị ứng viên tiếp theo là `0`, không thỏa `n > 0` nên không được phát.
+Answer: `[8, 4, 2, 1]`. The next candidate value is `0`, which does not satisfy `n > 0` and is therefore not emitted.
 
-**Bài 3.** Vì sao `Stream.iterate(1, n -> n < 20, n -> n * 2).count()` trả `5`?
+**Exercise 3.** Why does `Stream.iterate(1, n -> n < 20, n -> n * 2).count()` return `5`?
 
-Các phần tử là `1, 2, 4, 8, 16`; số `32` không qua được điều kiện. Không có số `20` trong dãy.
+The elements are `1, 2, 4, 8, 16`; `32` does not pass the condition. The number `20` is not in the sequence.
 
-**Bài 4.** Có lịch kiểm tra mỗi 7 ngày từ 01/12/2026 đến hết 31/12/2026. Hãy chọn các tham số cho `iterate`.
+**Exercise 4.** There is an inspection schedule every 7 days from 2026-12-01 through 2026-12-31. Choose the arguments for `iterate`.
 
 ```java
 LocalDate start = LocalDate.of(2026, 12, 1);
@@ -450,12 +450,12 @@ List<LocalDate> dates = Stream.iterate(
 // [2026-12-01, 2026-12-08, 2026-12-15, 2026-12-22, 2026-12-29]
 ```
 
-Đoạn mã dùng các import `java.time.LocalDate`, `java.util.List`, `java.util.stream.Stream` và `java.util.stream.Collectors`.
+The snippet uses imports `java.time.LocalDate`, `java.util.List`, `java.util.stream.Stream`, and `java.util.stream.Collectors`.
 
-**Bài 5.** Khi chỉ cần các số nguyên liên tiếp từ 1 đến 1.000, nên bắt đầu với `IntStream.rangeClosed(1, 1000)` hay `Stream.iterate(1, n -> n <= 1000, n -> n + 1)`?
+**Exercise 5.** When you only need consecutive integers from 1 to 1,000, should you start with `IntStream.rangeClosed(1, 1000)` or `Stream.iterate(1, n -> n <= 1000, n -> n + 1)`?
 
-Đáp án: `IntStream.rangeClosed` trực tiếp mô tả khoảng liên tiếp, tránh boxing và dễ chia hơn khi có xử lý song song. `iterate` hữu ích khi quy tắc chuyển trạng thái phức tạp hoặc phụ thuộc vào giá trị trước.
+Answer: `IntStream.rangeClosed` directly describes a consecutive range, avoids boxing, and splits better under parallel processing. `iterate` is useful when the state transition rule is complex or depends on the previous value.
 
-## 11. Nguyên tắc ghi nhớ
+## 11. Rules to Remember
 
-`Stream.iterate(seed, hasNext, next)` biểu diễn một dãy **theo trạng thái**: kiểm tra ứng viên, phát ứng viên nếu hợp lệ, rồi sinh ứng viên mới. Nó cung cấp điều kiện dừng ngay tại nguồn từ Java 9, có thể kết hợp với mọi bước biến đổi Stream API và đặc biệt hữu ích cho dãy số theo công thức, ngày tháng hoặc trạng thái bất biến. Hãy chọn đúng cận, bảo đảm bước tiến khiến điều kiện sẽ sai, tránh tràn số và xử lý tài nguyên phù hợp với terminal operation. Với khoảng số nguyên đơn giản, ưu tiên `IntStream.range`/`rangeClosed`; với nhu cầu lấy đúng N phần tử của một nguồn không có cận giá trị rõ ràng, cân nhắc `limit(N)`.
+`Stream.iterate(seed, hasNext, next)` expresses a **stateful sequence**: check the candidate, emit the candidate if valid, then generate a new candidate. It provides a stopping condition right at the source since Java 9, combines with all Stream API transformation steps, and is especially useful for formula-based number sequences, dates, or immutable state. Choose bounds carefully, ensure the progression makes the condition eventually become false, avoid numeric overflow, and match resource handling to the terminal operation. For simple integer ranges, prefer `IntStream.range`/`rangeClosed`; when you need exactly N elements from a source without a clear value bound, consider `limit(N)`.

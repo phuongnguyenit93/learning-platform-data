@@ -1,60 +1,60 @@
-# Phân biệt M với L và dạng tên tháng độc lập trong Java
+# Distinguishing M from L and Stand-Alone Month Name Forms in Java
 
-## 1. Vì sao cùng một tháng có thể có hai tên khác nhau?
+## 1. Why Can the Same Month Have Two Different Names?
 
-Khi định dạng ngày tháng theo `Locale`, một số ngôn ngữ dùng **dạng tên tháng theo ngữ cảnh của một ngày** khác với **dạng tên tháng đứng độc lập**. Trong Java, hai chữ cái mẫu quan trọng là:
+When formatting dates by `Locale`, some languages use a **contextual month name form within a date** that differs from the **stand-alone month name form**. In Java, the two key pattern letters are:
 
-- **`M`** (*month-of-year*, dạng theo ngữ cảnh): dùng khi tên tháng là thành phần của biểu thức ngày, ví dụ “ngày 5 tháng Ba”.
-- **`L`** (*stand-alone month-of-year*, dạng độc lập): dùng khi tên tháng là nhãn riêng của lịch, tiêu đề tháng hoặc mục chọn tháng, không nằm trong câu có ngày.
+- **`M`** (*month-of-year*, contextual form): used when the month name is part of a date expression, such as "5 March" (e.g., genitive case in inflected languages).
+- **`L`** (*stand-alone month-of-year*, stand-alone form): used when the month name is a separate calendar label, month header, or month selector item, not inside a phrase containing a day.
 
-Đây **không phải hai loại tháng khác nhau**. Cả `M` và `L` cùng chỉ **giá trị tháng trong năm**, ví dụ tháng 3. Khác biệt nằm ở **cách biểu diễn tên tháng**, phụ thuộc ngôn ngữ và dữ liệu locale.
+These are **not two different kinds of months**. Both `M` and `L` refer to the **same month-of-year value**, such as month 3. The difference lies in **how the month name is represented**, depending on the language and locale data.
 
-Ví dụ với `Locale.forLanguageTag("ru-RU")` trong Java 17+ có dữ liệu locale thông dụng:
+For example, with `Locale.forLanguageTag("ru-RU")` in Java 17+ with standard locale data:
 
-| Ngữ cảnh | Mẫu Java | Kết quả tiếng Nga | Ý nghĩa |
+| Context | Java Pattern | Russian Output | Meaning |
 | --- | --- | --- | --- |
-| Ngày đầy đủ | `d MMMM uuuu` | `5 марта 2025` | `марта` là dạng tên tháng đi cùng ngày |
-| Tên tháng riêng | `LLLL` | `март` | `март` là tên tháng đứng độc lập |
-| Chỉ lấy trường tháng ở dạng theo ngữ cảnh | `MMMM` | `марта` | Không thích hợp làm tiêu đề tháng độc lập ở locale này |
-| Số tháng | `MM` hoặc `LL` | `03` | Khi dùng dạng số, cả hai có thể giống nhau |
+| Full date | `d MMMM uuuu` | `5 марта 2025` | `марта` is the month form used with a day |
+| Separate month name | `LLLL` | `март` | `март` is the stand-alone month name |
+| Taking only the month field in contextual form | `MMMM` | `марта` | Unsuitable as a stand-alone month header in this locale |
+| Numeric month | `MM` or `LL` | `03` | In numeric form, both can be identical |
 
-Với tiếng Anh `en-US`, `MMMM` và `LLLL` đều thường cho `March`. Chính vì vậy một chương trình chỉ thử ở tiếng Anh có thể **không phát hiện** việc dùng sai loại tên tháng ở tiếng Nga, Ba Lan hoặc Séc.
+For English `en-US`, `MMMM` and `LLLL` both normally produce `March`. That is why a program tested only in English can **fail to catch** using the wrong month name form in Russian, Polish, or Czech.
 
-**Nguyên tắc:** Khi hiển thị ngày có số ngày, ưu tiên `M` theo đúng mẫu ngày của locale; khi hiển thị **tên tháng độc lập**, ưu tiên `L` và kiểm thử trên các locale mà ứng dụng hỗ trợ. Không giả định tất cả ngôn ngữ có quy tắc ngữ pháp tương tự tiếng Anh.
+**Rule:** When displaying a date with a day number, prefer `M` following the locale's date pattern; when displaying a **stand-alone month name**, prefer `L` and test on the locales your application supports. Do not assume all languages share English grammatical rules.
 
-## 2. M và L trong DateTimeFormatter
+## 2. M and L in DateTimeFormatter
 
-`java.time.format.DateTimeFormatter` sử dụng ký tự mẫu để chọn trường thời gian, độ dài biểu diễn và kiểu văn bản. Với tháng:
+`java.time.format.DateTimeFormatter` uses pattern letters to choose the temporal field, representation width, and text style. For months:
 
-| Pattern | `M` — dạng ngữ cảnh | `L` — dạng đứng độc lập |
+| Pattern | `M` — contextual form | `L` — stand-alone form |
 | --- | --- | --- |
-| `M` / `L` | Tháng dạng số, ví dụ `3` | Tháng dạng số, ví dụ `3` |
-| `MM` / `LL` | Tháng dạng số có hai chữ số, ví dụ `03` | Tháng dạng số có hai chữ số, ví dụ `03` |
-| `MMM` / `LLL` | Tên ngắn theo ngữ cảnh, ví dụ tiếng Nga có thể là `мар.` | Tên ngắn độc lập, ví dụ tiếng Nga có thể là `март` |
-| `MMMM` / `LLLL` | Tên đầy đủ theo ngữ cảnh, ví dụ `марта` | Tên đầy đủ độc lập, ví dụ `март` |
-| `MMMMM` / `LLLLL` | Dạng rất ngắn (*narrow*) theo ngữ cảnh | Dạng rất ngắn (*narrow stand-alone*) |
+| `M` / `L` | Numeric month, e.g. `3` | Numeric month, e.g. `3` |
+| `MM` / `LL` | Two-digit numeric month, e.g. `03` | Two-digit numeric month, e.g. `03` |
+| `MMM` / `LLL` | Contextual short name, e.g. Russian can be `мар.` | Stand-alone short name, e.g. Russian can be `март` |
+| `MMMM` / `LLLL` | Contextual full name, e.g. `марта` | Stand-alone full name, e.g. `март` |
+| `MMMMM` / `LLLLL` | Contextual very short (*narrow*) form | Stand-alone very short (*narrow stand-alone*) form |
 
-Bảng này mô tả **ý nghĩa mẫu**, không phải hứa rằng kết quả khác nhau trong mọi locale. Tùy ngôn ngữ và dữ liệu JDK, các dạng có thể giống hệt nhau, một số dạng viết tắt có thể không tồn tại riêng, hoặc provider phải fallback sang hình thức sẵn có.
+This table describes **pattern semantics**, not a guarantee that the output differs in every locale. Depending on the language and JDK data, forms may be identical, some abbreviated forms may not exist separately, or the provider may fall back to an available form.
 
-Đối với `java.time`, số lần lặp ký tự `M`/`L` có ý nghĩa:
+In `java.time`, the repetition count of `M`/`L` means:
 
-- **Một ký tự:** biểu diễn tháng dưới dạng số không yêu cầu thêm số 0.
-- **Hai ký tự:** biểu diễn tháng dưới dạng số hai chữ số.
-- **Ba ký tự:** tên tháng ngắn.
-- **Bốn ký tự:** tên tháng đầy đủ.
-- **Năm ký tự:** dạng *narrow*, thường rất ngắn và có thể trùng nhau giữa nhiều tháng.
+- **One letter:** numeric month representation without requiring a leading zero.
+- **Two letters:** two-digit numeric month representation.
+- **Three letters:** short month name.
+- **Four letters:** full month name.
+- **Five letters:** *narrow* form, usually very short and potentially ambiguous across multiple months.
 
-**Cẩn thận với ký tự:** `M` (chữ hoa) là tháng; `m` (chữ thường) là **phút**. `L` (chữ L hoa) là tháng độc lập, không phải chữ số `1`. Ví dụ, `"HH:mm"` có `mm` chỉ phút, còn `"uuuu-MM-dd"` có `MM` chỉ tháng.
+**Watch out for letter casing:** `M` (uppercase) is month; `m` (lowercase) is **minute**. `L` (uppercase L) is stand-alone month, not the digit `1`. For example, `"HH:mm"` has `mm` for minutes, while `"uuuu-MM-dd"` has `MM` for month.
 
-### “Độc lập” ở đây là dạng ngữ pháp, không phải kiểu dữ liệu khác
+### "Stand-alone" here is a grammatical form, not a different data type
 
-Một `LocalDate` chứa các trường năm, tháng và ngày. Khi format cùng ngày bằng `MMMM` và `LLLL`, số tháng trong dữ liệu vẫn bằng `3`. Chỉ có quy tắc đặt tên tháng được chọn khác nhau.
+A `LocalDate` holds year, month, and day fields. When formatting the same date with `MMMM` and `LLLL`, the numeric month in the data is still `3`. Only the rule for naming the month differs.
 
-Không diễn giải `L` như một “loại lịch khác”, “múi giờ khác”, hay “chuyển đổi tháng sang một giá trị khác”. Cả `M` và `L` đều làm việc với `MONTH_OF_YEAR`, theo chronology và locale của formatter.
+Do not interpret `L` as a "different calendar", a "different time zone", or "converting the month to another value". Both `M` and `L` operate on `MONTH_OF_YEAR`, according to the formatter's chronology and locale.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh: tháng Ba trong bốn locale
+## 3. Complete Java 17+ Example: March in Four Locales
 
-Tạo tệp `MonthContextDemo.java`:
+Create the file `MonthContextDemo.java`:
 
 ~~~java
 import java.time.LocalDate;
@@ -87,14 +87,14 @@ public class MonthContextDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 MonthContextDemo.java
 java MonthContextDemo
 ~~~
 
-Với dữ liệu locale CLDR thường dùng trên JDK hiện đại, kết quả tham khảo:
+With common CLDR locale data on modern JDKs, reference output:
 
 ~~~text
 ru-RU
@@ -111,23 +111,23 @@ en-US
   Month title: March
 ~~~
 
-### Giải thích kết quả
+### Explaining the output
 
-**Tiếng Nga (ru-RU).** Khi viết một ngày đầy đủ, tháng thường ở dạng `марта`. Khi tiêu đề chỉ có tên tháng, dạng độc lập `март` phù hợp hơn.
+**Russian (ru-RU).** When writing a full date, the month typically takes the form `марта`. When a title contains only the month name, the stand-alone form `март` is appropriate.
 
-**Tiếng Ba Lan (pl-PL).** Trong ngày `5 marca 2025`, tên tháng ở dạng `marca`; khi đứng một mình là `marzec`.
+**Polish (pl-PL).** In the date `5 marca 2025`, the month name is `marca`; standing alone it is `marzec`.
 
-**Tiếng Séc (cs-CZ).** Mẫu ngày có `března`; tên tháng đứng riêng có `březen`.
+**Czech (cs-CZ).** The date pattern has `března`; the stand-alone month name has `březen`.
 
-**Tiếng Anh (en-US).** Cả hai tình huống đều dùng `March`, nên chỉ kiểm tra ngôn ngữ này có thể che giấu lỗi thiết kế.
+**English (en-US).** Both situations use `March`, so testing only this language can hide design bugs.
 
-Các chuỗi cụ thể phụ thuộc dữ liệu locale của phiên bản JDK và provider. Không nên gắn cứng kết quả vào mọi môi trường Java rồi coi mọi khác biệt là lỗi API; cần kiểm thử trên môi trường sản phẩm thật và xác nhận chính sách ngôn ngữ mong muốn.
+Exact strings depend on the JDK version's locale data and provider. Do not hardcode expectations across all Java environments and treat every difference as an API bug; test on the actual target environment and confirm the desired linguistic policy.
 
-## 4. Chọn M hoặc L theo tình huống giao diện
+## 4. Choosing M or L Based on UI Context
 
-### 4.1. Ngày đầy đủ trong câu hoặc lịch hẹn
+### 4.1. Full date in a sentence or appointment schedule
 
-Nếu giao diện in ngày, chẳng hạn “5 tháng Ba năm 2025”, hãy dùng dạng tên tháng theo ngữ cảnh:
+If the UI prints a date such as "5 March 2025", use the contextual month name form:
 
 ~~~java
 Locale ru = Locale.forLanguageTag("ru-RU");
@@ -139,15 +139,15 @@ DateTimeFormatter formatter =
 String text = day.format(formatter);
 ~~~
 
-Đoạn trên là **mảnh mã minh họa trong method**, cần import `java.time.LocalDate`, `java.time.format.DateTimeFormatter` và `java.util.Locale`.
+The code above is an **illustrative snippet inside a method**, requiring imports `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, and `java.util.Locale`.
 
-Trong `ru-RU`, `text` thường là `5 марта 2025`.
+In `ru-RU`, `text` is typically `5 марта 2025`.
 
-**Không thay `MMMM` bằng `LLLL` chỉ vì muốn tháng viết đầy đủ.** `LLLL` có thể đưa tên tháng về dạng độc lập dù nó đang nằm trong một biểu thức có ngày. Ví dụ `"d LLLL uuuu"` có thể tạo `"5 март 2025"`, không đúng hình thái ngữ pháp thông thường của tiếng Nga.
+**Do not replace `MMMM` with `LLLL` merely to get the full month name.** `LLLL` forces the month name into its stand-alone form even inside a date expression with a day. For example, `"d LLLL uuuu"` can produce `"5 март 2025"`, which is not normal Russian grammatical morphology.
 
-### 4.2. Tiêu đề một tháng trong calendar
+### 4.2. Single-month header in a calendar
 
-Khi in nhãn `March 2025` ở phía trên lịch tháng, ngày cụ thể không xuất hiện. Hãy chọn `LLLL uuuu`:
+When printing a label like `March 2025` above a monthly calendar, no specific day appears. Choose `LLLL uuuu`:
 
 ~~~java
 Locale ru = Locale.forLanguageTag("ru-RU");
@@ -159,13 +159,13 @@ DateTimeFormatter header =
 String title = day.format(header);
 ~~~
 
-Kết quả tiếng Nga thông dụng: `март 2025`.
+Typical Russian output: `март 2025`.
 
-Đối với header, date picker, danh sách chọn tên tháng, ô filter “Tháng”, hay biểu đồ có tiêu đề chỉ chứa tháng, cách dùng `L` là lựa chọn rõ nghĩa. Nếu thiết kế muốn một cụm từ ngữ pháp riêng như “trong tháng Ba”, có thể phải dùng thông điệp được dịch hoặc mẫu khác, không giả định một pattern tự giải quyết toàn bộ biến cách ngữ pháp.
+For headers, date pickers, month selection dropdowns, "Month" filter boxes, or charts whose titles contain only the month, using `L` is the clear choice. If a design calls for a specific grammatical phrase like "in March", you may need a translated message or a different template rather than assuming one pattern resolves all grammatical inflections.
 
-### 4.3. Tên ngắn và tên rất ngắn
+### 4.3. Short and narrow names
 
-Với tiếng Nga, trong dữ liệu JDK/CLDR thông dụng:
+For Russian, in typical JDK/CLDR data:
 
 ~~~java
 DateTimeFormatter contextShort =
@@ -174,13 +174,13 @@ DateTimeFormatter standaloneShort =
         DateTimeFormatter.ofPattern("LLL", ru);
 ~~~
 
-Đoạn trên là **mảnh mã trong method**, có `ru` đã là `Locale` phù hợp. Chúng có thể cho `мар.` và `март`. Điều này cho thấy **khác biệt không chỉ giới hạn ở `MMMM`/`LLLL`**: dạng ngắn cũng có thể khác.
+The above is an **in-method snippet**, with `ru` already set to the appropriate `Locale`. They can yield `мар.` and `март`. This shows **the difference is not limited to `MMMM`/`LLLL`**: short forms can also differ.
 
-Mẫu `MMMMM` hoặc `LLLLL` thường cho dạng *narrow* như một chữ cái. Nó có thể mơ hồ vì nhiều tháng có cùng chữ cái đầu. Chỉ dùng dạng hẹp khi giao diện có ngữ cảnh bổ trợ (ví dụ lưới lịch với tháng được xác định theo năm/vị trí), và không mặc định nó đủ để người dùng phân biệt các tháng bằng tên.
+The pattern `MMMMM` or `LLLLL` typically produces a *narrow* form such as a single letter. It can be ambiguous because multiple months share the same initial letter. Only use the narrow form when the UI provides supporting context (such as a calendar grid where the month is identified by year/position), and do not assume it is sufficient for users to distinguish months by name alone.
 
-### 4.4. Tháng dạng số
+### 4.4. Numeric month
 
-Với một ngày có tháng 3:
+For a date in March:
 
 ~~~java
 DateTimeFormatter numericM =
@@ -189,11 +189,11 @@ DateTimeFormatter numericL =
         DateTimeFormatter.ofPattern("LL", Locale.US);
 ~~~
 
-Cả hai thường trả `03`. Khi chỉ cần số tháng, sự khác biệt hình thái của tên tháng không xuất hiện. Tuy nhiên, để code dễ đọc và theo quy ước phổ biến, khi xây dựng ngày ISO như `"uuuu-MM-dd"` nên dùng `MM`; còn `L` dành cho **dạng tên tháng độc lập** khi cần văn bản.
+Both typically return `03`. When only the month number is needed, morphological differences in month names do not appear. However, for readability and common convention, when constructing ISO dates like `"uuuu-MM-dd"` use `MM`; reserve `L` for **stand-alone month name forms** when text is needed.
 
-## 5. So sánh trực tiếp M/MM/MMM/MMMM/MMMMM với L/LL/LLL/LLLL/LLLLL
+## 5. Direct Comparison of M/MM/MMM/MMMM/MMMMM with L/LL/LLL/LLLL/LLLLL
 
-Tạo `MonthWidthsDemo.java` để quan sát cùng một thời điểm:
+Create `MonthWidthsDemo.java` to observe the same date:
 
 ~~~java
 import java.time.LocalDate;
@@ -223,14 +223,14 @@ public class MonthWidthsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 MonthWidthsDemo.java
 java MonthWidthsDemo
 ~~~
 
-Trên JDK có dữ liệu locale Nga như minh họa:
+On a JDK with Russian locale data as illustrated:
 
 ~~~text
 M: 3 | L: 3
@@ -240,33 +240,33 @@ MMMM: марта | LLLL: март
 MMMMM: М | LLLLL: М
 ~~~
 
-Bài học từ bảng kết quả:
+Takeaways from the output table:
 
-- Dạng số giống nhau không làm cho hai ký tự mẫu tương đương ở mọi độ dài.
-- Dạng ngắn `MMM`/`LLL` có thể khác.
-- Dạng đầy đủ `MMMM`/`LLLL` có thể khác rõ nhất.
-- Dạng rất ngắn `MMMMM`/`LLLLL` có thể giống nhau dù dạng đầy đủ khác, vì tên rút gọn quá ngắn để thể hiện biến cách.
+- Identical numeric forms do not make the two pattern letters equivalent across all widths.
+- Short forms `MMM`/`LLL` can differ.
+- Full forms `MMMM`/`LLLL` can show the clearest difference.
+- Very short forms `MMMMM`/`LLLLL` may be identical even when full forms differ, because the abbreviated name is too short to show inflection.
 
-Từ Java 11 trở lên có `String.repeat(int)`; do đó vòng lặp dùng `"M".repeat(width)` chạy tốt trên Java 17+.
+`String.repeat(int)` has been available since Java 11; hence the loop using `"M".repeat(width)` runs cleanly on Java 17+.
 
-## 6. Dùng TextStyle để diễn đạt trực tiếp dạng tên tháng
+## 6. Using TextStyle to Express Month Name Forms Directly
 
-`DateTimeFormatter` không chỉ hỗ trợ chuỗi pattern. Nó còn có `DateTimeFormatterBuilder.appendText` và `java.time.format.TextStyle`. Cặp nhóm cần biết:
+`DateTimeFormatter` does not only support pattern strings. It also offers `DateTimeFormatterBuilder.appendText` and `java.time.format.TextStyle`. The pairs to know:
 
-| Tên trong `TextStyle` | Ý nghĩa | Tương ứng pattern tháng |
+| `TextStyle` Name | Meaning | Equivalent Month Pattern |
 | --- | --- | --- |
-| `FULL` | Tên đầy đủ theo ngữ cảnh | `MMMM` |
-| `FULL_STANDALONE` | Tên đầy đủ độc lập | `LLLL` |
-| `SHORT` | Tên ngắn theo ngữ cảnh | `MMM` |
-| `SHORT_STANDALONE` | Tên ngắn độc lập | `LLL` |
-| `NARROW` | Tên hẹp theo ngữ cảnh | `MMMMM` |
-| `NARROW_STANDALONE` | Tên hẹp độc lập | `LLLLL` |
+| `FULL` | Contextual full name | `MMMM` |
+| `FULL_STANDALONE` | Stand-alone full name | `LLLL` |
+| `SHORT` | Contextual short name | `MMM` |
+| `SHORT_STANDALONE` | Stand-alone short name | `LLL` |
+| `NARROW` | Contextual narrow name | `MMMMM` |
+| `NARROW_STANDALONE` | Stand-alone narrow name | `LLLLL` |
 
-Với trường tháng, cả hai nhóm đều lấy giá trị từ `ChronoField.MONTH_OF_YEAR`.
+For the month field, both groups draw values from `ChronoField.MONTH_OF_YEAR`.
 
-### Ví dụ hoàn chỉnh: pattern và builder tương đương về ý định
+### Complete example: pattern and builder equivalent in intent
 
-Lưu `MonthTextStyleDemo.java`:
+Save `MonthTextStyleDemo.java`:
 
 ~~~java
 import java.time.LocalDate;
@@ -304,14 +304,14 @@ public class MonthTextStyleDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 MonthTextStyleDemo.java
 java MonthTextStyleDemo
 ~~~
 
-Kết quả tham khảo với locale Nga thông dụng:
+Reference output with typical Russian locale data:
 
 ~~~text
 LLLL: март
@@ -319,20 +319,20 @@ FULL_STANDALONE: март
 FULL: марта
 ~~~
 
-### Chọn pattern hay TextStyle?
+### Choosing pattern or TextStyle?
 
-- `ofPattern("LLLL", locale)` ngắn gọn khi mẫu ngày/tháng được cấu hình bằng một chuỗi.
-- `DateTimeFormatterBuilder` phù hợp khi xây dựng formatter bằng code, cần ghép nhiều trường hoặc chọn `TextStyle` rõ ràng theo ý đồ.
-- `TextStyle.FULL_STANDALONE` diễn đạt trực tiếp “dạng tên tháng độc lập”, có thể dễ hiểu hơn một chữ cái `L` với người đọc code chưa quen cú pháp pattern.
-- Cả hai vẫn phụ thuộc **locale** và dữ liệu locale để lấy tên tháng; builder không tự dịch hay tự tạo biến cách ngữ pháp.
+- `ofPattern("LLLL", locale)` is concise when the date/month pattern is configured as a string.
+- `DateTimeFormatterBuilder` suits building formatters in code, combining multiple fields, or expressing `TextStyle` explicitly by intent.
+- `TextStyle.FULL_STANDALONE` directly expresses "stand-alone month name form", which can be easier to read than a single letter `L` for readers unfamiliar with pattern syntax.
+- Both still depend on the **locale** and locale data for month names; the builder does not translate or invent grammatical inflections on its own.
 
-Không nhầm `TextStyle.FULL` với “luôn dùng trong mọi nơi muốn tên dài”. `FULL` là **dạng theo ngữ cảnh**, còn `FULL_STANDALONE` là **dạng độc lập**.
+Do not mistake `TextStyle.FULL` for "use everywhere a long name is wanted". `FULL` is the **contextual form**, whereas `FULL_STANDALONE` is the **stand-alone form**.
 
-## 7. Parsing: có nên dùng M và L khác nhau khi đọc chuỗi?
+## 7. Parsing: Should M and L Differ When Reading Strings?
 
-Không chỉ việc format, `DateTimeFormatter` cũng có thể **parse** tên tháng từ văn bản. Pattern của parser cần phù hợp với dạng tên tháng được viết ra.
+Beyond formatting, `DateTimeFormatter` can also **parse** month names from text. The parser's pattern must match the month name form being written.
 
-Ví dụ, khi muốn đọc tiêu đề tiếng Nga chứa tên tháng độc lập và năm, dùng `LLLL uuuu` thay vì cố ép parser nhận dạng ngày đầy đủ:
+For example, when reading a Russian title containing a stand-alone month name and year, use `LLLL uuuu` instead of forcing the parser to expect a full-date form:
 
 ~~~java
 Locale ru = Locale.forLanguageTag("ru-RU");
@@ -342,11 +342,11 @@ DateTimeFormatter monthTitle =
 YearMonth input = YearMonth.parse("март 2025", monthTitle);
 ~~~
 
-Đây là **mảnh mã minh họa trong method**, cần import `java.time.YearMonth`, `java.time.format.DateTimeFormatter` và `java.util.Locale`. Trong môi trường có dữ liệu tên tháng Nga tương ứng, `input` mang giá trị `2025-03`.
+This is an **illustrative snippet inside a method**, requiring imports `java.time.YearMonth`, `java.time.format.DateTimeFormatter`, and `java.util.Locale`. In an environment with corresponding Russian month-name data, `input` holds the value `2025-03`.
 
-### Ví dụ chạy được tránh phụ thuộc cách gõ chữ Cyrillic
+### Runnable example avoiding Cyrillic typing dependencies
 
-Lưu `MonthRoundTripDemo.java`:
+Save `MonthRoundTripDemo.java`:
 
 ~~~java
 import java.time.YearMonth;
@@ -378,14 +378,14 @@ public class MonthRoundTripDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 MonthRoundTripDemo.java
 java MonthRoundTripDemo
 ~~~
 
-Kết quả với dữ liệu locale tiếng Nga điển hình:
+Output with typical Russian locale data:
 
 ~~~text
 Standalone title: март 2025
@@ -394,17 +394,17 @@ Parsed title: 2025-03
 Parsed context: 2025-03
 ~~~
 
-**Hai chuỗi có thể parse về cùng `YearMonth`**: sự khác biệt là hình thái của tên tháng trong văn bản. Khi tích hợp với form, không nên tạo chuỗi bằng `LLLL` rồi parse bằng `MMMM` và hy vọng parser luôn chấp nhận dạng kia. Chính sách parse có thể phụ thuộc provider, dữ liệu locale và cài đặt độ nghiêm ngặt của formatter.
+**Both strings can parse back to the same `YearMonth`**: the difference is the morphology of the month name in text. When integrating with forms, you should not generate a string with `LLLL` and parse it with `MMMM` hoping the parser will always accept the other form. Parsing policy can depend on the provider, locale data, and the formatter's strictness settings.
 
-### Không dùng narrow form làm đầu vào duy nhất
+### Do not use the narrow form as sole input
 
-Dạng rất ngắn `MMMMM`/`LLLLL` đôi khi chỉ là một ký tự. Nhiều tháng có thể trùng chữ cái đầu, ví dụ cùng bắt đầu bằng `M`. Vì vậy nó không phù hợp để parse tháng một cách duy nhất trong trường hợp thiếu thông tin bổ trợ. Đối với input của người dùng, chọn dạng tháng đầy đủ, dạng số hoặc control ngày/tháng có cấu trúc.
+The very short form `MMMMM`/`LLLLL` is sometimes just a single character. Multiple months can share the same starting letter, such as starting with `M`. Therefore it is unsuitable for uniquely parsing a month without supporting information. For user input, choose full month forms, numeric forms, or structured date/month controls.
 
-Nếu dữ liệu trao đổi giữa các dịch vụ, nên ưu tiên số tháng `1–12`, `YearMonth`/ISO dạng `uuuu-MM` hoặc đối tượng cấu trúc, không biến tên tháng bản địa hóa thành giao thức máy.
+For data exchange between services, prefer month numbers `1–12`, `YearMonth`/ISO `uuuu-MM`, or structured objects rather than turning localized month names into a machine protocol.
 
-## 8. DateTimeFormatter.ofLocalizedDate và mẫu tùy chỉnh
+## 8. DateTimeFormatter.ofLocalizedDate vs. Custom Patterns
 
-Một lựa chọn thường tốt hơn tự áp đặt mẫu ngày cho tất cả người dùng là:
+An option that is often better than imposing a single date pattern on all users is:
 
 ~~~java
 DateTimeFormatter localized = DateTimeFormatter
@@ -412,26 +412,26 @@ DateTimeFormatter localized = DateTimeFormatter
         .withLocale(Locale.forLanguageTag("ru-RU"));
 ~~~
 
-Đây là **mảnh mã minh họa trong method**, cần import `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle` và `java.util.Locale`.
+This is an **illustrative snippet inside a method**, requiring imports `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle`, and `java.util.Locale`.
 
-`ofLocalizedDate(FormatStyle.LONG)` để locale/provider quyết định **thứ tự và cách biểu diễn các thành phần của ngày**. Khi định dạng `LocalDate`, kết quả có thể có dạng ngữ pháp phù hợp cho một ngày đầy đủ mà không phải tự chọn từng ký tự pattern.
+`ofLocalizedDate(FormatStyle.LONG)` lets the locale/provider determine **the ordering and presentation of date components**. When formatting a `LocalDate`, the result can have the proper grammatical form for a full date without having to pick individual pattern letters manually.
 
-So sánh:
+Comparison:
 
-- **Mẫu tự đặt** `"d MMMM uuuu"`: bạn kiểm soát bố cục ngày và chọn dạng tháng theo ngữ cảnh. Thích hợp khi UI có yêu cầu bố cục thống nhất.
-- **Localized style**: để locale định nghĩa kiểu ngày đầy đủ. Thường tốt cho giao diện hướng người dùng quốc tế có nhiều quy ước ngày khác nhau.
-- **Tên tháng riêng** `"LLLL"`: khi chỉ cần nhãn tháng, không phải một ngày hoàn chỉnh.
+- **Custom pattern** `"d MMMM uuuu"`: you control the date layout and choose the contextual month form. Suitable when the UI requires a uniform layout.
+- **Localized style**: lets the locale define the full date style. Usually better for international user-facing interfaces with diverse date conventions.
+- **Stand-alone month name** `"LLLL"`: when only a month label is needed, not a complete date.
 
-Không nên lấy pattern `"d MMMM uuuu"` rồi áp dụng nguyên cho mọi locale và khẳng định cách viết luôn tự nhiên: một số vùng có trật tự ngày/tháng/năm hoặc giới từ, dấu câu, dạng ký tự khác nhau. Mẫu chính xác cần xuất phát từ yêu cầu sản phẩm hoặc dữ liệu locale phù hợp.
+You should not take `"d MMMM uuuu"` and apply it verbatim to every locale claiming it is always natural: some regions have different day/month/year orders or different prepositions, punctuation, and character forms. The exact pattern should come from product requirements or appropriate locale data.
 
-## 9. SimpleDateFormat: M và L trong API cũ
+## 9. SimpleDateFormat: M and L in the Legacy API
 
-Java cũng có `java.text.SimpleDateFormat` thuộc hệ API thời gian cũ. Với nhiều locale, nó hỗ trợ:
+Java also has `java.text.SimpleDateFormat` from the legacy date-time API. For many locales, it supports:
 
-- `M`: tên tháng theo ngữ cảnh;
-- `L`: tên tháng đứng độc lập.
+- `M`: contextual month name;
+- `L`: stand-alone month name.
 
-Tạo `LegacyMonthDemo.java`:
+Create `LegacyMonthDemo.java`:
 
 ~~~java
 import java.text.SimpleDateFormat;
@@ -460,73 +460,73 @@ public class LegacyMonthDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 LegacyMonthDemo.java
 java LegacyMonthDemo
 ~~~
 
-Kết quả tham khảo:
+Reference output:
 
 ~~~text
 Date: 5 марта 2025
 Month title: март
 ~~~
 
-**Phân biệt về thiết kế:**
+**Design distinctions:**
 
-- `SimpleDateFormat` gắn với `java.util.Date`/`Calendar` và có trạng thái **mutable**, không an toàn để chia sẻ không đồng bộ giữa nhiều luồng.
-- `DateTimeFormatter` thuộc `java.time`, **bất biến và thread-safe**, thích hợp cho Java mới.
-- `Calendar.MARCH` là hằng số chỉ tháng 3 trong API cũ, nơi tháng của `Calendar` thường được đánh số từ 0. Trong `java.time`, `Month.MARCH` có giá trị tháng `3` và `LocalDate.of(2025, 3, 5)` dùng tháng 1–12. **Không nhầm đánh số tháng của Calendar với pattern M/L**.
-- `SimpleDateFormat` có các quy tắc pattern và xử lý lịch/leniency riêng. Không suy mọi cấu trúc của `java.time` có cùng hành vi parse với API cũ.
+- `SimpleDateFormat` is tied to `java.util.Date`/`Calendar` and has **mutable** state, making it unsafe to share across multiple threads without synchronization.
+- `DateTimeFormatter` belongs to `java.time`, is **immutable and thread-safe**, and is suited for modern Java.
+- `Calendar.MARCH` is a constant representing March in the legacy API, where `Calendar` months are 0-based. In `java.time`, `Month.MARCH` has month value `3` and `LocalDate.of(2025, 3, 5)` uses months 1–12. **Do not confuse Calendar's month numbering with M/L patterns**.
+- `SimpleDateFormat` has its own pattern rules and calendar/leniency handling. Do not assume all `java.time` constructs share the exact same parsing behavior as the legacy API.
 
-Nếu dự án đang bắt đầu, ưu tiên `LocalDate`, `YearMonth`, `DateTimeFormatter`. Nếu bảo trì code cũ, vẫn cần nhận biết `L` để tránh nhãn tháng sai ngữ pháp.
+For new projects, prefer `LocalDate`, `YearMonth`, and `DateTimeFormatter`. When maintaining legacy code, you still need to recognize `L` to avoid ungrammatical month labels.
 
-## 10. Locale nào cần quan tâm đặc biệt?
+## 10. Which Locales Require Special Attention?
 
-Không có một danh sách bất biến áp dụng cho mọi phiên bản dữ liệu, nhưng một số ví dụ giàu tính học tập là:
+There is no immutable list that applies across every data version, but some instructive examples are:
 
-| Locale | Mẫu `d MMMM uuuu`, tháng Ba | Mẫu `LLLL`, tháng Ba | Nhận xét |
+| Locale | Pattern `d MMMM uuuu`, March | Pattern `LLLL`, March | Notes |
 | --- | --- | --- | --- |
-| `ru-RU` | `5 марта 2025` | `март` | Có biến cách rõ ràng |
-| `pl-PL` | `5 marca 2025` | `marzec` | Tên tháng trong ngày khác tên độc lập |
-| `cs-CZ` | `5 března 2025` | `březen` | Tên tháng phụ thuộc ngữ cảnh |
-| `en-US` | `5 March 2025` | `March` | Hai dạng thường giống nhau |
-| `vi-VN` | Có thể dùng tên/số tháng theo dữ liệu Việt | Tên tháng độc lập theo dữ liệu Việt | Không suy mọi ngôn ngữ có hai dạng khác nhau |
+| `ru-RU` | `5 марта 2025` | `март` | Clear grammatical inflection |
+| `pl-PL` | `5 marca 2025` | `marzec` | Month name in date differs from stand-alone |
+| `cs-CZ` | `5 března 2025` | `březen` | Month name depends on context |
+| `en-US` | `5 March 2025` | `March` | Both forms are typically identical |
+| `vi-VN` | May use Vietnamese month name/number per Vietnamese data | Stand-alone month name per Vietnamese data | Do not assume every language has two distinct forms |
 
-Tháng Ba chỉ là một trường hợp để minh họa. Khi một locale có nhiều cách biến đổi tên tháng, mức độ khác nhau có thể tùy tháng, độ rộng (ngắn/đầy đủ/hẹp) và dữ liệu CLDR.
+March is only one illustrative case. When a locale has multiple month-name variations, the degree of difference can vary by month, width (short/full/narrow), and CLDR data.
 
-**Không tự dịch quy tắc Nga sang mọi ngôn ngữ:** `LLLL` có nghĩa *stand-alone* theo API, không phải quy tắc “đổi sang cách 1” cố định. Nếu ngôn ngữ không có hình thái riêng, tên tháng có thể giống `MMMM`.
+**Do not generalize Russian rules to every language:** `LLLL` means *stand-alone* per the API, not a fixed rule to "switch to nominative case". If a language lacks a separate morphology, the month name may match `MMMM`.
 
-## 11. Các lỗi phổ biến
+## 11. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `MMMM` làm tiêu đề lịch tháng ở mọi locale | Một số ngôn ngữ hiện tên ở dạng dùng trong ngày | Dùng `LLLL` cho tên tháng độc lập |
-| Dùng `LLLL` trong mẫu ngày có số ngày | Có thể tạo câu sai ngữ pháp như `5 март 2025` | Dùng `MMMM` hoặc `ofLocalizedDate` |
-| Chỉ kiểm thử `en-US` | Không thấy khác biệt giữa `MMMM` và `LLLL` | Kiểm thử `ru-RU`, `pl-PL` hoặc locale liên quan |
-| Nghĩ `M` và `L` có giá trị tháng khác nhau | Hiểu sai dữ liệu thời gian | Cùng biểu diễn `MONTH_OF_YEAR`, khác ngữ cảnh văn bản |
-| Nhầm `MM` và `mm` | In phút ở nơi muốn tháng | `MM` là tháng, `mm` là phút |
-| Lấy chuỗi `MMMMM`/`LLLLL` làm định danh tháng | Tên hẹp có thể trùng nhau | Lưu số tháng/`YearMonth` hoặc khóa nội bộ |
-| Ép `MMMM` mọi nơi vì muốn tên “đầy đủ” | Sai trường hợp stand-alone | Chọn nhóm `M`/`L` theo ngữ cảnh trước, rồi chọn width |
-| Tự thay tên tháng bằng `switch` cho từng locale | Khó bảo trì, bỏ sót hình thái/CLDR | Dùng `DateTimeFormatter` với locale |
-| Dùng `Locale.getDefault()` cho người dùng nhiều vùng | Kết quả theo server chứ không theo người nhận | Truyền `Locale` tường minh |
-| Giả định `L` tự giải quyết mọi biến cách trong câu | Một câu cụ thể có thể cần giới từ/cấu trúc khác | Dùng bản dịch/ResourceBundle nếu ngữ pháp vượt mẫu ngày |
-| Share `SimpleDateFormat` giữa nhiều luồng | Có thể hỏng trạng thái và kết quả | Dùng `DateTimeFormatter` bất biến hoặc bảo vệ formatter cũ |
-| Trộn số tháng `Calendar` 0-based với `LocalDate` 1-based | Lệch tháng khi chuyển đổi | Kiểm tra chỉ số của từng API, không gán nhầm |
+| Using `MMMM` as a monthly calendar header in all locales | Some languages show the in-date form | Use `LLLL` for stand-alone month names |
+| Using `LLLL` in a date pattern with a day number | Can produce ungrammatical phrases like `5 март 2025` | Use `MMMM` or `ofLocalizedDate` |
+| Testing only `en-US` | Difference between `MMMM` and `LLLL` goes unseen | Test `ru-RU`, `pl-PL`, or relevant locales |
+| Thinking `M` and `L` have different month values | Misunderstanding temporal data | Both represent `MONTH_OF_YEAR`, differing in text context |
+| Confusing `MM` and `mm` | Prints minutes where month is wanted | `MM` is month, `mm` is minute |
+| Using `MMMMM`/`LLLLL` strings as month identifiers | Narrow names can collide | Store month number/`YearMonth` or internal key |
+| Forcing `MMMM` everywhere for "full" names | Wrong for stand-alone cases | Choose `M`/`L` group by context first, then width |
+| Replacing month names with a `switch` per locale | Hard to maintain, misses morphology/CLDR | Use `DateTimeFormatter` with locale |
+| Using `Locale.getDefault()` for multi-region users | Output follows server rather than recipient | Pass `Locale` explicitly |
+| Assuming `L` handles every inflection in a sentence | A specific sentence may need prepositions/other structures | Use translations/ResourceBundle if grammar exceeds a date pattern |
+| Sharing `SimpleDateFormat` across threads | Can corrupt state and output | Use immutable `DateTimeFormatter` or guard legacy formatter |
+| Mixing 0-based `Calendar` months with 1-based `LocalDate` | Off-by-one month errors when converting | Check each API's indexing, never assign blindly |
 
-## 12. Thiết kế ứng dụng: giữ ngày ở dạng có cấu trúc
+## 12. Application Design: Keep Dates Structured
 
-Một giao diện lịch có thể cần đồng thời:
+A calendar UI may simultaneously need:
 
-1. **Ngày của sự kiện:** `LocalDate`, ví dụ `2025-03-05`.
-2. **Dòng ngày hiển thị:** formatter theo locale với dạng `M` và cấu trúc ngày thích hợp.
-3. **Tiêu đề lịch:** formatter chỉ tên tháng đứng độc lập `LLLL`, có thể kèm năm `uuuu`.
-4. **Giá trị máy:** giữ `YearMonth.of(2025,3)` hoặc tháng dạng số, không lấy chuỗi bản địa hóa làm khóa.
-5. **Ngôn ngữ của UI:** `Locale` do người dùng lựa chọn, không mặc định lấy theo JVM.
+1. **Event date:** `LocalDate`, e.g. `2025-03-05`.
+2. **Displayed date line:** locale-aware formatter with `M` form and proper date structure.
+3. **Calendar header:** formatter for stand-alone month name `LLLL`, optionally with year `uuuu`.
+4. **Machine value:** keep `YearMonth.of(2025,3)` or numeric month, never use localized strings as keys.
+5. **UI language:** user-selected `Locale`, not defaulted to the JVM.
 
-Ví dụ class tiện ích:
+Example utility class:
 
 ~~~java
 import java.time.LocalDate;
@@ -550,7 +550,7 @@ public final class CalendarLabels {
 }
 ~~~
 
-Tạo tệp `CalendarLabels.java`. Class trên có hai method độc lập, mô tả rõ ý đồ. Khi hệ thống có nhiều thứ tự ngày tháng, thay `dayLabel` bằng formatter kiểu localized phù hợp chính sách ứng dụng. Để dùng class:
+Create the file `CalendarLabels.java`. The class above has two independent methods that clearly express intent. When the system needs multiple date orderings, replace `dayLabel` with a localized-style formatter matching application policy. To use the class:
 
 ~~~java
 LocalDate day = LocalDate.of(2025, 3, 5);
@@ -560,55 +560,55 @@ System.out.println(CalendarLabels.dayLabel(day, ru));
 System.out.println(CalendarLabels.monthHeader(day, ru));
 ~~~
 
-Đây là **mảnh mã trong method** cần import `java.time.LocalDate` và `java.util.Locale`, đồng thời class `CalendarLabels` đã được biên dịch. Với dữ liệu Nga thông dụng, kết quả `5 марта 2025` và `март 2025`.
+This is an **in-method snippet** requiring imports `java.time.LocalDate` and `java.util.Locale`, with `CalendarLabels` compiled. With typical Russian data, output is `5 марта 2025` and `март 2025`.
 
-**Không lưu `"март 2025"` thay cho `YearMonth`.** Chuỗi tiêu đề có thể đổi khi người dùng chọn ngôn ngữ khác hoặc khi JDK cập nhật dữ liệu locale; dữ liệu ngày có cấu trúc không bị phụ thuộc hình thức trình bày.
+**Do not store `"март 2025"` in place of `YearMonth`.** Header strings can change when users switch languages or when the JDK updates locale data; structured date data remains independent of presentation formatting.
 
-## 13. M, L không thay thế chronology và timezone
+## 13. M and L Do Not Replace Chronology and Time Zone
 
-Một số yêu cầu localization có lịch riêng (chronology), hệ chữ số khác hoặc múi giờ cụ thể. Chọn `MMMM` hay `LLLL` **không tự quyết định**:
+Some localization requirements involve a distinct calendar system (chronology), a different numbering system, or a specific time zone. Choosing `MMMM` or `LLLL` **does not automatically determine**:
 
-- Hệ lịch (ISO, Buddhist, Japanese hay hệ khác).
-- Múi giờ khi hiển thị một `Instant`.
-- Hệ chữ số của trường ngày/tháng.
-- Ngôn ngữ của toàn bộ câu ngoài phần tên tháng.
+- Calendar system (ISO, Buddhist, Japanese, or another system).
+- Time zone when displaying an `Instant`.
+- Numbering system for day/month fields.
+- Language of the surrounding sentence outside the month name.
 
-`LocalDate` trong ví dụ dùng ngày theo ISO chronology. Với `Instant`, cần chọn `ZoneId` trước khi diễn giải thành ngày địa phương; locale là yếu tố khác. Khi dùng chronology không phải ISO, cách tìm tên tháng còn tùy formatter, chronology và dữ liệu provider.
+`LocalDate` in the examples uses the ISO chronology. For `Instant`, you must choose a `ZoneId` before interpreting it as a local date; locale is a separate factor. When using a non-ISO chronology, month-name lookup also depends on the formatter, chronology, and provider data.
 
-Ví dụ, một ngày ở `Asia/Ho_Chi_Minh` có thể khác ngày của cùng `Instant` ở `America/Los_Angeles`. Không thể sửa chênh lệch ngày bằng cách đổi `M` sang `L`. Hai chữ cái chỉ liên quan đến **cách biểu diễn tháng**, không phải phép chuyển đổi thời gian.
+For example, a date in `Asia/Ho_Chi_Minh` can differ from the date of the same `Instant` in `America/Los_Angeles`. You cannot fix a date discrepancy by changing `M` to `L`. The two letters only govern **how the month is rendered**, not time conversion.
 
-## 14. Kiểm thử thực tế trên nhiều locale
+## 14. Practical Testing Across Multiple Locales
 
 ### 14.1. Checklist
 
-- Với `ru-RU` và `pl-PL`, thử cùng `LocalDate.of(2025,3,5)` ở `d MMMM uuuu` và `LLLL`.
-- Thử `MMM` và `LLL` để kiểm tra dạng viết tắt.
-- Thử `MM` và `LL` để chứng minh cả hai dùng cùng giá trị số tháng.
-- So sánh kết quả giữa `TextStyle.FULL` và `TextStyle.FULL_STANDALONE`.
-- Kiểm tra `ofLocalizedDate(FormatStyle.LONG)` với giao diện ngày tự nhiên.
-- Nếu parse tên tháng, kiểm thử `YearMonth.parse` bằng đúng formatter đã dùng khi format.
-- Không dựa hoàn toàn vào test `en-US`, bởi tên tháng có thể giống giữa hai context.
-- Nếu test exact text, chạy trên cùng JDK, cấu hình provider và dữ liệu locale với production.
-- Kiểm thử trường hợp nhiều tháng khác nhau, không chỉ tháng Ba, đặc biệt nếu ứng dụng dùng dạng *narrow*.
-- Dùng kiểu `YearMonth`/`LocalDate` làm dữ liệu chính; chuỗi tháng chỉ là lớp trình bày.
+- With `ru-RU` and `pl-PL`, test the same `LocalDate.of(2025,3,5)` under `d MMMM uuuu` and `LLLL`.
+- Test `MMM` and `LLL` to inspect abbreviated forms.
+- Test `MM` and `LL` to verify both use the same numeric month value.
+- Compare outputs between `TextStyle.FULL` and `TextStyle.FULL_STANDALONE`.
+- Check `ofLocalizedDate(FormatStyle.LONG)` for natural date displays.
+- When parsing month names, test `YearMonth.parse` with the exact formatter used for formatting.
+- Do not rely solely on `en-US` tests, as month names can match between the two contexts.
+- If testing exact text, run on the same JDK, provider configuration, and locale data as production.
+- Test multiple different months, not only March, especially if the app uses the *narrow* form.
+- Use `YearMonth`/`LocalDate` as primary data; month strings are purely presentation layer.
 
-### 14.2. Bài tập
+### 14.2. Exercises
 
-1. Dùng `Locale.forLanguageTag("ru-RU")` format ngày `2025-03-05` theo `"d MMMM uuuu"` và `"LLLL uuuu"`. Giải thích vì sao chúng không nên dùng hoán đổi trong cùng một vị trí UI.
-2. Thử tương tự với `pl-PL`: vì sao tên tháng đơn lẻ thường là `marzec` nhưng trong ngày là `marca`?
-3. Viết một vòng lặp so sánh `M`/`L`, `MM`/`LL`, `MMM`/`LLL`, `MMMM`/`LLLL`, `MMMMM`/`LLLLL`. Nhận xét dạng nào khác, dạng nào có thể trùng.
-4. Dùng `TextStyle.FULL_STANDALONE` để xây dựng formatter tiêu đề tháng với `DateTimeFormatterBuilder` mà không sử dụng `ofPattern("LLLL")`.
-5. Dùng `YearMonth` để format rồi parse tên tháng độc lập và năm. Nếu thay formatter parser từ `LLLL` thành `MMMM`, vì sao kết quả không còn được bảo đảm?
-6. So sánh `SimpleDateFormat` và `DateTimeFormatter` trong Java 17 về loại đối tượng ngày và tính an toàn đa luồng.
-7. Một date picker cần hiện tên tháng `LLLL`, một thông báo giao hàng cần ngày đầy đủ. Chọn API/mẫu phù hợp và giải thích cách tách model khỏi chuỗi hiển thị.
-8. Tại sao `"MM"` có thể cho kết quả giống `"LL"`, nhưng `"MMMM"` lại có thể khác `"LLLL"`?
+1. Using `Locale.forLanguageTag("ru-RU")`, format `2025-03-05` with `"d MMMM uuuu"` and `"LLLL uuuu"`. Explain why they should not be swapped in the same UI slot.
+2. Try the same with `pl-PL`: why is the stand-alone month name usually `marzec` while inside a date it is `marca`?
+3. Write a loop comparing `M`/`L`, `MM`/`LL`, `MMM`/`LLL`, `MMMM`/`LLLL`, `MMMMM`/`LLLLL`. Note which widths differ and which can coincide.
+4. Use `TextStyle.FULL_STANDALONE` to build a month-header formatter with `DateTimeFormatterBuilder` without using `ofPattern("LLLL")`.
+5. Use `YearMonth` to format and then parse a stand-alone month name and year. If you change the parser formatter from `LLLL` to `MMMM`, why is the result no longer guaranteed?
+6. Compare `SimpleDateFormat` and `DateTimeFormatter` in Java 17 regarding date object types and thread safety.
+7. A date picker needs to show the month name `LLLL`, and a delivery notification needs a full date. Choose the appropriate API/pattern and explain how to separate the model from the display string.
+8. Why can `"MM"` produce the same output as `"LL"`, while `"MMMM"` can differ from `"LLLL"`?
 
-**Ghi nhớ:** Trong `DateTimeFormatter`, `M` là **tháng ở dạng văn bản theo ngữ cảnh**, còn `L` là **tên tháng đứng độc lập**. Khi dạng số, `M` và `L` thường giống nhau; khi dùng tên ngắn hoặc đầy đủ, nhiều locale như tiếng Nga và tiếng Ba Lan có khác biệt ngữ pháp rõ rệt. **Ngày có số ngày → ưu tiên `MMMM` hoặc formatter ngày địa phương hóa; tiêu đề/tháng đứng riêng → ưu tiên `LLLL`.** Chọn locale rõ ràng, giữ giá trị ngày ở dạng có cấu trúc và kiểm thử trên những ngôn ngữ thực sự có hai dạng tên tháng.
+**Takeaway:** In `DateTimeFormatter`, `M` is the **contextual text form of the month**, while `L` is the **stand-alone month name**. In numeric form, `M` and `L` are usually identical; when using short or full names, many locales such as Russian and Polish exhibit clear grammatical differences. **Date with a day number → prefer `MMMM` or a localized date formatter; stand-alone month/header → prefer `LLLL`.** Choose the locale explicitly, keep date values structured, and test on languages that genuinely have two month-name forms.
 
-### Tài liệu tham khảo
+### References
 
-- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html) — ký tự mẫu `M`/`L` và định dạng ngày theo locale.
-- [Java SE 17 — DateTimeFormatterBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatterBuilder.html) — `appendText` và trường tháng.
-- [Java SE 17 — TextStyle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/TextStyle.html) — `FULL_STANDALONE` và các dạng tên tháng.
-- [Java SE 17 — SimpleDateFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/SimpleDateFormat.html) — mẫu tháng ngữ cảnh và độc lập trong API cũ.
-- [Java SE 17 — YearMonth](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/YearMonth.html) — đối tượng năm/tháng không phụ thuộc tên bản địa hóa.
+- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html) — pattern letters `M`/`L` and locale-based date formatting.
+- [Java SE 17 — DateTimeFormatterBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatterBuilder.html) — `appendText` and month fields.
+- [Java SE 17 — TextStyle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/TextStyle.html) — `FULL_STANDALONE` and month-name styles.
+- [Java SE 17 — SimpleDateFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/SimpleDateFormat.html) — contextual and stand-alone month patterns in the legacy API.
+- [Java SE 17 — YearMonth](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/YearMonth.html) — year/month object independent of localized names.

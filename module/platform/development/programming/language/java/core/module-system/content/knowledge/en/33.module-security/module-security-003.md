@@ -1,26 +1,26 @@
-# Giới hạn reflection và dynamic loading
+# Limits of Reflection and Dynamic Loading
 
-## 1. Mục tiêu
+## 1. Objective
 
-Java cung cấp reflection và dynamic class loading để chương trình có thể tìm kiểu, đọc metadata, gọi constructor/method hoặc nạp implementation trong lúc chạy. Những khả năng này hữu ích cho framework, dependency injection, ORM, serialization, plugin và hệ thống mở rộng.
+Java provides reflection and dynamic class loading so that a program can look up types, read metadata, invoke constructors/methods, or load implementations at runtime. These capabilities are useful for frameworks, dependency injection, ORMs, serialization, plugins, and extensible systems.
 
-Khi ứng dụng chạy trên Java Platform Module System (JPMS), reflection và dynamic loading vẫn chịu các quy tắc module. Một class có thể được tìm thấy và nạp thành công nhưng package chứa nó chưa được export; một field có thể được tìm thấy bằng reflection nhưng không được phép truy cập; một plugin có thể được nạp bằng class loader riêng nhưng vẫn không có quyền đọc API của module khác.
+When an application runs on the Java Platform Module System (JPMS), reflection and dynamic loading are still subject to module rules. A class may be found and loaded successfully while the package containing it is not exported; a field may be found via reflection yet remain inaccessible; a plugin may be loaded by its own class loader yet still lack permission to read APIs of another module.
 
-Bài này giải thích giới hạn của reflection và dynamic loading trong môi trường module, cách phân biệt export với open, cách nạp class hoặc module layer, các lỗi thường gặp và những giới hạn bảo mật cần hiểu khi thiết kế plugin.
+This lesson explains the limits of reflection and dynamic loading in a modular environment, how to distinguish `export` from `open`, how to load classes or module layers, common errors, and the security boundaries to understand when designing plugins.
 
-Sau bài học, bạn có thể:
-- Phân biệt truy cập Java thông thường với reflective access và deep reflection.
-- Hiểu vì sao tìm thấy class không có nghĩa là được phép sử dụng class đó.
-- Dùng **exports**, **opens**, **--add-exports** và **--add-opens** đúng mục đích.
-- Sử dụng **Class.forName**, **ClassLoader** và **ModuleLayer** để nạp implementation động.
-- Hiểu vai trò của class loader, module readability và module layer.
-- Thiết kế plugin có kiểm soát và nhận biết vì sao JPMS không phải sandbox bảo mật.
+After this lesson, you can:
+- Distinguish between normal Java access, reflective access, and deep reflection.
+- Understand why finding a class does not mean you are permitted to use that class.
+- Use **exports**, **opens**, **--add-exports**, and **--add-opens** for their intended purposes.
+- Use **Class.forName**, **ClassLoader**, and **ModuleLayer** to dynamically load implementations.
+- Understand the role of class loaders, module readability, and module layers.
+- Design controlled plugins and recognize why JPMS is not a security sandbox.
 
-## 2. Reflection là gì?
+## 2. What Is Reflection?
 
-Reflection là khả năng chương trình quan sát và thao tác với cấu trúc của class tại runtime thông qua các API trong **java.lang.reflect** và **java.lang.invoke**.
+Reflection is the ability of a program to inspect and manipulate the structure of classes at runtime via the APIs in **java.lang.reflect** and **java.lang.invoke**.
 
-Ví dụ, lấy metadata của một class:
+For example, retrieving metadata of a class:
 
 ~~~java
 Class<?> type = Class.forName("com.example.model.Customer");
@@ -32,35 +32,35 @@ for (var method : type.getDeclaredMethods()) {
 }
 ~~~
 
-Một số thao tác thường dùng:
+Some commonly used operations:
 
-- **Class.forName(...)**: tìm và nạp class theo tên.
-- **getDeclaredFields()**, **getDeclaredMethods()**, **getDeclaredConstructors()**: lấy metadata của các thành viên được khai báo trong class, bao gồm cả thành viên không public.
-- **getField()**, **getMethod()**: tìm thành viên public theo quy tắc kế thừa.
-- **Constructor.newInstance()**, **Method.invoke()**, **Field.get()/set()**: tạo object, gọi method và đọc/ghi field bằng reflection.
-- **MethodHandles.Lookup**: cung cấp cơ chế tra cứu và gọi method/field với các quyền truy cập được kiểm soát.
+- **Class.forName(...)**: locates and loads a class by name.
+- **getDeclaredFields()**, **getDeclaredMethods()**, **getDeclaredConstructors()**: retrieves metadata of members declared in the class, including non-public members.
+- **getField()**, **getMethod()**: looks up public members according to inheritance rules.
+- **Constructor.newInstance()**, **Method.invoke()**, **Field.get()/set()**: instantiates objects, invokes methods, and reads/writes fields via reflection.
+- **MethodHandles.Lookup**: provides a mechanism to look up and invoke methods/fields with controlled access rights.
 
-Reflection giúp framework làm việc với class mà không cần biết trước toàn bộ tên class hoặc cấu trúc dữ liệu khi biên dịch. Tuy nhiên, reflection không xóa bỏ kiểm tra access của Java. Việc lấy được một đối tượng **Field** hoặc **Method** không tự động cho phép gọi hoặc đọc/ghi thành viên đó.
+Reflection enables frameworks to work with classes without knowing all class names or data structures at compile time. However, reflection does not remove Java's access checks. Obtaining a **Field** or **Method** object does not automatically allow invoking or reading/writing that member.
 
-## 3. Ba bước cần phân biệt: tìm class, truy cập type và truy cập member
+## 3. Three Steps to Distinguish: Finding a Class, Accessing a Type, and Accessing a Member
 
-Khi làm việc với class ở runtime, hãy phân biệt ba việc:
+When working with classes at runtime, distinguish three things:
 
-1. **Tìm và nạp class:** class loader tìm bytecode và tạo đối tượng Class.
-2. **Truy cập type/package:** module system kiểm tra module đích có đọc module nguồn và package có được export hay không.
-3. **Truy cập member:** Java kiểm tra modifier, quan hệ kế thừa, package, module và quyền reflection đối với thành viên cụ thể.
+1. **Finding and loading the class:** the class loader locates bytecode and creates the `Class` object.
+2. **Accessing the type/package:** the module system checks whether the target module reads the source module and whether the package is exported.
+3. **Accessing the member:** Java checks modifiers, inheritance relationships, packages, modules, and reflection permissions for the specific member.
 
-Ví dụ, ứng dụng có thể gọi **Class.forName("com.example.internal.Secret")** thành công vì class loader tìm được class. Nhưng nếu package **com.example.internal** thuộc một named module và không được export cho module ứng dụng, mã có thể không sử dụng public type đó theo cách thông thường.
+For example, an application can call **Class.forName("com.example.internal.Secret")** successfully because the class loader finds the class. However, if the **com.example.internal** package belongs to a named module and is not exported to the application module, code cannot use that public type through normal access.
 
-Tương tự, **getDeclaredField("token")** có thể trả về một đối tượng Field cho private field. Điều đó chỉ cho biết field tồn tại. Khi gọi **field.get(object)** hoặc **field.set(object, value)**, access check vẫn được áp dụng. Nếu muốn bỏ qua một số kiểm tra truy cập ngôn ngữ để deep reflection, package của module nguồn phải được mở cho module gọi theo quy tắc JPMS.
+Similarly, **getDeclaredField("token")** may return a `Field` object for a private field. That only indicates the field exists. When calling **field.get(object)** or **field.set(object, value)**, access checks still apply. To bypass certain language access checks for deep reflection, the source module's package must be opened to the calling module according to JPMS rules.
 
-Vì vậy, không nên kết luận rằng reflection đã "vượt qua module system" chỉ vì framework tìm thấy tên class hoặc field.
+Therefore, do not conclude that reflection has "bypassed the module system" merely because a framework found a class or field name.
 
-## 4. Export và open trong JPMS
+## 4. `exports` and `opens` in JPMS
 
-### Export: truy cập API công khai
+### `exports`: Public API Access
 
-Một module export package để module khác truy cập public type và public/protected member theo quy tắc Java thông thường:
+A module exports a package so other modules can access public types and public/protected members according to normal Java rules:
 
 ~~~java
 module com.example.domain {
@@ -68,7 +68,7 @@ module com.example.domain {
 }
 ~~~
 
-Module consumer cần đọc module nguồn, thường bằng **requires**:
+The consumer module needs to read the source module, usually via **requires**:
 
 ~~~java
 module com.example.application {
@@ -76,11 +76,11 @@ module com.example.application {
 }
 ~~~
 
-Khi package được export và module consumer đọc module nguồn, consumer có thể dùng public API trong package đó. Export không mở private field hoặc private method cho deep reflection.
+When the package is exported and the consumer module reads the source module, the consumer can use the public API in that package. `exports` does not open private fields or private methods for deep reflection.
 
-### Open: deep reflection
+### `opens`: Deep Reflection
 
-Nếu framework cần truy cập reflective vào thành viên không public, module nguồn có thể mở package:
+If a framework needs reflective access to non-public members, the source module can open the package:
 
 ~~~java
 module com.example.domain {
@@ -91,11 +91,11 @@ module com.example.domain {
 }
 ~~~
 
-Trong ví dụ này:
-- Package **com.example.domain.api** được export để consumer gọi API công khai.
-- Package **com.example.domain.model** được mở cho module **com.example.orm** để framework thực hiện deep reflection.
+In this example:
+- The **com.example.domain.api** package is exported so consumers can call the public API.
+- The **com.example.domain.model** package is opened to module **com.example.orm** so the framework can perform deep reflection.
 
-Có thể mở mọi package của một module cho deep reflection bằng khai báo:
+All packages of a module can be opened for deep reflection with the declaration:
 
 ~~~java
 open module com.example.domain {
@@ -103,23 +103,23 @@ open module com.example.domain {
 }
 ~~~
 
-Một open module mở các package của nó cho deep reflection ở runtime. Nó không tự export tất cả package cho truy cập code thông thường; nếu consumer cần import public type trong package, vẫn phải có export phù hợp.
+An `open module` opens its packages for deep reflection at runtime. It does not automatically export all packages for normal code access; if consumers need to import public types in a package, an appropriate `exports` is still required.
 
-### Bảng phân biệt
+### Comparison Table
 
-| Cơ chế | Cho phép | Không tự cho phép |
+| Mechanism | Allows | Does Not Automatically Allow |
 |---|---|---|
-| **exports p** | Truy cập public API của package p | Deep reflection vào private member |
-| **exports p to m** | Public API của p cho module m | Truy cập package từ mọi module khác |
-| **opens p** | Deep reflection vào package p ở runtime | Import public type từ p khi package chưa export |
-| **opens p to m** | Deep reflection từ module m vào p | Truy cập reflection sâu từ module khác |
-| **open module** | Deep reflection vào mọi package của module | Tự động export mọi package |
+| **exports p** | Access to public API of package `p` | Deep reflection into private members |
+| **exports p to m** | Public API of `p` for module `m` | Package access from any other module |
+| **opens p** | Deep reflection into package `p` at runtime | Importing public types from `p` when the package is not exported |
+| **opens p to m** | Deep reflection from module `m` into `p` | Deep reflection access from other modules |
+| **open module** | Deep reflection into all packages of the module | Automatically exporting all packages |
 
-## 5. setAccessible, trySetAccessible và giới hạn module
+## 5. `setAccessible`, `trySetAccessible`, and Module Restrictions
 
-Trước JPMS, framework thường dùng **setAccessible(true)** để yêu cầu reflection bỏ qua một số kiểm tra truy cập ngôn ngữ. Từ Java 9, thao tác này chịu thêm ranh giới module.
+Before JPMS, frameworks commonly used **setAccessible(true)** to request reflection to bypass certain language access checks. Since Java 9, this operation is also subject to module boundaries.
 
-Ví dụ:
+For example:
 
 ~~~java
 Field field = Customer.class.getDeclaredField("internalId");
@@ -129,16 +129,16 @@ if (field.trySetAccessible()) {
     System.out.println(value);
 } else {
     throw new IllegalStateException(
-        "Module không mở package cho deep reflection"
+        "Module does not open the package for deep reflection"
     );
 }
 ~~~
 
-**trySetAccessible()** cố gắng bật quyền truy cập reflective và trả về **false** nếu không thể thực hiện. Trong trường hợp bị chặn bởi module system, nó không tự mở package.
+**trySetAccessible()** attempts to enable reflective access and returns **false** if it cannot do so. When blocked by the module system, it does not open the package on its own.
 
-**setAccessible(true)** có thể ném **InaccessibleObjectException** nếu không thể bật quyền truy cập do giới hạn module. Vì vậy, đoạn mã cũ giả định mọi field đều có thể gọi setAccessible(true) có thể lỗi khi chạy trên JDK có strong encapsulation.
+**setAccessible(true)** can throw **InaccessibleObjectException** if access cannot be enabled due to module restrictions. Therefore, legacy code that assumes `setAccessible(true)` can be called on any field may fail when running on a JDK with strong encapsulation.
 
-Để deep reflection từ module **com.example.orm** vào package **com.example.domain.model**, module nguồn có thể khai báo:
+To allow deep reflection from module **com.example.orm** into package **com.example.domain.model**, the source module can declare:
 
 ~~~java
 module com.example.domain {
@@ -146,27 +146,27 @@ module com.example.domain {
 }
 ~~~
 
-Hoặc cấu hình runtime bằng tùy chọn:
+Or configure at runtime with the option:
 
 ~~~bash
 java --add-opens com.example.domain/com.example.domain.model=com.example.orm --module-path mods --module com.example.application/com.example.application.Main
 ~~~
 
-**--add-opens** là tùy chọn runtime. Nó không biến package thành API công khai cho mã nguồn import và gọi trực tiếp. Nếu cần public type access, hãy dùng exports hoặc --add-exports.
+**--add-opens** is a runtime option. It does not turn the package into a public API for source code to import and call directly. If public type access is needed, use `exports` or `--add-exports`.
 
-Nếu framework chạy trong unnamed module trên classpath, target có thể là **ALL-UNNAMED**:
+If the framework runs in the unnamed module on the classpath, the target can be **ALL-UNNAMED**:
 
 ~~~bash
 java --add-opens com.example.domain/com.example.domain.model=ALL-UNNAMED -cp app.jar com.example.Main
 ~~~
 
-ALL-UNNAMED mở package cho các unnamed module trong tiến trình. Đây là phạm vi rộng; nếu có thể, hãy dùng named module và chỉ mở cho module framework cụ thể.
+`ALL-UNNAMED` opens the package to unnamed modules in the process. This is a broad scope; if possible, use named modules and open only to the specific framework module.
 
-## 6. Reflection với MethodHandles
+## 6. Reflection with `MethodHandles`
 
-Reflection không phải cơ chế duy nhất để truy cập thành viên động. **MethodHandles** cung cấp các handle có kiểu cho việc gọi method, truy cập field và constructor.
+Reflection is not the only mechanism for dynamically accessing members. **MethodHandles** provides typed handles for invoking methods, accessing fields, and calling constructors.
 
-Một lookup thông thường:
+A typical lookup:
 
 ~~~java
 MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -179,11 +179,11 @@ MethodHandle handle = lookup.findVirtual(
 int length = (int) handle.invokeExact("modules");
 ~~~
 
-Lookup object mang theo quyền truy cập của class tạo ra nó. Không phải lookup nào cũng có quyền truy cập private member của class khác.
+A `Lookup` object carries the access rights of the class that created it. Not every lookup has permission to access private members of another class.
 
-Để tạo private lookup vào một class ở module khác, API **MethodHandles.privateLookupIn(...)** yêu cầu các điều kiện module phù hợp. Về cơ bản, module của caller phải đọc được module đích và package chứa class đích phải được mở cho module caller. Nếu package chưa mở, thao tác có thể ném **IllegalAccessException**.
+To create a private lookup into a class in another module, the **MethodHandles.privateLookupIn(...)** API requires matching module conditions. Essentially, the caller's module must read the target module, and the package containing the target class must be opened to the caller's module. If the package is not open, the operation can throw **IllegalAccessException**.
 
-Ví dụ khung:
+Skeleton example:
 
 ~~~java
 MethodHandles.Lookup callerLookup = MethodHandles.lookup();
@@ -195,22 +195,22 @@ MethodHandles.Lookup privateLookup =
     );
 ~~~
 
-Đoạn mã chỉ thành công nếu module graph và package openness cho phép. **privateLookupIn** không phải đường vòng để bỏ qua JPMS; nó tuân theo điều kiện access của module.
+This snippet succeeds only if the module graph and package openness permit it. **privateLookupIn** is not a workaround to bypass JPMS; it follows module access conditions.
 
-Khi thiết kế framework, hãy ưu tiên API công khai hoặc một SPI rõ ràng. Chỉ dùng private lookup khi framework thực sự cần truy cập sâu và module nguồn đã chủ động mở package cho nó.
+When designing frameworks, prefer public APIs or an explicit SPI. Only use private lookup when the framework genuinely needs deep access and the source module has intentionally opened the package to it.
 
-## 7. Dynamic class loading là gì?
+## 7. What Is Dynamic Class Loading?
 
-Dynamic class loading là quá trình nạp class khi chương trình đang chạy thay vì tham chiếu trực tiếp mọi implementation ở thời điểm biên dịch.
+Dynamic class loading is the process of loading classes while the program is running instead of directly referencing all implementations at compile time.
 
-Cách đơn giản nhất là **Class.forName**:
+The simplest way is **Class.forName**:
 
 ~~~java
 Class<?> type = Class.forName("com.example.plugin.JsonPlugin");
 Object plugin = type.getDeclaredConstructor().newInstance();
 ~~~
 
-Lời gọi một tham số **Class.forName(String)** sử dụng defining class loader của class gọi và khởi tạo class. Nếu chỉ muốn nạp class mà chưa chạy static initializer, có thể dùng overload ba tham số:
+The single-argument call **Class.forName(String)** uses the defining class loader of the calling class and initializes the class. If you only want to load the class without running its static initializer yet, you can use the three-argument overload:
 
 ~~~java
 Class<?> type = Class.forName(
@@ -220,9 +220,9 @@ Class<?> type = Class.forName(
 );
 ~~~
 
-Tham số **false** yêu cầu không khởi tạo class tại thời điểm gọi này. Static initialization vẫn có thể chạy khi class được chủ động sử dụng sau đó.
+The **false** parameter requests not to initialize the class at the time of this call. Static initialization can still run when the class is actively used later.
 
-Hoặc dùng class loader trực tiếp:
+Or use a class loader directly:
 
 ~~~java
 Class<?> type = pluginClassLoader.loadClass(
@@ -230,41 +230,41 @@ Class<?> type = pluginClassLoader.loadClass(
 );
 ~~~
 
-**ClassLoader.loadClass(...)** không chủ động khởi tạo class. Việc nạp, liên kết và khởi tạo là các giai đoạn riêng; JVM có thể trì hoãn một phần linking cho tới khi class thực sự được sử dụng.
+**ClassLoader.loadClass(...)** does not actively initialize the class. Loading, linking, and initialization are separate phases; the JVM may defer part of linking until the class is actually used.
 
-Khi tạo instance bằng reflection, constructor có thể ném exception. **Constructor.newInstance()** bọc exception do constructor ném ra trong **InvocationTargetException**. Hãy kiểm tra cause để tìm lỗi gốc.
+When instantiating via reflection, the constructor may throw an exception. **Constructor.newInstance()** wraps any exception thrown by the constructor in an **InvocationTargetException**. Check its cause to find the underlying error.
 
-## 8. Dynamic loading không bỏ qua module access
+## 8. Dynamic Loading Does Not Bypass Module Access
 
-Nạp được class không đồng nghĩa có quyền sử dụng class đó.
+Being able to load a class does not imply permission to use that class.
 
-Giả sử **com.example.plugin.impl** là một named module chứa package **com.example.plugin.internal**. Module ứng dụng có thể tìm thấy class qua module layer hoặc class loader, nhưng nếu package không được export thì mã consumer vẫn không thể truy cập public type theo quy tắc module.
+Suppose **com.example.plugin.impl** is a named module containing package **com.example.plugin.internal**. The application module can find the class via a module layer or class loader, but if the package is not exported, consumer code still cannot access the public type under module rules.
 
-Các điều kiện thường cần xem xét:
+Conditions that usually need to be examined:
 
-- Module consumer có đọc module chứa class hay không.
-- Package chứa public type có được export cho consumer hay không.
-- Nếu framework cần deep reflection, package có được mở cho module framework hay không.
-- Class loader có thể tìm đúng class và dependency của nó hay không.
-- Module có nằm trong module graph/layer mà ứng dụng đang sử dụng hay không.
+- Whether the consumer module reads the module containing the class.
+- Whether the package containing the public type is exported to the consumer.
+- If a framework needs deep reflection, whether the package is opened to the framework module.
+- Whether the class loader can find the right class and its dependencies.
+- Whether the module is in the module graph/layer that the application is using.
 
-Không dùng **Class.forName**, **loadClass** hoặc reflection như cách sửa lỗi thiếu **requires**, **exports** hay **opens**. Những API này chỉ giúp tìm và thao tác với class theo quyền mà JVM cho phép.
+Do not use **Class.forName**, **loadClass**, or reflection as a fix for missing **requires**, **exports**, or **opens**. These APIs only help locate and interact with classes within the permissions the JVM grants.
 
-## 9. Class loader và danh tính của class
+## 9. Class Loaders and Class Identity
 
-Mỗi class trong JVM có danh tính gắn với tên nhị phân và defining class loader. Hai class có cùng tên đầy đủ nhưng được định nghĩa bởi hai class loader khác nhau vẫn là hai kiểu runtime khác nhau.
+Every class in the JVM has an identity tied to its binary name and its defining class loader. Two classes with the same fully qualified name defined by two different class loaders are still two distinct runtime types.
 
-Ví dụ, ứng dụng và plugin cùng nạp một bản **com.example.api.Plugin** từ hai loader riêng. Một object triển khai bản interface của plugin có thể không ép kiểu được sang bản interface mà ứng dụng đang giữ. Kết quả có thể là **ClassCastException**, dù tên interface hiển thị giống nhau.
+For example, suppose the application and a plugin both load a copy of **com.example.api.Plugin** from two separate loaders. An object implementing the plugin's copy of the interface cannot be cast to the copy of the interface held by the application. The result can be a **ClassCastException**, even though the interface names appear identical.
 
-Để tránh lỗi này:
+To avoid this error:
 
-1. Đặt API dùng chung ở một class loader cha hoặc module cha mà cả ứng dụng và plugin đều đọc được.
-2. Đảm bảo plugin không đóng gói một bản khác của API dùng chung nếu kiến trúc yêu cầu chia sẻ cùng kiểu.
-3. Xác định rõ parent delegation và class loader chịu trách nhiệm nạp từng package.
-4. Dùng module name và module layer rõ ràng khi plugin là modular JAR.
-5. Ghi log cả tên class và class loader khi điều tra lỗi cast hoặc linkage.
+1. Place the shared API in a parent class loader or parent module that both the application and the plugin read.
+2. Ensure plugins do not bundle another copy of the shared API when the architecture requires sharing the same type.
+3. Clearly define parent delegation and which class loader is responsible for loading each package.
+4. Use explicit module names and module layers when plugins are modular JARs.
+5. Log both the class name and class loader when investigating cast or linkage errors.
 
-Có thể kiểm tra defining loader:
+You can inspect the defining loader:
 
 ~~~java
 System.out.println(type.getName());
@@ -272,18 +272,18 @@ System.out.println(type.getClassLoader());
 System.out.println(type.getModule());
 ~~~
 
-Với class thuộc bootstrap loader, **getClassLoader()** có thể trả về null. Điều đó là bình thường và không có nghĩa class chưa được nạp.
+For classes belonging to the bootstrap loader, **getClassLoader()** may return `null`. That is normal and does not mean the class has not been loaded.
 
-## 10. Nạp plugin bằng ModuleLayer
+## 10. Loading Plugins with `ModuleLayer`
 
-Với plugin được đóng gói thành modular JAR, **ModuleLayer** cho phép tạo một module layer mới từ các module tìm thấy trong một thư mục hoặc nguồn module khác.
+For plugins packaged as modular JARs, **ModuleLayer** allows creating a new module layer from modules found in a directory or another module source.
 
-Ví dụ cấu trúc:
-- Module API **com.example.plugin.api** nằm trong layer cha.
-- Module triển khai **com.example.plugin.json** nằm trong thư mục **plugins**.
-- Module plugin khai báo **provides** cho service interface.
+Example structure:
+- The API module **com.example.plugin.api** resides in the parent layer.
+- The implementation module **com.example.plugin.json** resides in the **plugins** directory.
+- The plugin module declares **provides** for the service interface.
 
-Module plugin:
+Plugin module:
 
 ~~~java
 module com.example.plugin.json {
@@ -294,7 +294,7 @@ module com.example.plugin.json {
 }
 ~~~
 
-Module ứng dụng tiêu thụ service cần khai báo:
+The application module consuming the service must declare:
 
 ~~~java
 module com.example.application {
@@ -303,7 +303,7 @@ module com.example.application {
 }
 ~~~
 
-Tạo layer và tìm provider:
+Creating the layer and discovering providers:
 
 ~~~java
 ModuleFinder finder = ModuleFinder.of(Path.of("plugins"));
@@ -332,29 +332,29 @@ for (Plugin plugin : plugins) {
 }
 ~~~
 
-Ví dụ giả định các module API và ứng dụng đã được đặt trong boot layer, thư mục **plugins** chứa module plugin hợp lệ, và các class/package được khai báo đúng. **ModuleLayer.defineModulesWithOneLoader** tạo layer mới với một class loader cho các module được định nghĩa trong layer đó.
+This example assumes the API and application modules are already in the boot layer, the **plugins** directory contains a valid plugin module, and the classes/packages are properly declared. **ModuleLayer.defineModulesWithOneLoader** creates a new layer with a single class loader for the modules defined in that layer.
 
-Dùng **ServiceLoader.load(pluginLayer, Plugin.class)** giúp tìm provider trong layer chỉ định và các layer cha. Module gọi ServiceLoader trong named module phải khai báo **uses** cho service; module cung cấp phải khai báo **provides ... with ...**.
+Using **ServiceLoader.load(pluginLayer, Plugin.class)** finds providers in the specified layer and its parent layers. A module calling `ServiceLoader` in a named module must declare **uses** for the service; the providing module must declare **provides ... with ...**.
 
-Nếu dùng plugin không phải modular JAR, có thể dùng class loader riêng hoặc cơ chế plugin khác. Tuy nhiên, class loader riêng không tự tạo ra ranh giới bảo mật và cũng không thay thế module readability/export.
+If using non-modular JAR plugins, a separate class loader or another plugin mechanism can be used. However, a separate class loader does not by itself create a security boundary and does not replace module readability/exports.
 
-## 11. ServiceLoader, context class loader và plugin
+## 11. `ServiceLoader`, Context Class Loader, and Plugins
 
-Trong ứng dụng plugin, provider có thể được nạp bởi class loader khác với class loader của ứng dụng. Lời gọi:
+In plugin applications, providers may be loaded by a different class loader than the application's class loader. The call:
 
 ~~~java
 ServiceLoader.load(Plugin.class)
 ~~~
 
-sử dụng context class loader của thread hiện tại để tìm provider trên classpath.
+uses the current thread's context class loader to find providers on the classpath.
 
-Nếu ứng dụng dùng module layer, overload nhận layer giúp xác định rõ phạm vi tìm kiếm:
+If the application uses module layers, the overload accepting a layer clearly scopes the search:
 
 ~~~java
 ServiceLoader.load(pluginLayer, Plugin.class)
 ~~~
 
-Nếu framework hoặc application server thay đổi context class loader, provider discovery có thể khác nhau giữa các thread. Khi chẩn đoán, hãy kiểm tra:
+If a framework or application server changes the context class loader, provider discovery can differ across threads. When diagnosing, inspect:
 
 ~~~java
 System.out.println(
@@ -362,115 +362,115 @@ System.out.println(
 );
 ~~~
 
-Ngoài ra, **ServiceLoader** thực hiện tìm và khởi tạo provider theo cơ chế lazy. Lỗi cấu hình hoặc khởi tạo có thể chỉ xuất hiện khi duyệt iterator hoặc stream, không nhất thiết tại lúc gọi **load()**. Nếu provider không hợp lệ, có thể xuất hiện **ServiceConfigurationError**.
+In addition, **ServiceLoader** discovers and instantiates providers lazily. Configuration or initialization errors may only surface when iterating over the iterator or stream, not necessarily when calling **load()**. If a provider is invalid, **ServiceConfigurationError** can occur.
 
-Với plugin production, SPI thường dễ quản lý hơn việc tự ghép tên class từ chuỗi cấu hình rồi gọi Class.forName. SPI cung cấp một hợp đồng service rõ ràng và tận dụng module descriptor hoặc provider configuration.
+For production plugins, SPI is usually easier to manage than assembling class names from configuration strings and calling `Class.forName`. SPI provides a clear service contract and leverages module descriptors or provider configurations.
 
-## 12. Lỗi thường gặp khi reflection và dynamic loading
+## 12. Common Errors in Reflection and Dynamic Loading
 
-| Lỗi | Nguyên nhân có thể | Hướng xử lý |
+| Error | Possible Cause | Resolution |
 |---|---|---|
-| **ClassNotFoundException** | Class loader không tìm thấy tên class được yêu cầu | Kiểm tra tên class, classpath/module path, module layer và loader |
-| **NoClassDefFoundError** | Class đã biên dịch tham chiếu dependency không có lúc runtime hoặc class khởi tạo trước đó thất bại | Kiểm tra dependency và exception gốc trong log |
-| **IllegalAccessException** | Reflection không có quyền truy cập member theo access check | Kiểm tra modifier, package export và quyền mở |
-| **InaccessibleObjectException** | Không thể bật deep reflection do package chưa mở | Dùng opens/--add-opens có phạm vi hẹp hoặc đổi thiết kế |
-| **IllegalAccessError** | Bytecode truy cập type/member bị module system chặn | Kiểm tra readability và exports ở runtime |
-| **ClassCastException** | Cùng tên class nhưng được định nghĩa bởi loader khác nhau, hoặc object không triển khai đúng API | Kiểm tra class loader và vị trí đóng gói API chung |
-| **NoSuchMethodException** | Class được nạp nhưng không có constructor/method đúng chữ ký | Kiểm tra API version và kiểu tham số |
-| **InvocationTargetException** | Constructor hoặc method đích ném exception | Kiểm tra getCause() để tìm lỗi thực tế |
-| **ExceptionInInitializerError** | Static initializer của class ném exception khi khởi tạo | Kiểm tra static block và nguyên nhân gốc |
-| **ServiceConfigurationError** | Provider SPI khai báo sai, không nạp được hoặc khởi tạo thất bại | Kiểm tra provides/META-INF/services, dependency và provider constructor |
+| **ClassNotFoundException** | Class loader cannot find the requested class name | Check class name, classpath/module path, module layer, and loader |
+| **NoClassDefFoundError** | Compiled class references a dependency missing at runtime or prior class initialization failed | Check dependencies and the original exception in logs |
+| **IllegalAccessException** | Reflection lacks permission to access the member under access checks | Check modifiers, package exports, and open permissions |
+| **InaccessibleObjectException** | Cannot enable deep reflection because the package is not open | Use narrowly scoped `opens`/`--add-opens` or change design |
+| **IllegalAccessError** | Bytecode accesses a type/member blocked by the module system | Check readability and `exports` at runtime |
+| **ClassCastException** | Same class name defined by different loaders, or object does not implement the right API | Check class loaders and where the shared API is packaged |
+| **NoSuchMethodException** | Class loaded but lacks a constructor/method with the matching signature | Check API version and parameter types |
+| **InvocationTargetException** | Target constructor or method threw an exception | Check `getCause()` to find the actual error |
+| **ExceptionInInitializerError** | Class static initializer threw an exception during initialization | Inspect static blocks and the root cause |
+| **ServiceConfigurationError** | SPI provider misdeclared, failed to load, or failed to instantiate | Check `provides`/`META-INF/services`, dependencies, and provider constructor |
 
-Khi điều tra, đừng chỉ bắt exception ngoài cùng rồi bỏ qua cause. Ví dụ, InvocationTargetException thường chỉ là wrapper; lỗi thật có thể là IllegalStateException hoặc lỗi cấu hình do constructor plugin ném ra.
+When investigating, do not catch only the outermost exception and ignore its cause. For example, `InvocationTargetException` is often just a wrapper; the real error may be an `IllegalStateException` or a configuration error thrown by the plugin constructor.
 
-## 13. Giới hạn bảo mật của reflection và dynamic loading
+## 13. Security Limitations of Reflection and Dynamic Loading
 
-JPMS giúp đóng gói module và kiểm soát khả năng truy cập giữa các module. Tuy nhiên, **module system không phải sandbox để chạy code không đáng tin cậy**.
+JPMS helps encapsulate modules and control accessibility between modules. However, **the module system is not a sandbox for running untrusted code**.
 
-Nếu ứng dụng nạp một plugin Java vào cùng JVM, code plugin thường chạy với quyền của process và có thể gọi các API mà ứng dụng cũng được phép gọi. Việc đặt plugin trong module riêng hoặc class loader riêng không tự cô lập file system, network, thread, CPU, memory hay các tài nguyên hệ điều hành.
+If an application loads a Java plugin into the same JVM, the plugin code generally runs with the process's permissions and can call APIs the application is also allowed to call. Placing a plugin in its own module or its own class loader does not automatically isolate the file system, network, threads, CPU, memory, or operating system resources.
 
-Một số rủi ro:
-- **Class initialization:** static initializer có thể chạy code ngay khi class được khởi tạo.
-- **Constructor side effects:** tạo instance plugin có thể mở socket, đọc file, tạo thread hoặc thay đổi trạng thái ứng dụng.
-- **Reflection abuse:** framework hoặc plugin có thể truy cập sâu vào object nếu module đã mở package.
-- **Untrusted class name:** nạp class name trực tiếp từ cấu hình/user input có thể khiến ứng dụng thực thi implementation ngoài dự kiến.
-- **Dependency confusion:** plugin có thể mang theo dependency hoặc API trùng tên gây xung đột class loader.
-- **Resource exhaustion:** plugin có thể tạo thread, cấp phát bộ nhớ hoặc chạy tác vụ tốn CPU.
+Some risks:
+- **Class initialization:** static initializers can execute code as soon as a class is initialized.
+- **Constructor side effects:** instantiating a plugin can open sockets, read files, spawn threads, or alter application state.
+- **Reflection abuse:** frameworks or plugins can deeply access objects if modules have opened packages.
+- **Untrusted class names:** loading class names directly from configuration/user input can cause the application to execute unintended implementations.
+- **Dependency confusion:** plugins can bring along conflicting dependencies or duplicate APIs causing class loader conflicts.
+- **Resource exhaustion:** plugins can spawn threads, allocate memory, or run CPU-intensive tasks.
 
-Các biện pháp thực tế:
+Practical safeguards:
 
-1. Chỉ nạp plugin từ nguồn được phê duyệt và kiểm soát danh sách module/class được phép.
-2. Xác minh nguồn artifact, checksum hoặc chữ ký theo chính sách phát hành trước khi nạp.
-3. Không coi certificate hợp lệ là bằng chứng code an toàn; chữ ký chỉ giúp xác định nguồn ký và tính toàn vẹn.
-4. Xác định API plugin nhỏ, version rõ ràng và không mở package nội bộ không cần thiết.
-5. Quản lý vòng đời plugin: start, stop, đóng resource, dừng thread và giải phóng tham chiếu tới class loader/layer.
-6. Nếu chạy code không tin cậy, dùng process/container riêng cùng quyền hệ điều hành và giới hạn tài nguyên phù hợp thay vì dựa vào module hoặc class loader.
-7. Ghi log module name, class name, class loader, nguồn artifact và lỗi khởi tạo.
+1. Only load plugins from approved sources and control the list of permitted modules/classes.
+2. Verify artifact provenance, checksums, or signatures per release policy before loading.
+3. Do not treat a valid certificate as proof that code is safe; signatures only identify the signing source and integrity.
+4. Keep the plugin API small, clearly versioned, and do not open internal packages unnecessarily.
+5. Manage the plugin lifecycle: start, stop, close resources, stop threads, and release references to class loaders/layers.
+6. If running untrusted code, use a separate process/container with appropriate OS permissions and resource limits instead of relying on modules or class loaders.
+7. Log module name, class name, class loader, artifact source, and initialization errors.
 
-Không dùng **SecurityManager** như nền tảng cho thiết kế sandbox mới. Security Manager đã bị deprecated for removal từ JDK 17; cần chọn cơ chế cô lập ở cấp process và hệ điều hành cho code không tin cậy.
+Do not use **SecurityManager** as the foundation for new sandbox designs. The Security Manager has been deprecated for removal since JDK 17; choose process-level and OS-level isolation mechanisms for untrusted code.
 
-## 14. Quản lý vòng đời class loader và module layer
+## 14. Managing Class Loader and Module Layer Lifecycles
 
-Plugin loader không còn cần thiết vẫn có thể giữ class trong bộ nhớ nếu ứng dụng giữ tham chiếu tới class, object, thread, ThreadLocal, context class loader hoặc resource do plugin tạo.
+A plugin loader that is no longer needed can still retain classes in memory if the application holds references to classes, objects, threads, `ThreadLocal`, context class loaders, or resources created by the plugin.
 
-Một số lưu ý:
+Some notes:
 
-- Đóng **URLClassLoader** khi không còn cần nạp thêm class/resource từ JAR. Việc close loader không tự unload các class đã được nạp.
-- Dừng thread do plugin tạo và xóa ThreadLocal/context class loader trỏ tới plugin.
-- Đóng file, socket, executor, watcher và resource do plugin mở.
-- Xóa tham chiếu tới instance, Class, Method, MethodHandle và callback của plugin nếu muốn loader có thể được garbage collector thu hồi.
-- ModuleLayer không có API unload trực tiếp. Các class của layer chỉ có thể được thu hồi khi các loader liên quan không còn được giữ sống và mọi điều kiện khác cho class unloading được đáp ứng.
+- Close **URLClassLoader** when no longer needing to load classes/resources from JARs. Closing the loader does not automatically unload already loaded classes.
+- Stop threads created by plugins and clear `ThreadLocal`/context class loaders pointing to the plugin.
+- Close files, sockets, executors, watchers, and resources opened by the plugin.
+- Clear references to plugin instances, `Class`, `Method`, `MethodHandle`, and callbacks if you want the loader to be reclaimable by the garbage collector.
+- `ModuleLayer` has no direct unload API. A layer's classes can only be reclaimed when the associated loaders are no longer kept alive and all other conditions for class unloading are met.
 
-Đừng dựa vào việc gọi **System.gc()** để đảm bảo plugin được unload ngay. Garbage collection là hoạt động do JVM quyết định; thiết kế plugin phải quản lý resource và tham chiếu một cách rõ ràng.
+Do not rely on calling **System.gc()** to guarantee immediate plugin unloading. Garbage collection is determined by the JVM; plugin design must manage resources and references explicitly.
 
-## 15. Quy trình thiết kế plugin an toàn hơn
+## 15. Process for Safer Plugin Design
 
-Một quy trình thực tế có thể gồm:
+A practical process can include:
 
-1. **Định nghĩa SPI:** đặt interface service trong module API ổn định; chỉ export package API cần thiết.
-2. **Xác định cách đóng gói:** chọn classpath plugin hay modular JAR trên module path.
-3. **Kiểm soát nguồn plugin:** kiểm tra artifact được phê duyệt, phiên bản, checksum/chữ ký và dependency.
-4. **Tạo phạm vi nạp:** dùng class loader hoặc ModuleLayer với parent/API module được xác định rõ.
-5. **Tìm provider:** ưu tiên ServiceLoader thay vì tự tạo tên class từ input tùy ý.
-6. **Kiểm tra hợp đồng:** xác nhận provider đáp ứng interface, version và capability mà ứng dụng yêu cầu.
-7. **Khởi tạo có kiểm soát:** xử lý exception, timeout phù hợp và lỗi ServiceConfigurationError; không coi plugin lỗi là plugin vắng mặt.
-8. **Cấp quyền module tối thiểu:** export package API; chỉ mở package cho deep reflection nếu framework thực sự cần.
-9. **Quản lý vòng đời:** cung cấp start/stop/close, đóng resource và ngăn plugin để lại thread hoặc callback.
-10. **Cô lập code không tin cậy:** chạy ở process/container riêng nếu cần ranh giới bảo mật thực sự.
+1. **Define the SPI:** place the service interface in a stable API module; export only necessary API packages.
+2. **Determine packaging:** choose between classpath plugins or modular JARs on the module path.
+3. **Control plugin sources:** verify approved artifacts, versions, checksums/signatures, and dependencies.
+4. **Create loading scope:** use a class loader or `ModuleLayer` with clearly defined parent/API modules.
+5. **Discover providers:** prefer `ServiceLoader` rather than constructing class names from arbitrary input.
+6. **Verify the contract:** confirm the provider satisfies the interface, version, and capabilities required by the application.
+7. **Controlled initialization:** handle exceptions, appropriate timeouts, and `ServiceConfigurationError`; do not treat a failing plugin as an absent plugin.
+8. **Grant minimal module access:** export API packages; only open packages for deep reflection if frameworks genuinely require it.
+9. **Manage lifecycle:** provide start/stop/close, close resources, and prevent plugins from leaving lingering threads or callbacks.
+10. **Isolate untrusted code:** run in a separate process/container if a real security boundary is needed.
 
-## 16. Tự kiểm tra
+## 16. Self-Check
 
-**1. getDeclaredField() trả về một Field có nghĩa là chương trình được phép đọc field đó không?**
+**1. Does `getDeclaredField()` returning a `Field` mean the program is allowed to read that field?**
 
-Không. Nó chỉ xác nhận field được tìm thấy. Khi gọi get/set, access check vẫn được áp dụng; deep reflection có thể cần package được mở cho module gọi.
+No. It only confirms the field was found. When calling `get`/`set`, access checks still apply; deep reflection may require the package to be opened to the calling module.
 
-**2. Class.forName() có bỏ qua module system không?**
+**2. Does `Class.forName()` bypass the module system?**
 
-Không. Nó tìm và nạp class qua class loader. Việc sử dụng type và truy cập member vẫn chịu module readability, exports, opens và quy tắc access của Java.
+No. It finds and loads the class through a class loader. Using the type and accessing members remain subject to module readability, `exports`, `opens`, and Java access rules.
 
-**3. Vì sao setAccessible(true) có thể ném InaccessibleObjectException trên JDK mới?**
+**3. Why can `setAccessible(true)` throw `InaccessibleObjectException` on newer JDKs?**
 
-Vì module chứa class không mở package cho module đang gọi deep reflection. Cần dùng API công khai, khai báo opens có phạm vi hẹp hoặc cấu hình --add-opens nếu thực sự cần.
+Because the module containing the class does not open the package to the module invoking deep reflection. Use a public API, declare narrowly scoped `opens`, or configure `--add-opens` if genuinely needed.
 
-**4. Khi nào nên dùng ModuleLayer thay vì chỉ tạo URLClassLoader?**
+**4. When should `ModuleLayer` be used instead of only creating a `URLClassLoader`?**
 
-Khi plugin được đóng gói thành named module và cần một module graph riêng, với requires, exports, uses và provides rõ ràng. URLClassLoader phù hợp với một số plugin trên classpath nhưng không tự cung cấp module configuration.
+When plugins are packaged as named modules and need their own module graph, with explicit `requires`, `exports`, `uses`, and `provides`. `URLClassLoader` suits some classpath plugins but does not provide module configuration on its own.
 
-**5. Hai class cùng tên có thể gây ClassCastException không?**
+**5. Can two classes with the same name cause a `ClassCastException`?**
 
-Có. Nếu chúng được định nghĩa bởi hai defining class loader khác nhau, JVM xem chúng là hai kiểu runtime khác nhau.
+Yes. If they are defined by two different defining class loaders, the JVM treats them as two distinct runtime types.
 
-**6. Module riêng có đủ để chạy plugin không đáng tin cậy một cách an toàn không?**
+**6. Is a separate module enough to run an untrusted plugin safely?**
 
-Không. JPMS kiểm soát truy cập theo module, không sandbox code. Với code không tin cậy, cần cô lập ở process/container và giới hạn quyền hệ điều hành.
+No. JPMS controls access by module, not code sandboxing. For untrusted code, process/container isolation and OS permission restrictions are required.
 
-## 17. Ghi nhớ
+## 17. Takeaways
 
-Reflection và dynamic loading là công cụ mạnh cho framework và plugin, nhưng không bỏ qua ranh giới JPMS. Tìm được class không đồng nghĩa được truy cập type; tìm được Field không đồng nghĩa được đọc/ghi member; nạp được plugin không đồng nghĩa plugin có quyền hoặc đáng tin cậy.
+Reflection and dynamic loading are powerful tools for frameworks and plugins, yet they do not bypass JPMS boundaries. Finding a class does not mean accessing the type is allowed; finding a `Field` does not mean reading/writing the member is allowed; loading a plugin does not mean the plugin is authorized or trustworthy.
 
-Dùng **exports** cho public API, **opens** cho deep reflection, **ClassLoader** hoặc **ModuleLayer** cho cơ chế nạp phù hợp, và **ServiceLoader** cho SPI. Quản lý class loader, module graph, dependency và vòng đời plugin rõ ràng. Khi cần chạy code không tin cậy, hãy dùng ranh giới cô lập ở cấp process thay vì coi module system là sandbox.
+Use **exports** for public APIs, **opens** for deep reflection, **ClassLoader** or **ModuleLayer** for appropriate loading mechanisms, and **ServiceLoader** for SPI. Manage class loaders, module graphs, dependencies, and plugin lifecycles explicitly. When running untrusted code is required, use process-level isolation boundaries instead of treating the module system as a sandbox.
 
-## Tài liệu tham khảo
+## References
 
 - [AccessibleObject — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html)
 - [Class — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html)

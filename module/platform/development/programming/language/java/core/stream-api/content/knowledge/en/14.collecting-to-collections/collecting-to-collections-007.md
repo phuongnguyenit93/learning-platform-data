@@ -1,15 +1,15 @@
-# Dùng toUnmodifiableList và toUnmodifiableSet
+# Using toUnmodifiableList and toUnmodifiableSet
 
-## 1. Vì sao cần thu thập thành Collection không thể sửa đổi?
+## 1. Why Collect into an Unmodifiable Collection?
 
-Trong **Java Stream API**, `filter`, `map` và các thao tác trung gian khác mô tả một pipeline xử lý dữ liệu theo cách khai báo. Đến thao tác kết thúc `collect`, dữ liệu mới được gom vào một kết quả như `List`, `Set` hoặc `Map`.
+In the **Java Stream API**, `filter`, `map`, and other intermediate operations describe a data processing pipeline declaratively. Only at the terminal operation `collect` is the data gathered into a result such as a `List`, `Set`, or `Map`.
 
-Một số kết quả được dùng làm **danh sách tham chiếu**, **tập mã hợp lệ** hoặc **dữ liệu trả về từ tầng dịch vụ**. Nếu code nhận kết quả có thể tự ý thêm hoặc xóa phần tử, quy tắc nghiệp vụ dễ bị phá vỡ. Hai collector sau giúp biểu đạt rằng **cấu trúc Collection kết quả không được chỉnh sửa**:
+Some results serve as **reference lists**, **valid code sets**, or **return values from a service layer**. If receiving code can freely add or remove elements, business rules are easily broken. The following two collectors express that **the structure of the resulting Collection cannot be modified**:
 
-- `Collectors.toUnmodifiableList()`: tạo một danh sách không cho phép chỉnh sửa, **giữ phần tử trùng lặp** và bảo toàn encounter order nếu Stream có thứ tự.
-- `Collectors.toUnmodifiableSet()`: tạo một tập không cho phép chỉnh sửa, **loại phần tử trùng theo `equals`/`hashCode`**, không cam kết thứ tự duyệt.
+- `Collectors.toUnmodifiableList()`: creates an unmodifiable list, **retaining duplicate elements** and preserving encounter order if the Stream is ordered.
+- `Collectors.toUnmodifiableSet()`: creates an unmodifiable set, **removing duplicate elements per `equals`/`hashCode`**, with no guarantee on iteration order.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.List;
@@ -28,15 +28,15 @@ System.out.println(asList);       // [A, B, A, C]
 System.out.println(asSet.size()); // 3
 ```
 
-`asList` giữ bốn phần tử theo thứ tự; `asSet` chỉ chứa ba giá trị khác nhau `A`, `B`, `C`. Cả hai đều từ chối những thao tác như `add`, `remove` hoặc `clear`.
+`asList` keeps all four elements in order; `asSet` holds only the three distinct values `A`, `B`, `C`. Both reject operations such as `add`, `remove`, or `clear`.
 
-Bài học thuộc chương **Thu thập thành Collection**. Sau khi học, bạn có thể chọn đúng collector theo nhu cầu về thứ tự và trùng lặp; xử lý `null` trước khi thu thập; phân biệt kết quả unmodifiable với bất biến sâu; và dùng các collector này trong pipeline tuần tự, song song và báo cáo nghiệp vụ.
+This lesson belongs to the **Collecting into Collections** chapter. After studying it, you will be able to choose the right collector based on ordering and duplicate requirements; handle `null` before collecting; distinguish unmodifiable results from deep immutability; and use these collectors in sequential, parallel, and business-reporting pipelines.
 
-**Phiên bản Java:** cả `Collectors.toUnmodifiableList()` và `Collectors.toUnmodifiableSet()` có từ **Java 10**. Ví dụ hoàn chỉnh trong bài dùng Java 17+ để có `record` và `Stream.toList()`. Không cần Java 17 nếu chỉ sử dụng hai collector trên.
+**Java version:** both `Collectors.toUnmodifiableList()` and `Collectors.toUnmodifiableSet()` have been available since **Java 10**. Complete examples in this lesson use Java 17+ for `record` and `Stream.toList()`. Java 17 is not required if you only use the two collectors above.
 
-## 2. Kiểu trả về và vị trí trong collect
+## 2. Return Types and Role in collect
 
-Hai phương thức của lớp `java.util.stream.Collectors` có chữ ký:
+The two methods in `java.util.stream.Collectors` have the signatures:
 
 ```java
 public static <T> Collector<T, ?, List<T>> toUnmodifiableList()
@@ -44,9 +44,9 @@ public static <T> Collector<T, ?, List<T>> toUnmodifiableList()
 public static <T> Collector<T, ?, Set<T>> toUnmodifiableSet()
 ```
 
-Đối số `Collector<T, A, R>` mô tả cách gom từng phần tử `T` vào một trạng thái tích lũy `A` rồi tạo kết quả `R`. Ở hai chữ ký trên, trạng thái tích lũy được ẩn bởi dấu `?`, còn kết quả lần lượt là `List<T>` và `Set<T>`.
+The type arguments `Collector<T, A, R>` describe how each element `T` is accumulated into an intermediate state `A` to produce a result `R`. In both signatures above, the accumulation state is hidden by `?`, and the results are `List<T>` and `Set<T>`, respectively.
 
-Sử dụng qua terminal operation `collect(Collector)`:
+Used via the terminal operation `collect(Collector)`:
 
 ```java
 List<String> labels = List.of("  Java  ", "Stream", "Java")
@@ -60,30 +60,30 @@ Set<String> distinctLabels = List.of("  Java  ", "Stream", "Java")
         .collect(Collectors.toUnmodifiableSet());
 ```
 
-Pipeline hoạt động theo logic:
+The pipeline follows this flow:
 
 ```text
-Nguồn Stream<T>
+Stream<T> source
      |
- filter / map             Thao tác trung gian lazy
+ filter / map             Lazy intermediate operations
      |
- collect(...)             Thao tác kết thúc
+ collect(...)             Terminal operation
      |
  +--------------------+-----------------------+
  |                    |                       |
  toUnmodifiableList() |                toUnmodifiableSet()
  |                    |                       |
  List<T>              |                    Set<T>
- giữ trùng + thứ tự   |              loại trùng, không hứa thứ tự
- không sửa cấu trúc   |              không sửa cấu trúc
+ keeps dups + order   |              deduplicates, no order promise
+ unmodifiable struct  |              unmodifiable struct
  +--------------------+-----------------------+
 ```
 
-`collect` **kích hoạt việc duyệt Stream**. Sau khi terminal operation kết thúc, Stream đó không thể dùng lại; nếu cần một kết quả List và một kết quả Set từ cùng nguồn, hãy tạo hai pipeline riêng hoặc thiết kế phép thu thập kết hợp khi thực sự cần một lượt duyệt.
+`collect` **triggers traversal of the Stream**. Once the terminal operation finishes, that Stream cannot be reused; if you need both a List result and a Set result from the same source, create two separate pipelines or design a combined collection when a single pass is truly necessary.
 
-## 3. toUnmodifiableList: giữ thứ tự và giữ phần tử trùng
+## 3. toUnmodifiableList: Preserving Order and Duplicates
 
-Khi dữ liệu biểu diễn **chuỗi bước**, **danh sách giao dịch** hoặc **lịch sử xuất hiện**, một phần tử lặp lại vẫn có thể mang ý nghĩa. `toUnmodifiableList` giữ nguyên các phần tử đó.
+When data represents a **sequence of steps**, a **transaction log**, or an **occurrence history**, repeated elements can carry meaning. `toUnmodifiableList` retains those elements.
 
 ```java
 List<String> events = List.of("LOGIN", "VIEW", "VIEW", "LOGOUT");
@@ -95,27 +95,27 @@ List<String> history = events.stream()
 System.out.println(history); // [LOGIN, VIEW, VIEW, LOGOUT]
 ```
 
-Với Stream có **encounter order** như `List.stream()`, List kết quả giữ thứ tự gặp phần tử. Nếu nguồn không có thứ tự, ví dụ một số `Set` hoặc pipeline gọi `unordered()`, collector này không thể tự suy ra thứ tự nghiệp vụ và không bảo đảm một thứ tự có ý nghĩa.
+For a Stream with an **encounter order** such as `List.stream()`, the resulting List preserves the element encounter order. If the source is unordered, such as certain `Set`s or a pipeline calling `unordered()`, this collector cannot infer business ordering and guarantees no meaningful order.
 
-### Không thể sửa cấu trúc List đã thu thập
+### Cannot Modify the Structure of the Collected List
 
 ```java
 List<Integer> scores = List.of(8, 9, 7)
         .stream()
         .collect(Collectors.toUnmodifiableList());
 
-// Mỗi thao tác bên dưới đều ném UnsupportedOperationException.
+// Each operation below throws UnsupportedOperationException.
 // scores.add(10);
 // scores.remove(0);
 // scores.set(0, 10);
 // scores.clear();
 ```
 
-Tuy nhiên, **đọc dữ liệu** vẫn bình thường: `scores.size()`, `scores.get(0)`, `scores.stream()` và duyệt bằng vòng lặp vẫn hợp lệ.
+However, **reading data** works normally: `scores.size()`, `scores.get(0)`, `scores.stream()`, and loop iteration remain valid.
 
-Điểm cần phân biệt là kết quả unmodifiable không có nghĩa tất cả đối tượng nằm bên trong đều bất biến. Nếu List chứa một đối tượng mutable, code vẫn có thể gọi phương thức làm thay đổi trạng thái của đối tượng đó. Mục 8 sẽ minh họa rõ.
+A distinction to keep in mind is that an unmodifiable result does not mean every object inside it is immutable. If the List holds a mutable object, code can still call methods that change that object's state. Section 8 illustrates this clearly.
 
-### Danh sách mới có phụ thuộc thay đổi nguồn không?
+### Does the New List Depend on Source Mutations?
 
 ```java
 List<String> mutableSource =
@@ -129,11 +129,11 @@ System.out.println(mutableSource); // [A, B, C]
 System.out.println(locked);        // [A, B]
 ```
 
-Kết quả `locked` đã được thu thập; nó không phải view được liên kết với Collection nguồn. **Các tham chiếu đối tượng phần tử** vẫn có thể được chia sẻ nếu phần tử thuộc kiểu mutable.
+The `locked` result has already been collected; it is not a live view tied to the source Collection. **Element object references** can still be shared if elements are of mutable types.
 
-## 4. toUnmodifiableSet: bảo đảm tính duy nhất theo equals/hashCode
+## 4. toUnmodifiableSet: Ensuring Uniqueness by equals/hashCode
 
-Nếu dữ liệu cần biểu diễn **tập mã duy nhất**, **các vai trò đã cấp** hoặc **danh sách tính năng đã bật**, một `Set` sẽ phù hợp hơn danh sách có thể chứa phần tử trùng.
+If data needs to represent a **set of unique codes**, **granted roles**, or **enabled feature flags**, a `Set` fits better than a list that allows duplicates.
 
 ```java
 List<String> permissions = List.of(
@@ -147,13 +147,13 @@ System.out.println(uniquePermissions.size());         // 3
 System.out.println(uniquePermissions.contains("READ")); // true
 ```
 
-Đừng dựa vào kết quả `System.out.println(uniquePermissions)` có cùng thứ tự với nguồn. `toUnmodifiableSet` không hứa giữ encounter order, nên ví dụ kiểm tra **kích thước và sự tồn tại của phần tử**.
+Do not rely on `System.out.println(uniquePermissions)` having the same order as the source. `toUnmodifiableSet` does not promise to preserve encounter order, so the example checks **size and element membership**.
 
-### Trùng lặp theo quy tắc nào?
+### By Which Rule Are Duplicates Determined?
 
-Set dùng cơ chế bình đẳng của phần tử: đối với kiểu đối tượng thông thường, đó là `equals` và `hashCode`. Với `String`, hai chuỗi có cùng nội dung là bằng nhau.
+A Set uses element equality semantics: for ordinary object types, that means `equals` and `hashCode`. For `String`, two strings with identical contents are equal.
 
-Với đối tượng tự định nghĩa, hai đối tượng khác tham chiếu vẫn có thể bị coi là trùng nếu có quy tắc bình đẳng tương ứng. Ví dụ `record` tự sinh `equals`/`hashCode` dựa trên các thành phần:
+For custom types, two objects with different references can still be considered duplicates if they have matching equality rules. For example, a `record` automatically generates `equals`/`hashCode` based on its components:
 
 ```java
 record Tag(String code, String label) {}
@@ -170,31 +170,31 @@ Set<Tag> tags = input.stream()
 System.out.println(tags.size()); // 2
 ```
 
-Hai entry đầu bằng nhau nên bị loại trùng; entry thứ ba khác `label`, vì vậy vẫn là một phần tử riêng. Nếu nghiệp vụ định nghĩa "trùng" **chỉ theo mã `code`**, phải chuẩn hóa hoặc lựa chọn khóa so sánh trước khi thu thập. `toUnmodifiableSet` không nhận comparator hay hàm xác định khóa tùy chỉnh.
+The first two entries are equal and therefore deduplicated; the third entry has a different `label`, so it remains a distinct element. If business rules define "duplicate" **by `code` alone**, you must normalize or choose the comparison key before collecting. `toUnmodifiableSet` does not take a custom comparator or key-extractor function.
 
-### Phần tử nào được giữ khi các đối tượng bằng nhau?
+### Which Element Is Kept When Objects Are Equal?
 
-Nếu các phần tử **bằng nhau theo `equals`** nhưng là các đối tượng khác nhau, API cho phép giữ một phần tử **bất kỳ** trong nhóm trùng. Không được dựa vào việc giữ "bản đầu tiên" hoặc "bản cuối cùng", nhất là trong pipeline song song.
+When elements are **equal under `equals`** yet are distinct object instances, the API allows retaining **any** element from the duplicate group. Do not rely on keeping "the first instance" or "the last instance", especially in a parallel pipeline.
 
-Khi cần chọn bản ghi mới nhất theo ID hoặc ưu tiên dữ liệu có trạng thái tốt nhất, hãy biểu diễn quy tắc chọn bằng `toMap` có hàm merge, `groupingBy` hoặc một phép xử lý riêng, sau đó mới tạo đầu ra không sửa được.
+When you need to pick the latest record by ID or prefer data with the best status, express the selection rule using `toMap` with a merge function, `groupingBy`, or a dedicated processing step, and only then produce an unmodifiable output.
 
-## 5. toUnmodifiableList và toUnmodifiableSet khác nhau thế nào?
+## 5. How Do toUnmodifiableList and toUnmodifiableSet Differ?
 
-| Thuộc tính | `toUnmodifiableList()` | `toUnmodifiableSet()` |
+| Property | `toUnmodifiableList()` | `toUnmodifiableSet()` |
 | --- | --- | --- |
-| Kiểu kết quả | `List<T>` | `Set<T>` |
-| Giữ phần tử trùng | Có | Không |
-| Encounter order | Bảo toàn khi Stream có thứ tự | Không cam kết |
-| Lấy phần tử theo chỉ số | Có, qua `get(index)` | Không có chỉ số |
-| Kiểm tra thuộc tập | `contains` được hỗ trợ | `contains` được hỗ trợ; phù hợp ngữ nghĩa tập hợp |
-| Cho phép `null` | Không | Không |
-| Cho phép `add`/`remove`/`clear` | Không | Không |
-| Bảo đảm phần tử bên trong bất biến sâu | Không | Không |
-| Đảm bảo kiểu triển khai cụ thể | Không | Không |
+| Result type | `List<T>` | `Set<T>` |
+| Retains duplicates | Yes | No |
+| Encounter order | Preserved when Stream is ordered | Not promised |
+| Indexed access | Yes, via `get(index)` | No indices |
+| Membership check | `contains` supported | `contains` supported; fits set semantics |
+| Allows `null` | No | No |
+| Allows `add`/`remove`/`clear` | No | No |
+| Guarantees deep immutability of inner elements | No | No |
+| Guarantees concrete implementation type | No | No |
 
-Cả hai collector đều tạo kết quả **unmodifiable**, nhưng không hứa kiểu triển khai như `ArrayList`, `HashSet`, `LinkedHashSet`, cũng không hứa khả năng tuần tự hóa (`Serializable`). Để code có thể thay thế triển khai, hãy lập trình với interface `List` hoặc `Set`.
+Both collectors produce **unmodifiable** results, yet neither promises a concrete implementation class like `ArrayList`, `HashSet`, or `LinkedHashSet`, nor serializability (`Serializable`). To keep code independent of implementations, program against the `List` or `Set` interface.
 
-Nếu cần **thứ tự và tính duy nhất đồng thời**, có thể xử lý trên Stream có thứ tự trước khi thu thập thành List:
+If you need **both order and uniqueness at the same time**, process on an ordered Stream before collecting into a List:
 
 ```java
 List<String> orderedUnique = List.of("A", "B", "A", "C")
@@ -205,11 +205,11 @@ List<String> orderedUnique = List.of("A", "B", "A", "C")
 System.out.println(orderedUnique); // [A, B, C]
 ```
 
-Với Stream **có thứ tự**, `distinct()` giữ lần xuất hiện đầu tiên của mỗi giá trị bằng nhau. Danh sách sau đó giữ thứ tự đã chọn. Nếu cần hẳn một Set có thứ tự lặp được bảo đảm bởi thiết kế Collection, `LinkedHashSet` là lựa chọn phù hợp; có thể khóa thao tác sửa sau khi thu thập như ở mục 7.
+On an **ordered** Stream, `distinct()` keeps the first occurrence of each equal value. The resulting list preserves the chosen order. If you specifically need a Set whose iteration order is guaranteed by the Collection's design, `LinkedHashSet` is suitable; you can lock mutations after collection as shown in section 7.
 
-## 6. Chính sách với null: cả hai collector đều từ chối
+## 6. Policy on null: Both Collectors Reject It
 
-Đây là khác biệt quan trọng với một số cách thu thập Collection khác: **`toUnmodifiableList` và `toUnmodifiableSet` không chấp nhận phần tử `null`**. Nếu Stream có phần tử `null`, terminal operation sẽ thất bại với `NullPointerException`.
+This is a critical difference from some other Collection-collecting approaches: **`toUnmodifiableList` and `toUnmodifiableSet` do not accept `null` elements**. If the Stream contains a `null` element, the terminal operation fails with `NullPointerException`.
 
 ```java
 import java.util.Arrays;
@@ -218,15 +218,15 @@ import java.util.stream.Collectors;
 
 List<String> data = Arrays.asList("A", null, "B");
 
-// SAI: kết quả mong muốn chứa null.
+// WRONG: expecting the result to contain null.
 // List<String> invalid = data.stream()
 //         .collect(Collectors.toUnmodifiableList());
-// Ném NullPointerException.
+// Throws NullPointerException.
 ```
 
-Điều tương tự xảy ra với `toUnmodifiableSet`. Trước khi thu thập, hãy quyết định `null` là dữ liệu lỗi, phần tử cần bỏ qua hay giá trị thiếu cần thay thế.
+The same applies to `toUnmodifiableSet`. Before collecting, decide whether `null` is invalid data, an element to skip, or a missing value to replace.
 
-### Bỏ qua phần tử null
+### Skipping null Elements
 
 ```java
 import java.util.Objects;
@@ -238,7 +238,7 @@ List<String> nonNull = data.stream()
 System.out.println(nonNull); // [A, B]
 ```
 
-### Thay thế null bằng giá trị tường minh
+### Replacing null with an Explicit Value
 
 ```java
 List<String> normalized = data.stream()
@@ -248,44 +248,44 @@ List<String> normalized = data.stream()
 System.out.println(normalized.contains("UNKNOWN")); // true
 ```
 
-Với dữ liệu bắt buộc, việc thay `null` bằng `"UNKNOWN"` có thể che giấu lỗi. Hãy kiểm tra và báo lỗi trước khi thực hiện pipeline nếu quy tắc nghiệp vụ yêu cầu.
+For mandatory data, replacing `null` with `"UNKNOWN"` can mask bugs. Validate and report errors before running the pipeline if business rules require it.
 
-### Phân biệt với Stream.toList()
+### Distinction from Stream.toList()
 
-`Stream.toList()` (Java 16+) cũng trả về một **List không cho phép chỉnh sửa**. Tuy nhiên, hai API không có cùng toàn bộ hợp đồng: `Collectors.toUnmodifiableList()` quy định rõ **từ chối `null`**, còn `Stream.toList()` trên các JDK hiện hành cho phép kết quả chứa `null`.
+`Stream.toList()` (Java 16+) also returns an **unmodifiable List**. However, the two APIs do not share the exact same contract: `Collectors.toUnmodifiableList()` explicitly **rejects `null`**, whereas `Stream.toList()` on current JDKs allows the result to contain `null`.
 
 ```java
 List<String> maybeNull = java.util.Arrays.asList("A", null).stream()
-        .toList(); // Có thể chứa null; đầu ra vẫn unmodifiable.
+        .toList(); // May contain null; output is still unmodifiable.
 ```
 
-Nếu muốn bảo đảm dữ liệu không có `null`, đừng chỉ đổi terminal operation rồi hy vọng. Hãy thể hiện chính sách bằng kiểm tra, lọc hoặc collector có ràng buộc `null` rõ ràng.
+If you want to guarantee data contains no `null`, do not just switch terminal operations and hope. Express the policy explicitly with validation, filtering, or a collector with a clear `null` constraint.
 
-## 7. So sánh với các cách thu thập Collection khác
+## 7. Comparison with Other Collection-Collecting Methods
 
-Chữ "List" hay "Set" trong tên collector **chưa đủ để kết luận khả năng chỉnh sửa kết quả**.
+The word "List" or "Set" in a collector's name is **not enough to conclude result mutability**.
 
-| Cách thu thập | Kết quả | Cam kết về chỉnh sửa |
+| Collection method | Result | Mutability guarantee |
 | --- | --- | --- |
-| `collect(Collectors.toUnmodifiableList())` | `List<T>`, giữ trùng, giữ encounter order | **Không cho chỉnh sửa** |
-| `collect(Collectors.toUnmodifiableSet())` | `Set<T>`, loại trùng | **Không cho chỉnh sửa** |
-| `stream.toList()` | `List<T>`, giữ encounter order | **Không cho chỉnh sửa**, Java 16+ |
-| `collect(Collectors.toList())` | `List<T>` | **Không cam kết** kiểu triển khai hay khả năng chỉnh sửa |
-| `collect(Collectors.toSet())` | `Set<T>` | **Không cam kết** kiểu triển khai, khả năng chỉnh sửa hay thứ tự |
-| `collect(Collectors.toCollection(ArrayList::new))` | `ArrayList<T>` | Có thể thêm/xóa phần tử |
-| `collect(Collectors.toCollection(LinkedHashSet::new))` | `LinkedHashSet<T>` | Có thể sửa; lặp theo thứ tự chèn |
-| `List.copyOf(collection)` / `Set.copyOf(collection)` | Bản sao không cho chỉnh sửa | Java 10+; từ chối `null` |
+| `collect(Collectors.toUnmodifiableList())` | `List<T>`, keeps duplicates, keeps encounter order | **Unmodifiable** |
+| `collect(Collectors.toUnmodifiableSet())` | `Set<T>`, deduplicates | **Unmodifiable** |
+| `stream.toList()` | `List<T>`, keeps encounter order | **Unmodifiable**, Java 16+ |
+| `collect(Collectors.toList())` | `List<T>` | **No guarantee** of implementation type or mutability |
+| `collect(Collectors.toSet())` | `Set<T>` | **No guarantee** of implementation type, mutability, or order |
+| `collect(Collectors.toCollection(ArrayList::new))` | `ArrayList<T>` | Can add/remove elements |
+| `collect(Collectors.toCollection(LinkedHashSet::new))` | `LinkedHashSet<T>` | Modifiable; iterates in insertion order |
+| `List.copyOf(collection)` / `Set.copyOf(collection)` | Unmodifiable copy | Java 10+; rejects `null` |
 
-Nếu cần một danh sách có thể thay đổi có chủ đích, yêu cầu trực tiếp kiểu Collection:
+If you intentionally need a mutable list, request the Collection type directly:
 
 ```java
 List<String> editable = List.of("A", "B").stream()
         .collect(Collectors.toCollection(java.util.ArrayList::new));
 
-editable.add("C"); // Hợp lệ.
+editable.add("C"); // Valid.
 ```
 
-Nếu cần **Set giữ thứ tự chèn** rồi ngăn code sử dụng kết quả sửa nó:
+If you need a **Set preserving insertion order** and want to prevent downstream code from modifying it:
 
 ```java
 import java.util.Collections;
@@ -297,22 +297,22 @@ Set<String> orderedUnique = List.of("A", "B", "A", "C").stream()
                 Collections::unmodifiableSet
         ));
 
-System.out.println(orderedUnique); // [A, B, C] theo thứ tự chèn.
+System.out.println(orderedUnique); // [A, B, C] in insertion order.
 ```
 
-`Collections.unmodifiableSet` tạo **view không cho phép sửa qua view đó** trên Set được truyền vào. Nếu còn tham chiếu đến Set gốc, thay đổi qua tham chiếu ấy vẫn hiện trong view. Trong pipeline trên, Set trung gian được tạo nội bộ và không bị công bố ở nơi khác, nên cách viết phù hợp với mục tiêu ngăn người dùng kết quả sửa cấu trúc.
+`Collections.unmodifiableSet` creates a **view that disallows modification through that view** over the passed Set. If a reference to the original Set remains, mutations via that reference still show up in the view. In the pipeline above, the intermediate Set is created internally and never exposed elsewhere, so this pattern achieves the goal of preventing callers from modifying the structure.
 
-Trái lại, `toUnmodifiableSet` đã diễn đạt trực tiếp việc thu thập thành một Set không cho sửa, nhưng **không hứa thứ tự**. Hãy ưu tiên cách đơn giản khi thứ tự không có ý nghĩa nghiệp vụ.
+By contrast, `toUnmodifiableSet` directly expresses collecting into an unmodifiable Set, though it **does not promise order**. Prefer the simpler approach when ordering has no business significance.
 
-### Khác biệt giữa Set.of và thu thập thành Set
+### Difference Between Set.of and Collecting into a Set
 
-`Set.of("A", "A")` ném `IllegalArgumentException` vì các phần tử truyền vào bị trùng. `Collectors.toUnmodifiableSet()` **loại trùng** trong lúc thu thập, không ném lỗi chỉ vì có nhiều phần tử bằng nhau.
+`Set.of("A", "A")` throws `IllegalArgumentException` because the passed elements are duplicates. `Collectors.toUnmodifiableSet()` **deduplicates** during collection and does not throw an error simply because equal elements exist.
 
-`Set.copyOf(collection)` cũng tạo Set không sửa được và xử lý phần tử trùng theo quy tắc tập hợp. Nếu muốn xem trùng là lỗi dữ liệu, cần kiểm tra trùng riêng thay vì dựa vào `toUnmodifiableSet`.
+`Set.copyOf(collection)` also creates an unmodifiable Set and handles duplicates according to set rules. If duplicates should be treated as a data error, check for duplicates separately rather than relying on `toUnmodifiableSet`.
 
-## 8. Unmodifiable không có nghĩa là bất biến sâu
+## 8. Unmodifiable Does Not Mean Deeply Immutable
 
-Kết quả từ hai collector không cho phép **thay đổi cấu trúc Collection**; chúng **không tự sao chép sâu** các đối tượng mutable được chứa bên trong.
+Results from these two collectors forbid **modifying the Collection structure**; they **do not automatically deep-copy** mutable objects stored inside.
 
 ```java
 StringBuilder mutableText = new StringBuilder("draft");
@@ -326,9 +326,9 @@ mutableText.append("-updated");
 System.out.println(locked.get(0)); // draft-updated
 ```
 
-Tương tự, nếu Set chứa đối tượng mutable có `equals` hoặc `hashCode` phụ thuộc trường có thể thay đổi, việc sửa trường đó sau khi đưa vào Set có thể làm các thao tác `contains` và tìm kiếm hoạt động không như mong đợi.
+Similarly, if a Set holds mutable objects whose `equals` or `hashCode` depends on a mutable field, changing that field after insertion into the Set can cause `contains` and lookups to behave unexpectedly.
 
-Để tạo dữ liệu trả về ổn định hơn, hãy **ánh xạ phần tử sang giá trị bất biến** trước khi thu thập:
+To create more stable return data, **map elements to immutable values** before collecting:
 
 ```java
 List<StringBuilder> builders = List.of(
@@ -344,7 +344,7 @@ builders.get(0).append("-changed");
 System.out.println(stableText); // [A, B]
 ```
 
-Với cấu trúc lồng nhau, chuyển đổi từng Collection con nếu muốn tránh sửa cả bên trong. Ví dụ `List<List<String>>` chỉ không cho sửa List ngoài khi các List con còn mutable. Có thể làm rõ quyền thay đổi:
+For nested structures, transform each inner Collection if you want to prevent inner mutations as well. For example, `List<List<String>>` only prevents modifying the outer List while inner Lists remain mutable. You can lock both levels explicitly:
 
 ```java
 List<List<String>> nested = List.of(
@@ -357,11 +357,11 @@ List<List<String>> deeplyLockedForStrings = nested.stream()
         .collect(Collectors.toUnmodifiableList());
 ```
 
-Ví dụ này chốt cả hai tầng List; `String` bản thân là kiểu bất biến. Nếu phần tử là một đối tượng nghiệp vụ mutable, `List.copyOf` vẫn không tạo bản sao sâu của đối tượng đó.
+This example locks both List layers; `String` itself is an immutable type. If elements are mutable business objects, `List.copyOf` still does not deep-copy those objects.
 
-## 9. Tiền xử lý trước khi thu thập: filter, map và distinct
+## 9. Preprocessing Before Collecting: filter, map, and distinct
 
-Hai collector chỉ quyết định **cách lưu kết quả cuối cùng**. Các quy tắc chọn và chuẩn hóa dữ liệu nên được diễn đạt trong pipeline.
+The two collectors only decide **how the final result is stored**. Rules for selecting and normalizing data should be expressed in the pipeline.
 
 ```java
 import java.util.Locale;
@@ -379,7 +379,7 @@ System.out.println(roles.contains("ADMIN")); // true
 System.out.println(roles.contains("READER")); // true
 ```
 
-Thứ tự trong Set không được cam kết. Nếu muốn **giữ lịch sử mã sau chuẩn hóa**, dùng List:
+Order inside the Set is not guaranteed. If you want to **preserve the history of normalized codes**, use a List:
 
 ```java
 List<String> normalizedHistory = input.stream()
@@ -392,28 +392,28 @@ System.out.println(normalizedHistory);
 // [ADMIN, ADMIN, READER, READER]
 ```
 
-Không cần thêm `distinct()` trước `toUnmodifiableSet()` chỉ để bảo đảm Set không chứa phần tử trùng: chính Set đã thực hiện ràng buộc đó. `distinct()` có thể có ý nghĩa nếu muốn loại trùng **trước khi thực hiện một bước biến đổi tốn kém**; cần đánh giá thứ tự, chi phí và nghĩa của pipeline.
+You do not need `distinct()` before `toUnmodifiableSet()` just to ensure the Set has no duplicates: the Set already enforces that constraint. `distinct()` can be useful if you want to deduplicate **before running an expensive transformation step**; evaluate ordering, cost, and pipeline semantics.
 
-### Muốn chọn đối tượng theo khóa thay vì equals?
+### Want to Select Objects by Key Instead of equals?
 
-`toUnmodifiableSet` không thay `groupingBy` hoặc `toMap` khi doanh nghiệp định nghĩa "duy nhất theo mã" nhưng đối tượng chứa nhiều trường:
+`toUnmodifiableSet` does not replace `groupingBy` or `toMap` when business rules define "unique by code" while objects carry multiple fields:
 
 ```java
 record Product(String sku, String name) {}
 
 List<Product> products = List.of(
-        new Product("P01", "Bút xanh"),
-        new Product("P01", "Bút bi"),
-        new Product("P02", "Vở")
+        new Product("P01", "Blue pen"),
+        new Product("P01", "Ballpoint pen"),
+        new Product("P02", "Notebook")
 );
 
 Set<Product> set = products.stream()
         .collect(Collectors.toUnmodifiableSet());
 
-System.out.println(set.size()); // 3: hai Product P01 khác name.
+System.out.println(set.size()); // 3: the two P01 Products differ in name.
 ```
 
-Nếu chỉ cần tập mã sản phẩm, hãy ánh xạ sang `sku` trước khi thu thập:
+If you only need the set of product codes, map to `sku` before collecting:
 
 ```java
 Set<String> distinctSkus = products.stream()
@@ -423,13 +423,13 @@ Set<String> distinctSkus = products.stream()
 System.out.println(distinctSkus.size()); // 2
 ```
 
-Nếu cần giữ lại **một Product đầy đủ cho mỗi SKU**, phải định nghĩa rõ cách chọn khi trùng mã, ví dụ dùng `Collectors.toMap(Product::sku, Function.identity(), mergeFunction)` và sau đó chuyển kết quả sang dạng không cho sửa. Không được dựa vào Set tự hiểu một tiêu chí trùng không có trong `equals`/`hashCode`.
+If you need to keep **one complete Product per SKU**, explicitly define how to resolve duplicate codes, such as using `Collectors.toMap(Product::sku, Function.identity(), mergeFunction)` and then converting the result to an unmodifiable form. Do not rely on Set to guess a uniqueness criterion absent from `equals`/`hashCode`.
 
-## 10. Nguồn có thứ tự, chạy song song và khả năng dự đoán
+## 10. Ordered Sources, Parallel Execution, and Predictability
 
-### Với Stream có thứ tự
+### With Ordered Streams
 
-`List.stream()` có encounter order. `toUnmodifiableList` bảo toàn thứ tự đó:
+`List.stream()` has an encounter order. `toUnmodifiableList` preserves that order:
 
 ```java
 List<Integer> numbers = List.of(5, 1, 4, 1, 3);
@@ -444,13 +444,13 @@ System.out.println(sequential); // [5, 1, 4, 1, 3]
 System.out.println(parallel);   // [5, 1, 4, 1, 3]
 ```
 
-Thứ tự **thực thi lambda** có thể khác giữa các thread, nhưng kết quả của phép thu thập đúng hợp đồng từ nguồn có thứ tự vẫn giữ encounter order.
+Lambda **execution order** may differ across threads, but the result of a contract-compliant collection from an ordered source still preserves encounter order.
 
-### Với Set không có thứ tự cam kết
+### With Sets That Have No Promised Order
 
-`toUnmodifiableSet` bảo đảm tập hợp phần tử duy nhất, **không bảo đảm thứ tự trình bày** khi chạy tuần tự hoặc song song. Với hai đối tượng bằng nhau, không dựa vào đối tượng nào sẽ được giữ lại.
+`toUnmodifiableSet` guarantees a set of unique elements, **not presentation order** in sequential or parallel runs. When two objects are equal, do not rely on which object is retained.
 
-Vì vậy, nếu hệ thống cần danh sách hiển thị có thứ tự ổn định, hãy sắp xếp theo tiêu chí cụ thể và thu thập sang List:
+Therefore, if the system needs a stably ordered display list, sort by a specific criterion and collect into a List:
 
 ```java
 List<Integer> sortedUnique = numbers.parallelStream()
@@ -461,22 +461,22 @@ List<Integer> sortedUnique = numbers.parallelStream()
 System.out.println(sortedUnique); // [1, 3, 4, 5]
 ```
 
-### Về hiệu năng và bộ nhớ
+### On Performance and Memory
 
-Cả hai collector đều là terminal operation cần **lưu toàn bộ kết quả** vào Collection. Chúng không thay thế `count`, `sum` hoặc `reduce` khi chỉ cần một số tổng hợp. Với nguồn rất lớn, cần xem bộ nhớ của kết quả, chi phí loại trùng và tình huống dữ liệu không hữu hạn.
+Both collectors are terminal operations that must **store the entire result** in a Collection. They do not replace `count`, `sum`, or `reduce` when only an aggregate number is needed. For very large sources, check result memory usage, deduplication cost, and unbounded data scenarios.
 
-`parallelStream()` không mặc nhiên nhanh hơn: việc tách nguồn, thu thập kết quả từng phần và kết hợp có thể tốn chi phí lớn hơn lợi ích của xử lý đồng thời, nhất là khi dữ liệu nhỏ hoặc logic nhẹ.
+`parallelStream()` is not faster by default: splitting the source, collecting partial results, and merging them can cost more than the benefit of concurrent execution, especially when data is small or logic is lightweight.
 
-Hãy giữ các lambda `filter` và `map` **stateless, non-interfering**: không thêm/xóa phần tử vào nguồn đang được duyệt hoặc ghi vào một Collection dùng chung từ bên ngoài. Để Stream và collector quản lý các kết quả từng phần.
+Keep `filter` and `map` lambdas **stateless and non-interfering**: do not add/remove elements on the source being traversed or write to an external shared Collection. Let the Stream and collector manage partial results.
 
-## 11. Ví dụ hoàn chỉnh: danh sách khóa học và tập kỹ năng
+## 11. Complete Example: Course List and Skill Set
 
-Giả sử hệ thống học tập lưu các lượt ghi danh. Cần hai dạng kết quả cho bảng điều khiển:
+Suppose a learning system stores enrollment records. Two result forms are needed for a dashboard:
 
-1. **Lịch sử khóa học** của những lượt ghi danh hợp lệ: giữ thứ tự và giữ cả lượt trùng.
-2. **Tập kỹ năng đang học**: chỉ giữ mã kỹ năng duy nhất để kiểm tra nhanh xem một kỹ năng có xuất hiện.
+1. **Course history** of active enrollments: keep order and keep duplicate entries.
+2. **Active skill set**: keep only unique skill codes to quickly check whether a skill appears.
 
-Ví dụ chạy được trên **Java 17+**:
+Runnable example on **Java 17+**:
 
 ```java
 import java.util.List;
@@ -521,50 +521,50 @@ public class UnmodifiableCollectionsDemo {
         System.out.println(activeSkills.contains("STREAM")); // true
         System.out.println(activeSkills.contains("SQL"));   // false
 
-        // Các thao tác sửa cấu trúc kết quả đều bị từ chối.
+        // Structural modification operations on the result are rejected.
         try {
             activeCourses.add("New Course");
         } catch (UnsupportedOperationException exception) {
-            System.out.println("Không thể sửa danh sách khóa học");
+            System.out.println("Cannot modify course list");
         }
 
         try {
             activeSkills.remove("JAVA");
         } catch (UnsupportedOperationException exception) {
-            System.out.println("Không thể sửa tập kỹ năng");
+            System.out.println("Cannot modify skill set");
         }
     }
 }
 ```
 
-Diễn giải:
+Explanation:
 
-1. `filter(Enrollment::active)` loại lượt ghi danh không hoạt động trước khi thu thập.
-2. `toUnmodifiableList` giữ hai lượt `Java Stream` và hai lượt `Java Core`, bởi vì đây là **lịch sử** chứ không phải danh mục duy nhất.
-3. `toUnmodifiableSet` chuẩn hóa mã kỹ năng rồi loại trùng; khoảng trắng của `" STREAM "` không tạo thành một kỹ năng khác.
-4. Hai kết quả không cho phép thêm/xóa trực tiếp; code sử dụng không thể vô tình sửa tập quyền/danh mục đã công bố.
-5. Mỗi `enrollments.stream()` tạo pipeline mới. Nguồn ban đầu không bị thay đổi.
+1. `filter(Enrollment::active)` removes inactive enrollments before collecting.
+2. `toUnmodifiableList` retains both `Java Stream` entries and both `Java Core` entries, because this is a **history** rather than a unique catalog.
+3. `toUnmodifiableSet` normalizes skill codes and deduplicates them; whitespace around `" STREAM "` does not create a separate skill.
+4. Both results forbid direct add/remove operations; consuming code cannot accidentally alter the published permission/catalog set.
+5. Each `enrollments.stream()` creates a fresh pipeline. The original source is never modified.
 
-Vì ví dụ dùng `String` và `record` với dữ liệu không chứa Collection mutable bên trong, đầu ra đủ ổn định cho các giá trị trình bày này. Nếu chứa đối tượng mutable, vẫn phải thiết kế ánh xạ/bản sao phù hợp trước khi thu thập.
+Because the example uses `String` and `record` with data containing no mutable inner Collections, the output is sufficiently stable for the demonstrated values. If mutable objects are included, design appropriate mappings or defensive copies before collecting.
 
-## 12. Những lỗi thường gặp
+## 12. Common Mistakes
 
-| Triệu chứng | Nguyên nhân | Hướng xử lý |
+| Symptom | Cause | How to handle |
 | --- | --- | --- |
-| `UnsupportedOperationException` khi `add`/`remove` | Kết quả từ `toUnmodifiableList` hoặc `toUnmodifiableSet` là unmodifiable | Nếu thật sự cần sửa, dùng `toCollection(ArrayList::new)` hoặc `toCollection(HashSet::new)` |
-| `NullPointerException` trong terminal operation | Stream có phần tử `null` | Quy định chính sách, lọc/biến đổi `null` trước `collect` |
-| List vẫn có phần tử trùng | `toUnmodifiableList` không loại trùng | Dùng `distinct` hoặc `toUnmodifiableSet` nếu đúng nhu cầu |
-| Số phần tử Set ít hơn mong đợi | Set loại những phần tử bằng nhau theo `equals`/`hashCode` | Kiểm tra phép chuẩn hóa và tiêu chí bình đẳng |
-| Thứ tự Set khác khi chạy lại | Collector không cam kết thứ tự | Dùng `distinct().sorted().collect(Collectors.toUnmodifiableList())` hoặc một Set có thứ tự rõ ràng |
-| Bản ghi trùng mã vẫn cùng tồn tại trong Set | `equals` xem cả trường khác mã | Ánh xạ sang mã hoặc dùng Map với chính sách gộp |
-| Collection "khóa" nhưng dữ liệu bên trong vẫn đổi | Phần tử là đối tượng mutable | Tạo bản sao/DTO bất biến trước khi thu thập |
-| `Collectors.toList()` được xem là chắc chắn mutable | API không cam kết mutability | Dùng `toCollection(ArrayList::new)` khi cần chắc chắn sửa được |
-| `Stream.toList()` được xem là hoàn toàn tương đương `toUnmodifiableList()` | Khác biệt về hợp đồng với `null` và phiên bản Java | Chọn rõ terminal operation và quy tắc dữ liệu |
-| Pipeline song song có kết quả Set không ổn định về thứ tự | Thứ tự được bỏ qua ở kết quả dạng Set | So sánh nội dung Set, không so sánh thứ tự in |
+| `UnsupportedOperationException` on `add`/`remove` | Results from `toUnmodifiableList` or `toUnmodifiableSet` are unmodifiable | If modification is truly needed, use `toCollection(ArrayList::new)` or `toCollection(HashSet::new)` |
+| `NullPointerException` in terminal operation | Stream contains `null` elements | Define a policy; filter or transform `null` before `collect` |
+| List still has duplicate elements | `toUnmodifiableList` does not deduplicate | Use `distinct` or `toUnmodifiableSet` if appropriate |
+| Set size is smaller than expected | Set removes elements equal per `equals`/`hashCode` | Check normalization and equality criteria |
+| Set order differs across runs | Collector makes no ordering guarantee | Use `distinct().sorted().collect(Collectors.toUnmodifiableList())` or an explicitly ordered Set |
+| Records with duplicate codes still coexist in Set | `equals` compares fields beyond the code | Map to the code or use a Map with a merge policy |
+| "Locked" Collection still has changing inner data | Elements are mutable objects | Create immutable copies/DTOs before collecting |
+| `Collectors.toList()` assumed to be definitely mutable | API does not promise mutability | Use `toCollection(ArrayList::new)` when mutability is required |
+| `Stream.toList()` treated as fully equivalent to `toUnmodifiableList()` | Differences in `null` contract and Java version | Explicitly choose the terminal operation and data rules |
+| Parallel pipeline produces unstable Set order | Order is ignored for Set results | Compare Set contents, not print order |
 
-## 13. Bài tập thực hành và lời giải
+## 13. Practice Exercises and Solutions
 
-Cho danh sách dữ liệu thô:
+Given a list of raw data:
 
 ```java
 List<String> rawCodes = List.of(
@@ -572,15 +572,15 @@ List<String> rawCodes = List.of(
 );
 ```
 
-**Yêu cầu:**
+**Requirements:**
 
-1. Chuẩn hóa các mã bằng `strip()` và `toUpperCase(Locale.ROOT)`; bỏ mã rỗng.
-2. Thu thập thành `List<String>` không chỉnh sửa được và giữ cả phần tử trùng.
-3. Thu thập thành `Set<String>` không chỉnh sửa được và chỉ giữ mã duy nhất.
-4. Nếu muốn một **danh sách duy nhất, giữ thứ tự gặp đầu tiên**, nên kết hợp những thao tác nào?
-5. Thử thêm `null` vào nguồn bằng `Arrays.asList`, dự đoán kết quả khi gọi cả hai collector mà không lọc `null`.
+1. Normalize the codes with `strip()` and `toUpperCase(Locale.ROOT)`; discard blank codes.
+2. Collect into an unmodifiable `List<String>` retaining duplicates.
+3. Collect into an unmodifiable `Set<String>` keeping only unique codes.
+4. If you want a **unique list preserving first-appearance order**, which operations should you combine?
+5. Try adding `null` to the source using `Arrays.asList`, and predict the result when calling both collectors without filtering `null`.
 
-**Lời giải tham khảo:**
+**Reference solution:**
 
 ```java
 List<String> normalizedList = rawCodes.stream()
@@ -611,12 +611,12 @@ System.out.println(uniqueInEncounterOrder);
 // [ADMIN, READER, EXPORT]
 ```
 
-Với câu 5, `Arrays.asList("admin", null, "reader")` tạo List có `null`. Nếu mapper gọi `String::strip` trên `null`, lỗi sẽ xảy ra **trước** `collect`. Nếu đưa `null` nguyên vẹn tới một trong hai collector, chúng cũng sẽ từ chối `null` bằng `NullPointerException`. Muốn bỏ qua, đặt `filter(Objects::nonNull)` **trước** các mapper không chấp nhận `null`.
+For question 5, `Arrays.asList("admin", null, "reader")` creates a List containing `null`. If a mapper calls `String::strip` on `null`, the failure occurs **before** `collect`. If `null` reaches either collector untouched, both will also reject `null` with `NullPointerException`. To skip it, place `filter(Objects::nonNull)` **before** mappers that do not accept `null`.
 
-**Câu hỏi mở rộng:** Giả sử hai `Product` có cùng SKU nhưng giá khác nhau, và nghiệp vụ cần chọn bản có thời gian cập nhật mới nhất. `toUnmodifiableSet` có đủ thông tin để quyết định không? Hãy cân nhắc `toMap` với hàm gộp dựa trên thời gian rồi chuyển sang Collection không sửa được. Cần định nghĩa rõ quy tắc khi hai thời điểm cập nhật bằng nhau.
+**Follow-up question:** Suppose two `Product`s share the same SKU with different prices, and business logic requires selecting the record with the most recent update timestamp. Does `toUnmodifiableSet` have enough information to decide? Consider `toMap` with a timestamp-based merge function and then converting to an unmodifiable Collection. Be sure to define a clear tie-breaking rule when two update timestamps are equal.
 
-## Ghi nhớ
+## Key Takeaways
 
-`Collectors.toUnmodifiableList()` và `Collectors.toUnmodifiableSet()` cùng tạo **Collection không cho phép sửa cấu trúc** từ Stream. Chọn **List** khi cần thứ tự và muốn giữ phần tử trùng; chọn **Set** khi cần tính duy nhất theo `equals`/`hashCode` và không cần thứ tự. Cả hai collector đều từ chối `null`, không cam kết kiểu triển khai cụ thể và không tự biến đối tượng mutable bên trong thành bất biến sâu.
+`Collectors.toUnmodifiableList()` and `Collectors.toUnmodifiableSet()` both create **structurally unmodifiable Collections** from a Stream. Choose **List** when order is needed and duplicates should be kept; choose **Set** when uniqueness per `equals`/`hashCode` is needed without ordering. Both collectors reject `null`, guarantee no concrete implementation class, and do not automatically make inner mutable objects deeply immutable.
 
-Hãy chuẩn hóa, lọc và kiểm tra dữ liệu trước `collect`. Nếu cần thứ tự duy nhất, dùng `distinct` trên Stream có thứ tự rồi thu thập thành List, hoặc chọn cấu trúc Set có hợp đồng thứ tự riêng. Với pipeline song song, đánh giá nội dung kết quả theo hợp đồng của List/Set, không dựa vào thứ tự gọi lambda hay thời điểm kết hợp. Chỉ dùng các giải pháp phức tạp hơn khi yêu cầu nghiệp vụ thực sự cần.
+Normalize, filter, and validate data before `collect`. If unique elements in order are needed, use `distinct` on an ordered Stream and collect into a List, or choose a Set structure with its own ordering contract. With parallel pipelines, evaluate result contents per the List/Set contract rather than lambda invocation order or merge timing. Only use more complex solutions when business requirements genuinely call for them.

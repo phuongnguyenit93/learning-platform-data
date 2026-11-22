@@ -1,45 +1,45 @@
-# Reflection Method: kiểu tham số, kiểu `throws` và các biến thể generic
+# Method Reflection: parameter types, `throws` types, and generic variants
 
-Khi dùng Java Reflection để đọc chữ ký một phương thức, có **hai góc nhìn phải phân biệt**:
+When using Java Reflection to inspect a method signature, there are **two perspectives to distinguish**:
 
-1. **Kiểu thực thi sau type erasure** (*erased/raw runtime type*) — được biểu diễn bằng `Class<?>`. Đây là kiểu JVM dùng để xác định descriptor của method và kiểm tra đối số khi gọi qua reflection.
-2. **Kiểu generic được khai báo trong mã nguồn** (*generic signature*) — được biểu diễn bằng `java.lang.reflect.Type` và các subtype của nó. Đây là metadata cho công cụ tài liệu hóa, thư viện mapping, injection và kiểm tra hợp đồng kiểu.
+1. **Runtime type after type erasure** (*erased/raw runtime type*) — represented by `Class<?>`. This is the type the JVM uses to determine the method descriptor and check arguments when invoking via reflection.
+2. **Generic type declared in source code** (*generic signature*) — represented by `java.lang.reflect.Type` and its subtypes. This is metadata for documentation tools, mapping libraries, injection, and type-contract inspection.
 
-Ví dụ, một tham số `List<? super T>` có **runtime type** là `java.util.List` nhưng **generic type** là `ParameterizedType` biểu thị `List<? super T>`. Tham số `T...` có thể là mảng `Number[]` ở runtime nếu `T extends Number`, trong khi chữ ký generic vẫn biểu thị `T[]`.
+For example, a parameter `List<? super T>` has **runtime type** `java.util.List` but **generic type** `ParameterizedType` representing `List<? super T>`. A `T...` parameter can be a `Number[]` array at runtime if `T extends Number`, while the generic signature still represents `T[]`.
 
-Trên đối tượng `java.lang.reflect.Method`, bốn API trọng tâm là:
+On a `java.lang.reflect.Method` object, the four core APIs are:
 
-| Metadata cần đọc | Sau erasure | Giữ chữ ký generic |
+| Metadata to read | After erasure | Preserves generic signature |
 | --- | --- | --- |
-| Tham số phương thức | `getParameterTypes(): Class<?>[]` | `getGenericParameterTypes(): Type[]` |
-| Kiểu `throws` được khai báo | `getExceptionTypes(): Class<?>[]` | `getGenericExceptionTypes(): Type[]` |
-| Kiểu trả về (để đối chiếu) | `getReturnType(): Class<?>` | `getGenericReturnType(): Type` |
-| Type parameter do chính method khai báo | — | `getTypeParameters(): TypeVariable<Method>[]` |
+| Method parameters | `getParameterTypes(): Class<?>[]` | `getGenericParameterTypes(): Type[]` |
+| Declared `throws` types | `getExceptionTypes(): Class<?>[]` | `getGenericExceptionTypes(): Type[]` |
+| Return type (for comparison) | `getReturnType(): Class<?>` | `getGenericReturnType(): Type` |
+| Type parameters declared by the method itself | — | `getTypeParameters(): TypeVariable<Method>[]` |
 
-**Điểm học tập chính:** Các API có chữ `Generic` dùng để *mô tả* kiểu được khai báo. Chúng không khôi phục kiểu đối số generic của mọi đối tượng tại runtime, không tự kiểm tra nội dung một collection và không sửa quy tắc type erasure của Java.
+**Key takeaway:** The APIs containing `Generic` are used to *describe* declared types. They do not recover the generic type arguments of arbitrary objects at runtime, do not automatically inspect the contents of a collection, and do not alter Java's type erasure rules.
 
-## 1. Lấy đúng đối tượng `Method` trước khi phân tích chữ ký
+## 1. Obtaining the right `Method` object before analyzing its signature
 
-Ví dụ một phương thức khai báo như sau:
+Consider a method declared as follows:
 
 ~~~java
 public <T extends Number & Comparable<T>, E extends Exception>
 java.util.List<? extends T> query(
         java.util.List<? super T> destination, T... values)
         throws java.io.IOException, E {
-    // Phần thân phương thức
+    // Method body
     return java.util.Collections.emptyList();
 }
 ~~~
 
-Đây là **đoạn minh họa chữ ký**, chưa phải class Java độc lập. Nó gồm:
+This is a **signature illustration snippet**, not a standalone Java class. It includes:
 
-- **Hai tham số phương thức:** `List<? super T> destination` và `T... values`.
-- **Hai type parameters do method khai báo:** `T`, `E`; `T` có hai bound (`Number`, `Comparable<T>`); `E` có bound `Exception`.
-- **Kiểu trả về generic:** `List<? extends T>`.
-- **Hai kiểu trong mệnh đề `throws`:** `IOException` và `E`.
+- **Two method parameters:** `List<? super T> destination` and `T... values`.
+- **Two type parameters declared by the method:** `T`, `E`; `T` has two bounds (`Number`, `Comparable<T>`); `E` has bound `Exception`.
+- **Generic return type:** `List<? extends T>`.
+- **Two types in the `throws` clause:** `IOException` and `E`.
 
-Để tra cứu method bằng reflection, `getDeclaredMethod` yêu cầu **tên + các kiểu tham số sau erasure**; không truyền `List<? super T>` hay `T[]` dưới dạng biểu thức generic. Với một class `Service` chứa method này:
+To look up the method using reflection, `getDeclaredMethod` requires **the name + the parameter types after erasure**; do not pass `List<? super T>` or `T[]` as generic expressions. With a `Service` class containing this method:
 
 ~~~java
 Method method = Service.class.getDeclaredMethod(
@@ -49,72 +49,72 @@ Method method = Service.class.getDeclaredMethod(
 );
 ~~~
 
-`T` có bound đầu tiên là `Number`, nên `T...` có kiểu mảng runtime là `Number[]`. Nếu tra bằng `Object[].class` hoặc `Integer[].class` thì không khớp descriptor và sẽ nhận `NoSuchMethodException`.
+`T` has its first bound as `Number`, so `T...` has the runtime array type `Number[]`. If you look it up using `Object[].class` or `Integer[].class`, it will not match the descriptor and you will get `NoSuchMethodException`.
 
-Phân biệt cách tìm:
+Distinguishing lookup methods:
 
-- `getDeclaredMethod(name, parameterTypes...)`: tìm method khai báo **trực tiếp** trên class/interface đang xét, gồm cả method không public; không tự tìm method kế thừa.
-- `getMethod(name, parameterTypes...)`: tìm **public method** theo cơ chế tra cứu tương ứng, có tính đến các public method kế thừa.
-- Hai method có tên và danh sách tham số khác nhau là overload; Reflection tra theo **erased parameter types**, không dùng kiểu trả về để người gọi lựa chọn overload.
-- `Class.getDeclaredMethods()` không bảo đảm thứ tự theo mã nguồn; nếu hiển thị danh sách method cho người dùng, hãy sắp xếp theo tên và chữ ký đã chuẩn hóa.
+- `getDeclaredMethod(name, parameterTypes...)`: looks up a method declared **directly** on the inspected class/interface, including non-public methods; does not automatically search inherited methods.
+- `getMethod(name, parameterTypes...)`: looks up a **public method** via the corresponding lookup mechanism, taking inherited public methods into account.
+- Two methods with the same name and different parameter lists are overloads; Reflection looks up by **erased parameter types**, not by return type for caller-side overload selection.
+- `Class.getDeclaredMethods()` does not guarantee source-code order; if displaying a list of methods to users, sort by name and normalized signature.
 
-## 2. `getParameterTypes()`: kiểu tham số runtime
+## 2. `getParameterTypes()`: runtime parameter types
 
-Khai báo của API:
+API declaration:
 
 ~~~java
 Class<?>[] parameters = method.getParameterTypes();
 ~~~
 
-Mỗi phần tử là một đối tượng `Class` biểu diễn **kiểu tham số formal sau erasure**. Ví dụ với `query`:
+Each element is a `Class` object representing a **formal parameter type after erasure**. For `query`, for example:
 
 ~~~text
 java.util.List
 java.lang.Number[]
 ~~~
 
-Ở đây:
+Here:
 
-- `List<? super T>` được xóa về `List`.
-- `T...` có dạng mảng khi biên dịch; `T extends Number & Comparable<T>` xóa về bound đầu tiên là `Number`, nên kết quả là `Number[]`.
-- `getParameterTypes()` không cho biết `? super T`, tên `T` hoặc các bound bổ sung.
-- Kiểu primitive vẫn là token primitive, ví dụ `int.class`; tham số mảng như `String[]` vẫn là class mảng `String[].class`.
+- `List<? super T>` is erased to `List`.
+- `T...` takes array form when compiled; `T extends Number & Comparable<T>` erases to its first bound `Number`, so the result is `Number[]`.
+- `getParameterTypes()` does not reveal `? super T`, the name `T`, or additional bounds.
+- Primitive types remain primitive tokens, such as `int.class`; array parameters like `String[]` remain the array class `String[].class`.
 
-`Class<?>[]` này phù hợp để so sánh descriptor, xác định method overload hoặc chuẩn bị đối số Reflection. Nó **không chứng minh** đối tượng `List` thực tế có phần tử đúng kiểu generic.
+This `Class<?>[]` is suitable for comparing descriptors, identifying overloaded methods, or preparing Reflection arguments. It **does not prove** that an actual `List` instance contains elements of the expected generic type.
 
-### Tham số cuối dạng varargs
+### Trailing varargs parameter
 
-`T... values` được JVM biểu diễn là **tham số mảng**. Thông tin “đây là lời khai báo varargs” lấy riêng qua `Method.isVarArgs()`:
+`T... values` is represented by the JVM as an **array parameter**. Information on whether "this is a varargs declaration" is retrieved separately via `Method.isVarArgs()`:
 
 ~~~java
 boolean declaredVarargs = method.isVarArgs();
 ~~~
 
-Ví dụ `void a(String[] names)` và `void b(String... names)` đều có parameter type `String[].class`, nhưng chỉ `b` có `isVarArgs() == true`. Với `Method.invoke`, cần tôn trọng số lượng formal parameters và kiểu mảng đã xóa; không mặc định rằng Reflection sẽ tự đóng gói danh sách đối số theo cú pháp varargs ở lời gọi Java thông thường.
+For example, `void a(String[] names)` and `void b(String... names)` both have parameter type `String[].class`, yet only `b` has `isVarArgs() == true`. With `Method.invoke`, you must respect the number of formal parameters and the erased array type; do not assume Reflection automatically packs an argument list using regular Java varargs syntax.
 
-## 3. `getGenericParameterTypes()`: kiểu tham số có generic metadata
+## 3. `getGenericParameterTypes()`: parameter types with generic metadata
 
-Khai báo:
+Declaration:
 
 ~~~java
 Type[] genericParameters = method.getGenericParameterTypes();
 ~~~
 
-Với `query`, `Type.getTypeName()` lần lượt biểu thị:
+For `query`, `Type.getTypeName()` respectively yields:
 
 ~~~text
 java.util.List<? super T>
 T[]
 ~~~
 
-Đây không phải hai đối tượng `Class` thông thường:
+These are not two ordinary `Class` objects:
 
-- `List<? super T>` là **`ParameterizedType`** có raw type `List.class` và một type argument là **`WildcardType`** chứa lower bound `T`.
-- `T[]` là **`GenericArrayType`** vì thành phần mảng là type variable `T`. `getGenericComponentType()` cho ra `TypeVariable` tương ứng.
-- Nếu kiểu tham số được khai báo trực tiếp là `T` (không có mảng), phần tử `Type[]` có thể chính là `TypeVariable`.
-- Nếu tham số là `String`, `int` hoặc `String[]` không chứa generic component, kết quả thường là đối tượng `Class`.
+- `List<? super T>` is a **`ParameterizedType`** with raw type `List.class` and one type argument that is a **`WildcardType`** containing lower bound `T`.
+- `T[]` is a **`GenericArrayType`** because the array component is type variable `T`. `getGenericComponentType()` returns the corresponding `TypeVariable`.
+- If a parameter type is declared directly as `T` (without an array), the `Type[]` element can itself be a `TypeVariable`.
+- If a parameter is `String`, `int`, or `String[]` without a generic component, the result is typically a `Class` object.
 
-Vì thế **không ép mọi `Type` về `Class<?>`**:
+Therefore, **do not cast every `Type` to `Class<?>`**:
 
 ~~~java
 Type generic = method.getGenericParameterTypes()[0];
@@ -125,33 +125,33 @@ if (generic instanceof ParameterizedType parameterized) {
 }
 ~~~
 
-Đây là đoạn phân tích metadata có thể đặt trong phương thức; biến `method` phải được khởi tạo trước. Khi kiểm tra `arguments[0]` của `List<? super T>`, ta gặp `WildcardType`:
+This is a metadata-inspection snippet that can be placed inside a method; the `method` variable must be initialized beforehand. When inspecting `arguments[0]` of `List<? super T>`, we encounter `WildcardType`:
 
 ~~~java
 Type argument = ((ParameterizedType) generic)
         .getActualTypeArguments()[0];
 
 if (argument instanceof WildcardType wildcard) {
-    Type[] lower = wildcard.getLowerBounds(); // Chứa T ở ví dụ này.
-    Type[] upper = wildcard.getUpperBounds(); // Object khi không có extends bound cụ thể.
+    Type[] lower = wildcard.getLowerBounds(); // Contains T in this example.
+    Type[] upper = wildcard.getUpperBounds(); // Object when there is no explicit extends bound.
 }
 ~~~
 
-**`? super T` và `? extends T` không giống nhau:** lower bound của wildcard giúp mô tả phía “được phép nhận” một kiểu, còn upper bound mô tả phía “bị giới hạn trên” về quan hệ kiểu. Reflection đọc chữ ký này, nhưng không tái tạo logic type-checking hoàn chỉnh như compiler.
+**`? super T` and `? extends T` are not the same:** a wildcard's lower bound describes the side "allowed to accept" a type, whereas an upper bound describes the side "upper-bounded" in the type relationship. Reflection reads this signature, but does not replicate full compiler type-checking logic.
 
-## 4. Những biến thể của `Type` cần nhận diện
+## 4. Variants of `Type` to recognize
 
-`java.lang.reflect.Type` là interface chung cho nhiều dạng chữ ký:
+`java.lang.reflect.Type` is the common interface for several signature forms:
 
-| Dạng khai báo | Kiểu `Type` thường gặp | Cần đọc gì? |
+| Declaration form | Common `Type` kind | What to inspect? |
 | --- | --- | --- |
-| `String`, `int`, `String[]` | `Class<?>` | `getTypeName()`, `isArray()`, `getComponentType()` khi phù hợp |
-| `List<String>` | `ParameterizedType` | `getRawType()`, `getActualTypeArguments()`, `getOwnerType()` khi là nested type |
+| `String`, `int`, `String[]` | `Class<?>` | `getTypeName()`, `isArray()`, `getComponentType()` when appropriate |
+| `List<String>` | `ParameterizedType` | `getRawType()`, `getActualTypeArguments()`, `getOwnerType()` when it is a nested type |
 | `T` | `TypeVariable<?>` | `getName()`, `getBounds()`, `getGenericDeclaration()` |
 | `T[]` | `GenericArrayType` | `getGenericComponentType()` |
 | `? extends Number` / `? super T` | `WildcardType` | `getUpperBounds()` / `getLowerBounds()` |
 
-**Ví dụ phân loại:**
+**Classification example:**
 
 ~~~java
 static String kind(Type type) {
@@ -164,56 +164,56 @@ static String kind(Type type) {
 }
 ~~~
 
-Đây là phương thức minh họa, cần import `java.lang.reflect.*`. Trong thực tế, một `ParameterizedType` có thể chứa tiếp `ParameterizedType`, `WildcardType`, `TypeVariable` hoặc `GenericArrayType`. Muốn dựng cây generic signature đầy đủ thì phải xử lý **đệ quy**, không chỉ in raw type.
+This is an illustrative method requiring `import java.lang.reflect.*`. In practice, a `ParameterizedType` can further contain `ParameterizedType`, `WildcardType`, `TypeVariable`, or `GenericArrayType`. To build the full generic signature tree, you must process it **recursively**, not just print raw types.
 
-### Type variable nằm ở method hay ở class?
+### Does the type variable live on the method or on the class?
 
-Hai chữ ký có thể cùng sử dụng tên `T` nhưng nguồn khai báo khác nhau:
+Two signatures may both use the name `T` while coming from different declaration sources:
 
 ~~~java
 class Container<T> {
-    T read() { return null; }         // T của class.
-    <U> U convert(U input) { return input; } // U của method.
+    T read() { return null; }         // T belongs to the class.
+    <U> U convert(U input) { return input; } // U belongs to the method.
 }
 ~~~
 
-Với `read`, `getGenericReturnType()` có thể là `TypeVariable` do **`Container` khai báo**; `read.getTypeParameters()` trả mảng rỗng vì method không khai báo type variable mới. Với `convert`, `getTypeParameters()` có `U`, và `U.getGenericDeclaration()` trỏ đến chính method `convert`. Đừng nhầm metadata của type parameter trên class với type parameter trên method.
+For `read`, `getGenericReturnType()` can be a `TypeVariable` **declared by `Container`**; `read.getTypeParameters()` returns an empty array because the method declares no new type variables. For `convert`, `getTypeParameters()` contains `U`, and `U.getGenericDeclaration()` points to the `convert` method itself. Do not confuse metadata of a class-level type parameter with a method-level type parameter.
 
-**Quan trọng về giới hạn:** nếu chạy `Container<String>`, Java Reflection trên `Method` không tự suy ra “`T` lúc này là `String`” từ một instance. Muốn thay thế biến kiểu của class bằng đối số cụ thể, phải phân tích ngữ cảnh `ParameterizedType` từ generic superclass/interface hoặc type token phù hợp; nhiều thông tin bị xóa ở runtime.
+**Important limitation:** when running `Container<String>`, Java Reflection on `Method` does not automatically infer that "`T` is now `String`" from an instance. To substitute a class's type variable with a concrete type argument, you must analyze the `ParameterizedType` context from a generic superclass/interface or a suitable type token; much of this information is erased at runtime.
 
-## 5. `getExceptionTypes()`: kiểu trong mệnh đề `throws` sau erasure
+## 5. `getExceptionTypes()`: types in the `throws` clause after erasure
 
-Khai báo API:
+API declaration:
 
 ~~~java
 Class<?>[] exceptionTypes = method.getExceptionTypes();
 ~~~
 
-Với:
+Given:
 
 ~~~java
 <T extends Number & Comparable<T>, E extends Exception>
 void query(T item) throws java.io.IOException, E { }
 ~~~
 
-`getExceptionTypes()` trả các class:
+`getExceptionTypes()` returns the classes:
 
 ~~~text
 java.io.IOException
 java.lang.Exception
 ~~~
 
-Lý do: `E` bị xóa về bound đầu tiên `Exception`. Nếu method khai báo `<X extends IOException> void fail() throws X`, dạng raw sẽ là `IOException.class`.
+Reason: `E` is erased to its first bound `Exception`. If a method declares `<X extends IOException> void fail() throws X`, the raw type will be `IOException.class`.
 
-Lưu ý các điểm quan trọng:
+Important notes:
 
-- Đây là **danh sách kiểu exception được khai báo trong `throws`**, không phải danh sách mọi exception mà method *thực tế có thể ném*.
-- Một method không có mệnh đề `throws` → mảng rỗng, mặc dù nó vẫn có thể ném unchecked exception như `NullPointerException` hoặc `IllegalArgumentException`.
-- Java cho phép khai báo một unchecked exception trong `throws`; Reflection sẽ ghi nhận nó nếu có trong chữ ký.
-- `Error` hoặc unchecked exception có thể phát sinh ngoài khai báo; không dùng `getExceptionTypes()` để chứng minh “method không bao giờ lỗi”.
-- `getExceptionTypes()` không cho biết tên type variable hay mối liên hệ giữa type variable ấy và tham số của method.
+- This is the **list of exception types declared in `throws`**, not the list of every exception the method *might actually throw*.
+- A method without a `throws` clause → empty array, even though it can still throw unchecked exceptions such as `NullPointerException` or `IllegalArgumentException`.
+- Java allows declaring an unchecked exception in `throws`; Reflection will record it if present in the signature.
+- `Error` or unchecked exceptions can arise outside the declaration; do not use `getExceptionTypes()` to prove "the method never fails".
+- `getExceptionTypes()` does not tell you the type variable name or the relationship between that type variable and the method's parameters.
 
-## 6. `getGenericExceptionTypes()`: bảo toàn `throws E`
+## 6. `getGenericExceptionTypes()`: preserving `throws E`
 
 API:
 
@@ -221,14 +221,14 @@ API:
 Type[] genericExceptions = method.getGenericExceptionTypes();
 ~~~
 
-Với `query(...) throws IOException, E`, hai phần tử có chữ ký:
+For `query(...) throws IOException, E`, the two elements have signatures:
 
 ~~~text
 java.io.IOException
 E
 ~~~
 
-Trong đó phần tử thứ nhất thường là `Class<IOException>`, phần tử thứ hai là `TypeVariable` tên `E`. Ta có thể truy cập bound:
+Of these, the first element is typically `Class<IOException>`, and the second is a `TypeVariable` named `E`. You can access the bounds:
 
 ~~~java
 for (Type type : method.getGenericExceptionTypes()) {
@@ -239,11 +239,11 @@ for (Type type : method.getGenericExceptionTypes()) {
 }
 ~~~
 
-Nếu `E extends Exception`, bound là `Exception.class`; nếu `X extends IOException`, bound là `IOException.class`.
+If `E extends Exception`, the bound is `Exception.class`; if `X extends IOException`, the bound is `IOException.class`.
 
-### Vì sao generic `throws` có ích?
+### Why is generic `throws` useful?
 
-Khai báo:
+Declaration:
 
 ~~~java
 static <X extends Exception> void propagate(X problem) throws X {
@@ -251,15 +251,15 @@ static <X extends Exception> void propagate(X problem) throws X {
 }
 ~~~
 
-Đây là một **phương thức độc lập dùng để minh họa**, đặt bên trong class để biên dịch. Nó mô tả cho compiler rằng kiểu exception truyền vào và kiểu exception có thể ném ra được liên kết bởi **cùng type variable `X`**. Sau erasure, Reflection `getExceptionTypes()` chỉ còn `Exception.class`; `getGenericExceptionTypes()` vẫn biểu diễn `X`. Thư viện phân tích API có thể dùng metadata này để hiển thị hợp đồng chính xác hơn.
+This is a **standalone illustrative method**, placed inside a class to compile. It tells the compiler that the exception type passed in and the exception type that can be thrown are linked by the **same type variable `X`**. After erasure, Reflection's `getExceptionTypes()` only has `Exception.class`; `getGenericExceptionTypes()` still represents `X`. API analysis libraries can use this metadata to display a more accurate contract.
 
-**Không nhầm generic `throws` với `List<IOException>` trong throws:** Java không cho phép tham số hóa một exception class kiểu `SomeException<T> extends Exception`, vì generic class không được trực tiếp/gián tiếp kế thừa `Throwable`. Biến kiểu có bound exception (`<E extends Exception> ... throws E`) là cơ chế hợp lệ để khai báo generic throws.
+**Do not confuse generic `throws` with `List<IOException>` in throws:** Java does not allow parameterizing an exception class such as `SomeException<T> extends Exception`, because a generic class cannot directly or indirectly inherit from `Throwable`. A type variable with an exception bound (`<E extends Exception> ... throws E`) is the valid mechanism for declaring generic throws.
 
-### Reflection gọi method thì exception ra sao?
+### What happens to exceptions when Reflection invokes a method?
 
-`Method.invoke(receiver, args...)` không trực tiếp chuyển cho caller checked exception của method được gọi như một lời gọi Java thông thường. Nếu phần thân method ném exception, `invoke` bọc nó bằng **`InvocationTargetException`**; có thể kiểm tra `getCause()`. Ngoài ra bản thân Reflection có thể ném `IllegalAccessException`, `IllegalArgumentException` hoặc lỗi khác do lời gọi. Danh sách `getGenericExceptionTypes()` chỉ mô tả **chữ ký của method đích**, không tự thay thế hợp đồng exception của `Method.invoke`.
+`Method.invoke(receiver, args...)` does not pass checked exceptions of the called method directly to the caller like a normal Java call. If the method body throws an exception, `invoke` wraps it in **`InvocationTargetException`**; you can inspect `getCause()`. In addition, Reflection itself can throw `IllegalAccessException`, `IllegalArgumentException`, or other call-related errors. The `getGenericExceptionTypes()` list only describes the **signature of the target method**, and does not replace the exception contract of `Method.invoke`.
 
-## 7. `getTypeParameters()` và erasure khi có nhiều bound
+## 7. `getTypeParameters()` and erasure with multiple bounds
 
 API:
 
@@ -267,33 +267,33 @@ API:
 TypeVariable<Method>[] variables = method.getTypeParameters();
 ~~~
 
-Với:
+With:
 
 ~~~java
 <T extends Number & Comparable<T>, E extends Exception>
 ~~~
 
-ta có:
+we get:
 
 - `T.getName()` → `"T"`.
-- `T.getBounds()` → `Number` và `Comparable<T>`; bound đầu là class `Number`, bound thứ hai là parameterized interface.
+- `T.getBounds()` → `Number` and `Comparable<T>`; the first bound is the class `Number`, and the second bound is a parameterized interface.
 - `E.getName()` → `"E"`.
 - `E.getBounds()` → `Exception.class`.
 
-Quy tắc **erasure của type variable** dùng bound bên trái đầu tiên. Nếu chỉ khai báo `<T>`, implicit upper bound là `Object`, nên erasure của `T` là `Object`. Nếu có nhiều bound, không đồng nghĩa JVM có “kiểu giao” cụ thể làm tham số; descriptor dùng erasure theo quy tắc JLS.
+The rule for **erasure of a type variable** uses the leftmost (first) bound. If only `<T>` is declared, the implicit upper bound is `Object`, so the erasure of `T` is `Object`. Having multiple bounds does not mean the JVM has a concrete "intersection type" as a parameter; the descriptor uses erasure according to JLS rules.
 
-`getTypeParameters()` chỉ trả type variables được **method** khai báo. Nó không đại diện cho mọi type variable xuất hiện trong tham số: chúng cũng có thể được khai báo bởi class bao ngoài.
+`getTypeParameters()` returns only type variables declared by the **method**. It does not represent every type variable appearing in the parameters: they may also be declared by the enclosing class.
 
-## 8. Ví dụ Java 17+ chạy đầy đủ, so sánh cả bốn API
+## 8. Complete runnable Java 17+ example comparing all four APIs
 
-Tạo file duy nhất **`MethodSignatureDemo.java`**. Ví dụ chủ động dùng:
+Create a single file **`MethodSignatureDemo.java`**. The example intentionally uses:
 
 - Parameterized type `List<? super T>`.
-- Generic array `T...` với erasure thành `Number[]`.
+- Generic array `T...` erasing to `Number[]`.
 - Wildcard return `List<? extends T>`.
-- Generic `throws IOException, E` và method `fail` khai báo `throws X`.
-- Phân tích bounds của `T` và `E`.
-- `Parameter.isNamePresent()` để nhận biết việc lưu tên tham số khi biên dịch.
+- Generic `throws IOException, E` and method `fail` declaring `throws X`.
+- Inspecting bounds of `T` and `E`.
+- `Parameter.isNamePresent()` to detect whether parameter names were saved during compilation.
 
 ~~~java
 import java.io.IOException;
@@ -358,14 +358,14 @@ public class MethodSignatureDemo {
 }
 ~~~
 
-Biên dịch trong thư mục chứa file bằng **JDK 17 trở lên**. Không thêm `-parameters` ở lệnh đầu để kiểm chứng trường hợp tên tham số **không được lưu**:
+Compile in the file's directory using **JDK 17 or later**. Omit `-parameters` in the first command to verify the case where parameter names are **not stored**:
 
 ~~~bash
 javac --release 17 -Xlint:all MethodSignatureDemo.java
 java MethodSignatureDemo
 ~~~
 
-**Stdout chính xác** (đã biên dịch/chạy với lệnh trên):
+**Exact stdout** (compiled/run with the command above):
 
 ~~~text
 params raw: java.util.List | java.lang.Number[]
@@ -385,26 +385,26 @@ fail raw throws: java.io.IOException
 fail generic throws: X
 ~~~
 
-Quan sát những điểm dễ hiểu sai:
+Observations on easily misunderstood points:
 
-1. `getParameterTypes()` đã xóa `List<? super T>` thành `List` và `T[]` thành `Number[]`, còn `getGenericParameterTypes()` giữ chữ ký có wildcard/type variable.
-2. `getExceptionTypes()` trả `Exception` cho `E`, trong khi `getGenericExceptionTypes()` trả type variable `E`. Method `fail` tương tự nhưng xóa `X` thành `IOException`.
-3. `getTypeParameters()` và `getBounds()` giữ được giới hạn `T extends Number & Comparable<T>`.
-4. `isVarArgs()` xác nhận dấu `...` ở nguồn; `getParameterTypes()` chỉ thấy kiểu mảng.
-5. `names present: false` vì lệnh `javac` trên **không** sử dụng `-parameters`. Đây là thông tin tên tham số từ class file, **độc lập** với việc chữ ký generic có được giữ lại hay không.
+1. `getParameterTypes()` erased `List<? super T>` to `List` and `T[]` to `Number[]`, while `getGenericParameterTypes()` kept the signature with the wildcard/type variable.
+2. `getExceptionTypes()` returned `Exception` for `E`, whereas `getGenericExceptionTypes()` returned the type variable `E`. The `fail` method is similar, erasing `X` to `IOException`.
+3. `getTypeParameters()` and `getBounds()` preserved the constraint `T extends Number & Comparable<T>`.
+4. `isVarArgs()` confirmed the `...` in source; `getParameterTypes()` only sees the array type.
+5. `names present: false` because the `javac` command above did **not** use `-parameters`. This is parameter-name metadata from the class file, **independent** of whether the generic signature is retained.
 
-Nếu biên dịch lại với:
+If recompiled with:
 
 ~~~bash
 javac --release 17 -parameters MethodSignatureDemo.java
 java MethodSignatureDemo
 ~~~
 
-thì dòng `names present` sẽ thành `true` đối với hai tham số của `query`, còn các dòng phân tích kiểu ở trên không thay đổi. Với các công cụ build khác, kết quả này phụ thuộc compiler options của **class file thực sự được chạy**, không phụ thuộc tên hiển thị trong IDE.
+then the `names present` line will become `true` for the two parameters of `query`, while the type analysis lines above remain unchanged. With other build tools, this result depends on the compiler options of the **class file actually executed**, not on the names displayed in the IDE.
 
-## 9. `Parameter` API, tên tham số và annotations
+## 9. The `Parameter` API, parameter names, and annotations
 
-`Method.getParameters()` trả mảng `Parameter[]`; mỗi phần tử chứa thông tin metadata của một formal parameter:
+`Method.getParameters()` returns a `Parameter[]` array; each element contains metadata for one formal parameter:
 
 ~~~java
 for (Parameter parameter : method.getParameters()) {
@@ -416,65 +416,65 @@ for (Parameter parameter : method.getParameters()) {
 }
 ~~~
 
-Đoạn trên là minh họa, cần import `java.lang.reflect.*` và cung cấp `method`. Các API liên quan:
+The snippet above is illustrative, requiring `import java.lang.reflect.*` and providing `method`. Related APIs:
 
-- `Parameter.getType()` tương ứng góc nhìn `Class<?>`; `getParameterizedType()` tương ứng góc nhìn `Type`.
-- `Parameter.getName()` có thể trả tên tổng hợp như `arg0` nếu không có metadata; **không nên coi tên ấy là tên khai báo trong source**. Dùng `isNamePresent()` để biết tên thật có được ghi trong class file không.
-- `Parameter.isImplicit()` / `isSynthetic()` phản ánh một số tham số do compiler/qui ước ngôn ngữ tạo ra, ví dụ constructor của inner class không static hoặc enum constructor. Với các bytecode đặc biệt, cần phân biệt formal parameters ở class file và danh sách người viết thấy ở source.
-- `Method.getParameterAnnotations()` và `Parameter.getAnnotations()` trả các annotation trên tham số theo quy tắc retention phù hợp. Annotation thuộc **type use** có thể cần API `getAnnotatedParameterTypes()` để thấy vị trí khai báo trên chính kiểu (`List<@SomeAnno String>`).
+- `Parameter.getType()` corresponds to the `Class<?>` perspective; `getParameterizedType()` corresponds to the `Type` perspective.
+- `Parameter.getName()` may return a synthesized name such as `arg0` if metadata is absent; **do not treat that name as the name declared in source**. Use `isNamePresent()` to check whether the real name is recorded in the class file.
+- `Parameter.isImplicit()` / `isSynthetic()` reflect certain parameters generated by the compiler/language conventions, such as constructors of non-static inner classes or enum constructors. For special bytecode cases, distinguish formal parameters in the class file from the list a developer sees in source.
+- `Method.getParameterAnnotations()` and `Parameter.getAnnotations()` return annotations on parameters according to appropriate retention rules. **Type-use** annotations may require the `getAnnotatedParameterTypes()` API to see the declaration location on the type itself (`List<@SomeAnno String>`).
 
-Metadata của **method signature generic** và **runtime-visible annotations** là hai nguồn thông tin riêng; không suy ra kiểu generic chỉ từ một annotation.
+Metadata of **generic method signatures** and **runtime-visible annotations** are two separate sources of information; do not infer generic types solely from an annotation.
 
-## 10. Những giới hạn và lỗi thường gặp
+## 10. Limitations and common pitfalls
 
-### 10.1. Tìm Method theo generic argument
+### 10.1. Looking up a Method by generic argument
 
-**Sai ý tưởng:** muốn lấy `process(List<String>)` nên gọi `getDeclaredMethod` với kiểu `List<String>`. Java không có literal `List<String>.class`. Runtime method lookup dùng erased parameter types, do đó với tham số `List<String>` thường chỉ truyền `List.class`.
+**Wrong idea:** wanting to retrieve `process(List<String>)`, so calling `getDeclaredMethod` with type `List<String>`. Java has no `List<String>.class` literal. Runtime method lookup uses erased parameter types, so for a `List<String>` parameter you normally just pass `List.class`.
 
-Không thể khai báo hai overload chỉ khác nhau ở `List<String>` và `List<Integer>` vì cả hai cùng erasure `List` (name clash). Reflection không khôi phục những overload mà ngôn ngữ không cho phép khai báo.
+You cannot declare two overloads differing only in `List<String>` vs. `List<Integer>` because both have the same erasure `List` (name clash). Reflection does not recover overloads that the language forbids declaring.
 
-### 10.2. Ép `Type` thành `Class<?>`
+### 10.2. Casting `Type` to `Class<?>`
 
-`(Class<?>) method.getGenericParameterTypes()[0]` có thể ném `ClassCastException` nếu phần tử là `ParameterizedType`. Kiểm tra bằng `instanceof` và xử lý đúng biến thể của `Type`. Trong cấu trúc nested generic, có thể cần duyệt đệ quy các type arguments và bounds.
+`(Class<?>) method.getGenericParameterTypes()[0]` can throw `ClassCastException` if the element is a `ParameterizedType`. Check with `instanceof` and handle the appropriate `Type` variant. In nested generic structures, you may need to recursively traverse type arguments and bounds.
 
-### 10.3. Giả định `throws` là toàn bộ exception thực tế
+### 10.3. Assuming `throws` is all actual exceptions
 
-`getExceptionTypes()` và `getGenericExceptionTypes()` chỉ ghi nhận **throws declaration**. Không có bảo đảm method sẽ ném mọi exception đó, cũng không bảo đảm nó không ném unchecked exception khác. Reflection `Method.invoke` còn có lớp exception bọc `InvocationTargetException`.
+`getExceptionTypes()` and `getGenericExceptionTypes()` only record the **`throws` declaration**. There is no guarantee the method will throw all those exceptions, nor any guarantee it will not throw other unchecked exceptions. Reflection `Method.invoke` also has the `InvocationTargetException` wrapper class.
 
-### 10.4. Nhầm `TypeVariable` với kiểu đã được giải quyết
+### 10.4. Confusing `TypeVariable` with a resolved type
 
-`T extends Number` không có nghĩa Reflection luôn biết `T` cụ thể là `Integer`. `T` có thể tồn tại trong `Type` metadata mà chưa biết type argument trong ngữ cảnh gọi thực tế. Muốn kiểm tra dữ liệu runtime, vẫn cần ranh giới/validator riêng phù hợp.
+`T extends Number` does not mean Reflection always knows `T` is specifically `Integer`. `T` can exist in `Type` metadata without knowing the type argument in an actual call context. If runtime data validation is needed, an appropriate separate boundary/validator is still required.
 
-### 10.5. Coi `T...` là một danh sách tham số bất kỳ
+### 10.5. Treating `T...` as an arbitrary parameter list
 
-Ở mức method descriptor, varargs vẫn là **một tham số mảng cuối cùng**. `Method.isVarArgs()` giúp xác định cách biểu diễn trong source, nhưng `getParameterTypes()` trả array class. Reflection invocation cần đối số phù hợp với formal parameter array sau erasure.
+At the method descriptor level, varargs is still **a single trailing array parameter**. `Method.isVarArgs()` helps determine how it is expressed in source, but `getParameterTypes()` returns an array class. Reflection invocation requires arguments matching the erased formal parameter array.
 
-### 10.6. Trông chờ tên tham số luôn xuất hiện
+### 10.6. Expecting parameter names to always be present
 
-`-g` và debug information không thay thế hoàn toàn cho mục đích lấy tên qua `Parameter.isNamePresent()`; dùng `javac -parameters` khi cần public reflection parameter names. Các compiler/build tools có thể phát sinh các method bridge/synthetic; khi quét API, cân nhắc `Method.isBridge()`, `Method.isSynthetic()` và ngữ cảnh class khai báo.
+`-g` and debug information do not completely substitute for retrieving names via `Parameter.isNamePresent()`; use `javac -parameters` when public reflection parameter names are needed. Compilers/build tools may generate bridge/synthetic methods; when scanning APIs, consider `Method.isBridge()`, `Method.isSynthetic()`, and the declaring class context.
 
-### 10.7. Không xử lý metadata bất thường
+### 10.7. Failing to handle malformed metadata
 
-Khi generic signature không hợp lệ hoặc tham chiếu kiểu trong metadata không giải quyết được, các API `getGeneric...` có thể ném những lỗi như `GenericSignatureFormatError`, `TypeNotPresentException` hoặc `MalformedParameterizedTypeException` tùy trường hợp. Đây là vấn đề class file/generic metadata, khác với việc method không tồn tại (`NoSuchMethodException`). Một công cụ introspection xử lý class của bên thứ ba nên báo lỗi có ngữ cảnh, không âm thầm thay thế generic signature sai bằng kiểu đoán.
+When a generic signature is invalid or a type reference in metadata cannot be resolved, the `getGeneric...` APIs can throw errors such as `GenericSignatureFormatError`, `TypeNotPresentException`, or `MalformedParameterizedTypeException` depending on the case. These are class-file/generic-metadata issues, distinct from a missing method (`NoSuchMethodException`). An introspection tool processing third-party classes should report contextual errors rather than silently replacing malformed generic signatures with guessed types.
 
-## 11. Checklist chọn API theo câu hỏi
+## 11. API selection checklist by question
 
-| Bạn cần trả lời | API thích hợp |
+| Question you need answered | Appropriate API |
 | --- | --- |
-| “Method có những formal parameter type nào ở runtime?” | `getParameterTypes()` |
-| “Method có `List<? super T>` hay `T[]` trong chữ ký không?” | `getGenericParameterTypes()` |
-| “Method khai báo những loại exception nào sau erasure?” | `getExceptionTypes()` |
-| “`throws E` gắn với type variable nào?” | `getGenericExceptionTypes()` + `TypeVariable.getBounds()` |
-| “Method khai báo `T, E` với giới hạn nào?” | `getTypeParameters()` |
-| “Tên formal parameter có thật được giữ trong class file không?” | `getParameters()` + `isNamePresent()` |
-| “Có phải tham số cuối được khai báo `...`?” | `isVarArgs()` |
-| “Kiểu trả về có wildcard hoặc generic arguments?” | `getGenericReturnType()` |
+| "What formal parameter types does the method have at runtime?" | `getParameterTypes()` |
+| "Does the method have `List<? super T>` or `T[]` in its signature?" | `getGenericParameterTypes()` |
+| "What exception types does the method declare after erasure?" | `getExceptionTypes()` |
+| "Which type variable is `throws E` bound to?" | `getGenericExceptionTypes()` + `TypeVariable.getBounds()` |
+| "What `T, E` with what bounds does the method declare?" | `getTypeParameters()` |
+| "Are the real formal parameter names preserved in the class file?" | `getParameters()` + `isNamePresent()` |
+| "Is the last parameter declared with `...`?" | `isVarArgs()` |
+| "Does the return type have wildcards or generic arguments?" | `getGenericReturnType()` |
 
-Khi xây dựng một công cụ reflection cho method, quy trình an toàn là: **xác định `Method` bằng erased parameter types → đọc metadata thô `Class<?>[]` để hiểu descriptor → đọc các mảng `Type[]` để hiểu generic signature → phân loại từng `Type` và phân giải type variable trong đúng ngữ cảnh khai báo**. Khi hiển thị báo cáo, nói rõ giá trị nào là *erasure* và giá trị nào là *generic declaration*.
+When building a reflection tool for methods, the safe workflow is: **identify the `Method` using erased parameter types → read raw `Class<?>[]` metadata to understand the descriptor → read the `Type[]` arrays to understand the generic signature → classify each `Type` and resolve type variables in the proper declaring context**. When displaying reports, clearly state which values are *erased* and which are *generic declarations*.
 
-### Tài liệu chuẩn
+### Official references
 
 - [Java SE 21 — `java.lang.reflect.Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): `getParameterTypes`, `getGenericParameterTypes`, `getExceptionTypes`, `getGenericExceptionTypes`, `getTypeParameters`.
 - [Java SE 21 — `java.lang.reflect.Type`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Type.html), [`ParameterizedType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/ParameterizedType.html), [`TypeVariable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/TypeVariable.html), [`GenericArrayType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/GenericArrayType.html), [`WildcardType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/WildcardType.html).
 - [Java SE 21 — `java.lang.reflect.Parameter`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Parameter.html).
-- [Java Language Specification `4.6 — Type Erasure](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.6) và [`8.4 — Method Declarations](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.4).
+- [Java Language Specification `4.6 — Type Erasure](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.6) and [`8.4 — Method Declarations](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.4).

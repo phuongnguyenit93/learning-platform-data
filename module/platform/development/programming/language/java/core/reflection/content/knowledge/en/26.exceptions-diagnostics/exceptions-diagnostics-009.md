@@ -1,88 +1,88 @@
-# MalformedParametersException và metadata tham số không hợp lệ trong Java Reflection
+# MalformedParametersException and Invalid Parameter Metadata in Java Reflection
 
-## 1. Tình huống: phương thức tồn tại nhưng đọc danh sách tham số lại lỗi
+## 1. Scenario: The Method Exists, Yet Reading Its Parameter List Fails
 
-Khi dùng Reflection, ta thường truy cập `Method` hoặc `Constructor` để đọc thông tin về tham số. Chẳng hạn framework có thể hỏi một phương thức nhận bao nhiêu tham số, kiểu gì và tên từng tham số là gì. Có những trường hợp class tải được, phương thức vẫn tồn tại, nhưng lệnh:
+When using Reflection, we often access `Method` or `Constructor` to read parameter information. For instance, a framework may ask how many parameters a method takes, what types they are, and what each parameter's name is. There are cases where the class loads and the method exists, yet:
 
 ```java
 Parameter[] parameters = method.getParameters();
 ```
 
-ném `java.lang.reflect.MalformedParametersException`. Đây là dấu hiệu **metadata mô tả tham số trong file `.class` không hợp lệ** theo quy tắc của JVM/Reflection, không có nghĩa bản thân Java source đang gọi phương thức với đối số sai.
+throws `java.lang.reflect.MalformedParametersException`. This signals that **the parameter metadata in the `.class` file is invalid** according to JVM/Reflection rules; it does not mean the Java source itself is calling the method with wrong arguments.
 
-`MalformedParametersException` là một **unchecked exception**, kế thừa từ `RuntimeException`; có từ Java 8. API điển hình gây ra lỗi là `java.lang.reflect.Executable.getParameters()` (được `Method` và `Constructor` kế thừa). Lỗi có thể xuất hiện khi framework tự động dò constructor, binding tên tham số, làm dependency injection hoặc xử lý annotation và gọi API đọc metadata tương ứng.
+`MalformedParametersException` is an **unchecked exception**, extending `RuntimeException`; it has existed since Java 8. The typical API that raises it is `java.lang.reflect.Executable.getParameters()` (inherited by `Method` and `Constructor`). The error can appear when a framework automatically scans constructors, binds parameter names, performs dependency injection, or processes annotations and invokes the corresponding metadata API.
 
-Điều cần nhớ ngay:
+Key things to remember right away:
 
-- **Thiếu metadata tên tham số** thường là trường hợp hợp lệ: Java vẫn có thể tạo đối tượng `Parameter` với tên thay thế `arg0`, `arg1` và `isNamePresent() == false`.
-- **Metadata hiện diện nhưng sai cấu trúc/nội dung** mới là nhóm lỗi mà `MalformedParametersException` mô tả.
-- Cách sửa tốt nhất thường nằm ở **quá trình biên dịch/sinh/sửa bytecode**, không phải thêm `try/catch` quanh code nghiệp vụ rồi bỏ qua mọi lỗi.
+- **Missing parameter-name metadata** is normally valid: Java can still create `Parameter` objects with placeholder names `arg0`, `arg1` and `isNamePresent() == false`.
+- **Metadata that is present yet structurally/content-wise malformed** is the error category `MalformedParametersException` describes.
+- The best fix usually lies in **the compilation/bytecode generation/modification process**, not wrapping business code in `try/catch` and ignoring all errors.
 
-## 2. Hiểu các lớp thông tin tham số trong class file
+## 2. Understanding Parameter Information Layers in a Class File
 
-Một method/constructor có **method descriptor** ở cấp bytecode, xác định kiểu tham số và kiểu trả về. Ví dụ khai báo:
+A method/constructor has a **method descriptor** at the bytecode level, specifying parameter types and return type. For example, the declaration:
 
 ```java
 public void submit(String orderId, int quantity) { }
 ```
 
-có descriptor:
+has descriptor:
 
 ```text
 (Ljava/lang/String;I)V
 ```
 
-Descriptor xác định phương thức nhận `String` và `int`, trả về `void`. **Descriptor không chứa tên `orderId` hoặc `quantity`.**
+The descriptor specifies that the method accepts `String` and `int`, returning `void`. **The descriptor does not contain the names `orderId` or `quantity`.**
 
-Từ Java 8, class file có thể chứa attribute tùy chọn **`MethodParameters`**. Attribute này chứa thông tin về mỗi tham số, gồm chỉ mục tên trong *constant pool* (hoặc trường hợp không có tên) và access flags thích hợp. Khi biên dịch bằng `javac -parameters`, compiler thông thường sẽ giữ lại tên tham số trong attribute này để Reflection truy cập.
+Since Java 8, a class file can contain an optional **`MethodParameters`** attribute. This attribute stores information about each parameter, including its name index in the *constant pool* (or the unnamed case) and appropriate access flags. When compiled with `javac -parameters`, the compiler normally preserves parameter names in this attribute for Reflection access.
 
-Cần phân biệt với **`LocalVariableTable`**: đây là thông tin debug có thể được sinh bởi các lựa chọn như `-g`. LocalVariableTable không tương đương với MethodParameters, và **`-g` không thay thế `-parameters`** cho `Parameter.isNamePresent()`. Đừng kết luận một file class đã đủ metadata Reflection chỉ vì debugger nhìn thấy tên biến cục bộ.
+Distinguish this from **`LocalVariableTable`**: that is debug information which can be generated by flags such as `-g`. `LocalVariableTable` is not equivalent to `MethodParameters`, and **`-g` does not replace `-parameters`** for `Parameter.isNamePresent()`. Do not conclude a class file has enough Reflection metadata simply because a debugger can see local variable names.
 
-| Nguồn thông tin | Chứa gì? | API/đối tượng liên quan | Điểm lưu ý |
+| Information source | What does it contain? | Related API/object | Caveats |
 | --- | --- | --- | --- |
-| Method descriptor | Số lượng và kiểu tham số JVM | `getParameterCount()`, `getParameterTypes()` | Không cần tên tham số source |
-| `MethodParameters` (tùy chọn) | Tên và flags của tham số | `getParameters()`, `Parameter.getName()`, `isNamePresent()` | Có thể vắng mặt hợp lệ hoặc có dữ liệu hỏng |
-| `LocalVariableTable` (debug) | Biến cục bộ, slot, phạm vi bytecode | Debugger/công cụ phân tích bytecode | Không phải metadata tên tham số Reflection chuẩn |
-| `Signature` (khi có) | Thông tin kiểu generic | `getGenericParameterTypes()` và API generic khác | Hỏng Signature có thể sinh lỗi khác, không đồng nhất với `MalformedParametersException` |
+| Method descriptor | JVM parameter count and types | `getParameterCount()`, `getParameterTypes()` | Does not require source parameter names |
+| `MethodParameters` (optional) | Parameter names and flags | `getParameters()`, `Parameter.getName()`, `isNamePresent()` | May validly be absent or contain corrupted data |
+| `LocalVariableTable` (debug) | Local variables, slots, bytecode ranges | Debugger/bytecode analysis tools | Not standard Reflection parameter-name metadata |
+| `Signature` (when present) | Generic type information | `getGenericParameterTypes()` and other generic APIs | A corrupted `Signature` can raise other errors, distinct from `MalformedParametersException` |
 
-**Mô hình:** descriptor nói “tham số thuộc kiểu nào”; MethodParameters bổ sung “tham số tên gì và mang flags nào”. Một method có thể hợp lệ dù thiếu thông tin tên.
+**Mental model:** the descriptor says “what types the parameters have”; `MethodParameters` adds “what names and flags the parameters carry.” A method can be valid even without name information.
 
-## 3. Chính xác khi nào MalformedParametersException có thể xảy ra?
+## 3. When Exactly Can MalformedParametersException Occur?
 
-Theo mô tả của API Java, `Executable.getParameters()` có thể ném `MalformedParametersException` khi class file chứa `MethodParameters` được định dạng không đúng.
+According to the Java API specification, `Executable.getParameters()` can throw `MalformedParametersException` when the class file contains an improperly formatted `MethodParameters` attribute.
 
-Các dạng sai phổ biến mà JDK xác định gồm:
+Common invalid forms identified by the JDK include:
 
-1. **Sai số lượng phần tử metadata:** `parameters_count` trong `MethodParameters` không khớp số tham số thực tế của method descriptor.
-2. **Tham chiếu constant pool không hợp lệ:** chỉ mục đi ra ngoài phạm vi hoặc trỏ đến mục không thuộc loại `CONSTANT_Utf8` khi cần tên.
-3. **Tên tham số không hợp lệ đối với định dạng metadata:** ví dụ chuỗi rỗng `""` hoặc chứa ký tự JVM không cho phép như `.`, `;`, `[`, `/`.
-4. **Access flags không được phép:** flags của tham số có bit ngoài nhóm hợp lệ `FINAL`, `SYNTHETIC`, `MANDATED`.
+1. **Wrong number of metadata entries:** `parameters_count` in `MethodParameters` does not match the actual parameter count in the method descriptor.
+2. **Invalid constant pool reference:** an index is out of range or points to an entry not of type `CONSTANT_Utf8` when a name is required.
+3. **Invalid parameter name for the metadata format:** for example, an empty string `""` or containing characters disallowed by the JVM such as `.`, `;`, `[`, `/`.
+4. **Disallowed access flags:** parameter flags contain bits outside the valid set `FINAL`, `SYNTHETIC`, `MANDATED`.
 
-Đừng hiểu điều này thành quy tắc “mọi tên tham số phải duy nhất và là Java identifier chuẩn”. Javadoc của `Executable.getParameters()` nói tên tham số **không nhất thiết duy nhất** hoặc là định danh hợp lệ trong Java source. Điều được kiểm tra ở đây là các ràng buộc của attribute/JDK, không phải việc đặt tên code đẹp.
+Do not interpret this as a rule that “every parameter name must be unique and a standard Java identifier.” The Javadoc for `Executable.getParameters()` notes that parameter names **do not have to be unique** or valid identifiers in Java source. What is validated here are the attribute/JDK constraints, not clean source naming.
 
-Một attribute bị hỏng có thể đến từ trình sinh bytecode, trình sửa class, công cụ obfuscation, instrumentation, quá trình transform sau biên dịch hoặc file class bị thay đổi. `javac` bình thường phát sinh metadata đúng với source hợp lệ.
+A corrupted attribute can originate from a bytecode generator, class editor, obfuscation tool, instrumentation, post-compilation transformation, or modified class file. Normal `javac` produces valid metadata for valid source code.
 
-### Khác nhau giữa “không có MethodParameters” và “MethodParameters sai”
+### Difference Between “No MethodParameters” and “Invalid MethodParameters”
 
 ```text
-MethodParameters không tồn tại
-  -> getParameters() thường trả Parameter[] hợp lệ
-  -> getName() dùng arg0, arg1, ...
+MethodParameters does not exist
+  -> getParameters() normally returns a valid Parameter[]
+  -> getName() uses arg0, arg1, ...
   -> isNamePresent() == false
-  -> không tự gây MalformedParametersException
+  -> does not by itself cause MalformedParametersException
 
-MethodParameters tồn tại nhưng vi phạm quy tắc
-  -> getParameters() có thể ném MalformedParametersException
-  -> không nên dựa vào việc getName()/isNamePresent() sẽ chạy sau đó
+MethodParameters exists yet violates rules
+  -> getParameters() may throw MalformedParametersException
+  -> do not rely on getName()/isNamePresent() running afterward
 ```
 
-Một chương trình thiếu `-parameters` nhưng framework **yêu cầu tên thật** vẫn có thể gặp lỗi cấu hình hoặc binding *riêng của framework*. Lỗi đó cần phân biệt với `MalformedParametersException` do attribute không hợp lệ.
+A program compiled without `-parameters` where a framework **requires real names** can still hit *framework-specific* configuration or binding errors. Those errors must be distinguished from `MalformedParametersException` caused by an invalid attribute.
 
-## 4. Ví dụ chạy được: quan sát metadata hợp lệ có và không có -parameters
+## 4. Runnable Example: Observing Valid Metadata With and Without -parameters
 
-Chương trình sau minh họa một **đối chứng hợp lệ** để kiểm tra sự khác biệt giữa việc có và thiếu tên tham số. Nó không cố tình tạo class file sai; một ví dụ Java source biên dịch bình thường **không thể tái tạo tự nhiên** lỗi malformed metadata. Mục tiếp theo sẽ trình bày cách tìm class đã bị biến đổi.
+The following program demonstrates a **valid control baseline** to observe the difference between having and omitting parameter names. It does not intentionally craft a corrupted class file; a normally compiled Java source example **cannot naturally reproduce** malformed metadata errors. The next section shows how to locate transformed classes.
 
-Lưu toàn bộ thành file **`ParameterMetadataDemo.java`**:
+Save the entire file as **`ParameterMetadataDemo.java`**:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -128,16 +128,16 @@ public class ParameterMetadataDemo {
 }
 ```
 
-### Lần chạy A — biên dịch không có -parameters
+### Run A — Compiled Without -parameters
 
-Dùng Java 17 trở lên:
+Using Java 17 or later:
 
 ```bash
 javac -encoding UTF-8 ParameterMetadataDemo.java
 java ParameterMetadataDemo
 ```
 
-Kết quả dự kiến từ class vừa biên dịch trong ví dụ:
+Expected output from the freshly compiled classes in the example:
 
 ```text
 method: 2
@@ -148,18 +148,18 @@ constructor: 2
   int arg1 | namePresent=false
 ```
 
-Dù không thấy tên `orderId`/`quantity`/`region`/`retries`, `getParameters()` vẫn trả danh sách bình thường. **Đây không phải lỗi metadata malformed.**
+Even without `orderId`/`quantity`/`region`/`retries`, `getParameters()` returns the list normally. **This is not a malformed metadata error.**
 
-### Lần chạy B — biên dịch có -parameters
+### Run B — Compiled With -parameters
 
-Biên dịch lại cùng file với cờ giữ tên tham số (javac sẽ ghi đè các class sinh từ file này):
+Recompile the same file with the flag that preserves parameter names (`javac` will overwrite the classes generated from this file):
 
 ```bash
 javac -encoding UTF-8 -parameters ParameterMetadataDemo.java
 java ParameterMetadataDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 method: 2
@@ -170,45 +170,45 @@ constructor: 2
   int retries | namePresent=true
 ```
 
-Lần này `Parameter.isNamePresent()` là `true` vì `MethodParameters` có dữ liệu tên hợp lệ. Không có ngoại lệ nào được ném trong cả hai lần chạy.
+This time `Parameter.isNamePresent()` is `true` because `MethodParameters` contains valid name data. No exception is thrown in either run.
 
-**Lưu ý khi tái hiện:** hãy biên dịch lại đúng file bằng lệnh tương ứng và chạy cùng phiên bản class. Nếu chương trình sử dụng dependency/JAR cũ trên classpath, kết quả có thể phản ánh bytecode khác với file vừa biên dịch.
+**Note when reproducing:** recompile the exact file with the corresponding command and run the same class version. If the program picks up an old dependency/JAR on the classpath, results may reflect bytecode different from the newly compiled file.
 
-## 5. Kiểm tra class file bằng javap
+## 5. Inspecting Class Files with javap
 
-`javap` là công cụ đi kèm JDK để xem chữ ký, bytecode và attribute class. Chạy với `-v` (verbose) để thấy thông tin cần chẩn đoán:
+`javap` is the JDK utility for viewing signatures, bytecode, and class attributes. Run it with `-v` (verbose) to see diagnostic details:
 
 ```bash
 javap -v -p 'ParameterMetadataDemo$OrderService'
 ```
 
-Lệnh trên áp dụng với Bash hoặc PowerShell, nơi dấu nháy đơn giữ nguyên ký tự `$` trong tên nested class. Trên Windows CMD, dùng dấu nháy kép hoặc escape phù hợp với shell.
+The command above works in Bash or PowerShell, where single quotes preserve the `$` character in the nested class name. In Windows CMD, use double quotes or shell-appropriate escaping.
 
-Tìm các vùng gần tên phương thức `submit` và constructor, chú ý:
+Locate the sections near `submit` and the constructor, paying attention to:
 
-- **Descriptor**, ví dụ `(Ljava/lang/String;I)V`.
-- Attribute **MethodParameters** nếu có. Khi đã biên dịch với `-parameters`, tên như `orderId`, `quantity` xuất hiện cạnh flags.
-- Trường hợp không có MethodParameters hoàn toàn là hợp lệ và thường tương ứng với lần chạy A.
-- Với class thật đang lỗi, đối chiếu **số entry MethodParameters** với **số tham số ở descriptor**, rồi kiểm tra tham chiếu constant pool, tên và flags.
+- **Descriptor**, e.g., `(Ljava/lang/String;I)V`.
+- The **MethodParameters** attribute if present. When compiled with `-parameters`, names such as `orderId` and `quantity` appear alongside flags.
+- Absence of `MethodParameters` is completely valid and normally corresponds to Run A.
+- On a real failing class, compare **the count of MethodParameters entries** against **the parameter count in the descriptor**, then inspect constant pool references, names, and flags.
 
-Không chỉ kiểm tra source. Khi có nhiều JAR chứa cùng tên class hoặc class đã qua agent transformer, phải xác định **file class thực sự được classloader nạp**. Một bản `.class` hợp lệ trong thư mục build không chứng minh bản trong JAR đang chạy cũng hợp lệ.
+Do not inspect only source code. When multiple JARs contain the same class name or a class passed through an agent transformer, you must identify **the actual class file loaded by the class loader**. A valid `.class` in the build directory does not prove the copy inside the running JAR is valid.
 
-Ví dụ in nguồn tài nguyên của class đang được nạp:
+Example printing the resource origin of the currently loaded class:
 
 ```java
 System.out.println(OrderService.class.getProtectionDomain()
         .getCodeSource().getLocation());
 ```
 
-Đoạn này chỉ là ví dụ để đặt **trong ngữ cảnh class có quyền tham chiếu `OrderService`**. `getCodeSource()` có thể `null` với một số cách nạp/lớp hệ thống; vì vậy code production cần kiểm tra null trước khi dereference. Với class load đặc biệt hoặc mã được transform trong bộ nhớ, vị trí code source cũng có thể không đủ để chứng minh bytecode cuối cùng.
+This snippet is only an example to place **in a class context with permission to reference `OrderService`**. `getCodeSource()` can be `null` for certain loaders/system classes; therefore production code should check for null before dereferencing. For classes loaded specially or code transformed in memory, code-source location alone may also be insufficient to prove the final bytecode.
 
-## 6. Quy trình chẩn đoán MalformedParametersException
+## 6. Workflow for Diagnosing MalformedParametersException
 
-Khi bắt gặp stack trace, làm theo thứ tự giúp phân biệt lỗi nguồn và lỗi biểu hiện:
+When encountering the stack trace, following these steps in order helps separate the source error from downstream symptoms:
 
-**Bước 1 — tìm thao tác Reflection kích hoạt lỗi.** Xem stack trace tại `Executable.getParameters()` và lớp/method nào của ứng dụng hoặc framework gọi nó. Ghi nhận chính xác tên class, tên method/constructor, classloader và JDK runtime. Đừng dừng lại ở dòng lỗi bề ngoài như “không tạo được bean”, “không bind được tham số”, hoặc “không gọi được constructor”.
+**Step 1 — Find the Reflection operation that triggered the error.** Look at the stack trace at `Executable.getParameters()` and see which application or framework class/method called it. Record the exact class name, method/constructor name, class loader, and runtime JDK. Do not stop at surface-level error lines such as “could not create bean”, “could not bind parameter”, or “could not invoke constructor”.
 
-**Bước 2 — tái hiện tối thiểu trên đúng method.** Nếu đã xác định class và chữ ký, thử:
+**Step 2 — Minimally reproduce on the exact method.** Once the class and signature are identified, test:
 
 ```java
 Method m = SomeType.class.getDeclaredMethod(
@@ -223,30 +223,30 @@ try {
 }
 ```
 
-Đây là **mẫu minh họa**: phải thay `SomeType`, `process` và các kiểu tham số bằng class/method có thật. Đặt trong phương thức có khai báo hoặc bắt `NoSuchMethodException`; có đầy đủ import thích hợp. Khi tái hiện, dùng đúng **binary class đã được framework nạp**, không mặc định phiên bản trong IDE là phiên bản lỗi.
+This is an **illustrative template**: replace `SomeType`, `process`, and the parameter types with the real class/method. Place it in a method that declares or catches `NoSuchMethodException`, with all appropriate imports. When reproducing, use the exact **binary class loaded by the framework**, rather than assuming the IDE build matches the broken version.
 
-**Bước 3 — kiểm tra từng tầng cấu trúc metadata.**
+**Step 3 — Inspect each metadata structural layer.**
 
-| Câu hỏi chẩn đoán | Công cụ/dữ liệu | Hướng xử lý |
+| Diagnostic question | Tool/data | Resolution direction |
 | --- | --- | --- |
-| Method descriptor có bao nhiêu tham số? | `javap -v -p`, `getParameterCount()` | Đối chiếu descriptor với MethodParameters |
-| MethodParameters có tồn tại không? | `javap -v -p` | Vắng mặt là hợp lệ; xem framework có cần tên thật không |
-| Số entry, tên, constant-pool index, flags có hợp lệ? | `javap`/bytecode inspector có kiểm tra class file | Khoanh vùng dữ liệu malformed |
-| Class nào/JAR nào thật sự được nạp? | Classloader, code source, dependency tree | Loại bỏ duplicate/stale class hoặc sai classpath |
-| File class có qua transformer/obfuscator/shader/agent không? | Cấu hình build, pipeline transform | So sánh bản trước/sau bước biến đổi |
-| Một lệnh biên dịch sạch có tái hiện không? | Clean build với cùng JDK và source | Xác định toolchain/transform gây hỏng |
+| How many parameters are in the method descriptor? | `javap -v -p`, `getParameterCount()` | Compare descriptor against `MethodParameters` |
+| Does `MethodParameters` exist? | `javap -v -p` | Absence is valid; check whether the framework requires real names |
+| Are entry count, names, constant-pool indices, and flags valid? | `javap`/bytecode inspector that validates class files | Pinpoint malformed data |
+| Which class/JAR is actually loaded? | Classloader, code source, dependency tree | Remove duplicate/stale classes or fix classpath |
+| Did the class file pass through a transformer/obfuscator/shader/agent? | Build configuration, transform pipeline | Compare before/after transformation |
+| Does a clean compile reproduce it? | Clean build with the same JDK and source | Identify the toolchain/transform causing corruption |
 
-Lưu ý: không phải mọi bytecode tool đều có mức kiểm tra như JVM; một công cụ có thể đọc và in attribute nhưng không tự gắn nhãn “hỏng”. Đối chiếu với quy tắc class file và hành vi Reflection.
+Note: not every bytecode tool performs the same level of validation as the JVM; a tool might read and print an attribute without flagging it as “corrupted.” Cross-check against class-file rules and Reflection behavior.
 
-**Bước 4 — so bản gốc và bản sau xử lý.** Nếu source Java biên dịch sạch không có lỗi nhưng JAR cuối bị lỗi, so sánh attribute MethodParameters trước/sau các bước weaving, shading, minimization, obfuscation, instrumentation. Các bộ biến đổi phải cập nhật metadata nhất quán khi đổi descriptor/tên và không ghi flags/tên sai.
+**Step 4 — Compare original and post-processed builds.** If clean Java source compiles without errors yet the final JAR fails, compare `MethodParameters` attributes before and after weaving, shading, minimization, obfuscation, and instrumentation steps. Transformers must update metadata consistently when changing descriptors/names and must not write invalid flags/names.
 
-**Bước 5 — sửa artifact và kiểm tra lại.** Tái sinh class hợp lệ, đồng bộ phiên bản thư viện/công cụ và kiểm tra cả môi trường phát triển lẫn runtime thật. Thêm test gọi `getParameters()` trên những API mà framework phụ thuộc để phát hiện hồi quy trong pipeline.
+**Step 5 — Fix the artifact and re-verify.** Regenerate valid classes, align library/tool versions, and test both development and real runtime environments. Add tests calling `getParameters()` on APIs the framework relies on to catch regressions in the pipeline.
 
-## 7. Xử lý ngoại lệ đúng tầng và lựa chọn fallback
+## 7. Layer-Appropriate Exception Handling and Fallback Choices
 
-Vì lỗi nằm trong **metadata của binary**, hướng chính là sửa build/artifact. Ở một số công cụ phân tích có thể cần fallback để tránh sập toàn bộ quá trình quét, nhưng phải ghi nhận rằng tên/thông tin tham số có thể không đáng tin.
+Because the defect lives in **binary metadata**, the primary fix is correcting the build/artifact. In some analysis tools a fallback may be needed to avoid crashing an entire scan, while recording that parameter names/info may be untrustworthy.
 
-Ví dụ chỉ cần **kiểu tham số**, không cần tên:
+Example needing only **parameter types**, not names:
 
 ```java
 import java.lang.reflect.Executable;
@@ -269,51 +269,51 @@ public class MetadataFallback {
 }
 ```
 
-Đây là đoạn Java biên dịch được như một class thư viện; chưa có `main`, nên không phải chương trình tự in ra output độc lập. Trường hợp descriptor hợp lệ, `getParameterTypes()` có thể cung cấp kiểu ngay cả khi `getParameters()` lỗi. Nhưng **fallback không khôi phục tên thật**, flags `mandated`/`synthetic`, hoặc bảo đảm logic binding theo tên sẽ đúng.
+This is a Java snippet compilable as a library class; without a `main` method, it is not a standalone program producing output on its own. When the descriptor is valid, `getParameterTypes()` can supply types even if `getParameters()` fails. However, **this fallback does not recover real names**, `mandated`/`synthetic` flags, or guarantee name-based binding logic will be correct.
 
-Khi mapping request, injection hoặc serialization **phụ thuộc tên tham số**, việc âm thầm gán `arg0`/`arg1` hay gán theo vị trí có thể đổi ý nghĩa. Hãy fail rõ ràng, log class/method/artifact và sửa metadata nguồn. Nếu API người dùng thực sự được thiết kế để ánh xạ theo index, chỉ dùng fallback khi đã chứng minh thứ tự và kiểu tham số đủ cho bài toán.
+When request mapping, injection, or serialization **depends on parameter names**, silently assigning `arg0`/`arg1` or binding by position can change semantics. Fail clearly, log the class/method/artifact, and fix the source metadata. If a user API is genuinely designed for index-based mapping, use a fallback only after proving parameter order and types suffice for the use case.
 
-Không dùng `try/catch (Exception ignored)` để che lỗi rồi tiếp tục như thể metadata hợp lệ; cũng không đặt `-parameters` thành giải pháp duy nhất cho mọi `MalformedParametersException`. Cờ này giúp tạo metadata đúng từ source Java bình thường nhưng không tự sửa file class đã bị công cụ khác ghi sai.
+Do not use `try/catch (Exception ignored)` to hide the error and proceed as if metadata were valid; nor treat `-parameters` as the sole cure for every `MalformedParametersException`. That flag generates valid metadata from normal Java source, but it does not automatically repair a class file already corrupted by another tool.
 
-## 8. Phân biệt các ngoại lệ Reflection dễ nhầm
+## 8. Distinguishing Easily Confused Reflection Exceptions
 
-| Ngoại lệ | Ngữ cảnh tiêu biểu | Khác biệt |
+| Exception | Typical context | Difference |
 | --- | --- | --- |
-| `MalformedParametersException` | `Executable.getParameters()` đọc MethodParameters sai | Lỗi **metadata mô tả tham số** ở class file |
-| `NoSuchMethodException` | `getDeclaredMethod(...)` với tên/kiểu tham số không khớp | Tra cứu method sai; không chứng minh metadata tham số bị hỏng |
-| `IllegalArgumentException` | `Method.invoke(...)` truyền đối số không hợp lệ | Lỗi sử dụng API/đối số runtime; có thể phát sinh từ nguyên nhân khác |
-| `IllegalAccessException` | Truy cập/invoke method không đủ quyền | Lỗi access control, độc lập với tên tham số |
-| `GenericSignatureFormatError` | Parse generic Signature không đúng | Lỗi cú pháp metadata **generic**, không đồng nhất MethodParameters |
-| `MalformedParameterizedTypeException` | Kiểu generic không thể được tạo hợp lệ | Lỗi ở mô hình kiểu generic; tên trông giống nhưng bản chất khác |
-| `ClassFormatError` | JVM thấy class file sai cấu trúc ở mức load/verify thích hợp | Có thể khiến class không nạp được; khác trường hợp nạp được nhưng `getParameters()` báo malformed attribute |
+| `MalformedParametersException` | `Executable.getParameters()` reads invalid `MethodParameters` | **Parameter-metadata** error in the class file |
+| `NoSuchMethodException` | `getDeclaredMethod(...)` with unmatched name/parameter types | Wrong method lookup; does not prove parameter metadata is corrupted |
+| `IllegalArgumentException` | `Method.invoke(...)` passed invalid arguments | Runtime API/argument usage error; may stem from other causes |
+| `IllegalAccessException` | Insufficient permission to access/invoke method | Access-control error, independent of parameter names |
+| `GenericSignatureFormatError` | Parsing invalid generic `Signature` | Syntax error in **generic** metadata, not `MethodParameters` |
+| `MalformedParameterizedTypeException` | Generic type cannot be constructed validly | Error in generic type model; similar name but different nature |
+| `ClassFormatError` | JVM detects invalid class-file structure at the appropriate load/verify stage | Can prevent the class from loading; differs from loading cleanly and having `getParameters()` report a malformed attribute |
 
-Lỗi `MalformedParametersException` không nhất thiết xảy ra lúc class được nạp. Tùy loại bất hợp lệ, có thể chỉ lộ ra **khi Reflection cố đọc metadata tham số**. Đừng suy ra “class load thành công thì toàn bộ metadata luôn đúng”.
+`MalformedParametersException` does not necessarily occur when the class is loaded. Depending on the kind of invalidity, it may only surface **when Reflection attempts to read parameter metadata**. Do not infer “if the class loaded successfully, all metadata is valid.”
 
-## 9. Những hiểu nhầm thường gặp
+## 9. Common Misconceptions
 
-- **“Không có cờ -parameters sẽ gây MalformedParametersException.”** Sai. Với method thông thường, Reflection có tên mặc định `arg0`, `arg1`, `isNamePresent() == false` và không tự ném lỗi chỉ vì attribute vắng mặt.
-- **“Bật -g là đủ.”** Sai. Debug `LocalVariableTable` khác attribute `MethodParameters`.
-- **“Thấy tên arg0 là metadata hỏng.”** Sai. `arg0` có thể là tên tổng hợp hợp lệ khi không có tên gốc; `Parameter.isNamePresent()` cho biết tên đó có thực sự từ thông tin tên hay không.
-- **“MethodParameters có bao nhiêu entry cũng được.”** Sai. Nếu attribute hiện diện thì số lượng phải phù hợp với method descriptor, kể cả tham số implicit/synthetic thực sự ở cấp bytecode.
-- **“Chỉ đổi tên source là sửa được class cũ.”** Sai. Phải biên dịch/sinh lại đúng binary được dùng, và kiểm tra mọi transform tiếp theo.
-- **“Lỗi trong framework thì chắc chắn framework sai.”** Chưa đủ căn cứ. Framework có thể chỉ là nơi đầu tiên đọc bytecode bị hỏng từ một dependency.
-- **“getParameterCount() không lỗi nên getParameters() chắc chắn không lỗi.”** Sai. Hai thao tác không cần đọc cùng một lớp metadata.
-- **“Bắt RuntimeException rồi bỏ qua là an toàn.”** Sai. Có thể khiến dữ liệu tên tham số dùng để mapping bị sai lặng lẽ.
+- **“Omitting `-parameters` causes `MalformedParametersException`.”** False. For ordinary methods, Reflection provides default names `arg0`, `arg1` with `isNamePresent() == false`, without throwing simply because the attribute is absent.
+- **“Enabling `-g` is enough.”** False. Debug `LocalVariableTable` differs from the `MethodParameters` attribute.
+- **“Seeing the name `arg0` means metadata is corrupted.”** False. `arg0` can be a valid synthesized name when no source name is present; `Parameter.isNamePresent()` tells you whether the name actually came from name metadata.
+- **“`MethodParameters` can have any number of entries.”** False. If the attribute is present, its count must match the method descriptor, including any actual implicit/synthetic parameters at the bytecode level.
+- **“Just renaming in source fixes the old class.”** False. You must recompile/regenerate the exact binary being used, and check all subsequent transforms.
+- **“If the error happens inside a framework, the framework must be buggy.”** Insufficient evidence. The framework may simply be the first component reading corrupted bytecode from a dependency.
+- **“`getParameterCount()` succeeded so `getParameters()` definitely will too.”** False. The two operations do not have to read the same metadata layer.
+- **“Catching `RuntimeException` and ignoring it is safe.”** False. It can silently make parameter-name data used for mapping wrong.
 
-## 10. Bài tập thực hành và checklist kiểm chứng
+## 10. Hands-On Exercises and Verification Checklist
 
-1. Chạy `ParameterMetadataDemo` lần lượt **không có** và **có** `-parameters`. Giải thích vì sao `getParameterCount()` không thay đổi và `isNamePresent()` thay đổi.
-2. Dùng `javap -v -p` trên class của `OrderService` trong cả hai bản biên dịch. Chỉ ra descriptor và sự có mặt/vắng mặt của MethodParameters.
-3. Giả sử một bytecode transformer thay phương thức từ hai tham số thành một tham số nhưng giữ MethodParameters có hai entry. Dự đoán khi nào `MalformedParametersException` có thể xuất hiện và cách xác nhận.
-4. Nếu server báo lỗi lúc binding tên tham số nhưng `getParameters()` chạy được và `isNamePresent()` là `false`, cần xem lại gì trong compiler/framework?
-5. Nếu cùng source chạy đúng ở IDE nhưng lỗi trong fat JAR, xác định lớp bước nào trong build/deployment cần so sánh.
+1. Run `ParameterMetadataDemo` first **without** and then **with** `-parameters`. Explain why `getParameterCount()` does not change while `isNamePresent()` changes.
+2. Run `javap -v -p` on the `OrderService` class in both compiled builds. Point out the descriptor and the presence/absence of `MethodParameters`.
+3. Suppose a bytecode transformer changes a method from two parameters to one parameter while leaving `MethodParameters` with two entries. Predict when `MalformedParametersException` may appear and how to confirm it.
+4. If a server reports an error while binding parameter names yet `getParameters()` succeeds with `isNamePresent() == false`, what should you review in the compiler/framework?
+5. If the same source runs fine in the IDE but fails inside a fat JAR, identify which build/deployment steps need comparison.
 
-**Checklist khi debug production:** ghi đầy đủ `exception + stack trace → class/method descriptor → binary/classloader thực tế → MethodParameters trong artifact → toolchain và từng bước biến đổi → clean rebuild → test đọc lại getParameters()`.
+**Production debugging checklist:** record full `exception + stack trace → class/method descriptor → actual binary/classloader → MethodParameters in artifact → toolchain and each transform step → clean rebuild → re-test calling getParameters()`.
 
-**Kết quả cần đạt:** phân biệt được dữ liệu tham số **bị thiếu hợp lệ** với dữ liệu **hiện diện nhưng malformed**, hiểu vì sao `Executable.getParameters()` có thể ném unchecked exception, và biết truy ngược artifact gây lỗi để sửa nguyên nhân.
+**Expected outcome:** be able to distinguish **validly absent** parameter metadata from **present yet malformed** metadata, understand why `Executable.getParameters()` can throw an unchecked exception, and trace back the offending artifact to fix the root cause.
 
-### Tài liệu tham khảo
+### References
 
-- [Javadoc Java 21: Executable.getParameters()](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Executable.html#getParameters())
-- [Javadoc Java 21: MalformedParametersException](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/MalformedParametersException.html)
-- [Tài liệu javac: tùy chọn -parameters](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html)
+- [Java 21 Javadoc: Executable.getParameters()](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Executable.html#getParameters())
+- [Java 21 Javadoc: MalformedParametersException](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/MalformedParametersException.html)
+- [javac Documentation: -parameters option](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html)

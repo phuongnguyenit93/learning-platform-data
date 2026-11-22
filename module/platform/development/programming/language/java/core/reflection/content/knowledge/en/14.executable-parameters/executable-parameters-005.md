@@ -1,8 +1,8 @@
-# `Parameter.isNamePresent()` và tên tổng hợp `arg0`, `arg1` trong Java Reflection
+# `Parameter.isNamePresent()` and Synthesized Names `arg0`, `arg1` in Java Reflection
 
-## 1. Cùng một method, vì sao Reflection lúc thấy tên thật, lúc chỉ thấy `arg0`?
+## 1. The Same Method: Why Does Reflection Sometimes See Real Names and Other Times Only `arg0`?
 
-Một method có thể được khai báo như sau:
+A method may be declared as follows:
 
 ~~~java
 void send(String recipient, int attempts) {
@@ -10,36 +10,36 @@ void send(String recipient, int attempts) {
 }
 ~~~
 
-Trong mã nguồn, tham số có tên `recipient` và `attempts`. Tuy nhiên, **tên tham số trong mã nguồn không mặc nhiên được ghi vào bytecode dưới dạng metadata Reflection có thể truy cập**. Khi dùng `Method.getParameters()` để lấy các đối tượng `java.lang.reflect.Parameter`, chúng ta có hai khả năng:
+In the source code, the parameters are named `recipient` and `attempts`. However, **parameter names in source code are not by default recorded in bytecode as Reflection-accessible metadata**. When using `Method.getParameters()` to obtain `java.lang.reflect.Parameter` objects, there are two possibilities:
 
-- Class file có metadata tên tham số phù hợp: `Parameter.getName()` trả `recipient`, `attempts` và `Parameter.isNamePresent()` trả `true`.
-- Class file không có metadata tên tham số: Java Reflection tạo tên thay thế theo dạng **`arg0`, `arg1`, …**, và `Parameter.isNamePresent()` trả `false`.
+- The class file contains appropriate parameter name metadata: `Parameter.getName()` returns `recipient`, `attempts`, and `Parameter.isNamePresent()` returns `true`.
+- The class file lacks parameter name metadata: Java Reflection generates placeholder names of the form **`arg0`, `arg1`, …**, and `Parameter.isNamePresent()` returns `false`.
 
-Điểm then chốt: **`getName()` vẫn trả một chuỗi kể cả khi tên thật không có trong class file**. Vì vậy chỉ gọi `getName()` rồi thấy `arg0` không chứng minh tác giả đã đặt tham số tên `arg0`, và không phải một cơ chế phục hồi tên gốc từ bytecode.
+Key point: **`getName()` still returns a string even when the real name is absent from the class file**. Therefore, merely calling `getName()` and seeing `arg0` does not prove the author named the parameter `arg0`, nor is it a mechanism to recover original names from bytecode.
 
-Hai nhóm thông tin độc lập:
+Two independent groups of information:
 
-1. **Thông tin chữ ký của executable:** số lượng tham số, loại tham số, thứ tự; JVM cần chúng để kiểm tra chữ ký và thực hiện lời gọi.
-2. **Thông tin tên nguồn của tham số:** tên như `recipient` hay `attempts` để hỗ trợ tooling, framework, binding; Java Reflection chỉ biết chúng khi metadata được phát hành và còn nguyên vẹn.
+1. **Executable signature information:** number of parameters, parameter types, and order; the JVM needs these to verify signatures and perform invocations.
+2. **Parameter source name information:** names like `recipient` or `attempts` to assist tooling, frameworks, and binding; Java Reflection only knows these when metadata is emitted and intact.
 
-`isNamePresent()` là cách chính thức để phân biệt hai tình huống trên.
+`isNamePresent()` is the official way to distinguish between the two situations above.
 
-## 2. API trực tiếp phục vụ quyết định tên tham số
+## 2. Direct APIs for Parameter Name Decisions
 
-`Method` và `Constructor<?>` cùng kế thừa `Executable`. `getParameters()` trả các `Parameter` theo thứ tự của executable; `getParameterCount()` và `getParameterTypes()` vẫn hoạt động khi không có metadata tên.
+`Method` and `Constructor<?>` both inherit from `Executable`. `getParameters()` returns `Parameter` objects in executable order; `getParameterCount()` and `getParameterTypes()` still work when name metadata is absent.
 
-| API | Câu hỏi trả lời |
+| API | Question Answered |
 | --- | --- |
-| `Parameter.getName()` | Class file cung cấp tên nào, hoặc Reflection đã tạo tên thay thế `argN` nào? |
-| `Parameter.isNamePresent()` | Riêng tham số này có tên trong metadata `MethodParameters` không? |
-| `Parameter.getDeclaringExecutable()` | Method/constructor nào khai báo tham số này? |
-| `Parameter.getType()` | Kiểu runtime sau type erasure là gì? |
+| `Parameter.getName()` | What name does the class file provide, or what placeholder `argN` did Reflection generate? |
+| `Parameter.isNamePresent()` | Does this specific parameter have a name in `MethodParameters` metadata? |
+| `Parameter.getDeclaringExecutable()` | Which method/constructor declares this parameter? |
+| `Parameter.getType()` | What is the runtime type after type erasure? |
 
-Vì tên không tham gia chữ ký overload, hãy tra method bằng tên method và danh sách `Class<?>`, sau đó kiểm tra **từng** `Parameter.isNamePresent()` nếu cần tên để binding. `Parameter` mô tả khai báo, không lưu giá trị của một lần gọi thực tế.
+Because names do not participate in overload signatures, look up methods by method name and `Class<?>` list, then check **each** `Parameter.isNamePresent()` if names are needed for binding. `Parameter` describes a declaration; it does not store values from an actual invocation.
 
-## 3. Thực hành Java 17: cùng source, hai kết quả
+## 3. Java 17 Practice: Same Source, Two Outcomes
 
-Tạo đúng một file `ParameterNamesDemo.java`:
+Create a single file `ParameterNamesDemo.java`:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -80,16 +80,16 @@ class Submission {
 }
 ~~~
 
-### Lần 1 — Biên dịch mặc định, không giữ tên tham số
+### Run 1 — Default Compilation, Without Retaining Parameter Names
 
-Trong thư mục chứa file, chạy:
+In the directory containing the file, run:
 
 ~~~bash
 javac --release 17 ParameterNamesDemo.java
 java ParameterNamesDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 constructor: 2
@@ -100,18 +100,18 @@ method: 2
   arg1 | present=false | type=int
 ~~~
 
-Cả constructor và method đều có hai tham số với đúng **kiểu** và đúng **thứ tự**, nhưng tên nguồn không được lưu bằng metadata tên tham số được Reflection nhận biết. `getName()` do đó tạo ra `arg0`, `arg1` và `isNamePresent()` trả `false`.
+Both constructor and method have two parameters with the right **types** and **order**, but source names were not stored in Reflection-recognized parameter name metadata. `getName()` therefore generates `arg0`, `arg1` and `isNamePresent()` returns `false`.
 
-### Lần 2 — Biên dịch lại cùng source với `-parameters`
+### Run 2 — Recompiling the Same Source with `-parameters`
 
-Chạy tiếp (giữ nguyên file `.java`):
+Continue running (keeping the `.java` file unchanged):
 
 ~~~bash
 javac --release 17 -parameters ParameterNamesDemo.java
 java ParameterNamesDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 constructor: 2
@@ -122,56 +122,56 @@ method: 2
   attempts | present=true | type=int
 ~~~
 
-Chỉ khác lựa chọn biên dịch, `getName()` giờ lấy được tên khai báo, `isNamePresent()` trả `true` cho từng tham số. Method và constructor vẫn có chữ ký Java, số lượng và kiểu tham số như trước.
+Differing only in the compiler option, `getName()` now retrieves the declared names and `isNamePresent()` returns `true` for each parameter. The method and constructor keep the exact same Java signatures, parameter counts, and types as before.
 
-**Thí nghiệm này đã được xác minh** với Java Compiler qua API `javax.tools.JavaCompiler` ở chế độ `--release 17`, so sánh hai lượt có/không có `-parameters`. Khác biệt không cần sửa logic method hay constructor.
+**This experiment was verified** with the Java Compiler via the `javax.tools.JavaCompiler` API in `--release 17` mode, comparing two runs with and without `-parameters`. The difference requires no changes to method or constructor logic.
 
-### Phân tích kỹ hơn
+### Deeper Analysis
 
-- `Submission(String label, long createdAt)` là constructor package-private, nhưng `getDeclaredConstructor(String.class, long.class)` vẫn tìm thấy metadata.
-- `send(String recipient, int attempts)` cũng không cần là method public: `getDeclaredMethod(String, Class<?>...)` lấy khai báo trong class tương ứng.
-- Việc đọc tên/type qua `getParameters()` không đòi gọi constructor/method; đây là metadata. Nếu sau đó dùng `newInstance` hoặc `invoke` mới phát sinh các access check riêng.
-- Ví dụ chỉ sử dụng **top-level class** thông thường và tham số được khai báo tường minh. Với constructor của enum, non-static inner class hay những hình thức compiler-generated khác, có thể có tham số implicit/synthetic cần phân tích riêng.
+- `Submission(String label, long createdAt)` is a package-private constructor, yet `getDeclaredConstructor(String.class, long.class)` still finds its metadata.
+- `send(String recipient, int attempts)` also does not need to be public: `getDeclaredMethod(String, Class<?>...)` retrieves declarations in the corresponding class.
+- Reading names/types via `getParameters()` does not require invoking the constructor/method; this is metadata. Separate access checks only arise if `newInstance` or `invoke` is called afterward.
+- The example only uses ordinary **top-level classes** and explicitly declared parameters. For constructors of enums, non-static inner classes, or other compiler-generated forms, implicit/synthetic parameters may exist and require separate analysis.
 
-## 4. Chẩn đoán chính xác tên tổng hợp
+## 4. Accurately Diagnosing Synthesized Names
 
-`javac -parameters` yêu cầu ghi tên tham số trong thuộc tính `MethodParameters` của class file. `-g` có thể tạo `LocalVariableTable` cho debugger, nhưng Core Reflection không dùng bảng debug đó để quyết định `isNamePresent()`. Kiểm tra class file đang thực thi bằng `javap -v -p` và tìm `MethodParameters` tại đúng method/constructor.
+`javac -parameters` instructs the compiler to write parameter names into the class file's `MethodParameters` attribute. `-g` can generate a `LocalVariableTable` for debuggers, but Core Reflection does not use that debug table to determine `isNamePresent()`. Inspect the running class file with `javap -v -p` and look for `MethodParameters` on the exact method/constructor.
 
-**Không nhận diện tên tổng hợp bằng regex.** Source hoàn toàn có thể cố ý khai báo tham số tên `arg0`; khi biên dịch với `-parameters`, `getName()` vẫn là `arg0` nhưng `isNamePresent()` là `true`. Ngược lại, thiếu tên metadata thì `argN` chỉ là nhãn Reflection tự tạo.
+**Do not detect synthesized names with regex.** Source code can intentionally declare a parameter named `arg0`; when compiled with `-parameters`, `getName()` is still `arg0` while `isNamePresent()` is `true`. Conversely, when name metadata is missing, `argN` is simply a Reflection-generated label.
 
-## 5. Kiểm tra bản build thực sự được nạp
+## 5. Verifying the Build Actually Loaded
 
-Chạy thí nghiệm ở mục 3 trong hai thư mục output tách biệt (ví dụ `plain/` và `named/`) để tránh đọc lại `.class` cũ. Với `named/`, dùng `javac --release 17 -parameters -d named ParameterNamesDemo.java`; với `plain/`, bỏ `-parameters`. Chọn classpath tương ứng khi chạy rồi so `getName()` và `isNamePresent()`.
+Run the experiment in section 3 into two separate output directories (such as `plain/` and `named/`) to avoid reading stale `.class` files. For `named/`, use `javac --release 17 -parameters -d named ParameterNamesDemo.java`; for `plain/`, omit `-parameters`. Select the corresponding classpath when running and compare `getName()` and `isNamePresent()`.
 
-Trong ứng dụng nhiều module, chỉ những class **đã được chính compiler/build pipeline phát hành metadata** mới có tên. Nếu thư viện JAR, CI, obfuscator hoặc bytecode transformer xử lý riêng, cần kiểm tra artifact cuối. Cấu hình Maven/Gradle chi tiết và vai trò `-g` đã được trình bày ở bài **Tên tham số và tùy chọn biên dịch `-parameters`**; ở đây trọng tâm là kiểm tra kết quả trên từng `Parameter`.
+In a multi-module application, only classes **for which the compiler/build pipeline actually emitted metadata** have names. If JAR libraries, CI, obfuscators, or bytecode transformers process classes separately, inspect the final artifact. Detailed Maven/Gradle configuration and the role of `-g` are covered in **Parameter Names and the `-parameters` Compiler Option**; here the focus is checking results per `Parameter`.
 
-## 6. Tên tổng hợp `arg0`, `arg1` có dùng làm tên nghiệp vụ được không?
+## 6. Can Synthesized Names `arg0`, `arg1` Be Used as Business Names?
 
-Không nên. Khi metadata tên không có, `getName()` trả tên theo thứ tự **`arg0`, `arg1`, …** cho các tham số; đó là cơ chế dự phòng để Reflection vẫn có chuỗi tên, **không phải tên khai báo đáng tin cậy từ source**.
+No. When name metadata is missing, `getName()` returns sequential names **`arg0`, `arg1`, …** for parameters; that is a fallback so Reflection still has a string name, **not a reliable declared name from source**.
 
-Ví dụ một framework ánh xạ request JSON:
+For example, a framework mapping JSON requests:
 
 ~~~java
 void createUser(String email, int age)
 ~~~
 
-Nếu framework định bind tham số theo tên `email` và `age` nhưng class file không có tên, nó có thể chỉ quan sát `arg0` và `arg1`. Nếu framework không có cơ chế định danh thay thế, mapping có thể thất bại hoặc gây nhầm lẫn. Framework có thể dùng annotation như `@RequestParam("email")`, `@JsonProperty("age")`, hoặc metadata riêng; hành vi thực tế phụ thuộc framework.
+If the framework expects to bind parameters by the names `email` and `age` while the class file lacks names, it may only observe `arg0` and `arg1`. If the framework has no alternative identification mechanism, mapping may fail or cause confusion. Frameworks may use annotations like `@RequestParam("email")`, `@JsonProperty("age")`, or separate metadata; actual behavior depends on the framework.
 
-**Cách đúng:** nếu cần tên tham số nguồn, chỉ tin `getName()` khi `isNamePresent()` là true (và metadata đúng với artifact mong muốn). Nếu false, xử lý như tình huống **thiếu metadata**: yêu cầu cấu hình `-parameters`, dùng annotation đặt tên tường minh, hoặc sử dụng contract nhận diện tham số khác. Không tự ép `arg0` thành tên business.
+**The right approach:** if source parameter names are required, only trust `getName()` when `isNamePresent()` is true (and metadata matches the expected artifact). If false, handle it as **missing metadata**: require `-parameters` configuration, use explicit naming annotations, or use another parameter-identification contract. Never coerce `arg0` into a business name.
 
-Đây cũng là lý do một API/framework có thể chạy bình thường trong IDE nhưng lỗi ở bản đóng gói: cấu hình compiler hay bước tối ưu bytecode của hai môi trường có thể khác nhau.
+This is also why an API/framework may run normally in an IDE yet fail in a packaged build: compiler settings or bytecode optimization steps between the two environments can differ.
 
-## 7. Ngoại lệ và trường hợp ít hiển nhiên
+## 7. Exceptions and Less Obvious Cases
 
-### a) Constructor có tham số ngầm/nhân tạo
+### a) Constructors with Implicit/Synthetic Parameters
 
-Một `non-static inner class` có thể mang tham số ẩn trỏ về instance outer class, dù người đọc source chỉ thấy constructor khai báo một vài tham số. Constructor của `enum` cũng có tham số do compiler/runtime bổ sung; các executable synthetic/bridge có thể xuất hiện trong bytecode.
+A `non-static inner class` may carry a hidden parameter pointing to the outer class instance, even though a reader of the source only sees a few declared constructor parameters. An `enum` constructor also has compiler/runtime-added parameters; synthetic/bridge executables can appear in bytecode.
 
-Đừng mặc định tham số index 0 trong Reflection luôn tương ứng với **tham số đầu tiên người viết nhìn thấy trong mã nguồn**. Khi nghi ngờ, kiểm tra `getParameterTypes()`, `getParameters()`, `Parameter.isImplicit()`, `Parameter.isSynthetic()` và metadata của class file. Giá trị các flag phụ thuộc compiler/bytecode, nên không tự suy diễn dựa vào tên `arg0`.
+Do not assume parameter index 0 in Reflection always corresponds to **the first parameter a writer sees in source code**. When in doubt, inspect `getParameterTypes()`, `getParameters()`, `Parameter.isImplicit()`, `Parameter.isSynthetic()`, and the class file's metadata. Flag values depend on the compiler/bytecode, so do not infer from the name `arg0`.
 
-### b) `isNamePresent()` là kiểm tra trên từng `Parameter`
+### b) `isNamePresent()` Is a Per-`Parameter` Check
 
-Chữ ký API là `parameter.isNamePresent()`, không phải thuộc tính boolean duy nhất trên toàn class. Khi xử lý tổng quát, kiểm tra **mỗi tham số** của executable. Tránh mặc định rằng nếu một tham số có tên thì tất cả sẽ có tên, nhất là khi làm việc với class file từ compiler, code generator hoặc công cụ biến đổi bytecode khác nhau.
+The API signature is `parameter.isNamePresent()`, not a single boolean property across the whole class. In general processing, check **every parameter** of the executable. Avoid assuming that if one parameter has a name then all will, especially when dealing with class files from different compilers, code generators, or bytecode transformation tools.
 
 ~~~java
 for (Parameter p : executable.getParameters()) {
@@ -183,40 +183,40 @@ for (Parameter p : executable.getParameters()) {
 }
 ~~~
 
-Đây là mảnh code dùng lại `executable` trong phương thức `inspect` của bài, không phải chương trình độc lập.
+This is a snippet reusing `executable` from the article's `inspect` method, not a standalone program.
 
-### c) Record, enum, lambda và code compiler tạo
+### c) Records, Enums, Lambdas, and Compiler-Generated Code
 
-Với `record`, canonical constructor và thành phần record có cơ chế metadata đặc thù; một số compiler/JDK có thể lưu tên cho các thành phần đặc biệt ngay cả khi cách build thông thường không dùng `-parameters`. Lambda, bridge method, enum constructor và synthetic executable cũng có thể không phản ánh tên nguồn theo cách bạn kỳ vọng.
+For `record`, canonical constructors and record components have dedicated metadata mechanisms; some compilers/JDKs may store names for special constructs even when normal builds do not use `-parameters`. Lambdas, bridge methods, enum constructors, and synthetic executables may also not reflect source names in the way you expect.
 
-Vì vậy kết luận chính xác là: **đối với method/constructor thông thường như bài thực hành, bỏ `-parameters` dẫn tới `argN` và `isNamePresent=false`; với executable đặc biệt, phải kiểm tra metadata thực tế của class file**. Không tuyên bố mọi đối tượng `Parameter` ở mọi class file sẽ đều có `isNamePresent=false` nếu không truyền cờ.
+Therefore the accurate conclusion is: **for ordinary methods/constructors like in the practice exercise, omitting `-parameters` leads to `argN` and `isNamePresent=false`; for special executables, inspect the actual class file metadata**. Do not claim every `Parameter` in every class file will have `isNamePresent=false` if the flag is omitted.
 
-### d) Annotation và kiểu tham số không biến mất khi tên biến mất
+### d) Annotations and Parameter Types Do Not Disappear When Names Disappear
 
-Dù `isNamePresent=false`, Java Reflection vẫn có thể biết `getType()`, số lượng tham số và annotation runtime (nếu annotation có retention thích hợp). Ví dụ annotation gắn tên nghiệp vụ tường minh là một đường metadata độc lập với `-parameters`. `getParameterizedType()` còn có thể cung cấp thông tin generic nếu metadata chữ ký được giữ.
+Even when `isNamePresent=false`, Java Reflection can still know `getType()`, parameter count, and runtime annotations (if the annotation has appropriate retention). For example, an annotation supplying an explicit business name is a metadata path independent of `-parameters`. `getParameterizedType()` can also provide generic information if signature metadata is preserved.
 
-Đừng nhầm “không thấy **tên**” với “không còn **tham số**”. Một method có hai tham số tiếp tục có hai `Parameter` được xây dựng từ descriptor/chữ ký phù hợp.
+Do not confuse "missing **names**" with "missing **parameters**". A method with two parameters still has two `Parameter` objects constructed from the appropriate descriptor/signature.
 
-## 8. Lỗi thường gặp khi dùng `isNamePresent()`
+## 8. Common Mistakes When Using `isNamePresent()`
 
-- **Dùng `getName() != null` để xác nhận tên source:** tên tổng hợp cũng không null; phải kiểm tra `isNamePresent()`.
-- **Dùng `startsWith("arg")` để phát hiện tên giả:** source có thể khai báo chính tên `arg0`; kiểm tra boolean từ API.
-- **Kiểm tra một tham số rồi tin cả method:** xét từng phần tử `Parameter[]` riêng.
-- **Cho rằng thiếu tên là thiếu kiểu/annotation:** descriptor, generic signature và runtime annotations là các nguồn metadata riêng.
-- **Dùng tên reflection làm public key ngay khi `isNamePresent=true`:** tên tồn tại trong artifact nhưng có thể đổi bởi refactor hoặc quá trình build; contract bên ngoài cần quy tắc riêng.
+- **Using `getName() != null` to confirm source names:** synthesized names are also non-null; you must check `isNamePresent()`.
+- **Using `startsWith("arg")` to detect fake names:** source code can declare a parameter literally named `arg0`; check the boolean from the API.
+- **Checking one parameter and trusting the whole method:** inspect each `Parameter[]` element individually.
+- **Assuming missing names mean missing types/annotations:** descriptors, generic signatures, and runtime annotations are separate metadata sources.
+- **Using reflected names as public keys just because `isNamePresent=true`:** names exist in the artifact but can change via refactoring or build steps; external contracts need explicit rules.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-**Câu 1:** `getName()` trả `arg0`. Có chắc tên trong source là `arg0` không? **Không.** Nếu `isNamePresent=false` thì đây là tên thay thế do Reflection cung cấp.
+**Question 1:** `getName()` returns `arg0`. Is the source name guaranteed to be `arg0`? **No.** If `isNamePresent=false`, it is a placeholder name provided by Reflection.
 
-**Câu 2:** Một method có hai tham số nhưng cả hai `isNamePresent=false`. JVM có mất kiểu tham số không? **Không.** `getParameterTypes` và descriptor vẫn mô tả kiểu, số lượng và thứ tự.
+**Question 2:** A method has two parameters and both have `isNamePresent=false`. Does the JVM lose parameter types? **No.** `getParameterTypes` and the descriptor still describe types, count, and order.
 
-**Câu 3:** Cờ nào lưu tên tham số cho Java Reflection: `-g` hay `-parameters`? **`-parameters`.** Thông tin debug của `-g` không thay thế được metadata này.
+**Question 3:** Which flag saves parameter names for Java Reflection: `-g` or `-parameters`? **`-parameters`.** Debug info from `-g` cannot replace this metadata.
 
-**Câu 4:** Có thể dùng tên tham số để tìm một overloaded method qua `getDeclaredMethod` không? **Không.** Tra cứu dùng **tên method** và danh sách **kiểu tham số**, không dùng tên từng parameter.
+**Question 4:** Can you use parameter names to look up an overloaded method via `getDeclaredMethod`? **No.** Lookup uses the **method name** and **parameter type** list, not individual parameter names.
 
-**Câu 5:** Tại sao một executable compiler-generated có thể cho metadata khác ví dụ trên? **Vì compiler có thể thêm tham số implicit/synthetic hoặc phát hành metadata đặc biệt.** Cần xem `Parameter.isImplicit`, `isSynthetic` và class file thực tế.
+**Question 5:** Why can a compiler-generated executable yield different metadata from the example above? **Because the compiler may add implicit/synthetic parameters or emit special metadata.** Inspect `Parameter.isImplicit`, `isSynthetic`, and the actual class file.
 
-**Câu 6:** Nếu framework bắt buộc biết tên source nhưng `isNamePresent=false`, nên làm gì? **Bật `-parameters` cho build cần thiết, kiểm tra artifact cuối, hoặc dùng annotation/contract nêu tên tường minh.**
+**Question 6:** If a framework must know source names yet `isNamePresent=false`, what should be done? **Enable `-parameters` for the required build, verify the final artifact, or use explicit naming annotations/contracts.**
 
-**Ghi nhớ:** `Parameter.getName()` **luôn cung cấp tên để hiển thị**, nhưng `Parameter.isNamePresent()` mới giúp phân biệt **tên có metadata thực** với **tên tổng hợp `arg0`, `arg1`**. Để framework dựa vào tên tham số hoạt động ổn định, phải quản lý compiler option và chất lượng class file cuối cùng.
+**Remember:** `Parameter.getName()` **always provides a displayable name**, while `Parameter.isNamePresent()` is what distinguishes **names with real metadata** from **synthesized names `arg0`, `arg1`**. For frameworks relying on parameter names to operate reliably, you must manage compiler options and final class file quality.

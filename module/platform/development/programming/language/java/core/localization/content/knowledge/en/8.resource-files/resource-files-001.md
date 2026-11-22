@@ -1,8 +1,8 @@
-# Cú pháp .properties: khóa, giá trị, chú thích và dòng tiếp nối trong Java
+# .properties Syntax: Keys, Values, Comments, and Line Continuations in Java
 
-## 1. Tệp .properties là gì?
+## 1. What is a .properties file?
 
-Tệp `.properties` chứa các cặp **key–value** dạng văn bản. Trong Java, nó thường được dùng cho cấu hình ứng dụng (qua `java.util.Properties`) và bản địa hóa (qua `ResourceBundle` / `PropertyResourceBundle`). Ví dụ:
+A `.properties` file contains text-based **key–value** pairs. In Java, it is commonly used for application configuration (via `java.util.Properties`) and localization (via `ResourceBundle` / `PropertyResourceBundle`). For example:
 
 ```properties
 # Config
@@ -11,13 +11,13 @@ timeout.seconds=30
 welcome=Xin chào!
 ```
 
-Dù `timeout.seconds` trông giống số, giá trị mà `Properties.getProperty("timeout.seconds")` trả về vẫn là chuỗi `"30"`. Tệp không tự có các kiểu dữ liệu JSON, không có object lồng nhau và không tự mở rộng placeholder. Dấu chấm trong `app.name` chỉ thuộc tên khóa. Một framework có thể hỗ trợ cú pháp riêng bên ngoài hợp đồng parser chuẩn của Java; bài này tập trung vào **cú pháp .properties chuẩn**.
+Even though `timeout.seconds` looks like a number, the value returned by `Properties.getProperty("timeout.seconds")` is still the string `"30"`. The file format itself has no JSON data types, no nested objects, and no automatic placeholder expansion. The dot in `app.name` is simply part of the key name. A framework may support its own syntax outside Java's standard parser contract; this lesson focuses on **standard .properties syntax**.
 
-Một key có thể xuất hiện trong tài nguyên `Messages_vi.properties` rồi được gọi bằng `bundle.getString("key")`. Cú pháp bên trong vẫn giống nhau; khác biệt quan trọng nằm ở **API đọc và cách giải mã encoding**, được làm rõ ở cuối bài.
+A key can appear in a `Messages_vi.properties` resource and then be retrieved with `bundle.getString("key")`. The internal syntax remains the same; the important difference lies in **the reading API and encoding decoding rules**, which are clarified at the end of this lesson.
 
-## 2. Cách viết khóa–giá trị và dấu phân cách
+## 2. How to write keys, values, and separators
 
-Một cặp thuộc tính có một **logical line** với khóa và giá trị. Ba cách phân cách thường gặp đều hợp lệ:
+Each property entry is a **logical line** with a key and a value. Three common separator styles are all valid:
 
 ```properties
 app.name=Learning Platform
@@ -26,28 +26,28 @@ app.owner Development Team
 app.mode = production
 ```
 
-Dấu phân cách đầu tiên **không được escape** có thể là `=`, `:` hoặc whitespace. Parser bỏ qua whitespace đầu dòng, xác định khóa, sau đó bỏ qua whitespace và dấu phân cách không bắt buộc trước khi đọc value.
+The first **unescaped** separator can be `=`, `:`, or whitespace. The parser skips leading whitespace on the line, identifies the key, and then skips whitespace and an optional separator before reading the value.
 
-| Dòng trong file | Key thực tế | Value thực tế |
+| Line in file | Actual Key | Actual Value |
 |---|---|---|
 | `name=Lan` | `name` | `Lan` |
 | `name:Lan` | `name` | `Lan` |
 | `name Lan` | `name` | `Lan` |
 | `name = Lan` | `name` | `Lan` |
-| `empty=` | `empty` | Chuỗi rỗng `""` |
-| `justKey` | `justKey` | Chuỗi rỗng `""` |
+| `empty=` | `empty` | Empty string `""` |
+| `justKey` | `justKey` | Empty string `""` |
 | `a=b=c` | `a` | `b=c` |
 | `url=https://example.com?a=b` | `url` | `https://example.com?a=b` |
 
-Dấu `=` hoặc `:` sau khi đã bắt đầu value chỉ là ký tự bình thường. Nên nhất quán dùng kiểu `key=value` để dễ đọc và giảm hiểu nhầm trong review.
+An `=` or `:` appearing after the value has started is just an ordinary character. You should consistently use the `key=value` style for readability and to reduce misunderstandings during code reviews.
 
-### Khóa phân biệt chữ hoa chữ thường
+### Keys are case-sensitive
 
-`app.name` và `App.Name` là **hai khóa khác nhau**. Tên khóa như `button.save`, `menu.file`, `error.notFound` thường thuận tiện vì rõ nghĩa và không chứa whitespace. Không nên tự ý đổi chữ hoa/thường khi gọi `getProperty` hoặc `getString`.
+`app.name` and `App.Name` are **two different keys**. Key names such as `button.save`, `menu.file`, and `error.notFound` are usually convenient because they are descriptive and contain no whitespace. Do not arbitrarily change letter casing when calling `getProperty` or `getString`.
 
-### Escape trong key
+### Escaping in keys
 
-Nếu key cần chứa khoảng trắng, `=` hoặc `:` thì thêm dấu gạch chéo ngược `\`:
+If a key needs to contain a space, `=`, or `:`, prefix it with a backslash `\`:
 
 ```properties
 first\ name=Lan
@@ -57,11 +57,11 @@ server\:port=8080
 \!notice=Attention
 ```
 
-Các khóa tương ứng: `first name`, `user=id`, `server:port`, `#headline`, `!notice`. Dòng `first name=Lan` **không có escape** sẽ được hiểu là khóa `first` và giá trị `name=Lan` vì khoảng trắng đầu tiên đóng vai trò separator.
+The corresponding keys are: `first name`, `user=id`, `server:port`, `#headline`, and `!notice`. An **unescaped** line `first name=Lan` would be interpreted as the key `first` and the value `name=Lan` because the first space acts as the separator.
 
-## 3. Chú thích: dòng bắt đầu bằng `#` hoặc `!`
+## 3. Comments: lines starting with `#` or `!`
 
-Một **natural line** được bỏ qua dưới dạng comment nếu ký tự đầu tiên khác whitespace của nó là `#` hoặc `!`:
+A **natural line** is ignored as a comment if its first non-whitespace character is `#` or `!`:
 
 ```properties
 # Comment style one
@@ -72,9 +72,9 @@ Một **natural line** được bỏ qua dưới dạng comment nếu ký tự �
 name=Lan
 ```
 
-Dòng trống hoặc chỉ có whitespace cũng được bỏ qua. Comment **không** phải cặp key-value. Không dùng `//` hay `/* ... */` như comment Java; chúng không mang nghĩa comment trong cú pháp tệp `.properties`.
+Blank lines or lines containing only whitespace are also ignored. Comments are **not** key-value pairs. Do not use `//` or `/* ... */` as in Java comments; they have no comment meaning in `.properties` file syntax.
 
-### Không có inline comment sau value
+### No inline comments after values
 
 ```properties
 # Entire line is comment
@@ -82,13 +82,13 @@ message=Hello! # This is part of the value
 \#key=value
 ```
 
-Dòng `message` chứa nguyên chuỗi `Hello! # This is part of the value`. Dòng `\#key=value` tạo key bắt đầu bằng `#` vì dấu này đã được escape. Do đó, không viết `timeout=30 # seconds` rồi nghĩ parser sẽ loại `# seconds`; value thực sự chứa cả phần đó. Đặt ghi chú trên một dòng độc lập.
+The `message` line contains the entire string `Hello! # This is part of the value`. The line `\#key=value` creates a key starting with `#` because that character is escaped. Therefore, do not write `timeout=30 # seconds` expecting the parser to strip `# seconds`; the actual value includes that part. Place notes on their own dedicated line.
 
-Comment line không được kéo dài bằng continuation theo cùng cơ chế value. Muốn bình luận nhiều dòng, bắt đầu mỗi dòng với dấu comment riêng.
+A comment line cannot be extended with a continuation using the same mechanism as values. To write a multi-line comment, start each line with its own comment marker.
 
-## 4. Giá trị: khoảng trắng, dấu nháy và ký tự thường
+## 4. Values: whitespace, quotes, and regular characters
 
-Giá trị có thể chứa dấu `=`, `:`, `#`, `!` sau separator:
+Values can contain `=`, `:`, `#`, and `!` after the separator:
 
 ```properties
 query=https://example.com/search?q=java#results
@@ -96,41 +96,41 @@ expression=a=b:c
 notice=Save! # Not an inline comment
 ```
 
-Sau khi xác định đầu value, các ký tự trên không còn làm dấu phân cách hay comment.
+Once the start of the value has been determined, these characters no longer act as separators or comment markers.
 
-### Khoảng trắng đầu và cuối
+### Leading and trailing whitespace
 
-Whitespace bình thường ngay sau separator bị bỏ qua. Nếu muốn giữ **một khoảng trắng ở đầu value**, hãy escape nó:
+Plain whitespace immediately after the separator is ignored. If you want to preserve **a leading space in the value**, escape it:
 
 ```properties
 trimmed=    hello
 leading=\ hello
 ```
 
-Kết quả là `trimmed` → `"hello"` và `leading` → `" hello"`. Whitespace cuối logical line không tự bị trim; tránh trailing spaces vô tình vì khó phát hiện khi so sánh cấu hình.
+The result is `trimmed` → `"hello"` and `leading` → `" hello"`. Whitespace at the end of a logical line is not automatically trimmed; avoid accidental trailing spaces because they are hard to spot when comparing configurations.
 
-### Dấu nháy không được tự bỏ
+### Quotes are not stripped automatically
 
 ```properties
 title="Hello"
 ```
 
-Value ở đây **bao gồm hai dấu nháy kép**, tức `"Hello"` theo cách nhìn của người đọc, chứ không tự thành `Hello`. `.properties` không có cú pháp đặt chuỗi trong dấu nháy theo kiểu JSON. Tương tự, `roles=admin,user` là một chuỗi chứa dấu phẩy; muốn list phải tự định nghĩa cách tách và kiểm tra.
+Here, the value **includes both double quotes**, meaning `"Hello"` as seen by the reader, rather than automatically becoming `Hello`. `.properties` has no JSON-style quoted-string syntax. Similarly, `roles=admin,user` is a single string containing a comma; if you want a list, you must define how to split and validate it yourself.
 
-### Value rỗng và key trùng
+### Empty values and duplicate keys
 
-`empty=` hoặc chỉ `empty` đều tạo value rỗng. Trong cùng một `Properties`, nếu file có hai dòng trùng key, value được đọc sau ghi đè value trước:
+`empty=` or just `empty` both produce an empty value. Within the same `Properties` file, if two lines have the same key, the later value overwrites the earlier one:
 
 ```properties
 mode=development
 mode=production
 ```
 
-Sau `load`, `mode` có giá trị `production`. Tính năng này hữu ích khi hiểu parser nhưng **không nên cố ý dựa vào duplicate keys** trong một file sản xuất, vì dễ gây sai cấu hình. Không nên mong việc liệt kê các keys qua `Properties` giữ đúng thứ tự dòng trong file.
+After `load`, `mode` has the value `production`. This behavior is useful to know for understanding the parser, but **you should not intentionally rely on duplicate keys** in a production file, as it easily leads to misconfiguration. You should not expect iterating keys via `Properties` to preserve the original line order from the file.
 
-## 5. Dòng tiếp nối: nhiều natural lines thành một logical line
+## 5. Line continuations: multiple natural lines as one logical line
 
-Khi một dòng kết thúc bằng **số lẻ dấu backslash liên tiếp**, dấu `\` cuối cùng escape line terminator và nối nội dung dòng kế tiếp. Dấu `\` dùng để nối và ký tự xuống dòng **không** được thêm vào value. Whitespace đầu dòng tiếp theo được bỏ qua.
+When a line ends with an **odd number of consecutive backslashes**, the final `\` escapes the line terminator and joins the content of the next line. The continuation `\` and the newline character are **not** added to the value. Leading whitespace on the next line is ignored.
 
 ```properties
 long.message=Hello, \
@@ -138,9 +138,9 @@ long.message=Hello, \
     developer!
 ```
 
-Value sau khi parse là `Hello, Java developer!`. Các dấu cách trong kết quả đến từ dấu cách đã được viết **trước** dấu `\` sau `Hello,` và sau `Java`. Parser không tự chèn dấu cách khi nối.
+The parsed value is `Hello, Java developer!`. The spaces in the result come from the spaces written **before** the `\` after `Hello,` and after `Java`. The parser does not automatically insert spaces when joining lines.
 
-So sánh:
+Compare:
 
 ```properties
 a=Hello\
@@ -152,18 +152,18 @@ b=Hello \
 - `a` → `HelloJava`.
 - `b` → `Hello Java`.
 
-### Số dấu `\` cuối dòng quyết định có nối hay không
+### The number of trailing `\` characters determines whether lines are joined
 
-| Cuối dòng | Diễn giải |
+| End of line | Interpretation |
 |---|---|
-| Một dấu `\` | Dòng tiếp theo được nối |
-| Hai dấu `\\` | Thành một backslash literal, **không nối** |
-| Ba dấu `\\\` | Một backslash literal và một dấu nối |
-| Bốn dấu `\\\\` | Hai backslashes literal, **không nối** |
+| One `\` | The next line is joined |
+| Two `\\` | Becomes one literal backslash, **not joined** |
+| Three `\\\` | One literal backslash and one continuation marker |
+| Four `\\\\` | Two literal backslashes, **not joined** |
 
-Khi dòng được nối, ký tự `#` hoặc `!` ở đầu phần tiếp theo được coi như phần của logical line, không phải một comment độc lập. Để tránh nhầm, không đặt comment giữa những phần của một value đang tiếp nối.
+When lines are joined, a `#` or `!` at the start of the continued part is treated as part of the logical line, not as a standalone comment. To avoid confusion, do not place comments between the parts of a continued value.
 
-### Phân biệt tiếp nối với escape newline
+### Distinguishing continuations from escaped newlines
 
 ```properties
 joined=Hello\
@@ -171,54 +171,54 @@ joined=Hello\
 two.lines=Hello\nWorld
 ```
 
-`joined` → `HelloWorld`, **không có xuống dòng**. `two.lines` là một chuỗi có ký tự LF thật giữa `Hello` và `World`. Đây là hai mục đích khác nhau: viết source trên nhiều dòng cho dễ đọc, hoặc lưu newline bên trong chính value.
+`joined` → `HelloWorld`, **with no newline**. `two.lines` is a string with an actual LF character between `Hello` and `World`. These serve two different purposes: wrapping source lines for readability, or storing a newline inside the value itself.
 
-## 6. Các escape sequences quan trọng
+## 6. Important escape sequences
 
-| Chuỗi viết trong file | Ký tự được đọc | Công dụng |
+| Written in file | Character read | Purpose |
 |---|---|---|
-| `\t` | Tab | Chèn tab trong value |
-| `\n` | Newline LF | Chèn xuống dòng trong value |
-| `\r` | Carriage return CR | Trường hợp đặc biệt |
-| `\f` | Form feed | Hiếm dùng |
-| `\\` | Một backslash `\` | Đường dẫn Windows, regex |
-| `\ ` | Một space | Space trong key hoặc đầu value |
-| `\=` | `=` | Dấu bằng trong key |
-| `\:` | `:` | Dấu hai chấm trong key |
-| `\#` và `\!` | `#` và `!` | Dấu đặc biệt trong key |
-| `\u00E9` | `é` | Unicode escape 4 hex digits |
+| `\t` | Tab | Insert a tab in the value |
+| `\n` | Newline LF | Insert a line break in the value |
+| `\r` | Carriage return CR | Special cases |
+| `\f` | Form feed | Rarely used |
+| `\\` | Single backslash `\` | Windows paths, regex |
+| `\ ` | Single space | Space in a key or at the start of a value |
+| `\=` | `=` | Equals sign in a key |
+| `\:` | `:` | Colon in a key |
+| `\#` and `\!` | `#` and `!` | Special characters in a key |
+| `\u00E9` | `é` | 4-hex-digit Unicode escape |
 
-Trong file `.properties`, hai dấu `\\` đại diện cho một dấu `\` thực sự. Hãy phân biệt với Java source: Java string literal cũng có quy tắc escape của riêng nó.
+In a `.properties` file, two backslashes `\\` represent one literal `\`. Distinguish this from Java source code: Java string literals also have their own escaping rules.
 
-### Backslash không hợp escape đặc biệt
+### Backslashes that are not special escapes
 
-Trong `Properties.load(...)`, nếu backslash đứng trước một ký tự không thuộc escape có ý nghĩa, backslash có thể **bị loại bỏ âm thầm**. Ví dụ `a\qz` được đọc thành `aqz`. Không dựa vào parser để cảnh báo mọi lỗi backslash.
+In `Properties.load(...)`, if a backslash precedes a character that is not a meaningful escape, the backslash may be **silently dropped**. For example, `a\qz` is read as `aqz`. Do not rely on the parser to warn about every backslash mistake.
 
-Đường dẫn Windows rất dễ sai:
+Windows paths are very easy to get wrong:
 
 ```properties
 bad.path=C:\temp\new
 good.path=C:\\temp\\new
 ```
 
-`bad.path` chứa tab do `\t` và newline do `\n`, không phải đường dẫn như mong muốn. `good.path` đọc thành đường dẫn với các dấu backslash đơn. Khi thích hợp, có thể dùng dấu gạch chéo `/` để giảm lượng escape.
+`bad.path` contains a tab from `\t` and a newline from `\n`, rather than the intended path. `good.path` is read as a path with single backslashes. When appropriate, you can use forward slashes `/` to reduce the need for escaping.
 
 ### Unicode escapes
 
-`\uXXXX` cần **đúng bốn chữ số hex** biểu diễn một UTF-16 code unit. Ví dụ:
+`\uXXXX` requires **exactly four hex digits** representing a UTF-16 code unit. For example:
 
 ```properties
 cafe=Caf\u00E9
 hello=Xin ch\u00E0o
 ```
 
-Lần lượt thành `Café` và `Xin chào`. Escape Unicode không hợp lệ như `\uZZZZ` có thể ném `IllegalArgumentException` khi nạp. Không dùng cú pháp `\u{1F600}` vì đó không phải Unicode escape của Java `Properties`; ký tự bổ sung ngoài BMP cần hai UTF-16 surrogate escapes nếu dùng cách biểu diễn này.
+These become `Café` and `Xin chào`, respectively. Invalid Unicode escapes such as `\uZZZZ` can throw an `IllegalArgumentException` when loaded. Do not use `\u{1F600}` syntax because that is not a Java `Properties` Unicode escape; supplementary characters outside the BMP require two UTF-16 surrogate escapes when represented this way.
 
-Với tệp UTF-8 được nạp qua một `Reader` UTF-8, bạn thường có thể ghi tiếng Việt trực tiếp thay vì escape từng ký tự.
+With a UTF-8 file loaded via a UTF-8 `Reader`, you can usually write Vietnamese directly instead of escaping every character.
 
-## 7. Ví dụ Java 17+ hoàn chỉnh: tạo file, đọc và giải thích stdout
+## 7. Complete Java 17+ example: creating files, reading, and explaining stdout
 
-Đặt **hai tệp cùng thư mục** như sau.
+Place **both files in the same directory** as follows.
 
 ### `app.properties`
 
@@ -275,14 +275,14 @@ public class PropertiesSyntaxDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac PropertiesSyntaxDemo.java
 java PropertiesSyntaxDemo
 ```
 
-Output kiểm chứng bằng `Properties.load`:
+Output verified with `Properties.load`:
 
 ```text
 app.name=[World Service]
@@ -296,31 +296,31 @@ blank=[]
 duplicate=[final]
 ```
 
-Giải thích output:
+Output explanation:
 
-1. `app\ title` tạo key có khoảng trắng là `app title`.
-2. `long.message` nối ba dòng vật lý; giá trị còn khoảng trắng giữa các từ vì dấu cách được viết trước continuation.
-3. `path`: hai dấu backslash trong file giải mã thành một trong chuỗi Java.
-4. `unicode`: `\u00E9` thành `é`.
-5. `inline` chứa nguyên dấu `#` ở giữa value.
-6. `blank` là chuỗi rỗng, được in giữa cặp ngoặc vuông.
-7. `duplicate` được nạp hai lần; lần sau ghi đè nên là `final`.
+1. `app\ title` creates a key containing a space: `app title`.
+2. `long.message` joins three physical lines; the value keeps spaces between words because spaces were written before the continuation.
+3. `path`: two backslashes in the file decode to one in the Java string.
+4. `unicode`: `\u00E9` becomes `é`.
+5. `inline` keeps the literal `#` in the middle of the value.
+6. `blank` is an empty string, printed inside the square brackets.
+7. `duplicate` is loaded twice; the second overwrites the first, resulting in `final`.
 
-Chương trình đọc qua `Files.newBufferedReader` với charset UTF-8 tường minh và tự động đóng bằng `try-with-resources`. Nếu key không có, `properties.getProperty("missing")` trả `null` (trừ khi properties có defaults thích hợp); có thể dùng `getProperty("key", "fallback")` để chỉ định giá trị dự phòng.
+The program reads via `Files.newBufferedReader` with an explicit UTF-8 charset and automatically closes it using `try-with-resources`. If a key is missing, `properties.getProperty("missing")` returns `null` (unless the `Properties` object has matching defaults); you can use `getProperty("key", "fallback")` to specify a fallback value.
 
-## 8. Encoding: Properties và PropertyResourceBundle khác nhau
+## 8. Encoding: Properties and PropertyResourceBundle differ
 
-Đây là khác biệt API thiết yếu, đặc biệt với tiếng Việt.
+This is an essential API difference, especially for Vietnamese.
 
-| API đọc | Quy tắc encoding |
+| Reading API | Encoding rule |
 |---|---|
-| `Properties.load(InputStream)` | **ISO-8859-1**, theo hợp đồng legacy của `Properties` |
-| `Properties.load(Reader)` | Dùng **charset của Reader**; có thể chọn UTF-8 |
-| `PropertyResourceBundle(InputStream)` trên JDK 9+ | Ưu tiên **UTF-8**; mặc định thử lại ISO-8859-1 nếu byte sequence không hợp lệ UTF-8 |
+| `Properties.load(InputStream)` | **ISO-8859-1**, per the legacy `Properties` contract |
+| `Properties.load(Reader)` | Uses **the Reader's charset**; UTF-8 can be chosen |
+| `PropertyResourceBundle(InputStream)` on JDK 9+ | Prefers **UTF-8**; by default retries with ISO-8859-1 if the byte sequence is invalid UTF-8 |
 
-Vì thế, không nói đơn giản rằng “mọi file .properties trong Java 17 mặc định dùng UTF-8”. Việc Java 9 chuyển *property resource bundles* sang UTF-8 không làm thay đổi `Properties.load(InputStream)`, vốn vẫn đọc ISO-8859-1.
+Therefore, do not simply say that "every `.properties` file in Java 17 defaults to UTF-8." Java 9 switching *property resource bundles* to UTF-8 did not change `Properties.load(InputStream)`, which still reads ISO-8859-1.
 
-### Đọc file cấu hình UTF-8 với Properties
+### Reading a UTF-8 configuration file with Properties
 
 ```java
 try (Reader reader = Files.newBufferedReader(
@@ -330,38 +330,38 @@ try (Reader reader = Files.newBufferedReader(
 }
 ```
 
-Đây là đoạn code dùng bên trong một phương thức đã có các import liên quan, không phải chương trình độc lập. Nếu dùng `Properties.load(Files.newInputStream(...))` cho file UTF-8 chứa ký tự ngoài ASCII, có thể gặp mojibake vì diễn giải ISO-8859-1.
+This is a code snippet used inside a method that already has the relevant imports, not a standalone program. If you use `Properties.load(Files.newInputStream(...))` on a UTF-8 file containing non-ASCII characters, mojibake can occur due to ISO-8859-1 interpretation.
 
-### Đọc file dịch qua ResourceBundle
+### Reading translation files via ResourceBundle
 
-`PropertyResourceBundle(InputStream)` trên JDK 17 mặc định ưu tiên UTF-8. Nếu phát hiện `MalformedInputException` hoặc `UnmappableCharacterException` khi giải mã, nó có thể đọc lại bằng ISO-8859-1. JVM property `java.util.PropertyResourceBundle.encoding` có thể buộc `UTF-8` hoặc `ISO-8859-1`, được đánh giá lúc class khởi tạo; thay đổi nó muộn hơn không nhất thiết có tác dụng. `PropertyResourceBundle(Reader)` vẫn phụ thuộc encoding của Reader.
+`PropertyResourceBundle(InputStream)` on JDK 17 defaults to preferring UTF-8. If it encounters a `MalformedInputException` or `UnmappableCharacterException` while decoding, it can re-read the stream using ISO-8859-1. The JVM property `java.util.PropertyResourceBundle.encoding` can force `UTF-8` or `ISO-8859-1`, and is evaluated at class initialization; changing it later does not necessarily take effect. `PropertyResourceBundle(Reader)` still depends on the Reader's encoding.
 
-Vì vậy hãy thống nhất quy ước encoding với bộ công cụ build, giữ tệp UTF-8 và kiểm thử bằng đúng JDK/API thực sự đang dùng. Nếu cần phát hiện lỗi encoding sớm, cấu hình strict UTF-8 một cách có chủ đích.
+So align on an encoding convention with your build tools, keep files in UTF-8, and test with the exact JDK and API actually used. If you need to catch encoding errors early, intentionally configure strict UTF-8.
 
-## 9. Tệp .properties dành cho localization với ResourceBundle
+## 9. .properties files for localization with ResourceBundle
 
-Giả sử classpath có hai tệp:
+Suppose the classpath has two files:
 
 ```text
 Messages.properties
 Messages_vi.properties
 ```
 
-Nội dung `Messages.properties`:
+Contents of `Messages.properties`:
 
 ```properties
 welcome=Hello!
 button.save=Save
 ```
 
-Nội dung `Messages_vi.properties`:
+Contents of `Messages_vi.properties`:
 
 ```properties
 welcome=Xin chào!
 button.save=Lưu
 ```
 
-Đặt các file này **ở gốc classpath** cùng `BundlePropertiesDemo.java` để chạy thủ công:
+Place these files **at the classpath root** alongside `BundlePropertiesDemo.java` to run manually:
 
 ```java
 import java.util.Locale;
@@ -380,14 +380,14 @@ public class BundlePropertiesDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 BundlePropertiesDemo.java
 java -cp . BundlePropertiesDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Xin chào!
@@ -395,37 +395,37 @@ Lưu
 vi
 ```
 
-Java yêu cầu `vi-VN` nhưng tìm thấy `Messages_vi.properties`, nên bundle được chọn có locale `vi`. Nếu dự án dùng Maven/Gradle, resource thường nằm dưới `src/main/resources` và được copy vào output classpath khi build; bản thân đường dẫn source chưa đủ để file được runtime tìm thấy.
+Java requests `vi-VN` and finds `Messages_vi.properties`, so the resolved bundle has locale `vi`. If a project uses Maven or Gradle, resources usually live under `src/main/resources` and are copied into the classpath output during the build; the source path alone is not enough for the file to be found at runtime.
 
-Cú pháp bên trong `Messages_vi.properties` vẫn là các cặp key/value với comment, escape và continuation như các mục trước. Khi một key không tồn tại trong bundle ngôn ngữ nhưng có ở bundle cha, `ResourceBundle.getString(...)` có thể lấy value ở cha; `bundle.getLocale()` vẫn thể hiện locale của **bundle được chọn**, không nhất thiết là nguồn của mọi key.
+The internal syntax of `Messages_vi.properties` is still key/value pairs with comments, escapes, and continuations as described in the previous sections. When a key does not exist in the language bundle but exists in a parent bundle, `ResourceBundle.getString(...)` can retrieve the value from the parent; `bundle.getLocale()` still reflects the locale of **the selected bundle**, not necessarily the origin of every key.
 
-## 10. Lỗi thường gặp khi viết .properties
+## 10. Common mistakes when writing .properties files
 
-1. **Không escape space hoặc dấu separator trong key.** `first name=Lan` khác `first\ name=Lan`.
-2. **Thêm comment cùng dòng key/value.** Phần sau `#` hay `!` trong value không tự bị bỏ.
-3. **Dùng `//` làm comment.** Đây không phải comment marker chuẩn.
-4. **Cho rằng dấu nháy bao value bị bỏ.** `title="Hello"` chứa cả dấu nháy.
-5. **Nhầm continuation với `\n`.** Nối dòng không chèn newline; `\n` chèn LF thực vào value.
-6. **Bỏ qua khoảng trắng trước dấu `\` cuối dòng.** Nó có thể quyết định value là `HelloWorld` hay `Hello World`.
-7. **Dùng backslash đơn trong đường dẫn Windows.** `\t` và `\n` có ý nghĩa escape.
-8. **Tin rằng escape lạ bị báo lỗi.** `\q` có thể thành `q`; phải kiểm tra giá trị thực.
-9. **Cho rằng `Properties.load(InputStream)` mặc định UTF-8 từ Java 9.** Hợp đồng của nó vẫn là ISO-8859-1.
-10. **Không phân biệt file cấu hình với file ResourceBundle.** Cùng cú pháp nhưng có quy tắc charset và fallback khác nhau theo API.
-11. **Để duplicate key không chủ ý.** Value ở lần xuất hiện sau ghi đè trước.
-12. **Đoán thứ tự key sau khi load.** `Properties` không bảo đảm liệt kê theo thứ tự dòng gốc.
-13. **Cho rằng giá trị được parse thành số/boolean.** Hãy chuyển kiểu, validate và xử lý lỗi riêng.
-14. **Dùng `store` để “định dạng lại mà giữ nguyên file”.** `Properties.store` có thể thêm timestamp/comment, viết lại escaping và thứ tự; không bảo tồn comment/layout gốc.
-15. **Đặt tệp dịch sai classpath hoặc tên file.** `ResourceBundle.getBundle("Messages", ...)` cần tài nguyên tương ứng ở vị trí có thể tải.
+1. **Forgetting to escape spaces or separator characters in keys.** `first name=Lan` is different from `first\ name=Lan`.
+2. **Adding an inline comment on a key/value line.** Anything after `#` or `!` in a value is not automatically stripped.
+3. **Using `//` as a comment.** This is not a standard comment marker.
+4. **Assuming quotes around a value are stripped.** `title="Hello"` includes the quotes.
+5. **Confusing line continuation with `\n`.** Line continuation does not insert a newline; `\n` inserts an actual LF into the value.
+6. **Overlooking the space before `\` at the end of a line.** It can decide whether the value is `HelloWorld` or `Hello World`.
+7. **Using single backslashes in Windows paths.** `\t` and `\n` have escape meanings.
+8. **Believing unrecognized escapes throw errors.** `\q` can become `q`; you must verify the actual values.
+9. **Assuming `Properties.load(InputStream)` defaults to UTF-8 since Java 9.** Its contract is still ISO-8859-1.
+10. **Failing to distinguish config files from ResourceBundle files.** They share the same syntax but have different charset and fallback rules depending on the API.
+11. **Leaving unintentional duplicate keys.** Later occurrences overwrite earlier ones.
+12. **Assuming key order is preserved after loading.** `Properties` does not guarantee iteration in the original file line order.
+13. **Assuming values are parsed into numbers or booleans.** Convert types, validate, and handle errors separately.
+14. **Using `store` to "reformat while keeping the file intact."** `Properties.store` may add timestamps/comments and rewrite escaping and ordering; it does not preserve original comments or layout.
+15. **Placing translation files in the wrong classpath location or with the wrong filename.** `ResourceBundle.getBundle("Messages", ...)` requires the corresponding resource in a loadable location.
 
-## 11. Tự kiểm tra kiến thức
+## 11. Self-check
 
 - `x=y=z` → key **`x`**, value **`y=z`**.
 - `user\ name=Lan` → key **`user name`**, value **`Lan`**.
 - `message=Hello #note` → value **`Hello #note`**.
-- `a=Hello\` rồi nối dòng `World` → value **`HelloWorld`**.
-- `a=Hello\nWorld` → value có ký tự newline giữa hai từ.
-- `path=C:\\tools` → value có một dấu backslash trước `tools`.
-- `name=first` và sau đó `name=second` → value **`second`**.
-- `Properties.load(Reader UTF-8)` đọc ký tự Unicode UTF-8 theo Reader; `Properties.load(InputStream)` đọc **ISO-8859-1**.
+- `a=Hello\` followed by continued line `World` → value **`HelloWorld`**.
+- `a=Hello\nWorld` → value contains a newline character between the two words.
+- `path=C:\\tools` → value contains a single backslash before `tools`.
+- `name=first` and later `name=second` → value **`second`**.
+- `Properties.load(Reader UTF-8)` reads UTF-8 Unicode characters via the Reader; `Properties.load(InputStream)` reads **ISO-8859-1**.
 
-**Tài liệu:** [Java SE 17 — Properties](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html) · [Java SE 17 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html) · [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html).
+**References:** [Java SE 17 — Properties](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html) · [Java SE 17 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html) · [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html).

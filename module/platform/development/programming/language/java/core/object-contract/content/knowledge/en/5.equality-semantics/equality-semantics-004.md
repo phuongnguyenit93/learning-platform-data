@@ -1,54 +1,54 @@
-# Mã định danh chưa được gán và rủi ro thay đổi quan hệ bằng nhau trong Java
+# Unassigned Identifiers and the Risk of Changing Equality Semantics in Java
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-Trong một ứng dụng có **entity** (thực thể có danh tính tồn tại qua thời gian), hai object Java khác nhau có thể cùng đại diện cho một thực thể nghiệp vụ; ngược lại, hai object có nội dung trông giống nhau có thể đại diện cho hai thực thể khác nhau. Khi ID của entity được cơ sở dữ liệu cấp sau lúc tạo object, trường `id` ban đầu thường là `null`. Giai đoạn này đặt ra câu hỏi: **thế nào là bằng nhau khi ID chưa có, và điều gì xảy ra khi ID đổi từ `null` sang giá trị thật?**
+In an application with **entities** (objects whose identity persists over time), two different Java objects can represent the same business entity; conversely, two objects with seemingly identical contents can represent two different entities. When an entity's ID is assigned by the database after object creation, the `id` field is initially `null`. This phase raises the question: **what does equality mean when the ID does not yet exist, and what happens when the ID changes from `null` to a real value?**
 
-Ví dụ sau chỉ minh họa trạng thái; lớp `Order` và constructor chưa được định nghĩa tại đây:
+The following example only illustrates state; the `Order` class and constructor are not defined here:
 
 ```java
 Order first = new Order(null, "CUSTOMER-7");
 Order second = new Order(null, "CUSTOMER-7");
 ```
 
-Hai câu lệnh `new` tạo hai tham chiếu đến hai object khác nhau. Nếu đây là hai đơn hàng mới độc lập, chúng **không** nên bị xem là cùng entity chỉ vì ID đều `null` hoặc cùng mã khách hàng. Mặt khác, sau khi lưu, hai object được tải ở những thời điểm khác nhau với cùng ID có thể được coi là bằng nhau về danh tính nghiệp vụ.
+Two `new` statements create two references to two different objects. If these are two independent new orders, they should **not** be treated as the same entity merely because both IDs are `null` or they share the same customer code. On the other hand, after saving, two objects loaded at different times with the same ID can be considered equal in business identity.
 
-Mục tiêu sau bài học:
-- Chọn quy tắc `equals` phù hợp khi ID chưa được gán.
-- Hiểu vì sao `Objects.equals(null, null)` thường gây lỗi trong mô hình entity có ID cấp sau.
-- Nhận diện tác động khi một trường tham gia `equals`/`hashCode` thay đổi trong khi object đang nằm trong `HashSet` hoặc là khóa `HashMap`.
-- Phân biệt cách dùng ID cấp sau, ID ứng dụng cấp ngay và khóa nghiệp vụ bất biến.
-- Kiểm tra hành vi bằng một chương trình Java 17 độc lập, giải thích chính xác các kết quả.
+Learning objectives after this lesson:
+- Choose an appropriate `equals` rule when the ID has not yet been assigned.
+- Understand why `Objects.equals(null, null)` commonly causes bugs in entity models with post-assigned IDs.
+- Identify the impact when a field participating in `equals`/`hashCode` changes while the object is inside a `HashSet` or used as a `HashMap` key.
+- Distinguish between using post-assigned IDs, upfront application-assigned IDs, and immutable business keys.
+- Verify behavior with a standalone Java 17 program and accurately explain the results.
 
-Bối cảnh là **Java Core và quan hệ bằng nhau**. Với JPA/Hibernate, cách tạo proxy và quản lý entity theo từng phiên bản cần được xét thêm; ví dụ thuần Java ở đây không phải một class ORM hoàn chỉnh.
+The context is **Java Core and equality semantics**. With JPA/Hibernate, proxy generation and per-session entity management must also be considered; the pure Java example here is not a complete ORM class.
 
-## 2. Danh tính tham chiếu, danh tính entity và giá trị
+## 2. Reference Identity, Entity Identity, and Value
 
-| Khái niệm | Câu hỏi | Cơ chế thường dùng |
+| Concept | Question | Commonly used mechanism |
 |---|---|---|
-| Object identity | Có đúng là cùng một object Java không? | `a == b` |
-| Entity identity | Có đại diện cho cùng một thực thể nghiệp vụ qua các lần tải không? | ID đã xác nhận hoặc khóa nghiệp vụ được thiết kế |
-| Value equality | Có cùng nội dung giá trị có ý nghĩa không? | `equals` theo các thành phần bất biến đã chọn |
+| Object identity | Is it literally the exact same Java object? | `a == b` |
+| Entity identity | Does it represent the same business entity across loads? | Confirmed ID or a designed business key |
+| Value equality | Does it have the same meaningful value contents? | `equals` over chosen immutable components |
 
-`Object.equals` mặc định dùng danh tính tham chiếu. Khi ghi đè, ta phải định nghĩa một **quan hệ tương đương** có các tính chất phản xạ, đối xứng, bắc cầu; nhất quán nếu dữ liệu dùng so sánh không đổi; và `x.equals(null) == false`.
+`Object.equals` defaults to reference identity. When overriding it, we must define an **equivalence relation** that is reflexive, symmetric, transitive; consistent if the compared data does not change; and satisfies `x.equals(null) == false`.
 
-`hashCode` phải tuân thủ: nếu `a.equals(b)` thì `a.hashCode() == b.hashCode()`. Chiều đảo không bắt buộc đúng: hai entity khác nhau có thể có cùng hash. Khi một object đang được dùng làm khóa dựa trên hash, các dữ liệu làm thay đổi hash của nó không nên thay đổi trong thời gian lưu trữ.
+`hashCode` must obey: if `a.equals(b)` then `a.hashCode() == b.hashCode()`. The converse is not required: two different entities may have the same hash. While an object is used as a hash-based key, data that alters its hash should not change during storage.
 
-### Vòng đời thường gặp của ID cấp bởi nơi lưu trữ
+### Typical Lifecycle of a Storage-Assigned ID
 
-| Thời điểm | Object | ID | Ý nghĩa |
+| Moment | Object | ID | Meaning |
 |---|---|---|---|
-| Vừa tạo | `a` | `null` | Một entity mới; so bằng tham chiếu với chính nó |
-| Cùng lúc tạo mới khác | `b` | `null` | Entity mới khác; `a.equals(b)` thường phải `false` |
-| Sau khi được cấp ID | `a` | `101` | Danh tính bền vững bắt đầu có thể so theo ID |
-| Được tải lại | `c` | `101` | `a != c` nhưng có thể `a.equals(c)` |
-| Một entity khác | `d` | `102` | Không bằng entity ID `101` |
+| Just created | `a` | `null` | A new entity; compared by reference with itself |
+| Another created at the same time | `b` | `null` | Another new entity; `a.equals(b)` must usually be `false` |
+| After ID assignment | `a` | `101` | Persistent identity can start being compared by ID |
+| Reloaded | `c` | `101` | `a != c` but `a.equals(c)` can hold |
+| Another entity | `d` | `102` | Not equal to entity ID `101` |
 
-Không nên giả định ID được cấp ngay sau một lệnh `persist` hay `save`: thời điểm phụ thuộc chiến lược sinh ID, ORM, giao dịch, flush và lệnh INSERT thực tế.
+Do not assume an ID is assigned immediately after a `persist` or `save` call: timing depends on the ID generation strategy, ORM, transaction, flush, and actual INSERT statement.
 
-## 3. Sai lầm thứ nhất: hai ID `null` được coi là bằng nhau
+## 3. First Mistake: Two `null` IDs Treated as Equal
 
-Một cách triển khai thiếu điều kiện:
+An under-constrained implementation:
 
 ```java
 @Override
@@ -60,14 +60,14 @@ public boolean equals(Object other) {
 }
 ```
 
-Đoạn này là minh họa riêng, không phải file Java độc lập. `Objects.equals(null, null)` trả `true`. Nếu `a` và `b` là hai entity mới độc lập, cả hai có `id == null`, biểu thức này sẽ khiến `a.equals(b)` trả `true` dù không có cơ sở để khẳng định chúng cùng entity.
+This snippet is an illustration only, not a standalone Java file. `Objects.equals(null, null)` returns `true`. If `a` and `b` are two independent new entities, both having `id == null`, this expression makes `a.equals(b)` return `true` even though there is no basis to claim they are the same entity.
 
-Hậu quả khi đưa vào collection:
-- `HashSet` có thể loại một object mới vì tưởng nó trùng entity đang có.
-- `HashMap.put(b, value)` có thể ghi đè giá trị lưu với khóa `a`.
-- Các phép kiểm tra tồn tại/loại trùng có thể làm mất dữ liệu logic dù entity chưa được lưu.
+Consequences when placed in collections:
+- `HashSet` may reject a new object thinking it duplicates an existing entity.
+- `HashMap.put(b, value)` may overwrite the value stored under key `a`.
+- Existence/deduplication checks may silently drop logical data even though the entities have not been saved.
 
-Nếu chọn chính sách **chỉ so theo ID đã gán**, cần kiểm tra ID khác `null`:
+If choosing the policy **compare only by assigned ID**, check that the ID is non-`null`:
 
 ```java
 @Override
@@ -82,17 +82,17 @@ public boolean equals(Object other) {
 }
 ```
 
-Ở đây `this == other` bảo đảm phản xạ ngay cả khi ID chưa được cấp. Kiểm tra kiểu phù hợp với lớp `final` minh họa. Với cây kế thừa hoặc ORM proxy, phải xác định lại cách so kiểu sao cho đối xứng, không phá identity.
+Here `this == other` guarantees reflexivity even before an ID is assigned. The type check suits the illustrative `final` class. With an inheritance hierarchy or ORM proxies, type comparison must be designed to preserve symmetry without breaking identity.
 
-## 4. Sai lầm thứ hai: hash thay đổi khi ID được gán
+## 4. Second Mistake: Hash Changes When the ID Is Assigned
 
-Nếu `hashCode` trả về `Objects.hashCode(id)`:
-- ID `null` → hash bằng `0`.
-- ID là `Long.valueOf(100)` → hash bằng `100`.
+If `hashCode` returns `Objects.hashCode(id)`:
+- `null` ID → hash equals `0`.
+- ID of `Long.valueOf(100)` → hash equals `100`.
 
-Đưa object vào `HashSet` khi hash là `0` rồi cập nhật ID khiến hash thành `100` có thể làm việc tìm kiếm thất bại. Collection dùng hash để định hướng bucket; nó không tự chuyển phần tử sang bucket mới khi thuộc tính của object thay đổi.
+Inserting an object into a `HashSet` when its hash is `0` and then updating its ID so the hash becomes `100` can cause lookups to fail. The collection uses the hash to locate the bucket; it does not automatically move an element to a new bucket when the object's attribute changes.
 
-Một lỗi thường gặp khác:
+Another common mistake:
 
 ```java
 @Override
@@ -101,24 +101,24 @@ public int hashCode() {
 }
 ```
 
-Nếu ID chưa có thì đoạn trên ném `NullPointerException`. Đổi thành `Objects.hashCode(id)` chỉ tránh NPE, chưa giải quyết được vấn đề hash đổi khi ID xuất hiện.
+If the ID does not yet exist, the code above throws `NullPointerException`. Changing it to `Objects.hashCode(id)` only avoids the NPE; it does not solve the problem of the hash changing when the ID appears.
 
-Cũng không được dùng các trường mutable khác làm hash chỉ để “ổn định tạm thời” nếu chúng có thể sửa về sau, hoặc có thể khác nhau giữa hai object mang cùng ID. Nếu `equals` coi hai entity cùng ID là bằng nhau nhưng hash dựa trên trạng thái khác nhau, hợp đồng `equals`/`hashCode` bị phá.
+Nor should other mutable fields be used as the hash just for “temporary stability” if they can be edited later, or if they can differ between two objects carrying the same ID. If `equals` treats two entities with the same ID as equal while the hash relies on differing state, the `equals`/`hashCode` contract is broken.
 
-## 5. Sai lầm thứ ba: quan hệ bằng nhau chuyển trạng thái
+## 5. Third Mistake: The Equality Relation Changes State
 
-Đặc điểm tinh vi hơn là **kết quả `equals` giữa hai object có thể đổi theo vòng đời**. Ví dụ, trước khi ID được cấp, hai object mới `a` và `b` khác tham chiếu không bằng nhau; sau đó nếu cả hai được liên kết với cùng ID thực thể, `a.equals(b)` có thể đổi thành `true`.
+A subtler characteristic is that **the `equals` result between two objects can change over their lifecycle**. For example, before IDs are assigned, two new objects `a` and `b` with different references are unequal; later, if both are associated with the same entity ID, `a.equals(b)` can change to `true`.
 
-Hợp đồng `equals` của Java yêu cầu nhất quán **khi thông tin dùng so sánh không bị sửa**. Do đó thay đổi quan hệ khi ID thay đổi không nhất thiết vi phạm riêng điều kiện nhất quán của `equals`. Tuy nhiên, **collection không tự tính lại các cặp bằng nhau**. Nếu hai object được thêm khi chúng còn khác nhau, rồi sau đó trở thành bằng nhau, `HashSet` có thể vẫn giữ cả hai. Hash ổn định chưa đủ để chữa loại vấn đề này.
+Java's `equals` contract requires consistency **when the information used for comparison is not modified**. Therefore, a change in equality when the ID changes does not necessarily violate `equals`'s consistency condition on its own. However, **collections do not recompute equal pairs**. If two objects were added while still unequal, and later become equal, a `HashSet` may still retain both. A constant hash alone is not enough to cure this kind of issue.
 
-Đây là lý do phải xét cả **thời điểm thêm object vào collection** và **liệu equality còn có thể đổi trong thời gian lưu trữ**.
+This is why you must consider both **when an object is added to a collection** and **whether equality can still change while stored**.
 
-## 6. Ví dụ Java 17: tái hiện lỗi và hai hướng xử lý
+## 6. Java 17 Example: Reproducing the Bug and Two Approaches
 
-Tạo file **`UnassignedIdDemo.java`**. Ba lớp lồng đều `final` nhằm giữ phép so kiểu đơn giản:
-- `BadOrder` minh họa lỗi `null/null` và hash thay đổi.
-- `GeneratedOrder` minh họa ID cấp sau, `equals` phân biệt entity mới và hash cố định theo lớp.
-- `ClientAssignedOrder` minh họa ID bất biến có ngay khi tạo object.
+Create the file **`UnassignedIdDemo.java`**. All three nested classes are `final` to keep type checks simple:
+- `BadOrder` demonstrates the `null/null` bug and mutating hash.
+- `GeneratedOrder` demonstrates a post-assigned ID, `equals` distinguishing new entities, and a fixed per-class hash.
+- `ClientAssignedOrder` demonstrates an immutable ID present immediately upon object creation.
 
 ```java
 import java.util.HashSet;
@@ -177,7 +177,7 @@ public class UnassignedIdDemo {
                 + assigned1.equals(assigned2));
     }
 
-    // CỐ Ý SAI: null/null bị coi là cùng entity và hash đổi theo ID.
+    // INTENTIONALLY WRONG: null/null are treated as the same entity and hash changes with ID.
     static final class BadOrder {
         private Long id;
 
@@ -203,7 +203,7 @@ public class UnassignedIdDemo {
         }
     }
 
-    // Entity có ID cấp sau: null không bằng ID của instance khác.
+    // Entity with post-assigned ID: null is not equal to another instance's ID.
     static final class GeneratedOrder {
         private Long id;
 
@@ -230,12 +230,12 @@ public class UnassignedIdDemo {
 
         @Override
         public int hashCode() {
-            // Cố định theo lớp thay vì ID mutable.
+            // Fixed per class instead of mutable ID.
             return GeneratedOrder.class.hashCode();
         }
     }
 
-    // Entity có ID ứng dụng cấp trước; ID final.
+    // Entity with pre-assigned application ID; final ID.
     static final class ClientAssignedOrder {
         private final UUID id;
 
@@ -264,14 +264,14 @@ public class UnassignedIdDemo {
 }
 ```
 
-Chạy bằng JDK 17 hoặc mới hơn:
+Run with JDK 17 or newer:
 
 ```bash
 javac --release 17 UnassignedIdDemo.java
 java UnassignedIdDemo
 ```
 
-Output trên triển khai `HashSet`/`HashMap` thông dụng của JDK 17:
+Output on common JDK 17 `HashSet`/`HashMap` implementations:
 
 ```text
 bad null IDs equal: true
@@ -287,96 +287,96 @@ assigned same ID: true
 assigned different ID: false
 ```
 
-**Giải thích theo từng khối:**
+**Block-by-block explanation:**
 
-1. `BadOrder` sai vì `Objects.equals(null, null)` là `true`. Việc gán ID `100L` làm hash đổi từ `0` sang `100`; với bucket trong bản JDK 17 thông dụng, `HashSet.contains(bad)` sau cập nhật trả `false`. Về mặt hợp đồng, tra cứu sau khi thay đổi hash của phần tử đang lưu **không được bảo đảm**; không nên suy rộng rằng mọi phiên bản hay mọi giá trị ID đều phải in `false`.
-2. `GeneratedOrder` không coi hai object mới ID `null` là bằng nhau. Object so với chính nó vẫn bằng nhau nhờ `this == other`. Hash cố định theo lớp nên ID được cấp sau khi object đã nằm trong `HashSet` không làm đổi bucket.
-3. `first` và `second` sau khi cùng nhận ID `100` đại diện cùng entity trong tình huống mô phỏng. `equals` trả `true` và hash như nhau, nên có thể tra phần tử trong `safeSet` bằng `second`.
-4. `ClientAssignedOrder` dùng ID `UUID` là trường `final`, có nghĩa là hash ổn định. Hai object mang cùng ID được coi là bằng nhau; hai ID xác định khác nhau thì khác nhau. `createNew()` dùng `UUID.randomUUID()` khi tạo entity thực tế nhưng không dùng trong output để chương trình luôn in kết quả xác định.
+1. `BadOrder` is wrong because `Objects.equals(null, null)` is `true`. Assigning ID `100L` changes the hash from `0` to `100`; with buckets in common JDK 17 builds, `HashSet.contains(bad)` after the update returns `false`. By contract, lookup after mutating the hash of a stored element **is not guaranteed**; do not generalize that every version or every ID value must print `false`.
+2. `GeneratedOrder` does not treat two new objects with `null` IDs as equal. Comparing an object to itself remains equal thanks to `this == other`. Because the hash is fixed per class, assigning an ID after the object is already in `HashSet` does not change its bucket.
+3. After `first` and `second` both receive ID `100`, they represent the same entity in the simulated scenario. `equals` returns `true` and their hashes match, so the element in `safeSet` can be looked up via `second`.
+4. `ClientAssignedOrder` uses a `UUID` ID as a `final` field, meaning the hash is stable. Two objects carrying the same ID are considered equal; two distinct explicit IDs differ. `createNew()` uses `UUID.randomUUID()` when creating real entities, but is not used in output so that the program always prints deterministic results.
 
-### Hash cố định có thật sự đúng không?
+### Is a Constant Hash Really Correct?
 
-Với `GeneratedOrder` là lớp `final`, mọi instance trả `GeneratedOrder.class.hashCode()`. Nếu hai entity bằng nhau thì hash chắc chắn bằng nhau, nên hợp đồng hash vẫn được tuân thủ. Tuy nhiên, tất cả instance cùng lớp có cùng hash, gây nhiều collision và có thể làm thao tác collection chậm khi có số lượng lớn. Đây là lựa chọn có đánh đổi, không phải đáp án tối ưu trong mọi bối cảnh.
+With `GeneratedOrder` as a `final` class, every instance returns `GeneratedOrder.class.hashCode()`. If two entities are equal, their hashes are guaranteed to match, so the hash contract is satisfied. However, all instances of the same class share the same hash, causing many collisions and potentially slowing down collection operations at large scale. This is a trade-off choice, not the optimal answer in every context.
 
-Giá trị `Class.hashCode()` ở đây được dùng làm hash trong **bộ nhớ JVM**, không phải ID có thể lưu hoặc truyền giữa các tiến trình. Không được dựa vào giá trị hash cụ thể để nhận diện bản ghi.
+The `Class.hashCode()` value here serves as a hash in **JVM memory**, not an ID that can be persisted or transmitted across processes. Do not rely on the specific hash value to identify records.
 
-### Hash cố định chưa giữ được tính duy nhất nếu equality đổi
+### Constant Hash Still Does Not Preserve Uniqueness If Equality Changes
 
-Giả sử thêm hai object `GeneratedOrder` mới khác nhau vào `HashSet` khi ID đều `null`. Tập sẽ có hai phần tử vì chúng không bằng nhau. Nếu một lỗi đồng bộ khiến cả hai sau đó mang cùng ID, chúng trở thành bằng nhau nhưng tập không tự loại phần tử trùng. Do đó, lựa chọn hash cố định chỉ giải quyết **hash bucket ổn định**; ứng dụng vẫn cần quản lý thời điểm ID xuất hiện và thời điểm object được đưa vào collection.
+Suppose two different new `GeneratedOrder` objects are added to a `HashSet` while both IDs are `null`. The set will contain two elements because they are unequal. If a synchronization bug causes both to later carry the same ID, they become equal yet the set will not automatically remove the duplicate element. Therefore, choosing a constant hash only solves **hash bucket stability**; the application must still manage when IDs appear and when objects are placed into collections.
 
-## 7. Ba chiến lược triển khai thực tế
+## 7. Three Practical Implementation Strategies
 
-### A. Cấp ID bất biến ngay khi tạo object
+### A. Assigning an Immutable ID Upon Object Creation
 
-Nếu kiến trúc cho phép, ứng dụng có thể cấp UUID ngay trong constructor/factory. `equals` và `hashCode` cùng dựa trên ID bất biến; vì vậy chúng ổn định ngay cả trước khi entity được lưu. Object tải lại phải giữ **đúng ID đã có**, không sinh ID mới.
+If the architecture permits, the application can assign a UUID right in the constructor/factory. `equals` and `hashCode` both rely on the immutable ID; thus they are stable even before the entity is saved. Reloaded objects must retain **their existing ID**, not generate a new one.
 
-Cần tính đến giới hạn duy nhất và thiết kế lưu trữ: UUID ngẫu nhiên có xác suất va chạm rất nhỏ nhưng không có bảo đảm toán học tuyệt đối; ID phải tương thích schema và toàn bộ dịch vụ có liên quan.
+Uniqueness limits and storage design must be accounted for: random UUIDs have a very small collision probability without an absolute mathematical guarantee; IDs must be compatible with the schema and all relevant services.
 
-### B. ID do nơi lưu trữ cấp sau
+### B. ID Assigned Later by Storage
 
-Khi ID ban đầu `null`, chính sách thường dùng với lớp Java `final` là:
+When the ID is initially `null`, the common policy for a `final` Java class is:
 
-1. Nếu cùng tham chiếu (`this == other`), trả `true`.
-2. Nếu không cùng kiểu entity, trả `false`.
-3. Nếu ID chưa có, không coi bằng một object khác.
-4. Nếu ID đã có, so ID theo ngữ nghĩa nghiệp vụ.
-5. Chọn hash ổn định với vòng đời dự kiến hoặc trì hoãn việc đưa object vào hash collection cho tới khi danh tính ổn định.
+1. If same reference (`this == other`), return `true`.
+2. If not the same entity type, return `false`.
+3. If the ID is not yet present, do not consider it equal to another object.
+4. If the ID is present, compare IDs according to business semantics.
+5. Choose a hash stable across the expected lifecycle, or defer placing the object into hash collections until identity stabilizes.
 
-Cần cân nhắc chi phí của hash cố định và nguy cơ equality đổi với object khác. Một lựa chọn dễ kiểm soát là chỉ tạo khóa hash từ ID **sau khi ID được xác nhận**.
+Consider the cost of a constant hash and the risk of equality changing relative to other objects. A manageable option is to create a hash key from the ID **only after the ID is confirmed**.
 
-### C. Dùng khóa nghiệp vụ bất biến, duy nhất
+### C. Using an Immutable, Unique Business Key
 
-Một cặp dữ liệu như `tenantId + externalOrderId` có thể nhận diện entity từ trước lúc database cấp khóa kỹ thuật, **nếu** miền nghiệp vụ thật sự bảo đảm không đổi và duy nhất trong phạm vi đã định nghĩa. Đừng lấy tên khách hàng, email, ghi chú, trạng thái hoặc một thuộc tính có thể sửa làm khóa chỉ vì nó hiện có vẻ duy nhất.
+A data pair like `tenantId + externalOrderId` can identify an entity before the database assigns a surrogate key, **if** the business domain truly guarantees it is immutable and unique within the defined scope. Do not pick a customer name, email, note, status, or any mutable attribute as a key merely because it currently appears unique.
 
-Nếu nghiệp vụ cần sửa khóa, phải tính lại quy tắc identity và hệ quả với collection; khi đó một khóa kỹ thuật cấp ngay có thể phù hợp hơn.
+If the business requires editing the key, you must reconsider identity rules and collection consequences; in that case, an upfront technical key may be more appropriate.
 
-| Tiêu chí | ID ứng dụng cấp ngay | ID database cấp sau + hash cố định | Khóa nghiệp vụ bất biến |
+| Criterion | Upfront application-assigned ID | DB post-assigned ID + constant hash | Immutable business key |
 |---|---|---|---|
-| ID/khóa sẵn khi tạo | Có | Chưa | Có nếu nghiệp vụ cung cấp |
-| Có thể giữ hash ổn định | Có | Có, với hash không dựa ID | Có nếu trường khóa không đổi |
-| Equality giữa hai representation | Theo cùng ID | Theo ID sau khi cấp | Theo khóa nghiệp vụ |
-| Rủi ro chính | Phân phối/lưu/tái tạo ID không đúng | Collision và equality đổi theo lifecycle | Uniqueness hoặc tính bất biến không như giả định |
+| ID/key available at creation | Yes | Not yet | Yes, if supplied by business |
+| Can keep hash stable | Yes | Yes, with a non-ID-based hash | Yes, if key fields do not change |
+| Equality between two representations | By same ID | By ID once assigned | By business key |
+| Main risk | Improper ID distribution/storage/recreation | Collisions and equality changing over lifecycle | Uniqueness or immutability not holding as assumed |
 
-## 8. Riêng với ORM/JPA/Hibernate
+## 8. Specifically for ORM/JPA/Hibernate
 
-Không thể bê nguyên `GeneratedOrder` ở trên vào mọi entity ORM: một số provider dùng proxy/subclass, yêu cầu constructor và quy tắc truy cập nhất định. `getClass()` có thể trả lớp proxy, trong khi `instanceof` có thể dẫn đến so sánh không phù hợp trong cây kế thừa. Quy tắc so kiểu phải được thiết kế nhất quán và thử trên provider cụ thể.
+You cannot drop `GeneratedOrder` above verbatim into every ORM entity: some providers use proxies/subclasses and require specific constructors and access rules. `getClass()` can return a proxy class, whereas `instanceof` can lead to inappropriate comparisons within an inheritance hierarchy. Type comparison rules must be designed consistently and tested on the specific provider.
 
-Những tình huống cần kiểm tra:
-- Entity mới chưa có ID, hai instance mới khác nhau.
-- Entity được cấp ID sau khi insert/flush theo chiến lược cụ thể.
-- Hai representation của cùng bản ghi được nạp ở những session khác nhau.
-- Detached entity và entity sau merge.
-- Proxy và non-proxy của cùng entity, nếu provider dùng proxy.
-- Các quan hệ lazy hoặc mutable không nên bị kéo vào equality theo cách gây vòng lặp hay truy cập database ngoài ý muốn.
+Scenarios to verify:
+- New entity without an ID, two different new instances.
+- Entity assigned an ID after insert/flush under the specific strategy.
+- Two representations of the same record loaded in different sessions.
+- Detached entity and entity after merge.
+- Proxy and non-proxy of the same entity, if the provider uses proxies.
+- Lazy or mutable associations should not be pulled into equality in ways that cause cycles or unintended database queries.
 
-Không suy từ một ví dụ Java thuần ra rằng `persist` luôn cấp ID tức thì, `final` luôn hợp lệ với proxy ORM, hoặc mọi lớp entity đều dùng một mẫu `hashCode` duy nhất.
+Do not infer from a pure Java example that `persist` always assigns an ID immediately, that `final` is always valid with ORM proxies, or that every entity class uses a single `hashCode` pattern.
 
-## 9. Bài tập kiểm tra quan hệ bằng nhau
+## 9. Exercises for Checking Equality Semantics
 
-### Trường hợp cần dự đoán
+### Cases to Predict
 
-| Đầu vào | Kết quả theo chính sách ID cấp sau |
+| Input | Result under post-assigned ID policy |
 |---|---|
-| `a.id == null`, so `a.equals(a)` | `true` |
-| `a != b`, cả hai ID `null` | `false` |
-| `a.id == 101`, `b.id == 101`, cùng kiểu entity | `true` |
+| `a.id == null`, check `a.equals(a)` | `true` |
+| `a != b`, both IDs `null` | `false` |
+| `a.id == 101`, `b.id == 101`, same entity type | `true` |
 | `a.id == 101`, `b.id == 102` | `false` |
 | `a.id == 101`, `b.id == null` | `false` |
 | `a.equals(null)` | `false` |
-| `a.equals(b)` là `true` | `a.hashCode() == b.hashCode()` bắt buộc đúng |
-| Object đã lưu trong `HashSet`, sau đó đổi trường tham gia hash | Lookup không còn đáng tin |
-| Hai object ở trong `HashSet`, sau đó equality giữa chúng đổi thành `true` | Collection không tự gộp phần tử |
+| `a.equals(b)` is `true` | `a.hashCode() == b.hashCode()` must hold |
+| Object already stored in `HashSet`, then field participating in hash changes | Lookup is no longer reliable |
+| Two objects in `HashSet`, then equality between them changes to `true` | Collection does not automatically merge elements |
 
-### Các bài tập thực hành
+### Practical Exercises
 
-1. Viết các phép kiểm tra phản xạ, đối xứng, bắc cầu cho ba object mang ID `101` và các object còn `null`. Đừng quên so với `null` và so với object kiểu khác.
-2. Đổi `GeneratedOrder.hashCode()` sang `Objects.hashCode(id)` trong bản thử riêng. Chạy lại, quan sát thay đổi; giải thích vì sao chỉ nhìn một lần chạy chưa đủ chứng minh thiết kế an toàn.
-3. Dùng một object `BadOrder` làm khóa `HashMap` trước khi cấp ID; thử `get` với chính object đó trước và sau khi gán ID. Giải thích vì sao giá trị có thể không tìm lại được.
-4. Thêm hai `GeneratedOrder` đang thiếu ID vào một `HashSet`, rồi trong tình huống giả lập gán cùng ID cho chúng. Kiểm tra kích thước tập trước/sau và giải thích vì sao hash cố định không bảo đảm tập tự làm sạch.
-5. Viết một value object `OrderKey` bất biến gồm `tenantId` và `orderId` đã có; so sánh độ ổn định khi dùng `OrderKey` làm khóa `Map` so với dùng entity có ID cấp sau.
-6. Nếu ứng dụng dùng ORM, viết integration test cho hai session và proxy thực tế, không chỉ unit test với POJO đơn giản.
+1. Write reflexivity, symmetry, and transitivity checks for three objects carrying ID `101` and objects still having `null`. Do not forget comparisons with `null` and with objects of another type.
+2. Change `GeneratedOrder.hashCode()` to `Objects.hashCode(id)` in a separate test copy. Rerun and observe the change; explain why inspecting a single run is insufficient to prove a design is safe.
+3. Use a `BadOrder` object as a `HashMap` key before assigning an ID; try `get` with that same object before and after assigning the ID. Explain why the value may no longer be found.
+4. Add two `GeneratedOrder` objects missing IDs into a `HashSet`, then in a simulated scenario assign the same ID to both. Check the set size before/after and explain why a constant hash does not guarantee the set cleans itself up.
+5. Write an immutable `OrderKey` value object containing an existing `tenantId` and `orderId`; compare stability when using `OrderKey` as a `Map` key versus using an entity with a post-assigned ID.
+6. If the application uses an ORM, write integration tests across two sessions and actual proxies, not only unit tests with plain POJOs.
 
-Một đoạn kiểm tra ý nghĩa equality (dùng lớp lồng `GeneratedOrder` của `UnassignedIdDemo` trong chính file demo, hoặc sửa tên đủ điều kiện khi chuyển ra file khác):
+A snippet checking equality semantics (using the nested `GeneratedOrder` class of `UnassignedIdDemo` in the same demo file, or adjusting to a qualified name when moving to another file):
 
 ```java
 GeneratedOrder a = new GeneratedOrder();
@@ -393,18 +393,18 @@ assert b.equals(a);
 assert a.hashCode() == b.hashCode();
 ```
 
-Đây là đoạn minh họa **không chạy độc lập**. Trong Java, các câu lệnh `assert` mặc định bị tắt nếu không bật `-ea`; trong dự án thật nên dùng bộ assertion của JUnit hoặc công cụ kiểm thử tương ứng để kết quả luôn được kiểm tra.
+This is an illustrative snippet **that does not run standalone**. In Java, `assert` statements are disabled by default unless `-ea` is enabled; in real projects, use JUnit assertions or an appropriate testing framework so results are always checked.
 
-## 10. Checklist trước khi đưa entity vào collection
+## 10. Checklist Before Placing Entities Into Collections
 
-- Danh tính nghiệp vụ có thật sự do ID quyết định không, hay có khóa bất biến khác?
-- ID có thể là `null` tại thời điểm đang tạo entity hoặc tạo khóa collection không?
-- Hai object mới độc lập có bị đánh đồng chỉ vì cùng ID `null` không?
-- `equals` có xét `this == other` để giữ tính phản xạ cho entity chưa có ID không?
-- `hashCode` có phụ thuộc vào ID hoặc bất kỳ trường nào còn có thể thay đổi không?
-- Hai object đang nằm trong collection có thể chuyển từ khác nhau thành bằng nhau không?
-- Khi nạp lại object, có giữ nguyên identity thay vì cấp một ID mới không?
-- Nếu dùng ORM, việc so sánh kiểu thực thể và xử lý proxy có làm hỏng đối xứng/bắc cầu hoặc gây truy vấn ngầm không?
-- Có thể dùng một khóa bất biến riêng thay vì trực tiếp dùng entity làm khóa `HashMap` không?
+- Is business identity truly determined by the ID, or is there another immutable key?
+- Can the ID be `null` at the moment the entity or collection key is created?
+- Are two independent new objects mistakenly equated merely because both have `null` IDs?
+- Does `equals` check `this == other` to preserve reflexivity for entities without an ID yet?
+- Does `hashCode` depend on the ID or any field that can still mutate?
+- Can two objects already inside a collection transition from unequal to equal?
+- When reloading an object, is its existing identity preserved instead of assigning a new ID?
+- If using an ORM, do entity type comparisons and proxy handling break symmetry/transitivity or trigger implicit queries?
+- Can a separate immutable key be used instead of using the entity directly as a `HashMap` key?
 
-**Điểm cần nhớ:** `null` nghĩa là **chưa được gán ID**, không phải một ID chung cho mọi entity mới. Khi ID xuất hiện, quan hệ bằng nhau và mã băm có thể thay đổi; cần chủ động chọn chính sách identity, thiết kế `equals` và `hashCode` nhất quán, và quản lý thời điểm sử dụng entity trong các collection.
+**Point to remember:** `null` means **no ID assigned yet**, not a shared ID for all new entities. When the ID appears, equality and hash code can change; you must proactively choose an identity policy, design `equals` and `hashCode` consistently, and manage when entities are used in collections.

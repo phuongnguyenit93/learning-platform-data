@@ -1,25 +1,25 @@
-# Unscaled value, scale và công thức xác định giá trị của BigDecimal trong Java
+# Unscaled Value, Scale, and the Value Formula of BigDecimal in Java
 
-`java.math.BigDecimal` là kiểu số **thập phân bất biến với độ chính xác tùy ý**, rất hữu ích khi cần biểu diễn giá trị thập phân một cách có kiểm soát. Điểm quan trọng nhất khi học `BigDecimal` không phải chỉ là “nó có nhiều chữ số hơn `double`”, mà là **cách Java xác định giá trị của mỗi object từ một số nguyên và một scale**.
+`java.math.BigDecimal` is an **immutable arbitrary-precision decimal** number type, very useful when decimal values must be represented in a controlled manner. The most important point when learning `BigDecimal` is not just "it has more digits than `double`", but **how Java determines the value of each object from an integer and a scale**.
 
-Một `BigDecimal` có hai thành phần cốt lõi:
+A `BigDecimal` has two core components:
 
-- **Unscaled value**: một số nguyên có dấu, có thể biểu diễn chính xác bằng `BigInteger`.
-- **Scale**: một số nguyên kiểu `int`; cho biết số mũ của 10 trong cách diễn giải unscaled value.
+- **Unscaled value**: a signed integer, representable exactly by `BigInteger`.
+- **Scale**: an integer of type `int`; indicates the power of 10 used in interpreting the unscaled value.
 
-Công thức định nghĩa giá trị là:
+The formula defining the value is:
 
 ~~~text
 value = unscaledValue × 10^(-scale)
 ~~~
 
-Vì vậy `unscaledValue = 12345`, `scale = 2` sẽ cho `123.45`; nhưng cùng unscaled value với `scale = -2` sẽ cho `1,234,500`. **Scale không phải luôn luôn là số chữ số nằm sau dấu thập phân**, vì scale có thể dương, bằng 0 hoặc âm.
+Thus `unscaledValue = 12345`, `scale = 2` yields `123.45`; however, the same unscaled value with `scale = -2` yields `1,234,500`. **Scale is not always the number of digits after the decimal point**, because scale can be positive, zero, or negative.
 
-Bài học này thuộc mục **Mô hình BigDecimal** và giải thích cách đọc hai thành phần, mối quan hệ với `precision`, các thao tác thay đổi scale, sự khác nhau giữa equality theo giá trị và theo biểu diễn, cùng cách dùng an toàn trong tính toán thực tế với Java 17+.
+This lesson belongs to the **BigDecimal Model** section and explains how to read both components, their relationship with `precision`, operations that change scale, the difference between equality by value and by representation, and how to use it safely in practical calculations with Java 17+.
 
-## 1. Phân tích công thức bằng ví dụ
+## 1. Analyzing the Formula with Examples
 
-Với `new BigDecimal("123.45")`, Java có thể mô tả giá trị bằng:
+With `new BigDecimal("123.45")`, Java can describe the value as:
 
 ~~~text
 unscaledValue = 12345
@@ -27,9 +27,9 @@ scale         = 2
 value         = 12345 × 10^(-2) = 123.45
 ~~~
 
-Một số biểu diễn khác:
+Some other representations:
 
-| Unscaled value | Scale | Tính toán | Giá trị số |
+| Unscaled value | Scale | Calculation | Numeric value |
 | ---: | ---: | --- | ---: |
 | `12345` | `2` | `12345 × 10^-2` | `123.45` |
 | `12345` | `0` | `12345 × 10^0` | `12345` |
@@ -38,11 +38,11 @@ Một số biểu diễn khác:
 | `12` | `2` | `12 × 10^-2` | `0.12` |
 | `0` | `4` | `0 × 10^-4` | `0` |
 
-Ở trường hợp unscaled value bằng 0, **mọi scale đều cho cùng giá trị toán học là zero**, nhưng object vẫn có thể giữ scale khác nhau, chẳng hạn `new BigDecimal("0.000")` có scale bằng 3.
+In the case where unscaled value equals 0, **every scale gives the same mathematical value of zero**, but the object can still hold different scales; for example, `new BigDecimal("0.000")` has scale equal to 3.
 
-Không nên gọi `scale` là “precision”, bởi nó không đếm tổng số chữ số có nghĩa và không diễn đạt độ tin cậy vật lý của dữ liệu. Scale chỉ là **số mũ thập phân trong mô hình giá trị**.
+Do not call `scale` "precision", because it does not count the total number of significant digits and does not express the physical reliability of data. Scale is only the **decimal exponent in the value model**.
 
-## 2. Đọc trực tiếp bằng `unscaledValue()` và `scale()`
+## 2. Reading Directly with `unscaledValue()` and `scale()`
 
 ~~~java
 BigDecimal amount = new BigDecimal("123.4500");
@@ -53,32 +53,32 @@ System.out.println(amount.scale());         // 4
 System.out.println(amount.precision());     // 7
 ~~~
 
-`unscaledValue()` trả `BigInteger`, không phải `long`. Do đó một số decimal rất lớn không nhất thiết bị giới hạn trong 64 bit. `scale()` trả `int`, thể hiện số mũ thập phân dùng trong công thức. `precision()` đếm số chữ số thập phân có nghĩa trong **unscaled value**; với `1234500` là 7 chữ số.
+`unscaledValue()` returns `BigInteger`, not `long`. Therefore, a very large decimal number is not necessarily limited to 64 bits. `scale()` returns `int`, representing the decimal exponent used in the formula. `precision()` counts the number of significant decimal digits in the **unscaled value**; for `1234500` that is 7 digits.
 
-Kết quả `123.4500` và `123.45` **bằng nhau về giá trị toán học**, nhưng có cấu trúc khác nhau:
+The values `123.4500` and `123.45` are **equal in mathematical value**, but have different structures:
 
-| Văn bản đầu vào | Unscaled value | Scale | Precision |
+| Input text | Unscaled value | Scale | Precision |
 | --- | ---: | ---: | ---: |
 | `"123.4500"` | `1234500` | `4` | `7` |
 | `"123.45"` | `12345` | `2` | `5` |
 | `"1.23E+4"` | `123` | `-2` | `3` |
 | `"0.000"` | `0` | `3` | `1` |
 
-**Đếm precision của zero:** theo hợp đồng `BigDecimal`, `precision()` của một giá trị zero là 1, không phải 0, bất kể scale của biểu diễn zero được tạo ra. Việc giữ thêm chữ số 0 trong một số decimal ảnh hưởng scale và có thể ảnh hưởng precision trong nhiều trường hợp, nhưng không biến dữ liệu đầu vào thành phép đo “đáng tin” hơn.
+**Counting precision of zero:** according to the `BigDecimal` contract, `precision()` of a zero value is 1, not 0, regardless of the scale of the zero representation created. Keeping extra 0 digits in a decimal number affects scale and can affect precision in many cases, but does not turn input data into a "more reliable" measurement.
 
-## 3. Scale dương, bằng 0 và âm
+## 3. Positive, Zero, and Negative Scale
 
-### Scale dương
+### Positive Scale
 
-Với `new BigDecimal("12.345")`, unscaled value là `12345` và scale là `3`: giá trị `12345 × 10^-3 = 12.345`. Đây là trường hợp quen thuộc khiến người mới học nghĩ scale luôn đồng nghĩa “ba chữ số sau dấu thập phân”.
+With `new BigDecimal("12.345")`, the unscaled value is `12345` and scale is `3`: value `12345 × 10^-3 = 12.345`. This is the familiar case that makes beginners think scale always means "three digits after the decimal point".
 
-### Scale bằng 0
+### Zero Scale
 
-`new BigDecimal("12345")` có unscaled value `12345` và scale `0`. Giá trị chính là số nguyên 12345, nhưng vẫn là một đối tượng `BigDecimal`, khác kiểu so với `BigInteger` hay `Long`.
+`new BigDecimal("12345")` has unscaled value `12345` and scale `0`. The value is the integer 12345, yet it is still a `BigDecimal` object, a different type from `BigInteger` or `Long`.
 
-### Scale âm
+### Negative Scale
 
-`new BigDecimal("1.23E+4")` có:
+`new BigDecimal("1.23E+4")` has:
 
 ~~~java
 BigDecimal scientific = new BigDecimal("1.23E+4");
@@ -88,9 +88,9 @@ System.out.println(scientific.scale());         // -2
 System.out.println(scientific.toPlainString()); // 12300
 ~~~
 
-Vì `123 × 10^2 = 12300`, scale âm hoàn toàn hợp lệ. Dạng `toString()` có thể dùng ký pháp khoa học, còn `toPlainString()` thể hiện giá trị dưới dạng chữ số thập phân thông thường, không dùng ký pháp số mũ. **Đừng suy ra `scale < 0` là lỗi hoặc số âm.** Dấu của số nằm trong unscaled value; dấu của scale nói về vị trí dấu thập phân.
+Because `123 × 10^2 = 12300`, a negative scale is completely valid. The `toString()` form may use scientific notation, whereas `toPlainString()` expresses the value as ordinary decimal digits without exponent notation. **Do not infer that `scale < 0` is an error or a negative number.** The sign of the number resides in the unscaled value; the sign of scale indicates the position of the decimal point.
 
-Có thể xây trực tiếp từ cặp unscaled/scale:
+You can construct directly from an unscaled/scale pair:
 
 ~~~java
 new BigDecimal(BigInteger.valueOf(12345), 2); // 123.45
@@ -98,28 +98,28 @@ new BigDecimal(BigInteger.valueOf(123), -2);  // 1.23E+4
 BigDecimal.valueOf(12L, 2);                    // 0.12
 ~~~
 
-Overload `BigDecimal.valueOf(long unscaledVal, int scale)` khác `BigDecimal.valueOf(double)`. Đừng nhầm các overload chỉ vì cùng tên phương thức.
+The overload `BigDecimal.valueOf(long unscaledVal, int scale)` differs from `BigDecimal.valueOf(double)`. Do not confuse overloads just because they share the same method name.
 
-## 4. Cùng giá trị nhưng khác biểu diễn: `equals` và `compareTo`
+## 4. Same Value, Different Representation: `equals` and `compareTo`
 
-Hai số:
+Two numbers:
 
 ~~~java
 BigDecimal a = new BigDecimal("1.0");
 BigDecimal b = new BigDecimal("1.00");
 ~~~
 
-đều bằng toán học với 1, nhưng `a` có unscaled = 10, scale = 1; `b` có unscaled = 100, scale = 2. Do đó:
+are both mathematically equal to 1, but `a` has unscaled = 10, scale = 1; `b` has unscaled = 100, scale = 2. Therefore:
 
 ~~~java
 System.out.println(a.equals(b));        // false
 System.out.println(a.compareTo(b));     // 0
 ~~~
 
-- **`equals`** xem hai `BigDecimal` bằng nhau khi cả *giá trị số* và *scale* phù hợp bằng nhau; ví dụ trên trả false.
-- **`compareTo`** so sánh giá trị số, nên trả 0 với hai biểu diễn `1.0` và `1.00`.
+- **`equals`** considers two `BigDecimal` objects equal when both *numeric value* and *scale* match; the example above returns false.
+- **`compareTo`** compares numeric value, so it returns 0 for the two representations `1.0` and `1.00`.
 
-Hệ quả về collections:
+Consequences for collections:
 
 ~~~java
 Set<BigDecimal> hashed = new HashSet<>(Arrays.asList(a, b));
@@ -127,13 +127,13 @@ Set<BigDecimal> ordered = new TreeSet<>(Arrays.asList(a, b));
 // hashed.size() = 2, ordered.size() = 1
 ~~~
 
-`HashSet` dựa trên `equals`/`hashCode`, còn `TreeSet` mặc định dùng `compareTo` làm thứ tự, nên **hai collection có thể gộp phần tử theo chính sách khác nhau**. Nếu dùng giá tiền hoặc số decimal làm khóa, hãy xác định scale có ý nghĩa nghiệp vụ không, và chuẩn hóa biểu diễn trước khi lưu khóa khi cần.
+`HashSet` relies on `equals`/`hashCode`, whereas `TreeSet` by default uses `compareTo` for ordering, so **the two collections can deduplicate elements according to different policies**. If using monetary amounts or decimal numbers as keys, determine whether scale has business meaning, and normalize representations before storing keys when needed.
 
-**Đừng thay đổi `equals`/`hashCode` tùy tiện** hoặc dùng so sánh “gần bằng” theo epsilon làm comparator của `TreeSet`; quan hệ so sánh phải giữ được hợp đồng nhất quán và bắc cầu.
+**Do not arbitrarily alter `equals`/`hashCode`** or use "approximately equal" comparison by epsilon as a `TreeSet` comparator; the comparison relation must preserve a consistent and transitive contract.
 
-## 5. `stripTrailingZeros()` thay đổi cấu trúc nhưng giữ giá trị số
+## 5. `stripTrailingZeros()` Changes Structure While Preserving Numeric Value
 
-`stripTrailingZeros()` loại bỏ những số 0 cuối trong **biểu diễn decimal** mà không thay đổi giá trị toán học:
+`stripTrailingZeros()` removes trailing zeros in the **decimal representation** without changing the mathematical value:
 
 ~~~java
 BigDecimal original = new BigDecimal("123.4500");
@@ -144,9 +144,9 @@ System.out.println(stripped.unscaledValue()); // 12345
 System.out.println(stripped.scale());         // 2
 ~~~
 
-Object `original` **không thay đổi**, vì `BigDecimal` bất biến. Với một số nguyên có nhiều số 0 cuối, scale kết quả thậm chí có thể trở thành **âm**; chẳng hạn `new BigDecimal("1200.0").stripTrailingZeros()` có thể được trình bày bằng số mũ để thể hiện scale âm mà vẫn giữ giá trị 1200.
+The `original` object **does not change**, because `BigDecimal` is immutable. For an integer with many trailing zeros, the resulting scale can even become **negative**; for example, `new BigDecimal("1200.0").stripTrailingZeros()` may be presented with an exponent to express the negative scale while still keeping the value 1200.
 
-Với zero, `stripTrailingZeros` cho dạng zero chuẩn có scale 0:
+For zero, `stripTrailingZeros` produces the canonical zero form with scale 0:
 
 ~~~java
 BigDecimal z = new BigDecimal("0.000");
@@ -156,13 +156,13 @@ System.out.println(z.precision());                     // 1
 System.out.println(z.stripTrailingZeros().scale());    // 0
 ~~~
 
-**Không dùng `stripTrailingZeros` nếu nghiệp vụ cần giữ số chữ số đã nhập như một thông tin riêng.** Trong báo giá hoặc phép đo, `1.20` đôi khi cần được hiển thị đúng hai chữ số phần lẻ; normalize thành `1.2` sẽ loại mất scale ban đầu dù không làm mất giá trị toán học.
+**Do not use `stripTrailingZeros` if business logic requires keeping the entered number of digits as separate information.** In price quotes or measurements, `1.20` sometimes needs to be displayed with exactly two fractional digits; normalizing to `1.2` drops the original scale even though it does not lose mathematical value.
 
-## 6. `setScale`: thay đổi scale và đôi khi cần làm tròn giá trị
+## 6. `setScale`: Changing Scale and Sometimes Needing Value Rounding
 
-`setScale(newScale)` tạo một `BigDecimal` mới với scale được yêu cầu.
+`setScale(newScale)` creates a new `BigDecimal` with the requested scale.
 
-**Tăng scale** (thêm các vị trí thập phân) thường có thể thực hiện chính xác bằng cách nhân unscaled value với lũy thừa 10:
+**Increasing scale** (adding decimal places) can generally be performed exactly by multiplying the unscaled value by a power of 10:
 
 ~~~java
 BigDecimal initial = new BigDecimal("12.3");
@@ -170,7 +170,7 @@ BigDecimal padded = initial.setScale(3);
 // padded = 12.300, unscaled = 12300, scale = 3
 ~~~
 
-**Giảm scale** thường đòi bỏ chữ số có nghĩa và có thể cần làm tròn:
+**Decreasing scale** often requires dropping significant digits and may need rounding:
 
 ~~~java
 BigDecimal amount = new BigDecimal("12.35");
@@ -178,20 +178,20 @@ BigDecimal rounded = amount.setScale(1, RoundingMode.HALF_UP);
 // rounded = 12.4
 ~~~
 
-Khi dùng overload `setScale(int)` không có rounding mode, Java yêu cầu phép thay đổi scale **diễn ra chính xác**. Nếu cần bỏ chữ số khác 0, nó ném `ArithmeticException`. Để phát hiện thao tác không được phép làm tròn, có thể chọn `RoundingMode.UNNECESSARY` một cách tường minh.
+When using the `setScale(int)` overload without a rounding mode, Java requires the scale change to **occur exactly**. If non-zero digits would need to be dropped, it throws `ArithmeticException`. To detect operations where rounding is not allowed, you can explicitly choose `RoundingMode.UNNECESSARY`.
 
-Sự khác nhau quan trọng:
+Important differences:
 
-- `setScale` đổi **scale và có thể đổi giá trị toán học** khi phải làm tròn.
-- `stripTrailingZeros` đổi **cách biểu diễn, không đổi giá trị toán học**.
-- `DecimalFormat.format` tạo **chuỗi hiển thị**, không đổi object nguồn.
-- `BigDecimal` immutable: cần lưu kết quả trả về, không chờ object gốc bị mutate.
+- `setScale` changes **scale and may change the mathematical value** when rounding is required.
+- `stripTrailingZeros` changes **the representation, not the mathematical value**.
+- `DecimalFormat.format` creates a **display string**, without changing the source object.
+- `BigDecimal` is immutable: you must save the returned result, rather than expecting the original object to be mutated.
 
-**Rounding mode** phải theo yêu cầu nghiệp vụ. `HALF_UP`, `HALF_EVEN`, `DOWN`, `CEILING` và `FLOOR` xử lý các ranh giới và số âm khác nhau; không có mode mặc định “đúng với mọi hóa đơn”.
+**Rounding mode** must follow business requirements. `HALF_UP`, `HALF_EVEN`, `DOWN`, `CEILING`, and `FLOOR` handle boundaries and negative numbers differently; there is no default mode that is "right for every invoice".
 
-## 7. `scaleByPowerOfTen` và `movePointLeft/Right`
+## 7. `scaleByPowerOfTen` and `movePointLeft/Right`
 
-Từ công thức `unscaled × 10^-scale`, việc nhân hoặc chia cho một lũy thừa 10 có thể thực hiện bằng các API dịch dấu thập phân:
+From the formula `unscaled × 10^-scale`, multiplying or dividing by a power of 10 can be performed with decimal-point shifting APIs:
 
 ~~~java
 BigDecimal input = new BigDecimal("12.30");
@@ -201,24 +201,24 @@ BigDecimal moved = input.movePointRight(3);
 // scaled = 1230, moved = 12300
 ~~~
 
-Với `scaleByPowerOfTen(n)`, về mặt mô hình `BigDecimal`, scale mới về nguyên tắc là `scale - n`. `movePointRight(n)` và `movePointLeft(n)` mang ngữ nghĩa dịch điểm thập phân, và kết quả của chúng có scale **không âm** theo hợp đồng. Vì vậy ở những trường hợp scale âm, hai nhóm API có thể cho **biểu diễn khác nhau dù giá trị toán học bằng nhau**.
+With `scaleByPowerOfTen(n)`, in terms of the `BigDecimal` model, the new scale is in principle `scale - n`. `movePointRight(n)` and `movePointLeft(n)` carry decimal-point shifting semantics, and their results have a **non-negative** scale by contract. Thus, in negative-scale cases, the two API groups can yield **different representations even though their mathematical values are equal**.
 
-Đừng lấy kiểu biểu diễn chuỗi đã format làm tiêu chí để phân biệt phép toán có đổi giá trị hay không. Hãy kiểm tra:
+Do not use the formatted string representation as the criterion to tell whether an operation changed the value. Check:
 
 ~~~text
-Giá trị mới = Giá trị cũ × 10^n      (dịch sang phải / scaleByPowerOfTen)
-Giá trị mới = Giá trị cũ × 10^(-n)   (dịch sang trái)
+New value = Old value × 10^n      (shift right / scaleByPowerOfTen)
+New value = Old value × 10^(-n)   (shift left)
 ~~~
 
-Những thao tác này còn chịu giới hạn scale kiểu `int` và tài nguyên. Đối với scale quá lớn/quá nhỏ, phép biến đổi có thể ném ngoại lệ hoặc không thể biểu diễn theo giới hạn thực thi; không sử dụng giá trị `n` không tin cậy mà không kiểm tra.
+These operations are also subject to `int` scale limits and resources. For overly large/small scales, the transformation may throw an exception or fail to be represented within execution limits; do not use an untrusted `n` value without validation.
 
-## 8. Phép toán có thể tạo scale mới theo quy tắc
+## 8. Operations Can Produce New Scales According to Rules
 
-`BigDecimal` không chỉ giữ unscaled và scale ban đầu: **kết quả phép toán cũng có cặp unscaled/scale riêng**.
+`BigDecimal` does not just preserve initial unscaled value and scale: **operation results also have their own unscaled/scale pair**.
 
-### Cộng và trừ
+### Addition and Subtraction
 
-Đối với phép cộng/trừ chính xác, scale ưu tiên (*preferred scale*) là **lớn hơn trong hai scale của toán hạng**:
+For exact addition/subtraction, the *preferred scale* is the **larger of the two operands' scales**:
 
 ~~~java
 BigDecimal x = new BigDecimal("1.20"); // scale 2
@@ -227,11 +227,11 @@ BigDecimal y = new BigDecimal("3.4");  // scale 1
 BigDecimal sum = x.add(y); // 4.60, scale 2
 ~~~
 
-Vì hai số cần cộng ở cùng đơn vị decimal, hệ thống có thể thêm số 0 vào biểu diễn nội bộ trước khi cộng unscaled integer.
+Because the two numbers must be added at the same decimal unit, the system can append zeros to the internal representation before adding the unscaled integers.
 
-### Nhân
+### Multiplication
 
-Scale ưu tiên của phép nhân chính xác là **tổng hai scale**:
+The preferred scale of exact multiplication is the **sum of the two scales**:
 
 ~~~java
 BigDecimal product = new BigDecimal("1.20")
@@ -239,11 +239,11 @@ BigDecimal product = new BigDecimal("1.20")
 // product = 4.080, scale 3 = 2 + 1
 ~~~
 
-Hai số `4.080` và `4.08` bằng nhau theo `compareTo` nhưng có scale khác nhau. Khi nhân tiền với tỷ lệ hay số lượng, hãy xác định scale đầu ra và thời điểm làm tròn theo quy tắc nghiệp vụ.
+The two numbers `4.080` and `4.08` are equal by `compareTo` but have different scales. When multiplying money by rates or quantities, specify the output scale and when to round according to business rules.
 
-### Chia
+### Division
 
-Scale ưu tiên của phép chia là **scale của số bị chia trừ scale của số chia**, nhưng kết quả chính xác có thể cần thêm chữ số phần lẻ. Ví dụ:
+The preferred scale of division is the **dividend's scale minus the divisor's scale**, though the exact result may require additional fractional digits. Example:
 
 ~~~java
 BigDecimal quotient = new BigDecimal("1.00")
@@ -251,63 +251,63 @@ BigDecimal quotient = new BigDecimal("1.00")
 // quotient = 0.25, scale 2
 ~~~
 
-Một phép chia như `BigDecimal.ONE.divide(new BigDecimal("3"))` có khai triển decimal vô hạn nên overload chia chính xác không rounding có thể ném `ArithmeticException`. Khi nghiệp vụ cho phép xấp xỉ, hãy truyền `scale` và `RoundingMode` hoặc `MathContext`, đồng thời ghi rõ tiêu chí độ chính xác.
+A division like `BigDecimal.ONE.divide(new BigDecimal("3"))` has an infinite decimal expansion, so the exact division overload without rounding can throw `ArithmeticException`. When business logic permits approximation, pass `scale` and `RoundingMode` or `MathContext`, and document the precision criteria explicitly.
 
-**Lưu ý:** Khi dùng overload có `MathContext` và giới hạn precision, các phép toán có thể làm tròn, kéo theo scale thực tế khác preferred scale. Đừng dự đoán scale kết quả mà không xét overload và rounding context.
+**Note:** When using overloads with `MathContext` and limited precision, operations may round, causing the actual scale to differ from the preferred scale. Do not predict result scale without considering the overload and rounding context.
 
-## 9. `MathContext.precision` khác `BigDecimal.scale`
+## 9. `MathContext.precision` Differs from `BigDecimal.scale`
 
-`MathContext` giới hạn **tổng số chữ số có nghĩa của kết quả**, không phải số chữ số sau dấu thập phân.
+`MathContext` limits the **total number of significant digits of the result**, not the number of digits after the decimal point.
 
 ~~~java
 BigDecimal value = new BigDecimal("12345.67");
 BigDecimal rounded = value.round(
         new MathContext(3, RoundingMode.HALF_UP));
-// rounded = 1.23E+4: ba chữ số có nghĩa, scale âm
+// rounded = 1.23E+4: three significant digits, negative scale
 ~~~
 
-Ngược lại, `setScale(2, RoundingMode.HALF_UP)` yêu cầu hai vị trí thập phân sau dấu phân cách ở kết quả. Hai thao tác có thể cho các kết quả rất khác nhau với cùng đầu vào.
+Conversely, `setScale(2, RoundingMode.HALF_UP)` requires two decimal places after the separator in the result. The two operations can yield very different results for the same input.
 
-| Phương thức | Câu hỏi cần trả lời |
+| Method | Question to answer |
 | --- | --- |
-| `scale()` | Số mũ thập phân của object này là bao nhiêu? |
-| `precision()` | Unscaled value có bao nhiêu chữ số decimal có nghĩa? |
-| `setScale(2, mode)` | Muốn kết quả giữ scale chính xác bằng 2, cho phép làm tròn theo mode? |
-| `round(new MathContext(3, mode))` | Muốn giữ ba chữ số có nghĩa của kết quả? |
-| `format(...)` | Muốn chuỗi hiển thị theo quy tắc trình bày nào? |
+| `scale()` | What is the decimal exponent of this object? |
+| `precision()` | How many significant decimal digits does the unscaled value have? |
+| `setScale(2, mode)` | Do you want the result to keep an exact scale of 2, allowing rounding per mode? |
+| `round(new MathContext(3, mode))` | Do you want to keep three significant digits of the result? |
+| `format(...)` | Which presentation rules do you want for the display string? |
 
-`MathContext.UNLIMITED` có precision bằng 0 theo hợp đồng `MathContext` (ý nghĩa “không giới hạn”), khác với `BigDecimal.precision() == 0`; một `BigDecimal` có giá trị zero vẫn có precision bằng 1. Tránh nhầm hai kiểu “precision”.
+`MathContext.UNLIMITED` has precision equal to 0 by `MathContext` contract (meaning "unlimited"), which differs from `BigDecimal.precision() == 0`; a `BigDecimal` with value zero still has precision equal to 1. Avoid confusing the two kinds of "precision".
 
-## 10. Constructor, String và double: nguồn vào quyết định unscaled value
+## 10. Constructors, String, and double: Input Source Determines Unscaled Value
 
-Nếu yêu cầu **decimal chính xác như người dùng nhập**, tạo object trực tiếp từ chuỗi decimal:
+If you require the **exact decimal as entered by the user**, create the object directly from a decimal string:
 
 ~~~java
 BigDecimal exact = new BigDecimal("0.1");
 // unscaled 1, scale 1
 ~~~
 
-Nếu đi qua `double`, giá trị đã được làm tròn thành binary64 trước khi constructor `BigDecimal(double)` nhận được nó:
+If passing through `double`, the value has already been rounded to binary64 before the `BigDecimal(double)` constructor receives it:
 
 ~~~java
 BigDecimal fromDouble = new BigDecimal(0.1);
 // 0.1000000000000000055511151231257827021181583404541015625
 ~~~
 
-`new BigDecimal(0.1)` biểu diễn **chính xác giá trị binary64 đang lưu**, không phải chính xác giá trị thập phân 1/10 theo ý định literal. `BigDecimal.valueOf(0.1)` dùng chuỗi canonical do `Double.toString(0.1)` tạo ra và trong ví dụ trả decimal `0.1`, nhưng factory đó không biết cách khôi phục dữ liệu decimal ban đầu nếu đã qua một chuỗi phép toán `double`.
+`new BigDecimal(0.1)` represents **the exact binary64 value currently stored**, not the exact decimal value 1/10 intended by the literal. `BigDecimal.valueOf(0.1)` uses the canonical string produced by `Double.toString(0.1)` and in this example returns decimal `0.1`, but that factory does not know how to recover original decimal data if it has already gone through a chain of `double` operations.
 
-Để giữ cả **giá trị và scale của đầu vào decimal**, nhận chuỗi gốc là cách rõ ràng:
+To preserve both the **value and scale of decimal input**, accepting the original string is the clear approach:
 
 ~~~java
 new BigDecimal("1.20"); // unscaled 120, scale 2
 new BigDecimal("1.2");  // unscaled 12, scale 1
 ~~~
 
-Nếu bạn chuyển hai chuỗi thành `double` rồi quay lại decimal, thông tin về hai cách ghi và scale ban đầu có thể mất. Khi parse đầu vào từ CSV/JSON/form, hãy kiểm tra ngữ pháp số thập phân, locale, miền giá trị và giới hạn precision/scale một cách tường minh.
+If you convert both strings to `double` and back to decimal, information about the two notations and original scales can be lost. When parsing input from CSV/JSON/forms, validate decimal syntax, locale, value range, and precision/scale limits explicitly.
 
-## 11. Chương trình Java 17+ hoàn chỉnh và stdout kiểm chứng
+## 11. Complete Java 17+ Program and Verification Stdout
 
-Lưu thành tệp `BigDecimalModelDemo.java`:
+Save as file `BigDecimalModelDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -401,7 +401,7 @@ public class BigDecimalModelDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac BigDecimalModelDemo.java
@@ -446,11 +446,11 @@ round MathContext(3) = 1.23E+4
 UNNECESSARY catches rounding
 ~~~
 
-Kết quả này minh họa cặp unscaled/scale **trong cả trường hợp scale âm và zero**, phép thay đổi scale có/không làm tròn, scale phép toán, việc chuẩn hóa zero, và tác động của scale lên collections.
+This output illustrates unscaled/scale pairs **in both negative scale and zero cases**, scale-changing operations with/without rounding, operation scales, zero normalization, and the effect of scale on collections.
 
-## 12. Dạng chuỗi `toString` và `toPlainString`
+## 12. String Forms `toString` and `toPlainString`
 
-`BigDecimal.toString()` tạo dạng chuỗi canonical có thể chứa ký pháp khoa học khi cần. `toPlainString()` tạo biểu diễn **không sử dụng số mũ**, phù hợp nếu bên nhận yêu cầu hiển thị decimal thông thường.
+`BigDecimal.toString()` produces a canonical string form that may contain scientific notation when needed. `toPlainString()` produces a representation **without using exponents**, suitable if the receiver requires ordinary decimal display.
 
 ~~~java
 BigDecimal big = new BigDecimal("1.23E+4");
@@ -458,82 +458,82 @@ big.toString();      // "1.23E+4"
 big.toPlainString(); // "12300"
 ~~~
 
-**Không nhầm định dạng xuất với cấu trúc số:** hai chuỗi trên mô tả cùng giá trị nhưng nếu parse ngược `"12300"`, object mới có thể có scale khác object ban đầu (`"1.23E+4"` có scale -2; `"12300"` có scale 0). Nếu cần giữ cả **giá trị và scale** khi serialize, phải xác định format có khả năng round-trip cả hai, chẳng hạn dùng `toString` theo hợp đồng `BigDecimal` hoặc truyền riêng unscaled/scale.
+**Do not confuse output formatting with number structure:** the two strings above describe the same value, yet if `"12300"` is parsed back, the new object can have a different scale from the original object (`"1.23E+4"` has scale -2; `"12300"` has scale 0). If both **value and scale** must be preserved when serializing, you must specify a format capable of round-tripping both, such as using `toString` per the `BigDecimal` contract or passing unscaled/scale separately.
 
-Một số nghiệp vụ không muốn dùng ký pháp khoa học khi hiển thị tiền, nhưng cũng không nên tùy tiện dùng `toPlainString()` cho dữ liệu có scale âm cực lớn vì chuỗi có thể phình to và gây tốn tài nguyên.
+Some business workflows prefer not to use scientific notation when displaying money, yet `toPlainString()` should also not be used indiscriminately on data with huge negative scales because the string can bloat and consume excessive resources.
 
-## 13. Các trường hợp đặc biệt và giới hạn thực tế
+## 13. Edge Cases and Practical Limits
 
-### Zero và dấu âm
+### Zero and Negative Sign
 
-`new BigDecimal("-0.00")` có giá trị số zero, unscaled value 0 và scale 2. `BigDecimal` **không giữ một giá trị zero âm riêng** giống IEEE 754 `double -0.0`. Chuỗi `toString()` thường biểu diễn `0.00`, dù văn bản gốc có dấu âm.
+`new BigDecimal("-0.00")` has numeric value zero, unscaled value 0, and scale 2. `BigDecimal` **does not maintain a distinct negative zero value** like IEEE 754 `double -0.0`. The `toString()` string normally renders as `0.00`, even though the original text had a minus sign.
 
-### Scale và precision có giới hạn khác nhau
+### Scale and Precision Have Different Limits
 
-Unscaled value được lưu dưới dạng số nguyên độ chính xác tùy ý nhưng **phụ thuộc tài nguyên thực tế**; scale vẫn là `int`, nên không thể sử dụng bất kỳ số mũ thập phân lớn vô hạn. Các thao tác có thể gặp `ArithmeticException` khi không thể biểu diễn scale mong muốn hoặc làm tròn bị cấm, và có thể tốn nhiều bộ nhớ khi mở rộng giá trị hoặc tạo chuỗi dài.
+The unscaled value is stored as an arbitrary-precision integer but **is subject to practical resources**; scale remains an `int`, so arbitrarily huge decimal exponents cannot be used. Operations may encounter `ArithmeticException` when a desired scale cannot be represented or rounding is forbidden, and can consume heavy memory when expanding values or building long strings.
 
-### Không có NaN hoặc vô cực
+### No NaN or Infinity
 
-`BigDecimal` không biểu diễn NaN hoặc `Infinity` như `double`. Khi chuyển đầu vào bất thường sang decimal, phải có chính sách validation riêng. Nếu đang nhận `double`, sử dụng `Double.isFinite(value)` trước nếu ứng dụng chỉ chấp nhận số hữu hạn.
+`BigDecimal` does not represent NaN or `Infinity` like `double`. When converting unusual inputs to decimal, a separate validation policy is required. If receiving a `double`, check `Double.isFinite(value)` first if the application only accepts finite numbers.
 
-### Trường dữ liệu tài chính
+### Financial Data Fields
 
-Nếu lưu amount theo hai chữ số thập phân, bạn có thể yêu cầu `setScale(2, mode)` tại ranh giới lưu; nhưng đừng **tự động** chuẩn hóa bằng `stripTrailingZeros` nếu scale còn mang nghĩa của đơn vị tiền tệ, quy định trình bày hoặc auditing. Việc “đúng giá trị số” và “đúng đại diện số decimal” là hai hợp đồng khác nhau.
+If storing amounts to two decimal places, you can enforce `setScale(2, mode)` at the storage boundary; however, do not **automatically** normalize with `stripTrailingZeros` if scale still carries the meaning of currency units, presentation rules, or auditing. Being "numerically equal" and being "the right decimal representation" are two different contracts.
 
-## 14. Những sai lầm thường gặp
+## 14. Common Mistakes
 
-1. **Coi scale luôn là số chữ số sau dấu phẩy.** Scale có thể âm, ví dụ `1.23E+4` có scale -2.
-2. **Nhầm scale với precision.** `123.4500` có scale 4 và precision 7, không phải đều là 4.
-3. **Nghĩ `stripTrailingZeros` đổi giá trị số.** Nó giữ giá trị, nhưng thay unscaled/scale và có thể khiến scale âm.
-4. **Dùng `equals` để kiểm tra giá trị decimal bất kể scale.** `1.0` và `1.00` không `equals` nhưng `compareTo` bằng 0.
-5. **Dùng `BigDecimal` làm khóa collection mà không quyết định chính sách scale.** `HashSet` và `TreeSet` có thể gộp dữ liệu khác nhau.
-6. **Gọi `setScale` rồi nghĩ object ban đầu đã đổi.** `BigDecimal` bất biến; phải nhận object trả về.
-7. **Giảm scale mà không cân nhắc rounding.** Có thể cần rounding mode hoặc ném ngoại lệ nếu chuyển không chính xác.
-8. **Cho rằng `MathContext(3)` là ba chữ số sau dấu thập phân.** Nó đặt ba chữ số có nghĩa tổng cộng.
-9. **Cho rằng scale kết quả phép toán luôn bằng scale một toán hạng.** Cộng/nhân/chia có quy tắc scale riêng, còn rounding context có thể thay đổi scale.
-10. **Đi qua `double` khi cần giữ đúng decimal từ chuỗi đầu vào.** Binary64 làm tròn nhiều phân số thập phân trước khi tạo `BigDecimal`.
-11. **Đánh đồng chuỗi in với cấu trúc object.** `toPlainString` có thể mất thông tin scale âm nếu parse lại.
-12. **Bỏ qua trường hợp zero có nhiều scale hoặc dấu âm đầu vào.** Mọi zero bằng nhau theo giá trị nhưng object equality còn xét scale; BigDecimal không lưu signed zero riêng.
-13. **Không xét tràn scale và giới hạn tài nguyên.** “Độ chính xác tùy ý” không có nghĩa xử lý chuỗi/mũ lớn vô hạn trong bộ nhớ thực.
-14. **Coi scale là độ tin cậy của một phép đo.** Scale chỉ là một đặc tính biểu diễn decimal; độ bất định vật lý phải được mô tả bằng dữ liệu nghiệp vụ khác.
+1. **Assuming scale is always the number of digits after the decimal point.** Scale can be negative, e.g., `1.23E+4` has scale -2.
+2. **Confusing scale with precision.** `123.4500` has scale 4 and precision 7, not both 4.
+3. **Thinking `stripTrailingZeros` changes numeric value.** It preserves the value, but changes unscaled/scale and can make scale negative.
+4. **Using `equals` to check decimal values regardless of scale.** `1.0` and `1.00` are not `equals`, though `compareTo` is 0.
+5. **Using `BigDecimal` as a collection key without deciding a scale policy.** `HashSet` and `TreeSet` can group data differently.
+6. **Calling `setScale` and thinking the original object changed.** `BigDecimal` is immutable; you must capture the returned object.
+7. **Reducing scale without considering rounding.** It may require a rounding mode or throw an exception if exact conversion fails.
+8. **Assuming `MathContext(3)` means three digits after the decimal point.** It sets three significant digits in total.
+9. **Assuming an operation's result scale always equals an operand's scale.** Addition/multiplication/division have their own scale rules, and rounding context can alter scale.
+10. **Going through `double` when needing to preserve exact decimals from string input.** Binary64 rounds many decimal fractions before creating `BigDecimal`.
+11. **Equating the printed string with the object's structure.** `toPlainString` can lose negative scale information if parsed back.
+12. **Ignoring zero with multiple scales or signed input.** All zeros are equal in value, yet object equality still checks scale; BigDecimal does not store a separate signed zero.
+13. **Overlooking scale overflow and resource limits.** "Arbitrary precision" does not mean processing infinitely large strings/exponents in real memory.
+14. **Treating scale as the reliability of a measurement.** Scale is only a property of decimal representation; physical uncertainty must be described by other business data.
 
-## 15. Câu hỏi tự luyện
+## 15. Self-Practice Questions
 
-**Câu 1.** Unscaled value 12345, scale 3 biểu diễn giá trị gì?
+**Question 1.** What value do unscaled value 12345 and scale 3 represent?
 
-**Đáp án:** `12345 × 10^-3 = 12.345`.
+**Answer:** `12345 × 10^-3 = 12.345`.
 
-**Câu 2.** `new BigDecimal("1.23E+4")` có unscaled value và scale là gì? Tại sao scale âm?
+**Question 2.** What are the unscaled value and scale of `new BigDecimal("1.23E+4")`? Why is the scale negative?
 
-**Đáp án:** Unscaled = 123, scale = -2 vì `123 × 10^2 = 12300`. Scale âm là ký hiệu tăng độ lớn bằng lũy thừa của 10, không phải dấu âm của số.
+**Answer:** Unscaled = 123, scale = -2 because `123 × 10^2 = 12300`. A negative scale is notation for increasing magnitude by powers of 10, not the negative sign of the number.
 
-**Câu 3.** Tại sao `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` là false nhưng `compareTo` trả 0?
+**Question 3.** Why is `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` false while `compareTo` returns 0?
 
-**Đáp án:** `equals` xét cả scale, còn `compareTo` chỉ so sánh giá trị số decimal.
+**Answer:** `equals` checks scale as well, whereas `compareTo` only compares the decimal numeric value.
 
-**Câu 4.** `new BigDecimal("123.4500").stripTrailingZeros()` thay đổi gì?
+**Question 4.** What does `new BigDecimal("123.4500").stripTrailingZeros()` change?
 
-**Đáp án:** Giữ giá trị 123.45, nhưng unscaled từ 1234500 thành 12345 và scale từ 4 thành 2; object nguồn vẫn giữ nguyên.
+**Answer:** It preserves the value 123.45, while unscaled changes from 1234500 to 12345 and scale from 4 to 2; the source object remains unchanged.
 
-**Câu 5.** `new BigDecimal("12.3").setScale(3)` khác `new BigDecimal("12.35").setScale(1, HALF_UP)` ra sao?
+**Question 5.** How does `new BigDecimal("12.3").setScale(3)` differ from `new BigDecimal("12.35").setScale(1, HALF_UP)`?
 
-**Đáp án:** Lần đầu thêm số 0, giữ nguyên giá trị thành 12.300; lần sau cần làm tròn thành 12.4 theo quy tắc HALF_UP.
+**Answer:** The first pads with zeros, preserving the exact value as 12.300; the second requires rounding to 12.4 under the HALF_UP rule.
 
-**Câu 6.** Vì sao `new BigDecimal("1.20").multiply(new BigDecimal("3.4"))` trả `4.080` thay vì bắt buộc `4.08`?
+**Question 6.** Why does `new BigDecimal("1.20").multiply(new BigDecimal("3.4"))` return `4.080` instead of forcing `4.08`?
 
-**Đáp án:** Phép nhân chính xác có preferred scale bằng tổng scale của hai toán hạng: 2 + 1 = 3. Hai biểu diễn có cùng giá trị số nhưng scale khác nhau.
+**Answer:** Exact multiplication has a preferred scale equal to the sum of the two operands' scales: 2 + 1 = 3. The two representations have the same numeric value but different scales.
 
-**Câu 7.** `BigDecimal.ZERO.precision()` bằng 0 vì zero không có chữ số có nghĩa đúng không?
+**Question 7.** Is `BigDecimal.ZERO.precision()` equal to 0 because zero has no significant digits?
 
-**Đáp án:** Sai. Theo định nghĩa `BigDecimal`, precision của zero là 1. Đừng nhầm với `MathContext.UNLIMITED` có precision bằng 0 để biểu thị không giới hạn.
+**Answer:** False. By `BigDecimal` definition, the precision of zero is 1. Do not confuse it with `MathContext.UNLIMITED`, which has precision 0 to indicate unlimited.
 
-**Câu 8.** Khi nào dùng `toString()` thay vì `toPlainString()` để serialize?
+**Question 8.** When should `toString()` be used instead of `toPlainString()` for serialization?
 
-**Đáp án:** Nếu muốn round-trip đồng thời giá trị **và scale**, dạng canonical của `toString` phù hợp hơn. `toPlainString` bỏ ký pháp khoa học; parse lại có thể làm thay đổi scale của dữ liệu ban đầu có scale âm.
+**Answer:** If you want to round-trip both value **and scale**, the canonical form of `toString` is more suitable. `toPlainString` drops scientific notation; parsing it back can alter the scale of original data that had a negative scale.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle Java SE 21 — BigDecimal](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): công thức giá trị, unscaled value, scale, precision, preferred scale, equals/compareTo, setScale và stripTrailingZeros.
-- [Oracle Java SE 21 — BigInteger](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigInteger.html): biểu diễn số nguyên không giới hạn độ rộng dùng làm unscaled value.
-- [Oracle Java SE 21 — MathContext](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/MathContext.html): precision, rounding mode và UNLIMITED.
-- [Oracle Java SE 21 — RoundingMode](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/RoundingMode.html): ý nghĩa từng quy tắc làm tròn.
+- [Oracle Java SE 21 — BigDecimal](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): value formula, unscaled value, scale, precision, preferred scale, equals/compareTo, setScale, and stripTrailingZeros.
+- [Oracle Java SE 21 — BigInteger](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigInteger.html): arbitrary-width integer representation used as unscaled value.
+- [Oracle Java SE 21 — MathContext](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/MathContext.html): precision, rounding mode, and UNLIMITED.
+- [Oracle Java SE 21 — RoundingMode](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/RoundingMode.html): meaning of each rounding rule.

@@ -1,75 +1,75 @@
-# Điều kiện interface `public`, `non-public`, `hidden` và `sealed` khi dùng Java Dynamic Proxy
+# Conditions for `public`, `non-public`, `hidden`, and `sealed` Interfaces in Java Dynamic Proxies
 
-## 1. Mục tiêu và quy tắc quyết định
+## 1. Objective and decision rules
 
-`java.lang.reflect.Proxy` tạo một lớp tại runtime để triển khai **một hoặc nhiều interface**, rồi chuyển lời gọi phương thức trên proxy đến `InvocationHandler.invoke`. Việc một giá trị `Class<?>` có `isInterface() == true` **chưa đủ** để dùng được với `Proxy.newProxyInstance`.
+`java.lang.reflect.Proxy` generates a class at runtime to implement **one or more interfaces**, then dispatches method calls on the proxy to `InvocationHandler.invoke`. Having `isInterface() == true` on a `Class<?>` value is **not enough** for it to work with `Proxy.newProxyInstance`.
 
-Trong Java 17+, tập interface đầu vào phải thỏa đồng thời những ràng buộc về **loại interface**, **class loader**, **khả năng nhìn thấy kiểu**, **package/module** và **chữ ký phương thức**. Hai trường hợp đặc biệt bị từ chối ngay từ thiết kế là **hidden interface** và **sealed interface**.
+In Java 17+, the input interface set must simultaneously satisfy constraints on **interface kind**, **class loader**, **type visibility**, **package/module**, and **method signatures**. Two special cases rejected by design are **hidden interfaces** and **sealed interfaces**.
 
-| Interface đầu vào | Có thể dùng với `Proxy.newProxyInstance`? | Điều kiện chính |
+| Input interface | Usable with `Proxy.newProxyInstance`? | Main conditions |
 | --- | --- | --- |
-| `public`, không `hidden`, không `sealed` | **Có**, nếu hợp lệ | Interface và các kiểu trong chữ ký public phải nhìn thấy qua loader truyền vào; cách đóng gói của module ảnh hưởng vị trí/quyền truy cập lớp proxy. |
-| `non-public` (ví dụ package-private), không `hidden`, không `sealed` | **Có điều kiện** | Mọi interface non-public trong cùng lần tạo phải ở **cùng package và cùng module**, được định nghĩa bởi loader được truyền vào; module chứa chúng phải truy cập được các interface cần triển khai. |
-| `hidden interface` | **Không** | API `Proxy` yêu cầu interface **không hidden**; vi phạm gây `IllegalArgumentException`. |
-| `sealed interface` | **Không** | API `Proxy` yêu cầu interface **không sealed**; vi phạm gây `IllegalArgumentException` dù interface đó là `public`. |
+| `public`, non-`hidden`, non-`sealed` | **Yes**, if valid | The interface and types in public signatures must be visible through the supplied loader; module encapsulation affects proxy class placement and accessibility. |
+| `non-public` (e.g., package-private), non-`hidden`, non-`sealed` | **Conditionally** | All non-public interfaces in the same creation call must be in the **same package and same module**, defined by the supplied loader; their module must have access to the interfaces to implement. |
+| `hidden interface` | **No** | The `Proxy` API requires interfaces to be **non-hidden**; violation throws `IllegalArgumentException`. |
+| `sealed interface` | **No** | The `Proxy` API requires interfaces to be **non-sealed**; violation throws `IllegalArgumentException` even if the interface is `public`. |
 
-Điểm cần nhớ: **`non-public` không có nghĩa là không thể proxy**. Ngược lại, `public` cũng không tự bảo đảm thành công nếu class loader, module hoặc chữ ký không hợp lệ.
+Key point to remember: **`non-public` does not mean unproxiable**. Conversely, `public` does not automatically guarantee success if the class loader, module, or signatures are invalid.
 
-## 2. Ba khái niệm dễ bị trộn lẫn
+## 2. Three concepts often confused
 
-### 2.1. Quyền truy cập Java của interface
+### 2.1. Java access level of an interface
 
-- `public interface Api` có modifier `public`: `Modifier.isPublic(Api.class.getModifiers())` là `true`.
-- `interface InternalApi` ở cấp package, hoặc interface thành viên không khai báo `public`, có thể là `non-public`: `Modifier.isPublic(...)` là `false`.
-- Khả năng nhìn thấy kiểu từ mã Java của người gọi và khả năng JVM tạo proxy hợp lệ là **hai câu hỏi khác nhau**. Có `Class<?>` của interface không tự xóa các giới hạn package/module.
+- `public interface Api` has the `public` modifier: `Modifier.isPublic(Api.class.getModifiers())` is `true`.
+- A package-level `interface InternalApi`, or a member interface declared without `public`, may be `non-public`: `Modifier.isPublic(...)` is `false`.
+- Whether calling Java code can see a type and whether the JVM can generate a valid proxy are **two separate questions**. Holding a `Class<?>` reference to an interface does not automatically remove package/module restrictions.
 
-Một **public interface nằm trong package không được export** của named module vẫn có modifier `public`. Nó **không tự biến thành non-public interface** chỉ vì module không export package đó.
+A **public interface inside an unexported package** of a named module still has the `public` modifier. It **does not turn into a non-public interface** merely because the module does not export that package.
 
-### 2.2. Package, runtime module và class loader
+### 2.2. Package, runtime module, and class loader
 
-Tên package giống nhau chưa chắc cùng runtime package/module trong JVM. Khi nhiều interface non-public cùng tham gia, JDK yêu cầu chúng cùng package **và cùng module**, và module/loader phải thỏa quy tắc định nghĩa lớp proxy.
+The same package name does not guarantee the same runtime package/module in the JVM. When multiple non-public interfaces participate together, the JDK requires them to share the same package **and the same module**, and the module/loader must satisfy proxy class definition rules.
 
-Với mọi interface `i`, class loader `loader` được truyền vào `Proxy.newProxyInstance` cần nhìn thấy đúng **cùng đối tượng `Class`** theo kiểm tra:
+For every interface `i`, the class loader `loader` passed to `Proxy.newProxyInstance` must see the exact **same `Class` object** under the check:
 
 ```java
 Class.forName(i.getName(), false, loader) == i
 ```
 
-Đây là **biểu thức minh họa điều kiện Javadoc**, không phải mã độc lập và không phải khuyến nghị gọi `Class.forName` với hidden interface. Loader thấy một kiểu **cùng tên nhưng khác định danh `Class`** vẫn không đạt yêu cầu. Ngoài các interface, các kiểu xuất hiện trong chữ ký của mọi phương thức `public` (kể cả phương thức kế thừa từ superinterface) cũng phải nhìn thấy bằng tên qua loader này.
+This is an **illustrative Javadoc condition expression**, not standalone code and not a recommendation to call `Class.forName` on a hidden interface. A loader that sees a type with **the same name but a different `Class` identity** still fails the requirement. Beyond the interfaces themselves, types appearing in the signatures of all `public` methods (including methods inherited from superinterfaces) must also be visible by name through this loader.
 
-### 2.3. Interface bình thường, hidden và sealed
+### 2.3. Regular, hidden, and sealed interfaces
 
-- **Interface bình thường** có tên nhị phân được loader tra cứu; `public` hay `non-public` là một chiều phân loại khác.
-- **Hidden interface** được định nghĩa, chẳng hạn qua `MethodHandles.Lookup#defineHiddenClass`. `Class.isHidden()` trả `true`; nó không có binary name có thể được tra cứu theo cách thông thường. `Proxy` từ chối loại này.
-- **Sealed interface** giới hạn những kiểu được phép triển khai qua `permits`; `Class.isSealed()` trả `true`. JDK `Proxy` không nhận sealed interface làm đầu vào, kể cả khi một cách thiết kế khác có thể tuân theo `permits`.
+- A **regular interface** has a binary name looked up by a loader; `public` vs. `non-public` is an orthogonal classification dimension.
+- A **hidden interface** is defined, for example, via `MethodHandles.Lookup#defineHiddenClass`. `Class.isHidden()` returns `true`; it has no binary name that can be looked up in the normal way. `Proxy` rejects this kind.
+- A **sealed interface** restricts permitted implementations via `permits`; `Class.isSealed()` returns `true`. JDK `Proxy` does not accept sealed interfaces as input, even if another design could comply with `permits`.
 
-`hidden` và `sealed` là **hai thuộc tính khác nhau**. Một interface `non-sealed` trong phân cấp có sealed superinterface cần được đánh giá theo **chính đối tượng `Class<?>` đưa vào mảng interfaces**; đừng kết luận nó bị từ chối chỉ vì tổ tiên sealed. Tuy nhiên các điều kiện loader, module và chữ ký vẫn phải đạt.
+`hidden` and `sealed` are **two different properties**. A `non-sealed` interface in a hierarchy with a sealed superinterface must be evaluated by **the exact `Class<?>` object placed in the interfaces array**; do not assume it is rejected merely because of a sealed ancestor. However, loader, module, and signature conditions must still hold.
 
-## 3. Package/module của lớp proxy được chọn thế nào?
+## 3. How is the proxy class's package/module chosen?
 
-JDK chọn quyền truy cập của **lớp proxy được sinh ra** dựa trên tập interface:
+The JDK chooses the accessibility of the **generated proxy class** based on the interface set:
 
-| Tập interface | Quy tắc về lớp proxy |
+| Interface set | Proxy class rule |
 | --- | --- |
-| Tất cả interface đều `public`, và tất cả ở package được export hoặc open | Proxy class là `public` trong một package được export vô điều kiện nhưng **không open**; tên package/module cụ thể không được bảo đảm. |
-| Tất cả interface đều `public`, nhưng ít nhất một interface ở package không export **và** không open | Proxy class là `public` trong package không export, không open của **dynamic module**; mã ngoài module không được mặc nhiên truy cập trực tiếp lớp proxy. |
-| Có ít nhất một interface `non-public` | Proxy class là **non-public**, ở **cùng package và module** với các non-public interface. Tất cả non-public interface phải cùng package/module; nếu khác nhau thì không thể tạo proxy đó. |
+| All interfaces are `public`, and all are in exported or open packages | Proxy class is `public` in an unconditionally exported but **non-open** package; exact package/module name is not guaranteed. |
+| All interfaces are `public`, but at least one interface is in a package that is neither exported **nor** open | Proxy class is `public` in a non-exported, non-open package of a **dynamic module**; code outside the module does not automatically get direct access to the proxy class. |
+| At least one interface is `non-public` | Proxy class is **non-public**, in the **same package and module** as the non-public interfaces. All non-public interfaces must share the same package/module; if they differ, that proxy cannot be created. |
 
-**Tính khả dụng của proxy instance khác với quyền truy cập trực tiếp proxy class.** Người gọi thường chỉ cần:
+**Usability of a proxy instance differs from direct access to the proxy class.** Callers typically only need:
 
 ```java
 Object instance = Proxy.newProxyInstance(loader, interfaces, handler);
 ```
 
-Sau đó ép kiểu về interface mà mã gọi được phép truy cập. Không nên dựa vào tên lớp có dạng `$Proxy...` hoặc tự gọi constructor của proxy class bằng Reflection. Với proxy trong dynamic module đóng, tự gọi constructor qua Reflection có thể bị `IllegalAccessException`. `Proxy.getProxyClass` cũng đã bị đánh dấu deprecated; ưu tiên `newProxyInstance`.
+Then cast to an interface that the calling code is permitted to access. Do not rely on class names formatted like `$Proxy...` or manually invoke the proxy class's constructor via Reflection. For a proxy in a closed dynamic module, invoking the constructor directly via Reflection can fail with `IllegalAccessException`. `Proxy.getProxyClass` has also been marked deprecated; prefer `newProxyInstance`.
 
-Nếu vừa có interface public vừa có non-public, quyền truy cập proxy class đi theo **interface hạn chế nhất**; thêm một interface public không làm proxy class non-public trở thành public.
+If there are both public and non-public interfaces, the proxy class's accessibility follows the **most restrictive interface**; adding a public interface does not make a non-public proxy class public.
 
-## 4. Ví dụ hoàn chỉnh chạy được trên Java 17+
+## 4. Complete runnable example on Java 17+
 
-Ví dụ này minh họa **bốn trường hợp** trong một chương trình: public hợp lệ, non-public hợp lệ, sealed bị từ chối, hidden bị từ chối. Chương trình còn kiểm chứng trường hợp trộn public và non-public.
+This example demonstrates **four cases** in one program: valid public, valid non-public, rejected sealed, and rejected hidden. The program also verifies mixing public and non-public.
 
-Lưu thành file **`ProxyInterfaceRulesDemo.java`** (không thêm khai báo `package` để chạy trực tiếp từ cùng thư mục):
+Save as **`ProxyInterfaceRulesDemo.java`** (without adding a `package` declaration so it runs directly from the same directory):
 
 ```java
 import java.io.InputStream;
@@ -150,7 +150,7 @@ public class ProxyInterfaceRulesDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục có file nguồn bằng JDK 17 trở lên:
+Compile and run in the directory containing the source file with JDK 17 or later:
 
 ```bash
 javac --release 17 ProxyInterfaceRulesDemo.java
@@ -169,28 +169,28 @@ hidden flags: interface=true, hidden=true
 hidden rejected: IllegalArgumentException
 ```
 
-**Giải thích kết quả:**
+**Output explanation:**
 
-1. `PublicApi` là interface thành viên có `public`; proxy class tạo ra có `public`, handler trả `"public-ok"`.
-2. `InternalApi` là interface thành viên không khai báo `public` nên non-public. Vì tạo một mình và đáp ứng quy tắc package/module/loader, proxy được tạo thành công nhưng proxy class không `public`.
-3. Khi đưa đồng thời `PublicApi` và `InternalApi` vào mảng, proxy vẫn hợp lệ nhưng proxy class non-public theo interface hạn chế hơn. Vẫn có thể gọi `PublicApi.message()` qua kiểu interface public.
-4. `SealedApi.class.isSealed()` là `true`; JDK từ chối ngay yêu cầu proxy interface đó bằng `IllegalArgumentException`. Một class `Approved` được liệt kê trong `permits` không làm cho JDK Proxy được phép tự bổ sung subclass.
-5. `HiddenSeed` đầu tiên là interface **bình thường** với file `.class` do `javac` tạo ra. `defineHiddenClass` định nghĩa một **hidden interface mới** từ bytecode đó, rồi trả về `Class<?>` có `isInterface() == true` và `isHidden() == true`. Đây chính là loại JDK Proxy không nhận. Không nên đồng nhất `HiddenSeed.class` ban đầu với đối tượng `Class<?> hidden` mới.
-6. Tên lớp proxy và tên hidden interface có thể thay đổi giữa các lần chạy hoặc các bản JDK; ví dụ chỉ in những đặc tính được API bảo đảm. `InvocationHandler` trong ví dụ xử lý hai phương thức nghiệp vụ đang gọi; một ứng dụng thực tế cần định nghĩa cách xử lý `equals`, `hashCode`, `toString` và các phương thức khác nếu được gọi.
+1. `PublicApi` is a member interface with `public`; the generated proxy class is `public`, and the handler returns `"public-ok"`.
+2. `InternalApi` is a member interface declared without `public`, so it is non-public. Because it is created alone and satisfies package/module/loader rules, the proxy is created successfully, but the proxy class is not `public`.
+3. When both `PublicApi` and `InternalApi` are passed in the array, the proxy is still valid, but the proxy class is non-public according to the more restrictive interface. You can still call `PublicApi.message()` through the public interface type.
+4. `SealedApi.class.isSealed()` is `true`; the JDK immediately rejects the request to proxy that interface with `IllegalArgumentException`. Having a class `Approved` listed in `permits` does not allow JDK Proxy to append its own subclass.
+5. `HiddenSeed` starts out as a **regular** interface with a `.class` file produced by `javac`. `defineHiddenClass` defines a **new hidden interface** from that bytecode, then returns a `Class<?>` with `isInterface() == true` and `isHidden() == true`. That is the kind JDK Proxy rejects. Do not conflate the original `HiddenSeed.class` with the new `Class<?> hidden` object.
+6. The proxy class name and hidden interface name can vary across runs or JDK versions; the example only prints properties guaranteed by the API. The `InvocationHandler` in the example handles the two business methods being called; a real application needs to define how to handle `equals`, `hashCode`, `toString`, and other methods if invoked.
 
-Ví dụ đã được kiểm chứng bằng `javac --release 17` và thực thi trên JDK 24. Nó chỉ dùng API có sẵn từ Java 17, gồm `Class.isHidden()`, `Class.isSealed()` và `Lookup.defineHiddenClass`. Phần đọc `.class` cần các file được `javac` tạo nằm trên classpath khi chạy; lệnh ở trên đáp ứng điều đó.
+The example was verified with `javac --release 17` and executed on JDK 24. It uses only APIs available since Java 17, including `Class.isHidden()`, `Class.isSealed()`, and `Lookup.defineHiddenClass`. Reading the `.class` bytes requires the `javac`-compiled files to be on the classpath at runtime; the commands above satisfy that.
 
-## 5. Vì sao hidden và sealed không tạo proxy được?
+## 5. Why cannot hidden and sealed interfaces be proxied?
 
 ### 5.1. Hidden interface
 
-`MethodHandles.Lookup#defineHiddenClass(byte[], ...)` tạo hidden class hoặc hidden interface từ bytecode. Kiểu hidden không có binary name để loader thông thường tìm lại bằng tên; không thể giả định rằng `Class.forName(hidden.getName(), false, loader)` sẽ tìm ra chính nó.
+`MethodHandles.Lookup#defineHiddenClass(byte[], ...)` creates a hidden class or hidden interface from bytecode. A hidden type has no binary name for a normal loader to look up again by name; you cannot assume `Class.forName(hidden.getName(), false, loader)` will find itself.
 
-Javadoc `Proxy.newProxyInstance` quy định rõ các phần tử trong mảng `interfaces` phải là interface **non-hidden**. Kể cả khi đã giữ tham chiếu `Class<?>` của hidden interface trong tay, việc truyền nó vào API này vẫn bị loại. Đây là **ràng buộc của cơ chế JDK dynamic proxy**, không có nghĩa mọi kỹ thuật sinh bytecode hoặc mọi framework tạo adapter đều không thể tương tác với đối tượng hidden theo cách khác.
+The `Proxy.newProxyInstance` Javadoc explicitly specifies that elements in the `interfaces` array must be **non-hidden** interfaces. Even when you already hold a `Class<?>` reference to the hidden interface in hand, passing it to this API is rejected. This is a **limitation of the JDK dynamic proxy mechanism**, not a statement that all bytecode generation techniques or adapter frameworks cannot interact with hidden types in other ways.
 
 ### 5.2. Sealed interface
 
-Ví dụ hợp lệ về khai báo:
+Valid declaration example:
 
 ```java
 sealed interface Operation permits ReadOperation {}
@@ -198,29 +198,29 @@ sealed interface Operation permits ReadOperation {}
 final class ReadOperation implements Operation {}
 ```
 
-Hai khai báo trên là **mảnh minh họa ở phạm vi package**, cần đặt trong file nguồn hợp lệ. `Operation.class.isSealed()` là `true`. Khi gọi `Proxy.newProxyInstance(..., new Class<?>[]{Operation.class}, ...)`, JDK từ chối `Operation` vì chính sách `non-sealed` của API. Không thể sửa bằng cách đưa proxy sinh động vào danh sách `permits` trong source code như với lớp cài đặt đã biết.
+The two declarations above are a **package-scoped illustrative fragment**, needing to be placed in a valid source file. `Operation.class.isSealed()` is `true`. When calling `Proxy.newProxyInstance(..., new Class<?>[]{Operation.class}, ...)`, the JDK rejects `Operation` because of the API's `non-sealed` policy. This cannot be fixed by adding the dynamically generated proxy to the `permits` list in source code as you would with a known implementation class.
 
-**Phân biệt `non-sealed` trong Java với “không bị sealed”:** từ khóa `non-sealed` được dùng cho một interface/class trực tiếp mở lại khả năng triển khai trong phân cấp sealed. `Class.isSealed()` của nó là `false`. Nếu bản thân interface đầu vào không hidden, không sealed và thỏa các điều kiện khác, riêng lịch sử kế thừa từ sealed superinterface không phải là lý do để từ chối nó.
+**Distinguishing `non-sealed` in Java from "not sealed":** the `non-sealed` keyword is used on an interface/class that directly reopens implementation in a sealed hierarchy. Its `Class.isSealed()` is `false`. If the input interface itself is non-hidden, non-sealed, and satisfies all other conditions, merely having inherited from a sealed superinterface is not a reason to reject it.
 
-## 6. Những kiểm tra khác vẫn phải làm cho interface public/non-public
+## 6. Other checks still required for public/non-public interfaces
 
-Ngay cả khi từng interface có `isInterface() == true`, `isHidden() == false`, `isSealed() == false`, `Proxy.newProxyInstance` vẫn có thể ném `IllegalArgumentException`:
+Even when every interface has `isInterface() == true`, `isHidden() == false`, and `isSealed() == false`, `Proxy.newProxyInstance` can still throw `IllegalArgumentException`:
 
-1. **Trùng interface:** cùng một đối tượng `Class<?>` xuất hiện hai lần trong mảng `interfaces`.
-2. **Sai class loader:** interface không nhìn thấy được bằng tên qua loader được chỉ định, hoặc loader tìm ra một `Class` khác cùng tên; các kiểu được nhắc trong chữ ký `public` cũng phải nhìn thấy.
-3. **Non-public khác package/module:** hai interface non-public của hai package khác nhau không thể cùng được một lớp proxy triển khai. Ngay cả khi tên package giống nhau, khác module vẫn không hợp lệ theo điều kiện của JDK.
-4. **Loader không định nghĩa non-public interface:** loader chỉ *nhìn thấy* nó thông qua delegation chưa đủ nếu không đúng yêu cầu loader định nghĩa theo Javadoc.
-5. **Module chứa non-public interface thiếu khả năng truy cập:** khi trộn non-public với các interface khác, module chứa proxy phải truy cập được những interface được triển khai.
-6. **Trùng chữ ký nhưng kiểu trả về không tương thích:** các phương thức cùng tên và danh sách tham số mà kiểu trả về nguyên thủy/`void` khác nhau sẽ xung đột; với kiểu trả về tham chiếu, cần có một kiểu trả về là subtype phù hợp của các kiểu còn lại.
-7. **Giới hạn JVM:** số lượng interface hoặc giới hạn về class file có thể khiến việc sinh proxy không thực hiện được.
+1. **Duplicate interface:** the same `Class<?>` object appears twice in the `interfaces` array.
+2. **Wrong class loader:** an interface is not visible by name through the specified loader, or the loader resolves a different `Class` with the same name; types mentioned in `public` signatures must also be visible.
+3. **Non-public in different packages/modules:** two non-public interfaces from two different packages cannot be implemented together by one proxy class. Even if package names match, differing modules are still invalid under JDK rules.
+4. **Loader does not define the non-public interface:** a loader merely *seeing* it via delegation is insufficient if it fails the defining-loader requirement in the Javadoc.
+5. **Module of the non-public interface lacks accessibility:** when mixing non-public with other interfaces, the module containing the proxy must have access to the implemented interfaces.
+6. **Matching signatures with incompatible return types:** methods with the same name and parameter list whose primitive/`void` return types differ will conflict; for reference return types, one return type must be an appropriate subtype of the others.
+7. **JVM limits:** the number of interfaces or class file limits may prevent proxy generation.
 
-Nếu `interfaces` hoặc phần tử của nó là `null`, hoặc `handler` là `null`, API có thể ném `NullPointerException` theo hợp đồng; đừng gom mọi thất bại vào `IllegalArgumentException`.
+If `interfaces` or any element of it is `null`, or `handler` is `null`, the API may throw `NullPointerException` per its contract; do not lump every failure under `IllegalArgumentException`.
 
-**Module access khác với điều kiện export/open:** public interface trong một package đóng có thể được đưa vào proxy theo quy tắc **dynamic module** của JDK. Việc tạo proxy thành công không biến package đó thành public API cho mọi mã Java khác. Cần phân biệt tạo proxy, ép kiểu hợp lệ từ vị trí người gọi và truy cập trực tiếp lớp proxy đã được sinh.
+**Module access differs from export/open conditions:** a public interface in a closed package can be proxied under the JDK's **dynamic module** rules. Successful proxy creation does not turn that package into public API for all other Java code. Distinguish between creating a proxy, valid casting from the caller's location, and directly accessing the generated proxy class.
 
-## 7. Chẩn đoán nhanh trước khi tạo proxy
+## 7. Quick diagnosis before creating a proxy
 
-Đoạn phương thức dưới đây dùng để **lọc sơ bộ** (đặt trong một class có `import java.lang.reflect.Modifier;`). Nó chỉ kiểm tra **loại interface**; kết quả `"candidate"` không có nghĩa mọi yêu cầu khác đã đạt.
+The method snippet below is for **preliminary filtering** (placed in a class with `import java.lang.reflect.Modifier;`). It only checks the **interface kind**; a `"candidate"` result does not mean all other requirements pass.
 
 ```java
 static String precheck(Class<?> type) {
@@ -234,14 +234,14 @@ static String precheck(Class<?> type) {
 }
 ```
 
-Khi điều tra một thất bại, nên ghi nhận (mà không phụ thuộc vào tên proxy do JDK sinh):
+When investigating a failure, record the following (without depending on JDK-generated proxy names):
 
 - `type.getName()`, `type.isInterface()`, `type.isHidden()`, `type.isSealed()`, `Modifier.isPublic(type.getModifiers())`.
-- `type.getPackageName()`, `type.getModule()`, `type.getClassLoader()` và loader thực sự truyền vào `Proxy.newProxyInstance`.
-- Toàn bộ interface trong mảng, thứ tự và các kiểu xuất hiện trong chữ ký `public`, kể cả interface kế thừa.
-- Loại exception và nguyên nhân; tránh dựa vào chuỗi thông báo exception chính xác vì thông báo có thể thay đổi theo JDK.
+- `type.getPackageName()`, `type.getModule()`, `type.getClassLoader()`, and the loader actually passed to `Proxy.newProxyInstance`.
+- All interfaces in the array, their order, and types appearing in `public` signatures, including inherited interfaces.
+- Exception type and cause; avoid relying on exact exception message strings because messages may vary across JDK versions.
 
-Ví dụ **không hợp lệ** về trùng interface:
+**Invalid** duplicate interface example:
 
 ```java
 Proxy.newProxyInstance(
@@ -250,35 +250,35 @@ Proxy.newProxyInstance(
         handler);
 ```
 
-Đây là **mảnh minh họa** sử dụng `PublicApi` và `handler` đã khai báo ở chương trình trước, không phải chương trình độc lập. Lỗi này là `IllegalArgumentException` dù `PublicApi` hoàn toàn public, không hidden và không sealed.
+This is an **illustrative fragment** using `PublicApi` and `handler` declared in the previous program, not a standalone program. This error is `IllegalArgumentException` even though `PublicApi` is completely public, non-hidden, and non-sealed.
 
-## 8. Hiểu đúng các lỗi hay gặp
+## 8. Clearing up common misconceptions
 
-| Quan niệm hoặc cách sửa sai | Cách xử lý đúng |
+| Misconception or wrong fix | Correct handling |
 | --- | --- |
-| “Chỉ có `public interface` mới dùng được JDK Proxy.” | Non-public hợp lệ nếu đáp ứng chặt chẽ package/module/loader. |
-| “Non-public interface đồng nghĩa package không export.” | Modifier của interface và mức export/open của package là hai khái niệm khác nhau. |
-| “Có `Class<?>` của hidden interface thì vẫn proxy được.” | `isHidden() == true` bị JDK Proxy loại dù đã có đối tượng `Class`. |
-| “Sealed interface public thì được.” | `isSealed() == true` bị từ chối độc lập với modifier `public`. |
-| “Đổi loader sang `Thread.currentThread().getContextClassLoader()` chắc chắn sửa lỗi.” | Phải chứng minh loader chỉ định thấy đúng identity của mọi interface và mọi kiểu trong chữ ký, cùng quy tắc dành cho non-public. |
-| “Đã tạo proxy thành công thì có thể gọi constructor lớp `$Proxy...`.” | Quyền truy cập lớp proxy có thể bị module đóng; dùng `Proxy.newProxyInstance`. |
-| “`newProxyInstance` chỉ kiểm tra `isInterface()`.” | Javadoc còn ràng buộc sealed/hidden, trùng lặp, loader, chữ ký, package/module, VM limits. |
-| “Mỗi interface có proxy riêng được thì ghép chúng luôn được.” | Tập interface kết hợp có thể xung đột về non-public package/module hoặc kiểu trả về của phương thức. |
+| "Only `public interface` works with JDK Proxy." | Non-public is valid if package/module/loader constraints are strictly met. |
+| "A non-public interface means an unexported package." | Interface modifiers and package export/open status are two distinct concepts. |
+| "Holding a hidden interface's `Class<?>` means you can still proxy it." | `isHidden() == true` is rejected by JDK Proxy even when you already have the `Class` object. |
+| "A public sealed interface is allowed." | `isSealed() == true` is rejected independently of the `public` modifier. |
+| "Switching the loader to `Thread.currentThread().getContextClassLoader()` definitely fixes the error." | You must prove the specified loader sees the exact identity of every interface and every type in signatures, plus non-public rules. |
+| "Once a proxy is created successfully, you can call the `$Proxy...` class constructor." | Access to the proxy class may be closed by modules; use `Proxy.newProxyInstance`. |
+| "`newProxyInstance` only checks `isInterface()`." | The Javadoc also enforces sealed/hidden, duplicates, loader, signatures, package/module, and VM limits. |
+| "If each interface can be proxied separately, combining them always works." | The combined interface set may conflict on non-public package/module or method return types. |
 
-## 9. Bài tập và câu hỏi tự kiểm tra
+## 9. Exercises and self-check questions
 
-1. Hai interface **package-private** ở cùng package và cùng module, được định nghĩa bởi đúng class loader, có thể được đưa chung vào `newProxyInstance` không? Hãy giải thích các điều kiện còn lại vẫn phải kiểm tra.
-2. Một `public interface` nằm trong package **không export, không open** của named module có bị từ chối chỉ vì package đóng không? Lớp proxy sẽ nằm ở đâu theo quy tắc JDK?
-3. Trong ví dụ, vì sao `InternalApi` tạo được proxy dù `Modifier.isPublic(InternalApi.class.getModifiers()) == false`?
-4. Vì sao `HiddenSeed.class` lúc mới biên dịch khác với `Class<?> hidden` do `defineHiddenClass` trả về?
-5. Nếu một interface có `isSealed() == true` và đồng thời là `public`, điều kiện nào quyết định kết quả của `newProxyInstance`?
-6. Nếu hai interface đều `public`, không hidden/sealed nhưng khai báo cùng phương thức `value()` với hai kiểu trả về nguyên thủy khác nhau, vì sao yêu cầu proxy có thể thất bại?
+1. Can two **package-private** interfaces in the same package and same module, defined by the exact same class loader, be passed together to `newProxyInstance`? Explain the remaining conditions that still must be checked.
+2. Is a `public interface` inside a **non-exported, non-open** package of a named module rejected merely because the package is closed? Where will the proxy class reside according to JDK rules?
+3. In the example, why could `InternalApi` be proxied even though `Modifier.isPublic(InternalApi.class.getModifiers()) == false`?
+4. Why is the freshly compiled `HiddenSeed.class` different from the `Class<?> hidden` returned by `defineHiddenClass`?
+5. If an interface has `isSealed() == true` and is also `public`, which condition determines the outcome of `newProxyInstance`?
+6. If two interfaces are both `public` and non-hidden/non-sealed, yet declare the same `value()` method with two different primitive return types, why can the proxy request fail?
 
-**Tự kiểm tra trước khi thiết kế thư viện:** Trước tiên phân loại `isInterface / isHidden / isSealed`; sau đó kiểm tra loader, tập interface, chữ ký, package/module và quyền truy cập từ mã sử dụng proxy. Dùng **`Proxy.newProxyInstance`** làm API tạo instance, sau đó làm việc qua các interface mà mã người gọi thực sự được phép truy cập.
+**Self-check before designing a library:** First classify `isInterface / isHidden / isSealed`; then check the loader, interface set, signatures, package/module, and accessibility from proxy-consuming code. Use **`Proxy.newProxyInstance`** as the instance creation API, then work through the interfaces that calling code is actually permitted to access.
 
-## 10. Tài liệu chính thức
+## 10. Official Documentation
 
-- [Oracle Java 17 — `java.lang.reflect.Proxy`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Proxy.html): Restrictions, Package and Module Membership of Proxy Class, Dynamic Modules và ngoại lệ của `newProxyInstance`.
-- [Oracle Java 17 — `Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `isInterface`, `isHidden`, `isSealed`, `getModifiers`, `getModule` và `getClassLoader`.
-- [Oracle Java 17 — `MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html): `defineHiddenClass` và cách tạo hidden class/interface.
-- [Java Language Specification 17 — Sealed Classes and Interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.1.1.4): ngữ nghĩa `sealed`, `permits`, `non-sealed`.
+- [Oracle Java 17 — `java.lang.reflect.Proxy`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Proxy.html): Restrictions, Package and Module Membership of Proxy Class, Dynamic Modules, and exceptions of `newProxyInstance`.
+- [Oracle Java 17 — `Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `isInterface`, `isHidden`, `isSealed`, `getModifiers`, `getModule`, and `getClassLoader`.
+- [Oracle Java 17 — `MethodHandles.Lookup`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html): `defineHiddenClass` and how hidden classes/interfaces are created.
+- [Java Language Specification 17 — Sealed Classes and Interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.1.1.4): semantics of `sealed`, `permits`, `non-sealed`.

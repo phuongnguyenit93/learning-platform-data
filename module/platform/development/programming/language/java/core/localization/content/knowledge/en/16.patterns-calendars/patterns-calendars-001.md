@@ -1,130 +1,130 @@
-# Phân biệt u, y và Y trong mẫu năm của Java DateTimeFormatter
+# Distinguishing u, y, and Y in Java DateTimeFormatter Year Patterns
 
-## 1. Vì sao ba chữ cái này không thay thế cho nhau?
+## 1. Why Are These Three Letters Not Interchangeable?
 
-Khi làm việc với ngày tháng và bản địa hóa trong Java, một lỗi rất khó phát hiện là viết `YYYY-MM-dd` thay vì `uuuu-MM-dd` hoặc `yyyy-MM-dd`. Phần lớn các ngày trong năm có thể hiển thị giống nhau, nhưng **gần thời điểm chuyển năm**, `YYYY` có thể đưa ra **một năm khác hẳn năm dương lịch của ngày đó**.
+When working with dates and localization in Java, a very subtle bug is writing `YYYY-MM-dd` instead of `uuuu-MM-dd` or `yyyy-MM-dd`. For most days of the year they may display the same result, but **around the turn of the year**, `YYYY` can produce **a completely different year from the calendar year of that date**.
 
-Trong API `java.time.format.DateTimeFormatter`:
+In the `java.time.format.DateTimeFormatter` API:
 
-| Ký tự pattern | Tên trường | Ý nghĩa |
+| Pattern Letter | Field Name | Meaning |
 |---|---|---|
-| `u` | *year* (proleptic year) | Năm liên tục của lịch, có năm 0 và có thể có năm âm |
-| `y` | *year-of-era* | Số năm **trong kỷ nguyên** (ví dụ AD/BC với lịch ISO) |
-| `Y` | *week-based-year* | Năm theo **hệ tuần** được xác định bởi locale |
+| `u` | *year* (proleptic year) | Continuous calendar year, including year 0 and negative years |
+| `y` | *year-of-era* | Year number **within an era** (for example, AD/BC in the ISO calendar) |
+| `Y` | *week-based-year* | Year according to the **week system** defined by the locale |
 
-Ba ký tự đều liên quan đến “năm”, nhưng chúng thuộc **ba mô hình lịch khác nhau**. Đặc biệt, `Y` là chữ **hoa**, không phải phiên bản viết hoa cho đẹp của `y`.
+All three letters relate to "year", but they belong to **three different calendar models**. In particular, `Y` is an **uppercase** letter, not a capitalized decorative version of `y`.
 
-Ví dụ ngày **01/01/2021** thuộc:
+For example, the date **2021-01-01** belongs to:
 
-- Năm dương lịch (proleptic year) **2021**: `u = 2021`.
-- Năm trong kỷ nguyên Công nguyên **2021**: `y = 2021`, kỷ nguyên `AD`.
-- Tuần-năm **2020** theo quy tắc tuần ISO (bắt đầu thứ Hai và tuần đầu phải có ít nhất 4 ngày thuộc năm mới): `Y = 2020`.
+- Calendar year (proleptic year) **2021**: `u = 2021`.
+- Year in the Common Era **2021**: `y = 2021`, era `AD`.
+- Week-based year **2020** under ISO week rules (starting on Monday, with the first week having at least 4 days in the new year): `Y = 2020`.
 
-Nếu dùng `YYYY-MM-dd` với locale sử dụng quy tắc ISO để ghi ngày 01/01/2021, có thể nhận được chuỗi kiểu **`2020-01-01`** — một tổ hợp gây hiểu nhầm vì phần tháng/ngày vẫn là 01/01 trong khi năm được lấy từ hệ tuần.
+If you use `YYYY-MM-dd` with a locale that uses ISO rules to format January 1, 2021, you can get a string like **`2020-01-01`** — a misleading combination because the month/day part is still 01/01 while the year is taken from the week system.
 
-**Quy tắc thực tế:** định dạng một ngày lịch thông thường theo ISO, ưu tiên `uuuu-MM-dd`; chỉ sử dụng `YYYY` khi bạn **thật sự muốn hiển thị số tuần và năm của tuần**, chẳng hạn `2020-W53`.
+**Practical rule:** when formatting a normal ISO calendar date, prefer `uuuu-MM-dd`; only use `YYYY` when you **truly want to display the week number and the week-based year**, such as `2020-W53`.
 
-## 2. Khái niệm nền: năm dương lịch, kỷ nguyên và tuần-năm
+## 2. Core Concepts: Proleptic Year, Era, and Week-Based Year
 
-### 2.1. Proleptic year — ký tự `u`
+### 2.1. Proleptic year — the `u` letter
 
-*Proleptic year* là một chuỗi số năm liên tục đi qua ranh giới trước và sau Công nguyên. Với `LocalDate` trong lịch ISO:
+A *proleptic year* is a continuous sequence of year numbers crossing the boundary before and after the Common Era. For `LocalDate` in the ISO calendar:
 
-- `0001` là năm 1 CN.
-- `0000` là năm 1 TCN.
-- `-0001` là năm 2 TCN.
+- `0001` is year 1 AD.
+- `0000` is year 1 BC.
+- `-0001` is year 2 BC.
 
-Mô hình này thuận tiện cho tính toán ngày tháng và kiểm tra tính hợp lệ mà **không phải ghép thêm một kỷ nguyên**. `LocalDate.getYear()` dùng cách biểu diễn năm như vậy.
+This model is convenient for date arithmetic and validation **without having to pair an era**. `LocalDate.getYear()` uses this year representation.
 
-Pattern:
+The pattern:
 
 ```text
 uuuu-MM-dd
 ```
 
-biểu diễn proleptic year và tháng/ngày. Với các ngày Công nguyên thông thường, `uuuu` nhìn rất giống `yyyy`, nên sự khác biệt dễ bị bỏ qua.
+represents the proleptic year and month/day. For ordinary AD dates, `uuuu` looks very similar to `yyyy`, so the difference is easy to overlook.
 
-### 2.2. Year-of-era — ký tự `y`
+### 2.2. Year-of-era — the `y` letter
 
-*Year-of-era* là **năm đếm bên trong một kỷ nguyên**. Trong lịch ISO có hai kỷ nguyên chính:
+*Year-of-era* is the **year counted within an era**. In the ISO calendar there are two main eras:
 
-- `AD`/`CE`: các năm dương lịch từ 1 trở lên.
-- `BC`/`BCE`: những năm trước 1 CN.
+- `AD`/`CE`: calendar years from 1 upward.
+- `BC`/`BCE`: years before 1 AD.
 
-Năm trong kỷ nguyên **không có năm 0**. Ví dụ ngày thuộc proleptic year 0 có `year-of-era = 1` và kỷ nguyên BC. Ngày thuộc proleptic year -1 có `year-of-era = 2` và kỷ nguyên BC.
+Year-of-era **has no year 0**. For example, a date in proleptic year 0 has `year-of-era = 1` and era BC. A date in proleptic year -1 has `year-of-era = 2` and era BC.
 
-Chỉ mẫu `yyyy-MM-dd` không ghi rõ kỷ nguyên nên khi parse nghiêm ngặt, parser có thể không đủ dữ kiện để xây dựng một `LocalDate`. Khi thật sự xử lý era, thường cần ký tự `G`:
+The pattern `yyyy-MM-dd` alone does not specify an era, so during strict parsing, the parser may lack enough data to construct a `LocalDate`. When genuinely handling eras, you usually need the `G` letter:
 
 ```text
 G yyyy-MM-dd
 ```
 
-`G` là tên kỷ nguyên; `yyyy` là năm trong kỷ nguyên. Nếu nội dung chỉ là ngày lịch ISO có thể tính toán được, `uuuu` thường dễ hiểu hơn.
+`G` is the era name; `yyyy` is the year within the era. If the content is simply a computable ISO calendar date, `uuuu` is usually clearer.
 
-### 2.3. Week-based-year — ký tự `Y`
+### 2.3. Week-based-year — the `Y` letter
 
-Năm theo tuần không nhất thiết đổi vào ngày **1 tháng 1**. Một tuần có thể nằm vắt qua tháng 12 và tháng 1. Các hệ đếm tuần cần quyết định:
+A week-based year does not necessarily change on **January 1**. A week can span across December and January. Week-numbering systems need to decide:
 
-1. Ngày nào được xem là ngày đầu tuần? Thứ Hai hay Chủ nhật?
-2. Một tuần phải có tối thiểu bao nhiêu ngày thuộc năm mới thì mới được tính là tuần đầu năm?
+1. Which day is considered the first day of the week? Monday or Sunday?
+2. How many days must a week have in the new year to count as the first week of the year?
 
-Do đó tuần cuối tháng 12 có thể là **tuần số 1 của năm sau**, còn tuần đầu tháng 1 có thể vẫn thuộc **tuần cuối của năm trước**.
+Therefore, the last week of December can be **week 1 of the next year**, while the first week of January can still belong to **the last week of the previous year**.
 
-Ký tự `Y` trong `DateTimeFormatter` sử dụng các quy tắc tuần mang tính **bản địa hóa theo Locale**, qua `WeekFields`. Vì thế cùng một `LocalDate` có thể có giá trị `Y` khác nhau khi format với `Locale.UK` và `Locale.US`.
+The `Y` letter in `DateTimeFormatter` uses **locale-dependent week rules**, via `WeekFields`. Hence the same `LocalDate` can have different `Y` values when formatted with `Locale.UK` and `Locale.US`.
 
-## 3. Bộ ký tự mẫu liên quan đến tuần
+## 3. Week-Related Pattern Letters
 
-Không nên dùng `Y` đơn độc rồi ghép với tháng/ngày như một mẫu lịch thông thường. Khi làm báo cáo tuần, các ký tự có ý nghĩa riêng:
+You should not use `Y` alone and combine it with month/day as an ordinary calendar pattern. For weekly reports, the letters have specific meanings:
 
-| Ký tự | Trường | Ví dụ |
+| Letter | Field | Example |
 |---|---|---|
-| `Y` | Năm theo tuần địa phương | `2020` |
-| `w` | Tuần trong năm theo bộ quy tắc của locale | `53` |
-| `W` | Tuần trong tháng theo bộ quy tắc của locale | `1` |
-| `e` hoặc `c` | Thứ trong tuần theo thứ tự địa phương (dạng số/văn bản tùy độ dài) | UK: thứ Hai = `1`, US: Chủ nhật = `1` |
-| `E` | Tên thứ trong tuần, ví dụ `Mon`/`Monday` theo locale | `Fri` |
-| `M` | Tháng trong năm dương lịch | `01` |
-| `d` | Ngày trong tháng | `01` |
+| `Y` | Localized week-based year | `2020` |
+| `w` | Week of week-based year according to locale rules | `53` |
+| `W` | Week of month according to locale rules | `1` |
+| `e` or `c` | Day of week in localized order (numeric/text depending on width) | UK: Monday = `1`, US: Sunday = `1` |
+| `E` | Name of day of week, e.g. `Mon`/`Monday` by locale | `Fri` |
+| `M` | Month of calendar year | `01` |
+| `d` | Day of month | `01` |
 
-Một mẫu biểu thị tuần có ngữ nghĩa phù hợp hơn:
+A more semantically appropriate pattern for expressing weeks:
 
 ```text
 YYYY-'W'ww-e
 ```
 
-Ví dụ với `Locale.UK`, ngày 01/01/2021 thuộc `2020-W53-5`: tuần-năm 2020, tuần 53, ngày thứ 5 theo thứ tự tuần bắt đầu từ thứ Hai.
+For example, with `Locale.UK`, 2021-01-01 belongs to `2020-W53-5`: week-based year 2020, week 53, day 5 in a week starting on Monday.
 
-**Phân biệt chữ hoa/thường:** `w` và `W` không giống nhau; `w` là week-of-week-based-year, `W` là week-of-month. `M` là tháng, `m` là phút. Các ký tự trong pattern Java **có phân biệt chữ hoa chữ thường** và không được đổi tùy ý.
+**Case sensitivity:** `w` and `W` are not the same; `w` is week-of-week-based-year, while `W` is week-of-month. `M` is month, while `m` is minute. Java pattern letters **are case-sensitive** and must not be changed arbitrarily.
 
-Các chuỗi chữ cố định cần đặt trong dấu nháy đơn, ví dụ phần `'W'` nhằm in ra chữ `W` literal, không để parser hiểu `W` là trường tuần-trong-tháng.
+Fixed literal strings need to be enclosed in single quotes, such as `'W'` to print the literal letter `W`, preventing the parser from interpreting `W` as the week-of-month field.
 
-## 4. Locale và quy tắc tuần quyết định kết quả của Y
+## 4. Locale and Week Rules Determine the Result of Y
 
-Hai locale thường được dùng để thấy khác biệt:
+Two locales commonly used to observe the difference:
 
-- `Locale.UK` có quy tắc tuần giống ISO thông dụng: tuần bắt đầu vào **thứ Hai**, tuần đầu cần tối thiểu **4 ngày** trong năm mới.
-- `Locale.US` thường bắt đầu tuần vào **Chủ nhật**, và tuần đầu cần tối thiểu **1 ngày** của năm mới.
+- `Locale.UK` has week rules matching standard ISO: the week starts on **Monday**, and the first week requires at least **4 days** in the new year.
+- `Locale.US` typically starts the week on **Sunday**, and the first week requires at least **1 day** of the new year.
 
-`WeekFields.of(locale)` cho biết quy tắc được dùng. Đó là lý do **không thể nói đơn giản rằng mọi `YYYY` đều là “ISO week-year”**. `YYYY` trong `DateTimeFormatter.ofPattern(..., locale)` là **week-based-year phụ thuộc locale**.
+`WeekFields.of(locale)` shows the rules being used. That is why **you cannot simply say that every `YYYY` is an "ISO week-year"**. `YYYY` in `DateTimeFormatter.ofPattern(..., locale)` is the **locale-dependent week-based-year**.
 
-Với một số ngày quanh năm 2020–2021:
+For several dates around 2020–2021:
 
-| Ngày dương lịch | `u`/`y` với ISO AD | `Y` và tuần với UK | `Y` và tuần với US |
+| Calendar Date | `u`/`y` with ISO AD | `Y` and week with UK | `Y` and week with US |
 |---|---|---|---|
-| 27/12/2020 | 2020 | `2020-W52` | `2021-W01` |
-| 28/12/2020 | 2020 | `2020-W53` | `2021-W01` |
-| 31/12/2020 | 2020 | `2020-W53` | `2021-W01` |
-| 01/01/2021 | 2021 | `2020-W53` | `2021-W01` |
-| 03/01/2021 | 2021 | `2020-W53` | `2021-W02` |
-| 04/01/2021 | 2021 | `2021-W01` | `2021-W02` |
+| 2020-12-27 | 2020 | `2020-W52` | `2021-W01` |
+| 2020-12-28 | 2020 | `2020-W53` | `2021-W01` |
+| 2020-12-31 | 2020 | `2020-W53` | `2021-W01` |
+| 2021-01-01 | 2021 | `2020-W53` | `2021-W01` |
+| 2021-01-03 | 2021 | `2020-W53` | `2021-W02` |
+| 2021-01-04 | 2021 | `2021-W01` | `2021-W02` |
 
-Như vậy, **ngày 31/12/2020** có thể đã mang tuần-năm 2021 trong US, còn **ngày 01/01/2021** vẫn thuộc tuần-năm 2020 trong UK/ISO.
+Thus, **December 31, 2020** can already carry week-based year 2021 in the US, whereas **January 1, 2021** still belongs to week-based year 2020 in UK/ISO.
 
-Không nên sử dụng kết quả từ hệ tuần của quốc gia này để gán nhãn cho dữ liệu tuần của một quốc gia khác. Khi báo cáo tính theo ISO 8601, cần chọn rõ quy tắc ISO thay vì để default locale của JVM quyết định ngầm.
+You should not use the result from one country's week system to label weekly data for another country. When a report is computed under ISO 8601, explicitly choose ISO rules rather than letting the JVM's default locale decide implicitly.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: so sánh u, y, Y ở ranh giới năm
+## 5. Complete Java 17+ Example: Comparing u, y, Y at the Year Boundary
 
-Tạo tệp `YearPatternDemo.java`:
+Create the file `YearPatternDemo.java`:
 
 ```java
 import java.time.LocalDate;
@@ -156,14 +156,14 @@ public class YearPatternDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac YearPatternDemo.java
 java YearPatternDemo
 ```
 
-Kết quả đã kiểm chứng bằng JDK:
+Output verified with the JDK:
 
 ```text
 2020-12-27 UK=2020 2020 2020-W52-7 US=2020 2020 2021-W01-1
@@ -174,50 +174,50 @@ Kết quả đã kiểm chứng bằng JDK:
 2021-01-04 UK=2021 2021 2021-W01-1 US=2021 2021 2021-W02-2
 ```
 
-Đọc một dòng quan trọng:
+Reading a key line:
 
 ```text
 2021-01-01 UK=2021 2021 2020-W53-5 US=2021 2021 2021-W01-6
 ```
 
-- `2021-01-01` ở đầu dòng là `LocalDate.toString()`, dùng năm lịch ISO.
-- Hai số đầu trong cột `UK` tương ứng `uuuu` và `yyyy`: cả hai là 2021 vì đây là ngày AD.
-- `2020-W53-5` là tuần-năm 2020 của UK/ISO.
-- `2021-W01-6` là tuần-năm 2021 của US, ngày thứ 6 trong tuần bắt đầu Chủ nhật.
+- `2021-01-01` at the start of the line is `LocalDate.toString()`, which uses the ISO calendar year.
+- The first two numbers in the `UK` column correspond to `uuuu` and `yyyy`: both are 2021 because this is an AD date.
+- `2020-W53-5` is the UK/ISO week-based year 2020.
+- `2021-W01-6` is the US week-based year 2021, day 6 in a week starting on Sunday.
 
-Điều này cho thấy `Y` thay đổi theo **quy tắc tuần**, không phải formatter bị sai hoặc `LocalDate` có hai ngày khác nhau.
+This shows that `Y` changes according to **week rules**, not because the formatter is broken or `LocalDate` holds two different dates.
 
-## 6. Khi nào dùng u thay vì y?
+## 6. When to Use u Instead of y?
 
-Với `LocalDate` ISO và nhu cầu lưu/đọc ngày dương lịch:
+For ISO `LocalDate` and storing/reading calendar dates:
 
 ```text
 uuuu-MM-dd
 ```
 
-là một lựa chọn vững chắc. `u` biểu thị trực tiếp năm liên tục, bao gồm cả năm 0 và năm âm nếu miền ứng dụng hỗ trợ.
+is a solid choice. `u` directly represents the continuous year, including year 0 and negative years if the application domain supports them.
 
-`y` là đúng khi dữ liệu thực sự biểu diễn **năm trong một kỷ nguyên**. Với ngày hiện đại sau Công nguyên, hai ký tự trông giống nhau:
+`y` is right when the data actually represents **year within an era**. For modern AD dates, the two letters look identical:
 
 ```text
-Ngày 2024-02-29:
+Date 2024-02-29:
 uuuu -> 2024
 yyyy -> 2024
 ```
 
-Nhưng điểm khác biệt lộ ra ở lịch sử trước Công nguyên. Trong lịch ISO proleptic:
+But the difference becomes apparent for historical BC dates. In the ISO proleptic calendar:
 
-| `LocalDate.getYear()` | Kỷ nguyên | `yyyy` | `uuuu` |
+| `LocalDate.getYear()` | Era | `yyyy` | `uuuu` |
 |---:|---|---|---|
 | `1` | AD | `0001` | `0001` |
 | `0` | BC | `0001` | `0000` |
 | `-1` | BC | `0002` | `-0001` |
 
-**Không có năm 0 trong year-of-era**, nhưng có năm 0 trong proleptic-year. Do đó `yyyy` không đủ để mô tả một ngày lịch sử nếu thiếu era.
+**There is no year 0 in year-of-era**, whereas there is a year 0 in proleptic-year. Therefore, `yyyy` is insufficient to describe a historical date if the era is missing.
 
-### Ví dụ Java 17+ hoàn chỉnh về năm 0 và BC/AD
+### Complete Java 17+ example on year 0 and BC/AD
 
-Tạo tệp `EraYearDemo.java`:
+Create the file `EraYearDemo.java`:
 
 ```java
 import java.time.LocalDate;
@@ -241,14 +241,14 @@ public class EraYearDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac EraYearDemo.java
 java EraYearDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 year=1 -> AD 0001 0001
@@ -256,23 +256,23 @@ year=0 -> BC 0001 0000
 year=-1 -> BC 0002 -0001
 ```
 
-Ví dụ này nhấn mạnh **sự khác biệt trong ý nghĩa**, không chỉ khác về cách điền số 0. Nếu hệ thống của bạn cần trao đổi ngày lịch ISO, nên thống nhất proleptic year. Nếu cần hiển thị kỷ nguyên lịch sử, dùng `G` cùng `y` và locale thích hợp.
+This example highlights the **difference in meaning**, not just zero-padding differences. If your system needs to exchange ISO calendar dates, standardize on proleptic year. If you need to display historical eras, use `G` together with `y` and an appropriate locale.
 
-## 7. Rủi ro khi parse ngày với ResolverStyle.STRICT
+## 7. Risks When Parsing Dates with ResolverStyle.STRICT
 
-`DateTimeFormatter` không chỉ format mà còn parse. Khi parse thành `LocalDate`, formatter phải **giải quyết các trường ngày tháng thành một ngày cụ thể**.
+`DateTimeFormatter` not only formats but also parses. When parsing into `LocalDate`, the formatter must **resolve the date fields into a concrete date**.
 
-Với `ResolverStyle.STRICT`:
+With `ResolverStyle.STRICT`:
 
-- `uuuu-MM-dd` có trường `YEAR` + tháng + ngày: đủ để tạo `LocalDate` và kiểm tra tính hợp lệ.
-- `yyyy-MM-dd` có `YEAR_OF_ERA` + tháng + ngày nhưng **không có ERA**: thường không đủ thông tin cho ngày cụ thể dưới strict resolver.
-- `YYYY-MM-dd` có `WEEK_BASED_YEAR` + tháng + ngày nhưng **không có week-of-year/day-of-week**: các trường không hợp thành một ngày duy nhất theo cách strict resolver cần.
+- `uuuu-MM-dd` has the `YEAR` field + month + day: sufficient to construct a `LocalDate` and validate it.
+- `yyyy-MM-dd` has `YEAR_OF_ERA` + month + day but **no ERA**: typically insufficient for a concrete date under the strict resolver.
+- `YYYY-MM-dd` has `WEEK_BASED_YEAR` + month + day but **no week-of-year/day-of-week**: the fields do not combine into a unique date in the way the strict resolver requires.
 
-Những mẫu dùng `yyyy` thường vẫn *có vẻ parse được* trong một số cấu hình mặc định vì `DateTimeFormatter` mặc định dùng `ResolverStyle.SMART`; Smart có thể giả định kỷ nguyên phù hợp để giải quyết year-of-era. **Đừng hiểu thành `y` và `u` hoàn toàn tương đương**.
+Patterns using `yyyy` often *seem to parse* under some default configurations because `DateTimeFormatter` defaults to `ResolverStyle.SMART`; Smart can assume an appropriate era to resolve year-of-era. **Do not interpret this as `y` and `u` being completely equivalent**.
 
-### Chương trình Java 17+ chạy được
+### Runnable Java 17+ program
 
-Tạo tệp `StrictYearParseDemo.java`:
+Create the file `StrictYearParseDemo.java`:
 
 ```java
 import java.time.LocalDate;
@@ -307,7 +307,7 @@ public class StrictYearParseDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac StrictYearParseDemo.java
@@ -322,19 +322,19 @@ uuuu-MM-dd -> 2024-02-29
 YYYY-MM-dd -> DateTimeParseException
 ```
 
-Điểm quan trọng: lỗi của `yyyy` ở đây không phải vì ngày 29/02/2024 không hợp lệ. Ngày này có thật trong lịch ISO. Với `yyyy` parser có **YEAR_OF_ERA nhưng thiếu ERA** khi dùng strict resolution.
+Key point: the failure of `yyyy` here is not because February 29, 2024 is invalid. That date really exists in the ISO calendar. With `yyyy`, the parser has **YEAR_OF_ERA but lacks ERA** when using strict resolution.
 
-Cũng không được coi `YYYY-MM-dd` là giải pháp thay thế khi `yyyy-MM-dd` gặp lỗi. `Y` là tuần-năm, không thể kết hợp tùy tiện với `M`/`d` rồi mong giải quyết thành một ngày lịch bình thường.
+Nor should `YYYY-MM-dd` be treated as a workaround when `yyyy-MM-dd` fails. `Y` is the week-based year and cannot be arbitrarily combined with `M`/`d` and expected to resolve into a normal calendar date.
 
-### Parse year-of-era đúng cách với era tường minh
+### Parsing year-of-era properly with an explicit era
 
-Nếu dữ liệu thực sự có kỷ nguyên, có thể dùng:
+If the data actually contains an era, you can use:
 
 ```text
 G yyyy-MM-dd
 ```
 
-Ví dụ:
+For example:
 
 ```java
 DateTimeFormatter formatter =
@@ -344,16 +344,16 @@ DateTimeFormatter formatter =
 
 LocalDate firstBce =
         LocalDate.parse("BC 0001-01-01", formatter);
-// firstBce = 0000-01-01 trong proleptic ISO
+// firstBce = 0000-01-01 in proleptic ISO
 ```
 
-Đây là **mảnh mã Java minh họa** với các import `LocalDate`, `DateTimeFormatter`, `ResolverStyle` và `Locale`; ví dụ đầy đủ ở trên có thể biên dịch độc lập. Khi dùng locale khác, biểu diễn của `AD`/`BC` có thể được bản địa hóa; hãy giữ formatter locale và dữ liệu đầu vào nhất quán.
+This is an **illustrative Java snippet** with imports `LocalDate`, `DateTimeFormatter`, `ResolverStyle`, and `Locale`; the complete examples above can compile standalone. When using other locales, the representation of `AD`/`BC` can be localized; keep the formatter locale and input data consistent.
 
-### STRICT khác với pattern chữ năm
+### STRICT differs from the year pattern letter
 
-`ResolverStyle.STRICT` còn kiểm tra ngày hợp lệ theo tháng/năm, ví dụ không cho ngày 31/02 hoặc 29/02 của năm không nhuận. `u`/`y`/`Y` xác định *loại trường năm*, còn resolver style xác định *cách kiểm tra và kết hợp các trường*.
+`ResolverStyle.STRICT` also checks valid day-of-month/year combinations, such as rejecting February 31 or February 29 of a non-leap year. `u`/`y`/`Y` determines the *type of year field*, while the resolver style determines *how fields are validated and combined*.
 
-Với một ứng dụng yêu cầu ngày ISO chính xác, ví dụ rõ ràng là:
+For an application requiring exact ISO dates, a clear example is:
 
 ```java
 DateTimeFormatter isoStrict =
@@ -361,30 +361,30 @@ DateTimeFormatter isoStrict =
                 .withResolverStyle(ResolverStyle.STRICT);
 ```
 
-Hoặc sử dụng formatter có sẵn `DateTimeFormatter.ISO_LOCAL_DATE` khi hợp đồng giao tiếp cần ngày ISO 8601. Đừng tự thêm `Y` vào định dạng ngày chỉ vì thấy chữ “year”.
+Or use the built-in formatter `DateTimeFormatter.ISO_LOCAL_DATE` when the interface contract requires ISO 8601 dates. Do not add `Y` to a date format just because it mentions "year".
 
-## 8. Parsing tuần-năm đúng: kết hợp Y với w và e
+## 8. Parsing Week-Based Years Properly: Combining Y with w and e
 
-Nếu dữ liệu thật sự được tổ chức theo **tuần**, pattern kết hợp `Y`, `w` và `e` có ý nghĩa:
+If the data is genuinely organized by **week**, a pattern combining `Y`, `w`, and `e` makes sense:
 
 ```text
 YYYY-'W'ww-e
 ```
 
-Trong đó:
+Where:
 
-- `YYYY`: tuần-năm (localized week-based-year).
-- `ww`: tuần thuộc tuần-năm đó.
-- `e`: thứ trong tuần theo tuần bắt đầu của locale.
+- `YYYY`: week-based year (localized week-based-year).
+- `ww`: week within that week-based year.
+- `e`: day of week according to the locale's week start.
 
-Ví dụ, ngày 01/01/2021 có thể được biểu diễn:
+For example, the date 2021-01-01 can be represented as:
 
 ```text
 UK: 2020-W53-5
 US: 2021-W01-6
 ```
 
-Và có thể parse các chuỗi này thành cùng ngày ISO bằng đúng locale tương ứng:
+And these strings can be parsed back into the same ISO date using their corresponding locales:
 
 ```java
 DateTimeFormatter uk =
@@ -399,23 +399,23 @@ DateTimeFormatter us =
 
 LocalDate ukDate = LocalDate.parse("2020-W53-5", uk);
 LocalDate usDate = LocalDate.parse("2021-W01-6", us);
-// Cả hai là 2021-01-01
+// Both are 2021-01-01
 ```
 
-Đây là **mảnh mã minh họa**, dùng trong class có import thích hợp. Nó diễn giải một ngày duy nhất bằng hai hệ tuần, không phải hai ngày khác nhau.
+This is an **illustrative snippet**, meant for use inside a class with appropriate imports. It interprets a single date using two week systems, not two different dates.
 
-**Cảnh báo:** khi dữ liệu tuần được lưu để trao đổi giữa các hệ thống, phải quy định rõ **WeekFields** (đầu tuần và số ngày tối thiểu của tuần đầu) trong giao thức. Chỉ lưu `2021-W01` mà không biết quy tắc US hay ISO có thể làm lệch báo cáo.
+**Warning:** when weekly data is stored for exchange between systems, the **WeekFields** (first day of week and minimum days in the first week) must be explicitly specified in the protocol. Storing only `2021-W01` without knowing whether US or ISO rules apply can skew reports.
 
-## 9. Muốn ISO week-year bất kể Locale: dùng WeekFields.ISO
+## 9. Want ISO Week-Year Regardless of Locale: Use WeekFields.ISO
 
-`Y` là localized week-based-year, nên nếu yêu cầu là **ISO week numbering** thì không nên phụ thuộc vào default locale.
+`Y` is a localized week-based-year, so if the requirement is **ISO week numbering**, you should not rely on the default locale.
 
-`java.time.temporal.WeekFields.ISO` quy định:
+`java.time.temporal.WeekFields.ISO` specifies:
 
-- Thứ Hai là ngày đầu tuần.
-- Tuần đầu tiên cần có ít nhất 4 ngày của năm mới.
+- Monday is the first day of the week.
+- The first week must have at least 4 days in the new year.
 
-Bạn có thể lấy trường ISO tường minh:
+You can retrieve the ISO fields explicitly:
 
 ```java
 import java.time.LocalDate;
@@ -435,133 +435,133 @@ int isoDayOfWeek = date.getDayOfWeek().getValue();
 // isoDayOfWeek = 5
 ```
 
-Đây là mảnh code minh họa (những dòng import, khai báo có thể được đặt trong một chương trình đầy đủ). `IsoFields` là API trực tiếp cho số tuần ISO. `WeekFields.ISO.weekBasedYear()` và `WeekFields.ISO.weekOfWeekBasedYear()` cũng là lựa chọn tường minh, đặc biệt khi dự án muốn cấu trúc code dựa trên `WeekFields`.
+This is an illustrative code snippet (the import lines and declarations can be placed in a full program). `IsoFields` is the direct API for ISO week numbers. `WeekFields.ISO.weekBasedYear()` and `WeekFields.ISO.weekOfWeekBasedYear()` are also explicit options, especially when a project prefers structuring code around `WeekFields`.
 
-Với đầu vào do người dùng nhìn thấy, locale có thể quyết định tên tháng và cách hiển thị. Nhưng **quy tắc tuần dùng cho tính toán/tổng hợp dữ liệu** phải là lựa chọn nghiệp vụ rõ ràng, không nên thay đổi theo ngôn ngữ UI một cách vô thức.
+For user-visible input, the locale can determine month names and display formatting. However, **week rules used for computation/data aggregation** must be an explicit business choice and should not unconsciously change with the UI language.
 
-## 10. Không nhầm DateTimeFormatter với SimpleDateFormat
+## 10. Do Not Confuse DateTimeFormatter with SimpleDateFormat
 
-Trong Java có **hai hệ API định dạng ngày** thường gặp:
+In Java there are **two common date-formatting API systems**:
 
-1. `java.time.format.DateTimeFormatter` (API hiện đại từ Java 8).
-2. `java.text.SimpleDateFormat` (API cũ, mutable và không thread-safe).
+1. `java.time.format.DateTimeFormatter` (modern API since Java 8).
+2. `java.text.SimpleDateFormat` (legacy API, mutable and not thread-safe).
 
-**Cùng ký tự có thể có ý nghĩa khác nhau giữa hai API.** Đặc biệt:
+**The same letter can have different meanings between the two APIs.** In particular:
 
 | Pattern | `DateTimeFormatter` | `SimpleDateFormat` |
 |---|---|---|
-| `u` | Proleptic year | **Số thứ trong tuần** với Thứ Hai = 1, Chủ nhật = 7 |
-| `y` | Year-of-era | Year (năm) theo mô hình của `Calendar` |
-| `Y` | Localized week-based-year | Week year theo `Calendar` và cấu hình tuần |
+| `u` | Proleptic year | **Day number of week** with Monday = 1, Sunday = 7 |
+| `y` | Year-of-era | Year according to the `Calendar` model |
+| `Y` | Localized week-based-year | Week year according to `Calendar` and week settings |
 | `d` | Day-of-month | Day-of-month |
 | `M` | Month-of-year | Month |
 
-Vì thế **không thể di chuyển pattern `uuuu-MM-dd` từ DateTimeFormatter sang SimpleDateFormat rồi mong cùng nghĩa**: `u` ở `SimpleDateFormat` không phải năm. Trong dự án chuyển đổi từ `Date`/`Calendar` sang `java.time`, phải review lại mọi pattern thay vì dùng tìm-thay chuỗi mù quáng.
+Therefore, **you cannot migrate the `uuuu-MM-dd` pattern from DateTimeFormatter to SimpleDateFormat and expect the same meaning**: `u` in `SimpleDateFormat` is not a year. In projects migrating from `Date`/`Calendar` to `java.time`, every pattern must be reviewed rather than performing blind string search-and-replace.
 
-Ví dụ với ngày 01/01/2021 là thứ Sáu:
+For example, with 2021-01-01 being a Friday:
 
 ```text
 DateTimeFormatter: uuuu = 2021
-SimpleDateFormat: u = 5  (Thứ Sáu)
+SimpleDateFormat: u = 5  (Friday)
 ```
 
-Với `SimpleDateFormat`, `Y` có thể là tuần-năm và `y` là năm lịch theo `Calendar`. Điều này vẫn khiến lỗi `YYYY` trong báo cáo ngày xảy ra, nhưng **đừng áp cơ chế strict parsing hoặc proleptic-year của java.time sang API cũ**.
+With `SimpleDateFormat`, `Y` can be week-year and `y` is calendar year according to `Calendar`. This still causes the `YYYY` bug in date reports, but **do not project java.time's strict parsing or proleptic-year mechanics onto the legacy API**.
 
-Một chương trình mới nên ưu tiên `java.time` nếu không bị ràng buộc bởi API tương thích. `DateTimeFormatter` là immutable và thread-safe; `SimpleDateFormat` mutable, cần quản lý thread/concurrency cẩn thận.
+New programs should prefer `java.time` unless constrained by compatibility APIs. `DateTimeFormatter` is immutable and thread-safe; `SimpleDateFormat` is mutable and requires careful thread/concurrency management.
 
-## 11. Số lượng ký tự và các bẫy pattern
+## 11. Letter Counts and Pattern Pitfalls
 
-Số lần lặp ký tự trong `DateTimeFormatter` ảnh hưởng cách in và cách parse:
+The repetition count of a letter in `DateTimeFormatter` affects formatting and parsing:
 
-- `u` và `uuuu` cùng nhắc đến trường proleptic year, nhưng `uuuu` yêu cầu hiển thị tối thiểu bốn chữ số ở dạng thường thấy.
-- `y` và `yyyy` cùng là year-of-era, khác padding/độ rộng.
-- `Y` và `YYYY` cùng là localized week-based-year, khác độ rộng.
-- `yy`, `uu`, `YY` thường liên quan đến reduced 2-digit year; chúng không tương đương mẫu bốn chữ số và cần chính sách rõ cho việc diễn giải thế kỷ.
+- `u` and `uuuu` both refer to the proleptic year field, but `uuuu` requires at least four digits in common usage.
+- `y` and `yyyy` are both year-of-era, differing in padding/width.
+- `Y` and `YYYY` are both localized week-based-year, differing in width.
+- `yy`, `uu`, `YY` typically relate to reduced 2-digit years; they are not equivalent to four-digit patterns and require an explicit century-interpretation policy.
 
-Một lỗi dễ mắc là tưởng `YYYY` được viết hoa để bắt buộc bốn chữ số trong khi `yyyy` viết thường không đủ. Trong thực tế, **chữ hoa đã đổi hẳn trường**, không chỉ đổi định dạng.
+An easy mistake is assuming `YYYY` is capitalized to enforce four digits when lowercase `yyyy` is insufficient. In reality, **capitalization changes the field itself**, not just the formatting width.
 
-Không tự định nghĩa quy ước “mọi năm đều dùng YYYY” cho Java. Khi trao đổi ISO date với hệ thống khác, xác định chính xác cú pháp và sử dụng formatter phù hợp.
+Do not invent a convention like "always use YYYY for all years" in Java. When exchanging ISO dates with other systems, define the exact syntax and use the appropriate formatter.
 
-### Pattern "YYYY-MM-dd" gây sai ngay cả khi format chạy
+### The "YYYY-MM-dd" pattern causes bugs even when formatting succeeds
 
-`DateTimeFormatter.ofPattern("YYYY-MM-dd", Locale.UK)` vẫn có thể **format** một `LocalDate` vì object nguồn đã chứa mọi trường. Nhưng chuỗi output trộn **week-year** với **tháng/ngày theo năm lịch**; khi parse lại bằng strict resolver, dữ liệu không mô tả một ngày hợp lệ theo đúng tổ hợp trường. Ngay cả nếu có cấu hình parse khác “cho qua”, ý nghĩa cũng dễ sai.
+`DateTimeFormatter.ofPattern("YYYY-MM-dd", Locale.UK)` can still **format** a `LocalDate` because the source object already contains every field. However, the output string mixes **week-year** with **calendar month/day**; when parsed back with the strict resolver, the data does not describe a valid date under that field combination. Even if another parse configuration "lets it pass", the meaning is still prone to error.
 
-Cần phân biệt:
+It is necessary to distinguish:
 
-- **Format:** lấy trường từ một đối tượng đã xác định ngày.
-- **Parse:** dựng lại đối tượng ngày từ các trường trong chuỗi; các trường phải hợp thành một ngày nhất quán.
+- **Format:** extracting fields from an already resolved date object.
+- **Parse:** reconstructing a date object from fields in a string; the fields must combine into a consistent date.
 
-Do đó các bài test chỉ kiểm tra “formatter trả ra một string” là chưa đủ; cần có test round-trip theo dữ liệu thực tế (format rồi parse lại thành cùng `LocalDate`) với đúng parser/resolver style.
+Therefore, tests that merely check "the formatter returns a string" are insufficient; round-trip tests with realistic data (format then parse back to the exact same `LocalDate`) using the proper parser/resolver style are required.
 
-## 12. Quy tắc kiểm thử biên năm
+## 12. Year-Boundary Testing Rules
 
-Vì sự khác nhau giữa `u`/`y`/`Y` chủ yếu lộ ra ở những ca hiếm, hãy có bộ kiểm thử cố định:
+Because differences among `u`/`y`/`Y` mostly surface in rare edge cases, maintain a fixed test suite:
 
-| Trường hợp | Vì sao quan trọng |
+| Case | Why It Matters |
 |---|---|
-| 27–31 tháng 12 | Có thể thuộc tuần-năm sau với một số locale |
-| 1–4 tháng 1 | Có thể thuộc tuần-năm trước với ISO/UK |
-| Năm có tuần 53 | Kiểm thử tuần cuối và ngày đầu năm sau |
-| Năm nhuận, ví dụ `2024-02-29` | Kiểm tra calendar year và strict parsing |
-| Năm 0 / năm âm nếu nghiệp vụ hỗ trợ | Phân biệt `u` và `y` |
-| US so với UK/ISO | Chứng minh `Y` phụ thuộc quy tắc tuần |
-| Format–parse round-trip | Phát hiện pattern không đủ trường hoặc trộn mô hình |
-| Chuyển đổi SimpleDateFormat sang DateTimeFormatter | Phát hiện `u` đổi nghĩa |
+| December 27–31 | Can belong to the next week-based year in some locales |
+| January 1–4 | Can belong to the previous week-based year in ISO/UK |
+| Years with week 53 | Tests the final week and early days of the following year |
+| Leap years, e.g. `2024-02-29` | Checks calendar year and strict parsing |
+| Year 0 / negative years if domain-supported | Distinguishes `u` and `y` |
+| US versus UK/ISO | Proves `Y` depends on week rules |
+| Format–parse round-trip | Detects patterns with missing fields or mixed models |
+| Migrating SimpleDateFormat to DateTimeFormatter | Detects `u` changing meaning |
 
-Một test đáng có là: mọi ngày đầu/cuối năm phải được format bằng `uuuu-MM-dd` rồi parse lại bằng strict resolver và bằng đúng ngày gốc. Nếu report theo tuần ISO, test riêng `IsoFields.WEEK_BASED_YEAR` và `IsoFields.WEEK_OF_WEEK_BASED_YEAR`, không dùng năm từ `LocalDate.getYear()` để gán cho tuần một cách tùy tiện.
+A worthwhile test is: every start-of-year and end-of-year date must be formatted with `uuuu-MM-dd` and then parsed back with the strict resolver to equal the exact original date. If reporting by ISO week, test `IsoFields.WEEK_BASED_YEAR` and `IsoFields.WEEK_OF_WEEK_BASED_YEAR` separately, rather than arbitrarily assigning the year from `LocalDate.getYear()` to a week.
 
-## 13. Các lỗi phổ biến và cách tránh
+## 13. Common Mistakes and How to Avoid Them
 
-**Lỗi 1 — Dùng `YYYY-MM-dd` cho ngày lịch.** Tuần-năm có thể khác năm dương lịch. Dùng `uuuu-MM-dd` khi muốn ISO date.
+**Mistake 1 — Using `YYYY-MM-dd` for calendar dates.** Week-based year can differ from calendar year. Use `uuuu-MM-dd` when an ISO date is intended.
 
-**Lỗi 2 — Cho rằng `yyyy` luôn bằng `uuuu`.** Trong thời hiện đại AD chúng thường cho cùng số, nhưng mô hình năm khác nhau; trước CN, `yyyy` cần thông tin kỷ nguyên.
+**Mistake 2 — Assuming `yyyy` always equals `uuuu`.** In modern AD dates they usually yield the same number, but the year models differ; before AD, `yyyy` needs era information.
 
-**Lỗi 3 — Parse `yyyy-MM-dd` với STRICT rồi nghĩ ngày hợp lệ nhưng bị Java lỗi.** Trường `YEAR_OF_ERA` có thể không giải quyết được nếu thiếu `ERA`; dùng `uuuu` khi cần ISO proleptic date hoặc thêm `G` khi mô hình là year-of-era.
+**Mistake 3 — Parsing `yyyy-MM-dd` with STRICT and thinking a valid date failed because of a Java bug.** `YEAR_OF_ERA` may fail to resolve without `ERA`; use `uuuu` for ISO proleptic dates or add `G` when the model is year-of-era.
 
-**Lỗi 4 — Cho rằng `YYYY` là tuần-năm ISO trong mọi Locale.** `DateTimeFormatter` sử dụng localized week rules; muốn ISO tường minh, dùng `WeekFields.ISO` hoặc `IsoFields`.
+**Mistake 4 — Assuming `YYYY` is the ISO week-year in every Locale.** `DateTimeFormatter` uses localized week rules; for explicit ISO, use `WeekFields.ISO` or `IsoFields`.
 
-**Lỗi 5 — Dùng `YYYY` với tháng và ngày.** Đó là trộn mô hình tuần với mô hình lịch; nếu muốn tuần dùng `Y` + `w` + ngày thứ trong tuần phù hợp.
+**Mistake 5 — Using `YYYY` with month and day.** That mixes the week model with the calendar model; if weeks are wanted, use `Y` + `w` + the appropriate day-of-week field.
 
-**Lỗi 6 — Thấy ngày 01/01 mà tuần-năm còn ở năm cũ rồi sửa dữ liệu.** Đây có thể là hành vi đúng của ISO week-year. Kiểm tra quy tắc nghiệp vụ trước khi thay đổi.
+**Mistake 6 — Seeing 01/01 with a week-year from the previous year and "fixing" the data.** That may be the correct behavior of ISO week-year. Check the business rules before modifying anything.
 
-**Lỗi 7 — Sao chép `uuuu` sang `SimpleDateFormat`.** `u` ở SimpleDateFormat là ngày thứ trong tuần; kiểm tra lại pattern khi đổi API.
+**Mistake 7 — Copying `uuuu` into `SimpleDateFormat`.** `u` in SimpleDateFormat is the day number of week; re-verify patterns when switching APIs.
 
-**Lỗi 8 — Quên Locale khi sử dụng `Y`/`w`/`e`.** Cùng ngày có thể được gán nhãn tuần khác nhau nếu thay locale.
+**Mistake 8 — Forgetting Locale when using `Y`/`w`/`e`.** The same date can receive different week labels if the locale changes.
 
-**Lỗi 9 — Chỉ test giữa năm.** Tháng 6 hiếm khi làm lộ lỗi `Y`; cần test cả cuối tháng 12 và đầu tháng 1.
+**Mistake 9 — Testing only mid-year dates.** June rarely exposes `Y` bugs; always test late December and early January.
 
-**Lỗi 10 — Dùng dữ liệu tuần để đánh chỉ số báo cáo năm lịch mà không làm rõ quy tắc.** Tuần cuối năm và tuần đầu năm có thể vắt qua năm khác; cần định nghĩa rõ "năm" là calendar year hay week-based-year.
+**Mistake 10 — Using weekly data to index calendar-year reports without clarifying rules.** The last and first weeks of the year can cross year boundaries; explicitly define whether "year" means calendar year or week-based-year.
 
-## 14. Hỏi đáp tự kiểm tra
+## 14. Self-Check Q&A
 
-**Câu 1.** Mẫu `uuuu-MM-dd` lấy loại năm nào?  
-**Đáp án:** Proleptic year; với lịch ISO có năm 0 và năm âm.
+**Q1.** What kind of year does the `uuuu-MM-dd` pattern use?  
+**Answer:** Proleptic year; in the ISO calendar it includes year 0 and negative years.
 
-**Câu 2.** Mẫu `yyyy-MM-dd` khác `uuuu-MM-dd` ở đâu?  
-**Đáp án:** `yyyy` là year-of-era, trong khi `uuuu` là proleptic year. Với strict parser, `yyyy` có thể cần thêm era (`G`).
+**Q2.** How does `yyyy-MM-dd` differ from `uuuu-MM-dd`?  
+**Answer:** `yyyy` is year-of-era, whereas `uuuu` is proleptic year. With a strict parser, `yyyy` may additionally require an era (`G`).
 
-**Câu 3.** Tại sao ngày 01/01/2021 có thể hiển thị `2020-W53`?  
-**Đáp án:** Theo quy tắc tuần ISO, ngày đó nằm trong tuần 53 thuộc tuần-năm 2020.
+**Q3.** Why can 2021-01-01 display as `2020-W53`?  
+**Answer:** Under ISO week rules, that date falls in week 53 of week-based year 2020.
 
-**Câu 4.** `YYYY` với `Locale.US` và `Locale.UK` có luôn giống nhau không?  
-**Đáp án:** Không. Locale quy định ngày đầu tuần và số ngày tối thiểu của tuần đầu.
+**Q4.** Is `YYYY` always identical between `Locale.US` and `Locale.UK`?  
+**Answer:** No. The locale defines the first day of the week and the minimum days in the first week.
 
-**Câu 5.** Muốn in ngày lịch chuẩn `2021-01-01`, nên dùng `YYYY-MM-dd` không?  
-**Đáp án:** Không. Dùng `uuuu-MM-dd` hoặc `DateTimeFormatter.ISO_LOCAL_DATE`.
+**Q5.** To print a standard calendar date `2021-01-01`, should you use `YYYY-MM-dd`?  
+**Answer:** No. Use `uuuu-MM-dd` or `DateTimeFormatter.ISO_LOCAL_DATE`.
 
-**Câu 6.** `u` trong `SimpleDateFormat` có phải proleptic year không?  
-**Đáp án:** Không. Ở API cũ, `u` là thứ trong tuần, 1 là Thứ Hai.
+**Q6.** Is `u` in `SimpleDateFormat` the proleptic year?  
+**Answer:** No. In the legacy API, `u` is the day number of week, where 1 is Monday.
 
-**Câu 7.** Năm 0 của `LocalDate` tương ứng year-of-era nào?  
-**Đáp án:** Kỷ nguyên BC, year-of-era 1.
+**Q7.** What year-of-era corresponds to year 0 of `LocalDate`?  
+**Answer:** Era BC, year-of-era 1.
 
-**Câu 8.** Muốn báo cáo tuần ISO mà UI có thể thay đổi ngôn ngữ, nên dùng gì?  
-**Đáp án:** `IsoFields` hoặc `WeekFields.ISO` cho tính toán, tránh dựa vào default locale.
+**Q8.** When wanting ISO week reports while the UI can change language, what should you use?  
+**Answer:** `IsoFields` or `WeekFields.ISO` for calculations, avoiding reliance on the default locale.
 
-## 15. Ghi nhớ và tài liệu
+## 15. Takeaways and References
 
-**`u` = năm liên tục, `y` = năm trong kỷ nguyên, `Y` = năm theo tuần được bản địa hóa.** Với ngày lịch thông thường và strict parsing, `uuuu-MM-dd` là lựa chọn rõ ràng; nếu phải hiển thị kỷ nguyên lịch sử, dùng `G` cùng `y`; nếu báo cáo theo tuần, ghép `Y` với `w` và `e` theo quy tắc tuần đã chọn.
+**`u` = continuous proleptic year, `y` = year-of-era, `Y` = localized week-based year.** For ordinary calendar dates and strict parsing, `uuuu-MM-dd` is the clear choice; if historical eras must be displayed, use `G` with `y`; if reporting by week, combine `Y` with `w` and `e` according to the chosen week rules.
 
-Đừng coi `YYYY` chỉ là một cách viết hoa của `yyyy`: khác biệt này có thể làm sai dữ liệu vào những ngày quan trọng nhất của báo cáo năm.
+Do not treat `YYYY` as merely an uppercase spelling of `yyyy`: this difference can corrupt data on the most critical days of annual reporting.
 
-**Tham khảo:** [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html) · [Java SE 17 — WeekFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/WeekFields.html) · [Java SE 17 — IsoFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/IsoFields.html) · [Java SE 17 — SimpleDateFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/SimpleDateFormat.html).
+**References:** [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html) · [Java SE 17 — WeekFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/WeekFields.html) · [Java SE 17 — IsoFields](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/IsoFields.html) · [Java SE 17 — SimpleDateFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/SimpleDateFormat.html).

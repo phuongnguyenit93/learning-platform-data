@@ -1,10 +1,10 @@
-# `String.contentEquals()`: so sánh nội dung với `StringBuilder` và `CharSequence`
+# `String.contentEquals()`: Comparing Content with `StringBuilder` and `CharSequence`
 
-## 1. Bài toán và ý tưởng chính
+## 1. The Problem and Core Idea
 
-Trong Java, `String` lưu một chuỗi ký tự bất biến (*immutable*). Trong khi đó, `StringBuilder`, `StringBuffer` và nhiều kiểu khác triển khai `CharSequence` có thể cung cấp một dãy ký tự mà không phải là đối tượng `String`. Đôi khi cần hỏi: **“Dãy ký tự hiện tại của đối tượng này có giống chính xác nội dung của một `String` không?”** Đây là trường hợp sử dụng `String.contentEquals(...)`.
+In Java, `String` stores an *immutable* character sequence. Meanwhile, `StringBuilder`, `StringBuffer`, and many other types implementing `CharSequence` can supply a character sequence without being `String` objects. Sometimes you need to ask: **"Is this object's current character sequence identical to the content of a `String`?"** That is the use case for `String.contentEquals(...)`.
 
-Ví dụ, một bộ phân tích dữ liệu đã ghép tên trường vào `StringBuilder`, và cần so với từ khóa `"status"`. Nếu gọi `"status".equals(builder)` thì kết quả là `false`, dù các ký tự trùng nhau, vì `String.equals(Object)` chỉ coi một đối tượng khác là bằng khi đối tượng đó cũng là `String` với cùng nội dung. `"status".contentEquals(builder)` mới kiểm tra trực tiếp dãy ký tự bên trong builder.
+For instance, a data parser has assembled a field name in a `StringBuilder` and needs to compare it against the keyword `"status"`. Calling `"status".equals(builder)` returns `false`, even when the characters match, because `String.equals(Object)` only considers another object equal if it is also a `String` with the same content. `"status".contentEquals(builder)` directly inspects the character sequence inside the builder.
 
 ~~~java
 String expected = "status";
@@ -15,48 +15,48 @@ System.out.println(expected.contentEquals(actual)); // true
 System.out.println(expected.equals(actual.toString())); // true
 ~~~
 
-Cả hai cách cuối đều đúng về nội dung. `contentEquals(builder)` tránh việc người gọi phải tạo một `String` trung gian qua `builder.toString()`; hiệu quả thực tế phụ thuộc loại đối tượng, bản JDK, tối ưu của JVM và hoàn cảnh sử dụng.
+Both of the last two approaches are accurate for content. `contentEquals(builder)` avoids having the caller create an intermediate `String` via `builder.toString()`; actual efficiency depends on the object type, JDK version, JVM optimizations, and usage context.
 
-## 2. Hai overload của `String.contentEquals()`
+## 2. The Two Overloads of `String.contentEquals()`
 
-Lớp `java.lang.String` cung cấp:
+The `java.lang.String` class provides:
 
 ~~~java
 public boolean contentEquals(StringBuffer sb)
 public boolean contentEquals(CharSequence cs)
 ~~~
 
-Đây là **chữ ký API**, không phải một chương trình Java hoàn chỉnh.
+These are **API signatures**, not a complete Java program.
 
-- **`contentEquals(StringBuffer)`:** so nội dung `String` với `StringBuffer`. `StringBuffer` là lớp mutable có đồng bộ hóa trên các thao tác của nó; overload dành riêng cho `StringBuffer` đồng bộ hóa việc quan sát bộ đệm khi so sánh.
-- **`contentEquals(CharSequence)`:** so nội dung `String` với bất kỳ đối tượng triển khai `CharSequence`, chẳng hạn `StringBuilder`, `StringBuffer`, `String`, `CharBuffer` hoặc một implementation tự viết.
+- **`contentEquals(StringBuffer)`:** compares `String` content against a `StringBuffer`. `StringBuffer` is a mutable class with synchronized operations; the dedicated `StringBuffer` overload synchronizes observation of the buffer while comparing.
+- **`contentEquals(CharSequence)`:** compares `String` content against any object implementing `CharSequence`, such as `StringBuilder`, `StringBuffer`, `String`, `CharBuffer`, or a custom implementation.
 
-`StringBuilder` **không** có overload riêng; nó được chấp nhận vì `StringBuilder implements CharSequence`. Hai overload có cùng ý nghĩa kết quả: `true` khi nội dung dãy ký tự tương ứng giống chính xác; `false` nếu khác.
+`StringBuilder` does **not** have a dedicated overload; it is accepted because `StringBuilder implements CharSequence`. Both overloads share the same result semantics: `true` when the respective character sequences match exactly; `false` otherwise.
 
-`CharSequence` là một interface đọc dãy `char`, với các thao tác như `length()`, `charAt(int)`, `subSequence(...)`. Interface **không bắt buộc đối tượng bất biến**. Vì vậy kết quả `contentEquals()` phản ánh nội dung tại thời điểm được quan sát trong phép gọi, chứ không phải một cam kết đối tượng sẽ giữ nguyên trong tương lai.
+`CharSequence` is a read-only interface over a `char` sequence, with operations like `length()`, `charAt(int)`, and `subSequence(...)`. The interface **does not require immutability**. Thus, the result of `contentEquals()` reflects the content observed at the time of the call, not a guarantee that the object will remain unchanged later.
 
 ~~~java
 CharSequence text = new StringBuilder("Java");
 StringBuffer buffer = new StringBuffer("Java");
 
-System.out.println("Java".contentEquals(text));   // true: overload CharSequence
-System.out.println("Java".contentEquals(buffer)); // true: overload StringBuffer
-System.out.println("Java".contentEquals("Java")); // true: String cũng là CharSequence
+System.out.println("Java".contentEquals(text));   // true: CharSequence overload
+System.out.println("Java".contentEquals(buffer)); // true: StringBuffer overload
+System.out.println("Java".contentEquals("Java")); // true: String is also a CharSequence
 ~~~
 
-Khi biến có kiểu khai báo là `CharSequence`, trình biên dịch chọn overload `contentEquals(CharSequence)`, dù đối tượng runtime có thể là `StringBuffer`. Điều quan trọng là **ngữ nghĩa so nội dung**, không phải việc buộc người gọi ép kiểu sang overload khác.
+When a variable's declared type is `CharSequence`, the compiler selects the `contentEquals(CharSequence)` overload, even if the runtime object is a `StringBuffer`. What matters is **content-comparison semantics**, not forcing callers to cast to another overload.
 
-## 3. `equals()`, `contentEquals()` và `==` khác gì?
+## 3. How Do `equals()`, `contentEquals()`, and `==` Differ?
 
-| Biểu thức | Điều kiện trả `true` | Trường hợp dùng |
+| Expression | Condition Returning `true` | When to Use |
 |---|---|---|
-| `a == b` | Cùng tham chiếu đối tượng (với kiểu tham chiếu) | Kiểm tra identity, không dùng mặc định để so văn bản |
-| `a.equals(b)` khi `a` là `String` | `b` cũng là `String` có cùng dãy ký tự UTF-16 | So sánh hai String |
-| `a.contentEquals(cs)` | `cs` cung cấp cùng dãy ký tự hiện tại, kể cả khi là StringBuilder | So một String với CharSequence |
-| `a.equals(cs.toString())` | Kết quả `toString()` là String có nội dung bằng `a` | Hợp lý khi đã cần bản String vì mục đích khác |
-| `a.equalsIgnoreCase(b)` | Hai String bằng nhau theo quy tắc bỏ qua hoa/thường của Java | So văn bản không phân biệt hoa/thường; không có phiên bản CharSequence trực tiếp |
+| `a == b` | Same object reference (for reference types) | Identity check; do not use by default for comparing text |
+| `a.equals(b)` when `a` is a `String` | `b` is also a `String` with the same UTF-16 character sequence | Comparing two Strings |
+| `a.contentEquals(cs)` | `cs` currently provides the same character sequence, even if it is a StringBuilder | Comparing a String with a CharSequence |
+| `a.equals(cs.toString())` | `toString()` produces a String with content equal to `a` | Reasonable when a String copy is already needed for another purpose |
+| `a.equalsIgnoreCase(b)` | Two Strings match under Java's case-insensitive rules | Case-insensitive text comparison; no direct CharSequence version exists |
 
-Ví dụ với hai đối tượng `String` khác nhau:
+Example with two distinct `String` objects:
 
 ~~~java
 String a = new String("abc");
@@ -66,13 +66,13 @@ System.out.println(a.equals(b));         // true
 System.out.println(a.contentEquals(b));  // true
 ~~~
 
-Nếu hai đầu đều là `String`, `equals()` thường là lựa chọn rõ nhất. Khi vế kia là `StringBuilder` hoặc một `CharSequence` được xây dựng trong quá trình xử lý, `contentEquals()` diễn đạt đúng nhu cầu mà không cần chủ động chuyển về String.
+When both sides are `String`, `equals()` is usually the clearest choice. When the other side is a `StringBuilder` or a `CharSequence` built during processing, `contentEquals()` expresses the intent directly without eagerly converting to a String.
 
-**Lưu ý quan trọng:** `StringBuilder` không override `Object.equals()` để so nội dung; `new StringBuilder("abc").equals(new StringBuilder("abc"))` là `false` vì đó là hai đối tượng khác nhau. Nếu muốn so **hai** `StringBuilder`, trong Java 17 có thể dùng `builder1.compareTo(builder2) == 0` vì `StringBuilder` triển khai `Comparable<StringBuilder>`; hoặc so thông qua một `String` với `contentEquals()`. Không suy ra rằng mọi loại `CharSequence` đều có `equals()` dựa vào nội dung: interface không quy định điều đó.
+**Important note:** `StringBuilder` does not override `Object.equals()` for content comparison; `new StringBuilder("abc").equals(new StringBuilder("abc"))` is `false` because they are two separate objects. To compare **two** `StringBuilder`s, in Java 17 you can use `builder1.compareTo(builder2) == 0` because `StringBuilder` implements `Comparable<StringBuilder>`, or compare via a `String` using `contentEquals()`. Do not assume every `CharSequence` has content-based `equals()`: the interface does not mandate that.
 
-## 4. So sánh `StringBuilder` khi nội dung thay đổi
+## 4. Comparing `StringBuilder` When Its Content Changes
 
-`StringBuilder` mutable: các lệnh `append()`, `insert()`, `delete()`, `replace()`, `setCharAt()`, `setLength()` có thể thay dãy ký tự. Lần so sánh sau có thể trả kết quả khác lần trước:
+`StringBuilder` is mutable: `append()`, `insert()`, `delete()`, `replace()`, `setCharAt()`, and `setLength()` can alter the character sequence. A later comparison can return a different result from an earlier one:
 
 ~~~java
 String expected = "abc";
@@ -85,11 +85,11 @@ builder.deleteCharAt(3);
 System.out.println(expected.contentEquals(builder)); // true
 ~~~
 
-Trong quá trình parse hoặc xây dựng thông điệp, hãy so sau khi đã có nội dung cần kiểm tra. Nếu cần một **snapshot ổn định** để lưu, truyền sang luồng khác hoặc tái sử dụng lâu dài, lấy `String snapshot = builder.toString();` tại điểm kiểm soát phù hợp rồi so bằng `equals()`; không giả định `CharSequence` mutable sẽ giữ nguyên nội dung.
+While parsing or building messages, compare after the target content has been constructed. If you need a **stable snapshot** to store, pass to another thread, or reuse over time, take `String snapshot = builder.toString();` at an appropriate checkpoint and compare with `equals()`; never assume a mutable `CharSequence` will keep its content fixed.
 
-### So sánh toàn bộ, không phải tiền tố hay chuỗi con
+### Whole-Sequence Comparison, Not Prefix or Substring
 
-`contentEquals()` kiểm tra **toàn bộ dãy ký tự**. Nó không giống `contains()`, `startsWith()` hay so khớp một đoạn:
+`contentEquals()` checks the **entire character sequence**. It is not like `contains()`, `startsWith()`, or partial matching:
 
 ~~~java
 StringBuilder full = new StringBuilder("status=OK");
@@ -98,11 +98,11 @@ System.out.println("status=OK".contentEquals(full)); // true
 System.out.println("status=OK".startsWith("status")); // true
 ~~~
 
-Nếu mục đích chỉ tìm một từ khóa trong chuỗi dài, hãy dùng `contains()`, `indexOf()` hoặc bộ parser thay vì `contentEquals()`.
+If the goal is merely finding a keyword inside a longer string, use `contains()`, `indexOf()`, or a parser rather than `contentEquals()`.
 
-## 5. So sánh với kiểu khai báo `CharSequence`
+## 5. Comparing Against a Parameter Declared as `CharSequence`
 
-Một API nhận `CharSequence` giúp chấp nhận nhiều nguồn dữ liệu mà không ép caller chuyển hết sang `String`:
+An API accepting `CharSequence` lets you support multiple data sources without forcing callers to convert everything to `String`:
 
 ~~~java
 static boolean isReady(CharSequence candidate) {
@@ -110,7 +110,7 @@ static boolean isReady(CharSequence candidate) {
 }
 ~~~
 
-Có thể gọi:
+You can call:
 
 ~~~java
 System.out.println(isReady("READY"));                     // true
@@ -119,17 +119,17 @@ System.out.println(isReady(new StringBuffer("READY")));   // true
 System.out.println(isReady(new StringBuilder("ready")));  // false
 ~~~
 
-Hai khối trên là **đoạn minh họa**: hãy đặt phương thức `isReady` trong class, và những câu lệnh `System.out.println` trong một phương thức chạy, như chương trình tổng hợp bên dưới.
+The two blocks above are **illustrative snippets**: place `isReady` inside a class, and the `System.out.println` calls inside a runnable method, as shown in the complete program below.
 
-Interface `CharSequence` có các implementation khác nhau:
+The `CharSequence` interface has various implementations:
 
-- `String`: nội dung bất biến.
-- `StringBuilder`: mutable, tối ưu cho xây dựng chuỗi trong một luồng.
-- `StringBuffer`: mutable, các phương thức của buffer có đồng bộ hóa.
-- `java.nio.CharBuffer`: cung cấp một vùng ký tự theo `position` và `limit`; nội dung có thể phụ thuộc trạng thái và vùng nhìn thấy hiện tại.
-- Các implementation tự viết: có thể có cơ chế tạo hoặc đọc nội dung riêng; không giả định `toString()`, `equals()` và `charAt()` có tính chất vượt quá hợp đồng mà API đó công bố.
+- `String`: immutable content.
+- `StringBuilder`: mutable, optimized for building strings on a single thread.
+- `StringBuffer`: mutable, with synchronized buffer methods.
+- `java.nio.CharBuffer`: exposes a character region determined by `position` and `limit`; content can depend on its current state and visible window.
+- Custom implementations: may have their own mechanisms for generating or reading content; do not assume `toString()`, `equals()`, and `charAt()` guarantee properties beyond what that API documents.
 
-Ví dụ với một `CharBuffer` được tạo để nhìn đúng bốn ký tự:
+Example with a `CharBuffer` wrapped to view four characters:
 
 ~~~java
 import java.nio.CharBuffer;
@@ -137,19 +137,19 @@ import java.nio.CharBuffer;
 CharBuffer buffer = CharBuffer.wrap("Java");
 System.out.println("Java".contentEquals(buffer));  // true
 buffer.position(1);
-System.out.println("Java".contentEquals(buffer));  // false: phần còn lại là "ava"
+System.out.println("Java".contentEquals(buffer));  // false: remaining content is "ava"
 System.out.println("ava".contentEquals(buffer));   // true
 ~~~
 
-`CharBuffer` coi các ký tự từ `position` đến trước `limit` là phần tử còn lại của buffer. Thay `position` có thể thay dãy ký tự mà các phương thức `CharSequence` bộc lộ; do đó không nên xem mọi `CharSequence` là một String cố định.
+`CharBuffer` treats the characters from `position` up to `limit` as the remaining elements of the buffer. Changing `position` changes the character sequence exposed by `CharSequence` methods; therefore, do not treat every `CharSequence` as a fixed String.
 
-## 6. Null, chữ hoa/thường, Unicode và khoảng trắng
+## 6. Null, Case Sensitivity, Unicode, and Whitespace
 
 ### 6.1. Null
 
-`"abc".contentEquals((CharSequence) null)` ném `NullPointerException`. Vế String nhận cũng không được null; `String s = null; s.contentEquals(...)` ném `NullPointerException`.
+`"abc".contentEquals((CharSequence) null)` throws `NullPointerException`. The receiving String also cannot be null; `String s = null; s.contentEquals(...)` throws `NullPointerException`.
 
-Nếu null là giá trị hợp lệ trong mô hình dữ liệu, kiểm tra trước:
+If null is a valid value in your data model, check beforehand:
 
 ~~~java
 static boolean sameText(String expected, CharSequence actual) {
@@ -158,11 +158,11 @@ static boolean sameText(String expected, CharSequence actual) {
 }
 ~~~
 
-Đây là quy ước **null không khớp**, kể cả khi cả hai null. Nếu nghiệp vụ cần null bằng null, xác định quy tắc đó tường minh; chẳng hạn chỉ với String/String có thể dùng `Objects.equals()`. Đừng giả định `contentEquals(null)` trả `false`.
+This follows a **null never matches** convention, even when both are null. If business rules require null to equal null, define that rule explicitly; for String/String only, you can use `Objects.equals()`. Do not assume `contentEquals(null)` returns `false`.
 
-### 6.2. Chữ hoa/thường và khoảng trắng
+### 6.2. Case Sensitivity and Whitespace
 
-`contentEquals()` so chính xác dãy code unit: không bỏ dấu cách, không `trim`/`strip`, không chuyển hoa/thường.
+`contentEquals()` compares the exact sequence of code units: it does not ignore spaces, does not `trim`/`strip`, and does not change case.
 
 ~~~java
 System.out.println("Java".contentEquals(new StringBuilder("java")));   // false
@@ -170,7 +170,7 @@ System.out.println("Java".contentEquals(new StringBuilder(" Java")));  // false
 System.out.println("Java".contentEquals(new StringBuilder("Java")));   // true
 ~~~
 
-Nếu cần so không phân biệt case hoặc bỏ khoảng trắng, phải làm rõ quy tắc chuẩn hóa đầu vào:
+If you need case-insensitive comparison or whitespace trimming, make the input-normalization rules explicit:
 
 ~~~java
 import java.util.Locale;
@@ -180,17 +180,17 @@ String normalized = candidate.toString().strip().toUpperCase(Locale.ROOT);
 System.out.println("JAVA".equals(normalized)); // true
 ~~~
 
-`Locale.ROOT` phù hợp nhiều mã máy không phụ thuộc ngôn ngữ, nhưng **không** thay thế quy tắc so sánh từ ngữ tự nhiên của mọi locale. Chuẩn hóa cần được quyết định theo yêu cầu thực tế; không thêm tự động vào `contentEquals()`.
+`Locale.ROOT` fits many language-independent machine codes, yet **does not** replace natural-language word comparison rules for every locale. Normalization must be decided by actual requirements; do not expect it automatically inside `contentEquals()`.
 
-### 6.3. Unicode: so theo UTF-16, không tự chuẩn hóa
+### 6.3. Unicode: Compares UTF-16, Does Not Auto-Normalize
 
-Cả `String` và `CharSequence` bộc lộ một dãy `char` (UTF-16 code unit). Khi dùng `contentEquals()`, hai dãy phải giống nhau chính xác. Hai biểu diễn Unicode nhìn giống nhau có thể khác:
+Both `String` and `CharSequence` expose a sequence of `char`s (UTF-16 code units). With `contentEquals()`, the two sequences must match identically. Visually identical Unicode representations can differ:
 
 ~~~java
 import java.text.Normalizer;
 
-String composed = "\u00E9";       // é: một code point
-StringBuilder decomposed = new StringBuilder("e\u0301"); // e + dấu sắc
+String composed = "\u00E9";       // é: one code point
+StringBuilder decomposed = new StringBuilder("e\u0301"); // e + combining acute accent
 
 System.out.println(composed.contentEquals(decomposed)); // false
 String normalized = Normalizer.normalize(
@@ -198,73 +198,73 @@ String normalized = Normalizer.normalize(
 System.out.println(composed.equals(normalized)); // true
 ~~~
 
-Emoji ngoài BMP có thể dùng **hai `char`**, nhưng nếu hai dãy code unit hoàn toàn giống nhau thì `contentEquals()` vẫn trả true:
+Emojis outside the BMP can use **two `char`s**, yet if both code-unit sequences are completely identical, `contentEquals()` still returns true:
 
 ~~~java
 System.out.println("🚀".length());                             // 2
 System.out.println("🚀".contentEquals(new StringBuilder("🚀"))); // true
 ~~~
 
-Nếu cần so ngôn ngữ tự nhiên (ví dụ quy tắc sắp xếp tên tiếng Việt, bỏ dấu, case folding), phải chọn thuật toán/locale phù hợp; `contentEquals()` chỉ so nội dung chính xác. Nó cũng **không** thay cho so sánh mật khẩu hoặc secret với yêu cầu thời gian hằng số, vì API không cam kết đặc tính chống timing side-channel.
+If natural-language comparison is needed (such as Vietnamese name sorting, diacritic stripping, or case folding), choose the right algorithm/locale; `contentEquals()` only compares exact content. It also is **not** a substitute for comparing passwords or secrets with constant-time requirements, because the API makes no timing side-channel resistance guarantees.
 
-## 7. Đồng bộ và an toàn luồng
+## 7. Synchronization and Thread Safety
 
-`String` bất biến và an toàn để nhiều luồng đọc nội dung của nó. `StringBuilder` mutable và **không có đồng bộ hóa nội bộ**, nên không được sửa nó đồng thời với lời gọi `contentEquals()` ở luồng khác nếu không có biện pháp phối hợp. Đọc `length()` và từng `charAt()` trên một đối tượng đang bị sửa có thể quan sát trạng thái không nhất quán; kết quả khó dự đoán, không có bảo đảm một snapshot nguyên tử.
+`String` is immutable and safe for multiple threads to read concurrently. `StringBuilder` is mutable and has **no internal synchronization**, so it must not be modified concurrently with a `contentEquals()` call on another thread without coordination. Reading `length()` and each `charAt()` on an object undergoing modification can observe inconsistent state; the outcome is unpredictable, with no atomic snapshot guarantee.
 
-`StringBuffer` sử dụng đồng bộ hóa cho các thao tác của nó. Overload `String.contentEquals(StringBuffer)` đồng bộ trên đối tượng buffer trong khi thực hiện so sánh, nên có thể quan sát dãy ký tự nhất quán đối với các thay đổi cũng tuân theo khóa đó. Tuy vậy, dữ liệu **vẫn có thể thay đổi trước hoặc sau lời gọi**. Không nhầm an toàn của một phép so với một chuỗi giao dịch nhiều thao tác.
+`StringBuffer` uses synchronization for its operations. The `String.contentEquals(StringBuffer)` overload synchronizes on the buffer object while comparing, so it can observe a consistent character sequence relative to mutations that follow the same lock. Even so, the data **can still change before or after the call**. Do not confuse the safety of a single comparison with a multi-operation atomic transaction.
 
-Ví dụ một đoạn có nhiều bước:
+Example of a multi-step block:
 
 ~~~java
-// Đoạn minh họa, không phải giao dịch nguyên tử:
+// Illustrative snippet, not an atomic transaction:
 StringBuffer shared = new StringBuffer("READY");
 if ("READY".contentEquals(shared)) {
-    // Luồng khác vẫn có thể sửa shared ngay sau khi if được đánh giá.
-    // Không được suy ra shared luôn bằng "READY" trong phần thân này.
+    // Another thread can still modify shared right after the if condition is evaluated.
+    // Do not assume shared is always "READY" inside this body.
 }
 ~~~
 
-Nếu cần kiểm tra và sử dụng nội dung như một giao dịch, đồng bộ một đoạn bao quanh **cả bước kiểm tra lẫn bước sử dụng** bằng cùng khóa mà mọi writer tuân theo, hoặc chuyển dữ liệu sang snapshot bất biến ở ranh giới phù hợp.
+If checking and using the content must happen as a single transaction, synchronize a block covering **both the check and the usage** under the same lock followed by all writers, or convert the data into an immutable snapshot at the right boundary.
 
 ~~~java
 StringBuilder builder = new StringBuilder("READY");
-// Sau khi đã kết thúc tất cả thao tác ghi trên builder:
+// After all write operations on builder have finished:
 String snapshot = builder.toString();
 System.out.println("READY".equals(snapshot)); // true
 ~~~
 
-Nếu nhiều luồng cùng truy cập `StringBuilder`, bước tạo snapshot cũng phải được đồng bộ đúng cách; bản thân `toString()` không tự sửa tình trạng ghi song song.
+If multiple threads access `StringBuilder`, the snapshot creation step must also be properly synchronized; `toString()` itself does not fix unsynchronized concurrent writes.
 
-## 8. Hiệu năng: khi nào tránh `toString()`?
+## 8. Performance: When to Avoid `toString()`?
 
-Khi đã có một `StringBuilder` và chỉ cần **một phép so toàn bộ nội dung**, `expected.contentEquals(builder)` có thể tránh một bước tạo String rõ ràng trong code. Việc tạo `String` từ builder bằng `toString()` có thể phát sinh cấp phát hoặc sao chép dữ liệu, tùy JVM/JDK; nhưng **không** thể từ đó khẳng định `contentEquals()` luôn không cấp phát hoặc luôn nhanh hơn.
+When you already have a `StringBuilder` and only need **a single full-content comparison**, `expected.contentEquals(builder)` avoids an explicit String creation in code. Creating a `String` from a builder via `toString()` can incur allocation or copying depending on the JVM/JDK; however, you **cannot** conclude from this that `contentEquals()` never allocates or is always faster.
 
-So sánh:
+Comparison:
 
 ~~~java
 String expected = "GET";
 
-// Cách 1: so trực tiếp dãy ký tự.
+// Approach 1: compare character sequence directly.
 boolean direct = expected.contentEquals(builder);
 
-// Cách 2: tạo String trung gian rồi so.
+// Approach 2: create intermediate String then compare.
 boolean converted = expected.equals(builder.toString());
 ~~~
 
-Trong ví dụ này `builder` được giả định đã tồn tại và chứa văn bản cần kiểm tra. Đây **chỉ là hai cách viết để thảo luận**, không phải file Java độc lập.
+In this example, `builder` is assumed to already exist and hold the text under check. These are **only two styles for discussion**, not a standalone Java file.
 
-Quy tắc chọn thực tế:
+Practical selection rules:
 
-- Nếu chỉ cần **đúng một hoặc vài phép so** với một `StringBuilder` đã có, ưu tiên `contentEquals()` vì diễn đạt trực tiếp và không bắt buộc gọi `toString()`.
-- Nếu cần lưu/đưa văn bản sang API nhận `String` hay tái sử dụng snapshot nhiều lần, `String snapshot = builder.toString();` có thể hợp lý và rõ ràng hơn.
-- Nếu cần so **hai String**, sử dụng `equals()`; không chuyển chúng sang builder chỉ để gọi `contentEquals()`.
-- Với đoạn nhạy hiệu năng, đo dữ liệu thực tế bằng profiler hoặc JMH; tránh benchmark vòng lặp đơn giản vì JIT/escape analysis có thể loại bỏ hoặc thay đổi chi phí một cách bất ngờ.
+- If you only need **one or a few comparisons** against an existing `StringBuilder`, prefer `contentEquals()` because it states the intent directly and does not require calling `toString()`.
+- If you need to store/pass text to an API expecting `String` or reuse a snapshot multiple times, `String snapshot = builder.toString();` may be more appropriate and clearer.
+- If comparing **two Strings**, use `equals()`; do not wrap them in a builder just to call `contentEquals()`.
+- For performance-sensitive code, measure real workloads using a profiler or JMH; avoid naive loop microbenchmarks because JIT/escape analysis can eliminate or alter costs unexpectedly.
 
-Không sử dụng `contentEquals()` như cách thay thế đồng loạt `equals()`. Nền tảng của nó là **khả năng so trực tiếp String với CharSequence khác String**.
+Do not use `contentEquals()` as a blanket replacement for `equals()`. Its purpose is **directly comparing a String against a non-String CharSequence**.
 
-## 9. Chương trình hoàn chỉnh chạy trên Java 17
+## 9. Complete Program Running on Java 17
 
-Đặt toàn bộ đoạn dưới vào file UTF-8 tên **`ContentEqualsDemo.java`**. Chương trình minh họa overload, thay đổi nội dung, kiểm tra toàn chuỗi, CharSequence và một ví dụ chuẩn hóa Unicode.
+Put the entire block below into a UTF-8 file named **`ContentEqualsDemo.java`**. The program demonstrates both overloads, mutating content, full-string checks, CharSequence, and a Unicode normalization example.
 
 ~~~java
 import java.nio.CharBuffer;
@@ -319,14 +319,14 @@ public class ContentEqualsDemo {
 }
 ~~~
 
-Biên dịch bằng JDK 17+ với mã nguồn UTF-8 và chạy:
+Compile with JDK 17+ using UTF-8 source encoding and run:
 
 ~~~bash
 javac -encoding UTF-8 ContentEqualsDemo.java
 java ContentEqualsDemo
 ~~~
 
-Kết quả stdout chính xác:
+Exact stdout output:
 
 ~~~text
 equalsBuilder=false
@@ -346,29 +346,29 @@ unicodeDirect=false
 unicodeNFC=true
 ~~~
 
-Giải thích quan trọng: `equalsBuilder=false` vì `String.equals(Object)` không coi `StringBuilder` là String. `contentBuilder=true` vì dãy ký tự trùng. Append một `!` làm độ dài khác, nên so thất bại; xóa nó thì bằng lại. `CharBuffer` trả dãy từ vị trí hiện tại tới giới hạn; khi chuyển vị trí sang 1, phần nội dung còn lại là `"ava"`. Chuẩn hóa Unicode NFC cho biểu diễn `e + dấu sắc` về biểu diễn tương đương với `é`.
+Key explanation: `equalsBuilder=false` because `String.equals(Object)` does not treat `StringBuilder` as a String. `contentBuilder=true` because the character sequences match. Appending `!` changes the length, so comparison fails; deleting it makes them equal again. `CharBuffer` exposes the sequence from its current position to its limit; moving position to 1 leaves `"ava"`. Unicode NFC normalization converts `e + combining acute accent` to the representation equivalent to `é`.
 
-## 10. Những lỗi phổ biến
+## 10. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Correct Approach |
 |---|---|---|
-| `"abc".equals(new StringBuilder("abc"))` | Luôn false với StringBuilder | `"abc".contentEquals(builder)` |
-| `a == b` để kiểm tra văn bản | So identity, không so nội dung | `equals()` hoặc `contentEquals()` phù hợp |
-| Gọi `contentEquals(null)` | `NullPointerException` | Null-check trước |
-| Coi kết quả so builder là vĩnh viễn | Builder có thể bị sửa sau đó | So tại điểm dùng hoặc tạo snapshot |
-| Sửa builder cùng lúc so ở thread khác | Race, trạng thái không ổn định | Phối hợp đồng bộ hoặc snapshot an toàn |
-| Mong bỏ qua hoa/thường/space | `contentEquals()` so chính xác | Chuẩn hóa có chủ đích rồi so |
-| Mong Unicode nhìn giống sẽ bằng nhau | Hai dãy code point/code unit có thể khác | Chuẩn hóa phù hợp khi nghiệp vụ yêu cầu |
-| Mong `contentEquals()` tìm chuỗi con | Nó kiểm tra cả dãy | `contains()`/`indexOf()` hoặc parser |
-| Gọi `toString()` trong mọi phép so chỉ vì muốn dùng `equals()` | Có thể tạo bước chuyển đổi không cần thiết | Dùng `contentEquals()` trực tiếp khi chỉ cần so |
-| Tin rằng `contentEquals()` luôn nhanh hơn | Tối ưu phụ thuộc trường hợp và JVM | Benchmark/profiler trên tải thật |
+| `"abc".equals(new StringBuilder("abc"))` | Always false for StringBuilder | `"abc".contentEquals(builder)` |
+| `a == b` to check text | Compares identity, not content | Use `equals()` or `contentEquals()` as appropriate |
+| Calling `contentEquals(null)` | `NullPointerException` | Null-check beforehand |
+| Treating a builder comparison result as permanent | Builder may be mutated later | Compare at point of use or take a snapshot |
+| Mutating builder concurrently while comparing on another thread | Race condition, inconsistent state | Coordinate synchronization or take a safe snapshot |
+| Expecting case/space insensitivity | `contentEquals()` compares exact code units | Normalize intentionally before comparing |
+| Expecting visually similar Unicode to be equal | Code point/code unit sequences may differ | Normalize appropriately when business logic requires it |
+| Expecting `contentEquals()` to find a substring | It checks the entire sequence | `contains()`/`indexOf()` or a parser |
+| Calling `toString()` on every comparison just to use `equals()` | Can create unnecessary conversions | Use `contentEquals()` directly when only comparing |
+| Believing `contentEquals()` is always faster | Optimization depends on the case and JVM | Benchmark/profile on real workloads |
 
-## 11. Ghi nhớ khi lựa chọn API
+## 11. Guidelines for Choosing an API
 
-1. **Hai đối tượng là `String`:** `equals()` cho so nội dung chính xác; `equalsIgnoreCase()` nếu yêu cầu so bỏ qua hoa/thường và đã cân nhắc locale/ngữ nghĩa.
-2. **Một `String`, một `StringBuilder`/`StringBuffer`/`CharSequence`:** `String.contentEquals()` cho so trực tiếp toàn bộ dãy.
-3. **Cần một snapshot bất biến từ builder:** chuyển bằng `toString()` ở thời điểm kiểm soát phù hợp rồi so `equals()`; với dữ liệu dùng chung nhiều luồng, bảo đảm không ghi đồng thời thiếu đồng bộ.
-4. **Cần tìm một đoạn:** sử dụng `contains()`, `indexOf()`, `startsWith()` hoặc regex tùy nhu cầu.
-5. **Có dữ liệu null hoặc Unicode phức tạp:** đặt quy tắc null, case, khoảng trắng và normalization rõ ràng trước khi gọi API.
+1. **Both objects are `String`:** `equals()` for exact content; `equalsIgnoreCase()` if case-insensitive comparison is required and locale/semantics have been considered.
+2. **One `String`, one `StringBuilder`/`StringBuffer`/`CharSequence`:** `String.contentEquals()` for direct full-sequence comparison.
+3. **Need an immutable snapshot from a builder:** convert via `toString()` at an appropriate checkpoint and compare with `equals()`; for multi-threaded shared data, ensure no unsynchronized concurrent writes.
+4. **Need to find a substring:** use `contains()`, `indexOf()`, `startsWith()`, or regex depending on requirements.
+5. **Dealing with null or complex Unicode data:** define explicit rules for null, case, whitespace, and normalization before calling the API.
 
-`contentEquals()` hữu ích chính vì **so trực tiếp nội dung hiện tại của một `CharSequence` với một `String`**, kể cả khi hai đối tượng thuộc các kiểu khác nhau. Nó không tự chuẩn hóa văn bản, không thay thế bảo đảm an toàn luồng và không biến `equals()` thành thừa.
+`contentEquals()` is valuable specifically because it **directly compares the current content of a `CharSequence` against a `String`**, even when the two objects have different types. It does not auto-normalize text, does not substitute for thread-safety guarantees, and does not make `equals()` obsolete.

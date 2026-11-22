@@ -1,10 +1,10 @@
-# Không thay đổi quy tắc chính xác chỉ để rút ngắn thời gian chạy
+# Never Change Exactness Rules Just to Shorten Runtime
 
-## 1. Vấn đề cốt lõi
+## 1. The Core Problem
 
-Một phép tính số trong Java có thể chậm vì kiểu dữ liệu, số lần cấp phát đối tượng, thuật toán, cách truy cập bộ nhớ hoặc số lượng phép toán. Khi tối ưu, việc đổi từ `BigDecimal` sang `double`, giảm `MathContext.precision`, thay `long` bằng `int` hoặc đổi chỗ làm tròn thường giúp một đoạn code ngắn hơn và *có thể* nhanh hơn. Nhưng nếu ứng dụng trước và sau đưa ra các kết quả khác nhau đối với cùng đầu vào thì đó không còn là tối ưu tương đương: **hợp đồng tính toán đã thay đổi**.
+A numeric calculation in Java can be slow because of data types, object allocation counts, algorithms, memory access patterns, or operation counts. When optimizing, switching from `BigDecimal` to `double`, lowering `MathContext.precision`, replacing `long` with `int`, or moving where rounding occurs often makes code shorter and *may* make it faster. However, if the application before and after produces different results for the same inputs, it is no longer an equivalent optimization: **the computation contract has changed**.
 
-Ví dụ ba dòng tiền dưới dạng chuỗi thập phân chính xác:
+Consider three monetary line items as exact decimal strings:
 
 ```text
 0.005
@@ -12,42 +12,42 @@ Ví dụ ba dòng tiền dưới dạng chuỗi thập phân chính xác:
 0.005
 ```
 
-Nếu hợp đồng yêu cầu **cộng chính xác tất cả dòng, rồi làm tròn tổng tới 2 chữ số thập phân bằng `HALF_UP`**, kết quả là `0.02`. Nếu một thay đổi “tối ưu” làm tròn **từng dòng** trước khi cộng, kết quả là `0.03`. Không thể gọi cả hai cách là tương đương vì chúng đáp ứng hai chính sách nghiệp vụ khác nhau.
+If the contract requires **summing all lines exactly, then rounding the total to 2 decimal places using `HALF_UP`**, the result is `0.02`. If an "optimization" rounds **each line** before summing, the result is `0.03`. You cannot call these two approaches equivalent because they implement two different business policies.
 
-**Mục tiêu bài học:** xác định hợp đồng chính xác của phép toán số; nhận diện thay đổi ngữ nghĩa khi tối ưu; ưu tiên những cải tiến giữ nguyên kết quả; đo hiệu năng đúng phương pháp; và kiểm chứng cả tính đúng đắn lẫn lợi ích hiệu năng trong Java 17+.
+**Lesson goals:** define the exactness contract of numeric operations; identify semantic changes during optimization; prioritize improvements that preserve results; measure performance properly; and verify both correctness and performance gains in Java 17+.
 
-Bài thuộc chủ đề **Hiệu năng của Java core - numbers**. Trọng tâm là phép tính số trong một chương trình Java. Hợp đồng dữ liệu với cơ sở dữ liệu hoặc API là phần mở rộng cần đối chiếu khi quyết định quy tắc lưu/trao đổi.
+This lesson belongs to the **Performance in Java Core - Numbers** topic. The focus is numeric computation within a Java program. Data contracts with databases or APIs are an extension you must cross-check when deciding storage and exchange rules.
 
-## 2. “Đúng” nghĩa là gì: hợp đồng số học trước benchmark
+## 2. What Does "Correct" Mean: Arithmetic Contracts Before Benchmarks
 
-Không có khái niệm “nhanh và đủ chính xác” mang tính phổ quát. Trước khi sửa code, cần trả lời rõ những yêu cầu dưới đây:
+There is no universal concept of "fast and accurate enough". Before modifying code, clearly answer the requirements below:
 
-| Thuộc tính hợp đồng | Câu hỏi cần chốt | Ví dụ |
+| Contract attribute | Question to lock down | Example |
 | --- | --- | --- |
-| **Miền dữ liệu** | Âm, dương, 0, số rất lớn/rất nhỏ; có NaN/vô cực không? | Số lượng phải không âm, giới hạn trên xác định |
-| **Kiểu và miền biểu diễn** | `int`, `long`, `BigInteger`, `double`, `BigDecimal`? | Tổng không được vượt miền `long` |
-| **Độ chính xác** | Chính xác tuyệt đối, precision hữu hạn, hay sai số được định lượng? | Giá trị thập phân phải chính xác đến đơn vị 0.01 |
-| **Điểm làm tròn** | Làm tròn mỗi đơn vị, mỗi dòng hay cuối phép tính? | `HALF_UP` một lần khi chốt tổng |
-| **Chế độ làm tròn** | `HALF_EVEN`, `HALF_UP`, `DOWN`, `UNNECESSARY`...? | Từ chối dữ liệu có quá 2 chữ số có nghĩa sau dấu phẩy |
-| **Scale/định dạng** | Cần giá trị hay cả biểu diễn (`1.0` khác `1.00`)? | Lưu tiền với `scale = 2` |
-| **Tràn số/ngoại lệ** | Tràn được phép quay vòng, bão hòa hay phải ném lỗi? | `Math.addExact` từ chối tràn |
-| **Thứ tự và tính tái lập** | Kết quả phải trùng từng bit hay chỉ trong ngưỡng sai số? | Cùng input tạo cùng output trên môi trường mục tiêu |
-| **Giá trị đặc biệt** | Có chấp nhận `NaN`, `+0.0`, `-0.0`, `Infinity` không? | Thống kê không được âm thầm bỏ `NaN` |
-| **Đơn vị/ngữ nghĩa** | Xu, đồng, mili giây, phần trăm, tỷ lệ hay số đếm? | Không tự đổi đơn vị khi đổi kiểu lưu |
+| **Data domain** | Negative, positive, 0, very large/very small; any NaN/infinity? | Quantities must be non-negative, defined upper bound |
+| **Type and representation range** | `int`, `long`, `BigInteger`, `double`, `BigDecimal`? | Sum must not exceed `long` range |
+| **Precision** | Absolute exactness, finite precision, or quantified error? | Decimal values must be exact to 0.01 units |
+| **Rounding point** | Round per unit, per line, or at end of calculation? | `HALF_UP` once when finalizing total |
+| **Rounding mode** | `HALF_EVEN`, `HALF_UP`, `DOWN`, `UNNECESSARY`...? | Reject data with more than 2 digits after decimal point |
+| **Scale/format** | Value only, or representation too (`1.0` differs from `1.00`)? | Store money with `scale = 2` |
+| **Overflow/exceptions** | Wrap around, saturate, or must throw error on overflow? | `Math.addExact` rejects overflow |
+| **Order and reproducibility** | Must results match bit-for-bit, or stay within error tolerance? | Same input produces same output on target environment |
+| **Special values** | Are `NaN`, `+0.0`, `-0.0`, `Infinity` accepted? | Statistics must not silently drop `NaN` |
+| **Units/semantics** | Cents, VND, milliseconds, percentages, ratios, or counts? | Never silently switch units when changing storage type |
 
-Phải quyết định **sự tương đương** được kiểm thử bằng tiêu chí nào:
+You must decide which criterion tests **equivalence**:
 
-- **Đúng bằng về số học:** `BigDecimal.compareTo(other) == 0` khi không quan tâm scale.
-- **Đúng cả biểu diễn:** `BigDecimal.equals(other)` khi scale cũng là một phần hợp đồng.
-- **Đúng đến số chữ số quy định:** áp dụng rounding/scale tại ranh giới đã định, sau đó so sánh.
-- **Sai số có giới hạn:** ví dụ công thức khoa học cho phép absolute error hoặc relative error dưới ngưỡng được mô tả cẩn thận; ngưỡng này phải được phê duyệt theo bài toán, không suy diễn từ thời gian chạy.
-- **Đúng cả hành vi lỗi:** cùng input không hợp lệ phải tiếp tục bị từ chối; không được biến tràn hoặc chia không chính xác thành một kết quả giả.
+- **Equal arithmetically:** `BigDecimal.compareTo(other) == 0` when scale does not matter.
+- **Equal in representation too:** `BigDecimal.equals(other)` when scale is also part of the contract.
+- **Equal to a specified number of digits:** apply rounding/scale at the defined boundary, then compare.
+- **Bounded error:** e.g., scientific formulas permitting absolute or relative error below a carefully specified threshold; this threshold must be approved by the problem domain, not inferred from runtime.
+- **Matching error behavior too:** the same invalid inputs must continue to be rejected; overflow or non-exact division must not be turned into a bogus result.
 
-Một tối ưu chỉ được coi **giữ nguyên hợp đồng** khi đáp ứng toàn bộ thuộc tính có ý nghĩa. Benchmark không thể chứng minh một phép tính sai trở nên đúng.
+An optimization is considered **contract-preserving** only when it satisfies every meaningful attribute. A benchmark cannot prove an incorrect calculation has become right.
 
-## 3. Vì sao đổi `BigDecimal` sang `double` có thể phá hợp đồng?
+## 3. Why Can Switching `BigDecimal` to `double` Break the Contract?
 
-`double` theo IEEE 754 là số dấu phẩy động nhị phân có độ chính xác hữu hạn. Nhiều phân số thập phân như `0.1` và `0.2` không biểu diễn chính xác dưới dạng nhị phân hữu hạn.
+IEEE 754 `double` is a binary floating-point number with finite precision. Many decimal fractions such as `0.1` and `0.2` are not exactly representable in finite binary.
 
 ```java
 import java.math.BigDecimal;
@@ -61,11 +61,11 @@ System.out.println(exact.toPlainString());     // 0.3
 System.out.println(viaDouble.toPlainString()); // 0.30000000000000004
 ```
 
-Đây là đoạn mã *nhúng*, cần đặt trong `main` hoặc phương thức khác. `BigDecimal.valueOf(double)` chuyển kết quả `double` đã có thành dạng thập phân theo `Double.toString`; nó **không khôi phục** giá trị chính xác của hai toán hạng thập phân gốc.
+This is an *embedded* snippet that needs to be placed inside `main` or another method. `BigDecimal.valueOf(double)` converts an already-existing `double` result into decimal form per `Double.toString`; it **does not recover** the exact values of the two original decimal operands.
 
-Nếu nghiệp vụ yêu cầu tổng thập phân chính xác, thay `BigDecimal` bằng `double` chỉ để giảm allocation là thay đổi sai. Nếu nghiệp vụ ngay từ đầu cho phép sai số nhị phân đã công bố, `double` có thể là lựa chọn hợp lệ; nhưng đó là **quyết định hợp đồng**, không phải tối ưu tùy tiện.
+If business logic demands an exact decimal sum, replacing `BigDecimal` with `double` merely to reduce allocations is a wrong change. If the business domain from the outset allows a documented binary error margin, `double` may be a valid choice; however, that is a **contract decision**, not an arbitrary optimization.
 
-### 3.1. `MathContext.precision` không phải tham số “càng nhỏ càng nhanh càng tốt”
+### 3.1. `MathContext.precision` is not a "smaller is faster and better" knob
 
 ```java
 import java.math.MathContext;
@@ -83,29 +83,29 @@ BigDecimal p12 = one.divide(
 // p12 = 0.333333333333
 ```
 
-Giảm precision thay đổi số chữ số có nghĩa, có thể đổi kết quả ở các bước tính tiếp theo. Nếu bài toán đòi 12 chữ số có nghĩa, đổi sang 6 chỉ để tiết kiệm CPU **vi phạm hợp đồng**. `MathContext.UNLIMITED` có thể ném `ArithmeticException` khi phép chia không có biểu diễn thập phân hữu hạn, chẳng hạn `1 / 3`; không được tự trả 0 hoặc một xấp xỉ thiếu cơ sở để né ngoại lệ.
+Reducing precision changes the number of significant digits and can alter results in subsequent steps. If a problem demands 12 significant digits, changing to 6 just to save CPU **violates the contract**. `MathContext.UNLIMITED` can throw `ArithmeticException` when division has no finite decimal representation, such as `1 / 3`; do not return 0 or an ungrounded approximation to evade the exception.
 
-### 3.2. `setScale` không tương đương với `round(MathContext)`
+### 3.2. `setScale` is not equivalent to `round(MathContext)`
 
-- `setScale(2, HALF_EVEN)` quyết định **hai chữ số sau dấu thập phân**.
-- `round(new MathContext(2, HALF_EVEN))` quyết định **hai chữ số có nghĩa**.
+- `setScale(2, HALF_EVEN)` determines **two digits after the decimal point**.
+- `round(new MathContext(2, HALF_EVEN))` determines **two significant digits**.
 
-Với `123.45`, cách thứ nhất giữ `123.45` (đã có scale 2), cách thứ hai làm tròn thành xấp xỉ `120`. Không thay hai API cho nhau dù có thể giảm số phép toán.
+For `123.45`, the first preserves `123.45` (already scale 2), whereas the second rounds to roughly `120`. Never swap the two APIs for each other even if it might reduce operations.
 
-### 3.3. Không lược bỏ `RoundingMode.UNNECESSARY`
+### 3.3. Do not remove `RoundingMode.UNNECESSARY`
 
 ```java
 new BigDecimal("1.234").setScale(2, RoundingMode.UNNECESSARY);
-// ArithmeticException vì cần bỏ chữ số có giá trị.
+// ArithmeticException because significant digits would be discarded.
 ```
 
-Nếu chính sách là **từ chối** số có quá nhiều chữ số thập phân có giá trị, đổi thành `setScale(2, HALF_UP)` là chấp nhận dữ liệu trước đây bị từ chối. Đây là thay đổi validation nghiệp vụ. Việc dữ liệu được xử lý “trơn tru hơn” không chứng minh kết quả đúng.
+If the policy is to **reject** numbers with too many significant fractional digits, changing to `setScale(2, HALF_UP)` accepts data that was previously rejected. That is a business validation change. Data being processed "more smoothly" does not prove the result is right.
 
-## 4. Vị trí làm tròn là một phần của hợp đồng
+## 4. Rounding Placement Is Part of the Contract
 
-Dữ liệu: ba dòng `0.005`, `0.005`, `0.005`, rounding mode `HALF_UP`, scale đầu ra 2.
+Data: three lines `0.005`, `0.005`, `0.005`, rounding mode `HALF_UP`, output scale 2.
 
-**Chính sách A — làm tròn tổng cuối:**
+**Policy A — round the final total:**
 
 ```java
 BigDecimal total = new BigDecimal("0.005")
@@ -115,7 +115,7 @@ BigDecimal total = new BigDecimal("0.005")
 // 0.02
 ```
 
-**Chính sách B — làm tròn từng dòng trước khi cộng:**
+**Policy B — round each line before summing:**
 
 ```java
 BigDecimal line = new BigDecimal("0.005")
@@ -124,15 +124,15 @@ BigDecimal line = new BigDecimal("0.005")
 BigDecimal total = line.add(line).add(line); // 0.03
 ```
 
-Cả hai cách đều có thể có lý do nghiệp vụ. Nhưng chúng **không thay thế được cho nhau**. Đừng kéo `setScale()` vào trong vòng lặp, đưa ra ngoài vòng lặp hoặc đổi thời điểm kết toán nếu không xác nhận yêu cầu làm tròn.
+Both approaches can have valid business reasons. Yet they are **not interchangeable**. Do not pull `setScale()` into a loop, hoist it out of a loop, or move settlement timing without confirming rounding requirements.
 
-Phép cộng `BigDecimal.add` **không truyền `MathContext`** là phép cộng chính xác trong miền biểu diễn và tài nguyên cho phép. Nếu mỗi bước `add` được truyền một `MathContext`, một phép cộng có thể làm tròn ở từng bước; đổi thứ tự/lược bớt context có thể thay đổi kết quả. Tương tự với `multiply`, `divide` và `pow` có context.
+`BigDecimal.add` **without passing a `MathContext`** is exact addition within representation and resource limits. If each `add` step receives a `MathContext`, an addition can round at each step; reordering or omitting the context can change the result. The same applies to `multiply`, `divide`, and `pow` with a context.
 
-### 4.1. Rounding hai lần (*double rounding*)
+### 4.1. Double rounding
 
-Nếu một pipeline làm tròn tới precision trung gian rồi lại `setScale` để hiển thị, chữ số trung gian bị bỏ có thể khiến lần làm tròn cuối lệch so với làm tròn một lần trên giá trị toán học chính xác. Vì vậy, nếu muốn “precision phụ để tăng tốc”, hãy chứng minh ràng buộc sai số của toàn pipeline. Không có một số chữ số dự phòng cố định phù hợp mọi phép tính.
+If a pipeline rounds to an intermediate precision and then calls `setScale` for display, dropped intermediate digits can cause the final rounding to diverge from rounding once on the exact mathematical value. Therefore, if you want "extra precision for speed", prove the error bound of the entire pipeline. There is no fixed number of guard digits suitable for all calculations.
 
-### 4.2. `stripTrailingZeros()` và biểu diễn cũng có thể là ngữ nghĩa
+### 4.2. `stripTrailingZeros()` and representation can also carry semantics
 
 ```java
 BigDecimal left = new BigDecimal("1.0");
@@ -142,11 +142,11 @@ System.out.println(left.compareTo(right) == 0); // true
 System.out.println(left.equals(right));          // false
 ```
 
-Chuẩn hóa bằng `stripTrailingZeros` có thể thích hợp cho khóa số học, nhưng đổi `scale` và kết quả của `equals`/`hashCode`; giá trị như `1000.00` có thể trở thành `1E+3` (scale âm). Đừng vô điều kiện loại số 0 cuối để giảm kích thước/chi phí khi ứng dụng cần bảo toàn đơn vị đo, văn bản đầu vào, kết quả JSON hoặc khóa phân biệt scale.
+Normalizing with `stripTrailingZeros` can work well for numeric keys, but it changes `scale` and the results of `equals`/`hashCode`; values like `1000.00` can become `1E+3` (negative scale). Do not unconditionally strip trailing zeros to reduce size/cost when the application needs to preserve measurement units, input text, JSON outputs, or scale-sensitive keys.
 
-## 5. Không đánh đổi quy tắc tràn số lấy tốc độ
+## 5. Never Trade Overflow Rules for Speed
 
-`int` và `long` là các số nguyên có phạm vi hữu hạn. Trong Java, phép cộng/nhân nguyên thông thường có thể tràn và quay vòng theo biểu diễn hai bù. Nếu hợp đồng **yêu cầu phát hiện tràn**, hãy dùng `Math.addExact`, `Math.multiplyExact`, `Math.subtractExact` theo kiểu phù hợp:
+`int` and `long` are finite-range integers. In Java, ordinary integer addition/multiplication can overflow and wrap around under two's complement representation. If the contract **requires detecting overflow**, use `Math.addExact`, `Math.multiplyExact`, `Math.subtractExact` for the appropriate type:
 
 ```java
 long current = 5_000L;
@@ -157,19 +157,19 @@ BigDecimal amount = BigDecimal.valueOf(cents, 2);
 System.out.println(amount.toPlainString()); // 125.25
 ```
 
-Lưu **đơn vị nhỏ nhất** bằng `long` có thể là một thiết kế hiệu quả và chính xác cho miền có thang đo cố định (ví dụ xu), **nếu** đáp ứng các điều kiện:
+Storing **minor units** in `long` can be an efficient and exact design for fixed-scale domains (such as cents), **provided** these conditions hold:
 
-1. Toàn bộ giá trị đầu vào có thể đổi **chính xác** sang đơn vị nhỏ nhất.
-2. Chính sách rounding của hệ thống được áp dụng đúng ở ranh giới chuyển đổi.
-3. Số nhỏ nhất/lớn nhất và mọi phép tính trung gian không vượt miền `long`.
-4. Phép chia, tỷ lệ/thuế và phần dư được xử lý theo đúng hợp đồng, không âm thầm dùng chia nguyên.
-5. Định dạng, lưu trữ và giao tiếp giữ nguyên đơn vị và `scale` mong muốn.
+1. All input values can be converted **exactly** to minor units.
+2. The system's rounding policy is applied properly at the conversion boundary.
+3. Minimum/maximum values and all intermediate calculations never exceed the `long` range.
+4. Division, rates/taxes, and remainders are handled per the contract without silently using integer division.
+5. Formatting, storage, and communication preserve the expected unit and `scale`.
 
-Ví dụ `BigDecimal.valueOf(cents, 2)` tạo giá trị thập phân theo đơn vị xu mà không đi qua `double`. Nếu hợp đồng cần số chữ số thập phân biến đổi hoặc giá trị vượt miền `long`, cách lưu đơn vị nhỏ nhất bằng `long` có thể **không phù hợp**.
+For example, `BigDecimal.valueOf(cents, 2)` creates a decimal value from cents without going through `double`. If the contract requires variable fractional digits or values exceeding the `long` range, storing minor units in `long` may be **inappropriate**.
 
-### 5.1. Khi cần số nguyên vượt miền `long`
+### 5.1. When integers exceeding `long` range are needed
 
-Dùng `BigInteger` cho phép tính chính xác không bị tràn theo kích thước cố định:
+Use `BigInteger` for exact calculations that do not overflow a fixed width:
 
 ```java
 import java.math.BigInteger;
@@ -181,13 +181,13 @@ for (int n = 2; n <= 21; n++) {
 System.out.println(factorial); // 51090942171709440000
 ```
 
-`21!` vượt `Long.MAX_VALUE`. Thay `BigInteger` bằng `long` để nhanh hơn mà không có kiểm tra miền sẽ làm sai giá trị. Ngược lại, nếu toàn miền dữ liệu được chứng minh chắc chắn nằm trong `long`, có thể cân nhắc thiết kế `long` và dùng checked arithmetic, kiểm thử ranh giới và công bố bất biến đó.
+`21!` exceeds `Long.MAX_VALUE`. Replacing `BigInteger` with `long` to go faster without range validation will corrupt the value. Conversely, if the entire data domain is firmly proven to fit within `long`, you can consider a `long` design with checked arithmetic, boundary tests, and explicitly documented invariants.
 
-**Atomicity không chữa tràn số:** `AtomicLong.incrementAndGet()` bảo vệ cập nhật concurrent nhưng vẫn có thể quay vòng nếu vượt phạm vi `long`. Khi số đếm tuyệt đối không được tràn, phải kết hợp quy tắc miền và cập nhật có điều kiện phù hợp.
+**Atomicity does not cure overflow:** `AtomicLong.incrementAndGet()` protects concurrent updates yet still wraps around if it exceeds `long` bounds. When counters must never overflow, combine domain rules with appropriate conditional updates.
 
-## 6. Số dấu phẩy động, thứ tự cộng và tính tái lập
+## 6. Floating-Point Numbers, Addition Order, and Reproducibility
 
-Với `float`/`double`, phép cộng không luôn kết hợp theo nghĩa toán học khi có làm tròn:
+With `float`/`double`, addition is not always mathematically associative when rounding occurs:
 
 ```java
 double a = 1e16;
@@ -198,84 +198,84 @@ System.out.println((a + b) + c); // 1.0
 System.out.println(a + (b + c)); // 0.0
 ```
 
-Biểu thức `b + c` làm mất `1.0` do độ lớn chênh lệch. Vì vậy thay một vòng lặp tuần tự bằng phép reduction song song, đổi thứ tự phần tử hoặc nhóm cặp hạng để “tăng throughput” **có thể đổi kết quả**, ngay cả khi không đổi kiểu `double`.
+The expression `b + c` loses `1.0` due to the magnitude gap. Thus, replacing a sequential loop with parallel reduction, reordering elements, or pairing terms to "increase throughput" **can change the result**, even without changing the `double` type.
 
-Những vấn đề cần xét trong hợp đồng:
+Questions to examine in the contract:
 
-- Có yêu cầu trùng bit giữa các lần chạy hay chỉ yêu cầu sai số trong ngưỡng đã phê duyệt?
-- Cách cộng đã được định nghĩa theo thứ tự phần tử chưa?
-- Có hỗ trợ `NaN`, `Infinity`, signed zero (`-0.0`/`+0.0`), overflow/underflow không?
-- Có cần thuật toán ổn định hơn, ví dụ cộng bù (*compensated summation*) hay tổng đôi/cặp, để giảm sai số?
-- Các phép biến đổi của compiler/JVM và thư viện số trong JDK mục tiêu có được đặc tả phù hợp không?
+- Is bit-for-bit reproducibility required across runs, or only error within an approved tolerance?
+- Is summation defined according to element order?
+- Are `NaN`, `Infinity`, signed zero (`-0.0`/`+0.0`), and overflow/underflow supported?
+- Is a more stable algorithm needed, such as compensated summation or pairwise summation, to reduce error?
+- Are compiler/JVM transformations and math libraries in the target JDK specified appropriately?
 
-Kỹ thuật tăng độ ổn định số học có thể *cải thiện sai số*, nhưng nếu nó đổi output cũ thì vẫn phải kiểm chứng so với hợp đồng. Nếu hợp đồng yêu cầu kết quả từng bit giống thuật toán cũ, “chính xác hơn” vẫn có thể là thay đổi không tương thích.
+Techniques that improve numerical stability may *reduce error*, yet if they alter legacy outputs they still must be verified against the contract. If the contract demands bit-identical results with the old algorithm, "more accurate" can still be a breaking change.
 
-Java 17 luôn sử dụng semantics floating-point chặt theo quy tắc ngôn ngữ (*always-strict floating-point semantics*); điều đó không biến `double` thành số thập phân chính xác và không khiến phép cộng trở nên kết hợp.
+Java 17 always uses strict floating-point semantics per language rules (*always-strict floating-point semantics*); that does not turn `double` into an exact decimal number and does not make addition associative.
 
-### 6.1. Với `BigDecimal`, thứ tự tính và context vẫn quan trọng
+### 6.1. Even with `BigDecimal`, calculation order and context still matter
 
-Cộng `BigDecimal` chính xác, không dùng `MathContext`, thường bảo toàn cùng một giá trị toán học bất kể cách nhóm phép cộng; tuy nhiên biểu diễn `scale` và việc tạo đối tượng vẫn có thể quan trọng với API. Khi áp dụng `MathContext` ở các bước trung gian, thứ tự tính có thể làm thay đổi các lần làm tròn. Vì vậy không hoán đổi phép toán, song song hóa hay vector hóa mà bỏ qua vị trí rounding đã quy định.
+Exact `BigDecimal` addition, without `MathContext`, generally preserves the same mathematical value regardless of how additions are grouped; however, `scale` representation and object creation can still matter to APIs. When `MathContext` is applied at intermediate steps, evaluation order can change individual roundings. Therefore, never reorder operations, parallelize, or vectorize while ignoring defined rounding points.
 
-## 7. Các tối ưu nên xét trước khi giảm độ chính xác
+## 7. Optimizations to Consider Before Reducing Exactness
 
-Những cải tiến dưới đây thường bảo toàn quy tắc tính toán hơn, **nhưng vẫn cần kiểm chứng với hợp đồng cụ thể**.
+The following improvements generally preserve computation rules better, **yet still require verification against the specific contract**.
 
-### 7.1. Chọn thuật toán tốt hơn
+### 7.1. Choose a better algorithm
 
-Tránh tính lại cùng một giá trị không thay đổi; dùng precomputation/cache cho kết quả của hàm thuần túy nếu khóa cache chứa **mọi tham số ngữ nghĩa**: operands, rounding mode, precision, scale, đơn vị và phiên bản quy tắc. Với đầu vào nhiều số rất lớn, kiểm tra độ phức tạp thuật toán, giới hạn lặp và bộ nhớ thay vì cắt bớt chữ số.
+Avoid recomputing the same unchanged value; use precomputation/caching for pure functions as long as the cache key includes **every semantic parameter**: operands, rounding mode, precision, scale, units, and rule version. For inputs with very large numbers, inspect algorithmic complexity, loop limits, and memory rather than truncating digits.
 
-Nếu một báo cáo cần min/max/count, `IntStream.summaryStatistics()` có thể duyệt một lượt thay vì dựng nhiều stream; nhưng phải giữ đúng cách xử lý rỗng và tràn tổng, không dựa vào giá trị khởi tạo min/max khi count bằng 0.
+If a report needs min/max/count, `IntStream.summaryStatistics()` can perform a single pass instead of building multiple streams; however, preserve empty-stream handling and sum overflow behavior, and do not rely on initial min/max values when count is 0.
 
-### 7.2. Loại việc cấp phát/chuyển đổi không cần thiết
+### 7.2. Eliminate unnecessary allocations and conversions
 
-**Tốt hơn cho dữ liệu đã đúng kiểu:**
+**Better when data is already the right type:**
 
 ```java
 static BigDecimal sumAmounts(List<BigDecimal> values) {
     BigDecimal total = BigDecimal.ZERO;
     for (BigDecimal value : values) {
-        total = total.add(value); // chính xác, không chuyển qua double
+        total = total.add(value); // exact, without converting through double
     }
     return total;
 }
 ```
 
-Hàm trên cần `import java.math.BigDecimal; import java.util.List;` và là một phương thức *nhúng*. `BigDecimal` bất biến nên các phép cộng có thể tạo đối tượng mới; không thể “sửa” đối tượng hiện có bằng `+=`.
+The method above requires `import java.math.BigDecimal; import java.util.List;` and is an *embedded* method. `BigDecimal` is immutable so additions may create new objects; you cannot "mutate" an existing object with `+=`.
 
-Nếu đầu vào đến dưới dạng `String`, parse **một lần ở ranh giới** vào kiểu phù hợp; tránh liên tục đổi `BigDecimal -> String -> double -> BigDecimal` trong hot path. Có thể giữ constant/context dùng chung cho cùng một chính sách:
+If inputs arrive as `String`, parse **once at the boundary** into the right type; avoid repeatedly converting `BigDecimal -> String -> double -> BigDecimal` on the hot path. You can keep shared constants/contexts for the same policy:
 
 ```java
 static final MathContext MONEY_MC =
         new MathContext(18, RoundingMode.HALF_EVEN);
 ```
 
-`MathContext` bất biến và có thể tái sử dụng khi quy tắc tính toán giống nhau. Tuy nhiên không thay precision hoặc rounding mode của constant chỉ để giảm chi phí.
+`MathContext` is immutable and can be reused when calculation rules are identical. However, never change the constant's precision or rounding mode just to reduce cost.
 
-### 7.3. Tách phép tính số khỏi định dạng và I/O
+### 7.3. Separate numeric computation from formatting and I/O
 
-Nếu workload phải cộng một triệu giá trị, không gọi `toPlainString()`, formatter hoặc ghi log cho từng phép cộng trừ khi hợp đồng cần log từng bước. Thực hiện tính toán rồi định dạng tại **ranh giới xuất**. Nhưng nếu hợp đồng yêu cầu làm tròn/chuẩn hóa từng dòng, không được dời `setScale` sang cuối chỉ vì việc tạo đối tượng ít hơn.
+If a workload sums one million values, do not call `toPlainString()`, formatters, or logging on every addition unless the contract requires per-step logging. Perform computations first and format at the **output boundary**. However, if the contract requires per-line rounding/normalization, never defer `setScale` to the end merely because fewer objects are created.
 
-Tách allocation, serialization, log và truy cập DB khỏi vùng CPU nóng có thể có lợi mà không thay đổi kết quả số.
+Moving allocation, serialization, logging, and DB access out of the CPU hot zone can yield gains without altering numeric results.
 
-### 7.4. Dùng primitive đúng miền, với checked arithmetic
+### 7.4. Use primitives within proven domains, with checked arithmetic
 
-Nếu quy tắc dùng số nguyên và miền đã được chứng minh, `int`/`long` có thể tránh overhead của object. Tuy nhiên:
+If rules operate on integers and the range is proven, `int`/`long` can avoid object overhead. However:
 
-- `int` có miền nhỏ hơn `long`; chuyển `long` sang `int` có thể cắt dữ liệu.
-- `long` là số nguyên, không biểu diễn phân số trực tiếp; dùng đơn vị cố định với factor đã thỏa hợp đồng.
-- `Math.addExact`/`multiplyExact` giúp giữ quy tắc phát hiện tràn.
-- Không dùng phép chia nguyên nếu trước đây nghiệp vụ cho phép phân số.
-- Không giả định đổi sang kiểu primitive sẽ tự động nhanh hơn: đo thực tế.
+- `int` has a smaller range than `long`; casting `long` to `int` can truncate data.
+- `long` is an integer and cannot represent fractions directly; use fixed units with a contract-approved factor.
+- `Math.addExact`/`multiplyExact` help preserve overflow detection rules.
+- Never use integer division if business logic previously permitted fractions.
+- Do not assume switching to primitives is automatically faster: measure in practice.
 
-### 7.5. Điều chỉnh lưu trữ/cấu trúc dữ liệu, không điều chỉnh toán học
+### 7.5. Tune storage and data structures, not the math
 
-Với tập dữ liệu lớn, cách truy cập tuần tự, dung lượng cache CPU, lựa chọn array/collection, số lần boxing, batch I/O và concurrency có thể quyết định hiệu năng. Chọn cấu trúc phù hợp vẫn phải bảo đảm thứ tự, null handling, duplicate handling và ngữ nghĩa của dữ liệu.
+For large datasets, sequential access patterns, CPU cache capacity, array/collection choices, boxing frequency, I/O batching, and concurrency can dictate performance. Choosing an appropriate structure must still guarantee ordering, null handling, duplicate handling, and data semantics.
 
-Ví dụ `Arrays.stream(intArray).sum()` dùng `int` và có thể tràn; nếu tổng yêu cầu `long`, phải mở rộng đúng cách (`mapToLong`) và kiểm tra tràn phù hợp. Không chọn API tiện tay chỉ vì cú pháp ngắn hơn.
+For example, `Arrays.stream(intArray).sum()` uses `int` and can overflow; if the sum requires `long`, widen properly (`mapToLong`) and check overflow appropriately. Do not pick an API solely because its syntax is shorter.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh: nhìn thấy thay đổi hợp đồng
+## 8. Complete Java 17+ Example: Seeing Contract Changes
 
-Tạo file **`ExactnessPerformanceDemo.java`**:
+Create the file **`ExactnessPerformanceDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -284,7 +284,7 @@ import java.util.List;
 
 public class ExactnessPerformanceDemo {
 
-    // Hợp đồng A: cộng chính xác, chỉ làm tròn khi chốt tổng.
+    // Contract A: exact addition, rounding only at the final total.
     static BigDecimal roundAtTotal(List<String> values) {
         BigDecimal total = BigDecimal.ZERO;
         for (String text : values) {
@@ -293,7 +293,7 @@ public class ExactnessPerformanceDemo {
         return total.setScale(2, RoundingMode.HALF_UP);
     }
 
-    // Hợp đồng B: làm tròn mỗi dòng trước khi cộng.
+    // Contract B: rounding each line before summing.
     static BigDecimal roundPerItem(List<String> values) {
         BigDecimal total = BigDecimal.ZERO;
         for (String text : values) {
@@ -338,14 +338,14 @@ public class ExactnessPerformanceDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac ExactnessPerformanceDemo.java
 java ExactnessPerformanceDemo
 ```
 
-Stdout xác định:
+Deterministic stdout:
 
 ```text
 round at total = 0.02
@@ -358,131 +358,131 @@ numeric compare = true
 structural equals = false
 ```
 
-Điều chương trình chứng minh:
+What the program proves:
 
-1. **Thời điểm rounding là ngữ nghĩa.** Hai hàm dùng cùng dữ liệu, scale và `HALF_UP`, nhưng mỗi hàm làm tròn tại ranh giới khác nhau nên kết quả khác nhau.
-2. **Đổi sang `double` không bảo toàn thập phân.** Ngay cả ví dụ `0.1 + 0.2` đã có giá trị khác.
-3. **Dùng `long` với đơn vị nhỏ nhất có thể đúng khi miền cố định.** `Math.addExact` làm rõ hợp đồng tràn, `BigDecimal.valueOf(cents, 2)` khôi phục biểu diễn hai chữ số thập phân mà không đi qua `double`.
-4. **`UNNECESSARY` là một quy tắc từ chối.** Đổi nó sang rounding mode khác sẽ thay đổi dữ liệu được hệ thống chấp nhận.
-5. **Giá trị số và biểu diễn là hai khái niệm.** `compareTo` coi `1.0` và `1.00` bằng nhau, `equals` thì không. Đừng loại bỏ scale để “tối ưu cache” nếu ứng dụng cần phân biệt chúng.
+1. **Rounding timing is semantic.** Both functions use the same data, scale, and `HALF_UP`, yet each rounds at a different boundary and yields a different result.
+2. **Switching to `double` does not preserve decimals.** Even `0.1 + 0.2` already produces a different value.
+3. **Using `long` with minor units can be correct when the domain is fixed.** `Math.addExact` makes the overflow contract explicit, and `BigDecimal.valueOf(cents, 2)` restores the two-decimal-place representation without passing through `double`.
+4. **`UNNECESSARY` is a rejection rule.** Changing it to another rounding mode alters which inputs the system accepts.
+5. **Numeric value and representation are two separate concepts.** `compareTo` treats `1.0` and `1.00` as equal, whereas `equals` does not. Do not strip scale to "optimize cache" if the application needs to distinguish them.
 
-Đây là bằng chứng về **tính đúng đắn**, không phải benchmark: không có kết luận nào về thời gian nhanh/chậm chỉ từ stdout của chương trình này.
+This is proof of **correctness**, not a benchmark: no conclusions about fast/slow execution times can be drawn from this program's stdout.
 
-## 9. Benchmark có ý nghĩa sau khi đã khóa hợp đồng
+## 9. Meaningful Benchmarks After Locking Down the Contract
 
-Quy trình tối ưu nên chạy theo thứ tự:
+An optimization workflow should proceed in order:
 
-1. **Viết đặc tả đầu ra và xử lý lỗi:** kiểu, miền giá trị, scale, precision, rounding mode, thời điểm rounding, overflow và ngoại lệ.
-2. **Tạo tập dữ liệu đối chiếu:** các giá trị bình thường và trường hợp biên. Giữ giá trị kỳ vọng được tính độc lập khi có thể.
-3. **Đo baseline:** ghi môi trường JDK, CPU, dung lượng heap, input size, mức tải đồng thời, throughput/latency/GC.
-4. **Tối ưu một yếu tố rõ ràng:** thuật toán, allocation, định dạng, cấu trúc dữ liệu, chi phí đồng bộ hoặc I/O.
-5. **Chạy kiểm thử hợp đồng trước:** đối chiếu kết quả, lỗi, scale, precision và điều kiện biên.
-6. **Đo lại theo cùng workload:** đánh giá trung vị, phân bố và độ nhiễu; chỉ giữ tối ưu khi có lợi ích đủ rõ và tính đúng đắn được bảo toàn.
-7. **Ghi lại quyết định:** vì sao thay đổi an toàn, giới hạn miền áp dụng và điều kiện phải benchmark lại.
+1. **Write the output and error-handling specification:** types, value ranges, scale, precision, rounding mode, rounding timing, overflow, and exceptions.
+2. **Create a reference dataset:** typical values and edge cases. Keep independently computed expected values whenever possible.
+3. **Measure baseline:** record JDK environment, CPU, heap size, input size, concurrency level, throughput/latency/GC.
+4. **Optimize one clear factor:** algorithm, allocation, formatting, data structure, synchronization cost, or I/O.
+5. **Run contract tests first:** verify results, errors, scale, precision, and boundary conditions.
+6. **Re-measure under the same workload:** inspect median, distribution, and noise; retain an optimization only when the gain is clear and correctness is preserved.
+7. **Document the decision:** why the change is safe, domain limits, and conditions requiring re-benchmarking.
 
-### 9.1. Vì sao không đo một lần với `System.nanoTime()`?
+### 9.1. Why not measure once with `System.nanoTime()`?
 
-JVM có JIT compilation, class loading, warmup, GC và tối ưu code dựa trên profiling. Benchmark một lần thường đo lẫn quá trình khởi động và các yếu tố không liên quan. Compiler cũng có thể loại bỏ phép tính không ảnh hưởng đầu ra (*dead-code elimination*); đo một vòng lặp như vậy có thể khiến phương pháp sai trông “cực nhanh”.
+The JVM performs JIT compilation, class loading, warmup, GC, and profile-guided optimizations. A single run often mixes startup overhead with unrelated factors. The compiler can also eliminate calculations that do not affect output (*dead-code elimination*); timing such a loop can make a flawed approach look "blazingly fast".
 
-Trong Java, JMH là thư viện benchmark vi mô thường được dùng để kiểm soát warmup, nhiều lần đo, fork JVM, tải song song và việc tiêu thụ kết quả thông qua `Blackhole`. Nhưng ngay cả JMH chỉ trả lời **hiệu năng của workload được đo**, không chứng minh tính tương đương số học.
+In Java, JMH is the microbenchmarking library commonly used to control warmup, repeated iterations, JVM forks, concurrent load, and result consumption via `Blackhole`. Yet even JMH only answers **the performance of the measured workload**; it does not prove arithmetic equivalence.
 
-### 9.2. Tách chi phí benchmark và chi phí sản phẩm
+### 9.2. Separate benchmark setup cost from production cost
 
-Ví dụ so sánh `BigDecimal` với một thuật toán long minor-units cần:
+For example, comparing `BigDecimal` against a `long` minor-units algorithm requires:
 
-- Chuẩn bị dữ liệu **ngoài đoạn đo** nếu chỉ benchmark phép cộng; hoặc đo cả parse/format nếu đó là một phần đường xử lý thực tế.
-- Dùng cùng input và quy tắc đơn vị, xác định overflow handling nhất quán.
-- Đánh giá chính sách làm tròn trên các đầu vào không phải bội của đơn vị nhỏ nhất.
-- Bảo đảm vòng đo tiêu thụ kết quả, không để JVM loại công việc.
-- Thử với kích thước dữ liệu vừa, lớn và giá trị ở ranh giới.
-- Đo GC/allocation nếu lý do tối ưu là giảm đối tượng, và đo tail latency nếu hệ thống nhạy với độ trễ.
+- Preparing data **outside the measured region** if only benchmarking addition; or including parsing/formatting if that is part of the actual processing path.
+- Using identical inputs and unit rules, with consistent overflow handling.
+- Evaluating rounding policy on inputs that are not multiples of the minor unit.
+- Ensuring the measurement loop consumes results so the JVM cannot eliminate work.
+- Testing medium sizes, large sizes, and boundary values.
+- Measuring GC/allocation if the optimization's goal is object reduction, and measuring tail latency if the system is latency-sensitive.
 
-Không được chỉ đo phương pháp mới trên các số “đẹp”, còn phương pháp cũ trên số cần làm tròn nhiều chữ số; workload khác nhau không chứng minh phương pháp mới vượt trội.
+Never measure the new method solely on "clean" numbers while testing the old method on numbers needing many rounding digits; differing workloads do not prove the new method is superior.
 
-## 10. Kiểm thử hồi quy: phải so cái gì?
+## 10. Regression Testing: What Must Be Compared?
 
-Tạo test ở đúng ranh giới mà nghiệp vụ có thể quan sát.
+Write tests right at the boundaries observable by the business domain.
 
-**Các case thập phân nên có:**
+**Decimal cases to include:**
 
-| Input/đặc điểm | Mục tiêu |
+| Input / characteristic | Goal |
 | --- | --- |
-| `"0.1" + "0.2"` | Phát hiện chuyển đổi qua `double` |
-| `0.005` lặp 3 lần | Phát hiện đổi điểm rounding |
-| `"1.0"` và `"1.00"` | Phân biệt giá trị số với scale |
-| `1.234` với scale 2 + `UNNECESSARY` | Giữ hành vi từ chối |
-| `Long.MAX_VALUE + 1` với `Math.addExact` | Kiểm tra overflow bị từ chối |
-| Số âm và điểm giữa như `-2.345`, `2.345`, `2.355` | Kiểm tra rounding mode |
-| Giá trị rất nhỏ và rất lớn | Kiểm tra precision/scale/exponent và miền kiểu |
-| Phép chia không kết thúc như `1/3` | Kiểm tra MathContext và ngoại lệ |
-| `NaN`, ±infinity, `-0.0` nếu dùng `double` | Kiểm tra quy tắc cho giá trị đặc biệt |
+| `"0.1" + "0.2"` | Detect conversion through `double` |
+| `0.005` repeated 3 times | Detect changed rounding point |
+| `"1.0"` and `"1.00"` | Distinguish numeric value from scale |
+| `1.234` with scale 2 + `UNNECESSARY` | Preserve rejection behavior |
+| `Long.MAX_VALUE + 1` with `Math.addExact` | Verify overflow is rejected |
+| Negative numbers and midpoints like `-2.345`, `2.345`, `2.355` | Verify rounding mode |
+| Very small and very large values | Verify precision/scale/exponent and type bounds |
+| Non-terminating division like `1/3` | Verify `MathContext` and exceptions |
+| `NaN`, ±infinity, `-0.0` if using `double` | Verify rules for special values |
 
-Nếu hợp đồng yêu cầu đúng đến xu, so sánh **giá trị và scale đã chuẩn hóa theo hợp đồng**, không lấy `doubleValue()` của hai `BigDecimal` rồi dùng `==`. Nếu hợp đồng yêu cầu giữ biểu diễn, kiểm tra `equals`, `scale()` hoặc chuỗi xuất. Nếu hợp đồng cho phép sai số, định nghĩa sai số tuyệt đối/tương đối phù hợp cả gần 0, cực lớn, `NaN` và vô cực.
+If the contract requires exactness to the cent, compare **contract-normalized values and scales**, rather than taking `doubleValue()` of two `BigDecimal` instances and using `==`. If the contract requires preserving representation, verify `equals`, `scale()`, or output strings. If the contract permits tolerance, define absolute/relative error appropriately near 0, at extremes, and for `NaN` and infinity.
 
-Có thể áp dụng **differential testing**: chạy bản baseline và bản tối ưu trên cùng tập dữ liệu, so kết quả theo đúng quan hệ tương đương đã đặc tả. Đây là cách phát hiện hồi quy, nhưng một baseline có bug không tự trở thành tiêu chuẩn đúng; khi có nghi ngờ, đối chiếu yêu cầu nghiệp vụ hoặc oracle độc lập.
+You can apply **differential testing**: run both the baseline and optimized versions on the same dataset and compare outputs under the specified equivalence relation. This catches regressions, though a buggy baseline does not automatically become the right standard; when in doubt, check business requirements or an independent oracle.
 
-### 10.1. Test tính đúng và test hiệu năng có nhiệm vụ khác nhau
+### 10.1. Correctness tests and performance tests have different jobs
 
-- Unit/property test: xác nhận tính đúng, phạm vi dữ liệu, ngoại lệ, rounding.
-- Benchmark: xác nhận thời gian/tài nguyên, mức dao động, khả năng mở rộng.
-- Integration test: xác nhận kiểu dữ liệu, database scale, serialization và toàn pipeline.
-- Kiểm thử concurrency: xác nhận trạng thái chia sẻ và thứ tự xử lý không làm mất hoặc thay đổi dữ liệu theo hợp đồng.
+- Unit/property tests: confirm correctness, data ranges, exceptions, and rounding.
+- Benchmarks: confirm timing/resources, variance, and scalability.
+- Integration tests: confirm data types, database scale, serialization, and the full pipeline.
+- Concurrency tests: confirm shared state and processing order do not drop or alter data under the contract.
 
-Một benchmark chạy nhanh và không ném exception vẫn có thể xuất ra số sai. Một unit test chạy đúng trên vài đầu vào vẫn không chứng minh hiệu năng trong môi trường production.
+A benchmark that runs fast and throws no exceptions can still output wrong numbers. A unit test that passes on a few inputs still does not prove production performance.
 
-## 11. Ra quyết định khi tối ưu khiến kết quả khác đi
+## 11. Making Decisions When an Optimization Changes Results
 
-Có những trường hợp lợi ích thời gian rất lớn khiến doanh nghiệp muốn chấp nhận độ chính xác thấp hơn. Điều này có thể hợp lệ **chỉ khi có thay đổi hợp đồng rõ ràng**, ví dụ thay yêu cầu “tính chính xác tuyệt đối” bằng “sai số tương đối dưới ngưỡng X trên miền Y”, với phương pháp đánh giá và tình huống không đáp ứng đã thống nhất.
+There are cases where the runtime gains are so large that the business wants to accept lower precision. This can be valid **only with an explicit contract change**, such as replacing "absolute exactness" with "relative error below threshold X over domain Y", with agreed evaluation methods and failure handling.
 
-Khi đề xuất như vậy, cần ghi rõ:
+When proposing such a change, state clearly:
 
-1. **Trước:** quy tắc đầu vào, output và lỗi hiện tại.
-2. **Sau:** kiểu/precision/rounding/sai số mới, những đầu vào thay đổi kết quả.
-3. **Ảnh hưởng:** tiền, thuế, giới hạn quota, quyết định so sánh, downstream API, định dạng và audit.
-4. **Mức độ chấp nhận:** ai có quyền phê duyệt việc đổi hợp đồng; quy trình migration/backfill nếu dữ liệu đã lưu.
-5. **Bằng chứng:** test đối chiếu, phân tích sai số và benchmark trên workload thực.
-6. **Phương án phục hồi:** cờ cấu hình, version API hoặc rollback nếu cần.
+1. **Before:** current input, output, and error rules.
+2. **After:** new type/precision/rounding/error tolerance, and which inputs change results.
+3. **Impact:** money, taxes, quota limits, comparison decisions, downstream APIs, formatting, and auditing.
+4. **Acceptance level:** who has authority to approve the contract change; migration/backfill procedures for already-stored data.
+5. **Evidence:** differential tests, error analysis, and benchmarks on real workloads.
+6. **Recovery plan:** feature flags, API versioning, or rollback if needed.
 
-Nếu chưa có yêu cầu hoặc phê duyệt thay đổi hợp đồng, giữ nguyên tiêu chuẩn cũ và tìm những tối ưu an toàn hơn. Không âm thầm đánh đổi tính chính xác để đạt một ngưỡng throughput hoặc giảm vài mili giây.
+If there is no request or approval to change the contract, keep the existing standard and seek safer optimizations. Never silently sacrifice exactness to hit a throughput target or shave off a few milliseconds.
 
-## 12. Những sai lầm thường gặp
+## 12. Common Pitfalls
 
-| Sai lầm khi tối ưu | Hậu quả | Hướng đúng |
+| Optimization mistake | Consequence | Right approach |
 | --- | --- | --- |
-| Thay `BigDecimal` bằng `double` không đối chiếu yêu cầu | Khác giá trị thập phân, rounding/overflow/NaN | Xác nhận sai số cho phép trước; giữ BigDecimal nếu cần chính xác |
-| Hạ `MathContext` để làm nhanh | Mất chữ số có nghĩa ở phép tính hiện tại và bước sau | Giữ precision theo hợp đồng; tối ưu chi phí khác |
-| Di chuyển `setScale` từ cuối sang trong vòng lặp | Đổi vị trí rounding, sai tổng | Giữ nguyên ranh giới làm tròn |
-| Đổi `HALF_EVEN` sang `HALF_UP` tùy tiện | Khác kết quả tại điểm giữa | Rounding mode theo nghiệp vụ |
-| Bỏ `UNNECESSARY` | Chấp nhận input trước đây phải từ chối | Bảo toàn validation |
-| Đổi `BigInteger` sang `long` không xét miền | Tràn số | Chỉ đổi khi chứng minh miền, dùng checked arithmetic |
-| Dùng `int` cho tổng lớn vì ít tốn bộ nhớ | Tràn miền `int` | Tính đúng kích thước miền từ input và tổng |
-| Đưa reduction `double` sang song song rồi đòi output trùng bit | Thứ tự cộng khác, kết quả khác | Đặc tả thứ tự hoặc dung sai hợp lệ |
-| `stripTrailingZeros` mọi nơi | Mất scale/biểu diễn cần thiết | Chuẩn hóa chỉ ở ranh giới có hợp đồng tương ứng |
-| `BigDecimal.valueOf(doubleSum)` để “sửa” sai số double | Chỉ chuyển sai số đã có sang dạng thập phân | Tính trực tiếp từ dữ liệu decimal chính xác |
-| Chỉ benchmark mà không test số | Tối ưu sai có thể nhanh hơn | Đặt correctness gate trước performance gate |
-| Đo một lượt bằng `nanoTime()` | Dễ nhiễu bởi JIT/GC/OS | Benchmark có warmup, fork, nhiều mẫu và workload thích hợp |
-| Benchmark cả parse bản cũ nhưng bỏ parse ở bản mới | So sánh không công bằng | Đo cùng ranh giới xử lý và cùng input |
-| Dựa vào kết quả đầu ra trên vài số “đẹp” | Không thấy lỗi ở ranh giới | Test số âm, zero, large, tiny, ties, overflow, precision |
+| Replacing `BigDecimal` with `double` without checking requirements | Different decimal values, rounding/overflow/NaN issues | Confirm error tolerance first; keep BigDecimal if exactness is needed |
+| Lowering `MathContext` for speed | Loses significant digits in current and downstream steps | Keep contract precision; optimize other costs |
+| Moving `setScale` from end into the loop | Changes rounding point, corrupts total | Preserve rounding boundaries |
+| Changing `HALF_EVEN` to `HALF_UP` arbitrarily | Different results at midpoints | Rounding mode follows business rules |
+| Dropping `UNNECESSARY` | Accepts inputs previously rejected | Preserve validation |
+| Switching `BigInteger` to `long` without range checks | Integer overflow | Switch only when range is proven, use checked arithmetic |
+| Using `int` for large sums to save memory | Overflows `int` range | Size types properly from inputs and sums |
+| Parallelizing `double` reduction while expecting bit-identical output | Different addition order, different result | Specify order or valid tolerance |
+| Calling `stripTrailingZeros` everywhere | Loses required scale/representation | Normalize only at contract-approved boundaries |
+| `BigDecimal.valueOf(doubleSum)` to "fix" double error | Only converts existing error to decimal form | Compute directly from exact decimal data |
+| Benchmarking without numeric tests | Broken optimization can look faster | Place correctness gate before performance gate |
+| Timing a single run with `nanoTime()` | Easily skewed by JIT/GC/OS noise | Benchmark with warmup, forks, multiple samples, and proper workload |
+| Benchmarking parsing in old version but skipping parsing in new version | Unfair comparison | Measure same processing boundaries and same inputs |
+| Relying on output from a few "clean" numbers | Misses boundary bugs | Test negatives, zero, large, tiny, ties, overflow, precision |
 
-## 13. Bài tập áp dụng
+## 13. Applied Exercises
 
-1. Đội phát triển muốn thay mọi `BigDecimal` trong hệ thống tính thuế bằng `double` vì benchmark nhanh hơn. Bạn cần hỏi và kiểm chứng những điều gì trước khi chấp nhận?
-2. Có 1.000 dòng dữ liệu, mỗi dòng `0.005` đơn vị. Tính tổng theo chính sách “round từng dòng bằng HALF_UP” và “round một lần ở tổng”. Hai kết quả khác nhau thế nào? Chính sách nào đúng nếu hóa đơn được quy định là tổng của các dòng đã làm tròn?
-3. Một hàm `sum` đang dùng `Math.addExact` để từ chối overflow. Đổi sang phép cộng `+` thông thường có giữ hợp đồng không? Hãy lập case biên.
-4. Một chỉ số số thực được tổng hợp bằng `double`; bản mới dùng `parallelStream()` cho phép cộng. Vì sao khác biệt chữ số cuối không phải lúc nào cũng là bug, nhưng cũng không thể tự bỏ qua?
-5. Bạn có thể dùng `long` đếm xu thay `BigDecimal` trong hệ thống giá tiền khi nào? Hãy liệt kê quy tắc chuyển đổi, overflow và rounding.
-6. Nếu dữ liệu `"1.0"` và `"1.00"` dùng làm khóa `HashMap`, liệu thay bằng `stripTrailingZeros()` trong đường xử lý mới có thể ảnh hưởng kết quả tra cứu không?
-7. Lên kế hoạch benchmark cho một hàm xử lý 10 triệu giá trị, phân biệt chi phí parse, arithmetic, logging và serialization; đề xuất test hợp đồng trước khi đo.
+1. A development team wants to replace all `BigDecimal` usage in a tax system with `double` because benchmarks are faster. What must you ask and verify before accepting?
+2. There are 1,000 data rows, each `0.005` units. Calculate the total under "round each line with HALF_UP" and "round once at total". How do the two results differ? Which policy is right if an invoice is defined as the sum of rounded line items?
+3. A `sum` function currently uses `Math.addExact` to reject overflow. Does switching to ordinary `+` addition preserve the contract? Construct a boundary case.
+4. A floating-point metric is aggregated using `double`; the new version uses `parallelStream()` for addition. Why is a difference in the last digit not always a bug, yet cannot simply be ignored either?
+5. When can you use `long` counting cents instead of `BigDecimal` in a pricing system? List the conversion, overflow, and rounding rules.
+6. If `"1.0"` and `"1.00"` are used as `HashMap` keys, could replacing them with `stripTrailingZeros()` in a new code path affect lookups?
+7. Plan a benchmark for a function processing 10 million values, distinguishing parsing, arithmetic, logging, and serialization costs; propose contract tests before measuring.
 
-**Gợi ý:** (1) xác định rounding, scale, đơn vị, sai số, miền, serializing và đầu vào biên; không dựa duy nhất vào benchmark. (2) từng dòng thành `0.01` nên tổng `10.00`; làm tròn tổng `5.000` thành `5.00`. Nếu hóa đơn quy định cộng các dòng đã làm tròn, đáp án đúng là `10.00`. (3) không giữ hợp đồng: `Long.MAX_VALUE + 1` có thể quay vòng với `+`, nhưng `addExact` ném `ArithmeticException`. (4) phép cộng `double` không kết hợp, chỉ chấp nhận khác biệt nếu hợp đồng sai số/tái lập cho phép. (5) scale cố định, miền đủ, conversion chính xác, checked arithmetic và quy tắc làm tròn minh bạch. (6) có thể vì `equals/hashCode` xem scale như một phần của identity. (7) đo cùng pipeline, có warmup/fork; so correctness với oracle trước.
+**Hints:** (1) verify rounding, scale, units, error tolerance, domain, serialization, and boundary inputs; do not rely solely on benchmarks. (2) per-line rounds to `0.01` so total is `10.00`; rounding total `5.000` gives `5.00`. If the invoice defines the sum of rounded lines, `10.00` is right. (3) does not preserve contract: `Long.MAX_VALUE + 1` wraps with `+`, whereas `addExact` throws `ArithmeticException`. (4) `double` addition is non-associative, so differences are acceptable only if the error/reproducibility contract allows them. (5) fixed scale, sufficient range, exact conversion, checked arithmetic, and transparent rounding rules. (6) yes, because `equals/hashCode` treat scale as part of identity. (7) measure the same pipeline with warmup/forks; verify correctness against an oracle first.
 
-## 14. Ghi nhớ cho quyết định hiệu năng
+## 14. Takeaways for Performance Decisions
 
-Một tối ưu số học thành công phải có **hai bằng chứng độc lập**: (1) kết quả, lỗi và biểu diễn đáp ứng hợp đồng đã định; (2) thời gian hoặc tài nguyên thực sự được cải thiện trong workload đại diện. Những thay đổi như giảm precision, đổi kiểu số, đổi điểm rounding hay bỏ overflow check có thể làm thay đổi bài toán; không thực hiện chỉ để giảm thời gian.
+A successful arithmetic optimization must have **two independent proofs**: (1) results, errors, and representations satisfy the defined contract; (2) runtime or resources actually improve under a representative workload. Changes such as lowering precision, swapping numeric types, moving rounding points, or dropping overflow checks can alter the problem itself; never make them merely to reduce runtime.
 
-Ưu tiên cải thiện thuật toán, tránh chuyển đổi thừa, cô lập format/I/O, lựa chọn cấu trúc dữ liệu phù hợp, cache kết quả thuần túy với khóa đầy đủ, và benchmark có kiểm soát. Khi cần đánh đổi độ chính xác, định nghĩa đó là **thay đổi hợp đồng có chủ đích**, với phạm vi áp dụng, sai số, test và phê duyệt rõ ràng.
+Prioritize algorithmic improvements, avoid redundant conversions, isolate formatting/I/O, choose suitable data structures, cache pure results with complete keys, and benchmark under controlled conditions. When trading off exactness is necessary, define it as an **intentional contract change**, with explicit scope, error bounds, tests, and approval.
 
-Tài liệu Java 17 tham khảo:
+Java 17 references:
 - [`BigDecimal`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html), [`MathContext`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html), [`RoundingMode`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html).
 - [`BigInteger`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html), [`Math`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html), [`Double`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html).
-- [Java Language Specification §15, §17](https://docs.oracle.com/javase/specs/jls/se17/html/index.html) cho quy tắc biểu thức số và thực thi Java.
+- [Java Language Specification §15, §17](https://docs.oracle.com/javase/specs/jls/se17/html/index.html) for numeric expression and Java execution rules.
